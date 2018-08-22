@@ -2,11 +2,15 @@
 
 FC = mpif90
 FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
-#FCFLAGS=-O0 -fpe0 -check bounds -real-size 64 -traceback -unroll=4 -ip
 LIPNAG =
-LIBHYPRE = /home/atmodynamics/achatz/Installation/hypre-2.11.2/src/lib
+LIBHYPRE = /home/atmodynamics/boeloeni/Hypre/hypre-2.11.2/src/lib
 
-OBJ =	types.o \
+# define directories for sources and binaries (GSV 072018)
+BIN = ./bin
+BUILD = ./build
+SOURCE = ./src
+
+OFILES =	types.o \
 	mpi.o \
 	timeScheme.o \
 	algebra.o \
@@ -24,48 +28,52 @@ OBJ =	types.o \
 	finish.o \
 	pinc.o
 
+# add build directory as prefix to path of %.o files
+OBJ=$(addprefix $(BUILD)/, $(OFILES))
+
 # general rules
-%.o: %.f90 
-	$(FC) $(FCFLAGS) -c $<
+$(BUILD)/%.o: $(SOURCE)/%.f90
+	$(FC) $(FCFLAGS) -module $(BUILD) -c $< -o $@
 
 # the main target
 pinc:$(OBJ)
-	$(FC) $(FCFLAGS) -o pinc $(OBJ) $(LIPNAG77) -L$(LIBHYPRE) -lHYPRE
+	$(FC) $(FCFLAGS) -o $(BIN)/pinc $(OBJ) $(LIPNAG77) -L$(LIBHYPRE) -lHYPRE
+
 #-------------------
 #  dependencies
 #-------------------
 
 # fluxes.f90
-fluxes.o: types.o
-fluxes.o: xweno.o
-fluxes.o: muscl.o
-fluxes.o: atmosphere.o
-fluxes.o: algebra.o
+$(BUILD)/fluxes.o: $(BUILD)/types.o
+$(BUILD)/fluxes.o: $(BUILD)/xweno.o
+$(BUILD)/fluxes.o: $(BUILD)/muscl.o
+$(BUILD)/fluxes.o: $(BUILD)/atmosphere.o
+$(BUILD)/fluxes.o: $(BUILD)/algebra.o
 
 
 # xweno.f90
-xweno.o: types.o
-xweno.o: debug.o
+$(BUILD)/xweno.o: $(BUILD)/types.o
+$(BUILD)/xweno.o: $(BUILD)/debug.o
 
 # debug.f90
-debug.o: types.o
-debug.o: atmosphere.o
+$(BUILD)/debug.o: $(BUILD)/types.o
+$(BUILD)/debug.o: $(BUILD)/atmosphere.o
 
 # poisson.f90
-poisson.o: types.o
-poisson.o: mpi.o
+$(BUILD)/poisson.o: $(BUILD)/types.o
+$(BUILD)/poisson.o: $(BUILD)/mpi.o
 
-mpi.o: fluxes.o
-mpi.o: types.o
-timeScheme.o: types.o
-atmosphere.o: types.o
-init.o: types.o
-muscl.o: types.o
-wkb.o: types.o
-boundary.o: types.o
-update.o: types.o
-output.o: types.o
-finish.o: types.o
+$(BUILD)/mpi.o: $(BUILD)/fluxes.o
+$(BUILD)/mpi.o: $(BUILD)/types.o
+$(BUILD)/timeScheme.o: $(BUILD)/types.o
+$(BUILD)/atmosphere.o: $(BUILD)/types.o
+$(BUILD)/init.o: $(BUILD)/types.o
+$(BUILD)/muscl.o: $(BUILD)/types.o
+$(BUILD)/wkb.o: $(BUILD)/types.o
+$(BUILD)/boundary.o: $(BUILD)/types.o
+$(BUILD)/update.o: $(BUILD)/types.o
+$(BUILD)/output.o: $(BUILD)/types.o
+$(BUILD)/finish.o: $(BUILD)/types.o
 
 
 
