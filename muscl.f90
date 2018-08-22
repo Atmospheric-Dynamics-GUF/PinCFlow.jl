@@ -252,10 +252,21 @@ contains
        deltaL = phi(i) - phi(i-1)
        deltaR = phi(i+1) - phi(i)
        
-       theta = deltaL / deltaR
+       if (deltaR == 0.) then
+           phiTilde(i,1) = phi(i)
+           phiTilde(i,0) = phi(i)
+          else if(deltaL == 0.) then
+           theta = deltaL / deltaR
        
-       phiTilde(i,1) = phi(i) + 0.5*limit(theta,limiterType) * deltaR
-       phiTilde(i,0) = phi(i) - 0.5*limit(1./theta, limiterType) * deltaL
+           phiTilde(i,1) = phi(i) + 0.5*limit(theta,limiterType) * deltaR
+           phiTilde(i,0) = phi(i)
+          else
+           theta = deltaL / deltaR
+       
+           phiTilde(i,1) = phi(i) + 0.5*limit(theta,limiterType) * deltaR
+           phiTilde(i,0) = phi(i) &
+                           - 0.5*limit(1./theta, limiterType) * deltaL
+       end if
        
        ! there is an alternative formulation without calculation of 1/theta
        ! ONLY valid for symmetric limiter functions...

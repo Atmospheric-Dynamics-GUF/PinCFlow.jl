@@ -66,6 +66,13 @@ module type_module
   integer :: nxx, nyy, nzz  ! grid size inclusive ghost cells
   integer :: nxyz           ! = nx*ny*nz
   
+  !--------------------------------------------------------------
+  !              for output global fields to single file
+  !--------------------------------------------------------------
+  
+  ! real*4, dimension(:,:), allocatable :: field_out
+  real*4, dimension(:,:), allocatable :: field_out
+  
   
 !  !-----------------------------------------------------------------!  
 !  !                         Grid & Domain
@@ -171,7 +178,9 @@ module type_module
   
   namelist / monochromeWave / lambda_dim, amplitudeFactor
 
-  
+
+! modified by Junhong Wei for 3DWP (20170828) *** starting line ***
+
   !---------------------------------------
   !         Gravity wave packet
   !---------------------------------------
@@ -180,31 +189,33 @@ module type_module
   ! 2) wavePacket2D and wavePacket2D_raytracer
   integer :: wavePacketDim
   integer :: wavePacketType
-  real :: lambdaX_dim, lambdaZ_dim
+  real :: lambdaX_dim, lambdaY_dim, lambdaZ_dim
   real :: meanFlowX_dim, meanFlowZ_dim
   real :: amplitudeFactor
   real :: sigma_dim
-  real :: sigma_hor_dim   ! modified by Junhong Wei (20170214)
+  real :: sigma_hor_dim, sigma_hor_yyy_dim   ! modified by Junhong Wei (20170214)
   real :: L_cos_dim
   integer :: omiSign
   real :: u0_jet_dim
   real :: z0_jet_dim
   real :: L_jet_dim
+  real :: xCenter_dim, yCenter_dim, zCenter_dim
   
   namelist / wavePacket / &
        &       wavePacketType, &
        &       wavePacketDim, &
-       &       lambdaX_dim, lambdaZ_dim, &
+       &       lambdaX_dim, lambdaY_dim, lambdaZ_dim, &
        &       meanFlowX_dim, meanFlowZ_dim, &
        &       amplitudeFactor, &
 !       &       xCenter_dim, zCenter_dim, sigma_dim, L_cos_dim, omiSign, &   ! modified by Junhong Wei (20170214)
-       &       xCenter_dim, zCenter_dim, sigma_dim, sigma_hor_dim, L_cos_dim, omiSign, &   ! modified by Junhong Wei (20170214)
+       &       xCenter_dim, yCenter_dim, zCenter_dim, sigma_dim, sigma_hor_dim, sigma_hor_yyy_dim, L_cos_dim, omiSign, &   ! modified by Junhong Wei (20170214)
        &       u0_jet_dim, z0_jet_dim, L_jet_dim
 
-   
+! modified by Junhong Wei for 3DWP (20170828) *** finishing line ***
   
   ! hotBubble, coldBubble, hotBubble3D
-  real :: dTheta0_dim, xRadius_dim, zRadius_dim, xCenter_dim, zCenter_dim
+!  real :: dTheta0_dim, xRadius_dim, zRadius_dim, xCenter_dim, zCenter_dim   ! modified by Junhong Wei for 3DWP (20170922)
+  real :: dTheta0_dim, xRadius_dim, zRadius_dim   ! modified by Junhong Wei for 3DWP (20170922)
   real :: zExcentricity
   namelist / bubble / &
        &       dTheta0_dim, xRadius_dim, zRadius_dim, &

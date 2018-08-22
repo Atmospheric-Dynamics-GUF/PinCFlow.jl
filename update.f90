@@ -68,8 +68,8 @@ contains
     ! return if sponge layer with relaxation is switched off
     if( .not. spongeLayer ) then 
        return
-    else
-       print*,"WARNING: Sponge layer with relaxation is on!"
+!   else
+!      print*,"WARNING: Sponge layer with relaxation is on!"
     end if
     
     ! nondimensionalize relaxation parameter   
@@ -994,9 +994,11 @@ contains
           
           ! check whether acceleration condition is needed
           duMax = bMax * dtConv
-          if(    duMax(1) > 1.e-2*uMax .or.&
+          if( (  duMax(1) > 1.e-2*uMax .or.&
                & duMax(2) > 1.e-2*vMax .or.&
-               & duMax(3) > 1.e-2*wMax ) then
+               & duMax(3) > 1.e-2*wMax).and.&
+              ((bMax(1) /= 0.).and.(bMax(2) /= 0.).and.(bMax(3) /= 0.)) ) &
+              then
              
              dtBuoy = max(&
                   & -uMax/bMax(1)+sqrt((uMax/bMax(1))**2+2.*cfl*dx/bMax(1)),&
@@ -1349,6 +1351,8 @@ contains
        ! replied by JW (20160824): The "Var3DSmthDySma_X" has been revised. For now, the smoothing is done over the x direction first, and then it is done again over the z direction. Please check. For the testing stage, I would only focus on the 2.5D simulation. 
        ! Note by Junhong Wei (20160916): The name of "Var3DSmthDySma_X" is changed into "Var3DSmthDySma". The new subroutine includes all kinds of smoothing. I have modified all the related lines for the new subroutine "Var3DSmthDySma". The changes are not marked. 
 
+  if(ny.eq.1)then
+
   do iii_no = 1,3
     call Var3DSmthDySma( ui_smth_DySma(1:nx,1:ny,1:nz,iii_no), smth_npts1_DySma, "XZ_local_smth" )
   end do
@@ -1364,6 +1368,26 @@ contains
 
      end do
   end do
+
+  else
+
+  do iii_no = 1,3
+    call Var3DSmthDySma( ui_smth_DySma(1:nx,1:ny,1:nz,iii_no), smth_npts1_DySma, "XYZ_local_smth" )
+  end do
+
+    call Var3DSmthDySma( SSS_smth_DySma(1:nx,1:ny,1:nz),       smth_npts1_DySma, "XYZ_local_smth" )
+
+  do jjj_no = 1,3
+     do iii_no = 1,3
+
+     call Var3DSmthDySma( uiuj_smth_DySma(1:nx,1:ny,1:nz,iii_no,jjj_no), smth_npts1_DySma, "XYZ_local_smth" )
+     call Var3DSmthDySma( Sij_smth_DySma(1:nx,1:ny,1:nz,iii_no,jjj_no),  smth_npts1_DySma, "XYZ_local_smth" )
+     call Var3DSmthDySma( SSS_Sij_smth_DySma(1:nx,1:ny,1:nz,iii_no,jjj_no), smth_npts1_DySma, "XYZ_local_smth" )
+
+     end do
+  end do
+
+  end if
 
        !---------------------------------
        !         Loop over field
@@ -1411,8 +1435,17 @@ contains
 !    call Var3DSmthDySma( LijMij_smth_DySma(1:nx,1:ny,1:nz),       smth_npts2_DySma, "X_whole_smth" )
 !    call Var3DSmthDySma( MijMij_smth_DySma(1:nx,1:ny,1:nz),       smth_npts2_DySma, "X_whole_smth" )
 
+  if(ny.eq.1)then
+
     call Var3DSmthDySma( LijMij_smth_DySma(1:nx,1:ny,1:nz),       smth_npts2_DySma, "XZ_local_smth" )
     call Var3DSmthDySma( MijMij_smth_DySma(1:nx,1:ny,1:nz),       smth_npts2_DySma, "XZ_local_smth" )
+
+  else
+
+    call Var3DSmthDySma( LijMij_smth_DySma(1:nx,1:ny,1:nz),       smth_npts2_DySma, "XYZ_local_smth" )
+    call Var3DSmthDySma( MijMij_smth_DySma(1:nx,1:ny,1:nz),       smth_npts2_DySma, "XYZ_local_smth" )
+
+  end if
 
        !---------------------------------
        !         Get the final results
@@ -1422,7 +1455,12 @@ contains
      do j = 1,ny
         do i = 1,nx
 
-           CS2_DySma(i,j,k) = 0.5 * LijMij_smth_DySma(i,j,k) / MijMij_smth_DySma(i,j,k)
+           if(MijMij_smth_DySma(i,j,k) /= 0.) then
+              CS2_DySma(i,j,k) &
+              = 0.5 * LijMij_smth_DySma(i,j,k) / MijMij_smth_DySma(i,j,k)
+             else
+             CS2_DySma(i,j,k)=0.
+           end if
 
            ! *** modified by Junhong Wei (20160918) *** (starting line)
            if( CS2_DySma(i,j,k) < 0.0 )then
@@ -1500,6 +1538,7 @@ contains
 
     integer :: allocstat
     integer :: i,j,k
+    integer :: kmin,kmax,nsmthv
 
 
     allocate(var3D_DySma_Extend( (0-nsmth_DySma) : (nx+nsmth_DySma), (0-nsmth_DySma) : (ny+nsmth_DySma), (0-nsmth_DySma) : (nz+nsmth_DySma) ), stat=allocstat); if(allocstat/=0) &
@@ -1515,18 +1554,84 @@ contains
 
     select case( homog_dir_DySma )
 
+    case( "XYZ_local_smth" )
 
-    case( "XZ_local_smth" )
+    if(xBoundary /= "periodic") &
+    stop "DYNAMIC SMAGORINSKY NOT READY FOR NON-PERIODIC BOUNDARY &
+          &CONDITIONS IN X"
+
+    if(yBoundary /= "periodic") &
+    stop "DYNAMIC SMAGORINSKY NOT READY FOR NON-PERIODIC BOUNDARY &
+          &CONDITIONS IN Y"
 
        !---------------------------------
        !         Loop over field
        !---------------------------------
 
+     if(nz /= sizeZ) stop" DYNAMIC SMAGORINSKY NOT READY FOR MPI IN Z"
+
        do k = 1,nz
+          kmin=max( 1,k-nsmth_DySma)
+          kmax=min(nz,k+nsmth_DySma)
+          nsmthv=kmax-kmin+1
+
+!         testb
+!         if (master) write(*,*)k,kmin,kmax,nsmthv
+!         teste
+             
           do j = 1,ny
              do i = 1,nx
 
-var3D_DySma(i,j,k)=sum(var3D_DySma_Extend( (i-nsmth_DySma):(i+nsmth_DySma), j, (k-nsmth_DySma):(k+nsmth_DySma) ))/(( ( (2*nsmth_DySma) + 1 )*1.0 )**2)
+                var3D_DySma(i,j,k)&
+                =&
+                sum(&
+                var3D_DySma_Extend( &
+                (i-nsmth_DySma):(i+nsmth_DySma), &
+                (j-nsmth_DySma):(j+nsmth_DySma), &
+                kmin:kmax &
+                )&
+                )&
+                /( ((2*nsmth_DySma + 1)**2) * nsmthv)
+
+             end do
+          end do
+       end do
+
+
+    case( "XZ_local_smth" )
+
+    if(xBoundary /= "periodic") &
+    stop "DYNAMIC SMAGORINSKY NOT READY FOR NON-PERIODIC BOUNDARY &
+          &CONDITIONS IN X"
+
+       !---------------------------------
+       !         Loop over field
+       !---------------------------------
+
+     if(nz /= sizeZ) stop" DYNAMIC SMAGORINSKY NOT READY FOR MPI IN Z"
+
+       do k = 1,nz
+          kmin=max( 1,k-nsmth_DySma)
+          kmax=min(nz,k+nsmth_DySma)
+          nsmthv=kmax-kmin+1
+             
+!         testb
+!         if (master) write(*,*)k,kmin,kmax,nsmthv
+!         teste
+             
+          do j = 1,ny
+             do i = 1,nx
+
+             var3D_DySma(i,j,k)&
+             =&
+             sum(&
+             var3D_DySma_Extend( &
+             (i-nsmth_DySma):(i+nsmth_DySma), &
+             j, &
+             kmin:kmax &
+             )&
+             )&
+             /( (2*nsmth_DySma + 1) * nsmthv)
 
              end do
           end do
@@ -1534,6 +1639,10 @@ var3D_DySma(i,j,k)=sum(var3D_DySma_Extend( (i-nsmth_DySma):(i+nsmth_DySma), j, (
 
 
     case( "X_whole_smth" )
+
+    if(xBoundary /= "periodic") &
+    stop "DYNAMIC SMAGORINSKY NOT READY FOR NON-PERIODIC BOUNDARY &
+          &CONDITIONS IN X"
 
 
        !---------------------------------

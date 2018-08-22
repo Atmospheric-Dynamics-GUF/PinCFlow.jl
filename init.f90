@@ -328,6 +328,7 @@ contains
 
     ! wavepacket: all quantities are scaled
     real :: kk, mm, kTot                 ! vertical, zonal, total wave number
+    real :: ll_3DWP                      ! meridional wave number ! modified by Junhong Wei for 3DWP (20170828)
     real :: omi, omi2                    ! intrinsic frequency, squared 
     real :: bAmp, uAmp, wAmp, pAmp       ! amplitudes for buoyancy, u, w, Exner function
     real :: delx2, delz2                 ! squared distance from center
@@ -335,11 +336,14 @@ contains
     real :: Gauss                        ! Gaussian distribution value
     real :: sigma                        ! width of Gaussian distribution
     real :: sigma_hor                    ! width of Gaussian distribution (horizontal direction)   ! modified by Junhong Wei (20170214)
+    real :: sigma_hor_yyy                ! width of Gaussian distribution   ! modified by Junhong Wei for 3DWP (20170828)
     real :: L_cos                        ! width of Cosine distribution
     real :: xCenter, zCenter             ! center of distribution
     real :: phi                          ! local phase 
     real :: u,v,w,b                        ! buoyancy, zonal + vertical velocity
     real :: lambdaX, lambdaZ             ! zonal and vertical wave length
+
+    real :: lambdaY, yCenter ! variables for 3DWP   ! modified by Junhong Wei for 3DWP (20170828)
 
 
     ! wave 2 
@@ -361,7 +365,7 @@ contains
     real :: xx
 
     ! random noise on background
-    real, dimension(nx,ny,nz) :: randNoise         ! noise on density
+    real, dimension(0:nx+1,0:ny+1,0:nz+1) :: randNoise         ! noise on density
     real, parameter           :: randAmp = 0.0     ! amplitude of random noise
 
     ! jet stream 
@@ -590,16 +594,20 @@ contains
        !--------------------
        !     set up GWP
        !--------------------
-       call init_GWP(Psi,kk,mm)
+!       call init_GWP(Psi,kk,mm)            ! modified by Junhong Wei for 3DWP (20170828)
+       call init_GWP(Psi,kk,mm, ll_3DWP )   ! modified by Junhong Wei for 3DWP (20170828)
 
-       do k = 1,nz
-          j = 1
+!       do k = 1,nz
+       do k = 0,(nz+1)   ! modified by Junhong Wei for 3DWP (20171204)
+!          j = 1   ! modified by Junhong Wei for 3DWP (20170922)
+         do j = 0,(ny+1)   ! modified by Junhong Wei for 3DWP (20170922)
 !          do i = 1,nx ! modified by Junhong Wei (20161207)
           do i = 0,(nx+1) ! modified by Junhong Wei (20161207)
 
              ! common phase term: 1D and 2D
 !             phi = kk*x(i) + mm*z(k)   ! modified by Junhong Wei (20161122)
-             phi = kk*x(i+i0) + mm*z(k)   ! modified by Junhong Wei (20161122)
+!             phi = kk*x(i+i0) + mm*z(k)   ! modified by Junhong Wei (20161122)   ! modified by Junhong Wei for 3DWP (20170922)
+              phi = kk*x(i+i0) + mm*z(k) + ll_3DWP*y(j+j0)   ! modified by Junhong Wei for 3DWP (20170922)
              
              ! wave 1
              u1 = real( Psi(i,j,k,1,1) * exp(phi*imag) )
@@ -663,6 +671,7 @@ contains
              var(i,j,k,3) = real( Psi(i,j,k,5,1) * exp(phi*imag) )                  ! modified by Junhong Wei
 
           end do
+         end do   ! modified by Junhong Wei for 3DWP (20170922)
        end do
 
 
@@ -681,16 +690,30 @@ contains
        end do
 
        ! average vertical velocities to cell faces
-       do k = 1,nz-1
+!       do k = 1,nz-1
+       do k = 0,nz   ! modified by Junhong Wei for 3DWP (20171204)
           var(:,:,k,4) = 0.5*( var(:,:,k,4) + var(:,:,k+1,4) )
        end do
-       var(:,:,nz,4) = 0.0        ! reset velocity at wall to zero
+!       var(:,:,nz,4) = 0.0        ! reset velocity at wall to zero   ! modified by Junhong Wei for 3DWP (20171204)
+
+             select case( model ) 
+             case( "pseudo_incompressible" )
+
+          var(:,:,0,4)  = 0.0        ! reset velocity at wall to zero   ! modified by Junhong Wei for 3DWP (20171218)
+          var(:,:,nz,4) = 0.0        ! reset velocity at wall to zero   ! modified by Junhong Wei for 3DWP (20171218)
+
+             case( "Boussinesq" ) 
+
+
+             case default
+                stop"initialize: unknown case model"
+             end select
 
 
 !! ---- modified by Junhong Wei (start)
        ! copy v values to ghost cells
-       var(:,0,:,3) = var(:,ny,:,3)   ! modified by Junhong Wei (20161122)
-       var(:,ny+1,:,3) = var(:,1,:,3)   ! right version   ! modified by Junhong Wei (20161122)
+!       var(:,0,:,3) = var(:,ny,:,3)   ! modified by Junhong Wei (20161122)   ! modified by Junhong Wei for 3DWP (20170922)
+!       var(:,ny+1,:,3) = var(:,1,:,3)   ! right version   ! modified by Junhong Wei (20161122)   ! modified by Junhong Wei for 3DWP (20170922)
 !!       var(:,ny+1,:,2) = var(:,1,:,2)    ! wrong version (even though it is wrong, I cannot find any major mistakes from the model output)
 !
 !       var(:,0+j0,:,3) = var(:,ny+j0,:,3)   ! modified by Junhong Wei (20161122)
@@ -2039,7 +2062,8 @@ contains
     !------------------------------------------------------------------------------
 
 
-    subroutine init_GWP(Psi,kk,mm)
+!    subroutine init_GWP(Psi,kk,mm)
+    subroutine init_GWP(Psi,kk,mm, ll_3DWP )   ! modified by Junhong Wei for 3DWP (20170828)
 
       !------------------------------------------------
       !  calculate complex amplitudes for
@@ -2058,6 +2082,7 @@ contains
 !      complex, dimension(0:nx+1,0:ny+1,0:nz+1,4,0:2), intent(out) :: Psi ! modified by Junhong Wei
       complex, dimension(0:nx+1,0:ny+1,0:nz+1,5,0:2), intent(out) :: Psi ! modified by Junhong Wei
       real, intent(out) :: kk,mm
+      real, intent(out) :: ll_3DWP   ! modified by Junhong Wei for 3DWP (20170828)
 
       ! local variables
       real :: A, rho
@@ -2107,6 +2132,8 @@ contains
 
     integer :: i0, j0   ! modified by Junhong Wei (20161201)
 
+      complex :: tmp_var_3DWP   ! modified by Junhong Wei for 3DWP (20170921)
+
 ! modified by Junhong Wei (20161201) *** starting line ***
     !-----------------------
     !      MPI stuff
@@ -2137,17 +2164,36 @@ contains
       sigma_hor = sigma_hor_dim/lRef ! sigma width of Gaussian distribution  ! modified by Junhong Wei (20170214)
       L_cos = L_cos_dim/lRef         ! half length of cosine profile
 
+      lambdaY = lambdaY_dim/lRef     !         meridional wave length   ! modified by Junhong Wei for 3DWP (20170828)
+      yCenter = yCenter_dim/lRef     ! scaled position of wave packtet  ! modified by Junhong Wei for 3DWP (20170828)
+      sigma_hor_yyy = sigma_hor_yyy_dim/lRef ! sigma width of Gaussian distribution  ! modified by Junhong Wei for 3DWP (20170828)
+
+            if( (ABS(lambdaY_dim)) .GT. 0.1 ) then   ! modified by Junhong Wei for 3DWP (20170921)
+               ll_3DWP = 2.0*pi/lambdaY     ! modified by Junhong Wei for 3DWP (20170828)
+            else                            ! modified by Junhong Wei for 3DWP (20170828)
+               ll_3DWP = 0.0                ! modified by Junhong Wei for 3DWP (20170828)
+            end if                          ! modified by Junhong Wei for 3DWP (20170828)
+
       ! wave numbers 
-      kk = 2.0*pi/lambdaX    !xxx  new signs by Ulrich, 14.9.2012
+!      kk = 2.0*pi/lambdaX    !xxx  new signs by Ulrich, 14.9.2012   ! modified by Junhong Wei for 3DWP (20171128)
+
+            if( (ABS(lambdaX_dim)) .GT. 0.1 ) then   ! modified by Junhong Wei for 3DWP (20171128)
+               kk = 2.0*pi/lambdaX     ! modified by Junhong Wei for 3DWP (20171128)
+            else                            ! modified by Junhong Wei for 3DWP (20171128)
+               kk = 0.0                ! modified by Junhong Wei for 3DWP (20171128)
+            end if                          ! modified by Junhong Wei for 3DWP (20171128)
+
       mm = 2.0*pi/lambdaZ   
       kk2 = kk**2
       mm2 = mm**2
-      kTot2 = kk2 + mm2
+!      kTot2 = kk2 + mm2   ! modified by Junhong Wei for 3DWP (20170828)
+      kTot2 = kk2 + mm2 + ( ll_3DWP * ll_3DWP )   ! modified by Junhong Wei for 3DWP (20170828)
       kTot = sqrt(kTot2)
 
       ! intrinsic frequency
 !      omi = omiSign * sqrt(N2)*kk/kTot  ! modified by Junhong Wei
-      omi = omiSign * sqrt( ( (N2*kk*kk) + (RoInv*RoInv*mm*mm) ) )/kTot  ! modified by Junhong Wei
+!      omi = omiSign * sqrt( ( (N2*kk*kk) + (RoInv*RoInv*mm*mm) ) )/kTot  ! modified by Junhong Wei   ! modified by Junhong Wei for 3DWP (20170828)
+       omi = omiSign * sqrt( ( ( N2 * ((kk*kk)+(ll_3DWP*ll_3DWP)) ) + (RoInv*RoInv*mm*mm) ) )/kTot  ! modified by Junhong Wei for 3DWP (20170828)
       omi2 = omi**2
 
       ! amplitude coefficients for wave 1
@@ -2194,8 +2240,10 @@ print*,"RoInv = ", RoInv/tRef   ! modified by Junhong Wei
       !     (first harmonic, leading order)
       !---------------------------------------
 
-      do k = 1,nz
-         j = 1
+!      do k = 1,nz
+      do k = 0,(nz+1)   ! modified by Junhong Wei for 3DWP (20171204)
+!         j = 1   ! modified by Junhong Wei for 3DWP (20170921)
+          do j = 0,(ny+1)   ! modified by Junhong Wei for 3DWP (20170921)
 !         do i = 1,nx ! modified by Junhong Wei (20161207)
          do i = 0,(nx+1) ! modified by Junhong Wei (20161207)
 
@@ -2207,6 +2255,13 @@ print*,"RoInv = ", RoInv/tRef   ! modified by Junhong Wei
 !               delx = (x(i)-xCenter)   ! modified by Junhong Wei (20161201)
                delx = ( x(i+i0) -xCenter)   ! modified by Junhong Wei (20161201)
             end if
+
+            if( wavePacketDim == 3 ) then
+               dely = ( y(j+j0) -yCenter)
+            else
+               dely = 0.0
+            end if
+
             delz = (z(k)-zCenter)
 
             select case(wavePacketType) 
@@ -2215,7 +2270,9 @@ print*,"RoInv = ", RoInv/tRef   ! modified by Junhong Wei
 
                ! Gaussian
 !               envel = exp(-(delx**2 + delz**2)/2./sigma**2)   ! modified by Junhong Wei (20170214)
-               envel = ( exp(-(delz**2)/2./sigma**2) ) * ( exp(-(delx**2)/2./sigma_hor**2) )   ! modified by Junhong Wei (20170214)
+!               envel = ( exp(-(delz**2)/2./sigma**2) ) * ( exp(-(delx**2)/2./sigma_hor**2) )   ! modified by Junhong Wei for 3DWP (20170214)
+
+     envel = ( exp(-(delz**2)/2./sigma**2) ) * ( exp(-(delx**2)/2./sigma_hor**2) ) * ( exp(-(dely**2)/2./sigma_hor_yyy**2) )   ! modified by Junhong Wei for 3DWP (20170921)
 
 
             case(2) 
@@ -2239,8 +2296,12 @@ print*,"RoInv = ", RoInv/tRef   ! modified by Junhong Wei
 
             theta0 = thetaStrat(k)
 
+            tmp_var_3DWP = cmplx( 0.0,  ((omi*omi)-N2) / ( mm*N2*( (omi*omi)-(RoInv*RoInv) ) )    )   ! modified by Junhong Wei for 3DWP (20170921)
+
 !            u10 = cmplx(0.0, -mm/kk * omi/N2) * b11
-            u10 = cmplx(0.0, ((omi*omi)-N2)*kk*omi / ( mm*N2*( (omi*omi)-(RoInv*RoInv) ) )  ) * b11
+!            u10 = cmplx(0.0, ((omi*omi)-N2)*kk*omi / ( mm*N2*( (omi*omi)-(RoInv*RoInv) ) )  ) * b11   ! modified by Junhong Wei for 3DWP (20170921)
+
+            u10 = tmp_var_3DWP * cmplx( kk*omi, ll_3DWP*RoInv ) * b11   ! modified by Junhong Wei for 3DWP (20170921)
 
             w10 = cmplx(0.0, omi/N2) * b11
 
@@ -2250,11 +2311,15 @@ print*,"RoInv = ", RoInv/tRef   ! modified by Junhong Wei
 !            Psi(i,j,k,:,1) = (/u10, w10, b11, pi12/) ! modified by Junhong Wei
 
 !            Psi(i,j,k,:,1) = (/u10, w10, b11, pi12, ( cmplx( 0.0, 0.0 ) * b11 ) /) ! modified by Junhong Wei
-            Psi(i,j,k,:,1) = (/u10, w10, b11, pi12, ( cmplx( ((omi*omi)-N2)*kk*RoInv / ( mm*N2*( (omi*omi)-(RoInv*RoInv) ) )  , 0.0 ) * b11 ) /) ! modified by Junhong Wei
+!            Psi(i,j,k,:,1) = (/u10, w10, b11, pi12, ( cmplx( ((omi*omi)-N2)*kk*RoInv / ( mm*N2*( (omi*omi)-(RoInv*RoInv) ) )  , 0.0 ) * b11 ) /) ! modified by Junhong Wei   ! modified by Junhong Wei for 3DWP (20170921)
+
+
+            Psi(i,j,k,:,1) = (/u10, w10, b11, pi12, ( tmp_var_3DWP * cmplx( ll_3DWP*omi, kk*RoInv*(0.0-1.0) ) * b11 ) /) ! modified by Junhong Wei for 3DWP (20170921)
 
 !           Modified by Junhong Wei
 
          end do
+       end do   ! modified by Junhong Wei for 3DWP (20170921)
       end do
 
 

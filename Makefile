@@ -2,8 +2,10 @@
 
 FC = mpif90
 FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
+#FCFLAGS=-O0 -fpe0 -check bounds -real-size 64 -traceback -unroll=4 -ip
 LIPNAG =
-LIBHYPRE = /home/atmodynamics/boeloeni/Hypre/hypre-2.11.2/src/lib
+LIBHYPRE = /home/atmodynamics/achatz/Installation/hypre-2.11.2/src/lib
+
 OBJ =	types.o \
 	mpi.o \
 	timeScheme.o \

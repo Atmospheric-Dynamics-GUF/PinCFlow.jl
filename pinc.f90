@@ -367,8 +367,10 @@ program pinc_prog
            if( (time+dt) * tRef + dtMin_dim > nextOutputTime ) then
               dt = nextOutputTime/tRef - time      
               output = .true.
-              write(*,fmt="(a25,es15.4,a8)") "dt for output = ", &
-                   & dt*tRef, "seconds"
+              if(master) then
+                 write(*,fmt="(a25,es15.4,a8)") "dt for output = ", &
+                      & dt*tRef, "seconds"
+              end if
            end if
         end if
 

@@ -1023,7 +1023,8 @@ contains
        return
     end if
     if( master ) then
-       print"(a,i3,a,i3,a)","Virtual topology: (idim, jdim) = (",idim, " ,",jdim,")"
+!       print"(a,i3,a,i3,a)","Virtual topology: (idim, jdim) = (",idim, " ,",jdim,")"
+       print"(a,i4,a,i4,a)","Virtual topology: (idim, jdim) = (",idim, " ,",jdim,")"
     end if
 
     dims(1) = idim

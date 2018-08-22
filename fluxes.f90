@@ -782,7 +782,12 @@ contains
     real, parameter :: delta0 = 1.0e-6
 
 
-    real :: coef_t_DySma, Pr_t_DySma, drho_dxi_DySma       ! variables for the Dynamic Smagorinsky scheme      ! modified by Junhong Wei (20160803)
+!   variables for the Dynamic Smagorinsky scheme      
+!   modified by Junhong Wei (20160803)
+    real :: coef_t_DySma, Pr_t_DySma, drho_dxi_DySma       
+!   achatzb for inclusion density dependent diffusivity and viscosity
+    real :: coef_t, drho_dxi
+!   achatze
 
     Pr_t_DySma = 0.5  ! modified by Junhong Wei (20160803)
 
@@ -812,17 +817,6 @@ contains
 
                 uSurf = var(i,j,k,2)
                 fRho = uSurf * 0.5*(rhoL + rhoR)
-
-!                ! modified by Junhong Wei (20160803) --- starting line
-!                if(DySmaScheme)then
-!
-!                coef_t_DySma   = 0.5*( var(i,j,k,7) + var(i+1,j,k,7) )
-!                drho_dxi_DySma = ( rhoR - rhoL ) / dx
-!
-!                fRho           = fRho - ( coef_t_DySma * drho_dxi_DySma / Pr_t_DySma )
-!
-!                end if
-!                ! modified by Junhong Wei (20160803) --- finishing line
 
              case( "upwind" )
 
@@ -861,10 +855,44 @@ contains
 
 
 
-                ! modified by Junhong Wei (20160803) --- starting line
-                if(DySmaScheme)then
+!               achatzb
+!               inclusion density dependent diffusivity
 
-                coef_t_DySma   = 0.5*( var(i,j,k,7) + var(i+1,j,k,7) )
+!               ! modified by Junhong Wei (20160803) --- starting line
+!               if(DySmaScheme)then
+
+!               coef_t_DySma   = 0.5*( var(i,j,k,7) + var(i+1,j,k,7) )
+
+!               if( fluctuationMode ) then
+!                  rhoL = var(i,j,k,1) + rhoStrat(k)
+!                  rhoR = var(i+1,j,k,1) + rhoStrat(k)
+!               else
+!                  rhoL = var(i,j,k,1)
+!                  rhoR = var(i+1,j,k,1)
+!               end if
+
+!               drho_dxi_DySma = ( rhoR - rhoL ) / dx
+
+!               fRho           &
+!               = fRho - ( coef_t_DySma * drho_dxi_DySma / Pr_t_DySma )
+
+!               end if
+!               ! modified by Junhong Wei (20160803) --- finishing line
+
+                select case( model )
+                  case( "pseudo_incompressible" )
+                   coef_t = mu_conduct * rhoStrat(1)/rhoStrat(k)
+                  case( "Boussinesq" )
+                   coef_t = mu_conduct
+                  case default
+                   stop"diffusivity: unkown case model."
+                end select
+
+                if(DySmaScheme)then
+                   coef_t  &
+                   = coef_t &
+                     + 0.5*( var(i,j,k,7) + var(i+1,j,k,7) )/Pr_t_DySma
+                end if
 
                 if( fluctuationMode ) then
                    rhoL = var(i,j,k,1) + rhoStrat(k)
@@ -874,12 +902,10 @@ contains
                    rhoR = var(i+1,j,k,1)
                 end if
 
-                drho_dxi_DySma = ( rhoR - rhoL ) / dx
+                drho_dxi = ( rhoR - rhoL ) / dx
 
-                fRho           = fRho - ( coef_t_DySma * drho_dxi_DySma / Pr_t_DySma )
-
-                end if
-                ! modified by Junhong Wei (20160803) --- finishing line
+                fRho = fRho - coef_t * drho_dxi
+!               achatze
 
 
 
@@ -910,17 +936,6 @@ contains
 
                 vSurf = var(i,j,k,3)
                 gRho = vSurf * 0.5*(rhoB + rhoF)
-
-!                ! modified by Junhong Wei (20160803) --- starting line
-!                if(DySmaScheme)then
-!
-!                coef_t_DySma   = 0.5*( var(i,j,k,7) + var(i,j+1,k,7) )
-!                drho_dxi_DySma = ( rhoF - rhoB ) / dy
-!
-!                gRho           = gRho - ( coef_t_DySma * drho_dxi_DySma / Pr_t_DySma )
-!
-!                end if
-!                ! modified by Junhong Wei (20160803) --- finishing line
 
              case( "upwind" )
                 if( fluctuationMode ) then
@@ -958,10 +973,44 @@ contains
 
 
 
-                ! modified by Junhong Wei (20160803) --- starting line
-                if(DySmaScheme)then
+!               achatzb
+!               inclusion density dependent diffusivity
 
-                coef_t_DySma   = 0.5*( var(i,j,k,7) + var(i,j+1,k,7) )
+!               ! modified by Junhong Wei (20160803) --- starting line
+!               if(DySmaScheme)then
+
+!               coef_t_DySma   = 0.5*( var(i,j,k,7) + var(i,j+1,k,7) )
+
+!               if( fluctuationMode ) then
+!                  rhoF = var(i,j+1,k,1) + rhoStrat(k)
+!                  rhoB = var(i,j,k,1)   + rhoStrat(k)
+!               else
+!                  rhoF = var(i,j+1,k,1)
+!                  rhoB = var(i,j,k,1)
+!               end if
+
+!               drho_dxi_DySma = ( rhoF - rhoB ) / dy
+
+!               gRho           &
+!               = gRho - ( coef_t_DySma * drho_dxi_DySma / Pr_t_DySma )
+
+!               end if
+!               ! modified by Junhong Wei (20160803) --- finishing line
+
+                select case( model )
+                  case( "pseudo_incompressible" )
+                   coef_t = mu_conduct * rhoStrat(1)/rhoStrat(k)
+                  case( "Boussinesq" )
+                   coef_t = mu_conduct
+                  case default
+                   stop"diffusivity: unkown case model."
+                end select
+
+                if(DySmaScheme)then
+                   coef_t  &
+                   = coef_t &
+                     + 0.5*( var(i,j,k,7) + var(i+1,j,k,7) )/Pr_t_DySma
+                end if
 
                 if( fluctuationMode ) then
                    rhoF = var(i,j+1,k,1) + rhoStrat(k)
@@ -971,12 +1020,10 @@ contains
                    rhoB = var(i,j,k,1)
                 end if
 
-                drho_dxi_DySma = ( rhoF - rhoB ) / dy
+                drho_dxi = ( rhoF - rhoB ) / dy
 
-                gRho           = gRho - ( coef_t_DySma * drho_dxi_DySma / Pr_t_DySma )
-
-                end if
-                ! modified by Junhong Wei (20160803) --- finishing line
+                gRho = gRho -  coef_t * drho_dxi
+!               achatze
 
 
 
@@ -1011,24 +1058,6 @@ contains
 
                 wSurf = var(i,j,k,4)
                 hRho = wSurf * 0.5*(rhoD + rhoU)                   
-
-!                ! modified by Junhong Wei (20160803) --- starting line
-!                if(DySmaScheme)then
-!
-!                coef_t_DySma   = 0.5*( var(i,j,k,7) + var(i,j,k+1,7) )
-!
-!                !UA here I am not sure whether it would not be better to rather
-!                !take the vertical derivative of the density without the
-!                !contribution from the reference atmosphere. Maybe try?
-!
-!                ! replied by JW (20160825): I haven't done anything for the above comment. Please check. 
-!
-!                drho_dxi_DySma = ( rhoU - rhoD ) / dz
-!
-!                hRho           = hRho - ( coef_t_DySma * drho_dxi_DySma / Pr_t_DySma )
-!
-!                end if
-!                ! modified by Junhong Wei (20160803) --- finishing line
 
              case( "upwind" )
 
@@ -1068,39 +1097,73 @@ contains
 
 
 
-                ! modified by Junhong Wei (20160803) --- starting line
+!               achatzb
+!               inclusion density dependent diffusivity
+
+!               ! modified by Junhong Wei (20160803) --- starting line
+!               if(DySmaScheme)then
+
+!               coef_t_DySma   = 0.5*( var(i,j,k,7) + var(i,j,k+1,7) )
+
+!               !UA here I am not sure whether it would not be better to 
+!               !rather take the vertical derivative of the density 
+!               !without the contribution from the reference atmosphere. 
+!               !Maybe try?
+
+!               ! replied by JW (20160825): I haven't done anything for 
+!               ! the above comment. Please check. 
+
+!               if( fluctuationMode ) then
+!               !   rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
+!               !   ! background rho at half level     
+!               !   rhoD = var(i,j,k,1)   + rhoStrat(k)
+
+!                  rhoU = var(i,j,k+1,1)
+!                  ! background rho at half level     
+!                  rhoD = var(i,j,k,1)
+!               else
+!               !   rhoU = var(i,j,k+1,1)
+!               !   rhoD = var(i,j,k,1)
+
+!                  rhoU = var(i,j,k+1,1) - rhoStrat(k+1)
+!                  rhoD = var(i,j,k,1)   - rhoStrat(k)
+!               end if
+
+!               drho_dxi_DySma = ( rhoU - rhoD ) / dz
+
+!               hRho           &
+!               = hRho - ( coef_t_DySma * drho_dxi_DySma / Pr_t_DySma )
+
+!               end if
+!               ! modified by Junhong Wei (20160803) --- finishing line
+
+                select case( model )
+                  case( "pseudo_incompressible" )
+                   coef_t = mu_conduct * rhoStrat(1)/rhoStrat(k)
+                  case( "Boussinesq" )
+                   coef_t = mu_conduct
+                  case default
+                   stop"diffusivity: unkown case model."
+                end select
+
                 if(DySmaScheme)then
-
-                coef_t_DySma   = 0.5*( var(i,j,k,7) + var(i,j,k+1,7) )
-
-                !UA here I am not sure whether it would not be better to rather
-                !take the vertical derivative of the density without the
-                !contribution from the reference atmosphere. Maybe try?
-
-                ! replied by JW (20160825): I haven't done anything for the above comment. Please check. 
+                   coef_t  &
+                   = coef_t &
+                     + 0.5*( var(i,j,k,7) + var(i+1,j,k,7) )/Pr_t_DySma
+                end if
 
                 if( fluctuationMode ) then
-                !   rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
-                !   ! background rho at half level     
-                !   rhoD = var(i,j,k,1)   + rhoStrat(k)
-
                    rhoU = var(i,j,k+1,1)
-                   ! background rho at half level     
                    rhoD = var(i,j,k,1)
                 else
-                !   rhoU = var(i,j,k+1,1)
-                !   rhoD = var(i,j,k,1)
-
                    rhoU = var(i,j,k+1,1) - rhoStrat(k+1)
                    rhoD = var(i,j,k,1)   - rhoStrat(k)
                 end if
 
-                drho_dxi_DySma = ( rhoU - rhoD ) / dz
+                drho_dxi = ( rhoU - rhoD ) / dz
 
-                hRho           = hRho - ( coef_t_DySma * drho_dxi_DySma / Pr_t_DySma )
-
-                end if
-                ! modified by Junhong Wei (20160803) --- finishing line
+                hRho = hRho - coef_t * drho_dxi
+!               achatze
 
 
 
@@ -1203,7 +1266,13 @@ contains
                    rho = rho00
 
                 case( "pseudo_incompressible" )
-                   rho = var(i,j,k,1)
+!                   rho = var(i,j,k,1)
+
+                if( fluctuationMode) then
+                rho = var(i,j,k,1) + rhoStrat(k)
+                else
+                rho = var(i,j,k,1)
+                end if
 
                 case default
                    stop"volumeForce: unknown case model."
@@ -1222,11 +1291,11 @@ contains
 !                force(i,j,k,:) = force(i,j,k,:) - RoInv*(/f1,f2,f3/)   ! modified by Junhong Wei
 
 ! modified by Junhong Wei
-                if( fluctuationMode) then
-                force(i,j,k,:) = force(i,j,k,:) - ( ( rho + rhoStrat(k) )*RoInv*(/f1,f2,f3/) )
-                else
+!                if( fluctuationMode) then
+!                force(i,j,k,:) = force(i,j,k,:) - ( ( rho + rhoStrat(k) )*RoInv*(/f1,f2,f3/) )
+!                else
                 force(i,j,k,:) = force(i,j,k,:) - ( rho*RoInv*(/f1,f2,f3/) )
-                end if
+!                end if
 ! modified by Junhong Wei
 
              end do
@@ -1346,6 +1415,13 @@ contains
 
     ! avoid abs() for linerisation
     real :: delta
+
+    !for basic-state density
+    real :: rhos
+
+    !achatzb for putting together molecular and turbulent vioscosity
+    real :: coef_v
+    !achatze
 
     if(verbose) print*,"fluxes.f90/momentumFlux: Entering subroutine..."
 
@@ -2429,30 +2505,41 @@ contains
        do k = 1,nz
           do j = 1,ny
              do i = -1,nx
-                du_dx = ( var(i+1,j,k,2) - var(i,j,k,2) )/dx     ! du/dx at i+1/2
+                ! du/dx at i+1/2
+                du_dx = ( var(i+1,j,k,2) - var(i,j,k,2) )/dx 
+
                 div = divU(i+1,j,k)
-                fRhoU_visc = ReInv * ( du_dx + du_dx - 2./3.*div )
 
-                ! modified by Junhong Wei (20160803) --- starting line
+!               achatzb slight clean up of density dependent viscosity
+!               fRhoU_visc = ReInv * ( du_dx + du_dx - 2./3.*div )
+
+!               if(DySmaScheme)then
+!                  if( fluctuationMode ) then
+!                     fRhoU_visc &
+!                     = (ReInv &
+!                        + ((var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7))) &
+!                       * ( du_dx + du_dx - 2./3.*div )
+!                    else
+!                     fRhoU_visc &
+!                     = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) &
+!                       * ( du_dx + du_dx - 2./3.*div )
+!                  end if
+!               end if
+
+                coef_v = ReInv * rhoStrat(1)
+
                 if(DySmaScheme)then
-
-                !UA why i+1?
-
-                ! Replied by JW (20160825): I have decided to keep the code unchanged for here and the rest of the code in "pseudo_incompressible" background. I will test it soon. 
-
-                if( fluctuationMode ) then
-
-                fRhoU_visc = ( ReInv + ( (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7) ) ) * ( du_dx + du_dx - 2./3.*div )
-
-                else
-
-!                fRhoU_visc = ( ReInv + ( var(i+1,j,k,1)*var(i+1,j,k,7) ) ) * ( du_dx + du_dx - 2./3.*div )
-                fRhoU_visc = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) * ( du_dx + du_dx - 2./3.*div )
-
+                   if( fluctuationMode ) then
+                       coef_v &
+                       = coef_v + (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7)
+                     else
+                       coef_v &
+                       = coef_v + var(i,j,k,1) * var(i,j,k,7)
+                   end if
                 end if
 
-                end if
-                ! modified by Junhong Wei (20160803) --- finishing line
+                fRhoU_visc = coef_v * ( du_dx + du_dx - 2./3.*div )
+!               achatze
 
                 flux(i,j,k,1,2) = flux(i,j,k,1,2) - fRhoU_visc
              end do
@@ -2463,27 +2550,40 @@ contains
        do k = 1,nz
           do j = 0,ny
              do i = 0,nx
-                du_dy = ( var(i,j+1,k,2) - var(i,j,k,2) )/dy     ! du/dy at j+1/2
+                ! du/dy at j+1/2
+                du_dy = ( var(i,j+1,k,2) - var(i,j,k,2) )/dy
                 dv_dx = ( var(i+1,j,k,3) - var(i,j,k,3) )/dx     ! dv/dx
-                gRhoU_visc = ReInv * ( du_dy + dv_dx )
 
-                ! modified by Junhong Wei (20160803) --- starting line
+!               achatzb slight clean up of density dependent viscosity
+!               gRhoU_visc = ReInv * ( du_dy + dv_dx )
+
+!               if(DySmaScheme)then
+!                  if( fluctuationMode ) then
+!                     gRhoU_visc &
+!                     = (ReInv &
+!                        + ((var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7))) &
+!                       * ( du_dy + dv_dx )
+!                    else
+!                     gRhoU_visc &
+!                     = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) &
+!                       * ( du_dy + dv_dx )
+!                  end if
+!               end if
+
+                coef_v = ReInv * rhoStrat(1)
+
                 if(DySmaScheme)then
-
-                if( fluctuationMode ) then
-
-                gRhoU_visc = ( ReInv + ( (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7) ) ) * ( du_dy + dv_dx )
-
-                else
-
-                !UA why j+1?
-!                gRhoU_visc = ( ReInv + ( var(i,j+1,k,1)*var(i,j+1,k,7) ) ) * ( du_dy + dv_dx )
-                gRhoU_visc = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) * ( du_dy + dv_dx )
-
+                   if( fluctuationMode ) then
+                       coef_v &
+                       = coef_v + (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7)
+                     else
+                       coef_v &
+                       = coef_v + var(i,j,k,1) * var(i,j,k,7)
+                   end if
                 end if
 
-                end if
-                ! modified by Junhong Wei (20160803) --- finishing line
+                gRhoU_visc = coef_v * ( du_dy + dv_dx )
+!               achatze
 
                 flux(i,j,k,2,2) = flux(i,j,k,2,2) - gRhoU_visc
              end do
@@ -2494,27 +2594,40 @@ contains
        do k = 0,nz
           do j = 1,ny
              do i = 0,nx
-                du_dz = ( var(i,j,k+1,2) - var(i,j,k,2) )/dz       ! du/dz  at k+1/2
+                ! du/dz at k+1/2
+                du_dz = ( var(i,j,k+1,2) - var(i,j,k,2) )/dz
                 dw_dx = ( var(i+1,j,k,4) - var(i,j,k,4) )/dx       ! dw/dx
-                hRhoU_visc = ReInv * ( du_dz + dw_dx )
 
-                ! modified by Junhong Wei (20160803) --- starting line
+!               achatzb slight clean up of density dependent viscosity
+!               hRhoU_visc = ReInv * ( du_dz + dw_dx )
+
+!               if(DySmaScheme)then
+!                  if( fluctuationMode ) then
+!                     hRhoU_visc &
+!                     = ( ReInv &
+!                        + ((var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7))) &
+!                       * ( du_dz + dw_dx )
+!                    else
+!                     hRhoU_visc &
+!                     = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) &
+!                       * ( du_dz + dw_dx )
+!                  end if
+!               end if
+
+                coef_v = ReInv * rhoStrat(1)
+
                 if(DySmaScheme)then
-
-                if( fluctuationMode ) then
-
-                hRhoU_visc = ( ReInv + ( (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7) ) ) * ( du_dz + dw_dx )
-
-                else
-
-                !UA why k+1?
-!                hRhoU_visc = ( ReInv + ( var(i,j,k+1,1)*var(i,j,k+1,7) ) ) * ( du_dz + dw_dx )
-                hRhoU_visc = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) * ( du_dz + dw_dx )
-
+                   if( fluctuationMode ) then
+                       coef_v &
+                       = coef_v + (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7)
+                     else
+                       coef_v &
+                       = coef_v + var(i,j,k,1) * var(i,j,k,7)
+                   end if
                 end if
 
-                end if
-                ! modified by Junhong Wei (20160803) --- finishing line
+                hRhoU_visc = coef_v * ( du_dz + dw_dx )
+!               achatze
 
                 flux(i,j,k,3,2) =  flux(i,j,k,3,2) - hRhoU_visc          
              end do
@@ -2529,27 +2642,40 @@ contains
        do k = 1,nz
           do j = 0,ny
              do i = 0,nx
-                dv_dx = ( var(i+1,j,k,3) - var(i,j,k,3) )/dx    ! dv/dx at i+1/2
+                ! dv/dx at i+1/2
+                dv_dx = ( var(i+1,j,k,3) - var(i,j,k,3) )/dx
                 du_dy = ( var(i,j+1,k,2) - var(i,j,k,2) )/dy      ! dv/dy
-                fRhoV_visc = ReInv * ( dv_dx + du_dy )
 
-                ! modified by Junhong Wei (20160803) --- starting line
+!               achatzb slight clean up of density dependent viscosity
+!               fRhoV_visc = ReInv * ( dv_dx + du_dy )
+
+!               if(DySmaScheme)then
+!                  if( fluctuationMode ) then
+!                     fRhoV_visc &
+!                     = ( ReInv &
+!                         + ((var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7))) &
+!                       * ( dv_dx + du_dy )
+!                    else
+!                     fRhoV_visc &
+!                     = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) &
+!                       * ( dv_dx + du_dy )
+!                  end if
+!               end if
+
+                coef_v = ReInv * rhoStrat(1)
+
                 if(DySmaScheme)then
-
-                if( fluctuationMode ) then
-
-                fRhoV_visc = ( ReInv + ( (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7) ) ) * ( dv_dx + du_dy )
-
-                else
-
-                !UA why i+1?
-!                fRhoV_visc = ( ReInv + ( var(i+1,j,k,1)*var(i+1,j,k,7) ) ) * ( dv_dx + du_dy )
-                fRhoV_visc = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) * ( dv_dx + du_dy )
-
+                   if( fluctuationMode ) then
+                       coef_v &
+                       = coef_v + (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7)
+                     else
+                       coef_v &
+                       = coef_v + var(i,j,k,1) * var(i,j,k,7)
+                   end if
                 end if
 
-                end if
-                ! modified by Junhong Wei (20160803) --- finishing line
+                fRhoV_visc = coef_v * ( dv_dx + du_dy )
+!               achatze
 
                 flux(i,j,k,1,3) = flux(i,j,k,1,3) - fRhoV_visc
              end do
@@ -2560,27 +2686,41 @@ contains
        do k = 1,nz
           do j = -1,ny
              do i = 1,nx
-                dv_dy = ( var(i,j+1,k,3) - var(i,j,k,3) )/dy    ! dv/dy at j+1/2
+                ! dv/dy at j+1/2
+                dv_dy = ( var(i,j+1,k,3) - var(i,j,k,3) )/dy
+
                 div = divU(i,j+1,k)
-                gRhoV_visc = ReInv * ( dv_dy + dv_dy - 2./3.*div )
 
-                ! modified by Junhong Wei (20160803) --- starting line
+!               achatzb slight clean up of density dependent viscosity
+!               gRhoV_visc = ReInv * ( dv_dy + dv_dy - 2./3.*div )
+
+!               if(DySmaScheme)then
+!                  if( fluctuationMode ) then
+!                     gRhoV_visc &
+!                     = ( ReInv &
+!                         + ((var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7))) &
+!                       * ( dv_dy + dv_dy - 2./3.*div )
+!                    else
+!                     gRhoV_visc &
+!                     = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) &
+!                       * ( dv_dy + dv_dy - 2./3.*div )
+!                  end if
+!               end if
+
+                coef_v = ReInv * rhoStrat(1)
+
                 if(DySmaScheme)then
-
-                if( fluctuationMode ) then
-
-                gRhoV_visc = ( ReInv + ( (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7) ) ) * ( dv_dy + dv_dy - 2./3.*div )
-
-                else
-
-                !UA why j+1?
-!                gRhoV_visc = ( ReInv + ( var(i,j+1,k,1)*var(i,j+1,k,7) ) ) * ( dv_dy + dv_dy - 2./3.*div )
-                gRhoV_visc = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) * ( dv_dy + dv_dy - 2./3.*div )
-
+                   if( fluctuationMode ) then
+                       coef_v &
+                       = coef_v + (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7)
+                     else
+                       coef_v &
+                       = coef_v + var(i,j,k,1) * var(i,j,k,7)
+                   end if
                 end if
 
-                end if
-                ! modified by Junhong Wei (20160803) --- finishing line
+                gRhoV_visc = coef_v * ( dv_dy + dv_dy - 2./3.*div )
+!               achatze
 
                 flux(i,j,k,2,3) = flux(i,j,k,2,3) - gRhoV_visc             
              end do
@@ -2591,27 +2731,40 @@ contains
        do k = 0,nz
           do j = 0,ny
              do i = 1,nx
-                dv_dz = ( var(i,j,k+1,3) - var(i,j,k,3) )/dz    ! dv/dz at k+1/2
+                ! dv/dz at k+1/2
+                dv_dz = ( var(i,j,k+1,3) - var(i,j,k,3) )/dz
                 dw_dy = ( var(i,j+1,k,4) - var(i,j,k,4) )/dy    ! dw/dy
-                hRhoV_visc = ReInv * ( dv_dz + dw_dy )
 
-                ! modified by Junhong Wei (20160803) --- starting line
+!               achatzb slight clean up of density dependent viscosity
+!               hRhoV_visc = ReInv * ( dv_dz + dw_dy )
+
+!               if(DySmaScheme)then
+!                  if( fluctuationMode ) then
+!                     hRhoV_visc &
+!                     = ( ReInv &
+!                         + ((var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7))) &
+!                       * ( dv_dz + dw_dy )
+!                    else
+!                     hRhoV_visc &
+!                     = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) &
+!                     * ( dv_dz + dw_dy )
+!                  end if
+!               end if
+
+                coef_v = ReInv * rhoStrat(1)
+
                 if(DySmaScheme)then
-
-                if( fluctuationMode ) then
-
-                hRhoV_visc = ( ReInv + ( (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7) ) ) * ( dv_dz + dw_dy )
-
-                else
-
-                !UA why k+1?
-!                hRhoV_visc = ( ReInv + ( var(i,j,k+1,1)*var(i,j,k+1,7) ) ) * ( dv_dz + dw_dy )
-                hRhoV_visc = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) * ( dv_dz + dw_dy )
-
+                   if( fluctuationMode ) then
+                       coef_v &
+                       = coef_v + (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7)
+                     else
+                       coef_v &
+                       = coef_v + var(i,j,k,1) * var(i,j,k,7)
+                   end if
                 end if
 
-                end if
-                ! modified by Junhong Wei (20160803) --- finishing line
+                hRhoV_visc = coef_v * ( dv_dz + dw_dy )
+!               achatze
 
                 flux(i,j,k,3,3) = flux(i,j,k,3,3) - hRhoV_visc
              end do
@@ -2627,27 +2780,40 @@ contains
        do k = 0,nz
           do j = 1,ny
              do i = 0,nx
-                dw_dx = ( var(i+1,j,k,4) - var(i,j,k,4) )/dx   ! dw/dx at i+1/2
+                ! dw/dx at i     +1/2
+                dw_dx = ( var(i+1,j,k,4) - var(i,j,k,4) )/dx
                 du_dz = ( var(i,j,k+1,2) - var(i,j,k,2) )/dz   ! du/dz
-                fRhoW_visc = ReInv * ( dw_dx + du_dz )
 
-                ! modified by Junhong Wei (20160803) --- starting line
+!               achatzb slight clean up of density dependent vicosity
+!               fRhoW_visc = ReInv * ( dw_dx + du_dz )
+
+!               if(DySmaScheme)then
+!                  if( fluctuationMode ) then
+!                     fRhoW_visc &
+!                     = ( ReInv &
+!                         + ((var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7))) &
+!                       * ( dw_dx + du_dz )
+!                    else
+!                     fRhoW_visc &
+!                     = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) &
+!                       * ( dw_dx + du_dz )
+!                  end if
+!               end if
+
+                coef_v = ReInv * rhoStrat(1)
+
                 if(DySmaScheme)then
-
-                if( fluctuationMode ) then
-
-                fRhoW_visc = ( ReInv + ( (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7) ) ) * ( dw_dx + du_dz )
-
-                else
-
-                !UA why i+1?
-!                fRhoW_visc = ( ReInv + ( var(i+1,j,k,1)*var(i+1,j,k,7) ) ) * ( dw_dx + du_dz )
-                fRhoW_visc = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) * ( dw_dx + du_dz )
-
+                   if( fluctuationMode ) then
+                       coef_v &
+                       = coef_v + (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7)
+                     else
+                       coef_v &
+                       = coef_v + var(i,j,k,1) * var(i,j,k,7)
+                   end if
                 end if
 
-                end if
-                ! modified by Junhong Wei (20160803) --- finishing line
+                fRhoW_visc = coef_v * ( dw_dx + du_dz )
+!               achatze
 
                 flux(i,j,k,1,4) = flux(i,j,k,1,4) - fRhoW_visc
              end do
@@ -2658,27 +2824,40 @@ contains
        do k = 0,nz
           do j = 0,ny
              do i = 1,nx
-                dw_dy = ( var(i,j+1,k,4) - var(i,j,k,4) )/dy   ! dw/dy at j+1/2
+                ! dw/dy at j+1/2
+                dw_dy = ( var(i,j+1,k,4) - var(i,j,k,4) )/dy
                 dv_dz = ( var(i,j,k+1,2) - var(i,j,k,2) )/dz   ! dv/dz
-                gRhoW_visc = ReInv * ( dw_dy + dv_dz)
 
-                ! modified by Junhong Wei (20160803) --- starting line
+!               achatzb slight clean up of density dependent viscosity
+!               gRhoW_visc = ReInv * ( dw_dy + dv_dz)
+
+!               if(DySmaScheme)then
+!                  if( fluctuationMode ) then
+!                     gRhoW_visc &
+!                     = ( ReInv &
+!                         + ((var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7))) &
+!                       * ( dw_dy + dv_dz)
+!                    else
+!                     gRhoW_visc &
+!                     = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) &
+!                       * ( dw_dy + dv_dz)
+!                  end if
+!               end if
+
+                coef_v = ReInv * rhoStrat(1)
+
                 if(DySmaScheme)then
-
-                if( fluctuationMode ) then
-
-                gRhoW_visc = ( ReInv + ( (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7) ) ) * ( dw_dy + dv_dz)
-
-                else
-
-                !UA why j+1?
-!                gRhoW_visc = ( ReInv + ( var(i,j+1,k,1)*var(i,j+1,k,7) ) ) * ( dw_dy + dv_dz)
-                gRhoW_visc = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) * ( dw_dy + dv_dz)
-
+                   if( fluctuationMode ) then
+                       coef_v &
+                       = coef_v + (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7)
+                     else
+                       coef_v &
+                       = coef_v + var(i,j,k,1) * var(i,j,k,7)
+                   end if
                 end if
 
-                end if
-                ! modified by Junhong Wei (20160803) --- finishing line
+                gRhoW_visc = coef_v * ( dw_dy + dv_dz)
+!               achatze
 
                 flux(i,j,k,2,4) =  flux(i,j,k,2,4) - gRhoW_visc
              end do
@@ -2689,27 +2868,54 @@ contains
        do k = -1,nz
           do j = 1,ny
              do i = 1,nx
-                dw_dz = ( var(i,j,k+1,4) - var(i,j,k,4) )/dz   ! dw/dz at k+1/2
+                ! dw/dz at k+1/2
+                dw_dz = ( var(i,j,k+1,4) - var(i,j,k,4) )/dz
+
                 div = divU(i,j,k+1)
-                hRhoW_visc = ReInv * ( dw_dz + dw_dz - 2./3.*div )
 
-                ! modified by Junhong Wei (20160803) --- starting line
+!               slight clean up of density dependent viscosity
+!               hRhoW_visc = ReInv * ( dw_dz + dw_dz - 2./3.*div )
+
+!               if(DySmaScheme)then
+!                  if( fluctuationMode ) then
+!                     if(k == -1) then
+!                        rhos = rhoStrat(0)
+!                       else
+!                        rhos = rhoStrat(k)
+!                     end if
+
+!                     hRhoW_visc &
+!                     = &
+!                     ( ReInv + ( (var(i,j,k,1)+rhos) * var(i,j,k,7) ) ) &
+!                     * ( dw_dz + dw_dz - 2./3.*div )
+!                    else
+!                     hRhoW_visc &
+!                     = ( ReInv &
+!                         + (var(i,j,k,1)*var(i,j,k,7))) &
+!                       * ( dw_dz + dw_dz - 2./3.*div )
+!                  end if
+!               end if
+
+                coef_v = ReInv * rhoStrat(1)
+
                 if(DySmaScheme)then
+                   if( fluctuationMode ) then
+                      if(k == -1) then
+                         rhos = rhoStrat(0)
+                        else
+                         rhos = rhoStrat(k)
+                      end if
 
-                if( fluctuationMode ) then
-
-                hRhoW_visc = ( ReInv + ( (var(i,j,k,1)+rhoStrat(k)) * var(i,j,k,7) ) ) * ( dw_dz + dw_dz - 2./3.*div )
-
-                else
-
-                !UA why k+1?
-!                hRhoW_visc = ( ReInv + ( var(i,j,k+1,1)*var(i,j,k+1,7) ) ) * ( dw_dz + dw_dz - 2./3.*div )
-                hRhoW_visc = ( ReInv + ( var(i,j,k,1)*var(i,j,k,7) ) ) * ( dw_dz + dw_dz - 2./3.*div )
-
+                       coef_v &
+                       = coef_v + (var(i,j,k,1)+rhos) * var(i,j,k,7)
+                     else
+                       coef_v &
+                       = coef_v + var(i,j,k,1) * var(i,j,k,7)
+                   end if
                 end if
 
-                end if
-                ! modified by Junhong Wei (20160803) --- finishing line
+                hRhoW_visc = coef_v * ( dw_dz + dw_dz - 2./3.*div )
+!               achatze
 
                 flux(i,j,k,3,4) = flux(i,j,k,3,4) - hRhoW_visc
              end do
