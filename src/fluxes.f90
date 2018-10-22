@@ -18,7 +18,9 @@ module flux_module
   public :: thetaFlux
   public :: momentumFlux
   public :: volumeForce
-  public :: bottomTopography
+! achatzb old topographic scheme removed
+! public :: bottomTopography
+! achatze
   public :: init_fluxes 
   public :: terminate_fluxes
   public :: thetaSource
@@ -63,62 +65,62 @@ module flux_module
 
 contains
 
-  subroutine bottomTopography (var,flux)
-    !------------------------------------------------------
-    ! sets w at k = 1 so that w/u = mountain slope
-    !------------------------------------------------------
+! subroutine bottomTopography (var,flux)
+!   !------------------------------------------------------
+!   ! sets w at k = 1 so that w/u = mountain slope
+!   !------------------------------------------------------
 
-    ! in/out variables
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         & intent(inout) :: var
+!   ! in/out variables
+!   real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+!        & intent(inout) :: var
 
-    real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), &
-         & intent(inout) :: flux
-    ! flux(i,j,k,dir,iFlux) 
-    ! dir = 1..3 > f,g,h-flux in x,y,z-direction
-    ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
+!   real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), &
+!        & intent(inout) :: flux
+!   ! flux(i,j,k,dir,iFlux) 
+!   ! dir = 1..3 > f,g,h-flux in x,y,z-direction
+!   ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
 
-    ! local vars
-    integer :: i,j,k, kMountain
-    real :: u, w_top, slope 
-    real :: rhoD, rhoU, w, hRho
+!   ! local vars
+!   integer :: i,j,k, kMountain
+!   real :: u, w_top, slope 
+!   real :: rhoD, rhoU, w, hRho
 
-    ! mass flux correction
-    real :: wSurf
+!   ! mass flux correction
+!   real :: wSurf
 
-    ! debugging
-    real :: checkSum
-
-
-    !---------------------------------------------
-    !  topography: set w at k = 1,...,kMountain
-    !---------------------------------------------
-
-    if( topography ) then
-
-       print*,"WARNING: topography is on!!!"
-
-       ! heighest level to be manipulated
-       kMountain = floor(mountainHeight_dim/lRef/dz)
-
-       do k = 1,kMountain  ! ground level for u
-          do j = 1,ny
-             do i = 1,nx
-
-                u = 0.5*( var(i,j,k,2)+var(i,j,k+1,2) )
-                slope = slopeFunction( x(i) )
-                w_top = slope * u
-
-                var(i,j,k,4) = w_top
-
-             end do
-          end do
-       end do
-
-    end if ! topography
+!   ! debugging
+!   real :: checkSum
 
 
-  end subroutine bottomTopography
+!   !---------------------------------------------
+!   !  topography: set w at k = 1,...,kMountain
+!   !---------------------------------------------
+
+!   if( topography ) then
+
+!      print*,"WARNING: topography is on!!!"
+
+!      ! heighest level to be manipulated
+!      kMountain = floor(mountainHeight_dim/lRef/dz)
+
+!      do k = 1,kMountain  ! ground level for u
+!         do j = 1,ny
+!            do i = 1,nx
+
+!               u = 0.5*( var(i,j,k,2)+var(i,j,k+1,2) )
+!               slope = slopeFunction( x(i) )
+!               w_top = slope * u
+
+!               var(i,j,k,4) = w_top
+
+!            end do
+!         end do
+!      end do
+
+!   end if ! topography
+
+
+! end subroutine bottomTopography
 
 
   !---------------------------------------------------------------------------
@@ -1182,7 +1184,7 @@ contains
   !---------------------------------------------------------------------------
   
   
-  subroutine volumeForce (var,force)
+  subroutine volumeForce (var,time,force)
     !-------------------------------------------------------
     ! computes and adds up all volume forces on a grid cell
     !-------------------------------------------------------
@@ -1206,6 +1208,15 @@ contains
     real :: u1,u2,u3
     real :: f1,f2,f3
     real :: rho
+
+!   achatzb
+    ! zonal wind relaxation
+    real :: ft_relax
+    real :: time
+    real, dimension(0:nx+1) :: fx_relax
+    real :: xextent_relax
+    integer :: i0
+!   achatze
 
     
     !--------------------------------------------
@@ -1288,21 +1299,89 @@ contains
 
                 ! Coriolis force normally written in LHS with "+"
                 ! gets now a "-" since force is assumed on the RHS
-!                force(i,j,k,:) = force(i,j,k,:) - RoInv*(/f1,f2,f3/)   ! modified by Junhong Wei
 
-! modified by Junhong Wei
-!                if( fluctuationMode) then
-!                force(i,j,k,:) = force(i,j,k,:) - ( ( rho + rhoStrat(k) )*RoInv*(/f1,f2,f3/) )
-!                else
                 force(i,j,k,:) = force(i,j,k,:) - ( rho*RoInv*(/f1,f2,f3/) )
-!                end if
-! modified by Junhong Wei
 
              end do
           end do
        end do
 
     end if ! RoInv > 0.0
+
+!   achatzb
+    !--------------------------------------------
+    !             zonal wind relaxation
+    !--------------------------------------------
+
+    i0=is+nbx-1
+    
+    if( testCase == "mountainwave") then
+
+       if(time < t_ramp) then
+          ft_relax = (1.0 - cos(time*pi/(t_ramp*2.0)))/t_relax
+         else if (time < t_relax-t_ramp)  then
+          ft_relax = 1.0/t_relax
+         else if (time < t_relax) then
+          ft_relax = (1.0 - cos((t_relax-time)*pi/(t_ramp*2.0)))/t_relax
+         else
+          ft_relax = 0.0
+       end if
+
+       xextent_relax = lx(1) - lx(0) - xextent_norelax
+
+       ! if no-relaxation zone is larger than model domain then no 
+       ! relaxation
+
+       if(xextent_relax > 0.0) then
+          do i = 0,nx+1
+             if(x(i0+i) < lx(0)+0.5*xextent_relax) then
+               fx_relax(i) = cos((x(i0+i)-lx(0))*pi/xextent_relax)
+             else if(x(i0+i) < lx(1)-0.5*xextent_relax) then
+               fx_relax(i) = 0.0
+             else
+               fx_relax(i) = cos((lx(1)-x(i0+i))*pi/xextent_relax)
+             end if
+!            testb
+!            write(*,*)i,x(i0+i)*lRef,fx_relax(i)
+!            teste
+          end do
+         else
+          do i = 0,nx+1
+             fx_relax(i) = 0.0
+          end do
+       end if
+
+       do k = 0,nz+1
+          do j = 0,ny+1
+             do i = 0,nx+1
+
+                select case( model ) 
+
+                case( "Boussinesq" ) 
+                   rho = rho00
+
+                case( "pseudo_incompressible" )
+
+                if( fluctuationMode) then
+                rho = 0.5*(var(i,j,k,1)+var(i+1,j,k,1)) + rhoStrat(k)
+                else
+                rho = 0.5*(var(i,j,k,1)+var(i+1,j,k,1))
+                end if
+
+                case default
+                   stop"volumeForce: unknown case model."
+                end select
+
+                force(i,j,k,1) &
+                = force(i,j,k,1) &
+                  - rho * ft_relax * fx_relax(i) * (var(i,j,k,2) - u_relax)
+
+             end do
+          end do
+       end do
+
+    end if ! mountainwave
+!   achatze
 
 
   end subroutine volumeForce

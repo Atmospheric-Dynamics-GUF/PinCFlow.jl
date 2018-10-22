@@ -63,7 +63,9 @@ contains
     real    :: vOld, vBG, vNew
     real    :: wOld, wBG, wNew
 
-    
+!   achatzb
+    real, dimension(1:nz) :: sum_local, sum_global
+!   achatze
     
     ! return if sponge layer with relaxation is switched off
     if( .not. spongeLayer ) then 
@@ -108,13 +110,44 @@ contains
        
     case( "uvw" )
        
-       ! relax u to background flow
+!      achatzb relax u to horizontal mean
+!      ! relax u to background flow
+!      do k = kSponge, nz
+!         do j = 1,ny
+!            do i = 0,nx
+!               
+!               uOld = var(i,j,k,2)
+!               uBG = backgroundFlow(1)
+!               alpha = spongeAlphaZ * (z(k)-zSponge) / spongeDz
+!               beta = 1./(1.+alpha*0.5*dt)**2
+!               
+!               uNew = (1.-beta)*uBG + beta*uOld
+!               
+!               var(i,j,k,2) = uNew
+!               
+!            end do
+!         end do
+!      end do
+
+       ! local horizontal sum in the sponge layer
+
        do k = kSponge, nz
+          sum_local(k) = sum(var(1:nx,1:ny,k,2))
+       end do
+
+       ! global sum and average
+
+       call mpi_allreduce(sum_local(kSponge),sum_global(kSponge),nz-kSponge+1,&
+                          mpi_double_precision,mpi_sum,comm,ierror)
+       sum_global = sum_global/(sizeX*sizeY)
+
+       do k = kSponge, nz
+          uBG = sum_global(k)
+
           do j = 1,ny
              do i = 0,nx
                 
                 uOld = var(i,j,k,2)
-                uBG = backgroundFlow(1)
                 alpha = spongeAlphaZ * (z(k)-zSponge) / spongeDz
                 beta = 1./(1.+alpha*0.5*dt)**2
                 
@@ -125,14 +158,46 @@ contains
              end do
           end do
        end do
+!      achatze
        
-       ! relax v to background flow
+!      achatzb relax v to horizontal mean
+!      ! relax v to background flow
+!      do k = kSponge, nz
+!         do j = 1,ny
+!            do i = 1,nx
+!               
+!               vOld = var(i,j,k,3)
+!               vBG = backgroundFlow(2)
+!               alpha = spongeAlphaZ * (z(k)-zSponge) / spongeDz
+!               beta = 1./(1.+alpha*0.5*dt)**2
+!               
+!               vNew = (1.-beta)*vBG + beta*vOld
+!               
+!               var(i,j,k,3) = vNew
+!               
+!            end do
+!         end do
+!      end do
+       
+       ! local horizontal sum in the sponge layer
+
        do k = kSponge, nz
+          sum_local(k) = sum(var(1:nx,1:ny,k,3))
+       end do
+
+       ! global sum and average
+
+       call mpi_allreduce(sum_local(kSponge),sum_global(kSponge),nz-kSponge+1,&
+                          mpi_double_precision,mpi_sum,comm,ierror)
+       sum_global = sum_global/(sizeX*sizeY)
+
+       do k = kSponge, nz
+          vBG = sum_global(k)
+
           do j = 1,ny
              do i = 1,nx
                 
                 vOld = var(i,j,k,3)
-                vBG = backgroundFlow(2)
                 alpha = spongeAlphaZ * (z(k)-zSponge) / spongeDz
                 beta = 1./(1.+alpha*0.5*dt)**2
                 
@@ -143,14 +208,34 @@ contains
              end do
           end do
        end do
+!      achatze
        
-       ! relax w to background flow
+!      achatzb relax w to zero
+!      ! relax w to background flow
+!      do k = kSponge, nz
+!         do j = 1,ny
+!            do i = 1,nx
+!               
+!               wOld = var(i,j,k,4)
+!               wBG = backgroundFlow(3)
+!               alpha = spongeAlphaZ * (z(k)-zSponge) / spongeDz
+!               beta = 1./(1.+alpha*0.5*dt)**2
+!               
+!               wNew = (1.-beta)*wBG + beta*wOld
+
+!               var(i,j,k,4) = wNew
+!               
+!            end do
+!         end do
+!      end do
+
        do k = kSponge, nz
+          wBG = 0.0
+
           do j = 1,ny
              do i = 1,nx
                 
                 wOld = var(i,j,k,4)
-                wBG = backgroundFlow(3)
                 alpha = spongeAlphaZ * (z(k)-zSponge) / spongeDz
                 beta = 1./(1.+alpha*0.5*dt)**2
                 
@@ -161,6 +246,7 @@ contains
              end do
           end do
        end do
+!      achatze
 
 
     case default
@@ -238,6 +324,10 @@ contains
 
     ! test 
     real :: u,v,w,uAbs
+
+!   achatzb
+    integer :: i00,j00
+!   achatze
 
     ! init q
     if (m == 1) q = 0.
@@ -624,6 +714,63 @@ contains
        print*,""
     end if
              
+!   achatzb
+!   -------------------------------------
+!   in case of topography, 
+!   set all velocities normal to the topographic surface to zero,
+!   set density in land cells to background density
+!   ------------------------------------
+
+    i00=is+nbx-1
+    j00=js+nby-1
+
+    if(topography) then
+       do k = 0, nz+1
+          do j = 0, ny+1
+             do i = 0, nx+1
+!               u at x interfaces
+                if(&
+                   topography_mask(i00+i,j00+j,k)&
+                   .or.&
+                   topography_mask(i00+i+1,j00+j,k)&
+                ) then
+                   var(i,j,k,2)=0.
+                end if
+
+!               v at y interfaces
+                if(&
+                   topography_mask(i00+i,j00+j,k)&
+                   .or.&
+                   topography_mask(i00+i,j00+j+1,k)&
+                ) then
+                   var(i,j,k,3)=0.
+                end if
+
+!               w at z interfaces
+                if(&
+                   topography_mask(i00+i,j00+j,k)&
+                   .or.&
+                   topography_mask(i00+i,j00+j,k+1)&
+                ) then
+                   var(i,j,k,4)=0.
+                end if
+
+!               density in land cells
+                if(topography_mask(i0+i,j0+j,k)) then
+                   if( fluctuationMode ) then
+                      var(i,j,k,1) = 0.0
+                     else
+                      var(i,j,k,1) = rhoStrat(k) 
+                   end if
+                end if
+
+             end do
+          end do
+       end do
+    end if
+!   -------------------------------------
+!   achatze
+
   end subroutine momentumPredictor
 
 
@@ -1539,6 +1686,10 @@ contains
     integer :: allocstat
     integer :: i,j,k
     integer :: kmin,kmax,nsmthv
+!   achatzb
+    integer :: nsmthall,ismth,jsmth,ksmth
+    integer :: i0,j0
+!   achatze
 
 
     allocate(var3D_DySma_Extend( (0-nsmth_DySma) : (nx+nsmth_DySma), (0-nsmth_DySma) : (ny+nsmth_DySma), (0-nsmth_DySma) : (nz+nsmth_DySma) ), stat=allocstat); if(allocstat/=0) &
@@ -1551,6 +1702,11 @@ contains
     call setHaloAndBoundary( var3D_DySma_Extend(:,:,:), nsmth_DySma, nsmth_DySma, nsmth_DySma )
 
 ! start to do the smoothing
+
+!   achatzb
+    i0=is+nbx-1
+    j0=js+nby-1
+!   achatze
 
     select case( homog_dir_DySma )
 
@@ -1571,9 +1727,22 @@ contains
      if(nz /= sizeZ) stop" DYNAMIC SMAGORINSKY NOT READY FOR MPI IN Z"
 
        do k = 1,nz
-          kmin=max( 1,k-nsmth_DySma)
-          kmax=min(nz,k+nsmth_DySma)
+!         achatzb correct handling of solid and periodic boundaries in z
+!         kmin=max( 1,k-nsmth_DySma)
+!         kmax=min(nz,k+nsmth_DySma)
+!         nsmthv=kmax-kmin+1
+          if(zBoundary == "solid_wall") then
+             kmin=max( 1,k-nsmth_DySma)
+             kmax=min(nz,k+nsmth_DySma)
+            else if (zBoundary == "periodic") then
+             kmin=k-nsmth_DySma
+             kmax=k+nsmth_DySma
+            else
+             stop"vertical smoothing: unknown case zBoundary."
+          end if
+
           nsmthv=kmax-kmin+1
+!         achatze
 
 !         testb
 !         if (master) write(*,*)k,kmin,kmax,nsmthv
@@ -1582,16 +1751,56 @@ contains
           do j = 1,ny
              do i = 1,nx
 
-                var3D_DySma(i,j,k)&
-                =&
-                sum(&
-                var3D_DySma_Extend( &
-                (i-nsmth_DySma):(i+nsmth_DySma), &
-                (j-nsmth_DySma):(j+nsmth_DySma), &
-                kmin:kmax &
-                )&
-                )&
-                /( ((2*nsmth_DySma + 1)**2) * nsmthv)
+!               achatzb 
+!               averaging dyn. Smag. coeff. only over atmosphere cells
+
+!               var3D_DySma(i,j,k)&
+!               =&
+!               sum(&
+!               var3D_DySma_Extend( &
+!               (i-nsmth_DySma):(i+nsmth_DySma), &
+!               (j-nsmth_DySma):(j+nsmth_DySma), &
+!               kmin:kmax &
+!               )&
+!               )&
+!               /( ((2*nsmth_DySma + 1)**2) * nsmthv)
+
+                if(topography) then
+                   nsmthall=0
+                   var3D_DySma(i,j,k)=0.0
+
+                   do ksmth=kmin,kmax
+                      do jsmth=j-nsmth_DySma,j+nsmth_DySma
+                         do ismth=i-nsmth_DySma,i+nsmth_DySma
+                            if(.not.&
+                               topography_mask(i0+ismth,j0+jsmth,ksmth)) &
+                               then
+                               var3D_DySma(i,j,k)&
+                               =var3D_DySma(i,j,k)&
+                                +var3D_DySma_Extend(ismth,jsmth,ksmth)
+ 
+                               nsmthall=nsmthall+1
+                            end if
+                         end do
+                       end do
+                    end do
+
+                   if(nsmthall > 0) then
+                      var3D_DySma(i,j,k)=var3D_DySma(i,j,k)/nsmthall
+                   end if
+                  else
+                   var3D_DySma(i,j,k)&
+                   =&
+                   sum(&
+                   var3D_DySma_Extend( &
+                   (i-nsmth_DySma):(i+nsmth_DySma), &
+                   (j-nsmth_DySma):(j+nsmth_DySma), &
+                   kmin:kmax &
+                   )&
+                   )&
+                   /( ((2*nsmth_DySma + 1)**2) * nsmthv)
+                end if
+!              achatze
 
              end do
           end do
@@ -1611,10 +1820,23 @@ contains
      if(nz /= sizeZ) stop" DYNAMIC SMAGORINSKY NOT READY FOR MPI IN Z"
 
        do k = 1,nz
-          kmin=max( 1,k-nsmth_DySma)
-          kmax=min(nz,k+nsmth_DySma)
+!         achatzb correct handling of solid and periodic boundaries in z
+!         kmin=max( 1,k-nsmth_DySma)
+!         kmax=min(nz,k+nsmth_DySma)
+!         nsmthv=kmax-kmin+1
+          if(zBoundary == "solid_wall") then
+             kmin=max( 1,k-nsmth_DySma)
+             kmax=min(nz,k+nsmth_DySma)
+            else if (zBoundary == "periodic") then
+             kmin=k-nsmth_DySma
+             kmax=k+nsmth_DySma
+            else
+             stop"vertical smoothing: unknown case zBoundary."
+          end if
+
           nsmthv=kmax-kmin+1
-             
+!         achatze
+
 !         testb
 !         if (master) write(*,*)k,kmin,kmax,nsmthv
 !         teste
@@ -1622,20 +1844,56 @@ contains
           do j = 1,ny
              do i = 1,nx
 
-             var3D_DySma(i,j,k)&
-             =&
-             sum(&
-             var3D_DySma_Extend( &
-             (i-nsmth_DySma):(i+nsmth_DySma), &
-             j, &
-             kmin:kmax &
-             )&
-             )&
-             /( (2*nsmth_DySma + 1) * nsmthv)
+!               achatzb 
+!               averaging dyn. Smag. coeff. only over atmosphere cells
 
-             end do
-          end do
-       end do
+!               var3D_DySma(i,j,k)&
+!               =&
+!               sum(&
+!               var3D_DySma_Extend( &
+!               (i-nsmth_DySma):(i+nsmth_DySma), &
+!               j, &
+!               kmin:kmax &
+!               )&
+!               )&
+!               /( (2*nsmth_DySma + 1) * nsmthv)
+
+                if(topography) then
+                  nsmthall=0
+                  var3D_DySma(i,j,k)=0.0
+
+                  do ksmth=kmin,kmax
+                     do ismth=i-nsmth_DySma,i+nsmth_DySma
+                        if(.not.&
+                           topography_mask(i0+ismth,j0+j,ksmth)) then
+                           var3D_DySma(i,j,k)&
+                           =var3D_DySma(i,j,k)&
+                            +var3D_DySma_Extend(ismth,j,ksmth)
+
+                           nsmthall=nsmthall+1
+                        end if
+                     end do
+                  end do
+
+                  if(nsmthall > 0) then
+                     var3D_DySma(i,j,k)=var3D_DySma(i,j,k)/nsmthall
+                  end if
+                 else
+                   var3D_DySma(i,j,k)&
+                   =&
+                   sum(&
+                   var3D_DySma_Extend( &
+                   (i-nsmth_DySma):(i+nsmth_DySma), &
+                   j, &
+                   kmin:kmax &
+                   )&
+                   )&
+                   /( (2*nsmth_DySma + 1) * nsmthv)
+               end if
+!              achatze
+            end do
+         end do
+      end do
 
 
     case( "X_whole_smth" )
@@ -1652,8 +1910,36 @@ contains
        do k = 1,nz
           do j = 1,ny
 
-var3D_DySma(:,j,k)=sum(var3D_DySma_Extend( 1:nx, j, k ))/(nx*1.0)
+!            achatzb 
+!            averaging dyn. Smag. coeff. only over atmosphere cells
 
+!            var3D_DySma(:,j,k)&
+!            =sum(var3D_DySma_Extend( 1:nx, j, k ))/(nx*1.0)
+
+             do i = 1,nx
+                if(topography) then
+                   var3D_DySma(i,j,k)=0.0
+                   nsmthall=0
+
+                   do ismth =1,nx
+                      if(.not.topography_mask(i0+ismth,j0+j,k)) then
+                         var3D_DySma(i,j,k)&
+                         = var3D_DySma(i,j,k) &
+                           + var3D_DySma_Extend(ismth,j,k)
+
+                         nsmthall=nsmthall+1
+                      end if
+                   end do
+
+                   if(nsmthall > 0) then
+                      var3D_DySma(i,j,k)=var3D_DySma(i,j,k)/nsmthall
+                   end if
+                  else
+                   var3D_DySma(i,j,k)&
+                   =sum(var3D_DySma_Extend( 1:nx, j, k ))/nx
+                end if
+             end do
+!            achatze
           end do
        end do
 

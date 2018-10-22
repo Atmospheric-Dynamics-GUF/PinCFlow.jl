@@ -167,6 +167,10 @@ contains
     integer :: dest, source, tag
     integer :: sendcount, recvcount
 
+!   achatzb
+    if(topography) stop'linOpr not ready for topography!'
+!   achatze
+
     ! modified by Junhong Wei (20161106) *** finishing line ***
 
     ! auxiliary variables
@@ -705,6 +709,10 @@ contains
     real :: divL2_local, divSum_local
     integer :: root
 
+!   achatzb
+    integer :: i0,j0
+!   achatze
+
 !xxxx
     if( giveInfo .and. master ) then
        print*,""
@@ -723,6 +731,11 @@ contains
     !    if(verbose) print*,"update.f90/poissonSolver: &   ! modified by Junhong Wei (20161106)
     if( master .and. verbose ) print*,"update.f90/poissonSolver: &
          & Setting up Poisson problem."   ! modified by Junhong Wei (20161106)
+
+!   achatzb
+    i0=is+nbx-1
+    j0=js+nby-1
+!   achatze
     
     
     !--------------------------------------------------
@@ -760,6 +773,12 @@ contains
                 
                 b(i,j,k) = Pstrat(k) * ( (uR-uL)/dx + (vF-vB)/dy ) &
                      & + (PstratU*wU - PstratD*wD)/dz
+
+!               achatzb
+                if(topography) then
+                   if(topography_mask(i0+i,j0+j,k)) b(i,j,k) = 0.0
+                end if
+!               achatze
 
                 ! L2-norm of the divergence div(Pu)
                 ! divL2 = divL2 + b(i,j,k)**2   ! modified by Junhong Wei (20161107)
@@ -825,6 +844,12 @@ contains
 
                 div = (uR-uL)/dx + (vF-vB)/dy + (wU-wD)/dz
                 b(i,j,k) =  Ma**2 * kappa / theta00 * div
+
+!               achatzb
+                if(topography) then
+                   if(topography_mask(i0+i,j0+j,k)) b(i,j,k) = 0.0
+                end if
+!               achatze
 
                 ! check sum for solvability criterion (shoud be zero)
                 ! divSum = divSum + b(i,j,k)   ! modified by Junhong Wei (20161107)
@@ -1052,6 +1077,10 @@ contains
 
     real :: dx2, dy2, dz2
 
+!   achatzb
+    if(topography) stop'linOprXYZ not ready for topography!'
+!   achatze
+
     ! auxiliary variables
     dx2 = 1.0/dx**2
     dy2 = 1.0/dy**2
@@ -1259,6 +1288,10 @@ contains
 
     ! test variables
     real :: res0, res01, res02, res03
+
+!   achatzb
+    if(topography) stop'adi not ready for topography!'
+!   achatze
 
     ! auxiliary variables
     dx2 = 1.0/dx**2
@@ -1765,9 +1798,9 @@ contains
     real, dimension(1:nz) :: diag, rhs0 
     real, dimension(1:nz-1) :: lower_diag, upper_diag
 
-
-
-
+!   achatzb
+    if(topography) stop'adi_z not ready for topography!'
+!   achatze
 
     ! define auxiliary variables
     dx2 = 1.0/dx**2
@@ -2430,6 +2463,11 @@ contains
 
     integer :: index_count_hypre
 
+!   achatzb
+    integer :: k_sing
+    integer :: i0,j0
+!   achatze
+
     ! local variables
     integer :: i,j,k
     real :: pStratU, pStratD, rhoEdge
@@ -2572,6 +2610,11 @@ contains
 
 ! We have *** grid points, each with 7 stencil entrie
 
+!   achatzb
+    i0=is+nbx-1
+    j0=js+nby-1
+!   achatze
+
     select case( model ) 
 
        !----------------------------------------
@@ -2588,77 +2631,286 @@ contains
           j_loop: do j = 1,ny
              i_loop: do i = 1,nx
 
-                ! ------------------ A(i+1,j,k) ------------------
-                rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
-                if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
+!               achatzb
+!               ! ------------------ A(i+1,j,k) ------------------
+!               rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
+!               if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
 
-                AR = dx2 * pStrat(k)**2/rhoEdge
+!               AR = dx2 * pStrat(k)**2/rhoEdge
 
-                ! ------------------- A(i-1,j,k) --------------------
-                rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
-                if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)                
+!               ! ------------------- A(i-1,j,k) --------------------
+!               rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
+!               if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
 
-                AL = dx2 * pStrat(k)**2 / rhoEdge
+!               AL = dx2 * pStrat(k)**2 / rhoEdge
 
-                ! -------------------- A(i,j+1,k) ----------------------
-                rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
-                if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
+!               ! -------------------- A(i,j+1,k) ----------------------
+!               rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
+!               if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
 
-                AF = dy2 * pStrat(k)**2 / rhoEdge
+!               AF = dy2 * pStrat(k)**2 / rhoEdge
 
-                ! --------------------- A(i,j-1,k) -----------------------
-                rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
-                if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
+!               ! --------------------- A(i,j-1,k) ----------------------
+!               rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
+!               if( fluctuationMode ) then
+!                  rhoEdge = rhoEdge + rhoStrat(k)
+!               end if
 
-                AB = dy2 * pStrat(k)**2 / rhoEdge
+!               AB = dy2 * pStrat(k)**2 / rhoEdge
 
-                ! ---------------------- A(i,j,k+1) ------------------------
-                if (k<nz) then
-                   rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
-                   if( fluctuationMode ) rhoEdge = rhoEdge + rhoStratTilde(k)
+!               ! ---------------------- A(i,j,k+1) ---------------------
+!               if (k<nz) then
+!                  rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
+!                  if( fluctuationMode ) then
+!                     rhoEdge = rhoEdge + rhoStratTilde(k)
+!                  end if
 
-                   pStratU = 0.5* ( pStrat(k+1) + pStrat(k) )
-                   AU = dz2 * pStratU**2 / rhoEdge
-                else ! k = nz -> upwad boundary (solid wall)
-                   ! A(i,j,nz+1) = 0
-                   AU = 0.0
-                end if
+!                  pStratU = 0.5* ( pStrat(k+1) + pStrat(k) )
+!                  AU = dz2 * pStratU**2 / rhoEdge
+!               else ! k = nz -> upwad boundary (solid wall)
+!                  ! A(i,j,nz+1) = 0
+!                  AU = 0.0
+!               end if
 
-                ! ----------------------- A(i,j,k-1) ------------------------
-                if (k>1) then 
-                   rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
-                   if( fluctuationMode ) rhoEdge = rhoEdge + rhoStratTilde(k-1)
+!               ! ----------------------- A(i,j,k-1) ---------------------
+!               if (k>1) then 
+!                  rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
+!                  if( fluctuationMode ) then
+!                      rhoEdge = rhoEdge + rhoStratTilde(k-1)
+!                  end if
+!                  
+!                  pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
+!                  AD = dz2 * pStratD**2 / rhoEdge
+!               else ! k = 1 -> downward boundary (solid wall)
+!                  ! A(i,j,0) = 0
+!                  AD = 0.0
+!               end if
+
+!               ! ----------------- scale with thetaStrat ----------------
+!               if( pressureScaling ) then
+!                  AL = AL / PStrat(k)
+!                  AR = AR / PStrat(k)
+!                  AB = AB / PStrat(k)
+!                  AF = AF / PStrat(k)
+!                  AD = AD / PStrat(k)
+!                  AU = AU / PStrat(k)
+!               end if
+
+!               ! ----------------------- A(i,j,k) -----------------------
+!               AC = - AR - AL - AF - AB - AU - AD
+
+                if(topography) then
+                   ! stencil with topography
+                   ! ------------------ A(i+1,j,k) ------------------
+                   if((topography_mask(i0+i,j0+j,k)&
+                       .and.(.not.topography_mask(i0+i+1,j0+j,k)))&
+                      .or.&
+                      ((.not.topography_mask(i0+i,j0+j,k))&
+                       .and.(topography_mask(i0+i+1,j0+j,k)))) & then
+                      AR=0.0
+                     else
+                      rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
+                      if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
+
+                      AR = dx2 * pStrat(k)**2/rhoEdge
+                   end if
+   
+                   ! ------------------- A(i-1,j,k) --------------------
+                   if((topography_mask(i0+i-1,j0+j,k)&
+                       .and.(.not.topography_mask(i0+i,j0+j,k)))&
+                      .or.&
+                      ((.not.topography_mask(i0+i-1,j0+j,k))&
+                       .and.(topography_mask(i0+i,j0+j,k)))) & then
+                      AL=0.0
+                     else
+                      rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
+                      if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
+
+                      AL = dx2 * pStrat(k)**2 / rhoEdge
+                   end if
+
+                   ! -------------------- A(i,j+1,k) ----------------------
+                   if((topography_mask(i0+i,j0+j,k)&
+                       .and.(.not.topography_mask(i0+i,j0+j+1,k)))&
+                      .or.&
+                      ((.not.topography_mask(i0+i,j0+j,k))&
+                       .and.(topography_mask(i0+i,j0+j+1,k)))) & then
+                      AF=0.0
+                     else
+                      rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
+                      if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
+
+                      AF = dy2 * pStrat(k)**2 / rhoEdge
+                   end if
+
+                   ! --------------------- A(i,j-1,k) -------------------
+                   if((topography_mask(i0+i,j0+j-1,k)&
+                       .and.(.not.topography_mask(i0+i,j0+j,k)))&
+                      .or.&
+                      ((.not.topography_mask(i0+i,j0+j-1,k))&
+                       .and.(topography_mask(i0+i,j0+j,k)))) & then
+                      AB=0.0
+                     else
+                      rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
+                      if( fluctuationMode ) then
+                         rhoEdge = rhoEdge + rhoStrat(k)
+                      end if
+
+                      AB = dy2 * pStrat(k)**2 / rhoEdge
+                   end if
+
+                   ! ---------------------- A(i,j,k+1) ------------------
+                   if((topography_mask(i0+i,j0+j,k)&
+                       .and.(.not.topography_mask(i0+i,j0+j,k+1)))&
+                      .or.&
+                      ((.not.topography_mask(i0+i,j0+j,k))&
+                       .and.(topography_mask(i0+i,j0+j,k+1)))&
+                      .or.&
+                      (k == nz)) & then
+                      AU=0.0
+                     else
+                      rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
+                      if( fluctuationMode ) then
+                         rhoEdge = rhoEdge + rhoStratTilde(k)
+                      end if
+
+                      pStratU = 0.5* ( pStrat(k+1) + pStrat(k) )
+                      AU = dz2 * pStratU**2 / rhoEdge
+                   end if
+
+                   ! ----------------------- A(i,j,k-1) -----------------
+                   if((topography_mask(i0+i,j0+j,k-1)&
+                       .and.(.not.topography_mask(i0+i,j0+j,k)))&
+                      .or.&
+                      ((.not.topography_mask(i0+i,j0+j,k-1))&
+                       .and.(topography_mask(i0+i,j0+j,k)))&
+                      .or.&
+                      (k == 1)) & then
+                      AD=0.0
+                     else
+                      rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
+                      if( fluctuationMode ) then
+                          rhoEdge = rhoEdge + rhoStratTilde(k-1)
+                      end if
                    
-                   pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
-                   AD = dz2 * pStratD**2 / rhoEdge
-                else ! k = 1 -> downward boundary (solid wall)
-                   ! A(i,j,0) = 0
-                   AD = 0.0
+                      pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
+                      AD = dz2 * pStratD**2 / rhoEdge
+                   end if
+
+                   ! ----------------- scale with thetaStrat ------------
+                   if( pressureScaling ) then
+                      AL = AL / PStrat(k)
+                      AR = AR / PStrat(k)
+                      AB = AB / PStrat(k)
+                      AF = AF / PStrat(k)
+                      AD = AD / PStrat(k)
+                      AU = AU / PStrat(k)
+                   end if
+
+                   ! ----------------------- A(i,j,k) -------------------
+                   ! avoid singularities in case a point is surrounded by
+                   ! topographic borders
+                   if((AR == 0.0).and.&
+                      (AL == 0.0).and.&
+                      (AF == 0.0).and.&
+                      (AB == 0.0).and.&
+                      (AU == 0.0).and.&
+                      (AD == 0.0)) then
+                      ! take density from lowermost non-topographic cell
+                      if(fluctuationMode ) then
+                         rhoEdge = var(i,j,k+1,1) + rhoStratTilde(k)
+                        else
+                         rhoEdge = var(i,j,k+1,1)
+                      end if
+                      
+                      AC = dz2 * pStrat(k)**2 / rhoEdge
+                     else
+                      AC = - AR - AL - AF - AB - AU - AD
+                   end if
+                  else
+                   ! stencil without topography
+                   ! ------------------ A(i+1,j,k) ------------------
+                   rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
+                   if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AR = dx2 * pStrat(k)**2/rhoEdge
+   
+                   ! ------------------- A(i-1,j,k) --------------------
+                   rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
+                   if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AL = dx2 * pStrat(k)**2 / rhoEdge
+
+                   ! -------------------- A(i,j+1,k) ----------------------
+                   rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
+                   if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AF = dy2 * pStrat(k)**2 / rhoEdge
+
+                   ! --------------------- A(i,j-1,k) -------------------
+                   rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
+                   if( fluctuationMode ) then
+                      rhoEdge = rhoEdge + rhoStrat(k)
+                   end if
+
+                   AB = dy2 * pStrat(k)**2 / rhoEdge
+
+                   ! ---------------------- A(i,j,k+1) ------------------
+                   if (k<nz) then
+                      rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
+                      if( fluctuationMode ) then
+                         rhoEdge = rhoEdge + rhoStratTilde(k)
+                      end if
+
+                      pStratU = 0.5* ( pStrat(k+1) + pStrat(k) )
+                      AU = dz2 * pStratU**2 / rhoEdge
+                   else ! k = nz -> upwad boundary (solid wall)
+                      ! A(i,j,nz+1) = 0
+                      AU = 0.0
+                   end if
+
+                   ! ----------------------- A(i,j,k-1) -----------------
+                   if (k>1) then 
+                      rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
+                      if( fluctuationMode ) then
+                          rhoEdge = rhoEdge + rhoStratTilde(k-1)
+                      end if
+                   
+                      pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
+                      AD = dz2 * pStratD**2 / rhoEdge
+                   else ! k = 1 -> downward boundary (solid wall)
+                      ! A(i,j,0) = 0
+                      AD = 0.0
+                   end if
+
+                   ! ----------------- scale with thetaStrat ------------
+                   if( pressureScaling ) then
+                      AL = AL / PStrat(k)
+                      AR = AR / PStrat(k)
+                      AB = AB / PStrat(k)
+                      AF = AF / PStrat(k)
+                      AD = AD / PStrat(k)
+                      AU = AU / PStrat(k)
+                   end if
+
+                   ! ----------------------- A(i,j,k) -------------------
+                   AC = - AR - AL - AF - AB - AU - AD
                 end if
-
-                ! ----------------- scale with thetaStrat --------------------
-                if( pressureScaling ) then
-                   AL = AL / PStrat(k)
-                   AR = AR / PStrat(k)
-                   AB = AB / PStrat(k)
-                   AF = AF / PStrat(k)
-                   AD = AD / PStrat(k)
-                   AU = AU / PStrat(k)
-                end if
-
-                ! ----------------------- A(i,j,k) --------------------------
-                AC = - AR - AL - AF - AB - AU - AD
+!               achatze
 
 
-                ! ------------------- define matrix A --------------------
+                ! ------------------- define matrix A -------------------
 
-!                  index_count_hypre = ( i * j * k * nentries_hypre ) - nentries_hypre + 1
+!                  index_count_hypre 
+!                  = ( i * j * k * nentries_hypre ) - nentries_hypre + 1
 
                   index_count_hypre = i
                   index_count_hypre = index_count_hypre + ( (j-1)*nx )
                   index_count_hypre = index_count_hypre + ( (k-1)*nx*ny )
 
-                  index_count_hypre = ( index_count_hypre * nentries_hypre ) - nentries_hypre + 1
+                  index_count_hypre &
+                  = ( index_count_hypre * nentries_hypre ) &
+                    - nentries_hypre + 1
 
                   values_hypre(index_count_hypre)   = AC
                   values_hypre(index_count_hypre+1) = AL
@@ -2685,66 +2937,217 @@ contains
        !         Loop over field
        !---------------------------------
 
+!      achatzb
+!      do k = 1,nz
+!         do j = 1,ny
+!            do i = 1,nx
+
+!               ! ------------------ A(i+1,j,k) ------------------
+!               AR = dx2
+
+!               ! ------------------- A(i-1,j,k) --------------------
+!               AL = dx2
+
+!               ! -------------------- A(i,j+1,k) ----------------------
+!               AF = dy2
+
+!               ! --------------------- A(i,j-1,k) -----------------------
+!               AB = dy2
+
+!               ! ---------------------- A(i,j,k+1) -----------------------
+!               AU = dz2
+
+!               ! ----------------------- A(i,j,k-1) ----------------------
+!               AD = dz2
+
+!               ! ----------------------- A(i,j,k) ------------------------
+!               AC = - AR - AL - AF - AB - AU - AD
+
+!               ! ------------------- define matrix A --------------------
+
+!                  index_count_hypre &
+!                  = ( i * j * k * nentries_hypre ) - nentries_hypre + 1
+
+!                 index_count_hypre = i
+!                 index_count_hypre = index_count_hypre + ( (j-1)*nx )
+!                 index_count_hypre = index_count_hypre + ( (k-1)*nx*ny )
+
+!                 index_count_hypre &
+!                 = ( index_count_hypre * nentries_hypre ) &
+!                   - nentries_hypre + 1
+
+!                 values_hypre(index_count_hypre)   = AC
+!                 values_hypre(index_count_hypre+1) = AL
+!                 values_hypre(index_count_hypre+2) = AR
+!                 values_hypre(index_count_hypre+3) = AB
+!                 values_hypre(index_count_hypre+4) = AF
+!                 values_hypre(index_count_hypre+5) = AD
+!                 values_hypre(index_count_hypre+6) = AU
+
+!            end do
+!         end do
+!      end do
+
+!      !--------------------------------------
+!      !  Correction for solid wall boundary
+!      !--------------------------------------
+
+!      !---------------------------------
+!      !          zBoundary
+!      !---------------------------------
+
+!      if( zBoundary == "solid_wall" ) then
+
+!         do k = 1,nz,nz-1      ! k = 1 and nz
+!            do j = 1,ny
+!               do i = 1,nx
+
+!                  ! ------------------ A(i+1,j,k) ------------------
+!                  AR = dx2
+
+!                  ! ------------------- A(i-1,j,k) --------------------
+!                  AL = dx2
+
+!                  ! -------------------- A(i,j+1,k) ----------------------
+!                  AF = dy2
+
+!                  ! --------------------- A(i,j-1,k) ---------------------
+!                  AB = dy2
+
+!                  ! ---------------------- A(i,j,k+1) --------------------
+!                  ! k = nz -> upwad boundary (solid wall)
+!                  ! A(i,j,nz+1) = 0
+!                  AU = 0.0
+
+!                  ! ----------------------- A(i,j,k-1) ------------------
+!                  ! k = 1 -> downward boundary (solid wall)
+!                  ! A(i,j,0) = 0
+!                  AD = 0.0
+
+!                  ! ----------------------- A(i,j,k) --------------------
+
+!                  AC = - AR - AL - AF - AB - AU - AD
+
+!               ! ------------------- define matrix A --------------------
+
+!                  index_count_hypre &
+!                  = ( i * j * k * nentries_hypre ) - nentries_hypre + 1
+
+!                 index_count_hypre = i
+!                 index_count_hypre = index_count_hypre + ( (j-1)*nx )
+!                 index_count_hypre = index_count_hypre + ( (k-1)*nx*ny )
+
+!                 index_count_hypre &
+!                 = ( index_count_hypre * nentries_hypre ) &
+!                   - nentries_hypre + 1
+
+!                 values_hypre(index_count_hypre)   = AC
+!                 values_hypre(index_count_hypre+1) = AL
+!                 values_hypre(index_count_hypre+2) = AR
+!                 values_hypre(index_count_hypre+3) = AB
+!                 values_hypre(index_count_hypre+4) = AF
+!                 values_hypre(index_count_hypre+5) = AD
+!                 values_hypre(index_count_hypre+6) = AU
+
+!               end do
+!            end do
+!         end do
+
+!      end if ! zBoundary
+
        do k = 1,nz
           do j = 1,ny
              do i = 1,nx
+                if(topography) then
+                   ! stencil with topography
 
-                ! ------------------ A(i+1,j,k) ------------------
-                AR = dx2
+                   ! ------------------ A(i+1,j,k) ------------------
+                   if((topography_mask(i0+i,j0+j,k)&
+                       .and.(.not.topography_mask(i0+i+1,j0+j,k)))&
+                      .or.&
+                      ((.not.topography_mask(i0+i,j0+j,k))&
+                       .and.(topography_mask(i0+i+1,j0+j,k)))) & then
+                      AR=0.0
+                     else
+                      AR = dx2
+                   end if
+   
+                   ! ------------------- A(i-1,j,k) --------------------
+                   if((topography_mask(i0+i-1,j0+j,k)&
+                       .and.(.not.topography_mask(i0+i,j0+j,k)))&
+                      .or.&
+                      ((.not.topography_mask(i0+i-1,j0+j,k))&
+                       .and.(topography_mask(i0+i,j0+j,k)))) & then
+                      AL=0.0
+                     else
+                      AL = dx2
+                   end if
+   
+                   ! -------------------- A(i,j+1,k) ----------------------
+                   if((topography_mask(i0+i,j0+j,k)&
+                       .and.(.not.topography_mask(i0+i,j0+j+1,k)))&
+                      .or.&
+                      ((.not.topography_mask(i0+i,j0+j,k))&
+                       .and.(topography_mask(i0+i,j0+j+1,k)))) & then
+                      AF=0.0
+                     else
+                      AF = dy2
+                   end if
+   
+                   ! --------------------- A(i,j-1,k) ---------------------
+                   if((topography_mask(i0+i,j0+j-1,k)&
+                       .and.(.not.topography_mask(i0+i,j0+j,k)))&
+                      .or.&
+                      ((.not.topography_mask(i0+i,j0+j-1,k))&
+                       .and.(topography_mask(i0+i,j0+j,k)))) & then
+                      AB=0.0
+                     else
+                      AB = dy2
+                   end if
 
-                ! ------------------- A(i-1,j,k) --------------------
-                AL = dx2
-
-                ! -------------------- A(i,j+1,k) ----------------------
-                AF = dy2
-
-                ! --------------------- A(i,j-1,k) -----------------------
-                AB = dy2
-
-                ! ---------------------- A(i,j,k+1) ------------------------
-                AU = dz2
-
-                ! ----------------------- A(i,j,k-1) ------------------------
-                AD = dz2
-
-                ! ----------------------- A(i,j,k) --------------------------
-                AC = - AR - AL - AF - AB - AU - AD
-
-                ! ------------------- define matrix A --------------------
-
-!                  index_count_hypre = ( i * j * k * nentries_hypre ) - nentries_hypre + 1
-
-                  index_count_hypre = i
-                  index_count_hypre = index_count_hypre + ( (j-1)*nx )
-                  index_count_hypre = index_count_hypre + ( (k-1)*nx*ny )
-
-                  index_count_hypre = ( index_count_hypre * nentries_hypre ) - nentries_hypre + 1
-
-                  values_hypre(index_count_hypre)   = AC
-                  values_hypre(index_count_hypre+1) = AL
-                  values_hypre(index_count_hypre+2) = AR
-                  values_hypre(index_count_hypre+3) = AB
-                  values_hypre(index_count_hypre+4) = AF
-                  values_hypre(index_count_hypre+5) = AD
-                  values_hypre(index_count_hypre+6) = AU
-
-             end do
-          end do
-       end do
-
-       !--------------------------------------
-       !  Correction for solid wall boundary
-       !--------------------------------------
-
-       !---------------------------------
-       !          zBoundary
-       !---------------------------------
-
-       if( zBoundary == "solid_wall" ) then
-
-          do k = 1,nz,nz-1      ! k = 1 and nz
-             do j = 1,ny
-                do i = 1,nx
+                   ! ---------------------- A(i,j,k+1) --------------------
+                   if((topography_mask(i0+i,j0+j,k)&
+                       .and.(.not.topography_mask(i0+i,j0+j,k+1)))&
+                      .or.&
+                      ((.not.topography_mask(i0+i,j0+j,k))&
+                       .and.(topography_mask(i0+i,j0+j,k+1)))) & then
+                      AU=0.0
+                     else if((zBoundary == "solid_wall").and.(k == nz)) &
+                     then
+                      AU=0.0
+                     else
+                      AU = dz2
+                   end if
+   
+                   ! ----------------------- A(i,j,k-1) -------------------
+                   if((topography_mask(i0+i,j0+j,k-1)&
+                       .and.(.not.topography_mask(i0+i,j0+j,k)))&
+                      .or.&
+                      ((.not.topography_mask(i0+i,j0+j,k-1))&
+                       .and.(topography_mask(i0+i,j0+j,k)))) & then
+                      AD=0.0
+                     else if((zBoundary == "solid_wall").and.(k == 1)) &
+                     then
+                      AD=0.0
+                     else
+                      AD = dz2
+                   end if
+   
+                   ! ----------------------- A(i,j,k) ---------------------
+                   ! avoid singularities in case a point is surrounded by
+                   ! topographic borders
+                   if((AR == 0.0).and.&
+                      (AL == 0.0).and.&
+                      (AF == 0.0).and.&
+                      (AB == 0.0).and.&
+                      (AU == 0.0).and.&
+                      (AD == 0.0)) then
+                      AC = dz2
+                     else
+                      AC = - AR - AL - AF - AB - AU - AD
+                   end if
+                  else
+                   ! stencil without topography
 
                    ! ------------------ A(i+1,j,k) ------------------
                    AR = dx2
@@ -2755,46 +3158,51 @@ contains
                    ! -------------------- A(i,j+1,k) ----------------------
                    AF = dy2
 
-                   ! --------------------- A(i,j-1,k) -----------------------
+                   ! --------------------- A(i,j-1,k) --------------------
                    AB = dy2
 
-                   ! ---------------------- A(i,j,k+1) ------------------------
-                   ! k = nz -> upwad boundary (solid wall)
-                   ! A(i,j,nz+1) = 0
-                   AU = 0.0
+                   ! ---------------------- A(i,j,k+1) --------------------
+                   if((zBoundary == "solid_wall").and.(k == nz)) then
+                      AU = 0.0
+                     else
+                      AU = dz2
+                   end if
 
-                   ! ----------------------- A(i,j,k-1) ------------------------
-                   ! k = 1 -> downward boundary (solid wall)
-                   ! A(i,j,0) = 0
-                   AD = 0.0
+                   ! ----------------------- A(i,j,k-1) -------------------
+                   if((zBoundary == "solid_wall").and.(k == 1)) then
+                      AD = 0.0
+                     else
+                      AD = dz2
+                   end if
 
-                   ! ----------------------- A(i,j,k) --------------------------
-
+                   ! ----------------------- A(i,j,k) ---------------------
                    AC = - AR - AL - AF - AB - AU - AD
+                end if
 
                 ! ------------------- define matrix A --------------------
 
-!                  index_count_hypre = ( i * j * k * nentries_hypre ) - nentries_hypre + 1
+!                  index_count_hypre &
+!                  = ( i * j * k * nentries_hypre ) - nentries_hypre + 1
 
-                  index_count_hypre = i
-                  index_count_hypre = index_count_hypre + ( (j-1)*nx )
-                  index_count_hypre = index_count_hypre + ( (k-1)*nx*ny )
+                index_count_hypre = i
+                index_count_hypre = index_count_hypre + ( (j-1)*nx )
+                index_count_hypre = index_count_hypre + ( (k-1)*nx*ny )
 
-                  index_count_hypre = ( index_count_hypre * nentries_hypre ) - nentries_hypre + 1
+                index_count_hypre &
+                = ( index_count_hypre * nentries_hypre ) &
+                  - nentries_hypre + 1
 
-                  values_hypre(index_count_hypre)   = AC
-                  values_hypre(index_count_hypre+1) = AL
-                  values_hypre(index_count_hypre+2) = AR
-                  values_hypre(index_count_hypre+3) = AB
-                  values_hypre(index_count_hypre+4) = AF
-                  values_hypre(index_count_hypre+5) = AD
-                  values_hypre(index_count_hypre+6) = AU
-
-                end do
+                values_hypre(index_count_hypre)   = AC
+                values_hypre(index_count_hypre+1) = AL
+                values_hypre(index_count_hypre+2) = AR
+                values_hypre(index_count_hypre+3) = AB
+                values_hypre(index_count_hypre+4) = AF
+                values_hypre(index_count_hypre+5) = AD
+                values_hypre(index_count_hypre+6) = AU
              end do
           end do
-
-       end if ! zBoundary
+       end do
+!      achatze
 
 
     case default
@@ -2869,7 +3277,9 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
 
 ! Set the type of Krylov solver to use. 
 ! Current krylov methods set by solver type are: 1 – DSCG (default) 2 – GMRES 3 – BiCGSTAB
+! Junhong used 2
   call HYPRE_StructHybridSetSolverType(solver_hypre, 2, ierr_hypre)
+! call HYPRE_StructHybridSetSolverType(solver_hypre, 2, ierr_hypre)
 
 ! Set tolerance value for relative! residual (unlike in Rieper's BiGSTAB
 ! where the absolute! residual is used). tol = tolPoisson in the namelist
@@ -2882,7 +3292,10 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
 ! Set convergence criterion for activating a preconditioner. 
 ! A number between 0 and 1 is accepted, the smaller the number, the 
 ! sooner a preconditioner is activated.
-  call HYPRE_StructHybridSetConvergenc(solver_hypre, 1.e-23, ierr_hypre)
+! achatzb
+! call HYPRE_StructHybridSetConvergenc(solver_hypre, 1.e-23, ierr_hypre)
+  call HYPRE_StructHybridSetConvergenc(solver_hypre, tolCond, ierr_hypre)
+! achatze
 
 ! Set maximum number of iterations. maxIt = maxIterPoisson in the namelist
   call HYPRE_StructHybridSetPCGMaxIter(solver_hypre, maxIt, ierr_hypre)
@@ -2998,6 +3411,10 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
 
     ! verbose
     logical, parameter :: giveInfo = .false.
+
+!   achatzb
+    if(topography) stop'poissonSolver_csr not ready for topography!'
+!   achatze
 
 
     ! ----------------------------------
@@ -3578,6 +3995,10 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
     ! verbose
     logical, parameter :: giveInfo = .true.
 
+!   achatzb
+    integer :: i0,j0
+!   achatze
+
     ! modified by Junhong Wei (20161108) *** starting line ***
 
         if( giveInfo .and. master ) then
@@ -3589,11 +4010,34 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
     end if
        
 
+!   achatzb
+    i0=is+nbx-1
+    j0=js+nby-1
+!   achatze
+
     ! --------------------------------------
     !             calc p + dp
     ! --------------------------------------
 
-    var(0:nx+1,0:ny+1,1:nz,5) = var(0:nx+1,0:ny+1,1:nz,5) + dp(0:nx+1,0:ny+1,1:nz)
+!   achatzb
+!   var(0:nx+1,0:ny+1,1:nz,5) &
+!   = var(0:nx+1,0:ny+1,1:nz,5) + dp(0:nx+1,0:ny+1,1:nz)
+    ! pressure correction only for atmosphere cells
+    if(topography) then
+       do k = 0,nz+1
+          do j = 0,ny+1
+             do i = 0,nx+1
+                if(.not.topography_mask(i0+i,j0+j,k)) then
+                   var(i,j,k,5) = var(i,j,k,5) + dp(i,j,k)
+                end if
+             end do
+          end do
+       end do
+      else
+       var(0:nx+1,0:ny+1,1:nz,5) &
+       = var(0:nx+1,0:ny+1,1:nz,5) + dp(0:nx+1,0:ny+1,1:nz)
+    end if
+!   achatze
 
 !    ! --------------------------------------
 !    !             calc p + dp
@@ -3717,6 +4161,60 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
        end do
 
     end if
+
+!   achatzb
+!   -------------------------------------
+!   in case of topography, 
+!   set all velocities normal to the topographic surface to zero
+!   set densities in land cesll to background density
+!   ------------------------------------
+
+    if(topography) then
+       do k = 0, nz+1
+          do j = 0, ny+1
+             do i = 0, nx+1
+!               u at x interfaces
+                if(&
+                   topography_mask(i0+i,j0+j,k)&
+                   .or.&
+                   topography_mask(i0+i+1,j0+j,k)&
+                ) then
+                   var(i,j,k,2)=0.
+                end if
+
+!               v at y interfaces
+                if(&
+                   topography_mask(i0+i,j0+j,k)&
+                   .or.&
+                   topography_mask(i0+i,j0+j+1,k)&
+                ) then
+                   var(i,j,k,3)=0.
+                end if
+
+!               w at z interfaces
+                if(&
+                   topography_mask(i0+i,j0+j,k)&
+                   .or.&
+                   topography_mask(i0+i,j0+j,k+1)&
+                ) then
+                   var(i,j,k,4)=0.
+                end if
+
+!               density in land cells
+                if(topography_mask(i0+i,j0+j,k)) then
+                   if( fluctuationMode ) then
+                      var(i,j,k,1) = 0.0
+                     else
+                      var(i,j,k,1) = rhoStrat(k) 
+                   end if
+                end if
+
+             end do
+          end do
+       end do
+    end if
+!   -------------------------------------
+!   achatze
 
 
 

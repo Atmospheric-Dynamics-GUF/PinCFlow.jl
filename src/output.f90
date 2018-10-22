@@ -123,6 +123,8 @@ contains
     ! MPI stuff   ! modified by Junhong Wei (20161110)
     integer :: i00, j00   ! modified by Junhong Wei (20161110)
 
+    integer :: i_prc,i_mst,i_out,j_prc,j_mst,j_out
+
     time_dim = time * tRef
 
     if( master ) then ! modified by Junhong Wei (20161110)
@@ -271,7 +273,8 @@ recl=SizeX*SizeY)
                            stop"tec360: unkown iVar"
                    end select ! iVar
                 end do ! i
-                call mpi_gather(field_prc(1,j),nx,mpi_real,field_out(1,j),nx,mpi_real,0,comm,ierror)
+                call mpi_gather(field_prc(1,j),nx,mpi_real,&
+                                field_mst(1,j),nx,mpi_real,0,comm,ierror)
              end do ! j
 
              ! layerwise output
@@ -280,6 +283,34 @@ recl=SizeX*SizeY)
 !            write(40,rec=irc_prc) field_prc
              call mpi_barrier(comm,ierror)
              if(master) then
+                do j=1,ny
+                   j_mst=j
+
+                   do j_prc= 1,nprocy
+                      j_out=ny*(j_prc-1)+j
+
+                      do i_prc=1,nprocx
+                         do i=1,nx
+                            i_out=nx*(i_prc-1)+i
+
+                            i_mst=nprocy*nx*(i_prc-1)+(j_prc-1)*nx+i
+
+                            field_out(i_out,j_out)=field_mst(i_mst,j_mst)
+                         end do
+                      end do
+                   end do
+                end do
+
+!               do jprc= 1,nprocy
+!                  do j=1,ny
+!                     jout=(jprc-1)*ny+j
+
+!                     do i=1,sizeX
+!                        field_out(i,jout)=field_mst(i+(jprc-1)*sizeX,j)
+!                     end do
+!                  end do
+!               end do
+
                 write(41,rec=irc_prc) field_out
              end if
           end do ! k
@@ -1480,6 +1511,8 @@ recl=SizeX*SizeY)
     if(allocstat /= 0) stop "output.f90/init_output: could not allocate optVar. Stop."
 
     ! for output global fields
+    allocate(field_mst(sizeX*nprocy,ny),stat=allocstat)
+    if(allocstat /= 0) stop "output.f90/init_output: could not allocate field_mst. Stop."
     allocate(field_out(sizeX,sizeY),stat=allocstat)
     if(allocstat /= 0) stop "output.f90/init_output: could not allocate field_out. Stop."
   end subroutine init_output

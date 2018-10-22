@@ -90,6 +90,23 @@ contains
     allocate(z(-nbz:sizeZ+nbz), stat=allocstat)   ! modified by Junhong Wei (20161104)
     if(allocstat /= 0) stop "init.f90: could not allocate z"
 
+!   achatzb
+    !---------------------------------------------------
+    ! allocate topography mask and surface
+    !---------------------------------------------------
+
+    allocate(&
+    topography_mask(-nbx+1:sizeX+nbx,-nby+1:sizeY+nby,-nbz+1:sizeZ+nbz), &
+    stat=allocstat&
+    )
+    if(allocstat /= 0) stop "init.f90: could not allocate topgoraphy_mask"
+    allocate(&
+    topography_surface(-nbx+1:sizeX+nbx,-nby+1:sizeY+nby), stat=allocstat&
+    )
+    if(allocstat /= 0) &
+    stop "init.f90: could not allocate topography_surface"
+!   achatze
+
 
     !-------------------------------------
     !      allocate variable fields
@@ -731,7 +748,75 @@ contains
 
 ! modified by Junhong Wei (20161201) *** finishing line ***
 
-       !-------------------------------------------------------------------
+!   achatzb
+    !   -----------------------------------------------------------------
+
+    !   read parameters for temporary wind relaxation
+    !   zero-wind initial state for montain-wave simulations 
+
+    case( 'mountainwave' )  
+       ! read parameters for temporary wind relaxation
+
+       read (unit=10, nml=mountainwavelist)
+
+       ! nondimensionalization
+
+       u_relax = u_relax/uRef
+
+       t_relax = t_relax/tRef
+       t_ramp = t_ramp/tRef
+
+       xextent_norelax = xextent_norelax/lRef
+
+       ! increase relaxation wind u_relax so that u = u_relax after the
+       ! relaxation period (in zonally symmetric case without topography)
+
+       u_relax = u_relax/(1.0 - exp(4.0*t_ramp/(pi*t_relax) - 1.0))
+
+       ! zero wind
+  
+       var(:,:,:,2) = 0.0 ! u
+       var(:,:,:,3) = 0.0 ! v
+       var(:,:,:,4) = 0.0 ! w
+
+
+       ! density, potential temperature, and pressure
+
+       do k = 0,(nz+1)
+          do j = 0,(ny+1)
+             do i = 0,(nx+1)
+                select case( model ) 
+                   case( "pseudo_incompressible" )
+                      ! initialization density = background density
+                      ! subtract background for fluctuation mode
+
+                      if( fluctuationMode ) then
+                         rho = 0.0
+                        else
+                         rho = rhoStrat(k) 
+                      end if
+
+                      ! write to field
+                      var(i,j,k,1) = rho 
+
+                   case( "Boussinesq" ) 
+                      ! initialization zero buoyancy fluctuations
+
+                      var(i,j,k,6) = 0.0
+
+                   case default
+                      stop"initialize: unknown case model"
+                end select
+
+                ! initialization zero pressure fluctuations
+
+                var(i,j,k,5) = 0.0
+             end do
+          end do
+       end do
+!   achatze
+
+    !-------------------------------------------------------------------
 
 
     case( 'wavePacket_raytracer' )
@@ -1845,6 +1930,63 @@ contains
 
     end select
 
+!   achatzb
+!   -------------------------------------
+!   in case of topography, 
+!   set all velocities normal to the topographic surface to zero,
+!   set density in land cells to background density
+!   ------------------------------------
+
+    i0=is+nbx-1
+    j0=js+nby-1
+
+    if(topography) then
+       do k = 0, nz+1
+          do j = 0, ny+1
+             do i = 0, nx+1
+!               u at x interfaces
+                if(&
+                   topography_mask(i0+i,j0+j,k)&
+                   .or.&
+                   topography_mask(i0+i+1,j0+j,k)&
+                ) then
+                   var(i,j,k,2)=0.
+                end if
+
+!               v at y interfaces
+                if(&
+                   topography_mask(i0+i,j0+j,k)&
+                   .or.&
+                   topography_mask(i0+i,j0+j+1,k)&
+                ) then
+                   var(i,j,k,3)=0.
+                end if
+
+!               w at z interfaces
+                if(&
+                   topography_mask(i0+i,j0+j,k)&
+                   .or.&
+                   topography_mask(i0+i,j0+j,k+1)&
+                ) then
+                   var(i,j,k,4)=0.
+                end if
+
+!               density in land cells
+                if(topography_mask(i0+i,j0+j,k)) then
+                   if( fluctuationMode ) then
+                      var(i,j,k,1) = 0.0
+                     else
+                      var(i,j,k,1) = rhoStrat(k) 
+                   end if
+                end if
+
+             end do
+          end do
+       end do
+    end if
+!   -------------------------------------
+!   achatze
+
 
     ! close input file pinc.f
     close (unit=10)
@@ -1965,6 +2107,9 @@ contains
     print*,"  9) Poisson Solver: "
     write(*,fmt="(a25,a)") "solver = ", poissonSolverType
     write(*,fmt="(a25,es7.1)") "tolPoisson = ", tolPoisson
+!   achatzb
+    write(*,fmt="(a25,es7.1)") "tolCond = ", tolCond
+!   achatze
     print*,""
 
 
@@ -2272,8 +2417,37 @@ print*,"RoInv = ", RoInv/tRef   ! modified by Junhong Wei
 !               envel = exp(-(delx**2 + delz**2)/2./sigma**2)   ! modified by Junhong Wei (20170214)
 !               envel = ( exp(-(delz**2)/2./sigma**2) ) * ( exp(-(delx**2)/2./sigma_hor**2) )   ! modified by Junhong Wei for 3DWP (20170214)
 
-     envel = ( exp(-(delz**2)/2./sigma**2) ) * ( exp(-(delx**2)/2./sigma_hor**2) ) * ( exp(-(dely**2)/2./sigma_hor_yyy**2) )   ! modified by Junhong Wei for 3DWP (20170921)
+!           achatzb cosine profile horizontally so that fields are zero 
+!           at the horizontal boundaries
+!           in case of zero sigma in x or y direction use infinity
+!           envel &
+!           = ( exp(-(delz**2)/2./sigma**2) ) &
+!           * ( exp(-(delx**2)/2./sigma_hor**2) ) &
+!           * ( exp(-(dely**2)/2./sigma_hor_yyy**2) )   &
+!           ! modified by Junhong Wei for 3DWP (20170921)
 
+            if(sigma_hor == 0.0) then
+               envel = 1.0
+              else if(abs(delx) < sigma_hor) then
+               envel &
+               = 1.0 - amp_mod_x + amp_mod_x *cos(delx*pi/(sigma_hor*2.0))
+              else
+               envel = 1.0 - amp_mod_x
+            end if
+
+            if(sigma_hor_yyy == 0.0) then
+               envel = 1.0 * envel
+              else if(abs(dely) < sigma_hor_yyy) then
+               envel &
+               = (1.0 - amp_mod_y &
+                  + amp_mod_y * cos(dely*pi/(sigma_hor_yyy*2.0))) &
+                 * envel
+              else
+               envel = envel * (1.0 - amp_mod_y)
+            end if
+
+            envel = envel * exp(-(delz**2)/2./sigma**2)
+!           achatze
 
             case(2) 
 

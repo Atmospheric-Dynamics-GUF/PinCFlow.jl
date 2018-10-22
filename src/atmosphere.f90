@@ -66,6 +66,11 @@ module atmosphere_module
 
   real :: zk                     ! zk = z(k) 
 
+! achatzb
+  real :: mountainHeight,mountainWidth,k_mountainw
+  real :: x_center,y_center
+! achatze
+
 
 
 contains
@@ -232,8 +237,15 @@ contains
     sig = Ma**2/Fr**2   
 
     ! Rossby numer
-    Ro = uRef/f_Coriolis_dim/lRef  
-    RoInv = 1.0/Ro       
+!   achatzb correction for zero Coriolis
+!   Ro = uRef/f_Coriolis_dim/lRef  
+!   RoInv = 1.0/Ro       
+    if(f_Coriolis_dim /= 0.0) then
+       Ro = uRef/f_Coriolis_dim/lRef  
+       RoInv = 1.0/Ro       
+      else
+       RoInv=0.0
+    end if
 
     ! Reynolds number
     if( .not. specifyReynolds ) ReInv = mu_viscous_dim/uRef/lRef
@@ -287,6 +299,43 @@ contains
     do k = -nbz, sizeZ+nbz   ! modified by Junhong Wei (20161104)
        z(k) = lz(0) + real(k-1)*dz + dz/2.0
     end do
+
+!   achatzb
+    !----------------------------------
+    !            setup topography
+    !----------------------------------
+
+    mountainHeight = mountainHeight_dim/lRef
+    mountainWidth  = mountainWidth_dim/lRef
+
+    x_center = 0.5*(lx(1) + lx(0)) 
+    y_center = 0.5*(ly(1) + ly(0)) 
+
+    k_mountainw = pi/mountainWidth
+
+    do j = -nby+1, sizeY+nby   ! modified by Junhong Wei (20161104)
+       do i = -nbx+1, sizeX+nbx
+          if(abs(x(i)-x_center) <= mountainWidth) then
+             topography_surface(i,j) &
+             = 0.5*mountainHeight*(1. + cos(k_mountainw*(x(i)-x_center)))
+           else
+             topography_surface(i,j) = 0.
+          end if
+       end do
+    end do
+
+    do k = -nbz+1, sizeZ+nbz
+       do j = -nby+1, sizeY+nby
+          do i = -nbx+1, sizeX+nbx
+             if(z(k) < topography_surface(i,j)) then        
+                topography_mask(i,j,k) = .true.
+               else
+                topography_mask(i,j,k) = .false.
+             end if
+          end do
+       end do
+    end do
+!   achatze
 
 
 

@@ -244,7 +244,10 @@ program pinc_prog
      !               Init ray tracer
      !---------------------------------------------
 
-     call setup_wkb(ray, waveAct, waveActOld, Psi)   ! allocate ray fields
+!    achatzb
+!    initialization WKB would have to be redone!
+!    call setup_wkb(ray, waveAct, waveActOld, Psi)   ! allocate ray fields
+!    achatze
 
 
      !------------------------------------------
@@ -457,8 +460,10 @@ program pinc_prog
            end if
            if( predictMomentum ) then
               call momentumFlux (var,flux)        
-              call volumeForce (var,force)        
-              call bottomTopography(var,flux)
+              call volumeForce (var,time,force)        
+!             achatzb deactivated old implementation of topography
+!             call bottomTopography(var,flux)
+!             achatze
 !xxxx wrong implemented / call might not be necessary
               if( correctDivError) call momentumSource (var,source)
            end if
@@ -684,7 +689,10 @@ program pinc_prog
      call terminate (var,var0,dRho,dMom,dTheta)                         
      call terminate_atmosphere
      call terminate_output
-     call finish_wkb(ray, waveAct, waveActOld, Psi)
+!    achatzb
+!    WKB switched off
+!    call finish_wkb(ray, waveAct, waveActOld, Psi)
+!    achatze
 
   end do paramLoop
 

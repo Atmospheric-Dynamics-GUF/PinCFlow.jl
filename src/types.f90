@@ -71,7 +71,7 @@ module type_module
   !--------------------------------------------------------------
   
   ! real*4, dimension(:,:), allocatable :: field_out
-  real*4, dimension(:,:), allocatable :: field_out
+  real*4, dimension(:,:), allocatable :: field_out, field_mst
   
   
 !  !-----------------------------------------------------------------!  
@@ -200,6 +200,9 @@ module type_module
   real :: z0_jet_dim
   real :: L_jet_dim
   real :: xCenter_dim, yCenter_dim, zCenter_dim
+! achatzb
+  real :: amp_mod_x, amp_mod_y
+! achatze
   
   namelist / wavePacket / &
        &       wavePacketType, &
@@ -207,8 +210,16 @@ module type_module
        &       lambdaX_dim, lambdaY_dim, lambdaZ_dim, &
        &       meanFlowX_dim, meanFlowZ_dim, &
        &       amplitudeFactor, &
-!       &       xCenter_dim, zCenter_dim, sigma_dim, L_cos_dim, omiSign, &   ! modified by Junhong Wei (20170214)
-       &       xCenter_dim, yCenter_dim, zCenter_dim, sigma_dim, sigma_hor_dim, sigma_hor_yyy_dim, L_cos_dim, omiSign, &   ! modified by Junhong Wei (20170214)
+       &       xCenter_dim, yCenter_dim, zCenter_dim, sigma_dim, &
+       &       sigma_hor_dim, &
+! achatzb
+       &       amp_mod_x, &
+! achatze
+       &       sigma_hor_yyy_dim, &
+! achatzb
+       &       amp_mod_y, &
+! achatze
+       &       L_cos_dim, omiSign, &
        &       u0_jet_dim, z0_jet_dim, L_jet_dim
 
 ! modified by Junhong Wei for 3DWP (20170828) *** finishing line ***
@@ -230,6 +241,21 @@ module type_module
        &    dTheta2_dim, a2_dim, sigma2_dim, xCenter2_dim, zCenter2_dim
 
 
+! achatzb
+  !-----------------------------------------------------------------
+  !                          Mountain Wave
+  !-----------------------------------------------------------------
+
+  ! zonal wind to be attained by temporary wind relexation
+  real :: u_relax
+  ! total relaxation time
+  real :: t_relax
+  ! duration of ramping up/down the relaxation
+  real :: t_ramp
+  ! zonal extent of region without wind relaxation
+  real :: xextent_norelax
+  namelist / mountainwavelist / u_relax,t_relax,t_ramp,xextent_norelax
+! achatze
   !-----------------------------------------------------------------  
   !                          Model equations
   !-----------------------------------------------------------------  
@@ -274,6 +300,9 @@ module type_module
   !-----------------------------------------------------------------
 
   real :: tolPoisson
+! achatzb
+  real :: tolCond
+! achatze
   integer :: maxIterPoisson
   character(len=20) :: poissonSolverType
   character(len=20) :: storageType
@@ -285,7 +314,7 @@ module type_module
   logical :: useNAG
   logical :: correctMomentum       ! false -> momentumCorrector off
   logical :: correctDivError       ! true -> subtract rho*div(u)
-  namelist / poissonSolverList / tolPoisson, maxIterPoisson, &
+  namelist / poissonSolverList / tolPoisson, tolCond, maxIterPoisson, &
        & poissonSolverType, storageType, preconditioner, dtau, maxIterADI, &
        & initialCleaning, pressureScaling, useNAG, &
        & correctMomentum, correctDivError
@@ -351,6 +380,13 @@ module type_module
   !-----------------------------------------------------------------
   
   logical :: topography    ! via k = 1
+! achatzb
+! topography_mask = .true.  if cell is below topographic surface
+! topography_mask = .false. if cell is above topographic surface
+! topography_surface x-y-dependent mountain surface
+  logical, dimension(:,:,:), allocatable :: topography_mask
+  real, dimension(:,:), allocatable :: topography_surface
+! achatze
   real :: mountainHeight_dim
   real :: mountainWidth_dim
   namelist / topographyList / topography, &
