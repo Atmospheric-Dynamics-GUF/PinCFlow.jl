@@ -11,9 +11,9 @@
 
 &domain
 
-  sizeX = 256,                   ! nb of global grid cells
-  sizeY = 256,
-  sizeZ = 1920,
+  sizeX = 32,                   ! nb of global grid cells
+  sizeY = 32,
+  sizeZ = 600,
   nbx = 2,             ! nb. of ghost cells
   nby = 2,
   nbz = 2,
@@ -61,7 +61,7 @@
 
   cfl = 0.5
   cfl_wave = 0.25                 ! passage rate of phase throuh a cell
-  dtMax_dim = 3.6e3 !s            ! max time step in s
+  dtMax_dim = 36  !s              ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
   timeScheme = "LS_Will_RK3"      ! LS_Will_RK3 -> Williamson / Euler /
@@ -216,20 +216,21 @@
 
   maxIter = 2            ! stop after maxIter time steps
 
-  outputTimeDiff =  8.7266e2 !s ! output every ... seconds
-  maxTime = 3.4907e4         !s ! stop after maxTime seconds
+  outputTimeDiff =  3600  !s    ! output every ... seconds
+  maxTime = 3600  !s                ! stop after maxTime seconds
 
-  dataFileName = ""      ! empty string "" -> dataFileName = testCase
-  restartFile = "restart.ref"   ! restart file in TEC360 format
-  restart = .false.      ! true / false
+  dataFileName = ""                 ! empty string "" -> dataFileName = testCase
+  restartFile = "restart.ref"       ! restart file in TEC360 format
+  restart = .false.                 ! true / false
 
-  dimOut = .true.,.false.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
+  dimOut = .true.,.false.,.true.    ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,1,1,0   ! 1 = output, 0 = no output 
-  !                       primary variables: rho,u,v,w,pi',theta'
+!  varOut = 0,0,0,0,0,0,0            ! 1 = output, 0 = no output 
+  varOut = 1,1,1,1,1,1,0            ! 1 = output, 0 = no output 
+                                    ! primary variables: rho,u,v,w,pi',theta'
 
-  offset = 0.0, 0.0, 0.0, 0.0, 0.0 ! offset for primary variables
-  rhoOffset = .true.               ! subtract background
+  offset = 0.0, 0.0, 0.0, 0.0, 0.0  ! offset for primary variables
+  rhoOffset = .true.                ! subtract background
 
   ! optional variables
   optVarOut = 0,1,0, 0,0,0           ! 1 = output, 0 = no output for 

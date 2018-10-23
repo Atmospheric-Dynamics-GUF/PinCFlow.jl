@@ -3,7 +3,7 @@
 FC = mpif90
 FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
 LIPNAG =
-LIBHYPRE = /home/atmodynamics/boeloeni/Hypre/hypre-2.11.2/src/lib
+LIBHYPRE = /home/atmodynamics/voelker/hypre/hypre-2.11.2/src/lib
 
 # define directories for sources and binaries (GSV 072018)
 BIN = ./bin
@@ -112,7 +112,7 @@ xweno:	$(XOBJ)
 	$(FC) $(FCFLAGS) -o testXWENO $(XOBJ)
 
 # cleaning
-TEMP = *.o *.mod pinc
+TEMP = $(BUILD)/*.o $(BUILD)/*.mod $(BIN)/pinc
 clean:
 	rm -f $(TEMP)
 
