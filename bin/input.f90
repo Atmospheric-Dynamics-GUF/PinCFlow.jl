@@ -9,17 +9,20 @@
 !                  Grid and Domain
 !------------------------------------------------
 
-&grid
+&domain
 
-  nx = 1,             ! nb of grid internal cells 
-  ny = 1,              ! nz = 3840 for 60km domain height, 2560 for 40km
-  nz = 1000,           ! at least nz = 3!
-  nbx = 3,             ! nb. of ghost cells
-  nby = 3,
-  nbz = 3,
-  lx_dim = 0.0, 1000.0,       ! domain lenths in m
-  ly_dim = 0.0, 40000.0, 
-  lz_dim = 0.0, 40000.0,
+  sizeX = 256,                   ! nb of global grid cells
+  sizeY = 256,
+  sizeZ = 1920,
+  nbx = 2,             ! nb. of ghost cells
+  nby = 2,
+  nbz = 2,
+  lx_dim = 0.0, 10000.0,       ! domain lenths in m
+  ly_dim = 0.0, 10000.0, 
+  lz_dim = 0.0, 60000.0,
+! nb of processors in x and y direction must be set in the batch file
+  nprocx = {nprocx},
+  nprocy = {nprocy},
 
 &end
 
@@ -31,7 +34,7 @@
 
 &variables
 
-  nVar = 6,         ! number of dependent variables
+  nVar = 7,         ! number of dependent variables
   nOptVar = 4,
 
 &end
@@ -43,7 +46,7 @@
   
 &modelList
 
-  model = "WKB"    ! pseudo_incompressible / Boussinesq / WKB
+  model = "pseudo_incompressible"    ! pseudo_incompressible / Boussinesq / WKB
   vert_theta = 90.0 !deg    angle of rotation about y
   vert_alpha = 0.0 ! det    angle of rotation about z'
 
@@ -58,7 +61,7 @@
 
   cfl = 0.5
   cfl_wave = 0.25                 ! passage rate of phase throuh a cell
-  dtMax_dim = 1.0 !s              ! max time step in s
+  dtMax_dim = 3.6e3 !s            ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
   timeScheme = "LS_Will_RK3"      ! LS_Will_RK3 -> Williamson / Euler /
@@ -67,6 +70,7 @@
   reconstType = "MUSCL"           ! MUSCL / constant / SALD / ALDM
   limiterType1 = "MCVariant"      ! minmod / Cada / MCVariant
   fluctuationMode = .true.        ! use rho' as primary variable
+  DySmaScheme = .true.            ! Dynamic Smagorinsky Scheme
 
 &end
 
@@ -76,9 +80,11 @@
 
 &poissonSolverList
 
-  tolPoisson = 1.0e-7          ! abbort 
-  maxIterPoisson = 100
-  poissonSolverType = "bicgstab"         ! "bicgstab" / "gcr" / "adi"
+  tolPoisson = 1.0e-4          ! abbort 
+  tolCond = 1.e-20             ! tolerance value controlling the use of 
+                               ! the preconditioner
+  maxIterPoisson = 500
+  poissonSolverType = "hypre"         ! "bicgstab" / "gcr" / "adi" / "hypre"
   storageType = "opr"          ! "csr" (compressed sparse row) 
                                      !  "opr" (lin operator)
 
@@ -88,10 +94,10 @@
   maxIterADI = 2                ! nb of iterations for ADI preconditioner
 
   initialCleaning = .false.     ! makes initial projection
-  pressureScaling = .true.      ! .true. / .false. Scaling with PStrat
+  pressureScaling = .false.     ! .true. / .false. Scaling with PStrat
   useNAG = .false.              ! use NAG routine for TDMA algorithm 
   correctMomentum = .true.      ! turn velocity projection on/off 
-  correctDivError = .false.      ! true -> subtract rho*div(u)
+  correctDivError = .false.     ! true -> subtract rho*div(u)
 
 &end	
 
@@ -106,8 +112,13 @@
   
   specifyReynolds = .false.    ! false -> give mu_viscous, true-> give ReInv
   ReInv = 0.0      !           inverse Reynolds number, ReInv = 0 -> inviscid flow
-  mu_viscous_dim = 0.0 ! m^2/s     kinematic viscosity
-  mu_conduct_dim = 0.0 ! m^2/s     heat conductivity
+  mu_viscous_dim = 1.5e-2
+  ! m^2/s     kinematic viscosity: 0 for inviscid
+  !                                1.5e-5 for z = 0 at bottom of atmosphere
+  !                                1.5e-2 for z = 0 at 60km
+  mu_conduct_dim = 0.     
+  ! m^2/s     heat conductivity: 0 for non-diffusive
+  !                              2 * mu_viscous_dim corresponds to Pr = 0.5
   
   background = "isothermal"
   
@@ -126,20 +137,22 @@
   !                     const-N    -> ground pot. temp. 
   !                     uniform    -> background pot temp for Boussinesq
   
-  Temp0_dim = 300  ! K      
+  Temp0_dim = 296  ! K      
   !                     isothermal -> background temperature
   
-  press0_dim =  101325.0    
-  !                     ground pressure (at z=0) in Pa
+  press0_dim =  101.3250
+  !                     ground pressure (at z=0) in Pa:
+  !                     101325.0 for z = 0 bottom of atmosphere
+  !                     101.3250 for z = 0 at appr 60km
   
-  N_BruntVaisala_dim = 0.02 
+  N_BruntVaisala_dim = 0.017
   !                     Brunt-Vaisala frequency for 
   !                     1) "const-N" atmosphere in 1/s
   !                     2) "unifrom" Boussinesq 
   
   backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
   !                     zonal background flow velocity u
-  f_Coriolis_dim = 0.0e-2 ! 1/s       Coriolis parameter
+  f_Coriolis_dim = 1.8e-3 ! 1/s       Coriolis parameter
   
 &end
 
@@ -172,9 +185,9 @@
   nbCellCorr = 1
   
   ! sponge layer at upper boundary
-  spongeLayer = .false.  ! sponge with relaxation to background
-  spongeHeight = 0.5     ! relative height of sponge layer
-  spongeAlphaZ_dim = 1.67e-3 ! relaxation rate coeff in 1/s 
+  spongeLayer = .true.      ! sponge with relaxation to background
+  spongeHeight = 0.33       ! relative height of sponge layer
+  spongeAlphaZ_dim = 1.8e-3 ! relaxation rate coeff in 1/s 
   
 &end
 
@@ -183,7 +196,7 @@
   ! boundary types
   xBoundary = "periodic"   ! periodic
   yBoundary = "periodic"   ! periodic
-  zBoundary = "periodic" ! periodic / solid_wall
+  zBoundary = "solid_wall" ! periodic / solid_wall
   
 &end
 
@@ -203,33 +216,33 @@
 
   maxIter = 2            ! stop after maxIter time steps
 
-  outputTimeDiff =  60.0  !s    ! output every ... seconds
-  maxTime = 120.0 !s          ! stop after maxTime seconds
+  outputTimeDiff =  8.7266e2 !s ! output every ... seconds
+  maxTime = 3.4907e4         !s ! stop after maxTime seconds
 
   dataFileName = ""      ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
   restart = .false.      ! true / false
 
-  dimOut = 1,0,1        ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
+  dimOut = .true.,.false.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 0,1,0, 0,0,0   ! 1 = output, 0 = no output 
+  varOut = 1,1,1,1,1,1,0   ! 1 = output, 0 = no output 
   !                       primary variables: rho,u,v,w,pi',theta'
 
   offset = 0.0, 0.0, 0.0, 0.0, 0.0 ! offset for primary variables
   rhoOffset = .true.               ! subtract background
 
   ! optional variables
-  optVarOut = 0,0,0, 0,0,0           ! 1 = output, 0 = no output for 
+  optVarOut = 0,1,0, 0,0,0           ! 1 = output, 0 = no output for 
   !                         1) p-pBar in kPa 
   !                         2) buoyancy
   !                         3) background pressure pBar in kPa
   !                         4) background density rhoBar in kg/m^3
   !                         5) div(Pu)
   !                         6) stratification perturbation db/dz
-  thetaOffset = .false.               ! subtract background
+  thetaOffset = .true.               ! subtract background
 
   ! WKB variables
-  wkbVarOut = 1,1,1,1, 1,1,1,1, 1,1,1,1  
+  wkbVarOut = 0,0,0,0, 0,0,0,0, 0,0,0,0
   !                         1) Wave action amplitude
   !                         2) u00 in m/s
   !                         3) th02
@@ -287,8 +300,8 @@
 
 &wkbList
 
-  rayTracer = .true.           ! set up ray tracer
-  nRayRatio = 5                ! nb of rays per finite-volume-cell
+  rayTracer = .false.           ! set up ray tracer
+!  nRayRatio = 5                ! nb of rays per finite-volume-cell
   waveFluxType = "upwind"      ! upwind / central (both 2nd order)
   limiterType = "MCVariant"    ! limter upwind transport operator
                                       ! minmod / thirdOrder / Cada / MCVariant
@@ -302,7 +315,7 @@
 ! general
 &testCaseList
 
-  testCase = "wavePacket_raytracer"
+  testCase = "wavePacket"
   ! Boussinesq: uniform_theta, wavePacket
   ! agnesiMountain -> see topography
 
@@ -322,22 +335,61 @@
 &wavePacket
   
   wavePacketType = 1            ! 1 = Gaussian, 2 = Cosine
-  wavePacketDim = 1             ! 1 = 1D, 2 = 2D
-  lambdaX_dim = 1000.0          ! horizontal wave length in m
-  !                               if lambdaX = 0.0 --> kk0 = 0
-  lambdaZ_dim = 1000.0          ! vertical wave length in m
-  amplitudeFactor = 0.1         ! normalilized buoyancy amplitude
-  xCenter_dim = 0.0             ! horizontal center of wave packet in m
+  wavePacketDim = 2             ! 1 = 1D, 2 = 2D, 3 = 3D ! modified by Junhong Wei for 3DWP (20170828)
+  ! If working on the 2.5D Wave Packet, please use wavePacketDim = 2   ! modified by Junhong Wei for 3DWP (20170921)
+  lambdaX_dim = 0.0          ! zonal wave length in m ! modified by Junhong Wei for 3DWP (20170828)
+  !                               if lambdaX = 0.0 --> kk0 = 0 ! modified by Junhong Wei for 3DWP (20170828)
+  lambdaY_dim = 10000.0          ! meridional wave length in m ! modified by Junhong Wei for 3DWP (20170828)
+  ! if the absolute value of lambdaY_dim is less than or equal to 0.1 --> ll0 = 0 ! modified by Junhong Wei for 3DWP (20170921)
+  lambdaZ_dim = 1000.0         ! vertical wave length in m
+  amplitudeFactor = 0.7         ! normalilized buoyancy amplitude
+  xCenter_dim = 5000.0         ! zonal center of wave packet in m
+  yCenter_dim = 5000.0          ! meridional center of wave packet in m ! modified by Junhong Wei for 3DWP (20170828)
   zCenter_dim = 10000.0         ! vertical...
-  sigma_dim = 5000.0            ! Gaussian distribution width
-  L_cos_dim = 10000.0           ! half width of cosine profile of GWP
+  sigma_dim = 2000.0            ! Gaussian distribution width (in the vertical direction)
+  sigma_hor_dim = 5000.0        ! cosine distribution width (in x direction, 0 means infinity)
+  amp_mod_x = 0.1               
+! fractional amplitude of amplitude modulation in x direction
+! (0 = no modulation, 1 = total modulation)
+  sigma_hor_yyy_dim = 0.0       ! cosine distribution width (in y direction, 0 means infinity)
+  amp_mod_y = 0.0               
+! fractional amplitude of amplitude modulation in y direction
+! (0 = no modulation, 1 = total modulation)
+  L_cos_dim = 2000.0            ! half width of cosine profile of GWP
   meanFlowX_dim = 0.0           ! mean flow in m/s / jet flow amplitude
-  meanFlowZ_dim = 0.0           ! mean vertical flowm/s
-  u0_jet_dim = 00.0             ! amplitude max of jet velocity
-  L_jet_dim = 5000.0            ! half width of cosine profile of jet in 1m
-  z0_jet_dim = 26000.0          ! center of jet stream
+  meanFlowZ_dim = 0.0           ! mean vertical flow m/s
+  u0_jet_dim = 0.0              ! amplitude max of jet velocity
+  L_jet_dim = 2000.0            ! half width of cosine profile of jet in 1m
+  z0_jet_dim = 10000.0          ! center of jet stream
+  omiSign = -1                 ! frequency branch
 
 &end
+
+!----------------
+!   mountain wave
+!----------------
+
+!test case initializes with zero flow that is rammped up gradually by a
+!temporary wind relaxation.
+!topography = .true. must be set separately (see above)!
+!topography = .false. allows testing the temporary wind relaxation.
+
+&mountainwavelist
+
+! zonal wind to be attained by temporary wind relexation
+  u_relax = 75.0 ! m/s 
+
+! total relaxation time
+  t_relax = 172800.0 ! s
+
+! duration of ramping up/down the relaxation
+  t_ramp = 17280.0 ! s
+
+! zonal extent of region without wind relaxation
+  xextent_norelax = 5.e5 ! m
+
+&end
+
 
 !----------------
 !    bubbles
