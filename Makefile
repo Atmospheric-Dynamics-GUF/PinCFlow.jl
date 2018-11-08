@@ -1,6 +1,6 @@
 # Makefile of pinc_MPI_bg
 
-FC = mpif90
+FC = scorep --nomemory mpif90
 FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
 LIPNAG =
 LIBHYPRE = /home/atmodynamics/voelker/hypre/hypre-2.11.2/src/lib

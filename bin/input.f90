@@ -61,7 +61,7 @@
 
   cfl = 0.5
   cfl_wave = 0.25                 ! passage rate of phase throuh a cell
-  dtMax_dim = 3.6e3 !s            ! max time step in s
+  dtMax_dim = 3600  !s            ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
   timeScheme = "LS_Will_RK3"      ! LS_Will_RK3 -> Williamson / Euler /
@@ -214,15 +214,15 @@
 
 &outputList
 
-  outputType = "time"    ! timeStep / time
+  outputType = "timeStep"    ! timeStep / time
   
-  nOutput = 1            ! output every nOutput's time step 
+  nOutput = 5            ! output every nOutput's time step 
   !                        for outputType = "timeStep"
 
-  maxIter = 2            ! stop after maxIter time steps
+  maxIter = 5            ! stop after maxIter time steps
 
-  outputTimeDiff =  3600  !s    ! output every ... seconds
-  maxTime = 3600  !s                ! stop after maxTime seconds
+  outputTimeDiff =  180  !s    ! output every ... seconds
+  maxTime = 180  !s                ! stop after maxTime seconds
 
   dataFileName = ""                 ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"       ! restart file in TEC360 format
