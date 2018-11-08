@@ -61,7 +61,7 @@
 
   cfl = 0.5
   cfl_wave = 0.25                 ! passage rate of phase throuh a cell
-  dtMax_dim = 36  !s              ! max time step in s
+  dtMax_dim = 3.6e3 !s            ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
   timeScheme = "LS_Will_RK3"      ! LS_Will_RK3 -> Williamson / Euler /
@@ -207,6 +207,11 @@
 !                   Input / Output 
 !------------------------------------------------
 
+! achatzc:
+! this list could be reduced enormously. The only input really used is:
+! varOut, outputType, nOutput, outputTimeDiff, maxTime, restart, varOut, 
+! varIn, offset, rhoOffset 
+
 &outputList
 
   outputType = "time"    ! timeStep / time
@@ -225,12 +230,22 @@
 
   dimOut = .true.,.false.,.true.    ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-!  varOut = 0,0,0,0,0,0,0            ! 1 = output, 0 = no output 
-  varOut = 1,1,1,1,1,1,0            ! 1 = output, 0 = no output 
-                                    ! primary variables: rho,u,v,w,pi',theta'
+  varOut = 1,1,1,1,1,1,1   ! 1 = output, 0 = no output 
+  !                        primary variables: rho,u,v,w,pi',theta', 
+  !                                           dyn. Smagorinsky coeff.
 
-  offset = 0.0, 0.0, 0.0, 0.0, 0.0  ! offset for primary variables
-  rhoOffset = .true.                ! subtract background
+  varIn = 1,1,1,1,1,1,1   ! 1 = output, 0 = no output 
+  !                       data written into restart file pf_all_in.dat
+  !                       ( = output file pf_all.dat from previous run) 
+  !                       primary variables: rho,u,v,w,pi',theta', 
+  !                                          dyn. Smagorinsky coeff.
+
+  iIn = 1                 ! no. of record to be read from restart file 
+                          ! pf_all_in.dat
+                          ! (first record in file has no. = 0)
+
+  offset = 0.0, 0.0, 0.0, 0.0, 0.0 ! offset for primary variables
+  rhoOffset = .false.               ! subtract background
 
   ! optional variables
   optVarOut = 0,1,0, 0,0,0           ! 1 = output, 0 = no output for 
@@ -240,7 +255,7 @@
   !                         4) background density rhoBar in kg/m^3
   !                         5) div(Pu)
   !                         6) stratification perturbation db/dz
-  thetaOffset = .true.               ! subtract background
+  thetaOffset = .false.               ! subtract background
 
   ! WKB variables
   wkbVarOut = 0,0,0,0, 0,0,0,0, 0,0,0,0

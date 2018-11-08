@@ -1254,6 +1254,13 @@ contains
        end do
     end do
 
+!   testb
+!   print*,"after g:"
+!   print*,"f(0,1,310), f(1,1,310) = ", force(0,1,310,1), force(1,1,310,1)
+!   print*,"f(1,1,310), f(2,1,310) = ", force(1,1,310,1), force(2,1,310,1)
+!   print*,"f(32,1,310), f(33,1,310) = ", &
+!        & force(32,1,310,1), force(33,1,310,1)
+!   teste
 
     !--------------------------------------------
     !             Coriolis force 
@@ -1307,6 +1314,25 @@ contains
        end do
 
     end if ! RoInv > 0.0
+
+!   testb
+!   print*,"after Coriolis:"
+
+!   print*,"u(-1,1,310), u(0,1,310) = ", var(-1,1,310,2), var(0,1,310,2)
+!   print*,"u(0,1,310), u(1,1,310) = ", var(0,1,310,2), var(1,1,310,2)
+!   print*,"u(-1,1,310), u(0,1,310) = ", var(32,1,310,2), var(33,1,310,2)
+
+!   print*,"v(0,1,310), v(0,0,310) = ", var(0,1,310,3), var(0,0,310,3)
+!   print*,"v(1,1,310), v(1,0,310) = ", var(1,1,310,3), var(1,0,310,3)
+!   print*,"v(32,1,310), v(32,0,310) = ", var(32,1,310,3), var(32,0,310,3)
+
+!   print*,"leads to"
+
+!   print*,"f(0,1,310), f(1,1,310) = ", force(0,1,310,1), force(1,1,310,1)
+!   print*,"f(1,1,310), f(2,1,310) = ", force(1,1,310,1), force(2,1,310,1)
+!   print*,"f(32,1,310), f(33,1,310) = ", &
+!        & force(32,1,310,1), force(33,1,310,1)
+!   teste
 
 !   achatzb
     !--------------------------------------------
@@ -1382,7 +1408,6 @@ contains
 
     end if ! mountainwave
 !   achatze
-
 
   end subroutine volumeForce
 

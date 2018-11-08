@@ -110,8 +110,14 @@ module type_module
   character (len=40)    :: dataFileName
   character (len=40)    :: restartFile   ! Tecplot file with restart data
   logical, dimension(3) :: dimOut     ! (/1,0,1/) = 2D (x,z), (/1,1,1) = 3D
-!  integer, dimension(6) :: varOut     ! 1 = output, 0 = no output                ! modified by Junhong Wei (20160726)
-  integer, dimension(7) :: varOut     ! 1 = output, 0 = no output                ! modified by Junhong Wei (20160726)
+  integer, dimension(7) :: varOut     ! 1 = output, 0 = no output           
+
+! achatzb
+! data available in restart file
+  integer, dimension(7) :: varIn      ! 1 = available, 0 = not available
+! record to be read from restart file (starting from 0!)
+  integer :: iIn
+! achatze
 
   real, dimension(5)    :: offset     ! offset for rho, u,v,w, p
   integer, dimension(6) :: optVarOut  ! 1 = output, 0 = no output
@@ -136,6 +142,9 @@ module type_module
 
   namelist / outputList / &
        & dataFileName, restartFile, dimOut, varOut, &
+       !achatzb
+       & varIn, iIn, &
+       !achatze
        & offset, optVarOut, wkbVarOut, outputType, nOutput, maxIter, &
        & outputTimeDiff, maxTime, solutionTime, solutionTimeUnit, &
        & restart, showGhostCellsX, showGhostCellsY, showGhostCellsZ, &
@@ -301,7 +310,7 @@ module type_module
 
   real :: tolPoisson
 ! achatzb
-  real :: tolCond
+  real :: tolCond,tolref
 ! achatze
   integer :: maxIterPoisson
   character(len=20) :: poissonSolverType
