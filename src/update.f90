@@ -379,6 +379,38 @@ contains
              ! volForce -> Gravity, Coriolis
              F = -fluxDiff - piGrad + volForce
              
+!            testb
+!            if((i == 0).and.(j == 1).and.(k == 310)) then
+!                print*,"fluxDiff, piGrad, volForce at (0,1,310) = 0:", &
+!                      & fluxDiff, piGrad, volForce
+!                print*,"fL, fR = ",fL, fR
+!                print*,"gB, gF = ",gB, gF
+!                print*,"hD, hU = ",hD, hU
+!                print*,"force(i,j,k,1), force(i+1,j,k,1)", &
+!                     & force(i,j,k,1), force(i+1,j,k,1)
+!            end if
+
+!            if((i == 1).and.(j == 1).and.(k == 310)) then
+!                print*,"fluxDiff, piGrad, volForce at (1,1,310) = 0:", &
+!                      & fluxDiff, piGrad, volForce
+!                print*,"fL, fR = ",fL, fR
+!                print*,"gB, gF = ",gB, gF
+!                print*,"hD, hU = ",hD, hU
+!                print*,"force(i,j,k,1), force(i+1,j,k,1)", &
+!                     & force(i,j,k,1), force(i+1,j,k,1)
+!            end if
+
+!            if((i == 32).and.(j == 1).and.(k == 310)) then
+!                print*,"fluxDiff, piGrad, volForce at (32,1,310) = 0:", &
+!                      & fluxDiff, piGrad, volForce
+!                print*,"fL, fR = ",fL, fR
+!                print*,"gB, gF = ",gB, gF
+!                print*,"hD, hU = ",hD, hU
+!                print*,"force(i,j,k,1), force(i+1,j,k,1)", &
+!                     & force(i,j,k,1), force(i+1,j,k,1)
+!            end if
+!            teste
+
              if( correctDivError ) F = F + source(i,j,k,2)
              
              ! interpolated density
@@ -1103,6 +1135,32 @@ contains
           wMax = maxval( abs(var(1:nx,1:ny,1:nz,4) )) + small
 
           dtConv = cfl * min(dx/uMax, dy/vMax, dz/wMax)
+
+!         testb
+!         print*,"uMax and cfl = ",uMax*uRef, cfl*dx/uMax*tRef
+!         
+!         do k=1,nz
+!            if(uMax == (maxval( abs(var(1:nx,1:ny,k,2) )) + small)) then
+!               print*,"reached at k = ",k
+!            end if
+!         end do
+
+!         print*,"vMax and cfl = ",vMax*uRef, cfl*dy/vMax*tRef
+!         
+!         do k=1,nz
+!            if(vMax == (maxval( abs(var(1:nx,1:ny,k,3) )) + small)) then
+!               print*,"reached at k = ",k
+!            end if
+!         end do
+
+!         print*,"wMax and cfl = ",wMax*uRef, cfl*dz/wMax*tRef
+!         
+!         do k=1,nz
+!            if(wMax == (maxval( abs(var(1:nx,1:ny,k,4) )) + small)) then
+!               print*,"reached at k = ",k
+!            end if
+!         end do
+!         teste
 
 
           !---------------------------

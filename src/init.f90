@@ -441,10 +441,6 @@ contains
 ! modified by Junhong Wei (20161121) *** finishing line ***
     
 
-    !---------------------------------------
-    !        Test case settings
-    !---------------------------------------
-
     select case (testCase)
 
        !-------------------------------------
@@ -588,9 +584,9 @@ contains
        ! read test case input data
        read (unit=10, nml=wavePacket)
 
-       u0 = u0_jet_dim / uRef                          ! amplitude of jet
-       L_jet = L_jet_dim / lRef                        ! half width of cos profile
-       z0_jet = z0_jet_dim / lRef                      ! center of jet
+       u0 = u0_jet_dim / uRef             ! amplitude of jet
+       L_jet = L_jet_dim / lRef           ! half width of cos profile
+       z0_jet = z0_jet_dim / lRef         ! center of jet
 
        do k = 1,nz
           delz = (z(k)-z0_jet)
@@ -611,20 +607,13 @@ contains
        !--------------------
        !     set up GWP
        !--------------------
-!       call init_GWP(Psi,kk,mm)            ! modified by Junhong Wei for 3DWP (20170828)
-       call init_GWP(Psi,kk,mm, ll_3DWP )   ! modified by Junhong Wei for 3DWP (20170828)
+       call init_GWP(Psi,kk,mm, ll_3DWP )   ! modified by J. Wei for 3DWP
 
-!       do k = 1,nz
        do k = 0,(nz+1)   ! modified by Junhong Wei for 3DWP (20171204)
-!          j = 1   ! modified by Junhong Wei for 3DWP (20170922)
          do j = 0,(ny+1)   ! modified by Junhong Wei for 3DWP (20170922)
-!          do i = 1,nx ! modified by Junhong Wei (20161207)
           do i = 0,(nx+1) ! modified by Junhong Wei (20161207)
 
-             ! common phase term: 1D and 2D
-!             phi = kk*x(i) + mm*z(k)   ! modified by Junhong Wei (20161122)
-!             phi = kk*x(i+i0) + mm*z(k)   ! modified by Junhong Wei (20161122)   ! modified by Junhong Wei for 3DWP (20170922)
-              phi = kk*x(i+i0) + mm*z(k) + ll_3DWP*y(j+j0)   ! modified by Junhong Wei for 3DWP (20170922)
+              phi = kk*x(i+i0) + mm*z(k) + ll_3DWP*y(j+j0)
              
              ! wave 1
              u1 = real( Psi(i,j,k,1,1) * exp(phi*imag) )
@@ -685,39 +674,27 @@ contains
              var(i,j,k,4) = w
              var(i,j,k,5) = p
 
-             var(i,j,k,3) = real( Psi(i,j,k,5,1) * exp(phi*imag) )                  ! modified by Junhong Wei
+             var(i,j,k,3) = real( Psi(i,j,k,5,1) * exp(phi*imag) )
 
           end do
          end do   ! modified by Junhong Wei for 3DWP (20170922)
        end do
 
-
-! modified by Junhong Wei (20161201) *** starting line ***
-
-!       ! copy u values to ghost cells
-!!       var(0,:,:,2) = var(nx,:,:,2)   ! modified by Junhong Wei (20161122)
-!!       var(nx+1,:,:,2) = var(1,:,:,2)   ! modified by Junhong Wei (20161122)
-!       var(0+i0,:,:,2) = var(nx+i0,:,:,2)   ! modified by Junhong Wei (20161122)
-!       var(nx+1+i0,:,:,2) = var(1+i0,:,:,2)   ! modified by Junhong Wei (20161122)
-       
        ! average zonal velocities to cell face...
        do i = 0,nx
-          var(i,:,:,2) = 0.5*( var(i,:,:,2) + var(i+1,:,:,2) )   ! modified by Junhong Wei (20161122)
-!          var(i+i0,:,:,2) = 0.5*( var(i+i0,:,:,2) + var(i+1+i0,:,:,2) )   ! modified by Junhong Wei (20161122)
+          var(i,:,:,2) = 0.5*( var(i,:,:,2) + var(i+1,:,:,2) )
        end do
 
        ! average vertical velocities to cell faces
-!       do k = 1,nz-1
        do k = 0,nz   ! modified by Junhong Wei for 3DWP (20171204)
           var(:,:,k,4) = 0.5*( var(:,:,k,4) + var(:,:,k+1,4) )
        end do
-!       var(:,:,nz,4) = 0.0        ! reset velocity at wall to zero   ! modified by Junhong Wei for 3DWP (20171204)
 
              select case( model ) 
              case( "pseudo_incompressible" )
 
-          var(:,:,0,4)  = 0.0        ! reset velocity at wall to zero   ! modified by Junhong Wei for 3DWP (20171218)
-          var(:,:,nz,4) = 0.0        ! reset velocity at wall to zero   ! modified by Junhong Wei for 3DWP (20171218)
+          var(:,:,0,4)  = 0.0        ! reset velocity at wall to zero
+          var(:,:,nz,4) = 0.0        ! reset velocity at wall to zero
 
              case( "Boussinesq" ) 
 
@@ -727,26 +704,10 @@ contains
              end select
 
 
-!! ---- modified by Junhong Wei (start)
-       ! copy v values to ghost cells
-!       var(:,0,:,3) = var(:,ny,:,3)   ! modified by Junhong Wei (20161122)   ! modified by Junhong Wei for 3DWP (20170922)
-!       var(:,ny+1,:,3) = var(:,1,:,3)   ! right version   ! modified by Junhong Wei (20161122)   ! modified by Junhong Wei for 3DWP (20170922)
-!!       var(:,ny+1,:,2) = var(:,1,:,2)    ! wrong version (even though it is wrong, I cannot find any major mistakes from the model output)
-!
-!       var(:,0+j0,:,3) = var(:,ny+j0,:,3)   ! modified by Junhong Wei (20161122)
-!       var(:,ny+1+j0,:,3) = var(:,1+j0,:,3)   ! modified by Junhong Wei (20161122)
-       
        ! average meridional velocities to cell face...
        do j = 0,ny
-          var(:,j,:,3) = 0.5*( var(:,j,:,3) + var(:,j+1,:,3) )   ! modified by Junhong Wei (20161122)
-!          var(:,j+j0,:,3) = 0.5*( var(:,j+j0,:,3) + var(:,j+1+j0,:,3) )   ! modified by Junhong Wei (20161122)
+          var(:,j,:,3) = 0.5*( var(:,j,:,3) + var(:,j+1,:,3) )
        end do
-! ---- modified by Junhong Wei (end)
-
-
-
-
-! modified by Junhong Wei (20161201) *** finishing line ***
 
 !   achatzb
     !   -----------------------------------------------------------------

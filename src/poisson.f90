@@ -695,6 +695,14 @@ contains
     integer :: i,j,k
     real :: div, divSum, divSumScaled
 
+!   achatzb
+    real :: bu,bv,bw,bl2loc,divL2_norm,divL2_norm_local
+!   achatze
+
+!   testb
+!   integer :: i_maxb,j_maxb,k_maxb
+!   teste
+
     ! extrapolation parameter for sol
     
     ! check L2-norm of divergence
@@ -750,6 +758,11 @@ contains
     divSum_local = 0.0   ! modified by Junhong Wei (20161107)
     divL2_local = 0.0   ! modified by Junhong Wei (20161107)
 
+!   achatzb
+    divL2_norm = 0.0
+    divL2_norm_local = 0.0
+!   achatze
+
     select case( model ) 
 
     case( "pseudo_incompressible" ) 
@@ -771,28 +784,69 @@ contains
                 
 !xxxx end
                 
-                b(i,j,k) = Pstrat(k) * ( (uR-uL)/dx + (vF-vB)/dy ) &
-                     & + (PstratU*wU - PstratD*wD)/dz
+!               achatzb
+!               introduce a reference norm for the RHS
+!               b(i,j,k) = Pstrat(k) * ( (uR-uL)/dx + (vF-vB)/dy ) &
+!                    & + (PstratU*wU - PstratD*wD)/dz
+                bu = Pstrat(k) * (uR-uL)/dx
+                bv = Pstrat(k) * (vF-vB)/dy 
+                bw = (PstratU*wU - PstratD*wD)/dz
+                b(i,j,k) = bu + bv + bw
+                bl2loc = bu**2 + bv**2 + bw**2
+!               achatze
+
+!               testb
+!               if((i == 1).and.(j == 1).and.(k == 310)) then
+!                  print*,"at (i,j,k) = (1,1,310):"
+!                  print*,"bu = ",bu
+!                  print*,"bv = ",bv
+!                  print*,"bw = ",bw
+!                  print*,"b = ",b(i,j,k)
+
+!                  print*,"uL,uR = ",uL,uR
+
+!                  print*,"u(0,1,310),u(8,1,310) = ", &
+!                        & var(0,1,310,2),var(nx,1,310,2)
+
+!                  print*,"u(1,1,310),u(9,1,310) = ", &
+!                        & var(1,1,310,2),var(nx+1,1,310,2)
+!               end if
+!               teste
 
 !               achatzb
                 if(topography) then
-                   if(topography_mask(i0+i,j0+j,k)) b(i,j,k) = 0.0
+                   if(topography_mask(i0+i,j0+j,k)) then
+                      b(i,j,k) = 0.0
+                      bl2loc = 0.0
+                   end if
                 end if
 !               achatze
 
                 ! L2-norm of the divergence div(Pu)
-                ! divL2 = divL2 + b(i,j,k)**2   ! modified by Junhong Wei (20161107)
-                divL2_local = divL2_local + b(i,j,k)**2   ! modified by Junhong Wei (20161107)
+                ! divL2 = divL2 + b(i,j,k)**2
+
+                divL2_local = divL2_local + b(i,j,k)**2
+
+!               achatzb
+                divL2_norm_local = divL2_norm_local + bl2loc
+!               achatze
 
                 ! max norm of div(Pu)
-                if( abs(b(i,j,k)) > divMax ) divMax = abs(b(i,j,k))
+                if( abs(b(i,j,k)) > divMax ) then
+                   divMax = abs(b(i,j,k))
+!                  testb
+!                  i_maxb = i
+!                  j_maxb = j
+!                  k_maxb = k
+!                  teste
+                end if
                 
                 ! scale RHS with Ma^2 * kappa
                 b(i,j,k) = b(i,j,k) * Ma**2 * kappa
                 
                 ! check sum for solvability criterion
-                ! divSum = divSum + b(i,j,k)   ! modified by Junhong Wei (20161107)
-                divSum_local = divSum_local + b(i,j,k)   ! modified by Junhong Wei (20161107)
+                ! divSum = divSum + b(i,j,k)
+                divSum_local = divSum_local + b(i,j,k)
                 
                 ! Skalierung mit thetaStrat
                 if ( pressureScaling ) then
@@ -803,6 +857,10 @@ contains
              end do
           end do
        end do
+
+!      testb
+!      print*,"divMax = ",divMax," reached at ",i_maxb,j_maxb,k_maxb
+!      teste
        
 !       ! scale by number of cells   ! modified by Junhong Wei (20161107)
 !       divL2 = sqrt(divL2/nx/ny/nz)   ! modified by Junhong Wei (20161107)
@@ -825,9 +883,31 @@ contains
        call mpi_bcast(divL2, 1, &
             & mpi_double_precision, root, comm, ierror)
 
+!      achatzb
+       !MPI: sum divL2_norm_local over all procs
+       root = 0
+       call mpi_reduce(divL2_norm_local, divL2_norm, 1, &
+            & mpi_double_precision, mpi_sum, root, comm, ierror)
+       
+       call mpi_bcast(divL2_norm, 1, &
+            & mpi_double_precision, root, comm, ierror)
+!      achatze
+
        ! scale div
        divL2_local = sqrt(divL2_local/nx/ny/nz)
        divL2 = sqrt(divL2/sizeX/sizeY/sizeZ)
+
+!      achatzb
+       divL2_norm_local = sqrt(divL2_norm_local/nx/ny/nz)
+       divL2_norm = sqrt(divL2_norm/sizeX/sizeY/sizeZ)
+
+       tolref=divL2/divL2_norm
+       if(master) print*,"tolref = ",tolref
+
+!      root=0
+!      call mpi_bcast(tolref, 1, mpi_double_precision, root, comm, ierror)
+!      call mpi_barrier(comm,ierror)
+!      achatze
 
        ! modified by Junhong Wei (20161107)   *** finishing line ***
 
@@ -842,21 +922,38 @@ contains
                 vF = var(i,j,k,3); vB = var(i,j-1,k,3)
                 wU = var(i,j,k,4); wD = var(i,j,k-1,4)
 
-                div = (uR-uL)/dx + (vF-vB)/dy + (wU-wD)/dz
+!               achatzb
+!               introduce a reference norm for the RHS
+!               div = (uR-uL)/dx + (vF-vB)/dy + (wU-wD)/dz
+                bu = (uR-uL)/dx
+                bv = (vF-vB)/dy
+                bw = (wU-wD)/dz
+                div = bu + bv + bw
+                bl2loc = bu**2 + bv**2 + bw**2
+!               achatze
+
                 b(i,j,k) =  Ma**2 * kappa / theta00 * div
 
 !               achatzb
                 if(topography) then
-                   if(topography_mask(i0+i,j0+j,k)) b(i,j,k) = 0.0
+                   if(topography_mask(i0+i,j0+j,k)) then
+                      b(i,j,k) = 0.0
+                      bl2loc = 0.0
+                   end if
                 end if
 !               achatze
 
                 ! check sum for solvability criterion (shoud be zero)
-                ! divSum = divSum + b(i,j,k)   ! modified by Junhong Wei (20161107)
-                divSum_local = divSum_local + b(i,j,k)   ! modified by Junhong Wei (20161107)
+                ! divSum = divSum + b(i,j,k)
+                divSum_local = divSum_local + b(i,j,k)
                 
-                ! divL2 = divL2 + div**2   ! modified by Junhong Wei (20161107)
-                divL2_local = divL2_local + div**2   ! modified by Junhong Wei (20161107)
+                ! divL2 = divL2 + div**2
+                divL2_local = divL2_local + div**2
+
+!               achatzb
+                divL2_norm_local = divL2_norm_local + bl2loc
+!               achatze
+
                 if( abs(div) > divMax ) divMax = abs(div)
 
              end do
@@ -885,6 +982,16 @@ contains
        call mpi_bcast(divL2, 1, &
             & mpi_double_precision, root, comm, ierror)
 
+!      achatzb
+       !MPI: sum divL2_norm_local over all procs
+       root = 0
+       call mpi_reduce(divL2_norm_local, divL2_norm, 1, &
+            & mpi_double_precision, mpi_sum, root, comm, ierror)
+       
+       call mpi_bcast(divL2_norm, 1, &
+            & mpi_double_precision, root, comm, ierror)
+!      achatze
+
        ! scale div
        divL2_local = sqrt(divL2_local/nx/ny/nz)
        divL2 = sqrt(divL2/sizeX/sizeY/sizeZ)
@@ -892,6 +999,18 @@ contains
        ! scale by number of cells 
        divL2_local = sqrt(divL2_local/nx/ny/nz)
        divL2 = sqrt(divL2/sizeX/sizeY/sizeZ)
+
+!      achatzb
+       divL2_norm_local = sqrt(divL2_norm_local/nx/ny/nz)
+       divL2_norm = sqrt(divL2_norm/sizeX/sizeY/sizeZ)
+
+       tolref=divL2/divL2_norm
+       if(master) print*,"tolref = ",tolref
+
+!      root=0
+!      call mpi_bcast(tolref, 1, mpi_double_precision, root, comm, ierror)
+!      call mpi_barrier(comm,ierror)
+!      achatze
 
        ! modified by Junhong Wei (20161107)   *** finishing line ***
      
@@ -922,6 +1041,14 @@ contains
 
           write(*,fmt="(a25,es17.6)") "max(div(u)) [1/s] = ", &
                & divMax*uRef/lRef
+
+!         achatzb
+          write(*,fmt="(a25,es17.6)") "rms terms (div(u)) [1/s] = ", &
+               & divL2_norm*uRef/lRef
+
+          write(*,fmt="(a25,es17.6)") "normalized L2(div(u)) = ", &
+               & divL2/divL2_norm
+!         achatze
           
        case( "pseudo_incompressible" )
 
@@ -930,6 +1057,14 @@ contains
 
           write(*,fmt="(a25,es17.6)") "max(div(Pu)) [Pa/s] = ", &
                & divMax*rhoRef*thetaRef*uRef/lRef
+          
+!         achatzb
+          write(*,fmt="(a25,es17.6)") "rms terms (div(Pu)) [Pa/s] = ", &
+               & divL2_norm*rhoRef*thetaRef*uRef/lRef
+
+          write(*,fmt="(a25,es17.6)") "normalized L2(div(Pu)) = ", &
+               & divL2/divL2_norm
+!         achatze
           
        case default
           stop"calc_RHS: unkown case model"
@@ -961,6 +1096,14 @@ contains
              write(*,fmt="(a25,es17.6)") "max(div(u)) [1/s] = ", &
                   & divMax*uRef/lRef
 
+!            achatzb
+             write(*,fmt="(a25,es17.6)") "rms terms (div(u)) [1/s] = ", &
+                  & divL2_norm*uRef/lRef
+
+             write(*,fmt="(a25,es17.6)") "normalized L2(div(u)) = ", &
+                  & divL2/divL2_norm
+!            achatze
+          
           case( "pseudo_incompressible" )
 
              write(*,fmt="(a25,es17.6)") "L2(div(Pu)) [Pa/s] = ", &
@@ -969,6 +1112,14 @@ contains
              write(*,fmt="(a25,es17.6)") "max(div(Pu)) [Pa/s] = ", &
                   & divMax*rhoRef*thetaRef*uRef/lRef
 
+!            achatzb
+             write(*,fmt="(a25,es17.6)") "rms terms (div(Pu)) [Pa/s] = ", &
+                  & divL2_norm*rhoRef*thetaRef*uRef/lRef
+   
+             write(*,fmt="(a25,es17.6)") "normalized L2(div(Pu)) = ", &
+                  & divL2/divL2_norm
+!            achatze
+          
           case default
              stop"calc_RHS: unkown case model"
           end select
@@ -2497,7 +2648,17 @@ contains
        print*,"hypre: use tolInitial = ", tolInitial
        tol = tolInitial
     else
-       tol = tolPoisson
+!      achatzb
+!      modified convergence criterion so that iterations stop when the
+!      norm of the normalized RHS falls below tolPoisson
+!      tol = tolPoisson
+       if (tolref /= 0.0 ) then
+           tol = tolPoisson/tolref
+          else
+           tol = tolPoisson
+       end if
+       if(master) print*,"hypre uses tolerance tol = ", tol
+!      achatze
     end if
 
     ! Allocate local fields
@@ -3282,7 +3443,8 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
 ! call HYPRE_StructHybridSetSolverType(solver_hypre, 2, ierr_hypre)
 
 ! Set tolerance value for relative! residual (unlike in Rieper's BiGSTAB
-! where the absolute! residual is used). tol = tolPoisson in the namelist
+! where the absolute! residual is used). 
+! tol = (tolPoisson in the namelist)/tolref
   call HYPRE_StructHybridSetTol(solver_hypre, tol, ierr_hypre)
 
 ! Uncomment the line below to have the tolerance for absolute! residual 

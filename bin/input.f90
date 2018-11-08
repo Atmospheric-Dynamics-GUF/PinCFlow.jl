@@ -11,8 +11,8 @@
 
 &domain
 
-  sizeX = 256,                   ! nb of global grid cells
-  sizeY = 256,
+  sizeX = 32,                   ! nb of global grid cells
+  sizeY = 32,
   sizeZ = 1920,
   nbx = 2,             ! nb. of ghost cells
   nby = 2,
@@ -80,8 +80,8 @@
 
 &poissonSolverList
 
-  tolPoisson = 1.0e-4          ! abbort 
-  tolCond = 1.e-20             ! tolerance value controlling the use of 
+  tolPoisson = 1.0e-3          ! abbort 
+  tolCond = 1.e-23             ! tolerance value controlling the use of 
                                ! the preconditioner
   maxIterPoisson = 500
   poissonSolverType = "hypre"         ! "bicgstab" / "gcr" / "adi" / "hypre"
@@ -116,7 +116,7 @@
   ! m^2/s     kinematic viscosity: 0 for inviscid
   !                                1.5e-5 for z = 0 at bottom of atmosphere
   !                                1.5e-2 for z = 0 at 60km
-  mu_conduct_dim = 0.     
+  mu_conduct_dim = 0.             
   ! m^2/s     heat conductivity: 0 for non-diffusive
   !                              2 * mu_viscous_dim corresponds to Pr = 0.5
   
@@ -207,6 +207,11 @@
 !                   Input / Output 
 !------------------------------------------------
 
+! achatzc:
+! this list could be reduced enormously. The only input really used is:
+! varOut, outputType, nOutput, outputTimeDiff, maxTime, restart, varOut, 
+! varIn, offset, rhoOffset 
+
 &outputList
 
   outputType = "time"    ! timeStep / time
@@ -216,20 +221,31 @@
 
   maxIter = 2            ! stop after maxIter time steps
 
-  outputTimeDiff =  8.7266e2 !s ! output every ... seconds
-  maxTime = 3.4907e4         !s ! stop after maxTime seconds
+  outputTimeDiff =  1.2e2!s ! output every ... seconds
+  maxTime = 2.4e2           !s ! stop after maxTime seconds
 
   dataFileName = ""      ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
-  restart = .false.      ! true / false
+  restart = .true.       ! true / false
 
   dimOut = .true.,.false.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,1,1,0   ! 1 = output, 0 = no output 
-  !                       primary variables: rho,u,v,w,pi',theta'
+  varOut = 1,1,1,1,1,1,1   ! 1 = output, 0 = no output 
+  !                        primary variables: rho,u,v,w,pi',theta', 
+  !                                           dyn. Smagorinsky coeff.
+
+  varIn = 1,1,1,1,1,1,1   ! 1 = output, 0 = no output 
+  !                       data written into restart file pf_all_in.dat
+  !                       ( = output file pf_all.dat from previous run) 
+  !                       primary variables: rho,u,v,w,pi',theta', 
+  !                                          dyn. Smagorinsky coeff.
+
+  iIn = 1                 ! no. of record to be read from restart file 
+                          ! pf_all_in.dat
+                          ! (first record in file has no. = 0)
 
   offset = 0.0, 0.0, 0.0, 0.0, 0.0 ! offset for primary variables
-  rhoOffset = .true.               ! subtract background
+  rhoOffset = .false.               ! subtract background
 
   ! optional variables
   optVarOut = 0,1,0, 0,0,0           ! 1 = output, 0 = no output for 
@@ -239,7 +255,7 @@
   !                         4) background density rhoBar in kg/m^3
   !                         5) div(Pu)
   !                         6) stratification perturbation db/dz
-  thetaOffset = .true.               ! subtract background
+  thetaOffset = .false.               ! subtract background
 
   ! WKB variables
   wkbVarOut = 0,0,0,0, 0,0,0,0, 0,0,0,0
@@ -339,16 +355,16 @@
   ! If working on the 2.5D Wave Packet, please use wavePacketDim = 2   ! modified by Junhong Wei for 3DWP (20170921)
   lambdaX_dim = 0.0          ! zonal wave length in m ! modified by Junhong Wei for 3DWP (20170828)
   !                               if lambdaX = 0.0 --> kk0 = 0 ! modified by Junhong Wei for 3DWP (20170828)
-  lambdaY_dim = 10000.0          ! meridional wave length in m ! modified by Junhong Wei for 3DWP (20170828)
+  lambdaY_dim = 1.e4         ! meridional wave length in m ! modified by Junhong Wei for 3DWP (20170828)
   ! if the absolute value of lambdaY_dim is less than or equal to 0.1 --> ll0 = 0 ! modified by Junhong Wei for 3DWP (20170921)
   lambdaZ_dim = 1000.0         ! vertical wave length in m
-  amplitudeFactor = 0.7         ! normalilized buoyancy amplitude
-  xCenter_dim = 5000.0         ! zonal center of wave packet in m
-  yCenter_dim = 5000.0          ! meridional center of wave packet in m ! modified by Junhong Wei for 3DWP (20170828)
+  amplitudeFactor = 0.9         ! normalilized buoyancy amplitude
+  xCenter_dim = 5.e3         ! zonal center of wave packet in m
+  yCenter_dim = 5.e3         ! meridional center of wave packet in m ! modified by Junhong Wei for 3DWP (20170828)
   zCenter_dim = 10000.0         ! vertical...
   sigma_dim = 2000.0            ! Gaussian distribution width (in the vertical direction)
-  sigma_hor_dim = 5000.0        ! cosine distribution width (in x direction, 0 means infinity)
-  amp_mod_x = 0.1               
+  sigma_hor_dim = 5.e3        ! cosine distribution width (in x direction, 0 means infinity)
+  amp_mod_x = 1.0               
 ! fractional amplitude of amplitude modulation in x direction
 ! (0 = no modulation, 1 = total modulation)
   sigma_hor_yyy_dim = 0.0       ! cosine distribution width (in y direction, 0 means infinity)

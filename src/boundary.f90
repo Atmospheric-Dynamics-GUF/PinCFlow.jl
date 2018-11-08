@@ -172,9 +172,14 @@ contains
 
        if( predictMomentum ) then
           ! velocity u (staggered along x) -> iVar = 2
-          uBound = 0.5*( var(0,:,:,2) + var(nx,:,:,2) )  ! velocity at bound
-          var(0,:,:,2) = uBound
-          var(nx,:,:,2) = uBound
+
+!         achatzb
+!         uBound causes problems in restarts, hence removed
+!         uBound = 0.5*( var(0,:,:,2) + var(nx,:,:,2) )  ! velocity at bound
+!         var(0,:,:,2) = uBound
+!         var(nx,:,:,2) = uBound
+          var(0,:,:,2) = var(nx,:,:,2)
+!         achatze
 
           do i = 1,nbx
              ! velocity u (staggered along x) -> iVar = 2
@@ -339,9 +344,14 @@ contains
 
        if( predictMomentum ) then
           ! velocity v (staggared along y) -> iVar = 3
-          vBound = 0.5*( var(:,0,:,3) + var(:,ny,:,3) )
-          var(:,0,:,3) = vBound
-          var(:,ny,:,3) = vBound
+
+!         achatzb
+!         use of vBound causes problems in restarts, hence removed
+!         vBound = 0.5*( var(:,0,:,3) + var(:,ny,:,3) )
+!         var(:,0,:,3) = vBound
+!         var(:,ny,:,3) = vBound
+          var(:,0,:,3) = var(:,ny,:,3)
+!         achatze
 
           do j = 1,nby
              ! velocity u -> iVar = 2
@@ -502,9 +512,14 @@ contains
 
        if( predictMomentum ) then
           ! velocity w (staggared along z) -> iVar = 4
-          wBound = 0.5*( var(:,:,0,4) + var(:,:,nz,4) )
-          var(:,:,0,4) = wBound
-          var(:,:,nz,4) = wBound
+
+!         achatzb
+!         use of wBound causes problems in restarts, hence removed
+!         wBound = 0.5*( var(:,:,0,4) + var(:,:,nz,4) )
+!         var(:,:,0,4) = wBound
+!         var(:,:,nz,4) = wBound
+          var(:,:,0,4) = var(:,:,nz,4)
+!         achatze
 
           do k = 1,nbz
              ! velocity u -> iVar = 2
@@ -673,6 +688,11 @@ contains
 
           ! w -> set to zero at bound, 
           !      reflect at bound with change of sign
+
+!         achatzb
+          var(:,:,0,4) = 0.0
+          var(:,:,nz,4) = 0.0
+!         achatze
 
           do k = 1,nbz
              ! u

@@ -190,25 +190,48 @@ program pinc_prog
 
 
      call init_atmosphere      ! set atmospheric background state 
+     call init_output
      call initialise (var)     ! set initial conditions
-
-!     call setHalos( var, "var" )
-!     call setBoundary (var, flux, "var")
 
      call init_xweno       ! set ILES parameters 
      call init_fluxes      ! allocate tilde variables
      call init_update
      call init_timeScheme  ! define Runge-Kutta parameters
      call init_poisson     ! allocate dp
-     call init_output
      
      !-------------------------------------------------
      !              Read initial data
      !-------------------------------------------------
      if (restart) then
-        scale = .true.                       ! scale with reference quantities
-        call readtec360( var,restartFile,time, scale)
-        if( maxTime < time*tRef ) stop"restart error: maxTime < current time"
+        !achatzb
+        !restart from previous output
+        ! scale = .true.  ! scale with reference quantities
+        ! call readtec360( var,restartFile,time, scale)
+        ! if( maxTime < time*tRef ) &
+        ! & stop"restart error: maxTime < current time"
+ 
+        call read_data ( iIn,var)
+
+        call setHalos( var, "var" )
+        call setBoundary (var, flux, "var")
+
+!       testb
+!       print*,"r(0,1,310),r(nx,1,310) =",var(0,1,310,1),var(nx,1,310,1)
+!       print*,"r(1,1,310),r(nx+1,1,310) =",var(1,1,310,1),var(nx+1,1,310,1)
+
+!       print*,"u(0,1,310),u(nx,1,310) =",var(0,1,310,2),var(nx,1,310,2)
+!       print*,"u(1,1,310),u(nx+1,1,310) =",var(1,1,310,2),var(nx+1,1,310,2)
+
+!       print*,"v(0,1,310),v(nx,1,310) =",var(0,1,310,3),var(nx,1,310,3)
+!       print*,"v(1,1,310),v(nx+1,1,310) =",var(1,1,310,3),var(nx+1,1,310,3)
+
+!       print*,"w(0,1,310),w(nx,1,310) =",var(0,1,310,4),var(nx,1,310,4)
+!       print*,"w(1,1,310),w(nx+1,1,310) =",var(1,1,310,4),var(nx+1,1,310,4)
+
+!       print*,"p(0,1,310),p(nx,1,310) =",var(0,1,310,5),var(nx,1,310,5)
+!       print*,"p(1,1,310),p(nx+1,1,310) =",var(1,1,310,5),var(nx+1,1,310,5)
+!       teste
+        ! achatze
      end if
 
      !-------------------------------------------------
@@ -219,11 +242,11 @@ program pinc_prog
         print*,""
         print*,""
         print*,""
-        print*,"=============================================================="
+        print*,"==========================================================="
         print*," Parameter study "
         print*,""
         write(*,fmt="(a25,i15)") " iParam = ", iParam
-        print*,"=============================================================="
+        print*,"==========================================================="
      end if
   end if              ! modified by Junhong Wei for MPI (20161103)
 
@@ -254,15 +277,21 @@ program pinc_prog
      !              Initial output
      !------------------------------------------
 
-     call tec360 (&          
-          & iOut,&
+!    achatzb
+!    reduced argument list for output
+!    changed name of output routine
+!    call tec360(&
+!         & iOut, &
+!         & var,&
+!         & ray, waveAct, Psi, &
+!         & iTime, time, cpuTime, dt,&
+!         & iParam)   
+     call output_data(&
+          & iOut, &
           & var,&
-          & ray, waveAct, Psi,&
-          & iTime, time, cpuTime, dt, &
-          & iParam)
+          & iTime, time, cpuTime)
+!    achatze
 
-
-     
      output = .false.
      nextOutputTime = time*tRef + outputTimeDiff     ! set time for first output
      ! and consider restart time
@@ -325,12 +354,21 @@ program pinc_prog
 
 
            ! final output
-           call tec360(&
+
+!          achatzb
+!          reduced argument list for output
+!          changed name of output routine
+!          call tec360(&
+!               & iOut, &
+!               & var,&
+!               & ray, waveAct, Psi, &
+!               & iTime, time, cpuTime, dt,&
+!               & iParam)   
+           call output_data(&
                 & iOut, &
                 & var,&
-                & ray, waveAct, Psi, &
-                & iTime, time, cpuTime, dt,&
-                & iParam)   
+                & iTime, time, cpuTime)
+!          achatze
 
         call mpi_barrier(comm, ierror)
         call mpi_finalize(ierror)
@@ -341,29 +379,6 @@ program pinc_prog
 
 
         if( timeSchemeType == "classical" .and. iTime == 1 ) dt = 0.5*dt
-
-! modified by Junhong Wei for MPI (20161103)   *** starting line ***
-!        ! error handling for parameter study
-!        if( errFlagTstep ) then
-!           print*," TimeStep routine: "
-!           write(*,fmt="(a25,es15.4,a8)") &
-!                &"dt < dtMin!!! dtMin = ", dtMin_dim, "seconds"
-!           write(*,fmt="(a25,es15.4,a8)") "dt * tRef = ", dt*tRef, "seconds"
-!           write(*,fmt="(a25,i2.2)") "cycle paramLoop. iPara = ", iParam
-!           call system_clock(count=timeCount)
-!           cpuTime = (timeCount - startTimeCount)/real(rate)
-!
-!           ! final output
-!           call tec360(&
-!                & iOut, &
-!                & var,&
-!                & ray, waveAct, Psi, &
-!                & iTime, time, cpuTime, dt,&
-!                & iParam)   
-!
-!           go to 10    ! deallocate fields
-!        end if
-! modified by Junhong Wei for MPI (20161103)   *** finishing line ***
 
         ! correct dt to hit desired output time for outputType 'time'
         if ( outputType == 'time' ) then
@@ -558,14 +573,24 @@ program pinc_prog
                  print*," Momentum Corrector error"
                  write(*,fmt="(a25,i2.2)") "maxIterPoisson! iPara=", iParam
                  nAverageBicg = real(nTotalBicg) / real(iTime) / 3.0
+
                  call system_clock(count=timeCount)
                  cpuTime = (timeCount - startTimeCount)/real(rate)
-                 call tec360(&
-                      & iOut,&
+
+!                achatzb
+!                reduced argument list for output
+!                changed name of output routine
+!                call tec360(&
+!                     & iOut, &
+!                     & var,&
+!                     & ray, waveAct, Psi, &
+!                     & iTime, time, cpuTime, dt,&
+!                     & iParam)   
+                 call output_data(&
+                      & iOut, &
                       & var,&
-                      & ray, waveAct, Psi, &
-                      & iTime, time, cpuTime, dt,&
-                      & iParam)
+                      & iTime, time, cpuTime)
+!                achatze
 
                  go to 10   ! dealloc fields
               end if
@@ -589,18 +614,28 @@ program pinc_prog
         case( 'time' )
 
            if (output) then
-           if( master ) then   ! modified by Junhong Wei for MPI (20161103)
-              call system_clock(count=timeCount)
-              cpuTime = (timeCount - startTimeCount)/real(rate)
-           end if              ! modified by Junhong Wei for MPI (20161103)
-              call tec360(&
+              if( master ) then   ! modified by Junhong Wei for MPI
+                 call system_clock(count=timeCount)
+                 cpuTime = (timeCount - startTimeCount)/real(rate)
+              end if              ! modified by Junhong Wei for MPI
+
+!             achatzb
+!             reduced argument list for output
+!             changed name of output routine
+!             call tec360(&
+!                  & iOut, &
+!                  & var,&
+!                  & ray, waveAct, Psi, &
+!                  & iTime, time, cpuTime, dt,&
+!                  & iParam)   
+              call output_data(&
                    & iOut, &
                    & var,&
-                   & ray, waveAct, Psi, &
-                   & iTime, time, cpuTime, dt,&
-                   & iParam)
+                   & iTime, time, cpuTime)
+!             achatze
 
               output = .false.
+
               nextOutputTime = nextOutputTime + outputTimeDiff
               if (nextOutputTime >= maxTime) nextOutputTime = maxTime
            end if
@@ -608,16 +643,25 @@ program pinc_prog
         case( 'timeStep' )
 
            if (modulo(iTime,nOutput) == 0) then
-           if( master ) then   ! modified by Junhong Wei for MPI (20161103)
-              call system_clock(count=timeCount)
-              cpuTime = (timeCount - startTimeCount)/real(rate)
-           end if              ! modified by Junhong Wei for MPI (20161103)
-              call tec360(&
-                   & iOut,&
+              if( master ) then   ! modified by Junhong Wei for MPI
+                 call system_clock(count=timeCount)
+                 cpuTime = (timeCount - startTimeCount)/real(rate)
+              end if              ! modified by Junhong Wei for MPI
+
+!             achatzb
+!             reduced argument list for output
+!             changed name of output routine
+!             call tec360(&
+!                  & iOut, &
+!                  & var,&
+!                  & ray, waveAct, Psi, &
+!                  & iTime, time, cpuTime, dt,&
+!                  & iParam)   
+              call output_data(&
+                   & iOut, &
                    & var,&
-                   & ray, waveAct, Psi, &
-                   & iTime, time, cpuTime, dt,&
-                   & iParam)
+                   & iTime, time, cpuTime)
+!             achatze
            end if
 
         case default
@@ -631,22 +675,21 @@ program pinc_prog
 
         if( outputType == "time" ) then
            if( time*tRef >= maxTime ) then 
+              if( master ) then   ! modified by Junhong Wei for MPI
+                 nAverageBicg = real(nTotalBicg) / real(iTime) / 3.0
 
-  if( master ) then   ! modified by Junhong Wei for MPI (20161103)
+                 call system_clock(count=timeCount)
+                 cpuTime = (timeCount - startTimeCount)/real(rate)
 
-              nAverageBicg = real(nTotalBicg) / real(iTime) / 3.0
-              call system_clock(count=timeCount)
-              cpuTime = (timeCount - startTimeCount)/real(rate)
-              print*,""
-              print*,"=========================================================="
-              print*," Pinc: Resume"
-              print*,""
-              write(*,fmt="(a31,es15.1)") &
-                   & "average Poisson iterations = ", nAverageBicg
-              print*,"=========================================================="
-              print*,""
-
-  end if              ! modified by Junhong Wei for MPI (20161103)
+                 print*,""
+                 print*,"=================================================="
+                 print*," Pinc: Resume"
+                 print*,""
+                 write(*,fmt="(a31,es15.1)") &
+                      & "average Poisson iterations = ", nAverageBicg
+                 print*,"=================================================="
+                 print*,""
+              end if              ! modified by Junhong Wei for MPI
 
               exit      ! leave time_loop
            end if
