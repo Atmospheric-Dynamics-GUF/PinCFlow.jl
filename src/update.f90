@@ -1609,7 +1609,8 @@ contains
         do jjj_no = 1,3
            do iii_no = 1,3
 
-        Lij_DySma(i,j,k,iii_no,jjj_no) = uiuj_smth_DySma(i,j,k,iii_no,jjj_no) - ( ui_smth_DySma(i,j,k,iii_no)*ui_smth_DySma(i,j,k,jjj_no) )
+        Lij_DySma(i,j,k,iii_no,jjj_no) = uiuj_smth_DySma(i,j,k,iii_no,jjj_no) &
+          &  - ( ui_smth_DySma(i,j,k,iii_no)*ui_smth_DySma(i,j,k,jjj_no) )
 
         !UA below is not right. Should be delta_DySma**2 * ... - (2.0*smth_npts1_DySma+1.0)**2 * ...
 
@@ -1619,7 +1620,9 @@ contains
 !        Mij_DySma(i,j,k,iii_no,jjj_no) = Mij_DySma(i,j,k,iii_no,jjj_no) * (delta_DySma**2)                                                        ! revised by JW (20160824)
 
         ! revised by JW (20160824)
-        Mij_DySma(i,j,k,iii_no,jjj_no) = SSS_Sij_smth_DySma(i,j,k,iii_no,jjj_no) - ( ( (2.0*smth_npts1_DySma+1.0)**2 )*SSS_smth_DySma(i,j,k)*Sij_smth_DySma(i,j,k,iii_no,jjj_no) )
+        Mij_DySma(i,j,k,iii_no,jjj_no) = SSS_Sij_smth_DySma(i,j,k,iii_no,jjj_no) &
+          &  - ( ( (2.0*smth_npts1_DySma+1.0)**2 )*SSS_smth_DySma(i,j,k)*        &
+          &      Sij_smth_DySma(i,j,k,iii_no,jjj_no) )
         Mij_DySma(i,j,k,iii_no,jjj_no) = Mij_DySma(i,j,k,iii_no,jjj_no) * (delta_DySma**2)
 
 
@@ -1750,8 +1753,10 @@ contains
 !   achatze
 
 
-    allocate(var3D_DySma_Extend( (0-nsmth_DySma) : (nx+nsmth_DySma), (0-nsmth_DySma) : (ny+nsmth_DySma), (0-nsmth_DySma) : (nz+nsmth_DySma) ), stat=allocstat); if(allocstat/=0) &
-         & stop "Var3DSmthDySma:alloc failed"
+    allocate(var3D_DySma_Extend( (0-nsmth_DySma) : (nx+nsmth_DySma), &
+      &                          (0-nsmth_DySma) : (ny+nsmth_DySma), &
+      &                          (0-nsmth_DySma) : (nz+nsmth_DySma) ), stat=allocstat)
+    if(allocstat/=0) stop "Var3DSmthDySma:alloc failed"
 
     ! set the values for var3D_DySma_Extend
 
