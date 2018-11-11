@@ -250,7 +250,7 @@ contains
 
 
     case default
-       stop"spongeLayer: Unknown variable"
+       stop "spongeLayer: Unknown variable"
     end select
     
 
@@ -347,7 +347,7 @@ contains
        i0 = 0
        i1 = nx
     case default
-       stop"momentumPredictor: unknown case xBoundary."
+       stop "momentumPredictor: unknown case xBoundary."
     end select
 
     do k = 1,nz
@@ -430,7 +430,7 @@ contains
                 rhoM_1 = rho00
                 rhoM = rho00
              case default
-                stop"momentumPredictor: unkown case model."
+                stop "momentumPredictor: unkown case model."
              end select
              
              ! velocity and momentum at t(m-1)
@@ -465,7 +465,7 @@ contains
                 case( "Boussinesq" )
                    rhoM_0 = rho00
                 case default
-                   stop"momentumPredictor: unkown case model."
+                   stop "momentumPredictor: unkown case model."
                 end select
 
                 ! velocity and momentum at t(0)
@@ -484,7 +484,7 @@ contains
                 var(i,j,k,2) = uAst
 
              case default
-                stop"thetaUpdate: unknown case timeSchemeType"
+                stop "thetaUpdate: unknown case timeSchemeType"
              end select
 
 
@@ -505,7 +505,7 @@ contains
        j0 = 0
        j1 = ny
     case default
-       stop"momentumPredictor: unknown case yBoundary."
+       stop "momentumPredictor: unknown case yBoundary."
     end select
     
     do k = 1,nz
@@ -556,7 +556,7 @@ contains
                 rhoM_1 = rho00
                 rhoM = rho00
              case default
-                stop"momentumPredictor: unkown case model."
+                stop "momentumPredictor: unkown case model."
              end select
 
 
@@ -593,7 +593,7 @@ contains
                 case( "Boussinesq" )
                    rhoM_0 = rho00
                 case default
-                   stop"momentumPredictor: unkown case model."
+                   stop "momentumPredictor: unkown case model."
                 end select
                 
                 ! velocity and momentum at t(0)
@@ -617,7 +617,7 @@ contains
 
 
              case default
-                stop"Update: unknown case timeSchemeType"
+                stop "Update: unknown case timeSchemeType"
              end select
 
 
@@ -640,7 +640,7 @@ contains
        k0 = 0
        k1 = nz
     case default
-       stop"momentumPredictor: unknown case zBoundary."
+       stop "momentumPredictor: unknown case zBoundary."
     end select
 
     do k = k0,k1
@@ -692,7 +692,7 @@ contains
                 rhoM_1 = rho00
                 rhoM = rho00
              case default
-                stop"momentumPredictor: unkown case model."
+                stop "momentumPredictor: unkown case model."
              end select
              
              
@@ -727,7 +727,7 @@ contains
                      &       + rk(3,m) * dt*F
 
              case default
-                stop"thetaUpdate: unknown case timeSchemeType"
+                stop "thetaUpdate: unknown case timeSchemeType"
              end select
 
 
@@ -896,7 +896,7 @@ contains
                      &       + rk(3,m) * dt*F
 
              case default
-                stop"thetaUpdate: unknown case timeSchemeType"
+                stop "thetaUpdate: unknown case timeSchemeType"
              end select
 
 
@@ -996,7 +996,7 @@ contains
                      &       + rk(3,m) * dt*F
 
              case default
-                stop"thetaUpdate: unknown case timeSchemeType"
+                stop "thetaUpdate: unknown case timeSchemeType"
              end select
 
           end do
@@ -1186,7 +1186,7 @@ contains
                       bMaxNew = var(i,j,k,6)/theta00 * vertical 
 
                    case default
-                      stop"timeStep: unknown case model."
+                      stop "timeStep: unknown case model."
                    end select
                    
                    if( bMaxNew(1) > bMax(1) ) bMax(1) = bMaxNew(1)
@@ -1311,7 +1311,7 @@ contains
        end if   ! modified by Junhong Wei (20170216)
 
        case default
-          stop"timestep: unknown case model."
+          stop "timestep: unknown case model."
        end select   ! WKB / full model
 
     end if
@@ -1392,29 +1392,29 @@ contains
 
     ! Allocate local fields
     allocate(Sij_DySma(1:nx,1:ny,1:nz,1:3,1:3), stat=allocstat); if(allocstat/=0) &
-         & stop"CoefDySma_update:alloc failed"
+         & stop "CoefDySma_update:alloc failed"
     allocate(Lij_DySma(1:nx,1:ny,1:nz,1:3,1:3), stat=allocstat); if(allocstat/=0) &
-         & stop"CoefDySma_update:alloc failed"
+         & stop "CoefDySma_update:alloc failed"
     allocate(Mij_DySma(1:nx,1:ny,1:nz,1:3,1:3), stat=allocstat); if(allocstat/=0) &
-         & stop"CoefDySma_update:alloc failed"
+         & stop "CoefDySma_update:alloc failed"
     allocate(SSS_DySma(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop"CoefDySma_update:alloc failed"
+         & stop "CoefDySma_update:alloc failed"
     allocate(uiuj_smth_DySma(1:nx,1:ny,1:nz,1:3,1:3), stat=allocstat); if(allocstat/=0) &
-         & stop"CoefDySma_update:alloc failed"
+         & stop "CoefDySma_update:alloc failed"
     allocate(SSS_Sij_smth_DySma(1:nx,1:ny,1:nz,1:3,1:3), stat=allocstat); if(allocstat/=0) &
-         & stop"CoefDySma_update:alloc failed"
+         & stop "CoefDySma_update:alloc failed"
     allocate(Sij_smth_DySma(1:nx,1:ny,1:nz,1:3,1:3), stat=allocstat); if(allocstat/=0) &
-         & stop"CoefDySma_update:alloc failed"
+         & stop "CoefDySma_update:alloc failed"
     allocate(ui_smth_DySma(1:nx,1:ny,1:nz,1:3), stat=allocstat); if(allocstat/=0) &
-         & stop"CoefDySma_update:alloc failed"
+         & stop "CoefDySma_update:alloc failed"
     allocate(SSS_smth_DySma(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop"CoefDySma_update:alloc failed"
+         & stop "CoefDySma_update:alloc failed"
     allocate(LijMij_smth_DySma(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop"CoefDySma_update:alloc failed"
+         & stop "CoefDySma_update:alloc failed"
     allocate(MijMij_smth_DySma(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop"CoefDySma_update:alloc failed"
+         & stop "CoefDySma_update:alloc failed"
     allocate(CS2_DySma(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop"CoefDySma_update:alloc failed"
+         & stop "CoefDySma_update:alloc failed"
 
 
     ! calculate delta
@@ -1694,29 +1694,29 @@ contains
 
     ! deallocate local fields
     deallocate(Sij_DySma, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(Lij_DySma, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(Mij_DySma, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(SSS_DySma, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(uiuj_smth_DySma, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(SSS_Sij_smth_DySma, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(Sij_smth_DySma, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(ui_smth_DySma, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(SSS_smth_DySma, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(LijMij_smth_DySma, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(MijMij_smth_DySma, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(CS2_DySma, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
 
 
           return
@@ -1751,7 +1751,7 @@ contains
 
 
     allocate(var3D_DySma_Extend( (0-nsmth_DySma) : (nx+nsmth_DySma), (0-nsmth_DySma) : (ny+nsmth_DySma), (0-nsmth_DySma) : (nz+nsmth_DySma) ), stat=allocstat); if(allocstat/=0) &
-         & stop"Var3DSmthDySma:alloc failed"
+         & stop "Var3DSmthDySma:alloc failed"
 
     ! set the values for var3D_DySma_Extend
 
@@ -1782,7 +1782,7 @@ contains
        !         Loop over field
        !---------------------------------
 
-     if(nz /= sizeZ) stop" DYNAMIC SMAGORINSKY NOT READY FOR MPI IN Z"
+     if(nz /= sizeZ) stop " DYNAMIC SMAGORINSKY NOT READY FOR MPI IN Z"
 
        do k = 1,nz
 !         achatzb correct handling of solid and periodic boundaries in z
@@ -1796,7 +1796,7 @@ contains
              kmin=k-nsmth_DySma
              kmax=k+nsmth_DySma
             else
-             stop"vertical smoothing: unknown case zBoundary."
+             stop "vertical smoothing: unknown case zBoundary."
           end if
 
           nsmthv=kmax-kmin+1
@@ -1875,7 +1875,7 @@ contains
        !         Loop over field
        !---------------------------------
 
-     if(nz /= sizeZ) stop" DYNAMIC SMAGORINSKY NOT READY FOR MPI IN Z"
+     if(nz /= sizeZ) stop " DYNAMIC SMAGORINSKY NOT READY FOR MPI IN Z"
 
        do k = 1,nz
 !         achatzb correct handling of solid and periodic boundaries in z
@@ -1889,7 +1889,7 @@ contains
              kmin=k-nsmth_DySma
              kmax=k+nsmth_DySma
             else
-             stop"vertical smoothing: unknown case zBoundary."
+             stop "vertical smoothing: unknown case zBoundary."
           end if
 
           nsmthv=kmax-kmin+1
@@ -2003,7 +2003,7 @@ contains
 
 
     case default
-       stop"unknown case homog_dir_DySma."
+       stop "unknown case homog_dir_DySma."
     end select
 
 
@@ -2012,7 +2012,7 @@ contains
 
     ! deallocate local fields
     deallocate(var3D_DySma_Extend, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
 
           return
 
@@ -2194,7 +2194,7 @@ contains
           end do
        
     case default
-       stop"setBoundary: unknown case zBoundary"
+       stop "setBoundary: unknown case zBoundary"
     end select
 
           return

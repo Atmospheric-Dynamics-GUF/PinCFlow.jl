@@ -205,7 +205,7 @@ contains
                            case( "WKB" )
                         
                            case default
-                              stop"tec360: unknown model"
+                              stop "tec360: unknown model"
                         end select ! model
                       
 !                     achatzb
@@ -215,7 +215,7 @@ contains
 !                     achatze
 
                         case default
-                           stop"tec360: unkown iVar"
+                           stop "tec360: unkown iVar"
                    end select ! iVar
                 end do ! i
                 call mpi_gather(field_prc(1,j),nx,mpi_real,&
@@ -414,7 +414,7 @@ contains
                               var(i,j,k,iVar) = field_prc(i,j) / (uRef*lRef)
 
                         case default
-                           stop"tec360: unkown iVar"
+                           stop "tec360: unkown iVar"
                    end select ! iVar
                 end do ! i
              end do ! j

@@ -103,7 +103,7 @@ contains
        call poissonSolver_csr( var, dt, opt )
 
     case default
-       stop"update.f90/momentumCorrector: unknown storageType"
+       stop "update.f90/momentumCorrector: unknown storageType"
     end select
 
     ! set horizontal and vertical BC for dp
@@ -168,7 +168,7 @@ contains
     integer :: sendcount, recvcount
 
 !   achatzb
-    if(topography) stop'linOpr not ready for topography!'
+    if(topography) stop 'linOpr not ready for topography!'
 !   achatze
 
     ! modified by Junhong Wei (20161106) *** finishing line ***
@@ -263,7 +263,7 @@ contains
          end if
 
        else
-         stop"Poisson: unknown case xBoundary"
+         stop "Poisson: unknown case xBoundary"
        endif
 
        if(verbose .and. master) print*,"horizontalHalos: &
@@ -319,7 +319,7 @@ contains
 
          end if
        else
-         stop"Poisson: unknown case xBoundary"
+         stop "Poisson: unknown case xBoundary"
        end if
 
        if(verbose .and. master) print*,"horizontalHalos: &
@@ -494,7 +494,7 @@ contains
 
          end if
        else
-         stop"Poisson: unknown case xBoundary"
+         stop "Poisson: unknown case xBoundary"
        end if
 
        !------------------------------
@@ -546,7 +546,7 @@ contains
 
          endif
        else
-         stop"Poisson: unknown case yBoundary"
+         stop "Poisson: unknown case yBoundary"
        end if
 
        if( zBoundary == "periodic" ) then
@@ -662,7 +662,7 @@ contains
 
 
     case default
-       stop"linOpr: unknown case model"
+       stop "linOpr: unknown case model"
     end select
 
 
@@ -1016,7 +1016,7 @@ contains
      
 
     case default
-       stop"poissonSolver: unknown case model."
+       stop "poissonSolver: unknown case model."
     end select
 
 
@@ -1067,7 +1067,7 @@ contains
 !         achatze
           
        case default
-          stop"calc_RHS: unkown case model"
+          stop "calc_RHS: unkown case model"
        end select
 
        print*,""
@@ -1121,7 +1121,7 @@ contains
 !            achatze
           
           case default
-             stop"calc_RHS: unkown case model"
+             stop "calc_RHS: unkown case model"
           end select
 
        end if
@@ -1164,7 +1164,7 @@ contains
 
 
     ! Init
-    if (dt == 0.0) stop"poissonSolver: dt = 0.0. Stopping."
+    if (dt == 0.0) stop "poissonSolver: dt = 0.0. Stopping."
     dtInv = 1.0/dt
 
 
@@ -1193,7 +1193,7 @@ contains
        call hypre(var, b, dt, sol, res, nIter, errFlagBicg, opt)   ! modified by Junhong Wei (2016/07/07)
 
     case default
-       stop"Unknown PoissonSolver. Stop"
+       stop "Unknown PoissonSolver. Stop"
     end select
 
 
@@ -1229,7 +1229,7 @@ contains
     real :: dx2, dy2, dz2
 
 !   achatzb
-    if(topography) stop'linOprXYZ not ready for topography!'
+    if(topography) stop 'linOprXYZ not ready for topography!'
 !   achatze
 
     ! auxiliary variables
@@ -1391,7 +1391,7 @@ contains
 
 
     case default
-       stop"linOprXYZ: unknown direction"
+       stop "linOprXYZ: unknown direction"
     end select
 
 
@@ -1441,7 +1441,7 @@ contains
     real :: res0, res01, res02, res03
 
 !   achatzb
-    if(topography) stop'adi not ready for topography!'
+    if(topography) stop 'adi not ready for topography!'
 !   achatze
 
     ! auxiliary variables
@@ -1450,7 +1450,7 @@ contains
     dz2 = 1.0/dz**2
 
     if( pressureScaling .and. poissonSolverType=="adi" ) &
-         & stop"ADI as poissonSolver: no pressure scaling allowed. Stop."
+         & stop "ADI as poissonSolver: no pressure scaling allowed. Stop."
 
     ! Set parameter for ADI as Poisson Solver
     if( poissonSolverType == "adi" ) then
@@ -1467,28 +1467,28 @@ contains
 
     !---- Allocate fields without ghost cells: r, Lx3D
     allocate(r(1:nx,1:ny,1:nz), stat=allocstat)
-    if(allocstat/=0) stop"adi:alloc failed"
+    if(allocstat/=0) stop "adi:alloc failed"
     allocate(Lx3D(1:nx,1:ny,1:nz), stat=allocstat)
-    if(allocstat/=0) stop"adi:alloc failed"
+    if(allocstat/=0) stop "adi:alloc failed"
 
     !--- Allocate Lx, Ly, Lz
     allocate(Lx(1:nx,1:ny,1:nz), stat=allocstat)
-    if(allocstat/=0) stop"adi:alloc failed"
+    if(allocstat/=0) stop "adi:alloc failed"
     allocate(Ly(1:nx,1:ny,1:nz), stat=allocstat)
-    if(allocstat/=0) stop"adi:alloc failed"
+    if(allocstat/=0) stop "adi:alloc failed"
     allocate(Lz(1:nx,1:ny,1:nz), stat=allocstat)
-    if(allocstat/=0) stop"adi:alloc failed"
+    if(allocstat/=0) stop "adi:alloc failed"
 
 
     !---- Allocate fields with ghost cells: q, qn, q01, q02
     allocate(q(0:nx+1,0:ny+1,0:nz+1), stat=allocstat)
-    if(allocstat/=0) stop"adi:alloc failed"
+    if(allocstat/=0) stop "adi:alloc failed"
     allocate(qn(0:nx+1,0:ny+1,0:nz+1), stat=allocstat)
-    if(allocstat/=0) stop"adi:alloc failed"
+    if(allocstat/=0) stop "adi:alloc failed"
     allocate(q01(0:nx+1,0:ny+1,0:nz+1), stat=allocstat)
-    if(allocstat/=0) stop"adi:alloc failed"
+    if(allocstat/=0) stop "adi:alloc failed"
     allocate(q02(0:nx+1,0:ny+1,0:nz+1), stat=allocstat)
-    if(allocstat/=0) stop"adi:alloc failed"
+    if(allocstat/=0) stop "adi:alloc failed"
 
 
 
@@ -1538,13 +1538,13 @@ contains
 
        ! Allocate variables for x sweeps
        allocate(left(1:nx),stat=allocstat)
-       if(allocstat/=0) stop"adi:alloc failed"
+       if(allocstat/=0) stop "adi:alloc failed"
        allocate(center(1:nx),stat=allocstat) 
-       if(allocstat/=0)stop"adi:alloc failed"
+       if(allocstat/=0) stop "adi:alloc failed"
        allocate(right(1:nx), stat=allocstat)
-       if(allocstat/=0) stop"adi:alloc failed"
+       if(allocstat/=0) stop "adi:alloc failed"
        allocate(rhs(1:nx), stat=allocstat)
-       if(allocstat/=0) stop"adi:alloc failed"
+       if(allocstat/=0) stop "adi:alloc failed"
 
        k_loop_x: do k = 1,nz
           j_loop_x: do j = 1,ny
@@ -1556,7 +1556,7 @@ contains
                 rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
                 AR = dx2 * pStrat(k)**2 / rhoEdge
                 if( pressureScaling ) then
-                   stop"ADI: Please check correct implementation of &
+                   stop "ADI: Please check correct implementation of &
                         & pressureScaling for ADI."
                    AR = AR / Pstrat(k) 
                 end if
@@ -1608,13 +1608,13 @@ contains
 
        !---- Deallocate variables for x sweep
        deallocate(Left,stat=allocstat)
-       if(allocstat/=0) stop"adi:dealloc failed"
+       if(allocstat/=0) stop "adi:dealloc failed"
        deallocate(Center,stat=allocstat)
-       if(allocstat/=0) stop"adi:dealloc failed"
+       if(allocstat/=0) stop "adi:dealloc failed"
        deallocate(Right,stat=allocstat)
-       if(allocstat/=0) stop"adi:dealloc failed"
+       if(allocstat/=0) stop "adi:dealloc failed"
        deallocate(rhs,stat=allocstat)
-       if(allocstat/=0) stop"adi:dealloc failed"
+       if(allocstat/=0) stop "adi:dealloc failed"
 
        !
        !---------------------------------
@@ -1631,13 +1631,13 @@ contains
 
        ! Allocate variables for x sweeps
        allocate(left(1:ny), stat=allocstat)
-       if(allocstat/=0) stop"adi:alloc failed"
+       if(allocstat/=0) stop "adi:alloc failed"
        allocate(center(1:ny), stat=allocstat)
-       if(allocstat/=0) stop"adi:alloc failed"
+       if(allocstat/=0) stop "adi:alloc failed"
        allocate(right(1:ny), stat=allocstat)
-       if(allocstat/=0) stop"adi:alloc failed"
+       if(allocstat/=0) stop "adi:alloc failed"
        allocate(rhs(1:ny), stat=allocstat)
-       if(allocstat/=0) stop"adi:alloc failed"
+       if(allocstat/=0) stop "adi:alloc failed"
 
        k_loop_y: do k = 1,nz
           i_loop_y: do i = 1,nx
@@ -1696,13 +1696,13 @@ contains
 
        !---- Deallocate variables for x sweep
        deallocate(Left,stat=allocstat)
-       if(allocstat/=0) stop"adi:dealloc failed"
+       if(allocstat/=0) stop "adi:dealloc failed"
        deallocate(Center,stat=allocstat)
-       if(allocstat/=0) stop"adi:dealloc failed"
+       if(allocstat/=0) stop "adi:dealloc failed"
        deallocate(Right,stat=allocstat)
-       if(allocstat/=0) stop"adi:dealloc failed"
+       if(allocstat/=0) stop "adi:dealloc failed"
        deallocate(rhs,stat=allocstat)
-       if(allocstat/=0) stop"adi:dealloc failed"
+       if(allocstat/=0) stop "adi:dealloc failed"
 
 
 
@@ -1721,13 +1721,13 @@ contains
 
        ! Allocate variables for x sweeps
        allocate(left(1:nz), stat=allocstat)
-       if(allocstat/=0) stop"adi:alloc failed"
+       if(allocstat/=0) stop "adi:alloc failed"
        allocate(center(1:nz), stat=allocstat)
-       if(allocstat/=0) stop"adi:alloc failed"
+       if(allocstat/=0) stop "adi:alloc failed"
        allocate(right(1:nz), stat=allocstat)
-       if(allocstat/=0) stop"adi:alloc failed"
+       if(allocstat/=0) stop "adi:alloc failed"
        allocate(rhs(1:nz), stat=allocstat)
-       if(allocstat/=0) stop"adi:alloc failed"
+       if(allocstat/=0) stop "adi:alloc failed"
 
        j_loop_z: do j = 1,ny
           i_loop_z: do i = 1,nx
@@ -1795,13 +1795,13 @@ contains
 
        !---- Deallocate variables for x sweep
        deallocate(Left,stat=allocstat)
-       if(allocstat/=0) stop"adi:dealloc failed"
+       if(allocstat/=0) stop "adi:dealloc failed"
        deallocate(Center,stat=allocstat)
-       if(allocstat/=0) stop"adi:dealloc failed"
+       if(allocstat/=0) stop "adi:dealloc failed"
        deallocate(Right,stat=allocstat)
-       if(allocstat/=0) stop"adi:dealloc failed"
+       if(allocstat/=0) stop "adi:dealloc failed"
        deallocate(rhs,stat=allocstat)
-       if(allocstat/=0) stop"adi:dealloc failed"
+       if(allocstat/=0) stop "adi:dealloc failed"
 
 
        !
@@ -1881,19 +1881,19 @@ contains
     end if
 
     !---- Deallocate fields without ghost cells
-    deallocate(r, stat=allocstat); if(allocstat/=0) stop"adi:dealloc failed"
-    deallocate(Lx3D, stat=allocstat); if(allocstat/=0) stop"adi:dealloc failed"
+    deallocate(r, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
+    deallocate(Lx3D, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
 
     !--- Deallocate Lx, Ly, Lz
-    deallocate(Lx, stat=allocstat); if(allocstat/=0) stop"adi:dealloc failed"
-    deallocate(Ly, stat=allocstat); if(allocstat/=0) stop"adi:dealloc failed"
-    deallocate(Lz, stat=allocstat); if(allocstat/=0) stop"adi:dealloc failed"
+    deallocate(Lx, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
+    deallocate(Ly, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
+    deallocate(Lz, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
 
     !---- Deallocate fields with ghost cells: q, q01, q02
-    deallocate(q, stat=allocstat); if(allocstat/=0) stop"adi:dealloc failed"
-    deallocate(qn, stat=allocstat); if(allocstat/=0) stop"adi:dealloc failed"
-    deallocate(q01, stat=allocstat); if(allocstat/=0) stop"adi:dealloc failed"
-    deallocate(q02, stat=allocstat); if(allocstat/=0) stop"adi:dealloc failed"
+    deallocate(q, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
+    deallocate(qn, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
+    deallocate(q01, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
+    deallocate(q02, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
 
 
 
@@ -1950,7 +1950,7 @@ contains
     real, dimension(1:nz-1) :: lower_diag, upper_diag
 
 !   achatzb
-    if(topography) stop'adi_z not ready for topography!'
+    if(topography) stop 'adi_z not ready for topography!'
 !   achatze
 
     ! define auxiliary variables
@@ -2185,17 +2185,17 @@ contains
 
     !---- Allocate local fields
     allocate(r(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/gcr:alloc failed"
+         & stop "algebra.f90/gcr:alloc failed"
     allocate(Lx(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/gcr:alloc failed"
+         & stop "algebra.f90/gcr:alloc failed"
     allocate(p(1:nx,1:ny,1:nz), stat=allocstat);if(allocstat/=0) &
-         & stop"algebra.f90/gcr:alloc failed"
+         & stop "algebra.f90/gcr:alloc failed"
     allocate(Lp(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/gcr:alloc failed"
+         & stop "algebra.f90/gcr:alloc failed"
     allocate(q(1:nx,1:ny,1:nz), stat=allocstat);  if(allocstat/=0) &
-         & stop"algebra.f90/gcr:alloc failed"
+         & stop "algebra.f90/gcr:alloc failed"
     allocate(Lq(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/gcr:alloc failed"
+         & stop "algebra.f90/gcr:alloc failed"
 
     ! Error flag
     errFlag = .false.    
@@ -2305,17 +2305,17 @@ contains
 
     !---- Deallocate local fields: r,Lx,p,Lp,q,Lq
     deallocate(r, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/gcr:dealloc failed"
+         & stop "algebra.f90/gcr:dealloc failed"
     deallocate(Lx, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/gcr:dealloc failed"
+         & stop "algebra.f90/gcr:dealloc failed"
     deallocate(p,stat=allocstat);if(allocstat/=0) &
-         & stop"algebra.f90/gcr:dealloc failed"
+         & stop "algebra.f90/gcr:dealloc failed"
     deallocate(Lp, stat=allocstat);if(allocstat/=0) &
-         & stop"algebra.f90/gcr:dealloc failed"
+         & stop "algebra.f90/gcr:dealloc failed"
     deallocate(q, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/gcr:dealloc failed"
+         & stop "algebra.f90/gcr:dealloc failed"
     deallocate(Lq, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/gcr:dealloc failed"
+         & stop "algebra.f90/gcr:dealloc failed"
 
 
   end subroutine gcr
@@ -2381,21 +2381,21 @@ contains
 
     ! Allocate local fields
     allocate(p(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop"bicgstab:alloc failed"
+         & stop "bicgstab:alloc failed"
     allocate(r0(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop"bicgstab:alloc failed"
+         & stop "bicgstab:alloc failed"
     allocate(rOld(1:nx,1:ny,1:nz), stat=allocstat);if(allocstat/=0) &
-         & stop"bicgstab:alloc failed"
+         & stop "bicgstab:alloc failed"
     allocate(r(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop"bicgstab:alloc failed"
+         & stop "bicgstab:alloc failed"
     allocate(s(1:nx,1:ny,1:nz), stat=allocstat);  if(allocstat/=0) &
-         & stop"bicgstab:alloc failed"
+         & stop "bicgstab:alloc failed"
     allocate(t(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop"bicgstab:alloc failed"
+         & stop "bicgstab:alloc failed"
     allocate(v(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop"bicgstab:alloc failed"
+         & stop "bicgstab:alloc failed"
     allocate(matVec(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop"bicgstab:alloc failed"
+         & stop "bicgstab:alloc failed"
 
     ! error flag
     errFlag = .false.    
@@ -2551,19 +2551,19 @@ contains
 
     ! deallocate local fields
     deallocate(p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(r0, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(rOld,stat=allocstat);if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(r, stat=allocstat);if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(s, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(t, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(v, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
 
 
 
@@ -2665,11 +2665,11 @@ contains
     nvalues_hypre = nx * ny * nz * nentries_hypre
 
     allocate(values_hypre(1:nvalues_hypre), stat=allocstat); if(allocstat/=0) &
-         & stop"hypre:alloc failed"
+         & stop "hypre:alloc failed"
     allocate(bvalue_vector_hypre(1: (nx * ny * nz) ), stat=allocstat); if(allocstat/=0) &
-         & stop"hypre:alloc failed"
+         & stop "hypre:alloc failed"
     allocate(xvalue_vector_hypre(1: (nx * ny * nz) ), stat=allocstat); if(allocstat/=0) &
-         & stop"hypre:alloc failed"
+         & stop "hypre:alloc failed"
 
     ! error flag
     errFlag = .false.
@@ -2690,7 +2690,7 @@ contains
 !       npts_x_periodic_hypre = nx
        npts_x_periodic_hypre = sizeX
     case default
-       stop"pressureBoundaryCondition: unknown case xBoundary."
+       stop "pressureBoundaryCondition: unknown case xBoundary."
     end select
 
     !----------------
@@ -2702,7 +2702,7 @@ contains
 !       npts_y_periodic_hypre = ny
        npts_y_periodic_hypre = sizeY
     case default
-       stop"pressureBoundaryCondition: unknown case yBoundary."
+       stop "pressureBoundaryCondition: unknown case yBoundary."
     end select
 
     !----------------
@@ -2716,7 +2716,7 @@ contains
     case( "solid_wall" )
        npts_z_periodic_hypre = 0
     case default
-       stop"pressureBoundaryCondition: unknown case zBoundary."
+       stop "pressureBoundaryCondition: unknown case zBoundary."
     end select
 
 
@@ -3367,7 +3367,7 @@ contains
 
 
     case default
-       stop"linOpr: unknown case model"
+       stop "linOpr: unknown case model"
     end select
 
 
@@ -3504,11 +3504,11 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
 
     ! deallocate local fields
     deallocate(values_hypre, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(bvalue_vector_hypre, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(xvalue_vector_hypre, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
 
 
           return
@@ -3575,7 +3575,7 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
     logical, parameter :: giveInfo = .false.
 
 !   achatzb
-    if(topography) stop'poissonSolver_csr not ready for topography!'
+    if(topography) stop 'poissonSolver_csr not ready for topography!'
 !   achatze
 
 
@@ -3850,7 +3850,7 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
 
     case default
 
-       stop"update.f90/poissonSolver_csr: preconditioner not definded."
+       stop "update.f90/poissonSolver_csr: preconditioner not definded."
 
     end select
 
@@ -4088,7 +4088,7 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
 !       dp(nx+1,:,:) = dp(1,:,:)
 !
 !    case default
-!       stop"pressureBoundaryCondition: unknown case xBoundary."
+!       stop "pressureBoundaryCondition: unknown case xBoundary."
 !    end select
 !
 !
@@ -4101,7 +4101,7 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
 !       dp(:,0,:) = dp(:,ny,:)
 !       dp(:,ny+1,:) = dp(:,1,:)
 !    case default
-!       stop"pressureBoundaryCondition: unknown case yBoundary."
+!       stop "pressureBoundaryCondition: unknown case yBoundary."
 !    end select
 
         ! modified by Junhong Wei (20161107) *** finishing line ***
@@ -4120,7 +4120,7 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
        dp(:,:,0) = dp(:,:,1)
        dp(:,:,nz+1) = dp(:,:,nz)
     case default
-       stop"pressureBoundaryCondition: unknown case yBoundary."
+       stop "pressureBoundaryCondition: unknown case yBoundary."
     end select
 
 
@@ -4412,16 +4412,16 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
 
     ! allocate fields
     allocate( dp(0:nx+1,0:ny+1,0:nz+1), stat=allocstat)
-    if( allocstat /= 0) stop"init_poisson: alloc failed"
+    if( allocstat /= 0) stop "init_poisson: alloc failed"
 
     allocate( sol_old1(1:nx,1:ny,1:nz), stat=allocstat)
-    if( allocstat /= 0) stop"init_poisson: alloc failed"
+    if( allocstat /= 0) stop "init_poisson: alloc failed"
 
     allocate( sol_old2(1:nx,1:ny,1:nz), stat=allocstat)
-    if( allocstat /= 0) stop"init_poisson: alloc failed"
+    if( allocstat /= 0) stop "init_poisson: alloc failed"
 
     allocate( p_pred(1:nx,1:ny,1:nz), stat=allocstat)
-    if( allocstat /= 0) stop"init_poisson: alloc failed"
+    if( allocstat /= 0) stop "init_poisson: alloc failed"
 
 
   end subroutine init_poisson
@@ -4440,16 +4440,16 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
 
     ! deallocate fields
     deallocate( dp, stat=allocstat)
-    if( allocstat /= 0) stop"init_poisson: dealloc failed"
+    if( allocstat /= 0) stop "init_poisson: dealloc failed"
 
     deallocate( sol_old1, stat=allocstat)
-    if( allocstat /= 0) stop"init_poisson: dealloc failed"
+    if( allocstat /= 0) stop "init_poisson: dealloc failed"
 
     deallocate( sol_old2, stat=allocstat)
-    if( allocstat /= 0) stop"init_poisson: dealloc failed"
+    if( allocstat /= 0) stop "init_poisson: dealloc failed"
 
     deallocate( p_pred, stat=allocstat)
-    if( allocstat /= 0) stop"init_poisson: dealloc failed"
+    if( allocstat /= 0) stop "init_poisson: dealloc failed"
 
   end subroutine terminate_poisson
 

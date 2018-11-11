@@ -208,7 +208,7 @@ program pinc_prog
         ! scale = .true.  ! scale with reference quantities
         ! call readtec360( var,restartFile,time, scale)
         ! if( maxTime < time*tRef ) &
-        ! & stop"restart error: maxTime < current time"
+        ! & stop "restart error: maxTime < current time"
  
         call read_data ( iIn,var)
 
@@ -559,7 +559,7 @@ program pinc_prog
                  dt_Poisson = rk(3,RKstage)*dt
 
               case default
-                 stop"thetaUpdate: unknown case timeSchemeType"
+                 stop "thetaUpdate: unknown case timeSchemeType"
               end select
 !xxxx end
               
@@ -665,7 +665,7 @@ program pinc_prog
            end if
 
         case default
-           stop"main: unknown outputType"
+           stop "main: unknown outputType"
         end select
 
 

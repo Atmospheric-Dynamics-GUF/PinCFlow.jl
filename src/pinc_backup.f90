@@ -167,7 +167,7 @@ program pinc_prog
      if (restart) then
         scale = .true.                       ! scale with reference quantities
         call readtec360( var,restartFile,time, scale)
-        if( maxTime < time*tRef ) stop"restart error: maxTime < current time"
+        if( maxTime < time*tRef ) stop "restart error: maxTime < current time"
      end if
 
      !-------------------------------------------------
@@ -351,7 +351,7 @@ program pinc_prog
               call horizontalBoundary (var,"thetaTilde")
               
            case default
-              stop"pinc: unknown model"
+              stop "pinc: unknown model"
            end select
 
               
@@ -448,7 +448,7 @@ program pinc_prog
               end if
 
            case default
-              stop"main: unknown case model"
+              stop "main: unknown case model"
            end select
 
 
@@ -570,7 +570,7 @@ program pinc_prog
            end if
 
         case default
-           stop"pinc.f90: unknown outputType"
+           stop "pinc.f90: unknown outputType"
         end select
 
 

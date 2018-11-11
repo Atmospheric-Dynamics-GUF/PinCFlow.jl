@@ -205,7 +205,7 @@ contains
        tRef = lRef / uRef
 
     case( "SI" )
-       stop"init_atmosphere: Problems with Exner pressure. Use Klein's scaling."
+       stop "init_atmosphere: Problems with Exner pressure. Use Klein's scaling."
        ! with this scaling all quantities are 
        ! in SI units
        ! Note that in this case the thermodynamic
@@ -226,7 +226,7 @@ contains
 
     case default
        print*,"referenceQuantities = ", referenceQuantities
-       stop"init_atmosphere: unknown referenceQuantities. Stopping."
+       stop "init_atmosphere: unknown referenceQuantities. Stopping."
     end select
 
     ! auxiliary nondimensionals
@@ -367,9 +367,9 @@ contains
           
           ! not implemented versions
           if ( referenceQuantities == "SI" ) &
-               & stop"atmosphere.f90: referenceQuantities = SI not implemented."
+               & stop "atmosphere.f90: referenceQuantities = SI not implemented."
           if( .not. fluctuationMode ) &
-               &  stop"atmosphere.f90: only fluctuationMode = TRUE implemented."
+               & stop "atmosphere.f90: only fluctuationMode = TRUE implemented."
 
           ! quantities at tropopause
           z_tr = z_tr_dim / lRef
@@ -388,7 +388,7 @@ contains
 
                 power = 1.0/(gamma-1.0)
                 term = kappa*sig/theta_tr * zk
-                if (term > 1.0)stop"init_atmosphere: negative term. Stop."
+                if (term > 1.0) stop "init_atmosphere: negative term. Stop."
                 
                 Pstrat(k) = p0*( 1.0 - term)**power
                 rhoStrat(k) = PStrat(k) / thetaStrat(k)
@@ -427,7 +427,7 @@ contains
 
                 power = 1.0/(gamma-1.0)
                 term = kappa*sig/theta_tr * zk_half
-                if (term > 1.0) stop"init_atmosphere: negative term. Stop."
+                if (term > 1.0) stop "init_atmosphere: negative term. Stop."
 
                 PstratTilde(k) = p0 * (1.0 - term)**power
                 rhoStratTilde(k) = PStratTilde(k) / thetaStratTilde(k)
@@ -471,7 +471,7 @@ contains
              !------------------------------------
 
              if( fluctuationMode ) &
-                  &stop"init_atmosphere: fluctuationMode not implmented for SI!" 
+                  & stop "init_atmosphere: fluctuationMode not implmented for SI!" 
              T0 = Temp0_dim / thetaRef   ! T0 in K
              N2 = kappa*g**2/Rsp/T0      ! isothermal Brunt-Vaisala frequency^2
              NN = sqrt(N2)               ! 
@@ -526,14 +526,14 @@ contains
              !   original equations in SI units
              !------------------------------------
 
-             if( fluctuationMode ) stop"init_atmosphere: fluctuationMode not implmented for SI!" 
+             if( fluctuationMode ) stop "init_atmosphere: fluctuationMode not implmented for SI!" 
              NN = 0.0
              N2 = 0.0
              theta0 = theta0_dim / thetaRef       ! theta0 in K
              power = 1.0/(gamma-1.0)
              do k = 0,nz+1
                 term = kappa*g/Rsp/theta0*z(k)
-                if (term > 1.0) stop"init_atmosphere: negative term with power.Stop."
+                if (term > 1.0) stop "init_atmosphere: negative term with power.Stop."
                 PStrat(k) = p0 * (1.0 - term)**power
                 thetaStrat(k) = theta0
                 rhoStrat(k) = 1.0/Rsp * PStrat(k) / thetaStrat(k)
@@ -562,7 +562,7 @@ contains
                    print*,"z(nz) = ", z(k)
                    print*,"z(nz)*l = ", z(k)
                    print*,"lRef = ", lRef
-                   stop"stopping."                
+                   stop "stopping."                
                 end if
                 Pstrat(k) = p0*( 1.0 - term)**power
 
@@ -584,7 +584,7 @@ contains
                    print*,"z(nz) = ", z(k)
                    print*,"z(nz)*l = ", z(k)
                    print*,"lRef = ", lRef
-                   stop"stopping."                
+                   stop "stopping."                
                 end if
                 PstratTilde(k) = p0*( 1.0 - term)**power
                 rhoStratTilde(k) = PStratTilde(k) / theta0
@@ -603,7 +603,7 @@ contains
              !------------------------------------
              !   original equations in SI units
              !------------------------------------
-             if( fluctuationMode ) stop"init_atmosphere: fluctuationMode not implmented for SI!" 
+             if( fluctuationMode ) stop "init_atmosphere: fluctuationMode not implmented for SI!" 
 
              theta0 = theta0_dim / thetaRef       ! theta0 at z=0 in K
              NN = N_BruntVaisala_dim * tRef
@@ -614,7 +614,7 @@ contains
 
              do k = 1,nz+1
                 term =  exp( -N2/g*z(k) )
-                if( term > 1.0 ) stop"init_atmosphere: root of a negative number." 
+                if( term > 1.0 ) stop "init_atmosphere: root of a negative number." 
                 PStrat(k) = p0 * (1.0 + coeff*( term - 1.0) )**power
                 thetaStrat(k) = theta0 * exp(N2/g*z(k))
                 rhoStrat(k) = 1.0/Rsp * PStrat(k) / thetaStrat(k)
@@ -637,7 +637,7 @@ contains
 
                 term = exp( -Fr2 * N2 * z(k) )
 
-                if( term > 1.0 ) stop"init_atmosphere: root of a negative number." 
+                if( term > 1.0 ) stop "init_atmosphere: root of a negative number." 
                 Pstrat(k) = p0 * (1.0 + FrInv2*kappa*sig/N2/theta0 * (term-1.0) )**power
                 rhoStrat(k) = pStrat(k) / thetaStrat(k)             
              end do
@@ -655,7 +655,7 @@ contains
 
                 term = exp( -Fr2 * N2 * zk_half )
 
-                if( term > 1.0 ) stop"init_atmosphere: root of a negative number." 
+                if( term > 1.0 ) stop "init_atmosphere: root of a negative number." 
                 PstratTilde(k) = p0 * (1.0 + FrInv2*kappa*sig/N2/theta0 * (term-1.0) )**power
                 rhoStratTilde(k) = PstratTilde(k) / thetaStratTilde(k)             
              end do
@@ -664,7 +664,7 @@ contains
 
        case default
           print*,"background = ", trim(background)
-          stop"atmosphere.f90/init_background: background not defined"
+          stop "atmosphere.f90/init_background: background not defined"
        end select
 
 
@@ -707,12 +707,12 @@ contains
 
        case default
           print*,"background = ", trim(background)
-          stop"atmosphere.f90/init_background: background not defined"
+          stop "atmosphere.f90/init_background: background not defined"
        end select
 
     case default
        print*,"model = ", model
-       stop"init_atmosphere: unknown case model."
+       stop "init_atmosphere: unknown case model."
     end select
 
 

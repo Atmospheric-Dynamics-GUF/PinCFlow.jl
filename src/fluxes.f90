@@ -289,7 +289,7 @@ contains
           call reconstruct_SALD(thetaBar, thetaTilde)
 
        case default
-          stop"reconstruction: unknown case variable."
+          stop "reconstruction: unknown case variable."
        end select
 
 
@@ -322,7 +322,7 @@ contains
           call reconstruct_ALDM(thetaBar,thetaTilde)
 
        case default
-          stop"reconstruction: unknown case variable."
+          stop "reconstruction: unknown case variable."
        end select
 
     case default
@@ -413,7 +413,7 @@ contains
                 
                 
              case default
-                stop"thetaFlux: unknown case fluxType"
+                stop "thetaFlux: unknown case fluxType"
              end select
 
              
@@ -499,7 +499,7 @@ contains
                 fTheta = flux_aldm(thetaL,thetaR,uSurf,&
                      &             thetaL,thetaR,uL,uR,sigmaC)
              case default
-                stop"thetaFlux: unknown case fluxType"
+                stop "thetaFlux: unknown case fluxType"
              end select
 
              flux(i,j,k,1,6) = fTheta
@@ -544,7 +544,7 @@ contains
                      &             thetaB,thetaF,vB,vF,sigmaC)
 
              case default
-                stop"thetaFlux: unknown case fluxType"
+                stop "thetaFlux: unknown case fluxType"
              end select
 
              flux(i,j,k,2,6) = gTheta
@@ -588,7 +588,7 @@ contains
                      &             thetaD,thetaU,wU,wD,sigmaC)
                 
              case default
-                stop"thetaFlux: unknown case fluxType"
+                stop "thetaFlux: unknown case fluxType"
              end select
 
              flux(i,j,k,3,6) = hTheta
@@ -740,7 +740,7 @@ contains
                 source(i,j,k,1) = divPu/thetaStrat(k)
                 
              case default
-                stop"rhoFlux: unknown case fluxType"
+                stop "rhoFlux: unknown case fluxType"
              end select
 
              
@@ -852,7 +852,7 @@ contains
                 end if
 
              case default
-                stop"rhoFlux: unknown case fluxType"
+                stop "rhoFlux: unknown case fluxType"
              end select
 
 
@@ -887,7 +887,7 @@ contains
                   case( "Boussinesq" )
                    coef_t = mu_conduct
                   case default
-                   stop"diffusivity: unkown case model."
+                   stop "diffusivity: unkown case model."
                 end select
 
                 if(DySmaScheme)then
@@ -970,7 +970,7 @@ contains
                 end if
 
              case default
-                stop"rhoFlux: unknown case fluxType"
+                stop "rhoFlux: unknown case fluxType"
              end select
 
 
@@ -1005,7 +1005,7 @@ contains
                   case( "Boussinesq" )
                    coef_t = mu_conduct
                   case default
-                   stop"diffusivity: unkown case model."
+                   stop "diffusivity: unkown case model."
                 end select
 
                 if(DySmaScheme)then
@@ -1093,7 +1093,7 @@ contains
                 end if
 
              case default
-                stop"rhoFlux: unknown case fluxType"
+                stop "rhoFlux: unknown case fluxType"
              end select
 
 
@@ -1145,7 +1145,7 @@ contains
                   case( "Boussinesq" )
                    coef_t = mu_conduct
                   case default
-                   stop"diffusivity: unkown case model."
+                   stop "diffusivity: unkown case model."
                 end select
 
                 if(DySmaScheme)then
@@ -1245,7 +1245,7 @@ contains
                 gForce = -FrInv2 * dRho * vertical
                 
              case default
-                stop"volumeForce: unknown case model."
+                stop "volumeForce: unknown case model."
              end select
 
              force(i,j,k,:) = gForce
@@ -1293,7 +1293,7 @@ contains
                 end if
 
                 case default
-                   stop"volumeForce: unknown case model."
+                   stop "volumeForce: unknown case model."
                 end select
 
                 n1 = vertical(1)
@@ -1395,7 +1395,7 @@ contains
                 end if
 
                 case default
-                   stop"volumeForce: unknown case model."
+                   stop "volumeForce: unknown case model."
                 end select
 
                 force(i,j,k,1) &
@@ -1566,7 +1566,7 @@ contains
                         & + rhoTilde(i+2,j,k,1,0) )
 
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
                 
                 if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
@@ -1598,11 +1598,11 @@ contains
                 case( "ILES" )
                    fRhoU = flux_aldm(uL,uR,uSurf,uL,uR,uBarL,uBarR,sigmaX)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              flux(i,j,k,1,2) = rhoEdge * fRhoU
@@ -1641,7 +1641,7 @@ contains
                         & + rhoTilde(i,j,k,2,1) &
                         & + rhoTilde(i,j+1,k,2,0) )
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
                 
                 if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
@@ -1675,11 +1675,11 @@ contains
                 case( "ILES" )
                    gRhoU = flux_aldm(uB,uF,vSurf,uB,uF,uBarB,uBarF,sigmaX)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              !                call absDiff(vBarR-vBarL,delta)
@@ -1721,7 +1721,7 @@ contains
                         & + rhoTilde(i+1,j,k+1,3,0)  )
                    
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
                 
                 ! comment: for CDS rhoEdge should add rhoStrat
@@ -1758,11 +1758,11 @@ contains
                 case( "ILES" )
                    hRhoU = flux_aldm(uU,uD,wSurf,uD,uU,uBarD,uBarU,sigmaX)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              flux(i,j,k,3,2) = rhoEdge * hRhoU
@@ -1805,7 +1805,7 @@ contains
                         & + rhoTilde(i+1,j+1,k,1,0) )
 
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
                 if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
@@ -1839,11 +1839,11 @@ contains
                 case( "ILES" )
                    fRhoV = flux_aldm(vL,vR,uSurf,vL,vR,vBarL,vBarR,sigmaY)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              !                call absDiff(uBarF-uBarB,delta)
@@ -1885,7 +1885,7 @@ contains
                         & + rhoTilde(i,j+2,k,2,0) )
 
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
                 if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
@@ -1915,11 +1915,11 @@ contains
                 case( "ILES" )
                    gRhoV = flux_aldm(vB,vF,vSurf,vB,vF,vBarB,vBarF,sigmaY)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              !                call absDiff(vBarF-vBarB,delta)
@@ -1960,7 +1960,7 @@ contains
                         & + rhoTilde(i,j+1,k,3,1) &
                         & + rhoTilde(i,j+1,k+1,3,0) )
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
                 ! comment: for CDS rhoEdge should add rhoStrat for each 
@@ -1997,11 +1997,11 @@ contains
                 case( "ILES" )
                    hRhoV = flux_aldm(vD,vU,wSurf,vD,vU,vBarD,vBarU,sigmaY)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              !                call absDiff(wBarF-wBarB,delta)
@@ -2065,7 +2065,7 @@ contains
 
 
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              end select ! model
@@ -2097,11 +2097,11 @@ contains
                 case( "ILES" )
                    fRhoW = flux_aldm(wL,wR,uSurf,wL,wR,wBarR,wBarL,sigmaZ)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              !                call absDiff(uBarU-uBarD,delta)
@@ -2158,7 +2158,7 @@ contains
                            & + rhoTilde(i,j+1,k+1,2,0) )
                    end if
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              end select ! model
@@ -2190,11 +2190,11 @@ contains
                 case( "ILES" )
                    gRhoW = flux_aldm(wB,wF,vSurf,wB,wF,wBarB,wBarF,sigmaZ)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              !                call absDiff(vBarU-vBarD, delta)
@@ -2253,7 +2253,7 @@ contains
                    end if
                    
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              end select ! model
@@ -2281,11 +2281,11 @@ contains
                 case( "ILES" )
                    hRhoW = flux_aldm(wD,wU,wSurf,wD,wU,wBarD,wBarU,sigmaZ)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              flux(i,j,k,3,4) = rhoEdge * hRhoW
@@ -3027,7 +3027,7 @@ contains
        end do
 
     case default
-       stop"momentumFlux: unknown case model"
+       stop "momentumFlux: unknown case model"
     end select
 
 
@@ -3122,7 +3122,7 @@ contains
                 source(i,j,k,2) = u * divPu / theta
                 
              case default
-                stop"thetaFlux: unknown case fluxType"
+                stop "thetaFlux: unknown case fluxType"
              end select
 
              
@@ -3187,7 +3187,7 @@ contains
                 source(i,j,k,3) = v * divPu / theta
                 
              case default
-                stop"thetaFlux: unknown case fluxType"
+                stop "thetaFlux: unknown case fluxType"
              end select
 
              
@@ -3253,7 +3253,7 @@ contains
                 source(i,j,k,4) = w * divPu / theta
                 
              case default
-                stop"thetaFlux: unknown case fluxType"
+                stop "thetaFlux: unknown case fluxType"
              end select
 
              
@@ -3287,11 +3287,11 @@ contains
 
     ! rhoOld
     allocate( rhoOld(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), stat=allocstat)
-    if( allocstat /= 0) stop"init_fluxes: alloc of rhoOld failed"
+    if( allocstat /= 0) stop "init_fluxes: alloc of rhoOld failed"
 
     ! uBar
     allocate(uBar(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz),stat=allocstat)
-    if(allocstat /= 0) stop"init_fluxes: could not allocate uBar"
+    if(allocstat /= 0) stop "init_fluxes: could not allocate uBar"
 
     ! vBar
     allocate(vBar(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz),stat=allocstat)
@@ -3355,7 +3355,7 @@ contains
     if(allocstat /= 0) stop "fluxes.f90: could not deallocate rhoBar"
 
     deallocate( rhoOld, stat=allocstat)
-    if( allocstat /= 0) stop"terminate_fluxes: dealloc of rhoOld failed"
+    if(allocstat /= 0) stop "terminate_fluxes: dealloc of rhoOld failed"
 
     deallocate(uBar,stat=allocstat)
     if(allocstat /= 0) stop "fluxes.f90: could not deallocate uBar"

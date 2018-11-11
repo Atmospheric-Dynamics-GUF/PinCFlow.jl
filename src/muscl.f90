@@ -151,7 +151,7 @@ contains
 
        
     case default
-       stop"musc_reconstruct3D: unknown direction.Stop."
+       stop "musc_reconstruct3D: unknown direction.Stop."
     end select
 
 
@@ -210,7 +210,7 @@ contains
        end do
 
     case default
-       stop"muscl.f90/reconstruct2D: unknown direction.Stop."
+       stop "muscl.f90/reconstruct2D: unknown direction.Stop."
     end select
 
 
@@ -310,7 +310,7 @@ contains
        sigma = max(0.0,min(s,max(-theta/2.0,min(2*theta,s,1.5))))
        
     case default
-       stop"muscl.f90/limit: unknown limiter type.Stop."        
+       stop "muscl.f90/limit: unknown limiter type.Stop."        
     end select
 
 

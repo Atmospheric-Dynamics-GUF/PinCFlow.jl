@@ -132,7 +132,7 @@ contains
        nDimOut = 2
 
     else
-       stop"tec360: specify case for mDimOut"
+       stop "tec360: specify case for mDimOut"
     end if
 
     line = "$!VarSet |LFDSVL1| = '"
@@ -148,7 +148,7 @@ contains
        variablesChar = """x [m]"" ""z [m]"" "
 
     else
-       stop"tec360: specify case for line of variables"
+       stop "tec360: specify case for line of variables"
     end if
 
 
@@ -222,7 +222,7 @@ contains
     line = trim(line)//trim(variablesChar)//"'"
     write( unit=60,fmt="(a)") trim(line)
 !    print*,"variable line = ", trim(line)
-!    stop"test stop"
+!    stop "test stop"
 
 
 
@@ -232,7 +232,7 @@ contains
     
     do i = 1,5000
        read( unit=50,fmt="(a)", iostat=ios) line 
-       if( ios/=0 ) stop"Stop: problem reading layout.template"
+       if( ios/=0 ) stop "Stop: problem reading layout.template"
        
        ! identify first line for map description
        if( line(1:9) == "$!LINEMAP" ) then
@@ -259,19 +259,19 @@ contains
        ! advance to linemap line
        do j = 1, iLineMap
           read(unit=50,fmt="(a)", iostat=ios) line
-          if( ios/=0 ) stop"stop pos 1"
+          if( ios/=0 ) stop "stop pos 1"
        end do
        
        write( unit=60,fmt="(a9,a3,i2,a1)") line(1:9),"  [",iFile,"]"
 
        read(unit=50,fmt="(a)",iostat=ios) line
-       if( ios/=0 ) stop"stop pos 2"
+       if( ios/=0 ) stop "stop pos 2"
        write( unit=60,fmt="(a13,i2,a1)") line(1:13),iFile,"'"
 
        ! write map lines
        j_loop: do j = 1,1000
           read(unit=50,fmt="(a)", iostat=ios) line
-          if( ios/=0 ) stop"stop pos 1"
+          if( ios/=0 ) stop "stop pos 1"
           
           if( line(1:2) == "$!" ) then
              exit j_loop
@@ -290,14 +290,14 @@ contains
     ! advance to last part
     do i = 1,10000
        read(unit=50,fmt="(a)", iostat=ios) line
-       if( ios/=0 ) stop"stop pos 1"
+       if( ios/=0 ) stop "stop pos 1"
        if( line(1:12) == "$!XYLINEAXIS" ) exit
     end do
     
     do i = 1,10000
        write( unit=60,fmt="(a)") trim(line)
        read(unit=50,fmt="(a)", iostat=ios, end=100) line
-       if( ios/=0 ) stop"stop pos 1"
+       if( ios/=0 ) stop "stop pos 1"
     end do
 
 100    close( unit=50 )

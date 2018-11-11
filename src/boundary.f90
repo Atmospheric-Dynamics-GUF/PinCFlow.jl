@@ -59,7 +59,7 @@ contains
       ! modified by Junhong Wei (20161109) *** finishing line ***
       
     case default
-       stop"setBoundary: unknown case xBoundary"
+       stop "setBoundary: unknown case xBoundary"
     end select
 
     
@@ -83,7 +83,7 @@ contains
       ! modified by Junhong Wei (20161109) *** finishing line ***
        
     case default
-       stop"setBoundary: unknown case yBoundary"
+       stop "setBoundary: unknown case yBoundary"
     end select
 
     
@@ -99,7 +99,7 @@ contains
        call setBoundary_z_solidWall(var,flux,option)
        
     case default
-       stop"setBoundary: unknown case zBoundary"
+       stop "setBoundary: unknown case zBoundary"
     end select
 
 
@@ -268,7 +268,7 @@ contains
 
 
     case default
-       stop"setBoundary_x: unknown option."
+       stop "setBoundary_x: unknown option."
     end select
 
 
@@ -441,7 +441,7 @@ contains
        
 
     case default
-       stop"setBoundary_y: unknown option."
+       stop "setBoundary_y: unknown option."
     end select
 
 
@@ -609,7 +609,7 @@ contains
        
 
     case default
-       stop"setBoundary_y: unknown option."
+       stop "setBoundary_y: unknown option."
     end select
 
 
@@ -1050,7 +1050,7 @@ contains
        end if ! predictMomentum
        
     case default
-       stop"setBoundary_z: unknown option."
+       stop "setBoundary_z: unknown option."
     end select
 
 

@@ -801,7 +801,7 @@ contains
              print*,"STOP. In cgz calculation: i,k,nb of rays = ", &
                   & i,k,nRayPerCell(i,j,k)
              stop
-!             stop"stopping. Increase number of rays."
+!             stop "stopping. Increase number of rays."
           end if
        end do
     end do
@@ -884,7 +884,7 @@ contains
        end do
        
     case default
-       stop"calc_waveFlux: inknown waveFluxType. Stop."
+       stop "calc_waveFlux: inknown waveFluxType. Stop."
     end select
 
 
@@ -938,7 +938,7 @@ contains
        end do
        
     case default
-       stop"calc_waveFlux: inknown waveFluxType. Stop."
+       stop "calc_waveFlux: inknown waveFluxType. Stop."
     end select
     
 
@@ -1020,7 +1020,7 @@ contains
 
 
     case default
-       stop"setBoundary_wkb/wkb: unknown reconstCase"
+       stop "setBoundary_wkb/wkb: unknown reconstCase"
     end select
 
 
@@ -1165,7 +1165,7 @@ contains
           print*,"kCell = ", kCell
           print*,"iCell = ", ray(iRay)%iCell
           print*,"cgz   = ", ray(iRay)%cgz
-!          stop"Stopping."
+!          stop "Stopping."
        end if
        
        !------------------------------------
@@ -1688,7 +1688,7 @@ contains
              end if
 
           case default
-             stop"init.f90: unknown wavePacketType. Stop."
+             stop "init.f90: unknown wavePacketType. Stop."
           end select
           
           ! buoyancy
@@ -1966,7 +1966,7 @@ contains
     else if( a>=0. .and. b<0 ) then
        phi = -atan(-b/a)
     else
-       stop"wkb.f90/cphase: case not included. Stop."
+       stop "wkb.f90/cphase: case not included. Stop."
     end if
        
 

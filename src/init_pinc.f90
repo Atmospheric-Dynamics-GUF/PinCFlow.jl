@@ -212,11 +212,11 @@ contains
        correctMomentum = .false.
        updateTheta = .false.
 
-       if( zBoundary == "periodic" ) stop"WKB not ready for zBoundary = periodic."
+       if( zBoundary == "periodic" ) stop "WKB not ready for zBoundary = periodic."
        
     case default
        print*,"model = ", model
-       stop"initialize: Unknown model" 
+       stop "initialize: Unknown model" 
     end select
 
     
@@ -307,7 +307,7 @@ contains
        vertical = (/0.0, 0.0, 1.0 /)
        
     case default
-       stop"initialize: unknown case model."
+       stop "initialize: unknown case model."
     end select
     
     
@@ -396,7 +396,7 @@ contains
             & access='direct',recl=2*nx*nz, err=1078)
        !
        goto 1079
-1078   stop"initialize: error reading data file."
+1078   stop "initialize: error reading data file."
 1079   continue
 
        read(80,rec=1)&
@@ -528,7 +528,7 @@ contains
                 var(i,j,k,6) = theta
 
              case default
-                stop"initialize: unknown case model"
+                stop "initialize: unknown case model"
              end select
              
              var(i,j,k,2) = u
@@ -664,7 +664,7 @@ contains
                       var(i,j,k,6) = dTheta
                       
                    case default
-                      stop"initialize: unknown model."
+                      stop "initialize: unknown model."
                    end select
                    
                 
@@ -681,7 +681,7 @@ contains
        ! read test case input data
        read (unit=10, nml=bubble)
 
-       if (referenceQuantities == "SI" ) stop"initialize: SI units not allowed"
+       if (referenceQuantities == "SI" ) stop "initialize: SI units not allowed"
 
        ! zero start velocity 
        var(:,:,:,2) = 0.0
@@ -795,7 +795,7 @@ contains
        ! read test case input data
        read (unit=10, nml=bubble)
        
-       if (referenceQuantities == "SI" ) stop"initialize: SI units not allowed"
+       if (referenceQuantities == "SI" ) stop "initialize: SI units not allowed"
 
        ! zero start velocity 
        var(:,:,:,2) = 0.0
@@ -849,7 +849,7 @@ contains
 
     case( 'agnesiMountain' )
        
-       if (referenceQuantities == "SI" ) stop"initialize: SI units not allowed"
+       if (referenceQuantities == "SI" ) stop "initialize: SI units not allowed"
 
        ! density
        do j = 1,ny

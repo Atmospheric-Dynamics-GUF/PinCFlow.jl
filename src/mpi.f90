@@ -1240,7 +1240,7 @@ contains
     bSize = shape(b)
 
     do i = 1,3
-       if( aSize(i) .ne. bSize(i) ) stop"dot_product3D failure."
+       if( aSize(i) .ne. bSize(i) ) stop "dot_product3D failure."
     end do
 
     dot_product3D_loc = 0.0

@@ -294,7 +294,7 @@ contains
 
     case default
        print*,"model = ", model
-       stop"initialize: Unknown model" 
+       stop "initialize: Unknown model" 
     end select
 
     close(90)  ! info file
@@ -429,7 +429,7 @@ contains
        ! 
 
     case default
-       stop"initialize: unknown case model."
+       stop "initialize: unknown case model."
     end select
 
 ! modified by Junhong Wei (20161121) *** starting line ***
@@ -667,7 +667,7 @@ contains
                 var(i,j,k,6) = theta
 
              case default
-                stop"initialize: unknown case model"
+                stop "initialize: unknown case model"
              end select
 
              var(i,j,k,2) = var(i,j,k,2) + u
@@ -700,7 +700,7 @@ contains
 
 
              case default
-                stop"initialize: unknown case model"
+                stop "initialize: unknown case model"
              end select
 
 
@@ -766,7 +766,7 @@ contains
                       var(i,j,k,6) = 0.0
 
                    case default
-                      stop"initialize: unknown case model"
+                      stop "initialize: unknown case model"
                 end select
 
                 ! initialization zero pressure fluctuations
@@ -916,7 +916,7 @@ contains
                    var(i,j,k,6) = dTheta
 
                 case default
-                   stop"initialize: unknown model."
+                   stop "initialize: unknown model."
                 end select
 
 
@@ -933,7 +933,7 @@ contains
        ! read test case input data
        read (unit=10, nml=bubble)
 
-       if (referenceQuantities == "SI" ) stop"initialize: SI units not allowed"
+       if (referenceQuantities == "SI" ) stop "initialize: SI units not allowed"
 
        ! zero start velocity 
        var(:,:,:,2) = 0.0
@@ -1053,7 +1053,7 @@ contains
                       var(i,j,k,6) = dTheta
 
                    case default
-                      stop"initialize: unknown model."
+                      stop "initialize: unknown model."
                    end select
 
                 else
@@ -1099,7 +1099,7 @@ contains
        read (unit=10, nml=bubble)
        
 
-       if (referenceQuantities == "SI" ) stop"initialize: SI units not allowed"
+       if (referenceQuantities == "SI" ) stop "initialize: SI units not allowed"
 
        ! start velocity
 !       var(:,:,:,2) = backgroundFlow_dim(1) / uRef
@@ -1165,7 +1165,7 @@ contains
                        var(i,j,k,6) = dTheta_dim / thetaRef
 
                    case default
-                      stop"initialize: unknown model."
+                      stop "initialize: unknown model."
                    end select
                     
                    
@@ -1187,7 +1187,7 @@ contains
                      var(i,j,k,6) = 0.0
 
                    case default
-                      stop"initialize: unknown model."
+                      stop "initialize: unknown model."
                    end select
                    
                 end if
@@ -1212,7 +1212,7 @@ contains
        ! read test case input data
        read (unit=10, nml=bubble)
 
-       if (referenceQuantities == "SI" ) stop"initialize: SI units not allowed"
+       if (referenceQuantities == "SI" ) stop "initialize: SI units not allowed"
 
        ! zero start velocity 
        var(:,:,:,2) = 0.0
@@ -1319,7 +1319,7 @@ contains
                        var(i,j,k,6) = dTheta_dim / thetaRef
 
                    case default
-                      stop"initialize: unknown model."
+                      stop "initialize: unknown model."
                    end select
 
                 else  ! outside bubble
@@ -1340,7 +1340,7 @@ contains
                      var(i,j,k,6) = 0.0
 
                    case default
-                      stop"initialize: unknown model."
+                      stop "initialize: unknown model."
                    end select
 
                 end if
@@ -1358,7 +1358,7 @@ contains
 
     case( 'agnesiMountain' )
 
-       if (referenceQuantities == "SI" ) stop"initialize: SI units not allowed"
+       if (referenceQuantities == "SI" ) stop "initialize: SI units not allowed"
 
        ! density
        do j = 1,ny
@@ -2420,7 +2420,7 @@ print*,"RoInv = ", RoInv/tRef   ! modified by Junhong Wei
                end if
 
             case default
-               stop"init.f90: unknown wavePacketType. Stop."
+               stop "init.f90: unknown wavePacketType. Stop."
             end select
 
 
@@ -2641,7 +2641,7 @@ print*,"RoInv = ", RoInv/tRef   ! modified by Junhong Wei
     else if( a>=0. .and. b<0 ) then
        phi = -atan(-b/a)
     else
-       stop"wkb.f90/cphase: case not included. Stop."
+       stop "wkb.f90/cphase: case not included. Stop."
     end if
 
 

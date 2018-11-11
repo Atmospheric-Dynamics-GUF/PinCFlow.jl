@@ -25,29 +25,29 @@
 
     ! allocate local fields
     allocate(p_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(r(n), stat=allocstat); if(allocstat/=0) &
-         &stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(r0_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(r_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(s(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(s_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(t(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(t_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(x_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(v(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"    
+         & stop "algebra.f90/bicgstab:alloc failed"    
     allocate(v_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(aux(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
 
     ! Init
     ! r -> r(0) = r0:
@@ -132,28 +132,28 @@
 
     ! deallocate local fields
     deallocate(p_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(r, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(r0_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(r_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(s, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(s_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(t, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(t_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(x_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(v, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"    
+         & stop "algebra.f90/bicgstab:dealloc failed"    
     deallocate(v_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(aux, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
 
   end subroutine pre_bicgstab_csr
