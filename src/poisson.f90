@@ -2723,7 +2723,8 @@ contains
    call HYPRE_StructGridSetPeriodic(grid_hypre,(/npts_x_periodic_hypre, npts_y_periodic_hypre, npts_z_periodic_hypre/),ierr_hypre)
 
 ! Add boxes to the grid
-   call HYPRE_StructGridSetExtents(grid_hypre, (/ (icoord-1)*nx , (jcoord-1)*ny , 0 /), (/ (icoord*nx)-1 , (jcoord*ny)-1 , nz-1 /), ierr_hypre)
+   call HYPRE_StructGridSetExtents(grid_hypre, (/ (icoord-1)*nx , (jcoord-1)*ny , 0 /), &
+     & (/ (icoord*nx)-1 , (jcoord*ny)-1 , nz-1 /), ierr_hypre)
 
 ! This is a collective call finalizing the grid assembly. The grid is now ``ready to be used''
    call HYPRE_StructGridAssemble(grid_hypre, ierr_hypre)
@@ -2867,7 +2868,7 @@ contains
                        .and.(.not.topography_mask(i0+i+1,j0+j,k)))&
                       .or.&
                       ((.not.topography_mask(i0+i,j0+j,k))&
-                       .and.(topography_mask(i0+i+1,j0+j,k)))) & then
+                       .and.(topography_mask(i0+i+1,j0+j,k)))) then
                       AR=0.0
                      else
                       rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
@@ -2881,7 +2882,7 @@ contains
                        .and.(.not.topography_mask(i0+i,j0+j,k)))&
                       .or.&
                       ((.not.topography_mask(i0+i-1,j0+j,k))&
-                       .and.(topography_mask(i0+i,j0+j,k)))) & then
+                       .and.(topography_mask(i0+i,j0+j,k)))) then
                       AL=0.0
                      else
                       rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
@@ -2895,7 +2896,7 @@ contains
                        .and.(.not.topography_mask(i0+i,j0+j+1,k)))&
                       .or.&
                       ((.not.topography_mask(i0+i,j0+j,k))&
-                       .and.(topography_mask(i0+i,j0+j+1,k)))) & then
+                       .and.(topography_mask(i0+i,j0+j+1,k)))) then
                       AF=0.0
                      else
                       rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
@@ -2909,7 +2910,7 @@ contains
                        .and.(.not.topography_mask(i0+i,j0+j,k)))&
                       .or.&
                       ((.not.topography_mask(i0+i,j0+j-1,k))&
-                       .and.(topography_mask(i0+i,j0+j,k)))) & then
+                       .and.(topography_mask(i0+i,j0+j,k)))) then
                       AB=0.0
                      else
                       rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
@@ -2927,7 +2928,7 @@ contains
                       ((.not.topography_mask(i0+i,j0+j,k))&
                        .and.(topography_mask(i0+i,j0+j,k+1)))&
                       .or.&
-                      (k == nz)) & then
+                      (k == nz)) then
                       AU=0.0
                      else
                       rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
@@ -2946,7 +2947,7 @@ contains
                       ((.not.topography_mask(i0+i,j0+j,k-1))&
                        .and.(topography_mask(i0+i,j0+j,k)))&
                       .or.&
-                      (k == 1)) & then
+                      (k == 1)) then
                       AD=0.0
                      else
                       rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
@@ -3227,7 +3228,7 @@ contains
                        .and.(.not.topography_mask(i0+i+1,j0+j,k)))&
                       .or.&
                       ((.not.topography_mask(i0+i,j0+j,k))&
-                       .and.(topography_mask(i0+i+1,j0+j,k)))) & then
+                       .and.(topography_mask(i0+i+1,j0+j,k)))) then
                       AR=0.0
                      else
                       AR = dx2
@@ -3238,7 +3239,7 @@ contains
                        .and.(.not.topography_mask(i0+i,j0+j,k)))&
                       .or.&
                       ((.not.topography_mask(i0+i-1,j0+j,k))&
-                       .and.(topography_mask(i0+i,j0+j,k)))) & then
+                       .and.(topography_mask(i0+i,j0+j,k)))) then
                       AL=0.0
                      else
                       AL = dx2
@@ -3249,7 +3250,7 @@ contains
                        .and.(.not.topography_mask(i0+i,j0+j+1,k)))&
                       .or.&
                       ((.not.topography_mask(i0+i,j0+j,k))&
-                       .and.(topography_mask(i0+i,j0+j+1,k)))) & then
+                       .and.(topography_mask(i0+i,j0+j+1,k)))) then
                       AF=0.0
                      else
                       AF = dy2
@@ -3260,7 +3261,7 @@ contains
                        .and.(.not.topography_mask(i0+i,j0+j,k)))&
                       .or.&
                       ((.not.topography_mask(i0+i,j0+j-1,k))&
-                       .and.(topography_mask(i0+i,j0+j,k)))) & then
+                       .and.(topography_mask(i0+i,j0+j,k)))) then
                       AB=0.0
                      else
                       AB = dy2
@@ -3271,7 +3272,7 @@ contains
                        .and.(.not.topography_mask(i0+i,j0+j,k+1)))&
                       .or.&
                       ((.not.topography_mask(i0+i,j0+j,k))&
-                       .and.(topography_mask(i0+i,j0+j,k+1)))) & then
+                       .and.(topography_mask(i0+i,j0+j,k+1)))) then
                       AU=0.0
                      else if((zBoundary == "solid_wall").and.(k == nz)) &
                      then
@@ -3285,7 +3286,7 @@ contains
                        .and.(.not.topography_mask(i0+i,j0+j,k)))&
                       .or.&
                       ((.not.topography_mask(i0+i,j0+j,k-1))&
-                       .and.(topography_mask(i0+i,j0+j,k)))) & then
+                       .and.(topography_mask(i0+i,j0+j,k)))) then
                       AD=0.0
                      else if((zBoundary == "solid_wall").and.(k == 1)) &
                      then
@@ -3371,7 +3372,9 @@ contains
     end select
 
 
-    call HYPRE_StructMatrixSetBoxValues(A_hypre, (/ (icoord-1)*nx , (jcoord-1)*ny , 0 /), (/ (icoord*nx)-1 , (jcoord*ny)-1 , nz-1 /), nentries_hypre, stencil_indices_hypre, values_hypre, ierr_hypre)
+    call HYPRE_StructMatrixSetBoxValues(A_hypre, (/ (icoord-1)*nx , (jcoord-1)*ny , 0 /),  &
+      & (/ (icoord*nx)-1 , (jcoord*ny)-1 , nz-1 /), nentries_hypre, stencil_indices_hypre, &
+      & values_hypre, ierr_hypre)
 
 ! This is a collective call finalizing the matrix assembly. The matrix is now ``ready to be used'
 
@@ -3418,8 +3421,10 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
        end do
 
 
-   call HYPRE_StructVectorSetBoxValues(b_hypre, (/ (icoord-1)*nx , (jcoord-1)*ny , 0 /), (/ (icoord*nx)-1 , (jcoord*ny)-1 , nz-1 /), bvalue_vector_hypre, ierr_hypre)
-   call HYPRE_StructVectorSetBoxValues(x_hypre, (/ (icoord-1)*nx , (jcoord-1)*ny , 0 /), (/ (icoord*nx)-1 , (jcoord*ny)-1 , nz-1 /), xvalue_vector_hypre, ierr_hypre)
+   call HYPRE_StructVectorSetBoxValues(b_hypre, (/ (icoord-1)*nx , (jcoord-1)*ny , 0 /), &
+     & (/ (icoord*nx)-1 , (jcoord*ny)-1 , nz-1 /), bvalue_vector_hypre, ierr_hypre)
+   call HYPRE_StructVectorSetBoxValues(x_hypre, (/ (icoord-1)*nx , (jcoord-1)*ny , 0 /), &
+     & (/ (icoord*nx)-1 , (jcoord*ny)-1 , nz-1 /), xvalue_vector_hypre, ierr_hypre)
 
 ! This is a collective call finalizing the vector assembly. The vectors are now ``ready to be used''
    call HYPRE_StructVectorAssemble(b_hypre, ierr_hypre)
@@ -3467,7 +3472,8 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
   call HYPRE_StructHybridSolve(solver_hypre, A_hypre, b_hypre, x_hypre, ierr_hypre)
 
 ! Get the results
-  call HYPRE_StructVectorGetBoxValues(x_hypre, (/ (icoord-1)*nx , (jcoord-1)*ny , 0 /), (/ (icoord*nx)-1 , (jcoord*ny)-1 , nz-1 /), xvalue_vector_hypre, ierr_hypre)
+  call HYPRE_StructVectorGetBoxValues(x_hypre, (/ (icoord-1)*nx , (jcoord-1)*ny , 0 /), &
+    & (/ (icoord*nx)-1 , (jcoord*ny)-1 , nz-1 /), xvalue_vector_hypre, ierr_hypre)
 
        index_count_hypre = 1
 !       sol_mean_hypre    = 0.0
