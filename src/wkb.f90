@@ -147,7 +147,7 @@ contains
           w10_t = Psi(i,j,k+1,2,1)
           w10_b = Psi(i,j,k-1,2,1)
 
-          u00 = Psi(i,j,k,1,0)
+          u00 = Psi(i,j,k,1,0)   ! Warning: type conversion occurs
           
           rho0_t = rhoStrat(k+1)
           rho0_b = rhoStrat(k-1)
@@ -161,7 +161,7 @@ contains
           ! update tendency and stage value
 
           delU00(i,j,k) = dt*F + alpha(RKstage)*delU00(i,j,k)
-          u00 = u00 + beta(RKstage)*delU00(i,j,k)
+          u00 = u00 + beta(RKstage)*delU00(i,j,k)  ! Warning: type conversion occurs
 
           Psi(i,j,k,1,0) = u00
 
@@ -182,7 +182,7 @@ contains
     do k = 1,nz
        j = 1
        do i = 0, nx
-          delU = 0.5*( delU00(i+1,j,k) + delU00(i,j,k) )
+          delU = 0.5*( delU00(i+1,j,k) + delU00(i,j,k) )  ! Warning: type conversion occurs
           u    = var(i,j,k,2)
           u    = u + beta(RKstage)*delU
 
@@ -1681,7 +1681,7 @@ contains
        xRay = lx(0) + real(i-1)*dxRay0 + dxRay0/2.0
 
        do k = 1,nzRay   ! all rays with this x coordinate
-          iRay = i + real(k-1)*nxRay
+          iRay = i + (k-1)*nxRay
           ray(iRay)%x = xRay
        end do
     end do
@@ -1696,7 +1696,7 @@ contains
        zRay = lz(0) + real(k-1)*dzRay0 + dzRay0/2.0
 
        do i = 1,nxRay
-          iRay = i + real(k-1)*nxRay
+          iRay = i + (k-1)*nxRay
           ray(iRay)%z = zRay
        end do
     end do

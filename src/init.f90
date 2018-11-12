@@ -200,9 +200,9 @@ contains
          form="formatted", status="replace")
 
     ! write model info file
-    write(90,fmt="(a)"), ""
-    write(90,fmt="(a)"), "Model: "//trim(model)
-    write(90,fmt="(a)"), ""
+    write(90,fmt="(a)") ""
+    write(90,fmt="(a)") "Model: "//trim(model)
+    write(90,fmt="(a)") ""
 
 
     select case( model ) 
@@ -241,13 +241,13 @@ contains
 
        if( master ) then   ! modified by Junhong Wei (20170216)
        write(90,"(a25)",advance = "no") "updateMass != "
-       write(90,*), updateMass
+       write(90,*) updateMass
        write(90,"(a25)",advance = "no") "predictMomentum != "
-       write(90,*), predictMomentum
+       write(90,*) predictMomentum
        write(90,"(a25)",advance = "no") "correctMomentum != "
-       write(90,*), correctMomentum
+       write(90,*) correctMomentum
        write(90,"(a25)",advance = "no") "updateTheta != "
-       write(90,*), updateTheta
+       write(90,*) updateTheta
        write(90,*) ""
        end if   ! modified by Junhong Wei (20170216)
 
@@ -275,19 +275,19 @@ contains
        ! Write info file
        !-----------------
        write(90,"(a25)",advance = "no") "raytracer != "
-       write(90,*), raytracer
+       write(90,*) raytracer
        write(90,"(a25)",advance = "no") "updateMass != "
-       write(90,*), updateMass
+       write(90,*) updateMass
        write(90,"(a25)",advance = "no") "predictMomentum != "
-       write(90,*), predictMomentum
+       write(90,*) predictMomentum
        write(90,"(a25)",advance = "no") "correctMomentum != "
-       write(90,*), correctMomentum
+       write(90,*) correctMomentum
        write(90,"(a25)",advance = "no") "updateTheta != "
-       write(90,*), updateTheta
+       write(90,*) updateTheta
        write(90,"(a25)",advance = "no") "fluctuationMode != "
-       write(90,*), fluctuationMode
+       write(90,*) fluctuationMode
        write(90,"(a25)",advance = "no") "background != "
-       write(90,"(a)"), background
+       write(90,"(a)") background
 
        write(90,*) ""
 

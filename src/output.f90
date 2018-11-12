@@ -139,17 +139,21 @@ contains
                       case(1) ! density
                         if(fluctuationMode) then
                            if(rhoOffset) then
-                              field_prc(i,j) = var(i,j,k,iVar) * rhoRef
+                              field_prc(i,j) = real(var(i,j,k,iVar) * rhoRef &
+                                & , kind=4)
                              else
                               field_prc(i,j) &
-                              = (var(i,j,k,iVar) + rhoStrat(k)) * rhoRef
+                              = real((var(i,j,k,iVar) + rhoStrat(k)) * rhoRef &
+                                & , kind=4)
                            end if
                           else
                            if(rhoOffset) then
                               field_prc(i,j) &
-                              = (var(i,j,k,iVar) - rhoStrat(k)) * rhoRef
+                              = real((var(i,j,k,iVar) - rhoStrat(k)) * rhoRef &
+                                & , kind=4)
                              else
-                              field_prc(i,j) = var(i,j,k,iVar) * rhoRef
+                              field_prc(i,j) = real(var(i,j,k,iVar) * rhoRef &
+                                & , kind=4)
                            end if
                         end if
                       
@@ -157,22 +161,22 @@ contains
                       
                       case(2) ! u velocity
                         field_prc(i,j) &
-                        = (var(i,j,k,iVar) - offset(iVar)) &
-                          * uRef
+                        = real((var(i,j,k,iVar) - offset(iVar)) &
+                          &    * uRef, kind=4)
 
                       case(3) ! v velocity
                         field_prc(i,j) &
-                        = (var(i,j,k,iVar) - offset(iVar)) &
-                          * uRef
+                        = real((var(i,j,k,iVar) - offset(iVar)) &
+                          &    * uRef, kind=4)
                       
                       case(4) ! w velocity
                         field_prc(i,j) &
-                        = (var(i,j,k,iVar) - offset(iVar)) &
-                          * uRef
+                        = real((var(i,j,k,iVar) - offset(iVar)) &
+                          &    * uRef, kind=4)
                    
                       case(5) ! Exner function pi' 
                               !(deviation from background)
-                        field_prc(i,j) = var(i,j,k,iVar)
+                        field_prc(i,j) = real(var(i,j,k,iVar), kind=4)
 
                       case(6) ! potential temperature theta' 
                               ! (deviation from background, Boussinesq)
@@ -197,10 +201,11 @@ contains
                              theta_dim &
                              = theta_dim - thetaStrat(k)*thetaRef
 
-                             field_prc(i,j) = theta_dim
+                             field_prc(i,j) = real(theta_dim, kind=4)
                          
                            case( "Boussinesq" )
-                             field_prc(i,j) = var(i,j,k,iVar)*thetaRef
+                             field_prc(i,j) = real(var(i,j,k,iVar)*thetaRef &
+                               &                   , kind=4)
 
                            case( "WKB" )
                         
@@ -211,7 +216,8 @@ contains
 !                     achatzb
                       case(7) ! dynamic Smagorinsky coefficient
                               !(deviation from background)
-                        field_prc(i,j) = var(i,j,k,iVar) * uRef * lRef
+                        field_prc(i,j) = real(var(i,j,k,iVar) * uRef * lRef &
+                          &                   , kind=4)
 !                     achatze
 
                         case default
