@@ -1982,11 +1982,11 @@ contains
 
 
     print*,"  3) Extreme values: "
-    write(*,fmt="(a25,es10.1,a,f5.1,a)") "PStrat = ", PStrat(nz)*pRef/1000.0,&
+    write(*,fmt="(a25,es10.3,a,f5.1,a)") "PStrat = ", PStrat(nz)*pRef/1000.0,&
          & " kPa at z = ", z(nz) * lRef/1000.0, " km"
-    write(*,fmt="(a25,es10.1,a,f5.1,a)") "rhoStrat = ", rhoStrat(nz)*rhoRef,&
+    write(*,fmt="(a25,es10.3,a,f5.1,a)") "rhoStrat = ", rhoStrat(nz)*rhoRef,&
          & " kg/m3 at z = ", z(nz) * lRef/1000.0, " km"
-    write(*,fmt="(a25,es10.1,a,f5.1,a)") "thetaStrat = ", thetaStrat(nz)*thetaRef,&
+    write(*,fmt="(a25,es10.3,a,f5.1,a)") "thetaStrat = ", thetaStrat(nz)*thetaRef,&
          & " K at z = ", z(nz) * lRef/1000.0, "km"
     print*,""
 
@@ -1994,9 +1994,9 @@ contains
     write(*,fmt="(a25,f7.3,a)") "gamma = ", gamma, " "
     write(*,fmt="(a25,f7.3,a)") "g = ", g, " m/s^2"
     write(*,fmt="(a25,f7.3,a)") "R_sp = ", Rsp, " J/kg/K"
-    write(*,fmt="(a25,f7.3,a)") "f_Coriolis = ", f_Coriolis_dim, " 1/s"
-    write(*,fmt="(a25,f7.3,a)") "mu_viscous = ", mu_viscous_dim, " m^2/s"
-    write(*,fmt="(a25,f7.3,a)") "mu_conduct = ", mu_conduct_dim, " m^2/s"
+    write(*,fmt="(a25,es10.3,a)") "f_Coriolis = ", f_Coriolis_dim, " 1/s"
+    write(*,fmt="(a25,es10.3,a)") "mu_viscous = ", mu_viscous_dim, " m^2/s"
+    write(*,fmt="(a25,es10.3,a)") "mu_conduct = ", mu_conduct_dim, " m^2/s"
     print*,""
 
 
@@ -2057,7 +2057,7 @@ contains
        write(*,fmt="(a25,a)") "sponge layer = ", "on"
        write(*,fmt="(a25,f5.1,a)") "height = ", &
             & (lz(1)-lz(0))*spongeHeight*lRef/1000.0," km"
-       write(*,fmt="(a25,es7.1,a)") "relaxation  = ", spongeAlphaZ_dim, " 1/s"
+       write(*,fmt="(a25,es8.1,a)") "relaxation  = ", spongeAlphaZ_dim, " 1/s"
     else
        write(*,fmt="(a25,a)") "sponge layer = ", "off"
     end if
@@ -2067,9 +2067,9 @@ contains
 
     print*,"  9) Poisson Solver: "
     write(*,fmt="(a25,a)") "solver = ", poissonSolverType
-    write(*,fmt="(a25,es7.1)") "tolPoisson = ", tolPoisson
+    write(*,fmt="(a25,es8.1)") "tolPoisson = ", tolPoisson
 !   achatzb
-    write(*,fmt="(a25,es7.1)") "tolCond = ", tolCond
+    write(*,fmt="(a25,es8.1)") "tolCond = ", tolCond
 !   achatze
     print*,""
 
