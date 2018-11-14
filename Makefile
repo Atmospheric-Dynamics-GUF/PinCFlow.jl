@@ -1,9 +1,19 @@
 # Makefile of pinc_MPI_bg
 
 FC = mpif90
-FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
+
+COMPILER = $(shell echo `mpif90 --version` | sed 's/ .*//')
+
+ifeq ($(COMPILER), ifort)
+  FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
+  MODULEFLAG=-module $(BUILD)
+else
+  FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops
+  MODULEFLAG= -J$(BUILD)
+endif
+
 LIPNAG =
-LIBHYPRE = /home/atmodynamics/boeloeni/Hypre/hypre-2.11.2/src/lib
+LIBHYPRE = /home/atmodynamics/voelker/hypre/hypre-2.11.2/src/lib
 
 # define directories for sources and binaries (GSV 072018)
 BIN = ./bin
@@ -33,7 +43,7 @@ OBJ=$(addprefix $(BUILD)/, $(OFILES))
 
 # general rules
 $(BUILD)/%.o: $(SOURCE)/%.f90
-	$(FC) $(FCFLAGS) -module $(BUILD) -c $< -o $@
+	$(FC) $(FCFLAGS) $(MODULEFLAG) -c $< -o $@
 
 # the main target
 pinc:$(OBJ)
@@ -75,10 +85,21 @@ $(BUILD)/update.o: $(BUILD)/types.o
 $(BUILD)/output.o: $(BUILD)/types.o
 $(BUILD)/finish.o: $(BUILD)/types.o
 
+# test xweno_module
+XOBJ = 	$(BUILD)/types.o $(BUILD)/xweno.o $(BUILD)/testXWENO.o $(BUILD)/debug.o
+xweno:	$(XOBJ)
+	$(FC) $(FCFLAGS) $(MODULEFLAG) -o testXWENO $(XOBJ)
 
+# cleaning
+TEMP = $(BUILD)/*.o $(BUILD)/*.mod $(BIN)/pinc
+clean:
+	rm -f $(TEMP)
+
+##
+#  OLD STUFF; DOESNT COMPILE DUE TO CHANGES IN THE CODE #
 
 # program for file difference
-DIFFOBJ = types.o \
+DIFFOFILES = types.o \
 	timeScheme.o \
 	algebra.o \
 	atmosphere.o \
@@ -94,54 +115,19 @@ DIFFOBJ = types.o \
 	finish.o \
 	algebra.o \
 	l2diff.o
+
+DIFFOBJ=$(addprefix $(BUILD)/, $(DIFFOFILES))
+
 l2diff:$(DIFFOBJ)
 	$(FC) $(FCFLAGS) -o l2diff $(DIFFOBJ)
 
 # programme for making tec360 layout files
-LAYOBJ = makeLayout.o types.o
+LAYOBJ = $(BUILD)/makeLayout.o $(BUILD)/types.o
 layout: $(LAYOBJ)
-	$(FC) $(FCFLAGS) -o makeLayout $(LAYOBJ)
+	$(FC) $(FCFLAGS) $(MODULEFLAG) -o makeLayout $(LAYOBJ)
 
 # test algebra_module
-algebra: algebra.mod
-	$(FC) $(FCFLAGS) -o testAlgebra testAlgebra.f90 algebra.f90
+algebra: $(BUILD)/algebra.o
+	$(FC) $(FCFLAGS) $(MODULEFLAG) -o testAlgebra $(SOURCE)/testAlgebra.f90 $(SOURCE)/algebra.f90
 
-# test xweno_module
-XOBJ = 	types.o xweno.o testXWENO.o debug.o
-xweno:	$(XOBJ)
-	$(FC) $(FCFLAGS) -o testXWENO $(XOBJ)
 
-# cleaning
-TEMP = *.o *.mod pinc
-clean:
-	rm -f $(TEMP)
-
-## Loesche Tecplot files
-#cleandat:
-#	rm -f *.dat *.dat~ *.res
-#
-#
-## transform all DAT-files to PLT-Files
-#
-#
-#DATFILES = $(shell ls *.dat)
-#PLTFILES = $(DATFILES:%.dat=%.plt)
-#
-## Hier schien mir der Doppelpunkt bei der oberen Zeile zu viel. 
-## Wenn der Eintrag mit der shell in der Klammer tut (hab ich noch nie
-## probiert), muesste es klappen
-#
-#
-#plt: $(PLTFILES)
-#
-## Hier hab ich die leere Anweisung wegoperiert. 
-## Die Abhaengigkeit muesste reichen. 
-#
-## Pattern rule fuer die Umwandlung dat -> plt
-#%.plt : %.dat
-#	preplot $*.dat
-#
-#
-## mit dem preplot Aufruf bin ich mir nicht ganz sicher, ob der automatisch 
-## die Endung .plt macht. Es ist einfach zu lange her, dass ich tecplot 
-## zur Verfuegung hatte.
