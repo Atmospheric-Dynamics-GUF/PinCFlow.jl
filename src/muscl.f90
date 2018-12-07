@@ -13,7 +13,9 @@ module muscl_module
   ! if not delared otherwise with the public attribute
   
   public :: reconstruct_MUSCL
-  public :: muscl_reconstruct1D
+  public :: muscl_reconstruct1D_minmod
+  public :: muscl_reconstruct1D_mcvariant
+  public :: muscl_reconstruct1D_cada
 !  public :: muscl_reconstruct2D
   public :: muscl_reconstruct3D
   public :: limit
@@ -272,7 +274,6 @@ contains
     integer, intent(in) :: phiSize
     real, dimension(phiSize), intent(in)      :: phi
     real, dimension(phiSize,0:1), intent(out) :: phiTilde
-    character(len=*), intent(in) :: limiterType
 
     ! local varibales
     real :: deltaR, deltaL, theta
@@ -332,7 +333,6 @@ contains
     integer, intent(in) :: phiSize
     real, dimension(phiSize), intent(in)      :: phi
     real, dimension(phiSize,0:1), intent(out) :: phiTilde
-    character(len=*), intent(in) :: limiterType
 
     ! local varibales
     real :: sigmaR, sigmaL, s
@@ -401,7 +401,6 @@ contains
     integer, intent(in) :: phiSize
     real, dimension(phiSize), intent(in)      :: phi
     real, dimension(phiSize,0:1), intent(out) :: phiTilde
-    character(len=*), intent(in) :: limiterType
 
     ! local varibales
     real :: sigmaR, sigmaL, s
@@ -463,41 +462,41 @@ contains
   ! ---------------------------------------------------------------------------------------
 
 
-  function limit(theta, limiterType )  result(sigma)
+!  function limit(theta, limiterType )  result(sigma)
 
-    !--------------------------------------------
-    !  definition of various limiter functions
-    !  in normal form
-    !--------------------------------------------
+!    !--------------------------------------------
+!    !  definition of various limiter functions
+!    !  in normal form
+!    !--------------------------------------------
 
-    ! in/out
-    real, intent(in)              :: theta
-    character(len=*), intent(in)  :: limiterType
-    real                          :: sigma
+!    ! in/out
+!    real, intent(in)              :: theta
+!    character(len=*), intent(in)  :: limiterType
+!    real                          :: sigma
 
-    ! local variables 
-    real             :: s
+!    ! local variables 
+!    real             :: s
 
 
-    select case( limiterType )
+!    select case( limiterType )
        
-    case( 'minmod')
-       sigma = minmod(theta, 1.0)
+!    case( 'minmod')
+!       sigma = minmod(theta, 1.0)
 
-    case( 'MCVariant' ) 
-       s = (2.0 + theta)/3.0
-       sigma = max(0.0, min(2*theta,s, 2.0))
+!    case( 'MCVariant' ) 
+!       s = (2.0 + theta)/3.0
+!       sigma = max(0.0, min(2*theta,s, 2.0))
        
-    case( 'Cada' )
-       s = (2.0 + theta)/3.0
-       sigma = max(0.0,min(s,max(-theta/2.0,min(2*theta,s,1.5))))
+!    case( 'Cada' )
+!       s = (2.0 + theta)/3.0
+!       sigma = max(0.0,min(s,max(-theta/2.0,min(2*theta,s,1.5))))
        
-    case default
-       stop"muscl.f90/limit: unknown limiter type.Stop."
-    end select
+!    case default
+!       stop"muscl.f90/limit: unknown limiter type.Stop."
+!    end select
 
 
-  end function limit
+!  end function limit
 
 
   ! --------------------------------------------------------------------------------------------
