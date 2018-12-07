@@ -1017,26 +1017,26 @@ contains
     ! waveActTilde
     
     !--------------------------
-    !   reconstruct along x
+    !   reconstruct along all direction
     !--------------------------
     
     call muscl_reconstruct3D(waveAct,nx+2,ny+2,nz+2,waveActTilde, &
-         &                   limiterType, "x")
+         &                   limiterType)
     
     !--------------------------
     !   reconstruct along y
     !--------------------------
 
-    !call muscl_reconstruct3D(waveAct,nx+2,ny+2,nz+2,waveActTilde, &
-    !     &                   limiterType, "y")
+    ! call muscl_reconstruct3D(waveAct,nx+2,ny+2,nz+2,waveActTilde, &
+    !      &                   limiterType, "y")
     
 
     !--------------------------
     !   reconstruct along z
     !--------------------------
 
-    call muscl_reconstruct3D(waveAct,nx+2,ny+2,nz+2,waveActTilde, &
-         &                   limiterType, "z")
+    ! call muscl_reconstruct3D(waveAct,nx+2,ny+2,nz+2,waveActTilde, &
+    !      &                   limiterType, "z")
 
     
 

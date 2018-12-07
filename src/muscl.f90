@@ -18,7 +18,7 @@ module muscl_module
   public :: muscl_reconstruct1D_cada
 !  public :: muscl_reconstruct2D
   public :: muscl_reconstruct3D
-  public :: limit
+!  public :: limit
   public :: minmod
   
  
