@@ -34,7 +34,7 @@
 
 &variables
 
-  nVar = 7,         ! number of dependent variables
+  nVar = 10,         ! number of dependent variables: rho, u, v, w, pEx, theta, DynSma, nICE, qICE, SICE
   nOptVar = 4,
 
 &end
