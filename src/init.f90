@@ -114,6 +114,7 @@ contains
 
 
     read (unit=10, nml=variables)
+    if (include_ice) nVar = nVar + 3
 
     ! allocate var = (rho,u,v,w,pEx)
     allocate(var(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar),stat=allocstat)
@@ -175,6 +176,11 @@ contains
 
     ! read output specifications
     read (unit=10, nml=outputList)
+    if (include_ice) then
+      varOut = varOut + ',1,1,1'
+      varIn = varIn + ',1,1,1'
+      offset = offset + ',0,0,0'
+    end if
 
     ! read programme debug parameters
     read (unit=10, nml=debuggingList)
@@ -2253,11 +2259,11 @@ contains
       !-----------------------
 
       ! open input file input.f90
-      open (unit=20, file="input.f90", action="read", &
+      open (unit=10, file="input.f90", action="read", &
            form="formatted", status="old", position="rewind")
 
       ! read test case input data
-      read (unit=20, nml=wavePacket)
+      read (unit=10, nml=wavePacket)
 
       ! scale input data
       lambdaX = lambdaX_dim/lRef     ! non-dim zonal wave length
@@ -2309,7 +2315,7 @@ contains
       pAmp = kappa*Ma2 * mm/kk**2 * omi2/N2 * bAmp    ! Exner pressure
 
 
-      close(20)
+      close(10)
 
        !----------------------
        !  output of init data
