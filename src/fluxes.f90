@@ -17,6 +17,7 @@ module flux_module
   public :: massFlux
   public :: thetaFlux
   public :: momentumFlux
+  public :: iceFlux
   public :: volumeForce
 ! achatzb old topographic scheme removed
 ! public :: bottomTopography
@@ -26,6 +27,7 @@ module flux_module
   public :: thetaSource
   public :: massSource
   public :: momentumSource
+  public :: iceSource
 
   ! private routines
   private :: absDiff
@@ -38,13 +40,18 @@ module flux_module
   real, dimension(:,:,:),     allocatable :: vBar
   real, dimension(:,:,:),     allocatable :: wBar
   real, dimension(:,:,:),     allocatable :: thetaBar
+  real, dimension(:,:,:),     allocatable :: nIceBar
+  real, dimension(:,:,:),     allocatable :: qIceBar
+  real, dimension(:,:,:),     allocatable :: SIceBar
 
   real, dimension(:,:,:,:,:), allocatable :: rhoTilde
   real, dimension(:,:,:,:,:), allocatable :: uTilde
   real, dimension(:,:,:,:,:), allocatable :: vTilde
   real, dimension(:,:,:,:,:), allocatable :: wTilde
   real, dimension(:,:,:,:,:), allocatable :: thetaTilde
-
+  real, dimension(:,:,:,:,:), allocatable :: nIceTilde
+  real, dimension(:,:,:,:,:), allocatable :: qIceTilde
+  real, dimension(:,:,:,:,:), allocatable :: SIceTilde
 
   ! public variables
   ! needed for 
@@ -54,7 +61,7 @@ module flux_module
   public :: rhoTilde, thetaTilde
   public :: uTilde, vTilde, wTilde
   public :: rhoOld
-
+  public :: nIceTilde, qIceTilde, SIceTilde
 
 
   ! phiTilde(i,j,k,dir,Left/Right) with
@@ -191,6 +198,7 @@ contains
              end do
           end do
 
+
        case( "uvw" )
 
           do dir = 1,3
@@ -209,7 +217,20 @@ contains
                 thetaTilde(:,:,:,dir,lr) = var(:,:,:,6)
              end do
           end do
+
           
+       case( "ice" )
+         if (include_ice) then
+          do dir = 1,3
+             do lr = 0,1
+                nIceTilde(:,:,:,dir,lr) = var(:,:,:,8)
+                qIceTilde(:,:,:,dir,lr) = var(:,:,:,9)
+                SIceTilde(:,:,:,dir,lr) = var(:,:,:,10)
+             end do
+          end do
+         else stop "reconstruction: ice variables switched off, hence cannot be reconstructed"
+         end if
+
        case default
           stop "reconstruction: unknown case model."
        end select
@@ -246,9 +267,26 @@ contains
           thetaBar(:,:,:) = var(:,:,:,6)
           call reconstruct_MUSCL(thetaBar,thetaTilde,nxx,nyy,nzz,limiterType1)
 
+       case ( "ice" )
+
+         if (include_ice) then
+           
+          nIceBar(:,:,:)   = var(:,:,:,8)
+          qIceBar(:,:,:)   = var(:,:,:,9)
+          SIceBar(:,:,:)   = var(:,:,:,10)
+
+          call reconstruct_MUSCL(nIceBar,nIceTilde,nxx,nyy,nzz,limiterType1)
+          call reconstruct_MUSCL(qIceBar,qIceTilde,nxx,nyy,nzz,limiterType1)
+          call reconstruct_MUSCL(SIceBar,SIceTilde,nxx,nyy,nzz,limiterType1)
+
+         else stop "reconstruction: ice variables switched off, hence cannot be reconstructed"
+         end if
+
        case default
           stop "reconstruction: unknown case model."
        end select
+
+
 
 
        !---------------------------
@@ -288,6 +326,21 @@ contains
           thetaBar(:,:,:) = var(:,:,:,6)
           call reconstruct_SALD(thetaBar, thetaTilde)
 
+       case ( "ice" )
+
+         if (include_ice) then
+           
+          nIceBar(:,:,:)   = var(:,:,:,8)
+          qIceBar(:,:,:)   = var(:,:,:,9)
+          SIceBar(:,:,:)   = var(:,:,:,10)
+
+          call reconstruct_SALD(nIceBar,nIceTilde)
+          call reconstruct_SALD(qIceBar,qIceTilde)
+          call reconstruct_SALD(SIceBar,SIceTilde)
+
+         else stop "reconstruction: ice variables switched off, hence cannot be reconstructed"
+         end if
+
        case default
           stop "reconstruction: unknown case variable."
        end select
@@ -320,6 +373,21 @@ contains
 
           thetaBar(:,:,:) = var(:,:,:,6)
           call reconstruct_ALDM(thetaBar,thetaTilde)
+
+       case ( "ice" )
+
+         if (include_ice) then
+           
+          nIceBar(:,:,:)   = var(:,:,:,8)
+          qIceBar(:,:,:)   = var(:,:,:,9)
+          SIceBar(:,:,:)   = var(:,:,:,10)
+
+          call reconstruct_ALDM(nIceBar,nIceTilde)
+          call reconstruct_ALDM(qIceBar,qIceTilde)
+          call reconstruct_ALDM(SIceBar,SIceTilde)
+
+         else stop "reconstruction: ice variables switched off, hence cannot be reconstructed"
+         end if
 
        case default
           stop "reconstruction: unknown case variable."
@@ -1182,7 +1250,57 @@ contains
 
   
   !---------------------------------------------------------------------------
+
+  subroutine iceFlux (var, flux)
+   ! in/out variables
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(in) :: var
+
+    real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), &
+         & intent(out) :: flux
+    ! flux(i,j,k,dir,iFlux) 
+    ! dir = 1..3 > f,g,h-flux in x,y,z-direction
+
+    ! All ice particles obey to the general mass flux
+    do nqS = 8,10  
+      do dir=1,3
+        do k = 0,nz
+          do j = 1,ny
+            do i = 1,nx
+              flux(i,j,k,dir,nqS) = var(i,j,k,nqS) * flux(i,j,k,dir,1)
+            end do
+          end do
+        end do
+      end do
+    end do
+
+  end subroutine iceFlux
+
+
+  subroutine iceSource (var, source)
+    ! in/out variables
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(in) :: var
+
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(inout) :: source
+
+    do nqS = 8,10  
+      do dir=1,3
+        do k = 0,nz
+          do j = 1,ny
+            do i = 1,nx
+              source(i,j,k,dir,nqS) = var(i,j,k,nqS) * source(i,j,k,dir,1)
+            end do
+          end do
+        end do
+      end do
+    end do
+    
+  end  subroutine iceSource
   
+!-----------------------------------------------------------------------!
+
   
   subroutine volumeForce (var,time,force)
     !-------------------------------------------------------

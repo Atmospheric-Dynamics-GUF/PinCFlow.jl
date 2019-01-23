@@ -99,6 +99,7 @@ module type_module
   !                          Variables 
   !-----------------------------------------------------------------  
   integer :: nVar, nOptVar
+  logical :: include_ice ! controls use of additional ice variables nIce,qIce and SIce
   namelist / variables / nVar, nOptVar
 
  
@@ -275,7 +276,6 @@ module type_module
   
   character(len=25) :: model
 
-  logical :: include_ice ! controls use of additional ice variables nIce,qIce and SIce
   namelist / modelList / model, vert_theta, vert_alpha
   
 
@@ -304,6 +304,7 @@ module type_module
   logical :: updateMass         ! transport of mass=var(1)  on/off
   logical :: predictMomentum    ! transport of momentum=var(2-4) on/off
   logical :: updateTheta        ! transport of theta=var(6) on/off
+  logical :: updateIce          ! transport of ice=var(8-10) on/off
 
  
   !-----------------------------------------------------------------  

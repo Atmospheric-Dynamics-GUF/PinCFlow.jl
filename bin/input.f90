@@ -36,8 +36,10 @@
 
   nVar = 7,         ! number of dependent variables: rho, u, v, w, pEx, theta, DynSma
                     ! nVar is automatically set to 10 if include_ice == .true.
-  nOptVar = 4,
-
+  nOptVar = 4
+  include_ice = .false. ! include ice microphysics parametrization
+                        ! automatically overwrites nVar, varOut and varIn
+                        ! by including additional dynamic variables nIce, qIce and SIce 
 &end
 
 
@@ -50,10 +52,7 @@
   model = "pseudo_incompressible"    ! pseudo_incompressible / Boussinesq / WKB
   vert_theta = 90.0 !deg    angle of rotation about y
   vert_alpha = 0.0 ! det    angle of rotation about z'
-  include_ice = .false. ! include ice microphysics parametrization
-                        ! automatically overwrites nVar, varOut and varIn
-                        ! by additional dynamic variables nIce, qIce and SIce 
-
+  
 &end
 
 

@@ -114,7 +114,7 @@ contains
 
 
     read (unit=10, nml=variables)
-    if (include_ice) nVar = nVar + 3
+    if (include_ice) nVar = 10
 
     ! allocate var = (rho,u,v,w,pEx)
     allocate(var(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar),stat=allocstat)
@@ -225,6 +225,7 @@ contains
        predictMomentum = .true.
        correctMomentum = .true.
        updateTheta = .true.
+       updateIce = .false.
 
        ! overwrite unsuitable input settings
        topography = .false. 
@@ -245,6 +246,7 @@ contains
        predictMomentum = .true.
        correctMomentum = .true.
        updateTheta = .false.
+       updateIce = .true.
 
        if( master ) then   ! modified by Junhong Wei (20170216)
        write(90,"(a25)",advance = "no") "updateMass != "
@@ -255,6 +257,9 @@ contains
        write(90,*) correctMomentum
        write(90,"(a25)",advance = "no") "updateTheta != "
        write(90,*) updateTheta
+       write(90,*) ""
+       write(90,"(a25)",advance = "no") "updateIce != "
+       write(90,*) updateIce
        write(90,*) ""
        end if   ! modified by Junhong Wei (20170216)
 
@@ -274,6 +279,7 @@ contains
        predictMomentum = .false.
        correctMomentum = .false.
        updateTheta = .false.
+       updateIce = .false.
 
        fluctuationMode = .false.       ! Work with full density
        background = "isothermal"       ! Theory only for isothermal bg.
@@ -295,7 +301,8 @@ contains
        write(90,*) fluctuationMode
        write(90,"(a25)",advance = "no") "background != "
        write(90,"(a)") background
-
+       write(90,"(a25)",advance = "no") "updateIce != "
+       write(90,"(a)") updateIce
        write(90,*) ""
 
 
@@ -483,6 +490,9 @@ contains
        ! uniform pot temp perturbation
        var(:,:,:,6) = 0.0 / thetaRef
 
+       ! no initial ice in the atmosphere
+       if (include_ice) var(:,:,:,8:10) = 0.0
+
 
     case( "monochromeWave" ) 
 
@@ -566,7 +576,8 @@ contains
           var(:,:,k,4) = 0.5*( var(:,:,k,4) + var(:,:,k+1,4) )
        end do
 
-
+       ! no initial ice in the atmosphere
+       if (include_ice) var(:,:,:,8:10) = 0.0
 
 
        !----------------------------------------
@@ -608,7 +619,6 @@ contains
           var(:,:,k,2) = u_jet
 
        end do
-
 
 
        !--------------------
@@ -1540,6 +1550,7 @@ contains
 
     case ("greshoVortexXY")
        updateMass = .true.
+       updateIce = .true.
 
        ! setup
        x0 = 0.5; y0 = 0.5;  z0 = 0.5        ! center vortex
@@ -1609,6 +1620,7 @@ contains
 
     case ("greshoVortexXZ")
        updateMass = .true.
+       updateIce = .true.
 
        ! setup
        x0 = 0.0;  z0 = 0.5        ! center vortex
@@ -1748,6 +1760,7 @@ contains
        ! pressure along x. 
        updateMass = .false.
        correctMomentum = .false.
+       updateIce = .false.
 
        ! constant density
        var(:,:,:,1) = 2.0
@@ -1774,6 +1787,7 @@ contains
        ! pressure along y. 
        updateMass = .false.
        correctMomentum = .false.
+       updateIce = .false.
 
        ! constant density
        var(:,:,:,1) = 2.0

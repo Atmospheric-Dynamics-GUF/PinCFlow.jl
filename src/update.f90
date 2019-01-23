@@ -19,6 +19,7 @@ module update_module
   !------------------------
   public :: momentumPredictor
   public :: massUpdate
+  public :: iceUpdate
   public :: thetaUpdate
   public :: timestep
   public :: init_update
@@ -1010,8 +1011,108 @@ contains
   end subroutine massUpdate
 
 
+
 !---------------------------------------------------------------------------
 
+
+  subroutine iceUpdate (var,var0,flux,source,dt,q,m)
+    !-----------------------------
+    ! adds mass flux to cell mass
+    !-----------------------------
+    ! so far identical to massUpdate    
+
+
+    ! in/out variables
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(inout) :: var
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(in) :: var0
+    real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
+    ! flux(i,j,k,dir,iFlux) 
+    ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
+    ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
+
+    ! source terms
+    ! 1) divergence error source terms
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(in) :: source
+    
+    real, intent(in) :: dt
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
+         & intent(inout) :: q
+
+    integer, intent(in) :: m
+    
+    ! local variables
+    integer :: i,j,k,l
+    real    :: fL,fR        ! flux Left/Right
+    real    :: gB,gF        ! flux Backward/Forward
+    real    :: hD,hU        ! flux Downward/Upward
+    real    :: fluxDiff         ! convective part
+    real    :: F            ! F(phi)
+       
+
+    ! init q
+    if (m == 1) q = 0.
+
+    do k = 1,nz
+       do j = 1,ny
+          do i = 1,nx
+             fL = flux(i-1,j,k,1,1) ! mass flux accros left cell edge
+             fR = flux(i,j,k,1,1)   ! right
+             gB = flux(i,j-1,k,2,1) ! backward
+             gF = flux(i,j,k,2,1)   ! forward
+             hD = flux(i,j,k-1,3,1) ! downward
+             hU = flux(i,j,k,3,1)   ! upward
+
+             ! convective part
+             fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz
+
+             ! diffusive part
+             ! diff = ....
+
+             ! F(phi)
+             F = -fluxDiff
+
+             ! subtract divergence error
+             if( correctDivError ) then
+                
+                F = F + source(i,j,k,1)
+                
+             end if
+             
+             select case( timeSchemeType ) 
+                
+             case( "lowStorage" ) 
+
+                ! update: q(m-1) -> q(m)
+                q(i,j,k) = dt*F + alpha(m) * q(i,j,k)
+
+                ! update density
+                var(i,j,k,1) = var(i,j,k,1) + beta(m) * q(i,j,k)
+
+             case( "classical" )
+
+                var(i,j,k,1) = rk(1,m) * var0(i,j,k,1) &
+                     &       + rk(2,m) * var (i,j,k,1) &
+                     &       + rk(3,m) * dt*F
+
+             case default
+                stop "thetaUpdate: unknown case timeSchemeType"
+             end select
+
+          end do
+       end do
+    end do
+
+!    if(verbose) print*,"update.f90/massUpdate: rho(m=",m,") calculated."   ! modified by Junhong Wei (20170216)
+
+    if(verbose .and. master) print*,"update.f90/massUpdate: rho(m=",m,") calculated."   ! modified by Junhong Wei (20170216)
+
+  end subroutine iceUpdate
+
+
+!---------------------------------------------------------------------------
 
   subroutine timestep (var,ray,dt,errFlag)
     !---------------------------------------------
