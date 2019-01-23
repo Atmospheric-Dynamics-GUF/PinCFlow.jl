@@ -177,9 +177,10 @@ contains
     ! read output specifications
     read (unit=10, nml=outputList)
     if (include_ice) then
-      varOut = varOut + ',1,1,1'
-      varIn = varIn + ',1,1,1'
-      offset = offset + ',0,0,0'
+      forall (i=8:10)
+        varOut[i] = 1
+        varIn[i] = 1
+      end forall
     end if
 
     ! read programme debug parameters

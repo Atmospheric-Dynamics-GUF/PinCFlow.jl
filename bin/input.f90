@@ -35,6 +35,7 @@
 &variables
 
   nVar = 7,         ! number of dependent variables: rho, u, v, w, pEx, theta, DynSma
+                    ! nVar is automatically set to 10 if include_ice == .true.
   nOptVar = 4,
 
 &end
@@ -50,7 +51,7 @@
   vert_theta = 90.0 !deg    angle of rotation about y
   vert_alpha = 0.0 ! det    angle of rotation about z'
   include_ice = .false. ! include ice microphysics parametrization
-                        ! automatically overwrites nVar and extends varOut, varIn and offset
+                        ! automatically overwrites nVar, varOut and varIn
                         ! by additional dynamic variables nIce, qIce and SIce 
 
 &end
@@ -233,11 +234,11 @@
 
   dimOut = .true.,.false.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,1,1,1   ! 1 = output, 0 = no output 
+  varOut = 1,1,1,1,1,1,1,0,0,0   ! 1 = output, 0 = no output 
   !                        primary variables: rho,u,v,w,pi',theta', 
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,1,1,1   ! 1 = output, 0 = no output 
+  varIn = 1,1,1,1,1,1,1,0,0,0   ! 1 = output, 0 = no output 
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run) 
   !                       primary variables: rho,u,v,w,pi',theta', 
@@ -247,7 +248,7 @@
                           ! pf_all_in.dat
                           ! (first record in file has no. = 0)
 
-  offset = 0.0, 0.0, 0.0, 0.0, 0.0 ! offset for primary variables
+  offset = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ! offset for primary variables
   rhoOffset = .false.               ! subtract background
 
   ! optional variables
