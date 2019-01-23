@@ -1286,15 +1286,13 @@ contains
          & intent(inout) :: source
 
     do nqS = 8,10  
-      do dir=1,3
         do k = 0,nz
           do j = 1,ny
             do i = 1,nx
-              source(i,j,k,dir,nqS) = var(i,j,k,nqS) * source(i,j,k,dir,1)
+              source(i,j,k,nqS) = var(i,j,k,nqS) * source(i,j,k,1)
             end do
           end do
         end do
-      end do
     end do
     
   end  subroutine iceSource

@@ -997,7 +997,7 @@ contains
                      &       + rk(3,m) * dt*F
 
              case default
-                stop "thetaUpdate: unknown case timeSchemeType"
+                stop "massUpdate: unknown case timeSchemeType"
              end select
 
           end do
@@ -1017,9 +1017,9 @@ contains
 
   subroutine iceUpdate (var,var0,flux,source,dt,q,m)
     !-----------------------------
-    ! adds mass flux to cell mass
+    ! adds ice flux to cell ice
     !-----------------------------
-    ! so far identical to massUpdate    
+    ! so far fully analogous to massUpdate    
 
 
     ! in/out variables
@@ -1038,18 +1038,18 @@ contains
          & intent(in) :: source
     
     real, intent(in) :: dt
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,3), &
          & intent(inout) :: q
 
     integer, intent(in) :: m
     
     ! local variables
     integer :: i,j,k,l
-    real    :: fL,fR        ! flux Left/Right
-    real    :: gB,gF        ! flux Backward/Forward
-    real    :: hD,hU        ! flux Downward/Upward
-    real    :: fluxDiff         ! convective part
-    real    :: F            ! F(phi)
+    real, dimension(3)    :: fL,fR        ! flux Left/Right
+    real, dimension(3)    :: gB,gF        ! flux Backward/Forward
+    real, dimension(3)    :: hD,hU        ! flux Downward/Upward
+    real, dimension(3)    :: fluxDiff         ! convective part
+    real, dimension(3)    :: F            ! F(phi)
        
 
     ! init q
@@ -1058,12 +1058,12 @@ contains
     do k = 1,nz
        do j = 1,ny
           do i = 1,nx
-             fL = flux(i-1,j,k,1,1) ! mass flux accros left cell edge
-             fR = flux(i,j,k,1,1)   ! right
-             gB = flux(i,j-1,k,2,1) ! backward
-             gF = flux(i,j,k,2,1)   ! forward
-             hD = flux(i,j,k-1,3,1) ! downward
-             hU = flux(i,j,k,3,1)   ! upward
+             fL = flux(i-1,j,k,1,8:10) ! mass flux accros left cell edge
+             fR = flux(i,j,k,1,8:10)   ! right
+             gB = flux(i,j-1,k,2,8:10) ! backward
+             gF = flux(i,j,k,2,8:10)   ! forward
+             hD = flux(i,j,k-1,3,8:10) ! downward
+             hU = flux(i,j,k,3,8:10)   ! upward
 
              ! convective part
              fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz
@@ -1077,7 +1077,7 @@ contains
              ! subtract divergence error
              if( correctDivError ) then
                 
-                F = F + source(i,j,k,1)
+                F(:) = F(:) + source(i,j,k,8:10)
                 
              end if
              
@@ -1086,19 +1086,19 @@ contains
              case( "lowStorage" ) 
 
                 ! update: q(m-1) -> q(m)
-                q(i,j,k) = dt*F + alpha(m) * q(i,j,k)
+                q(i,j,k,:) = dt*F(:) + alpha(m) * q(i,j,k,:)
 
-                ! update density
-                var(i,j,k,1) = var(i,j,k,1) + beta(m) * q(i,j,k)
+                ! update variables
+                var(i,j,k,8:10) = var(i,j,k,8:10) + beta(m) * q(i,j,k,1:3)
 
              case( "classical" )
 
-                var(i,j,k,1) = rk(1,m) * var0(i,j,k,1) &
-                     &       + rk(2,m) * var (i,j,k,1) &
-                     &       + rk(3,m) * dt*F
+                var(i,j,k,8:10) = rk(1,m) * var0(i,j,k,8:10) &
+                     &       + rk(2,m) * var (i,j,k,8:10) &
+                     &       + rk(3,m) * dt*F(1:3)
 
              case default
-                stop "thetaUpdate: unknown case timeSchemeType"
+                stop "iceUpdate: unknown case timeSchemeType"
              end select
 
           end do
@@ -1107,7 +1107,7 @@ contains
 
 !    if(verbose) print*,"update.f90/massUpdate: rho(m=",m,") calculated."   ! modified by Junhong Wei (20170216)
 
-    if(verbose .and. master) print*,"update.f90/massUpdate: rho(m=",m,") calculated."   ! modified by Junhong Wei (20170216)
+    if(verbose .and. master) print*,"update.f90/iceUpdate: ice(m=",m,") calculated."   ! modified by Junhong Wei (20170216)
 
   end subroutine iceUpdate
 
