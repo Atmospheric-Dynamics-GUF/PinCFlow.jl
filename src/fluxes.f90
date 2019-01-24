@@ -228,7 +228,6 @@ contains
                 SIceTilde(:,:,:,dir,lr) = var(:,:,:,10)
              end do
           end do
-         else stop "reconstruction: ice variables switched off, hence cannot be reconstructed"
          end if
 
        case default
@@ -279,7 +278,6 @@ contains
           call reconstruct_MUSCL(qIceBar,qIceTilde,nxx,nyy,nzz,limiterType1)
           call reconstruct_MUSCL(SIceBar,SIceTilde,nxx,nyy,nzz,limiterType1)
 
-         else stop "reconstruction: ice variables switched off, hence cannot be reconstructed"
          end if
 
        case default
@@ -338,7 +336,6 @@ contains
           call reconstruct_SALD(qIceBar,qIceTilde)
           call reconstruct_SALD(SIceBar,SIceTilde)
 
-         else stop "reconstruction: ice variables switched off, hence cannot be reconstructed"
          end if
 
        case default
@@ -386,7 +383,6 @@ contains
           call reconstruct_ALDM(qIceBar,qIceTilde)
           call reconstruct_ALDM(SIceBar,SIceTilde)
 
-         else stop "reconstruction: ice variables switched off, hence cannot be reconstructed"
          end if
 
        case default
@@ -1261,6 +1257,8 @@ contains
     ! flux(i,j,k,dir,iFlux) 
     ! dir = 1..3 > f,g,h-flux in x,y,z-direction
 
+    integer :: nqS, dir, k, j, i
+
     ! All ice particles obey to the general mass flux
     do nqS = 8,10  
       do dir=1,3
@@ -1284,6 +1282,8 @@ contains
 
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(inout) :: source
+
+    integer :: nqS, k, j, i
 
     do nqS = 8,10  
         do k = 0,nz

@@ -178,8 +178,8 @@ contains
     read (unit=10, nml=outputList)
     if (include_ice) then
       forall (i=8:10)
-        varOut[i] = 1
-        varIn[i] = 1
+        varOut(i) = 1
+        varIn(i) = 1
       end forall
     end if
 

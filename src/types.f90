@@ -100,7 +100,7 @@ module type_module
   !-----------------------------------------------------------------  
   integer :: nVar, nOptVar
   logical :: include_ice ! controls use of additional ice variables nIce,qIce and SIce
-  namelist / variables / nVar, nOptVar
+  namelist / variables / nVar, nOptVar, include_ice
 
  
 

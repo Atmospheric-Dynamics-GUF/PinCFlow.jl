@@ -456,7 +456,7 @@ program pinc_prog
            if( updateMass ) call reconstruction (var, "rho")         
            if( updateTheta ) call reconstruction (var, "theta") 
            if( predictMomentum ) call reconstruction (var, "uvw")
-           if( include_ice ) .and. ( updateIce ) call reconstruction(var, "ice")
+           if(( include_ice ) .and. ( updateIce )) call reconstruction(var, "ice")
            
            
            !------------------------------------------------------------
@@ -483,7 +483,7 @@ program pinc_prog
 !xxxx wrong implemented / call might not be necessary
               if( correctDivError) call momentumSource (var,source)
            end if
-           if( include_ice ) .and. ( updateIce ) then
+           if(( include_ice ) .and. ( updateIce )) then
                call iceFlux (var, flux)
                call iceSource (var, source)
            end if
