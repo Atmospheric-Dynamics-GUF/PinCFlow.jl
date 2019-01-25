@@ -624,7 +624,11 @@ contains
        !--------------------
        !     set up GWP
        !--------------------
+       close(10)
        call init_GWP(Psi,kk,mm, ll_3DWP )   ! modified by J. Wei for 3DWP
+       open (unit=10, file="input.f90", action="read", &
+         form="formatted", status="old", position="rewind")
+       ! added close and open statements to avoid unclear position specifiers in init_GWP
 
        do k = 0,(nz+1)   ! modified by Junhong Wei for 3DWP (20171204)
          do j = 0,(ny+1)   ! modified by Junhong Wei for 3DWP (20170922)
