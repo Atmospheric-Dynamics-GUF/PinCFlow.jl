@@ -49,6 +49,7 @@ program pinc_prog
   real, dimension(:,:,:), allocatable :: dRho      ! RK-Update for rho
   real, dimension(:,:,:,:), allocatable :: dMom    ! RK for rhoU,rhoV,rhoW
   real, dimension(:,:,:), allocatable :: dTheta     ! RK-Update for theta
+  real, dimension(:,:,:,:), allocatable :: dIce     ! RK-Update for nIce,qIce,SIce
 
 
   real, dimension(:,:,:,:,:), allocatable :: flux
@@ -178,7 +179,7 @@ program pinc_prog
 
      ! 1) allocate variables 
      ! 2) read input.f90
-     call setup (var,var0,flux,force,source,dRho,dMom,dTheta)
+     call setup (var,var0,flux,force,source,dRho,dMom,dTheta,dIce)
 
 
   if( master ) then   ! modified by Junhong Wei for MPI (20161103)
@@ -509,6 +510,17 @@ program pinc_prog
               if(iTime==1 .and. RKstage==1 .and. master) print *,"main: MassUpdate off!"   ! modified by Junhong Wei for MPI (20161103)
            end if
            
+           if (include_ice .and. updateIce) then
+              !--------------------------------------
+              !               ice_new
+              !--------------------------------------
+              if (RKstage == 1) dIce = 0.0                ! init q
+              call setHalos(var,"var")
+              call iceUpdate(var, var0, flux, source, dt, dIce, RKstage)
+
+           else if(iTime==1 .and. RKstage==1 .and. master) then
+              print *,"main: IceUpdate off!"
+           end if
               
            if( updateTheta ) then
               !---------------------------------------
@@ -735,7 +747,7 @@ program pinc_prog
 !10   call terminate_fluxes   ! modified by Junhong Wei for MPI (20161102)
      call terminate_fluxes    ! modified by Junhong Wei for MPI (20161102)
      call terminate_poisson
-     call terminate (var,var0,dRho,dMom,dTheta)                         
+     call terminate (var,var0,dRho,dMom,dTheta, dIce)                         
      call terminate_atmosphere
      call terminate_output
 !    achatzb

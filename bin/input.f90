@@ -36,10 +36,10 @@
 
   nVar = 7,         ! number of dependent variables: rho, u, v, w, pEx, theta, DynSma
                     ! nVar is automatically set to 10 if include_ice == .true.
-  nOptVar = 4
-  include_ice = .false. ! include ice microphysics parametrization
-                        ! automatically overwrites nVar, varOut and varIn
-                        ! by including additional dynamic variables nIce, qIce and SIce 
+  nOptVar = 4,
+  include_ice = .false., ! include ice microphysics parametrization
+                         ! automatically overwrites nVar, varOut and varIn
+                         ! by including additional dynamic variables nIce, qIce and SIce 
 &end
 
 
@@ -229,7 +229,7 @@
 
   dataFileName = ""      ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
-  restart = .true.       ! true / false
+  restart = .false.       ! true / false
 
   dimOut = .true.,.false.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 

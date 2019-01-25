@@ -39,7 +39,7 @@ contains
   ! ------------------------------------------------------------------------
 
 
-  subroutine setup (var,var0,flux,force,source,dRho,dMom,dTheta)
+  subroutine setup (var,var0,flux,force,source,dRho,dMom,dTheta,dIce)
     !-----------------------------------------
     ! allocate var and flux / read input.f90
     !-----------------------------------------
@@ -51,6 +51,7 @@ contains
     real,dimension(:,:,:), allocatable :: dRho        ! RK-Update for rho
     real,dimension(:,:,:,:), allocatable :: dMom      ! ...rhoU,rhoV,rhoW
     real,dimension(:,:,:), allocatable :: dTheta       ! RK-Update for theta
+    real,dimension(:,:,:,:), allocatable :: dIce       ! RK-Update for nIce,qIce,SIce
 
 
     integer :: allocstat
@@ -139,6 +140,12 @@ contains
     ! allocate dTheta
     allocate(dTheta(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz),stat=allocstat)
     if(allocstat /= 0) stop "init.f90: Could not allocate dTheta."
+
+    ! allocate dIce
+    if (include_ice) then
+      allocate(dIce(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,3),stat=allocstat)
+      if(allocstat /= 0) stop "init.f90: Could not allocate dIce."
+    end if
 
     ! allocate flux = (f,g,h / fRho, fRhoU, fRhoV, fRhoW, fTheta)
     allocate(flux(-1:nx,-1:ny,-1:nz,3,nVar),stat=allocstat)

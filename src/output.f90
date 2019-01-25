@@ -220,8 +220,19 @@ contains
                           &                   , kind=4)
 !                     achatze
 
-                        case default
-                           stop "tec360: unkown iVar"
+             !--------------------------------------
+                      ! NEW: ice cases !
+                      case(8)
+
+       
+                      case(9)
+
+                       
+                      case(10)
+
+              !---------------------------------
+                      case default
+                         stop "tec360: unkown iVar"
                    end select ! iVar
                 end do ! i
                 call mpi_gather(field_prc(1,j),nx,mpi_real,&
@@ -418,6 +429,16 @@ contains
                               !(deviation from background)
 
                               var(i,j,k,iVar) = field_prc(i,j) / (uRef*lRef)
+
+                  ! ------- no restart with ice yet possible
+
+                      case(8) ! ice particle number concentration nIce
+
+
+                      case(9) ! ice particle mass concentration qIce
+
+                      
+                      case(10) ! supersaturation with respect to ice SIce
 
                         case default
                            stop "tec360: unkown iVar"

@@ -1019,7 +1019,7 @@ contains
     !-----------------------------
     ! adds ice flux to cell ice
     !-----------------------------
-    ! so far fully analogous to massUpdate    
+    ! mainly analogous to massUpdate, not working yet...  
 
 
     ! in/out variables
@@ -1030,7 +1030,7 @@ contains
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
     ! flux(i,j,k,dir,iFlux) 
     ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
-    ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
+    ! iFlux = 8..10 > Rho_nIce, Rho_qIce, Rho_SIce
 
     ! source terms
     ! 1) divergence error source terms
