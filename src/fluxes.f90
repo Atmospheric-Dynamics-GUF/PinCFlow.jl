@@ -1285,25 +1285,28 @@ contains
          & intent(inout) :: source
 
     integer :: k, j, i
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: T, SIce ! T: current temperature in Kelvin
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: SIce 
+    real :: T ! current temperature in Kelvin
     
-    T = 1 ! to be fixed!!!
+    
+ 
     SIce = var(i,j,k,nVar)/var(i,j,k,1) 
 
         do k = 0,nz
           do j = 1,ny
             do i = 1,nx
+              call find_temperature(T,i,j,k,var)
               ! nIce equation
               source(i,j,k,nVar-2) = var(i,j,k,nVar-2) * source(i,j,k,1) / var(i,j,k,1) &
-                 & + var(i,j,k,1)*J0_ice(T(i,j,k))*EXP(A_ice(T(i,j,k))* (SIce(i,j,k) - SIce_crit( T(i,j,k) ) ) )
+                 & + var(i,j,k,1)*J0_ice(T)*EXP(A_ice(T)* (SIce(i,j,k) - SIce_crit( T) ) )
 
               ! qIce equation
               source(i,j,k,nVar-1) = var(i,j,k,nVar-1) * source(i,j,k,1) / var(i,j,k,1) &
-                 & + delta_ice(T(i,j,k))*(SIce(i,j,k)-1)*var(i,j,k,nVar-2)
+                 & + delta_ice(T)*(SIce(i,j,k)-1)*var(i,j,k,nVar-2)
 
               ! SIce equation
               source(i,j,k,nVar) = var(i,j,k,nVar) * source(i,j,k,1) / var(i,j,k,1) &
-                 & + alpha_ice(T(i,j,k))*var(i,j,k,nVar)- gamma_ice(T(i,j,k))*(SIce(i,j,k)-1)*var(i,j,k,nVar-2)
+                 & + alpha_ice(T)*var(i,j,k,nVar)- gamma_ice(T)*(SIce(i,j,k)-1)*var(i,j,k,nVar-2)
             end do
           end do
         end do

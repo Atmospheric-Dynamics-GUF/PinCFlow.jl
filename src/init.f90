@@ -507,9 +507,6 @@ contains
        ! uniform pot temp perturbation
        var(:,:,:,6) = 0.0 / thetaRef
 
-       ! no initial ice in the atmosphere
-       if (include_ice) var(:,:,:,nVar-2:nVar) = 0.0
-
 
     case( "monochromeWave" ) 
 
@@ -593,10 +590,7 @@ contains
           var(:,:,k,4) = 0.5*( var(:,:,k,4) + var(:,:,k+1,4) )
        end do
 
-       ! no initial ice in the atmosphere
-       if (include_ice) var(:,:,:,nVar-2:nVar) = 0.0
-
-
+       
        !----------------------------------------
        !          WKB theory 
        !----------------------------------------
@@ -1932,6 +1926,10 @@ contains
        stop "init.f90/initialise: This testCase is not valid. Stop."
 
     end select
+
+! no initial ice in the atmosphere
+       if (include_ice) var(:,:,:,nVar-2:nVar) = 0.0
+!---------------------------------------------------------------
 
 !   achatzb
 !   -------------------------------------

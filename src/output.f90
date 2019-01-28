@@ -223,12 +223,15 @@ contains
                       case default
              !--------------------------------------
                       ! NEW: ice cases !
-                         if (iVar==nVar-2) then
-
+                         if (iVar==nVar-2) then 
+                           field_prc(i,j) = real(var(i,j,k,iVar)/var(i,j,k,1),kind=4) 
+                            ! might be better to include a reference unit for nIce here
                          else if (iVar==nVar-1) then
-
+                            field_prc(i,j) = real(var(i,j,k,iVar)/var(i,j,k,1),kind=4) 
+                             ! might be better to include a reference unit for qIce here
                          else if (iVar==nVar) then
-
+                            field_prc(i,j) = real(var(i,j,k,iVar)/var(i,j,k,1),kind=4) 
+                             ! might be better to include a reference unit for SIce here
               !---------------------------------
                          else 
                            stop "tec360: unkown iVar"
@@ -432,14 +435,13 @@ contains
 
                       case default
                   !--------------------------------------
-                      ! NEW: ice cases !
-                  ! ------- no restart with ice yet possible
+                      ! NEW: ice cases !    ! might be better to include reference units here
                          if (iVar==nVar-2) then ! ice particle number concentration nIce
-
+                            var(i,j,k,iVar) = field_prc(i,j) * var(i,j,k,1)
                          else if (iVar==nVar-1) then  ! ice particle mass concentration qIce
-
+                            var(i,j,k,iVar) = field_prc(i,j) * var(i,j,k,1)
                          else if (iVar==nVar) then ! supersaturation with respect to ice SIce
-
+                            var(i,j,k,iVar) = field_prc(i,j) * var(i,j,k,1)
                   !---------------------------------
                          else 
                            stop "tec360: unkown iVar"

@@ -1,6 +1,7 @@
 module ice_module
 
   use type_module
+  use atmosphere_module
   
   implicit none
 
@@ -9,6 +10,7 @@ module ice_module
   public :: SIce_crit
   public :: alpha_ice, gamma_ice, delta_ice
   public :: J0_ice, A_ice
+  public :: find_temperature
 
 
 contains
@@ -76,6 +78,18 @@ contains
   end function A_ice
 
 !---------------------------------------------
+
+  ! calculate the current absolute temperature
+  subroutine find_temperature(T,i,j,k,var)
+    ! in/out variables
+    real, intent(inout) :: T
+    integer, intent(in) :: i,j,k
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(in) :: var
+
+    find_temperature = (thetaStrat(k)+var(i,j,k,6))*(PStrat(k)+var(i,j,k,5))
+
+  end subroutine find_temperature
 
 
 end module ice_module
