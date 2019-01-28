@@ -472,6 +472,10 @@ contains
 ! modified by Junhong Wei (20161121) *** finishing line ***
     
 
+! on default there is no initial ice or humidity in the atmosphere
+       if (include_ice) var(:,:,:,nVar-2:nVar) = 0.0
+!---------------------------------------------------------------
+
     select case (testCase)
 
        !-------------------------------------
@@ -740,6 +744,14 @@ contains
        do j = 0,ny
           var(:,j,:,3) = 0.5*( var(:,j,:,3) + var(:,j+1,:,3) )
        end do
+
+       ! no initial ice in the atmosphere, but supersaturation SIce=1.5
+       if (include_ice) then 
+         var(:,:,:,nVar-2:nVar-1) = 0.0
+         var(:,:,:,nVar) = 1.5
+       end if
+
+!---------------------------------------------------------------
 
 !   achatzb
     !   -----------------------------------------------------------------
@@ -1927,9 +1939,6 @@ contains
 
     end select
 
-! no initial ice in the atmosphere
-       if (include_ice) var(:,:,:,nVar-2:nVar) = 0.0
-!---------------------------------------------------------------
 
 !   achatzb
 !   -------------------------------------

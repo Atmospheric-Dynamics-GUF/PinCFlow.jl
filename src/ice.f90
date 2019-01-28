@@ -87,7 +87,7 @@ contains
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(in) :: var
 
-    find_temperature = (thetaStrat(k)+var(i,j,k,6))*(PStrat(k)+var(i,j,k,5))
+    T = (thetaStrat(k)+var(i,j,k,6))*(PStrat(k)+var(i,j,k,5))
 
   end subroutine find_temperature
 
