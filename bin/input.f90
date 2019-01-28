@@ -35,10 +35,11 @@
 &variables
 
   nVar = 7,         ! number of dependent variables: rho, u, v, w, pEx, theta, DynSma
-                    ! nVar is automatically set to 10 if include_ice == .true.
+                    ! nVar is automatically set to nVar+3 if include_ice == .true.
   nOptVar = 4,
+! to switch on ice physics just set include_ice=.true. and check that varIn, varOut and offset have the right lengths
   include_ice = .false., ! include ice microphysics parametrization
-                         ! automatically overwrites nVar, varOut and varIn
+                         ! automatically overwrites nVar, varOut, varIn and offset
                          ! by including additional dynamic variables nIce, qIce and SIce 
 &end
 
@@ -236,18 +237,22 @@
   varOut = 1,1,1,1,1,1,1,0,0,0   ! 1 = output, 0 = no output 
   !                        primary variables: rho,u,v,w,pi',theta', 
   !                                           dyn. Smagorinsky coeff.
+                    ! if include_ice varOut must have length nVar+3
 
   varIn = 1,1,1,1,1,1,1,0,0,0   ! 1 = output, 0 = no output 
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run) 
   !                       primary variables: rho,u,v,w,pi',theta', 
   !                                          dyn. Smagorinsky coeff.
+                    ! if include_ice varIn must have length nVar+3
 
   iIn = 1                 ! no. of record to be read from restart file 
                           ! pf_all_in.dat
                           ! (first record in file has no. = 0)
 
   offset = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ! offset for primary variables
+                    ! if include_ice offset must have length nVar+1
+
   rhoOffset = .false.               ! subtract background
 
   ! optional variables

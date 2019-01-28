@@ -1058,12 +1058,12 @@ contains
     do k = 1,nz
        do j = 1,ny
           do i = 1,nx
-             fL = flux(i-1,j,k,1,8:10) ! mass flux accros left cell edge
-             fR = flux(i,j,k,1,8:10)   ! right
-             gB = flux(i,j-1,k,2,8:10) ! backward
-             gF = flux(i,j,k,2,8:10)   ! forward
-             hD = flux(i,j,k-1,3,8:10) ! downward
-             hU = flux(i,j,k,3,8:10)   ! upward
+             fL = flux(i-1,j,k,1,nVar-2:nVar) ! mass flux accros left cell edge
+             fR = flux(i,j,k,1,nVar-2:nVar)   ! right
+             gB = flux(i,j-1,k,2,nVar-2:nVar) ! backward
+             gF = flux(i,j,k,2,nVar-2:nVar)   ! forward
+             hD = flux(i,j,k-1,3,nVar-2:nVar) ! downward
+             hU = flux(i,j,k,3,nVar-2:nVar)   ! upward
 
              ! convective part
              fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz
@@ -1077,7 +1077,7 @@ contains
              ! subtract divergence error
              if( correctDivError ) then
                 
-                F(:) = F(:) + source(i,j,k,8:10)
+                F(:) = F(:) + source(i,j,k,nVar-2:nVar)
                 
              end if
              
@@ -1089,12 +1089,12 @@ contains
                 q(i,j,k,:) = dt*F(:) + alpha(m) * q(i,j,k,:)
 
                 ! update variables
-                var(i,j,k,8:10) = var(i,j,k,8:10) + beta(m) * q(i,j,k,1:3)
+                var(i,j,k,nVar-2:nVar) = var(i,j,k,nVar-2:nVar) + beta(m) * q(i,j,k,1:3)
 
              case( "classical" )
 
-                var(i,j,k,8:10) = rk(1,m) * var0(i,j,k,8:10) &
-                     &       + rk(2,m) * var (i,j,k,8:10) &
+                var(i,j,k,nVar-2:nVar) = rk(1,m) * var0(i,j,k,nVar-2:nVar) &
+                     &       + rk(2,m) * var (i,j,k,nVar-2:nVar) &
                      &       + rk(3,m) * dt*F(1:3)
 
              case default

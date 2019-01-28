@@ -111,16 +111,16 @@ module type_module
   character (len=40)    :: dataFileName
   character (len=40)    :: restartFile   ! Tecplot file with restart data
   logical, dimension(3) :: dimOut     ! (/1,0,1/) = 2D (x,z), (/1,1,1) = 3D
-  integer, dimension(10) :: varOut     ! 1 = output, 0 = no output           
+  integer, dimension(:), allocatable :: varOut     ! 1 = output, 0 = no output           
 
 ! achatzb
 ! data available in restart file
-  integer, dimension(10) :: varIn      ! 1 = available, 0 = not available
+  integer, dimension(:), allocatable :: varIn      ! 1 = available, 0 = not available
 ! record to be read from restart file (starting from 0!)
   integer :: iIn
 ! achatze
 
-  real, dimension(8)    :: offset     ! offset for rho, u,v,w, p, nIce, qIce, SIce
+  real, dimension(:), allocatable    :: offset     ! offset for rho, u,v,w, p, nIce, qIce, SIce
   integer, dimension(6) :: optVarOut  ! 1 = output, 0 = no output
   integer, dimension(13):: wkbVarOut  !           --"--
   ! increase dimension of optVarOut for new optional variables

@@ -223,9 +223,9 @@ contains
          if (include_ice) then
           do dir = 1,3
              do lr = 0,1
-                nIceTilde(:,:,:,dir,lr) = var(:,:,:,8)
-                qIceTilde(:,:,:,dir,lr) = var(:,:,:,9)
-                SIceTilde(:,:,:,dir,lr) = var(:,:,:,10)
+                nIceTilde(:,:,:,dir,lr) = var(:,:,:,nVar-2)
+                qIceTilde(:,:,:,dir,lr) = var(:,:,:,nVar-1)
+                SIceTilde(:,:,:,dir,lr) = var(:,:,:,nVar)
              end do
           end do
          end if
@@ -270,9 +270,9 @@ contains
 
          if (include_ice) then
            
-          nIceBar(:,:,:)   = var(:,:,:,8)
-          qIceBar(:,:,:)   = var(:,:,:,9)
-          SIceBar(:,:,:)   = var(:,:,:,10)
+          nIceBar(:,:,:)   = var(:,:,:,nVar-2)
+          qIceBar(:,:,:)   = var(:,:,:,nVar-1)
+          SIceBar(:,:,:)   = var(:,:,:,nVar)
 
           call reconstruct_MUSCL(nIceBar,nIceTilde,nxx,nyy,nzz,limiterType1)
           call reconstruct_MUSCL(qIceBar,qIceTilde,nxx,nyy,nzz,limiterType1)
@@ -328,9 +328,9 @@ contains
 
          if (include_ice) then
            
-          nIceBar(:,:,:)   = var(:,:,:,8)
-          qIceBar(:,:,:)   = var(:,:,:,9)
-          SIceBar(:,:,:)   = var(:,:,:,10)
+          nIceBar(:,:,:)   = var(:,:,:,nVar-2)
+          qIceBar(:,:,:)   = var(:,:,:,nVar-1)
+          SIceBar(:,:,:)   = var(:,:,:,nVar)
 
           call reconstruct_SALD(nIceBar,nIceTilde)
           call reconstruct_SALD(qIceBar,qIceTilde)
@@ -375,9 +375,9 @@ contains
 
          if (include_ice) then
            
-          nIceBar(:,:,:)   = var(:,:,:,8)
-          qIceBar(:,:,:)   = var(:,:,:,9)
-          SIceBar(:,:,:)   = var(:,:,:,10)
+          nIceBar(:,:,:)   = var(:,:,:,nVar-2)
+          qIceBar(:,:,:)   = var(:,:,:,nvar-1)
+          SIceBar(:,:,:)   = var(:,:,:,nVar)
 
           call reconstruct_ALDM(nIceBar,nIceTilde)
           call reconstruct_ALDM(qIceBar,qIceTilde)
@@ -1260,12 +1260,12 @@ contains
     integer :: nqS, dir, k, j, i
 
     ! All ice particles obey to the general mass flux
-    do nqS = 8,10  
+    do nqS = 0,2  
       do dir=1,3
         do k = 0,nz
           do j = 1,ny
             do i = 1,nx
-              flux(i,j,k,dir,nqS) = var(i,j,k,nqS) * flux(i,j,k,dir,1)
+              flux(i,j,k,dir,nVar-nqS) = var(i,j,k,nVar-nqS) * flux(i,j,k,dir,1)
             end do
           end do
         end do
@@ -1285,11 +1285,11 @@ contains
 
     integer :: nqS, k, j, i
 
-    do nqS = 8,10  
+    do nqS = 0,2  
         do k = 0,nz
           do j = 1,ny
             do i = 1,nx
-              source(i,j,k,nqS) = var(i,j,k,nqS) * source(i,j,k,1)
+              source(i,j,k,nVar-nqS) = var(i,j,k,nVar-nqS) * source(i,j,k,1)
             end do
           end do
         end do

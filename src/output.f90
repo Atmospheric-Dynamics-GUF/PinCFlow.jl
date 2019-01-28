@@ -220,19 +220,19 @@ contains
                           &                   , kind=4)
 !                     achatze
 
+                      case default
              !--------------------------------------
                       ! NEW: ice cases !
-                      case(8)
+                         if (iVar==nVar-2) then
 
-       
-                      case(9)
+                         else if (iVar==nVar-1) then
 
-                       
-                      case(10)
+                         else if (iVar==nVar) then
 
               !---------------------------------
-                      case default
-                         stop "tec360: unkown iVar"
+                         else 
+                           stop "tec360: unkown iVar"
+                         end if
                    end select ! iVar
                 end do ! i
                 call mpi_gather(field_prc(1,j),nx,mpi_real,&
@@ -430,18 +430,20 @@ contains
 
                               var(i,j,k,iVar) = field_prc(i,j) / (uRef*lRef)
 
+                      case default
+                  !--------------------------------------
+                      ! NEW: ice cases !
                   ! ------- no restart with ice yet possible
+                         if (iVar==nVar-2) then ! ice particle number concentration nIce
 
-                      case(8) ! ice particle number concentration nIce
+                         else if (iVar==nVar-1) then  ! ice particle mass concentration qIce
 
+                         else if (iVar==nVar) then ! supersaturation with respect to ice SIce
 
-                      case(9) ! ice particle mass concentration qIce
-
-                      
-                      case(10) ! supersaturation with respect to ice SIce
-
-                        case default
+                  !---------------------------------
+                         else 
                            stop "tec360: unkown iVar"
+                         end if
                    end select ! iVar
                 end do ! i
              end do ! j
@@ -486,7 +488,7 @@ contains
 
   subroutine terminate_output
     !-------------------------
-    ! deallocate optVar field
+    ! deallocate optVar field and varIn, varOut and offset (edited by Niklas Ehlert, 20190128)
     !-------------------------
 
     ! local variables
@@ -497,6 +499,15 @@ contains
 
     deallocate(optVar,stat=allocstat)
     if(allocstat /= 0) stop "output.f90/init_output: could not deallocate optVar. Stop."
+
+    deallocate(varIn,stat=allocstat)
+    if(allocstat /= 0) stop "output.f90/init_output: could not deallocate varIn. Stop."
+
+    deallocate(varOut,stat=allocstat)
+    if(allocstat /= 0) stop "output.f90/init_output: could not deallocate varOut. Stop."
+
+    deallocate(offset,stat=allocstat)
+    if(allocstat /= 0) stop "output.f90/init_output: could not deallocate offset. Stop."
 
 
   end subroutine terminate_output

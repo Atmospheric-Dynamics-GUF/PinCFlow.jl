@@ -115,7 +115,7 @@ contains
 
 
     read (unit=10, nml=variables)
-    if (include_ice) nVar = 10
+    if (include_ice) nVar = nVar+3
 
     ! allocate var = (rho,u,v,w,pEx)
     allocate(var(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar),stat=allocstat)
@@ -181,12 +181,22 @@ contains
     ! read boundary info2
     read (unit=10, nml=boundaryList2)
 
+    ! allocate varIn, varOut and offset
+    allocate(varIn(nVar),stat=allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate varIn"
+
+    allocate(varOut(nVar),stat=allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate varOut"
+
+    allocate(offset(nVar-2),stat=allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate offset"
+
     ! read output specifications
     read (unit=10, nml=outputList)
     if (include_ice) then
-      forall (i=8:10)
-        varOut(i) = 1
-        varIn(i) = 1
+      forall (i=0:2)
+        varOut(nVar-i) = 1
+        varIn(nVar-i) = 1
       end forall
     end if
 
@@ -498,7 +508,7 @@ contains
        var(:,:,:,6) = 0.0 / thetaRef
 
        ! no initial ice in the atmosphere
-       if (include_ice) var(:,:,:,8:10) = 0.0
+       if (include_ice) var(:,:,:,nVar-2:nVar) = 0.0
 
 
     case( "monochromeWave" ) 
@@ -584,7 +594,7 @@ contains
        end do
 
        ! no initial ice in the atmosphere
-       if (include_ice) var(:,:,:,8:10) = 0.0
+       if (include_ice) var(:,:,:,nVar-2:nVar) = 0.0
 
 
        !----------------------------------------
