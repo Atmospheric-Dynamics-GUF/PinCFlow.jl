@@ -1050,7 +1050,7 @@ contains
     real, dimension(3)    :: hD,hU        ! flux Downward/Upward
     real, dimension(3)    :: fluxDiff         ! convective part
     real, dimension(3)    :: F            ! F(phi)
-       
+    
 
     ! init q
     if (m == 1) q = 0.

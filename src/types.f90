@@ -304,7 +304,7 @@ module type_module
   logical :: updateMass         ! transport of mass=var(1)  on/off
   logical :: predictMomentum    ! transport of momentum=var(2-4) on/off
   logical :: updateTheta        ! transport of theta=var(6) on/off
-  logical :: updateIce          ! transport of ice=var(8-10) on/off
+  logical :: updateIce          ! transport of ice=var(nVar-2:nVar) on/off
 
  
   !-----------------------------------------------------------------  

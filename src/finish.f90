@@ -52,9 +52,10 @@ contains
     deallocate(dMom,stat=allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate dMom"
 
-    deallocate(dIce,stat=allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate dIce"
-
+    if (include_ice) then
+      deallocate(dIce,stat=allocstat)
+      if(allocstat /= 0) stop "finish.f90: could not deallocate dIce"
+    end if
 
   end subroutine terminate
 

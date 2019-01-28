@@ -1260,13 +1260,13 @@ contains
 
     integer :: nqS, dir, k, j, i
 
-    ! All ice particles obey to the general mass flux
+    ! All ice particles obey the general mass flux
     do nqS = 0,2  
       do dir=1,3
         do k = 0,nz
           do j = 1,ny
             do i = 1,nx
-              flux(i,j,k,dir,nVar-nqS) = var(i,j,k,nVar-nqS) * flux(i,j,k,dir,1)
+              flux(i,j,k,dir,nVar-nqS) = var(i,j,k,nVar-nqS) * flux(i,j,k,dir,1) / var(i,j,k,1)
             end do
           end do
         end do
@@ -1284,17 +1284,29 @@ contains
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(inout) :: source
 
-    integer :: nqS, k, j, i
+    integer :: k, j, i
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: T, SIce ! T: current temperature in Kelvin
+    
+    T = 1 ! to be fixed!!!
+    SIce = var(i,j,k,nVar)/var(i,j,k,1) 
 
-    do nqS = 0,2  
         do k = 0,nz
           do j = 1,ny
             do i = 1,nx
-              source(i,j,k,nVar-nqS) = var(i,j,k,nVar-nqS) * source(i,j,k,1)
+              ! nIce equation
+              source(i,j,k,nVar-2) = var(i,j,k,nVar-2) * source(i,j,k,1) / var(i,j,k,1) &
+                 & + var(i,j,k,1)*J0_ice(T(i,j,k))*EXP(A_ice(T(i,j,k))* (SIce(i,j,k) - SIce_crit( T(i,j,k) ) ) )
+
+              ! qIce equation
+              source(i,j,k,nVar-1) = var(i,j,k,nVar-1) * source(i,j,k,1) / var(i,j,k,1) &
+                 & + delta_ice(T(i,j,k))*(SIce(i,j,k)-1)*var(i,j,k,nVar-2)
+
+              ! SIce equation
+              source(i,j,k,nVar) = var(i,j,k,nVar) * source(i,j,k,1) / var(i,j,k,1) &
+                 & + alpha_ice(T(i,j,k))*var(i,j,k,nVar)- gamma_ice(T(i,j,k))*(SIce(i,j,k)-1)*var(i,j,k,nVar-2)
             end do
           end do
         end do
-    end do
     
   end  subroutine iceSource
   
