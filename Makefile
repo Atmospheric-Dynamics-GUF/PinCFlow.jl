@@ -36,7 +36,8 @@ OFILES =	types.o \
 	update.o \
 	output.o \
 	finish.o \
-	pinc.o
+	pinc.o \
+	ice.o
 
 # add build directory as prefix to path of %.o files
 OBJ=$(addprefix $(BUILD)/, $(OFILES))
@@ -59,7 +60,7 @@ $(BUILD)/fluxes.o: $(BUILD)/xweno.o
 $(BUILD)/fluxes.o: $(BUILD)/muscl.o
 $(BUILD)/fluxes.o: $(BUILD)/atmosphere.o
 $(BUILD)/fluxes.o: $(BUILD)/algebra.o
-
+$(BUILD)/fluxes.o: $(BUILD)/ice.o
 
 # xweno.f90
 $(BUILD)/xweno.o: $(BUILD)/types.o
@@ -84,6 +85,7 @@ $(BUILD)/boundary.o: $(BUILD)/types.o
 $(BUILD)/update.o: $(BUILD)/types.o
 $(BUILD)/output.o: $(BUILD)/types.o
 $(BUILD)/finish.o: $(BUILD)/types.o
+$(BUILD)/ice.o: $(BUILD)/types.o
 
 # test xweno_module
 XOBJ = 	$(BUILD)/types.o $(BUILD)/xweno.o $(BUILD)/testXWENO.o $(BUILD)/debug.o

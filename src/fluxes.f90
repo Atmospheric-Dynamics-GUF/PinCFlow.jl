@@ -5,6 +5,7 @@ module flux_module
   use muscl_module
   use atmosphere_module
   use algebra_module
+  use ice_module
 
   implicit none
 
