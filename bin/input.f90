@@ -225,7 +225,7 @@
 
   maxIter = 2            ! stop after maxIter time steps
 
-  outputTimeDiff =  1.2e2!s ! output every ... seconds
+  outputTimeDiff =  1.2e2 !s ! output every ... seconds
   maxTime = 2.4e2           !s ! stop after maxTime seconds
 
   dataFileName = ""      ! empty string "" -> dataFileName = testCase
