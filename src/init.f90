@@ -748,7 +748,7 @@ contains
        ! no initial ice in the atmosphere, but supersaturation SIce=1.5
        if (include_ice) then 
          var(:,:,:,nVar-2:nVar-1) = 0.0
-         var(:,:,:,nVar) = 1.5
+         var(:,:,:,nVar) = 1.5*var(:,:,:,1)
        end if
 
 !---------------------------------------------------------------

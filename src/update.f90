@@ -1019,7 +1019,7 @@ contains
     !-----------------------------
     ! adds ice flux to cell ice
     !-----------------------------
-    ! mainly analogous to massUpdate, not working yet...  
+    ! mainly analogous to massUpdate 
 
 
     ! in/out variables
@@ -1058,7 +1058,7 @@ contains
     do k = 1,nz
        do j = 1,ny
           do i = 1,nx
-             fL = flux(i-1,j,k,1,nVar-2:nVar) ! mass flux accros left cell edge
+             fL = flux(i-1,j,k,1,nVar-2:nVar) ! mass flux across left cell edge
              fR = flux(i,j,k,1,nVar-2:nVar)   ! right
              gB = flux(i,j-1,k,2,nVar-2:nVar) ! backward
              gF = flux(i,j,k,2,nVar-2:nVar)   ! forward

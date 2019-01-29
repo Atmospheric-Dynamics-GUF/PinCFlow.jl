@@ -1302,7 +1302,7 @@ contains
                  & + delta_ice(T)*(SIce-1)*var(i,j,k,nVar-2)
 
               ! SIce equation
-              source(i,j,k,nVar) = var(i,j,k,nVar) * source(i,j,k,1) / var(i,j,k,1) &
+              source(i,j,k,nVar) = SIce* source(i,j,k,1) &
                  & + alpha_ice(T)*var(i,j,k,nVar)- gamma_ice(T)*(SIce-1)*var(i,j,k,nVar-2)
             end do
           end do
