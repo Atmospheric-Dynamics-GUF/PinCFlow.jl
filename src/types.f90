@@ -99,7 +99,7 @@ module type_module
   !                          Variables 
   !-----------------------------------------------------------------  
   integer :: nVar, nOptVar
-  logical :: include_ice ! controls use of additional ice variables nIce,qIce and SIce
+  logical :: include_ice ! controls use of additional ice variables nAer,nIce,qIce and qv
   namelist / variables / nVar, nOptVar, include_ice
 
  
@@ -120,7 +120,7 @@ module type_module
   integer :: iIn
 ! achatze
 
-  real, dimension(:), allocatable    :: offset     ! offset for rho, u,v,w, p, nIce, qIce, SIce
+  real, dimension(:), allocatable    :: offset     ! offset for rho, u,v,w, p, nAer, nIce, qIce, qv
   integer, dimension(6) :: optVarOut  ! 1 = output, 0 = no output
   integer, dimension(13):: wkbVarOut  !           --"--
   ! increase dimension of optVarOut for new optional variables
@@ -476,6 +476,23 @@ module type_module
   
   namelist / wkbList / rayTracer, outComplex, nRayRatioX, nRayRatioY, nRayRatioZ, &
        &     waveFluxType, limiterType
-  
+
+
+
+  !-----------------------------------------------------------------
+  !                           Ice physics 
+  !-----------------------------------------------------------------
+
+  real :: init_nAer, init_qv  ! initial values for aerosols and humidity
+  real :: init_m_ice ! initially assumed average ice crystal mass
+  real :: radius_solution, sigma_r ! needed for log-normal correlation
+  character(len=10) :: NUC_approx_type ! nucleation approximation type
+     ! possible: "Koop", "linFit" 
+  logical :: kT_linFit, dv_exp2, cm_dryAir, mu_linFit ! switch approximations on/off
+
+  namelist / iceList / init_nAer, init_qv, init_m_ice, radius_solution, sigma_r, &
+     &    NUC_approx_type, kT_linFit, dv_exp2, cm_dryAir, mu_linFit
+
+
 
 end module type_module

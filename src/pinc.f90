@@ -49,7 +49,7 @@ program pinc_prog
   real, dimension(:,:,:), allocatable :: dRho      ! RK-Update for rho
   real, dimension(:,:,:,:), allocatable :: dMom    ! RK for rhoU,rhoV,rhoW
   real, dimension(:,:,:), allocatable :: dTheta     ! RK-Update for theta
-  real, dimension(:,:,:,:), allocatable :: dIce     ! RK-Update for nIce,qIce,SIce
+  real, dimension(:,:,:,:), allocatable :: dIce     ! RK-Update for nAer,nIce,qIce,qv
 
 
   real, dimension(:,:,:,:,:), allocatable :: flux

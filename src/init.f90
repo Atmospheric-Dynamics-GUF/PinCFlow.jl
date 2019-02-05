@@ -115,7 +115,7 @@ contains
 
 
     read (unit=10, nml=variables)
-    if (include_ice) nVar = nVar+3
+    if (include_ice) nVar = nVar+4
 
     ! allocate var = (rho,u,v,w,pEx)
     allocate(var(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar),stat=allocstat)
@@ -143,7 +143,7 @@ contains
 
     ! allocate dIce
     if (include_ice) then
-      allocate(dIce(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,3),stat=allocstat)
+      allocate(dIce(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,4),stat=allocstat)
       if(allocstat /= 0) stop "init.f90: Could not allocate dIce."
     end if
 
@@ -209,6 +209,10 @@ contains
     ! read test case name
     read (unit=10, nml=testCaseList)
 
+    if (include_ice) then
+      ! read ice physics parametrization
+      read(unit=10, nml=iceLIst)
+    end if 
 
     ! close input file pinc.f
     close (unit=10)
@@ -472,8 +476,8 @@ contains
 ! modified by Junhong Wei (20161121) *** finishing line ***
     
 
-! on default there is no initial ice or humidity in the atmosphere
-       if (include_ice) var(:,:,:,nVar-2:nVar) = 0.0
+! on default there is no initial ice, humidity or aerosols in the atmosphere
+       if (include_ice) var(:,:,:,nVar-3:nVar) = 0.0
 !---------------------------------------------------------------
 
     select case (testCase)
@@ -747,8 +751,9 @@ contains
 
        ! no initial ice in the atmosphere, but supersaturation SIce=1.5
        if (include_ice) then 
+         var(:,:,:,nVar-3) = init_nAer*var(:,:,:,1) ! to be adapted to variable input value
          var(:,:,:,nVar-2:nVar-1) = 0.0
-         var(:,:,:,nVar) = 1.5*var(:,:,:,1)
+         var(:,:,:,nVar) = init_qv*var(:,:,:,1)
        end if
 
 !---------------------------------------------------------------

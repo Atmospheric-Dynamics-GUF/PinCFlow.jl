@@ -1030,7 +1030,7 @@ contains
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
     ! flux(i,j,k,dir,iFlux) 
     ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
-    ! iFlux = 8..10 > Rho_nIce, Rho_qIce, Rho_SIce
+    ! iFlux = 8..10 > Rho_nIce, Rho_qIce, Rho_qv
 
     ! source terms
     ! 1) divergence error source terms
@@ -1058,12 +1058,12 @@ contains
     do k = 1,nz
        do j = 1,ny
           do i = 1,nx
-             fL = flux(i-1,j,k,1,nVar-2:nVar) ! mass flux across left cell edge
-             fR = flux(i,j,k,1,nVar-2:nVar)   ! right
-             gB = flux(i,j-1,k,2,nVar-2:nVar) ! backward
-             gF = flux(i,j,k,2,nVar-2:nVar)   ! forward
-             hD = flux(i,j,k-1,3,nVar-2:nVar) ! downward
-             hU = flux(i,j,k,3,nVar-2:nVar)   ! upward
+             fL = flux(i-1,j,k,1,nVar-3:nVar) ! mass flux across left cell edge
+             fR = flux(i,j,k,1,nVar-3:nVar)   ! right
+             gB = flux(i,j-1,k,2,nVar-3:nVar) ! backward
+             gF = flux(i,j,k,2,nVar-3:nVar)   ! forward
+             hD = flux(i,j,k-1,3,nVar-3:nVar) ! downward
+             hU = flux(i,j,k,3,nVar-3:nVar)   ! upward
 
              ! convective part
              fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz
@@ -1077,7 +1077,7 @@ contains
              ! subtract divergence error
              if( correctDivError ) then
                 
-                F(:) = F(:) + source(i,j,k,nVar-2:nVar)
+                F(:) = F(:) + source(i,j,k,nVar-3:nVar)
                 
              end if
              
@@ -1089,13 +1089,13 @@ contains
                 q(i,j,k,:) = dt*F(:) + alpha(m) * q(i,j,k,:)
 
                 ! update variables
-                var(i,j,k,nVar-2:nVar) = var(i,j,k,nVar-2:nVar) + beta(m) * q(i,j,k,1:3)
+                var(i,j,k,nVar-3:nVar) = var(i,j,k,nVar-3:nVar) + beta(m) * q(i,j,k,1:4)
 
              case( "classical" )
 
-                var(i,j,k,nVar-2:nVar) = rk(1,m) * var0(i,j,k,nVar-2:nVar) &
-                     &       + rk(2,m) * var (i,j,k,nVar-2:nVar) &
-                     &       + rk(3,m) * dt*F(1:3)
+                var(i,j,k,nVar-3:nVar) = rk(1,m) * var0(i,j,k,nVar-3:nVar) &
+                     &       + rk(2,m) * var (i,j,k,nVar-3:nVar) &
+                     &       + rk(3,m) * dt*F(1:4)
 
              case default
                 stop "iceUpdate: unknown case timeSchemeType"

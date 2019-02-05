@@ -41,18 +41,20 @@ module flux_module
   real, dimension(:,:,:),     allocatable :: vBar
   real, dimension(:,:,:),     allocatable :: wBar
   real, dimension(:,:,:),     allocatable :: thetaBar
+  real, dimension(:,:,:),     allocatable :: nAerBar
   real, dimension(:,:,:),     allocatable :: nIceBar
   real, dimension(:,:,:),     allocatable :: qIceBar
-  real, dimension(:,:,:),     allocatable :: SIceBar
+  real, dimension(:,:,:),     allocatable :: qvBar
 
   real, dimension(:,:,:,:,:), allocatable :: rhoTilde
   real, dimension(:,:,:,:,:), allocatable :: uTilde
   real, dimension(:,:,:,:,:), allocatable :: vTilde
   real, dimension(:,:,:,:,:), allocatable :: wTilde
   real, dimension(:,:,:,:,:), allocatable :: thetaTilde
+  real, dimension(:,:,:,:,:), allocatable :: nAerTilde
   real, dimension(:,:,:,:,:), allocatable :: nIceTilde
   real, dimension(:,:,:,:,:), allocatable :: qIceTilde
-  real, dimension(:,:,:,:,:), allocatable :: SIceTilde
+  real, dimension(:,:,:,:,:), allocatable :: qvTilde
 
   ! public variables
   ! needed for 
@@ -62,7 +64,7 @@ module flux_module
   public :: rhoTilde, thetaTilde
   public :: uTilde, vTilde, wTilde
   public :: rhoOld
-  public :: nIceTilde, qIceTilde, SIceTilde
+  public :: nIceTilde, qIceTilde, qvTilde, nAerTilde
 
 
   ! phiTilde(i,j,k,dir,Left/Right) with
@@ -224,9 +226,10 @@ contains
          if (include_ice) then
           do dir = 1,3
              do lr = 0,1
+                nAerTilde(:,:,:,dir,lr) = var(:,:,:,nVar-3)
                 nIceTilde(:,:,:,dir,lr) = var(:,:,:,nVar-2)
                 qIceTilde(:,:,:,dir,lr) = var(:,:,:,nVar-1)
-                SIceTilde(:,:,:,dir,lr) = var(:,:,:,nVar)
+                qvTilde(:,:,:,dir,lr) = var(:,:,:,nVar)
              end do
           end do
          end if
@@ -271,13 +274,14 @@ contains
 
          if (include_ice) then
            
+          nAerBar(:,:,:)   = var(:,:,:,nVar-3)
           nIceBar(:,:,:)   = var(:,:,:,nVar-2)
           qIceBar(:,:,:)   = var(:,:,:,nVar-1)
-          SIceBar(:,:,:)   = var(:,:,:,nVar)
+          qvBar(:,:,:)   = var(:,:,:,nVar)
 
           call reconstruct_MUSCL(nIceBar,nIceTilde,nxx,nyy,nzz,limiterType1)
           call reconstruct_MUSCL(qIceBar,qIceTilde,nxx,nyy,nzz,limiterType1)
-          call reconstruct_MUSCL(SIceBar,SIceTilde,nxx,nyy,nzz,limiterType1)
+          call reconstruct_MUSCL(qvBar,qvTilde,nxx,nyy,nzz,limiterType1)
 
          end if
 
@@ -329,13 +333,15 @@ contains
 
          if (include_ice) then
            
+          nAerBar(:,:,:)   = var(:,:,:,nVar-3)
           nIceBar(:,:,:)   = var(:,:,:,nVar-2)
           qIceBar(:,:,:)   = var(:,:,:,nVar-1)
-          SIceBar(:,:,:)   = var(:,:,:,nVar)
+          qvBar(:,:,:)   = var(:,:,:,nVar)
 
+          call reconstruct_SALD(nAerBar,nAerTilde)
           call reconstruct_SALD(nIceBar,nIceTilde)
           call reconstruct_SALD(qIceBar,qIceTilde)
-          call reconstruct_SALD(SIceBar,SIceTilde)
+          call reconstruct_SALD(qvBar,qvTilde)
 
          end if
 
@@ -376,13 +382,15 @@ contains
 
          if (include_ice) then
            
+          nAerBar(:,:,:)   = var(:,:,:,nVar-3)
           nIceBar(:,:,:)   = var(:,:,:,nVar-2)
           qIceBar(:,:,:)   = var(:,:,:,nvar-1)
-          SIceBar(:,:,:)   = var(:,:,:,nVar)
+          qvBar(:,:,:)   = var(:,:,:,nVar)
 
+          call reconstruct_ALDM(nAerBar,nAerTilde)
           call reconstruct_ALDM(nIceBar,nIceTilde)
           call reconstruct_ALDM(qIceBar,qIceTilde)
-          call reconstruct_ALDM(SIceBar,SIceTilde)
+          call reconstruct_ALDM(qvBar,qvTilde)
 
          end if
 
@@ -1261,7 +1269,7 @@ contains
     integer :: nqS, dir, k, j, i
 
     ! All ice particles obey the general mass flux
-    do nqS = 0,2  
+    do nqS = 0,3  
       do dir=1,3
         do k = 0,nz
           do j = 1,ny
@@ -1285,25 +1293,49 @@ contains
          & intent(inout) :: source
 
     integer :: k, j, i
-    real :: SIce 
+    real :: SIce, nucleation, deposition
     real :: T ! current temperature in Kelvin
+    real :: p ! current pressure in Pascal
+    real :: m_ice ! mean ice crystal mass
 
         do k = 0,nz
           do j = 1,ny
             do i = 1,nx
-              call find_temperature(T,i,j,k,var)
-              SIce = var(i,j,k,nVar)/var(i,j,k,1) 
+
+              call find_temperature(T,i,j,k,var) 
+              p = p0 * ( ( PStrat(k)+var(i,j,k,5) ) * pRef )**kappaInv
+              SIce = var(i,j,k,nVar)/var(i,j,k,1) * p / epsilon0 / p_saturation(T)
+
+              if (var(i,j,k,nVar-2)==0.0) then
+                 m_ice = init_m_ice 
+              else 
+                 m_ice = var(i,j,k,nVar-1)/var(i,j,k,nVar-2)
+              end if
+
+              nucleation = NUCn(i,j,k,var,SIce,T,p,m_ice) ! nucleation of ice crystals by aerosols
+              deposition = DEPq(i,j,k,var,SIce,T,p,m_ice) ! depositional growth of ice crystals
+
+              ! nAerosol equation
+              source(i,j,k,nVar-3) = var(i,j,k,nVar-3) * source(i,j,k,1) / var(i,j,k,1) &
+                  &  - nucleation 
+
               ! nIce equation
               source(i,j,k,nVar-2) = var(i,j,k,nVar-2) * source(i,j,k,1) / var(i,j,k,1) &
-                 & + var(i,j,k,1)*J0_ice(T)*EXP(A_ice(T)* (SIce - SIce_crit( T) ) )
+              !   & + var(i,j,k,1)*J0_ice(T)*EXP(A_ice(T)* (SIce - SIce_crit( T) ) )
+                  & +  nucleation 
 
               ! qIce equation
               source(i,j,k,nVar-1) = var(i,j,k,nVar-1) * source(i,j,k,1) / var(i,j,k,1) &
-                 & + delta_ice(T)*(SIce-1)*var(i,j,k,nVar-2)
+                ! & + delta_ice(T)*(SIce-1)*var(i,j,k,nVar-2)
+                  & + m_ice * nucleation & 
+                  & + deposition
 
-              ! SIce equation
-              source(i,j,k,nVar) = SIce* source(i,j,k,1) &
-                 & + alpha_ice(T)*var(i,j,k,nVar)- gamma_ice(T)*(SIce-1)*var(i,j,k,nVar-2)
+              ! qv equation
+              source(i,j,k,nVar) = var(i,j,k,nVar) * source(i,j,k,1) / var(i,j,k,1)  &
+                ! & + alpha_ice(T)*var(i,j,k,nVar)- gamma_ice(T)*(SIce-1)*var(i,j,k,nVar-2)
+                  & - m_ice * nucleation &
+                  & - deposition
+                
             end do
           end do
         end do

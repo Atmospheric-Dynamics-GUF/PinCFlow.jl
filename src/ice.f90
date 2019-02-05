@@ -7,13 +7,214 @@ module ice_module
 
   private 
 
-  public :: SIce_crit
+  public :: NUCn, DEPq
+  public :: SIce_crit, p_saturation
   public :: alpha_ice, gamma_ice, delta_ice
   public :: J0_ice, A_ice
-  public :: find_temperature
+  public :: find_temperature, pIce
+  public :: latent_heat_ice
 
+  real, parameter :: Mole_mass_water = 18.01528e-3, Mole_mass_dryAir = 28.9644e-3
+  real, parameter :: epsilon0 = Mole_mass_water/Mole_mass_dryAir
+  real, parameter :: Rv = Rsp/epsilon0  ! specific gas constant for water vapor
+  real, parameter :: cpv = 3.5*Rv ! c_p for water vapor
+  real, parameter :: rhob = 0.81e3 ! mean snowflake density in kg / m**3
+
+  public :: epsilon0
 
 contains
+
+
+  real function latent_heat_ice(T)
+    ! in/out variables
+    real, intent(in) :: T
+    
+    latent_heat_ice = ( 46782.5+35.8925*T-0.07414*T**2 &
+                & +541.5*exp(-1.*(T/123.75)**2) ) / Mole_mass_water 
+
+  end function latent_heat_ice
+
+!----------------------------------------------
+
+  real function approximation_model(SIce,T)
+    ! in/out variables
+    real, intent(in) :: T, SIce 
+
+!    coefficients for linear fit
+      real, parameter :: afit0=-62.192670609121556
+      real, parameter :: afit1=254.77490427507394  
+
+!    coefficients for Koop-Polynom P3
+!    correction +6. is due to the conversion to SI units
+      real, parameter :: pk0=-906.7+6.
+      real, parameter :: pk1=8502.0
+      real, parameter :: pk2=-26924.0
+      real, parameter :: pk3=29180.0
+
+!    correction term from Koop & Murray 2016
+      real, parameter :: delta=1.522
+    
+      real :: delta_aw
+
+  select case (NUC_approx_type)
+
+    case ( "linFit" )
+      delta_aw = (SIce - 1.0) * pIce(T) / p_saturation(T)
+      approximation_model = afit0 - delta + afit1 * delta_aw
+
+    case ( "Koop" )
+      delta_aw = (SIce - 1.0) * pIce(T) / p_saturation(T)
+      approximation_model = pk0 + pk1*delta_aw + pk2*delta_aw**2 &
+       &  + pk3*delta_aw**3 - delta
+
+    case default
+      stop "NUC_approx_type: unknown case model."
+
+  end select
+
+
+  end function approximation_model
+
+!----------------------------------------------
+
+  real function NUCn(i,j,k,var,SIce,T,p,m_ice)
+    ! in/out variables
+    real, intent(in) :: SIce,T,p,m_ice
+    integer, intent(in) :: i,j,k
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(in) :: var
+
+    real :: ice_crystal_volume
+ 
+    ice_crystal_volume = exp(9.*log(sigma_r)*log(sigma_r)/2.) * 4./3*pi*radius_solution**3.
+                         ! correction factor from log-normal distribution
+ 
+    if (SIce .ge. SIce_crit(T)) then 
+      NUCn = var(i,j,k,nVar-3)*10**log(approximation_model(SIce,T))*ice_crystal_volume
+    else 
+      NUCn = 0
+    end if
+
+  end function NUCn
+
+!----------------------------------------------
+
+  real function DEPq(i,j,k,var,SIce,T,p,m_ice)
+    ! in/out variables
+    real, intent(in) :: SIce,T,p,m_ice
+    integer, intent(in) :: i,j,k
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(in) :: var
+
+   ! parameter for calculation
+   real :: lambda, kT, dv, cm, mu, dvstar, how, Schmidt_term
+   real :: corr, lat_heat, fkin, a, b, r, schmidt23, gv
+   real, parameter :: cunn = 0.7, alpham = 0.5
+   real, parameter :: c1 = 0.8198373822 ! = 1.42*r0**(-0.5)
+   real, parameter :: c2 = 1.5
+   real, parameter :: fac_1 = 0.014038499
+   real, parameter :: fac_2 = 0.293369825
+   ! where fac_i = a_i * r0 ** ( 0.5 * b_i * (b_i - 1.) )
+   ! here: a_1 = 0.015755, a_2 = 0.33565, r0 = 3.0 and
+   real, parameter :: b_1 = 0.3, b_2 = 0.43 
+   ! TODO: where do these numbers come from?
+   real, parameter :: av=1.1e6
+   real, parameter :: bv=0.51
+   real, parameter :: cv=0.57
+   real, parameter :: m0=4.4e-9
+   real, parameter :: gv0=0.148564433505542
+
+
+   ! #### find lambda #### !
+   lambda = 6.6e-8 * T/293.15 * 101325./p
+
+
+   ! #### find kT #### !
+   if (kT_linFit) then ! TODO: implement switch variable in input 
+     kT = 0.00122990325719493 + 8.43749062552794e-05*t    
+   else    
+     kT = 0.002646*T**1.5 / (T + 245.*10**(-12./T) )
+   end  if
+
+
+   ! #### find dv #### !
+   if (dv_exp2) then ! TODO: implement switch variable in input
+     dv = 2.142e-05*(T/273.15)**2. * 101325./p
+   else
+     dv = 2.11e-5 * (T/273.15)**1.94 * 101325./p
+   end if
+
+
+   ! #### find cm #### !
+   if (cm_dryAir) then ! TODO: implement switch variable in input
+     cm = sqrt(8.*RSp*T/pi)
+   else
+     cm = sqrt(8.*Rv*T/pi)
+   end if
+
+
+   ! #### find mu #### !
+   if (mu_linFit) then ! TODO: implement switch variable in input
+     mu = 2.14079e-6 + 5.57139e-8 * T
+   else
+     mu = ( 1.458e-6 * T**1.5 ) / ( T + 110.4 )
+   end if
+
+
+   ! #### find dvstar #### !
+   a = lambda * cunn
+   b = 4. * dv / (alpham * cm)
+   r = (3.* c1 * m_ice / (4.*pi*rhob) )**(1./3.)
+   fkin = ( r**2 + a*r ) / ( r**2 + b*r + a*b )
+   dvstar = dv * fkin
+
+
+   ! #### find how #### !
+   corr = 1. ! TODO: include correction for small crystals
+   lat_heat = latent_heat_ice(T) / (Rv * T)
+   how = 1. / ( (lat_heat-1.) * c1 * corr * dv / kT + Rv * T / p )
+
+
+   ! #### find Schmidt_term #### !   
+   corr = (p/ 30000.)**(-0.178) * (T/233.)**(-0.394) 
+     ! correction factor for terminal velocity
+   schmidt23 = (mu / ( var(i,j,k,1) * dv )) **(2./3.)
+   gv = gv0 * schmidt23 * corr * var(i,j,k,1) / mu
+   Schmidt_term = 1. + gv * av * (m_ice*c2)**(bv+cv) * m0**cv / &
+                & ( m_ice**cv + m0**cv )
+
+
+   DEPq = var(i,j,k,nVar-3) * 4*pi * how * &
+        & (fac_1 * m_ice**b_1 + fac_2 * m_ice**b_2) * &
+        & dvstar * Schmidt_term * (SIce-1.0)
+
+  end function DEPq
+
+!----------------------------------------------
+
+  ! from Murphy and Koop, 2005
+  real function pIce(T)  ! ice pressure
+    ! in/out variables
+    real :: T
+      
+    pIce=exp(9.550426-5723.265/T+3.53068*log(T)-0.00728332*T)
+
+  end function pIce
+
+!----------------------------------------------
+
+  ! from Murphy and Koop, 2005
+  real function p_saturation(T)  ! water vapor saturation pressure
+    ! in/out variables
+    real :: T
+
+    p_saturation=exp(54.842763-6763.22/T-4.210*log(T)+0.000367*T &
+        &   +tanh(0.0415*(T-218.8))*(53.878-1331.22/T-9.44523*log(T) &
+       &    +0.014025*T))
+
+  end function p_saturation
+
+!----------------------------------------------
 
   real function SIce_crit(T)
     ! in/out variables
@@ -33,7 +234,7 @@ contains
     ! in/out variables
     real :: T
 
-    alpha_ice = 1 ! to be corrected
+    alpha_ice = 2 ! reference value from table 3 Baumgarten and Spichtinger 2018
 
   end function alpha_ice
 
@@ -43,7 +244,7 @@ contains
     ! in/out variables
     real :: T
 
-    gamma_ice = 1 ! to be corrected
+    gamma_ice = 4.88E-1 ! reference value from table 3 Baumgarten and Spichtinger 2018
 
   end function gamma_ice
 
@@ -53,7 +254,7 @@ contains
     ! in/out variables
     real :: T
 
-    delta_ice = 1 ! to be corrected
+    delta_ice = 1.65-1 ! reference value from table 3 Baumgarten and Spichtinger 2018
 
   end function delta_ice
 
@@ -63,7 +264,7 @@ contains
     ! in/out variables
     real :: T
 
-    J0_ice = 37 ! to be corrected
+    J0_ice = 37 ! reference value from table 3 Baumgarten and Spichtinger 2018
 
   end function J0_ice
 
@@ -73,13 +274,13 @@ contains
     ! in/out variables
     real :: T
 
-    A_ice = 337 ! to be corrected
+    A_ice = 337 ! reference value from table 3 Baumgarten and Spichtinger 2018
 
   end function A_ice
 
 !---------------------------------------------
 
-  ! calculate the current absolute temperature
+  ! calculate the current absolute temperature in Kelvin
   subroutine find_temperature(T,i,j,k,var)
     ! in/out variables
     real, intent(inout) :: T
