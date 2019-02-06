@@ -8,7 +8,7 @@ module ice_module
   private 
 
   public :: NUCn, DEPq
-  public :: SIce_crit, p_saturation
+  public :: SIce_crit, p_saturation, SIce_threshold, awi
   public :: alpha_ice, gamma_ice, delta_ice
   public :: J0_ice, A_ice
   public :: find_temperature, pIce
@@ -19,6 +19,14 @@ module ice_module
   real, parameter :: Rv = Rsp/epsilon0  ! specific gas constant for water vapor
   real, parameter :: cpv = 3.5*Rv ! c_p for water vapor
   real, parameter :: rhob = 0.81e3 ! mean snowflake density in kg / m**3
+
+!coefficients for linear fit of nucleation rate
+  real, parameter :: afit0=-62.192670609121556
+  real, parameter :: afit1=254.77490427507394  
+  real, parameter :: j0 = 16.0
+
+!correction term from Koop & Murray 2016
+  real, parameter :: delta=1.522
 
   public :: epsilon0
 
@@ -40,32 +48,32 @@ contains
     ! in/out variables
     real, intent(in) :: T, SIce 
 
-!    coefficients for linear fit
-      real, parameter :: afit0=-62.192670609121556
-      real, parameter :: afit1=254.77490427507394  
-
 !    coefficients for Koop-Polynom P3
 !    correction +6. is due to the conversion to SI units
       real, parameter :: pk0=-906.7+6.
       real, parameter :: pk1=8502.0
       real, parameter :: pk2=-26924.0
       real, parameter :: pk3=29180.0
-
-!    correction term from Koop & Murray 2016
-      real, parameter :: delta=1.522
     
-      real :: delta_aw
+      real :: delta_aw, awi0
+
+  awi0 = awi(T)
 
   select case (NUC_approx_type)
 
     case ( "linFit" )
-      delta_aw = (SIce - 1.0) * pIce(T) / p_saturation(T)
+      delta_aw = (SIce - 1.0) * awi0
       approximation_model = afit0 - delta + afit1 * delta_aw
 
     case ( "Koop" )
-      delta_aw = (SIce - 1.0) * pIce(T) / p_saturation(T)
+      delta_aw = (SIce - 1.0) * awi0
       approximation_model = pk0 + pk1*delta_aw + pk2*delta_aw**2 &
        &  + pk3*delta_aw**3 - delta
+
+    case ( "threshold" )
+       approximation_model = afit1 * &
+                           & (SIce - SIce_threshold(T,awi0)) * &
+                           & awi0 + j0
 
     case default
       stop "NUC_approx_type: unknown case model."
@@ -130,7 +138,7 @@ contains
 
 
    ! #### find kT #### !
-   if (kT_linFit) then ! TODO: implement switch variable in input 
+   if (kT_linFit) then
      kT = 0.00122990325719493 + 8.43749062552794e-05*t    
    else    
      kT = 0.002646*T**1.5 / (T + 245.*10**(-12./T) )
@@ -138,7 +146,7 @@ contains
 
 
    ! #### find dv #### !
-   if (dv_exp2) then ! TODO: implement switch variable in input
+   if (dv_exp2) then
      dv = 2.142e-05*(T/273.15)**2. * 101325./p
    else
      dv = 2.11e-5 * (T/273.15)**1.94 * 101325./p
@@ -146,7 +154,7 @@ contains
 
 
    ! #### find cm #### !
-   if (cm_dryAir) then ! TODO: implement switch variable in input
+   if (cm_dryAir) then
      cm = sqrt(8.*RSp*T/pi)
    else
      cm = sqrt(8.*Rv*T/pi)
@@ -154,7 +162,7 @@ contains
 
 
    ! #### find mu #### !
-   if (mu_linFit) then ! TODO: implement switch variable in input
+   if (mu_linFit) then
      mu = 2.14079e-6 + 5.57139e-8 * T
    else
      mu = ( 1.458e-6 * T**1.5 ) / ( T + 110.4 )
@@ -218,19 +226,89 @@ contains
 
   real function SIce_crit(T)
     ! in/out variables
-    real :: T
+    real, intent(in) :: T
+    real :: x0, awi0
     ! parameter
-    real :: s0,s1
+  !  real :: s0,s1
 
-   s1 = -3.4057422903191969E-3 
-   s0 = 2.2525409204521596
-   SIce_crit = s0 + s1*T
+  ! s1 = -3.4057422903191969E-3 
+  ! s0 = 2.2525409204521596
+  ! SIce_crit = s0 + s1*T
 
+    x0 = 0
+    awi0 = awi(T)
+    SIce_crit = (x0-j0) / (afit1 * awi0) + SIce_threshold(T,awi0)
   end function SIce_crit
 
 !----------------------------------------------
 
-  real function alpha_ice(T)
+  real function SIce_threshold(T, awi0)
+   ! in/out variables
+    real, intent(in) :: T, awi0
+
+    !coefficients for treshold fit
+      real, parameter :: s10=2.27697
+      real, parameter :: s11=-0.00347231
+      real, parameter :: s20=1.67469
+      real, parameter :: s21=0.00228125
+      real, parameter :: s22=-1.36989e-05
+  
+      select case ( SIce_threshold_type )
+        case ( "linFit" )
+          SIce_threshold = s10 + s11 * T
+
+        case ( "quadFit" )
+          SIce_threshold = s20 + s21 * T + s22 * T**2
+
+        case ( "exact" )
+          SIce_threshold = ( j0 - afit0 - delta ) / ( afit1 * awi0 ) +1.
+  
+        case default
+      stop "SIce_threshold_type: unknown case model."
+
+  end select
+
+  end function SIce_threshold
+
+!----------------------------------------------
+
+  real function awi(T)
+    ! in/out variables
+    real, intent(in) :: T
+      
+    ! fit coefficients
+    real, parameter :: awi00=0.574312
+    real, parameter :: awi10=-0.197855
+    real, parameter :: awi11=0.00367699
+    real, parameter :: awi20=1.4962
+    real, parameter :: awi21=-0.0125061
+    real, parameter :: awi22=3.85311e-05
+
+    select case ( awi_type )
+   
+      case ( "const" )
+        awi = awi00
+
+      case ( "linFit" )
+        awi = awi10 + awi11 * T
+
+      case ( "quadFit" )
+        awi =awi20 + awi21 * T + awi22 * T**2 
+
+      case ( "exact" )
+        awi = pIce(T) / p_saturation (T)
+
+      case default
+        stop "awi_type: unknown case model."
+
+    end select
+
+
+  end function awi
+
+!----------------------------------------------
+
+  real function alpha_ice(T) ! TODO: delete?
     ! in/out variables
     real :: T
 
@@ -240,7 +318,7 @@ contains
 
 !---------------------------------------------
 
-  real function gamma_ice(T)
+  real function gamma_ice(T) ! TODO: delete?
     ! in/out variables
     real :: T
 
@@ -250,7 +328,7 @@ contains
 
 !---------------------------------------------
  
- real function delta_ice(T)
+ real function delta_ice(T) ! TODO: delete?
     ! in/out variables
     real :: T
 
@@ -260,7 +338,7 @@ contains
 
 !---------------------------------------------
 
-  real function J0_ice(T)
+  real function J0_ice(T) ! TODO: delete?
     ! in/out variables
     real :: T
 
@@ -270,7 +348,7 @@ contains
 
 !---------------------------------------------
 
-  real function A_ice(T)
+  real function A_ice(T) ! TODO: delete?
     ! in/out variables
     real :: T
 

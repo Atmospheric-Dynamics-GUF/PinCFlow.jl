@@ -1038,18 +1038,18 @@ contains
          & intent(in) :: source
     
     real, intent(in) :: dt
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,3), &
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,4), &
          & intent(inout) :: q
 
     integer, intent(in) :: m
     
     ! local variables
     integer :: i,j,k,l
-    real, dimension(3)    :: fL,fR        ! flux Left/Right
-    real, dimension(3)    :: gB,gF        ! flux Backward/Forward
-    real, dimension(3)    :: hD,hU        ! flux Downward/Upward
-    real, dimension(3)    :: fluxDiff         ! convective part
-    real, dimension(3)    :: F            ! F(phi)
+    real, dimension(4)    :: fL,fR        ! flux Left/Right
+    real, dimension(4)    :: gB,gF        ! flux Backward/Forward
+    real, dimension(4)    :: hD,hU        ! flux Downward/Upward
+    real, dimension(4)    :: fluxDiff         ! convective part
+    real, dimension(4)    :: F            ! F(phi)
     
 
     ! init q

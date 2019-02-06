@@ -357,12 +357,14 @@
   init_m_ice = 1.e-16 ! TODO: fix value
   radius_solution = 75.e-9   ! TODO: fix value
   sigma_r = 1.5 ! TODO: fix value
-  NUC_approx_type = "Koop"   ! "Koop" or "linFit"
+  NUC_approx_type = "Koop"   ! "Koop", "linFit", "threshold"
 ! switch approximations on/off
   kT_linFit = .false.
   dv_exp2 = .false. 
   cm_dryAir = .false.
   mu_linFit = .false.
+  awi_type = "exact" ! possible: "const", "linFit", "quadFit", "exact"
+  SIce_threshold_type = "exact" ! possible: "linFit", "quadFit", "exact"
 &end
 
 !----------------
