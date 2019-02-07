@@ -490,6 +490,77 @@ contains
        !end if ! updateTheta
 
 
+       !------------------------------------------------
+       !   ice variable transport: iVar = nVar-4, nVar
+       !------------------------------------------------
+
+       if ( include_ice .and. updateIce ) then
+
+        do iVar = nVar-4,nVar
+
+          ! slice size
+          sendcount = nbx*(ny+2*nby+1)*nz
+          recvcount = sendcount
+
+
+          ! read slice into contiguous array
+          do i = 1,nbx
+             xRhoSliceLeft_send (i,-nby:ny+nby,1:nz) &
+           & = var(i,-nby:ny+nby,1:nz,iVar)
+             xRhoSliceRight_send(i,-nby:ny+nby,1:nz) &
+           & = var(nx-nbx+i,-nby:ny+nby,1:nz,iVar)
+          end do
+
+          if ( idim > 1 ) then
+
+             ! left -> right
+             source = left
+             dest = right
+             tag = 100
+
+             i0 = 1; j0 = -nby; k0 = 1
+
+             call mpi_sendrecv(xRhoSliceRight_send(i0,j0,k0), sendcount, &
+                  & mpi_double_precision, dest, tag, &
+                  & xRhoSliceLeft_recv(i0,j0,k0), recvcount, &
+                  & mpi_double_precision, &
+                  & source, mpi_any_tag, comm, sts_left, ierror)
+
+             ! right -> left
+             source = right
+             dest = left
+             tag = 100
+
+             call mpi_sendrecv(xRhoSliceLeft_send(i0,j0,k0), sendcount, &
+                  & mpi_double_precision, dest, tag, &
+                  & xRhoSliceRight_recv(i0,j0,k0), recvcount, &
+                  & mpi_double_precision, &
+                  & source, mpi_any_tag, comm, sts_right, ierror)
+
+             ! write auxiliary slice to var field
+             do i = 1,nbx
+
+                ! right halos
+                var(nx+i,-nby:ny+nby,1:nz,iVar) &
+              & = xRhoSliceRight_recv(i,-nby:ny+nby,1:nz)
+
+                ! left halos
+                var(-nbx+i,-nby:ny+nby,1:nz,iVar) &
+              & = xRhoSliceLeft_recv(i,-nby:ny+nby,1:nz)
+
+             end do
+
+          end if
+
+          if(verbose .and. master) print*,"horizontalHalos: &
+               & x-horizontal halos copied."
+
+        end do
+
+       end if
+
+
+
        !------------------------------
        !          y-direction
        !------------------------------
@@ -872,6 +943,76 @@ contains
 
        !end if ! updateTheta
 
+
+       !------------------------------------------------
+       !   ice variable transport: iVar = nVar-4, nVar
+       !------------------------------------------------
+
+       if ( include_ice .and. updateIce ) then
+
+        do iVar = nVar-4,nVar
+          ! slice size
+          sendcount = nby*(nx+2*nbx+1)*nz
+          recvcount = sendcount
+
+
+          ! read slice into contiguous array
+          do j = 1, nby
+             yRhoSliceBack_send(-nbx:nx+nbx,j,1:nz) &
+           & = var(-nbx:nx+nbx,j,1:nz,iVar)
+             yRhoSliceForw_send(-nbx:nx+nbx,j,1:nz) &
+           & = var(-nbx:nx+nbx,ny-nby+j,1:nz,iVar)
+          end do
+
+          if( jdim > 1 ) then
+
+             ! back -> forw
+             source = back
+             dest = forw
+             tag = 100
+             
+             i0 = -nbx; j0 = 1; k0 = 1
+
+             call mpi_sendrecv(yRhoSliceForw_send(i0,j0,k0), sendcount, &
+                  & mpi_double_precision, dest, tag, &
+                  & yRhoSliceBack_recv(i0,j0,k0), recvcount, &
+                  & mpi_double_precision, &
+                  & source, mpi_any_tag, comm, sts_back, ierror)
+
+             ! forw -> back
+             source = forw
+             dest = back
+             tag = 100
+
+             call mpi_sendrecv(yRhoSliceBack_send(i0,j0,k0), sendcount, &
+                  & mpi_double_precision, dest, tag, &
+                  & yRhoSliceForw_recv(i0,j0,k0), recvcount, &
+                  & mpi_double_precision, &
+                  & source, mpi_any_tag, comm, sts_forw, ierror)
+
+             ! write auxiliary slice to var field
+             do j = 1, nby
+
+                ! right halos
+                var(-nbx:nx+nbx,ny+j,1:nz,iVar) &
+              & = yRhoSliceForw_recv(-nbx:nx+nbx,j,1:nz)
+
+                ! left halos
+                var(-nbx:nx+nbx,-nby+j,1:nz,iVar) &
+              & = yRhoSliceBack_recv(-nbx:nx+nbx,j,1:nz)
+
+             end do
+
+          end if
+
+          if(verbose .and. master) print*,"horizontalHalos: &
+               & x-horizontal halos copied."
+
+        end do
+
+       end if 
+
+!---------------------------------------------------------------------------
 
     case( "varTilde" )
 
