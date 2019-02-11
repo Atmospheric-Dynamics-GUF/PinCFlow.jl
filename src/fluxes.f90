@@ -19,6 +19,7 @@ module flux_module
   public :: thetaFlux
   public :: momentumFlux
   public :: iceFlux
+  public :: iceSedimentationFlux
   public :: volumeForce
 ! achatzb old topographic scheme removed
 ! public :: bottomTopography
@@ -1268,12 +1269,33 @@ contains
 
     integer :: nqS, dir, k, j, i
 
-    ! All ice particles obey the general mass flux
-    do nqS = 0,3  
-      do dir=1,3
-        do k = 0,nz
-          do j = 1,ny
-            do i = 1,nx
+    ! All ice particles obey the general mass flux in x and y direction
+    if ( fluctuationMode ) then
+
+    do k = 0,nz
+      do j = 0,ny
+        do i = 0,nx              
+          call iceSedimentationFlux(i,j,k,var,flux)     
+          ! The ice flux in z-direction has to be calculated taking into account the 
+          ! terminal sedimentation speed of ice crystals
+          do nqS = 0,3 
+            do dir=1,2
+              flux(i,j,k,dir,nVar-nqS) = var(i,j,k,nVar-nqS) * flux(i,j,k,dir,1) / &
+                             & ( var(i,j,k,1) + rhoStrat(k) )
+            end do
+          end do
+        end do
+      end do
+    end do
+
+    else
+
+    do k = 0,nz
+      do j = 0,ny
+        do i = 0,nx              
+          call iceSedimentationFlux(i,j,k,var,flux)      
+          do nqS = 0,3     
+            do dir=1,2
               flux(i,j,k,dir,nVar-nqS) = var(i,j,k,nVar-nqS) * flux(i,j,k,dir,1) / var(i,j,k,1)
             end do
           end do
@@ -1281,8 +1303,147 @@ contains
       end do
     end do
 
+    end if
+
+
+
   end subroutine iceFlux
 
+!----------------------------------------------------------
+
+  subroutine iceSedimentationFlux(i,j,k,var,flux)
+  ! inspired by massFlux in vertical direction, but here the 
+  ! vertical wind is superposed with the terminal velocity for ice crystals 
+    ! in/out variables
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(in) :: var
+
+    real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), &
+         & intent(inout) :: flux
+    ! flux(i,j,k,dir,iFlux) 
+    ! dir = 1..3 > f,g,h-flux in x,y,z-direction
+
+    integer, intent(in) :: k, j, i
+
+    integer :: nqS
+    real :: UpFlux, DownFlux, TotFlux, wU, wD
+    real :: delta_w, wSurf, coef_t, d_dxi, m_ice
+
+    real, parameter :: Pr_t_DySma = 0.5 
+  
+    if (var(i,j,k,nVar-2)==0.0) then
+      m_ice = init_m_ice 
+    else
+      m_ice = var(i,j,k,nVar-1)/var(i,j,k,nVar-2)
+    end if
+    
+    select case( model )
+      case( "pseudo_incompressible" )
+        coef_t = mu_conduct * rhoStrat(1)/rhoStrat(k)
+      case( "Boussinesq" )
+        coef_t = mu_conduct
+      case default
+        stop "diffusivity: unkown case model."
+      end select
+
+    if ( DySmaScheme ) then
+      coef_t = coef_t + 0.5*( var(i,j,k,7) + var(i+1,j,k,7) )/Pr_t_DySma
+    end if
+     
+    select case( fluxType )
+
+        case( "central" )
+          do nqS = 0,3
+            UpFlux = var(i,j,k+1,nVar-nqS) 
+            DownFLux = var(i,j,k,nVar-nqS)
+            select case (nqS)
+              case(1)
+                wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice)
+              case(2)
+                wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice)
+              case default
+                wSurf = var(i,j,k,4)
+            end select
+            TotFlux = wSurf * 0.5*(DownFlux + UpFlux) 
+            d_dxi = ( UpFlux - DownFlux) / dz
+            
+          end do                  
+
+        case( "upwind" )
+          do nqS = 0,3
+            UpFlux = var(i,j,k+1,nVar-nqS) 
+            DownFLux = var(i,j,k,nVar-nqS)
+            d_dxi = ( UpFlux - DownFlux) / dz 
+            select case (nqS)
+              case(0)
+                wSurf = var(i,j,k,4)
+                UpFlux = qvTilde(i,j,k+1,3,0)
+                DownFlux = qvTilde(i,j,k,3,1)               
+              case(1)
+                wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice)
+                UpFlux = qIceTilde(i,j,k+1,3,0)
+                DownFlux = qIceTilde(i,j,k,3,1)
+              case(2)
+                wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice)
+                UpFlux = nIceTilde(i,j,k+1,3,0)
+                DownFlux = nIceTilde(i,j,k,3,1)
+              case(3)
+                wSurf = var(i,j,k,4)
+                UpFlux = nAerTilde(i,j,k+1,3,0)
+                DownFlux = nAerTilde(i,j,k,3,1)
+              case default
+                stop "Bug in iceSedimentationFlux" 
+            end select
+            TotFlux = flux_muscl(wSurf,DownFlux,UpFlux)
+            flux(i,j,k,3,nVar-nqS) = TotFlux - coef_t * d_dxi
+          end do
+
+        case( "ILES" )
+          do nqS = 0,3
+            UpFlux = var(i,j,k+1,nVar-nqS) 
+            DownFLux = var(i,j,k,nVar-nqS)
+            d_dxi = ( UpFlux - DownFlux) / dz 
+            select case (nqS)
+              case(0)
+                wD = wTilde(i,j,k,3,0)
+                wU = wTilde(i,j,k,3,1)
+                wSurf = var(i,j,k,4)
+                UpFlux = qvTilde(i,j,k+1,3,0)
+                DownFlux = qvTilde(i,j,k,3,1)               
+              case(1)
+                delta_w = - terminal_v_qIce(m_ice)
+                wD = wTilde(i,j,k,3,0) + delta_w
+                wU = wTilde(i,j,k,3,1) + delta_w
+                wSurf = var(i,j,k,4) + delta_w
+                UpFlux = qIceTilde(i,j,k+1,3,0)
+                DownFlux = qIceTilde(i,j,k,3,1)
+              case(2)
+                delta_w = - terminal_v_nIce(m_ice)
+                wD = wTilde(i,j,k,3,0) + delta_w
+                wU = wTilde(i,j,k,3,1) + delta_w
+                wSurf = var(i,j,k,4) + delta_w
+                UpFlux = nIceTilde(i,j,k+1,3,0)
+                DownFlux = nIceTilde(i,j,k,3,1)
+              case(3)
+                wSurf = var(i,j,k,4)
+                UpFlux = nAerTilde(i,j,k+1,3,0)
+                DownFlux = nAerTilde(i,j,k,3,1)
+              case default
+                stop "Bug in iceSedimentationFlux" 
+            end select
+            TotFlux = flux_aldm(DownFlux,UpFlux,wSurf,&
+                        &             DownFlux,UpFlux,wU,wD,sigmaC)
+            flux(i,j,k,3,nVar-nqS) = TotFlux - coef_t * d_dxi
+          end do
+        
+        case default
+                stop "iceSedimentationFlux: unknown case fluxType"
+      
+      end select
+
+  end subroutine iceSedimentationFlux
+
+!---------------------------------------------------------
 
   subroutine iceSource (var, source)
     ! in/out variables
@@ -1292,19 +1453,29 @@ contains
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(inout) :: source
 
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: rho
+
     integer :: k, j, i
     real :: SIce, nucleation, deposition
     real :: T ! current temperature in Kelvin
     real :: p ! current pressure in Pascal
     real :: m_ice ! mean ice crystal mass
 
-        do k = 0,nz
+        if ( fluctuationMode ) then
+          do k = -nbz,nz+nbz
+            rho(:,:,k) = var(:,:,k,1)+rhoStrat(k) 
+          end do
+        else
+          rho = var(:,:,:,1)
+        end if 
+
+        do k = 1,nz
           do j = 1,ny
             do i = 1,nx
 
               call find_temperature(T,i,j,k,var) 
               p = p0 * ( ( PStrat(k)+var(i,j,k,5) ) * pRef )**kappaInv
-              SIce = var(i,j,k,nVar)/var(i,j,k,1) * p / epsilon0 / p_saturation(T)
+              SIce = var(i,j,k,nVar) / rho(i,j,k) * p / epsilon0 / p_saturation(T)
 
               if (var(i,j,k,nVar-2)==0.0) then
                  m_ice = init_m_ice 
@@ -1317,22 +1488,22 @@ contains
               ! TODO: implement evaporation, e.g. by: evaporation = 1/m_ice*min(deposition,0.)
 
               ! nAerosol equation
-              source(i,j,k,nVar-3) = var(i,j,k,nVar-3) * source(i,j,k,1) / var(i,j,k,1) &
+              source(i,j,k,nVar-3) = var(i,j,k,nVar-3) * source(i,j,k,1) / rho(i,j,k) &
                   &  - nucleation 
 
               ! nIce equation
-              source(i,j,k,nVar-2) = var(i,j,k,nVar-2) * source(i,j,k,1) / var(i,j,k,1) &
+              source(i,j,k,nVar-2) = var(i,j,k,nVar-2) * source(i,j,k,1) / rho(i,j,k) &
               !   & + var(i,j,k,1)*J0_ice(T)*EXP(A_ice(T)* (SIce - SIce_crit( T) ) )
                   & +  nucleation 
 
               ! qIce equation
-              source(i,j,k,nVar-1) = var(i,j,k,nVar-1) * source(i,j,k,1) / var(i,j,k,1) &
+              source(i,j,k,nVar-1) = var(i,j,k,nVar-1) * source(i,j,k,1) / rho(i,j,k) &
                 ! & + delta_ice(T)*(SIce-1)*var(i,j,k,nVar-2)
                   & + m_ice * nucleation & 
                   & + deposition
 
               ! qv equation
-              source(i,j,k,nVar) = var(i,j,k,nVar) * source(i,j,k,1) / var(i,j,k,1)  &
+              source(i,j,k,nVar) = var(i,j,k,nVar) * source(i,j,k,1) / rho(i,j,k)  &
                 ! & + alpha_ice(T)*var(i,j,k,nVar)- gamma_ice(T)*(SIce-1)*var(i,j,k,nVar-2)
                   & - m_ice * nucleation &
                   & - deposition

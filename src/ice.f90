@@ -13,6 +13,7 @@ module ice_module
   public :: J0_ice, A_ice
   public :: find_temperature, pIce
   public :: latent_heat_ice
+  public :: terminal_v_nIce, terminal_v_qIce
 
   real, parameter :: Mole_mass_water = 18.01528e-3, Mole_mass_dryAir = 28.9644e-3
   real, parameter :: epsilon0 = Mole_mass_water/Mole_mass_dryAir
@@ -32,6 +33,48 @@ module ice_module
 
 contains
 
+
+  real function terminal_v_nIce(m_ice)
+    ! in/out variables
+    real, intent(in) :: m_ice
+
+    ! parameters from fit
+    real, parameter :: r0 = 3.
+    real, parameter :: a = 63292.37, b = 0.5727273
+    real, parameter :: c = 1.1
+    real, parameter :: m0 = 2.35e-8
+    real, parameter :: an = a * r0**( 0.5 * b * (b-1.) )
+    real :: ex1, ex2
+
+    ex1=b*c
+    ex2=1./c
+      
+    terminal_v_nIce = an * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
+      
+  end function terminal_v_nIce
+
+!----------------------------------------------
+
+  real function terminal_v_qIce(m_ice)
+    ! in/out variables
+    real, intent(in) :: m_ice
+
+    ! parameters from fit
+    real, parameter :: r0 = 3.
+    real, parameter :: a = 63292.37, b = 0.5727273
+    real, parameter :: c = 1.1
+    real, parameter :: m0 = 8.e-9
+    real, parameter :: aq= a * r0**( 0.5 * b * (b+1.) )
+    real :: ex1, ex2
+
+    ex1 = b*c
+    ex2 = 1./c
+      
+    terminal_v_qIce = aq * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
+      
+  end
+
+!----------------------------------------------
 
   real function latent_heat_ice(T)
     ! in/out variables
