@@ -194,7 +194,7 @@ contains
     ! read output specifications
     read (unit=10, nml=outputList)
     if (include_ice) then
-      forall (i=0:2)
+      forall (i=0:2)  ! nAer is not printed out on default!
         varOut(nVar-i) = 1
         varIn(nVar-i) = 1
       end forall
@@ -749,14 +749,14 @@ contains
           var(:,j,:,3) = 0.5*( var(:,j,:,3) + var(:,j+1,:,3) )
        end do
 
-       ! no initial ice in the atmosphere, but supersaturation SIce=1.5
+       ! no initial ice in the atmosphere, but supersaturation
        if (include_ice) then 
          if (fluctuationMode) then
+           var(:,:,:,nVar-3) = init_nAer*(var(:,:,:,1)+rhoStrat(k))
+           var(:,:,:,nVar) = init_qv*(var(:,:,:,1)+rhoStrat(k))           
+         else
            var(:,:,:,nVar-3) = init_nAer*var(:,:,:,1)
            var(:,:,:,nVar) = init_qv*var(:,:,:,1)
-         else
-           var(:,:,:,nVar-3) = init_nAer*(var(:,:,:,1)+rhoStrat(k))
-           var(:,:,:,nVar) = init_qv*(var(:,:,:,1)+rhoStrat(k))
          end if
          var(:,:,:,nVar-2:nVar-1) = 0.0
        end if

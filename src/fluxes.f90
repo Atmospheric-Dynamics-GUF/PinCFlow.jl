@@ -1366,7 +1366,6 @@ contains
             end select
             TotFlux = wSurf * 0.5*(DownFlux + UpFlux) 
             d_dxi = ( UpFlux - DownFlux) / dz
-            
           end do                  
 
         case( "upwind" )
@@ -1485,16 +1484,15 @@ contains
 
               nucleation = NUCn(i,j,k,var,SIce,T,p,m_ice) ! nucleation of ice crystals by aerosols
               deposition = DEPq(i,j,k,var,SIce,T,p,m_ice) ! depositional growth of ice crystals
-              ! TODO: implement evaporation, e.g. by: evaporation = 1/m_ice*min(deposition,0.)
 
               ! nAerosol equation
               source(i,j,k,nVar-3) = var(i,j,k,nVar-3) * source(i,j,k,1) / rho(i,j,k) &
-                  &  - nucleation 
+                  &  - nucleation - 1/m_ice * min(0,deposition)
 
               ! nIce equation
               source(i,j,k,nVar-2) = var(i,j,k,nVar-2) * source(i,j,k,1) / rho(i,j,k) &
               !   & + var(i,j,k,1)*J0_ice(T)*EXP(A_ice(T)* (SIce - SIce_crit( T) ) )
-                  & +  nucleation 
+                  & +  nucleation + 1/m_ice * min(0,deposition)
 
               ! qIce equation
               source(i,j,k,nVar-1) = var(i,j,k,nVar-1) * source(i,j,k,1) / rho(i,j,k) &
