@@ -352,9 +352,9 @@
 
 &iceList
 
-  init_nAer = 2.0e8 ! TODO: fix value
-  init_qv = 1.e-4 ! TODO: fix value
-  init_m_ice = 1.e-16 ! TODO: fix value
+  init_nAer = 2.0e8 ! initial aerosol number concentration in 1/kg
+  init_qv = 1.e-4 ! initital specific humidity
+  init_m_ice = 1.e-16 ! initial mean ice crystal mass in kg
   radius_solution = 75.e-9   ! TODO: fix value
   sigma_r = 1.5 ! TODO: fix value
   NUC_approx_type = "Koop"   ! "Koop", "linFit", "threshold"

@@ -1334,7 +1334,7 @@ contains
     if (var(i,j,k,nVar-2)==0.0) then
       m_ice = init_m_ice 
     else
-      m_ice = var(i,j,k,nVar-1)/var(i,j,k,nVar-2)
+      m_ice = var(i,j,k,nVar-1)/var(i,j,k,nVar-2) * rhoRef * lRef**3
     end if
     
     select case( model )
@@ -1358,9 +1358,9 @@ contains
             DownFLux = var(i,j,k,nVar-nqS)
             select case (nqS)
               case(1)
-                wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice)
+                wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice) / uRef
               case(2)
-                wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice)
+                wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice) / uRef
               case default
                 wSurf = var(i,j,k,4)
             end select
@@ -1379,11 +1379,11 @@ contains
                 UpFlux = qvTilde(i,j,k+1,3,0)
                 DownFlux = qvTilde(i,j,k,3,1)               
               case(1)
-                wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice)
+                wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice) / uRef
                 UpFlux = qIceTilde(i,j,k+1,3,0)
                 DownFlux = qIceTilde(i,j,k,3,1)
               case(2)
-                wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice)
+                wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice) / uRef
                 UpFlux = nIceTilde(i,j,k+1,3,0)
                 DownFlux = nIceTilde(i,j,k,3,1)
               case(3)
@@ -1410,14 +1410,14 @@ contains
                 UpFlux = qvTilde(i,j,k+1,3,0)
                 DownFlux = qvTilde(i,j,k,3,1)               
               case(1)
-                delta_w = - terminal_v_qIce(m_ice)
+                delta_w = - terminal_v_qIce(m_ice) / uRef
                 wD = wTilde(i,j,k,3,0) + delta_w
                 wU = wTilde(i,j,k,3,1) + delta_w
                 wSurf = var(i,j,k,4) + delta_w
                 UpFlux = qIceTilde(i,j,k+1,3,0)
                 DownFlux = qIceTilde(i,j,k,3,1)
               case(2)
-                delta_w = - terminal_v_nIce(m_ice)
+                delta_w = - terminal_v_nIce(m_ice) / uRef
                 wD = wTilde(i,j,k,3,0) + delta_w
                 wU = wTilde(i,j,k,3,1) + delta_w
                 wSurf = var(i,j,k,4) + delta_w
@@ -1458,7 +1458,7 @@ contains
     real :: SIce, nucleation, deposition
     real :: T ! current temperature in Kelvin
     real :: p ! current pressure in Pascal
-    real :: m_ice ! mean ice crystal mass
+    real :: m_ice ! mean ice crystal mass in kg
 
         if ( fluctuationMode ) then
           do k = -nbz,nz+nbz
@@ -1479,7 +1479,7 @@ contains
               if (var(i,j,k,nVar-2)==0.0) then
                  m_ice = init_m_ice 
               else 
-                 m_ice = var(i,j,k,nVar-1)/var(i,j,k,nVar-2)
+                 m_ice = var(i,j,k,nVar-1) / var(i,j,k,nVar-2) * rhoRef * lRef**3
               end if
 
               nucleation = NUCn(i,j,k,var,SIce,T,p,m_ice) ! nucleation of ice crystals by aerosols
@@ -1487,23 +1487,23 @@ contains
 
               ! nAerosol equation
               source(i,j,k,nVar-3) = var(i,j,k,nVar-3) * source(i,j,k,1) / rho(i,j,k) &
-                  &  - nucleation - 1/m_ice * min(0,deposition)
+                  &  - nucleation - 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
 
               ! nIce equation
               source(i,j,k,nVar-2) = var(i,j,k,nVar-2) * source(i,j,k,1) / rho(i,j,k) &
               !   & + var(i,j,k,1)*J0_ice(T)*EXP(A_ice(T)* (SIce - SIce_crit( T) ) )
-                  & +  nucleation + 1/m_ice * min(0,deposition)
+                  & +  nucleation + 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
 
               ! qIce equation
               source(i,j,k,nVar-1) = var(i,j,k,nVar-1) * source(i,j,k,1) / rho(i,j,k) &
                 ! & + delta_ice(T)*(SIce-1)*var(i,j,k,nVar-2)
-                  & + m_ice * nucleation & 
+                  & + m_ice / (rhoRef * lRef**3) * nucleation & 
                   & + deposition
 
               ! qv equation
               source(i,j,k,nVar) = var(i,j,k,nVar) * source(i,j,k,1) / rho(i,j,k)  &
                 ! & + alpha_ice(T)*var(i,j,k,nVar)- gamma_ice(T)*(SIce-1)*var(i,j,k,nVar-2)
-                  & - m_ice * nucleation &
+                  & - m_ice / (rhoRef * lRef**3) * nucleation &
                   & - deposition
                 
             end do

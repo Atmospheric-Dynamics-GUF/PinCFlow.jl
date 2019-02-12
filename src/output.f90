@@ -224,17 +224,15 @@ contains
              !--------------------------------------
                       ! NEW: ice cases !
                          if (iVar==nVar-3) then
-                           field_prc(i,j) = real(var(i,j,k,iVar)/var(i,j,k,1),kind=4) 
-                            ! might be better to include a reference unit for nAer here
+                           field_prc(i,j) = real(var(i,j,k,iVar) &
+                                         & / ( var(i,j,k,1)* rhoRef * lRef**3 ),kind=4) 
                          else if (iVar==nVar-2) then 
-                           field_prc(i,j) = real(var(i,j,k,iVar)/var(i,j,k,1),kind=4) 
-                            ! might be better to include a reference unit for nIce here
+                           field_prc(i,j) =  real(var(i,j,k,iVar) &
+                                         & / ( var(i,j,k,1)* rhoRef * lRef**3 ),kind=4) 
                          else if (iVar==nVar-1) then
                             field_prc(i,j) = real(var(i,j,k,iVar)/var(i,j,k,1),kind=4) 
-                             ! might be better to include a reference unit for qIce here
                          else if (iVar==nVar) then
                             field_prc(i,j) = real(var(i,j,k,iVar)/var(i,j,k,1),kind=4) 
-                             ! might be better to include a reference unit for qv here
               !---------------------------------
                          else 
                            stop "tec360: unkown iVar"
@@ -440,9 +438,9 @@ contains
                   !--------------------------------------
                       ! NEW: ice cases !    ! might be better to include reference units here
                          if (iVar==nVar-3) then ! aerosol particle number concentration nAer
-                            var(i,j,k,iVar) = field_prc(i,j) * var(i,j,k,1)              
+                            var(i,j,k,iVar) = field_prc(i,j) * rhoRef * lRef**3 * var(i,j,k,1)              
                          else if (iVar==nVar-2) then ! ice particle number concentration nIce
-                            var(i,j,k,iVar) = field_prc(i,j) * var(i,j,k,1)
+                            var(i,j,k,iVar) = field_prc(i,j) * rhoRef * lRef**3 * var(i,j,k,1)
                          else if (iVar==nVar-1) then  ! ice particle mass concentration qIce
                             var(i,j,k,iVar) = field_prc(i,j) * var(i,j,k,1)
                          else if (iVar==nVar) then ! water vapor mass concentration qv

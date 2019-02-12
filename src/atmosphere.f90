@@ -17,10 +17,10 @@ module atmosphere_module
 
 
   ! reference quantites
-  real :: rhoRef     ! refenrece density
-  real :: pRef       ! refenrece pressure
-  real :: uRef, aRef ! refenrece velocity / speed of sound
-  real :: lRef       ! refenrece length / pressure scale height h_sc
+  real :: rhoRef     ! reference density
+  real :: pRef       ! reference pressure
+  real :: uRef, aRef ! reference velocity / speed of sound
+  real :: lRef       ! reference length / pressure scale height h_sc
   real :: tRef       ! ref time (time acoustic signal needs to pass domain)
   real :: thetaRef   ! ref (potential) temperature   (Tref  = thetaRef)
   real :: Fref       ! reference force

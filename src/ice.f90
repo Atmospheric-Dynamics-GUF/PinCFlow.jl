@@ -33,7 +33,7 @@ module ice_module
 
 contains
 
-
+! returns terminal sedimentation velocity of nIce in m/s
   real function terminal_v_nIce(m_ice)
     ! in/out variables
     real, intent(in) :: m_ice
@@ -55,6 +55,7 @@ contains
 
 !----------------------------------------------
 
+! returns terminal sedimentation velocity of qIce in m/s
   real function terminal_v_qIce(m_ice)
     ! in/out variables
     real, intent(in) :: m_ice
@@ -137,7 +138,7 @@ contains
 
     real :: ice_crystal_volume
  
-    ice_crystal_volume = exp(9.*log(sigma_r)*log(sigma_r)/2.) * 4./3*pi*radius_solution**3.
+    ice_crystal_volume = exp(9. * log(sigma_r)**2 / 2.) * 4./3*pi*radius_solution**3.
                          ! correction factor from log-normal distribution
  
     if (SIce .ge. SIce_crit(T)) then 
@@ -235,7 +236,7 @@ contains
                 & ( m_ice**cv + m0**cv )
 
 
-   DEPq = var(i,j,k,nVar-3) * 4*pi * how * &
+   DEPq = var(i,j,k,nVar-2) * 4*pi * how * &
         & (fac_1 * m_ice**b_1 + fac_2 * m_ice**b_2) * &
         & dvstar * Schmidt_term * (SIce-1.0)
 

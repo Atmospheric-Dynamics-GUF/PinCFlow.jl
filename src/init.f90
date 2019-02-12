@@ -752,11 +752,11 @@ contains
        ! no initial ice in the atmosphere, but supersaturation
        if (include_ice) then 
          if (fluctuationMode) then
-           var(:,:,:,nVar-3) = init_nAer*(var(:,:,:,1)+rhoStrat(k))
-           var(:,:,:,nVar) = init_qv*(var(:,:,:,1)+rhoStrat(k))           
+           var(:,:,:,nVar-3) = init_nAer * rhoRef * lRef**3 * (var(:,:,:,1)+rhoStrat(k))
+           var(:,:,:,nVar) = init_qv * (var(:,:,:,1)+rhoStrat(k))           
          else
-           var(:,:,:,nVar-3) = init_nAer*var(:,:,:,1)
-           var(:,:,:,nVar) = init_qv*var(:,:,:,1)
+           var(:,:,:,nVar-3) = init_nAer * rhoRef * lRef**3 * var(:,:,:,1)
+           var(:,:,:,nVar) = init_qv * var(:,:,:,1)
          end if
          var(:,:,:,nVar-2:nVar-1) = 0.0
        end if
