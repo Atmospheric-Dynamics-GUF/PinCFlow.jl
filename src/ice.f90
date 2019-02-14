@@ -142,7 +142,7 @@ contains
                          ! correction factor from log-normal distribution
  
     if (SIce .ge. SIce_crit(T)) then 
-      NUCn = var(i,j,k,nVar-3)*10**log(approximation_model(SIce,T))*ice_crystal_volume
+      NUCn = var(i,j,k,nVar-3)*10**approximation_model(SIce,T)*ice_crystal_volume
     else 
       NUCn = 0
     end if
