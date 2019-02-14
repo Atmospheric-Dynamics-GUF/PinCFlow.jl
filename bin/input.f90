@@ -13,7 +13,7 @@
 
   sizeX = 32,                   ! nb of global grid cells
   sizeY = 32,
-  sizeZ = 1920,
+  sizeZ = 600,
   nbx = 2,             ! nb. of ghost cells
   nby = 2,
   nbz = 2,
@@ -65,7 +65,7 @@
 
   cfl = 0.5
   cfl_wave = 0.25                 ! passage rate of phase throuh a cell
-  dtMax_dim = 3.6e3 !s            ! max time step in s
+  dtMax_dim = 3600  !s            ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
   timeScheme = "LS_Will_RK3"      ! LS_Will_RK3 -> Williamson / Euler /
@@ -84,8 +84,8 @@
 
 &poissonSolverList
 
-  tolPoisson = 1.0e-3          ! abbort 
-  tolCond = 1.e-23             ! tolerance value controlling the use of 
+  tolPoisson = 1.0e-4          ! abbort 
+  tolCond = 1.e-20             ! tolerance value controlling the use of 
                                ! the preconditioner
   maxIterPoisson = 500
   poissonSolverType = "hypre"         ! "bicgstab" / "gcr" / "adi" / "hypre"
@@ -120,7 +120,7 @@
   ! m^2/s     kinematic viscosity: 0 for inviscid
   !                                1.5e-5 for z = 0 at bottom of atmosphere
   !                                1.5e-2 for z = 0 at 60km
-  mu_conduct_dim = 0.             
+  mu_conduct_dim = 0.     
   ! m^2/s     heat conductivity: 0 for non-diffusive
   !                              2 * mu_viscous_dim corresponds to Pr = 0.5
   
@@ -218,21 +218,21 @@
 
 &outputList
 
-  outputType = "time"    ! timeStep / time
+  outputType = "timeStep"    ! timeStep / time
   
-  nOutput = 1            ! output every nOutput's time step 
+  nOutput = 5            ! output every nOutput's time step 
   !                        for outputType = "timeStep"
 
-  maxIter = 2            ! stop after maxIter time steps
+  maxIter = 5            ! stop after maxIter time steps
 
-  outputTimeDiff =  1.2e2 !s ! output every ... seconds
-  maxTime = 2.4e2           !s ! stop after maxTime seconds
+  outputTimeDiff =  180  !s    ! output every ... seconds
+  maxTime = 180  !s                ! stop after maxTime seconds
 
-  dataFileName = ""      ! empty string "" -> dataFileName = testCase
-  restartFile = "restart.ref"   ! restart file in TEC360 format
-  restart = .false.       ! true / false
+  dataFileName = ""                 ! empty string "" -> dataFileName = testCase
+  restartFile = "restart.ref"       ! restart file in TEC360 format
+  restart = .false.                 ! true / false
 
-  dimOut = .true.,.false.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
+  dimOut = .true.,.false.,.true.    ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
   varOut = 1,1,1,1,1,1,1!,0,0,0   ! 1 = output, 0 = no output 
   !                        primary variables: rho,u,v,w,pi',theta', 
@@ -363,16 +363,16 @@
   ! If working on the 2.5D Wave Packet, please use wavePacketDim = 2   ! modified by Junhong Wei for 3DWP (20170921)
   lambdaX_dim = 0.0          ! zonal wave length in m ! modified by Junhong Wei for 3DWP (20170828)
   !                               if lambdaX = 0.0 --> kk0 = 0 ! modified by Junhong Wei for 3DWP (20170828)
-  lambdaY_dim = 1.e4         ! meridional wave length in m ! modified by Junhong Wei for 3DWP (20170828)
+  lambdaY_dim = 10000.0          ! meridional wave length in m ! modified by Junhong Wei for 3DWP (20170828)
   ! if the absolute value of lambdaY_dim is less than or equal to 0.1 --> ll0 = 0 ! modified by Junhong Wei for 3DWP (20170921)
   lambdaZ_dim = 1000.0         ! vertical wave length in m
-  amplitudeFactor = 0.9         ! normalilized buoyancy amplitude
-  xCenter_dim = 5.e3         ! zonal center of wave packet in m
-  yCenter_dim = 5.e3         ! meridional center of wave packet in m ! modified by Junhong Wei for 3DWP (20170828)
+  amplitudeFactor = 0.7         ! normalilized buoyancy amplitude
+  xCenter_dim = 5000.0         ! zonal center of wave packet in m
+  yCenter_dim = 5000.0          ! meridional center of wave packet in m ! modified by Junhong Wei for 3DWP (20170828)
   zCenter_dim = 10000.0         ! vertical...
   sigma_dim = 2000.0            ! Gaussian distribution width (in the vertical direction)
-  sigma_hor_dim = 5.e3        ! cosine distribution width (in x direction, 0 means infinity)
-  amp_mod_x = 1.0               
+  sigma_hor_dim = 5000.0        ! cosine distribution width (in x direction, 0 means infinity)
+  amp_mod_x = 0.1               
 ! fractional amplitude of amplitude modulation in x direction
 ! (0 = no modulation, 1 = total modulation)
   sigma_hor_yyy_dim = 0.0       ! cosine distribution width (in y direction, 0 means infinity)

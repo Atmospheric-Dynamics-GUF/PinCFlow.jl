@@ -13,7 +13,7 @@ else
 endif
 
 LIPNAG =
-LIBHYPRE = /home/atmodynamics/voelker/hypre/hypre-2.11.2/src/lib
+LIBHYPRE = /home/atmodynamics/boeloeni/Hypre/hypre-2.11.2/src/lib
 
 # define directories for sources and binaries (GSV 072018)
 BIN = ./bin
@@ -88,11 +88,6 @@ $(BUILD)/finish.o: $(BUILD)/types.o
 $(BUILD)/ice.o: $(BUILD)/types.o
 $(BUILD)/ice.o: $(BUILD)/atmosphere.o
 
-# test xweno_module
-XOBJ = 	$(BUILD)/types.o $(BUILD)/xweno.o $(BUILD)/testXWENO.o $(BUILD)/debug.o
-xweno:	$(XOBJ)
-	$(FC) $(FCFLAGS) $(MODULEFLAG) -o testXWENO $(XOBJ)
-
 # cleaning
 TEMP = $(BUILD)/*.o $(BUILD)/*.mod $(BIN)/pinc
 clean:
@@ -132,5 +127,10 @@ layout: $(LAYOBJ)
 # test algebra_module
 algebra: $(BUILD)/algebra.o
 	$(FC) $(FCFLAGS) $(MODULEFLAG) -o testAlgebra $(SOURCE)/testAlgebra.f90 $(SOURCE)/algebra.f90
+
+# test xweno_module
+XOBJ = 	types.o xweno.o testXWENO.o debug.o
+xweno:	$(XOBJ)
+	$(FC) $(FCFLAGS) -o testXWENO $(XOBJ)
 
 
