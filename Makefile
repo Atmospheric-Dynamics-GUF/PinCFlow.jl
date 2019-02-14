@@ -85,11 +85,6 @@ $(BUILD)/update.o: $(BUILD)/types.o
 $(BUILD)/output.o: $(BUILD)/types.o
 $(BUILD)/finish.o: $(BUILD)/types.o
 
-# test xweno_module
-XOBJ = 	$(BUILD)/types.o $(BUILD)/xweno.o $(BUILD)/testXWENO.o $(BUILD)/debug.o
-xweno:	$(XOBJ)
-	$(FC) $(FCFLAGS) $(MODULEFLAG) -o testXWENO $(XOBJ)
-
 # cleaning
 TEMP = $(BUILD)/*.o $(BUILD)/*.mod $(BIN)/pinc
 clean:
