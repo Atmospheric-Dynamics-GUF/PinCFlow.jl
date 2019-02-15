@@ -22,8 +22,8 @@ contains
     ! read data for parameter study
     !--------------------------------
 
-    ! open input file input.f90
-    open (unit=10, file="input.f90", action="read", &
+    ! open the namelist file
+    open (unit=10, file=file_namelist, action="read", &
          form="formatted", status="old", position="rewind")
 
     ! read parameter study list
@@ -41,7 +41,7 @@ contains
 
   subroutine setup (var,var0,flux,force,source,dRho,dMom,dTheta)
     !-----------------------------------------
-    ! allocate var and flux / read input.f90
+    ! allocate var and flux / read the namelist
     !-----------------------------------------
 
     ! in/out variables 
@@ -61,8 +61,8 @@ contains
     pi = 4*atan(1.0)
 
 
-    ! open input file input.f90
-    open (unit=10, file="input.f90", action="read", &
+    ! open the namelist file
+    open (unit=10, file=file_namelist, action="read", &
          form="formatted", status="old", position="rewind")
 
     ! read grid info
@@ -149,7 +149,7 @@ contains
 
 
     !-------------------------------------
-    !    read name lists from input.f90
+    !    read name lists
     !-------------------------------------
 
     ! read model equation specifications
@@ -195,7 +195,7 @@ contains
     !        Model equation settings
     !---------------------------------------
 
-    ! open info file input.f90
+    ! open info file
     open (unit=90, file="info.txt", action="write", &
          form="formatted", status="replace")
 
@@ -396,8 +396,8 @@ contains
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar) :: flux ! modified by Junhong Wei (20161205)
 
 
-    ! open input file input.f90
-    open (unit=10, file="input.f90", action="read", &
+    ! open the namelist file
+    open (unit=10, file=file_namelist, action="read", &
          form="formatted", status="old", position="rewind")
 
 
@@ -2252,8 +2252,8 @@ contains
       !    Init data
       !-----------------------
 
-      ! open input file input.f90
-      open (unit=20, file="input.f90", action="read", &
+      ! open the namelist file
+      open (unit=20, file=file_namelist, action="read", &
            form="formatted", status="old", position="rewind")
 
       ! read test case input data

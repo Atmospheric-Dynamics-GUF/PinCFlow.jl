@@ -103,6 +103,10 @@ program pinc_prog
   real :: a2
 
 
+  file_namelist = 'input.f90'   ! default
+  if ( command_argument_count() /= 0 )  &
+    &  call get_command_argument(1,file_namelist)  ! take the given one
+
   !-------------------------------------------------   ! modified by Junhong Wei for MPI (20161103)
   !                    Set up   ! modified by Junhong Wei for MPI (20161103)
   !-------------------------------------------------   ! modified by Junhong Wei for MPI (20161103)
@@ -150,7 +154,7 @@ program pinc_prog
   !              Parameter study
   !----------------------------------------------
 
-  call init_paramStudy             ! read parameter data from input.f90
+  call init_paramStudy             ! read parameter data from the namelist
 
   if( .not. parameterStudy ) then
      startParam = 1
@@ -177,8 +181,11 @@ program pinc_prog
 !     call system_clock (count=startTimeCount)   ! modified by Junhong Wei for MPI (20161103)
 
      ! 1) allocate variables 
-     ! 2) read input.f90
-     call setup (var,var0,flux,force,source,dRho,dMom,dTheta)
+     ! 2) read the namelist
+!YHK call setup (var,var0,flux,force,source,dRho,dMom,dTheta)
+!YHK+
+     call setup (var,var0,flux,force,source,heat_ext,dRho,dMom,dTheta)
+!YHK-
 
 
   if( master ) then   ! modified by Junhong Wei for MPI (20161103)

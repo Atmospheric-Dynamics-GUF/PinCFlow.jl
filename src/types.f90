@@ -15,6 +15,9 @@ module type_module
   ! all variables declared herein are public by default
 
 
+  character(len=256) :: file_namelist
+
+
   ! modified by Junhong Wei (20161106) *** starting line ***
 
   !-----------------------------------------------------------------

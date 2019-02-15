@@ -1048,9 +1048,9 @@ contains
     !    Domain decomposition
     !-----------------------------
 
-    ! open input file input.f90 by master
+    ! open the namelist by master
     if( master ) then
-       open (unit=10, file="input.f90", action="read", &
+       open (unit=10, file=file_namelist, action="read", &
             form="formatted", status="old", position="rewind")
 
        ! read grid info
@@ -1059,7 +1059,7 @@ contains
 
     end if
 
-    ! broadcast input file data
+    ! broadcast the namelist values
     count = 1
     root = 0
     call mpi_bcast(sizeX,count,mpi_integer,root, mpi_comm_world, ierror)
