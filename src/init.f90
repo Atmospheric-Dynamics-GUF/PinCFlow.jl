@@ -2609,7 +2609,7 @@ print*,"RoInv = ", RoInv/tRef   ! modified by Junhong Wei
   !--------------------------------------------------------------------------    
 
 
-  function cphase(c) result(phi)
+  function cphase(c) result(phi)   ! currently not being used
 
     !------------------------------------
     !  phase of complex number

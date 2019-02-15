@@ -21,12 +21,12 @@ module mpi_module
   public :: init_mpi
   public :: setHalos
   public :: dot_product3D_glob
-  public :: abort
+  public :: abort_message
 
 
 contains
 
-  subroutine abort( message )
+  subroutine abort_message( message )
     character(len=*), intent(in) :: message
     
     if( master ) then
@@ -36,7 +36,7 @@ contains
     call mpi_finalize(ierror)
     stop
     
-  end subroutine abort
+  end subroutine abort_message
   
   
 !----------------------------------------------------------------------------------
