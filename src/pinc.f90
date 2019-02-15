@@ -729,7 +729,7 @@ program pinc_prog
 !10   call terminate_fluxes   ! modified by Junhong Wei for MPI (20161102)
      call terminate_fluxes    ! modified by Junhong Wei for MPI (20161102)
      call terminate_poisson
-     call terminate (var,var0,dRho,dMom,dTheta)                         
+     call terminate(var,var0,flux,force,source,dRho,dMom,dTheta)
      call terminate_atmosphere
      call terminate_output
 !    achatzb

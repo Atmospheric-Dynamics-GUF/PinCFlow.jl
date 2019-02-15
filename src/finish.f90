@@ -11,13 +11,14 @@ module finish_module
 contains
 
   
-  subroutine terminate (var, var0, dRho, dMom, dTheta)
+  subroutine terminate (var,var0,flux,force,source,dRho,dMom,dTheta)
     !-------------------
     ! deallocate fields 
     !-------------------
 
     ! in/out variables
-    real, dimension(:,:,:,:), allocatable :: var,var0,dMom
+    real, dimension(:,:,:,:), allocatable :: var, var0, force, source, dMom
+    real, dimension(:,:,:,:,:), allocatable :: flux
     real, dimension(:,:,:), allocatable :: dRho, dTheta
  
     ! argument list
@@ -41,16 +42,25 @@ contains
     if(allocstat /= 0) stop "finish.f90: could not deallocate var"
 
     deallocate(var0,stat=allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate var"
+    if(allocstat /= 0) stop "finish.f90: could not deallocate var0"
+
+    deallocate(flux,stat=allocstat)
+    if(allocstat /= 0) stop "finish.f90: could not deallocate flux"
+
+    deallocate(force,stat=allocstat)
+    if(allocstat /= 0) stop "finish.f90: could not deallocate force"
+
+    deallocate(source,stat=allocstat)
+    if(allocstat /= 0) stop "finish.f90: could not deallocate source"
 
     deallocate(dRho,stat=allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate var"
+    if(allocstat /= 0) stop "finish.f90: could not deallocate dRho"
 
     deallocate(dTheta,stat=allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate dTheta"
 
     deallocate(dMom,stat=allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate var"
+    if(allocstat /= 0) stop "finish.f90: could not deallocate dMom"
 
 
 
