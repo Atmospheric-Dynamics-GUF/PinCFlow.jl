@@ -182,10 +182,7 @@ program pinc_prog
 
      ! 1) allocate variables 
      ! 2) read the namelist
-!YHK call setup (var,var0,flux,force,source,dRho,dMom,dTheta)
-!YHK+
-     call setup (var,var0,flux,force,source,heat_ext,dRho,dMom,dTheta)
-!YHK-
+     call setup (var,var0,flux,force,source,dRho,dMom,dTheta)
 
 
   if( master ) then   ! modified by Junhong Wei for MPI (20161103)
