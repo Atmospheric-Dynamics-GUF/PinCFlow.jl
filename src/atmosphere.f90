@@ -117,7 +117,7 @@ contains
 
     ! allocate rhoStrat
     if( .not. allocated(rhoStrat) ) then
-       allocate( rhoStrat(0:nz+1),stat=allocstat)
+       allocate( rhoStrat(-1:nz+2),stat=allocstat)
        if(allocstat /= 0) stop "atmosphere.f90: could not allocate rhoStrat"
     end if
 
@@ -136,7 +136,7 @@ contains
 
     ! allocate thetaStratTilde
     if( .not. allocated(thetaStratTilde) ) then
-       allocate( thetaStratTilde(0:nz+1),stat=allocstat)
+       allocate( thetaStratTilde(0:nz),stat=allocstat)
        if(allocstat /= 0) stop "atmosphere.f90: could not allocate thetaStratTilde"
     end if
 
