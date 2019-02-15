@@ -47,10 +47,6 @@ module wkb_module
   public :: calc_waveNumber
 
 
-  public :: cabs                     ! calc absolute value of complex numbers
-  
-
-
   !----------------------
   !   private routines
   !----------------------
@@ -1017,26 +1013,26 @@ contains
     ! waveActTilde
     
     !--------------------------
-    !   reconstruct along x
+    !   reconstruct along all direction
     !--------------------------
     
     call muscl_reconstruct3D(waveAct,nx+2,ny+2,nz+2,waveActTilde, &
-         &                   limiterType, "x")
+         &                   limiterType)
     
     !--------------------------
     !   reconstruct along y
     !--------------------------
 
-    !call muscl_reconstruct3D(waveAct,nx+2,ny+2,nz+2,waveActTilde, &
-    !     &                   limiterType, "y")
+    ! call muscl_reconstruct3D(waveAct,nx+2,ny+2,nz+2,waveActTilde, &
+    !      &                   limiterType, "y")
     
 
     !--------------------------
     !   reconstruct along z
     !--------------------------
 
-    call muscl_reconstruct3D(waveAct,nx+2,ny+2,nz+2,waveActTilde, &
-         &                   limiterType, "z")
+    ! call muscl_reconstruct3D(waveAct,nx+2,ny+2,nz+2,waveActTilde, &
+    !      &                   limiterType, "z")
 
     
 
@@ -2052,36 +2048,36 @@ contains
   !--------------------------------------------------------------------------    
 
 
-  function cabs(c) result(c_abs)
-    
-    !------------------------------------
-    !  absulute value of complex number
-    !------------------------------------
-    
-    ! in/out
-    complex, intent(in) :: c
-    real                :: c_abs
+! function cabs(c) result(c_abs)
+!
+!   !------------------------------------
+!   !  absulute value of complex number
+!   !------------------------------------
+!
+!   ! in/out
+!   complex, intent(in) :: c
+!   real                :: c_abs
 
-    ! local vars
-    real :: a,b
+!   ! local vars
+!   real :: a,b
 
-    a = real(c)
-    b = aimag(c)
-    
-    c_abs = sqrt(a**2 + b**2 )
+!   a = real(c)
+!   b = aimag(c)
+!
+!   c_abs = sqrt(a**2 + b**2 )
 
-  end function cabs
-    
+! end function cabs
+
 
   !--------------------------------------------------------------------------    
 
 
-  function cphase(c) result(phi)
-    
+  function cphase(c) result(phi)   ! currently not being used
+
     !------------------------------------
     !  phase of complex number
     !------------------------------------
-    
+
     ! in/out
     complex, intent(in) :: c
     real                :: phi
@@ -2091,11 +2087,11 @@ contains
 
     a = real(c)
     b = aimag(c)
-    
+
     ! first quadrant
     if( a>=0 .and. b>=0) then
        phi = atan(b/a)
-       
+
        ! second quadrant
     else if( a<0. .and. b>=0. ) then
        phi = pi - atan(-b/a)
@@ -2110,14 +2106,8 @@ contains
     else
        stop "wkb.f90/cphase: case not included. Stop."
     end if
-       
 
-    
   end function cphase
-
-
-
-
 
 
 end module wkb_module

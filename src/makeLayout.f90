@@ -18,9 +18,9 @@ program teclayout_program
   implicit none
   !----------------------------------------
   
-  ! get grid and other info from input file
-  ! open input file input.f90
-  open (unit=10, file="input.f90", action="read", &
+  ! get grid and other info from the namelist
+  ! open the namelist file
+  open (unit=10, file=file_namelist, action="read", &
        form="formatted", status="old", position="rewind")
   
   ! read grid info
