@@ -1021,9 +1021,6 @@ contains
     ! in/out vars
     logical, intent(out) :: error_flag 
 
-    ! local vars
-    integer :: root
-
     include 'mpif.h' 
 
     error_flag = .false. 
@@ -1060,19 +1057,17 @@ contains
     end if
 
     ! broadcast the namelist values
-    count = 1
-    root = 0
-    call mpi_bcast(sizeX,count,mpi_integer,root, mpi_comm_world, ierror)
-    call mpi_bcast(sizeY,count,mpi_integer,root, mpi_comm_world, ierror)
-    call mpi_bcast(sizeZ,count,mpi_integer,root, mpi_comm_world, ierror)
-    call mpi_bcast(nbx,count,mpi_integer,root, mpi_comm_world, ierror)
-    call mpi_bcast(nby,count,mpi_integer,root, mpi_comm_world, ierror)
-    call mpi_bcast(nbz,count,mpi_integer,root, mpi_comm_world, ierror)
-    call mpi_bcast(lx_dim,2*count,mpi_double_precision,root, mpi_comm_world, ierror)
-    call mpi_bcast(ly_dim,2*count,mpi_double_precision,root, mpi_comm_world, ierror)
-    call mpi_bcast(lz_dim,2*count,mpi_double_precision,root, mpi_comm_world, ierror)
-    call mpi_bcast(nprocx,count,mpi_integer,root, mpi_comm_world, ierror)
-    call mpi_bcast(nprocy,count,mpi_integer,root, mpi_comm_world, ierror)
+    call mpi_bcast(sizeX,1,mpi_integer,root, mpi_comm_world, ierror)
+    call mpi_bcast(sizeY,1,mpi_integer,root, mpi_comm_world, ierror)
+    call mpi_bcast(sizeZ,1,mpi_integer,root, mpi_comm_world, ierror)
+    call mpi_bcast(nbx,1,mpi_integer,root, mpi_comm_world, ierror)
+    call mpi_bcast(nby,1,mpi_integer,root, mpi_comm_world, ierror)
+    call mpi_bcast(nbz,1,mpi_integer,root, mpi_comm_world, ierror)
+    call mpi_bcast(lx_dim,2,mpi_double_precision,root, mpi_comm_world, ierror)
+    call mpi_bcast(ly_dim,2,mpi_double_precision,root, mpi_comm_world, ierror)
+    call mpi_bcast(lz_dim,2,mpi_double_precision,root, mpi_comm_world, ierror)
+    call mpi_bcast(nprocx,1,mpi_integer,root, mpi_comm_world, ierror)
+    call mpi_bcast(nprocy,1,mpi_integer,root, mpi_comm_world, ierror)
 
     ! domain size with ghost cells
     sizeXX = sizeX + 2*nbx + 1
@@ -1097,11 +1092,11 @@ contains
 
     dims(1) = idim
     dims(2) = jdim
-    period(1)=.true.
-    period(2)=.true.
+    periods(1)=.true.
+    periods(2)=.true.
 
     call mpi_cart_create(mpi_comm_world,2,dims,&
-         &               period,.true.,comm,ierror)
+         &               periods,.true.,comm,ierror)
     call mpi_comm_rank(comm, rank, ierror)
     call mpi_cart_coords(comm, rank, 2, coords, ierror) 
     icoord = coords(1) 
@@ -1234,14 +1229,11 @@ contains
 
     ! MPI stuff
     real :: dot_product3D_loc
-    integer :: root
 
     aSize = shape(a)
     bSize = shape(b)
 
-    do i = 1,3
-       if( aSize(i) .ne. bSize(i) ) stop "dot_product3D failure."
-    end do
+    if ( any( aSize /= bSize ) ) stop "dot_product3D failure."
 
     dot_product3D_loc = 0.0
     do k = 1, aSize(3)
@@ -1251,16 +1243,12 @@ contains
     end do
 
     !MPI sum over all procs
-    root = 0
     call mpi_reduce(dot_product3D_loc, dot_product3D_glob, 1, mpi_double_precision,&
          & mpi_sum, root, comm, ierror)
 
     call mpi_bcast(dot_product3D_glob, 1, mpi_double_precision, root, comm, ierror)
 
-
   end function dot_product3D_glob
-
-
 
 
 end module mpi_module

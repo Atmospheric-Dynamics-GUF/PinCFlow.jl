@@ -334,7 +334,6 @@ program pinc_prog
 
 ! modified by Junhong Wei for MPI (20161103)   *** starting line ***
      ! find global maximum
-     root = 0
      call mpi_reduce(dt_local, dt, 1, mpi_double_precision,&
           & mpi_min, root, comm, ierror)
 

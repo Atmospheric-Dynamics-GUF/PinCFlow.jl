@@ -715,7 +715,6 @@ contains
 
     ! MPI stuff
     real :: divL2_local, divSum_local
-    integer :: root
 
 !   achatzb
     integer :: i0,j0
@@ -868,7 +867,6 @@ contains
        ! modified by Junhong Wei (20161107)   *** starting line ***
 
        !MPI: sum divSum_local over all procs
-       root = 0
        call mpi_reduce(divSum_local, divSum, 1, &
             & mpi_double_precision, mpi_sum, root, comm, ierror)
        
@@ -876,7 +874,6 @@ contains
             & mpi_double_precision, root, comm, ierror)
 
        !MPI: sum divL2_local over all procs
-       root = 0
        call mpi_reduce(divL2_local, divL2, 1, &
             & mpi_double_precision, mpi_sum, root, comm, ierror)
        
@@ -885,7 +882,6 @@ contains
 
 !      achatzb
        !MPI: sum divL2_norm_local over all procs
-       root = 0
        call mpi_reduce(divL2_norm_local, divL2_norm, 1, &
             & mpi_double_precision, mpi_sum, root, comm, ierror)
        
@@ -904,7 +900,6 @@ contains
        tolref=divL2/divL2_norm
        if(master) print*,"tolref = ",tolref
 
-!      root=0
 !      call mpi_bcast(tolref, 1, mpi_double_precision, root, comm, ierror)
 !      call mpi_barrier(comm,ierror)
 !      achatze
@@ -967,7 +962,6 @@ contains
        ! modified by Junhong Wei (20161107)   *** starting line ***
 
               !MPI: sum divSum_local over all procs
-       root = 0
        call mpi_reduce(divSum_local, divSum, 1, &
             & mpi_double_precision, mpi_sum, root, comm, ierror)
 
@@ -975,7 +969,6 @@ contains
             & mpi_double_precision, root, comm, ierror)
 
        !MPI: sum divL2_local over all procs
-       root = 0
        call mpi_reduce(divL2_local, divL2, 1, &
             & mpi_double_precision, mpi_sum, root, comm, ierror)
 
@@ -984,7 +977,6 @@ contains
 
 !      achatzb
        !MPI: sum divL2_norm_local over all procs
-       root = 0
        call mpi_reduce(divL2_norm_local, divL2_norm, 1, &
             & mpi_double_precision, mpi_sum, root, comm, ierror)
        
@@ -1007,7 +999,6 @@ contains
        tolref=divL2/divL2_norm
        if(master) print*,"tolref = ",tolref
 
-!      root=0
 !      call mpi_bcast(tolref, 1, mpi_double_precision, root, comm, ierror)
 !      call mpi_barrier(comm,ierror)
 !      achatze
@@ -2355,7 +2346,6 @@ contains
     ! modified by Junhong Wei (20161107) *** starting line ***
 
     ! MPI stuff
-    integer :: root
     real :: res_local
 
 !xxxx
@@ -2435,7 +2425,6 @@ contains
     res_local = dt*maxval(abs(r)) 
     
     !MPI find global residual
-    root = 0
     call mpi_reduce(res_local, res, 1, mpi_double_precision,&
          & mpi_max, root, comm, ierror)
     
@@ -2509,7 +2498,6 @@ contains
        res_local = dt*maxval(abs(r))     ! by Smolarkiewicz
 
        !MPI find global residual
-       root = 0
        call mpi_reduce(res_local, res, 1, mpi_double_precision,&
             & mpi_max, root, comm, ierror)
        
