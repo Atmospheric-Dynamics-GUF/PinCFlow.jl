@@ -10,14 +10,15 @@ module finish_module
 
 contains
 
-  
-  subroutine terminate (var, var0, dRho, dMom, dTheta, dIce)
+  subroutine terminate (var,var0,flux,force,source,dRho,dMom,dTheta, dIce)
+
     !-------------------
     ! deallocate fields 
     !-------------------
 
     ! in/out variables
-    real, dimension(:,:,:,:), allocatable :: var,var0,dMom, dIce
+    real, dimension(:,:,:,:), allocatable :: var, var0, force, source, dMom, dIce
+    real, dimension(:,:,:,:,:), allocatable :: flux
     real, dimension(:,:,:), allocatable :: dRho, dTheta
  
     ! argument list
@@ -42,6 +43,15 @@ contains
 
     deallocate(var0,stat=allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate var0"
+
+    deallocate(flux,stat=allocstat)
+    if(allocstat /= 0) stop "finish.f90: could not deallocate flux"
+
+    deallocate(force,stat=allocstat)
+    if(allocstat /= 0) stop "finish.f90: could not deallocate force"
+
+    deallocate(source,stat=allocstat)
+    if(allocstat /= 0) stop "finish.f90: could not deallocate source"
 
     deallocate(dRho,stat=allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate dRho"

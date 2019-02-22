@@ -1,19 +1,22 @@
 # Makefile of pinc_MPI_bg
 
 FC = mpif90
+#FC = mpiifort   # recommended for Intel 2018 and onward
 
-COMPILER = $(shell echo `mpif90 --version` | sed 's/ .*//')
+COMPILER = $(shell echo `$(FC) --version` | sed 's/ .*//')
 
 ifeq ($(COMPILER), ifort)
+# FCFLAGS=-O0 -g -check all -warn all -warn nounused -fpe0 -real-size 64 -traceback -unroll=4 -ip
   FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
   MODULEFLAG=-module $(BUILD)
-else
-  FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops
+else   # gcc
+  FCFLAGS=-O0 -g -fcheck=all -Wall -Wno-unused-variable -fdefault-real-8 -fbacktrace -funroll-loops -Wno-unused-dummy-argument -Wno-conversion-extra
+# FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops
   MODULEFLAG= -J$(BUILD)
 endif
 
 LIPNAG =
-LIBHYPRE = /home/atmodynamics/boeloeni/Hypre/hypre-2.11.2/src/lib
+LIBHYPRE ?= /home/atmodynamics/boeloeni/Hypre/hypre-2.11.2/src/lib
 
 # define directories for sources and binaries (GSV 072018)
 BIN = ./bin
@@ -132,5 +135,4 @@ algebra: $(BUILD)/algebra.o
 XOBJ = 	types.o xweno.o testXWENO.o debug.o
 xweno:	$(XOBJ)
 	$(FC) $(FCFLAGS) -o testXWENO $(XOBJ)
-
 

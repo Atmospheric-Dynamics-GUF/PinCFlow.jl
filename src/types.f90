@@ -15,6 +15,9 @@ module type_module
   ! all variables declared herein are public by default
 
 
+  character(len=256) :: file_namelist
+
+
   ! modified by Junhong Wei (20161106) *** starting line ***
 
   !-----------------------------------------------------------------
@@ -40,20 +43,18 @@ module type_module
   include 'mpif.h' 
   
   ! MPI variables
-  integer :: ierror, count
+  integer :: ierror
   integer, dimension(2) :: dims, coords
-  logical, dimension(2) :: period
+  logical, dimension(2) :: periods
   integer :: back, forw, right, left, rank
   integer :: idim, jdim, icoord, jcoord
-  integer :: nbProc, comm, root             
+  integer :: nbProc, comm
   logical :: master
   integer, dimension(mpi_status_size) :: sts_left, sts_right, sts_back, sts_forw
   
+  integer, parameter :: root = 0
 
 
-
-
-  
   !-----------------------------------------------------------------  
   !                      (local) Grid & Domain
   !-----------------------------------------------------------------  

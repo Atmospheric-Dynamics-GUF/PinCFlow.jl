@@ -104,6 +104,10 @@ program pinc_prog
   real :: a2
 
 
+  file_namelist = 'input.f90'   ! default
+  if ( command_argument_count() /= 0 )  &
+    &  call get_command_argument(1,file_namelist)  ! take the given one
+
   !-------------------------------------------------   ! modified by Junhong Wei for MPI (20161103)
   !                    Set up   ! modified by Junhong Wei for MPI (20161103)
   !-------------------------------------------------   ! modified by Junhong Wei for MPI (20161103)
@@ -151,7 +155,7 @@ program pinc_prog
   !              Parameter study
   !----------------------------------------------
 
-  call init_paramStudy             ! read parameter data from input.f90
+  call init_paramStudy             ! read parameter data from the namelist
 
   if( .not. parameterStudy ) then
      startParam = 1
@@ -178,7 +182,7 @@ program pinc_prog
 !     call system_clock (count=startTimeCount)   ! modified by Junhong Wei for MPI (20161103)
 
      ! 1) allocate variables 
-     ! 2) read input.f90
+     ! 2) read the namelist
      call setup (var,var0,flux,force,source,dRho,dMom,dTheta,dIce)
 
 
@@ -331,7 +335,6 @@ program pinc_prog
 
 ! modified by Junhong Wei for MPI (20161103)   *** starting line ***
      ! find global maximum
-     root = 0
      call mpi_reduce(dt_local, dt, 1, mpi_double_precision,&
           & mpi_min, root, comm, ierror)
 
@@ -747,7 +750,7 @@ program pinc_prog
 !10   call terminate_fluxes   ! modified by Junhong Wei for MPI (20161102)
      call terminate_fluxes    ! modified by Junhong Wei for MPI (20161102)
      call terminate_poisson
-     call terminate (var,var0,dRho,dMom,dTheta, dIce)                         
+     call terminate(var,var0,flux,force,source,dRho,dMom,dTheta,dIce)
      call terminate_atmosphere
      call terminate_output
 !    achatzb

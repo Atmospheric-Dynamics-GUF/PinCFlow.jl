@@ -715,7 +715,6 @@ contains
 
     ! MPI stuff
     real :: divL2_local, divSum_local
-    integer :: root
 
 !   achatzb
     integer :: i0,j0
@@ -868,7 +867,6 @@ contains
        ! modified by Junhong Wei (20161107)   *** starting line ***
 
        !MPI: sum divSum_local over all procs
-       root = 0
        call mpi_reduce(divSum_local, divSum, 1, &
             & mpi_double_precision, mpi_sum, root, comm, ierror)
        
@@ -876,7 +874,6 @@ contains
             & mpi_double_precision, root, comm, ierror)
 
        !MPI: sum divL2_local over all procs
-       root = 0
        call mpi_reduce(divL2_local, divL2, 1, &
             & mpi_double_precision, mpi_sum, root, comm, ierror)
        
@@ -885,7 +882,6 @@ contains
 
 !      achatzb
        !MPI: sum divL2_norm_local over all procs
-       root = 0
        call mpi_reduce(divL2_norm_local, divL2_norm, 1, &
             & mpi_double_precision, mpi_sum, root, comm, ierror)
        
@@ -904,7 +900,6 @@ contains
        tolref=divL2/divL2_norm
        if(master) print*,"tolref = ",tolref
 
-!      root=0
 !      call mpi_bcast(tolref, 1, mpi_double_precision, root, comm, ierror)
 !      call mpi_barrier(comm,ierror)
 !      achatze
@@ -967,7 +962,6 @@ contains
        ! modified by Junhong Wei (20161107)   *** starting line ***
 
               !MPI: sum divSum_local over all procs
-       root = 0
        call mpi_reduce(divSum_local, divSum, 1, &
             & mpi_double_precision, mpi_sum, root, comm, ierror)
 
@@ -975,7 +969,6 @@ contains
             & mpi_double_precision, root, comm, ierror)
 
        !MPI: sum divL2_local over all procs
-       root = 0
        call mpi_reduce(divL2_local, divL2, 1, &
             & mpi_double_precision, mpi_sum, root, comm, ierror)
 
@@ -984,7 +977,6 @@ contains
 
 !      achatzb
        !MPI: sum divL2_norm_local over all procs
-       root = 0
        call mpi_reduce(divL2_norm_local, divL2_norm, 1, &
             & mpi_double_precision, mpi_sum, root, comm, ierror)
        
@@ -1007,7 +999,6 @@ contains
        tolref=divL2/divL2_norm
        if(master) print*,"tolref = ",tolref
 
-!      root=0
 !      call mpi_bcast(tolref, 1, mpi_double_precision, root, comm, ierror)
 !      call mpi_barrier(comm,ierror)
 !      achatze
@@ -1429,7 +1420,7 @@ contains
     real, dimension(:,:,:), allocatable :: r,Lx3D
     real, dimension(:,:,:), allocatable :: Lx,Ly,Lz
     real, dimension(:,:,:), allocatable :: q,qn,q01,q02
-    real, dimension(:),     allocatable :: left,center,right,rhs
+    real, dimension(:),     allocatable :: left_a,center,right_a,rhs
 
     real :: rhoEdge, AL,AR,AB,AF,AD,AU,AC
     real :: dx2, dy2, dz2
@@ -1537,11 +1528,11 @@ contains
        !---- set up matrix diagonals for Thomas algorithm
 
        ! Allocate variables for x sweeps
-       allocate(left(1:nx),stat=allocstat)
+       allocate(left_a(1:nx),stat=allocstat)
        if(allocstat/=0) stop "adi:alloc failed"
        allocate(center(1:nx),stat=allocstat) 
        if(allocstat/=0) stop "adi:alloc failed"
-       allocate(right(1:nx), stat=allocstat)
+       allocate(right_a(1:nx), stat=allocstat)
        if(allocstat/=0) stop "adi:alloc failed"
        allocate(rhs(1:nx), stat=allocstat)
        if(allocstat/=0) stop "adi:alloc failed"
@@ -1569,9 +1560,9 @@ contains
                 ! A(i,j,k)
                 AC = - AL - AR
 
-                left(i) = -0.5 * AL
+                left_a(i) = -0.5 * AL
                 center(i) = 1.0/dtau - 0.5*AC
-                right(i) = -0.5 * AR
+                right_a(i) = -0.5 * AR
 
              end do i_loop_x
 
@@ -1584,13 +1575,13 @@ contains
                   & b(1:nx,j,k)
 
              ! test: switch off BC
-             ! left / right boundary terms 
-             rhs(1) = rhs(1) - left(1)*qn(nx,j,k)
-             rhs(nx) = rhs(nx) - right(nx)*qn(1,j,k)
+             ! left_a / right_a boundary terms 
+             rhs(1) = rhs(1) - left_a(1)*qn(nx,j,k)
+             rhs(nx) = rhs(nx) - right_a(nx)*qn(1,j,k)
              ! end test
 
              !---- solve tridiagonal system
-             call thomas( left, center, right, q01(1:nx,j,k), rhs )
+             call thomas( left_a, center, right_a, q01(1:nx,j,k), rhs )
 
           end do j_loop_x
        end do k_loop_x
@@ -1607,11 +1598,11 @@ contains
        ! end test       
 
        !---- Deallocate variables for x sweep
-       deallocate(Left,stat=allocstat)
+       deallocate(left_a,stat=allocstat)
        if(allocstat/=0) stop "adi:dealloc failed"
-       deallocate(Center,stat=allocstat)
+       deallocate(center,stat=allocstat)
        if(allocstat/=0) stop "adi:dealloc failed"
-       deallocate(Right,stat=allocstat)
+       deallocate(right_a,stat=allocstat)
        if(allocstat/=0) stop "adi:dealloc failed"
        deallocate(rhs,stat=allocstat)
        if(allocstat/=0) stop "adi:dealloc failed"
@@ -1630,11 +1621,11 @@ contains
        !---- set up matrix diagonals for Thomas algorithm
 
        ! Allocate variables for x sweeps
-       allocate(left(1:ny), stat=allocstat)
+       allocate(left_a(1:ny), stat=allocstat)
        if(allocstat/=0) stop "adi:alloc failed"
        allocate(center(1:ny), stat=allocstat)
        if(allocstat/=0) stop "adi:alloc failed"
-       allocate(right(1:ny), stat=allocstat)
+       allocate(right_a(1:ny), stat=allocstat)
        if(allocstat/=0) stop "adi:alloc failed"
        allocate(rhs(1:ny), stat=allocstat)
        if(allocstat/=0) stop "adi:alloc failed"
@@ -1659,9 +1650,9 @@ contains
                 ! A(i,j,k)
                 AC = -AB - AF
 
-                left(j) = -0.5*AB
+                left_a(j) = -0.5*AB
                 center(j) = 1.0/dtau - 0.5*AC
-                right(j) = -0.5*AF
+                right_a(j) = -0.5*AF
 
              end do j_loop_y
 
@@ -1674,11 +1665,11 @@ contains
                   & b(i,1:ny,k)
 
              ! forward / backward boundary terms 
-             rhs(1) = rhs(1) - left(1)*q01(i,ny,k)
-             rhs(ny) = rhs(ny) - right(ny)*q01(i,1,k)
+             rhs(1) = rhs(1) - left_a(1)*q01(i,ny,k)
+             rhs(ny) = rhs(ny) - right_a(ny)*q01(i,1,k)
 
              !---- solve tridiagonal system
-             call thomas( left, center, right, q02(i,1:ny,k), rhs )
+             call thomas( left_a, center, right_a, q02(i,1:ny,k), rhs )
 
 
           end do i_loop_y
@@ -1695,11 +1686,11 @@ contains
 
 
        !---- Deallocate variables for x sweep
-       deallocate(Left,stat=allocstat)
+       deallocate(left_a,stat=allocstat)
        if(allocstat/=0) stop "adi:dealloc failed"
-       deallocate(Center,stat=allocstat)
+       deallocate(center,stat=allocstat)
        if(allocstat/=0) stop "adi:dealloc failed"
-       deallocate(Right,stat=allocstat)
+       deallocate(right_a,stat=allocstat)
        if(allocstat/=0) stop "adi:dealloc failed"
        deallocate(rhs,stat=allocstat)
        if(allocstat/=0) stop "adi:dealloc failed"
@@ -1720,11 +1711,11 @@ contains
        !---- set up matrix diagonals for Thomas algorithm
 
        ! Allocate variables for x sweeps
-       allocate(left(1:nz), stat=allocstat)
+       allocate(left_a(1:nz), stat=allocstat)
        if(allocstat/=0) stop "adi:alloc failed"
        allocate(center(1:nz), stat=allocstat)
        if(allocstat/=0) stop "adi:alloc failed"
-       allocate(right(1:nz), stat=allocstat)
+       allocate(right_a(1:nz), stat=allocstat)
        if(allocstat/=0) stop "adi:alloc failed"
        allocate(rhs(1:nz), stat=allocstat)
        if(allocstat/=0) stop "adi:alloc failed"
@@ -1760,9 +1751,9 @@ contains
                 !  A(i,j,k) 
                 AC = - AU - AD
 
-                left(k) = -0.5 * AD
+                left_a(k) = -0.5 * AD
                 center(k) = 1.0/dtau - 0.5*AC
-                right(k) = -0.5 * AU
+                right_a(k) = -0.5 * AU
 
              end do k_loop_z
 
@@ -1776,7 +1767,7 @@ contains
                   & b(i,j,1:nz)
 
              !---- solve tridiagonal system
-             call thomas( left, center, right, sol(i,j,1:nz), rhs )
+             call thomas( left_a, center, right_a, sol(i,j,1:nz), rhs )
 
           end do i_loop_z
        end do j_loop_z
@@ -1794,11 +1785,11 @@ contains
 
 
        !---- Deallocate variables for x sweep
-       deallocate(Left,stat=allocstat)
+       deallocate(left_a,stat=allocstat)
        if(allocstat/=0) stop "adi:dealloc failed"
-       deallocate(Center,stat=allocstat)
+       deallocate(center,stat=allocstat)
        if(allocstat/=0) stop "adi:dealloc failed"
-       deallocate(Right,stat=allocstat)
+       deallocate(right_a,stat=allocstat)
        if(allocstat/=0) stop "adi:dealloc failed"
        deallocate(rhs,stat=allocstat)
        if(allocstat/=0) stop "adi:dealloc failed"
@@ -1933,7 +1924,7 @@ contains
     real, dimension(1:nx,1:ny,1:nz) :: r, Lx3D
     real, dimension(1:nx,1:ny,1:nz)  :: Lx, Ly, Lz
     real, dimension(0:nx+1,0:ny+1,0:nz+1)  :: q, qn
-    real, dimension(1:nz)      :: left, center, right, rhs
+    real, dimension(1:nz)      :: left_a, center, right_a, rhs
 
     real :: rhoEdge, AD, AU, AC
     real :: dx2, dy2, dz2
@@ -2038,9 +2029,9 @@ contains
                 !  A(i,j,k) 
                 AC = - AU - AD
 
-                left(k) = - AD
+                left_a(k) = - AD
                 center(k) = 1.0/dtau - AC
-                right(k) = - AU
+                right_a(k) = - AU
 
              end do k_loop_z
 
@@ -2057,14 +2048,14 @@ contains
              !---- solve tridiagonal system
              if ( useNAG ) then
 
-!                call DGTSV(nz,1,left(2:nz),center,right(1:nz-1),rhs,nz,info)
+!                call DGTSV(nz,1,left_a(2:nz),center,right_a(1:nz-1),rhs,nz,info)
 !                sol(i,j,1:nz) = rhs
 
                  print*,"no NAG option!!! ==> exit!"
                  STOP
 
              else
-                call thomas( left, center, right, sol(i,j,1:nz), rhs )
+                call thomas( left_a, center, right_a, sol(i,j,1:nz), rhs )
              end if
 
 
@@ -2355,7 +2346,6 @@ contains
     ! modified by Junhong Wei (20161107) *** starting line ***
 
     ! MPI stuff
-    integer :: root
     real :: res_local
 
 !xxxx
@@ -2435,7 +2425,6 @@ contains
     res_local = dt*maxval(abs(r)) 
     
     !MPI find global residual
-    root = 0
     call mpi_reduce(res_local, res, 1, mpi_double_precision,&
          & mpi_max, root, comm, ierror)
     
@@ -2509,7 +2498,6 @@ contains
        res_local = dt*maxval(abs(r))     ! by Smolarkiewicz
 
        !MPI find global residual
-       root = 0
        call mpi_reduce(res_local, res, 1, mpi_double_precision,&
             & mpi_max, root, comm, ierror)
        

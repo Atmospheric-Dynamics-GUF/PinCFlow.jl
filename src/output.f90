@@ -2,8 +2,6 @@ module output_module
 
   use type_module
   use atmosphere_module
-  use wkb_module, only: cabs
-
 
   implicit none
 
