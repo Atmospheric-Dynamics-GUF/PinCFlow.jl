@@ -1471,9 +1471,11 @@ contains
         do k = 1,nz
           do j = 1,ny
             do i = 1,nx
-
+              ! find the current temperature in Kelvin inside the grid cell 
               call find_temperature(T,i,j,k,var) 
-              p = p0 * ( ( PStrat(k)+var(i,j,k,5) ) * pRef )**kappaInv
+              ! find the current pressure in Pascal inside the grid cell
+              p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
+              ! find the current super-saturation with respect to ice inside the grid cell
               SIce = var(i,j,k,nVar) / rho(i,j,k) * p / epsilon0 / p_saturation(T)
 
               if (var(i,j,k,nVar-2)==0.0) then
@@ -3661,6 +3663,41 @@ contains
          & stat=allocstat)
     if(allocstat /= 0) stop "fluxes.f90: could not allocate thetaTilde"
 
+    !  nIceTilde
+    allocate(nIceTilde(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,1:3,0:1),&
+         & stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not allocate nIceTilde"
+
+    ! qIceTilde
+    allocate(qIceTilde(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,1:3,0:1),&
+         & stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not allocate qIceTilde"
+
+    ! qvTilde
+    allocate(qvTilde(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,1:3,0:1),&
+         & stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not allocate qvTilde"
+
+    ! nAerTilde
+    allocate(nAerTilde(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,1:3,0:1),&
+         & stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not allocate nAerTilde"
+
+   ! nIceBar
+    allocate(nIceBar(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz),stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not allocate nIceBar"
+
+   ! qIceBar
+    allocate(qIceBar(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz),stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not allocate qIceBar"
+
+   ! qvBar
+    allocate(qvBar(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz),stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not allocate qvBar"
+
+   ! nAerBar
+    allocate(nAerBar(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz),stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not allocate nAerBar"
 
 
     if (verbose) print*,"init_fluxes: &
@@ -3714,6 +3751,30 @@ contains
 
     deallocate(thetaTilde,stat=allocstat)
     if(allocstat /= 0) stop "fluxes.f90: could not deallocate thetaTilde"
+
+    deallocate(nIceTilde,stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not deallocate nIceTilde"
+
+    deallocate(qIceTilde,stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not deallocate qIceTilde"
+
+    deallocate(qvTilde,stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not deallocate qvTilde"
+
+    deallocate(nAerTilde,stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not deallocate nAerTilde"
+
+    deallocate(nIceBar,stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not deallocate nIceBar"
+
+    deallocate(qIceBar,stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not deallocate qIceBar"
+
+    deallocate(qvBar,stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not deallocate qvBar"
+
+    deallocate(nAerBar,stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not deallocate nAerBar"
 
 
   end subroutine terminate_fluxes

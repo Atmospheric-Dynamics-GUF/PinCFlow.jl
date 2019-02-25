@@ -101,29 +101,28 @@ contains
     
       real :: delta_aw, awi0
 
-  awi0 = awi(T)
+   awi0 = awi(T)
+ 
+   select case (NUC_approx_type)
 
-  select case (NUC_approx_type)
+     case ( "linFit" )
+       delta_aw = (SIce - 1.0) * awi0
+       approximation_model = afit0 - delta + afit1 * delta_aw
 
-    case ( "linFit" )
-      delta_aw = (SIce - 1.0) * awi0
-      approximation_model = afit0 - delta + afit1 * delta_aw
+     case ( "Koop" )
+       delta_aw = (SIce - 1.0) * awi0
+       approximation_model = pk0 + pk1*delta_aw + pk2*delta_aw**2 &
+        &  + pk3*delta_aw**3 - delta
 
-    case ( "Koop" )
-      delta_aw = (SIce - 1.0) * awi0
-      approximation_model = pk0 + pk1*delta_aw + pk2*delta_aw**2 &
-       &  + pk3*delta_aw**3 - delta
-
-    case ( "threshold" )
+     case ( "threshold" )
        approximation_model = afit1 * &
                            & (SIce - SIce_threshold(T,awi0)) * &
                            & awi0 + j0
 
-    case default
-      stop "NUC_approx_type: unknown case model."
+     case default
+       stop "NUC_approx_type: unknown case model."
 
-  end select
-
+   end select
 
   end function approximation_model
 
@@ -409,10 +408,29 @@ contains
     integer, intent(in) :: i,j,k
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(in) :: var
+    real :: rho
 
-    T = (thetaStrat(k)+var(i,j,k,6))*thetaRef*(PStrat(k)+var(i,j,k,5))*pRef
+    if (fluctuationMode ) then
+      rho = var(i,j,k,1) + rhoStrat(k)
+    else
+      rho = var(i,j,k,1)
+    end if
 
-  end subroutine find_temperature
+    select case ( model )
+      case("pseudo_incompressible")
+        T = ( Pstrat(k) / rho ) * thetaRef &
+           & * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )
+
+      case("Boussinesq")
+        T = ( thetaStrat(k) + var(i,j,k,6) ) * thetaRef &
+           & * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )
+  
+      case default
+         stop "find_temperature: undefined model."
+
+    end select
+  
+end subroutine find_temperature
 
 
 end module ice_module
