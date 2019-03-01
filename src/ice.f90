@@ -9,8 +9,6 @@ module ice_module
 
   public :: NUCn, DEPq
   public :: SIce_crit, p_saturation, SIce_threshold, awi
-  public :: alpha_ice, gamma_ice, delta_ice
-  public :: J0_ice, A_ice
   public :: find_temperature, pIce
   public :: latent_heat_ice
   public :: terminal_v_nIce, terminal_v_qIce
@@ -246,7 +244,7 @@ contains
   ! from Murphy and Koop, 2005
   real function pIce(T)  ! ice pressure
     ! in/out variables
-    real :: T
+    real,intent(in) :: T
       
     pIce=exp(9.550426-5723.265/T+3.53068*log(T)-0.00728332*T)
 
@@ -257,7 +255,7 @@ contains
   ! from Murphy and Koop, 2005
   real function p_saturation(T)  ! water vapor saturation pressure
     ! in/out variables
-    real :: T
+    real,intent(in) :: T
 
     p_saturation=exp(54.842763-6763.22/T-4.210*log(T)+0.000367*T &
         &   +tanh(0.0415*(T-218.8))*(53.878-1331.22/T-9.44523*log(T) &
@@ -350,56 +348,6 @@ contains
   end function awi
 
 !----------------------------------------------
-
-  real function alpha_ice(T) ! TODO: delete?
-    ! in/out variables
-    real :: T
-
-    alpha_ice = 2 ! reference value from table 3 Baumgarten and Spichtinger 2018
-
-  end function alpha_ice
-
-!---------------------------------------------
-
-  real function gamma_ice(T) ! TODO: delete?
-    ! in/out variables
-    real :: T
-
-    gamma_ice = 4.88E-1 ! reference value from table 3 Baumgarten and Spichtinger 2018
-
-  end function gamma_ice
-
-!---------------------------------------------
- 
- real function delta_ice(T) ! TODO: delete?
-    ! in/out variables
-    real :: T
-
-    delta_ice = 1.65-1 ! reference value from table 3 Baumgarten and Spichtinger 2018
-
-  end function delta_ice
-
-!---------------------------------------------
-
-  real function J0_ice(T) ! TODO: delete?
-    ! in/out variables
-    real :: T
-
-    J0_ice = 37 ! reference value from table 3 Baumgarten and Spichtinger 2018
-
-  end function J0_ice
-
-!---------------------------------------------
-
-  real function A_ice(T) ! TODO: delete?
-    ! in/out variables
-    real :: T
-
-    A_ice = 337 ! reference value from table 3 Baumgarten and Spichtinger 2018
-
-  end function A_ice
-
-!---------------------------------------------
 
   ! calculate the current absolute temperature in Kelvin
   subroutine find_temperature(T,i,j,k,var)

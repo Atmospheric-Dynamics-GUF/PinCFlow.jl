@@ -1472,13 +1472,20 @@ contains
           do j = 1,ny
             do i = 1,nx
               ! find the current temperature in Kelvin inside the grid cell 
-              call find_temperature(T,i,j,k,var) 
+              call find_temperature(T,i,j,k,var)
+              !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"T=",T
+              !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"p_sat=",p_saturation(T)
+              
               ! find the current pressure in Pascal inside the grid cell
               p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
+              !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"p=",p
+              
               ! find the current super-saturation with respect to ice inside the grid cell
-              SIce = var(i,j,k,nVar) / rho(i,j,k) * p / epsilon0 / p_saturation(T)
+              SIce = var(i,j,k,nVar) * p / ( rho(i,j,k) * epsilon0 * p_saturation(T) )
+              !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"SIce=",SIce
+              !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"qv=",var(i,j,k,nVar)/rho(i,j,k)
 
-              if (var(i,j,k,nVar-2)==0.0) then
+              if (var(i,j,k,nVar-2) .le. 0.0) then
                  m_ice = init_m_ice 
               else 
                  m_ice = var(i,j,k,nVar-1) / var(i,j,k,nVar-2) * rhoRef * lRef**3
@@ -1489,25 +1496,23 @@ contains
 
               ! nAerosol equation
               source(i,j,k,nVar-3) = var(i,j,k,nVar-3) * source(i,j,k,1) / rho(i,j,k) &
-                  &  - nucleation - 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
+                   &  - nucleation - 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
+                 ! &  + nucleation + 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
 
               ! nIce equation
               source(i,j,k,nVar-2) = var(i,j,k,nVar-2) * source(i,j,k,1) / rho(i,j,k) &
-              !   & + var(i,j,k,1)*J0_ice(T)*EXP(A_ice(T)* (SIce - SIce_crit( T) ) )
-                  & +  nucleation + 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
+                   & +  nucleation + 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
+                 ! & -  nucleation - 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
 
               ! qIce equation
               source(i,j,k,nVar-1) = var(i,j,k,nVar-1) * source(i,j,k,1) / rho(i,j,k) &
-                ! & + delta_ice(T)*(SIce-1)*var(i,j,k,nVar-2)
-                  & + m_ice / (rhoRef * lRef**3) * nucleation & 
-                  & + deposition
+                   & + m_ice / (rhoRef * lRef**3) * nucleation  + deposition
+                 ! & - m_ice / (rhoRef * lRef**3) * nucleation  - deposition
 
               ! qv equation
               source(i,j,k,nVar) = var(i,j,k,nVar) * source(i,j,k,1) / rho(i,j,k)  &
-                ! & + alpha_ice(T)*var(i,j,k,nVar)- gamma_ice(T)*(SIce-1)*var(i,j,k,nVar-2)
-                  & - m_ice / (rhoRef * lRef**3) * nucleation &
-                  & - deposition
-                
+                   & - m_ice / (rhoRef * lRef**3) * nucleation - deposition
+                 ! & + m_ice / (rhoRef * lRef**3) * nucleation + deposition
             end do
           end do
         end do
