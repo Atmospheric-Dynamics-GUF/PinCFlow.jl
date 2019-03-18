@@ -3,6 +3,7 @@ module init_module
 
   use type_module
   use atmosphere_module
+  use ice_module
 
   implicit none
 
@@ -51,7 +52,7 @@ contains
     real,dimension(:,:,:), allocatable :: dRho        ! RK-Update for rho
     real,dimension(:,:,:,:), allocatable :: dMom      ! ...rhoU,rhoV,rhoW
     real,dimension(:,:,:), allocatable :: dTheta       ! RK-Update for theta
-    real,dimension(:,:,:,:), allocatable :: dIce       ! RK-Update for nIce,qIce,SIce
+    real,dimension(:,:,:,:), allocatable :: dIce       ! RK-Update for nIce,qIce,qAer,qv
 
 
     integer :: allocstat
@@ -246,7 +247,7 @@ contains
        predictMomentum = .true.
        correctMomentum = .true.
        updateTheta = .true.
-       updateIce = .false.
+       updateIce = .true.
 
        ! overwrite unsuitable input settings
        topography = .false. 
@@ -516,6 +517,10 @@ contains
        var(:,:,:,6) = 0.0 / thetaRef
 
 
+       ! initialize the ice variables according to iceTestcase
+       if (include_ice) call setup_ice(var)
+
+
     case( "monochromeWave" ) 
 
        ! read test case input data
@@ -749,17 +754,8 @@ contains
           var(:,j,:,3) = 0.5*( var(:,j,:,3) + var(:,j+1,:,3) )
        end do
 
-       ! no initial ice in the atmosphere, but supersaturation
-       if (include_ice) then 
-         if (fluctuationMode) then
-           var(:,:,:,nVar-3) = init_nAer * rhoRef * lRef**3 * (var(:,:,:,1)+rhoStrat(k))
-           var(:,:,:,nVar) = init_qv * (var(:,:,:,1)+rhoStrat(k))           
-         else
-           var(:,:,:,nVar-3) = init_nAer * rhoRef * lRef**3 * var(:,:,:,1)
-           var(:,:,:,nVar) = init_qv * var(:,:,:,1)
-         end if
-         var(:,:,:,nVar-2:nVar-1) = 0.0
-       end if
+       ! initialize the ice variables according to iceTestcase
+       if (include_ice) call setup_ice(var)
 
 !---------------------------------------------------------------
 

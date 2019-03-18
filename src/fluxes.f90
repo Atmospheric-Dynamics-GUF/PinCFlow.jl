@@ -1335,6 +1335,7 @@ contains
       m_ice = init_m_ice 
     else
       m_ice = var(i,j,k,nVar-1)/var(i,j,k,nVar-2) * rhoRef * lRef**3
+      !print*,"ATTENTION:", m_ice
     end if
     
     select case( model )
@@ -1454,6 +1455,8 @@ contains
 
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: rho
 
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,4) :: rho_source_term
+
     integer :: k, j, i
     real :: SIce, nucleation, deposition
     real :: T ! current temperature in Kelvin
@@ -1461,18 +1464,27 @@ contains
     real :: m_ice ! mean ice crystal mass in kg
 
         if ( fluctuationMode ) then
-          do k = -nbz,nz+nbz
+          do k = -1,nz+1
             rho(:,:,k) = var(:,:,k,1)+rhoStrat(k) 
           end do
         else
           rho = var(:,:,:,1)
         end if 
 
+        if (correctDivError) then
+          do k = 0,3
+          rho_source_term(:,:,:,4-k) = var(:,:,:,nVar-k) * source(:,:,:,1) / rho(:,:,:)
+          end do
+        else
+          rho_source_term(:,:,:,:) = 0.0
+        end if
+
         do k = 1,nz
           do j = 1,ny
             do i = 1,nx
               ! find the current temperature in Kelvin inside the grid cell 
               call find_temperature(T,i,j,k,var)
+              !if ((T .le. 190.0) .or. (T .ge. 230.0)) print*,"T=",T,", k = ",k
               !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"T=",T
               !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"p_sat=",p_saturation(T)
               
@@ -1481,9 +1493,11 @@ contains
               !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"p=",p
               
               ! find the current super-saturation with respect to ice inside the grid cell
-              SIce = var(i,j,k,nVar) * p / ( rho(i,j,k) * epsilon0 * p_saturation(T) )
-              !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"SIce=",SIce
+              SIce =  var(i,j,k,nVar) * p / ( rho(i,j,k) * epsilon0 * p_saturation(T) )
+              if ((SIce<0) .or. (SIce>2)) print*,"SIce=",SIce,", k = ",k
               !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"qv=",var(i,j,k,nVar)/rho(i,j,k)
+
+              !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"nAer=",var(i,j,k,nVar-3)/rho(i,j,k)
 
               if (var(i,j,k,nVar-2) .le. 0.0) then
                  m_ice = init_m_ice 
@@ -1495,24 +1509,20 @@ contains
               deposition = DEPq(i,j,k,var,SIce,T,p,m_ice) ! depositional growth of ice crystals
 
               ! nAerosol equation
-              source(i,j,k,nVar-3) = var(i,j,k,nVar-3) * source(i,j,k,1) / rho(i,j,k) &
+              source(i,j,k,nVar-3) = rho_source_term(i,j,k,1) &
                    &  - nucleation - 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
-                 ! &  + nucleation + 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
 
               ! nIce equation
-              source(i,j,k,nVar-2) = var(i,j,k,nVar-2) * source(i,j,k,1) / rho(i,j,k) &
+              source(i,j,k,nVar-2) = rho_source_term(i,j,k,2) &
                    & +  nucleation + 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
-                 ! & -  nucleation - 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
 
               ! qIce equation
-              source(i,j,k,nVar-1) = var(i,j,k,nVar-1) * source(i,j,k,1) / rho(i,j,k) &
+              source(i,j,k,nVar-1) = rho_source_term(i,j,k,3) &
                    & + m_ice / (rhoRef * lRef**3) * nucleation  + deposition
-                 ! & - m_ice / (rhoRef * lRef**3) * nucleation  - deposition
 
               ! qv equation
-              source(i,j,k,nVar) = var(i,j,k,nVar) * source(i,j,k,1) / rho(i,j,k)  &
+              source(i,j,k,nVar) = rho_source_term(i,j,k,4) &
                    & - m_ice / (rhoRef * lRef**3) * nucleation - deposition
-                 ! & + m_ice / (rhoRef * lRef**3) * nucleation + deposition
             end do
           end do
         end do

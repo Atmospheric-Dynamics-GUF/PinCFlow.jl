@@ -484,6 +484,9 @@ module type_module
   !                           Ice physics 
   !-----------------------------------------------------------------
 
+  character(len=20) :: iceTestcase ! choose initial ice variable setup
+       ! possible: "homogeneous_qv", "homogeneous_SIce"
+  real :: init_SIce ! initial vapor saturation with respect to ice
   real :: init_nAer, init_qv  ! initial values for aerosols and humidity
   real :: init_m_ice ! initially assumed average ice crystal mass
   real :: radius_solution, sigma_r ! needed for log-normal correlation
@@ -493,9 +496,9 @@ module type_module
   character(len=10) :: awi_type  ! possible: "const", "linFit", "quadFit", "exact"
   character(len=10) :: SIce_threshold_type ! possible: "linFit", "quadFit", "exact"
 
-  namelist / iceList / init_nAer, init_qv, init_m_ice, radius_solution, sigma_r, &
-     &    NUC_approx_type, kT_linFit, dv_exp2, cm_dryAir, mu_linFit, &
-     &    awi_type, SIce_threshold_type
+  namelist / iceList / iceTestcase, init_SIce, init_nAer, init_qv, init_m_ice, &
+     &    radius_solution, sigma_r, NUC_approx_type, kT_linFit, dv_exp2,  & 
+     &    cm_dryAir, mu_linFit, awi_type, SIce_threshold_type
 
 
 

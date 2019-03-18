@@ -125,7 +125,7 @@ contains
     character(len=*), intent(in) :: option
 
     ! local variables
-    integer :: i,j,k
+    integer :: i,j,k,iVar
 
     real, dimension(-nby:ny+nby,-nbz:nz+nbz) :: uBound
 
@@ -149,6 +149,21 @@ contains
                & x-horizontal BC for rho set."
 
 ! modified by Junhong Wei (20161109) *** finishing line ***          
+          
+       end if
+
+
+      if( updateIce ) then
+          ! ice variables -> iVar = nVar-3, nVar
+          do iVar = nVar-3,nVar
+            do i = 1,nbx
+               var(nx+i,:,:,iVar) = var(i,:,:,iVar)
+               var(-i+1,:,:,iVar) = var(nx-i+1,:,:,iVar)
+            end do
+          end do
+
+          if(verbose .and. master) print*,"horizontalBoundary: &
+               & x-horizontal BC for ice variables set."        
           
        end if
 
@@ -241,6 +256,25 @@ contains
        end if
 
 
+       if ( updateIce ) then
+         ! reconstructed density needed in ghost cell i = nx+2
+         nAerTilde(nx+2,:,:,1,0) = nAerTilde(2,:,:,1,0)
+         nIceTilde(nx+2,:,:,1,0) = nIceTilde(2,:,:,1,0)
+         qIceTilde(nx+2,:,:,1,0) = qIceTilde(2,:,:,1,0)
+         qvTilde(nx+2,:,:,1,0) = qvTilde(2,:,:,1,0)
+
+         ! ...in ghost cell i = -1
+         nAerTilde(-1,:,:,1,1) = nAerTilde(nx-1,:,:,1,1)
+         nIceTilde(-1,:,:,1,1) = nIceTilde(nx-1,:,:,1,1)
+         qIceTilde(-1,:,:,1,1) = qIceTilde(nx-1,:,:,1,1)
+         qvTilde(-1,:,:,1,1) = qvTilde(nx-1,:,:,1,1)
+
+         if(verbose .and. master) print*,"horizontalBoundary: &
+               & x-horizontal BC for iceTilde variables set."
+
+       end if
+
+
        if( updateTheta ) then
           ! reconstructed density needed in ghost cell i = nx+2
           thetaTilde(nx+2,:,:,1,0) = thetaTilde(2,:,:,1,0)
@@ -296,7 +330,7 @@ contains
     character(len=*), intent(in) :: option
 
     ! local variables
-    integer :: i,j,k
+    integer :: i,j,k,iVar
 
     real, dimension(-nbx:nx+nbx,-nbz:nz+nbz) :: vBound
 
@@ -324,6 +358,22 @@ contains
 ! modified by Junhong Wei (20161109) *** finishing line ***                    
           
        end if
+
+
+       if( updateIce ) then
+          ! ice variables -> iVar = nVar-3, nVar
+          do iVar = nVar-3,nVar
+            do j = 1,nby
+               var(:,ny+j,:,iVar) = var(:,j,:,iVar)
+               var(:,-j+1,:,iVar) = var(:,ny-j+1,:,iVar)
+            end do
+          end do                
+          
+          if(verbose .and. master) print *,"horizontalBoundary: &
+               & y-horizontal BC for ice variables set."
+      
+       end if
+
 
        if( updateTheta ) then
           ! density -> iVar = 6
@@ -414,6 +464,25 @@ contains
        end if
 
 
+       if ( updateIce ) then
+         ! see above, similar to rho
+         nAerTilde(:,ny+2,:,2,0) = nAerTilde(:,2,:,2,0)
+         nIceTilde(:,ny+2,:,2,0) = nIceTilde(:,2,:,2,0)
+         qIceTilde(:,ny+2,:,2,0) = qIceTilde(:,2,:,2,0)
+         qvTilde(:,ny+2,:,2,0) = qvTilde(:,2,:,2,0)
+
+         ! see above, similar to rho
+         nAerTilde(:,-1,:,2,1) = nAerTilde(:,ny-1,:,2,1)   
+         nIceTilde(:,-1,:,2,1) = nIceTilde(:,ny-1,:,2,1)   
+         qIceTilde(:,-1,:,2,1) = qIceTilde(:,ny-1,:,2,1)   
+         qvTilde(:,-1,:,2,1) = qvTilde(:,ny-1,:,2,1)   
+
+         if(verbose .and. master) print*,"horizontalBoundary: &
+               & y-horizontal BC for iceTilde variables set."
+
+       end if
+
+
        if( updateTheta ) then
           ! reconstructed density needed in ghost cell j = ny+2
 !          thetaTilde(:,ny+2,:,1,0) = thetaTilde(:,2,:,1,0)   ! modified by Junhong Wei (suggestion from Mark Schlutow)
@@ -466,7 +535,7 @@ contains
     character(len=*), intent(in) :: option
 
     ! local variables
-    integer :: i,j,k
+    integer :: i,j,k,iVar
 
     real, dimension(-nbx:nx+nbx,-nby:ny+nby) :: wBound
 
@@ -492,6 +561,22 @@ contains
 ! modified by Junhong Wei (20161109) *** finishing line ***
           
        end if
+
+
+       if( updateIce ) then
+          ! ice variables -> iVar = nVar-3, nVar
+          do iVar = nVar-3,nVar
+            do k = 1,nbz
+               var(:,:,nz+k,iVar) = var(:,:,k,iVar)
+               var(:,:,-k+1,iVar) = var(:,:,nz-k+1,iVar)
+            end do
+          end do
+
+          if(verbose .and. master) print *,"setBoundary_z_periodic: &
+               & z-periodic BC for ice variables set."
+        
+       end if
+
 
        if( updateTheta ) then
           ! density -> iVar = 6
@@ -582,6 +667,25 @@ contains
        end if
 
 
+       if ( updateIce ) then
+         ! see above, similar to rho
+         nAerTilde(:,:,nz+2,3,0) = nAerTilde(:,:,2,3,0) 
+         nIceTilde(:,:,nz+2,3,0) = nIceTilde(:,:,2,3,0) 
+         qIceTilde(:,:,nz+2,3,0) = qIceTilde(:,:,2,3,0) 
+         qvTilde(:,:,nz+2,3,0) = qvTilde(:,:,2,3,0) 
+
+         ! see above, similar to rho
+         nAerTilde(:,:,-1,3,1) = nAerTilde(:,:,nz-1,3,1)  
+         nIceTilde(:,:,-1,3,1) = nIceTilde(:,:,nz-1,3,1) 
+         qIceTilde(:,:,-1,3,1) = qIceTilde(:,:,nz-1,3,1)  
+         qvTilde(:,:,-1,3,1) = qvTilde(:,:,nz-1,3,1)  
+
+         if(verbose .and. master) print*,"setBoundary_z_periodic:  &
+               & z-periodic BC for iceTilde variables set."
+
+       end if
+
+
        if( updateTheta ) then
           ! reconstructed density needed in ghost cell k = nz+2
 !          thetaTilde(:,:,nz+2,1,0) = thetaTilde(:,:,2,1,0)   ! modified by Junhong Wei (suggestion from Mark Schlutow)
@@ -634,7 +738,7 @@ contains
     character(len=*), intent(in) :: option
 
     ! local variables
-    integer :: i,j,k
+    integer :: i,j,k,iVar
     real, dimension(-nby:ny+nby,-nbz:nz+nbz) :: uBound
     real, dimension(-nbx:nx+nbx,-nbz:nz+nbz) :: vBound
 
@@ -669,6 +773,17 @@ contains
           do k = 1,nbz
              var(:,:,-k+1,1) = var(:,:,k,1)
              var(:,:,nz+k,1) = var(:,:,nz-k+1,1)
+          end do
+       end if
+
+       if( updateIce ) then
+          ! reflect at boundary without change of sign
+          ! ice variables -> iVar = nVar-3, nVar
+          do iVar = nVar-3, nVar
+            do k = 1,nbz
+              var(:,:,-k+1,iVar) = var(:,:,k,iVar)
+              var(:,:,nz+k,iVar) = var(:,:,nz-k+1,iVar)
+            end do
           end do
        end if
 

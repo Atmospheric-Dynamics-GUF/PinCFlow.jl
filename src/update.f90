@@ -1074,12 +1074,7 @@ contains
              ! F(phi)
              F = -fluxDiff
 
-             ! subtract divergence error
-             if( correctDivError ) then
-                
-                F(:) = F(:) + source(i,j,k,nVar-3:nVar)
-                
-             end if
+             F(:) = F(:) + source(i,j,k,nVar-3:nVar)
              
              select case( timeSchemeType ) 
                 

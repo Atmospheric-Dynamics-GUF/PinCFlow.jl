@@ -221,16 +221,23 @@ contains
                       case default
              !--------------------------------------
                       ! NEW: ice cases !
+
+                             if (fluctuationMode ) then
+                                rho = var(i,j,k,1) + rhoStrat(k)
+                               else
+                                rho = var(i,j,k,1)
+                             end if
+
                          if (iVar==nVar-3) then
                            field_prc(i,j) = real(var(i,j,k,iVar) &
-                                         & / ( var(i,j,k,1)* rhoRef * lRef**3 ),kind=4) 
+                                         & / ( rho* rhoRef * lRef**3 ),kind=4) 
                          else if (iVar==nVar-2) then 
                            field_prc(i,j) =  real(var(i,j,k,iVar) &
-                                         & / ( var(i,j,k,1)* rhoRef * lRef**3 ),kind=4) 
+                                         & / ( rho* rhoRef * lRef**3 ),kind=4) 
                          else if (iVar==nVar-1) then
-                            field_prc(i,j) = real(var(i,j,k,iVar)/var(i,j,k,1),kind=4) 
+                            field_prc(i,j) = real(var(i,j,k,iVar)/rho,kind=4) 
                          else if (iVar==nVar) then
-                            field_prc(i,j) = real(var(i,j,k,iVar)/var(i,j,k,1),kind=4) 
+                            field_prc(i,j) = real(var(i,j,k,iVar)/rho,kind=4) 
               !---------------------------------
                          else 
                            stop "tec360: unkown iVar"

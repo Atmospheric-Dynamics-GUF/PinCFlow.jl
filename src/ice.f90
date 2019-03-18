@@ -7,6 +7,7 @@ module ice_module
 
   private 
 
+  public :: setup_ice
   public :: NUCn, DEPq
   public :: SIce_crit, p_saturation, SIce_threshold, awi
   public :: find_temperature, pIce
@@ -18,6 +19,7 @@ module ice_module
   real, parameter :: Rv = Rsp/epsilon0  ! specific gas constant for water vapor
   real, parameter :: cpv = 3.5*Rv ! c_p for water vapor
   real, parameter :: rhob = 0.81e3 ! mean snowflake density in kg / m**3
+  real :: ice_crystal_volume
 
 !coefficients for linear fit of nucleation rate
   real, parameter :: afit0=-62.192670609121556
@@ -30,6 +32,56 @@ module ice_module
   public :: epsilon0
 
 contains
+
+  subroutine setup_ice(var)
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(inout) :: var
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: rho
+    real :: SIce,T,p,m_ice
+    integer :: i,j,k
+
+    ! ice crystal volume and correction factor from log-normal distribution
+    ice_crystal_volume = exp(9. * log(sigma_r)**2 / 2.) * 4./3*pi*radius_solution**3.
+
+    if (fluctuationMode) then 
+      do k=0,nz
+        rho(:,:,k) = var(:,:,k,1)+rhoStrat(k)
+      end do
+    else 
+      rho = var(:,:,:,1)
+    end if
+
+    select case (iceTestcase)
+
+    case ("homogeneous_qv") 
+      var(:,:,:,nVar-3) = init_nAer * rhoRef * lRef**3 * rho(:,:,:)
+      var(:,:,:,nVar) = init_qv * rho(:,:,:)          
+      var(:,:,:,nVar-2:nVar-1) = 0.0
+
+    case ("homogeneous_SIce")
+      var(:,:,:,nVar-3) = init_nAer * rhoRef * lRef**3 * rho(:,:,:)         
+      var(:,:,:,nVar-2:nVar-1) = 0.0
+      do i=0,nx
+        do j=0,ny
+          do k=1,nz
+            call find_temperature(T,i,j,k,var)
+            p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
+            var(i,j,k,nVar) = epsilon0 * init_SIce * p_saturation(T) / p * rho(i,j,k) 
+          end do
+        end do
+      end do
+            
+    case ("stratification")
+      stop "iceTestcase: stratification not yet implemented"
+
+    case default
+      stop "iceTestcase: unknown case name"
+
+    end select
+
+  end subroutine setup_ice
+
+!------------------------------------------------------------------------------------
 
 ! returns terminal sedimentation velocity of nIce in m/s
   real function terminal_v_nIce(m_ice)
@@ -47,8 +99,9 @@ contains
     ex1=b*c
     ex2=1./c
       
-    terminal_v_nIce = an * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
-      
+    !terminal_v_nIce = an * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
+    terminal_v_nIce = 0.0
+  
   end function terminal_v_nIce
 
 !----------------------------------------------
@@ -69,9 +122,10 @@ contains
     ex1 = b*c
     ex2 = 1./c
       
-    terminal_v_qIce = aq * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
-      
-  end
+    !terminal_v_qIce = aq * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
+    terminal_v_qIce = 0.0 
+  
+  end function terminal_v_qIce
 
 !----------------------------------------------
 
@@ -121,7 +175,12 @@ contains
        stop "NUC_approx_type: unknown case model."
 
    end select
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  if (approximation_model .ge. 300.0) then
+    print*,"WARNING: approximation_model = ",approximation_model,", the value has been adjusted to 300"
+    approximation_model = 300.0
+  end if
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   end function approximation_model
 
 !----------------------------------------------
@@ -132,14 +191,9 @@ contains
     integer, intent(in) :: i,j,k
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(in) :: var
-
-    real :: ice_crystal_volume
- 
-    ice_crystal_volume = exp(9. * log(sigma_r)**2 / 2.) * 4./3*pi*radius_solution**3.
-                         ! correction factor from log-normal distribution
  
     if (SIce .ge. SIce_crit(T)) then 
-      NUCn = var(i,j,k,nVar-3)*10**approximation_model(SIce,T)*ice_crystal_volume
+      NUCn = var(i,j,k,nVar-3) * ice_crystal_volume * 10.0**approximation_model(SIce,T)
     else 
       NUCn = 0
     end if
@@ -172,6 +226,7 @@ contains
    real, parameter :: cv=0.57
    real, parameter :: m0=4.4e-9
    real, parameter :: gv0=0.148564433505542
+   real :: rho
 
 
    ! #### find lambda #### !
@@ -223,12 +278,18 @@ contains
    lat_heat = latent_heat_ice(T) / (Rv * T)
    how = 1. / ( (lat_heat-1.) * c1 * corr * dv / kT + Rv * T / p )
 
+   if ( fluctuationMode ) then
+         rho = var(i,j,k,1)+rhoStrat(k) 
+     else
+          rho = var(i,j,k,1)
+   end if 
+
 
    ! #### find Schmidt_term #### !   
    corr = (p/ 30000.)**(-0.178) * (T/233.)**(-0.394) 
      ! correction factor for terminal velocity
-   schmidt23 = (mu / ( var(i,j,k,1) * dv )) **(2./3.)
-   gv = gv0 * schmidt23 * corr * var(i,j,k,1) / mu
+   schmidt23 = (mu / ( rho * dv )) **(2./3.)
+   gv = gv0 * schmidt23 * corr * rho / mu
    Schmidt_term = 1. + gv * av * (m_ice*c2)**(bv+cv) * m0**cv / &
                 & ( m_ice**cv + m0**cv )
 
@@ -367,7 +428,7 @@ contains
     select case ( model )
       case("pseudo_incompressible")
         T = ( Pstrat(k) / rho ) * thetaRef &
-           & * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )
+          & * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )
 
       case("Boussinesq")
         T = ( thetaStrat(k) + var(i,j,k,6) ) * thetaRef &
@@ -378,6 +439,15 @@ contains
 
     end select
   
+    if ((T .le. 190.0) .or. (T .ge. 230.0)) then
+      print*, "T = ", T
+      print*, "k = ",k
+      print*, "theta = ",( Pstrat(k) / rho ) * thetaRef
+      print*,"z = ",z(k)*lref
+      print*,"pi = ", PStrat(k)**(2./5.) +var(i,j,k,5)
+      print*,"pi'",var(i,j,k,5)
+      !stop "" 
+    end if
 end subroutine find_temperature
 
 

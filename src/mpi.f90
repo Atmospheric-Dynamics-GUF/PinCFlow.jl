@@ -491,12 +491,12 @@ contains
 
 
        !------------------------------------------------
-       !   ice variable transport: iVar = nVar-4, nVar
+       !   ice variable transport: iVar = nVar-3, nVar
        !------------------------------------------------
 
        if ( include_ice .and. updateIce ) then
 
-        do iVar = nVar-4,nVar
+        do iVar = nVar-3,nVar
 
           ! slice size
           sendcount = nbx*(ny+2*nby+1)*nz
@@ -945,12 +945,12 @@ contains
 
 
        !------------------------------------------------
-       !   ice variable transport: iVar = nVar-4, nVar
+       !   ice variable transport: iVar = nVar-3, nVar
        !------------------------------------------------
 
        if ( include_ice .and. updateIce ) then
 
-        do iVar = nVar-4,nVar
+        do iVar = nVar-3,nVar
           ! slice size
           sendcount = nby*(nx+2*nbx+1)*nz
           recvcount = sendcount
