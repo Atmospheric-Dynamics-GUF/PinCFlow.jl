@@ -36,37 +36,28 @@ contains
   subroutine setup_ice(var)
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(inout) :: var
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: rho
     real :: SIce,T,p,m_ice
     integer :: i,j,k
 
     ! ice crystal volume and correction factor from log-normal distribution
     ice_crystal_volume = exp(9. * log(sigma_r)**2 / 2.) * 4./3*pi*radius_solution**3.
 
-    if (fluctuationMode) then 
-      do k=0,nz
-        rho(:,:,k) = var(:,:,k,1)+rhoStrat(k)
-      end do
-    else 
-      rho = var(:,:,:,1)
-    end if
-
     select case (iceTestcase)
 
     case ("homogeneous_qv") 
-      var(:,:,:,nVar-3) = init_nAer * rhoRef * lRef**3 * rho(:,:,:)
-      var(:,:,:,nVar) = init_qv * rho(:,:,:)          
+      var(:,:,:,nVar-3) = init_nAer * rhoRef * lRef**3
+      var(:,:,:,nVar) = init_qv         
       var(:,:,:,nVar-2:nVar-1) = 0.0
 
     case ("homogeneous_SIce")
-      var(:,:,:,nVar-3) = init_nAer * rhoRef * lRef**3 * rho(:,:,:)         
+      var(:,:,:,nVar-3) = init_nAer * rhoRef * lRef**3         
       var(:,:,:,nVar-2:nVar-1) = 0.0
       do i=0,nx
         do j=0,ny
           do k=1,nz
             call find_temperature(T,i,j,k,var)
             p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
-            var(i,j,k,nVar) = epsilon0 * init_SIce * p_saturation(T) / p * rho(i,j,k) 
+            var(i,j,k,nVar) = epsilon0 * init_SIce * p_saturation(T) / p 
           end do
         end do
       end do
@@ -99,9 +90,8 @@ contains
     ex1=b*c
     ex2=1./c
       
-    !terminal_v_nIce = an * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
-    terminal_v_nIce = 0.0
-  
+    terminal_v_nIce = an * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
+
   end function terminal_v_nIce
 
 !----------------------------------------------
@@ -122,8 +112,7 @@ contains
     ex1 = b*c
     ex2 = 1./c
       
-    !terminal_v_qIce = aq * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
-    terminal_v_qIce = 0.0 
+    terminal_v_qIce = aq * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
   
   end function terminal_v_qIce
 

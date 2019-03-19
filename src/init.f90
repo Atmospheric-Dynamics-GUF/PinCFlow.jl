@@ -195,7 +195,7 @@ contains
     ! read output specifications
     read (unit=10, nml=outputList)
     if (include_ice) then
-      forall (i=0:2)  ! nAer is not printed out on default!
+      forall (i=0:3) 
         varOut(nVar-i) = 1
         varIn(nVar-i) = 1
       end forall

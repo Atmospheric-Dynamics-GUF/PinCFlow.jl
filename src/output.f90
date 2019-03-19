@@ -222,22 +222,16 @@ contains
              !--------------------------------------
                       ! NEW: ice cases !
 
-                             if (fluctuationMode ) then
-                                rho = var(i,j,k,1) + rhoStrat(k)
-                               else
-                                rho = var(i,j,k,1)
-                             end if
-
                          if (iVar==nVar-3) then
                            field_prc(i,j) = real(var(i,j,k,iVar) &
-                                         & / ( rho* rhoRef * lRef**3 ),kind=4) 
+                                         & / ( rhoRef * lRef**3 ),kind=4) 
                          else if (iVar==nVar-2) then 
                            field_prc(i,j) =  real(var(i,j,k,iVar) &
-                                         & / ( rho* rhoRef * lRef**3 ),kind=4) 
+                                         & / ( rhoRef * lRef**3 ),kind=4) 
                          else if (iVar==nVar-1) then
-                            field_prc(i,j) = real(var(i,j,k,iVar)/rho,kind=4) 
+                            field_prc(i,j) = real(var(i,j,k,iVar),kind=4) 
                          else if (iVar==nVar) then
-                            field_prc(i,j) = real(var(i,j,k,iVar)/rho,kind=4) 
+                            field_prc(i,j) = real(var(i,j,k,iVar),kind=4) 
               !---------------------------------
                          else 
                            stop "tec360: unkown iVar"
@@ -443,13 +437,13 @@ contains
                   !--------------------------------------
                       ! NEW: ice cases !    ! might be better to include reference units here
                          if (iVar==nVar-3) then ! aerosol particle number concentration nAer
-                            var(i,j,k,iVar) = field_prc(i,j) * rhoRef * lRef**3 * var(i,j,k,1)              
+                            var(i,j,k,iVar) = field_prc(i,j) * rhoRef * lRef**3              
                          else if (iVar==nVar-2) then ! ice particle number concentration nIce
-                            var(i,j,k,iVar) = field_prc(i,j) * rhoRef * lRef**3 * var(i,j,k,1)
+                            var(i,j,k,iVar) = field_prc(i,j) * rhoRef * lRef**3
                          else if (iVar==nVar-1) then  ! ice particle mass concentration qIce
-                            var(i,j,k,iVar) = field_prc(i,j) * var(i,j,k,1)
+                            var(i,j,k,iVar) = field_prc(i,j) 
                          else if (iVar==nVar) then ! water vapor mass concentration qv
-                            var(i,j,k,iVar) = field_prc(i,j) * var(i,j,k,1)
+                            var(i,j,k,iVar) = field_prc(i,j) 
                   !---------------------------------
                          else 
                            stop "tec360: unkown iVar"

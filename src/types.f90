@@ -410,7 +410,7 @@ module type_module
   !                         Boundary
   !-----------------------------------------------------------------
 
-  logical :: rhoFluxCorr, uFluxCorr, vFluxCorr, wFluxCorr, thetaFluxCorr
+  logical :: rhoFluxCorr, iceFluxCorr, uFluxCorr, vFluxCorr, wFluxCorr, thetaFluxCorr
   integer :: nbCellCorr
   
   ! sponge layer
@@ -426,7 +426,7 @@ module type_module
 !  character(len=15) :: yBoundary
 !  character(len=15) :: zBoundary
 
-  namelist / boundaryList / rhoFluxCorr, uFluxCorr, &
+  namelist / boundaryList / rhoFluxCorr, iceFluxCorr, uFluxCorr, &
        & vFluxCorr, wFluxCorr, thetaFluxCorr, nbCellCorr, &
        & spongeLayer, spongeHeight, &
        & zSponge, &

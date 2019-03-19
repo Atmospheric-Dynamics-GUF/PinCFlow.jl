@@ -19,7 +19,7 @@ module update_module
   !------------------------
   public :: momentumPredictor
   public :: massUpdate
-  public :: iceUpdate
+  public :: iceUpdate, iceTransitions
   public :: thetaUpdate
   public :: timestep
   public :: init_update
@@ -1010,6 +1010,44 @@ contains
 
   end subroutine massUpdate
 
+!---------------------------------------------------------------------------
+
+
+  subroutine iceTransitions (var, source, dt)
+    !-----------------------------
+    ! performs internal transitions between ice variables (forward Euler)
+    !-----------------------------
+
+    ! in/out variables
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(inout) :: var
+
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(in) :: source
+    
+    real, intent(in) :: dt
+
+    ! local integer
+    integer :: i,j,k,iVar
+
+    do k = 1,nz
+       do j = 1,ny
+          do i = 1,nx
+            do iVar = nVar-3,nVar
+              var(i,j,k,iVar) = var(i,j,k,iVar) + dt * source(i,j,k,iVar)
+              if (var(i,j,k,iVar) .lt. 0.0) then
+                var(i,j,k,iVar) = 0.0
+                print*,"something is probably wrong ..., iVar = ",iVar," k = ",k
+              end if
+            end do
+          end do
+       end do
+    end do
+
+
+    if(verbose .and. master) print*,"update.f90/iceTransitions: calculated." 
+
+  end subroutine iceTransitions
 
 
 !---------------------------------------------------------------------------
@@ -1042,18 +1080,38 @@ contains
          & intent(inout) :: q
 
     integer, intent(in) :: m
+
+    ! local integer
+    integer :: i,j,k,iVar
     
     ! local variables
-    integer :: i,j,k,l
     real, dimension(4)    :: fL,fR        ! flux Left/Right
     real, dimension(4)    :: gB,gF        ! flux Backward/Forward
     real, dimension(4)    :: hD,hU        ! flux Downward/Upward
     real, dimension(4)    :: fluxDiff         ! convective part
     real, dimension(4)    :: F            ! F(phi)
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: rho
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,4) :: rho_source_term
     
 
     ! init q
     if (m == 1) q = 0.
+
+    if ( fluctuationMode ) then
+      do k = -1,nz+1
+        rho(:,:,k) = var(:,:,k,1)+rhoStrat(k) 
+      end do
+    else
+      rho = var(:,:,:,1)
+    end if 
+
+    if (correctDivError) then
+      do k = 0,3
+        rho_source_term(:,:,:,4-k) = var(:,:,:,nVar-k) * source(:,:,:,1)
+      end do
+    else 
+      rho_source_term(:,:,:,:) = 0.0
+    end if
 
     do k = 1,nz
        do j = 1,ny
@@ -1074,7 +1132,7 @@ contains
              ! F(phi)
              F = -fluxDiff
 
-             F(:) = F(:) + source(i,j,k,nVar-3:nVar)
+             F(:) = F(:) + rho_source_term(i,j,k,:)
              
              select case( timeSchemeType ) 
                 
@@ -1084,18 +1142,24 @@ contains
                 q(i,j,k,:) = dt*F(:) + alpha(m) * q(i,j,k,:)
 
                 ! update variables
-                var(i,j,k,nVar-3:nVar) = var(i,j,k,nVar-3:nVar) + beta(m) * q(i,j,k,1:4)
+                var(i,j,k,nVar-3:nVar) = var(i,j,k,nVar-3:nVar) + beta(m) * q(i,j,k,1:4) / rho(i,j,k)
 
              case( "classical" )
 
                 var(i,j,k,nVar-3:nVar) = rk(1,m) * var0(i,j,k,nVar-3:nVar) &
                      &       + rk(2,m) * var (i,j,k,nVar-3:nVar) &
-                     &       + rk(3,m) * dt*F(1:4)
+                     &       + rk(3,m) * dt*F(1:4) / rho(i,j,k)
 
              case default
                 stop "iceUpdate: unknown case timeSchemeType"
              end select
-
+             
+             do iVar = nVar-3,nVar
+               if (var(i,j,k,iVar).lt. 0.0) then
+                 var(i,j,k,iVar) = 0.0
+               end if
+             end do
+             
           end do
        end do
     end do

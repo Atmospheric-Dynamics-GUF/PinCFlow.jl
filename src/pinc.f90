@@ -488,8 +488,15 @@ program pinc_prog
               if( correctDivError) call momentumSource (var,source)
            end if
            if(( include_ice ) .and. ( updateIce )) then
-               call iceFlux (var, flux)
-               call iceSource (var, source)
+              if (RKstage == 1) then 
+                dIce = 0.0                ! init q
+                call iceSource (var, source)
+                call iceTransitions(var, source, dt)
+                call setHalos(var,"var")
+                call reconstruction(var, "ice")
+                call setBoundary(var,flux,"var")
+              end if
+              call iceFlux (var, flux)
            end if
 
            call setBoundary (var, flux, "flux") 
@@ -499,6 +506,18 @@ program pinc_prog
            !                        Evolve in time
            !------------------------------------------------------------
            
+           if (include_ice .and. updateIce) then
+              !--------------------------------------
+              !               ice_new
+              !--------------------------------------
+              
+              call iceUpdate(var, var0, flux, source, dt, dIce, RKstage)
+
+           else if(iTime==1 .and. RKstage==1 .and. master) then
+              print *,"main: IceUpdate off!"
+           end if
+
+
            if( updateMass ) then
               !---------------------------------------
               !               rho_new
@@ -513,17 +532,6 @@ program pinc_prog
               if(iTime==1 .and. RKstage==1 .and. master) print *,"main: MassUpdate off!"   ! modified by Junhong Wei for MPI (20161103)
            end if
            
-           if (include_ice .and. updateIce) then
-              !--------------------------------------
-              !               ice_new
-              !--------------------------------------
-              if (RKstage == 1) dIce = 0.0                ! init q
-              call setHalos(var,"var")
-              call iceUpdate(var, var0, flux, source, dt, dIce, RKstage)
-
-           else if(iTime==1 .and. RKstage==1 .and. master) then
-              print *,"main: IceUpdate off!"
-           end if
               
            if( updateTheta ) then
               !---------------------------------------

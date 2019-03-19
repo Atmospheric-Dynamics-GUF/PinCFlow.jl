@@ -19,7 +19,6 @@ module flux_module
   public :: thetaFlux
   public :: momentumFlux
   public :: iceFlux
-  public :: iceSedimentationFlux
   public :: volumeForce
 ! achatzb old topographic scheme removed
 ! public :: bottomTopography
@@ -1267,183 +1266,323 @@ contains
     ! flux(i,j,k,dir,iFlux) 
     ! dir = 1..3 > f,g,h-flux in x,y,z-direction
 
-    integer :: nqS, dir, k, j, i
+    integer :: nqS, k, j, i
+
+    real :: UpFlux, DownFlux, TotFlux, wU, wD
+    real :: delta_w, wSurf, coef_t, d_dxi, m_ice
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: rho
+
+    real, parameter :: Pr_t_DySma = 0.5 
 
     ! All ice particles obey the general mass flux in x and y direction
+ 
+    coef_t = mu_conduct
+    
     if ( fluctuationMode ) then
-
-    do k = 0,nz
-      do j = 0,ny
-        do i = 0,nx              
-          call iceSedimentationFlux(i,j,k,var,flux)     
-          ! The ice flux in z-direction has to be calculated taking into account the 
-          ! terminal sedimentation speed of ice crystals
-          do nqS = 0,3 
-            do dir=1,2
-              flux(i,j,k,dir,nVar-nqS) = var(i,j,k,nVar-nqS) * flux(i,j,k,dir,1) / &
-                             & ( var(i,j,k,1) + rhoStrat(k) )
-            end do
-          end do
-        end do
+      do k = -1,nz+1
+        rho(:,:,k) = var(:,:,k,1)+rhoStrat(k) 
       end do
-    end do
-
     else
+      rho = var(:,:,:,1)
+    end if 
+
 
     do k = 0,nz
       do j = 0,ny
         do i = 0,nx              
-          call iceSedimentationFlux(i,j,k,var,flux)      
-          do nqS = 0,3     
-            do dir=1,2
-              flux(i,j,k,dir,nVar-nqS) = var(i,j,k,nVar-nqS) * flux(i,j,k,dir,1) / var(i,j,k,1)
-            end do
-          end do
+          
+          if (var(i,j,k,nVar-2)==0.0) then
+            m_ice = init_m_ice 
+          else
+            m_ice = var(i,j,k,nVar-1)/var(i,j,k,nVar-2) * rhoRef * lRef**3
+           !print*,"ATTENTION:", m_ice
+          end if
+
+          if (model ==  "pseudo_incompressible") then
+            coef_t = mu_conduct * rhoStrat(1)/rhoStrat(k)
+          end if
+
+          if ( DySmaScheme ) then
+            coef_t = coef_t + 0.5*( var(i,j,k,7) + var(i+1,j,k,7) )/Pr_t_DySma
+          end if
+
+         !-----------------------------------------
+         !--- horizontal direction ---!
+         !-----------------------------------------
+            select case( fluxType )
+
+              case( "central" )
+                do nqS = 0,3
+                  UpFlux = rho(i+1,j,k)*var(i+1,j,k,nVar-nqS) 
+                  DownFLux = rho(i,j,k)*var(i,j,k,nVar-nqS)
+                  wSurf = var(i,j,k,2)
+                  TotFlux = wSurf * 0.5*(DownFlux + UpFlux) 
+                  d_dxi = ( UpFlux - DownFlux) / dx
+                end do                  
+
+              case( "upwind" )
+                do nqS = 0,3
+                  UpFlux = rho(i+1,j,k)*var(i+1,j,k,nVar-nqS) 
+                  DownFLux = rho(i,j,k)*var(i,j,k,nVar-nqS)
+                  d_dxi = ( UpFlux - DownFlux) / dx 
+                  select case (nqS)
+                    case(0)
+                      wSurf = var(i,j,k,2)
+                      UpFlux = rhoTilde(i+1,j,k,1,0)*qvTilde(i+1,j,k,1,0)
+                      DownFlux = rhoTilde(i,j,k,1,1)*qvTilde(i,j,k,1,1)               
+                    case(1)
+                      wSurf = var(i,j,k,2)
+                      UpFlux = rhoTilde(i+1,j,k,1,0)*qIceTilde(i+1,j,k,1,0)
+                      DownFlux = rhoTilde(i,j,k,1,1)*qIceTilde(i,j,k,1,1)
+                    case(2)
+                      wSurf = var(i,j,k,2)
+                      UpFlux = rhoTilde(i+1,j,k,1,0)*nIceTilde(i+1,j,k,1,0)
+                      DownFlux = rhoTilde(i,j,k,1,1)*nIceTilde(i,j,k,1,1)
+                    case(3)
+                      wSurf = var(i,j,k,2)
+                      UpFlux = rhoTilde(i+1,j,k,1,0)*nAerTilde(i+1,j,k,1,0)
+                      DownFlux = rhoTilde(i,j,k,1,1)*nAerTilde(i,j,k,1,1)
+                    case default
+                      stop "Bug in iceHorizontalFlux" 
+                  end select
+                  TotFlux = flux_muscl(wSurf,DownFlux,UpFlux)
+                  flux(i,j,k,1,nVar-nqS) = TotFlux - coef_t * d_dxi
+                end do
+
+              case( "ILES" )
+                do nqS = 0,3
+                  UpFlux = rho(i+1,j,k)*var(i+1,j,k,nVar-nqS) 
+                  DownFLux = rho(i,j,k)*var(i,j,k,nVar-nqS)
+                  d_dxi = ( UpFlux - DownFlux) / dx 
+                  select case (nqS)
+                    case(0)
+                      wD = wTilde(i,j,k,1,0)
+                      wU = wTilde(i,j,k,1,1)
+                      wSurf = var(i,j,k,2)
+                      UpFlux = rhoTilde(i+1,j,k,1,0)*qvTilde(i+1,j,k,1,0)
+                      DownFlux = rhoTilde(i,j,k,1,1)*qvTilde(i,j,k,1,1)               
+                    case(1)
+                      wD = wTilde(i,j,k,1,0)
+                      wU = wTilde(i,j,k,1,1)
+                      wSurf = var(i,j,k,2)
+                      UpFlux = rhoTilde(i+1,j,k,1,0)*qIceTilde(i+1,j,k,1,0)
+                      DownFlux = rhoTilde(i,j,k,1,1)*qIceTilde(i,j,k,1,1)
+                   case(2)
+                     wD = wTilde(i,j,k,1,0)
+                     wU = wTilde(i,j,k,1,1)
+                     wSurf = var(i,j,k,2)
+                     UpFlux = rhoTilde(i+1,j,k,1,0)*nIceTilde(i+1,j,k,1,0)
+                     DownFlux = rhoTilde(i,j,k,1,1)*nIceTilde(i,j,k,1,1)
+                   case(3)
+                     wD = wTilde(i,j,k,1,0)
+                     wU = wTilde(i,j,k,1,1)
+                     wSurf = var(i,j,k,2)
+                     UpFlux = rhoTilde(i+1,j,k,1,0)*nAerTilde(i+1,j,k,1,0)
+                     DownFlux = rhoTilde(i,j,k,1,1)*nAerTilde(i,j,k,1,1)
+                   case default
+                     stop "Bug in iceHorizontalFlux" 
+                 end select
+                 TotFlux = flux_aldm(DownFlux,UpFlux,wSurf,&
+                        &             DownFlux,UpFlux,wU,wD,sigmaC)
+                 flux(i,j,k,1,nVar-nqS) = TotFlux - coef_t * d_dxi
+               end do
+        
+              case default
+                stop "iceSedimentationFlux: unknown case fluxType"
+      
+            end select
+
+         !-----------------------------------------
+         !--- meridional direction ---!
+         !-----------------------------------------
+            select case( fluxType )
+
+              case( "central" )
+                do nqS = 0,3
+                  UpFlux = rho(i,j+1,k)*var(i,j+1,k,nVar-nqS) 
+                  DownFLux = rho(i,j,k)*var(i,j,k,nVar-nqS)
+                  wSurf = var(i,j,k,3)
+                  TotFlux = wSurf * 0.5*(DownFlux + UpFlux) 
+                  d_dxi = ( UpFlux - DownFlux) / dy
+                end do                  
+
+              case( "upwind" )
+                do nqS = 0,3
+                  UpFlux = rho(i,j+1,k)*var(i,j+1,k,nVar-nqS) 
+                  DownFLux = rho(i,j,k)*var(i,j,k,nVar-nqS)
+                  d_dxi = ( UpFlux - DownFlux) / dy 
+                  select case (nqS)
+                    case(0)
+                      wSurf = var(i,j,k,3)
+                      UpFlux = rhoTilde(i,j+1,k,2,0)*qvTilde(i,j+1,k,2,0)
+                      DownFlux = rhoTilde(i,j,k,2,1)*qvTilde(i,j,k,2,1)               
+                    case(1)
+                      wSurf = var(i,j,k,3)
+                      UpFlux = rhoTilde(i,j+1,k,2,0)*qIceTilde(i,j+1,k,2,0)
+                      DownFlux = rhoTilde(i,j,k,2,1)*qIceTilde(i,j,k,2,1)
+                    case(2)
+                      wSurf = var(i,j,k,3)
+                      UpFlux = rhoTilde(i,j+1,k,2,0)*nIceTilde(i,j+1,k,2,0)
+                      DownFlux = rhoTilde(i,j,k,2,1)*nIceTilde(i,j,k,2,1)
+                    case(3)
+                      wSurf = var(i,j,k,3)
+                      UpFlux = rhoTilde(i,j+1,k,2,0)*nAerTilde(i,j+1,k,2,0)
+                      DownFlux = rhoTilde(i,j,k,2,1)*nAerTilde(i,j,k,2,1)
+                    case default
+                      stop "Bug in iceMeridionalFlux" 
+                  end select
+                  TotFlux = flux_muscl(wSurf,DownFlux,UpFlux)
+                  flux(i,j,k,2,nVar-nqS) = TotFlux - coef_t * d_dxi
+                end do
+
+              case( "ILES" )
+                do nqS = 0,3
+                  UpFlux = rho(i,j+1,k)*var(i,j+1,k,nVar-nqS) 
+                  DownFLux = rho(i,j,k)*var(i,j,k,nVar-nqS)
+                  d_dxi = ( UpFlux - DownFlux) / dy 
+                  select case (nqS)
+                    case(0)
+                      wD = wTilde(i,j,k,2,0)
+                      wU = wTilde(i,j,k,2,1)
+                      wSurf = var(i,j,k,3)
+                      UpFlux = rhoTilde(i,j+1,k,2,0)*qvTilde(i,j+1,k,2,0)
+                      DownFlux = rhoTilde(i,j,k,2,1)*qvTilde(i,j,k,2,1)               
+                    case(1)
+                      wD = wTilde(i,j,k,2,0)
+                      wU = wTilde(i,j,k,2,1)
+                      wSurf = var(i,j,k,3)
+                      UpFlux = rhoTilde(i,j+1,k,2,0)*qIceTilde(i,j+1,k,2,0)
+                      DownFlux = rhoTilde(i,j,k,2,1)*qIceTilde(i,j,k,2,1)
+                   case(2)
+                     wD = wTilde(i,j,k,2,0)
+                     wU = wTilde(i,j,k,2,1)
+                     wSurf = var(i,j,k,3)
+                     UpFlux = rhoTilde(i,j+1,k,2,0)*nIceTilde(i,j+1,k,2,0)
+                     DownFlux = rhoTilde(i,j,k,2,1)*nIceTilde(i,j,k,2,1)
+                   case(3)
+                     wD = wTilde(i,j,k,2,0)
+                     wU = wTilde(i,j,k,2,1)
+                     wSurf = var(i,j,k,3)
+                     UpFlux = rhoTilde(i,j+1,k,2,0)*nAerTilde(i,j+1,k,2,0)
+                     DownFlux = rhoTilde(i,j,k,2,1)*nAerTilde(i,j,k,2,1)
+                   case default
+                     stop "Bug in iceMeridionalFlux" 
+                 end select
+                 TotFlux = flux_aldm(DownFlux,UpFlux,wSurf,&
+                        &             DownFlux,UpFlux,wU,wD,sigmaC)
+                 flux(i,j,k,2,nVar-nqS) = TotFlux - coef_t * d_dxi
+               end do
+        
+              case default
+                stop "iceSedimentationFlux: unknown case fluxType"
+      
+            end select
+
+
+         !-----------------------------------------
+         !--- vertical direction ---!
+         !-----------------------------------------
+           ! inspired by massFlux in vertical direction, but here the 
+           ! vertical wind is superposed with the terminal velocity for ice crystals 
+            select case( fluxType )
+
+              case( "central" )
+                do nqS = 0,3
+                  UpFlux = rho(i,j,k+1)*var(i,j,k+1,nVar-nqS) 
+                  DownFLux = rho(i,j,k)*var(i,j,k,nVar-nqS)
+                  select case (nqS)
+                    case(1)
+                      wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice) / uRef
+                    case(2)
+                      wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice) / uRef
+                    case default
+                      wSurf = var(i,j,k,4)
+                  end select
+                  TotFlux = wSurf * 0.5*(DownFlux + UpFlux) 
+                  d_dxi = ( UpFlux - DownFlux) / dz
+                end do                  
+
+              case( "upwind" )
+                do nqS = 0,3
+                  UpFlux = rho(i,j,k+1)*var(i,j,k+1,nVar-nqS) 
+                  DownFLux = rho(i,j,k)*var(i,j,k,nVar-nqS)
+                  d_dxi = ( UpFlux - DownFlux) / dz 
+                  select case (nqS)
+                    case(0)
+                      wSurf = var(i,j,k,4)
+                      UpFlux = rhoTilde(i,j,k+1,3,0)*qvTilde(i,j,k+1,3,0)
+                      DownFlux = rhoTilde(i,j,k,3,1)*qvTilde(i,j,k,3,1)               
+                    case(1)
+                      wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice) / uRef
+                      UpFlux = rhoTilde(i,j,k+1,3,0)*qIceTilde(i,j,k+1,3,0)
+                      DownFlux = rhoTilde(i,j,k,3,1)*qIceTilde(i,j,k,3,1)
+                    case(2)
+                      wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice) / uRef
+                      UpFlux = rhoTilde(i,j,k+1,3,0)*nIceTilde(i,j,k+1,3,0)
+                      DownFlux = rhoTilde(i,j,k,3,1)*nIceTilde(i,j,k,3,1)
+                    case(3)
+                      wSurf = var(i,j,k,4)
+                      UpFlux = rhoTilde(i,j,k+1,3,0)*nAerTilde(i,j,k+1,3,0)
+                      DownFlux = rhoTilde(i,j,k,3,1)*nAerTilde(i,j,k,3,1)
+                    case default
+                      stop "Bug in iceSedimentationFlux" 
+                  end select
+                  TotFlux = flux_muscl(wSurf,DownFlux,UpFlux)
+                  flux(i,j,k,3,nVar-nqS) = TotFlux - coef_t * d_dxi
+                end do
+
+              case( "ILES" )
+                do nqS = 0,3
+                  UpFlux = rho(i,j,k+1)*var(i,j,k+1,nVar-nqS) 
+                  DownFLux = rho(i,j,k)*var(i,j,k,nVar-nqS)
+                  d_dxi = ( UpFlux - DownFlux) / dz 
+                  select case (nqS)
+                    case(0)
+                      wD = wTilde(i,j,k,3,0)
+                      wU = wTilde(i,j,k,3,1)
+                      wSurf = var(i,j,k,4)
+                      UpFlux = rhoTilde(i,j,k+1,3,0)*qvTilde(i,j,k+1,3,0)
+                      DownFlux = rhoTilde(i,j,k,3,1)*qvTilde(i,j,k,3,1)               
+                    case(1)
+                      delta_w = - terminal_v_qIce(m_ice) / uRef
+                      wD = wTilde(i,j,k,3,0) + delta_w
+                      wU = wTilde(i,j,k,3,1) + delta_w
+                      wSurf = var(i,j,k,4) + delta_w
+                      UpFlux = rhoTilde(i,j,k+1,3,0)*qIceTilde(i,j,k+1,3,0)
+                      DownFlux = rhoTilde(i,j,k,3,1)*qIceTilde(i,j,k,3,1)
+                   case(2)
+                     delta_w = - terminal_v_nIce(m_ice) / uRef
+                     wD = wTilde(i,j,k,3,0) + delta_w
+                     wU = wTilde(i,j,k,3,1) + delta_w
+                     wSurf = var(i,j,k,4) + delta_w
+                     UpFlux = rhoTilde(i,j,k+1,3,0)*nIceTilde(i,j,k+1,3,0)
+                     DownFlux = rhoTilde(i,j,k,3,1)*nIceTilde(i,j,k,3,1)
+                   case(3)
+                     wD = wTilde(i,j,k,3,0)
+                     wU = wTilde(i,j,k,3,1)
+                     wSurf = var(i,j,k,4)
+                     UpFlux = rhoTilde(i,j,k+1,3,0)*nAerTilde(i,j,k+1,3,0)
+                     DownFlux = rhoTilde(i,j,k,3,1)*nAerTilde(i,j,k,3,1)
+                   case default
+                     stop "Bug in iceSedimentationFlux" 
+                 end select
+                 TotFlux = flux_aldm(DownFlux,UpFlux,wSurf,&
+                        &             DownFlux,UpFlux,wU,wD,sigmaC)
+                 flux(i,j,k,3,nVar-nqS) = TotFlux - coef_t * d_dxi
+               end do
+        
+              case default
+                stop "iceSedimentationFlux: unknown case fluxType"
+      
+            end select
+
         end do
       end do
     end do
-
-    end if
-
-
 
   end subroutine iceFlux
 
-!----------------------------------------------------------
-
-  subroutine iceSedimentationFlux(i,j,k,var,flux)
-  ! inspired by massFlux in vertical direction, but here the 
-  ! vertical wind is superposed with the terminal velocity for ice crystals 
-    ! in/out variables
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         & intent(in) :: var
-
-    real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), &
-         & intent(inout) :: flux
-    ! flux(i,j,k,dir,iFlux) 
-    ! dir = 1..3 > f,g,h-flux in x,y,z-direction
-
-    integer, intent(in) :: k, j, i
-
-    integer :: nqS
-    real :: UpFlux, DownFlux, TotFlux, wU, wD
-    real :: delta_w, wSurf, coef_t, d_dxi, m_ice
-
-    real, parameter :: Pr_t_DySma = 0.5 
-  
-    if (var(i,j,k,nVar-2)==0.0) then
-      m_ice = init_m_ice 
-    else
-      m_ice = var(i,j,k,nVar-1)/var(i,j,k,nVar-2) * rhoRef * lRef**3
-      !print*,"ATTENTION:", m_ice
-    end if
-    
-    select case( model )
-      case( "pseudo_incompressible" )
-        coef_t = mu_conduct * rhoStrat(1)/rhoStrat(k)
-      case( "Boussinesq" )
-        coef_t = mu_conduct
-      case default
-        stop "diffusivity: unkown case model."
-      end select
-
-    if ( DySmaScheme ) then
-      coef_t = coef_t + 0.5*( var(i,j,k,7) + var(i+1,j,k,7) )/Pr_t_DySma
-    end if
-     
-    select case( fluxType )
-
-        case( "central" )
-          do nqS = 0,3
-            UpFlux = var(i,j,k+1,nVar-nqS) 
-            DownFLux = var(i,j,k,nVar-nqS)
-            select case (nqS)
-              case(1)
-                wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice) / uRef
-              case(2)
-                wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice) / uRef
-              case default
-                wSurf = var(i,j,k,4)
-            end select
-            TotFlux = wSurf * 0.5*(DownFlux + UpFlux) 
-            d_dxi = ( UpFlux - DownFlux) / dz
-          end do                  
-
-        case( "upwind" )
-          do nqS = 0,3
-            UpFlux = var(i,j,k+1,nVar-nqS) 
-            DownFLux = var(i,j,k,nVar-nqS)
-            d_dxi = ( UpFlux - DownFlux) / dz 
-            select case (nqS)
-              case(0)
-                wSurf = var(i,j,k,4)
-                UpFlux = qvTilde(i,j,k+1,3,0)
-                DownFlux = qvTilde(i,j,k,3,1)               
-              case(1)
-                wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice) / uRef
-                UpFlux = qIceTilde(i,j,k+1,3,0)
-                DownFlux = qIceTilde(i,j,k,3,1)
-              case(2)
-                wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice) / uRef
-                UpFlux = nIceTilde(i,j,k+1,3,0)
-                DownFlux = nIceTilde(i,j,k,3,1)
-              case(3)
-                wSurf = var(i,j,k,4)
-                UpFlux = nAerTilde(i,j,k+1,3,0)
-                DownFlux = nAerTilde(i,j,k,3,1)
-              case default
-                stop "Bug in iceSedimentationFlux" 
-            end select
-            TotFlux = flux_muscl(wSurf,DownFlux,UpFlux)
-            flux(i,j,k,3,nVar-nqS) = TotFlux - coef_t * d_dxi
-          end do
-
-        case( "ILES" )
-          do nqS = 0,3
-            UpFlux = var(i,j,k+1,nVar-nqS) 
-            DownFLux = var(i,j,k,nVar-nqS)
-            d_dxi = ( UpFlux - DownFlux) / dz 
-            select case (nqS)
-              case(0)
-                wD = wTilde(i,j,k,3,0)
-                wU = wTilde(i,j,k,3,1)
-                wSurf = var(i,j,k,4)
-                UpFlux = qvTilde(i,j,k+1,3,0)
-                DownFlux = qvTilde(i,j,k,3,1)               
-              case(1)
-                delta_w = - terminal_v_qIce(m_ice) / uRef
-                wD = wTilde(i,j,k,3,0) + delta_w
-                wU = wTilde(i,j,k,3,1) + delta_w
-                wSurf = var(i,j,k,4) + delta_w
-                UpFlux = qIceTilde(i,j,k+1,3,0)
-                DownFlux = qIceTilde(i,j,k,3,1)
-              case(2)
-                delta_w = - terminal_v_nIce(m_ice) / uRef
-                wD = wTilde(i,j,k,3,0) + delta_w
-                wU = wTilde(i,j,k,3,1) + delta_w
-                wSurf = var(i,j,k,4) + delta_w
-                UpFlux = nIceTilde(i,j,k+1,3,0)
-                DownFlux = nIceTilde(i,j,k,3,1)
-              case(3)
-                wSurf = var(i,j,k,4)
-                UpFlux = nAerTilde(i,j,k+1,3,0)
-                DownFlux = nAerTilde(i,j,k,3,1)
-              case default
-                stop "Bug in iceSedimentationFlux" 
-            end select
-            TotFlux = flux_aldm(DownFlux,UpFlux,wSurf,&
-                        &             DownFlux,UpFlux,wU,wD,sigmaC)
-            flux(i,j,k,3,nVar-nqS) = TotFlux - coef_t * d_dxi
-          end do
-        
-        case default
-                stop "iceSedimentationFlux: unknown case fluxType"
-      
-      end select
-
-  end subroutine iceSedimentationFlux
-
-!---------------------------------------------------------
+! --------------------------------------------------------------------
 
   subroutine iceSource (var, source)
     ! in/out variables
@@ -1453,51 +1592,24 @@ contains
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(inout) :: source
 
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: rho
-
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,4) :: rho_source_term
-
     integer :: k, j, i
     real :: SIce, nucleation, deposition
     real :: T ! current temperature in Kelvin
     real :: p ! current pressure in Pascal
     real :: m_ice ! mean ice crystal mass in kg
 
-        if ( fluctuationMode ) then
-          do k = -1,nz+1
-            rho(:,:,k) = var(:,:,k,1)+rhoStrat(k) 
-          end do
-        else
-          rho = var(:,:,:,1)
-        end if 
-
-        if (correctDivError) then
-          do k = 0,3
-          rho_source_term(:,:,:,4-k) = var(:,:,:,nVar-k) * source(:,:,:,1) / rho(:,:,:)
-          end do
-        else
-          rho_source_term(:,:,:,:) = 0.0
-        end if
-
         do k = 1,nz
           do j = 1,ny
             do i = 1,nx
               ! find the current temperature in Kelvin inside the grid cell 
               call find_temperature(T,i,j,k,var)
-              !if ((T .le. 190.0) .or. (T .ge. 230.0)) print*,"T=",T,", k = ",k
-              !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"T=",T
-              !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"p_sat=",p_saturation(T)
-              
+ 
               ! find the current pressure in Pascal inside the grid cell
               p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
-              !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"p=",p
               
               ! find the current super-saturation with respect to ice inside the grid cell
-              SIce =  var(i,j,k,nVar) * p / ( rho(i,j,k) * epsilon0 * p_saturation(T) )
+              SIce =  var(i,j,k,nVar) * p / ( epsilon0 * p_saturation(T) )
               if ((SIce<0) .or. (SIce>2)) print*,"SIce=",SIce,", k = ",k
-              !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"qv=",var(i,j,k,nVar)/rho(i,j,k)
-
-              !if ((k.eq.j) .and. (j.eq.i) .and.(i.eq.1)) print*,"nAer=",var(i,j,k,nVar-3)/rho(i,j,k)
 
               if (var(i,j,k,nVar-2) .le. 0.0) then
                  m_ice = init_m_ice 
@@ -1509,20 +1621,16 @@ contains
               deposition = DEPq(i,j,k,var,SIce,T,p,m_ice) ! depositional growth of ice crystals
 
               ! nAerosol equation
-              source(i,j,k,nVar-3) = rho_source_term(i,j,k,1) &
-                   &  - nucleation - 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
+              source(i,j,k,nVar-3) = - nucleation - 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
 
               ! nIce equation
-              source(i,j,k,nVar-2) = rho_source_term(i,j,k,2) &
-                   & +  nucleation + 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
+              source(i,j,k,nVar-2) = nucleation + 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
 
               ! qIce equation
-              source(i,j,k,nVar-1) = rho_source_term(i,j,k,3) &
-                   & + m_ice / (rhoRef * lRef**3) * nucleation  + deposition
+              source(i,j,k,nVar-1) = m_ice / (rhoRef * lRef**3) * nucleation  + deposition
 
               ! qv equation
-              source(i,j,k,nVar) = rho_source_term(i,j,k,4) &
-                   & - m_ice / (rhoRef * lRef**3) * nucleation - deposition
+              source(i,j,k,nVar) = - m_ice / (rhoRef * lRef**3) * nucleation - deposition
             end do
           end do
         end do
