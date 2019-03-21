@@ -512,7 +512,7 @@ program pinc_prog
               !--------------------------------------
               
               call iceUpdate(var, var0, flux, source, dt, dIce, RKstage)
-
+              call set_spongeLayer(var, stepFrac(RKstage)*dt, "ice")
            else if(iTime==1 .and. RKstage==1 .and. master) then
               print *,"main: IceUpdate off!"
            end if

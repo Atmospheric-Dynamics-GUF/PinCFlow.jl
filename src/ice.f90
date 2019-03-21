@@ -40,7 +40,8 @@ contains
     integer :: i,j,k
 
     ! ice crystal volume and correction factor from log-normal distribution
-    ice_crystal_volume = exp(9. * log(sigma_r)**2 / 2.) * 4./3*pi*radius_solution**3.
+    ice_crystal_volume = exp(9. * log(sigma_r)**2 / 2.) &
+               & * 4./3*pi*radius_solution**3. / lRef**3
 
     select case (iceTestcase)
 
@@ -182,9 +183,9 @@ contains
          & intent(in) :: var
  
     if (SIce .ge. SIce_crit(T)) then 
-      NUCn = var(i,j,k,nVar-3) * ice_crystal_volume * 10.0**approximation_model(SIce,T)
+      NUCn = tRef * var(i,j,k,nVar-3) * ice_crystal_volume * 10.0**approximation_model(SIce,T)
     else 
-      NUCn = 0
+      NUCn = 0.0
     end if
 
   end function NUCn
@@ -285,7 +286,8 @@ contains
 
    DEPq = var(i,j,k,nVar-2) * 4*pi * how * &
         & (fac_1 * m_ice**b_1 + fac_2 * m_ice**b_2) * &
-        & dvstar * Schmidt_term * (SIce-1.0)
+        & dvstar * Schmidt_term * (SIce-1.0)  &
+        & / (rhoRef * lRef**3) * tRef
 
   end function DEPq
 
