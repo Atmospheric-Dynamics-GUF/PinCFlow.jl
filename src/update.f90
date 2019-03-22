@@ -115,7 +115,7 @@ contains
        
     case( "ice" ) 
     
-       nAer_bg = init_nAer * rhoRef * lRef**3 
+       nAer_bg = 0.0 !init_nAer * rhoRef * lRef**3 
        nIce_bg = 0.0
        qIce_bg = 0.0
        
@@ -125,14 +125,13 @@ contains
              
                 select case (iceTestcase) 
                    case ("homogeneous_qv") 
-                      qv_bg = init_qv         
+                      qv_bg = 0.0 !init_qv         
                    case ("homogeneous_SIce")
-                      call find_temperature(T,i,j,k,var)
-                      p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
-                      qv_bg = epsilon0 * init_SIce * p_saturation(T) / p 
+                      !call find_temperature(T,i,j,k,var)
+                      !p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
+                      qv_bg = 0.0 !epsilon0 * init_SIce * p_saturation(T) / p 
                 end select
                 
-                rho_old = var(i,j,k,1)
                 alpha = spongeAlphaZ*(z(k)-zSponge)/spongeDz
                 beta = 1./(1.+alpha*0.5*dt)**2
                 var(i,j,k,nVar-3) = (1.-beta)*nAer_bg + beta*var(i,j,k,nVar-3)
