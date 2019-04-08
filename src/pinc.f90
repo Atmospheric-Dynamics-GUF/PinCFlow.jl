@@ -489,9 +489,13 @@ program pinc_prog
            end if
            if(( include_ice ) .and. ( updateIce )) then
               if (RKstage == 1) then 
-                dIce = 0.0                ! init q
-                call iceSource (var, source)
-                call iceTransitions(var, source, dt)
+                dIce = 0.0 ! init q
+                l = int(dt * tRef / 0.01)
+                do k = 1,l 
+                  call iceSource (var, source)
+                  call iceTransitions(var, source, 0.01/tRef)
+                  call set_spongeLayer(var, 0.01/tRef, "ice")
+                end do
                 call setHalos(var,"var")
                 call reconstruction(var, "ice")
                 call setBoundary(var,flux,"var")
