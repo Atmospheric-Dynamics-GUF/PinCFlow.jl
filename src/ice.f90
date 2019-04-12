@@ -37,7 +37,7 @@ contains
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(inout) :: var
     real :: SIce,T,p,m_ice
-    integer :: i,j,k
+    integer :: i,j,k, ISSR_center, ISSR_width
 
     ! ice crystal volume and correction factor from log-normal distribution
     ice_crystal_volume = exp(9. * log(sigma_r)**2 / 2.) &
@@ -65,6 +65,29 @@ contains
             
     case ("stratification")
       stop "iceTestcase: stratification not yet implemented"
+      
+    case ("1D_ISSR")
+      ISSR_width = ceiling(kSponge*0.02)
+      if ((background=='const-N').and.(testcase=="nIce_w_test")) then
+        ISSR_center = ceiling( 1/dz * g/N_BruntVaisala_dim**2 * &
+             & log((T_nuc-kappa*g**2/(Rsp*N_BruntVaisala_dim**2))/(theta0_dim-kappa*g**2/(Rsp*N_BruntVaisala_dim**2)))) &
+             & - ISSR_width*4
+      else
+        ISSR_center = ceiling(kSponge/4.)
+      end if
+      var(:,:,:,nVar-3) = init_nAer * rhoRef * lRef**3         
+      var(:,:,:,nVar-2:nVar-1) = 0.0
+      do i=0,nx
+        do j=0,ny
+          do k=1,nz
+            call find_temperature(T,i,j,k,var)
+            p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
+            var(i,j,k,nVar) = epsilon0 * init_SIce * p_saturation(T) / p & 
+                            & * exp( -1.*(k-ISSR_center)**2. / (2. * ISSR_width))
+          end do
+        end do
+      end do
+      
 
     case default
       stop "iceTestcase: unknown case name"
@@ -86,13 +109,15 @@ contains
     real, parameter :: c = 1.1
     real, parameter :: m0 = 2.35e-8
     real, parameter :: an = a * r0**( 0.5 * b * (b-1.) )
-    real :: ex1, ex2
-
-    ex1=b*c
-    ex2=1./c
+    real, parameter :: ex1 = b*c
+    real, parameter :: ex2 = 1./c
       
-    terminal_v_nIce = an * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
-
+    if (sedimentation_on) then
+      terminal_v_nIce = an * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
+    else 
+      terminal_v_nIce = 0.0
+    end if
+    
   end function terminal_v_nIce
 
 !----------------------------------------------
@@ -108,12 +133,14 @@ contains
     real, parameter :: c = 1.1
     real, parameter :: m0 = 8.e-9
     real, parameter :: aq= a * r0**( 0.5 * b * (b+1.) )
-    real :: ex1, ex2
-
-    ex1 = b*c
-    ex2 = 1./c
+    real, parameter :: ex1 = b*c
+    real, parameter :: ex2 = 1./c
       
-    terminal_v_qIce = aq * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
+    if (sedimentation_on) then
+      terminal_v_qIce = aq * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
+    else 
+      terminal_v_qIce = 0.0
+    end if
   
   end function terminal_v_qIce
 
@@ -430,15 +457,15 @@ contains
 
     end select
   
-    if ((T .le. 190.0) .or. (T .ge. 230.0)) then
-      print*, "T = ", T
-      print*, "k = ",k
-      print*, "theta = ",( Pstrat(k) / rho ) * thetaRef
-      print*,"z = ",z(k)*lref
-      print*,"pi = ", PStrat(k)**(2./5.) +var(i,j,k,5)
-      print*,"pi'",var(i,j,k,5)
+    !if ((T .le. 190.0) .or. (T .ge. 230.0)) then
+    !  print*, "T = ", T
+    !  print*, "k = ",k
+    !  print*, "theta = ",( Pstrat(k) / rho ) * thetaRef
+    !  print*,"z = ",z(k)*lref
+    !  print*,"pi = ", PStrat(k)**(2./5.) +var(i,j,k,5)
+    !  print*,"pi'",var(i,j,k,5)
       !stop "" 
-    end if
+    !end if
 end subroutine find_temperature
 
 

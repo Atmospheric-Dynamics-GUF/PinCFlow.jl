@@ -1318,6 +1318,7 @@ contains
                   wSurf = var(i,j,k,2)
                   TotFlux = wSurf * 0.5*(DownFlux + UpFlux) 
                   d_dxi = ( UpFlux - DownFlux) / dx
+                  flux(i,j,k,1,nVar-nqS) = TotFlux - coef_t * d_dxi
                 end do                  
 
               case( "upwind" )
@@ -1404,6 +1405,7 @@ contains
                   wSurf = var(i,j,k,3)
                   TotFlux = wSurf * 0.5*(DownFlux + UpFlux) 
                   d_dxi = ( UpFlux - DownFlux) / dy
+                  flux(i,j,k,2,nVar-nqS) = TotFlux - coef_t * d_dxi
                 end do                  
 
               case( "upwind" )
@@ -1500,6 +1502,7 @@ contains
                   end select
                   TotFlux = wSurf * 0.5*(DownFlux + UpFlux) 
                   d_dxi = ( UpFlux - DownFlux) / dz
+                  flux(i,j,k,3,nVar-nqS) = TotFlux - coef_t * d_dxi
                 end do                  
 
               case( "upwind" )
@@ -1593,7 +1596,7 @@ contains
          & intent(inout) :: source
 
     integer :: k, j, i
-    real :: SIce, nucleation, deposition
+    real :: SIce, nucleation, deposition, evaporation
     real :: T ! current temperature in Kelvin
     real :: p ! current pressure in Pascal
     real :: m_ice ! mean ice crystal mass in kg
@@ -1619,12 +1622,17 @@ contains
 
               nucleation = NUCn(i,j,k,var,SIce,T,p,m_ice) ! nucleation of ice crystals by aerosols
               deposition = DEPq(i,j,k,var,SIce,T,p,m_ice) ! depositional growth of ice crystals
+              if (deposition .lt. 0.0) then
+                evaporation = - 1/m_ice * rhoRef * lRef**3 * deposition
+              else
+                evaporation = 0.0
+              end if
 
               ! nAerosol equation
-              source(i,j,k,nVar-3) = - nucleation - 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
+              source(i,j,k,nVar-3) = - nucleation + evaporation
 
               ! nIce equation
-              source(i,j,k,nVar-2) = nucleation + 1/m_ice * rhoRef * lRef**3 * min(0.0, deposition)
+              source(i,j,k,nVar-2) = nucleation - evaporation
 
               ! qIce equation
               source(i,j,k,nVar-1) = m_ice / (rhoRef * lRef**3) * nucleation  + deposition

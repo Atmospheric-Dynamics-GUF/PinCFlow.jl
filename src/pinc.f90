@@ -457,9 +457,9 @@ program pinc_prog
            call setHalos( var, "var" )
            call setBoundary (var, flux, "var")
 
-           if( updateMass ) call reconstruction (var, "rho")         
+           if( updateMass .or. (testcase=="nIce_w_test") ) call reconstruction (var, "rho")         
            if( updateTheta ) call reconstruction (var, "theta") 
-           if( predictMomentum ) call reconstruction (var, "uvw")
+           if( predictMomentum .or. (testcase=="nIce_w_test") ) call reconstruction (var, "uvw")
            if(( include_ice ) .and. ( updateIce )) call reconstruction(var, "ice")
            
            

@@ -236,7 +236,7 @@ contains
     FrInv2 = 1.0/Fr**2
     sig = Ma**2/Fr**2   
 
-    ! Rossby numer
+    ! Rossby number
 !   achatzb correction for zero Coriolis
 !   Ro = uRef/f_Coriolis_dim/lRef  
 !   RoInv = 1.0/Ro       

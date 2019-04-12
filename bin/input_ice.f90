@@ -181,6 +181,7 @@
 
   ! correction of solid wall boundary
   rhoFluxCorr = .false.   ! replace vertical mass flux by CDS at k=1, k=nz-1
+  iceFluxCorr = .false.
   uFluxCorr = .false.
   vFluxCorr = .false.
   wFluxCorr = .false.
@@ -351,18 +352,23 @@
 !------------------------------------------------
 
 &iceList
-
+  iceTestcase = "homogeneous_SIce" !choose initial ice variable setup
+       ! possible: "homogeneous_qv", "homogeneous_SIce","1D_ISSR"
+  init_SIce = 1.5 ! initial vapor saturation wrt ice
   init_nAer = 2.0e8 ! initial aerosol number concentration in 1/kg
   init_qv = 1.e-2 ! initital specific humidity
   init_m_ice = 1.e-16 ! initial mean ice crystal mass in kg
   radius_solution = 75.e-9   ! TODO: fix value
   sigma_r = 1.5 ! TODO: fix value
+  T_nuc = 196 ! initial nucleation temperature for 1D_ISSR simple flow case
   NUC_approx_type = "Koop"   ! "Koop", "linFit", "threshold"
+
 ! switch approximations on/off
   kT_linFit = .false.
   dv_exp2 = .false. 
   cm_dryAir = .false.
   mu_linFit = .false.
+  sedimentation_on = .true.
   awi_type = "exact" ! possible: "const", "linFit", "quadFit", "exact"
   SIce_threshold_type = "exact" ! possible: "linFit", "quadFit", "exact"
 &end

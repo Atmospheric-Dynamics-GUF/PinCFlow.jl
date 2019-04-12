@@ -53,7 +53,7 @@ contains
     character(len=*), intent(in) :: variable
     
     ! local variables
-    integer :: i,j,k
+    integer :: i,j,k, iVar
 
     ! relaxation parameters
     real :: alpha, beta
@@ -118,6 +118,7 @@ contains
        nAer_bg = 0.0 !init_nAer * rhoRef * lRef**3 
        nIce_bg = 0.0
        qIce_bg = 0.0
+       qv_bg = 0.0
        
        do k = kSponge, nz
           do j = 1,ny
@@ -138,6 +139,10 @@ contains
                 var(i,j,k,nVar-2) = (1.-beta)*nIce_bg + beta*var(i,j,k,nVar-2)
                 var(i,j,k,nVar-1) = (1.-beta)*qIce_bg + beta*var(i,j,k,nVar-1)
                 var(i,j,k,nVar)   = (1.-beta) * qv_bg + beta*var(i,j,k,nVar)
+                do iVar=0,3
+                  if (var(i,j,k,nVar-iVar) .lt. 0.0) var(i,j,k,nVar-iVar) = 0.0
+                end do
+                
              end do
           end do
        end do
@@ -265,7 +270,7 @@ contains
 !      end do
 
        do k = kSponge, nz
-          wBG = 0.0
+          wBG = backgroundFlow_dim(3) / uRef !0.0
 
           do j = 1,ny
              do i = 1,nx

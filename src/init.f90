@@ -1718,7 +1718,43 @@ contains
 
        ! --------------------------------------------------------------------------
 
+    case( "nIce_w_test" )  ! for pseudo_incompressible case
+              
+       updateMass = .false.
+       predictMomentum = .false.
+       correctMomentum = .false.
+       
+       init_SIce=SIce_crit(T_nuc)
+       
+       ! initial atmospheric background flow
+       var(:,:,:,2) = backgroundFlow_dim(1) / uRef
+       var(:,:,:,3) = backgroundFlow_dim(2) / uRef
+       var(:,:,:,4) = backgroundFlow_dim(3) / uRef
 
+
+       ! constant pressure variable pi' 
+       var(:,:,:,5) = 0.0
+
+       ! background pot temp
+       do k=0,nz
+         var(:,:,k,6) = thetaStrat(k)
+         if( fluctuationMode ) then
+            var(:,:,k,1) = 0.0
+         else
+            var(:,:,k,1) = rhoStrat(k) 
+         end if
+       end do
+
+
+       ! initialize the ice variables according to iceTestcase
+       if (include_ice) then
+         call setup_ice(var)
+       else 
+         stop "Error: ice variables must be included for nIce_w_test"
+       end if
+       
+       !---------------------------------------------------------------------------
+       
     case ("projectionTest")
        ! test the projection step
 

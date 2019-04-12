@@ -82,6 +82,8 @@ $(BUILD)/mpi.o: $(BUILD)/types.o
 $(BUILD)/timeScheme.o: $(BUILD)/types.o
 $(BUILD)/atmosphere.o: $(BUILD)/types.o
 $(BUILD)/init.o: $(BUILD)/types.o
+$(BUILD)/init.o: $(BUILD)/ice.o
+$(BUILD)/init.o: $(BUILD)/atmosphere.o
 $(BUILD)/muscl.o: $(BUILD)/types.o
 $(BUILD)/wkb.o: $(BUILD)/types.o
 $(BUILD)/boundary.o: $(BUILD)/types.o
