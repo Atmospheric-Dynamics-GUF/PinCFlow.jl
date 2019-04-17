@@ -360,7 +360,9 @@
   init_m_ice = 1.e-16 ! initial mean ice crystal mass in kg
   radius_solution = 75.e-9   ! TODO: fix value
   sigma_r = 1.5 ! TODO: fix value
-  T_nuc = 196 ! initial nucleation temperature for 1D_ISSR simple flow case
+  T_nuc = 196 !K ! initial nucleation temperature for 1D_ISSR simple flow case
+  p_nuc = 20000 !Pa !initial nucleation pressure for 1D_ISSR simple flow case
+                ! using this results in overwriting press0_dim 
   NUC_approx_type = "Koop"   ! "Koop", "linFit", "threshold"
 
 ! switch approximations on/off

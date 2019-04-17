@@ -491,6 +491,8 @@ module type_module
   real :: init_m_ice ! initially assumed average ice crystal mass
   real :: radius_solution, sigma_r ! needed for log-normal correlation
   real :: T_nuc ! initial nucleation temperature for 1D_ISSR simple flow case
+  real :: p_nuc ! initial nucleation pressure for 1D_ISSR simple flow case
+                ! this overwrites press0_dim 
   character(len=10) :: NUC_approx_type ! nucleation approximation type
      ! possible: "Koop", "linFit", "threshold"
   logical :: kT_linFit, dv_exp2, cm_dryAir, mu_linFit ! switch approximations on/off
@@ -499,8 +501,8 @@ module type_module
   character(len=10) :: SIce_threshold_type ! possible: "linFit", "quadFit", "exact"
 
   namelist / iceList / iceTestcase, init_SIce, init_nAer, init_qv, init_m_ice, &
-     &    radius_solution, sigma_r, T_nuc, NUC_approx_type, kT_linFit, dv_exp2,  & 
-     &    cm_dryAir, mu_linFit, sedimentation_on, awi_type, SIce_threshold_type
+     &    radius_solution, sigma_r, T_nuc, p_nuc, NUC_approx_type, kT_linFit,   & 
+     &    dv_exp2, cm_dryAir, mu_linFit, sedimentation_on, awi_type, SIce_threshold_type
 
 
 

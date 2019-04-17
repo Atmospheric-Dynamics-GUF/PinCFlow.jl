@@ -67,9 +67,10 @@ contains
       stop "iceTestcase: stratification not yet implemented"
       
     case ("1D_ISSR")
+      init_SIce = SIce_crit(T_nuc)
       ISSR_width = ceiling(kSponge*0.02)
       if ((background=='const-N').and.(testcase=="nIce_w_test")) then
-        ISSR_center = ceiling( 1/dz * g/N_BruntVaisala_dim**2 * &
+        ISSR_center = ceiling( 1./dz * g/N_BruntVaisala_dim**2 * &
              & log((T_nuc-kappa*g**2/(Rsp*N_BruntVaisala_dim**2))/(theta0_dim-kappa*g**2/(Rsp*N_BruntVaisala_dim**2)))) &
              & - ISSR_width*4
       else
@@ -83,7 +84,7 @@ contains
             call find_temperature(T,i,j,k,var)
             p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
             var(i,j,k,nVar) = epsilon0 * init_SIce * p_saturation(T) / p & 
-                            & * exp( -1.*(k-ISSR_center)**2. / (2. * ISSR_width))
+                            & * exp( -1.*(k-ISSR_center)**2. / (2. * ISSR_width**2))
           end do
         end do
       end do

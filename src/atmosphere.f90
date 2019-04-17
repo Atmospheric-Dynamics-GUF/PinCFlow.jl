@@ -598,6 +598,14 @@ contains
           !--------------------------------------------------------------------
 
        case( 'const-N' )
+       
+          if (include_ice .and. (iceTestcase=="1D_ISSR")) then
+             theta0_dim = T_nuc + 10.
+             term = kappa*g**2 / (Rsp*N_BruntVaisala_dim**2)
+             press0_dim = p_nuc / (1.+term/theta0_dim*((theta0_dim-term)/(T_nuc-term)-1.))**kappaInv
+             ! scaled reference pressure at z = 0
+             p0 = press0_dim / pRef
+          end if
 
           if ( referenceQuantities == "SI" ) then  
              !------------------------------------
