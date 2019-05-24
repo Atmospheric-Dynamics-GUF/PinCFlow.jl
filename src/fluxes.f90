@@ -1622,6 +1622,8 @@ contains
 
               nucleation = NUCn(i,j,k,var,SIce,T,p,m_ice) ! nucleation of ice crystals by aerosols
               deposition = DEPq(i,j,k,var,SIce,T,p,m_ice) ! depositional growth of ice crystals
+              !print*, "nucleation = ", nucleation
+              !print*, "deposition = ", deposition
               if (deposition .lt. 0.0) then
                 evaporation = - 1/m_ice * rhoRef * lRef**3 * deposition
               else

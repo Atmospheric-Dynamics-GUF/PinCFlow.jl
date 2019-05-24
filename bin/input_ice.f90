@@ -371,6 +371,7 @@
   cm_dryAir = .false.
   mu_linFit = .false.
   sedimentation_on = .true.
+  nucleation_on = .true.
   awi_type = "exact" ! possible: "const", "linFit", "quadFit", "exact"
   SIce_threshold_type = "exact" ! possible: "linFit", "quadFit", "exact"
 &end

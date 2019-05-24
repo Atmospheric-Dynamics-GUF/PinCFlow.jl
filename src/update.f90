@@ -1076,7 +1076,7 @@ contains
               var(i,j,k,iVar) = var(i,j,k,iVar) + dt * source(i,j,k,iVar)
               if (var(i,j,k,iVar) .lt. 0.0) then
                 var(i,j,k,iVar) = 0.0
-                print*,"something is probably wrong ..., iVar = ",iVar," k = ",k
+                print*,"something is probably wrong in iceTransitions ..., iVar = ",iVar," k = ",k
               end if
             end do
           end do

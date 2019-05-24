@@ -497,12 +497,14 @@ module type_module
      ! possible: "Koop", "linFit", "threshold"
   logical :: kT_linFit, dv_exp2, cm_dryAir, mu_linFit ! switch approximations on/off
   logical :: sedimentation_on ! turn sedimentation terms on or off
+  logical :: nucleation_on ! turn nucleation on or off
   character(len=10) :: awi_type  ! possible: "const", "linFit", "quadFit", "exact"
   character(len=10) :: SIce_threshold_type ! possible: "linFit", "quadFit", "exact"
 
   namelist / iceList / iceTestcase, init_SIce, init_nAer, init_qv, init_m_ice, &
-     &    radius_solution, sigma_r, T_nuc, p_nuc, NUC_approx_type, kT_linFit,   & 
-     &    dv_exp2, cm_dryAir, mu_linFit, sedimentation_on, awi_type, SIce_threshold_type
+     &    radius_solution, sigma_r, T_nuc, p_nuc, NUC_approx_type, kT_linFit,  & 
+     &    dv_exp2, cm_dryAir, mu_linFit, sedimentation_on, nucleation_on,      &
+     &    awi_type, SIce_threshold_type
 
 
 
