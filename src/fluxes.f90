@@ -1624,6 +1624,7 @@ contains
               deposition = DEPq(i,j,k,var,SIce,T,p,m_ice) ! depositional growth of ice crystals
               !print*, "nucleation = ", nucleation
               !print*, "deposition = ", deposition
+              evaporation = 0.0
               if (deposition .lt. 0.0) then
                 evaporation = - 1/m_ice * rhoRef * lRef**3 * deposition
               else

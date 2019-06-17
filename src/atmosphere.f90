@@ -600,7 +600,7 @@ contains
        case( 'const-N' )
        
           if (include_ice .and. (iceTestcase=="1D_ISSR")) then
-             theta0_dim = T_nuc + 10.
+             theta0_dim = T_nuc + 5.0
              term = kappa*g**2 / (Rsp*N_BruntVaisala_dim**2)
              press0_dim = p_nuc / (1.+term/theta0_dim*((theta0_dim-term)/(T_nuc-term)-1.))**kappaInv
              ! scaled reference pressure at z = 0
@@ -622,7 +622,8 @@ contains
 
              do k = 1,nz+1
                 term =  exp( -N2/g*z(k) )
-                if( term > 1.0 ) stop "init_atmosphere: root of a negative number." 
+                !if( term > 1.0 ) stop "init_atmosphere: root of a negative number." 
+                if (1.0 + coeff*( term - 1.0) < 0.0) stop "init_atmosphere: root of a negative number."
                 PStrat(k) = p0 * (1.0 + coeff*( term - 1.0) )**power
                 thetaStrat(k) = theta0 * exp(N2/g*z(k))
                 rhoStrat(k) = 1.0/Rsp * PStrat(k) / thetaStrat(k)
@@ -645,7 +646,8 @@ contains
 
                 term = exp( -Fr2 * N2 * z(k) )
 
-                if( term > 1.0 ) stop "init_atmosphere: root of a negative number." 
+                !if( term > 1.0 ) stop "init_atmosphere: root of a negative number." 
+                if (1.0 + FrInv2*kappa*sig/N2/theta0 * (term-1.0) < 0.0) stop "init_atmosphere: root of a negative number."
                 Pstrat(k) = p0 * (1.0 + FrInv2*kappa*sig/N2/theta0 * (term-1.0) )**power
                 rhoStrat(k) = pStrat(k) / thetaStrat(k)             
              end do

@@ -1062,22 +1062,30 @@ contains
          & intent(inout) :: var
 
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         & intent(in) :: source
+         & intent(inout) :: source
     
     real, intent(in) :: dt
 
     ! local integer
-    integer :: i,j,k,iVar
+    integer :: i,j,k,iVar,RKstage
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar-3:nVar) :: qs 
 
-    do k = 1,nz
-       do j = 1,ny
+    qs = 0.0
+    do RKstage = 1, 3
+    call iceSource (var, source)
+      do k = 1,nz
+        do j = 1,ny
           do i = 1,nx
             do iVar = nVar-3,nVar
-              var(i,j,k,iVar) = var(i,j,k,iVar) + dt * source(i,j,k,iVar)
+              !var(i,j,k,iVar) = var(i,j,k,iVar) + dt * source(i,j,k,iVar)
+               qs(i,j,k,iVar) = dt*source(i,j,k,iVar) + alpha(RKstage) * qs(i,j,k,iVar)
+               if ((first_nuc == k) .and. (first_nuc .ne. 0) .and. (iVar==nVar-2))  print*,"q_nIce = ",qs(i,j,k,iVar)/(rhoRef*lRef**3)
+               var(i,j,k,iVar) = var(i,j,k,iVar) + beta(RKstage) * qs(i,j,k,iVar)
               if (var(i,j,k,iVar) .lt. 0.0) then
                 var(i,j,k,iVar) = 0.0
                 print*,"something is probably wrong in iceTransitions ..., iVar = ",iVar," k = ",k
               end if
+             end do
             end do
           end do
        end do
@@ -1171,7 +1179,7 @@ contains
              ! F(phi)
              F = -fluxDiff
 
-             F(:) = F(:) + rho_source_term(i,j,k,:)
+             F(:) = F(:) + rho_source_term(i,j,k,:) !+ rho(i,j,k)*source(i,j,k,nVar-3:nVar)
              
              select case( timeSchemeType ) 
                 
@@ -1195,6 +1203,7 @@ contains
              
              do iVar = nVar-3,nVar
                if (var(i,j,k,iVar).lt. 0.0) then
+                 print*,"something is wrong for iVar = ",iVar," in cell k = ", k,", value is ", var(i,j,k,iVar)
                  var(i,j,k,iVar) = 0.0
                end if
              end do
@@ -1203,9 +1212,7 @@ contains
        end do
     end do
 
-!    if(verbose) print*,"update.f90/massUpdate: rho(m=",m,") calculated."   ! modified by Junhong Wei (20170216)
-
-    if(verbose .and. master) print*,"update.f90/iceUpdate: ice(m=",m,") calculated."   ! modified by Junhong Wei (20170216)
+    if(verbose .and. master) print*,"update.f90/iceUpdate: ice(m=",m,") calculated." 
 
   end subroutine iceUpdate
 

@@ -490,16 +490,17 @@ program pinc_prog
            if(( include_ice ) .and. ( updateIce )) then
               if (RKstage == 1) then 
                 dIce = 0.0 ! init q
-                l = int(dt * tRef / 0.01)
+                l = 1 !int(dt * tRef / 0.01)
                 do k = 1,l 
-                  call iceSource (var, source)
-                  call iceTransitions(var, source, 0.01/tRef)
-                  call set_spongeLayer(var, 0.01/tRef, "ice")
+                  !call iceSource (var, source)
+                  call iceTransitions(var,source, dt)
+                  call set_spongeLayer(var, dt, "ice")
                 end do
                 call setHalos(var,"var")
                 call reconstruction(var, "ice")
                 call setBoundary(var,flux,"var")
               end if
+              !call iceSource (var, source)
               call iceFlux (var, flux)
            end if
 
@@ -517,6 +518,8 @@ program pinc_prog
               
               call iceUpdate(var, var0, flux, source, dt, dIce, RKstage)
               call set_spongeLayer(var, stepFrac(RKstage)*dt, "ice")
+              call setHalos( var, "var" )
+              call setBoundary (var, flux, "var")
            else if(iTime==1 .and. RKstage==1 .and. master) then
               print *,"main: IceUpdate off!"
            end if
