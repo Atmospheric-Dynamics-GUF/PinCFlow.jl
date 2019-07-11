@@ -31,7 +31,7 @@ module ice_module
 !correction term from Koop & Murray 2016
   real, parameter :: delta=1.522
 
-  public :: epsilon0,first_nuc
+  public :: epsilon0,first_nuc, Rv
 
 contains
 
@@ -77,7 +77,7 @@ contains
             var(i,j,k,nVar-3) = init_nAer / rho * lRef**3
             call find_temperature(T,i,j,k,var)
             p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
-            var(i,j,k,nVar) = epsilon0 * init_SIce * p_saturation(T) / p 
+            var(i,j,k,nVar) = epsilon0 * init_SIce * pIce(T) / p 
           end do
         end do
       end do
@@ -87,20 +87,23 @@ contains
       
     case ("1D_ISSR")
       init_SIce = SIce_crit(T_nuc)
-      ISSR_width = 3 !ceiling(kSponge*0.02)
+      ISSR_center = ceiling(kSponge/4.)
+      ISSR_width = 5 !ceiling(kSponge*0.02)
       if ((background=='const-N').and.(testcase=="nIce_w_test")) then
         ISSR_center = ceiling( 1./(dz*lRef) * g/N_BruntVaisala_dim**2 * &
              & log((T_nuc-kappa*g**2/(Rsp*N_BruntVaisala_dim**2))/(theta0_dim-kappa*g**2/(Rsp*N_BruntVaisala_dim**2)))) 
         print*, "!!!!!!!!!!! ISSR_center = ", ISSR_center
-      else
-        ISSR_center = ceiling(kSponge/4.)
+      end if
+      if ((background=='isentropic').and.(testcase=="nIce_w_test")) then
+        ISSR_center = ceiling( 1./(dz*lRef) * Rsp * theta0_dim / (kappa*g) * (1.-T_nuc/theta0_dim))
+        print*, "!!!!!!!!!!! ISSR_center = ", ISSR_center
       end if
               
       var(:,:,:,nVar-2:nVar-1) = 0.
       !call find_temperature(T,1,1,ISSR_center,var)
       !print*, '!!!!!!!!!!!!!!!!!!!', T
       p = press0_dim * ( (PStrat(ISSR_center)/p0)**gamma_1  +var(1,1,ISSR_center,5) )**kappaInv
-      init_qv = epsilon0 * init_SIce * p_saturation(T_nuc) / p
+      init_qv = epsilon0 * init_SIce * pIce(T_nuc) / p
       ISSR_center = ISSR_center - 51! ISSR_width !ceiling(backgroundFlow(3) / dz)
       do i=0,nx
         do j=0,ny
@@ -274,11 +277,6 @@ contains
          & intent(in) :: var
     real :: rho
  
-    !if (k==134) then
-    !  do iVar=1,nVar
-    !    print*, "iVar = ",iVar," : ",var(i,j,k,iVar)
-    !  end do
-    !end if
     if (nucleation_on) then
      if (SIce .ge. SIce_crit(T)) then 
       if (first_nuc == 0) first_nuc = k
@@ -286,17 +284,17 @@ contains
       if ((first_nuc == k) .and. (first_nuc .ne. 0)) then
         print*," "
         print*, "#########################"
-        print*, "Nucleation event! m_ice = ", m_ice
+        print*, "Nucleation event! k = ", k
         print*, "nIce = ", var(i,j,k,nVar-2) / (rhoRef*lRef**3)
         print*, "qice = ", var(i,j,k,nVar-1)
         print*,"nAer = ",var(i,j,k,nVar-3) / lRef**3 * var(i,j,k,1)
-        !if ( fluctuationMode ) then
-        !       rho = var(i,j,k,1)+rhoStrat(k) 
-        !    else
-        !       rho = var(i,j,k,1)
-        !end if 
-        !print*, "rho = ", var(i,j,k,1) * rhoRef
-        !print*, "nAer = ", var(i,j,k,nVar-3) *rho / lRef**3
+        if ( fluctuationMode ) then
+               rho = var(i,j,k,1)+rhoStrat(k) 
+            else
+               rho = var(i,j,k,1)
+        end if 
+        print*, "rho = ", var(i,j,k,1) * rhoRef
+        print*, "nAer = ", var(i,j,k,nVar-3) *rho / lRef**3
         print*, "T = ", T
         print*, "p = ", p
         print*, "SIce = ", SIce
@@ -339,106 +337,110 @@ contains
    real, parameter :: m0=4.4e-9
    real, parameter :: gv0=0.148564433505542
    real :: rho
+   
+    !if ( fluctuationMode ) then
+    !     rho = var(i,j,k,1)+rhoStrat(k) 
+    !else
+    !     rho = var(i,j,k,1)
+    !end if 
 
-   !if ( fluctuationMode ) then
-   !     rho = var(i,j,k,1)+rhoStrat(k) 
-   !else
-   !     rho = var(i,j,k,1)
-   !end if 
-   
-   rho = p / (Rsp*T)
-   
-   ! #### find lambda #### !
-   lambda = 6.6e-8 * T/293.15 * 101325./p
-   if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"lambda = ",lambda
+    rho = p / (Rsp*T)
+
+    ! #### find lambda #### !
+    lambda = 6.6e-8 * T/293.15 * 101325./p
+    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"lambda = ",lambda
 
 
-   ! #### find kT #### !
-   if (kT_linFit) then
-     kT = 0.00122990325719493 + 8.43749062552794e-05*T   
-   else    
-     kT = 0.002646*T**1.5 / (T + 245.*10**(-12./T) )
-   end  if
-   if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"kT = ",kT
+    ! #### find kT #### !
+    if (kT_linFit) then
+    kT = 0.00122990325719493 + 8.43749062552794e-05*T   
+    else    
+    kT = 0.002646*T**1.5 / (T + 245.*10**(-12./T) )
+    end  if
+    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"kT = ",kT
 
-   
-   ! #### find dv #### !
-   if (dv_exp2) then
-     dv = 2.142e-05*(T/273.15)**2. * 101325./p
-   else
-     dv = 2.11e-5 * (T/273.15)**1.94 * 101325./p
-   end if
-   if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"dv = ",dv
 
-   
-   ! #### find cm #### !
-   if (cm_dryAir) then
-     cm = sqrt(8.*RSp*T/pi)
-   else
-     cm = sqrt(8.*Rv*T/pi)
-   end if
-   if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"cm = ",cm
-   
-   
-   ! #### find mu #### !
-   if (mu_linFit) then
-     mu = 2.14079e-6 + 5.57139e-8 * T
-   else
-     mu = ( 1.458e-6 * T**1.5 ) / ( T + 110.4 )
-   end if
-   if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"mu = ",mu
-
-   
-   ! #### find dvstar #### !
-   a = lambda * cunn
-   b = 4. * dv / (alpham * cm)
-   r = (3.* c1 * m_ice / (4.*pi*rhob) )**(1./3.)
-   fkin = ( r**2 + a*r ) / ( r**2 + b*r + a*b )
-   dvstar = dv * fkin
-   if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"dvstar = ",dvstar
-   
-   ! #### find correction for small crystals #### !
-   r = (3.* m_ice / (4.*pi*rhob) )**(1./3.)
-   bd = 4.*dv / (alpham*sqrt(8.*Rv*T/pi))
-   bk = 4.*kt / (alphat*sqrt(8.*Rsp*T/pi)*rho*3.5*Rsp)
-   corr = (r*r+bk*r+a*bk)/(r*r+bd*r+a*bd)
-   if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"corr = ",corr
-   
-   ! #### find how #### !
-   lat_heat = latent_heat_ice(T) / (Rv * T)
-   how = 1. / ( (lat_heat-1.) * lat_heat * corr * dv / kT + Rv * T / pIce(T) )
-   if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"how = ",how
-   
-   ! #### find Schmidt_term #### !   
-   corr = (p/ 30000.)**(-0.178) * (T/233.)**(-0.394) 
-     ! correction factor for terminal velocity
-   schmidt23 = (mu / ( rho * dv )) **(2./3.)
-   if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"schmidt23 = ",schmidt23
-   gv = gv0 * schmidt23 * corr * rho / mu
-   if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"gv = ",gv
-   Schmidt_term = 1. + gv * av * (m_ice*c2)**(bv+cv) * m0**cv / &
-                & ( m_ice**cv + m0**cv )
-   if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"Schmidt_term = ",Schmidt_term
-
-   if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"factors = ",(fac_1 * m_ice**b_1 + fac_2 * m_ice**b_2)
-   
-   if ((first_nuc == k) .and. (first_nuc .ne. 0)) print*,"iVar-2 = ",var(i,j,k,nVar-2)/ ( rhoRef * lRef**3 )
-   
-   if ((first_nuc == k) .and. (first_nuc .ne. 0)) print*,"4 pi = ", 4*pi
-   
-   if ((first_nuc == k) .and. (first_nuc .ne. 0)) print*,"SIce-1.0 = ", SIce-1.0
-   
-   DEPq = var(i,j,k,nVar-2) * 4*pi * how * &
-        & (fac_1 * m_ice**b_1 + fac_2 * m_ice**b_2) * &
-        & dvstar * Schmidt_term * (SIce-1.0)  &
-        & / ( rhoRef * lRef**3 )* tRef
-        
-    if ((first_nuc == k) .and. (first_nuc .ne. 0)) then
-        print*, "DEP = ", DEPq / tRef
-        print*, "#########################"
-        print*, " "
+    ! #### find dv #### !
+    if (dv_exp2) then
+    dv = 2.142e-05*(T/273.15)**2. * 101325./p
+    else
+    dv = 2.11e-5 * (T/273.15)**1.94 * 101325./p
     end if
+    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"dv = ",dv
 
+   
+    ! #### find cm #### !
+    if (cm_dryAir) then
+        cm = sqrt(8.*RSp*T/pi)
+    else
+        cm = sqrt(8.*Rv*T/pi)
+    end if
+    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"cm = ",cm
+    
+    
+    ! #### find mu #### !
+    if (mu_linFit) then
+        mu = 2.14079e-6 + 5.57139e-8 * T
+    else
+        mu = ( 1.458e-6 * T**1.5 ) / ( T + 110.4 )
+    end if
+    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"mu = ",mu
+
+    
+    ! #### find dvstar #### !
+    a = lambda * cunn
+    b = 4. * dv / (alpham * cm)
+    r = (3.* c1 * m_ice / (4.*pi*rhob) )**(1./3.)
+    fkin = ( r**2 + a*r ) / ( r**2 + b*r + a*b )
+    dvstar = dv * fkin
+    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"dvstar = ",dvstar
+    
+    ! #### find correction for small crystals #### !
+    r = (3.* m_ice / (4.*pi*rhob) )**(1./3.)
+    bd = 4.*dv / (alpham*sqrt(8.*Rv*T/pi))
+    bk = 4.*kt / (alphat*sqrt(8.*Rsp*T/pi)*rho*3.5*Rsp)
+    corr = (r*r+bk*r+a*bk)/(r*r+bd*r+a*bd)
+    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"corr = ",corr
+    
+    ! #### find how #### !
+    lat_heat = latent_heat_ice(T) / (Rv * T)
+    how = 1. / ( (lat_heat-1.) * lat_heat * corr * dv / kT + Rv * T / pIce(T) )
+    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"how = ",how
+    
+    ! #### find Schmidt_term #### !   
+    corr = (p/ 30000.)**(-0.178) * (T/233.)**(-0.394) 
+        ! correction factor for terminal velocity
+    schmidt23 = (mu / ( rho * dv )) **(2./3.)
+    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"schmidt23 = ",schmidt23
+    gv = gv0 * schmidt23 * corr * rho / mu
+    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"gv = ",gv
+    Schmidt_term = 1. + gv * av * (m_ice*c2)**(bv+cv) * m0**cv / &
+                    & ( m_ice**cv + m0**cv )
+    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"Schmidt_term = ",Schmidt_term
+
+    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"factors = ",(fac_1 * m_ice**b_1 + fac_2 * m_ice**b_2)
+    
+    !if ((first_nuc == k) .and. (first_nuc .ne. 0)) print*,"iVar-2 = ",var(i,j,k,nVar-2)/ ( rhoRef * lRef**3 )
+    
+    !if ((first_nuc == k) .and. (first_nuc .ne. 0)) print*,"4 pi = ", 4*pi
+    
+    !if ((first_nuc == k) .and. (first_nuc .ne. 0)) print*,"SIce-1.0 = ", SIce-1.0
+    
+    DEPq = var(i,j,k,nVar-2) * 4*pi * how * &
+            & (fac_1 * m_ice**b_1 + fac_2 * m_ice**b_2) * &
+            & dvstar * Schmidt_term * (SIce-1.0)  &
+            & / ( rhoRef * lRef**3 )* tRef
+            
+        if ((first_nuc == k) .and. (first_nuc .ne. 0)) then
+            print*, "DEP = ", DEPq / tRef
+            print*, "#########################"
+            print*, " "
+        end if
+        
+    if ((DEPq .lt. 0.0) .and. (var(i,j,k,nVar).le.1.e-50)) then
+      DEPq = 0.0
+    end if
+    
   end function DEPq
 
 !----------------------------------------------

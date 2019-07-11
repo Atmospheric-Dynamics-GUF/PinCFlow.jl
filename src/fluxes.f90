@@ -1587,32 +1587,22 @@ contains
 
 ! --------------------------------------------------------------------
 
-  subroutine iceSource (var, source)
+  subroutine iceSource (var, source, i, j, k, T, p, SIce)
     ! in/out variables
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(in) :: var
 
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(inout) :: source
+         
+    real, intent(inout) :: SIce
 
-    integer :: k, j, i
-    real :: SIce, nucleation, deposition, evaporation
-    real :: T ! current temperature in Kelvin
-    real :: p ! current pressure in Pascal
-    real :: m_ice ! mean ice crystal mass in kg
+    integer, intent(in) :: k, j, i
 
-        do k = 1,nz
-          do j = 1,ny
-            do i = 1,nx
-              ! find the current temperature in Kelvin inside the grid cell 
-              call find_temperature(T,i,j,k,var)
- 
-              ! find the current pressure in Pascal inside the grid cell
-              p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
-              
-              ! find the current super-saturation with respect to ice inside the grid cell
-              SIce =  var(i,j,k,nVar) * p / ( epsilon0 * p_saturation(T) )
-              if ((SIce<0) .or. (SIce>2)) print*,"SIce=",SIce,", k = ",k
+    real, intent(in) :: T ! current temperature in Kelvin
+    real, intent(in) :: p ! current pressure in Pascal
+    real :: m_ice ! mean ice crystal mass in kg    
+    real :: nucleation, deposition, evaporation
 
               if (var(i,j,k,nVar-2) .le. 0.0) then
                  m_ice = init_m_ice 
@@ -1638,13 +1628,10 @@ contains
               source(i,j,k,nVar-2) = nucleation - evaporation
 
               ! qIce equation
-              source(i,j,k,nVar-1) = m_ice / (rhoRef * lRef**3) * nucleation  + deposition
+              source(i,j,k,nVar-1) = init_m_ice / (rhoRef * lRef**3) * nucleation  + deposition
 
               ! qv equation
-              source(i,j,k,nVar) = - m_ice / (rhoRef * lRef**3) * nucleation - deposition
-            end do
-          end do
-        end do
+              source(i,j,k,nVar) = - init_m_ice / (rhoRef * lRef**3) * nucleation - deposition
     
   end  subroutine iceSource
   

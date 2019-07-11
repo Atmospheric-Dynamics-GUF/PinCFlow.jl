@@ -1068,29 +1068,82 @@ contains
 
     ! local integer
     integer :: i,j,k,iVar,RKstage
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar-3:nVar) :: qs 
+    real, dimension(nVar-3:nVar) :: qs 
+    real :: T, p, SIce, q_SIce, f_SIce, w
+    real :: f_SIce_T, f_SIce_p, f_SIce_q, f_SIce_q1, f_SIce_q2
 
-    qs = 0.0
-    do RKstage = 1, 3
-    call iceSource (var, source)
       do k = 1,nz
         do j = 1,ny
           do i = 1,nx
-            do iVar = nVar-3,nVar
-              !var(i,j,k,iVar) = var(i,j,k,iVar) + dt * source(i,j,k,iVar)
-               qs(i,j,k,iVar) = dt*source(i,j,k,iVar) + alpha(RKstage) * qs(i,j,k,iVar)
-               if ((first_nuc == k) .and. (first_nuc .ne. 0) .and. (iVar==nVar-2))  print*,"q_nIce = ",qs(i,j,k,iVar)/(rhoRef*lRef**3)
-               var(i,j,k,iVar) = var(i,j,k,iVar) + beta(RKstage) * qs(i,j,k,iVar)
-              if (var(i,j,k,iVar) .lt. 0.0) then
-                var(i,j,k,iVar) = 0.0
-                print*,"something is probably wrong in iceTransitions ..., iVar = ",iVar," k = ",k
+            ! find the current temperature in Kelvin inside the grid cell 
+            call find_temperature(T,i,j,k,var)
+ 
+            ! find the current pressure in Pascal inside the grid cell
+            p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
+              
+            ! find the current super-saturation with respect to ice inside the grid cell
+            SIce =  var(i,j,k,nVar) * p / ( epsilon0 * pIce(T) )
+            if ((SIce<0) .or. (SIce>2)) print*,"SIce=",SIce,", k = ",k
+            
+            qs = 0.0
+            q_SIce = 0.0
+            
+            do RKstage = 1, 3 ! Runge-Kutta loop
+            
+              call iceSource (var, source, i, j, k, T, p, SIce) ! determine nucleation/deposition/evaporation
+              
+              do iVar = nVar-3,nVar
+                !var(i,j,k,iVar) = var(i,j,k,iVar) + dt * source(i,j,k,iVar)
+                
+                 qs(iVar) = dt*source(i,j,k,iVar) + alpha(RKstage) * qs(iVar)
+                 var(i,j,k,iVar) = var(i,j,k,iVar) + beta(RKstage) * qs(iVar)
+                 
+                 if (var(i,j,k,iVar) .lt. 0.0) then
+                  var(i,j,k,iVar) = 0.0
+                  print*,"something is probably wrong in iceTransitions ..., iVar = ",iVar," k = ",k
+                 end if
+                 
+              end do
+              
+              ! find vertical velocity in m/s
+              w = var(i,j,k,4)*uRef
+              
+              ! calculate saturation ratio rate of change
+              f_SIce_T = SIce * latent_heat_ice(T) * g * w / (3.5*Rsp*Rv*T**2)
+              f_SIce_p = - SIce * g * w / (Rsp*T)
+
+              f_SIce_q1 = SIce * latent_heat_ice(T)**2 / (3.5*Rsp*Rv*T**2)
+              f_SIce_q2 = p / (epsilon0 * pIce(T))
+         
+              f_SIce_q = -1.*(f_SIce_q1+f_SIce_q2)*source(i,j,k,nVar-1)
+         
+              f_SIce = f_SIce_t*tRef + f_SIce_p*tRef + f_SIce_q
+              
+              ! update saturation ratio due to intercellular upwind
+              q_SIce = dt*f_SIce + alpha(RKstage) * q_Sice
+              SIce = SIce + beta(RKstage) * q_Sice
+              
+              if ((first_nuc == k) .and. (first_nuc .ne. 0)) then
+                print*, "********************************"
+                print*, "Nucleation event processing! k = ", k
+                print*, "RKstage = ", RKstage
+                print*, "nIce = ", var(i,j,k,nVar-2)/(rhoRef*lRef**3)
+                print*, "qIce = ", var(i,j,k,nVar-1)
+                print*, "qv = ", var(i,j,k,nVar)
+                print*, "dqv = ", source(i,j,k,nVar)/tRef
+                print*, "SIce = ", SIce 
+                print*, "f_SIce_T = ", f_SIce_T
+                print*, "f_SIce_p = ", f_SIce_p
+                print*, "f_SIce_q = ", f_SIce_q
+                print*, "********************************"
               end if
-             end do
+             
             end do
           end do
        end do
     end do
 
+    !if (first_nuc .ne. 0) first_nuc = first_nuc + 1
 
     if(verbose .and. master) print*,"update.f90/iceTransitions: calculated." 
 

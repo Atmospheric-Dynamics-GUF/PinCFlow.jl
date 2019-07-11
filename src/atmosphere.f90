@@ -520,7 +520,14 @@ contains
           !-------------------------------------------------------------------
 
        case( 'isentropic' )
-
+       
+          if (include_ice .and. (iceTestcase=="1D_ISSR")) then
+             theta0_dim = T_nuc + 5.0
+             press0_dim = p_nuc * (theta0_dim/T_nuc)**kappaInv
+             ! scaled reference pressure at z = 0
+             p0 = press0_dim / pRef
+          end if
+             
           if ( referenceQuantities == "SI" ) then  
              !------------------------------------
              !   original equations in SI units
