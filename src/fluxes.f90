@@ -1587,7 +1587,7 @@ contains
 
 ! --------------------------------------------------------------------
 
-  subroutine iceSource (var, source, i, j, k, T, p, SIce)
+  subroutine iceSource (var, source)
     ! in/out variables
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(in) :: var
@@ -1595,43 +1595,70 @@ contains
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(inout) :: source
          
-    real, intent(inout) :: SIce
+    real :: SIce
 
-    integer, intent(in) :: k, j, i
+    integer :: k, j, i
 
-    real, intent(in) :: T ! current temperature in Kelvin
-    real, intent(in) :: p ! current pressure in Pascal
+    real :: T ! current temperature in Kelvin
+    real :: p ! current pressure in Pascal
     real :: m_ice ! mean ice crystal mass in kg    
     real :: nucleation, deposition, evaporation
 
-              if (var(i,j,k,nVar-2) .le. 0.0) then
+    
+    do k = 1,nz
+        do j = 1,ny
+          do i = 1,nx
+            ! find the current temperature in Kelvin inside the grid cell 
+            call find_temperature(T,i,j,k,var)
+ 
+            ! find the current pressure in Pascal inside the grid cell
+            p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
+              
+            ! find the current super-saturation with respect to ice inside the grid cell
+            SIce =  var(i,j,k,nVar) * p / ( epsilon0 * pIce(T) )
+            if ((SIce<0) .or. (SIce>2)) print*,"SIce=",SIce,", k = ",k
+            
+            if (var(i,j,k,nVar-2) .le. 0.0) then
                  m_ice = init_m_ice 
-              else 
-                 m_ice = var(i,j,k,nVar-1) / var(i,j,k,nVar-2) * rhoRef * lRef**3
-              end if
+            else 
+                 m_ice = abs( var(i,j,k,nVar-1) / var(i,j,k,nVar-2) * rhoRef * lRef**3 )
+            end if
 
-              nucleation = NUCn(i,j,k,var,SIce,T,p,m_ice) ! nucleation of ice crystals by aerosols
-              deposition = DEPq(i,j,k,var,SIce,T,p,m_ice) ! depositional growth of ice crystals
-              !print*, "nucleation = ", nucleation
-              !print*, "deposition = ", deposition
-              evaporation = 0.0
+            nucleation = NUCn(i,j,k,var,SIce,T,p,m_ice) ! nucleation of ice crystals by aerosols
+            deposition = DEPq(i,j,k,var,SIce,T,p,m_ice) ! depositional growth of ice crystals
+            !print*, "nucleation = ", nucleation
+            !print*, "deposition = ", deposition
+            
+            if (evaporation_on) then
               if (deposition .lt. 0.0) then
-                evaporation = - 1/m_ice * rhoRef * lRef**3 * deposition
+                evaporation = min(- 1/m_ice * rhoRef * lRef**3 * deposition, &
+                    & var(i,j,k,nVar-2)/dt_ice*tRef )
+                deposition = - m_ice/rhoRef/lRef**3 * evaporation
               else
                 evaporation = 0.0
               end if
+            else
+              evaporation = 0.0
+              if (deposition .lt. 0.0) then
+                deposition = 0.0
+              end if
+            end if
 
-              ! nAerosol equation
+            ! nAerosol equation
               source(i,j,k,nVar-3) = - nucleation + evaporation
 
-              ! nIce equation
+            ! nIce equation
               source(i,j,k,nVar-2) = nucleation - evaporation
 
-              ! qIce equation
+            ! qIce equation
               source(i,j,k,nVar-1) = init_m_ice / (rhoRef * lRef**3) * nucleation  + deposition
 
-              ! qv equation
+            ! qv equation
               source(i,j,k,nVar) = - init_m_ice / (rhoRef * lRef**3) * nucleation - deposition
+              
+          end do
+        end do
+    end do
     
   end  subroutine iceSource
   

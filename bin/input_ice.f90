@@ -363,6 +363,7 @@
   T_nuc = 196 !K ! initial nucleation temperature for 1D_ISSR simple flow case
   p_nuc = 20000 !Pa !initial nucleation pressure for 1D_ISSR simple flow case
                 ! using this results in overwriting press0_dim 
+  dt_ice = 0.01 ! length of microphysical time step
   NUC_approx_type = "Koop"   ! "Koop", "linFit", "threshold"
 
 ! switch approximations on/off
@@ -372,6 +373,7 @@
   mu_linFit = .false.
   sedimentation_on = .true.
   nucleation_on = .true.
+  evaporation_on = .true.
   awi_type = "exact" ! possible: "const", "linFit", "quadFit", "exact"
   SIce_threshold_type = "exact" ! possible: "linFit", "quadFit", "exact"
 &end

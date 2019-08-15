@@ -35,7 +35,6 @@ module update_module
   !-------------------------------
   !    private module variables
   !------------------------------
-  
 
 
 contains
@@ -1072,80 +1071,80 @@ contains
     real :: T, p, SIce, q_SIce, f_SIce, w
     real :: f_SIce_T, f_SIce_p, f_SIce_q, f_SIce_q1, f_SIce_q2
 
-      do k = 1,nz
-        do j = 1,ny
-          do i = 1,nx
-            ! find the current temperature in Kelvin inside the grid cell 
-            call find_temperature(T,i,j,k,var)
- 
-            ! find the current pressure in Pascal inside the grid cell
-            p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
-              
-            ! find the current super-saturation with respect to ice inside the grid cell
-            SIce =  var(i,j,k,nVar) * p / ( epsilon0 * pIce(T) )
-            if ((SIce<0) .or. (SIce>2)) print*,"SIce=",SIce,", k = ",k
-            
-            qs = 0.0
-            q_SIce = 0.0
-            
-            do RKstage = 1, 3 ! Runge-Kutta loop
-            
-              call iceSource (var, source, i, j, k, T, p, SIce) ! determine nucleation/deposition/evaporation
-              
-              do iVar = nVar-3,nVar
-                !var(i,j,k,iVar) = var(i,j,k,iVar) + dt * source(i,j,k,iVar)
-                
-                 qs(iVar) = dt*source(i,j,k,iVar) + alpha(RKstage) * qs(iVar)
-                 var(i,j,k,iVar) = var(i,j,k,iVar) + beta(RKstage) * qs(iVar)
-                 
-                 if (var(i,j,k,iVar) .lt. 0.0) then
-                  var(i,j,k,iVar) = 0.0
-                  print*,"something is probably wrong in iceTransitions ..., iVar = ",iVar," k = ",k
-                 end if
-                 
-              end do
-              
-              ! find vertical velocity in m/s
-              w = var(i,j,k,4)*uRef
-              
-              ! calculate saturation ratio rate of change
-              f_SIce_T = SIce * latent_heat_ice(T) * g * w / (3.5*Rsp*Rv*T**2)
-              f_SIce_p = - SIce * g * w / (Rsp*T)
-
-              f_SIce_q1 = SIce * latent_heat_ice(T)**2 / (3.5*Rsp*Rv*T**2)
-              f_SIce_q2 = p / (epsilon0 * pIce(T))
-         
-              f_SIce_q = -1.*(f_SIce_q1+f_SIce_q2)*source(i,j,k,nVar-1)
-         
-              f_SIce = f_SIce_t*tRef + f_SIce_p*tRef + f_SIce_q
-              
-              ! update saturation ratio due to intercellular upwind
-              q_SIce = dt*f_SIce + alpha(RKstage) * q_Sice
-              SIce = SIce + beta(RKstage) * q_Sice
-              
-              if ((first_nuc == k) .and. (first_nuc .ne. 0)) then
-                print*, "********************************"
-                print*, "Nucleation event processing! k = ", k
-                print*, "RKstage = ", RKstage
-                print*, "nIce = ", var(i,j,k,nVar-2)/(rhoRef*lRef**3)
-                print*, "qIce = ", var(i,j,k,nVar-1)
-                print*, "qv = ", var(i,j,k,nVar)
-                print*, "dqv = ", source(i,j,k,nVar)/tRef
-                print*, "SIce = ", SIce 
-                print*, "f_SIce_T = ", f_SIce_T
-                print*, "f_SIce_p = ", f_SIce_p
-                print*, "f_SIce_q = ", f_SIce_q
-                print*, "********************************"
-              end if
-             
-            end do
-          end do
-       end do
-    end do
+ !     do k = 1,nz
+ !       do j = 1,ny
+ !         do i = 1,nx
+ !           ! find the current temperature in Kelvin inside the grid cell 
+ !           call find_temperature(T,i,j,k,var)
+! 
+!            ! find the current pressure in Pascal inside the grid cell
+!            p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
+!              
+!            ! find the current super-saturation with respect to ice inside the grid cell
+!            SIce =  var(i,j,k,nVar) * p / ( epsilon0 * pIce(T) )
+!            if ((SIce<0) .or. (SIce>2)) print*,"SIce=",SIce,", k = ",k
+!            
+ !           qs = 0.0
+  !          q_SIce = 0.0
+   !         
+    !        do RKstage = 1, 3 ! Runge-Kutta loop
+    !        
+    !          call iceSource (var, source, i, j, k, T, p, SIce) ! determine nucleation/deposition/evaporation
+    !          
+    !          do iVar = nVar-3,nVar
+    !            !var(i,j,k,iVar) = var(i,j,k,iVar) + dt * source(i,j,k,iVar)
+    !            
+    !             qs(iVar) = dt*source(i,j,k,iVar) + alpha(RKstage) * qs(iVar)
+    !             var(i,j,k,iVar) = var(i,j,k,iVar) + beta(RKstage) * qs(iVar)
+    !             
+    !             if (var(i,j,k,iVar) .lt. 0.0) then
+    !              var(i,j,k,iVar) = 0.0
+    !              print*,"something is probably wrong in iceTransitions ..., iVar = ",iVar," k = ",k
+    !             end if
+    !             
+    !          end do
+    !          
+    !          ! find vertical velocity in m/s
+    !          w = var(i,j,k,4)*uRef
+   !           
+   !           ! calculate saturation ratio rate of change
+   !           f_SIce_T = SIce * latent_heat_ice(T) * g * w / (3.5*Rsp*Rv*T**2)
+   !           f_SIce_p = - SIce * g * w / (Rsp*T)
+!
+!              f_SIce_q1 = SIce * latent_heat_ice(T)**2 / (3.5*Rsp*Rv*T**2)
+!              f_SIce_q2 = p / (epsilon0 * pIce(T))
+!         
+!              f_SIce_q = -1.*(f_SIce_q1+f_SIce_q2)*source(i,j,k,nVar-1)
+!         
+!              f_SIce = f_SIce_t*tRef + f_SIce_p*tRef + f_SIce_q
+!              
+!              ! update saturation ratio due to intercellular upwind
+!              q_SIce = dt*f_SIce + alpha(RKstage) * q_Sice
+!              SIce = SIce + beta(RKstage) * q_Sice
+!              
+!              if ((first_nuc == k) .and. (first_nuc .ne. 0)) then
+!                print*, "********************************"
+!                print*, "Nucleation event processing! k = ", k
+!                print*, "RKstage = ", RKstage
+!                print*, "nIce = ", var(i,j,k,nVar-2)/(rhoRef*lRef**3)
+!                print*, "qIce = ", var(i,j,k,nVar-1)
+!                print*, "qv = ", var(i,j,k,nVar)
+!                print*, "dqv = ", source(i,j,k,nVar)/tRef
+!                print*, "SIce = ", SIce 
+!                print*, "f_SIce_T = ", f_SIce_T
+!                print*, "f_SIce_p = ", f_SIce_p
+!               print*, "f_SIce_q = ", f_SIce_q
+!                print*, "********************************"
+!              end if
+!             
+!            end do
+!          end do
+!       end do
+!    end do
 
     !if (first_nuc .ne. 0) first_nuc = first_nuc + 1
 
-    if(verbose .and. master) print*,"update.f90/iceTransitions: calculated." 
+!    if(verbose .and. master) print*,"update.f90/iceTransitions: calculated." 
 
   end subroutine iceTransitions
 
@@ -1164,7 +1163,7 @@ contains
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(inout) :: var
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         & intent(in) :: var0
+         & intent(inout) :: var0
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
     ! flux(i,j,k,dir,iFlux) 
     ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
@@ -1192,8 +1191,13 @@ contains
     real, dimension(4)    :: F            ! F(phi)
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: rho
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,4) :: rho_source_term
+    logical :: showiVar
+    real :: T,p,SIce
     
+    var0 = var
 
+    showiVar = .false.
+    
     ! init q
     if (m == 1) q = 0.
 
@@ -1232,7 +1236,7 @@ contains
              ! F(phi)
              F = -fluxDiff
 
-             F(:) = F(:) + rho_source_term(i,j,k,:) !+ rho(i,j,k)*source(i,j,k,nVar-3:nVar)
+             F(:) = F(:) + rho_source_term(i,j,k,:) + rho(i,j,k)*source(i,j,k,nVar-3:nVar)
              
              select case( timeSchemeType ) 
                 
@@ -1254,9 +1258,100 @@ contains
                 stop "iceUpdate: unknown case timeSchemeType"
              end select
              
-             do iVar = nVar-3,nVar
+             do iVar = 9,9 !nVar-3,nVar
+               if (showiVar == .true.) then
+                 print*,"neighbouring values are iVar = ",iVar," in cell k = ", k,", value is ", var(i,j,k,iVar)
+                 print*,"*!*!*!*!*!*!*! UPPER NEIGHBOR BEFORE:"
+                 print*,"ice variable values before: nAer = ", var0(i,j,k,nVar-3)
+                 print*,"ice variable values before: nIce = ", var0(i,j,k,nVar-2)
+                 print*,"ice variable values before: qIce = ", var0(i,j,k,nVar-1)
+                 print*,"ice variable values before: qv = ", var0(i,j,k,nVar)
+                 ! find the current temperature in Kelvin inside the grid cell 
+                 call find_temperature(T,i,j,k,var0)
+                 ! find the current pressure in Pascal inside the grid cell
+                 p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var0(i,j,k,5) )**kappaInv
+                 ! find the current super-saturation with respect to ice inside the grid cell
+                 SIce =  var0(i,j,k,nVar) * p / ( epsilon0 * pIce(T) )
+                 print*,"ice variable values before: SIce = ", SIce
+                 print*,"*!*!*!*!*!*!*!"
+                 
+                 print*,"*!*!*!*!*!*!*! UPPER NEIGHBOR AFTER:"
+                 print*,"ice variable values before: nAer = ", var(i,j,k,nVar-3)
+                 print*,"ice variable values before: nIce = ", var(i,j,k,nVar-2)
+                 print*,"ice variable values before: qIce = ", var(i,j,k,nVar-1)
+                 print*,"ice variable values before: qv = ", var(i,j,k,nVar)
+                 ! find the current temperature in Kelvin inside the grid cell 
+                 call find_temperature(T,i,j,k,var)
+                 ! find the current pressure in Pascal inside the grid cell
+                 p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
+                 ! find the current super-saturation with respect to ice inside the grid cell
+                 SIce =  var(i,j,k,nVar) * p / ( epsilon0 * pIce(T) )
+                 print*,"ice variable values before: SIce = ", SIce
+                 print*,"*!*!*!*!*!*!*!"
+                 showiVar = .false.
+               end if
                if (var(i,j,k,iVar).lt. 0.0) then
                  print*,"something is wrong for iVar = ",iVar," in cell k = ", k,", value is ", var(i,j,k,iVar)
+                 print*,"source term yields in cell k = ",k,", source = ",source(i,j,k,iVar)
+                 print*,"respective flux is",F(2)
+                 print*,"*!*!*!*!*!*!*! BEFORE:"
+                 print*,"ice variable values before: nAer = ", var0(i,j,k,nVar-3)
+                 print*,"ice variable values before: nIce = ", var0(i,j,k,nVar-2)
+                 print*,"ice variable values before: qIce = ", var0(i,j,k,nVar-1)
+                 print*,"ice variable values before: qv = ", var0(i,j,k,nVar)
+                 ! find the current temperature in Kelvin inside the grid cell 
+                 call find_temperature(T,i,j,k,var0)
+                 ! find the current pressure in Pascal inside the grid cell
+                 p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var0(i,j,k,5) )**kappaInv
+                 ! find the current super-saturation with respect to ice inside the grid cell
+                 SIce =  var0(i,j,k,nVar) * p / ( epsilon0 * pIce(T) )
+                 print*,"ice variable values before: SIce = ", SIce
+                 print*,"*!*!*!*!*!*!*!"
+                 
+                 print*,"*!*!*!*!*!*!*! AFTER:"
+                 print*,"ice variable values before: nAer = ", var(i,j,k,nVar-3)
+                 print*,"ice variable values before: nIce = ", var(i,j,k,nVar-2)
+                 print*,"ice variable values before: qIce = ", var(i,j,k,nVar-1)
+                 print*,"ice variable values before: qv = ", var(i,j,k,nVar)
+                 ! find the current temperature in Kelvin inside the grid cell 
+                 call find_temperature(T,i,j,k,var)
+                 ! find the current pressure in Pascal inside the grid cell
+                 p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
+                 ! find the current super-saturation with respect to ice inside the grid cell
+                 SIce =  var(i,j,k,nVar) * p / ( epsilon0 * pIce(T) )
+                 print*,"ice variable values before: SIce = ", SIce
+                 print*,"*!*!*!*!*!*!*!"
+                 
+                 print*,"lower neighbouring values are iVar = ",iVar," in cell k = ", k-1,", value is ", var(i,j,k-1,iVar)
+                 print*,"*!*!*!*!*!*!*! LOWER NEIGHBOR BEFORE:"
+                 print*,"ice variable values before: nAer = ", var0(i,j,k-1,nVar-3)
+                 print*,"ice variable values before: nIce = ", var0(i,j,k-1,nVar-2)
+                 print*,"ice variable values before: qIce = ", var0(i,j,k-1,nVar-1)
+                 print*,"ice variable values before: qv = ", var0(i,j,k-1,nVar)
+                 ! find the current temperature in Kelvin inside the grid cell 
+                 call find_temperature(T,i,j,k-1,var0)
+                 ! find the current pressure in Pascal inside the grid cell
+                 p = press0_dim * ( (PStrat(k-1)/p0)**gamma_1  +var0(i,j,k-1,5) )**kappaInv
+                 ! find the current super-saturation with respect to ice inside the grid cell
+                 SIce =  var0(i,j,k-1,nVar) * p / ( epsilon0 * pIce(T) )
+                 print*,"ice variable values before: SIce = ", SIce
+                 print*,"*!*!*!*!*!*!*!"
+                 
+                 print*,"*!*!*!*!*!*!*! LOWER NEIGHBOR AFTER:"
+                 print*,"ice variable values before: nAer = ", var(i,j,k-1,nVar-3)
+                 print*,"ice variable values before: nIce = ", var(i,j,k-1,nVar-2)
+                 print*,"ice variable values before: qIce = ", var(i,j,k-1,nVar-1)
+                 print*,"ice variable values before: qv = ", var(i,j,k-1,nVar)
+                 ! find the current temperature in Kelvin inside the grid cell 
+                 call find_temperature(T,i,j,k-1,var)
+                 ! find the current pressure in Pascal inside the grid cell
+                 p = press0_dim * ( (PStrat(k-1)/p0)**gamma_1  +var(i,j,k-1,5) )**kappaInv
+                 ! find the current super-saturation with respect to ice inside the grid cell
+                 SIce =  var(i,j,k-1,nVar) * p / ( epsilon0 * pIce(T) )
+                 print*,"ice variable values before: SIce = ", SIce
+                 print*,"*!*!*!*!*!*!*!"
+                 
+                 showiVar = .true.
                  var(i,j,k,iVar) = 0.0
                end if
              end do

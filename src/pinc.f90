@@ -30,7 +30,7 @@ program pinc_prog
   implicit none
   !---------------------------------------------------
 
-  integer                     :: iTime
+  integer                     :: iTime, Ice_RKstage
   real                        :: time, dt
 
   ! CPU Time
@@ -487,23 +487,6 @@ program pinc_prog
 !xxxx wrong implemented / call might not be necessary
               if( correctDivError) call momentumSource (var,source)
            end if
-           if(( include_ice ) .and. ( updateIce )) then
-              if (RKstage == 1) then 
-                dIce = 0.0 ! init q
-                l = 1 !int(dt * tRef / 0.01)
-                do k = 1,l 
-                  !call iceSource (var, source)
-                  call iceTransitions(var,source, dt)
-                  call set_spongeLayer(var, dt, "ice")
-                end do
-                call setHalos(var,"var")
-                call reconstruction(var, "ice")
-                call setBoundary(var,flux,"var")
-              end if
-              !call iceSource (var, source)
-              call iceFlux (var, flux)
-           end if
-
            call setBoundary (var, flux, "flux") 
 
            
@@ -511,15 +494,33 @@ program pinc_prog
            !                        Evolve in time
            !------------------------------------------------------------
            
+        
            if (include_ice .and. updateIce) then
               !--------------------------------------
               !               ice_new
               !--------------------------------------
               
-              call iceUpdate(var, var0, flux, source, dt, dIce, RKstage)
-              call set_spongeLayer(var, stepFrac(RKstage)*dt, "ice")
-              call setHalos( var, "var" )
-              call setBoundary (var, flux, "var")
+               if (RKstage == 1) then 
+                l = int(dt * tRef / dt_ice)
+                if (l .lt. 1) then
+                  l=1
+                end if
+                dt_ice = dt*tRef / l
+                call setHalos(var,"var")
+                do k = 1,l ! microphysical time steps
+                  dIce = 0.0 ! init q
+                  do Ice_RKstage = 1, 3 ! Runge-Kutta loop
+                    call iceSource (var, source)
+                    call iceFlux (var, flux)
+                    call iceUpdate(var, var0, flux, source, dt_ice/tRef, dIce, Ice_RKstage)
+                    call set_spongeLayer(var, stepFrac(RKstage)*dt_ice/tRef, "ice")
+                    call setHalos(var,"var")
+                    call reconstruction(var, "ice")
+                    call setBoundary(var,flux,"var")
+                  end do
+                end do
+              end if
+              
            else if(iTime==1 .and. RKstage==1 .and. master) then
               print *,"main: IceUpdate off!"
            end if

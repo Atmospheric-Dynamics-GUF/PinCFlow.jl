@@ -39,7 +39,7 @@ contains
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(inout) :: var
     real :: SIce,T,p,m_ice,rho
-    integer :: i,j,k, ISSR_width
+    integer :: i,j,k, ISSR_width, ISSR_radius
 
     ! ice crystal volume and correction factor from log-normal distribution
     ice_crystal_volume = exp(9. * log(sigma_r)**2 / 2.) &
@@ -83,12 +83,32 @@ contains
       end do
             
     case ("stratification")
-      stop "iceTestcase: stratification not yet implemented"
+      init_SIce = SIce_crit(Temp0_dim)
+      ISSR_center = ceiling(kSponge/2.)
+      var(:,:,:,nVar-2:nVar-1) = 0
+      p = press0_dim * ( (PStrat(ISSR_center)/p0)**gamma_1  +var(1,1,ISSR_center,5) )**kappaInv
+      init_qv = epsilon0 * init_SIce * pIce(Temp0_dim) / p
+      
+      do i=0,nx
+        do j=0,ny
+          do k=0,nz
+            if ( fluctuationMode ) then
+               rho = var(i,j,k,1)+rhoStrat(k) 
+             else
+               rho = var(i,j,k,1)
+            end if
+            var(i,j,k,nVar-3) = init_nAer / rho * lRef**3
+            var(i,j,k,nVar) = init_qv*(1+0.5*tanh(2.5*(k-ISSR_center)/ISSR_center))
+          end do
+        end do
+      end do
+            
       
     case ("1D_ISSR")
       init_SIce = SIce_crit(T_nuc)
       ISSR_center = ceiling(kSponge/4.)
-      ISSR_width = 5 !ceiling(kSponge*0.02)
+      ISSR_width = ceiling(5 / (dz*lRef) ) !ceiling(kSponge*0.02)
+      ISSR_radius = ceiling(30 / (dz*lRef))
       if ((background=='const-N').and.(testcase=="nIce_w_test")) then
         ISSR_center = ceiling( 1./(dz*lRef) * g/N_BruntVaisala_dim**2 * &
              & log((T_nuc-kappa*g**2/(Rsp*N_BruntVaisala_dim**2))/(theta0_dim-kappa*g**2/(Rsp*N_BruntVaisala_dim**2)))) 
@@ -104,11 +124,11 @@ contains
       !print*, '!!!!!!!!!!!!!!!!!!!', T
       p = press0_dim * ( (PStrat(ISSR_center)/p0)**gamma_1  +var(1,1,ISSR_center,5) )**kappaInv
       init_qv = epsilon0 * init_SIce * pIce(T_nuc) / p
-      ISSR_center = ISSR_center - 51! ISSR_width !ceiling(backgroundFlow(3) / dz)
+      ISSR_center = ISSR_center - (ISSR_radius+2*ISSR_width)! ISSR_width !ceiling(backgroundFlow(3) / dz)
       do i=0,nx
         do j=0,ny
         
-          do k=1,ISSR_center-50
+          do k=1,ISSR_center-ISSR_radius
              if ( fluctuationMode ) then
                rho = var(i,j,k,1)+rhoStrat(k) 
              else
@@ -125,7 +145,7 @@ contains
             var(i,j,k,nVar) = init_qv * exp( -1.*(k-ISSR_center+1)**2. / (2. * ISSR_width**2))
           end do
           
-          do k=ISSR_center-49,ISSR_center+49
+          do k=ISSR_center-ISSR_radius+1,ISSR_center+ISSR_radius-1
              if ( fluctuationMode ) then
                rho = var(i,j,k,1)+rhoStrat(k) 
              else
@@ -135,7 +155,7 @@ contains
             var(i,j,k,nVar) = init_qv
           end do
           
-          do k=ISSR_center+50,nz
+          do k=ISSR_center+ISSR_radius,nz
              if ( fluctuationMode ) then
                rho = var(i,j,k,1)+rhoStrat(k) 
              else
