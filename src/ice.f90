@@ -7,7 +7,7 @@ module ice_module
 
   private 
 
-  public :: setup_ice
+  public :: setup_ice, iceTestcase_specifics
   public :: NUCn, DEPq
   public :: SIce_crit, p_saturation, SIce_threshold, awi
   public :: find_temperature, pIce
@@ -22,6 +22,7 @@ module ice_module
   real :: ice_crystal_volume
   integer :: ISSR_center
   integer :: first_nuc = 0
+  real :: t_ramp_qv, t_relax_qv, t_start ! for qv_relaxation iceTestcase
 
 !coefficients for linear fit of nucleation rate
   real, parameter :: afit0=-62.192670609121556
@@ -31,7 +32,7 @@ module ice_module
 !correction term from Koop & Murray 2016
   real, parameter :: delta=1.522
 
-  public :: epsilon0,first_nuc, Rv
+  public :: epsilon0,first_nuc, Rv, t_ramp_qv, t_relax_qv, t_start, ISSR_center
 
 contains
 
@@ -43,8 +44,9 @@ contains
 
     ! ice crystal volume and correction factor from log-normal distribution
     ice_crystal_volume = exp(9. * log(sigma_r)**2 / 2.) &
-               & * 4./3*pi*radius_solution**3. !/ lRef**3
+               & * 4./3*pi*radius_solution**3. 
 
+    ! iceTestcases
     select case (iceTestcase)
 
     case ("homogeneous_qv") 
@@ -77,7 +79,26 @@ contains
             var(i,j,k,nVar-3) = init_nAer / rho * lRef**3
             call find_temperature(T,i,j,k,var)
             p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
-            var(i,j,k,nVar) = epsilon0 * init_SIce * pIce(T) / p 
+            var(i,j,k,nVar) = epsilon0 * init_SIce * SIce_crit(T) * pIce(T) / p 
+          end do
+        end do
+      end do
+            
+    case ("qv_relaxation")
+      init_qv = 0.0
+      ISSR_center = int(ISSR_top*mountainHeight_dim/(dz*lRef))
+      t_start = t_relax
+      t_ramp_qv = t_ramp/10.0 
+      t_relax_qv = t_relax/10.0
+      do i=0,nx
+        do j=0,ny
+          do k=0,nz
+            if ( fluctuationMode ) then
+               rho = var(i,j,k,1)+rhoStrat(k) 
+             else
+               rho = var(i,j,k,1)
+            end if
+            var(i,j,k,nVar-3) = init_nAer / rho * lRef**3
           end do
         end do
       end do
@@ -102,6 +123,30 @@ contains
           end do
         end do
       end do
+     
+     
+    case ("ice_cloud")
+      if (init_SIce > 1.3) init_SIce = 1.0
+      var(:,:,:,nVar-3) = 0.0
+      ISSR_center = ceiling(ISSR_top*kSponge)
+      do i=0,nx
+        do j=0,ny
+          do k=0,nz
+            if ( fluctuationMode ) then
+               rho = var(i,j,k,1)+rhoStrat(k) 
+             else
+               rho = var(i,j,k,1)
+            end if
+            var(i,j,k,nVar-2) = 0.0 !1.e-20/(rhoRef*lRef**3)*exp(-(k-ISSR_center)**2/200.0)
+            var(i,j,k,nVar-1) = init_m_ice*var(i,j,k,nVar-2)
+            !call find_temperature(T,i,j,k,var)
+            T = Temp0_dim
+            p = press0_dim * ( (PStrat(k)/p0)**gamma_1 )**kappaInv !+var(i,j,k,5) )**kappaInv
+            var(i,j,k,nVar) = epsilon0 * init_SIce * pIce(T) / p
+          end do
+        end do
+      end do
+      
             
       
     case ("1D_ISSR")
@@ -120,11 +165,9 @@ contains
       end if
               
       var(:,:,:,nVar-2:nVar-1) = 0.
-      !call find_temperature(T,1,1,ISSR_center,var)
-      !print*, '!!!!!!!!!!!!!!!!!!!', T
       p = press0_dim * ( (PStrat(ISSR_center)/p0)**gamma_1  +var(1,1,ISSR_center,5) )**kappaInv
       init_qv = epsilon0 * init_SIce * pIce(T_nuc) / p
-      ISSR_center = ISSR_center - (ISSR_radius+2*ISSR_width)! ISSR_width !ceiling(backgroundFlow(3) / dz)
+      ISSR_center = ISSR_center - (ISSR_radius+2*ISSR_width) !ceiling(backgroundFlow(3) / dz)
       do i=0,nx
         do j=0,ny
         
@@ -135,12 +178,6 @@ contains
                rho = var(i,j,k,1)
              end if
             var(i,j,k,nVar-3) = init_nAer / rho * lRef**3
-            !sharp transition:
-            !if ((k .ge. ISSR_center-ISSR_width) .and. (k .le. ISSR_center+ISSR_width)) then
-            !  var(i,j,k,nVar) = init_qv
-            !else
-            !  var(i,j,k,nVar) = 0.
-            !end if
             ! Gaussian profile:
             var(i,j,k,nVar) = init_qv * exp( -1.*(k-ISSR_center+1)**2. / (2. * ISSR_width**2))
           end do
@@ -162,12 +199,6 @@ contains
                rho = var(i,j,k,1)
              end if 
             var(i,j,k,nVar-3) = init_nAer / rho * lRef**3 
-            !sharp transition:
-            !if ((k .ge. ISSR_center-ISSR_width) .and. (k .le. ISSR_center+ISSR_width)) then
-            !  var(i,j,k,nVar) = init_qv
-            !else
-            !  var(i,j,k,nVar) = 0.
-            !end if
             ! Gaussian profile:
             var(i,j,k,nVar) = init_qv * exp( -1.*(k-ISSR_center-1)**2. / (2. * ISSR_width**2))
           end do
@@ -184,6 +215,135 @@ contains
 
 !------------------------------------------------------------------------------------
 
+  logical function iceTestcase_specifics(time, var)
+  ! in/out variables
+    real, intent(in) :: time
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(inout) :: var
+    
+  ! local integers
+    integer :: i,k,i0
+    
+  ! additional variables
+    real :: T,p,frac
+  
+    i0=is+nbx-1
+  
+    select case (iceTestcase)
+          
+    ! iceTestcase: qvrelaxation
+      case("qv_relaxation")
+      
+        if (time > t_start + t_relax_qv) then
+          iceTestcase_specifics = .true.
+        else 
+            if (time > t_start + t_relax_qv - t_ramp_qv) then
+                do k=0,nz
+                          if (k<ISSR_center-8) then
+                            frac = 0.4
+                          else if (k>ISSR_center) then
+                            frac = 0.05
+                          else 
+                            frac = 0.98
+                          end if
+                          do i=0,nx
+                            if (x(i0+i)<lx(0)+0.1*(lx(1)-lx(0))) then  
+                              p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,1,k,5) )**kappaInv
+                              call find_temperature(T,i,1,k,var)
+                              init_SIce = SIce_crit(T)
+                              init_qv = epsilon0 * frac*init_SIce * pIce(T) / p
+                              var(i,1,k,nVar) = init_qv * cos(pi*(time-t_start)/(2*t_ramp_qv))
+                              !var(i,1,k,nVar-3) = init_nAer * cos(pi*(time-t_start)/(2*t_ramp_qv))
+                            end if
+                            if (x(i0+i)>lx(1)-0.1*(lx(1)-lx(0))) then 
+                              p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,1,k,5) )**kappaInv
+                              call find_temperature(T,i,1,k,var)
+                              init_SIce = SIce_crit(T)
+                              init_qv = epsilon0 * frac*init_SIce * pIce(T) / p
+                              var(i,1,k,nVar) = init_qv * cos(pi*(time-t_start)/(2*t_ramp_qv))
+                              !var(i,1,k,nVar-3) = init_nAer * cos(pi*(time-t_start)/(2*t_ramp_qv))
+                            end if
+                          end do
+                        end do
+                iceTestcase_specifics = .true.
+            else
+                if (time > t_start + t_ramp_qv) then
+                    do k=0,nz
+                          if (k<ISSR_center-8) then
+                            frac = 0.4
+                          else if (k>ISSR_center) then
+                            frac = 0.05
+                          else 
+                            frac = 0.98
+                          end if
+                          do i=0,nx
+                            if (x(i0+i)<lx(0)+0.1*(lx(1)-lx(0))) then 
+                              p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,1,k,5) )**kappaInv
+                              call find_temperature(T,i,1,k,var)
+                              init_SIce = SIce_crit(T)
+                              init_qv = epsilon0 * frac*init_SIce * pIce(T) / p
+                              var(i,1,k,nVar) = init_qv
+                              !var(i,1,k,nVar-3) = init_nAer
+                            end if
+                            if (x(i0+i)>lx(1)-0.1*(lx(1)-lx(0))) then 
+                              p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,1,k,5) )**kappaInv
+                              call find_temperature(T,i,1,k,var)
+                              init_SIce = SIce_crit(T)
+                              init_qv = epsilon0 * frac*init_SIce * pIce(T) / p
+                              var(i,1,k,nVar) = init_qv
+                              !var(i,1,k,nVar-3) = init_nAer
+                            end if
+                          end do
+                        end do
+                    iceTestcase_specifics = .true.
+                else 
+                    if (time > t_start) then
+                        if (init_qv==0.0) then
+                            print*,"#### water vapor injection start ####"
+                        end if
+                        do k=0,nz
+                          if (k<ISSR_center-8) then
+                            frac = 0.4
+                          else if (k>ISSR_center) then
+                            frac = 0.05
+                          else 
+                            frac = 0.98
+                          end if
+                          do i=0,nx
+                            if (x(i0+i)<lx(0)+0.1*(lx(1)-lx(0))) then 
+                              p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,1,k,5) )**kappaInv
+                              call find_temperature(T,i,1,k,var)
+                              init_SIce = SIce_crit(T)
+                              init_qv = epsilon0 * frac*init_SIce * pIce(T) / p
+                              var(i,1,k,nVar) = init_qv * sin(pi*(time-t_start)/(2*t_ramp_qv))
+                              !var(i,1,k,nVar-3) = init_nAer * sin(pi*(time-t_start)/(2*t_ramp_qv))
+                            end if
+                            if (x(i0+i)>lx(1)-0.1*(lx(1)-lx(0))) then 
+                              p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,1,k,5) )**kappaInv
+                              call find_temperature(T,i,1,k,var)
+                              init_SIce = SIce_crit(T)
+                              init_qv = epsilon0 * frac*init_SIce * pIce(T) / p
+                              var(i,1,k,nVar) = init_qv * sin(pi*(time-t_start)/(2*t_ramp_qv))
+                              !var(i,1,k,nVar-3) = init_nAer * sin(pi*(time-t_start)/(2*t_ramp_qv))
+                            end if
+                          end do
+                        end do
+                        iceTestcase_specifics = .true.
+                    else 
+                        iceTestcase_specifics = .false.
+                    end if
+                end if
+            end if
+        end if
+        
+      case default
+        iceTestcase_specifics = .true.
+        
+    end select
+  
+  end function iceTestcase_specifics
+
+!------------------------------------------------------------------------------------
 ! returns terminal sedimentation velocity of nIce in m/s
   real function terminal_v_nIce(m_ice)
     ! in/out variables
@@ -280,6 +440,7 @@ contains
    end select
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   if (approximation_model .ge. 100.0) then
+  
     print*,"WARNING: approximation_model = ",approximation_model,", the value has been adjusted to 100"
     approximation_model = 100.0
   end if
@@ -301,22 +462,22 @@ contains
      if (SIce .ge. SIce_crit(T)) then 
       if (first_nuc == 0) first_nuc = k
       NUCn = tRef * var(i,j,k,nVar-3) * ice_crystal_volume * 10.0**approximation_model(SIce,T)
-      if ((first_nuc == k) .and. (first_nuc .ne. 0)) then
+      if (.true.) then !((first_nuc == k) .and. (first_nuc .ne. 0)) then
         print*," "
         print*, "#########################"
-        print*, "Nucleation event! k = ", k
+        print*, "Nucleation event! k = ", k,", i = ",i+is+nbx-1
         print*, "nIce = ", var(i,j,k,nVar-2) / (rhoRef*lRef**3)
         print*, "qice = ", var(i,j,k,nVar-1)
-        print*,"nAer = ",var(i,j,k,nVar-3) / lRef**3 * var(i,j,k,1)
         if ( fluctuationMode ) then
                rho = var(i,j,k,1)+rhoStrat(k) 
             else
                rho = var(i,j,k,1)
         end if 
-        print*, "rho = ", var(i,j,k,1) * rhoRef
+        print*, "rho = ", rho * rhoRef
         print*, "nAer = ", var(i,j,k,nVar-3) *rho / lRef**3
         print*, "T = ", T
         print*, "p = ", p
+        print*, "qv = ",var(i,j,k,nVar)
         print*, "SIce = ", SIce
         print*, "SIce_crit = ",SIce_crit(T)
         print*, "NUC = ", NUCn / (rhoRef*lRef**3 * tRef)
@@ -363,13 +524,12 @@ contains
     !else
     !     rho = var(i,j,k,1)
     !end if 
+    ! rho = rho*rhoRef
 
     rho = p / (Rsp*T)
 
     ! #### find lambda #### !
     lambda = 6.6e-8 * T/293.15 * 101325./p
-    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"lambda = ",lambda
-
 
     ! #### find kT #### !
     if (kT_linFit) then
@@ -377,8 +537,6 @@ contains
     else    
     kT = 0.002646*T**1.5 / (T + 245.*10**(-12./T) )
     end  if
-    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"kT = ",kT
-
 
     ! #### find dv #### !
     if (dv_exp2) then
@@ -386,17 +544,13 @@ contains
     else
     dv = 2.11e-5 * (T/273.15)**1.94 * 101325./p
     end if
-    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"dv = ",dv
 
-   
     ! #### find cm #### !
     if (cm_dryAir) then
         cm = sqrt(8.*RSp*T/pi)
     else
         cm = sqrt(8.*Rv*T/pi)
     end if
-    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"cm = ",cm
-    
     
     ! #### find mu #### !
     if (mu_linFit) then
@@ -404,60 +558,39 @@ contains
     else
         mu = ( 1.458e-6 * T**1.5 ) / ( T + 110.4 )
     end if
-    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"mu = ",mu
 
-    
     ! #### find dvstar #### !
     a = lambda * cunn
     b = 4. * dv / (alpham * cm)
     r = (3.* c1 * m_ice / (4.*pi*rhob) )**(1./3.)
     fkin = ( r**2 + a*r ) / ( r**2 + b*r + a*b )
     dvstar = dv * fkin
-    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"dvstar = ",dvstar
     
     ! #### find correction for small crystals #### !
     r = (3.* m_ice / (4.*pi*rhob) )**(1./3.)
     bd = 4.*dv / (alpham*sqrt(8.*Rv*T/pi))
     bk = 4.*kt / (alphat*sqrt(8.*Rsp*T/pi)*rho*3.5*Rsp)
     corr = (r*r+bk*r+a*bk)/(r*r+bd*r+a*bd)
-    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"corr = ",corr
     
     ! #### find how #### !
     lat_heat = latent_heat_ice(T) / (Rv * T)
     how = 1. / ( (lat_heat-1.) * lat_heat * corr * dv / kT + Rv * T / pIce(T) )
-    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"how = ",how
     
     ! #### find Schmidt_term #### !   
     corr = (p/ 30000.)**(-0.178) * (T/233.)**(-0.394) 
         ! correction factor for terminal velocity
     schmidt23 = (mu / ( rho * dv )) **(2./3.)
-    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"schmidt23 = ",schmidt23
     gv = gv0 * schmidt23 * corr * rho / mu
-    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"gv = ",gv
     Schmidt_term = 1. + gv * av * (m_ice*c2)**(bv+cv) * m0**cv / &
                     & ( m_ice**cv + m0**cv )
-    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"Schmidt_term = ",Schmidt_term
-
-    !if ((first_nuc == k) .and. (first_nuc .ne. 0))  print*,"factors = ",(fac_1 * m_ice**b_1 + fac_2 * m_ice**b_2)
-    
-    !if ((first_nuc == k) .and. (first_nuc .ne. 0)) print*,"iVar-2 = ",var(i,j,k,nVar-2)/ ( rhoRef * lRef**3 )
-    
-    !if ((first_nuc == k) .and. (first_nuc .ne. 0)) print*,"4 pi = ", 4*pi
-    
-    !if ((first_nuc == k) .and. (first_nuc .ne. 0)) print*,"SIce-1.0 = ", SIce-1.0
     
     DEPq = var(i,j,k,nVar-2) * 4*pi * how * &
             & (fac_1 * m_ice**b_1 + fac_2 * m_ice**b_2) * &
             & dvstar * Schmidt_term * (SIce-1.0)  &
             & / ( rhoRef * lRef**3 )* tRef
             
-        if ((first_nuc == k) .and. (first_nuc .ne. 0)) then
-            print*, "DEP = ", DEPq / tRef
-            print*, "#########################"
-            print*, " "
-        end if
         
-    if ((DEPq .lt. 0.0) .and. (var(i,j,k,nVar).le.1.e-50)) then
+    if ((DEPq .lt. 0.0) .and. (var(i,j,k,nVar).le.1.e-10)) then
       DEPq = 0.0
     end if
     
@@ -601,16 +734,7 @@ contains
          stop "find_temperature: undefined model."
 
     end select
-  
-    !if ((T .le. 190.0) .or. (T .ge. 230.0)) then
-    !  print*, "T = ", T
-    !  print*, "k = ",k
-    !  print*, "theta = ",( Pstrat(k) / rho ) * thetaRef
-    !  print*,"z = ",z(k)*lref
-    !  print*,"pi = ", PStrat(k)**(2./5.) +var(i,j,k,5)
-    !  print*,"pi'",var(i,j,k,5)
-      !stop "" 
-    !end if
+
 end subroutine find_temperature
 
 

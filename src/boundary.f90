@@ -232,8 +232,38 @@ contains
 
        end if
 
+       
+    case( "ice")
+     ! ice variables -> iVar = nVar-3, nVar
+        do iVar = nVar-3,nVar
+            do i = 1,nbx
+               var(nx+i,:,:,iVar) = var(i,:,:,iVar)
+               var(-i+1,:,:,iVar) = var(nx-i+1,:,:,iVar)
+            end do
+        end do
 
+        if(verbose .and. master) print*,"horizontalBoundary: &
+               & x-horizontal BC for ice variables set."   
+               
+    case( "iceTilde" )
+    ! reconstructed density needed in ghost cell i = nx+2
+         nAerTilde(nx+2,:,:,1,0) = nAerTilde(2,:,:,1,0)
+         nIceTilde(nx+2,:,:,1,0) = nIceTilde(2,:,:,1,0)
+         qIceTilde(nx+2,:,:,1,0) = qIceTilde(2,:,:,1,0)
+         qvTilde(nx+2,:,:,1,0) = qvTilde(2,:,:,1,0)
 
+         ! ...in ghost cell i = -1
+         nAerTilde(-1,:,:,1,1) = nAerTilde(nx-1,:,:,1,1)
+         nIceTilde(-1,:,:,1,1) = nIceTilde(nx-1,:,:,1,1)
+         qIceTilde(-1,:,:,1,1) = qIceTilde(nx-1,:,:,1,1)
+         qvTilde(-1,:,:,1,1) = qvTilde(nx-1,:,:,1,1)
+
+         if(verbose .and. master) print*,"horizontalBoundary: &
+               & x-horizontal BC for iceTilde variables set."
+
+    case( "iceFlux")
+    ! nothing
+               
     case( "varTilde" ) 
        !-----------------------------------
        !             varTilde
@@ -439,6 +469,38 @@ contains
           
        end if
 
+       
+    case( "ice")
+    ! ice variables -> iVar = nVar-3, nVar
+        do iVar = nVar-3,nVar
+            do j = 1,nby
+               var(:,ny+j,:,iVar) = var(:,j,:,iVar)
+               var(:,-j+1,:,iVar) = var(:,ny-j+1,:,iVar)
+            end do
+        end do                
+        
+        if(verbose .and. master) print *,"horizontalBoundary: &
+               & y-horizontal BC for ice variables set."
+               
+    case( "iceTilde" )
+    ! see above, similar to rho
+         nAerTilde(:,ny+2,:,2,0) = nAerTilde(:,2,:,2,0)
+         nIceTilde(:,ny+2,:,2,0) = nIceTilde(:,2,:,2,0)
+         qIceTilde(:,ny+2,:,2,0) = qIceTilde(:,2,:,2,0)
+         qvTilde(:,ny+2,:,2,0) = qvTilde(:,2,:,2,0)
+
+         ! see above, similar to rho
+         nAerTilde(:,-1,:,2,1) = nAerTilde(:,ny-1,:,2,1)   
+         nIceTilde(:,-1,:,2,1) = nIceTilde(:,ny-1,:,2,1)   
+         qIceTilde(:,-1,:,2,1) = qIceTilde(:,ny-1,:,2,1)   
+         qvTilde(:,-1,:,2,1) = qvTilde(:,ny-1,:,2,1)   
+
+         if(verbose .and. master) print*,"horizontalBoundary: &
+               & y-horizontal BC for iceTilde variables set."
+               
+    case( "iceFlux")
+    ! nothing
+               
 
     case( "varTilde" ) 
        !-----------------------------------
@@ -643,6 +705,38 @@ contains
        end if
 
 
+    case( "ice" )
+    ! ice variables -> iVar = nVar-3, nVar
+        do iVar = nVar-3,nVar
+            do k = 1,nbz
+               var(:,:,nz+k,iVar) = var(:,:,k,iVar)
+               var(:,:,-k+1,iVar) = var(:,:,nz-k+1,iVar)
+            end do
+        end do
+
+        if(verbose .and. master) print *,"setBoundary_z_periodic: &
+               & z-periodic BC for ice variables set."
+               
+    case( "iceTilde" )
+    ! see above, similar to rho
+         nAerTilde(:,:,nz+2,3,0) = nAerTilde(:,:,2,3,0) 
+         nIceTilde(:,:,nz+2,3,0) = nIceTilde(:,:,2,3,0) 
+         qIceTilde(:,:,nz+2,3,0) = qIceTilde(:,:,2,3,0) 
+         qvTilde(:,:,nz+2,3,0) = qvTilde(:,:,2,3,0) 
+
+         ! see above, similar to rho
+         nAerTilde(:,:,-1,3,1) = nAerTilde(:,:,nz-1,3,1)  
+         nIceTilde(:,:,-1,3,1) = nIceTilde(:,:,nz-1,3,1) 
+         qIceTilde(:,:,-1,3,1) = qIceTilde(:,:,nz-1,3,1)  
+         qvTilde(:,:,-1,3,1) = qvTilde(:,:,nz-1,3,1)  
+
+         if(verbose .and. master) print*,"setBoundary_z_periodic:  &
+               & z-periodic BC for iceTilde variables set."
+               
+    case( "iceFlux")
+    ! nothing
+       
+       
     case( "varTilde" ) 
        !-----------------------------------
        !              varTilde
@@ -830,7 +924,84 @@ contains
        end if
 
 
-       !---------------------------------------------------------------         
+    case( "ice" )
+     ! reflect at boundary without change of sign
+     ! ice variables -> iVar = nVar-3, nVar
+        do iVar = nVar-3, nVar
+            do k = 1,nbz
+              var(:,:,-k+1,iVar) = var(:,:,k,iVar)
+              var(:,:,nz+k,iVar) = var(:,:,nz-k+1,iVar)
+            end do
+        end do
+        
+    case( "iceTilde" )
+    !nothing
+        
+
+    case( "iceFlux" )
+    ! set vertical fluxes at wall to 0
+          ! analog to mass flux modification above
+
+          ! ice variables iVar=nVar-3,nVar
+          do iVar = nVar-3, nVar
+            flux(:,:,0,3,iVar) = 0.0
+            flux(:,:,nz,3,iVar) = 0.0
+          end do
+          
+          if (verbose .and. master) print*,"boundary.f90/verticalBoundary: &
+               &vertical BC for ice variables set"
+               
+          ! replace flux by CDS fluxes at upper / lower region
+          if( iceFluxCorr ) then
+
+             ! vertical ice fluxes in the bottom region
+             do k = 1, nbCellCorr
+               do j = 1,ny
+                 do i = 1,nx
+                   do iVar = nVar-3, nVar
+                     if( fluctuationMode ) then
+                       rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
+                       rhoD = var(i,j,k,1)   + rhoStrat(k)
+                     else
+                       rhoU = var(i,j,k+1,1)
+                       rhoD = var(i,j,k,1)
+                     end if
+                     rhoU = rhoU*var(i,j,k+1,iVar) ! reuse of above variables
+                     ! names do not necessarily refer to rho
+                     rhoD = rhoD*var(i,j,k,iVar)   
+                     wSurf = var(i,j,k,4)
+                     hRho = wSurf * 0.5*(rhoD + rhoU)
+                     flux(i,j,k,3,iVar) = hRho
+                   end do
+                 end do
+               end do
+             end do
+
+             ! vertical ice fluxes at the top region
+             do k = nz-1,nz-nbCellCorr,-1
+               do j = 1,ny
+                 do i = 1,nx
+                   do iVar = nVar-3, nVar 
+                     if( fluctuationMode ) then
+                       rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
+                       rhoD = var(i,j,k,1)   + rhoStrat(k)
+                     else
+                       rhoU = var(i,j,k+1,1)
+                       rhoD = var(i,j,k,1)
+                     end if
+                     rhoU = rhoU*var(i,j,k+1,iVar)
+                     rhoD = rhoD*var(i,j,k,iVar)
+                     wSurf = var(i,j,k,4)
+                     hRho = wSurf * 0.5*(rhoD + rhoU)
+                     flux(i,j,k,3,iVar) = hRho
+                   end do
+                 end do
+               end do
+             end do
+          end if ! iceFluxCorr
+
+    
+!---------------------------------------------------------------         
        
     case( "varTilde " )
        !-----------------------------------
@@ -838,7 +1009,6 @@ contains
        !-----------------------------------
        
        return
-
 
 
     case( "flux" )

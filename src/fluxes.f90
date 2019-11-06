@@ -1271,6 +1271,7 @@ contains
     real :: UpFlux, DownFlux, TotFlux, wU, wD
     real :: delta_w, wSurf, coef_t, d_dxi, m_ice
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: rho
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,1:3,0:1) :: rhoTil
 
     real, parameter :: Pr_t_DySma = 0.5 
 
@@ -1281,9 +1282,11 @@ contains
     if ( fluctuationMode ) then
       do k = -1,nz+1
         rho(:,:,k) = var(:,:,k,1)+rhoStrat(k) 
+        rhoTil(:,:,k,:,:)=rhoTilde(:,:,k,:,:)+rhoStrat(k)
       end do
     else
       rho = var(:,:,:,1)
+      rhoTil(:,:,:,:,:)=rhoTilde(:,:,:,:,:)
     end if 
 
 
@@ -1329,20 +1332,20 @@ contains
                   select case (nqS)
                     case(0)
                       wSurf = var(i,j,k,2)
-                      UpFlux = rhoTilde(i+1,j,k,1,0)*qvTilde(i+1,j,k,1,0)
-                      DownFlux = rhoTilde(i,j,k,1,1)*qvTilde(i,j,k,1,1)               
+                      UpFlux = rhoTil(i+1,j,k,1,0)*qvTilde(i+1,j,k,1,0)
+                      DownFlux = rhoTil(i,j,k,1,1)*qvTilde(i,j,k,1,1)               
                     case(1)
                       wSurf = var(i,j,k,2)
-                      UpFlux = rhoTilde(i+1,j,k,1,0)*qIceTilde(i+1,j,k,1,0)
-                      DownFlux = rhoTilde(i,j,k,1,1)*qIceTilde(i,j,k,1,1)
+                      UpFlux = rhoTil(i+1,j,k,1,0)*qIceTilde(i+1,j,k,1,0)
+                      DownFlux = rhoTil(i,j,k,1,1)*qIceTilde(i,j,k,1,1)
                     case(2)
                       wSurf = var(i,j,k,2)
-                      UpFlux = rhoTilde(i+1,j,k,1,0)*nIceTilde(i+1,j,k,1,0)
-                      DownFlux = rhoTilde(i,j,k,1,1)*nIceTilde(i,j,k,1,1)
+                      UpFlux = rhoTil(i+1,j,k,1,0)*nIceTilde(i+1,j,k,1,0)
+                      DownFlux = rhoTil(i,j,k,1,1)*nIceTilde(i,j,k,1,1)
                     case(3)
                       wSurf = var(i,j,k,2)
-                      UpFlux = rhoTilde(i+1,j,k,1,0)*nAerTilde(i+1,j,k,1,0)
-                      DownFlux = rhoTilde(i,j,k,1,1)*nAerTilde(i,j,k,1,1)
+                      UpFlux = rhoTil(i+1,j,k,1,0)*nAerTilde(i+1,j,k,1,0)
+                      DownFlux = rhoTil(i,j,k,1,1)*nAerTilde(i,j,k,1,1)
                     case default
                       stop "Bug in iceHorizontalFlux" 
                   end select
@@ -1360,26 +1363,26 @@ contains
                       wD = wTilde(i,j,k,1,0)
                       wU = wTilde(i,j,k,1,1)
                       wSurf = var(i,j,k,2)
-                      UpFlux = rhoTilde(i+1,j,k,1,0)*qvTilde(i+1,j,k,1,0)
-                      DownFlux = rhoTilde(i,j,k,1,1)*qvTilde(i,j,k,1,1)               
+                      UpFlux = rhoTil(i+1,j,k,1,0)*qvTilde(i+1,j,k,1,0)
+                      DownFlux = rhoTil(i,j,k,1,1)*qvTilde(i,j,k,1,1)               
                     case(1)
                       wD = wTilde(i,j,k,1,0)
                       wU = wTilde(i,j,k,1,1)
                       wSurf = var(i,j,k,2)
-                      UpFlux = rhoTilde(i+1,j,k,1,0)*qIceTilde(i+1,j,k,1,0)
-                      DownFlux = rhoTilde(i,j,k,1,1)*qIceTilde(i,j,k,1,1)
+                      UpFlux = rhoTil(i+1,j,k,1,0)*qIceTilde(i+1,j,k,1,0)
+                      DownFlux = rhoTil(i,j,k,1,1)*qIceTilde(i,j,k,1,1)
                    case(2)
                      wD = wTilde(i,j,k,1,0)
                      wU = wTilde(i,j,k,1,1)
                      wSurf = var(i,j,k,2)
-                     UpFlux = rhoTilde(i+1,j,k,1,0)*nIceTilde(i+1,j,k,1,0)
-                     DownFlux = rhoTilde(i,j,k,1,1)*nIceTilde(i,j,k,1,1)
+                     UpFlux = rhoTil(i+1,j,k,1,0)*nIceTilde(i+1,j,k,1,0)
+                     DownFlux = rhoTil(i,j,k,1,1)*nIceTilde(i,j,k,1,1)
                    case(3)
                      wD = wTilde(i,j,k,1,0)
                      wU = wTilde(i,j,k,1,1)
                      wSurf = var(i,j,k,2)
-                     UpFlux = rhoTilde(i+1,j,k,1,0)*nAerTilde(i+1,j,k,1,0)
-                     DownFlux = rhoTilde(i,j,k,1,1)*nAerTilde(i,j,k,1,1)
+                     UpFlux = rhoTil(i+1,j,k,1,0)*nAerTilde(i+1,j,k,1,0)
+                     DownFlux = rhoTil(i,j,k,1,1)*nAerTilde(i,j,k,1,1)
                    case default
                      stop "Bug in iceHorizontalFlux" 
                  end select
@@ -1416,20 +1419,20 @@ contains
                   select case (nqS)
                     case(0)
                       wSurf = var(i,j,k,3)
-                      UpFlux = rhoTilde(i,j+1,k,2,0)*qvTilde(i,j+1,k,2,0)
-                      DownFlux = rhoTilde(i,j,k,2,1)*qvTilde(i,j,k,2,1)               
+                      UpFlux = rhoTil(i,j+1,k,2,0)*qvTilde(i,j+1,k,2,0)
+                      DownFlux = rhoTil(i,j,k,2,1)*qvTilde(i,j,k,2,1)               
                     case(1)
                       wSurf = var(i,j,k,3)
-                      UpFlux = rhoTilde(i,j+1,k,2,0)*qIceTilde(i,j+1,k,2,0)
-                      DownFlux = rhoTilde(i,j,k,2,1)*qIceTilde(i,j,k,2,1)
+                      UpFlux = rhoTil(i,j+1,k,2,0)*qIceTilde(i,j+1,k,2,0)
+                      DownFlux = rhoTil(i,j,k,2,1)*qIceTilde(i,j,k,2,1)
                     case(2)
                       wSurf = var(i,j,k,3)
-                      UpFlux = rhoTilde(i,j+1,k,2,0)*nIceTilde(i,j+1,k,2,0)
-                      DownFlux = rhoTilde(i,j,k,2,1)*nIceTilde(i,j,k,2,1)
+                      UpFlux = rhoTil(i,j+1,k,2,0)*nIceTilde(i,j+1,k,2,0)
+                      DownFlux = rhoTil(i,j,k,2,1)*nIceTilde(i,j,k,2,1)
                     case(3)
                       wSurf = var(i,j,k,3)
-                      UpFlux = rhoTilde(i,j+1,k,2,0)*nAerTilde(i,j+1,k,2,0)
-                      DownFlux = rhoTilde(i,j,k,2,1)*nAerTilde(i,j,k,2,1)
+                      UpFlux = rhoTil(i,j+1,k,2,0)*nAerTilde(i,j+1,k,2,0)
+                      DownFlux = rhoTil(i,j,k,2,1)*nAerTilde(i,j,k,2,1)
                     case default
                       stop "Bug in iceMeridionalFlux" 
                   end select
@@ -1447,26 +1450,26 @@ contains
                       wD = wTilde(i,j,k,2,0)
                       wU = wTilde(i,j,k,2,1)
                       wSurf = var(i,j,k,3)
-                      UpFlux = rhoTilde(i,j+1,k,2,0)*qvTilde(i,j+1,k,2,0)
-                      DownFlux = rhoTilde(i,j,k,2,1)*qvTilde(i,j,k,2,1)               
+                      UpFlux = rhoTil(i,j+1,k,2,0)*qvTilde(i,j+1,k,2,0)
+                      DownFlux = rhoTil(i,j,k,2,1)*qvTilde(i,j,k,2,1)               
                     case(1)
                       wD = wTilde(i,j,k,2,0)
                       wU = wTilde(i,j,k,2,1)
                       wSurf = var(i,j,k,3)
-                      UpFlux = rhoTilde(i,j+1,k,2,0)*qIceTilde(i,j+1,k,2,0)
-                      DownFlux = rhoTilde(i,j,k,2,1)*qIceTilde(i,j,k,2,1)
+                      UpFlux = rhoTil(i,j+1,k,2,0)*qIceTilde(i,j+1,k,2,0)
+                      DownFlux = rhoTil(i,j,k,2,1)*qIceTilde(i,j,k,2,1)
                    case(2)
                      wD = wTilde(i,j,k,2,0)
                      wU = wTilde(i,j,k,2,1)
                      wSurf = var(i,j,k,3)
-                     UpFlux = rhoTilde(i,j+1,k,2,0)*nIceTilde(i,j+1,k,2,0)
-                     DownFlux = rhoTilde(i,j,k,2,1)*nIceTilde(i,j,k,2,1)
+                     UpFlux = rhoTil(i,j+1,k,2,0)*nIceTilde(i,j+1,k,2,0)
+                     DownFlux = rhoTil(i,j,k,2,1)*nIceTilde(i,j,k,2,1)
                    case(3)
                      wD = wTilde(i,j,k,2,0)
                      wU = wTilde(i,j,k,2,1)
                      wSurf = var(i,j,k,3)
-                     UpFlux = rhoTilde(i,j+1,k,2,0)*nAerTilde(i,j+1,k,2,0)
-                     DownFlux = rhoTilde(i,j,k,2,1)*nAerTilde(i,j,k,2,1)
+                     UpFlux = rhoTil(i,j+1,k,2,0)*nAerTilde(i,j+1,k,2,0)
+                     DownFlux = rhoTil(i,j,k,2,1)*nAerTilde(i,j,k,2,1)
                    case default
                      stop "Bug in iceMeridionalFlux" 
                  end select
@@ -1492,14 +1495,18 @@ contains
                 do nqS = 0,3
                   UpFlux = rho(i,j,k+1)*var(i,j,k+1,nVar-nqS) 
                   DownFLux = rho(i,j,k)*var(i,j,k,nVar-nqS)
-                  select case (nqS)
-                    case(1)
-                      wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice) / uRef
-                    case(2)
-                      wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice) / uRef
-                    case default
-                      wSurf = var(i,j,k,4)
-                  end select
+                  !if (topography_mask(i+is+nbx-1,j+js+nby-1,k)) then
+                  !  wSurf = 0.0
+                  !else
+                    select case (nqS)
+                      case(1)
+                        wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice) / uRef
+                      case(2)
+                        wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice) / uRef
+                      case default
+                        wSurf = var(i,j,k,4)
+                    end select
+                  !end if
                   TotFlux = wSurf * 0.5*(DownFlux + UpFlux) 
                   d_dxi = ( UpFlux - DownFlux) / dz
                   flux(i,j,k,3,nVar-nqS) = TotFlux - coef_t * d_dxi
@@ -1510,23 +1517,32 @@ contains
                   UpFlux = rho(i,j,k+1)*var(i,j,k+1,nVar-nqS) 
                   DownFLux = rho(i,j,k)*var(i,j,k,nVar-nqS)
                   d_dxi = ( UpFlux - DownFlux) / dz 
+                  
                   select case (nqS)
                     case(0)
                       wSurf = var(i,j,k,4)
-                      UpFlux = rhoTilde(i,j,k+1,3,0)*qvTilde(i,j,k+1,3,0)
-                      DownFlux = rhoTilde(i,j,k,3,1)*qvTilde(i,j,k,3,1)               
+                      UpFlux = rhoTil(i,j,k+1,3,0)*qvTilde(i,j,k+1,3,0)
+                      DownFlux = rhoTil(i,j,k,3,1)*qvTilde(i,j,k,3,1)               
                     case(1)
-                      wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice) / uRef
-                      UpFlux = rhoTilde(i,j,k+1,3,0)*qIceTilde(i,j,k+1,3,0)
-                      DownFlux = rhoTilde(i,j,k,3,1)*qIceTilde(i,j,k,3,1)
+                      !if (topography_mask(i+is+nbx-1,j+js+nby-1,k)) then
+                       ! wSurf = 0.0
+                      !else
+                        wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice) / uRef
+                      !end if
+                      UpFlux = rhoTil(i,j,k+1,3,0)*qIceTilde(i,j,k+1,3,0)
+                      DownFlux = rhoTil(i,j,k,3,1)*qIceTilde(i,j,k,3,1)
                     case(2)
-                      wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice) / uRef
-                      UpFlux = rhoTilde(i,j,k+1,3,0)*nIceTilde(i,j,k+1,3,0)
-                      DownFlux = rhoTilde(i,j,k,3,1)*nIceTilde(i,j,k,3,1)
+                      !if (topography_mask(i+is+nbx-1,j+js+nby-1,k)) then
+                       ! wSurf = 0.0
+                      !else
+                        wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice) / uRef
+                      !end if
+                      UpFlux = rhoTil(i,j,k+1,3,0)*nIceTilde(i,j,k+1,3,0)
+                      DownFlux = rhoTil(i,j,k,3,1)*nIceTilde(i,j,k,3,1)
                     case(3)
                       wSurf = var(i,j,k,4)
-                      UpFlux = rhoTilde(i,j,k+1,3,0)*nAerTilde(i,j,k+1,3,0)
-                      DownFlux = rhoTilde(i,j,k,3,1)*nAerTilde(i,j,k,3,1)
+                      UpFlux = rhoTil(i,j,k+1,3,0)*nAerTilde(i,j,k+1,3,0)
+                      DownFlux = rhoTil(i,j,k,3,1)*nAerTilde(i,j,k,3,1)
                     case default
                       stop "Bug in iceSedimentationFlux" 
                   end select
@@ -1544,28 +1560,36 @@ contains
                       wD = wTilde(i,j,k,3,0)
                       wU = wTilde(i,j,k,3,1)
                       wSurf = var(i,j,k,4)
-                      UpFlux = rhoTilde(i,j,k+1,3,0)*qvTilde(i,j,k+1,3,0)
-                      DownFlux = rhoTilde(i,j,k,3,1)*qvTilde(i,j,k,3,1)               
+                      UpFlux = rhoTil(i,j,k+1,3,0)*qvTilde(i,j,k+1,3,0)
+                      DownFlux = rhoTil(i,j,k,3,1)*qvTilde(i,j,k,3,1)               
                     case(1)
-                      delta_w = - terminal_v_qIce(m_ice) / uRef
+                      !if (topography_mask(i+is+nbx-1,j+js+nby-1,k)) then
+                       ! delta_w = 0.0
+                      !else
+                        delta_w = - terminal_v_qIce(m_ice) / uRef
+                      !end if
                       wD = wTilde(i,j,k,3,0) + delta_w
                       wU = wTilde(i,j,k,3,1) + delta_w
                       wSurf = var(i,j,k,4) + delta_w
-                      UpFlux = rhoTilde(i,j,k+1,3,0)*qIceTilde(i,j,k+1,3,0)
-                      DownFlux = rhoTilde(i,j,k,3,1)*qIceTilde(i,j,k,3,1)
+                      UpFlux = rhoTil(i,j,k+1,3,0)*qIceTilde(i,j,k+1,3,0)
+                      DownFlux = rhoTil(i,j,k,3,1)*qIceTilde(i,j,k,3,1)
                    case(2)
-                     delta_w = - terminal_v_nIce(m_ice) / uRef
+                     !if (topography_mask(i+is+nbx-1,j+js+nby-1,k)) then
+                      !  delta_w = 0.0
+                      !else
+                        delta_w = - terminal_v_nIce(m_ice) / uRef
+                      !end if
                      wD = wTilde(i,j,k,3,0) + delta_w
                      wU = wTilde(i,j,k,3,1) + delta_w
                      wSurf = var(i,j,k,4) + delta_w
-                     UpFlux = rhoTilde(i,j,k+1,3,0)*nIceTilde(i,j,k+1,3,0)
-                     DownFlux = rhoTilde(i,j,k,3,1)*nIceTilde(i,j,k,3,1)
+                     UpFlux = rhoTil(i,j,k+1,3,0)*nIceTilde(i,j,k+1,3,0)
+                     DownFlux = rhoTil(i,j,k,3,1)*nIceTilde(i,j,k,3,1)
                    case(3)
                      wD = wTilde(i,j,k,3,0)
                      wU = wTilde(i,j,k,3,1)
                      wSurf = var(i,j,k,4)
-                     UpFlux = rhoTilde(i,j,k+1,3,0)*nAerTilde(i,j,k+1,3,0)
-                     DownFlux = rhoTilde(i,j,k,3,1)*nAerTilde(i,j,k,3,1)
+                     UpFlux = rhoTil(i,j,k+1,3,0)*nAerTilde(i,j,k+1,3,0)
+                     DownFlux = rhoTil(i,j,k,3,1)*nAerTilde(i,j,k,3,1)
                    case default
                      stop "Bug in iceSedimentationFlux" 
                  end select
@@ -1616,7 +1640,13 @@ contains
               
             ! find the current super-saturation with respect to ice inside the grid cell
             SIce =  var(i,j,k,nVar) * p / ( epsilon0 * pIce(T) )
-            if ((SIce<0) .or. (SIce>2)) print*,"SIce=",SIce,", k = ",k
+            if ((SIce<0) .or. (SIce>2)) then 
+              print*,"#+#+#+#+#+#+#+#+#"
+              print*,"SIce=",SIce,", k = ",k, "i = ",i+is+nbx-1
+              print*,"qv = ", var(i,j,k,nVar)
+              print*,"T = ",T
+              print*,"#+#+#+#+#+#+#+#+#"
+            end if
             
             if (var(i,j,k,nVar-2) .le. 0.0) then
                  m_ice = init_m_ice 

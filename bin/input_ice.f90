@@ -365,6 +365,7 @@
                 ! using this results in overwriting press0_dim 
   dt_ice = 0.01 ! length of microphysical time step
   NUC_approx_type = "Koop"   ! "Koop", "linFit", "threshold"
+  ISSR_top = 0.8 ! top of ISSR relative to mountain height in qv_relaxation testcase
 
 ! switch approximations on/off
   kT_linFit = .false.

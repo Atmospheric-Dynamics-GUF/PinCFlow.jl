@@ -22,6 +22,7 @@ program pinc_prog
   use update_module
   use poisson_module
   use finish_module
+  use ice_module
  
   ! test
   use algebra_module
@@ -31,6 +32,7 @@ program pinc_prog
   !---------------------------------------------------
 
   integer                     :: iTime, Ice_RKstage
+  integer                     :: ice_time_steps
   real                        :: time, dt
 
   ! CPU Time
@@ -398,6 +400,14 @@ program pinc_prog
 
         time = time + dt
 
+        if (include_ice) then
+          ! find number of ice time steps per dynamic time step
+          ice_time_steps = int(dt * tRef / dt_ice)
+          if (ice_time_steps .lt. 1) then
+            ice_time_steps=1
+          end if
+          dt_ice = dt*tRef / ice_time_steps         
+        end if    
 
         !---------------------------------------------------------------
         !                     Runge-Kutta stages
@@ -501,23 +511,22 @@ program pinc_prog
               !--------------------------------------
               
                if (RKstage == 1) then 
-                l = int(dt * tRef / dt_ice)
-                if (l .lt. 1) then
-                  l=1
-                end if
-                dt_ice = dt*tRef / l
-                call setHalos(var,"var")
-                do k = 1,l ! microphysical time steps
-                  dIce = 0.0 ! init q
-                  do Ice_RKstage = 1, 3 ! Runge-Kutta loop
-                    call iceSource (var, source)
-                    call iceFlux (var, flux)
-                    call iceUpdate(var, var0, flux, source, dt_ice/tRef, dIce, Ice_RKstage)
-                    call set_spongeLayer(var, stepFrac(RKstage)*dt_ice/tRef, "ice")
-                    call setHalos(var,"var")
-                    call reconstruction(var, "ice")
-                    call setBoundary(var,flux,"var")
-                  end do
+                do j = 1,ice_time_steps ! microphysical time steps
+                  if (iceTestcase_specifics(time+(j-1)*dt_ice/tRef,var)) then
+                    dIce = 0.0 ! init q
+                    do Ice_RKstage = 1, 3 ! Runge-Kutta loop                    
+                      call setBoundary(var,flux,"ice") 
+                      call setHalos(var,"ice")
+                      call reconstruction(var, "ice")
+                      !call setHalos(var,"iceTilde")
+                      call setBoundary(var,flux,"iceTilde")
+                      call iceSource (var, source)
+                      call iceFlux (var, flux)
+                      call setBoundary(var,flux,"iceFlux")
+                      call iceUpdate(var, var0, flux, source, dt_ice/tRef, dIce, Ice_RKstage)
+                      call set_spongeLayer(var, stepFrac(RKstage)*dt_ice/tRef, "ice")
+                    end do
+                  end if
                 end do
               end if
               

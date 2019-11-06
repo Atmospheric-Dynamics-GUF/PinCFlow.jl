@@ -825,6 +825,11 @@ contains
              end do
           end do
        end do
+       
+       
+       ! initialize the ice variables according to iceTestcase
+       if (include_ice) call setup_ice(var)
+       
 !   achatze
 
     !-------------------------------------------------------------------
