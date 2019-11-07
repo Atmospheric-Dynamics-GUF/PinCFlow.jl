@@ -137,7 +137,7 @@ contains
              else
                rho = var(i,j,k,1)
             end if
-            var(i,j,k,nVar-2) = 0.0 !1.e-20/(rhoRef*lRef**3)*exp(-(k-ISSR_center)**2/200.0)
+            var(i,j,k,nVar-2) = 1.e6 !1.e-20/(rhoRef*lRef**3)*exp(-(k-ISSR_center)**2/200.0)
             var(i,j,k,nVar-1) = init_m_ice*var(i,j,k,nVar-2)
             !call find_temperature(T,i,j,k,var)
             T = Temp0_dim
@@ -342,12 +342,22 @@ contains
     end select
   
   end function iceTestcase_specifics
+  
+!------------------------------------------------------------------------------------
+! returns terminal terminal_velocity_correction  
+  real function terminal_velocity_correction(T,p)
+    ! in/out variables
+    real, intent(in) :: T, p
+    
+    terminal_velocity_correction = (p/ 30000.)**(-0.178) * (T/233.)**(-0.394) 
+    
+  end function terminal_velocity_correction
 
 !------------------------------------------------------------------------------------
 ! returns terminal sedimentation velocity of nIce in m/s
-  real function terminal_v_nIce(m_ice)
+  real function terminal_v_nIce(m_ice, T, p)
     ! in/out variables
-    real, intent(in) :: m_ice
+    real, intent(in) :: m_ice, T, p
 
     ! parameters from fit
     real, parameter :: r0 = 3.
@@ -357,9 +367,12 @@ contains
     real, parameter :: an = a * r0**( 0.5 * b * (b-1.) )
     real, parameter :: ex1 = b*c
     real, parameter :: ex2 = 1./c
+    real :: corr
+    
+    corr = terminal_velocity_correction(T,p) 
       
     if (sedimentation_on) then
-      terminal_v_nIce = an * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
+      terminal_v_nIce = corr * an * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
     else 
       terminal_v_nIce = 0.0
     end if
@@ -369,9 +382,9 @@ contains
 !----------------------------------------------
 
 ! returns terminal sedimentation velocity of qIce in m/s
-  real function terminal_v_qIce(m_ice)
+  real function terminal_v_qIce(m_ice, T, p)
     ! in/out variables
-    real, intent(in) :: m_ice
+    real, intent(in) :: m_ice, T, p
 
     ! parameters from fit
     real, parameter :: r0 = 3.
@@ -381,9 +394,12 @@ contains
     real, parameter :: aq= a * r0**( 0.5 * b * (b+1.) )
     real, parameter :: ex1 = b*c
     real, parameter :: ex2 = 1./c
+    real :: corr
       
+    corr = terminal_velocity_correction(T,p) 
+        
     if (sedimentation_on) then
-      terminal_v_qIce = aq * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
+      terminal_v_qIce = corr * aq * m_ice**b * ( m0**ex1 / (m_ice**ex1 + m0**ex1) )**ex2
     else 
       terminal_v_qIce = 0.0
     end if
@@ -577,8 +593,7 @@ contains
     how = 1. / ( (lat_heat-1.) * lat_heat * corr * dv / kT + Rv * T / pIce(T) )
     
     ! #### find Schmidt_term #### !   
-    corr = (p/ 30000.)**(-0.178) * (T/233.)**(-0.394) 
-        ! correction factor for terminal velocity
+    corr = terminal_velocity_correction(T,p) 
     schmidt23 = (mu / ( rho * dv )) **(2./3.)
     gv = gv0 * schmidt23 * corr * rho / mu
     Schmidt_term = 1. + gv * av * (m_ice*c2)**(bv+cv) * m0**cv / &

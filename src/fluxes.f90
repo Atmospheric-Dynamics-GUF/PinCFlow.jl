@@ -1269,7 +1269,7 @@ contains
     integer :: nqS, k, j, i
 
     real :: UpFlux, DownFlux, TotFlux, wU, wD
-    real :: delta_w, wSurf, coef_t, d_dxi, m_ice
+    real :: delta_w, wSurf, coef_t, d_dxi, m_ice, T, p
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: rho
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,1:3,0:1) :: rhoTil
 
@@ -1292,7 +1292,13 @@ contains
 
     do k = 0,nz
       do j = 0,ny
-        do i = 0,nx              
+        do i = 0,nx          
+        
+          ! find the current temperature in Kelvin inside the grid cell 
+            call find_temperature(T,i,j,k,var)
+ 
+          ! find the current pressure in Pascal inside the grid cell
+            p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
           
           if (var(i,j,k,nVar-2)==0.0) then
             m_ice = init_m_ice 
@@ -1500,9 +1506,9 @@ contains
                   !else
                     select case (nqS)
                       case(1)
-                        wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice) / uRef
+                        wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice,T,p) / uRef
                       case(2)
-                        wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice) / uRef
+                        wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice,T,p) / uRef
                       case default
                         wSurf = var(i,j,k,4)
                     end select
@@ -1527,7 +1533,7 @@ contains
                       !if (topography_mask(i+is+nbx-1,j+js+nby-1,k)) then
                        ! wSurf = 0.0
                       !else
-                        wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice) / uRef
+                        wSurf = var(i,j,k,4) - terminal_v_qIce(m_ice,T,p) / uRef
                       !end if
                       UpFlux = rhoTil(i,j,k+1,3,0)*qIceTilde(i,j,k+1,3,0)
                       DownFlux = rhoTil(i,j,k,3,1)*qIceTilde(i,j,k,3,1)
@@ -1535,7 +1541,7 @@ contains
                       !if (topography_mask(i+is+nbx-1,j+js+nby-1,k)) then
                        ! wSurf = 0.0
                       !else
-                        wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice) / uRef
+                        wSurf = var(i,j,k,4) - terminal_v_nIce(m_ice,T,p) / uRef
                       !end if
                       UpFlux = rhoTil(i,j,k+1,3,0)*nIceTilde(i,j,k+1,3,0)
                       DownFlux = rhoTil(i,j,k,3,1)*nIceTilde(i,j,k,3,1)
@@ -1566,7 +1572,7 @@ contains
                       !if (topography_mask(i+is+nbx-1,j+js+nby-1,k)) then
                        ! delta_w = 0.0
                       !else
-                        delta_w = - terminal_v_qIce(m_ice) / uRef
+                        delta_w = - terminal_v_qIce(m_ice,T,p) / uRef
                       !end if
                       wD = wTilde(i,j,k,3,0) + delta_w
                       wU = wTilde(i,j,k,3,1) + delta_w
@@ -1577,7 +1583,7 @@ contains
                      !if (topography_mask(i+is+nbx-1,j+js+nby-1,k)) then
                       !  delta_w = 0.0
                       !else
-                        delta_w = - terminal_v_nIce(m_ice) / uRef
+                        delta_w = - terminal_v_nIce(m_ice,T,p) / uRef
                       !end if
                      wD = wTilde(i,j,k,3,0) + delta_w
                      wU = wTilde(i,j,k,3,1) + delta_w
