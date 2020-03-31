@@ -497,6 +497,7 @@ module type_module
   character(len=10) :: NUC_approx_type ! nucleation approximation type
      ! possible: "Koop", "linFit", "threshold"
   real :: ISSR_top ! top of ISSR relative to mountain height in qv_relaxation testcase 
+  logical :: super_simplified ! use a super_simplified DEP and SED scheme
   logical :: kT_linFit, dv_exp2, cm_dryAir, mu_linFit ! switch approximations on/off
   logical :: sedimentation_on ! turn sedimentation terms on or off
   logical :: nucleation_on ! turn nucleation on or off
@@ -506,8 +507,8 @@ module type_module
 
   namelist / iceList / iceTestcase, init_SIce, init_nAer, init_qv, init_m_ice, &
      &    radius_solution, sigma_r, T_nuc, p_nuc, dt_ice, NUC_approx_type,  & 
-     &    ISSR_top, kT_linFit, dv_exp2, cm_dryAir, mu_linFit, sedimentation_on, &
-     &    nucleation_on, evaporation_on, awi_type, SIce_threshold_type
+     &    ISSR_top, super_simplified, kT_linFit, dv_exp2, cm_dryAir, mu_linFit,  &
+     &    sedimentation_on, nucleation_on, evaporation_on, awi_type, SIce_threshold_type
 
 
 

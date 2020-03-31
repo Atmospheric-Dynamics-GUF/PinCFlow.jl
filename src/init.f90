@@ -1724,7 +1724,8 @@ contains
        ! --------------------------------------------------------------------------
 
     case( "nIce_w_test" )  ! for pseudo_incompressible case
-              
+       ! This testcase emulates Peter Spichtinger's box model.  
+         
        updateMass = .false.
        predictMomentum = .false.
        correctMomentum = .false.

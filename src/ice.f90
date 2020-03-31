@@ -21,7 +21,6 @@ module ice_module
   real, parameter :: rhob = 0.81e3 ! mean snowflake density in kg / m**3
   real :: ice_crystal_volume
   integer :: ISSR_center
-  integer :: first_nuc = 0
   real :: t_ramp_qv, t_relax_qv, t_start ! for qv_relaxation iceTestcase
 
 !coefficients for linear fit of nucleation rate
@@ -32,7 +31,7 @@ module ice_module
 !correction term from Koop & Murray 2016
   real, parameter :: delta=1.522
 
-  public :: epsilon0,first_nuc, Rv, t_ramp_qv, t_relax_qv, t_start, ISSR_center
+  public :: epsilon0, Rv, t_ramp_qv, t_relax_qv, t_start, ISSR_center
 
 contains
 
@@ -123,6 +122,28 @@ contains
           end do
         end do
       end do
+      
+    case ("exp_ice")
+      if (init_SIce > 1.3) init_SIce = 1.0
+      var(:,:,:,nVar-3) = 0.0
+      ISSR_center = ceiling(ISSR_top*kSponge)
+      do i=0,nx
+        do j=0,ny
+          do k=0,nz
+            if ( fluctuationMode ) then
+               rho = var(i,j,k,1)+rhoStrat(k) 
+             else
+               rho = var(i,j,k,1)
+            end if
+            var(i,j,k,nVar-2) = 1.e6*exp(0.000314*dz*(k-ISSR_center)) / rho * lRef**3
+            var(i,j,k,nVar-1) = init_m_ice*var(i,j,k,nVar-2) / (rhoRef*lRef**3)
+            !call find_temperature(T,i,j,k,var)
+            T = Temp0_dim
+            p = press0_dim * ( (PStrat(k)/p0)**gamma_1 )**kappaInv !+var(i,j,k,5) )**kappaInv
+            var(i,j,k,nVar) = epsilon0 * init_SIce * pIce(T) / p
+          end do
+        end do
+      end do
      
      
     case ("ice_cloud")
@@ -137,8 +158,8 @@ contains
              else
                rho = var(i,j,k,1)
             end if
-            var(i,j,k,nVar-2) = 1.e6 !1.e-20/(rhoRef*lRef**3)*exp(-(k-ISSR_center)**2/200.0)
-            var(i,j,k,nVar-1) = init_m_ice*var(i,j,k,nVar-2)
+            var(i,j,k,nVar-2) = 1.e6*exp(-(k-ISSR_center)**2/20000.0) / rho * lRef**3
+            var(i,j,k,nVar-1) = init_m_ice*var(i,j,k,nVar-2) / (rhoRef*lRef**3)
             !call find_temperature(T,i,j,k,var)
             T = Temp0_dim
             p = press0_dim * ( (PStrat(k)/p0)**gamma_1 )**kappaInv !+var(i,j,k,5) )**kappaInv
@@ -240,7 +261,7 @@ contains
             if (time > t_start + t_relax_qv - t_ramp_qv) then
                 do k=0,nz
                           if (k<ISSR_center-8) then
-                            frac = 0.4
+                            frac = 0.3
                           else if (k>ISSR_center) then
                             frac = 0.05
                           else 
@@ -270,7 +291,7 @@ contains
                 if (time > t_start + t_ramp_qv) then
                     do k=0,nz
                           if (k<ISSR_center-8) then
-                            frac = 0.4
+                            frac = 0.3
                           else if (k>ISSR_center) then
                             frac = 0.05
                           else 
@@ -303,7 +324,7 @@ contains
                         end if
                         do k=0,nz
                           if (k<ISSR_center-8) then
-                            frac = 0.4
+                            frac = 0.3
                           else if (k>ISSR_center) then
                             frac = 0.05
                           else 
@@ -476,9 +497,9 @@ contains
  
     if (nucleation_on) then
      if (SIce .ge. SIce_crit(T)) then 
-      if (first_nuc == 0) first_nuc = k
       NUCn = tRef * var(i,j,k,nVar-3) * ice_crystal_volume * 10.0**approximation_model(SIce,T)
-      if (.true.) then !((first_nuc == k) .and. (first_nuc .ne. 0)) then
+      ! if (.true.): print out values of important variables for EVERY nucleation event
+      if (.false.) then
         print*," "
         print*, "#########################"
         print*, "Nucleation event! k = ", k,", i = ",i+is+nbx-1
@@ -535,12 +556,19 @@ contains
    real, parameter :: gv0=0.148564433505542
    real :: rho
    
-    !if ( fluctuationMode ) then
-    !     rho = var(i,j,k,1)+rhoStrat(k) 
-    !else
-    !     rho = var(i,j,k,1)
-    !end if 
-    ! rho = rho*rhoRef
+   if (super_simplified) then
+    ! use simplified fits instead of the proper equations
+    if ( fluctuationMode ) then
+         rho = var(i,j,k,1)+rhoStrat(k) 
+    else
+         rho = var(i,j,k,1)
+    end if 
+    rho = rho*rhoRef
+    DEPq = 3.56*10**(-14)  / ( rhoRef * lRef**3 )* tRef &
+          & *(var(i,j,k,nVar)*rho /(1.9*10**(-5))-pIce(T)) &
+          & *var(i,j,k,nVar-2)
+   else
+   ! use the proper equations
 
     rho = p / (Rsp*T)
 
@@ -604,9 +632,12 @@ contains
             & dvstar * Schmidt_term * (SIce-1.0)  &
             & / ( rhoRef * lRef**3 )* tRef
             
-        
+    end if
+    
     if ((DEPq .lt. 0.0) .and. (var(i,j,k,nVar).le.1.e-10)) then
-      DEPq = 0.0
+      DEPq = 0.0 
+      ! if there is not enough water vapor available in the 
+      ! surrounding, ice particles should not grow
     end if
     
   end function DEPq
@@ -617,9 +648,13 @@ contains
   real function pIce(T)  ! ice pressure
     ! in/out variables
     real,intent(in) :: T
-      
-    pIce=exp(9.550426-5723.265/T+3.53068*log(T)-0.00728332*T)
-
+    
+    if (super_simplified) then
+      pIce = -26.26+26.98*T/210.0
+    else
+      pIce=exp(9.550426-5723.265/T+3.53068*log(T)-0.00728332*T)
+    end if
+    
   end function pIce
 
 !----------------------------------------------
@@ -644,11 +679,13 @@ contains
     ! parameter
   !  real :: s0,s1
 
+  ! alternative linear fit: 
   ! s1 = -3.4057422903191969E-3 
   ! s0 = 2.2525409204521596
   ! SIce_crit = s0 + s1*T
+  ! didn't prove useful so far
 
-    x0 = 0
+    x0 = 0  ! possible manual offset
     awi0 = awi(T)
     SIce_crit = (x0-j0) / (afit1 * awi0) + SIce_threshold(T,awi0)
   end function SIce_crit
@@ -685,6 +722,7 @@ contains
 
 !----------------------------------------------
 
+  ! water activity
   real function awi(T)
     ! in/out variables
     real, intent(in) :: T

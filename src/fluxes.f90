@@ -1300,6 +1300,8 @@ contains
           ! find the current pressure in Pascal inside the grid cell
             p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
           
+          ! find the current average ice particle mass, if there is no abundant ice
+          ! use the initial ice particle mass
           if (var(i,j,k,nVar-2)==0.0) then
             m_ice = init_m_ice 
           else
@@ -1501,6 +1503,8 @@ contains
                 do nqS = 0,3
                   UpFlux = rho(i,j,k+1)*var(i,j,k+1,nVar-nqS) 
                   DownFLux = rho(i,j,k)*var(i,j,k,nVar-nqS)
+                  ! to stop ice particles from falling to the ground:
+                  ! (causes ice piling up near boundary)
                   !if (topography_mask(i+is+nbx-1,j+js+nby-1,k)) then
                   !  wSurf = 0.0
                   !else
@@ -1644,8 +1648,9 @@ contains
             ! find the current pressure in Pascal inside the grid cell
             p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
               
-            ! find the current super-saturation with respect to ice inside the grid cell
+            ! find the current saturation with respect to ice inside the grid cell
             SIce =  var(i,j,k,nVar) * p / ( epsilon0 * pIce(T) )
+            ! print a warning in case SIce takes unreasonable values
             if ((SIce<0) .or. (SIce>2)) then 
               print*,"#+#+#+#+#+#+#+#+#"
               print*,"SIce=",SIce,", k = ",k, "i = ",i+is+nbx-1
@@ -1654,6 +1659,8 @@ contains
               print*,"#+#+#+#+#+#+#+#+#"
             end if
             
+            ! find the current average ice particle mass, if there is no abundant ice
+            ! use the initial ice particle mass
             if (var(i,j,k,nVar-2) .le. 0.0) then
                  m_ice = init_m_ice 
             else 

@@ -943,62 +943,63 @@ contains
           ! analog to mass flux modification above
 
           ! ice variables iVar=nVar-3,nVar
-          do iVar = nVar-3, nVar
-            flux(:,:,0,3,iVar) = 0.0
-            flux(:,:,nz,3,iVar) = 0.0
-          end do
+   !       do iVar = nVar-3, nVar
+   !         flux(:,:,0,3,iVar) = 0.0
+   !         flux(:,:,nz,3,iVar) = 0.0
+   !       end do
           
-          if (verbose .and. master) print*,"boundary.f90/verticalBoundary: &
-               &vertical BC for ice variables set"
+   !       if (verbose .and. master) print*,"boundary.f90/verticalBoundary: &
+   !            &vertical BC for ice variables set"
                
           ! replace flux by CDS fluxes at upper / lower region
-          if( iceFluxCorr ) then
+   !       if( iceFluxCorr ) then
+
 
              ! vertical ice fluxes in the bottom region
-             do k = 1, nbCellCorr
-               do j = 1,ny
-                 do i = 1,nx
-                   do iVar = nVar-3, nVar
-                     if( fluctuationMode ) then
-                       rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
-                       rhoD = var(i,j,k,1)   + rhoStrat(k)
-                     else
-                       rhoU = var(i,j,k+1,1)
-                       rhoD = var(i,j,k,1)
-                     end if
-                     rhoU = rhoU*var(i,j,k+1,iVar) ! reuse of above variables
-                     ! names do not necessarily refer to rho
-                     rhoD = rhoD*var(i,j,k,iVar)   
-                     wSurf = var(i,j,k,4)
-                     hRho = wSurf * 0.5*(rhoD + rhoU)
-                     flux(i,j,k,3,iVar) = hRho
-                   end do
-                 end do
-               end do
-             end do
+    !         do k = 1, nbCellCorr
+    !           do j = 1,ny
+    !             do i = 1,nx
+    !               do iVar = nVar-3, nVar
+    !                 if( fluctuationMode ) then
+    !                   rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
+    !                   rhoD = var(i,j,k,1)   + rhoStrat(k)
+    !                 else
+    !                   rhoU = var(i,j,k+1,1)
+    !                   rhoD = var(i,j,k,1)
+    !                 end if
+    !                 rhoU = rhoU*var(i,j,k+1,iVar) ! reuse of above variables
+    !                 ! names do not necessarily refer to rho
+    !                 rhoD = rhoD*var(i,j,k,iVar)   
+    !                 wSurf = var(i,j,k,4)
+    !                 hRho = wSurf * 0.5*(rhoD + rhoU)
+    !                 flux(i,j,k,3,iVar) = hRho
+    !               end do
+    !             end do
+    !           end do
+    !         end do
 
              ! vertical ice fluxes at the top region
-             do k = nz-1,nz-nbCellCorr,-1
-               do j = 1,ny
-                 do i = 1,nx
-                   do iVar = nVar-3, nVar 
-                     if( fluctuationMode ) then
-                       rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
-                       rhoD = var(i,j,k,1)   + rhoStrat(k)
-                     else
-                       rhoU = var(i,j,k+1,1)
-                       rhoD = var(i,j,k,1)
-                     end if
-                     rhoU = rhoU*var(i,j,k+1,iVar)
-                     rhoD = rhoD*var(i,j,k,iVar)
-                     wSurf = var(i,j,k,4)
-                     hRho = wSurf * 0.5*(rhoD + rhoU)
-                     flux(i,j,k,3,iVar) = hRho
-                   end do
-                 end do
-               end do
-             end do
-          end if ! iceFluxCorr
+    !         do k = nz-1,nz-nbCellCorr,-1
+    !           do j = 1,ny
+    !             do i = 1,nx
+    !               do iVar = nVar-3, nVar 
+    !                 if( fluctuationMode ) then
+    !                   rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
+    !                   rhoD = var(i,j,k,1)   + rhoStrat(k)
+    !                 else
+    !                   rhoU = var(i,j,k+1,1)
+    !                   rhoD = var(i,j,k,1)
+    !                 end if
+    !                 rhoU = rhoU*var(i,j,k+1,iVar)
+    !                 rhoD = rhoD*var(i,j,k,iVar)
+    !                 wSurf = var(i,j,k,4)
+    !                 hRho = wSurf * 0.5*(rhoD + rhoU)
+    !                 flux(i,j,k,3,iVar) = hRho
+    !               end do
+    !             end do
+    !           end do
+    !         end do
+    !      end if ! iceFluxCorr
 
     
 !---------------------------------------------------------------         
@@ -1080,68 +1081,68 @@ contains
        end if ! updateMass
 
        
-       if( updateIce ) then
+       !if( updateIce ) then
           ! set vertical fluxes at wall to 0
           ! analog to mass flux modification above
 
           ! ice variables iVar=nVar-3,nVar
-          do iVar = nVar-3, nVar
-            flux(:,:,0,3,iVar) = 0.0
-            flux(:,:,nz,3,iVar) = 0.0
-          end do
+       !   do iVar = nVar-3, nVar
+       !     flux(:,:,0,3,iVar) = 0.0
+       !     flux(:,:,nz,3,iVar) = 0.0
+       !   end do
           
-          if (verbose .and. master) print*,"boundary.f90/verticalBoundary: &
-               &vertical BC for ice variables set"
-               
+       !   if (verbose .and. master) print*,"boundary.f90/verticalBoundary: &
+       !        &vertical BC for ice variables set"
+       !        
           ! replace flux by CDS fluxes at upper / lower region
-          if( iceFluxCorr ) then
+       !   if( iceFluxCorr ) then
 
              ! vertical ice fluxes in the bottom region
-             do k = 1, nbCellCorr
-               do j = 1,ny
-                 do i = 1,nx
-                   do iVar = nVar-3, nVar
-                     if( fluctuationMode ) then
-                       rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
-                       rhoD = var(i,j,k,1)   + rhoStrat(k)
-                     else
-                       rhoU = var(i,j,k+1,1)
-                       rhoD = var(i,j,k,1)
-                     end if
-                     rhoU = rhoU*var(i,j,k+1,iVar) ! reuse of above variables
-                     ! names do not necessarily refer to rho
-                     rhoD = rhoD*var(i,j,k,iVar)   
-                     wSurf = var(i,j,k,4)
-                     hRho = wSurf * 0.5*(rhoD + rhoU)
-                     flux(i,j,k,3,iVar) = hRho
-                   end do
-                 end do
-               end do
-             end do
+       !      do k = 1, nbCellCorr
+       !        do j = 1,ny
+       !          do i = 1,nx
+       !            do iVar = nVar-3, nVar
+       !              if( fluctuationMode ) then
+       !                rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
+       !                rhoD = var(i,j,k,1)   + rhoStrat(k)
+       !              else
+       !                rhoU = var(i,j,k+1,1)
+       !                rhoD = var(i,j,k,1)
+       !              end if
+       !              rhoU = rhoU*var(i,j,k+1,iVar) ! reuse of above variables
+       !              ! names do not necessarily refer to rho
+       !              rhoD = rhoD*var(i,j,k,iVar)   
+       !              wSurf = var(i,j,k,4)
+       !              hRho = wSurf * 0.5*(rhoD + rhoU)
+       !              flux(i,j,k,3,iVar) = hRho
+       !            end do
+       !          end do
+       !        end do
+       !      end do
 
              ! vertical ice fluxes at the top region
-             do k = nz-1,nz-nbCellCorr,-1
-               do j = 1,ny
-                 do i = 1,nx
-                   do iVar = nVar-3, nVar 
-                     if( fluctuationMode ) then
-                       rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
-                       rhoD = var(i,j,k,1)   + rhoStrat(k)
-                     else
-                       rhoU = var(i,j,k+1,1)
-                       rhoD = var(i,j,k,1)
-                     end if
-                     rhoU = rhoU*var(i,j,k+1,iVar)
-                     rhoD = rhoD*var(i,j,k,iVar)
-                     wSurf = var(i,j,k,4)
-                     hRho = wSurf * 0.5*(rhoD + rhoU)
-                     flux(i,j,k,3,iVar) = hRho
-                   end do
-                 end do
-               end do
-             end do
-          end if ! iceFluxCorr
-       end if ! updateIce
+       !      do k = nz-1,nz-nbCellCorr,-1
+       !        do j = 1,ny
+       !          do i = 1,nx
+       !            do iVar = nVar-3, nVar 
+       !              if( fluctuationMode ) then
+       !                rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
+       !                rhoD = var(i,j,k,1)   + rhoStrat(k)
+       !              else
+       !                rhoU = var(i,j,k+1,1)
+       !                rhoD = var(i,j,k,1)
+       !              end if
+       !              rhoU = rhoU*var(i,j,k+1,iVar)
+       !              rhoD = rhoD*var(i,j,k,iVar)
+       !             wSurf = var(i,j,k,4)
+       !              hRho = wSurf * 0.5*(rhoD + rhoU)
+       !              flux(i,j,k,3,iVar) = hRho
+       !            end do
+       !          end do
+       !        end do
+       !      end do
+       !   end if ! iceFluxCorr
+       !end if ! updateIce
        
        
        if( updateTheta ) then

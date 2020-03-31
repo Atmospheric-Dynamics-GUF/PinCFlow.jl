@@ -368,6 +368,7 @@
   ISSR_top = 0.8 ! top of ISSR relative to mountain height in qv_relaxation testcase
 
 ! switch approximations on/off
+  super_simplified = .false.
   kT_linFit = .false.
   dv_exp2 = .false. 
   cm_dryAir = .false.

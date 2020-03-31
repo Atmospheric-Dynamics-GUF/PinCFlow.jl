@@ -512,6 +512,7 @@ program pinc_prog
               
                if (RKstage == 1) then 
                 do j = 1,ice_time_steps ! microphysical time steps
+                  ! check if time-dependent ice physics is turned on
                   if (iceTestcase_specifics(time+(j-1)*dt_ice/tRef,var)) then
                     dIce = 0.0 ! init q
                     do Ice_RKstage = 1, 3 ! Runge-Kutta loop                    

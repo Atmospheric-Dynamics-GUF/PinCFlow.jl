@@ -146,24 +146,27 @@ contains
           end do
        end do
        
-       if (iceTestcase == "qv_relaxation") then
-         do k = 0, ceiling(mountainHeight_dim/(dz*lRef))+5
-           do j = 1,ny
-             do i = 1,nx
-               qv_bg = 0.0
-               alpha = 100*spongeAlphaZ*(1-z(k)/(mountainHeight_dim/lRef+5*dz))
-               beta = 1./(1.+alpha*0.5*dt)**2
-               var(i,j,k,nVar-3) = (1.-beta)*nAer_bg + beta*var(i,j,k,nVar-3)
-               var(i,j,k,nVar-2) = (1.-beta)*nIce_bg + beta*var(i,j,k,nVar-2)
-               var(i,j,k,nVar-1) = (1.-beta)*qIce_bg + beta*var(i,j,k,nVar-1)
-               var(i,j,k,nVar)   = (1.-beta) * qv_bg + beta*var(i,j,k,nVar)
-               do iVar=0,3
-                  if (var(i,j,k,nVar-iVar) .lt. 0.0) var(i,j,k,nVar-iVar) = 0.0
-               end do
-             end do
-           end do
-         end do
-       end if
+       ! second sponge for ice particles at lower boundary
+       ! didn't prove useful
+       ! 
+       !if (iceTestcase == "qv_relaxation") then
+       !  do k = 0, ceiling(mountainHeight_dim/(dz*lRef))+5
+       !    do j = 1,ny
+       !      do i = 1,nx
+       !        qv_bg = 0.0
+       !        alpha = 100*spongeAlphaZ*(1-z(k)/(mountainHeight_dim/lRef+5*dz))
+       !        beta = 1./(1.+alpha*0.5*dt)**2
+       !        var(i,j,k,nVar-3) = (1.-beta)*nAer_bg + beta*var(i,j,k,nVar-3)
+       !        var(i,j,k,nVar-2) = (1.-beta)*nIce_bg + beta*var(i,j,k,nVar-2)
+       !        var(i,j,k,nVar-1) = (1.-beta)*qIce_bg + beta*var(i,j,k,nVar-1)
+       !        var(i,j,k,nVar)   = (1.-beta) * qv_bg + beta*var(i,j,k,nVar)
+       !        do iVar=0,3
+       !           if (var(i,j,k,nVar-iVar) .lt. 0.0) var(i,j,k,nVar-iVar) = 0.0
+       !        end do
+       !      end do
+       !    end do
+       !  end do
+       !end if
        
        
     case( "uvw" )
@@ -1175,6 +1178,7 @@ contains
              end select
              
              do iVar = nVar-3,nVar
+               ! avoid negative values for all ice variables
                if ((var(i,j,k,iVar).lt. 0.0)) then
                  var(i,j,k,iVar) = 0.0
                end if
