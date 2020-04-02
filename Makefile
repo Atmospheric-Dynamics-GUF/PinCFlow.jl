@@ -6,17 +6,18 @@ FC = mpif90
 COMPILER = $(shell echo `$(FC) --version` | sed 's/ .*//')
 
 ifeq ($(COMPILER), ifort)
-# FCFLAGS=-O0 -g -check all -warn all -warn nounused -fpe0 -real-size 64 -traceback -unroll=4 -ip
-  FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
+ FCFLAGS=-O0 -g -check all -warn all -warn nounused -fpe0 -real-size 64 -traceback -unroll=4 -ip
+#  FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
   MODULEFLAG=-module $(BUILD)
 else   # gcc
-  FCFLAGS=-O0 -g -fcheck=all -Wall -Wno-unused-variable -fdefault-real-8 -fbacktrace -funroll-loops -Wno-unused-dummy-argument -Wno-conversion-extra
-# FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops
+  #FCFLAGS=-O0 -g -fcheck=all -Wall -Wno-unused-variable -fdefault-real-8 -fbacktrace -funroll-loops -Wno-unused-dummy-argument -Wno-conversion-extra
+ FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops
   MODULEFLAG= -J$(BUILD)
 endif
 
 LIPNAG =
-LIBHYPRE ?= /home/atmodynamics/boeloeni/Hypre/hypre-2.11.2/src/lib
+LIBHYPRE =  /home/atmodynamics/ehlert/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-u3lvvituyijuzc2g7koy7ljglh33l7bs/lib/
+
 
 # define directories for sources and binaries (GSV 072018)
 BIN = ./bin
