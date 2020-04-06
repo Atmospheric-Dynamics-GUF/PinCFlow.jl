@@ -5,7 +5,8 @@ module poisson_module
   use timeScheme_module
   use atmosphere_module
   use algebra_module
-
+  use hypretools_module
+  use output_module
 
   implicit none
 
@@ -17,25 +18,24 @@ module poisson_module
   !------------------------
   !   public subroutines
   !------------------------
-  public :: momentumCorrector
+  public :: Corrector
   public :: init_poisson
   public :: terminate_poisson
+  public :: calculate_heating
+  public :: heat_w0
 
   !------------------------
   !   private subroutines       
   !------------------------
   private :: getIndex
-  private :: poissonSolver_csr
+!  private :: poissonSolver_csr
   private :: pressureBoundaryCondition
   private :: correctorStep
   private :: linOpr
   private :: linOprXYZ
   private :: bicgstab
   private :: hypre                     ! modified by Junhong Wei
-  private :: gcr
   private :: poissonSolver
-  private :: adi
-  private :: adi_z
   private :: thomas   ! tridiagonal matrix algoritm (TDMA) / Thomas algorithm
 
 
@@ -63,14 +63,19 @@ module poisson_module
 
 contains
 
-  subroutine momentumCorrector( var,dMom,dt,errFlagBicg, nIter, m,opt)
+  !UAB
+  !subroutine Corrector( var,flux,dMom,dt,errFlagBicg,nIter,m,opt,w_0)
+  subroutine Corrector( var,flux,flux_rhopw,dMom,dt,errFlagBicg,nIter,m,opt)
+  !UAE
     ! -------------------------------------------------
-    !              correct uStar and p
+    !              correct uStar, bStar, and p
     ! -------------------------------------------------
 
     ! in/out variables
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(inout) :: var
+    real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
+    real, dimension(-1:nx,-1:ny,-1:nz), intent(in) :: flux_rhopw
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,3), &
          & intent(inout) :: dMom
 
@@ -78,117 +83,167 @@ contains
     logical, intent(out)            :: errFlagBicg
     integer, intent(out)            :: nIter
     integer, intent(in)             :: m
+
+    ! opt = expl =>
+    ! pressure solver for explicit problem and corresponding correction 
+    ! of the winds
+    ! opt = impl =>
+    ! pressure solver for implicit problem and corresponding correction 
+    ! of the winds and density fluctuations
     character(len=*), intent(in)    :: opt
 
+    !UAB
+    !! w_0 = horizontal-mean vertical wind induced by heating
+    !real, dimension(-nbz:nz+nbz), intent(in) :: w_0
+    !UAE
 
     ! local variables
     real, dimension(1:nx,1:ny,1:nz) :: rhs        ! RHS
     logical :: onlyinfo 
-   
-
 
     ! Note: dp is a module variable
     ! calc dp 
-    select case( storageType )
 
-    case( "opr" )
+    ! Calc RHS of Poisson problem
+    onlyinfo = .false.
 
-       ! Calc RHS of Poisson problem
-       onlyinfo = .false.
-       call calc_RHS( rhs,var,dt,onlyinfo )
-       
-       call poissonSolver( rhs,var,dt,errFlagBicg, nIter, m, opt )
+    !UAB
+    !call calc_RHS(rhs, var, flux, dt, onlyinfo, w_0)
+    call calc_RHS(rhs, var, flux, flux_rhopw, dt, onlyinfo)
+    !UAE
 
-    case( "csr" )
-       call poissonSolver_csr( var, dt, opt )
-
-    case default
-       stop "update.f90/momentumCorrector: unknown storageType"
-    end select
+    call poissonSolver( rhs, var, dt, errFlagBicg, nIter, m, opt )
 
     ! set horizontal and vertical BC for dp
     call pressureBoundaryCondition
 
-    ! correct p and uStar with dp
-    call correctorStep (var, dMom, dt, m)
+    ! correct p, rhopStar, and uStar with dp
+    call correctorStep (var, dMom, dt, m, opt)
     
-    ! give info on final divergence
-    onlyinfo = .true.
-    call calc_RHS( rhs,var,dt,onlyinfo )
-       
+    !UAB
+    !if (detailedinfo) call calc_RHS( rhs,var,flux,dt,detailedinfo,w_0 )
+    if (detailedinfo) call calc_RHS( rhs,var,flux,flux_rhopw,dt,detailedinfo)
+    !UAE
+
+  end subroutine Corrector
+
+  !----------------------------------------------------------------------
+
+  subroutine preCond( sIn, sOut)
+    ! --------------------------------------
+    !   preconditioner for BiCGStab
+    !   solves vertical problem exploiting its tri-diagonal character
+    !   (Isaacson & Keller 1966, see also Durran's book appendix A.2)
+    ! --------------------------------------
+
+    ! in/out variables
+    real, dimension(1:nx,1:ny,1:nz), intent(out) :: sOut
+    real, dimension(1:nx,1:ny,1:nz), intent(in)  :: sIn
+
+    ! local field
+    real, dimension(1:nx,1:ny,1:nz) :: s_pc, q_pc
+    real, dimension(1:nx,1:ny) :: p_pc
+
+    ! local variables
+    integer :: k
+    integer :: i,j
+
+    ! work with auxiliary field s_pc
+
+    s_pc = sIn
+
+    ! upward sweep
+
+    do j=1,ny
+       do i=1,nx
+          au_b(i,j,nz) = 0.0
+       end do
+    end do
+
+    do j=1,ny
+       do i=1,nx
+          q_pc(i,j,1) = - au_b(i,j,1)/ac_b(i,j,1)
+          s_pc(i,j,1) =   s_pc(i,j,1)/ac_b(i,j,1)
+       end do
+    end do
+
+    do k=2,nz
+       do j=1,ny
+          do i=1,nx
+             p_pc(i,j) = 1.0/(ac_b(i,j,k) + ad_b(i,j,k)*q_pc(i,j,k-1))
+
+             q_pc(i,j,k) = - au_b(i,j,k) * p_pc(i,j)
+
+             s_pc(i,j,k) &
+             = (s_pc(i,j,k) - ad_b(i,j,k)*s_pc(i,j,k-1)) * p_pc(i,j)
+          end do
+       end do
+    end do
+
+    ! backward pass
+
+    do k=nz-1,1,-1
+       do j=1,ny
+          do i=1,nx
+             s_pc(i,j,k) = s_pc(i,j,k) + q_pc(i,j,k)*s_pc(i,j,k+1)
+          end do
+       end do
+    end do
+
+    ! final result
+
+    sOut = s_pc
+    
+    return
+
+  end subroutine preCond
 
 
-  end subroutine momentumCorrector
+  !----------------------------------------------------------------------
 
-
-  !---------------------------------------------------------------------------
-
-
-  subroutine linOpr( var, sIn, Ls )
+  subroutine linOpr( sIn, Ls, opt )
     ! --------------------------------------
     !   Linear Operator in Poisson problem
     !   Functions as A*x
     ! --------------------------------------
 
     ! in/out variables
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         &intent(in) :: var
     real, dimension(1:nx,1:ny,1:nz), intent(out) :: Ls
     real, dimension(1:nx,1:ny,1:nz), intent(in)  :: sIn
+
+    ! opt = expl =>
+    ! pressure solver for explicit problem and corresponding correction 
+    ! of the winds
+    ! opt = impl =>
+    ! pressure solver for implicit problem and corresponding correction 
+    ! of the winds and density fluctuations
+    character(len=*), intent(in)    :: opt
 
     ! local field (extended by ghost cells)
     real, dimension(0:nx+1,0:ny+1,0:nz+1) :: s
 
-    ! modified by Junhong Wei (20161106) *** starting line ***
-
     ! auxiliary fields for "dp"
-    real, dimension(ny,nz) :: xSliceLeft_send, xSliceRight_send
-    real, dimension(ny,nz) :: xSliceLeft_recv, xSliceRight_recv
+    real, dimension(0:ny+1,0:nz+1) :: xSliceLeft_send, xSliceRight_send
+    real, dimension(0:ny+1,0:nz+1) :: xSliceLeft_recv, xSliceRight_recv
 
-    real, dimension(nx,nz) :: ySliceBack_send, ySliceForw_send
-    real, dimension(nx,nz) :: ySliceBack_recv, ySliceForw_recv
-
-    ! modified by Junhong Wei (20161106) *** finishing line ***
-
-    real, dimension(-nby:ny+nby,-nbz:nz+nbz) :: dvar
-
+    real, dimension(0:nx+1,0:nz+1) :: ySliceBack_send, ySliceForw_send
+    real, dimension(0:nx+1,0:nz+1) :: ySliceBack_recv, ySliceForw_recv
 
     ! local variables
     integer :: i,j,k
-    real :: pStratU, pStratD, rhoEdge
-    real :: AL,AR, AB,AF, AD,AU, AC
-    real :: sL,sR, sB,sF, sD,sU, sC
-
-    real :: dx2, dy2, dz2
-
-    ! modified by Junhong Wei (20161106) *** starting line ***
+    real :: AL,AR, AB,AF, AD,AU, AC, ALB,ALF, ARB,ARF
+    real :: sL,sR, sB,sF, sD,sU, sC, sLB,sLF, sRB,sRF
 
     ! MPI variables
     integer :: dest, source, tag
     integer :: sendcount, recvcount
 
-!   achatzb
-    if(topography) stop 'linOpr not ready for topography!'
-!   achatze
-
-    ! modified by Junhong Wei (20161106) *** finishing line ***
-
-    ! auxiliary variables
-    dx2 = 1.0/dx**2
-    dy2 = 1.0/dy**2
-    dz2 = 1.0/dz**2
-
     ! work with auxiliary field s
     s(1:nx,1:ny,1:nz) = sIn
-
-    ! modified by Junhong Wei (20161106) *** starting line ***
 
     ! Find neighbour procs
     if (idim > 1) call mpi_cart_shift(comm,0,1,left,right,ierror)
     if (jdim > 1) call mpi_cart_shift(comm,1,1,back,forw,ierror)
-
-    ! modified by Junhong Wei (20161106) *** finishing line ***
-
 
     select case( model ) 
 
@@ -197,44 +252,29 @@ contains
        !----------------------------------------
     case( "pseudo_incompressible" )
 
-       ! modified by Junhong Wei (20161106) *** starting line ***
-
-!       !----------------------------
-!       !     Boundary conditions
-!       !----------------------------
-!
-!       ! perdiodic in x
-!       s(0,:,:) = s(nx,:,:)
-!       s(nx+1,:,:) = s(1,:,:)
-!
-!       ! periodic in y
-!       s(:,0,:) = s(:,ny,:)
-!       s(:,ny+1,:) = s(:,1,:)
-
        !----------------------------
        !   set Halo cells: xSlice
        !----------------------------
 
        if( xBoundary == "periodic" ) then
-
-         ! slice size
-         sendcount = ny*nz
-         recvcount = sendcount
-
-         ! read slice into contiguous array
-         xSliceLeft_send (:,:) = s(1, 1:ny,1:nz)
-         xSliceRight_send(:,:) = s(nx,1:ny,1:nz)
-
          if ( idim > 1 ) then
+            ! slice size
+            sendcount = (ny+2)*(nz+2)
+            recvcount = sendcount
+
+            ! read slice into contiguous array
+            xSliceLeft_send (:,:) = s(1, :,:)
+            xSliceRight_send(:,:) = s(nx,:,:)
+
 
             ! left -> right
             source = left
             dest = right
             tag = 100
 
-            call mpi_sendrecv(xSliceRight_send(1,1), sendcount, &
+            call mpi_sendrecv(xSliceRight_send(0,0), sendcount, &
                  & mpi_double_precision, dest, tag, &
-                 & xSliceLeft_recv(1,1), recvcount, mpi_double_precision, &
+                 & xSliceLeft_recv(0,0), recvcount, mpi_double_precision, &
                  & source, mpi_any_tag, comm, sts_left, ierror)
 
             ! right -> left
@@ -242,26 +282,21 @@ contains
             dest = left
             tag = 100
 
-            call mpi_sendrecv(xSliceLeft_send(1,1), sendcount, &
+            call mpi_sendrecv(xSliceLeft_send(0,0), sendcount, &
                  & mpi_double_precision, dest, tag, &
-                 & xSliceRight_recv(1,1), recvcount, mpi_double_precision, &
+                 & xSliceRight_recv(0,0), recvcount, &
+                 & mpi_double_precision, &
                  & source, mpi_any_tag, comm, sts_right, ierror)
 
             ! right halos
-            s(nx+1,1:ny,1:nz) = xSliceRight_recv(1:ny,1:nz)
-            !          var(nx+i,1:ny,1:nz,iVar) = xSliceRight_recv(i,1:ny,1:nz)
+            s(nx+1,:,:) = xSliceRight_recv(:,:)
 
             ! left halos
-            s(0,1:ny,1:nz) = xSliceLeft_recv(1:ny,1:nz)
-            !             var(-nbx+i,1:ny,1:nz,iVar) = xSliceLeft_recv(i,1:ny,1:nz)
-
+            s(0   ,:,:) =  xSliceLeft_recv(:,:)
          else
-
-           s(0,:,:) = s(nx,:,:)
-           s(nx+1,:,:) = s(1,:,:)
-
+           s(0   ,:,:) = s(nx,:,:)
+           s(nx+1,:,:) = s(1 ,:,:)
          end if
-
        else
          stop "Poisson: unknown case xBoundary"
        endif
@@ -275,25 +310,24 @@ contains
        !------------------------------
 
        if( yBoundary == "periodic" ) then
-
-         ! slice size
-         sendcount = nx*nz
-         recvcount = sendcount
-
-         ! read slice into contiguous array
-         ySliceBack_send(:,:) = s(1:nx, 1,1:nz)
-         ySliceForw_send(:,:) = s(1:nx,ny,1:nz)
-
          if( jdim > 1 ) then
+            ! slice size
+            sendcount = (nx+2)*(nz+2)
+            recvcount = sendcount
+
+            ! read slice into contiguous array
+            ySliceBack_send(:,:) = s(:, 1,:)
+            ySliceForw_send(:,:) = s(:,ny,:)
+
 
             ! back -> forw
             source = back
             dest = forw
             tag = 100
 
-            call mpi_sendrecv(ySliceForw_send(1,1), sendcount, &
+            call mpi_sendrecv(ySliceForw_send(0,0), sendcount, &
                  & mpi_double_precision, dest, tag, &
-                 & ySliceBack_recv(1,1), recvcount, mpi_double_precision, &
+                 & ySliceBack_recv(0,0), recvcount, mpi_double_precision, &
                  & source, mpi_any_tag, comm, sts_back, ierror)
 
             ! forw -> back
@@ -301,32 +335,27 @@ contains
             dest = back
             tag = 100
 
-            call mpi_sendrecv(ySliceBack_send(1,1), sendcount, &
+            call mpi_sendrecv(ySliceBack_send(0,0), sendcount, &
                  & mpi_double_precision, dest, tag, &
-                 & ySliceForw_recv(1,1), recvcount, mpi_double_precision, &
+                 & ySliceForw_recv(0,0), recvcount, mpi_double_precision, &
                  & source, mpi_any_tag, comm, sts_right, ierror)
 
             ! forward halos
-            s(1:nx,ny+1,1:nz) = ySliceForw_recv(1:nx,1:nz)
+            s(:,ny+1,:) = ySliceForw_recv(:,:)
 
             ! backward halos
-            s(1:nx,0,1:nz) = ySliceBack_recv(1:nx,1:nz)
-
+            s(:,0   ,:) = ySliceBack_recv(:,:)
          else
-
            s(:,0,:) = s(:,ny,:)
            s(:,ny+1,:) = s(:,1,:)
-
          end if
        else
          stop "Poisson: unknown case xBoundary"
        end if
-
        if(verbose .and. master) print*,"horizontalHalos: &
             & x-horizontal halos copied."
 
        ! modified by Junhong Wei (20161106) *** finishing line ***
-
 
        !---------------------------------
        !         Loop over field
@@ -337,40 +366,29 @@ contains
              i_loop: do i = 1,nx
 
                 ! ------------------ A(i+1,j,k) ------------------
-                rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
-                if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
 
-                AR = dx2 * pStrat(k)**2/rhoEdge
+                AR = ar_b(i,j,k)
                 sR = s(i+1,j,k)
 
                 ! ------------------- A(i-1,j,k) --------------------
-                rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
-                if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)                
 
-                AL = dx2 * pStrat(k)**2 / rhoEdge
+                AL = al_b(i,j,k)
                 sL = s(i-1,j,k)
 
                 ! -------------------- A(i,j+1,k) ----------------------
-                rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
-                if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
 
-                AF = dy2 * pStrat(k)**2 / rhoEdge
+                AF = af_b(i,j,k)
                 sF = s(i,j+1,k)
 
                 ! --------------------- A(i,j-1,k) -----------------------
-                rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
-                if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
 
-                AB = dy2 * pStrat(k)**2 / rhoEdge
+                AB = ab_b(i,j,k)
                 sB = s(i,j-1,k)
 
-                ! ---------------------- A(i,j,k+1) ------------------------
-                if (k<nz) then
-                   rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
-                   if( fluctuationMode ) rhoEdge = rhoEdge + rhoStratTilde(k)
+                ! --------------------- A(i,j,k+1) ------------------------
 
-                   pStratU = 0.5* ( pStrat(k+1) + pStrat(k) )
-                   AU = dz2 * pStratU**2 / rhoEdge
+                if (k<nz) then
+                   AU = au_b(i,j,k)
                    sU = s(i,j,k+1)
                 else ! k = nz -> upwad boundary (solid wall)
                    ! A(i,j,nz+1) = 0
@@ -378,13 +396,10 @@ contains
                    sU = 0.0
                 end if
 
-                ! ----------------------- A(i,j,k-1) ------------------------
+                ! --------------------- A(i,j,k-1) ------------------------
+
                 if (k>1) then 
-                   rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
-                   if( fluctuationMode ) rhoEdge = rhoEdge + rhoStratTilde(k-1)
-                   
-                   pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
-                   AD = dz2 * pStratD**2 / rhoEdge
+                   AD = ad_b(i,j,k)
                    sD = s(i,j,k-1)
                 else ! k = 1 -> downward boundary (solid wall)
                    ! A(i,j,0) = 0
@@ -392,336 +407,125 @@ contains
                    sD = 0.0
                 end if
 
-                ! ----------------------- A(i,j,k) --------------------------
-                AC = - AR - AL - AF - AB - AU - AD
+                ! -------------------- A(i,j,k) --------------------------
+
+                AC = ac_b(i,j,k)
                 sC = s(i,j,k)
 
 
                 ! -------------------- apply Operator ---------------------
-                Ls(i,j,k) = AL*sL + AR*sR + AF*sF + AB*sB + AU*sU + AD*sD + AC*sC
 
+                Ls(i,j,k) &
+                = AL*sL + AR*sR + AF*sF + AB*sB + AU*sU + AD*sD + AC*sC
 
-                ! ----------------- scale with thetaStrat --------------------
-                if( pressureScaling ) then
-                   Ls(i,j,k) = Ls(i,j,k) / PStrat(k)
+                if (timeScheme == "semiimplicit") then
+                   if (opt == 'impl') then
+                      ! -------------------- A(i,j,k) ---------------------
+
+                      ALB = alb_b(i,j,k)
+                      sLB = s(i-1,j-1,k)
+
+                      ! -------------------- A(i,j,k) ---------------------
+
+                      ALF = alf_b(i,j,k)
+                      sLF = s(i-1,j+1,k)
+
+                      ! -------------------- A(i,j,k) ---------------------
+
+                      ARB = arb_b(i,j,k)
+                      sRB = s(i+1,j-1,k)
+
+                      ! -------------------- A(i,j,k) ---------------------
+
+                      ARF = arf_b(i,j,k)
+                      sRF = s(i+1,j+1,k)
+
+                      Ls(i,j,k) &
+                      = Ls(i,j,k) + ALB*sLB + ALF*sLF + ARB*sRB + ARF*sRF
+                     else if (opt /= 'expl') then
+                      stop'ERROR: linOpr expects opt = expl or opt = impl'
+                   end if
                 end if
 
+                ! ---------------- scale with thetaStrat ------------------
+                if( pressureScaling ) then
+                   stop'ERROR: pressure scaling disabled'
+                end if
              end do i_loop
           end do j_loop
        end do k_loop
-
-
 
     case( "Boussinesq" )
        !----------------------------------------
        !             Boussinesq model
        !----------------------------------------
 
-
-       ! modified by Junhong Wei (20161106) *** starting line ***
-!       
-!       !----------------------------
-!       !     Boundary conditions
-!       !----------------------------
-!
-!       if( xBoundary == "periodic" ) then
-!          ! perdiodic in x
-!          s(0,:,:) = s(nx,:,:)
-!          s(nx+1,:,:) = s(1,:,:)
-!       end if
-!
-!       if( yBoundary == "periodic" ) then
-!          ! periodic in y
-!          s(:,0,:) = s(:,ny,:)
-!          s(:,ny+1,:) = s(:,1,:)
-!       end if
-!
-!       if( zBoundary == "periodic" ) then
-!          ! periodic in z
-!          s(:,:,0) = s(:,:,nz)
-!          s(:,:,nz+1) = s(:,:,1)
-!       end if
-
-       !------------------------------
-       !   set Halo cells: xSlice 
-       !------------------------------
-
-       if( xBoundary == "periodic" ) then
-
-         ! slice size
-         sendcount = ny*nz
-         recvcount = sendcount
-
-         ! read slice into contiguous array
-         xSliceLeft_send (:,:) = s(1, 1:ny,1:nz)
-         xSliceRight_send(:,:) = s(nx,1:ny,1:nz)
-
-         if ( idim > 1 ) then
-
-            ! left -> right
-            source = left
-            dest = right
-            tag = 100
-
-            call mpi_sendrecv(xSliceRight_send(1,1), sendcount, &
-                 & mpi_double_precision, dest, tag, &
-                 & xSliceLeft_recv(1,1), recvcount, mpi_double_precision, &
-                 & source, mpi_any_tag, comm, sts_left, ierror)
-
-            ! right -> left
-            source = right
-            dest = left
-            tag = 100
-
-            call mpi_sendrecv(xSliceLeft_send(1,1), sendcount, &
-                 & mpi_double_precision, dest, tag, &
-                 & xSliceRight_recv(1,1), recvcount, mpi_double_precision, &
-                 & source, mpi_any_tag, comm, sts_right, ierror)
-
-            ! right halos
-            s(nx+1,1:ny,1:nz) = xSliceRight_recv(1:ny,1:nz)
-            !          var(nx+i,1:ny,1:nz,iVar) = xSliceRight_recv(i,1:ny,1:nz)
-
-            ! left halos
-            s(0,1:ny,1:nz) = xSliceLeft_recv(1:ny,1:nz)
-            !             var(-nbx+i,1:ny,1:nz,iVar) =
-            !             xSliceLeft_recv(i,1:ny,1:nz)
-
-         else
-
-            s(0,:,:) = s(nx,:,:)
-            s(nx+1,:,:) = s(1,:,:)
-
-         end if
-       else
-         stop "Poisson: unknown case xBoundary"
-       end if
-
-       !------------------------------
-       !   set Halo cells: ySlice 
-       !------------------------------
-
-       if( yBoundary == "periodic" ) then
-
-         ! slice size
-         sendcount = nx*nz
-         recvcount = sendcount
-
-         ! read slice into contiguous array
-         ySliceBack_send(:,:) = s(1:nx, 1,1:nz)
-         ySliceForw_send(:,:) = s(1:nx,ny,1:nz)
-
-         if( jdim > 1 ) then
-
-            ! back -> forw
-            source = back
-            dest = forw
-            tag = 100
-
-            call mpi_sendrecv(ySliceForw_send(1,1), sendcount, &
-                 & mpi_double_precision, dest, tag, &
-                 & ySliceBack_recv(1,1), recvcount, mpi_double_precision, &
-                 & source, mpi_any_tag, comm, sts_back, ierror)
-
-            ! forw -> back
-            source = forw
-            dest = back
-            tag = 100
-
-            call mpi_sendrecv(ySliceBack_send(1,1), sendcount, &
-                 & mpi_double_precision, dest, tag, &
-                 & ySliceForw_recv(1,1), recvcount, mpi_double_precision, &
-                 & source, mpi_any_tag, comm, sts_right, ierror)
-
-            ! forward halos
-            s(1:nx,ny+1,1:nz) = ySliceForw_recv(1:nx,1:nz)
-
-            ! backward halos
-            s(1:nx,0,1:nz) = ySliceBack_recv(1:nx,1:nz)
-
-         else
-
-            s(:,0,:) = s(:,ny,:)
-            s(:,ny+1,:) = s(:,1,:)
-
-         endif
-       else
-         stop "Poisson: unknown case yBoundary"
-       end if
-
-       if( zBoundary == "periodic" ) then
-          ! periodic in z
-          s(:,:,0) = s(:,:,nz)
-          s(:,:,nz+1) = s(:,:,1)
-       end if
-
-      ! modified by Junhong Wei (20161106) *** finishing line ***       
-
-
-
-       !---------------------------------
-       !         Loop over field
-       !---------------------------------
-
-       do k = 1,nz
-          do j = 1,ny
-             do i = 1,nx
-
-                ! ------------------ A(i+1,j,k) ------------------
-                AR = dx2
-                sR = s(i+1,j,k)
-
-                ! ------------------- A(i-1,j,k) --------------------
-                AL = dx2
-                sL = s(i-1,j,k)
-
-                ! -------------------- A(i,j+1,k) ----------------------
-                AF = dy2
-                sF = s(i,j+1,k)
-
-                ! --------------------- A(i,j-1,k) -----------------------
-                AB = dy2
-                sB = s(i,j-1,k)
-
-                ! ---------------------- A(i,j,k+1) ------------------------
-                AU = dz2 
-                sU = s(i,j,k+1)
-
-                ! ----------------------- A(i,j,k-1) ------------------------
-                AD = dz2
-                sD = s(i,j,k-1)
-
-                ! ----------------------- A(i,j,k) --------------------------
-                AC = - AR - AL - AF - AB - AU - AD
-                sC = s(i,j,k)
-
-                ! -------------------- apply Operator ---------------------
-                Ls(i,j,k) = AL*sL + AR*sR + AF*sF + AB*sB + AU*sU + AD*sD + AC*sC
-
-
-             end do
-          end do
-       end do
-
-       !--------------------------------------
-       !  Correction for solid wall boundary
-       !--------------------------------------
-
-       !---------------------------------
-       !          zBoundary
-       !---------------------------------
-
-       if( zBoundary == "solid_wall" ) then
-
-          do k = 1,nz,nz-1      ! k = 1 and nz
-             do j = 1,ny
-                do i = 1,nx
-
-                   ! ------------------ A(i+1,j,k) ------------------
-                   AR = dx2
-                   sR = s(i+1,j,k)
-
-                   ! ------------------- A(i-1,j,k) --------------------
-                   AL = dx2
-                   sL = s(i-1,j,k)
-
-                   ! -------------------- A(i,j+1,k) ----------------------
-                   AF = dy2
-                   sF = s(i,j+1,k)
-
-                   ! --------------------- A(i,j-1,k) -----------------------
-                   AB = dy2
-                   sB = s(i,j-1,k)
-
-                   ! ---------------------- A(i,j,k+1) ------------------------
-                   ! k = nz -> upwad boundary (solid wall)
-                   ! A(i,j,nz+1) = 0
-                   AU = 0.0
-                   sU = 0.0
-
-                   ! ----------------------- A(i,j,k-1) ------------------------
-                   ! k = 1 -> downward boundary (solid wall)
-                   ! A(i,j,0) = 0
-                   AD = 0.0
-                   sD = 0.0
-
-                   ! ----------------------- A(i,j,k) --------------------------
-
-                   AC = - AR - AL - AF - AB - AU - AD
-                   sC = s(i,j,k)
-
-
-                   ! -------------------- apply Operator ---------------------
-                   Ls(i,j,k) = AL*sL + AR*sR + AF*sF + AB*sB + AU*sU + AD*sD + AC*sC
-
-                end do
-             end do
-          end do
-
-       end if ! zBoundary
-
+       stop'ERROR: linOpr not ready for Boussinesq model'
 
     case default
        stop "linOpr: unknown case model"
     end select
 
-
-
   end subroutine linOpr
 
 
-  !---------------------------------------------------------------------------
+  !-----------------------------------------------------------------------
 
 
-  subroutine calc_RHS( b,var,dt,onlyinfo )
+  !UAB
+  !subroutine calc_RHS( b,var,flux,dt,onlyinfo,w_0 )
+  subroutine calc_RHS( b,var,flux,flux_rhopw,dt,onlyinfo)
+  !UAE
 
     !----------------------------------------
     !   calculates the RHS of the 
     !   Poisson problem
     !----------------------------------------
 
-
     ! in/out variables
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         &intent(inout) :: var
+         &intent(in) :: var 
+    real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
+    real, dimension(-1:nx,-1:ny,-1:nz), intent(in) :: flux_rhopw
     real, intent(in) :: dt
-    real, dimension(1:nx,1:ny,1:nz), intent(out) :: b       ! RHS
-    logical, intent(in) :: onlyinfo                         ! give info in div
+    real, dimension(1:nx,1:ny,1:nz), intent(out) :: b  ! RHS
+    logical, intent(in) :: onlyinfo                    ! give info in div
+    !UAB
+    !real, dimension(-nbz:nz+nbz),intent(in) :: w_0 !w_0 due to heating
+    !UAE
     
     ! local vars
     real :: uR,uL, vF,vB, wU,wD
     real :: pStratU, pStratD
+    real, dimension(1:nz) :: sum_local, sum_global !UA
 
     integer :: i,j,k
     real :: div, divSum, divSumScaled
 
-!   achatzb
     real :: bu,bv,bw,bl2loc,divL2_norm,divL2_norm_local
-!   achatze
 
-!   testb
-!   integer :: i_maxb,j_maxb,k_maxb
-!   teste
+    ! for some diagnostics ...
+    real :: dPudx_norm_local, dPudx_norm, dPvdy_norm_local, dPvdy_norm
+    real :: dPwdz_norm_local, dPwdz_norm, Q_norm_local, Q_norm
+    real :: Q1_norm_local, Q1_norm, Q2_norm_local, Q2_norm
 
-    ! extrapolation parameter for sol
-    
     ! check L2-norm of divergence
     real :: divL2, divMax
 
     ! verbose
     logical, parameter :: giveInfo = .true.
 
-    ! modified by Junhong Wei (20161106) *** starting line ***
-
     ! MPI stuff
     real :: divL2_local, divSum_local
     integer :: root
 
-!   achatzb
     integer :: i0,j0
-!   achatze
 
-!xxxx
+    real :: rho, the
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: heat
+    real, dimension(-nbz:nz+nbz) :: w_0 
+    real, dimension(-nbz:nz+nbz) :: S_bar 
+
     if( giveInfo .and. master ) then
        print*,""
        print*,"----------------------------------------------"
@@ -730,21 +534,44 @@ contains
        print*,""
     end if
 
-    ! modified by Junhong Wei (20161106) *** finishing line ***
-
     ! ----------------------------------
     !          Poisson Problem
     ! ----------------------------------
 
-    !    if(verbose) print*,"update.f90/poissonSolver: &   ! modified by Junhong Wei (20161106)
     if( master .and. verbose ) print*,"update.f90/poissonSolver: &
-         & Setting up Poisson problem."   ! modified by Junhong Wei (20161106)
+                                     & Setting up Poisson problem." 
 
-!   achatzb
     i0=is+nbx-1
     j0=js+nby-1
-!   achatze
-    
+
+    ! heating due to thermal relaxation, molecular or turbulent diffusion,
+    ! or gravity waves, and the horizontal-mean vertical wind due to it
+
+    !UAB
+    !heat(:, :, :) = 0.
+    !call calculate_heating(var,flux,heat)
+
+    !if (raytracer) heat(:,:,:) = heat(:,:,:) + var(:,:,:,8)
+
+    if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+       call heat_w0(var,flux,flux_rhopw,heat,S_bar,w_0)
+      else
+       heat = 0.
+       S_bar = 0.
+       w_0 = 0.
+    end if
+
+    ! subtreact horizontal mean of heat(:,:,:)
+
+    do i = 1,nx
+       do j = 1,ny
+          heat(i,j,1:nz) = heat(i,j,1:nz) - S_bar(1:nz)
+       end do
+    end do
+    !UAE
+
+    ! scale RHS with Ma^2 * kappa, hence ...
+    heat(:,:,:) = heat(:,:,:) * Ma**2 * kappa
     
     !--------------------------------------------------
     !    setup b = Ma^2 * P * u^*  (right hand side)
@@ -755,13 +582,31 @@ contains
     divL2  = 0.0
     divMax = 0.0
 
-    divSum_local = 0.0   ! modified by Junhong Wei (20161107)
-    divL2_local = 0.0   ! modified by Junhong Wei (20161107)
+    divSum_local = 0.0  
+    divL2_local = 0.0
 
-!   achatzb
     divL2_norm = 0.0
     divL2_norm_local = 0.0
-!   achatze
+
+    if (RHS_diagnostics) then
+       dPudx_norm_local = 0.0
+       dPudx_norm = 0.0
+    
+       dPvdy_norm_local = 0.0
+       dPvdy_norm = 0.0
+    
+       dPwdz_norm_local = 0.0
+       dPwdz_norm = 0.0
+    
+       Q_norm_local = 0.0
+       Q_norm = 0.0
+    
+       Q1_norm_local = 0.0
+       Q1_norm = 0.0
+    
+       Q2_norm_local = 0.0
+       Q2_norm = 0.0
+    end if
 
     select case( model ) 
 
@@ -773,76 +618,55 @@ contains
 
                 uR = var(i,j,k,2); uL = var(i-1,j,k,2)
                 vF = var(i,j,k,3); vB = var(i,j-1,k,3)
-                wU = var(i,j,k,4); wD = var(i,j,k-1,4)
+                !UAB
+                !wU = var(i,j,k,4); wD = var(i,j,k-1,4)
+                wU = var(i,j,k,4) - w_0(k); wD = var(i,j,k-1,4) - w_0(k-1)
+                !UAE
 
-!xxxx 10.5.2011
-!                pStratU = 0.5*(pStrat(k+1) + pStrat(k  ))
-!                pStratD = 0.5*(pStrat(k  ) + pStrat(k-1))
-                
                 PstratU = PstratTilde(k)
                 PstratD = PstratTilde(k-1)
                 
-!xxxx end
+                ! scale RHS with Ma^2 * kappa, hence ...
                 
-!               achatzb
-!               introduce a reference norm for the RHS
-!               b(i,j,k) = Pstrat(k) * ( (uR-uL)/dx + (vF-vB)/dy ) &
-!                    & + (PstratU*wU - PstratD*wD)/dz
-                bu = Pstrat(k) * (uR-uL)/dx
-                bv = Pstrat(k) * (vF-vB)/dy 
-                bw = (PstratU*wU - PstratD*wD)/dz
-                b(i,j,k) = bu + bv + bw
-                bl2loc = bu**2 + bv**2 + bw**2
-!               achatze
+                bu = Pstrat(k) * (uR-uL)/dx * Ma**2 * kappa
+                bv = Pstrat(k) * (vF-vB)/dy * Ma**2 * kappa
+                !UAB
+                !if(heatingONK14)then
+                !   bw &
+                !   = (PstratU*(wU-w_0(k)) - PstratD*(wD-w_0(k-1)))/dz &
+                !     * Ma**2 * kappa
+                !  else
+                !   (PstratU*wU - PstratD*wD)/dz * Ma**2 * kappa
+                !end if
+                bw = (PstratU*wU - PstratD*wD)/dz * Ma**2 * kappa
+                !UAE
 
-!               testb
-!               if((i == 1).and.(j == 1).and.(k == 310)) then
-!                  print*,"at (i,j,k) = (1,1,310):"
-!                  print*,"bu = ",bu
-!                  print*,"bv = ",bv
-!                  print*,"bw = ",bw
-!                  print*,"b = ",b(i,j,k)
-
-!                  print*,"uL,uR = ",uL,uR
-
-!                  print*,"u(0,1,310),u(8,1,310) = ", &
-!                        & var(0,1,310,2),var(nx,1,310,2)
-
-!                  print*,"u(1,1,310),u(9,1,310) = ", &
-!                        & var(1,1,310,2),var(nx+1,1,310,2)
-!               end if
-!               teste
-
-!               achatzb
-                if(topography) then
-                   if(topography_mask(i0+i,j0+j,k)) then
-                      b(i,j,k) = 0.0
-                      bl2loc = 0.0
-                   end if
-                end if
-!               achatze
+                b(i,j,k) = bu + bv + bw + heat(i,j,k)
 
                 ! L2-norm of the divergence div(Pu)
                 ! divL2 = divL2 + b(i,j,k)**2
 
                 divL2_local = divL2_local + b(i,j,k)**2
 
-!               achatzb
+                ! introduce a reference norm for the RHS
+                ! b(i,j,k) =   Pstrat(k) * ( (uR-uL)/dx + (vF-vB)/dy ) &
+                !          & + (PstratU*wU - PstratD*wD)/dz &
+                !          & + heat
+
+                bl2loc = bu**2 + bv**2 + bw**2 + (heat(i,j,k))**2
                 divL2_norm_local = divL2_norm_local + bl2loc
-!               achatze
+
+                if (RHS_diagnostics) then
+                   dPudx_norm_local = dPudx_norm_local + bu**2
+                   dPvdy_norm_local = dPvdy_norm_local + bv**2
+                   dPwdz_norm_local = dPwdz_norm_local + bw**2
+                   Q_norm_local = Q_norm_local + (heat(i,j,k))**2
+                end if
 
                 ! max norm of div(Pu)
                 if( abs(b(i,j,k)) > divMax ) then
                    divMax = abs(b(i,j,k))
-!                  testb
-!                  i_maxb = i
-!                  j_maxb = j
-!                  k_maxb = k
-!                  teste
                 end if
-                
-                ! scale RHS with Ma^2 * kappa
-                b(i,j,k) = b(i,j,k) * Ma**2 * kappa
                 
                 ! check sum for solvability criterion
                 ! divSum = divSum + b(i,j,k)
@@ -850,22 +674,12 @@ contains
                 
                 ! Skalierung mit thetaStrat
                 if ( pressureScaling ) then
-                   b(i,j,k) = b(i,j,k) / PStrat(k)
-                   divSumScaled = divSumScaled + b(i,j,k)
+                   stop'ERROR: pressure scaling disabled'
                 end if
 
              end do
           end do
        end do
-
-!      testb
-!      print*,"divMax = ",divMax," reached at ",i_maxb,j_maxb,k_maxb
-!      teste
-       
-!       ! scale by number of cells   ! modified by Junhong Wei (20161107)
-!       divL2 = sqrt(divL2/nx/ny/nz)   ! modified by Junhong Wei (20161107)
-
-       ! modified by Junhong Wei (20161107)   *** starting line ***
 
        !MPI: sum divSum_local over all procs
        root = 0
@@ -883,7 +697,6 @@ contains
        call mpi_bcast(divL2, 1, &
             & mpi_double_precision, root, comm, ierror)
 
-!      achatzb
        !MPI: sum divL2_norm_local over all procs
        root = 0
        call mpi_reduce(divL2_norm_local, divL2_norm, 1, &
@@ -891,26 +704,60 @@ contains
        
        call mpi_bcast(divL2_norm, 1, &
             & mpi_double_precision, root, comm, ierror)
-!      achatze
+
+       if (RHS_diagnostics) then
+          call mpi_allreduce(dPudx_norm_local, dPudx_norm, 1, &
+               & mpi_double_precision, mpi_sum, comm, ierror)
+          call mpi_allreduce(dPvdy_norm_local, dPvdy_norm, 1, &
+               & mpi_double_precision, mpi_sum, comm, ierror)
+          call mpi_allreduce(dPwdz_norm_local, dPwdz_norm, 1, &
+               & mpi_double_precision, mpi_sum, comm, ierror)
+          call mpi_allreduce(Q_norm_local, Q_norm, 1, &
+               & mpi_double_precision, mpi_sum, comm, ierror)
+            
+          dPudx_norm = sqrt(dPudx_norm/sizeX/sizeY/sizeZ)            
+          dPvdy_norm = sqrt(dPvdy_norm/sizeX/sizeY/sizeZ)
+          dPwdz_norm = sqrt(dPwdz_norm/sizeX/sizeY/sizeZ)
+          Q_norm = sqrt(Q_norm/sizeX/sizeY/sizeZ)
+       end if
 
        ! scale div
        divL2_local = sqrt(divL2_local/nx/ny/nz)
        divL2 = sqrt(divL2/sizeX/sizeY/sizeZ)
 
-!      achatzb
        divL2_norm_local = sqrt(divL2_norm_local/nx/ny/nz)
        divL2_norm = sqrt(divL2_norm/sizeX/sizeY/sizeZ)
+   
+       alpha_tol = divL2_norm
+       b_norm = divL2
 
-       tolref=divL2/divL2_norm
-       if(master) print*,"tolref = ",tolref
+       if (divL2_norm /= 0.0) then
+          tolref = divL2/divL2_norm
+         else
+          if (divL2 == 0.0) then
+             tolref = 1.0
+            else
+             stop'ERROR: divL2_norm = 0 while divL2 /= 0'
+          end if
+       end if
+
+       if(master) then
+           print*,"tolref = ",tolref
+
+           if(RHS_diagnostics) then
+              print*,"RHS diagnostics:"
+              print*,"dPudx_norm = ",dPudx_norm
+              print*,"dPvdy_norm = ",dPvdy_norm
+              print*,"dPwdz_norm = ",dPwdz_norm
+              print*,"Q_norm = ",Q_norm
+              print*,"alpha = ",divL2_norm
+              print*,"unscaled |b|=", divL2
+           end if
+       end if 
 
 !      root=0
 !      call mpi_bcast(tolref, 1, mpi_double_precision, root, comm, ierror)
 !      call mpi_barrier(comm,ierror)
-!      achatze
-
-       ! modified by Junhong Wei (20161107)   *** finishing line ***
-
 
     case( "Boussinesq" )
 
@@ -922,26 +769,20 @@ contains
                 vF = var(i,j,k,3); vB = var(i,j-1,k,3)
                 wU = var(i,j,k,4); wD = var(i,j,k-1,4)
 
-!               achatzb
+                bu = Ma**2 * kappa / theta00 * (uR-uL)/dx
+                bv = Ma**2 * kappa / theta00 * (vF-vB)/dy
+                bw = Ma**2 * kappa / theta00 * (wU-wD)/dz
+
+                div = bu + bv + bw
+
 !               introduce a reference norm for the RHS
 !               div = (uR-uL)/dx + (vF-vB)/dy + (wU-wD)/dz
-                bu = (uR-uL)/dx
-                bv = (vF-vB)/dy
-                bw = (wU-wD)/dz
-                div = bu + bv + bw
                 bl2loc = bu**2 + bv**2 + bw**2
-!               achatze
 
-                b(i,j,k) =  Ma**2 * kappa / theta00 * div
-
-!               achatzb
                 if(topography) then
-                   if(topography_mask(i0+i,j0+j,k)) then
-                      b(i,j,k) = 0.0
-                      bl2loc = 0.0
-                   end if
+                   stop'ERROR: topography needs implicit time stepping &
+                      & that is not ready yet for Boussinesq'
                 end if
-!               achatze
 
                 ! check sum for solvability criterion (shoud be zero)
                 ! divSum = divSum + b(i,j,k)
@@ -950,9 +791,7 @@ contains
                 ! divL2 = divL2 + div**2
                 divL2_local = divL2_local + div**2
 
-!               achatzb
                 divL2_norm_local = divL2_norm_local + bl2loc
-!               achatze
 
                 if( abs(div) > divMax ) divMax = abs(div)
 
@@ -960,13 +799,7 @@ contains
           end do
        end do
 
-
-!       ! scale by number of cells   ! modified by Junhong Wei (20161107)
-!       divL2 = sqrt(divL2/nx/ny/nz)   ! modified by Junhong Wei (20161107)
-
-       ! modified by Junhong Wei (20161107)   *** starting line ***
-
-              !MPI: sum divSum_local over all procs
+       !MPI: sum divSum_local over all procs
        root = 0
        call mpi_reduce(divSum_local, divSum, 1, &
             & mpi_double_precision, mpi_sum, root, comm, ierror)
@@ -982,7 +815,6 @@ contains
        call mpi_bcast(divL2, 1, &
             & mpi_double_precision, root, comm, ierror)
 
-!      achatzb
        !MPI: sum divL2_norm_local over all procs
        root = 0
        call mpi_reduce(divL2_norm_local, divL2_norm, 1, &
@@ -990,7 +822,6 @@ contains
        
        call mpi_bcast(divL2_norm, 1, &
             & mpi_double_precision, root, comm, ierror)
-!      achatze
 
        ! scale div
        divL2_local = sqrt(divL2_local/nx/ny/nz)
@@ -1000,11 +831,23 @@ contains
        divL2_local = sqrt(divL2_local/nx/ny/nz)
        divL2 = sqrt(divL2/sizeX/sizeY/sizeZ)
 
-!      achatzb
        divL2_norm_local = sqrt(divL2_norm_local/nx/ny/nz)
        divL2_norm = sqrt(divL2_norm/sizeX/sizeY/sizeZ)
 
-       tolref=divL2/divL2_norm
+       alpha_tol = divL2_norm
+       b_norm = divL2
+
+       if (divL2_norm /= 0.0) then
+          tolref = divL2/divL2_norm
+         else
+          if (divL2 == 0.0) then
+             tolref = 1.0
+            else
+             stop'ERROR: divL2_norm = 0 while divL2 /= 0'
+          end if
+       end if
+
+
        if(master) print*,"tolref = ",tolref
 
 !      root=0
@@ -1012,25 +855,20 @@ contains
 !      call mpi_barrier(comm,ierror)
 !      achatze
 
-       ! modified by Junhong Wei (20161107)   *** finishing line ***
-     
-
     case default
        stop "poissonSolver: unknown case model."
     end select
-
 
     !-------------------------------
     !     Display info on screen
     !-------------------------------
 
-    !    if( onlyinfo ) then   ! modified by Junhong Wei (20161107)
-        if( master .and. onlyinfo ) then   ! modified by Junhong Wei (20161107)
-       
+    if( master .and. onlyinfo ) then
        ! Information on divergence
 
        print*,""
-       print*," Poisson Solver ", trim(poissonSolverType), ": Final state"
+       print*," Poisson Solver ", trim(poissonSolverType), &
+            & ": Final state"
        print*,""
 
        select case ( model ) 
@@ -1042,14 +880,12 @@ contains
           write(*,fmt="(a25,es17.6)") "max(div(u)) [1/s] = ", &
                & divMax*uRef/lRef
 
-!         achatzb
           write(*,fmt="(a25,es17.6)") "rms terms (div(u)) [1/s] = ", &
                & divL2_norm*uRef/lRef
 
           write(*,fmt="(a25,es17.6)") "normalized L2(div(u)) = ", &
                & divL2/divL2_norm
-!         achatze
-          
+         
        case( "pseudo_incompressible" )
 
           write(*,fmt="(a25,es17.6)") "L2(div(Pu)) [Pa/s] = ", &
@@ -1057,15 +893,12 @@ contains
 
           write(*,fmt="(a25,es17.6)") "max(div(Pu)) [Pa/s] = ", &
                & divMax*rhoRef*thetaRef*uRef/lRef
-          
-!         achatzb
+         
           write(*,fmt="(a25,es17.6)") "rms terms (div(Pu)) [Pa/s] = ", &
-               & divL2_norm*rhoRef*thetaRef*uRef/lRef
+                   & divL2_norm*rhoRef*thetaRef*uRef/lRef
 
           write(*,fmt="(a25,es17.6)") "normalized L2(div(Pu)) = ", &
-               & divL2/divL2_norm
-!         achatze
-          
+                   & tolref
        case default
           stop "calc_RHS: unkown case model"
        end select
@@ -1073,18 +906,15 @@ contains
        print*,""
        print*,"-------------------------------------------------"
        print*,""
-
-
-          
-    else
-
-       !       if( giveInfo ) then   ! modified by Junhong Wei (20161107)
-              if( master .and. giveInfo ) then   ! modified by Junhong Wei (20161107)
+      else
+       if( master .and. giveInfo ) then
           print*,""
-          print*," Poisson Solver ", trim(poissonSolverType), ": Initial state"
+          print*," Poisson Solver ", trim(poissonSolverType), &
+               & ": Initial state"
           print*,""
           write(*,fmt="(a25,es17.6)") "Sum over RHS = ", divSum
-          write(*,fmt="(a25,es17.6)") "Sum over scaled RHS  = ", divSumScaled
+          write(*,fmt="(a25,es17.6)") "Sum over scaled RHS  = ", &
+                  & divSumScaled
 
           ! Information on divergence
           select case ( model ) 
@@ -1096,14 +926,12 @@ contains
              write(*,fmt="(a25,es17.6)") "max(div(u)) [1/s] = ", &
                   & divMax*uRef/lRef
 
-!            achatzb
              write(*,fmt="(a25,es17.6)") "rms terms (div(u)) [1/s] = ", &
                   & divL2_norm*uRef/lRef
 
              write(*,fmt="(a25,es17.6)") "normalized L2(div(u)) = ", &
                   & divL2/divL2_norm
-!            achatze
-          
+        
           case( "pseudo_incompressible" )
 
              write(*,fmt="(a25,es17.6)") "L2(div(Pu)) [Pa/s] = ", &
@@ -1112,26 +940,23 @@ contains
              write(*,fmt="(a25,es17.6)") "max(div(Pu)) [Pa/s] = ", &
                   & divMax*rhoRef*thetaRef*uRef/lRef
 
-!            achatzb
-             write(*,fmt="(a25,es17.6)") "rms terms (div(Pu)) [Pa/s] = ", &
-                  & divL2_norm*rhoRef*thetaRef*uRef/lRef
-   
+             write(*,fmt="(a25,es17.6)") "rms terms (div(Pu)) &
+                                       & [Pa/s] = ", &
+                                       & divL2_norm*rhoRef*thetaRef &
+                                       & *uRef/lRef
+ 
              write(*,fmt="(a25,es17.6)") "normalized L2(div(Pu)) = ", &
-                  & divL2/divL2_norm
-!            achatze
-          
+                  & tolref
+        
           case default
              stop "calc_RHS: unkown case model"
           end select
-
        end if
-
     end if
 
   end subroutine calc_RHS
 
-
-  !---------------------------------------------------------------------------
+  !----------------------------------------------------------------------
 
 
   subroutine poissonSolver( b,var,dt,errFlagBicg,nIter,m,opt )
@@ -1142,18 +967,25 @@ contains
 
     ! in/out variables
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         &intent(inout) :: var
+         &intent(in) :: var
     real, intent(in) :: dt
+
     logical, intent(out) :: errFlagBicg
     integer, intent(out) :: nIter
+
     integer, intent(in) :: m
     real, dimension(1:nx,1:ny,1:nz),intent(in) :: b        ! RHS
+
+    ! opt = expl =>
+    ! pressure solver for explicit problem and corresponding correction 
+    ! of the winds
+    ! opt = impl =>
+    ! pressure solver for implicit problem and corresponding correction 
+    ! of the winds and density fluctuations
     character(len=*), intent(in)    :: opt
 
-
-
     ! local vars
-    real, dimension(1:nx,1:ny,1:nz) :: sol      ! solution of Poisson problem
+    real, dimension(1:nx,1:ny,1:nz) :: sol ! solution of Poisson problem
     real :: res
     
     real :: dtInv
@@ -1161,50 +993,76 @@ contains
     ! verbose
     logical, parameter :: giveInfo = .true.
 
-
-
     ! Init
     if (dt == 0.0) stop "poissonSolver: dt = 0.0. Stopping."
     dtInv = 1.0/dt
 
-
     !--------------------------------
     !     Linear equation solver
+    !     solve for dt * dp ...
     !--------------------------------
 
     sol = 0.0
 
     select case( poissonSolverType ) 
 
+    ! bicgstab solver
     case( "bicgstab" )
 
-       call bicgstab(var, b, dt, sol, res, nIter, errFlagBicg, opt)
+       select case( model ) 
+
+       case( "pseudo_incompressible" )
+
+        call val_PsIn(var, dt, opt)
+
+       case( "Boussinesq" )
+
+        stop'ERROR: BiCGStab still to be made ready for Boussinesq'
+
+       case default
+          stop "linOpr: unknown case model"
+       end select
+
+       call bicgstab(b, dt, sol, res, nIter, errFlagBicg, opt)
 
     case( "gcr" ) 
 
-       call gcr(var, b, dt, sol, res, nIter, errFlagBicg)
+       stop'ERROR: no gcr provided anymore'
 
     case( "adi" ) 
 
-       call adi(var, b, dt, sol, res, nIter, errFlagBicg)
+       stop'ERROR: no adi provided anymore'
 
-    case( "hypre" )                                           ! modified by Junhong Wei (2016/07/07)
+    ! hypre solver
+    case( "hypre" )    
 
-       call hypre(var, b, dt, sol, res, nIter, errFlagBicg, opt)   ! modified by Junhong Wei (2016/07/07)
+       select case( model ) 
 
-    case default
-       stop "Unknown PoissonSolver. Stop"
+       case( "pseudo_incompressible" )
+
+        call val_PsIn(var, dt, opt)
+
+       case( "Boussinesq" )
+
+        call val_hypre_Bous
+
+       case default
+          stop "linOpr: unknown case model"
+       end select
+
+       call hypre(b, dt, sol, res, nIter, errFlagBicg, opt)
+  
+       case default
+          stop "Unknown PoissonSolver. Stop"
     end select
 
+    ! now get dp from dt * dp ...
 
-    dp(1:nx,1:ny,1:nz) = dtInv * sol      ! pass solution to pressure corrector
-
+    dp(1:nx,1:ny,1:nz) = dtInv * sol ! pass solution to pressure corrector
 
   end subroutine poissonSolver
 
-
-  !---------------------------------------------------------------------------
-
+  !----------------------------------------------------------------------
 
   subroutine linOprXYZ( var, q, Lq, direction )
     ! --------------------------------------
@@ -1213,7 +1071,7 @@ contains
     ! --------------------------------------
 
     ! in/out variables
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz, nVar), &
          &intent(in) :: var
     real, dimension(1:nx,1:ny,1:nz), intent(out) :: Lq
     real, dimension(0:nx+1,0:ny+1,0:nz+1), intent(inout)  :: q ! with ghost cells
@@ -1398,709 +1256,7 @@ contains
   end subroutine linOprXYZ
 
 
-  !---------------------------------------------------------------------------
-
-
-  subroutine adi(var, b, dt, sol, res, nIter, errFlag)
-    ! --------------------------------------
-    !   ADI scheme for 3D
-    !   cf. Roache, Computational Fluid Dynamics
-    !---------------------------------------
-
-    ! In/Out variables
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         & intent(in) :: var
-    real, dimension(1:nx,1:ny,1:nz), intent(in) :: b        ! RHS 
-    real, intent(in) :: dt
-    real, dimension(1:nx,1:ny,1:nz), intent(inout) :: sol
-    real, intent(out) :: res                     ! residual
-    integer, intent(out) :: nIter
-    logical, intent(out) :: errFlag
-
-    ! Local variables
-    integer :: i,j,k, allocstat, iter, maxIt
-    real :: pStratU, pStratD
-
-    ! Local field
-    real, dimension(1:nx,1:ny,1:nz) :: sol0
-
-
-    ! allocatable fields
-    real, dimension(:,:,:), allocatable :: r,Lx3D
-    real, dimension(:,:,:), allocatable :: Lx,Ly,Lz
-    real, dimension(:,:,:), allocatable :: q,qn,q01,q02
-    real, dimension(:),     allocatable :: left,center,right,rhs
-
-    real :: rhoEdge, AL,AR,AB,AF,AD,AU,AC
-    real :: dx2, dy2, dz2
-
-    ! verbose
-    logical, parameter :: giveInfo = .true.
-
-    ! test variables
-    real :: res0, res01, res02, res03
-
-!   achatzb
-    if(topography) stop 'adi not ready for topography!'
-!   achatze
-
-    ! auxiliary variables
-    dx2 = 1.0/dx**2
-    dy2 = 1.0/dy**2
-    dz2 = 1.0/dz**2
-
-    if( pressureScaling .and. poissonSolverType=="adi" ) &
-         & stop "ADI as poissonSolver: no pressure scaling allowed. Stop."
-
-    ! Set parameter for ADI as Poisson Solver
-    if( poissonSolverType == "adi" ) then
-       maxIt = maxIterPoisson
-       tol = tolPoisson
-    else
-       maxIt = maxIterADI       ! as preconditioner only 1 or 2 iterations
-       tol = 0.0
-    end if
-
-    ! Save input solution
-    sol0 = sol
-
-
-    !---- Allocate fields without ghost cells: r, Lx3D
-    allocate(r(1:nx,1:ny,1:nz), stat=allocstat)
-    if(allocstat/=0) stop "adi:alloc failed"
-    allocate(Lx3D(1:nx,1:ny,1:nz), stat=allocstat)
-    if(allocstat/=0) stop "adi:alloc failed"
-
-    !--- Allocate Lx, Ly, Lz
-    allocate(Lx(1:nx,1:ny,1:nz), stat=allocstat)
-    if(allocstat/=0) stop "adi:alloc failed"
-    allocate(Ly(1:nx,1:ny,1:nz), stat=allocstat)
-    if(allocstat/=0) stop "adi:alloc failed"
-    allocate(Lz(1:nx,1:ny,1:nz), stat=allocstat)
-    if(allocstat/=0) stop "adi:alloc failed"
-
-
-    !---- Allocate fields with ghost cells: q, qn, q01, q02
-    allocate(q(0:nx+1,0:ny+1,0:nz+1), stat=allocstat)
-    if(allocstat/=0) stop "adi:alloc failed"
-    allocate(qn(0:nx+1,0:ny+1,0:nz+1), stat=allocstat)
-    if(allocstat/=0) stop "adi:alloc failed"
-    allocate(q01(0:nx+1,0:ny+1,0:nz+1), stat=allocstat)
-    if(allocstat/=0) stop "adi:alloc failed"
-    allocate(q02(0:nx+1,0:ny+1,0:nz+1), stat=allocstat)
-    if(allocstat/=0) stop "adi:alloc failed"
-
-
-
-    ! Error flag
-    errFlag = .false.    
-
-    ! Init
-    call linOpr( var, sol, Lx3D ) ! -> r = L(x) - b         NOT b - L(x) !!!
-    r = Lx3D - b
-
-
-    !---- Check initial residual
-    res = dt*maxval(abs(r))             ! abort criterium by Smolarkiewicz
-    ! res = maxval(abs(r))  
-    res0 = res
-    print*,"  ADI "
-    if (giveInfo) write(*,fmt="(a25,es17.6)") " Init residual: res0 = ", res
-    if (giveInfo) write(*,fmt="(a25,es17.6)") " tol = ", tol
-    ! comment by Smolarkiewicz: run at least one iteration
-!!$    if (res <= tol) then
-!!$       if(giveInfo) print*," ==> no iteration needed."
-!!$       nIter = 0
-!!$       return
-!!$    end if
-
-
-    ! Loop
-    iteration: do iter = 1,maxIt
-
-       ! Init qn with sol
-       qn(1:nx,1:ny,1:nz) = sol
-
-       !
-       !---------------------------------
-       !    sweep in x direction -> q01
-       !---------------------------------
-       !
-
-       !---- prepare explicit terms Lx, Ly, Lz for rhs
-
-       call linOprXYZ( var, qn, Lx, "x" )
-       call linOprXYZ( var, qn, Ly, "y" )
-       call linOprXYZ( var, qn, Lz, "z" )
-
-
-       !---- set up matrix diagonals for Thomas algorithm
-
-       ! Allocate variables for x sweeps
-       allocate(left(1:nx),stat=allocstat)
-       if(allocstat/=0) stop "adi:alloc failed"
-       allocate(center(1:nx),stat=allocstat) 
-       if(allocstat/=0) stop "adi:alloc failed"
-       allocate(right(1:nx), stat=allocstat)
-       if(allocstat/=0) stop "adi:alloc failed"
-       allocate(rhs(1:nx), stat=allocstat)
-       if(allocstat/=0) stop "adi:alloc failed"
-
-       k_loop_x: do k = 1,nz
-          j_loop_x: do j = 1,ny
-
-             !--- matrix diagonals
-             i_loop_x: do i = 1,nx
-
-                ! A(i+1,j,k)
-                rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
-                AR = dx2 * pStrat(k)**2 / rhoEdge
-                if( pressureScaling ) then
-                   stop "ADI: Please check correct implementation of &
-                        & pressureScaling for ADI."
-                   AR = AR / Pstrat(k) 
-                end if
-                
-                ! A(i-1,j,k)
-                rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
-                AL = dx2 * pStrat(k)**2 / rhoEdge
-                if( pressureScaling ) AL = AL / Pstrat(k)
-
-                ! A(i,j,k)
-                AC = - AL - AR
-
-                left(i) = -0.5 * AL
-                center(i) = 1.0/dtau - 0.5*AC
-                right(i) = -0.5 * AR
-
-             end do i_loop_x
-
-             !---- Right hand side rhs
-
-             rhs =  qn(1:nx,j,k) / dtau + &
-                  & 0.5 * Lx(1:nx,j,k) + &
-                  & Ly(1:nx,j,k) + &
-                  & Lz(1:nx,j,k) - &
-                  & b(1:nx,j,k)
-
-             ! test: switch off BC
-             ! left / right boundary terms 
-             rhs(1) = rhs(1) - left(1)*qn(nx,j,k)
-             rhs(nx) = rhs(nx) - right(nx)*qn(1,j,k)
-             ! end test
-
-             !---- solve tridiagonal system
-             call thomas( left, center, right, q01(1:nx,j,k), rhs )
-
-          end do j_loop_x
-       end do k_loop_x
-
-
-       ! test quality of q01
-!!$
-!!$    call linOpr( var, q01(1:nx,1:ny,1:nz), Lx3D ) ! -> r = L(x) - b
-!!$        NOT b - L(x) !!!
-!!$    r = Lx3D - b
-!!$    res01 = dt*maxval(abs(r))             ! abort criterium by Smolarkiewicz
-!!$    if (giveInfo) write(*,fmt="(a25,es17.6)") " res(q01) = ", res01
-!!$
-       ! end test       
-
-       !---- Deallocate variables for x sweep
-       deallocate(Left,stat=allocstat)
-       if(allocstat/=0) stop "adi:dealloc failed"
-       deallocate(Center,stat=allocstat)
-       if(allocstat/=0) stop "adi:dealloc failed"
-       deallocate(Right,stat=allocstat)
-       if(allocstat/=0) stop "adi:dealloc failed"
-       deallocate(rhs,stat=allocstat)
-       if(allocstat/=0) stop "adi:dealloc failed"
-
-       !
-       !---------------------------------
-       !    sweep in y direction -> q02 
-       !---------------------------------
-       !
-
-       !---- prepare explicit terms Lx, Ly, Lz for rhs
-       q = 0.5*(q01+qn)
-       call linOprXYZ( var, q, Lx, "x" )
-       ! Ly, Lz can be re-used
-
-       !---- set up matrix diagonals for Thomas algorithm
-
-       ! Allocate variables for x sweeps
-       allocate(left(1:ny), stat=allocstat)
-       if(allocstat/=0) stop "adi:alloc failed"
-       allocate(center(1:ny), stat=allocstat)
-       if(allocstat/=0) stop "adi:alloc failed"
-       allocate(right(1:ny), stat=allocstat)
-       if(allocstat/=0) stop "adi:alloc failed"
-       allocate(rhs(1:ny), stat=allocstat)
-       if(allocstat/=0) stop "adi:alloc failed"
-
-       k_loop_y: do k = 1,nz
-          i_loop_y: do i = 1,nx
-
-             !--- matrix diagonals
-             j_loop_y: do j = 1,ny
-
-                ! A(i,j+1,k)
-                rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
-                AF = dy2 * pStrat(k)**2 / rhoEdge
-                if( pressureScaling ) AF = AF / Pstrat(k)
-
-
-                ! A(i,j-1,k)
-                rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
-                AB = dy2 * pStrat(k)**2 / rhoEdge
-                if( pressureScaling ) AB = AB / Pstrat(k)
-
-                ! A(i,j,k)
-                AC = -AB - AF
-
-                left(j) = -0.5*AB
-                center(j) = 1.0/dtau - 0.5*AC
-                right(j) = -0.5*AF
-
-             end do j_loop_y
-
-             !---- Right hand side rhs
-
-             rhs =  qn(i,1:ny,k) / dtau + &
-                  & Lx(i,1:ny,k) + &
-                  & 0.5*Ly(i,1:ny,k) + &
-                  & Lz(i,1:ny,k) - &
-                  & b(i,1:ny,k)
-
-             ! forward / backward boundary terms 
-             rhs(1) = rhs(1) - left(1)*q01(i,ny,k)
-             rhs(ny) = rhs(ny) - right(ny)*q01(i,1,k)
-
-             !---- solve tridiagonal system
-             call thomas( left, center, right, q02(i,1:ny,k), rhs )
-
-
-          end do i_loop_y
-       end do k_loop_y
-
-!!$! test quality of q02
-!!$
-!!$    call linOpr( var, q02(1:nx,1:ny,1:nz), Lx3D ) ! -> r = L(x) - b                    NOT b - L(x) !!!
-!!$    r = Lx3D - b
-!!$    res02 = dt*maxval(abs(r))             ! abort criterium by Smolarkiewicz
-!!$    if (giveInfo) write(*,fmt="(a25,es17.6)") " res(q02) = ", res02
-!!$
-!!$! end test       
-
-
-       !---- Deallocate variables for x sweep
-       deallocate(Left,stat=allocstat)
-       if(allocstat/=0) stop "adi:dealloc failed"
-       deallocate(Center,stat=allocstat)
-       if(allocstat/=0) stop "adi:dealloc failed"
-       deallocate(Right,stat=allocstat)
-       if(allocstat/=0) stop "adi:dealloc failed"
-       deallocate(rhs,stat=allocstat)
-       if(allocstat/=0) stop "adi:dealloc failed"
-
-
-
-       !
-       !---------------------------------
-       !    sweep in z direction -> sol
-       !---------------------------------
-       !
-
-       !---- prepare explicit terms Lx, Ly, Lz for rhs
-       q =  0.5*(q02+qn)
-       call linOprXYZ( var, q, Ly, "y" )
-       ! Lx, Lz can be re-used
-
-       !---- set up matrix diagonals for Thomas algorithm
-
-       ! Allocate variables for x sweeps
-       allocate(left(1:nz), stat=allocstat)
-       if(allocstat/=0) stop "adi:alloc failed"
-       allocate(center(1:nz), stat=allocstat)
-       if(allocstat/=0) stop "adi:alloc failed"
-       allocate(right(1:nz), stat=allocstat)
-       if(allocstat/=0) stop "adi:alloc failed"
-       allocate(rhs(1:nz), stat=allocstat)
-       if(allocstat/=0) stop "adi:alloc failed"
-
-       j_loop_z: do j = 1,ny
-          i_loop_z: do i = 1,nx
-
-             !--- matrix diagonals
-             k_loop_z: do k = 1,nz
-
-                !  A(i,j,k+1) 
-                if (k<nz) then
-
-                   rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
-                   AU = dz2 * pStratU**2 / rhoEdge
-                   if( pressureScaling ) AU = AU / PstratTilde(k)
-
-                else ! k = nz -> upwad boundary (solid wall) -> A(i,j,nz+1) = 0
-                   AU = 0.0
-                end if
-
-                !  A(i,j,k-1) 
-                if (k>1) then 
-
-                   rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
-                   AD = dz2 * pStratD**2 / rhoEdge
-                   if( pressureScaling ) AD = AD / PstratTilde(k-1)
-
-                else ! k = 1 -> downward boundary (solid wall) -> A(i,j,0) = 0
-                   AD = 0.0
-                end if
-
-                !  A(i,j,k) 
-                AC = - AU - AD
-
-                left(k) = -0.5 * AD
-                center(k) = 1.0/dtau - 0.5*AC
-                right(k) = -0.5 * AU
-
-             end do k_loop_z
-
-             !---- Right hand side rhs
-
-
-             rhs =  qn(i,j,1:nz) / dtau + &
-                  & Lx(i,j,1:nz) + &
-                  & Ly(i,j,1:nz) + &
-                  & 0.5*Lz(i,j,1:nz) - &
-                  & b(i,j,1:nz)
-
-             !---- solve tridiagonal system
-             call thomas( left, center, right, sol(i,j,1:nz), rhs )
-
-          end do i_loop_z
-       end do j_loop_z
-
-       ! test quality of sol
-!!$
-!!$    call linOpr( var, sol(1:nx,1:ny,1:nz), Lx3D ) ! -> r = L(x) - b
-!!$  NOT b - L(x) !!!
-!!$    r = Lx3D - b
-!!$    res03 = dt*maxval(abs(r))             ! abort criterium by Smolarkiewicz
-!!$    if (giveInfo) write(*,fmt="(a25,es17.6)") " res(sol) = ", res03
-!!$    print*,"---------------------------------------------------------"
-!!$
-       ! end test       
-
-
-       !---- Deallocate variables for x sweep
-       deallocate(Left,stat=allocstat)
-       if(allocstat/=0) stop "adi:dealloc failed"
-       deallocate(Center,stat=allocstat)
-       if(allocstat/=0) stop "adi:dealloc failed"
-       deallocate(Right,stat=allocstat)
-       if(allocstat/=0) stop "adi:dealloc failed"
-       deallocate(rhs,stat=allocstat)
-       if(allocstat/=0) stop "adi:dealloc failed"
-
-
-       !
-       !---------------------------------
-       !    Evaluate result
-       !---------------------------------
-       !
-
-       call linOpr( var, sol, Lx3D ) ! -> r = L(x) - b, NOT b - L(x) !!!
-       r = Lx3D - b
-       res = dt*maxval(abs(r))    ! abort criterion by Smolarkiewiecz
-       !  res = maxval(abs(r))            
-
-       !---- Abort criterium 
-       if( poissonSolverType=="adi" ) then ! Abort only for ADI as Poisson solver 
-          if (res <= tol) then
-             if (giveInfo)  then 
-                write(*,fmt="(a25,i25)") " Nb.of iterations: iter = ", iter
-                write(*,fmt="(a25,es17.6)") " Final residual: res = ", res
-                print*,"--------------------------------------------------"
-                print*,""
-             end if
-             nIter = iter
-             return
-          end if
-       end if
-
-
-       ! Treatment for ADI as preconditioner
-       if( preconditioner == "adi") then
-          write(*,fmt="(a25,es17.6)") " ADI residual = ", res
-          write(*,fmt="(a25,f25.18)") " -> residual reduction = ", res/res0
-          ! Return old solution if no residual reduction
-          if( res/res0 >= 1.0 ) then
-             print*,"==> no residual reduction!!!"
-             !             dtau = 0.9*dtau
-             !             write(*,fmt="(a25,f25.18)") " reduce dtau by 10%. dtau = ", dtau
-             errFlag = .true.
-             exit iteration
-          end if
-       end if
-
-
-
-       !  emergency exit 
-       if( poissonSolverType=="adi" ) then 
-          if (res > 1.0) then
-             if (giveInfo)  then 
-                print*,"Emergency exit from ADI: no convergence "
-                write(*,fmt="(a25,i25)") " Nb.of iterations: iter = ", iter
-                write(*,fmt="(a25,es17.6)") " Final residual: res = ", res
-                print*,"----------------- stopping -------------------------"
-                print*,""
-                stop
-             end if
-             nIter = iter
-             return
-          end if
-       end if
-       !  emergency exit
-
-
-    end do iteration
-
-    ! Max iterations
-    if( poissonSolverType=="adi" ) then  
-       write(*,fmt="(a25,i25)") " ADI: max iterations!!!", &
-            & maxIt
-       call linOpr( var, sol, Lx3D ) ! -> r = L(x) - b     NOT b - L(x) !!!
-       r = Lx3D - b
-       res = dt*maxval(abs(r))     ! abort crit by Smolarkiewicz, unstable!?
-       !  res = maxval(abs(r))            
-       write(*,fmt="(a25,es17.6)") " Final residual: res = ", res
-       print*,"--------------------------------------------------"; print*,""
-       errFlag = .true.
-       nIter = iter
-    end if
-
-    !---- Deallocate fields without ghost cells
-    deallocate(r, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
-    deallocate(Lx3D, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
-
-    !--- Deallocate Lx, Ly, Lz
-    deallocate(Lx, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
-    deallocate(Ly, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
-    deallocate(Lz, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
-
-    !---- Deallocate fields with ghost cells: q, q01, q02
-    deallocate(q, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
-    deallocate(qn, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
-    deallocate(q01, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
-    deallocate(q02, stat=allocstat); if(allocstat/=0) stop "adi:dealloc failed"
-
-
-
-  end subroutine adi
-
-
-  !---------------------------------------------------------------------------
-
-
-  subroutine adi_z(var, b, dt, sol, res, nIter, errFlag)
-    ! --------------------------------------
-    !   ADI sweep in z-direction
-    !   cf. Skamarock et al., MWR 1997 
-    !   can only be used as preconditioner
-    !---------------------------------------
-
-    ! In/Out variables
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         & intent(in) :: var
-    real, dimension(1:nx,1:ny,1:nz), intent(in) :: b        ! RHS 
-    real, intent(in) :: dt
-    real, dimension(1:nx,1:ny,1:nz), intent(inout) :: sol
-    real, intent(out) :: res                     ! residual
-    integer, intent(out) :: nIter
-    logical, intent(out) :: errFlag
-
-    ! Local variables
-    integer :: i,j,k, allocstat, iter, maxIt
-    real :: pStratU, pStratD
-
-    ! Local field
-    real, dimension(1:nx,1:ny,1:nz) :: sol0, solNAG
-
-
-
-    ! allocatable fields
-    real, dimension(1:nx,1:ny,1:nz) :: r, Lx3D
-    real, dimension(1:nx,1:ny,1:nz)  :: Lx, Ly, Lz
-    real, dimension(0:nx+1,0:ny+1,0:nz+1)  :: q, qn
-    real, dimension(1:nz)      :: left, center, right, rhs
-
-    real :: rhoEdge, AD, AU, AC
-    real :: dx2, dy2, dz2
-
-    ! verbose
-    logical, parameter :: giveInfo = .true.
-
-    ! test variables
-    real :: res0
-
-    ! NAG routine variables
-    integer :: info
-    real, dimension(1:nz) :: diag, rhs0 
-    real, dimension(1:nz-1) :: lower_diag, upper_diag
-
-!   achatzb
-    if(topography) stop 'adi_z not ready for topography!'
-!   achatze
-
-    ! define auxiliary variables
-    dx2 = 1.0/dx**2
-    dy2 = 1.0/dy**2
-    dz2 = 1.0/dz**2
-
-    maxIt = maxIterADI       ! as preconditioner only 1 or 2 iterations
-    tol = 0.0
-
-    ! Save input solution
-    sol0 = sol
-
-
-    ! Error flag
-    errFlag = .false.    
-
-    ! Init
-    call linOpr( var, sol, Lx3D ) ! -> r = L(x) - b    NOT b - L(x) !!!
-    r = Lx3D - b
-
-
-    !---- Check initial residual
-    res = dt*maxval(abs(r))             ! abort criterium by Smolarkiewicz
-    !   res = maxval(abs(r))
-    res0 = res
-    print*,"  ADI "
-    if (giveInfo) write(*,fmt="(a25,es17.6)") " Init residual: res0 = ", res
-    if (giveInfo) write(*,fmt="(a25,es17.6)") " tol = ", tol
-!!$    if (res <= tol) then
-!!$       if(giveInfo) print*," ==> no iteration needed."
-!!$       nIter = 0
-!!$       return
-!!$    end if
-
-
-    ! Loop
-    iteration: do iter = 1,maxIt
-
-       ! Init qn with sol
-       qn(1:nx,1:ny,1:nz) = sol
-
-       !---- prepare explicit terms Lx, Ly for rhs
-
-       call linOprXYZ( var, qn, Lx, "x" )
-       call linOprXYZ( var, qn, Ly, "y" )
-
-       !
-       !---------------------------------
-       !    sweep in z direction -> sol
-       !---------------------------------
-       !
-
-       !---- set up matrix diagonals for Thomas algorithm
-       q = qn
-
-       j_loop_z: do j = 1,ny
-          i_loop_z: do i = 1,nx
-
-             !--- matrix diagonals
-             k_loop_z: do k = 1,nz
-
-                !  A(i,j,k+1) 
-                if (k<nz) then
-
-                   rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
-                   AU = dz2 * pStratU**2 / rhoEdge
-                   if( pressureScaling ) AU = AU / PstratTilde(k)
-
-                else ! k = nz -> upwad boundary (solid wall) -> A(i,j,nz+1) = 0
-                   AU = 0.0
-                end if
-
-                !  A(i,j,k-1) 
-                if (k>1) then 
-
-                   rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
-                   AD = dz2 * pStratD**2 / rhoEdge
-                   if( pressureScaling ) AD = AD / PstratTilde(k-1)
-
-                else ! k = 1 -> downward boundary (solid wall) -> A(i,j,0) = 0
-                   AD = 0.0
-                end if
-
-                !  A(i,j,k) 
-                AC = - AU - AD
-
-                left(k) = - AD
-                center(k) = 1.0/dtau - AC
-                right(k) = - AU
-
-             end do k_loop_z
-
-
-             !---- Right hand side rhs
-
-             rhs =  qn(i,j,1:nz) / dtau + &
-                  & Lx(i,j,1:nz) + &
-                  & Ly(i,j,1:nz) - &
-                  & b(i,j,1:nz)
-
-
-
-             !---- solve tridiagonal system
-             if ( useNAG ) then
-
-!                call DGTSV(nz,1,left(2:nz),center,right(1:nz-1),rhs,nz,info)
-!                sol(i,j,1:nz) = rhs
-
-                 print*,"no NAG option!!! ==> exit!"
-                 STOP
-
-             else
-                call thomas( left, center, right, sol(i,j,1:nz), rhs )
-             end if
-
-
-
-          end do i_loop_z
-       end do j_loop_z
-
-
-       !
-       !---------------------------------
-       !    Evaluate result
-       !---------------------------------
-       !
-
-       call linOpr( var, sol, Lx3D ) ! -> r = L(x) - b       NOT b - L(x) !!!
-       r = Lx3D - b
-       res = dt*maxval(abs(r)) ! abort crit by Smolarkiewicz, unstable!?
-       !  res = maxval(abs(r))            
-    end do iteration
-    nIter = iter - 1
-
-    write(*,fmt="(a25,es17.6)") " ADI residual = ", res
-    write(*,fmt="(a25,f25.18)") " -> residual reduction = ", res/res0
-    ! Return input / start solution if no residual reduction
-    if( res/res0 >= 1.0 ) then
-       print*,"==> no residual reduction!!!"
-       dtau = 0.9*dtau
-       write(*,fmt="(a25,f25.18)") " reduce dtau by 10%. dtau = ", dtau
-       errFlag = .true.
-    end if
-
-
-  end subroutine adi_z
-
-
-  !---------------------------------------------------------------------------
+  !----------------------------------------------------------------------
 
 
   subroutine thomas( l, c, r, sol, b ) 
@@ -2140,225 +1296,47 @@ contains
 
   end subroutine thomas
 
+  
+  !----------------------------------------------------------------------
 
-  !---------------------------------------------------------------------------
-
-
-  subroutine gcr(var, b, dt, sol, res, nIter, errFlag)
-    ! --------------------------------------
-    !   GCR(k) scheme using linear operator
-    !   cf. Skamarock et al., AMS 1997
-    !---------------------------------------
-
-    ! In/Out variables
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         & intent(in) :: var
-    real, dimension(1:nx,1:ny,1:nz), intent(in) :: b        ! RHS 
-    real, intent(in) :: dt
-    real, dimension(1:nx,1:ny,1:nz), intent(inout) :: sol
-    real, intent(out) :: res                     ! residual
-    integer, intent(out) :: nIter
-    logical, intent(out) :: errFlag
-
-    ! Local parameters
-    integer  :: maxIt
-
-    ! Local variables
-    integer :: i,j,k, allocstat
-    real, dimension(:,:,:), allocatable :: r,Lx,p,Lp,q,Lq
-    real :: alpha, beta
-
-    ! Preconditioner variables
-    logical :: errFlagPrec
-    integer :: nIterPrec
-    real :: dtPrec, resPrec
-
-
-    ! verbose
-    logical, parameter :: giveInfo = .true.
-
-
-    !---- Set parameters
-    maxIt = maxIterPoisson
-    tol = tolPoisson
-
-
-    !---- Allocate local fields
-    allocate(r(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/gcr:alloc failed"
-    allocate(Lx(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/gcr:alloc failed"
-    allocate(p(1:nx,1:ny,1:nz), stat=allocstat);if(allocstat/=0) &
-         & stop "algebra.f90/gcr:alloc failed"
-    allocate(Lp(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/gcr:alloc failed"
-    allocate(q(1:nx,1:ny,1:nz), stat=allocstat);  if(allocstat/=0) &
-         & stop "algebra.f90/gcr:alloc failed"
-    allocate(Lq(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/gcr:alloc failed"
-
-    ! Error flag
-    errFlag = .false.    
-
-    ! Init
-    call linOpr( var, sol, Lx ) ! -> r = b - L(x)
-    r = Lx - b
-
-    select case( preconditioner )
-
-    case( "adi" )
-       dtPrec = 1.0
-       p = 0.0
-       call adi(var, r, dtPrec, p, resPrec, nIterPrec, errFlagPrec)
-       if (errFlagPrec) p = r   ! ignore adi in case of error
-    case( "adi_z" )
-       dtPrec = 1.0
-       p = 0.0
-       call adi(var, r, dtPrec, p, resPrec, nIterPrec, errFlagPrec)
-       if (errFlagPrec) p = r    ! ignore adi in case of error
-    case default
-       p = r       ! no preconditioning
-    end select
-
-    call linOpr( var, p, Lp )   ! -> Lp
-
-
-    !---- Check initial residual
-    res = dt*maxval(abs(r))             ! abort criterium by Smolarkiewicz
-    !    res = maxval(abs(r)) 
-    print*," GCR "
-    if (giveInfo) write(*,fmt="(a25,es17.6)") " Init GCR residual = ", res
-    if (giveInfo) write(*,fmt="(a25,es17.6)") " tol = ", tol
-!!$    if (res <= tol) then
-!!$       if(giveInfo) print*," ==> no iteration needed."
-!!$       nIter = 0
-!!$       return
-!!$    end if
-
-
-    ! Loop
-    iteration: do j = 1,maxIt
-
-       beta = - dot_product3D(r,Lp) / dot_product3D(Lp,Lp)
-
-       sol = sol + beta*p
-
-       r = r + beta*Lp       
-
-       !---- Abort criterium 
-       res = dt*maxval(abs(r))    ! by Smolarkiewicz, unstable?!
-       !  res = maxval(abs(r))            
-       if (res <= tol) then
-          if (giveInfo)  then 
-             write(*,fmt="(a25,i25)") " Nb.of GCR iterations = ", j
-             write(*,fmt="(a25,es17.6)") " Final GCR residual = ", res
-             print*,"--------------------------------------------------"
-             print*,""
-          end if
-          nIter = j
-          return
-       end if
-
-       !---- Precondition residual Lp*q = r
-       ! -> b = r
-       ! -> sol = q
-       ! -> nIter = 
-       ! -> dt = 1.0
-       select case( preconditioner )
-
-       case( "adi" )
-          dtPrec = 1.0
-          q = 0.0       ! initial guess 
-          call adi(var, r, dtPrec, q, resPrec, nIterPrec, errFlagPrec)
-          if (errFlagPrec) q = r    ! ignore adi in case of error
-       case( "adi_z" )
-          dtPrec = 1.0
-          q = 0.0       ! initial guess
-          call adi_z(var, r, dtPrec, q, resPrec, nIterPrec, errFlagPrec)
-          if (errFlagPrec) q = r    ! ignore adi in case of error
-       case default
-          q = r       ! no preconditioning
-       end select
-
-
-       call linOpr( var, q, Lq )   ! -> Lq
-
-       alpha = - dot_product3D(Lq,Lp) / dot_product3D(Lp,Lp)
-
-       p = q + alpha*p
-
-       Lp = Lq + alpha*Lp
-
-    end do iteration
-
-    ! Max iterations
-    write(*,fmt="(a25,i25)") " GCR: max iterations!!!", &
-         & maxIt
-    if (giveInfo)  then 
-       ! res = dt*maxval(abs(r)) ! unstable
-       res = maxval(abs(r))
-       write(*,fmt="(a25,es17.6)") " Final GCR residual = ", res
-    end if
-    print*,"--------------------------------------------------"; print*,""
-    errFlag = .true.
-    nIter = j
-
-    !---- Deallocate local fields: r,Lx,p,Lp,q,Lq
-    deallocate(r, stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/gcr:dealloc failed"
-    deallocate(Lx, stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/gcr:dealloc failed"
-    deallocate(p,stat=allocstat);if(allocstat/=0) &
-         & stop "algebra.f90/gcr:dealloc failed"
-    deallocate(Lp, stat=allocstat);if(allocstat/=0) &
-         & stop "algebra.f90/gcr:dealloc failed"
-    deallocate(q, stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/gcr:dealloc failed"
-    deallocate(Lq, stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/gcr:dealloc failed"
-
-
-  end subroutine gcr
-
-
-  !---------------------------------------------------------------------------
-
-
-  subroutine bicgstab(var, b, dt, sol, res, nIter, errFlag, opt)
+  subroutine bicgstab(b, dt, sol, res, nIter, errFlag, opt)
     ! --------------------------------------
     !    BiCGStab using linear operator
+    !    preconditioner applied via A M^-1 M x = b
     !---------------------------------------
 
     ! in/out variables
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         & intent(in) :: var
     real, dimension(1:nx,1:ny,1:nz), intent(in) :: b        ! RHS 
     real, intent(in) :: dt
     real, dimension(1:nx,1:ny,1:nz), intent(inout) :: sol
     real, intent(out) :: res                     ! residual
     integer, intent(out) :: nIter
     logical, intent(out) :: errFlag
+
+    ! opt = expl =>
+    ! pressure solver for explicit problem and corresponding correction 
+    ! of the winds
+    ! opt = impl =>
+    ! pressure solver for implicit problem and corresponding correction 
+    ! of the winds and density fluctuations
     character(len=*), intent(in)    :: opt
-    
 
     ! Local parameters
     integer  :: maxIt
 
     ! local variables
     integer :: i,j,k, allocstat
-    real, dimension(:,:,:), allocatable :: p,r0,rOld,r,s,t,v, matVec
+    integer :: j_b
+    real, dimension(:,:,:), allocatable :: p,r0,rOld,r,s,t,v, matVec, v_pc
     real :: alpha, beta, omega
 
     ! verbose
     logical, parameter :: giveInfo = .true.
 
-    ! modified by Junhong Wei (20161107) *** starting line ***
-
     ! MPI stuff
     integer :: root
     real :: res_local
 
-!xxxx
     if( giveInfo .and. master ) then
        print*,""
        print*,"----------------------------------------------"
@@ -2367,17 +1345,32 @@ contains
        print*,""
     end if
 
-    ! modified by Junhong Wei (20161107) *** finishing line ***
+    sol = 0.0
 
     ! Set parameters
     maxIt = maxIterPoisson
-    if( opt == 'initial' ) then
-       print*,"bicgstab: use tolInitial = ", tolInitial
-       tol = tolInitial
-    else
+
+    !if( opt == 'initial' ) then
+    !   print*,"bicgstab: use tolInitial = ", tolInitial
+    !   tol = tolInitial
+    !else
+    !   tol = tolPoisson
+    !end if
+
+    ! modified convergence criterion so that iterations stop when either
+    ! (a) tolcrit = abs  =>  |Ax - b| < eps b_*
+    !     with b_* a suitable norm deciding whether b (= the divergence 
+    !     criterion for the winds from the predictor) is small or not
+    ! (b) tolcrit = rel  =>  |Ax - b| < eps |b|
+    ! here eps = tolPoisson is the user-set convergence criterion
+    ! hypre has the criterion |Ax - b| < tol * |b|, hence, with
+    ! tolref = divL2/divL2_norm = |b|/b_*
+
+    if (tolcrit == "abs") then
+       tol = tolPoisson/tolref
+      else if (tolcrit == "rel") then
        tol = tolPoisson
     end if
-    
 
     ! Allocate local fields
     allocate(p(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
@@ -2396,198 +1389,505 @@ contains
          & stop "bicgstab:alloc failed"
     allocate(matVec(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
          & stop "bicgstab:alloc failed"
+    allocate(v_pc(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:alloc failed"
 
     ! error flag
     errFlag = .false.    
 
     ! Init
     ! r0 = b - Ax
-    call linOpr( var, sol, matVec )
+    call linOpr( sol, matVec, opt )
     r0 = b - matVec    
     p = r0
     r = r0
 
-!    ! check initial residual   ! modified by Junhong Wei (20161107)
-!    ! old    res = norm3D(r)   ! modified by Junhong Wei (20161107)
-!    res = dt*maxval(abs(r))             ! abort criterion by Smolarkiewicz   ! modified by Junhong Wei (20161107)
-!    !   res = maxval(abs(r))    ! modified by Junhong Wei (20161107)
-!    print*,""   ! modified by Junhong Wei (20161107)
-!    print*," BiCGStab solver: "   ! modified by Junhong Wei (20161107)
-!    if (giveInfo) write(*,fmt="(a25,es17.6)") &   ! modified by Junhong Wei (20161107)
-!         & " Initial residual: res = ", res   ! modified by Junhong Wei (20161107)
-!    if (giveInfo) write(*,fmt="(a25,es17.6)") " tol = ", tol   ! modified by Junhong Wei (20161107)
-! !!$    if (res <= tol) then   ! modified by Junhong Wei (20161107)
-! !!$       if(giveInfo) print*," ==> no iteration needed."   ! modified by Junhong Wei (20161107)
-! !!$       nIter = 0   ! modified by Junhong Wei (20161107)
-! !!$       return   ! modified by Junhong Wei (20161107)
-    ! !!$    end if   ! modified by Junhong Wei (20161107)
+    res_local = 0.0
+    do k=1,nz
+       do j=1,ny
+          do i=1,nx
+             res_local = res_local + r(i,j,k)**2
+          end do
+       end do
+    end do
 
-    
-
-    ! modified by Junhong Wei (20161107) *** starting line ***
-
-    !--------------------------------------
-    !   Abort criterion by Smolarkiewicz
-    !--------------------------------------
-    ! check initial residual
-    ! old    res = norm3D(r)
-    
-    res_local = dt*maxval(abs(r)) 
-    
     !MPI find global residual
     root = 0
     call mpi_reduce(res_local, res, 1, mpi_double_precision,&
-         & mpi_max, root, comm, ierror)
+         & mpi_sum, root, comm, ierror)
     
     call mpi_bcast(res, 1, mpi_double_precision, root, comm, ierror)
 
-    !xxxx
-    print"(a,i3,2es10.1)","bicgstab: rank, res_local, res", rank, res_local, res
-    
+    res = sqrt(res/sizeX/sizeY/sizeZ)
+
     if( master ) then
        print*,""
        print*," BiCGStab solver: "
-       if (giveInfo) write(*,fmt="(a25,es17.6)") &
+       if (res == 0.0) then
+          if (giveInfo) write(*,fmt="(a25,es17.6)") &
             & " Initial residual: res = ", res
+         else
+          if (giveInfo) write(*,fmt="(a25,es17.6)") &
+            & " Initial residual: res = ", res/b_norm
+       end if
        if (giveInfo) write(*,fmt="(a25,es17.6)") " tol = ", tol
     end if
-    if (res <= tol) then
+
+    if (res == 0.0 .or. res/b_norm <= tol) then
        if(master .and. giveInfo) print*," ==> no iteration needed."
        nIter = 0
-!xxx   wait for all processes and return
-!       call mpi_barrier(comm,ierror)
        return
     end if
 
-    ! modified by Junhong Wei (20161107) *** finishing line ***
-
-    
     ! Loop
-    iteration: do j = 1,maxIt
+
+    iteration: do j_b = 1,maxIt
 
        ! v = A*p
-       call linOpr( var, p, matVec )
+       if (preconditioner == 'yes') then
+          call preCond( p, v_pc)
+         else
+          v_pc = p
+       end if
+       call linOpr( v_pc, matVec, opt )
        v = matVec
 
-       !       alpha = dot_product3D(r,r0) / dot_product3D(v,r0) ! modified by Junhong Wei (20161107)
-              alpha = dot_product3D_glob(r,r0) / dot_product3D_glob(v,r0) ! modified by Junhong Wei (20161107)
+       alpha = dot_product3D_glob(r,r0) / dot_product3D_glob(v,r0)
        s = r - alpha*v
 
        ! t = A*s
-       call linOpr( var, s, matVec )
+       if (preconditioner == 'yes') then
+          call preCond( s, v_pc)
+         else
+          v_pc = s
+       end if
+       call linOpr( v_pc, matVec, opt )
        t = matVec
 
-       !       omega = dot_product3D(t,s) / dot_product3D(t,t) ! modified by Junhong Wei (20161107)
-              omega = dot_product3D_glob(t,s) / dot_product3D_glob(t,t) ! modified by Junhong Wei (20161107)
+       omega = dot_product3D_glob(t,s) / dot_product3D_glob(t,t)
        sol = sol + alpha*p + omega*s
 
        rOld = r
        r = s - omega*t
 
-       ! modified by Junhong Wei (20161107) *** starting line ***
-
-!       !---- Abort criterium 
-!       ! old    res = norm3D(r)
-!       res = dt*maxval(abs(r))     ! by Smolarkiewicz
-!       !  res = maxval(abs(r))
-!       if (res <= tol) then
-!          if (giveInfo)  then 
-!             write(*,fmt="(a25,i25)") " Nb.of iterations: j = ", j
-!             write(*,fmt="(a25,es17.6)") " Final residual: res = ", res
-!             print*,""
-!          end if
-!          nIter = j
-!          return
-!       end if
-!
-!       beta = alpha/omega * dot_product3D(r,r0) / dot_product3D(rOld,r0)
-       !       p = r + beta*(p-omega*v)
-
        !-----------------------
-       !   Abort criterium 
+       !   Abort criterion 
        !-----------------------
-       res_local = dt*maxval(abs(r))     ! by Smolarkiewicz
+
+       res_local = 0.0
+       do k=1,nz
+          do j=1,ny
+             do i=1,nx
+                res_local = res_local + r(i,j,k)**2
+             end do
+          end do
+       end do
 
        !MPI find global residual
        root = 0
        call mpi_reduce(res_local, res, 1, mpi_double_precision,&
-            & mpi_max, root, comm, ierror)
-       
+            & mpi_sum, root, comm, ierror)
+    
        call mpi_bcast(res, 1, mpi_double_precision, root, comm, ierror)
-
       
-       if (res <= tol) then
+       res = sqrt(res/sizeX/sizeY/sizeZ)
+
+       if (res/b_norm <= tol) then
           if (master .and. giveInfo)  then 
-             write(*,fmt="(a25,i25)") " Nb.of iterations: j = ", j
-             write(*,fmt="(a25,es17.6)") " Final residual: res = ", res
+             write(*,fmt="(a25,i25)") " Nb.of iterations: j = ", j_b
+             write(*,fmt="(a25,es17.6)") " Final residual: res = ", &
+                                         & res/b_norm
              print*,""
           end if
-          nIter = j
-!xxx      wait for all processes and return
-!          call mpi_barrier(comm, ierror)
+
+          nIter = j_b
+
+          if (preconditioner == 'yes') then
+             s = sol
+             call preCond( s, sol)
+          end if
+
           return
        end if
 
-       beta = alpha/omega * dot_product3D_glob(r,r0) / dot_product3D_glob(rOld,r0)
+       beta &
+       = alpha/omega &
+         * dot_product3D_glob(r,r0) / dot_product3D_glob(rOld,r0)
        p = r + beta*(p-omega*v)
-
-       ! modified by Junhong Wei (20161107) *** finishing line ***
 
     end do iteration
 
-    ! max iterations
-    if( master ) then ! modified by Junhong Wei (20161107)
-    write(*,fmt="(a25,i25)") " Bicgstab: max iterations!!!", &
-         & maxIt
-    if (giveInfo)  then 
-       res = dt*maxval(abs(r))
-       write(*,fmt="(a25,es17.6)") " Final BICGSTAB residual = ", res
-    end if
-    print*,"--------------------------------------------------"; print*,""
-    end if ! modified by Junhong Wei (20161107)
-    errFlag = .true.
-    nIter = j
+    ! max iteration
 
+    if( master ) then ! modified by Junhong Wei (20161107)
+       write(*,fmt="(a25,i25)") " Bicgstab: max iterations!!!", maxIt
+       write(*,fmt="(a25,es17.6)") " Final BICGSTAB residual = ", &
+                                 & res/b_norm
+       print*,"--------------------------------------------------" 
+       print*,""
+    end if ! modified by Junhong Wei (20161107)
+
+    errFlag = .true.
+    nIter = j_b
 
     ! deallocate local fields
     deallocate(p, stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/bicgstab:dealloc failed"
+         & stop "bicgstab:dealloc p failed"
     deallocate(r0, stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/bicgstab:dealloc failed"
+         & stop "bicgstab:dealloc r0 failed"
     deallocate(rOld,stat=allocstat);if(allocstat/=0) &
-         & stop "algebra.f90/bicgstab:dealloc failed"
+         & stop "bicgstab:dealloc rOld failed"
     deallocate(r, stat=allocstat);if(allocstat/=0) &
-         & stop "algebra.f90/bicgstab:dealloc failed"
+         & stop "bicgstab:dealloc r failed"
     deallocate(s, stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/bicgstab:dealloc failed"
+         & stop "bicgstab:dealloc s failed"
     deallocate(t, stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/bicgstab:dealloc failed"
+         & stop "bicgstab:dealloc t failed"
     deallocate(v, stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/bicgstab:dealloc failed"
-
-
+         & stop "bicgstab:dealloc v failed"
+    deallocate(v_pc, stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:dealloc v_pcfailed"
+    deallocate(matVec, stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:dealloc matvec failed"
 
   end subroutine bicgstab
 
-  ! modified by Junhong Wei (2016/07/08) (starting line)
+  !----------------------------------------------------------------------
 
-  !---------------------------------------------------------------------------
-
-
-  subroutine hypre(var, b, dt, sol, res, nIter, errFlag, opt)
+  subroutine bicgstab_2(b, dt, sol, res, nIter, errFlag, opt)
     ! --------------------------------------
-    !    HYPRE
+    !    BiCGStab using linear operator
+    !    preconditioner applied via M^-1 A x = M^-1 b
     !---------------------------------------
 
     ! in/out variables
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         & intent(in) :: var
     real, dimension(1:nx,1:ny,1:nz), intent(in) :: b        ! RHS 
     real, intent(in) :: dt
     real, dimension(1:nx,1:ny,1:nz), intent(inout) :: sol
     real, intent(out) :: res                     ! residual
     integer, intent(out) :: nIter
     logical, intent(out) :: errFlag
+
+    ! opt = expl =>
+    ! pressure solver for explicit problem and corresponding correction 
+    ! of the winds
+    ! opt = impl =>
+    ! pressure solver for implicit problem and corresponding correction 
+    ! of the winds and density fluctuations
+    character(len=*), intent(in)    :: opt
+
+    ! Local parameters
+    integer  :: maxIt
+
+    ! local variables
+    integer :: i,j,k, allocstat
+    integer :: j_b
+    real, dimension(:,:,:), allocatable :: p,r0,rOld,r,s,t,v, matVec, &
+                                           v_pc, b_int
+    real :: alpha, beta, omega
+
+    ! verbose
+    logical, parameter :: giveInfo = .true.
+
+    ! MPI stuff
+    integer :: root
+    real :: res_local
+    real :: bi_norm_local, bi_norm
+
+    if( giveInfo .and. master ) then
+       print*,""
+       print*,"----------------------------------------------"
+       print*,"BICGSTAB: solving linear system... "
+       print*,"----------------------------------------------"
+       print*,""
+    end if
+
+    sol = 0.0
+
+    ! Set parameters
+    maxIt = maxIterPoisson
+
+    !if( opt == 'initial' ) then
+    !   print*,"bicgstab: use tolInitial = ", tolInitial
+    !   tol = tolInitial
+    !else
+    !   tol = tolPoisson
+    !end if
+
+    ! modified convergence criterion so that iterations stop when either
+    ! (a) tolcrit = abs  =>  |Ax - b| < eps b_*
+    !     with b_* a suitable norm deciding whether b (= the divergence 
+    !     criterion for the winds from the predictor) is small or not
+    ! (b) tolcrit = rel  =>  |Ax - b| < eps |b|
+    ! here eps = tolPoisson is the user-set convergence criterion
+    ! hypre has the criterion |Ax - b| < tol * |b|, hence, with
+    ! tolref = divL2/divL2_norm = |b|/b_*
+
+    if (tolcrit == "abs") then
+       tol = tolPoisson/tolref
+      else if (tolcrit == "rel") then
+       tol = tolPoisson
+    end if
+
+    ! Allocate local fields
+    allocate(p(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:alloc failed"
+    allocate(r0(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:alloc failed"
+    allocate(rOld(1:nx,1:ny,1:nz), stat=allocstat);if(allocstat/=0) &
+         & stop "bicgstab:alloc failed"
+    allocate(r(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:alloc failed"
+    allocate(s(1:nx,1:ny,1:nz), stat=allocstat);  if(allocstat/=0) &
+         & stop "bicgstab:alloc failed"
+    allocate(t(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:alloc failed"
+    allocate(v(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:alloc failed"
+    allocate(matVec(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:alloc failed"
+    allocate(v_pc(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:alloc failed"
+    allocate(b_int(1:nx,1:ny,1:nz), stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:alloc failed"
+
+    ! error flag
+    errFlag = .false.    
+
+    ! redefine RHS and its norm for preconditioner
+    if (preconditioner == 'yes') then
+       call preCond( b, b_int)
+
+       bi_norm_local = 0.0
+       do k=1,nz
+          do j=1,ny
+             do i=1,nx
+                bi_norm_local = bi_norm_local + b_int(i,j,k)**2
+             end do
+          end do
+       end do
+
+       !MPI find global residual
+       root = 0
+       call mpi_reduce(bi_norm_local, bi_norm, 1, mpi_double_precision,&
+            & mpi_sum, root, comm, ierror)
+    
+       call mpi_bcast(bi_norm, 1, mpi_double_precision, root, comm, ierror)
+
+       bi_norm = sqrt(bi_norm/sizeX/sizeY/sizeZ)
+      else
+       b_int = b
+       bi_norm = b_norm
+    end if
+
+    ! Init
+    ! r0 = b - Ax
+    call linOpr( sol, matVec, opt )
+    if (preconditioner == 'yes') then
+       v = matVec
+       call preCond( v, matVec)
+    end if
+    r0 = b_int - matVec    
+    p = r0
+    r = r0
+
+    res_local = 0.0
+    do k=1,nz
+       do j=1,ny
+          do i=1,nx
+             res_local = res_local + r(i,j,k)**2
+          end do
+       end do
+    end do
+
+    !MPI find global residual
+    root = 0
+    call mpi_reduce(res_local, res, 1, mpi_double_precision,&
+         & mpi_sum, root, comm, ierror)
+    
+    call mpi_bcast(res, 1, mpi_double_precision, root, comm, ierror)
+
+    res = sqrt(res/sizeX/sizeY/sizeZ)
+
+    if( master ) then
+       print*,""
+       print*," BiCGStab solver: "
+       if (res == 0.0) then
+          if (giveInfo) write(*,fmt="(a25,es17.6)") &
+            & " Initial residual: res = ", res
+         else
+          if (giveInfo) write(*,fmt="(a25,es17.6)") &
+            & " Initial residual: res = ", res/bi_norm
+       end if
+       if (giveInfo) write(*,fmt="(a25,es17.6)") " tol = ", tol
+    end if
+
+    if (res == 0.0 .or. res/bi_norm <= tol) then
+       if(master .and. giveInfo) print*," ==> no iteration needed."
+       nIter = 0
+       return
+    end if
+
+    ! Loop
+
+    iteration: do j_b = 1,maxIt
+
+       ! v = A*p
+       call linOpr( p, matVec, opt )
+       if (preconditioner == 'yes') then
+          v_pc = matVec
+          call preCond( v_pc, matVec)
+       end if
+       v = matVec
+
+       alpha = dot_product3D_glob(r,r0) / dot_product3D_glob(v,r0)
+       s = r - alpha*v
+
+       ! t = A*s
+       call linOpr( s, matVec, opt )
+       if (preconditioner == 'yes') then
+          v_pc = matVec
+          call preCond( v_pc, matVec)
+       end if
+       t = matVec
+
+       omega = dot_product3D_glob(t,s) / dot_product3D_glob(t,t)
+       sol = sol + alpha*p + omega*s
+
+       rOld = r
+       r = s - omega*t
+
+       !-----------------------
+       !   Abort criterion 
+       !-----------------------
+
+       res_local = 0.0
+       do k=1,nz
+          do j=1,ny
+             do i=1,nx
+                res_local = res_local + r(i,j,k)**2
+             end do
+          end do
+       end do
+
+       !MPI find global residual
+       root = 0
+       call mpi_reduce(res_local, res, 1, mpi_double_precision,&
+            & mpi_sum, root, comm, ierror)
+    
+       call mpi_bcast(res, 1, mpi_double_precision, root, comm, ierror)
+      
+       res = sqrt(res/sizeX/sizeY/sizeZ)
+
+       if (res/bi_norm <= tol) then
+          if (master .and. giveInfo)  then 
+             write(*,fmt="(a25,i25)") " Nb.of iterations: j = ", j_b
+             write(*,fmt="(a25,es17.6)") " Final int. residual = ", &
+                                         & res/bi_norm
+             print*,""
+          end if
+
+          call linOpr( sol, matVec, opt )
+          r = b - matVec    
+
+          res_local = 0.0
+          do k=1,nz
+             do j=1,ny
+                do i=1,nx
+                   res_local = res_local + r(i,j,k)**2
+                end do
+             end do
+          end do
+
+          !MPI find global residual
+          root = 0
+          call mpi_reduce(res_local, res, 1, mpi_double_precision,&
+               & mpi_sum, root, comm, ierror)
+    
+          call mpi_bcast(res, 1, mpi_double_precision, root, comm, ierror)
+
+          res = sqrt(res/sizeX/sizeY/sizeZ)
+
+          if (master .and. giveInfo)  then 
+             write(*,fmt="(a25,es17.6)") " Final residual: res = ", &
+                                         & res/b_norm
+             print*,""
+          end if
+
+          nIter = j_b
+
+          return
+       end if
+
+       beta &
+       = alpha/omega &
+         * dot_product3D_glob(r,r0) / dot_product3D_glob(rOld,r0)
+       p = r + beta*(p-omega*v)
+
+    end do iteration
+
+    ! max iteration
+
+    if( master ) then ! modified by Junhong Wei (20161107)
+       write(*,fmt="(a25,i25)") " Bicgstab: max iterations!!!", maxIt
+       write(*,fmt="(a25,es17.6)") " Final BICGSTAB residual = ", &
+                                 & res/bi_norm
+       print*,"--------------------------------------------------" 
+       print*,""
+    end if ! modified by Junhong Wei (20161107)
+
+    errFlag = .true.
+    nIter = j_b
+
+    ! deallocate local fields
+    deallocate(p, stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:dealloc p failed"
+    deallocate(r0, stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:dealloc r0 failed"
+    deallocate(rOld,stat=allocstat);if(allocstat/=0) &
+         & stop "bicgstab:dealloc rOld failed"
+    deallocate(r, stat=allocstat);if(allocstat/=0) &
+         & stop "bicgstab:dealloc r failed"
+    deallocate(s, stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:dealloc s failed"
+    deallocate(t, stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:dealloc t failed"
+    deallocate(v, stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:dealloc v failed"
+    deallocate(v_pc, stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:dealloc v_pcfailed"
+    deallocate(b_int, stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:dealloc v_pcfailed"
+    deallocate(matVec, stat=allocstat); if(allocstat/=0) &
+         & stop "bicgstab:dealloc matvec failed"
+
+  end subroutine bicgstab_2
+
+  ! modified by Junhong Wei (2016/07/08) (starting line)
+
+  !----------------------------------------------------------------------
+
+  subroutine hypre(b, dt, sol, res, nIter, errFlag, opt)
+
+    ! --------------------------------------
+    !    HYPRE
+    !---------------------------------------
+
+    ! in/out variables
+
+    real, dimension(1:nx,1:ny,1:nz), intent(in) :: b        ! RHS 
+    real, intent(in) :: dt
+    real, dimension(1:nx,1:ny,1:nz), intent(out) :: sol
+    real, intent(out) :: res                                ! residual
+    integer, intent(out) :: nIter
+    logical, intent(out) :: errFlag
+
+    ! opt = expl =>
+    ! pressure solver for explicit problem and corresponding correction 
+    ! of the winds
+    ! opt = impl =>
+    ! pressure solver for implicit problem and corresponding correction 
+    ! of the winds and density fluctuations
     character(len=*), intent(in)    :: opt
 
     ! variables due to the use of HYPRE
@@ -2595,38 +1895,17 @@ contains
     integer :: ndim_hypre
     parameter (ndim_hypre = 3)
 
-    integer*8 grid_hypre, stencil_hypre, A_hypre, b_hypre, x_hypre, solver_hypre
     integer ierr_hypre
-    integer npts_x_periodic_hypre, npts_y_periodic_hypre, npts_z_periodic_hypre
+    integer npts_x_periodic_hypre, npts_y_periodic_hypre, &
+          & npts_z_periodic_hypre
 
     integer ii_entry_hypre
-    integer offsets_hypre(7,3)
-
-    integer :: nentries_hypre
-    parameter (nentries_hypre = 7)
-    integer :: nvalues_hypre
-
-    integer :: allocstat
-
-    real, dimension(:), allocatable :: values_hypre
-
-    integer :: stencil_indices_hypre(nentries_hypre)
 
     integer :: index_count_hypre
 
-!   achatzb
-    integer :: k_sing
-    integer :: i0,j0
-!   achatze
+    integer :: i0,j0, i, j, k
 
-    ! local variables
-    integer :: i,j,k
-    real :: pStratU, pStratD, rhoEdge
-    real :: AL,AR, AB,AF, AD,AU, AC
-
-    real :: dx2, dy2, dz2
-
-    real, dimension(:), allocatable :: bvalue_vector_hypre, xvalue_vector_hypre
+    real :: atol
 
     ! Local parameters
     integer  :: maxIt
@@ -2635,1291 +1914,279 @@ contains
     logical, parameter :: giveInfo = .true.
 
     real :: sol_mean_hypre
-
-    ! auxiliary variables
-    dx2 = 1.0/dx**2
-    dy2 = 1.0/dy**2
-    dz2 = 1.0/dz**2
-
+    
     ! Set parameters
-    maxIt = maxIterPoisson
-    ! Set parameters
-    if( opt == 'initial' ) then
-       print*,"hypre: use tolInitial = ", tolInitial
-       tol = tolInitial
-    else
-!      achatzb
-!      modified convergence criterion so that iterations stop when the
-!      norm of the normalized RHS falls below tolPoisson
-!      tol = tolPoisson
-       if (tolref /= 0.0 ) then
-           tol = tolPoisson/tolref
-          else
-           tol = tolPoisson
-       end if
-       if(master) print*,"hypre uses tolerance tol = ", tol
-!      achatze
+
+    ! modified convergence criterion so that iterations stop when either
+    ! (a) tolcrit = abs  =>  |Ax - b| < eps b_*
+    !     with b_* a suitable norm deciding whether b (= the divergence 
+    !     criterion for the winds from the predictor) is small or not
+    ! (b) tolcrit = rel  =>  |Ax - b| < eps |b|
+    ! here eps = tolPoisson is the user-set convergence criterion
+    ! hypre has the criterion |Ax - b| < tol * |b|, hence, with
+    ! tolref = divL2/divL2_norm = |b|/b_*
+
+    if (tolcrit == "abs") then
+       tol = tolPoisson/tolref
+      else if (tolcrit == "rel") then
+       tol = tolPoisson
     end if
+    
+    ! atol = abs_tol/b_norm  !not scaled as it is a lower bound
 
-    ! Allocate local fields
-    nvalues_hypre = nx * ny * nz * nentries_hypre
+    ! if(master) then
+    !    print*,"hypre uses max from ", " tol = ", tol, "atol = ", atol
+    ! end if
 
-    allocate(values_hypre(1:nvalues_hypre), stat=allocstat); if(allocstat/=0) &
-         & stop "hypre:alloc failed"
-    allocate(bvalue_vector_hypre(1: (nx * ny * nz) ), stat=allocstat); if(allocstat/=0) &
-         & stop "hypre:alloc failed"
-    allocate(xvalue_vector_hypre(1: (nx * ny * nz) ), stat=allocstat); if(allocstat/=0) &
-         & stop "hypre:alloc failed"
+    ! tol = max(tol, atol)  
+
+    if(master)  then 
+        print*,"hypre uses tolerance = ", tol, &
+             & "meaning |Ax - b|/|b| <= tol "
+        print*,"|Ax - b| <= ", tol*b_norm
+    end if
 
     ! error flag
     errFlag = .false.
 
-!---------
-! step one
-! Set up a grid. Each processor describes the piece of the grid that it owns.
-
-! Create an empty 2D grid object
-   call HYPRE_StructGridCreate(mpi_comm_world, ndim_hypre, grid_hypre, ierr_hypre)
-
-    !----------------
-    !  x-Boundary
-    !----------------
-    select case( xBoundary )
-
-    case( "periodic" )
-!       npts_x_periodic_hypre = nx
-       npts_x_periodic_hypre = sizeX
-    case default
-       stop "pressureBoundaryCondition: unknown case xBoundary."
-    end select
-
-    !----------------
-    !   y-Boundary
-    !----------------
-    select case( yBoundary )
-
-    case( "periodic" )
-!       npts_y_periodic_hypre = ny
-       npts_y_periodic_hypre = sizeY
-    case default
-       stop "pressureBoundaryCondition: unknown case yBoundary."
-    end select
-
-    !----------------
-    !   z-Boundary
-    !----------------
-    select case( zBoundary )
-
-    case( "periodic" )
-!       npts_z_periodic_hypre = nz
-       npts_z_periodic_hypre = sizeZ
-    case( "solid_wall" )
-       npts_z_periodic_hypre = 0
-    case default
-       stop "pressureBoundaryCondition: unknown case zBoundary."
-    end select
-
-
-   call HYPRE_StructGridSetPeriodic(grid_hypre,(/npts_x_periodic_hypre, npts_y_periodic_hypre, npts_z_periodic_hypre/),ierr_hypre)
-
-! Add boxes to the grid
-   call HYPRE_StructGridSetExtents(grid_hypre, (/ (icoord-1)*nx , (jcoord-1)*ny , 0 /), &
-     & (/ (icoord*nx)-1 , (jcoord*ny)-1 , nz-1 /), ierr_hypre)
-
-! This is a collective call finalizing the grid assembly. The grid is now ``ready to be used''
-   call HYPRE_StructGridAssemble(grid_hypre, ierr_hypre)
-
-!---------
-! step two
-! Define the discretization stencil
-
-! Create an empty 3D, 7-pt stencil object
-   call HYPRE_StructStencilCreate(3, 7, stencil_hypre, ierr_hypre)
-
-! Define the geometry of the stencil. Each represents a relative offset (in the index space).
-   offsets_hypre(1,:) = (/ 0, 0, 0/)
-   offsets_hypre(2,:) = (/-1, 0, 0/)
-   offsets_hypre(3,:) = (/ 1, 0, 0/)
-   offsets_hypre(4,:) = (/ 0,-1, 0/)
-   offsets_hypre(5,:) = (/ 0, 1, 0/)
-   offsets_hypre(6,:) = (/ 0, 0,-1/)
-   offsets_hypre(7,:) = (/ 0, 0, 1/)
-   
-   do ii_entry_hypre=0,6
-     call HYPRE_StructStencilSetElement( stencil_hypre, ii_entry_hypre, offsets_hypre( (ii_entry_hypre+1), : ), ierr_hypre)
-   end do
-
-!---------
-! step three
-! Set up a Struct Matrix
-
-! Create an empty matrix object
-   call HYPRE_StructMatrixCreate(mpi_comm_world, grid_hypre, stencil_hypre, A_hypre, ierr_hypre)
-
-! Indicate that the matrix coefficients are ready to be set
-   call HYPRE_StructMatrixInitialize(A_hypre, ierr_hypre)
-
-! Set the matrix coefficients.  Each processor assigns coefficients
-! for the boxes in the grid that it owns. Note that the coefficients
-! associated with each stencil entry may vary from grid point to grid
-! point if desired.  Here, we first set the same stencil entries for
-! each grid point.  Then we make modifications to grid points near
-! the boundary.
-
-! labels for the stencil entries - these correspond to the offsets defined above
-
-    stencil_indices_hypre(:) = (/0,1,2,3,4,5,6/)
-
-! We have *** grid points, each with 7 stencil entrie
-
-!   achatzb
     i0=is+nbx-1
     j0=js+nby-1
-!   achatze
 
-    select case( model ) 
+    if (timeScheme == "semiimplicit") then
+       ! This is a collective call finalizing the matrix assembly. 
+       ! The matrix is now ``ready to be used'
 
-       !----------------------------------------
-       !       Pseudo-incompressible model
-       !----------------------------------------
-    case( "pseudo_incompressible" )
+       call HYPRE_StructMatrixSetBoxValues(A_hp_i, &
+            & (/ (icoord)*nx+1, (jcoord)*ny+1 , 1 /), &
+            & (/ (icoord+1)*nx , (jcoord+1)*ny , nz /), &
+            & ne_hypre_i, stencil_indices_i, values_i, ierr_hypre)
 
+       ! testb
+       if (master) print*,'HYPRE_StructMatrixSetBoxValues done'
+       ! teste
 
-       !---------------------------------
-       !         Loop over field
-       !---------------------------------
+       call HYPRE_StructMatrixAssemble(A_hp_i,ierr_hypre)
 
-       k_loop: do k = 1,nz
-          j_loop: do j = 1,ny
-             i_loop: do i = 1,nx
+       ! testb
+       if (master) print*,'HYPRE_StructMatrixAssemble done'
+       ! teste
 
-!               achatzb
-!               ! ------------------ A(i+1,j,k) ------------------
-!               rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
-!               if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
+       ! Set up Struct Vectors for b and x.  Each processor sets the 
+       ! vectors corresponding to its boxes.
 
-!               AR = dx2 * pStrat(k)**2/rhoEdge
-
-!               ! ------------------- A(i-1,j,k) --------------------
-!               rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
-!               if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
-
-!               AL = dx2 * pStrat(k)**2 / rhoEdge
-
-!               ! -------------------- A(i,j+1,k) ----------------------
-!               rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
-!               if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
-
-!               AF = dy2 * pStrat(k)**2 / rhoEdge
-
-!               ! --------------------- A(i,j-1,k) ----------------------
-!               rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
-!               if( fluctuationMode ) then
-!                  rhoEdge = rhoEdge + rhoStrat(k)
-!               end if
-
-!               AB = dy2 * pStrat(k)**2 / rhoEdge
-
-!               ! ---------------------- A(i,j,k+1) ---------------------
-!               if (k<nz) then
-!                  rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
-!                  if( fluctuationMode ) then
-!                     rhoEdge = rhoEdge + rhoStratTilde(k)
-!                  end if
-
-!                  pStratU = 0.5* ( pStrat(k+1) + pStrat(k) )
-!                  AU = dz2 * pStratU**2 / rhoEdge
-!               else ! k = nz -> upwad boundary (solid wall)
-!                  ! A(i,j,nz+1) = 0
-!                  AU = 0.0
-!               end if
-
-!               ! ----------------------- A(i,j,k-1) ---------------------
-!               if (k>1) then 
-!                  rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
-!                  if( fluctuationMode ) then
-!                      rhoEdge = rhoEdge + rhoStratTilde(k-1)
-!                  end if
-!                  
-!                  pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
-!                  AD = dz2 * pStratD**2 / rhoEdge
-!               else ! k = 1 -> downward boundary (solid wall)
-!                  ! A(i,j,0) = 0
-!                  AD = 0.0
-!               end if
-
-!               ! ----------------- scale with thetaStrat ----------------
-!               if( pressureScaling ) then
-!                  AL = AL / PStrat(k)
-!                  AR = AR / PStrat(k)
-!                  AB = AB / PStrat(k)
-!                  AF = AF / PStrat(k)
-!                  AD = AD / PStrat(k)
-!                  AU = AU / PStrat(k)
-!               end if
-
-!               ! ----------------------- A(i,j,k) -----------------------
-!               AC = - AR - AL - AF - AB - AU - AD
-
-                if(topography) then
-                   ! stencil with topography
-                   ! ------------------ A(i+1,j,k) ------------------
-                   if((topography_mask(i0+i,j0+j,k)&
-                       .and.(.not.topography_mask(i0+i+1,j0+j,k)))&
-                      .or.&
-                      ((.not.topography_mask(i0+i,j0+j,k))&
-                       .and.(topography_mask(i0+i+1,j0+j,k)))) then
-                      AR=0.0
-                     else
-                      rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
-                      if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
-
-                      AR = dx2 * pStrat(k)**2/rhoEdge
-                   end if
-   
-                   ! ------------------- A(i-1,j,k) --------------------
-                   if((topography_mask(i0+i-1,j0+j,k)&
-                       .and.(.not.topography_mask(i0+i,j0+j,k)))&
-                      .or.&
-                      ((.not.topography_mask(i0+i-1,j0+j,k))&
-                       .and.(topography_mask(i0+i,j0+j,k)))) then
-                      AL=0.0
-                     else
-                      rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
-                      if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
-
-                      AL = dx2 * pStrat(k)**2 / rhoEdge
-                   end if
-
-                   ! -------------------- A(i,j+1,k) ----------------------
-                   if((topography_mask(i0+i,j0+j,k)&
-                       .and.(.not.topography_mask(i0+i,j0+j+1,k)))&
-                      .or.&
-                      ((.not.topography_mask(i0+i,j0+j,k))&
-                       .and.(topography_mask(i0+i,j0+j+1,k)))) then
-                      AF=0.0
-                     else
-                      rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
-                      if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
-
-                      AF = dy2 * pStrat(k)**2 / rhoEdge
-                   end if
-
-                   ! --------------------- A(i,j-1,k) -------------------
-                   if((topography_mask(i0+i,j0+j-1,k)&
-                       .and.(.not.topography_mask(i0+i,j0+j,k)))&
-                      .or.&
-                      ((.not.topography_mask(i0+i,j0+j-1,k))&
-                       .and.(topography_mask(i0+i,j0+j,k)))) then
-                      AB=0.0
-                     else
-                      rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
-                      if( fluctuationMode ) then
-                         rhoEdge = rhoEdge + rhoStrat(k)
-                      end if
-
-                      AB = dy2 * pStrat(k)**2 / rhoEdge
-                   end if
-
-                   ! ---------------------- A(i,j,k+1) ------------------
-                   if((topography_mask(i0+i,j0+j,k)&
-                       .and.(.not.topography_mask(i0+i,j0+j,k+1)))&
-                      .or.&
-                      ((.not.topography_mask(i0+i,j0+j,k))&
-                       .and.(topography_mask(i0+i,j0+j,k+1)))&
-                      .or.&
-                      (k == nz)) then
-                      AU=0.0
-                     else
-                      rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
-                      if( fluctuationMode ) then
-                         rhoEdge = rhoEdge + rhoStratTilde(k)
-                      end if
-
-                      pStratU = 0.5* ( pStrat(k+1) + pStrat(k) )
-                      AU = dz2 * pStratU**2 / rhoEdge
-                   end if
-
-                   ! ----------------------- A(i,j,k-1) -----------------
-                   if((topography_mask(i0+i,j0+j,k-1)&
-                       .and.(.not.topography_mask(i0+i,j0+j,k)))&
-                      .or.&
-                      ((.not.topography_mask(i0+i,j0+j,k-1))&
-                       .and.(topography_mask(i0+i,j0+j,k)))&
-                      .or.&
-                      (k == 1)) then
-                      AD=0.0
-                     else
-                      rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
-                      if( fluctuationMode ) then
-                          rhoEdge = rhoEdge + rhoStratTilde(k-1)
-                      end if
-                   
-                      pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
-                      AD = dz2 * pStratD**2 / rhoEdge
-                   end if
-
-                   ! ----------------- scale with thetaStrat ------------
-                   if( pressureScaling ) then
-                      AL = AL / PStrat(k)
-                      AR = AR / PStrat(k)
-                      AB = AB / PStrat(k)
-                      AF = AF / PStrat(k)
-                      AD = AD / PStrat(k)
-                      AU = AU / PStrat(k)
-                   end if
-
-                   ! ----------------------- A(i,j,k) -------------------
-                   ! avoid singularities in case a point is surrounded by
-                   ! topographic borders
-                   if((AR == 0.0).and.&
-                      (AL == 0.0).and.&
-                      (AF == 0.0).and.&
-                      (AB == 0.0).and.&
-                      (AU == 0.0).and.&
-                      (AD == 0.0)) then
-                      ! take density from lowermost non-topographic cell
-                      if(fluctuationMode ) then
-                         rhoEdge = var(i,j,k+1,1) + rhoStratTilde(k)
-                        else
-                         rhoEdge = var(i,j,k+1,1)
-                      end if
-                      
-                      AC = dz2 * pStrat(k)**2 / rhoEdge
-                     else
-                      AC = - AR - AL - AF - AB - AU - AD
-                   end if
-                  else
-                   ! stencil without topography
-                   ! ------------------ A(i+1,j,k) ------------------
-                   rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
-                   if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
-
-                   AR = dx2 * pStrat(k)**2/rhoEdge
-   
-                   ! ------------------- A(i-1,j,k) --------------------
-                   rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
-                   if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
-
-                   AL = dx2 * pStrat(k)**2 / rhoEdge
-
-                   ! -------------------- A(i,j+1,k) ----------------------
-                   rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
-                   if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
-
-                   AF = dy2 * pStrat(k)**2 / rhoEdge
-
-                   ! --------------------- A(i,j-1,k) -------------------
-                   rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
-                   if( fluctuationMode ) then
-                      rhoEdge = rhoEdge + rhoStrat(k)
-                   end if
-
-                   AB = dy2 * pStrat(k)**2 / rhoEdge
-
-                   ! ---------------------- A(i,j,k+1) ------------------
-                   if (k<nz) then
-                      rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
-                      if( fluctuationMode ) then
-                         rhoEdge = rhoEdge + rhoStratTilde(k)
-                      end if
-
-                      pStratU = 0.5* ( pStrat(k+1) + pStrat(k) )
-                      AU = dz2 * pStratU**2 / rhoEdge
-                   else ! k = nz -> upwad boundary (solid wall)
-                      ! A(i,j,nz+1) = 0
-                      AU = 0.0
-                   end if
-
-                   ! ----------------------- A(i,j,k-1) -----------------
-                   if (k>1) then 
-                      rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
-                      if( fluctuationMode ) then
-                          rhoEdge = rhoEdge + rhoStratTilde(k-1)
-                      end if
-                   
-                      pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
-                      AD = dz2 * pStratD**2 / rhoEdge
-                   else ! k = 1 -> downward boundary (solid wall)
-                      ! A(i,j,0) = 0
-                      AD = 0.0
-                   end if
-
-                   ! ----------------- scale with thetaStrat ------------
-                   if( pressureScaling ) then
-                      AL = AL / PStrat(k)
-                      AR = AR / PStrat(k)
-                      AB = AB / PStrat(k)
-                      AF = AF / PStrat(k)
-                      AD = AD / PStrat(k)
-                      AU = AU / PStrat(k)
-                   end if
-
-                   ! ----------------------- A(i,j,k) -------------------
-                   AC = - AR - AL - AF - AB - AU - AD
-                end if
-!               achatze
-
-
-                ! ------------------- define matrix A -------------------
-
-!                  index_count_hypre 
-!                  = ( i * j * k * nentries_hypre ) - nentries_hypre + 1
-
-                  index_count_hypre = i
-                  index_count_hypre = index_count_hypre + ( (j-1)*nx )
-                  index_count_hypre = index_count_hypre + ( (k-1)*nx*ny )
-
-                  index_count_hypre &
-                  = ( index_count_hypre * nentries_hypre ) &
-                    - nentries_hypre + 1
-
-                  values_hypre(index_count_hypre)   = AC
-                  values_hypre(index_count_hypre+1) = AL
-                  values_hypre(index_count_hypre+2) = AR
-                  values_hypre(index_count_hypre+3) = AB
-                  values_hypre(index_count_hypre+4) = AF
-                  values_hypre(index_count_hypre+5) = AD
-                  values_hypre(index_count_hypre+6) = AU
-
-
-             end do i_loop
-          end do j_loop
-       end do k_loop
-
-
-
-    case( "Boussinesq" )
-       !----------------------------------------
-       !             Boussinesq model
-       !----------------------------------------
-
-
-       !---------------------------------
-       !         Loop over field
-       !---------------------------------
-
-!      achatzb
-!      do k = 1,nz
-!         do j = 1,ny
-!            do i = 1,nx
-
-!               ! ------------------ A(i+1,j,k) ------------------
-!               AR = dx2
-
-!               ! ------------------- A(i-1,j,k) --------------------
-!               AL = dx2
-
-!               ! -------------------- A(i,j+1,k) ----------------------
-!               AF = dy2
-
-!               ! --------------------- A(i,j-1,k) -----------------------
-!               AB = dy2
-
-!               ! ---------------------- A(i,j,k+1) -----------------------
-!               AU = dz2
-
-!               ! ----------------------- A(i,j,k-1) ----------------------
-!               AD = dz2
-
-!               ! ----------------------- A(i,j,k) ------------------------
-!               AC = - AR - AL - AF - AB - AU - AD
-
-!               ! ------------------- define matrix A --------------------
-
-!                  index_count_hypre &
-!                  = ( i * j * k * nentries_hypre ) - nentries_hypre + 1
-
-!                 index_count_hypre = i
-!                 index_count_hypre = index_count_hypre + ( (j-1)*nx )
-!                 index_count_hypre = index_count_hypre + ( (k-1)*nx*ny )
-
-!                 index_count_hypre &
-!                 = ( index_count_hypre * nentries_hypre ) &
-!                   - nentries_hypre + 1
-
-!                 values_hypre(index_count_hypre)   = AC
-!                 values_hypre(index_count_hypre+1) = AL
-!                 values_hypre(index_count_hypre+2) = AR
-!                 values_hypre(index_count_hypre+3) = AB
-!                 values_hypre(index_count_hypre+4) = AF
-!                 values_hypre(index_count_hypre+5) = AD
-!                 values_hypre(index_count_hypre+6) = AU
-
-!            end do
-!         end do
-!      end do
-
-!      !--------------------------------------
-!      !  Correction for solid wall boundary
-!      !--------------------------------------
-
-!      !---------------------------------
-!      !          zBoundary
-!      !---------------------------------
-
-!      if( zBoundary == "solid_wall" ) then
-
-!         do k = 1,nz,nz-1      ! k = 1 and nz
-!            do j = 1,ny
-!               do i = 1,nx
-
-!                  ! ------------------ A(i+1,j,k) ------------------
-!                  AR = dx2
-
-!                  ! ------------------- A(i-1,j,k) --------------------
-!                  AL = dx2
-
-!                  ! -------------------- A(i,j+1,k) ----------------------
-!                  AF = dy2
-
-!                  ! --------------------- A(i,j-1,k) ---------------------
-!                  AB = dy2
-
-!                  ! ---------------------- A(i,j,k+1) --------------------
-!                  ! k = nz -> upwad boundary (solid wall)
-!                  ! A(i,j,nz+1) = 0
-!                  AU = 0.0
-
-!                  ! ----------------------- A(i,j,k-1) ------------------
-!                  ! k = 1 -> downward boundary (solid wall)
-!                  ! A(i,j,0) = 0
-!                  AD = 0.0
-
-!                  ! ----------------------- A(i,j,k) --------------------
-
-!                  AC = - AR - AL - AF - AB - AU - AD
-
-!               ! ------------------- define matrix A --------------------
-
-!                  index_count_hypre &
-!                  = ( i * j * k * nentries_hypre ) - nentries_hypre + 1
-
-!                 index_count_hypre = i
-!                 index_count_hypre = index_count_hypre + ( (j-1)*nx )
-!                 index_count_hypre = index_count_hypre + ( (k-1)*nx*ny )
-
-!                 index_count_hypre &
-!                 = ( index_count_hypre * nentries_hypre ) &
-!                   - nentries_hypre + 1
-
-!                 values_hypre(index_count_hypre)   = AC
-!                 values_hypre(index_count_hypre+1) = AL
-!                 values_hypre(index_count_hypre+2) = AR
-!                 values_hypre(index_count_hypre+3) = AB
-!                 values_hypre(index_count_hypre+4) = AF
-!                 values_hypre(index_count_hypre+5) = AD
-!                 values_hypre(index_count_hypre+6) = AU
-
-!               end do
-!            end do
-!         end do
-
-!      end if ! zBoundary
-
-       do k = 1,nz
-          do j = 1,ny
-             do i = 1,nx
-                if(topography) then
-                   ! stencil with topography
-
-                   ! ------------------ A(i+1,j,k) ------------------
-                   if((topography_mask(i0+i,j0+j,k)&
-                       .and.(.not.topography_mask(i0+i+1,j0+j,k)))&
-                      .or.&
-                      ((.not.topography_mask(i0+i,j0+j,k))&
-                       .and.(topography_mask(i0+i+1,j0+j,k)))) then
-                      AR=0.0
-                     else
-                      AR = dx2
-                   end if
-   
-                   ! ------------------- A(i-1,j,k) --------------------
-                   if((topography_mask(i0+i-1,j0+j,k)&
-                       .and.(.not.topography_mask(i0+i,j0+j,k)))&
-                      .or.&
-                      ((.not.topography_mask(i0+i-1,j0+j,k))&
-                       .and.(topography_mask(i0+i,j0+j,k)))) then
-                      AL=0.0
-                     else
-                      AL = dx2
-                   end if
-   
-                   ! -------------------- A(i,j+1,k) ----------------------
-                   if((topography_mask(i0+i,j0+j,k)&
-                       .and.(.not.topography_mask(i0+i,j0+j+1,k)))&
-                      .or.&
-                      ((.not.topography_mask(i0+i,j0+j,k))&
-                       .and.(topography_mask(i0+i,j0+j+1,k)))) then
-                      AF=0.0
-                     else
-                      AF = dy2
-                   end if
-   
-                   ! --------------------- A(i,j-1,k) ---------------------
-                   if((topography_mask(i0+i,j0+j-1,k)&
-                       .and.(.not.topography_mask(i0+i,j0+j,k)))&
-                      .or.&
-                      ((.not.topography_mask(i0+i,j0+j-1,k))&
-                       .and.(topography_mask(i0+i,j0+j,k)))) then
-                      AB=0.0
-                     else
-                      AB = dy2
-                   end if
-
-                   ! ---------------------- A(i,j,k+1) --------------------
-                   if((topography_mask(i0+i,j0+j,k)&
-                       .and.(.not.topography_mask(i0+i,j0+j,k+1)))&
-                      .or.&
-                      ((.not.topography_mask(i0+i,j0+j,k))&
-                       .and.(topography_mask(i0+i,j0+j,k+1)))) then
-                      AU=0.0
-                     else if((zBoundary == "solid_wall").and.(k == nz)) &
-                     then
-                      AU=0.0
-                     else
-                      AU = dz2
-                   end if
-   
-                   ! ----------------------- A(i,j,k-1) -------------------
-                   if((topography_mask(i0+i,j0+j,k-1)&
-                       .and.(.not.topography_mask(i0+i,j0+j,k)))&
-                      .or.&
-                      ((.not.topography_mask(i0+i,j0+j,k-1))&
-                       .and.(topography_mask(i0+i,j0+j,k)))) then
-                      AD=0.0
-                     else if((zBoundary == "solid_wall").and.(k == 1)) &
-                     then
-                      AD=0.0
-                     else
-                      AD = dz2
-                   end if
-   
-                   ! ----------------------- A(i,j,k) ---------------------
-                   ! avoid singularities in case a point is surrounded by
-                   ! topographic borders
-                   if((AR == 0.0).and.&
-                      (AL == 0.0).and.&
-                      (AF == 0.0).and.&
-                      (AB == 0.0).and.&
-                      (AU == 0.0).and.&
-                      (AD == 0.0)) then
-                      AC = dz2
-                     else
-                      AC = - AR - AL - AF - AB - AU - AD
-                   end if
-                  else
-                   ! stencil without topography
-
-                   ! ------------------ A(i+1,j,k) ------------------
-                   AR = dx2
-
-                   ! ------------------- A(i-1,j,k) --------------------
-                   AL = dx2
-
-                   ! -------------------- A(i,j+1,k) ----------------------
-                   AF = dy2
-
-                   ! --------------------- A(i,j-1,k) --------------------
-                   AB = dy2
-
-                   ! ---------------------- A(i,j,k+1) --------------------
-                   if((zBoundary == "solid_wall").and.(k == nz)) then
-                      AU = 0.0
-                     else
-                      AU = dz2
-                   end if
-
-                   ! ----------------------- A(i,j,k-1) -------------------
-                   if((zBoundary == "solid_wall").and.(k == 1)) then
-                      AD = 0.0
-                     else
-                      AD = dz2
-                   end if
-
-                   ! ----------------------- A(i,j,k) ---------------------
-                   AC = - AR - AL - AF - AB - AU - AD
-                end if
-
-                ! ------------------- define matrix A --------------------
-
-!                  index_count_hypre &
-!                  = ( i * j * k * nentries_hypre ) - nentries_hypre + 1
-
-                index_count_hypre = i
-                index_count_hypre = index_count_hypre + ( (j-1)*nx )
-                index_count_hypre = index_count_hypre + ( (k-1)*nx*ny )
-
-                index_count_hypre &
-                = ( index_count_hypre * nentries_hypre ) &
-                  - nentries_hypre + 1
-
-                values_hypre(index_count_hypre)   = AC
-                values_hypre(index_count_hypre+1) = AL
-                values_hypre(index_count_hypre+2) = AR
-                values_hypre(index_count_hypre+3) = AB
-                values_hypre(index_count_hypre+4) = AF
-                values_hypre(index_count_hypre+5) = AD
-                values_hypre(index_count_hypre+6) = AU
-             end do
-          end do
-       end do
-!      achatze
-
-
-    case default
-       stop "linOpr: unknown case model"
-    end select
-
-
-    call HYPRE_StructMatrixSetBoxValues(A_hypre, (/ (icoord-1)*nx , (jcoord-1)*ny , 0 /),  &
-      & (/ (icoord*nx)-1 , (jcoord*ny)-1 , nz-1 /), nentries_hypre, stencil_indices_hypre, &
-      & values_hypre, ierr_hypre)
-
-! This is a collective call finalizing the matrix assembly. The matrix is now ``ready to be used'
-
-call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
-
-
-!---------
-! step four
-! Set up Struct Vectors for b and x.  Each processor sets the vectors corresponding to its boxes.
-
-! Create an empty vector object
-  call HYPRE_StructVectorCreate(mpi_comm_world, grid_hypre, b_hypre, ierr_hypre)
-  call HYPRE_StructVectorCreate(mpi_comm_world, grid_hypre, x_hypre, ierr_hypre)
-
-! Indicate that the vector coefficients are ready to be set
-  call HYPRE_StructVectorInitialize(b_hypre, ierr_hypre)
-  call HYPRE_StructVectorInitialize(x_hypre, ierr_hypre)
-
-! Set the vector coefficients
+       ! Set the vector coefficients
 
        index_count_hypre = 1
        do k = 1,nz
           do j = 1,ny
              do i = 1,nx
-
-             bvalue_vector_hypre(index_count_hypre) = b(i,j,k)
-             index_count_hypre = index_count_hypre + 1
-
+                bvalue_vector_hypre(index_count_hypre) = b(i,j,k)
+                index_count_hypre = index_count_hypre + 1
+                ! testb
+                ! print*,i,j,k,'b =',b(i,j,k)
+                ! teste
              end do
           end do
        end do
-
 
        index_count_hypre = 1
        do k = 1,nz
           do j = 1,ny
              do i = 1,nx
-
-             xvalue_vector_hypre(index_count_hypre) = sol(i,j,k)
-             index_count_hypre = index_count_hypre + 1
-
+                xvalue_vector_hypre(index_count_hypre) = sol(i,j,k)
+                index_count_hypre = index_count_hypre + 1
+                ! testb
+                ! print*,i,j,k,'sol =',sol(i,j,k)
+                ! teste
              end do
           end do
        end do
 
+       call HYPRE_StructVectorSetBoxValues(b_hp_i, &
+          & (/ (icoord)*nx+1, (jcoord)*ny+1 , 1 /), &
+          & (/ (icoord+1)*nx , (jcoord+1)*ny , nz /), &
+          & bvalue_vector_hypre, ierr_hypre)
 
-   call HYPRE_StructVectorSetBoxValues(b_hypre, (/ (icoord-1)*nx , (jcoord-1)*ny , 0 /), &
-     & (/ (icoord*nx)-1 , (jcoord*ny)-1 , nz-1 /), bvalue_vector_hypre, ierr_hypre)
-   call HYPRE_StructVectorSetBoxValues(x_hypre, (/ (icoord-1)*nx , (jcoord-1)*ny , 0 /), &
-     & (/ (icoord*nx)-1 , (jcoord*ny)-1 , nz-1 /), xvalue_vector_hypre, ierr_hypre)
+       ! testb
+       if (master) print*,'HYPRE_StructVectorSetBoxValues done'
+       ! teste
 
-! This is a collective call finalizing the vector assembly. The vectors are now ``ready to be used''
-   call HYPRE_StructVectorAssemble(b_hypre, ierr_hypre)
-   call HYPRE_StructVectorAssemble(x_hypre, ierr_hypre)
+       call HYPRE_StructVectorSetBoxValues(x_hp_i, &
+          & (/ (icoord)*nx+1, (jcoord)*ny+1 , 1 /), &
+          & (/ (icoord+1)*nx , (jcoord+1)*ny , nz /), &
+          & xvalue_vector_hypre, ierr_hypre)
 
+       ! testb
+       if (master) print*,'HYPRE_StructVectorSetBoxValues done'
+       ! teste
 
-!---------
-! step five
-! Set up and use a solver (See the Reference Manual for descriptions of all of the options.)
+       ! This is a collective call finalizing the vector assembly. 
+       ! The vectors are now ``ready to be used''
 
-! Create an empty Hybrid Struct solver
-  call HYPRE_StructHybridCreate(mpi_comm_world, solver_hypre, ierr_hypre)
+       call HYPRE_StructVectorAssemble(b_hp_i, ierr_hypre)
 
-! Set print level (set 0 for complete silence or 2 for info on iterations)
-  call HYPRE_StructHybridSetPrintLevel(solver_hypre, 0, ierr_hypre)
+       ! testb
+       if (master) print*,'HYPRE_StructVectorAssemble done'
+       ! teste
 
-! Set the type of Krylov solver to use. 
-! Current krylov methods set by solver type are: 1 – DSCG (default) 2 – GMRES 3 – BiCGSTAB
-! Junhong used 2
-  call HYPRE_StructHybridSetSolverType(solver_hypre, 2, ierr_hypre)
-! call HYPRE_StructHybridSetSolverType(solver_hypre, 2, ierr_hypre)
+       call HYPRE_StructVectorAssemble(x_hp_i, ierr_hypre)
 
-! Set tolerance value for relative! residual (unlike in Rieper's BiGSTAB
-! where the absolute! residual is used). 
-! tol = (tolPoisson in the namelist)/tolref
-  call HYPRE_StructHybridSetTol(solver_hypre, tol, ierr_hypre)
+       ! testb
+       if (master) print*,'HYPRE_StructVectorAssemble done'
+       ! teste
 
-! Uncomment the line below to have the tolerance for absolute! residual 
-! (it works only for BiCGSTAB, i.e. solver_type = 3)
-  !call HYPRE_StructHybridSetStopCrit(solver_hypre, 0, ierr_hypre)
+       ! Finalize set up and use a solver 
+       ! (See the Reference Manual for descriptions of all of the options.)
 
-! Set convergence criterion for activating a preconditioner. 
-! A number between 0 and 1 is accepted, the smaller the number, the 
-! sooner a preconditioner is activated.
-! achatzb
-! call HYPRE_StructHybridSetConvergenc(solver_hypre, 1.e-23, ierr_hypre)
-  call HYPRE_StructHybridSetConvergenc(solver_hypre, tolCond, ierr_hypre)
-! achatze
+       call HYPRE_StructHybridSetTol(solver_hp_i, tol, ierr_hypre)
 
-! Set maximum number of iterations. maxIt = maxIterPoisson in the namelist
-  call HYPRE_StructHybridSetPCGMaxIter(solver_hypre, maxIt, ierr_hypre)
+       ! testb
+       if (master) print*,'HYPRE_StructHybridSetTol done'
+       ! teste
 
-! Setup and solve
-  call HYPRE_StructHybridSetup(solver_hypre, A_hypre, b_hypre, x_hypre, ierr_hypre)
-  call HYPRE_StructHybridSolve(solver_hypre, A_hypre, b_hypre, x_hypre, ierr_hypre)
+       call HYPRE_StructHybridSolve(solver_hp_i, A_hp_i, b_hp_i, x_hp_i, &
+                                  & ierr_hypre)
 
-! Get the results
-  call HYPRE_StructVectorGetBoxValues(x_hypre, (/ (icoord-1)*nx , (jcoord-1)*ny , 0 /), &
-    & (/ (icoord*nx)-1 , (jcoord*ny)-1 , nz-1 /), xvalue_vector_hypre, ierr_hypre)
+       ! testb
+       if (master) print*,'HYPRE_StructHybridSolve done'
+       ! teste
+
+       ! Get the results
+
+       call HYPRE_StructVectorGetBoxValues(x_hp_i, &
+          & (/ (icoord)*nx+1, (jcoord)*ny+1 , 1 /), &
+          & (/ (icoord+1)*nx , (jcoord+1)*ny , nz /), &
+          & xvalue_vector_hypre, ierr_hypre)
+
+       ! testb
+       if (master) print*,'HYPRE_StructVectorGetBoxValues done'
+       ! teste
 
        index_count_hypre = 1
-!       sol_mean_hypre    = 0.0
+
        do k = 1,nz
           do j = 1,ny
              do i = 1,nx
-               sol(i,j,k) = xvalue_vector_hypre(index_count_hypre)
-               index_count_hypre = index_count_hypre + 1
+                sol(i,j,k) = xvalue_vector_hypre(index_count_hypre)
+                index_count_hypre = index_count_hypre + 1
              end do
           end do
        end do
 
-      call HYPRE_StructHybridGetNumIterati( solver_hypre, nIter, ierr_hypre )
-      call HYPRE_StructHybridGetFinalRelat( solver_hypre, res, ierr_hypre )
+       call HYPRE_StructHybridGetNumIterati( solver_hp_i, nIter, &
+                                           & ierr_hypre )
 
-!          if (giveInfo)  then 
-          if ( giveInfo .and. master )  then 
-             print*,""
-             print*," HYPRE solver: "
-             write(*,fmt="(a25,i25)") " Nb.of iterations: j = ", nIter
-             write(*,fmt="(a25,es17.6)") " Final residual: res = ", res
-             print*,""
-          end if
+       ! testb
+       if (master) print*,'HYPRE_StructHybridGetNumIterati done'
+       ! teste
 
-! Free memory
+       index_count_hypre = 1
+       call HYPRE_StructHybridGetFinalRelat( solver_hp_i, res, ierr_hypre )
 
-  call HYPRE_StructGridDestroy(grid_hypre, ierr_hypre)
-  call HYPRE_StructStencilDestroy(stencil_hypre, ierr_hypre)
-  call HYPRE_StructMatrixDestroy(A_hypre, ierr_hypre)
-  call HYPRE_StructVectorDestroy(b_hypre, ierr_hypre)
-  call HYPRE_StructVectorDestroy(x_hypre, ierr_hypre)
-  call HYPRE_StructHybridDestroy(solver_hypre, ierr_hypre)
+       ! testb
+       if (master) print*,'HYPRE_StructHybridGetFinalRelat done'
+       ! teste
+      else
+       ! This is a collective call finalizing the matrix assembly. 
+       ! The matrix is now ``ready to be used'
 
+       call HYPRE_StructMatrixSetBoxValues(A_hp_e, &
+            & (/ (icoord)*nx+1, (jcoord)*ny+1 , 1 /), &
+            & (/ (icoord+1)*nx , (jcoord+1)*ny , nz /), &
+            & ne_hypre_e, stencil_indices_e, values_e, ierr_hypre)
 
-    ! deallocate local fields
-    deallocate(values_hypre, stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/bicgstab:dealloc failed"
-    deallocate(bvalue_vector_hypre, stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/bicgstab:dealloc failed"
-    deallocate(xvalue_vector_hypre, stat=allocstat); if(allocstat/=0) &
-         & stop "algebra.f90/bicgstab:dealloc failed"
+       call HYPRE_StructMatrixAssemble(A_hp_e,ierr_hypre)
 
+       ! Set up Struct Vectors for b and x.  Each processor sets the 
+       ! vectors corresponding to its boxes.
 
-          return
+       ! Set the vector coefficients
+
+       index_count_hypre = 1
+       do k = 1,nz
+          do j = 1,ny
+             do i = 1,nx
+                bvalue_vector_hypre(index_count_hypre) = b(i,j,k)
+                index_count_hypre = index_count_hypre + 1
+                ! testb
+                ! print*,i,j,k,'b =',b(i,j,k)
+                ! teste
+             end do
+          end do
+       end do
+
+       index_count_hypre = 1
+       do k = 1,nz
+          do j = 1,ny
+             do i = 1,nx
+                xvalue_vector_hypre(index_count_hypre) = sol(i,j,k)
+                index_count_hypre = index_count_hypre + 1
+                ! testb
+                ! print*,i,j,k,'sol =',sol(i,j,k)
+                ! teste
+             end do
+          end do
+       end do
+
+       call HYPRE_StructVectorSetBoxValues(b_hp_e, &
+          & (/ (icoord)*nx+1, (jcoord)*ny+1 , 1 /), &
+          & (/ (icoord+1)*nx , (jcoord+1)*ny , nz /), &
+          & bvalue_vector_hypre, ierr_hypre)
+
+       call HYPRE_StructVectorSetBoxValues(x_hp_e, &
+          & (/ (icoord)*nx+1, (jcoord)*ny+1 , 1 /), &
+          & (/ (icoord+1)*nx , (jcoord+1)*ny , nz /), &
+          & xvalue_vector_hypre, ierr_hypre)
+
+       ! This is a collective call finalizing the vector assembly. 
+       ! The vectors are now ``ready to be used''
+
+       call HYPRE_StructVectorAssemble(b_hp_e, ierr_hypre)
+       call HYPRE_StructVectorAssemble(x_hp_e, ierr_hypre)
+
+       ! Finalize set up and use a solver 
+       ! (See the Reference Manual for descriptions of all of the options.)
+
+       call HYPRE_StructHybridSetTol(solver_hp_e, tol, ierr_hypre)
+       call HYPRE_StructHybridSolve(solver_hp_e, A_hp_e, b_hp_e, x_hp_e, &
+                                  & ierr_hypre)
+
+       ! Get the results
+
+       call HYPRE_StructVectorGetBoxValues(x_hp_e, &
+          & (/ (icoord)*nx+1, (jcoord)*ny+1 , 1 /), &
+          & (/ (icoord+1)*nx , (jcoord+1)*ny , nz /), &
+          & xvalue_vector_hypre, ierr_hypre)
+
+       index_count_hypre = 1
+
+       do k = 1,nz
+          do j = 1,ny
+             do i = 1,nx
+                sol(i,j,k) = xvalue_vector_hypre(index_count_hypre)
+                index_count_hypre = index_count_hypre + 1
+             end do
+          end do
+       end do
+
+       call HYPRE_StructHybridGetNumIterati( solver_hp_e, nIter, &
+                                           & ierr_hypre )
+       call HYPRE_StructHybridGetFinalRelat( solver_hp_e, res, ierr_hypre )
+    end if
+
+    if ( giveInfo .and. master )  then 
+       print*,""
+       print*," HYPRE solver: "
+       write(*,fmt="(a25,i25)") " Nb.of iterations: j = ", nIter
+       write(*,fmt="(a25,es17.6)") " Final residual: res = ", res
+       print*,""
+    end if
+
+    return
 
   end subroutine hypre
 
-  ! modified by Junhong Wei (2016/07/08) (finishing line)
-
-
-  !---------------------------------------------------------------------------
-
-
-  subroutine poissonSolver_csr( var, dt, opt )
-    ! -------------------------------------------------
-    ! solves the Poisson problem with A stored in the
-    ! compressed sparse row (csr) format
-    ! -------------------------------------------------
-
-    ! in/out variables
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         &intent(inout) :: var
-    real, intent(in) :: dt
-    character(len=*), intent(in)    :: opt
-    
-
-    ! local fields
-    real, dimension(nnz) :: A_csr       ! compressed sparse row matrix (CSR)
-    ! L and U combined in one matrix in CSR format:
-    real, dimension(:), allocatable :: LU_csr  
-    character(len=2), dimension(nnz) :: TM_csr ! test matrix with CSR
-    integer, dimension(nnz) :: colInd          ! column index 
-    integer, dimension(nxyz+1) :: rowPtr       ! points at new rows
-    integer, dimension(nxyz) :: diagPtr        ! points at diagonal element
-    real, dimension(nxyz) :: b
-
-    ! local auxiliary fields
-    real, dimension(-5:5) :: diag      ! aux field for A: collects elements 
-    ! of a row out of CSR order -> needs reordering
-    ! aux field for TM -> needs reordering:
-    character(len=2), dimension(-5:5) :: TMdiag  
-    integer, dimension(-5:5) :: auxColInd  ! aux colInd -> needs reordering
-
-    ! local variables
-    integer :: i,j,k, l,m, ii, csrInd
-    real :: uR,uL, vF,vB, wU,wD
-    real :: pStratU, pStratD, rhoEdge
-    real :: AL,AR, AB,AF, AD,AU
-
-    ! diag preconditioner
-    real :: A_ii
-
-    ! test bicgstab
-    real, dimension(nxyz) :: sol
-    real :: res
-    real :: divSum
-
-    ! consistent divergence
-    real :: fL, fR, gF, gB, hU, hD
-    real :: thetaL, thetaR, thetaF, thetaB, thetaU, thetaD
-    real :: uSurf, vSurf, wSurf
-    real :: rhoL, rhoR, rhoF, rhoB, rhoU, rhoD
-
-    ! verbose
-    logical, parameter :: giveInfo = .false.
-
-!   achatzb
-    if(topography) stop 'poissonSolver_csr not ready for topography!'
-!   achatze
-
-
-    ! ----------------------------------
-    !          Poisson Problem
-    ! ----------------------------------
-
-    if(verbose) print*,"update.f90/poissonSolver: &
-         & Setting up Poisson problem."
-
-
-    ! ------------------------------------
-    !    setup b = Pu*  (right hand side)
-    ! ------------------------------------
-
-    b = 10.0
-    divSum = 0.0
-
-    do k = 1,nz
-       do j  = 1,ny
-          do i = 1,nx
-
-             l = getIndex(i,j,k)     ! 1D index for b
-
-             uR = var(i,j,k,2); uL = var(i-1,j,k,2)
-             vF = var(i,j,k,3); vB = var(i,j-1,k,3)
-             wU = var(i,j,k,4); wD = var(i,j,k-1,4)
-
-             pStratU = 0.5*(pStrat(k+1) + pStrat(k  ))
-             pStratD = 0.5*(pStrat(k  ) + pStrat(k-1))
-             b(l) = pStrat(k) * ( (uR-uL)/dx + (vF-vB)/dy ) &
-                  & + (pStratU*wU - pStratD*wD)/dz
-
-             ! scale RHS with Ma^2
-             b(l) = b(l)*Ma**2*kappa
-
-             divSum = divSum + b(l)
-
-          end do
-       end do
-    end do
-
-    !--- give info
-    if( giveInfo ) then
-       print*,""
-       print*," Poisson Solver_csr: Initial state"
-       print*,""
-       write(*,fmt="(a25,es17.6)") "Sum over RHS = ", divSum
-       write(*,fmt="(a25,es17.6)") "max(divPu*)[Pa/s] = ", &
-            & maxval(abs(b))*pref*uref/lref
-    end if
-
-
-    ! ---------------------------------
-    !  setup A_csr: coefficient matrix 
-    ! ---------------------------------
-
-    ! init
-    A_csr = 1000.0        ! all values should be overwritten 
-    TM_csr = "--"         !  - " - 
-    rowPtr = 0            
-    rowPtr(1) = 1         ! first element starts first row (no zero row)
-    diagPtr = 1000
-    diagPtr(1) = 1        ! first element is diagonal element
-    csrInd = 0            ! counter for elements in A_csr
-
-    ! loop over equation index l -> over lines of A
-    k_loop: do k = 1,nz
-       j_loop: do j = 1,ny
-          i_loop: do i = 1,nx
-             l = getIndex(i,j,k)  ! row index of A
-
-             ! init aux fields
-             auxColInd = 0
-
-             ! ------------------ A(i+1,j,k) ------------------
-             if (i<nx) then
-                m = getIndex(i+1,j,k)
-                rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
-                AR = dt/dx**2 * pStrat(k)**2/rhoEdge
-                diag(1) = AR
-                if(testCase == "matrixStructureTest") TMdiag(1) = "AR"
-                auxColInd(1) = m
-             else ! i = nx  right boundary (periodic)
-                ! nx+1 -> 1
-                m = getIndex(1,j,k)
-                !                rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
-                rhoEdge = 0.5*( var(1,j,k,1) + var(nx,j,k,1) )
-                AR = dt/dx**2 * pStrat(k)**2/rhoEdge
-                diag(-2) = AR
-                if(testCase == "matrixStructureTest") TMdiag(-2) = "AR"
-                auxColInd(-2) = m
-             end if
-
-             ! ------------------- A(i-1,j,k) --------------------
-             if (i>1) then
-                m = getIndex(i-1,j,k)
-                rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
-                AL = dt/dx**2 * pStrat(k)**2 / rhoEdge
-                diag(-1) = AL
-                if(testCase == "matrixStructureTest") TMdiag(-1) = "AL"
-                auxColInd(-1) = m
-             else ! i = 1 left boundary (perdiodic)
-                ! i-1 -> nx 
-                m = getIndex(nx,j,k)
-                !                rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
-                rhoEdge = 0.5*( var(1,j,k,1) + var(nx,j,k,1) )
-                AL = dt/dx**2 * pStrat(k)**2 / rhoEdge
-                diag(2) = AL
-                if(testCase == "matrixStructureTest") TMdiag(2) = "AL"
-                auxColInd(2) = m
-             end if
-
-             ! -------------------- A(i,j+1,k) ----------------------
-             if (j<ny) then
-                m = getIndex(i,j+1,k)
-                rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
-                AF = dt/dy**2 * pStrat(k)**2 / rhoEdge
-                diag(3) = AF
-                if(testCase == "matrixStructureTest") TMdiag(3) = "AF"
-                auxColInd(3) = m
-             else ! j = ny -> forward boundary (periodic)
-                ! j+1 -> 1
-                m = getIndex(i,1,k)
-                !                rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
-                rhoEdge = 0.5*( var(i,1,k,1) + var(i,ny,k,1) )
-                AF = dt/dy**2 * pStrat(k)**2 / rhoEdge
-                diag(-4) = AF
-                if(testCase == "matrixStructureTest") TMdiag(-4) = "AF"
-                auxColInd(-4) = m
-             end if
-
-             ! --------------------- A(i,j-1,k) -----------------------
-             if (j>1) then
-                m = getIndex(i,j-1,k)
-                rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
-                AB = dt/dy**2 * pStrat(k)**2 / rhoEdge
-                diag(-3) = AB
-                if(testCase == "matrixStructureTest") TMdiag(-3) = "AB"
-                auxColInd(-3) = m
-             else ! j = 1 -> backward boundary (periodic)
-                ! j-1 -> ny
-                m = getIndex(i,ny,k)
-                !                rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
-                rhoEdge = 0.5* ( var(i,1,k,1) + var(i,ny,k,1) )
-                AB = dt/dy**2 * pStrat(k)**2 / rhoEdge
-                diag(4) = AB
-                if(testCase == "matrixStructureTest") TMdiag(4) = "AB"
-                auxColInd(4) = m
-             end if
-
-
-             ! ------------------ vertical elements AU, AD ---------------
-
-
-             ! ---------------------- A(i,j,k+1) ------------------------
-             if (k<nz) then
-                m = getIndex(i,j,k+1)
-                rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
-                pStratU = 0.5* ( pStrat(k+1) + pStrat(k) )
-                AU = dt/dz**2 * pStratU**2 / rhoEdge
-                diag(5) = AU
-                if(testCase == "matrixStructureTest") TMdiag(5) = "AU"
-                auxColInd(5) = m
-             else ! k = nz -> upwad boundary (solid wall)
-                ! A(i,j,nz+1) = 0
-                AU = 0.0
-             end if
-
-             ! ----------------------- A(i,j,k-1) ------------------------
-             if (k>1) then 
-                m = getIndex(i,j,k-1)
-                rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
-                pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
-                AD = dt/dz**2 * pStratD**2 / rhoEdge
-                diag(-5) = AD
-                if(testCase == "matrixStructureTest") TMdiag(-5) = "AD"
-                auxColInd(-5) = m
-             else ! k = 1 -> downward boundary (solid wall)
-                ! A(i,j,0) = 0
-                AD = 0.0
-             end if
-
-             ! ----------------------- A(i,j,k) --------------------------
-             m = getIndex(i,j,k)
-             diag(0) = - AR - AL - AF - AB - AU - AD
-             if(testCase == "matrixStructureTest") TMdiag(0) = "AP"
-             auxColInd(0) = m
-
-
-
-             ! ---------------------------------------
-             !        reorder entries for A_CSR
-             ! ---------------------------------------
-             ! sequence in A_csr is re-established as in A
-
-             do ii = -5,5
-                if (auxColInd(ii) /= 0) then
-                   csrInd = csrInd + 1
-                   A_csr(csrInd) = diag(ii)
-                   TM_csr(csrInd) = TMdiag(ii)
-                   colInd(csrInd) = auxColInd(ii)
-                   if( l==colInd(csrInd) ) diagPtr(l) = csrInd  
-                   ! pointer for diagonal entry
-
-                end if
-             end do
-             rowPtr(l+1) = csrInd + 1        ! new row starts at csrInd+1
-          end do i_loop
-       end do j_loop
-    end do k_loop
-
-
-    !--------------------------------
-    !     Linear equation solver
-    !--------------------------------
-    
-    if( opt == "initial" ) then
-       tol = tolInitial
-       print*,"poisson_csr: use tolInitial = ", tolInitial
-    else
-       tol = tolPoisson
-    end if
-    
-    select case (preconditioner)
-
-    case ('no')
-
-       sol = 0.0
-       print*,""
-       print*," BiCGStab without Preconditioner "
-       print*,""
-       
-       
-       
-       call bicgstab_csr(A_csr,colInd,rowPtr,diagPtr,b,sol,&
-            & tol,res,maxIterPoisson)
-
-
-    case( 'diag' )
-
-       sol = 0.0
-       print*,""
-       print*," BiCGStab with Diagonal Preconditioner "
-       print*,""
-
-       do l = 1, nxyz
-          A_ii = A_csr(diagPtr(l))
-          do csrInd = rowPtr(l), rowPtr(l+1)-1
-             A_csr(csrInd) = A_csr(csrInd) / A_ii
-          end do
-          b(l) = b(l) / A_ii
-       end do
-       call bicgstab_csr(A_csr,colInd,rowPtr,diagPtr,b,sol,&
-            & tol,res,maxIterPoisson)
-
-
-    case ('ilu')
-
-       ! warning for precond. BiCGSTAB
-       if( ny == 1 ) then
-          print*,"WARNING: ILU preconditioner does not work for ny = 1"
-       end if
-
-       sol = 0.0
-       print*,""; print*,"-------------- ilu-precond. bicgstab_csr ------------"
-
-       call ilu_csr(A_csr, colInd, rowPtr, diagPtr, LU_csr)
-
-       call pre_bicgstab_csr(A_csr,LU_csr,colInd,rowPtr,diagPtr,b,sol,&
-            & tol,res,maxIterPoisson)
-
-    case default
-
-       stop "update.f90/poissonSolver_csr: preconditioner not definded."
-
-    end select
-
-
-
-    ! ------------------------------------------
-    !   Reshape pressure correction: sol -> dp
-    ! ------------------------------------------
-
-    dp = 0.0
-    do k = 1, nz
-       do j = 1, ny
-          do i = 1, nx
-
-             l = getIndex(i,j,k)
-             dp(i,j,k) = sol(l)
-
-          end do
-       end do
-    end do
-
-    ! --------------------------
-    !       fix p at a point
-    ! --------------------------
-    !    dp = dp - dp(1,1,1)
-
-
-    ! --------------------------
-    !       give info
-    ! --------------------------
-    if( giveInfo ) then
-       print*," Momentum Corrector"
-       print*,""
-       write(*,fmt="(a25,es17.6)") " dpMax = ", MAXVAL(dp)
-       write(*,fmt="(a25,es17.6)") " dpMin = ", MINVAL(dp)
-    end if
-
-
-    !---------------------------------
-    !       matrix setup test
-    !---------------------------------
-
-    ! print Testmatrix on Screen
-    if (testCase == "matrixStructureTest") then
-
-       print*,"update.f90/poissonSolver_full: TestMatrix TM_csr = "
-       write(*,fmt="(27a4)") TM_csr
-       print*,"colInd = ", colInd
-       print*,"rowPtr = ", rowPtr
-       print*,"diagPtr = ", diagPtr
-    end if
-
-    ! print A on screen in matrix format
-    if (testCase == "matrixStructureTest")  then
-       print*,"update.f90/poissonSolver_csr: Matrix A_csr = "
-       write(*,fmt="(10es10.1)") A_csr
-    end if
-
-  end subroutine poissonSolver_csr
-
-
-  !-------------------------------------------------------------------------
-
+  !-----------------------------------------------------------------------
 
   subroutine pressureBoundaryCondition
     !--------------------------------------------------
@@ -3929,11 +2196,11 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
     ! modified by Junhong Wei (20161107) *** starting line ***
 
     ! auxiliary fields for "dp"
-    real, dimension(ny,nz) :: xSliceLeft_send, xSliceRight_send
-    real, dimension(ny,nz) :: xSliceLeft_recv, xSliceRight_recv
+    real, dimension(0:ny+1,0:nz+1) :: xSliceLeft_send, xSliceRight_send
+    real, dimension(0:ny+1,0:nz+1) :: xSliceLeft_recv, xSliceRight_recv
     
-    real, dimension(nx,nz) :: ySliceBack_send, ySliceForw_send
-    real, dimension(nx,nz) :: ySliceBack_recv, ySliceForw_recv
+    real, dimension(0:nx+1,0:nz+1) :: ySliceBack_send, ySliceForw_send
+    real, dimension(0:nx+1,0:nz+1) :: ySliceBack_recv, ySliceForw_recv
     
     ! MPI variables
     integer :: dest, source, tag
@@ -3944,7 +2211,6 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
     if ( idim > 1 ) call mpi_cart_shift(comm,0,1,left,right,ierror)
     if ( jdim > 1 ) call mpi_cart_shift(comm,1,1,back,forw,ierror)
 
-!xxxx
     if( giveInfo .and. master ) then
        print*,""
        print*,"----------------------------------------------"
@@ -3957,24 +2223,25 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
     !   set Halo cells: xSlice
     !----------------------------
 
-    ! slice size
-    sendcount = ny*nz
-    recvcount = sendcount
-
-    ! read slice into contiguous array
-    xSliceLeft_send (:,:) = dp(1, 1:ny,1:nz)
-    xSliceRight_send(:,:) = dp(nx,1:ny,1:nz)
-
     if( idim > 1 ) then
+       ! slice size
+       sendcount = (ny+2)*(nz+2)
+       recvcount = sendcount
+
+       ! read slice into contiguous array
+       xSliceLeft_send (:,:) = dp(1, 0:ny+1,:)
+       xSliceRight_send(:,:) = dp(nx,0:ny+1,:)
+
+
 
        ! left -> right
        source = left
        dest = right
        tag = 100
 
-       call mpi_sendrecv(xSliceRight_send(1,1), sendcount, &
+       call mpi_sendrecv(xSliceRight_send(0,0), sendcount, &
             & mpi_double_precision, dest, tag, &
-            & xSliceLeft_recv(1,1), recvcount, mpi_double_precision, &
+            & xSliceLeft_recv(0,0), recvcount, mpi_double_precision, &
             & source, mpi_any_tag, comm, sts_left, ierror)
 
        ! right -> left
@@ -3982,25 +2249,18 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
        dest = left
        tag = 100
 
-       call mpi_sendrecv(xSliceLeft_send(1,1), sendcount, &
+       call mpi_sendrecv(xSliceLeft_send(0,0), sendcount, &
             & mpi_double_precision, dest, tag, &
-            & xSliceRight_recv(1,1), recvcount, mpi_double_precision, &
+            & xSliceRight_recv(0,0), recvcount, mpi_double_precision, &
             & source, mpi_any_tag, comm, sts_right, ierror)
 
        ! right halos
-       dp(nx+1,1:ny,1:nz) = xSliceRight_recv(1:ny,1:nz)
+       dp(nx+1,0:ny+1,:) = xSliceRight_recv(0:ny+1,:)
 
        ! left halos
-       dp(0,1:ny,1:nz) = xSliceLeft_recv(1:ny,1:nz)
+       dp(0   ,0:ny+1,:) =  xSliceLeft_recv(0:ny+1,:)
 
     else
-
-       !if( master ) then
-       !   print*,"idim = 1!  Routine setHelos not checked for this case. Stop."
-       !   call mpi_barrier(comm,ierror)
-       !   call mpi_finalize(ierror)
-       !   stop
-       !end if
 
        dp(0,:,:) = dp(nx,:,:)
        dp(nx+1,:,:) = dp(1,:,:)
@@ -4014,24 +2274,25 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
     !   set Halo cells: ySlice 
     !------------------------------
 
-    ! slice size
-    sendcount = nx*nz
-    recvcount = sendcount
-
-    ! read slice into contiguous array
-    ySliceBack_send (:,:) = dp(1:nx, 1,1:nz)
-    ySliceForw_send(:,:) = dp(1:nx,ny,1:nz)
-
     if( jdim > 1 ) then
+       ! slice size
+       sendcount = (nx+2)*(nz+2)
+
+       recvcount = sendcount
+
+       ! read slice into contiguous array
+       ySliceBack_send(:,:) = dp(0:nx+1, 1,:)
+
+       ySliceForw_send(:,:) = dp(0:nx+1,ny,:)
 
        ! back -> forw
        source = back
        dest = forw
        tag = 100
 
-       call mpi_sendrecv(ySliceForw_send(1,1), sendcount, &
+       call mpi_sendrecv(ySliceForw_send(0,0), sendcount, &
             & mpi_double_precision, dest, tag, &
-            & ySliceBack_recv(1,1), recvcount, mpi_double_precision, &
+            & ySliceBack_recv(0,0), recvcount, mpi_double_precision, &
             & source, mpi_any_tag, comm, sts_back, ierror)
 
        ! forw -> back
@@ -4039,25 +2300,18 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
        dest = back
        tag = 100
 
-       call mpi_sendrecv(ySliceBack_send(1,1), sendcount, &
+       call mpi_sendrecv(ySliceBack_send(0,0), sendcount, &
             & mpi_double_precision, dest, tag, &
-            & ySliceForw_recv(1,1), recvcount, mpi_double_precision, &
+            & ySliceForw_recv(0,0), recvcount, mpi_double_precision, &
             & source, mpi_any_tag, comm, sts_right, ierror)
 
        ! forward halos
-       dp(1:nx,ny+1,1:nz) = ySliceForw_recv(1:nx,1:nz)
+       dp(0:nx+1,ny+1,:) = ySliceForw_recv(0:nx+1,:)
 
        ! backward halos
-       dp(1:nx,0,1:nz) = ySliceBack_recv(1:nx,1:nz)
+       dp(0:nx+1,0   ,:) = ySliceBack_recv(0:nx+1,:)
 
     else
-
-       !if( master ) then
-       !   print*,"jdim = 1!  Routine setHelos not checked for this case. Stop."
-       !   call mpi_barrier(comm,ierror)
-       !   call mpi_finalize(ierror)
-       !   stop
-       !end if
 
        dp(:,0,:) = dp(:,ny,:)
        dp(:,ny+1,:) = dp(:,1,:)
@@ -4067,76 +2321,34 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
     if(verbose .and. master) print*,"horizontalHalos: &
          & x-horizontal halos copied."
 
-
-    !------------------------------------
-    ! SERIAL version:
-    !
-    !     
-    !----------------
-    !  x-Boundary
-    !----------------
-    !    dp(0,:,:) = dp(nx,:,:)
-    !    dp(nx+1,:,:) = dp(1,:,:)
-
-    !----------------    
-    !   y-Boundary
-    !----------------
-    !    dp(:,0,:) = dp(:,ny,:)
-    !    dp(:,ny+1,:) = dp(:,1,:)
-
-!    !----------------
-!    !  x-Boundary
-!    !----------------
-!    select case( xBoundary ) 
-!
-!    case( "periodic" ) 
-!       dp(0,:,:) = dp(nx,:,:)
-!       dp(nx+1,:,:) = dp(1,:,:)
-!
-!    case default
-!       stop "pressureBoundaryCondition: unknown case xBoundary."
-!    end select
-!
-!
-!    !----------------    
-!    !   y-Boundary
-!    !----------------
-!    select case( yBoundary ) 
-!
-!    case( "periodic" ) 
-!       dp(:,0,:) = dp(:,ny,:)
-!       dp(:,ny+1,:) = dp(:,1,:)
-!    case default
-!       stop "pressureBoundaryCondition: unknown case yBoundary."
-!    end select
-
-        ! modified by Junhong Wei (20161107) *** finishing line ***
-
     !----------------
     !   z-Boundary
     !----------------
+
     select case( zBoundary )
 
     case( "periodic" )
+
        dp(:,:,0) = dp(:,:,nz)
        dp(:,:,nz+1) = dp(:,:,1)
 
     case( "solid_wall" )
+
        ! zero gradient   
        dp(:,:,0) = dp(:,:,1)
        dp(:,:,nz+1) = dp(:,:,nz)
+
     case default
-       stop "pressureBoundaryCondition: unknown case yBoundary."
+       stop "pressureBoundaryCondition: unknown case zBoundary."
     end select
 
 
   end subroutine pressureBoundaryCondition
 
+  !-----------------------------------------------------------------------
 
-  !-------------------------------------------------------------------------
+  subroutine correctorStep( var, dMom, dt, RKstage, opt)
 
-
-  subroutine correctorStep( var, dMom, dt, RKstage)
     !-------------------------------------------------
     !         correct pressure & velocity
     !-------------------------------------------------
@@ -4149,11 +2361,26 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
     real, intent(in) :: dt
     integer, intent(in) :: RKstage
 
+    ! opt = expl =>
+    ! pressure solver for explicit problem and corresponding correction 
+    ! of the winds
+    ! opt = impl =>
+    ! pressure solver for implicit problem and corresponding correction 
+    ! of the winds and density fluctuations
+    character(len=*), intent(in)    :: opt
+
     ! local variables 
     integer :: i,j,k
-    real :: pEdge, rhoEdge
+    real :: pEdge, rhoEdge, rhou, rhov, rho, rho10, rho01
     real :: pGradX, pGradY, pGradZ
-    real :: du, dv, dw
+    real :: du, dv, dw, db
+    real :: facu, facv, facw, facr
+    real :: f_cor_nd
+    real :: bvsstw
+
+    real :: rhov0m, rhov00, rhov1m, rhov10
+    real :: rhoum0, rhou00, rhoum1, rhou01
+    real :: rhow0, rhowm
 
     ! divergence check
     real :: maxDivPu, divPu
@@ -4163,158 +2390,337 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
     ! verbose
     logical, parameter :: giveInfo = .true.
 
-!   achatzb
     integer :: i0,j0
-!   achatze
 
-    ! modified by Junhong Wei (20161108) *** starting line ***
-
-        if( giveInfo .and. master ) then
-       print*,""
-       print*,"----------------------------------------------"
-       print*,"correctorStep: correcting p, u, v, and w..."
-       print*,"----------------------------------------------"
-       print*,""
+    if (model == "Boussinesq") then
+       print*,'ERROR: correctorStep not ready for Boussinesq mode'
+       stop
     end if
-       
 
-!   achatzb
     i0=is+nbx-1
     j0=js+nby-1
-!   achatze
+
+    ! non-dimensional Corilois parameter (= inverse Rossby number)
+    f_cor_nd = f_Coriolis_dim*tRef
 
     ! --------------------------------------
     !             calc p + dp
     ! --------------------------------------
 
-!   achatzb
-!   var(0:nx+1,0:ny+1,1:nz,5) &
-!   = var(0:nx+1,0:ny+1,1:nz,5) + dp(0:nx+1,0:ny+1,1:nz)
-    ! pressure correction only for atmosphere cells
-    if(topography) then
-       do k = 0,nz+1
-          do j = 0,ny+1
-             do i = 0,nx+1
-                if(.not.topography_mask(i0+i,j0+j,k)) then
-                   var(i,j,k,5) = var(i,j,k,5) + dp(i,j,k)
-                end if
-             end do
-          end do
-       end do
-      else
-       var(0:nx+1,0:ny+1,1:nz,5) &
-       = var(0:nx+1,0:ny+1,1:nz,5) + dp(0:nx+1,0:ny+1,1:nz)
-    end if
-!   achatze
-
-!    ! --------------------------------------
-!    !             calc p + dp
-!    ! --------------------------------------
-!
-!    var(1:nx,1:ny,1:nz,5) = var(1:nx,1:ny,1:nz,5) + dp(1:nx,1:ny,1:nz)
-
-    ! modified by Junhong Wei (20161108) *** finishing line ***
+    var(0:nx+1,0:ny+1,0:nz+1,5) &
+    = var(0:nx+1,0:ny+1,0:nz+1,5) + dp(0:nx+1,0:ny+1,0:nz+1)
 
     ! --------------------------------------
     !           calc du and u + du
     ! --------------------------------------
 
-    do k = 1,nz
-       do j = 1,ny
-          do i = 0,nx
+    if (timeScheme == "semiimplicit") then
+       if (opt == "impl") then
+          do k = 1,nz
+             do j = 1,ny
+                do i = 0,nx
+                   facu = 1.0
 
-             rhoEdge = 0.5 * ( var(i,j,k,1) + var(i+1,j,k,1) )
-             if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
+                   if (topography) then
+                      if (   topography_mask(i0+i,j0+j,k) &
+                        & .or. topography_mask(i0+i+1,j0+j,k)) then
+                         facu = facu + dt*alprlx
+                      end if
+                   end if
 
+                   facv = facu
 
-             pGradX = ( dp(i+1,j,k) - dp(i,j,k) ) / dx
-             du = -dt * kappaInv * MaInv2 * pStrat(k) / rhoEdge * pGradX     
+                   rhov0m = 0.5 * (var(i,j-1,k,1) + var(i,j,k,1))
+                   if( fluctuationMode ) rhov0m = rhov0m + rhoStrat(k)
 
-             var(i,j,k,2) = var(i,j,k,2) + du
+                   rhov00 = 0.5 * (var(i,j,k,1) + var(i,j+1,k,1))
+                   if( fluctuationMode ) rhov00 = rhov00 + rhoStrat(k)
 
-             ! correct x-momentum tendency
-             dMom(i,j,k,1) = dMom(i,j,k,1) + rhoEdge*du/beta(RKstage)
+                   rhov1m = 0.5 * (var(i+1,j-1,k,1) + var(i+1,j,k,1))
+                   if( fluctuationMode ) rhov1m = rhov1m + rhoStrat(k)
 
+                   rhov10 = 0.5 * (var(i+1,j,k,1) + var(i+1,j+1,k,1))
+                   if( fluctuationMode ) rhov10 = rhov10 + rhoStrat(k)
+
+                   rhou = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
+                   if( fluctuationMode ) rhou = rhou + rhoStrat(k)
+                   pGradX &
+                   = kappaInv*MaInv2 * pStrat(k)/rhou &
+                     * ( dp(i+1,j,k) - dp(i,j,k) ) / dx
+
+                   pGradY &
+                   = kappaInv*MaInv2 &
+                     * 0.25 &
+                     * (  pStrat(k)/rhov0m * (dp(i,j,k) - dp(i,j-1,k))/dy &
+                        + pStrat(k)/rhov00 * (dp(i,j+1,k) - dp(i,j,k))/dy &
+                        + pStrat(k)/rhov1m &
+                          * (dp(i+1,j,k) - dp(i+1,j-1,k))/dy &
+                        + pStrat(k)/rhov10 &
+                          * (dp(i+1,j+1,k) - dp(i+1,j,k))/dy)
+
+                          du = - dt/(facu*facv + (f_cor_nd*dt)**2) &
+                          * (facv * pGradX + f_cor_nd*dt * pGradY)
+
+                   var(i,j,k,2) = var(i,j,k,2) + du
+                end do
+             end do
+          end do
+         else if (opt == "expl") then
+          do k = 1,nz
+             do j = 1,ny
+                do i = 0,nx
+                   rhou = 0.5 * ( var(i,j,k,1) + var(i+1,j,k,1) )
+                   if( fluctuationMode ) rhou = rhou + rhoStrat(k)
+
+                   pGradX &
+                   = kappaInv*MaInv2 * pStrat(k)/rhou &
+                     * (dp(i+1,j,k) - dp(i,j,k))/dx
+
+                   du = - dt * pGradX
+
+                   var(i,j,k,2) = var(i,j,k,2) + du
+                end do
+             end do
+          end do
+         else
+          stop'ERROR: wrong opt in correctorStep'
+       end if
+      else
+       do k = 1,nz
+          do j = 1,ny
+             do i = 0,nx
+                rhou = 0.5 * ( var(i,j,k,1) + var(i+1,j,k,1) )
+                if( fluctuationMode ) rhou = rhou + rhoStrat(k)
+
+                pGradX &
+                = kappaInv*MaInv2 * pStrat(k)/rhou &
+                  * (dp(i+1,j,k) - dp(i,j,k))/dx
+
+                du = - dt *  pGradX
+
+                var(i,j,k,2) = var(i,j,k,2) + du
+
+                ! correct x-momentum tendency
+                dMom(i,j,k,1) = dMom(i,j,k,1) + rhou*du/beta(RKstage)
+             end do
           end do
        end do
-    end do
+    end if
 
     !--------------------------------------
     !         calc dv and v + dv
     !--------------------------------------
 
-    do k = 1,nz
-       do j = 0,ny
-          do i = 1,nx
-             rhoEdge = 0.5 * ( var(i,j,k,1) + var(i,j+1,k,1) )
-             if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
+    if (timeScheme == "semiimplicit") then
+       if (opt == "impl") then
+          do k = 1,nz
+             do j = 0,ny
+                do i = 1,nx
+                   facv = 1.0
+
+                   if (topography) then
+                      if (   topography_mask(i0+i,j0+j,k) &
+                        & .or. topography_mask(i0+i,j0+j+1,k)) then
+                         facv = facv + dt*alprlx
+                      end if
+                   end if
+
+                   facu = facv
+
+                   rhou00 = 0.5 * (var(i,j,k,1) + var(i+1,j,k,1))
+                   if( fluctuationMode ) rhou00 = rhou00 + rhoStrat(k)
+
+                   rhoum0 = 0.5 * (var(i-1,j,k,1) + var(i,j,k,1))
+                   if( fluctuationMode ) rhoum0 = rhoum0 + rhoStrat(k)
+
+                   rhou01 = 0.5 * (var(i,j+1,k,1) + var(i+1,j+1,k,1))
+                   if( fluctuationMode ) rhou01 = rhou01 + rhoStrat(k)
+
+                   rhoum1 = 0.5 * (var(i-1,j+1,k,1) + var(i,j+1,k,1))
+                   if( fluctuationMode ) rhoum1 = rhoum1 + rhoStrat(k)
+
+                   rhov = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
+                   if( fluctuationMode ) rhov = rhov + rhoStrat(k)
+
+                   pGradX &
+                   = kappaInv*MaInv2 &
+                     * 0.25 &
+                     * (  pStrat(k)/rhou00 * (dp(i+1,j,k) - dp(i,j,k))/dx &
+                        + pStrat(k)/rhoum0 * (dp(i,j,k) - dp(i-1,j,k))/dx &
+                        + pStrat(k)/rhou01 &
+                          * (dp(i+1,j+1,k) - dp(i,j+1,k))/dx &
+                        + pStrat(k)/rhoum1 &
+                          * (dp(i,j+1,k) - dp(i-1,j+1,k))/dx)
+
+                   pGradY &
+                   = kappaInv*MaInv2 * pStrat(k)/rhov &
+                     * (dp(i,j+1,k) - dp(i,j,k))/dy
+
+                   dv = - dt/(facu*facv + (f_cor_nd*dt)**2) &
+                          * (- f_cor_nd*dt * pGradX + facu * pGradY)
+
+                   var(i,j,k,3) = var(i,j,k,3) + dv
+                end do
+             end do
+          end do
+         else if (opt == "expl") then
+          do k = 1,nz
+             do j = 0,ny
+                do i = 1,nx
+                   rhov = 0.5 * (var(i,j,k,1) + var(i,j+1,k,1))
+                   if( fluctuationMode ) rhov = rhov + rhoStrat(k)
              
-             pGradY = ( dp(i,j+1,k) - dp(i,j,k) ) / dy
-             dv = -dt * kappaInv * MaInv2 * pStrat(k) / rhoEdge * pGradY   
+                   pGradY &
+                   = kappaInv*MaInv2 * pStrat(k)/rhov &
+                     * (dp(i,j+1,k) - dp(i,j,k))/dy
 
-             var(i,j,k,3) = var(i,j,k,3) + dv
+                   dv = - dt * pGradY
 
-             ! correct y-momentum tendency
-             dMom(i,j,k,2) = dMom(i,j,k,2) + rhoEdge*dv/beta(RKstage)
+                   var(i,j,k,3) = var(i,j,k,3) + dv
+                end do
+             end do
+          end do
+         else
+          stop'ERROR: wrong opt in correctorStep'
+       end if
+      else
+       do k = 1,nz
+          do j = 0,ny
+             do i = 1,nx
+                rhov = 0.5 * (var(i,j,k,1) + var(i,j+1,k,1))
+                if( fluctuationMode ) rhov = rhov + rhoStrat(k)
+             
+                pGradY &
+                = kappaInv*MaInv2 * pStrat(k)/rhov &
+                  * (dp(i,j+1,k) - dp(i,j,k))/dy
 
+                dv = - dt * pGradY
+
+                var(i,j,k,3) = var(i,j,k,3) + dv
+
+                ! correct y-momentum tendency
+                dMom(i,j,k,2) = dMom(i,j,k,2) + rhov*dv/beta(RKstage)
+             end do
           end do
        end do
-    end do
+    end if
 
 
     !--------------------------------------
     !         calc w and  w + dw
     !--------------------------------------
 
-    ! solid wall 
-    ! do k = 0, nz                 !  boundary values remain unchanged 
-    do k = 1, nz-1        
-       do j = 1,ny
-          do i = 1,nx
+    if (timeScheme == "semiimplicit") then
+       if (opt == "impl") then
+          ! solid wall implies zero change of w at the bottom and top
 
+          do k = 1, nz-1        
+             do j = 1,ny
+                do i = 1,nx
+                   facw = 1.0
+                   facr = 1.0 + alprlx*dt
+
+                   if (topography) then
+                      if (   topography_mask(i0+i,j0+j,k) &
+                        & .or. topography_mask(i0+i,j0+j,k+1)) then
+                         facw = facw + dt*alprlx
+                      end if
+                   end if
+
+                   pEdge = 0.5 * ( pStrat(k+1) + pStrat(k) )
+
+                   rhoEdge = 0.5 * ( var(i,j,k,1) + var(i,j,k+1,1) )
+                   if( fluctuationMode ) then
+                       rhoEdge = rhoEdge + rhoStratTilde(k)
+                   end if
              
-             if( fluctuationMode ) then
-                pEdge = pStratTilde(k)
-             else
-                pEdge = 0.5 * ( pStrat(k) + pStrat(k+1) )
-             end if
+                   bvsstw = 0.5 * (bvsStrat(k) + bvsStrat(k+1))
 
-             
-             rhoEdge = 0.5 * ( var(i,j,k,1) + var(i,j,k+1,1) )
-             if( fluctuationMode ) rhoEdge = rhoEdge + rhoStratTilde(k)
-             
-             pGradZ = ( dp(i,j,k+1) - dp(i,j,k) ) / dz
+                   pGradZ = ( dp(i,j,k+1) - dp(i,j,k) ) / dz
 
-             dw = -dt * kappaInv * MaInv2 * pEdge / rhoEdge * pGradz   
+                   dw = - dt * kappaInv*MaInv2 * facr &
+                          /(  facw*facr &
+                            + rhoStratTilde(k)/rhoEdge * bvsstw * dt**2) &
+                          * pEdge/rhoEdge * pGradz   
 
-             var(i,j,k,4) = var(i,j,k,4) + dw
-
-             ! correct z-momentum tendency
-             dMom(i,j,k,3) = dMom(i,j,k,3) + rhoEdge*dw/beta(RKstage)
-
-
+                   var(i,j,k,4) = var(i,j,k,4) + dw
+                end do
+             end do
           end do
-       end do
-    end do
 
+          ! periodic in z
+          if( zBoundary == "periodic" ) then
+              stop'ERROR: period. vert. bound. not ready in correctorStep'
+          end if
+         else if (opt == "expl") then
+          ! solid wall implies zero change of w at the bottom and top
 
-    ! periodic in z
-    if( zBoundary == "periodic" ) then
+          do k = 1, nz-1        
+             do j = 1,ny
+                do i = 1,nx
+                   if( fluctuationMode ) then
+                      pEdge = pStratTilde(k)
+                   else
+                      pEdge = 0.5 * ( pStrat(k) + pStrat(k+1) )
+                   end if
+             
+                   rhoEdge = 0.5 * ( var(i,j,k,1) + var(i,j,k+1,1) )
+                   if( fluctuationMode ) then
+                       rhoEdge = rhoEdge + rhoStratTilde(k)
+                   end if
+             
+                   pGradZ = ( dp(i,j,k+1) - dp(i,j,k) ) / dz
 
-       do k = 0,nz,nz
+                   dw = -dt * kappaInv * MaInv2 * pEdge/rhoEdge * pGradz   
+
+                   var(i,j,k,4) = var(i,j,k,4) + dw
+                end do
+             end do
+          end do
+
+          ! if periodic in z
+          if( zBoundary == "periodic" ) then
+             do k = 0,nz,nz
+                do j = 1,ny
+                   do i = 1,nx
+                      if( fluctuationMode ) then
+                         pEdge = pStratTilde(k)
+                      else
+                         pEdge = 0.5 * ( pStrat(k) + pStrat(k+1) )
+                      end if
+
+                      rhoEdge = 0.5 * ( var(i,j,k,1) + var(i,j,k+1,1) )
+                      if( fluctuationMode ) then
+                          rhoEdge = rhoEdge + rhoStratTilde(k)
+                      end if
+                
+                      pGradZ = ( dp(i,j,k+1) - dp(i,j,k) ) / dz
+
+                      dw = -dt * kappaInv*MaInv2 * pEdge/rhoEdge * pGradz
+
+                      var(i,j,k,4) = var(i,j,k,4) + dw
+                   end do
+                end do
+             end do
+          end if
+         else
+          stop'ERROR: wrong opt in correctorStep'
+       end if
+      else
+       ! solid wall implies zero change of w at the bottom and top
+
+       do k = 1, nz-1        
           do j = 1,ny
              do i = 1,nx
-
-
                 if( fluctuationMode ) then
                    pEdge = pStratTilde(k)
                 else
                    pEdge = 0.5 * ( pStrat(k) + pStrat(k+1) )
                 end if
-
+             
                 rhoEdge = 0.5 * ( var(i,j,k,1) + var(i,j,k+1,1) )
                 if( fluctuationMode ) rhoEdge = rhoEdge + rhoStratTilde(k)
-                
+             
                 pGradZ = ( dp(i,j,k+1) - dp(i,j,k) ) / dz
 
                 dw = -dt * kappaInv * MaInv2 * pEdge / rhoEdge * pGradz   
@@ -4323,74 +2729,107 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
 
                 ! correct z-momentum tendency
                 dMom(i,j,k,3) = dMom(i,j,k,3) + rhoEdge*dw/beta(RKstage)
-                
              end do
           end do
        end do
 
-    end if
-
-!   achatzb
-!   -------------------------------------
-!   in case of topography, 
-!   set all velocities normal to the topographic surface to zero
-!   set densities in land cesll to background density
-!   ------------------------------------
-
-    if(topography) then
-       do k = 0, nz+1
-          do j = 0, ny+1
-             do i = 0, nx+1
-!               u at x interfaces
-                if(&
-                   topography_mask(i0+i,j0+j,k)&
-                   .or.&
-                   topography_mask(i0+i+1,j0+j,k)&
-                ) then
-                   var(i,j,k,2)=0.
-                end if
-
-!               v at y interfaces
-                if(&
-                   topography_mask(i0+i,j0+j,k)&
-                   .or.&
-                   topography_mask(i0+i,j0+j+1,k)&
-                ) then
-                   var(i,j,k,3)=0.
-                end if
-
-!               w at z interfaces
-                if(&
-                   topography_mask(i0+i,j0+j,k)&
-                   .or.&
-                   topography_mask(i0+i,j0+j,k+1)&
-                ) then
-                   var(i,j,k,4)=0.
-                end if
-
-!               density in land cells
-                if(topography_mask(i0+i,j0+j,k)) then
+       ! if periodic in z
+       if( zBoundary == "periodic" ) then
+          do k = 0,nz,nz
+             do j = 1,ny
+                do i = 1,nx
                    if( fluctuationMode ) then
-                      var(i,j,k,1) = 0.0
-                     else
-                      var(i,j,k,1) = rhoStrat(k) 
+                      pEdge = pStratTilde(k)
+                   else
+                      pEdge = 0.5 * ( pStrat(k) + pStrat(k+1) )
                    end if
-                end if
 
+                   rhoEdge = 0.5 * ( var(i,j,k,1) + var(i,j,k+1,1) )
+                   if( fluctuationMode ) then
+                       rhoEdge = rhoEdge + rhoStratTilde(k)
+                   end if
+                
+                   pGradZ = ( dp(i,j,k+1) - dp(i,j,k) ) / dz
+
+                   dw = -dt * kappaInv*MaInv2 * pEdge/rhoEdge * pGradz   
+
+                   var(i,j,k,4) = var(i,j,k,4) + dw
+
+                   ! correct z-momentum tendency
+                   dMom(i,j,k,3) = dMom(i,j,k,3) + rhoEdge*dw/beta(RKstage)
+                end do
              end do
           end do
-       end do
+       end if
     end if
-!   -------------------------------------
-!   achatze
 
+    !------------------------------------------------------------------
+    !         calc rhop and rhop + drhop (only for implicit time step)
+    !------------------------------------------------------------------
 
+    if (timeScheme == "semiimplicit") then
+       if (opt == "impl") then
+          do k = 1, nz        
+             do j = 1,ny
+                do i = 1,nx
+                   facw = 1.0
+                   facr = 1.0 + alprlx*dt
+
+                   if (topography) then
+                      if (   topography_mask(i0+i,j0+j,k) &
+                        & .or. topography_mask(i0+i,j0+j,k+1)) then
+                         facw = facw + dt*alprlx
+                      end if
+                   end if
+
+                   rho = var(i,j,k,1)
+                   if( fluctuationMode ) rho = rho + rhoStrat(k)
+
+                   rhowm = 0.5 * (var(i,j,k-1,1) + var(i,j,k,1))
+                   if( fluctuationMode ) rhowm = rhowm + rhoStratTilde(k-1)
+
+                   rhow0 = 0.5 * (var(i,j,k,1) + var(i,j,k+1,1))
+                   if( fluctuationMode ) rhow0 = rhow0 + rhoStratTilde(k)
+             
+                   if (k == 1) then
+                      pGradZ &
+                      = kappaInv*MaInv2 &
+                        * 0.5*(pStratTilde(k)/rhow0 &
+                               * (dp(i,j,k+1) - dp(i,j,k))/dz)
+                     else if (k == nz) then
+                      pGradZ &
+                      = kappaInv*MaInv2 &
+                        * 0.5*(pStratTilde(k-1)/rhowm &
+                               * (dp(i,j,k) - dp(i,j,k-1))/dz)
+                     else
+                      pGradZ &
+                      = kappaInv*MaInv2 &
+                        * 0.5*(  pStratTilde(k)/rhow0 &
+                                 * (dp(i,j,k+1) - dp(i,j,k))/dz &
+                               + pStratTilde(k-1)/rhowm &
+                                 * (dp(i,j,k) - dp(i,j,k-1))/dz)
+                   end if
+
+                   db = rhoStrat(k)/rho * bvsStrat(k) * dt**2 &
+                        /(  facw*facr &
+                          + rhoStrat(k)/rho * bvsStrat(k) * dt**2) &
+                        * pGradz   
+
+                   var(i,j,k,6) = var(i,j,k,6) - rho/g_ndim * db
+                end do
+             end do
+          end do
+
+          ! periodic in z
+          if( zBoundary == "periodic" ) then
+              stop'ERROR: period. vert. bound. not ready in correctorStep'
+          end if
+       end if
+    end if
 
   end subroutine correctorStep
 
-
-  !-------------------------------------------------------------------------
-
+  !----------------------------------------------------------------------
 
   function getIndex(i,j,k)
     !----------------------------------------------------
@@ -4402,13 +2841,13 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
     integer, intent(in) :: i,j,k 
 
     getIndex = (k-1)*nx*ny + (j-1)*nx + i
+
   end function getIndex
 
-
-  !-------------------------------------------------------------------------
-
+  !--------------------------------------------------------------------
 
   subroutine init_poisson
+
     !-----------------------------------
     ! allocate poisson module variables
     !-----------------------------------
@@ -4429,12 +2868,9 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
     allocate( p_pred(1:nx,1:ny,1:nz), stat=allocstat)
     if( allocstat /= 0) stop "init_poisson: alloc failed"
 
-
   end subroutine init_poisson
 
-
-  !---------------------------------------------------------------------------
-
+  !----------------------------------------------------------------------
 
   subroutine terminate_poisson
     !-----------------------------------
@@ -4458,6 +2894,1267 @@ call HYPRE_StructMatrixAssemble(A_hypre,ierr_hypre)
     if( allocstat /= 0) stop "init_poisson: dealloc failed"
 
   end subroutine terminate_poisson
+
+  !!------------------------------------------------------------------------
+!
+  subroutine calculate_heating_0(var,flux,heat)
+
+  !-----------------------------------------------
+  ! calculate heating in the divergence constraint
+  !-----------------------------------------------
+
+   real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz, nVar), &
+        &intent(in) :: var     
+   real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
+
+   real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
+        &intent(out) :: heat  !, term1, term2
+
+   ! local variables
+   integer :: i, j, k
+   real    :: rho, the, theta_bar_0, rho_e
+   real, dimension(1:nz) :: tau_relax_i  ! inverse scaled relaxation 
+                                         ! time for barocl. l. c.
+   real    :: tau_jet_sc, tau_relax_sc  ! Klein scaling for relax param.
+
+   heat = 0.0
+
+   !-------------------------------------------------------
+   ! calculate the environment-induced negative (!) heating
+   !-------------------------------------------------------
+
+   if (     (TestCase == "baroclinic_LC") &
+       .or. (TestCase == "baroclinic_ID")) then
+      if (RelaxHeating /= 0)  then
+         !UAB
+         if (background /= "HeldSuarez") then
+         !UAE
+            do k = 1,nz
+               if ( referenceQuantities == "SI" ) then
+                  tau_relax_sc = tau_relax
+                  tau_jet_sc = tau_jet
+                 else
+                  tau_relax_sc = tau_relax/tref
+                  tau_jet_sc = tau_jet/tref
+               end if
+           
+               if (RelaxHeating == 1) then
+                  tau_relax_i(k) = 1./(tau_relax_sc)
+                  else
+                  !UAB
+                  !tau_relax_i = 0.
+                  tau_relax_i(k) = 0.
+                  !UAE
+               end if
+            end do
+         !UAB
+         end if
+         !UAE
+
+         if( master ) then 
+            print*,""
+            print*," Poisson Solver, Thermal Relaxation is on: "
+            print*," Relaxation factor: Div = - rho(Th - Th_e)/tau: "
+            print*, "tau = ", tref/tau_relax_i(1), " s"
+         end if
+
+         theta_bar_0 = (thetaStrat(1) + thetaStrat(nz))/2.
+   
+         do k = 1,nz
+            do j = 1,ny
+               do i = 1,nx
+                  if( fluctuationMode )  then
+                     rho = var(i,j,k,1) + rhoStrat(k)
+                    else   
+                     rho = var(i,j,k,1)
+                  end if  
+
+                  the = (Pstrat(k))/rho 
+                  rho_e = (Pstrat(k))/the_env_pp(i,j,k)
+                  !UAB
+                  if (background == "HeldSuarez") then
+                     heat(i,j,k) &
+                     = - theta_bar_0*(rho - rho_e)*kt_hs(j,k)
+                    else
+                  !UAE
+                     heat(i,j,k) &
+                     = - theta_bar_0*(rho - rho_e)*tau_relax_i(k)
+                  !UAB
+                  end if
+                  !UAE
+               end do
+            end do
+         end do
+      end if
+   end if
+
+  ! if (output_heat) then
+      call output_field( &
+      & iOut, &
+      & heat,&
+      & 'heat_prof.dat', thetaRef*rhoRef/tref )
+  ! end if
+
+   !testb
+   return
+   !teste
+
+   !------------------------------------------------------------------
+   ! supplement by negative (!) heating due to molecular and turbulent 
+   ! diffusivity
+   !------------------------------------------------------------------
+
+   do k=1,nz
+      do j=1,ny
+         do i=1,nx
+            heat(i,j,k) &
+            = heat(i,j,k) &
+              + rhoStrat(k) &
+                * (  (flux(i,j,k,1,5) - flux(i-1,j  ,k  ,1,5))/dx &
+                   + (flux(i,j,k,2,5) - flux(i  ,j-1,k  ,2,5))/dy &
+                   + (flux(i,j,k,3,5) - flux(i  ,j  ,k-1,3,5))/dz)
+         end do
+      end do
+   end do
+
+ end subroutine calculate_heating_0
+
+ !----------------------------------------------------------------------
+
+ subroutine calculate_heating(var,flux,heat)
+
+   !-----------------------------------------------------------------
+   ! calculate heating in the divergence constraint
+   ! supplemented by 'heating' due to turbulent and GW entropy fluxes
+   !-----------------------------------------------------------------
+
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz, nVar), &
+         &intent(in) :: var     
+    real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
+
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
+         &intent(out) :: heat  !, term1, term2
+
+    ! local variables
+    integer :: i, j, k
+    real    :: rho, the, theta_bar_0, rho_e
+    real, dimension(1:ny,0:nz) :: tau_relax_i  ! inverse scaled relaxation 
+                         !FS                 ! time for barocl. l. c.
+    real    :: tau_jet_sc, tau_relax_sc  ! Klein scaling for relax param.
+
+    real :: ymax, ymin, yloc
+    integer :: j00
+
+    real, dimension(1:nz) :: sum_local, sum_global
+
+    heat = 0.0
+
+    ymin = ly_dim(0)/lRef
+    ymax = ly_dim(1)/lRef
+
+    j00 = js+nby-1
+
+    !-------------------------------------------------------
+    ! calculate the environment-induced negative (!) heating
+    !-------------------------------------------------------
+
+    if (     (TestCase == "baroclinic_LC") &
+        .or. (TestCase == "baroclinic_ID")) then
+
+       !UAB
+       if (background == "HeldSuarez") then
+          do k=1,nz 
+             do j=1,ny
+                tau_relax_i(j,k) = kt_hs(j,k)
+             end do
+          end do
+         else
+       !UAE
+          do k = 1,nz
+             if ( referenceQuantities == "SI" ) then
+                tau_relax_sc = tau_relax  !tau_z(k)  !tau_relax
+                tau_jet_sc = tau_jet
+               else
+                tau_relax_sc = tau_relax/tref !tau_z(k)  !tau_relax/tref
+                tau_jet_sc = tau_jet/tref
+             end if
+         
+
+             do j = 1,ny
+                yloc = y(j+j00)
+
+                if (yloc > 0.5*(ymax+ymin)) then
+                   ! meridionally dependent tau_sc
+
+                   tau_relax_sc &
+                   =   tau_relax/tref &
+                     + (tau_relax_low/tref - tau_relax/tref) &
+                       *( 1.0 &
+                         -0.5&
+                          *( tanh((yloc/ymax-0.1)/sigma_tau) &
+                            -tanh((yloc/ymax-0.9)/sigma_tau)))  
+                  else
+                   tau_relax_sc &
+                    =   tau_relax/tref &
+                     + (tau_relax_low/tref - tau_relax/tref) &
+                       *( 1.0 &
+                         -0.5 &
+                          *( tanh(((-1)*yloc/ymax-0.1)/sigma_tau) &
+                            -tanh(((-1)*yloc/ymax-0.9)/sigma_tau))) 
+                end if
+
+                tau_relax_i(j,k) = 1./(tau_relax_sc)
+             end do
+          end do
+       !UAB
+       end if
+
+       if (dens_relax) tau_relax_i = 0.0
+       !UAE
+
+       if( master ) then 
+          print*,""
+          print*," Poisson Solver, Thermal Relaxation is on: "
+          print*," Relaxation factor: Div = - rho(Th - Th_e)/tau: "
+          print*, "tau = ", tref/tau_relax_i(1,1), " s"
+       end if
+
+       !UA theta_bar_0 = (thetaStrat(1) + thetaStrat(nz))/2.
+ 
+       !UAB 
+       ! do k = 1,nz
+       !   do j = 1,ny
+       !      do i = 1,nx
+       !         if( fluctuationMode )  then
+       !            rho = var(i,j,k,1) + rhoStrat(k)
+       !           else   
+       !            rho = var(i,j,k,1)
+       !         end if  
+
+       !         the = (Pstrat(k))/rho 
+       !         rho_e = (Pstrat(k))/the_env_pp(i,j,k)
+
+       !         !UAB
+       !         heat(i,j,k) &
+       !         = rho*(Pstrat(k)/rho - Pstrat(k)/rho_e)*tau_relax_i(j,k)
+       !         !UAE
+       !      end do
+       !   end do
+       ! end do
+
+       ! only the deviation of the potential-temperaure difference from
+       ! the horizontal mean is taken ...
+
+       ! potential-temperature difference
+
+       do k = 1,nz 
+          do j = 1,ny
+             do i = 1,nx
+                if( fluctuationMode )  then
+                   rho = var(i,j,k,1) + rhoStrat(k)
+                  else   
+                   rho = var(i,j,k,1)
+                end if  
+
+                the = Pstrat(k)/rho 
+
+                heat(i,j,k) = the - the_env_pp(i,j,k)
+             end do
+          end do
+       end do
+
+       ! subtract horizontal mean of the potential-temperature difference
+
+      ! do k = 1,nz
+      !     sum_local(k) = sum(heat(1:nx,1:ny,k))
+      !  end do
+
+      !  call mpi_allreduce(sum_local(1),sum_global(1),&
+      !       nz, mpi_double_precision,mpi_sum,comm,ierror)
+      !  sum_global = sum_global/(sizeX*sizeY)
+
+      !  do k=1,nz
+      !     heat(1:nx,1:ny,k) = heat(1:nx,1:ny,k) - sum_global(k)
+      !  end do
+
+       ! heating
+
+       do k = 1,nz 
+          do j = 1,ny
+             do i = 1,nx
+                if( fluctuationMode )  then
+                   rho = var(i,j,k,1) + rhoStrat(k)
+                  else   
+                   rho = var(i,j,k,1)
+                end if  
+
+                heat(i,j,k) = rho*heat(i,j,k)*tau_relax_i(j,k)
+             end do
+          end do
+       end do
+
+    end if
+
+    !UAB
+    !------------------------------------------------------------------
+    ! supplement by negative (!) heating due to molecular and turbulent 
+    ! diffusivity
+    !------------------------------------------------------------------
+
+    if (TurbScheme) then
+       do k=1,nz 
+          do j=1,ny
+             do i=1,nx
+                heat(i,j,k) &
+                = heat(i,j,k) &
+                  + rhoStrat(k) &
+                    * (  (flux(i,j,k,1,5) - flux(i-1,j  ,k  ,1,5))/dx &
+                       + (flux(i,j,k,2,5) - flux(i  ,j-1,k  ,2,5))/dy &
+                       + (flux(i,j,k,3,5) - flux(i  ,j  ,k-1,3,5))/dz)
+             end do
+          end do
+       end do
+    end if
+
+    !-------------------------------------------------------------------
+    ! supplement by negative (!) heating due GW entropy-flux convergence
+    !-------------------------------------------------------------------
+
+    if (raytracer) heat(:,:,:) = heat(:,:,:) + var(:,:,:,8)
+    !UAE
+
+   ! if (output_heat) then
+       call output_field( &
+       & iOut, &
+       & heat,&
+       & 'heat_prof.dat', thetaRef*rhoRef/tref )
+
+
+   ! end if
+
+  end subroutine calculate_heating
+  
+ !============================================================== 
+
+  subroutine val_PsIn(var, dt, opt)
+
+    ! calculates the matrix values for the pressure solver
+    ! the solver solves for dt * dp, hence no dt in the matrix elements
+
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz, nVar), &
+         & intent(in) :: var
+    real, intent(in) :: dt
+
+    ! opt = expl =>
+    ! pressure solver for explicit problem and corresponding correction 
+    ! of the winds
+    ! opt = impl =>
+    ! pressure solver for implicit problem and corresponding correction 
+    ! of the winds and density fluctuations
+    character(len=*), intent(in)    :: opt
+
+    ! local variables
+    real :: dx2, dy2, dz2, dxy 
+    real :: pStratU, pStratD, rhoEdge
+    real :: AL,AR, AB,AF, AD,AU, ALB,ALF, ARB,ARF, AC
+    real :: facu, facv, facw, facr
+    real :: acontr
+    real :: bvsstw
+
+    ! non-dimensional Corilois parameter (= inverse Rossby number)
+    real :: f_cor_nd
+
+    integer :: i0,j0, i, j, k
+    integer :: index_count_hypre
+    
+    ! non-dimensional Corilois parameter (= inverse Rossby number)
+    f_cor_nd = f_Coriolis_dim*tRef
+
+    ! auxiliary variables
+    dx2 = 1.0/dx**2
+    dy2 = 1.0/dy**2
+    dz2 = 1.0/dz**2    
+    dxy = 1.0/(dx*dy)
+    
+    i0=is+nbx-1
+    j0=js+nby-1
+
+    if (.not. fluctuationMode) stop'ERROR: must use fluctuationMode'
+
+    !---------------------------------
+    !         Loop over field
+    !---------------------------------
+
+    if (opt == "expl") then
+       if (timeScheme == "semiimplicit") then
+          do k = 1,nz
+             do j = 1,ny
+                do i = 1,nx
+                   ! ------------------ A(i+1,j,k) ------------------
+
+                   rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AR = dx2 * pStrat(k)**2/rhoEdge
+   
+                   ! ------------------- A(i-1,j,k) --------------------
+
+                   rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AL = dx2 * pStrat(k)**2/rhoEdge
+
+                   ! -------------------- A(i,j+1,k) ----------------------
+
+                   rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AF = dy2 * pStrat(k)**2 / rhoEdge
+
+                   ! --------------------- A(i,j-1,k) -------------------
+
+                   rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AB = dy2 * pStrat(k)**2 / rhoEdge
+
+                   ! ---------------------- A(i,j,k+1) ------------------
+
+                   if (k == nz) then
+                      AU=0.0
+                     else
+                      rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
+                      rhoEdge = rhoEdge + rhoStratTilde(k)
+   
+                      pStratU = 0.5* ( pStrat(k+1) + pStrat(k) )
+                      AU = dz2 * pStratU**2 / rhoEdge
+                   end if
+
+                   ! ----------------------- A(i,j,k-1) -----------------
+
+                   if (k == 1) then
+                      AD=0.0
+                     else
+                      rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
+                      rhoEdge = rhoEdge + rhoStratTilde(k-1)
+                   
+                      pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
+                      AD = dz2 * pStratD**2 / rhoEdge
+                   end if
+
+                   if( pressureScaling ) then
+                      stop'ERROR: no pressure scaling allowed'
+                   end if
+
+                   ! ----------------------- A(i,j,k) -------------------
+                   !testb
+                   !AL = 0.0
+                   !AR = 0.0
+                   !AB = 0.0
+                   !AF = 0.0
+                   !teste
+
+                   AC = - AR - AL - AF - AB - AU - AD
+ 
+
+                   ! ------------------ define matrix A -------------------
+
+                   if (poissonSolverType == 'hypre') then
+                      ! index_count_hypre 
+                      ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
+
+                      index_count_hypre = i
+                      index_count_hypre = index_count_hypre + ( (j-1)*nx )
+                      index_count_hypre = index_count_hypre &
+                                          + ( (k-1)*nx*ny )
+
+                      index_count_hypre &
+                      = ( index_count_hypre * ne_hypre_i ) &
+                        - ne_hypre_i + 1
+
+                      values_i(index_count_hypre   ) = AC
+                      values_i(index_count_hypre+ 1) = AL
+                      values_i(index_count_hypre+ 2) = AR
+                      values_i(index_count_hypre+ 3) = AB
+                      values_i(index_count_hypre+ 4) = AF
+                      values_i(index_count_hypre+ 5) = AD
+                      values_i(index_count_hypre+ 6) = AU
+                      values_i(index_count_hypre+ 7) = 0.0
+                      values_i(index_count_hypre+ 8) = 0.0
+                      values_i(index_count_hypre+ 9) = 0.0
+                      values_i(index_count_hypre+10) = 0.0
+
+
+                      ! testb
+                      !values_i(index_count_hypre+ 7) &
+                      != sin(real(index_count_hypre+ 7))
+                      !values_i(index_count_hypre+ 8) &
+                      != sin(real(index_count_hypre+ 8))
+                      !values_i(index_count_hypre+ 9) &
+                      != sin(real(index_count_hypre+ 9))
+                      !values_i(index_count_hypre+10) &
+                      != sin(real(index_count_hypre+ 10))
+                      ! teste
+
+                      !testb
+                      !print*,i,j,k,'AC =',values_i(index_count_hypre   )
+                      !print*,i,j,k,'AL =',values_i(index_count_hypre+ 1)
+                      !print*,i,j,k,'AR =',values_i(index_count_hypre+ 2)
+                      !print*,i,j,k,'AB =',values_i(index_count_hypre+ 3)
+                      !print*,i,j,k,'AF =',values_i(index_count_hypre+ 4)
+                      !print*,i,j,k,'AD =',values_i(index_count_hypre+ 5)
+                      !print*,i,j,k,'AU =',values_i(index_count_hypre+ 6)
+                      !print*,i,j,k,'00 =',values_i(index_count_hypre+ 7)
+                      !!print*,i,j,k,'00 =',values_i(index_count_hypre+ 8)
+                      !print*,i,j,k,'00 =',values_i(index_count_hypre+ 9)
+                      !print*,i,j,k,'00 =',values_i(index_count_hypre+10)
+                      !teste
+                     else if (poissonSolverType == 'bicgstab') then
+                      ac_b(i,j,k) = AC
+
+                      al_b(i,j,k) = AL
+                      ar_b(i,j,k) = AR
+
+                      ab_b(i,j,k) = AB
+                      af_b(i,j,k) = AF
+
+                      ad_b(i,j,k) = AD
+                      au_b(i,j,k) = AU
+
+                      alb_b(i,j,k) = 0.0
+                      alf_b(i,j,k) = 0.0
+                      arb_b(i,j,k) = 0.0
+                      arf_b(i,j,k) = 0.0
+                     else
+                      stop'ERROR: val_PsIn expects hypre or bicgstab'
+                   end if
+                end do ! i_loop
+             end do ! j_loop
+          end do ! k_loop
+         else
+          do k = 1,nz
+             do j = 1,ny
+                do i = 1,nx
+                   ! ------------------ A(i+1,j,k) ------------------
+
+                   rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AR = dx2 * pStrat(k)**2/rhoEdge
+   
+                   ! ------------------- A(i-1,j,k) --------------------
+
+                   rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AL = dx2 * pStrat(k)**2/rhoEdge
+
+                   ! -------------------- A(i,j+1,k) ----------------------
+
+                   rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AF = dy2 * pStrat(k)**2 / rhoEdge
+
+                   ! --------------------- A(i,j-1,k) -------------------
+
+                   rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AB = dy2 * pStrat(k)**2 / rhoEdge
+
+                   ! ---------------------- A(i,j,k+1) ------------------
+
+                   if (k == nz) then
+                      AU=0.0
+                     else
+                      rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
+                      rhoEdge = rhoEdge + rhoStratTilde(k)
+   
+                      pStratU = 0.5* ( pStrat(k+1) + pStrat(k) )
+                      AU = dz2 * pStratU**2 / rhoEdge
+                   end if
+
+                   ! ----------------------- A(i,j,k-1) -----------------
+
+                   if (k == 1) then
+                      AD=0.0
+                     else
+                      rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
+                      rhoEdge = rhoEdge + rhoStratTilde(k-1)
+                   
+                      pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
+                      AD = dz2 * pStratD**2 / rhoEdge
+                   end if
+
+                   if( pressureScaling ) then
+                      stop'ERROR: no pressure scaling allowed'
+                   end if
+
+                   ! ----------------------- A(i,j,k) -------------------
+
+                   AC = - AR - AL - AF - AB - AU - AD
+ 
+
+                   ! ------------------ define matrix A -------------------
+
+                   if (poissonSolverType == 'hypre') then
+                      ! index_count_hypre 
+                      ! = ( i * j * k * ne_hypre_e ) - ne_hypre_e + 1
+
+                      index_count_hypre = i
+                      index_count_hypre = index_count_hypre + ( (j-1)*nx )
+                      index_count_hypre = index_count_hypre &
+                                          + ( (k-1)*nx*ny )
+
+                      index_count_hypre &
+                      = ( index_count_hypre * ne_hypre_e ) &
+                        - ne_hypre_e + 1
+
+                      values_e(index_count_hypre)   = AC
+                      values_e(index_count_hypre+1) = AL
+                      values_e(index_count_hypre+2) = AR
+                      values_e(index_count_hypre+3) = AB
+                      values_e(index_count_hypre+4) = AF
+                      values_e(index_count_hypre+5) = AD
+                      values_e(index_count_hypre+6) = AU
+
+                      !testb
+                      !print*,i,j,k,'AC =',values_e(index_count_hypre   )
+                      !print*,i,j,k,'AL =',values_e(index_count_hypre+ 1)
+                      !print*,i,j,k,'AR =',values_e(index_count_hypre+ 2)
+                      !print*,i,j,k,'AB =',values_e(index_count_hypre+ 3)
+                      !print*,i,j,k,'AF =',values_e(index_count_hypre+ 4)
+                      !print*,i,j,k,'AD =',values_e(index_count_hypre+ 5)
+                      !print*,i,j,k,'AU =',values_e(index_count_hypre+ 6)
+                      !teste
+                     else if (poissonSolverType == 'bicgstab') then
+                      ac_b(i,j,k) = AC
+
+                      al_b(i,j,k) = AL
+                      ar_b(i,j,k) = AR
+
+                      ab_b(i,j,k) = AB
+                      af_b(i,j,k) = AF
+
+                      ad_b(i,j,k) = AD
+                      au_b(i,j,k) = AU
+                     else
+                      stop'ERROR: val_PsIn expects hypre or bicgstab'
+                   end if
+                end do ! i_loop
+             end do ! j_loop
+          end do ! k_loop
+       end if
+      else if (opt == "impl") then
+       if (timeScheme /= "semiimplicit") then
+          stop'ERROR: for opt = impl must have timeScheme = semiimplicit'
+       end if
+
+       do k = 1,nz
+          do j = 1,ny
+             do i = 1,nx
+                AL = 0.0
+                AR = 0.0
+                AB = 0.0
+                AF = 0.0
+                AD = 0.0
+                AU = 0.0
+                AC = 0.0
+                ALB = 0.0
+                ALF = 0.0
+                ARB = 0.0
+                ARF = 0.0
+
+                ! ------------------- from P UR/dx ------------------------
+
+                facu = 1.0
+
+                if (topography) then
+                   if (   topography_mask(i0+i,j0+j,k) &
+                     & .or. topography_mask(i0+i+1,j0+j,k)) then
+                      facu = facu + dt*alprlx
+                   end if
+                end if
+
+                facv = facu
+
+                ! A(i+1,j,k) and A(i,j,k)
+
+                rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = dx2 * pStrat(k)**2/rhoEdge &
+                         * facv/(facu*facv + (f_cor_nd*dt)**2)
+
+                AR = AR + acontr
+                AC = AC - acontr
+
+                ! A(i,j,k) and A(i,j-1,k)
+
+                rhoEdge = 0.5*( var(i,j-1,k,1) + var(i,j,k,1) )
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+
+                AC = AC + acontr
+                AB = AB - acontr
+
+                ! A(i,j,k) and A(i,j+1,k)
+
+                rhoEdge = 0.5*( var(i,j,k,1) + var(i,j+1,k,1) )
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+
+                AF = AF + acontr
+                AC = AC - acontr
+
+                ! A(i+1,j,k) and A(i+1,j-1,k)
+
+                rhoEdge = 0.5*( var(i+1,j-1,k,1) + var(i+1,j,k,1) )
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+
+                AR = AR + acontr
+                ARB = ARB - acontr
+
+                ! A(i+1,j,k) and A(i+1,j+1,k)
+
+                rhoEdge = 0.5*( var(i+1,j,k,1) + var(i+1,j+1,k,1) )
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+
+                ARF = ARF + acontr
+                AR = AR - acontr
+
+                ! ------------------- from - P UL/dx --------------------
+
+                facu = 1.0
+
+                if (topography) then
+                   if (   topography_mask(i0+i-1,j0+j,k) &
+                     & .or. topography_mask(i0+i,j0+j,k)) then
+                      facu = facu + dt*alprlx
+                   end if
+                end if
+
+                facv = facu
+
+                ! A(i,j,k) and A(i-1,j,k)
+
+                rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - dx2 * pStrat(k)**2/rhoEdge &
+                           * facv/(facu*facv + (f_cor_nd*dt)**2)
+
+                AC = AC + acontr
+                AL = AL - acontr
+
+                ! A(i-1,j,k) and A(i-1,j-1,k)
+
+                rhoEdge = 0.5*( var(i-1,j-1,k,1) + var(i-1,j,k,1) )
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = -0.25 * dxy * pStrat(k)**2/rhoEdge &
+                          * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+
+                AL = AL + acontr
+                ALB = ALB - acontr
+
+                ! A(i-1,j,k) and A(i-1,j+1,k)
+
+                rhoEdge = 0.5*( var(i-1,j,k,1) + var(i-1,j+1,k,1) )
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                           * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+
+                ALF = ALF + acontr
+                AL = AL - acontr
+
+                ! A(i,j,k) and A(i,j-1,k)
+
+                rhoEdge = 0.5*( var(i,j-1,k,1) + var(i,j,k,1) )
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                           * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+
+                AC = AC + acontr
+                AB = AB - acontr
+
+                ! A(i,j,k) and A(i,j+1,k)
+
+                rhoEdge = 0.5*( var(i,j,k,1) + var(i,j+1,k,1) )
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                           * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+
+                AF = AF + acontr
+                AC = AC - acontr
+
+                ! ------------------- from P VF/dy ------------------------
+
+                facv = 1.0
+
+                if (topography) then
+                   if (   topography_mask(i0+i,j0+j,k) &
+                     & .or. topography_mask(i0+i,j0+j+1,k)) then
+                      facv = facv + dt*alprlx
+                   end if
+                end if
+
+                facu = facv
+
+                ! A(i+1,j,k) and A(i,j,k)
+
+                rhoEdge = 0.5 * (var(i,j,k,1) + var(i+1,j,k,1))
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+
+                AR = AR + acontr
+                AC = AC - acontr
+
+                ! A(i,j,k) and A(i-1,j,k)
+
+                rhoEdge = 0.5 * (var(i-1,j,k,1) + var(i,j,k,1))
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+
+                AC = AC + acontr
+                AL = AL - acontr
+
+                ! A(i+1,j+1,k) and A(i,j+1,k)
+
+                rhoEdge = 0.5 * (var(i,j+1,k,1) + var(i+1,j+1,k,1))
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+
+                ARF = ARF + acontr
+                AF = AF - acontr
+
+                ! A(i,j+1,k) and A(i-1,j+1,k)
+
+                rhoEdge = 0.5 * (var(i-1,j+1,k,1) + var(i,j+1,k,1))
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+
+                AF = AF + acontr
+                ALF = ALF - acontr
+
+                ! A(i,j+1,k) and A(i,j,k)
+
+                rhoEdge = 0.5 * (var(i,j+1,k,1) + var(i,j,k,1))
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = dy2 * pStrat(k)**2/rhoEdge &
+                         * facu/(facu*facv + (f_cor_nd*dt)**2)
+
+                AF = AF + acontr
+                AC = AC - acontr
+
+                ! ------------------- from - P VB/dy ---------------------
+
+                facv = 1.0
+
+                if (topography) then
+                   if (   topography_mask(i0+i,j0+j-1,k) &
+                     & .or. topography_mask(i0+i,j0+j,k)) then
+                      facv = facv + dt*alprlx
+                   end if
+                end if
+
+                facu = facv
+
+                ! A(i+1,j-1,k) and A(i,j-1,k)
+
+                rhoEdge = 0.5 * (var(i,j-1,k,1) + var(i+1,j-1,k,1))
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                          * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+
+                ARB = ARB + acontr
+                AB = AB - acontr
+
+                ! A(i,j-1,k) and A(i-1,j-1,k)
+
+                rhoEdge = 0.5 * (var(i-1,j-1,k,1) + var(i,j-1,k,1))
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                           * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+
+                AB = AB + acontr
+                ALB = ALB - acontr
+
+                ! A(i+1,j,k) and A(i,j,k)
+
+                rhoEdge = 0.5 * (var(i,j,k,1) + var(i+1,j,k,1))
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                           * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+
+                AR = AR + acontr
+                AC = AC - acontr
+
+                ! A(i,j,k) and A(i-1,j,k)
+
+                rhoEdge = 0.5 * (var(i-1,j,k,1) + var(i,j,k,1))
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                           * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+
+                AC = AC + acontr
+                AL = AL - acontr
+
+                ! A(i,j,k) and A(i,j-1,k)
+
+                rhoEdge = 0.5 * (var(i,j,k,1) + var(i,j-1,k,1))
+                rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - dy2 * pStrat(k)**2/rhoEdge &
+                           * facu/(facu*facv + (f_cor_nd*dt)**2)
+
+                AC = AC + acontr
+                AB = AB - acontr
+
+                ! ------------------- from PU WU/dz ---------------------
+
+                if (k == nz) then
+                   AU = 0.0
+                  else
+                   facw = 1.0
+                   facr = 1.0 + alprlx*dt
+
+                   if (topography) then
+                      if (   topography_mask(i0+i,j0+j,k) &
+                        & .or. topography_mask(i0+i,j0+j,k+1)) then
+                         facw = facw + dt*alprlx
+                      end if
+                   end if
+
+                   bvsstw = 0.5 * (bvsStrat(k) + bvsStrat(k+1))
+
+                   ! A(i,j,k+1) and A(i,j,k)
+
+                   rhoEdge = 0.5*( var(i,j,k+1,1) + var(i,j,k,1) )
+                   rhoEdge = rhoEdge + rhoStratTilde(k)
+   
+                   pStratU = 0.5 * ( pStrat(k+1) + pStrat(k) )
+
+                   AU = dz2 * pStratU**2 / rhoEdge &
+                        * facr &
+                          /(  facr*facw &
+                            + rhoStratTilde(k)/rhoEdge * bvsstw * dt**2)
+   
+                   AC = AC - AU
+                end if
+
+                ! ------------------- from - PD WD/dz ---------------------
+
+                if (k == 1) then
+                   AD = 0.0
+                  else
+                   facw = 1.0
+                   facr = 1.0 + alprlx*dt
+
+                   if (topography) then
+                      if (   topography_mask(i0+i,j0+j,k-1) &
+                        & .or. topography_mask(i0+i,j0+j,k)) then
+                         facw = facw + dt*alprlx
+                      end if
+                   end if
+
+                   bvsstw = 0.5 * (bvsStrat(k-1) + bvsStrat(k))
+
+                   ! A(i,j,k) and A(i,j,k-1)
+
+                   rhoEdge = 0.5*( var(i,j,k,1) + var(i,j,k-1,1) )
+                   rhoEdge = rhoEdge + rhoStratTilde(k-1)
+   
+                   pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
+
+                   AD = dz2 * pStratD**2 / rhoEdge &
+                        * facr &
+                          /(  facr*facw &
+                            + rhoStratTilde(k-1)/rhoEdge * bvsstw * dt**2)
+
+                   AC = AC - AD
+                end if
+
+                if( pressureScaling ) then
+                   stop'ERROR: no pressure scaling allowed'
+                end if
+
+
+                ! ------------------- define matrix A -------------------
+
+                if (poissonSolverType == 'hypre') then
+                   ! index_count_hypre 
+                   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
+
+                   index_count_hypre = i
+                   index_count_hypre = index_count_hypre + ( (j-1)*nx )
+                   index_count_hypre = index_count_hypre + ( (k-1)*nx*ny )
+
+                   index_count_hypre &
+                   = ( index_count_hypre * ne_hypre_i ) &
+                     - ne_hypre_i + 1
+
+                   values_i(index_count_hypre   ) = AC
+                   values_i(index_count_hypre+ 1) = AL
+                   values_i(index_count_hypre+ 2) = AR
+                   values_i(index_count_hypre+ 3) = AB
+                   values_i(index_count_hypre+ 4) = AF
+                   values_i(index_count_hypre+ 5) = AD
+                   values_i(index_count_hypre+ 6) = AU
+                   values_i(index_count_hypre+ 7) = ALB
+                   values_i(index_count_hypre+ 8) = ALF
+                   values_i(index_count_hypre+ 9) = ARB
+                   values_i(index_count_hypre+10) = ARF
+                  else if (poissonSolverType == 'bicgstab') then
+                   ac_b(i,j,k) = AC
+
+                   al_b(i,j,k) = AL
+                   ar_b(i,j,k) = AR
+
+                   ab_b(i,j,k) = AB
+                   af_b(i,j,k) = AF
+
+                   ad_b(i,j,k) = AD
+                   au_b(i,j,k) = AU
+
+                   alb_b(i,j,k) = ALB
+                   alf_b(i,j,k) = ALF
+                   arb_b(i,j,k) = ARB
+                   arf_b(i,j,k) = ARF
+                  else
+                   stop'ERROR: val_PsIn expects hypre or bicgstab'
+                end if
+             end do ! i_loop
+          end do ! j_loop
+       end do ! k_loop
+      else
+       stop'ERROR: wrong opt'
+    end if
+
+  return
+
+  end subroutine val_PsIn
+  
+  !============================================================== 
+
+  subroutine  val_hypre_Bous
+         
+    ! local variables
+    integer :: i,j,k
+    real :: pStratU, pStratD, rhoEdge
+    real :: AL,AR, AB,AF, AD,AU, AC
+    real :: dx2, dy2, dz2 
+    integer :: index_count_hypre
+
+    if (topography) then
+       print*,'ERROR: no topography allowed in Boussinesq mode'
+       print*,'(would require semi-implicit time stepping)'
+       print*,'(could be implemented easily by simplifying the &
+             & pseudo-incompressible case accordingly)'
+       stop
+    end if
+
+    ! auxiliary variables
+    dx2 = 1.0/dx**2
+    dy2 = 1.0/dy**2
+    dz2 = 1.0/dz**2    
+
+    !---------------------------------
+    !         Loop over field
+    !---------------------------------
+
+    do k = 1,nz
+       do j = 1,ny
+          do i = 1,nx
+ 
+             ! stencil without topography
+
+             ! ------------------ A(i+1,j,k) ------------------
+             AR = dx2
+
+             ! ------------------- A(i-1,j,k) --------------------
+             AL = dx2
+
+             ! -------------------- A(i,j+1,k) ----------------------
+             AF = dy2
+
+             ! --------------------- A(i,j-1,k) --------------------
+             AB = dy2
+
+             ! ---------------------- A(i,j,k+1) --------------------
+             if((zBoundary == "solid_wall").and.(k == nz)) then
+                AU = 0.0
+               else
+                AU = dz2
+             end if
+
+             ! ----------------------- A(i,j,k-1) -------------------
+             if((zBoundary == "solid_wall").and.(k == 1)) then
+                AD = 0.0
+               else
+                AD = dz2
+             end if
+
+             ! ----------------------- A(i,j,k) ---------------------
+             AC = - AR - AL - AF - AB - AU - AD
+
+             ! ------------------- define matrix A --------------------
+
+             ! index_count_hypre &
+             ! = ( i * j * k * ne_hypre_e ) - ne_hypre_e + 1
+
+             index_count_hypre = i
+             index_count_hypre = index_count_hypre + ( (j-1)*nx )
+             index_count_hypre = index_count_hypre + ( (k-1)*nx*ny )
+
+             index_count_hypre &
+             = ( index_count_hypre * ne_hypre_e ) &
+               - ne_hypre_e + 1
+
+             values_e(index_count_hypre)   = AC
+             values_e(index_count_hypre+1) = AL
+             values_e(index_count_hypre+2) = AR
+             values_e(index_count_hypre+3) = AB
+             values_e(index_count_hypre+4) = AF
+             values_e(index_count_hypre+5) = AD
+             values_e(index_count_hypre+6) = AU
+          end do
+       end do
+    end do
+
+  return
+
+  end subroutine val_hypre_Bous
+
+!---------------------------------------------------------------------
+
+  subroutine heat_w0(var,flux,flux_rhopw,heat,S_bar,w_0)
+
+   
+  !heating, its horizontal mean, and the thereby induced vertical wind
+
+  ! in/out variables
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(in) :: var
+    real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
+    real, dimension(-1:nx,-1:ny,-1:nz), intent(in) :: flux_rhopw
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
+         & intent(out) :: heat
+    real, dimension(-nbz:nz+nbz),intent(out) :: w_0 
+    real, dimension(-nbz:nz+nbz), intent(out) :: S_bar
+
+    integer :: i,j,k
+    real, dimension(1:nz) :: sum_local, sum_global 
+    real, dimension(-nbz:nz+nbz) :: press0 
+
+    real, dimension(-nbz:nz+nbz) :: avgrhopw
+
+    real :: dptopdt
+
+    real :: sum_d, sum_n
+    
+
+    w_0 = 0.
+    S_bar = 0.
+    heat = 0.
+    sum_local = 0.
+    sum_global = 0.
+
+    ! S eq(9)  ONeill+Klein2014
+    call calculate_heating(var,flux,heat) 
+
+    ! calculate horizontal mean of heat(:,:,:)
+    do k = 1,nz
+       sum_local(k) = sum(heat(1:nx,1:ny,k))
+    end do
+    !global sum and average
+    call mpi_allreduce(sum_local(1),sum_global(1),&
+         nz-1+1,&
+         mpi_double_precision,mpi_sum,comm,ierror)
+    sum_global = sum_global/(sizeX*sizeY)
+
+    S_bar(1:nz) = (-1.)*sum_global(1:nz)
+
+
+    do k = 1,nz
+       press0(k) = PStrat(k)**gamma  
+    end do
+ 
+
+    sum_d = 0.0
+    sum_n = 0.0
+
+    !calculate horizontal mean of vertical rhop flux 
+    sum_local(:) = 0.
+    sum_global(:) = 0.
+    avgrhopw = 0.
+
+
+    if(timeScheme == "semiimplicit")then
+       do k = 1,nz
+          sum_local(k) = sum(flux(1:nx,1:ny,k,3,6))
+       end do
+    else
+       do k = 1,nz
+          sum_local(k) = sum(flux_rhopw(1:nx,1:ny,k))
+       end do
+    end if
+       !global sum and average
+       call mpi_allreduce(sum_local(1),sum_global(1),&
+            nz-1+1,&
+            mpi_double_precision,mpi_sum,comm,ierror)
+       sum_global = sum_global/(sizeX*sizeY)
+       
+    avgrhopw(1:nz) = sum_global
+
+
+    do k = 1,nz
+       sum_n = sum_n + S_bar(k)/PStrat(k) - avgrhopw(k)*g_ndim/(gamma*press0(k)) 
+       sum_d = sum_d +  1./(gamma*press0(k))
+    end do
+
+    dptopdt = sum_n/sum_d
+    !UAE
+
+    w_0(1) = dz*(S_bar(1)/Pstrat(1) - (1./(gamma*press0(1)))*dptopdt- avgrhopw(1)*g_ndim/(gamma*press0(1)) )
+
+    do k = 2,nz-1
+       w_0(k) &
+       = w_0(k-1) &
+         + dz*(S_bar(k)/Pstrat(k) - (1./(gamma*press0(k)))*dptopdt- avgrhopw(k)*g_ndim/(gamma*press0(k)))
+    end do
+
+    S_bar = (-1.)*S_bar
+  
+
+  end subroutine heat_w0
 
 end module poisson_module
 

@@ -9,11 +9,11 @@ program pinc_prog
  
  
   use type_module
-  use mpi_module        ! modified by Junhong Wei for MPI (20161102)
+  use mpi_module
   use timeScheme_module
   use init_module
   use debug_module
-  use wkb_module 
+  use wkb_module    
   use output_module
   use xweno_module
   use atmosphere_module
@@ -22,6 +22,7 @@ program pinc_prog
   use update_module
   use poisson_module
   use finish_module
+  use hypretools_module
  
   ! test
   use algebra_module
@@ -37,36 +38,38 @@ program pinc_prog
   integer                     :: rate, startTimeCount, timeCount  
   real                        :: cpuTime 
 
-  ! MPI stuff             ! modified by Junhong Wei for MPI (20161102)
-  logical :: error_flag   ! modified by Junhong Wei for MPI (20161102)
-  real :: dt_local        ! modified by Junhong Wei for MPI (20161102)
+  ! MPI stuff            
+  logical :: error_flag  
+  real :: dt_local     
 
   ! fields
-  real, dimension(:,:,:,:), allocatable :: var, var0
+  real, dimension(:,:,:,:), allocatable :: var, var0, var1
   real, dimension(:,:,:,:), allocatable :: source
   ! var(i,j,k,iVar) iVar = 1..5 > rho,u,v,w,pExner
 
-  real, dimension(:,:,:), allocatable :: dRho      ! RK-Update for rho
+  real, dimension(:,:,:), allocatable :: dRho, dRhop  ! RK-Update for rho
   real, dimension(:,:,:,:), allocatable :: dMom    ! RK for rhoU,rhoV,rhoW
   real, dimension(:,:,:), allocatable :: dTheta     ! RK-Update for theta
+
+  !UAB
+  real, dimension(:), allocatable :: dPStrat, drhoStrat !RK update for P  
+  real, dimension(:), allocatable :: w_0
+  !UAE
 
 
   real, dimension(:,:,:,:,:), allocatable :: flux
   ! flux(i,j,k,dir,iFlux) 
   ! dir = 1..3 > f,g,h-flux in x,y,z-direction
-  ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
+  ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW#
+  real, dimension(:,:,:), allocatable :: flux_rhopw
 
  
   !--------------------
   !   WKB variables
   !--------------------
-  real,          dimension(:,:,:), allocatable :: waveAct, waveActOld
-  type(rayType), dimension(:), allocatable     :: ray
-  ! complex wave amplitudes
-  complex, dimension(:,:,:,:,:), allocatable :: Psi
-  ! Psi(i,j,k,variable b|u|w|pi,harmonic 0|1|2)
+  type(rayType), dimension(:,:,:,:), allocatable     :: ray
+  real, dimension(:,:,:,:), allocatable :: ray_var3D
 
-  
 
   ! topography via force field
   real, dimension(:,:,:,:), allocatable :: force ! volume forces
@@ -75,16 +78,13 @@ program pinc_prog
   ! output per timeStep
   logical :: output
   real    :: nextOutputTime   ! scaled time for next output
-  integer :: iOut             ! output counter
 
   ! general
   integer :: i,j,k,l
+  integer :: ix, jy, kz
 
   ! restart
   logical :: scale
-  ! test
-  !real, dimension(-1:1) :: a
-  !real, dimension(3) :: b
 
   ! parameter study
   integer :: iParam
@@ -102,310 +102,913 @@ program pinc_prog
   character (len=9)  :: niceZeit
   real :: a2
 
+  real :: tolpoisson_s
+  real :: fc_shap, shap_dts
 
-  !-------------------------------------------------   ! modified by Junhong Wei for MPI (20161103)
-  !                    Set up   ! modified by Junhong Wei for MPI (20161103)
-  !-------------------------------------------------   ! modified by Junhong Wei for MPI (20161103)
+  integer :: iVar
 
-  ! init counter and time   ! modified by Junhong Wei for MPI (20161103)
-  iOut = 0   ! modified by Junhong Wei for MPI (20161103)
-  iTime = 0; time = 0.0; cpuTime=0.0   ! modified by Junhong Wei for MPI (20161103)
+  !-------------------------------------------------
+  !                    Set up 
+  !-------------------------------------------------
 
+  ! init counter and time
+  iOut = 0
+  iTime = 0; time = 0.0; cpuTime=0.0
 
+  call init_mpi(error_flag)
 
-  call init_mpi(error_flag)      ! modified by Junhong Wei for MPI (20161102)
-
-  ! modified by Junhong Wei for MPI (20161102) *** starting line ***
-!  if( error_flag ) goto 10       ! modified by Junhong Wei for MPI (20161102)
   if( error_flag )then
-  print*,"error in the init_mpi"
-  goto 666
+     print*,"error in the init_mpi"
+     goto 666
   end if
 
+  if( master ) then
+     call date_and_time(date=datum, time=zeit)
 
-  if( master ) then   ! modified by Junhong Wei for MPI (20161102)
-  call date_and_time(date=datum, time=zeit)
-  niceDatum = datum(7:8)//"."//datum(5:6)//"."//datum(1:4)
-  niceZeit = zeit(1:2)//":"//zeit(3:4)//" Uhr"
-  print*,""
-  print*,""
-  print*,""
-  print*,"=============================================================="
-  print*," PincFloit (c) 2010 F. Rieper  "
-  print*," modified by Junhong Wei (2018)  "   ! modified by Junhong Wei
-  print*,""
-  write(*,fmt="(a25,a10)") " Today : ", niceDatum
-  write(*,fmt="(a25,a9)") " Time  : ", niceZeit
+     niceDatum = datum(7:8)//"."//datum(5:6)//"."//datum(1:4)
+     niceZeit = zeit(1:2)//":"//zeit(3:4)//" Uhr"
 
-     ! init clock   ! modified by Junhong Wei for MPI (20161102)
-     call system_clock (count_rate=rate)        ! modified by Junhong Wei for MPI (20161102)
-     call system_clock (count=startTimeCount)   ! modified by Junhong Wei for MPI (20161102)
-
-  end if   ! modified by Junhong Wei for MPI (20161102)
-
-
-
-
-  !----------------------------------------------
-  !              Parameter study
-  !----------------------------------------------
-
-  call init_paramStudy             ! read parameter data from input.f90
-
-  if( .not. parameterStudy ) then
-     startParam = 1
-     endParam = 1
-     stepParam = 1
-  end if
-
-
-  paramLoop: do iParam = startParam, endParam, stepParam
-
-
-
-     !-------------------------------------------------
-     !                    Set up 
-     !-------------------------------------------------
-
-     ! init counter and time
-!     iOut = 0   ! modified by Junhong Wei for MPI (20161103)
-!     iTime = 0; time = 0.0; cpuTime=0.0   ! modified by Junhong Wei for MPI (20161103)
-     nTotalBicg = 0
+     print*,""
+     print*,""
+     print*,""
+     print*,"=============================================================="
+     print*," PincFloit (c) 2010 F. Rieper  "
+     print*," modified by many others (2018)  "
+     print*,""
+     write(*,fmt="(a25,a10)") " Today : ", niceDatum
+     write(*,fmt="(a25,a9)") " Time  : ", niceZeit
 
      ! init clock
-!     call system_clock (count_rate=rate)   ! modified by Junhong Wei for MPI (20161103)
-!     call system_clock (count=startTimeCount)   ! modified by Junhong Wei for MPI (20161103)
+     call system_clock (count_rate=rate)
+     call system_clock (count=startTimeCount)
+  end if
 
-     ! 1) allocate variables 
-     ! 2) read input.f90
-     call setup (var,var0,flux,force,source,dRho,dMom,dTheta)
+  !-------------------------------------------------
+  !                    Set up 
+  !-------------------------------------------------
 
+  ! init counter and time
+  nTotalBicg = 0
 
-  if( master ) then   ! modified by Junhong Wei for MPI (20161103)
-     if( iParam == startParam ) then
-        write(*,fmt="(a25,a)") "Test Case : ", testCase
-        print*,"=============================================================="
-     end if
-  end if              ! modified by Junhong Wei for MPI (20161103)
+  ! 1) allocate variables 
+  ! 2) read input.f90
+  !UAB
+  !call setup (var,var0,var1,flux,force,source,dRho,dRhop,dMom,dTheta)
+  call setup (var,var0,var1,flux,flux_rhopw,force,source,dRho,dRhop,dMom,dTheta, &
+            & dPStrat,drhoStrat,w_0)
+  !UAE
 
+  call init_atmosphere      ! set atmospheric background state 
+  call init_output
 
-     call init_atmosphere      ! set atmospheric background state 
-     call init_output
-     call initialise (var)     ! set initial conditions
+  call initialise (var)     ! set initial conditions
 
-     call init_xweno       ! set ILES parameters 
-     call init_fluxes      ! allocate tilde variables
-     call init_update
-     call init_timeScheme  ! define Runge-Kutta parameters
-     call init_poisson     ! allocate dp
+  var(:,:,:,8) = 0.0   ! Heating due to GWs in the rotating atmosphere
+
+  if (poissonSolverType == 'hypre') then
+     call SetUpHypre       ! Set Up Hypre objects
+    else if (poissonSolverType == 'bicgstab') then
+     call SetUpBiCGStab       ! Set BiCGStab arrays
+    else
+     stop'ERROR: only HYPRE and BiCGStab ready to be used'
+  end if
+
+  call init_xweno       ! set ILES parameters 
+  call init_fluxes      ! allocate tilde variables
+  call init_update
+  call init_timeScheme  ! define Runge-Kutta parameters
+  call init_poisson     ! allocate dp
      
-     !-------------------------------------------------
-     !              Read initial data
-     !-------------------------------------------------
-     if (restart) then
-        !achatzb
-        !restart from previous output
-        ! scale = .true.  ! scale with reference quantities
-        ! call readtec360( var,restartFile,time, scale)
-        ! if( maxTime < time*tRef ) &
-        ! & stop "restart error: maxTime < current time"
- 
-        call read_data ( iIn,var)
+  !testb
+  !var = 0.0
+   
+  !do iVar = 1,6
+  !   !do i = 1,nx
+  !   !   var(i,:,:,iVar) = (-1.0)**i
+  !   !end do
+  !   !do j=1,ny
+  !   !   var(:,j,:,iVar) = (-1.0)**j
+  !   !end do
+  !   do j=1,ny
+  !      do i=1,nx
+  !         var(i,j,:,iVar) = (-1.0)**(i+j)
+  !      end do
+  !   end do
+  !end do
+  
+  !call output_data(iOut, var, iTime, time, cpuTime)
+  
+  !fc_shap = 1.0
+  
+  !print*,fc_shap,n_shap
+   
+  !call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
+  
+  !call output_data(iOut, var, iTime, time, cpuTime)
+  !stop
+  !teste
 
-        call setHalos( var, "var" )
-        call setBoundary (var, flux, "var")
+  !-------------------------------------------------
+  !              Read initial data
+  !-------------------------------------------------
+  if (restart) then
+     !restart from previous output
 
-!       testb
-!       print*,"r(0,1,310),r(nx,1,310) =",var(0,1,310,1),var(nx,1,310,1)
-!       print*,"r(1,1,310),r(nx+1,1,310) =",var(1,1,310,1),var(nx+1,1,310,1)
+     call read_data ( iIn,var)
 
-!       print*,"u(0,1,310),u(nx,1,310) =",var(0,1,310,2),var(nx,1,310,2)
-!       print*,"u(1,1,310),u(nx+1,1,310) =",var(1,1,310,2),var(nx+1,1,310,2)
+     call setHalos( var, "var" )
+     call setBoundary (var, flux, "var")
+  end if
 
-!       print*,"v(0,1,310),v(nx,1,310) =",var(0,1,310,3),var(nx,1,310,3)
-!       print*,"v(1,1,310),v(nx+1,1,310) =",var(1,1,310,3),var(nx+1,1,310,3)
+  !testb
+  !call output_data(iOut, var, iTime, time, cpuTime)
+  !teste
 
-!       print*,"w(0,1,310),w(nx,1,310) =",var(0,1,310,4),var(nx,1,310,4)
-!       print*,"w(1,1,310),w(nx+1,1,310) =",var(1,1,310,4),var(nx+1,1,310,4)
+  !---------------------------------------------
+  !        Initial divergence cleaning
+  !---------------------------------------------
 
-!       print*,"p(0,1,310),p(nx,1,310) =",var(0,1,310,5),var(nx,1,310,5)
-!       print*,"p(1,1,310),p(nx+1,1,310) =",var(1,1,310,5),var(nx+1,1,310,5)
-!       teste
-        ! achatze
-     end if
+  if ( initialCleaning ) then
+     call setHalos( var, "var" )
+     call setBoundary (var,flux,"var")
 
-     !-------------------------------------------------
-     !              Set up parameter study 
-     !-------------------------------------------------
-  if( master ) then   ! modified by Junhong Wei for MPI (20161103)
-     if( parameterStudy ) then
-        print*,""
-        print*,""
-        print*,""
-        print*,"==========================================================="
-        print*," Parameter study "
-        print*,""
-        write(*,fmt="(a25,i15)") " iParam = ", iParam
-        print*,"==========================================================="
-     end if
-  end if              ! modified by Junhong Wei for MPI (20161103)
+     flux = 0.
+     dMom = 0.
 
+     tolpoisson_s = tolPoisson
+     tolPoisson = 1.e-9
+     call Corrector ( var, flux,flux_rhopw, dMom, 1.0 , errFlagBicg, nIterBicg, &
+                    & 1, "expl")
+     tolPoisson = tolpoisson_s
+  end if
 
-     !---------------------------------------------
-     !        Initial divergence cleaning
-     !---------------------------------------------
+  !---------------------------------------------
+  !               Init ray tracer
+  !---------------------------------------------
 
-     if( initialCleaning ) then
-        ! correct u,v,w and pi
-        call momentumCorrector (var, dMom, 1.0, errFlagBicg, nIterBicg,1,'initial')
-        call setHalos( var, "var" )
-        call setBoundary (var,flux,"var")
-     end if
+  if (rayTracer) then
+     ! allocate ray fields
 
+     call setup_wkb(ray, ray_var3D, var) 
+  end if
 
-     !---------------------------------------------
-     !               Init ray tracer
-     !---------------------------------------------
+  !------------------------------------------
+  !              Initial output
+  !------------------------------------------
 
-!    achatzb
-!    initialization WKB would have to be redone!
-!    call setup_wkb(ray, waveAct, waveActOld, Psi)   ! allocate ray fields
-!    achatze
+  call output_data(iOut, var, iTime, time, cpuTime)
 
+  !testb
+  !stop
+  !teste
 
-     !------------------------------------------
-     !              Initial output
-     !------------------------------------------
+  if (rayTracer) then
+      call output_wkb(iOut, ray, ray_var3D)
+  end if
 
-!    achatzb
-!    reduced argument list for output
-!    changed name of output routine
-!    call tec360(&
-!         & iOut, &
-!         & var,&
-!         & ray, waveAct, Psi, &
-!         & iTime, time, cpuTime, dt,&
-!         & iParam)   
-     call output_data(&
-          & iOut, &
-          & var,&
-          & iTime, time, cpuTime)
-!    achatze
+  output = .false.
+  ! set time for first output
+  nextOutputTime = time*tRef + outputTimeDiff
+  ! and consider restart time
 
-     output = .false.
-     nextOutputTime = time*tRef + outputTimeDiff     ! set time for first output
-     ! and consider restart time
+  !-----------------------------------------------------
+  !                        Time loop
+  !-----------------------------------------------------
 
-
-     !-----------------------------------------------------
-     !                        Time loop
-     !-----------------------------------------------------
-
-  if( master ) then   ! modified by Junhong Wei for MPI (20161103)
+  if( master ) then
      print *, "...starting time loop"
-  end if              ! modified by Junhong Wei for MPI (20161103)
+  end if 
 
-     if( outputType == "time" ) maxIter = 2**30
+  if( outputType == "time" ) maxIter = 2**30
+
+
+!FS test
+  ! var(:,:,:,2) = 0.
+  ! var(:,:,:,3) = 0.
+  ! var(:,:,:,4) = 0.
+  ! do i = 1,nx
+  !    do j = 1,ny 
+  !       var(i,j,:,1) = rhoStrat(:)
+  !    end do
+  ! end do
  
-     time_loop: do iTime = 1,maxIter
+  time_loop: do iTime = 1,maxIter
 
-  if( master ) then   ! modified by Junhong Wei for MPI (20161103)
+     if( master ) then
         print*,""
         print*,""
         print*,""
-        print*,"--------------------------------------------------------------"
+        print*,"--------------------------------------------------------"
         write(*,fmt="(a25,i15)") " Time step = ", iTime
         write(*,fmt="(a25,f15.1,a8)") " Time = ", time*tRef, "seconds"
-        print*,"--------------------------------------------------------------"
-  end if              ! modified by Junhong Wei for MPI (20161103)
+        print*,"--------------------------------------------------------"
+     end if 
 
 
-        !----------------------------------
-        !         Calc time step
-        !----------------------------------
-!        call timestep (var,ray,dt,errFlagTstep)   ! modified by Junhong Wei for MPI (20161103)
+     !----------------------------------
+     !         Calc time step
+     !----------------------------------
 
-       call timestep (var,ray,dt_local,errFlagTstep)   ! modified by Junhong Wei for MPI (20161103)
+     call timestep (var,dt, errFlagTstep)
 
+     !! in order to obtain an equilibrated pressure do first an 
+     !! extremely short time step
 
-! modified by Junhong Wei for MPI (20161103)   *** starting line ***
-     ! find global maximum
-     root = 0
-     call mpi_reduce(dt_local, dt, 1, mpi_double_precision,&
-          & mpi_min, root, comm, ierror)
+     !! testb
+     !!goto 20
+     !! teste
 
-     call mpi_bcast(dt, 1, mpi_double_precision, root, comm, ierror)
+     !if (iTime == 1) dt = max(1.e-6*dt,dtMin_dim/tRef)
+
+  20 continue
+
+     !testb
+     !if (master) print*,'dt * tRef =',dt * tRef
+     !teste
 
      ! abort if time step too small
      if( dt*tRef < dtMin_dim ) then
-
-
-           if( master ) then
-
+        if( master ) then
            print*," TimeStep routine: "
            write(*,fmt="(a25,es15.4,a8)") &
                 &"dt < dtMin!!! dtMin = ", dtMin_dim, "seconds"
-           write(*,fmt="(a25,es15.4,a8)") "dt * tRef = ", dt*tRef, "seconds"
+           write(*,fmt="(a25,es15.4,a8)") "dt * tRef = ", dt*tRef, &
+                   & "seconds"
            write(*,fmt="(a25,i2.2)") "cycle paramLoop. iPara = ", iParam
+
            call system_clock(count=timeCount)
            cpuTime = (timeCount - startTimeCount)/real(rate)
+        end if
 
-           end if
+        ! final output
+        call output_data(iOut, var, iTime, time, cpuTime)
 
-
-           ! final output
-
-!          achatzb
-!          reduced argument list for output
-!          changed name of output routine
-!          call tec360(&
-!               & iOut, &
-!               & var,&
-!               & ray, waveAct, Psi, &
-!               & iTime, time, cpuTime, dt,&
-!               & iParam)   
-           call output_data(&
-                & iOut, &
-                & var,&
-                & iTime, time, cpuTime)
-!          achatze
+        if (rayTracer) then
+            call output_wkb(iOut, ray, ray_var3D)
+        end if
 
         call mpi_barrier(comm, ierror)
         call mpi_finalize(ierror)
         print*,"pinc.f90: time step too small. dt = ", dt*tRef
         stop
      end if
-! modified by Junhong Wei for MPI (20161103)   *** finishing line ***
 
+     if( timeSchemeType == "classical" .and. iTime == 1 ) dt = 0.5*dt
 
-        if( timeSchemeType == "classical" .and. iTime == 1 ) dt = 0.5*dt
+     ! correct dt to hit desired output time for outputType 'time'
+     if ( outputType == 'time' ) then
+        !testb
+        !if (master) then
+        !   print*,'(time+dt) * tRef =',(time+dt) * tRef
+        !   print*,'(time+dt) * tRef + dtMin_dim =', &
+        !         & (time+dt) * tRef + dtMin_dim
+        !   print*,'nextOutputTime =',nextOutputTime
+        !end if
+        !teste
+        if( (time+dt) * tRef + dtMin_dim > nextOutputTime ) then
+           dt = nextOutputTime/tRef - time      
+           output = .true.
+           if(master) then
+              write(*,fmt="(a25,es15.4,a8)") "dt for output = ", &
+                   & dt*tRef, "seconds"
+           end if
+        end if
+     end if
 
-        ! correct dt to hit desired output time for outputType 'time'
-        if ( outputType == 'time' ) then
-           if( (time+dt) * tRef + dtMin_dim > nextOutputTime ) then
-              dt = nextOutputTime/tRef - time      
-              output = .true.
-              if(master) then
-                 write(*,fmt="(a25,es15.4,a8)") "dt for output = ", &
-                      & dt*tRef, "seconds"
+     time = time + dt
+
+     !-----------------------------------------------------------------
+     ! relaxation rate for 
+     ! (1) Rayleigh damping in land cells and 
+     ! (2) density-fluctuation relaxation in semi-implicit time stepping
+     !-----------------------------------------------------------------
+
+     alprlx = 5.e-1/dt
+
+     !testb
+     !alprlx = 0.0
+     !teste
+
+     !------------------------------------
+     !    Call wave saturation scheme
+     !------------------------------------
+        
+     if (rayTracer) then
+        if( lsaturation ) then
+            call saturation_3D(ray,dt)
+        end if
+     end if
+
+     !---------------------------------------------------------------
+     !          Runge-Kutta stages or semi-implicit time step
+     !---------------------------------------------------------------
+
+     if (timeScheme == "semiimplicit") then
+        ! testb
+        !call test_hypre
+        !stop
+        ! teste
+
+        ! just for safety ...
+
+        if( correctDivError ) then
+            print*,'ERROR: correction divergence error not &
+                  & implemented properly'
+            stop
+        end if
+
+        if( updateTheta ) then
+           print*,'ERROR: semiimplicit time stepping does not allow &
+                  & updateTheta = .true.'
+           stop
+        end if
+
+        ! initialize zero volume force 
+        ! (to be filled by ray tracer and wind relaxation at the 
+        ! horizontal boundaries)
+
+        force = 0.0
+
+        ! Lagrangian WKB model (position-wavenumber space method)
+
+        if (rayTracer) then
+           do RKstage = 1, nStages
+              call transport_rayvol(var, ray, dt, RKstage)  
+
+              if (RKstage == nStages) then
+                 call boundary_rayvol(ray)
+                 call split_rayvol(ray)
+                 call shift_rayvol(ray)
+                 call merge_rayvol(ray)
+
+                 ! GW effects are put into force(...,1/2) and var(...,8)
+                 call calc_meanFlow_effect(ray,var,force,ray_var3D)
               end if
+           end do
+        end if
+
+        ! wind relaxation at horizontal boundaries
+
+        if(       (testCase == "mountainwave") &
+         & .or. (raytracer .and. case_wkb == 3)) then
+           call volumeForce (var,time,force)        
+        end if
+
+        ! set density fluctuation (synchronization step)
+
+        ! testb
+        ! if (iTime > 1) goto 50
+        ! teste
+
+        if( fluctuationMode ) then
+           do kz = -nbz,nz+nbz
+              var(:,:,kz,6) = var(:,:,kz,1)
+           end do
+          else
+           do kz = -nbz,nz+nbz
+              var(:,:,kz,6) = var(:,:,kz,1) - rhoStrat(kz)
+           end do
+        end if
+
+        !testb
+        !call output_data(iOut, var, iTime, time, cpuTime)
+        !teste
+
+        ! testb
+     50 continue
+        ! teste
+           
+        ! turbulence scheme:
+        ! either prescribed damping time scale for smallest spatial scales
+        ! or dynamic Smagorinsky scheme
+        ! diffusion coefficient (normalized by squared grid length scale)
+        ! stored in var (...,7)
+
+        if (TurbScheme) then
+           if(DySmaScheme) then
+              call CoefDySma_update(var)
+
+              ! limit Smagorinsky coefficient so that the damping time 
+              ! scale for the 2dx-wave is shorter than a time step
+              var(:,:,:,7) = min(var(:,:,:,7), 1.e0/(dt * pi**2))
+              !var(:,:,:,7) = min(var(:,:,:,7), 5.e0/(dt * pi**2))
+             else
+              var(:,:,:,7) = tRef/turb_dts
+              !var(:,:,:,7) = 0.1* tRef/dt
            end if
         end if
 
-        time = time + dt
+        ! put initial state into var0 in order to save the advecting 
+        ! velocities
+
+        var0 = var
+        PStrat00 = PStrat
+        rhoStrat00 = rhoStrat
+        thetaStrat00 = thetaStrat
+        bvsStrat00 = bvsStrat
+        thetaStratTilde00 = thetaStratTilde
+        rhoStratTilde00 = rhoStratTilde
+        PStratTilde00 = PStratTilde
+        
+
+        ! (1) explicit integration of convective and 
+        !     viscous-diffusive/turbulent fluxes over half a time step,
+        !     with the advetion velocity kept constant
+        !     \psi^# = \psi^n + A^{dt/2} (\psi^n, v^n)
+
+        !testb
+        if (master) print*,'beginning a semi-implicit time step'
+        if (master) print*,'(1) explicit integration lhs over dt/2'
+        !teste
+
+        call setHalos( var0, "var" )
+        call setBoundary (var0,flux,"var")
+
+        do RKstage = 1, nStages
+           ! Reconstruction
+
+           call setHalos( var, "var" )
+           call setBoundary (var, flux, "var")
+
+           call reconstruction (var, "rho") 
+           call reconstruction (var, "rhopw0") !FS
+           call reconstruction (var, "rhop")         
+           call reconstruction (var, "uvw")
+           
+           call setHalos( var, "varTilde" )
+           call setBoundary (var, flux, "varTilde" ) 
+
+           ! Fluxes and Forces
+           
+           call massFlux (var0,var,flux,flux_rhopw,"lin")
+           call momentumFlux (var0,var,flux,"lin") 
+
+           call setBoundary (var, flux, "flux") 
+
+           !FS set vertical flux_rhopw at wall to 0
+           flux_rhopw(:,:,-1) = 0.
+           flux_rhopw(:,:,nz) = 0.
+
+           ! RK step for density and density fluctuations
+           
+           rhoOld = var(:,:,:,1)  ! rhoOld for momentum predictor
+
+           !UAB
+           !call massUpdate(var, flux, 0.5*dt, dRho, RKstage, &
+           !              & "rho", "tot", "expl",w_0)
+           !call massUpdate(var,flux, 0.5*dt, dRhop, RKstage, &
+           !              & "rhop", "lhs", "expl",w_0)
+           
+           call massUpdate(var, flux,flux_rhopw, 0.5*dt, dRho, RKstage, &
+                         & "rho", "tot", "expl")
+           call massUpdate(var,flux,flux_rhopw, 0.5*dt, dRhop, RKstage, &
+                         & "rhop", "lhs", "expl")
+           !UAE
+              
+           ! RK step for momentum
+        
+           call setHalos( var, "var" )
+           call setBoundary (var, flux, "var")
+
+           !UAB
+           !call momentumPredictor(var, flux, force, 0.5*dt, dMom, &
+           !                     & RKstage, &
+           !                     & "lhs", "expl",w_0)
+           
+           call momentumPredictor(var, flux,flux_rhopw, force, 0.5*dt, dMom, &
+                                & RKstage, "lhs", "expl")
+           !UAE
+        end do
+
+        !testb
+        !call output_data(iOut, var, iTime, time, cpuTime)
+        !teste
+
+        ! (2) implicit integration of the linear right-hand sides of the
+        !     equations for density fluctuations and momentum over half a 
+        !     time step, under consideration of the divergence constraint 
+        !     \psi^{n+1/2} = \psi^# + dt/2 Q(\psi^{n+1/2})
+
+        !testb
+        if (master) print*,'(2) implicit integration rhs over dt/2'
+        !teste
+
+        call setHalos( var, "var" )
+        call setBoundary (var, flux, "var")
+
+!FSA
+        ! if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+        !    if (model == 'Boussinesq') then
+        !       print*, "main:ONeill+Klein2014 heating only for &
+        !              & pseudo-incompressible dyn."
+        !       stop
+        !    end if
+
+        !    RKstage = 1
+        !    dPStrat = 0.
+        !    drhoStrat = 0.           
+        !    call BGstate_update(var,flux,flux_rhopw,0.5*dt,RKstage,dPStrat,drhoStrat, &
+        !                      & "impl")
+        ! end if
+!FSE
+
+        rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
+
+        ! update density fluctuations (rhopStar)
+
+        !UAB
+        !call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs",&
+        !              & "impl",w_0)
+        call massUpdate(var,flux,flux_rhopw,0.5*dt,dRhop,RKstage,"rhop","rhs","impl")
+        !UAE
+
+        ! update winds (uStar, vStar, wStar)
+
+        !UAB
+        !call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
+        !                     & "impl",w_0)
+        call momentumPredictor(var,flux,flux_rhopw,force,0.5*dt,dMom,RKstage,"rhs",&
+                             & "impl")
+        !UAE
+              
+        ! corrector: rhopStar, uStar, vStar, wStar 
+        !            -> new rhop, u, v, w
+           
+        call setHalos( var, "var" )
+        call setBoundary (var,flux,"var")
+
+        !UAB
+        if (shap_dts_dim > 0.) then
+           ! smoothing of the fields in order to limit grid-point noise
+
+           shap_dts = shap_dts_dim/tRef
+
+           fc_shap = min( 1.0, 0.5*dt/shap_dts)
+   
+           call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
+           !call smooth_shapiro(fc_shap,n_shap,flux,var)
+        end if
+        !UAE
+
+        !UAB
+        !call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, &
+        !               & nIterBicg, &
+        !               & RKstage, "impl",w_0 )
+
+!FSA
+        if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+           if (model == 'Boussinesq') then
+              print*, "main:ONeill+Klein2014 heating only for &
+                     & pseudo-incompressible dyn."
+              stop
+           end if
+
+           RKstage = 1
+           dPStrat = 0.
+           drhoStrat = 0.           
+           call BGstate_update(var,flux,flux_rhopw,0.5*dt,RKstage,dPStrat,drhoStrat, &
+                             & "impl")
+        end if
+!FSE
+
+        call Corrector ( var, flux,flux_rhopw, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
+                       & RKstage, "impl")
+        !UAE
+
+        nTotalBicg = nTotalBicg + nIterBicg
+
+        call setHalos( var, "var" )
+        call setBoundary (var,flux,"var")
+
+        ! put new state into var1 in order to save the advection velocities
+
+        var1 = var      
+        PStrat01 = PStrat
+        rhoStrat01 = rhoStrat
+        thetaStrat01 = thetaStrat
+        bvsStrat01 = bvsStrat
+        thetaStratTilde01 = thetaStratTilde
+        rhoStratTilde01 = rhoStratTilde
+        PStratTilde01 = PStratTilde
+
+        ! (3) explicit integration of the linear right-hand sides of the
+        !     equations for density fluctuations and momentum over half a 
+        !     time step, under consideration of the divergence constraint 
+        !     \psi^\ast = \psi^n + dt/2 Q(\psi^n)
+        !     
+        !     could also be replaced by an implicit time step
+
+        !testb
+        if (master) print*,'(3) explicit integration rhs over dt/2'
+        !teste
+
+        var = var0
+        PStrat = PStrat00
+        rhoStrat = rhoStrat00
+        thetaStrat = thetaStrat00
+        bvsStrat = bvsStrat00
+        thetaStratTilde = thetaStratTilde00
+        rhoStratTilde = rhoStratTilde00
+        PStratTilde = PStratTilde00
+
+        call setHalos( var, "var" )
+        call setBoundary (var, flux, "var")
+
+        !UAB
+        !if(heatingONK14)then
+        !      if ( RKstage==1 ) dPStrat = 0.                    ! init q
+        !      if ( RKstage==1 ) drhoStrat = 0.   
+        !      call BGstate_update(var,flux,0.5*dt,RKstage,w_0,dPStrat, &
+        !                        & drhoStrat,"impl")
+        !end if
+        !UAE        
+
+        rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
+
+        ! update density fluctuations (rhopStar)
+
+        !UAB
+        !call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs", &
+        !              & "expl",w_0)
+        call massUpdate(var,flux,flux_rhopw,0.5*dt,dRhop,RKstage,"rhop","rhs","expl")
+        !UAE
+
+        ! update winds (uStar, vStar, wStar)
+
+        !UAB
+        !call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
+        !                     & "expl",w_0)
+        call momentumPredictor(var,flux,flux_rhopw,force,0.5*dt,dMom,RKstage,"rhs",&
+                             & "expl")
+        !UAE
+              
+        !testb
+        !call output_data(iOut, var, iTime, time, cpuTime)
+        !teste
+
+        ! corrector: uStar, vStar, wStar 
+        !            -> new u, v, w
+           
+        call setHalos( var, "var" )
+        call setBoundary (var,flux,"var")
+
+        !UAB
+        if (shap_dts_dim > 0.) then
+           ! smoothing of the fields in order to limit grid-point noise
+
+           shap_dts = shap_dts_dim/tRef
+
+           fc_shap = min( 1.0, 0.5*dt/shap_dts)
+
+           call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
+           !call smooth_shapiro(fc_shap,n_shap,flux,var)
+        end if
+        !UAE
+
+        !UAB
+        !call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, &
+        !               & nIterBicg, &
+        !               & RKstage, "expl",w_0)
+
+!FSA
+        if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+           if (model == 'Boussinesq') then
+              print*, "main:ONeill+Klein2014 heating only for &
+                     & pseudo-incompressible dyn."
+              stop
+           end if
+
+           !'impl' chosen below because this is not in an RK sub-step
+
+           RKstage = 1
+           dPStrat = 0.
+           drhoStrat = 0.           
+           call BGstate_update(var,flux,flux_rhopw,0.5*dt,RKstage,dPStrat,drhoStrat, &
+                             & "impl")
+        end if
+
+!FSE
+
+        call Corrector ( var, flux,flux_rhopw, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
+                       & RKstage, "expl")
+        ! !UAE
 
 
-        !---------------------------------------------------------------
-        !                     Runge-Kutta stages
-        !---------------------------------------------------------------
+        nTotalBicg = nTotalBicg + nIterBicg
+
+        ! (4) explicit integration of convective and 
+        !     viscous-diffusive/turbulent fluxes over a full time step,
+        !     with the advection velocity kept constant
+        !     \psi^{\ast\ast} = \psi^\ast + A^dt (\psi^\ast, v^{n+1/2})
+
+        !testb
+        if (master) print*,'(4) explicit integration lhs over dt'
+        !teste
+
+        var0 = var1
+        PStrat00 = PStrat01
+        rhoStrat00 = rhoStrat01
+        thetaStrat00 = thetaStrat01
+        bvsStrat00 = bvsStrat01
+        thetaStratTilde00 = thetaStratTilde01
+        rhoStratTilde00 = rhoStratTilde01
+        PStratTilde00 = PStratTilde01
+
+        call setHalos( var0, "var" )
+        call setBoundary (var0,flux,"var")
+
+        do RKstage = 1, nStages
+           ! Reconstruction
+
+           call setHalos( var, "var" )
+           call setBoundary (var, flux, "var")
+
+           call reconstruction (var, "rho")  
+           call reconstruction (var, "rhopw0") !FS
+           call reconstruction (var, "rhop")         
+           call reconstruction (var, "uvw")
+           
+           call setHalos( var, "varTilde" )
+           call setBoundary (var, flux, "varTilde" ) 
+
+           ! Fluxes and Forces
+           
+           call massFlux (var0,var,flux,flux_rhopw,"lin")
+           call momentumFlux (var0,var,flux,"lin") 
+
+           call setBoundary (var, flux, "flux") 
+
+           !FS set vertical flux_rhopw at wall to 0
+           flux_rhopw(:,:,-1) = 0.
+           flux_rhopw(:,:,0) = 0.
+           flux_rhopw(:,:,nz) = 0.
+
+
+           ! RK step for density and density fluctuations
+           
+           rhoOld = var(:,:,:,1)  ! rhoOld for momentum predictor
+
+           !UAB
+           !call massUpdate(var, flux, dt, dRho, RKstage, &
+           !             & "rho", "tot", "expl",w_0)
+           !call massUpdate(var, flux, dt, dRhop, RKstage, &
+           !             & "rhop", "lhs", "expl",w_0)
+           call massUpdate(var, flux,flux_rhopw, dt, dRho, RKstage, &
+                        & "rho", "tot", "expl")
+           call massUpdate(var, flux,flux_rhopw, dt, dRhop, RKstage, &
+                        & "rhop", "lhs", "expl")
+           !UAE
+
+           ! RK step for momentum
+           call setHalos( var, "var" )
+           call setBoundary (var, flux, "var")
+
+           !UAB
+           !call momentumPredictor(var, flux, &
+           !     &                 force, dt, dMom, RKstage, "lhs", &
+           !     &                 "expl", w_0)
+           call momentumPredictor(var, flux,flux_rhopw, &
+                &                 force, dt, dMom, RKstage, "lhs", "expl")
+           !UAE
+        end do
+
+        ! (5) implicit integration of the linear right-hand sides of the
+        !     equations for density fluctuations and momentum over half a 
+        !     time step, under consideration of the divergence constraint 
+        !     \psi^{n+1} = \psi^{\ast\ast} + dt/2 Q(\psi^{n+1})
+
+        !testb
+        if (master) print*,'(5) implicit integration rhs over dt/2'
+        !teste
+
+        call setHalos( var, "var" )
+        call setBoundary (var, flux, "var")
+
+
+!FSA
+        ! if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+        !    if (model == 'Boussinesq') then
+        !       print*, "main:ONeill+Klein2014 heating only for &
+        !              & pseudo-incompressible dyn."
+        !       stop
+        !    end if
+
+        !    RKstage = 1
+        !    dPStrat = 0.
+        !    drhoStrat = 0.           
+        !    call BGstate_update(var,flux,flux_rhopw,0.5*dt,RKstage,dPStrat,drhoStrat, &
+        !    !call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
+        !                      & "impl") !FS 0.5*dt -> dt
+        ! end if
+!FSE
+      
+        rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
+
+        ! update density fluctuations (rhopStar)
+
+        !UAB
+        !call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs", &
+        !              & "impl",w_0)
+        call massUpdate(var,flux,flux_rhopw,0.5*dt,dRhop,RKstage,"rhop","rhs","impl")
+        !UAE
+
+        ! update winds (uStar, vStar, wStar)
+        call setHalos( var, "var" )
+        call setBoundary (var,flux,"var")
+
+        !UAB
+        !call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
+        !                     & "impl",w_0)
+        call momentumPredictor(var,flux,flux_rhopw,force,0.5*dt,dMom,RKstage,"rhs",&
+                             & "impl")
+        !UAE
+              
+        ! corrector: rhopStar, uStar, vStar, wStar 
+        !            -> new rhop, u, v, w
+           
+        call setHalos( var, "var" )
+        call setBoundary (var,flux,"var")
+
+        !UAB
+        if (shap_dts_dim > 0.) then
+           ! smoothing of the fields in order to limit grid-point noise
+
+           shap_dts = shap_dts_dim/tRef
+
+           fc_shap = min( 1.0, 0.5*dt/shap_dts)
+
+           call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
+           !call smooth_shapiro(fc_shap,n_shap,flux,var)
+        end if
+        !UAE
+
+        !UAB
+        !call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, &
+        !               & nIterBicg, &
+        !               & RKstage, "impl", w_0)
+
+! !FSE
+        if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+           if (model == 'Boussinesq') then
+              print*, "main:ONeill+Klein2014 heating only for &
+                     & pseudo-incompressible dyn."
+              stop
+           end if
+
+           RKstage = 1
+           dPStrat = 0.
+           drhoStrat = 0.           
+           call BGstate_update(var,flux,flux_rhopw,0.5*dt,RKstage,dPStrat,drhoStrat, &
+           !call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
+                             & "impl") !FS 0.5*dt -> dt
+        end if
+!FSE
+
+        call Corrector ( var, flux,flux_rhopw, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
+                       & RKstage, "impl")
+        !UAE
+
+        nTotalBicg = nTotalBicg + nIterBicg
+
+        !testb
+        !call output_data(iOut, var, iTime, time, cpuTime)
+        !teste
+
+        ! the sponge layer is still to be adapted to also having \rhop?
+        ! call set_spongeLayer(var, dt, "rho")
+
+        !testb
+        if (master) print*,'(6) sponge'
+        !teste
+
+        call set_spongeLayer(var, dt, "uvw")
+
+        !testb
+        !call output_data(iOut, var, iTime, time, cpuTime)
+        !teste
+
+        !testb
+        if (master) print*,'semi-implicit time step done'
+        !teste
+
+     else ! (timeScheme /= "semiimplicit") explicit time stepping
 
         Runge_Kutta_Loop: do RKstage = 1, nStages
 
-        ! modified by Junhong Wei (20161007) --- starting line
-        if(DySmaScheme)then
-        call CoefDySma_update(var)
-        end if
-        ! modified by Junhong Wei (20161007) --- finishing line
+           ! turbulence scheme:
+           ! either prescribed damping time scale for smallest spatial 
+           ! scales
+           ! or dynamic Smagorinsky scheme
+           ! diffusion coefficient (normali. by squared grid length scale)
+           ! stored in var (...,7)
+
+           if (TurbScheme) then
+              if(DySmaScheme) then
+                 call CoefDySma_update(var)
+                else
+                 var(:,:,:,7) = tRef/turb_dts
+              end if
+           end if
 
            if( timeSchemeType == "classical" ) then
               if( RKstage == 1 ) then
@@ -413,342 +1016,377 @@ program pinc_prog
               end if
            end if
 
-  if( master ) then   ! modified by Junhong Wei for MPI (20161103)
-           if( verbose ) then
-              print*,""
-              print*,"-----------------------------------------"
-              write(*,fmt="(a25,i1)") "Runge-Kutta stage ", RKstage
-              print*,"-----------------------------------------"
-           end if
-  end if              ! modified by Junhong Wei for MPI (20161103)
+           ! initialize density fluctuations for the integration
 
+           !if (auxil_equ .and. iTime == 1) then
+           if (auxil_equ) then
+              if (model /= "pseudo_incompressible") then
+                 print*,'auxiliary equation only ready for &
+                       & pseudo-incompressible'
+                 stop
+              end if
 
-           !------------------------------------------------------
-           !                      Ray tracer (WKB part)
-           !------------------------------------------------------
-           if (raytracer) then
-              
-              ! save current wave action for ray transport
-              waveActOld = waveAct         
-              call transport_waveAction(var,ray,waveAct, RKstage, dt)
-              call transport_ray(var, ray, dt, RKstage)  
-              call calc_cellIndex(ray)
-              call calc_waveAmplitude(ray, waveAct, Psi)
-              call calc_meanFlow(Psi,var,dt,RKstage)
+              alprlx = 0.
 
-              ! reset rays to original position
-              ! poor results -> do not uncomment
-              !if( RKstage == nStages ) then
-              !   call calc_waveNumber(ray)
-              !   call reset_ray(ray)
-              !end if
+              !testb
+              !if (iTime > 1) goto 450
+              !teste
 
+              if( fluctuationMode ) then
+                 do kz = -nbz,nz+nbz
+                    var(:,:,kz,6) = var(:,:,kz,1)
+                 end do
+                else
+                 do kz = -nbz,nz+nbz
+                    var(:,:,kz,6) = var(:,:,kz,1) - rhoStrat(kz)
+                 end do
+              end if
+
+       450    continue
            end if
 
+           ! initialize zero volume force
 
-           !---------------------------------------------------------
-           !                      Reconstruction
-           !---------------------------------------------------------
+           force = 0.0
+
+           ! Lag Ray tracer (position-wavenumber space method)
+
+           if (rayTracer) then
+              call calc_meanFlow_effect(ray,var,force,ray_var3D)
+              call transport_rayvol(var, ray, dt, RKstage)  
+              if (RKstage == nStages) then
+                 call boundary_rayvol(ray)
+                 call split_rayvol(ray)
+                 call shift_rayvol(ray)
+                 call merge_rayvol(ray)
+              end if
+           end if
+           
+           ! Reconstruction
 
            call setHalos( var, "var" )
            call setBoundary (var, flux, "var")
 
-           if( updateMass ) call reconstruction (var, "rho")         
+           if( updateMass ) call reconstruction (var, "rho")  
+           if ( updateMass ) call reconstruction (var, "rhopw0") !FS
+           if( updateMass .and. auxil_equ ) then
+               call reconstruction (var, "rhop")         
+           end if
            if( updateTheta ) call reconstruction (var, "theta") 
            if( predictMomentum ) call reconstruction (var, "uvw")
-           
-           
-           !------------------------------------------------------------
-           !                     Fluxes and Forces
-           !------------------------------------------------------------
            
            call setHalos( var, "varTilde" )
            call setBoundary (var, flux, "varTilde" ) 
 
+           ! Fluxes and Forces
+           
            if( updateMass ) then 
-              call massFlux (var,flux)
-              if( correctDivError ) call massSource (var,source)
+              call massFlux (var,var,flux,flux_rhopw,"nln")
+              if( correctDivError ) then
+                  print*,'ERROR: correction divergence error not &
+                        & implemented properly'
+                  stop
+              end if
            end if
+
            if( updateTheta ) then 
               call thetaFlux (var,flux)
               call thetaSource (var,source)
            end if
+
            if( predictMomentum ) then
-              call momentumFlux (var,flux)        
+              call momentumFlux (var,var,flux,"nln")        
               call volumeForce (var,time,force)        
-!             achatzb deactivated old implementation of topography
-!             call bottomTopography(var,flux)
-!             achatze
-!xxxx wrong implemented / call might not be necessary
-              if( correctDivError) call momentumSource (var,source)
            end if
+
            call setBoundary (var, flux, "flux") 
 
+
+           !FS set vertical flux_rhopw at wall to 0
+           flux_rhopw(:,:,-1) = 0.
+           flux_rhopw(:,:,0) = 0.
+           flux_rhopw(:,:,nz) = 0.
            
-           !------------------------------------------------------------
-           !                        Evolve in time
-           !------------------------------------------------------------
+           ! Evolve in time
            
            if( updateMass ) then
-              !---------------------------------------
-              !               rho_new
-              !---------------------------------------
-              
-              if (RKstage == 1) dRho = 0.0                ! init q
-              rhoOld = var(:,:,:,1)  ! rhoOld for momentum predictor
-              call massUpdate(var, var0, flux, source, dt, dRho, RKstage)
-              call set_spongeLayer(var, stepFrac(RKstage)*dt, "rho")
-           else 
-!              if(iTime==1 .and. RKstage==1) print *,"main: MassUpdate off!"   ! modified by Junhong Wei for MPI (20161103)
-              if(iTime==1 .and. RKstage==1 .and. master) print *,"main: MassUpdate off!"   ! modified by Junhong Wei for MPI (20161103)
-           end if
+              ! rho_new
+
+              if ( RKstage==1 ) dRho = 0.                    ! init q
            
+              rhoOld = var(:,:,:,1)  ! rhoOld for momentum predictor
+              call massUpdate(var, flux,flux_rhopw, dt, dRho, RKstage, &
+                            & "rho", "tot", "expl")
+
+              if (auxil_equ) then
+                 if ( RKstage==1 ) dRhop = 0.                    ! init q
+
+                 rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
+                 call massUpdate(var, flux,flux_rhopw, dt, dRhop, RKstage, &
+                               & "rhop", "tot", "expl")
+              end if
+
+              !call set_spongeLayer(var, stepFrac(RKstage)*dt, "rho")
+             else 
+              if(iTime==1 .and. RKstage==1 .and. master) &
+              & print *,"main: MassUpdate off!"
+           end if
               
            if( updateTheta ) then
-              !---------------------------------------
-              !               theta_new
-              !---------------------------------------
-              
+              ! theta_new
+           
               call setHalos( var, "var" )
               call setBoundary (var, flux, "var")
 
               if (RKstage == 1) dTheta = 0.                    ! init q
-              call thetaUpdate(var, var0, flux, source, dt, dTheta, RKstage) 
 
-           else 
-!              if(iTime==1 .and. RKstage==1) print *,"main: ThetaUpdate off!"
-              if(iTime==1 .and. RKstage==1 .and. master ) print *,"main: ThetaUpdate off!"
+              call thetaUpdate(var, var0, flux, source, dt, dTheta, &
+                      & RKstage)
+             else 
+              if(iTime==1 .and. RKstage==1 .and. master ) &
+              & print *,"main: ThetaUpdate off!"
            end if
-           
 
            if ( predictMomentum ) then
-              !-----------------------------------------
-              !             predictor: uStar
-              !-----------------------------------------
-              
+              ! predictor: uStar
+           
               call setHalos( var, "var" )
               call setBoundary (var, flux, "var")
 
               if ( RKstage==1 ) dMom = 0.                    ! init q
-              call momentumPredictor(var, var0, flux, source, &
-                   &                 force, dt, dMom, RKstage)
+
+              call momentumPredictor(var, flux,flux_rhopw, force, dt, dMom, RKstage, &
+                                   & "tot", "expl")
+           
               call set_spongeLayer(var, stepFrac(RKstage)*dt, "uvw")
-           else 
-!              if(iTime==1 .and. RKstage==1) print *,"main: MomentumUpdate off!"   ! modified by Junhong Wei for MPI (20161103)
-              if(iTime==1 .and. RKstage==1 .and. master) print *,"main: MomentumUpdate off!"   ! modified by Junhong Wei for MPI (20161103)
+             else 
+              if(iTime==1 .and. RKstage==1 .and. master) &
+              & print *,"main: MomentumUpdate off!"
            end if
            
-           
+           !testb
+           !call output_data(iOut, var, iTime, time, cpuTime)
+           !teste
+
+           !UAB
+           if (shap_dts_dim > 0.) then
+              ! smoothing of the fields in order to limit grid-point noise
+
+              select case( timeSchemeType ) 
+                 case( "lowStorage" ) 
+                    dt_Poisson = beta(RKstage)*dt
+                 case( "classical" )
+                    dt_Poisson = rk(3,RKstage)*dt
+                 case default
+                    stop"thetaUpdate: unknown case timeSchemeType"
+              end select
+
+              shap_dts = shap_dts_dim/tRef
+
+              fc_shap = min( 1.0, dt_Poisson/shap_dts)
+
+              call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
+              !call smooth_shapiro(fc_shap,n_shap,flux,var)
+           end if
+           !UAE
+
+           ! implementation of heating ONeill and Klein 2014
+
+           !UAB
+           !if (heatingONK14) then
+           if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+           !UAE
+
+              if (model == 'Boussinesq') then
+                 print*, "main:ONeill+Klein2014 heating only for &
+                        & pseudo-incompressible dyn."
+                 stop
+              end if
+
+              if ( RKstage==1 ) dPStrat = 0.                    ! init q
+              if ( RKstage==1 ) drhoStrat = 0.           
+
+              call BGstate_update(var,flux,flux_rhopw,dt,RKstage,dPStrat,drhoStrat, &
+                                & "expl")
+           end if
+
            if( correctMomentum ) then
-              !---------------------------------------------
-              !      corrector: dp, du -> u_new, p_new
-              !---------------------------------------------
-              
+              ! corrector: dp, du -> u_new, p_new
+           
               call setHalos( var, "var" )
               call setBoundary (var,flux,"var")
 
-!xxxx new time scheme
               select case( timeSchemeType ) 
-                 
-              case( "lowStorage" ) 
-                 
-                 dt_Poisson = beta(RKstage)*dt
-                 
-              case( "classical" )
-                 
-                 dt_Poisson = rk(3,RKstage)*dt
-
-              case default
-                 stop "thetaUpdate: unknown case timeSchemeType"
+                 case( "lowStorage" ) 
+                    dt_Poisson = beta(RKstage)*dt
+                 case( "classical" )
+                    dt_Poisson = rk(3,RKstage)*dt
+                 case default
+                    stop"thetaUpdate: unknown case timeSchemeType"
               end select
-!xxxx end
               
-              call momentumCorrector ( var, dMom, dt_Poisson, &
-                   & errFlagBicg, nIterBicg, RKstage,'')
+              !UAB
+              !call Corrector ( var, flux, dMom, dt_Poisson, errFlagBicg, &
+              !               & nIterBicg, RKstage, "expl", w_0)
+              call Corrector ( var, flux,flux_rhopw, dMom, dt_Poisson, errFlagBicg, &
+                             & nIterBicg, RKstage, "expl" )
+              !UAE
 
               nTotalBicg = nTotalBicg + nIterBicg
-              
+           
               ! error handling
               if( errFlagBiCG ) then
                  print*," Momentum Corrector error"
-                 write(*,fmt="(a25,i2.2)") "maxIterPoisson! iPara=", iParam
+                 write(*,fmt="(a25,i2.2)") "maxIterPoisson! iPara=", &
+                                           & iParam
                  nAverageBicg = real(nTotalBicg) / real(iTime) / 3.0
 
                  call system_clock(count=timeCount)
                  cpuTime = (timeCount - startTimeCount)/real(rate)
 
-!                achatzb
-!                reduced argument list for output
-!                changed name of output routine
-!                call tec360(&
-!                     & iOut, &
-!                     & var,&
-!                     & ray, waveAct, Psi, &
-!                     & iTime, time, cpuTime, dt,&
-!                     & iParam)   
-                 call output_data(&
-                      & iOut, &
-                      & var,&
-                      & iTime, time, cpuTime)
-!                achatze
+                 call output_data(iOut, var, iTime, time, cpuTime)
+
+                 if (rayTracer) then
+                     call output_wkb(iOut, ray, ray_var3D)
+                 end if
 
                  go to 10   ! dealloc fields
               end if
-           else
+             else
               if(iTime==1 .and. RKstage==1) &
                    & print *,"main: MomentumCorrector off!"
            end if
 
 
         end do Runge_Kutta_Loop
+     end if ! timeScheme
 
-
-
-
-        !--------------------------------------------------------------
-        !                           Output
-        !--------------------------------------------------------------
-
-        select case( outputType )
-
+     !--------------------------------------------------------------
+     !                           Output
+     !--------------------------------------------------------------
+111 continue
+     select case( outputType )
         case( 'time' )
-
            if (output) then
-              if( master ) then   ! modified by Junhong Wei for MPI
+              if( master ) then
                  call system_clock(count=timeCount)
                  cpuTime = (timeCount - startTimeCount)/real(rate)
-              end if              ! modified by Junhong Wei for MPI
+              end if
 
-!             achatzb
-!             reduced argument list for output
-!             changed name of output routine
-!             call tec360(&
-!                  & iOut, &
-!                  & var,&
-!                  & ray, waveAct, Psi, &
-!                  & iTime, time, cpuTime, dt,&
-!                  & iParam)   
               call output_data(&
                    & iOut, &
                    & var,&
                    & iTime, time, cpuTime)
-!             achatze
+
+              if (rayTracer) then
+                 call output_wkb(iOut, ray, ray_var3D)
+              end if
 
               output = .false.
-
               nextOutputTime = nextOutputTime + outputTimeDiff
               if (nextOutputTime >= maxTime) nextOutputTime = maxTime
            end if
-
         case( 'timeStep' )
-
            if (modulo(iTime,nOutput) == 0) then
               if( master ) then   ! modified by Junhong Wei for MPI
                  call system_clock(count=timeCount)
                  cpuTime = (timeCount - startTimeCount)/real(rate)
               end if              ! modified by Junhong Wei for MPI
 
-!             achatzb
-!             reduced argument list for output
-!             changed name of output routine
-!             call tec360(&
-!                  & iOut, &
-!                  & var,&
-!                  & ray, waveAct, Psi, &
-!                  & iTime, time, cpuTime, dt,&
-!                  & iParam)   
               call output_data(&
                    & iOut, &
                    & var,&
                    & iTime, time, cpuTime)
-!             achatze
-           end if
 
+              if (rayTracer) then
+                 call output_wkb(iOut, ray, ray_var3D)
+              end if
+           end if
         case default
-           stop "main: unknown outputType"
-        end select
+           stop"main: unknown outputType"
+     end select
 
 
-        !-------------------------------------------
-        !              Abort criteria
-        !-------------------------------------------
+     !-------------------------------------------
+     !              Abort criteria
+     !-------------------------------------------
 
-        if( outputType == "time" ) then
-           if( time*tRef >= maxTime ) then 
-              if( master ) then   ! modified by Junhong Wei for MPI
-                 nAverageBicg = real(nTotalBicg) / real(iTime) / 3.0
+     if( outputType == "time" ) then
+        if( time*tRef >= maxTime ) then 
+           if( master ) then
+              nAverageBicg = real(nTotalBicg) / real(iTime) / 3.0
 
-                 call system_clock(count=timeCount)
-                 cpuTime = (timeCount - startTimeCount)/real(rate)
+              call system_clock(count=timeCount)
+              cpuTime = (timeCount - startTimeCount)/real(rate)
 
-                 print*,""
-                 print*,"=================================================="
-                 print*," Pinc: Resume"
-                 print*,""
-                 write(*,fmt="(a31,es15.1)") &
-                      & "average Poisson iterations = ", nAverageBicg
-                 print*,"=================================================="
-                 print*,""
-              end if              ! modified by Junhong Wei for MPI
-
-              exit      ! leave time_loop
+              print*,""
+              print*,"=================================================="
+              print*," Pinc: Resume"
+              print*,""
+              write(*,fmt="(a31,es15.1)") &
+                   & "average Poisson iterations = ", nAverageBicg
+              print*,"=================================================="
+              print*,""
            end if
+
+           exit      ! leave time_loop
         end if
+     end if
 
-
-     end do time_loop
+  end do time_loop
 
      
-     !-------------------------------------------
-     !      Final output for timeStep
-     !-------------------------------------------
+  !-------------------------------------------
+  !      Final output for timeStep
+  !-------------------------------------------
      
 10 if( master ) then   ! modified by Junhong Wei for MPI (20161103)
      if( outputType == "timeStep" ) then
         nAverageBicg = real(nTotalBicg) / real(iTime-1) / nStages
+
         call system_clock(count=timeCount)
+
         cpuTime = (timeCount - startTimeCount)/real(rate)
+
         print*,""
-        print*,"=========================================================="
+        print*,"========================================================"
         print*," Pinc: Resume"
         print*,""
-        write(*,fmt="(a31,f15.1)") "average Poisson iterations = ", nAverageBicg
-        if (preconditioner /= "no") write(*,fmt="(a25,es15.1)") "ADI: dtau = ", dtau
-        print*,"=========================================================="
+        write(*,fmt="(a31,f15.1)") "average Poisson iterations = ", &
+                                   & nAverageBicg
+        if (preconditioner /= "no") &
+        & write(*,fmt="(a25,es15.1)") "ADI: dtau = ", dtau
+
+        print*,"========================================================"
         print*,""
      end if
-  end if   ! modified by Junhong Wei for MPI (20161103)
+  end if
 
+  !-------------------------------------
+  !       Deallocate variables
+  !-------------------------------------
 
+  call terminate_fluxes
+  call terminate_poisson
+  call terminate (var,var0,var1,dRho,dRhop,dMom,dTheta)                         
+  call terminate_atmosphere
+  call terminate_output
 
-     
-     !-------------------------------------
-     !       Deallocate variables
-     !-------------------------------------
+  if (poissonSolverType == 'hypre') then
+     call CleanUpHypre       ! Clean Up Hypre objects
+    else if (poissonSolverType == 'bicgstab') then
+     call CleanUpBiCGSTab       ! Clean Up BiCGSTAB arrays
+    else 
+     stop'ERROR: HYPRE or BiCGSTab expected as Poisson solvers'
+  end if
 
-!10   call terminate_fluxes   ! modified by Junhong Wei for MPI (20161102)
-     call terminate_fluxes    ! modified by Junhong Wei for MPI (20161102)
-     call terminate_poisson
-     call terminate (var,var0,dRho,dMom,dTheta)                         
-     call terminate_atmosphere
-     call terminate_output
-!    achatzb
-!    WKB switched off
-!    call finish_wkb(ray, waveAct, waveActOld, Psi)
-!    achatze
+666  if( master ) then
+        print*,""
+        print*,"---------------------------------------"
+        print*, "          pincFloit finished          "
+        print*,"---------------------------------------"
+     end if
 
-  end do paramLoop
-
-
-
-
-666  if( master ) then   ! modified by Junhong Wei for MPI (20161102)
-  print*,""
-  print*,"---------------------------------------"
-  print*, "          pincFloit finished          "
-  print*,"---------------------------------------"
-  end if   ! modified by Junhong Wei for MPI (20161102)
-
-  call mpi_finalize(ierror)   ! modified by Junhong Wei for MPI (20161102)
+  call mpi_finalize(ierror)
 
 end program pinc_prog

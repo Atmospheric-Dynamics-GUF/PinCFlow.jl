@@ -2,8 +2,6 @@ module output_module
 
   use type_module
   use atmosphere_module
-  use wkb_module, only: cabs
-
 
   implicit none
 
@@ -12,6 +10,9 @@ module output_module
   ! public subroutines
   public :: output_data
   public :: read_data
+  public :: output_wkb
+  public :: output_field
+  public :: output_profile
 
   ! internal subroutines (listed for completeness)
   public :: init_output
@@ -23,19 +24,6 @@ module output_module
 
 contains
   
-! achatz
-! output routine changed:
-! new name
-! reduced argument list
-! WKB part removed
-! velocities not interpolated to cell centers anymore (for consistency with
-! restart)
-! subroutine tec360( &
-!      & iOut, &
-!      & var,&
-!      & ray,waveAct,Psi,&
-!      & iTime,time,cpuTime,dt, &
-!      & iParam )
   subroutine output_data( &
        & iOut, &
        & var,&
@@ -44,7 +32,7 @@ contains
     !-------------------------------
     !  writes data to file pf_all.dat
     !-------------------------------
-    
+
     ! output counter
     integer, intent(inout) :: iOut
     
@@ -139,21 +127,17 @@ contains
                       case(1) ! density
                         if(fluctuationMode) then
                            if(rhoOffset) then
-                              field_prc(i,j) = real(var(i,j,k,iVar) * rhoRef &
-                                & , kind=4)
+                              field_prc(i,j) = var(i,j,k,iVar) * rhoRef 
                              else
                               field_prc(i,j) &
-                              = real((var(i,j,k,iVar) + rhoStrat(k)) * rhoRef &
-                                & , kind=4)
+                              = (var(i,j,k,iVar) + rhoStrat(k)) * rhoRef 
                            end if
                           else
                            if(rhoOffset) then
                               field_prc(i,j) &
-                              = real((var(i,j,k,iVar) - rhoStrat(k)) * rhoRef &
-                                & , kind=4)
+                              = (var(i,j,k,iVar) - rhoStrat(k)) * rhoRef 
                              else
-                              field_prc(i,j) = real(var(i,j,k,iVar) * rhoRef &
-                                & , kind=4)
+                              field_prc(i,j) = var(i,j,k,iVar) * rhoRef 
                            end if
                         end if
                       
@@ -161,22 +145,22 @@ contains
                       
                       case(2) ! u velocity
                         field_prc(i,j) &
-                        = real((var(i,j,k,iVar) - offset(iVar)) &
-                          &    * uRef, kind=4)
+                        = (var(i,j,k,iVar) - offset(iVar)) &
+                          * uRef
 
                       case(3) ! v velocity
                         field_prc(i,j) &
-                        = real((var(i,j,k,iVar) - offset(iVar)) &
-                          &    * uRef, kind=4)
+                        = (var(i,j,k,iVar) - offset(iVar)) &
+                         * uRef 
                       
                       case(4) ! w velocity
                         field_prc(i,j) &
-                        = real((var(i,j,k,iVar) - offset(iVar)) &
-                          &    * uRef, kind=4)
+                        = (var(i,j,k,iVar) - offset(iVar)) &
+                          * uRef 
                    
                       case(5) ! Exner function pi' 
                               !(deviation from background)
-                        field_prc(i,j) = real(var(i,j,k,iVar), kind=4)
+                        field_prc(i,j) = (var(i,j,k,iVar)) !+ piStrat(k))**(1./kappa)!FS
 
                       case(6) ! potential temperature theta' 
                               ! (deviation from background, Boussinesq)
@@ -190,38 +174,29 @@ contains
                                 rho = var(i,j,k,1)
                              end if
                         
-                             if (referenceQuantities == "SI" ) then
-                                 theta_dim &
-                                 = 1.0/Rsp * Pstrat(k) / rho * thetaRef
-                               else
-                                theta_dim = Pstrat(k) / rho * thetaRef
-                             end if
+                             theta_dim = Pstrat(k) / rho * thetaRef 
                         
-                             if( thetaOffset ) &
-                             theta_dim &
-                             = theta_dim - thetaStrat(k)*thetaRef
+                             if( thetaOffset ) then
+                                theta_dim = theta_dim - thetaStrat(k)*thetaRef
+                             end if
 
-                             field_prc(i,j) = real(theta_dim, kind=4)
-                         
+                             field_prc(i,j) = theta_dim
+
                            case( "Boussinesq" )
-                             field_prc(i,j) = real(var(i,j,k,iVar)*thetaRef &
-                               &                   , kind=4)
+                             field_prc(i,j) = var(i,j,k,iVar)*thetaRef 
 
                            case( "WKB" )
                         
                            case default
-                              stop "tec360: unknown model"
+                              stop"tec360: unknown model"
                         end select ! model
                       
-!                     achatzb
                       case(7) ! dynamic Smagorinsky coefficient
                               !(deviation from background)
-                        field_prc(i,j) = real(var(i,j,k,iVar) * uRef * lRef &
-                          &                   , kind=4)
-!                     achatze
+                        field_prc(i,j) = var(i,j,k,iVar) * uRef * lRef 
 
                         case default
-                           stop "tec360: unkown iVar"
+                           stop"tec360: unkown iVar"
                    end select ! iVar
                 end do ! i
                 call mpi_gather(field_prc(1,j),nx,mpi_real,&
@@ -269,7 +244,6 @@ contains
 
   end subroutine output_data
 
-  !achatzb
   !-------------------------------------------------------------------------
 
   subroutine read_data( &
@@ -420,7 +394,7 @@ contains
                               var(i,j,k,iVar) = field_prc(i,j) / (uRef*lRef)
 
                         case default
-                           stop "tec360: unkown iVar"
+                           stop"tec360: unkown iVar"
                    end select ! iVar
                 end do ! i
              end do ! j
@@ -437,7 +411,137 @@ contains
   end subroutine read_data
 
   !-------------------------------------------------------------------------
-  !achatze
+
+  subroutine output_wkb( &
+       & iOut, &
+       & ray,&
+       & ray_var3D )
+
+    !--------------------------------------------------
+    !  WKB output to pf_wkb_mean.dat and pf_wkb_ray.dat
+    !--------------------------------------------------
+    
+    ! output counter
+    integer, intent(inout) :: iOut
+    
+    ! wkb arguments
+    type(rayType), dimension(nray_wrk,0:nx+1,0:ny+1,-1:nz+2), &
+    & intent(in) :: ray
+
+    real, dimension(0:nx+1,0:ny+1,0:nz+1,1:6), intent(in) :: ray_var3D
+
+    ! local variables
+    integer :: i,j,k, iVar
+
+    ! local and global output field and record nbs.
+    real*4,dimension(nx,ny) :: field_prc
+    integer irc_prc,irc_out
+    
+    integer :: i_prc,i_mst,i_out,j_prc,j_mst,j_out
+
+    ! set counter
+    iOut = iOut - 1    
+    
+    !------------------------------
+    !   prepare output file
+    !------------------------------
+    
+    ! open output file
+
+    if(master) then
+       open(40,file='pf_wkb_mean.dat',form="unformatted",access='direct',&
+            & recl=SizeX*SizeY)
+    end if
+
+    !---------------------------------------
+    !       dimensionalising and layerwise output
+    !---------------------------------------
+
+    irc_prc = 6 * iOut * nz
+
+    do iVar = 1, 6
+       do k = 1, nz
+          ! dimensionalization
+
+          do j = 1, ny
+             do i = 1, nx
+                select case (iVar) 
+
+                   case(1) ! (du/dt)_GW
+                     field_prc(i,j) = ray_var3D(i,j,k,1) * uRef/tRef
+                      
+                   case(2) ! (dv/dt)_GW
+                     field_prc(i,j) = ray_var3D(i,j,k,2) * uRef/tRef
+
+                   case(3) ! (dtheta/dt)_GW
+                     field_prc(i,j) = ray_var3D(i,j,k,3) * thetaRef/tRef
+
+                   case(4) ! elastic term in x direction
+                     field_prc(i,j) = ray_var3D(i,j,k,4) * uRef/tRef
+                      
+                   !case(5) ! elastic term in y direction
+                   !  field_prc(i,j) = ray_var3D(i,j,k,5) * uRef/tRef
+                   case(5) ! u'w' momentum flux , output chage by FDK
+                     field_prc(i,j) = ray_var3D(i,j,k,5) * uRef**2
+
+                   case(6) ! GW energy
+                     field_prc(i,j) &
+                     = ray_var3D(i,j,k,6) * rhoRef*uRef**2! /tRef deleted by FDK
+                   
+                   case default
+                     stop"output_wkb: unkown iVar"
+                end select ! iVar
+             end do ! i
+             call mpi_gather(field_prc(1,j),nx,mpi_real,&
+                             field_mst(1,j),nx,mpi_real,0,comm,ierror)
+          end do ! j
+
+          ! layerwise output
+
+          irc_prc=irc_prc+1
+          call mpi_barrier(comm,ierror)
+          if(master) then
+             do j=1,ny
+                j_mst=j
+
+                do j_prc= 1,nprocy
+                   j_out=ny*(j_prc-1)+j
+
+                   do i_prc=1,nprocx
+                      do i=1,nx
+                         i_out=nx*(i_prc-1)+i
+
+                         i_mst=nprocy*nx*(i_prc-1)+(j_prc-1)*nx+i
+
+                         field_out(i_out,j_out)=field_mst(i_mst,j_mst)
+                      end do
+                   end do
+                end do
+             end do
+
+             write(40,rec=irc_prc) field_out
+          end if
+       end do ! k
+    end do ! iVar
+
+    !------------------------------------
+    !              close file
+    !------------------------------------
+
+    if(master) close(unit=40)
+
+    !--------------------------------------------------------------
+    ! here, after the parallelization of MS-GWaM, should also be 
+    ! optional output for all ray-volume quantities (x,y,z,k,l,m,N)
+    !--------------------------------------------------------------
+
+    ! set counter
+    iOut = iOut + 1
+
+  end subroutine output_wkb
+
+
+  !---------------------------------------------------------------------
 
 
   subroutine init_output
@@ -479,10 +583,256 @@ contains
 
 
   end subroutine terminate_output
-  
-  
+
+  !------------------------------------------------------------------------
+  ! output some singe field in time
+    subroutine output_field( &
+       & iOut, &
+       & field, filename, scaling_coef )
+
+    !-------------------------------
+    !  writes data to file filename.dat
+    !-------------------------------
+    
+    ! output counter
+    integer, intent(in) :: iOut
+    
+    ! argument fields
+    real,dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz),intent(in)  &
+    & :: field
+    
+    ! local and global output field and record nbs.
+    real*4,dimension(nx,ny) :: field_prc
+    integer irc_prc,irc_out
+    
+
+    ! local variables
+    integer :: i,j,k, iVar
+    real :: time_dim
+
+    ! needed for output to screen
+    character (len = 20)  :: fmt, form
+    character (len = 40)  :: cpuTimeChar
+
+    ! CPU Time
+    integer    :: days, hours, mins, secs
+    real       :: timeVar
+
+    ! hotBubble output
+    real :: rho, theta_dim
+
+    ! scale the variable
+    real,intent(in)                :: scaling_coef
+    character(len=*) :: filename
+
+    ! buoyancy
+    real :: b, b_dim, theta
+
+    integer :: i_prc,i_mst,i_out,j_prc,j_mst,j_out
+
+
+    if( master ) then ! modified by Junhong Wei (20161110)
+       print*,""
+       print*," Output into File "
+       print*, filename
+
+    end if ! modified by Junhong Wei (20161110)
+    
+    !------------------------------
+    !   prepare output file
+    !------------------------------
+    
+    ! open output file
+
+    if(master) then
+       open(21,file=filename,form="unformatted",access='direct',&
+            & recl=SizeX*SizeY)
+    end if
+
+
+    
+    !---------------------------------------
+    !       dimensionalising and layerwise output
+    !---------------------------------------
+
+    irc_prc = 1
+    irc_prc = irc_prc * iOut * nz
+
+          do k = 1, nz
+             ! dimensionalization
+
+             do j = 1, ny
+                do i = 1, nx
+                    field_prc(i,j) = real(field(i,j,k) * scaling_coef &
+                                & , kind=4)
+                end do ! i
+                call mpi_gather(field_prc(1,j),nx,mpi_real,&
+                                field_mst(1,j),nx,mpi_real,0,comm,ierror)
+             end do ! j
+
+             ! layerwise output
+
+             irc_prc=irc_prc+1
+!            write(40,rec=irc_prc) field_prc
+             call mpi_barrier(comm,ierror)
+             if(master) then
+                do j=1,ny
+                   j_mst=j
+
+                   do j_prc= 1,nprocy
+                      j_out=ny*(j_prc-1)+j
+
+                      do i_prc=1,nprocx
+                         do i=1,nx
+                            i_out=nx*(i_prc-1)+i
+
+                            i_mst=nprocy*nx*(i_prc-1)+(j_prc-1)*nx+i
+
+                            field_out(i_out,j_out)=field_mst(i_mst,j_mst)
+                         end do
+                      end do
+                   end do
+                end do
+
+                write(21,rec=irc_prc) field_out
+             end if
+          end do ! k
+
+    !------------------------------------
+    !              close file
+    !------------------------------------
+
+    if(master) close(unit=21)
+    
+
+  end subroutine output_field
+
   !--------------------------------------------------------------------------
+  ! output some singe field in time
+    subroutine output_profile( &
+       & iOut, &
+       & field, filename )
+
+    !-------------------------------
+    !  writes data to file filename.dat
+    !-------------------------------
+    
+    ! output counter
+    integer, intent(inout) :: iOut
+    
+    ! argument fields
+    real,dimension(-nbz:nz+nbz),intent(in)  &
+    & :: field
+    
+    ! local and global output field and record nbs.
+    real*4,dimension(nx,ny) :: field_prc
+    integer irc_prc,irc_out
+    
+
+    ! local variables
+    integer :: i,j,k, iVar
+    real :: time_dim
 
 
+    ! needed for output to screen
+    character (len = 20)  :: fmt, form
+    character (len = 40)  :: cpuTimeChar
+
+    ! CPU Time
+    integer    :: days, hours, mins, secs
+    real       :: timeVar
+
+    ! hotBubble output
+    real :: rho, theta_dim
+
+    character(len=*) :: filename
+
+    ! buoyancy
+    real :: b, b_dim, theta
+
+    integer :: i_prc,i_mst,i_out,j_prc,j_mst,j_out
+
+  !  iOut = iOut - 1 
+
+
+    if( master ) then ! modified by Junhong Wei (20161110)
+       print*,""
+       print*," Output into File "
+       print*, filename
+
+    end if ! modified by Junhong Wei (20161110)
+    
+    !------------------------------
+    !   prepare output file
+    !------------------------------
+    
+    ! open output file
+
+    if(master) then
+       open(21,file=filename,form="unformatted",access='direct',&
+            & recl=SizeX*SizeY)
+    end if
+
+
+    
+    !---------------------------------------
+    !       dimensionalising and layerwise output
+    !---------------------------------------
+
+    irc_prc = 1
+    irc_prc = irc_prc * iOut * nz
+
+          do k = 1, nz
+             ! dimensionalization
+
+             do j = 1, ny
+                do i = 1, nx
+
+                    field_prc(i,j) = real(field(k)  &
+                                & , kind=4)
+                end do ! i
+                call mpi_gather(field_prc(1,j),nx,mpi_real,&
+                                field_mst(1,j),nx,mpi_real,0,comm,ierror)
+             end do ! j
+
+             ! layerwise output
+
+             irc_prc=irc_prc+1
+!            write(40,rec=irc_prc) field_prc
+             call mpi_barrier(comm,ierror)
+             if(master) then
+                do j=1,ny
+                   j_mst=j
+
+                   do j_prc= 1,nprocy
+                      j_out=ny*(j_prc-1)+j
+
+                      do i_prc=1,nprocx
+                         do i=1,nx
+                            i_out=nx*(i_prc-1)+i
+
+                            i_mst=nprocy*nx*(i_prc-1)+(j_prc-1)*nx+i
+
+                            field_out(i_out,j_out)=field_mst(i_mst,j_mst)
+
+                         end do
+                      end do
+                   end do
+                end do
+
+                write(21,rec=irc_prc) field_out
+             end if
+          end do ! k
+
+    !------------------------------------
+    !              close file
+    !------------------------------------
+
+    if(master) close(unit=21)
+
+
+   ! iOut = iOut + 1 
+
+  end subroutine output_profile
 
 end module output_module

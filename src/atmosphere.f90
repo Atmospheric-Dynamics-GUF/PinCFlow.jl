@@ -12,8 +12,15 @@ module atmosphere_module
   public :: init_atmosphere
   public :: terminate_atmosphere
 
-  real, dimension(:), allocatable :: PStrat, rhoStrat, thetaStrat
-  real, dimension(:), allocatable :: PStratTilde, rhoStratTilde, thetaStratTilde
+  real, dimension(:), allocatable :: PStrat, rhoStrat, thetaStrat, &
+                                     bvsStrat
+  !UAB
+  real, dimension(:), allocatable :: pistrat
+  !UAE
+  real, dimension(:), allocatable :: PStratTilde, rhoStratTilde, &
+                                     thetaStratTilde
+
+  real, dimension(:), allocatable :: PStrat00, PStrat01, rhoStrat00, rhoStrat01, thetaStrat00, thetaStrat01, bvsStrat00, bvsStrat01, PStratTilde00, PStratTilde01, rhoStratTilde00, rhoStratTilde01, thetaStratTilde00, thetaStratTilde01 
 
 
   ! reference quantites
@@ -34,10 +41,11 @@ module atmosphere_module
   real :: kappaInv                  ! 1/kappa
 
   real, parameter  :: g = 9.81      ! gravitational constant in m/s^2
-  real, parameter  :: Rsp = 287.0   ! spec. gas constant for dry air in J/kg/K
+  real, parameter  :: Rsp = 287.0   ! spec. gas const. for dry air in J/kg/K
+  real :: g_ndim                    ! nondimensional gravitational constant
 
   ! flow parameters
-  real :: Re                     ! Reynolds number (calculated from input 1/Re)
+  real :: Re                     ! Reynolds number (calc. from input 1/Re)
   real :: Ma, MaInv2,Ma2         ! Mach number and 1/Ma^2, Ma^2
   real :: Fr, FrInv2,Fr2         ! Froude number Fr and 1/Fr^2, Fr^2
   real :: sig                    ! Ma^2/Fr^2
@@ -57,6 +65,16 @@ module atmosphere_module
   real :: N2                     ! scaled square of Brunt-Vaisala frequency
   real :: NN                     ! scaled of Brunt-Vaisala frequency
   real :: coeff                  ! long coefficient
+
+  !UAB
+  ! Held-Suarez atmosphere
+  real :: tp_strato               ! stratosphere temperature
+  real :: tp_srf_trp              ! tropical surface temperature
+  real :: tpdiffhor_tropo         ! tropospheric temperature difference 
+                                  ! between poles and tropics
+  real :: ptdiffvert_tropo        ! vertical potential-temperature 
+                                  ! difference in troposphere
+  !UAE
 
   ! isothermal
   real :: T0                     ! scaled background temperature
@@ -100,44 +118,172 @@ contains
     real :: T_tr                   ! temperature at tropopause
     real :: delZ                   ! distance to tropopause
 
+!gagarinab
+    ! for baroclinic case
+    real :: T_c_b1, pow_t, pow_s, p_t_b  ! tropopause quantities
+    real :: T_bar, T_c_b, p_bar          ! calculated quantities
+!gagarinae
+
+    !UAB
+    real :: pistar, thetastar
+    !UAC
+
     ! debugging
     integer,parameter :: errorlevel = 10 ! 0 -> no output
 
     ! allocate PStrat
     if( .not. allocated(pStrat) ) then
-       allocate( Pstrat(0:nz+1),stat=allocstat)
+       allocate( Pstrat(-1:nz+2),stat=allocstat)
        if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
+    end if
+
+    ! allocate PStrat
+    if( .not. allocated(pStrat) ) then
+       allocate( Pstrat00(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
+    end if
+
+    ! allocate PStrat
+    if( .not. allocated(pStrat) ) then
+       allocate( Pstrat01(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
+    end if
+
+    !UAB
+    ! allocate pistrat
+    if( .not. allocated(pistrat) ) then
+       allocate( pistrat(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not allocate pistrat"
+    end if
+    !UAE
+
+    ! allocate pStratTilde -> P at half levels
+    if( .not. allocated(pStratTilde) ) then
+       allocate( PstratTilde(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
     end if
 
     ! allocate pStratTilde -> P at half levels
     if( .not. allocated(pStratTilde) ) then
-       allocate( PstratTilde(0:nz),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStratTilde"
+       allocate( PstratTilde00(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
     end if
+
+    ! allocate pStratTilde -> P at half levels
+    if( .not. allocated(pStratTilde) ) then
+       allocate( PstratTilde01(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
+    end if
+
 
     ! allocate rhoStrat
     if( .not. allocated(rhoStrat) ) then
-       allocate( rhoStrat(0:nz+1),stat=allocstat)
+       allocate( rhoStrat(-1:nz+2),stat=allocstat)
        if(allocstat /= 0) stop "atmosphere.f90: could not allocate rhoStrat"
     end if
 
     ! allocate rhoStratTilde 
     if( .not. allocated(rhoStratTilde) ) then
-       allocate( rhoStratTilde(-1:nz+1),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not allocate rhoStratTilde"
+       allocate( rhoStratTilde(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could n. all. rhoStratTilde"
     end if
 
 
+    ! allocate rhoStrat
+    if( .not. allocated(rhoStrat) ) then
+       allocate( rhoStrat00(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not allocate rhoStrat"
+    end if
+
+    ! allocate rhoStratTilde 
+    if( .not. allocated(rhoStratTilde) ) then
+       allocate( rhoStratTilde00(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could n. all. rhoStratTilde"
+    end if
+
+
+
+    ! allocate rhoStrat
+    if( .not. allocated(rhoStrat) ) then
+       allocate( rhoStrat01(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not allocate rhoStrat"
+    end if
+
+    ! allocate rhoStratTilde 
+    if( .not. allocated(rhoStratTilde) ) then
+       allocate( rhoStratTilde01(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could n. all. rhoStratTilde"
+    end if
+
     ! allocate thetaStrat
     if( .not. allocated(thetaStrat) ) then
-       allocate( thetaStrat(0:nz+1),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not allocate thetaStrat"
+       allocate( thetaStrat(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat"
+    end if
+
+    ! allocate squared Brunt-Vaisala frequency bvsStrat
+    if( .not. allocated(bvsStrat) ) then
+       allocate( bvsStrat(-1:nz+1),stat=allocstat)
+       if(allocstat /= 0) &
+         & stop "atmosphere.f90: could not allocate bvsStrat"
     end if
 
     ! allocate thetaStratTilde
     if( .not. allocated(thetaStratTilde) ) then
-       allocate( thetaStratTilde(0:nz+1),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not allocate thetaStratTilde"
+       allocate( thetaStratTilde(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
+    end if
+
+
+    ! allocate thetaStrat
+    ! GBcorr: correct some copy-paste typos in the allocations below
+    !if( .not. allocated(thetaStrat) ) then
+    if( .not. allocated(thetaStrat00) ) then
+       allocate( thetaStrat00(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat"
+    end if
+
+    ! allocate squared Brunt-Vaisala frequency bvsStrat
+    ! GBcorr
+    !if( .not. allocated(bvsStrat) ) then
+    if( .not. allocated(bvsStrat00) ) then
+       allocate( bvsStrat00(-1:nz+1),stat=allocstat)
+       if(allocstat /= 0) &
+         & stop "atmosphere.f90: could not allocate bvsStrat"
+    end if
+
+    ! allocate thetaStratTilde
+    ! GBcorr
+    !if( .not. allocated(thetaStratTilde) ) then
+    if( .not. allocated(thetaStratTilde00) ) then
+       allocate( thetaStratTilde00(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
+    end if
+
+
+    ! allocate thetaStrat
+    ! GBcorr
+    !if( .not. allocated(thetaStrat) ) then
+    if( .not. allocated(thetaStrat01) ) then
+       allocate( thetaStrat01(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat"
+    end if
+
+    ! allocate squared Brunt-Vaisala frequency bvsStrat
+    ! GBcorr
+    !if( .not. allocated(bvsStrat) ) then
+    if( .not. allocated(bvsStrat01) ) then
+       allocate( bvsStrat01(-1:nz+1),stat=allocstat)
+       if(allocstat /= 0) &
+         & stop "atmosphere.f90: could not allocate bvsStrat"
+    end if
+
+    ! allocate thetaStratTilde
+    ! GBcorr
+    !if( .not. allocated(thetaStratTilde) ) then
+    if( .not. allocated(thetaStratTilde01) ) then
+       allocate( thetaStratTilde01(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
     end if
 
     !----------------------------------
@@ -192,7 +338,7 @@ contains
        !                          ! sig = Ma^2/Fr^2 = 1
 
     case( "WKB" )
-       eps = 0.1                 ! asymptotic parameter ( Ma = Fr for eps = kappa! )
+       eps = 0.1         ! asymptotic parameter ( Ma = Fr for eps = kappa! )
        rhoRef = 1.184             ! in kg/m^3
        pRef = 101325.0            ! in Pa = kg/m/s^2
 
@@ -205,7 +351,7 @@ contains
        tRef = lRef / uRef
 
     case( "SI" )
-       stop "init_atmosphere: Problems with Exner pressure. Use Klein's scaling."
+       stop"init_atmosphere: Problems w. Exner pr.. Use Klein's scaling."
        ! with this scaling all quantities are 
        ! in SI units
        ! Note that in this case the thermodynamic
@@ -221,12 +367,12 @@ contains
 
        ! nondim numbers
        Ma = 1.0                   ! normally 1/sqrt(kappa) 
-       !                          ! but we use Exner-pressure/kappa like R. Klein
+       !                          ! but we use Exner-pr./kappa like R. Klein
        Fr = 1.0/sqrt(g)           ! Fr = uRef/sqrt(g*lRef)
 
     case default
        print*,"referenceQuantities = ", referenceQuantities
-       stop "init_atmosphere: unknown referenceQuantities. Stopping."
+       stop"init_atmosphere: unknown referenceQuantities. Stopping."
     end select
 
     ! auxiliary nondimensionals
@@ -244,6 +390,7 @@ contains
        Ro = uRef/f_Coriolis_dim/lRef  
        RoInv = 1.0/Ro       
       else
+       Ro = 1.d40
        RoInv=0.0
     end if
 
@@ -265,6 +412,9 @@ contains
     ! scaled background flow
     backgroundFlow = backgroundFlow_dim / uRef
 
+    ! nondimensional gravitational constant
+    g_ndim = g/(uRef**2 / lRef)
+
 
     !----------------------------------
     !            setup domain
@@ -276,26 +426,20 @@ contains
     lz = lz_dim / lRef
 
     ! init cell size
-!    dx = ( lx(1) - lx(0) ) / real(nx)   ! modified by Junhong Wei (20161104)
-!    dy = ( ly(1) - ly(0) ) / real(ny)   ! modified by Junhong Wei (20161104)
-!    dz = ( lz(1) - lz(0) ) / real(nz)   ! modified by Junhong Wei (20161104)
 
-     dx = ( lx(1) - lx(0) ) / real(sizeX)   ! modified by Junhong Wei (20161104)
-     dy = ( ly(1) - ly(0) ) / real(sizeY)   ! modified by Junhong Wei (20161104)
-     dz = ( lz(1) - lz(0) ) / real(sizeZ)   ! modified by Junhong Wei (20161104)
+    dx = ( lx(1) - lx(0) ) / real(sizeX)
+    dy = ( ly(1) - ly(0) ) / real(sizeY)
+    dz = ( lz(1) - lz(0) ) / real(sizeZ)
 
     ! init cell coordinates
-!    do i = -nbx, nx+nbx   ! modified by Junhong Wei (20161104)
      do i = -nbx, sizeX+nbx   ! modified by Junhong Wei (20161104)
        x(i) = lx(0) + real(i-1)*dx + dx/2.0
     end do
 
-!    do j = -nby, ny+nby   ! modified by Junhong Wei (20161104)
     do j = -nby, sizeY+nby   ! modified by Junhong Wei (20161104)
        y(j) = ly(0) + real(j-1)*dy + dy/2.0
     end do
 
-!    do k = -nbz, nz+nbz   ! modified by Junhong Wei (20161104)
     do k = -nbz, sizeZ+nbz   ! modified by Junhong Wei (20161104)
        z(k) = lz(0) + real(k-1)*dz + dz/2.0
     end do
@@ -316,8 +460,21 @@ contains
     do j = -nby+1, sizeY+nby   ! modified by Junhong Wei (20161104)
        do i = -nbx+1, sizeX+nbx
           if(abs(x(i)-x_center) <= mountainWidth) then
-             topography_surface(i,j) &
-             = 0.5*mountainHeight*(1. + cos(k_mountainw*(x(i)-x_center)))
+             if(mountain_case == 1) then
+                topography_surface(i,j) &
+                = 0.5*mountainHeight &
+                    * (1. + cos(k_mountainw*(x(i)-x_center)))
+              else if(mountain_case == 2) then ! modififed by FDK (20191216)
+                topography_surface(i,j) &
+                = 0.5*mountainHeight &
+                  * (1. + cos(k_mountainw*(x(i)-x_center))) &
+                  * (cos(range_fac*k_mountainw*(x(i)-x_center)))
+                  if (topography_surface(i,j) .lt. lz(0) .and. topography ) then
+                    print*,"Topography has negative values"
+                    print*, "lz_dim(0) should be set accordingly "
+                    stop
+                  end if
+            end if
            else
              topography_surface(i,j) = 0.
           end if
@@ -367,18 +524,20 @@ contains
           
           ! not implemented versions
           if ( referenceQuantities == "SI" ) &
-               & stop "atmosphere.f90: referenceQuantities = SI not implemented."
+               & stop"atmosphere.f90: referenceQuantities = SI not impl.."
           if( .not. fluctuationMode ) &
-               & stop "atmosphere.f90: only fluctuationMode = TRUE implemented."
+               &  stop"atmosphere.f90: only fluctuationMode = TRUE impl.."
 
           ! quantities at tropopause
           z_tr = z_tr_dim / lRef
           theta_tr = theta_tr_dim / thetaRef
-          press_tr = p0*(1.0-kappa*sig/theta_tr * z_tr)**(1/kappa)   ! pressure
-          T_tr = theta_tr * (press_tr/p0)**kappa                     ! temperature
+          ! presure
+          press_tr = p0*(1.0-kappa*sig/theta_tr * z_tr)**(1/kappa)
+          ! temperature
+          T_tr = theta_tr * (press_tr/p0)**kappa
           
           ! quantities at full levels
-          do k = 0,nz+1
+          do k = -1,nz+2
              zk = z(k)
              delZ = zk - z_tr
              
@@ -388,7 +547,7 @@ contains
 
                 power = 1.0/(gamma-1.0)
                 term = kappa*sig/theta_tr * zk
-                if (term > 1.0) stop "init_atmosphere: negative term. Stop."
+                if (term > 1.0)stop"init_atmosphere: negative term. Stop."
                 
                 Pstrat(k) = p0*( 1.0 - term)**power
                 rhoStrat(k) = PStrat(k) / thetaStrat(k)
@@ -396,69 +555,44 @@ contains
              else                  ! isothermal stratosphere
                 
                 thetaStrat(k) = theta_tr * exp(kappa*sig/T_tr*delZ)
-                Pstrat(k) = p0**kappa * press_tr**(1/gamma) * exp(-sig/gamma/T_tr*delZ)
+                Pstrat(k) &
+                = p0**kappa * press_tr**(1/gamma) &
+                  * exp(-sig/gamma/T_tr*delZ)
                 rhoStrat(k) = PStrat(k) / thetaStrat(k)
 
              end if
 
           end do ! k loop
           
-          
-          if( errorlevel < 5 ) then
-             ! xxx check atmosphere at full levels
-             print"(4a10)","k","z(k)","thetaStrat(k)","PStrat(k)","rhoStrat(k)"
-             do k = 0,nz+1
-                
-                print"(i10,4f10.1)",k,z(k)*lRef,thetaStrat(k)*thetaRef,&
-                     & PStrat(k)*pRef,rhoStrat(k)*rhoRef
-                
-             end do
-             
-          end if
-          
           ! quantities at half levels
-          do k = 0,nz
-             zk_half = z(k) + dz/2.
-             delZ = zk_half - z_tr
+          do k = -1,nz+2
+             if (k == nz+2) then
+                zk_half = z(k) + dz/2.
+                delZ = zk_half - z_tr
 
-             if( zk_half <= z_tr ) then ! isentropic troposphere
+                if( zk_half <= z_tr ) then ! isentropic troposphere
+                   thetaStratTilde(k) = theta_tr
 
-                thetaStratTilde(k) = theta_tr
+                   power = 1.0/(gamma-1.0)
+                   term = kappa*sig/theta_tr * zk_half
+                   if (term > 1.0) stop"init_atmosphere: negative term. Stop."
 
-                power = 1.0/(gamma-1.0)
-                term = kappa*sig/theta_tr * zk_half
-                if (term > 1.0) stop "init_atmosphere: negative term. Stop."
-
-                PstratTilde(k) = p0 * (1.0 - term)**power
-                rhoStratTilde(k) = PStratTilde(k) / thetaStratTilde(k)
-
-             else                  ! isothermal stratosphere
-
-                thetaStratTilde(k) = theta_tr * exp(kappa*sig/T_tr*delZ)
-                PstratTilde(k) = p0**kappa * press_tr**(1/gamma) * exp(-sig/gamma/T_tr*delZ)
-                rhoStratTilde(k) = PStratTilde(k) / thetaStratTilde(k)
-                
+                   PstratTilde(k) = p0 * (1.0 - term)**power
+                   rhoStratTilde(k) = PStratTilde(k) / thetaStratTilde(k)
+                  else                  ! isothermal stratosphere
+                   thetaStratTilde(k) = theta_tr * exp(kappa*sig/T_tr*delZ)
+                   PstratTilde(k) &
+                   = p0**kappa * press_tr**(1/gamma) &
+                     * exp(-sig/gamma/T_tr*delZ)
+                   rhoStratTilde(k) = PStratTilde(k) / thetaStratTilde(k)
+                end if
+               else
+                thetaStratTilde(k) = 0.5 * (thetaStrat(k) + thetaStrat(k+1))
+                PStratTilde(k) = 0.5 * (PStrat(k) + PStrat(k+1))
+                rhoStratTilde(k) = 0.5 * (rhoStrat(k) + rhoStrat(k+1))
              end if
-
           end do ! k loop 
           
-
-          if( errorlevel < 5 ) then
-             ! xxx check atmosphere at half levels
-             print"(4a10)","k","z(k)+dz","thetaStratTilde(k)",&
-                  & "PStratTilde(k)","rhoStratTilde(k)"
-             do k = 0,nz
-                
-                print"(i10,4f10.1)",k,(z(k)+dz/2.)*lRef,thetaStratTilde(k)*thetaRef,&
-                     & PStratTilde(k)*pRef,rhoStratTilde(k)*rhoRef
-                
-             end do
-             
-          end if
-
-          
-
-
           !-----------------------------------------------------------
           !                    Isothermal atmosphere
           !-----------------------------------------------------------
@@ -471,15 +605,15 @@ contains
              !------------------------------------
 
              if( fluctuationMode ) &
-                  & stop "init_atmosphere: fluctuationMode not implmented for SI!" 
+                  &stop"init_atmosphere: fluctuationMode not impl. for SI!" 
              T0 = Temp0_dim / thetaRef   ! T0 in K
-             N2 = kappa*g**2/Rsp/T0      ! isothermal Brunt-Vaisala frequency^2
+             N2 = kappa*g**2/Rsp/T0      ! isothermal Brunt-Vaisala fr.^2
              NN = sqrt(N2)               ! 
 
              hp = Rsp*T0/g               ! pressure scale height
              hTheta = hp/kappa           ! pot. temperature scale height
 
-             do k = 0,nz+1
+             do k = -1,nz+2
                 PStrat(k) = p0*exp( -z(k)/gamma/hp )
                 thetaStrat(k) = T0*exp( z(k) / hTheta )
                 rhoStrat(k) = 1.0/Rsp * PStrat(k) / thetaStrat(k)
@@ -491,24 +625,31 @@ contains
              !-----------------------------------------
 
              T0 = Temp0_dim / thetaRef      
-             N2 = Ma**2/Fr**4*kappa/T0   ! isothermal Brunt-Vaisala frequency^2
+             N2 = Ma**2/Fr**4*kappa/T0   ! isothermal Brunt-Vaisala fr.^2
              NN = sqrt(N2)                 
 
-             do k = 0,nz+1
+             do k = -1,nz+2
                 PStrat(k) = p0*exp( -sig*z(k) / gamma / T0 )       
                 thetaStrat(k) = T0 * exp( kappa*sig/T0 * z(k) )
                 rhoStrat(k) = PStrat(k) / thetaStrat(k)
              end do
 
              ! rhoStrat and PStrat at half levels
-             do k = 0,nz
-                zk_half = z(k) + 0.5*dz                           ! half level height
-                PStratTilde(k) = p0*exp( -sig*zk_half / gamma / T0 )       
-                thetaStratTilde(k) = T0 * exp( kappa*sig/T0 * zk_half )
-                rhoStratTilde(k) = PStratTilde(k) / thetaStratTilde(k)
+             do k = -1,nz+2
+                if (k == nz+2) then
+                   zk_half = z(k) + 0.5*dz  ! half level height
+                   PStratTilde(k) = p0*exp( -sig*zk_half / gamma / T0 )
+                   thetaStratTilde(k) = T0 * exp( kappa*sig/T0 * zk_half )
+                   rhoStratTilde(k) = PStratTilde(k) / thetaStratTilde(k)
+                  else
+                   thetaStratTilde(k) &
+                   = 0.5 * (thetaStrat(k) + thetaStrat(k+1))
+                   PStratTilde(k) = 0.5 * (PStrat(k) + PStrat(k+1))
+                   rhoStratTilde(k) = 0.5 * (rhoStrat(k) + rhoStrat(k+1))
+                end if
              end do
 
-!xxx need rhoStratTilde(-1) in fluxes.f90, line 1927 \pm
+             !xxx need rhoStratTilde(-1) in fluxes.f90, line 1927 \pm
              rhoStratTilde(-1) = rhoStratTilde(0)
              rhoStratTilde(nz+1) = rhoStratTilde(nz)
 
@@ -526,14 +667,19 @@ contains
              !   original equations in SI units
              !------------------------------------
 
-             if( fluctuationMode ) stop "init_atmosphere: fluctuationMode not implmented for SI!" 
+             if( fluctuationMode ) then
+             stop"init_atmosphere: fluctuationMode not implmented for SI!" 
+             end if
+
              NN = 0.0
              N2 = 0.0
              theta0 = theta0_dim / thetaRef       ! theta0 in K
              power = 1.0/(gamma-1.0)
-             do k = 0,nz+1
+             do k = -1,nz+2
                 term = kappa*g/Rsp/theta0*z(k)
-                if (term > 1.0) stop "init_atmosphere: negative term with power.Stop."
+                if (term > 1.0) then
+                   stop"init_atmosphere: negative term with power.Stop."
+                end if
                 PStrat(k) = p0 * (1.0 - term)**power
                 thetaStrat(k) = theta0
                 rhoStrat(k) = 1.0/Rsp * PStrat(k) / thetaStrat(k)
@@ -550,11 +696,11 @@ contains
              ! hydrostatic background pressure
 
 
-             do k = 0,nz+1
+             do k = -1,nz+2
                 power = 1.0/(gamma-1.0)
                 term = kappa*sig/theta0 * z(k)
                 if (term > 1.0) then
-                   print*, "init_atmosphere: negative term with power.Stopping."
+                   print*, "init_atmosphere: neg. term with power.Stopping."
                    print*,"term = ", term
                    print*,"kappa = ", kappa
                    print*,"sig = ", sig
@@ -562,7 +708,7 @@ contains
                    print*,"z(nz) = ", z(k)
                    print*,"z(nz)*l = ", z(k)
                    print*,"lRef = ", lRef
-                   stop "stopping."                
+                   stop"stopping."                
                 end if
                 Pstrat(k) = p0*( 1.0 - term)**power
 
@@ -571,31 +717,36 @@ contains
              end do
 
              ! quantities at half levels
-             do k = 0,nz
-                zk_half = z(k) + dz/2.
-                power = 1.0/(gamma-1.0)
-                term = kappa*sig/theta0 * zk_half
-                if (term > 1.0) then
-                   print*, "init_atmosphere: negative term with power.Stopping."
-                   print*,"term = ", term
-                   print*,"kappa = ", kappa
-                   print*,"sig = ", sig
-                   print*,"theta0 = ", theta0
-                   print*,"z(nz) = ", z(k)
-                   print*,"z(nz)*l = ", z(k)
-                   print*,"lRef = ", lRef
-                   stop "stopping."                
+             do k = -1,nz+2
+                if (k == nz+2) then
+                   zk_half = z(k) + dz/2.
+                   power = 1.0/(gamma-1.0)
+                   term = kappa*sig/theta0 * zk_half
+                   if (term > 1.0) then
+                      print*, "init_atmosphere: neg. term with power."
+                      print*,"term = ", term
+                      print*,"kappa = ", kappa
+                      print*,"sig = ", sig
+                      print*,"theta0 = ", theta0
+                      print*,"z(nz) = ", z(k)
+                      print*,"z(nz)*l = ", z(k)
+                      print*,"lRef = ", lRef
+                      stop"stopping."                
+                   end if
+                   PstratTilde(k) = p0*( 1.0 - term)**power
+                   rhoStratTilde(k) = PStratTilde(k) / theta0
+                  else
+                   PStratTilde(k) = 0.5 * (PStrat(k) + PStrat(k+1))
+                   rhoStratTilde(k) = 0.5 * (rhoStrat(k) + rhoStrat(k+1))
                 end if
-                PstratTilde(k) = p0*( 1.0 - term)**power
-                rhoStratTilde(k) = PStratTilde(k) / theta0
              end do
 
 
           end if
 
-          !--------------------------------------------------------------------
+          !----------------------------------------------------------------
           !                   Stable atmosphere with constant N
-          !--------------------------------------------------------------------
+          !----------------------------------------------------------------
 
        case( 'const-N' )
 
@@ -603,7 +754,9 @@ contains
              !------------------------------------
              !   original equations in SI units
              !------------------------------------
-             if( fluctuationMode ) stop "init_atmosphere: fluctuationMode not implmented for SI!" 
+             if( fluctuationMode ) then
+               stop"init_atmosphere: fluctuationMode not implmented for SI!"
+             end if
 
              theta0 = theta0_dim / thetaRef       ! theta0 at z=0 in K
              NN = N_BruntVaisala_dim * tRef
@@ -612,9 +765,12 @@ contains
              coeff = kappa * g**2 / (Rsp * N2 * theta0)
              power = 1./(gamma-1.)
 
-             do k = 1,nz+1
+             do k = -1,nz+2
                 term =  exp( -N2/g*z(k) )
-                if( term > 1.0 ) stop "init_atmosphere: root of a negative number." 
+                if( term > 1.0 ) then
+                    stop"init_atmosphere: root of a neg. number." 
+                end if
+
                 PStrat(k) = p0 * (1.0 + coeff*( term - 1.0) )**power
                 thetaStrat(k) = theta0 * exp(N2/g*z(k))
                 rhoStrat(k) = 1.0/Rsp * PStrat(k) / thetaStrat(k)
@@ -626,57 +782,382 @@ contains
              !-----------------------------------------
 
              theta0 = theta0_dim / thetaRef         ! theta0 at z=0
-             N2 = (N_BruntVaisala_dim * tRef)**2    ! Brunt-Vaisala frequency^2
+             N2 = (N_BruntVaisala_dim * tRef)**2    ! Brunt-Vaisala fr.^2
              NN = sqrt(N2)
 
              power = 1.0 / (gamma-1.0)
 
              ! potential temperature and pressure Pstrat
-             do k = 1, nz+1
+             do k = -1,nz+2
                 thetaStrat(k) = theta0 * exp(Fr**2*N2*z(k))
 
                 term = exp( -Fr2 * N2 * z(k) )
 
-                if( term > 1.0 ) stop "init_atmosphere: root of a negative number." 
-                Pstrat(k) = p0 * (1.0 + FrInv2*kappa*sig/N2/theta0 * (term-1.0) )**power
+                if( 1.0 + FrInv2*kappa*sig/N2/theta0*(term-1.0) < 0.0) then
+                    print*,"init_atmosphere: power of a neg. number." 
+                    stop'top of atmosphere too high for const-N'
+                end if
+
+                Pstrat(k) &
+                = p0 &
+                  * (1.0 + FrInv2*kappa*sig/N2/theta0 * (term-1.0) )**power
                 rhoStrat(k) = pStrat(k) / thetaStrat(k)             
+
+                !testb
+                !print*,'Pstrat(',k,') =',Pstrat(k)
+                !teste
              end do
 
-
-             !xxx treat exception for k = 0
-             thetaStrat(0) = thetaStrat(1)
-             Pstrat(0) = Pstrat(1)
-             rhoStrat(0) = rhoStrat(1)
-
              ! rhoStrat at half levels
-             do k = 0, nz
-                zk_half = z(k) + dz/2.
-                thetaStratTilde(k) = theta0 * exp(Fr**2*N2*zk_half)
+             do k = -1,nz+2
+                if (k == nz+2) then
+                   zk_half = z(k) + dz/2.
+                   thetaStratTilde(k) = theta0 * exp(Fr**2*N2*zk_half)
 
-                term = exp( -Fr2 * N2 * zk_half )
+                   term = exp( -Fr2 * N2 * zk_half )
 
-                if( term > 1.0 ) stop "init_atmosphere: root of a negative number." 
-                PstratTilde(k) = p0 * (1.0 + FrInv2*kappa*sig/N2/theta0 * (term-1.0) )**power
-                rhoStratTilde(k) = PstratTilde(k) / thetaStratTilde(k)             
+                   if( term > 1.0 ) then
+                       stop"init_atmosphere: root of a negative number." 
+                   end if
+
+                   if( 1.0 + FrInv2*kappa*sig/N2/theta0*(term-1.0) < 0.0) &
+                   & then
+                      print*,"init_atmosphere: power of a neg. number." 
+                      stop'top of atmosphere too high for const-N'
+                   end if
+
+                   PstratTilde(k) &
+                   = p0 &
+                     * (  1.0 &
+                        + FrInv2*kappa*sig/N2/theta0 * (term-1.0) )**power
+                   rhoStratTilde(k) = PstratTilde(k) / thetaStratTilde(k)
+                  else
+                   thetaStratTilde(k) &
+                   = 0.5 * (thetaStrat(k) + thetaStrat(k+1))
+                   PStratTilde(k) = 0.5 * (PStrat(k) + PStrat(k+1))
+                   rhoStratTilde(k) = 0.5 * (rhoStrat(k) + rhoStrat(k+1))
+                end if
              end do
 
           end if
 
+         !-----------------------------------------------------------
+         ! Setting for a baroclinic life cycle. Different lapse rates 
+         ! in troposphere and stratosphere that are also y-dependent.
+         ! Change: Elena Gagarina, 15.03.2018
+         !-----------------------------------------------------------
+
+case( 'diflapse' )
+
+          if ( referenceQuantities == "SI" ) then
+             stop"atmosphere.f90: referenceQuantities = SI not impl."
+          end if
+
+          ! quantities at tropopause
+
+          if (gamma_t /= 0.) pow_t = g/(Rsp*gamma_t)
+          if (gamma_s /= 0.) pow_s = g/(Rsp*gamma_s)
+
+          if (gamma_t /= 0.) then
+             p_t_b = press0_dim * (1. - gamma_t*z_tr_dim/Temp0_dim)**pow_t
+            else
+             p_t_b = press0_dim * exp(- z_tr_dim/(Rsp*Temp0_dim/g))
+          end if
+
+          T_c_b = Temp0_dim - gamma_t*z_tr_dim
+          
+          ! quantities at full levels:
+
+          do k = -1, nz+2
+             zk = z(k) * lRef
+
+             if (zk < z_tr_dim) then
+                T_bar = Temp0_dim - gamma_t*zk
+
+                if (gamma_t /= 0.) then
+                   p_bar = press0_dim * (1. - gamma_t*zk/Temp0_dim)**pow_t 
+                  else
+                   p_bar = press0_dim * exp(- zk/(Rsp*Temp0_dim/g))
+                end if
+               else
+                T_bar &
+                = Temp0_dim - gamma_t*z_tr_dim - gamma_s*(zk - z_tr_dim)
+
+                if (gamma_s /= 0.) then
+                   p_bar &
+                   = p_t_b * (1. - gamma_s*(zk - z_tr_dim)/T_c_b)**pow_s
+                  else
+                   p_bar &
+                   = p_t_b * exp(- (zk - z_tr_dim)/(Rsp*T_c_b/g))
+                end if
+             endif
+
+             thetaStrat(k) = T_bar * (press0_dim/p_bar)**kappa / thetaRef
+
+             rhoStrat(k) = p_bar/(Rsp*T_bar) / rhoRef
+
+             Pstrat(k) = rhoStrat(k)*thetaStrat(k)
+          enddo
+          
+          ! quantities at half levels
+
+          ! with the exception of the uppermost ghost layer the
+          ! values there are obtained by linear interpolation, in order
+          ! to be consistent with the handling of the half levels in the
+          ! semi-implicit time stepping and the corresponding pressure
+          ! solver
+          
+          do k = -1, nz+2
+             if (k == nz+2) then
+                zk_half = (z(k) + dz/2.) * lRef
+
+                if (zk_half < z_tr_dim) then
+                   T_bar = Temp0_dim - gamma_t*zk_half
+
+                   if (gamma_t /= 0.) then
+                      p_bar &
+                      = press0_dim &
+                        * (1. - gamma_t*zk_half/Temp0_dim)**pow_t 
+                     else
+                      p_bar = press0_dim * exp(- zk_half/(Rsp*Temp0_dim/g))
+                   end if
+                  else
+                   T_bar &
+                   =   Temp0_dim - gamma_t*z_tr_dim &
+                     - gamma_s*(zk_half - z_tr_dim)
+
+                   if (gamma_s /= 0.) then
+                      p_bar &
+                      = p_t_b &
+                        * (1. - gamma_s*(zk_half - z_tr_dim)/T_c_b)**pow_s
+                     else
+                      p_bar &
+                      = p_t_b * exp(- (zk_half - z_tr_dim)/(Rsp*T_c_b/g))
+                   end if
+                endif 
+
+                thetaStratTilde(k) &
+                = T_bar * (press0_dim/p_bar)**(kappa) / thetaRef
+
+                rhoStratTilde(k) = p_bar/(Rsp*T_bar) / rhoRef
+
+                PstratTilde(k) = rhoStratTilde(k)*thetaStratTilde(k)
+               else
+                PStratTilde(k) = 0.5 * (PStrat(k) + PStrat(k+1))
+
+                rhoStratTilde(k) = 0.5 * (rhoStrat(k) + rhoStrat(k+1))
+
+                thetaStratTilde(k) = PStratTilde(k)/rhoStratTilde(k)
+             end if
+          enddo 
+
+       !UAB
+         !-----------------------------------------------------------
+         ! Setting for an atmmosphere according to Held & Suarez (1994)
+         !-----------------------------------------------------------
+
+case( 'HeldSuarez' )
+
+          if ( referenceQuantities /= "Klein" ) then
+             stop"atmosphere.f90: referenceQuantities = Klein expected!"
+          end if
+
+          ! non-dimensional parameters of the Held-Suarez reference 
+          ! atmosphere:
+
+          ! stratosphere temperature
+          tp_strato = tp_strato_dim/thetaRef
+          ! tropical surface temperature
+          tp_srf_trp = tp_srf_trp_dim/thetaRef 
+          ! tropospheric temperature difference between poles and tropics
+          tpdiffhor_tropo = tpdiffhor_tropo_dim/thetaRef
+          ! vertical potential-temperature difference in troposphere
+          ptdiffvert_tropo = ptdiffvert_tropo_dim/thetaRef
+
+          ! Exner pressure just above and below the surface so that it 
+          ! = 1 at the surface, by an Euler integration of hydrostatic 
+          ! equilibrium
+
+          T_bar = max( tp_strato, tp_srf_trp - 0.5*tpdiffhor_tropo)
+
+          !testb
+          !print*,tp_strato, tp_srf_trp - 0.5*tpdiffhor_tropo, T_bar
+          !teste
+
+          pistrat(0) = 1.0 + 0.5*dz * kappa/T_bar
+          pistrat(1) = 1.0 - 0.5*dz * kappa/T_bar
+
+          ! potential temperature just below and above the surface
+          ! P and density determined as well
+
+          do k=0,1
+             T_bar &
+             = max( tp_strato, &
+                    pistrat(k) &
+                    * (tp_srf_trp - 0.5*tpdiffhor_tropo &
+                       - 0.5*ptdiffvert_tropo/kappa * log(pistrat(k))))
+             
+             thetaStrat(k) = T_bar/pistrat(k)
+
+             pStrat(k) = pistrat(k)**((1.0 - kappa)/kappa)
+
+             rhoStrat(k) = pStrat(k)/thetaStrat(k)
+          end do
+          
+          ! for k > 1:
+          ! Exner pressure and potential temperature by upward 
+          ! integration of hydrostatic equilibrium, using a trapezoidal 
+          ! leapfrog
+          ! P and density determined as well
+
+          do k = 2, nz+2
+             pistar = pistrat(k-2) - 2.0*dz * kappa/thetaStrat(k-1)
+
+             T_bar &
+             = max( tp_strato, &
+                    pistar &
+                    * (tp_srf_trp - 0.5*tpdiffhor_tropo &
+                       - 0.5*ptdiffvert_tropo/kappa * log(pistar))) 
+
+             thetastar = T_bar/pistar
+
+             pistrat(k) &
+             =   pistrat(k-1) &
+               - 0.5*dz * (kappa/thetastar + kappa/thetaStrat(k-1))
+
+             T_bar &
+             = max( tp_strato, &
+                    pistrat(k) &
+                    * (tp_srf_trp - 0.5*tpdiffhor_tropo &
+                       - 0.5*ptdiffvert_tropo/kappa * log(pistrat(k))))
+
+             thetaStrat(k) = T_bar/pistrat(k)
+
+             pStrat(k) = pistrat(k)**((1.0 - kappa)/kappa)
+
+             rhoStrat(k) = pStrat(k)/thetaStrat(k)
+          end do
+
+          ! quantities at half levels
+
+          ! with the exception of the uppermost ghost layer the
+          ! values there are obtained by linear interpolation, in order
+          ! to be consistent with the handling of the half levels in the
+          ! semi-implicit time stepping and the corresponding pressure
+          ! solver
+          
+          do k = -1, nz+2
+             if (k < nz+2) then
+                PStratTilde(k) = 0.5 * (PStrat(k) + PStrat(k+1))
+
+                rhoStratTilde(k) = 0.5 * (rhoStrat(k) + rhoStrat(k+1))
+
+                thetaStratTilde(k) = PStratTilde(k)/rhoStratTilde(k)
+               else
+                ! linear extrapolation at uppermost layer
+
+                PStratTilde(k) = 2.0*PStratTilde(k-1) - PStratTilde(k-2)
+
+                rhoStratTilde(k) &
+                = 2.0*rhoStratTilde(k-1) - rhoStratTilde(k-2)
+
+                thetaStratTilde(k) &
+                = 2.0*thetaStratTilde(k-1) - thetaStratTilde(k-2)
+             end if
+          enddo 
+
+          ! GBcorr: move this outside the HeldSuarez case
+          !! non-dimensional squared Brunt-Vaisala frequency
+          !! (this could be done a bit nicer)
+          !
+          !bvsStrat(-1) &
+          !     = g_ndim/thetaStrat(0) * (thetaStrat(1) - thetaStrat(0))/dz
+          !
+          !bvsStrat(0) &
+          !     = g_ndim/thetaStrat(0) * (thetaStrat(1) - thetaStrat(0))/dz
+          !
+          !!UAB
+          !N2 = max(bvsStrat(-1),bvsStrat(0))
+          !!UAE
+          !
+          !do k = 1,nz
+          !   bvsStrat(k) &
+          !        = g_ndim/thetaStrat(k) &
+          !        * (thetaStrat(k+1) - thetaStrat(k-1))/(2.0 * dz)
+          !   
+          !   !UAB
+          !   N2 = max(N2, bvsStrat(k))
+          !   !UAE
+          !end do
+       
+          !bvsStrat(nz+1) &
+          !     = g_ndim/thetaStrat(nz+1) * (thetaStrat(nz+1) - thetaStrat(nz))/dz
+          !
+          !!UAB
+          !N2 = max(N2, bvsStrat(nz+1))
+          !
+          !if(N2 < 0.) then
+          !   stop'ERROR: N2 < 0'
+          !else
+          !   NN = sqrt(N2)
+          !end if
+          !!UAE
+
+
+       !------------------------------------------------------------------
+
        case default
           print*,"background = ", trim(background)
-          stop "atmosphere.f90/init_background: background not defined"
+          stop"atmosphere.f90/init_background: background not defined"
        end select
+
+       ! GBcorr
+       ! non-dimensional squared Brunt-Vaisala frequency
+       ! (this could be done a bit nicer)
+       
+       bvsStrat(-1) &
+            = g_ndim/thetaStrat(0) * (thetaStrat(1) - thetaStrat(0))/dz
+       
+       bvsStrat(0) &
+            = g_ndim/thetaStrat(0) * (thetaStrat(1) - thetaStrat(0))/dz
+       
+       !UAB
+       N2 = max(bvsStrat(-1),bvsStrat(0))
+       !UAE
+       
+       do k = 1,nz
+          bvsStrat(k) &
+               = g_ndim/thetaStrat(k) &
+               * (thetaStrat(k+1) - thetaStrat(k-1))/(2.0 * dz)
+          
+          !UAB
+          N2 = max(N2, bvsStrat(k))
+          !UAE
+       end do
+       
+       bvsStrat(nz+1) &
+            = g_ndim/thetaStrat(nz+1) * (thetaStrat(nz+1) - thetaStrat(nz))/dz
+       
+       !UAB
+       N2 = max(N2, bvsStrat(nz+1))
+       
+       if(N2 < 0.) then
+          stop'ERROR: N2 < 0'
+       else
+          NN = sqrt(N2)
+       end if
+       !UAE
 
 
     case( "Boussinesq" )
 
-       !--------------------------------------------------------------------
+       !-------------------------------------------------------------------
        !             Atmospheres for Boussinesq
-       !--------------------------------------------------------------------
+       !-------------------------------------------------------------------
 
        select case (background)
 
-       case( 'uniform_Boussinesq' )          ! uniform atmosphere for testing
+       case( 'uniform_Boussinesq' )  ! uniform atmosphere for testing
 
           rho00   = 1.0
           theta00 = theta0_dim / thetaRef
@@ -707,12 +1188,14 @@ contains
 
        case default
           print*,"background = ", trim(background)
-          stop "atmosphere.f90/init_background: background not defined"
+          stop"atmosphere.f90/init_background: background not defined"
        end select
+
+       bvsStrat = N2
 
     case default
        print*,"model = ", model
-       stop "init_atmosphere: unknown case model."
+       stop"init_atmosphere: unknown case model."
     end select
 
 
@@ -736,6 +1219,11 @@ contains
     deallocate(Pstrat,stat=allocstat)
     if(allocstat /= 0) stop "atmosphere.f90: could not deallocate pStrat"
 
+    !UAB
+    deallocate(pistrat,stat=allocstat)
+    if(allocstat /= 0) stop "atmosphere.f90: could not deallocate pistrat"
+    !UAE
+
     deallocate(PstratTilde,stat=allocstat)
     if(allocstat /= 0) stop "atmosphere.f90: could not deallocate pStratTilde"
 
@@ -752,9 +1240,6 @@ contains
     if(allocstat /= 0) stop "atmosphere.f90: could not dealloc thetaStratTilde"
 
   end subroutine terminate_atmosphere
-
-
-
 
 
 end module atmosphere_module
