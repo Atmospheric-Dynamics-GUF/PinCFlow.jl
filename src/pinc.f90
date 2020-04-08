@@ -656,7 +656,9 @@ program pinc_prog
         !               & RKstage, "impl",w_0 )
 
 !FSA
-        if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+        ! GBcorr
+        !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+        if (heating) then
            if (model == 'Boussinesq') then
               print*, "main:ONeill+Klein2014 heating only for &
                      & pseudo-incompressible dyn."
@@ -771,7 +773,9 @@ program pinc_prog
         !               & RKstage, "expl",w_0)
 
 !FSA
-        if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+        ! GBcorr
+        !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+        if (heating) then
            if (model == 'Boussinesq') then
               print*, "main:ONeill+Klein2014 heating only for &
                      & pseudo-incompressible dyn."
@@ -948,7 +952,9 @@ program pinc_prog
         !               & RKstage, "impl", w_0)
 
 ! !FSE
-        if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+        ! GBcorr
+        !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+        if (heating) then
            if (model == 'Boussinesq') then
               print*, "main:ONeill+Klein2014 heating only for &
                      & pseudo-incompressible dyn."
@@ -1194,7 +1200,9 @@ program pinc_prog
 
            !UAB
            !if (heatingONK14) then
-           if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+           ! GBcorr
+           !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+           if (heating) then
            !UAE
 
               if (model == 'Boussinesq') then

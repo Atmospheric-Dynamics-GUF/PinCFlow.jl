@@ -1298,7 +1298,9 @@ contains
           ! horizontal mean and the horizontal-mean vertical wind 
           ! resulting from it
 
-          if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+          ! GBcorr
+          !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+          if (heating) then
              call heat_w0(var,flux,flux_rhopw,heat,S_bar,w_0)
             else
              heat = 0.
@@ -1702,7 +1704,9 @@ contains
           ! horizontal mean and the horizontal-mean vertical wind 
           ! resulting from it
 
-          if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+          ! GBcorr
+          !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+          if (heating) then
              call heat_w0(var,flux,flux_rhopw,heat,S_bar,w_0)
             else
              heat = 0.
@@ -1875,7 +1879,9 @@ contains
           ! horizontal mean and the horizontal-mean vertical wind 
           ! resulting from it
 
-          if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+          ! GBcorr
+          !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+          if (heating) then
              call heat_w0(var,flux,flux_rhopw,heat,S_bar,w_0)
             else
              heat = 0.
