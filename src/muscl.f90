@@ -6,6 +6,8 @@ module muscl_module
   ! of the array for interpolation
   !-----------------------------------------------------
 
+  use type_module
+
   implicit none
 
   private
@@ -134,6 +136,7 @@ contains
       ! reconstruction in x-direction
       do k = 2, sizeZ-1
         do j = 2, sizeY-1
+          !if(master) print*,j,k
           phiX = u(:,j,k)
           call muscl_reconstruct1D_mcvariant( phiX, sizeX, phiTildeX)
           uTilde(:,j,k,1,:) = phiTildeX
@@ -261,6 +264,7 @@ contains
 
 
   subroutine muscl_reconstruct1D_minmod(phi, phiSize, phiTilde)
+
     
     !-------------------------------------
     !  MUSCL reconstruction of a single
@@ -298,7 +302,6 @@ contains
       else if(deltaL == 0.) then
 
         theta = deltaL / deltaR
-
         phiTilde(i,1) = phi(i) + 0.5 * minmod(theta, 1.0) * deltaR
         phiTilde(i,0) = phi(i)
 
@@ -345,7 +348,6 @@ contains
     phiTilde = 1000.0
     
     do i = 2, phiSize-1
-
        
       deltaL = phi(i) - phi(i-1)
       deltaR = phi(i+1) - phi(i)
@@ -355,27 +357,33 @@ contains
         phiTilde(i,1) = phi(i)
         phiTilde(i,0) = phi(i)
 
-      else if(deltaL == 0.) then
+      else 
+        if(deltaL == 0.) then
 
-        theta = deltaL / deltaR
-        s = (2.0 + theta) / 3.0
-        sigmaL = max(0.0, min(2 * theta, s, 2.0))
+           theta = deltaL / deltaR
+           s = (2.0 + theta) / 3.0
+           sigmaL = max(0.0, min(2 * theta, s, 2.0))
 
-        phiTilde(i,1) = phi(i) + 0.5 * sigmaL * deltaR
-        phiTilde(i,0) = phi(i)
+           phiTilde(i,1) = phi(i) + 0.5 * sigmaL * deltaR
+           phiTilde(i,0) = phi(i)
 
-      else
+         else
 
-        theta = deltaL / deltaR
+           theta = deltaL / deltaR
         
-        s = (2.0 + theta) / 3.0
-        sigmaL = max(0.0, min(2 * theta, s, 2.0))
+           s = (2.0 + theta) / 3.0
+           !testb
+           ! if (master) print*,2 * theta, s
+           !teste
+           sigmaL = max(0.0, min(2 * theta, s, 2.0))
 
-        s = (2.0 + 1.0 / theta) / 3.0
-        sigmaR = max(0.0, min(2 / theta, s, 2.0))
+           s = (2.0 + 1.0 / theta) / 3.0
+           sigmaR = max(0.0, min(2 / theta, s, 2.0))
+   
+           phiTilde(i,1) = phi(i) + 0.5 * sigmaL * deltaR
+           phiTilde(i,0) = phi(i) - 0.5 * sigmaR * deltaL
 
-        phiTilde(i,1) = phi(i) + 0.5 * sigmaL * deltaR
-        phiTilde(i,0) = phi(i) - 0.5 * sigmaR * deltaL
+         end if
 
       end if
        
@@ -414,7 +422,6 @@ contains
     
     do i = 2, phiSize-1
 
-       
       deltaL = phi(i) - phi(i-1)
       deltaR = phi(i+1) - phi(i)
        
