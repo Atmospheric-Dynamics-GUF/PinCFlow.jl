@@ -495,6 +495,11 @@ module type_module
   logical           :: heatingONK14        ! pseudo-incompressible dynamics 
                                            ! with heating as in 
                                            ! ONeill & Klein (2014)
+  ! GBcorr
+  logical           :: heating             ! heating on/off defined in 
+                                           ! subroutine setup (init.f90)
+                                           ! based on heatingONK14,turbScheme. 
+                                           ! raytracer
 
   logical           :: dens_relax          ! switch for replacement of
                                            ! relaxational heating by 
@@ -801,7 +806,7 @@ contains
   ! particular "random" settings should be avoided by defaults.
 
   musclType = "muscl2"            ! muscl1 / muscl2
-  heatingONK14 = .false.           ! heating implemented as Oneil and Klein (2014)
+  heatingONK14 = .false.          ! heating implemented as Oneil and Klein (2014)
   shap_dts_dim = -1.              ! Shaprio filter switched off
 
   end subroutine default_values

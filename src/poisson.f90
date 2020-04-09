@@ -553,7 +553,9 @@ contains
 
     !if (raytracer) heat(:,:,:) = heat(:,:,:) + var(:,:,:,8)
 
-    if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+    ! GBcorr
+    !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+    if (heating) then
        call heat_w0(var,flux,flux_rhopw,heat,S_bar,w_0)
       else
        heat = 0.

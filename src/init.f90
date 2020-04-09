@@ -279,6 +279,21 @@ contains
     ! close input file pinc.f
     close (unit=10)
 
+    ! GBcorr: decide if heating is applied or not + error messages
+    if (heatingONK14 .and. (background == 'realistic'  .or.& 
+                            background == 'isothermal' .or.&
+                            background == 'isentropic' .or.&
+                            background == 'const-N' )) then
+      print*, "WARNING: you are using an idealized background& 
+                      & (realistic/isothermal/isentropic/const-N)&
+                      & AND heating is ON (heatingONK14=.T.)!!!&
+                      & To switch off heating set heatingONK14=.F.&
+                      & in the namelist."
+      heating = (heatingONK14 .and. (TurbScheme .or. rayTracer))
+    else
+      heating = (heatingONK14 .and. (TurbScheme .or. rayTracer))
+    endif
+
     !UAB
     if (TestCase == "baroclinic_LC") then
        allocate(var_env(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
