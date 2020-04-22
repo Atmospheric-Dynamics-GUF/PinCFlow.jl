@@ -3492,13 +3492,6 @@ contains
       !    Init data
       !-----------------------
 
-      ! open the namelist file
-      open (unit=10, file=file_namelist, action="read", &
-           form="formatted", status="old", position="rewind")
-
-      ! read test case input data
-      read (unit=10, nml=wavePacket)
-
       ! scale input data
       lambdaX = lambdaX_dim/lRef     ! non-dim wave length in x dir.
       lambdaY = lambdaY_dim/lRef     ! non-dim wave length in y dir.
