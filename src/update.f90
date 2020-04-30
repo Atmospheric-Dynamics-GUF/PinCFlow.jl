@@ -94,6 +94,89 @@ contains
     
     select case( variable )
 
+  !UAB 200413
+    case( "ref" ) 
+       ! save total density and subtract the reference-atmosphere density 
+       ! from this again after the update of the latter
+
+       if (fluctuationMode) then
+          do k = 1,nz
+             var(:,:,k,1) = var(:,:,k,1) + rhoStrat(k)
+          end do
+       end if
+
+       if ((timeScheme == "semiimplicit") .or. auxil_equ) then
+          do k = 1,nz
+             var(:,:,k,6) = var(:,:,k,6) + rhoStrat(k)
+          end do
+       end if
+
+       do k = kSponge, nz
+          alpha = spongeAlphaZ*(z(k)-zSponge)/spongeDz
+          beta = 1./(1.+alpha*0.5*dt)**2
+
+          rhoStrat(k) = (1.-beta)*rhoStrat_0(k) + beta*rhoStrat(k)
+            pStrat(k) = (1.-beta)*  pStrat_0(k) + beta*  pStrat(k)
+
+          thetaStrat(k) = PStrat(k)/rhoStrat(k)
+       end do
+
+       do k = -1,nz+1
+          PstratTilde(k) = 0.5*(PStrat(k)+PStrat(k+1))
+          rhoStratTilde(k) = 0.5 * (rhoStrat(k) + rhoStrat(k+1))
+          thetaStratTilde(k) =  PStratTilde(k)/rhoStratTilde(k)
+       end do
+
+       ! adjust density fluctuations to new reference atmosphere
+       if (fluctuationMode) then
+          do k = 1,nz
+             var(:,:,k,1) = var(:,:,k,1) - rhoStrat(k)
+          end do
+       end if
+
+       if ((timeScheme == "semiimplicit") .or. auxil_equ) then
+          do k = 1,nz
+             var(:,:,k,6) = var(:,:,k,6) - rhoStrat(k)
+          end do
+       end if
+
+       ! update of non-dimensional squared Brunt-Vaisala frequency
+       ! (this could perhaps be done a bit nicer)
+
+       bvsStrat(-1) &
+       = g_ndim/thetaStrat(0) * (thetaStrat(1) - thetaStrat(0))/dz
+
+       bvsStrat(0) &
+       = g_ndim/thetaStrat(0) * (thetaStrat(1) - thetaStrat(0))/dz
+
+       N2 = max(bvsStrat(-1),bvsStrat(0))
+
+       do k = 1,nz
+          bvsStrat(k) &
+          = g_ndim/thetaStrat(k) &
+            * (thetaStrat(k+1) - thetaStrat(k-1))/(2.0 * dz)
+          
+          N2 = max(N2, bvsStrat(k))
+       end do
+
+       bvsStrat(nz+1) &
+       = g_ndim/thetaStrat(nz+1) * (thetaStrat(nz+1) - thetaStrat(nz))/dz
+
+       N2 = max(N2, bvsStrat(nz+1))
+
+       if(N2 < 0.) then
+          stop'ERROR: N2 < 0'
+         else
+          NN = sqrt(N2)
+       end if
+
+       !testb
+       do k = -1,nz+1
+          if (master .and. N2 == bvsStrat(k)) print*,'N2 = max at k =',k
+       end do
+       !teste
+    !UAE 200413
+
     case( "rho" ) 
        do k = kSponge, nz
           do j = 1,ny
@@ -101,7 +184,14 @@ contains
 
                 if ((TestCase == "baroclinic_LC") &
                   & .or.(TestCase == "baroclinic_ID")) then
-                   rho_bg = dens_env_pp(i, j, k)
+                     !UAB 200413
+                   !rho_bg = dens_env_pp(i, j, k)
+                   if( fluctuationMode ) then
+                      rho_bg = dens_env_pp(i, j, k) - rhoStrat(k)
+                     else 
+                      rho_bg = dens_env_pp(i, j, k)
+                   end if
+                   !UAE 200413
                   else
                    if( fluctuationMode ) then
                        rho_bg = 0.0   ! push back to zero perturbation
@@ -116,6 +206,29 @@ contains
                 rho_new = (1.-beta)*rho_bg + beta*rho_old
                 
                 var(i,j,k,1) = rho_new
+                
+             end do
+          end do
+       end do
+
+    case( "rhop" ) 
+       do k = kSponge, nz
+          do j = 1,ny
+             do i = 1,nx
+
+                if ((TestCase == "baroclinic_LC") &
+                  & .or.(TestCase == "baroclinic_ID")) then
+                   rho_bg = dens_env_pp(i, j, k) - rhoStrat(k)
+                  else
+                   rho_bg = 0.0   ! push back to zero perturbation
+                end if
+                
+                rho_old = var(i,j,k,6)
+                alpha = spongeAlphaZ*(z(k)-zSponge)/spongeDz
+                beta = 1./(1.+alpha*0.5*dt)**2
+                rho_new = (1.-beta)*rho_bg + beta*rho_old
+                
+                var(i,j,k,6) = rho_new
                 
              end do
           end do
@@ -474,6 +587,10 @@ contains
                 hD = flux(i,j,k-1,3,2)
                 fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz ! diverg.
 
+                !UAB 200413
+                volForce = 0.
+                !UAE 200413
+
                 if (mmp_mod == "tot") then
                    !--- pressure gradient term -> piGrad
                    if (TestCase == "baroclinic_LC") then
@@ -509,25 +626,25 @@ contains
                           * (  var_env(i,j-1,k,3) + var_env(i+1,j-1,k,3) &
                              + var_env(i,j  ,k,3) + var_env(i+1,j  ,k,3))
 
-                      !UAB
-                      if (background == "HeldSuarez") then
-                         ! Rayleigh damping in boundary layer
+                      !UAB 200413
+                      ! if (background == "HeldSuarez") then
+                      !    ! Rayleigh damping in boundary layer
 
-                         if (model == "pseudo_incompressible") then
-                             rhoM_1 &
-                             = 0.5 * (rhoOld(i,j,k) + rhoOld(i+1,j,k))
+                      !    if (model == "pseudo_incompressible") then
+                      !        rhoM_1 &
+                      !        = 0.5 * (rhoOld(i,j,k) + rhoOld(i+1,j,k))
 
-                             if( fluctuationMode ) then
-                                rhoM_1 = rhoM_1 + rhoStrat(k)
-                             end if
-                            else if (model == "Boussinesq") then
-                             rhoM_1 = rho00
-                            else
-                             stop"momentumPredictor: unkown model."
-                         end if
+                      !        if( fluctuationMode ) then
+                      !           rhoM_1 = rhoM_1 + rhoStrat(k)
+                      !        end if
+                      !       else if (model == "Boussinesq") then
+                      !        rhoM_1 = rho00
+                      !       else
+                      !        stop"momentumPredictor: unkown model."
+                      !    end if
 
-                         volForce = volForce - kv_hs(k)*rhoM_1*(var(i,j,k,2)-u_env_pp(i,j,k)) !FS
-                      end if
+                      !    volForce = volForce - kv_hs(k)*rhoM_1*(var(i,j,k,2)-u_env_pp(i,j,k)) !FS
+                      ! end if
                       !UAE
                    end if
 
@@ -553,6 +670,31 @@ contains
                       end if
                    end if
                 end if
+
+                !UAB 200413
+                if (TestCase == "baroclinic_LC") then
+                   if (background == "HeldSuarez") then
+                      ! Rayleigh damping in boundary layer
+
+                      if (model == "pseudo_incompressible") then
+                          rhoM_1 &
+                          = 0.5 * (rhoOld(i,j,k) + rhoOld(i+1,j,k))
+
+                          if( fluctuationMode ) then
+                             rhoM_1 = rhoM_1 + rhoStrat(k)
+                          end if
+                         else if (model == "Boussinesq") then
+                          rhoM_1 = rho00
+                         else
+                          stop"momentumPredictor: unkown model."
+                      end if
+
+                      volForce &
+                      = volForce &
+                        - kv_hs(k)*rhoM_1*(var(i,j,k,2) - var_env(i,j,k,2))
+                   end if
+                end if
+                !UAE 200413
         
                 !--------------------
                 !   d/dt ... = F(phi) (RHS of ODE)
@@ -563,7 +705,7 @@ contains
                 if (mmp_mod == "tot") then
                    F = -fluxDiff - piGrad + volForce
                   else if (mmp_mod == "lhs") then
-                   F = -fluxDiff
+                   F = -fluxDiff + volForce !200413
                   else
                    stop'ERROR: wrong mmp_mod'
                 end if
@@ -821,6 +963,10 @@ contains
                 hD = flux(i,j,k-1,3,3)
                 fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz
 
+                !UAB 200413
+                volForce = 0.
+                !UAE 200413
+
                 if (mmp_mod == "tot") then
                    !--- pressure gradient term -> piGrad
                    if (TestCase == "baroclinic_LC") then
@@ -863,25 +1009,25 @@ contains
                                * (  var_env(i-1,j+1,k,2) &
                                   + var_env(i  ,j+1,k,2)))
 
-                      !UAB
-                      if (background == "HeldSuarez") then
-                         ! Rayleigh damping in boundary layer
+                      !UAB 200413
+                      ! if (background == "HeldSuarez") then
+                      !    ! Rayleigh damping in boundary layer
 
-                         if (model == "pseudo_incompressible") then
-                             rhoM_1 &
-                             = 0.5 * (rhoOld(i,j,k) + rhoOld(i,j+1,k))
+                      !    if (model == "pseudo_incompressible") then
+                      !        rhoM_1 &
+                      !        = 0.5 * (rhoOld(i,j,k) + rhoOld(i,j+1,k))
 
-                             if( fluctuationMode ) then
-                                rhoM_1 = rhoM_1 + rhoStrat(k)
-                             end if
-                            else if (model == "Boussinesq") then
-                             rhoM_1 = rho00
-                            else
-                             stop"momentumPredictor: unkown model."
-                         end if
+                      !        if( fluctuationMode ) then
+                      !           rhoM_1 = rhoM_1 + rhoStrat(k)
+                      !        end if
+                      !       else if (model == "Boussinesq") then
+                      !        rhoM_1 = rho00
+                      !       else
+                      !        stop"momentumPredictor: unkown model."
+                      !    end if
 
-                         volForce = volForce - kv_hs(k)*rhoM_1*var(i,j,k,3)!FS
-                      end if
+                      !    volForce = volForce - kv_hs(k)*rhoM_1*var(i,j,k,3)!FS
+                      ! end if
                       !UAE
                    end if
 
@@ -907,6 +1053,31 @@ contains
                       end if
                    end if
                 end if
+
+                !UAB 200413
+                if (TestCase == "baroclinic_LC") then
+                   if (background == "HeldSuarez") then
+                      ! Rayleigh damping in boundary layer
+
+                      if (model == "pseudo_incompressible") then
+                          rhoM_1 &
+                          = 0.5 * (rhoOld(i,j,k) + rhoOld(i,j+1,k))
+
+                          if( fluctuationMode ) then
+                             rhoM_1 = rhoM_1 + rhoStrat(k)
+                          end if
+                         else if (model == "Boussinesq") then
+                          rhoM_1 = rho00
+                         else
+                          stop"momentumPredictor: unkown model."
+                      end if
+
+                      volForce &
+                      = volForce &
+                        - kv_hs(k)*rhoM_1*(var(i,j,k,3) - var_env(i,j,k,3))
+                   end if
+                end if
+                !UAE 200413
              
                 !--------------------
                 !   F(phi) = RHS
@@ -917,7 +1088,7 @@ contains
                 if (mmp_mod == "tot") then
                    F = -fluxDiff - piGrad + volForce
                   else if (mmp_mod == "lhs") then
-                   F = -fluxDiff
+                   F = -fluxDiff + volForce !UA 200413
                   else
                    stop'ERROR: wrong mmp_mod'
                 end if
@@ -1478,12 +1649,18 @@ contains
 
                    heat0 &
                    = heat(i,j,k) - S_bar(k) &
-                     + g_ndim/Pstrat(k) * bvsStrat(k) &
+                   !UAB 200411
+                   !  + g_ndim/Pstrat(k) * bvsStrat(k) &
+                     - Pstrat(k)/g_ndim * bvsStrat(k) &
+                   !UAE 200411
                        * 0.5*(w_0(k) + w_0(k-1))
 
                    heat1 &
                    = heat(i,j,k+1) - S_bar(k+1) &
-                     + g_ndim/Pstrat(k+1) * bvsStrat(k+1) &
+                   !UAB 200411
+                   !  + g_ndim/Pstrat(k+1) * bvsStrat(k+1) &
+                     - Pstrat(k+1)/g_ndim * bvsStrat(k+1) &
+                   !UAE 200411
                        * 0.5*(w_0(k+1) + w_0(k))
 
                    wAst &
@@ -1688,7 +1865,6 @@ contains
     !UAE
 
     real, dimension(1:nz) :: sum_local, sum_global
-    real, dimension(-nbz:nz+nbz) :: avgrhopw
 
     if( correctDivError ) then
         print*,'ERROR: correction divergence error not allowed'
@@ -1777,21 +1953,6 @@ contains
           end if
           !UAE
 
-          !FS
-          sum_local = 0.
-          sum_global = 0.
-          avgrhopw = 0.
-             do k = 1,nz
-             sum_local(k) =  sum(flux(1:nx,1:ny,k,3,6))
-             end do
-          
-          !global sum and average
-          call mpi_allreduce(sum_local(1),sum_global(1),&
-               nz-1+1,&
-               mpi_double_precision,mpi_sum,comm,ierror)
-          sum_global = sum_global/(sizeX*sizeY)
-          
-          avgrhopw(1:nz) = sum_global
           
           do k = 1,nz
              do j = 1,ny
@@ -1804,9 +1965,8 @@ contains
                    hU = flux(i,j,k,3,6)   ! upward
    
                    ! convective part
-                   fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz &
-                        - (avgrhopw(k)-avgrhopw(k-1))/dz !FS
-   
+                   fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz 
+                      
                    rhop = var(i,j,k,6)
 
                    rho = var(i,j,k,1)
@@ -1867,21 +2027,7 @@ contains
              stop'ERROR: wrong int_mod for upd_mod = lhs'
           end if
 
-          !FS
-          sum_local = 0.
-          sum_global = 0.
-          avgrhopw = 0.
-          do k = 1,nz
-             sum_local(k) =  sum(flux(1:nx,1:ny,k,3,6))
-          end do
-          
-          !global sum and average
-          call mpi_allreduce(sum_local(1),sum_global(1),&
-               nz-1+1,&
-               mpi_double_precision,mpi_sum,comm,ierror)
-          sum_global = sum_global/(sizeX*sizeY)
-          
-          avgrhopw(1:nz) = sum_global
+
 
           do k = 1,nz
              do j = 1,ny
@@ -1894,8 +2040,8 @@ contains
                    hU = flux(i,j,k,3,6)   ! upward
    
                    ! convective part
-                   fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz &
-                        - (avgrhopw(k)-avgrhopw(k-1))/dz !FS
+                   fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz 
+                        
    
                    ! F(phi)
                    F = -fluxDiff
@@ -1980,14 +2126,23 @@ contains
                           rhowm = rhowm + rhoStratTilde(k-1)
                       end if
 
-                      !UAB
-                      !wvrt = 0.5 * (var(i,j,k,4) + var(i,j,k-1,4))
-                      wvrt &
-                      = 0.5 &
-                        * (var(i,j,k,4)-w_0(k) + var(i,j,k-1,4)-w_0(k-1)) 
+                      !UAB 200411
+                      !!UAB
+                      !!wvrt = 0.5 * (var(i,j,k,4) + var(i,j,k-1,4))
+                      !wvrt &
+                      != 0.5 &
+                      !  * (var(i,j,k,4)-w_0(k) + var(i,j,k-1,4)-w_0(k-1)) 
    
-                      heat_flc= heat(i,j,k) - S_bar(k)
-                      !UAE
+                      !heat_flc= heat(i,j,k) - S_bar(k)
+                      !!UAE
+
+                      wvrt = 0.5 * (var(i,j,k,4) + var(i,j,k-1,4))
+   
+                      heat_flc &
+                      = heat(i,j,k) - S_bar(k) &
+                        - Pstrat(k)/g_ndim * bvsStrat(k) &
+                          * 0.5*(w_0(k) + w_0(k-1))
+                      !UAE 200411
 
                       if (TestCase == "baroclinic_LC") then
                          piGrad &
@@ -4493,21 +4648,18 @@ contains
 
 !---------------------------------------------------------------------
 
-  !UAB
-  !subroutine BGstate_update(var,flux,dt,m,w_0,q_P,q_rho,int_mod)
+
+  !UAB 200413
   subroutine BGstate_update(var,flux,dt,m,q_P,q_rho,int_mod)
-  !UAE
+  !UAE 200413
 
   ! in/out variables
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(inout) :: var
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
+
     real,intent(in) :: dt
     integer, intent(in) :: m
-
-    !UAB
-    !real, dimension(-nbz:nz+nbz),intent(inout) :: w_0 
-    !UAE
 
     real, dimension(-nbz:nz+nbz),intent(inout) :: q_P, q_rho
 
@@ -4522,28 +4674,19 @@ contains
 
     real, dimension(-nbz:nz+nbz) :: w_0 !UA
 
-    real, dimension(-nbz:nz+nbz) :: avgrhopw
     real :: dptopdt
 
     real :: sum_d, sum_n
-    
 
     w_0 = 0.
     S_bar = 0.
     heat = 0.
-    sum_local = 0.
-    sum_global = 0.
 
-    !UAB
     divPw = 0.
     divrhow = 0.
-    !UAE
 
-    ! S eq(9)  ONeill+Klein2014
-    !UAB call calculate_heating_ONK14(var,flux,heat) 
+    ! -S eq(9)  ONeill+Klein2014
     call calculate_heating(var,flux,heat) 
-    !UAE
-
 
     ! calculate horizontal mean of heat(:,:,:)
     do k = 1,nz
@@ -4555,62 +4698,44 @@ contains
          mpi_double_precision,mpi_sum,comm,ierror)
     sum_global = sum_global/(sizeX*sizeY)
 
-    S_bar(1:nz) = (-1)*sum_global(1:nz)
+    S_bar(1:nz) = sum_global(1:nz)
 
-
+    !non_dim. pressure; eq(12) ONeill+Klein2014
     do k = 1,nz
        press0(k) = PStrat(k)**gamma  
     end do
-    !UAE
-
+    
+    !  eq(B.14) ONeill+Klein2014
     sum_d = 0.0
     sum_n = 0.0
 
-    !calculate horizontal mean of vertical rhop flux 
-    sum_local(:) = 0.
-    sum_global(:) = 0.
-    avgrhopw = 0.
- 
-       do k = 1,nz
-          sum_local(k) =  sum(flux(1:nx,1:ny,k,3,6))
-       end do
- 
-       
-       !global sum and average
-    call mpi_allreduce(sum_local(1),sum_global(1),&
-         nz-1+1,&
-         mpi_double_precision,mpi_sum,comm,ierror)
-    sum_global = sum_global/(sizeX*sizeY)
-    
-    avgrhopw(1:nz) = sum_global
-
     do k = 1,nz
-       sum_n = sum_n + S_bar(k)/PStrat(k) - avgrhopw(k)*g_ndim/(gamma*press0(k)) 
-       sum_d = sum_d +  1./(gamma*press0(k))
+      sum_n = sum_n - S_bar(k)/PStrat(k)
+      sum_d = sum_d +  1./(gamma*press0(k))
     end do
 
     dptopdt = sum_n/sum_d
-    !UAE
 
+    ! eq(B.15) ONeill+Klein2014; k -> k+1/2
 
-    w_0(1) = dz*(S_bar(1)/Pstrat(1) - (1./(gamma*press0(1)))*dptopdt- avgrhopw(1)*g_ndim/(gamma*press0(1)) )
+    w_0(1) = dz*(- S_bar(1)/Pstrat(1) - (1./(gamma*press0(1)))*dptopdt)
 
     do k = 2,nz-1
-       w_0(k) &
-       = w_0(k-1) &
-         + dz*(S_bar(k)/Pstrat(k) - (1./(gamma*press0(k)))*dptopdt- avgrhopw(k)*g_ndim/(gamma*press0(k))  )
+      w_0(k) &
+      = w_0(k-1) &
+        + dz*(- S_bar(k)/Pstrat(k) - (1./(gamma*press0(k)))*dptopdt)
     end do
-    !UAE
+
+
 
     ! update PStrat and rhoStrat and thetaStrat
 
-    !UAB
     do k=1,nz
        divPw(k) = (PstratTilde(k)*w_0(k) - PstratTilde(k-1)*w_0(k-1))/dz
        divrhow(k) &
-       = (rhoStratTilde(k)*w_0(k) - rhoStratTilde(k-1)*w_0(k-1) + avgrhopw(k) - avgrhopw(k-1))/dz
+       = (rhoStratTilde(k)*w_0(k) - rhoStratTilde(k-1)*w_0(k-1))/dz
+      
     end do
-    !UAE
 
     !UAB
     ! save total density and subtract the reference-atmosphere density from 
@@ -4622,7 +4747,10 @@ contains
        end do
     end if
 
-    if (timeScheme == "semiimplicit") then
+    !UAB 200413
+    !if (timeScheme == "semiimplicit") then
+    if ((timeScheme == "semiimplicit") .or. auxil_equ) then
+    !UAB 200413
        do k = 1,nz
           var(:,:,k,6) = var(:,:,k,6) + rhoStrat(k)
        end do
@@ -4641,16 +4769,29 @@ contains
           
           ! update: q(m-1) -> q(m)
 
+          !UAB
+          !q_P(k) &
+          != alpha(m) * q_P(k) &
+          !  - dt/dz &
+          !    *(  0.5*(PStrat(k)+PStrat(k+1))*w_0(k) &
+          !      - 0.5*(PStrat(k)+Pstrat(k-1))*w_0(k-1)) &
+          !  + dt*S_bar(k) 
 
-          q_P(k) = alpha(m) * q_P(k) - dt*divPw(k) + dt*S_bar(k) 
+          q_P(k) = alpha(m) * q_P(k) - dt*divPw(k) - dt*S_bar(k) 
           !UAE
 
           ! update PStrat
 
-          Pstrat(k) = Pstrat(k) + beta(m) * q_P(k) 
+          Pstrat(k) = Pstrat(k) + beta(m) * q_P(k)
 
           ! update: q(m-1) -> q(m)
 
+          !UAB
+          !q_rho(k) &
+          !=   alpha(m) * q_rho(k) &
+          !  - dt/dz &
+          !    *(  0.5*(rhoStrat(k)+rhoStrat(k+1))*w_0(k) &
+          !      - 0.5*(rhoStrat(k)+rhostrat(k-1))*w_0(k-1))
 
           q_rho(k) = alpha(m) * q_rho(k) - dt*divrhow(k)
           !UAE
@@ -4660,8 +4801,19 @@ contains
           rhostrat(k) = rhostrat(k) + beta(m) * q_rho(k)
          else if (int_mod == "impl")then
           !UAB
-      
-          PStrat(k) = PStrat(k) - dt*divPw(k) + dt*S_bar(k)
+          !PStrat(k) &
+          != PStrat(k) &
+          !  - dt/dz &
+          !    *(  0.5*(PStrat(k)+PStrat(k+1))*w_0(k) &
+          !      - 0.5*(PStrat(k)+Pstrat(k-1))*w_0(k-1)) &
+          !  + dt*S_bar(k)
+          !rhoStrat(k) &
+          !=   rhoStrat(k) &
+          !  - dt/dz &
+          !    *(  0.5*(rhoStrat(k)+rhoStrat(k+1))*w_0(k) &
+          !      - 0.5*(rhoStrat(k)+rhostrat(k-1))*w_0(k-1))
+
+          PStrat(k) = PStrat(k) - dt*divPw(k) - dt*S_bar(k)
           rhoStrat(k) = rhoStrat(k) - dt*divrhow(k)
           !UAE
          else
@@ -4674,10 +4826,12 @@ contains
        !print*,k,Pstrat(k),rhoStrat(k)
        !teste
 
-       !update thetaStrat and piSTrat
-       pistrat(k) = PStrat(k)**(kappa/(1.0 - kappa))
+       !update thetaStrat
        thetaStrat(k) = PStrat(k)/rhoStrat(k)
 
+       !UA PstratTilde(k) = 0.5*(PStrat(k)+PStrat(k+1))
+       !UA rhoStratTilde(k) = 0.5 * (rhoStrat(k) + rhoStrat(k+1))
+       !UA thetaStratTilde(k) =  PStratTilde(k)/rhoStratTilde(k)
     end do
 
     !UAB
@@ -4694,7 +4848,10 @@ contains
        end do
     end if
 
-    if (timeScheme == "semiimplicit") then
+    !UAB 200413
+    !if (timeScheme == "semiimplicit") then
+    if ((timeScheme == "semiimplicit") .or. auxil_equ) then
+    !UAB 200413
        do k = 1,nz
           var(:,:,k,6) = var(:,:,k,6) - rhoStrat(k)
        end do
@@ -4739,25 +4896,7 @@ contains
     !teste
     !UAE
 
-    
-    ! call output_profile(iOut,w_0,'wStrat.dat')
-    ! call mpi_barrier(comm,ierror)
-    ! call output_profile(iOut,rhoStrat,'rhoStrat.dat')
-    ! call mpi_barrier(comm,ierror)
-    ! call output_profile(iOut,thetaStrat,'thetaStrat.dat')
-    ! call mpi_barrier(comm,ierror)
-    ! call output_profile(iOut,PStrat,'PStrat.dat')
-    ! call mpi_barrier(comm,ierror)
-    ! call output_profile(iOut,piStrat,'piStrat.dat')
-    ! call mpi_barrier(comm,ierror)
-    ! call output_profile(iOut,bvsStrat,'bvsStrat.dat')
-    ! call mpi_barrier(comm,ierror)
-
-    S_bar = (-1)*S_bar
-
-
   end subroutine BGstate_update
-
 
 
 
