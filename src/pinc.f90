@@ -265,6 +265,17 @@ program pinc_prog
      call setup_wkb(ray, ray_var3D, var) 
   end if
 
+  !UAB 200413
+  !-------------------------------------------------------------------
+  ! in diabatic case store initial reference atmosphere for the sponge
+  !-------------------------------------------------------------------
+
+  if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+     rhoStrat_0 = rhoStrat
+     pStrat_0 = pStrat
+  end if
+  !UAE 200413
+
   !------------------------------------------
   !              Initial output
   !------------------------------------------
@@ -652,10 +663,10 @@ program pinc_prog
         !               & nIterBicg, &
         !               & RKstage, "impl",w_0 )
 
-!FSA
-        ! GBcorr
-        !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-        if (heating) then
+
+        ! GBcorr -> FS
+        if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+        !if (heating) then
            if (model == 'Boussinesq') then
               print*, "main:ONeill+Klein2014 heating only for &
                      & pseudo-incompressible dyn."
@@ -755,10 +766,9 @@ program pinc_prog
         !               & nIterBicg, &
         !               & RKstage, "expl",w_0)
 
-!FSA
-        ! GBcorr
-        !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-        if (heating) then
+        ! GBcorr -> FS
+        if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+        !if (heating) then
            if (model == 'Boussinesq') then
               print*, "main:ONeill+Klein2014 heating only for &
                      & pseudo-incompressible dyn."
@@ -846,6 +856,10 @@ program pinc_prog
            !UAE
         end do
 
+        !UAB 200413
+        call set_spongeLayer(var, dt, "rho")
+        !UAE 200413
+
         ! (5) implicit integration of the linear right-hand sides of the
         !     equations for density fluctuations and momentum over half a 
         !     time step, under consideration of the divergence constraint 
@@ -895,7 +909,8 @@ program pinc_prog
         !                     & "impl",w_0)
         call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
                              & "impl")
-        !UAE
+        call set_spongeLayer(var, dt, "uvw")
+        !UAE 200413
               
         ! corrector: rhopStar, uStar, vStar, wStar 
         !            -> new rhop, u, v, w
@@ -921,10 +936,9 @@ program pinc_prog
         !               & nIterBicg, &
         !               & RKstage, "impl", w_0)
 
-! !FSE
-        ! GBcorr
-        !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-        if (heating) then
+        ! GBcorr -> FS
+        if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+        !if (heating) then
            if (model == 'Boussinesq') then
               print*, "main:ONeill+Klein2014 heating only for &
                      & pseudo-incompressible dyn."
@@ -937,6 +951,7 @@ program pinc_prog
            call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
            !call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
                              & "impl") !FS 0.5*dt -> dt
+           call set_spongeLayer(var, dt, "ref") !UA 200413
         end if
 !FSE
 
@@ -954,10 +969,10 @@ program pinc_prog
         ! call set_spongeLayer(var, dt, "rho")
 
         !testb
-        if (master) print*,'(6) sponge'
+        !UAD 200413 if (master) print*,'(6) sponge'
         !teste
 
-        call set_spongeLayer(var, dt, "uvw")
+        !UAD 200413 call set_spongeLayer(var, dt, "uvw")
 
         !testb
         !call output_data(iOut, var, iTime, time, cpuTime)
@@ -995,7 +1010,10 @@ program pinc_prog
            ! initialize density fluctuations for the integration
 
            !if (auxil_equ .and. iTime == 1) then
-           if (auxil_equ) then
+           !if (auxil_equ) then
+           if (     auxil_equ &
+              &.or. heatingONK14 .or. TurbScheme .or. rayTracer) then
+           !UAE 200413
               if (model /= "pseudo_incompressible") then
                  print*,'auxiliary equation only ready for &
                        & pseudo-incompressible'
@@ -1017,6 +1035,8 @@ program pinc_prog
                     var(:,:,kz,6) = var(:,:,kz,1) - rhoStrat(kz)
                  end do
               end if
+
+              var0 = var !UA 200413
 
        450    continue
            end if
@@ -1128,6 +1148,8 @@ program pinc_prog
               rhoOld = var(:,:,:,1)  ! rhoOld for momentum predictor
               call massUpdate(var, flux, dt, dRho, RKstage, &
                             & "rho", "tot", "expl")
+              call set_spongeLayer(var, stepFrac(RKstage)*dt, "rho")
+              !UAE 200413
 
               if (auxil_equ) then
                  if ( RKstage==1 ) dRhop = 0.                    ! init q
@@ -1135,6 +1157,8 @@ program pinc_prog
                  rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
                  call massUpdate(var, flux, dt, dRhop, RKstage, &
                                & "rhop", "tot", "expl")
+                 call set_spongeLayer(var, stepFrac(RKstage)*dt, "rhop")
+              !UAE 200413
               end if
 
               !call set_spongeLayer(var, stepFrac(RKstage)*dt, "rho")
@@ -1205,9 +1229,9 @@ program pinc_prog
 
            !UAB
            !if (heatingONK14) then
-           ! GBcorr
-           !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-           if (heating) then
+           ! GBcorr -> FS
+           if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+           !if (heating) then
            !UAE
 
               if (model == 'Boussinesq') then
@@ -1221,6 +1245,8 @@ program pinc_prog
 
               call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
                                 & "expl")
+              call set_spongeLayer(var, stepFrac(RKstage)*dt, "ref")
+              !UAE 200413
            end if
 
            if( correctMomentum ) then
