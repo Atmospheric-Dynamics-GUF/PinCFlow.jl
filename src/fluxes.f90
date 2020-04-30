@@ -228,25 +228,6 @@ contains
              call reconstruct_MUSCL(rhopBar,rhopTilde,nxx,nyy,nzz,&
                                   & limiterType1)
 
-          ! GBcorr: rhopw0 case added for musclType muscl1
-          case( "rhopw0" )
-
-             !rhopBar(:,:,:) = var(:,:,:,1)
-             !call reconstruct_MUSCL(rhopBar,rhopTilde,nxx,nyy,nzz,&
-             !                       & limiterType1)
-
-             ! GBcorr: to be consistent with current rouine: momentumFlux
-             rhopBar = 0.0
-             do kz = 0,nz+1
-                if (Pstrat(kz) == 0.0) then
-                   print*,'ERROR in rec. rhop: Pstrat(kz) = 0 at kz =',kz
-                   stop
-                end if
-                rhopBar(:,:,kz) = var(:,:,kz,1)/PStrat(kz)
-             end do
-             call reconstruct_MUSCL(rhopBar,rhopTilde,nxx,nyy,nzz,&
-                                  & limiterType1)
-
           case( "uvw" )
 
              ! calculate specific momenta to be reconstructed
@@ -382,17 +363,6 @@ contains
              call reconstruct_MUSCL(rhopBar,rhopTilde,nxx,nyy,nzz,&
                                   & limiterType1)
              !UAE
-
-          case( "rhopw0" )
-
-               !FS
-               rhopBar = 0.0
-
-               do kz = 0,nz+1
-                  rhopBar(:,:,kz) = var(:,:,kz,1)/PStrat(kz)
-               end do
-               call reconstruct_MUSCL(rhopBar,rhopTilde,nxx,nyy,nzz,&
-                                    & limiterType1)
 
           case( "uvw" )
 
@@ -1102,7 +1072,7 @@ contains
 
   !-----------------------------------------------------------------------
 
-  subroutine massFlux (vara,var,flux,flux_rhopw,fluxmode)
+  subroutine massFlux (vara,var,flux,fluxmode)
     !---------------------------------------------------------------------
     ! computes the mass flux at all cell edges using reconstructed values
     ! fluxmode = lin => linear flux, advecting velocities prescribed in 
@@ -1122,7 +1092,6 @@ contains
     ! flux(i,j,k,dir,iFlux) 
     ! dir = 1..3 > f,g,h-flux in x,y,z-direction
     ! iFlux = 1..nVar > fRho, fRhoU, rRhoV, fRhoW, fRho
-    real, dimension(-1:nx,-1:ny,-1:nz), intent(out) :: flux_rhopw
 
 
     integer :: i,j,k,l
@@ -1426,53 +1395,6 @@ contains
           end do
        end do
     end do
-
-    !-----------------------------------------
-    !      Vertical rhop fluxes in z for explicit scheme
-    !-----------------------------------------
-
-    ! if (timeScheme /= "semiimplicit") then
-    do k = 0,nz
-       do j = 1,ny
-          do i = 1,nx
-
-             select case( fluxType )               
-
-             case( "upwind" )
-
-                if( fluctuationMode ) then
-                   ! background at half level
-                   rhoU = rhoTilde(i,j,k+1,3,0) 
-                          
-                   rhoD = rhoTilde(i,j,k  ,3,1) 
-                          
-                   !UAE
-                else
-                   rhoU = rhoTilde(i,j,k+1,3,0) - rhoStratTilde(k)/PStratTilde(k+1)
-                   rhoD = rhoTilde(i,j,k,3,1) - rhoStratTilde(k)/PStratTilde(k)
-                end if
-
-                if (fluxmode == "nln") then
-                   wSurf = var(i,j,k,4) * PStratTilde(k)
-                  else if (fluxmode == "lin") then
-                   wSurf = vara(i,j,k,4)  * PStratTilde(k)
-                  else
-                   stop'ERROR: worng fluxmode'
-                end if
-
-                hRho = flux_muscl(wSurf,rhoD,rhoU)
-
-
-             case default
-                stop"rhoFlux: unknown case fluxType"
-             end select
-
-             flux_rhopw(i,j,k) = hRho
-          end do
-       end do
-    end do
-    ! end if
-
 
     ! --------------------------------------------
     !      fluxes density fluctuations

@@ -44,7 +44,7 @@ contains
 
   !UAB
   !subrouine setup (var,var0,var1,flux,force,source,dRho,dRhop,dMom,dTheta)
-  subroutine setup (var,var0,var1,flux,flux_rhopw,force,source,dRho,dRhop,dMom, &
+  subroutine setup (var,var0,var1,flux,force,source,dRho,dRhop,dMom, &
                   & dTheta,dPStrat,drhoStrat,w_0,dIce)
   
   !UAE
@@ -56,7 +56,6 @@ contains
     real,dimension(:,:,:,:), allocatable,intent(out) :: var, var0, var1, &
                                                       & source
     real,dimension(:,:,:,:,:), allocatable,intent(out) :: flux
-    real, dimension(:,:,:), allocatable, intent(out) :: flux_rhopw
     real,dimension(:,:,:,:), allocatable,intent(out) :: force
     real,dimension(:,:,:), allocatable :: dRho,dRhop   ! RK-Update for rho
     real,dimension(:,:,:,:), allocatable :: dMom ! ...rhoU,rhoV,rhoW
@@ -172,10 +171,6 @@ contains
     ! allocate flux = (f,g,h / fRho, fRhoU, fRhoV, fRhoW, fTheta)
     allocate(flux(-1:nx,-1:ny,-1:nz,3,nVar),stat=allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate flux"
-
-    ! allocate flux_rhopw 
-    allocate(flux_rhopw(-1:nx,-1:ny,-1:nz),stat=allocstat)
-    if(allocstat /= 0) stop "init.f90: could not allocate flux_rhopw"
 
     ! allocate force 
     allocate(force(0:nx+1,0:ny+1,0:nz+1,3),stat=allocstat)

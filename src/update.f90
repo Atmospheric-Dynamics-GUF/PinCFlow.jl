@@ -313,7 +313,7 @@ contains
 !---------------------------------------------------------------------
 
 
-  subroutine momentumPredictor (var,flux,flux_rhopw,force,dt,q,m,mmp_mod,int_mod)
+  subroutine momentumPredictor (var,flux,force,dt,q,m,mmp_mod,int_mod)
     !----------------------------------
     !  calculates the velocities u^*
     !----------------------------------
@@ -326,7 +326,6 @@ contains
     ! flux(i,j,k,dir,iFlux) 
     ! dir = 1..3 > f,g,h-flux in x,y,z-direction
     ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
-    real, dimension(-1:nx,-1:ny,-1:nz), intent(in) :: flux_rhopw
 
     ! mmp_mod decides, which part of the momentum equation is to be used:
     ! tot => total momentum equation
@@ -1365,7 +1364,7 @@ contains
           ! GBcorr
           !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
           if (heating) then
-             call heat_w0(var,flux,flux_rhopw,heat,S_bar,w_0)
+             call heat_w0(var,flux,heat,S_bar,w_0)
             else
              heat = 0.
              S_bar = 0.
@@ -1625,7 +1624,7 @@ contains
 
 !--------------------------------------------------------------------------
 
-  subroutine massUpdate (var,flux,flux_rhopw,dt,q,m,upd_var,upd_mod,int_mod)
+  subroutine massUpdate (var,flux,dt,q,m,upd_var,upd_mod,int_mod)
     !-----------------------------
     ! adds mass flux to cell mass
     !-----------------------------
@@ -1657,7 +1656,6 @@ contains
     ! flux(i,j,k,dir,iFlux) 
     ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
     ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
-    real, dimension(-1:nx,-1:ny,-1:nz), intent(in) :: flux_rhopw
     
     real, intent(in) :: dt
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
@@ -1771,7 +1769,7 @@ contains
           ! GBcorr
           !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
           if (heating) then
-             call heat_w0(var,flux,flux_rhopw,heat,S_bar,w_0)
+             call heat_w0(var,flux,heat,S_bar,w_0)
             else
              heat = 0.
              S_bar = 0.
@@ -1946,7 +1944,7 @@ contains
           ! GBcorr
           !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
           if (heating) then
-             call heat_w0(var,flux,flux_rhopw,heat,S_bar,w_0)
+             call heat_w0(var,flux,heat,S_bar,w_0)
             else
              heat = 0.
              S_bar = 0.
@@ -4497,14 +4495,13 @@ contains
 
   !UAB
   !subroutine BGstate_update(var,flux,dt,m,w_0,q_P,q_rho,int_mod)
-  subroutine BGstate_update(var,flux,flux_rhopw,dt,m,q_P,q_rho,int_mod)
+  subroutine BGstate_update(var,flux,dt,m,q_P,q_rho,int_mod)
   !UAE
 
   ! in/out variables
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(inout) :: var
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
-    real, dimension(-1:nx,-1:ny,-1:nz), intent(in) :: flux_rhopw
     real,intent(in) :: dt
     integer, intent(in) :: m
 
@@ -4574,15 +4571,10 @@ contains
     sum_global(:) = 0.
     avgrhopw = 0.
  
-    if(timeScheme == "semiimplicit")then
        do k = 1,nz
           sum_local(k) =  sum(flux(1:nx,1:ny,k,3,6))
        end do
-    else
-       do k = 1,nz
-          sum_local(k) = sum(flux_rhopw(1:nx,1:ny,k))
-       end do
-    end if
+ 
        
        !global sum and average
     call mpi_allreduce(sum_local(1),sum_global(1),&

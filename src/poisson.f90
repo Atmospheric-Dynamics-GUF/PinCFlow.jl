@@ -65,7 +65,7 @@ contains
 
   !UAB
   !subroutine Corrector( var,flux,dMom,dt,errFlagBicg,nIter,m,opt,w_0)
-  subroutine Corrector( var,flux,flux_rhopw,dMom,dt,errFlagBicg,nIter,m,opt)
+  subroutine Corrector( var,flux,dMom,dt,errFlagBicg,nIter,m,opt)
   !UAE
     ! -------------------------------------------------
     !              correct uStar, bStar, and p
@@ -75,7 +75,6 @@ contains
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(inout) :: var
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
-    real, dimension(-1:nx,-1:ny,-1:nz), intent(in) :: flux_rhopw
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,3), &
          & intent(inout) :: dMom
 
@@ -109,7 +108,7 @@ contains
 
     !UAB
     !call calc_RHS(rhs, var, flux, dt, onlyinfo, w_0)
-    call calc_RHS(rhs, var, flux, flux_rhopw, dt, onlyinfo)
+    call calc_RHS(rhs, var, flux, dt, onlyinfo)
     !UAE
 
     call poissonSolver( rhs, var, dt, errFlagBicg, nIter, m, opt )
@@ -122,7 +121,7 @@ contains
     
     !UAB
     !if (detailedinfo) call calc_RHS( rhs,var,flux,dt,detailedinfo,w_0 )
-    if (detailedinfo) call calc_RHS( rhs,var,flux,flux_rhopw,dt,detailedinfo)
+    if (detailedinfo) call calc_RHS( rhs,var,flux,dt,detailedinfo)
     !UAE
 
   end subroutine Corrector
@@ -474,7 +473,7 @@ contains
 
   !UAB
   !subroutine calc_RHS( b,var,flux,dt,onlyinfo,w_0 )
-  subroutine calc_RHS( b,var,flux,flux_rhopw,dt,onlyinfo)
+  subroutine calc_RHS( b,var,flux,dt,onlyinfo)
   !UAE
 
     !----------------------------------------
@@ -486,7 +485,6 @@ contains
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          &intent(in) :: var 
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
-    real, dimension(-1:nx,-1:ny,-1:nz), intent(in) :: flux_rhopw
     real, intent(in) :: dt
     real, dimension(1:nx,1:ny,1:nz), intent(out) :: b  ! RHS
     logical, intent(in) :: onlyinfo                    ! give info in div
@@ -556,7 +554,7 @@ contains
     ! GBcorr
     !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
     if (heating) then
-       call heat_w0(var,flux,flux_rhopw,heat,S_bar,w_0)
+       call heat_w0(var,flux,heat,S_bar,w_0)
       else
        heat = 0.
        S_bar = 0.
@@ -4057,7 +4055,7 @@ contains
 
 !---------------------------------------------------------------------
 
-  subroutine heat_w0(var,flux,flux_rhopw,heat,S_bar,w_0)
+  subroutine heat_w0(var,flux,heat,S_bar,w_0)
 
    
   !heating, its horizontal mean, and the thereby induced vertical wind
@@ -4066,7 +4064,6 @@ contains
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(in) :: var
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
-    real, dimension(-1:nx,-1:ny,-1:nz), intent(in) :: flux_rhopw
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
          & intent(out) :: heat
     real, dimension(-nbz:nz+nbz),intent(out) :: w_0 
@@ -4119,15 +4116,10 @@ contains
     avgrhopw = 0.
 
 
-    if(timeScheme == "semiimplicit")then
        do k = 1,nz
           sum_local(k) = sum(flux(1:nx,1:ny,k,3,6))
        end do
-    else
-       do k = 1,nz
-          sum_local(k) = sum(flux_rhopw(1:nx,1:ny,k))
-       end do
-    end if
+
        !global sum and average
        call mpi_allreduce(sum_local(1),sum_global(1),&
             nz-1+1,&

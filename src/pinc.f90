@@ -63,8 +63,7 @@ program pinc_prog
   real, dimension(:,:,:,:,:), allocatable :: flux
   ! flux(i,j,k,dir,iFlux) 
   ! dir = 1..3 > f,g,h-flux in x,y,z-direction
-  ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW#
-  real, dimension(:,:,:), allocatable :: flux_rhopw
+  ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
 
  
   !--------------------
@@ -161,7 +160,7 @@ program pinc_prog
   ! 2) read input.f90
   !UAB
   !call setup (var,var0,var1,flux,force,source,dRho,dRhop,dMom,dTheta)
-    call setup(var,var0,var1,flux,flux_rhopw,force,source,dRho,dRhop,dMom,dTheta, &
+    call setup(var,var0,var1,flux,force,source,dRho,dRhop,dMom,dTheta, &
             & dPStrat,drhoStrat,w_0,dIce)
   !UAE
 
@@ -243,7 +242,7 @@ program pinc_prog
 
      ! 1) allocate variables 
      ! 2) read the namelist
-     !call setup(var,var0,var1,flux,flux_rhopw,force,source,dRho,dRhop,dMom,dTheta, &
+     !call setup(var,var0,var1,flux,force,source,dRho,dRhop,dMom,dTheta, &
      !       & dPStrat,drhoStrat,w_0,dIce)
      
      flux = 0.
@@ -251,7 +250,7 @@ program pinc_prog
 
      tolpoisson_s = tolPoisson
      tolPoisson = 1.e-9
-     call Corrector ( var, flux,flux_rhopw, dMom, 1.0 , errFlagBicg, nIterBicg, &
+     call Corrector ( var, flux, dMom, 1.0 , errFlagBicg, nIterBicg, &
                     & 1, "expl")
      tolPoisson = tolpoisson_s
   end if
@@ -534,7 +533,6 @@ program pinc_prog
            call setBoundary (var, flux, "var")
 
            call reconstruction (var, "rho") 
-           call reconstruction (var, "rhopw0") !FS
            call reconstruction (var, "rhop")         
            call reconstruction (var, "uvw")
            
@@ -543,14 +541,10 @@ program pinc_prog
 
            ! Fluxes and Forces
            
-           call massFlux (var0,var,flux,flux_rhopw,"lin")
+           call massFlux (var0,var,flux,"lin")
            call momentumFlux (var0,var,flux,"lin") 
 
            call setBoundary (var, flux, "flux") 
-
-           !FS set vertical flux_rhopw at wall to 0
-           flux_rhopw(:,:,-1) = 0.
-           flux_rhopw(:,:,nz) = 0.
 
            ! RK step for density and density fluctuations
            
@@ -562,9 +556,9 @@ program pinc_prog
            !call massUpdate(var,flux, 0.5*dt, dRhop, RKstage, &
            !              & "rhop", "lhs", "expl",w_0)
            
-           call massUpdate(var, flux,flux_rhopw, 0.5*dt, dRho, RKstage, &
+           call massUpdate(var, flux, 0.5*dt, dRho, RKstage, &
                          & "rho", "tot", "expl")
-           call massUpdate(var,flux,flux_rhopw, 0.5*dt, dRhop, RKstage, &
+           call massUpdate(var,flux, 0.5*dt, dRhop, RKstage, &
                          & "rhop", "lhs", "expl")
            !UAE
               
@@ -578,7 +572,7 @@ program pinc_prog
            !                     & RKstage, &
            !                     & "lhs", "expl",w_0)
            
-           call momentumPredictor(var, flux,flux_rhopw, force, 0.5*dt, dMom, &
+           call momentumPredictor(var, flux, force, 0.5*dt, dMom, &
                                 & RKstage, "lhs", "expl")
            !UAE
         end do
@@ -610,7 +604,7 @@ program pinc_prog
         !    RKstage = 1
         !    dPStrat = 0.
         !    drhoStrat = 0.           
-        !    call BGstate_update(var,flux,flux_rhopw,0.5*dt,RKstage,dPStrat,drhoStrat, &
+        !    call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
         !                      & "impl")
         ! end if
 !FSE
@@ -622,7 +616,7 @@ program pinc_prog
         !UAB
         !call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs",&
         !              & "impl",w_0)
-        call massUpdate(var,flux,flux_rhopw,0.5*dt,dRhop,RKstage,"rhop","rhs","impl")
+        call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs","impl")
         !UAE
 
         ! update winds (uStar, vStar, wStar)
@@ -630,7 +624,7 @@ program pinc_prog
         !UAB
         !call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
         !                     & "impl",w_0)
-        call momentumPredictor(var,flux,flux_rhopw,force,0.5*dt,dMom,RKstage,"rhs",&
+        call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
                              & "impl")
         !UAE
               
@@ -671,12 +665,12 @@ program pinc_prog
            RKstage = 1
            dPStrat = 0.
            drhoStrat = 0.           
-           call BGstate_update(var,flux,flux_rhopw,0.5*dt,RKstage,dPStrat,drhoStrat, &
+           call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
                              & "impl")
         end if
 !FSE
 
-        call Corrector ( var, flux,flux_rhopw, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
+        call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
                        & RKstage, "impl")
         !UAE
 
@@ -721,7 +715,7 @@ program pinc_prog
         !UAB
         !call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs", &
         !              & "expl",w_0)
-        call massUpdate(var,flux,flux_rhopw,0.5*dt,dRhop,RKstage,"rhop","rhs","expl")
+        call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs","expl")
         !UAE
 
         ! update winds (uStar, vStar, wStar)
@@ -729,7 +723,7 @@ program pinc_prog
         !UAB
         !call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
         !                     & "expl",w_0)
-        call momentumPredictor(var,flux,flux_rhopw,force,0.5*dt,dMom,RKstage,"rhs",&
+        call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
                              & "expl")
         !UAE
               
@@ -776,13 +770,13 @@ program pinc_prog
            RKstage = 1
            dPStrat = 0.
            drhoStrat = 0.           
-           call BGstate_update(var,flux,flux_rhopw,0.5*dt,RKstage,dPStrat,drhoStrat, &
+           call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
                              & "impl")
         end if
 
 !FSE  
 
-        call Corrector ( var, flux,flux_rhopw, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
+        call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
                        & RKstage, "expl")
         ! !UAE
 
@@ -810,7 +804,6 @@ program pinc_prog
            call setBoundary (var, flux, "var")
 
            call reconstruction (var, "rho")  
-           call reconstruction (var, "rhopw0") !FS
            call reconstruction (var, "rhop")         
            call reconstruction (var, "uvw")
            
@@ -819,15 +812,10 @@ program pinc_prog
 
            ! Fluxes and Forces
            
-           call massFlux (var0,var,flux,flux_rhopw,"lin")
+           call massFlux (var0,var,flux,"lin")
            call momentumFlux (var0,var,flux,"lin") 
 
            call setBoundary (var, flux, "flux") 
-
-           !FS set vertical flux_rhopw at wall to 0
-           flux_rhopw(:,:,-1) = 0.
-           flux_rhopw(:,:,0) = 0.
-           flux_rhopw(:,:,nz) = 0.
 
 
            ! RK step for density and density fluctuations
@@ -839,9 +827,9 @@ program pinc_prog
            !             & "rho", "tot", "expl",w_0)
            !call massUpdate(var, flux, dt, dRhop, RKstage, &
            !             & "rhop", "lhs", "expl",w_0)
-           call massUpdate(var, flux,flux_rhopw, dt, dRho, RKstage, &
+           call massUpdate(var, flux, dt, dRho, RKstage, &
                         & "rho", "tot", "expl")
-           call massUpdate(var, flux,flux_rhopw, dt, dRhop, RKstage, &
+           call massUpdate(var, flux, dt, dRhop, RKstage, &
                         & "rhop", "lhs", "expl")
            !UAE
 
@@ -853,7 +841,7 @@ program pinc_prog
            !call momentumPredictor(var, flux, &
            !     &                 force, dt, dMom, RKstage, "lhs", &
            !     &                 "expl", w_0)
-           call momentumPredictor(var, flux,flux_rhopw, &
+           call momentumPredictor(var, flux, &
                 &                 force, dt, dMom, RKstage, "lhs", "expl")
            !UAE
         end do
@@ -882,7 +870,7 @@ program pinc_prog
         !    RKstage = 1
         !    dPStrat = 0.
         !    drhoStrat = 0.           
-        !    call BGstate_update(var,flux,flux_rhopw,0.5*dt,RKstage,dPStrat,drhoStrat, &
+        !    call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
         !    !call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
         !                      & "impl") !FS 0.5*dt -> dt
         ! end if
@@ -895,7 +883,7 @@ program pinc_prog
         !UAB
         !call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs", &
         !              & "impl",w_0)
-        call massUpdate(var,flux,flux_rhopw,0.5*dt,dRhop,RKstage,"rhop","rhs","impl")
+        call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs","impl")
         !UAE
 
         ! update winds (uStar, vStar, wStar)
@@ -905,7 +893,7 @@ program pinc_prog
         !UAB
         !call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
         !                     & "impl",w_0)
-        call momentumPredictor(var,flux,flux_rhopw,force,0.5*dt,dMom,RKstage,"rhs",&
+        call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
                              & "impl")
         !UAE
               
@@ -946,13 +934,13 @@ program pinc_prog
            RKstage = 1
            dPStrat = 0.
            drhoStrat = 0.           
-           call BGstate_update(var,flux,flux_rhopw,0.5*dt,RKstage,dPStrat,drhoStrat, &
+           call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
            !call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
                              & "impl") !FS 0.5*dt -> dt
         end if
 !FSE
 
-        call Corrector ( var, flux,flux_rhopw, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
+        call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
                        & RKstage, "impl")
         !UAE
 
@@ -1057,7 +1045,6 @@ program pinc_prog
 
            if( updateMass .or. (testcase=="nIce_w_test") ) call reconstruction (var, "rho")         
            if( updateMass ) call reconstruction (var, "rho")  
-           if ( updateMass ) call reconstruction (var, "rhopw0") !FS
            if( updateMass .and. auxil_equ ) then
                call reconstruction (var, "rhop")         
            end if
@@ -1072,7 +1059,7 @@ program pinc_prog
            ! Fluxes and Forces
            
            if( updateMass ) then 
-              call massFlux (var,var,flux,flux_rhopw,"nln")
+              call massFlux (var,var,flux,"nln")
               if( correctDivError ) then
                   print*,'ERROR: correction divergence error not &
                         & implemented properly'
@@ -1091,12 +1078,6 @@ program pinc_prog
            end if
 
            call setBoundary (var, flux, "flux") 
-
-
-           !FS set vertical flux_rhopw at wall to 0
-           flux_rhopw(:,:,-1) = 0.
-           flux_rhopw(:,:,0) = 0.
-           flux_rhopw(:,:,nz) = 0.
            
            ! Evolve in time
            
@@ -1145,14 +1126,14 @@ program pinc_prog
               if ( RKstage==1 ) dRho = 0.                    ! init q
            
               rhoOld = var(:,:,:,1)  ! rhoOld for momentum predictor
-              call massUpdate(var, flux,flux_rhopw, dt, dRho, RKstage, &
+              call massUpdate(var, flux, dt, dRho, RKstage, &
                             & "rho", "tot", "expl")
 
               if (auxil_equ) then
                  if ( RKstage==1 ) dRhop = 0.                    ! init q
 
                  rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
-                 call massUpdate(var, flux,flux_rhopw, dt, dRhop, RKstage, &
+                 call massUpdate(var, flux, dt, dRhop, RKstage, &
                                & "rhop", "tot", "expl")
               end if
 
@@ -1185,7 +1166,7 @@ program pinc_prog
 
               if ( RKstage==1 ) dMom = 0.                    ! init q
 
-              call momentumPredictor(var, flux,flux_rhopw, force, dt, dMom, RKstage, &
+              call momentumPredictor(var, flux, force, dt, dMom, RKstage, &
                                    & "tot", "expl")
            
               call set_spongeLayer(var, stepFrac(RKstage)*dt, "uvw")
@@ -1238,7 +1219,7 @@ program pinc_prog
               if ( RKstage==1 ) dPStrat = 0.                    ! init q
               if ( RKstage==1 ) drhoStrat = 0.           
 
-              call BGstate_update(var,flux,flux_rhopw,dt,RKstage,dPStrat,drhoStrat, &
+              call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
                                 & "expl")
            end if
 
@@ -1260,7 +1241,7 @@ program pinc_prog
               !UAB
               !call Corrector ( var, flux, dMom, dt_Poisson, errFlagBicg, &
               !               & nIterBicg, RKstage, "expl", w_0)
-              call Corrector ( var, flux,flux_rhopw, dMom, dt_Poisson, errFlagBicg, &
+              call Corrector ( var, flux, dMom, dt_Poisson, errFlagBicg, &
                              & nIterBicg, RKstage, "expl" )
               !UAE
 
