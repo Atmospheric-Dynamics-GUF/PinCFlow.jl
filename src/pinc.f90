@@ -512,13 +512,6 @@ program pinc_prog
         ! velocities
 
         var0 = var
-        PStrat00 = PStrat
-        rhoStrat00 = rhoStrat
-        thetaStrat00 = thetaStrat
-        bvsStrat00 = bvsStrat
-        thetaStratTilde00 = thetaStratTilde
-        rhoStratTilde00 = rhoStratTilde
-        PStratTilde00 = PStratTilde
         
 
         ! (1) explicit integration of convective and 
@@ -695,13 +688,6 @@ program pinc_prog
         ! put new state into var1 in order to save the advection velocities
 
         var1 = var      
-        PStrat01 = PStrat
-        rhoStrat01 = rhoStrat
-        thetaStrat01 = thetaStrat
-        bvsStrat01 = bvsStrat
-        thetaStratTilde01 = thetaStratTilde
-        rhoStratTilde01 = rhoStratTilde
-        PStratTilde01 = PStratTilde
 
         ! (3) explicit integration of the linear right-hand sides of the
         !     equations for density fluctuations and momentum over half a 
@@ -715,14 +701,7 @@ program pinc_prog
         !teste
 
         var = var0
-        PStrat = PStrat00
-        rhoStrat = rhoStrat00
-        thetaStrat = thetaStrat00
-        bvsStrat = bvsStrat00
-        thetaStratTilde = thetaStratTilde00
-        rhoStratTilde = rhoStratTilde00
-        PStratTilde = PStratTilde00
-
+      
         call setHalos( var, "var" )
         call setBoundary (var, flux, "var")
 
@@ -820,13 +799,6 @@ program pinc_prog
         !teste
 
         var0 = var1
-        PStrat00 = PStrat01
-        rhoStrat00 = rhoStrat01
-        thetaStrat00 = thetaStrat01
-        bvsStrat00 = bvsStrat01
-        thetaStratTilde00 = thetaStratTilde01
-        rhoStratTilde00 = rhoStratTilde01
-        PStratTilde00 = PStratTilde01
 
         call setHalos( var0, "var" )
         call setBoundary (var0,flux,"var")

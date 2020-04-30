@@ -14,13 +14,13 @@ module atmosphere_module
 
   real, dimension(:), allocatable :: PStrat, rhoStrat, thetaStrat, &
                                      bvsStrat
-  !UAB
+  !UAB 200413
+  real, dimension(:), allocatable :: PStrat_0, rhoStrat_0
+  !UAE 200413
+
   real, dimension(:), allocatable :: pistrat
-  !UAE
   real, dimension(:), allocatable :: PStratTilde, rhoStratTilde, &
                                      thetaStratTilde
-
-  real, dimension(:), allocatable :: PStrat00, PStrat01, rhoStrat00, rhoStrat01, thetaStrat00, thetaStrat01, bvsStrat00, bvsStrat01, PStratTilde00, PStratTilde01, rhoStratTilde00, rhoStratTilde01, thetaStratTilde00, thetaStratTilde01 
 
 
   ! reference quantites
@@ -137,41 +137,25 @@ contains
        if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
     end if
 
-    ! allocate PStrat
-    if( .not. allocated(pStrat) ) then
-       allocate( Pstrat00(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
+     !UAB 200413
+    ! allocate pStrat_0
+    if( .not. allocated(pStrat_0) ) then
+       allocate( pStrat_0(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) then
+          stop "atmosphere.f90: could not allocate pStrat_0"
+       end if
     end if
+    !UAE 200413
 
-    ! allocate PStrat
-    if( .not. allocated(pStrat) ) then
-       allocate( Pstrat01(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
-    end if
-
-    !UAB
     ! allocate pistrat
     if( .not. allocated(pistrat) ) then
        allocate( pistrat(-1:nz+2),stat=allocstat)
        if(allocstat /= 0) stop "atmosphere.f90: could not allocate pistrat"
     end if
-    !UAE
 
     ! allocate pStratTilde -> P at half levels
     if( .not. allocated(pStratTilde) ) then
        allocate( PstratTilde(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
-    end if
-
-    ! allocate pStratTilde -> P at half levels
-    if( .not. allocated(pStratTilde) ) then
-       allocate( PstratTilde00(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
-    end if
-
-    ! allocate pStratTilde -> P at half levels
-    if( .not. allocated(pStratTilde) ) then
-       allocate( PstratTilde01(-1:nz+2),stat=allocstat)
        if(allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
     end if
 
@@ -182,38 +166,22 @@ contains
        if(allocstat /= 0) stop "atmosphere.f90: could not allocate rhoStrat"
     end if
 
+    !UAB 200413
+    ! allocate rhoStrat_0
+    if( .not. allocated(rhoStrat_0) ) then
+       allocate( rhoStrat_0(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) then
+          stop "atmosphere.f90: could not allocate rhoStrat_0"
+       end if
+    end if
+    !UAE 200413
+
     ! allocate rhoStratTilde 
     if( .not. allocated(rhoStratTilde) ) then
        allocate( rhoStratTilde(-1:nz+2),stat=allocstat)
        if(allocstat /= 0) stop "atmosphere.f90: could n. all. rhoStratTilde"
     end if
 
-
-    ! allocate rhoStrat
-    if( .not. allocated(rhoStrat) ) then
-       allocate( rhoStrat00(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not allocate rhoStrat"
-    end if
-
-    ! allocate rhoStratTilde 
-    if( .not. allocated(rhoStratTilde) ) then
-       allocate( rhoStratTilde00(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could n. all. rhoStratTilde"
-    end if
-
-
-
-    ! allocate rhoStrat
-    if( .not. allocated(rhoStrat) ) then
-       allocate( rhoStrat01(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not allocate rhoStrat"
-    end if
-
-    ! allocate rhoStratTilde 
-    if( .not. allocated(rhoStratTilde) ) then
-       allocate( rhoStratTilde01(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could n. all. rhoStratTilde"
-    end if
 
     ! allocate thetaStrat
     if( .not. allocated(thetaStrat) ) then
@@ -234,57 +202,6 @@ contains
        if(allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
     end if
 
-
-    ! allocate thetaStrat
-    ! GBcorr: correct some copy-paste typos in the allocations below
-    !if( .not. allocated(thetaStrat) ) then
-    if( .not. allocated(thetaStrat00) ) then
-       allocate( thetaStrat00(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat"
-    end if
-
-    ! allocate squared Brunt-Vaisala frequency bvsStrat
-    ! GBcorr
-    !if( .not. allocated(bvsStrat) ) then
-    if( .not. allocated(bvsStrat00) ) then
-       allocate( bvsStrat00(-1:nz+1),stat=allocstat)
-       if(allocstat /= 0) &
-         & stop "atmosphere.f90: could not allocate bvsStrat"
-    end if
-
-    ! allocate thetaStratTilde
-    ! GBcorr
-    !if( .not. allocated(thetaStratTilde) ) then
-    if( .not. allocated(thetaStratTilde00) ) then
-       allocate( thetaStratTilde00(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
-    end if
-
-
-    ! allocate thetaStrat
-    ! GBcorr
-    !if( .not. allocated(thetaStrat) ) then
-    if( .not. allocated(thetaStrat01) ) then
-       allocate( thetaStrat01(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat"
-    end if
-
-    ! allocate squared Brunt-Vaisala frequency bvsStrat
-    ! GBcorr
-    !if( .not. allocated(bvsStrat) ) then
-    if( .not. allocated(bvsStrat01) ) then
-       allocate( bvsStrat01(-1:nz+1),stat=allocstat)
-       if(allocstat /= 0) &
-         & stop "atmosphere.f90: could not allocate bvsStrat"
-    end if
-
-    ! allocate thetaStratTilde
-    ! GBcorr
-    !if( .not. allocated(thetaStratTilde) ) then
-    if( .not. allocated(thetaStratTilde01) ) then
-       allocate( thetaStratTilde01(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
-    end if
 
     !----------------------------------
     !       auxiliary quantities
