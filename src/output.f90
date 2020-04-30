@@ -160,7 +160,7 @@ contains
                    
                       case(5) ! Exner function pi' 
                               !(deviation from background)
-                        field_prc(i,j) = (var(i,j,k,iVar)) !+ piStrat(k))**(1./kappa)!FS
+                        field_prc(i,j) = (var(i,j,k,iVar)) 
 
                       case(6) ! potential temperature theta' 
                               ! (deviation from background, Boussinesq)

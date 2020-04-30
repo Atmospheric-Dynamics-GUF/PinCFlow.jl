@@ -2897,127 +2897,127 @@ contains
 
   !!------------------------------------------------------------------------
 !
-  subroutine calculate_heating_0(var,flux,heat)
+ !  subroutine calculate_heating_0(var,flux,heat)
 
-  !-----------------------------------------------
-  ! calculate heating in the divergence constraint
-  !-----------------------------------------------
+ !  !-----------------------------------------------
+ !  ! calculate heating in the divergence constraint
+ !  !-----------------------------------------------
 
-   real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz, nVar), &
-        &intent(in) :: var     
-   real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
+ !   real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz, nVar), &
+ !        &intent(in) :: var     
+ !   real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
 
-   real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
-        &intent(out) :: heat  !, term1, term2
+ !   real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
+ !        &intent(out) :: heat  !, term1, term2
 
-   ! local variables
-   integer :: i, j, k
-   real    :: rho, the, theta_bar_0, rho_e
-   real, dimension(1:nz) :: tau_relax_i  ! inverse scaled relaxation 
-                                         ! time for barocl. l. c.
-   real    :: tau_jet_sc, tau_relax_sc  ! Klein scaling for relax param.
+ !   ! local variables
+ !   integer :: i, j, k
+ !   real    :: rho, the, theta_bar_0, rho_e
+ !   real, dimension(1:nz) :: tau_relax_i  ! inverse scaled relaxation 
+ !                                         ! time for barocl. l. c.
+ !   real    :: tau_jet_sc, tau_relax_sc  ! Klein scaling for relax param.
 
-   heat = 0.0
+ !   heat = 0.0
 
-   !-------------------------------------------------------
-   ! calculate the environment-induced negative (!) heating
-   !-------------------------------------------------------
+ !   !-------------------------------------------------------
+ !   ! calculate the environment-induced negative (!) heating
+ !   !-------------------------------------------------------
 
-   if (     (TestCase == "baroclinic_LC") &
-       .or. (TestCase == "baroclinic_ID")) then
-      if (RelaxHeating /= 0)  then
-         !UAB
-         if (background /= "HeldSuarez") then
-         !UAE
-            do k = 1,nz
-               if ( referenceQuantities == "SI" ) then
-                  tau_relax_sc = tau_relax
-                  tau_jet_sc = tau_jet
-                 else
-                  tau_relax_sc = tau_relax/tref
-                  tau_jet_sc = tau_jet/tref
-               end if
+ !   if (     (TestCase == "baroclinic_LC") &
+ !       .or. (TestCase == "baroclinic_ID")) then
+ !      if (RelaxHeating /= 0)  then
+ !         !UAB
+ !         if (background /= "HeldSuarez") then
+ !         !UAE
+ !            do k = 1,nz
+ !               if ( referenceQuantities == "SI" ) then
+ !                  tau_relax_sc = tau_relax
+ !                  tau_jet_sc = tau_jet
+ !                 else
+ !                  tau_relax_sc = tau_relax/tref
+ !                  tau_jet_sc = tau_jet/tref
+ !               end if
            
-               if (RelaxHeating == 1) then
-                  tau_relax_i(k) = 1./(tau_relax_sc)
-                  else
-                  !UAB
-                  !tau_relax_i = 0.
-                  tau_relax_i(k) = 0.
-                  !UAE
-               end if
-            end do
-         !UAB
-         end if
-         !UAE
+ !               if (RelaxHeating == 1) then
+ !                  tau_relax_i(k) = 1./(tau_relax_sc)
+ !                  else
+ !                  !UAB
+ !                  !tau_relax_i = 0.
+ !                  tau_relax_i(k) = 0.
+ !                  !UAE
+ !               end if
+ !            end do
+ !         !UAB
+ !         end if
+ !         !UAE
 
-         if( master ) then 
-            print*,""
-            print*," Poisson Solver, Thermal Relaxation is on: "
-            print*," Relaxation factor: Div = - rho(Th - Th_e)/tau: "
-            print*, "tau = ", tref/tau_relax_i(1), " s"
-         end if
+ !         if( master ) then 
+ !            print*,""
+ !            print*," Poisson Solver, Thermal Relaxation is on: "
+ !            print*," Relaxation factor: Div = - rho(Th - Th_e)/tau: "
+ !            print*, "tau = ", tref/tau_relax_i(1), " s"
+ !         end if
 
-         theta_bar_0 = (thetaStrat(1) + thetaStrat(nz))/2.
+ !         theta_bar_0 = (thetaStrat(1) + thetaStrat(nz))/2.
    
-         do k = 1,nz
-            do j = 1,ny
-               do i = 1,nx
-                  if( fluctuationMode )  then
-                     rho = var(i,j,k,1) + rhoStrat(k)
-                    else   
-                     rho = var(i,j,k,1)
-                  end if  
+ !         do k = 1,nz
+ !            do j = 1,ny
+ !               do i = 1,nx
+ !                  if( fluctuationMode )  then
+ !                     rho = var(i,j,k,1) + rhoStrat(k)
+ !                    else   
+ !                     rho = var(i,j,k,1)
+ !                  end if  
 
-                  the = (Pstrat(k))/rho 
-                  rho_e = (Pstrat(k))/the_env_pp(i,j,k)
-                  !UAB
-                  if (background == "HeldSuarez") then
-                     heat(i,j,k) &
-                     = - theta_bar_0*(rho - rho_e)*kt_hs(j,k)
-                    else
-                  !UAE
-                     heat(i,j,k) &
-                     = - theta_bar_0*(rho - rho_e)*tau_relax_i(k)
-                  !UAB
-                  end if
-                  !UAE
-               end do
-            end do
-         end do
-      end if
-   end if
+ !                  the = (Pstrat(k))/rho 
+ !                  rho_e = (Pstrat(k))/the_env_pp(i,j,k)
+ !                  !UAB
+ !                  if (background == "HeldSuarez") then
+ !                     heat(i,j,k) &
+ !                     = - theta_bar_0*(rho - rho_e)*kt_hs(j,k)
+ !                    else
+ !                  !UAE
+ !                     heat(i,j,k) &
+ !                     = - theta_bar_0*(rho - rho_e)*tau_relax_i(k)
+ !                  !UAB
+ !                  end if
+ !                  !UAE
+ !               end do
+ !            end do
+ !         end do
+ !      end if
+ !   end if
 
-  ! if (output_heat) then
-      call output_field( &
-      & iOut, &
-      & heat,&
-      & 'heat_prof.dat', thetaRef*rhoRef/tref )
-  ! end if
+ !  ! if (output_heat) then
+ !      call output_field( &
+ !      & iOut, &
+ !      & heat,&
+ !      & 'heat_prof.dat', thetaRef*rhoRef/tref )
+ !  ! end if
 
-   !testb
-   return
-   !teste
+ !   !testb
+ !   return
+ !   !teste
 
-   !------------------------------------------------------------------
-   ! supplement by negative (!) heating due to molecular and turbulent 
-   ! diffusivity
-   !------------------------------------------------------------------
+ !   !------------------------------------------------------------------
+ !   ! supplement by negative (!) heating due to molecular and turbulent 
+ !   ! diffusivity
+ !   !------------------------------------------------------------------
 
-   do k=1,nz
-      do j=1,ny
-         do i=1,nx
-            heat(i,j,k) &
-            = heat(i,j,k) &
-              + rhoStrat(k) &
-                * (  (flux(i,j,k,1,5) - flux(i-1,j  ,k  ,1,5))/dx &
-                   + (flux(i,j,k,2,5) - flux(i  ,j-1,k  ,2,5))/dy &
-                   + (flux(i,j,k,3,5) - flux(i  ,j  ,k-1,3,5))/dz)
-         end do
-      end do
-   end do
+ !   do k=1,nz
+ !      do j=1,ny
+ !         do i=1,nx
+ !            heat(i,j,k) &
+ !            = heat(i,j,k) &
+ !              + rhoStrat(k) &
+ !                * (  (flux(i,j,k,1,5) - flux(i-1,j  ,k  ,1,5))/dx &
+ !                   + (flux(i,j,k,2,5) - flux(i  ,j-1,k  ,2,5))/dy &
+ !                   + (flux(i,j,k,3,5) - flux(i  ,j  ,k-1,3,5))/dz)
+ !         end do
+ !      end do
+ !   end do
 
- end subroutine calculate_heating_0
+ ! end subroutine calculate_heating_0
 
  !----------------------------------------------------------------------
 
@@ -4053,17 +4053,20 @@ contains
 
   end subroutine val_hypre_Bous
 
-!---------------------------------------------------------------------
+!------------------------------------------------------------------
 
   subroutine heat_w0(var,flux,heat,S_bar,w_0)
 
-   
-  !heating, its horizontal mean, and the thereby induced vertical wind
+
+  ! negative (!) heating, its horizontal mean, 
+  ! and the thereby induced vertical wind
 
   ! in/out variables
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(in) :: var
+    !UAB 200413
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
+    !UAE 200413
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
          & intent(out) :: heat
     real, dimension(-nbz:nz+nbz),intent(out) :: w_0 
@@ -4073,20 +4076,15 @@ contains
     real, dimension(1:nz) :: sum_local, sum_global 
     real, dimension(-nbz:nz+nbz) :: press0 
 
-    real, dimension(-nbz:nz+nbz) :: avgrhopw
-
     real :: dptopdt
 
     real :: sum_d, sum_n
-    
 
     w_0 = 0.
     S_bar = 0.
     heat = 0.
-    sum_local = 0.
-    sum_global = 0.
 
-    ! S eq(9)  ONeill+Klein2014
+    ! negative (!) heating, i.e. -S eq(9)  ONeill+Klein2014
     call calculate_heating(var,flux,heat) 
 
     ! calculate horizontal mean of heat(:,:,:)
@@ -4099,54 +4097,34 @@ contains
          mpi_double_precision,mpi_sum,comm,ierror)
     sum_global = sum_global/(sizeX*sizeY)
 
-    S_bar(1:nz) = (-1.)*sum_global(1:nz)
+    S_bar(1:nz) = sum_global(1:nz)
 
+    !non_dim. pressure; eq(12) ONeill+Klein2014
 
     do k = 1,nz
        press0(k) = PStrat(k)**gamma  
     end do
- 
+    
+    !  eq(B.14) ONeill+Klein2014
 
     sum_d = 0.0
     sum_n = 0.0
 
-    !calculate horizontal mean of vertical rhop flux 
-    sum_local(:) = 0.
-    sum_global(:) = 0.
-    avgrhopw = 0.
-
-
-       do k = 1,nz
-          sum_local(k) = sum(flux(1:nx,1:ny,k,3,6))
-       end do
-
-       !global sum and average
-       call mpi_allreduce(sum_local(1),sum_global(1),&
-            nz-1+1,&
-            mpi_double_precision,mpi_sum,comm,ierror)
-       sum_global = sum_global/(sizeX*sizeY)
-       
-    avgrhopw(1:nz) = sum_global
-
-
     do k = 1,nz
-       sum_n = sum_n + S_bar(k)/PStrat(k) - avgrhopw(k)*g_ndim/(gamma*press0(k)) 
-       sum_d = sum_d +  1./(gamma*press0(k))
+      sum_n = sum_n - S_bar(k)/PStrat(k)
+      sum_d = sum_d +  1./(gamma*press0(k))
     end do
 
     dptopdt = sum_n/sum_d
-    !UAE
 
-    w_0(1) = dz*(S_bar(1)/Pstrat(1) - (1./(gamma*press0(1)))*dptopdt- avgrhopw(1)*g_ndim/(gamma*press0(1)) )
+    w_0(1) = dz*(- S_bar(1)/Pstrat(1) - (1./(gamma*press0(1)))*dptopdt)
 
     do k = 2,nz-1
-       w_0(k) &
-       = w_0(k-1) &
-         + dz*(S_bar(k)/Pstrat(k) - (1./(gamma*press0(k)))*dptopdt- avgrhopw(k)*g_ndim/(gamma*press0(k)))
+      w_0(k) &
+      = w_0(k-1) &
+        + dz*(- S_bar(k)/Pstrat(k) - (1./(gamma*press0(k)))*dptopdt)
     end do
 
-    S_bar = (-1.)*S_bar
-  
 
   end subroutine heat_w0
 
