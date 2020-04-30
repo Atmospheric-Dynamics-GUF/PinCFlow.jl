@@ -1,10 +1,5 @@
 # Makefile of PincFloitMSGWAM
-
-
-
-# TEST
-
-
+#
 FC = mpif90
 #FC = mpiifort   # recommended for Intel 2018 and onward
 
