@@ -1885,7 +1885,7 @@ contains
           ! subtract reference-atmosphere Exner pressure from the total
 
           do k = 0, nz+1
-             var(1:nx,1:ny,k,5) = var(1:nx,1:ny,k,5) - pistrat(k) !FS
+             var(1:nx,1:ny,k,5) = var(1:nx,1:ny,k,5) - pistrat(k) 
           end do
          else
           stop'ERROR: wrong background for baroclinic_LC'
@@ -2004,7 +2004,7 @@ contains
                     
                                       
                  if (fluctuationMode) then
-                     rho = var(i,j,k,1) + rhoStrat(k)!Pstrat(k)
+                     rho = var(i,j,k,1) + Pstrat(k) !FS
                   else
                      rho = var(i,j,k,1)
                   end if
@@ -2012,7 +2012,7 @@ contains
                   theta = Pstrat(k)/rho + thtptb
       
                   if (fluctuationMode) then
-                     var(i,j,k,1) =   Pstrat(k)/theta - rhostrat(k)!PStrat(k)
+                     var(i,j,k,1) =   Pstrat(k)/theta - PStrat(k) !FS
                     else
                      var(i,j,k,1) =   Pstrat(k)/theta
                   end if
@@ -2021,45 +2021,45 @@ contains
           end do
 
           ! add local PT perturbation on SH !FS
-          ptptb_y = (-1.)*ptptb_y
-          do k = 1,nz
-             zloc = z(k)
+        !   ptptb_y = (-1.)*ptptb_y
+        !   do k = 1,nz
+        !      zloc = z(k)
    
-             do j = 1,ny
-                yloc = y(j00+j)
+        !      do j = 1,ny
+        !         yloc = y(j00+j)
    
-                do i = 1, nx
-                   xloc = x(i00+i)
+        !         do i = 1, nx
+        !            xloc = x(i00+i)
    
-                   rptb &
-                   = sqrt(  ((xloc - ptptb_x)/ptptb_dh)**2 &
-                          + ((yloc - ptptb_y)/ptptb_dh)**2 &
-                          + ((zloc - ptptb_z)/ptptb_dz)**2)
+        !            rptb &
+        !            = sqrt(  ((xloc - ptptb_x)/ptptb_dh)**2 &
+        !                   + ((yloc - ptptb_y)/ptptb_dh)**2 &
+        !                   + ((zloc - ptptb_z)/ptptb_dz)**2)
    
-                  if (rptb <= 1.0) then
-                     thtptb = ptptb_amp * cos(0.5*pi*rptb)**2
-                    else
-                      thtptb = 0.0
-                  end if
+        !           if (rptb <= 1.0) then
+        !              thtptb = ptptb_amp * cos(0.5*pi*rptb)**2
+        !             else
+        !               thtptb = 0.0
+        !           end if
 
    
-                  if (fluctuationMode) then
-                  rho = var(i,j,k,1) + rhoStrat(k)!Pstrat(k)
-                    else
-                     rho = var(i,j,k,1)
-                  end if
+        !           if (fluctuationMode) then
+        !           rho = var(i,j,k,1) + rhoStrat(k)!Pstrat(k)
+        !             else
+        !              rho = var(i,j,k,1)
+        !           end if
    
-                  theta = Pstrat(k)/rho - thtptb
+        !           theta = Pstrat(k)/rho - thtptb
       
-                  if (fluctuationMode) then
-                     var(i,j,k,1) =  Pstrat(k)/theta - rhoStrat(k)!Pstrat(k)
-                    else
-                     var(i,j,k,1) =   Pstrat(k)/theta
-                  end if
-                end do
-             end do
-          end do
-        end if
+        !           if (fluctuationMode) then
+        !              var(i,j,k,1) =  Pstrat(k)/theta - rhoStrat(k)!Pstrat(k)
+        !             else
+        !              var(i,j,k,1) =   Pstrat(k)/theta
+        !           end if
+        !         end do
+        !      end do
+        !   end do
+         end if
 
 
        !------------------------------------------

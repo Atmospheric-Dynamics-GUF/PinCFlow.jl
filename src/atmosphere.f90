@@ -1007,49 +1007,50 @@ contains
              end if
           enddo 
 
-          ! non-dimensional squared Brunt-Vaisala frequency
-          ! (this could be done a bit nicer)
-          
-          bvsStrat(-1) &
-               = g_ndim/thetaStrat(0) * (thetaStrat(1) - thetaStrat(0))/dz
-          
-          bvsStrat(0) &
-               = g_ndim/thetaStrat(0) * (thetaStrat(1) - thetaStrat(0))/dz
-          
-          !UAB
-          N2 = max(bvsStrat(-1),bvsStrat(0))
-          !UAE
-          
-          do k = 1,nz
-             bvsStrat(k) &
-                  = g_ndim/thetaStrat(k) &
-                  * (thetaStrat(k+1) - thetaStrat(k-1))/(2.0 * dz)
-             
-             !UAB
-             N2 = max(N2, bvsStrat(k))
-             !UAE
-          end do
-       
-          bvsStrat(nz+1) &
-               = g_ndim/thetaStrat(nz+1) * (thetaStrat(nz+1) - thetaStrat(nz))/dz
-          
-          !UAB
-          N2 = max(N2, bvsStrat(nz+1))
-          
-          if(N2 < 0.) then
-             stop'ERROR: N2 < 0'
-          else
-             NN = sqrt(N2)
-          end if
-          !UAE
-
-
+        
        !------------------------------------------------------------------
 
        case default
           print*,"background = ", trim(background)
           stop"atmosphere.f90/init_background: background not defined"
        end select
+
+       ! non-dimensional squared Brunt-Vaisala frequency
+       ! (this could be done a bit nicer)
+          
+       bvsStrat(-1) &
+            = g_ndim/thetaStrat(0) * (thetaStrat(1) - thetaStrat(0))/dz
+       
+       bvsStrat(0) &
+            = g_ndim/thetaStrat(0) * (thetaStrat(1) - thetaStrat(0))/dz
+       
+       !UAB
+       N2 = max(bvsStrat(-1),bvsStrat(0))
+       !UAE
+       
+       do k = 1,nz
+          bvsStrat(k) &
+               = g_ndim/thetaStrat(k) &
+               * (thetaStrat(k+1) - thetaStrat(k-1))/(2.0 * dz)
+          
+          !UAB
+          N2 = max(N2, bvsStrat(k))
+          !UAE
+       end do
+       
+       bvsStrat(nz+1) &
+            = g_ndim/thetaStrat(nz+1) * (thetaStrat(nz+1) - thetaStrat(nz))/dz
+       
+       !UAB
+       N2 = max(N2, bvsStrat(nz+1))
+       
+       if(N2 < 0.) then
+          stop'ERROR: N2 < 0'
+       else
+          NN = sqrt(N2)
+       end if
+       !UAE
+       
 
     case( "Boussinesq" )
 

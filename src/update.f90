@@ -1532,9 +1532,9 @@ contains
           ! horizontal mean and the horizontal-mean vertical wind 
           ! resulting from it
 
-          ! GBcorr
-          !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-          if (heating) then
+          ! GBcorr -> FS
+          if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+          !if (heating) then
              call heat_w0(var,flux,heat,S_bar,w_0)
             else
              heat = 0.
@@ -1942,9 +1942,9 @@ contains
           ! horizontal mean and the horizontal-mean vertical wind 
           ! resulting from it
 
-          ! GBcorr
-          !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-          if (heating) then
+          ! GBcorr -> FS
+          if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+          !if (heating) then
              call heat_w0(var,flux,heat,S_bar,w_0)
             else
              heat = 0.
@@ -2087,9 +2087,9 @@ contains
           ! horizontal mean and the horizontal-mean vertical wind 
           ! resulting from it
 
-          ! GBcorr
-          !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-          if (heating) then
+          ! GBcorr -> FS
+          if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+          !if (heating) then
              call heat_w0(var,flux,heat,S_bar,w_0)
             else
              heat = 0.
@@ -4164,22 +4164,13 @@ contains
        ! in explicit integration smoothing of density, winds, 
        ! and density fluctuations
        ! pressure fluctuations are not smoothened
-       ivmax = 4!6 !FS
+       ivmax = 6
       else
        ! in explicit integration smoothing of density, and winds 
        ivmax = 4
     end if
 
-
-   
-    var(1:nx,1:ny,1:nz,2) = var(1:nx,1:ny,1:nz,2) - u_env_pp(1:nx,1:ny,1:nz) !FS
-    
-    ! do i = 1,nx
-    !    do j = 1, ny
-    !       var(i,j,1:nz,1) = var(i,j,1:nz,1) - dens_env_pp(i,j,1:nz) + rhoStrat(1:nz)
-    !    end do
-    ! end do
- ! make sure that boundary conditions are satisfied
+    ! make sure that boundary conditions are satisfied
 
     call setHalos( var, "var" )
     call setBoundary (var,flux,"var")
@@ -4191,11 +4182,61 @@ contains
 
        var_l = var
 
-       do i_lapl = 1, n_shap
-          do iVar = 2,ivmax !FS
-             if (iVar /= 5) then
-          
+       ! in case of BLC only filtering of deviations from equilibrium state
 
+       if (    (TestCase == "baroclinic_LC") &
+         & .or.(TestCase == "baroclinic_ID")) then
+          do k = 1,nz
+             do j = 1,ny
+                do i = 1,nx
+                   if( fluctuationMode ) then
+                      var_l(i,j,k,1) &
+                      = var(i,j,k,1) - dens_env_pp(i, j, k) + rhoStrat(k)
+                     else
+                      var_l(i,j,k,1) = var(i,j,k,1) - dens_env_pp(i, j, k)
+                   end if
+                end do
+             end do
+          end do
+
+          do k = 1,nz
+             do j = 1,ny
+                do i = 1,nx
+                   var_l(i,j,k,2) = var(i,j,k,2) - u_env_pp(i, j, k)
+                end do
+             end do
+          end do
+
+          if (timeScheme == "semiimplicit") then
+             do k = 1,nz
+                do j = 1,ny
+                   do i = 1,nx
+                      var_l(i,j,k,6) &
+                      = var(i,j,k,6) - dens_env_pp(i, j, k) + rhoStrat(k)
+                   end do
+                end do
+             end do
+          end if
+
+          ! horizontal boundary conditions so that everything is ready
+
+          !for parallelized directions
+
+          call setHalos( var_l, "var" )
+
+          ! non-parallel boundary conditions in x-direction
+
+          select case( xBoundary )
+          case( "periodic" )
+            if ( idim == 1 ) call setBoundary_x_periodic(var_l,flux,"var")
+          case default
+             stop"setBoundary: unknown case xBoundary"
+          end select
+       end if
+
+       do i_lapl = 1, n_shap
+          do iVar = 1,ivmax
+             if (iVar /= 5) then
                 field(:,:,:) = var_l(:,:,:,iVar)
 
                 do k = 1,nz
@@ -4229,7 +4270,7 @@ contains
 
        ! apply filter
     
-       do iVar = 2,ivmax!FS
+       do iVar = 1,ivmax
           if (iVar /= 5) then
              if (iVar == 4) then
                 nz_max = nz-1
@@ -4240,11 +4281,9 @@ contains
              do k = 1,nz_max
                 do j = 1,ny
                    do i = 1,nx
-                     
                       var(i,j,k,iVar) &
                       = var(i,j,k,iVar) &
                         + fc_shap * (-1)**(n_shap + 1) * var_l(i,j,k,iVar)
-                     
                    end do
                 end do
              end do
@@ -4266,11 +4305,61 @@ contains
 
        var_l = var
 
-       do i_lapl = 1, n_shap
-          do iVar = 2,ivmax!FS
-             if (iVar /= 5) then
+       ! in case of BLC only filtering of deviations from equilibrium state
 
-                          
+       if (    (TestCase == "baroclinic_LC") &
+         & .or.(TestCase == "baroclinic_ID")) then
+          do k = 1,nz
+             do j = 1,ny
+                do i = 1,nx
+                   if( fluctuationMode ) then
+                      var_l(i,j,k,1) &
+                      = var(i,j,k,1) - dens_env_pp(i, j, k) + rhoStrat(k)
+                     else
+                      var_l(i,j,k,1) = var(i,j,k,1) - dens_env_pp(i, j, k)
+                   end if
+                end do
+             end do
+          end do
+
+          do k = 1,nz
+             do j = 1,ny
+                do i = 1,nx
+                   var_l(i,j,k,2) = var(i,j,k,2) - u_env_pp(i, j, k)
+                end do
+             end do
+          end do
+
+          if (timeScheme == "semiimplicit") then
+             do k = 1,nz
+                do j = 1,ny
+                   do i = 1,nx
+                      var_l(i,j,k,6) &
+                      = var(i,j,k,6) - dens_env_pp(i, j, k) + rhoStrat(k)
+                   end do
+                end do
+             end do
+          end if
+
+          ! horizontal boundary conditions so that everything is ready
+
+          !for parallelized directions
+
+          call setHalos( var_l, "var" )
+
+          ! non-parallel boundary conditions in x-direction
+
+          select case( yBoundary )
+          case( "periodic" )
+            if ( jdim == 1 ) call setBoundary_y_periodic(var_l,flux,"var")
+          case default
+             stop"setBoundary: unknown case yBoundary"
+          end select
+       end if
+
+       do i_lapl = 1, n_shap
+          do iVar = 1,ivmax
+             if (iVar /= 5) then
                 field(:,:,:) = var_l(:,:,:,iVar)
 
                 do k = 1,nz
@@ -4283,8 +4372,6 @@ contains
                    end do
                 end do
              end if
-
-                      
           end do
 
           ! horizontal boundary conditions so that everything is ready for 
@@ -4306,7 +4393,7 @@ contains
 
        ! apply filter
     
-       do iVar = 2,ivmax!FS
+       do iVar = 1,ivmax
           if (iVar /= 5) then
              if (iVar == 4) then
                 nz_max = nz-1
@@ -4317,24 +4404,14 @@ contains
              do k = 1,nz_max
                 do j = 1,ny
                    do i = 1,nx
-
                       var(i,j,k,iVar) &
                       = var(i,j,k,iVar) &
                         + fc_shap * (-1)**(n_shap + 1) * var_l(i,j,k,iVar)
-                    
                    end do
                 end do
              end do
           end if
        end do
- 
-    var(1:nx,1:ny,1:nz,2) = var(1:nx,1:ny,1:nz,2) + u_env_pp(1:nx,1:ny,1:nz) !FS
-    
-    ! do i = 1,nx
-    !    do j = 1, ny
-    !       var(i,j,1:nz,1) = var(i,j,1:nz,1) + dens_env_pp(i,j,1:nz) - rhoStrat(1:nz)
-    !    end do
-    ! end do
 
        ! boundary conditions again
    

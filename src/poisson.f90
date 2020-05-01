@@ -551,9 +551,9 @@ contains
 
     !if (raytracer) heat(:,:,:) = heat(:,:,:) + var(:,:,:,8)
 
-    ! GBcorr
-    !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-    if (heating) then
+    ! GBcorr -> FS
+    if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+    !if (heating) then
        call heat_w0(var,flux,heat,S_bar,w_0)
       else
        heat = 0.
@@ -3223,14 +3223,14 @@ contains
     if (raytracer) heat(:,:,:) = heat(:,:,:) + var(:,:,:,8)
     !UAE
 
-   ! if (output_heat) then
+    if (output_heat) then
        call output_field( &
        & iOut, &
        & heat,&
        & 'heat_prof.dat', thetaRef*rhoRef/tref )
 
 
-   ! end if
+    end if
 
   end subroutine calculate_heating
   

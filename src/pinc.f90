@@ -305,16 +305,6 @@ program pinc_prog
 
   if( outputType == "time" ) maxIter = 2**30
 
-
-!FS test
-  ! var(:,:,:,2) = 0.
-  ! var(:,:,:,3) = 0.
-  ! var(:,:,:,4) = 0.
-  ! do i = 1,nx
-  !    do j = 1,ny 
-  !       var(i,j,:,1) = rhoStrat(:)
-  !    end do
-  ! end do
  
   time_loop: do iTime = 1,maxIter
 
