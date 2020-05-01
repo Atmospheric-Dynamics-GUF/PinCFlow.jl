@@ -6,8 +6,8 @@ FC = mpiifort   # recommended for Intel 2018 and onward
 COMPILER = $(shell echo `$(FC) --version` | sed 's/ .*//')
 
 ifeq ($(COMPILER), ifort)
- FCFLAGS=-O0 -g -check all -warn all -warn nounused -fpe0 -real-size 64 -traceback -unroll=4 -ip
-#  FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
+ #FCFLAGS=-O0 -g -check all -warn all -warn nounused -fpe0 -real-size 64 -traceback -unroll=4 -ip
+  FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
  MODULEFLAG=-module $(BUILD)
 else   # gcc
   #FCFLAGS=-O0 -g -fcheck=all -Wall -Wno-unused-variable -fdefault-real-8 -fbacktrace -funroll-loops -Wno-unused-dummy-argument -Wno-conversion-extra

@@ -2004,7 +2004,7 @@ contains
                     
                                       
                  if (fluctuationMode) then
-                     rho = var(i,j,k,1) + Pstrat(k) !FS
+                     rho = var(i,j,k,1) + rhoStrat(k) !+ Pstrat(k) !FS
                   else
                      rho = var(i,j,k,1)
                   end if
@@ -2012,7 +2012,7 @@ contains
                   theta = Pstrat(k)/rho + thtptb
       
                   if (fluctuationMode) then
-                     var(i,j,k,1) =   Pstrat(k)/theta - PStrat(k) !FS
+                     var(i,j,k,1) =   Pstrat(k)/theta - rhoStrat(k)!- PStrat(k) !FS
                     else
                      var(i,j,k,1) =   Pstrat(k)/theta
                   end if
