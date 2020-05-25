@@ -1,7 +1,8 @@
 # Makefile of PincFloitMSGWAM
 
-FC = mpif90
-#FC = mpiifort   # recommended for Intel 2018 and onward
+#FC = mpif90       # used on Mistral
+#FC = mpiifort     # used on Goethe (recommended for Intel 2018 and onward)
+FC = {mycompiler}  # replaced automatically by one of the above 2 based on hostname in vTool
 
 COMPILER = $(shell echo `$(FC) --version` | sed 's/ .*//')
 
