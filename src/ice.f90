@@ -564,8 +564,8 @@ contains
          rho = var(i,j,k,1)
     end if 
     rho = rho*rhoRef
-    DEPq = 3.56*10**(-14)  / ( rhoRef * lRef**3 )* tRef &
-          & *(var(i,j,k,nVar)*rho /(1.9*10**(-5))-pIce(T)) &
+    DEPq = 3.56e-14 / ( rhoRef * lRef**3 )* tRef &
+          & *(var(i,j,k,nVar)*rho /1.9e-5-pIce(T)) &
           & *var(i,j,k,nVar-2)
    else
    ! use the proper equations
@@ -579,7 +579,7 @@ contains
     if (kT_linFit) then
     kT = 0.00122990325719493 + 8.43749062552794e-05*T   
     else    
-    kT = 0.002646*T**1.5 / (T + 245.*10**(-12./T) )
+    kT = 0.002646*T**1.5 / (T + 245.*10.**(-12./T) )
     end  if
 
     ! #### find dv #### !
