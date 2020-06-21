@@ -746,7 +746,7 @@ contains
     ! in/out vars
     logical, intent(out) :: error_flag 
 
-    include 'mpif.h' 
+!    include 'mpif.h'
 
     error_flag = .false. 
     verboseMPI = .false.

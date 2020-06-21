@@ -177,7 +177,7 @@ program pinc_prog
     else if (poissonSolverType == 'bicgstab') then
      call SetUpBiCGStab       ! Set BiCGStab arrays
     else
-     stop'ERROR: only HYPRE and BiCGStab ready to be used'
+     stop 'ERROR: only HYPRE and BiCGStab ready to be used'
   end if
 
   call init_xweno       ! set ILES parameters 
@@ -214,7 +214,7 @@ program pinc_prog
   !call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
   
   !call output_data(iOut, var, iTime, time, cpuTime)
-  !stop
+  !stop '
   !teste
 
   !-------------------------------------------------
@@ -273,7 +273,7 @@ program pinc_prog
   call output_data(iOut, var, iTime, time, cpuTime)
 
   !testb
-  !stop
+  !stop '
   !teste
 
   if (rayTracer) then
@@ -1230,7 +1230,7 @@ program pinc_prog
                  case( "classical" )
                     dt_Poisson = rk(3,RKstage)*dt
                  case default
-                    stop"thetaUpdate: unknown case timeSchemeType"
+                    stop "thetaUpdate: unknown case timeSchemeType"
               end select
 
               shap_dts = shap_dts_dim/tRef
@@ -1271,7 +1271,7 @@ program pinc_prog
                  case( "classical" )
                     dt_Poisson = rk(3,RKstage)*dt
                  case default
-                    stop"thetaUpdate: unknown case timeSchemeType"
+                    stop "thetaUpdate: unknown case timeSchemeType"
               end select
               
               !UAB
@@ -1352,7 +1352,7 @@ program pinc_prog
               end if
            end if
         case default
-           stop"main: unknown outputType"
+           stop "main: unknown outputType"
      end select
 
 
@@ -1427,7 +1427,7 @@ program pinc_prog
     else if (poissonSolverType == 'bicgstab') then
      call CleanUpBiCGSTab       ! Clean Up BiCGSTAB arrays
     else 
-     stop'ERROR: HYPRE or BiCGSTab expected as Poisson solvers'
+     stop 'ERROR: HYPRE or BiCGSTab expected as Poisson solvers'
   end if
 
 666  if( master ) then

@@ -443,13 +443,13 @@ contains
                       Ls(i,j,k) &
                       = Ls(i,j,k) + ALB*sLB + ALF*sLF + ARB*sRB + ARF*sRF
                      else if (opt /= 'expl') then
-                      stop'ERROR: linOpr expects opt = expl or opt = impl'
+                      stop 'ERROR: linOpr expects opt = expl or opt = impl'
                    end if
                 end if
 
                 ! ---------------- scale with thetaStrat ------------------
                 if( pressureScaling ) then
-                   stop'ERROR: pressure scaling disabled'
+                   stop 'ERROR: pressure scaling disabled'
                 end if
              end do i_loop
           end do j_loop
@@ -460,7 +460,7 @@ contains
        !             Boussinesq model
        !----------------------------------------
 
-       stop'ERROR: linOpr not ready for Boussinesq model'
+       stop 'ERROR: linOpr not ready for Boussinesq model'
 
     case default
        stop "linOpr: unknown case model"
@@ -674,7 +674,7 @@ contains
                 
                 ! Skalierung mit thetaStrat
                 if ( pressureScaling ) then
-                   stop'ERROR: pressure scaling disabled'
+                   stop 'ERROR: pressure scaling disabled'
                 end if
 
              end do
@@ -737,7 +737,7 @@ contains
           if (divL2 == 0.0) then
              tolref = 1.0
             else
-             stop'ERROR: divL2_norm = 0 while divL2 /= 0'
+             stop 'ERROR: divL2_norm = 0 while divL2 /= 0'
           end if
        end if
 
@@ -780,7 +780,7 @@ contains
                 bl2loc = bu**2 + bv**2 + bw**2
 
                 if(topography) then
-                   stop'ERROR: topography needs implicit time stepping &
+                   stop 'ERROR: topography needs implicit time stepping &
                       & that is not ready yet for Boussinesq'
                 end if
 
@@ -843,7 +843,7 @@ contains
           if (divL2 == 0.0) then
              tolref = 1.0
             else
-             stop'ERROR: divL2_norm = 0 while divL2 /= 0'
+             stop 'ERROR: divL2_norm = 0 while divL2 /= 0'
           end if
        end if
 
@@ -1017,7 +1017,7 @@ contains
 
        case( "Boussinesq" )
 
-        stop'ERROR: BiCGStab still to be made ready for Boussinesq'
+        stop 'ERROR: BiCGStab still to be made ready for Boussinesq'
 
        case default
           stop "linOpr: unknown case model"
@@ -1027,11 +1027,11 @@ contains
 
     case( "gcr" ) 
 
-       stop'ERROR: no gcr provided anymore'
+       stop 'ERROR: no gcr provided anymore'
 
     case( "adi" ) 
 
-       stop'ERROR: no adi provided anymore'
+       stop 'ERROR: no adi provided anymore'
 
     ! hypre solver
     case( "hypre" )    
@@ -2483,7 +2483,7 @@ contains
              end do
           end do
          else
-          stop'ERROR: wrong opt in correctorStep'
+          stop 'ERROR: wrong opt in correctorStep'
        end if
       else
        do k = 1,nz
@@ -2581,7 +2581,7 @@ contains
              end do
           end do
          else
-          stop'ERROR: wrong opt in correctorStep'
+          stop 'ERROR: wrong opt in correctorStep'
        end if
       else
        do k = 1,nz
@@ -2650,7 +2650,7 @@ contains
 
           ! periodic in z
           if( zBoundary == "periodic" ) then
-              stop'ERROR: period. vert. bound. not ready in correctorStep'
+              stop 'ERROR: period. vert. bound. not ready in correctorStep'
           end if
          else if (opt == "expl") then
           ! solid wall implies zero change of w at the bottom and top
@@ -2704,7 +2704,7 @@ contains
              end do
           end if
          else
-          stop'ERROR: wrong opt in correctorStep'
+          stop 'ERROR: wrong opt in correctorStep'
        end if
       else
        ! solid wall implies zero change of w at the bottom and top
@@ -2822,7 +2822,7 @@ contains
 
           ! periodic in z
           if( zBoundary == "periodic" ) then
-              stop'ERROR: period. vert. bound. not ready in correctorStep'
+              stop 'ERROR: period. vert. bound. not ready in correctorStep'
           end if
        end if
     end if
@@ -3279,7 +3279,7 @@ contains
     i0=is+nbx-1
     j0=js+nby-1
 
-    if (.not. fluctuationMode) stop'ERROR: must use fluctuationMode'
+    if (.not. fluctuationMode) stop 'ERROR: must use fluctuationMode'
 
     !---------------------------------
     !         Loop over field
@@ -3343,7 +3343,7 @@ contains
                    end if
 
                    if( pressureScaling ) then
-                      stop'ERROR: no pressure scaling allowed'
+                      stop 'ERROR: no pressure scaling allowed'
                    end if
 
                    ! ----------------------- A(i,j,k) -------------------
@@ -3426,7 +3426,7 @@ contains
                       arb_b(i,j,k) = 0.0
                       arf_b(i,j,k) = 0.0
                      else
-                      stop'ERROR: val_PsIn expects hypre or bicgstab'
+                      stop 'ERROR: val_PsIn expects hypre or bicgstab'
                    end if
                 end do ! i_loop
              end do ! j_loop
@@ -3488,7 +3488,7 @@ contains
                    end if
 
                    if( pressureScaling ) then
-                      stop'ERROR: no pressure scaling allowed'
+                      stop 'ERROR: no pressure scaling allowed'
                    end if
 
                    ! ----------------------- A(i,j,k) -------------------
@@ -3540,7 +3540,7 @@ contains
                       ad_b(i,j,k) = AD
                       au_b(i,j,k) = AU
                      else
-                      stop'ERROR: val_PsIn expects hypre or bicgstab'
+                      stop 'ERROR: val_PsIn expects hypre or bicgstab'
                    end if
                 end do ! i_loop
              end do ! j_loop
@@ -3548,7 +3548,7 @@ contains
        end if
       else if (opt == "impl") then
        if (timeScheme /= "semiimplicit") then
-          stop'ERROR: for opt = impl must have timeScheme = semiimplicit'
+          stop 'ERROR: for opt = impl must have timeScheme = semiimplicit'
        end if
 
        do k = 1,nz
@@ -3903,7 +3903,7 @@ contains
                 end if
 
                 if( pressureScaling ) then
-                   stop'ERROR: no pressure scaling allowed'
+                   stop 'ERROR: no pressure scaling allowed'
                 end if
 
 
@@ -3949,13 +3949,13 @@ contains
                    arb_b(i,j,k) = ARB
                    arf_b(i,j,k) = ARF
                   else
-                   stop'ERROR: val_PsIn expects hypre or bicgstab'
+                   stop 'ERROR: val_PsIn expects hypre or bicgstab'
                 end if
              end do ! i_loop
           end do ! j_loop
        end do ! k_loop
       else
-       stop'ERROR: wrong opt'
+       stop 'ERROR: wrong opt'
     end if
 
   return

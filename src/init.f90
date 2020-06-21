@@ -375,7 +375,7 @@ contains
 
     case default
        print*,"model = ", model
-       stop"initialize: Unknown model" 
+       stop "initialize: Unknown model" 
     end select
 
     close(90)  ! info file
@@ -535,7 +535,7 @@ contains
        ! 
 
     case default
-       stop"initialize: unknown case model."
+       stop "initialize: unknown case model."
     end select
 
     !-----------------------
@@ -731,7 +731,7 @@ contains
 
                 ! wave 2
                 if( initWave2 ) then
-                   stop'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
+                   stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
                    u2 = real( Psi(i,j,k,1,2) * exp(2.*phi*imag) )
                    w2 = real( Psi(i,j,k,2,2) * exp(2.*phi*imag) ) 
                    b2 = real( Psi(i,j,k,3,2) * exp(2.*phi*imag) ) 
@@ -741,7 +741,7 @@ contains
 
                 ! sum of wave 1 and 2
                 if( initWave2 ) then
-                   stop'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
+                   stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
                    b = b1 + b2
                    u = u1 + u2
                    w = w1 + w2
@@ -777,7 +777,7 @@ contains
                    var(i,j,k,6) = theta
 
                 case default
-                   stop"initialize: unknown case model"
+                   stop "initialize: unknown case model"
                 end select
 
                 var(i,j,k,2) = var(i,j,k,2) + u
@@ -809,7 +809,7 @@ contains
 
 
              case default
-                stop"initialize: unknown case model"
+                stop "initialize: unknown case model"
              end select
 
 
@@ -877,7 +877,7 @@ contains
                       var(i,j,k,6) = 0.0
 
                    case default
-                      stop"initialize: unknown case model"
+                      stop "initialize: unknown case model"
                 end select
 
                 ! initialization zero pressure fluctuations
@@ -899,7 +899,7 @@ contains
        ! WKB simulations: Wave packet or mountain waves
        ! for the full set up see routine setup_wkb
 
-       if (.not. raytracer) stop'raytracer not set correctly'
+       if (.not. raytracer) stop 'raytracer not set correctly'
 
        ! read namelist for wkb ray tracer
        read (unit=10, nml=LagrangeRayTracing)
@@ -921,7 +921,7 @@ contains
          else if (wlry_init /= 0.0) then
           dk_init = fac_dk_init * 2.0*pi/wlry_init
          else
-          stop'ERROR: BOTH WLRX_INIT and WLRY_INIT = 0.0'
+          stop 'ERROR: BOTH WLRX_INIT and WLRY_INIT = 0.0'
        end if
 
        if (fac_dl_init == 0.0) then
@@ -931,7 +931,7 @@ contains
          else if (wlrx_init /= 0.0) then
           dl_init = fac_dl_init * 2.0*pi/wlrx_init
          else
-          stop'ERROR: BOTH WLRX_INIT and WLRY_INIT = 0.0'
+          stop 'ERROR: BOTH WLRX_INIT and WLRY_INIT = 0.0'
        end if
 
        zmin_wkb = zmin_wkb_dim/lRef
@@ -988,7 +988,7 @@ contains
                       var(i,j,k,6) = 0.0
 
                    case default
-                      stop"initialize: unknown case model"
+                      stop "initialize: unknown case model"
                 end select
 
                 ! initialization zero pressure fluctuations
@@ -1086,7 +1086,7 @@ contains
                    var(i,j,k,6) = dTheta
 
                 case default
-                   stop"initialize: unknown model."
+                   stop "initialize: unknown model."
                 end select
 
 
@@ -1104,7 +1104,7 @@ contains
        read (unit=10, nml=bubble)
 
        if (referenceQuantities == "SI" ) then
-          stop"initialize: SI units not allowed"
+          stop "initialize: SI units not allowed"
        end if
 
        ! zero start velocity 
@@ -1223,7 +1223,7 @@ contains
                       var(i,j,k,6) = dTheta
 
                    case default
-                      stop"initialize: unknown model."
+                      stop "initialize: unknown model."
                    end select
 
                 else
@@ -1256,7 +1256,7 @@ contains
        
 
        if (referenceQuantities == "SI" ) then
-          stop"initialize: SI units not allowed"
+          stop "initialize: SI units not allowed"
        end if
 
        ! start velocity
@@ -1316,7 +1316,7 @@ contains
                        var(i,j,k,6) = dTheta_dim / thetaRef
 
                    case default
-                      stop"initialize: unknown model."
+                      stop "initialize: unknown model."
                    end select
                     
                    
@@ -1338,7 +1338,7 @@ contains
                      var(i,j,k,6) = 0.0
 
                    case default
-                      stop"initialize: unknown model."
+                      stop "initialize: unknown model."
                    end select
                    
                 end if
@@ -1359,7 +1359,7 @@ contains
        read (unit=10, nml=bubble)
 
        if (referenceQuantities == "SI" ) then
-          stop"initialize: SI units not allowed"
+          stop "initialize: SI units not allowed"
        end if
 
        ! zero start velocity 
@@ -1422,7 +1422,7 @@ contains
                        var(i,j,k,6) = dTheta_dim / thetaRef
 
                    case default
-                      stop"initialize: unknown model."
+                      stop "initialize: unknown model."
                    end select
                 else  ! outside bubble
                    select case( model )
@@ -1441,7 +1441,7 @@ contains
                      var(i,j,k,6) = 0.0
 
                    case default
-                      stop"initialize: unknown model."
+                      stop "initialize: unknown model."
                    end select
                 end if
              end do
@@ -1460,7 +1460,7 @@ contains
        !UAB
        if ((background /= "const-N") .and. (background /= "HeldSuarez")) &
        & then
-          stop'ERROR: baroclinic_LC needs for background either const-N &
+          stop 'ERROR: baroclinic_LC needs for background either const-N &
              & or HeldSuarez'
        end if
        !UAE
@@ -1512,16 +1512,16 @@ contains
 
           dy_hs = 2.0*jwdth
          else
-          stop'ERROR: baroclinic_LC needs for background either const-N &
+          stop 'ERROR: baroclinic_LC needs for background either const-N &
              & or HeldSuarez'
        end if
        !UAE
 
        if (master .and. jwdth > 0.5*(ymax-ymin)) then
-          stop'ERROR: jet width too large'
+          stop 'ERROR: jet width too large'
        end if
 
-       if (sizeY <= 1) stop'ERROR: Barocl LC expects sizeY > 1'
+       if (sizeY <= 1) stop 'ERROR: Barocl LC expects sizeY > 1'
 
        ! set local index
 
@@ -1721,7 +1721,7 @@ contains
              yloc = y(j+j00)
 
              if (yloc < ymin) then
-                stop'ERROR: y < ymin'
+                stop 'ERROR: y < ymin'
                else if ((yloc >= ymin) .and. (yloc < yjets - 0.5*dy_hs)) &
                 & then
                 s2_strtd(j) = 1.0
@@ -1758,7 +1758,7 @@ contains
                 c2_strtd(j) = 0.0
                 c4_strtd(j) = 0.0
                else if (yloc > ymax) then
-                stop'ERROR: y > ymax'
+                stop 'ERROR: y > ymax'
              end if
           end do
 
@@ -1881,7 +1881,7 @@ contains
              var(1:nx,1:ny,k,5) = var(1:nx,1:ny,k,5) - pistrat(k) !FS
           end do
          else
-          stop'ERROR: wrong background for baroclinic_LC'
+          stop 'ERROR: wrong background for baroclinic_LC'
        end if
 
        p_env_pp(1:nx,1:ny,0:nz+1) = var(1:nx,1:ny,0:nz+1,5)
@@ -2243,7 +2243,7 @@ contains
                       term_b = (dTh_atm - 2.*dTh_atm*term_a)/theta_bar_0
 
                       if (balance_eq == 'QG') then
-                         stop'ERROR: balance_eq == QG not provided'
+                         stop 'ERROR: balance_eq == QG not provided'
                         else
                          streamfunc = g*F_a*term_b/(f_Coriolis_dim)
  
@@ -2252,7 +2252,7 @@ contains
                            /(cp*thetaRef*thetaStrat(k))
 
                          if (balance_eq == 'QG') then
-                            stop'ERROR: balance_eq == QG not provided'
+                            stop 'ERROR: balance_eq == QG not provided'
                            else
                             var(i,:,k,5) = pi_pr_xz(i,k)
                          end if
@@ -2293,7 +2293,7 @@ contains
                       term_b = (dTh_atm - 2.*dTh_atm*term_a)/theta_bar_0
 
                       if (balance_eq == 'QG') then
-                         stop'ERROR: balance_eq == QG not provided'
+                         stop 'ERROR: balance_eq == QG not provided'
                         else
                          streamfunc = g*F_a*term_b/(f_Coriolis_dim)
  
@@ -2302,7 +2302,7 @@ contains
                            /(cp*thetaRef*thetaStrat(k))
 
                          if (balance_eq == 'QG') then
-                            stop'ERROR: balance_eq == QG not provided'
+                            stop 'ERROR: balance_eq == QG not provided'
                            else
                             var(:,j,k,5) = pi_pr_yz(j,k)
                          end if
@@ -2516,7 +2516,7 @@ contains
                 end do
              end do
             else
-             stop"initialize: init_bal not def. for this model."
+             stop "initialize: init_bal not def. for this model."
           end if
        end if
 
@@ -3624,7 +3624,7 @@ contains
                   end if
 
                case default
-                  stop"init.f90: unknown wavePacketType. Stop."
+                  stop "init.f90: unknown wavePacketType. Stop."
                end select
 
                b11 = cmplx(envel*bAmp, 0.0 )
@@ -3805,7 +3805,7 @@ contains
     else if( a>=0. .and. b<0 ) then
        phi = -atan(-b/a)
     else
-       stop"wkb.f90/cphase: case not included. Stop."
+       stop "wkb.f90/cphase: case not included. Stop."
     end if
 
 
@@ -3967,7 +3967,7 @@ contains
                         var(i,j,k,iVar) = field_prc(i,j) / (uRef*lRef)
 
                       case default
-                        stop"tec360: unkown iVar"
+                        stop "tec360: unkown iVar"
                    end select ! iVar
                 end do ! i
              end do ! j
@@ -4012,7 +4012,7 @@ contains
                     case("linear")
                         tau_z(k) = ((z(k) - z(kSponge))*spongeAlphaZ_inv + (z(nz) - z(k))*tau_sc)/(z(nz) - z(kSponge))                        
                     case default
-                        stop"init: relaxation is not defined."
+                        stop "init: relaxation is not defined."
                 end select
             else
                 tau_z(k) = tau_sc
@@ -4021,7 +4021,7 @@ contains
             tau_z(k) = tau_sc
         end if
         if (tau_z(k).le.1.e-10) then
-            stop"init: small thermal relaxation parameter."
+            stop "init: small thermal relaxation parameter."
         end if    
       end do
 
@@ -4054,7 +4054,7 @@ contains
         case( "none" )
             valRef = 1.0
         case default
-            stop"noise_array: Unknown variable" 
+            stop "noise_array: Unknown variable" 
     end select        
 
     do k=1,nz
@@ -4163,7 +4163,7 @@ sum_glob = 0.
         case( "th" )
             valRef = thetaRef
         case default
-            stop"noise_array: Unknown variable" 
+            stop "noise_array: Unknown variable" 
     end select
 
     if (master) then
@@ -4282,12 +4282,12 @@ recl=SizeX*SizeY)
                              field_prc(i,j) = real(theta_dim, kind=4)
                          
                            case( "Boussinesq" )
-                              stop"output_background: background undefined"
+                              stop "output_background: background undefined"
 
                            case( "WKB" )
-                              stop"output_background: background undefined"
+                              stop "output_background: background undefined"
                            case default
-                              stop"output_background: unknown model"
+                              stop "output_background: unknown model"
                         end select ! model
                       
                 end do ! i

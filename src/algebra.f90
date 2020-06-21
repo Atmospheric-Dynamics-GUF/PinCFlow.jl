@@ -67,19 +67,19 @@ contains
 
     ! allocate local fields
     allocate(p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(r0(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(rOld(n), stat=allocstat);if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(r(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(s(n), stat=allocstat);  if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(t(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(v(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
 
     ! Init
     r0 = b! - matmul_csr(A_csr,colInd,rowPtr,diagPtr,x,'low+up')
@@ -133,19 +133,19 @@ contains
 
     ! deallocate local fields
     deallocate(p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(r0, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(rOld,stat=allocstat);if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(r, stat=allocstat);if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(s, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(t, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(v, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
 
   end subroutine bicgstab_csr
 
@@ -186,29 +186,29 @@ contains
 
     ! allocate local fields
     allocate(p_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(r(n), stat=allocstat); if(allocstat/=0) &
-         &stop"algebra.f90/bicgstab:alloc failed"
+         &stop "algebra.f90/bicgstab:alloc failed"
     allocate(r0_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(r_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(s(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(s_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(t(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(t_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(x_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(v(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"    
+         & stop "algebra.f90/bicgstab:alloc failed"    
     allocate(v_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(aux(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
 
     ! Init
     ! r -> r(0) = r0:
@@ -293,29 +293,29 @@ contains
 
     ! deallocate local fields
     deallocate(p_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(r, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(r0_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(r_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(s, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(s_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(t, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(t_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(x_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(v, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"    
+         & stop "algebra.f90/bicgstab:dealloc failed"    
     deallocate(v_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(aux, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
 
   end subroutine pre_bicgstab_csr
 
@@ -350,7 +350,7 @@ contains
     n = size(diagPtr)
 
     allocate( LU_csr(nnz), stat=allocstat)
-    if(allocstat /= 0) stop"algebra.f90/ilu_csr: alloc failed"
+    if(allocstat /= 0) stop "algebra.f90/ilu_csr: alloc failed"
     LU_csr = 0.0
 
     ! ILU(0) for csr stored matrices
@@ -458,13 +458,13 @@ contains
     end do
 
     allocate( A_csr(nnz), stat=allocstat)
-    if(allocstat /= 0) stop"algebra.f90/full2csr: alloc failed"
+    if(allocstat /= 0) stop "algebra.f90/full2csr: alloc failed"
     allocate( colInd(nnz), stat=allocstat)
-    if(allocstat /= 0) stop"algebra.f90/full2csr: alloc failed"
+    if(allocstat /= 0) stop "algebra.f90/full2csr: alloc failed"
     allocate( rowPtr(n+1),   stat=allocstat)
-    if(allocstat /= 0) stop"algebra.f90/full2csr: alloc failed"
+    if(allocstat /= 0) stop "algebra.f90/full2csr: alloc failed"
     allocate( diagPtr(n),   stat=allocstat)
-    if(allocstat /= 0) stop"algebra.f90/full2csr: alloc failed"
+    if(allocstat /= 0) stop "algebra.f90/full2csr: alloc failed"
 
     ! write csr-format
     csrInd = 1
@@ -509,7 +509,7 @@ contains
     n = size(rowPtr)-1
 
     allocate( A(n,n), stat=allocstat)
-    if(allocstat /= 0) stop"algebra.f90/csr2full: alloc failed"
+    if(allocstat /= 0) stop "algebra.f90/csr2full: alloc failed"
 
     ! write zeros 
     A = 0.0       
@@ -548,9 +548,9 @@ contains
     ! allocate fields
     n = size(x)
     allocate( matmul_csr(n), stat=allocstat)
-    if(allocstat/=0) stop"algebra.f90/matmul_csr: alloc failed"
+    if(allocstat/=0) stop "algebra.f90/matmul_csr: alloc failed"
     allocate( y(n), stat=allocstat)
-    if(allocstat/=0) stop"algebra.f90/matmul_csr: alloc failed"
+    if(allocstat/=0) stop "algebra.f90/matmul_csr: alloc failed"
 
 
     select case(form)
@@ -581,7 +581,7 @@ contains
           end do
 
        case default
-          stop"algebra.f90/matmul_csr: &
+          stop "algebra.f90/matmul_csr: &
                & form should be 'up', 'low', or 'low+up'. Stop"
        
        end select
@@ -612,9 +612,9 @@ contains
     ! get system size and allocate
     n = size(diagPtr)
     allocate( x(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/mldivide_csr:alloc failed"
+         & stop "algebra.f90/mldivide_csr:alloc failed"
     allocate( mldivide_csr(n),stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/mldivide_csr:alloc failed" 
+         & stop "algebra.f90/mldivide_csr:alloc failed" 
 
     select case(form)
        
@@ -650,7 +650,7 @@ contains
           mldivide_csr = x
 
        case default
-          stop"algebra.f90/mldivide_csr: use form = 'low' or 'up'. Stop."
+          stop "algebra.f90/mldivide_csr: use form = 'low' or 'up'. Stop."
 
        end select
 
@@ -673,9 +673,9 @@ contains
     n = size(A,1)
 
     allocate( x(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/mldivide:alloc failed"
+         & stop "algebra.f90/mldivide:alloc failed"
     allocate( mldivide(n),stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/mldivide:alloc failed" 
+         & stop "algebra.f90/mldivide:alloc failed" 
 
     select case(form)
 
@@ -692,14 +692,14 @@ contains
        end do
 
     case default
-       stop"algebra.f90/mldivide: matrix form incorrect"
+       stop "algebra.f90/mldivide: matrix form incorrect"
 
     end select
 
     mldivide = x
 
     deallocate(x,stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/mldivide:dealloc failed"
+         & stop "algebra.f90/mldivide:dealloc failed"
 
   end function mldivide
 
@@ -912,27 +912,27 @@ contains
 
     ! allocate local fields
     allocate(p_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(r(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(r0_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(r_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(s(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(s_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(t(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(t_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(x_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(v(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"    
+         & stop "algebra.f90/bicgstab:alloc failed"    
     allocate(v_p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
 
     ! Init
     r = b - matmul(A,x)               ! r -> r(0) = r0
@@ -999,27 +999,27 @@ contains
 
     ! deallocate local fields
     deallocate(p_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(r, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(r0_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(r_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(s, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(s_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(t, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(t_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(x_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(v, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"    
+         & stop "algebra.f90/bicgstab:dealloc failed"    
     deallocate(v_p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
 
   end subroutine precond_bicgstab
 
@@ -1050,19 +1050,19 @@ contains
 
     ! allocate local fields
     allocate(p(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(r0(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(rOld(n), stat=allocstat);if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(r(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(s(n), stat=allocstat);  if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(t(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
     allocate(v(n), stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:alloc failed"
+         & stop "algebra.f90/bicgstab:alloc failed"
 
     ! Init
     r0 = b - matmul(A,x)
@@ -1107,19 +1107,19 @@ contains
 
     ! deallocate local fields
     deallocate(p, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(r0, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(rOld,stat=allocstat);if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(r, stat=allocstat);if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(s, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(t, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
     deallocate(v, stat=allocstat); if(allocstat/=0) &
-         & stop"algebra.f90/bicgstab:dealloc failed"
+         & stop "algebra.f90/bicgstab:dealloc failed"
 
   end subroutine bicgstab_full
 
@@ -1144,7 +1144,7 @@ contains
     bSize = shape(b)
     
     do i = 1,3
-       if( aSize(i) .ne. bSize(i) ) stop"dot_product3D failure."
+       if( aSize(i) .ne. bSize(i) ) stop "dot_product3D failure."
     end do
     
     dot_product3D = 0.0
@@ -1249,7 +1249,7 @@ contains
     end if
     
     allocate(Aline(n), stat=allocstat)
-    if (allocstat /= 0) stop"testAlgebra.f90/printMatrix: alloc failed."
+    if (allocstat /= 0) stop "testAlgebra.f90/printMatrix: alloc failed."
 
     ! define output format using n...es25.14
     if ( present(inputForm) ) then
@@ -1271,7 +1271,7 @@ contains
     end do
 
     deallocate(Aline, stat=allocstat)
-    if (allocstat /= 0) stop"testAlgebra.f90/printMatrix: dealloc failed."
+    if (allocstat /= 0) stop "testAlgebra.f90/printMatrix: dealloc failed."
 
   end subroutine printMatrix
 

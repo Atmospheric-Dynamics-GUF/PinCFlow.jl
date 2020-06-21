@@ -134,7 +134,7 @@ contains
        
     case( 'constant2' ) 
 
-       stop'constant2 reconstruction disabled'
+       stop 'constant2 reconstruction disabled'
        
 !       select case( variable )
 !          
@@ -587,7 +587,7 @@ contains
 
 
        case default
-          stop"reconstruction: unknown case variable."
+          stop "reconstruction: unknown case variable."
        end select
 
 
@@ -642,7 +642,7 @@ contains
 
 
        case default
-          stop"reconstruction: unknown case variable."
+          stop "reconstruction: unknown case variable."
        end select
 
     case default
@@ -728,7 +728,7 @@ contains
                 
                 
              case default
-                stop"thetaFlux: unknown case fluxType"
+                stop "thetaFlux: unknown case fluxType"
              end select
 
              
@@ -814,7 +814,7 @@ contains
                 fTheta = flux_aldm(thetaL,thetaR,uSurf,&
                      &             thetaL,thetaR,uL,uR,sigmaC)
              case default
-                stop"thetaFlux: unknown case fluxType"
+                stop "thetaFlux: unknown case fluxType"
              end select
 
              flux(i,j,k,1,6) = fTheta
@@ -859,7 +859,7 @@ contains
                      &             thetaB,thetaF,vB,vF,sigmaC)
 
              case default
-                stop"thetaFlux: unknown case fluxType"
+                stop "thetaFlux: unknown case fluxType"
              end select
 
              flux(i,j,k,2,6) = gTheta
@@ -903,7 +903,7 @@ contains
                      &             thetaD,thetaU,wU,wD,sigmaC)
                 
              case default
-                stop"thetaFlux: unknown case fluxType"
+                stop "thetaFlux: unknown case fluxType"
              end select
 
              flux(i,j,k,3,6) = hTheta
@@ -1055,7 +1055,7 @@ contains
                 source(i,j,k,1) = divPu/thetaStrat(k)
                 
              case default
-                stop"rhoFlux: unknown case fluxType"
+                stop "rhoFlux: unknown case fluxType"
              end select
 
              
@@ -1116,7 +1116,7 @@ contains
 
     if (TurbScheme) then
        if (ny == 1 .and. nx == 1) then
-          stop'ERROR: turbulence scheme assumes either nx > 1 or ny > 1'
+          stop 'ERROR: turbulence scheme assumes either nx > 1 or ny > 1'
          else
           if (nx == 1) then
              delta_hs = dy**2 ! 2D problems in y and z
@@ -1164,7 +1164,7 @@ contains
                   else if (fluxmode == "lin") then
                    uSurf = vara(i,j,k,2)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 fRho = uSurf * 0.5*(rhoL + rhoR)
@@ -1186,7 +1186,7 @@ contains
                   else if (fluxmode == "lin") then
                    uSurf = vara(i,j,k,2) * Pstrat(k) !UA
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 fRho = flux_muscl(uSurf,rhoL,rhoR)
@@ -1202,7 +1202,7 @@ contains
                   else if (fluxmode == "lin") then
                    uSurf = vara(i,j,k,2)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 if( fluctuationMode ) then
@@ -1215,7 +1215,7 @@ contains
                 end if
 
              case default
-                stop"rhoFlux: unknown case fluxType"
+                stop "rhoFlux: unknown case fluxType"
              end select
 
              flux(i,j,k,1,1) = fRho
@@ -1247,7 +1247,7 @@ contains
                   else if (fluxmode == "lin") then
                    vSurf = vara(i,j,k,3)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 gRho = vSurf * 0.5*(rhoB + rhoF)
@@ -1268,7 +1268,7 @@ contains
                   else if (fluxmode == "lin") then
                    vSurf = vara(i,j,k,3) * Pstrat(k) !UA
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 gRho = flux_muscl(vSurf,rhoB,rhoF)
@@ -1284,7 +1284,7 @@ contains
                   else if (fluxmode == "lin") then
                    vSurf = vara(i,j,k,3)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 if( fluctuationMode ) then
@@ -1297,7 +1297,7 @@ contains
                 end if
 
              case default
-                stop"rhoFlux: unknown case fluxType"
+                stop "rhoFlux: unknown case fluxType"
              end select
 
              flux(i,j,k,2,1) = gRho
@@ -1331,7 +1331,7 @@ contains
                   else if (fluxmode == "lin") then
                    wSurf = vara(i,j,k,4)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 hRho = wSurf * 0.5*(rhoD + rhoU)                   
@@ -1356,7 +1356,7 @@ contains
                   else if (fluxmode == "lin") then
                    wSurf = vara(i,j,k,4) * PstratTilde(k) !UA
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 hRho = flux_muscl(wSurf,rhoD,rhoU)
@@ -1372,7 +1372,7 @@ contains
                   else if (fluxmode == "lin") then
                    wSurf = vara(i,j,k,4)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 if( fluctuationMode ) then
@@ -1385,7 +1385,7 @@ contains
                 end if
 
              case default
-                stop"rhoFlux: unknown case fluxType"
+                stop "rhoFlux: unknown case fluxType"
              end select
 
              flux(i,j,k,3,1) = hRho
@@ -1423,14 +1423,14 @@ contains
                   else if (fluxmode == "lin") then
                    wSurf = vara(i,j,k,4)  * PStratTilde(k)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 hRho = flux_muscl(wSurf,rhoD,rhoU)
 
 
              case default
-                stop"rhoFlux: unknown case fluxType"
+                stop "rhoFlux: unknown case fluxType"
              end select
 
              flux_rhopw(i,j,k) = hRho
@@ -1462,7 +1462,7 @@ contains
                      else if (fluxmode == "lin") then
                       uSurf = vara(i,j,k,2)
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    fRho = uSurf * 0.5*(rhoL + rhoR)
@@ -1477,7 +1477,7 @@ contains
                      else if (fluxmode == "lin") then
                       uSurf = vara(i,j,k,2) * Pstrat(k) !UA
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    fRho = flux_muscl(uSurf,rhoL,rhoR)
@@ -1493,14 +1493,14 @@ contains
                      else if (fluxmode == "lin") then
                       uSurf = vara(i,j,k,2)
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    fRho = flux_aldm(rhoL,rhoR,uSurf,&
                         &           rhoL,rhoR,uL,uR,sigmaC)
 
                 case default
-                   stop"rhopFlux: unknown case fluxType"
+                   stop "rhopFlux: unknown case fluxType"
                 end select
 
                 flux(i,j,k,1,6) = fRho
@@ -1524,7 +1524,7 @@ contains
                      else if (fluxmode == "lin") then
                       vSurf = vara(i,j,k,3)
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    gRho = vSurf * 0.5*(rhoB + rhoF)
@@ -1538,7 +1538,7 @@ contains
                      else if (fluxmode == "lin") then
                       vSurf = vara(i,j,k,3) * Pstrat(k) !UA
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    gRho = flux_muscl(vSurf,rhoB,rhoF)
@@ -1554,14 +1554,14 @@ contains
                      else if (fluxmode == "lin") then
                       vSurf = vara(i,j,k,3)
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    gRho = flux_aldm(rhoB,rhoF,vSurf,&
                         &           rhoB,rhoF,vB,vF,sigmaC)
 
                 case default
-                   stop"rhoFlux: unknown case fluxType"
+                   stop "rhoFlux: unknown case fluxType"
                 end select
 
                 flux(i,j,k,2,6) = gRho
@@ -1586,7 +1586,7 @@ contains
                      else if (fluxmode == "lin") then
                       wSurf = vara(i,j,k,4)
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    hRho = wSurf * 0.5*(rhoD + rhoU)                   
@@ -1601,7 +1601,7 @@ contains
                      else if (fluxmode == "lin") then
                       wSurf = vara(i,j,k,4) * PstratTilde(k) !UA
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    hRho = flux_muscl(wSurf,rhoD,rhoU)
@@ -1617,14 +1617,14 @@ contains
                      else if (fluxmode == "lin") then
                       wSurf = vara(i,j,k,4)
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    hRho = flux_aldm(rhoD,rhoU,wSurf,&
                         &             rhoD,rhoU,wU,wD,sigmaC)
 
                 case default
-                   stop"rhoFlux: unknown case fluxType"
+                   stop "rhoFlux: unknown case fluxType"
                 end select
 
                 flux(i,j,k,3,6) = hRho
@@ -1655,7 +1655,7 @@ contains
                case( "Boussinesq" )
                 coef_t = mu_conduct
                case default
-                stop"diffusivity: unkown case model."
+                stop "diffusivity: unkown case model."
              end select
 
              if(TurbScheme)then
@@ -1694,7 +1694,7 @@ contains
                case( "Boussinesq" )
                 coef_t = mu_conduct
                case default
-                stop"diffusivity: unkown case model."
+                stop "diffusivity: unkown case model."
              end select
 
              if(TurbScheme)then
@@ -1733,7 +1733,7 @@ contains
                case( "Boussinesq" )
                 coef_t = mu_conduct
                case default
-                stop"diffusivity: unkown case model."
+                stop "diffusivity: unkown case model."
              end select
 
              if(TurbScheme)then
@@ -1812,7 +1812,7 @@ contains
 
     if (TurbScheme) then
        if (ny == 1 .and. nx == 1) then
-          stop'ERROR: turbulence scheme assumes either nx > 1 or ny > 1'
+          stop 'ERROR: turbulence scheme assumes either nx > 1 or ny > 1'
          else
           if (nx == 1) then
              delta_hs = dy**2 ! 2D problems in y and z
@@ -1860,7 +1860,7 @@ contains
                   else if (fluxmode == "lin") then
                    uSurf = vara(i,j,k,2)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 fRho = uSurf * 0.5*(rhoL + rhoR)
@@ -1880,7 +1880,7 @@ contains
                   else if (fluxmode == "lin") then
                    uSurf = vara(i,j,k,2)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 fRho = flux_muscl(uSurf,rhoL,rhoR)
@@ -1896,7 +1896,7 @@ contains
                   else if (fluxmode == "lin") then
                    uSurf = vara(i,j,k,2)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 if( fluctuationMode ) then
@@ -1909,7 +1909,7 @@ contains
                 end if
 
              case default
-                stop"rhoFlux: unknown case fluxType"
+                stop "rhoFlux: unknown case fluxType"
              end select
 
              flux(i,j,k,1,1) = fRho
@@ -1941,7 +1941,7 @@ contains
                   else if (fluxmode == "lin") then
                    vSurf = vara(i,j,k,3)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 gRho = vSurf * 0.5*(rhoB + rhoF)
@@ -1960,7 +1960,7 @@ contains
                   else if (fluxmode == "lin") then
                    vSurf = vara(i,j,k,3)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 gRho = flux_muscl(vSurf,rhoB,rhoF)
@@ -1976,7 +1976,7 @@ contains
                   else if (fluxmode == "lin") then
                    vSurf = vara(i,j,k,3)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 if( fluctuationMode ) then
@@ -1989,7 +1989,7 @@ contains
                 end if
 
              case default
-                stop"rhoFlux: unknown case fluxType"
+                stop "rhoFlux: unknown case fluxType"
              end select
 
              flux(i,j,k,2,1) = gRho
@@ -2023,7 +2023,7 @@ contains
                   else if (fluxmode == "lin") then
                    wSurf = vara(i,j,k,4)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 hRho = wSurf * 0.5*(rhoD + rhoU)                   
@@ -2044,7 +2044,7 @@ contains
                   else if (fluxmode == "lin") then
                    wSurf = vara(i,j,k,4)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 hRho = flux_muscl(wSurf,rhoD,rhoU)
@@ -2060,7 +2060,7 @@ contains
                   else if (fluxmode == "lin") then
                    wSurf = vara(i,j,k,4)
                   else
-                   stop'ERROR: worng fluxmode'
+                   stop 'ERROR: worng fluxmode'
                 end if
 
                 if( fluctuationMode ) then
@@ -2073,7 +2073,7 @@ contains
                 end if
 
              case default
-                stop"rhoFlux: unknown case fluxType"
+                stop "rhoFlux: unknown case fluxType"
              end select
 
              flux(i,j,k,3,1) = hRho
@@ -2103,7 +2103,7 @@ contains
                      else if (fluxmode == "lin") then
                       uSurf = vara(i,j,k,2)
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    fRho = uSurf * 0.5*(rhoL + rhoR)
@@ -2118,7 +2118,7 @@ contains
                      else if (fluxmode == "lin") then
                       uSurf = vara(i,j,k,2)
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    fRho = flux_muscl(uSurf,rhoL,rhoR)
@@ -2134,14 +2134,14 @@ contains
                      else if (fluxmode == "lin") then
                       uSurf = vara(i,j,k,2)
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    fRho = flux_aldm(rhoL,rhoR,uSurf,&
                         &           rhoL,rhoR,uL,uR,sigmaC)
 
                 case default
-                   stop"rhopFlux: unknown case fluxType"
+                   stop "rhopFlux: unknown case fluxType"
                 end select
 
                 flux(i,j,k,1,6) = fRho
@@ -2165,7 +2165,7 @@ contains
                      else if (fluxmode == "lin") then
                       vSurf = vara(i,j,k,3)
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    gRho = vSurf * 0.5*(rhoB + rhoF)
@@ -2179,7 +2179,7 @@ contains
                      else if (fluxmode == "lin") then
                       vSurf = vara(i,j,k,3)
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    gRho = flux_muscl(vSurf,rhoB,rhoF)
@@ -2195,14 +2195,14 @@ contains
                      else if (fluxmode == "lin") then
                       vSurf = vara(i,j,k,3)
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    gRho = flux_aldm(rhoB,rhoF,vSurf,&
                         &           rhoB,rhoF,vB,vF,sigmaC)
 
                 case default
-                   stop"rhoFlux: unknown case fluxType"
+                   stop "rhoFlux: unknown case fluxType"
                 end select
 
                 flux(i,j,k,2,6) = gRho
@@ -2227,7 +2227,7 @@ contains
                      else if (fluxmode == "lin") then
                       wSurf = vara(i,j,k,4)
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    hRho = wSurf * 0.5*(rhoD + rhoU)                   
@@ -2242,7 +2242,7 @@ contains
                      else if (fluxmode == "lin") then
                       wSurf = vara(i,j,k,4)
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    hRho = flux_muscl(wSurf,rhoD,rhoU)
@@ -2258,14 +2258,14 @@ contains
                      else if (fluxmode == "lin") then
                       wSurf = vara(i,j,k,4)
                      else
-                      stop'ERROR: worng fluxmode'
+                      stop 'ERROR: worng fluxmode'
                    end if
 
                    hRho = flux_aldm(rhoD,rhoU,wSurf,&
                         &             rhoD,rhoU,wU,wD,sigmaC)
 
                 case default
-                   stop"rhoFlux: unknown case fluxType"
+                   stop "rhoFlux: unknown case fluxType"
                 end select
 
                 flux(i,j,k,3,6) = hRho
@@ -2296,7 +2296,7 @@ contains
                case( "Boussinesq" )
                 coef_t = mu_conduct
                case default
-                stop"diffusivity: unkown case model."
+                stop "diffusivity: unkown case model."
              end select
 
              if(TurbScheme)then
@@ -2335,7 +2335,7 @@ contains
                case( "Boussinesq" )
                 coef_t = mu_conduct
                case default
-                stop"diffusivity: unkown case model."
+                stop "diffusivity: unkown case model."
              end select
 
              if(TurbScheme)then
@@ -2374,7 +2374,7 @@ contains
                case( "Boussinesq" )
                 coef_t = mu_conduct
                case default
-                stop"diffusivity: unkown case model."
+                stop "diffusivity: unkown case model."
              end select
 
              if(TurbScheme)then
@@ -2924,7 +2924,7 @@ contains
                    gForce = -FrInv2 * dRho * vertical
                 
                 case default
-                   stop"volumeForce: unknown case model."
+                   stop "volumeForce: unknown case model."
                 end select
 
                 force(i,j,k,:) = force(i,j,k,:) + gForce
@@ -2962,7 +2962,7 @@ contains
                       end if
 
                    case default
-                      stop"volumeForce: unknown case model."
+                      stop "volumeForce: unknown case model."
                    end select
 
                    n1 = vertical(1)
@@ -3044,7 +3044,7 @@ contains
                 end if
 
                 case default
-                   stop"volumeForce: unknown case model."
+                   stop "volumeForce: unknown case model."
                 end select
 
                 force(i,j,k,1) &
@@ -3189,7 +3189,7 @@ contains
 
     if (TurbScheme) then
        if (ny == 1 .and. nx == 1) then
-          stop'ERROR: turbulence scheme assumes either nx > 1 or ny > 1'
+          stop 'ERROR: turbulence scheme assumes either nx > 1 or ny > 1'
          else
           if (nx == 1) then
              delta_hs = dy**2 ! 2D problems in y and z
@@ -3256,7 +3256,7 @@ contains
                    end if
 
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
                 
                 if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
@@ -3277,7 +3277,7 @@ contains
                    uL0 = vara(i,j,k,2)
                    uR0 = vara(i+1,j,k,2)
                   else
-                   stop'ERROR; wrong fluxmode'
+                   stop 'ERROR; wrong fluxmode'
                 end if
 
                 fRhoU = 0.25*(uL+uR)*(uL0+uR0)
@@ -3303,7 +3303,7 @@ contains
                       usurf &
                       = 0.5*(vara(i,j,k,2) + vara(i+1,j,k,2)) * Pstrat(k)
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -3317,16 +3317,16 @@ contains
                      else if (fluxmode == "lin") then
                       usurf = 0.5*(vara(i,j,k,2) + vara(i+1,j,k,2))
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
 
                    fRhoU = flux_aldm(uL,uR,uSurf,uL,uR,uBarL,uBarR,sigmaX)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -3378,7 +3378,7 @@ contains
                            & + rhoTilde(i,j+1,k,2,0) )
                    end if
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
                 
                 if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
@@ -3399,7 +3399,7 @@ contains
                    vR = vara(i+1,j,k,3)
                    vL = vara(i,j,k,3)
                   else
-                   stop'ERROR; wrong fluxmode'
+                   stop 'ERROR; wrong fluxmode'
                 end if
 
                 gRhoU = 0.25*(uB+uF)*(vL+vR)
@@ -3425,7 +3425,7 @@ contains
                       vsurf &
                       = 0.5*(vara(i,j,k,3) + vara(i+1,j,k,3)) * Pstrat(k)
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -3438,7 +3438,7 @@ contains
                       vR = vara(i+1,j,k,3)
                       vL = vara(i,j,k,3)
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
                    
                    vSurf = 0.5*(vR + vL)
@@ -3448,11 +3448,11 @@ contains
 
                    gRhoU = flux_aldm(uB,uF,vSurf,uB,uF,uBarB,uBarF,sigmaX)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -3504,7 +3504,7 @@ contains
                    end if
                    
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
                 
                 ! comment: for CDS rhoEdge should add rhoStrat
@@ -3528,7 +3528,7 @@ contains
                    wR = vara(i+1,j,k,4)
                    wL = vara(i,j,k,4)
                   else
-                   stop'ERROR; wrong fluxmode'
+                   stop 'ERROR; wrong fluxmode'
                 end if
 
                 hRhoU = 0.25*(uD + uU)*(wL + wR)
@@ -3556,7 +3556,7 @@ contains
                       = 0.5*(vara(i,j,k,4) + vara(i+1,j,k,4)) &
                         * PstratTilde(k)
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -3569,7 +3569,7 @@ contains
                       wR = vara(i+1,j,k,4)
                       wL = vara(i,j,k,4)
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
 
                    wSurf = 0.5*(wL + wR)
@@ -3579,11 +3579,11 @@ contains
 
                    hRhoU = flux_aldm(uU,uD,wSurf,uD,uU,uBarD,uBarU,sigmaX)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -3638,7 +3638,7 @@ contains
                    end if
 
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
                 if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
@@ -3659,7 +3659,7 @@ contains
                    uF = vara(i,j+1,k,2)
                    uB = vara(i,j  ,k,2)
                   else
-                   stop'ERROR; wrong fluxmode'
+                   stop 'ERROR; wrong fluxmode'
                 end if
 
                 fRhoV = 0.25 * (vL+vR) * (uB+uF)
@@ -3685,7 +3685,7 @@ contains
                       usurf &
                       = 0.5*(vara(i,j,k,2) + vara(i,j+1,k,2)) * Pstrat(k)
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -3698,7 +3698,7 @@ contains
                       uF = vara(i,j+1,k,2)
                       uB = vara(i,j  ,k,2)
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
 
                    uSurf = 0.5*(uB + uF)
@@ -3708,11 +3708,11 @@ contains
 
                    fRhoV = flux_aldm(vL,vR,uSurf,vL,vR,vBarL,vBarR,sigmaY)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -3764,7 +3764,7 @@ contains
                    end if
 
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
                 if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
@@ -3785,7 +3785,7 @@ contains
                    vF0 = vara(i,j+1,k,3)
                    vB0 = vara(i,j,k,3)
                   else
-                   stop'ERROR; wrong fluxmode'
+                   stop 'ERROR; wrong fluxmode'
                 end if
 
                 gRhoV = 0.25*(vB+vF)*(vB0+vF0)
@@ -3811,7 +3811,7 @@ contains
                       vsurf &
                       = 0.5*(vara(i,j,k,3) + vara(i,j+1,k,3)) * Pstrat(k)
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -3825,16 +3825,16 @@ contains
                      else if (fluxmode == "lin") then
                       vsurf = 0.5*(vara(i,j,k,3) + vara(i,j+1,k,3))
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
 
                    gRhoV = flux_aldm(vB,vF,vSurf,vB,vF,vBarB,vBarF,sigmaY)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -3885,7 +3885,7 @@ contains
                            & + rhoTilde(i,j+1,k+1,3,0) )
                    end if
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
                 ! comment: for CDS rhoEdge should add rhoStrat for each 
@@ -3909,7 +3909,7 @@ contains
                    wF = vara(i,j+1,k,4)
                    wB = vara(i,j,k,4)
                   else
-                   stop'ERROR; wrong fluxmode'
+                   stop 'ERROR; wrong fluxmode'
                 end if
 
                 hRhoV = 0.25*(vD+vU)*(wB+wF)
@@ -3937,7 +3937,7 @@ contains
                       = 0.5*(vara(i,j,k,4) + vara(i,j+1,k,4)) &
                         * PstratTilde(k)
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -3950,7 +3950,7 @@ contains
                       wF = vara(i,j+1,k,4)
                       wB = vara(i,j,k,4)
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
 
                    wSurf = 0.5*(wB + wF)
@@ -3960,11 +3960,11 @@ contains
 
                    hRhoV = flux_aldm(vD,vU,wSurf,vD,vU,vBarD,vBarU,sigmaY)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -4035,7 +4035,7 @@ contains
                    end if
 
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              end select ! model
@@ -4054,7 +4054,7 @@ contains
                    uU = vara(i,j,k+1,2)
                    uD = vara(i,j,k,2)
                   else
-                   stop'ERROR; wrong fluxmode'
+                   stop 'ERROR; wrong fluxmode'
                 end if
 
                 fRhoW = 0.25*(wL+wR)*(uD+uU)
@@ -4084,7 +4084,7 @@ contains
                         *(  vara(i,j,k  ,2)*Pstrat(k) &
                           + vara(i,j,k+1,2)*Pstrat(k+1))
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -4097,7 +4097,7 @@ contains
                       uU = vara(i,j,k+1,2)
                       uD = vara(i,j,k,2)
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
 
                    uSurf = 0.5*(uD + uU)
@@ -4107,11 +4107,11 @@ contains
 
                    fRhoW = flux_aldm(wL,wR,uSurf,wL,wR,wBarR,wBarL,sigmaZ)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -4178,7 +4178,7 @@ contains
                       end if
                    end if
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              end select ! model
@@ -4197,7 +4197,7 @@ contains
                    vU = vara(i,j,k+1,3)
                    vD = vara(i,j,k,3)
                   else
-                   stop'ERROR; wrong fluxmode'
+                   stop 'ERROR; wrong fluxmode'
                 end if
 
                 gRhoW = 0.25*(wB+wF)*(vD+vU)
@@ -4227,7 +4227,7 @@ contains
                         *(  vara(i,j,k  ,3)*Pstrat(k) &
                           + vara(i,j,k+1,3)*Pstrat(k+1))
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -4240,7 +4240,7 @@ contains
                       vU = vara(i,j,k+1,3)
                       vD = vara(i,j,k,3)
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
 
                    vSurf = 0.5*(vU + vD)
@@ -4250,11 +4250,11 @@ contains
 
                    gRhoW = flux_aldm(wB,wF,vSurf,wB,wF,wBarB,wBarF,sigmaZ)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -4323,7 +4323,7 @@ contains
                    end if
                    
                 case default 
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              end select ! model
@@ -4342,7 +4342,7 @@ contains
                    wU0 = vara(i,j,k+1,4)
                    wD0 = vara(i,j,k,4)
                   else
-                   stop'ERROR; wrong fluxmode'
+                   stop 'ERROR; wrong fluxmode'
                 end if
 
                 hRhoW = 0.25*(wD+wU)*(wD0+wU0)
@@ -4372,7 +4372,7 @@ contains
                         *(  vara(i,j,k  ,4)*PstratTilde(k) &
                           + vara(i,j,k+1,4)*PstratTilde(k+1))
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -4386,16 +4386,16 @@ contains
                      else if (fluxmode == "lin") then
                       wsurf = 0.5*(vara(i,j,k,4) + vara(i,j,k+1,4))
                      else
-                      stop'ERROR; wrong fluxmode'
+                      stop 'ERROR; wrong fluxmode'
                    end if
 
                    hRhoW = flux_aldm(wD,wU,wSurf,wD,wU,wBarD,wBarU,sigmaZ)
                 case default
-                   stop"momentumFlux: unknown fluxType."
+                   stop "momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop"momentumFlux: unknown fluxType."
+                stop "momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -4965,7 +4965,7 @@ contains
        end do
 
     case default
-       stop"momentumFlux: unknown case model"
+       stop "momentumFlux: unknown case model"
     end select
 
     if (verbose) print*,"fluxes.f90/momentumFlux: &
@@ -5056,7 +5056,7 @@ contains
                 source(i,j,k,2) = u * divPu / theta
                 
              case default
-                stop"thetaFlux: unknown case fluxType"
+                stop "thetaFlux: unknown case fluxType"
              end select
 
              
@@ -5121,7 +5121,7 @@ contains
                 source(i,j,k,3) = v * divPu / theta
                 
              case default
-                stop"thetaFlux: unknown case fluxType"
+                stop "thetaFlux: unknown case fluxType"
              end select
 
              
@@ -5187,7 +5187,7 @@ contains
                 source(i,j,k,4) = w * divPu / theta
                 
              case default
-                stop"thetaFlux: unknown case fluxType"
+                stop "thetaFlux: unknown case fluxType"
              end select
 
              
@@ -5225,15 +5225,15 @@ contains
 
     ! rhoOld
     allocate( rhoOld(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), stat=allocstat)
-    if( allocstat /= 0) stop"init_fluxes: alloc of rhoOld failed"
+    if( allocstat /= 0) stop "init_fluxes: alloc of rhoOld failed"
 
     ! rhopOld
     allocate( rhopOld(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), stat=allocstat)
-    if( allocstat /= 0) stop"init_fluxes: alloc of rhopOld failed"
+    if( allocstat /= 0) stop "init_fluxes: alloc of rhopOld failed"
 
     ! uBar
     allocate(uBar(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz),stat=allocstat)
-    if(allocstat /= 0) stop"init_fluxes: could not allocate uBar"
+    if(allocstat /= 0) stop "init_fluxes: could not allocate uBar"
 
     ! vBar
     allocate(vBar(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz),stat=allocstat)
@@ -5347,10 +5347,10 @@ contains
     if(allocstat /= 0) stop "fluxes.f90: could not deallocate rhopBar"
 
     deallocate( rhoOld, stat=allocstat)
-    if( allocstat /= 0) stop"terminate_fluxes: dealloc of rhoOld failed"
+    if( allocstat /= 0) stop "terminate_fluxes: dealloc of rhoOld failed"
 
     deallocate( rhopOld, stat=allocstat)
-    if( allocstat /= 0) stop"terminate_fluxes: dealloc of rhopOld failed"
+    if( allocstat /= 0) stop "terminate_fluxes: dealloc of rhopOld failed"
 
     deallocate(uBar,stat=allocstat)
     if(allocstat /= 0) stop "fluxes.f90: could not deallocate uBar"

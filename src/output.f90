@@ -188,7 +188,7 @@ contains
                            case( "WKB" )
                         
                            case default
-                              stop"tec360: unknown model"
+                              stop "tec360: unknown model"
                         end select ! model
                       
                       case(7) ! dynamic Smagorinsky coefficient
@@ -518,7 +518,7 @@ contains
                      = ray_var3D(i,j,k,6) * rhoRef*uRef**2! /tRef deleted by FDK
                    
                    case default
-                     stop"output_wkb: unkown iVar"
+                     stop "output_wkb: unkown iVar"
                 end select ! iVar
              end do ! i
              call mpi_gather(field_prc(1,j),nx,mpi_real,&

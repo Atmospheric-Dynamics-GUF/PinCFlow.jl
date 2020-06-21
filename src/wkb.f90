@@ -228,7 +228,7 @@ contains
                       case ("solid_wall")
                          if(zr + 0.5*dzr < lz(0)) cycle
                       case default
-                         stop"calc_meanflow_effect: unknown case zBoundary"
+                         stop "calc_meanflow_effect: unknown case zBoundary"
                    end select
                   elseif (zr > lz(1)) then
                    select case (zBoundary)
@@ -237,7 +237,7 @@ contains
                       case ("solid_wall")
                          if(zr - 0.5*dzr > lz(1)) cycle
                       case default
-                         stop"calc_meanflow_effect: unknown case zBoundary"
+                         stop "calc_meanflow_effect: unknown case zBoundary"
                    end select
                 end if
 
@@ -305,7 +305,7 @@ contains
                    !      case ("periodic")
                    !         xr = lx(1) + mod(xr - lx(0),lx(1) - lx(0))
                    !      case default
-                   !         stop"calc_meanflow_effect: unknown case &
+                   !         stop "calc_meanflow_effect: unknown case &
                    !              & xBoundary"
                    !   end select
                    !  elseif (xr > lx(1)) then
@@ -313,7 +313,7 @@ contains
                    !      case ("periodic")
                    !         xr = lx(0) + mod(xr - lx(1),lx(1) - lx(0))
                    !      case default
-                   !         stop"calc_meanflow_effect: unknown case &
+                   !         stop "calc_meanflow_effect: unknown case &
                    !              & xBoundary"
                    !   end select
                    !end if
@@ -380,7 +380,7 @@ contains
                    !      case ("periodic")
                    !         yr = ly(1) + mod(yr - ly(0),ly(1) - ly(0))
                    !      case default
-                   !         stop"calc_meanflow_effect: unknown case &
+                   !         stop "calc_meanflow_effect: unknown case &
                    !              & yBoundary"
                    !   end select
                    !  elseif (yr > ly(1)) then
@@ -388,7 +388,7 @@ contains
                    !      case ("periodic")
                    !         yr = ly(0) + mod(yr - ly(1),ly(1) - ly(0))
                    !      case default
-                   !         stop"calc_meanflow_effect: unknown case &
+                   !         stop "calc_meanflow_effect: unknown case &
                    !              & yBoundary"
                    !   end select
                    !end if
@@ -671,7 +671,7 @@ contains
                    rhotot = 0.5*(var(ix,jy,kz,1) + var(ix+1,jy,kz,1))
                    if (fluctuationMode) rhotot = rhotot + rhoStrat(kz)
                 case default
-                   stop"volumeForce: unknown case model."
+                   stop "volumeForce: unknown case model."
              end select
 
              ! forcing in x direction
@@ -710,7 +710,7 @@ contains
                    rhotot = 0.5*(var(ix,jy,kz,1) + var(ix,jy+1,kz,1))
                    if (fluctuationMode) rhotot = rhotot + rhoStrat(kz)
                 case default
-                   stop"volumeForce: unknown case model."
+                   stop "volumeForce: unknown case model."
              end select
 
              var_drvdt(ix,jy,kz) &
@@ -757,7 +757,7 @@ contains
                          rhotot = var(ix,jy,kz,1)
                       end if
                    case default
-                      stop"volumeForce: unknown case model."
+                      stop "volumeForce: unknown case model."
                 end select
 
                 if (sizeX > 1) then
@@ -797,10 +797,10 @@ contains
                 call smooth_wkb_shapiro(var_drvdt, nsmth_wkb, 101)
                 call smooth_wkb_shapiro(var_drtdt, nsmth_wkb, 101)
                else
-                stop'WRONG sm_filter'
+                stop 'WRONG sm_filter'
              end if
             else
-             stop'SMOOTHING JUST IN Z NOT YET IMPLEMENTED'
+             stop 'SMOOTHING JUST IN Z NOT YET IMPLEMENTED'
           endif
          elseif (sizeX == 1) then
           if (sm_filter == 1) then
@@ -812,7 +812,7 @@ contains
              call smooth_wkb_shapiro(var_drvdt, nsmth_wkb, 11)
              call smooth_wkb_shapiro(var_drtdt, nsmth_wkb, 11)
             else
-             stop'WRONG sm_filter'
+             stop 'WRONG sm_filter'
           end if
          elseif (sizeX > 1) then
           if (sm_filter == 1) then
@@ -824,7 +824,7 @@ contains
              call smooth_wkb_shapiro(var_drvdt, nsmth_wkb, 111)
              call smooth_wkb_shapiro(var_drtdt, nsmth_wkb, 111)
             else
-             stop'WRONG sm_filter'
+             stop 'WRONG sm_filter'
           end if
        endif
     endif
@@ -848,7 +848,7 @@ contains
                    rhotot = 0.5*(var(ix,jy,kz,1) + var(ix+1,jy,kz,1))
                    if (fluctuationMode) rhotot = rhotot + rhoStrat(kz)
                 case default
-                   stop"volumeForce: unknown case model."
+                   stop "volumeForce: unknown case model."
              end select
 
              ! forcing in x direction
@@ -871,7 +871,7 @@ contains
                    rhotot = 0.5*(var(ix,jy,kz,1) + var(ix,jy+1,kz,1))
                    if (fluctuationMode) rhotot = rhotot + rhoStrat(kz)
                 case default
-                   stop"volumeForce: unknown case model."
+                   stop "volumeForce: unknown case model."
              end select
 
              force(ix,jy,kz,2) = force(ix,jy,kz,2) + var_drvdt(ix,jy,kz)
@@ -908,7 +908,7 @@ contains
                          rhotot = var(ix,jy,kz,1)
                       end if
                    case default
-                      stop"volumeForce: unknown case model."
+                      stop "volumeForce: unknown case model."
                 end select
 
                 var(ix,jy,kz,8) = var_drtdt(ix,jy,kz)
@@ -1512,9 +1512,9 @@ contains
                                   + (real(jl)-0.5) * dl_ini_nd/nrl_init) 
 
                                if (fac_dm_init == 0.0) then
-                                  stop'ERROR: FAC_DM_INIT = 0.0'
+                                  stop 'ERROR: FAC_DM_INIT = 0.0'
                                  else if (wnm_0 == 0.0) then
-                                  stop'ERROR: WNM_0 = 0.0'
+                                  stop 'ERROR: WNM_0 = 0.0'
                                  else
                                   dm_ini_nd = fac_dm_init * abs(wnm_0)
                                end if
@@ -1824,7 +1824,7 @@ contains
              zlc = lz(1) + mod(zlc - lz(0),lz(1) - lz(0))
           case ("solid_wall")
           case default
-             stop"calc_meanflow_effect: unknown case zBoundary"
+             stop "calc_meanflow_effect: unknown case zBoundary"
        end select
       elseif (zlc > lz(1)) then
        select case (zBoundary)
@@ -1832,7 +1832,7 @@ contains
              zlc = lz(0) + mod(zlc - lz(1),lz(1) - lz(0))
           case ("solid_wall")
           case default
-             stop"calc_meanflow_effect: unknown case zBoundary"
+             stop "calc_meanflow_effect: unknown case zBoundary"
        end select
     end if
 
@@ -1852,7 +1852,7 @@ contains
     !              end if
     !            ! teste
     !         case default
-    !            stop"calc_meanflow_effect: unknown case xBoundary"
+    !            stop "calc_meanflow_effect: unknown case xBoundary"
     !      end select
     !     elseif (xlc > lx(1)) then
     !      select case (xBoundary)
@@ -1867,7 +1867,7 @@ contains
     !              end if
     !            ! teste
     !         case default
-    !            stop"calc_meanflow_effect: unknown case xBoundary"
+    !            stop "calc_meanflow_effect: unknown case xBoundary"
     !      end select
     !   end if
     !end if
@@ -1878,14 +1878,14 @@ contains
     !         case ("periodic")
     !            ylc = ly(1) + mod(ylc - ly(0),ly(1) - ly(0))
     !         case default
-    !            stop"calc_meanflow_effect: unknown case yBoundary"
+    !            stop "calc_meanflow_effect: unknown case yBoundary"
     !      end select
     !     elseif (ylc > ly(1)) then
     !      select case (yBoundary)
     !         case ("periodic")
     !            ylc = ly(0) + mod(ylc - ly(1),ly(1) - ly(0))
     !         case default
-    !            stop"calc_meanflow_effect: unknown case yBoundary"
+    !            stop "calc_meanflow_effect: unknown case yBoundary"
     !      end select
     !   end if
     !end if
@@ -4102,9 +4102,9 @@ contains
 
     allocate(wadrmg(nray_max))
 
-    if (sizeX > 1 .and. mod(nxRay,2) /= 0) stop'ERROR: nxRay must be even!'
-    if (sizeY > 1 .and. mod(nyRay,2) /= 0) stop'ERROR: nyRay must be even!'
-    if (sizeZ > 1 .and. mod(nzRay,2) /= 0) stop'ERROR: nzRay must be even!'
+    if (sizeX > 1 .and. mod(nxRay,2) /= 0) stop 'ERROR: nxRay must be even!'
+    if (sizeY > 1 .and. mod(nyRay,2) /= 0) stop 'ERROR: nyRay must be even!'
+    if (sizeZ > 1 .and. mod(nzRay,2) /= 0) stop 'ERROR: nzRay must be even!'
 
     ! total number of ray volumes before merging
 
@@ -4642,32 +4642,32 @@ contains
              ! as well
 
              if (sizeX > 1) then
-                if (wnrk_max_n == 0.0) stop'ERROR: wnrk_max_n = 0'
-                if (wnrk_min_n == 0.0) stop'ERROR: wnrk_min_n = 0'
-                if (wnrk_max_p == 0.0) stop'ERROR: wnrk_max_p = 0'
-                if (wnrk_min_p == 0.0) stop'ERROR: wnrk_min_p = 0'
-                if (nxRay < 3) stop'ERROR: nxRay < 3'
+                if (wnrk_max_n == 0.0) stop 'ERROR: wnrk_max_n = 0'
+                if (wnrk_min_n == 0.0) stop 'ERROR: wnrk_min_n = 0'
+                if (wnrk_max_p == 0.0) stop 'ERROR: wnrk_max_p = 0'
+                if (wnrk_min_p == 0.0) stop 'ERROR: wnrk_min_p = 0'
+                if (nxRay < 3) stop 'ERROR: nxRay < 3'
 
                 dwnrk_mg_n = log(wnrk_max_n/wnrk_min_n)/(nxRay/2 - 1)
                 dwnrk_mg_p = log(wnrk_max_p/wnrk_min_p)/(nxRay/2 - 1)
              end if
 
              if (sizeY > 1) then
-                if (wnrl_max_n == 0.0) stop'ERROR: wnrl_max_n = 0'
-                if (wnrl_min_n == 0.0) stop'ERROR: wnrl_min_n = 0'
-                if (wnrl_max_p == 0.0) stop'ERROR: wnrl_max_p = 0'
-                if (wnrl_min_p == 0.0) stop'ERROR: wnrl_min_p = 0'
-                if (nyRay < 3) stop'ERROR: nyRay < 3'
+                if (wnrl_max_n == 0.0) stop 'ERROR: wnrl_max_n = 0'
+                if (wnrl_min_n == 0.0) stop 'ERROR: wnrl_min_n = 0'
+                if (wnrl_max_p == 0.0) stop 'ERROR: wnrl_max_p = 0'
+                if (wnrl_min_p == 0.0) stop 'ERROR: wnrl_min_p = 0'
+                if (nyRay < 3) stop 'ERROR: nyRay < 3'
 
                 dwnrl_mg_n = log(wnrl_max_n/wnrl_min_n)/(nyRay/2 - 1)
                 dwnrl_mg_p = log(wnrl_max_p/wnrl_min_p)/(nyRay/2 - 1)
              end if
 
-             if (wnrm_max_n == 0.0) stop'ERROR: wnrm_max_n = 0'
-             if (wnrm_min_n == 0.0) stop'ERROR: wnrm_min_n = 0'
-             if (wnrm_max_p == 0.0) stop'ERROR: wnrm_max_p = 0'
-             if (wnrm_min_p == 0.0) stop'ERROR: wnrm_min_p = 0'
-             if (nzRay < 3) stop'ERROR: nzRay < 3'
+             if (wnrm_max_n == 0.0) stop 'ERROR: wnrm_max_n = 0'
+             if (wnrm_min_n == 0.0) stop 'ERROR: wnrm_min_n = 0'
+             if (wnrm_max_p == 0.0) stop 'ERROR: wnrm_max_p = 0'
+             if (wnrm_min_p == 0.0) stop 'ERROR: wnrm_min_p = 0'
+             if (nzRay < 3) stop 'ERROR: nzRay < 3'
 
              dwnrm_mg_n = log(wnrm_max_n/wnrm_min_n)/(nzRay/2 - 1)
              dwnrm_mg_p = log(wnrm_max_p/wnrm_min_p)/(nzRay/2 - 1)
@@ -4922,7 +4922,7 @@ contains
 
                       wadrmg(jRay) = wdr * omir * fcpspx * fcpspy * fcpspz
                      else 
-                      stop'wrong cons_merge in merge_rayvol'
+                      stop 'wrong cons_merge in merge_rayvol'
                    end if
                   else
                    xrmnmg(jRay) = min(xrmnmg(jRay), xr - 0.5*dxr)
@@ -4959,7 +4959,7 @@ contains
                       = wadrmg(jRay) &
                         + wdr * omir * fcpspx * fcpspy * fcpspz
                      else 
-                      stop'wrong cons_merge in merge_rayvol'
+                      stop 'wrong cons_merge in merge_rayvol'
                    end if
                 end if
              end do
@@ -5082,7 +5082,7 @@ contains
                    ray(iRay,ix,jy,kz)%dens &
                    = wadrmg(jRay) / (omir*fcpspx*fcpspy*fcpspz)
                   else 
-                   stop'wrong cons_merge in merge_rayvol'
+                   stop 'wrong cons_merge in merge_rayvol'
                 end if
 
                 !testb
@@ -5478,9 +5478,9 @@ contains
                    + (real(jl) - 0.5) * dl_ini_nd/nrl_init)
 
                 if (fac_dm_init == 0.0) then
-                   stop'ERROR: FAC_DM_INIT = 0.0'
+                   stop 'ERROR: FAC_DM_INIT = 0.0'
                   else if (wnm_0 == 0.0) then
-                   stop'ERROR: WNM_0 = 0.0'
+                   stop 'ERROR: WNM_0 = 0.0'
                   else
                    dm_ini_nd = fac_dm_init * abs(wnm_0)
                 end if
@@ -5920,7 +5920,7 @@ contains
                          case ("periodic")
                             xr = lx(1) + mod(xr - lx(0),lx(1) - lx(0))
                          case default
-                            stop"transport_rayvol: unknown case xBoundary"
+                            stop "transport_rayvol: unknown case xBoundary"
                       end select
 
                       ray(iRay,ix,jy,kz)%x = xr
@@ -5929,7 +5929,7 @@ contains
                          case ("periodic")
                             xr = lx(0) + mod(xr - lx(1),lx(1) - lx(0))
                          case default
-                            stop"transport_rayvol: unknown case xBoundary"
+                            stop "transport_rayvol: unknown case xBoundary"
                       end select
 
                       ray(iRay,ix,jy,kz)%x = xr
@@ -5944,7 +5944,7 @@ contains
                          case ("periodic")
                             yr = ly(1) + mod(yr - ly(0),ly(1) - ly(0))
                          case default
-                            stop"transport_rayvol: unknown case yBoundary"
+                            stop "transport_rayvol: unknown case yBoundary"
                       end select
 
                       ray(iRay,ix,jy,kz)%y = yr
@@ -5953,7 +5953,7 @@ contains
                          case ("periodic")
                             yr = ly(0) + mod(yr - ly(1),ly(1) - ly(0))
                          case default
-                            stop"transport_rayvol: unknown case yBoundary"
+                            stop "transport_rayvol: unknown case yBoundary"
                       end select
 
                       ray(iRay,ix,jy,kz)%y = yr
@@ -5981,7 +5981,7 @@ contains
                          if(zr + 0.5*dzr < lz(0)) &
                          & ray(iRay,ix,jy,kz)%dens = 0.0
                       case default
-                         stop"transport_rayvol: unknown case zBoundary"
+                         stop "transport_rayvol: unknown case zBoundary"
                    end select
                   elseif (zr > lz(1)) then
                    select case (zBoundary)
@@ -5995,7 +5995,7 @@ contains
                          if(zr - 0.5*dzr > lz(1)) &
                          & ray(iRay,ix,jy,kz)%dens = 0.0
                       case default
-                         stop"transport_rayvol: unknown case zBoundary"
+                         stop "transport_rayvol: unknown case zBoundary"
                    end select
                 end if
              end do
@@ -6104,7 +6104,7 @@ contains
                       case ("solid_wall")
                          cycle
                       case default
-                         stop"saturation_3D: unknown case zBoundary"
+                         stop "saturation_3D: unknown case zBoundary"
                    end select
                   elseif (zr > lz(1)) then
                    select case (zBoundary)
@@ -6113,7 +6113,7 @@ contains
                       case ("solid_wall")
                          cycle
                       case default
-                         stop"saturation_3D: unknown case zBoundary"
+                         stop "saturation_3D: unknown case zBoundary"
                    end select
                 end if
 
@@ -6131,14 +6131,14 @@ contains
                          case ("periodic")
                             xr = lx(1) + mod(xr - lx(0),lx(1) - lx(0))
                          case default
-                            stop"saturation_3D: unknown case xBoundary"
+                            stop "saturation_3D: unknown case xBoundary"
                       end select
                      elseif (xr > lx(1)) then
                       select case (xBoundary)
                          case ("periodic")
                             xr = lx(0) + mod(xr - lx(1),lx(1) - lx(0))
                          case default
-                            stop"saturation_3D: unknown case xBoundary"
+                            stop "saturation_3D: unknown case xBoundary"
                       end select
                    end if
 
@@ -6153,14 +6153,14 @@ contains
                          case ("periodic")
                             yr = ly(1) + mod(yr - ly(0),ly(1) - ly(0))
                          case default
-                            stop"saturation_3D: unknown case yBoundary"
+                            stop "saturation_3D: unknown case yBoundary"
                       end select
                      elseif (yr > ly(1)) then
                       select case (yBoundary)
                          case ("periodic")
                             yr = ly(0) + mod(yr - ly(1),ly(1) - ly(0))
                          case default
-                            stop"saturation_3D: unknown case yBoundary"
+                            stop "saturation_3D: unknown case yBoundary"
                       end select
                    end if
 
@@ -6275,7 +6275,7 @@ contains
                       case ("solid_wall")
                          cycle
                       case default
-                         stop"saturation_3D: unknown case zBoundary"
+                         stop "saturation_3D: unknown case zBoundary"
                    end select
                   elseif (zr > lz(1)) then
                    select case (zBoundary)
@@ -6284,7 +6284,7 @@ contains
                       case ("solid_wall")
                          cycle
                       case default
-                         stop"saturation_3D: unknown case zBoundary"
+                         stop "saturation_3D: unknown case zBoundary"
                    end select
                 end if
 
@@ -6302,14 +6302,14 @@ contains
                          case ("periodic")
                             xr = lx(1) + mod(xr - lx(0),lx(1) - lx(0))
                          case default
-                            stop"saturation_3D: unknown case xBoundary"
+                            stop "saturation_3D: unknown case xBoundary"
                       end select
                      elseif (xr > lx(1)) then
                       select case (xBoundary)
                          case ("periodic")
                             xr = lx(0) + mod(xr - lx(1),lx(1) - lx(0))
                          case default
-                            stop"saturation_3D: unknown case xBoundary"
+                            stop "saturation_3D: unknown case xBoundary"
                       end select
                    end if
 
@@ -6324,14 +6324,14 @@ contains
                          case ("periodic")
                             yr = ly(1) + mod(yr - ly(0),ly(1) - ly(0))
                          case default
-                            stop"saturation_3D: unknown case yBoundary"
+                            stop "saturation_3D: unknown case yBoundary"
                       end select
                      elseif (yr > ly(1)) then
                       select case (yBoundary)
                          case ("periodic")
                             yr = ly(0) + mod(yr - ly(1),ly(1) - ly(0))
                          case default
-                            stop"saturation_3D: unknown case yBoundary"
+                            stop "saturation_3D: unknown case yBoundary"
                       end select
                    end if
 
@@ -6397,7 +6397,7 @@ contains
                       case ("solid_wall")
                          cycle
                       case default
-                         stop"saturation_3D: unknown case zBoundary"
+                         stop "saturation_3D: unknown case zBoundary"
                    end select
                   elseif (zr > lz(1)) then
                    select case (zBoundary)
@@ -6406,7 +6406,7 @@ contains
                       case ("solid_wall")
                          cycle
                       case default
-                         stop"saturation_3D: unknown case zBoundary"
+                         stop "saturation_3D: unknown case zBoundary"
                    end select
                 end if
 
@@ -6424,14 +6424,14 @@ contains
                          case ("periodic")
                             xr = lx(1) + mod(xr - lx(0),lx(1) - lx(0))
                          case default
-                            stop"saturation_3D: unknown case xBoundary"
+                            stop "saturation_3D: unknown case xBoundary"
                       end select
                      elseif (xr > lx(1)) then
                       select case (xBoundary)
                          case ("periodic")
                             xr = lx(0) + mod(xr - lx(1),lx(1) - lx(0))
                          case default
-                            stop"saturation_3D: unknown case xBoundary"
+                            stop "saturation_3D: unknown case xBoundary"
                       end select
                    end if
 
@@ -6446,14 +6446,14 @@ contains
                          case ("periodic")
                             yr = ly(1) + mod(yr - ly(0),ly(1) - ly(0))
                          case default
-                            stop"saturation_3D: unknown case yBoundary"
+                            stop "saturation_3D: unknown case yBoundary"
                       end select
                      elseif (yr > ly(1)) then
                       select case (yBoundary)
                          case ("periodic")
                             yr = ly(0) + mod(yr - ly(1),ly(1) - ly(0))
                          case default
-                            stop"saturation_3D: unknown case yBoundary"
+                            stop "saturation_3D: unknown case yBoundary"
                       end select
                    end if
 
@@ -6556,10 +6556,10 @@ contains
     integer :: i,j,k
 
     allocate(flxwkb_0(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), stat=allocstat)
-    if(allocstat/=0) stop"smooth_wkb_shapiro:alloc failed"
+    if(allocstat/=0) stop "smooth_wkb_shapiro:alloc failed"
 
     allocate(flxwkb_1(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), stat=allocstat)
-    if(allocstat/=0) stop"smooth_wkb_shapiro:alloc failed"
+    if(allocstat/=0) stop "smooth_wkb_shapiro:alloc failed"
 
     ! set the values for flxwkb_0
 
@@ -6571,9 +6571,9 @@ contains
        case( 111 )
           ! boundaries only filling min(n.,nb.) ghost cells, hence
 
-          if(min(nx,nbx) < nsmth) stop'min(nx,nbx) too small for smoothing'
-          if(min(ny,nby) < nsmth) stop'min(ny,nby) too small for smoothing'
-          if(min(nz,nbz) < nsmth) stop'min(nz,nbz) too small for smoothing'
+          if(min(nx,nbx) < nsmth) stop 'min(nx,nbx) too small for smoothing'
+          if(min(ny,nby) < nsmth) stop 'min(ny,nby) too small for smoothing'
+          if(min(nz,nbz) < nsmth) stop 'min(nz,nbz) too small for smoothing'
 
           if (nsmth == 1) then
              ! smooth in x
@@ -6753,8 +6753,8 @@ contains
        case( 101 )
           ! boundaries only filling min(n.,nb.) ghost cells, hence
 
-          if(min(nx,nbx) < nsmth) stop'min(nx,nbx) too small for smoothing'
-          if(min(nz,nbz) < nsmth) stop'min(nz,nbz) too small for smoothing'
+          if(min(nx,nbx) < nsmth) stop 'min(nx,nbx) too small for smoothing'
+          if(min(nz,nbz) < nsmth) stop 'min(nz,nbz) too small for smoothing'
 
           if (nsmth == 1) then
              ! smooth in x
@@ -6880,8 +6880,8 @@ contains
        case( 11 )
           ! boundaries only filling min(n.,nb.) ghost cells, hence
 
-          if(min(ny,nby) < nsmth) stop'min(nx,nbx) too small for smoothing'
-          if(min(nz,nbz) < nsmth) stop'min(nz,nbz) too small for smoothing'
+          if(min(ny,nby) < nsmth) stop 'min(nx,nbx) too small for smoothing'
+          if(min(nz,nbz) < nsmth) stop 'min(nz,nbz) too small for smoothing'
 
           if (nsmth == 1) then
              ! smooth in y
@@ -7013,16 +7013,16 @@ contains
              end do
           end do
        case default
-          stop"unknown case homog_dir."
+          stop "unknown case homog_dir."
     end select
 
     call setboundary_wkb(flxwkb)
 
     ! deallocate local fields
     deallocate(flxwkb_0, stat=allocstat); if(allocstat/=0) &
-         & stop"smooth_wkb_shapiro:dealloc failed"
+         & stop "smooth_wkb_shapiro:dealloc failed"
     deallocate(flxwkb_1, stat=allocstat); if(allocstat/=0) &
-         & stop"smooth_wkb_shapiro:dealloc failed"
+         & stop "smooth_wkb_shapiro:dealloc failed"
 
     return
 
@@ -7054,7 +7054,7 @@ contains
     integer :: i,j,k
 
     allocate(flxwkb_0(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), stat=allocstat)
-    if(allocstat/=0) stop"smooth_wkb:alloc failed"
+    if(allocstat/=0) stop "smooth_wkb:alloc failed"
 
     ! set the values for flxwkb_0
 
@@ -7066,9 +7066,9 @@ contains
        case( 111 )
           ! boundaries only filling min(n.,nb.) ghost cells, hence
 
-          if(min(nx,nbx) < nsmth) stop'min(nx,nbx) too small for smoothing'
-          if(min(ny,nby) < nsmth) stop'min(ny,nby) too small for smoothing'
-          if(min(nz,nbz) < nsmth) stop'min(nz,nbz) too small for smoothing'
+          if(min(nx,nbx) < nsmth) stop 'min(nx,nbx) too small for smoothing'
+          if(min(ny,nby) < nsmth) stop 'min(ny,nby) too small for smoothing'
+          if(min(nz,nbz) < nsmth) stop 'min(nz,nbz) too small for smoothing'
 
           do k = 1,nz
              do j = 1,ny
@@ -7084,8 +7084,8 @@ contains
        case( 101 )
           ! boundaries only filling min(n.,nb.) ghost cells, hence
 
-          if(min(nx,nbx) < nsmth) stop'min(nx,nbx) too small for smoothing'
-          if(min(nz,nbz) < nsmth) stop'min(nz,nbz) too small for smoothing'
+          if(min(nx,nbx) < nsmth) stop 'min(nx,nbx) too small for smoothing'
+          if(min(nz,nbz) < nsmth) stop 'min(nz,nbz) too small for smoothing'
 
           do k = 1,nz
              do j = 1,ny
@@ -7101,8 +7101,8 @@ contains
        case( 11 )
           ! boundaries only filling min(n.,nb.) ghost cells, hence
 
-          if(min(ny,nby) < nsmth) stop'min(nx,nbx) too small for smoothing'
-          if(min(nz,nbz) < nsmth) stop'min(nz,nbz) too small for smoothing'
+          if(min(ny,nby) < nsmth) stop 'min(nx,nbx) too small for smoothing'
+          if(min(nz,nbz) < nsmth) stop 'min(nz,nbz) too small for smoothing'
 
           do k = 1,nz
              do j = 1,ny
@@ -7124,14 +7124,14 @@ contains
              end do
           end do
        case default
-          stop"unknown case homog_dir."
+          stop "unknown case homog_dir."
     end select
 
     call setboundary_wkb(flxwkb)
 
     ! deallocate local fields
     deallocate(flxwkb_0, stat=allocstat); if(allocstat/=0) &
-         & stop"smooth_wkb:dealloc failed"
+         & stop "smooth_wkb:dealloc failed"
 
     return
 
@@ -7173,14 +7173,14 @@ contains
        case ("periodic")
            call setboundary_x_periodic_wkb(flxwkb)
        case default
-          stop"setboundary_hor_wkb: unknown case xBoundary"
+          stop "setboundary_hor_wkb: unknown case xBoundary"
     end select
 
     select case (yBoundary)
        case ("periodic")
            call setboundary_y_periodic_wkb(flxwkb)
        case default
-          stop"setboundary_hor_wkb: unknown case xBoundary"
+          stop "setboundary_hor_wkb: unknown case xBoundary"
     end select
 
     return
@@ -7364,7 +7364,7 @@ contains
        case ("solid_wall")
            call setboundary_z_solidwall_wkb(flxwkb)
        case default
-          stop"setboundary_hor_wkb: unknown case xBoundary"
+          stop "setboundary_hor_wkb: unknown case xBoundary"
     end select
 
     return
@@ -7450,14 +7450,14 @@ contains
        case ("periodic")
            call setboundary_frc_x_periodic_wkb(frcwkb)
        case default
-          stop"setboundary_frc_hor_wkb: unknown case xBoundary"
+          stop "setboundary_frc_hor_wkb: unknown case xBoundary"
     end select
 
     select case (yBoundary)
        case ("periodic")
            call setboundary_frc_y_periodic_wkb(frcwkb)
        case default
-          stop"setboundary_frc_hor_wkb: unknown case xBoundary"
+          stop "setboundary_frc_hor_wkb: unknown case xBoundary"
     end select
 
     return
@@ -7620,7 +7620,7 @@ contains
        case ("solid_wall")
            call setboundary_frc_z_solidwall_wkb(frcwkb)
        case default
-          stop"setboundary_frc_vrt_wkb: unknown case zBoundary"
+          stop "setboundary_frc_vrt_wkb: unknown case zBoundary"
     end select
 
     return
@@ -7696,7 +7696,7 @@ contains
     logical :: rightmost, leftmost
 
     if (xBoundary /= "periodic") then
-       stop'ERROR: boundary conditions in setboundary_rayvol_x must be &
+       stop 'ERROR: boundary conditions in setboundary_rayvol_x must be &
           & periodic!'
     end if
 
@@ -7937,7 +7937,7 @@ contains
                                               & xSliceRight_recv
 
     if (xBoundary /= "periodic") then
-       stop'ERROR: boundary conditions in setboundary_irshift_x must be &
+       stop 'ERROR: boundary conditions in setboundary_irshift_x must be &
           & periodic!'
     end if
 
@@ -8115,7 +8115,7 @@ contains
                                           & xSliceRight_recv
 
     if (xBoundary /= "periodic") then
-       stop'ERROR: boundary conditions in setboundary_nshift_x must be &
+       stop 'ERROR: boundary conditions in setboundary_nshift_x must be &
           & periodic!'
     end if
 
@@ -8223,7 +8223,7 @@ contains
     logical :: forwardmost, backwardmost
 
     if (yBoundary /= "periodic") then
-       stop'ERROR: boundary conditions in setboundary_rayvol_y must be &
+       stop 'ERROR: boundary conditions in setboundary_rayvol_y must be &
           & periodic!'
     end if
 
@@ -8466,7 +8466,7 @@ contains
                                               & ySliceForw_recv
 
     if (yBoundary /= "periodic") then
-       stop'ERROR: boundary conditions in setboundary_irshift_y must be &
+       stop 'ERROR: boundary conditions in setboundary_irshift_y must be &
           & periodic!'
     end if
 
@@ -8641,7 +8641,7 @@ contains
                                           & ySliceForw_recv
 
     if (yBoundary /= "periodic") then
-       stop'ERROR: boundary conditions in setboundary_nshift_y must be &
+       stop 'ERROR: boundary conditions in setboundary_nshift_y must be &
           & periodic!'
     end if
 
@@ -8737,7 +8737,7 @@ contains
                                           & xSliceRight_recv
 
     if (xBoundary /= "periodic") then
-       stop'ERROR: boundary conditions in setboundary_nray_x must be &
+       stop 'ERROR: boundary conditions in setboundary_nray_x must be &
           & periodic!'
     end if
 
@@ -8818,7 +8818,7 @@ contains
                                           & ySliceForw_recv
 
     if (yBoundary /= "periodic") then
-       stop'ERROR: boundary conditions in setboundary_nRay_y must be &
+       stop 'ERROR: boundary conditions in setboundary_nRay_y must be &
           & periodic!'
     end if
 

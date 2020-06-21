@@ -222,7 +222,7 @@ contains
     line = trim(line)//trim(variablesChar)//"'"
     write( unit=60,fmt="(a)") trim(line)
 !    print*,"variable line = ", trim(line)
-!    stop "test stop"
+!    stop "test stop "
 
 
 

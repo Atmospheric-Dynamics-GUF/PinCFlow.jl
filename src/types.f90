@@ -6,6 +6,7 @@ module type_module
   !    data fields.
   !-----------------------------------------------------------------  
  
+  use mpi
 
   !-----------------------------------------------------------
   implicit none
@@ -35,7 +36,7 @@ module type_module
 
 
   ! MPI include (parameters needed below)
-  include 'mpif.h' 
+!  include 'mpif.h'
   
   ! MPI variables
   integer :: ierror
