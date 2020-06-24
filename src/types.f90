@@ -47,9 +47,9 @@ module type_module
   integer :: nbProc, comm
   logical :: master
   integer, dimension(mpi_status_size) :: sts_left, sts_right, sts_back, sts_forw
-
-  integer, parameter :: root = 0
   
+  integer, parameter :: root = 0
+
 
   !-----------------------------------------------------------------  
   !                      (local) Grid & Domain
@@ -496,11 +496,11 @@ module type_module
   logical           :: heatingONK14        ! pseudo-incompressible dynamics 
                                            ! with heating as in 
                                            ! ONeill & Klein (2014)
-
-  logical           :: heatingRefAtmo      ! heating of ref. atmo. on/off 
-                                           ! defined in subroutine setup 
-                                           ! (init.f90) ! based on heatingONK14, 
-                                           ! turbScheme, raytracer
+  ! GBcorr
+  logical           :: heating             ! heating on/off defined in 
+                                           ! subroutine setup (init.f90)
+                                           ! based on heatingONK14,turbScheme. 
+                                           ! raytracer
 
   logical           :: dens_relax          ! switch for replacement of
                                            ! relaxational heating by 
@@ -803,16 +803,14 @@ contains
   !                     Set default values
   !-----------------------------------------------------------------
 
-  ! Set default values. This is just an initial set here, 
+  ! GBcorr: set default values. This is just an initial set here, 
   ! which I found important for the test I did. But extending it 
   ! would be really good because logicals, if not set explicitly, 
   ! are initialized as .T. or .F. depending on the platform. So 
   ! particular "random" settings should be avoided by defaults.
 
-  musclType = "muscl2"            ! muscl1 / muscl2
-
-  heatingONK14 = .true.           ! heating implemented as Oneil and Klein (2014)
-
+  musclType = "muscl1"            ! muscl1 / muscl2
+  heatingONK14 = .false.          ! heating implemented as Oneil and Klein (2014)
   shap_dts_dim = -1.              ! Shaprio filter switched off
   
   include_ice = .false.           ! switch ice scheme off

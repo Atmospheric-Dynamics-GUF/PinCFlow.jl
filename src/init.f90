@@ -44,7 +44,7 @@ contains
 
   !UAB
   !subrouine setup (var,var0,var1,flux,force,source,dRho,dRhop,dMom,dTheta)
-  subroutine setup (var,var0,var1,flux,flux_rhopw,force,source,dRho,dRhop,dMom, &
+  subroutine setup (var,var0,var1,flux,force,source,dRho,dRhop,dMom, &
                   & dTheta,dPStrat,drhoStrat,w_0,dIce)
   
   !UAE
@@ -56,7 +56,6 @@ contains
     real,dimension(:,:,:,:), allocatable,intent(out) :: var, var0, var1, &
                                                       & source
     real,dimension(:,:,:,:,:), allocatable,intent(out) :: flux
-    real, dimension(:,:,:), allocatable, intent(out) :: flux_rhopw
     real,dimension(:,:,:,:), allocatable,intent(out) :: force
     real,dimension(:,:,:), allocatable :: dRho,dRhop   ! RK-Update for rho
     real,dimension(:,:,:,:), allocatable :: dMom ! ...rhoU,rhoV,rhoW
@@ -173,10 +172,6 @@ contains
     allocate(flux(-1:nx,-1:ny,-1:nz,3,nVar),stat=allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate flux"
 
-    ! allocate flux_rhopw 
-    allocate(flux_rhopw(-1:nx,-1:ny,-1:nz),stat=allocstat)
-    if(allocstat /= 0) stop "init.f90: could not allocate flux_rhopw"
-
     ! allocate force 
     allocate(force(0:nx+1,0:ny+1,0:nz+1,3),stat=allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate force"
@@ -279,8 +274,20 @@ contains
     ! close input file pinc.f
     close (unit=10)
 
-    ! decide if heating of the reference atmosphere is applied or not
-    heatingRefAtmo = (heatingONK14 .or. TurbScheme .or. rayTracer)
+    ! GBcorr: decide if heating is applied or not + error messages
+    if (heatingONK14 .and. (background == 'realistic'  .or.& 
+                            background == 'isothermal' .or.&
+                            background == 'isentropic' .or.&
+                            background == 'const-N' )) then
+      print*, "WARNING: you are using an idealized background& 
+                      & (realistic/isothermal/isentropic/const-N)&
+                      & AND heating is ON (heatingONK14=.T.)!!!&
+                      & To switch off heating set heatingONK14=.F.&
+                      & in the namelist."
+      heating = (heatingONK14 .and. (TurbScheme .or. rayTracer))
+    else
+      heating = (heatingONK14 .and. (TurbScheme .or. rayTracer))
+    endif
 
     !UAB
     if (TestCase == "baroclinic_LC") then
@@ -501,6 +508,9 @@ contains
     real, dimension(1:ny) :: s2_strtd, c2_strtd, c4_strtd
     real :: yjets, yjetn, dy_hs, tempev, pistar, thetastar, sig_pr, facsig
     real :: ka_hs, ks_hs, kf_hs
+    real :: tp_sponge !FS
+
+    real, dimension(1:ny) :: f_Coriolis_y
 
     ! open the namelist file
     open (unit=10, file=file_namelist, action="read", &
@@ -1129,24 +1139,65 @@ contains
 
                 if( r<=1.0 ) then  ! inside bubble
                    dTheta_dim &
-                   = 0.5*dTheta0_dim * (1.0 + (cos(pi*r/2.0))**2)
-                   theta = thetaStrat(k) - dTheta_dim / thetaRef
+                   = -7.5*(1.+cos(pi*r))
+                   != 0.5*dTheta0_dim * (1.0 + (cos(pi*r/2.0))**2)
+                   theta = thetaStrat(k) + dTheta_dim / thetaRef
 
-                   ! calc pseudo-incompressible density rho*
-                   if ( referenceQuantities == "SI" ) then
-                      rho = p0**kappa/Rsp * Pstrat(k) / theta
+                    if( fluctuationMode )  then
+                      ! calc pseudo-incompressible density rho*
+                      if ( referenceQuantities == "SI" ) then
+                         rho &
+                         = p0**kappa/Rsp * Pstrat(k) / theta - rhoStrat(k)
+                      else
+                         rho = Pstrat(k) / theta - rhoStrat(k)
+                      end if
                    else
-                      rho = Pstrat(k) / theta
-                   end if
-                   var(i,j,k,1) = rho
+                      ! calc pseudo-incompressible density rho*
+                      if ( referenceQuantities == "SI" ) then
+                         rho = p0**kappa/Rsp * Pstrat(k) / theta
+                      else
+                         rho = Pstrat(k) / theta
+                      end if
+                   end if  ! fluctuation mode
+
+                   select case( model )
+
+                   case( "pseudo_incompressible" )
+
+                       var(i,j,k,1) = rho
+
+                   case( "Boussinesq" )
+
+                       var(i,j,k,1) = rhoStrat(k)
+                       var(i,j,k,6) = dTheta_dim / thetaRef
+
+                   case default
+                      stop "initialize: unknown model."
+                   end select
                 else  ! outside bubble
                    ! keep background density
-                   var(i,j,k,1) = rhoStrat(k)
+                   if (fluctuationMode) then
+                      var(i,j,k,1) = 0.
+                   else
+                      var(i,j,k,1) = rhoStrat(k)
+                   end if
                 end if
 
              end do
           end do
        end do
+
+       ! if (timeScheme == "semiimplicit" .or. auxil_equ) then
+       !    if( fluctuationMode ) then
+       !        do k = -nbz,nz+nbz
+       !           var(:,:,k,6) = var(:,:,k,1)
+       !        end do
+       !       else
+       !        do k = -nbz,nz+nbz
+       !           var(:,:,k,6) = var(:,:,k,1) - rhoStrat(k)
+       !        end do
+       !     end if
+       !  end if
 
 
        !-----------------------------------------------------------------
@@ -1446,7 +1497,86 @@ contains
                 end if
              end do
           end do
-       end do       
+       end do  
+
+       !----------------------------------------------------
+
+    case( 'SkamarockKlemp94' )
+
+       ! read test case input data
+       read (unit=10, nml=bubble)
+
+       if (referenceQuantities == "SI" ) then
+          stop "initialize: SI units not allowed"
+       end if
+
+       ! zero start velocity 
+       var(:,:,:,2) = 20.0/uRef
+       var(:,:,:,3) = 0.0
+       var(:,:,:,4) = 0.0
+
+       ! constant pressure variable pi' 
+       var(:,:,:,5) = 0.0
+
+       ! potential temperature and density
+       do k = 1,nz
+          do j = 1,ny
+             do i = 1,nx
+                x_dim = x(i) * lRef       ! dimensional lenghts
+                z_dim = z(k) * lRef
+
+                ! delX = (x_dim - xCenter_dim)*60. / lx_dim(1)
+                ! delZ = (z_dim - zCenter_dim) / zRadius_dim
+
+                ! r = sqrt(delX**2 + delZ**2)  ! scaled radius
+
+               ! if( r<=1.0 ) then  ! inside bubble
+                   dTheta_dim &
+                   = 0.01*sin((pi*z_dim)/10000.)/(1.+((x_dim-xCenter_dim)*60./lx_dim(1))**2)
+                   != 0.5*dTheta0_dim * (1.0 + (cos(pi*r/2.0))**2)
+                   theta = thetaStrat(k) + dTheta_dim / thetaRef
+
+                    if( fluctuationMode )  then
+                      ! calc pseudo-incompressible density rho*
+                      if ( referenceQuantities == "SI" ) then
+                         rho &
+                         = p0**kappa/Rsp * Pstrat(k) / theta - rhoStrat(k)
+                      else
+                         rho = Pstrat(k) / theta - rhoStrat(k)
+                      end if
+                   else
+                      ! calc pseudo-incompressible density rho*
+                      if ( referenceQuantities == "SI" ) then
+                         rho = p0**kappa/Rsp * Pstrat(k) / theta
+                      else
+                         rho = Pstrat(k) / theta
+                      end if
+                   end if  ! fluctuation mode
+
+                   select case( model )
+
+                   case( "pseudo_incompressible" )
+
+                       var(i,j,k,1) = rho
+
+                   case( "Boussinesq" )
+
+                       var(i,j,k,1) = rhoStrat(k)
+                       var(i,j,k,6) = dTheta_dim / thetaRef
+
+                   case default
+                      stop "initialize: unknown model."
+                   end select
+          
+
+             end do
+          end do
+       end do
+
+      
+
+
+       !-----------------------------------------------------------------
        
        !----------------------------------------------------------------
        !               Baroclinic life cycle: realistic
@@ -1797,8 +1927,13 @@ contains
              kv_hs(k) = kf_hs*facsig 
              
              do j=1,ny
+                
                 kt_hs(j,k) = ka_hs + (ks_hs - ka_hs)*facsig*c4_strtd(j) 
+                ! if (k > ksponge) then !FS
+                !   kt_hs(j,k) = 0.!kt_hs(j,kSponge)!*(1.-real(k-kSponge)/real(nz+1-kSponge))!*(1.-tan((real(k-kSponge)/real(nz+1-kSponge))*pi/4.))! 
+                ! end if
              end do
+             
           end do
 
           do j=1,ny
@@ -1832,7 +1967,7 @@ contains
              ! integration of hydrostatic equilibrium, using a trapezoidal 
              ! leapfrog
 
-             do k = 2, nz+1
+             do k = 2, nz-ceiling((spongeHeight+spongeHeight/3.)*real(nz)) !nz+1 !FS
                 do i=1,nx
                    pistar &
                    = var(i,j,k-2,5) - 2.0*dz * kappa/the_env_pp(i,j,k-1)
@@ -1844,13 +1979,14 @@ contains
                              - ptdiffvert_tropo/kappa * log(pistar) &
                                * c2_strtd(j)))
 
+
                    thetastar = tempev/pistar
 
                    var(i,j,k,5) &
                    =   var(i,j,k-1,5) &
                      - 0.5*dz &
                        * (kappa/thetastar + kappa/the_env_pp(i,j,k-1))
-
+                   
                    tempev &
                    = max( tp_strato, &
                           var(i,j,k,5) &
@@ -1858,15 +1994,50 @@ contains
                              - ptdiffvert_tropo/kappa * log(var(i,j,k,5)) &
                                * c2_strtd(j)))
 
+
                    the_env_pp(i,j,k) = tempev/var(i,j,k,5)
+                  
+           
                 end do
              end do
 
+             tp_sponge = tempev
+
+             ! close jets below sponge layer !FS
+             do k = nz+1-ceiling((spongeHeight+spongeHeight/3.)*real(nz)), nz+1 !FS
+                do i=1,nx
+                   pistar &
+                   = var(i,j,k-2,5) - 2.0*dz * kappa/the_env_pp(i,j,k-1)
+
+                   tempev &
+                   = tp_sponge + pistar*(tpdiffhor_tropo * s2_strtd(j) &
+                       + ptdiffvert_tropo/kappa * log(pistar) * c2_strtd(j))
+
+
+                   thetastar = tempev/pistar
+
+                   var(i,j,k,5) &
+                   =   var(i,j,k-1,5) &
+                     - 0.5*dz &
+                       * (kappa/thetastar + kappa/the_env_pp(i,j,k-1))
+                   
+                   tempev &
+                   = tp_sponge + var(i,j,k,5)*(tpdiffhor_tropo * s2_strtd(j) &
+                       + ptdiffvert_tropo/kappa * log(var(i,j,k,5)) * c2_strtd(j))
+
+
+                   the_env_pp(i,j,k) = tempev/var(i,j,k,5)
+                  
+           
+                end do
+             end do
+             
+            
              ! density
 
              do k = 0,nz+1
                 dens_env_pp(:,j,k) = Pstrat(k) /  the_env_pp(:,j,k)
-
+                
                 if (fluctuationMode) then
                    var(1:nx,j,k,1) = dens_env_pp(1:nx,j,k) - rhoStrat(k)
                   else
@@ -1878,7 +2049,7 @@ contains
           ! subtract reference-atmosphere Exner pressure from the total
 
           do k = 0, nz+1
-             var(1:nx,1:ny,k,5) = var(1:nx,1:ny,k,5) - pistrat(k) !FS
+             var(1:nx,1:ny,k,5) = var(1:nx,1:ny,k,5) - pistrat(k) 
           end do
          else
           stop 'ERROR: wrong background for baroclinic_LC'
@@ -1891,6 +2062,12 @@ contains
 
        ! determine horizontal wind from density and Exner-pressure 
        ! fluctuations
+
+       ! do j = 1,ny
+       !    yloc = y(j+j00)
+       !    f_Coriolis_y(j) = f_Coriolis_dim*sin(pi*yloc/ymax)
+       ! end do
+    
 
        do k=0,nz+1
           do j=1,ny
@@ -1912,22 +2089,29 @@ contains
 
                    rho = rho + rhoStrat(k)
                 end if
+                
+                yloc = y(j+j00)
+                f_Coriolis_y(j) = f_Coriolis_dim*sin(pi*yloc/ymax)
+                if (f_Coriolis_y(j) /= 0.0) then
+                   var(i,j,k,2) &
+                        = - (uRef/f_Coriolis_y(j)/lRef)/(Ma2*kappa*dy) &
+                        * Pstrat(k) &
+                        * 0.25 &
+                        * (  (var(i  ,j  ,k,5) - var(i  ,j-1,k,5)) &
+                        / rho_int_0m &
+                        + (var(i  ,j+1,k,5) - var(i  ,j  ,k,5)) &
+                        / rho_int_00 &
+                        + (var(i+1,j  ,k,5) - var(i+1,j-1,k,5)) &
+                        / rho_int_pm &
+                        + (var(i+1,j+1,k,5) - var(i+1,j  ,k,5)) &
+                     / rho_int_p0)
+                   
+                   
+                   u_env_pp(i,j,k) = var(i,j,k,2)
+                   v_env_pp(i,j,k) = 0.
 
-                var(i,j,k,2) &
-                = - Ro/(Ma2*kappa*dy) &
-                    * Pstrat(k) &
-                    * 0.25 &
-                    * (  (var(i  ,j  ,k,5) - var(i  ,j-1,k,5)) &
-                         / rho_int_0m &
-                       + (var(i  ,j+1,k,5) - var(i  ,j  ,k,5)) &
-                         / rho_int_00 &
-                       + (var(i+1,j  ,k,5) - var(i+1,j-1,k,5)) &
-                         / rho_int_pm &
-                       + (var(i+1,j+1,k,5) - var(i+1,j  ,k,5)) &
-                         / rho_int_p0)
-
-                u_env_pp(i,j,k) = var(i,j,k,2)
-                v_env_pp(i,j,k) = 0.
+                end if
+                
              end do
           end do
        end do
@@ -1968,7 +2152,7 @@ contains
 
           ptptb_amp = ptptb_amp_dim/thetaRef
 
-          do k = 1,nz
+          do k = 1, nz 
              zloc = z(k)
    
              do j = 1,ny
@@ -1997,7 +2181,7 @@ contains
                     
                                       
                  if (fluctuationMode) then
-                     rho = var(i,j,k,1) + rhoStrat(k)!Pstrat(k)
+                     rho = var(i,j,k,1) + rhoStrat(k) !+ Pstrat(k) !FS
                   else
                      rho = var(i,j,k,1)
                   end if
@@ -2005,54 +2189,56 @@ contains
                   theta = Pstrat(k)/rho + thtptb
       
                   if (fluctuationMode) then
-                     var(i,j,k,1) =   Pstrat(k)/theta - rhostrat(k)!PStrat(k)
+                     var(i,j,k,1) =   Pstrat(k)/theta - rhoStrat(k)!- PStrat(k) !FS
                     else
                      var(i,j,k,1) =   Pstrat(k)/theta
                   end if
+
                 end do
              end do
           end do
+
 
           ! add local PT perturbation on SH !FS
-          ptptb_y = (-1.)*ptptb_y
-          do k = 1,nz
-             zloc = z(k)
+        !   ptptb_y = (-1.)*ptptb_y
+        !   do k = 1,nz
+        !      zloc = z(k)
    
-             do j = 1,ny
-                yloc = y(j00+j)
+        !      do j = 1,ny
+        !         yloc = y(j00+j)
    
-                do i = 1, nx
-                   xloc = x(i00+i)
+        !         do i = 1, nx
+        !            xloc = x(i00+i)
    
-                   rptb &
-                   = sqrt(  ((xloc - ptptb_x)/ptptb_dh)**2 &
-                          + ((yloc - ptptb_y)/ptptb_dh)**2 &
-                          + ((zloc - ptptb_z)/ptptb_dz)**2)
+        !            rptb &
+        !            = sqrt(  ((xloc - ptptb_x)/ptptb_dh)**2 &
+        !                   + ((yloc - ptptb_y)/ptptb_dh)**2 &
+        !                   + ((zloc - ptptb_z)/ptptb_dz)**2)
    
-                  if (rptb <= 1.0) then
-                     thtptb = ptptb_amp * cos(0.5*pi*rptb)**2
-                    else
-                      thtptb = 0.0
-                  end if
+        !           if (rptb <= 1.0) then
+        !              thtptb = ptptb_amp * cos(0.5*pi*rptb)**2
+        !             else
+        !               thtptb = 0.0
+        !           end if
 
    
-                  if (fluctuationMode) then
-                  rho = var(i,j,k,1) + rhoStrat(k)!Pstrat(k)
-                    else
-                     rho = var(i,j,k,1)
-                  end if
+        !           if (fluctuationMode) then
+        !           rho = var(i,j,k,1) + rhoStrat(k)!Pstrat(k)
+        !             else
+        !              rho = var(i,j,k,1)
+        !           end if
    
-                  theta = Pstrat(k)/rho - thtptb
+        !           theta = Pstrat(k)/rho - thtptb
       
-                  if (fluctuationMode) then
-                     var(i,j,k,1) =  Pstrat(k)/theta - rhoStrat(k)!Pstrat(k)
-                    else
-                     var(i,j,k,1) =   Pstrat(k)/theta
-                  end if
-                end do
-             end do
-          end do
-        end if
+        !           if (fluctuationMode) then
+        !              var(i,j,k,1) =  Pstrat(k)/theta - rhoStrat(k)!Pstrat(k)
+        !             else
+        !              var(i,j,k,1) =   Pstrat(k)/theta
+        !           end if
+        !         end do
+        !      end do
+        !   end do
+         end if
 
 
        !------------------------------------------
@@ -3470,6 +3656,17 @@ contains
 
       complex :: tmp_var_3DWP
 
+      real :: Ro_GWP, RoInv_GWP
+
+
+      if(f_Coriolis_dim /= 0.0) then !FS
+          Ro_GWP = uRef/f_Coriolis_dim/lRef  
+          RoInv_GWP = 1.0/Ro_GWP      
+       else
+          Ro_GWP = 1.d40
+          RoInv_GWP = 0.0
+       end if
+
       !-----------------------
       !      MPI stuff
       !-----------------------
@@ -3518,7 +3715,7 @@ contains
       kTot = sqrt(kTot2)
 
       ! intrinsic frequency
-      omi = omiSign * sqrt(N2 * (kk*kk + ll*ll) + RoInv*RoInv*mm*mm)/kTot
+      omi = omiSign * sqrt(N2 * (kk*kk + ll*ll) + RoInv_GWP*RoInv_GWP*mm*mm)/kTot
       omi2 = omi**2
 
       ! amplitude coefficients for wave 1
@@ -3539,7 +3736,7 @@ contains
          print*,"omi = ", omi/tRef
          print*,"mm = ", mm/lRef
 
-         print*,"RoInv = ", RoInv/tRef   ! modified by Junhong Wei
+         print*,"RoInv = ", RoInv_GWP/tRef   ! modified by Junhong Wei
 
         print*,""
         print*,"  0) Test case: "
@@ -3633,9 +3830,9 @@ contains
 
                tmp_var_3DWP &
                = cmplx( 0.0,  &
-                        (omi*omi - N2) / (mm*N2*(omi*omi - RoInv*RoInv)))
+                        (omi*omi - N2) / (mm*N2*(omi*omi - RoInv_GWP*RoInv_GWP)))
 
-               u10 = tmp_var_3DWP * cmplx( kk*omi, ll*RoInv ) * b11
+               u10 = tmp_var_3DWP * cmplx( kk*omi, ll*RoInv_GWP ) * b11
 
                w10 = cmplx(0.0, omi/N2) * b11
 
@@ -3645,7 +3842,7 @@ contains
 
                Psi(i,j,k,:,1) &
                = (/u10, w10, b11, pi12, &
-                   ( tmp_var_3DWP * cmplx( ll*omi, -kk*RoInv) * b11 ) /)
+                   ( tmp_var_3DWP * cmplx( ll*omi, -kk*RoInv_GWP) * b11 ) /)
 
             end do
          end do
