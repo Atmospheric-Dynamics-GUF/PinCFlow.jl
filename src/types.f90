@@ -805,7 +805,7 @@ contains
   ! are initialized as .T. or .F. depending on the platform. So 
   ! particular "random" settings should be avoided by defaults.
 
-  musclType = "muscl2"            ! muscl1 / muscl2
+  musclType = "muscl1"            ! muscl1 / muscl2
   heatingONK14 = .false.          ! heating implemented as Oneil and Klein (2014)
   shap_dts_dim = -1.              ! Shaprio filter switched off
 

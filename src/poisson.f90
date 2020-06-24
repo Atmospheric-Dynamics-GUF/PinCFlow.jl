@@ -2375,7 +2375,8 @@ contains
     real :: pGradX, pGradY, pGradZ
     real :: du, dv, dw, db
     real :: facu, facv, facw, facr
-    real :: f_cor_nd
+    !real :: f_cor_nd
+    real, dimension(0:ny+1) :: f_cor_nd
     real :: bvsstw
 
     real :: rhov0m, rhov00, rhov1m, rhov10
@@ -2391,6 +2392,7 @@ contains
     logical, parameter :: giveInfo = .true.
 
     integer :: i0,j0
+    real :: yloc, ymax
 
     if (model == "Boussinesq") then
        print*,'ERROR: correctorStep not ready for Boussinesq mode'
@@ -2400,8 +2402,17 @@ contains
     i0=is+nbx-1
     j0=js+nby-1
 
-    ! non-dimensional Corilois parameter (= inverse Rossby number)
-    f_cor_nd = f_Coriolis_dim*tRef
+    ! non-dimensional Corilois parameter (= inverse Rossby number) 
+    if (TestCase == "baroclinic_LC")then !FS
+       ymax = ly_dim(1)/lRef  
+       do j = 1,ny
+          yloc = y(j+j0)
+          f_cor_nd(j) = f_Coriolis_dim*tRef*sin(pi*yloc/ymax)
+       end do
+    else
+       f_cor_nd(:) = f_Coriolis_dim*tRef
+    end if
+    
 
     ! --------------------------------------
     !             calc p + dp
@@ -2458,8 +2469,8 @@ contains
                         + pStrat(k)/rhov10 &
                           * (dp(i+1,j+1,k) - dp(i+1,j,k))/dy)
 
-                          du = - dt/(facu*facv + (f_cor_nd*dt)**2) &
-                          * (facv * pGradX + f_cor_nd*dt * pGradY)
+                          du = - dt/(facu*facv + (f_cor_nd(j)*dt)**2) &
+                          * (facv * pGradX + f_cor_nd(j)*dt * pGradY)
 
                    var(i,j,k,2) = var(i,j,k,2) + du
                 end do
@@ -2556,8 +2567,8 @@ contains
                    = kappaInv*MaInv2 * pStrat(k)/rhov &
                      * (dp(i,j+1,k) - dp(i,j,k))/dy
 
-                   dv = - dt/(facu*facv + (f_cor_nd*dt)**2) &
-                          * (- f_cor_nd*dt * pGradX + facu * pGradY)
+                   dv = - dt/(facu*facv + (f_cor_nd(j)*dt)**2) &
+                          * (- f_cor_nd(j)*dt * pGradX + facu * pGradY)
 
                    var(i,j,k,3) = var(i,j,k,3) + dv
                 end do
@@ -3262,13 +3273,26 @@ contains
     real :: bvsstw
 
     ! non-dimensional Corilois parameter (= inverse Rossby number)
-    real :: f_cor_nd
+    real, dimension(0:ny+1) :: f_cor_nd
 
     integer :: i0,j0, i, j, k
     integer :: index_count_hypre
+    real :: yloc, ymax
+
+    i0=is+nbx-1
+    j0=js+nby-1
     
     ! non-dimensional Corilois parameter (= inverse Rossby number)
-    f_cor_nd = f_Coriolis_dim*tRef
+    !f_cor_nd = f_Coriolis_dim*tRef
+    if (TestCase == "baroclinic_LC")then !FS
+       ymax = ly_dim(1)/lRef  
+       do j = 1,ny
+          yloc = y(j+j0)
+          f_cor_nd(j) = f_Coriolis_dim*tRef*sin(pi*yloc/ymax)
+       end do
+    else
+       f_cor_nd(:) = f_Coriolis_dim*tRef
+    end if
 
     ! auxiliary variables
     dx2 = 1.0/dx**2
@@ -3276,8 +3300,6 @@ contains
     dz2 = 1.0/dz**2    
     dxy = 1.0/(dx*dy)
     
-    i0=is+nbx-1
-    j0=js+nby-1
 
     if (.not. fluctuationMode) stop'ERROR: must use fluctuationMode'
 
@@ -3585,7 +3607,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = dx2 * pStrat(k)**2/rhoEdge &
-                         * facv/(facu*facv + (f_cor_nd*dt)**2)
+                         * facv/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AR = AR + acontr
                 AC = AC - acontr
@@ -3596,7 +3618,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AC = AC + acontr
                 AB = AB - acontr
@@ -3607,7 +3629,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AF = AF + acontr
                 AC = AC - acontr
@@ -3618,7 +3640,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AR = AR + acontr
                 ARB = ARB - acontr
@@ -3629,7 +3651,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 ARF = ARF + acontr
                 AR = AR - acontr
@@ -3653,7 +3675,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - dx2 * pStrat(k)**2/rhoEdge &
-                           * facv/(facu*facv + (f_cor_nd*dt)**2)
+                           * facv/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AC = AC + acontr
                 AL = AL - acontr
@@ -3664,7 +3686,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = -0.25 * dxy * pStrat(k)**2/rhoEdge &
-                          * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                          * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AL = AL + acontr
                 ALB = ALB - acontr
@@ -3675,7 +3697,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                           * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 ALF = ALF + acontr
                 AL = AL - acontr
@@ -3686,7 +3708,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                           * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AC = AC + acontr
                 AB = AB - acontr
@@ -3697,7 +3719,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                           * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AF = AF + acontr
                 AC = AC - acontr
@@ -3721,7 +3743,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                         * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AR = AR + acontr
                 AC = AC - acontr
@@ -3732,7 +3754,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                         * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AC = AC + acontr
                 AL = AL - acontr
@@ -3743,7 +3765,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                         * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 ARF = ARF + acontr
                 AF = AF - acontr
@@ -3754,7 +3776,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                         * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AF = AF + acontr
                 ALF = ALF - acontr
@@ -3765,7 +3787,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = dy2 * pStrat(k)**2/rhoEdge &
-                         * facu/(facu*facv + (f_cor_nd*dt)**2)
+                         * facu/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AF = AF + acontr
                 AC = AC - acontr
@@ -3789,7 +3811,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                          * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                          * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 ARB = ARB + acontr
                 AB = AB - acontr
@@ -3800,7 +3822,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                           * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AB = AB + acontr
                 ALB = ALB - acontr
@@ -3811,7 +3833,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                           * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AR = AR + acontr
                 AC = AC - acontr
@@ -3822,7 +3844,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                           * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AC = AC + acontr
                 AL = AL - acontr
@@ -3833,7 +3855,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - dy2 * pStrat(k)**2/rhoEdge &
-                           * facu/(facu*facv + (f_cor_nd*dt)**2)
+                           * facu/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AC = AC + acontr
                 AB = AB - acontr

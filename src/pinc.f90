@@ -295,6 +295,7 @@ program pinc_prog
   nextOutputTime = time*tRef + outputTimeDiff
   ! and consider restart time
 
+
   !-----------------------------------------------------
   !                        Time loop
   !-----------------------------------------------------
@@ -512,6 +513,13 @@ program pinc_prog
         ! velocities
 
         var0 = var
+        ! PStrat00 = PStrat
+        ! rhoStrat00 = rhoStrat
+        ! thetaStrat00 = thetaStrat
+        ! bvsStrat00 = bvsStrat
+        ! thetaStratTilde00 = thetaStratTilde
+        ! rhoStratTilde00 = rhoStratTilde
+        ! PStratTilde00 = PStratTilde
         
 
         ! (1) explicit integration of convective and 
@@ -594,22 +602,6 @@ program pinc_prog
         call setHalos( var, "var" )
         call setBoundary (var, flux, "var")
 
-!FSA
-        ! if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-        !    if (model == 'Boussinesq') then
-        !       print*, "main:ONeill+Klein2014 heating only for &
-        !              & pseudo-incompressible dyn."
-        !       stop
-        !    end if
-
-        !    RKstage = 1
-        !    dPStrat = 0.
-        !    drhoStrat = 0.           
-        !    call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
-        !                      & "impl")
-        ! end if
-!FSE
-
         rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
 
         ! update density fluctuations (rhopStar)
@@ -643,7 +635,7 @@ program pinc_prog
 
            fc_shap = min( 1.0, 0.5*dt/shap_dts)
    
-           call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
+           call smooth_hor_shapiro(fc_shap,n_shap,flux,var,0.5*dt)
            !call smooth_shapiro(fc_shap,n_shap,flux,var)
         end if
         !UAE
@@ -666,7 +658,7 @@ program pinc_prog
            RKstage = 1
            dPStrat = 0.
            drhoStrat = 0.           
-           call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
+          call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
                              & "impl")
         end if
 !FSE
@@ -683,6 +675,13 @@ program pinc_prog
         ! put new state into var1 in order to save the advection velocities
 
         var1 = var      
+        ! PStrat01 = PStrat
+        ! rhoStrat01 = rhoStrat
+        ! thetaStrat01 = thetaStrat
+        ! bvsStrat01 = bvsStrat
+        ! thetaStratTilde01 = thetaStratTilde
+        ! rhoStratTilde01 = rhoStratTilde
+        ! PStratTilde01 = PStratTilde
 
         ! (3) explicit integration of the linear right-hand sides of the
         !     equations for density fluctuations and momentum over half a 
@@ -696,18 +695,17 @@ program pinc_prog
         !teste
 
         var = var0
+        ! PStrat = PStrat00
+        ! rhoStrat = rhoStrat00
+        ! thetaStrat = thetaStrat00
+        ! bvsStrat = bvsStrat00
+        ! thetaStratTilde = thetaStratTilde00
+        ! rhoStratTilde = rhoStratTilde00
+        ! PStratTilde = PStratTilde00
       
         call setHalos( var, "var" )
         call setBoundary (var, flux, "var")
-
-        !UAB
-        !if(heatingONK14)then
-        !      if ( RKstage==1 ) dPStrat = 0.                    ! init q
-        !      if ( RKstage==1 ) drhoStrat = 0.   
-        !      call BGstate_update(var,flux,0.5*dt,RKstage,w_0,dPStrat, &
-        !                        & drhoStrat,"impl")
-        !end if
-        !UAE        
+     
 
         rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
 
@@ -746,7 +744,7 @@ program pinc_prog
 
            fc_shap = min( 1.0, 0.5*dt/shap_dts)
 
-           call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
+           call smooth_hor_shapiro(fc_shap,n_shap,flux,var,0.5*dt)
            !call smooth_shapiro(fc_shap,n_shap,flux,var)
         end if
         !UAE
@@ -770,7 +768,7 @@ program pinc_prog
            RKstage = 1
            dPStrat = 0.
            drhoStrat = 0.           
-           call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
+          call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
                              & "impl")
         end if
 
@@ -793,6 +791,13 @@ program pinc_prog
         !teste
 
         var0 = var1
+        ! PStrat00 = PStrat01
+        ! rhoStrat00 = rhoStrat01
+        ! thetaStrat00 = thetaStrat01
+        ! bvsStrat00 = bvsStrat01
+        ! thetaStratTilde00 = thetaStratTilde01
+        ! rhoStratTilde00 = rhoStratTilde01
+        ! PStratTilde00 = PStratTilde01
 
         call setHalos( var0, "var" )
         call setBoundary (var0,flux,"var")
@@ -862,23 +867,6 @@ program pinc_prog
         call setHalos( var, "var" )
         call setBoundary (var, flux, "var")
 
-
-!FSA
-        ! if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-        !    if (model == 'Boussinesq') then
-        !       print*, "main:ONeill+Klein2014 heating only for &
-        !              & pseudo-incompressible dyn."
-        !       stop
-        !    end if
-
-        !    RKstage = 1
-        !    dPStrat = 0.
-        !    drhoStrat = 0.           
-        !    call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
-        !    !call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
-        !                      & "impl") !FS 0.5*dt -> dt
-        ! end if
-!FSE
       
         rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
 
@@ -916,7 +904,7 @@ program pinc_prog
 
            fc_shap = min( 1.0, 0.5*dt/shap_dts)
 
-           call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
+           call smooth_hor_shapiro(fc_shap,n_shap,flux,var,0.5*dt)
            !call smooth_shapiro(fc_shap,n_shap,flux,var)
         end if
         !UAE
@@ -939,8 +927,7 @@ program pinc_prog
            dPStrat = 0.
            drhoStrat = 0.           
            call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
-           !call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
-                             & "impl") !FS 0.5*dt -> dt
+                           & "impl") !FS 0.5*dt -> dt
            call set_spongeLayer(var, dt, "ref") !UA 200413
         end if
 !FSE
@@ -1210,7 +1197,7 @@ program pinc_prog
 
               fc_shap = min( 1.0, dt_Poisson/shap_dts)
 
-              call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
+              call smooth_hor_shapiro(fc_shap,n_shap,flux,var,dt_Poisson)
               !call smooth_shapiro(fc_shap,n_shap,flux,var)
            end if
            !UAE

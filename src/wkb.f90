@@ -135,6 +135,7 @@ contains
     real :: wnrh
     real :: dwnrk, dwnrl, dwnrm
     real :: f_cor_nd
+    !real, dimension(0:ny+1) :: f_cor_nd
 
     real :: cgirx, cgiry, cgirz
     real :: omir
@@ -146,6 +147,10 @@ contains
     real :: wadr
 
     real :: NNR
+
+    real :: yloc, ymax
+    integer :: j00, j
+
     
     allocate (var_uu(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz))
     allocate (var_uv(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz))
@@ -187,7 +192,20 @@ contains
 
     ray_var3D = 0.0
 
+    !f_cor_nd = f_Coriolis_dim*tRef
+    j00=js+nby-1
+
     f_cor_nd = f_Coriolis_dim*tRef
+    ! if (TestCase == "baroclinic_LC")then !FS
+    !    ymax = ly_dim(1)/lRef  
+    !    do j = 1,ny
+    !       yloc = y(j+j00)
+    !       f_cor_nd(j) = abs(f_Coriolis_dim*tRef*sin(pi*yloc/ymax))
+    !    end do
+    ! else
+    !    f_cor_nd = f_Coriolis_dim*tRef
+    ! end if
+    
 
     do kzrv = 0, nz
        do jyrv = 0, ny+1
@@ -986,6 +1004,8 @@ contains
     real :: xr, yr, zr
 
     integer :: nrsuml, nr_sum
+    real :: yloc, ymax
+    integer :: j
 
     ix0 = is + nbx - 1
     jy0 = js + nby - 1
@@ -993,6 +1013,15 @@ contains
     ! some non-dimensionalizations
 
     f_cor_nd = f_Coriolis_dim*tRef
+    ! if (TestCase == "baroclinic_LC")then !FS
+    !    ymax = ly_dim(1)/lRef  
+    !    do j = 1,ny
+    !       yloc = y(j+jy0)
+    !       f_cor_nd = abs(f_Coriolis_dim*tRef*sin(pi*yloc/ymax))
+    !    end do
+    ! else
+    !    f_cor_nd = f_Coriolis_dim*tRef
+    ! end if
 
     xr0 = xr0_dim/lRef
     yr0 = yr0_dim/lRef
@@ -4083,6 +4112,9 @@ contains
     real :: wnrt
 
     integer :: nrvtt0, nrvtt1, nrvloc
+    
+    integer :: j00, j
+    real :: ymax, yloc
 
     allocate(nr_merge(nray_max))
 
@@ -4120,6 +4152,16 @@ contains
                  & mpi_integer, root, comm, ierror)
 
     f_cor_nd = f_Coriolis_dim*tRef
+    ! j00 = js + nby - 1
+    ! if (TestCase == "baroclinic_LC")then !FS
+    !    ymax = ly_dim(1)/lRef  
+    !    do j = 1,ny
+    !       yloc = y(j+j00)
+    !       f_cor_nd = abs(f_Coriolis_dim*tRef*sin(pi*yloc/ymax))
+    !    end do
+    ! else
+    !    f_cor_nd = f_Coriolis_dim*tRef
+    ! end if
 
     do kz = 1, nz
        do jy = 1, ny
@@ -5252,11 +5294,23 @@ contains
     real :: amp, displm
 
     real :: ddxdt, ddydt, ddzdt
+    
+    real :: yloc, ymax
+    integer :: j 
 
     ix0 = is + nbx - 1
     jy0 = js + nby - 1
 
     f_cor_nd = f_Coriolis_dim*tRef
+    ! if (TestCase == "baroclinic_LC")then !FS
+    !    ymax = ly_dim(1)/lRef  
+    !    do j = 1,ny
+    !       yloc = y(j+jy0)
+    !       f_cor_nd = abs(f_Coriolis_dim*tRef*sin(pi*yloc/ymax))
+    !    end do
+    ! else
+    !    f_cor_nd = f_Coriolis_dim*tRef
+    ! end if
 
     ! relaunching lower-boundary ray volumes
 
