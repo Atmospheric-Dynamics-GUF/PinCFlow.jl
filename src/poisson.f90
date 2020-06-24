@@ -65,7 +65,7 @@ contains
 
   !UAB
   !subroutine Corrector( var,flux,dMom,dt,errFlagBicg,nIter,m,opt,w_0)
-  subroutine Corrector( var,flux,flux_rhopw,dMom,dt,errFlagBicg,nIter,m,opt)
+  subroutine Corrector( var,flux,dMom,dt,errFlagBicg,nIter,m,opt)
   !UAE
     ! -------------------------------------------------
     !              correct uStar, bStar, and p
@@ -75,7 +75,6 @@ contains
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(inout) :: var
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
-    real, dimension(-1:nx,-1:ny,-1:nz), intent(in) :: flux_rhopw
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,3), &
          & intent(inout) :: dMom
 
@@ -109,7 +108,7 @@ contains
 
     !UAB
     !call calc_RHS(rhs, var, flux, dt, onlyinfo, w_0)
-    call calc_RHS(rhs, var, flux, flux_rhopw, dt, onlyinfo)
+    call calc_RHS(rhs, var, flux, dt, onlyinfo)
     !UAE
 
     call poissonSolver( rhs, var, dt, errFlagBicg, nIter, m, opt )
@@ -122,7 +121,7 @@ contains
     
     !UAB
     !if (detailedinfo) call calc_RHS( rhs,var,flux,dt,detailedinfo,w_0 )
-    if (detailedinfo) call calc_RHS( rhs,var,flux,flux_rhopw,dt,detailedinfo)
+    if (detailedinfo) call calc_RHS( rhs,var,flux,dt,detailedinfo)
     !UAE
 
   end subroutine Corrector
@@ -474,7 +473,7 @@ contains
 
   !UAB
   !subroutine calc_RHS( b,var,flux,dt,onlyinfo,w_0 )
-  subroutine calc_RHS( b,var,flux,flux_rhopw,dt,onlyinfo)
+  subroutine calc_RHS( b,var,flux,dt,onlyinfo)
   !UAE
 
     !----------------------------------------
@@ -486,7 +485,6 @@ contains
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          &intent(in) :: var 
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
-    real, dimension(-1:nx,-1:ny,-1:nz), intent(in) :: flux_rhopw
     real, intent(in) :: dt
     real, dimension(1:nx,1:ny,1:nz), intent(out) :: b  ! RHS
     logical, intent(in) :: onlyinfo                    ! give info in div
@@ -553,8 +551,10 @@ contains
 
     !if (raytracer) heat(:,:,:) = heat(:,:,:) + var(:,:,:,8)
 
-    if (heatingRefAtmo) then
-       call heat_w0(var,flux,flux_rhopw,heat,S_bar,w_0)
+    ! GBcorr -> FS
+    if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+    !if (heating) then
+       call heat_w0(var,flux,heat,S_bar,w_0)
       else
        heat = 0.
        S_bar = 0.
@@ -1071,7 +1071,7 @@ contains
     ! --------------------------------------
 
     ! in/out variables
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz, nVar), &
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          &intent(in) :: var
     real, dimension(1:nx,1:ny,1:nz), intent(out) :: Lq
     real, dimension(0:nx+1,0:ny+1,0:nz+1), intent(inout)  :: q ! with ghost cells
@@ -2375,7 +2375,8 @@ contains
     real :: pGradX, pGradY, pGradZ
     real :: du, dv, dw, db
     real :: facu, facv, facw, facr
-    real :: f_cor_nd
+    !real :: f_cor_nd
+    real, dimension(0:ny+1) :: f_cor_nd
     real :: bvsstw
 
     real :: rhov0m, rhov00, rhov1m, rhov10
@@ -2391,6 +2392,7 @@ contains
     logical, parameter :: giveInfo = .true.
 
     integer :: i0,j0
+    real :: yloc, ymax
 
     if (model == "Boussinesq") then
        print*,'ERROR: correctorStep not ready for Boussinesq mode'
@@ -2400,8 +2402,17 @@ contains
     i0=is+nbx-1
     j0=js+nby-1
 
-    ! non-dimensional Corilois parameter (= inverse Rossby number)
-    f_cor_nd = f_Coriolis_dim*tRef
+    ! non-dimensional Corilois parameter (= inverse Rossby number) 
+    if (TestCase == "baroclinic_LC")then !FS
+       ymax = ly_dim(1)/lRef  
+       do j = 1,ny
+          yloc = y(j+j0)
+          f_cor_nd(j) = f_Coriolis_dim*tRef*sin(pi*yloc/ymax)
+       end do
+    else
+       f_cor_nd(:) = f_Coriolis_dim*tRef
+    end if
+    
 
     ! --------------------------------------
     !             calc p + dp
@@ -2458,8 +2469,8 @@ contains
                         + pStrat(k)/rhov10 &
                           * (dp(i+1,j+1,k) - dp(i+1,j,k))/dy)
 
-                          du = - dt/(facu*facv + (f_cor_nd*dt)**2) &
-                          * (facv * pGradX + f_cor_nd*dt * pGradY)
+                          du = - dt/(facu*facv + (f_cor_nd(j)*dt)**2) &
+                          * (facv * pGradX + f_cor_nd(j)*dt * pGradY)
 
                    var(i,j,k,2) = var(i,j,k,2) + du
                 end do
@@ -2556,8 +2567,8 @@ contains
                    = kappaInv*MaInv2 * pStrat(k)/rhov &
                      * (dp(i,j+1,k) - dp(i,j,k))/dy
 
-                   dv = - dt/(facu*facv + (f_cor_nd*dt)**2) &
-                          * (- f_cor_nd*dt * pGradX + facu * pGradY)
+                   dv = - dt/(facu*facv + (f_cor_nd(j)*dt)**2) &
+                          * (- f_cor_nd(j)*dt * pGradX + facu * pGradY)
 
                    var(i,j,k,3) = var(i,j,k,3) + dv
                 end do
@@ -2897,127 +2908,127 @@ contains
 
   !!------------------------------------------------------------------------
 !
-  subroutine calculate_heating_0(var,flux,heat)
+ !  subroutine calculate_heating_0(var,flux,heat)
 
-  !-----------------------------------------------
-  ! calculate heating in the divergence constraint
-  !-----------------------------------------------
+ !  !-----------------------------------------------
+ !  ! calculate heating in the divergence constraint
+ !  !-----------------------------------------------
 
-   real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz, nVar), &
-        &intent(in) :: var     
-   real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
+ !   real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz, nVar), &
+ !        &intent(in) :: var     
+ !   real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
 
-   real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
-        &intent(out) :: heat  !, term1, term2
+ !   real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
+ !        &intent(out) :: heat  !, term1, term2
 
-   ! local variables
-   integer :: i, j, k
-   real    :: rho, the, theta_bar_0, rho_e
-   real, dimension(1:nz) :: tau_relax_i  ! inverse scaled relaxation 
-                                         ! time for barocl. l. c.
-   real    :: tau_jet_sc, tau_relax_sc  ! Klein scaling for relax param.
+ !   ! local variables
+ !   integer :: i, j, k
+ !   real    :: rho, the, theta_bar_0, rho_e
+ !   real, dimension(1:nz) :: tau_relax_i  ! inverse scaled relaxation 
+ !                                         ! time for barocl. l. c.
+ !   real    :: tau_jet_sc, tau_relax_sc  ! Klein scaling for relax param.
 
-   heat = 0.0
+ !   heat = 0.0
 
-   !-------------------------------------------------------
-   ! calculate the environment-induced negative (!) heating
-   !-------------------------------------------------------
+ !   !-------------------------------------------------------
+ !   ! calculate the environment-induced negative (!) heating
+ !   !-------------------------------------------------------
 
-   if (     (TestCase == "baroclinic_LC") &
-       .or. (TestCase == "baroclinic_ID")) then
-      if (RelaxHeating /= 0)  then
-         !UAB
-         if (background /= "HeldSuarez") then
-         !UAE
-            do k = 1,nz
-               if ( referenceQuantities == "SI" ) then
-                  tau_relax_sc = tau_relax
-                  tau_jet_sc = tau_jet
-                 else
-                  tau_relax_sc = tau_relax/tref
-                  tau_jet_sc = tau_jet/tref
-               end if
+ !   if (     (TestCase == "baroclinic_LC") &
+ !       .or. (TestCase == "baroclinic_ID")) then
+ !      if (RelaxHeating /= 0)  then
+ !         !UAB
+ !         if (background /= "HeldSuarez") then
+ !         !UAE
+ !            do k = 1,nz
+ !               if ( referenceQuantities == "SI" ) then
+ !                  tau_relax_sc = tau_relax
+ !                  tau_jet_sc = tau_jet
+ !                 else
+ !                  tau_relax_sc = tau_relax/tref
+ !                  tau_jet_sc = tau_jet/tref
+ !               end if
            
-               if (RelaxHeating == 1) then
-                  tau_relax_i(k) = 1./(tau_relax_sc)
-                  else
-                  !UAB
-                  !tau_relax_i = 0.
-                  tau_relax_i(k) = 0.
-                  !UAE
-               end if
-            end do
-         !UAB
-         end if
-         !UAE
+ !               if (RelaxHeating == 1) then
+ !                  tau_relax_i(k) = 1./(tau_relax_sc)
+ !                  else
+ !                  !UAB
+ !                  !tau_relax_i = 0.
+ !                  tau_relax_i(k) = 0.
+ !                  !UAE
+ !               end if
+ !            end do
+ !         !UAB
+ !         end if
+ !         !UAE
 
-         if( master ) then 
-            print*,""
-            print*," Poisson Solver, Thermal Relaxation is on: "
-            print*," Relaxation factor: Div = - rho(Th - Th_e)/tau: "
-            print*, "tau = ", tref/tau_relax_i(1), " s"
-         end if
+ !         if( master ) then 
+ !            print*,""
+ !            print*," Poisson Solver, Thermal Relaxation is on: "
+ !            print*," Relaxation factor: Div = - rho(Th - Th_e)/tau: "
+ !            print*, "tau = ", tref/tau_relax_i(1), " s"
+ !         end if
 
-         theta_bar_0 = (thetaStrat(1) + thetaStrat(nz))/2.
+ !         theta_bar_0 = (thetaStrat(1) + thetaStrat(nz))/2.
    
-         do k = 1,nz
-            do j = 1,ny
-               do i = 1,nx
-                  if( fluctuationMode )  then
-                     rho = var(i,j,k,1) + rhoStrat(k)
-                    else   
-                     rho = var(i,j,k,1)
-                  end if  
+ !         do k = 1,nz
+ !            do j = 1,ny
+ !               do i = 1,nx
+ !                  if( fluctuationMode )  then
+ !                     rho = var(i,j,k,1) + rhoStrat(k)
+ !                    else   
+ !                     rho = var(i,j,k,1)
+ !                  end if  
 
-                  the = (Pstrat(k))/rho 
-                  rho_e = (Pstrat(k))/the_env_pp(i,j,k)
-                  !UAB
-                  if (background == "HeldSuarez") then
-                     heat(i,j,k) &
-                     = - theta_bar_0*(rho - rho_e)*kt_hs(j,k)
-                    else
-                  !UAE
-                     heat(i,j,k) &
-                     = - theta_bar_0*(rho - rho_e)*tau_relax_i(k)
-                  !UAB
-                  end if
-                  !UAE
-               end do
-            end do
-         end do
-      end if
-   end if
+ !                  the = (Pstrat(k))/rho 
+ !                  rho_e = (Pstrat(k))/the_env_pp(i,j,k)
+ !                  !UAB
+ !                  if (background == "HeldSuarez") then
+ !                     heat(i,j,k) &
+ !                     = - theta_bar_0*(rho - rho_e)*kt_hs(j,k)
+ !                    else
+ !                  !UAE
+ !                     heat(i,j,k) &
+ !                     = - theta_bar_0*(rho - rho_e)*tau_relax_i(k)
+ !                  !UAB
+ !                  end if
+ !                  !UAE
+ !               end do
+ !            end do
+ !         end do
+ !      end if
+ !   end if
 
-  ! if (output_heat) then
-      call output_field( &
-      & iOut, &
-      & heat,&
-      & 'heat_prof.dat', thetaRef*rhoRef/tref )
-  ! end if
+ !  ! if (output_heat) then
+ !      call output_field( &
+ !      & iOut, &
+ !      & heat,&
+ !      & 'heat_prof.dat', thetaRef*rhoRef/tref )
+ !  ! end if
 
-   !testb
-   return
-   !teste
+ !   !testb
+ !   return
+ !   !teste
 
-   !------------------------------------------------------------------
-   ! supplement by negative (!) heating due to molecular and turbulent 
-   ! diffusivity
-   !------------------------------------------------------------------
+ !   !------------------------------------------------------------------
+ !   ! supplement by negative (!) heating due to molecular and turbulent 
+ !   ! diffusivity
+ !   !------------------------------------------------------------------
 
-   do k=1,nz
-      do j=1,ny
-         do i=1,nx
-            heat(i,j,k) &
-            = heat(i,j,k) &
-              + rhoStrat(k) &
-                * (  (flux(i,j,k,1,5) - flux(i-1,j  ,k  ,1,5))/dx &
-                   + (flux(i,j,k,2,5) - flux(i  ,j-1,k  ,2,5))/dy &
-                   + (flux(i,j,k,3,5) - flux(i  ,j  ,k-1,3,5))/dz)
-         end do
-      end do
-   end do
+ !   do k=1,nz
+ !      do j=1,ny
+ !         do i=1,nx
+ !            heat(i,j,k) &
+ !            = heat(i,j,k) &
+ !              + rhoStrat(k) &
+ !                * (  (flux(i,j,k,1,5) - flux(i-1,j  ,k  ,1,5))/dx &
+ !                   + (flux(i,j,k,2,5) - flux(i  ,j-1,k  ,2,5))/dy &
+ !                   + (flux(i,j,k,3,5) - flux(i  ,j  ,k-1,3,5))/dz)
+ !         end do
+ !      end do
+ !   end do
 
- end subroutine calculate_heating_0
+ ! end subroutine calculate_heating_0
 
  !----------------------------------------------------------------------
 
@@ -3223,14 +3234,14 @@ contains
     if (raytracer) heat(:,:,:) = heat(:,:,:) + var(:,:,:,8)
     !UAE
 
-   ! if (output_heat) then
+    if (output_heat) then
        call output_field( &
        & iOut, &
        & heat,&
        & 'heat_prof.dat', thetaRef*rhoRef/tref )
 
 
-   ! end if
+    end if
 
   end subroutine calculate_heating
   
@@ -3262,13 +3273,26 @@ contains
     real :: bvsstw
 
     ! non-dimensional Corilois parameter (= inverse Rossby number)
-    real :: f_cor_nd
+    real, dimension(0:ny+1) :: f_cor_nd
 
     integer :: i0,j0, i, j, k
     integer :: index_count_hypre
+    real :: yloc, ymax
+
+    i0=is+nbx-1
+    j0=js+nby-1
     
     ! non-dimensional Corilois parameter (= inverse Rossby number)
-    f_cor_nd = f_Coriolis_dim*tRef
+    !f_cor_nd = f_Coriolis_dim*tRef
+    if (TestCase == "baroclinic_LC")then !FS
+       ymax = ly_dim(1)/lRef  
+       do j = 1,ny
+          yloc = y(j+j0)
+          f_cor_nd(j) = f_Coriolis_dim*tRef*sin(pi*yloc/ymax)
+       end do
+    else
+       f_cor_nd(:) = f_Coriolis_dim*tRef
+    end if
 
     ! auxiliary variables
     dx2 = 1.0/dx**2
@@ -3276,8 +3300,6 @@ contains
     dz2 = 1.0/dz**2    
     dxy = 1.0/(dx*dy)
     
-    i0=is+nbx-1
-    j0=js+nby-1
 
     if (.not. fluctuationMode) stop 'ERROR: must use fluctuationMode'
 
@@ -3585,7 +3607,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = dx2 * pStrat(k)**2/rhoEdge &
-                         * facv/(facu*facv + (f_cor_nd*dt)**2)
+                         * facv/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AR = AR + acontr
                 AC = AC - acontr
@@ -3596,7 +3618,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AC = AC + acontr
                 AB = AB - acontr
@@ -3607,7 +3629,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AF = AF + acontr
                 AC = AC - acontr
@@ -3618,7 +3640,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AR = AR + acontr
                 ARB = ARB - acontr
@@ -3629,7 +3651,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 ARF = ARF + acontr
                 AR = AR - acontr
@@ -3653,7 +3675,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - dx2 * pStrat(k)**2/rhoEdge &
-                           * facv/(facu*facv + (f_cor_nd*dt)**2)
+                           * facv/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AC = AC + acontr
                 AL = AL - acontr
@@ -3664,7 +3686,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = -0.25 * dxy * pStrat(k)**2/rhoEdge &
-                          * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                          * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AL = AL + acontr
                 ALB = ALB - acontr
@@ -3675,7 +3697,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                           * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 ALF = ALF + acontr
                 AL = AL - acontr
@@ -3686,7 +3708,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                           * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AC = AC + acontr
                 AB = AB - acontr
@@ -3697,7 +3719,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * f_cor_nd*dt/(facu*facv + (f_cor_nd*dt)**2)
+                           * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AF = AF + acontr
                 AC = AC - acontr
@@ -3721,7 +3743,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                         * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AR = AR + acontr
                 AC = AC - acontr
@@ -3732,7 +3754,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                         * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AC = AC + acontr
                 AL = AL - acontr
@@ -3743,7 +3765,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                         * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 ARF = ARF + acontr
                 AF = AF - acontr
@@ -3754,7 +3776,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                         * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AF = AF + acontr
                 ALF = ALF - acontr
@@ -3765,7 +3787,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = dy2 * pStrat(k)**2/rhoEdge &
-                         * facu/(facu*facv + (f_cor_nd*dt)**2)
+                         * facu/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AF = AF + acontr
                 AC = AC - acontr
@@ -3789,7 +3811,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                          * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                          * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 ARB = ARB + acontr
                 AB = AB - acontr
@@ -3800,7 +3822,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                           * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AB = AB + acontr
                 ALB = ALB - acontr
@@ -3811,7 +3833,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                           * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AR = AR + acontr
                 AC = AC - acontr
@@ -3822,7 +3844,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * (-f_cor_nd*dt)/(facu*facv + (f_cor_nd*dt)**2)
+                           * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AC = AC + acontr
                 AL = AL - acontr
@@ -3833,7 +3855,7 @@ contains
                 rhoEdge = rhoEdge + rhoStrat(k)
 
                 acontr = - dy2 * pStrat(k)**2/rhoEdge &
-                           * facu/(facu*facv + (f_cor_nd*dt)**2)
+                           * facu/(facu*facv + (f_cor_nd(j)*dt)**2)
 
                 AC = AC + acontr
                 AB = AB - acontr
@@ -4053,18 +4075,20 @@ contains
 
   end subroutine val_hypre_Bous
 
-!---------------------------------------------------------------------
+!------------------------------------------------------------------
 
-  subroutine heat_w0(var,flux,flux_rhopw,heat,S_bar,w_0)
+  subroutine heat_w0(var,flux,heat,S_bar,w_0)
 
-   
-  !heating, its horizontal mean, and the thereby induced vertical wind
+
+  ! negative (!) heating, its horizontal mean, 
+  ! and the thereby induced vertical wind
 
   ! in/out variables
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(in) :: var
+    !UAB 200413
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
-    real, dimension(-1:nx,-1:ny,-1:nz), intent(in) :: flux_rhopw
+    !UAE 200413
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
          & intent(out) :: heat
     real, dimension(-nbz:nz+nbz),intent(out) :: w_0 
@@ -4074,20 +4098,15 @@ contains
     real, dimension(1:nz) :: sum_local, sum_global 
     real, dimension(-nbz:nz+nbz) :: press0 
 
-    real, dimension(-nbz:nz+nbz) :: avgrhopw
-
     real :: dptopdt
 
     real :: sum_d, sum_n
-    
 
     w_0 = 0.
     S_bar = 0.
     heat = 0.
-    sum_local = 0.
-    sum_global = 0.
 
-    ! S eq(9)  ONeill+Klein2014
+    ! negative (!) heating, i.e. -S eq(9)  ONeill+Klein2014
     call calculate_heating(var,flux,heat) 
 
     ! calculate horizontal mean of heat(:,:,:)
@@ -4100,60 +4119,36 @@ contains
          mpi_double_precision,mpi_sum,comm,ierror)
     sum_global = sum_global/(sizeX*sizeY)
 
-    S_bar(1:nz) = (-1.)*sum_global(1:nz)
+    S_bar(1:nz) = sum_global(1:nz)
 
+    !non_dim. pressure; eq(12) ONeill+Klein2014
 
     do k = 1,nz
        press0(k) = PStrat(k)**gamma  
     end do
- 
+    
+    !  eq(B.14) ONeill+Klein2014
 
     sum_d = 0.0
     sum_n = 0.0
 
-    !calculate horizontal mean of vertical rhop flux 
-    sum_local(:) = 0.
-    sum_global(:) = 0.
-    avgrhopw = 0.
-
-
-    if(timeScheme == "semiimplicit")then
-       do k = 1,nz
-          sum_local(k) = sum(flux(1:nx,1:ny,k,3,6))
-       end do
-    else
-       do k = 1,nz
-          sum_local(k) = sum(flux_rhopw(1:nx,1:ny,k))
-       end do
-    end if
-       !global sum and average
-       call mpi_allreduce(sum_local(1),sum_global(1),&
-            nz-1+1,&
-            mpi_double_precision,mpi_sum,comm,ierror)
-       sum_global = sum_global/(sizeX*sizeY)
-       
-    avgrhopw(1:nz) = sum_global
-
-
     do k = 1,nz
-       sum_n = sum_n + S_bar(k)/PStrat(k) - avgrhopw(k)*g_ndim/(gamma*press0(k)) 
-       sum_d = sum_d +  1./(gamma*press0(k))
+      sum_n = sum_n - S_bar(k)/PStrat(k)
+      sum_d = sum_d +  1./(gamma*press0(k))
     end do
 
     dptopdt = sum_n/sum_d
-    !UAE
 
-    w_0(1) = dz*(S_bar(1)/Pstrat(1) - (1./(gamma*press0(1)))*dptopdt- avgrhopw(1)*g_ndim/(gamma*press0(1)) )
+    w_0(1) = dz*(- S_bar(1)/Pstrat(1) - (1./(gamma*press0(1)))*dptopdt)
 
     do k = 2,nz-1
-       w_0(k) &
-       = w_0(k-1) &
-         + dz*(S_bar(k)/Pstrat(k) - (1./(gamma*press0(k)))*dptopdt- avgrhopw(k)*g_ndim/(gamma*press0(k)))
+      w_0(k) &
+      = w_0(k-1) &
+        + dz*(- S_bar(k)/Pstrat(k) - (1./(gamma*press0(k)))*dptopdt)
     end do
 
-    S_bar = (-1.)*S_bar
-  
 
   end subroutine heat_w0
 
 end module poisson_module
+

@@ -63,8 +63,7 @@ program pinc_prog
   real, dimension(:,:,:,:,:), allocatable :: flux
   ! flux(i,j,k,dir,iFlux) 
   ! dir = 1..3 > f,g,h-flux in x,y,z-direction
-  ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW#
-  real, dimension(:,:,:), allocatable :: flux_rhopw
+  ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
 
  
   !--------------------
@@ -161,7 +160,7 @@ program pinc_prog
   ! 2) read input.f90
   !UAB
   !call setup (var,var0,var1,flux,force,source,dRho,dRhop,dMom,dTheta)
-    call setup(var,var0,var1,flux,flux_rhopw,force,source,dRho,dRhop,dMom,dTheta, &
+    call setup(var,var0,var1,flux,force,source,dRho,dRhop,dMom,dTheta, &
             & dPStrat,drhoStrat,w_0,dIce)
   !UAE
 
@@ -214,7 +213,7 @@ program pinc_prog
   !call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
   
   !call output_data(iOut, var, iTime, time, cpuTime)
-  !stop '
+  !stop
   !teste
 
   !-------------------------------------------------
@@ -243,7 +242,7 @@ program pinc_prog
 
      ! 1) allocate variables 
      ! 2) read the namelist
-     !call setup(var,var0,var1,flux,flux_rhopw,force,source,dRho,dRhop,dMom,dTheta, &
+     !call setup(var,var0,var1,flux,force,source,dRho,dRhop,dMom,dTheta, &
      !       & dPStrat,drhoStrat,w_0,dIce)
      
      flux = 0.
@@ -251,7 +250,7 @@ program pinc_prog
 
      tolpoisson_s = tolPoisson
      tolPoisson = 1.e-9
-     call Corrector ( var, flux,flux_rhopw, dMom, 1.0 , errFlagBicg, nIterBicg, &
+     call Corrector ( var, flux, dMom, 1.0 , errFlagBicg, nIterBicg, &
                     & 1, "expl")
      tolPoisson = tolpoisson_s
   end if
@@ -266,15 +265,23 @@ program pinc_prog
      call setup_wkb(ray, ray_var3D, var) 
   end if
 
+  !UAB 200413
+  !-------------------------------------------------------------------
+  ! in diabatic case store initial reference atmosphere for the sponge
+  !-------------------------------------------------------------------
+
+  if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+     rhoStrat_0 = rhoStrat
+     pStrat_0 = pStrat
+  end if
+  !UAE 200413
+
   !------------------------------------------
   !              Initial output
   !------------------------------------------
 
   call output_data(iOut, var, iTime, time, cpuTime)
 
-  !testb
-  !stop '
-  !teste
 
   if (rayTracer) then
       call output_wkb(iOut, ray, ray_var3D)
@@ -284,6 +291,7 @@ program pinc_prog
   ! set time for first output
   nextOutputTime = time*tRef + outputTimeDiff
   ! and consider restart time
+
 
   !-----------------------------------------------------
   !                        Time loop
@@ -295,16 +303,6 @@ program pinc_prog
 
   if( outputType == "time" ) maxIter = 2**30
 
-
-!FS test
-  ! var(:,:,:,2) = 0.
-  ! var(:,:,:,3) = 0.
-  ! var(:,:,:,4) = 0.
-  ! do i = 1,nx
-  !    do j = 1,ny 
-  !       var(i,j,:,1) = rhoStrat(:)
-  !    end do
-  ! end do
  
   time_loop: do iTime = 1,maxIter
 
@@ -512,13 +510,13 @@ program pinc_prog
         ! velocities
 
         var0 = var
-        PStrat00 = PStrat
-        rhoStrat00 = rhoStrat
-        thetaStrat00 = thetaStrat
-        bvsStrat00 = bvsStrat
-        thetaStratTilde00 = thetaStratTilde
-        rhoStratTilde00 = rhoStratTilde
-        PStratTilde00 = PStratTilde
+        ! PStrat00 = PStrat
+        ! rhoStrat00 = rhoStrat
+        ! thetaStrat00 = thetaStrat
+        ! bvsStrat00 = bvsStrat
+        ! thetaStratTilde00 = thetaStratTilde
+        ! rhoStratTilde00 = rhoStratTilde
+        ! PStratTilde00 = PStratTilde
         
 
         ! (1) explicit integration of convective and 
@@ -541,7 +539,6 @@ program pinc_prog
            call setBoundary (var, flux, "var")
 
            call reconstruction (var, "rho") 
-           call reconstruction (var, "rhopw0") !FS
            call reconstruction (var, "rhop")         
            call reconstruction (var, "uvw")
            
@@ -550,14 +547,10 @@ program pinc_prog
 
            ! Fluxes and Forces
            
-           call massFlux (var0,var,flux,flux_rhopw,"lin")
+           call massFlux (var0,var,flux,"lin")
            call momentumFlux (var0,var,flux,"lin") 
 
            call setBoundary (var, flux, "flux") 
-
-           !FS set vertical flux_rhopw at wall to 0
-           flux_rhopw(:,:,-1) = 0.
-           flux_rhopw(:,:,nz) = 0.
 
            ! RK step for density and density fluctuations
            
@@ -569,9 +562,9 @@ program pinc_prog
            !call massUpdate(var,flux, 0.5*dt, dRhop, RKstage, &
            !              & "rhop", "lhs", "expl",w_0)
            
-           call massUpdate(var, flux,flux_rhopw, 0.5*dt, dRho, RKstage, &
+           call massUpdate(var, flux, 0.5*dt, dRho, RKstage, &
                          & "rho", "tot", "expl")
-           call massUpdate(var,flux,flux_rhopw, 0.5*dt, dRhop, RKstage, &
+           call massUpdate(var,flux, 0.5*dt, dRhop, RKstage, &
                          & "rhop", "lhs", "expl")
            !UAE
               
@@ -585,7 +578,7 @@ program pinc_prog
            !                     & RKstage, &
            !                     & "lhs", "expl",w_0)
            
-           call momentumPredictor(var, flux,flux_rhopw, force, 0.5*dt, dMom, &
+           call momentumPredictor(var, flux, force, 0.5*dt, dMom, &
                                 & RKstage, "lhs", "expl")
            !UAE
         end do
@@ -606,22 +599,6 @@ program pinc_prog
         call setHalos( var, "var" )
         call setBoundary (var, flux, "var")
 
-!FSA
-        ! if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-        !    if (model == 'Boussinesq') then
-        !       print*, "main:ONeill+Klein2014 heating only for &
-        !              & pseudo-incompressible dyn."
-        !       stop
-        !    end if
-
-        !    RKstage = 1
-        !    dPStrat = 0.
-        !    drhoStrat = 0.           
-        !    call BGstate_update(var,flux,flux_rhopw,0.5*dt,RKstage,dPStrat,drhoStrat, &
-        !                      & "impl")
-        ! end if
-!FSE
-
         rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
 
         ! update density fluctuations (rhopStar)
@@ -629,7 +606,7 @@ program pinc_prog
         !UAB
         !call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs",&
         !              & "impl",w_0)
-        call massUpdate(var,flux,flux_rhopw,0.5*dt,dRhop,RKstage,"rhop","rhs","impl")
+        call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs","impl")
         !UAE
 
         ! update winds (uStar, vStar, wStar)
@@ -637,7 +614,7 @@ program pinc_prog
         !UAB
         !call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
         !                     & "impl",w_0)
-        call momentumPredictor(var,flux,flux_rhopw,force,0.5*dt,dMom,RKstage,"rhs",&
+        call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
                              & "impl")
         !UAE
               
@@ -655,7 +632,7 @@ program pinc_prog
 
            fc_shap = min( 1.0, 0.5*dt/shap_dts)
    
-           call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
+           call smooth_hor_shapiro(fc_shap,n_shap,flux,var,0.5*dt)
            !call smooth_shapiro(fc_shap,n_shap,flux,var)
         end if
         !UAE
@@ -665,8 +642,13 @@ program pinc_prog
         !               & nIterBicg, &
         !               & RKstage, "impl",w_0 )
 
-!FSA
-        if (heatingRefAtmo) then
+     !------------------------------------------
+     !              Initial output
+     !------------------------------------------
+
+        ! GBcorr -> FS
+        if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+        !if (heating) then
            if (model == 'Boussinesq') then
               print*, "main:ONeill+Klein2014 heating only for &
                      & pseudo-incompressible dyn."
@@ -676,12 +658,12 @@ program pinc_prog
            RKstage = 1
            dPStrat = 0.
            drhoStrat = 0.           
-           call BGstate_update(var,flux,flux_rhopw,0.5*dt,RKstage,dPStrat,drhoStrat, &
+          call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
                              & "impl")
         end if
 !FSE
 
-        call Corrector ( var, flux,flux_rhopw, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
+        call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
                        & RKstage, "impl")
         !UAE
 
@@ -693,13 +675,13 @@ program pinc_prog
         ! put new state into var1 in order to save the advection velocities
 
         var1 = var      
-        PStrat01 = PStrat
-        rhoStrat01 = rhoStrat
-        thetaStrat01 = thetaStrat
-        bvsStrat01 = bvsStrat
-        thetaStratTilde01 = thetaStratTilde
-        rhoStratTilde01 = rhoStratTilde
-        PStratTilde01 = PStratTilde
+        ! PStrat01 = PStrat
+        ! rhoStrat01 = rhoStrat
+        ! thetaStrat01 = thetaStrat
+        ! bvsStrat01 = bvsStrat
+        ! thetaStratTilde01 = thetaStratTilde
+        ! rhoStratTilde01 = rhoStratTilde
+        ! PStratTilde01 = PStratTilde
 
         ! (3) explicit integration of the linear right-hand sides of the
         !     equations for density fluctuations and momentum over half a 
@@ -713,25 +695,17 @@ program pinc_prog
         !teste
 
         var = var0
-        PStrat = PStrat00
-        rhoStrat = rhoStrat00
-        thetaStrat = thetaStrat00
-        bvsStrat = bvsStrat00
-        thetaStratTilde = thetaStratTilde00
-        rhoStratTilde = rhoStratTilde00
-        PStratTilde = PStratTilde00
-
+        ! PStrat = PStrat00
+        ! rhoStrat = rhoStrat00
+        ! thetaStrat = thetaStrat00
+        ! bvsStrat = bvsStrat00
+        ! thetaStratTilde = thetaStratTilde00
+        ! rhoStratTilde = rhoStratTilde00
+        ! PStratTilde = PStratTilde00
+      
         call setHalos( var, "var" )
         call setBoundary (var, flux, "var")
-
-        !UAB
-        !if(heatingONK14)then
-        !      if ( RKstage==1 ) dPStrat = 0.                    ! init q
-        !      if ( RKstage==1 ) drhoStrat = 0.   
-        !      call BGstate_update(var,flux,0.5*dt,RKstage,w_0,dPStrat, &
-        !                        & drhoStrat,"impl")
-        !end if
-        !UAE        
+     
 
         rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
 
@@ -740,7 +714,7 @@ program pinc_prog
         !UAB
         !call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs", &
         !              & "expl",w_0)
-        call massUpdate(var,flux,flux_rhopw,0.5*dt,dRhop,RKstage,"rhop","rhs","expl")
+        call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs","expl")
         !UAE
 
         ! update winds (uStar, vStar, wStar)
@@ -748,7 +722,7 @@ program pinc_prog
         !UAB
         !call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
         !                     & "expl",w_0)
-        call momentumPredictor(var,flux,flux_rhopw,force,0.5*dt,dMom,RKstage,"rhs",&
+        call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
                              & "expl")
         !UAE
               
@@ -770,7 +744,7 @@ program pinc_prog
 
            fc_shap = min( 1.0, 0.5*dt/shap_dts)
 
-           call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
+           call smooth_hor_shapiro(fc_shap,n_shap,flux,var,0.5*dt)
            !call smooth_shapiro(fc_shap,n_shap,flux,var)
         end if
         !UAE
@@ -780,8 +754,9 @@ program pinc_prog
         !               & nIterBicg, &
         !               & RKstage, "expl",w_0)
 
-!FSA
-        if (heatingRefAtmo) then
+        ! GBcorr -> FS
+        if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+        !if (heating) then
            if (model == 'Boussinesq') then
               print*, "main:ONeill+Klein2014 heating only for &
                      & pseudo-incompressible dyn."
@@ -793,13 +768,13 @@ program pinc_prog
            RKstage = 1
            dPStrat = 0.
            drhoStrat = 0.           
-           call BGstate_update(var,flux,flux_rhopw,0.5*dt,RKstage,dPStrat,drhoStrat, &
+          call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
                              & "impl")
         end if
 
 !FSE  
 
-        call Corrector ( var, flux,flux_rhopw, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
+        call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
                        & RKstage, "expl")
         ! !UAE
 
@@ -816,13 +791,13 @@ program pinc_prog
         !teste
 
         var0 = var1
-        PStrat00 = PStrat01
-        rhoStrat00 = rhoStrat01
-        thetaStrat00 = thetaStrat01
-        bvsStrat00 = bvsStrat01
-        thetaStratTilde00 = thetaStratTilde01
-        rhoStratTilde00 = rhoStratTilde01
-        PStratTilde00 = PStratTilde01
+        ! PStrat00 = PStrat01
+        ! rhoStrat00 = rhoStrat01
+        ! thetaStrat00 = thetaStrat01
+        ! bvsStrat00 = bvsStrat01
+        ! thetaStratTilde00 = thetaStratTilde01
+        ! rhoStratTilde00 = rhoStratTilde01
+        ! PStratTilde00 = PStratTilde01
 
         call setHalos( var0, "var" )
         call setBoundary (var0,flux,"var")
@@ -834,7 +809,6 @@ program pinc_prog
            call setBoundary (var, flux, "var")
 
            call reconstruction (var, "rho")  
-           call reconstruction (var, "rhopw0") !FS
            call reconstruction (var, "rhop")         
            call reconstruction (var, "uvw")
            
@@ -843,15 +817,10 @@ program pinc_prog
 
            ! Fluxes and Forces
            
-           call massFlux (var0,var,flux,flux_rhopw,"lin")
+           call massFlux (var0,var,flux,"lin")
            call momentumFlux (var0,var,flux,"lin") 
 
            call setBoundary (var, flux, "flux") 
-
-           !FS set vertical flux_rhopw at wall to 0
-           flux_rhopw(:,:,-1) = 0.
-           flux_rhopw(:,:,0) = 0.
-           flux_rhopw(:,:,nz) = 0.
 
 
            ! RK step for density and density fluctuations
@@ -863,9 +832,9 @@ program pinc_prog
            !             & "rho", "tot", "expl",w_0)
            !call massUpdate(var, flux, dt, dRhop, RKstage, &
            !             & "rhop", "lhs", "expl",w_0)
-           call massUpdate(var, flux,flux_rhopw, dt, dRho, RKstage, &
+           call massUpdate(var, flux, dt, dRho, RKstage, &
                         & "rho", "tot", "expl")
-           call massUpdate(var, flux,flux_rhopw, dt, dRhop, RKstage, &
+           call massUpdate(var, flux, dt, dRhop, RKstage, &
                         & "rhop", "lhs", "expl")
            !UAE
 
@@ -877,10 +846,14 @@ program pinc_prog
            !call momentumPredictor(var, flux, &
            !     &                 force, dt, dMom, RKstage, "lhs", &
            !     &                 "expl", w_0)
-           call momentumPredictor(var, flux,flux_rhopw, &
+           call momentumPredictor(var, flux, &
                 &                 force, dt, dMom, RKstage, "lhs", "expl")
            !UAE
         end do
+
+        !UAB 200413
+        call set_spongeLayer(var, dt, "rho")
+        !UAE 200413
 
         ! (5) implicit integration of the linear right-hand sides of the
         !     equations for density fluctuations and momentum over half a 
@@ -894,23 +867,6 @@ program pinc_prog
         call setHalos( var, "var" )
         call setBoundary (var, flux, "var")
 
-
-!FSA
-        ! if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-        !    if (model == 'Boussinesq') then
-        !       print*, "main:ONeill+Klein2014 heating only for &
-        !              & pseudo-incompressible dyn."
-        !       stop
-        !    end if
-
-        !    RKstage = 1
-        !    dPStrat = 0.
-        !    drhoStrat = 0.           
-        !    call BGstate_update(var,flux,flux_rhopw,0.5*dt,RKstage,dPStrat,drhoStrat, &
-        !    !call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
-        !                      & "impl") !FS 0.5*dt -> dt
-        ! end if
-!FSE
       
         rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
 
@@ -919,7 +875,7 @@ program pinc_prog
         !UAB
         !call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs", &
         !              & "impl",w_0)
-        call massUpdate(var,flux,flux_rhopw,0.5*dt,dRhop,RKstage,"rhop","rhs","impl")
+        call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs","impl")
         !UAE
 
         ! update winds (uStar, vStar, wStar)
@@ -929,9 +885,10 @@ program pinc_prog
         !UAB
         !call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
         !                     & "impl",w_0)
-        call momentumPredictor(var,flux,flux_rhopw,force,0.5*dt,dMom,RKstage,"rhs",&
+        call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
                              & "impl")
-        !UAE
+        call set_spongeLayer(var, dt, "uvw")
+        !UAE 200413
               
         ! corrector: rhopStar, uStar, vStar, wStar 
         !            -> new rhop, u, v, w
@@ -947,7 +904,7 @@ program pinc_prog
 
            fc_shap = min( 1.0, 0.5*dt/shap_dts)
 
-           call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
+           call smooth_hor_shapiro(fc_shap,n_shap,flux,var,0.5*dt)
            !call smooth_shapiro(fc_shap,n_shap,flux,var)
         end if
         !UAE
@@ -957,8 +914,9 @@ program pinc_prog
         !               & nIterBicg, &
         !               & RKstage, "impl", w_0)
 
-! !FSE
-        if (heatingRefAtmo) then
+        ! GBcorr -> FS
+        if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+        !if (heating) then
            if (model == 'Boussinesq') then
               print*, "main:ONeill+Klein2014 heating only for &
                      & pseudo-incompressible dyn."
@@ -968,13 +926,13 @@ program pinc_prog
            RKstage = 1
            dPStrat = 0.
            drhoStrat = 0.           
-           call BGstate_update(var,flux,flux_rhopw,0.5*dt,RKstage,dPStrat,drhoStrat, &
-           !call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
-                             & "impl") !FS 0.5*dt -> dt
+           call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
+                           & "impl") !FS 0.5*dt -> dt
+           call set_spongeLayer(var, dt, "ref") !UA 200413
         end if
 !FSE
 
-        call Corrector ( var, flux,flux_rhopw, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
+        call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
                        & RKstage, "impl")
         !UAE
 
@@ -988,10 +946,10 @@ program pinc_prog
         ! call set_spongeLayer(var, dt, "rho")
 
         !testb
-        if (master) print*,'(6) sponge'
+        !UAD 200413 if (master) print*,'(6) sponge'
         !teste
 
-        call set_spongeLayer(var, dt, "uvw")
+        !UAD 200413 call set_spongeLayer(var, dt, "uvw")
 
         !testb
         !call output_data(iOut, var, iTime, time, cpuTime)
@@ -1029,7 +987,10 @@ program pinc_prog
            ! initialize density fluctuations for the integration
 
            !if (auxil_equ .and. iTime == 1) then
-           if (auxil_equ) then
+           !if (auxil_equ) then
+           if (     auxil_equ &
+              &.or. heatingONK14 .or. TurbScheme .or. rayTracer) then
+           !UAE 200413
               if (model /= "pseudo_incompressible") then
                  print*,'auxiliary equation only ready for &
                        & pseudo-incompressible'
@@ -1051,6 +1012,8 @@ program pinc_prog
                     var(:,:,kz,6) = var(:,:,kz,1) - rhoStrat(kz)
                  end do
               end if
+
+              var0 = var !UA 200413
 
        450    continue
            end if
@@ -1079,7 +1042,6 @@ program pinc_prog
 
            if( updateMass .or. (testcase=="nIce_w_test") ) call reconstruction (var, "rho")         
            if( updateMass ) call reconstruction (var, "rho")  
-           if ( updateMass ) call reconstruction (var, "rhopw0") !FS
            if( updateMass .and. auxil_equ ) then
                call reconstruction (var, "rhop")         
            end if
@@ -1094,7 +1056,7 @@ program pinc_prog
            ! Fluxes and Forces
            
            if( updateMass ) then 
-              call massFlux (var,var,flux,flux_rhopw,"nln")
+              call massFlux (var,var,flux,"nln")
               if( correctDivError ) then
                   print*,'ERROR: correction divergence error not &
                         & implemented properly'
@@ -1113,12 +1075,6 @@ program pinc_prog
            end if
 
            call setBoundary (var, flux, "flux") 
-
-
-           !FS set vertical flux_rhopw at wall to 0
-           flux_rhopw(:,:,-1) = 0.
-           flux_rhopw(:,:,0) = 0.
-           flux_rhopw(:,:,nz) = 0.
            
            ! Evolve in time
            
@@ -1167,15 +1123,19 @@ program pinc_prog
               if ( RKstage==1 ) dRho = 0.                    ! init q
            
               rhoOld = var(:,:,:,1)  ! rhoOld for momentum predictor
-              call massUpdate(var, flux,flux_rhopw, dt, dRho, RKstage, &
+              call massUpdate(var, flux, dt, dRho, RKstage, &
                             & "rho", "tot", "expl")
+              call set_spongeLayer(var, stepFrac(RKstage)*dt, "rho")
+              !UAE 200413
 
               if (auxil_equ) then
                  if ( RKstage==1 ) dRhop = 0.                    ! init q
 
                  rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
-                 call massUpdate(var, flux,flux_rhopw, dt, dRhop, RKstage, &
+                 call massUpdate(var, flux, dt, dRhop, RKstage, &
                                & "rhop", "tot", "expl")
+                 call set_spongeLayer(var, stepFrac(RKstage)*dt, "rhop")
+              !UAE 200413
               end if
 
               !call set_spongeLayer(var, stepFrac(RKstage)*dt, "rho")
@@ -1207,7 +1167,7 @@ program pinc_prog
 
               if ( RKstage==1 ) dMom = 0.                    ! init q
 
-              call momentumPredictor(var, flux,flux_rhopw, force, dt, dMom, RKstage, &
+              call momentumPredictor(var, flux, force, dt, dMom, RKstage, &
                                    & "tot", "expl")
            
               call set_spongeLayer(var, stepFrac(RKstage)*dt, "uvw")
@@ -1237,14 +1197,19 @@ program pinc_prog
 
               fc_shap = min( 1.0, dt_Poisson/shap_dts)
 
-              call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
+              call smooth_hor_shapiro(fc_shap,n_shap,flux,var,dt_Poisson)
               !call smooth_shapiro(fc_shap,n_shap,flux,var)
            end if
            !UAE
 
            ! implementation of heating ONeill and Klein 2014
 
-           if (heatingRefAtmo) then
+           !UAB
+           !if (heatingONK14) then
+           ! GBcorr -> FS
+           if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+           !if (heating) then
+           !UAE
 
               if (model == 'Boussinesq') then
                  print*, "main:ONeill+Klein2014 heating only for &
@@ -1255,8 +1220,10 @@ program pinc_prog
               if ( RKstage==1 ) dPStrat = 0.                    ! init q
               if ( RKstage==1 ) drhoStrat = 0.           
 
-              call BGstate_update(var,flux,flux_rhopw,dt,RKstage,dPStrat,drhoStrat, &
+              call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
                                 & "expl")
+              call set_spongeLayer(var, stepFrac(RKstage)*dt, "ref")
+              !UAE 200413
            end if
 
            if( correctMomentum ) then
@@ -1277,7 +1244,7 @@ program pinc_prog
               !UAB
               !call Corrector ( var, flux, dMom, dt_Poisson, errFlagBicg, &
               !               & nIterBicg, RKstage, "expl", w_0)
-              call Corrector ( var, flux,flux_rhopw, dMom, dt_Poisson, errFlagBicg, &
+              call Corrector ( var, flux, dMom, dt_Poisson, errFlagBicg, &
                              & nIterBicg, RKstage, "expl" )
               !UAE
 

@@ -396,7 +396,6 @@ contains
       
        end if
 
-
        if( updateTheta ) then
           ! potential temperature -> iVar = 6
 
