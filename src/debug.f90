@@ -43,7 +43,7 @@ contains
     
    
     ! warning
-    if( modulo(nx,2) .ne. 0 ) stop"debug.f90/intiSymm1D: nx not even"
+    if( modulo(nx,2) .ne. 0 ) stop "debug.f90/intiSymm1D: nx not even"
 
 
     ! reset var
@@ -85,7 +85,7 @@ contains
     
    
     ! warning
-    if( modulo(nx,2) .ne. 0 ) stop"debug.f90/checkSymm1D: nx not even"
+    if( modulo(nx,2) .ne. 0 ) stop "debug.f90/checkSymm1D: nx not even"
 
     print*,"debug.f90/checkSymm1D: checking phi for symmetry" 
 
@@ -138,7 +138,7 @@ contains
     real :: phiR, phiL
    
     ! warning
-    if( modulo(nx,2) .ne. 0 ) stop"debug.f90/checkSymmTilde1D: nx not even"
+    if( modulo(nx,2) .ne. 0 ) stop "debug.f90/checkSymmTilde1D: nx not even"
 
     print*,"debug.f90/checkSymmTilde1D: checking phiTilde for symmetry" 
     print*,"debug.f90/checkSymmTilde1D: monitoring phiTilde at nx/2 left and nx/2+1 right:", &
@@ -216,7 +216,7 @@ contains
        end do
     else
        do m = 1, nx/2+nbx
-       stop"not implemented"
+       stop "not implemented"
        ! u: staggered and antisymmetric
        ! phiTilde(nx/2+m,:,:,2) = -phiTilde(nx/2-m,:,:,2)   ! uTilde
     end do
@@ -383,7 +383,7 @@ end subroutine initSymmTilde
           do j = -nby, ny+nby
 
              do m = 1, nx/2+nbx  ! Note: symmetry for all ghost cells assured
-                stop"not implemented"
+                stop "not implemented"
                 ! u: staggered and antisymmetric
                 ! phiTilde(nx/2+m,j,k,2) = -phiTilde(nx/2-m,j,k,2)   ! uTilde
              end do !m

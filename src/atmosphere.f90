@@ -1169,7 +1169,7 @@ contains
        N2 = max(N2, bvsStrat(nz+1))
        
        if(N2 < 0.) then
-          stop'ERROR: N2 < 0'
+          stop 'ERROR: N2 < 0'
        else
           NN = sqrt(N2)
        end if
