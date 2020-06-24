@@ -2361,7 +2361,7 @@ contains
     if (verbose) print*,"rhoFlux: &
          &rho fluxes fRho, gRho and fRho calculated"
 
-  end subroutine massFlux_0
+  end subroutine massFlux
   
   
 !---------------------------------------------------------------------------
@@ -2942,7 +2942,6 @@ contains
                 end do
              end do
           end do
-       end do
 
        !end if ! RoInv > 0.0
     end if ! not semiimplicit

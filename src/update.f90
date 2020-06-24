@@ -605,8 +605,8 @@ contains
 
        !             yloc = y(j+j00)
 
-       do k = kSponge, nz
-          wBG = 0.0
+       ! do k = kSponge, nz
+       !    wBG = 0.0
 
        !             if (Sponge_Rel_Bal_Type == "hyd") then
        !                ! relax to hydrost bal

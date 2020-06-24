@@ -139,7 +139,7 @@ contains
 
     integer :: j00
     real :: yloc, ymax
-    real, dimension(1:ny) :: f_Coriolis_y
+    real, dimension(0:ny+1) :: f_Coriolis_y
 
     ! allocate PStrat
     if( .not. allocated(pStrat) ) then
