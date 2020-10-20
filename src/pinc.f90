@@ -109,6 +109,8 @@ program pinc_prog
   
   integer :: iVar
 
+  integer :: heating_switch
+
   !-------------------------------------------------
   !                    Set up 
   !-------------------------------------------------
@@ -187,34 +189,6 @@ program pinc_prog
   
   ice_time_steps = 1 
      
-  !testb
-  !var = 0.0
-   
-  !do iVar = 1,6
-  !   !do i = 1,nx
-  !   !   var(i,:,:,iVar) = (-1.0)**i
-  !   !end do
-  !   !do j=1,ny
-  !   !   var(:,j,:,iVar) = (-1.0)**j
-  !   !end do
-  !   do j=1,ny
-  !      do i=1,nx
-  !         var(i,j,:,iVar) = (-1.0)**(i+j)
-  !      end do
-  !   end do
-  !end do
-  
-  !call output_data(iOut, var, iTime, time, cpuTime)
-  
-  !fc_shap = 1.0
-  
-  !print*,fc_shap,n_shap
-   
-  !call smooth_hor_shapiro(fc_shap,n_shap,flux,var)
-  
-  !call output_data(iOut, var, iTime, time, cpuTime)
-  !stop
-  !teste
 
   !-------------------------------------------------
   !              Read initial data
@@ -249,7 +223,11 @@ program pinc_prog
      dMom = 0.
 
      tolpoisson_s = tolPoisson
-     tolPoisson = 1.e-9
+     if (testCase == 'baroclinic_LC') then
+        tolPoisson = 1.e-6
+     else
+        tolPoisson = 1.e-8
+     end if
      call Corrector ( var, flux, dMom, 1.0 , errFlagBicg, nIterBicg, &
                     & 1, "expl")
      tolPoisson = tolpoisson_s
@@ -281,7 +259,13 @@ program pinc_prog
   !------------------------------------------
 
   call output_data(iOut, var, iTime, time, cpuTime)
-
+  if (testCase == 'baroclinic_LC') then
+     call output_profile(iOut, PStrat,'Pstrat.dat')
+     call output_profile(iOut, rhoStrat,'rhostrat.dat')
+     call output_profile(iOut, thetaStrat,'thetastrat.dat')
+     call output_profile(iOut, bvsstrat,'bvsstrat.dat')
+  end if
+     
 
   if (rayTracer) then
       call output_wkb(iOut, ray, ray_var3D)
@@ -354,7 +338,13 @@ program pinc_prog
 
         ! final output
         call output_data(iOut, var, iTime, time, cpuTime)
-
+        if (testCase == 'baroclinic_LC') then
+           call output_profile(iOut, PStrat,'Pstrat.dat')
+           call output_profile(iOut, rhoStrat,'rhostrat.dat')
+           call output_profile(iOut, thetaStrat,'thetastrat.dat')
+           call output_profile(iOut, bvsstrat,'bvsstrat.dat')
+        end if
+        
         if (rayTracer) then
             call output_wkb(iOut, ray, ray_var3D)
         end if
@@ -395,7 +385,11 @@ program pinc_prog
      ! (2) density-fluctuation relaxation in semi-implicit time stepping
      !-----------------------------------------------------------------
 
-     alprlx = 5.e-1/dt
+     if (testCase == 'baroclinic_LC') then
+        alprlx = 0.
+     else
+        alprlx = 5.e-1/dt
+     end if
 
      !testb
      !alprlx = 0.0
@@ -510,14 +504,20 @@ program pinc_prog
         ! velocities
 
         var0 = var
-        ! PStrat00 = PStrat
-        ! rhoStrat00 = rhoStrat
-        ! thetaStrat00 = thetaStrat
-        ! bvsStrat00 = bvsStrat
-        ! thetaStratTilde00 = thetaStratTilde
-        ! rhoStratTilde00 = rhoStratTilde
-        ! PStratTilde00 = PStratTilde
+        !FS for update of P and rhoStrat in (5)
+        PStrat00 = PStrat 
+        rhoStrat00 = rhoStrat
+        heating_switch = 0
+
+        !FS18082020
+        thetaStrat00 = thetaStrat
+        bvsStrat00 = bvsStrat
+        thetaStratTilde00 = thetaStratTilde
+        rhoStratTilde00 = rhoStratTilde
+        PStratTilde00 = PStratTilde
         
+        call setHalos( var0, "var" )
+        call setBoundary (var0,flux,"var")
 
         ! (1) explicit integration of convective and 
         !     viscous-diffusive/turbulent fluxes over half a time step,
@@ -529,8 +529,6 @@ program pinc_prog
         if (master) print*,'(1) explicit integration lhs over dt/2'
         !teste
 
-        call setHalos( var0, "var" )
-        call setBoundary (var0,flux,"var")
 
         do RKstage = 1, nStages
            ! Reconstruction
@@ -547,8 +545,8 @@ program pinc_prog
 
            ! Fluxes and Forces
            
-           call massFlux (var0,var,flux,"lin")
-           call momentumFlux (var0,var,flux,"lin") 
+           call massFlux (var0,var,flux,"lin",PStrat00,PStratTilde00)
+           call momentumFlux (var0,var,flux,"lin",PStrat00,PStratTilde00) 
 
            call setBoundary (var, flux, "flux") 
 
@@ -556,36 +554,27 @@ program pinc_prog
            
            rhoOld = var(:,:,:,1)  ! rhoOld for momentum predictor
 
-           !UAB
-           !call massUpdate(var, flux, 0.5*dt, dRho, RKstage, &
-           !              & "rho", "tot", "expl",w_0)
-           !call massUpdate(var,flux, 0.5*dt, dRhop, RKstage, &
-           !              & "rhop", "lhs", "expl",w_0)
            
            call massUpdate(var, flux, 0.5*dt, dRho, RKstage, &
                          & "rho", "tot", "expl")
+         
            call massUpdate(var,flux, 0.5*dt, dRhop, RKstage, &
                          & "rhop", "lhs", "expl")
-           !UAE
+          
               
            ! RK step for momentum
         
            call setHalos( var, "var" )
            call setBoundary (var, flux, "var")
 
-           !UAB
-           !call momentumPredictor(var, flux, force, 0.5*dt, dMom, &
-           !                     & RKstage, &
-           !                     & "lhs", "expl",w_0)
            
            call momentumPredictor(var, flux, force, 0.5*dt, dMom, &
                                 & RKstage, "lhs", "expl")
-           !UAE
+        
+           
         end do
 
-        !testb
-        !call output_data(iOut, var, iTime, time, cpuTime)
-        !teste
+
 
         ! (2) implicit integration of the linear right-hand sides of the
         !     equations for density fluctuations and momentum over half a 
@@ -599,24 +588,18 @@ program pinc_prog
         call setHalos( var, "var" )
         call setBoundary (var, flux, "var")
 
+
         rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
 
         ! update density fluctuations (rhopStar)
 
-        !UAB
-        !call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs",&
-        !              & "impl",w_0)
         call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs","impl")
-        !UAE
 
         ! update winds (uStar, vStar, wStar)
 
-        !UAB
-        !call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
-        !                     & "impl",w_0)
         call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
                              & "impl")
-        !UAE
+        
               
         ! corrector: rhopStar, uStar, vStar, wStar 
         !            -> new rhop, u, v, w
@@ -624,9 +607,12 @@ program pinc_prog
         call setHalos( var, "var" )
         call setBoundary (var,flux,"var")
 
+
+
         !UAB
         if (shap_dts_dim > 0.) then
            ! smoothing of the fields in order to limit grid-point noise
+
 
            shap_dts = shap_dts_dim/tRef
 
@@ -636,15 +622,8 @@ program pinc_prog
            !call smooth_shapiro(fc_shap,n_shap,flux,var)
         end if
         !UAE
+       
 
-        !UAB
-        !call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, &
-        !               & nIterBicg, &
-        !               & RKstage, "impl",w_0 )
-
-     !------------------------------------------
-     !              Initial output
-     !------------------------------------------
 
         ! GBcorr -> FS
         if (heatingONK14 .or. TurbScheme .or. rayTracer) then
@@ -658,30 +637,32 @@ program pinc_prog
            RKstage = 1
            dPStrat = 0.
            drhoStrat = 0.           
-          call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
-                             & "impl")
+           call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
+                             & "impl",heating_switch)
         end if
-!FSE
 
         call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
                        & RKstage, "impl")
-        !UAE
+        
 
         nTotalBicg = nTotalBicg + nIterBicg
 
-        call setHalos( var, "var" )
+        call setHalos( var, "var" ) 
         call setBoundary (var,flux,"var")
 
         ! put new state into var1 in order to save the advection velocities
 
-        var1 = var      
-        ! PStrat01 = PStrat
-        ! rhoStrat01 = rhoStrat
-        ! thetaStrat01 = thetaStrat
-        ! bvsStrat01 = bvsStrat
-        ! thetaStratTilde01 = thetaStratTilde
-        ! rhoStratTilde01 = rhoStratTilde
-        ! PStratTilde01 = PStratTilde
+        var1 = var     
+        !FS18082020
+        PStrat01 = PStrat
+        rhoStrat01 = rhoStrat
+        thetaStrat01 = thetaStrat
+        bvsStrat01 = bvsStrat
+        thetaStratTilde01 = thetaStratTilde
+        rhoStratTilde01 = rhoStratTilde
+        PStratTilde01 = PStratTilde
+
+
 
         ! (3) explicit integration of the linear right-hand sides of the
         !     equations for density fluctuations and momentum over half a 
@@ -695,50 +676,40 @@ program pinc_prog
         !teste
 
         var = var0
-        ! PStrat = PStrat00
-        ! rhoStrat = rhoStrat00
-        ! thetaStrat = thetaStrat00
-        ! bvsStrat = bvsStrat00
-        ! thetaStratTilde = thetaStratTilde00
-        ! rhoStratTilde = rhoStratTilde00
-        ! PStratTilde = PStratTilde00
+        !FS18082020
+        PStrat = PStrat00
+        rhoStrat = rhoStrat00
+        thetaStrat = thetaStrat00
+        bvsStrat = bvsStrat00
+        thetaStratTilde = thetaStratTilde00
+        rhoStratTilde = rhoStratTilde00
+        PStratTilde = PStratTilde00
       
         call setHalos( var, "var" )
         call setBoundary (var, flux, "var")
-     
+      
 
         rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
 
         ! update density fluctuations (rhopStar)
-
-        !UAB
-        !call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs", &
-        !              & "expl",w_0)
         call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs","expl")
-        !UAE
+        
 
         ! update winds (uStar, vStar, wStar)
 
-        !UAB
-        !call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
-        !                     & "expl",w_0)
         call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
                              & "expl")
-        !UAE
-              
-        !testb
-        !call output_data(iOut, var, iTime, time, cpuTime)
-        !teste
 
         ! corrector: uStar, vStar, wStar 
         !            -> new u, v, w
+
            
         call setHalos( var, "var" )
         call setBoundary (var,flux,"var")
 
-        !UAB
         if (shap_dts_dim > 0.) then
            ! smoothing of the fields in order to limit grid-point noise
+
 
            shap_dts = shap_dts_dim/tRef
 
@@ -747,39 +718,34 @@ program pinc_prog
            call smooth_hor_shapiro(fc_shap,n_shap,flux,var,0.5*dt)
            !call smooth_shapiro(fc_shap,n_shap,flux,var)
         end if
-        !UAE
-
-        !UAB
-        !call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, &
-        !               & nIterBicg, &
-        !               & RKstage, "expl",w_0)
+       
 
         ! GBcorr -> FS
-        if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-        !if (heating) then
-           if (model == 'Boussinesq') then
-              print*, "main:ONeill+Klein2014 heating only for &
-                     & pseudo-incompressible dyn."
-              stop
-           end if
+        !FS auskommentiert Anfang
+        ! if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+        ! !if (heating) then
+        !    if (model == 'Boussinesq') then
+        !       print*, "main:ONeill+Klein2014 heating only for &
+        !              & pseudo-incompressible dyn."
+        !       stop
+        !    end if
 
-           !'impl' chosen below because this is not in an RK sub-step
+        !    !'impl' chosen below because this is not in an RK sub-step
 
-           RKstage = 1
-           dPStrat = 0.
-           drhoStrat = 0.           
-          call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
-                             & "impl")
-        end if
+        !    RKstage = 1
+        !    dPStrat = 0.
+        !    drhoStrat = 0.           
+        !    call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
+        !                      & "impl")
+        ! end if
+         
+        ! call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
+        !      & RKstage, "expl")
+        
+        ! ! !FS auskommentiert Ende
+        !  nTotalBicg = nTotalBicg + nIterBicg
 
-!FSE  
 
-        call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
-                       & RKstage, "expl")
-        ! !UAE
-
-
-        nTotalBicg = nTotalBicg + nIterBicg
 
         ! (4) explicit integration of convective and 
         !     viscous-diffusive/turbulent fluxes over a full time step,
@@ -791,13 +757,14 @@ program pinc_prog
         !teste
 
         var0 = var1
-        ! PStrat00 = PStrat01
-        ! rhoStrat00 = rhoStrat01
-        ! thetaStrat00 = thetaStrat01
-        ! bvsStrat00 = bvsStrat01
-        ! thetaStratTilde00 = thetaStratTilde01
-        ! rhoStratTilde00 = rhoStratTilde01
-        ! PStratTilde00 = PStratTilde01
+        !FS
+        PStrat = PStrat01
+        rhoStrat = rhoStrat01
+        thetaStrat = thetaStrat01
+        bvsStrat = bvsStrat01
+        thetaStratTilde = thetaStratTilde01
+        rhoStratTilde = rhoStratTilde01
+        PStratTilde = PStratTilde01
 
         call setHalos( var0, "var" )
         call setBoundary (var0,flux,"var")
@@ -817,8 +784,8 @@ program pinc_prog
 
            ! Fluxes and Forces
            
-           call massFlux (var0,var,flux,"lin")
-           call momentumFlux (var0,var,flux,"lin") 
+           call massFlux (var0,var,flux,"lin",PStrat01,PStratTilde01)
+           call momentumFlux (var0,var,flux,"lin",PStrat01,PStratTilde01) 
 
            call setBoundary (var, flux, "flux") 
 
@@ -827,33 +794,24 @@ program pinc_prog
            
            rhoOld = var(:,:,:,1)  ! rhoOld for momentum predictor
 
-           !UAB
-           !call massUpdate(var, flux, dt, dRho, RKstage, &
-           !             & "rho", "tot", "expl",w_0)
-           !call massUpdate(var, flux, dt, dRhop, RKstage, &
-           !             & "rhop", "lhs", "expl",w_0)
+         
            call massUpdate(var, flux, dt, dRho, RKstage, &
                         & "rho", "tot", "expl")
+
            call massUpdate(var, flux, dt, dRhop, RKstage, &
                         & "rhop", "lhs", "expl")
-           !UAE
+           
 
            ! RK step for momentum
            call setHalos( var, "var" )
            call setBoundary (var, flux, "var")
 
-           !UAB
-           !call momentumPredictor(var, flux, &
-           !     &                 force, dt, dMom, RKstage, "lhs", &
-           !     &                 "expl", w_0)
+           
            call momentumPredictor(var, flux, &
                 &                 force, dt, dMom, RKstage, "lhs", "expl")
-           !UAE
+  
         end do
 
-        !UAB 200413
-        call set_spongeLayer(var, dt, "rho")
-        !UAE 200413
 
         ! (5) implicit integration of the linear right-hand sides of the
         !     equations for density fluctuations and momentum over half a 
@@ -872,23 +830,17 @@ program pinc_prog
 
         ! update density fluctuations (rhopStar)
 
-        !UAB
-        !call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs", &
-        !              & "impl",w_0)
+       
         call massUpdate(var,flux,0.5*dt,dRhop,RKstage,"rhop","rhs","impl")
-        !UAE
+        
 
         ! update winds (uStar, vStar, wStar)
         call setHalos( var, "var" )
         call setBoundary (var,flux,"var")
 
-        !UAB
-        !call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
-        !                     & "impl",w_0)
+       
         call momentumPredictor(var,flux,force,0.5*dt,dMom,RKstage,"rhs",&
                              & "impl")
-        call set_spongeLayer(var, dt, "uvw")
-        !UAE 200413
               
         ! corrector: rhopStar, uStar, vStar, wStar 
         !            -> new rhop, u, v, w
@@ -900,19 +852,15 @@ program pinc_prog
         if (shap_dts_dim > 0.) then
            ! smoothing of the fields in order to limit grid-point noise
 
+
            shap_dts = shap_dts_dim/tRef
 
-           fc_shap = min( 1.0, 0.5*dt/shap_dts)
+           fc_shap = min( 1.0, 0.5*dt/shap_dts) 
 
            call smooth_hor_shapiro(fc_shap,n_shap,flux,var,0.5*dt)
            !call smooth_shapiro(fc_shap,n_shap,flux,var)
         end if
         !UAE
-
-        !UAB
-        !call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, &
-        !               & nIterBicg, &
-        !               & RKstage, "impl", w_0)
 
         ! GBcorr -> FS
         if (heatingONK14 .or. TurbScheme .or. rayTracer) then
@@ -925,35 +873,20 @@ program pinc_prog
 
            RKstage = 1
            dPStrat = 0.
-           drhoStrat = 0.           
-           call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
-                           & "impl") !FS 0.5*dt -> dt
-           call set_spongeLayer(var, dt, "ref") !UA 200413
+           drhoStrat = 0. 
+           heating_switch = 1
+           call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
+                             & "impl",heating_switch) !FS 0.5*dt -> dt
         end if
 !FSE
 
         call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
                        & RKstage, "impl")
-        !UAE
+        
+
 
         nTotalBicg = nTotalBicg + nIterBicg
 
-        !testb
-        !call output_data(iOut, var, iTime, time, cpuTime)
-        !teste
-
-        ! the sponge layer is still to be adapted to also having \rhop?
-        ! call set_spongeLayer(var, dt, "rho")
-
-        !testb
-        !UAD 200413 if (master) print*,'(6) sponge'
-        !teste
-
-        !UAD 200413 call set_spongeLayer(var, dt, "uvw")
-
-        !testb
-        !call output_data(iOut, var, iTime, time, cpuTime)
-        !teste
 
         !testb
         if (master) print*,'semi-implicit time step done'
@@ -963,7 +896,7 @@ program pinc_prog
 
         Runge_Kutta_Loop: do RKstage = 1, nStages
 
-           ! turbulence scheme:
+            ! turbulence scheme:
            ! either prescribed damping time scale for smallest spatial 
            ! scales
            ! or dynamic Smagorinsky scheme
@@ -973,6 +906,7 @@ program pinc_prog
            if (TurbScheme) then
               if(DySmaScheme) then
                  call CoefDySma_update(var)
+                 !call CoefDySma_update(var,dt)
                 else
                  var(:,:,:,7) = tRef/turb_dts
               end if
@@ -1056,7 +990,7 @@ program pinc_prog
            ! Fluxes and Forces
            
            if( updateMass ) then 
-              call massFlux (var,var,flux,"nln")
+              call massFlux (var,var,flux,"nln",PStrat,PStratTilde)
               if( correctDivError ) then
                   print*,'ERROR: correction divergence error not &
                         & implemented properly'
@@ -1070,7 +1004,7 @@ program pinc_prog
            end if
 
            if( predictMomentum ) then
-              call momentumFlux (var,var,flux,"nln")        
+              call momentumFlux (var,var,flux,"nln",PStrat,PStratTilde)        
               call volumeForce (var,time,force)        
            end if
 
@@ -1125,7 +1059,9 @@ program pinc_prog
               rhoOld = var(:,:,:,1)  ! rhoOld for momentum predictor
               call massUpdate(var, flux, dt, dRho, RKstage, &
                             & "rho", "tot", "expl")
-              call set_spongeLayer(var, stepFrac(RKstage)*dt, "rho")
+              if (testCase /= 'baroclinic_LC') then
+                 call set_spongeLayer(var, stepFrac(RKstage)*dt, "rho")
+              end if
               !UAE 200413
 
               if (auxil_equ) then
@@ -1134,15 +1070,17 @@ program pinc_prog
                  rhopOld = var(:,:,:,6)  ! rhopOld for momentum predictor
                  call massUpdate(var, flux, dt, dRhop, RKstage, &
                                & "rhop", "tot", "expl")
-                 call set_spongeLayer(var, stepFrac(RKstage)*dt, "rhop")
+                 if (testCase /= 'baroclinic_LC') then
+                    call set_spongeLayer(var, stepFrac(RKstage)*dt, "rhop")
+                 end if
               !UAE 200413
               end if
 
-              !call set_spongeLayer(var, stepFrac(RKstage)*dt, "rho")
              else 
               if(iTime==1 .and. RKstage==1 .and. master) &
               & print *,"main: MassUpdate off!"
            end if
+
               
            if( updateTheta ) then
               ! theta_new
@@ -1159,6 +1097,7 @@ program pinc_prog
               & print *,"main: ThetaUpdate off!"
            end if
 
+
            if ( predictMomentum ) then
               ! predictor: uStar
            
@@ -1169,16 +1108,15 @@ program pinc_prog
 
               call momentumPredictor(var, flux, force, dt, dMom, RKstage, &
                                    & "tot", "expl")
-           
-              call set_spongeLayer(var, stepFrac(RKstage)*dt, "uvw")
+              if (testCase /= 'baroclinic_LC') then
+                 call set_spongeLayer(var, stepFrac(RKstage)*dt, "uvw")
+              end if
              else 
               if(iTime==1 .and. RKstage==1 .and. master) &
               & print *,"main: MomentumUpdate off!"
            end if
-           
-           !testb
-           !call output_data(iOut, var, iTime, time, cpuTime)
-           !teste
+
+
 
            !UAB
            if (shap_dts_dim > 0.) then
@@ -1190,7 +1128,7 @@ program pinc_prog
                  case( "classical" )
                     dt_Poisson = rk(3,RKstage)*dt
                  case default
-                    stop "thetaUpdate: unknown case timeSchemeType"
+                    stop"thetaUpdate: unknown case timeSchemeType"
               end select
 
               shap_dts = shap_dts_dim/tRef
@@ -1221,9 +1159,8 @@ program pinc_prog
               if ( RKstage==1 ) drhoStrat = 0.           
 
               call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
-                                & "expl")
-              call set_spongeLayer(var, stepFrac(RKstage)*dt, "ref")
-              !UAE 200413
+                                & "expl",heating_switch)
+              
            end if
 
            if( correctMomentum ) then
@@ -1238,15 +1175,12 @@ program pinc_prog
                  case( "classical" )
                     dt_Poisson = rk(3,RKstage)*dt
                  case default
-                    stop "thetaUpdate: unknown case timeSchemeType"
+                    stop"thetaUpdate: unknown case timeSchemeType"
               end select
               
-              !UAB
-              !call Corrector ( var, flux, dMom, dt_Poisson, errFlagBicg, &
-              !               & nIterBicg, RKstage, "expl", w_0)
               call Corrector ( var, flux, dMom, dt_Poisson, errFlagBicg, &
                              & nIterBicg, RKstage, "expl" )
-              !UAE
+              
 
               nTotalBicg = nTotalBicg + nIterBicg
            
@@ -1261,7 +1195,11 @@ program pinc_prog
                  cpuTime = (timeCount - startTimeCount)/real(rate)
 
                  call output_data(iOut, var, iTime, time, cpuTime)
-
+                 call output_profile(iOut, PStrat,'Pstrat')
+                 call output_profile(iOut, rhoStrat,'rhostrat')
+                 call output_profile(iOut, thetaStrat,'thetastrat')
+                 call output_profile(iOut, bvsstrat,'bvsstrat')
+                 
                  if (rayTracer) then
                      call output_wkb(iOut, ray, ray_var3D)
                  end if
@@ -1294,6 +1232,13 @@ program pinc_prog
                    & var,&
                    & iTime, time, cpuTime)
 
+              if (testCase == 'baroclinic_LC') then
+                 call output_profile(iOut, PStrat,'Pstrat.dat')
+                 call output_profile(iOut, rhoStrat,'rhostrat.dat')
+                 call output_profile(iOut, thetaStrat,'thetastrat.dat')
+                 call output_profile(iOut, bvsstrat,'bvsstrat.dat')
+              end if
+              
               if (rayTracer) then
                  call output_wkb(iOut, ray, ray_var3D)
               end if
@@ -1314,6 +1259,13 @@ program pinc_prog
                    & var,&
                    & iTime, time, cpuTime)
 
+              if (testCase == 'baroclinic_LC') then
+                 call output_profile(iOut, PStrat,'Pstrat.dat')
+                 call output_profile(iOut, rhoStrat,'rhostrat.dat')
+                 call output_profile(iOut, thetaStrat,'thetastrat.dat')
+                 call output_profile(iOut, bvsstrat,'bvsstrat.dat')
+              end if
+              
               if (rayTracer) then
                  call output_wkb(iOut, ray, ray_var3D)
               end if
@@ -1330,7 +1282,11 @@ program pinc_prog
      if( outputType == "time" ) then
         if( time*tRef >= maxTime ) then 
            if( master ) then
-              nAverageBicg = real(nTotalBicg) / real(iTime) / 3.0
+              if(timeScheme == 'semiimplicit')then
+                 nAverageBicg = real(nTotalBicg) / real(iTime) / 2.0
+              else
+                 nAverageBicg = real(nTotalBicg) / real(iTime) / 3.0
+              end if
 
               call system_clock(count=timeCount)
               cpuTime = (timeCount - startTimeCount)/real(rate)
