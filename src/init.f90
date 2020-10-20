@@ -508,9 +508,11 @@ contains
     real, dimension(1:ny) :: s2_strtd, c2_strtd, c4_strtd
     real :: yjets, yjetn, dy_hs, tempev, pistar, thetastar, sig_pr, facsig
     real :: ka_hs, ks_hs, kf_hs
-    real :: tp_sponge !FS
+    real,dimension(1:nx,1:ny) :: tp_sponge !FS
 
-    real, dimension(1:ny) :: f_Coriolis_y
+    real, dimension(0:ny+1) :: f_Coriolis_y
+    real :: spongeDz
+    integer :: switch, k_tropopause
 
     ! open the namelist file
     open (unit=10, file=file_namelist, action="read", &
@@ -1187,17 +1189,80 @@ contains
           end do
        end do
 
-       ! if (timeScheme == "semiimplicit" .or. auxil_equ) then
-       !    if( fluctuationMode ) then
-       !        do k = -nbz,nz+nbz
-       !           var(:,:,k,6) = var(:,:,k,1)
-       !        end do
-       !       else
-       !        do k = -nbz,nz+nbz
-       !           var(:,:,k,6) = var(:,:,k,1) - rhoStrat(k)
-       !        end do
-       !     end if
-       !  end if
+    case( 'SkamarockKlemp94' )
+       
+       ! read test case input data
+       read (unit=10, nml=bubble)
+       
+       if (referenceQuantities == "SI" ) then
+          stop"initialize: SI units not allowed"
+       end if
+       
+       ! zero start velocity 
+       var(:,:,:,2) = 20.0/uRef
+       var(:,:,:,3) = 0.0
+       var(:,:,:,4) = 0.0
+
+       ! constant pressure variable pi' 
+       var(:,:,:,5) = 0.0
+
+       i00 = is + nbx - 1   ! 0 index, 
+                            ! replace i -> i + i0 in x and y fields
+       j00 = js + nby - 1
+
+       ! potential temperature and density
+       do k = 1,nz
+          do j = 1,ny
+             do i = 1,nx
+                x_dim = x(i+i00) * lRef       ! dimensional lenghts
+                z_dim = z(k) * lRef
+
+                ! delX = (x_dim - xCenter_dim)*60. / lx_dim(1)
+                ! delZ = (z_dim - zCenter_dim) / zRadius_dim
+
+                ! r = sqrt(delX**2 + delZ**2)  ! scaled radius
+
+               ! if( r<=1.0 ) then  ! inside bubble
+                   dTheta_dim &
+                   = 0.01*sin((pi*z_dim)/10000.)/(1.+((x_dim-xCenter_dim)*60./lx_dim(1))**2)
+                   != 0.5*dTheta0_dim * (1.0 + (cos(pi*r/2.0))**2)
+                   theta = thetaStrat(k) + dTheta_dim / thetaRef
+
+                    if( fluctuationMode )  then
+                      ! calc pseudo-incompressible density rho*
+                      if ( referenceQuantities == "SI" ) then
+                         rho &
+                         = p0**kappa/Rsp * Pstrat(k) / theta - rhoStrat(k)
+                      else
+                         rho = Pstrat(k) / theta - rhoStrat(k)
+                      end if
+                   else
+                      ! calc pseudo-incompressible density rho*
+                      if ( referenceQuantities == "SI" ) then
+                         rho = p0**kappa/Rsp * Pstrat(k) / theta
+                      else
+                         rho = Pstrat(k) / theta
+                      end if
+                   end if  ! fluctuation mode
+
+                   select case( model )
+
+                   case( "pseudo_incompressible" )
+
+                       var(i,j,k,1) = rho
+
+                   case( "Boussinesq" )
+
+                       var(i,j,k,1) = rhoStrat(k)
+                       var(i,j,k,6) = dTheta_dim / thetaRef
+
+                   case default
+                      stop"initialize: unknown model."
+                   end select          
+
+                end do
+             end do
+          end do
 
 
        !-----------------------------------------------------------------
@@ -1501,80 +1566,6 @@ contains
 
        !----------------------------------------------------
 
-    case( 'SkamarockKlemp94' )
-
-       ! read test case input data
-       read (unit=10, nml=bubble)
-
-       if (referenceQuantities == "SI" ) then
-          stop "initialize: SI units not allowed"
-       end if
-
-       ! zero start velocity 
-       var(:,:,:,2) = 20.0/uRef
-       var(:,:,:,3) = 0.0
-       var(:,:,:,4) = 0.0
-
-       ! constant pressure variable pi' 
-       var(:,:,:,5) = 0.0
-
-       ! potential temperature and density
-       do k = 1,nz
-          do j = 1,ny
-             do i = 1,nx
-                x_dim = x(i) * lRef       ! dimensional lenghts
-                z_dim = z(k) * lRef
-
-                ! delX = (x_dim - xCenter_dim)*60. / lx_dim(1)
-                ! delZ = (z_dim - zCenter_dim) / zRadius_dim
-
-                ! r = sqrt(delX**2 + delZ**2)  ! scaled radius
-
-               ! if( r<=1.0 ) then  ! inside bubble
-                   dTheta_dim &
-                   = 0.01*sin((pi*z_dim)/10000.)/(1.+((x_dim-xCenter_dim)*60./lx_dim(1))**2)
-                   != 0.5*dTheta0_dim * (1.0 + (cos(pi*r/2.0))**2)
-                   theta = thetaStrat(k) + dTheta_dim / thetaRef
-
-                    if( fluctuationMode )  then
-                      ! calc pseudo-incompressible density rho*
-                      if ( referenceQuantities == "SI" ) then
-                         rho &
-                         = p0**kappa/Rsp * Pstrat(k) / theta - rhoStrat(k)
-                      else
-                         rho = Pstrat(k) / theta - rhoStrat(k)
-                      end if
-                   else
-                      ! calc pseudo-incompressible density rho*
-                      if ( referenceQuantities == "SI" ) then
-                         rho = p0**kappa/Rsp * Pstrat(k) / theta
-                      else
-                         rho = Pstrat(k) / theta
-                      end if
-                   end if  ! fluctuation mode
-
-                   select case( model )
-
-                   case( "pseudo_incompressible" )
-
-                       var(i,j,k,1) = rho
-
-                   case( "Boussinesq" )
-
-                       var(i,j,k,1) = rhoStrat(k)
-                       var(i,j,k,6) = dTheta_dim / thetaRef
-
-                   case default
-                      stop "initialize: unknown model."
-                   end select
-          
-
-             end do
-          end do
-       end do
-
-      
-
 
        !-----------------------------------------------------------------
        
@@ -1855,7 +1846,7 @@ contains
                else if ((yloc >= ymin) .and. (yloc < yjets - 0.5*dy_hs)) &
                 & then
                 s2_strtd(j) = 1.0
-                c2_strtd(j) = 0.0
+                c2_strtd(j) = 1.!0.0
                 c4_strtd(j) = 0.0
                else if ((yloc >= yjets - 0.5*dy_hs) &
                 &       .and. (yloc < yjets + 0.5*dy_hs)) then
@@ -1863,7 +1854,7 @@ contains
                 = sin((yloc - (yjets + 0.5*dy_hs))/dy_hs * 0.5*pi)**2
 
                 c2_strtd(j) &
-                = cos((yloc - (yjets + 0.5*dy_hs))/dy_hs * 0.5*pi)**2
+                = 1.!cos((yloc - (yjets + 0.5*dy_hs))/dy_hs * 0.5*pi)**2
 
                 c4_strtd(j) &
                 = cos((yloc - (yjets + 0.5*dy_hs))/dy_hs * 0.5*pi)**4
@@ -1878,14 +1869,14 @@ contains
                 = sin((yloc - (yjetn - 0.5*dy_hs))/dy_hs * 0.5*pi)**2
 
                 c2_strtd(j) &
-                = cos((yloc - (yjetn - 0.5*dy_hs))/dy_hs * 0.5*pi)**2
+                = 1.!cos((yloc - (yjetn - 0.5*dy_hs))/dy_hs * 0.5*pi)**2
 
                 c4_strtd(j) &
                 = cos((yloc - (yjetn - 0.5*dy_hs))/dy_hs * 0.5*pi)**4
                else if ((yloc >= yjetn + 0.5*dy_hs) .and. (yloc <= ymax)) &
                 & then
                 s2_strtd(j) = 1.0
-                c2_strtd(j) = 0.0
+                c2_strtd(j) = 1.!0.0
                 c4_strtd(j) = 0.0
                else if (yloc > ymax) then
                 stop 'ERROR: y > ymax'
@@ -1913,25 +1904,58 @@ contains
              kf_hs = tRef/tf_hs_dim
           end if
 
+          ! thickness of sponge layer
+          spongeDz = z(nz) - z(kSponge) 
+
           do k=0,nz+1
              sig_pr = pistrat(k)**(1.0/kappa)
+             
+             facsig = max(0.0, (sig_pr - sigb_hs)/(1.0 - sigb_hs)) 
 
-             facsig = max(0.0, (sig_pr - sigb_hs)/(1.0 - sigb_hs))
-
-             !testb
-             !print*,'k,pistrat(k),sig_pr,facsig,kf_hs'
-             !print*,k,pistrat(k),sig_pr,facsig,kf_hs
-             !kv_hs(k) = 0.0
-             !teste
-
-             kv_hs(k) = kf_hs*facsig 
+             !Held + Suarez 1994: BL drag:
+             !kv_hs(k) = kf_hs*facsig !FS
+   
+             !Shepherd 1996: Rayleigh BL drag and Sponge:
+             if (z(k) <= 5.e3/lRef) then
+                !kv_hs(k) = kf_hs*facsig
+                kv_hs(k) = (1.+cos(pi*z(k)/(5.e3/lRef)))*tRef/(5.*86400.)
+                !print*, z(k)*lRef, kv_hs(k)/tRef
+             else if (z(k) > 5.e3/lRef .and. z(k) <= 60.e3/lRef) then
+                kv_hs(k) = 0.
+             else if (z(k) <= 65.e3/lRef .and. z(k) > 60.e3/lRef) then
+                kv_hs(k) = (1.-cos(pi*(z(k)-60.e3/lRef)/(5.e3/lRef)))*tRef/(4.*86400.)
+             else if (z(k) > 65.e3/lRef) then
+                kv_hs(k) = tRef/(2.*86400.)
+             end if
              
              do j=1,ny
                 
-                kt_hs(j,k) = ka_hs + (ks_hs - ka_hs)*facsig*c4_strtd(j) 
-                ! if (k > ksponge) then !FS
-                !   kt_hs(j,k) = 0.!kt_hs(j,kSponge)!*(1.-real(k-kSponge)/real(nz+1-kSponge))!*(1.-tan((real(k-kSponge)/real(nz+1-kSponge))*pi/4.))! 
-                ! end if
+                ! Held Suarez 1994:
+                !kt_hs(j,k) = ka_hs + (ks_hs - ka_hs)*c4_strtd(j)*facsig 
+              
+                yloc = y(j+j00)
+                ! Hien et al. (2018):
+                if (yloc > 0.5*(ymax+ymin)) then
+                   ! meridionally dependent tau_sc
+
+                   kt_hs(j,k) &
+                   =  1./( ta_hs_dim/tref &
+                     + (ts_hs_dim/tref - ta_hs_dim/tref) &
+                       *( 1.0 &
+                         -0.5&
+                          *( tanh((yloc/ymax-0.25)/sigma_tau) &
+                            -tanh((yloc/ymax-0.75)/sigma_tau)))  )
+                  else
+                   kt_hs(j,k)  &
+                    =   1./(ta_hs_dim/tref &
+                     + (ts_hs_dim/tref - ta_hs_dim/tref) &
+                       *( 1.0 &
+                         -0.5 &
+                          *( tanh(((-1.)*yloc/ymax-0.25)/sigma_tau) &
+                            -tanh(((-1.)*yloc/ymax-0.75)/sigma_tau))) )
+                end if
+
+
              end do
              
           end do
@@ -1967,7 +1991,9 @@ contains
              ! integration of hydrostatic equilibrium, using a trapezoidal 
              ! leapfrog
 
-             do k = 2, nz-ceiling((spongeHeight+spongeHeight/3.)*real(nz)) !nz+1 !FS
+             switch = 0
+
+             do k = 2, nz-ceiling((0.375)*real(nz)) !nz+1 !FS
                 do i=1,nx
                    pistar &
                    = var(i,j,k-2,5) - 2.0*dz * kappa/the_env_pp(i,j,k-1)
@@ -1976,8 +2002,14 @@ contains
                    = max( tp_strato, &
                           pistar &
                           * (tp_srf_trp - tpdiffhor_tropo * s2_strtd(j) &
-                             - ptdiffvert_tropo/kappa * log(pistar) &
-                               * c2_strtd(j)))
+                             - ptdiffvert_tropo/kappa * log(pistar)&
+                                * c2_strtd(j)))
+
+                   !FS : determine tropopause height
+                   if (switch == 0 .and. tempev == tp_strato) then
+                      k_tropopause = k
+                      switch = 1
+                   end if
 
 
                    thetastar = tempev/pistar
@@ -1991,46 +2023,51 @@ contains
                    = max( tp_strato, &
                           var(i,j,k,5) &
                           * (tp_srf_trp - tpdiffhor_tropo * s2_strtd(j) &
-                             - ptdiffvert_tropo/kappa * log(var(i,j,k,5)) &
-                               * c2_strtd(j)))
+                             - ptdiffvert_tropo/kappa * log(var(i,j,k,5))&
+                                * c2_strtd(j)))
 
 
                    the_env_pp(i,j,k) = tempev/var(i,j,k,5)
                   
-           
+                   if (k == nz-ceiling((spongeHeight+0.2)*real(nz)))then
+                      tp_sponge(i,j) = tempev
+                      
+                   end if
                 end do
              end do
 
-             tp_sponge = tempev
 
-             ! close jets below sponge layer !FS
-             do k = nz+1-ceiling((spongeHeight+spongeHeight/3.)*real(nz)), nz+1 !FS
+            ! close jets below sponge layer !FS
+             do k = nz+1-ceiling((0.375)*real(nz)), nz+1 !FS
                 do i=1,nx
                    pistar &
                    = var(i,j,k-2,5) - 2.0*dz * kappa/the_env_pp(i,j,k-1)
 
                    tempev &
-                   = tp_sponge + pistar*(tpdiffhor_tropo * s2_strtd(j) &
-                       + ptdiffvert_tropo/kappa * log(pistar) * c2_strtd(j))
+                   =  tp_sponge(i,j) + pistar*(tpdiffhor_tropo * s2_strtd(j) &
+                            + 1.*ptdiffvert_tropo/kappa * log(pistar)&
+                              * c2_strtd(j))
 
 
                    thetastar = tempev/pistar
 
+
                    var(i,j,k,5) &
                    =   var(i,j,k-1,5) &
-                     - 0.5*dz &
+                     - 0.5*dz & 
                        * (kappa/thetastar + kappa/the_env_pp(i,j,k-1))
                    
                    tempev &
-                   = tp_sponge + var(i,j,k,5)*(tpdiffhor_tropo * s2_strtd(j) &
-                       + ptdiffvert_tropo/kappa * log(var(i,j,k,5)) * c2_strtd(j))
-
-
+                   = tp_sponge(i,j) + var(i,j,k,5)*(tpdiffhor_tropo * s2_strtd(j) &
+                             + 1.*ptdiffvert_tropo/kappa * log(var(i,j,k,5)) &
+                               * c2_strtd(j))
+                   
                    the_env_pp(i,j,k) = tempev/var(i,j,k,5)
-                  
-           
+
+                   
                 end do
-             end do
+            end do
+
              
             
              ! density
@@ -2091,7 +2128,7 @@ contains
                 end if
                 
                 yloc = y(j+j00)
-                f_Coriolis_y(j) = f_Coriolis_dim*sin(pi*yloc/ymax)
+                f_Coriolis_y(j) = f_Coriolis_dim!*sin(pi*yloc/ymax)
                 if (f_Coriolis_y(j) /= 0.0) then
                    var(i,j,k,2) &
                         = - (uRef/f_Coriolis_y(j)/lRef)/(Ma2*kappa*dy) &
