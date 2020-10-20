@@ -2649,7 +2649,7 @@ contains
              do j = 1,ny
                 do i = 1,nx
                    facw = 1.0
-                   facr = 1.0 + alprlx*dt
+                   facr = 1.0 !+ alprlx*dt
 
                    if (topography) then
                       if (   topography_mask(i0+i,j0+j,k) &
@@ -2804,7 +2804,7 @@ contains
              do j = 1,ny
                 do i = 1,nx
                    facw = 1.0
-                   facr = 1.0 + alprlx*dt
+                   facr = 1.0 !+ alprlx*dt
 
                    if (topography) then
                       if (   topography_mask(i0+i,j0+j,k) &
@@ -3794,7 +3794,7 @@ contains
                    AU = 0.0
                   else
                    facw = 1.0
-                   facr = 1.0 + alprlx*dt
+                   facr = 1.0 !+ alprlx*dt
 
                    if (topography) then
                       if (   topography_mask(i0+i,j0+j,k) &
@@ -3826,7 +3826,7 @@ contains
                    AD = 0.0
                   else
                    facw = 1.0
-                   facr = 1.0 + alprlx*dt
+                   facr = 1.0 !+ alprlx*dt
 
                    if (topography) then
                       if (   topography_mask(i0+i,j0+j,k-1) &

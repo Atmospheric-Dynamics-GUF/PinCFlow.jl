@@ -1612,7 +1612,7 @@ contains
                    bvsstw = 0.5 * (bvsStrat(k) + bvsStrat(k+1))
 
                    facw = 1.0
-                   facr = 1.0 + alprlx*dt
+                   facr = 1.0 !+ alprlx*dt
 
                    if (topography) then
                       ! Rayleigh damping in land cells (immersed boundary)
@@ -1660,7 +1660,7 @@ contains
                                         * heat0/rho000 &
                                       + rhoStrat(k+1)/Pstrat(k+1) &
                                         * heat1/rho001 &
-                                      + alprlx &
+                                      + 0.& !alprlx &
                                         * (  rho_p0/rho000 &
                                            + rho_p1/rho001))))
                    !UAE
@@ -1975,7 +1975,7 @@ contains
                    F &
                    = - fluxDiff + rhoStrat(k)/g_ndim * bvsStrat(k)*wvrt &
                      + rhoStrat(k)/Pstrat(k) * heat_flc&
-                     - alprlx * (rhop - rho + rhoStrat(k))
+                     - 0.!alprlx * (rhop - rho + rhoStrat(k))
              
    
                    !UAB
@@ -2145,7 +2145,7 @@ contains
                       ! due to relaxation of density fluctuation to the
                       ! correspondiung result from density and 
                       ! reference-state density
-                      facr = 1.0 + alprlx*dt
+                      facr = 1.0 !+ alprlx*dt
 
                       ! due to damping of wind in land cells (if there is
                       ! topography)
@@ -2176,7 +2176,7 @@ contains
                              * (  rhop &
                                 + dt &
                                   * (  rhoStrat(k)/Pstrat(k) * heat_flc &
-                                     + alprlx * rho_p)))
+                                     + 0. * rho_p)))
                       
 
                       var(i,j,k,6) = -buoy * rho/g_ndim
@@ -2225,7 +2225,7 @@ contains
                           * (  rhoStrat(k)/rho * bvsStrat(k)*wvrt &
                              + g_ndim/rho &
                                * (  rhoStrat(k)/Pstrat(k) * heat_flc &
-                                  - alprlx * (rhop - rho_p)))
+                                  - 0. * (rhop - rho_p)))
                     
 
                       var(i,j,k,6) = -buoy * rho/g_ndim
