@@ -3099,7 +3099,7 @@ contains
 
   !-----------------------------------------------------------------------
 
-  subroutine momentumFlux_GB (vara,var,flux,fluxmode)
+   subroutine momentumFlux (vara,var,flux,fluxmode,PStrata, PStratTildea)
 
     !----------------------------------------------------------------------
     ! computes the momentum fluxes at the cell edges using reconstr. values
@@ -3119,6 +3119,8 @@ contains
     ! flux(i,j,k,dir,iFlux) 
     ! dir = 1..3 > f,g,h-flux in x,y,z-direction
     ! iFlux = 1..4 > fRho, fRhoU, fRhoV, fRhoW
+
+    real, dimension(-1:nz+2), intent(in) :: PStrata,  PStratTildea
 
 
     ! local variables
@@ -3179,7 +3181,7 @@ contains
 
     if (TurbScheme) then
        if (ny == 1 .and. nx == 1) then
-          stop 'ERROR: turbulence scheme assumes either nx > 1 or ny > 1'
+          stop'ERROR: turbulence scheme assumes either nx > 1 or ny > 1'
          else
           if (nx == 1) then
              delta_hs = dy**2 ! 2D problems in y and z
@@ -3246,7 +3248,7 @@ contains
                    end if
 
                 case default
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
                 
                 if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
@@ -3267,7 +3269,7 @@ contains
                    uL0 = vara(i,j,k,2)
                    uR0 = vara(i+1,j,k,2)
                   else
-                   stop 'ERROR; wrong fluxmode'
+                   stop'ERROR; wrong fluxmode'
                 end if
 
                 fRhoU = 0.25*(uL+uR)*(uL0+uR0)
@@ -3291,9 +3293,9 @@ contains
                       = 0.5*(var(i,j,k,2) + var(i+1,j,k,2)) * Pstrat(k)
                      else if (fluxmode == "lin") then
                       usurf &
-                      = 0.5*(vara(i,j,k,2) + vara(i+1,j,k,2)) * Pstrat(k)
+                      = 0.5*(vara(i,j,k,2) + vara(i+1,j,k,2)) * Pstrata(k)
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -3307,16 +3309,16 @@ contains
                      else if (fluxmode == "lin") then
                       usurf = 0.5*(vara(i,j,k,2) + vara(i+1,j,k,2))
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
 
                    fRhoU = flux_aldm(uL,uR,uSurf,uL,uR,uBarL,uBarR,sigmaX)
                 case default
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop "momentumFlux: unknown fluxType."
+                stop"momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -3368,7 +3370,7 @@ contains
                            & + rhoTilde(i,j+1,k,2,0) )
                    end if
                 case default 
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
                 
                 if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
@@ -3389,7 +3391,7 @@ contains
                    vR = vara(i+1,j,k,3)
                    vL = vara(i,j,k,3)
                   else
-                   stop 'ERROR; wrong fluxmode'
+                   stop'ERROR; wrong fluxmode'
                 end if
 
                 gRhoU = 0.25*(uB+uF)*(vL+vR)
@@ -3413,9 +3415,9 @@ contains
                       = 0.5*(var(i,j,k,3) + var(i+1,j,k,3)) * Pstrat(k)
                      else if (fluxmode == "lin") then
                       vsurf &
-                      = 0.5*(vara(i,j,k,3) + vara(i+1,j,k,3)) * Pstrat(k)
+                      = 0.5*(vara(i,j,k,3) + vara(i+1,j,k,3)) * Pstrata(k)
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -3428,7 +3430,7 @@ contains
                       vR = vara(i+1,j,k,3)
                       vL = vara(i,j,k,3)
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
                    
                    vSurf = 0.5*(vR + vL)
@@ -3438,11 +3440,11 @@ contains
 
                    gRhoU = flux_aldm(uB,uF,vSurf,uB,uF,uBarB,uBarF,sigmaX)
                 case default
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop "momentumFlux: unknown fluxType."
+                stop"momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -3494,7 +3496,7 @@ contains
                    end if
                    
                 case default 
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
                 
                 ! comment: for CDS rhoEdge should add rhoStrat
@@ -3518,7 +3520,7 @@ contains
                    wR = vara(i+1,j,k,4)
                    wL = vara(i,j,k,4)
                   else
-                   stop 'ERROR; wrong fluxmode'
+                   stop'ERROR; wrong fluxmode'
                 end if
 
                 hRhoU = 0.25*(uD + uU)*(wL + wR)
@@ -3544,9 +3546,9 @@ contains
                      else if (fluxmode == "lin") then
                       wsurf &
                       = 0.5*(vara(i,j,k,4) + vara(i+1,j,k,4)) &
-                        * PstratTilde(k)
+                        * PstratTildea(k)
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -3559,7 +3561,7 @@ contains
                       wR = vara(i+1,j,k,4)
                       wL = vara(i,j,k,4)
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
 
                    wSurf = 0.5*(wL + wR)
@@ -3569,11 +3571,11 @@ contains
 
                    hRhoU = flux_aldm(uU,uD,wSurf,uD,uU,uBarD,uBarU,sigmaX)
                 case default
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop "momentumFlux: unknown fluxType."
+                stop"momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -3596,6 +3598,8 @@ contains
     do k = 1,nz
        do j = 0,ny
           do i = 0,nx
+
+             rhoedge = 0.0
 
              ! density at flux point
              select case( model ) 
@@ -3626,7 +3630,7 @@ contains
                    end if
 
                 case default 
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
 
                 if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
@@ -3647,7 +3651,7 @@ contains
                    uF = vara(i,j+1,k,2)
                    uB = vara(i,j  ,k,2)
                   else
-                   stop 'ERROR; wrong fluxmode'
+                   stop'ERROR; wrong fluxmode'
                 end if
 
                 fRhoV = 0.25 * (vL+vR) * (uB+uF)
@@ -3671,9 +3675,9 @@ contains
                       = 0.5*(var(i,j,k,2) + var(i,j+1,k,2)) * Pstrat(k)
                      else if (fluxmode == "lin") then
                       usurf &
-                      = 0.5*(vara(i,j,k,2) + vara(i,j+1,k,2)) * Pstrat(k)
+                      = 0.5*(vara(i,j,k,2) + vara(i,j+1,k,2)) * Pstrata(k)
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -3686,7 +3690,7 @@ contains
                       uF = vara(i,j+1,k,2)
                       uB = vara(i,j  ,k,2)
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
 
                    uSurf = 0.5*(uB + uF)
@@ -3696,11 +3700,11 @@ contains
 
                    fRhoV = flux_aldm(vL,vR,uSurf,vL,vR,vBarL,vBarR,sigmaY)
                 case default
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop "momentumFlux: unknown fluxType."
+                stop"momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -3752,7 +3756,7 @@ contains
                    end if
 
                 case default 
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
 
                 if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
@@ -3773,7 +3777,7 @@ contains
                    vF0 = vara(i,j+1,k,3)
                    vB0 = vara(i,j,k,3)
                   else
-                   stop 'ERROR; wrong fluxmode'
+                   stop'ERROR; wrong fluxmode'
                 end if
 
                 gRhoV = 0.25*(vB+vF)*(vB0+vF0)
@@ -3797,9 +3801,9 @@ contains
                       = 0.5*(var(i,j,k,3) + var(i,j+1,k,3)) * Pstrat(k)
                      else if (fluxmode == "lin") then
                       vsurf &
-                      = 0.5*(vara(i,j,k,3) + vara(i,j+1,k,3)) * Pstrat(k)
+                      = 0.5*(vara(i,j,k,3) + vara(i,j+1,k,3)) * Pstrata(k)
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -3813,16 +3817,16 @@ contains
                      else if (fluxmode == "lin") then
                       vsurf = 0.5*(vara(i,j,k,3) + vara(i,j+1,k,3))
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
 
                    gRhoV = flux_aldm(vB,vF,vSurf,vB,vF,vBarB,vBarF,sigmaY)
                 case default
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop "momentumFlux: unknown fluxType."
+                stop"momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -3873,7 +3877,7 @@ contains
                            & + rhoTilde(i,j+1,k+1,3,0) )
                    end if
                 case default 
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
 
                 ! comment: for CDS rhoEdge should add rhoStrat for each 
@@ -3897,7 +3901,7 @@ contains
                    wF = vara(i,j+1,k,4)
                    wB = vara(i,j,k,4)
                   else
-                   stop 'ERROR; wrong fluxmode'
+                   stop'ERROR; wrong fluxmode'
                 end if
 
                 hRhoV = 0.25*(vD+vU)*(wB+wF)
@@ -3923,9 +3927,9 @@ contains
                      else if (fluxmode == "lin") then
                       wsurf &
                       = 0.5*(vara(i,j,k,4) + vara(i,j+1,k,4)) &
-                        * PstratTilde(k)
+                        * PstratTildea(k)
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -3938,7 +3942,7 @@ contains
                       wF = vara(i,j+1,k,4)
                       wB = vara(i,j,k,4)
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
 
                    wSurf = 0.5*(wB + wF)
@@ -3948,11 +3952,11 @@ contains
 
                    hRhoV = flux_aldm(vD,vU,wSurf,vD,vU,vBarD,vBarU,sigmaY)
                 case default
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop "momentumFlux: unknown fluxType."
+                stop"momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -4023,7 +4027,7 @@ contains
                    end if
 
                 case default 
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
 
              end select ! model
@@ -4042,7 +4046,7 @@ contains
                    uU = vara(i,j,k+1,2)
                    uD = vara(i,j,k,2)
                   else
-                   stop 'ERROR; wrong fluxmode'
+                   stop'ERROR; wrong fluxmode'
                 end if
 
                 fRhoW = 0.25*(wL+wR)*(uD+uU)
@@ -4051,7 +4055,7 @@ contains
                 ! in MUSCL case the wTilde are the reconstructed 
                 ! specific momenta, divided by P
                 ! in an upwinding scheme these are to be multiplied by 
-                ! the linearly interpolated velocities (times P) in order \EE
+                ! the linearly interpolated velocities (times P) in order î
                 ! to obtain the desired momentum fluxes
 
                 wR = wTilde(i+1,j,k,1,0)
@@ -4069,10 +4073,10 @@ contains
                      else if (fluxmode == "lin") then
                       usurf &
                       = 0.5 &
-                        *(  vara(i,j,k  ,2)*Pstrat(k) &
-                          + vara(i,j,k+1,2)*Pstrat(k+1))
+                        *(  vara(i,j,k  ,2)*Pstrata(k) &
+                          + vara(i,j,k+1,2)*Pstrata(k+1))
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -4085,7 +4089,7 @@ contains
                       uU = vara(i,j,k+1,2)
                       uD = vara(i,j,k,2)
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
 
                    uSurf = 0.5*(uD + uU)
@@ -4095,11 +4099,11 @@ contains
 
                    fRhoW = flux_aldm(wL,wR,uSurf,wL,wR,wBarR,wBarL,sigmaZ)
                 case default
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop "momentumFlux: unknown fluxType."
+                stop"momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -4166,7 +4170,7 @@ contains
                       end if
                    end if
                 case default 
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
 
              end select ! model
@@ -4185,7 +4189,7 @@ contains
                    vU = vara(i,j,k+1,3)
                    vD = vara(i,j,k,3)
                   else
-                   stop 'ERROR; wrong fluxmode'
+                   stop'ERROR; wrong fluxmode'
                 end if
 
                 gRhoW = 0.25*(wB+wF)*(vD+vU)
@@ -4212,10 +4216,10 @@ contains
                      else if (fluxmode == "lin") then
                       vsurf &
                       = 0.5 &
-                        *(  vara(i,j,k  ,3)*Pstrat(k) &
-                          + vara(i,j,k+1,3)*Pstrat(k+1))
+                        *(  vara(i,j,k  ,3)*Pstrata(k) &
+                          + vara(i,j,k+1,3)*Pstrata(k+1))
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -4228,7 +4232,7 @@ contains
                       vU = vara(i,j,k+1,3)
                       vD = vara(i,j,k,3)
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
 
                    vSurf = 0.5*(vU + vD)
@@ -4238,11 +4242,11 @@ contains
 
                    gRhoW = flux_aldm(wB,wF,vSurf,wB,wF,wBarB,wBarF,sigmaZ)
                 case default
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop "momentumFlux: unknown fluxType."
+                stop"momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -4311,7 +4315,7 @@ contains
                    end if
                    
                 case default 
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
 
              end select ! model
@@ -4330,7 +4334,7 @@ contains
                    wU0 = vara(i,j,k+1,4)
                    wD0 = vara(i,j,k,4)
                   else
-                   stop 'ERROR; wrong fluxmode'
+                   stop'ERROR; wrong fluxmode'
                 end if
 
                 hRhoW = 0.25*(wD+wU)*(wD0+wU0)
@@ -4357,10 +4361,10 @@ contains
                      else if (fluxmode == "lin") then
                       wsurf &
                       = 0.5 &
-                        *(  vara(i,j,k  ,4)*PstratTilde(k) &
-                          + vara(i,j,k+1,4)*PstratTilde(k+1))
+                        *(  vara(i,j,k  ,4)*PstratTildea(k) &
+                          + vara(i,j,k+1,4)*PstratTildea(k+1))
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
                    !UAE
 
@@ -4374,16 +4378,16 @@ contains
                      else if (fluxmode == "lin") then
                       wsurf = 0.5*(vara(i,j,k,4) + vara(i,j,k+1,4))
                      else
-                      stop 'ERROR; wrong fluxmode'
+                      stop'ERROR; wrong fluxmode'
                    end if
 
                    hRhoW = flux_aldm(wD,wU,wSurf,wD,wU,wBarD,wBarU,sigmaZ)
                 case default
-                   stop "momentumFlux: unknown fluxType."
+                   stop"momentumFlux: unknown fluxType."
                 end select
 
              case default
-                stop "momentumFlux: unknown fluxType."
+                stop"momentumFlux: unknown fluxType."
              end select
 
              if (reconstType /= "MUSCL") then
@@ -4953,1802 +4957,7 @@ contains
        end do
 
     case default
-       stop "momentumFlux: unknown case model"
-    end select
-
-    if (verbose) print*,"fluxes.f90/momentumFlux: &
-         & momentum fluxes fRhoU, fRhoV, fRhoW, &
-         & gRhoU, gRhoV, gRhoW&
-         & hRhoU, hRhoV, hRhoW calculated."
-
-  end subroutine momentumFlux_GB
-
-  !-----------------------------------------------------------------------
-
- subroutine momentumFlux (vara,var,flux,fluxmode)
-
-    !----------------------------------------------------------------------
-    ! computes the momentum fluxes at the cell edges using reconstr. values
-    ! fluxmode = lin => linear flux, advecting velocities prescribed in vara
-    !            nln => nonlinear flux, advecting velocities from var
-    !----------------------------------------------------------------------
-
-    ! in/out variables
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         & intent(in) :: vara, var
-    character(len=*), intent(in) :: fluxmode
-
-    real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(out) :: flux
-    ! flux(i,j,k,dir,iFlux) 
-    ! dir = 1..3 > f,g,h-flux in x,y,z-direction
-    ! iFlux = 1..4 > fRho, fRhoU, fRhoV, fRhoW
-
-
-    ! local variables
-    integer :: i,j,k,l
-
-    ! density at cell edge
-    real :: rhoEdge
-
-    ! uTilde at cell edges
-    real :: uL,uR, vL,vR, wL,wR       ! L=Left at i+1, R=Right at i
-    real :: uB,uF, vB,vF, wB,wF       ! B=Backward at j+1, F=Forward at j
-    real :: uD,uU, vD,vU, wD,wU       ! D=Downward at k+1, U=Upward at k
-
-    ! advecting velocities
-    real :: uL0,uR0, vL0,vR0, wL0,wR0
-    real :: uB0,uF0, vB0,vF0, wB0,wF0
-    real :: uD0,uU0, vD0,vU0, wD0,wU0
-
-    ! cell averaged values at cell centres
-    real :: uBarL,uBarR, vBarL,vBarR, wBarL,wBarR   ! at i and i+1
-    real :: uBarB,uBarF, vBarB,vBarF, wBarB, wBarF  ! at j and j+1
-    real :: uBarD,uBarU, vBarD,vBarU, wBarD, wBarU  ! at k and k+1
-
-    ! upwinding
-    real :: uSurf, vSurf, wSurf
-
-    ! local flux variables
-    real :: fRhoU, gRhoU, hRhoU      ! rho*U momentum fluxes
-    real :: fRhoV, gRhoV, hRhoV      ! rho*V momentum fluxes
-    real :: fRhoW, gRhoW, hRhoW      ! rho*W momentum fluxes
-
-    ! viscous fluxes
-    real, dimension(0:nx+1,0:ny+1,0:nz+1) :: divU   ! div(u) field of visc.
-    real :: div        
-    real :: du_dx, du_dy, du_dz                     ! partial derivatives 
-    real :: dv_dx, dv_dy, dv_dz
-    real :: dw_dx, dw_dy, dw_dz
-    real :: fRhoU_visc, gRhoU_visc, hRhoU_visc      ! viscous mom. fluxes
-    real :: fRhoV_visc, gRhoV_visc, hRhoV_visc     
-    real :: fRhoW_visc, gRhoW_visc, hRhoW_visc
-
-    ! debugging
-    real :: rhoEdge2
-
-    ! avoid abs() for linerisation
-    real :: delta
-
-    !for basic-state density
-    real :: rhos
-
-    !achatzb for putting together molecular and turbulent vioscosity
-    real :: coef_v
-    !achatze
-
-    real :: delta_hs, delta_vs
-
-    ! squared grid scales for the anisotropic turbulence scheme
-
-    if (TurbScheme) then
-       if (ny == 1 .and. nx == 1) then
-          stop 'ERROR: turbulence scheme assumes either nx > 1 or ny > 1'
-         else
-          if (nx == 1) then
-             delta_hs = dy**2 ! 2D problems in y and z
-            else if (ny == 1) then
-             delta_hs = dx**2 ! 2D problems in x and z
-            else
-             delta_hs = dx*dy ! 3D problems
-             
-             if (dx/dy > 10.) then
-                print*,'WARNING: dx/dy > 10!'
-                print*,'The turbulence scheme is not ready for such &
-                        & horizontal grid anisotropies!'
-               elseif (dy/dx > 10.) then
-                print*,'WARNING: dy/dx > 10!'
-                print*,'The turbulence scheme is not ready for such &
-                        & horizontal grid anisotropies!'
-             end if
-          end if
-
-          delta_vs = dz**2
-       end if
-    end if
-
-    if(verbose) print*,"fluxes.f90/momentumFlux: Entering subroutine..."
-
-    !------------------------------
-    !     flux for rho*u
-    !------------------------------
-
-    ! flux fRhoU
-    do k = 1,nz
-       do j = 1,ny
-          do i = -1,nx
-
-             ! density at flux point
-             select case( model ) 
-
-             case( "Boussinesq" )
-                rhoEdge = rho00
-
-             case default
-
-                select case( fluxType ) 
-
-                case( "central" )
-                   ! density interpolation consistent with conti eq
-
-                   rhoEdge=0.25*(var(i,j,k,1) &
-                        & + var(i+1,j,k,1) &
-                        & + var(i+1,j,k,1) &
-                        & + var(i+2,j,k,1) )
-
-                case( "upwind", "ILES" )
-                   ! density interpolation consistent with conti eq
-                   ! not used in MUSCL case
-
-                   if (reconstType /= "MUSCL") then
-                      rhoEdge=0.25*(rhoTilde(i,j,k,1,1) &
-                           & + rhoTilde(i+1,j,k,1,0) &
-                           & + rhoTilde(i+1,j,k,1,1) &
-                           & + rhoTilde(i+2,j,k,1,0) )
-                   end if
-
-                case default
-                   stop "momentumFlux: unknown fluxType."
-                end select
-                
-                if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
-                
-             end select ! model
-
-             ! velocity
-             select case( fluxType )
-
-             case( "central" )
-                uL = var(i,j,k,2)
-                uR = var(i+1,j,k,2)
-
-                if (fluxmode == "nln") then
-                   uL0 = var(i,j,k,2)
-                   uR0 = var(i+1,j,k,2)
-                  else if (fluxmode == "lin") then
-                   uL0 = vara(i,j,k,2)
-                   uR0 = vara(i+1,j,k,2)
-                  else
-                   stop 'ERROR; wrong fluxmode'
-                end if
-
-                fRhoU = 0.25*(uL+uR)*(uL0+uR0)
-
-             case( "upwind", "ILES" )
-                ! in MUSCL case the uTilde are the reconstructed 
-                ! specific momenta
-                ! in an upwinding scheme these are to be multiplied by 
-                ! the linearly interolated velocities in order to 
-                ! obtain the desired momentum fluxes
-
-                uR = uTilde(i+1,j,k,1,0)
-                uL = uTilde(i,j,k,1,1) 
-
-                select case( fluxType ) 
-
-                case( "upwind" )
-                   if (fluxmode == "nln") then
-                      usurf = 0.5*(var(i,j,k,2) + var(i+1,j,k,2))
-                     else if (fluxmode == "lin") then
-                      usurf = 0.5*(vara(i,j,k,2) + vara(i+1,j,k,2))
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   fRhoU = flux_muscl(uSurf,uL,uR)
-                case( "ILES" )
-                   uBarL = uBar(i,j,k)
-                   uBarR = uBar(i+1,j,k)
-
-                   if (fluxmode == "nln") then
-                      uSurf = 0.5*(uL + uR)
-                     else if (fluxmode == "lin") then
-                      usurf = 0.5*(vara(i,j,k,2) + vara(i+1,j,k,2))
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   fRhoU = flux_aldm(uL,uR,uSurf,uL,uR,uBarL,uBarR,sigmaX)
-                case default
-                   stop "momentumFlux: unknown fluxType."
-                end select
-
-             case default
-                stop "momentumFlux: unknown fluxType."
-             end select
-
-             if (reconstType /= "MUSCL") then
-                flux(i,j,k,1,2) = rhoEdge * fRhoU
-               else
-                ! for MUSCL case see comment above
-
-                flux(i,j,k,1,2) = fRhoU
-             end if
-
-          end do
-       end do
-    end do
-
-    !----------------------------------------------------------
-
-    !  flux gRhoU
-    do k = 1,nz
-       do j = 0,ny
-          do i = 0,nx
-
-             ! density at flux point
-             select case( model ) 
-
-             case( "Boussinesq" )
-                rhoEdge = rho00
-
-             case default
-
-                select case( fluxType ) 
-
-                case( "central" )
-                   ! density interpolation consistent with conti eq
-                   rhoEdge = 0.25*( var(i+1,j,k,1) &
-                        & + var(i+1,j+1,k,1) &
-                        & + var(i,j,k,1) &
-                        & + var(i,j+1,k,1) )
-
-                case( "upwind", "ILES" )
-                   ! density interpolation consistent with conti eq
-                   ! not used in MUSCL case
-
-                   if (reconstType /= "MUSCL") then
-                      rhoEdge = 0.25*( rhoTilde(i+1,j,k,2,1) &
-                           & + rhoTilde(i+1,j+1,k,2,0) &
-                           & + rhoTilde(i,j,k,2,1) &
-                           & + rhoTilde(i,j+1,k,2,0) )
-                   end if
-                case default 
-                   stop "momentumFlux: unknown fluxType."
-                end select
-                
-                if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
-                
-             end select ! model
-
-             ! velocity
-             select case( fluxType )
-
-             case( "central" )
-                uF = var(i,j+1,k,2)
-                uB = var(i,j,k,2)
-
-                if (fluxmode == "nln") then
-                   vR = var(i+1,j,k,3)
-                   vL = var(i,j,k,3)
-                  else if (fluxmode == "lin") then
-                   vR = vara(i+1,j,k,3)
-                   vL = vara(i,j,k,3)
-                  else
-                   stop 'ERROR; wrong fluxmode'
-                end if
-
-                gRhoU = 0.25*(uB+uF)*(vL+vR)
-
-             case( "upwind", "ILES" )
-                ! in MUSCL case the uTilde are the reconstructed 
-                ! specific momenta
-                ! in an upwinding scheme these are to be multiplied by 
-                ! the linearly interolated velocities in order to 
-                ! obtain the desired momentum fluxes
-
-                uF = uTilde(i,j+1,k,2,0)
-                uB = uTilde(i,j,k,2,1)
-
-                select case( fluxType ) 
-
-                case( "upwind" )
-                   if (fluxmode == "nln") then
-                      vsurf = 0.5*(var(i,j,k,3) + var(i+1,j,k,3))
-                     else if (fluxmode == "lin") then
-                      vsurf = 0.5*(vara(i,j,k,3) + vara(i+1,j,k,3))
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   gRhoU = flux_muscl(vSurf,uB,uF)
-                case( "ILES" )
-                   if (fluxmode == "nln") then
-                      vR = vTilde(i+1,j,k,1,0)
-                      vL = vTilde(i,j,k,1,1)
-                     else if (fluxmode == "lin") then
-                      vR = vara(i+1,j,k,3)
-                      vL = vara(i,j,k,3)
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-                   
-                   vSurf = 0.5*(vR + vL)
-
-                   uBarF = uBar(i,j+1,k)
-                   uBarB = uBar(i,j,k)
-
-                   gRhoU = flux_aldm(uB,uF,vSurf,uB,uF,uBarB,uBarF,sigmaX)
-                case default
-                   stop "momentumFlux: unknown fluxType."
-                end select
-
-             case default
-                stop "momentumFlux: unknown fluxType."
-             end select
-
-             if (reconstType /= "MUSCL") then
-                flux(i,j,k,2,2) = rhoEdge * gRhoU
-               else
-                ! for MUSCL case see comment above
-
-                flux(i,j,k,2,2) = gRhoU
-             end if
-          end do
-       end do
-    end do
-
-    !---------------------------------------------------------------------
-
-    ! flux hRhoU
-    do k = 0,nz
-       do j = 1,ny
-          do i = 0,nx
-
-             ! density at flux point
-             select case( model ) 
-
-             case( "Boussinesq" )
-                rhoEdge = rho00
-
-             case default
-
-                select case( fluxType ) 
-
-                case( "central" )
-                   ! density interpolation consistent with conti eq
-                   rhoEdge = 0.25*( var(i,j,k,1) &
-                        & + var(i,j,k+1,1) &
-                        & + var(i+1,j,k,1) &
-                        & + var(i+1,j,k+1,1)  )
-
-                case( "upwind", "ILES" )
-                   ! density interpolation consistent with conti eq
-                   ! not used in MUSCL case
-
-                   if (reconstType /= "MUSCL") then
-                      rhoEdge = 0.25*( rhoTilde(i,j,k,3,1) &
-                           & + rhoTilde(i,j,k+1,3,0) &
-                           & + rhoTilde(i+1,j,k,3,1) &
-                           & + rhoTilde(i+1,j,k+1,3,0)  )
-                   end if
-                   
-                case default 
-                   stop "momentumFlux: unknown fluxType."
-                end select
-                
-                ! comment: for CDS rhoEdge should add rhoStrat
-                ! for each var(...1) individually for 100% correctness
-                
-                if( fluctuationMode ) rhoEdge = rhoEdge + rhoStratTilde(k)
-                
-             end select ! model
-
-             ! velocity
-             select case( fluxType )
-
-             case( "central" )
-                uU = var(i,j,k+1,2)
-                uD = var(i,j,k,2)
-
-                if (fluxmode == "nln") then
-                   wR = var(i+1,j,k,4)
-                   wL = var(i,j,k,4)
-                  else if (fluxmode == "lin") then
-                   wR = vara(i+1,j,k,4)
-                   wL = vara(i,j,k,4)
-                  else
-                   stop 'ERROR; wrong fluxmode'
-                end if
-
-                hRhoU = 0.25*(uD + uU)*(wL + wR)
-
-             case( "upwind", "ILES" )
-                ! in MUSCL case the uTilde are the reconstructed 
-                ! specific momenta
-                ! in an upwinding scheme these are to be multiplied by 
-                ! the linearly interolated velocities in order to 
-                ! obtain the desired momentum fluxes
-
-                uU = uTilde(i,j,k+1,3,0)
-                uD = uTilde(i,j,k,3,1)
-
-                select case( fluxType ) 
-
-                case( "upwind" )
-                   if (fluxmode == "nln") then
-                      wsurf = 0.5*(var(i,j,k,4) + var(i+1,j,k,4))
-                     else if (fluxmode == "lin") then
-                      wsurf = 0.5*(vara(i,j,k,4) + vara(i+1,j,k,4))
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   hRhoU = flux_muscl(wSurf,uD,uU)
-                case( "ILES" )
-                   if (fluxmode == "nln") then
-                      wR = wTilde(i+1,j,k,1,0)
-                      wL = wTilde(i,j,k,1,1)
-                     else if (fluxmode == "lin") then
-                      wR = vara(i+1,j,k,4)
-                      wL = vara(i,j,k,4)
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   wSurf = 0.5*(wL + wR)
-
-                   uBarU = uBar(i,j,k+1)
-                   uBarD = uBar(i,j,k)
-
-                   hRhoU = flux_aldm(uU,uD,wSurf,uD,uU,uBarD,uBarU,sigmaX)
-                case default
-                   stop "momentumFlux: unknown fluxType."
-                end select
-
-             case default
-                stop "momentumFlux: unknown fluxType."
-             end select
-
-             if (reconstType /= "MUSCL") then
-                flux(i,j,k,3,2) = rhoEdge * hRhoU
-               else
-                ! for MUSCL case see comment above
-
-                flux(i,j,k,3,2) = hRhoU
-             end if
-          end do
-       end do
-    end do
-
-
-    !------------------------------
-    !     flux for rho*v
-    !------------------------------
-
-    !  flux fRhoV
-    do k = 1,nz
-       do j = 0,ny
-          do i = 0,nx
-
-             ! density at flux point
-             select case( model ) 
-
-             case( "Boussinesq" )
-                rhoEdge = rho00
-
-             case default
-
-                select case( fluxType ) 
-
-                case( "central" )
-                   ! density interpolation consistent with conti eq
-                   rhoEdge = 0.25*( var(i,j,k,1) &
-                        & + var(i+1,j,k,1) &
-                        & + var(i,j+1,k,1) &
-                        & + var(i+1,j+1,k,1) )
-
-                case( "upwind", "ILES" )
-                   ! density interpolation consistent with conti eq
-                   ! not used in MUSCL case
-
-                   if (reconstType /= "MUSCL") then
-                      rhoEdge = 0.25*( rhoTilde(i,j,k,1,1) &
-                           & + rhoTilde(i+1,j,k,1,0) &
-                           & + rhoTilde(i,j+1,k,1,1) &
-                           & + rhoTilde(i+1,j+1,k,1,0) )
-                   end if
-
-                case default 
-                   stop "momentumFlux: unknown fluxType."
-                end select
-
-                if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
-
-             end select ! model
-
-             ! velocity
-             select case( fluxType )
-
-             case( "central" )
-                vR = var(i+1,j,k,3)
-                vL = var(i  ,j,k,3)
-
-                if (fluxmode == "nln") then
-                   uF = var(i,j+1,k,2)
-                   uB = var(i,j  ,k,2)
-                  else if (fluxmode == "lin") then
-                   uF = vara(i,j+1,k,2)
-                   uB = vara(i,j  ,k,2)
-                  else
-                   stop 'ERROR; wrong fluxmode'
-                end if
-
-                fRhoV = 0.25 * (vL+vR) * (uB+uF)
-
-             case( "upwind", "ILES" )
-                ! in MUSCL case the vTilde are the reconstructed 
-                ! specific momenta
-                ! in an upwinding scheme these are to be multiplied by 
-                ! the linearly interolated velocities in order to 
-                ! obtain the desired momentum fluxes
-
-                vR = vTilde(i+1,j,k,1,0)
-                vL = vTilde(i  ,j,k,1,1)
-
-                select case( fluxType ) 
-
-                case( "upwind" )
-                   if (fluxmode == "nln") then
-                      usurf = 0.5*(var(i,j,k,2) + var(i,j+1,k,2))
-                     else if (fluxmode == "lin") then
-                      usurf = 0.5*(vara(i,j,k,2) + vara(i,j+1,k,2))
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   fRhoV = flux_muscl(uSurf,vL,vR)
-                case( "ILES" )
-                   if (fluxmode == "nln") then
-                      uF = uTilde(i,j+1,k,2,0)
-                      uB = uTilde(i,j  ,k,2,1)
-                     else if (fluxmode == "lin") then
-                      uF = vara(i,j+1,k,2)
-                      uB = vara(i,j  ,k,2)
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   uSurf = 0.5*(uB + uF)
-
-                   vBarR = vBar(i+1,j,k)
-                   vBarL = vBar(i,j  ,k)
-
-                   fRhoV = flux_aldm(vL,vR,uSurf,vL,vR,vBarL,vBarR,sigmaY)
-                case default
-                   stop "momentumFlux: unknown fluxType."
-                end select
-
-             case default
-                stop "momentumFlux: unknown fluxType."
-             end select
-
-             if (reconstType /= "MUSCL") then
-                flux(i,j,k,1,3) = rhoEdge * fRhoV
-               else
-                ! for MUSCL case see comment above
-
-                flux(i,j,k,1,3) = fRhoV
-             end if
-          end do
-       end do
-    end do
-
-    !---------------------------------------------------------------------
-
-    ! flux gRhoV
-    do k = 1,nz
-       do j = -1,ny
-          do i = 1,nx
-
-             ! density at flux point
-             select case( model ) 
-
-             case( "Boussinesq" )
-                rhoEdge = rho00
-
-             case default
-
-                select case( fluxType ) 
-
-                case( "central" )
-                   ! density interpolation consistent with conti eq
-                   rhoEdge = 0.25*( var(i,j,k,1) &
-                        & + var(i,j+1,k,1) &
-                        & + var(i,j+1,k,1) &
-                        & + var(i,j+2,k,1) )
-
-                case( "upwind", "ILES" )
-                   ! density interpolation consistent with conti eq
-                   ! not used in MUSCL case
-
-                   if (reconstType /= "MUSCL") then
-                      rhoEdge = 0.25*( rhoTilde(i,j,k,2,1) &
-                           & + rhoTilde(i,j+1,k,2,0) &
-                           & + rhoTilde(i,j+1,k,2,1) &
-                           & + rhoTilde(i,j+2,k,2,0) )
-                   end if
-
-                case default 
-                   stop "momentumFlux: unknown fluxType."
-                end select
-
-                if( fluctuationMode ) rhoEdge = rhoEdge + rhoStrat(k)
-
-             end select ! model
-
-             ! velocity
-             select case( fluxType )
-
-             case( "central" )
-                vF = var(i,j+1,k,3)
-                vB = var(i,j,k,3)
-
-                if (fluxmode == "nln") then
-                   vF0 = var(i,j+1,k,3)
-                   vB0 = var(i,j,k,3)
-                  else if (fluxmode == "lin") then
-                   vF0 = vara(i,j+1,k,3)
-                   vB0 = vara(i,j,k,3)
-                  else
-                   stop 'ERROR; wrong fluxmode'
-                end if
-
-                gRhoV = 0.25*(vB+vF)*(vB0+vF0)
-
-             case( "upwind", "ILES" )
-                ! in MUSCL case the vTilde are the reconstructed 
-                ! specific momenta
-                ! in an upwinding scheme these are to be multiplied by 
-                ! the linearly interolated velocities in order to 
-                ! obtain the desired momentum fluxes
-
-                vF = vTilde(i,j+1,k,2,0)
-                vB = vTilde(i,j,k,2,1)
-
-                select case( fluxType ) 
-
-                case( "upwind" )
-                   if (fluxmode == "nln") then
-                      vsurf = 0.5*(var(i,j,k,3) + var(i,j+1,k,3))
-                     else if (fluxmode == "lin") then
-                      vsurf = 0.5*(vara(i,j,k,3) + vara(i,j+1,k,3))
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   gRhoV = flux_muscl(vSurf,vB,vF)
-                case( "ILES" )
-                   vBarF = vBar(i,j+1,k)
-                   vBarB = vBar(i,j,k)
-
-                   if (fluxmode == "nln") then
-                      vSurf = 0.5*(vB + vF)
-                     else if (fluxmode == "lin") then
-                      vsurf = 0.5*(vara(i,j,k,3) + vara(i,j+1,k,3))
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   gRhoV = flux_aldm(vB,vF,vSurf,vB,vF,vBarB,vBarF,sigmaY)
-                case default
-                   stop "momentumFlux: unknown fluxType."
-                end select
-
-             case default
-                stop "momentumFlux: unknown fluxType."
-             end select
-
-             if (reconstType /= "MUSCL") then
-                flux(i,j,k,2,3) = rhoEdge * gRhoV
-               else
-                ! for MUSCL case see comment above
-
-                flux(i,j,k,2,3) = gRhoV
-             end if
-          end do
-       end do
-    end do
-
-    !----------------------------------------------------------------------
-
-    ! vertical flux hRhoV
-    do k = 0,nz
-       do j = 0,ny
-          do i = 1,nx
-
-             ! density at flux point
-             select case( model ) 
-
-             case( "Boussinesq" )
-                rhoEdge = rho00
-
-             case default
-
-                select case( fluxType ) 
-
-                case( "central" )
-                   ! density interpolation consistent with conti eq
-                   rhoEdge = 0.25*(var(i,j,k,1) &
-                        & + var(i,j,k+1,1) &
-                        & + var(i,j+1,k,1) &
-                        & + var(i,j+1,k+1,1) )
-
-                case( "upwind", "ILES" )
-                   ! density interpolation consistent with conti eq
-                   ! not used in MUSCL case
-
-                   if (reconstType /= "MUSCL") then
-                      rhoEdge = 0.25*(rhoTilde(i,j,k,3,1) &
-                           & + rhoTilde(i,j,k+1,3,0) &
-                           & + rhoTilde(i,j+1,k,3,1) &
-                           & + rhoTilde(i,j+1,k+1,3,0) )
-                   end if
-                case default 
-                   stop "momentumFlux: unknown fluxType."
-                end select
-
-                ! comment: for CDS rhoEdge should add rhoStrat for each 
-                ! var(...1) individually for 100% consist. with conti eq.
-                
-                if( fluctuationMode ) rhoEdge = rhoEdge + rhoStratTilde(k)
-
-             end select ! model
-
-             ! velocity
-             select case( fluxType )
-
-             case( "central" )
-                vU = var(i,j,k+1,3)
-                vD = var(i,j,k,3)
-
-                if (fluxmode == "nln") then
-                   wF = var(i,j+1,k,4)
-                   wB = var(i,j,k,4)
-                  else if (fluxmode == "lin") then
-                   wF = vara(i,j+1,k,4)
-                   wB = vara(i,j,k,4)
-                  else
-                   stop 'ERROR; wrong fluxmode'
-                end if
-
-                hRhoV = 0.25*(vD+vU)*(wB+wF)
-
-             case( "upwind", "ILES" )
-                ! in MUSCL case the vTilde are the reconstructed 
-                ! specific momenta
-                ! in an upwinding scheme these are to be multiplied by 
-                ! the linearly interolated velocities in order to 
-                ! obtain the desired momentum fluxes
-
-                vU = vTilde(i,j,k+1,3,0)
-                vD = vTilde(i,j,k,3,1)
-
-                select case( fluxType ) 
-
-                case( "upwind" )
-                   if (fluxmode == "nln") then
-                      wsurf = 0.5*(var(i,j,k,4) + var(i,j+1,k,4))
-                     else if (fluxmode == "lin") then
-                      wsurf = 0.5*(vara(i,j,k,4) + vara(i,j+1,k,4))
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   hRhoV = flux_muscl(wSurf,vD,vU)
-                case( "ILES" )
-                   if (fluxmode == "nln") then
-                      wF = wTilde(i,j+1,k,2,0)
-                      wB = wTilde(i,j,k,2,1)
-                     else if (fluxmode == "lin") then
-                      wF = vara(i,j+1,k,4)
-                      wB = vara(i,j,k,4)
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   wSurf = 0.5*(wB + wF)
-
-                   vBarU = vBar(i,j,k+1)
-                   vBarD = vBar(i,j,k)
-
-                   hRhoV = flux_aldm(vD,vU,wSurf,vD,vU,vBarD,vBarU,sigmaY)
-                case default
-                   stop "momentumFlux: unknown fluxType."
-                end select
-
-             case default
-                stop "momentumFlux: unknown fluxType."
-             end select
-
-             if (reconstType /= "MUSCL") then
-                flux(i,j,k,3,3) = rhoEdge * hRhoV
-               else
-                ! for MUSCL case see comment above
-
-                flux(i,j,k,3,3) = hRhoV
-             end if
-          end do
-       end do
-    end do
-
-
-    !------------------------------
-    !     flux for rho*w
-    !------------------------------
-
-    ! flux fRhoW
-    do k = 0,nz
-       do j = 1,ny
-          do i = 0,nx
-
-             ! density at flux point
-             select case( model ) 
-
-             case( "Boussinesq" )
-                rhoEdge = rho00
-
-             case default
-
-                select case( fluxType ) 
-
-                case( "central" )
-
-                   if( fluctuationMode) then
-                      rhoEdge = 0.25*(var(i,j,k,1) &
-                           & + var(i+1,j,k,1) &
-                           & + var(i,j,k+1,1) &
-                           & + var(i+1,j,k+1,1) ) &
-                           & + 0.5*(rhoStrat(k) + rhoStrat(k+1))
-                   else
-                      rhoEdge = 0.25*(var(i,j,k,1) &
-                           & + var(i+1,j,k,1) &
-                           & + var(i,j,k+1,1) &
-                           & + var(i+1,j,k+1,1) )
-                   end if
-
-                case( "upwind", "ILES" )
-                   ! density interpolation consistent with conti eq
-                   ! not used in MUSCL case
-
-                   if (reconstType /= "MUSCL") then
-                      if( fluctuationMode ) then
-                         rhoEdge = 0.25*(rhoTilde(i,j,k,1,1) &
-                              & + rhoTilde(i+1,j,k,1,0) &
-                              & + rhoTilde(i,j,k+1,1,1) &
-                              & + rhoTilde(i+1,j,k+1,1,0) ) &
-                              & + 0.5*(rhoStrat(k) + rhoStrat(k+1))
-                      else
-                         rhoEdge = 0.25*(rhoTilde(i,j,k,1,1) &
-                              & + rhoTilde(i+1,j,k,1,0) &
-                              & + rhoTilde(i,j,k+1,1,1) &
-                              & + rhoTilde(i+1,j,k+1,1,0) )
-                      end if
-                   end if
-
-                case default 
-                   stop "momentumFlux: unknown fluxType."
-                end select
-
-             end select ! model
-
-             ! velocity
-             select case( fluxType )
-
-             case( "central" )
-                wR = var(i+1,j,k,4)
-                wL = var(i,j,k,4)
-
-                if (fluxmode == "nln") then
-                   uU = var(i,j,k+1,2)
-                   uD = var(i,j,k,2)
-                  else if (fluxmode == "lin") then
-                   uU = vara(i,j,k+1,2)
-                   uD = vara(i,j,k,2)
-                  else
-                   stop 'ERROR; wrong fluxmode'
-                end if
-
-                fRhoW = 0.25*(wL+wR)*(uD+uU)
-
-             case( "upwind", "ILES" )
-                ! in MUSCL case the wTilde are the reconstructed 
-                ! specific momenta
-                ! in an upwinding scheme these are to be multiplied by 
-                ! the linearly interolated velocities in order to 
-                ! obtain the desired momentum fluxes
-
-                wR = wTilde(i+1,j,k,1,0)
-                wL = wTilde(i,j,k,1,1)
-
-                select case( fluxType ) 
-
-                case( "upwind" )
-                   if (fluxmode == "nln") then
-                      usurf = 0.5*(var(i,j,k,2) + var(i,j,k+1,2))
-                     else if (fluxmode == "lin") then
-                      usurf = 0.5*(vara(i,j,k,2) + vara(i,j,k+1,2))
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   fRhoW = flux_muscl(uSurf,wL,wR)
-                case( "ILES" )
-                   if (fluxmode == "nln") then
-                      uU = uTilde(i,j,k+1,3,0)
-                      uD = uTilde(i,j,k,3,1)
-                     else if (fluxmode == "lin") then
-                      uU = vara(i,j,k+1,2)
-                      uD = vara(i,j,k,2)
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   uSurf = 0.5*(uD + uU)
-
-                   wBarR = wBar(i+1,j,k)
-                   wBarL = wBar(i,j,k)
-
-                   fRhoW = flux_aldm(wL,wR,uSurf,wL,wR,wBarR,wBarL,sigmaZ)
-                case default
-                   stop "momentumFlux: unknown fluxType."
-                end select
-
-             case default
-                stop "momentumFlux: unknown fluxType."
-             end select
-
-             if (reconstType /= "MUSCL") then
-                flux(i,j,k,1,4) = rhoEdge * fRhoW
-               else
-                ! for MUSCL case see comment above
-
-                flux(i,j,k,1,4) = fRhoW
-             end if
-          end do
-       end do
-    end do
-
-    !-------------------------------------------------------------------
-
-    ! flux gRhoW
-    do k = 0,nz
-       do j = 0,ny
-          do i = 1,nx
-
-             ! density at flux point
-             select case( model ) 
-
-             case( "Boussinesq" )
-                rhoEdge = rho00
-
-             case default
-
-                select case( fluxType ) 
-
-                case( "central" )
-                   
-                   if( fluctuationMode ) then
-                      rhoEdge = 0.25*( var(i,j,k,1) &
-                           & + var(i,j+1,k,1) &
-                           & + var(i,j,k+1,1) &
-                           & + var(i,j+1,k+1,1) )&
-                           & + 0.5*(rhoStrat(k) + rhoStrat(k+1))
-                   else
-                      rhoEdge = 0.25*( var(i,j,k,1) &
-                           & + var(i,j+1,k,1) &
-                           & + var(i,j,k+1,1) &
-                           & + var(i,j+1,k+1,1) )
-                   end if
-                   
-                case( "upwind", "ILES" )
-                   ! density interpolation consistent with conti eq
-                   ! not used in MUSCL case
-
-                   if (reconstType /= "MUSCL") then
-                      if( fluctuationMode ) then
-                         rhoEdge = 0.25*( rhoTilde(i,j,k,2,1) &
-                              & + rhoTilde(i,j+1,k,2,0) &
-                              & + rhoTilde(i,j,k+1,2,1) &
-                              & + rhoTilde(i,j+1,k+1,2,0) ) &
-                              & + 0.5*(rhoStrat(k) + rhoStrat(k+1))
-                      else
-                         rhoEdge = 0.25*( rhoTilde(i,j,k,2,1) &
-                              & + rhoTilde(i,j+1,k,2,0) &
-                              & + rhoTilde(i,j,k+1,2,1) &
-                              & + rhoTilde(i,j+1,k+1,2,0) )
-                      end if
-                   end if
-                case default 
-                   stop "momentumFlux: unknown fluxType."
-                end select
-
-             end select ! model
-
-             ! velocity
-             select case( fluxType )
-
-             case( "central" )
-                wF = var(i,j+1,k,4)
-                wB = var(i,j,k,4)
-
-                if (fluxmode == "nln") then
-                   vU = var(i,j,k+1,3)
-                   vD = var(i,j,k,3)
-                  else if (fluxmode == "lin") then
-                   vU = vara(i,j,k+1,3)
-                   vD = vara(i,j,k,3)
-                  else
-                   stop 'ERROR; wrong fluxmode'
-                end if
-
-                gRhoW = 0.25*(wB+wF)*(vD+vU)
-
-             case( "upwind", "ILES" )
-                ! in MUSCL case the wTilde are the reconstructed 
-                ! specific momenta
-                ! in an upwinding scheme these are to be multiplied by 
-                ! the linearly interolated velocities in order to 
-                ! obtain the desired momentum fluxes
-
-                wF = wTilde(i,j+1,k,2,0)
-                wB = wTilde(i,j,k,2,1)
-
-                select case( fluxType ) 
-
-                case( "upwind" )
-                   if (fluxmode == "nln") then
-                      vsurf = 0.5*(var(i,j,k,3) + var(i,j,k+1,3))
-                     else if (fluxmode == "lin") then
-                      vsurf = 0.5*(vara(i,j,k,3) + vara(i,j,k+1,3))
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   gRhoW = flux_muscl(vSurf,wB,wF)
-                case( "ILES" )
-                   if (fluxmode == "nln") then
-                      vU = vTilde(i,j,k+1,3,0)
-                      vD = vTilde(i,j,k,3,1)
-                     else if (fluxmode == "lin") then
-                      vU = vara(i,j,k+1,3)
-                      vD = vara(i,j,k,3)
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   vSurf = 0.5*(vU + vD)
-
-                   wBarF = wBar(i,j+1,k)
-                   wBarB = wBar(i,j,k)
-
-                   gRhoW = flux_aldm(wB,wF,vSurf,wB,wF,wBarB,wBarF,sigmaZ)
-                case default
-                   stop "momentumFlux: unknown fluxType."
-                end select
-
-             case default
-                stop "momentumFlux: unknown fluxType."
-             end select
-
-             if (reconstType /= "MUSCL") then
-                flux(i,j,k,2,4) = rhoEdge * gRhoW
-               else
-                ! for MUSCL case see comment above
-
-                flux(i,j,k,2,4) = gRhoW
-             end if
-          end do
-       end do
-    end do
-
-    !---------------------------------------------------------------------
-
-    ! flux hRhoW
-    do k = -1,nz
-       do j = 1,ny
-          do i = 1,nx
-
-             ! density at flux point
-             select case( model ) 
-
-             case( "Boussinesq" )
-                rhoEdge = rho00
-
-             case default
-
-                select case( fluxType ) 
-
-                case( "central" )
-
-                   if( fluctuationMode ) then
-                      rhoEdge = 0.25*( var(i,j,k,1) + rhoStrat(k) &
-                           & + var(i,j,k+1,1) + rhoStrat(k+1) &
-                           & + var(i,j,k+1,1) + rhoStrat(k+1) &
-                           & + var(i,j,k+2,1) + rhoStrat(k+2) )
-                      
-                   else
-                      rhoEdge = 0.25*( var(i,j,k,1) &
-                           & + var(i,j,k+1,1) &
-                           & + var(i,j,k+1,1) &
-                           & + var(i,j,k+2,1) )
-                   end if
-
-                case( "upwind", "ILES" )
-                   ! density interpolation consistent with conti eq
-                   ! not used in MUSCL case
-
-                   if (reconstType /= "MUSCL") then
-                      if( fluctuationMode ) then
-                         rhoEdge = 0.25*( rhoTilde(i,j,k,3,1) &
-                              & + rhoTilde(i,j,k+1,3,0) &
-                              & + rhoTilde(i,j,k+1,3,1) &
-                              & + rhoTilde(i,j,k+2,3,0) ) &
-                              & + 0.5*(rhoStratTilde(k) &
-                                       + rhoStratTilde(k+1))
-                      else
-                         rhoEdge = 0.25*( rhoTilde(i,j,k,3,1) &
-                              & + rhoTilde(i,j,k+1,3,0) &
-                              & + rhoTilde(i,j,k+1,3,1) &
-                              & + rhoTilde(i,j,k+2,3,0) )
-                      end if
-                   end if
-                   
-                case default 
-                   stop "momentumFlux: unknown fluxType."
-                end select
-
-             end select ! model
-
-             ! velocity
-             select case( fluxType )
-
-             case( "central" )
-                wU = var(i,j,k+1,4)
-                wD = var(i,j,k,4)
-
-                if (fluxmode == "nln") then
-                   wU0 = var(i,j,k+1,4)
-                   wD0 = var(i,j,k,4)
-                  else if (fluxmode == "lin") then
-                   wU0 = vara(i,j,k+1,4)
-                   wD0 = vara(i,j,k,4)
-                  else
-                   stop 'ERROR; wrong fluxmode'
-                end if
-
-                hRhoW = 0.25*(wD+wU)*(wD0+wU0)
-
-             case( "upwind", "ILES" )
-                ! in MUSCL case the wTilde are the reconstructed 
-                ! specific momenta
-                ! in an upwinding scheme these are to be multiplied by 
-                ! the linearly interolated velocities in order to 
-                ! obtain the desired momentum fluxes
-
-                wU = wTilde(i,j,k+1,3,0)
-                wD = wTilde(i,j,k,3,1)
-
-                select case( fluxType ) 
-
-                case( "upwind" )
-                   if (fluxmode == "nln") then
-                      wsurf = 0.5*(var(i,j,k,4) + var(i,j,k+1,4))
-                     else if (fluxmode == "lin") then
-                      wsurf = 0.5*(vara(i,j,k,4) + vara(i,j,k+1,4))
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   hRhoW = flux_muscl(wSurf,wD,wU)
-                case( "ILES" )
-                   wBarU = wBar(i,j,k+1)
-                   wBarD = wBar(i,j,k)
-
-                   if (fluxmode == "nln") then
-                      wSurf = 0.5*(wD + wU)
-                     else if (fluxmode == "lin") then
-                      wsurf = 0.5*(vara(i,j,k,4) + vara(i,j,k+1,4))
-                     else
-                      stop 'ERROR; wrong fluxmode'
-                   end if
-
-                   hRhoW = flux_aldm(wD,wU,wSurf,wD,wU,wBarD,wBarU,sigmaZ)
-                case default
-                   stop "momentumFlux: unknown fluxType."
-                end select
-
-             case default
-                stop "momentumFlux: unknown fluxType."
-             end select
-
-             if (reconstType /= "MUSCL") then
-                flux(i,j,k,3,4) = rhoEdge * hRhoW
-               else
-                ! for MUSCL case see comment above
-
-                flux(i,j,k,3,4) = hRhoW
-             end if
-          end do
-       end do
-    end do
-
-    !-------------------------------------------------------------------
-    !                          Viscous Fluxes
-    !-------------------------------------------------------------------
-    
-    select case ( model ) 
-
-    case( "Boussinesq" ) 
-
-       !------------------------------
-       !     flux for rho*u
-       !------------------------------
-
-       ! horizontal flux fRhoU
-       do k = 1,nz
-          do j = 1,ny
-             do i = -1,nx
-
-                ! du/dx at i+1/2
-                du_dx = ( var(i+1,j,k,2) - var(i,j,k,2) )/dx
-
-                if (TurbScheme) then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   fRhoU_visc &
-                   = ( ReInv + ( rho00 * delta_hs * var(i,j,k,7) ) ) &
-                     * ( du_dx + du_dx )
-                  else
-                   fRhoU_visc = ReInv * ( du_dx + du_dx )
-                end if
-
-                flux(i,j,k,1,2) = flux(i,j,k,1,2) - fRhoU_visc
-             end do
-          end do
-       end do
-
-       ! horizontal flux gRhoU
-       do k = 1,nz
-          do j = 0,ny
-             do i = 0,nx
-                ! du/dy at j+1/2
-                du_dy = ( var(i,j+1,k,2) - var(i,j,k,2) )/dy 
-                dv_dx = ( var(i+1,j,k,3) - var(i,j,k,3) )/dx  ! dv/dx
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   gRhoU_visc &
-                   = ( ReInv + ( rho00 * delta_hs * var(i,j,k,7) ) ) &
-                     * ( du_dy + dv_dx )
-                  else
-                   gRhoU_visc = ReInv * ( du_dy + dv_dx )
-                end if
-
-                flux(i,j,k,2,2) = flux(i,j,k,2,2) - gRhoU_visc
-             end do
-          end do
-       end do
-
-       ! vertical flux hRhoU
-       do k = 0,nz
-          do j = 1,ny
-             do i = 0,nx
-                ! du/dz  at k+1/2
-                du_dz = ( var(i,j,k+1,2) - var(i,j,k,2) )/dz 
-                dw_dx = ( var(i+1,j,k,4) - var(i,j,k,4) )/dx ! dw/dx
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   hRhoU_visc &
-                   = ( ReInv + ( rho00 * delta_vs * var(i,j,k,7) ) ) &
-                     * ( du_dz + dw_dx )
-                  else
-                   hRhoU_visc = ReInv * ( du_dz + dw_dx )
-                end if
-
-                flux(i,j,k,3,2) =  flux(i,j,k,3,2) - hRhoU_visc          
-             end do
-          end do
-       end do
-
-       !------------------------------
-       !     flux for rho*v
-       !------------------------------
-
-       ! horizontal flux fRhoV
-       do k = 1,nz
-          do j = 0,ny
-             do i = 0,nx
-                ! dv/dx at i+1/2
-                dv_dx = ( var(i+1,j,k,3) - var(i,j,k,3) )/dx 
-                du_dy = ( var(i,j+1,k,2) - var(i,j,k,2) )/dy ! du/dy
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   fRhoV_visc &
-                   = ( ReInv + ( rho00 * delta_hs * var(i,j,k,7) ) ) &
-                     * ( dv_dx + du_dy )
-                  else
-                   fRhoV_visc = ReInv * ( dv_dx + du_dy )
-                end if
-
-                flux(i,j,k,1,3) = flux(i,j,k,1,3) - fRhoV_visc
-             end do
-          end do
-       end do
-
-       ! horizontal flux gRhoV
-       do k = 1,nz
-          do j = -1,ny
-             do i = 1,nx
-                ! dv/dy at j+1/2
-                dv_dy = ( var(i,j+1,k,3) - var(i,j,k,3) )/dy 
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   gRhoV_visc &
-                   = ( ReInv + ( rho00 * delta_hs * var(i,j,k,7) ) ) &
-                     * ( dv_dy + dv_dy )
-                   else
-                    gRhoV_visc = ReInv * ( dv_dy + dv_dy )
-                end if
-
-                flux(i,j,k,2,3) = flux(i,j,k,2,3) - gRhoV_visc             
-             end do
-          end do
-       end do
-
-       ! vertical flux hRhoV
-       do k = 0,nz
-          do j = 0,ny
-             do i = 1,nx
-                ! dv/dz at k+1/2
-                dv_dz = ( var(i,j,k+1,3) - var(i,j,k,3) )/dz 
-                dw_dy = ( var(i,j+1,k,4) - var(i,j,k,4) )/dy ! dw/dy
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   hRhoV_visc &
-                   = ( ReInv + ( rho00 * delta_vs * var(i,j,k,7) ) ) &
-                     * ( dv_dz + dw_dy )
-                  else
-                   hRhoV_visc = ReInv * ( dv_dz + dw_dy )
-                end if
-
-                flux(i,j,k,3,3) = flux(i,j,k,3,3) - hRhoV_visc
-             end do
-          end do
-       end do
-
-
-       !------------------------------
-       !     flux for rho*w
-       !------------------------------
-
-       ! horizontal flux fRhoW
-       do k = 0,nz
-          do j = 1,ny
-             do i = 0,nx
-                ! dw/dx at i+1/2
-                dw_dx = ( var(i+1,j,k,4) - var(i,j,k,4) )/dx 
-                du_dz = ( var(i,j,k+1,2) - var(i,j,k,2) )/dz ! du/dz
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   fRhoW_visc &
-                   = ( ReInv + ( rho00 * delta_vs * var(i,j,k,7) ) ) &
-                     * ( dw_dx + du_dz )
-                  else
-                   fRhoW_visc = ReInv * ( dw_dx + du_dz )
-                end if
-
-                flux(i,j,k,1,4) = flux(i,j,k,1,4) - fRhoW_visc
-             end do
-          end do
-       end do
-
-       ! horizontal flux gRhoW
-       do k = 0,nz
-          do j = 0,ny
-             do i = 1,nx
-                ! dw/dy at j+1/2
-                dw_dy = ( var(i,j+1,k,4) - var(i,j,k,4) )/dy 
-                dv_dz = ( var(i,j,k+1,2) - var(i,j,k,2) )/dz ! dv/dz
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   gRhoW_visc &
-                   = ( ReInv + ( rho00 * delta_vs * var(i,j,k,7) ) ) &
-                     * ( dw_dy + dv_dz )
-                  else
-                   gRhoW_visc = ReInv * ( dw_dy + dv_dz )
-                end if
-
-                flux(i,j,k,2,4) =  flux(i,j,k,2,4) - gRhoW_visc
-             end do
-          end do
-       end do
-
-       ! vertical flux hRhoW
-       do k = -1,nz
-          do j = 1,ny
-             do i = 1,nx
-                ! dw/dz at k+1/2
-                dw_dz = ( var(i,j,k+1,4) - var(i,j,k,4) )/dz 
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   hRhoW_visc &
-                   = ( ReInv + ( rho00 * delta_vs * var(i,j,k,7) ) ) &
-                     * ( dw_dz + dw_dz )
-                  else
-                   hRhoW_visc = ReInv * ( dw_dz + dw_dz )
-                end if
-
-                flux(i,j,k,3,4) = flux(i,j,k,3,4) - hRhoW_visc
-             end do
-          end do
-       end do
-
-
-       !------------------------------------------------------------------
-
-
-    case( "pseudo_incompressible") 
-
-       !------------------------------------
-       !      calc div(u) for viscosity
-       !------------------------------------
-
-       do k = 1,nz
-          do j = 0,ny+1           ! j = 0 and ny+1 are div's at ghost cells
-             do i = 0,nx+1        ! same for i
-                uR = var(i,j,k,2)
-                uL = var(i-1,j,k,2)
-                vF = var(i,j,k,3)
-                vB = var(i,j-1,k,3)
-                wU = var(i,j,k,4)
-                wD = var(i,j,k-1,4)
-
-                ! divergence at (i,j,k):
-                divU(i,j,k) = (uR-uL)/dx + (vF-vB)/dy + (wU-wD)/dz   
-             end do
-          end do
-       end do
-       divU(:,:,0) = divU(:,:,1)       ! set div's in bottom ghost cells
-       divU(:,:,nz+1) = divU(:,:,nz)   ! set div's in top ghost cells
-
-
-       !------------------------------
-       !     flux for rho*u
-       !------------------------------
-
-       ! horizontal flux fRhoU
-       do k = 1,nz
-          do j = 1,ny
-             do i = -1,nx
-                ! du/dx at i+1/2
-                du_dx = ( var(i+1,j,k,2) - var(i,j,k,2) )/dx 
-
-                div = divU(i+1,j,k)
-
-                coef_v = ReInv * rhoStrat(1)
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   if( fluctuationMode ) then
-                       coef_v &
-                       = coef_v &
-                         + (var(i,j,k,1) + rhoStrat(k)) &
-                           * delta_hs * var(i,j,k,7)
-                     else
-                       coef_v &
-                       = coef_v + var(i,j,k,1) * delta_hs * var(i,j,k,7)
-                   end if
-                end if
-
-                fRhoU_visc = coef_v * ( du_dx + du_dx - 2./3.*div )
-
-                flux(i,j,k,1,2) = flux(i,j,k,1,2) - fRhoU_visc
-             end do
-          end do
-       end do
-
-       ! horizontal flux gRhoU
-       do k = 1,nz
-          do j = 0,ny
-             do i = 0,nx
-                ! du/dy at j+1/2
-                du_dy = ( var(i,j+1,k,2) - var(i,j,k,2) )/dy
-                dv_dx = ( var(i+1,j,k,3) - var(i,j,k,3) )/dx     ! dv/dx
-
-                coef_v = ReInv * rhoStrat(1)
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   if( fluctuationMode ) then
-                       coef_v &
-                       = coef_v &
-                         + (var(i,j,k,1) + rhoStrat(k)) &
-                            * delta_hs * var(i,j,k,7)
-                     else
-                       coef_v &
-                       = coef_v + var(i,j,k,1) * delta_hs * var(i,j,k,7)
-                   end if
-                end if
-
-                gRhoU_visc = coef_v * ( du_dy + dv_dx )
-
-                flux(i,j,k,2,2) = flux(i,j,k,2,2) - gRhoU_visc
-             end do
-          end do
-       end do
-
-       ! vertical flux hRhoU
-       do k = 0,nz
-          do j = 1,ny
-             do i = 0,nx
-                ! du/dz at k+1/2
-                du_dz = ( var(i,j,k+1,2) - var(i,j,k,2) )/dz
-                dw_dx = ( var(i+1,j,k,4) - var(i,j,k,4) )/dx       ! dw/dx
-
-                coef_v = ReInv * rhoStrat(1)
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   if( fluctuationMode ) then
-                       coef_v &
-                       = coef_v &
-                         + (var(i,j,k,1) + rhoStrat(k)) &
-                           * delta_vs * var(i,j,k,7)
-                     else
-                       coef_v &
-                       = coef_v + var(i,j,k,1) * delta_vs * var(i,j,k,7)
-                   end if
-                end if
-
-                hRhoU_visc = coef_v * ( du_dz + dw_dx )
-
-                flux(i,j,k,3,2) =  flux(i,j,k,3,2) - hRhoU_visc          
-             end do
-          end do
-       end do
-
-       !------------------------------
-       !     flux for rho*v
-       !------------------------------
-
-       ! horizontal flux fRhoV
-       do k = 1,nz
-          do j = 0,ny
-             do i = 0,nx
-                ! dv/dx at i+1/2
-                dv_dx = ( var(i+1,j,k,3) - var(i,j,k,3) )/dx
-                du_dy = ( var(i,j+1,k,2) - var(i,j,k,2) )/dy      ! dv/dy
-
-                coef_v = ReInv * rhoStrat(1)
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   if( fluctuationMode ) then
-                       coef_v &
-                       = coef_v &
-                         + (var(i,j,k,1) + rhoStrat(k)) &
-                           * delta_hs * var(i,j,k,7)
-                     else
-                       coef_v &
-                       = coef_v + var(i,j,k,1) * delta_hs * var(i,j,k,7)
-                   end if
-                end if
-
-                fRhoV_visc = coef_v * ( dv_dx + du_dy )
-
-                flux(i,j,k,1,3) = flux(i,j,k,1,3) - fRhoV_visc
-             end do
-          end do
-       end do
-
-       ! horizontal flux gRhoV
-       do k = 1,nz
-          do j = -1,ny
-             do i = 1,nx
-                ! dv/dy at j+1/2
-                dv_dy = ( var(i,j+1,k,3) - var(i,j,k,3) )/dy
-
-                div = divU(i,j+1,k)
-
-                coef_v = ReInv * rhoStrat(1)
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   if( fluctuationMode ) then
-                       coef_v &
-                       = coef_v &
-                         + (var(i,j,k,1) + rhoStrat(k)) &
-                           * delta_hs * var(i,j,k,7)
-                     else
-                       coef_v &
-                       = coef_v + var(i,j,k,1) * delta_hs * var(i,j,k,7)
-                   end if
-                end if
-
-                gRhoV_visc = coef_v * ( dv_dy + dv_dy - 2./3.*div )
-
-                flux(i,j,k,2,3) = flux(i,j,k,2,3) - gRhoV_visc             
-             end do
-          end do
-       end do
-
-       ! vertical flux hRhoV
-       do k = 0,nz
-          do j = 0,ny
-             do i = 1,nx
-                ! dv/dz at k+1/2
-                dv_dz = ( var(i,j,k+1,3) - var(i,j,k,3) )/dz
-                dw_dy = ( var(i,j+1,k,4) - var(i,j,k,4) )/dy    ! dw/dy
-
-                coef_v = ReInv * rhoStrat(1)
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   if( fluctuationMode ) then
-                       coef_v &
-                       = coef_v &
-                         + (var(i,j,k,1) + rhoStrat(k)) &
-                           * delta_vs * var(i,j,k,7)
-                     else
-                       coef_v &
-                       = coef_v + var(i,j,k,1) * delta_vs * var(i,j,k,7)
-                   end if
-                end if
-
-                hRhoV_visc = coef_v * ( dv_dz + dw_dy )
-
-                flux(i,j,k,3,3) = flux(i,j,k,3,3) - hRhoV_visc
-             end do
-          end do
-       end do
-
-
-       !------------------------------
-       !     flux for rho*w
-       !------------------------------
-
-       ! horizontal flux fRhoW
-       do k = 0,nz
-          do j = 1,ny
-             do i = 0,nx
-                ! dw/dx at i     +1/2
-                dw_dx = ( var(i+1,j,k,4) - var(i,j,k,4) )/dx
-                du_dz = ( var(i,j,k+1,2) - var(i,j,k,2) )/dz   ! du/dz
-
-                coef_v = ReInv * rhoStrat(1)
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   if( fluctuationMode ) then
-                       coef_v &
-                       = coef_v &
-                         + (var(i,j,k,1) + rhoStrat(k)) &
-                           * delta_vs * var(i,j,k,7)
-                     else
-                       coef_v &
-                       = coef_v + var(i,j,k,1) * delta_vs * var(i,j,k,7)
-                   end if
-                end if
-
-                fRhoW_visc = coef_v * ( dw_dx + du_dz )
-
-                flux(i,j,k,1,4) = flux(i,j,k,1,4) - fRhoW_visc
-             end do
-          end do
-       end do
-
-       ! horizontal flux gRhoW
-       do k = 0,nz
-          do j = 0,ny
-             do i = 1,nx
-                ! dw/dy at j+1/2
-                dw_dy = ( var(i,j+1,k,4) - var(i,j,k,4) )/dy
-                dv_dz = ( var(i,j,k+1,2) - var(i,j,k,2) )/dz   ! dv/dz
-
-                coef_v = ReInv * rhoStrat(1)
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   if( fluctuationMode ) then
-                       coef_v &
-                       = coef_v &
-                         + (var(i,j,k,1) + rhoStrat(k)) &
-                           * delta_vs * var(i,j,k,7)
-                     else
-                       coef_v &
-                       = coef_v + var(i,j,k,1) * delta_vs * var(i,j,k,7)
-                   end if
-                end if
-
-                gRhoW_visc = coef_v * ( dw_dy + dv_dz)
-
-                flux(i,j,k,2,4) =  flux(i,j,k,2,4) - gRhoW_visc
-             end do
-          end do
-       end do
-
-       ! vertical flux hRhoW
-       do k = -1,nz
-          do j = 1,ny
-             do i = 1,nx
-                ! dw/dz at k+1/2
-                dw_dz = ( var(i,j,k+1,4) - var(i,j,k,4) )/dz
-
-                div = divU(i,j,k+1)
-
-                coef_v = ReInv * rhoStrat(1)
-
-                if(TurbScheme)then
-                   ! turbulence scheme allowing for anisotropic grids
-
-                   if( fluctuationMode ) then
-                      if(k == -1) then
-                         rhos = rhoStrat(0)
-                        else
-                         rhos = rhoStrat(k)
-                      end if
-
-                       coef_v &
-                       = coef_v &
-                         + (var(i,j,k,1)+rhos) * delta_vs * var(i,j,k,7)
-                     else
-                       coef_v &
-                       = coef_v + var(i,j,k,1) * delta_vs * var(i,j,k,7)
-                   end if
-                end if
-
-                hRhoW_visc = coef_v * ( dw_dz + dw_dz - 2./3.*div )
-
-                flux(i,j,k,3,4) = flux(i,j,k,3,4) - hRhoW_visc
-             end do
-          end do
-       end do
-
-    case default
-       stop "momentumFlux: unknown case model"
+       stop"momentumFlux: unknown case model"
     end select
 
     if (verbose) print*,"fluxes.f90/momentumFlux: &
