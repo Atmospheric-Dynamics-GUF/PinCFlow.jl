@@ -22,7 +22,8 @@ endif
 
 LIPNAG =
 #LIBHYPRE ?= /home/atmodynamics/boeloeni/Hypre/hypre-2.11.2/src/lib
-LIBHYPRE ?= /pf/b/b380792/Hypre/hypre-2.11.2/src/lib
+#LIBHYPRE ?= /pf/b/b380792/Hypre/hypre-2.11.2/src/lib
+LIBHYPRE ?= /home/atmodynamics/schmid/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib
 
 # define directories for sources and binaries (GSV 072018)
 BIN = ./bin
