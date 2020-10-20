@@ -96,47 +96,8 @@ contains
     ! thickness of sponge layer
     spongeDz = z(nz) - z(kSponge) 
 
-    !sin**2-cos**2 profile, similar to heating
-    ! if ((TestCase == "baroclinic_LC").or.(TestCase == "baroclinic_ID")) then
-    !    j00 = js + nby - 1
-    !    ymin = ly_dim(0)/lRef
-    !    ymax = ly_dim(1)/lRef
-    !    yjets = 0.75*ymin + 0.25*ymax
-    !    yjetn = 0.25*ymin + 0.75*ymax
-    !    jwdth = jwdth_dim/lRef 
-    !    dy_hs = 2.0*jwdth
-       
-    !    do j = 1, ny
-    !       yloc = y(j+j00)
-          
-    !       if (yloc < ymin) then
-    !          stop 'ERROR: y < ymin'
-    !       else if ((yloc >= ymin) .and. (yloc < yjets - 0.5*dy_hs)) &
-    !            & then
-    !          c4_strtd(j) = 0.0
-    !       else if ((yloc >= yjets - 0.5*dy_hs) &
-    !            &       .and. (yloc < yjets + 0.5*dy_hs)) then
-    !          c4_strtd(j) &
-    !               = sin((yloc - (yjets + 0.5*dy_hs))/dy_hs * 0.5*pi)**2 &
-    !               - cos((yloc - (yjets + 0.5*dy_hs))/dy_hs * 0.5*pi)**2 + 1.
-    !       else if ((yloc >= yjets + 0.5*dy_hs) &
-    !            &       .and. (yloc < yjetn - 0.5*dy_hs)) then
-    !          c4_strtd(j) = 0.0
-    !       else if ((yloc >= yjetn - 0.5*dy_hs) &
-    !            &       .and. (yloc < yjetn + 0.5*dy_hs)) then
-    !          c4_strtd(j) & 
-    !               = sin((yloc - (yjetn - 0.5*dy_hs))/dy_hs * 0.5*pi)**2 &
-    !               - cos((yloc - (yjetn - 0.5*dy_hs))/dy_hs * 0.5*pi)**2 + 1.
-    !       else if ((yloc >= yjetn + 0.5*dy_hs) .and. (yloc <= ymax)) &
-    !            & then
-    !          c4_strtd(j) = 0.0
-    !       else if (yloc > ymax) then
-    !          stop 'ERROR: y > ymax'
-    !       end if
-
-    !    end do
-    ! end if
     
+ 
     select case( variable )
 
   !UAB 200413
@@ -157,13 +118,14 @@ contains
        end if
 
        do k = kSponge, nz
-          alpha = spongeAlphaZ*(z(k)-zSponge)/spongeDz
-          beta = 1./(1.+alpha*0.5*dt)**2
 
-          rhoStrat(k) = (1.-beta)*rhoStrat_0(k) + beta*rhoStrat(k)
-            pStrat(k) = (1.-beta)*  pStrat_0(k) + beta*  pStrat(k)
-
-          thetaStrat(k) = PStrat(k)/rhoStrat(k)
+             alpha = spongeAlphaZ*((z(k)-zSponge)/spongeDz)
+             beta = 1./(1.+alpha*0.5*dt)**2
+             
+             rhoStrat(k) = (1.-beta)*rhoStrat_0(k) + beta*rhoStrat(k)
+             pStrat(k) = (1.-beta)*  pStrat_0(k) + beta*  pStrat(k)
+             
+             thetaStrat(k) = PStrat(k)/rhoStrat(k)
        end do
 
        do k = -1,nz+1
@@ -210,7 +172,7 @@ contains
        N2 = max(N2, bvsStrat(nz+1))
 
        if(N2 < 0.) then
-          stop 'ERROR: N2 < 0'
+          stop'ERROR: N2 < 0'
          else
           NN = sqrt(N2)
        end if
@@ -223,132 +185,63 @@ contains
     !UAE 200413
 
     case( "rho" ) 
-     
-       ! sponge of unphysical SH for baroclinic LC
-       ! if ((TestCase == "baroclinic_LC").or.(TestCase == "baroclinic_ID")) then
-       !    do k = 1, nz
-       !       do j = 1,ny
-       !          do i = 1,nx
 
-       !             yloc = y(j+j00)
+      do k = kSponge, nz
+         do j = 1,ny 
+            do i = 1,nx
+               
+               if ((TestCase == "baroclinic_LC") &
+                    & .or.(TestCase == "baroclinic_ID")) then
+                  !UAB 200413
+                  !rho_bg = dens_env_pp(i, j, k)
+                  if( fluctuationMode ) then
+                     rho_bg = dens_env_pp(i, j, k) - rhoStrat(k)
+                  else 
+                     rho_bg = dens_env_pp(i, j, k)
+                  end if
+                  !UAE 200413
+               else
+                  if( fluctuationMode ) then
+                     rho_bg = 0.0   ! push back to zero perturbation
+                  else
+                     rho_bg = rhoStrat(k)
+                  end if
+               end if
+               
+               rho_old = var(i,j,k,1)
+               alpha = c4_strtd(j)*spongeAlphaZ*(z(k)-zSponge)/spongeDz
+               beta = 1./(1.+alpha*0.5*dt)**2
+               rho_new = (1.-beta)*rho_bg + beta*rho_old
                    
-       !             if( fluctuationMode ) then
-       !                rho_bg = dens_env_pp(i, j, k) - rhoStrat(k)
-       !             else 
-       !                rho_bg = dens_env_pp(i, j, k)
-       !             end if
-                   
-                   
-       !             rho_old = var(i,j,k,1)
-       !             if ( k < kSponge .and. yloc < 0.5*(ymax+ymin)) then
-       !                alpha = spongeAlphaZ*c4_strtd(j) 
-       !             else if ( k < kSponge .and. yloc >= 0.5*(ymax+ymin)) then
-       !                alpha = 0.
-       !             else if ( k >= kSponge) then
-       !                alpha = spongeAlphaZ*c4_strtd(j)*(z(k)-zSponge)/spongeDz
-       !             end if
-       !             beta = 1./(1.+alpha*0.5*dt)**2
-       !             rho_new = (1.-beta)*rho_bg + beta*rho_old
-                   
-       !             var(i,j,k,1) = rho_new
-                   
-       !          end do
-       !       end do
-       !    end do
-
-       ! else 
-
-          do k = kSponge, nz
-             do j = 1,ny 
-                do i = 1,nx
-                   
-                   if ((TestCase == "baroclinic_LC") &
-                        & .or.(TestCase == "baroclinic_ID")) then
-                      !UAB 200413
-                      !rho_bg = dens_env_pp(i, j, k)
-                      if( fluctuationMode ) then
-                         rho_bg = dens_env_pp(i, j, k) - rhoStrat(k)
-                      else 
-                         rho_bg = dens_env_pp(i, j, k)
-                      end if
-                      !UAE 200413
-                   else
-                      if( fluctuationMode ) then
-                         rho_bg = 0.0   ! push back to zero perturbation
-                      else
-                         rho_bg = rhoStrat(k)
-                      end if
-                   end if
-                   
-                   rho_old = var(i,j,k,1)
-                   alpha = spongeAlphaZ*(z(k)-zSponge)/spongeDz
-                   beta = 1./(1.+alpha*0.5*dt)**2
-                   rho_new = (1.-beta)*rho_bg + beta*rho_old
-                   
-                   var(i,j,k,1) = rho_new
-                   
-                end do
-             end do
-          end do
-          
-      ! end if
-       
+               var(i,j,k,1) = rho_new
+               
+            end do
+         end do
+      end do
     
     case( "rhop" ) 
 
-       ! sponge of unphysical SH for baroclinic LC
-       ! if ((TestCase == "baroclinic_LC").or.(TestCase == "baroclinic_ID")) then
-       !    do k = 1, nz
-       !       do j = 1,ny
-       !          do i = 1,nx
-
-       !             yloc = y(j+j00)
-                  
-       !             rho_bg = dens_env_pp(i, j, k) - rhoStrat(k)
-                  
-                   
-       !             rho_old = var(i,j,k,6)
-       !             if ( k < kSponge .and. yloc < 0.5*(ymax+ymin)) then
-       !                alpha = spongeAlphaZ*c4_strtd(j) 
-       !             else if ( k < kSponge .and. yloc >= 0.5*(ymax+ymin)) then
-       !                alpha = 0.
-       !             else if ( k >= kSponge) then
-       !                alpha = spongeAlphaZ*c4_strtd(j)*(z(k)-zSponge)/spongeDz
-       !             end if
-       !             beta = 1./(1.+alpha*0.5*dt)**2
-       !             rho_new = (1.-beta)*rho_bg + beta*rho_old
-                   
-       !             var(i,j,k,6) = rho_new
-                   
-       !          end do
-       !       end do
-       !    end do
-
-       ! else
-
-          do k = kSponge, nz
-             do j = 1,ny 
-                do i = 1,nx
-                   
-                   if ((TestCase == "baroclinic_LC") &
-                        & .or.(TestCase == "baroclinic_ID")) then
-                      rho_bg = dens_env_pp(i, j, k) - rhoStrat(k)
-                   else
-                      rho_bg = 0.0   ! push back to zero perturbation
-                   end if
-                   
-                   rho_old = var(i,j,k,6)
-                   alpha = spongeAlphaZ*(z(k)-zSponge)/spongeDz
-                   beta = 1./(1.+alpha*0.5*dt)**2
-                   rho_new = (1.-beta)*rho_bg + beta*rho_old
-                   
-                   var(i,j,k,6) = rho_new
-                   
-                end do
+       do k = kSponge, nz
+          do j = 1,ny 
+             do i = 1,nx
+                
+                if ((TestCase == "baroclinic_LC") &
+                     & .or.(TestCase == "baroclinic_ID")) then
+                   rho_bg = dens_env_pp(i, j, k) - rhoStrat(k)
+                else
+                   rho_bg = 0.0   ! push back to zero perturbation
+                end if
+                
+                rho_old = var(i,j,k,6)
+                alpha = c4_strtd(j)*spongeAlphaZ*(z(k)-zSponge)/spongeDz
+                beta = 1./(1.+alpha*0.5*dt)**2
+                rho_new = (1.-beta)*rho_bg + beta*rho_old
+                
+                var(i,j,k,6) = rho_new
+                
              end do
           end do
-          
-      ! end if
+       end do
              
        
     case( "ice" ) 
@@ -429,78 +322,38 @@ contains
                           mpi_double_precision,mpi_sum,comm,ierror)
        sum_global = sum_global/(sizeX*sizeY)
 
-       ! sponge of unphysical SH for baroclinic LC
-       ! if ((TestCase == "baroclinic_LC").or.(TestCase == "baroclinic_ID")) then
-       !    do k = 1, nz
-       !       do j = 1,ny
-       !          do i = 1,nx
-
-       !             yloc = y(j+j00)
-
-       !             if (Sponge_Rel_Bal_Type == "hyd") then
-       !                ! relax to hydrost bal
-       !                uBG = 0.
-       !             else if (Sponge_Rel_Bal_Type == "env") then
-       !                ! relax to geostr bal
-       !                uBG = u_env_pp(i, j, k) 
-       !             else
-       !                ! free development
-       !                uBG = var(i,j,k,2)
-       !             end if
-                   
-                
-       !             uOld = var(i,j,k,2)
-       !             if ( k < kSponge .and. yloc < 0.5*(ymax+ymin)) then
-       !                alpha = spongeAlphaZ*c4_strtd(j) 
-       !             else if ( k < kSponge .and. yloc >= 0.5*(ymax+ymin)) then
-       !                alpha = 0.
-       !             else if ( k >= kSponge) then
-       !                alpha = spongeAlphaZ*c4_strtd(j)*(z(k)-zSponge)/spongeDz
-       !             end if
-       !             beta = 1./(1.+alpha*0.5*dt)**2
-                   
-       !             uNew = (1.-beta)*uBG + beta*uOld
-                   
-       !             var(i,j,k,2) = uNew
-                   
-       !          end do
-       !       end do
-       !    end do
-
-       ! else
-
-          do k = kSponge, nz
-             do j = 1,ny
-                !do i = 0,nx
-                do i = 1,nx
-                   if ((TestCase == "baroclinic_LC") &
-                        & .or.(TestCase == "baroclinic_ID")) then
-                      if (Sponge_Rel_Bal_Type == "hyd") then
-                         ! relax to hydrost bal
-                         uBG = 0.
-                      else if (Sponge_Rel_Bal_Type == "env") then
-                         ! relax to geostr bal
-                         uBG = u_env_pp(i, j, k) 
-                      else
-                         ! free development
-                         uBG = var(i,j,k,2)
-                      end if
+       do k = kSponge, nz
+          do j = 1,ny
+             !do i = 0,nx
+             do i = 1,nx
+                if ((TestCase == "baroclinic_LC") &
+                     & .or.(TestCase == "baroclinic_ID")) then
+                   if (Sponge_Rel_Bal_Type == "hyd") then
+                      ! relax to hydrost bal
+                      uBG = 0.
+                   else if (Sponge_Rel_Bal_Type == "env") then
+                      ! relax to geostr bal
+                      uBG = u_env_pp(i, j, k) 
                    else
-                      uBG = sum_global(k)
+                      ! free development
+                      uBG = var(i,j,k,2)
                    end if
-                   
-                   uOld = var(i,j,k,2)
-                   alpha = spongeAlphaZ * (z(k)-zSponge) / spongeDz
-                   beta = 1./(1.+alpha*0.5*dt)**2
-                   
-                   uNew = (1.-beta)*uBG + beta*uOld
-                   
-                   var(i,j,k,2) = uNew
-                end do
+                else
+                   uBG = sum_global(k)
+                end if
+                
+                uOld = var(i,j,k,2)
+                alpha = c4_strtd(j)*spongeAlphaZ * (z(k)-zSponge) / spongeDz
+                beta = 1./(1.+alpha*0.5*dt)**2
+                
+                uNew = (1.-beta)*uBG + beta*uOld
+                
+                var(i,j,k,2) = uNew
              end do
           end do
-          
-     !  end if
+       end do
+
+       
        
        ! relax v to:
        !   baroclinic cases (2D or 3D):
@@ -522,147 +375,62 @@ contains
                           mpi_double_precision,mpi_sum,comm,ierror)
        sum_global = sum_global/(sizeX*sizeY)
 
-       ! sponge of unphysical SH for baroclinic LC
-       ! if ((TestCase == "baroclinic_LC").or.(TestCase == "baroclinic_ID")) then
-       !    do k = 1, nz
-       !       do j = 1,ny
-       !          do i = 1,nx
-
-       !             yloc = y(j+j00)
-                   
-       !             if (Sponge_Rel_Bal_Type == "hyd") then
-       !                ! relax to hydrost bal
-       !                vBG = 0.
-       !             else if (Sponge_Rel_Bal_Type == "env") then
-       !                ! relax to geostr bal
-       !                vBG = 0. 
-       !             else
-       !                ! free development
-       !                vBG = var(i,j,k,3)
-       !             end if
-                   
-                
-       !             vOld = var(i,j,k,3)
-       !             if ( k < kSponge .and. yloc < 0.5*(ymax+ymin)) then
-       !                alpha = spongeAlphaZ*c4_strtd(j) 
-       !             else if ( k < kSponge .and. yloc >= 0.5*(ymax+ymin)) then
-       !                alpha = 0.
-       !             else if ( k >= kSponge) then
-       !                alpha = spongeAlphaZ*c4_strtd(j)*(z(k)-zSponge)/spongeDz
-       !             end if
-       !             beta = 1./(1.+alpha*0.5*dt)**2
-                   
-       !             vNew = (1.-beta)*vBG + beta*vOld
-                   
-       !             var(i,j,k,3) = vNew
-                   
-       !          end do
-       !       end do
-       !    end do
-
-       ! else
-
-          do k = kSponge, nz
-             !do j = 0,ny !gaga 1->0
-             do j = 1,ny
-                do i = 1,nx
-                   if ((TestCase == "baroclinic_LC") &
-                        & .or.(TestCase == "baroclinic_ID")) then
-                      if (Sponge_Rel_Bal_Type == "hyd") then
-                         ! relax to hydrost bal
-                         vBG = 0.
-                      else if (Sponge_Rel_Bal_Type == "env") then
-                         ! relax to geostr bal
-                         vBG = v_env_pp(i, j, k)
-                      else
-                         ! free development
-                         vBG = var(i,j,k,3)
-                      end if
-                   else  
-                      vBG = sum_global(k)
+       do k = kSponge, nz
+          !do j = 0,ny !gaga 1->0
+          do j = 1,ny
+             do i = 1,nx
+                if ((TestCase == "baroclinic_LC") &
+                     & .or.(TestCase == "baroclinic_ID")) then
+                   if (Sponge_Rel_Bal_Type == "hyd") then
+                      ! relax to hydrost bal
+                      vBG = 0.
+                   else if (Sponge_Rel_Bal_Type == "env") then
+                      ! relax to geostr bal
+                      vBG = v_env_pp(i, j, k)
+                   else
+                      ! free development
+                      vBG = var(i,j,k,3)
                    end if
-                   
-                   vOld = var(i,j,k,3)
-                   alpha = spongeAlphaZ * (z(k)-zSponge) / spongeDz
-                   beta = 1./(1.+alpha*0.5*dt)**2
-                   
-                   vNew = (1.-beta)*vBG + beta*vOld
-                   
-                   var(i,j,k,3) = vNew
-                   
-                end do
+                else  
+                   vBG = sum_global(k)
+                end if
+                
+                vOld = var(i,j,k,3)
+                alpha = c4_strtd(j)*spongeAlphaZ * (z(k)-zSponge) / spongeDz
+                beta = 1./(1.+alpha*0.5*dt)**2
+                
+                vNew = (1.-beta)*vBG + beta*vOld
+                
+                var(i,j,k,3) = vNew
+                
              end do
           end do
+       end do
           
-      ! end if
        
        ! achatzb relax w to zero
-       ! sponge of unphysical SH for baroclinic LC
-       ! if ((TestCase == "baroclinic_LC").or.(TestCase == "baroclinic_ID")) then
-       !    do k = 1, nz
-       !       do j = 1,ny
-       !          do i = 1,nx
-
-       !             yloc = y(j+j00)
-
-       ! do k = kSponge, nz
-       !    wBG = 0.0
-
-       !             if (Sponge_Rel_Bal_Type == "hyd") then
-       !                ! relax to hydrost bal
-       !                wBG = 0.
-       !             else if (Sponge_Rel_Bal_Type == "env") then
-       !                ! relax to geostr bal
-       !                wBG = 0.
-       !             else
-       !                ! free development
-       !                wBG = var(i,j,k,4)
-       !             end if
-                   
-                
-       !             wOld = var(i,j,k,4)
-       !             if ( k < kSponge .and. yloc < 0.5*(ymax+ymin)) then
-       !                alpha = spongeAlphaZ*c4_strtd(j) 
-       !             else if ( k < kSponge .and. yloc >= 0.5*(ymax+ymin)) then
-       !                alpha = 0.
-       !             else if ( k >= kSponge) then
-       !                alpha = spongeAlphaZ*c4_strtd(j)*(z(k)-zSponge)/spongeDz
-       !             end if
-       !             beta = 1./(1.+alpha*0.5*dt)**2
-                   
-       !             wNew = (1.-beta)*wBG + beta*wOld
-                   
-       !             var(i,j,k,4) = wNew
-                   
-       !          end do
-       !       end do
-       !    end do
-
-       ! else 
-
           
-          do k = kSponge, nz
-             wBG = backgroundFlow_dim(3) / uRef !0.0
-             
-             do j = 1,ny
-                do i = 1,nx
-                   
-                   wOld = var(i,j,k,4)
-                   alpha = spongeAlphaZ * (z(k)-zSponge) / spongeDz
-                   beta = 1./(1.+alpha*0.5*dt)**2
-                   
-                   wNew = (1.-beta)*wBG + beta*wOld
-                   
-                   var(i,j,k,4) = wNew
-                   
-                end do
+       do k = kSponge, nz
+          wBG = backgroundFlow_dim(3) / uRef !0.0
+          
+          do j = 1,ny
+             do i = 1,nx
+                
+                wOld = var(i,j,k,4)
+                alpha = c4_strtd(j)*spongeAlphaZ * (z(k)-zSponge) / spongeDz
+                beta = 1./(1.+alpha*0.5*dt)**2
+                
+                wNew = (1.-beta)*wBG + beta*wOld
+                
+                var(i,j,k,4) = wNew
+                
              end do
           end do
-          
-      ! end if
-    case default
-       stop "spongeLayer: Unknown variable"
-    end select
+       end do
+       
+ case default
+    stop"spongeLayer: Unknown variable"
+ end select
     
 
   end subroutine set_spongeLayer
@@ -775,19 +543,20 @@ contains
     real, dimension(-nbz:nz+nbz) :: S_bar 
     real :: heat_flc, heat0, heat1
 
-    real :: ymax, yloc
+    real :: ymax, yloc, ymin
 
     ! non-dimensional Corilois parameter (= inverse Rossby number)
     !f_cor_nd = f_Coriolis_dim*tRef
     j00 = js+nby-1
-    if (TestCase == "baroclinic_LC")then !FS
-       ymax = ly_dim(1)/lRef  
-       do j = 1,ny
+    ymax = ly_dim(1)/lRef 
+    ymin = ly_dim(0)/lRef 
+    if (TestCase == "baroclinic_LC")then !FS  
+       do j = 0,ny+1
           yloc = y(j+j00)
-          f_cor_nd(j) = abs(f_Coriolis_dim*tRef*sin(pi*yloc/ymax))
+          f_cor_nd(j) = f_Coriolis_dim*tRef!*sin(pi*yloc/ymax))
        end do
     else
-       f_cor_nd(:) = f_Coriolis_dim*tRef
+       f_cor_nd(0:ny+1) = f_Coriolis_dim*tRef
     end if
 
     if(topography) then
@@ -884,26 +653,7 @@ contains
                           * (  var_env(i,j-1,k,3) + var_env(i+1,j-1,k,3) &
                              + var_env(i,j  ,k,3) + var_env(i+1,j  ,k,3))
 
-                      !UAB 200413
-                      ! if (background == "HeldSuarez") then
-                      !    ! Rayleigh damping in boundary layer
 
-                      !    if (model == "pseudo_incompressible") then
-                      !        rhoM_1 &
-                      !        = 0.5 * (rhoOld(i,j,k) + rhoOld(i+1,j,k))
-
-                      !        if( fluctuationMode ) then
-                      !           rhoM_1 = rhoM_1 + rhoStrat(k)
-                      !        end if
-                      !       else if (model == "Boussinesq") then
-                      !        rhoM_1 = rho00
-                      !       else
-                      !        stop "momentumPredictor: unkown model."
-                      !    end if
-
-                      !    volForce = volForce - kv_hs(k)*rhoM_1*(var(i,j,k,2)-u_env_pp(i,j,k)) !FS
-                      ! end if
-                      !UAE
                    end if
 
                    if (topography) then
@@ -929,10 +679,9 @@ contains
                    end if
                 end if
 
-                !UAB 200413
                 if (TestCase == "baroclinic_LC") then
                    if (background == "HeldSuarez") then
-                      ! Rayleigh damping in boundary layer
+                      ! Rayleigh damping 
 
                       if (model == "pseudo_incompressible") then
                           rhoM_1 &
@@ -944,15 +693,17 @@ contains
                          else if (model == "Boussinesq") then
                           rhoM_1 = rho00
                          else
-                          stop "momentumPredictor: unkown model."
+                          stop"momentumPredictor: unkown model."
                       end if
 
                       volForce &
                       = volForce &
                         - kv_hs(k)*rhoM_1*(var(i,j,k,2) - var_env(i,j,k,2))
+
+                
+                      
                    end if
                 end if
-                !UAE 200413
         
                 !--------------------
                 !   d/dt ... = F(phi) (RHS of ODE)
@@ -1058,6 +809,17 @@ contains
                       end if
                    end if
 
+                   if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping 
+                         uAst &
+                              = uAst - dt*kv_hs(k)*uhorx
+                         
+                         
+                         
+                      end if
+                   end if
+                   
                    usave(i,j,k) = uAst
 
                    if (TestCase == "baroclinic_LC") then
@@ -1164,6 +926,15 @@ contains
                       end if
                    end if
 
+                   if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping 
+                         facu &
+                              = facu + dt*kv_hs(k)
+                         
+                      end if
+                   end if
+                   
                    facv = facu
 
                    uAst &
@@ -1267,26 +1038,6 @@ contains
                                * (  var_env(i-1,j+1,k,2) &
                                   + var_env(i  ,j+1,k,2)))
 
-                      !UAB 200413
-                      ! if (background == "HeldSuarez") then
-                      !    ! Rayleigh damping in boundary layer
-
-                      !    if (model == "pseudo_incompressible") then
-                      !        rhoM_1 &
-                      !        = 0.5 * (rhoOld(i,j,k) + rhoOld(i,j+1,k))
-
-                      !        if( fluctuationMode ) then
-                      !           rhoM_1 = rhoM_1 + rhoStrat(k)
-                      !        end if
-                      !       else if (model == "Boussinesq") then
-                      !        rhoM_1 = rho00
-                      !       else
-                      !        stop "momentumPredictor: unkown model."
-                      !    end if
-
-                      !    volForce = volForce - kv_hs(k)*rhoM_1*var(i,j,k,3)!FS
-                      ! end if
-                      !UAE
                    end if
 
                    if (topography) then
@@ -1312,31 +1063,32 @@ contains
                    end if
                 end if
 
-                !UAB 200413
                 if (TestCase == "baroclinic_LC") then
                    if (background == "HeldSuarez") then
-                      ! Rayleigh damping in boundary layer
-
+                      ! Rayleigh damping
+                      
                       if (model == "pseudo_incompressible") then
-                          rhoM_1 &
-                          = 0.5 * (rhoOld(i,j,k) + rhoOld(i,j+1,k))
-
-                          if( fluctuationMode ) then
-                             rhoM_1 = rhoM_1 + rhoStrat(k)
-                          end if
-                         else if (model == "Boussinesq") then
-                          rhoM_1 = rho00
-                         else
-                          stop "momentumPredictor: unkown model."
+                         rhoM_1 &
+                              = 0.5 * (rhoOld(i,j,k) + rhoOld(i,j+1,k))
+                         
+                         if( fluctuationMode ) then
+                            rhoM_1 = rhoM_1 + rhoStrat(k)
+                         end if
+                      else if (model == "Boussinesq") then
+                         rhoM_1 = rho00
+                      else
+                         stop"momentumPredictor: unkown model."
                       end if
-
+                      
                       volForce &
-                      = volForce &
-                        - kv_hs(k)*rhoM_1*(var(i,j,k,3) - var_env(i,j,k,3))
+                           = volForce &
+                           - kv_hs(k)*rhoM_1*(var(i,j,k,3) - var_env(i,j,k,3))
+                      
+                      
+                      
                    end if
                 end if
-                !UAE 200413
-             
+                
                 !--------------------
                 !   F(phi) = RHS
                 !--------------------
@@ -1445,6 +1197,16 @@ contains
                       end if
                    end if
 
+                   if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping 
+                         vAst &
+                              = vAst - dt*kv_hs(k)*vhory
+                         
+                         
+                      end if
+                   end if
+                   
                    var(i,j,k,3) = vAst
                 end do
              end do
@@ -1551,6 +1313,16 @@ contains
                       end if
                    end if
 
+                   if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping
+                         facv &
+                              = facv + dt*kv_hs(k)
+                         
+                         
+                      end if
+                   end if
+                   
                    facu = facv
 
                    vAst &
@@ -1865,46 +1637,7 @@ contains
                       rho_p1 = rho001 - rhoStrat(k+1)
                    end if
 
-                   !UAB
-                   !if (heatingONK14)then
-                   !wAst &
-                   != 1.0 &
-                   !  /(  facw*facr &
-                   !    + rhoStratTilde(k)/rhow * bvsstw * dt**2) &
-                   !  * (  facr * (wvert - dt * piGrad) &
-                   !     - dt * g_ndim &
-                   !       * 0.5*(  rhop_0/rho000 + rhop_1/rho001&
-                   !              + dt &
-                   !                * (  rhoStrat(k)/Pstrat(k) &
-                   !                     * heat(i,j,k)/rho000 &
-                   !                   + rhoStrat(k+1)/Pstrat(k+1) &
-                   !                     *  heat(i,j,k+1)/rho001 &
-                   !                   + 0.5/g_ndim &
-                   !                     *(  rhoStrat(k)*bvsStrat(k) &
-                   !                         *(w_0(k)+w_0(k-1))/rho000 &
-                   !                       + rhoStrat(k+1)*bvsStrat(k+1) &
-                   !                         *(w_0(k)+w_0(k+1))/rho001) &
-                   !                   + alprlx &
-                   !                     * (  rho_p0/rho000 &
-                   !                        + rho_p1/rho001)))) 
-                   !else
-                   !   wAst &
-                   !        = 1.0 &
-                   !  /(  facw*facr &
-                   !    + rhoStratTilde(k)/rhow * bvsstw * dt**2) &
-                   !  * (  facr * (wvert - dt * piGrad) &
-                   !     - dt * g_ndim &
-                   !       * 0.5*(  rhop_0/rho000 + rhop_1/rho001&
-                   !              + dt &
-                   !                * (  rhoStrat(k)/Pstrat(k) &
-                   !                     * heat(i,j,k)/rho000 &
-                   !                   + rhoStrat(k+1)/Pstrat(k+1) &
-                   !                     * heat(i,j,k+1)/rho001 &
-                   !                   + alprlx &
-                   !                     * (  rho_p0/rho000 &
-                   !                        + rho_p1/rho001))))
-                   !end if
-
+                 
                    heat0 &
                    = heat(i,j,k) - S_bar(k) &
                      - Pstrat(k)/g_ndim * bvsStrat(k) &
@@ -2118,6 +1851,10 @@ contains
 
     real, dimension(1:nz) :: sum_local, sum_global
 
+    real :: ymax, yloc
+
+    ymax = ly_dim(1)/lRef
+
     if( correctDivError ) then
         print*,'ERROR: correction divergence error not allowed'
         stop
@@ -2235,16 +1972,11 @@ contains
                    !UAE
 
                    ! F(phi)
-                   !UAB
-                   !F &
-                   != - fluxDiff + rhoStrat(k)/g_ndim * bvsStrat(k)*wvrt &
-                   !  + rhoStrat(k)/Pstrat(k) * heat(i,j,k) &
-                   !  - alprlx * (rhop - rho + rhoStrat(k)) 
                    F &
                    = - fluxDiff + rhoStrat(k)/g_ndim * bvsStrat(k)*wvrt &
                      + rhoStrat(k)/Pstrat(k) * heat_flc&
                      - alprlx * (rhop - rho + rhoStrat(k))
-                   !UAE
+             
    
                    !UAB
                    ! density relaxation
@@ -2378,15 +2110,6 @@ contains
                           rhowm = rhowm + rhoStratTilde(k-1)
                       end if
 
-                      !UAB 200411
-                      !!UAB
-                      !!wvrt = 0.5 * (var(i,j,k,4) + var(i,j,k-1,4))
-                      !wvrt &
-                      != 0.5 &
-                      !  * (var(i,j,k,4)-w_0(k) + var(i,j,k-1,4)-w_0(k-1)) 
-   
-                      !heat_flc= heat(i,j,k) - S_bar(k)
-                      !!UAE
 
                       wvrt = 0.5 * (var(i,j,k,4) + var(i,j,k-1,4))
    
@@ -2394,7 +2117,7 @@ contains
                       = heat(i,j,k) - S_bar(k) &
                         - Pstrat(k)/g_ndim * bvsStrat(k) &
                           * 0.5*(w_0(k) + w_0(k-1))
-                      !UAE 200411
+                      
 
                       if (TestCase == "baroclinic_LC") then
                          piGrad &
@@ -2442,19 +2165,7 @@ contains
                          rho_p = rho - rhoStrat(k)
                       end if
 
-                      !UAB
-                      !buoy &
-                      != 1.0 &
-                      !  /( facw*facr &
-                      !    + rhoStrat(k)/rho * bvsStrat(k) * dt**2) &
-                      !  * (-rhoStrat(k)/rho * bvsStrat(k) * dt &
-                      !      *(wvrt - dt * piGrad) &
-                      !     - facw * g_ndim/rho &
-                      !       * (  rhop &
-                      !          + dt &
-                      !            * (  rhoStrat(k)/Pstrat(k) &
-                      !                 * heat(i,j,k) &
-                      !               + alprlx * rho_p)))
+                      
                       buoy &
                       = 1.0 &
                         /( facw*facr &
@@ -2466,7 +2177,7 @@ contains
                                 + dt &
                                   * (  rhoStrat(k)/Pstrat(k) * heat_flc &
                                      + alprlx * rho_p)))
-                      !UAE
+                      
 
                       var(i,j,k,6) = -buoy * rho/g_ndim
 
@@ -2507,14 +2218,7 @@ contains
                          rho_p = rho - rhoStrat(k)
                       end if
 
-                      !UAB
-                      !buoy &
-                      != - g_ndim * rhop/rho &
-                      !  - dt &
-                      !    * (  rhoStrat(k)/rho * bvsStrat(k)*wvrt &
-                      !       + g_ndim/rho &
-                      !         * (  rhoStrat(k)/Pstrat(k) * heat(i,j,k) &
-                      !            - alprlx * (rhop - rho_p)))
+                      
                       buoy &
                       = - g_ndim * rhop/rho &
                         - dt &
@@ -2522,7 +2226,7 @@ contains
                              + g_ndim/rho &
                                * (  rhoStrat(k)/Pstrat(k) * heat_flc &
                                   - alprlx * (rhop - rho_p)))
-                      !UAE
+                    
 
                       var(i,j,k,6) = -buoy * rho/g_ndim
 
@@ -2850,7 +2554,7 @@ contains
           
           !UAB
           !dtWave = pi/(NN+small)
-          dtWave = 1.7/(NN+small)
+          dtWave = 1./(NN+small) !FS: to be consistent with Rieper et al. (2013)
           !UAE
           
           !------------------------------------
@@ -4405,23 +4109,25 @@ contains
     integer :: iVar, ivmax
     integer :: i_lapl
     integer :: nz_max
+ 
 
     allocate(field(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), stat=allocstat)
-    if(allocstat/=0) stop "smooth_shapiro:alloc failed"
+    if(allocstat/=0) stop"smooth_shapiro:alloc failed"
 
     allocate(var_l(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
            & stat=allocstat)
-    if(allocstat/=0) stop "smooth_shapiro:alloc failed"
+    if(allocstat/=0) stop"smooth_shapiro:alloc failed"
 
     if (timeScheme == "semiimplicit") then
        ! in explicit integration smoothing of density, winds, 
        ! and density fluctuations
        ! pressure fluctuations are not smoothened
-       ivmax = 6
+       ivmax = 6 
       else
        ! in explicit integration smoothing of density, and winds 
        ivmax = 4
     end if
+
 
     ! make sure that boundary conditions are satisfied
 
@@ -4483,7 +4189,7 @@ contains
           case( "periodic" )
             if ( idim == 1 ) call setBoundary_x_periodic(var_l,flux,"var")
           case default
-             stop "setBoundary: unknown case xBoundary"
+             stop"setBoundary: unknown case xBoundary"
           end select
        end if
 
@@ -4517,7 +4223,7 @@ contains
           case( "periodic" )
             if ( idim == 1 ) call setBoundary_x_periodic(var_l,flux,"var")
           case default
-             stop "setBoundary: unknown case xBoundary"
+             stop"setBoundary: unknown case xBoundary"
           end select
        end do
 
@@ -4535,18 +4241,17 @@ contains
                 do j = 1,ny
                    do i = 1,nx
 
-                      ! if ( k >= kSponge) then !FS
-                      !    fc_shap = min(1.0,dt*tRef/1.e2)
-                      ! end if
+                         
                       var(i,j,k,iVar) &
-                      = var(i,j,k,iVar) &
-                        + fc_shap * (-1)**(n_shap + 1) * var_l(i,j,k,iVar)
+                           = var(i,j,k,iVar) &
+                           + fc_shap * (-1)**(n_shap + 1) * var_l(i,j,k,iVar)
+                  
                    end do
                 end do
              end do
           end if
        end do
-
+       
        ! boundary conditions again
 
        call setHalos( var, "var" )
@@ -4610,7 +4315,7 @@ contains
           case( "periodic" )
             if ( jdim == 1 ) call setBoundary_y_periodic(var_l,flux,"var")
           case default
-             stop "setBoundary: unknown case yBoundary"
+             stop"setBoundary: unknown case yBoundary"
           end select
        end if
 
@@ -4644,7 +4349,7 @@ contains
           case( "periodic" ) 
             if ( jdim == 1 ) call setBoundary_y_periodic(var_l,flux,"var")
           case default
-             stop "setBoundary: unknown case yBoundary"
+             stop"setBoundary: unknown case yBoundary"
           end select   
        end do
 
@@ -4661,10 +4366,8 @@ contains
              do k = 1,nz_max
                 do j = 1,ny
                    do i = 1,nx
+
                       
-                      ! if ( k >= kSponge) then !FS
-                      !       fc_shap = min(1.0,dt*tRef/1.e2)
-                      ! end if
                       var(i,j,k,iVar) &
                       = var(i,j,k,iVar) &
                         + fc_shap * (-1)**(n_shap + 1) * var_l(i,j,k,iVar)
@@ -4687,9 +4390,9 @@ contains
     ! deallocate local fields
 
     deallocate(field, stat=allocstat); if(allocstat/=0) &
-         & stop "smooth_shapiro:dealloc failed"
+         & stop"smooth_shapiro:dealloc failed"
     deallocate(var_l, stat=allocstat); if(allocstat/=0) &
-         & stop "smooth_shapiro:dealloc failed"
+         & stop"smooth_shapiro:dealloc failed"
 
     return
 
@@ -4746,7 +4449,7 @@ contains
        ! in semiimplicit integration smoothing of density, winds, 
        ! and density fluctuations
        ! pressure fluctuations are not smoothened
-       ivmax = 4!6!FS 
+       ivmax = 6
       else
        ! in explicit integration smoothing of density, and winds 
        ivmax = 4
@@ -4765,7 +4468,7 @@ contains
        var_l = var
 
        do i_lapl = 1, n_shap 
-          do iVar = 2,ivmax!FS
+          do iVar = 1,ivmax
              if (iVar /= 5) then
 
                         
@@ -4805,7 +4508,7 @@ contains
 
        ! apply filter
     
-       do iVar = 2,ivmax!FS
+       do iVar = 1,ivmax
           if (iVar /= 5) then
              if (iVar == 4) then
                 nz_max = nz-1
@@ -4845,7 +4548,7 @@ contains
        var_l = var
        
        do i_lapl = 1, n_shap
-          do iVar = 2,ivmax!FS
+          do iVar = 1,ivmax
              if (iVar /= 5) then
 
                         
@@ -4884,7 +4587,7 @@ contains
 
        ! apply filter
     
-       do iVar = 2,ivmax!FS
+       do iVar = 1,ivmax
           if (iVar /= 5) then
              if (iVar == 4) then
                 nz_max = nz-1
@@ -4918,7 +4621,7 @@ contains
 
     var_l = var
 
-    do iVar = 2,ivmax!FS
+    do iVar = 1,ivmax
        if (iVar /= 5) then
 
                    
@@ -4941,7 +4644,7 @@ contains
 
     ! apply filter
     
-    do iVar = 2,ivmax!FS
+    do iVar = 1,ivmax
        if (iVar /= 5) then
           if (iVar == 4) then
              nz_max = nz-1
@@ -4986,10 +4689,7 @@ contains
 
 !---------------------------------------------------------------------
 
-
-  !UAB 200413
-  subroutine BGstate_update(var,flux,dt,m,q_P,q_rho,int_mod)
-  !UAE 200413
+  subroutine BGstate_update(var,flux,dt,m,q_P,q_rho,int_mod,heating_switch)
 
   ! in/out variables
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
@@ -5003,6 +4703,8 @@ contains
 
     character(len=*), intent(in) :: int_mod
 
+    integer, intent(in) :: heating_switch
+
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: heat
     real, dimension(-nbz:nz+nbz) :: S_bar, PStratold
     integer :: i,j,k
@@ -5015,6 +4717,7 @@ contains
     real :: dptopdt
 
     real :: sum_d, sum_n
+
 
     w_0 = 0.
     S_bar = 0.
@@ -5107,46 +4810,40 @@ contains
           
           ! update: q(m-1) -> q(m)
 
+          q_P(k) = alpha(m) * q_P(k) - dt*divPw(k) - dt*S_bar(k)
+             
+             ! update PStrat
 
-          q_P(k) = alpha(m) * q_P(k) - dt*divPw(k) - dt*S_bar(k) 
-          !UAE
-
-          ! update PStrat
-
-          Pstrat(k) = Pstrat(k) + beta(m) * q_P(k)
+          Pstrat(k) = Pstrat(k) + beta(m) * q_P(k) !PI_old auskommentiert
 
           ! update: q(m-1) -> q(m)
 
-
           q_rho(k) = alpha(m) * q_rho(k) - dt*divrhow(k)
-          !UAE
 
           ! update rhoStrat
 
-          rhostrat(k) = rhostrat(k) + beta(m) * q_rho(k)
+          rhostrat(k) = rhostrat(k) + beta(m) * q_rho(k) !PI_old auskommentiert
          else if (int_mod == "impl")then
-          !UAB
 
-          PStrat(k) = PStrat(k) - dt*divPw(k) - dt*S_bar(k)
-          rhoStrat(k) = rhoStrat(k) - dt*divrhow(k)
-          !UAE
+            if (heating_switch == 0) then
+               PStrat(k) = PStrat(k) - dt*divPw(k) - dt*S_bar(k)  !PI_old auskommentiert
+               rhoStrat(k) = rhoStrat(k) - dt*divrhow(k)  !PI_old auskommentiert
+            else
+               PStrat(k) = PStrat00(k) - dt*divPw(k) - dt*S_bar(k)
+               rhoStrat(k) = rhoStrat00(k) - dt*divrhow(k)
+            end if
          else
           print*, "update.f90/BGstate_update: wrong int_mod"
           stop
        end if
       
-       !testb
-       !print*,'k,Pstrat(k),rhoStrat(k)'
-       !print*,k,Pstrat(k),rhoStrat(k)
-       !teste
-
        !update thetaStrat
        thetaStrat(k) = PStrat(k)/rhoStrat(k)
 
     end do
 
     !UAB
-    do k = -1,nz+1
+    do k = 1,nz !FS !-1,nz+1
        PstratTilde(k) = 0.5*(PStrat(k)+PStrat(k+1))
        rhoStratTilde(k) = 0.5 * (rhoStrat(k) + rhoStrat(k+1))
        thetaStratTilde(k) =  PStratTilde(k)/rhoStratTilde(k)
@@ -5173,13 +4870,14 @@ contains
     ! update of non-dimensional squared Brunt-Vaisala frequency
     ! (this could perhaps be done a bit nicer)
 
-    bvsStrat(-1) &
-    = g_ndim/thetaStrat(0) * (thetaStrat(1) - thetaStrat(0))/dz
+    !FS auskommentiert
+    ! bvsStrat(-1) &
+    ! = g_ndim/thetaStrat(0) * (thetaStrat(1) - thetaStrat(0))/dz
 
-    bvsStrat(0) &
-    = g_ndim/thetaStrat(0) * (thetaStrat(1) - thetaStrat(0))/dz
+    ! bvsStrat(0) &
+    ! = g_ndim/thetaStrat(0) * (thetaStrat(1) - thetaStrat(0))/dz
 
-    N2 = max(bvsStrat(-1),bvsStrat(0))
+    ! N2 = max(bvsStrat(-1),bvsStrat(0))
 
     do k = 1,nz
        bvsStrat(k) &
@@ -5189,21 +4887,22 @@ contains
        N2 = max(N2, bvsStrat(k))
     end do
 
-    bvsStrat(nz+1) &
-    = g_ndim/thetaStrat(nz+1) * (thetaStrat(nz+1) - thetaStrat(nz))/dz
+    !FS auskommentiert
+    ! bvsStrat(nz+1) &
+    ! = g_ndim/thetaStrat(nz+1) * (thetaStrat(nz+1) - thetaStrat(nz))/dz
 
-    N2 = max(N2, bvsStrat(nz+1))
+    ! N2 = max(N2, bvsStrat(nz+1))
 
     if(N2 < 0.) then
-       stop 'ERROR: N2 < 0'
+       stop'ERROR: N2 < 0'
       else
        NN = sqrt(N2)
     end if
 
     !testb
-    do k = -1,nz+1
-       if (master .and. N2 == bvsStrat(k)) print*,'N2 = max at k =',k
-    end do
+    ! do k = -1,nz+1
+    !    if (master .and. N2 == bvsStrat(k)) print*,'N2 = max at k =',k
+    ! end do
     !teste
     !UAE
 
