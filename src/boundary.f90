@@ -950,19 +950,29 @@ contains
           !    life-cycle simulation: only deviations from environmental 
           !                           state reflected,
           !                           sign not changed (free slip)
+          ! -> FS: changed sign back to no slip
 
           if (testCase == "baroclinic_LC") then 
-             ! u
-             var(1:nx,1:ny,0,2) &
-             = var(1:nx,1:ny,1,2) - u_env_pp (:,:,1) + u_env_pp (:,:,0) 
-             var(1:nx,1:ny,nz+1,2) &
-             = var(1:nx,1:ny,nz,2) - u_env_pp (:,:,nz) + u_env_pp (:,:,nz+1)
+             ! ! u
+             ! var(1:nx,1:ny,0,2) &
+             ! = var(1:nx,1:ny,1,2) - u_env_pp (:,:,1) + u_env_pp (:,:,0) 
+             ! var(1:nx,1:ny,nz+1,2) &
+             ! = var(1:nx,1:ny,nz,2) - u_env_pp (:,:,nz) + u_env_pp (:,:,nz+1)
 
-             ! v
-             var(1:nx,1:ny,0,3) &
-             = var(1:nx,1:ny,1,3) - v_env_pp (:,:,1) + v_env_pp (:,:,0) 
-             var(1:nx,1:ny,nz+1,3) &
-             = var(1:nx,1:ny,nz,3) - v_env_pp (:,:,nz) + v_env_pp (:,:,nz+1)
+             ! ! v
+             ! var(1:nx,1:ny,0,3) &
+             ! = var(1:nx,1:ny,1,3) - v_env_pp (:,:,1) + v_env_pp (:,:,0) 
+             ! var(1:nx,1:ny,nz+1,3) &
+             ! = var(1:nx,1:ny,nz,3) - v_env_pp (:,:,nz) + v_env_pp (:,:,nz+1)
+             do k = 1,nbz
+                ! u
+                var(:,:,-k+1,2) = -var(:,:,k,2)+u_env_pp (:,:,k) + u_env_pp (:,:,-k+1)
+                var(:,:,nz+k,2) = -var(:,:,nz-k+1,2)+u_env_pp (:,:,nz-k+1) + u_env_pp (:,:,nz+k)
+                
+                ! v
+                var(:,:,-k+1,3) = -var(:,:,k,3)
+                var(:,:,nz+k,3) = -var(:,:,nz-k+1,3)
+             end do
             else
              do k = 1,nbz
                 ! u
