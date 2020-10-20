@@ -21,10 +21,9 @@ module atmosphere_module
   real, dimension(:), allocatable :: PStratTilde, rhoStratTilde, &
                                      thetaStratTilde
 
-  real, dimension(:), allocatable :: Ro, RoInv
+  real, dimension(:), allocatable :: PStrat00, PStrat01, rhoStrat00, rhoStrat01, thetaStrat00, thetaStrat01, bvsStrat00, bvsStrat01, PStratTilde00, PStratTilde01, rhoStratTilde00, rhoStratTilde01, thetaStratTilde00, thetaStratTilde01
 
-  real, dimension(:), allocatable :: PStrat00, PStrat01, rhoStrat00, rhoStrat01, thetaStrat00, thetaStrat01, bvsStrat00, &
-        bvsStrat01, PStratTilde00, PStratTilde01, rhoStratTilde00, rhoStratTilde01, thetaStratTilde00, thetaStratTilde01 
+  real, dimension(:), allocatable :: Ro, RoInv 
 
 
 
@@ -157,41 +156,15 @@ contains
     end if
     !UAE 200413
 
-        ! allocate PStrat
-    if( .not. allocated(pStrat00) ) then
-       allocate( Pstrat00(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
-    end if
-
-    ! allocate PStrat
-    if( .not. allocated(pStrat01) ) then
-       allocate( Pstrat01(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
-    end if
-
-    !UAB
     ! allocate pistrat
     if( .not. allocated(pistrat) ) then
        allocate( pistrat(-1:nz+2),stat=allocstat)
        if(allocstat /= 0) stop "atmosphere.f90: could not allocate pistrat"
     end if
-    !UAE
 
     ! allocate pStratTilde -> P at half levels
     if( .not. allocated(pStratTilde) ) then
        allocate( PstratTilde(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
-    end if
-
-        ! allocate pStratTilde -> P at half levels
-    if( .not. allocated(pStratTilde00) ) then
-       allocate( PstratTilde00(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
-    end if
-
-    ! allocate pStratTilde -> P at half levels
-    if( .not. allocated(pStratTilde01) ) then
-       allocate( PstratTilde01(-1:nz+2),stat=allocstat)
        if(allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
     end if
 
@@ -211,6 +184,56 @@ contains
        end if
     end if
     !UAE 200413
+
+    ! allocate rhoStratTilde 
+    if( .not. allocated(rhoStratTilde) ) then
+       allocate( rhoStratTilde(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could n. all. rhoStratTilde"
+    end if
+
+
+    ! allocate thetaStrat
+    if( .not. allocated(thetaStrat) ) then
+       allocate( thetaStrat(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat"
+    end if
+
+    ! allocate squared Brunt-Vaisala frequency bvsStrat
+    if( .not. allocated(bvsStrat) ) then
+       allocate( bvsStrat(-1:nz+1),stat=allocstat)
+       if(allocstat /= 0) &
+         & stop "atmosphere.f90: could not allocate bvsStrat"
+    end if
+
+    ! allocate thetaStratTilde
+    if( .not. allocated(thetaStratTilde) ) then
+       allocate( thetaStratTilde(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
+    end if
+
+        ! allocate PStrat
+    if( .not. allocated(pStrat00) ) then
+       allocate( Pstrat00(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
+    end if
+
+    ! allocate PStrat
+    if( .not. allocated(pStrat01) ) then
+       allocate( Pstrat01(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
+    end if
+
+       ! allocate pStratTilde -> P at half levels
+    if( .not. allocated(pStratTilde00) ) then
+       allocate( PstratTilde00(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
+    end if
+
+    ! allocate pStratTilde -> P at half levels
+    if( .not. allocated(pStratTilde01) ) then
+       allocate( PstratTilde01(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
+    end if
 
     ! allocate rhoStrat
     if( .not. allocated(rhoStrat00) ) then
@@ -238,35 +261,9 @@ contains
        if(allocstat /= 0) stop "atmosphere.f90: could n. all. rhoStratTilde"
     end if
 
-    ! allocate rhoStratTilde 
-    if( .not. allocated(rhoStratTilde) ) then
-       allocate( rhoStratTilde(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could n. all. rhoStratTilde"
-    end if
-
-
-    ! allocate thetaStrat
-    if( .not. allocated(thetaStrat) ) then
-       allocate( thetaStrat(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat"
-    end if
-
     if( .not. allocated(thetaStrat00) ) then
        allocate( thetaStrat00(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat"
-    end if
-
-    ! allocate squared Brunt-Vaisala frequency bvsStrat
-    if( .not. allocated(bvsStrat) ) then
-       allocate( bvsStrat(-1:nz+1),stat=allocstat)
-       if(allocstat /= 0) &
-         & stop "atmosphere.f90: could not allocate bvsStrat"
-    end if
-
-    ! allocate thetaStratTilde
-    if( .not. allocated(thetaStratTilde) ) then
-       allocate( thetaStratTilde(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
+       if(allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat00"
     end if
 
     if( .not. allocated(thetaStratTilde00) ) then
@@ -274,13 +271,37 @@ contains
        if(allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
     end if
 
-    ! allocate Ro
+    if( .not. allocated(thetaStrat01) ) then
+       allocate( thetaStrat01(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat"
+    end if
+
+    if( .not. allocated(thetaStratTilde01) ) then
+       allocate( thetaStratTilde01(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
+    end if
+
+     ! allocate squared Brunt-Vaisala frequency bvsStrat
+    if( .not. allocated(bvsStrat00) ) then
+       allocate( bvsStrat00(-1:nz+1),stat=allocstat)
+       if(allocstat /= 0) &
+         & stop "atmosphere.f90: could not allocate bvsStrat"
+    end if
+
+    ! allocate squared Brunt-Vaisala frequency bvsStrat
+    if( .not. allocated(bvsStrat01) ) then
+       allocate( bvsStrat01(-1:nz+1),stat=allocstat)
+       if(allocstat /= 0) &
+         & stop "atmosphere.f90: could not allocate bvsStrat"
+    end if
+
+     ! allocate Ro !FS
     if( .not. allocated(Ro) ) then
        allocate( Ro(0:ny+1),stat=allocstat)
        if(allocstat /= 0) stop "atmosphere.f90: could not allocate Ro"
     end if
 
-    ! allocate RoInv
+    ! allocate RoInv !FS
     if( .not. allocated(RoInv) ) then
        allocate( RoInv(0:ny+1),stat=allocstat)
        if(allocstat /= 0) stop "atmosphere.f90: could not allocate RoInv"
@@ -387,29 +408,7 @@ contains
 !   achatzb correction for zero Coriolis
 !   Ro = uRef/f_Coriolis_dim/lRef  
 !   RoInv = 1.0/Ro   
-    j00=js+nby-1
-    if (TestCase == "baroclinic_LC") then
-       ymax = ly_dim(1)/lRef  
-       do j = 0,ny+1
-          yloc = y(j+j00)
-          f_Coriolis_y(j) = f_Coriolis_dim*sin(pi*yloc/ymax)
-          if(f_Coriolis_y(j) /= 0.0) then
-             Ro(j) = uRef/f_Coriolis_y(j)/lRef  
-             RoInv(j) = 1.0/Ro(j)       
-          else
-             Ro(j) = 1.d40
-             RoInv(j)=0.0
-          end if
-       end do
-    else
-       if(f_Coriolis_dim /= 0.0) then
-          Ro(:) = uRef/f_Coriolis_dim/lRef  
-          RoInv(:) = 1.0/Ro(:) 
-       else
-          Ro(:) = 1.d40
-          RoInv(:) = 0.0
-       end if
-    end if
+! FS: see now further below   
 
     ! Reynolds number
     if( .not. specifyReynolds ) ReInv = mu_viscous_dim/uRef/lRef
@@ -460,6 +459,30 @@ contains
     do k = -nbz, sizeZ+nbz   ! modified by Junhong Wei (20161104)
        z(k) = lz(0) + real(k-1)*dz + dz/2.0
     end do
+
+    j00=js+nby-1 !FS
+    if (TestCase == "baroclinic_LC") then
+       ymax = ly_dim(1)/lRef  
+       do j = 0,ny+1
+          yloc = y(j+j00)
+          f_Coriolis_y(j) = f_Coriolis_dim!FSJuly2020*sin(4*atan(1.0)*yloc/ymax)
+          if(f_Coriolis_y(j) /= 0.0) then
+             Ro(j) = uRef/f_Coriolis_y(j)/lRef  
+             RoInv(j) = 1.0/Ro(j)       
+          else
+             Ro(j) = 1.d40
+             RoInv(j)=0.0
+          end if
+       end do
+    else
+       if(f_Coriolis_dim /= 0.0) then
+          Ro(0:ny+1) = uRef/f_Coriolis_dim/lRef  
+          RoInv(0:ny+1) = 1.0/Ro(:) 
+       else
+          Ro(0:ny+1) = 1.d40
+          RoInv(0:ny+1) = 0.0
+       end if
+    end if
 
 !   achatzb
     !----------------------------------
@@ -1029,7 +1052,8 @@ contains
              = max( tp_strato, &
                     pistrat(k) &
                     * (tp_srf_trp - 0.5*tpdiffhor_tropo &
-                       - 0.5*ptdiffvert_tropo/kappa * log(pistrat(k))))
+                       - 1.*ptdiffvert_tropo/kappa * log(pistrat(k))))!FS 0.5->1
+            
              
              thetaStrat(k) = T_bar/pistrat(k)
 
@@ -1044,14 +1068,15 @@ contains
           ! leapfrog
           ! P and density determined as well
 
-          do k = 2, nz-ceiling((spongeHeight+spongeHeight/3.)*real(nz)) !nz+2 !FS
+         do k = 2,nz-ceiling((0.375)*real(nz))!nz+2 !FS
              pistar = pistrat(k-2) - 2.0*dz * kappa/thetaStrat(k-1)
 
              T_bar &
              = max( tp_strato, &
                     pistar &
                     * (tp_srf_trp - 0.5*tpdiffhor_tropo &
-                       - 0.5*ptdiffvert_tropo/kappa * log(pistar))) 
+                       - 1.*ptdiffvert_tropo/kappa * log(pistar)))!FS 0.5->1
+             
 
              thetastar = T_bar/pistar
 
@@ -1063,41 +1088,47 @@ contains
              = max( tp_strato, &
                     pistrat(k) &
                     * (tp_srf_trp - 0.5*tpdiffhor_tropo &
-                       - 0.5*ptdiffvert_tropo/kappa * log(pistrat(k))))
+                       - 1.*ptdiffvert_tropo/kappa * log(pistrat(k))))!FS 0.5->1
+             
 
              thetaStrat(k) = T_bar/pistrat(k)
 
              pStrat(k) = pistrat(k)**((1.0 - kappa)/kappa)
 
              rhoStrat(k) = pStrat(k)/thetaStrat(k)
+
+             tp_sponge = T_bar
+                
           end do
 
-          tp_sponge = T_bar
 
-          ! close jets below sponge layer !FS
-          do k = nz+1-ceiling((spongeHeight+spongeHeight/3.)*real(nz)), nz+2 !FS
-             pistar = pistrat(k-2) - 2.0*dz * kappa/thetaStrat(k-1)
-
+         ! close jets below sponge layer !FS
+          do k = nz+1-ceiling((0.375)*real(nz)), nz+2 !FS
+             pistar = pistrat(k-2) - 2.0*dz * kappa/thetaStrat(k-1) 
+&
              T_bar &
              =  tp_sponge + pistar*(0.5*tpdiffhor_tropo &
-                       + 0.5*ptdiffvert_tropo/kappa * log(pistar)) 
-      
+                       + 1.*ptdiffvert_tropo/kappa * log(pistar))!FS 0.5->1
+           
 
              thetastar = T_bar/pistar
 
+
              pistrat(k) &
              =   pistrat(k-1) &
-               - 0.5*dz * (kappa/thetastar + kappa/thetaStrat(k-1))
+               - 0.5*dz * (kappa/thetastar + kappa/thetaStrat(k-1)) 
 
              T_bar &
              = tp_sponge + pistrat(k)*(0.5*tpdiffhor_tropo &
-                       + 0.5*ptdiffvert_tropo/kappa * log(pistrat(k)))
-
+                       + 1.*ptdiffvert_tropo/kappa * log(pistrat(k)))!FS 0.5->1
+             
              thetaStrat(k) = T_bar/pistrat(k)
+
 
              pStrat(k) = pistrat(k)**((1.0 - kappa)/kappa)
 
              rhoStrat(k) = pStrat(k)/thetaStrat(k)
+
           end do
           
           
