@@ -2407,7 +2407,7 @@ contains
        ymax = ly_dim(1)/lRef  
        do j = 1,ny
           yloc = y(j+j0)
-          f_cor_nd(j) = f_Coriolis_dim*tRef*sin(pi*yloc/ymax)
+          f_cor_nd(j) = f_Coriolis_dim*tRef!*sin(pi*yloc/ymax)
        end do
     else
        f_cor_nd(:) = f_Coriolis_dim*tRef
@@ -2436,6 +2436,16 @@ contains
                       if (   topography_mask(i0+i,j0+j,k) &
                         & .or. topography_mask(i0+i+1,j0+j,k)) then
                          facu = facu + dt*alprlx
+                      end if
+                   end if
+
+                    if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping 
+                         facu &
+                              = facu + dt*kv_hs(k)
+                         
+                           
                       end if
                    end if
 
@@ -2533,6 +2543,16 @@ contains
                       if (   topography_mask(i0+i,j0+j,k) &
                         & .or. topography_mask(i0+i,j0+j+1,k)) then
                          facv = facv + dt*alprlx
+                      end if
+                   end if
+
+                   if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping 
+                         facv &
+                              = facv + dt*kv_hs(k)
+                         
+                  
                       end if
                    end if
 
@@ -2906,130 +2926,6 @@ contains
 
   end subroutine terminate_poisson
 
-  !!------------------------------------------------------------------------
-!
- !  subroutine calculate_heating_0(var,flux,heat)
-
- !  !-----------------------------------------------
- !  ! calculate heating in the divergence constraint
- !  !-----------------------------------------------
-
- !   real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz, nVar), &
- !        &intent(in) :: var     
- !   real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
-
- !   real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
- !        &intent(out) :: heat  !, term1, term2
-
- !   ! local variables
- !   integer :: i, j, k
- !   real    :: rho, the, theta_bar_0, rho_e
- !   real, dimension(1:nz) :: tau_relax_i  ! inverse scaled relaxation 
- !                                         ! time for barocl. l. c.
- !   real    :: tau_jet_sc, tau_relax_sc  ! Klein scaling for relax param.
-
- !   heat = 0.0
-
- !   !-------------------------------------------------------
- !   ! calculate the environment-induced negative (!) heating
- !   !-------------------------------------------------------
-
- !   if (     (TestCase == "baroclinic_LC") &
- !       .or. (TestCase == "baroclinic_ID")) then
- !      if (RelaxHeating /= 0)  then
- !         !UAB
- !         if (background /= "HeldSuarez") then
- !         !UAE
- !            do k = 1,nz
- !               if ( referenceQuantities == "SI" ) then
- !                  tau_relax_sc = tau_relax
- !                  tau_jet_sc = tau_jet
- !                 else
- !                  tau_relax_sc = tau_relax/tref
- !                  tau_jet_sc = tau_jet/tref
- !               end if
-           
- !               if (RelaxHeating == 1) then
- !                  tau_relax_i(k) = 1./(tau_relax_sc)
- !                  else
- !                  !UAB
- !                  !tau_relax_i = 0.
- !                  tau_relax_i(k) = 0.
- !                  !UAE
- !               end if
- !            end do
- !         !UAB
- !         end if
- !         !UAE
-
- !         if( master ) then 
- !            print*,""
- !            print*," Poisson Solver, Thermal Relaxation is on: "
- !            print*," Relaxation factor: Div = - rho(Th - Th_e)/tau: "
- !            print*, "tau = ", tref/tau_relax_i(1), " s"
- !         end if
-
- !         theta_bar_0 = (thetaStrat(1) + thetaStrat(nz))/2.
-   
- !         do k = 1,nz
- !            do j = 1,ny
- !               do i = 1,nx
- !                  if( fluctuationMode )  then
- !                     rho = var(i,j,k,1) + rhoStrat(k)
- !                    else   
- !                     rho = var(i,j,k,1)
- !                  end if  
-
- !                  the = (Pstrat(k))/rho 
- !                  rho_e = (Pstrat(k))/the_env_pp(i,j,k)
- !                  !UAB
- !                  if (background == "HeldSuarez") then
- !                     heat(i,j,k) &
- !                     = - theta_bar_0*(rho - rho_e)*kt_hs(j,k)
- !                    else
- !                  !UAE
- !                     heat(i,j,k) &
- !                     = - theta_bar_0*(rho - rho_e)*tau_relax_i(k)
- !                  !UAB
- !                  end if
- !                  !UAE
- !               end do
- !            end do
- !         end do
- !      end if
- !   end if
-
- !  ! if (output_heat) then
- !      call output_field( &
- !      & iOut, &
- !      & heat,&
- !      & 'heat_prof.dat', thetaRef*rhoRef/tref )
- !  ! end if
-
- !   !testb
- !   return
- !   !teste
-
- !   !------------------------------------------------------------------
- !   ! supplement by negative (!) heating due to molecular and turbulent 
- !   ! diffusivity
- !   !------------------------------------------------------------------
-
- !   do k=1,nz
- !      do j=1,ny
- !         do i=1,nx
- !            heat(i,j,k) &
- !            = heat(i,j,k) &
- !              + rhoStrat(k) &
- !                * (  (flux(i,j,k,1,5) - flux(i-1,j  ,k  ,1,5))/dx &
- !                   + (flux(i,j,k,2,5) - flux(i  ,j-1,k  ,2,5))/dy &
- !                   + (flux(i,j,k,3,5) - flux(i  ,j  ,k-1,3,5))/dz)
- !         end do
- !      end do
- !   end do
-
- ! end subroutine calculate_heating_0
-
  !----------------------------------------------------------------------
 
  subroutine calculate_heating(var,flux,heat)
@@ -3102,16 +2998,16 @@ contains
                      + (tau_relax_low/tref - tau_relax/tref) &
                        *( 1.0 &
                          -0.5&
-                          *( tanh((yloc/ymax-0.1)/sigma_tau) &
-                            -tanh((yloc/ymax-0.9)/sigma_tau)))  
+                          *( tanh((yloc/ymax-0.1)/0.02) &
+                            -tanh((yloc/ymax-0.9)/0.02)))  
                   else
                    tau_relax_sc &
                     =   tau_relax/tref &
                      + (tau_relax_low/tref - tau_relax/tref) &
                        *( 1.0 &
                          -0.5 &
-                          *( tanh(((-1)*yloc/ymax-0.1)/sigma_tau) &
-                            -tanh(((-1)*yloc/ymax-0.9)/sigma_tau))) 
+                          *( tanh(((-1)*yloc/ymax-0.1)/0.02) &
+                            -tanh(((-1)*yloc/ymax-0.9)/0.02))) 
                 end if
 
                 tau_relax_i(j,k) = 1./(tau_relax_sc)
@@ -3169,24 +3065,13 @@ contains
 
                 the = Pstrat(k)/rho 
 
-                heat(i,j,k) = the - the_env_pp(i,j,k)
+                heat(i,j,k) = the - the_env_pp(i,j,k) 
+                
+               
              end do
           end do
        end do
 
-       ! subtract horizontal mean of the potential-temperature difference
-
-      ! do k = 1,nz
-      !     sum_local(k) = sum(heat(1:nx,1:ny,k))
-      !  end do
-
-      !  call mpi_allreduce(sum_local(1),sum_global(1),&
-      !       nz, mpi_double_precision,mpi_sum,comm,ierror)
-      !  sum_global = sum_global/(sizeX*sizeY)
-
-      !  do k=1,nz
-      !     heat(1:nx,1:ny,k) = heat(1:nx,1:ny,k) - sum_global(k)
-      !  end do
 
        ! heating
 
@@ -3199,7 +3084,8 @@ contains
                    rho = var(i,j,k,1)
                 end if  
 
-                heat(i,j,k) = rho*heat(i,j,k)*tau_relax_i(j,k)
+                heat(i,j,k) = rho*heat(i,j,k)*tau_relax_i(j,k) 
+
              end do
           end do
        end do
@@ -3218,7 +3104,7 @@ contains
              do i=1,nx
                 heat(i,j,k) &
                 = heat(i,j,k) &
-                  + rhoStrat(k) &
+                  + (rhoStrat(k)) & 
                     * (  (flux(i,j,k,1,5) - flux(i-1,j  ,k  ,1,5))/dx &
                        + (flux(i,j,k,2,5) - flux(i  ,j-1,k  ,2,5))/dy &
                        + (flux(i,j,k,3,5) - flux(i  ,j  ,k-1,3,5))/dz)
@@ -3241,7 +3127,7 @@ contains
        & 'heat_prof.dat', thetaRef*rhoRef/tref )
 
 
-    end if
+   end if
 
   end subroutine calculate_heating
   
@@ -3288,10 +3174,10 @@ contains
        ymax = ly_dim(1)/lRef  
        do j = 1,ny
           yloc = y(j+j0)
-          f_cor_nd(j) = f_Coriolis_dim*tRef*sin(pi*yloc/ymax)
+          f_cor_nd(j) = f_Coriolis_dim*tRef!*sin(pi*yloc/ymax)
        end do
     else
-       f_cor_nd(:) = f_Coriolis_dim*tRef
+       f_cor_nd(0:ny+1) = f_Coriolis_dim*tRef
     end if
 
     ! auxiliary variables
@@ -3599,6 +3485,17 @@ contains
                    end if
                 end if
 
+                if (TestCase == "baroclinic_LC") then
+                   if (background == "HeldSuarez") then
+                      ! Rayleigh damping 
+                      facu &
+                           = facu + dt*kv_hs(k)
+                      
+                      
+                      
+                   end if
+                end if
+                
                 facv = facu
 
                 ! A(i+1,j,k) and A(i,j,k)
@@ -3667,6 +3564,16 @@ contains
                    end if
                 end if
 
+                if (TestCase == "baroclinic_LC") then
+                   if (background == "HeldSuarez") then
+                      ! Rayleigh damping 
+                      facu &
+                           = facu + dt*kv_hs(k)
+                      
+                      
+                   end if
+                end if
+                
                 facv = facu
 
                 ! A(i,j,k) and A(i-1,j,k)
@@ -3735,6 +3642,16 @@ contains
                    end if
                 end if
 
+                if (TestCase == "baroclinic_LC") then
+                   if (background == "HeldSuarez") then
+                      ! Rayleigh damping 
+                      facv &
+                           = facv + dt*kv_hs(k)
+                      
+                      
+                   end if
+                end if
+                
                 facu = facv
 
                 ! A(i+1,j,k) and A(i,j,k)
@@ -3803,8 +3720,19 @@ contains
                    end if
                 end if
 
+                if (TestCase == "baroclinic_LC") then
+                   if (background == "HeldSuarez") then
+                      ! Rayleigh damping
+                      facv &
+                           = facv + dt*kv_hs(k)
+                      
+                      
+                      
+                   end if
+                end if
+                
                 facu = facv
-
+                
                 ! A(i+1,j-1,k) and A(i,j-1,k)
 
                 rhoEdge = 0.5 * (var(i,j-1,k,1) + var(i+1,j-1,k,1))
