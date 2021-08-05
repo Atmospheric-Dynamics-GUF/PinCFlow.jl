@@ -63,10 +63,8 @@ module poisson_module
 
 contains
 
-  !UAB
-  !subroutine Corrector( var,flux,dMom,dt,errFlagBicg,nIter,m,opt,w_0)
-  subroutine Corrector( var,flux,dMom,dt,errFlagBicg,nIter,m,opt)
-  !UAE
+  !UAC subroutine Corrector( var,flux,dMom,dt,errFlagBicg,nIter,m,opt)
+  subroutine Corrector( var,flux,dMom,dt,errFlagBicg,nIter,m,opt,facray,facprs)
     ! -------------------------------------------------
     !              correct uStar, bStar, and p
     ! -------------------------------------------------
@@ -78,10 +76,19 @@ contains
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,3), &
          & intent(inout) :: dMom
 
-    real, intent(in)                :: dt
+    !UAC real, intent(in)                :: dt
+    real, intent(in)                :: dt, facray,facprs
     logical, intent(out)            :: errFlagBicg
     integer, intent(out)            :: nIter
     integer, intent(in)             :: m
+
+    ! facray multiplies the Rayleigh-damping terms so that they are only
+    ! handled in the implicit time stepping (sponge and immersed boundary)
+
+    ! facprs multiplies the time step so that the routine can be used 
+    ! properly also in the implicit mode (where in sub-step 5 of the 
+    ! semi-implicit scheme the pressure correction is over a full
+    ! time step, instead of half a time step)
 
     ! opt = expl =>
     ! pressure solver for explicit problem and corresponding correction 
@@ -111,13 +118,19 @@ contains
     call calc_RHS(rhs, var, flux, dt, onlyinfo)
     !UAE
 
-    call poissonSolver( rhs, var, dt, errFlagBicg, nIter, m, opt )
+    !UAC call poissonSolver( rhs, var, dt, errFlagBicg, nIter, m, opt )
+    call poissonSolver( rhs, var, dt, errFlagBicg, nIter, m, opt,facray,facprs )
+
+    !UAB
+    if (errFlagBicg) return
+    !UAC
 
     ! set horizontal and vertical BC for dp
     call pressureBoundaryCondition
 
     ! correct p, rhopStar, and uStar with dp
-    call correctorStep (var, dMom, dt, m, opt)
+    !UAC call correctorStep (var, dMom, dt, m, opt)
+    call correctorStep (var, dMom, dt, m, opt, facray,facprs)
     
     !UAB
     !if (detailedinfo) call calc_RHS( rhs,var,flux,dt,detailedinfo,w_0 )
@@ -128,7 +141,8 @@ contains
 
   !----------------------------------------------------------------------
 
-  subroutine preCond( sIn, sOut)
+  !UAC subroutine preCond( sIn, sOut)
+  subroutine preCond_2( sIn, sOut, opt)
     ! --------------------------------------
     !   preconditioner for BiCGStab
     !   solves vertical problem exploiting its tri-diagonal character
@@ -139,6 +153,16 @@ contains
     real, dimension(1:nx,1:ny,1:nz), intent(out) :: sOut
     real, dimension(1:nx,1:ny,1:nz), intent(in)  :: sIn
 
+    !UAB
+    ! opt = expl =>
+    ! pressure solver for explicit problem and corresponding correction 
+    ! of the winds
+    ! opt = impl =>
+    ! pressure solver for implicit problem and corresponding correction 
+    ! of the winds and density fluctuations
+    character(len=*), intent(in)    :: opt
+    !UAE
+
     ! local field
     real, dimension(1:nx,1:ny,1:nz) :: s_pc, q_pc
     real, dimension(1:nx,1:ny) :: p_pc
@@ -146,45 +170,332 @@ contains
     ! local variables
     integer :: k
     integer :: i,j
+    !integer :: niter, maxIterADI !UA
+    integer :: niter
 
-    ! work with auxiliary field s_pc
+    real :: deta !UA
 
-    s_pc = sIn
+    !maxIterADI = 1
 
-    ! upward sweep
+    do niter = 0,maxIterADI
+       if (niter == 0) then
+          s_pc = sIn
+         else
+          call linOpr( s_pc, q_pc, opt, 'hnd' )
 
-    do j=1,ny
-       do i=1,nx
-          au_b(i,j,nz) = 0.0
-       end do
-    end do
+          s_pc = sIn - q_pc 
 
-    do j=1,ny
-       do i=1,nx
-          q_pc(i,j,1) = - au_b(i,j,1)/ac_b(i,j,1)
-          s_pc(i,j,1) =   s_pc(i,j,1)/ac_b(i,j,1)
-       end do
-    end do
+          q_pc = 0.
+       end if
 
-    do k=2,nz
+       ! upward sweep
+
        do j=1,ny
           do i=1,nx
-             p_pc(i,j) = 1.0/(ac_b(i,j,k) + ad_b(i,j,k)*q_pc(i,j,k-1))
+             au_b(i,j,nz) = 0.0
+          end do
+       end do
 
-             q_pc(i,j,k) = - au_b(i,j,k) * p_pc(i,j)
+       do j=1,ny
+          do i=1,nx
+             q_pc(i,j,1) = - au_b(i,j,1)/ac_b(i,j,1)
+             s_pc(i,j,1) =   s_pc(i,j,1)/ac_b(i,j,1)
+          end do
+       end do
 
-             s_pc(i,j,k) &
-             = (s_pc(i,j,k) - ad_b(i,j,k)*s_pc(i,j,k-1)) * p_pc(i,j)
+       do k=2,nz
+          do j=1,ny
+             do i=1,nx
+                p_pc(i,j) &
+                = 1.0/(ac_b(i,j,k) + ad_b(i,j,k)*q_pc(i,j,k-1))
+
+                q_pc(i,j,k) = - au_b(i,j,k) * p_pc(i,j)
+
+                s_pc(i,j,k) &
+                = (s_pc(i,j,k) - ad_b(i,j,k)*s_pc(i,j,k-1)) * p_pc(i,j)
+             end do
+          end do
+       end do
+
+       ! backward pass
+
+       do k=nz-1,1,-1
+          do j=1,ny
+             do i=1,nx
+                s_pc(i,j,k) = s_pc(i,j,k) + q_pc(i,j,k)*s_pc(i,j,k+1)
+             end do
           end do
        end do
     end do
 
-    ! backward pass
+    ! final result
 
-    do k=nz-1,1,-1
+    sOut = s_pc
+    
+    return
+
+  end subroutine preCond_2
+
+  !----------------------------------------------------------------------
+
+  !UAC subroutine preCond( sIn, sOut)
+  subroutine preCond_4( sIn, sOut, opt)
+    ! --------------------------------------
+    !   preconditioner for BiCGStab
+    !   solves vertical problem exploiting its tri-diagonal character
+    !   (Isaacson & Keller 1966, see also Durran's book appendix A.2)
+    ! --------------------------------------
+
+    ! in/out variables
+    real, dimension(1:nx,1:ny,1:nz), intent(out) :: sOut
+    real, dimension(1:nx,1:ny,1:nz), intent(in)  :: sIn
+
+    !UAB
+    ! opt = expl =>
+    ! pressure solver for explicit problem and corresponding correction 
+    ! of the winds
+    ! opt = impl =>
+    ! pressure solver for implicit problem and corresponding correction 
+    ! of the winds and density fluctuations
+    character(len=*), intent(in)    :: opt
+    !UAE
+
+    ! local field
+    real, dimension(1:nx,1:ny,1:nz) :: s_pc, q_pc
+    real, dimension(1:nx,1:ny) :: p_pc
+
+    ! local variables
+    integer :: k
+    integer :: i,j
+    !integer :: niter, maxIterADI !UA
+    integer :: niter
+
+    real :: deta !UA
+
+    ! pseudo timestep
+
+    deta = dtau / (2. * (1./dx**2 + 1./dy**2) )
+
+    !deta = 0.
+
+    !if (master) then
+    !   print*,'deta =',deta
+    !   stop
+    !end if
+
+    ! work with auxiliary field s_pc
+
+    !s_pc = sIn
+    s_pc = 0.
+
+    !maxIterADI = 1
+
+    do niter = 0,maxIterADI
+       !if (niter == 0) then
+       !   s_pc = sIn
+       !  else
+          !call linOpr( s_pc, q_pc, opt, 'hnd' )
+          call linOpr( s_pc, q_pc, opt, 'hor' )
+
+          s_pc = s_pc + deta *(q_pc - sIn)
+       !end if
+
+       ! upward sweep
+
        do j=1,ny
           do i=1,nx
-             s_pc(i,j,k) = s_pc(i,j,k) + q_pc(i,j,k)*s_pc(i,j,k+1)
+             au_b(i,j,nz) = 0.0
+          end do
+       end do
+
+       do j=1,ny
+          do i=1,nx
+       !      if (niter == 0) then
+       !         q_pc(i,j,1) = - au_b(i,j,1)/ac_b(i,j,1)
+       !         s_pc(i,j,1) =   s_pc(i,j,1)/ac_b(i,j,1)
+       !        else
+                q_pc(i,j,1) = deta * au_b(i,j,1)/(1. - deta*acv_b(i,j,1))
+                s_pc(i,j,1) = s_pc(i,j,1)/(1. - deta*acv_b(i,j,1))
+                !q_pc(i,j,1) = deta * au_b(i,j,1)/(1. - deta*ac_b(i,j,1))
+                !s_pc(i,j,1) = s_pc(i,j,1)/(1. - deta*ac_b(i,j,1))
+       !      end if
+          end do
+       end do
+
+       do k=2,nz
+          do j=1,ny
+             do i=1,nx
+                !if (niter == 0) then
+                !   p_pc(i,j) &
+                !   = 1.0/(ac_b(i,j,k) + ad_b(i,j,k)*q_pc(i,j,k-1))
+
+                !   q_pc(i,j,k) = - au_b(i,j,k) * p_pc(i,j)
+
+                !   s_pc(i,j,k) &
+                !   = (s_pc(i,j,k) - ad_b(i,j,k)*s_pc(i,j,k-1)) * p_pc(i,j)
+                !  else
+                   p_pc(i,j) &
+                   = 1.0 &
+                     /(  1. - deta*acv_b(i,j,k) &
+                       - deta*ad_b(i,j,k)*q_pc(i,j,k-1))
+                   !p_pc(i,j) &
+                   != 1.0 &
+                   !  /(  1. - deta*ac_b(i,j,k) &
+                   !    - deta*ad_b(i,j,k)*q_pc(i,j,k-1))
+
+                   q_pc(i,j,k) = deta*au_b(i,j,k) * p_pc(i,j)
+
+                   s_pc(i,j,k) &
+                   = (  s_pc(i,j,k) &
+                      + deta*ad_b(i,j,k)*s_pc(i,j,k-1)) * p_pc(i,j)
+                !end if
+             end do
+          end do
+       end do
+
+       ! backward pass
+
+       do k=nz-1,1,-1
+          do j=1,ny
+             do i=1,nx
+                s_pc(i,j,k) = s_pc(i,j,k) + q_pc(i,j,k)*s_pc(i,j,k+1)
+             end do
+          end do
+       end do
+    end do
+
+    ! final result
+
+    sOut = s_pc
+    
+    return
+
+  end subroutine preCond_4
+
+  !----------------------------------------------------------------------
+
+  !UAC subroutine preCond( sIn, sOut)
+  subroutine preCond( sIn, sOut, opt)
+    ! --------------------------------------
+    !   preconditioner for BiCGStab
+    !   solves vertical problem exploiting its tri-diagonal character
+    !   (Isaacson & Keller 1966, see also Durran's book appendix A.2)
+    ! --------------------------------------
+
+    ! in/out variables
+    real, dimension(1:nx,1:ny,1:nz), intent(out) :: sOut
+    real, dimension(1:nx,1:ny,1:nz), intent(in)  :: sIn
+
+    !UAB
+    ! opt = expl =>
+    ! pressure solver for explicit problem and corresponding correction 
+    ! of the winds
+    ! opt = impl =>
+    ! pressure solver for implicit problem and corresponding correction 
+    ! of the winds and density fluctuations
+    character(len=*), intent(in)    :: opt
+    !UAE
+
+    ! local field
+    real, dimension(1:nx,1:ny,1:nz) :: s_pc, q_pc
+    real, dimension(1:nx,1:ny) :: p_pc
+
+    ! local variables
+    integer :: k
+    integer :: i,j
+    !integer :: niter, maxIterADI !UA
+    integer :: niter
+
+    real :: deta !UA
+
+    ! pseudo timestep
+
+    deta = dtau / (2. * (1./dx**2 + 1./dy**2) )
+
+    !deta = 0.
+
+    !if (master) then
+    !   print*,'deta =',deta
+    !   stop
+    !end if
+
+    ! work with auxiliary field s_pc
+
+    !s_pc = sIn
+    s_pc = 0.
+
+    !maxIterADI = 1
+
+    do niter = 1,maxIterADI
+       if (niter == 0) then
+          s_pc = sIn
+         else
+          !call linOpr( s_pc, q_pc, opt, 'hnd' )
+          call linOpr( s_pc, q_pc, opt, 'hor' )
+
+          s_pc = s_pc + deta *(q_pc - sIn)
+       end if
+
+       ! upward sweep
+
+       do j=1,ny
+          do i=1,nx
+             au_b(i,j,nz) = 0.0
+          end do
+       end do
+
+       do j=1,ny
+          do i=1,nx
+             if (niter == 0) then
+                q_pc(i,j,1) = - au_b(i,j,1)/ac_b(i,j,1)
+                s_pc(i,j,1) =   s_pc(i,j,1)/ac_b(i,j,1)
+               else
+                q_pc(i,j,1) = deta * au_b(i,j,1)/(1. - deta*acv_b(i,j,1))
+                s_pc(i,j,1) = s_pc(i,j,1)/(1. - deta*acv_b(i,j,1))
+                !q_pc(i,j,1) = deta * au_b(i,j,1)/(1. - deta*ac_b(i,j,1))
+                !s_pc(i,j,1) = s_pc(i,j,1)/(1. - deta*ac_b(i,j,1))
+             end if
+          end do
+       end do
+
+       do k=2,nz
+          do j=1,ny
+             do i=1,nx
+                if (niter == 0) then
+                   p_pc(i,j) &
+                   = 1.0/(ac_b(i,j,k) + ad_b(i,j,k)*q_pc(i,j,k-1))
+
+                   q_pc(i,j,k) = - au_b(i,j,k) * p_pc(i,j)
+
+                   s_pc(i,j,k) &
+                   = (s_pc(i,j,k) - ad_b(i,j,k)*s_pc(i,j,k-1)) * p_pc(i,j)
+                  else
+                   p_pc(i,j) &
+                   = 1.0 &
+                     /(  1. - deta*acv_b(i,j,k) &
+                       - deta*ad_b(i,j,k)*q_pc(i,j,k-1))
+                   !p_pc(i,j) &
+                   != 1.0 &
+                   !  /(  1. - deta*ac_b(i,j,k) &
+                   !    - deta*ad_b(i,j,k)*q_pc(i,j,k-1))
+
+                   q_pc(i,j,k) = deta*au_b(i,j,k) * p_pc(i,j)
+
+                   s_pc(i,j,k) &
+                   = (  s_pc(i,j,k) &
+                      + deta*ad_b(i,j,k)*s_pc(i,j,k-1)) * p_pc(i,j)
+                end if
+             end do
+          end do
+       end do
+
+       ! backward pass
+
+       do k=nz-1,1,-1
+          do j=1,ny
+             do i=1,nx
+                s_pc(i,j,k) = s_pc(i,j,k) + q_pc(i,j,k)*s_pc(i,j,k+1)
+             end do
           end do
        end do
     end do
@@ -198,9 +509,117 @@ contains
   end subroutine preCond
 
 
+
   !----------------------------------------------------------------------
 
-  subroutine linOpr( sIn, Ls, opt )
+  !UAC subroutine preCond( sIn, sOut)
+  subroutine preCond_0( sIn, sOut, opt)
+    ! --------------------------------------
+    !   preconditioner for BiCGStab
+    !   solves vertical problem exploiting its tri-diagonal character
+    !   (Isaacson & Keller 1966, see also Durran's book appendix A.2)
+    ! --------------------------------------
+
+    ! in/out variables
+    real, dimension(1:nx,1:ny,1:nz), intent(out) :: sOut
+    real, dimension(1:nx,1:ny,1:nz), intent(in)  :: sIn
+
+    !UAB
+    ! opt = expl =>
+    ! pressure solver for explicit problem and corresponding correction 
+    ! of the winds
+    ! opt = impl =>
+    ! pressure solver for implicit problem and corresponding correction 
+    ! of the winds and density fluctuations
+    character(len=*), intent(in)    :: opt
+    !UAE
+
+    ! local field
+    real, dimension(1:nx,1:ny,1:nz) :: s_pc, q_pc
+    real, dimension(1:nx,1:ny) :: p_pc
+
+    ! local variables
+    integer :: k
+    integer :: i,j
+    !integer :: niter, maxIterADI !UA
+    integer :: niter
+
+    ! work with auxiliary field s_pc
+
+    !UAC s_pc = sIn
+    s_pc = 0.
+
+    !UAB
+    !maxIterADI = 0
+
+    ! do niter = 0,maxIterADI
+    !    call linOpr( s_pc, q_pc, opt, 'hor' )
+
+       s_pc = sIn !- q_pc
+       !UAE
+
+       ! upward sweep
+
+       do j=1,ny
+          do i=1,nx
+             au_b(i,j,nz) = 0.0
+          end do
+       end do
+
+       do j=1,ny
+          do i=1,nx
+             !UAC
+             !q_pc(i,j,1) = - au_b(i,j,1)/ac_b(i,j,1)
+             !s_pc(i,j,1) =   s_pc(i,j,1)/ac_b(i,j,1)
+             q_pc(i,j,1) = - au_b(i,j,1)/acv_b(i,j,1)
+             s_pc(i,j,1) =   s_pc(i,j,1)/acv_b(i,j,1)
+             !UAE
+          end do
+       end do
+
+       do k=2,nz
+          do j=1,ny
+             do i=1,nx
+                !UAC
+                !p_pc(i,j) = 1.0/(ac_b(i,j,k) + ad_b(i,j,k)*q_pc(i,j,k-1))
+                p_pc(i,j) = 1.0/(acv_b(i,j,k) + ad_b(i,j,k)*q_pc(i,j,k-1))
+                !UAE
+
+                q_pc(i,j,k) = - au_b(i,j,k) * p_pc(i,j)
+
+                s_pc(i,j,k) &
+                = (s_pc(i,j,k) - ad_b(i,j,k)*s_pc(i,j,k-1)) * p_pc(i,j)
+             end do
+          end do
+       end do
+
+       ! backward pass
+
+       do k=nz-1,1,-1
+          do j=1,ny
+             do i=1,nx
+                s_pc(i,j,k) = s_pc(i,j,k) + q_pc(i,j,k)*s_pc(i,j,k+1)
+             end do
+          end do
+       end do
+    !UAB
+    !end do
+    !UAE
+
+    ! final result
+
+    sOut = s_pc
+    
+    return
+
+  end subroutine preCond_0
+
+
+
+  !----------------------------------------------------------------------
+
+  !UAC subroutine linOpr( sIn, Ls, opt )
+  subroutine linOpr( sIn, Ls, opt, hortot )
     ! --------------------------------------
     !   Linear Operator in Poisson problem
     !   Functions as A*x
@@ -218,6 +637,16 @@ contains
     ! of the winds and density fluctuations
     character(len=*), intent(in)    :: opt
 
+    !UAB
+    ! hortot = tot =>
+    ! linear operator for total problem
+    ! hortot = hor =>
+    ! linear operator for horizontal problem
+    ! hortot = hnd =>
+    ! linear operator for horizontal problem without diagonal term
+    character(len=*), intent(in)    :: hortot
+    !UAE
+
     ! local field (extended by ghost cells)
     real, dimension(0:nx+1,0:ny+1,0:nz+1) :: s
 
@@ -230,7 +659,8 @@ contains
 
     ! local variables
     integer :: i,j,k
-    real :: AL,AR, AB,AF, AD,AU, AC, ALB,ALF, ARB,ARF
+    !UAC real :: AL,AR, AB,AF, AD,AU, AC, ALB,ALF, ARB,ARF
+    real :: AL,AR, AB,AF, AD,AU, AC,ACH,ACV, ALB,ALF, ARB,ARF
     real :: sL,sR, sB,sF, sD,sU, sC, sLB,sLF, sRB,sRF
 
     ! MPI variables
@@ -408,14 +838,33 @@ contains
 
                 ! -------------------- A(i,j,k) --------------------------
 
+                !UAB
+                ACH = ach_b(i,j,k)
+                ACV = acv_b(i,j,k)
+                !UAE
+
                 AC = ac_b(i,j,k)
                 sC = s(i,j,k)
 
 
                 ! -------------------- apply Operator ---------------------
 
-                Ls(i,j,k) &
-                = AL*sL + AR*sR + AF*sF + AB*sB + AU*sU + AD*sD + AC*sC
+                !UAC
+                !Ls(i,j,k) &
+                != AL*sL + AR*sR + AF*sF + AB*sB + AU*sU + AD*sD + AC*sC
+                if (hortot == 'tot') then
+                   Ls(i,j,k) &
+                   = AL*sL + AR*sR + AF*sF + AB*sB + AU*sU + AD*sD + AC*sC
+                  else if (hortot == 'hor') then
+                   Ls(i,j,k) &
+                   = AL*sL + AR*sR + AF*sF + AB*sB + ACH*sC
+                  else if (hortot == 'hnd') then
+                   Ls(i,j,k) &
+                   = AL*sL + AR*sR + AF*sF + AB*sB
+                  else
+                   stop "wrong hortot in linOpr"
+                end if
+                !UAE
 
                 if (timeScheme == "semiimplicit") then
                    if (opt == 'impl') then
@@ -442,13 +891,14 @@ contains
                       Ls(i,j,k) &
                       = Ls(i,j,k) + ALB*sLB + ALF*sLF + ARB*sRB + ARF*sRF
                      else if (opt /= 'expl') then
-                      stop 'ERROR: linOpr expects opt = expl or opt = impl'
+                      stop'ERROR: linOpr expects opt = expl or opt = impl'
                    end if
                 end if
 
                 ! ---------------- scale with thetaStrat ------------------
                 if( pressureScaling ) then
-                   stop 'ERROR: pressure scaling disabled'
+                   Ls(i,j,k) = Ls(i,j,k) / Pstrat(k)
+                   !stop'ERROR: pressure scaling disabled'
                 end if
              end do i_loop
           end do j_loop
@@ -459,7 +909,7 @@ contains
        !             Boussinesq model
        !----------------------------------------
 
-       stop 'ERROR: linOpr not ready for Boussinesq model'
+       stop'ERROR: linOpr not ready for Boussinesq model'
 
     case default
        stop "linOpr: unknown case model"
@@ -524,6 +974,11 @@ contains
     real, dimension(-nbz:nz+nbz) :: w_0 
     real, dimension(-nbz:nz+nbz) :: S_bar 
 
+    !UAB
+    real :: fcscal
+    !UAE
+
+
     if( giveInfo .and. master ) then
        print*,""
        print*,"----------------------------------------------"
@@ -554,7 +1009,8 @@ contains
     ! GBcorr -> FS
     if (heatingONK14 .or. TurbScheme .or. rayTracer) then
     !if (heating) then
-       call heat_w0(var,flux,heat,S_bar,w_0)
+       !UAC call heat_w0(var,flux,heat,S_bar,w_0)
+       call heat_w0(var,flux,dt,heat,S_bar,w_0)
       else
        heat = 0.
        S_bar = 0.
@@ -613,6 +1069,11 @@ contains
     case( "pseudo_incompressible" ) 
 
        do k = 1,nz
+          !UAB
+          !fcscal = Pstrat(k)**2/rhoStrat(k)
+          fcscal = sqrt(Pstrat(k)**2/rhoStrat(k))
+          !UAE
+
           do j  = 1,ny
              do i = 1,nx
 
@@ -625,23 +1086,25 @@ contains
 
                 PstratU = PstratTilde(k)
                 PstratD = PstratTilde(k-1)
-                
+
                 ! scale RHS with Ma^2 * kappa, hence ...
                 
                 bu = Pstrat(k) * (uR-uL)/dx * Ma**2 * kappa
                 bv = Pstrat(k) * (vF-vB)/dy * Ma**2 * kappa
-                !UAB
-                !if(heatingONK14)then
-                !   bw &
-                !   = (PstratU*(wU-w_0(k)) - PstratD*(wD-w_0(k-1)))/dz &
-                !     * Ma**2 * kappa
-                !  else
-                !   (PstratU*wU - PstratD*wD)/dz * Ma**2 * kappa
-                !end if
                 bw = (PstratU*wU - PstratD*wD)/dz * Ma**2 * kappa
-                !UAE
+            
+                !UAB
+                ! check sum for solvability criterion
+                divSum_local = divSum_local + bu + bv + bw + heat(i,j,k)
 
+                bu = bu/fcscal
+                bv = bv/fcscal
+                bw = bw/fcscal
+                heat(i,j,k) = heat(i,j,k)/fcscal
+                !UAE
+                
                 b(i,j,k) = bu + bv + bw + heat(i,j,k)
+                   
 
                 ! L2-norm of the divergence div(Pu)
                 ! divL2 = divL2 + b(i,j,k)**2
@@ -668,13 +1131,15 @@ contains
                    divMax = abs(b(i,j,k))
                 end if
                 
-                ! check sum for solvability criterion
-                ! divSum = divSum + b(i,j,k)
-                divSum_local = divSum_local + b(i,j,k)
+                !UAD
+                !! check sum for solvability criterion
+                !! divSum = divSum + b(i,j,k)
+                !divSum_local = divSum_local + b(i,j,k)
                 
                 ! Skalierung mit thetaStrat
                 if ( pressureScaling ) then
-                   stop 'ERROR: pressure scaling disabled'
+                   b(i,j,k) = b(i,j,k) / PStrat(k)
+                   !stop'ERROR: pressure scaling disabled'
                 end if
 
              end do
@@ -737,7 +1202,7 @@ contains
           if (divL2 == 0.0) then
              tolref = 1.0
             else
-             stop 'ERROR: divL2_norm = 0 while divL2 /= 0'
+             stop'ERROR: divL2_norm = 0 while divL2 /= 0'
           end if
        end if
 
@@ -780,7 +1245,7 @@ contains
                 bl2loc = bu**2 + bv**2 + bw**2
 
                 if(topography) then
-                   stop 'ERROR: topography needs implicit time stepping &
+                   stop'ERROR: topography needs implicit time stepping &
                       & that is not ready yet for Boussinesq'
                 end if
 
@@ -843,7 +1308,7 @@ contains
           if (divL2 == 0.0) then
              tolref = 1.0
             else
-             stop 'ERROR: divL2_norm = 0 while divL2 /= 0'
+             stop'ERROR: divL2_norm = 0 while divL2 /= 0'
           end if
        end if
 
@@ -959,7 +1424,8 @@ contains
   !----------------------------------------------------------------------
 
 
-  subroutine poissonSolver( b,var,dt,errFlagBicg,nIter,m,opt )
+  !UAC subroutine poissonSolver( b,var,dt,errFlagBicg,nIter,m,opt )
+  subroutine poissonSolver( b,var,dt,errFlagBicg,nIter,m,opt,facray,facprs )
     ! -------------------------------------------------
     ! solves the Poisson problem with 
     ! application of linear operator L
@@ -968,13 +1434,22 @@ contains
     ! in/out variables
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          &intent(in) :: var
-    real, intent(in) :: dt
+    !UAC real, intent(in) :: dt
+    real, intent(in) :: dt, facray,facprs
 
     logical, intent(out) :: errFlagBicg
     integer, intent(out) :: nIter
 
     integer, intent(in) :: m
     real, dimension(1:nx,1:ny,1:nz),intent(in) :: b        ! RHS
+
+    ! facray multiplies the Rayleigh-damping terms so that they are only
+    ! handled in the implicit time stepping (sponge and immersed boundary)
+
+    ! facprs multiplies the time step so that the routine can be used 
+    ! properly also in the implicit mode (where in sub-step 5 of the 
+    ! semi-implicit scheme the pressure correction is over a full
+    ! time step, instead of half a time step)
 
     ! opt = expl =>
     ! pressure solver for explicit problem and corresponding correction 
@@ -992,6 +1467,11 @@ contains
 
     ! verbose
     logical, parameter :: giveInfo = .true.
+
+    !UAB
+    integer :: k
+    real :: fcscal
+    !UAC
 
     ! Init
     if (dt == 0.0) stop "poissonSolver: dt = 0.0. Stopping."
@@ -1013,11 +1493,12 @@ contains
 
        case( "pseudo_incompressible" )
 
-        call val_PsIn(var, dt, opt)
+        !UAC call val_PsIn(var, dt, opt)
+        call val_PsIn(var, dt, opt, facray)
 
        case( "Boussinesq" )
 
-        stop 'ERROR: BiCGStab still to be made ready for Boussinesq'
+        stop'ERROR: BiCGStab still to be made ready for Boussinesq'
 
        case default
           stop "linOpr: unknown case model"
@@ -1027,11 +1508,11 @@ contains
 
     case( "gcr" ) 
 
-       stop 'ERROR: no gcr provided anymore'
+       stop'ERROR: no gcr provided anymore'
 
     case( "adi" ) 
 
-       stop 'ERROR: no adi provided anymore'
+       stop'ERROR: no adi provided anymore'
 
     ! hypre solver
     case( "hypre" )    
@@ -1040,7 +1521,8 @@ contains
 
        case( "pseudo_incompressible" )
 
-        call val_PsIn(var, dt, opt)
+        !UAC call val_PsIn(var, dt, opt)
+        call val_PsIn(var, dt, opt, facray)
 
        case( "Boussinesq" )
 
@@ -1056,9 +1538,21 @@ contains
           stop "Unknown PoissonSolver. Stop"
     end select
 
+    !UAB
+    if (errFlagBicg) return
+
+    if (model == "pseudo_incompressible") then
+       do k=1,nz
+          fcscal = sqrt(Pstrat(k)**2/rhoStrat(k))
+
+          sol(:,:,k) = sol(:,:,k)/fcscal
+       end do
+    end if
+    !UAE
+
     ! now get dp from dt * dp ...
 
-    dp(1:nx,1:ny,1:nz) = dtInv * sol ! pass solution to pressure corrector
+    dp(1:nx,1:ny,1:nz) = dtInv/facprs * sol ! pass solution to pressure corrector
 
   end subroutine poissonSolver
 
@@ -1071,7 +1565,7 @@ contains
     ! --------------------------------------
 
     ! in/out variables
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz, nVar), &
          &intent(in) :: var
     real, dimension(1:nx,1:ny,1:nz), intent(out) :: Lq
     real, dimension(0:nx+1,0:ny+1,0:nz+1), intent(inout)  :: q ! with ghost cells
@@ -1085,6 +1579,10 @@ contains
     real :: qL,qR, qB,qF, qD,qU, qC
 
     real :: dx2, dy2, dz2
+
+    !UAB
+    stop "linOprXYZ outdated"
+    !UAE
 
 !   achatzb
     if(topography) stop 'linOprXYZ not ready for topography!'
@@ -1299,14 +1797,16 @@ contains
   
   !----------------------------------------------------------------------
 
-  subroutine bicgstab(b, dt, sol, res, nIter, errFlag, opt)
+  !UAC subroutine bicgstab(b, dt, sol, res, nIter, errFlag, opt)
+  subroutine bicgstab(b_in, dt, sol, res, nIter, errFlag, opt)
     ! --------------------------------------
     !    BiCGStab using linear operator
     !    preconditioner applied via A M^-1 M x = b
     !---------------------------------------
 
     ! in/out variables
-    real, dimension(1:nx,1:ny,1:nz), intent(in) :: b        ! RHS 
+    !UAC real, dimension(1:nx,1:ny,1:nz), intent(in) :: b        ! RHS 
+    real, dimension(1:nx,1:ny,1:nz), intent(in) :: b_in        ! RHS 
     real, intent(in) :: dt
     real, dimension(1:nx,1:ny,1:nz), intent(inout) :: sol
     real, intent(out) :: res                     ! residual
@@ -1336,6 +1836,12 @@ contains
     ! MPI stuff
     integer :: root
     real :: res_local
+
+    !UAB
+    real, dimension(1:nx,1:ny,1:nz) :: b        ! RHS 
+    real, dimension(1:nx,1:ny) :: r_vm, b_vm
+    real :: b_vm_norm, res_vm
+    !UAE
 
     if( giveInfo .and. master ) then
        print*,""
@@ -1395,9 +1901,43 @@ contains
     ! error flag
     errFlag = .false.    
 
+    !UAB
+    b = b_in
+
+    !do k = 1,nz
+    !   do j= 1,ny
+    !      do i = 1,nx
+    !         if (timeScheme == "semiimplicit") then
+    !            alb_b(i,j,k) = alb_b(i,j,k)/ac_b(i,j,k)
+    !            alf_b(i,j,k) = alf_b(i,j,k)/ac_b(i,j,k)
+    !            arb_b(i,j,k) = arb_b(i,j,k)/ac_b(i,j,k)
+    !            arf_b(i,j,k) = arf_b(i,j,k)/ac_b(i,j,k)
+    !         end if
+
+    !         al_b(i,j,k) = al_b(i,j,k)/ac_b(i,j,k)
+    !         ar_b(i,j,k) = ar_b(i,j,k)/ac_b(i,j,k)
+    !         ab_b(i,j,k) = ab_b(i,j,k)/ac_b(i,j,k)
+    !         af_b(i,j,k) = af_b(i,j,k)/ac_b(i,j,k)
+    !         ad_b(i,j,k) = ad_b(i,j,k)/ac_b(i,j,k)
+    !         au_b(i,j,k) = au_b(i,j,k)/ac_b(i,j,k)
+             
+    !         !UAB
+    !         acv_b(i,j,k) = acv_b(i,j,k)/ac_b(i,j,k)
+    !         ach_b(i,j,k) = ach_b(i,j,k)/ac_b(i,j,k)
+    !         !UAE
+
+    !         b(i,j,k) = b(i,j,k)/ac_b(i,j,k)
+
+    !         ac_b(i,j,k) = 1.
+    !      end do
+    !   end do
+    !end do
+    !UAE
+
     ! Init
     ! r0 = b - Ax
-    call linOpr( sol, matVec, opt )
+    !UAC call linOpr( sol, matVec, opt )
+    call linOpr( sol, matVec, opt, 'tot' )
     r0 = b - matVec    
     p = r0
     r = r0
@@ -1420,6 +1960,33 @@ contains
 
     res = sqrt(res/sizeX/sizeY/sizeZ)
 
+    !UAB
+    b_norm = res
+
+    r_vm = 0.0
+    do k=1,nz
+       r_vm(:,:) = r_vm(:,:) + r(:,:,k)
+    end do
+    r_vm = r_vm/sizeZ
+
+    res_local = 0.0
+    do j=1,ny
+       do i=1,nx
+          res_local = res_local + r_vm(i,j)**2
+       end do
+    end do
+
+    root = 0
+    call mpi_reduce(res_local, res_vm, 1, mpi_double_precision,&
+         & mpi_sum, root, comm, ierror)
+    
+    call mpi_bcast(res_vm, 1, mpi_double_precision, root, comm, ierror)
+
+    res_vm = sqrt(res_vm/sizeX/sizeY)
+
+    b_vm_norm = res_vm
+    !UAC
+
     if( master ) then
        print*,""
        print*," BiCGStab solver: "
@@ -1430,6 +1997,15 @@ contains
           if (giveInfo) write(*,fmt="(a25,es17.6)") &
             & " Initial residual: res = ", res/b_norm
        end if
+       !UAB
+       if (res_vm == 0.0) then
+          if (giveInfo) write(*,fmt="(a25,es17.6)") &
+            & " Initial residual: res_vm = ", res_vm
+         else
+          if (giveInfo) write(*,fmt="(a25,es17.6)") &
+            & " Initial residual: res_vm = ", res_vm/b_vm_norm
+       end if
+       !UAE
        if (giveInfo) write(*,fmt="(a25,es17.6)") " tol = ", tol
     end if
 
@@ -1445,11 +2021,13 @@ contains
 
        ! v = A*p
        if (preconditioner == 'yes') then
-          call preCond( p, v_pc)
+          !UAC call preCond( p, v_pc)
+          call preCond( p, v_pc, opt)
          else
           v_pc = p
        end if
-       call linOpr( v_pc, matVec, opt )
+       !UAC call linOpr( v_pc, matVec, opt )
+       call linOpr( v_pc, matVec, opt, 'tot' )
        v = matVec
 
        alpha = dot_product3D_glob(r,r0) / dot_product3D_glob(v,r0)
@@ -1457,11 +2035,13 @@ contains
 
        ! t = A*s
        if (preconditioner == 'yes') then
-          call preCond( s, v_pc)
+          !UAC call preCond( s, v_pc)
+          call preCond( s, v_pc, opt)
          else
           v_pc = s
        end if
-       call linOpr( v_pc, matVec, opt )
+       !UAC call linOpr( v_pc, matVec, opt )
+       call linOpr( v_pc, matVec, opt, 'tot' )
        t = matVec
 
        omega = dot_product3D_glob(t,s) / dot_product3D_glob(t,t)
@@ -1492,11 +2072,38 @@ contains
       
        res = sqrt(res/sizeX/sizeY/sizeZ)
 
-       if (res/b_norm <= tol) then
+       !UAB
+       r_vm = 0.0
+       do k=1,nz
+          r_vm(:,:) = r_vm(:,:) + r(:,:,k)
+       end do
+       r_vm = r_vm/sizeZ
+
+       res_local = 0.0
+       do j=1,ny
+          do i=1,nx
+             res_local = res_local + r_vm(i,j)**2
+          end do
+       end do
+
+       root = 0
+       call mpi_reduce(res_local, res_vm, 1, mpi_double_precision,&
+            & mpi_sum, root, comm, ierror)
+    
+       call mpi_bcast(res_vm, 1, mpi_double_precision, root, comm, ierror)
+
+       res_vm = sqrt(res_vm/sizeX/sizeY)
+       !UAE
+
+       if (max(res/b_norm, res_vm/b_vm_norm) <= tol) then
           if (master .and. giveInfo)  then 
              write(*,fmt="(a25,i25)") " Nb.of iterations: j = ", j_b
              write(*,fmt="(a25,es17.6)") " Final residual: res = ", &
                                          & res/b_norm
+             !UAB
+             write(*,fmt="(a25,es17.6)") " Final residual v.m. = ", &
+                                         & res_vm/b_vm_norm
+             !UAE
              print*,""
           end if
 
@@ -1504,7 +2111,8 @@ contains
 
           if (preconditioner == 'yes') then
              s = sol
-             call preCond( s, sol)
+             !UAC call preCond( s, sol)
+             call preCond( s, sol, opt)
           end if
 
           return
@@ -1514,6 +2122,31 @@ contains
        = alpha/omega &
          * dot_product3D_glob(r,r0) / dot_product3D_glob(rOld,r0)
        p = r + beta*(p-omega*v)
+
+       !if (j_b < maxIt) then
+       !   beta &
+       !   = alpha/omega &
+       !     * dot_product3D_glob(r,r0) / dot_product3D_glob(rOld,r0)
+       !   p = r + beta*(p-omega*v)
+       !  else
+       !   if (preconditioner == 'yes') then
+       !      s = sol
+       !      call preCond( s, sol)
+       !   end if
+
+       !   nIter = j_b
+
+       !   if( master ) then ! modified by Junhong Wei (20161107)
+       !      write(*,fmt="(a25,i25)") " Bicgstab: max iterations!!!", maxIt
+       !      write(*,fmt="(a25,es17.6)") " Final BICGSTAB residual = ", &
+       !                          & res/b_norm
+       !      print*,"--------------------------------------------------" 
+       !      print*,""
+
+       !   end if 
+
+       !   return
+       !end if
 
     end do iteration
 
@@ -1525,6 +2158,8 @@ contains
                                  & res/b_norm
        print*,"--------------------------------------------------" 
        print*,""
+
+       !UAD stop
     end if ! modified by Junhong Wei (20161107)
 
     errFlag = .true.
@@ -1554,14 +2189,16 @@ contains
 
   !----------------------------------------------------------------------
 
-  subroutine bicgstab_2(b, dt, sol, res, nIter, errFlag, opt)
+  !UAC subroutine bicgstab_2(b, dt, sol, res, nIter, errFlag, opt)
+  subroutine bicgstab_2(b_in, dt, sol, res, nIter, errFlag, opt)
     ! --------------------------------------
     !    BiCGStab using linear operator
     !    preconditioner applied via M^-1 A x = M^-1 b
     !---------------------------------------
 
     ! in/out variables
-    real, dimension(1:nx,1:ny,1:nz), intent(in) :: b        ! RHS 
+    !UAC real, dimension(1:nx,1:ny,1:nz), intent(in) :: b        ! RHS 
+    real, dimension(1:nx,1:ny,1:nz), intent(in) :: b_in        ! RHS 
     real, intent(in) :: dt
     real, dimension(1:nx,1:ny,1:nz), intent(inout) :: sol
     real, intent(out) :: res                     ! residual
@@ -1593,6 +2230,10 @@ contains
     integer :: root
     real :: res_local
     real :: bi_norm_local, bi_norm
+
+    !UAB
+    real, dimension(1:nx,1:ny,1:nz) :: b        ! RHS 
+    !UAE
 
     if( giveInfo .and. master ) then
        print*,""
@@ -1654,9 +2295,43 @@ contains
     ! error flag
     errFlag = .false.    
 
+    !UAB
+    b = b_in
+
+    !do k = 1,nz
+    !   do j= 1,ny
+    !      do i = 1,nx
+    !         if (timeScheme == "semiimplicit") then
+    !            alb_b(i,j,k) = alb_b(i,j,k)/ac_b(i,j,k)
+    !            alf_b(i,j,k) = alf_b(i,j,k)/ac_b(i,j,k)
+    !            arb_b(i,j,k) = arb_b(i,j,k)/ac_b(i,j,k)
+    !            arf_b(i,j,k) = arf_b(i,j,k)/ac_b(i,j,k)
+    !         end if
+
+    !         al_b(i,j,k) = al_b(i,j,k)/ac_b(i,j,k)
+    !         ar_b(i,j,k) = ar_b(i,j,k)/ac_b(i,j,k)
+    !         ab_b(i,j,k) = ab_b(i,j,k)/ac_b(i,j,k)
+    !         af_b(i,j,k) = af_b(i,j,k)/ac_b(i,j,k)
+    !         ad_b(i,j,k) = ad_b(i,j,k)/ac_b(i,j,k)
+    !         au_b(i,j,k) = au_b(i,j,k)/ac_b(i,j,k)
+
+    !         !UAB
+    !         acv_b(i,j,k) = acv_b(i,j,k)/ac_b(i,j,k)
+    !         ach_b(i,j,k) = ach_b(i,j,k)/ac_b(i,j,k)
+    !         !UAE
+
+    !         b(i,j,k) = b(i,j,k)/ac_b(i,j,k)
+
+    !         ac_b(i,j,k) = 1.
+    !      end do
+    !   end do
+    !end do
+    !UAE
+
     ! redefine RHS and its norm for preconditioner
     if (preconditioner == 'yes') then
-       call preCond( b, b_int)
+       !UAC call preCond( b, b_int)
+       call preCond( b, b_int, opt)
 
        bi_norm_local = 0.0
        do k=1,nz
@@ -1682,10 +2357,12 @@ contains
 
     ! Init
     ! r0 = b - Ax
-    call linOpr( sol, matVec, opt )
+    !UAC call linOpr( sol, matVec, opt )
+    call linOpr( sol, matVec, opt, 'tot' )
     if (preconditioner == 'yes') then
        v = matVec
-       call preCond( v, matVec)
+       !UAC call preCond( v, matVec)
+       call preCond( v, matVec, opt)
     end if
     r0 = b_int - matVec    
     p = r0
@@ -1733,10 +2410,12 @@ contains
     iteration: do j_b = 1,maxIt
 
        ! v = A*p
-       call linOpr( p, matVec, opt )
+       !UAC call linOpr( p, matVec, opt )
+       call linOpr( p, matVec, opt, 'tot' )
        if (preconditioner == 'yes') then
           v_pc = matVec
-          call preCond( v_pc, matVec)
+          !UAC call preCond( v_pc, matVec)
+          call preCond( v_pc, matVec, opt)
        end if
        v = matVec
 
@@ -1744,10 +2423,12 @@ contains
        s = r - alpha*v
 
        ! t = A*s
-       call linOpr( s, matVec, opt )
+       !UAC call linOpr( s, matVec, opt )
+       call linOpr( s, matVec, opt, 'tot' )
        if (preconditioner == 'yes') then
           v_pc = matVec
-          call preCond( v_pc, matVec)
+          !UAC call preCond( v_pc, matVec)
+          call preCond( v_pc, matVec, opt)
        end if
        t = matVec
 
@@ -1787,7 +2468,8 @@ contains
              print*,""
           end if
 
-          call linOpr( sol, matVec, opt )
+          !UAC call linOpr( sol, matVec, opt )
+          call linOpr( sol, matVec, opt, 'tot' )
           r = b - matVec    
 
           res_local = 0.0
@@ -1834,6 +2516,8 @@ contains
                                  & res/bi_norm
        print*,"--------------------------------------------------" 
        print*,""
+
+       !UAD stop
     end if ! modified by Junhong Wei (20161107)
 
     errFlag = .true.
@@ -2347,10 +3031,13 @@ contains
 
   !-----------------------------------------------------------------------
 
-  subroutine correctorStep( var, dMom, dt, RKstage, opt)
+  subroutine correctorStep_nc( var, dMom, dt, RKstage, opt, facray)
+  !subroutine correctorStep( var, dMom, dt, RKstage, opt, facray)
 
     !-------------------------------------------------
     !         correct pressure & velocity
+    !
+    !       Coriolis term treated explicitly
     !-------------------------------------------------
 
     ! in/out variables
@@ -2358,8 +3045,11 @@ contains
          &intent(inout) :: var
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,3), &
          & intent(inout) :: dMom
-    real, intent(in) :: dt
+    real, intent(in) :: dt, facray
     integer, intent(in) :: RKstage
+
+    ! facray multiplies the Rayleigh-damping terms so that they are only
+    ! handled in the implicit time stepping (sponge and immersed boundary)
 
     ! opt = expl =>
     ! pressure solver for explicit problem and corresponding correction 
@@ -2371,11 +3061,11 @@ contains
 
     ! local variables 
     integer :: i,j,k
-    real :: pEdge, rhoEdge, rhou, rhov, rho, rho10, rho01
+    !real :: pEdge, rhoEdge, rhou, rhov, rho, rho10, rho01
+    real :: pEdge, pEdge_0, rhoEdge, rhou, rhov, rho, rho10, rho01
     real :: pGradX, pGradY, pGradZ
     real :: du, dv, dw, db
     real :: facu, facv, facw, facr
-    !real :: f_cor_nd
     real, dimension(0:ny+1) :: f_cor_nd
     real :: bvsstw
 
@@ -2392,7 +3082,10 @@ contains
     logical, parameter :: giveInfo = .true.
 
     integer :: i0,j0
-    real :: yloc, ymax
+
+    real :: ymin, ymax, yloc
+
+    real :: f_cor_v
 
     if (model == "Boussinesq") then
        print*,'ERROR: correctorStep not ready for Boussinesq mode'
@@ -2402,17 +3095,23 @@ contains
     i0=is+nbx-1
     j0=js+nby-1
 
-    ! non-dimensional Corilois parameter (= inverse Rossby number) 
-    if (TestCase == "baroclinic_LC")then !FS
+    if (corset == 'periodic') then
        ymax = ly_dim(1)/lRef  
-       do j = 1,ny
+       ymin = ly_dim(0)/lRef  
+
+       j0=js+nby-1
+
+       do j = 0,ny+1
           yloc = y(j+j0)
-          f_cor_nd(j) = f_Coriolis_dim*tRef!*sin(pi*yloc/ymax)
+
+          f_cor_nd(j) &
+          = - 4.*pi/8.64e4 * tRef * cos(2.*pi *(yloc - ymin)/(ymax - ymin))
        end do
-    else
-       f_cor_nd(:) = f_Coriolis_dim*tRef
+      else if (corset == 'constant') then
+       f_cor_nd(0:ny+1) = f_Coriolis_dim*tRef
+      else
+       stop'ERROR: wrong corset'
     end if
-    
 
     ! --------------------------------------
     !             calc p + dp
@@ -2420,6 +3119,13 @@ contains
 
     var(0:nx+1,0:ny+1,0:nz+1,5) &
     = var(0:nx+1,0:ny+1,0:nz+1,5) + dp(0:nx+1,0:ny+1,0:nz+1)
+
+    if (timeScheme == "semiimplicit") then
+       if (opt == "impl") then
+          kr_sp = kr_sp * facray
+          alprlx = alprlx * facray
+       end if
+    end if
 
     ! --------------------------------------
     !           calc du and u + du
@@ -2433,20 +3139,24 @@ contains
                    facu = 1.0
 
                    if (topography) then
-                      if (   topography_mask(i0+i,j0+j,k) &
-                        & .or. topography_mask(i0+i+1,j0+j,k)) then
-                         facu = facu + dt*alprlx
-                      end if
+                      !UAC if (   topography_mask(i0+i,j0+j,k) &
+                      !  & .or. topography_mask(i0+i+1,j0+j,k)) then
+                      !   facu = facu + dt*alprlx
+                      !end if
+                      stop'topography still to be implemented into &
+                          &semi-implicit time stepping'
+                      !UAE
                    end if
 
-                    if (TestCase == "baroclinic_LC") then
+                   if (TestCase == "baroclinic_LC") then
                       if (background == "HeldSuarez") then
                          ! Rayleigh damping 
-                         facu &
-                              = facu + dt*kv_hs(k)
-                         
-                           
+                         facu = facu + dt*kv_hs(j,k)
                       end if
+                   end if
+                   
+                   if (spongeLayer .and. sponge_uv) then
+                      facu = facu + dt*kr_sp(j,k)
                    end if
 
                    facv = facu
@@ -2456,15 +3166,16 @@ contains
 
                    rhov00 = 0.5 * (var(i,j,k,1) + var(i,j+1,k,1))
                    if( fluctuationMode ) rhov00 = rhov00 + rhoStrat(k)
-
+                   
                    rhov1m = 0.5 * (var(i+1,j-1,k,1) + var(i+1,j,k,1))
                    if( fluctuationMode ) rhov1m = rhov1m + rhoStrat(k)
-
+                  
                    rhov10 = 0.5 * (var(i+1,j,k,1) + var(i+1,j+1,k,1))
                    if( fluctuationMode ) rhov10 = rhov10 + rhoStrat(k)
 
                    rhou = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
                    if( fluctuationMode ) rhou = rhou + rhoStrat(k)
+                   
                    pGradX &
                    = kappaInv*MaInv2 * pStrat(k)/rhou &
                      * ( dp(i+1,j,k) - dp(i,j,k) ) / dx
@@ -2479,8 +3190,8 @@ contains
                         + pStrat(k)/rhov10 &
                           * (dp(i+1,j+1,k) - dp(i+1,j,k))/dy)
 
-                          du = - dt/(facu*facv + (f_cor_nd(j)*dt)**2) &
-                          * (facv * pGradX + f_cor_nd(j)*dt * pGradY)
+                   du = - dt/facu * pGradX 
+                   
 
                    var(i,j,k,2) = var(i,j,k,2) + du
                 end do
@@ -2504,7 +3215,7 @@ contains
              end do
           end do
          else
-          stop 'ERROR: wrong opt in correctorStep'
+          stop'ERROR: wrong opt in correctorStep'
        end if
       else
        do k = 1,nz
@@ -2540,20 +3251,24 @@ contains
                    facv = 1.0
 
                    if (topography) then
-                      if (   topography_mask(i0+i,j0+j,k) &
-                        & .or. topography_mask(i0+i,j0+j+1,k)) then
-                         facv = facv + dt*alprlx
-                      end if
+                      !UAC if (   topography_mask(i0+i,j0+j,k) &
+                      !  & .or. topography_mask(i0+i,j0+j+1,k)) then
+                      !   facv = facv + dt*alprlx
+                      !end if
+                      stop'topography still to be implemented into &
+                          &semi-implicit time stepping'
+                      !UAE
                    end if
 
                    if (TestCase == "baroclinic_LC") then
                       if (background == "HeldSuarez") then
                          ! Rayleigh damping 
-                         facv &
-                              = facv + dt*kv_hs(k)
-                         
-                  
+                         facv = facv + dt* 0.5*(kv_hs(j,k) + kv_hs(j+1,k))
                       end if
+                   end if
+
+                   if (spongeLayer .and. sponge_uv) then
+                      facv = facv + dt*0.5*(kr_sp(j,k) + kr_sp(j+1,k))
                    end if
 
                    facu = facv
@@ -2572,6 +3287,7 @@ contains
 
                    rhov = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
                    if( fluctuationMode ) rhov = rhov + rhoStrat(k)
+               
 
                    pGradX &
                    = kappaInv*MaInv2 &
@@ -2587,8 +3303,8 @@ contains
                    = kappaInv*MaInv2 * pStrat(k)/rhov &
                      * (dp(i,j+1,k) - dp(i,j,k))/dy
 
-                   dv = - dt/(facu*facv + (f_cor_nd(j)*dt)**2) &
-                          * (- f_cor_nd(j)*dt * pGradX + facu * pGradY)
+
+                   dv = - dt/facv * pGradY
 
                    var(i,j,k,3) = var(i,j,k,3) + dv
                 end do
@@ -2612,7 +3328,7 @@ contains
              end do
           end do
          else
-          stop 'ERROR: wrong opt in correctorStep'
+          stop'ERROR: wrong opt in correctorStep'
        end if
       else
        do k = 1,nz
@@ -2649,16 +3365,31 @@ contains
              do j = 1,ny
                 do i = 1,nx
                    facw = 1.0
-                   facr = 1.0 !+ alprlx*dt
 
                    if (topography) then
-                      if (   topography_mask(i0+i,j0+j,k) &
-                        & .or. topography_mask(i0+i,j0+j,k+1)) then
-                         facw = facw + dt*alprlx
+                      !UAC if (   topography_mask(i0+i,j0+j,k) &
+                      !  & .or. topography_mask(i0+i,j0+j,k+1)) then
+                      !   facw = facw + dt*alprlx
+                      !end if
+                      stop'topography still to be implemented into &
+                          &semi-implicit time stepping'
+                      !UAE
+                   end if
+
+                   if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping
+                            
+                         facw = facw + dt*0.5*(kw_hs(k)+kw_hs(k+1))
                       end if
                    end if
 
+                   if (spongeLayer) then
+                      facw = facw + dt * 0.5*(kr_sp(j,k) + kr_sp(j,k+1))
+                   end if
+
                    pEdge = 0.5 * ( pStrat(k+1) + pStrat(k) )
+                   pEdge_0 = 0.5 * ( pStrat_0(k+1) + pStrat_0(k) )
 
                    rhoEdge = 0.5 * ( var(i,j,k,1) + var(i,j,k+1,1) )
                    if( fluctuationMode ) then
@@ -2669,9 +3400,12 @@ contains
 
                    pGradZ = ( dp(i,j,k+1) - dp(i,j,k) ) / dz
 
-                   dw = - dt * kappaInv*MaInv2 * facr &
-                          /(  facw*facr &
-                            + rhoStratTilde(k)/rhoEdge * bvsstw * dt**2) &
+                   dw = - dt * kappaInv*MaInv2 &
+                          !/(  facw &
+                          !  + rhoStratTilde(k)/rhoEdge * bvsstw * dt**2) &
+                          /(  facw &
+                            + rhoStratTilde(k)/rhoEdge * pEdge/pEdge_0 &
+                              * bvsstw * dt**2) &
                           * pEdge/rhoEdge * pGradz   
 
                    var(i,j,k,4) = var(i,j,k,4) + dw
@@ -2681,7 +3415,7 @@ contains
 
           ! periodic in z
           if( zBoundary == "periodic" ) then
-              stop 'ERROR: period. vert. bound. not ready in correctorStep'
+              stop'ERROR: period. vert. bound. not ready in correctorStep'
           end if
          else if (opt == "expl") then
           ! solid wall implies zero change of w at the bottom and top
@@ -2735,7 +3469,7 @@ contains
              end do
           end if
          else
-          stop 'ERROR: wrong opt in correctorStep'
+          stop'ERROR: wrong opt in correctorStep'
        end if
       else
        ! solid wall implies zero change of w at the bottom and top
@@ -2804,14 +3538,26 @@ contains
              do j = 1,ny
                 do i = 1,nx
                    facw = 1.0
-                   facr = 1.0 !+ alprlx*dt
 
                    if (topography) then
-                      if (   topography_mask(i0+i,j0+j,k) &
-                        & .or. topography_mask(i0+i,j0+j,k+1)) then
-                         facw = facw + dt*alprlx
+                      !UAC if (   topography_mask(i0+i,j0+j,k) &
+                      !  & .or. topography_mask(i0+i,j0+j,k+1)) then
+                      !   facw = facw + dt*alprlx
+                      !end if
+                      stop'topography still to be implemented into &
+                          &semi-implicit time stepping'
+                      !UAE
+                   end if
+
+                   if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping
+                         
+                         facw = facw + dt*kw_hs(k)
                       end if
                    end if
+
+                   if (spongeLayer) facw = facw + dt * kr_sp(j,k)
 
                    rho = var(i,j,k,1)
                    if( fluctuationMode ) rho = rho + rhoStrat(k)
@@ -2841,9 +3587,14 @@ contains
                                  * (dp(i,j,k) - dp(i,j,k-1))/dz)
                    end if
 
-                   db = rhoStrat(k)/rho * bvsStrat(k) * dt**2 &
-                        /(  facw*facr &
-                          + rhoStrat(k)/rho * bvsStrat(k) * dt**2) &
+                   !db = rhoStrat(k)/rho * bvsStrat(k) * dt**2 &
+                   db = rhoStrat(k)/rho * PStrat(k)/PStrat_0(k) &
+                        * bvsStrat(k) * dt**2 &
+                        !/(  facw &
+                        !  + rhoStrat(k)/rho * bvsStrat(k) * dt**2) &
+                        /(  facw &
+                          + rhoStrat(k)/rho * PStrat(k)/PStrat_0(k) &
+                            * bvsStrat(k) * dt**2) &
                         * pGradz   
 
                    var(i,j,k,6) = var(i,j,k,6) - rho/g_ndim * db
@@ -2853,12 +3604,626 @@ contains
 
           ! periodic in z
           if( zBoundary == "periodic" ) then
-              stop 'ERROR: period. vert. bound. not ready in correctorStep'
+              stop'ERROR: period. vert. bound. not ready in correctorStep'
           end if
        end if
     end if
 
+    if (timeScheme == "semiimplicit") then
+       if (opt == "impl") then
+          kr_sp = kr_sp / facray
+          alprlx = alprlx / facray
+       end if
+    end if
+
+  end subroutine correctorStep_nc
+  !end subroutine correctorStep
+
+  !-----------------------------------------------------------------------
+
+  !UAC subroutine correctorStep( var, dMom, dt, RKstage, opt)
+  !subroutine correctorStep_wc( var, dMom, dt, RKstage, opt, facray)
+  subroutine correctorStep( var, dMom, dt, RKstage, opt, facray,facprs)
+
+    !-------------------------------------------------
+    !         correct pressure & velocity
+    !-------------------------------------------------
+
+    ! in/out variables
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         &intent(inout) :: var
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,3), &
+         & intent(inout) :: dMom
+    !UAC real, intent(in) :: dt
+    real, intent(in) :: dt, facray,facprs
+    integer, intent(in) :: RKstage
+
+    ! facray multiplies the Rayleigh-damping terms so that they are only
+    ! handled in the implicit time stepping (sponge and immersed boundary)
+
+    ! facprs multiplies the time step so that the routine can be used 
+    ! properly also in the implicit mode (where in sub-step 5 of the 
+    ! semi-implicit scheme the pressure correction is over a full
+    ! time step, instead of half a time step)
+
+    ! opt = expl =>
+    ! pressure solver for explicit problem and corresponding correction 
+    ! of the winds
+    ! opt = impl =>
+    ! pressure solver for implicit problem and corresponding correction 
+    ! of the winds and density fluctuations
+    character(len=*), intent(in)    :: opt
+
+    ! local variables 
+    integer :: i,j,k
+    !real :: pEdge, rhoEdge, rhou, rhov, rho, rho10, rho01
+    real :: pEdge, pEdge_0, rhoEdge, rhou, rhov, rho, rho10, rho01
+    real :: pGradX, pGradY, pGradZ
+    real :: du, dv, dw, db
+    real :: facu, facv, facw, facr
+    real, dimension(0:ny+1) :: f_cor_nd
+    real :: bvsstw
+
+    real :: rhov0m, rhov00, rhov1m, rhov10
+    real :: rhoum0, rhou00, rhoum1, rhou01
+    real :: rhow0, rhowm
+
+    ! divergence check
+    real :: maxDivPu, divPu
+    real :: uR, uL, vF, vB, wU, wD
+    real :: pStratU, pStratD 
+
+    ! verbose
+    logical, parameter :: giveInfo = .true.
+
+    integer :: i0,j0
+
+    real :: ymin, ymax, yloc
+
+    real :: f_cor_v
+
+    if (model == "Boussinesq") then
+       print*,'ERROR: correctorStep not ready for Boussinesq mode'
+       stop
+    end if
+
+    i0=is+nbx-1
+    j0=js+nby-1
+
+    if (corset == 'periodic') then
+       ymax = ly_dim(1)/lRef  
+       ymin = ly_dim(0)/lRef  
+
+       j0=js+nby-1
+
+       do j = 0,ny+1
+          yloc = y(j+j0)
+
+          f_cor_nd(j) &
+          = - 4.*pi/8.64e4 * tRef * cos(2.*pi *(yloc - ymin)/(ymax - ymin))
+       end do
+      else if (corset == 'constant') then
+       f_cor_nd(0:ny+1) = f_Coriolis_dim*tRef
+      else
+       stop'ERROR: wrong corset'
+    end if
+
+    ! --------------------------------------
+    !             calc p + dp
+    ! --------------------------------------
+
+    var(0:nx+1,0:ny+1,0:nz+1,5) &
+    = var(0:nx+1,0:ny+1,0:nz+1,5) + dp(0:nx+1,0:ny+1,0:nz+1)
+
+    if (timeScheme == "semiimplicit") then
+       if (opt == "impl") then
+          kr_sp = kr_sp * facray
+          alprlx = alprlx * facray
+       end if
+    end if
+
+    ! --------------------------------------
+    !           calc du and u + du
+    ! --------------------------------------
+
+    if (timeScheme == "semiimplicit") then
+       if (opt == "impl") then
+          do k = 1,nz
+             do j = 1,ny
+                do i = 0,nx
+                   facu = 1.0
+
+                   if (topography) then
+                      !UAC if (   topography_mask(i0+i,j0+j,k) &
+                      !  & .or. topography_mask(i0+i+1,j0+j,k)) then
+                      !   facu = facu + dt*alprlx
+                      !end if
+                      stop'topography still to be implemented into &
+                          &semi-implicit time stepping'
+                      !UAE
+                   end if
+
+                   if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping 
+                         facu = facu + dt*kv_hs(j,k)
+                      end if
+                   end if
+                   
+                   if (spongeLayer .and. sponge_uv) then
+                      facu = facu + dt*kr_sp(j,k)
+                   end if
+
+                   facv = facu
+
+                   rhov0m = 0.5 * (var(i,j-1,k,1) + var(i,j,k,1))
+                   if( fluctuationMode ) rhov0m = rhov0m + rhoStrat(k)
+
+                   rhov00 = 0.5 * (var(i,j,k,1) + var(i,j+1,k,1))
+                   if( fluctuationMode ) rhov00 = rhov00 + rhoStrat(k)
+                   
+                   rhov1m = 0.5 * (var(i+1,j-1,k,1) + var(i+1,j,k,1))
+                   if( fluctuationMode ) rhov1m = rhov1m + rhoStrat(k)
+                  
+                   rhov10 = 0.5 * (var(i+1,j,k,1) + var(i+1,j+1,k,1))
+                   if( fluctuationMode ) rhov10 = rhov10 + rhoStrat(k)
+
+                   rhou = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
+                   if( fluctuationMode ) rhou = rhou + rhoStrat(k)
+                   
+                   pGradX &
+                   = kappaInv*MaInv2 * pStrat(k)/rhou &
+                     * ( dp(i+1,j,k) - dp(i,j,k) ) / dx
+
+                   pGradY &
+                   = kappaInv*MaInv2 &
+                     * 0.25 &
+                     * (  pStrat(k)/rhov0m * (dp(i,j,k) - dp(i,j-1,k))/dy &
+                        + pStrat(k)/rhov00 * (dp(i,j+1,k) - dp(i,j,k))/dy &
+                        + pStrat(k)/rhov1m &
+                          * (dp(i+1,j,k) - dp(i+1,j-1,k))/dy &
+                        + pStrat(k)/rhov10 &
+                          * (dp(i+1,j+1,k) - dp(i+1,j,k))/dy)
+
+                   du = - facprs*dt/(facu*facv + (f_cor_nd(j)*dt)**2) &
+                          * (facv * pGradX + f_cor_nd(j)*dt * pGradY)
+                   
+
+                   var(i,j,k,2) = var(i,j,k,2) + du
+                end do
+             end do
+          end do
+         else if (opt == "expl") then
+          if (facprs /= 1.) stop'ERROR: wrong facprs in explicit sub-step'
+          do k = 1,nz
+             do j = 1,ny
+                do i = 0,nx
+                   rhou = 0.5 * ( var(i,j,k,1) + var(i+1,j,k,1) )
+                   if( fluctuationMode ) rhou = rhou + rhoStrat(k)
+
+                   pGradX &
+                   = kappaInv*MaInv2 * pStrat(k)/rhou &
+                     * (dp(i+1,j,k) - dp(i,j,k))/dx
+
+                   du = - dt * pGradX
+
+                   var(i,j,k,2) = var(i,j,k,2) + du
+                end do
+             end do
+          end do
+         else
+          stop'ERROR: wrong opt in correctorStep'
+       end if
+      else
+
+       if (facprs /= 1.) stop'ERROR: wrong facprs in explicit sub-step'
+       do k = 1,nz
+          do j = 1,ny
+             do i = 0,nx
+                rhou = 0.5 * ( var(i,j,k,1) + var(i+1,j,k,1) )
+                if( fluctuationMode ) rhou = rhou + rhoStrat(k)
+
+                pGradX &
+                = kappaInv*MaInv2 * pStrat(k)/rhou &
+                  * (dp(i+1,j,k) - dp(i,j,k))/dx
+
+                du = - dt *  pGradX
+
+                var(i,j,k,2) = var(i,j,k,2) + du
+
+                ! correct x-momentum tendency
+                dMom(i,j,k,1) = dMom(i,j,k,1) + rhou*du/beta(RKstage)
+             end do
+          end do
+       end do
+    end if
+
+    !--------------------------------------
+    !         calc dv and v + dv
+    !--------------------------------------
+
+    if (timeScheme == "semiimplicit") then
+       if (opt == "impl") then
+          do k = 1,nz
+             do j = 0,ny
+                do i = 1,nx
+                   facv = 1.0
+
+                   if (topography) then
+                      !UAC if (   topography_mask(i0+i,j0+j,k) &
+                      !  & .or. topography_mask(i0+i,j0+j+1,k)) then
+                      !   facv = facv + dt*alprlx
+                      !end if
+                      stop'topography still to be implemented into &
+                          &semi-implicit time stepping'
+                      !UAE
+                   end if
+
+                   if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping 
+                         facv = facv + dt* 0.5*(kv_hs(j,k) + kv_hs(j+1,k))
+                      end if
+                   end if
+
+                   if (spongeLayer .and. sponge_uv) then
+                      facv = facv + dt*0.5*(kr_sp(j,k) + kr_sp(j+1,k))
+                   end if
+
+                   facu = facv
+
+                   rhou00 = 0.5 * (var(i,j,k,1) + var(i+1,j,k,1))
+                   if( fluctuationMode ) rhou00 = rhou00 + rhoStrat(k)
+
+                   rhoum0 = 0.5 * (var(i-1,j,k,1) + var(i,j,k,1))
+                   if( fluctuationMode ) rhoum0 = rhoum0 + rhoStrat(k)
+
+                   rhou01 = 0.5 * (var(i,j+1,k,1) + var(i+1,j+1,k,1))
+                   if( fluctuationMode ) rhou01 = rhou01 + rhoStrat(k)
+
+                   rhoum1 = 0.5 * (var(i-1,j+1,k,1) + var(i,j+1,k,1))
+                   if( fluctuationMode ) rhoum1 = rhoum1 + rhoStrat(k)
+
+                   rhov = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
+                   if( fluctuationMode ) rhov = rhov + rhoStrat(k)
+               
+
+                   pGradX &
+                   = kappaInv*MaInv2 &
+                     * 0.25 &
+                     * (  pStrat(k)/rhou00 * (dp(i+1,j,k) - dp(i,j,k))/dx &
+                        + pStrat(k)/rhoum0 * (dp(i,j,k) - dp(i-1,j,k))/dx &
+                        + pStrat(k)/rhou01 &
+                          * (dp(i+1,j+1,k) - dp(i,j+1,k))/dx &
+                        + pStrat(k)/rhoum1 &
+                          * (dp(i,j+1,k) - dp(i-1,j+1,k))/dx)
+
+                   pGradY &
+                   = kappaInv*MaInv2 * pStrat(k)/rhov &
+                     * (dp(i,j+1,k) - dp(i,j,k))/dy
+
+                   f_cor_v = 0.5* (f_cor_nd(j) + f_cor_nd(j+1))
+
+                   dv = - facprs*dt/(facu*facv + (f_cor_v*dt)**2) &
+                         * (-f_cor_v*dt * pGradX + facu * pGradY)
+
+                   var(i,j,k,3) = var(i,j,k,3) + dv
+                end do
+             end do
+          end do
+         else if (opt == "expl") then
+          if (facprs /= 1.) stop'ERROR: wrong facprs in explicit sub-step'
+          do k = 1,nz
+             do j = 0,ny
+                do i = 1,nx
+                   rhov = 0.5 * (var(i,j,k,1) + var(i,j+1,k,1))
+                   if( fluctuationMode ) rhov = rhov + rhoStrat(k)
+             
+                   pGradY &
+                   = kappaInv*MaInv2 * pStrat(k)/rhov &
+                     * (dp(i,j+1,k) - dp(i,j,k))/dy
+
+                   dv = - dt * pGradY
+
+                   var(i,j,k,3) = var(i,j,k,3) + dv
+                end do
+             end do
+          end do
+         else
+          stop'ERROR: wrong opt in correctorStep'
+       end if
+      else
+       if (facprs /= 1.) stop'ERROR: wrong facprs in explicit sub-step'
+       do k = 1,nz
+          do j = 0,ny
+             do i = 1,nx
+                rhov = 0.5 * (var(i,j,k,1) + var(i,j+1,k,1))
+                if( fluctuationMode ) rhov = rhov + rhoStrat(k)
+             
+                pGradY &
+                = kappaInv*MaInv2 * pStrat(k)/rhov &
+                  * (dp(i,j+1,k) - dp(i,j,k))/dy
+
+                dv = - dt * pGradY
+
+                var(i,j,k,3) = var(i,j,k,3) + dv
+
+                ! correct y-momentum tendency
+                dMom(i,j,k,2) = dMom(i,j,k,2) + rhov*dv/beta(RKstage)
+             end do
+          end do
+       end do
+    end if
+
+
+    !--------------------------------------
+    !         calc w and  w + dw
+    !--------------------------------------
+
+    if (timeScheme == "semiimplicit") then
+       if (opt == "impl") then
+          ! solid wall implies zero change of w at the bottom and top
+
+          do k = 1, nz-1        
+             do j = 1,ny
+                do i = 1,nx
+                   facw = 1.0
+                   !UAD facr = 1.0 + alprlx*dt
+
+                   if (topography) then
+                      !UAC if (   topography_mask(i0+i,j0+j,k) &
+                      !  & .or. topography_mask(i0+i,j0+j,k+1)) then
+                      !   facw = facw + dt*alprlx
+                      !end if
+                      stop'topography still to be implemented into &
+                          &semi-implicit time stepping'
+                      !UAE
+                   end if
+
+                   if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping
+                            
+                         facw = facw + dt*0.5*(kw_hs(k)+kw_hs(k+1))
+                      end if
+                   end if
+
+                   if (spongeLayer) then
+                      facw = facw + dt * 0.5*(kr_sp(j,k) + kr_sp(j,k+1))
+                   end if
+
+                   pEdge = 0.5 * ( pStrat(k+1) + pStrat(k) )
+                   pEdge_0 = 0.5 * ( pStrat_0(k+1) + pStrat_0(k) )
+
+                   rhoEdge = 0.5 * ( var(i,j,k,1) + var(i,j,k+1,1) )
+                   if( fluctuationMode ) then
+                       rhoEdge = rhoEdge + rhoStratTilde(k)
+                   end if
+             
+                   bvsstw = 0.5 * (bvsStrat(k) + bvsStrat(k+1))
+
+                   pGradZ = ( dp(i,j,k+1) - dp(i,j,k) ) / dz
+
+                   dw = - facprs*dt * kappaInv*MaInv2 &
+                          !/(  facw &
+                          !  + rhoStratTilde(k)/rhoEdge * bvsstw * dt**2) &
+                          /(  facw &
+                            + rhoStratTilde(k)/rhoEdge * pEdge/pEdge_0 &
+                              * bvsstw * dt**2) &
+                          * pEdge/rhoEdge * pGradz   
+
+                   var(i,j,k,4) = var(i,j,k,4) + dw
+                end do
+             end do
+          end do
+
+          ! periodic in z
+          if( zBoundary == "periodic" ) then
+              stop'ERROR: period. vert. bound. not ready in correctorStep'
+          end if
+         else if (opt == "expl") then
+          ! solid wall implies zero change of w at the bottom and top
+          if (facprs /= 1.) stop'ERROR: wrong facprs in explicit sub-step'
+          do k = 1, nz-1        
+             do j = 1,ny
+                do i = 1,nx
+                   if( fluctuationMode ) then
+                      pEdge = pStratTilde(k)
+                   else
+                      pEdge = 0.5 * ( pStrat(k) + pStrat(k+1) )
+                   end if
+             
+                   rhoEdge = 0.5 * ( var(i,j,k,1) + var(i,j,k+1,1) )
+                   if( fluctuationMode ) then
+                       rhoEdge = rhoEdge + rhoStratTilde(k)
+                   end if
+             
+                   pGradZ = ( dp(i,j,k+1) - dp(i,j,k) ) / dz
+
+                   dw = -dt * kappaInv * MaInv2 * pEdge/rhoEdge * pGradz   
+
+                   var(i,j,k,4) = var(i,j,k,4) + dw
+                end do
+             end do
+          end do
+
+          ! if periodic in z
+          if( zBoundary == "periodic" ) then
+             do k = 0,nz,nz
+                do j = 1,ny
+                   do i = 1,nx
+                      if( fluctuationMode ) then
+                         pEdge = pStratTilde(k)
+                      else
+                         pEdge = 0.5 * ( pStrat(k) + pStrat(k+1) )
+                      end if
+
+                      rhoEdge = 0.5 * ( var(i,j,k,1) + var(i,j,k+1,1) )
+                      if( fluctuationMode ) then
+                          rhoEdge = rhoEdge + rhoStratTilde(k)
+                      end if
+                
+                      pGradZ = ( dp(i,j,k+1) - dp(i,j,k) ) / dz
+
+                      dw = -dt * kappaInv*MaInv2 * pEdge/rhoEdge * pGradz
+
+                      var(i,j,k,4) = var(i,j,k,4) + dw
+                   end do
+                end do
+             end do
+          end if
+         else
+          stop'ERROR: wrong opt in correctorStep'
+       end if
+      else
+        if (facprs /= 1.) stop'ERROR: wrong facprs in explicit sub-step'
+       ! solid wall implies zero change of w at the bottom and top
+
+       do k = 1, nz-1        
+          do j = 1,ny
+             do i = 1,nx
+                if( fluctuationMode ) then
+                   pEdge = pStratTilde(k)
+                else
+                   pEdge = 0.5 * ( pStrat(k) + pStrat(k+1) )
+                end if
+             
+                rhoEdge = 0.5 * ( var(i,j,k,1) + var(i,j,k+1,1) )
+                if( fluctuationMode ) rhoEdge = rhoEdge + rhoStratTilde(k)
+             
+                pGradZ = ( dp(i,j,k+1) - dp(i,j,k) ) / dz
+
+                dw = -dt * kappaInv * MaInv2 * pEdge / rhoEdge * pGradz   
+
+                var(i,j,k,4) = var(i,j,k,4) + dw
+
+                ! correct z-momentum tendency
+                dMom(i,j,k,3) = dMom(i,j,k,3) + rhoEdge*dw/beta(RKstage)
+             end do
+          end do
+       end do
+
+       ! if periodic in z
+       if( zBoundary == "periodic" ) then
+          do k = 0,nz,nz
+             do j = 1,ny
+                do i = 1,nx
+                   if( fluctuationMode ) then
+                      pEdge = pStratTilde(k)
+                   else
+                      pEdge = 0.5 * ( pStrat(k) + pStrat(k+1) )
+                   end if
+
+                   rhoEdge = 0.5 * ( var(i,j,k,1) + var(i,j,k+1,1) )
+                   if( fluctuationMode ) then
+                       rhoEdge = rhoEdge + rhoStratTilde(k)
+                   end if
+                
+                   pGradZ = ( dp(i,j,k+1) - dp(i,j,k) ) / dz
+
+                   dw = -dt * kappaInv*MaInv2 * pEdge/rhoEdge * pGradz   
+
+                   var(i,j,k,4) = var(i,j,k,4) + dw
+
+                   ! correct z-momentum tendency
+                   dMom(i,j,k,3) = dMom(i,j,k,3) + rhoEdge*dw/beta(RKstage)
+                end do
+             end do
+          end do
+       end if
+    end if
+
+    !------------------------------------------------------------------
+    !         calc rhop and rhop + drhop (only for implicit time step)
+    !------------------------------------------------------------------
+
+    if (timeScheme == "semiimplicit") then
+       if (opt == "impl") then
+          do k = 1, nz        
+             do j = 1,ny
+                do i = 1,nx
+                   facw = 1.0
+
+                   if (topography) then
+                      !UAC if (   topography_mask(i0+i,j0+j,k) &
+                      !  & .or. topography_mask(i0+i,j0+j,k+1)) then
+                      !   facw = facw + dt*alprlx
+                      !end if
+                      stop'topography still to be implemented into &
+                          &semi-implicit time stepping'
+                      !UAE
+                   end if
+
+                   if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping
+                         
+                         facw = facw + dt*kw_hs(k)
+                      end if
+                   end if
+
+                   if (spongeLayer) facw = facw + dt * kr_sp(j,k)
+
+                   rho = var(i,j,k,1)
+                   if( fluctuationMode ) rho = rho + rhoStrat(k)
+
+                   rhowm = 0.5 * (var(i,j,k-1,1) + var(i,j,k,1))
+                   if( fluctuationMode ) rhowm = rhowm + rhoStratTilde(k-1)
+
+                   rhow0 = 0.5 * (var(i,j,k,1) + var(i,j,k+1,1))
+                   if( fluctuationMode ) rhow0 = rhow0 + rhoStratTilde(k)
+             
+                   if (k == 1) then
+                      pGradZ &
+                      = kappaInv*MaInv2 &
+                        * 0.5*(pStratTilde(k)/rhow0 &
+                               * (dp(i,j,k+1) - dp(i,j,k))/dz)
+                     else if (k == nz) then
+                      pGradZ &
+                      = kappaInv*MaInv2 &
+                        * 0.5*(pStratTilde(k-1)/rhowm &
+                               * (dp(i,j,k) - dp(i,j,k-1))/dz)
+                     else
+                      pGradZ &
+                      = kappaInv*MaInv2 &
+                        * 0.5*(  pStratTilde(k)/rhow0 &
+                                 * (dp(i,j,k+1) - dp(i,j,k))/dz &
+                               + pStratTilde(k-1)/rhowm &
+                                 * (dp(i,j,k) - dp(i,j,k-1))/dz)
+                   end if
+
+                   !db = rhoStrat(k)/rho * bvsStrat(k) * dt**2 &
+                   db = rhoStrat(k)/rho * pStrat(k)/pStrat_0(k) &
+                        * bvsStrat(k) * facprs *dt**2 &
+                        !/(  facw &
+                        !  + rhoStrat(k)/rho * bvsStrat(k) * dt**2) &
+                        /(  facw &
+                          + rhoStrat(k)/rho * pStrat(k)/pStrat_0(k) &
+                            * bvsStrat(k) * dt**2) &
+                        * pGradz   
+
+                   var(i,j,k,6) = var(i,j,k,6) - rho/g_ndim * db
+                end do
+             end do
+          end do
+
+          ! periodic in z
+          if( zBoundary == "periodic" ) then
+              stop'ERROR: period. vert. bound. not ready in correctorStep'
+          end if
+       end if
+    end if
+
+    if (timeScheme == "semiimplicit") then
+       if (opt == "impl") then
+          kr_sp = kr_sp / facray
+          alprlx = alprlx / facray
+       end if
+    end if
+
+  !end subroutine correctorStep_wc
   end subroutine correctorStep
+
 
   !----------------------------------------------------------------------
 
@@ -2926,6 +4291,130 @@ contains
 
   end subroutine terminate_poisson
 
+  !!------------------------------------------------------------------------
+!
+ !  subroutine calculate_heating_0(var,flux,heat)
+
+ !  !-----------------------------------------------
+ !  ! calculate heating in the divergence constraint
+ !  !-----------------------------------------------
+
+ !   real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz, nVar), &
+ !        &intent(in) :: var     
+ !   real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
+
+ !   real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
+ !        &intent(out) :: heat  !, term1, term2
+
+ !   ! local variables
+ !   integer :: i, j, k
+ !   real    :: rho, the, theta_bar_0, rho_e
+ !   real, dimension(1:nz) :: tau_relax_i  ! inverse scaled relaxation 
+ !                                         ! time for barocl. l. c.
+ !   real    :: tau_jet_sc, tau_relax_sc  ! Klein scaling for relax param.
+
+ !   heat = 0.0
+
+ !   !-------------------------------------------------------
+ !   ! calculate the environment-induced negative (!) heating
+ !   !-------------------------------------------------------
+
+ !   if (     (TestCase == "baroclinic_LC") &
+ !       .or. (TestCase == "baroclinic_ID")) then
+ !      if (RelaxHeating /= 0)  then
+ !         !UAB
+ !         if (background /= "HeldSuarez") then
+ !         !UAE
+ !            do k = 1,nz
+ !               if ( referenceQuantities == "SI" ) then
+ !                  tau_relax_sc = tau_relax
+ !                  tau_jet_sc = tau_jet
+ !                 else
+ !                  tau_relax_sc = tau_relax/tref
+ !                  tau_jet_sc = tau_jet/tref
+ !               end if
+           
+ !               if (RelaxHeating == 1) then
+ !                  tau_relax_i(k) = 1./(tau_relax_sc)
+ !                  else
+ !                  !UAB
+ !                  !tau_relax_i = 0.
+ !                  tau_relax_i(k) = 0.
+ !                  !UAE
+ !               end if
+ !            end do
+ !         !UAB
+ !         end if
+ !         !UAE
+
+ !         if( master ) then 
+ !            print*,""
+ !            print*," Poisson Solver, Thermal Relaxation is on: "
+ !            print*," Relaxation factor: Div = - rho(Th - Th_e)/tau: "
+ !            print*, "tau = ", tref/tau_relax_i(1), " s"
+ !         end if
+
+ !         theta_bar_0 = (thetaStrat(1) + thetaStrat(nz))/2.
+   
+ !         do k = 1,nz
+ !            do j = 1,ny
+ !               do i = 1,nx
+ !                  if( fluctuationMode )  then
+ !                     rho = var(i,j,k,1) + rhoStrat(k)
+ !                    else   
+ !                     rho = var(i,j,k,1)
+ !                  end if  
+
+ !                  the = (Pstrat(k))/rho 
+ !                  rho_e = (Pstrat(k))/the_env_pp(i,j,k)
+ !                  !UAB
+ !                  if (background == "HeldSuarez") then
+ !                     heat(i,j,k) &
+ !                     = - theta_bar_0*(rho - rho_e)*kt_hs(j,k)
+ !                    else
+ !                  !UAE
+ !                     heat(i,j,k) &
+ !                     = - theta_bar_0*(rho - rho_e)*tau_relax_i(k)
+ !                  !UAB
+ !                  end if
+ !                  !UAE
+ !               end do
+ !            end do
+ !         end do
+ !      end if
+ !   end if
+
+ !  ! if (output_heat) then
+ !      call output_field( &
+ !      & iOut, &
+ !      & heat,&
+ !      & 'heat_prof.dat', thetaRef*rhoRef/tref )
+ !  ! end if
+
+ !   !testb
+ !   return
+ !   !teste
+
+ !   !------------------------------------------------------------------
+ !   ! supplement by negative (!) heating due to molecular and turbulent 
+ !   ! diffusivity
+ !   !------------------------------------------------------------------
+
+ !   do k=1,nz
+ !      do j=1,ny
+ !         do i=1,nx
+ !            heat(i,j,k) &
+ !            = heat(i,j,k) &
+ !              + rhoStrat(k) &
+ !                * (  (flux(i,j,k,1,5) - flux(i-1,j  ,k  ,1,5))/dx &
+ !                   + (flux(i,j,k,2,5) - flux(i  ,j-1,k  ,2,5))/dy &
+ !                   + (flux(i,j,k,3,5) - flux(i  ,j  ,k-1,3,5))/dz)
+ !         end do
+ !      end do
+ !   end do
+
+ ! end subroutine calculate_heating_0
+
  !----------------------------------------------------------------------
 
  subroutine calculate_heating(var,flux,heat)
@@ -2943,14 +4432,14 @@ contains
          &intent(out) :: heat  !, term1, term2
 
     ! local variables
-    integer :: i, j, k
+    integer :: i, j, k, khmax
     real    :: rho, the, theta_bar_0, rho_e
     real, dimension(1:ny,0:nz) :: tau_relax_i  ! inverse scaled relaxation 
                          !FS                 ! time for barocl. l. c.
     real    :: tau_jet_sc, tau_relax_sc  ! Klein scaling for relax param.
 
-    real :: ymax, ymin, yloc
-    integer :: j00
+    real :: ymax, ymin, yloc, r, theta, dTheta_dim, delX, delZ, x_dim, z_dim
+    integer :: j00, i00
 
     real, dimension(1:nz) :: sum_local, sum_global
 
@@ -2959,11 +4448,79 @@ contains
     ymin = ly_dim(0)/lRef
     ymax = ly_dim(1)/lRef
 
+    i00 = is + nbx-1
     j00 = js+nby-1
 
     !-------------------------------------------------------
     ! calculate the environment-induced negative (!) heating
     !-------------------------------------------------------
+
+     if (testCase == "hotBubble_heat")then
+       do k = 1,nz 
+          do j = 1,ny
+             do i = 1,nx
+                x_dim = x(i+i00) * lRef       ! dimensional lenghts
+                z_dim = z(k) * lRef
+
+                delX = (x_dim ) / 1000.
+                delZ = (z_dim - 3000.) / 1000.
+
+                r = sqrt(delX**2 + delZ**2)  ! scaled radius
+
+                if( r<=1.0 ) then          ! inside bubble
+
+                   dTheta_dim = 0.5 * (cos(0.5*pi*r))**2
+                   theta = dTheta_dim / thetaRef
+
+
+                   heat(i,j,k) = -theta 
+
+                else
+                   heat(i,j,k) = 0.
+                end if
+
+             end do
+          end do
+       end do
+
+    end if
+
+    if (TestCase == "heatedLayer") then
+
+       do k = 1,nz
+          heat(:,:,k) = -0.5/thetaRef*exp(-(z(k)-3000./lRef)**2/(1000./lRef)**2)
+       end do
+    end if
+
+    if (testCase == "hotBubble_heatedLayer")then
+       do k = 1,nz 
+          do j = 1,ny
+             do i = 1,nx
+                x_dim = x(i+i00) * lRef       ! dimensional lenghts
+                z_dim = z(k) * lRef
+
+                delX = (x_dim ) / 1000.
+                delZ = (z_dim - 3000.) / 1000.
+
+                r = sqrt(delX**2 + delZ**2)  ! scaled radius
+
+                if( r<=1.0 ) then          ! inside bubble
+
+                   dTheta_dim = 0.5 * ((cos(0.5*pi*r))**2 + exp(-(z(k)-3000./lRef)**2/(1000./lRef)**2))
+                   theta = dTheta_dim / thetaRef
+
+
+                   heat(i,j,k) = -theta 
+
+                else
+                   heat(i,j,k) = -0.5/thetaRef*exp(-(z(k)-3000./lRef)**2/(1000./lRef)**2)
+                end if
+
+             end do
+          end do
+       end do
+
+    end if
 
     if (     (TestCase == "baroclinic_LC") &
         .or. (TestCase == "baroclinic_ID")) then
@@ -3102,9 +4659,15 @@ contains
        do k=1,nz 
           do j=1,ny
              do i=1,nx
+                if( fluctuationMode )  then
+                   rho = var(i,j,k,1) + rhoStrat(k)
+                  else   
+                   rho = var(i,j,k,1)
+                end if
+
                 heat(i,j,k) &
                 = heat(i,j,k) &
-                  + (rhoStrat(k)) & 
+                  + rho & 
                     * (  (flux(i,j,k,1,5) - flux(i-1,j  ,k  ,1,5))/dx &
                        + (flux(i,j,k,2,5) - flux(i  ,j-1,k  ,2,5))/dy &
                        + (flux(i,j,k,3,5) - flux(i  ,j  ,k-1,3,5))/dz)
@@ -3120,27 +4683,57 @@ contains
     if (raytracer) heat(:,:,:) = heat(:,:,:) + var(:,:,:,8)
     !UAE
 
+    !UAB
+    if (spongeLayer) then
+       khmax = ksponge + int((nz-kSponge)/2)
+
+       !do k = kSponge,nz
+       !   heat(:,:,k) &
+       !   = heat(:,:,k) &
+       !     * cos(0.5*pi * (z(k) - zSponge)/(z(nz) - zSponge))**2
+       !end do
+
+       do k = kSponge,khmax
+          heat(:,:,k) &
+          = heat(:,:,k) &
+            * cos(0.5*pi * (z(k) - zSponge)/(z(khmax) - zSponge))**2
+       end do
+
+       do k = khmax+1,nz
+          heat(:,:,k) =0.
+       end do
+    end if
+    !UAE
+
+    !testb
+    !heat = 0.
+    !teste
+
     if (output_heat) then
        call output_field( &
        & iOut, &
        & heat,&
        & 'heat_prof.dat', thetaRef*rhoRef/tref )
-
-
-   end if
+    end if
 
   end subroutine calculate_heating
   
  !============================================================== 
 
-  subroutine val_PsIn(var, dt, opt)
+  subroutine val_PsIn_nc(var, dt, opt, facray)
+  !subroutine val_PsIn(var, dt, opt, facray)
 
     ! calculates the matrix values for the pressure solver
     ! the solver solves for dt * dp, hence no dt in the matrix elements
 
+    ! Coriolis term not treated implicitly
+
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz, nVar), &
          & intent(in) :: var
-    real, intent(in) :: dt
+    real, intent(in) :: dt, facray
+
+    ! facray multiplies the Rayleigh-damping terms so that they are only
+    ! handled in the implicit time stepping (sponge and immersed boundary)
 
     ! opt = expl =>
     ! pressure solver for explicit problem and corresponding correction 
@@ -3152,8 +4745,9 @@ contains
 
     ! local variables
     real :: dx2, dy2, dz2, dxy 
-    real :: pStratU, pStratD, rhoEdge
-    real :: AL,AR, AB,AF, AD,AU, ALB,ALF, ARB,ARF, AC
+    !real :: pStratU, pStratD, rhoEdge
+    real :: pStratU, pStratD, pStratU_0, pStratD_0, rhoEdge
+    real :: AL,AR, AB,AF, AD,AU, ALB,ALF, ARB,ARF, AC, ACV, ACH
     real :: facu, facv, facw, facr
     real :: acontr
     real :: bvsstw
@@ -3163,21 +4757,28 @@ contains
 
     integer :: i0,j0, i, j, k
     integer :: index_count_hypre
-    real :: yloc, ymax
 
-    i0=is+nbx-1
-    j0=js+nby-1
+    real :: ymin, ymax, yloc
+
+    real :: f_cor_v
+    real :: fcscal, fcscal_u, fcscal_d
     
-    ! non-dimensional Corilois parameter (= inverse Rossby number)
-    !f_cor_nd = f_Coriolis_dim*tRef
-    if (TestCase == "baroclinic_LC")then !FS
+    if (corset == 'periodic') then
        ymax = ly_dim(1)/lRef  
-       do j = 1,ny
+       ymin = ly_dim(0)/lRef  
+
+       j0=js+nby-1
+
+       do j = 0,ny+1
           yloc = y(j+j0)
-          f_cor_nd(j) = f_Coriolis_dim*tRef!*sin(pi*yloc/ymax)
+
+          f_cor_nd(j) &
+          = - 4.*pi/8.64e4 * tRef * cos(2.*pi *(yloc - ymin)/(ymax - ymin))
        end do
-    else
+      else if (corset == 'constant') then
        f_cor_nd(0:ny+1) = f_Coriolis_dim*tRef
+      else
+       stop'ERROR: wrong corset'
     end if
 
     ! auxiliary variables
@@ -3186,8 +4787,10 @@ contains
     dz2 = 1.0/dz**2    
     dxy = 1.0/(dx*dy)
     
+    i0=is+nbx-1
+    j0=js+nby-1
 
-    if (.not. fluctuationMode) stop 'ERROR: must use fluctuationMode'
+    if (.not. fluctuationMode) stop'ERROR: must use fluctuationMode'
 
     !---------------------------------
     !         Loop over field
@@ -3196,6 +4799,10 @@ contains
     if (opt == "expl") then
        if (timeScheme == "semiimplicit") then
           do k = 1,nz
+             fcscal = sqrt(Pstrat(k)**2/rhoStrat(k))
+             fcscal_u = sqrt(Pstrat(k+1)**2/rhoStrat(k+1))
+             fcscal_d = sqrt(Pstrat(k-1)**2/rhoStrat(k-1))
+
              do j = 1,ny
                 do i = 1,nx
                    ! ------------------ A(i+1,j,k) ------------------
@@ -3204,6 +4811,9 @@ contains
                    rhoEdge = rhoEdge + rhoStrat(k)
 
                    AR = dx2 * pStrat(k)**2/rhoEdge
+                   if (pressureScaling) then
+                      AR = AR/Pstrat(k)
+                   end if
    
                    ! ------------------- A(i-1,j,k) --------------------
 
@@ -3211,6 +4821,9 @@ contains
                    rhoEdge = rhoEdge + rhoStrat(k)
 
                    AL = dx2 * pStrat(k)**2/rhoEdge
+                   if (pressureScaling) then
+                      AL = AL/Pstrat(k)
+                   end if
 
                    ! -------------------- A(i,j+1,k) ----------------------
 
@@ -3219,12 +4832,19 @@ contains
 
                    AF = dy2 * pStrat(k)**2 / rhoEdge
 
+                   if (pressureScaling) then
+                      AF = AF/Pstrat(k)
+                   end if
+
                    ! --------------------- A(i,j-1,k) -------------------
 
                    rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
                    rhoEdge = rhoEdge + rhoStrat(k)
 
                    AB = dy2 * pStrat(k)**2 / rhoEdge
+                   if (pressureScaling) then
+                      AB = AB/Pstrat(k)
+                   end if
 
                    ! ---------------------- A(i,j,k+1) ------------------
 
@@ -3236,6 +4856,9 @@ contains
    
                       pStratU = 0.5* ( pStrat(k+1) + pStrat(k) )
                       AU = dz2 * pStratU**2 / rhoEdge
+                   end if
+                   if (pressureScaling) then
+                      AU = AU/PstratTilde(k)
                    end if
 
                    ! ----------------------- A(i,j,k-1) -----------------
@@ -3249,9 +4872,8 @@ contains
                       pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
                       AD = dz2 * pStratD**2 / rhoEdge
                    end if
-
-                   if( pressureScaling ) then
-                      stop 'ERROR: no pressure scaling allowed'
+                   if (pressureScaling) then
+                      AD = AD/PstratTilde(k-1)
                    end if
 
                    ! ----------------------- A(i,j,k) -------------------
@@ -3263,7 +4885,22 @@ contains
                    !teste
 
                    AC = - AR - AL - AF - AB - AU - AD
+
+                   ACV = - AU - AD
+                   ACH = - AR - AL - AF - AB
  
+                   AC = AC/fcscal**2
+
+                   ACV = ACV/fcscal**2
+                   ACH = ACH/fcscal**2
+
+                   AL = AL/fcscal**2
+                   AR = AR/fcscal**2
+                   AB = AB/fcscal**2
+                   AF = AF/fcscal**2
+                   AD = AD/(fcscal*fcscal_d)
+                   AU = AU/(fcscal*fcscal_u)
+
 
                    ! ------------------ define matrix A -------------------
 
@@ -3293,32 +4930,11 @@ contains
                       values_i(index_count_hypre+10) = 0.0
 
 
-                      ! testb
-                      !values_i(index_count_hypre+ 7) &
-                      != sin(real(index_count_hypre+ 7))
-                      !values_i(index_count_hypre+ 8) &
-                      != sin(real(index_count_hypre+ 8))
-                      !values_i(index_count_hypre+ 9) &
-                      != sin(real(index_count_hypre+ 9))
-                      !values_i(index_count_hypre+10) &
-                      != sin(real(index_count_hypre+ 10))
-                      ! teste
-
-                      !testb
-                      !print*,i,j,k,'AC =',values_i(index_count_hypre   )
-                      !print*,i,j,k,'AL =',values_i(index_count_hypre+ 1)
-                      !print*,i,j,k,'AR =',values_i(index_count_hypre+ 2)
-                      !print*,i,j,k,'AB =',values_i(index_count_hypre+ 3)
-                      !print*,i,j,k,'AF =',values_i(index_count_hypre+ 4)
-                      !print*,i,j,k,'AD =',values_i(index_count_hypre+ 5)
-                      !print*,i,j,k,'AU =',values_i(index_count_hypre+ 6)
-                      !print*,i,j,k,'00 =',values_i(index_count_hypre+ 7)
-                      !!print*,i,j,k,'00 =',values_i(index_count_hypre+ 8)
-                      !print*,i,j,k,'00 =',values_i(index_count_hypre+ 9)
-                      !print*,i,j,k,'00 =',values_i(index_count_hypre+10)
-                      !teste
                      else if (poissonSolverType == 'bicgstab') then
                       ac_b(i,j,k) = AC
+
+                      acv_b(i,j,k) = ACV
+                      ach_b(i,j,k) = ACH
 
                       al_b(i,j,k) = AL
                       ar_b(i,j,k) = AR
@@ -3334,13 +4950,17 @@ contains
                       arb_b(i,j,k) = 0.0
                       arf_b(i,j,k) = 0.0
                      else
-                      stop 'ERROR: val_PsIn expects hypre or bicgstab'
+                      stop'ERROR: val_PsIn expects hypre or bicgstab'
                    end if
                 end do ! i_loop
              end do ! j_loop
           end do ! k_loop
          else
           do k = 1,nz
+             fcscal = sqrt(Pstrat(k)**2/rhoStrat(k))
+             fcscal_u = sqrt(Pstrat(k+1)**2/rhoStrat(k+1))
+             fcscal_d = sqrt(Pstrat(k-1)**2/rhoStrat(k-1))
+
              do j = 1,ny
                 do i = 1,nx
                    ! ------------------ A(i+1,j,k) ------------------
@@ -3349,6 +4969,9 @@ contains
                    rhoEdge = rhoEdge + rhoStrat(k)
 
                    AR = dx2 * pStrat(k)**2/rhoEdge
+                   if (pressureScaling) then
+                      AR = AR/Pstrat(k)
+                   end if
    
                    ! ------------------- A(i-1,j,k) --------------------
 
@@ -3356,6 +4979,9 @@ contains
                    rhoEdge = rhoEdge + rhoStrat(k)
 
                    AL = dx2 * pStrat(k)**2/rhoEdge
+                   if (pressureScaling) then
+                      AL = AL/Pstrat(k)
+                   end if
 
                    ! -------------------- A(i,j+1,k) ----------------------
 
@@ -3363,6 +4989,9 @@ contains
                    rhoEdge = rhoEdge + rhoStrat(k)
 
                    AF = dy2 * pStrat(k)**2 / rhoEdge
+                   if (pressureScaling) then
+                      AF = AF/Pstrat(k)
+                   end if
 
                    ! --------------------- A(i,j-1,k) -------------------
 
@@ -3370,6 +4999,9 @@ contains
                    rhoEdge = rhoEdge + rhoStrat(k)
 
                    AB = dy2 * pStrat(k)**2 / rhoEdge
+                   if (pressureScaling) then
+                      AB = AB/Pstrat(k)
+                   end if
 
                    ! ---------------------- A(i,j,k+1) ------------------
 
@@ -3381,6 +5013,9 @@ contains
    
                       pStratU = 0.5* ( pStrat(k+1) + pStrat(k) )
                       AU = dz2 * pStratU**2 / rhoEdge
+                   end if
+                   if (pressureScaling) then
+                      AU = AU/PstratTilde(k)
                    end if
 
                    ! ----------------------- A(i,j,k-1) -----------------
@@ -3394,15 +5029,33 @@ contains
                       pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
                       AD = dz2 * pStratD**2 / rhoEdge
                    end if
+                   if (pressureScaling) then
+                      AD = AD/PstratTilde(k-1)
+                   end if
 
                    if( pressureScaling ) then
-                      stop 'ERROR: no pressure scaling allowed'
+                     ! stop'ERROR: no pressure scaling allowed'
                    end if
 
                    ! ----------------------- A(i,j,k) -------------------
 
                    AC = - AR - AL - AF - AB - AU - AD
  
+                   ACV = - AU - AD
+                   ACH = - AR - AL - AF - AB
+ 
+                   AC = AC/fcscal**2
+
+                   ACV = ACV/fcscal**2
+                   ACH = ACH/fcscal**2
+
+                   AL = AL/fcscal**2
+                   AR = AR/fcscal**2
+                   AB = AB/fcscal**2
+                   AF = AF/fcscal**2
+                   AD = AD/(fcscal*fcscal_d)
+                   AU = AU/(fcscal*fcscal_u)
+
 
                    ! ------------------ define matrix A -------------------
 
@@ -3427,17 +5080,11 @@ contains
                       values_e(index_count_hypre+5) = AD
                       values_e(index_count_hypre+6) = AU
 
-                      !testb
-                      !print*,i,j,k,'AC =',values_e(index_count_hypre   )
-                      !print*,i,j,k,'AL =',values_e(index_count_hypre+ 1)
-                      !print*,i,j,k,'AR =',values_e(index_count_hypre+ 2)
-                      !print*,i,j,k,'AB =',values_e(index_count_hypre+ 3)
-                      !print*,i,j,k,'AF =',values_e(index_count_hypre+ 4)
-                      !print*,i,j,k,'AD =',values_e(index_count_hypre+ 5)
-                      !print*,i,j,k,'AU =',values_e(index_count_hypre+ 6)
-                      !teste
                      else if (poissonSolverType == 'bicgstab') then
                       ac_b(i,j,k) = AC
+
+                      acv_b(i,j,k) = ACV
+                      ach_b(i,j,k) = ACH
 
                       al_b(i,j,k) = AL
                       ar_b(i,j,k) = AR
@@ -3448,7 +5095,7 @@ contains
                       ad_b(i,j,k) = AD
                       au_b(i,j,k) = AU
                      else
-                      stop 'ERROR: val_PsIn expects hypre or bicgstab'
+                      stop'ERROR: val_PsIn expects hypre or bicgstab'
                    end if
                 end do ! i_loop
              end do ! j_loop
@@ -3456,10 +5103,17 @@ contains
        end if
       else if (opt == "impl") then
        if (timeScheme /= "semiimplicit") then
-          stop 'ERROR: for opt = impl must have timeScheme = semiimplicit'
+          stop'ERROR: for opt = impl must have timeScheme = semiimplicit'
        end if
 
+       kr_sp = kr_sp * facray
+       alprlx = alprlx * facray
+
        do k = 1,nz
+          fcscal = sqrt(Pstrat(k)**2/rhoStrat(k))
+          fcscal_u = sqrt(Pstrat(k+1)**2/rhoStrat(k+1))
+          fcscal_d = sqrt(Pstrat(k-1)**2/rhoStrat(k-1))
+
           do j = 1,ny
              do i = 1,nx
                 AL = 0.0
@@ -3469,6 +5123,10 @@ contains
                 AD = 0.0
                 AU = 0.0
                 AC = 0.0
+
+                ACV = 0.0
+                ACH = 0.0
+
                 ALB = 0.0
                 ALF = 0.0
                 ARB = 0.0
@@ -3479,311 +5137,157 @@ contains
                 facu = 1.0
 
                 if (topography) then
-                   if (   topography_mask(i0+i,j0+j,k) &
-                     & .or. topography_mask(i0+i+1,j0+j,k)) then
-                      facu = facu + dt*alprlx
-                   end if
+                   !UAC if (   topography_mask(i0+i,j0+j,k) &
+                   !  & .or. topography_mask(i0+i+1,j0+j,k)) then
+                   !   facu = facu + dt*alprlx
+                   !end if
+                   stop'topography still to be implemented into &
+                       &semi-implicit time stepping'
+                   !UAE
                 end if
 
                 if (TestCase == "baroclinic_LC") then
                    if (background == "HeldSuarez") then
                       ! Rayleigh damping 
-                      facu &
-                           = facu + dt*kv_hs(k)
-                      
-                      
-                      
+                      facu = facu + dt*kv_hs(j,k)
                    end if
                 end if
-                
+
+                if (spongeLayer .and. sponge_uv) then
+                   facu = facu + dt*kr_sp(j,k)
+                end if
+
                 facv = facu
 
                 ! A(i+1,j,k) and A(i,j,k)
 
                 rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
-                rhoEdge = rhoEdge + rhoStrat(k)
+                if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
-                acontr = dx2 * pStrat(k)**2/rhoEdge &
-                         * facv/(facu*facv + (f_cor_nd(j)*dt)**2)
+                acontr = dx2/facu * pStrat(k)**2/rhoEdge
 
                 AR = AR + acontr
                 AC = AC - acontr
 
-                ! A(i,j,k) and A(i,j-1,k)
-
-                rhoEdge = 0.5*( var(i,j-1,k,1) + var(i,j,k,1) )
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                AC = AC + acontr
-                AB = AB - acontr
-
-                ! A(i,j,k) and A(i,j+1,k)
-
-                rhoEdge = 0.5*( var(i,j,k,1) + var(i,j+1,k,1) )
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                AF = AF + acontr
-                AC = AC - acontr
-
-                ! A(i+1,j,k) and A(i+1,j-1,k)
-
-                rhoEdge = 0.5*( var(i+1,j-1,k,1) + var(i+1,j,k,1) )
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                AR = AR + acontr
-                ARB = ARB - acontr
-
-                ! A(i+1,j,k) and A(i+1,j+1,k)
-
-                rhoEdge = 0.5*( var(i+1,j,k,1) + var(i+1,j+1,k,1) )
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                ARF = ARF + acontr
-                AR = AR - acontr
+                ACH = ACH - acontr !UA
 
                 ! ------------------- from - P UL/dx --------------------
 
                 facu = 1.0
 
                 if (topography) then
-                   if (   topography_mask(i0+i-1,j0+j,k) &
-                     & .or. topography_mask(i0+i,j0+j,k)) then
-                      facu = facu + dt*alprlx
-                   end if
+                   !UAC if (   topography_mask(i0+i-1,j0+j,k) &
+                   !  & .or. topography_mask(i0+i,j0+j,k)) then
+                   !   facu = facu + dt*alprlx
+                   !end if
+                   stop'topography still to be implemented into &
+                       &semi-implicit time stepping'
+                   !UAE
                 end if
 
                 if (TestCase == "baroclinic_LC") then
                    if (background == "HeldSuarez") then
                       ! Rayleigh damping 
-                      facu &
-                           = facu + dt*kv_hs(k)
-                      
-                      
+                      facu = facu + dt*kv_hs(j,k)
                    end if
                 end if
-                
+
+                if (spongeLayer .and. sponge_uv) then
+                   facu = facu + dt*kr_sp(j,k)
+                end if
+
                 facv = facu
 
                 ! A(i,j,k) and A(i-1,j,k)
 
                 rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
-                rhoEdge = rhoEdge + rhoStrat(k)
+                if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
-                acontr = - dx2 * pStrat(k)**2/rhoEdge &
-                           * facv/(facu*facv + (f_cor_nd(j)*dt)**2)
+                acontr = - dx2/facu * pStrat(k)**2/rhoEdge
+
+                ACH = ACH + acontr !UA
 
                 AC = AC + acontr
                 AL = AL - acontr
-
-                ! A(i-1,j,k) and A(i-1,j-1,k)
-
-                rhoEdge = 0.5*( var(i-1,j-1,k,1) + var(i-1,j,k,1) )
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = -0.25 * dxy * pStrat(k)**2/rhoEdge &
-                          * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                AL = AL + acontr
-                ALB = ALB - acontr
-
-                ! A(i-1,j,k) and A(i-1,j+1,k)
-
-                rhoEdge = 0.5*( var(i-1,j,k,1) + var(i-1,j+1,k,1) )
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                ALF = ALF + acontr
-                AL = AL - acontr
-
-                ! A(i,j,k) and A(i,j-1,k)
-
-                rhoEdge = 0.5*( var(i,j-1,k,1) + var(i,j,k,1) )
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                AC = AC + acontr
-                AB = AB - acontr
-
-                ! A(i,j,k) and A(i,j+1,k)
-
-                rhoEdge = 0.5*( var(i,j,k,1) + var(i,j+1,k,1) )
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                AF = AF + acontr
-                AC = AC - acontr
 
                 ! ------------------- from P VF/dy ------------------------
 
                 facv = 1.0
 
                 if (topography) then
-                   if (   topography_mask(i0+i,j0+j,k) &
-                     & .or. topography_mask(i0+i,j0+j+1,k)) then
-                      facv = facv + dt*alprlx
-                   end if
+                   !UAC if (   topography_mask(i0+i,j0+j,k) &
+                   !  & .or. topography_mask(i0+i,j0+j+1,k)) then
+                   !   facv = facv + dt*alprlx
+                   !end if
+                   stop'topography still to be implemented into &
+                       &semi-implicit time stepping'
+                   !UAE
                 end if
 
                 if (TestCase == "baroclinic_LC") then
                    if (background == "HeldSuarez") then
                       ! Rayleigh damping 
-                      facv &
-                           = facv + dt*kv_hs(k)
-                      
-                      
+                      facv = facv + dt* 0.5*(kv_hs(j,k) + kv_hs(j+1,k))
                    end if
                 end if
-                
+
+                if (spongeLayer .and. sponge_uv) then
+                   facv = facv + dt*0.5*(kr_sp(j,k) + kr_sp(j+1,k))
+                end if
+
+                ! Coriolis parameter interpolated to v point
+                f_cor_v = 0.5*(f_cor_nd(j) + f_cor_nd(j+1))
+
                 facu = facv
 
-                ! A(i+1,j,k) and A(i,j,k)
-
-                rhoEdge = 0.5 * (var(i,j,k,1) + var(i+1,j,k,1))
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                AR = AR + acontr
-                AC = AC - acontr
-
-                ! A(i,j,k) and A(i-1,j,k)
-
-                rhoEdge = 0.5 * (var(i-1,j,k,1) + var(i,j,k,1))
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                AC = AC + acontr
-                AL = AL - acontr
-
-                ! A(i+1,j+1,k) and A(i,j+1,k)
-
-                rhoEdge = 0.5 * (var(i,j+1,k,1) + var(i+1,j+1,k,1))
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                ARF = ARF + acontr
-                AF = AF - acontr
-
-                ! A(i,j+1,k) and A(i-1,j+1,k)
-
-                rhoEdge = 0.5 * (var(i-1,j+1,k,1) + var(i,j+1,k,1))
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                         * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                AF = AF + acontr
-                ALF = ALF - acontr
-
-                ! A(i,j+1,k) and A(i,j,k)
-
                 rhoEdge = 0.5 * (var(i,j+1,k,1) + var(i,j,k,1))
-                rhoEdge = rhoEdge + rhoStrat(k)
+                if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
 
-                acontr = dy2 * pStrat(k)**2/rhoEdge &
-                         * facu/(facu*facv + (f_cor_nd(j)*dt)**2)
+                acontr = dy2/facv * pStrat(k)**2/rhoEdge
 
                 AF = AF + acontr
                 AC = AC - acontr
+
+                ACH = ACH - acontr !UA
 
                 ! ------------------- from - P VB/dy ---------------------
 
                 facv = 1.0
 
                 if (topography) then
-                   if (   topography_mask(i0+i,j0+j-1,k) &
-                     & .or. topography_mask(i0+i,j0+j,k)) then
-                      facv = facv + dt*alprlx
-                   end if
+                   !UAC if (   topography_mask(i0+i,j0+j-1,k) &
+                   !  & .or. topography_mask(i0+i,j0+j,k)) then
+                   !   facv = facv + dt*alprlx
+                   !end if
+                   stop'topography still to be implemented into &
+                       &semi-implicit time stepping'
+                   !UAE
                 end if
 
                 if (TestCase == "baroclinic_LC") then
                    if (background == "HeldSuarez") then
                       ! Rayleigh damping
-                      facv &
-                           = facv + dt*kv_hs(k)
-                      
-                      
-                      
+                      facv = facv + dt* 0.5*(kv_hs(j,k) + kv_hs(j-1,k))
                    end if
                 end if
-                
+
+                if (spongeLayer .and. sponge_uv) then
+                   facv = facv + dt*0.5*(kr_sp(j,k) + kr_sp(j-1,k))
+                end if
+
+                ! Coriolis parameter interpolated to v point
+                f_cor_v = 0.5*(f_cor_nd(j) + f_cor_nd(j-1))
+
                 facu = facv
-                
-                ! A(i+1,j-1,k) and A(i,j-1,k)
-
-                rhoEdge = 0.5 * (var(i,j-1,k,1) + var(i+1,j-1,k,1))
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                          * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                ARB = ARB + acontr
-                AB = AB - acontr
-
-                ! A(i,j-1,k) and A(i-1,j-1,k)
-
-                rhoEdge = 0.5 * (var(i-1,j-1,k,1) + var(i,j-1,k,1))
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                AB = AB + acontr
-                ALB = ALB - acontr
-
-                ! A(i+1,j,k) and A(i,j,k)
-
-                rhoEdge = 0.5 * (var(i,j,k,1) + var(i+1,j,k,1))
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                AR = AR + acontr
-                AC = AC - acontr
-
-                ! A(i,j,k) and A(i-1,j,k)
-
-                rhoEdge = 0.5 * (var(i-1,j,k,1) + var(i,j,k,1))
-                rhoEdge = rhoEdge + rhoStrat(k)
-
-                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
-                           * (-f_cor_nd(j)*dt)/(facu*facv + (f_cor_nd(j)*dt)**2)
-
-                AC = AC + acontr
-                AL = AL - acontr
 
                 ! A(i,j,k) and A(i,j-1,k)
 
                 rhoEdge = 0.5 * (var(i,j,k,1) + var(i,j-1,k,1))
-                rhoEdge = rhoEdge + rhoStrat(k)
+                if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
 
-                acontr = - dy2 * pStrat(k)**2/rhoEdge &
-                           * facu/(facu*facv + (f_cor_nd(j)*dt)**2)
+                acontr = - dy2/facv * pStrat(k)**2/rhoEdge
+
+                ACH = ACH + acontr !UA
 
                 AC = AC + acontr
                 AB = AB - acontr
@@ -3794,13 +5298,27 @@ contains
                    AU = 0.0
                   else
                    facw = 1.0
-                   facr = 1.0 !+ alprlx*dt
 
                    if (topography) then
-                      if (   topography_mask(i0+i,j0+j,k) &
-                        & .or. topography_mask(i0+i,j0+j,k+1)) then
-                         facw = facw + dt*alprlx
+                      !UAC if (   topography_mask(i0+i,j0+j,k) &
+                      !  & .or. topography_mask(i0+i,j0+j,k+1)) then
+                      !   facw = facw + dt*alprlx
+                      !end if
+                      stop'topography still to be implemented into &
+                          &semi-implicit time stepping'
+                      !UAE
+                   end if
+
+                   if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping
+                            
+                         facw = facw + dt*0.5*(kw_hs(k)+kw_hs(k+1))
                       end if
+                   end if
+
+                   if (spongeLayer) then
+                      facw = facw + dt* 0.5*(kr_sp(j,k) + kr_sp(j,k+1)) 
                    end if
 
                    bvsstw = 0.5 * (bvsStrat(k) + bvsStrat(k+1))
@@ -3808,16 +5326,22 @@ contains
                    ! A(i,j,k+1) and A(i,j,k)
 
                    rhoEdge = 0.5*( var(i,j,k+1,1) + var(i,j,k,1) )
-                   rhoEdge = rhoEdge + rhoStratTilde(k)
+                   if (fluctuationMode) then
+                      rhoEdge = rhoEdge + rhoStratTilde(k)
+                   end if
    
                    pStratU = 0.5 * ( pStrat(k+1) + pStrat(k) )
+                   pStratU_0 = 0.5 * ( pStrat_0(k+1) + pStrat_0(k) )
 
                    AU = dz2 * pStratU**2 / rhoEdge &
-                        * facr &
-                          /(  facr*facw &
-                            + rhoStratTilde(k)/rhoEdge * bvsstw * dt**2)
+                        /( facw &
+                          + rhoStratTilde(k)/rhoEdge * pStratU/pStratU_0 &
+                            * bvsstw * dt**2)
+                  
    
                    AC = AC - AU
+
+                   ACV = ACV - AU !UA
                 end if
 
                 ! ------------------- from - PD WD/dz ---------------------
@@ -3826,13 +5350,27 @@ contains
                    AD = 0.0
                   else
                    facw = 1.0
-                   facr = 1.0 !+ alprlx*dt
 
                    if (topography) then
-                      if (   topography_mask(i0+i,j0+j,k-1) &
-                        & .or. topography_mask(i0+i,j0+j,k)) then
-                         facw = facw + dt*alprlx
+                      !UAC if (   topography_mask(i0+i,j0+j,k-1) &
+                      !  & .or. topography_mask(i0+i,j0+j,k)) then
+                      !   facw = facw + dt*alprlx
+                      !end if
+                      stop'topography still to be implemented into &
+                          &semi-implicit time stepping'
+                      !UAE
+                   end if
+
+                   if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping
+                            
+                         facw = facw + dt*0.5*(kw_hs(k)+kw_hs(k-1))
                       end if
+                   end if
+
+                   if (spongeLayer) then
+                      facw = facw + dt* 0.5*(kr_sp(j,k) + kr_sp(j,k-1)) 
                    end if
 
                    bvsstw = 0.5 * (bvsStrat(k-1) + bvsStrat(k))
@@ -3840,20 +5378,57 @@ contains
                    ! A(i,j,k) and A(i,j,k-1)
 
                    rhoEdge = 0.5*( var(i,j,k,1) + var(i,j,k-1,1) )
-                   rhoEdge = rhoEdge + rhoStratTilde(k-1)
+                   if (fluctuationMode) then
+                      rhoEdge = rhoEdge + rhoStratTilde(k-1)
+                   end if
    
                    pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
+                   pStratD_0 = 0.5* ( pStrat_0(k) + pStrat_0(k-1) )
 
                    AD = dz2 * pStratD**2 / rhoEdge &
-                        * facr &
-                          /(  facr*facw &
-                            + rhoStratTilde(k-1)/rhoEdge * bvsstw * dt**2)
+                        /(  facw &
+                          + rhoStratTilde(k-1)/rhoEdge &
+                            * pStratD/pStratD_0 * bvsstw * dt**2)
+                  
 
                    AC = AC - AD
+
+                   ACV = ACV - AD !UA
                 end if
 
+                AC = AC/fcscal**2
+
+                ACH = ACH/fcscal**2
+                ACV = ACV/fcscal**2
+
+                AL = AL/fcscal**2
+                AR = AR/fcscal**2
+                AB = AB/fcscal**2
+                AF = AF/fcscal**2
+                AD = AD/(fcscal*fcscal_d)
+                AU = AU/(fcscal*fcscal_u)
+                ALB = ALB/fcscal**2
+                ALF = ALF/fcscal**2
+                ARF = ARF/fcscal**2
+                ARB = ARB/fcscal**2
+
                 if( pressureScaling ) then
-                   stop 'ERROR: no pressure scaling allowed'
+                   AC = AC/Pstrat(k)
+
+                   ACH = ACH/Pstrat(k)
+                   ACV = ACV/Pstrat(k)
+
+                   AL = AL/Pstrat(k)
+                   AR = AR/Pstrat(k)
+                   AB = AB/Pstrat(k)
+                   AF = AF/Pstrat(k)
+                   AD = AD/PstratTilde(k-1)
+                   AU = AU/PstratTilde(k)
+                   ALB = ALB/Pstrat(k)
+                   ALF = ALF/Pstrat(k)
+                   ARF = ARF/Pstrat(k)
+                   ARB = ARB/Pstrat(k)
+                   !stop'ERROR: no pressure scaling allowed'
                 end if
 
 
@@ -3885,6 +5460,9 @@ contains
                   else if (poissonSolverType == 'bicgstab') then
                    ac_b(i,j,k) = AC
 
+                   ach_b(i,j,k) = ACH
+                   acv_b(i,j,k) = ACV
+
                    al_b(i,j,k) = AL
                    ar_b(i,j,k) = AR
 
@@ -3899,18 +5477,1027 @@ contains
                    arb_b(i,j,k) = ARB
                    arf_b(i,j,k) = ARF
                   else
-                   stop 'ERROR: val_PsIn expects hypre or bicgstab'
+                   stop'ERROR: val_PsIn expects hypre or bicgstab'
                 end if
              end do ! i_loop
           end do ! j_loop
        end do ! k_loop
+
+       kr_sp = kr_sp / facray
+       alprlx = alprlx / facray
+
       else
-       stop 'ERROR: wrong opt'
+       stop'ERROR: wrong opt'
     end if
 
   return
 
+  end subroutine val_PsIn_nc
+  !end subroutine val_PsIn
+  
+ !============================================================== 
+
+  !UAC subroutine val_PsIn(var, dt, opt)
+  !subroutine val_PsIn_wc(var, dt, opt, facray)
+  subroutine val_PsIn(var, dt, opt, facray)
+
+    ! calculates the matrix values for the pressure solver
+    ! the solver solves for dt * dp, hence no dt in the matrix elements
+
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz, nVar), &
+         & intent(in) :: var
+    !UAC real, intent(in) :: dt
+    real, intent(in) :: dt, facray
+
+    ! facray multiplies the Rayleigh-damping terms so that they are only
+    ! handled in the implicit time stepping (sponge and immersed boundary)
+
+    ! opt = expl =>
+    ! pressure solver for explicit problem and corresponding correction 
+    ! of the winds
+    ! opt = impl =>
+    ! pressure solver for implicit problem and corresponding correction 
+    ! of the winds and density fluctuations
+    character(len=*), intent(in)    :: opt
+
+    ! local variables
+    real :: dx2, dy2, dz2, dxy 
+    !real :: pStratU, pStratD, rhoEdge
+    real :: pStratU, pStratD, pStratU_0, pStratD_0, rhoEdge
+    real :: AL,AR, AB,AF, AD,AU, ALB,ALF, ARB,ARF, AC, ACH, ACV
+    real :: facu, facv, facw, facr
+    real :: acontr
+    real :: bvsstw
+
+    ! non-dimensional Corilois parameter (= inverse Rossby number)
+    real, dimension(0:ny+1) :: f_cor_nd
+
+    integer :: i0,j0, i, j, k
+    integer :: index_count_hypre
+
+    real :: ymin, ymax, yloc
+
+    real :: f_cor_v
+    real :: fcscal, fcscal_u, fcscal_d
+    
+    if (corset == 'periodic') then
+       ymax = ly_dim(1)/lRef  
+       ymin = ly_dim(0)/lRef  
+
+       j0=js+nby-1
+
+       do j = 0,ny+1
+          yloc = y(j+j0)
+
+          f_cor_nd(j) &
+          = - 4.*pi/8.64e4 * tRef * cos(2.*pi *(yloc - ymin)/(ymax - ymin))
+       end do
+      else if (corset == 'constant') then
+       f_cor_nd(0:ny+1) = f_Coriolis_dim*tRef
+      else
+       stop'ERROR: wrong corset'
+    end if
+
+    ! auxiliary variables
+    dx2 = 1.0/dx**2
+    dy2 = 1.0/dy**2
+    dz2 = 1.0/dz**2    
+    dxy = 1.0/(dx*dy)
+    
+    i0=is+nbx-1
+    j0=js+nby-1
+
+    if (.not. fluctuationMode) stop'ERROR: must use fluctuationMode'
+
+    !---------------------------------
+    !         Loop over field
+    !---------------------------------
+
+    if (opt == "expl") then
+       if (timeScheme == "semiimplicit") then
+          do k = 1,nz
+             fcscal = sqrt(Pstrat(k)**2/rhoStrat(k))
+             fcscal_u = sqrt(Pstrat(k+1)**2/rhoStrat(k+1))
+             fcscal_d = sqrt(Pstrat(k-1)**2/rhoStrat(k-1))
+
+             do j = 1,ny
+                do i = 1,nx
+                   ! ------------------ A(i+1,j,k) ------------------
+
+                   rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AR = dx2 * pStrat(k)**2/rhoEdge
+                   if (pressureScaling) then
+                      AR = AR/Pstrat(k)
+                   end if
+   
+                   ! ------------------- A(i-1,j,k) --------------------
+
+                   rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AL = dx2 * pStrat(k)**2/rhoEdge
+                   if (pressureScaling) then
+                      AL = AL/Pstrat(k)
+                   end if
+
+                   ! -------------------- A(i,j+1,k) ----------------------
+
+                   rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AF = dy2 * pStrat(k)**2 / rhoEdge
+
+                   if (pressureScaling) then
+                      AF = AF/Pstrat(k)
+                   end if
+
+                   ! --------------------- A(i,j-1,k) -------------------
+
+                   rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AB = dy2 * pStrat(k)**2 / rhoEdge
+                   if (pressureScaling) then
+                      AB = AB/Pstrat(k)
+                   end if
+
+                   ! ---------------------- A(i,j,k+1) ------------------
+
+                   if (k == nz) then
+                      AU=0.0
+                     else
+                      rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
+                      rhoEdge = rhoEdge + rhoStratTilde(k)
+   
+                      pStratU = 0.5* ( pStrat(k+1) + pStrat(k) )
+                      AU = dz2 * pStratU**2 / rhoEdge
+                   end if
+                   if (pressureScaling) then
+                      AU = AU/PstratTilde(k)
+                   end if
+
+                   ! ----------------------- A(i,j,k-1) -----------------
+
+                   if (k == 1) then
+                      AD=0.0
+                     else
+                      rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
+                      rhoEdge = rhoEdge + rhoStratTilde(k-1)
+                   
+                      pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
+                      AD = dz2 * pStratD**2 / rhoEdge
+                   end if
+                   if (pressureScaling) then
+                      AD = AD/PstratTilde(k-1)
+                   end if
+
+                   ! ----------------------- A(i,j,k) -------------------
+                   !testb
+                   !AL = 0.0
+                   !AR = 0.0
+                   !AB = 0.0
+                   !AF = 0.0
+                   !teste
+
+                   AC = - AR - AL - AF - AB - AU - AD
+
+                   ACH = - AR - AL - AF - AB
+                   ACV = - AU - AD
+ 
+                   AC = AC/fcscal**2
+
+                   ACH = ACH/fcscal**2
+                   ACV = ACV/fcscal**2
+
+                   AL = AL/fcscal**2
+                   AR = AR/fcscal**2
+                   AB = AB/fcscal**2
+                   AF = AF/fcscal**2
+                   AD = AD/(fcscal*fcscal_d)
+                   AU = AU/(fcscal*fcscal_u)
+
+
+                   ! ------------------ define matrix A -------------------
+
+                   if (poissonSolverType == 'hypre') then
+                      ! index_count_hypre 
+                      ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
+
+                      index_count_hypre = i
+                      index_count_hypre = index_count_hypre + ( (j-1)*nx )
+                      index_count_hypre = index_count_hypre &
+                                          + ( (k-1)*nx*ny )
+
+                      index_count_hypre &
+                      = ( index_count_hypre * ne_hypre_i ) &
+                        - ne_hypre_i + 1
+
+                      values_i(index_count_hypre   ) = AC
+                      values_i(index_count_hypre+ 1) = AL
+                      values_i(index_count_hypre+ 2) = AR
+                      values_i(index_count_hypre+ 3) = AB
+                      values_i(index_count_hypre+ 4) = AF
+                      values_i(index_count_hypre+ 5) = AD
+                      values_i(index_count_hypre+ 6) = AU
+                      values_i(index_count_hypre+ 7) = 0.0
+                      values_i(index_count_hypre+ 8) = 0.0
+                      values_i(index_count_hypre+ 9) = 0.0
+                      values_i(index_count_hypre+10) = 0.0
+
+                     else if (poissonSolverType == 'bicgstab') then
+                      ac_b(i,j,k) = AC
+
+                      ach_b(i,j,k) = ACH
+                      acv_b(i,j,k) = ACV
+
+                      al_b(i,j,k) = AL
+                      ar_b(i,j,k) = AR
+
+                      ab_b(i,j,k) = AB
+                      af_b(i,j,k) = AF
+
+                      ad_b(i,j,k) = AD
+                      au_b(i,j,k) = AU
+
+                      alb_b(i,j,k) = 0.0
+                      alf_b(i,j,k) = 0.0
+                      arb_b(i,j,k) = 0.0
+                      arf_b(i,j,k) = 0.0
+                     else
+                      stop'ERROR: val_PsIn expects hypre or bicgstab'
+                   end if
+                end do ! i_loop
+             end do ! j_loop
+          end do ! k_loop
+         else
+          do k = 1,nz
+             fcscal = sqrt(Pstrat(k)**2/rhoStrat(k))
+             fcscal_u = sqrt(Pstrat(k+1)**2/rhoStrat(k+1))
+             fcscal_d = sqrt(Pstrat(k-1)**2/rhoStrat(k-1))
+
+             do j = 1,ny
+                do i = 1,nx
+                   ! ------------------ A(i+1,j,k) ------------------
+
+                   rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AR = dx2 * pStrat(k)**2/rhoEdge
+                   if (pressureScaling) then
+                      AR = AR/Pstrat(k)
+                   end if
+   
+                   ! ------------------- A(i-1,j,k) --------------------
+
+                   rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AL = dx2 * pStrat(k)**2/rhoEdge
+                   if (pressureScaling) then
+                      AL = AL/Pstrat(k)
+                   end if
+
+                   ! -------------------- A(i,j+1,k) ----------------------
+
+                   rhoEdge = 0.5*( var(i,j+1,k,1) + var(i,j,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AF = dy2 * pStrat(k)**2 / rhoEdge
+                   if (pressureScaling) then
+                      AF = AF/Pstrat(k)
+                   end if
+
+                   ! --------------------- A(i,j-1,k) -------------------
+
+                   rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j-1,k,1) )
+                   rhoEdge = rhoEdge + rhoStrat(k)
+
+                   AB = dy2 * pStrat(k)**2 / rhoEdge
+                   if (pressureScaling) then
+                      AB = AB/Pstrat(k)
+                   end if
+
+                   ! ---------------------- A(i,j,k+1) ------------------
+
+                   if (k == nz) then
+                      AU=0.0
+                     else
+                      rhoEdge = 0.5* ( var(i,j,k+1,1) + var(i,j,k,1) )
+                      rhoEdge = rhoEdge + rhoStratTilde(k)
+   
+                      pStratU = 0.5* ( pStrat(k+1) + pStrat(k) )
+                      AU = dz2 * pStratU**2 / rhoEdge
+                   end if
+                   if (pressureScaling) then
+                      AU = AU/PstratTilde(k)
+                   end if
+
+                   ! ----------------------- A(i,j,k-1) -----------------
+
+                   if (k == 1) then
+                      AD=0.0
+                     else
+                      rhoEdge = 0.5* ( var(i,j,k,1) + var(i,j,k-1,1) )
+                      rhoEdge = rhoEdge + rhoStratTilde(k-1)
+                   
+                      pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
+                      AD = dz2 * pStratD**2 / rhoEdge
+                   end if
+                   if (pressureScaling) then
+                      AD = AD/PstratTilde(k-1)
+                   end if
+
+                   if( pressureScaling ) then
+                     ! stop'ERROR: no pressure scaling allowed'
+                   end if
+
+                   ! ----------------------- A(i,j,k) -------------------
+
+                   AC = - AR - AL - AF - AB - AU - AD
+
+                   ACH = - AR - AL - AF - AB
+                   ACV = - AU - AD
+ 
+
+                   ! ------------------ define matrix A -------------------
+
+                   AC = AC/fcscal**2
+
+                   ACV = ACV/fcscal**2
+                   ACH = ACH/fcscal**2
+
+                   AL = AL/fcscal**2
+                   AR = AR/fcscal**2
+                   AB = AB/fcscal**2
+                   AF = AF/fcscal**2
+                   AD = AD/(fcscal*fcscal_d)
+                   AU = AU/(fcscal*fcscal_u)
+
+                   if (poissonSolverType == 'hypre') then
+                      ! index_count_hypre 
+                      ! = ( i * j * k * ne_hypre_e ) - ne_hypre_e + 1
+
+                      index_count_hypre = i
+                      index_count_hypre = index_count_hypre + ( (j-1)*nx )
+                      index_count_hypre = index_count_hypre &
+                                          + ( (k-1)*nx*ny )
+
+                      index_count_hypre &
+                      = ( index_count_hypre * ne_hypre_e ) &
+                        - ne_hypre_e + 1
+
+                      values_e(index_count_hypre)   = AC
+                      values_e(index_count_hypre+1) = AL
+                      values_e(index_count_hypre+2) = AR
+                      values_e(index_count_hypre+3) = AB
+                      values_e(index_count_hypre+4) = AF
+                      values_e(index_count_hypre+5) = AD
+                      values_e(index_count_hypre+6) = AU
+
+                     else if (poissonSolverType == 'bicgstab') then
+                      ac_b(i,j,k) = AC
+
+                      ach_b(i,j,k) = ACH
+                      acv_b(i,j,k) = ACV
+
+                      al_b(i,j,k) = AL
+                      ar_b(i,j,k) = AR
+
+                      ab_b(i,j,k) = AB
+                      af_b(i,j,k) = AF
+
+                      ad_b(i,j,k) = AD
+                      au_b(i,j,k) = AU
+                     else
+                      stop'ERROR: val_PsIn expects hypre or bicgstab'
+                   end if
+                end do ! i_loop
+             end do ! j_loop
+          end do ! k_loop
+       end if
+      else if (opt == "impl") then
+       if (timeScheme /= "semiimplicit") then
+          stop'ERROR: for opt = impl must have timeScheme = semiimplicit'
+       end if
+
+       kr_sp = kr_sp * facray
+       alprlx = alprlx * facray
+
+       do k = 1,nz
+          fcscal = sqrt(Pstrat(k)**2/rhoStrat(k))
+          fcscal_u = sqrt(Pstrat(k+1)**2/rhoStrat(k+1))
+          fcscal_d = sqrt(Pstrat(k-1)**2/rhoStrat(k-1))
+
+          do j = 1,ny
+             do i = 1,nx
+                AL = 0.0
+                AR = 0.0
+                AB = 0.0
+                AF = 0.0
+                AD = 0.0
+                AU = 0.0
+                AC = 0.0
+
+                ACH = 0.0
+                ACV = 0.0
+
+                ALB = 0.0
+                ALF = 0.0
+                ARB = 0.0
+                ARF = 0.0
+
+                ! ------------------- from P UR/dx ------------------------
+
+                facu = 1.0
+
+                if (topography) then
+                   !UAC if (   topography_mask(i0+i,j0+j,k) &
+                   !  & .or. topography_mask(i0+i+1,j0+j,k)) then
+                   !   facu = facu + dt*alprlx
+                   !end if
+                   stop'topography still to be implemented into &
+                       &semi-implicit time stepping'
+                   !UAE
+                end if
+
+                if (TestCase == "baroclinic_LC") then
+                   if (background == "HeldSuarez") then
+                      ! Rayleigh damping 
+                      facu = facu + dt*kv_hs(j,k)
+                   end if
+                end if
+
+                if (spongeLayer .and. sponge_uv) then
+                   facu = facu + dt*kr_sp(j,k)
+                end if
+
+                facv = facu
+
+                ! A(i+1,j,k) and A(i,j,k)
+
+                rhoEdge = 0.5*( var(i+1,j,k,1) + var(i,j,k,1) )
+                if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = dx2 * pStrat(k)**2/rhoEdge &
+                         * facv/(facu*facv + (f_cor_nd(j)*dt)**2)
+                
+
+                AR = AR + acontr
+                AC = AC - acontr
+
+                ACH = ACH - acontr !UA
+
+                ! A(i,j,k) and A(i,j-1,k)
+
+                rhoEdge = 0.5*( var(i,j-1,k,1) + var(i,j,k,1) )
+                if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
+               
+
+                ACH = ACH + acontr !UA
+
+                AC = AC + acontr
+                AB = AB - acontr
+
+                ! A(i,j,k) and A(i,j+1,k)
+
+                rhoEdge = 0.5*( var(i,j,k,1) + var(i,j+1,k,1) )
+                if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
+                
+
+                AF = AF + acontr
+                AC = AC - acontr
+
+                ACH = ACH - acontr !UA
+
+                ! A(i+1,j,k) and A(i+1,j-1,k)
+
+                rhoEdge = 0.5*( var(i+1,j-1,k,1) + var(i+1,j,k,1) )
+                if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
+               
+
+                AR = AR + acontr
+                ARB = ARB - acontr
+
+                ! A(i+1,j,k) and A(i+1,j+1,k)
+
+                rhoEdge = 0.5*( var(i+1,j,k,1) + var(i+1,j+1,k,1) )
+                if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * f_cor_nd(j)*dt/(facu*facv + (f_cor_nd(j)*dt)**2)
+                
+
+                ARF = ARF + acontr
+                AR = AR - acontr
+
+                ! ------------------- from - P UL/dx --------------------
+
+                facu = 1.0
+
+                if (topography) then
+                   !UAC if (   topography_mask(i0+i-1,j0+j,k) &
+                   !  & .or. topography_mask(i0+i,j0+j,k)) then
+                   !   facu = facu + dt*alprlx
+                   !end if
+                   stop'topography still to be implemented into &
+                       &semi-implicit time stepping'
+                   !UAE
+                end if
+
+                if (TestCase == "baroclinic_LC") then
+                   if (background == "HeldSuarez") then
+                      ! Rayleigh damping 
+                      facu = facu + dt*kv_hs(j,k)
+                   end if
+                end if
+
+                if (spongeLayer .and. sponge_uv) then
+                   facu = facu + dt*kr_sp(j,k)
+                end if
+
+                facv = facu
+
+                ! A(i,j,k) and A(i-1,j,k)
+
+                rhoEdge = 0.5*( var(i,j,k,1) + var(i-1,j,k,1) )
+                if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - dx2 * pStrat(k)**2/rhoEdge &
+                           * facv/(facu*facv + (f_cor_nd(j)*dt)**2)
+              
+
+                ACH = ACH + acontr !UA
+
+                AC = AC + acontr
+                AL = AL - acontr
+
+                ! A(i-1,j,k) and A(i-1,j-1,k)
+
+                rhoEdge = 0.5*( var(i-1,j-1,k,1) + var(i-1,j,k,1) )
+                if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = -0.25 * dxy * pStrat(k)**2/rhoEdge &
+                          * f_cor_nd(j)*dt &
+                          /(facu*facv + (f_cor_nd(j)*dt)**2)
+                
+
+                AL = AL + acontr
+                ALB = ALB - acontr
+
+                ! A(i-1,j,k) and A(i-1,j+1,k)
+
+                rhoEdge = 0.5*( var(i-1,j,k,1) + var(i-1,j+1,k,1) )
+                if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                           * f_cor_nd(j)*dt &
+                           /(facu*facv + (f_cor_nd(j)*dt)**2)
+                
+
+                ALF = ALF + acontr
+                AL = AL - acontr
+
+                ! A(i,j,k) and A(i,j-1,k)
+
+                rhoEdge = 0.5*( var(i,j-1,k,1) + var(i,j,k,1) )
+                if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                           * f_cor_nd(j)*dt &
+                           /(facu*facv + (f_cor_nd(j)*dt)**2)
+               
+
+                ACH = ACH + acontr !UA
+
+                AC = AC + acontr
+                AB = AB - acontr
+
+                ! A(i,j,k) and A(i,j+1,k)
+
+                rhoEdge = 0.5*( var(i,j,k,1) + var(i,j+1,k,1) )
+                if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                           * f_cor_nd(j)*dt &
+                           /(facu*facv + (f_cor_nd(j)*dt)**2)
+               
+
+                AF = AF + acontr
+                AC = AC - acontr
+
+                ACH = ACH - acontr !UA
+
+                ! ------------------- from P VF/dy ------------------------
+
+                facv = 1.0
+
+                if (topography) then
+                   !UAC if (   topography_mask(i0+i,j0+j,k) &
+                   !  & .or. topography_mask(i0+i,j0+j+1,k)) then
+                   !   facv = facv + dt*alprlx
+                   !end if
+                   stop'topography still to be implemented into &
+                       &semi-implicit time stepping'
+                   !UAE
+                end if
+
+                if (TestCase == "baroclinic_LC") then
+                   if (background == "HeldSuarez") then
+                      ! Rayleigh damping 
+                      facv = facv + dt* 0.5*(kv_hs(j,k) + kv_hs(j+1,k))
+                   end if
+                end if
+
+                if (spongeLayer .and. sponge_uv) then
+                   facv = facv + dt*0.5*(kr_sp(j,k) + kr_sp(j+1,k))
+                end if
+
+                ! Coriolis parameter interpolated to v point
+                f_cor_v = 0.5*(f_cor_nd(j) + f_cor_nd(j+1))
+
+                facu = facv
+
+                ! A(i+1,j,k) and A(i,j,k)
+
+                rhoEdge = 0.5 * (var(i,j,k,1) + var(i+1,j,k,1))
+                if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                           * f_cor_v*dt/(facu*facv + (f_cor_v*dt)**2)
+               
+                     
+
+                AR = AR + acontr
+                AC = AC - acontr
+
+                ACH = ACH - acontr !UA
+
+                ! A(i,j,k) and A(i-1,j,k)
+
+                rhoEdge = 0.5 * (var(i-1,j,k,1) + var(i,j,k,1))
+                if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                           * f_cor_v*dt/(facu*facv + (f_cor_v*dt)**2) 
+               
+
+                ACH = ACH + acontr !UA
+
+                AC = AC + acontr
+                AL = AL - acontr
+
+                ! A(i+1,j+1,k) and A(i,j+1,k)
+
+                rhoEdge = 0.5 * (var(i,j+1,k,1) + var(i+1,j+1,k,1))
+                if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                           * f_cor_v*dt/(facu*facv + (f_cor_v*dt)**2)
+               
+
+                ARF = ARF + acontr
+                AF = AF - acontr
+
+                ! A(i,j+1,k) and A(i-1,j+1,k)
+
+                rhoEdge = 0.5 * (var(i-1,j+1,k,1) + var(i,j+1,k,1))
+                if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                           * f_cor_v*dt/(facu*facv + (f_cor_v*dt)**2)
+               
+
+                AF = AF + acontr
+                ALF = ALF - acontr
+
+                ! A(i,j+1,k) and A(i,j,k)
+
+                rhoEdge = 0.5 * (var(i,j+1,k,1) + var(i,j,k,1))
+                if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = dy2 * pStrat(k)**2/rhoEdge &
+                         * facu/(facu*facv + (f_cor_v*dt)**2)
+               
+
+                AF = AF + acontr
+                AC = AC - acontr
+
+                ACH = ACH - acontr !UA
+
+                ! ------------------- from - P VB/dy ---------------------
+
+                facv = 1.0
+
+                if (topography) then
+                   !UAC if (   topography_mask(i0+i,j0+j-1,k) &
+                   !  & .or. topography_mask(i0+i,j0+j,k)) then
+                   !   facv = facv + dt*alprlx
+                   !end if
+                   stop'topography still to be implemented into &
+                       &semi-implicit time stepping'
+                   !UAE
+                end if
+
+                if (TestCase == "baroclinic_LC") then
+                   if (background == "HeldSuarez") then
+                      ! Rayleigh damping
+                      facv = facv + dt* 0.5*(kv_hs(j,k) + kv_hs(j-1,k))
+                   end if
+                end if
+
+                if (spongeLayer .and. sponge_uv) then
+                   facv = facv + dt*0.5*(kr_sp(j,k) + kr_sp(j-1,k))
+                end if
+
+                ! Coriolis parameter interpolated to v point
+                f_cor_v = 0.5*(f_cor_nd(j) + f_cor_nd(j-1))
+
+                facu = facv
+
+                ! A(i+1,j-1,k) and A(i,j-1,k)
+
+                rhoEdge = 0.5 * (var(i,j-1,k,1) + var(i+1,j-1,k,1))
+                if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * f_cor_v*dt/(facu*facv + (f_cor_v*dt)**2)
+              
+
+                ARB = ARB + acontr
+                AB = AB - acontr
+
+                ! A(i,j-1,k) and A(i-1,j-1,k)
+
+                rhoEdge = 0.5 * (var(i-1,j-1,k,1) + var(i,j-1,k,1))
+                if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * f_cor_v*dt/(facu*facv + (f_cor_v*dt)**2)
+               
+
+                AB = AB + acontr
+                ALB = ALB - acontr
+
+                ! A(i+1,j,k) and A(i,j,k)
+
+                rhoEdge = 0.5 * (var(i,j,k,1) + var(i+1,j,k,1))
+                if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * f_cor_v*dt/(facu*facv + (f_cor_v*dt)**2)
+               
+
+                AR = AR + acontr
+                AC = AC - acontr
+
+                ACH = ACH - acontr !UA
+
+                ! A(i,j,k) and A(i-1,j,k)
+
+                rhoEdge = 0.5 * (var(i-1,j,k,1) + var(i,j,k,1))
+                if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = 0.25 * dxy * pStrat(k)**2/rhoEdge &
+                         * f_cor_v*dt/(facu*facv + (f_cor_v*dt)**2)
+                
+
+                ACH = ACH + acontr !UA
+
+                AC = AC + acontr
+                AL = AL - acontr
+
+                ! A(i,j,k) and A(i,j-1,k)
+
+                rhoEdge = 0.5 * (var(i,j,k,1) + var(i,j-1,k,1))
+                if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+
+                acontr = - dy2 * pStrat(k)**2/rhoEdge &
+                           * facu/(facu*facv + (f_cor_v*dt)**2)
+               
+
+                ACH = ACH + acontr !UA
+
+                AC = AC + acontr
+                AB = AB - acontr
+
+                ! ------------------- from PU WU/dz ---------------------
+
+                if (k == nz) then
+                   AU = 0.0
+                  else
+                   facw = 1.0
+
+                   if (topography) then
+                      !UAC if (   topography_mask(i0+i,j0+j,k) &
+                      !  & .or. topography_mask(i0+i,j0+j,k+1)) then
+                      !   facw = facw + dt*alprlx
+                      !end if
+                      stop'topography still to be implemented into &
+                          &semi-implicit time stepping'
+                      !UAE
+                   end if
+
+                   if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping
+                            
+                         facw = facw + dt*0.5*(kw_hs(k)+kw_hs(k+1))
+                      end if
+                   end if
+
+                   if (spongeLayer) then
+                      facw = facw + dt* 0.5*(kr_sp(j,k) + kr_sp(j,k+1)) 
+                   end if
+
+                   bvsstw = 0.5 * (bvsStrat(k) + bvsStrat(k+1))
+
+                   ! A(i,j,k+1) and A(i,j,k)
+
+                   rhoEdge = 0.5*( var(i,j,k+1,1) + var(i,j,k,1) )
+                   if (fluctuationMode) then
+                      rhoEdge = rhoEdge + rhoStratTilde(k)
+                   end if
+   
+                   pStratU = 0.5 * ( pStrat(k+1) + pStrat(k) )
+                   pStratU_0 = 0.5 * ( pStrat_0(k+1) + pStrat_0(k) )
+
+                   AU = dz2 * pStratU**2 / rhoEdge &
+                        !/( facw &
+                        !  + rhoStratTilde(k)/rhoEdge * bvsstw * dt**2)
+                        /( facw &
+                          + rhoStratTilde(k)/rhoEdge * pStratU/pStratU_0 &
+                            * bvsstw * dt**2)
+   
+                   AC = AC - AU
+
+                   ACV = ACV - AU !UA
+                end if
+
+                ! ------------------- from - PD WD/dz ---------------------
+
+                if (k == 1) then
+                   AD = 0.0
+                  else
+                   facw = 1.0
+
+                   if (topography) then
+                      !UAC if (   topography_mask(i0+i,j0+j,k-1) &
+                      !  & .or. topography_mask(i0+i,j0+j,k)) then
+                      !   facw = facw + dt*alprlx
+                      !end if
+                      stop'topography still to be implemented into &
+                          &semi-implicit time stepping'
+                      !UAE
+                   end if
+
+                   if (TestCase == "baroclinic_LC") then
+                      if (background == "HeldSuarez") then
+                         ! Rayleigh damping
+                            
+                         facw = facw + dt*0.5*(kw_hs(k)+kw_hs(k-1))
+                      end if
+                   end if
+
+                   if (spongeLayer) then
+                      facw = facw + dt* 0.5*(kr_sp(j,k) + kr_sp(j,k-1)) 
+                   end if
+
+                   bvsstw = 0.5 * (bvsStrat(k-1) + bvsStrat(k))
+
+                   ! A(i,j,k) and A(i,j,k-1)
+
+                   rhoEdge = 0.5*( var(i,j,k,1) + var(i,j,k-1,1) )
+                   if (fluctuationMode) then
+                      rhoEdge = rhoEdge + rhoStratTilde(k-1)
+                   end if
+   
+                   pStratD = 0.5* ( pStrat(k) + pStrat(k-1) )
+                   pStratD_0 = 0.5* ( pStrat_0(k) + pStrat_0(k-1) )
+
+                   AD = dz2 * pStratD**2 / rhoEdge &
+                        !/(  facw &
+                        !  + rhoStratTilde(k-1)/rhoEdge * bvsstw * dt**2)
+                        /(  facw &
+                          + rhoStratTilde(k-1)/rhoEdge &
+                            * pStratD/pStratD_0 * bvsstw * dt**2)
+                  
+
+                   AC = AC - AD
+
+                   ACV = ACV - AD !UA
+                end if
+
+                AC = AC/fcscal**2
+
+                ACH = ACH/fcscal**2
+                ACV = ACV/fcscal**2
+
+                AL = AL/fcscal**2
+                AR = AR/fcscal**2
+                AB = AB/fcscal**2
+                AF = AF/fcscal**2
+                AD = AD/(fcscal*fcscal_d)
+                AU = AU/(fcscal*fcscal_u)
+                ALB = ALB/fcscal**2
+                ALF = ALF/fcscal**2
+                ARF = ARF/fcscal**2
+                ARB = ARB/fcscal**2
+
+                if( pressureScaling ) then
+                   AC = AC/Pstrat(k)
+
+                   ACH = ACH/Pstrat(k)
+                   ACV = ACV/Pstrat(k)
+
+                   AL = AL/Pstrat(k)
+                   AR = AR/Pstrat(k)
+                   AB = AB/Pstrat(k)
+                   AF = AF/Pstrat(k)
+                   AD = AD/PstratTilde(k-1)
+                   AU = AU/PstratTilde(k)
+                   ALB = ALB/Pstrat(k)
+                   ALF = ALF/Pstrat(k)
+                   ARF = ARF/Pstrat(k)
+                   ARB = ARB/Pstrat(k)
+                   !stop'ERROR: no pressure scaling allowed'
+                end if
+
+
+                ! ------------------- define matrix A -------------------
+
+                if (poissonSolverType == 'hypre') then
+                   ! index_count_hypre 
+                   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
+
+                   index_count_hypre = i
+                   index_count_hypre = index_count_hypre + ( (j-1)*nx )
+                   index_count_hypre = index_count_hypre + ( (k-1)*nx*ny )
+
+                   index_count_hypre &
+                   = ( index_count_hypre * ne_hypre_i ) &
+                     - ne_hypre_i + 1
+
+                   values_i(index_count_hypre   ) = AC
+                   values_i(index_count_hypre+ 1) = AL
+                   values_i(index_count_hypre+ 2) = AR
+                   values_i(index_count_hypre+ 3) = AB
+                   values_i(index_count_hypre+ 4) = AF
+                   values_i(index_count_hypre+ 5) = AD
+                   values_i(index_count_hypre+ 6) = AU
+                   values_i(index_count_hypre+ 7) = ALB
+                   values_i(index_count_hypre+ 8) = ALF
+                   values_i(index_count_hypre+ 9) = ARB
+                   values_i(index_count_hypre+10) = ARF
+                  else if (poissonSolverType == 'bicgstab') then
+                   ac_b(i,j,k) = AC
+
+                   ach_b(i,j,k) = ACH
+                   acv_b(i,j,k) = ACV
+
+                   al_b(i,j,k) = AL
+                   ar_b(i,j,k) = AR
+
+                   ab_b(i,j,k) = AB
+                   af_b(i,j,k) = AF
+
+                   ad_b(i,j,k) = AD
+                   au_b(i,j,k) = AU
+
+                   alb_b(i,j,k) = ALB
+                   alf_b(i,j,k) = ALF
+                   arb_b(i,j,k) = ARB
+                   arf_b(i,j,k) = ARF
+                  else
+                   stop'ERROR: val_PsIn expects hypre or bicgstab'
+                end if
+             end do ! i_loop
+          end do ! j_loop
+       end do ! k_loop
+
+       kr_sp = kr_sp / facray
+       alprlx = alprlx / facray
+
+      else
+       stop'ERROR: wrong opt'
+    end if
+
+  return
+
+  !end subroutine val_PsIn_wc
   end subroutine val_PsIn
+  
   
   !============================================================== 
 
@@ -3919,7 +6506,8 @@ contains
     ! local variables
     integer :: i,j,k
     real :: pStratU, pStratD, rhoEdge
-    real :: AL,AR, AB,AF, AD,AU, AC
+    !UAC real :: AL,AR, AB,AF, AD,AU, AC
+    real :: AL,AR, AB,AF, AD,AU, AC, ACH, ACV
     real :: dx2, dy2, dz2 
     integer :: index_count_hypre
 
@@ -3975,6 +6563,11 @@ contains
              ! ----------------------- A(i,j,k) ---------------------
              AC = - AR - AL - AF - AB - AU - AD
 
+             !UAB
+             ACH = - AR - AL - AF - AB
+             ACV = - AU - AD
+             !UAE
+
              ! ------------------- define matrix A --------------------
 
              ! index_count_hypre &
@@ -4005,8 +6598,7 @@ contains
 
 !------------------------------------------------------------------
 
-  subroutine heat_w0(var,flux,heat,S_bar,w_0)
-
+  subroutine heat_w0(var,flux,dt,heat,S_bar,w_0)
 
   ! negative (!) heating, its horizontal mean, 
   ! and the thereby induced vertical wind
@@ -4014,21 +6606,28 @@ contains
   ! in/out variables
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
          & intent(in) :: var
-    !UAB 200413
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
-    !UAE 200413
+    real, intent(in) :: dt
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
          & intent(out) :: heat
     real, dimension(-nbz:nz+nbz),intent(out) :: w_0 
     real, dimension(-nbz:nz+nbz), intent(out) :: S_bar
 
+    character(len=40) :: w0_mod
+
     integer :: i,j,k
     real, dimension(1:nz) :: sum_local, sum_global 
     real, dimension(-nbz:nz+nbz) :: press0 
+    real, dimension(-nbz:nz+nbz) :: rhow_bar 
 
     real :: dptopdt
+    real :: expo
+    real :: rho, wvert
 
     real :: sum_d, sum_n
+
+    !w0_mod = 'Almgrenetal08'
+    w0_mod = 'ONK14'
 
     w_0 = 0.
     S_bar = 0.
@@ -4049,34 +6648,122 @@ contains
 
     S_bar(1:nz) = sum_global(1:nz)
 
+    if (w0_mod == 'Almgrenetal08') then
+       ! horizontal mean of the vertical density flux
+
+       rhow_bar = 0.
+
+       sum_local = 0.
+       sum_global = 0.
+    
+       do k = 1,nz
+          do j = 1,ny
+             do i = 1,nx
+                if (fluctuationMode) then
+                   rho = rhoStrat(k) + var(i,j,k,1)
+                  else
+                   rho = var(i,j,k,1)
+                end if
+
+                if (k == 1) then
+                   !sum_local(k) = sum_local(k) + 0.5*flux(i,j,k,3,1)
+                   wvert = 0.5*var(i,j,k,4)
+                  else if (k == nz) then
+                   !sum_local(k) = sum_local(k) + 0.5*flux(i,j,k-1,3,1)
+                   wvert = 0.5*var(i,j,k-1,4)
+                  else
+                   !sum_local(k) &
+                   != sum_local(k) &
+                   !  + 0.5*(flux(i,j,k-1,3,1) + flux(i,j,k,3,1))
+                   wvert = 0.5 * (var(i,j,k-1,4) + var(i,j,k,4))
+                end if
+
+                sum_local(k) = sum_local(k) + rho*wvert
+             end do
+          end do
+       end do
+       call mpi_allreduce(sum_local(1),sum_global(1),&
+            nz-1+1,&
+            mpi_double_precision,mpi_sum,comm,ierror)
+       sum_global = sum_global/(sizeX*sizeY)
+
+       rhow_bar(1:nz) = sum_global(1:nz)
+
+       !testb
+       !rhow_bar = 0.
+       !teste
+    end if
+
     !non_dim. pressure; eq(12) ONeill+Klein2014
 
     do k = 1,nz
        press0(k) = PStrat(k)**gamma  
     end do
     
-    !  eq(B.14) ONeill+Klein2014
+    !  time derivative of reference pressure at the model top
 
     sum_d = 0.0
     sum_n = 0.0
 
-    do k = 1,nz
-      sum_n = sum_n - S_bar(k)/PStrat(k)
-      sum_d = sum_d +  1./(gamma*press0(k))
-    end do
+    if (w0_mod == 'Almgrenetal08') then
+       do k = 1,nz
+          expo = exp(-g_ndim*rhoStrat(k) / (gamma*press0(k)) * z(k))
+
+          sum_n &
+          = sum_n &
+            + expo &
+              * (- S_bar(k)/PStrat(k) &
+                 - g_ndim*rhow_bar(k)/(gamma*press0(k)))
+
+          sum_d = sum_d + expo/(gamma*press0(k))
+       end do
+      else if (w0_mod == 'ONK14') then
+       do k = 1,nz
+          sum_n = sum_n - S_bar(k)/PStrat(k)
+          sum_d = sum_d +  1./(gamma*press0(k))
+       end do
+      else
+       stop'ERROR: wrong w0_mod'
+    end if
 
     dptopdt = sum_n/sum_d
 
-    w_0(1) = dz*(- S_bar(1)/Pstrat(1) - (1./(gamma*press0(1)))*dptopdt)
+    ! horizontal-mean vertical wind
 
-    do k = 2,nz-1
-      w_0(k) &
-      = w_0(k-1) &
-        + dz*(- S_bar(k)/Pstrat(k) - (1./(gamma*press0(k)))*dptopdt)
-    end do
+    w_0 = 0.
+
+    if (w0_mod == 'Almgrenetal08') then
+       do k = 1,nz-1
+          expo = exp(-g_ndim*rhoStrat(k) / (gamma*press0(k)) * z(k))
+
+          w_0(k) &
+          = w_0(k-1) &
+            + dz*expo &
+              * (- S_bar(k)/Pstrat(k) &
+                 - g_ndim*rhow_bar(k)/(gamma*press0(k)) &
+                 - dptopdt/(gamma*press0(k)))
+       end do
+
+       do k = 1,nz-1
+          expo &
+          = exp(g_ndim*rhoStrat(k) / (gamma*press0(k)) &
+                * 0.5*(z(k) + z(k+1)))
+
+          w_0(k) = expo * w_0(k)
+       end do
+      else if (w0_mod == 'ONK14') then
+       w_0(1) = dz*(- S_bar(1)/Pstrat(1) - (1./(gamma*press0(1)))*dptopdt)
+
+       do k = 2,nz-1
+          w_0(k) &
+          = w_0(k-1) &
+            + dz*(- S_bar(k)/Pstrat(k) - (1./(gamma*press0(k)))*dptopdt)
+       end do
+      else
+       stop'ERROR: wrong w0_mod'
+    end if
 
 
   end subroutine heat_w0
 
 end module poisson_module
-

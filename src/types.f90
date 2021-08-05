@@ -6,7 +6,6 @@ module type_module
   !    data fields.
   !-----------------------------------------------------------------  
  
-  use mpi
 
   !-----------------------------------------------------------
   implicit none
@@ -36,7 +35,7 @@ module type_module
 
 
   ! MPI include (parameters needed below)
-!  include 'mpif.h'
+  include 'mpif.h' 
   
   ! MPI variables
   integer :: ierror
@@ -70,6 +69,14 @@ module type_module
   ! real*4, dimension(:,:), allocatable :: field_out
   real*4, dimension(:,:), allocatable :: field_out, field_mst
 
+  !UAB
+  !-----------------------------------------------------------------
+  ! for sponge: maximum damping rate in 1/dt
+  !-----------------------------------------------------------------
+
+  real :: alpspg
+  !UAE
+  
   !-----------------------------------------------------------------
   ! for 
   ! (1) Rayleigh damping in land cells and 
@@ -130,6 +137,8 @@ module type_module
   logical :: detailedinfo
   logical :: RHS_diagnostics
 
+  logical :: PVinversion
+
   namelist / outputList / &
        & dataFileName, restartFile, dimOut, varOut, &
        !achatzb
@@ -138,7 +147,7 @@ module type_module
        & offset, optVarOut, wkbVarOut, outputType, nOutput, maxIter, &
        & outputTimeDiff, maxTime, solutionTime, solutionTimeUnit, &
        & restart, showGhostCellsX, showGhostCellsY, showGhostCellsZ, &
-       & thetaOffset, rhoOffset, detailedinfo, RHS_diagnostics
+       & thetaOffset, rhoOffset, detailedinfo, RHS_diagnostics, PVinversion
        
 
   !-----------------------------------------------------------------  
@@ -310,11 +319,12 @@ module type_module
   ! hotBubble, coldBubble, hotBubble3D
   !------------------------------------------
 
-  real :: dTheta0_dim, xRadius_dim, zRadius_dim
+  real :: dTheta0_dim, xRadius_dim, zRadius_dim, rhoCenter_dim
   real :: zExcentricity
   namelist / bubble / &
        &       dTheta0_dim, xRadius_dim, zRadius_dim, &
-       &       xCenter_dim, zCenter_dim, zExcentricity
+       &       xCenter_dim, zCenter_dim, zExcentricity, &
+       &       yCenter_dim, rhoCenter_dim
     
 
   ! hot and cold bubble by Robert
@@ -345,6 +355,15 @@ module type_module
   !                          Baroclinic life cycle: realistic
   !-----------------------------------------------------------------
 
+  !UAB
+  logical :: zero_initial_state ! zero_initial_state = .true. means that 
+                                ! the equilibrium state is determined but 
+                                ! that then the code is initialized with 
+                                ! zero winds and and zero density and 
+                                ! pressure fluctuations (to investigate 
+                                ! the effect of the potential-temperature 
+                                ! relaxation)
+  !UAE
   real :: z_trpp0_dim ! mean tropopause height (m)
   real :: z_baro_dim  ! alt. above which the atmo. is barotropic (m)
   real :: deltht_dim  ! meridional potential-temp. contrast (K)
@@ -392,8 +411,13 @@ module type_module
                                          u_env_pp, v_env_pp
 
   ! relaxation rates for Held & Suarez (1994)
-  real, dimension(:,:), allocatable :: kt_hs
-  real, dimension(:), allocatable :: kv_hs
+  real, dimension(:,:), allocatable :: kt_hs, kv_hs
+  real, dimension(:), allocatable :: kw_hs
+
+  !UAB
+  ! relaxation rates for Held & Suarez (1994)
+  real, dimension(:,:), allocatable :: kr_sp, kr_sp_w
+  !UAE
 
   ! switch of thermal relaxation in the divergence constraint
   integer :: RelaxHeating 
@@ -409,7 +433,10 @@ module type_module
   real :: proc_noise, dTh_atm
   
   namelist / baroclinic_LC / &
-        & z_trpp0_dim, z_baro_dim, deltht_dim, thet0_dim, &
+        !UAC & z_trpp0_dim, z_baro_dim, deltht_dim, thet0_dim, &
+        & zero_initial_state, z_trpp0_dim, z_baro_dim, deltht_dim, &
+        & thet0_dim, &
+        !UAE
         & ntrp_dim, nstr_dim, jwdth_dim, kaptpp, &
         & t_relax_bar, &
         & add_ptptb, &
@@ -470,9 +497,15 @@ module type_module
   real :: dtMax_dim 
   real :: turb_dts
   integer :: n_shap                        ! (half) order of the Shapiro filter
-  real :: shap_dts_dim                     ! horizontal-Shapiro-filter 
-                                           ! damping time scale (s)
+  !UAC
+  !real :: shap_dts_dim                     ! horizontal-Shapiro-filter 
+  !                                         ! damping time scale (s)
+  !                                         ! < 0 means no filter
+  real :: shap_dts_fac                     ! horizontal-Shapiro-filter 
+                                           ! damping time scale 
+                                           ! (in units of the time step)
                                            ! < 0 means no filter
+  !UAE
   
   character(len=20) :: tStepChoice         ! "cfl", "fix"
   character(len=20) :: timeScheme          ! LS_Will_RK3 / Euler
@@ -511,9 +544,8 @@ module type_module
        & fluxType, reconstType, musclType, limiterType1, &
        & fluctuationMode, TurbScheme, turb_dts, DySmaScheme, dtWave_on, &
        & heatingONK14, &
-       !UAB
-       & dens_relax, shap_dts_dim, n_shap
-       !UAE
+       !UAC & dens_relax, shap_dts_dim, n_shap
+       & dens_relax, shap_dts_fac, n_shap
 
   integer :: nStages
   logical :: updateMass         ! transport of mass=var(1)  on/off
@@ -551,16 +583,15 @@ module type_module
 
   
   ! hypre and bicgstab objects
-  !achatzb
-  !integer*8 grid_hypre, stencil_hypre, A_hypre, b_hypre, x_hypre, solver_hypre
-  !real, dimension(:), allocatable :: values_hypre
   integer*8 grid_hypre, stencil_e, stencil_i, A_hp_e, A_hp_i, &
             b_hp_e, b_hp_i, x_hp_e, x_hp_i, solver_hp_e, solver_hp_i
   real, dimension(:), allocatable :: values_e
   real, dimension(:), allocatable :: values_i
-  real, dimension(:,:,:), allocatable :: ac_b, al_b,ar_b, ab_b,af_b, &
+  !UAC real, dimension(:,:,:), allocatable :: ac_b, al_b,ar_b, ab_b,af_b, &
+  real, dimension(:,:,:), allocatable :: ac_b,acv_b,ach_b, al_b,ar_b, &
+                                         ab_b,af_b, &
+  !UAE
                                          ad_b,au_b, alb_b,alf_b,arb_b,arf_b
-  !achatze
 
   real, dimension(:), allocatable :: bvalue_vector_hypre, &
                                      xvalue_vector_hypre
@@ -617,7 +648,8 @@ module type_module
   real :: press0_dim                       ! pressure at z=0 in Pa
   real,dimension(3) :: backgroundFlow_dim
   real :: f_Coriolis_dim                   ! Coriolis parameter
-  real :: z_tr_dim                         ! height of topopause
+  character(len=30) :: corset              ! constant / periodic 
+  real :: z_tr_dim                         ! height of tropopause
   real :: theta_tr_dim                     ! const pot. temp. of troposphere
   real :: gamma_t, gamma_s                 ! lapse rates in trop and strat
   !UAB
@@ -640,7 +672,7 @@ module type_module
        & N_BruntVaisala_dim, theta0_dim, &
        & Temp0_dim, press0_dim, &
        & backgroundFlow_dim,&
-       & f_Coriolis_dim,&
+       & f_Coriolis_dim, corset, &
        & z_tr_dim, theta_tr_dim, gamma_t, gamma_s, bvarOut, &
        !UAB
        & tp_strato_dim, tp_srf_trp_dim, tpdiffhor_tropo_dim, &
@@ -658,34 +690,57 @@ module type_module
   !-----------------------------------------------------------------
   
   logical :: topography    ! via k = 1
-! achatzb
-! topography_mask = .true.  if cell is below topographic surface
-! topography_mask = .false. if cell is above topographic surface
-! topography_surface x-y-dependent mountain surface
-  logical, dimension(:,:,:), allocatable :: topography_mask
+
+  !UAD logical, dimension(:,:,:), allocatable :: topography_mask
+
+  ! topography_surface x-y-dependent mountain surface
   real, dimension(:,:), allocatable :: topography_surface
-! achatze
+
+  !UAB
+  ! vertical index of (velocity) reconstruction points just above the 
+  ! mountain surface
+  integer, dimension(:,:,:), allocatable ::  kbl_topo
+  ! topography gradients in x- and y-direction 
+  ! (below the reconstruction points)
+  real, dimension(:,:,:), allocatable :: dhdx, dhdy
+  ! location of (velocity) interpolation point to be used in determining 
+  ! the velocity at the reconstruction point
+  real, dimension(:,:,:), allocatable :: x_ip, y_ip, z_ip
+  ! factors between tangential or normal velocity at the reconstruction 
+  ! and interpolation points
+  real, dimension(:,:,:), allocatable :: velocity_reconst_t
+  real, dimension(:,:,:), allocatable :: velocity_reconst_n
+  !roughness length
+  real :: z_0_dim, z_0
+  !UAE
+
   real :: mountainHeight_dim
   real :: mountainWidth_dim
   integer :: mountain_case
   integer :: range_fac
   namelist / topographyList / topography, &
-       & mountainHeight_dim, mountainWidth_dim, mountain_case, range_fac
+       & mountainHeight_dim, mountainWidth_dim, mountain_case, range_fac, &
+       !UAB
+       z_0_dim
+       !UAE
   
   
   !-----------------------------------------------------------------
   !                         Boundary
   !-----------------------------------------------------------------
 
-  logical :: rhoFluxCorr, iceFluxCorr, uFluxCorr, vFluxCorr, wFluxCorr, thetaFluxCorr
+  logical :: rhoFluxCorr, iceFluxCorr, uFluxCorr, vFluxCorr, wFluxCorr, &
+             thetaFluxCorr
   integer :: nbCellCorr
   
   ! sponge layer
-  logical :: spongeLayer
+  !UAc logical :: spongeLayer
+  logical :: spongeLayer, sponge_uv
   real    :: spongeHeight
   integer :: kSponge
   real    :: zSponge
-  real    :: spongeAlphaZ_dim
+  !UAC real    :: spongeAlphaZ_dim
+  real    :: spongeAlphaZ_dim, spongeAlphaZ_fac
 
 ! gaga: backup, delete later
   character(len=10) :: utopcond      ! dudz=0 or default u=0
@@ -701,9 +756,11 @@ module type_module
 
   namelist / boundaryList / rhoFluxCorr, iceFluxCorr, uFluxCorr, &
        & vFluxCorr, wFluxCorr, thetaFluxCorr, nbCellCorr, &
-       & spongeLayer, spongeHeight, &
+       !UAC & spongeLayer, spongeHeight, &
+       & spongeLayer, sponge_uv, spongeHeight, &
        & zSponge, &
-       & spongeAlphaZ_dim, utopcond, rhocond, thcond
+       !UAC & spongeAlphaZ_dim, utopcond, rhocond, thcond
+       & spongeAlphaZ_dim, spongeAlphaZ_fac, utopcond, rhocond, thcond
 
   ! boundary types
   character(len=15) :: xBoundary
@@ -751,9 +808,6 @@ module type_module
   
   ! maximum total number of rays provided in work space
   integer :: nray_wrk
-
-  ! MPI datatype to handle ray volumes
-  integer :: mpi_raytype
   
   ! namelist "rayTracer"
   logical :: rayTracer ! run ray tracer
@@ -811,10 +865,11 @@ contains
 
   musclType = "muscl1"            ! muscl1 / muscl2
   heatingONK14 = .false.          ! heating implemented as Oneil and Klein (2014)
-  shap_dts_dim = -1.              ! Shaprio filter switched off
-  
-  include_ice = .false.           ! switch ice scheme off
-  
+  !UAC shap_dts_dim = -1.              ! Shaprio filter switched off
+  shap_dts_fac = -1.              ! Shaprio filter switched off
+  corset = "constant"             ! periodic Coriolis parameter 
+                                  ! (mimicking real earth)
+
   end subroutine default_values
 
 end module type_module

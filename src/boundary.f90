@@ -54,7 +54,7 @@ contains
       endif
 
     case default
-       stop "setBoundary: unknown case xBoundary"
+       stop"setBoundary: unknown case xBoundary"
     end select
 
     
@@ -72,7 +72,7 @@ contains
       endif
 
     case default
-       stop "setBoundary: unknown case yBoundary"
+       stop"setBoundary: unknown case yBoundary"
     end select
 
     
@@ -81,14 +81,17 @@ contains
     !------------------------------
     select case( zBoundary )
        
+
     case( "periodic" ) 
        call setBoundary_z_periodic(var,flux,option)
+     
        
     case( "solid_wall" )
        call setBoundary_z_solidWall(var,flux,option)
        
+    
     case default
-       stop "setBoundary: unknown case zBoundary"
+       stop"setBoundary: unknown case zBoundary"
     end select
 
 
@@ -324,7 +327,7 @@ contains
        return
 
     case default
-       stop "setBoundary_x: unknown option."
+       stop"setBoundary_x: unknown option."
     end select
 
   end subroutine setBoundary_x_periodic
@@ -395,6 +398,7 @@ contains
                & y-horizontal BC for ice variables set."
       
        end if
+
 
        if( updateTheta ) then
           ! potential temperature -> iVar = 6
@@ -557,7 +561,7 @@ contains
        
 
     case default
-       stop "setBoundary_y: unknown option."
+       stop"setBoundary_y: unknown option."
     end select
 
 
@@ -796,7 +800,7 @@ contains
        return
 
     case default
-       stop "setBoundary_y: unknown option."
+       stop"setBoundary_y: unknown option."
     end select
 
 
@@ -862,7 +866,7 @@ contains
                 var(1:nx,1:ny,nz+1,1) &
                 = - var(1:nx,1:ny,nz,1) &
                   + dens_env_pp(:,:,nz) - rhoStrat(nz) &
-                  + dens_env_pp(:,:,nz+1) - rhoStrat(nz+1)
+                  + dens_env_pp(:,:,nz+1) - rhoStrat(nz+1) 
                else
                 var(1:nx,1:ny,0,1) &
                 = - var(1:nx,1:ny,1,1) + dens_env_pp(:,:,1) &
@@ -872,10 +876,15 @@ contains
                 = - var(1:nx,1:ny,nz,1) + dens_env_pp(:,:,nz) &
                   + dens_env_pp(:,:,nz+1)
              end if
-            else
+           else if (testCase == "smoothVortex") then
+              var(1:nx,1:ny,0,1) = var(1:nx,1:ny,1,1)
+              var(1:nx,1:ny,nz+1,1) = var(1:nx,1:ny,nz,1)
+           else
              do k = 1,nbz
-                var(:,:,-k+1,1) = -var(:,:,k,1)
-                var(:,:,nz+k,1) = -var(:,:,nz-k+1,1)
+                
+                var(:,:,-k+1,1) = -var(:,:,k,1) 
+                var(:,:,nz+k,1) = -var(:,:,nz-k+1,1) 
+                
              end do
           end if
 
@@ -890,11 +899,14 @@ contains
                 var(1:nx,1:ny,nz+1,6) &
                 = - var(1:nx,1:ny,nz,6) &
                   + dens_env_pp(:,:,nz) - rhoStrat(nz) &
-                  + dens_env_pp(:,:,nz+1) - rhoStrat(nz+1)
-               else
+                  + dens_env_pp(:,:,nz+1) - rhoStrat(nz+1) 
+             else if (testCase == "smoothVortex") then
+                var(1:nx,1:ny,0,6) = var(1:nx,1:ny,1,6)
+                var(1:nx,1:ny,nz+1,6) = var(1:nx,1:ny,nz,6)
+             else
                 do k = 1,nbz
-                   var(:,:,-k+1,6) = -var(:,:,k,6)
-                   var(:,:,nz+k,6) = -var(:,:,nz-k+1,6)
+                   var(:,:,-k+1,6) = -var(:,:,k,6) 
+                   var(:,:,nz+k,6) = -var(:,:,nz-k+1,6) 
                 end do
              end if
           end if
@@ -950,38 +962,45 @@ contains
           !    life-cycle simulation: only deviations from environmental 
           !                           state reflected,
           !                           sign not changed (free slip)
-          ! -> FS: changed sign back to no slip
+          ! FS changed sign back to no slip 
 
-          if (testCase == "baroclinic_LC") then 
-             ! ! u
-             ! var(1:nx,1:ny,0,2) &
-             ! = var(1:nx,1:ny,1,2) - u_env_pp (:,:,1) + u_env_pp (:,:,0) 
-             ! var(1:nx,1:ny,nz+1,2) &
-             ! = var(1:nx,1:ny,nz,2) - u_env_pp (:,:,nz) + u_env_pp (:,:,nz+1)
+          ! if (testCase == "baroclinic_LC") then 
+          !    ! u
+          !    var(1:nx,1:ny,0,2) &
+          !    = var(1:nx,1:ny,1,2) - u_env_pp (:,:,1) + u_env_pp (:,:,0) 
+          !    var(1:nx,1:ny,nz+1,2) &
+          !    = var(1:nx,1:ny,nz,2) - u_env_pp (:,:,nz) + u_env_pp (:,:,nz+1)
 
-             ! ! v
-             ! var(1:nx,1:ny,0,3) &
-             ! = var(1:nx,1:ny,1,3) - v_env_pp (:,:,1) + v_env_pp (:,:,0) 
-             ! var(1:nx,1:ny,nz+1,3) &
-             ! = var(1:nx,1:ny,nz,3) - v_env_pp (:,:,nz) + v_env_pp (:,:,nz+1)
+          !    ! v
+          !    var(1:nx,1:ny,0,3) &
+          !    = var(1:nx,1:ny,1,3) - v_env_pp (:,:,1) + v_env_pp (:,:,0) 
+          !    var(1:nx,1:ny,nz+1,3) &
+          !    = var(1:nx,1:ny,nz,3) - v_env_pp (:,:,nz) + v_env_pp (:,:,nz+1)
+          !   else
+           if (testCase == "baroclinic_LC") then 
              do k = 1,nbz
                 ! u
-                var(:,:,-k+1,2) = -var(:,:,k,2)+u_env_pp (:,:,k) + u_env_pp (:,:,-k+1)
-                var(:,:,nz+k,2) = -var(:,:,nz-k+1,2)+u_env_pp (:,:,nz-k+1) + u_env_pp (:,:,nz+k)
-                
+                var(:,:,-k+1,2) = -var(:,:,k,2)+var_env(:,:,k,2) + var_env(:,:,-k+1,2)
+                var(:,:,nz+k,2) = -var(:,:,nz-k+1,2)+var_env(:,:,nz-k+1,2) + var_env(:,:,nz+k,2)
+
                 ! v
                 var(:,:,-k+1,3) = -var(:,:,k,3)
                 var(:,:,nz+k,3) = -var(:,:,nz-k+1,3)
              end do
-            else
+          else if (testCase == "smoothVortex") then
+             var(1:nx,1:ny,0,2) = var(1:nx,1:ny,1,2)
+              var(1:nx,1:ny,nz+1,2) = var(1:nx,1:ny,nz,2)
+              var(1:nx,1:ny,0,3) = var(1:nx,1:ny,1,3)
+              var(1:nx,1:ny,nz+1,3) = var(1:nx,1:ny,nz,3)
+          else
              do k = 1,nbz
                 ! u
                 var(:,:,-k+1,2) = -var(:,:,k,2)
-                var(:,:,nz+k,2) = -var(:,:,nz-k+1,2)
+                var(:,:,nz+k,2) = -var(:,:,nz-k+1,2) 
 
                 ! v
-                var(:,:,-k+1,3) = -var(:,:,k,3)
-                var(:,:,nz+k,3) = -var(:,:,nz-k+1,3)
+                var(:,:,-k+1,3) = -var(:,:,k,3) 
+                var(:,:,nz+k,3) = -var(:,:,nz-k+1,3) 
              end do
           end if
        end if
@@ -998,13 +1017,16 @@ contains
 
              ! z = zMax
              var(1:nx,1:ny,nz+1,5) &
-             = var(1:nx,1:ny,nz,5) - p_env_pp(:,:,nz) + p_env_pp(:,:,nz+1)  
+             = var(1:nx,1:ny,nz,5) - p_env_pp(:,:,nz) + p_env_pp(:,:,nz+1) 
+          else if (testCase == "smoothVortex") then
+             var(1:nx,1:ny,0,5) = var(1:nx,1:ny,1,5)
+              var(1:nx,1:ny,nz+1,5) = var(1:nx,1:ny,nz,5)
             else
              ! z = 0
-             var(:,:,0,5) = var(:,:,1,5)       
+             var(:,:,0,5) = var(:,:,1,5)      
 
              ! z = zMax
-             var(:,:,nz+1,5) = var(:,:,nz,5)   
+             var(:,:,nz+1,5) = var(:,:,nz,5)  
           end if
        end if
 
@@ -1130,7 +1152,7 @@ contains
           end if
 
           ! replace flux by CDS fluxes at upper / lower region
-          if( rhoFluxCorr ) stop 'ERROR: rhoFluxCorr = .false. expected'
+          if( rhoFluxCorr ) stop'ERROR: rhoFluxCorr = .false. expected'
        end if ! updateMass
 
        
@@ -1220,7 +1242,7 @@ contains
              print*,"verticalBoundary: vertical BC for theta set"
           end if
 
-          if( thetaFluxCorr ) stop 'ERROR: thetaFluxCorr = .false. expected'
+          if( thetaFluxCorr ) stop'ERROR: thetaFluxCorr = .false. expected'
        end if ! updateTheta
 
        if( predictMomentum ) then
@@ -1243,15 +1265,15 @@ contains
 
           ! replace flux by CDS fluxes at upper / lower region
 
-          if( uFluxCorr ) stop 'ERROR: uFluxCorr = .false. expected'
+          if( uFluxCorr ) stop'ERROR: uFluxCorr = .false. expected'
 
-          if( vFluxCorr ) stop 'ERROR: vFluxCorr = .false. expected'
+          if( vFluxCorr ) stop'ERROR: vFluxCorr = .false. expected'
 
-          if( wFluxCorr ) stop 'ERROR: wFluxCorr = .false. expected'
+          if( wFluxCorr ) stop'ERROR: wFluxCorr = .false. expected'
        end if ! predictMomentum
        
     case default
-       stop "setBoundary_z: unknown option."
+       stop"setBoundary_z: unknown option."
     end select
 
   end subroutine setBoundary_z_solidWall

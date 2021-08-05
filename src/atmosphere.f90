@@ -14,18 +14,22 @@ module atmosphere_module
 
   real, dimension(:), allocatable :: PStrat, rhoStrat, thetaStrat, &
                                      bvsStrat
-  !UAB
   real, dimension(:), allocatable :: PStrat_0, rhoStrat_0
+  real, dimension(:), allocatable :: rhoStrat_d,rhoStrat_s
+
   real, dimension(:), allocatable :: pistrat
-  !UAE
   real, dimension(:), allocatable :: PStratTilde, rhoStratTilde, &
                                      thetaStratTilde
 
-  real, dimension(:), allocatable :: PStrat00, PStrat01, rhoStrat00, rhoStrat01, thetaStrat00, thetaStrat01, bvsStrat00, bvsStrat01, PStratTilde00, PStratTilde01, rhoStratTilde00, rhoStratTilde01, thetaStratTilde00, thetaStratTilde01
+  real, dimension(:), allocatable :: PStrat00, PStrat01, rhoStrat00, &
+                                     rhoStrat01, thetaStrat00, &
+                                     thetaStrat01, bvsStrat00, &
+                                     bvsStrat01, PStratTilde00, &
+                                     PStratTilde01, rhoStratTilde00, &
+                                     rhoStratTilde01, thetaStratTilde00, &
+                                     thetaStratTilde01
 
-  real, dimension(:), allocatable :: Ro, RoInv 
-
-
+  real, dimension(:), allocatable :: Ro, RoInv
 
   ! reference quantites
   real :: rhoRef     ! reference density
@@ -53,7 +57,7 @@ module atmosphere_module
   real :: Ma, MaInv2,Ma2         ! Mach number and 1/Ma^2, Ma^2
   real :: Fr, FrInv2,Fr2         ! Froude number Fr and 1/Fr^2, Fr^2
   real :: sig                    ! Ma^2/Fr^2
-  ! real :: Ro, RoInv         ! Rossby number and its inverse
+ !FS real :: Ro, RoInv              ! Rossby number and its inverse
 
   ! pressure scale height
   real :: hp
@@ -126,7 +130,7 @@ contains
     ! for baroclinic case
     real :: T_c_b1, pow_t, pow_s, p_t_b  ! tropopause quantities
     real :: T_bar, T_c_b, p_bar          ! calculated quantities
-    real :: tp_sponge !FS
+    real :: tp_sponge, tp_sp1,tp_sp2 !FS
 !gagarinae
 
     !UAB
@@ -136,9 +140,17 @@ contains
     ! debugging
     integer,parameter :: errorlevel = 10 ! 0 -> no output
 
-    integer :: j00
+    integer :: i00, j00
     real :: yloc, ymax
     real, dimension(0:ny+1) :: f_Coriolis_y
+
+    real :: topos_u, topos_v, topos_w, &
+            x_sp_u, y_sp_u, z_sp_u, &
+            x_sp_v, y_sp_v, z_sp_v, &
+            x_sp_w, y_sp_w, z_sp_w, &
+            dRP_u, dIP_u, dRP_v, dIP_v, dRP_w, dIP_w
+
+    real :: rhodl, pcoeff_r1, p_dim1
 
     ! allocate PStrat
     if( .not. allocated(pStrat) ) then
@@ -172,7 +184,24 @@ contains
     ! allocate rhoStrat
     if( .not. allocated(rhoStrat) ) then
        allocate( rhoStrat(-1:nz+2),stat=allocstat)
-       if(allocstat /= 0) stop "atmosphere.f90: could not allocate rhoStrat"
+       if(allocstat /= 0) then
+          stop "atmosphere.f90: could not allocate rhoStrat"
+       end if
+    end if
+
+    ! allocate rhoStrat_d
+    if( .not. allocated(rhoStrat_d) ) then
+       allocate( rhoStrat_d(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) then
+          stop "atmosphere.f90: could not allocate rhoStrat_d"
+       end if
+    end if
+
+    if( .not. allocated(rhoStrat_s) ) then
+       allocate( rhoStrat_s(-1:nz+2),stat=allocstat)
+       if(allocstat /= 0) then
+          stop "atmosphere.f90: could not allocate rhoStrat_s"
+       end if
     end if
 
     !UAB 200413
@@ -200,7 +229,8 @@ contains
 
     ! allocate squared Brunt-Vaisala frequency bvsStrat
     if( .not. allocated(bvsStrat) ) then
-       allocate( bvsStrat(-1:nz+1),stat=allocstat)
+       !UAC allocate( bvsStrat(-1:nz+1),stat=allocstat)
+       allocate( bvsStrat(-1:nz+2),stat=allocstat)
        if(allocstat /= 0) &
          & stop "atmosphere.f90: could not allocate bvsStrat"
     end if
@@ -283,14 +313,16 @@ contains
 
      ! allocate squared Brunt-Vaisala frequency bvsStrat
     if( .not. allocated(bvsStrat00) ) then
-       allocate( bvsStrat00(-1:nz+1),stat=allocstat)
+       !UAC allocate( bvsStrat00(-1:nz+1),stat=allocstat)
+       allocate( bvsStrat00(-1:nz+2),stat=allocstat)
        if(allocstat /= 0) &
          & stop "atmosphere.f90: could not allocate bvsStrat"
     end if
 
     ! allocate squared Brunt-Vaisala frequency bvsStrat
     if( .not. allocated(bvsStrat01) ) then
-       allocate( bvsStrat01(-1:nz+1),stat=allocstat)
+       !UAC allocate( bvsStrat01(-1:nz+1),stat=allocstat)
+       allocate( bvsStrat01(-1:nz+2),stat=allocstat)
        if(allocstat /= 0) &
          & stop "atmosphere.f90: could not allocate bvsStrat"
     end if
@@ -345,8 +377,13 @@ contains
        Fr = uRef / sqrt(g*lRef)   ! 
 
     case( "Klein" )
-       rhoRef = 1.184             ! in kg/m^3
-       pRef = 101325.0            ! in Pa = kg/m/s^2
+       ! if (testCase == "smoothVortex")then
+       !    rhoRef = 0.5!1.184             ! in kg/m^3
+       !    pRef = 101625.!101325.0            ! in Pa = kg/m/s^2
+       ! else
+          rhoRef = 1.184             ! in kg/m^3
+          pRef = 101325.0            ! in Pa = kg/m/s^2
+       !end if
        aRef = sqrt(pRef/rhoRef)   ! in m/s
        uRef = aRef                ! - "" -
        lRef = pRef/rhoRef/g       ! in m
@@ -373,7 +410,7 @@ contains
        tRef = lRef / uRef
 
     case( "SI" )
-       stop "init_atmosphere: Problems w. Exner pr.. Use Klein's scaling."
+       stop"init_atmosphere: Problems w. Exner pr.. Use Klein's scaling."
        ! with this scaling all quantities are 
        ! in SI units
        ! Note that in this case the thermodynamic
@@ -391,10 +428,10 @@ contains
        Ma = 1.0                   ! normally 1/sqrt(kappa) 
        !                          ! but we use Exner-pr./kappa like R. Klein
        Fr = 1.0/sqrt(g)           ! Fr = uRef/sqrt(g*lRef)
-
+          
     case default
        print*,"referenceQuantities = ", referenceQuantities
-       stop "init_atmosphere: unknown referenceQuantities. Stopping."
+       stop"init_atmosphere: unknown referenceQuantities. Stopping."
     end select
 
     ! auxiliary nondimensionals
@@ -407,8 +444,9 @@ contains
     ! Rossby number
 !   achatzb correction for zero Coriolis
 !   Ro = uRef/f_Coriolis_dim/lRef  
-!   RoInv = 1.0/Ro   
-! FS: see now further below   
+!   RoInv = 1.0/Ro       
+! FS: see now further below 
+
 
     ! Reynolds number
     if( .not. specifyReynolds ) ReInv = mu_viscous_dim/uRef/lRef
@@ -460,6 +498,7 @@ contains
        z(k) = lz(0) + real(k-1)*dz + dz/2.0
     end do
 
+
     j00=js+nby-1 !FS
     if (TestCase == "baroclinic_LC") then
        ymax = ly_dim(1)/lRef  
@@ -484,10 +523,14 @@ contains
        end if
     end if
 
-!   achatzb
     !----------------------------------
     !            setup topography
     !----------------------------------
+
+    !UAB
+    if (topography) then
+
+    z_0 = z_0_dim/lRef
 
     mountainHeight = mountainHeight_dim/lRef
     mountainWidth  = mountainWidth_dim/lRef
@@ -497,23 +540,28 @@ contains
 
     k_mountainw = pi/mountainWidth
 
-    do j = -nby+1, sizeY+nby   ! modified by Junhong Wei (20161104)
-       do i = -nbx+1, sizeX+nbx
-          if(abs(x(i)-x_center) <= mountainWidth) then
+    i00=is+nbx-1
+    j00=js+nby-1
+
+    do j = -nby, ny+nby
+       do i = -nbx, nx+nbx
+          if(abs(x(i+i00)-x_center) <= mountainWidth) then
              if(mountain_case == 1) then
                 topography_surface(i,j) &
                 = 0.5*mountainHeight &
-                    * (1. + cos(k_mountainw*(x(i)-x_center)))
-              else if(mountain_case == 2) then ! modififed by FDK (20191216)
+                    * (1. + cos(k_mountainw*(x(i+i00)-x_center)))
+               else if(mountain_case == 2) then
                 topography_surface(i,j) &
                 = 0.5*mountainHeight &
-                  * (1. + cos(k_mountainw*(x(i)-x_center))) &
-                  * (cos(range_fac*k_mountainw*(x(i)-x_center)))
-                  if (topography_surface(i,j) .lt. lz(0) .and. topography ) then
-                    print*,"Topography has negative values"
-                    print*, "lz_dim(0) should be set accordingly "
-                    stop
-                  end if
+                  * (1. + cos(k_mountainw*(x(i+i00)-x_center))) &
+                  * (cos(range_fac*k_mountainw*(x(i+i00)-x_center)))
+
+                if (      topography_surface(i,j) .lt. lz(0) &
+                  & .and. topography ) then
+                  print*,"Topography has negative values"
+                  print*, "lz_dim(0) should be set accordingly "
+                  stop
+                end if
             end if
            else
              topography_surface(i,j) = 0.
@@ -521,20 +569,288 @@ contains
        end do
     end do
 
-    do k = -nbz+1, sizeZ+nbz
-       do j = -nby+1, sizeY+nby
-          do i = -nbx+1, sizeX+nbx
-             if(z(k) < topography_surface(i,j)) then        
-                topography_mask(i,j,k) = .true.
-               else
-                topography_mask(i,j,k) = .false.
+    kbl_topo(:,:,:) = nz + 2*nbz
+
+    do k = 1, nz
+       do j = -nby, ny+nby-1
+          do i = -nbx, nx+nbx-1
+             ! vertical index of first u-point above the surface
+             topos_u &
+             = 0.5*(topography_surface(i,j) + topography_surface(i+1,j))
+             if(z(k-1) <= topos_u .and. z(k) > topos_u) then        
+                kbl_topo(i,j,1) = k
+             end if
+
+             ! vertical index of first v-point above the surface
+             topos_v &
+             = 0.5*(topography_surface(i,j) + topography_surface(i,j+1))
+             if(z(k-1) <= topos_v .and. z(k) > topos_v) then        
+                kbl_topo(i,j,2) = k
+             end if
+
+             ! vertical index of first w-point above the surface
+             topos_w = topography_surface(i,j)
+             if(z(k-1)+dz/2. <= topos_w .and. z(k)+dz/2. > topos_w) then  
+                kbl_topo(i,j,3) = k
              end if
           end do
        end do
     end do
-!   achatze
 
+    do j = -nby, ny+nby-1
+       do i = -nbx, nx+nbx-1
+          if (kbl_topo(i,j,1) < 1 .or. kbl_topo(i,j,1) > nz) then
+          print*,'kbl_topo(',i,',',j,',1) =',kbl_topo(i,j,1), &
+               & ' out of range'
+          stop
+          end if
 
+          if (kbl_topo(i,j,2) < 1 .or. kbl_topo(i,j,2) > nz) then
+          print*,'kbl_topo(',i,',',j,',2) =',kbl_topo(i,j,2), &
+               & ' out of range'
+          stop
+          end if
+
+          if (kbl_topo(i,j,3) < 1 .or. kbl_topo(i,j,3) > nz) then
+          print*,'kbl_topo(',i,',',j,',3) =',kbl_topo(i,j,3), &
+               & ' out of range'
+          stop
+          end if
+       end do
+    end do
+
+    do j = 1, ny
+       do i = 1, nx
+          !--------------------------------------------------
+          ! fields for reconstructing u just above the surface
+          !--------------------------------------------------
+
+          k = kbl_topo(i,j,1)
+
+          ! gradient of topography below u-reconstruction point
+
+          dhdx(i,j,1) &
+          = (topography_surface(i+1,j) - topography_surface(i,j))/dx
+          dhdy(i,j,1) &
+          = (  topography_surface(i,j+1) + topography_surface(i+1,j+1)&
+             - topography_surface(i,j-1) - topography_surface(i+1,j-1)) &
+            /(4.*dy)
+
+          ! height of topography below u-reconstruction point
+
+          topos_u &
+          = 0.5*(topography_surface(i,j) + topography_surface(i+1,j))
+
+          ! coordinates of surface point connected by its surface normal 
+          ! with the u-reconstruction point
+
+          z_sp_u &
+          = z(k) + (topos_u - z(k))/(1. + dhdx(i,j,1)**2 + dhdy(i,j,1)**2)
+          x_sp_u = x(i00+i) + dx/2. - dhdx(i,j,1)*(z_sp_u - z(k))
+          y_sp_u = y(j00+j) - dhdy(i,j,1)*(z_sp_u - z(k))
+
+          ! coordinates of free-atmosphere interpolation point connected 
+          ! by the surface normal to the u-reconstruction point
+
+          z_ip(i,j,1) = z(k+1)
+
+          if (abs(dhdx(i,j,1)*dz) > dx) then
+             print*,'abs(dhdx(',i,',',j,',1)*dz) > dx'
+             print*,'vertical grid to be refined!'
+             stop
+            else
+             x_ip(i,j,1) = x(i00+i) + dx/2. - dhdx(i,j,1)*dz
+          end if
+
+          if (abs(dhdy(i,j,1)*dz) > dy) then
+             print*,'abs(dhdy(',i,',',j,',1)*dz) > dy'
+             print*,'vertical grid to be refined!'
+             stop
+            else
+             y_ip(i,j,1) = y(j00+j) - dhdy(i,j,1)*dz
+          end if
+            
+          ! distance of surface point to u-reconstruction and 
+          ! interpolation point
+
+          dRP_u = sqrt(  (x_sp_u - x(i00+i) - dx/2.)**2 &
+                       + (y_sp_u - y(j00+j))**2 &
+                       + (z_sp_u - z(k))**2)
+
+          dIP_u = sqrt(  (x_ip(i,j,1) - x_sp_u)**2 &
+                       + (y_ip(i,j,1) - y_sp_u)**2 &
+                       + (z_ip(i,j,1) - z_sp_u)**2)
+
+          ! factors for determining the normal and tangential velocity at 
+          ! the u-reconstruction point from the corresponding velocities 
+          ! at the interpolation point
+ 
+          if (z_0 > 0.) then
+             if (dRP_u < z_0) then
+                velocity_reconst_t(i,j,1) = 0.0
+               else
+                velocity_reconst_t(i,j,1) = log(dRP_u/z_0)/log(dIP_u/z_0)
+             endif
+            else
+             velocity_reconst_t(i,j,1) = 1.0
+          end if
+
+          velocity_reconst_n(i,j,1)=dRP_u/dIP_u
+
+          !--------------------------------------------------
+          ! fields for reconstructing v just above the surface
+          !--------------------------------------------------
+
+          k = kbl_topo(i,j,2)
+
+          ! gradient of topography below v-reconstruction point
+
+          dhdx(i,j,2) &
+          = (  topography_surface(i+1,j) + topography_surface(i+1,j+1) &
+             - topography_surface(i-1,j) - topography_surface(i-1,j+1)) &
+             /(4.*dx)
+          dhdy(i,j,2) &
+          = (topography_surface(i,j+1) - topography_surface(i,j))/dy
+
+          ! height of topography below v-reconstruction point
+
+          topos_v &
+          = 0.5*(topography_surface(i,j) + topography_surface(i,j+1))
+
+          ! coordinates of surface point connected by its surface normal 
+          ! with the v-reconstruction point
+
+          z_sp_v &
+          = z(k) + (topos_v - z(k))/(1. + dhdx(i,j,2)**2 + dhdy(i,j,2)**2)
+          x_sp_v = x(i00+i) - dhdx(i,j,2)*(z_sp_v - z(k))
+          y_sp_v = y(j00+j) + dy/2. - dhdy(i,j,2)*(z_sp_v - z(k))
+
+          ! coordinates of free-atmosphere interpolation point connected 
+          ! by the surface normal to the v-reconstruction point
+
+          z_ip(i,j,2) = z(k+1)
+
+          if (abs(dhdx(i,j,2)*dz) > dx) then
+             print*,'abs(dhdx(',i,',',j,',2)*dz) > dx'
+             print*,'vertical grid to be refined!'
+             stop
+            else
+             x_ip(i,j,2) = x(i00+i) - dhdx(i,j,2)*dz
+          end if
+
+          if (abs(dhdy(i,j,2)*dz) > dy) then
+             print*,'abs(dhdy(',i,',',j,',2)*dz) > dy'
+             print*,'vertical grid to be refined!'
+             stop
+            else
+             y_ip(i,j,2) = y(j00+j) + dy/2. - dhdy(i,j,2)*dz
+          end if
+            
+          ! distance of surface point to v-reconstruction and 
+          ! interpolation point
+
+          dRP_v = sqrt(  (x_sp_v - x(i00+i))**2 &
+                       + (y_sp_v - y(j00+j) - dy/2.)**2 &
+                       + (z_sp_v - z(k))**2)
+
+          dIP_v = sqrt(  (x_ip(i,j,2) - x_sp_v)**2 &
+                       + (y_ip(i,j,2) - y_sp_v)**2 &
+                       + (z_ip(i,j,2) - z_sp_v)**2)
+
+          ! factors for determining the normal and tangential velocity at 
+          ! the v-reconstruction point from the corresponding velocities 
+          ! at the interpolation point
+ 
+          if (z_0 > 0.) then
+             if (dRP_v < z_0) then
+                velocity_reconst_t(i,j,2) = 0.0
+               else
+                velocity_reconst_t(i,j,2) = log(dRP_v/z_0)/log(dIP_v/z_0)
+             endif
+            else
+             velocity_reconst_t(i,j,2) = 1.0
+          end if
+
+          velocity_reconst_n(i,j,2)=dRP_v/dIP_v
+
+          !--------------------------------------------------
+          ! fields for reconstructing w just above the surface
+          !--------------------------------------------------
+
+          k = kbl_topo(i,j,3)
+
+          ! gradient of topography below w-reconstruction point
+
+          dhdx(i,j,3) &
+          = (topography_surface(i+1,j) - topography_surface(i-1,j))/(2.*dx)
+          dhdy(i,j,3) &
+          = (topography_surface(i,j+1) - topography_surface(i,j-1))/(2.*dy)
+
+          ! height of topography below w-reconstruction point
+
+          topos_w = topography_surface(i,j)
+
+          ! coordinates of surface point connected by its surface normal 
+          ! to the w-reconstruction point
+
+          z_sp_w &
+          =   z(k) + dz/2. &
+            + (topos_w - z(k) - dz/2.) &
+              /(1. + dhdx(i,j,3)**2 + dhdy(i,j,3)**2)
+          x_sp_w = x(i00+i) - dhdx(i,j,3)*(z_sp_w - z(k) - dz/2.)
+          y_sp_w = y(j00+j) - dhdy(i,j,3)*(z_sp_w - z(k) - dz/2.)
+
+          ! coordinates of free-atmosphere interpolation point connected 
+          ! by the surface normal to the w-reconstruction point
+
+          z_ip(i,j,3) = z(k+1) + dz/2.
+
+          if (abs(dhdx(i,j,3)*dz) > dx) then
+             print*,'abs(dhdx(',i,',',j,',3)*dz) > dx'
+             print*,'vertical grid to be refined!'
+             stop
+            else
+             x_ip(i,j,3) = x(i00+i) - dhdx(i,j,3)*dz
+          end if
+
+          if (abs(dhdy(i,j,3)*dz) > dy) then
+             print*,'abs(dhdy(',i,',',j,',3)*dz) > dy'
+             print*,'vertical grid to be refined!'
+             stop
+            else
+             y_ip(i,j,3) = y(j00+j) - dhdy(i,j,3)*dz
+          end if
+            
+          ! distance of surface point to w-reconstruction and 
+          ! interpolation point
+
+          dRP_w = sqrt(  (x_sp_w - x(i00+i))**2 + (y_sp_w - y(j00+j))**2 &
+                       + (z_sp_w - z(k) - dz/2.)**2)
+
+          dIP_w = sqrt(  (x_ip(i,j,3) - x_sp_w)**2 &
+                       + (y_ip(i,j,3) - y_sp_w)**2 &
+                       + (z_ip(i,j,3) - z_sp_w)**2)
+
+          ! factors for determining the normal and tangential velocity at 
+          ! the w-reconstruction point from the corresponding velocities 
+          ! at the interpolation point
+ 
+          if (z_0 > 0.) then
+             if (dRP_w < z_0) then
+                velocity_reconst_t(i,j,3) = 0.0
+               else
+                velocity_reconst_t(i,j,3) = log(dRP_w/z_0)/log(dIP_w/z_0)
+             endif
+            else
+             velocity_reconst_t(i,j,3) = 1.0
+          end if
+
+          velocity_reconst_n(i,j,3)=dRP_w/dIP_w
+       end do
+    end do
+
+    end if !topography
+    !UAE
 
     !---------------------------------------------
     !   Set up Sponge layer
@@ -556,6 +872,51 @@ contains
        select case (background)
 
 
+       case ('smoothV')
+
+          ! some stratified fields are still in use...
+          rhodl = 1./0.5
+          pcoeff_r1 = 1024.**2  * &
+               (1./72. - 6./35. + 15./17. &
+               - 74./33. + 57./32. + 174./31. &
+               - 269./15. + 450./29. + 153./8. &
+               - 1564./27. + 510./13. + 204./5. &
+               - 1./24.*(2210.-rhodl) &
+               + 12./23.*(85.-rhodl) &
+               + (510./11. + 3.*rhodl) &
+               - 4./21.*(391.+55.*rhodl) &
+               + 9./40.*(119.+110.*rhodl) &
+               + 18./19.*(25.-44.*rhodl) &
+               - 1./9.*(269.-462*rhodl) & 
+               + 6./17.*(29.-132*rhodl) &
+               + 3./16.*(19.+165.*rhodl) &
+               - 2./15.*(37.+110.*rhodl) &
+               + 3./7.*(5.+11.*rhodl) - 6./13.*(1.+2.*rhodl) &
+               + 1./24.*(1.+2.*rhodl) )
+          
+          
+          p_dim1 = pcoeff_r1/pRef*0.5*& 
+               (1.**2+1.**2)
+
+          NN      = 0.0
+          N2      = NN**2
+          
+          
+          pistrat = kappaInv* p_dim1**kappa
+          rho00 = 0.5/rhoRef
+          P00 = (kappaInv* p_dim1**kappa)**((1.0 - kappa)/kappa)
+          theta00 = P00/rho00
+
+          rhostrat = rho00
+          bvsstrat = 0.
+          PStrat = P00
+          thetaStrat = theta00
+          PStratTilde = P00
+          thetaStratTilde = theta00
+          rhoStratTilde = rho00
+          
+
+
           !-----------------------------------------------------------
           !   Isentropic troposphere / isothermal stratosphere
           !-----------------------------------------------------------
@@ -564,9 +925,9 @@ contains
           
           ! not implemented versions
           if ( referenceQuantities == "SI" ) &
-               & stop "atmosphere.f90: referenceQuantities = SI not impl.."
+               & stop"atmosphere.f90: referenceQuantities = SI not impl.."
           if( .not. fluctuationMode ) &
-               &  stop "atmosphere.f90: only fluctuationMode = TRUE impl.."
+               &  stop"atmosphere.f90: only fluctuationMode = TRUE impl.."
 
           ! quantities at tropopause
           z_tr = z_tr_dim / lRef
@@ -587,7 +948,7 @@ contains
 
                 power = 1.0/(gamma-1.0)
                 term = kappa*sig/theta_tr * zk
-                if (term > 1.0)stop "init_atmosphere: negative term. Stop."
+                if (term > 1.0)stop"init_atmosphere: negative term. Stop."
                 
                 Pstrat(k) = p0*( 1.0 - term)**power
                 rhoStrat(k) = PStrat(k) / thetaStrat(k)
@@ -615,7 +976,7 @@ contains
 
                    power = 1.0/(gamma-1.0)
                    term = kappa*sig/theta_tr * zk_half
-                   if (term > 1.0) stop "init_atmosphere: negative term. Stop."
+                   if (term > 1.0) stop"init_atmosphere: negative term. Stop."
 
                    PstratTilde(k) = p0 * (1.0 - term)**power
                    rhoStratTilde(k) = PStratTilde(k) / thetaStratTilde(k)
@@ -645,7 +1006,7 @@ contains
              !------------------------------------
 
              if( fluctuationMode ) &
-                  &stop "init_atmosphere: fluctuationMode not impl. for SI!" 
+                  &stop"init_atmosphere: fluctuationMode not impl. for SI!" 
              T0 = Temp0_dim / thetaRef   ! T0 in K
              N2 = kappa*g**2/Rsp/T0      ! isothermal Brunt-Vaisala fr.^2
              NN = sqrt(N2)               ! 
@@ -695,6 +1056,7 @@ contains
 
           end if
 
+          ! GBcorr
           bvsStrat = N2
 
           !-------------------------------------------------------------------
@@ -716,7 +1078,7 @@ contains
              !------------------------------------
 
              if( fluctuationMode ) then
-             stop "init_atmosphere: fluctuationMode not implmented for SI!" 
+             stop"init_atmosphere: fluctuationMode not implmented for SI!" 
              end if
 
              NN = 0.0
@@ -726,7 +1088,7 @@ contains
              do k = -1,nz+2
                 term = kappa*g/Rsp/theta0*z(k)
                 if (term > 1.0) then
-                   stop "init_atmosphere: negative term with power.Stop."
+                   stop"init_atmosphere: negative term with power.Stop."
                 end if
                 PStrat(k) = p0 * (1.0 - term)**power
                 thetaStrat(k) = theta0
@@ -756,7 +1118,7 @@ contains
                    print*,"z(nz) = ", z(k)
                    print*,"z(nz)*l = ", z(k)
                    print*,"lRef = ", lRef
-                   stop "stopping."                
+                   stop"stopping."                
                 end if
                 Pstrat(k) = p0*( 1.0 - term)**power
 
@@ -779,7 +1141,7 @@ contains
                       print*,"z(nz) = ", z(k)
                       print*,"z(nz)*l = ", z(k)
                       print*,"lRef = ", lRef
-                      stop "stopping."                
+                      stop"stopping."                
                    end if
                    PstratTilde(k) = p0*( 1.0 - term)**power
                    rhoStratTilde(k) = PStratTilde(k) / theta0
@@ -792,6 +1154,7 @@ contains
 
           end if
 
+          ! GBcorr
           bvsStrat = N2
 
           !----------------------------------------------------------------
@@ -813,7 +1176,7 @@ contains
              !   original equations in SI units
              !------------------------------------
              if( fluctuationMode ) then
-               stop "init_atmosphere: fluctuationMode not implmented for SI!"
+               stop"init_atmosphere: fluctuationMode not implmented for SI!"
              end if
 
              theta0 = theta0_dim / thetaRef       ! theta0 at z=0 in K
@@ -853,7 +1216,7 @@ contains
 
                 if( 1.0 + FrInv2*kappa*sig/N2/theta0*(term-1.0) < 0.0) then
                     print*,"init_atmosphere: power of a neg. number." 
-                    stop 'top of atmosphere too high for const-N'
+                    stop'top of atmosphere too high for const-N'
                 end if
 
                 Pstrat(k) &
@@ -861,6 +1224,10 @@ contains
                   * (1.0 + FrInv2*kappa*sig/N2/theta0 * (term-1.0) )**power
 
                 rhoStrat(k) = pStrat(k) / thetaStrat(k)             
+
+                !testb
+                !print*,'Pstrat(',k,') =',Pstrat(k)
+                !teste
              end do
 
              ! rhoStrat at half levels
@@ -872,13 +1239,13 @@ contains
                    term = exp( -Fr2 * N2 * zk_half )
 
                    if( term > 1.0 ) then
-                       stop "init_atmosphere: root of a negative number." 
+                       stop"init_atmosphere: root of a negative number." 
                    end if
 
                    if( 1.0 + FrInv2*kappa*sig/N2/theta0*(term-1.0) < 0.0) &
                    & then
                       print*,"init_atmosphere: power of a neg. number." 
-                      stop 'top of atmosphere too high for const-N'
+                      stop'top of atmosphere too high for const-N'
                    end if
 
                    PstratTilde(k) &
@@ -896,6 +1263,7 @@ contains
 
           end if
 
+          ! GBcorr
           bvsStrat = N2
 
          !-----------------------------------------------------------
@@ -907,7 +1275,7 @@ contains
        case( 'diflapse' )
 
           if ( referenceQuantities == "SI" ) then
-             stop "atmosphere.f90: referenceQuantities = SI not impl."
+             stop"atmosphere.f90: referenceQuantities = SI not impl."
           end if
 
           ! quantities at tropopause
@@ -1016,7 +1384,7 @@ contains
        case( 'HeldSuarez' )
 
           if ( referenceQuantities /= "Klein" ) then
-             stop "atmosphere.f90: referenceQuantities = Klein expected!"
+             stop"atmosphere.f90: referenceQuantities = Klein expected!"
           end if
 
           ! non-dimensional parameters of the Held-Suarez reference 
@@ -1044,6 +1412,11 @@ contains
           pistrat(0) = 1.0 + 0.5*dz * kappa/T_bar
           pistrat(1) = 1.0 - 0.5*dz * kappa/T_bar
 
+          if (pistrat(1) <= 0.) then
+             print*,'ERROR: non-positive pistrat at k =',1
+             stop
+          end if
+
           ! potential temperature just below and above the surface
           ! P and density determined as well
 
@@ -1052,7 +1425,7 @@ contains
              = max( tp_strato, &
                     pistrat(k) &
                     * (tp_srf_trp - 0.5*tpdiffhor_tropo &
-                       - 1.*ptdiffvert_tropo/kappa * log(pistrat(k))))!FS 0.5->1
+                       - 0.5*ptdiffvert_tropo/kappa * log(pistrat(k))))!FS 0.5->1
             
              
              thetaStrat(k) = T_bar/pistrat(k)
@@ -1068,14 +1441,19 @@ contains
           ! leapfrog
           ! P and density determined as well
 
-         do k = 2,nz-ceiling((0.375)*real(nz))!nz+2 !FS
+          do k = 2,nz+2!nz-ceiling((0.4)*real(nz))!nz+2 !FS
              pistar = pistrat(k-2) - 2.0*dz * kappa/thetaStrat(k-1)
+
+             if (pistar <= 0.) then
+                print*,'ERROR: non-positive pistar at k =',k
+                stop
+             end if
 
              T_bar &
              = max( tp_strato, &
                     pistar &
                     * (tp_srf_trp - 0.5*tpdiffhor_tropo &
-                       - 1.*ptdiffvert_tropo/kappa * log(pistar)))!FS 0.5->1
+                       - 0.5*ptdiffvert_tropo/kappa * log(pistar)))!FS 0.5->1
              
 
              thetastar = T_bar/pistar
@@ -1084,11 +1462,16 @@ contains
              =   pistrat(k-1) &
                - 0.5*dz * (kappa/thetastar + kappa/thetaStrat(k-1))
 
+             if (pistrat(k) <= 0.) then
+                print*,'ERROR: negative non-positive pistrat at k =',k
+                stop
+             end if
+
              T_bar &
              = max( tp_strato, &
                     pistrat(k) &
                     * (tp_srf_trp - 0.5*tpdiffhor_tropo &
-                       - 1.*ptdiffvert_tropo/kappa * log(pistrat(k))))!FS 0.5->1
+                       - 0.5*ptdiffvert_tropo/kappa * log(pistrat(k))))!FS 0.5->1
              
 
              thetaStrat(k) = T_bar/pistrat(k)
@@ -1097,42 +1480,57 @@ contains
 
              rhoStrat(k) = pStrat(k)/thetaStrat(k)
 
-             tp_sponge = T_bar
+            ! tp_sponge = T_bar
                 
           end do
 
+          !UAB
+          thetaStrat(-1) = thetaStrat(0)
+          pStrat(-1) = pStrat(0)
+          rhoStrat(-1) = rhoStrat(0)
+          pistrat(-1) = pistrat(0)
+          !UAE
 
-         ! close jets below sponge layer !FS
-          do k = nz+1-ceiling((0.375)*real(nz)), nz+2 !FS
-             pistar = pistrat(k-2) - 2.0*dz * kappa/thetaStrat(k-1) 
-&
-             T_bar &
-             =  tp_sponge + pistar*(0.5*tpdiffhor_tropo &
-                       + 1.*ptdiffvert_tropo/kappa * log(pistar))!FS 0.5->1
+
+    !      ! close jets below sponge layer !FS
+        !  do k = nz+1-ceiling((0.4)*real(nz)), nz+2 !FS
+        !      pistar = pistrat(k-2) - 2.0*dz * kappa/thetaStrat(k-1) 
+! &
+!              T_bar &
+!              =  tp_sponge + pistar*(0.5*tpdiffhor_tropo &
+!                        + 1.*ptdiffvert_tropo/kappa * log(pistar))!FS 0.5->1
            
 
-             thetastar = T_bar/pistar
+!              thetastar = T_bar/pistar
 
 
-             pistrat(k) &
-             =   pistrat(k-1) &
-               - 0.5*dz * (kappa/thetastar + kappa/thetaStrat(k-1)) 
+!              pistrat(k) &
+!              =   pistrat(k-1) &
+!                - 0.5*dz * (kappa/thetastar + kappa/thetaStrat(k-1)) 
 
-             T_bar &
-             = tp_sponge + pistrat(k)*(0.5*tpdiffhor_tropo &
-                       + 1.*ptdiffvert_tropo/kappa * log(pistrat(k)))!FS 0.5->1
+!              T_bar &
+!              = tp_sponge + pistrat(k)*(0.5*tpdiffhor_tropo &
+!                        + 1.*ptdiffvert_tropo/kappa * log(pistrat(k)))!FS 0.5->1
              
-             thetaStrat(k) = T_bar/pistrat(k)
+!              thetaStrat(k) = T_bar/pistrat(k)
 
 
-             pStrat(k) = pistrat(k)**((1.0 - kappa)/kappa)
+!              pStrat(k) = pistrat(k)**((1.0 - kappa)/kappa)
 
-             rhoStrat(k) = pStrat(k)/thetaStrat(k)
+!              rhoStrat(k) = pStrat(k)/thetaStrat(k)
 
-          end do
+!           end do
+
+          ! do k = (nz - ceiling(0.25*real(nz)))+1,nz+2 !FS
+          !    thetaStrat(k) = thetaStrat(nz - ceiling(0.25*real(nz)))
+          !    pStrat(k) = pStrat(nz - ceiling(0.25*real(nz)))
+          !    piStrat(k) = piStrat(nz - ceiling(0.25*real(nz)))
+          !    rhoStrat(k) = rhoStrat(nz - ceiling(0.25*real(nz)))
+            
+          ! end do
           
           
-
+         
 
           ! quantities at half levels
 
@@ -1167,7 +1565,7 @@ contains
 
        case default
           print*,"background = ", trim(background)
-          stop "atmosphere.f90/init_background: background not defined"
+          stop"atmosphere.f90/init_background: background not defined"
        end select
 
        ! non-dimensional squared Brunt-Vaisala frequency
@@ -1197,14 +1595,20 @@ contains
             = g_ndim/thetaStrat(nz+1) * (thetaStrat(nz+1) - thetaStrat(nz))/dz
        
        !UAB
+       bvsStrat(nz+2) = bvsStrat(nz+1)
+
        N2 = max(N2, bvsStrat(nz+1))
        
        if(N2 < 0.) then
-          stop 'ERROR: N2 < 0'
+          stop'ERROR: N2 < 0'
        else
           NN = sqrt(N2)
        end if
        !UAE
+
+       if (TestCase == "smoothVortex")then
+          bvsstrat(:) = 0.
+       end if
        
 
     case( "Boussinesq" )
@@ -1246,14 +1650,14 @@ contains
 
        case default
           print*,"background = ", trim(background)
-          stop "atmosphere.f90/init_background: background not defined"
+          stop"atmosphere.f90/init_background: background not defined"
        end select
 
        bvsStrat = N2
 
     case default
        print*,"model = ", model
-       stop "init_atmosphere: unknown case model."
+       stop"init_atmosphere: unknown case model."
     end select
 
 
@@ -1297,10 +1701,10 @@ contains
     deallocate(thetaStratTilde,stat=allocstat)
     if(allocstat /= 0) stop "atmosphere.f90: could not dealloc thetaStratTilde"
 
-    deallocate(Ro,stat=allocstat)
+    deallocate(Ro,stat=allocstat) !FS
     if(allocstat /= 0) stop "atmosphere.f90: could not dealloc Ro"
 
-    deallocate(RoInv,stat=allocstat)
+    deallocate(RoInv,stat=allocstat) !FS
     if(allocstat /= 0) stop "atmosphere.f90: could not dealloc RoInv"
 
   end subroutine terminate_atmosphere

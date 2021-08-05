@@ -136,7 +136,9 @@ contains
       ! reconstruction in x-direction
       do k = 2, sizeZ-1
         do j = 2, sizeY-1
+          !testb
           !if(master) print*,j,k
+          !teste
           phiX = u(:,j,k)
           call muscl_reconstruct1D_mcvariant( phiX, sizeX, phiTildeX)
           uTilde(:,j,k,1,:) = phiTildeX
@@ -193,7 +195,7 @@ contains
 
        
     case default
-       stop "muscl.f90/limit: unknown limiter type.Stop."
+       stop"muscl.f90/limit: unknown limiter type.Stop."
     end select
 
   end subroutine muscl_reconstruct3D
@@ -253,7 +255,7 @@ contains
 !       end do
 
 !    case default
-!       stop "muscl.f90/reconstruct2D: unknown direction.Stop."
+!       stop"muscl.f90/reconstruct2D: unknown direction.Stop."
 !    end select
 
 
@@ -302,7 +304,7 @@ contains
       else if(deltaL == 0.) then
 
         theta = deltaL / deltaR
-        phiTilde(i,1) = phi(i) + 0.5 * minmod(theta, 1.0) * deltaR
+        phiTilde(i,1) = phi(i) + 0.5 *minmod(theta, 1.0) * deltaR
         phiTilde(i,0) = phi(i)
 
       else
@@ -310,7 +312,7 @@ contains
         theta = deltaL / deltaR
         
         phiTilde(i,1) = phi(i) + 0.5 * minmod(theta, 1.0) * deltaR
-        phiTilde(i,0) = phi(i) - 0.5* minmod(1.0 / theta, 1.0) * deltaL
+        phiTilde(i,0) = phi(i) - 0.5 * minmod(1.0 / theta, 1.0) * deltaL
 
       end if
        
@@ -363,6 +365,9 @@ contains
            theta = deltaL / deltaR
            s = (2.0 + theta) / 3.0
            sigmaL = max(0.0, min(2 * theta, s, 2.0))
+           if (TestCase == 'baroclinic_LC')then
+              sigmaL = 1. !FSApr2021
+           end if
 
            phiTilde(i,1) = phi(i) + 0.5 * sigmaL * deltaR
            phiTilde(i,0) = phi(i)
@@ -373,12 +378,16 @@ contains
         
            s = (2.0 + theta) / 3.0
            !testb
-           ! if (master) print*,2 * theta, s
+           !if (master) print*,2 * theta, s
            !teste
            sigmaL = max(0.0, min(2 * theta, s, 2.0))
 
            s = (2.0 + 1.0 / theta) / 3.0
            sigmaR = max(0.0, min(2 / theta, s, 2.0))
+           if (TestCase == 'baroclinic_LC')then
+              sigmaL = 1.!FSApr2021
+              sigmaR = 1.!FSApr2021
+           end if
    
            phiTilde(i,1) = phi(i) + 0.5 * sigmaL * deltaR
            phiTilde(i,0) = phi(i) - 0.5 * sigmaR * deltaL
@@ -436,6 +445,7 @@ contains
         s = (2.0 + theta) / 3.0
         sigmaL = max(0.0, min(s, max(-theta / 2.0, &
                                    & min(2 * theta, s, 1.5))))
+       
 
         phiTilde(i,1) = phi(i) + 0.5 * sigmaL * deltaR
         phiTilde(i,0) = phi(i)
@@ -451,6 +461,8 @@ contains
         s = (2.0 + 1.0 / theta) / 3.0
         sigmaR = max(0.0, min(s, max(-0.5 / theta , &
                                    & min(2 / theta, s, 1.5))))
+        
+        
         
         phiTilde(i,1) = phi(i) + 0.5 * sigmaL * deltaR
         phiTilde(i,0) = phi(i) - 0.5 * sigmaR * deltaL
@@ -499,7 +511,7 @@ contains
 !       sigma = max(0.0,min(s,max(-theta/2.0,min(2*theta,s,1.5))))
        
 !    case default
-!       stop "muscl.f90/limit: unknown limiter type.Stop."
+!       stop"muscl.f90/limit: unknown limiter type.Stop."
 !    end select
 
 
@@ -529,6 +541,7 @@ contains
     else
        c = 0.0
     end if
+
 
   end function minmod
 

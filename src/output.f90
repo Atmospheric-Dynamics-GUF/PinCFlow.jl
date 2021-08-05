@@ -2,6 +2,7 @@ module output_module
 
   use type_module
   use atmosphere_module
+ 
 
   implicit none
 
@@ -10,9 +11,11 @@ module output_module
   ! public subroutines
   public :: output_data
   public :: read_data
+  public :: read_profile
   public :: output_wkb
   public :: output_field
   public :: output_profile
+  public :: output_fluxes
 
   ! internal subroutines (listed for completeness)
   public :: init_output
@@ -20,7 +23,6 @@ module output_module
 
   ! internal module variables (output variables)
   real, dimension(:,:,:), allocatable :: optVar
-
 
 contains
   
@@ -160,7 +162,11 @@ contains
                    
                       case(5) ! Exner function pi' 
                               !(deviation from background)
-                        field_prc(i,j) = (var(i,j,k,iVar))
+                       
+                         field_prc(i,j) = var(i,j,k,iVar)
+                     
+                       
+                        
 
                       case(6) ! potential temperature theta' 
                               ! (deviation from background, Boussinesq)
@@ -180,7 +186,7 @@ contains
                                 theta_dim = theta_dim - thetaStrat(k)*thetaRef
                              end if
 
-                             field_prc(i,j) = theta_dim
+                             field_prc(i,j) = theta_dim!thetaRef*(PStrat(k+1)/(var(i,j,k+1,1)+rhoStrat(k+1))-PStrat(k-1)/(var(i,j,k-1,1)+rhoStrat(k-1)))/(2.*dz*lRef)!theta_dim
 
                            case( "Boussinesq" )
                              field_prc(i,j) = var(i,j,k,iVar)*thetaRef 
@@ -188,7 +194,7 @@ contains
                            case( "WKB" )
                         
                            case default
-                              stop "tec360: unknown model"
+                              stop"tec360: unknown model"
                         end select ! model
                       
                       case(7) ! dynamic Smagorinsky coefficient
@@ -264,7 +270,7 @@ contains
 
   subroutine read_data( &
        & iIn, &
-       & var )
+       & var ,time)
 
     !-------------------------------
     !  reads data from file pf_all_in.dat
@@ -276,6 +282,8 @@ contains
     ! argument fields
     real,dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar),intent(out)  &
     & :: var
+
+    real, intent(out) :: time
     
     ! local and global output field and record nbs.
     real*4,dimension(nx,ny) :: field_prc
@@ -307,10 +315,12 @@ contains
     if(master) then
        open(40,file='pf_all_in.dat',form="unformatted",access='direct',&
             & recl=SizeX*SizeY)
-!      print*,"pf_all_in.dat opened"
+      print*,"pf_all_in.dat opened"
     end if
 
     var = 0.0
+
+    time = (iIn+10)*outputTimeDiff/tRef
 
     !---------------------------------------
     !       layerwise input and non-dimensionalizing
@@ -380,6 +390,8 @@ contains
                               var(i,j,k,iVar) = field_prc(i,j) / rhoRef
                            end if
                         end if
+
+
                       
                       ! interpolate velocities to cell faces
                       
@@ -403,6 +415,18 @@ contains
                               ! (deviation from background, Boussinesq)
                               ! potential temperature not used 
                               ! (only density  needed)
+                          select case(model) 
+                             case( "pseudo_incompressible" )
+                             var(i,j,k,iVar) = (Pstrat(k)/field_prc(i,j))/rhoRef - rhoStrat(k)
+
+                           case( "Boussinesq" )
+                             var(i,j,k,iVar) = field_prc(i,j)/thetaRef
+
+                           case( "WKB" )
+                        
+                           case default
+                              stop"tec360: unknown model"
+                        end select ! model
 
                       case(7) ! dynamic Smagorinsky coefficient
                               !(deviation from background)
@@ -518,7 +542,7 @@ contains
                      = ray_var3D(i,j,k,6) * rhoRef*uRef**2! /tRef deleted by FDK
                    
                    case default
-                     stop "output_wkb: unkown iVar"
+                     stop"output_wkb: unkown iVar"
                 end select ! iVar
              end do ! i
              call mpi_gather(field_prc(1,j),nx,mpi_real,&
@@ -759,8 +783,8 @@ contains
     integer, intent(inout) :: iOut
     
     ! argument fields
-    real,dimension(-nbz:nz+nbz),intent(in)  &
-    & :: field
+    !UAC real,dimension(-nbz:nz+nbz),intent(in) :: field
+    real,dimension(-1:nz+2),intent(in) :: field
     
     ! local and global output field and record nbs.
     real*4,dimension(nx,ny) :: field_prc
@@ -818,16 +842,23 @@ contains
     !---------------------------------------
 
     irc_prc = 1
-    irc_prc = irc_prc * iOut * nz
+    irc_prc = irc_prc * iOut * (nz)
 
           do k = 1, nz
              ! dimensionalization
 
+             !testb
+             if (master) print*,k,field(k)
+             !teste
+
              do j = 1, ny
                 do i = 1, nx
 
-                    field_prc(i,j) = real(field(k)  &
-                                & , kind=4)
+                    !UAC
+                    !field_prc(i,j) = real(field(k)  &
+                    !            & , kind=4)
+                    field_prc(i,j) = field(k)
+                    !UAE
                 end do ! i
                 call mpi_gather(field_prc(1,j),nx,mpi_real,&
                                 field_mst(1,j),nx,mpi_real,0,comm,ierror)
@@ -872,5 +903,342 @@ contains
    ! iOut = iOut + 1 
 
   end subroutine output_profile
+
+  ! output some singe field in time !FS for restart
+    subroutine read_profile( &
+       & iIn, &
+       & field,filename)
+
+    !-------------------------------
+    !  writes data to file filename.dat
+    !-------------------------------
+    
+    ! output counter
+    integer, intent(in) :: iIn
+    
+    ! argument fields
+    real,dimension(-nbz:nz+nbz),intent(out)  &
+    & :: field
+    
+    ! local and global output field and record nbs.
+    real*4,dimension(nx,ny) :: field_prc
+    integer irc_prc,irc_out
+    
+
+    ! local variables
+    integer :: i,j,k, iVar
+    real :: time_dim
+
+
+    ! needed for output to screen
+    character (len = 20)  :: fmt, form
+    character (len = 40)  :: cpuTimeChar
+
+    ! CPU Time
+    integer    :: days, hours, mins, secs
+    real       :: timeVar
+
+    ! hotBubble output
+    real :: rho, theta_dim
+
+    character(len=*) :: filename
+
+    ! buoyancy
+    real :: b, b_dim, theta
+
+    integer :: i_prc,i_mst,i_out,j_prc,j_mst,j_out
+
+  !  iOut = iOut - 1 
+
+
+    if( master ) then
+       print*,""
+       print*," Input from File "
+       print*,""
+       write(*,fmt="(a25,i15)") " reading record no. ", iIn
+    end if
+    
+    !------------------------------
+    !   prepare output file
+    !------------------------------
+   
+    ! open output file
+
+    if(master) then
+       open(21,file=filename,form="unformatted",access='direct',&
+            & recl=SizeX*SizeY)
+!      print*,"pf_all_in.dat opened"
+    end if
+
+
+    field = 0.
+    !---------------------------------------
+    !       dimensionalising and layerwise output
+    !---------------------------------------
+
+    irc_prc = 1
+    irc_prc = irc_prc * iIn * (nz+3)
+
+          do k = -1, nz+2
+             ! read data layerwise
+
+             irc_prc=irc_prc+1
+             if(master) then
+
+                read(21,rec=irc_prc) field_out
+                do j=1,ny
+                   j_mst=j
+
+                   do j_prc= 1,nprocy
+                      j_out=ny*(j_prc-1)+j
+
+                      do i_prc=1,nprocx
+                         do i=1,nx
+                            i_out=nx*(i_prc-1)+i
+   
+                            i_mst=nprocy*nx*(i_prc-1)+(j_prc-1)*nx+i
+
+                            field_mst(i_mst,j_mst)=field_out(i_out,j_out)
+                         end do
+                      end do
+                   end do
+                end do
+
+             end if
+             call mpi_barrier(comm,ierror)
+
+             ! dimensionalization
+
+             do j = 1, ny
+                ! data distributed over all processors
+
+                 call mpi_scatter(field_mst(1,j),nx,mpi_real,&
+                                 field_prc(1,j),nx,mpi_real,0,comm,&
+                                 ierror)
+                do i = 1, nx
+
+                    field(k) = field_prc(i,j)
+                end do ! i
+             end do ! j
+          end do ! k
+
+    !------------------------------------
+    !              close file
+    !------------------------------------
+
+    if(master) close(unit=21)
+
+
+   ! iOut = iOut + 1 
+
+  end subroutine read_profile
+
+ subroutine output_fluxes( &
+       & iOut, &
+       & var,flux,&
+       & iTime, time, cpuTime )
+
+    !-------------------------------
+    !  writes data to file pf_all.dat
+    !-------------------------------
+
+    ! output counter
+    integer, intent(inout) :: iOut
+    
+    ! argument fields
+    real,dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar),intent(in)  &
+    & :: var
+
+    real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
+    
+    ! local and global output field and record nbs.
+    real*4,dimension(nx,ny) :: field_prc
+    integer irc_prc,irc_out
+    
+    ! argument parameters
+    integer, intent(in)            :: iTime
+    real,intent(in)                :: time, cpuTime
+
+    ! local variables
+    integer :: i,j,k, iVar
+    real :: time_dim
+
+    ! needed for output to screen
+    character (len = 20)  :: fmt, form
+    character (len = 40)  :: cpuTimeChar
+
+    ! CPU Time
+    integer    :: days, hours, mins, secs
+    real       :: timeVar
+
+    ! hotBubble output
+    real :: rho, theta_dim
+
+    ! buoyancy
+    real :: b, b_dim, theta
+
+    integer :: i_prc,i_mst,i_out,j_prc,j_mst,j_out
+
+    real, dimension(0:nz+1) ::  sum_local, sum_global  !\bar rho
+
+    sum_local = 0.
+    sum_global = 0.
+    do k = 0, nz+1
+       sum_local(k) = sum(var(1:nx,1:ny,k,1)+rhoStrat(k))
+    end do
+
+    ! global sum and average
+    
+    call mpi_allreduce(sum_local(0),sum_global(0),&
+         nz+1-0+1,&
+         mpi_double_precision,mpi_sum,comm,ierror)
+    sum_global = sum_global/(sizeX*sizeY)
+    
+
+    !start output routine
+    
+    time_dim = time * tRef
+
+    if( master ) then ! modified by Junhong Wei (20161110)
+       print*,""
+       print*," Output into File "
+       print*,""
+       write(*,fmt="(a25,i15)") " at time step = ", iTime
+       write(*,fmt="(a25,f15.1,a8)") " at physical time = ", time_dim, &
+                                      &" seconds"
+    end if ! modified by Junhong Wei (20161110)
+    
+    !------------------------------
+    !   prepare output file
+    !------------------------------
+    
+    ! open output file
+
+    if(master) then
+       open(43,file='fluxes.dat',form="unformatted",access='direct',&
+            & recl=SizeX*SizeY)
+    end if
+
+    ! calc cpu-time in days/hours/minutes/seconds
+    timeVar = cpuTime   
+    days = floor(timeVar / 86400.0)
+    timeVar = timeVar - 86400.0 * days
+    hours = floor(timeVar / 3600.0)
+    timeVar = timeVar - 3600.0 * hours
+    mins = floor(timeVar / 60.0)
+    timeVar = timeVar - 60.0 * mins
+    secs = int(timeVar)
+
+    write(unit=cpuTimeChar, fmt="(i2,a,2(i2.2,a),i2.2)") &
+       & days, " ", hours, ":",mins,":",secs
+    
+    if( master ) write(*,fmt="(a25,a25)")  "CPU time = ", cpuTimeChar
+    
+    !---------------------------------------
+    !       dimensionalising and layerwise output
+    !---------------------------------------
+
+    irc_prc = 7 * iOut * nz
+
+    do iVar = 1, 7
+       if (varOut(iVar)==1) then
+          do k = 1, nz
+             ! dimensionalization
+
+             do j = 1, ny
+                do i = 1, nx
+                   select case (iVar) 
+
+                      case(1) ! f rho v 
+                         field_prc(i,j) & 
+                            = rhoRef*uRef*f_Coriolis_dim & 
+                            *(0.5*(var(i,j,k,1)+var(i+1,j,k,1))+rhoStrat(k))&
+                            * (0.25 &
+                            * (  var(i,j,k,3) + var(i+1,j,k,3) + var(i,j+1,k,3) + var(i+1,j+1,k,3) ))
+                         
+                      
+                      case(2) ! d/dy (rho v u)
+                        field_prc(i,j) &
+                        = rhoRef*uRef*uRef & 
+                        * (flux(i,j,k,2,2))
+
+                      case(3) ! d/dz (rho w u)
+                        field_prc(i,j) &
+                        = rhoRef*uRef*uRef &
+                        *(flux(i,j,k,3,2))
+                        
+                      case(4) ! Fx
+                        field_prc(i,j) &
+                        = rhoRef*uRef*(kv_hs(j,k)+kr_sp(j,k))/tRef & 
+                         *(0.5*(var(i,j,k,1)+var(i+1,j,k,1))+rhoStrat(k))&
+                         *(var(i,j,k,2) - var_env(i,j,k,2))
+
+                     case(5) ! f v 
+                        field_prc(i,j) & 
+                             = uRef*f_Coriolis_dim & 
+                             * (0.25 &
+                             * (  var(i,j,k,3) + var(i+1,j,k,3) + var(i,j+1,k,3) + var(i+1,j+1,k,3) ))
+                      
+                     case(6) ! rhoStrat v u
+                        field_prc(i,j) & 
+                             = 0.5*(var(i+1,j,k,3)+var(i,j,k,3)) &
+                             * 0.5*(var(i,j+1,k,2)+var(i,j,k,2)) &
+                             * uRef*uRef*sum_global(k)*rhoRef
+                        
+                     case(7) ! rhoStrat w u
+                        field_prc(i,j) & 
+                             = 0.5*(sum_global(k)+sum_global(k+1))& 
+                             *0.5*(var(i+1,j,k,4)+var(i,j,k,4)) &
+                             * 0.5*(var(i,j,k+1,2)+var(i,j,k,2)) &
+                             * uRef*uRef*rhoRef
+
+                      case default
+                   end select ! iVar
+                end do ! i
+                call mpi_gather(field_prc(1,j),nx,mpi_real,&
+                                field_mst(1,j),nx,mpi_real,0,comm,ierror)
+             end do ! j
+
+             ! layerwise output
+
+             irc_prc=irc_prc+1
+!            write(40,rec=irc_prc) field_prc
+             call mpi_barrier(comm,ierror)
+             if(master) then
+                do j=1,ny
+                   j_mst=j
+
+                   do j_prc= 1,nprocy
+                      j_out=ny*(j_prc-1)+j
+
+                      do i_prc=1,nprocx
+                         do i=1,nx
+                            i_out=nx*(i_prc-1)+i
+
+                            i_mst=nprocy*nx*(i_prc-1)+(j_prc-1)*nx+i
+
+                            field_out(i_out,j_out)=field_mst(i_mst,j_mst)
+                         end do
+                      end do
+                   end do
+                end do
+
+                write(43,rec=irc_prc) field_out
+             end if
+          end do ! k
+       end if
+    end do ! iVar
+
+    !------------------------------------
+    !              close file
+    !------------------------------------
+
+    if(master) close(unit=43)
+    
+    ! set counter
+    !iOut = iOut + 1
+
+  end subroutine output_fluxes
+
 
 end module output_module

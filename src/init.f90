@@ -44,7 +44,8 @@ contains
 
   !UAB
   !subrouine setup (var,var0,var1,flux,force,source,dRho,dRhop,dMom,dTheta)
-  subroutine setup (var,var0,var1,flux,force,source,dRho,dRhop,dMom, &
+  subroutine setup (var,var0,var1,varG,flux,flux0, &
+                  & force,source,dRho,dRhop,dMom, &
                   & dTheta,dPStrat,drhoStrat,w_0,dIce)
   
   !UAE
@@ -53,9 +54,9 @@ contains
     !-----------------------------------------
 
     ! in/out variables 
-    real,dimension(:,:,:,:), allocatable,intent(out) :: var, var0, var1, &
+    real,dimension(:,:,:,:), allocatable,intent(out) :: var, var0, var1,varG, &
                                                       & source
-    real,dimension(:,:,:,:,:), allocatable,intent(out) :: flux
+    real,dimension(:,:,:,:,:), allocatable,intent(out) :: flux, flux0
     real,dimension(:,:,:,:), allocatable,intent(out) :: force
     real,dimension(:,:,:), allocatable :: dRho,dRhop   ! RK-Update for rho
     real,dimension(:,:,:,:), allocatable :: dMom ! ...rhoU,rhoV,rhoW
@@ -73,7 +74,7 @@ contains
     ! constants
     pi = 4*atan(1.0)
 
-    ! set default values of all namelist parameters
+    ! GBcorr: set default values of all namelist parameters
     call default_values
 
     ! open input file input.f90
@@ -94,19 +95,48 @@ contains
     if(allocstat /= 0) stop "init.f90: could not allocate z"
 
     !---------------------------------------------------
-    ! allocate topography mask and surface
+    ! allocate surface and fields for immersed boundary
     !---------------------------------------------------
 
+    !UAD allocate(&
+    !topography_mask(-nbx+1:sizeX+nbx,-nby+1:sizeY+nby,-nbz+1:sizeZ+nbz), &
+    !stat=allocstat&
+    !)
+    !if(allocstat /= 0) stop "init.f90: could not allocate topgoraphy_mask"
+
+    !UAC: changed topography_surface from global to local field
     allocate(&
-    topography_mask(-nbx+1:sizeX+nbx,-nby+1:sizeY+nby,-nbz+1:sizeZ+nbz), &
-    stat=allocstat&
-    )
-    if(allocstat /= 0) stop "init.f90: could not allocate topgoraphy_mask"
-    allocate(&
-    topography_surface(-nbx+1:sizeX+nbx,-nby+1:sizeY+nby), stat=allocstat&
+    topography_surface(-nbx:nx+nbx,-nby:ny+nby), stat=allocstat&
     )
     if(allocstat /= 0) &
     stop "init.f90: could not allocate topography_surface"
+
+    !UAB
+    allocate( kbl_topo(-nbx:nx+nbx,-nby:ny+nby,3), stat=allocstat )
+    if(allocstat /= 0) stop "init.f90: could not allocate kbl_topo"
+    allocate( dhdx(-nbx:nx+nbx,-nby:ny+nby,3), stat=allocstat )
+    if(allocstat /= 0) stop "init.f90: could not allocate dhdx"
+    allocate( dhdy(-nbx:nx+nbx,-nby:ny+nby,3), stat=allocstat )
+    if(allocstat /= 0) stop "init.f90: could not allocate dhdy"
+    allocate( x_ip(-nbx:nx+nbx,-nby:ny+nby,3), stat=allocstat )
+    if(allocstat /= 0) stop "init.f90: could not allocate x_ip"
+    allocate( y_ip(-nbx:nx+nbx,-nby:ny+nby,3), stat=allocstat )
+    if(allocstat /= 0) stop "init.f90: could not allocate y_ip"
+    allocate( z_ip(-nbx:nx+nbx,-nby:ny+nby,3), stat=allocstat )
+    if(allocstat /= 0) stop "init.f90: could not allocate z_ip"
+    allocate(&
+    velocity_reconst_t(-nbx:nx+nbx,-nby:ny+nby,3), stat=allocstat&
+    )
+    if(allocstat /= 0)  then
+       stop "init.f90: could not allocate velocity_reconst_t"
+    end if
+    allocate(&
+    velocity_reconst_n(-nbx:nx+nbx,-nby:ny+nby,3), stat=allocstat&
+    )
+    if(allocstat /= 0) then
+       stop "init.f90: could not allocate velocity_reconst_n"
+    end if
+    !UAE
 
 
     !-------------------------------------
@@ -127,6 +157,10 @@ contains
     ! allocate var1 = (rho,u,v,w,pEx)
     allocate(var1(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar),stat=allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate var1"
+
+    ! allocate varG = (rhoG,uG,vG,wG,pExG)
+    allocate(varG(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar),stat=allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate varG"
 
     ! allocate source for rho,u,v,w,pEx,theta
     allocate(source(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar),stat=allocstat)
@@ -170,6 +204,9 @@ contains
 
     ! allocate flux = (f,g,h / fRho, fRhoU, fRhoV, fRhoW, fTheta)
     allocate(flux(-1:nx,-1:ny,-1:nz,3,nVar),stat=allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate flux"
+
+    allocate(flux0(-1:nx,-1:ny,-1:nz,3,nVar),stat=allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate flux"
 
     ! allocate force 
@@ -299,10 +336,22 @@ contains
           allocate(kt_hs(1:ny,0:nz+1), stat=allocstat)
           if(allocstat /= 0) stop "init.f90: could not allocate kt_hs"
 
-          allocate(kv_hs(0:nz+1), stat=allocstat)
+          allocate(kv_hs(0:ny+1,0:nz+1), stat=allocstat)
           if(allocstat /= 0) stop "init.f90: could not allocate kv_hs"
+
+          allocate(kw_hs(0:nz+1), stat=allocstat)
+          if(allocstat /= 0) stop "init.f90: could not allocate kw_hs"
+          
        end if
     end if
+
+    !if (spongeLayer) then
+       allocate(kr_sp(0:ny+1,0:nz+1), stat=allocstat)
+       if(allocstat /= 0) stop "init.f90: could not allocate kr_sp"
+
+       allocate(kr_sp_w(0:ny+1,0:nz+1), stat=allocstat)
+       if(allocstat /= 0) stop "init.f90: could not allocate kr_sp_w"
+    !end if
     !UAE
 
 
@@ -371,7 +420,7 @@ contains
        write(90,*) ""
        end if   ! modified by Junhong Wei (20170216)
 
-       ! overwrite unsuitable input settings
+       !overwrite unsuitable input settings 
        if( zBoundary == "periodic" ) then
           print*,"WARNING: zBoundary periodic not possible. &
                & Reset to solid_wall!"
@@ -382,7 +431,7 @@ contains
 
     case default
        print*,"model = ", model
-       stop "initialize: Unknown model" 
+       stop"initialize: Unknown model" 
     end select
 
     close(90)  ! info file
@@ -404,12 +453,13 @@ contains
 
     ! local variables
     integer :: i,j,k
+    integer :: ivr
 
     integer :: i0, j0, k_test, k_1, k_2    ! modified by Junhong Wei (20161121)
 
     ! greshoVortex
     real :: xu, yu, zu, xv, yv, xw, zw, delX, delY
-    real :: x0, y0, r, uVortex
+    real :: x0, y0, r, uVortex, rhodl, pcoeff, pcoeff_r1
     real :: uPhi, p, rho0
     real :: pInf, u0, r0
 
@@ -417,7 +467,7 @@ contains
     real :: v0, w0, dens, rhoDisc, z0
 
     ! Robert's hot and cold bubble
-    real :: dTheta1, a1, sigma1, xCenter1, zCenter1
+    real :: dTheta1, a1, sigma1, xCenter1, zCenter1, rhoCenter
     real :: dTheta2, a2, sigma2, xCenter2, zCenter2
 
     ! hotBubble
@@ -476,7 +526,7 @@ contains
     real  :: T_c, term_a, term_b, DgDy, dbdy, dT0dy, dTcdy, dZdy, dady
     real  :: dpdy, dpsidy, T0_s, DgDy_tr, Ly_end, Lx_end, bar_sigma_x
     real  :: tanhyP1, tanhyP2, ztdif, signmtanh_P1, signmtanh_P2
-    real  :: p_dim, tmp_dim, pressure, hor_wind, the_dim, rhe_dim, the, &
+    real  :: p_dim,p_dim1,tmp_dim, pressure, hor_wind, the_dim, rhe_dim, the, &
              ampl_rho
     real, dimension(1:nx,1:ny) :: P_ref, dPrefdy, Z_trop, T0_t
     real, dimension(1:nx,1:ny) :: gamma_tr, gamma_st
@@ -508,11 +558,24 @@ contains
     real, dimension(1:ny) :: s2_strtd, c2_strtd, c4_strtd
     real :: yjets, yjetn, dy_hs, tempev, pistar, thetastar, sig_pr, facsig
     real :: ka_hs, ks_hs, kf_hs
-    real,dimension(1:nx,1:ny) :: tp_sponge !FS
-
-    real, dimension(0:ny+1) :: f_Coriolis_y
+    real, dimension(1:nx,1:ny) :: tp_sponge,tp_sp1,tp_sp2 !FS
+    real, dimension(0:ny+1) :: f_Coriolis_y !FS
     real :: spongeDz
+    
     integer :: switch, k_tropopause
+
+    !UAB
+    integer :: kshalf
+    real :: fchtms, zhtmsd, zhtmsu
+
+    !character(len=30) :: corset
+    !UAE
+
+    !UAB
+    ! corset = periodic => periodic Coriolis parameter
+    ! corset = constant => constant Coriolis parameter
+    !corset = 'constant'
+    !UAE
 
     ! open the namelist file
     open (unit=10, file=file_namelist, action="read", &
@@ -547,7 +610,7 @@ contains
        ! 
 
     case default
-       stop "initialize: unknown case model."
+       stop"initialize: unknown case model."
     end select
 
     !-----------------------
@@ -743,7 +806,7 @@ contains
 
                 ! wave 2
                 if( initWave2 ) then
-                   stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
+                   stop'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
                    u2 = real( Psi(i,j,k,1,2) * exp(2.*phi*imag) )
                    w2 = real( Psi(i,j,k,2,2) * exp(2.*phi*imag) ) 
                    b2 = real( Psi(i,j,k,3,2) * exp(2.*phi*imag) ) 
@@ -753,7 +816,7 @@ contains
 
                 ! sum of wave 1 and 2
                 if( initWave2 ) then
-                   stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
+                   stop'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
                    b = b1 + b2
                    u = u1 + u2
                    w = w1 + w2
@@ -789,7 +852,7 @@ contains
                    var(i,j,k,6) = theta
 
                 case default
-                   stop "initialize: unknown case model"
+                   stop"initialize: unknown case model"
                 end select
 
                 var(i,j,k,2) = var(i,j,k,2) + u
@@ -821,7 +884,7 @@ contains
 
 
              case default
-                stop "initialize: unknown case model"
+                stop"initialize: unknown case model"
              end select
 
 
@@ -889,7 +952,7 @@ contains
                       var(i,j,k,6) = 0.0
 
                    case default
-                      stop "initialize: unknown case model"
+                      stop"initialize: unknown case model"
                 end select
 
                 ! initialization zero pressure fluctuations
@@ -911,7 +974,7 @@ contains
        ! WKB simulations: Wave packet or mountain waves
        ! for the full set up see routine setup_wkb
 
-       if (.not. raytracer) stop 'raytracer not set correctly'
+       if (.not. raytracer) stop'raytracer not set correctly'
 
        ! read namelist for wkb ray tracer
        read (unit=10, nml=LagrangeRayTracing)
@@ -933,7 +996,7 @@ contains
          else if (wlry_init /= 0.0) then
           dk_init = fac_dk_init * 2.0*pi/wlry_init
          else
-          stop 'ERROR: BOTH WLRX_INIT and WLRY_INIT = 0.0'
+          stop'ERROR: BOTH WLRX_INIT and WLRY_INIT = 0.0'
        end if
 
        if (fac_dl_init == 0.0) then
@@ -943,7 +1006,7 @@ contains
          else if (wlrx_init /= 0.0) then
           dl_init = fac_dl_init * 2.0*pi/wlrx_init
          else
-          stop 'ERROR: BOTH WLRX_INIT and WLRY_INIT = 0.0'
+          stop'ERROR: BOTH WLRX_INIT and WLRY_INIT = 0.0'
        end if
 
        zmin_wkb = zmin_wkb_dim/lRef
@@ -1000,7 +1063,7 @@ contains
                       var(i,j,k,6) = 0.0
 
                    case default
-                      stop "initialize: unknown case model"
+                      stop"initialize: unknown case model"
                 end select
 
                 ! initialization zero pressure fluctuations
@@ -1098,7 +1161,7 @@ contains
                    var(i,j,k,6) = dTheta
 
                 case default
-                   stop "initialize: unknown model."
+                   stop"initialize: unknown model."
                 end select
 
 
@@ -1110,13 +1173,13 @@ contains
        !------------------------------------------------------------------
 
 
-    case( 'coldBubble' )
+     case( 'coldBubble' )
 
        ! read test case input data
        read (unit=10, nml=bubble)
 
        if (referenceQuantities == "SI" ) then
-          stop "initialize: SI units not allowed"
+          stop"initialize: SI units not allowed"
        end if
 
        ! zero start velocity 
@@ -1127,11 +1190,13 @@ contains
        ! constant pressure variable pi' 
        var(:,:,:,5) = 0.0
 
+       i00 = is + nbx - 1   ! 0 index, 
+
        ! potential temperature and density
        do k = 1,nz
           do j = 1,ny
              do i = 1,nx
-                x_dim = x(i) * lRef       ! dimensional lenghts
+                x_dim = x(i+i00) * lRef       ! dimensional lenghts
                 z_dim = z(k) * lRef
 
                 delX = (x_dim - xCenter_dim) / xRadius_dim
@@ -1174,7 +1239,7 @@ contains
                        var(i,j,k,6) = dTheta_dim / thetaRef
 
                    case default
-                      stop "initialize: unknown model."
+                      stop"initialize: unknown model."
                    end select
                 else  ! outside bubble
                    ! keep background density
@@ -1185,23 +1250,214 @@ contains
                    end if
                 end if
 
+                
+
+
              end do
           end do
        end do
 
-    case( 'SkamarockKlemp94' )
-       
+   case( 'smoothVortex' )
+
        ! read test case input data
        read (unit=10, nml=bubble)
-       
+
        if (referenceQuantities == "SI" ) then
           stop"initialize: SI units not allowed"
        end if
+
+       i00 = is + nbx - 1   ! 0 index, 
+       j00 = js + nby - 1
+
+
+       var(:,:,:,1) = rhoCenter_dim
+       var(:,:,:,2) = backgroundFlow_dim(1)
+       var(:,:,:,3) = backgroundFlow_dim(2)
+       var(:,:,:,4) = 0.
+  
        
+       ! potential temperature and density
+       do k = 1,nz
+          do j = 1,ny
+             do i = 0,nx
+                x_dim = x(i+i00)  *lRef ! + 0.5*dx*lRef   
+                y_dim = y(j+j00)  *lRef
+
+                delX = (x_dim - xCenter_dim)
+                delY = (y_dim - yCenter_dim)
+
+                r = sqrt(delX**2 + delY**2)/0.4  
+
+                th = atan(delY/delX)
+
+
+                if( r < 1.0 ) then
+                   var(i,j,k,2) = -1024.* delY/r*(1.-r)**6*r**6 & 
+                        + var(i,j,k,2)
+                end if
+
+             end do
+          end do
+       end do
+
+       do k = 1,nz
+          do j = 0,ny
+             do i = 1,nx
+                x_dim = x(i+i00) * lRef       
+                y_dim = y(j+j00) * lRef  !+ 0.5*dy*lRef
+                
+                delX = (x_dim - xCenter_dim)
+                delY = (y_dim - yCenter_dim)
+                
+                r = sqrt(delX**2 + delY**2)/0.4  
+                
+                th = atan(delY/delX)
+
+                if( r < 1.0 ) then
+                   var(i,j,k,3) = 1024.* delX/r*(1.-r)**6*r**6 & 
+                        + var(i,j,k,3)
+                end if
+             end do
+          end do
+       end do
+       
+       var(:,:,:,5) = 0.
+       
+       do k = 1,nz
+          do j = 1,ny
+             do i = 1,nx
+                x_dim = x(i+i00) * lRef      
+                y_dim = y(j+j00) * lRef
+                
+                delX = (x_dim - xCenter_dim)
+                delY = (y_dim - yCenter_dim)
+
+                r = sqrt(delX**2 + delY**2)/0.4  
+
+                if( r < 1.0 ) then  ! inside bubble
+                   var(i,j,k,1) = var(i,j,k,1) + 0.5*(1.-r**2)**6
+                   
+
+                   rhodl = (1.+0.5*(1.-r**2)**6)/rhoCenter_dim
+                   pcoeff = 1024.**2 *r**12 * &
+                        (1./72.*r**24 - 6./35.*r**23 + 15./17.*r**22 &
+                        - 74./33.*r**21 + 57./32.*r**20 + 174./31.*r**19 &
+                        - 269./15.*r**18 + 450./29.*r**17 + 153./8.*r**16. &
+                        - 1564./27.*r**15 + 510./13.*r**14 + 204./5.*r**13. &
+                        - 1./24.*(2210.-rhodl)*r**12 &
+                        + 12./23.*(85.-rhodl)*r**11 &
+                        + (510./11. + 3.*rhodl)*r**10 &
+                        - 4./21.*(391.+55.*rhodl)*r**9 &
+                        + 9./40.*(119.+110.*rhodl)*r**8 &
+                        + 18./19.*(25.-44.*rhodl)*r**7 &
+                        - 1./9.*(269.-462*rhodl)*r**6 & 
+                        + 6./17.*(29.-132*rhodl)*r**5 &
+                        + 3./16.*(19.+165.*rhodl)*r**4 &
+                        - 2./15.*(37.+110.*rhodl)*r**3 &
+                        + 3./7.*(5.+11.*rhodl)*r**2 - 6./13.*(1.+2.*rhodl)*r &
+                        + 1./24.*(1.+2.*rhodl) )
+                  
+
+                   p_dim = pcoeff/pRef*rhoCenter_dim*& 
+                        ((backgroundFlow_dim(1))**2+(backgroundFlow_dim(2))**2)
+
+
+                   rhodl = 1./rhoCenter_dim
+                   pcoeff_r1 = 1024.**2  * &
+                        (1./72. - 6./35. + 15./17. &
+                        - 74./33. + 57./32. + 174./31. &
+                        - 269./15. + 450./29. + 153./8. &
+                        - 1564./27. + 510./13. + 204./5. &
+                        - 1./24.*(2210.-rhodl) &
+                        + 12./23.*(85.-rhodl) &
+                        + (510./11. + 3.*rhodl) &
+                        - 4./21.*(391.+55.*rhodl) &
+                        + 9./40.*(119.+110.*rhodl) &
+                        + 18./19.*(25.-44.*rhodl) &
+                        - 1./9.*(269.-462*rhodl) & 
+                        + 6./17.*(29.-132*rhodl) &
+                        + 3./16.*(19.+165.*rhodl) &
+                        - 2./15.*(37.+110.*rhodl) &
+                        + 3./7.*(5.+11.*rhodl) - 6./13.*(1.+2.*rhodl) &
+                        + 1./24.*(1.+2.*rhodl) )
+                                    
+
+                   p_dim1 = pcoeff_r1/pRef*rhoCenter_dim*& 
+                        ((backgroundFlow_dim(1))**2+(backgroundFlow_dim(2))**2)
+
+                   
+
+                    
+                   var(i,j,k,5) =  kappaInv*(p_dim**kappa-p_dim1**kappa)
+                   
+                  
+
+                  
+                end if
+
+              
+                
+
+                if (fluctuationMode) then
+                   var(i,j,k,1) = var(i,j,k,1)/rhoRef - rhoStrat(k) 
+                else
+                   var(i,j,k,1) = var(i,j,k,1)
+                end if
+                var(i,j,k,2) = var(i,j,k,2)/uRef
+                var(i,j,k,3) = var(i,j,k,3)/uRef
+
+                rhodl = 1./rhoCenter_dim
+                   pcoeff_r1 = 1024.**2  * &
+                        (1./72. - 6./35. + 15./17. &
+                        - 74./33. + 57./32. + 174./31. &
+                        - 269./15. + 450./29. + 153./8. &
+                        - 1564./27. + 510./13. + 204./5. &
+                        - 1./24.*(2210.-rhodl) &
+                        + 12./23.*(85.-rhodl) &
+                        + (510./11. + 3.*rhodl) &
+                        - 4./21.*(391.+55.*rhodl) &
+                        + 9./40.*(119.+110.*rhodl) &
+                        + 18./19.*(25.-44.*rhodl) &
+                        - 1./9.*(269.-462*rhodl) & 
+                        + 6./17.*(29.-132*rhodl) &
+                        + 3./16.*(19.+165.*rhodl) &
+                        - 2./15.*(37.+110.*rhodl) &
+                        + 3./7.*(5.+11.*rhodl) - 6./13.*(1.+2.*rhodl) &
+                        + 1./24.*(1.+2.*rhodl) )
+                                    
+
+                   p_dim1 = pcoeff_r1/pRef*rhoCenter_dim*& 
+                        ((backgroundFlow_dim(1))**2+(backgroundFlow_dim(2))**2)
+
+                var(i,j,k,5) =  var(i,j,k,5) - kappaInv* p_dim1**kappa
+                
+
+             end do
+          end do
+       end do
+
+  case ('atmosphereatrest')
+
+     var(:,:,:,1) = 0.
+     var(:,:,:,2) = 0.
+     var(:,:,:,3) = 0.
+     var(:,:,:,4) = 0.
+     var(:,:,:,5) = 0.
+
+
+  case( 'SkamarockKlemp94' )
+
+       ! read test case input data
+       read (unit=10, nml=bubble)
+
+       if (referenceQuantities == "SI" ) then
+          stop"initialize: SI units not allowed"
+       end if
+
        ! zero start velocity 
-       var(:,:,:,2) = 20.0/uRef
-       var(:,:,:,3) = 0.0
-       var(:,:,:,4) = 0.0
+       var(:,:,:,2) = backgroundFlow_dim(1)/uRef
+       var(:,:,:,3) = backgroundFlow_dim(2)/uRef
+       var(:,:,:,4) = backgroundFlow_dim(3)/uRef
 
        ! constant pressure variable pi' 
        var(:,:,:,5) = 0.0
@@ -1250,6 +1506,7 @@ contains
                    case( "pseudo_incompressible" )
 
                        var(i,j,k,1) = rho
+                       
 
                    case( "Boussinesq" )
 
@@ -1260,13 +1517,49 @@ contains
                       stop"initialize: unknown model."
                    end select          
 
-                end do
              end do
           end do
+       end do
 
 
        !-----------------------------------------------------------------
+  case( 'hotBubble_heat' )
 
+
+       ! start velocity
+       var(:,:,:,1) = 0.
+       var(:,:,:,2) = 0.0
+       var(:,:,:,3) = 0.0
+       var(:,:,:,4) = 0.0
+       
+       ! constant pressure variable pi' 
+       var(:,:,:,5) = 0.0
+
+    case( 'heatedLayer')
+
+
+       ! start velocity
+       var(:,:,:,1) = 0.
+       var(:,:,:,2) = 0.0
+       var(:,:,:,3) = 0.0
+       var(:,:,:,4) = 0.0
+       
+       ! constant pressure variable pi' 
+       var(:,:,:,5) = 0.0
+       
+    case( 'hotBubble_heatedLayer' )
+
+
+       ! start velocity
+       var(:,:,:,1) = 0.
+       var(:,:,:,2) = 0.0
+       var(:,:,:,3) = 0.0
+       var(:,:,:,4) = 0.0
+       
+       ! constant pressure variable pi' 
+       var(:,:,:,5) = 0.0
+
+       
 
     case( 'hotBubble' )
 
@@ -1339,7 +1632,7 @@ contains
                       var(i,j,k,6) = dTheta
 
                    case default
-                      stop "initialize: unknown model."
+                      stop"initialize: unknown model."
                    end select
 
                 else
@@ -1372,7 +1665,7 @@ contains
        
 
        if (referenceQuantities == "SI" ) then
-          stop "initialize: SI units not allowed"
+          stop"initialize: SI units not allowed"
        end if
 
        ! start velocity
@@ -1432,7 +1725,7 @@ contains
                        var(i,j,k,6) = dTheta_dim / thetaRef
 
                    case default
-                      stop "initialize: unknown model."
+                      stop"initialize: unknown model."
                    end select
                     
                    
@@ -1454,7 +1747,7 @@ contains
                      var(i,j,k,6) = 0.0
 
                    case default
-                      stop "initialize: unknown model."
+                      stop"initialize: unknown model."
                    end select
                    
                 end if
@@ -1475,7 +1768,7 @@ contains
        read (unit=10, nml=bubble)
 
        if (referenceQuantities == "SI" ) then
-          stop "initialize: SI units not allowed"
+          stop"initialize: SI units not allowed"
        end if
 
        ! zero start velocity 
@@ -1538,7 +1831,7 @@ contains
                        var(i,j,k,6) = dTheta_dim / thetaRef
 
                    case default
-                      stop "initialize: unknown model."
+                      stop"initialize: unknown model."
                    end select
                 else  ! outside bubble
                    select case( model )
@@ -1557,18 +1850,14 @@ contains
                      var(i,j,k,6) = 0.0
 
                    case default
-                      stop "initialize: unknown model."
+                      stop"initialize: unknown model."
                    end select
                 end if
              end do
           end do
-       end do  
-
-       !----------------------------------------------------
-
-
-       !-----------------------------------------------------------------
+       end do       
        
+
        !----------------------------------------------------------------
        !               Baroclinic life cycle: realistic
        !
@@ -1581,7 +1870,7 @@ contains
        !UAB
        if ((background /= "const-N") .and. (background /= "HeldSuarez")) &
        & then
-          stop 'ERROR: baroclinic_LC needs for background either const-N &
+          stop'ERROR: baroclinic_LC needs for background either const-N &
              & or HeldSuarez'
        end if
        !UAE
@@ -1633,16 +1922,16 @@ contains
 
           dy_hs = 2.0*jwdth
          else
-          stop 'ERROR: baroclinic_LC needs for background either const-N &
+          stop'ERROR: baroclinic_LC needs for background either const-N &
              & or HeldSuarez'
        end if
        !UAE
 
        if (master .and. jwdth > 0.5*(ymax-ymin)) then
-          stop 'ERROR: jet width too large'
+          stop'ERROR: jet width too large'
        end if
 
-       if (sizeY <= 1) stop 'ERROR: Barocl LC expects sizeY > 1'
+       if (sizeY <= 1) stop'ERROR: Barocl LC expects sizeY > 1'
 
        ! set local index
 
@@ -1841,12 +2130,22 @@ contains
           do j = 1, ny
              yloc = y(j+j00)
 
+             !UAC: possibility of periodic Coriolis parameter
+
+             if (corset == 'periodic') then
+
+             s2_strtd(j) = cos(2.*pi *(yloc - ymin)/(ymax - ymin))**2
+             c2_strtd(j) = sin(2.*pi *(yloc - ymin)/(ymax - ymin))**2
+             c4_strtd(j) = sin(2.*pi *(yloc - ymin)/(ymax - ymin))**4
+
+             else if (corset == 'constant') then
+
              if (yloc < ymin) then
-                stop 'ERROR: y < ymin'
+                stop'ERROR: y < ymin'
                else if ((yloc >= ymin) .and. (yloc < yjets - 0.5*dy_hs)) &
                 & then
                 s2_strtd(j) = 1.0
-                c2_strtd(j) = 1.!0.0
+                c2_strtd(j) = 0.0
                 c4_strtd(j) = 0.0
                else if ((yloc >= yjets - 0.5*dy_hs) &
                 &       .and. (yloc < yjets + 0.5*dy_hs)) then
@@ -1854,7 +2153,7 @@ contains
                 = sin((yloc - (yjets + 0.5*dy_hs))/dy_hs * 0.5*pi)**2
 
                 c2_strtd(j) &
-                = 1.!cos((yloc - (yjets + 0.5*dy_hs))/dy_hs * 0.5*pi)**2
+                = cos((yloc - (yjets + 0.5*dy_hs))/dy_hs * 0.5*pi)**2
 
                 c4_strtd(j) &
                 = cos((yloc - (yjets + 0.5*dy_hs))/dy_hs * 0.5*pi)**4
@@ -1869,18 +2168,29 @@ contains
                 = sin((yloc - (yjetn - 0.5*dy_hs))/dy_hs * 0.5*pi)**2
 
                 c2_strtd(j) &
-                = 1.!cos((yloc - (yjetn - 0.5*dy_hs))/dy_hs * 0.5*pi)**2
+                = cos((yloc - (yjetn - 0.5*dy_hs))/dy_hs * 0.5*pi)**2
 
                 c4_strtd(j) &
                 = cos((yloc - (yjetn - 0.5*dy_hs))/dy_hs * 0.5*pi)**4
                else if ((yloc >= yjetn + 0.5*dy_hs) .and. (yloc <= ymax)) &
                 & then
                 s2_strtd(j) = 1.0
-                c2_strtd(j) = 1.!0.0
+                c2_strtd(j) = 0.0
                 c4_strtd(j) = 0.0
                else if (yloc > ymax) then
-                stop 'ERROR: y > ymax'
+                stop'ERROR: y > ymax'
              end if
+
+             !UAB no latitude dependence of the stratification
+             c2_strtd(j) = 1.
+             !UAE
+
+             else 
+
+             stop'ERROR: wrong corset'
+
+             end if
+             !UAE
           end do
 
           ! y- and z-dependent thermal relaxation rate
@@ -1904,62 +2214,74 @@ contains
              kf_hs = tRef/tf_hs_dim
           end if
 
-          ! thickness of sponge layer
-          spongeDz = z(nz) - z(kSponge) 
+          kv_hs = 0.
+          kw_hs = 0.
 
           do k=0,nz+1
              sig_pr = pistrat(k)**(1.0/kappa)
-             
              facsig = max(0.0, (sig_pr - sigb_hs)/(1.0 - sigb_hs)) 
-
+             
              !Held + Suarez 1994: BL drag:
-             !kv_hs(k) = kf_hs*facsig !FS
-   
-             !Shepherd 1996: Rayleigh BL drag and Sponge:
-             if (z(k) <= 5.e3/lRef) then
-                !kv_hs(k) = kf_hs*facsig
-                kv_hs(k) = (1.+cos(pi*z(k)/(5.e3/lRef)))*tRef/(5.*86400.)
-                !print*, z(k)*lRef, kv_hs(k)/tRef
-             else if (z(k) > 5.e3/lRef .and. z(k) <= 60.e3/lRef) then
-                kv_hs(k) = 0.
-             else if (z(k) <= 65.e3/lRef .and. z(k) > 60.e3/lRef) then
-                kv_hs(k) = (1.-cos(pi*(z(k)-60.e3/lRef)/(5.e3/lRef)))*tRef/(4.*86400.)
-             else if (z(k) > 65.e3/lRef) then
-                kv_hs(k) = tRef/(2.*86400.)
-             end if
-             
-             do j=1,ny
-                
+             !UAC kv_hs(:,k) = kf_hs*facsig 
+             kr_sp(:,k) = kf_hs*facsig
+             kv_hs(:,k) = 0.
+             kr_sp_w(:,k) = 0.
+             !UAE
+
+             !Shepherd 1996: Rayleigh BL drag
+             !if (z(k) <= 5.e3/lRef) then
+             !   kv_hs(:,k) = (1.+cos(pi*z(k)/(5.e3/lRef)))*tRef/(6.*86400.)
+             !end if
+
+             do j = 1,ny
                 ! Held Suarez 1994:
-                !kt_hs(j,k) = ka_hs + (ks_hs - ka_hs)*c4_strtd(j)*facsig 
-              
-                yloc = y(j+j00)
-                ! Hien et al. (2018):
-                if (yloc > 0.5*(ymax+ymin)) then
-                   ! meridionally dependent tau_sc
+                kt_hs(j,k) = ka_hs + (ks_hs - ka_hs)*c4_strtd(j)*facsig 
 
-                   kt_hs(j,k) &
-                   =  1./( ta_hs_dim/tref &
-                     + (ts_hs_dim/tref - ta_hs_dim/tref) &
-                       *( 1.0 &
-                         -0.5&
-                          *( tanh((yloc/ymax-0.25)/sigma_tau) &
-                            -tanh((yloc/ymax-0.75)/sigma_tau)))  )
-                  else
-                   kt_hs(j,k)  &
-                    =   1./(ta_hs_dim/tref &
-                     + (ts_hs_dim/tref - ta_hs_dim/tref) &
-                       *( 1.0 &
-                         -0.5 &
-                          *( tanh(((-1.)*yloc/ymax-0.25)/sigma_tau) &
-                            -tanh(((-1.)*yloc/ymax-0.75)/sigma_tau))) )
-                end if
+                !!Hien et al. (2018):
+                ! yloc = y(j+j00)
+                ! if (yloc > 0.5*(ymax+ymin)) then
+                !   ! meridionally dependent tau_sc
 
-
+                !   kt_hs(j,k) &
+                !   =  1./( ta_hs_dim/tref &
+                !     + (ts_hs_dim/tref - ta_hs_dim/tref)*facsig &
+                !       *( 1.0 &
+                !         -0.5&
+                !          *( tanh((yloc/ymax-0.25)/sigma_tau) &
+                !            -tanh((yloc/ymax-0.75)/sigma_tau)))  )
+                !  else
+                !   kt_hs(j,k)  &
+                !    =   1./(ta_hs_dim/tref &
+                !     + (ts_hs_dim/tref - ta_hs_dim/tref)*facsig &
+                !       *( 1.0 &
+                !         -0.5 &
+                !          *( tanh(((-1.)*yloc/ymax-0.25)/sigma_tau) &
+                !            -tanh(((-1.)*yloc/ymax-0.75)/sigma_tau))) )
+                ! end if
              end do
-             
           end do
 
+          !!UAB
+          !! increased heating in mesosphere
+          !fchtms = 2. ! maximum increase at top of mesosphere
+
+          !zhtmsd = 5.e4/lRef ! bottom mesosphere
+          !zhtmsu = 9.e4/lRef ! top mesosphere
+
+          !do k=0,nz+1
+          !   if (z(k) >= zhtmsd .and. z(k) < zhtmsu) then
+          !      kt_hs(:,k) &
+          !      = kt_hs(:,k) &
+          !        * (  1. &
+          !           + (fchtms - 1.) &
+          !             * sin(0.5*pi &
+          !                   * (z(k) - zhtmsd)/(zhtmsu - zhtmsd))**2)
+          !     else if (z(k) > zhtmsu) then
+          !      kt_hs(:,k) = kt_hs(:,k) * fchtms
+          !   end if
+          !end do
+          !!UAE
+             
           do j=1,ny
              ! (total) Exner pressure just above and below the surface so 
              ! that it = 1 at the surface, by an Euler integration of 
@@ -1980,7 +2302,7 @@ contains
                           var(i,j,k,5) &
                           * (tp_srf_trp - tpdiffhor_tropo * s2_strtd(j) &
                              - ptdiffvert_tropo/kappa * log(var(i,j,k,5)) &
-                               * c2_strtd(j)))
+                               * c2_strtd(j))) 
              
                    the_env_pp(i,j,k) = tempev/var(i,j,k,5)
                 end do
@@ -1993,7 +2315,7 @@ contains
 
              switch = 0
 
-             do k = 2, nz-ceiling((0.375)*real(nz)) !nz+1 !FS
+             do k = 2, nz+1
                 do i=1,nx
                    pistar &
                    = var(i,j,k-2,5) - 2.0*dz * kappa/the_env_pp(i,j,k-1)
@@ -2004,12 +2326,6 @@ contains
                           * (tp_srf_trp - tpdiffhor_tropo * s2_strtd(j) &
                              - ptdiffvert_tropo/kappa * log(pistar)&
                                 * c2_strtd(j)))
-
-                   !FS : determine tropopause height
-                   if (switch == 0 .and. tempev == tp_strato) then
-                      k_tropopause = k
-                      switch = 1
-                   end if
 
 
                    thetastar = tempev/pistar
@@ -2028,68 +2344,81 @@ contains
 
 
                    the_env_pp(i,j,k) = tempev/var(i,j,k,5)
-                  
-                   if (k == nz-ceiling((spongeHeight+0.2)*real(nz)))then
-                      tp_sponge(i,j) = tempev
-                      
-                   end if
                 end do
              end do
 
+             !UAB 
+             ! reduction of the jets to zero 
+             ! (within the lower half of the sponge)
+             ! by reduction of the pressure fluctuations
 
-            ! close jets below sponge layer !FS
-             do k = nz+1-ceiling((0.375)*real(nz)), nz+1 !FS
-                do i=1,nx
-                   pistar &
-                   = var(i,j,k-2,5) - 2.0*dz * kappa/the_env_pp(i,j,k-1)
+             if (spongeLayer) then
+                kshalf = kSponge + int((nz-kSponge)/2)
 
-                   tempev &
-                   =  tp_sponge(i,j) + pistar*(tpdiffhor_tropo * s2_strtd(j) &
-                            + 1.*ptdiffvert_tropo/kappa * log(pistar)&
-                              * c2_strtd(j))
-
-
-                   thetastar = tempev/pistar
-
-
-                   var(i,j,k,5) &
-                   =   var(i,j,k-1,5) &
-                     - 0.5*dz & 
-                       * (kappa/thetastar + kappa/the_env_pp(i,j,k-1))
-                   
-                   tempev &
-                   = tp_sponge(i,j) + var(i,j,k,5)*(tpdiffhor_tropo * s2_strtd(j) &
-                             + 1.*ptdiffvert_tropo/kappa * log(var(i,j,k,5)) &
-                               * c2_strtd(j))
-                   
-                   the_env_pp(i,j,k) = tempev/var(i,j,k,5)
-
-                   
+                do k = kSponge,kshalf
+                   do i = 1,nx
+                      var(i,j,k,5) &
+                      = pistrat(k) &
+                        + cos(0.5*pi &
+                              * (z(k)-zSponge)/(z(kshalf)-zSponge))**2 &
+                          * (var(i,j,k,5) - pistrat(k))
+                   end do
                 end do
-            end do
 
-             
-            
+                do k = kshalf+1,nz+1
+                   do i = 1,nx
+                      var(i,j,k,5) = pistrat(k) 
+                   end do
+                end do
+
+                do k = kSponge,nz+1
+                   do i=1,nx
+                      the_env_pp(i,j,k) &
+                      = - kappa * dz/(var(i,j,k,5) - var(i,j,k-1,5))
+                   end do
+                end do
+             end if
+             !UAE
+
+
              ! density
-
              do k = 0,nz+1
                 dens_env_pp(:,j,k) = Pstrat(k) /  the_env_pp(:,j,k)
                 
                 if (fluctuationMode) then
                    var(1:nx,j,k,1) = dens_env_pp(1:nx,j,k) - rhoStrat(k)
-                  else
+                else
                    var(1:nx,j,k,1) = dens_env_pp(1:nx,j,k)
                 end if
              end do
           end do
 
+          !UAB in case of periodic Coriolis parameter choose horizontally
+          ! homogeneous atmosphere at rest as equilibrium
+
+          if (corset == 'periodic') then
+             do k=0,nz+1
+                dens_env_pp(:,:,k) = rhoStrat(k)
+
+                if (fluctuationMode) then
+                   var(:,:,k,1) = 0.
+                else
+                   var(:,:,k,1) = rhoStrat(k)
+                end if
+
+                var(:,:,k,5) = pistrat(k)
+             end do
+
+          end if
+          !UAE
+          
           ! subtract reference-atmosphere Exner pressure from the total
 
           do k = 0, nz+1
              var(1:nx,1:ny,k,5) = var(1:nx,1:ny,k,5) - pistrat(k) 
           end do
          else
-          stop 'ERROR: wrong background for baroclinic_LC'
+          stop'ERROR: wrong background for baroclinic_LC'
        end if
 
        p_env_pp(1:nx,1:ny,0:nz+1) = var(1:nx,1:ny,0:nz+1,5)
@@ -2100,11 +2429,17 @@ contains
        ! determine horizontal wind from density and Exner-pressure 
        ! fluctuations
 
-       ! do j = 1,ny
-       !    yloc = y(j+j00)
-       !    f_Coriolis_y(j) = f_Coriolis_dim*sin(pi*yloc/ymax)
-       ! end do
-    
+       !UAC in case of periodic Coriolis parameter initilization zero wind
+       ! (that is then also an equlibrium wind)
+
+       if (corset == 'periodic') then
+
+       var(:,:,:,2) = 0.
+
+       u_env_pp = 0.
+       v_env_pp = 0.
+
+       else if (corset == 'constant') then
 
        do k=0,nz+1
           do j=1,ny
@@ -2127,32 +2462,40 @@ contains
                    rho = rho + rhoStrat(k)
                 end if
                 
+
                 yloc = y(j+j00)
-                f_Coriolis_y(j) = f_Coriolis_dim!*sin(pi*yloc/ymax)
+                !UAC latitude-dependent Coriolis parameter re-established
+                f_Coriolis_y(j) = f_Coriolis_dim
+                !f_Coriolis_y(j) = f_Coriolis_dim*sin(pi*yloc/ymax)
+                !UAE
                 if (f_Coriolis_y(j) /= 0.0) then
                    var(i,j,k,2) &
                         = - (uRef/f_Coriolis_y(j)/lRef)/(Ma2*kappa*dy) &
-                        * Pstrat(k) &
-                        * 0.25 &
-                        * (  (var(i  ,j  ,k,5) - var(i  ,j-1,k,5)) &
-                        / rho_int_0m &
-                        + (var(i  ,j+1,k,5) - var(i  ,j  ,k,5)) &
-                        / rho_int_00 &
-                        + (var(i+1,j  ,k,5) - var(i+1,j-1,k,5)) &
+                     * Pstrat(k) &
+                     * 0.25 &
+                     * (  (var(i  ,j  ,k,5) - var(i  ,j-1,k,5)) &
+                     / rho_int_0m &
+                     + (var(i  ,j+1,k,5) - var(i  ,j  ,k,5)) &
+                     / rho_int_00 &
+                     + (var(i+1,j  ,k,5) - var(i+1,j-1,k,5)) &
                         / rho_int_pm &
                         + (var(i+1,j+1,k,5) - var(i+1,j  ,k,5)) &
-                     / rho_int_p0)
-                   
+                        / rho_int_p0)
                    
                    u_env_pp(i,j,k) = var(i,j,k,2)
                    v_env_pp(i,j,k) = 0.
-
                 end if
-                
+               
              end do
           end do
-       end do
+       end do       
 
+       else 
+
+       stop'ERROR: wrong corset'
+
+       end if
+       !UAE
   
     ! density fluctuations
 
@@ -2173,7 +2516,7 @@ contains
        call setHalos( var, "var" )
        call setBoundary (var, flux, "var")
 
-       var_env = var
+       var_env = var !0. !FSApr2021 !var
 
        !-----------------------------------------------------------
        ! add local potential-temperature perturbation
@@ -2182,7 +2525,7 @@ contains
        if (add_ptptb) then
           ptptb_x = ptptb_x_dim/lRef
           ptptb_y = ptptb_y_dim/lRef
-          ptptb_z = ptptb_z_dim/lRef
+          ptptb_z = ptptb_z_dim/lRef 
 
           ptptb_dh = ptptb_dh_dim/lRef
           ptptb_dz = ptptb_dz_dim/lRef
@@ -2218,15 +2561,15 @@ contains
                     
                                       
                  if (fluctuationMode) then
-                     rho = var(i,j,k,1) + rhoStrat(k) !+ Pstrat(k) !FS
+                     rho = var(i,j,k,1) + rhoStrat(k)  
                   else
                      rho = var(i,j,k,1)
                   end if
    
-                  theta = Pstrat(k)/rho + thtptb
+                  theta = Pstrat(k)/rho + thtptb 
       
                   if (fluctuationMode) then
-                     var(i,j,k,1) =   Pstrat(k)/theta - rhoStrat(k)!- PStrat(k) !FS
+                     var(i,j,k,1) =   Pstrat(k)/theta - rhoStrat(k)
                     else
                      var(i,j,k,1) =   Pstrat(k)/theta
                   end if
@@ -2237,44 +2580,44 @@ contains
 
 
           ! add local PT perturbation on SH !FS
-        !   ptptb_y = (-1.)*ptptb_y
-        !   do k = 1,nz
-        !      zloc = z(k)
+          ptptb_y = (-1.)*ptptb_y
+          do k = 1,nz
+             zloc = z(k)
    
-        !      do j = 1,ny
-        !         yloc = y(j00+j)
+             do j = 1,ny
+                yloc = y(j00+j)
    
-        !         do i = 1, nx
-        !            xloc = x(i00+i)
+                do i = 1, nx
+                   xloc = x(i00+i)
    
-        !            rptb &
-        !            = sqrt(  ((xloc - ptptb_x)/ptptb_dh)**2 &
-        !                   + ((yloc - ptptb_y)/ptptb_dh)**2 &
-        !                   + ((zloc - ptptb_z)/ptptb_dz)**2)
+                   rptb &
+                   = sqrt(  ((xloc - ptptb_x)/ptptb_dh)**2 &
+                          + ((yloc - ptptb_y)/ptptb_dh)**2 &
+                          + ((zloc - ptptb_z)/ptptb_dz)**2)
    
-        !           if (rptb <= 1.0) then
-        !              thtptb = ptptb_amp * cos(0.5*pi*rptb)**2
-        !             else
-        !               thtptb = 0.0
-        !           end if
+                  if (rptb <= 1.0) then
+                     thtptb = ptptb_amp * cos(0.5*pi*rptb)**2
+                    else
+                      thtptb = 0.0
+                  end if
 
    
-        !           if (fluctuationMode) then
-        !           rho = var(i,j,k,1) + rhoStrat(k)!Pstrat(k)
-        !             else
-        !              rho = var(i,j,k,1)
-        !           end if
+                  if (fluctuationMode) then
+                  rho = var(i,j,k,1) + rhoStrat(k)!Pstrat(k)
+                    else
+                     rho = var(i,j,k,1)
+                  end if
    
-        !           theta = Pstrat(k)/rho - thtptb
+                  theta = Pstrat(k)/rho - thtptb
       
-        !           if (fluctuationMode) then
-        !              var(i,j,k,1) =  Pstrat(k)/theta - rhoStrat(k)!Pstrat(k)
-        !             else
-        !              var(i,j,k,1) =   Pstrat(k)/theta
-        !           end if
-        !         end do
-        !      end do
-        !   end do
+                  if (fluctuationMode) then
+                     var(i,j,k,1) =  Pstrat(k)/theta - rhoStrat(k)!Pstrat(k)
+                    else
+                     var(i,j,k,1) =   Pstrat(k)/theta
+                  end if
+                end do
+             end do
+          end do
          end if
 
 
@@ -2294,13 +2637,25 @@ contains
           do k=1,nz
              do j=1,ny
                 do i=1,nx
-                   if (fluctuationMode) then
-                      var(i,j,k,1) = var(i,j,k,1) * (1.0 + noise(i,j,k))
+                   !UAC noise to b emultiplied to full density in case of
+                   ! periodic Coriolis parameter
+                   if (corset == 'periodic') then
+                      if (fluctuationMode) then
+                         var(i,j,k,1) = rhostrat(k) * noise(i,j,k)
+                        else
+                         var(i,j,k,1) = rhoStrat(k) * (1.0 + noise(i,j,k))
+                      end if
+                     else if (corset == 'constant') then
+                      if (fluctuationMode) then
+                         var(i,j,k,1) = var(i,j,k,1) * (1.0 + noise(i,j,k))
+                        else
+                         var(i,j,k,1) &
+                         = rhoStrat(k) &
+                           + (var(i,j,k,1) - rhoStrat(k)) &
+                             * (1.0 + noise(i,j,k))
+                      end if
                      else
-                      var(i,j,k,1) &
-                      = rhoStrat(k) &
-                        + (var(i,j,k,1) - rhoStrat(k)) &
-                          * (1.0 + noise(i,j,k))
+                      stop'ERROR: wrong corset'
                    end if
                 end do
              end do
@@ -2466,7 +2821,7 @@ contains
                       term_b = (dTh_atm - 2.*dTh_atm*term_a)/theta_bar_0
 
                       if (balance_eq == 'QG') then
-                         stop 'ERROR: balance_eq == QG not provided'
+                         stop'ERROR: balance_eq == QG not provided'
                         else
                          streamfunc = g*F_a*term_b/(f_Coriolis_dim)
  
@@ -2475,7 +2830,7 @@ contains
                            /(cp*thetaRef*thetaStrat(k))
 
                          if (balance_eq == 'QG') then
-                            stop 'ERROR: balance_eq == QG not provided'
+                            stop'ERROR: balance_eq == QG not provided'
                            else
                             var(i,:,k,5) = pi_pr_xz(i,k)
                          end if
@@ -2516,7 +2871,7 @@ contains
                       term_b = (dTh_atm - 2.*dTh_atm*term_a)/theta_bar_0
 
                       if (balance_eq == 'QG') then
-                         stop 'ERROR: balance_eq == QG not provided'
+                         stop'ERROR: balance_eq == QG not provided'
                         else
                          streamfunc = g*F_a*term_b/(f_Coriolis_dim)
  
@@ -2525,7 +2880,7 @@ contains
                            /(cp*thetaRef*thetaStrat(k))
 
                          if (balance_eq == 'QG') then
-                            stop 'ERROR: balance_eq == QG not provided'
+                            stop'ERROR: balance_eq == QG not provided'
                            else
                             var(:,j,k,5) = pi_pr_yz(j,k)
                          end if
@@ -2739,7 +3094,7 @@ contains
                 end do
              end do
             else
-             stop "initialize: init_bal not def. for this model."
+             stop"initialize: init_bal not def. for this model."
           end if
        end if
 
@@ -3344,62 +3699,24 @@ contains
     end select
 
 
-!   achatzb
-!   -------------------------------------
-!   in case of topography, 
-!   set all velocities normal to the topographic surface to zero,
-!   set density in land cells to background density
-!   ------------------------------------
-
-    i0=is+nbx-1
-    j0=js+nby-1
+    !UAB
+    !-------------------------------------
+    ! in case of topography, set all velocities at land points to zero
+    !------------------------------------
 
     if(topography) then
-       do k = 0, nz+1
-          do j = 0, ny+1
-             do i = 0, nx+1
-!               u at x interfaces
-                if(&
-                   topography_mask(i0+i,j0+j,k)&
-                   .or.&
-                   topography_mask(i0+i+1,j0+j,k)&
-                ) then
-                   var(i,j,k,2)=0.
-                end if
-
-!               v at y interfaces
-                if(&
-                   topography_mask(i0+i,j0+j,k)&
-                   .or.&
-                   topography_mask(i0+i,j0+j+1,k)&
-                ) then
-                   var(i,j,k,3)=0.
-                end if
-
-!               w at z interfaces
-                if(&
-                   topography_mask(i0+i,j0+j,k)&
-                   .or.&
-                   topography_mask(i0+i,j0+j,k+1)&
-                ) then
-                   var(i,j,k,4)=0.
-                end if
-
-!               density in land cells
-                if(topography_mask(i0+i,j0+j,k)) then
-                   if( fluctuationMode ) then
-                      var(i,j,k,1) = 0.0
-                     else
-                      var(i,j,k,1) = rhoStrat(k) 
-                   end if
-                end if
-
+       do ivr = 2, 4
+          do k = 0, nz+1
+             do j = 0, ny+1
+                do i = 0, nx+1
+                   if (k < kbl_topo(i,j,ivr-1)) var(i,j,k,ivr) = 0.
+                end do
              end do
           end do
        end do
     end if
-!   -------------------------------------
-!   achatze
+    !-------------------------------------
+    !UAE
 
 
     ! close input file pinc.f
@@ -3522,6 +3839,10 @@ contains
             & (lz(1)-lz(0))*spongeHeight*lRef/1000.0," km"
        write(*,fmt="(a25,es8.1,a)") "relaxation  = ", &
                & spongeAlphaZ_dim, " 1/s"
+       !UAB
+       write(*,fmt="(a25,es8.1,a)") "relaxation  = ", &
+               & spongeAlphaZ_fac, " 1/dt"
+       !UAC
     else
        write(*,fmt="(a25,a)") "sponge layer = ", "off"
     end if
@@ -3539,8 +3860,10 @@ contains
     print*," 10) Topography: "
     if( topography) then 
        write(*,fmt="(a25,a)") "topography = ", "on"
-       write(*,fmt="(a25,f6.1,a)") "mountain height = ", mountainHeight_dim, " m"
-       write(*,fmt="(a25,es8.1,a)") "mountain width = ", mountainWidth_dim, " m"
+       write(*,fmt="(a25,f6.1,a)") "mountain height = ", &
+                                  & mountainHeight_dim, " m"
+       write(*,fmt="(a25,es8.1,a)") "mountain width = ", &
+                                  & mountainWidth_dim, " m"
     else
        write(*,fmt="(a25,a)") "topography = ", "off"
     end if
@@ -3693,8 +4016,7 @@ contains
 
       complex :: tmp_var_3DWP
 
-      real :: Ro_GWP, RoInv_GWP
-
+      real :: Ro_GWP, RoInv_GWP !FS
 
       if(f_Coriolis_dim /= 0.0) then !FS
           Ro_GWP = uRef/f_Coriolis_dim/lRef  
@@ -3858,7 +4180,7 @@ contains
                   end if
 
                case default
-                  stop "init.f90: unknown wavePacketType. Stop."
+                  stop"init.f90: unknown wavePacketType. Stop."
                end select
 
                b11 = cmplx(envel*bAmp, 0.0 )
@@ -4039,7 +4361,7 @@ contains
     else if( a>=0. .and. b<0 ) then
        phi = -atan(-b/a)
     else
-       stop "wkb.f90/cphase: case not included. Stop."
+       stop"wkb.f90/cphase: case not included. Stop."
     end if
 
 
@@ -4201,7 +4523,7 @@ contains
                         var(i,j,k,iVar) = field_prc(i,j) / (uRef*lRef)
 
                       case default
-                        stop "tec360: unkown iVar"
+                        stop"tec360: unkown iVar"
                    end select ! iVar
                 end do ! i
              end do ! j
@@ -4216,52 +4538,53 @@ contains
     
   end subroutine init_data2D3D
 !------------------------------------------------------------------
- subroutine therm_rel_param
-    ! local variables
-    integer :: k
-    integer :: allocstat
-    real :: tau_sc, spongeAlphaZ_inv
-    real, dimension(1:nz)  :: tau_z
-    !-------------------------------
-    !  creates height-dependent thermal relaxation function
-    !-------------------------------
-    ! allocate relaxation parameter: hight-dependent
-    !allocate(tau_z(1:nz),stat=allocstat)
-    !if(allocstat /= 0) stop "init.f90: could not allocate tau_z"
+!UAD
+! subroutine therm_rel_param
+!    ! local variables
+!    integer :: k
+!    integer :: allocstat
+!    real :: tau_sc, spongeAlphaZ_inv
+!    real, dimension(1:nz)  :: tau_z
+!    !-------------------------------
+!    !  creates height-dependent thermal relaxation function
+!    !-------------------------------
+!    ! allocate relaxation parameter: hight-dependent
+!    !allocate(tau_z(1:nz),stat=allocstat)
+!    !if(allocstat /= 0) stop "init.f90: could not allocate tau_z"
     
 
 
-      ! nondimensionalize heating relaxation parameter  
-      tau_sc = tau_relax/tref
-      ! nondimensionalize sponge relaxation parameter   
-      spongeAlphaZ_inv = 1./(spongeAlphaZ_dim * tRef)    
+!      ! nondimensionalize heating relaxation parameter  
+!      tau_sc = tau_relax/tref
+!      ! nondimensionalize sponge relaxation parameter   
+!      spongeAlphaZ_inv = 1./(spongeAlphaZ_dim * tRef)    
 
-      do k = 1,nz
-        if (spongeLayer) then
-            if (k.ge.kSponge) then
+!      do k = 1,nz
+!        if (spongeLayer) then
+!            if (k.ge.kSponge) then
 !            print *, 'k=', k, ' z(k)=', z(k), ' z_dim(k)=', lref*z(k)
-                  select case(Sponge_Rel_Type)
-                    case("constant")
-                        tau_z(k) = tau_sc
-                    case("linear")
-                        tau_z(k) = ((z(k) - z(kSponge))*spongeAlphaZ_inv + (z(nz) - z(k))*tau_sc)/(z(nz) - z(kSponge))                        
-                    case default
-                        stop "init: relaxation is not defined."
-                end select
-            else
-                tau_z(k) = tau_sc
-            end if
-        else 
-            tau_z(k) = tau_sc
-        end if
-        if (tau_z(k).le.1.e-10) then
-            stop "init: small thermal relaxation parameter."
-        end if    
-      end do
+!                  select case(Sponge_Rel_Type)
+!                    case("constant")
+!                        tau_z(k) = tau_sc
+!                    case("linear")
+!                        tau_z(k) = ((z(k) - z(kSponge))*spongeAlphaZ_inv + (z(nz) - z(k))*tau_sc)/(z(nz) - z(kSponge))                        
+!                    case default
+!                        stop"init: relaxation is not defined."
+!                end select
+!            else
+!                tau_z(k) = tau_sc
+!            end if
+!        else 
+!            tau_z(k) = tau_sc
+!        end if
+!        if (tau_z(k).le.1.e-10) then
+!            stop"init: small thermal relaxation parameter."
+!        end if    
+!      end do
 
  
     
-  end subroutine therm_rel_param
+!  end subroutine therm_rel_param
   !-------------------------------------------------------------------------
     subroutine noise_array(amplitude, ntovar, noise)
 
@@ -4288,7 +4611,7 @@ contains
         case( "none" )
             valRef = 1.0
         case default
-            stop "noise_array: Unknown variable" 
+            stop"noise_array: Unknown variable" 
     end select        
 
     do k=1,nz
@@ -4397,7 +4720,7 @@ sum_glob = 0.
         case( "th" )
             valRef = thetaRef
         case default
-            stop "noise_array: Unknown variable" 
+            stop"noise_array: Unknown variable" 
     end select
 
     if (master) then
@@ -4516,12 +4839,12 @@ recl=SizeX*SizeY)
                              field_prc(i,j) = real(theta_dim, kind=4)
                          
                            case( "Boussinesq" )
-                              stop "output_background: background undefined"
+                              stop"output_background: background undefined"
 
                            case( "WKB" )
-                              stop "output_background: background undefined"
+                              stop"output_background: background undefined"
                            case default
-                              stop "output_background: unknown model"
+                              stop"output_background: unknown model"
                         end select ! model
                       
                 end do ! i
