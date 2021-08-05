@@ -53,7 +53,8 @@ contains
        ! set phi = t, F(phi) = 1 in time scheme to calc stepFrac
        nStages = 3
        timeSchemeType = "lowStorage"
-
+      
+     
     case ("LS_Will_RK3")  ! ref. Durran 
        if(verbose) print*,"update.f90/init_update: timeScheme = LS_Will_RK3"
        alpha = (/ 0.0,   -5./9., -153./128. /)

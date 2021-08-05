@@ -1,0 +1,20 @@
++ ntasks=64
++ nprocx=64
++ nprocy=1
++ export OMP_NUM_THREADS=1
++ OMP_NUM_THREADS=1
++ export GMON_OUT_PREFIX=gmon.out-
++ GMON_OUT_PREFIX=gmon.out-
++ export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/schmid/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
++ LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/schmid/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
++ d_home=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases
++ d_scratch=/scratch/atmodynamics/schmid/paper2020_results
++ d_nam=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_50
++ fp_exe=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_50/pinc
++ d_work=/scratch/atmodynamics/schmid/paper2020_results/BK19_coldBubble_si_PInew_50m_muscl1
++ mkdir /scratch/atmodynamics/schmid/paper2020_results/BK19_coldBubble_si_PInew_50m_muscl1
+mkdir: das Verzeichnis „/scratch/atmodynamics/schmid/paper2020_results/BK19_coldBubble_si_PInew_50m_muscl1“ kann nicht angelegt werden: Die Datei existiert bereits
++ cd /scratch/atmodynamics/schmid/paper2020_results/BK19_coldBubble_si_PInew_50m_muscl1
++ sed -e 's/{nprocx}/64/' -e 's/{nprocy}/1/' /home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_50/input.f90
++ mpirun -np 64 /home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_50/pinc
+slurmstepd: error: *** JOB 577329 ON node45-002 CANCELLED AT 2021-04-05T16:00:00 ***

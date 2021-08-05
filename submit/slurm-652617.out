@@ -1,0 +1,20 @@
++ ntasks=36
++ nprocx=3
++ nprocy=12
++ export OMP_NUM_THREADS=1
++ OMP_NUM_THREADS=1
++ export GMON_OUT_PREFIX=gmon.out-
++ GMON_OUT_PREFIX=gmon.out-
++ export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/schmid/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
++ LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/schmid/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
++ d_home=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases
++ d_scratch=/scratch/atmodynamics/schmid/Dissertation
++ d_nam=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_barLC_200km_test
++ fp_exe=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_barLC_200km_test/pinc
++ d_work=/scratch/atmodynamics/schmid/Dissertation/barLC_test
++ mkdir /scratch/atmodynamics/schmid/Dissertation/barLC_test
+mkdir: das Verzeichnis „/scratch/atmodynamics/schmid/Dissertation/barLC_test“ kann nicht angelegt werden: Die Datei existiert bereits
++ cd /scratch/atmodynamics/schmid/Dissertation/barLC_test
++ sed -e 's/{nprocx}/3/' -e 's/{nprocy}/12/' /home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_barLC_200km_test/input.f90
++ mpirun -np 36 /home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_barLC_200km_test/pinc
+slurmstepd: error: *** JOB 652617 ON node45-004 CANCELLED AT 2021-07-26T15:25:59 ***

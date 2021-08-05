@@ -108,7 +108,7 @@ contains
 
   !-----------------------------------------------------------------------
 
-   subroutine reconstruction (var,variable)
+  subroutine reconstruction (var,variable)
     !--------------------------------------------------
     ! reconstructs "variable" with 
     ! SALD, ALDM, constant, MUSCL
@@ -206,7 +206,7 @@ contains
                   print*,'ERROR in rec. rho: Pstrat(kz) = 0 at kz =',kz
                   stop
                end if
-               rhoBar(:,:,kz) = var(:,:,kz,1)/Pstrat(kz) 
+               rhoBar(:,:,kz) = (var(:,:,kz,1))/Pstrat(kz) 
              end do
              call reconstruct_MUSCL(rhoBar,rhoTilde,nxx,nyy,nzz,limiterType1)
 
@@ -223,7 +223,7 @@ contains
                   print*,'ERROR in rec. rhop: Pstrat(kz) = 0 at kz =',kz
                   stop
                end if
-               rhopBar(:,:,kz) = var(:,:,kz,6)/Pstrat(kz)
+               rhopBar(:,:,kz) = (var(:,:,kz,6))/Pstrat(kz)
              end do
              call reconstruct_MUSCL(rhopBar,rhopTilde,nxx,nyy,nzz,&
                                   & limiterType1)
@@ -459,7 +459,7 @@ contains
                    end if
                    do jy = -nby,ny+nby-1
                       rhoBar(:,jy,kz) &
-                       = 0.5*(var(:,jy,kz,1) + var(:,jy+1,kz,1)) / Pstrat(kz)
+                       = 0.5*(var(:,jy,kz,1) + var(:,jy+1,kz,1))/ Pstrat(kz)
                       !FS:
                      ! = 0.5*&
                      !   ((var(:,jy,kz,1))/Pstrat(kz) + &
@@ -471,13 +471,14 @@ contains
              call reconstruct_MUSCL(rhoBar,rhoTilde_mom,nxx,nyy,nzz,&
                                   & limiterType1)
 
+             
+             vBar = 0.0
+
              do kz = 0, nz+1
                 do jy = -nby,ny+nby-1
                    vBar(:,jy,kz) = var(:,jy,kz,3)
                 end do
              end do
-
-             vBar = 0.0
 
              call reconstruct_MUSCL(vBar,vTilde,nxx,nyy,nzz,limiterType1)
 
@@ -762,7 +763,7 @@ contains
                 
                 
              case default
-                stop "thetaFlux: unknown case fluxType"
+                stop"thetaFlux: unknown case fluxType"
              end select
 
              
@@ -848,7 +849,7 @@ contains
                 fTheta = flux_aldm(thetaL,thetaR,uSurf,&
                      &             thetaL,thetaR,uL,uR,sigmaC)
              case default
-                stop "thetaFlux: unknown case fluxType"
+                stop"thetaFlux: unknown case fluxType"
              end select
 
              flux(i,j,k,1,6) = fTheta
@@ -893,7 +894,7 @@ contains
                      &             thetaB,thetaF,vB,vF,sigmaC)
 
              case default
-                stop "thetaFlux: unknown case fluxType"
+                stop"thetaFlux: unknown case fluxType"
              end select
 
              flux(i,j,k,2,6) = gTheta
@@ -937,7 +938,7 @@ contains
                      &             thetaD,thetaU,wU,wD,sigmaC)
                 
              case default
-                stop "thetaFlux: unknown case fluxType"
+                stop"thetaFlux: unknown case fluxType"
              end select
 
              flux(i,j,k,3,6) = hTheta
@@ -1089,7 +1090,7 @@ contains
                 source(i,j,k,1) = divPu/thetaStrat(k)
                 
              case default
-                stop "rhoFlux: unknown case fluxType"
+                stop"rhoFlux: unknown case fluxType"
              end select
 
              
@@ -1101,7 +1102,8 @@ contains
   end subroutine massSource
 
   !-----------------------------------------------------------------------
- subroutine massFlux (vara,var,flux,fluxmode,Pstrata,PStratTildea)
+
+  subroutine massFlux (vara,var,flux,fluxmode,Pstrata,PStratTildea)
     !---------------------------------------------------------------------
     ! computes the mass flux at all cell edges using reconstructed values
     ! fluxmode = lin => linear flux, advecting velocities prescribed in 
@@ -1206,8 +1208,8 @@ contains
 
                 if( fluctuationMode ) then
                    !UAB reference density to be divided by P as well!
-                   rhoR = rhoTilde(i+1,j,k,1,0) + rhoStrat(k)/Pstrat(k)
-                   rhoL = rhoTilde(i,j,k,1,1)   + rhoStrat(k)/Pstrat(k)
+                   rhoR = rhoTilde(i+1,j,k,1,0)+ rhoStrat(k)/Pstrat(k)
+                   rhoL = rhoTilde(i,j,k,1,1)+ rhoStrat(k)/Pstrat(k)
                    !UAE
                 else
                    rhoR = rhoTilde(i+1,j,k,1,0)
@@ -1376,8 +1378,8 @@ contains
                    !UAB reference density to be divided by P as well!
                    rhoU = rhoTilde(i,j,k+1,3,0) &
                           + rhoStratTilde(k)/PstratTilde(k)
-                   rhoD = rhoTilde(i,j,k  ,3,1) &
-                          + rhoStratTilde(k)/PstratTilde(k)
+                   rhoD = rhoTilde(i,j,k  ,3,1)&
+                        + rhoStratTilde(k)/PstratTilde(k)
                    !UAE
                 else
                    rhoU = rhoTilde(i,j,k+1,3,0)
@@ -1385,9 +1387,9 @@ contains
                 end if
 
                 if (fluxmode == "nln") then
-                   wSurf = var(i,j,k,4) * PstratTilde(k) !UA
+                   wSurf = var(i,j,k,4)* PstratTilde(k) !UA
                   else if (fluxmode == "lin") then
-                   wSurf = vara(i,j,k,4) * PstratTildea(k) !UA
+                   wSurf = vara(i,j,k,4)* PstratTildea(k) !UA
                   else
                    stop'ERROR: worng fluxmode'
                 end if
@@ -1939,7 +1941,7 @@ contains
              case( "upwind" )
                 if( fluctuationMode ) then
                    rhoF = rhoTilde(i,j+1,k,2,0) + rhoStrat(k)
-                   rhoB = rhoTilde(i,j,k,2,1)   + rhoStrat(k)
+                   rhoB = rhoTilde(i,j,k,2,1)  + rhoStrat(k)
                 else
                    rhoF = rhoTilde(i,j+1,k,2,0)
                    rhoB = rhoTilde(i,j,k,2,1)
@@ -2023,7 +2025,7 @@ contains
                 if( fluctuationMode ) then
                    ! background at half level
                    rhoU = rhoTilde(i,j,k+1,3,0) + rhoStratTilde(k)  
-                   rhoD = rhoTilde(i,j,k,3,1)   + rhoStratTilde(k)
+                   rhoD = rhoTilde(i,j,k,3,1)  + rhoStratTilde(k)
                 else
                    rhoU = rhoTilde(i,j,k+1,3,0)
                    rhoD = rhoTilde(i,j,k,3,1)
@@ -2393,7 +2395,8 @@ contains
          &rho fluxes fRho, gRho and fRho calculated"
 
   end subroutine massFlux_0
-
+  
+  
 !---------------------------------------------------------------------------
 
   subroutine iceFlux (var, flux)
@@ -2913,7 +2916,7 @@ contains
                    gForce = -FrInv2 * dRho * vertical
                 
                 case default
-                   stop "volumeForce: unknown case model."
+                   stop"volumeForce: unknown case model."
                 end select
 
                 force(i,j,k,:) = force(i,j,k,:) + gForce
@@ -2928,13 +2931,16 @@ contains
        ! Coriolis force defined in scalar volume cells
        ! -> needs interpolation
     
-      ! if( RoInv > 0.0 ) then
+     !FS  if( RoInv > 0.0 ) then
 
           do k = 0,nz+1
              do j = 0,ny+1
                 do i = 0,nx+1
-
                    u1 = 0.5*( var(i,j,k,2) + var(i-1,j,k,2) )
+                   if (testCase == "SkamarockKlemp94")then
+                      u1 = u1 - backgroundFlow_dim(1)/uRef
+                   end if
+                   
                    u2 = 0.5*( var(i,j,k,3) + var(i,j-1,k,3) )
                    u3 = 0.5*( var(i,j,k,4) + var(i,j,k-1,4) )
 
@@ -2951,7 +2957,7 @@ contains
                       end if
 
                    case default
-                      stop "volumeForce: unknown case model."
+                      stop"volumeForce: unknown case model."
                    end select
 
                    n1 = vertical(1)
@@ -2964,16 +2970,16 @@ contains
 
                    ! Coriolis force normally written in LHS with "+"
                    ! gets now a "-" since force is assumed on the RHS
-                   !if( RoInv(j) > 0.0 ) then
+
                       force(i,j,k,:) &
                            = force(i,j,k,:) - ( rho*RoInv(j)*(/f1,f2,f3/) )
-                   !end if
-
+                   
+                  
                 end do
              end do
           end do
 
-       !end if ! RoInv > 0.0
+       !FS end if ! RoInv > 0.0
     end if ! not semiimplicit
 
     !--------------------------------------------
@@ -3034,7 +3040,7 @@ contains
                 end if
 
                 case default
-                   stop "volumeForce: unknown case model."
+                   stop"volumeForce: unknown case model."
                 end select
 
                 force(i,j,k,1) &
@@ -3099,7 +3105,7 @@ contains
 
   !-----------------------------------------------------------------------
 
-   subroutine momentumFlux (vara,var,flux,fluxmode,PStrata, PStratTildea)
+  subroutine momentumFlux (vara,var,flux,fluxmode,PStrata, PStratTildea)
 
     !----------------------------------------------------------------------
     ! computes the momentum fluxes at the cell edges using reconstr. values
@@ -3672,7 +3678,7 @@ contains
                    !UAB
                    if (fluxmode == "nln") then
                       usurf &
-                      = 0.5*(var(i,j,k,2) + var(i,j+1,k,2)) * Pstrat(k)
+                      = 0.5*(var(i,j,k,2) + var(i,j+1,k,2))* Pstrat(k)
                      else if (fluxmode == "lin") then
                       usurf &
                       = 0.5*(vara(i,j,k,2) + vara(i,j+1,k,2)) * Pstrata(k)
@@ -4055,7 +4061,7 @@ contains
                 ! in MUSCL case the wTilde are the reconstructed 
                 ! specific momenta, divided by P
                 ! in an upwinding scheme these are to be multiplied by 
-                ! the linearly interpolated velocities (times P) in order Ã®
+                ! the linearly interpolated velocities (times P) in order î
                 ! to obtain the desired momentum fluxes
 
                 wR = wTilde(i+1,j,k,1,0)
@@ -4967,7 +4973,7 @@ contains
 
   end subroutine momentumFlux
 
-
+  !-----------------------------------------------------------------------
 
   subroutine momentumSource (var,source)
     !---------------------------------------------------------------------
@@ -5048,7 +5054,7 @@ contains
                 source(i,j,k,2) = u * divPu / theta
                 
              case default
-                stop "thetaFlux: unknown case fluxType"
+                stop"thetaFlux: unknown case fluxType"
              end select
 
              
@@ -5113,7 +5119,7 @@ contains
                 source(i,j,k,3) = v * divPu / theta
                 
              case default
-                stop "thetaFlux: unknown case fluxType"
+                stop"thetaFlux: unknown case fluxType"
              end select
 
              
@@ -5179,7 +5185,7 @@ contains
                 source(i,j,k,4) = w * divPu / theta
                 
              case default
-                stop "thetaFlux: unknown case fluxType"
+                stop"thetaFlux: unknown case fluxType"
              end select
 
              
@@ -5217,15 +5223,15 @@ contains
 
     ! rhoOld
     allocate( rhoOld(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), stat=allocstat)
-    if( allocstat /= 0) stop "init_fluxes: alloc of rhoOld failed"
+    if( allocstat /= 0) stop"init_fluxes: alloc of rhoOld failed"
 
     ! rhopOld
     allocate( rhopOld(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), stat=allocstat)
-    if( allocstat /= 0) stop "init_fluxes: alloc of rhopOld failed"
+    if( allocstat /= 0) stop"init_fluxes: alloc of rhopOld failed"
 
     ! uBar
     allocate(uBar(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz),stat=allocstat)
-    if(allocstat /= 0) stop "init_fluxes: could not allocate uBar"
+    if(allocstat /= 0) stop"init_fluxes: could not allocate uBar"
 
     ! vBar
     allocate(vBar(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz),stat=allocstat)
@@ -5339,10 +5345,10 @@ contains
     if(allocstat /= 0) stop "fluxes.f90: could not deallocate rhopBar"
 
     deallocate( rhoOld, stat=allocstat)
-    if( allocstat /= 0) stop "terminate_fluxes: dealloc of rhoOld failed"
+    if( allocstat /= 0) stop"terminate_fluxes: dealloc of rhoOld failed"
 
     deallocate( rhopOld, stat=allocstat)
-    if( allocstat /= 0) stop "terminate_fluxes: dealloc of rhopOld failed"
+    if( allocstat /= 0) stop"terminate_fluxes: dealloc of rhopOld failed"
 
     deallocate(uBar,stat=allocstat)
     if(allocstat /= 0) stop "fluxes.f90: could not deallocate uBar"

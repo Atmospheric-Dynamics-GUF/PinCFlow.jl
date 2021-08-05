@@ -1,0 +1,20 @@
++ ntasks=4
++ nprocx=2
++ nprocy=2
++ export OMP_NUM_THREADS=1
++ OMP_NUM_THREADS=1
++ export GMON_OUT_PREFIX=gmon.out-
++ GMON_OUT_PREFIX=gmon.out-
++ export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/schmid/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
++ LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/schmid/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
++ d_home=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases
++ d_scratch=/scratch/atmodynamics/schmid/Dissertation
++ d_nam=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_atmrest_constN
++ fp_exe=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_atmrest_constN/pinc
++ d_work=/scratch/atmodynamics/schmid/Dissertation/atmrest_constN
++ mkdir /scratch/atmodynamics/schmid/Dissertation/atmrest_constN
+mkdir: das Verzeichnis „/scratch/atmodynamics/schmid/Dissertation/atmrest_constN“ kann nicht angelegt werden: Die Datei existiert bereits
++ cd /scratch/atmodynamics/schmid/Dissertation/atmrest_constN
++ sed -e 's/{nprocx}/2/' -e 's/{nprocy}/2/' /home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_atmrest_constN/input.f90
++ mpirun -np 4 /home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_atmrest_constN/pinc
+slurmstepd: error: *** JOB 580389 ON node45-001 CANCELLED AT 2021-04-08T14:35:13 ***

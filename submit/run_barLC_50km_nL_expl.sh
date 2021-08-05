@@ -1,0 +1,68 @@
+#!/bin/bash
+##general1/general2 = new/old cores
+#SBATCH --partition=general1
+
+#SBATCH --job-name=bLnLex
+
+##not udes anymore ...
+##SBATCH --constraint=intel20
+
+##switch off multi-threading
+##BATCH --hint=nomultithread
+
+#SBATCH --ntasks=576
+
+##usually nodes determined by machine. However, if more memory is needed ...
+##SBATCH --nodes=2
+
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=2600
+#SBATCH --mail-type=FAIL
+#SBATCH --time=216:00:00
+
+set -x
+
+#echo "------------------------------------------------------------"
+#echo LOADL_STEP_ID=$LOADL_STEP_ID
+#echo "------------------------------------------------------------"
+
+#set -x
+
+# no. of processors ntasks must be nprocx * nprocy
+ntasks=576
+nprocx=12
+nprocy=48
+
+# OpenMP settings
+export OMP_NUM_THREADS=1
+
+# gprof for MPI
+export GMON_OUT_PREFIX=gmon.out-
+
+# env variable export
+export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/schmid/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
+
+
+d_home=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases
+d_scratch=/scratch/atmodynamics/schmid/Dissertation
+
+d_nam=${d_home}/bin_barLC_50km_nL_expl
+fp_exe=${d_home}/bin_barLC_50km_nL_expl/pinc
+d_work=${d_scratch}/barLC_50km_HS94_shap10_sponge1_expl
+#d_work=${d_scratch}/BK19_DC_test400
+
+mkdir ${d_work}
+
+#- go to work
+
+cd ${d_work}
+
+# copy namelist
+sed -e "s/{nprocx}/${nprocx}/" \
+    -e "s/{nprocy}/${nprocy}/" \
+        ${d_nam}/input.f90 > input.f90
+
+#- run the raytracer
+mpirun -np ${ntasks} ${fp_exe} 1>run.log 2>&1
+
+exit 0

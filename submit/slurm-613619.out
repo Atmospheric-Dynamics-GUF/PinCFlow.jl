@@ -1,0 +1,20 @@
++ ntasks=10
++ nprocx=10
++ nprocy=1
++ export OMP_NUM_THREADS=1
++ OMP_NUM_THREADS=1
++ export GMON_OUT_PREFIX=gmon.out-
++ GMON_OUT_PREFIX=gmon.out-
++ export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/schmid/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
++ LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/schmid/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
++ d_home=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases
++ d_scratch=/scratch/atmodynamics/schmid/Dissertation
++ d_nam=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_hotBubble_heatedLayer_GWs
++ fp_exe=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_hotBubble_heatedLayer_GWs/pinc
++ d_work=/scratch/atmodynamics/schmid/Dissertation/hotBubble_heatedLayer_GWs_cfl0.1667_expl
++ mkdir /scratch/atmodynamics/schmid/Dissertation/hotBubble_heatedLayer_GWs_cfl0.1667_expl
+mkdir: das Verzeichnis „/scratch/atmodynamics/schmid/Dissertation/hotBubble_heatedLayer_GWs_cfl0.1667_expl“ kann nicht angelegt werden: Die Datei existiert bereits
++ cd /scratch/atmodynamics/schmid/Dissertation/hotBubble_heatedLayer_GWs_cfl0.1667_expl
++ sed -e 's/{nprocx}/10/' -e 's/{nprocy}/1/' /home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_hotBubble_heatedLayer_GWs/input.f90
++ mpirun -np 10 /home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_hotBubble_heatedLayer_GWs/pinc
++ exit 0

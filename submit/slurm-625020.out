@@ -1,0 +1,20 @@
++ ntasks=320
++ nprocx=320
++ nprocy=1
++ export OMP_NUM_THREADS=1
++ OMP_NUM_THREADS=1
++ export GMON_OUT_PREFIX=gmon.out-
++ GMON_OUT_PREFIX=gmon.out-
++ export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/schmid/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
++ LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/schmid/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
++ d_home=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases
++ d_scratch=/scratch/atmodynamics/schmid/Dissertation
++ d_nam=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_wavePacket2D_2560
++ fp_exe=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_wavePacket2D_2560/pinc
++ d_work=/scratch/atmodynamics/schmid/Dissertation/wavePacket2D_2560_si_cfl0.1667_nL
++ mkdir /scratch/atmodynamics/schmid/Dissertation/wavePacket2D_2560_si_cfl0.1667_nL
+mkdir: das Verzeichnis „/scratch/atmodynamics/schmid/Dissertation/wavePacket2D_2560_si_cfl0.1667_nL“ kann nicht angelegt werden: Die Datei existiert bereits
++ cd /scratch/atmodynamics/schmid/Dissertation/wavePacket2D_2560_si_cfl0.1667_nL
++ sed -e 's/{nprocx}/320/' -e 's/{nprocy}/1/' /home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_wavePacket2D_2560/input.f90
++ mpirun -np 320 /home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_wavePacket2D_2560/pinc
+slurmstepd: error: *** JOB 625020 ON node49-011 CANCELLED AT 2021-06-01T10:38:59 ***

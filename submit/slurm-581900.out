@@ -1,0 +1,19 @@
++ ntasks=640
++ nprocx=640
++ nprocy=1
++ export OMP_NUM_THREADS=1
++ OMP_NUM_THREADS=1
++ export GMON_OUT_PREFIX=gmon.out-
++ GMON_OUT_PREFIX=gmon.out-
++ export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/schmid/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
++ LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/schmid/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
++ d_home=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases
++ d_scratch=/scratch/atmodynamics/schmid/Dissertation
++ d_nam=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_wavePacket2D_5120
++ fp_exe=/home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_wavePacket2D_5120/pinc
++ d_work=/scratch/atmodynamics/schmid/Dissertation/wavePacket2D_5120_si_cfl0.5
++ mkdir /scratch/atmodynamics/schmid/Dissertation/wavePacket2D_5120_si_cfl0.5
++ cd /scratch/atmodynamics/schmid/Dissertation/wavePacket2D_5120_si_cfl0.5
++ sed -e 's/{nprocx}/640/' -e 's/{nprocy}/1/' /home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_wavePacket2D_5120/input.f90
++ mpirun -np 640 /home/atmodynamics/schmid/git_PF_2020/pinc_f2Omegasiny_BK19cases/bin_wavePacket2D_5120/pinc
+slurmstepd: error: *** JOB 581900 ON node45-028 CANCELLED AT 2021-04-13T09:19:49 ***

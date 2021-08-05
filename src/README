@@ -1,0 +1,35 @@
+PincFloit with
+
+(1) parallelized WKB module (MS-GWaM)
+
+(2) dynamic Smagorinsky formulated for anisotropic grids
+
+(3) small bug in output_wkb removed (re-dimensionalization energy)
+
+(4) big round of changes by Elena:
+(4.1) heating enabling baroclinic-wave life cycles
+(4.2) more efficient pressure solver
+(4.3) more efficient treatment of MUSCL
+(4.4) potentially more ...
+
+(5) semi-implicit time stepping with new discretization of the fluxes
+
+(6) environmental state made steady by RHS of dynamical equations only using deviations from that state
+
+(7) reconstruction of cell-face fields and construction of the fluxes according to suggestion from R. Klein- Old reconstruction and fluxes conserved in reconstruction_0 and momentumFlux_0
+
+(8) heating implemented following O'Neill and Klein (2014)
+
+(9) Held & Suarez (1994) implemented. Heating there proportional to the deviation of the potential-temperature difference (between model and the HS potential temperature) from its horizontal mean
+
+(10) density relaxation
+
+(11) horizontal Shapiro filter
+
+(12) In case of BLC horizontal Shapiro Filter only acting on deviations from equilibrium state
+
+(13) \overline{\rho'w} removed from dynamics with heating
+
+...
+
+(14) Many modifications by Fabienne Schmid
