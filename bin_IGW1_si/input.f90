@@ -17,7 +17,7 @@
   nbx = 2,                  ! nb. of ghost cells
   nby = 2,
   nbz = 2,
-  lx_dim =    0.,300000.!0., 300000. ! domain lenths in m
+  lx_dim =    -150000.,150000.!0., 300000. ! domain lenths in m
   ly_dim =   0, 1000.!-1.5e7, 1.5e7!-2.e7, 2.e7
   lz_dim =    0.0,  10000.
 
@@ -68,9 +68,9 @@
 &solverList
 
   cfl = 0.9
-  cfl_wave = 0.9                 ! passage rate of phase throuh a cell
-  dtMax_dim = 88.!10000               ! max time step in s
-  tStepChoice = "fix"             ! "fix" -> time step dtMax_dim is taken
+  cfl_wave = 0.5                 ! passage rate of phase throuh a cell
+  dtMax_dim = 10000               ! max time step in s
+  tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
   timeScheme = "semiimplicit"      ! LS_Will_RK3 -> Williamson / Euler /
                                   ! LS_TVD_RK3 / CL_TVD_RK3 / semiimplicit
@@ -83,8 +83,7 @@
   limiterType1 = "MCVariant"      ! minmod / Cada / MCVariant
   fluctuationMode = .true.        ! use rho' as primary variable
   n_shap = 4                      ! (half) order of the shapiro filter
-  shap_dts_fac = 0.
-  !shap_dts_dim = -1.!5.e3 !0. !5.e3             ! horizontal-Shapro-filter damping time 
+  shap_dts_dim = -1.!5.e3 !0. !5.e3             ! horizontal-Shapro-filter damping time 
                                   ! scale (s < 0 means no filter)
   TurbScheme = .false.            ! Turbulence Schwme
   turb_dts = 5.e3                 ! (s) turbulent damping time scale for the 
@@ -92,7 +91,7 @@
   DySmaScheme = .false.            ! Dynamic Smagorinsky Scheme for the 
                                   ! dynamic calculation of the turbulent 
                                   ! damping time scale
-  dtWave_on = .false.              ! .true. : include dtWave = pi/N to time 
+  dtWave_on = .true.              ! .true. : include dtWave = pi/N to time 
                                   !          step choice 
 
   heatingONK14 = .false. !.true.           ! pseudo-incompressible dynamics with 
@@ -128,8 +127,8 @@
                                !  "opr" (lin operator)
 
   preconditioner = "yes"       ! for operator-Solver: "no" / "yes"
-   dtau = 8.e-1                ! time parameter for ADI (imperical value)
-  maxIterADI = 10               ! nb of iterations for ADI preconditioner
+  dtau = 4.0e-4                ! time parameter for ADI (imperical value)
+  maxIterADI = 2               ! nb of iterations for ADI preconditioner
 
   initialCleaning = .true.     ! makes initial projection
   pressureScaling = .false.    ! .true. / .false. Scaling with PStrat
@@ -209,13 +208,11 @@
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq 
   
-  backgroundFlow_dim =  20.0, 0.0, 0.0 !m/s
+  backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
                                  ! zonal background flow velocity u
 
   f_Coriolis_dim = 0.!1.e-4         ! 1/s       
                                  ! Coriolis parameter
-
-  corset = "constant"            ! constant/ periodic
   
   gamma_t = 0.000                ! lapse rate in the troposphere
   gamma_s = 0.000                ! lapse rate in the stratosphere
@@ -618,7 +615,7 @@
   dTheta0_dim = 6.0    !K
   xRadius_dim = 100000.0 !m
   zRadius_dim = 10000.0 !m
-  xCenter_dim = 100000.0    !m
+  xCenter_dim = 0.!100000.0    !m
   zCenter_dim = 5000.0    !m
   zExcentricity = 1.0
 

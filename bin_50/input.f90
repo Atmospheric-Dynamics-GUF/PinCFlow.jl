@@ -1,4 +1,3 @@
-
 !------------------------------------------------
 !   This is input file for pincFloit
 !   The ending .f90 is chosen to facilitate
@@ -68,7 +67,7 @@
 
 &solverList
 
-  cfl = 0.5!0.96
+  cfl = 0.96
   cfl_wave = 0.5                 ! passage rate of phase throuh a cell
   dtMax_dim = 4!1000!3600               ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
@@ -84,8 +83,7 @@
   limiterType1 = "MCVariant"      ! minmod / Cada / MCVariant
   fluctuationMode = .true.        ! use rho' as primary variable
   n_shap = 4                      ! (half) order of the shapiro filter
-  shap_dts_fac = 0.
-  !shap_dts_dim = -1.!5.e3 !0. !5.e3             ! horizontal-Shapro-filter damping time 
+  shap_dts_dim = -1.!5.e3 !0. !5.e3             ! horizontal-Shapro-filter damping time 
                                   ! scale (s < 0 means no filter)
   TurbScheme = .true.            ! Turbulence Schwme
   turb_dts = 33.333333333333!5.e3            ! (s) turbulent damping time scale for the 
@@ -129,8 +127,8 @@
                                !  "opr" (lin operator)
 
   preconditioner = "yes"       ! for operator-Solver: "no" / "yes"
-  dtau = 8.e-1                ! time parameter for ADI (imperical value)
-  maxIterADI = 10               ! nb of iterations for ADI preconditioner
+  dtau = 4.0e-4                ! time parameter for ADI (imperical value)
+  maxIterADI = 2               ! nb of iterations for ADI preconditioner
 
   initialCleaning = .true.     ! makes initial projection
   pressureScaling = .false.    ! .true. / .false. Scaling with PStrat
@@ -215,8 +213,6 @@
 
   f_Coriolis_dim = 0.!1.e-4         ! 1/s       
                                  ! Coriolis parameter
-
-  corset = "constant"            ! constant/ periodic
   
   gamma_t = 0.000                ! lapse rate in the troposphere
   gamma_s = 0.000                ! lapse rate in the stratosphere
@@ -337,7 +333,7 @@
   !                         4) background density rhoBar in kg/m^3
   !                         5) div(Pu)
   !                         6) stratification perturbation db/dz
-  thetaOffset = .false.               ! subtract background
+  thetaOffset = .true.               ! subtract background
 
   ! WKB variables
   wkbVarOut = 0,0,0,0, 0,0,0,0, 0,0,0,0
