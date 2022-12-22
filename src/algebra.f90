@@ -26,7 +26,7 @@ module algebra_module
   public :: printMatrix ! print full matrix to screen in nice format
 
   interface mldivide
-  module procedure mldivide
+    module procedure mldivide
   end interface
 
   logical, parameter :: giveInfo = .true.

@@ -55,8 +55,8 @@ linebreak_indent_string = linebreak_indent * " "
 # Collect operators.
 operators = re.compile("".join((r"(", "|".join(("\+", "\-", "\*", "\/", "\=",
         "\>", "\<", "\.eq\.", "\.ne\.", "\.gt\.", "\.lt\.", "\.ge\.", "\.le\.",
-        "\.and\.", "\.or\.", "\.not\.", "\.eqv\.", "\.neqv\.")), r")")),
-        flags = re.IGNORECASE)
+        "\.and\.", "\.or\.", "\.not\.", "\.eqv\.", "\.neqv\.", "\.true\.",
+        "\.false\.")), r")")), flags = re.IGNORECASE)
 
 # Collect keywords.
 keywords = re.compile("".join((r"\b(", "|".join(("allocatable", "allocate",
@@ -85,37 +85,48 @@ keywords = re.compile("".join((r"\b(", "|".join(("allocatable", "allocate",
         flags = re.IGNORECASE)
 
 # Collect indent triggers.
-positive_indent_triggers = re.compile("".join((r"(",
-        "|".join(("^(\d+\s*)?(\w+\s*:\s*)?if\s*\(.*\)\s*then$",
-        "^(\d+\s*)?else(\s*if\s*\(.*\)\s*then)?$",
-        "^(\d+\s*)?(\w+\s*:\s*)?do\s+.+\s*=\s*.+\s*,\s*.+(\s*,.+)?$",
-        "^(\d+\s*)?(\w+\s*:\s*)?select\s*(case|rank|type)\s*\(.*\)$",
-        "^(\d+\s*)?((case|rank|type\s+is|class\s+is)\s*(\(.*\)|default)|"
-        "class\s+default)$",
-        "^(\d+\s*)?(\w+\s*:\s*)?((?!end)[^!]* )?subroutine\s+\w+\s*(\(.*\))?$",
-        "^(\d+\s*)?(\w+\s*:\s*)?((?!end)[^!]* )?function\s+\w+\s*(\(.*\))?"
-        r"(\s*result\s*\(\w+\))?$",
-        "^(\d+\s*)?(\w+\s*:\s*)?module\s+\w+$",
-        "^(\d+\s*)?(\w+\s*:\s*)?program\s+\w+$")),
-        r")")), flags = re.IGNORECASE)
-negative_indent_triggers = re.compile("".join((r"(",
-        "|".join(("^(\d+\s*)?else(\s*if\s*\(.*\)\s*then)?$",
-        "^(\d+\s*)?end\s*if(\s+\w+)?$",
-        r"^(\d+\s*)?end\s*do(\s+\w+)?$",
-        "^(\d+\s*)?((case|rank|type\s+is|class\s+is)\s*(\(.*\)|default)|"
-        "class\s+default)$",
-        "^(\d+\s*)?end\s*select(\s+\w+)?$",
-        "^(\d+\s*)?end\s*subroutine(\s+\w+)?$",
-        "^(\d+\s*)?end\s*function(\s+\w+)?$",
-        "^(\d+\s*)?end\s*module(\s+\w+)?$",
-        "^(\d+\s*)?end\s*program(\s+\w+)?$")),
-        r")")), flags = re.IGNORECASE)
+positive_indent_triggers = re.compile("".join((r"^(\d+\s*)?(\w+\s*:\s*)?(",
+        "|".join(("if\s*\(.*\)\s*then",
+        "else(\s*if\s*\(.*\)\s*then)?",
+        "do(\s+\w+.*)?",
+        "select\s*(case|rank|type)\s*\(.*\)",
+        "((case|rank|type\s+is|class\s+is)\s*(\(.*\)|default)|class\s+default)",
+        "associate\s*\(.*\)",
+        "block",
+        "((?!end)[^!]* )?subroutine\s+\w+\s*(\(.*\))?",
+        "((?!end)[^!]* )?function\s+\w+\s*(\(.*\))?(\s*result\s*\(\w+\))?",
+        "module\s+\w+",
+        "submodule\s*\(\w+\)\s*\w+",
+        "type(\s*,\s*(bind\s*\(.*\)|extends\s*\(.*\)|abstract|public|private))*"
+        "(\s*::\s*|\s+)\w+",
+        "program\s+\w+",
+        "((?!end)[^!]* )?interface(\s+\w+|\s+(operator|assignment)\s*\(.*\))?",
+        "enum(\s*,\s*(bind\s*\(.*\)))?((\s*::\s*|\s+)\w+)?")),
+        r")$")), flags = re.IGNORECASE)
+negative_indent_triggers = re.compile("".join((r"^(\d+\s*)?((",
+        "|".join(("else(\s*if\s*\(.*\)\s*then)?",
+        "end\s*if",
+        r"end\s*do",
+        "((case|rank|type\s+is|class\s+is)\s*(\(.*\)|default)|"
+        "class\s+default)",
+        "end\s*select",
+        "end\s*associate",
+        "end\s*block",
+        "end\s*subroutine(\s+\w+)?",
+        "end\s*function(\s+\w+)?",
+        "end\s*module(\s+\w+)?",
+        "end\s*submodule(\s+\w+)?",
+        "end\s*type(\s+\w+)?",
+        "end\s*program(\s+\w+)?",
+        "end\s*interface(\s+\w+|\s+(operator|assignment)\s*\(.*\))?",
+        "end\s*enum(\s+\w+)?")),
+        r")(\s+\w+)?|end)$")), flags = re.IGNORECASE)
 
 # Define expressions for linebreak detection.
-linebreak_comments = re.compile(r"(\n[^&!\n]*& *(!.*)?\n)"
-        r"\n*((!.*\n)+)\n*(&?[^&!\n]+&? *(!.*)?\n)")
-linebreak_code = re.compile(r"(\n[^&!\n]+)& *((!.*)?)"
-        r"\n&?([^&!\n]+&?) *((!.*)?\n)")
+linebreak_comments = re.compile(r"(\n[^!\n]+& *(!.*)?\n)"
+        r"\n*((!.*\n)+)\n*(&?[^!\n]+&? *(!.*)?\n)")
+linebreak_code = re.compile(r"(\n[^!\n]+)& *((!.*)?)"
+        r"\n&?([^!\n]+&?) *((!.*)?\n)")
 
 # Define expressions for linebreak points.
 operator_linebreak_point = re.compile(r"^(\s*)(\S.*\s+)((\+|\-|\*|\/"
@@ -124,7 +135,8 @@ whitespace_linebreak_point = re.compile(r"^(\s*)(\S.*\s+)(\S+\s*)$")
 
 # Iterate over files in the input directory.
 for file in os.listdir(input_directory):
-    if not file.endswith(".f90"):
+    if re.search(r"\.(f|for|ftn|f90|f95|f03|fpp)$", file, flags =
+            re.IGNORECASE) is None:
         continue
 
     # Read the input file.
@@ -194,6 +206,9 @@ for file in os.listdir(input_directory):
     code = re.sub(r"\) *", spacing_string.join((")", "")), code)
     code = re.sub(r" +\[", "[", code)
     code = re.sub(r"\] *", spacing_string.join(("]", "")), code)
+
+    # Remove whitespaces around percentage sign.
+    code = re.sub(r" *\% *", "%", code)
 
     # Add whitespaces around single operators.
     code = operators.sub(spacing_string.join(("", r"\1", "")), code)

@@ -134,14 +134,13 @@ module type_module
 
   logical :: PVinversion
 
-  namelist / outputList / dataFileName, restartFile, dimOut, varOut, &
+  namelist / outputList / dataFileName, restartFile, dimOut, varOut, varIn, &
+      iIn, offset, optVarOut, wkbVarOut, outputType, nOutput, maxIter, &
+      outputTimeDiff, maxTime, solutionTime, solutionTimeUnit, restart, &
+      showGhostCellsX, showGhostCellsY, showGhostCellsZ, thetaOffset, &
+      rhoOffset, detailedinfo, RHS_diagnostics, PVinversion
   !achatzb
-  & varIn, iIn, &
   !achatze
-  & offset, optVarOut, wkbVarOut, outputType, nOutput, maxIter, &
-  & outputTimeDiff, maxTime, solutionTime, solutionTimeUnit, &
-  & restart, showGhostCellsX, showGhostCellsY, showGhostCellsZ, &
-  & thetaOffset, rhoOffset, detailedinfo, RHS_diagnostics, PVinversion
 
   !-----------------------------------------------------------------
   !                         Parameter study
@@ -205,15 +204,12 @@ module type_module
   namelist / wavePacket / wavePacketType, wavePacketDim, lambdaX_dim, &
       lambdaY_dim, lambdaZ_dim, meanFlowX_dim, meanFlowZ_dim, amplitudeFactor, &
       xCenter_dim, yCenter_dim, zCenter_dim, sigma_dim, sigma_hor_dim, &
+      amp_mod_x, sigma_hor_yyy_dim, amp_mod_y, L_cos_dim, omiSign, u0_jet_dim, &
+      z0_jet_dim, L_jet_dim
   ! achatzb
-  & amp_mod_x, &
   ! achatze
-  & sigma_hor_yyy_dim, &
   ! achatzb
-  & amp_mod_y, &
   ! achatze
-  & L_cos_dim, omiSign, &
-  & u0_jet_dim, z0_jet_dim, L_jet_dim
 
   !--------------------------------------------------------------
   ! Lagrangian ray tracer: Wave packet or mountain wave
@@ -286,7 +282,7 @@ module type_module
       sm_filter, lsaturation, alpha_sat, case_wkb, amp_wkb, wlrx_init, &
       wlry_init, wlrz_init, xr0_dim, yr0_dim, zr0_dim, sigwpx_dim, sigwpy_dim, &
       sigwpz_dim, branchr, lindUinit, oror_amp_dim, zmin_wkb_dim, nray_fac, &
-      cons_merge ! JaWi: new nml!               ! Jan Weinkaemmerer, 27.11.18
+      cons_merge ! JaWi: new nml!      ! Jan Weinkaemmerer, 27.11.18
 
   !------------------------------------------
   ! hotBubble, coldBubble, hotBubble3D
@@ -404,21 +400,15 @@ module type_module
   real :: proc_noise, dTh_atm
 
   namelist / baroclinic_LC / zero_initial_state, z_trpp0_dim, z_baro_dim, &
-      deltht_dim, &
+      deltht_dim, thet0_dim, ntrp_dim, nstr_dim, jwdth_dim, kaptpp, &
+      t_relax_bar, add_ptptb, ptptb_x_dim, ptptb_y_dim, ptptb_z_dim, &
+      ptptb_dh_dim, ptptb_dz_dim, ptptb_amp_dim, dTh_atm, add_noise, &
+      proc_noise, tau_relax, tau_relax_low, sigma_tau, tau_jet, RelaxHeating, &
+      Sponge_Rel_Type, Sponge_Rel_Bal_Type, init_2Dto3D, fileinitstate2D, &
+      ta_hs_dim, ts_hs_dim, tf_hs_dim, sigb_hs
   !UAC & z_trpp0_dim, z_baro_dim, deltht_dim, thet0_dim, &
-  & thet0_dim, &
   !UAE
-  & ntrp_dim, nstr_dim, jwdth_dim, kaptpp, &
-  & t_relax_bar, &
-  & add_ptptb, &
-  & ptptb_x_dim, ptptb_y_dim, ptptb_z_dim, ptptb_dh_dim, &
-  & ptptb_dz_dim, ptptb_amp_dim, &
-  & dTh_atm, add_noise, proc_noise, &
-  & tau_relax, tau_relax_low, sigma_tau, tau_jet, RelaxHeating, &
-  & Sponge_Rel_Type, Sponge_Rel_Bal_Type, &
-  & init_2Dto3D, fileinitstate2D, &
   !UAB
-  & ta_hs_dim, ts_hs_dim, tf_hs_dim, sigb_hs
   !UAE
 
   !-----------------------------------------------------------------
@@ -512,9 +502,8 @@ module type_module
   namelist / solverList / cfl, cfl_wave, dtMax_dim, tStepChoice, timeScheme, &
       auxil_equ, fluxType, reconstType, musclType, limiterType1, &
       fluctuationMode, TurbScheme, turb_dts, DySmaScheme, dtWave_on, &
-      heatingONK14, &
+      heatingONK14, dens_relax, shap_dts_fac, n_shap
   !UAC & dens_relax, shap_dts_dim, n_shap
-  & dens_relax, shap_dts_fac, n_shap
 
   integer :: nStages
   logical :: updateMass ! transport of mass=var(1)  on/off
@@ -637,9 +626,8 @@ module type_module
       mu_viscous_dim, mu_conduct_dim, background, N_BruntVaisala_dim, &
       theta0_dim, Temp0_dim, press0_dim, backgroundFlow_dim, f_Coriolis_dim, &
       corset, z_tr_dim, theta_tr_dim, gamma_t, gamma_s, bvarOut, &
+      tp_strato_dim, tp_srf_trp_dim, tpdiffhor_tropo_dim, ptdiffvert_tropo_dim
   !UAB
-  & tp_strato_dim, tp_srf_trp_dim, tpdiffhor_tropo_dim, &
-  & ptdiffvert_tropo_dim
   !UAE
 
   real, dimension (3) :: backgroundFlow
@@ -726,12 +714,11 @@ module type_module
   !  character(len=15) :: zBoundary
 
   namelist / boundaryList / rhoFluxCorr, iceFluxCorr, uFluxCorr, vFluxCorr, &
-      wFluxCorr, thetaFluxCorr, nbCellCorr, &
+      wFluxCorr, thetaFluxCorr, nbCellCorr, spongeLayer, sponge_uv, &
+      spongeHeight, zSponge, spongeAlphaZ_dim, spongeAlphaZ_fac, utopcond, &
+      rhocond, thcond
   !UAC & spongeLayer, spongeHeight, &
-  & spongeLayer, sponge_uv, spongeHeight, &
-  & zSponge, &
   !UAC & spongeAlphaZ_dim, utopcond, rhocond, thcond
-  & spongeAlphaZ_dim, spongeAlphaZ_fac, utopcond, rhocond, thcond
 
   ! boundary types
   character (len = 15) :: xBoundary
@@ -745,29 +732,29 @@ module type_module
   !-----------------------------------------------------------------
 
   type rayType
-  real :: x ! ray position
-  real :: y
-  real :: z
+    real :: x ! ray position
+    real :: y
+    real :: z
 
-  real :: k ! ray wave vector
-  real :: l
-  real :: m
+    real :: k ! ray wave vector
+    real :: l
+    real :: m
 
-  real :: omega ! intrinsic frequency
+    real :: omega ! intrinsic frequency
 
-  real :: area_xk ! x-k area associated with each ray volume
-  real :: area_yl ! y-l area associated with each ray volume
-  real :: area_zm ! z-m area associated with each ray volume
+    real :: area_xk ! x-k area associated with each ray volume
+    real :: area_yl ! y-l area associated with each ray volume
+    real :: area_zm ! z-m area associated with each ray volume
 
-  real :: dkray ! dm associated with each ray volume
-  real :: dlray ! dm associated with each ray volume
-  real :: dmray ! dm associated with each ray volume
+    real :: dkray ! dm associated with each ray volume
+    real :: dlray ! dm associated with each ray volume
+    real :: dmray ! dm associated with each ray volume
 
-  real :: dxray ! dz associated with each ray volume
-  real :: dyray ! dz associated with each ray volume
-  real :: dzray ! dz associated with each ray volume
+    real :: dxray ! dz associated with each ray volume
+    real :: dyray ! dz associated with each ray volume
+    real :: dzray ! dz associated with each ray volume
 
-  real :: dens ! wave-action density
+    real :: dens ! wave-action density
   end type rayType
 
   ! total number of active rays

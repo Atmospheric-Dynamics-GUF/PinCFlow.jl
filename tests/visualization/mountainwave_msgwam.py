@@ -65,7 +65,7 @@ for nn in range(6):
 figure.savefig("../results/mountainwave_msgwam.pdf")
 figure.savefig("../results/mountainwave_msgwam.png")
 
-# Make plot.
+# Make difference plot.
 umax = numpy.max(numpy.absolute(deltapsi[it, 1, :, 0, :]))
 vmax = numpy.max(numpy.absolute(deltapsi[it, 2, :, 0, :]))
 wmax = numpy.max(numpy.absolute(deltapsi[it, 3, :, 0, :]))

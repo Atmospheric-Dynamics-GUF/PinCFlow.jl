@@ -204,15 +204,15 @@ module wkb_module
           do iRay = 1, nRay(ixrv, jyrv, kzrv)
             ! skip counting ray volumes with zero wave-action density
 
-            if (ray(iRay, ixrv, jyrv, kzrv) %dens == 0.0) cycle
+            if (ray(iRay, ixrv, jyrv, kzrv)%dens == 0.0) cycle
 
-            xr = ray(iRay, ixrv, jyrv, kzrv) %x
-            yr = ray(iRay, ixrv, jyrv, kzrv) %y
-            zr = ray(iRay, ixrv, jyrv, kzrv) %z
+            xr = ray(iRay, ixrv, jyrv, kzrv)%x
+            yr = ray(iRay, ixrv, jyrv, kzrv)%y
+            zr = ray(iRay, ixrv, jyrv, kzrv)%z
 
-            dxr = ray(iRay, ixrv, jyrv, kzrv) %dxray
-            dyr = ray(iRay, ixrv, jyrv, kzrv) %dyray
-            dzr = ray(iRay, ixrv, jyrv, kzrv) %dzray
+            dxr = ray(iRay, ixrv, jyrv, kzrv)%dxray
+            dyr = ray(iRay, ixrv, jyrv, kzrv)%dyray
+            dzr = ray(iRay, ixrv, jyrv, kzrv)%dzray
 
             ! vertical boundary conditions:
             ! zBoundary = 'periodic': implement periodicity
@@ -379,13 +379,13 @@ module wkb_module
               !end if
             end if
 
-            wnrk = ray(iRay, ixrv, jyrv, kzrv) %k
-            wnrl = ray(iRay, ixrv, jyrv, kzrv) %l
-            wnrm = ray(iRay, ixrv, jyrv, kzrv) %m
+            wnrk = ray(iRay, ixrv, jyrv, kzrv)%k
+            wnrl = ray(iRay, ixrv, jyrv, kzrv)%l
+            wnrm = ray(iRay, ixrv, jyrv, kzrv)%m
 
-            dwnrk = ray(iRay, ixrv, jyrv, kzrv) %dkray
-            dwnrl = ray(iRay, ixrv, jyrv, kzrv) %dlray
-            dwnrm = ray(iRay, ixrv, jyrv, kzrv) %dmray
+            dwnrk = ray(iRay, ixrv, jyrv, kzrv)%dkray
+            dwnrl = ray(iRay, ixrv, jyrv, kzrv)%dlray
+            dwnrm = ray(iRay, ixrv, jyrv, kzrv)%dmray
 
             wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
 
@@ -516,7 +516,7 @@ module wkb_module
                   end if
 
                   wadr = fcpspx * fcpspy * fcpspz * ray(iRay, ixrv, jyrv, &
-                      kzrv) %dens
+                      kzrv)%dens
 
                   if (sizeX > 1) then
                     if (f_cor_nd /= 0.0) then
@@ -1378,18 +1378,18 @@ module wkb_module
 
                         ! ray-volume positions
 
-                        ray(iRay, ix, jy, kz) %x = (x(ix + ix0) - 0.5 * dx &
+                        ray(iRay, ix, jy, kz)%x = (x(ix + ix0) - 0.5 * dx &
                             + (ix2 - 0.5) * dx / nrxl)
 
-                        ray(iRay, ix, jy, kz) %y = (y(jy + jy0) - 0.5 * dy &
+                        ray(iRay, ix, jy, kz)%y = (y(jy + jy0) - 0.5 * dy &
                             + (jy2 - 0.5) * dy / nryl)
 
-                        ray(iRay, ix, jy, kz) %z = (z(kz) - 0.5 * dz + (kz2 &
+                        ray(iRay, ix, jy, kz)%z = (z(kz) - 0.5 * dz + (kz2 &
                             - 0.5) * dz / nrzl)
 
-                        xr = ray(iRay, ix, jy, kz) %x
-                        yr = ray(iRay, ix, jy, kz) %y
-                        zr = ray(iRay, ix, jy, kz) %z
+                        xr = ray(iRay, ix, jy, kz)%x
+                        yr = ray(iRay, ix, jy, kz)%y
+                        zr = ray(iRay, ix, jy, kz)%z
 
                         ! local squared Brunt_Vaisala frequency
 
@@ -1403,9 +1403,9 @@ module wkb_module
 
                         ! ray-volume spatial extensions
 
-                        ray(iRay, ix, jy, kz) %dxray = dx / nrxl
-                        ray(iRay, ix, jy, kz) %dyray = dy / nryl
-                        ray(iRay, ix, jy, kz) %dzray = dz / nrzl
+                        ray(iRay, ix, jy, kz)%dxray = dx / nrxl
+                        ray(iRay, ix, jy, kz)%dyray = dy / nryl
+                        ray(iRay, ix, jy, kz)%dzray = dz / nrzl
 
                         ! ray-volume wave numbers
 
@@ -1419,10 +1419,10 @@ module wkb_module
                           wnm_0 = wnrm_init
                         end if
 
-                        ray(iRay, ix, jy, kz) %k = (wnk_0 - 0.5 * dk_ini_nd &
+                        ray(iRay, ix, jy, kz)%k = (wnk_0 - 0.5 * dk_ini_nd &
                             + (real (ik) - 0.5) * dk_ini_nd / nrk_init)
 
-                        ray(iRay, ix, jy, kz) %l = (wnl_0 - 0.5 * dl_ini_nd &
+                        ray(iRay, ix, jy, kz)%l = (wnl_0 - 0.5 * dl_ini_nd &
                             + (real (jl) - 0.5) * dl_ini_nd / nrl_init)
 
                         if (fac_dm_init == 0.0) then
@@ -1433,27 +1433,27 @@ module wkb_module
                           dm_ini_nd = fac_dm_init * abs(wnm_0)
                         end if
 
-                        ray(iRay, ix, jy, kz) %m = (wnm_0 - 0.5 * dm_ini_nd &
+                        ray(iRay, ix, jy, kz)%m = (wnm_0 - 0.5 * dm_ini_nd &
                             + (real (km) - 0.5) * dm_ini_nd / nrm_init)
 
                         ! ray-volume wave-number extents
 
-                        ray(iRay, ix, jy, kz) %dkray = dk_ini_nd / nrk_init
+                        ray(iRay, ix, jy, kz)%dkray = dk_ini_nd / nrk_init
 
-                        ray(iRay, ix, jy, kz) %dlray = dl_ini_nd / nrl_init
+                        ray(iRay, ix, jy, kz)%dlray = dl_ini_nd / nrl_init
 
-                        ray(iRay, ix, jy, kz) %dmray = dm_ini_nd / nrm_init
+                        ray(iRay, ix, jy, kz)%dmray = dm_ini_nd / nrm_init
 
                         ! ray-volume phase-space volume
 
-                        ray(iRay, ix, jy, kz) %area_xk = ray(iRay, ix, jy, kz) &
-                            %dxray * ray(iRay, ix, jy, kz) %dkray
+                        ray(iRay, ix, jy, kz)%area_xk = ray(iRay, ix, jy, &
+                            kz)%dxray * ray(iRay, ix, jy, kz)%dkray
 
-                        ray(iRay, ix, jy, kz) %area_yl = ray(iRay, ix, jy, kz) &
-                            %dyray * ray(iRay, ix, jy, kz) %dlray
+                        ray(iRay, ix, jy, kz)%area_yl = ray(iRay, ix, jy, &
+                            kz)%dyray * ray(iRay, ix, jy, kz)%dlray
 
-                        ray(iRay, ix, jy, kz) %area_zm = ray(iRay, ix, jy, kz) &
-                            %dzray * ray(iRay, ix, jy, kz) %dmray
+                        ray(iRay, ix, jy, kz)%area_zm = ray(iRay, ix, jy, &
+                            kz)%dzray * ray(iRay, ix, jy, kz)%dmray
 
                         pspvol = dm_ini_nd
 
@@ -1468,18 +1468,18 @@ module wkb_module
                         ! phase-space wave-action density
 
                         if (kz == sizeZ) then
-                          ray(iRay, ix, jy, kz) %dens = 0.0
+                          ray(iRay, ix, jy, kz)%dens = 0.0
                         else
-                          ray(iRay, ix, jy, kz) %dens = fld_amp(ix, jy, kz) &
+                          ray(iRay, ix, jy, kz)%dens = fld_amp(ix, jy, kz) &
                               / pspvol
                         endif
 
                         ! intrinsic frequency
 
                         if (case_wkb == 3) then
-                          ray(iRay, ix, jy, kz) %omega = omi_sfc(ix, jy)
+                          ray(iRay, ix, jy, kz)%omega = omi_sfc(ix, jy)
                         else
-                          ray(iRay, ix, jy, kz) %omega = omi_notop(kz)
+                          ray(iRay, ix, jy, kz)%omega = omi_notop(kz)
                         end if
 
                         ! intrinsic group velocities and maximum
@@ -1489,13 +1489,13 @@ module wkb_module
                         call meanflow(xr, yr, zr, var, 2, vyr)
                         call meanflow(xr, yr, zr, var, 3, wzr)
 
-                        wnrk = ray(iRay, ix, jy, kz) %k
-                        wnrl = ray(iRay, ix, jy, kz) %l
-                        wnrm = ray(iRay, ix, jy, kz) %m
+                        wnrk = ray(iRay, ix, jy, kz)%k
+                        wnrl = ray(iRay, ix, jy, kz)%l
+                        wnrm = ray(iRay, ix, jy, kz)%m
 
                         wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
 
-                        omir = ray(iRay, ix, jy, kz) %omega
+                        omir = ray(iRay, ix, jy, kz)%omega
 
                         cgirx = wnrk * (NNr - omir ** 2) / (omir * (wnrh ** 2 &
                             + wnrm ** 2))
@@ -3003,11 +3003,11 @@ module wkb_module
 
           if (sizeX > 1) then
             do iRay = 1, nRay(ix, jy, kz)
-              dxr = ray(iRay, ix, jy, kz) %dxray
+              dxr = ray(iRay, ix, jy, kz)%dxray
 
-              zr = ray(iRay, ix, jy, kz) %z
+              zr = ray(iRay, ix, jy, kz)%z
 
-              dzr = ray(iRay, ix, jy, kz) %dzray
+              dzr = ray(iRay, ix, jy, kz)%dzray
 
               if (dxr > dx .and. zr - 0.5 * dzr > lz(0)) then
                 nrlc = nrlc + 1
@@ -3017,18 +3017,18 @@ module wkb_module
                   stop
                 end if
 
-                xr = ray(iRay, ix, jy, kz) %x
+                xr = ray(iRay, ix, jy, kz)%x
 
-                axk = ray(iRay, ix, jy, kz) %area_xk
+                axk = ray(iRay, ix, jy, kz)%area_xk
 
-                ray(iRay, ix, jy, kz) %dxray = 0.5 * dxr
+                ray(iRay, ix, jy, kz)%dxray = 0.5 * dxr
 
-                ray(iRay, ix, jy, kz) %area_xk = 0.5 * axk
+                ray(iRay, ix, jy, kz)%area_xk = 0.5 * axk
 
                 ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
 
-                ray(iRay, ix, jy, kz) %x = xr - 0.25 * dxr
-                ray(nrlc, ix, jy, kz) %x = xr + 0.25 * dxr
+                ray(iRay, ix, jy, kz)%x = xr - 0.25 * dxr
+                ray(nrlc, ix, jy, kz)%x = xr + 0.25 * dxr
               end if
             end do
 
@@ -3047,11 +3047,11 @@ module wkb_module
 
           if (sizeY > 1) then
             do iRay = 1, nRay(ix, jy, kz)
-              dyr = ray(iRay, ix, jy, kz) %dyray
+              dyr = ray(iRay, ix, jy, kz)%dyray
 
-              zr = ray(iRay, ix, jy, kz) %z
+              zr = ray(iRay, ix, jy, kz)%z
 
-              dzr = ray(iRay, ix, jy, kz) %dzray
+              dzr = ray(iRay, ix, jy, kz)%dzray
 
               if (dyr > dy .and. zr - 0.5 * dzr > lz(0)) then
                 nrlc = nrlc + 1
@@ -3061,18 +3061,18 @@ module wkb_module
                   stop
                 end if
 
-                yr = ray(iRay, ix, jy, kz) %y
+                yr = ray(iRay, ix, jy, kz)%y
 
-                ayl = ray(iRay, ix, jy, kz) %area_yl
+                ayl = ray(iRay, ix, jy, kz)%area_yl
 
-                ray(iRay, ix, jy, kz) %dyray = 0.5 * dyr
+                ray(iRay, ix, jy, kz)%dyray = 0.5 * dyr
 
-                ray(iRay, ix, jy, kz) %area_yl = 0.5 * ayl
+                ray(iRay, ix, jy, kz)%area_yl = 0.5 * ayl
 
                 ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
 
-                ray(iRay, ix, jy, kz) %y = yr - 0.25 * dyr
-                ray(nrlc, ix, jy, kz) %y = yr + 0.25 * dyr
+                ray(iRay, ix, jy, kz)%y = yr - 0.25 * dyr
+                ray(nrlc, ix, jy, kz)%y = yr + 0.25 * dyr
               end if
             end do
 
@@ -3090,9 +3090,9 @@ module wkb_module
           !splitting in x direction
 
           do iRay = 1, nRay(ix, jy, kz)
-            dzr = ray(iRay, ix, jy, kz) %dzray
+            dzr = ray(iRay, ix, jy, kz)%dzray
 
-            zr = ray(iRay, ix, jy, kz) %z
+            zr = ray(iRay, ix, jy, kz)%z
 
             if (dzr > dz .and. zr - 0.5 * dzr > lz(0)) then
               nrlc = nrlc + 1
@@ -3102,18 +3102,18 @@ module wkb_module
                 stop
               end if
 
-              zr = ray(iRay, ix, jy, kz) %z
+              zr = ray(iRay, ix, jy, kz)%z
 
-              azm = ray(iRay, ix, jy, kz) %area_zm
+              azm = ray(iRay, ix, jy, kz)%area_zm
 
-              ray(iRay, ix, jy, kz) %dzray = 0.5 * dzr
+              ray(iRay, ix, jy, kz)%dzray = 0.5 * dzr
 
-              ray(iRay, ix, jy, kz) %area_zm = 0.5 * azm
+              ray(iRay, ix, jy, kz)%area_zm = 0.5 * azm
 
               ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
 
-              ray(iRay, ix, jy, kz) %z = zr - 0.25 * dzr
-              ray(nrlc, ix, jy, kz) %z = zr + 0.25 * dzr
+              ray(iRay, ix, jy, kz)%z = zr - 0.25 * dzr
+              ray(nrlc, ix, jy, kz)%z = zr + 0.25 * dzr
             end if
           end do
 
@@ -3235,7 +3235,7 @@ module wkb_module
 
             if (nRay(ix - 1, jy, kz) > 0) then
               do iRay = 1, nRay(ix - 1, jy, kz)
-                xr = ray(iRay, ix - 1, jy, kz) %x
+                xr = ray(iRay, ix - 1, jy, kz)%x
 
                 if (xr > x(ix - 1 + ix0) + 0.5 * dx) then
                   nrlc = nrlc + 1
@@ -3256,7 +3256,7 @@ module wkb_module
 
             if (nRay(ix + 1, jy, kz) > 0) then
               do iRay = 1, nRay(ix + 1, jy, kz)
-                xr = ray(iRay, ix + 1, jy, kz) %x
+                xr = ray(iRay, ix + 1, jy, kz)%x
 
                 if (xr < x(ix + 1 + ix0) - 0.5 * dx) then
                   nrlc = nrlc + 1
@@ -3348,7 +3348,7 @@ module wkb_module
                     print *, 'nsh =', nsh
                     print *, 'irsh(1) =', irsh(1)
                     print *, 'irsh(nsh) =', irsh(nsh)
-                    print *, 'xr =', ray(iRay, ix, jy, kz) %x
+                    print *, 'xr =', ray(iRay, ix, jy, kz)%x
                     print *, 'x(ix0+ix) - 0.5*dx', x(ix0 + ix) - 0.5 * dx
                     print *, 'x(ix0+ix) + 0.5*dx', x(ix0 + ix) + 0.5 * dx
                     stop
@@ -3460,7 +3460,7 @@ module wkb_module
 
             if (nRay(ix, jy - 1, kz) > 0) then
               do iRay = 1, nRay(ix, jy - 1, kz)
-                yr = ray(iRay, ix, jy - 1, kz) %y
+                yr = ray(iRay, ix, jy - 1, kz)%y
 
                 if (yr > y(jy - 1) + 0.5 * dy) then
                   nrlc = nrlc + 1
@@ -3480,7 +3480,7 @@ module wkb_module
 
             if (nRay(ix, jy + 1, kz) > 0) then
               do iRay = 1, nRay(ix, jy + 1, kz)
-                yr = ray(iRay, ix, jy + 1, kz) %y
+                yr = ray(iRay, ix, jy + 1, kz)%y
 
                 if (yr < y(jy + 1) - 0.5 * dy) then
                   nrlc = nrlc + 1
@@ -3663,7 +3663,7 @@ module wkb_module
             if (kz > 0) then
               if (nRay(ix, jy, kz - 1) > 0) then
                 do iRay = 1, nRay(ix, jy, kz - 1)
-                  zr = ray(iRay, ix, jy, kz - 1) %z
+                  zr = ray(iRay, ix, jy, kz - 1)%z
 
                   if (zr > z(kz - 1) + 0.5 * dz) then
                     nrlc = nrlc + 1
@@ -3689,7 +3689,7 @@ module wkb_module
             if (kz < nz + 1) then
               if (nRay(ix, jy, kz + 1) > 0) then
                 do iRay = 1, nRay(ix, jy, kz + 1)
-                  zr = ray(iRay, ix, jy, kz + 1) %z
+                  zr = ray(iRay, ix, jy, kz + 1)%z
 
                   if (zr < z(kz + 1) - 0.5 * dz) then
                     ! r.v. having propagated into layers below the
@@ -3832,7 +3832,7 @@ module wkb_module
           if (nRay(ix, jy, kz) > 0) then
             do iRay = 1, nRay(ix, jy, kz)
               if (sizeX > 1) then
-                xr = ray(iRay, ix, jy, kz) %x
+                xr = ray(iRay, ix, jy, kz)%x
 
                 if (xr < x(ix + ix0) - 0.5 * dx) then
                   print *, 'ERROR in shift_rayvol:'
@@ -3860,7 +3860,7 @@ module wkb_module
               end if
 
               if (sizeY > 1) then
-                yr = ray(iRay, ix, jy, kz) %y
+                yr = ray(iRay, ix, jy, kz)%y
 
                 if (yr < y(jy + jy0) - 0.5 * dy) then
                   print *, 'ERROR in shift_rayvol:'
@@ -3887,7 +3887,7 @@ module wkb_module
                 end if
               end if
 
-              zr = ray(iRay, ix, jy, kz) %z
+              zr = ray(iRay, ix, jy, kz)%z
 
               if (zr < z(kz) - 0.5 * dz) then
                 print *, 'ERROR in shift_rayvol:'
@@ -4073,14 +4073,14 @@ module wkb_module
           wnrm_max_n = 0.
 
           do iRay = 1, nRay(ix, jy, kz)
-            wnrk = ray(iRay, ix, jy, kz) %k
-            dwnrk = abs(ray(iRay, ix, jy, kz) %dkray)
+            wnrk = ray(iRay, ix, jy, kz)%k
+            dwnrk = abs(ray(iRay, ix, jy, kz)%dkray)
 
-            wnrl = ray(iRay, ix, jy, kz) %l
-            dwnrl = abs(ray(iRay, ix, jy, kz) %dlray)
+            wnrl = ray(iRay, ix, jy, kz)%l
+            dwnrl = abs(ray(iRay, ix, jy, kz)%dlray)
 
-            wnrm = ray(iRay, ix, jy, kz) %m
-            dwnrm = abs(ray(iRay, ix, jy, kz) %dmray)
+            wnrm = ray(iRay, ix, jy, kz)%m
+            dwnrm = abs(ray(iRay, ix, jy, kz)%dmray)
 
             if (sizeX > 1) then
               ! subdivide the interval of wavenumbers to be processed
@@ -4583,31 +4583,31 @@ module wkb_module
           nr_merge = 0
 
           do iRay = 1, nRay(ix, jy, kz)
-            wnrk = ray(iRay, ix, jy, kz) %k
-            dwnrk = ray(iRay, ix, jy, kz) %dkray
+            wnrk = ray(iRay, ix, jy, kz)%k
+            dwnrk = ray(iRay, ix, jy, kz)%dkray
 
-            wnrl = ray(iRay, ix, jy, kz) %l
-            dwnrl = ray(iRay, ix, jy, kz) %dlray
+            wnrl = ray(iRay, ix, jy, kz)%l
+            dwnrl = ray(iRay, ix, jy, kz)%dlray
 
-            wnrm = ray(iRay, ix, jy, kz) %m
-            dwnrm = ray(iRay, ix, jy, kz) %dmray
+            wnrm = ray(iRay, ix, jy, kz)%m
+            dwnrm = ray(iRay, ix, jy, kz)%dmray
 
-            xr = ray(iRay, ix, jy, kz) %x
-            dxr = ray(iRay, ix, jy, kz) %dxray
+            xr = ray(iRay, ix, jy, kz)%x
+            dxr = ray(iRay, ix, jy, kz)%dxray
 
-            yr = ray(iRay, ix, jy, kz) %y
-            dyr = ray(iRay, ix, jy, kz) %dyray
+            yr = ray(iRay, ix, jy, kz)%y
+            dyr = ray(iRay, ix, jy, kz)%dyray
 
-            zr = ray(iRay, ix, jy, kz) %z
-            dzr = ray(iRay, ix, jy, kz) %dzray
+            zr = ray(iRay, ix, jy, kz)%z
+            dzr = ray(iRay, ix, jy, kz)%dzray
 
-            axk = ray(iRay, ix, jy, kz) %area_xk
-            ayl = ray(iRay, ix, jy, kz) %area_yl
-            azm = ray(iRay, ix, jy, kz) %area_zm
+            axk = ray(iRay, ix, jy, kz)%area_xk
+            ayl = ray(iRay, ix, jy, kz)%area_yl
+            azm = ray(iRay, ix, jy, kz)%area_zm
 
-            wdr = ray(iRay, ix, jy, kz) %dens
+            wdr = ray(iRay, ix, jy, kz)%dens
 
-            omir = ray(iRay, ix, jy, kz) %omega
+            omir = ray(iRay, ix, jy, kz)%omega
 
             if (sizeX > 1) then
               fcpspx = axk
@@ -4875,14 +4875,14 @@ module wkb_module
 
             ! position and width in physical space
 
-            ray(iRay, ix, jy, kz) %x = 0.5 * (xrmxmg(jRay) + xrmnmg(jRay))
-            ray(iRay, ix, jy, kz) %dxray = xrmxmg(jRay) - xrmnmg(jRay)
+            ray(iRay, ix, jy, kz)%x = 0.5 * (xrmxmg(jRay) + xrmnmg(jRay))
+            ray(iRay, ix, jy, kz)%dxray = xrmxmg(jRay) - xrmnmg(jRay)
 
-            ray(iRay, ix, jy, kz) %y = 0.5 * (yrmxmg(jRay) + yrmnmg(jRay))
-            ray(iRay, ix, jy, kz) %dyray = yrmxmg(jRay) - yrmnmg(jRay)
+            ray(iRay, ix, jy, kz)%y = 0.5 * (yrmxmg(jRay) + yrmnmg(jRay))
+            ray(iRay, ix, jy, kz)%dyray = yrmxmg(jRay) - yrmnmg(jRay)
 
-            ray(iRay, ix, jy, kz) %z = 0.5 * (zrmxmg(jRay) + zrmnmg(jRay))
-            ray(iRay, ix, jy, kz) %dzray = zrmxmg(jRay) - zrmnmg(jRay)
+            ray(iRay, ix, jy, kz)%z = 0.5 * (zrmxmg(jRay) + zrmnmg(jRay))
+            ray(iRay, ix, jy, kz)%dzray = zrmxmg(jRay) - zrmnmg(jRay)
 
             ! position and width in wavenumber space
 
@@ -4894,8 +4894,8 @@ module wkb_module
             !   = 0.5*(krmxmg(jRay) + krmnmg(jRay))
             !end if
 
-            ray(iRay, ix, jy, kz) %k = 0.5 * (krmxmg(jRay) + krmnmg(jRay))
-            ray(iRay, ix, jy, kz) %dkray = krmxmg(jRay) - krmnmg(jRay)
+            ray(iRay, ix, jy, kz)%k = 0.5 * (krmxmg(jRay) + krmnmg(jRay))
+            ray(iRay, ix, jy, kz)%dkray = krmxmg(jRay) - krmnmg(jRay)
 
             !if (lrmxmg(jRay) * lrmnmg(jRay) > 0.0) then
             !   ray(iRay,ix,jy,kz)%l &
@@ -4905,8 +4905,8 @@ module wkb_module
             !   = 0.5*(lrmxmg(jRay) + lrmnmg(jRay))
             !end if
 
-            ray(iRay, ix, jy, kz) %l = 0.5 * (lrmxmg(jRay) + lrmnmg(jRay))
-            ray(iRay, ix, jy, kz) %dlray = lrmxmg(jRay) - lrmnmg(jRay)
+            ray(iRay, ix, jy, kz)%l = 0.5 * (lrmxmg(jRay) + lrmnmg(jRay))
+            ray(iRay, ix, jy, kz)%dlray = lrmxmg(jRay) - lrmnmg(jRay)
 
             !if (mrmxmg(jRay) * mrmnmg(jRay) > 0.0) then
             !   ray(iRay,ix,jy,kz)%m &
@@ -4916,65 +4916,65 @@ module wkb_module
             !   = 0.5*(mrmxmg(jRay) + mrmnmg(jRay))
             !end if
 
-            ray(iRay, ix, jy, kz) %m = 0.5 * (mrmxmg(jRay) + mrmnmg(jRay))
-            ray(iRay, ix, jy, kz) %dmray = mrmxmg(jRay) - mrmnmg(jRay)
+            ray(iRay, ix, jy, kz)%m = 0.5 * (mrmxmg(jRay) + mrmnmg(jRay))
+            ray(iRay, ix, jy, kz)%dmray = mrmxmg(jRay) - mrmnmg(jRay)
 
             ! intrinsic frequency
 
-            wnrk = ray(iRay, ix, jy, kz) %k
-            wnrl = ray(iRay, ix, jy, kz) %l
-            wnrm = ray(iRay, ix, jy, kz) %m
+            wnrk = ray(iRay, ix, jy, kz)%k
+            wnrl = ray(iRay, ix, jy, kz)%l
+            wnrm = ray(iRay, ix, jy, kz)%m
 
             wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
 
-            zr = ray(iRay, ix, jy, kz) %z
+            zr = ray(iRay, ix, jy, kz)%z
 
             call stratification(zr, 1, NNr)
 
             omir = branchr * sqrt(NNr * wnrh ** 2 + f_cor_nd ** 2 * wnrm ** 2) &
                 / sqrt(wnrh ** 2 + wnrm ** 2)
 
-            ray(iRay, ix, jy, kz) %omega = omir
+            ray(iRay, ix, jy, kz)%omega = omir
 
             ! phase-space volumes
 
-            ray(iRay, ix, jy, kz) %area_xk = ray(iRay, ix, jy, kz) %dxray &
-                * ray(iRay, ix, jy, kz) %dkray
+            ray(iRay, ix, jy, kz)%area_xk = ray(iRay, ix, jy, kz)%dxray &
+                * ray(iRay, ix, jy, kz)%dkray
 
-            ray(iRay, ix, jy, kz) %area_yl = ray(iRay, ix, jy, kz) %dyray &
-                * ray(iRay, ix, jy, kz) %dlray
+            ray(iRay, ix, jy, kz)%area_yl = ray(iRay, ix, jy, kz)%dyray &
+                * ray(iRay, ix, jy, kz)%dlray
 
-            ray(iRay, ix, jy, kz) %area_zm = ray(iRay, ix, jy, kz) %dzray &
-                * ray(iRay, ix, jy, kz) %dmray
+            ray(iRay, ix, jy, kz)%area_zm = ray(iRay, ix, jy, kz)%dzray &
+                * ray(iRay, ix, jy, kz)%dmray
 
             ! wave-action density
 
             if (sizeX > 1) then
-              fcpspx = ray(iRay, ix, jy, kz) %area_xk
+              fcpspx = ray(iRay, ix, jy, kz)%area_xk
             else
               fcpspx = 1.0
             end if
 
             if (sizeY > 1) then
-              fcpspy = ray(iRay, ix, jy, kz) %area_yl
+              fcpspy = ray(iRay, ix, jy, kz)%area_yl
             else
               fcpspy = 1.0
             end if
 
-            fcpspz = ray(iRay, ix, jy, kz) %area_zm
+            fcpspz = ray(iRay, ix, jy, kz)%area_zm
 
             if (cons_merge == "wa") then
               ! wave-action density after merging to be determined
               ! such that the wave action remains the same,
               ! hence ...
 
-              ray(iRay, ix, jy, kz) %dens = wadrmg(jRay) / (fcpspx * fcpspy &
+              ray(iRay, ix, jy, kz)%dens = wadrmg(jRay) / (fcpspx * fcpspy &
                   * fcpspz)
             elseif (cons_merge == "en") then
               ! wave-action density after merging to be determined
               ! such that the wave energy remains the same, hence ...
 
-              ray(iRay, ix, jy, kz) %dens = wadrmg(jRay) / (omir * fcpspx &
+              ray(iRay, ix, jy, kz)%dens = wadrmg(jRay) / (omir * fcpspx &
                   * fcpspy * fcpspz)
             else
               stop 'wrong cons_merge in merge_rayvol'
@@ -5217,8 +5217,8 @@ module wkb_module
             !        check whether new ray volume is to be launched now
 
             if (iRay > 0) then
-              zr = ray(iRay, ix, jy, kz) %z
-              dzr = ray(iRay, ix, jy, kz) %dzray
+              zr = ray(iRay, ix, jy, kz)%z
+              dzr = ray(iRay, ix, jy, kz)%dzray
             else
               zr = 0.0
               dzr = 0.0
@@ -5309,16 +5309,16 @@ module wkb_module
                 ! clip it so that only the part above the lower
                 ! boundary is kept
 
-                if (ray(nrlc, ix, jy, kz) %z - 0.5 * ray(nrlc, ix, jy, kz) &
-                    %dzray < lz(0)) then
-                  ray(nrlc, ix, jy, kz) %dzray = ray(nrlc, ix, jy, kz) %z &
-                      + 0.5 * ray(nrlc, ix, jy, kz) %dzray - lz(0)
+                if (ray(nrlc, ix, jy, kz)%z - 0.5 * ray(nrlc, ix, jy, &
+                    kz)%dzray < lz(0)) then
+                  ray(nrlc, ix, jy, kz)%dzray = ray(nrlc, ix, jy, kz)%z + 0.5 &
+                      * ray(nrlc, ix, jy, kz)%dzray - lz(0)
 
-                  ray(nrlc, ix, jy, kz) %z = lz(0) + 0.5 * ray(nrlc, ix, jy, &
-                      kz) %dzray
+                  ray(nrlc, ix, jy, kz)%z = lz(0) + 0.5 * ray(nrlc, ix, jy, &
+                      kz)%dzray
 
-                  ray(nrlc, ix, jy, kz) %area_zm = ray(nrlc, ix, jy, kz) &
-                      %dzray * ray(nrlc, ix, jy, kz) %dmray
+                  ray(nrlc, ix, jy, kz)%area_zm = ray(nrlc, ix, jy, kz)%dzray &
+                      * ray(nrlc, ix, jy, kz)%dmray
                 end if
               elseif (iRay < 0) then
                 ! case (1):
@@ -5335,18 +5335,18 @@ module wkb_module
 
             ! ray-volume positions
 
-            ray(iRay, ix, jy, kz) %x = (x(ix + ix0) - dx / 2.0 + (ix2 - 0.5) &
+            ray(iRay, ix, jy, kz)%x = (x(ix + ix0) - dx / 2.0 + (ix2 - 0.5) &
                 * dx / nrxl)
-            ray(iRay, ix, jy, kz) %y = (y(jy + jy0) - dy / 2.0 + (jy2 - 0.5) &
+            ray(iRay, ix, jy, kz)%y = (y(jy + jy0) - dy / 2.0 + (jy2 - 0.5) &
                 * dy / nryl)
-            ray(iRay, ix, jy, kz) %z = (z(kz) - dz / 2.0 + (kz2 - 0.5) * dz &
+            ray(iRay, ix, jy, kz)%z = (z(kz) - dz / 2.0 + (kz2 - 0.5) * dz &
                 / nrzl)
 
             ! ray-volume spatial extensions
 
-            ray(iRay, ix, jy, kz) %dxray = dx / nrxl
-            ray(iRay, ix, jy, kz) %dyray = dy / nryl
-            ray(iRay, ix, jy, kz) %dzray = dz / nrzl
+            ray(iRay, ix, jy, kz)%dxray = dx / nrxl
+            ray(iRay, ix, jy, kz)%dyray = dy / nryl
+            ray(iRay, ix, jy, kz)%dzray = dz / nrzl
 
             ! ray-volume wave numbers
 
@@ -5354,10 +5354,10 @@ module wkb_module
             wnl_0 = wnrl
             wnm_0 = wnrm
 
-            ray(iRay, ix, jy, kz) %k = (wnk_0 - 0.5 * dk_ini_nd + (real (ik) &
+            ray(iRay, ix, jy, kz)%k = (wnk_0 - 0.5 * dk_ini_nd + (real (ik) &
                 - 0.5) * dk_ini_nd / nrk_init)
 
-            ray(iRay, ix, jy, kz) %l = (wnl_0 - 0.5 * dl_ini_nd + (real (jl) &
+            ray(iRay, ix, jy, kz)%l = (wnl_0 - 0.5 * dl_ini_nd + (real (jl) &
                 - 0.5) * dl_ini_nd / nrl_init)
 
             if (fac_dm_init == 0.0) then
@@ -5368,23 +5368,23 @@ module wkb_module
               dm_ini_nd = fac_dm_init * abs(wnm_0)
             end if
 
-            ray(iRay, ix, jy, kz) %m = (wnm_0 - 0.5 * dm_ini_nd + (real (km) &
+            ray(iRay, ix, jy, kz)%m = (wnm_0 - 0.5 * dm_ini_nd + (real (km) &
                 - 0.5) * dm_ini_nd / nrm_init)
 
             ! ray-volume wave-number extents
 
-            ray(iRay, ix, jy, kz) %dkray = dk_ini_nd / nrk_init
-            ray(iRay, ix, jy, kz) %dlray = dl_ini_nd / nrl_init
-            ray(iRay, ix, jy, kz) %dmray = dm_ini_nd / nrm_init
+            ray(iRay, ix, jy, kz)%dkray = dk_ini_nd / nrk_init
+            ray(iRay, ix, jy, kz)%dlray = dl_ini_nd / nrl_init
+            ray(iRay, ix, jy, kz)%dmray = dm_ini_nd / nrm_init
 
             ! ray-volume phase-space volume
 
-            ray(iRay, ix, jy, kz) %area_xk = ray(iRay, ix, jy, kz) %dxray &
-                * ray(iRay, ix, jy, kz) %dkray
-            ray(iRay, ix, jy, kz) %area_yl = ray(iRay, ix, jy, kz) %dyray &
-                * ray(iRay, ix, jy, kz) %dlray
-            ray(iRay, ix, jy, kz) %area_zm = ray(iRay, ix, jy, kz) %dzray &
-                * ray(iRay, ix, jy, kz) %dmray
+            ray(iRay, ix, jy, kz)%area_xk = ray(iRay, ix, jy, kz)%dxray &
+                * ray(iRay, ix, jy, kz)%dkray
+            ray(iRay, ix, jy, kz)%area_yl = ray(iRay, ix, jy, kz)%dyray &
+                * ray(iRay, ix, jy, kz)%dlray
+            ray(iRay, ix, jy, kz)%area_zm = ray(iRay, ix, jy, kz)%dzray &
+                * ray(iRay, ix, jy, kz)%dmray
 
             pspvol = dm_ini_nd
 
@@ -5398,11 +5398,11 @@ module wkb_module
 
             ! phase-space wave-action density
 
-            ray(iRay, ix, jy, kz) %dens = amp / pspvol
+            ray(iRay, ix, jy, kz)%dens = amp / pspvol
 
             ! intrinsic frequency
 
-            ray(iRay, ix, jy, kz) %omega = omir
+            ray(iRay, ix, jy, kz)%omega = omir
           end do ! i_sfc
         end do ! jy
       end do ! ix
@@ -5427,24 +5427,24 @@ module wkb_module
           if (nRay(ix, jy, kz) < 1) cycle
 
           ray_loop: do iRay = 1, nRay(ix, jy, kz)
-            wnrk = ray(iRay, ix, jy, kz) %k
-            wnrl = ray(iRay, ix, jy, kz) %l
-            wnrm = ray(iRay, ix, jy, kz) %m
+            wnrk = ray(iRay, ix, jy, kz)%k
+            wnrl = ray(iRay, ix, jy, kz)%l
+            wnrm = ray(iRay, ix, jy, kz)%m
 
             wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
 
-            xr = ray(iRay, ix, jy, kz) %x
-            dxr = ray(iRay, ix, jy, kz) %dxray
+            xr = ray(iRay, ix, jy, kz)%x
+            dxr = ray(iRay, ix, jy, kz)%dxray
             xr1 = xr - 0.5 * dxr
             xr2 = xr + 0.5 * dxr
 
-            yr = ray(iRay, ix, jy, kz) %y
-            dyr = ray(iRay, ix, jy, kz) %dyray
+            yr = ray(iRay, ix, jy, kz)%y
+            dyr = ray(iRay, ix, jy, kz)%dyray
             yr1 = yr - 0.5 * dyr
             yr2 = yr + 0.5 * dyr
 
-            zr = ray(iRay, ix, jy, kz) %z
-            dzr = ray(iRay, ix, jy, kz) %dzray
+            zr = ray(iRay, ix, jy, kz)%z
+            dzr = ray(iRay, ix, jy, kz)%dzray
             zr1 = zr - 0.5 * dzr
             zr2 = zr + 0.5 * dzr
 
@@ -5468,9 +5468,8 @@ module wkb_module
             if (NNr2 <= 0.0) then
               print *, 'NNr2 =', NNr2, '<= 0.0 at'
               print *, 'zr2 =', zr2, 'from'
-              print *, 'ray(iRay,ix,jy,kz)%z =', ray(iRay, ix, jy, kz) %z
-              print *, 'ray(iRay,ix,jy,kz)%dzray =', ray(iRay, ix, jy, kz) &
-                  %dzray
+              print *, 'ray(iRay,ix,jy,kz)%z =', ray(iRay, ix, jy, kz)%z
+              print *, 'ray(iRay,ix,jy,kz)%dzray =', ray(iRay, ix, jy, kz)%dzray
               print *, 'iRay,ix,jy,kz =', iRay, ix, jy, kz
               stop
             end if
@@ -5487,7 +5486,7 @@ module wkb_module
             omir2 = branchr * sqrt(NNr2 * wnrh ** 2 + f_cor_nd ** 2 * wnrm &
                 ** 2) / sqrt(wnrh ** 2 + wnrm ** 2)
 
-            ray(iRay, ix, jy, kz) %omega = omir
+            ray(iRay, ix, jy, kz)%omega = omir
 
             ! intrinsic group velocities at the respective edges of
             ! the ray volumes
@@ -5533,7 +5532,7 @@ module wkb_module
               F = cgrx !allow horizontal ray propagation
               dxRay(1, iRay, ix, jy, kz) = dt * F + alpha(rkStage) * dxRay(1, &
                   iRay, ix, jy, kz)
-              ray(iRay, ix, jy, kz) %x = ray(iRay, ix, jy, kz) %x &
+              ray(iRay, ix, jy, kz)%x = ray(iRay, ix, jy, kz)%x &
                   + beta(RKstage) * dxRay(1, iRay, ix, jy, kz)
 
               ! update maximum group velocity in x direction
@@ -5560,7 +5559,7 @@ module wkb_module
               F = cgry !allow horizontal ray propagation
               dxRay(2, iRay, ix, jy, kz) = dt * F + alpha(rkStage) * dxRay(2, &
                   iRay, ix, jy, kz)
-              ray(iRay, ix, jy, kz) %y = ray(iRay, ix, jy, kz) %y &
+              ray(iRay, ix, jy, kz)%y = ray(iRay, ix, jy, kz)%y &
                   + beta(RKstage) * dxRay(2, iRay, ix, jy, kz)
 
               ! update maximum group velocity in y direction
@@ -5592,8 +5591,8 @@ module wkb_module
             F = cgrz
             dxRay(3, iRay, ix, jy, kz) = dt * F + alpha(rkStage) * dxRay(3, &
                 iRay, ix, jy, kz)
-            ray(iRay, ix, jy, kz) %z = ray(iRay, ix, jy, kz) %z &
-                + beta(RKstage) * dxRay(3, iRay, ix, jy, kz)
+            ray(iRay, ix, jy, kz)%z = ray(iRay, ix, jy, kz)%z + beta(RKstage) &
+                * dxRay(3, iRay, ix, jy, kz)
 
             ! update maximum group velocity in z direction
             cgz_max = max(cgz_max, abs(cgrz))
@@ -5642,13 +5641,13 @@ module wkb_module
               dkRay(3, iRay, ix, jy, kz) = dt * dmdt + alpha(rkStage) &
                   * dkRay(3, iRay, ix, jy, kz)
 
-              ray(iRay, ix, jy, kz) %k = ray(iRay, ix, jy, kz) %k &
+              ray(iRay, ix, jy, kz)%k = ray(iRay, ix, jy, kz)%k &
                   + beta(rkStage) * dkRay(1, iRay, ix, jy, kz)
 
-              ray(iRay, ix, jy, kz) %l = ray(iRay, ix, jy, kz) %l &
+              ray(iRay, ix, jy, kz)%l = ray(iRay, ix, jy, kz)%l &
                   + beta(rkStage) * dkRay(2, iRay, ix, jy, kz)
 
-              ray(iRay, ix, jy, kz) %m = ray(iRay, ix, jy, kz) %m &
+              ray(iRay, ix, jy, kz)%m = ray(iRay, ix, jy, kz)%m &
                   + beta(rkStage) * dkRay(3, iRay, ix, jy, kz)
 
               !----------------------------------------------
@@ -5663,17 +5662,17 @@ module wkb_module
                 ddxRay(1, iRay, ix, jy, kz) = dt * ddxdt + alpha(rkStage) &
                     * ddxRay(1, iRay, ix, jy, kz)
 
-                ray(iRay, ix, jy, kz) %dxray = ray(iRay, ix, jy, kz) %dxray &
+                ray(iRay, ix, jy, kz)%dxray = ray(iRay, ix, jy, kz)%dxray &
                     + beta(rkStage) * ddxRay(1, iRay, ix, jy, kz)
 
-                if (ray(iRay, ix, jy, kz) %dxray <= 0.0) then
+                if (ray(iRay, ix, jy, kz)%dxray <= 0.0) then
                   print *, 'dxray(', iRay, ix, jy, kz, ') <= 0.0  ==> time &
                       step too large?'
-                  ray(iRay, ix, jy, kz) %dxray = - ray(iRay, ix, jy, kz) %dxray
+                  ray(iRay, ix, jy, kz)%dxray = - ray(iRay, ix, jy, kz)%dxray
                 end if
 
-                ray(iRay, ix, jy, kz) %dkray = ray(iRay, ix, jy, kz) %area_xk &
-                    / ray(iRay, ix, jy, kz) %dxray
+                ray(iRay, ix, jy, kz)%dkray = ray(iRay, ix, jy, kz)%area_xk &
+                    / ray(iRay, ix, jy, kz)%dxray
               end if
 
               ! dl
@@ -5684,17 +5683,17 @@ module wkb_module
                 ddxRay(2, iRay, ix, jy, kz) = dt * ddydt + alpha(rkStage) &
                     * ddxRay(2, iRay, ix, jy, kz)
 
-                ray(iRay, ix, jy, kz) %dyray = ray(iRay, ix, jy, kz) %dyray &
+                ray(iRay, ix, jy, kz)%dyray = ray(iRay, ix, jy, kz)%dyray &
                     + beta(rkStage) * ddxRay(2, iRay, ix, jy, kz)
 
-                if (ray(iRay, ix, jy, kz) %dyray <= 0.0) then
+                if (ray(iRay, ix, jy, kz)%dyray <= 0.0) then
                   print *, 'dyray(', iRay, ix, jy, kz, ') <= 0.0  ==> time &
                       step too large?'
-                  ray(iRay, ix, jy, kz) %dyray = - ray(iRay, ix, jy, kz) %dyray
+                  ray(iRay, ix, jy, kz)%dyray = - ray(iRay, ix, jy, kz)%dyray
                 end if
 
-                ray(iRay, ix, jy, kz) %dlray = ray(iRay, ix, jy, kz) %area_yl &
-                    / ray(iRay, ix, jy, kz) %dyray
+                ray(iRay, ix, jy, kz)%dlray = ray(iRay, ix, jy, kz)%area_yl &
+                    / ray(iRay, ix, jy, kz)%dyray
               end if
 
               ! dm
@@ -5704,37 +5703,37 @@ module wkb_module
               ddxRay(3, iRay, ix, jy, kz) = dt * ddzdt + alpha(rkStage) &
                   * ddxRay(3, iRay, ix, jy, kz)
 
-              ray(iRay, ix, jy, kz) %dzray = ray(iRay, ix, jy, kz) %dzray &
+              ray(iRay, ix, jy, kz)%dzray = ray(iRay, ix, jy, kz)%dzray &
                   + beta(rkStage) * ddxRay(3, iRay, ix, jy, kz)
 
-              if (ray(iRay, ix, jy, kz) %dzray <= 0.0) then
+              if (ray(iRay, ix, jy, kz)%dzray <= 0.0) then
                 print *, 'dzray(', iRay, ix, jy, kz, ') <= 0.0  ==> time step &
                     too large?'
-                ray(iRay, ix, jy, kz) %dzray = - ray(iRay, ix, jy, kz) %dzray
+                ray(iRay, ix, jy, kz)%dzray = - ray(iRay, ix, jy, kz)%dzray
               end if
 
-              ray(iRay, ix, jy, kz) %dmray = ray(iRay, ix, jy, kz) %area_zm &
-                  / ray(iRay, ix, jy, kz) %dzray
+              ray(iRay, ix, jy, kz)%dmray = ray(iRay, ix, jy, kz)%area_zm &
+                  / ray(iRay, ix, jy, kz)%dzray
             end if
 
             !-----------------------------------
             ! update of the intrinsic frequency
             !-----------------------------------
 
-            wnrk = ray(iRay, ix, jy, kz) %k
-            wnrl = ray(iRay, ix, jy, kz) %l
-            wnrm = ray(iRay, ix, jy, kz) %m
+            wnrk = ray(iRay, ix, jy, kz)%k
+            wnrl = ray(iRay, ix, jy, kz)%l
+            wnrm = ray(iRay, ix, jy, kz)%m
 
             wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
 
-            zr = ray(iRay, ix, jy, kz) %z
+            zr = ray(iRay, ix, jy, kz)%z
 
             call stratification(zr, 1, NNr)
 
             omir = branchr * sqrt(NNr * wnrh ** 2 + f_cor_nd ** 2 * wnrm ** 2) &
                 / sqrt(wnrh ** 2 + wnrm ** 2)
 
-            ray(iRay, ix, jy, kz) %omega = omir
+            ray(iRay, ix, jy, kz)%omega = omir
           end do ray_loop
 
           if (nskip > 0) then
@@ -5780,7 +5779,7 @@ module wkb_module
             ! positions
 
             if (sizeX > 1) then
-              xr = ray(iRay, ix, jy, kz) %x
+              xr = ray(iRay, ix, jy, kz)%x
 
               if (xr < lx(0)) then
                 select case (xBoundary)
@@ -5790,7 +5789,7 @@ module wkb_module
                   stop "transport_rayvol: unknown case xBoundary"
                 end select
 
-                ray(iRay, ix, jy, kz) %x = xr
+                ray(iRay, ix, jy, kz)%x = xr
               elseif (xr > lx(1)) then
                 select case (xBoundary)
                 case ("periodic")
@@ -5799,12 +5798,12 @@ module wkb_module
                   stop "transport_rayvol: unknown case xBoundary"
                 end select
 
-                ray(iRay, ix, jy, kz) %x = xr
+                ray(iRay, ix, jy, kz)%x = xr
               end if
             end if
 
             if (sizeY > 1) then
-              yr = ray(iRay, ix, jy, kz) %y
+              yr = ray(iRay, ix, jy, kz)%y
 
               if (yr < ly(0)) then
                 select case (yBoundary)
@@ -5814,7 +5813,7 @@ module wkb_module
                   stop "transport_rayvol: unknown case yBoundary"
                 end select
 
-                ray(iRay, ix, jy, kz) %y = yr
+                ray(iRay, ix, jy, kz)%y = yr
               elseif (yr > ly(1)) then
                 select case (yBoundary)
                 case ("periodic")
@@ -5823,7 +5822,7 @@ module wkb_module
                   stop "transport_rayvol: unknown case yBoundary"
                 end select
 
-                ray(iRay, ix, jy, kz) %y = yr
+                ray(iRay, ix, jy, kz)%y = yr
               end if
             end if
 
@@ -5834,18 +5833,18 @@ module wkb_module
             !                           completely left the model
             !                           domain
 
-            zr = ray(iRay, ix, jy, kz) %z
+            zr = ray(iRay, ix, jy, kz)%z
 
             if (zr < lz(0)) then
               select case (zBoundary)
               case ("periodic")
                 zr = lz(1) + mod(zr - lz(0), lz(1) - lz(0))
 
-                ray(iRay, ix, jy, kz) %z = zr
+                ray(iRay, ix, jy, kz)%z = zr
               case ("solid_wall")
-                dzr = ray(iRay, ix, jy, kz) %dzray
+                dzr = ray(iRay, ix, jy, kz)%dzray
 
-                if (zr + 0.5 * dzr < lz(0)) ray(iRay, ix, jy, kz) %dens = 0.0
+                if (zr + 0.5 * dzr < lz(0)) ray(iRay, ix, jy, kz)%dens = 0.0
               case default
                 stop "transport_rayvol: unknown case zBoundary"
               end select
@@ -5854,11 +5853,11 @@ module wkb_module
               case ("periodic")
                 zr = lz(0) + mod(zr - lz(1), lz(1) - lz(0))
 
-                ray(iRay, ix, jy, kz) %z = zr
+                ray(iRay, ix, jy, kz)%z = zr
               case ("solid_wall")
-                dzr = ray(iRay, ix, jy, kz) %dzray
+                dzr = ray(iRay, ix, jy, kz)%dzray
 
-                if (zr - 0.5 * dzr > lz(1)) ray(iRay, ix, jy, kz) %dens = 0.0
+                if (zr - 0.5 * dzr > lz(1)) ray(iRay, ix, jy, kz)%dens = 0.0
               case default
                 stop "transport_rayvol: unknown case zBoundary"
               end select
@@ -5940,15 +5939,15 @@ module wkb_module
           do iRay = 1, nRay(ixrv, jyrv, kzrv)
             ! skip counting ray volumes with zero wave-action density
 
-            if (ray(iRay, ixrv, jyrv, kzrv) %dens == 0.0) cycle
+            if (ray(iRay, ixrv, jyrv, kzrv)%dens == 0.0) cycle
 
-            xr = ray(iRay, ixrv, jyrv, kzrv) %x
-            yr = ray(iRay, ixrv, jyrv, kzrv) %y
-            zr = ray(iRay, ixrv, jyrv, kzrv) %z
+            xr = ray(iRay, ixrv, jyrv, kzrv)%x
+            yr = ray(iRay, ixrv, jyrv, kzrv)%y
+            zr = ray(iRay, ixrv, jyrv, kzrv)%z
 
-            dxr = ray(iRay, ixrv, jyrv, kzrv) %dxray
-            dyr = ray(iRay, ixrv, jyrv, kzrv) %dyray
-            dzr = ray(iRay, ixrv, jyrv, kzrv) %dzray
+            dxr = ray(iRay, ixrv, jyrv, kzrv)%dxray
+            dyr = ray(iRay, ixrv, jyrv, kzrv)%dyray
+            dzr = ray(iRay, ixrv, jyrv, kzrv)%dzray
 
             ! vertical boundary conditions:
             ! zBoundary = 'periodic': implement periodicity
@@ -6030,19 +6029,19 @@ module wkb_module
 
             call stratification(z(kz), 1, NN_nd)
 
-            wnrk = ray(iRay, ixrv, jyrv, kzrv) %k
-            wnrl = ray(iRay, ixrv, jyrv, kzrv) %l
-            wnrm = ray(iRay, ixrv, jyrv, kzrv) %m
+            wnrk = ray(iRay, ixrv, jyrv, kzrv)%k
+            wnrl = ray(iRay, ixrv, jyrv, kzrv)%l
+            wnrm = ray(iRay, ixrv, jyrv, kzrv)%m
 
             wnrhs = wnrk ** 2 + wnrl ** 2
 
-            dwnrk = ray(iRay, ixrv, jyrv, kzrv) %dkray
-            dwnrl = ray(iRay, ixrv, jyrv, kzrv) %dlray
-            dwnrm = ray(iRay, ixrv, jyrv, kzrv) %dmray
+            dwnrk = ray(iRay, ixrv, jyrv, kzrv)%dkray
+            dwnrl = ray(iRay, ixrv, jyrv, kzrv)%dlray
+            dwnrm = ray(iRay, ixrv, jyrv, kzrv)%dmray
 
-            omir = ray(iRay, ixrv, jyrv, kzrv) %omega
+            omir = ray(iRay, ixrv, jyrv, kzrv)%omega
 
-            densr = ray(iRay, ixrv, jyrv, kzrv) %dens
+            densr = ray(iRay, ixrv, jyrv, kzrv)%dens
 
             ! spatial extension of ray to be taken into account
             dzi = min(dzr, dz)
@@ -6105,15 +6104,15 @@ module wkb_module
           do iRay = 1, nRay(ixrv, jyrv, kzrv)
             ! skip counting ray volumes with zero wave-action density
 
-            if (ray(iRay, ixrv, jyrv, kzrv) %dens == 0.0) cycle
+            if (ray(iRay, ixrv, jyrv, kzrv)%dens == 0.0) cycle
 
-            xr = ray(iRay, ixrv, jyrv, kzrv) %x
-            yr = ray(iRay, ixrv, jyrv, kzrv) %y
-            zr = ray(iRay, ixrv, jyrv, kzrv) %z
+            xr = ray(iRay, ixrv, jyrv, kzrv)%x
+            yr = ray(iRay, ixrv, jyrv, kzrv)%y
+            zr = ray(iRay, ixrv, jyrv, kzrv)%z
 
-            dxr = ray(iRay, ixrv, jyrv, kzrv) %dxray
-            dyr = ray(iRay, ixrv, jyrv, kzrv) %dyray
-            dzr = ray(iRay, ixrv, jyrv, kzrv) %dzray
+            dxr = ray(iRay, ixrv, jyrv, kzrv)%dxray
+            dyr = ray(iRay, ixrv, jyrv, kzrv)%dyray
+            dzr = ray(iRay, ixrv, jyrv, kzrv)%dzray
 
             ! vertical boundary conditions:
             ! zBoundary = 'periodic': implement periodicity
@@ -6193,18 +6192,18 @@ module wkb_module
               jy = 1
             end if
 
-            wnrk = ray(iRay, ixrv, jyrv, kzrv) %k
-            wnrl = ray(iRay, ixrv, jyrv, kzrv) %l
-            wnrm = ray(iRay, ixrv, jyrv, kzrv) %m
+            wnrk = ray(iRay, ixrv, jyrv, kzrv)%k
+            wnrl = ray(iRay, ixrv, jyrv, kzrv)%l
+            wnrm = ray(iRay, ixrv, jyrv, kzrv)%m
 
             kappa = diffusion(ix, jy, kz)
 
             ! it can hanppen that the damping coefficient becomes
             ! negative,
             ! hence set it to zero in that case
-            ray(iRay, ixrv, jyrv, kzrv) %dens = ray(iRay, ixrv, jyrv, kzrv) &
-                %dens * max(0.0, 1.0 - dt * 2.0 * kappa * (wnrk ** 2 + wnrl &
-                ** 2 + wnrm ** 2))
+            ray(iRay, ixrv, jyrv, kzrv)%dens = ray(iRay, ixrv, jyrv, &
+                kzrv)%dens * max(0.0, 1.0 - dt * 2.0 * kappa * (wnrk ** 2 &
+                + wnrl ** 2 + wnrm ** 2))
           end do
         end do ! ixrv
       end do ! jyrv
@@ -6225,15 +6224,15 @@ module wkb_module
           do iRay = 1, nRay(ixrv, jyrv, kzrv)
             ! skip counting ray volumes with zero wave-action density
 
-            if (ray(iRay, ixrv, jyrv, kzrv) %dens == 0.0) cycle
+            if (ray(iRay, ixrv, jyrv, kzrv)%dens == 0.0) cycle
 
-            xr = ray(iRay, ixrv, jyrv, kzrv) %x
-            yr = ray(iRay, ixrv, jyrv, kzrv) %y
-            zr = ray(iRay, ixrv, jyrv, kzrv) %z
+            xr = ray(iRay, ixrv, jyrv, kzrv)%x
+            yr = ray(iRay, ixrv, jyrv, kzrv)%y
+            zr = ray(iRay, ixrv, jyrv, kzrv)%z
 
-            dxr = ray(iRay, ixrv, jyrv, kzrv) %dxray
-            dyr = ray(iRay, ixrv, jyrv, kzrv) %dyray
-            dzr = ray(iRay, ixrv, jyrv, kzrv) %dzray
+            dxr = ray(iRay, ixrv, jyrv, kzrv)%dxray
+            dyr = ray(iRay, ixrv, jyrv, kzrv)%dyray
+            dzr = ray(iRay, ixrv, jyrv, kzrv)%dzray
 
             ! vertical boundary conditions:
             ! zBoundary = 'periodic': implement periodicity
@@ -6315,19 +6314,19 @@ module wkb_module
 
             call stratification(z(kz), 1, NN_nd)
 
-            wnrk = ray(iRay, ixrv, jyrv, kzrv) %k
-            wnrl = ray(iRay, ixrv, jyrv, kzrv) %l
-            wnrm = ray(iRay, ixrv, jyrv, kzrv) %m
+            wnrk = ray(iRay, ixrv, jyrv, kzrv)%k
+            wnrl = ray(iRay, ixrv, jyrv, kzrv)%l
+            wnrm = ray(iRay, ixrv, jyrv, kzrv)%m
 
             wnrhs = wnrk ** 2 + wnrl ** 2
 
-            dwnrk = ray(iRay, ixrv, jyrv, kzrv) %dkray
-            dwnrl = ray(iRay, ixrv, jyrv, kzrv) %dlray
-            dwnrm = ray(iRay, ixrv, jyrv, kzrv) %dmray
+            dwnrk = ray(iRay, ixrv, jyrv, kzrv)%dkray
+            dwnrl = ray(iRay, ixrv, jyrv, kzrv)%dlray
+            dwnrm = ray(iRay, ixrv, jyrv, kzrv)%dmray
 
-            omir = ray(iRay, ixrv, jyrv, kzrv) %omega
+            omir = ray(iRay, ixrv, jyrv, kzrv)%omega
 
-            densr = ray(iRay, ixrv, jyrv, kzrv) %dens
+            densr = ray(iRay, ixrv, jyrv, kzrv)%dens
 
             ! spatial extension of ray to be taken into account
             dzi = min(dzr, dz)
@@ -7525,33 +7524,33 @@ module wkb_module
             if (nRay(1, jy, kz) > 0) then
               do iRay = 1, nRay(1, jy, kz)
                 if (irprop == 1) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz) %x
+                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz)%x
                 elseif (irprop == 2) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz) %y
+                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz)%y
                 elseif (irprop == 3) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz) %z
+                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz)%z
                 elseif (irprop == 4) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz) %k
+                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz)%k
                 elseif (irprop == 5) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz) %l
+                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz)%l
                 elseif (irprop == 6) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz) %m
+                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz)%m
                 elseif (irprop == 7) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz) %omega
+                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz)%omega
                 elseif (irprop == 8) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz) %dkray
+                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz)%dkray
                 elseif (irprop == 9) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz) %dlray
+                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz)%dlray
                 elseif (irprop == 10) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz) %dmray
+                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz)%dmray
                 elseif (irprop == 11) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz) %dxray
+                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz)%dxray
                 elseif (irprop == 12) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz) %dyray
+                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz)%dyray
                 elseif (irprop == 13) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz) %dzray
+                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz)%dzray
                 elseif (irprop == 14) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz) %dens
+                  xSliceLeft_send(iRay, 1, jy, kz) = ray(iRay, 1, jy, kz)%dens
                   !elseif (irprop == 15) then
                   ! xSliceLeft_send (iRay,1,jy,kz) &
                   ! = ray(iRay,1,jy,kz)%area_xk
@@ -7572,41 +7571,40 @@ module wkb_module
             if (nRay(nx, jy, kz) > 0) then
               do iRay = 1, nRay(nx, jy, kz)
                 if (irprop == 1) then
-                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz) %x
+                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz)%x
                 elseif (irprop == 2) then
-                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz) %y
+                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz)%y
                 elseif (irprop == 3) then
-                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz) %z
+                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz)%z
                 elseif (irprop == 4) then
-                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz) %k
+                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz)%k
                 elseif (irprop == 5) then
-                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz) %l
+                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz)%l
                 elseif (irprop == 6) then
-                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz) %m
+                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz)%m
                 elseif (irprop == 7) then
-                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz) &
-                      %omega
+                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, &
+                      kz)%omega
                 elseif (irprop == 8) then
-                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz) &
-                      %dkray
+                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, &
+                      kz)%dkray
                 elseif (irprop == 9) then
-                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz) &
-                      %dlray
+                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, &
+                      kz)%dlray
                 elseif (irprop == 10) then
-                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz) &
-                      %dmray
+                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, &
+                      kz)%dmray
                 elseif (irprop == 11) then
-                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz) &
-                      %dxray
+                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, &
+                      kz)%dxray
                 elseif (irprop == 12) then
-                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz) &
-                      %dyray
+                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, &
+                      kz)%dyray
                 elseif (irprop == 13) then
-                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz) &
-                      %dzray
+                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, &
+                      kz)%dzray
                 elseif (irprop == 14) then
-                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz) &
-                      %dens
+                  xSliceRight_send(iRay, 1, jy, kz) = ray(iRay, nx, jy, kz)%dens
                   !elseif (irprop == 15) then
                   ! xSliceRight_send(iRay,1,jy,kz) &
                   ! = ray(iRay,nx,jy,kz)%area_xk
@@ -7657,46 +7655,46 @@ module wkb_module
             if (nRay(nx + 1, jy, kz) > 0) then
               do iRay = 1, nRay(nx + 1, jy, kz)
                 if (irprop == 1) then
-                  ray(iRay, nx + 1, jy, kz) %x = xSliceRight_recv(iRay, 1, jy, &
+                  ray(iRay, nx + 1, jy, kz)%x = xSliceRight_recv(iRay, 1, jy, &
                       kz)
                 elseif (irprop == 2) then
-                  ray(iRay, nx + 1, jy, kz) %y = xSliceRight_recv(iRay, 1, jy, &
+                  ray(iRay, nx + 1, jy, kz)%y = xSliceRight_recv(iRay, 1, jy, &
                       kz)
                 elseif (irprop == 3) then
-                  ray(iRay, nx + 1, jy, kz) %z = xSliceRight_recv(iRay, 1, jy, &
+                  ray(iRay, nx + 1, jy, kz)%z = xSliceRight_recv(iRay, 1, jy, &
                       kz)
                 elseif (irprop == 4) then
-                  ray(iRay, nx + 1, jy, kz) %k = xSliceRight_recv(iRay, 1, jy, &
+                  ray(iRay, nx + 1, jy, kz)%k = xSliceRight_recv(iRay, 1, jy, &
                       kz)
                 elseif (irprop == 5) then
-                  ray(iRay, nx + 1, jy, kz) %l = xSliceRight_recv(iRay, 1, jy, &
+                  ray(iRay, nx + 1, jy, kz)%l = xSliceRight_recv(iRay, 1, jy, &
                       kz)
                 elseif (irprop == 6) then
-                  ray(iRay, nx + 1, jy, kz) %m = xSliceRight_recv(iRay, 1, jy, &
+                  ray(iRay, nx + 1, jy, kz)%m = xSliceRight_recv(iRay, 1, jy, &
                       kz)
                 elseif (irprop == 7) then
-                  ray(iRay, nx + 1, jy, kz) %omega = xSliceRight_recv(iRay, 1, &
+                  ray(iRay, nx + 1, jy, kz)%omega = xSliceRight_recv(iRay, 1, &
                       jy, kz)
                 elseif (irprop == 8) then
-                  ray(iRay, nx + 1, jy, kz) %dkray = xSliceRight_recv(iRay, 1, &
+                  ray(iRay, nx + 1, jy, kz)%dkray = xSliceRight_recv(iRay, 1, &
                       jy, kz)
                 elseif (irprop == 9) then
-                  ray(iRay, nx + 1, jy, kz) %dlray = xSliceRight_recv(iRay, 1, &
+                  ray(iRay, nx + 1, jy, kz)%dlray = xSliceRight_recv(iRay, 1, &
                       jy, kz)
                 elseif (irprop == 10) then
-                  ray(iRay, nx + 1, jy, kz) %dmray = xSliceRight_recv(iRay, 1, &
+                  ray(iRay, nx + 1, jy, kz)%dmray = xSliceRight_recv(iRay, 1, &
                       jy, kz)
                 elseif (irprop == 11) then
-                  ray(iRay, nx + 1, jy, kz) %dxray = xSliceRight_recv(iRay, 1, &
+                  ray(iRay, nx + 1, jy, kz)%dxray = xSliceRight_recv(iRay, 1, &
                       jy, kz)
                 elseif (irprop == 12) then
-                  ray(iRay, nx + 1, jy, kz) %dyray = xSliceRight_recv(iRay, 1, &
+                  ray(iRay, nx + 1, jy, kz)%dyray = xSliceRight_recv(iRay, 1, &
                       jy, kz)
                 elseif (irprop == 13) then
-                  ray(iRay, nx + 1, jy, kz) %dzray = xSliceRight_recv(iRay, 1, &
+                  ray(iRay, nx + 1, jy, kz)%dzray = xSliceRight_recv(iRay, 1, &
                       jy, kz)
                 elseif (irprop == 14) then
-                  ray(iRay, nx + 1, jy, kz) %dens = xSliceRight_recv(iRay, 1, &
+                  ray(iRay, nx + 1, jy, kz)%dens = xSliceRight_recv(iRay, 1, &
                       jy, kz)
                   !elseif (irprop == 15) then
                   ! ray(iRay,nx+1,jy,kz)%area_xk &
@@ -7722,7 +7720,7 @@ module wkb_module
                 do ix = nx, nx + 1
                   if (nRay(ix, jy, kz) > 0) then
                     do iRay = 1, nRay(ix, jy, kz)
-                      xr = ray(iRay, ix, jy, kz) %x
+                      xr = ray(iRay, ix, jy, kz)%x
 
                       xrt = xr + lx(1) - lx(0)
 
@@ -7730,7 +7728,7 @@ module wkb_module
                         xr = xrt
                       end if
 
-                      ray(iRay, ix, jy, kz) %x = xr
+                      ray(iRay, ix, jy, kz)%x = xr
                     end do
                   end if
                 end do
@@ -7739,14 +7737,14 @@ module wkb_module
               if (nRay(nx + 1, jy, kz) > 0) then
                 do iRay = 1, nRay(nx + 1, jy, kz)
                   if (irprop == 15) then
-                    ray(iRay, nx + 1, jy, kz) %area_xk = ray(iRay, nx + 1, jy, &
-                        kz) %dxray * ray(iRay, nx + 1, jy, kz) %dkray
+                    ray(iRay, nx + 1, jy, kz)%area_xk = ray(iRay, nx + 1, jy, &
+                        kz)%dxray * ray(iRay, nx + 1, jy, kz)%dkray
                   else if (irprop == 16) then
-                    ray(iRay, nx + 1, jy, kz) %area_yl = ray(iRay, nx + 1, jy, &
-                        kz) %dyray * ray(iRay, nx + 1, jy, kz) %dlray
+                    ray(iRay, nx + 1, jy, kz)%area_yl = ray(iRay, nx + 1, jy, &
+                        kz)%dyray * ray(iRay, nx + 1, jy, kz)%dlray
                   else if (irprop == 17) then
-                    ray(iRay, nx + 1, jy, kz) %area_zm = ray(iRay, nx + 1, jy, &
-                        kz) %dzray * ray(iRay, nx + 1, jy, kz) %dmray
+                    ray(iRay, nx + 1, jy, kz)%area_zm = ray(iRay, nx + 1, jy, &
+                        kz)%dzray * ray(iRay, nx + 1, jy, kz)%dmray
                   end if
                 end do
               end if
@@ -7761,33 +7759,33 @@ module wkb_module
             if (nRay(0, jy, kz) > 0) then
               do iRay = 1, nRay(0, jy, kz)
                 if (irprop == 1) then
-                  ray(iRay, 0, jy, kz) %x = xSliceLeft_recv(iRay, 1, jy, kz)
+                  ray(iRay, 0, jy, kz)%x = xSliceLeft_recv(iRay, 1, jy, kz)
                 elseif (irprop == 2) then
-                  ray(iRay, 0, jy, kz) %y = xSliceLeft_recv(iRay, 1, jy, kz)
+                  ray(iRay, 0, jy, kz)%y = xSliceLeft_recv(iRay, 1, jy, kz)
                 elseif (irprop == 3) then
-                  ray(iRay, 0, jy, kz) %z = xSliceLeft_recv(iRay, 1, jy, kz)
+                  ray(iRay, 0, jy, kz)%z = xSliceLeft_recv(iRay, 1, jy, kz)
                 elseif (irprop == 4) then
-                  ray(iRay, 0, jy, kz) %k = xSliceLeft_recv(iRay, 1, jy, kz)
+                  ray(iRay, 0, jy, kz)%k = xSliceLeft_recv(iRay, 1, jy, kz)
                 elseif (irprop == 5) then
-                  ray(iRay, 0, jy, kz) %l = xSliceLeft_recv(iRay, 1, jy, kz)
+                  ray(iRay, 0, jy, kz)%l = xSliceLeft_recv(iRay, 1, jy, kz)
                 elseif (irprop == 6) then
-                  ray(iRay, 0, jy, kz) %m = xSliceLeft_recv(iRay, 1, jy, kz)
+                  ray(iRay, 0, jy, kz)%m = xSliceLeft_recv(iRay, 1, jy, kz)
                 elseif (irprop == 7) then
-                  ray(iRay, 0, jy, kz) %omega = xSliceLeft_recv(iRay, 1, jy, kz)
+                  ray(iRay, 0, jy, kz)%omega = xSliceLeft_recv(iRay, 1, jy, kz)
                 elseif (irprop == 8) then
-                  ray(iRay, 0, jy, kz) %dkray = xSliceLeft_recv(iRay, 1, jy, kz)
+                  ray(iRay, 0, jy, kz)%dkray = xSliceLeft_recv(iRay, 1, jy, kz)
                 elseif (irprop == 9) then
-                  ray(iRay, 0, jy, kz) %dlray = xSliceLeft_recv(iRay, 1, jy, kz)
+                  ray(iRay, 0, jy, kz)%dlray = xSliceLeft_recv(iRay, 1, jy, kz)
                 elseif (irprop == 10) then
-                  ray(iRay, 0, jy, kz) %dmray = xSliceLeft_recv(iRay, 1, jy, kz)
+                  ray(iRay, 0, jy, kz)%dmray = xSliceLeft_recv(iRay, 1, jy, kz)
                 elseif (irprop == 11) then
-                  ray(iRay, 0, jy, kz) %dxray = xSliceLeft_recv(iRay, 1, jy, kz)
+                  ray(iRay, 0, jy, kz)%dxray = xSliceLeft_recv(iRay, 1, jy, kz)
                 elseif (irprop == 12) then
-                  ray(iRay, 0, jy, kz) %dyray = xSliceLeft_recv(iRay, 1, jy, kz)
+                  ray(iRay, 0, jy, kz)%dyray = xSliceLeft_recv(iRay, 1, jy, kz)
                 elseif (irprop == 13) then
-                  ray(iRay, 0, jy, kz) %dzray = xSliceLeft_recv(iRay, 1, jy, kz)
+                  ray(iRay, 0, jy, kz)%dzray = xSliceLeft_recv(iRay, 1, jy, kz)
                 elseif (irprop == 14) then
-                  ray(iRay, 0, jy, kz) %dens = xSliceLeft_recv(iRay, 1, jy, kz)
+                  ray(iRay, 0, jy, kz)%dens = xSliceLeft_recv(iRay, 1, jy, kz)
                   !elseif (irprop == 15) then
                   ! ray(iRay,0,jy,kz)%area_xk &
                   ! =  xSliceLeft_recv(iRay,1,jy,kz)
@@ -7812,7 +7810,7 @@ module wkb_module
                 do ix = 0, 1
                   if (nRay(ix, jy, kz) > 0) then
                     do iRay = 1, nRay(ix, jy, kz)
-                      xr = ray(iRay, ix, jy, kz) %x
+                      xr = ray(iRay, ix, jy, kz)%x
 
                       xrt = xr - lx(1) + lx(0)
 
@@ -7820,7 +7818,7 @@ module wkb_module
                         xr = xrt
                       end if
 
-                      ray(iRay, ix, jy, kz) %x = xr
+                      ray(iRay, ix, jy, kz)%x = xr
                     end do
                   end if
                 end do
@@ -7829,14 +7827,14 @@ module wkb_module
               if (nRay(0, jy, kz) > 0) then
                 do iRay = 1, nRay(0, jy, kz)
                   if (irprop == 15) then
-                    ray(iRay, 0, jy, kz) %area_xk = ray(iRay, 0, jy, kz) &
-                        %dxray * ray(iRay, 0, jy, kz) %dkray
+                    ray(iRay, 0, jy, kz)%area_xk = ray(iRay, 0, jy, kz)%dxray &
+                        * ray(iRay, 0, jy, kz)%dkray
                   else if (irprop == 16) then
-                    ray(iRay, 0, jy, kz) %area_yl = ray(iRay, 0, jy, kz) &
-                        %dyray * ray(iRay, 0, jy, kz) %dlray
+                    ray(iRay, 0, jy, kz)%area_yl = ray(iRay, 0, jy, kz)%dyray &
+                        * ray(iRay, 0, jy, kz)%dlray
                   else if (irprop == 17) then
-                    ray(iRay, 0, jy, kz) %area_zm = ray(iRay, 0, jy, kz) &
-                        %dzray * ray(iRay, 0, jy, kz) %dmray
+                    ray(iRay, 0, jy, kz)%area_zm = ray(iRay, 0, jy, kz)%dzray &
+                        * ray(iRay, 0, jy, kz)%dmray
                   end if
                 end do
               end if
@@ -7864,7 +7862,7 @@ module wkb_module
           do ix = 0, 1
             if (nRay(ix, jy, kz) > 0) then
               do iRay = 1, nRay(ix, jy, kz)
-                xr = ray(iRay, ix, jy, kz) %x
+                xr = ray(iRay, ix, jy, kz)%x
 
                 xrt = xr - lx(1) + lx(0)
 
@@ -7872,7 +7870,7 @@ module wkb_module
                   xr = xrt
                 end if
 
-                ray(iRay, ix, jy, kz) %x = xr
+                ray(iRay, ix, jy, kz)%x = xr
               end do
             end if
           end do
@@ -7890,7 +7888,7 @@ module wkb_module
           do ix = nx, nx + 1
             if (nRay(ix, jy, kz) > 0) then
               do iRay = 1, nRay(ix, jy, kz)
-                xr = ray(iRay, ix, jy, kz) %x
+                xr = ray(iRay, ix, jy, kz)%x
 
                 xrt = xr + lx(1) - lx(0)
 
@@ -7898,7 +7896,7 @@ module wkb_module
                   xr = xrt
                 end if
 
-                ray(iRay, ix, jy, kz) %x = xr
+                ray(iRay, ix, jy, kz)%x = xr
               end do
             end if
           end do
@@ -8247,33 +8245,33 @@ module wkb_module
             if (nRay(ix, 1, kz) > 0) then
               do iRay = 1, nRay(ix, 1, kz)
                 if (irprop == 1) then
-                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz) %x
+                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz)%x
                 elseif (irprop == 2) then
-                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz) %y
+                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz)%y
                 elseif (irprop == 3) then
-                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz) %z
+                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz)%z
                 elseif (irprop == 4) then
-                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz) %k
+                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz)%k
                 elseif (irprop == 5) then
-                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz) %l
+                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz)%l
                 elseif (irprop == 6) then
-                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz) %m
+                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz)%m
                 elseif (irprop == 7) then
-                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz) %omega
+                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz)%omega
                 elseif (irprop == 8) then
-                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz) %dkray
+                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz)%dkray
                 elseif (irprop == 9) then
-                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz) %dlray
+                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz)%dlray
                 elseif (irprop == 10) then
-                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz) %dmray
+                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz)%dmray
                 elseif (irprop == 11) then
-                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz) %dxray
+                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz)%dxray
                 elseif (irprop == 12) then
-                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz) %dyray
+                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz)%dyray
                 elseif (irprop == 13) then
-                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz) %dzray
+                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz)%dzray
                 elseif (irprop == 14) then
-                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz) %dens
+                  ySliceBack_send(iRay, ix, 1, kz) = ray(iRay, ix, 1, kz)%dens
                   !elseif (irprop == 15) then
                   ! ySliceBack_send(iRay,ix,1,kz) &
                   ! = ray(iRay,ix,1,kz)%area_xk
@@ -8294,40 +8292,33 @@ module wkb_module
             if (nRay(ix, ny, kz) > 0) then
               do iRay = 1, nRay(ix, ny, kz)
                 if (irprop == 1) then
-                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz) %x
+                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz)%x
                 elseif (irprop == 2) then
-                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz) %y
+                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz)%y
                 elseif (irprop == 3) then
-                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz) %z
+                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz)%z
                 elseif (irprop == 4) then
-                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz) %k
+                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz)%k
                 elseif (irprop == 5) then
-                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz) %l
+                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz)%l
                 elseif (irprop == 6) then
-                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz) %m
+                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz)%m
                 elseif (irprop == 7) then
-                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz) &
-                      %omega
+                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz)%omega
                 elseif (irprop == 8) then
-                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz) &
-                      %dkray
+                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz)%dkray
                 elseif (irprop == 9) then
-                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz) &
-                      %dlray
+                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz)%dlray
                 elseif (irprop == 10) then
-                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz) &
-                      %dmray
+                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz)%dmray
                 elseif (irprop == 11) then
-                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz) &
-                      %dxray
+                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz)%dxray
                 elseif (irprop == 12) then
-                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz) &
-                      %dyray
+                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz)%dyray
                 elseif (irprop == 13) then
-                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz) &
-                      %dzray
+                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz)%dzray
                 elseif (irprop == 14) then
-                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz) %dens
+                  ySliceForw_send(iRay, ix, 1, kz) = ray(iRay, ix, ny, kz)%dens
                   !elseif (irprop == 15) then
                   ! ySliceForw_send(iRay,ix,1,kz) &
                   ! = ray(iRay,ix,ny,kz)%area_xk
@@ -8378,46 +8369,40 @@ module wkb_module
             if (nRay(ix, ny + 1, kz) > 0) then
               do iRay = 1, nRay(ix, ny + 1, kz)
                 if (irprop == 1) then
-                  ray(iRay, ix, ny + 1, kz) %x = ySliceForw_recv(iRay, ix, 1, &
-                      kz)
+                  ray(iRay, ix, ny + 1, kz)%x = ySliceForw_recv(iRay, ix, 1, kz)
                 elseif (irprop == 2) then
-                  ray(iRay, ix, ny + 1, kz) %y = ySliceForw_recv(iRay, ix, 1, &
-                      kz)
+                  ray(iRay, ix, ny + 1, kz)%y = ySliceForw_recv(iRay, ix, 1, kz)
                 elseif (irprop == 3) then
-                  ray(iRay, ix, ny + 1, kz) %z = ySliceForw_recv(iRay, ix, 1, &
-                      kz)
+                  ray(iRay, ix, ny + 1, kz)%z = ySliceForw_recv(iRay, ix, 1, kz)
                 elseif (irprop == 4) then
-                  ray(iRay, ix, ny + 1, kz) %k = ySliceForw_recv(iRay, ix, 1, &
-                      kz)
+                  ray(iRay, ix, ny + 1, kz)%k = ySliceForw_recv(iRay, ix, 1, kz)
                 elseif (irprop == 5) then
-                  ray(iRay, ix, ny + 1, kz) %l = ySliceForw_recv(iRay, ix, 1, &
-                      kz)
+                  ray(iRay, ix, ny + 1, kz)%l = ySliceForw_recv(iRay, ix, 1, kz)
                 elseif (irprop == 6) then
-                  ray(iRay, ix, ny + 1, kz) %m = ySliceForw_recv(iRay, ix, 1, &
-                      kz)
+                  ray(iRay, ix, ny + 1, kz)%m = ySliceForw_recv(iRay, ix, 1, kz)
                 elseif (irprop == 7) then
-                  ray(iRay, ix, ny + 1, kz) %omega = ySliceForw_recv(iRay, ix, &
+                  ray(iRay, ix, ny + 1, kz)%omega = ySliceForw_recv(iRay, ix, &
                       1, kz)
                 elseif (irprop == 8) then
-                  ray(iRay, ix, ny + 1, kz) %dkray = ySliceForw_recv(iRay, ix, &
+                  ray(iRay, ix, ny + 1, kz)%dkray = ySliceForw_recv(iRay, ix, &
                       1, kz)
                 elseif (irprop == 9) then
-                  ray(iRay, ix, ny + 1, kz) %dlray = ySliceForw_recv(iRay, ix, &
+                  ray(iRay, ix, ny + 1, kz)%dlray = ySliceForw_recv(iRay, ix, &
                       1, kz)
                 elseif (irprop == 10) then
-                  ray(iRay, ix, ny + 1, kz) %dmray = ySliceForw_recv(iRay, ix, &
+                  ray(iRay, ix, ny + 1, kz)%dmray = ySliceForw_recv(iRay, ix, &
                       1, kz)
                 elseif (irprop == 11) then
-                  ray(iRay, ix, ny + 1, kz) %dxray = ySliceForw_recv(iRay, ix, &
+                  ray(iRay, ix, ny + 1, kz)%dxray = ySliceForw_recv(iRay, ix, &
                       1, kz)
                 elseif (irprop == 12) then
-                  ray(iRay, ix, ny + 1, kz) %dyray = ySliceForw_recv(iRay, ix, &
+                  ray(iRay, ix, ny + 1, kz)%dyray = ySliceForw_recv(iRay, ix, &
                       1, kz)
                 elseif (irprop == 13) then
-                  ray(iRay, ix, ny + 1, kz) %dzray = ySliceForw_recv(iRay, ix, &
+                  ray(iRay, ix, ny + 1, kz)%dzray = ySliceForw_recv(iRay, ix, &
                       1, kz)
                 elseif (irprop == 14) then
-                  ray(iRay, ix, ny + 1, kz) %dens = ySliceForw_recv(iRay, ix, &
+                  ray(iRay, ix, ny + 1, kz)%dens = ySliceForw_recv(iRay, ix, &
                       1, kz)
                   !elseif (irprop == 15) then
                   ! ray(iRay,ix,ny+1,kz)%area_xk &
@@ -8443,7 +8428,7 @@ module wkb_module
                 do jy = ny, ny + 1
                   if (nRay(ix, jy, kz) > 0) then
                     do iRay = 1, nRay(ix, jy, kz)
-                      yr = ray(iRay, ix, jy, kz) %y
+                      yr = ray(iRay, ix, jy, kz)%y
 
                       yrt = yr + ly(1) - ly(0)
 
@@ -8451,7 +8436,7 @@ module wkb_module
                         yr = yrt
                       end if
 
-                      ray(iRay, ix, jy, kz) %y = yr
+                      ray(iRay, ix, jy, kz)%y = yr
                     end do
                   end if
                 end do
@@ -8460,14 +8445,14 @@ module wkb_module
               if (nRay(ix, ny + 1, kz) > 0) then
                 do iRay = 1, nRay(ix, ny + 1, kz)
                   if (irprop == 15) then
-                    ray(iRay, ix, ny + 1, kz) %area_xk = ray(iRay, ix, ny + 1, &
-                        kz) %dxray * ray(iRay, ix, ny + 1, kz) %dkray
+                    ray(iRay, ix, ny + 1, kz)%area_xk = ray(iRay, ix, ny + 1, &
+                        kz)%dxray * ray(iRay, ix, ny + 1, kz)%dkray
                   elseif (irprop == 16) then
-                    ray(iRay, ix, ny + 1, kz) %area_yl = ray(iRay, ix, ny + 1, &
-                        kz) %dyray * ray(iRay, ix, ny + 1, kz) %dlray
+                    ray(iRay, ix, ny + 1, kz)%area_yl = ray(iRay, ix, ny + 1, &
+                        kz)%dyray * ray(iRay, ix, ny + 1, kz)%dlray
                   elseif (irprop == 17) then
-                    ray(iRay, ix, ny + 1, kz) %area_zm = ray(iRay, ix, ny + 1, &
-                        kz) %dzray * ray(iRay, ix, ny + 1, kz) %dmray
+                    ray(iRay, ix, ny + 1, kz)%area_zm = ray(iRay, ix, ny + 1, &
+                        kz)%dzray * ray(iRay, ix, ny + 1, kz)%dmray
                   end if
                 end do
               end if
@@ -8482,33 +8467,33 @@ module wkb_module
             if (nRay(ix, 0, kz) > 0) then
               do iRay = 1, nRay(ix, 0, kz)
                 if (irprop == 1) then
-                  ray(iRay, ix, 0, kz) %x = ySliceBack_recv(iRay, ix, 1, kz)
+                  ray(iRay, ix, 0, kz)%x = ySliceBack_recv(iRay, ix, 1, kz)
                 elseif (irprop == 2) then
-                  ray(iRay, ix, 0, kz) %y = ySliceBack_recv(iRay, ix, 1, kz)
+                  ray(iRay, ix, 0, kz)%y = ySliceBack_recv(iRay, ix, 1, kz)
                 elseif (irprop == 3) then
-                  ray(iRay, ix, 0, kz) %z = ySliceBack_recv(iRay, ix, 1, kz)
+                  ray(iRay, ix, 0, kz)%z = ySliceBack_recv(iRay, ix, 1, kz)
                 elseif (irprop == 4) then
-                  ray(iRay, ix, 0, kz) %k = ySliceBack_recv(iRay, ix, 1, kz)
+                  ray(iRay, ix, 0, kz)%k = ySliceBack_recv(iRay, ix, 1, kz)
                 elseif (irprop == 5) then
-                  ray(iRay, ix, 0, kz) %l = ySliceBack_recv(iRay, ix, 1, kz)
+                  ray(iRay, ix, 0, kz)%l = ySliceBack_recv(iRay, ix, 1, kz)
                 elseif (irprop == 6) then
-                  ray(iRay, ix, 0, kz) %m = ySliceBack_recv(iRay, ix, 1, kz)
+                  ray(iRay, ix, 0, kz)%m = ySliceBack_recv(iRay, ix, 1, kz)
                 elseif (irprop == 7) then
-                  ray(iRay, ix, 0, kz) %omega = ySliceBack_recv(iRay, ix, 1, kz)
+                  ray(iRay, ix, 0, kz)%omega = ySliceBack_recv(iRay, ix, 1, kz)
                 elseif (irprop == 8) then
-                  ray(iRay, ix, 0, kz) %dkray = ySliceBack_recv(iRay, ix, 1, kz)
+                  ray(iRay, ix, 0, kz)%dkray = ySliceBack_recv(iRay, ix, 1, kz)
                 elseif (irprop == 9) then
-                  ray(iRay, ix, 0, kz) %dlray = ySliceBack_recv(iRay, ix, 1, kz)
+                  ray(iRay, ix, 0, kz)%dlray = ySliceBack_recv(iRay, ix, 1, kz)
                 elseif (irprop == 10) then
-                  ray(iRay, ix, 0, kz) %dmray = ySliceBack_recv(iRay, ix, 1, kz)
+                  ray(iRay, ix, 0, kz)%dmray = ySliceBack_recv(iRay, ix, 1, kz)
                 elseif (irprop == 11) then
-                  ray(iRay, ix, 0, kz) %dxray = ySliceBack_recv(iRay, ix, 1, kz)
+                  ray(iRay, ix, 0, kz)%dxray = ySliceBack_recv(iRay, ix, 1, kz)
                 elseif (irprop == 12) then
-                  ray(iRay, ix, 0, kz) %dyray = ySliceBack_recv(iRay, ix, 1, kz)
+                  ray(iRay, ix, 0, kz)%dyray = ySliceBack_recv(iRay, ix, 1, kz)
                 elseif (irprop == 13) then
-                  ray(iRay, ix, 0, kz) %dzray = ySliceBack_recv(iRay, ix, 1, kz)
+                  ray(iRay, ix, 0, kz)%dzray = ySliceBack_recv(iRay, ix, 1, kz)
                 elseif (irprop == 14) then
-                  ray(iRay, ix, 0, kz) %dens = ySliceBack_recv(iRay, ix, 1, kz)
+                  ray(iRay, ix, 0, kz)%dens = ySliceBack_recv(iRay, ix, 1, kz)
                   !elseif (irprop == 15) then
                   ! ray(iRay,ix,0,kz)%area_xk &
                   ! = ySliceBack_recv(iRay,ix,1,kz)
@@ -8533,7 +8518,7 @@ module wkb_module
                 do jy = 0, 1
                   if (nRay(ix, jy, kz) > 0) then
                     do iRay = 1, nRay(ix, jy, kz)
-                      yr = ray(iRay, ix, jy, kz) %y
+                      yr = ray(iRay, ix, jy, kz)%y
 
                       yrt = yr - ly(1) + ly(0)
 
@@ -8541,7 +8526,7 @@ module wkb_module
                         yr = yrt
                       end if
 
-                      ray(iRay, ix, jy, kz) %y = yr
+                      ray(iRay, ix, jy, kz)%y = yr
                     end do
                   end if
                 end do
@@ -8550,14 +8535,14 @@ module wkb_module
               if (nRay(ix, 0, kz) > 0) then
                 do iRay = 1, nRay(ix, 0, kz)
                   if (irprop == 15) then
-                    ray(iRay, ix, 0, kz) %area_xk = ray(iRay, ix, 0, kz) &
-                        %dxray * ray(iRay, ix, 0, kz) %dkray
+                    ray(iRay, ix, 0, kz)%area_xk = ray(iRay, ix, 0, kz)%dxray &
+                        * ray(iRay, ix, 0, kz)%dkray
                   elseif (irprop == 16) then
-                    ray(iRay, ix, 0, kz) %area_yl = ray(iRay, ix, 0, kz) &
-                        %dyray * ray(iRay, ix, 0, kz) %dlray
+                    ray(iRay, ix, 0, kz)%area_yl = ray(iRay, ix, 0, kz)%dyray &
+                        * ray(iRay, ix, 0, kz)%dlray
                   elseif (irprop == 17) then
-                    ray(iRay, ix, 0, kz) %area_zm = ray(iRay, ix, 0, kz) &
-                        %dzray * ray(iRay, ix, 0, kz) %dmray
+                    ray(iRay, ix, 0, kz)%area_zm = ray(iRay, ix, 0, kz)%dzray &
+                        * ray(iRay, ix, 0, kz)%dmray
                   end if
                 end do
               end if
@@ -8585,7 +8570,7 @@ module wkb_module
           do jy = 0, 1
             if (nRay(ix, jy, kz) > 0) then
               do iRay = 1, nRay(ix, jy, kz)
-                yr = ray(iRay, ix, jy, kz) %y
+                yr = ray(iRay, ix, jy, kz)%y
 
                 yrt = yr - ly(1) + ly(0)
 
@@ -8593,7 +8578,7 @@ module wkb_module
                   yr = yrt
                 end if
 
-                ray(iRay, ix, jy, kz) %y = yr
+                ray(iRay, ix, jy, kz)%y = yr
               end do
             end if
           end do
@@ -8611,7 +8596,7 @@ module wkb_module
           do jy = ny, ny + 1
             if (nRay(ix, jy, kz) > 0) then
               do iRay = 1, nRay(ix, jy, kz)
-                yr = ray(iRay, ix, jy, kz) %y
+                yr = ray(iRay, ix, jy, kz)%y
 
                 yrt = yr + ly(1) - ly(0)
 
@@ -8619,7 +8604,7 @@ module wkb_module
                   yr = yrt
                 end if
 
-                ray(iRay, ix, jy, kz) %y = yr
+                ray(iRay, ix, jy, kz)%y = yr
               end do
             end if
           end do
