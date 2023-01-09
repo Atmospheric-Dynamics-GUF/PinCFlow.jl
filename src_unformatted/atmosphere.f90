@@ -463,7 +463,7 @@ contains
        tRef = lRef / uRef
 
     case( "SI" )
-       stop"init_atmosphere: Problems w. Exner pr.. Use Klein's scaling."
+       stop "init_atmosphere: Problems w. Exner pr.. Use Klein's scaling."
        ! with this scaling all quantities are
        ! in SI units
        ! Note that in this case the thermodynamic
@@ -484,7 +484,7 @@ contains
 
     case default
        print*,"referenceQuantities = ", referenceQuantities
-       stop"init_atmosphere: unknown referenceQuantities. Stopping."
+       stop "init_atmosphere: unknown referenceQuantities. Stopping."
     end select
 
     ! auxiliary nondimensionals
@@ -1044,9 +1044,9 @@ contains
 
           ! not implemented versions
           if ( referenceQuantities == "SI" ) &
-               & stop"atmosphere.f90: referenceQuantities = SI not impl.."
+               & stop "atmosphere.f90: referenceQuantities = SI not impl.."
           if( .not. fluctuationMode ) &
-               &  stop"atmosphere.f90: only fluctuationMode = TRUE impl.."
+               &  stop "atmosphere.f90: only fluctuationMode = TRUE impl.."
 
           ! quantities at tropopause
           z_tr = z_tr_dim / lRef
@@ -1067,7 +1067,7 @@ contains
 
                 power = 1.0/(gamma-1.0)
                 term = kappa*sig/theta_tr * zk
-                if (term > 1.0)stop"init_atmosphere: negative term. Stop."
+                if (term > 1.0)stop "init_atmosphere: negative term. Stop."
 
                 Pstrat(k) = p0*( 1.0 - term)**power
                 rhoStrat(k) = PStrat(k) / thetaStrat(k)
@@ -1095,7 +1095,7 @@ contains
 
                    power = 1.0/(gamma-1.0)
                    term = kappa*sig/theta_tr * zk_half
-                   if (term > 1.0) stop"init_atmosphere: negative term. Stop."
+                   if (term > 1.0) stop "init_atmosphere: negative term. Stop."
 
                    PstratTilde(k) = p0 * (1.0 - term)**power
                    rhoStratTilde(k) = PStratTilde(k) / thetaStratTilde(k)
@@ -1168,7 +1168,7 @@ contains
              !------------------------------------
 
              if( fluctuationMode ) &
-                  &stop"init_atmosphere: fluctuationMode not impl. for SI!"
+                  &stop "init_atmosphere: fluctuationMode not impl. for SI!"
              T0 = Temp0_dim / thetaRef   ! T0 in K
              N2 = kappa*g**2/Rsp/T0      ! isothermal Brunt-Vaisala fr.^2
              NN = sqrt(N2)               !
@@ -1260,7 +1260,7 @@ contains
              !------------------------------------
 
              if( fluctuationMode ) then
-             stop"init_atmosphere: fluctuationMode not implmented for SI!"
+             stop "init_atmosphere: fluctuationMode not implmented for SI!"
              end if
 
              NN = 0.0
@@ -1270,7 +1270,7 @@ contains
              do k = -1,nz+2
                 term = kappa*g/Rsp/theta0*z(k)
                 if (term > 1.0) then
-                   stop"init_atmosphere: negative term with power.Stop."
+                   stop "init_atmosphere: negative term with power.Stop."
                 end if
                 PStrat(k) = p0 * (1.0 - term)**power
                 thetaStrat(k) = theta0
@@ -1300,7 +1300,7 @@ contains
                    print*,"z(nz) = ", z(k)
                    print*,"z(nz)*l = ", z(k)
                    print*,"lRef = ", lRef
-                   stop"stopping."
+                   stop "stopping."
                 end if
                 Pstrat(k) = p0*( 1.0 - term)**power
 
@@ -1323,7 +1323,7 @@ contains
                       print*,"z(nz) = ", z(k)
                       print*,"z(nz)*l = ", z(k)
                       print*,"lRef = ", lRef
-                      stop"stopping."
+                      stop "stopping."
                    end if
                    PstratTilde(k) = p0*( 1.0 - term)**power
                    rhoStratTilde(k) = PStratTilde(k) / theta0
@@ -1383,7 +1383,7 @@ contains
              !   original equations in SI units
              !------------------------------------
              if( fluctuationMode ) then
-               stop"init_atmosphere: fluctuationMode not implmented for SI!"
+               stop "init_atmosphere: fluctuationMode not implmented for SI!"
              end if
 
              theta0 = theta0_dim / thetaRef       ! theta0 at z=0 in K
@@ -1423,7 +1423,7 @@ contains
 
                 if( 1.0 + FrInv2*kappa*sig/N2/theta0*(term-1.0) < 0.0) then
                     print*,"init_atmosphere: power of a neg. number."
-                    stop'top of atmosphere too high for const-N'
+                    stop 'top of atmosphere too high for const-N'
                 end if
 
                 Pstrat(k) &
@@ -1446,13 +1446,13 @@ contains
                    term = exp( -Fr2 * N2 * zk_half )
 
                    if( term > 1.0 ) then
-                       stop"init_atmosphere: root of a negative number."
+                       stop "init_atmosphere: root of a negative number."
                    end if
 
                    if( 1.0 + FrInv2*kappa*sig/N2/theta0*(term-1.0) < 0.0) &
                    & then
                       print*,"init_atmosphere: power of a neg. number."
-                      stop'top of atmosphere too high for const-N'
+                      stop 'top of atmosphere too high for const-N'
                    end if
 
                    PstratTilde(k) &
@@ -1505,7 +1505,7 @@ contains
        case( 'diflapse' )
 
           if ( referenceQuantities == "SI" ) then
-             stop"atmosphere.f90: referenceQuantities = SI not impl."
+             stop "atmosphere.f90: referenceQuantities = SI not impl."
           end if
 
           ! quantities at tropopause
@@ -1657,7 +1657,7 @@ contains
        case( 'HeldSuarez' )
 
           if ( referenceQuantities /= "Klein" ) then
-             stop"atmosphere.f90: referenceQuantities = Klein expected!"
+             stop "atmosphere.f90: referenceQuantities = Klein expected!"
           end if
 
           ! non-dimensional parameters of the Held-Suarez reference
@@ -1915,7 +1915,7 @@ contains
 
        case default
           print*,"background = ", trim(background)
-          stop"atmosphere.f90/init_background: background not defined"
+          stop "atmosphere.f90/init_background: background not defined"
        end select
 
        ! non-dimensional squared Brunt-Vaisala frequency
@@ -1950,7 +1950,7 @@ contains
        N2 = max(N2, bvsStrat(nz+1))
 
        if(N2 < 0.) then
-          stop'ERROR: N2 < 0'
+          stop 'ERROR: N2 < 0'
        else
           NN = sqrt(N2)
        end if
@@ -2039,7 +2039,7 @@ contains
 
        case default
           print*,"background = ", trim(background)
-          stop"atmosphere.f90/init_background: background not defined"
+          stop "atmosphere.f90/init_background: background not defined"
        end select
 
        bvsStrat = N2
@@ -2055,7 +2055,7 @@ contains
 
     case default
        print*,"model = ", model
-       stop"init_atmosphere: unknown case model."
+       stop "init_atmosphere: unknown case model."
     end select
 
 

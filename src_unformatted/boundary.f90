@@ -54,7 +54,7 @@ contains
       endif
 
     case default
-       stop"setBoundary: unknown case xBoundary"
+       stop "setBoundary: unknown case xBoundary"
     end select
 
 
@@ -72,7 +72,7 @@ contains
       endif
 
     case default
-       stop"setBoundary: unknown case yBoundary"
+       stop "setBoundary: unknown case yBoundary"
     end select
 
 
@@ -91,7 +91,7 @@ contains
 
 
     case default
-       stop"setBoundary: unknown case zBoundary"
+       stop "setBoundary: unknown case zBoundary"
     end select
 
 
@@ -327,7 +327,7 @@ contains
        return
 
     case default
-       stop"setBoundary_x: unknown option."
+       stop "setBoundary_x: unknown option."
     end select
 
   end subroutine setBoundary_x_periodic
@@ -561,7 +561,7 @@ contains
 
 
     case default
-       stop"setBoundary_y: unknown option."
+       stop "setBoundary_y: unknown option."
     end select
 
 
@@ -800,7 +800,7 @@ contains
        return
 
     case default
-       stop"setBoundary_y: unknown option."
+       stop "setBoundary_y: unknown option."
     end select
 
 
@@ -1497,7 +1497,7 @@ contains
           end if
 
           ! replace flux by CDS fluxes at upper / lower region
-          if( rhoFluxCorr ) stop'ERROR: rhoFluxCorr = .false. expected'
+          if( rhoFluxCorr ) stop 'ERROR: rhoFluxCorr = .false. expected'
        end if ! updateMass
 
 
@@ -1587,7 +1587,7 @@ contains
              print*,"verticalBoundary: vertical BC for theta set"
           end if
 
-          if( thetaFluxCorr ) stop'ERROR: thetaFluxCorr = .false. expected'
+          if( thetaFluxCorr ) stop 'ERROR: thetaFluxCorr = .false. expected'
        end if ! updateTheta
 
        if( predictMomentum ) then
@@ -1610,15 +1610,15 @@ contains
 
           ! replace flux by CDS fluxes at upper / lower region
 
-          if( uFluxCorr ) stop'ERROR: uFluxCorr = .false. expected'
+          if( uFluxCorr ) stop 'ERROR: uFluxCorr = .false. expected'
 
-          if( vFluxCorr ) stop'ERROR: vFluxCorr = .false. expected'
+          if( vFluxCorr ) stop 'ERROR: vFluxCorr = .false. expected'
 
-          if( wFluxCorr ) stop'ERROR: wFluxCorr = .false. expected'
+          if( wFluxCorr ) stop 'ERROR: wFluxCorr = .false. expected'
        end if ! predictMomentum
 
     case default
-       stop"setBoundary_z: unknown option."
+       stop "setBoundary_z: unknown option."
     end select
 
   end subroutine setBoundary_z_solidWall

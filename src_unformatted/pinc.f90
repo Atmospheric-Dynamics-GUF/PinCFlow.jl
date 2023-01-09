@@ -240,7 +240,7 @@ program pinc_prog
     else if (poissonSolverType == 'bicgstab') then
      call SetUpBiCGStab       ! Set BiCGStab arrays
     else
-     stop'ERROR: only HYPRE and BiCGStab ready to be used'
+     stop 'ERROR: only HYPRE and BiCGStab ready to be used'
   end if
 
   call init_xweno       ! set ILES parameters
@@ -397,7 +397,7 @@ program pinc_prog
      piStrat(:) = PStrat(:)**(kappa/(1.-kappa))
 
 
-     if( maxTime < time*tRef ) stop"restart error: maxTime < current time"
+     if( maxTime < time*tRef ) stop "restart error: maxTime < current time"
 
      call setHalos( var, "var" )
      call setBoundary (var, flux, "var")
@@ -1657,7 +1657,7 @@ program pinc_prog
                  case( "classical" )
                     dt_Poisson = rk(3,RKstage)*dt
                  case default
-                    stop"thetaUpdate: unknown case timeSchemeType"
+                    stop "thetaUpdate: unknown case timeSchemeType"
               end select
 
               shap_dts = shap_dts_fac / tRef !FS shap_dts_fac * dt
@@ -1697,7 +1697,7 @@ program pinc_prog
                  case( "classical" )
                     dt_Poisson = rk(3,RKstage)*dt
                  case default
-                    stop"thetaUpdate: unknown case timeSchemeType"
+                    stop "thetaUpdate: unknown case timeSchemeType"
               end select
 
               call Corrector ( var, flux, dMom, dt_Poisson, errFlagBicg, &
@@ -1849,7 +1849,7 @@ program pinc_prog
               end if
            end if
         case default
-           stop"main: unknown outputType"
+           stop "main: unknown outputType"
      end select
 
 
@@ -1929,7 +1929,7 @@ program pinc_prog
     else if (poissonSolverType == 'bicgstab') then
      call CleanUpBiCGSTab       ! Clean Up BiCGSTAB arrays
     else
-     stop'ERROR: HYPRE or BiCGSTab expected as Poisson solvers'
+     stop 'ERROR: HYPRE or BiCGSTab expected as Poisson solvers'
   end if
 
   if( master ) then
