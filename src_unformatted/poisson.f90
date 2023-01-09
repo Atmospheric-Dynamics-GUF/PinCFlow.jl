@@ -1104,14 +1104,14 @@ contains
                       Ls(i,j,k) &
                       = Ls(i,j,k) + ALB*sLB + ALF*sLF + ARB*sRB + ARF*sRF
                      else if (opt /= 'expl') then
-                      stop'ERROR: linOpr expects opt = expl or opt = impl'
+                      stop 'ERROR: linOpr expects opt = expl or opt = impl'
                    end if
                 end if
 
                 ! ---------------- scale with thetaStrat ------------------
                 if( pressureScaling ) then
                     Ls(i,j,k) = Ls(i,j,k) / Pstrat(k)
-                    !stop'ERROR: pressure scaling disabled'
+                    !stop 'ERROR: pressure scaling disabled'
                 end if
              end do i_loop
           end do j_loop
@@ -1122,7 +1122,7 @@ contains
        !             Boussinesq model
        !----------------------------------------
 
-       ! stop'ERROR: linOpr not ready for Boussinesq model'
+       ! stop 'ERROR: linOpr not ready for Boussinesq model'
 
     case default
        stop "linOpr: unknown case model"
@@ -2859,7 +2859,7 @@ contains
                     ! Skalierung mit thetaStrat
                     if ( pressureScaling ) then
                        b(i,j,k) = b(i,j,k) / PStrat(k)
-                       !stop'ERROR: pressure scaling disabled'
+                       !stop 'ERROR: pressure scaling disabled'
                     end if
 
                  end do
@@ -2923,7 +2923,7 @@ contains
           if (divL2 == 0.0) then
              tolref = 1.0
             else
-             stop'ERROR: divL2_norm = 0 while divL2 /= 0'
+             stop 'ERROR: divL2_norm = 0 while divL2 /= 0'
           end if
        end if
 
@@ -3008,7 +3008,7 @@ contains
                     bl2loc = bu**2 + bv**2 + bw**2
 
                     ! if(topography) then
-                    !    stop'ERROR: topography needs implicit time stepping &
+                    !    stop 'ERROR: topography needs implicit time stepping &
                     !       & that is not ready yet for Boussinesq'
                     ! end if
 
@@ -3080,7 +3080,7 @@ contains
           if (divL2 == 0.0) then
              tolref = 1.0
             else
-             stop'ERROR: divL2_norm = 0 while divL2 /= 0'
+             stop 'ERROR: divL2_norm = 0 while divL2 /= 0'
           end if
        end if
 
@@ -3286,7 +3286,7 @@ contains
              expEle = .false.
          end if
 
-        ! stop'ERROR: BiCGStab still to be made ready for Boussinesq'
+        ! stop 'ERROR: BiCGStab still to be made ready for Boussinesq'
 
        case default
           stop "linOpr: unknown case model"
@@ -3296,11 +3296,11 @@ contains
 
     case( "gcr" )
 
-       stop'ERROR: no gcr provided anymore'
+       stop 'ERROR: no gcr provided anymore'
 
     case( "adi" )
 
-       stop'ERROR: no adi provided anymore'
+       stop 'ERROR: no adi provided anymore'
 
     ! hypre solver
     case( "hypre" )
@@ -4909,7 +4909,7 @@ contains
       else if (corset == 'constant') then
        f_cor_nd(0:ny+1) = f_Coriolis_dim*tRef
       else
-       stop'ERROR: wrong corset'
+       stop 'ERROR: wrong corset'
     end if
 
     ! --------------------------------------
@@ -4942,7 +4942,7 @@ contains
                       !  & .or. topography_mask(i0+i+1,j0+j,k)) then
                       !   facu = facu + dt*alprlx
                       !end if
-                      stop'topography still to be implemented into &
+                      stop 'topography still to be implemented into &
                           &semi-implicit time stepping'
                       !UAE
                    end if
@@ -5014,7 +5014,7 @@ contains
              end do
           end do
          else
-          stop'ERROR: wrong opt in correctorStep'
+          stop 'ERROR: wrong opt in correctorStep'
        end if
       else
        do k = 1,nz
@@ -5054,7 +5054,7 @@ contains
                       !  & .or. topography_mask(i0+i,j0+j+1,k)) then
                       !   facv = facv + dt*alprlx
                       !end if
-                      stop'topography still to be implemented into &
+                      stop 'topography still to be implemented into &
                           &semi-implicit time stepping'
                       !UAE
                    end if
@@ -5127,7 +5127,7 @@ contains
              end do
           end do
          else
-          stop'ERROR: wrong opt in correctorStep'
+          stop 'ERROR: wrong opt in correctorStep'
        end if
       else
        do k = 1,nz
@@ -5170,7 +5170,7 @@ contains
                       !  & .or. topography_mask(i0+i,j0+j,k+1)) then
                       !   facw = facw + dt*alprlx
                       !end if
-                      stop'topography still to be implemented into &
+                      stop 'topography still to be implemented into &
                           &semi-implicit time stepping'
                       !UAE
                    end if
@@ -5214,7 +5214,7 @@ contains
 
           ! periodic in z
           if( zBoundary == "periodic" ) then
-              stop'ERROR: period. vert. bound. not ready in correctorStep'
+              stop 'ERROR: period. vert. bound. not ready in correctorStep'
           end if
          else if (opt == "expl") then
           ! solid wall implies zero change of w at the bottom and top
@@ -5268,7 +5268,7 @@ contains
              end do
           end if
          else
-          stop'ERROR: wrong opt in correctorStep'
+          stop 'ERROR: wrong opt in correctorStep'
        end if
       else
        ! solid wall implies zero change of w at the bottom and top
@@ -5343,7 +5343,7 @@ contains
                       !  & .or. topography_mask(i0+i,j0+j,k+1)) then
                       !   facw = facw + dt*alprlx
                       !end if
-                      stop'topography still to be implemented into &
+                      stop 'topography still to be implemented into &
                           &semi-implicit time stepping'
                       !UAE
                    end if
@@ -5403,7 +5403,7 @@ contains
 
           ! periodic in z
           if( zBoundary == "periodic" ) then
-              stop'ERROR: period. vert. bound. not ready in correctorStep'
+              stop 'ERROR: period. vert. bound. not ready in correctorStep'
           end if
        end if
     end if
@@ -5520,7 +5520,7 @@ contains
       else if (corset == 'constant') then
        f_cor_nd(0:ny+1) = f_Coriolis_dim*tRef
       else
-       stop'ERROR: wrong corset'
+       stop 'ERROR: wrong corset'
     end if
 
     ! --------------------------------------
@@ -5553,7 +5553,7 @@ contains
                    !    !  & .or. topography_mask(i0+i+1,j0+j,k)) then
                    !    !   facu = facu + dt*alprlx
                    !    !end if
-                   !    stop'topography still to be implemented into &
+                   !    stop 'topography still to be implemented into &
                    !        &semi-implicit time stepping'
                    !    !UAE
                    ! end if
@@ -5677,7 +5677,7 @@ contains
              end do
           end do
          else if (opt == "expl") then
-          if (facprs /= 1.) stop'ERROR: wrong facprs in explicit sub-step'
+          if (facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
           do k = 1,nz
              do j = 1,ny
                 do i = 0,nx
@@ -5761,10 +5761,10 @@ contains
              end do
           end do
          else
-          stop'ERROR: wrong opt in correctorStep'
+          stop 'ERROR: wrong opt in correctorStep'
        end if
       else
-       if (facprs /= 1.) stop'ERROR: wrong facprs in explicit sub-step'
+       if (facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
        do k = 1,nz
           do j = 1,ny
              do i = 0,nx
@@ -5866,7 +5866,7 @@ contains
                    !    !  & .or. topography_mask(i0+i,j0+j+1,k)) then
                    !    !   facv = facv + dt*alprlx
                    !    !end if
-                   !    stop'topography still to be implemented into &
+                   !    stop 'topography still to be implemented into &
                    !        &semi-implicit time stepping'
                    !    !UAE
                    ! end if
@@ -5992,7 +5992,7 @@ contains
              end do
           end do
          else if (opt == "expl") then
-          if (facprs /= 1.) stop'ERROR: wrong facprs in explicit sub-step'
+          if (facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
           do k = 1,nz
              do j = 0,ny
                 do i = 1,nx
@@ -6076,10 +6076,10 @@ contains
              end do
           end do
          else
-          stop'ERROR: wrong opt in correctorStep'
+          stop 'ERROR: wrong opt in correctorStep'
        end if
       else
-       if (facprs /= 1.) stop'ERROR: wrong facprs in explicit sub-step'
+       if (facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
        do k = 1,nz
           do j = 0,ny
              do i = 1,nx
@@ -6198,7 +6198,7 @@ contains
                    !    !  & .or. topography_mask(i0+i,j0+j,k+1)) then
                    !    !   facw = facw + dt*alprlx
                    !    !end if
-                   !    stop'topography still to be implemented into &
+                   !    stop 'topography still to be implemented into &
                    !        &semi-implicit time stepping'
                    !    !UAE
                    ! end if
@@ -6325,11 +6325,11 @@ contains
 
           ! ! periodic in z
           ! if( zBoundary == "periodic" ) then
-          !     stop'ERROR: period. vert. bound. not ready in correctorStep'
+          !     stop 'ERROR: period. vert. bound. not ready in correctorStep'
           ! end if
          else if (opt == "expl") then
           ! solid wall implies zero change of w at the bottom and top
-          if (facprs /= 1.) stop'ERROR: wrong facprs in explicit sub-step'
+          if (facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
           ! TFC FJ
           do k = k0, k1
           ! do k = 1, nz-1
@@ -6447,10 +6447,10 @@ contains
           !    end do
           ! end if
          else
-          stop'ERROR: wrong opt in correctorStep'
+          stop 'ERROR: wrong opt in correctorStep'
        end if
       else
-        if (facprs /= 1.) stop'ERROR: wrong facprs in explicit sub-step'
+        if (facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
        ! solid wall implies zero change of w at the bottom and top
        ! TFC FJ
        do k = k0, k1
@@ -6589,7 +6589,7 @@ contains
                    !    !  & .or. topography_mask(i0+i,j0+j,k+1)) then
                    !    !   facw = facw + dt*alprlx
                    !    !end if
-                   !    stop'topography still to be implemented into &
+                   !    stop 'topography still to be implemented into &
                    !        &semi-implicit time stepping'
                    !    !UAE
                    ! end if
@@ -6827,7 +6827,7 @@ contains
 
           ! ! periodic in z
           ! if( zBoundary == "periodic" ) then
-          !     stop'ERROR: period. vert. bound. not ready in correctorStep'
+          !     stop 'ERROR: period. vert. bound. not ready in correctorStep'
           ! end if
        end if
     end if
@@ -7403,7 +7403,7 @@ contains
       else if (corset == 'constant') then
        f_cor_nd(0:ny+1) = f_Coriolis_dim*tRef
       else
-       stop'ERROR: wrong corset'
+       stop 'ERROR: wrong corset'
     end if
 
     ! auxiliary variables
@@ -7415,7 +7415,7 @@ contains
     i0=is+nbx-1
     j0=js+nby-1
 
-    if (.not. fluctuationMode) stop'ERROR: must use fluctuationMode'
+    if (.not. fluctuationMode) stop 'ERROR: must use fluctuationMode'
 
     !---------------------------------
     !         Loop over field
@@ -7575,7 +7575,7 @@ contains
                       arb_b(i,j,k) = 0.0
                       arf_b(i,j,k) = 0.0
                      else
-                      stop'ERROR: val_PsIn expects hypre or bicgstab'
+                      stop 'ERROR: val_PsIn expects hypre or bicgstab'
                    end if
                 end do ! i_loop
              end do ! j_loop
@@ -7659,7 +7659,7 @@ contains
                    end if
 
                    if( pressureScaling ) then
-                     ! stop'ERROR: no pressure scaling allowed'
+                     ! stop 'ERROR: no pressure scaling allowed'
                    end if
 
                    ! ----------------------- A(i,j,k) -------------------
@@ -7720,7 +7720,7 @@ contains
                       ad_b(i,j,k) = AD
                       au_b(i,j,k) = AU
                      else
-                      stop'ERROR: val_PsIn expects hypre or bicgstab'
+                      stop 'ERROR: val_PsIn expects hypre or bicgstab'
                    end if
                 end do ! i_loop
              end do ! j_loop
@@ -7728,7 +7728,7 @@ contains
        end if
       else if (opt == "impl") then
        if (timeScheme /= "semiimplicit") then
-          stop'ERROR: for opt = impl must have timeScheme = semiimplicit'
+          stop 'ERROR: for opt = impl must have timeScheme = semiimplicit'
        end if
 
        kr_sp = kr_sp * facray
@@ -7766,7 +7766,7 @@ contains
                    !  & .or. topography_mask(i0+i+1,j0+j,k)) then
                    !   facu = facu + dt*alprlx
                    !end if
-                   stop'topography still to be implemented into &
+                   stop 'topography still to be implemented into &
                        &semi-implicit time stepping'
                    !UAE
                 end if
@@ -7805,7 +7805,7 @@ contains
                    !  & .or. topography_mask(i0+i,j0+j,k)) then
                    !   facu = facu + dt*alprlx
                    !end if
-                   stop'topography still to be implemented into &
+                   stop 'topography still to be implemented into &
                        &semi-implicit time stepping'
                    !UAE
                 end if
@@ -7844,7 +7844,7 @@ contains
                    !  & .or. topography_mask(i0+i,j0+j+1,k)) then
                    !   facv = facv + dt*alprlx
                    !end if
-                   stop'topography still to be implemented into &
+                   stop 'topography still to be implemented into &
                        &semi-implicit time stepping'
                    !UAE
                 end if
@@ -7884,7 +7884,7 @@ contains
                    !  & .or. topography_mask(i0+i,j0+j,k)) then
                    !   facv = facv + dt*alprlx
                    !end if
-                   stop'topography still to be implemented into &
+                   stop 'topography still to be implemented into &
                        &semi-implicit time stepping'
                    !UAE
                 end if
@@ -7929,7 +7929,7 @@ contains
                       !  & .or. topography_mask(i0+i,j0+j,k+1)) then
                       !   facw = facw + dt*alprlx
                       !end if
-                      stop'topography still to be implemented into &
+                      stop 'topography still to be implemented into &
                           &semi-implicit time stepping'
                       !UAE
                    end if
@@ -7981,7 +7981,7 @@ contains
                       !  & .or. topography_mask(i0+i,j0+j,k)) then
                       !   facw = facw + dt*alprlx
                       !end if
-                      stop'topography still to be implemented into &
+                      stop 'topography still to be implemented into &
                           &semi-implicit time stepping'
                       !UAE
                    end if
@@ -8053,7 +8053,7 @@ contains
                    ALF = ALF/Pstrat(k)
                    ARF = ARF/Pstrat(k)
                    ARB = ARB/Pstrat(k)
-                   !stop'ERROR: no pressure scaling allowed'
+                   !stop 'ERROR: no pressure scaling allowed'
                 end if
 
 
@@ -8102,7 +8102,7 @@ contains
                    arb_b(i,j,k) = ARB
                    arf_b(i,j,k) = ARF
                   else
-                   stop'ERROR: val_PsIn expects hypre or bicgstab'
+                   stop 'ERROR: val_PsIn expects hypre or bicgstab'
                 end if
              end do ! i_loop
           end do ! j_loop
@@ -8112,7 +8112,7 @@ contains
        alprlx = alprlx / facray
 
       else
-       stop'ERROR: wrong opt'
+       stop 'ERROR: wrong opt'
     end if
 
   return
@@ -8208,7 +8208,7 @@ contains
       else if (corset == 'constant') then
        f_cor_nd(0:ny+1) = f_Coriolis_dim*tRef
       else
-       stop'ERROR: wrong corset'
+       stop 'ERROR: wrong corset'
     end if
 
     ! auxiliary variables
@@ -8220,7 +8220,7 @@ contains
     i0=is+nbx-1
     j0=js+nby-1
 
-    if (.not. fluctuationMode) stop'ERROR: must use fluctuationMode'
+    if (.not. fluctuationMode) stop 'ERROR: must use fluctuationMode'
 
     !---------------------------------
     !         Loop over field
@@ -8382,7 +8382,7 @@ contains
                       arb_b(i,j,k) = 0.0
                       arf_b(i,j,k) = 0.0
                      else
-                      stop'ERROR: val_PsIn expects hypre or bicgstab'
+                      stop 'ERROR: val_PsIn expects hypre or bicgstab'
                    end if
                 end do ! i_loop
              end do ! j_loop
@@ -9152,7 +9152,7 @@ contains
                        end if
 
                        if( pressureScaling ) then
-                         ! stop'ERROR: no pressure scaling allowed'
+                         ! stop 'ERROR: no pressure scaling allowed'
                        end if
 
                        ! ----------------------- A(i,j,k) -------------------
@@ -9213,7 +9213,7 @@ contains
                           ad_b(i,j,k) = AD
                           au_b(i,j,k) = AU
                          else
-                          stop'ERROR: val_PsIn expects hypre or bicgstab'
+                          stop 'ERROR: val_PsIn expects hypre or bicgstab'
                        end if
 
                end do ! i_loop
@@ -9222,7 +9222,7 @@ contains
          end if
      else if (opt == "impl") then
        if (timeScheme /= "semiimplicit") then
-          stop'ERROR: for opt = impl must have timeScheme = semiimplicit'
+          stop 'ERROR: for opt = impl must have timeScheme = semiimplicit'
        end if
 
        kr_sp = kr_sp * facray
@@ -10850,7 +10850,7 @@ contains
                     !    !  & .or. topography_mask(i0+i+1,j0+j,k)) then
                     !    !   facu = facu + dt*alprlx
                     !    !end if
-                    !    stop'topography still to be implemented into &
+                    !    stop 'topography still to be implemented into &
                     !        &semi-implicit time stepping'
                     !    !UAE
                     ! end if
@@ -10943,7 +10943,7 @@ contains
                     !    !  & .or. topography_mask(i0+i,j0+j,k)) then
                     !    !   facu = facu + dt*alprlx
                     !    !end if
-                    !    stop'topography still to be implemented into &
+                    !    stop 'topography still to be implemented into &
                     !        &semi-implicit time stepping'
                     !    !UAE
                     ! end if
@@ -11040,7 +11040,7 @@ contains
                     !    !  & .or. topography_mask(i0+i,j0+j+1,k)) then
                     !    !   facv = facv + dt*alprlx
                     !    !end if
-                    !    stop'topography still to be implemented into &
+                    !    stop 'topography still to be implemented into &
                     !        &semi-implicit time stepping'
                     !    !UAE
                     ! end if
@@ -11137,7 +11137,7 @@ contains
                     !    !  & .or. topography_mask(i0+i,j0+j,k)) then
                     !    !   facv = facv + dt*alprlx
                     !    !end if
-                    !    stop'topography still to be implemented into &
+                    !    stop 'topography still to be implemented into &
                     !        &semi-implicit time stepping'
                     !    !UAE
                     ! end if
@@ -11238,7 +11238,7 @@ contains
                        !    !  & .or. topography_mask(i0+i,j0+j,k+1)) then
                        !    !   facw = facw + dt*alprlx
                        !    !end if
-                       !    stop'topography still to be implemented into &
+                       !    stop 'topography still to be implemented into &
                        !        &semi-implicit time stepping'
                        !    !UAE
                        ! end if
@@ -11292,7 +11292,7 @@ contains
                        !    !  & .or. topography_mask(i0+i,j0+j,k)) then
                        !    !   facw = facw + dt*alprlx
                        !    !end if
-                       !    stop'topography still to be implemented into &
+                       !    stop 'topography still to be implemented into &
                        !        &semi-implicit time stepping'
                        !    !UAE
                        ! end if
@@ -11366,7 +11366,7 @@ contains
                        ALF = ALF/Pstrat(k)
                        ARF = ARF/Pstrat(k)
                        ARB = ARB/Pstrat(k)
-                       !stop'ERROR: no pressure scaling allowed'
+                       !stop 'ERROR: no pressure scaling allowed'
                     end if
 
 
@@ -11415,7 +11415,7 @@ contains
                        arb_b(i,j,k) = ARB
                        arf_b(i,j,k) = ARF
                       else
-                       stop'ERROR: val_PsIn expects hypre or bicgstab'
+                       stop 'ERROR: val_PsIn expects hypre or bicgstab'
                     end if
                  end do ! i_loop
               end do ! j_loop
@@ -11426,7 +11426,7 @@ contains
        alprlx = alprlx / facray
 
       else
-       stop'ERROR: wrong opt'
+       stop 'ERROR: wrong opt'
     end if
 
   return
@@ -11659,7 +11659,7 @@ contains
           sum_d = sum_d +  1./(gamma*press0(k))
        end do
       else
-       stop'ERROR: wrong w0_mod'
+       stop 'ERROR: wrong w0_mod'
     end if
 
     dptopdt = sum_n/sum_d
@@ -11696,7 +11696,7 @@ contains
             + dz*(- S_bar(k)/Pstrat(k) - (1./(gamma*press0(k)))*dptopdt)
        end do
       else
-       stop'ERROR: wrong w0_mod'
+       stop 'ERROR: wrong w0_mod'
     end if
 
 

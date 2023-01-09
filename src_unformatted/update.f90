@@ -191,7 +191,7 @@ contains
        N2 = max(N2, bvsStrat(nz+1))
 
        if(N2 < 0.) then
-          stop'ERROR: N2 < 0'
+          stop 'ERROR: N2 < 0'
          else
           NN = sqrt(N2)
        end if
@@ -522,7 +522,7 @@ contains
        end if
 
  case default
-    stop"spongeLayer: Unknown variable"
+    stop "spongeLayer: Unknown variable"
  end select
 
 
@@ -832,7 +832,7 @@ contains
       else if (corset == 'constant') then
        f_cor_nd(0:ny+1) = f_Coriolis_dim*tRef
       else
-       stop'ERROR: wrong corset'
+       stop 'ERROR: wrong corset'
     end if
 
     if(topography) then
@@ -883,12 +883,12 @@ contains
        i0 = 0
        i1 = nx
     case default
-       stop"momentumPredictor: unknown case xBoundary."
+       stop "momentumPredictor: unknown case xBoundary."
     end select
 
     if (mmp_mod == "tot" .or. mmp_mod == "lhs") then
        if (int_mod /= "expl") then
-          stop'ERROR: wrong int_mod for mmp_mod = tot or mmp_mod = lhs'
+          stop 'ERROR: wrong int_mod for mmp_mod = tot or mmp_mod = lhs'
        end if
 
        do k = 1,nz
@@ -938,7 +938,7 @@ contains
                          else if (model == "Boussinesq") then
                           rhoM_1 = rho00
                          else
-                          stop"momentumPredictor: unkown model."
+                          stop "momentumPredictor: unkown model."
                       end if
 
                       volforce &
@@ -964,7 +964,7 @@ contains
                          else if (model == "Boussinesq") then
                           rhoM_1 = rho00
                          else
-                          stop"momentumPredictor: unkown model."
+                          stop "momentumPredictor: unkown model."
                       end if
 
                       !UAC if(topography_mask(i00+i,j00+j,k)&
@@ -1011,7 +1011,7 @@ contains
                          else if (model == "Boussinesq") then
                           rhoM_1 = rho00
                          else
-                          stop"momentumPredictor: unkown model."
+                          stop "momentumPredictor: unkown model."
                       end if
 
                       volForce &
@@ -1032,7 +1032,7 @@ contains
                   else if (mmp_mod == "lhs") then
                    F = -fluxDiff + volForce !200413
                   else
-                   stop'ERROR: wrong mmp_mod'
+                   stop 'ERROR: wrong mmp_mod'
                 end if
 
                 ! interpolated density
@@ -1052,7 +1052,7 @@ contains
                    rhoM_1 = rho00
                    rhoM = rho00
                 case default
-                   stop"momentumPredictor: unkown case model."
+                   stop "momentumPredictor: unkown case model."
                 end select
 
                 ! velocity and momentum at t(m-1)
@@ -1143,7 +1143,7 @@ contains
                       !   uAst = uAst - dt* alprlx*uhorx
                       !end if
                       if (TestCase == "baroclinic_LC") then
-                         stop'combination of topography with baroclinic &
+                         stop 'combination of topography with baroclinic &
                             & LC not possible yet'
                       end if
 
@@ -1340,7 +1340,7 @@ contains
                       if(k < kbl_topo(i,j,1)) then
                          facu = facu + dt*alprlx
                         else if(k == kbl_topo(i,j,1)) then
-                          stop'implementation topography into &
+                          stop 'implementation topography into &
                               &semi-implicit time step still to be done'
                       end if
                       !UAE
@@ -1387,10 +1387,10 @@ contains
              end do
           end do
          else
-          stop'ERROR: unknown int_mod'
+          stop 'ERROR: unknown int_mod'
        end if
       else
-       stop'ERROR: unknown mmp_mod'
+       stop 'ERROR: unknown mmp_mod'
     end if
 
     ! -------------------------------------
@@ -1406,12 +1406,12 @@ contains
        j0 = 0
        j1 = ny
     case default
-       stop"momentumPredictor: unknown case yBoundary."
+       stop "momentumPredictor: unknown case yBoundary."
     end select
 
     if (mmp_mod == "tot" .or. mmp_mod == "lhs") then
        if (int_mod /= "expl") then
-          stop'ERROR: wrong int_mod for mmp_mod = tot or mmp_mod = lhs'
+          stop 'ERROR: wrong int_mod for mmp_mod = tot or mmp_mod = lhs'
        end if
 
        do k = 1,nz
@@ -1463,7 +1463,7 @@ contains
                           rhoM   = rho00
                           rhoM_1 = rho00
                          else
-                          stop"momentumPredictor: unkown model."
+                          stop "momentumPredictor: unkown model."
                       end if
 
 
@@ -1496,7 +1496,7 @@ contains
                          else if (model == "Boussinesq") then
                           rhoM_1 = rho00
                          else
-                          stop"momentumPredictor: unkown model."
+                          stop "momentumPredictor: unkown model."
                       end if
 
                       !UAC if(topography_mask(i00+i,j00+j,k)&
@@ -1543,7 +1543,7 @@ contains
                          else if (model == "Boussinesq") then
                           rhoM_1 = rho00
                          else
-                          stop"momentumPredictor: unkown model."
+                          stop "momentumPredictor: unkown model."
                       end if
 
                       volForce &
@@ -1568,7 +1568,7 @@ contains
                   else if (mmp_mod == "lhs") then
                    F = -fluxDiff + volForce
                   else
-                   stop'ERROR: wrong mmp_mod'
+                   stop 'ERROR: wrong mmp_mod'
                 end if
 
                 ! interpolated density
@@ -1588,7 +1588,7 @@ contains
                    rhoM_1 = rho00
                    rhoM = rho00
                 case default
-                   stop"momentumPredictor: unkown case model."
+                   stop "momentumPredictor: unkown case model."
                 end select
 
                 ! velocity and momentum at t(m-1)
@@ -1888,7 +1888,7 @@ contains
                       if(k < kbl_topo(i,j,2)) then
                          facv = facv + dt*alprlx
                         else if(k == kbl_topo(i,j,2)) then
-                          stop'implementation topography into &
+                          stop 'implementation topography into &
                               &semi-implicit time step still to be done'
                       end if
                       !UAE
@@ -1936,13 +1936,13 @@ contains
              end do
           end do
          else
-          stop'ERROR: unknown int_mod'
+          stop 'ERROR: unknown int_mod'
        end if
 
        ! now the new u can be put into the proper array
        var(:,:,:,2) = usave(:,:,:)
       else
-       stop'ERROR: unknown mmp_mod'
+       stop 'ERROR: unknown mmp_mod'
     end if
 
     !testb
@@ -1964,12 +1964,12 @@ contains
        k0 = 0
        k1 = nz
     case default
-       stop"momentumPredictor: unknown case zBoundary."
+       stop "momentumPredictor: unknown case zBoundary."
     end select
 
     if (mmp_mod == "tot" .or. mmp_mod == "lhs") then
        if (int_mod /= "expl") then
-          stop'ERROR: wrong int_mod for mmp_mod = tot or mmp_mod = lhs'
+          stop 'ERROR: wrong int_mod for mmp_mod = tot or mmp_mod = lhs'
        end if
 
        do k = k0,k1
@@ -2016,10 +2016,10 @@ contains
                              drho_e = drho_e - rhoStratTilde(k)
                           end if
                          else if (model == "Boussinesq") then
-                          stop'ERROR: baroclinic LC not ready yet for &
+                          stop 'ERROR: baroclinic LC not ready yet for &
                                   & Boussinesq'
                          else
-                          stop"momentumPredictor: unkown model."
+                          stop "momentumPredictor: unkown model."
                       end if
 
                       volForce = volForce + FrInv2 * drho_e
@@ -2037,7 +2037,7 @@ contains
                          else if (model == "Boussinesq") then
                           rhoM_1 = rho00
                          else
-                          stop"momentumPredictor: unkown model."
+                          stop "momentumPredictor: unkown model."
                       end if
 
                       !UAC if(topography_mask(i00+i,j00+j,k)&
@@ -2081,7 +2081,7 @@ contains
                       else if (model == "Boussinesq") then
                          rhoM_1 = rho00
                       else
-                         stop"momentumPredictor: unkown model."
+                         stop "momentumPredictor: unkown model."
                       end if
 
                       volForce &
@@ -2101,7 +2101,7 @@ contains
                   else if (mmp_mod == "lhs") then
                    F = -fluxDiff
                   else
-                   stop'ERROR: wrong mmp_mod'
+                   stop 'ERROR: wrong mmp_mod'
                 end if
 
                 ! interpolated densities
@@ -2121,7 +2121,7 @@ contains
                    rhoM_1 = rho00
                    rhoM = rho00
                 case default
-                   stop"momentumPredictor: unkown case model."
+                   stop "momentumPredictor: unkown case model."
                 end select
 
                 ! velocity and momentum at t(m-1)
@@ -2363,7 +2363,7 @@ contains
                       if(k < kbl_topo(i,j,3)) then
                          facw = facw + alprlx*dt
                         else if(k == kbl_topo(i,j,3)) then
-                          stop'implementation topography into &
+                          stop 'implementation topography into &
                               &semi-implicit time step still to be done'
                       end if
                    end if
@@ -2439,10 +2439,10 @@ contains
              end do
           end do
          else
-          stop'ERROR: unknown int_mod'
+          stop 'ERROR: unknown int_mod'
        end if
       else
-       stop'ERROR: unknown mmp_mod'
+       stop 'ERROR: unknown mmp_mod'
     end if
 
     if (mmp_mod == 'rhs') then
@@ -2625,7 +2625,7 @@ contains
       else if (corset == 'constant') then
        f_cor_nd(0:ny+1) = f_Coriolis_dim*tRef
       else
-       stop'ERROR: wrong corset'
+       stop 'ERROR: wrong corset'
     end if
 
     ! if(topography) then
@@ -2677,12 +2677,12 @@ contains
        i0 = 0
        i1 = nx
     case default
-       stop"momentumPredictor: unknown case xBoundary."
+       stop "momentumPredictor: unknown case xBoundary."
     end select
 
     if (mmp_mod == "tot" .or. mmp_mod == "lhs") then
        if (int_mod /= "expl") then
-          stop'ERROR: wrong int_mod for mmp_mod = tot or mmp_mod = lhs'
+          stop 'ERROR: wrong int_mod for mmp_mod = tot or mmp_mod = lhs'
        end if
 
        do k = 1,nz
@@ -2822,7 +2822,7 @@ contains
                          else if (model == "Boussinesq") then
                           rhoM_1 = rho00
                          else
-                          stop"momentumPredictor: unkown model."
+                          stop "momentumPredictor: unkown model."
                       end if
 
                       volforce &
@@ -2848,7 +2848,7 @@ contains
                    !       else if (model == "Boussinesq") then
                    !        rhoM_1 = rho00
                    !       else
-                   !        stop"momentumPredictor: unkown model."
+                   !        stop "momentumPredictor: unkown model."
                    !    end if
                    !
                    !    if (k < kbl_topo(i,j,1)) then
@@ -2897,7 +2897,7 @@ contains
                          else if (model == "Boussinesq") then
                           rhoM_1 = rho00
                          else
-                          stop"momentumPredictor: unkown model."
+                          stop "momentumPredictor: unkown model."
                       end if
 
                       volForce &
@@ -2939,7 +2939,7 @@ contains
                   else if (mmp_mod == "lhs") then
                    F = -fluxDiff + volForce !200413
                   else
-                   stop'ERROR: wrong mmp_mod'
+                   stop 'ERROR: wrong mmp_mod'
                 end if
 
                 ! interpolated density
@@ -2968,7 +2968,7 @@ contains
                    rhoM_1 = rho00
                    rhoM = rho00
                 case default
-                   stop"momentumPredictor: unkown case model."
+                   stop "momentumPredictor: unkown case model."
                 end select
 
                 ! velocity and momentum at t(m-1)
@@ -3228,7 +3228,7 @@ contains
                    !    ! Rayleigh damping for topography (immersed boundary)
                    !
                    !    if (TestCase == "baroclinic_LC") then
-                   !       stop'combination of topography with baroclinic &
+                   !       stop 'combination of topography with baroclinic &
                    !          & LC not possible yet'
                    !    end if
                    !
@@ -3587,7 +3587,7 @@ contains
                    !    if(k < kbl_topo(i,j,1)) then
                    !       facu = facu + dt*alprlx
                    !      else if(k == kbl_topo(i,j,1)) then
-                   !        stop'implementation topography into &
+                   !        stop 'implementation topography into &
                    !            &semi-implicit time step still to be done'
                    !    end if
                    ! end if
@@ -3636,10 +3636,10 @@ contains
              end do
           end do
          else
-          stop'ERROR: unknown int_mod'
+          stop 'ERROR: unknown int_mod'
        end if
       else
-       stop'ERROR: unknown mmp_mod'
+       stop 'ERROR: unknown mmp_mod'
     end if
 
     ! -------------------------------------
@@ -3655,12 +3655,12 @@ contains
        j0 = 0
        j1 = ny
     case default
-       stop"momentumPredictor: unknown case yBoundary."
+       stop "momentumPredictor: unknown case yBoundary."
     end select
 
     if (mmp_mod == "tot" .or. mmp_mod == "lhs") then
        if (int_mod /= "expl") then
-          stop'ERROR: wrong int_mod for mmp_mod = tot or mmp_mod = lhs'
+          stop 'ERROR: wrong int_mod for mmp_mod = tot or mmp_mod = lhs'
        end if
 
        do k = 1,nz
@@ -3803,7 +3803,7 @@ contains
                           rhoM   = rho00
                           rhoM_1 = rho00
                          else
-                          stop"momentumPredictor: unkown model."
+                          stop "momentumPredictor: unkown model."
                       end if
 
 
@@ -3833,7 +3833,7 @@ contains
                 !          else if (model == "Boussinesq") then
                 !           rhoM_1 = rho00
                 !          else
-                !           stop"momentumPredictor: unkown model."
+                !           stop "momentumPredictor: unkown model."
                 !       end if
                 !
                 !       if(k < kbl_topo(i,j,2)) then
@@ -3882,7 +3882,7 @@ contains
                          else if (model == "Boussinesq") then
                           rhoM_1 = rho00
                          else
-                          stop"momentumPredictor: unkown model."
+                          stop "momentumPredictor: unkown model."
                       end if
 
                       volForce &
@@ -3927,7 +3927,7 @@ contains
                   else if (mmp_mod == "lhs") then
                    F = -fluxDiff + volForce !UA 200413
                   else
-                   stop'ERROR: wrong mmp_mod'
+                   stop 'ERROR: wrong mmp_mod'
                 end if
 
                 ! interpolated density
@@ -3956,7 +3956,7 @@ contains
                    rhoM_1 = rho00
                    rhoM = rho00
                 case default
-                   stop"momentumPredictor: unkown case model."
+                   stop "momentumPredictor: unkown case model."
                 end select
 
                 ! velocity and momentum at t(m-1)
@@ -4585,7 +4585,7 @@ contains
                    !    if(k < kbl_topo(i,j,2)) then
                    !       facv = facv + dt*alprlx
                    !      else if(k == kbl_topo(i,j,2)) then
-                   !        stop'implementation topography into &
+                   !        stop 'implementation topography into &
                    !            &semi-implicit time step still to be done'
                    !    end if
                    ! end if
@@ -4636,13 +4636,13 @@ contains
              end do
           end do
          else
-          stop'ERROR: unknown int_mod'
+          stop 'ERROR: unknown int_mod'
        end if
 
        ! now the new u can be put into the proper array
        var(:,:,:,2) = usave(:,:,:)
       else
-       stop'ERROR: unknown mmp_mod'
+       stop 'ERROR: unknown mmp_mod'
     end if
 
     !testb
@@ -4664,12 +4664,12 @@ contains
        k0 = 0
        k1 = nz
     case default
-       stop"momentumPredictor: unknown case zBoundary."
+       stop "momentumPredictor: unknown case zBoundary."
     end select
 
     if (mmp_mod == "tot" .or. mmp_mod == "lhs") then
        if (int_mod /= "expl") then
-          stop'ERROR: wrong int_mod for mmp_mod = tot or mmp_mod = lhs'
+          stop 'ERROR: wrong int_mod for mmp_mod = tot or mmp_mod = lhs'
        end if
 
        do k = k0,k1
@@ -4867,10 +4867,10 @@ contains
                              drho_e = drho_e - rhoStratTilde(k)
                           end if
                          else if (model == "Boussinesq") then
-                          stop'ERROR: baroclinic LC not ready yet for &
+                          stop 'ERROR: baroclinic LC not ready yet for &
                                   & Boussinesq'
                          else
-                          stop"momentumPredictor: unkown model."
+                          stop "momentumPredictor: unkown model."
                       end if
 
                       if(topography) then
@@ -4894,7 +4894,7 @@ contains
                 !          else if (model == "Boussinesq") then
                 !           rhoM_1 = rho00
                 !          else
-                !           stop"momentumPredictor: unkown model."
+                !           stop "momentumPredictor: unkown model."
                 !       end if
                 !
                 !       if(k < kbl_topo(i,j,3)) then
@@ -4939,7 +4939,7 @@ contains
                       else if (model == "Boussinesq") then
                          rhoM_1 = rho00
                       else
-                         stop"momentumPredictor: unkown model."
+                         stop "momentumPredictor: unkown model."
                       end if
 
                       volForce &
@@ -4992,7 +4992,7 @@ contains
                   else if (mmp_mod == "lhs") then
                    F = -fluxDiff
                   else
-                   stop'ERROR: wrong mmp_mod'
+                   stop 'ERROR: wrong mmp_mod'
                 end if
 
                 ! interpolated densities
@@ -5021,7 +5021,7 @@ contains
                    rhoM_1 = rho00
                    rhoM = rho00
                 case default
-                   stop"momentumPredictor: unkown case model."
+                   stop "momentumPredictor: unkown case model."
                 end select
 
                 ! velocity and momentum at t(m-1)
@@ -5613,7 +5613,7 @@ contains
                    !    if(k < kbl_topo(i,j,3)) then
                    !       facw = facw + alprlx*dt
                    !      else if(k == kbl_topo(i,j,3)) then
-                   !        stop'implementation topography into &
+                   !        stop 'implementation topography into &
                    !            &semi-implicit time step still to be done'
                    !    end if
                    ! end if
@@ -5732,10 +5732,10 @@ contains
              end do
           end do
          else
-          stop'ERROR: unknown int_mod'
+          stop 'ERROR: unknown int_mod'
        end if
       else
-       stop'ERROR: unknown mmp_mod'
+       stop 'ERROR: unknown mmp_mod'
     end if
 
     if (mmp_mod == 'rhs') then
@@ -5843,7 +5843,7 @@ contains
                      &       + rk(3,m) * dt*F
 
              case default
-                stop"thetaUpdate: unknown case timeSchemeType"
+                stop "thetaUpdate: unknown case timeSchemeType"
              end select
 
 
@@ -5964,7 +5964,7 @@ contains
           stop
        end if
 
-       if (int_mod /= "expl") stop'ERROR: wrong int_mod for upd_var = rho'
+       if (int_mod /= "expl") stop 'ERROR: wrong int_mod for upd_var = rho'
 
        do k = 1,nz
           do j = 1,ny
@@ -5992,7 +5992,7 @@ contains
                 ! density relaxation
                 if (dens_relax) then
                    if (background /= "HeldSuarez") then
-                      stop'ERROR: density relaxation only ready for &
+                      stop 'ERROR: density relaxation only ready for &
                          &background = HeldSuarez'
                    end if
 
@@ -6019,7 +6019,7 @@ contains
       else if (upd_var == "rhop") then
        if (upd_mod == "tot") then
           if (int_mod /= "expl") then
-             stop'ERROR: wrong int_mod for upd_mod = tot'
+             stop 'ERROR: wrong int_mod for upd_mod = tot'
           end if
 
           ! heating due to relaxation, entropy diffusion and GWs, its
@@ -6117,7 +6117,7 @@ contains
                    ! density relaxation
                    if (dens_relax) then
                       if (background /= "HeldSuarez") then
-                         stop'ERROR: density relaxation only ready for &
+                         stop 'ERROR: density relaxation only ready for &
                             &background = HeldSuarez'
                       end if
 
@@ -6143,7 +6143,7 @@ contains
           end do
          else if (upd_mod == "lhs") then
           if (int_mod /= "expl") then
-             stop'ERROR: wrong int_mod for upd_mod = lhs'
+             stop 'ERROR: wrong int_mod for upd_mod = lhs'
           end if
 
           !! horizontal mean of the vertical density-fluctuation flux
@@ -6195,7 +6195,7 @@ contains
                    ! density relaxation
                    if (dens_relax) then
                       if (background /= "HeldSuarez") then
-                         stop'ERROR: density relaxation only ready for &
+                         stop 'ERROR: density relaxation only ready for &
                             &background = HeldSuarez'
                       end if
 
@@ -6665,7 +6665,7 @@ contains
                       !    !   topography_mask(i00+i,j00+j,k+1)) then
                       !    !   facw = facw + alprlx*dt
                       !    !end if
-                      !    stop'implementation topography into &
+                      !    stop 'implementation topography into &
                       !        &semi-implicit time step still to be done'
                       !    !UAE
                       ! end if
@@ -6837,13 +6837,13 @@ contains
                 end do
              end do
             else
-             stop'int_mod unknown'
+             stop 'int_mod unknown'
           end if
          else
-          stop'upd_mod unknown'
+          stop 'upd_mod unknown'
        end if
       else
-       stop'upd_var unknown'
+       stop 'upd_var unknown'
     end if
 
   end subroutine massUpdate
@@ -7095,7 +7095,7 @@ contains
                       ! bMaxNew = var(i,j,k,6)/theta00 * vertical
 
                    case default
-                      stop"timeStep: unknown case model."
+                      stop "timeStep: unknown case model."
                    end select
 
                    ! TFC FJ
@@ -7299,7 +7299,7 @@ contains
        end if
 
        case default
-          stop"timestep: unknown case model."
+          stop "timestep: unknown case model."
        end select   ! WKB / full model
 
     end if
@@ -7376,46 +7376,46 @@ contains
 
     ! Allocate local fields
     allocate(Sij(1:nx,1:ny,1:nz,1:3,1:3), stat=allocstat)
-    if(allocstat/=0) stop"CoefDySma_update:alloc failed"
+    if(allocstat/=0) stop "CoefDySma_update:alloc failed"
 
     allocate(Lij(1:nx,1:ny,1:nz,1:3,1:3), stat=allocstat)
-    if(allocstat/=0) stop"CoefDySma_update:alloc failed"
+    if(allocstat/=0) stop "CoefDySma_update:alloc failed"
 
     allocate(Mij(1:nx,1:ny,1:nz,1:3,1:3), stat=allocstat)
-    if(allocstat/=0) stop"CoefDySma_update:alloc failed"
+    if(allocstat/=0) stop "CoefDySma_update:alloc failed"
 
     allocate(S_norm(1:nx,1:ny,1:nz), stat=allocstat)
-    if(allocstat/=0) stop"CoefDySma_update:alloc failed"
+    if(allocstat/=0) stop "CoefDySma_update:alloc failed"
 
     allocate(uiuj_smth(1:nx,1:ny,1:nz,1:3,1:3), stat=allocstat)
-    if(allocstat/=0) stop"CoefDySma_update:alloc failed"
+    if(allocstat/=0) stop "CoefDySma_update:alloc failed"
 
     allocate(S_Sij_smth(1:nx,1:ny,1:nz,1:3,1:3), stat=allocstat)
-    if(allocstat/=0) stop"CoefDySma_update:alloc failed"
+    if(allocstat/=0) stop "CoefDySma_update:alloc failed"
 
     allocate(Sij_smth(1:nx,1:ny,1:nz,1:3,1:3), stat=allocstat)
-    if(allocstat/=0) stop"CoefDySma_update:alloc failed"
+    if(allocstat/=0) stop "CoefDySma_update:alloc failed"
 
     allocate(ui_smth(1:nx,1:ny,1:nz,1:3), stat=allocstat)
-    if(allocstat/=0) stop"CoefDySma_update:alloc failed"
+    if(allocstat/=0) stop "CoefDySma_update:alloc failed"
 
     allocate(Sn_smth(1:nx,1:ny,1:nz), stat=allocstat)
-    if(allocstat/=0) stop"CoefDySma_update:alloc failed"
+    if(allocstat/=0) stop "CoefDySma_update:alloc failed"
 
     allocate(LijMij_smth(1:nx,1:ny,1:nz), stat=allocstat)
-    if(allocstat/=0) stop"CoefDySma_update:alloc failed"
+    if(allocstat/=0) stop "CoefDySma_update:alloc failed"
 
     allocate(MijMij_smth(1:nx,1:ny,1:nz), stat=allocstat)
-    if(allocstat/=0) stop"CoefDySma_update:alloc failed"
+    if(allocstat/=0) stop "CoefDySma_update:alloc failed"
 
     allocate(CS2_DySma(1:nx,1:ny,1:nz), stat=allocstat)
-    if(allocstat/=0) stop"CoefDySma_update:alloc failed"
+    if(allocstat/=0) stop "CoefDySma_update:alloc failed"
 
     ! calculate delta
 
     if (TurbScheme) then
        if (ny == 1 .and. nx == 1) then
-          stop'ERROR: turbulence assumes either nx > 1 or ny > 1'
+          stop 'ERROR: turbulence assumes either nx > 1 or ny > 1'
          else
           if (nx == 1) then
              delta_hs = dy**2 ! 2D problems in y and z
@@ -7712,29 +7712,29 @@ contains
 
   ! deallocate local fields
   deallocate(Sij, stat=allocstat); if(allocstat/=0) &
-       & stop"update.f90:dealloc failed"
+       & stop "update.f90:dealloc failed"
   deallocate(Lij, stat=allocstat); if(allocstat/=0) &
-       & stop"update.f90:dealloc failed"
+       & stop "update.f90:dealloc failed"
   deallocate(Mij, stat=allocstat); if(allocstat/=0) &
-       & stop"update.f90:dealloc failed"
+       & stop "update.f90:dealloc failed"
   deallocate(S_norm, stat=allocstat); if(allocstat/=0) &
-       & stop"update.f90:dealloc failed"
+       & stop "update.f90:dealloc failed"
   deallocate(uiuj_smth, stat=allocstat); if(allocstat/=0) &
-       & stop"update.f90:dealloc failed"
+       & stop "update.f90:dealloc failed"
   deallocate(S_Sij_smth, stat=allocstat); if(allocstat/=0) &
-       & stop"update.f90:dealloc failed"
+       & stop "update.f90:dealloc failed"
   deallocate(Sij_smth, stat=allocstat); if(allocstat/=0) &
-       & stop"update.f90:dealloc failed"
+       & stop "update.f90:dealloc failed"
   deallocate(ui_smth, stat=allocstat); if(allocstat/=0) &
-       & stop"update.f90:dealloc failed"
+       & stop "update.f90:dealloc failed"
   deallocate(Sn_smth, stat=allocstat); if(allocstat/=0) &
-       & stop"update.f90:dealloc failed"
+       & stop "update.f90:dealloc failed"
   deallocate(LijMij_smth, stat=allocstat); if(allocstat/=0) &
-       & stop"update.f90:dealloc failed"
+       & stop "update.f90:dealloc failed"
   deallocate(MijMij_smth, stat=allocstat); if(allocstat/=0) &
-       & stop"update.f90:dealloc failed"
+       & stop "update.f90:dealloc failed"
   deallocate(CS2_DySma, stat=allocstat); if(allocstat/=0) &
-       & stop"update.f90:dealloc failed"
+       & stop "update.f90:dealloc failed"
 
   return
 
@@ -7767,7 +7767,7 @@ contains
                                & (0-nsmth_DySma) : (ny+nsmth_DySma), &
                                & (0-nsmth_DySma) : (nz+nsmth_DySma) ), &
              & stat=allocstat)
-    if(allocstat/=0) stop"Var3DSmthDySma:alloc failed"
+    if(allocstat/=0) stop "Var3DSmthDySma:alloc failed"
 
     ! set the values for var3D_DySma_Extend
 
@@ -7797,7 +7797,7 @@ contains
        !         Loop over field
        !---------------------------------
 
-       if(nz /= sizeZ) stop" DYNAMIC SMAGORINSKY NOT READY FOR MPI IN Z"
+       if(nz /= sizeZ) stop " DYNAMIC SMAGORINSKY NOT READY FOR MPI IN Z"
 
        do k = 1,nz
           ! correct handling of solid and periodic boundaries in z
@@ -7809,7 +7809,7 @@ contains
              kmin=k-nsmth_DySma
              kmax=k+nsmth_DySma
             else
-             stop"vertical smoothing: unknown case zBoundary."
+             stop "vertical smoothing: unknown case zBoundary."
           end if
 
           nsmthv=kmax-kmin+1
@@ -7882,7 +7882,7 @@ contains
        !         Loop over field
        !---------------------------------
 
-       if(nz /= sizeZ) stop" DYNAMIC SMAGORINSKY NOT READY FOR MPI IN Z"
+       if(nz /= sizeZ) stop " DYNAMIC SMAGORINSKY NOT READY FOR MPI IN Z"
 
        do k = 1,nz
           ! correct handling of solid and periodic boundaries in z
@@ -7894,7 +7894,7 @@ contains
              kmin=k-nsmth_DySma
              kmax=k+nsmth_DySma
             else
-             stop"vertical smoothing: unknown case zBoundary."
+             stop "vertical smoothing: unknown case zBoundary."
           end if
 
           nsmthv=kmax-kmin+1
@@ -7961,7 +7961,7 @@ contains
        !         Loop over field
        !---------------------------------
 
-       if(nz /= sizeZ) stop" DYNAMIC SMAGORINSKY NOT READY FOR MPI IN Z"
+       if(nz /= sizeZ) stop " DYNAMIC SMAGORINSKY NOT READY FOR MPI IN Z"
 
        do k = 1,nz
           ! correct handling of solid and periodic boundaries in z
@@ -7973,7 +7973,7 @@ contains
              kmin=k-nsmth_DySma
              kmax=k+nsmth_DySma
             else
-             stop"vertical smoothing: unknown case zBoundary."
+             stop "vertical smoothing: unknown case zBoundary."
           end if
 
           nsmthv=kmax-kmin+1
@@ -8072,12 +8072,12 @@ contains
        end do
 
     case default
-       stop"unknown case homog_dir_DySma."
+       stop "unknown case homog_dir_DySma."
     end select
 
     ! deallocate local fields
     deallocate(var3D_DySma_Extend, stat=allocstat); if(allocstat/=0) &
-         & stop"update.f90:dealloc failed"
+         & stop "update.f90:dealloc failed"
 
     return
 
@@ -8260,7 +8260,7 @@ contains
           end do
 
     case default
-       stop"setBoundary: unknown case zBoundary"
+       stop "setBoundary: unknown case zBoundary"
     end select
 
           return
@@ -8290,13 +8290,13 @@ contains
     integer :: iVar, ivmax
 
     allocate(field(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), stat=allocstat)
-    if(allocstat/=0) stop"smooth_shapiro:alloc failed"
+    if(allocstat/=0) stop "smooth_shapiro:alloc failed"
 
     allocate(field_0(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), stat=allocstat)
-    if(allocstat/=0) stop"smooth_shapiro:alloc failed"
+    if(allocstat/=0) stop "smooth_shapiro:alloc failed"
 
     allocate(field_1(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), stat=allocstat)
-    if(allocstat/=0) stop"smooth_shapiro:alloc failed"
+    if(allocstat/=0) stop "smooth_shapiro:alloc failed"
 
     if (timeScheme == "semiimplicit") then
        ! in explicit integration smoothing of density, winds,
@@ -8331,7 +8331,7 @@ contains
             else if (nbx == 4 .and. nby == 4 .and. nbz == 4) then
              nsmth = 4
             else
-             stop'ERROR: wrong nbx, nby, nbz in smoothing'
+             stop 'ERROR: wrong nbx, nby, nbz in smoothing'
           end if
 
           if (nsmth == 1) then
@@ -8509,7 +8509,7 @@ contains
             else if (nbx == 4 .and. nbz == 4) then
              nsmth = 4
             else
-             stop'ERROR: wrong nbx, nby, nbz in smoothing'
+             stop 'ERROR: wrong nbx, nby, nbz in smoothing'
           end if
 
           if (nsmth == 1) then
@@ -8631,7 +8631,7 @@ contains
             else if (nby == 4 .and. nbz == 4) then
              nsmth = 4
             else
-             stop'ERROR: wrong nbx, nby, nbz in smoothing'
+             stop 'ERROR: wrong nbx, nby, nbz in smoothing'
           end if
 
           if (nsmth == 1) then
@@ -8744,7 +8744,7 @@ contains
              end do
           end if
          else
-          stop"ERROR: smoothing not ready for 2D in x and y or 1D"
+          stop "ERROR: smoothing not ready for 2D in x and y or 1D"
        end if
 
        var(:,:,:,iVar) = field(:,:,:)
@@ -8754,11 +8754,11 @@ contains
 
     ! deallocate local fields
     deallocate(field, stat=allocstat); if(allocstat/=0) &
-         & stop"smooth_shapiro:dealloc failed"
+         & stop "smooth_shapiro:dealloc failed"
     deallocate(field_0, stat=allocstat); if(allocstat/=0) &
-         & stop"smooth_shapiro:dealloc failed"
+         & stop "smooth_shapiro:dealloc failed"
     deallocate(field_1, stat=allocstat); if(allocstat/=0) &
-         & stop"smooth_shapiro:dealloc failed"
+         & stop "smooth_shapiro:dealloc failed"
 
     return
 
@@ -8806,11 +8806,11 @@ contains
 
 
     allocate(field(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), stat=allocstat)
-    if(allocstat/=0) stop"smooth_shapiro:alloc failed"
+    if(allocstat/=0) stop "smooth_shapiro:alloc failed"
 
     allocate(var_l(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
            & stat=allocstat)
-    if(allocstat/=0) stop"smooth_shapiro:alloc failed"
+    if(allocstat/=0) stop "smooth_shapiro:alloc failed"
 
     if (timeScheme == "semiimplicit") then
        ! in explicit integration smoothing of density, winds,
@@ -8903,7 +8903,7 @@ contains
           case( "periodic" )
             if ( idim == 1 ) call setBoundary_x_periodic(var_l,flux,"var")
           case default
-             stop"setBoundary: unknown case xBoundary"
+             stop "setBoundary: unknown case xBoundary"
           end select
        end if
 
@@ -8937,7 +8937,7 @@ contains
           case( "periodic" )
             if ( idim == 1 ) call setBoundary_x_periodic(var_l,flux,"var")
           case default
-             stop"setBoundary: unknown case xBoundary"
+             stop "setBoundary: unknown case xBoundary"
           end select
        end do
 
@@ -9049,7 +9049,7 @@ contains
           case( "periodic" )
             if ( jdim == 1 ) call setBoundary_y_periodic(var_l,flux,"var")
           case default
-             stop"setBoundary: unknown case yBoundary"
+             stop "setBoundary: unknown case yBoundary"
           end select
        end if
 
@@ -9083,7 +9083,7 @@ contains
           case( "periodic" )
             if ( jdim == 1 ) call setBoundary_y_periodic(var_l,flux,"var")
           case default
-             stop"setBoundary: unknown case yBoundary"
+             stop "setBoundary: unknown case yBoundary"
           end select
        end do
 
@@ -9124,9 +9124,9 @@ contains
     ! deallocate local fields
 
     deallocate(field, stat=allocstat); if(allocstat/=0) &
-         & stop"smooth_shapiro:dealloc failed"
+         & stop "smooth_shapiro:dealloc failed"
     deallocate(var_l, stat=allocstat); if(allocstat/=0) &
-         & stop"smooth_shapiro:dealloc failed"
+         & stop "smooth_shapiro:dealloc failed"
 
     return
 
@@ -9174,11 +9174,11 @@ contains
     integer :: nz_max
 
     allocate(field(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), stat=allocstat)
-    if(allocstat/=0) stop"smooth_shapiro:alloc failed"
+    if(allocstat/=0) stop "smooth_shapiro:alloc failed"
 
     allocate(var_l(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
            & stat=allocstat)
-    if(allocstat/=0) stop"smooth_shapiro:alloc failed"
+    if(allocstat/=0) stop "smooth_shapiro:alloc failed"
 
     if (timeScheme == "semiimplicit") then
        ! in semiimplicit integration smoothing of density, winds,
@@ -9257,7 +9257,7 @@ contains
           case( "periodic" )
             if ( idim == 1 ) call setBoundary_x_periodic(var_l,flux,"var")
           case default
-             stop"setBoundary: unknown case xBoundary"
+             stop "setBoundary: unknown case xBoundary"
           end select
        end if
 
@@ -9297,7 +9297,7 @@ contains
           case( "periodic" )
             if ( idim == 1 ) call setBoundary_x_periodic(var_l,flux,"var")
           case default
-             stop"setBoundary: unknown case xBoundary"
+             stop "setBoundary: unknown case xBoundary"
           end select
        end do
 
@@ -9397,7 +9397,7 @@ contains
           case( "periodic" )
             if ( jdim == 1 ) call setBoundary_y_periodic(var_l,flux,"var")
           case default
-             stop"setBoundary: unknown case yBoundary"
+             stop "setBoundary: unknown case yBoundary"
           end select
        end if
 
@@ -9435,7 +9435,7 @@ contains
           case( "periodic" )
             if ( jdim == 1 ) call setBoundary_y_periodic(var_l,flux,"var")
           case default
-             stop"setBoundary: unknown case yBoundary"
+             stop "setBoundary: unknown case yBoundary"
           end select
        end do
 
@@ -9588,9 +9588,9 @@ contains
     ! deallocate local fields
 
     deallocate(field, stat=allocstat); if(allocstat/=0) &
-         & stop"smooth_shapiro:dealloc failed"
+         & stop "smooth_shapiro:dealloc failed"
     deallocate(var_l, stat=allocstat); if(allocstat/=0) &
-         & stop"smooth_shapiro:dealloc failed"
+         & stop "smooth_shapiro:dealloc failed"
 
     return
 
@@ -9745,7 +9745,7 @@ contains
           sum_d = sum_d +  1./(gamma*press0(k))
        end do
       else
-       stop'ERROR: wrong w0_mod'
+       stop 'ERROR: wrong w0_mod'
     end if
 
     dptopdt = sum_n/sum_d
@@ -9782,7 +9782,7 @@ contains
                + dz*(- S_bar(k)/Pstrat(k) - (1./(gamma*press0(k)))*dptopdt)
        end do
     else
-       stop'ERROR: wrong w0_mod'
+       stop 'ERROR: wrong w0_mod'
     end if
 
     ! update PStrat
@@ -9940,7 +9940,7 @@ contains
     ! N2 = max(N2, bvsStrat(nz+1))
 
     if(N2 < 0.) then
-       stop'ERROR: N2 < 0'
+       stop 'ERROR: N2 < 0'
       else
        NN = sqrt(N2)
     end if
