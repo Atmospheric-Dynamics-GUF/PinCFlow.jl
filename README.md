@@ -30,6 +30,6 @@ The code is shared in a GitLab repository. Any contributions to the code should 
 
 4. The changes may be pushed to the remote development branch, e.g. to let other contributors review them.
 
-5. The remote master branch must be updated regularly. For this purpose, remote development branches are merged with it. **Before any merge can be done, the corresponding development branch must be stable and all canonical test cases must run successfully on it. The merge itself is to be checked by at least one aditional contributor with sufficient experience.**
+5. The remote master branch must be updated regularly. For this purpose, remote development branches are merged with it. **Before any merge can be done, the corresponding development branch must be stable and all canonical test cases must run successfully on it. The merge itself is to be checked by at least one additional contributor with sufficient experience.**
 
 Whenever the master branch is updated, all contributors should synchronize their development branches correspondingly.
