@@ -27,9 +27,9 @@ export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/jochum/libraries/spack
 dirHome=/home/atmodynamics/jochum/dissertation
 dirScratch=/scratch/atmodynamics/jochum/dissertation
 
-dirNam=${dirHome}/pincflow/tests/input
-exe=${dirHome}/pincflow/bin/pinc
-dirWork=${dirScratch}/pincflow/tests/mountainwave_msgwam
+dirNam=${dirHome}/pinc/tests/input
+exe=${dirHome}/pinc/bin/pinc
+dirWork=${dirScratch}/pinc/tests/mountainwave_msgwam
 
 mkdir ${dirWork}
 
