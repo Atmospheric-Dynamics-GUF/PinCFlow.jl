@@ -16,20 +16,18 @@ In addition to the source code (`src`), the following resources are provided.
 
 * Namelist files, run scripts, visualization tools and sample plots for a set of canonical test cases (`tests`)
 
-* A code formatter that can be used to unify spacing, indentation and linebreaks of all Fortan files in a given directory (`tools`)
+* A code formatter that can be used to unify spacing, indentation and line breaks of all Fortran files in a given directory (`tools`)
 
 ## Workflow
 
 The code is shared in a GitLab repository. Any contributions to the code should adhere to the following workflow.
 
-1. A development branch should be created from the master branch or synchronized accordingly. **No direct changes are to be made on the master branch.**
+1. A fork should be created from the upstream repository. Note that in the latter, there are only two active branches called master and development, neither of which can be pushed to.
 
-2. If the contributor does not already have a connected local repository, the remote repository is to be cloned.
+1. The forked repository may be cloned and the desired changes implemented on the corresponding local repository.
 
-3. A local branch should be created from the remote development branch. The indended changes to the code are to be made on this branch.
+1. Changes should be committed in reproducible steps and pushed to the fork on a regular basis.
 
-4. The changes may be pushed to the remote development branch, e.g. to let other contributors review them.
+1. **Before any changes can be included in the upstream repository, the model must be stable and all canonical tests must reproduce the sample results.**
 
-5. The remote master branch must be updated regularly. For this purpose, remote development branches are merged with it. **Before any merge can be done, the corresponding development branch must be stable and all canonical test cases must run successfully on it. The merge itself is to be checked by at least one additional contributor with sufficient experience.**
-
-Whenever the master branch is updated, all contributors should synchronize their development branches correspondingly.
+1. To implement the changes on the upstream repository, a merge request has to be issued. The latter will be taken care of by the upstream maintainer. Merge requests to the master branch will not be accepted.
