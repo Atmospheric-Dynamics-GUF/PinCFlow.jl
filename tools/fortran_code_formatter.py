@@ -1,7 +1,7 @@
-"""This Fortran code formatter unifies spacing, subunit indents and linebreaks
+"""This Fortran code formatter unifies spacing, subunit indents and line breaks
 in .f90 files. The spacing in comments and strings is not changed. Comments
 between continuation lines are moved below the last of these lines. Comments
-between quotes (i.e. in Fortran strings that contain linebreaks) are removed (a
+between quotes (i.e. in Fortran strings that contain line breaks) are removed (a
 warning is given in such cases). The output does not contain any extraneous
 whitespaces or consecutive blank lines (outside of quotes and comments). The
 user may specify input and output directories, as well as the lengths of the
@@ -122,13 +122,13 @@ negative_indent_triggers = re.compile("".join((r"^(\d+\s*)?((",
         "end\s*enum(\s+\w+)?")),
         r")(\s+\w+)?|end)$")), flags = re.IGNORECASE)
 
-# Define expressions for linebreak detection.
+# Define expressions for line break detection.
 linebreak_comments = re.compile(r"(\n[^!\n]+& *(!.*)?\n)"
         r"\n*((!.*\n)+)\n*(&?[^!\n]+&? *(!.*)?\n)")
 linebreak_code = re.compile(r"(\n[^!\n]+)& *((!.*)?)"
         r"\n&?([^!\n]+&?) *((!.*)?\n)")
 
-# Define expressions for linebreak points.
+# Define expressions for line break points.
 operator_linebreak_point = re.compile(r"^(\s*)(\S.*\s+)((\+|\-|\*|\/"
         r"|\=|\<|\>)+\s+[^\s\+\-\*\/\=\<\>]+\s*)$")
 whitespace_linebreak_point = re.compile(r"^(\s*)(\S.*\s+)(\S+\s*)$")
