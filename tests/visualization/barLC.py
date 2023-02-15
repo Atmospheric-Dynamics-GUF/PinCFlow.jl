@@ -8,14 +8,15 @@ import matplotlib.pyplot as pyplot
 data = tools.ModelOutput()
 data.import_data("../barLC/")
 reference = tools.ModelOutput()
-reference.import_data("../../../pincflow/tests/barLC/")
+reference.import_data("../barLC/")
 
 # Adust coordinate unit.
 data.xx *= 0.001
 data.yy *= 0.001
 
 # Set fields of indices.
-iz = 22
+# iz = 22
+iz = int(0.1 * data.nz)
 it = - 1
 
 # Print time.
@@ -72,8 +73,8 @@ rhopmax = numpy.max(numpy.abs(rhop))
 figure, axes = pyplot.subplots()
 plot = axes.pcolormesh(data.xx, data.yy, ugravity, vmax = peak, vmin = - peak,
         shading = "gouraud", cmap = "seismic")
-axes.quiver(data.xx[::10, ::10], data.yy[::10, ::10], uu[::10, ::10],
-        vv[::10, ::10], width = 0.01, scale = 500)
+axes.quiver(data.xx[::3, ::3], data.yy[::3, ::3], uu[::3, ::3],
+        vv[::3, ::3], width = 0.01, scale = 500)
 axes.contour(data.xx, data.yy, rhop,
         linewidths = 1.0, colors = "black")
 axes.set_xlabel(r"$x \, \left[\mathrm{km}\right]$")
@@ -81,21 +82,22 @@ axes.set_ylabel(r"$y \, \left[\mathrm{km}\right]$")
 figure.colorbar(plot, label = r"$\boldsymbol{\nabla}_z \cdot"
         r"\boldsymbol{u} \, \left[\mathrm{s^{- 1}}\right]$")
 figure.savefig("../results/barLC.pdf")
-figure.savefig("../results/barLC.png")
+figure.savefig("../results/barLC.png", dpi = 500)
 
 # Make difference plot.
-peak = numpy.max(numpy.abs(deltaugravity))
-rhopmax = numpy.max(numpy.abs(deltarhop))
-figure, axes = pyplot.subplots()
-plot = axes.pcolormesh(data.xx, data.yy, deltaugravity, vmax = peak,
-        vmin = - peak, shading = "gouraud", cmap = "seismic")
-axes.quiver(data.xx[::10, ::10], data.yy[::10, ::10], deltau[::10, ::10],
-        deltav[::10, ::10], width = 0.01, scale = 500)
-axes.contour(data.xx, data.yy, deltarhop,
-        linewidths = 1.0, colors = "black")
-axes.set_xlabel(r"$x \, \left[\mathrm{km}\right]$")
-axes.set_ylabel(r"$y \, \left[\mathrm{km}\right]$")
-figure.colorbar(plot, label = r"$\Delta \boldsymbol{\nabla}_z \cdot"
-        r"\boldsymbol{u} \, \left[\mathrm{s^{- 1}}\right]$")
-figure.savefig("../results/barLC_difference.pdf")
-figure.savefig("../results/barLC_difference.png")
+if (data.psi != reference.psi).all():
+    peak = numpy.max(numpy.abs(deltaugravity))
+    rhopmax = numpy.max(numpy.abs(deltarhop))
+    figure, axes = pyplot.subplots()
+    plot = axes.pcolormesh(data.xx, data.yy, deltaugravity, vmax = peak,
+            vmin = - peak, shading = "gouraud", cmap = "seismic")
+    axes.quiver(data.xx[::3, ::3], data.yy[::3, ::3], deltau[::3, ::3],
+            deltav[::3, ::3], width = 0.01, scale = 500)
+    axes.contour(data.xx, data.yy, deltarhop,
+            linewidths = 1.0, colors = "black")
+    axes.set_xlabel(r"$x \, \left[\mathrm{km}\right]$")
+    axes.set_ylabel(r"$y \, \left[\mathrm{km}\right]$")
+    figure.colorbar(plot, label = r"$\Delta \boldsymbol{\nabla}_z \cdot"
+            r"\boldsymbol{u} \, \left[\mathrm{s^{- 1}}\right]$")
+    figure.savefig("../results/barLC_difference.pdf")
+    figure.savefig("../results/barLC_difference.png", dpi = 500)

@@ -5,8 +5,9 @@ module poisson_module
   use timeScheme_module
   use atmosphere_module
   use algebra_module
-  use hypretools_module
+  use bicgstab_tools_module
   use output_module
+  use sizeof_module
 
   implicit none
 
@@ -36,7 +37,7 @@ module poisson_module
   private :: linOpr
   private :: linOprXYZ
   private :: bicgstab
-  private :: hypre ! modified by Junhong Wei
+  ! private :: hypre ! modified by Junhong Wei
   private :: poissonSolver
   private :: thomas ! tridiagonal matrix algoritm (TDMA) / Thomas algorithm
 
@@ -865,7 +866,7 @@ module poisson_module
 
             ! TFC FJ
             ! Set additional matrix elements for TFC.
-            if (topography .and. hortot == "tot") then
+            if (topography) then
               ! ----------------- A(i+1,j,k+1) -----------------
 
               if (k < nz .or. zBoundary == "periodic") then
@@ -2215,7 +2216,7 @@ module poisson_module
 
     if (master) then
       open (42, file = "linear_operator_test.dat", form = "unformatted", &
-          access = "direct", recl = sizeX * sizeY * sizeZ)
+          access = "direct", recl = sizeX * sizeY * sizeZ * sizeofreal4)
       write (42, rec = 1) diffOut
       close (42)
     end if
@@ -2923,22 +2924,24 @@ module poisson_module
       ! hypre solver
     case ("hypre")
 
-      select case (model)
+      ! select case (model)
 
-      case ("pseudo_incompressible")
+      ! case ("pseudo_incompressible")
 
-        !UAC call val_PsIn(var, dt, opt)
-        call val_PsIn(var, dt, opt, facray)
+      !   !UAC call val_PsIn(var, dt, opt)
+      !   call val_PsIn(var, dt, opt, facray)
 
-      case ("Boussinesq")
+      ! case ("Boussinesq")
 
-        call val_hypre_Bous
+      !   call val_hypre_Bous
 
-      case default
-        stop "linOpr: unknown case model"
-      end select
+      ! case default
+      !   stop "linOpr: unknown case model"
+      ! end select
 
-      call hypre(b, dt, sol, res, nIter, errFlagBicg, opt)
+      ! call hypre(b, dt, sol, res, nIter, errFlagBicg, opt)
+
+      stop "ERROR: no hypre provided anymore"
 
     case default
       stop "Unknown PoissonSolver. Stop"
@@ -3955,312 +3958,312 @@ module poisson_module
 
   !----------------------------------------------------------------------
 
-  subroutine hypre(b, dt, sol, res, nIter, errFlag, opt)
+  ! subroutine hypre(b, dt, sol, res, nIter, errFlag, opt)
 
-    ! --------------------------------------
-    !    HYPRE
-    !---------------------------------------
+  !   ! --------------------------------------
+  !   !    HYPRE
+  !   !---------------------------------------
 
-    ! in/out variables
+  !   ! in/out variables
 
-    real, dimension (1:nx, 1:ny, 1:nz), intent (in) :: b ! RHS
-    real, intent (in) :: dt
-    real, dimension (1:nx, 1:ny, 1:nz), intent (out) :: sol
-    real, intent (out) :: res ! residual
-    integer, intent (out) :: nIter
-    logical, intent (out) :: errFlag
+  !   real, dimension (1:nx, 1:ny, 1:nz), intent (in) :: b ! RHS
+  !   real, intent (in) :: dt
+  !   real, dimension (1:nx, 1:ny, 1:nz), intent (out) :: sol
+  !   real, intent (out) :: res ! residual
+  !   integer, intent (out) :: nIter
+  !   logical, intent (out) :: errFlag
 
-    ! opt = expl =>
-    ! pressure solver for explicit problem and corresponding correction
-    ! of the winds
-    ! opt = impl =>
-    ! pressure solver for implicit problem and corresponding correction
-    ! of the winds and density fluctuations
-    character (len = *), intent (in) :: opt
+  !   ! opt = expl =>
+  !   ! pressure solver for explicit problem and corresponding correction
+  !   ! of the winds
+  !   ! opt = impl =>
+  !   ! pressure solver for implicit problem and corresponding correction
+  !   ! of the winds and density fluctuations
+  !   character (len = *), intent (in) :: opt
 
-    ! variables due to the use of HYPRE
+  !   ! variables due to the use of HYPRE
 
-    integer :: ndim_hypre
-    parameter (ndim_hypre = 3)
+  !   integer :: ndim_hypre
+  !   parameter (ndim_hypre = 3)
 
-    integer ierr_hypre
-    integer npts_x_periodic_hypre, npts_y_periodic_hypre, npts_z_periodic_hypre
-
-    integer ii_entry_hypre
+  !   integer ierr_hypre
+  !   integer npts_x_periodic_hypre, npts_y_periodic_hypre, npts_z_periodic_hypre
+
+  !   integer ii_entry_hypre
 
-    integer :: index_count_hypre
-
-    integer :: i0, j0, i, j, k
+  !   integer :: index_count_hypre
+
+  !   integer :: i0, j0, i, j, k
 
-    real :: atol
-
-    ! Local parameters
-    integer :: maxIt
-
-    ! verbose
-    logical, parameter :: giveInfo = .true.
+  !   real :: atol
+
+  !   ! Local parameters
+  !   integer :: maxIt
+
+  !   ! verbose
+  !   logical, parameter :: giveInfo = .true.
 
-    real :: sol_mean_hypre
-
-    ! Set parameters
+  !   real :: sol_mean_hypre
+
+  !   ! Set parameters
 
-    ! modified convergence criterion so that iterations stop when either
-    ! (a) tolcrit = abs  =>  |Ax - b| < eps b_*
-    !     with b_* a suitable norm deciding whether b (= the divergence
-    !     criterion for the winds from the predictor) is small or not
-    ! (b) tolcrit = rel  =>  |Ax - b| < eps |b|
-    ! here eps = tolPoisson is the user-set convergence criterion
-    ! hypre has the criterion |Ax - b| < tol * |b|, hence, with
-    ! tolref = divL2/divL2_norm = |b|/b_*
+  !   ! modified convergence criterion so that iterations stop when either
+  !   ! (a) tolcrit = abs  =>  |Ax - b| < eps b_*
+  !   !     with b_* a suitable norm deciding whether b (= the divergence
+  !   !     criterion for the winds from the predictor) is small or not
+  !   ! (b) tolcrit = rel  =>  |Ax - b| < eps |b|
+  !   ! here eps = tolPoisson is the user-set convergence criterion
+  !   ! hypre has the criterion |Ax - b| < tol * |b|, hence, with
+  !   ! tolref = divL2/divL2_norm = |b|/b_*
 
-    if (tolcrit == "abs") then
-      tol = tolPoisson / tolref
-    else if (tolcrit == "rel") then
-      tol = tolPoisson
-    end if
+  !   if (tolcrit == "abs") then
+  !     tol = tolPoisson / tolref
+  !   else if (tolcrit == "rel") then
+  !     tol = tolPoisson
+  !   end if
 
-    ! atol = abs_tol/b_norm  !not scaled as it is a lower bound
+  !   ! atol = abs_tol/b_norm  !not scaled as it is a lower bound
 
-    ! if(master) then
-    !    print*,"hypre uses max from ", " tol = ", tol, "atol = ", atol
-    ! end if
+  !   ! if(master) then
+  !   !    print*,"hypre uses max from ", " tol = ", tol, "atol = ", atol
+  !   ! end if
 
-    ! tol = max(tol, atol)
+  !   ! tol = max(tol, atol)
 
-    if (master) then
-      print *, "hypre uses tolerance = ", tol, "meaning |Ax - b|/|b| <= tol "
-      print *, "|Ax - b| <= ", tol * b_norm
-    end if
+  !   if (master) then
+  !     print *, "hypre uses tolerance = ", tol, "meaning |Ax - b|/|b| <= tol "
+  !     print *, "|Ax - b| <= ", tol * b_norm
+  !   end if
 
-    ! error flag
-    errFlag = .false.
+  !   ! error flag
+  !   errFlag = .false.
 
-    i0 = is + nbx - 1
-    j0 = js + nby - 1
+  !   i0 = is + nbx - 1
+  !   j0 = js + nby - 1
 
-    if (timeScheme == "semiimplicit") then
-      ! This is a collective call finalizing the matrix assembly.
-      ! The matrix is now ``ready to be used'
+  !   if (timeScheme == "semiimplicit") then
+  !     ! This is a collective call finalizing the matrix assembly.
+  !     ! The matrix is now ``ready to be used'
 
-      call HYPRE_StructMatrixSetBoxValues(A_hp_i, (/(icoord) * nx + 1, &
-          (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
-          nz/), ne_hypre_i, stencil_indices_i, values_i, ierr_hypre)
+  !     call HYPRE_StructMatrixSetBoxValues(A_hp_i, (/(icoord) * nx + 1, &
+  !         (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
+  !         nz/), ne_hypre_i, stencil_indices_i, values_i, ierr_hypre)
 
-      ! testb
-      if (master) print *, 'HYPRE_StructMatrixSetBoxValues done'
-      ! teste
+  !     ! testb
+  !     if (master) print *, 'HYPRE_StructMatrixSetBoxValues done'
+  !     ! teste
 
-      call HYPRE_StructMatrixAssemble(A_hp_i, ierr_hypre)
+  !     call HYPRE_StructMatrixAssemble(A_hp_i, ierr_hypre)
 
-      ! testb
-      if (master) print *, 'HYPRE_StructMatrixAssemble done'
-      ! teste
+  !     ! testb
+  !     if (master) print *, 'HYPRE_StructMatrixAssemble done'
+  !     ! teste
 
-      ! Set up Struct Vectors for b and x.  Each processor sets the
-      ! vectors corresponding to its boxes.
-
-      ! Set the vector coefficients
-
-      index_count_hypre = 1
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
-            bvalue_vector_hypre(index_count_hypre) = b(i, j, k)
-            index_count_hypre = index_count_hypre + 1
-            ! testb
-            ! print*,i,j,k,'b =',b(i,j,k)
-            ! teste
-          end do
-        end do
-      end do
-
-      index_count_hypre = 1
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
-            xvalue_vector_hypre(index_count_hypre) = sol(i, j, k)
-            index_count_hypre = index_count_hypre + 1
-            ! testb
-            ! print*,i,j,k,'sol =',sol(i,j,k)
-            ! teste
-          end do
-        end do
-      end do
-
-      call HYPRE_StructVectorSetBoxValues(b_hp_i, (/(icoord) * nx + 1, &
-          (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
-          nz/), bvalue_vector_hypre, ierr_hypre)
-
-      ! testb
-      if (master) print *, 'HYPRE_StructVectorSetBoxValues done'
-      ! teste
-
-      call HYPRE_StructVectorSetBoxValues(x_hp_i, (/(icoord) * nx + 1, &
-          (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
-          nz/), xvalue_vector_hypre, ierr_hypre)
-
-      ! testb
-      if (master) print *, 'HYPRE_StructVectorSetBoxValues done'
-      ! teste
-
-      ! This is a collective call finalizing the vector assembly.
-      ! The vectors are now ``ready to be used''
-
-      call HYPRE_StructVectorAssemble(b_hp_i, ierr_hypre)
-
-      ! testb
-      if (master) print *, 'HYPRE_StructVectorAssemble done'
-      ! teste
-
-      call HYPRE_StructVectorAssemble(x_hp_i, ierr_hypre)
-
-      ! testb
-      if (master) print *, 'HYPRE_StructVectorAssemble done'
-      ! teste
-
-      ! Finalize set up and use a solver
-      ! (See the Reference Manual for descriptions of all of the options.)
-
-      call HYPRE_StructHybridSetTol(solver_hp_i, tol, ierr_hypre)
-
-      ! testb
-      if (master) print *, 'HYPRE_StructHybridSetTol done'
-      ! teste
-
-      call HYPRE_StructHybridSolve(solver_hp_i, A_hp_i, b_hp_i, x_hp_i, &
-          ierr_hypre)
-
-      ! testb
-      if (master) print *, 'HYPRE_StructHybridSolve done'
-      ! teste
-
-      ! Get the results
-
-      call HYPRE_StructVectorGetBoxValues(x_hp_i, (/(icoord) * nx + 1, &
-          (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
-          nz/), xvalue_vector_hypre, ierr_hypre)
-
-      ! testb
-      if (master) print *, 'HYPRE_StructVectorGetBoxValues done'
-      ! teste
-
-      index_count_hypre = 1
-
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
-            sol(i, j, k) = xvalue_vector_hypre(index_count_hypre)
-            index_count_hypre = index_count_hypre + 1
-          end do
-        end do
-      end do
-
-      call HYPRE_StructHybridGetNumIterati(solver_hp_i, nIter, ierr_hypre)
-
-      ! testb
-      if (master) print *, 'HYPRE_StructHybridGetNumIterati done'
-      ! teste
-
-      index_count_hypre = 1
-      call HYPRE_StructHybridGetFinalRelat(solver_hp_i, res, ierr_hypre)
-
-      ! testb
-      if (master) print *, 'HYPRE_StructHybridGetFinalRelat done'
-      ! teste
-    else
-      ! This is a collective call finalizing the matrix assembly.
-      ! The matrix is now ``ready to be used'
-
-      call HYPRE_StructMatrixSetBoxValues(A_hp_e, (/(icoord) * nx + 1, &
-          (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
-          nz/), ne_hypre_e, stencil_indices_e, values_e, ierr_hypre)
-
-      call HYPRE_StructMatrixAssemble(A_hp_e, ierr_hypre)
-
-      ! Set up Struct Vectors for b and x.  Each processor sets the
-      ! vectors corresponding to its boxes.
-
-      ! Set the vector coefficients
-
-      index_count_hypre = 1
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
-            bvalue_vector_hypre(index_count_hypre) = b(i, j, k)
-            index_count_hypre = index_count_hypre + 1
-            ! testb
-            ! print*,i,j,k,'b =',b(i,j,k)
-            ! teste
-          end do
-        end do
-      end do
-
-      index_count_hypre = 1
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
-            xvalue_vector_hypre(index_count_hypre) = sol(i, j, k)
-            index_count_hypre = index_count_hypre + 1
-            ! testb
-            ! print*,i,j,k,'sol =',sol(i,j,k)
-            ! teste
-          end do
-        end do
-      end do
-
-      call HYPRE_StructVectorSetBoxValues(b_hp_e, (/(icoord) * nx + 1, &
-          (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
-          nz/), bvalue_vector_hypre, ierr_hypre)
-
-      call HYPRE_StructVectorSetBoxValues(x_hp_e, (/(icoord) * nx + 1, &
-          (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
-          nz/), xvalue_vector_hypre, ierr_hypre)
-
-      ! This is a collective call finalizing the vector assembly.
-      ! The vectors are now ``ready to be used''
-
-      call HYPRE_StructVectorAssemble(b_hp_e, ierr_hypre)
-      call HYPRE_StructVectorAssemble(x_hp_e, ierr_hypre)
-
-      ! Finalize set up and use a solver
-      ! (See the Reference Manual for descriptions of all of the options.)
-
-      call HYPRE_StructHybridSetTol(solver_hp_e, tol, ierr_hypre)
-      call HYPRE_StructHybridSolve(solver_hp_e, A_hp_e, b_hp_e, x_hp_e, &
-          ierr_hypre)
-
-      ! Get the results
-
-      call HYPRE_StructVectorGetBoxValues(x_hp_e, (/(icoord) * nx + 1, &
-          (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
-          nz/), xvalue_vector_hypre, ierr_hypre)
-
-      index_count_hypre = 1
-
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
-            sol(i, j, k) = xvalue_vector_hypre(index_count_hypre)
-            index_count_hypre = index_count_hypre + 1
-          end do
-        end do
-      end do
-
-      call HYPRE_StructHybridGetNumIterati(solver_hp_e, nIter, ierr_hypre)
-      call HYPRE_StructHybridGetFinalRelat(solver_hp_e, res, ierr_hypre)
-    end if
-
-    if (giveInfo .and. master) then
-      print *, ""
-      print *, " HYPRE solver: "
-      write (*, fmt = "(a25,i25)") " Nb.of iterations: j = ", nIter
-      write (*, fmt = "(a25,es17.6)") " Final residual: res = ", res
-      print *, ""
-    end if
-
-    return
-
-  end subroutine hypre
+  !     ! Set up Struct Vectors for b and x.  Each processor sets the
+  !     ! vectors corresponding to its boxes.
+
+  !     ! Set the vector coefficients
+
+  !     index_count_hypre = 1
+  !     do k = 1, nz
+  !       do j = 1, ny
+  !         do i = 1, nx
+  !           bvalue_vector_hypre(index_count_hypre) = b(i, j, k)
+  !           index_count_hypre = index_count_hypre + 1
+  !           ! testb
+  !           ! print*,i,j,k,'b =',b(i,j,k)
+  !           ! teste
+  !         end do
+  !       end do
+  !     end do
+
+  !     index_count_hypre = 1
+  !     do k = 1, nz
+  !       do j = 1, ny
+  !         do i = 1, nx
+  !           xvalue_vector_hypre(index_count_hypre) = sol(i, j, k)
+  !           index_count_hypre = index_count_hypre + 1
+  !           ! testb
+  !           ! print*,i,j,k,'sol =',sol(i,j,k)
+  !           ! teste
+  !         end do
+  !       end do
+  !     end do
+
+  !     call HYPRE_StructVectorSetBoxValues(b_hp_i, (/(icoord) * nx + 1, &
+  !         (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
+  !         nz/), bvalue_vector_hypre, ierr_hypre)
+
+  !     ! testb
+  !     if (master) print *, 'HYPRE_StructVectorSetBoxValues done'
+  !     ! teste
+
+  !     call HYPRE_StructVectorSetBoxValues(x_hp_i, (/(icoord) * nx + 1, &
+  !         (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
+  !         nz/), xvalue_vector_hypre, ierr_hypre)
+
+  !     ! testb
+  !     if (master) print *, 'HYPRE_StructVectorSetBoxValues done'
+  !     ! teste
+
+  !     ! This is a collective call finalizing the vector assembly.
+  !     ! The vectors are now ``ready to be used''
+
+  !     call HYPRE_StructVectorAssemble(b_hp_i, ierr_hypre)
+
+  !     ! testb
+  !     if (master) print *, 'HYPRE_StructVectorAssemble done'
+  !     ! teste
+
+  !     call HYPRE_StructVectorAssemble(x_hp_i, ierr_hypre)
+
+  !     ! testb
+  !     if (master) print *, 'HYPRE_StructVectorAssemble done'
+  !     ! teste
+
+  !     ! Finalize set up and use a solver
+  !     ! (See the Reference Manual for descriptions of all of the options.)
+
+  !     call HYPRE_StructHybridSetTol(solver_hp_i, tol, ierr_hypre)
+
+  !     ! testb
+  !     if (master) print *, 'HYPRE_StructHybridSetTol done'
+  !     ! teste
+
+  !     call HYPRE_StructHybridSolve(solver_hp_i, A_hp_i, b_hp_i, x_hp_i, &
+  !         ierr_hypre)
+
+  !     ! testb
+  !     if (master) print *, 'HYPRE_StructHybridSolve done'
+  !     ! teste
+
+  !     ! Get the results
+
+  !     call HYPRE_StructVectorGetBoxValues(x_hp_i, (/(icoord) * nx + 1, &
+  !         (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
+  !         nz/), xvalue_vector_hypre, ierr_hypre)
+
+  !     ! testb
+  !     if (master) print *, 'HYPRE_StructVectorGetBoxValues done'
+  !     ! teste
+
+  !     index_count_hypre = 1
+
+  !     do k = 1, nz
+  !       do j = 1, ny
+  !         do i = 1, nx
+  !           sol(i, j, k) = xvalue_vector_hypre(index_count_hypre)
+  !           index_count_hypre = index_count_hypre + 1
+  !         end do
+  !       end do
+  !     end do
+
+  !     call HYPRE_StructHybridGetNumIterati(solver_hp_i, nIter, ierr_hypre)
+
+  !     ! testb
+  !     if (master) print *, 'HYPRE_StructHybridGetNumIterati done'
+  !     ! teste
+
+  !     index_count_hypre = 1
+  !     call HYPRE_StructHybridGetFinalRelat(solver_hp_i, res, ierr_hypre)
+
+  !     ! testb
+  !     if (master) print *, 'HYPRE_StructHybridGetFinalRelat done'
+  !     ! teste
+  !   else
+  !     ! This is a collective call finalizing the matrix assembly.
+  !     ! The matrix is now ``ready to be used'
+
+  !     call HYPRE_StructMatrixSetBoxValues(A_hp_e, (/(icoord) * nx + 1, &
+  !         (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
+  !         nz/), ne_hypre_e, stencil_indices_e, values_e, ierr_hypre)
+
+  !     call HYPRE_StructMatrixAssemble(A_hp_e, ierr_hypre)
+
+  !     ! Set up Struct Vectors for b and x.  Each processor sets the
+  !     ! vectors corresponding to its boxes.
+
+  !     ! Set the vector coefficients
+
+  !     index_count_hypre = 1
+  !     do k = 1, nz
+  !       do j = 1, ny
+  !         do i = 1, nx
+  !           bvalue_vector_hypre(index_count_hypre) = b(i, j, k)
+  !           index_count_hypre = index_count_hypre + 1
+  !           ! testb
+  !           ! print*,i,j,k,'b =',b(i,j,k)
+  !           ! teste
+  !         end do
+  !       end do
+  !     end do
+
+  !     index_count_hypre = 1
+  !     do k = 1, nz
+  !       do j = 1, ny
+  !         do i = 1, nx
+  !           xvalue_vector_hypre(index_count_hypre) = sol(i, j, k)
+  !           index_count_hypre = index_count_hypre + 1
+  !           ! testb
+  !           ! print*,i,j,k,'sol =',sol(i,j,k)
+  !           ! teste
+  !         end do
+  !       end do
+  !     end do
+
+  !     call HYPRE_StructVectorSetBoxValues(b_hp_e, (/(icoord) * nx + 1, &
+  !         (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
+  !         nz/), bvalue_vector_hypre, ierr_hypre)
+
+  !     call HYPRE_StructVectorSetBoxValues(x_hp_e, (/(icoord) * nx + 1, &
+  !         (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
+  !         nz/), xvalue_vector_hypre, ierr_hypre)
+
+  !     ! This is a collective call finalizing the vector assembly.
+  !     ! The vectors are now ``ready to be used''
+
+  !     call HYPRE_StructVectorAssemble(b_hp_e, ierr_hypre)
+  !     call HYPRE_StructVectorAssemble(x_hp_e, ierr_hypre)
+
+  !     ! Finalize set up and use a solver
+  !     ! (See the Reference Manual for descriptions of all of the options.)
+
+  !     call HYPRE_StructHybridSetTol(solver_hp_e, tol, ierr_hypre)
+  !     call HYPRE_StructHybridSolve(solver_hp_e, A_hp_e, b_hp_e, x_hp_e, &
+  !         ierr_hypre)
+
+  !     ! Get the results
+
+  !     call HYPRE_StructVectorGetBoxValues(x_hp_e, (/(icoord) * nx + 1, &
+  !         (jcoord) * ny + 1, 1/), (/(icoord + 1) * nx, (jcoord + 1) * ny, &
+  !         nz/), xvalue_vector_hypre, ierr_hypre)
+
+  !     index_count_hypre = 1
+
+  !     do k = 1, nz
+  !       do j = 1, ny
+  !         do i = 1, nx
+  !           sol(i, j, k) = xvalue_vector_hypre(index_count_hypre)
+  !           index_count_hypre = index_count_hypre + 1
+  !         end do
+  !       end do
+  !     end do
+
+  !     call HYPRE_StructHybridGetNumIterati(solver_hp_e, nIter, ierr_hypre)
+  !     call HYPRE_StructHybridGetFinalRelat(solver_hp_e, res, ierr_hypre)
+  !   end if
+
+  !   if (giveInfo .and. master) then
+  !     print *, ""
+  !     print *, " HYPRE solver: "
+  !     write (*, fmt = "(a25,i25)") " Nb.of iterations: j = ", nIter
+  !     write (*, fmt = "(a25,es17.6)") " Final residual: res = ", res
+  !     print *, ""
+  !   end if
+
+  !   return
+
+  ! end subroutine hypre
 
   !-----------------------------------------------------------------------
 
@@ -6796,30 +6799,7 @@ module poisson_module
 
               ! ------------------ define matrix A -------------------
 
-              if (poissonSolverType == 'hypre') then
-                ! index_count_hypre
-                ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
-
-                index_count_hypre = i
-                index_count_hypre = index_count_hypre + ((j - 1) * nx)
-                index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
-
-                index_count_hypre = (index_count_hypre * ne_hypre_i) &
-                    - ne_hypre_i + 1
-
-                values_i(index_count_hypre) = AC
-                values_i(index_count_hypre + 1) = AL
-                values_i(index_count_hypre + 2) = AR
-                values_i(index_count_hypre + 3) = AB
-                values_i(index_count_hypre + 4) = AF
-                values_i(index_count_hypre + 5) = AD
-                values_i(index_count_hypre + 6) = AU
-                values_i(index_count_hypre + 7) = 0.0
-                values_i(index_count_hypre + 8) = 0.0
-                values_i(index_count_hypre + 9) = 0.0
-                values_i(index_count_hypre + 10) = 0.0
-
-              else if (poissonSolverType == 'bicgstab') then
+              if (poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 acv_b(i, j, k) = ACV
@@ -6838,8 +6818,30 @@ module poisson_module
                 alf_b(i, j, k) = 0.0
                 arb_b(i, j, k) = 0.0
                 arf_b(i, j, k) = 0.0
+              ! else if (poissonSolverType == 'hypre') then
+              !   ! index_count_hypre
+              !   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
+
+              !   index_count_hypre = i
+              !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
+              !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
+
+              !   index_count_hypre = (index_count_hypre * ne_hypre_i) &
+              !       - ne_hypre_i + 1
+
+              !   values_i(index_count_hypre) = AC
+              !   values_i(index_count_hypre + 1) = AL
+              !   values_i(index_count_hypre + 2) = AR
+              !   values_i(index_count_hypre + 3) = AB
+              !   values_i(index_count_hypre + 4) = AF
+              !   values_i(index_count_hypre + 5) = AD
+              !   values_i(index_count_hypre + 6) = AU
+              !   values_i(index_count_hypre + 7) = 0.0
+              !   values_i(index_count_hypre + 8) = 0.0
+              !   values_i(index_count_hypre + 9) = 0.0
+              !   values_i(index_count_hypre + 10) = 0.0
               else
-                stop 'ERROR: val_PsIn expects hypre or bicgstab'
+                stop 'ERROR: val_PsIn expects bicgstab'
               end if
             end do ! i_loop
           end do ! j_loop
@@ -6947,26 +6949,7 @@ module poisson_module
 
               ! ------------------ define matrix A -------------------
 
-              if (poissonSolverType == 'hypre') then
-                ! index_count_hypre
-                ! = ( i * j * k * ne_hypre_e ) - ne_hypre_e + 1
-
-                index_count_hypre = i
-                index_count_hypre = index_count_hypre + ((j - 1) * nx)
-                index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
-
-                index_count_hypre = (index_count_hypre * ne_hypre_e) &
-                    - ne_hypre_e + 1
-
-                values_e(index_count_hypre) = AC
-                values_e(index_count_hypre + 1) = AL
-                values_e(index_count_hypre + 2) = AR
-                values_e(index_count_hypre + 3) = AB
-                values_e(index_count_hypre + 4) = AF
-                values_e(index_count_hypre + 5) = AD
-                values_e(index_count_hypre + 6) = AU
-
-              else if (poissonSolverType == 'bicgstab') then
+              if (poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 acv_b(i, j, k) = ACV
@@ -6980,8 +6963,26 @@ module poisson_module
 
                 ad_b(i, j, k) = AD
                 au_b(i, j, k) = AU
+              ! else if (poissonSolverType == 'hypre') then
+              !   ! index_count_hypre
+              !   ! = ( i * j * k * ne_hypre_e ) - ne_hypre_e + 1
+
+              !   index_count_hypre = i
+              !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
+              !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
+
+              !   index_count_hypre = (index_count_hypre * ne_hypre_e) &
+              !       - ne_hypre_e + 1
+
+              !   values_e(index_count_hypre) = AC
+              !   values_e(index_count_hypre + 1) = AL
+              !   values_e(index_count_hypre + 2) = AR
+              !   values_e(index_count_hypre + 3) = AB
+              !   values_e(index_count_hypre + 4) = AF
+              !   values_e(index_count_hypre + 5) = AD
+              !   values_e(index_count_hypre + 6) = AU
               else
-                stop 'ERROR: val_PsIn expects hypre or bicgstab'
+                stop 'ERROR: val_PsIn expects bicgstab'
               end if
             end do ! i_loop
           end do ! j_loop
@@ -7313,29 +7314,7 @@ module poisson_module
 
             ! ------------------- define matrix A -------------------
 
-            if (poissonSolverType == 'hypre') then
-              ! index_count_hypre
-              ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
-
-              index_count_hypre = i
-              index_count_hypre = index_count_hypre + ((j - 1) * nx)
-              index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
-
-              index_count_hypre = (index_count_hypre * ne_hypre_i) &
-                  - ne_hypre_i + 1
-
-              values_i(index_count_hypre) = AC
-              values_i(index_count_hypre + 1) = AL
-              values_i(index_count_hypre + 2) = AR
-              values_i(index_count_hypre + 3) = AB
-              values_i(index_count_hypre + 4) = AF
-              values_i(index_count_hypre + 5) = AD
-              values_i(index_count_hypre + 6) = AU
-              values_i(index_count_hypre + 7) = ALB
-              values_i(index_count_hypre + 8) = ALF
-              values_i(index_count_hypre + 9) = ARB
-              values_i(index_count_hypre + 10) = ARF
-            else if (poissonSolverType == 'bicgstab') then
+            if (poissonSolverType == 'bicgstab') then
               ac_b(i, j, k) = AC
 
               ach_b(i, j, k) = ACH
@@ -7354,8 +7333,30 @@ module poisson_module
               alf_b(i, j, k) = ALF
               arb_b(i, j, k) = ARB
               arf_b(i, j, k) = ARF
+            ! else if (poissonSolverType == 'hypre') then
+            !   ! index_count_hypre
+            !   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
+
+            !   index_count_hypre = i
+            !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
+            !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
+
+            !   index_count_hypre = (index_count_hypre * ne_hypre_i) &
+            !       - ne_hypre_i + 1
+
+            !   values_i(index_count_hypre) = AC
+            !   values_i(index_count_hypre + 1) = AL
+            !   values_i(index_count_hypre + 2) = AR
+            !   values_i(index_count_hypre + 3) = AB
+            !   values_i(index_count_hypre + 4) = AF
+            !   values_i(index_count_hypre + 5) = AD
+            !   values_i(index_count_hypre + 6) = AU
+            !   values_i(index_count_hypre + 7) = ALB
+            !   values_i(index_count_hypre + 8) = ALF
+            !   values_i(index_count_hypre + 9) = ARB
+            !   values_i(index_count_hypre + 10) = ARF
             else
-              stop 'ERROR: val_PsIn expects hypre or bicgstab'
+              stop 'ERROR: val_PsIn expects bicgstab'
             end if
           end do ! i_loop
         end do ! j_loop
@@ -7584,30 +7585,7 @@ module poisson_module
 
               ! ------------------ define matrix A -------------------
 
-              if (poissonSolverType == 'hypre') then
-                ! index_count_hypre
-                ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
-
-                index_count_hypre = i
-                index_count_hypre = index_count_hypre + ((j - 1) * nx)
-                index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
-
-                index_count_hypre = (index_count_hypre * ne_hypre_i) &
-                    - ne_hypre_i + 1
-
-                values_i(index_count_hypre) = AC
-                values_i(index_count_hypre + 1) = AL
-                values_i(index_count_hypre + 2) = AR
-                values_i(index_count_hypre + 3) = AB
-                values_i(index_count_hypre + 4) = AF
-                values_i(index_count_hypre + 5) = AD
-                values_i(index_count_hypre + 6) = AU
-                values_i(index_count_hypre + 7) = 0.0
-                values_i(index_count_hypre + 8) = 0.0
-                values_i(index_count_hypre + 9) = 0.0
-                values_i(index_count_hypre + 10) = 0.0
-
-              else if (poissonSolverType == 'bicgstab') then
+              if (poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 ach_b(i, j, k) = ACH
@@ -7626,8 +7604,30 @@ module poisson_module
                 alf_b(i, j, k) = 0.0
                 arb_b(i, j, k) = 0.0
                 arf_b(i, j, k) = 0.0
+              ! else if (poissonSolverType == 'hypre') then
+              !   ! index_count_hypre
+              !   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
+
+              !   index_count_hypre = i
+              !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
+              !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
+
+              !   index_count_hypre = (index_count_hypre * ne_hypre_i) &
+              !       - ne_hypre_i + 1
+
+              !   values_i(index_count_hypre) = AC
+              !   values_i(index_count_hypre + 1) = AL
+              !   values_i(index_count_hypre + 2) = AR
+              !   values_i(index_count_hypre + 3) = AB
+              !   values_i(index_count_hypre + 4) = AF
+              !   values_i(index_count_hypre + 5) = AD
+              !   values_i(index_count_hypre + 6) = AU
+              !   values_i(index_count_hypre + 7) = 0.0
+              !   values_i(index_count_hypre + 8) = 0.0
+              !   values_i(index_count_hypre + 9) = 0.0
+              !   values_i(index_count_hypre + 10) = 0.0
               else
-                stop 'ERROR: val_PsIn expects hypre or bicgstab'
+                stop 'ERROR: val_PsIn expects bicgstab'
               end if
             end do ! i_loop
           end do ! j_loop
@@ -8270,26 +8270,7 @@ module poisson_module
               AD = AD / (fcscal * fcscal_d)
               AU = AU / (fcscal * fcscal_u)
 
-              if (poissonSolverType == 'hypre') then
-                ! index_count_hypre
-                ! = ( i * j * k * ne_hypre_e ) - ne_hypre_e + 1
-
-                index_count_hypre = i
-                index_count_hypre = index_count_hypre + ((j - 1) * nx)
-                index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
-
-                index_count_hypre = (index_count_hypre * ne_hypre_e) &
-                    - ne_hypre_e + 1
-
-                values_e(index_count_hypre) = AC
-                values_e(index_count_hypre + 1) = AL
-                values_e(index_count_hypre + 2) = AR
-                values_e(index_count_hypre + 3) = AB
-                values_e(index_count_hypre + 4) = AF
-                values_e(index_count_hypre + 5) = AD
-                values_e(index_count_hypre + 6) = AU
-
-              else if (poissonSolverType == 'bicgstab') then
+              if (poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 ach_b(i, j, k) = ACH
@@ -8303,8 +8284,26 @@ module poisson_module
 
                 ad_b(i, j, k) = AD
                 au_b(i, j, k) = AU
+              ! else if (poissonSolverType == 'hypre') then
+              !   ! index_count_hypre
+              !   ! = ( i * j * k * ne_hypre_e ) - ne_hypre_e + 1
+
+              !   index_count_hypre = i
+              !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
+              !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
+
+              !   index_count_hypre = (index_count_hypre * ne_hypre_e) &
+              !       - ne_hypre_e + 1
+
+              !   values_e(index_count_hypre) = AC
+              !   values_e(index_count_hypre + 1) = AL
+              !   values_e(index_count_hypre + 2) = AR
+              !   values_e(index_count_hypre + 3) = AB
+              !   values_e(index_count_hypre + 4) = AF
+              !   values_e(index_count_hypre + 5) = AD
+              !   values_e(index_count_hypre + 6) = AU
               else
-                stop 'ERROR: val_PsIn expects hypre or bicgstab'
+                stop 'ERROR: val_PsIn expects bicgstab'
               end if
 
             end do ! i_loop
@@ -9985,29 +9984,7 @@ module poisson_module
 
               ! ------------------- define matrix A -------------------
 
-              if (poissonSolverType == 'hypre') then
-                ! index_count_hypre
-                ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
-
-                index_count_hypre = i
-                index_count_hypre = index_count_hypre + ((j - 1) * nx)
-                index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
-
-                index_count_hypre = (index_count_hypre * ne_hypre_i) &
-                    - ne_hypre_i + 1
-
-                values_i(index_count_hypre) = AC
-                values_i(index_count_hypre + 1) = AL
-                values_i(index_count_hypre + 2) = AR
-                values_i(index_count_hypre + 3) = AB
-                values_i(index_count_hypre + 4) = AF
-                values_i(index_count_hypre + 5) = AD
-                values_i(index_count_hypre + 6) = AU
-                values_i(index_count_hypre + 7) = ALB
-                values_i(index_count_hypre + 8) = ALF
-                values_i(index_count_hypre + 9) = ARB
-                values_i(index_count_hypre + 10) = ARF
-              else if (poissonSolverType == 'bicgstab') then
+              if (poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 ach_b(i, j, k) = ACH
@@ -10026,8 +10003,30 @@ module poisson_module
                 alf_b(i, j, k) = ALF
                 arb_b(i, j, k) = ARB
                 arf_b(i, j, k) = ARF
+              ! else if (poissonSolverType == 'hypre') then
+              !   ! index_count_hypre
+              !   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
+
+              !   index_count_hypre = i
+              !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
+              !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
+
+              !   index_count_hypre = (index_count_hypre * ne_hypre_i) &
+              !       - ne_hypre_i + 1
+
+              !   values_i(index_count_hypre) = AC
+              !   values_i(index_count_hypre + 1) = AL
+              !   values_i(index_count_hypre + 2) = AR
+              !   values_i(index_count_hypre + 3) = AB
+              !   values_i(index_count_hypre + 4) = AF
+              !   values_i(index_count_hypre + 5) = AD
+              !   values_i(index_count_hypre + 6) = AU
+              !   values_i(index_count_hypre + 7) = ALB
+              !   values_i(index_count_hypre + 8) = ALF
+              !   values_i(index_count_hypre + 9) = ARB
+              !   values_i(index_count_hypre + 10) = ARF
               else
-                stop 'ERROR: val_PsIn expects hypre or bicgstab'
+                stop 'ERROR: val_PsIn expects bicgstab'
               end if
             end do ! i_loop
           end do ! j_loop
@@ -10048,98 +10047,98 @@ module poisson_module
 
   !==============================================================
 
-  subroutine val_hypre_Bous
+  ! subroutine val_hypre_Bous
 
-    ! local variables
-    integer :: i, j, k
-    real :: pStratU, pStratD, rhoEdge
-    !UAC real :: AL,AR, AB,AF, AD,AU, AC
-    real :: AL, AR, AB, AF, AD, AU, AC, ACH, ACV
-    real :: dx2, dy2, dz2
-    integer :: index_count_hypre
+  !   ! local variables
+  !   integer :: i, j, k
+  !   real :: pStratU, pStratD, rhoEdge
+  !   !UAC real :: AL,AR, AB,AF, AD,AU, AC
+  !   real :: AL, AR, AB, AF, AD, AU, AC, ACH, ACV
+  !   real :: dx2, dy2, dz2
+  !   integer :: index_count_hypre
 
-    if (topography) then
-      print *, 'ERROR: no topography allowed in Boussinesq mode'
-      print *, '(would require semi-implicit time stepping)'
-      print *, '(could be implemented easily by simplifying the  &
-          pseudo-incompressible case accordingly)'
-      stop
-    end if
+  !   if (topography) then
+  !     print *, 'ERROR: no topography allowed in Boussinesq mode'
+  !     print *, '(would require semi-implicit time stepping)'
+  !     print *, '(could be implemented easily by simplifying the  &
+  !         pseudo-incompressible case accordingly)'
+  !     stop
+  !   end if
 
-    ! auxiliary variables
-    dx2 = 1.0 / dx ** 2
-    dy2 = 1.0 / dy ** 2
-    dz2 = 1.0 / dz ** 2
+  !   ! auxiliary variables
+  !   dx2 = 1.0 / dx ** 2
+  !   dy2 = 1.0 / dy ** 2
+  !   dz2 = 1.0 / dz ** 2
 
-    !---------------------------------
-    !         Loop over field
-    !---------------------------------
+  !   !---------------------------------
+  !   !         Loop over field
+  !   !---------------------------------
 
-    do k = 1, nz
-      do j = 1, ny
-        do i = 1, nx
+  !   do k = 1, nz
+  !     do j = 1, ny
+  !       do i = 1, nx
 
-          ! stencil without topography
+  !         ! stencil without topography
 
-          ! ------------------ A(i+1,j,k) ------------------
-          AR = dx2
+  !         ! ------------------ A(i+1,j,k) ------------------
+  !         AR = dx2
 
-          ! ------------------- A(i-1,j,k) --------------------
-          AL = dx2
+  !         ! ------------------- A(i-1,j,k) --------------------
+  !         AL = dx2
 
-          ! -------------------- A(i,j+1,k) ----------------------
-          AF = dy2
+  !         ! -------------------- A(i,j+1,k) ----------------------
+  !         AF = dy2
 
-          ! --------------------- A(i,j-1,k) --------------------
-          AB = dy2
+  !         ! --------------------- A(i,j-1,k) --------------------
+  !         AB = dy2
 
-          ! ---------------------- A(i,j,k+1) --------------------
-          if ((zBoundary == "solid_wall") .and. (k == nz)) then
-            AU = 0.0
-          else
-            AU = dz2
-          end if
+  !         ! ---------------------- A(i,j,k+1) --------------------
+  !         if ((zBoundary == "solid_wall") .and. (k == nz)) then
+  !           AU = 0.0
+  !         else
+  !           AU = dz2
+  !         end if
 
-          ! ----------------------- A(i,j,k-1) -------------------
-          if ((zBoundary == "solid_wall") .and. (k == 1)) then
-            AD = 0.0
-          else
-            AD = dz2
-          end if
+  !         ! ----------------------- A(i,j,k-1) -------------------
+  !         if ((zBoundary == "solid_wall") .and. (k == 1)) then
+  !           AD = 0.0
+  !         else
+  !           AD = dz2
+  !         end if
 
-          ! ----------------------- A(i,j,k) ---------------------
-          AC = - AR - AL - AF - AB - AU - AD
+  !         ! ----------------------- A(i,j,k) ---------------------
+  !         AC = - AR - AL - AF - AB - AU - AD
 
-          !UAB
-          ACH = - AR - AL - AF - AB
-          ACV = - AU - AD
-          !UAE
+  !         !UAB
+  !         ACH = - AR - AL - AF - AB
+  !         ACV = - AU - AD
+  !         !UAE
 
-          ! ------------------- define matrix A --------------------
+  !         ! ------------------- define matrix A --------------------
 
-          ! index_count_hypre &
-          ! = ( i * j * k * ne_hypre_e ) - ne_hypre_e + 1
+  !         ! index_count_hypre &
+  !         ! = ( i * j * k * ne_hypre_e ) - ne_hypre_e + 1
 
-          index_count_hypre = i
-          index_count_hypre = index_count_hypre + ((j - 1) * nx)
-          index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
+  !         index_count_hypre = i
+  !         index_count_hypre = index_count_hypre + ((j - 1) * nx)
+  !         index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
 
-          index_count_hypre = (index_count_hypre * ne_hypre_e) - ne_hypre_e + 1
+  !         index_count_hypre = (index_count_hypre * ne_hypre_e) - ne_hypre_e + 1
 
-          values_e(index_count_hypre) = AC
-          values_e(index_count_hypre + 1) = AL
-          values_e(index_count_hypre + 2) = AR
-          values_e(index_count_hypre + 3) = AB
-          values_e(index_count_hypre + 4) = AF
-          values_e(index_count_hypre + 5) = AD
-          values_e(index_count_hypre + 6) = AU
-        end do
-      end do
-    end do
+  !         values_e(index_count_hypre) = AC
+  !         values_e(index_count_hypre + 1) = AL
+  !         values_e(index_count_hypre + 2) = AR
+  !         values_e(index_count_hypre + 3) = AB
+  !         values_e(index_count_hypre + 4) = AF
+  !         values_e(index_count_hypre + 5) = AD
+  !         values_e(index_count_hypre + 6) = AU
+  !       end do
+  !     end do
+  !   end do
 
-    return
+  !   return
 
-  end subroutine val_hypre_Bous
+  ! end subroutine val_hypre_Bous
 
   !------------------------------------------------------------------
 
