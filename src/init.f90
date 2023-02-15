@@ -5,6 +5,7 @@ module init_module
   use ice_module
   use mpi_module
   use boundary_module
+  use sizeof_module
 
   implicit none
 
@@ -362,7 +363,8 @@ module init_module
       if (model == "WKB" .or. .not. fluctuationMode .or. poissonSolverType &
           /= "bicgstab" .or. reconstType /= "MUSCL" .or. musclType /= "muscl1" &
           .or. fluxType /= "upwind" .or. heatingONK14 .or. TurbScheme .or. &
-          rayTracer .or. pressureScaling .or. dens_relax .or. include_ice) then
+          rayTracer .or. pressureScaling .or. dens_relax .or. include_ice &
+          .or. background == "HeldSuarez") then
         stop "Terrain-following coordinates not implemented for chosen setup!"
       end if
     end if
@@ -373,16 +375,9 @@ module init_module
       if (.not. any(testCase == (/character (50) :: "sinus", "uniform_theta", &
           "monochromeWave", "wavePacket", "mountainwave", "Robert_Bubble", &
           "coldBubble", "smoothVortex", "atmosphereatrest", &
-          "SkamarockKlemp94", "hotBubble", "hotBubble2D", "hotBubble3D", &
-          "baroclinic_LC", "baroclinic_ID"/))) then
+          "SkamarockKlemp94", "hotBubble", "hotBubble2D", "hotBubble3D"/))) then
         stop "Terrain-following coordinates not implemented for chosen testCase"
       end if
-    end if
-
-    ! TFC FJ
-    ! No background relaxation in TFC.
-    if (topography .and. testCase == "mountainwave") then
-      relax_background = .false.
     end if
 
     ! TFC FJ
@@ -1068,6 +1063,19 @@ module init_module
         var(:, :, :, 2) = backgroundFlow_dim(1) / uRef
         var(:, :, :, 3) = backgroundFlow_dim(2) / uRef
         var(:, :, :, 4) = backgroundFlow_dim(3) / uRef
+
+        ! ! Define initial background wind parallel to the topography (based on
+        ! ! linearized no-normal-flow boundary condition).
+        ! do i = 1, nx
+        !   do j = 1, ny
+        !     do k = 1, nz
+        !       var(i, j, k, 2) = - var(i, j, k, 2) / (0.5 * (jac(i, j, k) &
+        !           * met(i, j, k, 1, 3) + jac(i + 1, j, k) &
+        !           * met(i + 1, j, k, 1, 3))) * (topography_surface(i + 1, j) &
+        !           - topography_surface(i, j)) / dx
+        !     end do
+        !   end do
+        ! end do
       end if
 
       ! density, potential temperature, and pressure
@@ -1171,14 +1179,22 @@ module init_module
         ! TFC FJ
         if (relax_background) then
           u_relax = u_relax / (1.0 - exp(4.0 * t_ramp / (pi * t_relax) - 1.0))
+          ! zero wind
+          var(:, :, :, 2) = 0.0 ! u
+          var(:, :, :, 3) = 0.0 ! v
+          var(:, :, :, 4) = 0.0 ! w
+        else
+          ! Provide initialization with constant background wind.
+          var(:, :, :, 2) = backgroundFlow_dim(1) / uRef
+          var(:, :, :, 3) = backgroundFlow_dim(2) / uRef
+          var(:, :, :, 4) = backgroundFlow_dim(3) / uRef
         end if
+      else
+        ! zero wind
+        var(:, :, :, 2) = 0.0 ! u
+        var(:, :, :, 3) = 0.0 ! v
+        var(:, :, :, 4) = 0.0 ! w
       end if
-
-      ! zero wind
-
-      var(:, :, :, 2) = 0.0 ! u
-      var(:, :, :, 3) = 0.0 ! v
-      var(:, :, :, 4) = 0.0 ! w
 
       ! density, potential temperature, and pressure
 
@@ -5146,7 +5162,7 @@ module init_module
     ! open input file
     if (master) then
       open (40, file = fileinitstate2D, form = "unformatted", access &
-          = 'direct', recl = 1 * SizeY)
+          = 'direct', recl = 1 * SizeY * sizeofreal4)
       !      print*,"pf_all_in.dat opened"
     end if
 
@@ -5529,7 +5545,7 @@ module init_module
     !   open(40,file=dataFile,form="unformatted",access='direct',recl=nx*ny)
     if (master) then
       open (51, file = filename_bgr, form = "unformatted", access = 'direct', &
-          recl = SizeX * SizeY)
+          recl = SizeX * SizeY * sizeofreal4)
     end if
 
     !---------------------------------------
