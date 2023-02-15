@@ -72,8 +72,8 @@
 
   cfl = 0.4
   cfl_wave = 0.5                  ! passage rate of phase throuh a cell
-  dtMax_dim = 1.e3                ! max time step in s
-  tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
+  dtMax_dim = 5.e0                ! max time step in s
+  tStepChoice = "fix"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
   timeScheme = "semiimplicit"     ! LS_Will_RK3 -> Williamson / Euler /
                                   ! LS_TVD_RK3 / CL_TVD_RK3 / semiimplicit
@@ -239,7 +239,8 @@
                             ! 2 for 3D cosine-shaped mountains (rotated)
                             ! 3 for bell-shaped mountain
                             ! 4 for 3D bell-shaped mountain
-                            ! 5 for wave-packet-like mountain range
+                            ! 5 for Gaussian mountain range
+                            ! 6 for wave-packet-like mountain range
   range_fac = 10            ! factor by which mountain range is wider than
                             ! single mountains
 
@@ -289,8 +290,8 @@
   nOutput = 1                 ! output every nOutput's time step
                               ! for outputType = "timeStep"
   maxIter = 10000             ! stop after maxIter time steps
-  outputTimeDiff = 1.2e2      ! output every ... seconds
-  maxTime = 86.4e3            ! stop after maxTime seconds
+  outputTimeDiff = 5.0e0      ! output every ... seconds
+  maxTime = 36.0e2            ! stop after maxTime seconds
   dataFileName = ""           ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref" ! restart file in TEC360 format
   restart = .false.           ! true / false
@@ -502,8 +503,12 @@
   branchr = 1,          ! frequency branch (dispersion relation)
   ! presently not used
   lindUinit = .false.,  ! ind. wind already at initial time (true/false)
-  ! oror_amp_dim = 50   ! orography amplititude height (m)
-  oror_amp_dim = 5.e2   ! orography amplititude height (m)
+
+  mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
+  mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
+  mountain_case_wkb = 1         ! WKB orography shape
+                                ! 1 for cosine-shaped envelope
+                                ! 2 for Gaussian envelope
 
   zmin_wkb_dim = 0.0    ! minumum altitude (above the model bottom, in m)
                         ! for WKB wave-mean-flow interaction
@@ -535,7 +540,7 @@
                           ! temporary wind relexation
   t_relax = 5.e3          ! [s] total relaxation time
   t_ramp = 25.e2          ! [s] duration of ramping up/down the relaxation
-  xextent_norelax = 1.e5  ! [m] zonal extent of
+  xextent_norelax = 1.e10 ! [m] zonal extent of
                           ! region without wind relaxation
 
 &end
