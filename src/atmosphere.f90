@@ -1,6 +1,7 @@
 module atmosphere_module
 
   use type_module
+  use sizeof_module
 
   implicit none
 
@@ -600,19 +601,55 @@ module atmosphere_module
                 - x_center) ** 2.0 + (y(j + j00) - y_center) ** 2.0) &
                 / (mountainWidth ** 2.0)) ** 1.5
           else if (mountain_case == 5) then
-            topography_surface(i, j) = 0.5 * mountainHeight * (1.0 &
-                + cos(k_mountainw * (x(i + i00) - x_center))) * (cos(range_fac &
-                * k_mountainw * (x(i + i00) - x_center)))
-          else if (mountain_case == 6) then
             topography_surface(i, j) = mountainHeight * exp(- ((x(i + i00) &
                 - x_center) / mountainWidth) ** 2.0) * cos(5.0 * k_mountainw &
                 * (x(i + i00) - x_center) / 4.0) ** 2.0
-          else
-            if (topography_surface(i, j) .lt. lz(0)) then
-              print *, "Topography has negative values"
-              print *, "lz_dim(0) should be set accordingly"
-              stop
+          else if (mountain_case == 6) then
+            if (sizeX /= 1 .and. sizeY == 1) then
+              if (abs(x(i + i00) - x_center) <= mountainWidth) then
+                topography_surface(i, j) = 0.25 * mountainHeight * (1.0 &
+                    + cos(k_mountainw * (x(i + i00) - x_center))) &
+                    * (1.0 + cos(range_fac * k_mountainw * (x(i + i00) &
+                    - x_center)))
+              end if
+            else if (sizeX == 1 .and. sizeY /= 1) then
+              if (abs(y(j + j00) - y_center) <= mountainWidth) then
+                topography_surface(i, j) = 0.25 * mountainHeight * (1.0 &
+                    + cos(k_mountainw * (y(j + j00) - y_center))) &
+                    * (1.0 + cos(range_fac * k_mountainw * (y(j + j00) &
+                    - y_center)))
+              end if
+            else
+              if (abs(x(i + i00) - x_center) <= mountainWidth .and. &
+                  abs(y(j + j00) - y_center) <= mountainWidth) then
+                topography_surface(i, j) = 0.125 * mountainHeight * (1.0 &
+                    + cos(k_mountainw * (x(i + i00) - x_center))) * (1.0 &
+                    + cos(k_mountainw * (y(j + j00) - y_center))) &
+                    * (1.0 + cos(range_fac * k_mountainw * (x(i + i00) &
+                    - x_center + y(j + j00) - y_center)))
+              end if
             end if
+          else if (mountain_case == 7) then
+            if (sizeX /= 1 .and. sizeY == 1) then
+              topography_surface(i, j) = 0.5 * mountainHeight * exp(- ((x(i &
+                  + i00) - x_center) / mountainWidth) ** 2.0) * (1.0 + cos(0.5 &
+                  * range_fac * k_mountainw * (x(i + i00) - x_center)))
+            else if (sizeX == 1 .and. sizeY /= 1) then
+              topography_surface(i, j) = 0.5 * mountainHeight * exp(- ((y(j &
+                  + j00) - y_center) / mountainWidth) ** 2.0) * (1.0 + cos(0.5 &
+                  * range_fac * k_mountainw * (y(j + j00) - y_center)))
+            else
+              topography_surface(i, j) = 0.5 * mountainHeight * exp(- ((x(i &
+                  + i00) - x_center) / mountainWidth) ** 2.0 - ((y(j + j00) &
+                  - y_center) / mountainWidth) ** 2.0) * (1.0 + cos(0.5 &
+                  * range_fac * k_mountainw * (x(i + i00) - x_center + y(j &
+                  + j00) - y_center)))
+            end if
+          end if
+          if (topography_surface(i, j) .lt. lz(0)) then
+            print *, "Topography has negative values."
+            print *, "lz_dim(0) should be set accordingly."
+            stop
           end if
         end do
       end do
@@ -1150,9 +1187,10 @@ module atmosphere_module
             end if
           end do
 
-          !xxx need rhoStratTilde(-1) in fluxes.f90, line 1927 \pm
-          rhoStratTilde(- 1) = rhoStratTilde(0)
-          rhoStratTilde(nz + 1) = rhoStratTilde(nz)
+          ! Removed inconsistency (FJJan2023).
+          ! !xxx need rhoStratTilde(-1) in fluxes.f90, line 1927 \pm
+          ! rhoStratTilde(- 1) = rhoStratTilde(0)
+          ! rhoStratTilde(nz + 1) = rhoStratTilde(nz)
 
           ! TFC FJ
           ! Define 3D background fields.
@@ -1738,12 +1776,13 @@ module atmosphere_module
 
         ! TFC FJ
         ! Define 3D background fields.
+        ! This implementation does not work yet.
         if (topography) then
           do i = - nbx, nx + nbx
             do j = - nby, ny + nby
               ! Define Exner pressure and 3D background fields at
               ! the surface.
-              do k = - nbz, 1
+              do k = 0, 1
                 T_bar = max(tp_strato, tp_srf_trp - 0.5 * tpdiffhor_tropo)
                 ! Define Exner pressure.
                 piStratTFC(i, j, k) = 1.0 + heightTFC(i, j, k) * kappa / T_bar
@@ -1764,7 +1803,7 @@ module atmosphere_module
               end do
 
               ! Integrate upwards.
-              do k = 2, nz + nbz
+              do k = 2, nz + 2
                 ! Leapfrog step.
                 piStar = piStratTFC(i, j, k - 2) - 2.0 * dz * jac(i, j, k - 1) &
                     * kappa / thetaStratTFC(i, j, k - 1)
@@ -2167,7 +2206,7 @@ module atmosphere_module
     ! Open file.
     if (master) then
       open (42, file = "topography.dat", form = "unformatted", access &
-          = "direct", recl = sizeX * sizeY)
+          = "direct", recl = sizeX * sizeY * sizeofreal4)
     end if
 
     do j = 1, ny
@@ -2218,7 +2257,7 @@ module atmosphere_module
     ! Open file.
     if (master) then
       open (42, file = "topography.dat", form = "unformatted", access &
-          = "direct", recl = sizeX * sizeY)
+          = "direct", recl = sizeX * sizeY * sizeofreal4)
     end if
 
     ! Read data.

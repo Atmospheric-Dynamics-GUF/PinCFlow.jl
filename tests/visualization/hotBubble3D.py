@@ -11,7 +11,7 @@ make_animation = False
 data = tools.ModelOutput()
 data.import_data("../hotBubble3D/")
 reference = tools.ModelOutput()
-reference.import_data("../../../pincflow/tests/hotBubble3D/")
+reference.import_data("../hotBubble3D/")
 
 # Adjust coordinate unit.
 data.xx *= 0.001
@@ -39,7 +39,8 @@ def animate(nn):
     axes.clear()
     axes.pcolormesh(data.xx[:, iy, :], data.zz[:, iy, :], theta[nn, :, iy, :],
             cmap = "seismic", vmin = - peak, vmax = peak, shading = "gouraud")
-    axes.set_title("".join((r"Time: $" + str(int(data.tt[nn])), r"\, \mathrm{s}$")))
+    axes.set_title("".join((r"Time: $" + str(int(data.tt[nn])), r"\,"
+            r"\mathrm{s}$")))
     axes.set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
     axes.set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
     return axes
@@ -54,7 +55,7 @@ axes.set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
 axes.set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
 figure.colorbar(plot, label = r"$\theta' \, \mathrm{\left[K\right]}$")
 figure.savefig("../results/hotBubble3D.pdf")
-figure.savefig("../results/hotBubble3D.png")
+figure.savefig("../results/hotBubble3D.png", dpi = 500)
 
 # Make animation.
 if make_animation:
@@ -64,13 +65,15 @@ if make_animation:
     animation_output.save("../results/hotBubble3D.avi", writer = writer)
 
 # Make difference plot.
-figure, axes = pyplot.subplots()
-peak = numpy.max(numpy.absolute(deltatheta[it, :, iy, :]))
-plot = axes.pcolormesh(data.xx[:, iy, :], data.zz[:, iy, :],
-        deltatheta[it, :, iy, :], cmap = "seismic",vmin = - peak, vmax = peak,
-        shading = "gouraud")
-axes.set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
-axes.set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
-figure.colorbar(plot, label = r"$\Delta \theta' \, \mathrm{\left[K\right]}$")
-figure.savefig("../results/hotBubble3D_difference.pdf")
-figure.savefig("../results/hotBubble3D_difference.png")
+if (data.psi != reference.psi).all():
+    figure, axes = pyplot.subplots()
+    peak = numpy.max(numpy.absolute(deltatheta[it, :, iy, :]))
+    plot = axes.pcolormesh(data.xx[:, iy, :], data.zz[:, iy, :],
+            deltatheta[it, :, iy, :], cmap = "seismic",vmin = - peak,
+                    vmax = peak, shading = "gouraud")
+    axes.set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
+    axes.set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
+    figure.colorbar(plot, label = r"$\Delta \theta' \,"
+            r"\mathrm{\left[K\right]}$")
+    figure.savefig("../results/hotBubble3D_difference.pdf")
+    figure.savefig("../results/hotBubble3D_difference.png", dpi = 500)

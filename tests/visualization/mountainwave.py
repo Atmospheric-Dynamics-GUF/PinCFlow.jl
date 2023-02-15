@@ -50,7 +50,7 @@ axes.set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
 axes.set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
 figure.colorbar(plot, label = r"$w \, \mathrm{\left[m \, s^{- 1}\right]}$")
 figure.savefig("../results/mountainwave.pdf")
-figure.savefig("../results/mountainwave.png")
+figure.savefig("../results/mountainwave.png", dpi = 500)
 
 # Make animation.
 if make_animation:
