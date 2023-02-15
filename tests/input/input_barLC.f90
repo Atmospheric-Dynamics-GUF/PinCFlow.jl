@@ -11,9 +11,9 @@
 
 &domain
 
-  sizeX = 84!28!42 !32 !32 !16 !32 !8 !64,          ! nb of global grid cells
-  sizeY = 336!112!168 !256 !128 !256 !64 !512, !FS
-  sizeZ = 300!100!150!20 !30 !80 !240 !240,
+  sizeX = 21!28!42 !32 !32 !16 !32 !8 !64,          ! nb of global grid cells
+  sizeY = 84!112!168 !256 !128 !256 !64 !512, !FS
+  sizeZ = 75!100!150!20 !30 !80 !240 !240,
   nbx = 2,                  ! nb. of ghost cells
   nby = 2,
   nbz = 2,
@@ -22,8 +22,8 @@
   lz_dim =    0.0, 15.e4!3.e4!13.5e4!10.e4
 
   ! nb of processors in x and y direction must be set in the batch file
-  nprocx = 12,
-  nprocy = 48,
+  nprocx = {nprocx},
+  nprocy = {nprocy},
 
 &end
 
@@ -551,8 +551,11 @@
   !presently not used:
   lindUinit = .false.,     ! ind. wind already at initial time (true/false)
 
-  !oror_amp_dim = 50       ! orography amplititude height (m)
-  oror_amp_dim = 5.e2      ! orography amplititude height (m)
+  mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
+  mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
+  mountain_case_wkb = 1         ! WKB orography shape
+                                ! 1 for cosine-shaped envelope
+                                ! 2 for Gaussian envelope
 
   zmin_wkb_dim = 0.0     ! minumum altitude (above the model bottom, in m)
                            ! for WKB wave-mean-flow interaction

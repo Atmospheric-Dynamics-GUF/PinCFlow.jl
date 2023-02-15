@@ -16,6 +16,7 @@ module output_module
   public :: output_field
   public :: output_profile
   public :: output_fluxes
+  public :: output_tfc_background
 
   ! internal subroutines (listed for completeness)
   public :: init_output
@@ -328,7 +329,7 @@ module output_module
 
     if (master) then
       open (40, file = 'pf_all_in.dat', form = "unformatted", access &
-          = 'direct', recl = SizeX * SizeY * sizeofreal)
+          = 'direct', recl = SizeX * SizeY * sizeofreal4)
       print *, "pf_all_in.dat opened"
     end if
 
@@ -528,7 +529,7 @@ module output_module
 
     if (master) then
       open (40, file = 'pf_wkb_mean.dat', form = "unformatted", access &
-          = 'direct', recl = SizeX * SizeY * sizeofreal)
+          = 'direct', recl = SizeX * SizeY * sizeofreal4)
     end if
 
     !---------------------------------------
@@ -730,7 +731,7 @@ module output_module
 
     if (master) then
       open (21, file = filename, form = "unformatted", access = 'direct', recl &
-          = SizeX * SizeY * sizeofreal)
+          = SizeX * SizeY * sizeofreal4)
     end if
 
     !---------------------------------------
@@ -845,7 +846,7 @@ module output_module
 
     if (master) then
       open (21, file = filename, form = "unformatted", access = 'direct', recl &
-          = SizeX * SizeY * sizeofreal)
+          = SizeX * SizeY * sizeofreal4)
     end if
 
     !---------------------------------------
@@ -970,7 +971,7 @@ module output_module
 
     if (master) then
       open (21, file = filename, form = "unformatted", access = 'direct', recl &
-          = SizeX * SizeY * sizeofreal)
+          = SizeX * SizeY * sizeofreal4)
       !      print*,"pf_all_in.dat opened"
     end if
 
@@ -1112,7 +1113,7 @@ module output_module
 
     if (master) then
       open (43, file = 'fluxes.dat', form = "unformatted", access = 'direct', &
-          recl = SizeX * SizeY * sizeofreal)
+          recl = SizeX * SizeY * sizeofreal4)
     end if
 
     ! calc cpu-time in days/hours/minutes/seconds
@@ -1225,5 +1226,87 @@ module output_module
     !iOut = iOut + 1
 
   end subroutine output_fluxes
+
+  !-----------------------------------------------------------------------------
+
+  subroutine output_tfc_background
+
+    character (len = 20) :: filename
+    real * 4, dimension (nx, ny) :: field_prc
+    integer :: i_out, i_mst, i_prc, j_out, j_mst, j_prc
+    integer :: irc_prc
+    integer :: i, j, k
+    integer :: iVar
+
+    ! pStratTFC, thetaStratTFC, rhoStratTFC, bvsStratTFC, piStratTFC
+
+    do iVar = 1, 5
+      ! Set filename.
+      if (iVar == 1) then
+        filename = "pStratTFC.dat"
+      else if (iVar == 2) then
+        filename = "thetaStratTFC.dat"
+      else if (iVar == 3) then
+        filename = "rhoStratTFC.dat"
+      else if (iVar == 4) then
+        filename = "bvsStratTFC.dat"
+      end if
+
+      ! Open file.
+      if (master) then
+        open (42, file = filename, form = "unformatted", access &
+            = "direct", recl = sizeX * sizeY * sizeofreal4)
+      end if
+
+      irc_prc = 0
+
+      do k = 1, nz
+        do j = 1, ny
+          ! Dimensionalize.
+          do i = 1, nx
+            if (iVar == 1) then
+              field_prc(i, j) = pStratTFC(i, j, k) * rhoRef * thetaRef
+            else if (iVar == 2) then
+              field_prc(i, j) = thetaStratTFC(i, j, k) * thetaRef
+            else if (iVar == 3) then
+              field_prc(i, j) = rhoStratTFC(i, j, k) * rhoRef
+            else if (iVar == 4) then
+              field_prc(i, j) = bvsStratTFC(i, j, k) / tRef ** 2.0
+            end if
+          end do
+
+          ! Distribute data over all processors.
+          call mpi_gather(field_prc(1, j), nx, mpi_real, field_mst(1, &
+              j), nx, mpi_real, 0, comm, ierror)
+        end do
+
+        irc_prc = irc_prc + 1
+
+        call mpi_barrier(comm, ierror)
+
+        ! Output layerwise.
+        if (master) then
+          do j = 1, ny
+            j_mst = j
+            do j_prc = 1, nprocy
+              j_out = ny * (j_prc - 1) + j
+              do i_prc = 1, nprocx
+                do i = 1, nx
+                  i_out = nx * (i_prc - 1) + i
+                  i_mst = nprocy * nx * (i_prc - 1) + (j_prc - 1) * nx + i
+                  field_out(i_out, j_out) = field_mst(i_mst, j_mst)
+                end do
+              end do
+            end do
+          end do
+          write (42, rec = irc_prc) field_out
+        end if
+      end do
+
+      ! Close file.
+      if (master) close (unit = 42)
+    end do
+
+  end subroutine output_tfc_background
 
 end module output_module
