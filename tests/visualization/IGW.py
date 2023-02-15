@@ -7,7 +7,7 @@ import matplotlib.pyplot as pyplot
 data = tools.ModelOutput()
 data.import_data("../IGW/")
 reference = tools.ModelOutput()
-reference.import_data("../../../pincflow/tests/IGW/")
+reference.import_data("../IGW/")
 
 # Set plot parameters.
 choice = "xz"
@@ -54,15 +54,17 @@ axes.set_xlabel(xlabel)
 axes.set_ylabel(ylabel)
 figure.colorbar(plot, label = r"$\theta' \, \mathrm{\left[K\right]}$")
 figure.savefig("../results/IGW.pdf")
-figure.savefig("../results/IGW.png")
+figure.savefig("../results/IGW.png", dpi = 500)
 
 # Make difference plot.
-maximum = numpy.max(numpy.abs(deltapsi[5, :, :]))
-figure, axes = pyplot.subplots()
-plot = axes.pcolormesh(xx, yy, deltapsi[5, :, :], vmin = - maximum,
-        vmax = maximum, shading = "gouraud", cmap = "seismic")
-axes.set_xlabel(xlabel)
-axes.set_ylabel(ylabel)
-figure.colorbar(plot, label = r"$\Delta \theta' \, \mathrm{\left[K\right]}$")
-figure.savefig("../results/IGW_difference.pdf")
-figure.savefig("../results/IGW_difference.png")
+if (data.psi != reference.psi).all():
+    maximum = numpy.max(numpy.abs(deltapsi[5, :, :]))
+    figure, axes = pyplot.subplots()
+    plot = axes.pcolormesh(xx, yy, deltapsi[5, :, :], vmin = - maximum,
+            vmax = maximum, shading = "gouraud", cmap = "seismic")
+    axes.set_xlabel(xlabel)
+    axes.set_ylabel(ylabel)
+    figure.colorbar(plot, label = r"$\Delta \theta' \,"
+            r"\mathrm{\left[K\right]}$")
+    figure.savefig("../results/IGW_difference.pdf")
+    figure.savefig("../results/IGW_difference.png", dpi = 500)
