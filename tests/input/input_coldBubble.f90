@@ -12,9 +12,9 @@
 
 &domain
 
-  sizeX = 1024, !1 !16,                  ! nb of global grid cells
+  sizeX = 512, !1 !16,                  ! nb of global grid cells
   sizeY = 1, !64,!48,!64,
-  sizeZ = 128,
+  sizeZ = 64,
   nbx = 2,                  ! nb. of ghost cells
   nby = 2,
   nbz = 2,
@@ -544,8 +544,11 @@
   !presently not used:
   lindUinit = .false.,     ! ind. wind already at initial time (true/false)
 
-  !oror_amp_dim = 50       ! orography amplititude height (m)
-  oror_amp_dim = 5.e2      ! orography amplititude height (m)
+  mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
+  mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
+  mountain_case_wkb = 1         ! WKB orography shape
+                                ! 1 for cosine-shaped envelope
+                                ! 2 for Gaussian envelope
 
   zmin_wkb_dim = 0.0     ! minumum altitude (above the model bottom, in m)
                            ! for WKB wave-mean-flow interaction

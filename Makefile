@@ -19,11 +19,11 @@ endif
 
 # Set path to Hypre library.
 # LIBHYPRE ?= /usr/lib/hypre/src/lib
-LIBHYPRE ?= /home/atmodynamics/jochum/libraries/spack/opt/spack/linux-scientific7-haswell/gcc-4.8.5/hypre-2.26.0-fgfu4ncdxl7ullqryad7jtdzgzqfacjw/lib
+# LIBHYPRE ?= /home/atmodynamics/jochum/libraries/spack/opt/spack/linux-scientific7-haswell/gcc-4.8.5/hypre-2.26.0-fgfu4ncdxl7ullqryad7jtdzgzqfacjw/lib
 
 # Define directories for sources and binaries.
-BIN = ./bin
-BUILD = ./build
+BIN = $(shell mkdir -p ./bin) ./bin
+BUILD = $(shell mkdir -p ./build) ./build
 SOURCE = ./src
 
 # Define *.o files.
@@ -39,7 +39,7 @@ OFILES =	types.o \
 	xweno.o \
 	fluxes.o \
 	boundary.o \
-	hypre_tools.o \
+	bicgstab_tools.o \
 	poisson.o \
 	update.o \
 	output.o \
@@ -57,7 +57,9 @@ $(BUILD)/%.o: $(SOURCE)/%.f90
 
 # Set the main target.
 pinc:$(OBJ)
-	$(FC) $(FCFLAGS) -o $(BIN)/pinc $(OBJ) -L$(LIBHYPRE) -lHYPRE
+	$(FC) $(FCFLAGS) -o $(BIN)/pinc $(OBJ)
+# pinc:$(OBJ)
+# 	$(FC) $(FCFLAGS) -o $(BIN)/pinc $(OBJ) -L$(LIBHYPRE) -lHYPRE
 
 # List dependencies.
 
@@ -85,6 +87,7 @@ $(BUILD)/fluxes.o: $(BUILD)/muscl.o
 $(BUILD)/fluxes.o: $(BUILD)/atmosphere.o
 $(BUILD)/fluxes.o: $(BUILD)/algebra.o
 $(BUILD)/fluxes.o: $(BUILD)/ice.o
+$(BUILD)/fluxes.o: $(BUILD)/sizeof.o
 
 # xweno.f90
 $(BUILD)/xweno.o: $(BUILD)/types.o
@@ -97,8 +100,9 @@ $(BUILD)/debug.o: $(BUILD)/atmosphere.o
 # poisson.f90
 $(BUILD)/poisson.o: $(BUILD)/types.o
 $(BUILD)/poisson.o: $(BUILD)/mpi.o
-$(BUILD)/poisson.o: $(BUILD)/hypre_tools.o
+$(BUILD)/poisson.o: $(BUILD)/bicgstab_tools.o
 $(BUILD)/poisson.o: $(BUILD)/output.o
+$(BUILD)/poisson.o: $(BUILD)/sizeof.o
 
 # wkb.f90
 $(BUILD)/wkb.o: $(BUILD)/types.o
@@ -115,6 +119,7 @@ $(BUILD)/timeScheme.o: $(BUILD)/types.o
 
 # atmosphere.f90
 $(BUILD)/atmosphere.o: $(BUILD)/types.o
+$(BUILD)/atmosphere.o: $(BUILD)/sizeof.o
 
 # init.f90
 $(BUILD)/init.o: $(BUILD)/types.o
@@ -122,6 +127,7 @@ $(BUILD)/init.o: $(BUILD)/ice.o
 $(BUILD)/init.o: $(BUILD)/atmosphere.o
 $(BUILD)/init.o: $(BUILD)/mpi.o
 $(BUILD)/init.o: $(BUILD)/boundary.o
+$(BUILD)/init.o: $(BUILD)/sizeof.o
 
 # muscl.f90
 $(BUILD)/muscl.o: $(BUILD)/types.o

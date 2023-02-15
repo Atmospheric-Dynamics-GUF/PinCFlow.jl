@@ -943,6 +943,14 @@ module wkb_module
 
     integer :: nrsuml, nr_sum
 
+    ! Mountain properties (FJJan2023)
+    real :: mountainHeight_wkb, mountainWidth_wkb
+    real :: x_center, y_center
+    real :: k_mountain_wkb
+
+    ! Long number (FJJan2023)
+    real :: long
+
     ix0 = is + nbx - 1
     jy0 = js + nby - 1
 
@@ -966,6 +974,17 @@ module wkb_module
 
     zrmin = zrmin_dim / lRef
     zrmax = zrmax_dim / lRef
+
+    ! FJJan2023
+    mountainHeight_wkb = mountainHeight_wkb_dim / lRef
+    mountainWidth_wkb = mountainWidth_wkb_dim / lRef
+
+    ! FJJan2023
+    x_center = 0.5 * (lx(1) + lx(0))
+    y_center = 0.5 * (ly(1) + ly(0))
+
+    ! FJJan2023
+    k_mountain_wkb = pi / mountainWidth_wkb
 
     !-------------------------------------------
     ! compute maximum number of ray volumes  ...
@@ -1194,38 +1213,91 @@ module wkb_module
           fld_amp(ix, jy, 0) = 0.0
           wnrm = 0.0
 
-          if ((sigwpx == 0.0 .or. abs(x(ix + ix0) - xr0) < sigwpx) .and. &
-              (sigwpy == 0.0 .or. abs(y(jy + jy0) - yr0) < sigwpy)) then
-            if (abs(omi_sfc(ix, jy)) <= f_cor_nd) then
-              fld_amp(ix, jy, 0) = 0.0
-              wnrm = 0.0
-            elseif (abs(omi_sfc(ix, jy)) < sqrt(NN_nd)) then
-              wnrm = - branchr * sqrt(wnrh_init ** 2 * (NN_nd - omi_sfc(ix, &
-                  jy) ** 2) / (omi_sfc(ix, jy) ** 2 - f_cor_nd ** 2))
+          ! FJJan2023
+          ! if ((sigwpx == 0.0 .or. abs(x(ix + ix0) - xr0) < sigwpx) .and. &
+          !     (sigwpy == 0.0 .or. abs(y(jy + jy0) - yr0) < sigwpy)) then
+          if (abs(omi_sfc(ix, jy)) <= f_cor_nd) then
+            fld_amp(ix, jy, 0) = 0.0
+            wnrm = 0.0
+          elseif (abs(omi_sfc(ix, jy)) < sqrt(NN_nd)) then
+            wnrm = - branchr * sqrt(wnrh_init ** 2 * (NN_nd - omi_sfc(ix, &
+                jy) ** 2) / (omi_sfc(ix, jy) ** 2 - f_cor_nd ** 2))
 
-              !  displacement
-              displm = oror_amp_dim / lRef
-
-              if (sigwpx > 0.0) then
-                displm = displm * 0.5 * (1.0 + cos(pi * (x(ix + ix0) - xr0) &
-                    / sigwpx))
+            ! Displacement (FJJan2023)
+            displm = 0.0
+            if (mountain_case_wkb == 1) then
+              if (sizeX /= 1 .and. sizeY == 1) then
+                if (abs(x(ix + ix0) - x_center) <= mountainWidth_wkb) then
+                  displm = 0.5 * mountainHeight_wkb * (1.0 &
+                      + cos(k_mountain_wkb * (x(ix + ix0) - x_center)))
+                end if
+              else if (sizeX == 1 .and. sizeY /= 1) then
+                if (abs(y(jy + jy0) - y_center) <= mountainWidth_wkb) then
+                  displm = 0.5 * mountainHeight_wkb * (1.0 &
+                      + cos(k_mountain_wkb * (y(jy + jy0) - y_center)))
+                end if
+              else
+                if (abs(x(ix + ix0) - x_center) <= mountainWidth_wkb .and. &
+                    abs(y(jy + jy0) - y_center) <= mountainWidth_wkb) then
+                  displm = 0.25 * mountainHeight_wkb * (1.0 &
+                      + cos(k_mountain_wkb * (x(ix + ix0) - x_center))) &
+                      * (1.0 + cos(k_mountain_wkb * (y(jy + jy0) &
+                      - y_center)))
+                end if
               end if
-
-              if (sigwpy > 0.0) then
-                displm = displm * 0.5 * (1.0 + cos(pi * (y(jy + jy0) - yr0) &
-                    / sigwpy))
+            else if (mountain_case_wkb == 2) then
+              if (sizeX /= 1 .and. sizeY == 1) then
+                displm = mountainHeight_wkb * exp(- ((x(ix + ix0) &
+                    - x_center) / mountainWidth_wkb) ** 2.0)
+              else if (sizeX == 1 .and. sizeY /= 1) then
+                displm = mountainHeight_wkb * exp(- ((y(jy + jy0) &
+                    - y_center) / mountainWidth_wkb) ** 2.0)
+              else
+                displm = mountainHeight_wkb * exp(- ((x(ix + ix0) &
+                    - x_center) / mountainWidth_wkb) ** 2.0 - ((y(jy + jy0) &
+                    - y_center) / mountainWidth_wkb) ** 2.0)
               end if
-
-              ! surface wave-action density
-
-              fld_amp(ix, jy, 0) = 0.5 * rhoStrat(0) * displm ** 2 &
-                  * omi_sfc(ix, jy) * (wnrh_init ** 2 + wnrm ** 2) / wnrh_init &
-                  ** 2
-            else
-              fld_amp(ix, jy, 0) = 0.0
-              wnrm = 0.0
             end if
+
+            ! FJJan2023
+            ! displacement
+            ! displm = mountainHeight_wkb_dim / lRef
+            ! if (sigwpx > 0.0) then
+            !   displm = displm * 0.5 * (1.0 + cos(pi * (x(ix + ix0) - xr0) &
+            !       / sigwpx))
+            ! end if
+
+            ! if (sigwpy > 0.0) then
+            !   displm = displm * 0.5 * (1.0 + cos(pi * (y(jy + jy0) - yr0) &
+            !       / sigwpy))
+            ! end if
+
+            ! Long number scaling (FJJan2023)
+            if (long_scaling) then
+              ! Compute Long number.
+              long = mountainHeight_wkb * sqrt(NN_nd / (var(ix, jy, 1, 2) &
+                  ** 2.0 + var(ix, jy, 1, 3) ** 2.0))
+              if (long_fit == 0) then
+                ! Apply constant scaling.
+                displm = displm * along
+              else if (long_fit == 1) then
+                ! Apply exponential scaling.
+                displm = displm * along * (1.0 - exp(- blong / long))
+              else if (long_fit == 2) then
+                ! Apply nonlinear scaling.
+                displm = displm * along / long / (1.0 + blong / long)
+              end if
+            end if
+
+            ! surface wave-action density
+            fld_amp(ix, jy, 0) = 0.5 * rhoStrat(0) * displm ** 2 &
+                * omi_sfc(ix, jy) * (wnrh_init ** 2 + wnrm ** 2) / wnrh_init &
+                ** 2
+          else
+            fld_amp(ix, jy, 0) = 0.0
+            wnrm = 0.0
           end if
+          ! end if
 
           wnm_sfc(ix, jy) = wnrm
         end do
@@ -5144,6 +5216,14 @@ module wkb_module
 
     real :: ddxdt, ddydt, ddzdt
 
+    ! Mountain properties (FJJan2023)
+    real :: mountainHeight_wkb, mountainWidth_wkb
+    real :: x_center, y_center
+    real :: k_mountain_wkb
+
+    ! Long number (FJJan2023)
+    real :: long
+
     ix0 = is + nbx - 1
     jy0 = js + nby - 1
 
@@ -5177,13 +5257,26 @@ module wkb_module
 
       wnrm_init = 2.0 * pi / wlrz_init * lRef
 
-      xr0 = xr0_dim / lRef
-      yr0 = yr0_dim / lRef
-      zr0 = zr0_dim / lRef
+      ! FJJan2023
+      ! xr0 = xr0_dim / lRef
+      ! yr0 = yr0_dim / lRef
+      ! zr0 = zr0_dim / lRef
 
-      sigwpx = sigwpx_dim / lRef
-      sigwpy = sigwpx_dim / lRef
-      sigwpz = sigwpz_dim / lRef
+      ! FJJan2023
+      ! sigwpx = sigwpx_dim / lRef
+      ! sigwpy = sigwpx_dim / lRef
+      ! sigwpz = sigwpz_dim / lRef
+
+      ! FJJan2023
+      mountainHeight_wkb = mountainHeight_wkb_dim / lRef
+      mountainWidth_wkb = mountainWidth_wkb_dim / lRef
+
+      ! FJJan2023
+      x_center = 0.5 * (lx(1) + lx(0))
+      y_center = 0.5 * (ly(1) + ly(0))
+
+      ! FJJan2023
+      k_mountain_wkb = pi / mountainWidth_wkb
 
       ! nondimensional wave-number widths to be filled by ray volumes
 
@@ -5251,37 +5344,90 @@ module wkb_module
             amp = 0.0
             wnrm = 0.0
 
-            if ((sigwpx == 0.0 .or. abs(x(ix + ix0) - xr0) < sigwpx) .and. &
-                (sigwpy == 0.0 .or. abs(y(jy + jy0) - yr0) < sigwpy)) then
-              if (abs(omir) <= f_cor_nd) then
-                amp = 0.0
-                wnrm = 0.0
-              elseif (omir ** 2 < NN_nd) then
-                wnrm = - branchr * sqrt(wnrh_init ** 2 * (NN_nd - omir ** 2) &
-                    / (omir ** 2 - f_cor_nd ** 2))
+            ! FJJan2023
+            ! if ((sigwpx == 0.0 .or. abs(x(ix + ix0) - xr0) < sigwpx) .and. &
+            !     (sigwpy == 0.0 .or. abs(y(jy + jy0) - yr0) < sigwpy)) then
+            if (abs(omir) <= f_cor_nd) then
+              amp = 0.0
+              wnrm = 0.0
+            elseif (omir ** 2 < NN_nd) then
+              wnrm = - branchr * sqrt(wnrh_init ** 2 * (NN_nd - omir ** 2) &
+                  / (omir ** 2 - f_cor_nd ** 2))
 
-                !  displacement
-                displm = oror_amp_dim / lRef
-
-                if (sigwpx > 0.0) then
-                  displm = displm * 0.5 * (1.0 + cos(pi * (x(ix + ix0) - xr0) &
-                      / sigwpx))
+              ! Displacement (FJJan2023)
+              displm = 0.0
+              if (mountain_case_wkb == 1) then
+                if (sizeX /= 1 .and. sizeY == 1) then
+                  if (abs(x(ix + ix0) - x_center) <= mountainWidth_wkb) then
+                    displm = 0.5 * mountainHeight_wkb * (1.0 &
+                        + cos(k_mountain_wkb * (x(ix + ix0) - x_center)))
+                  end if
+                else if (sizeX == 1 .and. sizeY /= 1) then
+                  if (abs(y(jy + jy0) - y_center) <= mountainWidth_wkb) then
+                    displm = 0.5 * mountainHeight_wkb * (1.0 &
+                        + cos(k_mountain_wkb * (y(jy + jy0) - y_center)))
+                  end if
+                else
+                  if (abs(x(ix + ix0) - x_center) <= mountainWidth_wkb .and. &
+                      abs(y(jy + jy0) - y_center) <= mountainWidth_wkb) then
+                    displm = 0.25 * mountainHeight_wkb * (1.0 &
+                        + cos(k_mountain_wkb * (x(ix + ix0) - x_center))) &
+                        * (1.0 + cos(k_mountain_wkb * (y(jy + jy0) &
+                        - y_center)))
+                  end if
                 end if
-
-                if (sigwpy > 0.0) then
-                  displm = displm * 0.5 * (1.0 + cos(pi * (y(jy + jy0) - yr0) &
-                      / sigwpy))
+              else if (mountain_case_wkb == 2) then
+                if (sizeX /= 1 .and. sizeY == 1) then
+                  displm = mountainHeight_wkb * exp(- ((x(ix + ix0) &
+                      - x_center) / mountainWidth_wkb) ** 2.0)
+                else if (sizeX == 1 .and. sizeY /= 1) then
+                  displm = mountainHeight_wkb * exp(- ((y(jy + jy0) &
+                      - y_center) / mountainWidth_wkb) ** 2.0)
+                else
+                  displm = mountainHeight_wkb * exp(- ((x(ix + ix0) &
+                      - x_center) / mountainWidth_wkb) ** 2.0 - ((y(jy + jy0) &
+                      - y_center) / mountainWidth_wkb) ** 2.0)
                 end if
-
-                ! surface wave-action density
-
-                amp = 0.5 * rhoStrat(0) * displm ** 2 * omir * (wnrh_init ** 2 &
-                    + wnrm ** 2) / wnrh_init ** 2
-              else
-                amp = 0.0
-                wnrm = 0.0
               end if
+
+              ! FJJan2023
+              ! displacement
+              ! displm = mountainHeight_wkb_dim / lRef
+              ! if (sigwpx > 0.0) then
+              !   displm = displm * 0.5 * (1.0 + cos(pi * (x(ix + ix0) - xr0) &
+              !       / sigwpx))
+              ! end if
+
+              ! if (sigwpy > 0.0) then
+              !   displm = displm * 0.5 * (1.0 + cos(pi * (y(jy + jy0) - yr0) &
+              !       / sigwpy))
+              ! end if
+
+              ! Long number scaling (FJJan2023)
+              if (long_scaling) then
+                ! Compute Long number.
+                long = mountainHeight_wkb * sqrt(NN_nd / (var(ix, jy, 1, 2) &
+                    ** 2.0 + var(ix, jy, 1, 3) ** 2.0))
+                if (long_fit == 0) then
+                  ! Apply constant scaling.
+                  displm = displm * along
+                else if (long_fit == 1) then
+                  ! Apply exponential scaling.
+                  displm = displm * along * (1.0 - exp(- blong / long))
+                else if (long_fit == 2) then
+                  ! Apply nonlinear scaling.
+                  displm = displm * along / long / (1.0 + blong / long)
+                end if
+              end if
+
+              ! surface wave-action density
+              amp = 0.5 * rhoStrat(0) * displm ** 2 * omir * (wnrh_init ** 2 &
+                  + wnrm ** 2) / wnrh_init ** 2
+            else
+              amp = 0.0
+              wnrm = 0.0
             end if
+            ! end if
 
             ! only launch new ray volume if wave-action-density is
             ! non-zero

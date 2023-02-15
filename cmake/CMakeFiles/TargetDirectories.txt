@@ -1,3 +1,0 @@
-/home/felix/documents/dissertation/code/pincflow/cmake/CMakeFiles/pinc.dir
-/home/felix/documents/dissertation/code/pincflow/cmake/CMakeFiles/edit_cache.dir
-/home/felix/documents/dissertation/code/pincflow/cmake/CMakeFiles/rebuild_cache.dir
