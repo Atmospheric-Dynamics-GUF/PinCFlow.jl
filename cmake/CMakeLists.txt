@@ -42,7 +42,7 @@ include_directories(${MPI_Fortran_INCLUDE_PATH})
 
 # Set link to HYPRE library.
 # set(HYPRE /usr/lib/x86_64-linux-gnu/libHYPRE-2.22.1.so)
-set(HYPRE /home/atmodynamics/jochum/libraries/spack/opt/spack/linux-scientific7-haswell/gcc-4.8.5/hypre-2.26.0-fgfu4ncdxl7ullqryad7jtdzgzqfacjw/lib/libHYPRE.so)
+# set(HYPRE /home/atmodynamics/jochum/libraries/spack/opt/spack/linux-scientific7-haswell/gcc-4.8.5/hypre-2.26.0-fgfu4ncdxl7ullqryad7jtdzgzqfacjw/lib/libHYPRE.so)
 
 # Compile executable.
 add_executable(pinc
@@ -59,7 +59,7 @@ add_executable(pinc
         ../src/xweno.f90
         ../src/fluxes.f90
         ../src/boundary.f90
-        ../src/hypre_tools.f90
+        ../src/bicgstab_tools.f90
         ../src/poisson.f90
         ../src/update.f90
         ../src/output.f90
@@ -69,7 +69,7 @@ add_executable(pinc
         )
 
 # Link MPI and Hypre from system libraries.
-target_link_libraries(pinc ${MPI_Fortran_LIBRARIES} ${HYPRE})
+target_link_libraries(pinc ${MPI_Fortran_LIBRARIES})# ${HYPRE})
 
 # Inform about debug options.
 message("[INFO] Compiler ID is " ${CMAKE_Fortran_COMPILER_ID})

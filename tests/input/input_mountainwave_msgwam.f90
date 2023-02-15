@@ -13,7 +13,7 @@
 
   sizeX = 128 !512 !256 !128 !256 !1024,                  ! nb of global grid cells
   sizeY = 1,
-  sizeZ = 128 !1024 !512 !256 !512 !2048,
+  sizeZ = 32 !1024 !512 !256 !512 !2048,
   nbx = 3,                  ! nb. of ghost cells
   nby = 3,
   nbz = 3,
@@ -185,7 +185,7 @@
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 1.8-2     ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 1.8e-2    ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
@@ -265,7 +265,7 @@
   maxIter = 10             ! stop after maxIter time steps
 
   outputTimeDiff =  172800  ! output every ... seconds
-  maxTime = 172800         ! stop after maxTime seconds
+  maxTime = 172800          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -473,9 +473,9 @@
   fac_dm_init = 0.1,     ! init. width of total ray vol. in m space
                            ! (fraction of the initial vert. wave number)
 
-  nrk_init = 2,            ! no. of ray volumes initialized within dk
+  nrk_init = 1,            ! no. of ray volumes initialized within dk
   nrl_init = 1,            ! no. of ray volumes initialized within dl
-  nrm_init = 2,            ! no. of ray volumes initialized within dm
+  nrm_init = 1,            ! no. of ray volumes initialized within dm
 
   nsmth_wkb = 2,           ! half (number -1) of cells f. smooth. wkb fluxes
   lsmth_wkb = .true.,      ! log. switch for smooth. wkb data (true/false)
@@ -507,8 +507,11 @@
   !presently not used:
   lindUinit = .false.,     ! ind. wind already at initial time (true/false)
 
-  !oror_amp_dim = 50       ! orography amplititude height (m)
-  oror_amp_dim = 500.0      ! orography amplititude height (m)
+  mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
+  mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
+  mountain_case_wkb = 1         ! WKB orography shape
+                                ! 1 for cosine-shaped envelope
+                                ! 2 for Gaussian envelope
 
   zmin_wkb_dim = 1000.0     ! minumum altitude (above the model bottom, in m)
                            ! for WKB wave-mean-flow interaction
@@ -542,7 +545,7 @@
                          ! temporary wind relexation
 
 
-  t_relax = 172800.0     ! [s] total relaxation time
+  t_relax = 172800.0      ! [s] total relaxation time
 
   t_ramp = 3.6e3         ! [s] duration of ramping up/down the relaxation
 

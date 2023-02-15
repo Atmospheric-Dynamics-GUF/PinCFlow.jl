@@ -264,7 +264,14 @@ module type_module
   integer :: branchr
   logical :: lindUinit
 
-  real :: oror_amp_dim ! Jan Weinkaemmerer, 27.11.18
+  real :: mountainHeight_wkb_dim ! Jan Weinkaemmerer, 27.11.18
+  real :: mountainWidth_wkb_dim ! FJJan2023
+  integer :: mountain_case_wkb
+
+  ! Long number scaling of displacement (FJJan2023)
+  logical :: long_scaling
+  integer :: long_fit
+  real :: along, blong
 
   real :: zmin_wkb_dim, zmin_wkb
 
@@ -281,8 +288,9 @@ module type_module
       fac_dm_init, nrk_init, nrl_init, nrm_init, nsmth_wkb, lsmth_wkb, &
       sm_filter, lsaturation, alpha_sat, case_wkb, amp_wkb, wlrx_init, &
       wlry_init, wlrz_init, xr0_dim, yr0_dim, zr0_dim, sigwpx_dim, sigwpy_dim, &
-      sigwpz_dim, branchr, lindUinit, oror_amp_dim, zmin_wkb_dim, nray_fac, &
-      cons_merge ! JaWi: new nml!      ! Jan Weinkaemmerer, 27.11.18
+      sigwpz_dim, branchr, lindUinit, mountainHeight_wkb_dim, &
+      mountainWidth_wkb_dim, mountain_case_wkb, long_scaling, long_fit, &
+      along, blong, zmin_wkb_dim, nray_fac, cons_merge ! JaWi: new nml!      ! Jan Weinkaemmerer, 27.11.18
 
   !------------------------------------------
   ! hotBubble, coldBubble, hotBubble3D
@@ -539,10 +547,10 @@ module type_module
   integer :: nnz ! number of nonzeros
 
   ! hypre and bicgstab objects
-  integer * 8 grid_hypre, stencil_e, stencil_i, A_hp_e, A_hp_i, b_hp_e, &
-      b_hp_i, x_hp_e, x_hp_i, solver_hp_e, solver_hp_i
-  real, dimension (:), allocatable :: values_e
-  real, dimension (:), allocatable :: values_i
+  ! integer * 8 grid_hypre, stencil_e, stencil_i, A_hp_e, A_hp_i, b_hp_e, &
+  !     b_hp_i, x_hp_e, x_hp_i, solver_hp_e, solver_hp_i
+  ! real, dimension (:), allocatable :: values_e
+  ! real, dimension (:), allocatable :: values_i
   !UAC real, dimension(:,:,:), allocatable :: ac_b, al_b,ar_b, ab_b,af_b, &
   real, dimension (:, :, :), allocatable :: ac_b, acv_b, ach_b, al_b, ar_b, &
       ab_b, af_b, ad_b, au_b, alb_b, alf_b, arb_b, arf_b
@@ -553,18 +561,18 @@ module type_module
       afd_b, abu_b, abd_b, auu_b, add_b, aruu_b, ardd_b, aluu_b, aldd_b, &
       afuu_b, afdd_b, abuu_b, abdd_b
 
-  real, dimension (:), allocatable :: bvalue_vector_hypre, xvalue_vector_hypre
+  ! real, dimension (:), allocatable :: bvalue_vector_hypre, xvalue_vector_hypre
 
   !achatzb
   !integer, dimension(:), allocatable :: stencil_indices_hypre
-  integer, dimension (:), allocatable :: stencil_indices_e
-  integer, dimension (:), allocatable :: stencil_indices_i
+  ! integer, dimension (:), allocatable :: stencil_indices_e
+  ! integer, dimension (:), allocatable :: stencil_indices_i
   !achatze
 
   !achatzb
   !integer, parameter :: nentries_hypre = 7
-  integer, parameter :: ne_hypre_e = 7
-  integer, parameter :: ne_hypre_i = 11
+  ! integer, parameter :: ne_hypre_e = 7
+  ! integer, parameter :: ne_hypre_i = 11
   !achatze
 
   !-----------------------------------------------------------------
@@ -834,6 +842,12 @@ module type_module
     spongeTFC = .false.
     lateralSponge = .false.
     relax_background = .true.
+
+    ! Long number scaling (FJJan2023)
+    long_scaling = .false.
+    long_fit = 1
+    along = 0.5
+    blong = 1.0
 
   end subroutine default_values
 

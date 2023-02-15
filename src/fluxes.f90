@@ -6,6 +6,7 @@ module flux_module
   use atmosphere_module
   use algebra_module
   use ice_module
+  use sizeof_module
 
   implicit none
 
@@ -6088,7 +6089,7 @@ module flux_module
         if (.not. testTFC) then
           recTFC = (iOut - 2) * nStages + RKStage
           open (42, file = "momentum_flux_divergence_error.dat", form &
-              = "unformatted", access = "direct", recl = 2)
+              = "unformatted", access = "direct", recl = 2 * sizeofreal4)
           write (42, rec = recTFC) sumOut1, sumOut2
           close (42)
         end if
