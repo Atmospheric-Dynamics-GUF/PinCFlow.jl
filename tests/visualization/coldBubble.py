@@ -7,14 +7,14 @@ import matplotlib.pyplot as pyplot
 data = tools.ModelOutput()
 data.import_data("../coldBubble/")
 reference = tools.ModelOutput()
-reference.import_data("../../../pincflow/tests/coldBubble/")
+reference.import_data("../coldBubble/")
 
 # Set plot parameters.
 choice = "xz"
-it = 3
-ix = 32
+it = - 1
+ix = 16
 iy = 0
-iz = 14
+iz = 7
 
 # Print time.
 print(" ".join(("Time:", str(data.tt[it]), "s")))
@@ -63,15 +63,17 @@ axes.set_xlabel(xlabel)
 axes.set_ylabel(ylabel)
 figure.colorbar(plot, label = r"$\theta' \, \mathrm{\left[K\right]}$")
 figure.savefig("../results/coldBubble.pdf")
-figure.savefig("../results/coldBubble.png")
+figure.savefig("../results/coldBubble.png", dpi = 500)
 
 # Make difference plot.
-maximum = numpy.max(numpy.abs(deltapsi[5, :, :]))
-figure, axes = pyplot.subplots()
-plot = axes.pcolormesh(xx, yy, deltapsi[5, :, :], vmin = - maximum,
-        vmax = maximum, shading = "gouraud", cmap = "seismic")
-axes.set_xlabel(xlabel)
-axes.set_ylabel(ylabel)
-figure.colorbar(plot, label = r"$\Delta \theta' \, \mathrm{\left[K\right]}$")
-figure.savefig("../results/coldBubble_difference.pdf")
-figure.savefig("../results/coldBubble_difference.png")
+if (data.psi != reference.psi).all():
+    maximum = numpy.max(numpy.abs(deltapsi[5, :, :]))
+    figure, axes = pyplot.subplots()
+    plot = axes.pcolormesh(xx, yy, deltapsi[5, :, :], vmin = - maximum,
+            vmax = maximum, shading = "gouraud", cmap = "seismic")
+    axes.set_xlabel(xlabel)
+    axes.set_ylabel(ylabel)
+    figure.colorbar(plot, label = r"$\Delta \theta' \,"
+            r"\mathrm{\left[K\right]}$")
+    figure.savefig("../results/coldBubble_difference.pdf")
+    figure.savefig("../results/coldBubble_difference.png", dpi = 500)
