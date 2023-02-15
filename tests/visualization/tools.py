@@ -42,6 +42,7 @@ class ModelOutput():
 
         # Save to dictionary.
         input = {keys[nn]: values[nn] for nn in range(len(keys))}
+        self.input = input
 
         # Set attributes.
         self.nx = input["sizeX"]
@@ -65,6 +66,7 @@ class ModelOutput():
         if self.topography:
             self.h0 = input["mountainHeight_dim"]
             self.l0 = input["mountainWidth_dim"]
+            self.r0 = input["range_fac"]
 
         # Define grid spacing.
         self.dx = self.lx / self.nx
@@ -111,7 +113,29 @@ class ModelOutput():
                     dtype = "float32")
             self.hh = numpy.reshape(hh, (self.ny, self.nx))
 
-    def transform_data(self, interpolation = False):
+        # Import TFC background fields.
+        if self.topography:
+            pbar = numpy.fromfile("".join((path, "pStratTFC.dat")),
+                    dtype = "float32")
+            self.pbar = numpy.reshape(pbar, (self.nz, self.ny, self.nx))
+            thetabar = numpy.fromfile("".join((path, "thetaStratTFC.dat")),
+                    dtype = "float32")
+            self.thetabar = numpy.reshape(thetabar, (self.nz, self.ny, self.nx))
+            rhobar = numpy.fromfile("".join((path, "rhoStratTFC.dat")),
+                    dtype = "float32")
+            self.rhobar = numpy.reshape(rhobar, (self.nz, self.ny, self.nx))
+            n2bar = numpy.fromfile("".join((path, "bvsStratTFC.dat")),
+                    dtype = "float32")
+            self.n2bar = numpy.reshape(n2bar, (self.nz, self.ny, self.nx))
+
+        # Import WKB data.
+        if self.input["rayTracer"]:
+            wkb = numpy.fromfile("".join((path, "pf_wkb_mean.dat")), dtype =
+                    "float32")
+            self.wkb = numpy.reshape(wkb, (self.nt, 6, self.nz, self.ny,
+                    self.nx))
+
+    def transform_data(self, interpolation = False, fill_value = None):
         """Transform and interpolate data."""
 
         if self.topography:
@@ -145,7 +169,7 @@ class ModelOutput():
                         - self.hh[- 1, :]))
 
             # Compute Cartesian height.
-            self.zc = jj * self.zz + self.hh
+            self.zc = (jj * self.zz + self.hh).copy()
 
             # Compute Cartesian vertical wind.
             self.psi[:, 3, :, :, :] = (jj * self.psi[:, 3, :, :, :] - jj
@@ -155,18 +179,22 @@ class ModelOutput():
             # Interpolate to Cartesian grid (NumPy is way faster than SciPy).
             # This is not recommended for large arrays!
             if interpolation:
-                psi = [[[[numpy.interp(self.zz[:, iy, ix], self.zc[:, iy, ix],
-                        self.psi[it, ipsi, :, iy, ix]) for ix
-                        in range(self.nx)] for iy in range(self.ny)] for ipsi
-                        in range(self.npsi)] for it in range(self.nt)]
-                psi = numpy.array(psi)
-                self.psi[:, :, :, :, :] = numpy.moveaxis(psi, 4, 2)
-                self.zc = self.zz
+                for it in range(self.nt):
+                    for ipsi in range(self.npsi):
+                        for iy in range(self.ny):
+                            for ix in range(self.nx):
+                                psi = numpy.interp(self.zz[:, iy, ix],
+                                        self.zc[:, iy, ix], self.psi[it, ipsi,
+                                        :, iy, ix])
+                                self.psi[it, ipsi, :, iy, ix] = psi
+                self.psi[:, :, self.zz < self.hh[numpy.newaxis, :,
+                        :]] = fill_value
+                self.zc = self.zz.copy()
 
         else:
 
             # Model uses Cartesian height coordinate.
-            self.zc = self.zz
+            self.zc = self.zz.copy()
 
     def write_data(self, path):
         """Write data into a NETCDF4 file."""

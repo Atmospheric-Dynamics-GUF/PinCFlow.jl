@@ -23,7 +23,7 @@ program pinc_prog
   use finish_module
   use ice_module
   use sizeof_module
-  use hypretools_module
+  use bicgstab_tools_module
 
   ! test
   use algebra_module
@@ -229,12 +229,12 @@ program pinc_prog
 
   var(:, :, :, 8) = 0.0 ! Heating due to GWs in the rotating atmosphere
 
-  if (poissonSolverType == 'hypre') then
-    call SetUpHypre ! Set Up Hypre objects
-  else if (poissonSolverType == 'bicgstab') then
+  if (poissonSolverType == 'bicgstab') then
     call SetUpBiCGStab ! Set BiCGStab arrays
+  ! else if (poissonSolverType == 'hypre') then
+  !   call SetUpHypre ! Set Up Hypre objects
   else
-    stop 'ERROR: only HYPRE and BiCGStab ready to be used'
+    stop 'ERROR: only BiCGStab ready to be used'
   end if
 
   call init_xweno ! set ILES parameters
@@ -421,6 +421,8 @@ program pinc_prog
     call output_profile(iOut, rhoStrat, 'rhostrat')
     call output_profile(iOut, thetaStrat, 'thetastrat')
     call output_profile(iOut, bvsstrat, 'bvsstrat')
+  else if (topography .and. model /= "Boussinesq") then
+    call output_tfc_background()
   end if
 
   if (rayTracer) then
@@ -1861,12 +1863,12 @@ program pinc_prog
   call terminate_atmosphere
   call terminate_output
 
-  if (poissonSolverType == 'hypre') then
-    call CleanUpHypre ! Clean Up Hypre objects
-  else if (poissonSolverType == 'bicgstab') then
+  if (poissonSolverType == 'bicgstab') then
     call CleanUpBiCGSTab ! Clean Up BiCGSTAB arrays
+  ! else if (poissonSolverType == 'hypre') then
+  !   call CleanUpHypre ! Clean Up Hypre objects
   else
-    stop 'ERROR: HYPRE or BiCGSTab expected as Poisson solvers'
+    stop 'ERROR: BICGSTAB expected as Poisson solver'
   end if
 
   if (master) then

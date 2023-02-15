@@ -543,8 +543,11 @@
   !presently not used:
   lindUinit = .false.,     ! ind. wind already at initial time (true/false)
 
-  !oror_amp_dim = 50       ! orography amplititude height (m)
-  oror_amp_dim = 5.e2      ! orography amplititude height (m)
+  mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
+  mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
+  mountain_case_wkb = 1         ! WKB orography shape
+                                ! 1 for cosine-shaped envelope
+                                ! 2 for Gaussian envelope
 
   zmin_wkb_dim = 0.0     ! minumum altitude (above the model bottom, in m)
                            ! for WKB wave-mean-flow interaction
@@ -675,7 +678,7 @@
                                 ! potential-temperature perturbation (m)
   ptptb_z_dim = 9.e3            ! z coordinate of local
                                 ! potential-temperature perturbation (m)
-  ptptb_dh_dim = 8.e5 !6.e5           ! horizontal width of local 
+  ptptb_dh_dim = 8.e5 !6.e5           ! horizontal width of local
                                 ! potential-temperature perturbation  (m)
   ptptb_dz_dim = 2.e3           ! vertical width of local
                                 ! potential-temperature perturbation  (m)
