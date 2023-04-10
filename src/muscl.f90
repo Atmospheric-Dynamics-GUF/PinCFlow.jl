@@ -35,12 +35,12 @@ module muscl_module
     !-------------------------------------------------------------
 
     ! in/out
-    integer, intent (in) :: sizeX, sizeY, sizeZ
-    real, dimension (sizeX, sizeY, sizeZ), intent (in) :: uBar
-    real, dimension (sizeX, sizeY, sizeZ, 1:3, 0:1), intent (out) :: uTilde
+    integer, intent(in) :: sizeX, sizeY, sizeZ
+    real, dimension(sizeX, sizeY, sizeZ), intent(in) :: uBar
+    real, dimension(sizeX, sizeY, sizeZ, 1:3, 0:1), intent(out) :: uTilde
     ! 1:3 -> spation dimension to be reconstrueced, 1=x, 2=y, 3=z
     ! 0:1 -> 0 = left/right or backward/forward or down/up
-    character (len = *), intent (in) :: limiter
+    character(len = *), intent(in) :: limiter
 
     ! local fields
 
@@ -64,20 +64,20 @@ module muscl_module
     !-------------------------------------------------------------
 
     ! in/out
-    integer, intent (in) :: sizeX, sizeY, sizeZ
-    real, dimension (sizeX, sizeY, sizeZ), intent (in) :: u
-    real, dimension (sizeX, sizeY, sizeZ, 1:3, 0:1), intent (out) :: uTilde
+    integer, intent(in) :: sizeX, sizeY, sizeZ
+    real, dimension(sizeX, sizeY, sizeZ), intent(in) :: u
+    real, dimension(sizeX, sizeY, sizeZ, 1:3, 0:1), intent(out) :: uTilde
     ! 1:3 -> spation dimension to be reconstrueced, 1=x, 2=y, 3=z
     ! 0:1 -> 0 = left/right or backward/forward or down/up
-    character (len = *), intent (in) :: limiterType
+    character(len = *), intent(in) :: limiterType
 
     ! local fields
-    real, dimension (sizeX) :: phiX
-    real, dimension (sizeX, 0:1) :: phiTildeX
-    real, dimension (sizeY) :: phiY
-    real, dimension (sizeY, 0:1) :: phiTildeY
-    real, dimension (sizeZ) :: phiZ
-    real, dimension (sizeZ, 0:1) :: phiTildeZ
+    real, dimension(sizeX) :: phiX
+    real, dimension(sizeX, 0:1) :: phiTildeX
+    real, dimension(sizeY) :: phiY
+    real, dimension(sizeY, 0:1) :: phiTildeY
+    real, dimension(sizeZ) :: phiZ
+    real, dimension(sizeZ, 0:1) :: phiTildeZ
 
     ! local vars
     integer :: i, j, k
@@ -85,9 +85,9 @@ module muscl_module
     ! debuggung
     logical, parameter :: debugging = .true.
 
-    select case (limiterType)
+    select case(limiterType)
 
-    case ('minmod')
+    case('minmod')
 
       ! reconstruction in x-direction
       do k = 2, sizeZ - 1
@@ -116,7 +116,7 @@ module muscl_module
         end do
       end do
 
-    case ('MCVariant')
+    case('MCVariant')
 
       ! reconstruction in x-direction
       do k = 2, sizeZ - 1
@@ -148,7 +148,7 @@ module muscl_module
         end do
       end do
 
-    case ('Cada')
+    case('Cada')
 
       ! reconstruction in x-direction
       do k = 2, sizeZ - 1
@@ -253,9 +253,9 @@ module muscl_module
     !-------------------------------------
 
     ! in/out
-    integer, intent (in) :: phiSize
-    real, dimension (phiSize), intent (in) :: phi
-    real, dimension (phiSize, 0:1), intent (out) :: phiTilde
+    integer, intent(in) :: phiSize
+    real, dimension(phiSize), intent(in) :: phi
+    real, dimension(phiSize, 0:1), intent(out) :: phiTilde
 
     ! local varibales
     real :: deltaR, deltaL, theta
@@ -271,12 +271,12 @@ module muscl_module
       deltaL = phi(i) - phi(i - 1)
       deltaR = phi(i + 1) - phi(i)
 
-      if (deltaR == 0.) then
+      if(deltaR == 0.) then
 
         phiTilde(i, 1) = phi(i)
         phiTilde(i, 0) = phi(i)
 
-      else if (deltaL == 0.) then
+      else if(deltaL == 0.) then
 
         theta = deltaL / deltaR
         phiTilde(i, 1) = phi(i) + 0.5 * minmod(theta, 1.0) * deltaR
@@ -309,9 +309,9 @@ module muscl_module
     !-------------------------------------
 
     ! in/out
-    integer, intent (in) :: phiSize
-    real, dimension (phiSize), intent (in) :: phi
-    real, dimension (phiSize, 0:1), intent (out) :: phiTilde
+    integer, intent(in) :: phiSize
+    real, dimension(phiSize), intent(in) :: phi
+    real, dimension(phiSize, 0:1), intent(out) :: phiTilde
 
     ! local varibales
     real :: sigmaR, sigmaL, s
@@ -328,18 +328,18 @@ module muscl_module
       deltaL = phi(i) - phi(i - 1)
       deltaR = phi(i + 1) - phi(i)
 
-      if (deltaR == 0.) then
+      if(deltaR == 0.) then
 
         phiTilde(i, 1) = phi(i)
         phiTilde(i, 0) = phi(i)
 
       else
-        if (deltaL == 0.) then
+        if(deltaL == 0.) then
 
           theta = deltaL / deltaR
           s = (2.0 + theta) / 3.0
           sigmaL = max(0.0, min(2 * theta, s, 2.0))
-          if (TestCase == 'baroclinic_LC') then
+          if(TestCase == 'baroclinic_LC') then
             sigmaL = 1. !FSApr2021
           end if
 
@@ -358,7 +358,7 @@ module muscl_module
 
           s = (2.0 + 1.0 / theta) / 3.0
           sigmaR = max(0.0, min(2 / theta, s, 2.0))
-          if (TestCase == 'baroclinic_LC') then
+          if(TestCase == 'baroclinic_LC') then
             sigmaL = 1. !FSApr2021
             sigmaR = 1. !FSApr2021
           end if
@@ -388,9 +388,9 @@ module muscl_module
     !-------------------------------------
 
     ! in/out
-    integer, intent (in) :: phiSize
-    real, dimension (phiSize), intent (in) :: phi
-    real, dimension (phiSize, 0:1), intent (out) :: phiTilde
+    integer, intent(in) :: phiSize
+    real, dimension(phiSize), intent(in) :: phi
+    real, dimension(phiSize, 0:1), intent(out) :: phiTilde
 
     ! local varibales
     real :: sigmaR, sigmaL, s
@@ -407,12 +407,12 @@ module muscl_module
       deltaL = phi(i) - phi(i - 1)
       deltaR = phi(i + 1) - phi(i)
 
-      if (deltaR == 0.) then
+      if(deltaR == 0.) then
 
         phiTilde(i, 1) = phi(i)
         phiTilde(i, 0) = phi(i)
 
-      else if (deltaL == 0.) then
+      else if(deltaL == 0.) then
 
         theta = deltaL / deltaR
         s = (2.0 + theta) / 3.0
@@ -482,18 +482,18 @@ module muscl_module
 
   ! --------------------------------------------------------------------------------------------
 
-  function minmod(a, b) result (c)
+  function minmod(a, b) result(c)
 
     !------------------------------
     !  classical minmod limiter
     !------------------------------
 
     ! in/out
-    real, intent (in) :: a, b
+    real, intent(in) :: a, b
     real :: c
 
-    if (a * b > 0.0) then
-      if (abs(a) < abs(b)) then
+    if(a * b > 0.0) then
+      if(abs(a) < abs(b)) then
         c = a
       else
         c = b

@@ -232,6 +232,7 @@
   testTFC = .false.         ! switch for TFC test
   spongeTFC = .true.        ! switch for unified sponge layer
   lateralSponge = .true.    ! switch for lateral sponge layers
+  topographyTime = 0.0      ! time over which topography height increases
   mountainHeight_dim = 4.e2 ! mountain height in m
   mountainWidth_dim = 1.e3  ! mountain half-width in m
   mountain_case = 3         ! shape of orography
@@ -241,7 +242,7 @@
                             ! 4 for 3D bell-shaped mountain
                             ! 5 for Gaussian mountain range
                             ! 6 for wave-packet-like mountain range
-  range_fac = 10            ! factor by which mountain range is wider than
+  range_factor = 10         ! factor by which mountain range is wider than
                             ! single mountains
 
 &end
@@ -504,11 +505,13 @@
   ! presently not used
   lindUinit = .false.,  ! ind. wind already at initial time (true/false)
 
+  topographyTime_wkb = 0.0      ! time over which topography height increases
   mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
   mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
-  mountain_case_wkb = 1         ! WKB orography shape
-                                ! 1 for cosine-shaped envelope
-                                ! 2 for Gaussian envelope
+  mountain_case_wkb = 1         ! WKB orography shape (corresponds to
+                                ! mountain_case in topography namelist)
+  range_factor_wkb = 10         ! factor by which mountain range is wider than
+                                ! single mountains
 
   zmin_wkb_dim = 0.0    ! minumum altitude (above the model bottom, in m)
                         ! for WKB wave-mean-flow interaction

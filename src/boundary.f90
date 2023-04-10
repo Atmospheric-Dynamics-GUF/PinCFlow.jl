@@ -32,19 +32,19 @@ module boundary_module
     !-------------------------------------------
 
     ! in/out variables
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (inout) :: var
-    real, dimension (- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent (inout) :: flux
-    character (len = *), intent (in) :: option
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(inout) :: flux
+    character(len = *), intent(in) :: option
 
     !------------------------------
     !          x-direction
     !------------------------------
-    select case (xBoundary)
+    select case(xBoundary)
 
-    case ("periodic")
+    case("periodic")
 
-      if (idim > 1) then
+      if(idim > 1) then
         ! boundary conditions taken care of by setHalos
       else
         call setBoundary_x_periodic(var, flux, option)
@@ -57,11 +57,11 @@ module boundary_module
     !------------------------------
     !          y-direction
     !------------------------------
-    select case (yBoundary)
+    select case(yBoundary)
 
-    case ("periodic")
+    case("periodic")
 
-      if (jdim > 1) then
+      if(jdim > 1) then
         ! boundary conditions taken care of by setHalos
       else
         call setBoundary_y_periodic(var, flux, option)
@@ -74,12 +74,12 @@ module boundary_module
     !------------------------------
     !          z-direction
     !------------------------------
-    select case (zBoundary)
+    select case(zBoundary)
 
-    case ("periodic")
+    case("periodic")
       call setBoundary_z_periodic(var, flux, option)
 
-    case ("solid_wall")
+    case("solid_wall")
       call setBoundary_z_solidWall(var, flux, option)
 
     case default
@@ -98,48 +98,48 @@ module boundary_module
     !-------------------------------------------
 
     ! in/out variables
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (inout) :: var
-    real, dimension (- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent (inout) :: flux
-    character (len = *), intent (in) :: option
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(inout) :: flux
+    character(len = *), intent(in) :: option
 
     ! local variables
     integer :: i, j, k, iVar
 
-    real, dimension (- nby:ny + nby, - nbz:nz + nbz) :: uBound
+    real, dimension(- nby:ny + nby, - nbz:nz + nbz) :: uBound
 
-    select case (option)
+    select case(option)
 
-    case ("var")
+    case("var")
       !-----------------------------------
       !                var
       !-----------------------------------
 
-      if (updateMass) then
+      if(updateMass) then
         ! density -> iVar = 1
         do i = 1, nbx
           var(nx + i, :, :, 1) = var(i, :, :, 1)
           var(- i + 1, :, :, 1) = var(nx - i + 1, :, :, 1)
         end do
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "horizontalBoundary: x-horizontal BC for rho set."
         end if
       end if
 
-      if (timeScheme == "semiimplicit" .or. auxil_equ) then
+      if(timeScheme == "semiimplicit" .or. auxil_equ) then
         ! density fluctuations -> iVar = 6
         do i = 1, nbx
           var(nx + i, :, :, 6) = var(i, :, :, 6)
           var(- i + 1, :, :, 6) = var(nx - i + 1, :, :, 6)
         end do
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "horizontalBoundary: x-horizontal BC for rhop set."
         end if
       end if
 
-      if (updateIce) then
+      if(updateIce) then
         ! ice variables -> iVar = nVar-3, nVar
         do iVar = nVar - 3, nVar
           do i = 1, nbx
@@ -148,15 +148,15 @@ module boundary_module
           end do
         end do
 
-        if (verbose .and. master) print *, "horizontalBoundary:  x-horizontal &
+        if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal &
             BC for ice variables set."
 
       end if
 
-      if (updateTheta) then
+      if(updateTheta) then
         ! pot. temp.  -> iVar = 6
 
-        if (timeScheme == "semiimplicit") then
+        if(timeScheme == "semiimplicit") then
           print *, 'ERROR: updateTheta = .true. not allowed for  timeScheme &
               == "semiimplicit"'
           stop
@@ -167,11 +167,11 @@ module boundary_module
           var(- i + 1, :, :, 6) = var(nx - i + 1, :, :, 6)
         end do
 
-        if (verbose .and. master) print *, "horizontalBoundary:  x-horizontal &
+        if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal &
             BC for theta set."
       end if
 
-      if (predictMomentum) then
+      if(predictMomentum) then
         ! velocity u (staggered along x) -> iVar = 2
 
         var(0, :, :, 2) = var(nx, :, :, 2)
@@ -188,24 +188,24 @@ module boundary_module
           var(- i + 1, :, :, 4) = var(nx - i + 1, :, :, 4)
         end do
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "boundary.f90/horizontalBoundary:  x-horizontal BC for u, &
               v, w set."
         end if
       end if
 
-      if (correctMomentum) then
+      if(correctMomentum) then
         ! pressure Variable -> iVar = 5
         var(nx + 1, :, :, 5) = var(1, :, :, 5) ! right ghost cell
         var(0, :, :, 5) = var(nx, :, :, 5) ! left ghost cells
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "boundary.f90/horizontalBoundary:  x-horizontal BC for p &
               set."
         end if
       end if
 
-    case ("ice")
+    case("ice")
       ! ice variables -> iVar = nVar-3, nVar
       do iVar = nVar - 3, nVar
         do i = 1, nbx
@@ -214,10 +214,10 @@ module boundary_module
         end do
       end do
 
-      if (verbose .and. master) print *, "horizontalBoundary:  x-horizontal BC &
+      if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal BC &
           for ice variables set."
 
-    case ("iceTilde")
+    case("iceTilde")
       ! reconstructed density needed in ghost cell i = nx+2
       nAerTilde(nx + 2, :, :, 1, 0) = nAerTilde(2, :, :, 1, 0)
       nIceTilde(nx + 2, :, :, 1, 0) = nIceTilde(2, :, :, 1, 0)
@@ -230,13 +230,13 @@ module boundary_module
       qIceTilde(- 1, :, :, 1, 1) = qIceTilde(nx - 1, :, :, 1, 1)
       qvTilde(- 1, :, :, 1, 1) = qvTilde(nx - 1, :, :, 1, 1)
 
-      if (verbose .and. master) print *, "horizontalBoundary:  x-horizontal BC &
+      if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal BC &
           for iceTilde variables set."
 
-    case ("iceFlux")
+    case("iceFlux")
       ! nothing
 
-    case ("varTilde")
+    case("varTilde")
       !-----------------------------------
       !             varTilde
       !-----------------------------------
@@ -246,31 +246,31 @@ module boundary_module
       ! probably only necessary for ALDM (that is not used any more
       ! anyway)
 
-      if (updateMass) then
+      if(updateMass) then
         ! reconstructed density needed in ghost cell i = nx+2
         rhoTilde(nx + 2, :, :, 1, 0) = rhoTilde(2, :, :, 1, 0)
 
         ! ...in ghost cell i = -1
         rhoTilde(- 1, :, :, 1, 1) = rhoTilde(nx - 1, :, :, 1, 1)
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "horizontalBoundary: x-horizontal BC for rhoTilde set."
         end if
       end if
 
-      if (timeScheme == "semiimplicit" .or. auxil_equ) then
+      if(timeScheme == "semiimplicit" .or. auxil_equ) then
         ! reconstructed density fluctuation needed in ghost cell i = nx+2
         rhopTilde(nx + 2, :, :, 1, 0) = rhopTilde(2, :, :, 1, 0)
 
         ! ...in ghost cell i = -1
         rhopTilde(- 1, :, :, 1, 1) = rhopTilde(nx - 1, :, :, 1, 1)
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "horizontalBoundary: x-horizontal BC for rhoTilde set."
         end if
       end if
 
-      if (updateIce) then
+      if(updateIce) then
         ! reconstructed density needed in ghost cell i = nx+2
         nAerTilde(nx + 2, :, :, 1, 0) = nAerTilde(2, :, :, 1, 0)
         nIceTilde(nx + 2, :, :, 1, 0) = nIceTilde(2, :, :, 1, 0)
@@ -283,24 +283,24 @@ module boundary_module
         qIceTilde(- 1, :, :, 1, 1) = qIceTilde(nx - 1, :, :, 1, 1)
         qvTilde(- 1, :, :, 1, 1) = qvTilde(nx - 1, :, :, 1, 1)
 
-        if (verbose .and. master) print *, "horizontalBoundary:  x-horizontal &
+        if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal &
             BC for iceTilde variables set."
 
       end if
 
-      if (updateTheta) then
+      if(updateTheta) then
         ! reconstructed density needed in ghost cell i = nx+2
         thetaTilde(nx + 2, :, :, 1, 0) = thetaTilde(2, :, :, 1, 0)
 
         ! ...in ghost cell i = -1
         thetaTilde(- 1, :, :, 1, 1) = thetaTilde(nx - 1, :, :, 1, 1)
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "horizontalBoundary:  x-horizontal BC for thetaTilde set."
         end if
       end if
 
-    case ("flux")
+    case("flux")
       !-----------------------------------
       !              flux
       !-----------------------------------
@@ -323,48 +323,48 @@ module boundary_module
     !-------------------------------------------
 
     ! in/out variables
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (inout) :: var
-    real, dimension (- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent (inout) :: flux
-    character (len = *), intent (in) :: option
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(inout) :: flux
+    character(len = *), intent(in) :: option
 
     ! local variables
     integer :: i, j, k, iVar
 
-    real, dimension (- nbx:nx + nbx, - nbz:nz + nbz) :: vBound
+    real, dimension(- nbx:nx + nbx, - nbz:nz + nbz) :: vBound
 
-    select case (option)
+    select case(option)
 
-    case ("var")
+    case("var")
       !-----------------------------------
       !                var
       !-----------------------------------
 
-      if (updateMass) then
+      if(updateMass) then
         ! density -> iVar = 1
         do j = 1, nby
           var(:, ny + j, :, 1) = var(:, j, :, 1)
           var(:, - j + 1, :, 1) = var(:, ny - j + 1, :, 1)
         end do
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "horizontalBoundary: y-horizontal BC for rho set."
         end if
       end if
 
-      if (timeScheme == "semiimplicit" .or. auxil_equ) then
+      if(timeScheme == "semiimplicit" .or. auxil_equ) then
         ! density fluctuations -> iVar = 6
         do j = 1, nby
           var(:, ny + j, :, 6) = var(:, j, :, 6)
           var(:, - j + 1, :, 6) = var(:, ny - j + 1, :, 6)
         end do
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "horizontalBoundary: y-horizontal BC for rho set."
         end if
       end if
 
-      if (updateIce) then
+      if(updateIce) then
         ! ice variables -> iVar = nVar-3, nVar
         do iVar = nVar - 3, nVar
           do j = 1, nby
@@ -373,15 +373,15 @@ module boundary_module
           end do
         end do
 
-        if (verbose .and. master) print *, "horizontalBoundary:  y-horizontal &
+        if(verbose .and. master) print *, "horizontalBoundary:  y-horizontal &
             BC for ice variables set."
 
       end if
 
-      if (updateTheta) then
+      if(updateTheta) then
         ! potential temperature -> iVar = 6
 
-        if (timeScheme == "semiimplicit") then
+        if(timeScheme == "semiimplicit") then
           print *, 'ERROR: updateTheta = .true. not allowed for  timeScheme &
               == "semiimplicit"'
           stop
@@ -392,12 +392,12 @@ module boundary_module
           var(:, - j + 1, :, 6) = var(:, ny - j + 1, :, 6)
         end do
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "horizontalBoundary: y-horizontal BC for theta set."
         end if
       end if
 
-      if (predictMomentum) then
+      if(predictMomentum) then
         ! velocity v (staggared along y) -> iVar = 3
 
         var(:, 0, :, 3) = var(:, ny, :, 3)
@@ -414,24 +414,24 @@ module boundary_module
           var(:, - j + 1, :, 4) = var(:, ny - j + 1, :, 4)
         end do
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "boundary.f90/horizontalBoundary:  y-horizontal BC for u, &
               v, w set."
         end if
       end if
 
-      if (correctMomentum) then
+      if(correctMomentum) then
         ! pressure variable -> iVar = 5
         var(:, ny + 1, :, 5) = var(:, 1, :, 5) ! forward ghost cell
         var(:, 0, :, 5) = var(:, ny, :, 5) ! backward
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "boundary.f90/horizontalBoundary:  y-horizontal BC for p &
               set."
         end if
       end if
 
-    case ("ice")
+    case("ice")
       ! ice variables -> iVar = nVar-3, nVar
       do iVar = nVar - 3, nVar
         do j = 1, nby
@@ -440,10 +440,10 @@ module boundary_module
         end do
       end do
 
-      if (verbose .and. master) print *, "horizontalBoundary:  y-horizontal BC &
+      if(verbose .and. master) print *, "horizontalBoundary:  y-horizontal BC &
           for ice variables set."
 
-    case ("iceTilde")
+    case("iceTilde")
       ! see above, similar to rho
       nAerTilde(:, ny + 2, :, 2, 0) = nAerTilde(:, 2, :, 2, 0)
       nIceTilde(:, ny + 2, :, 2, 0) = nIceTilde(:, 2, :, 2, 0)
@@ -456,13 +456,13 @@ module boundary_module
       qIceTilde(:, - 1, :, 2, 1) = qIceTilde(:, ny - 1, :, 2, 1)
       qvTilde(:, - 1, :, 2, 1) = qvTilde(:, ny - 1, :, 2, 1)
 
-      if (verbose .and. master) print *, "horizontalBoundary:  y-horizontal BC &
+      if(verbose .and. master) print *, "horizontalBoundary:  y-horizontal BC &
           for iceTilde variables set."
 
-    case ("iceFlux")
+    case("iceFlux")
       ! nothing
 
-    case ("varTilde")
+    case("varTilde")
       !-----------------------------------
       !              varTilde
       !-----------------------------------
@@ -472,19 +472,19 @@ module boundary_module
       ! probably only necessary for ALDM (that is not used any more
       ! anyway)
 
-      if (updateMass) then
+      if(updateMass) then
         ! reconstructed density needed in ghost cell j = ny+2
         rhoTilde(:, ny + 2, :, 2, 0) = rhoTilde(:, 2, :, 2, 0)
 
         ! ...in ghost cell j = -1
         rhoTilde(:, - 1, :, 2, 1) = rhoTilde(:, ny - 1, :, 2, 1)
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "horizontalBoundary: y-horizontal BC for rhoTilde set."
         end if
       end if
 
-      if (timeScheme == "semiimplicit" .or. auxil_equ) then
+      if(timeScheme == "semiimplicit" .or. auxil_equ) then
         ! reconstructed density fluctuations needed in ghost cell
         ! j = ny+2
         rhopTilde(:, ny + 2, :, 2, 0) = rhopTilde(:, 2, :, 2, 0)
@@ -492,12 +492,12 @@ module boundary_module
         ! ...in ghost cell j = -1
         rhopTilde(:, - 1, :, 2, 1) = rhopTilde(:, ny - 1, :, 2, 1)
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "horizontalBoundary: y-horizontal BC for rhoTilde set."
         end if
       end if
 
-      if (updateIce) then
+      if(updateIce) then
         ! see above, similar to rho
         nAerTilde(:, ny + 2, :, 2, 0) = nAerTilde(:, 2, :, 2, 0)
         nIceTilde(:, ny + 2, :, 2, 0) = nIceTilde(:, 2, :, 2, 0)
@@ -510,24 +510,24 @@ module boundary_module
         qIceTilde(:, - 1, :, 2, 1) = qIceTilde(:, ny - 1, :, 2, 1)
         qvTilde(:, - 1, :, 2, 1) = qvTilde(:, ny - 1, :, 2, 1)
 
-        if (verbose .and. master) print *, "horizontalBoundary:  y-horizontal &
+        if(verbose .and. master) print *, "horizontalBoundary:  y-horizontal &
             BC for iceTilde variables set."
 
       end if
 
-      if (updateTheta) then
+      if(updateTheta) then
         ! reconstructed density needed in ghost cell j = ny+2
         thetaTilde(:, ny + 2, :, 2, 0) = thetaTilde(:, 2, :, 2, 0)
 
         ! ...in ghost cell j = -1
         thetaTilde(:, - 1, :, 2, 1) = thetaTilde(:, ny - 1, :, 2, 1)
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "horizontalBoundary:  y-horizontal BC for thetaTilde set."
         end if
       end if
 
-    case ("flux")
+    case("flux")
       !-----------------------------------
       !              flux
       !-----------------------------------
@@ -549,48 +549,48 @@ module boundary_module
     !-------------------------------------------
 
     ! in/out variables
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (inout) :: var
-    real, dimension (- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent (inout) :: flux
-    character (len = *), intent (in) :: option
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(inout) :: flux
+    character(len = *), intent(in) :: option
 
     ! local variables
     integer :: i, j, k, iVar
 
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby) :: wBound
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby) :: wBound
 
-    select case (option)
+    select case(option)
 
-    case ("var")
+    case("var")
       !-----------------------------------
       !                var
       !-----------------------------------
 
-      if (updateMass) then
+      if(updateMass) then
         ! density -> iVar = 1
         do k = 1, nbz
           var(:, :, nz + k, 1) = var(:, :, k, 1)
           var(:, :, - k + 1, 1) = var(:, :, nz - k + 1, 1)
         end do
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "setBoundary_z_periodic: z-periodic BC for rho set."
         end if
       end if
 
-      if (timeScheme == "semiimplicit" .or. auxil_equ) then
+      if(timeScheme == "semiimplicit" .or. auxil_equ) then
         ! density fluctuations -> iVar = 6
         do k = 1, nbz
           var(:, :, nz + k, 6) = var(:, :, k, 6)
           var(:, :, - k + 1, 6) = var(:, :, nz - k + 1, 6)
         end do
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "setBoundary_z_periodic: z-periodic BC for rhop set."
         end if
       end if
 
-      if (updateIce) then
+      if(updateIce) then
         ! ice variables -> iVar = nVar-3, nVar
         do iVar = nVar - 3, nVar
           do k = 1, nbz
@@ -599,15 +599,15 @@ module boundary_module
           end do
         end do
 
-        if (verbose .and. master) print *, "setBoundary_z_periodic:  &
-            z-periodic BC for ice variables set."
+        if(verbose .and. master) print *, "setBoundary_z_periodic:  z-periodic &
+            BC for ice variables set."
 
       end if
 
-      if (updateTheta) then
+      if(updateTheta) then
         ! density -> iVar = 6
 
-        if (timeScheme == "semiimplicit") then
+        if(timeScheme == "semiimplicit") then
           print *, 'ERROR: updateTheta = .true. not allowed for  timeScheme &
               == "semiimplicit"'
           stop
@@ -618,12 +618,12 @@ module boundary_module
           var(:, :, - k + 1, 6) = var(:, :, nz - k + 1, 6)
         end do
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "setBoundary_z_periodic:  z-perdiodic BC for theta set."
         end if
       end if
 
-      if (predictMomentum) then
+      if(predictMomentum) then
         ! velocity w (staggared along z) -> iVar = 4
 
         var(:, :, 0, 4) = var(:, :, nz, 4)
@@ -640,22 +640,22 @@ module boundary_module
           var(:, :, - k, 4) = var(:, :, nz - k, 4)
         end do
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "setBoundary_z_periodic:  z-periodic BC for u, v, w set."
         end if
       end if
 
-      if (correctMomentum) then
+      if(correctMomentum) then
         ! pressure variable -> iVar = 5
         var(:, :, nz + 1, 5) = var(:, :, 1, 5) ! forward ghost cell
         var(:, :, 0, 5) = var(:, :, nz, 5) ! backward
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "setBoundary_z_periodic:  z-periodic BC for p set."
         end if
       end if
 
-    case ("ice")
+    case("ice")
       ! ice variables -> iVar = nVar-3, nVar
       do iVar = nVar - 3, nVar
         do k = 1, nbz
@@ -664,10 +664,10 @@ module boundary_module
         end do
       end do
 
-      if (verbose .and. master) print *, "setBoundary_z_periodic:  z-periodic &
+      if(verbose .and. master) print *, "setBoundary_z_periodic:  z-periodic &
           BC for ice variables set."
 
-    case ("iceTilde")
+    case("iceTilde")
       ! see above, similar to rho
       nAerTilde(:, :, nz + 2, 3, 0) = nAerTilde(:, :, 2, 3, 0)
       nIceTilde(:, :, nz + 2, 3, 0) = nIceTilde(:, :, 2, 3, 0)
@@ -680,13 +680,13 @@ module boundary_module
       qIceTilde(:, :, - 1, 3, 1) = qIceTilde(:, :, nz - 1, 3, 1)
       qvTilde(:, :, - 1, 3, 1) = qvTilde(:, :, nz - 1, 3, 1)
 
-      if (verbose .and. master) print *, "setBoundary_z_periodic:   z-periodic &
+      if(verbose .and. master) print *, "setBoundary_z_periodic:   z-periodic &
           BC for iceTilde variables set."
 
-    case ("iceFlux")
+    case("iceFlux")
       ! nothing
 
-    case ("varTilde")
+    case("varTilde")
       !-----------------------------------
       !              varTilde
       !-----------------------------------
@@ -696,31 +696,31 @@ module boundary_module
       ! probably only necessary for ALDM (that is not used any more
       ! anyway)
 
-      if (updateMass) then
+      if(updateMass) then
         ! reconstructed density needed in ghost cell k = nz+2
         rhoTilde(:, :, nz + 2, 3, 0) = rhoTilde(:, :, 2, 3, 0)
 
         ! ...in ghost cell j = -1
         rhoTilde(:, :, - 1, 3, 1) = rhoTilde(:, :, nz - 1, 3, 1)
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "setBoundary_z_periodic:  z-periodic BC for rhoTilde set."
         end if
       end if
 
-      if (timeScheme == "semiimplicit" .or. auxil_equ) then
+      if(timeScheme == "semiimplicit" .or. auxil_equ) then
         ! reconstructed density needed in ghost cell k = nz+2
         rhopTilde(:, :, nz + 2, 3, 0) = rhopTilde(:, :, 2, 3, 0)
 
         ! ...in ghost cell j = -1
         rhopTilde(:, :, - 1, 3, 1) = rhopTilde(:, :, nz - 1, 3, 1)
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "setBoundary_z_periodic:  z-periodic BC for rhoTilde set."
         end if
       end if
 
-      if (updateIce) then
+      if(updateIce) then
         ! see above, similar to rho
         nAerTilde(:, :, nz + 2, 3, 0) = nAerTilde(:, :, 2, 3, 0)
         nIceTilde(:, :, nz + 2, 3, 0) = nIceTilde(:, :, 2, 3, 0)
@@ -733,24 +733,24 @@ module boundary_module
         qIceTilde(:, :, - 1, 3, 1) = qIceTilde(:, :, nz - 1, 3, 1)
         qvTilde(:, :, - 1, 3, 1) = qvTilde(:, :, nz - 1, 3, 1)
 
-        if (verbose .and. master) print *, "setBoundary_z_periodic:   &
+        if(verbose .and. master) print *, "setBoundary_z_periodic:   &
             z-periodic BC for iceTilde variables set."
 
       end if
 
-      if (updateTheta) then
+      if(updateTheta) then
         ! reconstructed density needed in ghost cell k = nz+2
         thetaTilde(:, :, nz + 2, 3, 0) = thetaTilde(:, :, 2, 3, 0)
 
         ! ...in ghost cell k = -1
         thetaTilde(:, :, - 1, 3, 1) = thetaTilde(:, :, nz - 1, 3, 1)
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "setBoundary_z_periodic:  z-periodic BC for thetaTilde set."
         end if
       end if
 
-    case ("flux")
+    case("flux")
       !-----------------------------------
       !              flux
       !-----------------------------------
@@ -772,15 +772,15 @@ module boundary_module
     !-------------------------------------------
 
     ! in/out variables
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (inout) :: var
-    real, dimension (- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent (inout) :: flux
-    character (len = *), intent (in) :: option
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(inout) :: flux
+    character(len = *), intent(in) :: option
 
     ! local variables
     integer :: i, j, k, iVar
-    real, dimension (- nby:ny + nby, - nbz:nz + nbz) :: uBound
-    real, dimension (- nbx:nx + nbx, - nbz:nz + nbz) :: vBound
+    real, dimension(- nby:ny + nby, - nbz:nz + nbz) :: uBound
+    real, dimension(- nbx:nx + nbx, - nbz:nz + nbz) :: vBound
 
     ! rho flux correction
     real :: rhoU, rhoD, hRho, wSurf
@@ -806,23 +806,23 @@ module boundary_module
         chris13EdgeFU, chris22EdgeFU, chris23EdgeFU, vEdgeFUU, vEdgeFU, &
         vEdgeBU, vEdgeFU1, vEdgeFU2, wEdgeFU, wEdgeFD, uEdgeFU
 
-    select case (option)
+    select case(option)
 
-    case ("var")
+    case("var")
       !-----------------------------------
       !                var
       !-----------------------------------
 
-      if (updateMass) then
+      if(updateMass) then
         ! reflect at boundary with change of sign
         ! rho -> iVar = 1
 
         ! in case of baroclinic life-cycle simulation only the
         ! deviations from the environmental state are reflected
 
-        if (testCase == "baroclinic_LC") then
-          if (fluctuationMode) then
-            if (topography) then
+        if(testCase == "baroclinic_LC") then
+          if(fluctuationMode) then
+            if(topography) then
               ! TFC FJ
               var(1:nx, 1:ny, 0, 1) = - var(1:nx, 1:ny, 1, 1) + dens_env_pp(:, &
                   :, 1) - rhoStratTFC(1:nx, 1:ny, 1) + dens_env_pp(:, :, 0) &
@@ -846,7 +846,7 @@ module boundary_module
             var(1:nx, 1:ny, nz + 1, 1) = - var(1:nx, 1:ny, nz, 1) &
                 + dens_env_pp(:, :, nz) + dens_env_pp(:, :, nz + 1)
           end if
-        else if (testCase == "smoothVortex") then
+        else if(testCase == "smoothVortex") then
           var(1:nx, 1:ny, 0, 1) = var(1:nx, 1:ny, 1, 1)
           var(1:nx, 1:ny, nz + 1, 1) = var(1:nx, 1:ny, nz, 1)
         else
@@ -858,11 +858,11 @@ module boundary_module
           end do
         end if
 
-        if (timeScheme == "semiimplicit" .or. auxil_equ) then
+        if(timeScheme == "semiimplicit" .or. auxil_equ) then
           ! vertical boundary condition for density fluctuations
 
-          if (testCase == "baroclinic_LC") then
-            if (topography) then
+          if(testCase == "baroclinic_LC") then
+            if(topography) then
               ! TFC FJ
               var(1:nx, 1:ny, 0, 6) = - var(1:nx, 1:ny, 1, 6) + dens_env_pp(:, &
                   :, 1) - rhoStratTFC(1:nx, 1:ny, 1) + dens_env_pp(:, :, 0) &
@@ -879,7 +879,7 @@ module boundary_module
                   + dens_env_pp(:, :, nz) - rhoStrat(nz) + dens_env_pp(:, :, &
                   nz + 1) - rhoStrat(nz + 1)
             end if
-          else if (testCase == "smoothVortex") then
+          else if(testCase == "smoothVortex") then
             var(1:nx, 1:ny, 0, 6) = var(1:nx, 1:ny, 1, 6)
             var(1:nx, 1:ny, nz + 1, 6) = var(1:nx, 1:ny, nz, 6)
           else
@@ -891,7 +891,7 @@ module boundary_module
         end if
       end if
 
-      if (updateIce) then
+      if(updateIce) then
         ! reflect at boundary without change of sign
         ! ice variables -> iVar = nVar-3, nVar
         do iVar = nVar - 3, nVar
@@ -902,17 +902,17 @@ module boundary_module
         end do
       end if
 
-      if (updateTheta) then
+      if(updateTheta) then
         ! reflect at boundary withOUT change of sign
         ! theta -> iVar = 6
 
-        if (timeScheme == "semiimplicit") then
+        if(timeScheme == "semiimplicit") then
           print *, 'ERROR: updateTheta = .true. not allowed for  timeScheme &
               == "semiimplicit"'
           stop
         end if
 
-        if (testCase == 'baroclinic_LC') then
+        if(testCase == 'baroclinic_LC') then
           print *, 'ERROR: updateTheta = .true. not allowed for  testCase &
               == "baroclinic_LC"'
           stop
@@ -924,7 +924,7 @@ module boundary_module
         end do
       end if
 
-      if (predictMomentum) then
+      if(predictMomentum) then
         ! w -> set to zero at bound,
         !      reflect at bound with change of sign
 
@@ -956,7 +956,7 @@ module boundary_module
         !    var(1:nx,1:ny,nz+1,3) &
         !    = var(1:nx,1:ny,nz,3) - v_env_pp (:,:,nz) + v_env_pp (:,:,nz+1)
         !   else
-        if (testCase == "baroclinic_LC") then
+        if(testCase == "baroclinic_LC") then
           do k = 1, nbz
             ! u
             var(:, :, - k + 1, 2) = - var(:, :, k, 2) + var_env(:, :, k, 2) &
@@ -968,13 +968,13 @@ module boundary_module
             var(:, :, - k + 1, 3) = - var(:, :, k, 3)
             var(:, :, nz + k, 3) = - var(:, :, nz - k + 1, 3)
           end do
-        else if (testCase == "smoothVortex") then
+        else if(testCase == "smoothVortex") then
           var(1:nx, 1:ny, 0, 2) = var(1:nx, 1:ny, 1, 2)
           var(1:nx, 1:ny, nz + 1, 2) = var(1:nx, 1:ny, nz, 2)
           var(1:nx, 1:ny, 0, 3) = var(1:nx, 1:ny, 1, 3)
           var(1:nx, 1:ny, nz + 1, 3) = var(1:nx, 1:ny, nz, 3)
         else
-          if (topography .and. freeSlipTFC) then
+          if(topography .and. freeSlipTFC) then
             ! TFC FJ
             ! Free-slip boundary condition for TFC.
             do i = 1, nx
@@ -1186,12 +1186,12 @@ module boundary_module
         end if
       end if
 
-      if (correctMomentum) then
+      if(correctMomentum) then
         ! set gradient at vertical boundary to 0
         ! life-cycle simulation: only gradient of deviations from
         !                        environmental pressure are set to 0
 
-        if (testCase == "baroclinic_LC") then
+        if(testCase == "baroclinic_LC") then
           ! z = 0
           var(1:nx, 1:ny, 0, 5) = var(1:nx, 1:ny, 1, 5) - p_env_pp(:, :, 1) &
               + p_env_pp(:, :, 0)
@@ -1199,7 +1199,7 @@ module boundary_module
           ! z = zMax
           var(1:nx, 1:ny, nz + 1, 5) = var(1:nx, 1:ny, nz, 5) - p_env_pp(:, :, &
               nz) + p_env_pp(:, :, nz + 1)
-        else if (testCase == "smoothVortex") then
+        else if(testCase == "smoothVortex") then
           var(1:nx, 1:ny, 0, 5) = var(1:nx, 1:ny, 1, 5)
           var(1:nx, 1:ny, nz + 1, 5) = var(1:nx, 1:ny, nz, 5)
         else
@@ -1214,9 +1214,9 @@ module boundary_module
       ! additional call to setHalos in case baroclinic_LC in order to set
       ! the overlap betwen vertical and horizontal halos right
 
-      if (testCase == "baroclinic_LC") call setHalos(var, "var")
+      if(testCase == "baroclinic_LC") call setHalos(var, "var")
 
-    case ("ice")
+    case("ice")
       ! reflect at boundary without change of sign
       ! ice variables -> iVar = nVar-3, nVar
       do iVar = nVar - 3, nVar
@@ -1226,10 +1226,10 @@ module boundary_module
         end do
       end do
 
-    case ("iceTilde")
+    case("iceTilde")
       !nothing
 
-    case ("iceFlux")
+    case("iceFlux")
       ! set vertical fluxes at wall to 0
       ! analog to mass flux modification above
 
@@ -1293,19 +1293,19 @@ module boundary_module
 
       !---------------------------------------------------------------
 
-    case ("varTilde ")
+    case("varTilde ")
       !-----------------------------------
       !             varTilde
       !-----------------------------------
 
       return
 
-    case ("flux")
+    case("flux")
       !-----------------------------------
       !                flux
       !-----------------------------------
 
-      if (updateMass) then
+      if(updateMass) then
         ! set vertical fluxes at wall to 0
 
         ! these settings correspond to solid-wall condition (w = 0) at
@@ -1322,19 +1322,19 @@ module boundary_module
         flux(:, :, 0, 3, 5) = 0.0
         flux(:, :, nz, 3, 5) = 0.0
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "boundary.f90/verticalBoundary: vertical BC for rho set"
         end if
 
         ! replace flux by CDS fluxes at upper / lower region
-        if (rhoFluxCorr) stop 'ERROR: rhoFluxCorr = .false. expected'
+        if(rhoFluxCorr) stop 'ERROR: rhoFluxCorr = .false. expected'
       end if ! updateMass
 
       !if( updateIce ) then
       ! set vertical fluxes at wall to 0
       ! analog to mass flux modification above
 
-      if (timeScheme == "semiimplicit" .or. auxil_equ) then
+      if(timeScheme == "semiimplicit" .or. auxil_equ) then
         ! density fluctuations
         flux(:, :, 0, 3, 6) = 0.0
         flux(:, :, nz, 3, 6) = 0.0
@@ -1399,8 +1399,8 @@ module boundary_module
       !   end if ! iceFluxCorr
       !end if ! updateIce
 
-      if (updateTheta) then
-        if (timeScheme == "semiimplicit") then
+      if(updateTheta) then
+        if(timeScheme == "semiimplicit") then
           print *, 'ERROR: updateTheta = .true. not allowed for  timeScheme &
               == "semiimplicit"'
           stop
@@ -1411,14 +1411,14 @@ module boundary_module
         flux(:, :, 0, 3, 6) = 0.0
         flux(:, :, nz, 3, 6) = 0.0
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "verticalBoundary: vertical BC for theta set"
         end if
 
-        if (thetaFluxCorr) stop 'ERROR: thetaFluxCorr = .false. expected'
+        if(thetaFluxCorr) stop 'ERROR: thetaFluxCorr = .false. expected'
       end if ! updateTheta
 
-      if (predictMomentum) then
+      if(predictMomentum) then
         ! momentum rho*u
         flux(:, :, 0, 3, 2) = 0.0
         flux(:, :, nz, 3, 2) = 0.0
@@ -1431,18 +1431,18 @@ module boundary_module
         flux(:, :, - 1, 3, 4) = 0.0
         flux(:, :, nz, 3, 4) = 0.0
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "boundary.f90/verticalBoundary: vertical flux-BC for u,v,w &
               set"
         end if
 
         ! replace flux by CDS fluxes at upper / lower region
 
-        if (uFluxCorr) stop 'ERROR: uFluxCorr = .false. expected'
+        if(uFluxCorr) stop 'ERROR: uFluxCorr = .false. expected'
 
-        if (vFluxCorr) stop 'ERROR: vFluxCorr = .false. expected'
+        if(vFluxCorr) stop 'ERROR: vFluxCorr = .false. expected'
 
-        if (wFluxCorr) stop 'ERROR: wFluxCorr = .false. expected'
+        if(wFluxCorr) stop 'ERROR: wFluxCorr = .false. expected'
       end if ! predictMomentum
 
     case default

@@ -16,10 +16,10 @@ module timeScheme_module
   !------------------------------
 
   integer :: RKstage
-  real, dimension (3), public :: alpha
-  real, dimension (3), public :: beta
-  real, dimension (3), public :: stepFrac
-  real, dimension (3, 3), public :: rk
+  real, dimension(3), public :: alpha
+  real, dimension(3), public :: beta
+  real, dimension(3), public :: stepFrac
+  real, dimension(3, 3), public :: rk
 
   contains
 
@@ -35,11 +35,11 @@ module timeScheme_module
     !        setup time scheme
     ! -------------------------------
 
-    select case (timeScheme)
+    select case(timeScheme)
 
-    case ("semiimplicit") ! ref. Durran (????), Benaccio & Klein (2019),
+    case("semiimplicit") ! ref. Durran (????), Benaccio & Klein (2019),
       ! and Achatz et al (????)
-      if (verbose) then
+      if(verbose) then
         print *, "update.f90/init_update: timeScheme = semiimplicit"
       end if
       alpha = (/0.0, - 5. / 9., - 153. / 128./)
@@ -49,8 +49,8 @@ module timeScheme_module
       nStages = 3
       timeSchemeType = "lowStorage"
 
-    case ("LS_Will_RK3") ! ref. Durran
-      if (verbose) print *, "update.f90/init_update: timeScheme = LS_Will_RK3"
+    case("LS_Will_RK3") ! ref. Durran
+      if(verbose) print *, "update.f90/init_update: timeScheme = LS_Will_RK3"
       alpha = (/0.0, - 5. / 9., - 153. / 128./)
       beta = (/1. / 3., 15. / 16., 8. / 15./)
       stepFrac = (/1. / 3., 5. / 12., 1. / 4./)
@@ -58,15 +58,15 @@ module timeScheme_module
       nStages = 3
       timeSchemeType = "lowStorage"
 
-    case ("Euler")
-      if (verbose) print *, "update.f90/init_update: timeScheme = Euler"
+    case("Euler")
+      if(verbose) print *, "update.f90/init_update: timeScheme = Euler"
       alpha = (/0.0, 0.0, 0.0/)
       beta = (/1.0, 0.0, 0.0/)
       stepFrac = (/1.0, 0.0, 0.0/)
       nStages = 1
       timeSchemeType = "lowStorage"
 
-    case ("LS_TVD_RK3") ! ref. Gottlieb, Shu 1998
+    case("LS_TVD_RK3") ! ref. Gottlieb, Shu 1998
       c2 = 0.924574
       z1 = sqrt(36. * c2 ** 4 + 36. * c2 ** 3 - 135. * c2 ** 2 + 84. * c2 - 12.)
       z2 = 2. * c2 ** 2 + c2 - 2.
@@ -95,7 +95,7 @@ module timeScheme_module
       nStages = 3
       timeSchemeType = "lowStorage"
 
-    case ("CL_TVD_RK3")
+    case("CL_TVD_RK3")
       rk(:, 1) = (/1., 0., 1./)
       rk(:, 2) = (/3. / 4., 1. / 4., 1. / 4./)
       rk(:, 3) = (/1. / 3., 2. / 3., 2. / 3./)
