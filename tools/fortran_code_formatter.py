@@ -1,5 +1,5 @@
 """This Fortran code formatter unifies spacing, subunit indents and line breaks
-in .f90 files. The spacing in comments and strings is not changed. Comments
+in Fortran files. The spacing in comments and strings is not changed. Comments
 between continuation lines are moved below the last of these lines. Comments
 between quotes (i.e. in Fortran strings that contain line breaks) are removed (a
 warning is given in such cases). The output does not contain any extraneous
@@ -57,32 +57,6 @@ operators = re.compile("".join((r"(", "|".join(("\+", "\-", "\*", "\/", "\=",
         "\>", "\<", "\.eq\.", "\.ne\.", "\.gt\.", "\.lt\.", "\.ge\.", "\.le\.",
         "\.and\.", "\.or\.", "\.not\.", "\.eqv\.", "\.neqv\.", "\.true\.",
         "\.false\.")), r")")), flags = re.IGNORECASE)
-
-# Collect keywords.
-keywords = re.compile("".join((r"\b(", "|".join(("allocatable", "allocate",
-        "assign", "assignment", "backspace", "block", "call", "case",
-        "character", "close", "common", "complex", "contains", "continue",
-        "cycle", "data", "deallocate", "dimension", "do", "double", "else",
-        "elseif", "elsewhere", "end", "enddo", "endfile", "endif", "entry",
-        "equivalence", "exit", "external", "forall", "format", "function",
-        "goto", "if", "implicit", "include", "inquire", "integer", "intent",
-        "interface", "intrinsic", "logical", "module", "namelist", "none",
-        "nullify", "only", "open", "operator", "optional", "parameter",
-        "pause", "pointer", "precision", "print", "private", "procedure",
-        "program", "public", "read", "real", "recursive", "result", "return",
-        "rewind", "save", "select", "sequence", "stop", "subroutine", "target",
-        "then", "type", "use", "where", "while", "write",
-        # Fortran 95
-        "elemental", "pure",
-        # Fortran 2003
-        "abstract", "associate", "asynchronous", "bind", "class", "deferred",
-        "enum", "enumerator", "extends", "extends_type_of", "final", "generic",
-        "import", "non_intrinsic", "non_overridable", "nopass", "pass",
-        "protected", "same_type_as", "value", "volatile",
-        # Fortran 2008
-        "contiguous", "submodule", "concurrent", "codimension", "sync all",
-        "sync memory", "critical", "image_index")), r")\b")),
-        flags = re.IGNORECASE)
 
 # Collect indent triggers.
 positive_indent_triggers = re.compile("".join((r"^(\d+\s*)?(\w+\s*:\s*)?(",
@@ -181,10 +155,10 @@ for file in os.listdir(input_directory):
         while re.search(r"\n( *!.*\n)+", entry) is not None:
             entry = re.sub(r"\n( *!.*\n)+", r"\n", entry)
             print("WARNING: Comment between quotes has been removed!")
-        while re.search(r"(\S *)& *\n *&( *\S)", entry) is not None:
-            entry = re.sub(r"(\S *)& *\n *&( *\S)", r"\1\2", entry)
-        while re.search(r"(\S *)& *\n *(\S)", entry) is not None:
-            entry = re.sub(r"(\S *)& *\n *(\S)", r"\1\2", entry)
+        while re.search(r"( *)& *\n *&( *)", entry) is not None:
+            entry = re.sub(r"( *)& *\n *&( *)", r"\1\2", entry)
+        while re.search(r"( *)& *\n *", entry) is not None:
+            entry = re.sub(r"( *)& *\n *", r"\1", entry)
         quotes[index] = entry
 
     # Join continuation lines. Comments in continuation lines are moved into the
@@ -228,10 +202,10 @@ for file in os.listdir(input_directory):
 
     # Adjust whitespaces around colons.
     code = re.sub(r" *: *", ":", code)
-    code = re.sub(r" *:: *", spacing_string.join(("", "::", "")), code)
-
-    # Add whitespaces around keywords.
-    code = keywords.sub(spacing_string.join(("", r"\1", "")), code)
+    code = re.sub(r"(\n(\d+ *)?\w+:)(\w+)", spacing_string.join((r"\1",
+            r"\3")), code)
+    code = "::".join((spacing_string.join(("", entry, "")) if entry.count("(")
+            == entry.count(")") else entry for entry in code.split("::")))
 
     # Adjust whitespaces around commas and semicolons.
     code = re.sub(r" *, *", spacing_string.join((",", "")), code)

@@ -212,7 +212,7 @@
                             ! shape of orography
   mountain_case = 2         ! 1 for not-shifted single mountain,
                             ! 2 for wave packet like
-  range_fac = 10            ! factor by which mountain range is wider than
+  range_factor = 10         ! factor by which mountain range is wider than
                             ! single mountains
 &end
 
@@ -509,9 +509,10 @@
 
   mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
   mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
-  mountain_case_wkb = 1         ! WKB orography shape
-                                ! 1 for cosine-shaped envelope
-                                ! 2 for Gaussian envelope
+  mountain_case_wkb = 6         ! WKB orography shape (corresponds to
+                                ! mountain_case in topography namelist)
+  range_factor_wkb = 10         ! factor by which mountain range is wider than
+                                ! single mountains
 
   zmin_wkb_dim = 1000.0     ! minumum altitude (above the model bottom, in m)
                            ! for WKB wave-mean-flow interaction
