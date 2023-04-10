@@ -37,8 +37,8 @@ module ice_module
   contains
 
   subroutine setup_ice(var)
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (inout) :: var
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
     real :: SIce, T, p, m_ice, rho
     integer :: i, j, k, ISSR_width, ISSR_radius
 
@@ -47,14 +47,14 @@ module ice_module
         * radius_solution ** 3.
 
     ! iceTestcases
-    select case (iceTestcase)
+    select case(iceTestcase)
 
-    case ("homogeneous_qv")
+    case("homogeneous_qv")
       var(:, :, :, nVar - 3) = init_nAer * rhoRef * lRef ** 3
       do i = 0, nx
         do j = 0, ny
           do k = 1, nz
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               rho = var(i, j, k, 1) + rhoStrat(k)
             else
               rho = var(i, j, k, 1)
@@ -66,12 +66,12 @@ module ice_module
       var(:, :, :, nVar) = init_qv
       var(:, :, :, nVar - 2:nVar - 1) = 0.0
 
-    case ("homogeneous_SIce")
+    case("homogeneous_SIce")
       var(:, :, :, nVar - 2:nVar - 1) = 0.0
       do i = 0, nx
         do j = 0, ny
           do k = 1, nz
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               rho = var(i, j, k, 1) + rhoStrat(k)
             else
               rho = var(i, j, k, 1)
@@ -86,7 +86,7 @@ module ice_module
         end do
       end do
 
-    case ("qv_relaxation")
+    case("qv_relaxation")
       init_qv = 0.0
       ISSR_center = int(ISSR_top * mountainHeight_dim / (dz * lRef))
       t_start = t_relax
@@ -95,7 +95,7 @@ module ice_module
       do i = 0, nx
         do j = 0, ny
           do k = 0, nz
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               rho = var(i, j, k, 1) + rhoStrat(k)
             else
               rho = var(i, j, k, 1)
@@ -105,7 +105,7 @@ module ice_module
         end do
       end do
 
-    case ("stratification")
+    case("stratification")
       init_SIce = SIce_crit(Temp0_dim)
       ISSR_center = ceiling(kSponge / 2.)
       var(:, :, :, nVar - 2:nVar - 1) = 0
@@ -116,7 +116,7 @@ module ice_module
       do i = 0, nx
         do j = 0, ny
           do k = 0, nz
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               rho = var(i, j, k, 1) + rhoStrat(k)
             else
               rho = var(i, j, k, 1)
@@ -128,14 +128,14 @@ module ice_module
         end do
       end do
 
-    case ("exp_ice")
-      if (init_SIce > 1.3) init_SIce = 1.0
+    case("exp_ice")
+      if(init_SIce > 1.3) init_SIce = 1.0
       var(:, :, :, nVar - 3) = 0.0
       ISSR_center = ceiling(ISSR_top * kSponge)
       do i = 0, nx
         do j = 0, ny
           do k = 0, nz
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               rho = var(i, j, k, 1) + rhoStrat(k)
             else
               rho = var(i, j, k, 1)
@@ -152,14 +152,14 @@ module ice_module
         end do
       end do
 
-    case ("ice_cloud")
-      if (init_SIce > 1.3) init_SIce = 1.0
+    case("ice_cloud")
+      if(init_SIce > 1.3) init_SIce = 1.0
       var(:, :, :, nVar - 3) = 0.0
       ISSR_center = ceiling(ISSR_top * kSponge)
       do i = 0, nx
         do j = 0, ny
           do k = 0, nz
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               rho = var(i, j, k, 1) + rhoStrat(k)
             else
               rho = var(i, j, k, 1)
@@ -176,18 +176,18 @@ module ice_module
         end do
       end do
 
-    case ("1D_ISSR")
+    case("1D_ISSR")
       init_SIce = SIce_crit(T_nuc)
       ISSR_center = ceiling(kSponge / 4.)
       ISSR_width = ceiling(5 / (dz * lRef)) !ceiling(kSponge*0.02)
       ISSR_radius = ceiling(30 / (dz * lRef))
-      if ((background == 'const-N') .and. (testcase == "nIce_w_test")) then
+      if((background == 'const-N') .and. (testcase == "nIce_w_test")) then
         ISSR_center = ceiling(1. / (dz * lRef) * g / N_BruntVaisala_dim ** 2 &
             * log((T_nuc - kappa * g ** 2 / (Rsp * N_BruntVaisala_dim ** 2)) &
             / (theta0_dim - kappa * g ** 2 / (Rsp * N_BruntVaisala_dim ** 2))))
         print *, "!!!!!!!!!!! ISSR_center = ", ISSR_center
       end if
-      if ((background == 'isentropic') .and. (testcase == "nIce_w_test")) then
+      if((background == 'isentropic') .and. (testcase == "nIce_w_test")) then
         ISSR_center = ceiling(1. / (dz * lRef) * Rsp * theta0_dim / (kappa &
             * g) * (1. - T_nuc / theta0_dim))
         print *, "!!!!!!!!!!! ISSR_center = ", ISSR_center
@@ -202,7 +202,7 @@ module ice_module
         do j = 0, ny
 
           do k = 1, ISSR_center - ISSR_radius
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               rho = var(i, j, k, 1) + rhoStrat(k)
             else
               rho = var(i, j, k, 1)
@@ -214,7 +214,7 @@ module ice_module
           end do
 
           do k = ISSR_center - ISSR_radius + 1, ISSR_center + ISSR_radius - 1
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               rho = var(i, j, k, 1) + rhoStrat(k)
             else
               rho = var(i, j, k, 1)
@@ -224,7 +224,7 @@ module ice_module
           end do
 
           do k = ISSR_center + ISSR_radius, nz
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               rho = var(i, j, k, 1) + rhoStrat(k)
             else
               rho = var(i, j, k, 1)
@@ -249,9 +249,9 @@ module ice_module
 
   logical function iceTestcase_specifics(time, var)
     ! in/out variables
-    real, intent (in) :: time
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (inout) :: var
+    real, intent(in) :: time
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
 
     ! local integers
     integer :: i, k, i0
@@ -261,25 +261,25 @@ module ice_module
 
     i0 = is + nbx - 1
 
-    select case (iceTestcase)
+    select case(iceTestcase)
 
       ! iceTestcase: qvrelaxation
-    case ("qv_relaxation")
+    case("qv_relaxation")
 
-      if (time > t_start + t_relax_qv) then
+      if(time > t_start + t_relax_qv) then
         iceTestcase_specifics = .true.
       else
-        if (time > t_start + t_relax_qv - t_ramp_qv) then
+        if(time > t_start + t_relax_qv - t_ramp_qv) then
           do k = 0, nz
-            if (k < ISSR_center - 8) then
+            if(k < ISSR_center - 8) then
               frac = 0.3
-            else if (k > ISSR_center) then
+            else if(k > ISSR_center) then
               frac = 0.05
             else
               frac = 0.98
             end if
             do i = 0, nx
-              if (x(i0 + i) < lx(0) + 0.1 * (lx(1) - lx(0))) then
+              if(x(i0 + i) < lx(0) + 0.1 * (lx(1) - lx(0))) then
                 p = press0_dim * ((PStrat(k) / p0) ** gamma_1 + var(i, 1, k, &
                     5)) ** kappaInv
                 call find_temperature(T, i, 1, k, var)
@@ -289,7 +289,7 @@ module ice_module
                     * t_ramp_qv))
                 !var(i,1,k,nVar-3) = init_nAer * cos(pi*(time-t_start)/(2*t_ramp_qv))
               end if
-              if (x(i0 + i) > lx(1) - 0.1 * (lx(1) - lx(0))) then
+              if(x(i0 + i) > lx(1) - 0.1 * (lx(1) - lx(0))) then
                 p = press0_dim * ((PStrat(k) / p0) ** gamma_1 + var(i, 1, k, &
                     5)) ** kappaInv
                 call find_temperature(T, i, 1, k, var)
@@ -303,17 +303,17 @@ module ice_module
           end do
           iceTestcase_specifics = .true.
         else
-          if (time > t_start + t_ramp_qv) then
+          if(time > t_start + t_ramp_qv) then
             do k = 0, nz
-              if (k < ISSR_center - 8) then
+              if(k < ISSR_center - 8) then
                 frac = 0.3
-              else if (k > ISSR_center) then
+              else if(k > ISSR_center) then
                 frac = 0.05
               else
                 frac = 0.98
               end if
               do i = 0, nx
-                if (x(i0 + i) < lx(0) + 0.1 * (lx(1) - lx(0))) then
+                if(x(i0 + i) < lx(0) + 0.1 * (lx(1) - lx(0))) then
                   p = press0_dim * ((PStrat(k) / p0) ** gamma_1 + var(i, 1, k, &
                       5)) ** kappaInv
                   call find_temperature(T, i, 1, k, var)
@@ -322,7 +322,7 @@ module ice_module
                   var(i, 1, k, nVar) = init_qv
                   !var(i,1,k,nVar-3) = init_nAer
                 end if
-                if (x(i0 + i) > lx(1) - 0.1 * (lx(1) - lx(0))) then
+                if(x(i0 + i) > lx(1) - 0.1 * (lx(1) - lx(0))) then
                   p = press0_dim * ((PStrat(k) / p0) ** gamma_1 + var(i, 1, k, &
                       5)) ** kappaInv
                   call find_temperature(T, i, 1, k, var)
@@ -335,20 +335,20 @@ module ice_module
             end do
             iceTestcase_specifics = .true.
           else
-            if (time > t_start) then
-              if (init_qv == 0.0) then
+            if(time > t_start) then
+              if(init_qv == 0.0) then
                 print *, "#### water vapor injection start ####"
               end if
               do k = 0, nz
-                if (k < ISSR_center - 8) then
+                if(k < ISSR_center - 8) then
                   frac = 0.3
-                else if (k > ISSR_center) then
+                else if(k > ISSR_center) then
                   frac = 0.05
                 else
                   frac = 0.98
                 end if
                 do i = 0, nx
-                  if (x(i0 + i) < lx(0) + 0.1 * (lx(1) - lx(0))) then
+                  if(x(i0 + i) < lx(0) + 0.1 * (lx(1) - lx(0))) then
                     p = press0_dim * ((PStrat(k) / p0) ** gamma_1 + var(i, 1, &
                         k, 5)) ** kappaInv
                     call find_temperature(T, i, 1, k, var)
@@ -358,7 +358,7 @@ module ice_module
                         / (2 * t_ramp_qv))
                     !var(i,1,k,nVar-3) = init_nAer * sin(pi*(time-t_start)/(2*t_ramp_qv))
                   end if
-                  if (x(i0 + i) > lx(1) - 0.1 * (lx(1) - lx(0))) then
+                  if(x(i0 + i) > lx(1) - 0.1 * (lx(1) - lx(0))) then
                     p = press0_dim * ((PStrat(k) / p0) ** gamma_1 + var(i, 1, &
                         k, 5)) ** kappaInv
                     call find_temperature(T, i, 1, k, var)
@@ -389,7 +389,7 @@ module ice_module
   ! returns terminal terminal_velocity_correction
   real function terminal_velocity_correction(T, p)
     ! in/out variables
-    real, intent (in) :: T, p
+    real, intent(in) :: T, p
 
     terminal_velocity_correction = (p / 30000.) ** (- 0.178) * (T / 233.) ** &
         (- 0.394)
@@ -400,7 +400,7 @@ module ice_module
   ! returns terminal sedimentation velocity of nIce in m/s
   real function terminal_v_nIce(m_ice, T, p)
     ! in/out variables
-    real, intent (in) :: m_ice, T, p
+    real, intent(in) :: m_ice, T, p
 
     ! parameters from fit
     real, parameter :: r0 = 3.
@@ -414,7 +414,7 @@ module ice_module
 
     corr = terminal_velocity_correction(T, p)
 
-    if (sedimentation_on) then
+    if(sedimentation_on) then
       terminal_v_nIce = corr * an * m_ice ** b * (m0 ** ex1 / (m_ice ** ex1 &
           + m0 ** ex1)) ** ex2
     else
@@ -428,7 +428,7 @@ module ice_module
   ! returns terminal sedimentation velocity of qIce in m/s
   real function terminal_v_qIce(m_ice, T, p)
     ! in/out variables
-    real, intent (in) :: m_ice, T, p
+    real, intent(in) :: m_ice, T, p
 
     ! parameters from fit
     real, parameter :: r0 = 3.
@@ -442,7 +442,7 @@ module ice_module
 
     corr = terminal_velocity_correction(T, p)
 
-    if (sedimentation_on) then
+    if(sedimentation_on) then
       terminal_v_qIce = corr * aq * m_ice ** b * (m0 ** ex1 / (m_ice ** ex1 &
           + m0 ** ex1)) ** ex2
     else
@@ -455,7 +455,7 @@ module ice_module
 
   real function latent_heat_ice(T)
     ! in/out variables
-    real, intent (in) :: T
+    real, intent(in) :: T
 
     latent_heat_ice = (46782.5 + 35.8925 * T - 0.07414 * T ** 2 + 541.5 * &
         exp(- 1. * (T / 123.75) ** 2)) / Mole_mass_water
@@ -466,7 +466,7 @@ module ice_module
 
   real function approximation_model(SIce, T)
     ! in/out variables
-    real, intent (in) :: T, SIce
+    real, intent(in) :: T, SIce
 
     !    coefficients for Koop-Polynom P3
     !    correction +6. is due to the conversion to SI units
@@ -479,18 +479,18 @@ module ice_module
 
     awi0 = awi(T)
 
-    select case (NUC_approx_type)
+    select case(NUC_approx_type)
 
-    case ("linFit")
+    case("linFit")
       delta_aw = (SIce - 1.0) * awi0
       approximation_model = afit0 - delta + afit1 * delta_aw
 
-    case ("Koop")
+    case("Koop")
       delta_aw = (SIce - 1.0) * awi0
       approximation_model = pk0 + pk1 * delta_aw + pk2 * delta_aw ** 2 + pk3 &
           * delta_aw ** 3 - delta
 
-    case ("threshold")
+    case("threshold")
       approximation_model = afit1 * (SIce - SIce_threshold(T, awi0)) * awi0 + j0
 
     case default
@@ -498,7 +498,7 @@ module ice_module
 
     end select
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    if (approximation_model .ge. 100.0) then
+    if(approximation_model .ge. 100.0) then
 
       print *, "WARNING: approximation_model = ", approximation_model, ", the &
           value has been adjusted to 100"
@@ -511,25 +511,25 @@ module ice_module
 
   real function NUCn(i, j, k, var, SIce, T, p, m_ice)
     ! in/out variables
-    real, intent (in) :: SIce, T, p, m_ice
-    integer, intent (in) :: i, j, k
+    real, intent(in) :: SIce, T, p, m_ice
+    integer, intent(in) :: i, j, k
     integer :: iVar
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (in) :: var
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
     real :: rho
 
-    if (nucleation_on) then
-      if (SIce .ge. SIce_crit(T)) then
+    if(nucleation_on) then
+      if(SIce .ge. SIce_crit(T)) then
         NUCn = tRef * var(i, j, k, nVar - 3) * ice_crystal_volume * 10.0 &
             ** approximation_model(SIce, T)
         ! if (.true.): print out values of important variables for EVERY nucleation event
-        if (.false.) then
+        if(.false.) then
           print *, " "
           print *, "#########################"
           print *, "Nucleation event! k = ", k, ", i = ", i + is + nbx - 1
           print *, "nIce = ", var(i, j, k, nVar - 2) / (rhoRef * lRef ** 3)
           print *, "qice = ", var(i, j, k, nVar - 1)
-          if (fluctuationMode) then
+          if(fluctuationMode) then
             rho = var(i, j, k, 1) + rhoStrat(k)
           else
             rho = var(i, j, k, 1)
@@ -556,10 +556,10 @@ module ice_module
 
   real function DEPq(i, j, k, var, SIce, T, p, m_ice)
     ! in/out variables
-    real, intent (in) :: SIce, T, p, m_ice
-    integer, intent (in) :: i, j, k
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (in) :: var
+    real, intent(in) :: SIce, T, p, m_ice
+    integer, intent(in) :: i, j, k
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
 
     ! parameter for calculation
     real :: lambda, kT, dv, cm, mu, dvstar, how, Schmidt_term
@@ -580,9 +580,9 @@ module ice_module
     real, parameter :: gv0 = 0.148564433505542
     real :: rho
 
-    if (super_simplified) then
+    if(super_simplified) then
       ! use simplified fits instead of the proper equations
-      if (fluctuationMode) then
+      if(fluctuationMode) then
         rho = var(i, j, k, 1) + rhoStrat(k)
       else
         rho = var(i, j, k, 1)
@@ -599,28 +599,28 @@ module ice_module
       lambda = 6.6e-8 * T / 293.15 * 101325. / p
 
       ! #### find kT #### !
-      if (kT_linFit) then
+      if(kT_linFit) then
         kT = 0.00122990325719493 + 8.43749062552794e-05 * T
       else
         kT = 0.002646 * T ** 1.5 / (T + 245. * 10 ** (- 12. / T))
       end if
 
       ! #### find dv #### !
-      if (dv_exp2) then
+      if(dv_exp2) then
         dv = 2.142e-05 * (T / 273.15) ** 2. * 101325. / p
       else
         dv = 2.11e-5 * (T / 273.15) ** 1.94 * 101325. / p
       end if
 
       ! #### find cm #### !
-      if (cm_dryAir) then
+      if(cm_dryAir) then
         cm = sqrt(8. * RSp * T / pi)
       else
         cm = sqrt(8. * Rv * T / pi)
       end if
 
       ! #### find mu #### !
-      if (mu_linFit) then
+      if(mu_linFit) then
         mu = 2.14079e-6 + 5.57139e-8 * T
       else
         mu = (1.458e-6 * T ** 1.5) / (T + 110.4)
@@ -657,7 +657,7 @@ module ice_module
 
     end if
 
-    if ((DEPq .lt. 0.0) .and. (var(i, j, k, nVar) .le. 1.e-10)) then
+    if((DEPq .lt. 0.0) .and. (var(i, j, k, nVar) .le. 1.e-10)) then
       DEPq = 0.0
       ! if there is not enough water vapor available in the
       ! surrounding, ice particles should not grow
@@ -670,9 +670,9 @@ module ice_module
   ! from Murphy and Koop, 2005
   real function pIce(T) ! ice pressure
     ! in/out variables
-    real, intent (in) :: T
+    real, intent(in) :: T
 
-    if (super_simplified) then
+    if(super_simplified) then
       pIce = - 26.26 + 26.98 * T / 210.0
     else
       pIce = exp(9.550426 - 5723.265 / T + 3.53068 * log(T) - 0.00728332 * T)
@@ -685,7 +685,7 @@ module ice_module
   ! from Murphy and Koop, 2005
   real function p_saturation(T) ! water vapor saturation pressure
     ! in/out variables
-    real, intent (in) :: T
+    real, intent(in) :: T
 
     p_saturation = exp(54.842763 - 6763.22 / T - 4.210 * log(T) + 0.000367 * T &
         + tanh(0.0415 * (T - 218.8)) * (53.878 - 1331.22 / T - 9.44523 &
@@ -697,7 +697,7 @@ module ice_module
 
   real function SIce_crit(T)
     ! in/out variables
-    real, intent (in) :: T
+    real, intent(in) :: T
     real :: x0, awi0
     ! parameter
     !  real :: s0,s1
@@ -717,7 +717,7 @@ module ice_module
 
   real function SIce_threshold(T, awi0)
     ! in/out variables
-    real, intent (in) :: T, awi0
+    real, intent(in) :: T, awi0
 
     !coefficients for treshold fit
     real, parameter :: s10 = 2.27697
@@ -726,14 +726,14 @@ module ice_module
     real, parameter :: s21 = 0.00228125
     real, parameter :: s22 = - 1.36989e-05
 
-    select case (SIce_threshold_type)
-    case ("linFit")
+    select case(SIce_threshold_type)
+    case("linFit")
       SIce_threshold = s10 + s11 * T
 
-    case ("quadFit")
+    case("quadFit")
       SIce_threshold = s20 + s21 * T + s22 * T ** 2
 
-    case ("exact")
+    case("exact")
       SIce_threshold = (j0 - afit0 + delta) / (afit1 * awi0) + 1.
 
     case default
@@ -748,7 +748,7 @@ module ice_module
   ! water activity
   real function awi(T)
     ! in/out variables
-    real, intent (in) :: T
+    real, intent(in) :: T
 
     ! fit coefficients
     real, parameter :: awi00 = 0.574312
@@ -758,18 +758,18 @@ module ice_module
     real, parameter :: awi21 = - 0.0125061
     real, parameter :: awi22 = 3.85311e-05
 
-    select case (awi_type)
+    select case(awi_type)
 
-    case ("const")
+    case("const")
       awi = awi00
 
-    case ("linFit")
+    case("linFit")
       awi = awi10 + awi11 * T
 
-    case ("quadFit")
+    case("quadFit")
       awi = awi20 + awi21 * T + awi22 * T ** 2
 
-    case ("exact")
+    case("exact")
       awi = pIce(T) / p_saturation(T)
 
     case default
@@ -784,22 +784,22 @@ module ice_module
   ! calculate the current absolute temperature in Kelvin
   subroutine find_temperature(T, i, j, k, var)
     ! in/out variables
-    real, intent (inout) :: T
-    integer, intent (in) :: i, j, k
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (in) :: var
+    real, intent(inout) :: T
+    integer, intent(in) :: i, j, k
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
     real :: rho
 
-    if (fluctuationMode) then
+    if(fluctuationMode) then
       rho = var(i, j, k, 1) + rhoStrat(k)
     else
       rho = var(i, j, k, 1)
     end if
 
-    select case (model)
+    select case(model)
       ! TFC FJ
       ! No changes for Boussinesq model required.
-    case ("pseudo_incompressible", "Boussinesq")
+    case("pseudo_incompressible", "Boussinesq")
       T = (Pstrat(k) / rho) * thetaRef * ((PStrat(k) / p0) ** gamma_1 + var(i, &
           j, k, 5))
 

@@ -40,17 +40,17 @@ module algebra_module
     !  using compressed sparse matrix (CSR)
     ! -----------------------------------------
 
-    real, dimension (:), intent (in) :: A_csr ! matrix in CSR storage
-    integer, dimension (:), intent (in) :: colInd, rowPtr, diagPtr
-    real, dimension (:), intent (in) :: b ! b=RHS,
-    real, dimension (:), intent (inout) :: x ! x = x0
-    real, intent (in) :: tol ! target residual
-    real, intent (out) :: res ! residual
-    integer, intent (in) :: max_iter_bicgstab
+    real, dimension(:), intent(in) :: A_csr ! matrix in CSR storage
+    integer, dimension(:), intent(in) :: colInd, rowPtr, diagPtr
+    real, dimension(:), intent(in) :: b ! b=RHS,
+    real, dimension(:), intent(inout) :: x ! x = x0
+    real, intent(in) :: tol ! target residual
+    real, intent(out) :: res ! residual
+    integer, intent(in) :: max_iter_bicgstab
 
     ! local variables
     integer :: j, n, allocstat
-    real, dimension (:), allocatable :: p, r0, rOld, r, s, t, v
+    real, dimension(:), allocatable :: p, r0, rOld, r, s, t, v
     real :: alpha, beta, omega
     real :: normB
 
@@ -60,19 +60,19 @@ module algebra_module
     n = size(b)
 
     ! allocate local fields
-    allocate (p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (r0(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(r0(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (rOld(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(rOld(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (r(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(r(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (s(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(s(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (t(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(t(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (v(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(v(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
 
     ! Init
@@ -83,11 +83,11 @@ module algebra_module
 
     ! check initial residual
     res = norm(r)
-    if (giveInfo) write (*, fmt = "(a25,es25.14)") " Initial residual: res0 &
-        = ", res
-    if (giveInfo) write (*, fmt = "(a25,es25.14)") " tol = ", tol
-    if (res <= tol) then
-      if (giveInfo) print *, " ==> no iteration needed."
+    if(giveInfo) write(*, fmt = "(a25,es25.14)") " Initial residual: res0 = ", &
+        res
+    if(giveInfo) write(*, fmt = "(a25,es25.14)") " tol = ", tol
+    if(res <= tol) then
+      if(giveInfo) print *, " ==> no iteration needed."
       return
     end if
 
@@ -105,10 +105,10 @@ module algebra_module
       r = s - omega * t
 
       res = norm(r)
-      if (res <= tol) then
-        if (giveInfo) then
-          write (*, fmt = "(a25,i25)") " Nb.of iterations: j = ", j
-          write (*, fmt = "(a25,es25.14)") " Final residual: res = ", res
+      if(res <= tol) then
+        if(giveInfo) then
+          write(*, fmt = "(a25,i25)") " Nb.of iterations: j = ", j
+          write(*, fmt = "(a25,es25.14)") " Final residual: res = ", res
           print *, "--------------------------------------------------"
           print *, ""
         end if
@@ -119,24 +119,24 @@ module algebra_module
       p = r + beta * (p - omega * v)
     end do iteration
 
-    write (*, fmt = "(a25,i25)") " BiCGStab_csr: max iterations!!!", &
+    write(*, fmt = "(a25,i25)") " BiCGStab_csr: max iterations!!!", &
         max_iter_bicgstab
     print *, "--------------------------------------------------"; print *, ""
 
     ! deallocate local fields
-    deallocate (p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (r0, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(r0, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (rOld, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(rOld, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (r, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(r, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (s, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(s, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (t, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(t, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (v, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(v, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
 
   end subroutine bicgstab_csr
@@ -152,21 +152,21 @@ module algebra_module
     !----------------------------------
 
     ! in / out
-    real, dimension (:), intent (in) :: A_csr ! A in CSR format
-    real, dimension (:), intent (in) :: LU_csr ! incomplete L,U matrices, CSR
+    real, dimension(:), intent(in) :: A_csr ! A in CSR format
+    real, dimension(:), intent(in) :: LU_csr ! incomplete L,U matrices, CSR
     ! CSR relevant info:
-    integer, dimension (:), intent (in) :: colInd, rowPtr, diagPtr
+    integer, dimension(:), intent(in) :: colInd, rowPtr, diagPtr
 
-    real, dimension (:), intent (in) :: b ! b=RHS,
-    real, dimension (:), intent (inout) :: x ! x = x0 on input
-    real, intent (in) :: tol ! target residual
-    real, intent (out) :: res ! residual
-    integer, intent (in) :: max_iter_bicgstab ! max. nb. of iterations
+    real, dimension(:), intent(in) :: b ! b=RHS,
+    real, dimension(:), intent(inout) :: x ! x = x0 on input
+    real, intent(in) :: tol ! target residual
+    real, intent(out) :: res ! residual
+    integer, intent(in) :: max_iter_bicgstab ! max. nb. of iterations
 
     ! local variables
     integer :: j, n, allocstat
-    real, dimension (:), allocatable :: p_p, r, r0_p, r_p, s, s_p, t, t_p, &
-        x_p, v, v_p, aux
+    real, dimension(:), allocatable :: p_p, r, r0_p, r_p, s, s_p, t, t_p, x_p, &
+        v, v_p, aux
     real :: alpha_p, beta_p, omega_p, rho_p, rho_p_old
     real :: normB
 
@@ -175,29 +175,29 @@ module algebra_module
     n = size(diagPtr) ! or size(b), size(rowPtr)-1,
 
     ! allocate local fields
-    allocate (p_p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(p_p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (r(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(r(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (r0_p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(r0_p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (r_p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(r_p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (s(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(s(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (s_p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(s_p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (t(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(t(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (t_p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(t_p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (x_p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(x_p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (v(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(v(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (v_p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(v_p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (aux(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(aux(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
 
     ! Init
@@ -210,17 +210,17 @@ module algebra_module
     normB = norm(b) ! norm of b for rel. residual
 
     ! prevent divsion by 0 = normB
-    if (normB <= tol) then
+    if(normB <= tol) then
       normB = 1.0
-      if (giveInfo) print *, "algebra.f90/pre_bicgstab_csr:  norm(b) < tol &
+      if(giveInfo) print *, "algebra.f90/pre_bicgstab_csr:  norm(b) < tol &
           --> normB := 1.0"
     end if
 
     ! check initial residual
-    if (norm(r) / normB <= tol) then
+    if(norm(r) / normB <= tol) then
       res = norm(r)
-      if (giveInfo) print *, "res = ", res
-      if (giveInfo) print *, "algebra.f90/pre_bicgstab_csr:  No iteration &
+      if(giveInfo) print *, "res = ", res
+      if(giveInfo) print *, "algebra.f90/pre_bicgstab_csr:  No iteration &
           needed."
       return
     end if
@@ -255,8 +255,8 @@ module algebra_module
       p_p = r_p + beta_p * (p_p - omega_p * v_p)
 
       res = norm(r)
-      if (res / normB <= tol) then
-        if (giveInfo) then
+      if(res / normB <= tol) then
+        if(giveInfo) then
           print *, "algebra.f90/precond_bicgstab:  Number of iterations &
               needed: ", j
           print *, "relResPrecond = ", norm(r_p) / normB
@@ -280,29 +280,29 @@ module algebra_module
     x = mldivide_csr(LU_csr, colInd, rowPtr, diagPtr, x_p, 'up') ! solve U*x = x_p for x
 
     ! deallocate local fields
-    deallocate (p_p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(p_p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (r, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(r, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (r0_p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(r0_p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (r_p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(r_p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (s, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(s, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (s_p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(s_p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (t, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(t, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (t_p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(t_p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (x_p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(x_p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (v, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(v, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (v_p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(v_p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (aux, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(aux, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
 
   end subroutine pre_bicgstab_csr
@@ -316,11 +316,11 @@ module algebra_module
     !-------------------------------------------------
 
     ! in/out
-    real, dimension (:), intent (in) :: A_csr
-    integer, dimension (:), intent (in) :: colInd
-    integer, dimension (:), intent (in) :: rowPtr
-    integer, dimension (:), intent (in) :: diagPtr
-    real, dimension (:), allocatable, intent (out) :: LU_csr
+    real, dimension(:), intent(in) :: A_csr
+    integer, dimension(:), intent(in) :: colInd
+    integer, dimension(:), intent(in) :: rowPtr
+    integer, dimension(:), intent(in) :: diagPtr
+    real, dimension(:), allocatable, intent(out) :: LU_csr
 
     ! locals
     integer :: i, k, m, n
@@ -334,8 +334,8 @@ module algebra_module
     nnz = size(A_csr)
     n = size(diagPtr)
 
-    allocate (LU_csr(nnz), stat = allocstat)
-    if (allocstat /= 0) stop "algebra.f90/ilu_csr: alloc failed"
+    allocate(LU_csr(nnz), stat = allocstat)
+    if(allocstat /= 0) stop "algebra.f90/ilu_csr: alloc failed"
     LU_csr = 0.0
 
     ! ILU(0) for csr stored matrices
@@ -357,7 +357,7 @@ module algebra_module
 
           ! search in row m for U_mk
           do uInd = diagPtr(m), rowPtr(m + 1) - 1
-            if (colInd(uInd) == k) then
+            if(colInd(uInd) == k) then
               U_mk = LU_csr(uInd)
               sum = sum + L_im * U_mk
               exit
@@ -378,7 +378,7 @@ module algebra_module
 
       kLoop2: do k = i + 1, n ! k = i+1 to i+q, q band width
         do csrInd = rowPtr(k), diagPtr(k) - 1
-          if (colInd(csrInd) == i) then ! A_ki /= 0 -> calculate L_ki
+          if(colInd(csrInd) == i) then ! A_ki /= 0 -> calculate L_ki
 
             ! determine sum              ! Sum( L_km*U_mi, m = 1 to i-1)
             sum = 0.0
@@ -387,7 +387,7 @@ module algebra_module
               L_km = LU_csr(lInd)
               ! search row m for U_mi:
               do uInd = diagPtr(m), rowPtr(m + 1) - 1
-                if (colInd(uInd) == i) then
+                if(colInd(uInd) == i) then
                   U_mi = LU_csr(uInd)
                   sum = sum + L_km * U_mi
                   exit
@@ -418,11 +418,11 @@ module algebra_module
     !--------------------------------
 
     ! in/out
-    real, dimension (:, :), intent (in) :: A
-    real, dimension (:), allocatable, intent (out) :: A_csr
-    integer, dimension (:), allocatable, intent (out) :: colInd
-    integer, dimension (:), allocatable, intent (out) :: rowPtr
-    integer, dimension (:), allocatable, intent (out) :: diagPtr
+    real, dimension(:, :), intent(in) :: A
+    real, dimension(:), allocatable, intent(out) :: A_csr
+    integer, dimension(:), allocatable, intent(out) :: colInd
+    integer, dimension(:), allocatable, intent(out) :: rowPtr
+    integer, dimension(:), allocatable, intent(out) :: diagPtr
 
     ! local variables
     integer :: n ! A = (n,n)
@@ -435,28 +435,28 @@ module algebra_module
     nnz = 0
     do j = 1, n
       do i = 1, n
-        if (A(i, j) /= 0) nnz = nnz + 1
+        if(A(i, j) /= 0) nnz = nnz + 1
       end do
     end do
 
-    allocate (A_csr(nnz), stat = allocstat)
-    if (allocstat /= 0) stop "algebra.f90/full2csr: alloc failed"
-    allocate (colInd(nnz), stat = allocstat)
-    if (allocstat /= 0) stop "algebra.f90/full2csr: alloc failed"
-    allocate (rowPtr(n + 1), stat = allocstat)
-    if (allocstat /= 0) stop "algebra.f90/full2csr: alloc failed"
-    allocate (diagPtr(n), stat = allocstat)
-    if (allocstat /= 0) stop "algebra.f90/full2csr: alloc failed"
+    allocate(A_csr(nnz), stat = allocstat)
+    if(allocstat /= 0) stop "algebra.f90/full2csr: alloc failed"
+    allocate(colInd(nnz), stat = allocstat)
+    if(allocstat /= 0) stop "algebra.f90/full2csr: alloc failed"
+    allocate(rowPtr(n + 1), stat = allocstat)
+    if(allocstat /= 0) stop "algebra.f90/full2csr: alloc failed"
+    allocate(diagPtr(n), stat = allocstat)
+    if(allocstat /= 0) stop "algebra.f90/full2csr: alloc failed"
 
     ! write csr-format
     csrInd = 1
     do i = 1, n
       rowPtr(i) = csrInd
       do j = 1, n
-        if (A(i, j) /= 0) then
+        if(A(i, j) /= 0) then
           A_csr(csrInd) = A(i, j)
           colInd(csrInd) = j
-          if (i == j) diagPtr(i) = csrInd
+          if(i == j) diagPtr(i) = csrInd
           csrInd = csrInd + 1
         end if
       end do
@@ -475,10 +475,10 @@ module algebra_module
     !------------------------------------------
 
     ! in/out
-    real, dimension (:), intent (in) :: A_csr
-    integer, dimension (:), intent (in) :: colInd
-    integer, dimension (:), intent (in) :: rowPtr
-    real, dimension (:, :), intent (out), allocatable :: A
+    real, dimension(:), intent(in) :: A_csr
+    integer, dimension(:), intent(in) :: colInd
+    integer, dimension(:), intent(in) :: rowPtr
+    real, dimension(:, :), intent(out), allocatable :: A
 
     ! local variables
     integer :: n ! A = (n,n)
@@ -488,8 +488,8 @@ module algebra_module
     ! Find size of fields and allocate
     n = size(rowPtr) - 1
 
-    allocate (A(n, n), stat = allocstat)
-    if (allocstat /= 0) stop "algebra.f90/csr2full: alloc failed"
+    allocate(A(n, n), stat = allocstat)
+    if(allocstat /= 0) stop "algebra.f90/csr2full: alloc failed"
 
     ! write zeros
     A = 0.0
@@ -512,26 +512,26 @@ module algebra_module
     !------------------------------------------------------
 
     ! in / out
-    real, dimension (:), allocatable :: matmul_csr
-    real, dimension (:), intent (in) :: M_csr
-    integer, dimension (:), intent (in) :: colInd, rowPtr, diagPtr
-    real, dimension (:), intent (in) :: x
-    character (len = *), intent (in) :: form ! low, up or low+up
+    real, dimension(:), allocatable :: matmul_csr
+    real, dimension(:), intent(in) :: M_csr
+    integer, dimension(:), intent(in) :: colInd, rowPtr, diagPtr
+    real, dimension(:), intent(in) :: x
+    character(len = *), intent(in) :: form ! low, up or low+up
 
     ! local variables
-    real, dimension (:), allocatable :: y
+    real, dimension(:), allocatable :: y
     integer :: i, k, n, allocstat
 
     ! allocate fields
     n = size(x)
-    allocate (matmul_csr(n), stat = allocstat)
-    if (allocstat /= 0) stop "algebra.f90/matmul_csr: alloc failed"
-    allocate (y(n), stat = allocstat)
-    if (allocstat /= 0) stop "algebra.f90/matmul_csr: alloc failed"
+    allocate(matmul_csr(n), stat = allocstat)
+    if(allocstat /= 0) stop "algebra.f90/matmul_csr: alloc failed"
+    allocate(y(n), stat = allocstat)
+    if(allocstat /= 0) stop "algebra.f90/matmul_csr: alloc failed"
 
-    select case (form)
+    select case(form)
 
-    case ('low+up') ! M_csr is treated as full matrix
+    case('low+up') ! M_csr is treated as full matrix
       y = 0.0
       do i = 1, n
         do k = rowPtr(i), rowPtr(i + 1) - 1
@@ -539,7 +539,7 @@ module algebra_module
         end do
       end do
 
-    case ('low') ! M_csr is treated as normed lower matrix L, L_ii = 1.0
+    case('low') ! M_csr is treated as normed lower matrix L, L_ii = 1.0
       y = x ! accounting for L_ii = 1.0
       do i = 1, n
         do k = rowPtr(i), diagPtr(i) - 1
@@ -547,7 +547,7 @@ module algebra_module
         end do
       end do
 
-    case ('up') ! M_csr is treated as upper matrix U, U_ii <> 1.0
+    case('up') ! M_csr is treated as upper matrix U, U_ii <> 1.0
       y = 0.0
       do i = 1, n
         do k = diagPtr(i), rowPtr(i + 1) - 1
@@ -568,14 +568,14 @@ module algebra_module
 
   function mldivide_csr(LU_csr, colInd, rowPtr, diagPtr, b, form)
     ! in / out
-    real, dimension (:), allocatable :: mldivide_csr
-    real, dimension (:), intent (in) :: LU_csr
-    integer, dimension (:), intent (in) :: colInd, rowPtr, diagPtr
-    real, dimension (:), intent (in) :: b
-    character (len = *), intent (in) :: form
+    real, dimension(:), allocatable :: mldivide_csr
+    real, dimension(:), intent(in) :: LU_csr
+    integer, dimension(:), intent(in) :: colInd, rowPtr, diagPtr
+    real, dimension(:), intent(in) :: b
+    character(len = *), intent(in) :: form
 
     ! local variables
-    real, dimension (:), allocatable :: x
+    real, dimension(:), allocatable :: x
     integer :: i, csrInd, m, n
     integer :: allocstat
     real :: sum, L_im, x_m
@@ -583,14 +583,14 @@ module algebra_module
 
     ! get system size and allocate
     n = size(diagPtr)
-    allocate (x(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(x(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/mldivide_csr:alloc failed"
-    allocate (mldivide_csr(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(mldivide_csr(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/mldivide_csr:alloc failed"
 
-    select case (form)
+    select case(form)
 
-    case ('low') ! use lower part of LU_csr = L, assuming L_ii = 1.0
+    case('low') ! use lower part of LU_csr = L, assuming L_ii = 1.0
 
       x(1) = b(1)
       do i = 2, n ! loop over x_i
@@ -604,7 +604,7 @@ module algebra_module
       end do
       mldivide_csr = x
 
-    case ('up') ! use upper part of LU_csr = U, U_ii <> 1.0
+    case('up') ! use upper part of LU_csr = U, U_ii <> 1.0
 
       U_nn = LU_csr(diagPtr(n))
       x(n) = b(n) / U_nn
@@ -631,31 +631,31 @@ module algebra_module
   !---------------------------------------------------------------------------
 
   function mldivide(A, b, form)
-    real, dimension (:), allocatable :: mldivide
-    character (len = *), intent (in) :: form
-    real, dimension (:, :), intent (in) :: A
-    real, dimension (:), intent (in) :: b
+    real, dimension(:), allocatable :: mldivide
+    character(len = *), intent(in) :: form
+    real, dimension(:, :), intent(in) :: A
+    real, dimension(:), intent(in) :: b
 
     ! local variables
-    real, dimension (:), allocatable :: x
+    real, dimension(:), allocatable :: x
     integer :: i, n, allocstat
 
     n = size(A, 1)
 
-    allocate (x(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(x(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/mldivide:alloc failed"
-    allocate (mldivide(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(mldivide(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/mldivide:alloc failed"
 
-    select case (form)
+    select case(form)
 
-    case ('up') ! A = upper triangular matrix
+    case('up') ! A = upper triangular matrix
 
       do i = n, 1, - 1
         x(i) = (b(i) - dot_product(A(i, i + 1:n), x(i + 1:n))) / A(i, i)
       end do
 
-    case ('low') ! A = lower triangular matrix
+    case('low') ! A = lower triangular matrix
       !
       do i = 1, n
         x(i) = (b(i) - dot_product(A(i, 1:i - 1), x(1:i - 1))) / A(i, i)
@@ -668,7 +668,7 @@ module algebra_module
 
     mldivide = x
 
-    deallocate (x, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(x, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/mldivide:dealloc failed"
 
   end function mldivide
@@ -682,8 +682,8 @@ module algebra_module
 
     ! in/out variables
     integer :: n ! size of A,L and U
-    real, dimension (:, :), intent (in) :: A
-    real, dimension (:, :), intent (out) :: L, U
+    real, dimension(:, :), intent(in) :: A
+    real, dimension(:, :), intent(out) :: L, U
 
     ! local variables
     integer :: i, k, m
@@ -738,8 +738,8 @@ module algebra_module
 
     ! in/out variables
     integer :: n ! size of A,L and U
-    real, dimension (:, :), intent (in) :: A
-    real, dimension (:, :), intent (out) :: L, U
+    real, dimension(:, :), intent(in) :: A
+    real, dimension(:, :), intent(out) :: L, U
 
     ! local variables
     integer :: i, k, m
@@ -758,12 +758,12 @@ module algebra_module
       ! ----------------------------
 
       do k = i, n
-        if (A(i, k) /= 0.) then
+        if(A(i, k) /= 0.) then
 
           ! Sum( L_im * U_mk, m = 1 to i-1
           sum = 0.0
           do m = 1, i - 1
-            if (A(i, m) /= 0. .and. A(m, k) /= 0.) then
+            if(A(i, m) /= 0. .and. A(m, k) /= 0.) then
               sum = sum + L(i, m) * U(m, k)
             end if
           end do
@@ -776,12 +776,12 @@ module algebra_module
       ! ----------------------------
 
       do k = i + 1, n
-        if (A(k, i) /= 0.0) then
+        if(A(k, i) /= 0.0) then
 
           ! Sum( L_km * U_mi, m = 1 to i-1
           sum = 0.0
           do m = 1, i - 1
-            if (A(k, m) /= 0. .and. A(m, i) /= 0.) then
+            if(A(k, m) /= 0. .and. A(m, i) /= 0.) then
               sum = sum + L(k, m) * U(m, i)
             end if
           end do
@@ -804,8 +804,8 @@ module algebra_module
 
     ! in/out variables
     integer :: n ! size of A,L and U
-    real, dimension (:, :), intent (in) :: A
-    real, dimension (:, :), intent (out) :: L, U
+    real, dimension(:, :), intent(in) :: A
+    real, dimension(:, :), intent(out) :: L, U
 
     ! local variables
     integer :: i, k, m
@@ -820,10 +820,10 @@ module algebra_module
     outerLoop: do i = 1, n
 
       do k = i, n
-        if (A(k, i) /= 0.) then
+        if(A(k, i) /= 0.) then
           sum = 0.0
           do m = 1, i - 1
-            if (A(k, m) /= 0. .and. A(m, i) /= 0.) then
+            if(A(k, m) /= 0. .and. A(m, i) /= 0.) then
               sum = sum + L(k, m) * U(m, i)
             end if
           end do
@@ -832,10 +832,10 @@ module algebra_module
       end do
 
       do k = i, n
-        if (A(i, k) /= 0.) then
+        if(A(i, k) /= 0.) then
           sum = 0.0
           do m = 1, i - 1
-            if (A(i, m) /= 0. .and. A(m, k) /= 0.) then
+            if(A(i, m) /= 0. .and. A(m, k) /= 0.) then
               sum = sum + L(i, m) * U(m, k)
             end if
           end do
@@ -855,45 +855,45 @@ module algebra_module
     !-----------------------------------------
 
     ! in/out variables
-    real, dimension (:, :), intent (in) :: A ! A
-    real, dimension (:, :), intent (in) :: L, U ! incomplete LU matrices
-    real, dimension (:), intent (in) :: b ! b=RHS,
-    real, dimension (:), intent (inout) :: x ! x = x0
-    real, intent (in) :: tol ! target residual
-    real, intent (out) :: res ! residual
-    integer, intent (in) :: max_iter_bicgstab ! max. nb. of iterations
+    real, dimension(:, :), intent(in) :: A ! A
+    real, dimension(:, :), intent(in) :: L, U ! incomplete LU matrices
+    real, dimension(:), intent(in) :: b ! b=RHS,
+    real, dimension(:), intent(inout) :: x ! x = x0
+    real, intent(in) :: tol ! target residual
+    real, intent(out) :: res ! residual
+    integer, intent(in) :: max_iter_bicgstab ! max. nb. of iterations
 
     ! local variables
     integer :: j, n, allocstat
-    real, dimension (:), allocatable :: p_p, r, r0_p, r_p, s, s_p, t, t_p, &
-        x_p, v, v_p
+    real, dimension(:), allocatable :: p_p, r, r0_p, r_p, s, s_p, t, t_p, x_p, &
+        v, v_p
     real :: alpha_p, beta_p, omega_p, rho_p, rho_p_old
     real :: normB
 
     n = size(A, 1)
 
     ! allocate local fields
-    allocate (p_p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(p_p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (r(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(r(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (r0_p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(r0_p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (r_p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(r_p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (s(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(s(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (s_p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(s_p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (t(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(t(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (t_p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(t_p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (x_p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(x_p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (v(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(v(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (v_p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(v_p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
 
     ! Init
@@ -905,10 +905,10 @@ module algebra_module
     normB = norm(b) ! norm of b for rel. residual
 
     ! check initial residual
-    if (norm(r) / normB <= tol) then
+    if(norm(r) / normB <= tol) then
       res = norm(r)
-      if (giveInfo) print *, "res = ", res
-      if (giveInfo) print *, "algebra.f90/bicgstab: No iteration needed."
+      if(giveInfo) print *, "res = ", res
+      if(giveInfo) print *, "algebra.f90/bicgstab: No iteration needed."
       return
     end if
 
@@ -938,8 +938,8 @@ module algebra_module
       p_p = r_p + beta_p * (p_p - omega_p * v_p)
 
       res = norm(r)
-      if (res / normB <= tol) then
-        if (giveInfo) then
+      if(res / normB <= tol) then
+        if(giveInfo) then
           print *, "algebra.f90/precond_bicgstab:  Number of iterations &
               needed: ", j
           print *, "relResPrecond = ", norm(r_p) / normB
@@ -959,27 +959,27 @@ module algebra_module
     x = mldivide(U, x_p, 'up')
 
     ! deallocate local fields
-    deallocate (p_p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(p_p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (r, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(r, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (r0_p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(r0_p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (r_p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(r_p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (s, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(s, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (s_p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(s_p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (t, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(t, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (t_p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(t_p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (x_p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(x_p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (v, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(v, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (v_p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(v_p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
 
   end subroutine precond_bicgstab
@@ -992,35 +992,35 @@ module algebra_module
     !-----------------------------------------
 
     ! in/out variables
-    real, dimension (:, :), intent (in) :: A
-    real, dimension (:), intent (in) :: b ! b=RHS,
-    real, dimension (:), intent (inout) :: x ! x = x0
-    real, intent (in) :: tol ! target residual
-    real, intent (out) :: res ! residual
-    integer, intent (in) :: max_iter_bicgstab
+    real, dimension(:, :), intent(in) :: A
+    real, dimension(:), intent(in) :: b ! b=RHS,
+    real, dimension(:), intent(inout) :: x ! x = x0
+    real, intent(in) :: tol ! target residual
+    real, intent(out) :: res ! residual
+    integer, intent(in) :: max_iter_bicgstab
 
     ! local variables
     integer :: j, n, allocstat
-    real, dimension (:), allocatable :: p, r0, rOld, r, s, t, v
+    real, dimension(:), allocatable :: p, r0, rOld, r, s, t, v
     real :: alpha, beta, omega
     real :: normB
 
     n = size(A, 1)
 
     ! allocate local fields
-    allocate (p(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(p(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (r0(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(r0(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (rOld(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(rOld(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (r(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(r(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (s(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(s(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (t(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(t(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
-    allocate (v(n), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(v(n), stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:alloc failed"
 
     ! Init
@@ -1031,9 +1031,9 @@ module algebra_module
 
     ! check initial residual
     res = norm(r)
-    if (res / normB <= tol) then
-      if (giveInfo) print *, "relRes = ", res / normB
-      if (giveInfo) print *, "algebra.f90/bicgstab: No iteration needed."
+    if(res / normB <= tol) then
+      if(giveInfo) print *, "relRes = ", res / normB
+      if(giveInfo) print *, "algebra.f90/bicgstab: No iteration needed."
       return
     end if
 
@@ -1051,10 +1051,10 @@ module algebra_module
       r = s - omega * t
 
       res = norm(r)
-      if (res / normB <= tol) then
-        if (giveInfo) print *, "algebra.f90/bicgstab:  Number of iterations &
+      if(res / normB <= tol) then
+        if(giveInfo) print *, "algebra.f90/bicgstab:  Number of iterations &
             needed: ", j
-        if (giveInfo) print *, "relResidual = ", res / normB
+        if(giveInfo) print *, "relResidual = ", res / normB
         return
       end if
 
@@ -1065,19 +1065,19 @@ module algebra_module
     print *, "algebra.f90/bicgstab: max iterations reached", max_iter_bicgstab
 
     ! deallocate local fields
-    deallocate (p, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(p, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (r0, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(r0, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (rOld, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(rOld, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (r, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(r, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (s, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(s, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (t, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(t, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
-    deallocate (v, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(v, stat = allocstat); if(allocstat /= 0) stop &
         "algebra.f90/bicgstab:dealloc failed"
 
   end subroutine bicgstab_full
@@ -1091,17 +1091,17 @@ module algebra_module
 
     ! in/out variables
     real :: dot_product3D
-    real, dimension (:, :, :), intent (in) :: a, b
+    real, dimension(:, :, :), intent(in) :: a, b
 
     ! locals
-    integer, dimension (3) :: aSize, bSize
+    integer, dimension(3) :: aSize, bSize
     integer :: i, j, k
 
     aSize = shape(a)
     bSize = shape(b)
 
     do i = 1, 3
-      if (aSize(i) .ne. bSize(i)) stop "dot_product3D failure."
+      if(aSize(i) .ne. bSize(i)) stop "dot_product3D failure."
     end do
 
     dot_product3D = 0.0
@@ -1122,10 +1122,10 @@ module algebra_module
 
     ! in/out variables
     real :: norm3D
-    real, dimension (:, :, :), intent (in) :: a
+    real, dimension(:, :, :), intent(in) :: a
 
     ! locals
-    integer, dimension (3) :: aSize
+    integer, dimension(3) :: aSize
     integer :: i, j, k
 
     aSize = shape(a)
@@ -1145,7 +1145,7 @@ module algebra_module
   function norm(a)
     ! 2-Norm for vectors
     real :: norm
-    real, dimension (:), intent (in) :: a
+    real, dimension(:), intent(in) :: a
 
     norm = sqrt(dot_product(a, a))
 
@@ -1156,7 +1156,7 @@ module algebra_module
   function matrix_norm(A)
     ! Frobenius norm for matrices
     real :: matrix_norm
-    real, dimension (:, :), intent (in) :: A
+    real, dimension(:, :), intent(in) :: A
     integer :: i, n
 
     matrix_norm = 0.
@@ -1177,49 +1177,49 @@ module algebra_module
     !----------------------------------------------
 
     ! in / out variables
-    real, dimension (:, :), intent (in) :: A
-    character (len = *), intent (in), optional :: name
-    character (len = *), intent (in), optional :: inputForm
+    real, dimension(:, :), intent(in) :: A
+    character(len = *), intent(in), optional :: name
+    character(len = *), intent(in), optional :: inputForm
 
     ! locals
-    real, dimension (:), allocatable :: Aline
+    real, dimension(:), allocatable :: Aline
     integer :: m, n, i
     integer :: allocstat
-    character (len = 20) :: form
+    character(len = 20) :: form
 
     ! get size and allocate
 
     n = size(A, 1)
     m = size(A, 2)
-    if (n /= m) then
+    if(n /= m) then
       print *, "n <> m. returning"
       return
     end if
 
-    allocate (Aline(n), stat = allocstat)
-    if (allocstat /= 0) stop "testAlgebra.f90/printMatrix: alloc failed."
+    allocate(Aline(n), stat = allocstat)
+    if(allocstat /= 0) stop "testAlgebra.f90/printMatrix: alloc failed."
 
     ! define output format using n...es25.14
-    if (present(inputForm)) then
+    if(present(inputForm)) then
       form = inputForm
     else
-      write (unit = form, fmt = "(a,i3,a)") "(", n, "es25.14)"
+      write(unit = form, fmt = "(a,i3,a)") "(", n, "es25.14)"
     end if
 
     ! print matrix
-    if (present(name)) then
-      write (*, fmt = "(2a)") name, " = "
+    if(present(name)) then
+      write(*, fmt = "(2a)") name, " = "
     else
       print *, "Matrix = "
     end if
 
     do i = 1, n
       Aline = A(i, :)
-      write (*, fmt = "(4es25.14)") Aline
+      write(*, fmt = "(4es25.14)") Aline
     end do
 
-    deallocate (Aline, stat = allocstat)
-    if (allocstat /= 0) stop "testAlgebra.f90/printMatrix: dealloc failed."
+    deallocate(Aline, stat = allocstat)
+    if(allocstat /= 0) stop "testAlgebra.f90/printMatrix: dealloc failed."
 
   end subroutine printMatrix
 

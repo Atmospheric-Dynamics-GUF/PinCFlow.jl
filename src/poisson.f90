@@ -46,13 +46,13 @@ module poisson_module
   !------------------------------
 
   ! pressure correction
-  real, dimension (:, :, :), allocatable :: dp
+  real, dimension(:, :, :), allocatable :: dp
 
   ! solution to Poisson problem
-  real, dimension (:, :, :), allocatable :: sol_old1, sol_old2
+  real, dimension(:, :, :), allocatable :: sol_old1, sol_old2
 
   ! predicted pressure
-  real, dimension (:, :, :), allocatable :: p_pred
+  real, dimension(:, :, :), allocatable :: p_pred
 
   ! tolerance for initial divergence cleaning
   real, parameter :: tolInitial = 1.0e-9
@@ -73,17 +73,17 @@ module poisson_module
     ! -------------------------------------------------
 
     ! in/out variables
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (inout) :: var
-    real, dimension (- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent (in) :: flux
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), &
-        intent (inout) :: dMom
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), &
+        intent(inout) :: dMom
 
     !UAC real, intent(in)                :: dt
-    real, intent (in) :: dt, facray, facprs
-    logical, intent (out) :: errFlagBicg
-    integer, intent (out) :: nIter
-    integer, intent (in) :: m
+    real, intent(in) :: dt, facray, facprs
+    logical, intent(out) :: errFlagBicg
+    integer, intent(out) :: nIter
+    integer, intent(in) :: m
 
     ! facray multiplies the Rayleigh-damping terms so that they are only
     ! handled in the implicit time stepping (sponge and immersed boundary)
@@ -99,7 +99,7 @@ module poisson_module
     ! opt = impl =>
     ! pressure solver for implicit problem and corresponding correction
     ! of the winds and density fluctuations
-    character (len = *), intent (in) :: opt
+    character(len = *), intent(in) :: opt
 
     !UAB
     !! w_0 = horizontal-mean vertical wind induced by heating
@@ -107,7 +107,7 @@ module poisson_module
     !UAE
 
     ! local variables
-    real, dimension (1:nx, 1:ny, 1:nz) :: rhs ! RHS
+    real, dimension(1:nx, 1:ny, 1:nz) :: rhs ! RHS
     logical :: onlyinfo
 
     ! Note: dp is a module variable
@@ -125,7 +125,7 @@ module poisson_module
     call poissonSolver(rhs, var, dt, errFlagBicg, nIter, m, opt, facray, facprs)
 
     !UAB
-    if (errFlagBicg) return
+    if(errFlagBicg) return
     !UAC
 
     ! set horizontal and vertical BC for dp
@@ -137,7 +137,7 @@ module poisson_module
 
     !UAB
     !if (detailedinfo) call calc_RHS( rhs,var,flux,dt,detailedinfo,w_0 )
-    if (detailedinfo) call calc_RHS(rhs, var, flux, dt, detailedinfo)
+    if(detailedinfo) call calc_RHS(rhs, var, flux, dt, detailedinfo)
     !UAE
 
   end subroutine Corrector
@@ -153,8 +153,8 @@ module poisson_module
     ! --------------------------------------
 
     ! in/out variables
-    real, dimension (1:nx, 1:ny, 1:nz), intent (out) :: sOut
-    real, dimension (1:nx, 1:ny, 1:nz), intent (in) :: sIn
+    real, dimension(1:nx, 1:ny, 1:nz), intent(out) :: sOut
+    real, dimension(1:nx, 1:ny, 1:nz), intent(in) :: sIn
 
     !UAB
     ! opt = expl =>
@@ -163,12 +163,12 @@ module poisson_module
     ! opt = impl =>
     ! pressure solver for implicit problem and corresponding correction
     ! of the winds and density fluctuations
-    character (len = *), intent (in) :: opt
+    character(len = *), intent(in) :: opt
     !UAE
 
     ! local field
-    real, dimension (1:nx, 1:ny, 1:nz) :: s_pc, q_pc
-    real, dimension (1:nx, 1:ny) :: p_pc
+    real, dimension(1:nx, 1:ny, 1:nz) :: s_pc, q_pc
+    real, dimension(1:nx, 1:ny) :: p_pc
 
     ! local variables
     integer :: k
@@ -181,7 +181,7 @@ module poisson_module
     !maxIterADI = 1
 
     do niter = 0, maxIterADI
-      if (niter == 0) then
+      if(niter == 0) then
         s_pc = sIn
       else
         call linOpr(s_pc, q_pc, opt, 'hnd')
@@ -250,8 +250,8 @@ module poisson_module
     ! --------------------------------------
 
     ! in/out variables
-    real, dimension (1:nx, 1:ny, 1:nz), intent (out) :: sOut
-    real, dimension (1:nx, 1:ny, 1:nz), intent (in) :: sIn
+    real, dimension(1:nx, 1:ny, 1:nz), intent(out) :: sOut
+    real, dimension(1:nx, 1:ny, 1:nz), intent(in) :: sIn
 
     !UAB
     ! opt = expl =>
@@ -260,12 +260,12 @@ module poisson_module
     ! opt = impl =>
     ! pressure solver for implicit problem and corresponding correction
     ! of the winds and density fluctuations
-    character (len = *), intent (in) :: opt
+    character(len = *), intent(in) :: opt
     !UAE
 
     ! local field
-    real, dimension (1:nx, 1:ny, 1:nz) :: s_pc, q_pc
-    real, dimension (1:nx, 1:ny) :: p_pc
+    real, dimension(1:nx, 1:ny, 1:nz) :: s_pc, q_pc
+    real, dimension(1:nx, 1:ny) :: p_pc
 
     ! local variables
     integer :: k
@@ -383,8 +383,8 @@ module poisson_module
     ! --------------------------------------
 
     ! in/out variables
-    real, dimension (1:nx, 1:ny, 1:nz), intent (out) :: sOut
-    real, dimension (1:nx, 1:ny, 1:nz), intent (in) :: sIn
+    real, dimension(1:nx, 1:ny, 1:nz), intent(out) :: sOut
+    real, dimension(1:nx, 1:ny, 1:nz), intent(in) :: sIn
 
     !UAB
     ! opt = expl =>
@@ -393,12 +393,12 @@ module poisson_module
     ! opt = impl =>
     ! pressure solver for implicit problem and corresponding correction
     ! of the winds and density fluctuations
-    character (len = *), intent (in) :: opt
+    character(len = *), intent(in) :: opt
     !UAE
 
     ! local field
-    real, dimension (1:nx, 1:ny, 1:nz) :: s_pc, q_pc
-    real, dimension (1:nx, 1:ny) :: p_pc
+    real, dimension(1:nx, 1:ny, 1:nz) :: s_pc, q_pc
+    real, dimension(1:nx, 1:ny) :: p_pc
 
     ! local variables
     integer :: k
@@ -427,7 +427,7 @@ module poisson_module
     !maxIterADI = 1
 
     do niter = 1, maxIterADI
-      if (niter == 0) then
+      if(niter == 0) then
         s_pc = sIn
       else
         !call linOpr( s_pc, q_pc, opt, 'hnd' )
@@ -446,7 +446,7 @@ module poisson_module
 
       do j = 1, ny
         do i = 1, nx
-          if (niter == 0) then
+          if(niter == 0) then
             q_pc(i, j, 1) = - au_b(i, j, 1) / ac_b(i, j, 1)
             s_pc(i, j, 1) = s_pc(i, j, 1) / ac_b(i, j, 1)
           else
@@ -461,7 +461,7 @@ module poisson_module
       do k = 2, nz
         do j = 1, ny
           do i = 1, nx
-            if (niter == 0) then
+            if(niter == 0) then
               p_pc(i, j) = 1.0 / (ac_b(i, j, k) + ad_b(i, j, k) * q_pc(i, j, k &
                   - 1))
 
@@ -516,8 +516,8 @@ module poisson_module
     ! --------------------------------------
 
     ! in/out variables
-    real, dimension (1:nx, 1:ny, 1:nz), intent (out) :: sOut
-    real, dimension (1:nx, 1:ny, 1:nz), intent (in) :: sIn
+    real, dimension(1:nx, 1:ny, 1:nz), intent(out) :: sOut
+    real, dimension(1:nx, 1:ny, 1:nz), intent(in) :: sIn
 
     !UAB
     ! opt = expl =>
@@ -526,12 +526,12 @@ module poisson_module
     ! opt = impl =>
     ! pressure solver for implicit problem and corresponding correction
     ! of the winds and density fluctuations
-    character (len = *), intent (in) :: opt
+    character(len = *), intent(in) :: opt
     !UAE
 
     ! local field
-    real, dimension (1:nx, 1:ny, 1:nz) :: s_pc, q_pc
-    real, dimension (1:nx, 1:ny) :: p_pc
+    real, dimension(1:nx, 1:ny, 1:nz) :: s_pc, q_pc
+    real, dimension(1:nx, 1:ny) :: p_pc
 
     ! local variables
     integer :: k
@@ -620,8 +620,8 @@ module poisson_module
     ! --------------------------------------
 
     ! in/out variables
-    real, dimension (1:nx, 1:ny, 1:nz), intent (out) :: Ls
-    real, dimension (1:nx, 1:ny, 1:nz), intent (in) :: sIn
+    real, dimension(1:nx, 1:ny, 1:nz), intent(out) :: Ls
+    real, dimension(1:nx, 1:ny, 1:nz), intent(in) :: sIn
 
     ! opt = expl =>
     ! pressure solver for explicit problem and corresponding correction
@@ -629,7 +629,7 @@ module poisson_module
     ! opt = impl =>
     ! pressure solver for implicit problem and corresponding correction
     ! of the winds and density fluctuations
-    character (len = *), intent (in) :: opt
+    character(len = *), intent(in) :: opt
 
     !UAB
     ! hortot = tot =>
@@ -638,18 +638,18 @@ module poisson_module
     ! linear operator for horizontal problem
     ! hortot = hnd =>
     ! linear operator for horizontal problem without diagonal term
-    character (len = *), intent (in) :: hortot
+    character(len = *), intent(in) :: hortot
     !UAE
 
     ! local field (extended by ghost cells)
-    real, dimension (0:nx + 1, 0:ny + 1, 0:nz + 1) :: s
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1) :: s
 
     ! auxiliary fields for "dp"
-    real, dimension (0:ny + 1, 0:nz + 1) :: xSliceLeft_send, xSliceRight_send
-    real, dimension (0:ny + 1, 0:nz + 1) :: xSliceLeft_recv, xSliceRight_recv
+    real, dimension(0:ny + 1, 0:nz + 1) :: xSliceLeft_send, xSliceRight_send
+    real, dimension(0:ny + 1, 0:nz + 1) :: xSliceLeft_recv, xSliceRight_recv
 
-    real, dimension (0:nx + 1, 0:nz + 1) :: ySliceBack_send, ySliceForw_send
-    real, dimension (0:nx + 1, 0:nz + 1) :: ySliceBack_recv, ySliceForw_recv
+    real, dimension(0:nx + 1, 0:nz + 1) :: ySliceBack_send, ySliceForw_send
+    real, dimension(0:nx + 1, 0:nz + 1) :: ySliceBack_recv, ySliceForw_recv
 
     ! local variables
     integer :: i, j, k
@@ -671,10 +671,10 @@ module poisson_module
     s(1:nx, 1:ny, 1:nz) = sIn
 
     ! Find neighbour procs
-    if (idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
-    if (jdim > 1) call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
+    if(idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
+    if(jdim > 1) call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
 
-    select case (model)
+    select case(model)
 
       !----------------------------------------
       !       Pseudo-incompressible model
@@ -682,14 +682,14 @@ module poisson_module
 
       ! TFC FJ
       ! No changes for Boussinesq model required.
-    case ("pseudo_incompressible", "Boussinesq")
+    case("pseudo_incompressible", "Boussinesq")
 
       !----------------------------
       !   set Halo cells: xSlice
       !----------------------------
 
-      if (xBoundary == "periodic") then
-        if (idim > 1) then
+      if(xBoundary == "periodic") then
+        if(idim > 1) then
           ! slice size
           sendcount = (ny + 2) * (nz + 2)
           recvcount = sendcount
@@ -731,15 +731,15 @@ module poisson_module
         stop "Poisson: unknown case xBoundary"
       endif
 
-      if (verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
+      if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
           copied."
 
       !------------------------------
       !   set Halo cells: ySlice
       !------------------------------
 
-      if (yBoundary == "periodic") then
-        if (jdim > 1) then
+      if(yBoundary == "periodic") then
+        if(jdim > 1) then
           ! slice size
           sendcount = (nx + 2) * (nz + 2)
           recvcount = sendcount
@@ -780,7 +780,7 @@ module poisson_module
       else
         stop "Poisson: unknown case xBoundary"
       end if
-      if (verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
+      if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
           copied."
 
       ! modified by Junhong Wei (20161106) *** finishing line ***
@@ -816,7 +816,7 @@ module poisson_module
             ! --------------------- A(i,j,k+1) ------------------------
 
             ! TFC FJ
-            if (k < nz .or. zBoundary == "periodic") then
+            if(k < nz .or. zBoundary == "periodic") then
               AU = au_b(i, j, k)
               sU = s(i, j, k + 1)
             else ! k = nz -> upwad boundary (solid wall)
@@ -828,7 +828,7 @@ module poisson_module
             ! --------------------- A(i,j,k-1) ------------------------
 
             ! TFC FJ
-            if (k > 1 .or. zBoundary == "periodic") then
+            if(k > 1 .or. zBoundary == "periodic") then
               AD = ad_b(i, j, k)
               sD = s(i, j, k - 1)
             else ! k = 1 -> downward boundary (solid wall)
@@ -852,12 +852,12 @@ module poisson_module
             !UAC
             !Ls(i,j,k) &
             != AL*sL + AR*sR + AF*sF + AB*sB + AU*sU + AD*sD + AC*sC
-            if (hortot == 'tot') then
+            if(hortot == 'tot') then
               Ls(i, j, k) = AL * sL + AR * sR + AF * sF + AB * sB + AU * sU &
                   + AD * sD + AC * sC
-            else if (hortot == 'hor') then
+            else if(hortot == 'hor') then
               Ls(i, j, k) = AL * sL + AR * sR + AF * sF + AB * sB + ACH * sC
-            else if (hortot == 'hnd') then
+            else if(hortot == 'hnd') then
               Ls(i, j, k) = AL * sL + AR * sR + AF * sF + AB * sB
             else
               stop "wrong hortot in linOpr"
@@ -866,10 +866,10 @@ module poisson_module
 
             ! TFC FJ
             ! Set additional matrix elements for TFC.
-            if (topography) then
+            if(topography) then
               ! ----------------- A(i+1,j,k+1) -----------------
 
-              if (k < nz .or. zBoundary == "periodic") then
+              if(k < nz .or. zBoundary == "periodic") then
                 ARU = aru_b(i, j, k)
                 sRU = s(i + 1, j, k + 1)
               else
@@ -879,7 +879,7 @@ module poisson_module
 
               ! ----------------- A(i+1,j,k-1) -----------------
 
-              if (k > 1 .or. zBoundary == "periodic") then
+              if(k > 1 .or. zBoundary == "periodic") then
                 ARD = ard_b(i, j, k)
                 sRD = s(i + 1, j, k - 1)
               else
@@ -889,7 +889,7 @@ module poisson_module
 
               ! ----------------- A(i-1,j,k+1) -----------------
 
-              if (k < nz .or. zBoundary == "periodic") then
+              if(k < nz .or. zBoundary == "periodic") then
                 ALU = alu_b(i, j, k)
                 sLU = s(i - 1, j, k + 1)
               else
@@ -899,7 +899,7 @@ module poisson_module
 
               ! ----------------- A(i-1,j,k-1) -----------------
 
-              if (k > 1 .or. zBoundary == "periodic") then
+              if(k > 1 .or. zBoundary == "periodic") then
                 ALD = ald_b(i, j, k)
                 sLD = s(i - 1, j, k - 1)
               else
@@ -909,7 +909,7 @@ module poisson_module
 
               ! ----------------- A(i,j+1,k+1) -----------------
 
-              if (k < nz .or. zBoundary == "periodic") then
+              if(k < nz .or. zBoundary == "periodic") then
                 AFU = afu_b(i, j, k)
                 sFU = s(i, j + 1, k + 1)
               else
@@ -919,7 +919,7 @@ module poisson_module
 
               ! ----------------- A(i,j+1,k-1) -----------------
 
-              if (k > 1 .or. zBoundary == "periodic") then
+              if(k > 1 .or. zBoundary == "periodic") then
                 AFD = afd_b(i, j, k)
                 sFD = s(i, j + 1, k - 1)
               else
@@ -929,7 +929,7 @@ module poisson_module
 
               ! ----------------- A(i,j-1,k+1) -----------------
 
-              if (k < nz .or. zBoundary == "periodic") then
+              if(k < nz .or. zBoundary == "periodic") then
                 ABU = abu_b(i, j, k)
                 sBU = s(i, j - 1, k + 1)
               else
@@ -939,7 +939,7 @@ module poisson_module
 
               ! ----------------- A(i,j-1,k-1) -----------------
 
-              if (k > 1 .or. zBoundary == "periodic") then
+              if(k > 1 .or. zBoundary == "periodic") then
                 ABD = abd_b(i, j, k)
                 sBD = s(i, j - 1, k - 1)
               else
@@ -949,7 +949,7 @@ module poisson_module
 
               ! ------------------ A(i,j,k+2) -----------------
 
-              if (k < nz - 1 .or. zBoundary == "periodic") then
+              if(k < nz - 1 .or. zBoundary == "periodic") then
                 AUU = auu_b(i, j, k)
                 sUU = s(i, j, k + 2)
               else
@@ -959,7 +959,7 @@ module poisson_module
 
               ! ------------------ A(i,j,k-2) -----------------
 
-              if (k > 2 .or. zBoundary == "periodic") then
+              if(k > 2 .or. zBoundary == "periodic") then
                 ADD = add_b(i, j, k)
                 sDD = s(i, j, k - 2)
               else
@@ -969,7 +969,7 @@ module poisson_module
 
               ! ----------------- A(i+1,j,k+2) -----------------
 
-              if (k < nz - 1 .or. zBoundary == "periodic") then
+              if(k < nz - 1 .or. zBoundary == "periodic") then
                 ARUU = aruu_b(i, j, k)
                 sRUU = s(i + 1, j, k + 2)
               else
@@ -979,7 +979,7 @@ module poisson_module
 
               ! ----------------- A(i+1,j,k-2) -----------------
 
-              if (k > 2 .or. zBoundary == "periodic") then
+              if(k > 2 .or. zBoundary == "periodic") then
                 ARDD = ardd_b(i, j, k)
                 sRDD = s(i + 1, j, k - 2)
               else
@@ -989,7 +989,7 @@ module poisson_module
 
               ! ----------------- A(i-1,j,k+2) -----------------
 
-              if (k < nz - 1 .or. zBoundary == "periodic") then
+              if(k < nz - 1 .or. zBoundary == "periodic") then
                 ALUU = aluu_b(i, j, k)
                 sLUU = s(i - 1, j, k + 2)
               else
@@ -999,7 +999,7 @@ module poisson_module
 
               ! ----------------- A(i-1,j,k-2) -----------------
 
-              if (k > 2 .or. zBoundary == "periodic") then
+              if(k > 2 .or. zBoundary == "periodic") then
                 ALDD = aldd_b(i, j, k)
                 sLDD = s(i - 1, j, k - 2)
               else
@@ -1009,7 +1009,7 @@ module poisson_module
 
               ! ----------------- A(i,j+1,k+2) -----------------
 
-              if (k < nz - 1 .or. zBoundary == "periodic") then
+              if(k < nz - 1 .or. zBoundary == "periodic") then
                 AFUU = afuu_b(i, j, k)
                 sFUU = s(i, j + 1, k + 2)
               else
@@ -1019,7 +1019,7 @@ module poisson_module
 
               ! ----------------- A(i,j+1,k-2) -----------------
 
-              if (k > 2 .or. zBoundary == "periodic") then
+              if(k > 2 .or. zBoundary == "periodic") then
                 AFDD = afdd_b(i, j, k)
                 sFDD = s(i, j + 1, k - 2)
               else
@@ -1029,7 +1029,7 @@ module poisson_module
 
               ! ----------------- A(i,j-1,k+2) -----------------
 
-              if (k < nz - 1 .or. zBoundary == "periodic") then
+              if(k < nz - 1 .or. zBoundary == "periodic") then
                 ABUU = abuu_b(i, j, k)
                 sBUU = s(i, j - 1, k + 2)
               else
@@ -1039,7 +1039,7 @@ module poisson_module
 
               ! ----------------- A(i,j-1,k-2) -----------------
 
-              if (k > 2 .or. zBoundary == "periodic") then
+              if(k > 2 .or. zBoundary == "periodic") then
                 ABDD = abdd_b(i, j, k)
                 sBDD = s(i, j - 1, k - 2)
               else
@@ -1056,8 +1056,8 @@ module poisson_module
             end if
 
             ! TFC FJ
-            if (timeScheme == "semiimplicit" .and. .not. topography) then
-              if (opt == 'impl') then
+            if(timeScheme == "semiimplicit" .and. .not. topography) then
+              if(opt == 'impl') then
                 ! -------------------- A(i,j,k) ---------------------
 
                 ALB = alb_b(i, j, k)
@@ -1080,13 +1080,13 @@ module poisson_module
 
                 Ls(i, j, k) = Ls(i, j, k) + ALB * sLB + ALF * sLF + ARB * sRB &
                     + ARF * sRF
-              else if (opt /= 'expl') then
+              else if(opt /= 'expl') then
                 stop 'ERROR: linOpr expects opt = expl or opt = impl'
               end if
             end if
 
             ! ---------------- scale with thetaStrat ------------------
-            if (pressureScaling) then
+            if(pressureScaling) then
               Ls(i, j, k) = Ls(i, j, k) / Pstrat(k)
               !stop'ERROR: pressure scaling disabled'
             end if
@@ -1114,10 +1114,10 @@ module poisson_module
     ! TFC FJ
     ! Linear operator test for tensor elements in TFC.
 
-    real, dimension ((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
-        + nbz), nVar), intent (in) :: var
-    real, intent (in) :: dt, facray
-    character (len = *), intent (in) :: opt
+    real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
+        + nbz), nVar), intent(in) :: var
+    real, intent(in) :: dt, facray
+    character(len = *), intent(in) :: opt
 
     integer :: i, j, k
 
@@ -1126,8 +1126,8 @@ module poisson_module
     real :: pEdgeRGra, pEdgeLGra, pEdgeFGra, pEdgeBGra, pEdgeUGra, pEdgeDGra
     real :: rhoEdgeR, rhoEdgeL, rhoEdgeF, rhoEdgeB, rhoEdgeU, rhoEdgeD
 
-    real, dimension (0:(nx + 1), 0:(ny + 1), 0:(nz + 1)) :: s
-    real, dimension (1:nx, 1:ny, 1:nz) :: sIn, Ls, LsTest
+    real, dimension(0:(nx + 1), 0:(ny + 1), 0:(nz + 1)) :: s
+    real, dimension(1:nx, 1:ny, 1:nz) :: sIn, Ls, LsTest
 
     real :: AR, AL, AF, AB, AU, AD, AC
     real :: ARU, ARD, ALU, ALD, AFU, AFD, ABU, ABD
@@ -1137,20 +1137,20 @@ module poisson_module
     real :: sRU, sRD, sLU, sLD, sFU, sFD, sBU, sBD
     real :: sUU, sDD, sRUU, sRDD, sLUU, sLDD, sFUU, sFDD, sBUU, sBDD
 
-    real, dimension (1:nx, 1:ny, 1:nz) :: ac_tfc, ar_tfc, al_tfc, af_tfc, &
+    real, dimension(1:nx, 1:ny, 1:nz) :: ac_tfc, ar_tfc, al_tfc, af_tfc, &
         ab_tfc, au_tfc, ad_tfc, aru_tfc, ard_tfc, alu_tfc, ald_tfc, afu_tfc, &
         afd_tfc, abu_tfc, abd_tfc, auu_tfc, add_tfc, aruu_tfc, ardd_tfc, &
         aluu_tfc, aldd_tfc, afuu_tfc, afdd_tfc, abuu_tfc, abdd_tfc
 
-    real, dimension (1:nx, 1:ny, 1:nz) :: ach_tfc
+    real, dimension(1:nx, 1:ny, 1:nz) :: ach_tfc
 
     real :: sumLoc, sumLocSquared, sumGlob, sumGlobSquared
     real * 4 :: sumOut1, sumOut2
-    real * 4, dimension (1:nx, 1:ny, 1:nz) :: diffOut
+    real * 4, dimension(1:nx, 1:ny, 1:nz) :: diffOut
     integer :: recTFC
 
     logical :: directTensorElements, directElementAssignment
-    character (len = 50) :: linearOperatorTestCase
+    character(len = 50) :: linearOperatorTestCase
 
     preconditioner = "yes"
 
@@ -1161,7 +1161,7 @@ module poisson_module
     s = var(0:(nx + 1), 0:(ny + 1), 0:(nz + 1), 5)
     sIn = var(1:nx, 1:ny, 1:nz, 5)
 
-    if (directTensorElements) then
+    if(directTensorElements) then
 
       do k = 1, nz
         do j = 1, ny
@@ -1214,7 +1214,7 @@ module poisson_module
 
             ! --------------------- A(i,j,k) ---------------------
 
-            if (k == 1) then
+            if(k == 1) then
               AC = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 &
                   / dx + 0.75 * met(i, j, k, 1, 3) / dz) + pEdgeLDiv &
                   / rhoEdgeL * pEdgeLGra * (1.0 / dx - 0.75 * met(i, j, k, 1, &
@@ -1227,7 +1227,7 @@ module poisson_module
                   * (chris(i, j, k, 1, 1) + chris(i, j, k, 2, 2) + 2.0 &
                   * chris(i, j, k, 1, 3) * met(i, j, k, 1, 3) + 2.0 * chris(i, &
                   j, k, 2, 3) * met(i, j, k, 2, 3))
-            else if (k == nz) then
+            else if(k == nz) then
               AC = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 &
                   / dx - 0.75 * met(i, j, k, 1, 3) / dz) + pEdgeLDiv &
                   / rhoEdgeL * pEdgeLGra * (1.0 / dx + 0.75 * met(i, j, k, 1, &
@@ -1259,12 +1259,12 @@ module poisson_module
 
             ! -------------------- A(i+1,j,k) --------------------
 
-            if (k == 1) then
+            if(k == 1) then
               AR = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 / dx &
                   - 0.75 * met(i + 1, j, k, 1, 3) / dz) + jacInv / dz &
                   * pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i + 1, j, k, &
                   1, 3) / dx
-            else if (k == nz) then
+            else if(k == nz) then
               AR = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 / dx &
                   + 0.75 * met(i + 1, j, k, 1, 3) / dz) - jacInv / dz &
                   * pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i + 1, j, k, &
@@ -1278,12 +1278,12 @@ module poisson_module
 
             ! -------------------- A(i-1,j,k) --------------------
 
-            if (k == 1) then
+            if(k == 1) then
               AL = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * (1.0 / dx &
                   + 0.75 * met(i - 1, j, k, 1, 3) / dz) - jacInv / dz &
                   * pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i - 1, j, k, &
                   1, 3) / dx
-            else if (k == nz) then
+            else if(k == nz) then
               AL = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * (1.0 / dx &
                   - 0.75 * met(i - 1, j, k, 1, 3) / dz) + jacInv / dz &
                   * pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i - 1, j, k, &
@@ -1297,12 +1297,12 @@ module poisson_module
 
             ! -------------------- A(i,j+1,k) --------------------
 
-            if (k == 1) then
+            if(k == 1) then
               AF = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * (1.0 / dy &
                   - 0.75 * met(i, j + 1, k, 2, 3) / dz) + jacInv / dz &
                   * pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i, j + 1, k, &
                   2, 3) / dy
-            else if (k == nz) then
+            else if(k == nz) then
               AF = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * (1.0 / dy &
                   + 0.75 * met(i, j + 1, k, 2, 3) / dz) - jacInv / dz &
                   * pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i, j + 1, k, &
@@ -1316,12 +1316,12 @@ module poisson_module
 
             ! -------------------- A(i,j-1,k) --------------------
 
-            if (k == 1) then
+            if(k == 1) then
               AB = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * (1.0 / dy &
                   + 0.75 * met(i, j - 1, k, 2, 3) / dz) - jacInv / dz &
                   * pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i, j - 1, k, &
                   2, 3) / dy
-            else if (k == nz) then
+            else if(k == nz) then
               AB = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * (1.0 / dy &
                   - 0.75 * met(i, j - 1, k, 2, 3) / dz) + jacInv / dz &
                   * pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i, j - 1, k, &
@@ -1335,7 +1335,7 @@ module poisson_module
 
             ! -------------------- A(i,j,k+1) --------------------
 
-            if (k == 1) then
+            if(k == 1) then
               AU = jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i, j, &
                   k + 1, 1, 3) / dz - pEdgeLDiv / rhoEdgeL * pEdgeLGra &
                   * met(i, j, k + 1, 1, 3) / dz) + jacInv / dy * (pEdgeFDiv &
@@ -1347,7 +1347,7 @@ module poisson_module
                   * (chris(i, j, k + 1, 1, 1) + chris(i, j, k + 1, 2, 2) + 2.0 &
                   * chris(i, j, k + 1, 1, 3) * met(i, j, k + 1, 1, 3) + 2.0 &
                   * chris(i, j, k + 1, 2, 3) * met(i, j, k + 1, 2, 3))
-            else if (k == nz) then
+            else if(k == nz) then
               AU = 0.0
             else
               AU = jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i, j, &
@@ -1366,9 +1366,9 @@ module poisson_module
 
             ! -------------------- A(i,j,k-1) --------------------
 
-            if (k == 1) then
+            if(k == 1) then
               AD = 0.0
-            else if (k == nz) then
+            else if(k == nz) then
               AD = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i, &
                   j, k - 1, 1, 3) / dz - pEdgeLDiv / rhoEdgeL * pEdgeLGra &
                   * met(i, j, k - 1, 1, 3) / dz) - jacInv / dy * (pEdgeFDiv &
@@ -1397,12 +1397,12 @@ module poisson_module
 
             ! ------------------- A(i+1,j,k+1) -------------------
 
-            if (k == 1) then
+            if(k == 1) then
               ARU = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i &
                   + 1, j, k + 1, 1, 3) / dz + jacInv / dz * pEdgeUDiv &
                   / rhoEdgeU * pEdgeUGra * met(i + 1, j, k + 1, 1, 3) * 0.25 &
                   / dx
-            else if (k == nz) then
+            else if(k == nz) then
               ARU = 0.0
             else
               ARU = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i &
@@ -1413,9 +1413,9 @@ module poisson_module
 
             ! ------------------- A(i+1,j,k-1) -------------------
 
-            if (k == 1) then
+            if(k == 1) then
               ARD = 0.0
-            else if (k == nz) then
+            else if(k == nz) then
               ARD = - jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i &
                   + 1, j, k - 1, 1, 3) / dz - jacInv / dz * pEdgeDDiv &
                   / rhoEdgeD * pEdgeDGra * met(i + 1, j, k - 1, 1, 3) * 0.25 &
@@ -1429,12 +1429,12 @@ module poisson_module
 
             ! ------------------- A(i-1,j,k+1) -------------------
 
-            if (k == 1) then
+            if(k == 1) then
               ALU = - jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met(i &
                   - 1, j, k + 1, 1, 3) / dz - jacInv / dz * pEdgeUDiv &
                   / rhoEdgeU * pEdgeUGra * met(i - 1, j, k + 1, 1, 3) * 0.25 &
                   / dx
-            else if (k == nz) then
+            else if(k == nz) then
               ALU = 0.0
             else
               ALU = - jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met(i &
@@ -1445,9 +1445,9 @@ module poisson_module
 
             ! ------------------- A(i-1,j,k-1) -------------------
 
-            if (k == 1) then
+            if(k == 1) then
               ALD = 0.0
-            else if (k == nz) then
+            else if(k == nz) then
               ALD = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met(i &
                   - 1, j, k - 1, 1, 3) / dz + jacInv / dz * pEdgeDDiv &
                   / rhoEdgeD * pEdgeDGra * met(i - 1, j, k - 1, 1, 3) * 0.25 &
@@ -1461,11 +1461,11 @@ module poisson_module
 
             ! ------------------- A(i,j+1,k+1) -------------------
 
-            if (k == 1) then
+            if(k == 1) then
               AFU = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * met(i, j &
                   + 1, k + 1, 2, 3) / dz + jacInv / dz * pEdgeUDiv / rhoEdgeU &
                   * pEdgeUGra * met(i, j + 1, k + 1, 2, 3) * 0.25 / dy
-            else if (k == nz) then
+            else if(k == nz) then
               AFU = 0.0
             else
               AFU = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * met(i, j &
@@ -1476,9 +1476,9 @@ module poisson_module
 
             ! ------------------- A(i,j+1,k-1) -------------------
 
-            if (k == 1) then
+            if(k == 1) then
               AFD = 0.0
-            else if (k == nz) then
+            else if(k == nz) then
               AFD = - jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * met(i, &
                   j + 1, k - 1, 2, 3) / dz - jacInv / dz * pEdgeDDiv &
                   / rhoEdgeD * pEdgeDGra * met(i, j + 1, k - 1, 2, 3) * 0.25 &
@@ -1492,12 +1492,12 @@ module poisson_module
 
             ! ------------------- A(i,j-1,k+1) -------------------
 
-            if (k == 1) then
+            if(k == 1) then
               ABU = - jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * met(i, &
                   j - 1, k + 1, 2, 3) / dz - jacInv / dz * pEdgeUDiv &
                   / rhoEdgeU * pEdgeUGra * met(i, j - 1, k + 1, 2, 3) * 0.25 &
                   / dy
-            else if (k == nz) then
+            else if(k == nz) then
               ABU = 0.0
             else
               ABU = - jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * met(i, &
@@ -1508,9 +1508,9 @@ module poisson_module
 
             ! ------------------- A(i,j-1,k-1) -------------------
 
-            if (k == 1) then
+            if(k == 1) then
               ABD = 0.0
-            else if (k == nz) then
+            else if(k == nz) then
               ABD = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * met(i, j &
                   - 1, k - 1, 2, 3) / dz + jacInv / dz * pEdgeDDiv / rhoEdgeD &
                   * pEdgeDGra * met(i, j - 1, k - 1, 2, 3) * 0.25 / dy
@@ -1523,7 +1523,7 @@ module poisson_module
 
             ! ------------------- A(i,j,k+2) ---------------------
 
-            if (k == 1) then
+            if(k == 1) then
               AUU = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
                   * met(i, j, k + 2, 1, 3) / dz - pEdgeLDiv / rhoEdgeL &
                   * pEdgeLGra * 0.25 * met(i, j, k + 2, 1, 3) / dz) - jacInv &
@@ -1536,7 +1536,7 @@ module poisson_module
 
             ! ------------------- A(i,j,k-2) ---------------------
 
-            if (k == nz) then
+            if(k == nz) then
               ADD = jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
                   * met(i, j, k - 2, 1, 3) / dz - pEdgeLDiv / rhoEdgeL &
                   * pEdgeLGra * 0.25 * met(i, j, k - 2, 1, 3) / dz) + jacInv &
@@ -1549,7 +1549,7 @@ module poisson_module
 
             ! ------------------ A(i+1,j,k+2) --------------------
 
-            if (k == 1) then
+            if(k == 1) then
               ARUU = - jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
                   * met(i + 1, j, k + 2, 1, 3) / dz
             else
@@ -1558,7 +1558,7 @@ module poisson_module
 
             ! ------------------ A(i+1,j,k-2) --------------------
 
-            if (k == nz) then
+            if(k == nz) then
               ARDD = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
                   * met(i + 1, j, k - 2, 1, 3) / dz
             else
@@ -1567,7 +1567,7 @@ module poisson_module
 
             ! ------------------ A(i-1,j,k+2) --------------------
 
-            if (k == 1) then
+            if(k == 1) then
               ALUU = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * 0.25 &
                   * met(i - 1, j, k + 2, 1, 3) / dz
             else
@@ -1576,7 +1576,7 @@ module poisson_module
 
             ! ------------------ A(i-1,j,k-2) --------------------
 
-            if (k == nz) then
+            if(k == nz) then
               ALDD = - jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * 0.25 &
                   * met(i - 1, j, k - 2, 1, 3) / dz
             else
@@ -1585,7 +1585,7 @@ module poisson_module
 
             ! ------------------ A(i,j+1,k+2) --------------------
 
-            if (k == 1) then
+            if(k == 1) then
               AFUU = - jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * 0.25 &
                   * met(i, j + 1, k + 2, 2, 3) / dz
             else
@@ -1594,7 +1594,7 @@ module poisson_module
 
             ! ------------------ A(i,j+1,k-2) --------------------
 
-            if (k == nz) then
+            if(k == nz) then
               AFDD = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * 0.25 &
                   * met(i, j + 1, k - 2, 2, 3) / dz
             else
@@ -1603,7 +1603,7 @@ module poisson_module
 
             ! ------------------ A(i,j-1,k+2) --------------------
 
-            if (k == 1) then
+            if(k == 1) then
               ABUU = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * 0.25 &
                   * met(i, j - 1, k + 2, 2, 3) / dz
             else
@@ -1612,7 +1612,7 @@ module poisson_module
 
             ! ------------------ A(i,j-1,k-2) --------------------
 
-            if (k == nz) then
+            if(k == nz) then
               ABDD = - jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * 0.25 &
                   * met(i, j - 1, k - 2, 2, 3) / dz
             else
@@ -1657,7 +1657,7 @@ module poisson_module
 
     end if
 
-    if (directElementAssignment) then
+    if(directElementAssignment) then
 
       do k = 1, nz
         do j = 1, ny
@@ -1685,7 +1685,7 @@ module poisson_module
 
             ! --------------------- A(i,j,k+1) ------------------------
 
-            if (k < nz) then
+            if(k < nz) then
               AU = au_b(i, j, k)
               sU = s(i, j, k + 1)
             else ! k = nz -> upwad boundary (solid wall)
@@ -1696,7 +1696,7 @@ module poisson_module
 
             ! --------------------- A(i,j,k-1) ------------------------
 
-            if (k > 1) then
+            if(k > 1) then
               AD = ad_b(i, j, k)
               sD = s(i, j, k - 1)
             else ! k = 1 -> downward boundary (solid wall)
@@ -1717,7 +1717,7 @@ module poisson_module
 
             ! ----------------- A(i+1,j,k+1) -----------------
 
-            if (k < nz) then
+            if(k < nz) then
               ARU = aru_b(i, j, k)
               sRU = s(i + 1, j, k + 1)
             else
@@ -1727,7 +1727,7 @@ module poisson_module
 
             ! ----------------- A(i+1,j,k-1) -----------------
 
-            if (k > 1) then
+            if(k > 1) then
               ARD = ard_b(i, j, k)
               sRD = s(i + 1, j, k - 1)
             else
@@ -1737,7 +1737,7 @@ module poisson_module
 
             ! ----------------- A(i-1,j,k+1) -----------------
 
-            if (k < nz) then
+            if(k < nz) then
               ALU = alu_b(i, j, k)
               sLU = s(i - 1, j, k + 1)
             else
@@ -1747,7 +1747,7 @@ module poisson_module
 
             ! ----------------- A(i-1,j,k-1) -----------------
 
-            if (k > 1) then
+            if(k > 1) then
               ALD = ald_b(i, j, k)
               sLD = s(i - 1, j, k - 1)
             else
@@ -1757,7 +1757,7 @@ module poisson_module
 
             ! ----------------- A(i,j+1,k+1) -----------------
 
-            if (k < nz) then
+            if(k < nz) then
               AFU = afu_b(i, j, k)
               sFU = s(i, j + 1, k + 1)
             else
@@ -1767,7 +1767,7 @@ module poisson_module
 
             ! ----------------- A(i,j+1,k-1) -----------------
 
-            if (k > 1) then
+            if(k > 1) then
               AFD = afd_b(i, j, k)
               sFD = s(i, j + 1, k - 1)
             else
@@ -1777,7 +1777,7 @@ module poisson_module
 
             ! ----------------- A(i,j-1,k+1) -----------------
 
-            if (k < nz) then
+            if(k < nz) then
               ABU = abu_b(i, j, k)
               sBU = s(i, j - 1, k + 1)
             else
@@ -1787,7 +1787,7 @@ module poisson_module
 
             ! ----------------- A(i,j-1,k-1) -----------------
 
-            if (k > 1) then
+            if(k > 1) then
               ABD = abd_b(i, j, k)
               sBD = s(i, j - 1, k - 1)
             else
@@ -1797,7 +1797,7 @@ module poisson_module
 
             ! ------------------ A(i,j,k+2) -----------------
 
-            if (k == 1) then
+            if(k == 1) then
               AUU = auu_b(i, j, k)
               sUU = s(i, j, k + 2)
             else
@@ -1807,7 +1807,7 @@ module poisson_module
 
             ! ------------------ A(i,j,k-2) -----------------
 
-            if (k == nz) then
+            if(k == nz) then
               ADD = add_b(i, j, k)
               sDD = s(i, j, k - 2)
             else
@@ -1817,7 +1817,7 @@ module poisson_module
 
             ! ----------------- A(i+1,j,k+2) -----------------
 
-            if (k == 1) then
+            if(k == 1) then
               ARUU = aruu_b(i, j, k)
               sRUU = s(i + 1, j, k + 2)
             else
@@ -1827,7 +1827,7 @@ module poisson_module
 
             ! ----------------- A(i+1,j,k-2) -----------------
 
-            if (k == nz) then
+            if(k == nz) then
               ARDD = ardd_b(i, j, k)
               sRDD = s(i + 1, j, k - 2)
             else
@@ -1837,7 +1837,7 @@ module poisson_module
 
             ! ----------------- A(i-1,j,k+2) -----------------
 
-            if (k == 1) then
+            if(k == 1) then
               ALUU = aluu_b(i, j, k)
               sLUU = s(i - 1, j, k + 2)
             else
@@ -1847,7 +1847,7 @@ module poisson_module
 
             ! ----------------- A(i-1,j,k-2) -----------------
 
-            if (k == nz) then
+            if(k == nz) then
               ALDD = aldd_b(i, j, k)
               sLDD = s(i - 1, j, k - 2)
             else
@@ -1857,7 +1857,7 @@ module poisson_module
 
             ! ----------------- A(i,j+1,k+2) -----------------
 
-            if (k == 1) then
+            if(k == 1) then
               AFUU = afuu_b(i, j, k)
               sFUU = s(i, j + 1, k + 2)
             else
@@ -1867,7 +1867,7 @@ module poisson_module
 
             ! ----------------- A(i,j+1,k-2) -----------------
 
-            if (k == nz) then
+            if(k == nz) then
               AFDD = afdd_b(i, j, k)
               sFDD = s(i, j + 1, k - 2)
             else
@@ -1877,7 +1877,7 @@ module poisson_module
 
             ! ----------------- A(i,j-1,k+2) -----------------
 
-            if (k == 1) then
+            if(k == 1) then
               ABUU = abuu_b(i, j, k)
               sBUU = s(i, j - 1, k + 2)
             else
@@ -1887,7 +1887,7 @@ module poisson_module
 
             ! ----------------- A(i,j-1,k-2) -----------------
 
-            if (k == nz) then
+            if(k == nz) then
               ABDD = abdd_b(i, j, k)
               sBDD = s(i, j - 1, k - 2)
             else
@@ -1913,9 +1913,9 @@ module poisson_module
 
     end if
 
-    select case (linearOperatorTestCase)
+    select case(linearOperatorTestCase)
 
-    case ("directLinearOperator")
+    case("directLinearOperator")
 
       k_loop: do k = 1, nz
         j_loop: do j = 1, ny
@@ -1968,7 +1968,7 @@ module poisson_module
 
             ! Direct computation.
 
-            if (k == 1) then
+            if(k == 1) then
 
               Ls(i, j, k) = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra &
                   * ((s(i + 1, j, k) - s(i, j, k)) / dx + 0.25 * (- met(i, j, &
@@ -2015,7 +2015,7 @@ module poisson_module
                   3) + 2.0 * chris(i, j, k + 1, 2, 3) * met(i, j, k + 1, 2, &
                   3)) * s(i, j, k + 1))
 
-            else if (k == nz) then
+            else if(k == nz) then
 
               Ls(i, j, k) = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra &
                   * ((s(i + 1, j, k) - s(i, j, k)) / dx + 0.25 * (met(i, j, k &
@@ -2126,7 +2126,7 @@ module poisson_module
         end do j_loop
       end do k_loop
 
-    case ("noTopography")
+    case("noTopography")
 
       ac_tfc = ac_b
       ar_tfc = ar_b
@@ -2161,7 +2161,7 @@ module poisson_module
       call linOpr(sIn, Ls, opt, "tot")
       topography = .true.
 
-      if (master) then
+      if(master) then
         print *, "AC difference: ", maxval(abs(ac_tfc - ac_b))
         print *, "AR difference: ", maxval(abs(ar_tfc - ar_b))
         print *, "AL difference: ", maxval(abs(al_tfc - al_b))
@@ -2199,7 +2199,7 @@ module poisson_module
         print *, "ACH: ", maxval(abs(ach_tfc))
       end if
 
-      if (master) then
+      if(master) then
         print *, "Left-hand side difference", maxval(abs(Ls - LsTest))
       end if
 
@@ -2214,11 +2214,11 @@ module poisson_module
       end do
     end do
 
-    if (master) then
-      open (42, file = "linear_operator_test.dat", form = "unformatted", &
-          access = "direct", recl = sizeX * sizeY * sizeZ * sizeofreal4)
-      write (42, rec = 1) diffOut
-      close (42)
+    if(master) then
+      open(42, file = "linear_operator_test.dat", form = "unformatted", access &
+          = "direct", recl = sizeX * sizeY * sizeZ * sizeofreal4)
+      write(42, rec = 1) diffOut
+      close(42)
     end if
 
   end subroutine linearOperatorTestTFC
@@ -2236,12 +2236,12 @@ module poisson_module
     !----------------------------------------
 
     ! in/out variables
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (in) :: var
-    real, dimension (- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent (in) :: flux
-    real, intent (in) :: dt
-    real, dimension (1:nx, 1:ny, 1:nz), intent (out) :: b ! RHS
-    logical, intent (in) :: onlyinfo ! give info in div
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
+    real, intent(in) :: dt
+    real, dimension(1:nx, 1:ny, 1:nz), intent(out) :: b ! RHS
+    logical, intent(in) :: onlyinfo ! give info in div
     !UAB
     !real, dimension(-nbz:nz+nbz),intent(in) :: w_0 !w_0 due to heating
     !UAE
@@ -2249,7 +2249,7 @@ module poisson_module
     ! local vars
     real :: uR, uL, vF, vB, wU, wD
     real :: pStratU, pStratD
-    real, dimension (1:nz) :: sum_local, sum_global !UA
+    real, dimension(1:nz) :: sum_local, sum_global !UA
 
     ! TFC FJ
     real :: pEdgeR, pEdgeL, pEdgeF, pEdgeB, pEdgeU, pEdgeD
@@ -2277,15 +2277,15 @@ module poisson_module
     integer :: i0, j0
 
     real :: rho, the
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz) :: heat
-    real, dimension (- nbz:nz + nbz) :: w_0
-    real, dimension (- nbz:nz + nbz) :: S_bar
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz) :: heat
+    real, dimension(- nbz:nz + nbz) :: w_0
+    real, dimension(- nbz:nz + nbz) :: S_bar
 
     !UAB
     real :: fcscal
     !UAE
 
-    if (giveInfo .and. master) then
+    if(giveInfo .and. master) then
       print *, ""
       print *, "----------------------------------------------"
       print *, "   calc_RHS: computing RHS... "
@@ -2297,7 +2297,7 @@ module poisson_module
     !          Poisson Problem
     ! ----------------------------------
 
-    if (master .and. verbose) print *, "update.f90/poissonSolver:  Setting up &
+    if(master .and. verbose) print *, "update.f90/poissonSolver:  Setting up &
         Poisson problem."
 
     i0 = is + nbx - 1
@@ -2313,7 +2313,7 @@ module poisson_module
     !if (raytracer) heat(:,:,:) = heat(:,:,:) + var(:,:,:,8)
 
     ! GBcorr -> FS
-    if (heatingONK14 .or. TurbScheme .or. rayTracer) then
+    if(heatingONK14 .or. TurbScheme .or. rayTracer) then
       !if (heating) then
       !UAC call heat_w0(var,flux,heat,S_bar,w_0)
       call heat_w0(var, flux, dt, heat, S_bar, w_0)
@@ -2350,7 +2350,7 @@ module poisson_module
     divL2_norm = 0.0
     divL2_norm_local = 0.0
 
-    if (RHS_diagnostics) then
+    if(RHS_diagnostics) then
       dPudx_norm_local = 0.0
       dPudx_norm = 0.0
 
@@ -2370,11 +2370,11 @@ module poisson_module
       Q2_norm = 0.0
     end if
 
-    select case (model)
+    select case(model)
 
-    case ("pseudo_incompressible")
+    case("pseudo_incompressible")
 
-      if (topography) then
+      if(topography) then
         ! TFC FJ
         ! Calculate RHS for TFC.
         do k = 1, nz
@@ -2418,12 +2418,12 @@ module poisson_module
               divL2_local = divL2_local + b(i, j, k) ** 2.0
               bl2loc = bu ** 2.0 + bv ** 2.0 + bw ** 2.0
               divL2_norm_local = divL2_norm_local + bl2loc
-              if (RHS_diagnostics) then
+              if(RHS_diagnostics) then
                 dPudx_norm_local = dPudx_norm_local + bu ** 2.0
                 dPvdy_norm_local = dPvdy_norm_local + bv ** 2.0
                 dPwdz_norm_local = dPwdz_norm_local + bw ** 2.0
               end if
-              if (abs(b(i, j, k)) > divMax) then
+              if(abs(b(i, j, k)) > divMax) then
                 divMax = abs(b(i, j, k))
               end if
             end do
@@ -2481,7 +2481,7 @@ module poisson_module
               bl2loc = bu ** 2 + bv ** 2 + bw ** 2 + (heat(i, j, k)) ** 2
               divL2_norm_local = divL2_norm_local + bl2loc
 
-              if (RHS_diagnostics) then
+              if(RHS_diagnostics) then
                 dPudx_norm_local = dPudx_norm_local + bu ** 2
                 dPvdy_norm_local = dPvdy_norm_local + bv ** 2
                 dPwdz_norm_local = dPwdz_norm_local + bw ** 2
@@ -2489,7 +2489,7 @@ module poisson_module
               end if
 
               ! max norm of div(Pu)
-              if (abs(b(i, j, k)) > divMax) then
+              if(abs(b(i, j, k)) > divMax) then
                 divMax = abs(b(i, j, k))
               end if
 
@@ -2499,7 +2499,7 @@ module poisson_module
               !divSum_local = divSum_local + b(i,j,k)
 
               ! Skalierung mit thetaStrat
-              if (pressureScaling) then
+              if(pressureScaling) then
                 b(i, j, k) = b(i, j, k) / PStrat(k)
                 !stop'ERROR: pressure scaling disabled'
               end if
@@ -2530,7 +2530,7 @@ module poisson_module
 
       call mpi_bcast(divL2_norm, 1, mpi_double_precision, root, comm, ierror)
 
-      if (RHS_diagnostics) then
+      if(RHS_diagnostics) then
         call mpi_allreduce(dPudx_norm_local, dPudx_norm, 1, &
             mpi_double_precision, mpi_sum, comm, ierror)
         call mpi_allreduce(dPvdy_norm_local, dPvdy_norm, 1, &
@@ -2556,20 +2556,20 @@ module poisson_module
       alpha_tol = divL2_norm
       b_norm = divL2
 
-      if (divL2_norm /= 0.0) then
+      if(divL2_norm /= 0.0) then
         tolref = divL2 / divL2_norm
       else
-        if (divL2 == 0.0) then
+        if(divL2 == 0.0) then
           tolref = 1.0
         else
           stop 'ERROR: divL2_norm = 0 while divL2 /= 0'
         end if
       end if
 
-      if (master) then
+      if(master) then
         print *, "tolref = ", tolref
 
-        if (RHS_diagnostics) then
+        if(RHS_diagnostics) then
           print *, "RHS diagnostics:"
           print *, "dPudx_norm = ", dPudx_norm
           print *, "dPvdy_norm = ", dPvdy_norm
@@ -2584,9 +2584,9 @@ module poisson_module
       !      call mpi_bcast(tolref, 1, mpi_double_precision, root, comm, ierror)
       !      call mpi_barrier(comm,ierror)
 
-    case ("Boussinesq")
+    case("Boussinesq")
 
-      if (topography) then
+      if(topography) then
         ! TFC FJ
         ! Calculate RHS for TFC.
         do k = 1, nz
@@ -2609,7 +2609,7 @@ module poisson_module
               divSum_local = divSum_local + b(i, j, k)
               divL2_local = divL2_local + b(i, j, k) ** 2.0
               divL2_norm_local = divL2_norm_local + bl2loc
-              if (abs(b(i, j, k)) > divMax) then
+              if(abs(b(i, j, k)) > divMax) then
                 divMax = abs(b(i, j, k))
               end if
             end do
@@ -2657,7 +2657,7 @@ module poisson_module
               ! if( abs(div) > divMax ) divMax = abs(div)
 
               ! TFC FJ
-              if (abs(b(i, j, k)) > divMax) then
+              if(abs(b(i, j, k)) > divMax) then
                 divMax = abs(b(i, j, k))
               end if
 
@@ -2701,17 +2701,17 @@ module poisson_module
       alpha_tol = divL2_norm
       b_norm = divL2
 
-      if (divL2_norm /= 0.0) then
+      if(divL2_norm /= 0.0) then
         tolref = divL2 / divL2_norm
       else
-        if (divL2 == 0.0) then
+        if(divL2 == 0.0) then
           tolref = 1.0
         else
           stop 'ERROR: divL2_norm = 0 while divL2 /= 0'
         end if
       end if
 
-      if (master) print *, "tolref = ", tolref
+      if(master) print *, "tolref = ", tolref
 
       !      root=0
       !      call mpi_bcast(tolref, 1, mpi_double_precision, root, comm, ierror)
@@ -2726,40 +2726,40 @@ module poisson_module
     !     Display info on screen
     !-------------------------------
 
-    if (master .and. onlyinfo) then
+    if(master .and. onlyinfo) then
       ! Information on divergence
 
       print *, ""
       print *, " Poisson Solver ", trim(poissonSolverType), ": Final state"
       print *, ""
 
-      select case (model)
-      case ("Boussinesq")
+      select case(model)
+      case("Boussinesq")
 
-        write (*, fmt = "(a25,es17.6)") "L2(div(u)) [1/s] = ", divL2 * uRef &
+        write(*, fmt = "(a25,es17.6)") "L2(div(u)) [1/s] = ", divL2 * uRef &
             / lRef
 
-        write (*, fmt = "(a25,es17.6)") "max(div(u)) [1/s] = ", divMax * uRef &
+        write(*, fmt = "(a25,es17.6)") "max(div(u)) [1/s] = ", divMax * uRef &
             / lRef
 
-        write (*, fmt = "(a25,es17.6)") "rms terms (div(u)) [1/s] = ", &
+        write(*, fmt = "(a25,es17.6)") "rms terms (div(u)) [1/s] = ", &
             divL2_norm * uRef / lRef
 
-        write (*, fmt = "(a25,es17.6)") "normalized L2(div(u)) = ", divL2 &
+        write(*, fmt = "(a25,es17.6)") "normalized L2(div(u)) = ", divL2 &
             / divL2_norm
 
-      case ("pseudo_incompressible")
+      case("pseudo_incompressible")
 
-        write (*, fmt = "(a25,es17.6)") "L2(div(Pu)) [Pa/s] = ", divL2 &
+        write(*, fmt = "(a25,es17.6)") "L2(div(Pu)) [Pa/s] = ", divL2 * rhoRef &
+            * thetaRef * uRef / lRef
+
+        write(*, fmt = "(a25,es17.6)") "max(div(Pu)) [Pa/s] = ", divMax &
             * rhoRef * thetaRef * uRef / lRef
 
-        write (*, fmt = "(a25,es17.6)") "max(div(Pu)) [Pa/s] = ", divMax &
-            * rhoRef * thetaRef * uRef / lRef
-
-        write (*, fmt = "(a25,es17.6)") "rms terms (div(Pu)) [Pa/s] = ", &
+        write(*, fmt = "(a25,es17.6)") "rms terms (div(Pu)) [Pa/s] = ", &
             divL2_norm * rhoRef * thetaRef * uRef / lRef
 
-        write (*, fmt = "(a25,es17.6)") "normalized L2(div(Pu)) = ", tolref
+        write(*, fmt = "(a25,es17.6)") "normalized L2(div(Pu)) = ", tolref
       case default
         stop "calc_RHS: unkown case model"
       end select
@@ -2768,41 +2768,41 @@ module poisson_module
       print *, "-------------------------------------------------"
       print *, ""
     else
-      if (master .and. giveInfo) then
+      if(master .and. giveInfo) then
         print *, ""
         print *, " Poisson Solver ", trim(poissonSolverType), ": Initial state"
         print *, ""
-        write (*, fmt = "(a25,es17.6)") "Sum over RHS = ", divSum
-        write (*, fmt = "(a25,es17.6)") "Sum over scaled RHS  = ", divSumScaled
+        write(*, fmt = "(a25,es17.6)") "Sum over RHS = ", divSum
+        write(*, fmt = "(a25,es17.6)") "Sum over scaled RHS  = ", divSumScaled
 
         ! Information on divergence
-        select case (model)
-        case ("Boussinesq")
+        select case(model)
+        case("Boussinesq")
 
-          write (*, fmt = "(a25,es17.6)") "L2(div(u)) [1/s] = ", divL2 * uRef &
+          write(*, fmt = "(a25,es17.6)") "L2(div(u)) [1/s] = ", divL2 * uRef &
               / lRef
 
-          write (*, fmt = "(a25,es17.6)") "max(div(u)) [1/s] = ", divMax &
-              * uRef / lRef
+          write(*, fmt = "(a25,es17.6)") "max(div(u)) [1/s] = ", divMax * uRef &
+              / lRef
 
-          write (*, fmt = "(a25,es17.6)") "rms terms (div(u)) [1/s] = ", &
+          write(*, fmt = "(a25,es17.6)") "rms terms (div(u)) [1/s] = ", &
               divL2_norm * uRef / lRef
 
-          write (*, fmt = "(a25,es17.6)") "normalized L2(div(u)) = ", divL2 &
+          write(*, fmt = "(a25,es17.6)") "normalized L2(div(u)) = ", divL2 &
               / divL2_norm
 
-        case ("pseudo_incompressible")
+        case("pseudo_incompressible")
 
-          write (*, fmt = "(a25,es17.6)") "L2(div(Pu)) [Pa/s] = ", divL2 &
+          write(*, fmt = "(a25,es17.6)") "L2(div(Pu)) [Pa/s] = ", divL2 &
               * rhoRef * thetaRef * uRef / lRef
 
-          write (*, fmt = "(a25,es17.6)") "max(div(Pu)) [Pa/s] = ", divMax &
+          write(*, fmt = "(a25,es17.6)") "max(div(Pu)) [Pa/s] = ", divMax &
               * rhoRef * thetaRef * uRef / lRef
 
-          write (*, fmt = "(a25,es17.6)") "rms terms (div(Pu))  [Pa/s] = ", &
+          write(*, fmt = "(a25,es17.6)") "rms terms (div(Pu))  [Pa/s] = ", &
               divL2_norm * rhoRef * thetaRef * uRef / lRef
 
-          write (*, fmt = "(a25,es17.6)") "normalized L2(div(Pu)) = ", tolref
+          write(*, fmt = "(a25,es17.6)") "normalized L2(div(Pu)) = ", tolref
 
         case default
           stop "calc_RHS: unkown case model"
@@ -2823,16 +2823,16 @@ module poisson_module
     ! -------------------------------------------------
 
     ! in/out variables
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (in) :: var
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
     !UAC real, intent(in) :: dt
-    real, intent (in) :: dt, facray, facprs
+    real, intent(in) :: dt, facray, facprs
 
-    logical, intent (out) :: errFlagBicg
-    integer, intent (out) :: nIter
+    logical, intent(out) :: errFlagBicg
+    integer, intent(out) :: nIter
 
-    integer, intent (in) :: m
-    real, dimension (1:nx, 1:ny, 1:nz), intent (in) :: b ! RHS
+    integer, intent(in) :: m
+    real, dimension(1:nx, 1:ny, 1:nz), intent(in) :: b ! RHS
 
     ! facray multiplies the Rayleigh-damping terms so that they are only
     ! handled in the implicit time stepping (sponge and immersed boundary)
@@ -2848,10 +2848,10 @@ module poisson_module
     ! opt = impl =>
     ! pressure solver for implicit problem and corresponding correction
     ! of the winds and density fluctuations
-    character (len = *), intent (in) :: opt
+    character(len = *), intent(in) :: opt
 
     ! local vars
-    real, dimension (1:nx, 1:ny, 1:nz) :: sol ! solution of Poisson problem
+    real, dimension(1:nx, 1:ny, 1:nz) :: sol ! solution of Poisson problem
     real :: res
 
     real :: dtInv
@@ -2868,7 +2868,7 @@ module poisson_module
     integer :: i, j
 
     ! Init
-    if (dt == 0.0) stop "poissonSolver: dt = 0.0. Stopping."
+    if(dt == 0.0) stop "poissonSolver: dt = 0.0. Stopping."
     dtInv = 1.0 / dt
 
     !--------------------------------
@@ -2878,28 +2878,28 @@ module poisson_module
 
     sol = 0.0
 
-    select case (poissonSolverType)
+    select case(poissonSolverType)
 
       ! bicgstab solver
-    case ("bicgstab")
+    case("bicgstab")
 
-      select case (model)
+      select case(model)
 
-      case ("pseudo_incompressible")
+      case("pseudo_incompressible")
 
         !UAC call val_PsIn(var, dt, opt)
         call val_PsIn(var, dt, opt, facray)
 
-      case ("Boussinesq")
+      case("Boussinesq")
 
         ! TFC FJ
         ! Tensor elements are constant. Due to the scaling, the subroutine also
         ! works for the Boussinesq model.
-        if (opt == "expl" .and. .not. expEle) then
+        if(opt == "expl" .and. .not. expEle) then
           call val_PsIn(var, dt, opt, facray)
           expEle = .true.
           impEle = .false.
-        else if (opt == "impl" .and. .not. impEle) then
+        else if(opt == "impl" .and. .not. impEle) then
           call val_PsIn(var, dt, opt, facray)
           impEle = .true.
           expEle = .false.
@@ -2913,16 +2913,16 @@ module poisson_module
 
       call bicgstab(b, dt, sol, res, nIter, errFlagBicg, opt)
 
-    case ("gcr")
+    case("gcr")
 
       stop 'ERROR: no gcr provided anymore'
 
-    case ("adi")
+    case("adi")
 
       stop 'ERROR: no adi provided anymore'
 
       ! hypre solver
-    case ("hypre")
+    case("hypre")
 
       ! select case (model)
 
@@ -2948,9 +2948,9 @@ module poisson_module
     end select
 
     !UAB
-    if (errFlagBicg) return
+    if(errFlagBicg) return
 
-    if (model == "pseudo_incompressible") then
+    if(model == "pseudo_incompressible") then
       do k = 1, nz
         fcscal = sqrt(Pstrat(k) ** 2 / rhoStrat(k))
         sol(:, :, k) = sol(:, :, k) / fcscal
@@ -2959,7 +2959,7 @@ module poisson_module
     !UAE
 
     ! now get dp from dt * dp ...
-    if (topography) then
+    if(topography) then
       ! TFC FJ
       ! Solution must be divided by Jacobian.
       do i = 1, nx
@@ -2985,11 +2985,11 @@ module poisson_module
     ! --------------------------------------
 
     ! in/out variables
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (in) :: var
-    real, dimension (1:nx, 1:ny, 1:nz), intent (out) :: Lq
-    real, dimension (0:nx + 1, 0:ny + 1, 0:nz + 1), intent (inout) :: q ! with ghost cells
-    character (len = 1), intent (in) :: direction
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
+    real, dimension(1:nx, 1:ny, 1:nz), intent(out) :: Lq
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(inout) :: q ! with ghost cells
+    character(len = 1), intent(in) :: direction
 
     ! local variables
     integer :: i, j, k
@@ -3004,7 +3004,7 @@ module poisson_module
     !UAE
 
     !   achatzb
-    if (topography) stop 'linOprXYZ not ready for topography!'
+    if(topography) stop 'linOprXYZ not ready for topography!'
     !   achatze
 
     ! auxiliary variables
@@ -3024,13 +3024,13 @@ module poisson_module
     q(:, 0, :) = q(:, ny, :)
     q(:, ny + 1, :) = q(:, 1, :)
 
-    select case (direction)
+    select case(direction)
 
       !--------------------------
       !       operator Lx
       !--------------------------
 
-    case ("x")
+    case("x")
 
       k_loop_x: do k = 1, nz
         j_loop_x: do j = 1, ny
@@ -3038,14 +3038,14 @@ module poisson_module
 
             ! ------------------ A(i+1,j,k) ------------------
             rhoEdge = 0.5 * (var(i + 1, j, k, 1) + var(i, j, k, 1))
-            if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+            if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
             AR = dx2 * pStrat(k) ** 2 / rhoEdge
             qR = q(i + 1, j, k)
 
             ! ------------------- A(i-1,j,k) --------------------
             rhoEdge = 0.5 * (var(i, j, k, 1) + var(i - 1, j, k, 1))
-            if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+            if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
             AL = dx2 * pStrat(k) ** 2 / rhoEdge
             qL = q(i - 1, j, k)
@@ -3058,7 +3058,7 @@ module poisson_module
             Lq(i, j, k) = AL * qL + AC * qC + AR * qR
 
             ! ---------------------- scale with PStrat --------------------
-            if (pressureScaling) then
+            if(pressureScaling) then
               Lq(i, j, k) = Lq(i, j, k) / Pstrat(k)
             end if
 
@@ -3070,7 +3070,7 @@ module poisson_module
       !       operator Ly
       !--------------------------
 
-    case ("y")
+    case("y")
 
       k_loop_y: do k = 1, nz
         j_loop_y: do j = 1, ny
@@ -3078,14 +3078,14 @@ module poisson_module
 
             ! -------------------- A(i,j+1,k) ----------------------
             rhoEdge = 0.5 * (var(i, j + 1, k, 1) + var(i, j, k, 1))
-            if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+            if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
             AF = dy2 * pStrat(k) ** 2 / rhoEdge
             qF = q(i, j + 1, k)
 
             ! --------------------- A(i,j-1,k) -----------------------
             rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j - 1, k, 1))
-            if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+            if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
             AB = dy2 * pStrat(k) ** 2 / rhoEdge
             qB = q(i, j - 1, k)
@@ -3098,7 +3098,7 @@ module poisson_module
             Lq(i, j, k) = AF * qF + AB * qB + AC * qC
 
             ! ---------------------- scale with PStrat --------------------
-            if (pressureScaling) then
+            if(pressureScaling) then
               Lq(i, j, k) = Lq(i, j, k) / Pstrat(k)
             end if
 
@@ -3110,16 +3110,16 @@ module poisson_module
       !       operator Lz
       !--------------------------
 
-    case ("z")
+    case("z")
 
       k_loop_z: do k = 1, nz
         j_loop_z: do j = 1, ny
           i_loop_z: do i = 1, nx
 
             ! ---------------------- A(i,j,k+1) ------------------------
-            if (k < nz) then
+            if(k < nz) then
               rhoEdge = 0.5 * (var(i, j, k + 1, 1) + var(i, j, k, 1))
-              if (fluctuationMode) rhoEdge = rhoEdge + rhoStratTilde(k)
+              if(fluctuationMode) rhoEdge = rhoEdge + rhoStratTilde(k)
 
               pStratU = 0.5 * (pStrat(k + 1) + pStrat(k))
               AU = dz2 * pStratU ** 2 / rhoEdge
@@ -3131,9 +3131,9 @@ module poisson_module
             end if
 
             ! ----------------------- A(i,j,k-1) ------------------------
-            if (k > 1) then
+            if(k > 1) then
               rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k - 1, 1))
-              if (fluctuationMode) rhoEdge = rhoEdge + rhoStratTilde(k)
+              if(fluctuationMode) rhoEdge = rhoEdge + rhoStratTilde(k)
 
               pStratD = 0.5 * (pStrat(k) + pStrat(k - 1))
               AD = dz2 * pStratD ** 2 / rhoEdge
@@ -3152,7 +3152,7 @@ module poisson_module
             Lq(i, j, k) = AU * qU + AD * qD + AC * qC
 
             ! ---------------------- scale with PStrat --------------------
-            if (pressureScaling) then
+            if(pressureScaling) then
               Lq(i, j, k) = Lq(i, j, k) / Pstrat(k)
             end if
 
@@ -3175,10 +3175,10 @@ module poisson_module
     ! -------------------------------------
 
     ! In/Out variables
-    real, dimension (:), intent (inout) :: l, c, r ! matrix diagonals:
+    real, dimension(:), intent(inout) :: l, c, r ! matrix diagonals:
     ! left, center, right
-    real, dimension (:), intent (inout) :: b ! rhs
-    real, dimension (:), intent (out) :: sol ! solution
+    real, dimension(:), intent(inout) :: b ! rhs
+    real, dimension(:), intent(out) :: sol ! solution
 
     ! Local vars
     integer :: i, n
@@ -3214,12 +3214,12 @@ module poisson_module
 
     ! in/out variables
     !UAC real, dimension(1:nx,1:ny,1:nz), intent(in) :: b        ! RHS
-    real, dimension (1:nx, 1:ny, 1:nz), intent (in) :: b_in ! RHS
-    real, intent (in) :: dt
-    real, dimension (1:nx, 1:ny, 1:nz), intent (inout) :: sol
-    real, intent (out) :: res ! residual
-    integer, intent (out) :: nIter
-    logical, intent (out) :: errFlag
+    real, dimension(1:nx, 1:ny, 1:nz), intent(in) :: b_in ! RHS
+    real, intent(in) :: dt
+    real, dimension(1:nx, 1:ny, 1:nz), intent(inout) :: sol
+    real, intent(out) :: res ! residual
+    integer, intent(out) :: nIter
+    logical, intent(out) :: errFlag
 
     ! opt = expl =>
     ! pressure solver for explicit problem and corresponding correction
@@ -3227,7 +3227,7 @@ module poisson_module
     ! opt = impl =>
     ! pressure solver for implicit problem and corresponding correction
     ! of the winds and density fluctuations
-    character (len = *), intent (in) :: opt
+    character(len = *), intent(in) :: opt
 
     ! Local parameters
     integer :: maxIt
@@ -3235,7 +3235,7 @@ module poisson_module
     ! local variables
     integer :: i, j, k, allocstat
     integer :: j_b
-    real, dimension (:, :, :), allocatable :: p, r0, rOld, r, s, t, v, matVec, &
+    real, dimension(:, :, :), allocatable :: p, r0, rOld, r, s, t, v, matVec, &
         v_pc
     real :: alpha, beta, omega
 
@@ -3247,12 +3247,12 @@ module poisson_module
     real :: res_local
 
     !UAB
-    real, dimension (1:nx, 1:ny, 1:nz) :: b ! RHS
-    real, dimension (1:nx, 1:ny) :: r_vm, b_vm
+    real, dimension(1:nx, 1:ny, 1:nz) :: b ! RHS
+    real, dimension(1:nx, 1:ny) :: r_vm, b_vm
     real :: b_vm_norm, res_vm
     !UAE
 
-    if (giveInfo .and. master) then
+    if(giveInfo .and. master) then
       print *, ""
       print *, "----------------------------------------------"
       print *, "BICGSTAB: solving linear system... "
@@ -3281,30 +3281,30 @@ module poisson_module
     ! hypre has the criterion |Ax - b| < tol * |b|, hence, with
     ! tolref = divL2/divL2_norm = |b|/b_*
 
-    if (tolcrit == "abs") then
+    if(tolcrit == "abs") then
       tol = tolPoisson / tolref
-    else if (tolcrit == "rel") then
+    else if(tolcrit == "rel") then
       tol = tolPoisson
     end if
 
     ! Allocate local fields
-    allocate (p(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(p(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
         "bicgstab:alloc failed"
-    allocate (r0(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) &
+    allocate(r0(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
+        "bicgstab:alloc failed"
+    allocate(rOld(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) &
         stop "bicgstab:alloc failed"
-    allocate (rOld(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) &
+    allocate(r(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
+        "bicgstab:alloc failed"
+    allocate(s(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
+        "bicgstab:alloc failed"
+    allocate(t(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
+        "bicgstab:alloc failed"
+    allocate(v(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
+        "bicgstab:alloc failed"
+    allocate(matVec(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) &
         stop "bicgstab:alloc failed"
-    allocate (r(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:alloc failed"
-    allocate (s(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:alloc failed"
-    allocate (t(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:alloc failed"
-    allocate (v(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:alloc failed"
-    allocate (matVec(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) &
-        stop "bicgstab:alloc failed"
-    allocate (v_pc(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) &
+    allocate(v_pc(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) &
         stop "bicgstab:alloc failed"
 
     ! error flag
@@ -3396,30 +3396,30 @@ module poisson_module
     b_vm_norm = res_vm
     !UAC
 
-    if (master) then
+    if(master) then
       print *, ""
       print *, " BiCGStab solver: "
-      if (res == 0.0) then
-        if (giveInfo) write (*, fmt = "(a25,es17.6)") " Initial residual: res &
+      if(res == 0.0) then
+        if(giveInfo) write(*, fmt = "(a25,es17.6)") " Initial residual: res &
             = ", res
       else
-        if (giveInfo) write (*, fmt = "(a25,es17.6)") " Initial residual: res &
+        if(giveInfo) write(*, fmt = "(a25,es17.6)") " Initial residual: res &
             = ", res / b_norm
       end if
       !UAB
-      if (res_vm == 0.0) then
-        if (giveInfo) write (*, fmt = "(a25,es17.6)") " Initial residual: &
-            res_vm = ", res_vm
+      if(res_vm == 0.0) then
+        if(giveInfo) write(*, fmt = "(a25,es17.6)") " Initial residual: res_vm &
+            = ", res_vm
       else
-        if (giveInfo) write (*, fmt = "(a25,es17.6)") " Initial residual: &
-            res_vm = ", res_vm / b_vm_norm
+        if(giveInfo) write(*, fmt = "(a25,es17.6)") " Initial residual: res_vm &
+            = ", res_vm / b_vm_norm
       end if
       !UAE
-      if (giveInfo) write (*, fmt = "(a25,es17.6)") " tol = ", tol
+      if(giveInfo) write(*, fmt = "(a25,es17.6)") " tol = ", tol
     end if
 
-    if (res == 0.0 .or. res / b_norm <= tol) then
-      if (master .and. giveInfo) print *, " ==> no iteration needed."
+    if(res == 0.0 .or. res / b_norm <= tol) then
+      if(master .and. giveInfo) print *, " ==> no iteration needed."
       nIter = 0
       return
     end if
@@ -3429,7 +3429,7 @@ module poisson_module
     iteration: do j_b = 1, maxIt
 
       ! v = A*p
-      if (preconditioner == 'yes') then
+      if(preconditioner == 'yes') then
         !UAC call preCond( p, v_pc)
         call preCond(p, v_pc, opt)
       else
@@ -3443,7 +3443,7 @@ module poisson_module
       s = r - alpha * v
 
       ! t = A*s
-      if (preconditioner == 'yes') then
+      if(preconditioner == 'yes') then
         !UAC call preCond( s, v_pc)
         call preCond(s, v_pc, opt)
       else
@@ -3504,13 +3504,12 @@ module poisson_module
       res_vm = sqrt(res_vm / sizeX / sizeY)
       !UAE
 
-      if (max(res / b_norm, res_vm / b_vm_norm) <= tol) then
-        if (master .and. giveInfo) then
-          write (*, fmt = "(a25,i25)") " Nb.of iterations: j = ", j_b
-          write (*, fmt = "(a25,es17.6)") " Final residual: res = ", res &
-              / b_norm
+      if(max(res / b_norm, res_vm / b_vm_norm) <= tol) then
+        if(master .and. giveInfo) then
+          write(*, fmt = "(a25,i25)") " Nb.of iterations: j = ", j_b
+          write(*, fmt = "(a25,es17.6)") " Final residual: res = ", res / b_norm
           !UAB
-          write (*, fmt = "(a25,es17.6)") " Final residual v.m. = ", res_vm &
+          write(*, fmt = "(a25,es17.6)") " Final residual v.m. = ", res_vm &
               / b_vm_norm
           !UAE
           print *, ""
@@ -3518,7 +3517,7 @@ module poisson_module
 
         nIter = j_b
 
-        if (preconditioner == 'yes') then
+        if(preconditioner == 'yes') then
           s = sol
           !UAC call preCond( s, sol)
           call preCond(s, sol, opt)
@@ -3560,10 +3559,9 @@ module poisson_module
 
     ! max iteration
 
-    if (master) then ! modified by Junhong Wei (20161107)
-      write (*, fmt = "(a25,i25)") " Bicgstab: max iterations!!!", maxIt
-      write (*, fmt = "(a25,es17.6)") " Final BICGSTAB residual = ", res &
-          / b_norm
+    if(master) then ! modified by Junhong Wei (20161107)
+      write(*, fmt = "(a25,i25)") " Bicgstab: max iterations!!!", maxIt
+      write(*, fmt = "(a25,es17.6)") " Final BICGSTAB residual = ", res / b_norm
       print *, "--------------------------------------------------"
       print *, ""
 
@@ -3574,23 +3572,23 @@ module poisson_module
     nIter = j_b
 
     ! deallocate local fields
-    deallocate (p, stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:dealloc p failed"
-    deallocate (r0, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(p, stat = allocstat); if(allocstat /= 0) stop "bicgstab:dealloc &
+        p failed"
+    deallocate(r0, stat = allocstat); if(allocstat /= 0) stop &
         "bicgstab:dealloc r0 failed"
-    deallocate (rOld, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(rOld, stat = allocstat); if(allocstat /= 0) stop &
         "bicgstab:dealloc rOld failed"
-    deallocate (r, stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:dealloc r failed"
-    deallocate (s, stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:dealloc s failed"
-    deallocate (t, stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:dealloc t failed"
-    deallocate (v, stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:dealloc v failed"
-    deallocate (v_pc, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(r, stat = allocstat); if(allocstat /= 0) stop "bicgstab:dealloc &
+        r failed"
+    deallocate(s, stat = allocstat); if(allocstat /= 0) stop "bicgstab:dealloc &
+        s failed"
+    deallocate(t, stat = allocstat); if(allocstat /= 0) stop "bicgstab:dealloc &
+        t failed"
+    deallocate(v, stat = allocstat); if(allocstat /= 0) stop "bicgstab:dealloc &
+        v failed"
+    deallocate(v_pc, stat = allocstat); if(allocstat /= 0) stop &
         "bicgstab:dealloc v_pcfailed"
-    deallocate (matVec, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(matVec, stat = allocstat); if(allocstat /= 0) stop &
         "bicgstab:dealloc matvec failed"
 
   end subroutine bicgstab
@@ -3606,12 +3604,12 @@ module poisson_module
 
     ! in/out variables
     !UAC real, dimension(1:nx,1:ny,1:nz), intent(in) :: b        ! RHS
-    real, dimension (1:nx, 1:ny, 1:nz), intent (in) :: b_in ! RHS
-    real, intent (in) :: dt
-    real, dimension (1:nx, 1:ny, 1:nz), intent (inout) :: sol
-    real, intent (out) :: res ! residual
-    integer, intent (out) :: nIter
-    logical, intent (out) :: errFlag
+    real, dimension(1:nx, 1:ny, 1:nz), intent(in) :: b_in ! RHS
+    real, intent(in) :: dt
+    real, dimension(1:nx, 1:ny, 1:nz), intent(inout) :: sol
+    real, intent(out) :: res ! residual
+    integer, intent(out) :: nIter
+    logical, intent(out) :: errFlag
 
     ! opt = expl =>
     ! pressure solver for explicit problem and corresponding correction
@@ -3619,7 +3617,7 @@ module poisson_module
     ! opt = impl =>
     ! pressure solver for implicit problem and corresponding correction
     ! of the winds and density fluctuations
-    character (len = *), intent (in) :: opt
+    character(len = *), intent(in) :: opt
 
     ! Local parameters
     integer :: maxIt
@@ -3627,7 +3625,7 @@ module poisson_module
     ! local variables
     integer :: i, j, k, allocstat
     integer :: j_b
-    real, dimension (:, :, :), allocatable :: p, r0, rOld, r, s, t, v, matVec, &
+    real, dimension(:, :, :), allocatable :: p, r0, rOld, r, s, t, v, matVec, &
         v_pc, b_int
     real :: alpha, beta, omega
 
@@ -3640,10 +3638,10 @@ module poisson_module
     real :: bi_norm_local, bi_norm
 
     !UAB
-    real, dimension (1:nx, 1:ny, 1:nz) :: b ! RHS
+    real, dimension(1:nx, 1:ny, 1:nz) :: b ! RHS
     !UAE
 
-    if (giveInfo .and. master) then
+    if(giveInfo .and. master) then
       print *, ""
       print *, "----------------------------------------------"
       print *, "BICGSTAB: solving linear system... "
@@ -3672,32 +3670,32 @@ module poisson_module
     ! hypre has the criterion |Ax - b| < tol * |b|, hence, with
     ! tolref = divL2/divL2_norm = |b|/b_*
 
-    if (tolcrit == "abs") then
+    if(tolcrit == "abs") then
       tol = tolPoisson / tolref
-    else if (tolcrit == "rel") then
+    else if(tolcrit == "rel") then
       tol = tolPoisson
     end if
 
     ! Allocate local fields
-    allocate (p(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) stop &
+    allocate(p(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
         "bicgstab:alloc failed"
-    allocate (r0(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) &
+    allocate(r0(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
+        "bicgstab:alloc failed"
+    allocate(rOld(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) &
         stop "bicgstab:alloc failed"
-    allocate (rOld(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) &
+    allocate(r(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
+        "bicgstab:alloc failed"
+    allocate(s(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
+        "bicgstab:alloc failed"
+    allocate(t(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
+        "bicgstab:alloc failed"
+    allocate(v(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
+        "bicgstab:alloc failed"
+    allocate(matVec(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) &
         stop "bicgstab:alloc failed"
-    allocate (r(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:alloc failed"
-    allocate (s(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:alloc failed"
-    allocate (t(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:alloc failed"
-    allocate (v(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:alloc failed"
-    allocate (matVec(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) &
+    allocate(v_pc(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) &
         stop "bicgstab:alloc failed"
-    allocate (v_pc(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) &
-        stop "bicgstab:alloc failed"
-    allocate (b_int(1:nx, 1:ny, 1:nz), stat = allocstat); if (allocstat /= 0) &
+    allocate(b_int(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) &
         stop "bicgstab:alloc failed"
 
     ! error flag
@@ -3737,7 +3735,7 @@ module poisson_module
     !UAE
 
     ! redefine RHS and its norm for preconditioner
-    if (preconditioner == 'yes') then
+    if(preconditioner == 'yes') then
       !UAC call preCond( b, b_int)
       call preCond(b, b_int, opt)
 
@@ -3767,7 +3765,7 @@ module poisson_module
     ! r0 = b - Ax
     !UAC call linOpr( sol, matVec, opt )
     call linOpr(sol, matVec, opt, 'tot')
-    if (preconditioner == 'yes') then
+    if(preconditioner == 'yes') then
       v = matVec
       !UAC call preCond( v, matVec)
       call preCond(v, matVec, opt)
@@ -3794,21 +3792,21 @@ module poisson_module
 
     res = sqrt(res / sizeX / sizeY / sizeZ)
 
-    if (master) then
+    if(master) then
       print *, ""
       print *, " BiCGStab solver: "
-      if (res == 0.0) then
-        if (giveInfo) write (*, fmt = "(a25,es17.6)") " Initial residual: res &
+      if(res == 0.0) then
+        if(giveInfo) write(*, fmt = "(a25,es17.6)") " Initial residual: res &
             = ", res
       else
-        if (giveInfo) write (*, fmt = "(a25,es17.6)") " Initial residual: res &
+        if(giveInfo) write(*, fmt = "(a25,es17.6)") " Initial residual: res &
             = ", res / bi_norm
       end if
-      if (giveInfo) write (*, fmt = "(a25,es17.6)") " tol = ", tol
+      if(giveInfo) write(*, fmt = "(a25,es17.6)") " tol = ", tol
     end if
 
-    if (res == 0.0 .or. res / bi_norm <= tol) then
-      if (master .and. giveInfo) print *, " ==> no iteration needed."
+    if(res == 0.0 .or. res / bi_norm <= tol) then
+      if(master .and. giveInfo) print *, " ==> no iteration needed."
       nIter = 0
       return
     end if
@@ -3820,7 +3818,7 @@ module poisson_module
       ! v = A*p
       !UAC call linOpr( p, matVec, opt )
       call linOpr(p, matVec, opt, 'tot')
-      if (preconditioner == 'yes') then
+      if(preconditioner == 'yes') then
         v_pc = matVec
         !UAC call preCond( v_pc, matVec)
         call preCond(v_pc, matVec, opt)
@@ -3833,7 +3831,7 @@ module poisson_module
       ! t = A*s
       !UAC call linOpr( s, matVec, opt )
       call linOpr(s, matVec, opt, 'tot')
-      if (preconditioner == 'yes') then
+      if(preconditioner == 'yes') then
         v_pc = matVec
         !UAC call preCond( v_pc, matVec)
         call preCond(v_pc, matVec, opt)
@@ -3868,10 +3866,10 @@ module poisson_module
 
       res = sqrt(res / sizeX / sizeY / sizeZ)
 
-      if (res / bi_norm <= tol) then
-        if (master .and. giveInfo) then
-          write (*, fmt = "(a25,i25)") " Nb.of iterations: j = ", j_b
-          write (*, fmt = "(a25,es17.6)") " Final int. residual = ", res &
+      if(res / bi_norm <= tol) then
+        if(master .and. giveInfo) then
+          write(*, fmt = "(a25,i25)") " Nb.of iterations: j = ", j_b
+          write(*, fmt = "(a25,es17.6)") " Final int. residual = ", res &
               / bi_norm
           print *, ""
         end if
@@ -3898,9 +3896,8 @@ module poisson_module
 
         res = sqrt(res / sizeX / sizeY / sizeZ)
 
-        if (master .and. giveInfo) then
-          write (*, fmt = "(a25,es17.6)") " Final residual: res = ", res &
-              / b_norm
+        if(master .and. giveInfo) then
+          write(*, fmt = "(a25,es17.6)") " Final residual: res = ", res / b_norm
           print *, ""
         end if
 
@@ -3917,9 +3914,9 @@ module poisson_module
 
     ! max iteration
 
-    if (master) then ! modified by Junhong Wei (20161107)
-      write (*, fmt = "(a25,i25)") " Bicgstab: max iterations!!!", maxIt
-      write (*, fmt = "(a25,es17.6)") " Final BICGSTAB residual = ", res &
+    if(master) then ! modified by Junhong Wei (20161107)
+      write(*, fmt = "(a25,i25)") " Bicgstab: max iterations!!!", maxIt
+      write(*, fmt = "(a25,es17.6)") " Final BICGSTAB residual = ", res &
           / bi_norm
       print *, "--------------------------------------------------"
       print *, ""
@@ -3931,25 +3928,25 @@ module poisson_module
     nIter = j_b
 
     ! deallocate local fields
-    deallocate (p, stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:dealloc p failed"
-    deallocate (r0, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(p, stat = allocstat); if(allocstat /= 0) stop "bicgstab:dealloc &
+        p failed"
+    deallocate(r0, stat = allocstat); if(allocstat /= 0) stop &
         "bicgstab:dealloc r0 failed"
-    deallocate (rOld, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(rOld, stat = allocstat); if(allocstat /= 0) stop &
         "bicgstab:dealloc rOld failed"
-    deallocate (r, stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:dealloc r failed"
-    deallocate (s, stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:dealloc s failed"
-    deallocate (t, stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:dealloc t failed"
-    deallocate (v, stat = allocstat); if (allocstat /= 0) stop &
-        "bicgstab:dealloc v failed"
-    deallocate (v_pc, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(r, stat = allocstat); if(allocstat /= 0) stop "bicgstab:dealloc &
+        r failed"
+    deallocate(s, stat = allocstat); if(allocstat /= 0) stop "bicgstab:dealloc &
+        s failed"
+    deallocate(t, stat = allocstat); if(allocstat /= 0) stop "bicgstab:dealloc &
+        t failed"
+    deallocate(v, stat = allocstat); if(allocstat /= 0) stop "bicgstab:dealloc &
+        v failed"
+    deallocate(v_pc, stat = allocstat); if(allocstat /= 0) stop &
         "bicgstab:dealloc v_pcfailed"
-    deallocate (b_int, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(b_int, stat = allocstat); if(allocstat /= 0) stop &
         "bicgstab:dealloc v_pcfailed"
-    deallocate (matVec, stat = allocstat); if (allocstat /= 0) stop &
+    deallocate(matVec, stat = allocstat); if(allocstat /= 0) stop &
         "bicgstab:dealloc matvec failed"
 
   end subroutine bicgstab_2
@@ -4275,21 +4272,21 @@ module poisson_module
     ! modified by Junhong Wei (20161107) *** starting line ***
 
     ! auxiliary fields for "dp"
-    real, dimension (0:ny + 1, 0:nz + 1) :: xSliceLeft_send, xSliceRight_send
-    real, dimension (0:ny + 1, 0:nz + 1) :: xSliceLeft_recv, xSliceRight_recv
+    real, dimension(0:ny + 1, 0:nz + 1) :: xSliceLeft_send, xSliceRight_send
+    real, dimension(0:ny + 1, 0:nz + 1) :: xSliceLeft_recv, xSliceRight_recv
 
-    real, dimension (0:nx + 1, 0:nz + 1) :: ySliceBack_send, ySliceForw_send
-    real, dimension (0:nx + 1, 0:nz + 1) :: ySliceBack_recv, ySliceForw_recv
+    real, dimension(0:nx + 1, 0:nz + 1) :: ySliceBack_send, ySliceForw_send
+    real, dimension(0:nx + 1, 0:nz + 1) :: ySliceBack_recv, ySliceForw_recv
 
     ! MPI variables
     integer :: dest, source, tag
     integer :: sendcount, recvcount
 
     ! Find neighbour procs
-    if (idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
-    if (jdim > 1) call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
+    if(idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
+    if(jdim > 1) call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
 
-    if (giveInfo .and. master) then
+    if(giveInfo .and. master) then
       print *, ""
       print *, "----------------------------------------------"
       print *, "pressureBoundaryCondition: setting dp in Halos..."
@@ -4301,7 +4298,7 @@ module poisson_module
     !   set Halo cells: xSlice
     !----------------------------
 
-    if (idim > 1) then
+    if(idim > 1) then
       ! slice size
       sendcount = (ny + 2) * (nz + 2)
       recvcount = sendcount
@@ -4341,14 +4338,14 @@ module poisson_module
 
     end if
 
-    if (verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
+    if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
         copied."
 
     !------------------------------
     !   set Halo cells: ySlice
     !------------------------------
 
-    if (jdim > 1) then
+    if(jdim > 1) then
       ! slice size
       sendcount = (nx + 2) * (nz + 2)
 
@@ -4390,21 +4387,21 @@ module poisson_module
 
     end if
 
-    if (verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
+    if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
         copied."
 
     !----------------
     !   z-Boundary
     !----------------
 
-    select case (zBoundary)
+    select case(zBoundary)
 
-    case ("periodic")
+    case("periodic")
 
       dp(:, :, 0) = dp(:, :, nz)
       dp(:, :, nz + 1) = dp(:, :, 1)
 
-    case ("solid_wall")
+    case("solid_wall")
 
       ! zero gradient
       dp(:, :, 0) = dp(:, :, 1)
@@ -4428,12 +4425,12 @@ module poisson_module
     !-------------------------------------------------
 
     ! in/out variables
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (inout) :: var
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), &
-        intent (inout) :: dMom
-    real, intent (in) :: dt, facray
-    integer, intent (in) :: RKstage
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), &
+        intent(inout) :: dMom
+    real, intent(in) :: dt, facray
+    integer, intent(in) :: RKstage
 
     ! facray multiplies the Rayleigh-damping terms so that they are only
     ! handled in the implicit time stepping (sponge and immersed boundary)
@@ -4444,7 +4441,7 @@ module poisson_module
     ! opt = impl =>
     ! pressure solver for implicit problem and corresponding correction
     ! of the winds and density fluctuations
-    character (len = *), intent (in) :: opt
+    character(len = *), intent(in) :: opt
 
     ! local variables
     integer :: i, j, k
@@ -4453,7 +4450,7 @@ module poisson_module
     real :: pGradX, pGradY, pGradZ
     real :: du, dv, dw, db
     real :: facu, facv, facw, facr
-    real, dimension (0:ny + 1) :: f_cor_nd
+    real, dimension(0:ny + 1) :: f_cor_nd
     real :: bvsstw
 
     real :: rhov0m, rhov00, rhov1m, rhov10
@@ -4474,7 +4471,7 @@ module poisson_module
 
     real :: f_cor_v
 
-    if (model == "Boussinesq") then
+    if(model == "Boussinesq") then
       print *, 'ERROR: correctorStep not ready for Boussinesq mode'
       stop
     end if
@@ -4482,7 +4479,7 @@ module poisson_module
     i0 = is + nbx - 1
     j0 = js + nby - 1
 
-    if (corset == 'periodic') then
+    if(corset == 'periodic') then
       ymax = ly_dim(1) / lRef
       ymin = ly_dim(0) / lRef
 
@@ -4494,7 +4491,7 @@ module poisson_module
         f_cor_nd(j) = - 4. * pi / 8.64e4 * tRef * cos(2. * pi * (yloc - ymin) &
             / (ymax - ymin))
       end do
-    else if (corset == 'constant') then
+    else if(corset == 'constant') then
       f_cor_nd(0:ny + 1) = f_Coriolis_dim * tRef
     else
       stop 'ERROR: wrong corset'
@@ -4507,8 +4504,8 @@ module poisson_module
     var(0:nx + 1, 0:ny + 1, 0:nz + 1, 5) = var(0:nx + 1, 0:ny + 1, 0:nz + 1, &
         5) + dp(0:nx + 1, 0:ny + 1, 0:nz + 1)
 
-    if (timeScheme == "semiimplicit") then
-      if (opt == "impl") then
+    if(timeScheme == "semiimplicit") then
+      if(opt == "impl") then
         kr_sp = kr_sp * facray
         alprlx = alprlx * facray
       end if
@@ -4518,14 +4515,14 @@ module poisson_module
     !           calc du and u + du
     ! --------------------------------------
 
-    if (timeScheme == "semiimplicit") then
-      if (opt == "impl") then
+    if(timeScheme == "semiimplicit") then
+      if(opt == "impl") then
         do k = 1, nz
           do j = 1, ny
             do i = 0, nx
               facu = 1.0
 
-              if (topography) then
+              if(topography) then
                 !UAC if (   topography_mask(i0+i,j0+j,k) &
                 !  & .or. topography_mask(i0+i+1,j0+j,k)) then
                 !   facu = facu + dt*alprlx
@@ -4535,33 +4532,33 @@ module poisson_module
                 !UAE
               end if
 
-              if (TestCase == "baroclinic_LC") then
-                if (background == "HeldSuarez") then
+              if(TestCase == "baroclinic_LC") then
+                if(background == "HeldSuarez") then
                   ! Rayleigh damping
                   facu = facu + dt * kv_hs(j, k)
                 end if
               end if
 
-              if (spongeLayer .and. sponge_uv) then
+              if(spongeLayer .and. sponge_uv) then
                 facu = facu + dt * kr_sp(j, k)
               end if
 
               facv = facu
 
               rhov0m = 0.5 * (var(i, j - 1, k, 1) + var(i, j, k, 1))
-              if (fluctuationMode) rhov0m = rhov0m + rhoStrat(k)
+              if(fluctuationMode) rhov0m = rhov0m + rhoStrat(k)
 
               rhov00 = 0.5 * (var(i, j, k, 1) + var(i, j + 1, k, 1))
-              if (fluctuationMode) rhov00 = rhov00 + rhoStrat(k)
+              if(fluctuationMode) rhov00 = rhov00 + rhoStrat(k)
 
               rhov1m = 0.5 * (var(i + 1, j - 1, k, 1) + var(i + 1, j, k, 1))
-              if (fluctuationMode) rhov1m = rhov1m + rhoStrat(k)
+              if(fluctuationMode) rhov1m = rhov1m + rhoStrat(k)
 
               rhov10 = 0.5 * (var(i + 1, j, k, 1) + var(i + 1, j + 1, k, 1))
-              if (fluctuationMode) rhov10 = rhov10 + rhoStrat(k)
+              if(fluctuationMode) rhov10 = rhov10 + rhoStrat(k)
 
               rhou = 0.5 * (var(i + 1, j, k, 1) + var(i, j, k, 1))
-              if (fluctuationMode) rhou = rhou + rhoStrat(k)
+              if(fluctuationMode) rhou = rhou + rhoStrat(k)
 
               pGradX = kappaInv * MaInv2 * pStrat(k) / rhou * (dp(i + 1, j, k) &
                   - dp(i, j, k)) / dx
@@ -4578,12 +4575,12 @@ module poisson_module
             end do
           end do
         end do
-      else if (opt == "expl") then
+      else if(opt == "expl") then
         do k = 1, nz
           do j = 1, ny
             do i = 0, nx
               rhou = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1))
-              if (fluctuationMode) rhou = rhou + rhoStrat(k)
+              if(fluctuationMode) rhou = rhou + rhoStrat(k)
 
               pGradX = kappaInv * MaInv2 * pStrat(k) / rhou * (dp(i + 1, j, k) &
                   - dp(i, j, k)) / dx
@@ -4602,7 +4599,7 @@ module poisson_module
         do j = 1, ny
           do i = 0, nx
             rhou = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1))
-            if (fluctuationMode) rhou = rhou + rhoStrat(k)
+            if(fluctuationMode) rhou = rhou + rhoStrat(k)
 
             pGradX = kappaInv * MaInv2 * pStrat(k) / rhou * (dp(i + 1, j, k) &
                 - dp(i, j, k)) / dx
@@ -4622,14 +4619,14 @@ module poisson_module
     !         calc dv and v + dv
     !--------------------------------------
 
-    if (timeScheme == "semiimplicit") then
-      if (opt == "impl") then
+    if(timeScheme == "semiimplicit") then
+      if(opt == "impl") then
         do k = 1, nz
           do j = 0, ny
             do i = 1, nx
               facv = 1.0
 
-              if (topography) then
+              if(topography) then
                 !UAC if (   topography_mask(i0+i,j0+j,k) &
                 !  & .or. topography_mask(i0+i,j0+j+1,k)) then
                 !   facv = facv + dt*alprlx
@@ -4639,33 +4636,33 @@ module poisson_module
                 !UAE
               end if
 
-              if (TestCase == "baroclinic_LC") then
-                if (background == "HeldSuarez") then
+              if(TestCase == "baroclinic_LC") then
+                if(background == "HeldSuarez") then
                   ! Rayleigh damping
                   facv = facv + dt * 0.5 * (kv_hs(j, k) + kv_hs(j + 1, k))
                 end if
               end if
 
-              if (spongeLayer .and. sponge_uv) then
+              if(spongeLayer .and. sponge_uv) then
                 facv = facv + dt * 0.5 * (kr_sp(j, k) + kr_sp(j + 1, k))
               end if
 
               facu = facv
 
               rhou00 = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1))
-              if (fluctuationMode) rhou00 = rhou00 + rhoStrat(k)
+              if(fluctuationMode) rhou00 = rhou00 + rhoStrat(k)
 
               rhoum0 = 0.5 * (var(i - 1, j, k, 1) + var(i, j, k, 1))
-              if (fluctuationMode) rhoum0 = rhoum0 + rhoStrat(k)
+              if(fluctuationMode) rhoum0 = rhoum0 + rhoStrat(k)
 
               rhou01 = 0.5 * (var(i, j + 1, k, 1) + var(i + 1, j + 1, k, 1))
-              if (fluctuationMode) rhou01 = rhou01 + rhoStrat(k)
+              if(fluctuationMode) rhou01 = rhou01 + rhoStrat(k)
 
               rhoum1 = 0.5 * (var(i - 1, j + 1, k, 1) + var(i, j + 1, k, 1))
-              if (fluctuationMode) rhoum1 = rhoum1 + rhoStrat(k)
+              if(fluctuationMode) rhoum1 = rhoum1 + rhoStrat(k)
 
               rhov = 0.5 * (var(i, j + 1, k, 1) + var(i, j, k, 1))
-              if (fluctuationMode) rhov = rhov + rhoStrat(k)
+              if(fluctuationMode) rhov = rhov + rhoStrat(k)
 
               pGradX = kappaInv * MaInv2 * 0.25 * (pStrat(k) / rhou00 * (dp(i &
                   + 1, j, k) - dp(i, j, k)) / dx + pStrat(k) / rhoum0 * (dp(i, &
@@ -4682,12 +4679,12 @@ module poisson_module
             end do
           end do
         end do
-      else if (opt == "expl") then
+      else if(opt == "expl") then
         do k = 1, nz
           do j = 0, ny
             do i = 1, nx
               rhov = 0.5 * (var(i, j, k, 1) + var(i, j + 1, k, 1))
-              if (fluctuationMode) rhov = rhov + rhoStrat(k)
+              if(fluctuationMode) rhov = rhov + rhoStrat(k)
 
               pGradY = kappaInv * MaInv2 * pStrat(k) / rhov * (dp(i, j + 1, k) &
                   - dp(i, j, k)) / dy
@@ -4706,7 +4703,7 @@ module poisson_module
         do j = 0, ny
           do i = 1, nx
             rhov = 0.5 * (var(i, j, k, 1) + var(i, j + 1, k, 1))
-            if (fluctuationMode) rhov = rhov + rhoStrat(k)
+            if(fluctuationMode) rhov = rhov + rhoStrat(k)
 
             pGradY = kappaInv * MaInv2 * pStrat(k) / rhov * (dp(i, j + 1, k) &
                 - dp(i, j, k)) / dy
@@ -4726,8 +4723,8 @@ module poisson_module
     !         calc w and  w + dw
     !--------------------------------------
 
-    if (timeScheme == "semiimplicit") then
-      if (opt == "impl") then
+    if(timeScheme == "semiimplicit") then
+      if(opt == "impl") then
         ! solid wall implies zero change of w at the bottom and top
 
         do k = 1, nz - 1
@@ -4735,7 +4732,7 @@ module poisson_module
             do i = 1, nx
               facw = 1.0
 
-              if (topography) then
+              if(topography) then
                 !UAC if (   topography_mask(i0+i,j0+j,k) &
                 !  & .or. topography_mask(i0+i,j0+j,k+1)) then
                 !   facw = facw + dt*alprlx
@@ -4745,15 +4742,15 @@ module poisson_module
                 !UAE
               end if
 
-              if (TestCase == "baroclinic_LC") then
-                if (background == "HeldSuarez") then
+              if(TestCase == "baroclinic_LC") then
+                if(background == "HeldSuarez") then
                   ! Rayleigh damping
 
                   facw = facw + dt * 0.5 * (kw_hs(k) + kw_hs(k + 1))
                 end if
               end if
 
-              if (spongeLayer) then
+              if(spongeLayer) then
                 facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
               end if
 
@@ -4761,7 +4758,7 @@ module poisson_module
               pEdge_0 = 0.5 * (pStrat_0(k + 1) + pStrat_0(k))
 
               rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k + 1, 1))
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 rhoEdge = rhoEdge + rhoStratTilde(k)
               end if
 
@@ -4781,23 +4778,23 @@ module poisson_module
         end do
 
         ! periodic in z
-        if (zBoundary == "periodic") then
+        if(zBoundary == "periodic") then
           stop 'ERROR: period. vert. bound. not ready in correctorStep'
         end if
-      else if (opt == "expl") then
+      else if(opt == "expl") then
         ! solid wall implies zero change of w at the bottom and top
 
         do k = 1, nz - 1
           do j = 1, ny
             do i = 1, nx
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 pEdge = pStratTilde(k)
               else
                 pEdge = 0.5 * (pStrat(k) + pStrat(k + 1))
               end if
 
               rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k + 1, 1))
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 rhoEdge = rhoEdge + rhoStratTilde(k)
               end if
 
@@ -4811,18 +4808,18 @@ module poisson_module
         end do
 
         ! if periodic in z
-        if (zBoundary == "periodic") then
+        if(zBoundary == "periodic") then
           do k = 0, nz, nz
             do j = 1, ny
               do i = 1, nx
-                if (fluctuationMode) then
+                if(fluctuationMode) then
                   pEdge = pStratTilde(k)
                 else
                   pEdge = 0.5 * (pStrat(k) + pStrat(k + 1))
                 end if
 
                 rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k + 1, 1))
-                if (fluctuationMode) then
+                if(fluctuationMode) then
                   rhoEdge = rhoEdge + rhoStratTilde(k)
                 end if
 
@@ -4844,14 +4841,14 @@ module poisson_module
       do k = 1, nz - 1
         do j = 1, ny
           do i = 1, nx
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               pEdge = pStratTilde(k)
             else
               pEdge = 0.5 * (pStrat(k) + pStrat(k + 1))
             end if
 
             rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k + 1, 1))
-            if (fluctuationMode) rhoEdge = rhoEdge + rhoStratTilde(k)
+            if(fluctuationMode) rhoEdge = rhoEdge + rhoStratTilde(k)
 
             pGradZ = (dp(i, j, k + 1) - dp(i, j, k)) / dz
 
@@ -4866,18 +4863,18 @@ module poisson_module
       end do
 
       ! if periodic in z
-      if (zBoundary == "periodic") then
+      if(zBoundary == "periodic") then
         do k = 0, nz, nz
           do j = 1, ny
             do i = 1, nx
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 pEdge = pStratTilde(k)
               else
                 pEdge = 0.5 * (pStrat(k) + pStrat(k + 1))
               end if
 
               rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k + 1, 1))
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 rhoEdge = rhoEdge + rhoStratTilde(k)
               end if
 
@@ -4899,14 +4896,14 @@ module poisson_module
     !         calc rhop and rhop + drhop (only for implicit time step)
     !------------------------------------------------------------------
 
-    if (timeScheme == "semiimplicit") then
-      if (opt == "impl") then
+    if(timeScheme == "semiimplicit") then
+      if(opt == "impl") then
         do k = 1, nz
           do j = 1, ny
             do i = 1, nx
               facw = 1.0
 
-              if (topography) then
+              if(topography) then
                 !UAC if (   topography_mask(i0+i,j0+j,k) &
                 !  & .or. topography_mask(i0+i,j0+j,k+1)) then
                 !   facw = facw + dt*alprlx
@@ -4916,29 +4913,29 @@ module poisson_module
                 !UAE
               end if
 
-              if (TestCase == "baroclinic_LC") then
-                if (background == "HeldSuarez") then
+              if(TestCase == "baroclinic_LC") then
+                if(background == "HeldSuarez") then
                   ! Rayleigh damping
 
                   facw = facw + dt * kw_hs(k)
                 end if
               end if
 
-              if (spongeLayer) facw = facw + dt * kr_sp(j, k)
+              if(spongeLayer) facw = facw + dt * kr_sp(j, k)
 
               rho = var(i, j, k, 1)
-              if (fluctuationMode) rho = rho + rhoStrat(k)
+              if(fluctuationMode) rho = rho + rhoStrat(k)
 
               rhowm = 0.5 * (var(i, j, k - 1, 1) + var(i, j, k, 1))
-              if (fluctuationMode) rhowm = rhowm + rhoStratTilde(k - 1)
+              if(fluctuationMode) rhowm = rhowm + rhoStratTilde(k - 1)
 
               rhow0 = 0.5 * (var(i, j, k, 1) + var(i, j, k + 1, 1))
-              if (fluctuationMode) rhow0 = rhow0 + rhoStratTilde(k)
+              if(fluctuationMode) rhow0 = rhow0 + rhoStratTilde(k)
 
-              if (k == 1) then
+              if(k == 1) then
                 pGradZ = kappaInv * MaInv2 * 0.5 * (pStratTilde(k) / rhow0 &
                     * (dp(i, j, k + 1) - dp(i, j, k)) / dz)
-              else if (k == nz) then
+              else if(k == nz) then
                 pGradZ = kappaInv * MaInv2 * 0.5 * (pStratTilde(k - 1) / rhowm &
                     * (dp(i, j, k) - dp(i, j, k - 1)) / dz)
               else
@@ -4960,14 +4957,14 @@ module poisson_module
         end do
 
         ! periodic in z
-        if (zBoundary == "periodic") then
+        if(zBoundary == "periodic") then
           stop 'ERROR: period. vert. bound. not ready in correctorStep'
         end if
       end if
     end if
 
-    if (timeScheme == "semiimplicit") then
-      if (opt == "impl") then
+    if(timeScheme == "semiimplicit") then
+      if(opt == "impl") then
         kr_sp = kr_sp / facray
         alprlx = alprlx / facray
       end if
@@ -4987,13 +4984,13 @@ module poisson_module
     !-------------------------------------------------
 
     ! in/out variables
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (inout) :: var
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), &
-        intent (inout) :: dMom
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), &
+        intent(inout) :: dMom
     !UAC real, intent(in) :: dt
-    real, intent (in) :: dt, facray, facprs
-    integer, intent (in) :: RKstage
+    real, intent(in) :: dt, facray, facprs
+    integer, intent(in) :: RKstage
 
     ! facray multiplies the Rayleigh-damping terms so that they are only
     ! handled in the implicit time stepping (sponge and immersed boundary)
@@ -5009,7 +5006,7 @@ module poisson_module
     ! opt = impl =>
     ! pressure solver for implicit problem and corresponding correction
     ! of the winds and density fluctuations
-    character (len = *), intent (in) :: opt
+    character(len = *), intent(in) :: opt
 
     ! local variables
     integer :: i, j, k
@@ -5018,7 +5015,7 @@ module poisson_module
     real :: pGradX, pGradY, pGradZ
     real :: du, dv, dw, db
     real :: facu, facv, facw, facr
-    real, dimension (0:ny + 1) :: f_cor_nd
+    real, dimension(0:ny + 1) :: f_cor_nd
     real :: bvsstw
 
     real :: rhov0m, rhov00, rhov1m, rhov10
@@ -5039,7 +5036,7 @@ module poisson_module
     real :: chris11EdgeU, chris22EdgeU, chris13EdgeU, chris23EdgeU, &
         chris11EdgeD, chris22EdgeD, chris13EdgeD, chris23EdgeD
     real :: pGradZEdgeU, pGradZEdgeD
-    real, dimension ((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
+    real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
         + nbz)) :: corX, corY
 
     ! TFC FJ
@@ -5062,7 +5059,7 @@ module poisson_module
     i0 = is + nbx - 1
     j0 = js + nby - 1
 
-    if (corset == 'periodic') then
+    if(corset == 'periodic') then
       ymax = ly_dim(1) / lRef
       ymin = ly_dim(0) / lRef
 
@@ -5074,7 +5071,7 @@ module poisson_module
         f_cor_nd(j) = - 4. * pi / 8.64e4 * tRef * cos(2. * pi * (yloc - ymin) &
             / (ymax - ymin))
       end do
-    else if (corset == 'constant') then
+    else if(corset == 'constant') then
       f_cor_nd(0:ny + 1) = f_Coriolis_dim * tRef
     else
       stop 'ERROR: wrong corset'
@@ -5087,8 +5084,8 @@ module poisson_module
     var(0:nx + 1, 0:ny + 1, 0:nz + 1, 5) = var(0:nx + 1, 0:ny + 1, 0:nz + 1, &
         5) + dp(0:nx + 1, 0:ny + 1, 0:nz + 1)
 
-    if (timeScheme == "semiimplicit") then
-      if (opt == "impl") then
+    if(timeScheme == "semiimplicit") then
+      if(opt == "impl") then
         kr_sp = kr_sp * facray
         alprlx = alprlx * facray
       end if
@@ -5098,8 +5095,8 @@ module poisson_module
     !           calc du and u + du
     ! --------------------------------------
 
-    if (timeScheme == "semiimplicit") then
-      if (opt == "impl") then
+    if(timeScheme == "semiimplicit") then
+      if(opt == "impl") then
         do k = 1, nz
           do j = 1, ny
             do i = 0, nx
@@ -5115,20 +5112,20 @@ module poisson_module
               !    !UAE
               ! end if
 
-              if (TestCase == "baroclinic_LC") then
-                if (background == "HeldSuarez") then
+              if(TestCase == "baroclinic_LC") then
+                if(background == "HeldSuarez") then
                   ! Rayleigh damping
                   facu = facu + dt * kv_hs(j, k)
                 end if
               end if
 
-              if (spongeLayer .and. sponge_uv) then
+              if(spongeLayer .and. sponge_uv) then
                 facu = facu + dt * kr_sp(j, k)
               end if
 
               facv = facu
 
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 ! Compute values at cell edges.
                 rhou = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1) &
@@ -5136,7 +5133,7 @@ module poisson_module
                 pEdgeR = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
                     + pStratTFC(i + 1, j, k) / jac(i + 1, j, k))
                 ! Compute pressure difference gradient component.
-                if (k == 1 .and. zBoundary == "solid_wall") then
+                if(k == 1 .and. zBoundary == "solid_wall") then
                   dpUUEdgeR = 0.5 * (jac(i, j, k + 2) * met(i, j, k + 2, 1, 3) &
                       * dp(i, j, k + 2) + jac(i + 1, j, k + 2) * met(i + 1, j, &
                       k + 2, 1, 3) * dp(i + 1, j, k + 2))
@@ -5150,7 +5147,7 @@ module poisson_module
                       k) * dp(i + 1, j, k) - jac(i, j, k) * dp(i, j, k)) / dx &
                       + (- dpUUEdgeR + 4.0 * dpUEdgeR - 3.0 * dpEdgeR) * 0.5 &
                       / dz)
-                else if (k == nz .and. zBoundary == "solid_wall") then
+                else if(k == nz .and. zBoundary == "solid_wall") then
                   dpDDEdgeR = 0.5 * (jac(i, j, k - 2) * met(i, j, k - 2, 1, 3) &
                       * dp(i, j, k - 2) + jac(i + 1, j, k - 2) * met(i + 1, j, &
                       k - 2, 1, 3) * dp(i + 1, j, k - 2))
@@ -5179,19 +5176,19 @@ module poisson_module
                 du = - corX(i, j, k)
               else
                 rhov0m = 0.5 * (var(i, j - 1, k, 1) + var(i, j, k, 1))
-                if (fluctuationMode) rhov0m = rhov0m + rhoStrat(k)
+                if(fluctuationMode) rhov0m = rhov0m + rhoStrat(k)
 
                 rhov00 = 0.5 * (var(i, j, k, 1) + var(i, j + 1, k, 1))
-                if (fluctuationMode) rhov00 = rhov00 + rhoStrat(k)
+                if(fluctuationMode) rhov00 = rhov00 + rhoStrat(k)
 
                 rhov1m = 0.5 * (var(i + 1, j - 1, k, 1) + var(i + 1, j, k, 1))
-                if (fluctuationMode) rhov1m = rhov1m + rhoStrat(k)
+                if(fluctuationMode) rhov1m = rhov1m + rhoStrat(k)
 
                 rhov10 = 0.5 * (var(i + 1, j, k, 1) + var(i + 1, j + 1, k, 1))
-                if (fluctuationMode) rhov10 = rhov10 + rhoStrat(k)
+                if(fluctuationMode) rhov10 = rhov10 + rhoStrat(k)
 
                 rhou = 0.5 * (var(i + 1, j, k, 1) + var(i, j, k, 1))
-                if (fluctuationMode) rhou = rhou + rhoStrat(k)
+                if(fluctuationMode) rhou = rhou + rhoStrat(k)
 
                 pGradX = kappaInv * MaInv2 * pStrat(k) / rhou * (dp(i + 1, j, &
                     k) - dp(i, j, k)) / dx
@@ -5211,12 +5208,12 @@ module poisson_module
             end do
           end do
         end do
-      else if (opt == "expl") then
-        if (facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
+      else if(opt == "expl") then
+        if(facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
         do k = 1, nz
           do j = 1, ny
             do i = 0, nx
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 ! Compute values at cell edges.
                 rhou = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1) &
@@ -5224,7 +5221,7 @@ module poisson_module
                 pEdgeR = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
                     + pStratTFC(i + 1, j, k) / jac(i + 1, j, k))
                 ! Compute pressure difference gradient component.
-                if (k == 1 .and. zBoundary == "solid_wall") then
+                if(k == 1 .and. zBoundary == "solid_wall") then
                   dpUUEdgeR = 0.5 * (jac(i, j, k + 2) * met(i, j, k + 2, 1, 3) &
                       * dp(i, j, k + 2) + jac(i + 1, j, k + 2) * met(i + 1, j, &
                       k + 2, 1, 3) * dp(i + 1, j, k + 2))
@@ -5238,7 +5235,7 @@ module poisson_module
                       k) * dp(i + 1, j, k) - jac(i, j, k) * dp(i, j, k)) / dx &
                       + (- dpUUEdgeR + 4.0 * dpUEdgeR - 3.0 * dpEdgeR) * 0.5 &
                       / dz)
-                else if (k == nz .and. zBoundary == "solid_wall") then
+                else if(k == nz .and. zBoundary == "solid_wall") then
                   dpDDEdgeR = 0.5 * (jac(i, j, k - 2) * met(i, j, k - 2, 1, 3) &
                       * dp(i, j, k - 2) + jac(i + 1, j, k - 2) * met(i + 1, j, &
                       k - 2, 1, 3) * dp(i + 1, j, k - 2))
@@ -5264,7 +5261,7 @@ module poisson_module
                 end if
               else
                 rhou = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1))
-                if (fluctuationMode) rhou = rhou + rhoStrat(k)
+                if(fluctuationMode) rhou = rhou + rhoStrat(k)
 
                 pGradX = kappaInv * MaInv2 * pStrat(k) / rhou * (dp(i + 1, j, &
                     k) - dp(i, j, k)) / dx
@@ -5280,11 +5277,11 @@ module poisson_module
         stop 'ERROR: wrong opt in correctorStep'
       end if
     else
-      if (facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
+      if(facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
       do k = 1, nz
         do j = 1, ny
           do i = 0, nx
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               ! Compute values at cell edges.
               rhou = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1) &
@@ -5292,7 +5289,7 @@ module poisson_module
               pEdgeR = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) + pStratTFC(i &
                   + 1, j, k) / jac(i + 1, j, k))
               ! Compute pressure difference gradient component.
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 dpUUEdgeR = 0.5 * (jac(i, j, k + 2) * met(i, j, k + 2, 1, 3) &
                     * dp(i, j, k + 2) + jac(i + 1, j, k + 2) * met(i + 1, j, k &
                     + 2, 1, 3) * dp(i + 1, j, k + 2))
@@ -5305,7 +5302,7 @@ module poisson_module
                 pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((jac(i + 1, j, &
                     k) * dp(i + 1, j, k) - jac(i, j, k) * dp(i, j, k)) / dx + &
                     (- dpUUEdgeR + 4.0 * dpUEdgeR - 3.0 * dpEdgeR) * 0.5 / dz)
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 dpDDEdgeR = 0.5 * (jac(i, j, k - 2) * met(i, j, k - 2, 1, 3) &
                     * dp(i, j, k - 2) + jac(i + 1, j, k - 2) * met(i + 1, j, k &
                     - 2, 1, 3) * dp(i + 1, j, k - 2))
@@ -5331,7 +5328,7 @@ module poisson_module
               end if
             else
               rhou = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1))
-              if (fluctuationMode) rhou = rhou + rhoStrat(k)
+              if(fluctuationMode) rhou = rhou + rhoStrat(k)
 
               pGradX = kappaInv * MaInv2 * pStrat(k) / rhou * (dp(i + 1, j, k) &
                   - dp(i, j, k)) / dx
@@ -5352,8 +5349,8 @@ module poisson_module
     !         calc dv and v + dv
     !--------------------------------------
 
-    if (timeScheme == "semiimplicit") then
-      if (opt == "impl") then
+    if(timeScheme == "semiimplicit") then
+      if(opt == "impl") then
         do k = 1, nz
           do j = 0, ny
             do i = 1, nx
@@ -5369,20 +5366,20 @@ module poisson_module
               !    !UAE
               ! end if
 
-              if (TestCase == "baroclinic_LC") then
-                if (background == "HeldSuarez") then
+              if(TestCase == "baroclinic_LC") then
+                if(background == "HeldSuarez") then
                   ! Rayleigh damping
                   facv = facv + dt * 0.5 * (kv_hs(j, k) + kv_hs(j + 1, k))
                 end if
               end if
 
-              if (spongeLayer .and. sponge_uv) then
+              if(spongeLayer .and. sponge_uv) then
                 facv = facv + dt * 0.5 * (kr_sp(j, k) + kr_sp(j + 1, k))
               end if
 
               facu = facv
 
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 ! Compute values at cell edges.
                 rhov = 0.5 * (var(i, j, k, 1) + var(i, j + 1, k, 1) &
@@ -5390,7 +5387,7 @@ module poisson_module
                 pEdgeF = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
                     + pStratTFC(i, j + 1, k) / jac(i, j + 1, k))
                 ! Compute pressure difference gradient component.
-                if (k == 1 .and. zBoundary == "solid_wall") then
+                if(k == 1 .and. zBoundary == "solid_wall") then
                   dpUUEdgeF = 0.5 * (jac(i, j, k + 2) * met(i, j, k + 2, 2, 3) &
                       * dp(i, j, k + 2) + jac(i, j + 1, k + 2) * met(i, j + 1, &
                       k + 2, 2, 3) * dp(i, j + 1, k + 2))
@@ -5404,7 +5401,7 @@ module poisson_module
                       k) * dp(i, j + 1, k) - jac(i, j, k) * dp(i, j, k)) / dy &
                       + (- dpUUEdgeF + 4.0 * dpUEdgeF - 3.0 * dpEdgeF) * 0.5 &
                       / dz)
-                else if (k == nz .and. zBoundary == "solid_wall") then
+                else if(k == nz .and. zBoundary == "solid_wall") then
                   dpDDEdgeF = 0.5 * (jac(i, j, k - 2) * met(i, j, k - 2, 2, 3) &
                       * dp(i, j, k - 2) + jac(i, j + 1, k - 2) * met(i, j + 1, &
                       k - 2, 2, 3) * dp(i, j + 1, k - 2))
@@ -5433,19 +5430,19 @@ module poisson_module
                 dv = - corY(i, j, k)
               else
                 rhou00 = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1))
-                if (fluctuationMode) rhou00 = rhou00 + rhoStrat(k)
+                if(fluctuationMode) rhou00 = rhou00 + rhoStrat(k)
 
                 rhoum0 = 0.5 * (var(i - 1, j, k, 1) + var(i, j, k, 1))
-                if (fluctuationMode) rhoum0 = rhoum0 + rhoStrat(k)
+                if(fluctuationMode) rhoum0 = rhoum0 + rhoStrat(k)
 
                 rhou01 = 0.5 * (var(i, j + 1, k, 1) + var(i + 1, j + 1, k, 1))
-                if (fluctuationMode) rhou01 = rhou01 + rhoStrat(k)
+                if(fluctuationMode) rhou01 = rhou01 + rhoStrat(k)
 
                 rhoum1 = 0.5 * (var(i - 1, j + 1, k, 1) + var(i, j + 1, k, 1))
-                if (fluctuationMode) rhoum1 = rhoum1 + rhoStrat(k)
+                if(fluctuationMode) rhoum1 = rhoum1 + rhoStrat(k)
 
                 rhov = 0.5 * (var(i, j + 1, k, 1) + var(i, j, k, 1))
-                if (fluctuationMode) rhov = rhov + rhoStrat(k)
+                if(fluctuationMode) rhov = rhov + rhoStrat(k)
 
                 pGradX = kappaInv * MaInv2 * 0.25 * (pStrat(k) / rhou00 &
                     * (dp(i + 1, j, k) - dp(i, j, k)) / dx + pStrat(k) &
@@ -5467,12 +5464,12 @@ module poisson_module
             end do
           end do
         end do
-      else if (opt == "expl") then
-        if (facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
+      else if(opt == "expl") then
+        if(facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
         do k = 1, nz
           do j = 0, ny
             do i = 1, nx
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 ! Compute values at cell edges.
                 rhov = 0.5 * (var(i, j, k, 1) + var(i, j + 1, k, 1) &
@@ -5480,7 +5477,7 @@ module poisson_module
                 pEdgeF = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
                     + pStratTFC(i, j + 1, k) / jac(i, j + 1, k))
                 ! Compute pressure difference gradient component.
-                if (k == 1 .and. zBoundary == "solid_wall") then
+                if(k == 1 .and. zBoundary == "solid_wall") then
                   dpUUEdgeF = 0.5 * (jac(i, j, k + 2) * met(i, j, k + 2, 2, 3) &
                       * dp(i, j, k + 2) + jac(i, j + 1, k + 2) * met(i, j + 1, &
                       k + 2, 2, 3) * dp(i, j + 1, k + 2))
@@ -5494,7 +5491,7 @@ module poisson_module
                       k) * dp(i, j + 1, k) - jac(i, j, k) * dp(i, j, k)) / dy &
                       + (- dpUUEdgeF + 4.0 * dpUEdgeF - 3.0 * dpEdgeF) * 0.5 &
                       / dz)
-                else if (k == nz .and. zBoundary == "solid_wall") then
+                else if(k == nz .and. zBoundary == "solid_wall") then
                   dpDDEdgeF = 0.5 * (jac(i, j, k - 2) * met(i, j, k - 2, 2, 3) &
                       * dp(i, j, k - 2) + jac(i, j + 1, k - 2) * met(i, j + 1, &
                       k - 2, 2, 3) * dp(i, j + 1, k - 2))
@@ -5520,7 +5517,7 @@ module poisson_module
                 end if
               else
                 rhov = 0.5 * (var(i, j, k, 1) + var(i, j + 1, k, 1))
-                if (fluctuationMode) rhov = rhov + rhoStrat(k)
+                if(fluctuationMode) rhov = rhov + rhoStrat(k)
 
                 pGradY = kappaInv * MaInv2 * pStrat(k) / rhov * (dp(i, j + 1, &
                     k) - dp(i, j, k)) / dy
@@ -5536,11 +5533,11 @@ module poisson_module
         stop 'ERROR: wrong opt in correctorStep'
       end if
     else
-      if (facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
+      if(facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
       do k = 1, nz
         do j = 0, ny
           do i = 1, nx
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               ! Compute values at cell edges.
               rhov = 0.5 * (var(i, j, k, 1) + var(i, j + 1, k, 1) &
@@ -5548,7 +5545,7 @@ module poisson_module
               pEdgeF = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) + pStratTFC(i, &
                   j + 1, k) / jac(i, j + 1, k))
               ! Compute pressure difference gradient component.
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 dpUUEdgeF = 0.5 * (jac(i, j, k + 2) * met(i, j, k + 2, 2, 3) &
                     * dp(i, j, k + 2) + jac(i, j + 1, k + 2) * met(i, j + 1, k &
                     + 2, 2, 3) * dp(i, j + 1, k + 2))
@@ -5561,7 +5558,7 @@ module poisson_module
                 pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((jac(i, j + 1, &
                     k) * dp(i, j + 1, k) - jac(i, j, k) * dp(i, j, k)) / dy + &
                     (- dpUUEdgeF + 4.0 * dpUEdgeF - 3.0 * dpEdgeF) * 0.5 / dz)
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 dpDDEdgeF = 0.5 * (jac(i, j, k - 2) * met(i, j, k - 2, 2, 3) &
                     * dp(i, j, k - 2) + jac(i, j + 1, k - 2) * met(i, j + 1, k &
                     - 2, 2, 3) * dp(i, j + 1, k - 2))
@@ -5587,7 +5584,7 @@ module poisson_module
               end if
             else
               rhov = 0.5 * (var(i, j, k, 1) + var(i, j + 1, k, 1))
-              if (fluctuationMode) rhov = rhov + rhoStrat(k)
+              if(fluctuationMode) rhov = rhov + rhoStrat(k)
 
               pGradY = kappaInv * MaInv2 * pStrat(k) / rhov * (dp(i, j + 1, k) &
                   - dp(i, j, k)) / dy
@@ -5609,19 +5606,19 @@ module poisson_module
     !--------------------------------------
 
     ! TFC FJ
-    select case (zBoundary)
-    case ("solid_wall")
+    select case(zBoundary)
+    case("solid_wall")
       k0 = 1
       k1 = nz - 1
-    case ("periodic")
+    case("periodic")
       k0 = 0
       k1 = nz
     case default
       stop "correctorStep: unknown case zBoundary."
     end select
 
-    if (timeScheme == "semiimplicit") then
-      if (opt == "impl") then
+    if(timeScheme == "semiimplicit") then
+      if(opt == "impl") then
         ! solid wall implies zero change of w at the bottom and top
         ! TFC FJ
         do k = k0, k1
@@ -5641,15 +5638,15 @@ module poisson_module
               !    !UAE
               ! end if
 
-              if (TestCase == "baroclinic_LC") then
-                if (background == "HeldSuarez") then
+              if(TestCase == "baroclinic_LC") then
+                if(background == "HeldSuarez") then
                   ! Rayleigh damping
                   facw = facw + dt * 0.5 * (kw_hs(k) + kw_hs(k + 1))
                 end if
               end if
 
-              if (spongeLayer) then
-                if (topography .and. spongeTFC) then
+              if(spongeLayer) then
+                if(topography .and. spongeTFC) then
                   ! TFC FJ
                   facw = facw + dt * 0.5 * (alphaTFC(i, j, k) + alphaTFC(i, j, &
                       k + 1))
@@ -5658,7 +5655,7 @@ module poisson_module
                 end if
               end if
 
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 ! Compute values at cell edges.
                 rhoStratEdgeU = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
@@ -5716,7 +5713,7 @@ module poisson_module
                 pEdge_0 = 0.5 * (pStrat_0(k + 1) + pStrat_0(k))
 
                 rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k + 1, 1))
-                if (fluctuationMode) then
+                if(fluctuationMode) then
                   rhoEdge = rhoEdge + rhoStratTilde(k)
                 end if
 
@@ -5740,15 +5737,15 @@ module poisson_module
         ! if( zBoundary == "periodic" ) then
         !     stop'ERROR: period. vert. bound. not ready in correctorStep'
         ! end if
-      else if (opt == "expl") then
+      else if(opt == "expl") then
         ! solid wall implies zero change of w at the bottom and top
-        if (facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
+        if(facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
         ! TFC FJ
         do k = k0, k1
           ! do k = 1, nz-1
           do j = 1, ny
             do i = 1, nx
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 ! Compute values at cell edges.
                 rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k + 1, 1) &
@@ -5791,14 +5788,14 @@ module poisson_module
                 ! Correct vertical velocity.
                 dw = - dt * pGradZ
               else
-                if (fluctuationMode) then
+                if(fluctuationMode) then
                   pEdge = pStratTilde(k)
                 else
                   pEdge = 0.5 * (pStrat(k) + pStrat(k + 1))
                 end if
 
                 rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k + 1, 1))
-                if (fluctuationMode) then
+                if(fluctuationMode) then
                   rhoEdge = rhoEdge + rhoStratTilde(k)
                 end if
 
@@ -5841,14 +5838,14 @@ module poisson_module
         stop 'ERROR: wrong opt in correctorStep'
       end if
     else
-      if (facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
+      if(facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
       ! solid wall implies zero change of w at the bottom and top
       ! TFC FJ
       do k = k0, k1
         ! do k = 1, nz-1
         do j = 1, ny
           do i = 1, nx
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               ! Compute values at cell edges.
               rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k + 1, 1) &
@@ -5889,14 +5886,14 @@ module poisson_module
                   / dz) + kappaInv * MaInv2 / rhoEdge * (chris11EdgeU &
                   + chris22EdgeU + 2.0 * (chris13EdgeU + chris23EdgeU))
             else
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 pEdge = pStratTilde(k)
               else
                 pEdge = 0.5 * (pStrat(k) + pStrat(k + 1))
               end if
 
               rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k + 1, 1))
-              if (fluctuationMode) rhoEdge = rhoEdge + rhoStratTilde(k)
+              if(fluctuationMode) rhoEdge = rhoEdge + rhoStratTilde(k)
 
               pGradZ = kappaInv * MaInv2 * pEdge / rhoEdge * (dp(i, j, k + 1) &
                   - dp(i, j, k)) / dz
@@ -5948,8 +5945,8 @@ module poisson_module
     !         calc rhop and rhop + drhop (only for implicit time step)
     !------------------------------------------------------------------
 
-    if (timeScheme == "semiimplicit") then
-      if (opt == "impl") then
+    if(timeScheme == "semiimplicit") then
+      if(opt == "impl") then
         do k = 1, nz
           do j = 1, ny
             do i = 1, nx
@@ -5965,15 +5962,15 @@ module poisson_module
               !    !UAE
               ! end if
 
-              if (TestCase == "baroclinic_LC") then
-                if (background == "HeldSuarez") then
+              if(TestCase == "baroclinic_LC") then
+                if(background == "HeldSuarez") then
                   ! Rayleigh damping
                   facw = facw + dt * kw_hs(k)
                 end if
               end if
 
-              if (spongeLayer) then
-                if (topography .and. spongeTFC) then
+              if(spongeLayer) then
+                if(topography .and. spongeTFC) then
                   ! TFC FJ
                   facw = facw + dt * alphaTFC(i, j, k)
                 else
@@ -5981,7 +5978,7 @@ module poisson_module
                 end if
               end if
 
-              if (topography) then
+              if(topography) then
                 ! Compute P coefficients.
                 pEdgeU = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
                     + pStratTFC(i, j, k + 1) / jac(i, j, k + 1))
@@ -6061,9 +6058,9 @@ module poisson_module
                     - 1)) / dz) + kappaInv * MaInv2 / rhowm * (chris11EdgeD &
                     + chris22EdgeD + 2.0 * (chris13EdgeD + chris23EdgeD))
                 ! Adjust at boundaries.
-                if (k == 1 .and. zBoundary == "solid_wall") then
+                if(k == 1 .and. zBoundary == "solid_wall") then
                   pGradZEdgeD = 0.0
-                else if (k == nz .and. zBoundary == "solid_wall") then
+                else if(k == nz .and. zBoundary == "solid_wall") then
                   pGradZEdgeU = 0.0
                 end if
                 ! Interpolate.
@@ -6078,20 +6075,20 @@ module poisson_module
                     * (corY(i, j, k) + corY(i, j - 1, k))))
               else
                 rho = var(i, j, k, 1)
-                if (fluctuationMode) rho = rho + rhoStrat(k)
+                if(fluctuationMode) rho = rho + rhoStrat(k)
 
                 rhowm = 0.5 * (var(i, j, k - 1, 1) + var(i, j, k, 1))
-                if (fluctuationMode) rhowm = rhowm + rhoStratTilde(k - 1)
+                if(fluctuationMode) rhowm = rhowm + rhoStratTilde(k - 1)
 
                 rhow0 = 0.5 * (var(i, j, k, 1) + var(i, j, k + 1, 1))
-                if (fluctuationMode) rhow0 = rhow0 + rhoStratTilde(k)
+                if(fluctuationMode) rhow0 = rhow0 + rhoStratTilde(k)
 
                 ! TFC FJ
-                if (k == 1 .and. zBoundary == "solid_wall") then
+                if(k == 1 .and. zBoundary == "solid_wall") then
                   pGradZ = kappaInv * MaInv2 * 0.5 * (pStratTilde(k) / rhow0 &
                       * (dp(i, j, k + 1) - dp(i, j, k)) / dz)
                   ! TFC FJ
-                else if (k == nz .and. zBoundary == "solid_wall") then
+                else if(k == nz .and. zBoundary == "solid_wall") then
                   pGradZ = kappaInv * MaInv2 * 0.5 * (pStratTilde(k - 1) &
                       / rhowm * (dp(i, j, k) - dp(i, j, k - 1)) / dz)
                 else
@@ -6120,8 +6117,8 @@ module poisson_module
       end if
     end if
 
-    if (timeScheme == "semiimplicit") then
-      if (opt == "impl") then
+    if(timeScheme == "semiimplicit") then
+      if(opt == "impl") then
         kr_sp = kr_sp / facray
         alprlx = alprlx / facray
       end if
@@ -6139,7 +6136,7 @@ module poisson_module
 
     ! in/out variables
     integer :: getIndex
-    integer, intent (in) :: i, j, k
+    integer, intent(in) :: i, j, k
 
     getIndex = (k - 1) * nx * ny + (j - 1) * nx + i
 
@@ -6157,21 +6154,21 @@ module poisson_module
     integer :: allocstat
 
     ! allocate fields
-    allocate (dp(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
-    if (allocstat /= 0) stop "init_poisson: alloc failed"
+    allocate(dp(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
+    if(allocstat /= 0) stop "init_poisson: alloc failed"
 
-    allocate (sol_old1(1:nx, 1:ny, 1:nz), stat = allocstat)
-    if (allocstat /= 0) stop "init_poisson: alloc failed"
+    allocate(sol_old1(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "init_poisson: alloc failed"
 
-    allocate (sol_old2(1:nx, 1:ny, 1:nz), stat = allocstat)
-    if (allocstat /= 0) stop "init_poisson: alloc failed"
+    allocate(sol_old2(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "init_poisson: alloc failed"
 
-    allocate (p_pred(1:nx, 1:ny, 1:nz), stat = allocstat)
-    if (allocstat /= 0) stop "init_poisson: alloc failed"
+    allocate(p_pred(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "init_poisson: alloc failed"
 
     ! TFC FJ
     ! Initial status of Boussinesq tensor elements.
-    if (model == "Boussinesq") then
+    if(model == "Boussinesq") then
       expEle = .false.
       impEle = .false.
     end if
@@ -6189,17 +6186,17 @@ module poisson_module
     integer :: allocstat
 
     ! deallocate fields
-    deallocate (dp, stat = allocstat)
-    if (allocstat /= 0) stop "init_poisson: dealloc failed"
+    deallocate(dp, stat = allocstat)
+    if(allocstat /= 0) stop "init_poisson: dealloc failed"
 
-    deallocate (sol_old1, stat = allocstat)
-    if (allocstat /= 0) stop "init_poisson: dealloc failed"
+    deallocate(sol_old1, stat = allocstat)
+    if(allocstat /= 0) stop "init_poisson: dealloc failed"
 
-    deallocate (sol_old2, stat = allocstat)
-    if (allocstat /= 0) stop "init_poisson: dealloc failed"
+    deallocate(sol_old2, stat = allocstat)
+    if(allocstat /= 0) stop "init_poisson: dealloc failed"
 
-    deallocate (p_pred, stat = allocstat)
-    if (allocstat /= 0) stop "init_poisson: dealloc failed"
+    deallocate(p_pred, stat = allocstat)
+    if(allocstat /= 0) stop "init_poisson: dealloc failed"
 
   end subroutine terminate_poisson
 
@@ -6336,24 +6333,24 @@ module poisson_module
     ! supplemented by 'heating' due to turbulent and GW entropy fluxes
     !-----------------------------------------------------------------
 
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (in) :: var
-    real, dimension (- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent (in) :: flux
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
 
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), intent &
-        (out) :: heat !, term1, term2
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
+        intent(out) :: heat !, term1, term2
 
     ! local variables
     integer :: i, j, k, khmax
     real :: rho, the, theta_bar_0, rho_e
-    real, dimension (1:ny, 0:nz) :: tau_relax_i ! inverse scaled relaxation
+    real, dimension(1:ny, 0:nz) :: tau_relax_i ! inverse scaled relaxation
     !FS                 ! time for barocl. l. c.
     real :: tau_jet_sc, tau_relax_sc ! Klein scaling for relax param.
 
     real :: ymax, ymin, yloc, r, theta, dTheta_dim, delX, delZ, x_dim, z_dim
     integer :: j00, i00
 
-    real, dimension (1:nz) :: sum_local, sum_global
+    real, dimension(1:nz) :: sum_local, sum_global
 
     heat = 0.0
 
@@ -6367,7 +6364,7 @@ module poisson_module
     ! calculate the environment-induced negative (!) heating
     !-------------------------------------------------------
 
-    if (testCase == "hotBubble_heat") then
+    if(testCase == "hotBubble_heat") then
       do k = 1, nz
         do j = 1, ny
           do i = 1, nx
@@ -6379,7 +6376,7 @@ module poisson_module
 
             r = sqrt(delX ** 2 + delZ ** 2) ! scaled radius
 
-            if (r <= 1.0) then ! inside bubble
+            if(r <= 1.0) then ! inside bubble
 
               dTheta_dim = 0.5 * (cos(0.5 * pi * r)) ** 2
               theta = dTheta_dim / thetaRef
@@ -6396,7 +6393,7 @@ module poisson_module
 
     end if
 
-    if (TestCase == "heatedLayer") then
+    if(TestCase == "heatedLayer") then
 
       do k = 1, nz
         heat(:, :, k) = - 0.5 / thetaRef * exp(- (z(k) - 3000. / lRef) ** 2 &
@@ -6404,7 +6401,7 @@ module poisson_module
       end do
     end if
 
-    if (testCase == "hotBubble_heatedLayer") then
+    if(testCase == "hotBubble_heatedLayer") then
       do k = 1, nz
         do j = 1, ny
           do i = 1, nx
@@ -6416,7 +6413,7 @@ module poisson_module
 
             r = sqrt(delX ** 2 + delZ ** 2) ! scaled radius
 
-            if (r <= 1.0) then ! inside bubble
+            if(r <= 1.0) then ! inside bubble
 
               dTheta_dim = 0.5 * ((cos(0.5 * pi * r)) ** 2 + exp(- (z(k) &
                   - 3000. / lRef) ** 2 / (1000. / lRef) ** 2))
@@ -6435,10 +6432,10 @@ module poisson_module
 
     end if
 
-    if ((TestCase == "baroclinic_LC") .or. (TestCase == "baroclinic_ID")) then
+    if((TestCase == "baroclinic_LC") .or. (TestCase == "baroclinic_ID")) then
 
       !UAB
-      if (background == "HeldSuarez") then
+      if(background == "HeldSuarez") then
         do k = 1, nz
           do j = 1, ny
             tau_relax_i(j, k) = kt_hs(j, k)
@@ -6447,7 +6444,7 @@ module poisson_module
       else
         !UAE
         do k = 1, nz
-          if (referenceQuantities == "SI") then
+          if(referenceQuantities == "SI") then
             tau_relax_sc = tau_relax !tau_z(k)  !tau_relax
             tau_jet_sc = tau_jet
           else
@@ -6458,7 +6455,7 @@ module poisson_module
           do j = 1, ny
             yloc = y(j + j00)
 
-            if (yloc > 0.5 * (ymax + ymin)) then
+            if(yloc > 0.5 * (ymax + ymin)) then
               ! meridionally dependent tau_sc
 
               tau_relax_sc = tau_relax / tref + (tau_relax_low / tref &
@@ -6477,10 +6474,10 @@ module poisson_module
         !UAB
       end if
 
-      if (dens_relax) tau_relax_i = 0.0
+      if(dens_relax) tau_relax_i = 0.0
       !UAE
 
-      if (master) then
+      if(master) then
         print *, ""
         print *, " Poisson Solver, Thermal Relaxation is on: "
         print *, " Relaxation factor: Div = - rho(Th - Th_e)/tau: "
@@ -6518,7 +6515,7 @@ module poisson_module
       do k = 1, nz
         do j = 1, ny
           do i = 1, nx
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               rho = var(i, j, k, 1) + rhoStrat(k)
             else
               rho = var(i, j, k, 1)
@@ -6537,7 +6534,7 @@ module poisson_module
       do k = 1, nz
         do j = 1, ny
           do i = 1, nx
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               rho = var(i, j, k, 1) + rhoStrat(k)
             else
               rho = var(i, j, k, 1)
@@ -6557,11 +6554,11 @@ module poisson_module
     ! diffusivity
     !------------------------------------------------------------------
 
-    if (TurbScheme) then
+    if(TurbScheme) then
       do k = 1, nz
         do j = 1, ny
           do i = 1, nx
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               rho = var(i, j, k, 1) + rhoStrat(k)
             else
               rho = var(i, j, k, 1)
@@ -6580,11 +6577,11 @@ module poisson_module
     ! supplement by negative (!) heating due GW entropy-flux convergence
     !-------------------------------------------------------------------
 
-    if (raytracer) heat(:, :, :) = heat(:, :, :) + var(:, :, :, 8)
+    if(raytracer) heat(:, :, :) = heat(:, :, :) + var(:, :, :, 8)
     !UAE
 
     !UAB
-    if (spongeLayer) then
+    if(spongeLayer) then
       khmax = ksponge + int((nz - kSponge) / 2)
 
       !do k = kSponge,nz
@@ -6608,7 +6605,7 @@ module poisson_module
     !heat = 0.
     !teste
 
-    if (output_heat) then
+    if(output_heat) then
       call output_field(iOut, heat, 'heat_prof.dat', thetaRef * rhoRef / tref)
     end if
 
@@ -6624,9 +6621,9 @@ module poisson_module
 
     ! Coriolis term not treated implicitly
 
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (in) :: var
-    real, intent (in) :: dt, facray
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
+    real, intent(in) :: dt, facray
 
     ! facray multiplies the Rayleigh-damping terms so that they are only
     ! handled in the implicit time stepping (sponge and immersed boundary)
@@ -6637,7 +6634,7 @@ module poisson_module
     ! opt = impl =>
     ! pressure solver for implicit problem and corresponding correction
     ! of the winds and density fluctuations
-    character (len = *), intent (in) :: opt
+    character(len = *), intent(in) :: opt
 
     ! local variables
     real :: dx2, dy2, dz2, dxy
@@ -6649,7 +6646,7 @@ module poisson_module
     real :: bvsstw
 
     ! non-dimensional Corilois parameter (= inverse Rossby number)
-    real, dimension (0:ny + 1) :: f_cor_nd
+    real, dimension(0:ny + 1) :: f_cor_nd
 
     integer :: i0, j0, i, j, k
     integer :: index_count_hypre
@@ -6659,7 +6656,7 @@ module poisson_module
     real :: f_cor_v
     real :: fcscal, fcscal_u, fcscal_d
 
-    if (corset == 'periodic') then
+    if(corset == 'periodic') then
       ymax = ly_dim(1) / lRef
       ymin = ly_dim(0) / lRef
 
@@ -6671,7 +6668,7 @@ module poisson_module
         f_cor_nd(j) = - 4. * pi / 8.64e4 * tRef * cos(2. * pi * (yloc - ymin) &
             / (ymax - ymin))
       end do
-    else if (corset == 'constant') then
+    else if(corset == 'constant') then
       f_cor_nd(0:ny + 1) = f_Coriolis_dim * tRef
     else
       stop 'ERROR: wrong corset'
@@ -6686,14 +6683,14 @@ module poisson_module
     i0 = is + nbx - 1
     j0 = js + nby - 1
 
-    if (.not. fluctuationMode) stop 'ERROR: must use fluctuationMode'
+    if(.not. fluctuationMode) stop 'ERROR: must use fluctuationMode'
 
     !---------------------------------
     !         Loop over field
     !---------------------------------
 
-    if (opt == "expl") then
-      if (timeScheme == "semiimplicit") then
+    if(opt == "expl") then
+      if(timeScheme == "semiimplicit") then
         do k = 1, nz
           fcscal = sqrt(Pstrat(k) ** 2 / rhoStrat(k))
           fcscal_u = sqrt(Pstrat(k + 1) ** 2 / rhoStrat(k + 1))
@@ -6707,7 +6704,7 @@ module poisson_module
               rhoEdge = rhoEdge + rhoStrat(k)
 
               AR = dx2 * pStrat(k) ** 2 / rhoEdge
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AR = AR / Pstrat(k)
               end if
 
@@ -6717,7 +6714,7 @@ module poisson_module
               rhoEdge = rhoEdge + rhoStrat(k)
 
               AL = dx2 * pStrat(k) ** 2 / rhoEdge
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AL = AL / Pstrat(k)
               end if
 
@@ -6728,7 +6725,7 @@ module poisson_module
 
               AF = dy2 * pStrat(k) ** 2 / rhoEdge
 
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AF = AF / Pstrat(k)
               end if
 
@@ -6738,13 +6735,13 @@ module poisson_module
               rhoEdge = rhoEdge + rhoStrat(k)
 
               AB = dy2 * pStrat(k) ** 2 / rhoEdge
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AB = AB / Pstrat(k)
               end if
 
               ! ---------------------- A(i,j,k+1) ------------------
 
-              if (k == nz) then
+              if(k == nz) then
                 AU = 0.0
               else
                 rhoEdge = 0.5 * (var(i, j, k + 1, 1) + var(i, j, k, 1))
@@ -6753,13 +6750,13 @@ module poisson_module
                 pStratU = 0.5 * (pStrat(k + 1) + pStrat(k))
                 AU = dz2 * pStratU ** 2 / rhoEdge
               end if
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AU = AU / PstratTilde(k)
               end if
 
               ! ----------------------- A(i,j,k-1) -----------------
 
-              if (k == 1) then
+              if(k == 1) then
                 AD = 0.0
               else
                 rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k - 1, 1))
@@ -6768,7 +6765,7 @@ module poisson_module
                 pStratD = 0.5 * (pStrat(k) + pStrat(k - 1))
                 AD = dz2 * pStratD ** 2 / rhoEdge
               end if
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AD = AD / PstratTilde(k - 1)
               end if
 
@@ -6799,7 +6796,7 @@ module poisson_module
 
               ! ------------------ define matrix A -------------------
 
-              if (poissonSolverType == 'bicgstab') then
+              if(poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 acv_b(i, j, k) = ACV
@@ -6818,28 +6815,28 @@ module poisson_module
                 alf_b(i, j, k) = 0.0
                 arb_b(i, j, k) = 0.0
                 arf_b(i, j, k) = 0.0
-              ! else if (poissonSolverType == 'hypre') then
-              !   ! index_count_hypre
-              !   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
+                ! else if (poissonSolverType == 'hypre') then
+                !   ! index_count_hypre
+                !   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
 
-              !   index_count_hypre = i
-              !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
-              !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
+                !   index_count_hypre = i
+                !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
+                !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
 
-              !   index_count_hypre = (index_count_hypre * ne_hypre_i) &
-              !       - ne_hypre_i + 1
+                !   index_count_hypre = (index_count_hypre * ne_hypre_i) &
+                !       - ne_hypre_i + 1
 
-              !   values_i(index_count_hypre) = AC
-              !   values_i(index_count_hypre + 1) = AL
-              !   values_i(index_count_hypre + 2) = AR
-              !   values_i(index_count_hypre + 3) = AB
-              !   values_i(index_count_hypre + 4) = AF
-              !   values_i(index_count_hypre + 5) = AD
-              !   values_i(index_count_hypre + 6) = AU
-              !   values_i(index_count_hypre + 7) = 0.0
-              !   values_i(index_count_hypre + 8) = 0.0
-              !   values_i(index_count_hypre + 9) = 0.0
-              !   values_i(index_count_hypre + 10) = 0.0
+                !   values_i(index_count_hypre) = AC
+                !   values_i(index_count_hypre + 1) = AL
+                !   values_i(index_count_hypre + 2) = AR
+                !   values_i(index_count_hypre + 3) = AB
+                !   values_i(index_count_hypre + 4) = AF
+                !   values_i(index_count_hypre + 5) = AD
+                !   values_i(index_count_hypre + 6) = AU
+                !   values_i(index_count_hypre + 7) = 0.0
+                !   values_i(index_count_hypre + 8) = 0.0
+                !   values_i(index_count_hypre + 9) = 0.0
+                !   values_i(index_count_hypre + 10) = 0.0
               else
                 stop 'ERROR: val_PsIn expects bicgstab'
               end if
@@ -6860,7 +6857,7 @@ module poisson_module
               rhoEdge = rhoEdge + rhoStrat(k)
 
               AR = dx2 * pStrat(k) ** 2 / rhoEdge
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AR = AR / Pstrat(k)
               end if
 
@@ -6870,7 +6867,7 @@ module poisson_module
               rhoEdge = rhoEdge + rhoStrat(k)
 
               AL = dx2 * pStrat(k) ** 2 / rhoEdge
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AL = AL / Pstrat(k)
               end if
 
@@ -6880,7 +6877,7 @@ module poisson_module
               rhoEdge = rhoEdge + rhoStrat(k)
 
               AF = dy2 * pStrat(k) ** 2 / rhoEdge
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AF = AF / Pstrat(k)
               end if
 
@@ -6890,13 +6887,13 @@ module poisson_module
               rhoEdge = rhoEdge + rhoStrat(k)
 
               AB = dy2 * pStrat(k) ** 2 / rhoEdge
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AB = AB / Pstrat(k)
               end if
 
               ! ---------------------- A(i,j,k+1) ------------------
 
-              if (k == nz) then
+              if(k == nz) then
                 AU = 0.0
               else
                 rhoEdge = 0.5 * (var(i, j, k + 1, 1) + var(i, j, k, 1))
@@ -6905,13 +6902,13 @@ module poisson_module
                 pStratU = 0.5 * (pStrat(k + 1) + pStrat(k))
                 AU = dz2 * pStratU ** 2 / rhoEdge
               end if
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AU = AU / PstratTilde(k)
               end if
 
               ! ----------------------- A(i,j,k-1) -----------------
 
-              if (k == 1) then
+              if(k == 1) then
                 AD = 0.0
               else
                 rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k - 1, 1))
@@ -6920,11 +6917,11 @@ module poisson_module
                 pStratD = 0.5 * (pStrat(k) + pStrat(k - 1))
                 AD = dz2 * pStratD ** 2 / rhoEdge
               end if
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AD = AD / PstratTilde(k - 1)
               end if
 
-              if (pressureScaling) then
+              if(pressureScaling) then
                 ! stop'ERROR: no pressure scaling allowed'
               end if
 
@@ -6949,7 +6946,7 @@ module poisson_module
 
               ! ------------------ define matrix A -------------------
 
-              if (poissonSolverType == 'bicgstab') then
+              if(poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 acv_b(i, j, k) = ACV
@@ -6963,24 +6960,24 @@ module poisson_module
 
                 ad_b(i, j, k) = AD
                 au_b(i, j, k) = AU
-              ! else if (poissonSolverType == 'hypre') then
-              !   ! index_count_hypre
-              !   ! = ( i * j * k * ne_hypre_e ) - ne_hypre_e + 1
+                ! else if (poissonSolverType == 'hypre') then
+                !   ! index_count_hypre
+                !   ! = ( i * j * k * ne_hypre_e ) - ne_hypre_e + 1
 
-              !   index_count_hypre = i
-              !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
-              !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
+                !   index_count_hypre = i
+                !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
+                !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
 
-              !   index_count_hypre = (index_count_hypre * ne_hypre_e) &
-              !       - ne_hypre_e + 1
+                !   index_count_hypre = (index_count_hypre * ne_hypre_e) &
+                !       - ne_hypre_e + 1
 
-              !   values_e(index_count_hypre) = AC
-              !   values_e(index_count_hypre + 1) = AL
-              !   values_e(index_count_hypre + 2) = AR
-              !   values_e(index_count_hypre + 3) = AB
-              !   values_e(index_count_hypre + 4) = AF
-              !   values_e(index_count_hypre + 5) = AD
-              !   values_e(index_count_hypre + 6) = AU
+                !   values_e(index_count_hypre) = AC
+                !   values_e(index_count_hypre + 1) = AL
+                !   values_e(index_count_hypre + 2) = AR
+                !   values_e(index_count_hypre + 3) = AB
+                !   values_e(index_count_hypre + 4) = AF
+                !   values_e(index_count_hypre + 5) = AD
+                !   values_e(index_count_hypre + 6) = AU
               else
                 stop 'ERROR: val_PsIn expects bicgstab'
               end if
@@ -6988,8 +6985,8 @@ module poisson_module
           end do ! j_loop
         end do ! k_loop
       end if
-    else if (opt == "impl") then
-      if (timeScheme /= "semiimplicit") then
+    else if(opt == "impl") then
+      if(timeScheme /= "semiimplicit") then
         stop 'ERROR: for opt = impl must have timeScheme = semiimplicit'
       end if
 
@@ -7023,7 +7020,7 @@ module poisson_module
 
             facu = 1.0
 
-            if (topography) then
+            if(topography) then
               !UAC if (   topography_mask(i0+i,j0+j,k) &
               !  & .or. topography_mask(i0+i+1,j0+j,k)) then
               !   facu = facu + dt*alprlx
@@ -7033,14 +7030,14 @@ module poisson_module
               !UAE
             end if
 
-            if (TestCase == "baroclinic_LC") then
-              if (background == "HeldSuarez") then
+            if(TestCase == "baroclinic_LC") then
+              if(background == "HeldSuarez") then
                 ! Rayleigh damping
                 facu = facu + dt * kv_hs(j, k)
               end if
             end if
 
-            if (spongeLayer .and. sponge_uv) then
+            if(spongeLayer .and. sponge_uv) then
               facu = facu + dt * kr_sp(j, k)
             end if
 
@@ -7049,7 +7046,7 @@ module poisson_module
             ! A(i+1,j,k) and A(i,j,k)
 
             rhoEdge = 0.5 * (var(i + 1, j, k, 1) + var(i, j, k, 1))
-            if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+            if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
             acontr = dx2 / facu * pStrat(k) ** 2 / rhoEdge
 
@@ -7062,7 +7059,7 @@ module poisson_module
 
             facu = 1.0
 
-            if (topography) then
+            if(topography) then
               !UAC if (   topography_mask(i0+i-1,j0+j,k) &
               !  & .or. topography_mask(i0+i,j0+j,k)) then
               !   facu = facu + dt*alprlx
@@ -7072,14 +7069,14 @@ module poisson_module
               !UAE
             end if
 
-            if (TestCase == "baroclinic_LC") then
-              if (background == "HeldSuarez") then
+            if(TestCase == "baroclinic_LC") then
+              if(background == "HeldSuarez") then
                 ! Rayleigh damping
                 facu = facu + dt * kv_hs(j, k)
               end if
             end if
 
-            if (spongeLayer .and. sponge_uv) then
+            if(spongeLayer .and. sponge_uv) then
               facu = facu + dt * kr_sp(j, k)
             end if
 
@@ -7088,7 +7085,7 @@ module poisson_module
             ! A(i,j,k) and A(i-1,j,k)
 
             rhoEdge = 0.5 * (var(i, j, k, 1) + var(i - 1, j, k, 1))
-            if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+            if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
             acontr = - dx2 / facu * pStrat(k) ** 2 / rhoEdge
 
@@ -7101,7 +7098,7 @@ module poisson_module
 
             facv = 1.0
 
-            if (topography) then
+            if(topography) then
               !UAC if (   topography_mask(i0+i,j0+j,k) &
               !  & .or. topography_mask(i0+i,j0+j+1,k)) then
               !   facv = facv + dt*alprlx
@@ -7111,14 +7108,14 @@ module poisson_module
               !UAE
             end if
 
-            if (TestCase == "baroclinic_LC") then
-              if (background == "HeldSuarez") then
+            if(TestCase == "baroclinic_LC") then
+              if(background == "HeldSuarez") then
                 ! Rayleigh damping
                 facv = facv + dt * 0.5 * (kv_hs(j, k) + kv_hs(j + 1, k))
               end if
             end if
 
-            if (spongeLayer .and. sponge_uv) then
+            if(spongeLayer .and. sponge_uv) then
               facv = facv + dt * 0.5 * (kr_sp(j, k) + kr_sp(j + 1, k))
             end if
 
@@ -7128,7 +7125,7 @@ module poisson_module
             facu = facv
 
             rhoEdge = 0.5 * (var(i, j + 1, k, 1) + var(i, j, k, 1))
-            if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+            if(fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
 
             acontr = dy2 / facv * pStrat(k) ** 2 / rhoEdge
 
@@ -7141,7 +7138,7 @@ module poisson_module
 
             facv = 1.0
 
-            if (topography) then
+            if(topography) then
               !UAC if (   topography_mask(i0+i,j0+j-1,k) &
               !  & .or. topography_mask(i0+i,j0+j,k)) then
               !   facv = facv + dt*alprlx
@@ -7151,14 +7148,14 @@ module poisson_module
               !UAE
             end if
 
-            if (TestCase == "baroclinic_LC") then
-              if (background == "HeldSuarez") then
+            if(TestCase == "baroclinic_LC") then
+              if(background == "HeldSuarez") then
                 ! Rayleigh damping
                 facv = facv + dt * 0.5 * (kv_hs(j, k) + kv_hs(j - 1, k))
               end if
             end if
 
-            if (spongeLayer .and. sponge_uv) then
+            if(spongeLayer .and. sponge_uv) then
               facv = facv + dt * 0.5 * (kr_sp(j, k) + kr_sp(j - 1, k))
             end if
 
@@ -7170,7 +7167,7 @@ module poisson_module
             ! A(i,j,k) and A(i,j-1,k)
 
             rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j - 1, k, 1))
-            if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+            if(fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
 
             acontr = - dy2 / facv * pStrat(k) ** 2 / rhoEdge
 
@@ -7181,12 +7178,12 @@ module poisson_module
 
             ! ------------------- from PU WU/dz ---------------------
 
-            if (k == nz) then
+            if(k == nz) then
               AU = 0.0
             else
               facw = 1.0
 
-              if (topography) then
+              if(topography) then
                 !UAC if (   topography_mask(i0+i,j0+j,k) &
                 !  & .or. topography_mask(i0+i,j0+j,k+1)) then
                 !   facw = facw + dt*alprlx
@@ -7196,15 +7193,15 @@ module poisson_module
                 !UAE
               end if
 
-              if (TestCase == "baroclinic_LC") then
-                if (background == "HeldSuarez") then
+              if(TestCase == "baroclinic_LC") then
+                if(background == "HeldSuarez") then
                   ! Rayleigh damping
 
                   facw = facw + dt * 0.5 * (kw_hs(k) + kw_hs(k + 1))
                 end if
               end if
 
-              if (spongeLayer) then
+              if(spongeLayer) then
                 facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
               end if
 
@@ -7213,7 +7210,7 @@ module poisson_module
               ! A(i,j,k+1) and A(i,j,k)
 
               rhoEdge = 0.5 * (var(i, j, k + 1, 1) + var(i, j, k, 1))
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 rhoEdge = rhoEdge + rhoStratTilde(k)
               end if
 
@@ -7230,12 +7227,12 @@ module poisson_module
 
             ! ------------------- from - PD WD/dz ---------------------
 
-            if (k == 1) then
+            if(k == 1) then
               AD = 0.0
             else
               facw = 1.0
 
-              if (topography) then
+              if(topography) then
                 !UAC if (   topography_mask(i0+i,j0+j,k-1) &
                 !  & .or. topography_mask(i0+i,j0+j,k)) then
                 !   facw = facw + dt*alprlx
@@ -7245,15 +7242,15 @@ module poisson_module
                 !UAE
               end if
 
-              if (TestCase == "baroclinic_LC") then
-                if (background == "HeldSuarez") then
+              if(TestCase == "baroclinic_LC") then
+                if(background == "HeldSuarez") then
                   ! Rayleigh damping
 
                   facw = facw + dt * 0.5 * (kw_hs(k) + kw_hs(k - 1))
                 end if
               end if
 
-              if (spongeLayer) then
+              if(spongeLayer) then
                 facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k - 1))
               end if
 
@@ -7262,7 +7259,7 @@ module poisson_module
               ! A(i,j,k) and A(i,j,k-1)
 
               rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k - 1, 1))
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 rhoEdge = rhoEdge + rhoStratTilde(k - 1)
               end if
 
@@ -7293,7 +7290,7 @@ module poisson_module
             ARF = ARF / fcscal ** 2
             ARB = ARB / fcscal ** 2
 
-            if (pressureScaling) then
+            if(pressureScaling) then
               AC = AC / Pstrat(k)
 
               ACH = ACH / Pstrat(k)
@@ -7314,7 +7311,7 @@ module poisson_module
 
             ! ------------------- define matrix A -------------------
 
-            if (poissonSolverType == 'bicgstab') then
+            if(poissonSolverType == 'bicgstab') then
               ac_b(i, j, k) = AC
 
               ach_b(i, j, k) = ACH
@@ -7333,28 +7330,28 @@ module poisson_module
               alf_b(i, j, k) = ALF
               arb_b(i, j, k) = ARB
               arf_b(i, j, k) = ARF
-            ! else if (poissonSolverType == 'hypre') then
-            !   ! index_count_hypre
-            !   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
+              ! else if (poissonSolverType == 'hypre') then
+              !   ! index_count_hypre
+              !   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
 
-            !   index_count_hypre = i
-            !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
-            !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
+              !   index_count_hypre = i
+              !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
+              !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
 
-            !   index_count_hypre = (index_count_hypre * ne_hypre_i) &
-            !       - ne_hypre_i + 1
+              !   index_count_hypre = (index_count_hypre * ne_hypre_i) &
+              !       - ne_hypre_i + 1
 
-            !   values_i(index_count_hypre) = AC
-            !   values_i(index_count_hypre + 1) = AL
-            !   values_i(index_count_hypre + 2) = AR
-            !   values_i(index_count_hypre + 3) = AB
-            !   values_i(index_count_hypre + 4) = AF
-            !   values_i(index_count_hypre + 5) = AD
-            !   values_i(index_count_hypre + 6) = AU
-            !   values_i(index_count_hypre + 7) = ALB
-            !   values_i(index_count_hypre + 8) = ALF
-            !   values_i(index_count_hypre + 9) = ARB
-            !   values_i(index_count_hypre + 10) = ARF
+              !   values_i(index_count_hypre) = AC
+              !   values_i(index_count_hypre + 1) = AL
+              !   values_i(index_count_hypre + 2) = AR
+              !   values_i(index_count_hypre + 3) = AB
+              !   values_i(index_count_hypre + 4) = AF
+              !   values_i(index_count_hypre + 5) = AD
+              !   values_i(index_count_hypre + 6) = AU
+              !   values_i(index_count_hypre + 7) = ALB
+              !   values_i(index_count_hypre + 8) = ALF
+              !   values_i(index_count_hypre + 9) = ARB
+              !   values_i(index_count_hypre + 10) = ARF
             else
               stop 'ERROR: val_PsIn expects bicgstab'
             end if
@@ -7383,10 +7380,10 @@ module poisson_module
     ! calculates the matrix values for the pressure solver
     ! the solver solves for dt * dp, hence no dt in the matrix elements
 
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (in) :: var
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
     !UAC real, intent(in) :: dt
-    real, intent (in) :: dt, facray
+    real, intent(in) :: dt, facray
 
     ! facray multiplies the Rayleigh-damping terms so that they are only
     ! handled in the implicit time stepping (sponge and immersed boundary)
@@ -7397,7 +7394,7 @@ module poisson_module
     ! opt = impl =>
     ! pressure solver for implicit problem and corresponding correction
     ! of the winds and density fluctuations
-    character (len = *), intent (in) :: opt
+    character(len = *), intent(in) :: opt
 
     ! local variables
     real :: dx2, dy2, dz2, dxy
@@ -7409,7 +7406,7 @@ module poisson_module
     real :: bvsstw
 
     ! non-dimensional Corilois parameter (= inverse Rossby number)
-    real, dimension (0:ny + 1) :: f_cor_nd
+    real, dimension(0:ny + 1) :: f_cor_nd
 
     integer :: i0, j0, i, j, k
     integer :: index_count_hypre
@@ -7442,7 +7439,7 @@ module poisson_module
     real :: gEdgeR, gEdgeL, gEdgeF, gEdgeB, gEdgeU, gEdgeD, gUEdgeR, gUEdgeL, &
         gUEdgeF, gUEdgeB, gDEdgeR, gDEdgeL, gDEdgeF, gDEdgeB
 
-    if (corset == 'periodic') then
+    if(corset == 'periodic') then
       ymax = ly_dim(1) / lRef
       ymin = ly_dim(0) / lRef
 
@@ -7454,7 +7451,7 @@ module poisson_module
         f_cor_nd(j) = - 4. * pi / 8.64e4 * tRef * cos(2. * pi * (yloc - ymin) &
             / (ymax - ymin))
       end do
-    else if (corset == 'constant') then
+    else if(corset == 'constant') then
       f_cor_nd(0:ny + 1) = f_Coriolis_dim * tRef
     else
       stop 'ERROR: wrong corset'
@@ -7469,15 +7466,15 @@ module poisson_module
     i0 = is + nbx - 1
     j0 = js + nby - 1
 
-    if (.not. fluctuationMode) stop 'ERROR: must use fluctuationMode'
+    if(.not. fluctuationMode) stop 'ERROR: must use fluctuationMode'
 
     !---------------------------------
     !         Loop over field
     !---------------------------------
 
-    if (opt == "expl") then
+    if(opt == "expl") then
       ! TFC FJ
-      if (timeScheme == "semiimplicit" .and. .not. topography) then
+      if(timeScheme == "semiimplicit" .and. .not. topography) then
         do k = 1, nz
           fcscal = sqrt(Pstrat(k) ** 2 / rhoStrat(k))
           fcscal_u = sqrt(Pstrat(k + 1) ** 2 / rhoStrat(k + 1))
@@ -7491,7 +7488,7 @@ module poisson_module
               rhoEdge = rhoEdge + rhoStrat(k)
 
               AR = dx2 * pStrat(k) ** 2 / rhoEdge
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AR = AR / Pstrat(k)
               end if
 
@@ -7501,7 +7498,7 @@ module poisson_module
               rhoEdge = rhoEdge + rhoStrat(k)
 
               AL = dx2 * pStrat(k) ** 2 / rhoEdge
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AL = AL / Pstrat(k)
               end if
 
@@ -7512,7 +7509,7 @@ module poisson_module
 
               AF = dy2 * pStrat(k) ** 2 / rhoEdge
 
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AF = AF / Pstrat(k)
               end if
 
@@ -7522,14 +7519,14 @@ module poisson_module
               rhoEdge = rhoEdge + rhoStrat(k)
 
               AB = dy2 * pStrat(k) ** 2 / rhoEdge
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AB = AB / Pstrat(k)
               end if
 
               ! ---------------------- A(i,j,k+1) ------------------
 
               ! TFC FJ
-              if (k == nz .and. zBoundary == "solid_wall") then
+              if(k == nz .and. zBoundary == "solid_wall") then
                 AU = 0.0
               else
                 rhoEdge = 0.5 * (var(i, j, k + 1, 1) + var(i, j, k, 1))
@@ -7538,14 +7535,14 @@ module poisson_module
                 pStratU = 0.5 * (pStrat(k + 1) + pStrat(k))
                 AU = dz2 * pStratU ** 2 / rhoEdge
               end if
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AU = AU / PstratTilde(k)
               end if
 
               ! ----------------------- A(i,j,k-1) -----------------
 
               ! TFC FJ
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AD = 0.0
               else
                 rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k - 1, 1))
@@ -7554,7 +7551,7 @@ module poisson_module
                 pStratD = 0.5 * (pStrat(k) + pStrat(k - 1))
                 AD = dz2 * pStratD ** 2 / rhoEdge
               end if
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AD = AD / PstratTilde(k - 1)
               end if
 
@@ -7585,7 +7582,7 @@ module poisson_module
 
               ! ------------------ define matrix A -------------------
 
-              if (poissonSolverType == 'bicgstab') then
+              if(poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 ach_b(i, j, k) = ACH
@@ -7604,35 +7601,35 @@ module poisson_module
                 alf_b(i, j, k) = 0.0
                 arb_b(i, j, k) = 0.0
                 arf_b(i, j, k) = 0.0
-              ! else if (poissonSolverType == 'hypre') then
-              !   ! index_count_hypre
-              !   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
+                ! else if (poissonSolverType == 'hypre') then
+                !   ! index_count_hypre
+                !   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
 
-              !   index_count_hypre = i
-              !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
-              !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
+                !   index_count_hypre = i
+                !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
+                !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
 
-              !   index_count_hypre = (index_count_hypre * ne_hypre_i) &
-              !       - ne_hypre_i + 1
+                !   index_count_hypre = (index_count_hypre * ne_hypre_i) &
+                !       - ne_hypre_i + 1
 
-              !   values_i(index_count_hypre) = AC
-              !   values_i(index_count_hypre + 1) = AL
-              !   values_i(index_count_hypre + 2) = AR
-              !   values_i(index_count_hypre + 3) = AB
-              !   values_i(index_count_hypre + 4) = AF
-              !   values_i(index_count_hypre + 5) = AD
-              !   values_i(index_count_hypre + 6) = AU
-              !   values_i(index_count_hypre + 7) = 0.0
-              !   values_i(index_count_hypre + 8) = 0.0
-              !   values_i(index_count_hypre + 9) = 0.0
-              !   values_i(index_count_hypre + 10) = 0.0
+                !   values_i(index_count_hypre) = AC
+                !   values_i(index_count_hypre + 1) = AL
+                !   values_i(index_count_hypre + 2) = AR
+                !   values_i(index_count_hypre + 3) = AB
+                !   values_i(index_count_hypre + 4) = AF
+                !   values_i(index_count_hypre + 5) = AD
+                !   values_i(index_count_hypre + 6) = AU
+                !   values_i(index_count_hypre + 7) = 0.0
+                !   values_i(index_count_hypre + 8) = 0.0
+                !   values_i(index_count_hypre + 9) = 0.0
+                !   values_i(index_count_hypre + 10) = 0.0
               else
                 stop 'ERROR: val_PsIn expects bicgstab'
               end if
             end do ! i_loop
           end do ! j_loop
         end do ! k_loop
-      else if (topography) then
+      else if(topography) then
         ! TFC FJ
         ! Compute tensor elements for TFC.
         do k = 1, nz
@@ -7691,7 +7688,7 @@ module poisson_module
 
               ! --------------------- A(i,j,k) ---------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AC = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 &
                     / dx + 0.75 * met(i, j, k, 1, 3) / dz) + pEdgeLDiv &
                     / rhoEdgeL * pEdgeLGra * (1.0 / dx - 0.75 * met(i, j, k, &
@@ -7704,7 +7701,7 @@ module poisson_module
                     / jac(i, j, k) * (chris(i, j, k, 1, 1) + chris(i, j, k, 2, &
                     2) + 2.0 * chris(i, j, k, 1, 3) * met(i, j, k, 1, 3) + 2.0 &
                     * chris(i, j, k, 2, 3) * met(i, j, k, 2, 3))
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AC = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 &
                     / dx - 0.75 * met(i, j, k, 1, 3) / dz) + pEdgeLDiv &
                     / rhoEdgeL * pEdgeLGra * (1.0 / dx + 0.75 * met(i, j, k, &
@@ -7737,12 +7734,12 @@ module poisson_module
 
               ! -------------------- A(i+1,j,k) --------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AR = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 &
                     / dx - 0.75 * met(i + 1, j, k, 1, 3) / dz) + jacInv / dz &
                     * pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i + 1, j, &
                     k, 1, 3) / dx
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AR = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 &
                     / dx + 0.75 * met(i + 1, j, k, 1, 3) / dz) - jacInv / dz &
                     * pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i + 1, j, &
@@ -7756,12 +7753,12 @@ module poisson_module
 
               ! -------------------- A(i-1,j,k) --------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AL = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * (1.0 &
                     / dx + 0.75 * met(i - 1, j, k, 1, 3) / dz) - jacInv / dz &
                     * pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i - 1, j, &
                     k, 1, 3) / dx
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AL = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * (1.0 &
                     / dx - 0.75 * met(i - 1, j, k, 1, 3) / dz) + jacInv / dz &
                     * pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i - 1, j, &
@@ -7775,12 +7772,12 @@ module poisson_module
 
               ! -------------------- A(i,j+1,k) --------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AF = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * (1.0 &
                     / dy - 0.75 * met(i, j + 1, k, 2, 3) / dz) + jacInv / dz &
                     * pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i, j + 1, &
                     k, 2, 3) / dy
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AF = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * (1.0 &
                     / dy + 0.75 * met(i, j + 1, k, 2, 3) / dz) - jacInv / dz &
                     * pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i, j + 1, &
@@ -7794,12 +7791,12 @@ module poisson_module
 
               ! -------------------- A(i,j-1,k) --------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AB = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * (1.0 &
                     / dy + 0.75 * met(i, j - 1, k, 2, 3) / dz) - jacInv / dz &
                     * pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i, j - 1, &
                     k, 2, 3) / dy
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AB = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * (1.0 &
                     / dy - 0.75 * met(i, j - 1, k, 2, 3) / dz) + jacInv / dz &
                     * pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i, j - 1, &
@@ -7813,7 +7810,7 @@ module poisson_module
 
               ! -------------------- A(i,j,k+1) --------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AU = jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i, &
                     j, k + 1, 1, 3) / dz - pEdgeLDiv / rhoEdgeL * pEdgeLGra &
                     * met(i, j, k + 1, 1, 3) / dz) + jacInv / dy * (pEdgeFDiv &
@@ -7826,7 +7823,7 @@ module poisson_module
                     2) + 2.0 * chris(i, j, k + 1, 1, 3) * met(i, j, k + 1, 1, &
                     3) + 2.0 * chris(i, j, k + 1, 2, 3) * met(i, j, k + 1, 2, &
                     3))
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AU = 0.0
               else
                 AU = jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i, &
@@ -7845,9 +7842,9 @@ module poisson_module
 
               ! -------------------- A(i,j,k-1) --------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AD = 0.0
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AD = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra &
                     * met(i, j, k - 1, 1, 3) / dz - pEdgeLDiv / rhoEdgeL &
                     * pEdgeLGra * met(i, j, k - 1, 1, 3) / dz) - jacInv / dy &
@@ -7878,12 +7875,12 @@ module poisson_module
 
               ! ------------------- A(i+1,j,k+1) -------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ARU = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i &
                     + 1, j, k + 1, 1, 3) / dz + jacInv / dz * pEdgeUDiv &
                     / rhoEdgeU * pEdgeUGra * met(i + 1, j, k + 1, 1, 3) * 0.25 &
                     / dx
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ARU = 0.0
               else
                 ARU = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i &
@@ -7894,9 +7891,9 @@ module poisson_module
 
               ! ------------------- A(i+1,j,k-1) -------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ARD = 0.0
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ARD = - jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i &
                     + 1, j, k - 1, 1, 3) / dz - jacInv / dz * pEdgeDDiv &
                     / rhoEdgeD * pEdgeDGra * met(i + 1, j, k - 1, 1, 3) * 0.25 &
@@ -7910,12 +7907,12 @@ module poisson_module
 
               ! ------------------- A(i-1,j,k+1) -------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ALU = - jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met(i &
                     - 1, j, k + 1, 1, 3) / dz - jacInv / dz * pEdgeUDiv &
                     / rhoEdgeU * pEdgeUGra * met(i - 1, j, k + 1, 1, 3) * 0.25 &
                     / dx
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ALU = 0.0
               else
                 ALU = - jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met(i &
@@ -7926,9 +7923,9 @@ module poisson_module
 
               ! ------------------- A(i-1,j,k-1) -------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ALD = 0.0
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ALD = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met(i &
                     - 1, j, k - 1, 1, 3) / dz + jacInv / dz * pEdgeDDiv &
                     / rhoEdgeD * pEdgeDGra * met(i - 1, j, k - 1, 1, 3) * 0.25 &
@@ -7942,12 +7939,12 @@ module poisson_module
 
               ! ------------------- A(i,j+1,k+1) -------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AFU = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * met(i, &
                     j + 1, k + 1, 2, 3) / dz + jacInv / dz * pEdgeUDiv &
                     / rhoEdgeU * pEdgeUGra * met(i, j + 1, k + 1, 2, 3) * 0.25 &
                     / dy
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AFU = 0.0
               else
                 AFU = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * met(i, &
@@ -7958,9 +7955,9 @@ module poisson_module
 
               ! ------------------- A(i,j+1,k-1) -------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AFD = 0.0
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AFD = - jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra &
                     * met(i, j + 1, k - 1, 2, 3) / dz - jacInv / dz &
                     * pEdgeDDiv / rhoEdgeD * pEdgeDGra * met(i, j + 1, k - 1, &
@@ -7974,12 +7971,12 @@ module poisson_module
 
               ! ------------------- A(i,j-1,k+1) -------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ABU = - jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra &
                     * met(i, j - 1, k + 1, 2, 3) / dz - jacInv / dz &
                     * pEdgeUDiv / rhoEdgeU * pEdgeUGra * met(i, j - 1, k + 1, &
                     2, 3) * 0.25 / dy
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ABU = 0.0
               else
                 ABU = - jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra &
@@ -7990,9 +7987,9 @@ module poisson_module
 
               ! ------------------- A(i,j-1,k-1) -------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ABD = 0.0
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ABD = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * met(i, &
                     j - 1, k - 1, 2, 3) / dz + jacInv / dz * pEdgeDDiv &
                     / rhoEdgeD * pEdgeDGra * met(i, j - 1, k - 1, 2, 3) * 0.25 &
@@ -8006,7 +8003,7 @@ module poisson_module
 
               ! ------------------- A(i,j,k+2) ---------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AUU = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
                     * met(i, j, k + 2, 1, 3) / dz - pEdgeLDiv / rhoEdgeL &
                     * pEdgeLGra * 0.25 * met(i, j, k + 2, 1, 3) / dz) - jacInv &
@@ -8019,7 +8016,7 @@ module poisson_module
 
               ! ------------------- A(i,j,k-2) ---------------------
 
-              if (k == nz .and. zBoundary == "solid_wall") then
+              if(k == nz .and. zBoundary == "solid_wall") then
                 ADD = jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
                     * met(i, j, k - 2, 1, 3) / dz - pEdgeLDiv / rhoEdgeL &
                     * pEdgeLGra * 0.25 * met(i, j, k - 2, 1, 3) / dz) + jacInv &
@@ -8032,7 +8029,7 @@ module poisson_module
 
               ! ------------------ A(i+1,j,k+2) --------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ARUU = - jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
                     * met(i + 1, j, k + 2, 1, 3) / dz
               else
@@ -8041,7 +8038,7 @@ module poisson_module
 
               ! ------------------ A(i+1,j,k-2) --------------------
 
-              if (k == nz .and. zBoundary == "solid_wall") then
+              if(k == nz .and. zBoundary == "solid_wall") then
                 ARDD = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
                     * met(i + 1, j, k - 2, 1, 3) / dz
               else
@@ -8050,7 +8047,7 @@ module poisson_module
 
               ! ------------------ A(i-1,j,k+2) --------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ALUU = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * 0.25 &
                     * met(i - 1, j, k + 2, 1, 3) / dz
               else
@@ -8059,7 +8056,7 @@ module poisson_module
 
               ! ------------------ A(i-1,j,k-2) --------------------
 
-              if (k == nz .and. zBoundary == "solid_wall") then
+              if(k == nz .and. zBoundary == "solid_wall") then
                 ALDD = - jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * 0.25 &
                     * met(i - 1, j, k - 2, 1, 3) / dz
               else
@@ -8068,7 +8065,7 @@ module poisson_module
 
               ! ------------------ A(i,j+1,k+2) --------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AFUU = - jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * 0.25 &
                     * met(i, j + 1, k + 2, 2, 3) / dz
               else
@@ -8077,7 +8074,7 @@ module poisson_module
 
               ! ------------------ A(i,j+1,k-2) --------------------
 
-              if (k == nz .and. zBoundary == "solid_wall") then
+              if(k == nz .and. zBoundary == "solid_wall") then
                 AFDD = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * 0.25 &
                     * met(i, j + 1, k - 2, 2, 3) / dz
               else
@@ -8086,7 +8083,7 @@ module poisson_module
 
               ! ------------------ A(i,j-1,k+2) --------------------
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ABUU = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * 0.25 &
                     * met(i, j - 1, k + 2, 2, 3) / dz
               else
@@ -8095,7 +8092,7 @@ module poisson_module
 
               ! ------------------ A(i,j-1,k-2) --------------------
 
-              if (k == nz .and. zBoundary == "solid_wall") then
+              if(k == nz .and. zBoundary == "solid_wall") then
                 ABDD = - jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * 0.25 &
                     * met(i, j - 1, k - 2, 2, 3) / dz
               else
@@ -8158,7 +8155,7 @@ module poisson_module
 
               ! Store horizontal and vertical components of AC (for
               ! preconditioner).
-              if (preconditioner == "yes") then
+              if(preconditioner == "yes") then
                 ach_b(i, j, k) = - AR - AL - AF - AB
                 acv_b(i, j, k) = - AU - AD
               end if
@@ -8179,7 +8176,7 @@ module poisson_module
               rhoEdge = rhoEdge + rhoStrat(k)
 
               AR = dx2 * pStrat(k) ** 2 / rhoEdge
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AR = AR / Pstrat(k)
               end if
 
@@ -8189,7 +8186,7 @@ module poisson_module
               rhoEdge = rhoEdge + rhoStrat(k)
 
               AL = dx2 * pStrat(k) ** 2 / rhoEdge
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AL = AL / Pstrat(k)
               end if
 
@@ -8199,7 +8196,7 @@ module poisson_module
               rhoEdge = rhoEdge + rhoStrat(k)
 
               AF = dy2 * pStrat(k) ** 2 / rhoEdge
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AF = AF / Pstrat(k)
               end if
 
@@ -8209,14 +8206,14 @@ module poisson_module
               rhoEdge = rhoEdge + rhoStrat(k)
 
               AB = dy2 * pStrat(k) ** 2 / rhoEdge
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AB = AB / Pstrat(k)
               end if
 
               ! ---------------------- A(i,j,k+1) ------------------
 
               ! TFC FJ
-              if (k == nz .and. zBoundary == "solid_wall") then
+              if(k == nz .and. zBoundary == "solid_wall") then
                 AU = 0.0
               else
                 rhoEdge = 0.5 * (var(i, j, k + 1, 1) + var(i, j, k, 1))
@@ -8225,14 +8222,14 @@ module poisson_module
                 pStratU = 0.5 * (pStrat(k + 1) + pStrat(k))
                 AU = dz2 * pStratU ** 2 / rhoEdge
               end if
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AU = AU / PstratTilde(k)
               end if
 
               ! ----------------------- A(i,j,k-1) -----------------
 
               ! TFC FJ
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AD = 0.0
               else
                 rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k - 1, 1))
@@ -8241,11 +8238,11 @@ module poisson_module
                 pStratD = 0.5 * (pStrat(k) + pStrat(k - 1))
                 AD = dz2 * pStratD ** 2 / rhoEdge
               end if
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AD = AD / PstratTilde(k - 1)
               end if
 
-              if (pressureScaling) then
+              if(pressureScaling) then
                 ! stop'ERROR: no pressure scaling allowed'
               end if
 
@@ -8270,7 +8267,7 @@ module poisson_module
               AD = AD / (fcscal * fcscal_d)
               AU = AU / (fcscal * fcscal_u)
 
-              if (poissonSolverType == 'bicgstab') then
+              if(poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 ach_b(i, j, k) = ACH
@@ -8284,24 +8281,24 @@ module poisson_module
 
                 ad_b(i, j, k) = AD
                 au_b(i, j, k) = AU
-              ! else if (poissonSolverType == 'hypre') then
-              !   ! index_count_hypre
-              !   ! = ( i * j * k * ne_hypre_e ) - ne_hypre_e + 1
+                ! else if (poissonSolverType == 'hypre') then
+                !   ! index_count_hypre
+                !   ! = ( i * j * k * ne_hypre_e ) - ne_hypre_e + 1
 
-              !   index_count_hypre = i
-              !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
-              !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
+                !   index_count_hypre = i
+                !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
+                !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
 
-              !   index_count_hypre = (index_count_hypre * ne_hypre_e) &
-              !       - ne_hypre_e + 1
+                !   index_count_hypre = (index_count_hypre * ne_hypre_e) &
+                !       - ne_hypre_e + 1
 
-              !   values_e(index_count_hypre) = AC
-              !   values_e(index_count_hypre + 1) = AL
-              !   values_e(index_count_hypre + 2) = AR
-              !   values_e(index_count_hypre + 3) = AB
-              !   values_e(index_count_hypre + 4) = AF
-              !   values_e(index_count_hypre + 5) = AD
-              !   values_e(index_count_hypre + 6) = AU
+                !   values_e(index_count_hypre) = AC
+                !   values_e(index_count_hypre + 1) = AL
+                !   values_e(index_count_hypre + 2) = AR
+                !   values_e(index_count_hypre + 3) = AB
+                !   values_e(index_count_hypre + 4) = AF
+                !   values_e(index_count_hypre + 5) = AD
+                !   values_e(index_count_hypre + 6) = AU
               else
                 stop 'ERROR: val_PsIn expects bicgstab'
               end if
@@ -8310,15 +8307,15 @@ module poisson_module
           end do ! j_loop
         end do ! k_loop
       end if
-    else if (opt == "impl") then
-      if (timeScheme /= "semiimplicit") then
+    else if(opt == "impl") then
+      if(timeScheme /= "semiimplicit") then
         stop 'ERROR: for opt = impl must have timeScheme = semiimplicit'
       end if
 
       kr_sp = kr_sp * facray
       alprlx = alprlx * facray
 
-      if (topography) then
+      if(topography) then
         do k = 1, nz
           ! Compute scaling factors
           fcscal = sqrt(pStrat(k) ** 2.0 / rhoStrat(k))
@@ -8441,8 +8438,8 @@ module poisson_module
               facDEdgeB = 1.0
               facEdgeU = 1.0
               facEdgeD = 1.0
-              if (spongeLayer) then
-                if (sponge_uv) then
+              if(spongeLayer) then
+                if(sponge_uv) then
                   facEdgeR = facEdgeR + dt * kr_sp(j, k)
                   facEdgeL = facEdgeL + dt * kr_sp(j, k)
                   facEdgeF = facEdgeF + 0.5 * dt * (kr_sp(j, k) + kr_sp(j + 1, &
@@ -8462,7 +8459,7 @@ module poisson_module
                   facDEdgeB = facDEdgeB + 0.5 * dt * (kr_sp(j, k - 1) &
                       + kr_sp(j - 1, k - 1))
                 end if
-                if (spongeTFC) then
+                if(spongeTFC) then
                   facEdgeU = facEdgeU + 0.5 * dt * (alphaTFC(i, j, k) &
                       + alphaTFC(i, j, k + 1))
                   facEdgeD = facEdgeD + 0.5 * dt * (alphaTFC(i, j, k) &
@@ -8474,8 +8471,8 @@ module poisson_module
                       - 1))
                 end if
               end if
-              if (testCase == "baroclinic_LC") then
-                if (background == "HeldSuarez") then
+              if(testCase == "baroclinic_LC") then
+                if(background == "HeldSuarez") then
                   facEdgeR = facEdgeR + dt * kv_hs(j, k)
                   facEdgeL = facEdgeL + dt * kv_hs(j, k)
                   facEdgeF = facEdgeF + 0.5 * dt * (kv_hs(j, k) + kv_hs(j + 1, &
@@ -8520,13 +8517,13 @@ module poisson_module
               ! Compute gradient coefficients
 
               ! G(i + 1 / 2)
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 gEdgeR = jacInv / dx * pEdgeRDiv * impHorEdgeR * facEdgeR &
                     / rhoEdgeR + jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     * rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
                     * 0.25 * met(i, j, k, 1, 3) * impHorEdgeR * facEdgeR &
                     / rhoEdgeR
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 gEdgeR = jacInv / dx * pEdgeRDiv * impHorEdgeR * facEdgeR &
                     / rhoEdgeR - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     * rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
@@ -8544,13 +8541,13 @@ module poisson_module
               end if
 
               ! G(i - 1 / 2)
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 gEdgeL = - jacInv / dx * pEdgeLDiv * impHorEdgeL * facEdgeL &
                     / rhoEdgeL + jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     * rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
                     * 0.25 * met(i, j, k, 1, 3) * impHorEdgeL * facEdgeL &
                     / rhoEdgeL
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 gEdgeL = - jacInv / dx * pEdgeLDiv * impHorEdgeL * facEdgeL &
                     / rhoEdgeL - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     * rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
@@ -8568,13 +8565,13 @@ module poisson_module
               end if
 
               ! G(j + 1 / 2)
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 gEdgeF = jacInv / dy * pEdgeFDiv * impHorEdgeF * facEdgeF &
                     / rhoEdgeF + jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     * rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
                     * 0.25 * met(i, j, k, 2, 3) * impHorEdgeF * facEdgeF &
                     / rhoEdgeF
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 gEdgeF = jacInv / dy * pEdgeFDiv * impHorEdgeF * facEdgeF &
                     / rhoEdgeF - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     * rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
@@ -8592,13 +8589,13 @@ module poisson_module
               end if
 
               ! G(j - 1 / 2)
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 gEdgeB = - jacInv / dy * pEdgeBDiv * impHorEdgeB * facEdgeB &
                     / rhoEdgeB + jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     * rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
                     * 0.25 * met(i, j, k, 2, 3) * impHorEdgeB * facEdgeB &
                     / rhoEdgeB
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 gEdgeB = - jacInv / dy * pEdgeBDiv * impHorEdgeB * facEdgeB &
                     / rhoEdgeB - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     * rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
@@ -8616,21 +8613,21 @@ module poisson_module
               end if
 
               ! G(k + 1 / 2)
-              if (k == nz .and. zBoundary == "solid_wall") then
+              if(k == nz .and. zBoundary == "solid_wall") then
                 gEdgeU = 0.0
               else
                 gEdgeU = jacInv / dz * pEdgeUDiv * impVerEdgeU / rhoEdgeU
               end if
 
               ! G(k - 1 / 2)
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 gEdgeD = 0.0
               else
                 gEdgeD = - jacInv / dz * pEdgeDDiv * impVerEdgeD / rhoEdgeD
               end if
 
               ! G(i + 1 / 2, k + 1)
-              if (k == nz .and. zBoundary == "solid_wall") then
+              if(k == nz .and. zBoundary == "solid_wall") then
                 gUEdgeR = 0.0
               else
                 gUEdgeR = jacInv / dz * pEdgeUDiv * impVerEdgeU &
@@ -8640,7 +8637,7 @@ module poisson_module
               end if
 
               ! G(i - 1 / 2, k + 1)
-              if (k == nz .and. zBoundary == "solid_wall") then
+              if(k == nz .and. zBoundary == "solid_wall") then
                 gUEdgeL = 0.0
               else
                 gUEdgeL = jacInv / dz * pEdgeUDiv * impVerEdgeU &
@@ -8650,7 +8647,7 @@ module poisson_module
               end if
 
               ! G(j + 1 / 2, k + 1)
-              if (k == nz .and. zBoundary == "solid_wall") then
+              if(k == nz .and. zBoundary == "solid_wall") then
                 gUEdgeF = 0.0
               else
                 gUEdgeF = jacInv / dz * pEdgeUDiv * impVerEdgeU &
@@ -8660,7 +8657,7 @@ module poisson_module
               end if
 
               ! G(j - 1 / 2, k + 1)
-              if (k == nz .and. zBoundary == "solid_wall") then
+              if(k == nz .and. zBoundary == "solid_wall") then
                 gUEdgeB = 0.0
               else
                 gUEdgeB = jacInv / dz * pEdgeUDiv * impVerEdgeU &
@@ -8670,7 +8667,7 @@ module poisson_module
               end if
 
               ! G(i + 1 / 2, k - 1)
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 gDEdgeR = 0.0
               else
                 gDEdgeR = - jacInv / dz * pEdgeDDiv * impVerEdgeD &
@@ -8680,7 +8677,7 @@ module poisson_module
               end if
 
               ! G(i - 1 / 2, k - 1)
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 gDEdgeL = 0.0
               else
                 gDEdgeL = - jacInv / dz * pEdgeDDiv * impVerEdgeD &
@@ -8690,7 +8687,7 @@ module poisson_module
               end if
 
               ! G(j + 1 / 2, k - 1)
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 gDEdgeF = 0.0
               else
                 gDEdgeF = - jacInv / dz * pEdgeDDiv * impVerEdgeD &
@@ -8700,7 +8697,7 @@ module poisson_module
               end if
 
               ! G(j - 1 / 2, k - 1)
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 gDEdgeB = 0.0
               else
                 gDEdgeB = - jacInv / dz * pEdgeDDiv * impVerEdgeD &
@@ -8713,7 +8710,7 @@ module poisson_module
 
               ! ------------------- A(i,j,k) --------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AC = - gEdgeR * pEdgeRGra * (1.0 / dx + 0.75 * met(i, j, k, 1, &
                     3) / dz) + gEdgeL * pEdgeLGra * (1.0 / dx - 0.75 * met(i, &
                     j, k, 1, 3) / dz) - gEdgeF * pEdgeFGra * (1.0 / dy + 0.75 &
@@ -8727,7 +8724,7 @@ module poisson_module
                     * pUEdgeLGra * 0.25 * met(i, j, k, 1, 3) / dz - gUEdgeF &
                     * pUEdgeFGra * 0.25 * met(i, j, k, 2, 3) / dz - gUEdgeB &
                     * pUEdgeBGra * 0.25 * met(i, j, k, 2, 3) / dz
-              else if (k == 2 .and. zBoundary == "solid_wall") then
+              else if(k == 2 .and. zBoundary == "solid_wall") then
                 AC = - gEdgeR * pEdgeRGra / dx + gEdgeL * pEdgeLGra / dx &
                     - gEdgeF * pEdgeFGra / dy + gEdgeB * pEdgeBGra / dy &
                     + gEdgeU * (- pEdgeUGra * met(i, j, k, 3, 3) / dz + 0.5 &
@@ -8746,7 +8743,7 @@ module poisson_module
                     + gDEdgeL * pDEdgeLGra * met(i, j, k, 1, 3) / dz + gDEdgeF &
                     * pDEdgeFGra * met(i, j, k, 2, 3) / dz + gDEdgeB &
                     * pDEdgeBGra * met(i, j, k, 2, 3) / dz
-              else if (k == nz - 1 .and. zBoundary == "solid_wall") then
+              else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 AC = - gEdgeR * pEdgeRGra / dx + gEdgeL * pEdgeLGra / dx &
                     - gEdgeF * pEdgeFGra / dy + gEdgeB * pEdgeBGra / dy &
                     + gEdgeU * (- pEdgeUGra * met(i, j, k, 3, 3) / dz + 0.5 &
@@ -8765,7 +8762,7 @@ module poisson_module
                     * pDEdgeLGra * 0.25 * met(i, j, k, 1, 3) / dz + gDEdgeF &
                     * pDEdgeFGra * 0.25 * met(i, j, k, 2, 3) / dz + gDEdgeB &
                     * pDEdgeBGra * 0.25 * met(i, j, k, 2, 3) / dz
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AC = - gEdgeR * pEdgeRGra * (1.0 / dx - 0.75 * met(i, j, k, 1, &
                     3) / dz) + gEdgeL * pEdgeLGra * (1.0 / dx + 0.75 * met(i, &
                     j, k, 1, 3) / dz) - gEdgeF * pEdgeFGra * (1.0 / dy - 0.75 &
@@ -8802,24 +8799,24 @@ module poisson_module
 
               ! ------------------ A(i+1,j,k) -------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AR = gEdgeR * pEdgeRGra * (1.0 / dx - 0.75 * met(i + 1, j, k, &
                     1, 3) / dz) + gEdgeU * pEdgeUGra * 0.25 * met(i + 1, j, k, &
                     1, 3) / dx - gUEdgeR * pUEdgeRGra * 0.25 * met(i + 1, j, &
                     k, 1, 3) / dz
-              else if (k == 2 .and. zBoundary == "solid_wall") then
+              else if(k == 2 .and. zBoundary == "solid_wall") then
                 AR = gEdgeR * pEdgeRGra / dx + gEdgeU * pEdgeUGra * 0.25 &
                     * met(i + 1, j, k, 1, 3) / dx + gEdgeD * pEdgeDGra * 0.25 &
                     * met(i + 1, j, k, 1, 3) / dx - gUEdgeR * pUEdgeRGra &
                     * 0.25 * met(i + 1, j, k, 1, 3) / dz + gDEdgeR &
                     * pDEdgeRGra * met(i + 1, j, k, 1, 3) / dz
-              else if (k == nz - 1 .and. zBoundary == "solid_wall") then
+              else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 AR = gEdgeR * pEdgeRGra / dx + gEdgeU * pEdgeUGra * 0.25 &
                     * met(i + 1, j, k, 1, 3) / dx + gEdgeD * pEdgeDGra * 0.25 &
                     * met(i + 1, j, k, 1, 3) / dx - gUEdgeR * pUEdgeRGra &
                     * met(i + 1, j, k, 1, 3) / dz + gDEdgeR * pDEdgeRGra &
                     * 0.25 * met(i + 1, j, k, 1, 3) / dz
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AR = gEdgeR * pEdgeRGra * (1.0 / dx + 0.75 * met(i + 1, j, k, &
                     1, 3) / dz) + gEdgeD * pEdgeDGra * 0.25 * met(i + 1, j, k, &
                     1, 3) / dx + gDEdgeR * pDEdgeRGra * 0.25 * met(i + 1, j, &
@@ -8834,24 +8831,24 @@ module poisson_module
 
               ! ------------------ A(i-1,j,k) -------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AL = - gEdgeL * pEdgeLGra * (1.0 / dx + 0.75 * met(i - 1, j, &
                     k, 1, 3) / dz) - gEdgeU * pEdgeUGra * 0.25 * met(i - 1, j, &
                     k, 1, 3) / dx - gUEdgeL * pUEdgeLGra * 0.25 * met(i - 1, &
                     j, k, 1, 3) / dz
-              else if (k == 2 .and. zBoundary == "solid_wall") then
+              else if(k == 2 .and. zBoundary == "solid_wall") then
                 AL = - gEdgeL * pEdgeLGra / dx - gEdgeU * pEdgeUGra * 0.25 &
                     * met(i - 1, j, k, 1, 3) / dx - gEdgeD * pEdgeDGra * 0.25 &
                     * met(i - 1, j, k, 1, 3) / dx - gUEdgeL * pUEdgeLGra &
                     * 0.25 * met(i - 1, j, k, 1, 3) / dz + gDEdgeL &
                     * pDEdgeLGra * met(i - 1, j, k, 1, 3) / dz
-              else if (k == nz - 1 .and. zBoundary == "solid_wall") then
+              else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 AL = - gEdgeL * pEdgeLGra / dx - gEdgeU * pEdgeUGra * 0.25 &
                     * met(i - 1, j, k, 1, 3) / dx - gEdgeD * pEdgeDGra * 0.25 &
                     * met(i - 1, j, k, 1, 3) / dx - gUEdgeL * pUEdgeLGra &
                     * met(i - 1, j, k, 1, 3) / dz + gDEdgeL * pDEdgeLGra &
                     * 0.25 * met(i - 1, j, k, 1, 3) / dz
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AL = - gEdgeL * pEdgeLGra * (1.0 / dx - 0.75 * met(i - 1, j, &
                     k, 1, 3) / dz) - gEdgeD * pEdgeDGra * 0.25 * met(i - 1, j, &
                     k, 1, 3) / dx + gDEdgeL * pDEdgeLGra * 0.25 * met(i - 1, &
@@ -8866,24 +8863,24 @@ module poisson_module
 
               ! ------------------ A(i,j+1,k) -------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AF = gEdgeF * pEdgeFGra * (1.0 / dy - 0.75 * met(i, j + 1, k, &
                     2, 3) / dz) + gEdgeU * pEdgeUGra * 0.25 * met(i, j + 1, k, &
                     2, 3) / dy - gUEdgeF * pUEdgeFGra * 0.25 * met(i, j + 1, &
                     k, 2, 3) / dz
-              else if (k == 2 .and. zBoundary == "solid_wall") then
+              else if(k == 2 .and. zBoundary == "solid_wall") then
                 AF = gEdgeF * pEdgeFGra / dy + gEdgeU * pEdgeUGra * 0.25 &
                     * met(i, j + 1, k, 2, 3) / dy + gEdgeD * pEdgeDGra * 0.25 &
                     * met(i, j + 1, k, 2, 3) / dy - gUEdgeF * pUEdgeFGra &
                     * 0.25 * met(i, j + 1, k, 2, 3) / dz + gDEdgeF &
                     * pDEdgeFGra * met(i, j + 1, k, 2, 3) / dz
-              else if (k == nz - 1 .and. zBoundary == "solid_wall") then
+              else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 AF = gEdgeF * pEdgeFGra / dy + gEdgeU * pEdgeUGra * 0.25 &
                     * met(i, j + 1, k, 2, 3) / dy + gEdgeD * pEdgeDGra * 0.25 &
                     * met(i, j + 1, k, 2, 3) / dy - gUEdgeF * pUEdgeFGra &
                     * met(i, j + 1, k, 2, 3) / dz + gDEdgeF * pDEdgeFGra &
                     * 0.25 * met(i, j + 1, k, 2, 3) / dz
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AF = gEdgeF * pEdgeFGra * (1.0 / dy + 0.75 * met(i, j + 1, k, &
                     2, 3) / dz) + gEdgeD * pEdgeDGra * 0.25 * met(i, j + 1, k, &
                     2, 3) / dy + gDEdgeF * pDEdgeFGra * 0.25 * met(i, j + 1, &
@@ -8898,24 +8895,24 @@ module poisson_module
 
               ! ------------------ A(i,j-1,k) -------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AB = - gEdgeB * pEdgeBGra * (1.0 / dy + 0.75 * met(i, j - 1, &
                     k, 2, 3) / dz) - gEdgeU * pEdgeUGra * 0.25 * met(i, j - 1, &
                     k, 2, 3) / dy - gUEdgeB * pUEdgeBGra * 0.25 * met(i, j &
                     - 1, k, 2, 3) / dz
-              else if (k == 2 .and. zBoundary == "solid_wall") then
+              else if(k == 2 .and. zBoundary == "solid_wall") then
                 AB = - gEdgeB * pEdgeBGra / dy - gEdgeU * pEdgeUGra * 0.25 &
                     * met(i, j - 1, k, 2, 3) / dy - gEdgeD * pEdgeDGra * 0.25 &
                     * met(i, j - 1, k, 2, 3) / dy - gUEdgeB * pUEdgeBGra &
                     * 0.25 * met(i, j - 1, k, 2, 3) / dz + gDEdgeB &
                     * pDEdgeBGra * met(i, j - 1, k, 2, 3) / dz
-              else if (k == nz - 1 .and. zBoundary == "solid_wall") then
+              else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 AB = - gEdgeB * pEdgeBGra / dy - gEdgeU * pEdgeUGra * 0.25 &
                     * met(i, j - 1, k, 2, 3) / dy - gEdgeD * pEdgeDGra * 0.25 &
                     * met(i, j - 1, k, 2, 3) / dy - gUEdgeB * pUEdgeBGra &
                     * met(i, j - 1, k, 2, 3) / dz + gDEdgeB * pDEdgeBGra &
                     * 0.25 * met(i, j - 1, k, 2, 3) / dz
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AB = - gEdgeB * pEdgeBGra * (1.0 / dy - 0.75 * met(i, j - 1, &
                     k, 2, 3) / dz) - gEdgeD * pEdgeDGra * 0.25 * met(i, j - 1, &
                     k, 2, 3) / dy + gDEdgeB * pDEdgeBGra * 0.25 * met(i, j &
@@ -8930,7 +8927,7 @@ module poisson_module
 
               ! ------------------ A(i,j,k+1) -------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AU = gEdgeR * pEdgeRGra * met(i, j, k + 1, 1, 3) / dz + gEdgeL &
                     * pEdgeLGra * met(i, j, k + 1, 1, 3) / dz + gEdgeF &
                     * pEdgeFGra * met(i, j, k + 1, 2, 3) / dz + gEdgeB &
@@ -8942,7 +8939,7 @@ module poisson_module
                     j, k + 1, 2, 3) * met(i, j, k + 1, 2, 3))) - gUEdgeR &
                     * pUEdgeRGra / dx + gUEdgeL * pUEdgeLGra / dx - gUEdgeF &
                     * pUEdgeFGra / dy + gUEdgeB * pUEdgeBGra / dy
-              else if (k == 2 .and. zBoundary == "solid_wall") then
+              else if(k == 2 .and. zBoundary == "solid_wall") then
                 AU = gEdgeR * pEdgeRGra * 0.25 * met(i, j, k + 1, 1, 3) / dz &
                     + gEdgeL * pEdgeLGra * 0.25 * met(i, j, k + 1, 1, 3) / dz &
                     + gEdgeF * pEdgeFGra * 0.25 * met(i, j, k + 1, 2, 3) / dz &
@@ -8959,7 +8956,7 @@ module poisson_module
                     / dz - gDEdgeF * pDEdgeFGra * 0.25 * met(i, j, k + 1, 2, &
                     3) / dz - gDEdgeB * pDEdgeBGra * 0.25 * met(i, j, k + 1, &
                     2, 3)
-              else if (k == nz - 1 .and. zBoundary == "solid_wall") then
+              else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 AU = gEdgeR * pEdgeRGra * 0.25 * met(i, j, k + 1, 1, 3) / dz &
                     + gEdgeL * pEdgeLGra * 0.25 * met(i, j, k + 1, 1, 3) / dz &
                     + gEdgeF * pEdgeFGra * 0.25 * met(i, j, k + 1, 2, 3) / dz &
@@ -8975,7 +8972,7 @@ module poisson_module
                     - 0.75 * met(i, j, k + 1, 2, 3) / dz) + gUEdgeB &
                     * pUEdgeBGra * (1.0 / dy + 0.75 * met(i, j, k + 1, 2, 3) &
                     / dz)
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AU = 0.0
               else
                 AU = gEdgeR * pEdgeRGra * 0.25 * met(i, j, k + 1, 1, 3) / dz &
@@ -8993,9 +8990,9 @@ module poisson_module
 
               ! ------------------ A(i,j,k-1) -------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AD = 0.0
-              else if (k == 2 .and. zBoundary == "solid_wall") then
+              else if(k == 2 .and. zBoundary == "solid_wall") then
                 AD = - gEdgeR * pEdgeRGra * 0.25 * met(i, j, k - 1, 1, 3) / dz &
                     - gEdgeL * pEdgeLGra * 0.25 * met(i, j, k - 1, 1, 3) / dz &
                     - gEdgeF * pEdgeFGra * 0.25 * met(i, j, k - 1, 2, 3) / dz &
@@ -9011,7 +9008,7 @@ module poisson_module
                     * pDEdgeFGra * (1.0 / dy + 0.75 * met(i, j, k - 1, 2, 3) &
                     / dz) + gDEdgeB * pDEdgeBGra * (1.0 / dy - 0.75 * met(i, &
                     j, k - 1, 2, 3) / dz)
-              else if (k == nz - 1 .and. zBoundary == "solid_wall") then
+              else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 AD = - gEdgeR * pEdgeRGra * 0.25 * met(i, j, k - 1, 1, 3) / dz &
                     - gEdgeL * pEdgeLGra * 0.25 * met(i, j, k - 1, 1, 3) / dz &
                     - gEdgeF * pEdgeFGra * 0.25 * met(i, j, k - 1, 2, 3) / dz &
@@ -9028,7 +9025,7 @@ module poisson_module
                     1, 3) / dz + gUEdgeF * pUEdgeFGra * 0.25 * met(i, j, k &
                     - 1, 2, 3) / dz + gUEdgeB * pUEdgeBGra * 0.25 * met(i, j, &
                     k - 1, 2, 3) / dz
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AD = - gEdgeR * pEdgeRGra * met(i, j, k - 1, 1, 3) / dz &
                     - gEdgeL * pEdgeLGra * met(i, j, k - 1, 1, 3) / dz &
                     - gEdgeF * pEdgeFGra * met(i, j, k - 1, 2, 3) / dz &
@@ -9056,21 +9053,21 @@ module poisson_module
 
               ! ----------------- A(i+1,j,k+1) ------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ARU = gEdgeR * pEdgeRGra * met(i + 1, j, k + 1, 1, 3) / dz &
                     + gEdgeU * pEdgeUGra * 0.25 * met(i + 1, j, k + 1, 1, 3) &
                     / dx + gUEdgeR * pUEdgeRGra / dx
-              else if (k == 2 .and. zBoundary == "solid_wall") then
+              else if(k == 2 .and. zBoundary == "solid_wall") then
                 ARU = gEdgeR * pEdgeRGra * 0.25 * met(i + 1, j, k + 1, 1, 3) &
                     / dz + gEdgeU * pEdgeUGra * 0.25 * met(i + 1, j, k + 1, 1, &
                     3) / dx + gUEdgeR * pUEdgeRGra / dx - gDEdgeR * pDEdgeRGra &
                     * 0.25 * met(i + 1, j, k + 1, 1, 3) / dz
-              else if (k == nz - 1 .and. zBoundary == "solid_wall") then
+              else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 ARU = gEdgeR * pEdgeRGra * 0.25 * met(i + 1, j, k + 1, 1, 3) &
                     / dz + gEdgeU * pEdgeUGra * 0.25 * met(i + 1, j, k + 1, 1, &
                     3) / dx + gUEdgeR * pUEdgeRGra * (1.0 / dx + 0.75 * met(i &
                     + 1, j, k + 1, 1, 3) / dz)
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ARU = 0.0
               else
                 ARU = gEdgeR * pEdgeRGra * 0.25 * met(i + 1, j, k + 1, 1, 3) &
@@ -9080,19 +9077,19 @@ module poisson_module
 
               ! ----------------- A(i+1,j,k-1) ------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ARD = 0.0
-              else if (k == 2 .and. zBoundary == "solid_wall") then
+              else if(k == 2 .and. zBoundary == "solid_wall") then
                 ARD = - gEdgeR * pEdgeRGra * 0.25 * met(i + 1, j, k - 1, 1, 3) &
                     / dz + gEdgeD * pEdgeDGra * 0.25 * met(i + 1, j, k - 1, 1, &
                     3) / dx + gDEdgeR * pDEdgeRGra * (1.0 / dx - 0.75 * met(i &
                     + 1, j, k - 1, 1, 3) / dz)
-              else if (k == nz - 1 .and. zBoundary == "solid_wall") then
+              else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 ARD = - gEdgeR * pEdgeRGra * 0.25 * met(i + 1, j, k - 1, 1, 3) &
                     / dz + gEdgeD * pEdgeDGra * 0.25 * met(i + 1, j, k - 1, 1, &
                     3) / dx + gDEdgeR * pDEdgeRGra / dx + gUEdgeR * pUEdgeRGra &
                     * 0.25 * met(i + 1, j, k - 1, 1, 3) / dz
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ARD = - gEdgeR * pEdgeRGra * met(i + 1, j, k - 1, 1, 3) / dz &
                     + gEdgeD * pEdgeDGra * 0.25 * met(i + 1, j, k - 1, 1, 3) &
                     / dx + gDEdgeR * pDEdgeRGra / dx
@@ -9104,21 +9101,21 @@ module poisson_module
 
               ! ----------------- A(i-1,j,k+1) ------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ALU = gEdgeL * pEdgeLGra * met(i - 1, j, k + 1, 1, 3) / dz &
                     - gEdgeU * pEdgeUGra * 0.25 * met(i - 1, j, k + 1, 1, 3) &
                     / dx - gUEdgeL * pUEdgeLGra / dx
-              else if (k == 2 .and. zBoundary == "solid_wall") then
+              else if(k == 2 .and. zBoundary == "solid_wall") then
                 ALU = gEdgeL * pEdgeLGra * 0.25 * met(i - 1, j, k + 1, 1, 3) &
                     / dz - gEdgeU * pEdgeUGra * 0.25 * met(i - 1, j, k + 1, 1, &
                     3) / dx - gUEdgeL * pUEdgeLGra / dx - gDEdgeL * pDEdgeLGra &
                     * 0.25 * met(i - 1, j, k + 1, 1, 3) / dz
-              else if (k == nz - 1 .and. zBoundary == "solid_wall") then
+              else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 ALU = gEdgeL * pEdgeLGra * 0.25 * met(i - 1, j, k + 1, 1, 3) &
                     / dz - gEdgeU * pEdgeUGra * 0.25 * met(i - 1, j, k + 1, 1, &
                     3) / dx - gUEdgeL * pUEdgeLGra * (1.0 / dx - 0.75 * met(i &
                     - 1, j, k + 1, 1, 3) / dz)
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ALU = 0.0
               else
                 ALU = gEdgeL * pEdgeLGra * 0.25 * met(i - 1, j, k + 1, 1, 3) &
@@ -9128,19 +9125,19 @@ module poisson_module
 
               ! ----------------- A(i-1,j,k-1) ------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ALD = 0.0
-              else if (k == 2 .and. zBoundary == "solid_wall") then
+              else if(k == 2 .and. zBoundary == "solid_wall") then
                 ALD = - gEdgeL * pEdgeLGra * 0.25 * met(i - 1, j, k - 1, 1, 3) &
                     / dz - gEdgeD * pEdgeDGra * 0.25 * met(i - 1, j, k - 1, 1, &
                     3) / dx - gDEdgeL * pDEdgeLGra * (1.0 / dx + 0.75 * met(i &
                     - 1, j, k - 1, 1, 3) / dz)
-              else if (k == nz - 1 .and. zBoundary == "solid_wall") then
+              else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 ALD = - gEdgeL * pEdgeLGra * 0.25 * met(i - 1, j, k - 1, 1, 3) &
                     / dz - gEdgeD * pEdgeDGra * 0.25 * met(i - 1, j, k - 1, 1, &
                     3) / dx - gDEdgeL * pDEdgeLGra / dx + gUEdgeL * pUEdgeLGra &
                     * 0.25 * met(i - 1, j, k - 1, 1, 3) / dz
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ALD = - gEdgeL * pEdgeLGra * met(i - 1, j, k - 1, 1, 3) / dz &
                     - gEdgeD * pEdgeDGra * 0.25 * met(i - 1, j, k - 1, 1, 3) &
                     / dx - gDEdgeL * pDEdgeLGra / dx
@@ -9152,21 +9149,21 @@ module poisson_module
 
               ! ----------------- A(i,j+1,k+1) ------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AFU = gEdgeF * pEdgeFGra * met(i, j + 1, k + 1, 2, 3) / dz &
                     + gEdgeU * pEdgeUGra * 0.25 * met(i, j + 1, k + 1, 2, 3) &
                     / dy + gUEdgeF * pUEdgeFGra / dy
-              else if (k == 2 .and. zBoundary == "solid_wall") then
+              else if(k == 2 .and. zBoundary == "solid_wall") then
                 AFU = gEdgeF * pEdgeFGra * 0.25 * met(i, j + 1, k + 1, 2, 3) &
                     / dz + gEdgeU * pEdgeUGra * 0.25 * met(i, j + 1, k + 1, 2, &
                     3) / dy + gUEdgeF * pUEdgeFGra / dy - gDEdgeF * pDEdgeFGra &
                     * 0.25 * met(i, j + 1, k + 1, 2, 3) / dz
-              else if (k == nz - 1 .and. zBoundary == "solid_wall") then
+              else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 AFU = gEdgeF * pEdgeFGra * 0.25 * met(i, j + 1, k + 1, 2, 3) &
                     / dz + gEdgeU * pEdgeUGra * 0.25 * met(i, j + 1, k + 1, 2, &
                     3) / dy + gUEdgeF * pUEdgeFGra * (1.0 / dy + 0.75 * met(i, &
                     j + 1, k + 1, 2, 3) / dz)
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AFU = 0.0
               else
                 AFU = gEdgeF * pEdgeFGra * 0.25 * met(i, j + 1, k + 1, 2, 3) &
@@ -9176,19 +9173,19 @@ module poisson_module
 
               ! ----------------- A(i,j+1,k-1) ------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AFD = 0.0
-              else if (k == 2 .and. zBoundary == "solid_wall") then
+              else if(k == 2 .and. zBoundary == "solid_wall") then
                 AFD = - gEdgeF * pEdgeFGra * 0.25 * met(i, j + 1, k - 1, 2, 3) &
                     / dz + gEdgeD * pEdgeDGra * 0.25 * met(i, j + 1, k - 1, 2, &
                     3) / dy + gDEdgeF * pDEdgeFGra * (1.0 / dy - 0.75 * met(i, &
                     j + 1, k - 1, 2, 3) / dz)
-              else if (k == nz - 1 .and. zBoundary == "solid_wall") then
+              else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 AFD = - gEdgeF * pEdgeFGra * 0.25 * met(i, j + 1, k - 1, 2, 3) &
                     / dz + gEdgeD * pEdgeDGra * 0.25 * met(i, j + 1, k - 1, 2, &
                     3) / dy + gDEdgeF * pDEdgeFGra / dy + gUEdgeF * pUEdgeFGra &
                     * 0.25 * met(i, j + 1, k - 1, 2, 3) / dz
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AFD = - gEdgeF * pEdgeFGra * met(i, j + 1, k - 1, 2, 3) / dz &
                     + gEdgeD * pEdgeDGra * 0.25 * met(i, j + 1, k - 1, 2, 3) &
                     / dy + gDEdgeF * pDEdgeFGra / dy
@@ -9200,21 +9197,21 @@ module poisson_module
 
               ! ----------------- A(i,j-1,k+1) ------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ABU = gEdgeB * pEdgeBGra * met(i, j - 1, k + 1, 2, 3) / dz &
                     - gEdgeU * pEdgeUGra * 0.25 * met(i, j - 1, k + 1, 2, 3) &
                     / dy - gUEdgeB * pUEdgeBGra / dy
-              else if (k == 2 .and. zBoundary == "solid_wall") then
+              else if(k == 2 .and. zBoundary == "solid_wall") then
                 ABU = gEdgeB * pEdgeBGra * 0.25 * met(i, j - 1, k + 1, 2, 3) &
                     / dz - gEdgeU * pEdgeUGra * 0.25 * met(i, j - 1, k + 1, 2, &
                     3) / dy - gUEdgeB * pUEdgeBGra / dy - gDEdgeB * pDEdgeBGra &
                     * 0.25 * met(i, j - 1, k + 1, 2, 3) / dz
-              else if (k == nz - 1 .and. zBoundary == "solid_wall") then
+              else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 ABU = gEdgeB * pEdgeBGra * 0.25 * met(i, j - 1, k + 1, 2, 3) &
                     / dz - gEdgeU * pEdgeUGra * 0.25 * met(i, j - 1, k + 1, 2, &
                     3) / dy - gUEdgeB * pUEdgeBGra * (1.0 / dy - 0.75 * met(i, &
                     j - 1, k + 1, 2, 3) / dz)
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ABU = 0.0
               else
                 ABU = gEdgeB * pEdgeBGra * 0.25 * met(i, j - 1, k + 1, 2, 3) &
@@ -9224,19 +9221,19 @@ module poisson_module
 
               ! ----------------- A(i,j-1,k-1) ------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ABD = 0.0
-              else if (k == 2 .and. zBoundary == "solid_wall") then
+              else if(k == 2 .and. zBoundary == "solid_wall") then
                 ABD = - gEdgeB * pEdgeBGra * 0.25 * met(i, j - 1, k - 1, 2, 3) &
                     / dz - gEdgeD * pEdgeDGra * 0.25 * met(i, j - 1, k - 1, 2, &
                     3) / dy - gDEdgeB * pDEdgeBGra * (1.0 / dy + 0.75 * met(i, &
                     j - 1, k - 1, 2, 3) / dz)
-              else if (k == nz - 1 .and. zBoundary == "solid_wall") then
+              else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 ABD = - gEdgeB * pEdgeBGra * 0.25 * met(i, j - 1, k - 1, 2, 3) &
                     / dz - gEdgeD * pEdgeDGra * 0.25 * met(i, j - 1, k - 1, 2, &
                     3) / dy - gDEdgeB * pDEdgeBGra / dy + gUEdgeB * pUEdgeBGra &
                     * 0.25 * met(i, j - 1, k - 1, 2, 3) / dz
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ABD = - gEdgeB * pEdgeBGra * met(i, j - 1, k - 1, 2, 3) / dz &
                     - gEdgeD * pEdgeDGra * 0.25 * met(i, j - 1, k - 1, 2, 3) &
                     / dy - gDEdgeB * pDEdgeBGra / dy
@@ -9248,7 +9245,7 @@ module poisson_module
 
               ! ------------------ A(i,j,k+2) -------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AUU = - gEdgeR * pEdgeRGra * 0.25 * met(i, j, k + 2, 1, 3) &
                     / dz - gEdgeL * pEdgeLGra * 0.25 * met(i, j, k + 2, 1, 3) &
                     / dz - gEdgeF * pEdgeFGra * 0.25 * met(i, j, k + 2, 2, 3) &
@@ -9258,7 +9255,7 @@ module poisson_module
                     1, 3) / dz + gUEdgeF * pUEdgeFGra * 0.25 * met(i, j, k &
                     + 2, 2, 3) / dz + gUEdgeB * pUEdgeBGra * 0.25 * met(i, j, &
                     k + 2, 2, 3) / dz
-              else if ((k == nz - 1 .or. k == nz) .and. zBoundary &
+              else if((k == nz - 1 .or. k == nz) .and. zBoundary &
                   == "solid_wall") then
                 AUU = 0.0
               else
@@ -9271,9 +9268,9 @@ module poisson_module
 
               ! ------------------ A(i,j,k-2) -------------------!
 
-              if ((k == 1 .or. k == 2) .and. zBoundary == "solid_wall") then
+              if((k == 1 .or. k == 2) .and. zBoundary == "solid_wall") then
                 ADD = 0.0
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ADD = gEdgeR * pEdgeRGra * 0.25 * met(i, j, k - 2, 1, 3) / dz &
                     + gEdgeL * pEdgeLGra * 0.25 * met(i, j, k - 2, 1, 3) / dz &
                     + gEdgeF * pEdgeFGra * 0.25 * met(i, j, k - 2, 2, 3) / dz &
@@ -9293,11 +9290,11 @@ module poisson_module
 
               ! ----------------- A(i+1,j,k+2) ------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ARUU = - gEdgeR * pEdgeRGra * 0.25 * met(i + 1, j, k + 2, 1, &
                     3) / dz + gUEdgeR * pUEdgeRGra * 0.25 * met(i + 1, j, k &
                     + 2, 1, 3) / dz
-              else if ((k == nz - 1 .or. k == nz) .and. zBoundary &
+              else if((k == nz - 1 .or. k == nz) .and. zBoundary &
                   == "solid_wall") then
                 ARUU = 0.0
               else
@@ -9307,9 +9304,9 @@ module poisson_module
 
               ! ----------------- A(i+1,j,k-2) ------------------!
 
-              if ((k == 1 .or. k == 2) .and. zBoundary == "solid_wall") then
+              if((k == 1 .or. k == 2) .and. zBoundary == "solid_wall") then
                 ARDD = 0.0
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ARDD = gEdgeR * pEdgeRGra * 0.25 * met(i + 1, j, k - 2, 1, 3) &
                     / dz - gDEdgeR * pDEdgeRGra * 0.25 * met(i + 1, j, k - 2, &
                     1, 3) / dz
@@ -9320,11 +9317,11 @@ module poisson_module
 
               ! ----------------- A(i-1,j,k+2) ------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ALUU = - gEdgeL * pEdgeLGra * 0.25 * met(i - 1, j, k + 2, 1, &
                     3) / dz + gUEdgeL * pUEdgeLGra * 0.25 * met(i - 1, j, k &
                     + 2, 1, 3) / dz
-              else if ((k == nz - 1 .or. k == nz) .and. zBoundary &
+              else if((k == nz - 1 .or. k == nz) .and. zBoundary &
                   == "solid_wall") then
                 ALUU = 0.0
               else
@@ -9334,9 +9331,9 @@ module poisson_module
 
               ! ----------------- A(i-1,j,k-2) ------------------!
 
-              if ((k == 1 .or. k == 2) .and. zBoundary == "solid_wall") then
+              if((k == 1 .or. k == 2) .and. zBoundary == "solid_wall") then
                 ALDD = 0.0
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ALDD = gEdgeL * pEdgeLGra * 0.25 * met(i - 1, j, k - 2, 1, 3) &
                     / dz - gDEdgeL * pDEdgeLGra * 0.25 * met(i - 1, j, k - 2, &
                     1, 3) / dz
@@ -9347,11 +9344,11 @@ module poisson_module
 
               ! ----------------- A(i,j+1,k+2) ------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AFUU = - gEdgeF * pEdgeFGra * 0.25 * met(i, j + 1, k + 2, 2, &
                     3) / dz + gUEdgeF * pUEdgeFGra * 0.25 * met(i, j + 1, k &
                     + 2, 2, 3) / dz
-              else if ((k == nz - 1 .or. k == nz) .and. zBoundary &
+              else if((k == nz - 1 .or. k == nz) .and. zBoundary &
                   == "solid_wall") then
                 AFUU = 0.0
               else
@@ -9361,9 +9358,9 @@ module poisson_module
 
               ! ----------------- A(i,j+1,k-2) ------------------!
 
-              if ((k == 1 .or. k == 2) .and. zBoundary == "solid_wall") then
+              if((k == 1 .or. k == 2) .and. zBoundary == "solid_wall") then
                 AFDD = 0.0
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 AFDD = gEdgeF * pEdgeFGra * 0.25 * met(i, j + 1, k - 2, 2, 3) &
                     / dz - gDEdgeF * pDEdgeFGra * 0.25 * met(i, j + 1, k - 2, &
                     2, 3) / dz
@@ -9374,11 +9371,11 @@ module poisson_module
 
               ! ----------------- A(i,j-1,k+2) ------------------!
 
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 ABUU = - gEdgeB * pEdgeBGra * 0.25 * met(i, j - 1, k + 2, 2, &
                     3) / dz + gUEdgeB * pUEdgeBGra * 0.25 * met(i, j - 1, k &
                     + 2, 2, 3) / dz
-              else if ((k == nz - 1 .or. k == nz) .and. zBoundary &
+              else if((k == nz - 1 .or. k == nz) .and. zBoundary &
                   == "solid_wall") then
                 ABUU = 0.0
               else
@@ -9388,9 +9385,9 @@ module poisson_module
 
               ! ----------------- A(i,j-1,k-2) ------------------!
 
-              if ((k == 1 .or. k == 2) .and. zBoundary == "solid_wall") then
+              if((k == 1 .or. k == 2) .and. zBoundary == "solid_wall") then
                 ABDD = 0.0
-              else if (k == nz .and. zBoundary == "solid_wall") then
+              else if(k == nz .and. zBoundary == "solid_wall") then
                 ABDD = gEdgeB * pEdgeBGra * 0.25 * met(i, j - 1, k - 2, 2, 3) &
                     / dz - gDEdgeB * pDEdgeBGra * 0.25 * met(i, j - 1, k - 2, &
                     2, 3) / dz
@@ -9455,7 +9452,7 @@ module poisson_module
 
               ! Store horizontal and vertical components of AC (for
               ! preconditioner).
-              if (preconditioner == "yes") then
+              if(preconditioner == "yes") then
                 ach_b(i, j, k) = - AR - AL - AF - AB
                 acv_b(i, j, k) = - AU - AD
               end if
@@ -9499,14 +9496,14 @@ module poisson_module
               !    !UAE
               ! end if
 
-              if (TestCase == "baroclinic_LC") then
-                if (background == "HeldSuarez") then
+              if(TestCase == "baroclinic_LC") then
+                if(background == "HeldSuarez") then
                   ! Rayleigh damping
                   facu = facu + dt * kv_hs(j, k)
                 end if
               end if
 
-              if (spongeLayer .and. sponge_uv) then
+              if(spongeLayer .and. sponge_uv) then
                 facu = facu + dt * kr_sp(j, k)
               end if
 
@@ -9515,7 +9512,7 @@ module poisson_module
               ! A(i+1,j,k) and A(i,j,k)
 
               rhoEdge = 0.5 * (var(i + 1, j, k, 1) + var(i, j, k, 1))
-              if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = dx2 * pStrat(k) ** 2 / rhoEdge * facv / (facu * facv &
                   + (f_cor_nd(j) * dt) ** 2)
@@ -9528,7 +9525,7 @@ module poisson_module
               ! A(i,j,k) and A(i,j-1,k)
 
               rhoEdge = 0.5 * (var(i, j - 1, k, 1) + var(i, j, k, 1))
-              if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_nd(j) &
                   * dt / (facu * facv + (f_cor_nd(j) * dt) ** 2)
@@ -9541,7 +9538,7 @@ module poisson_module
               ! A(i,j,k) and A(i,j+1,k)
 
               rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j + 1, k, 1))
-              if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_nd(j) &
                   * dt / (facu * facv + (f_cor_nd(j) * dt) ** 2)
@@ -9554,7 +9551,7 @@ module poisson_module
               ! A(i+1,j,k) and A(i+1,j-1,k)
 
               rhoEdge = 0.5 * (var(i + 1, j - 1, k, 1) + var(i + 1, j, k, 1))
-              if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_nd(j) &
                   * dt / (facu * facv + (f_cor_nd(j) * dt) ** 2)
@@ -9565,7 +9562,7 @@ module poisson_module
               ! A(i+1,j,k) and A(i+1,j+1,k)
 
               rhoEdge = 0.5 * (var(i + 1, j, k, 1) + var(i + 1, j + 1, k, 1))
-              if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_nd(j) &
                   * dt / (facu * facv + (f_cor_nd(j) * dt) ** 2)
@@ -9587,14 +9584,14 @@ module poisson_module
               !    !UAE
               ! end if
 
-              if (TestCase == "baroclinic_LC") then
-                if (background == "HeldSuarez") then
+              if(TestCase == "baroclinic_LC") then
+                if(background == "HeldSuarez") then
                   ! Rayleigh damping
                   facu = facu + dt * kv_hs(j, k)
                 end if
               end if
 
-              if (spongeLayer .and. sponge_uv) then
+              if(spongeLayer .and. sponge_uv) then
                 facu = facu + dt * kr_sp(j, k)
               end if
 
@@ -9603,7 +9600,7 @@ module poisson_module
               ! A(i,j,k) and A(i-1,j,k)
 
               rhoEdge = 0.5 * (var(i, j, k, 1) + var(i - 1, j, k, 1))
-              if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = - dx2 * pStrat(k) ** 2 / rhoEdge * facv / (facu * facv &
                   + (f_cor_nd(j) * dt) ** 2)
@@ -9616,7 +9613,7 @@ module poisson_module
               ! A(i-1,j,k) and A(i-1,j-1,k)
 
               rhoEdge = 0.5 * (var(i - 1, j - 1, k, 1) + var(i - 1, j, k, 1))
-              if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_nd(j) &
                   * dt / (facu * facv + (f_cor_nd(j) * dt) ** 2)
@@ -9627,7 +9624,7 @@ module poisson_module
               ! A(i-1,j,k) and A(i-1,j+1,k)
 
               rhoEdge = 0.5 * (var(i - 1, j, k, 1) + var(i - 1, j + 1, k, 1))
-              if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_nd(j) &
                   * dt / (facu * facv + (f_cor_nd(j) * dt) ** 2)
@@ -9638,7 +9635,7 @@ module poisson_module
               ! A(i,j,k) and A(i,j-1,k)
 
               rhoEdge = 0.5 * (var(i, j - 1, k, 1) + var(i, j, k, 1))
-              if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_nd(j) &
                   * dt / (facu * facv + (f_cor_nd(j) * dt) ** 2)
@@ -9651,7 +9648,7 @@ module poisson_module
               ! A(i,j,k) and A(i,j+1,k)
 
               rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j + 1, k, 1))
-              if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_nd(j) &
                   * dt / (facu * facv + (f_cor_nd(j) * dt) ** 2)
@@ -9675,14 +9672,14 @@ module poisson_module
               !    !UAE
               ! end if
 
-              if (TestCase == "baroclinic_LC") then
-                if (background == "HeldSuarez") then
+              if(TestCase == "baroclinic_LC") then
+                if(background == "HeldSuarez") then
                   ! Rayleigh damping
                   facv = facv + dt * 0.5 * (kv_hs(j, k) + kv_hs(j + 1, k))
                 end if
               end if
 
-              if (spongeLayer .and. sponge_uv) then
+              if(spongeLayer .and. sponge_uv) then
                 facv = facv + dt * 0.5 * (kr_sp(j, k) + kr_sp(j + 1, k))
               end if
 
@@ -9694,7 +9691,7 @@ module poisson_module
               ! A(i+1,j,k) and A(i,j,k)
 
               rhoEdge = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1))
-              if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   / (facu * facv + (f_cor_v * dt) ** 2)
@@ -9707,7 +9704,7 @@ module poisson_module
               ! A(i,j,k) and A(i-1,j,k)
 
               rhoEdge = 0.5 * (var(i - 1, j, k, 1) + var(i, j, k, 1))
-              if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   / (facu * facv + (f_cor_v * dt) ** 2)
@@ -9720,7 +9717,7 @@ module poisson_module
               ! A(i+1,j+1,k) and A(i,j+1,k)
 
               rhoEdge = 0.5 * (var(i, j + 1, k, 1) + var(i + 1, j + 1, k, 1))
-              if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   / (facu * facv + (f_cor_v * dt) ** 2)
@@ -9731,7 +9728,7 @@ module poisson_module
               ! A(i,j+1,k) and A(i-1,j+1,k)
 
               rhoEdge = 0.5 * (var(i - 1, j + 1, k, 1) + var(i, j + 1, k, 1))
-              if (fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   / (facu * facv + (f_cor_v * dt) ** 2)
@@ -9742,7 +9739,7 @@ module poisson_module
               ! A(i,j+1,k) and A(i,j,k)
 
               rhoEdge = 0.5 * (var(i, j + 1, k, 1) + var(i, j, k, 1))
-              if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = dy2 * pStrat(k) ** 2 / rhoEdge * facu / (facu * facv &
                   + (f_cor_v * dt) ** 2)
@@ -9766,14 +9763,14 @@ module poisson_module
               !    !UAE
               ! end if
 
-              if (TestCase == "baroclinic_LC") then
-                if (background == "HeldSuarez") then
+              if(TestCase == "baroclinic_LC") then
+                if(background == "HeldSuarez") then
                   ! Rayleigh damping
                   facv = facv + dt * 0.5 * (kv_hs(j, k) + kv_hs(j - 1, k))
                 end if
               end if
 
-              if (spongeLayer .and. sponge_uv) then
+              if(spongeLayer .and. sponge_uv) then
                 facv = facv + dt * 0.5 * (kr_sp(j, k) + kr_sp(j - 1, k))
               end if
 
@@ -9785,7 +9782,7 @@ module poisson_module
               ! A(i+1,j-1,k) and A(i,j-1,k)
 
               rhoEdge = 0.5 * (var(i, j - 1, k, 1) + var(i + 1, j - 1, k, 1))
-              if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   / (facu * facv + (f_cor_v * dt) ** 2)
@@ -9796,7 +9793,7 @@ module poisson_module
               ! A(i,j-1,k) and A(i-1,j-1,k)
 
               rhoEdge = 0.5 * (var(i - 1, j - 1, k, 1) + var(i, j - 1, k, 1))
-              if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   / (facu * facv + (f_cor_v * dt) ** 2)
@@ -9807,7 +9804,7 @@ module poisson_module
               ! A(i+1,j,k) and A(i,j,k)
 
               rhoEdge = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1))
-              if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   / (facu * facv + (f_cor_v * dt) ** 2)
@@ -9820,7 +9817,7 @@ module poisson_module
               ! A(i,j,k) and A(i-1,j,k)
 
               rhoEdge = 0.5 * (var(i - 1, j, k, 1) + var(i, j, k, 1))
-              if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   / (facu * facv + (f_cor_v * dt) ** 2)
@@ -9833,7 +9830,7 @@ module poisson_module
               ! A(i,j,k) and A(i,j-1,k)
 
               rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j - 1, k, 1))
-              if (fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
+              if(fluctuationmode) rhoEdge = rhoEdge + rhoStrat(k)
 
               acontr = - dy2 * pStrat(k) ** 2 / rhoEdge * facu / (facu * facv &
                   + (f_cor_v * dt) ** 2)
@@ -9846,7 +9843,7 @@ module poisson_module
               ! ------------------- from PU WU/dz ---------------------
 
               ! TFC FJ
-              if (k == nz .and. zBoundary == "solid_wall") then
+              if(k == nz .and. zBoundary == "solid_wall") then
                 AU = 0.0
               else
                 facw = 1.0
@@ -9861,15 +9858,15 @@ module poisson_module
                 !    !UAE
                 ! end if
 
-                if (TestCase == "baroclinic_LC") then
-                  if (background == "HeldSuarez") then
+                if(TestCase == "baroclinic_LC") then
+                  if(background == "HeldSuarez") then
                     ! Rayleigh damping
 
                     facw = facw + dt * 0.5 * (kw_hs(k) + kw_hs(k + 1))
                   end if
                 end if
 
-                if (spongeLayer) then
+                if(spongeLayer) then
                   facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
                 end if
 
@@ -9878,7 +9875,7 @@ module poisson_module
                 ! A(i,j,k+1) and A(i,j,k)
 
                 rhoEdge = 0.5 * (var(i, j, k + 1, 1) + var(i, j, k, 1))
-                if (fluctuationMode) then
+                if(fluctuationMode) then
                   rhoEdge = rhoEdge + rhoStratTilde(k)
                 end if
 
@@ -9898,7 +9895,7 @@ module poisson_module
               ! ------------------- from - PD WD/dz ---------------------
 
               ! TFC FJ
-              if (k == 1 .and. zBoundary == "solid_wall") then
+              if(k == 1 .and. zBoundary == "solid_wall") then
                 AD = 0.0
               else
                 facw = 1.0
@@ -9913,15 +9910,15 @@ module poisson_module
                 !    !UAE
                 ! end if
 
-                if (TestCase == "baroclinic_LC") then
-                  if (background == "HeldSuarez") then
+                if(TestCase == "baroclinic_LC") then
+                  if(background == "HeldSuarez") then
                     ! Rayleigh damping
 
                     facw = facw + dt * 0.5 * (kw_hs(k) + kw_hs(k - 1))
                   end if
                 end if
 
-                if (spongeLayer) then
+                if(spongeLayer) then
                   facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k - 1))
                 end if
 
@@ -9930,7 +9927,7 @@ module poisson_module
                 ! A(i,j,k) and A(i,j,k-1)
 
                 rhoEdge = 0.5 * (var(i, j, k, 1) + var(i, j, k - 1, 1))
-                if (fluctuationMode) then
+                if(fluctuationMode) then
                   rhoEdge = rhoEdge + rhoStratTilde(k - 1)
                 end if
 
@@ -9963,7 +9960,7 @@ module poisson_module
               ARF = ARF / fcscal ** 2
               ARB = ARB / fcscal ** 2
 
-              if (pressureScaling) then
+              if(pressureScaling) then
                 AC = AC / Pstrat(k)
 
                 ACH = ACH / Pstrat(k)
@@ -9984,7 +9981,7 @@ module poisson_module
 
               ! ------------------- define matrix A -------------------
 
-              if (poissonSolverType == 'bicgstab') then
+              if(poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 ach_b(i, j, k) = ACH
@@ -10003,28 +10000,28 @@ module poisson_module
                 alf_b(i, j, k) = ALF
                 arb_b(i, j, k) = ARB
                 arf_b(i, j, k) = ARF
-              ! else if (poissonSolverType == 'hypre') then
-              !   ! index_count_hypre
-              !   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
+                ! else if (poissonSolverType == 'hypre') then
+                !   ! index_count_hypre
+                !   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
 
-              !   index_count_hypre = i
-              !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
-              !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
+                !   index_count_hypre = i
+                !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
+                !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
 
-              !   index_count_hypre = (index_count_hypre * ne_hypre_i) &
-              !       - ne_hypre_i + 1
+                !   index_count_hypre = (index_count_hypre * ne_hypre_i) &
+                !       - ne_hypre_i + 1
 
-              !   values_i(index_count_hypre) = AC
-              !   values_i(index_count_hypre + 1) = AL
-              !   values_i(index_count_hypre + 2) = AR
-              !   values_i(index_count_hypre + 3) = AB
-              !   values_i(index_count_hypre + 4) = AF
-              !   values_i(index_count_hypre + 5) = AD
-              !   values_i(index_count_hypre + 6) = AU
-              !   values_i(index_count_hypre + 7) = ALB
-              !   values_i(index_count_hypre + 8) = ALF
-              !   values_i(index_count_hypre + 9) = ARB
-              !   values_i(index_count_hypre + 10) = ARF
+                !   values_i(index_count_hypre) = AC
+                !   values_i(index_count_hypre + 1) = AL
+                !   values_i(index_count_hypre + 2) = AR
+                !   values_i(index_count_hypre + 3) = AB
+                !   values_i(index_count_hypre + 4) = AF
+                !   values_i(index_count_hypre + 5) = AD
+                !   values_i(index_count_hypre + 6) = AU
+                !   values_i(index_count_hypre + 7) = ALB
+                !   values_i(index_count_hypre + 8) = ALF
+                !   values_i(index_count_hypre + 9) = ARB
+                !   values_i(index_count_hypre + 10) = ARF
               else
                 stop 'ERROR: val_PsIn expects bicgstab'
               end if
@@ -10148,21 +10145,21 @@ module poisson_module
     ! and the thereby induced vertical wind
 
     ! in/out variables
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (in) :: var
-    real, dimension (- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent (in) :: flux
-    real, intent (in) :: dt
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), intent &
-        (out) :: heat
-    real, dimension (- nbz:nz + nbz), intent (out) :: w_0
-    real, dimension (- nbz:nz + nbz), intent (out) :: S_bar
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
+    real, intent(in) :: dt
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
+        intent(out) :: heat
+    real, dimension(- nbz:nz + nbz), intent(out) :: w_0
+    real, dimension(- nbz:nz + nbz), intent(out) :: S_bar
 
-    character (len = 40) :: w0_mod
+    character(len = 40) :: w0_mod
 
     integer :: i, j, k
-    real, dimension (1:nz) :: sum_local, sum_global
-    real, dimension (- nbz:nz + nbz) :: press0
-    real, dimension (- nbz:nz + nbz) :: rhow_bar
+    real, dimension(1:nz) :: sum_local, sum_global
+    real, dimension(- nbz:nz + nbz) :: press0
+    real, dimension(- nbz:nz + nbz) :: rhow_bar
 
     real :: dptopdt
     real :: expo
@@ -10191,7 +10188,7 @@ module poisson_module
 
     S_bar(1:nz) = sum_global(1:nz)
 
-    if (w0_mod == 'Almgrenetal08') then
+    if(w0_mod == 'Almgrenetal08') then
       ! horizontal mean of the vertical density flux
 
       rhow_bar = 0.
@@ -10202,16 +10199,16 @@ module poisson_module
       do k = 1, nz
         do j = 1, ny
           do i = 1, nx
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               rho = rhoStrat(k) + var(i, j, k, 1)
             else
               rho = var(i, j, k, 1)
             end if
 
-            if (k == 1) then
+            if(k == 1) then
               !sum_local(k) = sum_local(k) + 0.5*flux(i,j,k,3,1)
               wvert = 0.5 * var(i, j, k, 4)
-            else if (k == nz) then
+            else if(k == nz) then
               !sum_local(k) = sum_local(k) + 0.5*flux(i,j,k-1,3,1)
               wvert = 0.5 * var(i, j, k - 1, 4)
             else
@@ -10247,7 +10244,7 @@ module poisson_module
     sum_d = 0.0
     sum_n = 0.0
 
-    if (w0_mod == 'Almgrenetal08') then
+    if(w0_mod == 'Almgrenetal08') then
       do k = 1, nz
         expo = exp(- g_ndim * rhoStrat(k) / (gamma * press0(k)) * z(k))
 
@@ -10256,7 +10253,7 @@ module poisson_module
 
         sum_d = sum_d + expo / (gamma * press0(k))
       end do
-    else if (w0_mod == 'ONK14') then
+    else if(w0_mod == 'ONK14') then
       do k = 1, nz
         sum_n = sum_n - S_bar(k) / PStrat(k)
         sum_d = sum_d + 1. / (gamma * press0(k))
@@ -10271,7 +10268,7 @@ module poisson_module
 
     w_0 = 0.
 
-    if (w0_mod == 'Almgrenetal08') then
+    if(w0_mod == 'Almgrenetal08') then
       do k = 1, nz - 1
         expo = exp(- g_ndim * rhoStrat(k) / (gamma * press0(k)) * z(k))
 
@@ -10285,7 +10282,7 @@ module poisson_module
 
         w_0(k) = expo * w_0(k)
       end do
-    else if (w0_mod == 'ONK14') then
+    else if(w0_mod == 'ONK14') then
       w_0(1) = dz * (- S_bar(1) / Pstrat(1) - (1. / (gamma * press0(1))) &
           * dptopdt)
 
@@ -10304,26 +10301,26 @@ module poisson_module
   ! TFC FJ
   subroutine correctorStepTestTFC(var, dMom, int_mod)
 
-    real, dimension ((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
-        + nbz), nVar), intent (inout) :: var
-    real, dimension ((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
-        + nbz), 3), intent (inout) :: dMom
-    character (len = *), intent (in) :: int_mod
+    real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
+        + nbz), nVar), intent(inout) :: var
+    real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
+        + nbz), 3), intent(inout) :: dMom
+    character(len = *), intent(in) :: int_mod
 
-    real, dimension ((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
+    real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
         + nbz), nVar) :: var_tfc
 
     call random_number(dp)
 
     var_tfc = var
 
-    if (int_mod == "expl") then
+    if(int_mod == "expl") then
       call correctorStep(var_tfc, dMom, 1.0, 1, "expl", 1.0, 1.0)
       topography = .false.
       call correctorStep(var, dMom, 1.0, 1, "expl", 1.0, 1.0)
       topography = .true.
       print *, "Corrector step difference: ", maxval(abs(var_tfc - var))
-    else if (int_mod == "impl") then
+    else if(int_mod == "impl") then
       call correctorStep(var_tfc, dMom, 1.0, 1, "impl", 1.0, 1.0)
       topography = .false.
       call correctorStep(var, dMom, 1.0, 1, "impl", 1.0, 1.0)

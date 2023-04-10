@@ -20,7 +20,7 @@ module type_module
   integer :: sizeX, sizeY, sizeZ
   integer :: nbx, nby, nbz
   integer :: nprocx, nprocy
-  real, dimension (0:1) :: lx_dim, ly_dim, lz_dim ! dimensional domain
+  real, dimension(0:1) :: lx_dim, ly_dim, lz_dim ! dimensional domain
 
   namelist / domain / sizeX, sizeY, sizeZ, nbx, nby, nbz, lx_dim, ly_dim, &
       lz_dim, nprocx, nprocy
@@ -36,14 +36,13 @@ module type_module
 
   ! MPI variables
   integer :: ierror
-  integer, dimension (2) :: dims, coords
-  logical, dimension (2) :: periods
+  integer, dimension(2) :: dims, coords
+  logical, dimension(2) :: periods
   integer :: back, forw, right, left, rank
   integer :: idim, jdim, icoord, jcoord
   integer :: nbProc, comm
   logical :: master
-  integer, dimension (mpi_status_size) :: sts_left, sts_right, sts_back, &
-      sts_forw
+  integer, dimension(mpi_status_size) :: sts_left, sts_right, sts_back, sts_forw
 
   integer, parameter :: root = 0
 
@@ -52,9 +51,9 @@ module type_module
   !-----------------------------------------------------------------
 
   integer :: nx, ny, nz
-  real, dimension (0:1) :: lx, ly, lz ! scaled domain
+  real, dimension(0:1) :: lx, ly, lz ! scaled domain
 
-  real, dimension (:), allocatable :: x, y, z
+  real, dimension(:), allocatable :: x, y, z
   real :: dx, dy, dz
   integer :: nxx, nyy, nzz ! grid size inclusive ghost cells
   integer :: nxyz ! = nx*ny*nz
@@ -64,7 +63,7 @@ module type_module
   !--------------------------------------------------------------
 
   ! real*4, dimension(:,:), allocatable :: field_out
-  real * 4, dimension (:, :), allocatable :: field_out, field_mst
+  real * 4, dimension(:, :), allocatable :: field_out, field_mst
 
   !UAB
   !-----------------------------------------------------------------
@@ -94,36 +93,36 @@ module type_module
   !-----------------------------------------------------------------
   integer :: iOut ! output counter ; gagarina: moved from pinc
 
-  character (len = 256) :: file_namelist
-  character (len = 40) :: dataFileName
-  character (len = 40) :: restartFile ! Tecplot file with restart data
-  logical, dimension (3) :: dimOut ! (/1,0,1/) = 2D (x,z), (/1,1,1) = 3D
-  integer, dimension (:), allocatable :: varOut ! 1 = output, 0 = no output
+  character(len = 256) :: file_namelist
+  character(len = 40) :: dataFileName
+  character(len = 40) :: restartFile ! Tecplot file with restart data
+  logical, dimension(3) :: dimOut ! (/1,0,1/) = 2D (x,z), (/1,1,1) = 3D
+  integer, dimension(:), allocatable :: varOut ! 1 = output, 0 = no output
 
   ! achatzb
   ! data available in restart file
-  integer, dimension (:), allocatable :: varIn ! 1 = available, 0 = not available
+  integer, dimension(:), allocatable :: varIn ! 1 = available, 0 = not available
 
   ! record to be read from restart file (starting from 0!)
   integer :: iIn
   ! achatze
 
-  real, dimension (:), allocatable :: offset ! offset for rho, u,v,w, p, nAer, nIce, qIce, qv
-  integer, dimension (6) :: optVarOut ! 1 = output, 0 = no output
-  integer, dimension (13) :: wkbVarOut !           --"--
+  real, dimension(:), allocatable :: offset ! offset for rho, u,v,w, p, nAer, nIce, qIce, qv
+  integer, dimension(6) :: optVarOut ! 1 = output, 0 = no output
+  integer, dimension(13) :: wkbVarOut !           --"--
   ! increase dimension of optVarOut for new optional variables
 
   ! subtract background yes/no
   logical :: thetaOffset
   logical :: rhoOffset
 
-  character (len = 20) :: outputType ! "time" or "timeStep"
+  character(len = 20) :: outputType ! "time" or "timeStep"
   integer :: nOutput ! output every nOutput's time step
   integer :: maxIter ! max nb. of time steps
   real :: outputTimeDiff ! output every ... seconds
   real :: maxTime ! max time in seconds
   logical :: solutionTime ! TECPLOT's "solution time"
-  character (len = 3) :: solutionTimeUnit !
+  character(len = 3) :: solutionTimeUnit !
   logical :: restart ! reads restartFile in TECPLOT format
   logical :: showGhostCellsX ! plots include ghost cells in x-direction
   logical :: showGhostCellsY ! y-direction
@@ -148,7 +147,7 @@ module type_module
 
   logical :: parameterStudy ! .true. / .false.
   integer :: startParam, endParam, stepParam
-  character (len = 50) :: paramName
+  character(len = 50) :: paramName
   namelist / parameterList / parameterStudy, startParam, endParam, stepParam, &
       paramName
 
@@ -165,7 +164,7 @@ module type_module
   !-----------------------------------------------------------------
 
   ! general
-  character (len = 50) :: testCase
+  character(len = 50) :: testCase
   namelist / testCaseList / testCase
 
   !------------------------
@@ -264,9 +263,11 @@ module type_module
   integer :: branchr
   logical :: lindUinit
 
+  real :: topographyTime_wkb ! FJFeb2023
   real :: mountainHeight_wkb_dim ! Jan Weinkaemmerer, 27.11.18
   real :: mountainWidth_wkb_dim ! FJJan2023
   integer :: mountain_case_wkb
+  integer :: range_factor_wkb ! FJFeb2023
 
   ! Long number scaling of displacement (FJJan2023)
   logical :: long_scaling
@@ -278,7 +279,7 @@ module type_module
   integer :: nray_fac ! maximum factor by which the # of rays may increase
   ! compared to initialization
 
-  character (len = 2) :: cons_merge ! quantity to be conserved
+  character(len = 2) :: cons_merge ! quantity to be conserved
   ! ("wa" = wave action/
   !  "en" = wave energy)
   ! under ray-volume merging
@@ -288,9 +289,10 @@ module type_module
       fac_dm_init, nrk_init, nrl_init, nrm_init, nsmth_wkb, lsmth_wkb, &
       sm_filter, lsaturation, alpha_sat, case_wkb, amp_wkb, wlrx_init, &
       wlry_init, wlrz_init, xr0_dim, yr0_dim, zr0_dim, sigwpx_dim, sigwpy_dim, &
-      sigwpz_dim, branchr, lindUinit, mountainHeight_wkb_dim, &
-      mountainWidth_wkb_dim, mountain_case_wkb, long_scaling, long_fit, &
-      along, blong, zmin_wkb_dim, nray_fac, cons_merge ! JaWi: new nml!      ! Jan Weinkaemmerer, 27.11.18
+      sigwpz_dim, branchr, lindUinit, topographyTime_wkb, &
+      mountainHeight_wkb_dim, mountainWidth_wkb_dim, mountain_case_wkb, &
+      range_factor_wkb, long_scaling, long_fit, along, blong, zmin_wkb_dim, &
+      nray_fac, cons_merge ! JaWi: new nml!      ! Jan Weinkaemmerer, 27.11.18
 
   !------------------------------------------
   ! hotBubble, coldBubble, hotBubble3D
@@ -323,8 +325,11 @@ module type_module
   ! TFC FJ
   ! Switch for background relaxation.
   logical :: relax_background
+  ! FJMar2023
+  ! Surface layer depth.
+  real :: surface_layer_depth
   namelist / mountainwavelist / u_relax, t_relax, t_ramp, xextent_norelax, &
-      relax_background
+      relax_background, surface_layer_depth
   ! achatze
 
   !-----------------------------------------------------------------
@@ -381,26 +386,26 @@ module type_module
   real :: tau_jet
 
   ! environmental state
-  real, dimension (:, :, :, :), allocatable :: var_env
-  real, dimension (:, :, :), allocatable :: p_env_pp, the_env_pp, dens_env_pp, &
+  real, dimension(:, :, :, :), allocatable :: var_env
+  real, dimension(:, :, :), allocatable :: p_env_pp, the_env_pp, dens_env_pp, &
       u_env_pp, v_env_pp
 
   ! relaxation rates for Held & Suarez (1994)
-  real, dimension (:, :), allocatable :: kt_hs, kv_hs
-  real, dimension (:), allocatable :: kw_hs
+  real, dimension(:, :), allocatable :: kt_hs, kv_hs
+  real, dimension(:), allocatable :: kw_hs
 
   !UAB
   ! relaxation rates for Held & Suarez (1994)
-  real, dimension (:, :), allocatable :: kr_sp, kr_sp_w
+  real, dimension(:, :), allocatable :: kr_sp, kr_sp_w
   !UAE
 
   ! switch of thermal relaxation in the divergence constraint
   integer :: RelaxHeating
 
-  character (len = 20) :: fileinitstate2D
+  character(len = 20) :: fileinitstate2D
 
   ! type of relaxation in the sponge
-  character (len = 20) :: Sponge_Rel_Type, Sponge_Rel_Bal_Type
+  character(len = 20) :: Sponge_Rel_Type, Sponge_Rel_Bal_Type
 
   ! add noise
   logical :: add_noise, init_2Dto3D
@@ -431,12 +436,12 @@ module type_module
   real :: z_bl ! height of boundary layer
 
   ! type of initial balance: hydrostatic or geostrophic+hydrostatic
-  character (len = 20) :: init_bal
+  character(len = 20) :: init_bal
 
   logical :: output_theta_bgr, output_rho_bgr ! output backgr. env. state
   logical :: output_br_vais_sq ! output N^2 of the background state
   logical :: output_heat ! output heating
-  character (len = 20) :: balance_eq ! equations used for initial balance
+  character(len = 20) :: balance_eq ! equations used for initial balance
 
   namelist / baroclinic_ID / bar_sigma_y, u_strength, dTh_atm, add_noise, &
       proc_noise, init_2Dto3D, tau_relax, tau_jet, RelaxHeating, init_bal, &
@@ -449,10 +454,10 @@ module type_module
   !-----------------------------------------------------------------
 
   ! vertical direction
-  real, dimension (3) :: vertical
+  real, dimension(3) :: vertical
   real :: vert_theta, vert_alpha
 
-  character (len = 25) :: model
+  character(len = 25) :: model
 
   namelist / modelList / model, vert_theta, vert_alpha
 
@@ -475,13 +480,13 @@ module type_module
   ! < 0 means no filter
   !UAE
 
-  character (len = 20) :: tStepChoice ! "cfl", "fix"
-  character (len = 20) :: timeScheme ! LS_Will_RK3 / Euler
-  character (len = 20) :: timeSchemeType ! lowStorage / classical
-  character (len = 20) :: fluxType ! ILES / central / upwind
-  character (len = 20) :: reconstType ! ALDM / constant / SALD / MUSCL
-  character (len = 20) :: musclType ! muscl1 / muscl2
-  character (len = 20) :: limiterType1 ! minmod / ...
+  character(len = 20) :: tStepChoice ! "cfl", "fix"
+  character(len = 20) :: timeScheme ! LS_Will_RK3 / Euler
+  character(len = 20) :: timeSchemeType ! lowStorage / classical
+  character(len = 20) :: fluxType ! ILES / central / upwind
+  character(len = 20) :: reconstType ! ALDM / constant / SALD / MUSCL
+  character(len = 20) :: musclType ! muscl1 / muscl2
+  character(len = 20) :: limiterType1 ! minmod / ...
   logical :: fluctuationMode ! split rho = rhoStrat + rho'
   logical :: auxil_equ ! auxiliary equation for the
   ! density fluctuations to be
@@ -529,10 +534,10 @@ module type_module
   logical :: tolscale
   ! achatze
   integer :: maxIterPoisson
-  character (len = 20) :: poissonSolverType
-  character (len = 20) :: storageType
-  character (len = 10) :: preconditioner
-  character (len = 10) :: tolcrit
+  character(len = 20) :: poissonSolverType
+  character(len = 20) :: storageType
+  character(len = 10) :: preconditioner
+  character(len = 10) :: tolcrit
   real :: dtau
   integer :: maxIterADI
   logical :: initialCleaning
@@ -552,12 +557,12 @@ module type_module
   ! real, dimension (:), allocatable :: values_e
   ! real, dimension (:), allocatable :: values_i
   !UAC real, dimension(:,:,:), allocatable :: ac_b, al_b,ar_b, ab_b,af_b, &
-  real, dimension (:, :, :), allocatable :: ac_b, acv_b, ach_b, al_b, ar_b, &
+  real, dimension(:, :, :), allocatable :: ac_b, acv_b, ach_b, al_b, ar_b, &
       ab_b, af_b, ad_b, au_b, alb_b, alf_b, arb_b, arf_b
   !UAE
 
   ! TFC FJ
-  real, dimension (:, :, :), allocatable :: aru_b, ard_b, alu_b, ald_b, afu_b, &
+  real, dimension(:, :, :), allocatable :: aru_b, ard_b, alu_b, ald_b, afu_b, &
       afd_b, abu_b, abd_b, auu_b, add_b, aruu_b, ardd_b, aluu_b, aldd_b, &
       afuu_b, afdd_b, abuu_b, abdd_b
 
@@ -596,23 +601,23 @@ module type_module
   !                             Atmosphere
   !-----------------------------------------------------------------
 
-  character (len = 10) :: referenceQuantities ! set of reference quantities
-  integer, dimension (3) :: bvarOut ! 1 = output, 0 = no output
+  character(len = 10) :: referenceQuantities ! set of reference quantities
+  integer, dimension(3) :: bvarOut ! 1 = output, 0 = no output
   ! for the hydrostatically
   ! balanced background state
   logical :: specifyReynolds ! choose Reynolds or mu_viscous
   real :: ReInv ! reciprocal Reynolds number
   real :: mu_viscous_dim ! kinematic viscosity
   real :: mu_conduct_dim ! heat conductivity
-  character (len = 30) :: background ! isentropic / isothermal /
+  character(len = 30) :: background ! isentropic / isothermal /
   ! const-N / diflapse / HeldSuarez
   real :: N_BruntVaisala_dim ! Brunt-Vaisala frequency in 1/s
   real :: theta0_dim ! isentr. backgr. pot. temp. in K
   real :: Temp0_dim ! isoth. backgr. temp. in K
   real :: press0_dim ! pressure at z=0 in Pa
-  real, dimension (3) :: backgroundFlow_dim
+  real, dimension(3) :: backgroundFlow_dim
   real :: f_Coriolis_dim ! Coriolis parameter
-  character (len = 30) :: corset ! constant / periodic
+  character(len = 30) :: corset ! constant / periodic
   real :: z_tr_dim ! height of tropopause
   real :: theta_tr_dim ! const pot. temp. of troposphere
   real :: gamma_t, gamma_s ! lapse rates in trop and strat
@@ -638,7 +643,7 @@ module type_module
   !UAB
   !UAE
 
-  real, dimension (3) :: backgroundFlow
+  real, dimension(3) :: backgroundFlow
   real :: theta00, rho00, P00 ! background values for Boussinesq
 
   real :: mu_conduct
@@ -652,22 +657,25 @@ module type_module
   !UAD logical, dimension(:,:,:), allocatable :: topography_mask
 
   ! topography_surface x-y-dependent mountain surface
-  real, dimension (:, :), allocatable :: topography_surface
+  real, dimension(:, :), allocatable :: topography_surface
+
+  ! FJFeb2023
+  real, dimension(:, :), allocatable :: final_topography_surface
 
   !UAB
   ! vertical index of (velocity) reconstruction points just above the
   ! mountain surface
-  integer, dimension (:, :, :), allocatable :: kbl_topo
+  integer, dimension(:, :, :), allocatable :: kbl_topo
   ! topography gradients in x- and y-direction
   ! (below the reconstruction points)
-  real, dimension (:, :, :), allocatable :: dhdx, dhdy
+  real, dimension(:, :, :), allocatable :: dhdx, dhdy
   ! location of (velocity) interpolation point to be used in determining
   ! the velocity at the reconstruction point
-  real, dimension (:, :, :), allocatable :: x_ip, y_ip, z_ip
+  real, dimension(:, :, :), allocatable :: x_ip, y_ip, z_ip
   ! factors between tangential or normal velocity at the reconstruction
   ! and interpolation points
-  real, dimension (:, :, :), allocatable :: velocity_reconst_t
-  real, dimension (:, :, :), allocatable :: velocity_reconst_n
+  real, dimension(:, :, :), allocatable :: velocity_reconst_t
+  real, dimension(:, :, :), allocatable :: velocity_reconst_n
   !roughness length
   real :: z_0_dim, z_0
   !UAE
@@ -678,17 +686,20 @@ module type_module
   logical :: testTFC
   logical :: spongeTFC, lateralSponge
   real :: xSponge0, ySponge0, xSponge1, ySponge1
-  real, dimension (:, :, :), allocatable :: alphaTFC
+  real, dimension(:, :, :), allocatable :: alphaTFC
+
+  ! FJFeb2023
+  real :: topographyTime
 
   real :: mountainHeight_dim
   real :: mountainWidth_dim
   integer :: mountain_case
-  integer :: range_fac
+  integer :: range_factor
 
   ! TFC FJ
   namelist / topographyList / topography, ipolTFC, freeSlipTFC, testTFC, &
-      spongeTFC, lateralSponge, mountainHeight_dim, mountainWidth_dim, &
-      mountain_case, range_fac, z_0_dim
+      spongeTFC, lateralSponge, topographyTime, mountainHeight_dim, &
+      mountainWidth_dim, mountain_case, range_factor, z_0_dim
   !UAB
   !UAE
 
@@ -709,11 +720,17 @@ module type_module
   !UAC real    :: spongeAlphaZ_dim
   real :: spongeAlphaZ_dim, spongeAlphaZ_fac
 
+  ! Sponge order (FJMar2023)
+  integer :: sponge_order
+
+  ! Diffusive sponge (FJMar2023)
+  logical :: diffusive_sponge
+
   ! gaga: backup, delete later
-  character (len = 10) :: utopcond ! dudz=0 or default u=0
-  character (len = 10) :: rhocond ! rho_prime=0 or default drhodz=0
-  character (len = 10) :: thcond ! theta_prime=0 or default dthdz=0
-  real, dimension (:, :), allocatable :: u_const ! constant wind for baroclinic life cycle experiments
+  character(len = 10) :: utopcond ! dudz=0 or default u=0
+  character(len = 10) :: rhocond ! rho_prime=0 or default drhodz=0
+  character(len = 10) :: thcond ! theta_prime=0 or default dthdz=0
+  real, dimension(:, :), allocatable :: u_const ! constant wind for baroclinic life cycle experiments
   ! gaga
   ! boundary types
   !  real :: xBoundary
@@ -723,15 +740,15 @@ module type_module
 
   namelist / boundaryList / rhoFluxCorr, iceFluxCorr, uFluxCorr, vFluxCorr, &
       wFluxCorr, thetaFluxCorr, nbCellCorr, spongeLayer, sponge_uv, &
-      spongeHeight, zSponge, spongeAlphaZ_dim, spongeAlphaZ_fac, utopcond, &
-      rhocond, thcond
+      spongeHeight, zSponge, spongeAlphaZ_dim, spongeAlphaZ_fac, sponge_order, &
+      diffusive_sponge, utopcond, rhocond, thcond
   !UAC & spongeLayer, spongeHeight, &
   !UAC & spongeAlphaZ_dim, utopcond, rhocond, thcond
 
   ! boundary types
-  character (len = 15) :: xBoundary
-  character (len = 15) :: yBoundary
-  character (len = 15) :: zBoundary
+  character(len = 15) :: xBoundary
+  character(len = 15) :: yBoundary
+  character(len = 15) :: zBoundary
 
   namelist / boundaryList2 / xBoundary, yBoundary, zBoundary
 
@@ -766,7 +783,7 @@ module type_module
   end type rayType
 
   ! total number of active rays
-  integer, dimension (:, :, :), allocatable :: nRay
+  integer, dimension(:, :, :), allocatable :: nRay
 
   ! maximum total number of rays
   integer :: nray_max
@@ -787,7 +804,7 @@ module type_module
   !                           Ice physics
   !-----------------------------------------------------------------
 
-  character (len = 20) :: iceTestcase ! choose initial ice variable setup
+  character(len = 20) :: iceTestcase ! choose initial ice variable setup
   ! possible: "homogeneous_qv", "homogeneous_SIce"
   real :: init_SIce ! initial vapor saturation with respect to ice
   real :: init_nAer, init_qv ! initial values for aerosols and humidity
@@ -797,7 +814,7 @@ module type_module
   real :: p_nuc ! initial nucleation pressure for 1D_ISSR simple flow case
   ! this overwrites press0_dim
   real :: dt_ice ! length of the microphysical time step
-  character (len = 10) :: NUC_approx_type ! nucleation approximation type
+  character(len = 10) :: NUC_approx_type ! nucleation approximation type
   ! possible: "Koop", "linFit", "threshold"
   real :: ISSR_top ! top of ISSR relative to mountain height in qv_relaxation testcase
   logical :: super_simplified ! use a super_simplified DEP and SED scheme
@@ -805,8 +822,8 @@ module type_module
   logical :: sedimentation_on ! turn sedimentation terms on or off
   logical :: nucleation_on ! turn nucleation on or off
   logical :: evaporation_on ! turn evaporation on or off
-  character (len = 10) :: awi_type ! possible: "const", "linFit", "quadFit", "exact"
-  character (len = 10) :: SIce_threshold_type ! possible: "linFit", "quadFit", "exact"
+  character(len = 10) :: awi_type ! possible: "const", "linFit", "quadFit", "exact"
+  character(len = 10) :: SIce_threshold_type ! possible: "linFit", "quadFit", "exact"
 
   namelist / iceList / iceTestcase, init_SIce, init_nAer, init_qv, init_m_ice, &
       radius_solution, sigma_r, T_nuc, p_nuc, dt_ice, NUC_approx_type, &
@@ -843,11 +860,24 @@ module type_module
     lateralSponge = .false.
     relax_background = .true.
 
+    ! Surface layer depth (FJMar2023)
+    surface_layer_depth = 0.0
+
     ! Long number scaling (FJJan2023)
     long_scaling = .false.
     long_fit = 1
     along = 0.5
     blong = 1.0
+
+    ! Topography growth (FJFeb2023)
+    topographyTime = 0.0
+    topographyTime_wkb = 0.0
+
+    ! Sponge order (FJMar2023)
+    sponge_order = 1
+
+    ! Diffusive sponge (FJMar2023)
+    diffusive_sponge = .false.
 
   end subroutine default_values
 
