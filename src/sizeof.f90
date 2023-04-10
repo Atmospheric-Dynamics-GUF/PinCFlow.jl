@@ -14,9 +14,9 @@ module sizeof_module
   contains
   ! subroutine to get the size of a double in terms of block size
   subroutine getsize
-    inquire (iolength = sizeofdouble) doubletest
-    inquire (iolength = sizeofreal) realtest
-    inquire (iolength = sizeofreal4) real4test
-    inquire (iolength = sizeofint) inttest
+    inquire(iolength = sizeofdouble) doubletest
+    inquire(iolength = sizeofreal) realtest
+    inquire(iolength = sizeofreal4) real4test
+    inquire(iolength = sizeofint) inttest
   end subroutine getsize
 end module sizeof_module

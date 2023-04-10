@@ -25,9 +25,9 @@ module mpi_module
   contains
 
   subroutine abort_message(message)
-    character (len = *), intent (in) :: message
+    character(len = *), intent(in) :: message
 
-    if (master) then
+    if(master) then
       print *, message
     end if
 
@@ -44,27 +44,27 @@ module mpi_module
     !-------------------------------
 
     ! in/out variables
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (inout) :: var
-    character (len = *), intent (in) :: option
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+    character(len = *), intent(in) :: option
 
     ! auxiliary fields for rho, u, v, w, pi, and rhop (or theta)
-    real, dimension (nbx, - nby:ny + nby, - nbz:nz + nbz) :: xSliceLeft_send, &
+    real, dimension(nbx, - nby:ny + nby, - nbz:nz + nbz) :: xSliceLeft_send, &
         xSliceRight_send
-    real, dimension (nbx, - nby:ny + nby, - nbz:nz + nbz) :: xSliceLeft_recv, &
+    real, dimension(nbx, - nby:ny + nby, - nbz:nz + nbz) :: xSliceLeft_recv, &
         xSliceRight_recv
 
-    real, dimension (- nbx:nx + nbx, nby, - nbz:nz + nbz) :: ySliceBack_send, &
+    real, dimension(- nbx:nx + nbx, nby, - nbz:nz + nbz) :: ySliceBack_send, &
         ySliceForw_send
-    real, dimension (- nbx:nx + nbx, nby, - nbz:nz + nbz) :: ySliceBack_recv, &
+    real, dimension(- nbx:nx + nbx, nby, - nbz:nz + nbz) :: ySliceBack_recv, &
         ySliceForw_recv
 
     ! aux fields for "varTilde"
-    real, dimension (ny, nz) :: x1SliceLeft_send, x1SliceRight_send
-    real, dimension (ny, nz) :: x1SliceLeft_recv, x1SliceRight_recv
+    real, dimension(ny, nz) :: x1SliceLeft_send, x1SliceRight_send
+    real, dimension(ny, nz) :: x1SliceLeft_recv, x1SliceRight_recv
 
-    real, dimension (nx, nz) :: y1SliceBack_send, y1SliceForw_send
-    real, dimension (nx, nz) :: y1SliceBack_recv, y1SliceForw_recv
+    real, dimension(nx, nz) :: y1SliceBack_send, y1SliceForw_send
+    real, dimension(nx, nz) :: y1SliceBack_recv, y1SliceForw_recv
 
     ! MPI variables
     integer :: dest, source, tag
@@ -78,18 +78,18 @@ module mpi_module
     !     Find neighbour procs
     !-----------------------------
 
-    if (idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
-    if (jdim > 1) call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
+    if(idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
+    if(jdim > 1) call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
 
-    select case (option)
+    select case(option)
 
-    case ("var")
+    case("var")
 
       !------------------------------
       !          x-direction
       !------------------------------
 
-      if (idim > 1) then
+      if(idim > 1) then
         do iVar = 1, 6
           ! slice size
           sendcount = nbx * (ny + 2 * nby + 1) * (nz + 2 * nbz + 1)
@@ -136,7 +136,7 @@ module mpi_module
         end do
       end if
 
-      if (verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
+      if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
           copied."
 
       !------------------------------
@@ -157,7 +157,7 @@ module mpi_module
             + nby, 1:nz, iVar)
       end do
 
-      if (idim > 1) then
+      if(idim > 1) then
 
         ! left -> right
         source = left
@@ -196,7 +196,7 @@ module mpi_module
 
       end if
 
-      if (verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
+      if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
           copied."
 
       !end if ! updateTheta
@@ -205,7 +205,7 @@ module mpi_module
       !   ice variable transport: iVar = nVar-3, nVar
       !------------------------------------------------
 
-      if (include_ice .and. updateIce) then
+      if(include_ice .and. updateIce) then
 
         do iVar = nVar - 3, nVar
 
@@ -221,7 +221,7 @@ module mpi_module
                 - nby:ny + nby, 1:nz, iVar)
           end do
 
-          if (idim > 1) then
+          if(idim > 1) then
 
             ! left -> right
             source = left
@@ -260,7 +260,7 @@ module mpi_module
 
           end if
 
-          if (verbose .and. master) print *, "horizontalHalos:  x-horizontal &
+          if(verbose .and. master) print *, "horizontalHalos:  x-horizontal &
               halos copied."
 
         end do
@@ -271,7 +271,7 @@ module mpi_module
       !          y-direction
       !------------------------------
 
-      if (jdim > 1) then
+      if(jdim > 1) then
         do iVar = 1, 6
           ! slice size
           sendcount = nby * (nx + 2 * nbx + 1) * (nz + 2 * nbz + 1)
@@ -318,7 +318,7 @@ module mpi_module
         end do
       end if
 
-      if (verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
+      if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
           copied."
 
       !------------------------------
@@ -339,7 +339,7 @@ module mpi_module
             - nby + j, 1:nz, iVar)
       end do
 
-      if (jdim > 1) then
+      if(jdim > 1) then
 
         ! back -> forw
         source = back
@@ -378,7 +378,7 @@ module mpi_module
 
       end if
 
-      if (verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
+      if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
           copied."
 
       !end if ! updateTheta
@@ -387,7 +387,7 @@ module mpi_module
       !   ice variable transport: iVar = nVar-3, nVar
       !------------------------------------------------
 
-      if (include_ice .and. updateIce) then
+      if(include_ice .and. updateIce) then
 
         do iVar = nVar - 3, nVar
           ! slice size
@@ -402,7 +402,7 @@ module mpi_module
                 - nby + j, 1:nz, iVar)
           end do
 
-          if (jdim > 1) then
+          if(jdim > 1) then
 
             ! back -> forw
             source = back
@@ -441,7 +441,7 @@ module mpi_module
 
           end if
 
-          if (verbose .and. master) print *, "horizontalHalos:  x-horizontal &
+          if(verbose .and. master) print *, "horizontalHalos:  x-horizontal &
               halos copied."
 
         end do
@@ -450,7 +450,7 @@ module mpi_module
 
       !---------------------------------------------------------------------------
 
-    case ("ice")
+    case("ice")
 
       do iVar = nVar - 3, nVar
 
@@ -470,7 +470,7 @@ module mpi_module
               - nby:ny + nby, 1:nz, iVar)
         end do
 
-        if (idim > 1) then
+        if(idim > 1) then
 
           ! left -> right
           source = left
@@ -524,7 +524,7 @@ module mpi_module
               - nby + j, 1:nz, iVar)
         end do
 
-        if (jdim > 1) then
+        if(jdim > 1) then
 
           ! back -> forw
           source = back
@@ -565,7 +565,7 @@ module mpi_module
 
       !---------------------------------------------------------------------------
 
-    case ("varTilde")
+    case("varTilde")
 
       !-----------------------------------
       !             varTilde
@@ -590,7 +590,7 @@ module mpi_module
       x1SliceLeft_send(1:ny, 1:nz) = rhoTilde(2, 1:ny, 1:nz, 1, 0)
       x1SliceRight_send(1:ny, 1:nz) = rhoTilde(nx - 1, 1:ny, 1:nz, 1, 1)
 
-      if (idim > 1) then
+      if(idim > 1) then
 
         ! left -> right
         source = left
@@ -621,7 +621,7 @@ module mpi_module
 
       end if
 
-      if (verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
+      if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
           copied."
 
       !end if
@@ -642,7 +642,7 @@ module mpi_module
       y1SliceBack_send(1:nx, 1:nz) = rhoTilde(1:nx, 2, 1:nz, 2, 0)
       y1SliceForw_send(1:nx, 1:nz) = rhoTilde(1:nx, ny - 1, 1:nz, 2, 1)
 
-      if (jdim > 1) then
+      if(jdim > 1) then
 
         ! back -> forw
         source = back
@@ -673,14 +673,14 @@ module mpi_module
 
       end if
 
-      if (verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
+      if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
           copied."
 
       !end if ! updateMass
 
     case default
 
-      if (master) then
+      if(master) then
         print *, "setHalo: Unknown case. Stop."
         call mpi_barrier(comm, ierror)
         call mpi_finalize(ierror)
@@ -696,7 +696,7 @@ module mpi_module
   subroutine init_mpi(error_flag)
 
     ! in/out vars
-    logical, intent (out) :: error_flag
+    logical, intent(out) :: error_flag
 
     include 'mpif.h'
 
@@ -709,7 +709,7 @@ module mpi_module
 
     call mpi_init(ierror)
     call mpi_comm_rank(mpi_comm_world, rank, ierror)
-    if (rank .eq. 0) then
+    if(rank .eq. 0) then
       master = .true.
     else
       master = .false.
@@ -721,13 +721,13 @@ module mpi_module
     !-----------------------------
 
     ! open the namelist by master
-    if (master) then
-      open (unit = 10, file = file_namelist, action = "read", form &
+    if(master) then
+      open(unit = 10, file = file_namelist, action = "read", form &
           = "formatted", status = "old", position = "rewind")
 
       ! read grid info
-      read (unit = 10, nml = domain)
-      close (10)
+      read(unit = 10, nml = domain)
+      close(10)
 
     end if
 
@@ -757,13 +757,13 @@ module mpi_module
     ! set up no. of cpus in x-y direction
     idim = nprocx
     jdim = nprocy
-    if (idim * jdim /= nbProc) then
-      if (master) print *, 'Virtual topology wrong idim*jdim should be equal &
-          to nbProc!'
+    if(idim * jdim /= nbProc) then
+      if(master) print *, 'Virtual topology wrong idim*jdim should be equal to &
+          nbProc!'
       error_flag = .true.
       return
     end if
-    if (master) then
+    if(master) then
       !       print"(a,i3,a,i3,a)","Virtual topology: (idim, jdim) = (",idim, " ,",jdim,")"
       print "(a,i4,a,i4,a)", "Virtual topology: (idim, jdim) = (", idim, " ,", &
           jdim, ")"
@@ -816,14 +816,14 @@ module mpi_module
     ! b1 = nbx
 
     ! composition along x coordinate
-    if (idim == 1) then
+    if(idim == 1) then
       nx = sizeX
       is = istart
     else
       nx1 = (sizeX - 1) / idim + 1 ! local domain size
       in1 = sizeX - idim * (nx1 - 1) !
 
-      if (icoord .lt. in1) then
+      if(icoord .lt. in1) then
         nx = nx1
         is = istart + icoord * nx
       else
@@ -835,14 +835,14 @@ module mpi_module
     ie = is + nxx - 1
 
     ! same for y coordinate:
-    if (jdim == 1) then
+    if(jdim == 1) then
       ny = sizeY
       js = jstart
     else
       ny1 = (sizeY - 1) / jdim + 1 ! local domain size
       jn1 = sizeY - jdim * (ny1 - 1) !
 
-      if (jcoord .lt. jn1) then
+      if(jcoord .lt. jn1) then
         ny = ny1
         js = jstart + jcoord * ny
       else
@@ -858,16 +858,16 @@ module mpi_module
     nzz = nz + 2 * nbz + 1
 
     ! Some consistency check between domain size and cpus
-    if (sizeX < idim) then
-      if (master) then
+    if(sizeX < idim) then
+      if(master) then
         print *, 'Stopping! Do not use more than', sizeX, 'cpus to compute &
             this application'
       end if
       error_flag = .true.
       return
     end if
-    if (sizeY < jdim) then
-      if (master) then
+    if(sizeY < jdim) then
+      if(master) then
         print *, 'Stopping! Do not use more than', sizeY, 'cpus to compute &
             this application'
       end if
@@ -876,7 +876,7 @@ module mpi_module
     end if
 
     ! display the decomposition
-    if (verboseMPI) then
+    if(verboseMPI) then
       print "(a,a,i3,a,i3,a,i3,a,i3,a,i3,a)", "(rank,icoord,jcoord) &
           -> (nx,ny)", "(", rank, ",", icoord, ", ", jcoord, ") -> (", nx, ", &
           ", ny, ")"
@@ -893,10 +893,10 @@ module mpi_module
 
     ! in/out variables
     real :: dot_product3D_glob
-    real, dimension (:, :, :), intent (in) :: a, b
+    real, dimension(:, :, :), intent(in) :: a, b
 
     ! locals
-    integer, dimension (3) :: aSize, bSize
+    integer, dimension(3) :: aSize, bSize
     integer :: i, j, k
 
     ! MPI stuff
@@ -906,7 +906,7 @@ module mpi_module
     bSize = shape(b)
 
     do i = 1, 3
-      if (aSize(i) .ne. bSize(i)) stop "dot_product3D failure."
+      if(aSize(i) .ne. bSize(i)) stop "dot_product3D failure."
     end do
 
     dot_product3D_loc = 0.0

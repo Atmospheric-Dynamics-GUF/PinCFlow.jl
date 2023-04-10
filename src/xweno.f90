@@ -20,10 +20,10 @@ module xweno_module
   public :: init_xweno
 
   ! ------------- module variables  ---------------------
-  real, dimension (1:3, 0:2, 0:2, - 1:1) :: alpha
+  real, dimension(1:3, 0:2, 0:2, - 1:1) :: alpha
   ! alpha(k,r,l,lambda*2)
 
-  real, dimension (1:3, 0:2, - 1:1) :: gamma
+  real, dimension(1:3, 0:2, - 1:1) :: gamma
   ! gamma(k,r,lambda)
 
   contains
@@ -35,15 +35,15 @@ module xweno_module
     !------------------------------------------------------------------
 
     ! in/out variables
-    real, dimension (nxx, nyy, nzz), intent (in) :: uBar
-    real, dimension (nxx, nyy, nzz, 1:3, 0:1), intent (out) :: uTilde
+    real, dimension(nxx, nyy, nzz), intent(in) :: uBar
+    real, dimension(nxx, nyy, nzz, 1:3, 0:1), intent(out) :: uTilde
     ! uTilde(i,j,k,dir,Left/Right) with
     ! dir = 1,2,3 for x,y and z direction
     ! 0 = Left and 1 = Right
 
     ! local
     !     real, dimension(nxx,nyy,nzz)  :: phiBar
-    real, dimension (nxx, nyy, nzz, - 1:1) :: phiTilde
+    real, dimension(nxx, nyy, nzz, - 1:1) :: phiTilde
     ! reconstruction to left edge (-1), cell centre (0), right edge (1)
 
     logical :: centered
@@ -79,15 +79,15 @@ module xweno_module
     !-------------------------------------------------
 
     ! in/out variables
-    real, dimension (nxx, nyy, nzz), intent (in) :: uBar
-    real, dimension (nxx, nyy, nzz, 1:3, 0:1), intent (out) :: uTilde
+    real, dimension(nxx, nyy, nzz), intent(in) :: uBar
+    real, dimension(nxx, nyy, nzz, 1:3, 0:1), intent(out) :: uTilde
     ! uTilde(i,j,k,dir,Left/Right) with
     ! dir = 1,2,3 for x,y and z direction
     ! 0 = Left and 1 = Right
 
     ! local
-    real, dimension (nxx, nyy, nzz) :: phiBar
-    real, dimension (nxx, nyy, nzz, - 1:1) :: phiTilde
+    real, dimension(nxx, nyy, nzz) :: phiBar
+    real, dimension(nxx, nyy, nzz, - 1:1) :: phiTilde
     ! reconstruction to left edge (-1), cell centre (0), right edge (1)
 
     logical :: centered
@@ -149,23 +149,23 @@ module xweno_module
     !------------------------------------------------
 
     ! inout
-    real, dimension (nxx, nyy, nzz), intent (in) :: phiBar
-    character (len = 1), intent (in) :: direction
-    logical, intent (in) :: centered
-    real, dimension (nxx, nyy, nzz, - 1:1), intent (out) :: phiTilde
+    real, dimension(nxx, nyy, nzz), intent(in) :: phiBar
+    character(len = 1), intent(in) :: direction
+    logical, intent(in) :: centered
+    real, dimension(nxx, nyy, nzz, - 1:1), intent(out) :: phiTilde
 
     ! local 1D fields
     integer :: i, j, k
-    real, dimension (nxx) :: phiBarX
-    real, dimension (nyy) :: phiBarY
-    real, dimension (nzz) :: phiBarZ
-    real, dimension (nxx, - 1:1) :: phiTildeX
-    real, dimension (nyy, - 1:1) :: phiTildeY
-    real, dimension (nzz, - 1:1) :: phiTildeZ
+    real, dimension(nxx) :: phiBarX
+    real, dimension(nyy) :: phiBarY
+    real, dimension(nzz) :: phiBarZ
+    real, dimension(nxx, - 1:1) :: phiTildeX
+    real, dimension(nyy, - 1:1) :: phiTildeY
+    real, dimension(nzz, - 1:1) :: phiTildeZ
 
-    select case (direction)
+    select case(direction)
 
-    case ("x") ! interpolation in x
+    case("x") ! interpolation in x
       do k = 1, nzz
         do j = 1, nyy
           phiBarX(:) = phiBar(:, j, k)
@@ -174,7 +174,7 @@ module xweno_module
         end do
       end do
 
-    case ("y") ! interpolation in y
+    case("y") ! interpolation in y
       do k = 1, nzz
         do i = 1, nxx
           phiBarY(:) = phiBar(i, :, k)
@@ -183,7 +183,7 @@ module xweno_module
         end do
       end do
 
-    case ("z") ! interpolation in z
+    case("z") ! interpolation in z
       do j = 1, nyy
         do i = 1, nxx
           phiBarZ(:) = phiBar(i, j, :)
@@ -210,23 +210,23 @@ module xweno_module
     !--------------------------------------------------
 
     ! in/out variables
-    integer, intent (in) :: n
-    logical, intent (in) :: centered
-    real, dimension (n), intent (in) :: phiBar
-    real, dimension (n, - 1:1), intent (out) :: phiTilde
+    integer, intent(in) :: n
+    logical, intent(in) :: centered
+    real, dimension(n), intent(in) :: phiBar
+    real, dimension(n, - 1:1), intent(out) :: phiTilde
 
     ! local fields
-    real, dimension (3:n, 1:3, 0:2, - 1:1) :: phiHat
+    real, dimension(3:n, 1:3, 0:2, - 1:1) :: phiHat
     ! reconstructed data phiHat(i,k,r,lambda)
     ! k = 1 constant, k = 2 linear, k=3 quadratic
     ! r stencil: left, right, center shifted stencil
     ! lambda: reconstruction to center, left/right edge
 
-    real, dimension (0:2, 3:n, 1:3, - 1:1) :: omega ! omega(r,i,k,lambda)
+    real, dimension(0:2, 3:n, 1:3, - 1:1) :: omega ! omega(r,i,k,lambda)
     ! dphi2(i) = ( phi(i+1) - phi(i) )^2
-    real, dimension (1:n - 1) :: dPhi2
+    real, dimension(1:n - 1) :: dPhi2
 
-    real, dimension (3:n, 2:3) :: beta ! beta(i,k)   ...r is not necessary
+    real, dimension(3:n, 2:3) :: beta ! beta(i,k)   ...r is not necessary
     ! since beta(k,r,x(i)) = beta(k,r-1,x(i-1))
 
     real :: lSum, sSum, third
@@ -240,7 +240,7 @@ module xweno_module
     ! beta(k,r,xi) = beta(k,r-1,xi-1)
 
     ! compute only interpolants at xi or at the edges xi +/- dx/2
-    if (centered) then
+    if(centered) then
       l0 = 0
       l1 = 0
     else
@@ -358,16 +358,16 @@ module xweno_module
     !------------------------------------------------
 
     ! in/out variables
-    integer, intent (in) :: n
-    logical, intent (in) :: centered
-    real, dimension (n), intent (in) :: phiBar
-    real, dimension (n, - 1:1), intent (out) :: phiTilde
+    integer, intent(in) :: n
+    logical, intent(in) :: centered
+    real, dimension(n), intent(in) :: phiBar
+    real, dimension(n, - 1:1), intent(out) :: phiTilde
 
     ! main
-    real, dimension (1:3, 0:2, - 1:1) :: phiHat
+    real, dimension(1:3, 0:2, - 1:1) :: phiHat
     real, parameter :: epsBeta = 1.0e-16
-    real, dimension (1:3, 0:2) :: beta
-    real, dimension (1:3, 0:2, - 1:1) :: omega
+    real, dimension(1:3, 0:2) :: beta
+    real, dimension(1:3, 0:2, - 1:1) :: omega
     real :: lSum, sSum
     integer :: i, k, r, l, s, lambda2
     integer :: l0, l1
@@ -379,7 +379,7 @@ module xweno_module
         / 2 + 1, phiBar(n / 2), phiBar(n / 2 + 1)
 
     ! compute only interpolants at xi or at the edges xi +/- dx/2
-    if (centered) then
+    if(centered) then
       l0 = 0
       l1 = 0
     else
@@ -477,7 +477,7 @@ module xweno_module
     alpha = 1.0
 
     do lambda2 = - 1, 1, 1
-      lambda = real (lambda2) / 2.0
+      lambda = real(lambda2) / 2.0
       do k = 1, 3
         do r = 0, k - 1
           do l = 0, k - 1
@@ -487,11 +487,11 @@ module xweno_module
 
               pSum = 0.0;
               do p = 0, k
-                if (p == m) cycle
+                if(p == m) cycle
 
                 nProd = 1.0;
                 do n = 0, k
-                  if (n == p .or. n == m) cycle
+                  if(n == p .or. n == m) cycle
                   nProd = nProd * (lambda + r - n + 0.5);
                 end do
                 pSum = pSum + nProd;
@@ -499,7 +499,7 @@ module xweno_module
 
               nProd = 1.0;
               do n = 0, k
-                if (n == m) cycle
+                if(n == m) cycle
                 nProd = nProd * (m - n);
               end do
               mSum = mSum + pSum / nProd;
