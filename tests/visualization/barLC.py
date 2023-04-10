@@ -1,21 +1,18 @@
 import numpy
 import numpy.fft as fft
+import matplotlib.pyplot as pyplot
 import tools
 import style
-import matplotlib.pyplot as pyplot
 
 # Import data.
-data = tools.ModelOutput()
-data.import_data("../barLC/")
-reference = tools.ModelOutput()
-reference.import_data("../barLC/")
+data = tools.ModelOutput("../barLC/")
+reference = tools.ModelOutput("../barLC/")
 
 # Adust coordinate unit.
 data.xx *= 0.001
 data.yy *= 0.001
 
 # Set fields of indices.
-# iz = 22
 iz = int(0.1 * data.nz)
 it = - 1
 
@@ -26,12 +23,12 @@ print(" ".join(("Time:", str(data.tt[it]), "s")))
 for set in (reference, data):
 
     # Set fields of interest.
-    rho = set.psi[it, 0, iz, int(0.5 * set.ny):set.ny, :]
-    uu = set.psi[it, 1, iz, int(0.5 * set.ny):set.ny, :]
-    vv = set.psi[it, 2, iz, int(0.5 * set.ny):set.ny, :]
-    ww = set.psi[it, 3, iz, int(0.5 * set.ny):set.ny, :]
-    pi = set.psi[it, 4, iz, int(0.5 * data.ny):set.ny, :]
-    rhop = set.psi[it, 5, 0, int(0.5 * set.ny):set.ny, :]
+    rho = set.psi[it, 0, iz, int(0.5 * set.ny):set.ny]
+    uu = set.psi[it, 1, iz, int(0.5 * set.ny):set.ny]
+    vv = set.psi[it, 2, iz, int(0.5 * set.ny):set.ny]
+    ww = set.psi[it, 3, iz, int(0.5 * set.ny):set.ny]
+    pi = set.psi[it, 4, iz, int(0.5 * data.ny):set.ny]
+    rhop = set.psi[it, 5, 0, int(0.5 * set.ny):set.ny]
 
     # Compute divergence.
     divergence = numpy.zeros_like(uu)
@@ -64,8 +61,8 @@ for set in (reference, data):
         deltarhop = rhop - deltarhop
 
 # Adjust plotting area.
-data.xx = data.xx[iz, int(0.5 * data.ny):data.ny, :]
-data.yy = data.yy[iz, int(0.5 * data.ny):data.ny, :]
+data.xx = data.xx[iz, int(0.5 * data.ny):data.ny]
+data.yy = data.yy[iz, int(0.5 * data.ny):data.ny]
 
 # Make plot.
 peak = numpy.max(numpy.abs(ugravity))
