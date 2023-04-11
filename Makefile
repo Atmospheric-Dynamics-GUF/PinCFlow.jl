@@ -1,8 +1,8 @@
 # Makefile of PincFlowMSGWAM
 
 # Set compiler.
-# FC = mpif90
-FC = mpiifort
+FC = mpif90
+# FC = mpiifort
 COMPILER = $(shell echo `$(FC) --version` | sed 's/ .*//')
 
 # Set flags.
@@ -12,7 +12,7 @@ ifeq ($(COMPILER), ifort)
   MODULEFLAG=-module $(BUILD)
 else # GNU
   # FCFLAGS=-O0 -g -fcheck=all -Wall -Wno-unused-variable -fdefault-real-8 -fbacktrace -funroll-loops -Wno-unused-dummy-argument -Wno-conversion-extra
-  FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops
+  FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch
   # FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch
   MODULEFLAG= -J$(BUILD)
 endif
@@ -46,7 +46,8 @@ OFILES =	types.o \
 	finish.o \
 	pinc.o \
 	ice.o \
-	sizeof.o
+	sizeof.o \
+	tracer.o
 
 # Add build directory as prefix to path of *.o files.
 OBJ=$(addprefix $(BUILD)/, $(OFILES))
@@ -79,6 +80,7 @@ $(BUILD)/pinc.o: $(BUILD)/fluxes.o
 $(BUILD)/pinc.o: $(BUILD)/update.o
 $(BUILD)/pinc.o: $(BUILD)/poisson.o
 $(BUILD)/pinc.o: $(BUILD)/finish.o
+$(BUILD)/pinc.o: $(BUILD)/tracer.o
 
 # fluxes.f90
 $(BUILD)/fluxes.o: $(BUILD)/types.o
@@ -128,6 +130,7 @@ $(BUILD)/init.o: $(BUILD)/atmosphere.o
 $(BUILD)/init.o: $(BUILD)/mpi.o
 $(BUILD)/init.o: $(BUILD)/boundary.o
 $(BUILD)/init.o: $(BUILD)/sizeof.o
+$(BUILD)/init.o: $(BUILD)/tracer.o
 
 # muscl.f90
 $(BUILD)/muscl.o: $(BUILD)/types.o

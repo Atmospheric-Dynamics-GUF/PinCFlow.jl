@@ -85,9 +85,10 @@ module type_module
   !-----------------------------------------------------------------
   !                          Variables
   !-----------------------------------------------------------------
-  integer :: nVar, nOptVar
+  integer :: nVar, nOptVar, iVart
   logical :: include_ice ! controls use of additional ice variables nAer,nIce,qIce and qv
-  namelist / variables / nVar, nOptVar, include_ice
+  logical :: include_tracer
+  namelist / variables / nVar, nOptVar, include_ice , include_tracer
 
   !-----------------------------------------------------------------
   !                    Input / Output variables
@@ -518,6 +519,7 @@ module type_module
   logical :: predictMomentum ! transport of momentum=var(2-4) on/off
   logical :: updateTheta ! transport of theta=var(6) on/off
   logical :: updateIce ! transport of ice=var(nVar-2:nVar) on/off
+  logical :: updateTracer
 
   !-----------------------------------------------------------------
   !                          Poisson solver
@@ -782,6 +784,13 @@ module type_module
   real :: cgx_max, cgy_max, cgz_max
 
   namelist / wkbList / rayTracer, nRayRatioX, nRayRatioY, nRayRatioZ
+
+  !----------------------------------------------------------------
+  !                           Tracer
+  !----------------------------------------------------------------
+  character(len=20) :: tracerSetup
+
+  namelist / tracerList / tracerSetup
 
   !-----------------------------------------------------------------
   !                           Ice physics
