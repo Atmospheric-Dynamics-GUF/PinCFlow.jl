@@ -40,7 +40,7 @@ module init_module
   !UAB
   !subrouine setup (var,var0,var1,flux,force,source,dRho,dRhop,dMom,dTheta)
   subroutine setup(var, var0, var1, varG, flux, flux0, force, source, dRho, &
-      dRhop, dMom, dTheta, dPStrat, drhoStrat, w_0, dIce)
+      dRhop, dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer)
 
     !UAE
     !-----------------------------------------
@@ -56,6 +56,7 @@ module init_module
     real, dimension (:, :, :, :), allocatable :: dMom ! ...rhoU,rhoV,rhoW
     real, dimension (:, :, :), allocatable :: dTheta ! RK-Update for theta
     real, dimension (:, :, :, :), allocatable :: dIce ! RK-Update for nIce,qIce,qAer,qv
+    real, dimension (:, :, :), allocatable :: dTracer ! RK-Update for rhoTracer
 
     !UAB
     real, dimension (:), allocatable :: dPStrat, drhoStrat ! RK-Update for P
@@ -133,6 +134,21 @@ module init_module
     !-------------------------------------
 
     read (unit = 10, nml = variables)
+
+    if (include_ice .and. include_tracer) then
+       stop "init.f90: cannot include ice and tracer. Check the namelist."
+    end if
+
+    if (include_ice) nVar = nVar + 4
+    if (include_tracer) then
+       if (nVar /= 8) then
+          stop "init.f90: nVar must be set to 8"
+       end if
+
+       nVar = nVar + 1
+       iVart = nVar
+    end if
+    
     if (include_ice) nVar = nVar + 4
 
     ! allocate var = (rho,u,v,w,pEx)
@@ -185,6 +201,12 @@ module init_module
       allocate (dIce(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 4), stat &
           = allocstat)
       if (allocstat /= 0) stop "init.f90: Could not allocate dIce."
+    end if
+
+    if (include_tracer) then
+       allocate (dTracer(-nbx:nx+nbx, -nby:ny + nby, -nbz : nz + nbz), stat &
+            = allocstat)
+       if (allocstat /= 0) stop "init.f90: Could not allocate dTracer."
     end if
 
     !UAB
@@ -304,7 +326,11 @@ module init_module
     if (include_ice) then
       ! read ice physics parametrization
       read (unit = 10, nml = iceLIst)
-    end if
+   end if
+
+   if (include_tracer) then
+      read (unit = 10, nml = tracerList)
+   end if
 
     ! close input file pinc.f
     close (unit = 10)
@@ -431,6 +457,8 @@ module init_module
       rayTracer = .false.
       pressureScaling = .false.
 
+      if (include_tracer) stop "init.f90: Boussinesq not implemented for tracer."
+
       ! updateMass = .false.
       ! predictMomentum = .true.
       ! correctMomentum = .true.
@@ -455,6 +483,7 @@ module init_module
       correctMomentum = .true.
       updateTheta = .false.
       updateIce = .true.
+      updateTracer = .true.
 
       if (master) then ! modified by Junhong Wei (20170216)
         write (90, "(a25)", advance = "no") "updateMass != "
@@ -469,6 +498,9 @@ module init_module
         write (90, "(a25)", advance = "no") "updateIce != "
         write (90, *) updateIce
         write (90, *) ""
+        write(90,"(a25)",advance = "no") "updateTracer != " ! **IK**
+        write(90,*) updateTracer
+        write(90,*) ""
       end if ! modified by Junhong Wei (20170216)
 
       !overwrite unsuitable input settings
@@ -688,6 +720,8 @@ module init_module
 
     ! on default there is no initial ice, humidity or aerosols in the atmosphere
     if (include_ice) var(:, :, :, nVar - 3:nVar) = 0.0
+
+    if (include_tracer) var(:, :, :, iVart) = 0.0
     !---------------------------------------------------------------
 
     select case (testCase)
