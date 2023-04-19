@@ -228,33 +228,24 @@ module output_module
                          if (iVart /= 9) stop "output.f90: iVart should be 9 if only tracer (no ice)."
 
                          if(fluctuationMode) then
-                            if(rhoOffset) then
-                               rhotracer = var(i,j,k,1)
+                            if(topography) then
+                               ! TFC FJ
+                               ! Adjustment for 3D background field in
+                               ! TFC.
+                               rhotracer &
+                                    = (var(i, j, k, 1) &
+                                    + rhoStratTFC(i, j, k))
                             else
-                               if(topography) then
-                                  ! TFC FJ
-                                  ! Adjustment for 3D background field in
-                                  ! TFC.
-                                  rhotracer &
-                                       = (var(i, j, k, 1) &
-                                       + rhoStratTFC(i, j, k))
-                               else
-                                  rhotracer &
-                                       = (var(i,j,k,1) + rhoStrat(k))
-                               end if
+                               rhotracer &
+                                    = (var(i,j,k,1) + rhoStrat(k))
                             end if
                          else
-                            if(rhoOffset) then
-                               rhotracer &
-                                    = (var(i,j,k,1) - rhoStrat(k))
-                            else
-                               rhotracer = var(i,j,k,iVar)
-                            end if
+                            rhotracer = var(i,j,k,1)
                          end if
 
 !!$                         rhotracer = 1.0
-                         
-                         field_prc(i,j) = var(i,j,k,iVart)/rhotracer! * rhoRef
+
+                      field_prc(i,j) = var(i,j,k,iVart)/rhotracer! * rhoRef
                       case default
                          stop "output.f90: unkown iVar in output_data"
                       end select ! iVar
