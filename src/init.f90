@@ -445,7 +445,7 @@ module init_module
       predictMomentum = .true.
       correctMomentum = .true.
       updateTheta = .false.
-      updateIce = .true.
+      if (include_ice) updateIce = .true.
       auxil_equ = .true.
       fluctuationMode = .true.
       poissonSolverType = "bicgstab"
@@ -482,8 +482,12 @@ module init_module
       predictMomentum = .true.
       correctMomentum = .true.
       updateTheta = .false.
-      updateIce = .true.
-      updateTracer = .true.
+      if (include_ice) then
+         updateIce = .true.
+      end if
+      if (include_tracer) then
+         updateTracer = .true.
+      end if
 
       if (master) then ! modified by Junhong Wei (20170216)
         write (90, "(a25)", advance = "no") "updateMass != "
