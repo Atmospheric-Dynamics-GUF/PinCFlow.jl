@@ -180,7 +180,7 @@ program pinc_prog
   ! 1) allocate variables
   ! 2) read input.f90
   call setup(var, var0, var1, varG, flux, flux0, force, source, dRho, dRhop, &
-      dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer)
+       dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer)
 
   call init_atmosphere ! set atmospheric background state
   call init_output
