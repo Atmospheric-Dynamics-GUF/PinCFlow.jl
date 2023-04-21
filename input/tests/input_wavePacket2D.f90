@@ -11,13 +11,13 @@
 
 &domain
 
-  sizeX = 16!256,!512,
+  sizeX = 512,
   sizeY = 1,
   sizeZ = 1000,
   nbx = 3,
   nby = 3,
   nbz = 3,
-  lx_dim = 0.0, 300000.0,
+  lx_dim = 0.0, 9000000.0,
   ly_dim = 0.0, 300000.0,
   lz_dim = 0.0, 100000.0,
   nprocx = {nprocx},
@@ -262,8 +262,8 @@
 
   maxIter = 10             ! stop after maxIter time steps
 
-  outputTimeDiff = 1.08e4  ! output every ... seconds
-  maxTime        = 1.08e4  ! stop after maxTime seconds
+  outputTimeDiff = 10.!.08e4  ! output every ... seconds
+  maxTime        = 10.!.08e4  ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -401,10 +401,10 @@
 
   wavePacketType = 1      ! 1 = Gaussian, 2 = Cosine
 
-  wavePacketDim = 1       ! 1 = 1D, 2 = 2D, 3 = 3D
+  wavePacketDim = 2       ! 1 = 1D, 2 = 2D, 3 = 3D
                           ! for a 2.5D Wave Packet use wavePacketDim = 2
 
-  lambdaX_dim = 300.e3      ! wave length in x direction in m
+  lambdaX_dim = 300000.0      ! wave length in x direction in m
                           ! lambdaX = 0.0 --> infinite wavelength
   lambdaY_dim = 0.0      ! wave length in y direction in m
                           ! lambday = 0.0 --> infinite wavelength
@@ -412,14 +412,14 @@
 
   amplitudeFactor = 0.5   ! normalilized buoyancy amplitude
 
-  xCenter_dim = 1.5e4     ! center of wave packet in x direction in m
+  xCenter_dim = 4500000.0     ! center of wave packet in x direction in m
 
   yCenter_dim = 0.0     ! center of wave packet in y direction in m
-  zCenter_dim = 3.e4      ! center of wave packet in z direction in m
+  zCenter_dim = 30000.0      ! center of wave packet in z direction in m
 
   sigma_dim = 5000.0      ! vertical width of Gaussian wavepacket in m
 
-  sigma_hor_dim = 0.0   ! cosine distribution width
+  sigma_hor_dim = 1500000.0   ! cosine distribution width
                           ! (in x direction, 0 means infinity)
   sigma_hor_yyy_dim = 0.0  ! cosine distribution width
                           ! (in y direction, 0 means infinity)
