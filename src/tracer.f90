@@ -169,9 +169,6 @@ contains
              end do
           end do
        end do
-
-    case ("no_tracer")
-       var(:, :, :, iVart) = 0.0
   
     case ("test_tracer")
 

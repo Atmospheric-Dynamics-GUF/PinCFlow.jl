@@ -11,7 +11,7 @@
 
 &domain
 
-  sizeX = 16!256,!512,
+  sizeX = 16,
   sizeY = 1,
   sizeZ = 1000,
   nbx = 3,
@@ -232,8 +232,8 @@
   nbCellCorr = 1
 
   ! sponge layer at upper boundary
-  spongeLayer = .false.     ! sponge with relaxation to background
-  spongeHeight = 0.0!33      ! relative height of sponge layer
+  spongeLayer = .true.     ! sponge with relaxation to background
+  spongeHeight = 0.33      ! relative height of sponge layer
   spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
 &end
 
@@ -271,11 +271,11 @@
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,1,1,1,0,1   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,1,1,1,0,1   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -404,24 +404,24 @@
   wavePacketDim = 1       ! 1 = 1D, 2 = 2D, 3 = 3D
                           ! for a 2.5D Wave Packet use wavePacketDim = 2
 
-  lambdaX_dim = 300.e3      ! wave length in x direction in m
+  lambdaX_dim = 300000.0      ! wave length in x direction in m
                           ! lambdaX = 0.0 --> infinite wavelength
-  lambdaY_dim = 0.0      ! wave length in y direction in m
+  lambdaY_dim = 3.e5      ! wave length in y direction in m
                           ! lambday = 0.0 --> infinite wavelength
-  lambdaZ_dim = 1000.0   ! vertical wave length in m
+  lambdaZ_dim = -1000.0   ! vertical wave length in m
 
   amplitudeFactor = 0.5   ! normalilized buoyancy amplitude
 
-  xCenter_dim = 1.5e4     ! center of wave packet in x direction in m
+  xCenter_dim = 4.5e6     ! center of wave packet in x direction in m
 
-  yCenter_dim = 0.0     ! center of wave packet in y direction in m
+  yCenter_dim = 1.5e5     ! center of wave packet in y direction in m
   zCenter_dim = 3.e4      ! center of wave packet in z direction in m
 
   sigma_dim = 5000.0      ! vertical width of Gaussian wavepacket in m
 
-  sigma_hor_dim = 0.0   ! cosine distribution width
+  sigma_hor_dim = 1.5e6   ! cosine distribution width
                           ! (in x direction, 0 means infinity)
-  sigma_hor_yyy_dim = 0.0  ! cosine distribution width
+  sigma_hor_yyy_dim = 1.5e6  ! cosine distribution width
                           ! (in y direction, 0 means infinity)
 
   amp_mod_x = 1.0         ! fractional amplitude of amplitude modulation
@@ -724,6 +724,7 @@
 ! ---------- available test cases: -----------
 &tracerList
 
-tracerSetup = "increase_in_z_tracer"          ! gaussian_tracer_2D / gaussian_tracer_3D / layer_tracer /
-                                              ! increase_in_z_tracer
-&end
+  tracerSetup = "increase_in_z_tracer"          ! gaussian_tracer_2D / gaussian_tracer_3D / layer_tracer /
+  ! increase_in_z_tracer
+
+  &end
