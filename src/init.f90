@@ -445,7 +445,7 @@ module init_module
       predictMomentum = .true.
       correctMomentum = .true.
       updateTheta = .false.
-      if (include_ice) updateIce = .true.
+      updateIce = .true.
       auxil_equ = .true.
       fluctuationMode = .true.
       poissonSolverType = "bicgstab"
