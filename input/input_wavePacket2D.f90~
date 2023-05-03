@@ -11,13 +11,13 @@
 
 &domain
 
-  sizeX = 16,
+  sizeX = 512,
   sizeY = 1,
   sizeZ = 1000,
   nbx = 3,
   nby = 3,
   nbz = 3,
-  lx_dim = 0.0, 300000.0,
+  lx_dim = 0.0, 9000000.0,
   ly_dim = 0.0, 300000.0,
   lz_dim = 0.0, 100000.0,
   nprocx = {nprocx},
@@ -38,7 +38,7 @@
                     ! 8 = heating term in the pressure solver
                     !    (due to GWs, only needed in WKB simulations)
   nOptVar = 4,
-
+  include_ice = .false.,
   include_tracer = .true.,
 
 &end
@@ -232,7 +232,7 @@
   nbCellCorr = 1
 
   ! sponge layer at upper boundary
-  spongeLayer = .false.     ! sponge with relaxation to background
+  spongeLayer = .true.     ! sponge with relaxation to background
   spongeHeight = 0.33      ! relative height of sponge layer
   spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
 &end
@@ -255,15 +255,15 @@
 
 &outputList
 
-  outputType = "time"      ! timeStep / time
+  outputType = "timeStep"      ! timeStep / time
 
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
-  maxIter = 10             ! stop after maxIter time steps
+  maxIter = 0             ! stop after maxIter time steps
 
-  outputTimeDiff = 1.08e4  ! output every ... seconds
-  maxTime        = 1.08e4  ! stop after maxTime seconds
+  outputTimeDiff = 1.!08e4  ! output every ... seconds
+  maxTime        = 1.!08e4  ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -271,11 +271,11 @@
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,1,1,1,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,1,1,1,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -399,29 +399,29 @@
 
 &wavePacket
 
-  wavePacketType = 1      ! 1 = Gaussian, 2 = Cosine
+  wavePacketType = 2      ! 1 = Gaussian, 2 = Cosine
 
-  wavePacketDim = 1       ! 1 = 1D, 2 = 2D, 3 = 3D
+  wavePacketDim = 2       ! 1 = 1D, 2 = 2D, 3 = 3D
                           ! for a 2.5D Wave Packet use wavePacketDim = 2
 
-  lambdaX_dim = 300000.0      ! wave length in x direction in m
+  lambdaX_dim = 300000.0       ! wave length in x direction in m
                           ! lambdaX = 0.0 --> infinite wavelength
-  lambdaY_dim = 3.e5      ! wave length in y direction in m
+  lambdaY_dim = 0.0  ! wave length in y direction in m
                           ! lambday = 0.0 --> infinite wavelength
   lambdaZ_dim = -1000.0   ! vertical wave length in m
 
   amplitudeFactor = 0.5   ! normalilized buoyancy amplitude
 
-  xCenter_dim = 4.5e6     ! center of wave packet in x direction in m
+  xCenter_dim = 4500000.0     ! center of wave packet in x direction in m
 
-  yCenter_dim = 1.5e5     ! center of wave packet in y direction in m
-  zCenter_dim = 3.e4      ! center of wave packet in z direction in m
+  yCenter_dim = 150000.0     ! center of wave packet in y direction in m
+  zCenter_dim = 30000.0      ! center of wave packet in z direction in m
 
   sigma_dim = 5000.0      ! vertical width of Gaussian wavepacket in m
 
-  sigma_hor_dim = 1.5e6   ! cosine distribution width
+  sigma_hor_dim = 1500000.0   ! cosine distribution width
                           ! (in x direction, 0 means infinity)
-  sigma_hor_yyy_dim = 1.5e6  ! cosine distribution width
+  sigma_hor_yyy_dim = 1500000.0  ! cosine distribution width
                           ! (in y direction, 0 means infinity)
 
   amp_mod_x = 1.0         ! fractional amplitude of amplitude modulation
