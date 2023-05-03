@@ -187,8 +187,8 @@ class ModelOutput():
                                         self.zc[:, iy, ix], self.psi[it, ipsi,
                                         :, iy, ix])
                                 self.psi[it, ipsi, :, iy, ix] = psi
-                self.psi[:, :, self.zz < self.hh[numpy.newaxis, :,
-                        :]] = fill_value
+                #self.psi[:, :, self.zz < self.hh[numpy.newaxis, :,
+                #        :]] = fill_value
                 self.zc = self.zz.copy()
 
         else:
