@@ -148,9 +148,11 @@ contains
           end do
        else
           do kk = 1, nz
-             var(:,:,kk, iVart) = rho(:,:,kk) * dz_tr * (z(kk) -z(1)) 
+             var(:,:,kk, iVart) = rho(:,:,kk) * dz_tr * (z(kk) -z(1))
           end do
        end if
+
+       
 
     case( "like_density")
 
