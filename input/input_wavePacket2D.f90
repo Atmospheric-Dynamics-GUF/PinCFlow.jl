@@ -255,15 +255,15 @@
 
 &outputList
 
-  outputType = "timeStep"      ! timeStep / time
+  outputType = "time"      ! timeStep / time
 
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
-  maxIter = 0             ! stop after maxIter time steps
+  maxIter = 10             ! stop after maxIter time steps
 
-  outputTimeDiff = 1.!08e4  ! output every ... seconds
-  maxTime        = 1.!08e4  ! stop after maxTime seconds
+  outputTimeDiff = 1.08e4  ! output every ... seconds
+  maxTime        = 1.08e4  ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -399,14 +399,14 @@
 
 &wavePacket
 
-  wavePacketType = 1      ! 1 = Gaussian, 2 = Cosine
+  wavePacketType = 2      ! 1 = Gaussian, 2 = Cosine
 
   wavePacketDim = 2       ! 1 = 1D, 2 = 2D, 3 = 3D
                           ! for a 2.5D Wave Packet use wavePacketDim = 2
 
   lambdaX_dim = 300000.0       ! wave length in x direction in m
                           ! lambdaX = 0.0 --> infinite wavelength
-  lambdaY_dim = 300000.0  ! wave length in y direction in m
+  lambdaY_dim = 0.0!300000.0  ! wave length in y direction in m
                           ! lambday = 0.0 --> infinite wavelength
   lambdaZ_dim = -1000.0   ! vertical wave length in m
 
