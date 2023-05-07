@@ -9,40 +9,32 @@
 
 set -x
 
-# no. of processors ntasks must be nprocx * nprocy
+# Set number of processors (product must be equal to number of tasks).
 ntasks=128
 nprocx=128
 nprocy=1
 
-# OpenMP settings
+# Set OpenMP configuration.
 export OMP_NUM_THREADS=1
 
-# gprof for MPI
-export GMON_OUT_PREFIX=gmon.out-
-
-# env variable export
-# export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/jochum/libraries/spack/opt/spack/linux-scientific7-haswell/gcc-4.8.5/hypre-2.26.0-fgfu4ncdxl7ullqryad7jtdzgzqfacjw/lib/
-
+# Define directories.
 dirHome=/home/atmodynamics/jochum/dissertation
 dirScratch=/scratch/atmodynamics/jochum/dissertation
-
 dirNam=${dirHome}/pinc/tests/input
 exe=${dirHome}/pinc/bin/pinc
 dirWork=${dirScratch}/pinc/tests/coldBubble
-
 mkdir ${dirWork}
 
-# go to work
-
+# Go to work directory.
 cd ${dirWork}
 rm *
 
-# copy namelist
+# Copy namelist.
 sed -e "s/{nprocx}/${nprocx}/" \
     -e "s/{nprocy}/${nprocy}/" \
         ${dirNam}/input_coldBubble.f90 > input.f90
 
-# run the raytracer
+# Run the model.
 mpirun -np ${ntasks} ${exe} 1>run.log 2>&1
 
 exit 0
