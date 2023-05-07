@@ -1,13 +1,11 @@
 import numpy
+import matplotlib.pyplot as pyplot
 import tools
 import style
-import matplotlib.pyplot as pyplot
 
 # Import data.
-data = tools.ModelOutput()
-data.import_data("../IGW/")
-reference = tools.ModelOutput()
-reference.import_data("../IGW/")
+data = tools.ModelOutput("../IGW/")
+reference = tools.ModelOutput("../IGW/")
 
 # Set plot parameters.
 choice = "xz"
@@ -21,24 +19,24 @@ print(" ".join(("Time:", str(data.tt[it]), "s")))
 
 # Set fields of interest.
 if choice == "xy":
-    psi = data.psi[it, :, iz, :, :]
-    psiref = reference.psi[it, :, iz, :, :]
-    xx = 0.001 * data.xx[iz, :, :]
-    yy = 0.001 * data.yy[iz, :, :]
+    psi = data.psi[it, :, iz]
+    psiref = reference.psi[it, :, iz]
+    xx = 0.001 * data.xx[iz]
+    yy = 0.001 * data.yy[iz]
     xlabel = r"$x \, \mathrm{\left[km\right]}$"
     ylabel = r"$y \, \mathrm{\left[km\right]}$"
 elif choice == "xz":
-    psi = data.psi[it, :, :, iy, :]
-    psiref = reference.psi[it, :, :, iy, :]
-    xx = 0.001 * data.xx[:, iy, :]
-    yy = 0.001 * data.zz[:, iy, :]
+    psi = data.psi[it, :, :, iy]
+    psiref = reference.psi[it, :, :, iy]
+    xx = 0.001 * data.xx[:, iy]
+    yy = 0.001 * data.zz[:, iy]
     xlabel = r"$x \, \mathrm{\left[km\right]}$"
     ylabel = r"$z \, \mathrm{\left[km\right]}$"
 elif choice == "yz":
-    psi = data.psi[it, :, :, :, ix]
-    psiref = reference.psi[it, :, :, :, ix]
-    xx = 0.001 * data.yy[:, :, ix]
-    yy = 0.001 * data.zz[:, :, ix]
+    psi = data.psi[it, ..., ix]
+    psiref = reference.psi[it, ..., ix]
+    xx = 0.001 * data.yy[..., ix]
+    yy = 0.001 * data.zz[..., ix]
     xlabel = r"$y \, \mathrm{\left[km\right]}$"
     ylabel = r"$z \, \mathrm{\left[km\right]}$"
 
@@ -46,9 +44,9 @@ elif choice == "yz":
 deltapsi = psi - psiref
 
 # Make plot.
-maximum = numpy.max(numpy.abs(psi[5, :, :]))
+maximum = numpy.max(numpy.abs(psi[5]))
 figure, axes = pyplot.subplots()
-plot = axes.pcolormesh(xx, yy, psi[5, :, :], vmin = - maximum, vmax = maximum,
+plot = axes.pcolormesh(xx, yy, psi[5], vmin = - maximum, vmax = maximum,
         shading = "gouraud", cmap = "seismic")
 axes.set_xlabel(xlabel)
 axes.set_ylabel(ylabel)
@@ -58,9 +56,9 @@ figure.savefig("../results/IGW.png", dpi = 500)
 
 # Make difference plot.
 if (data.psi != reference.psi).all():
-    maximum = numpy.max(numpy.abs(deltapsi[5, :, :]))
+    maximum = numpy.max(numpy.abs(deltapsi[5]))
     figure, axes = pyplot.subplots()
-    plot = axes.pcolormesh(xx, yy, deltapsi[5, :, :], vmin = - maximum,
+    plot = axes.pcolormesh(xx, yy, deltapsi[5], vmin = - maximum,
             vmax = maximum, shading = "gouraud", cmap = "seismic")
     axes.set_xlabel(xlabel)
     axes.set_ylabel(ylabel)

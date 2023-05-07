@@ -6,6 +6,7 @@ module init_module
   use mpi_module
   use boundary_module
   use sizeof_module
+  use sizeof_module
 
   implicit none
 
@@ -25,13 +26,13 @@ module init_module
     !--------------------------------
 
     ! open the namelist file
-    open (unit = 10, file = file_namelist, action = "read", form &
-        = "formatted", status = "old", position = "rewind")
+    open(unit = 10, file = file_namelist, action = "read", form = "formatted", &
+        status = "old", position = "rewind")
 
     ! read parameter study list
-    read (unit = 10, nml = parameterList)
+    read(unit = 10, nml = parameterList)
 
-    close (unit = 10)
+    close(unit = 10)
 
   end subroutine init_paramStudy
 
@@ -59,12 +60,12 @@ module init_module
     real, dimension (:, :, :), allocatable :: dTracer ! RK-Update for rhoTracer
 
     !UAB
-    real, dimension (:), allocatable :: dPStrat, drhoStrat ! RK-Update for P
-    real, dimension (:), allocatable :: w_0 !! w_0 from ONK14
+    real, dimension(:), allocatable :: dPStrat, drhoStrat ! RK-Update for P
+    real, dimension(:), allocatable :: w_0 !! w_0 from ONK14
     !UAE
 
     integer :: allocstat
-    integer :: i, j, k, iVar
+    integer ::i, j, k, iVar
 
     ! constants
     pi = 4 * atan(1.0)
@@ -73,21 +74,21 @@ module init_module
     call default_values
 
     ! open input file input.f90
-    open (unit = 10, file = file_namelist, action = "read", form &
-        = "formatted", status = "old", position = "rewind")
+    open(unit = 10, file = file_namelist, action = "read", form = "formatted", &
+        status = "old", position = "rewind")
 
     !---------------------------------------------------
     ! allocate x,y,z - cell centered coordinate fields
     !---------------------------------------------------
 
-    allocate (x(- nbx:sizeX + nbx), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate x"
+    allocate(x(- nbx:sizeX + nbx), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate x"
 
-    allocate (y(- nby:sizeY + nby), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate y"
+    allocate(y(- nby:sizeY + nby), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate y"
 
-    allocate (z(- nbz:sizeZ + nbz), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate z"
+    allocate(z(- nbz:sizeZ + nbz), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate z"
 
     !---------------------------------------------------
     ! allocate surface and fields for immersed boundary
@@ -100,31 +101,31 @@ module init_module
     !if(allocstat /= 0) stop "init.f90: could not allocate topgoraphy_mask"
 
     !UAC: changed topography_surface from global to local field
-    allocate (topography_surface(- nbx:nx + nbx, - nby:ny + nby), stat &
+    allocate(topography_surface(- nbx:nx + nbx, - nby:ny + nby), stat &
         = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate topography_surface"
+    if(allocstat /= 0) stop "init.f90: could not allocate topography_surface"
 
     !UAB
-    allocate (kbl_topo(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate kbl_topo"
-    allocate (dhdx(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate dhdx"
-    allocate (dhdy(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate dhdy"
-    allocate (x_ip(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate x_ip"
-    allocate (y_ip(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate y_ip"
-    allocate (z_ip(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate z_ip"
-    allocate (velocity_reconst_t(- nbx:nx + nbx, - nby:ny + nby, 3), stat &
+    allocate(kbl_topo(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate kbl_topo"
+    allocate(dhdx(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate dhdx"
+    allocate(dhdy(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate dhdy"
+    allocate(x_ip(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate x_ip"
+    allocate(y_ip(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate y_ip"
+    allocate(z_ip(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate z_ip"
+    allocate(velocity_reconst_t(- nbx:nx + nbx, - nby:ny + nby, 3), stat &
         = allocstat)
-    if (allocstat /= 0) then
+    if(allocstat /= 0) then
       stop "init.f90: could not allocate velocity_reconst_t"
     end if
-    allocate (velocity_reconst_n(- nbx:nx + nbx, - nby:ny + nby, 3), stat &
+    allocate(velocity_reconst_n(- nbx:nx + nbx, - nby:ny + nby, 3), stat &
         = allocstat)
-    if (allocstat /= 0) then
+    if(allocstat /= 0) then
       stop "init.f90: could not allocate velocity_reconst_n"
     end if
     !UAE
@@ -152,53 +153,53 @@ module init_module
     if (include_ice) nVar = nVar + 4
 
     ! allocate var = (rho,u,v,w,pEx)
-    allocate (var(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), stat &
+    allocate(var(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), stat &
         = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate var"
+    if(allocstat /= 0) stop "init.f90: could not allocate var"
 
     ! allocate var0 = (rho,u,v,w,pEx)
-    allocate (var0(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), stat &
+    allocate(var0(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), stat &
         = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate var0"
+    if(allocstat /= 0) stop "init.f90: could not allocate var0"
 
     ! allocate var1 = (rho,u,v,w,pEx)
-    allocate (var1(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), stat &
+    allocate(var1(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), stat &
         = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate var1"
+    if(allocstat /= 0) stop "init.f90: could not allocate var1"
 
     ! allocate varG = (rhoG,uG,vG,wG,pExG)
-    allocate (varG(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), stat &
+    allocate(varG(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), stat &
         = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate varG"
+    if(allocstat /= 0) stop "init.f90: could not allocate varG"
 
     ! allocate source for rho,u,v,w,pEx,theta
-    allocate (source(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+    allocate(source(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
         stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate source"
+    if(allocstat /= 0) stop "init.f90: could not allocate source"
 
     ! allocate dRho
-    allocate (dRho(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+    allocate(dRho(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
         = allocstat)
-    if (allocstat /= 0) stop "init.f90: Could not allocate dRho."
+    if(allocstat /= 0) stop "init.f90: Could not allocate dRho."
 
     ! allocate dRhop
-    allocate (dRhop(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+    allocate(dRhop(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
         = allocstat)
-    if (allocstat /= 0) stop "init.f90: Could not allocate dRhop."
+    if(allocstat /= 0) stop "init.f90: Could not allocate dRhop."
 
     ! allocate dMom
-    allocate (dMom(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), stat &
+    allocate(dMom(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), stat &
         = allocstat)
-    if (allocstat /= 0) stop "init.f90: Could not allocate dMom."
+    if(allocstat /= 0) stop "init.f90: Could not allocate dMom."
 
     ! allocate dTheta
-    allocate (dTheta(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+    allocate(dTheta(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
         = allocstat)
-    if (allocstat /= 0) stop "init.f90: Could not allocate dTheta."
+    if(allocstat /= 0) stop "init.f90: Could not allocate dTheta."
 
     ! allocate dIce
-    if (include_ice) then
-      allocate (dIce(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 4), stat &
+    if(include_ice) then
+      allocate(dIce(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 4), stat &
           = allocstat)
       if (allocstat /= 0) stop "init.f90: Could not allocate dIce."
     end if
@@ -209,30 +210,36 @@ module init_module
        if (allocstat /= 0) stop "init.f90: Could not allocate dTracer."
     end if
 
+    if (include_tracer) then
+       allocate (dTracer(-nbx:nx+nbx, -nby:ny + nby, -nbz : nz + nbz), stat &
+            = allocstat)
+       if (allocstat /= 0) stop "init.f90: Could not allocate dTracer."
+    end if
+
     !UAB
     ! allocate dPStrat
-    allocate (dPStrat(- nbz:nz + nbz), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: Could not allocate dPStrat."
+    allocate(dPStrat(- nbz:nz + nbz), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: Could not allocate dPStrat."
 
     ! allocate drhoStrat
-    allocate (drhoStrat(- nbz:nz + nbz), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: Could not allocate drhoStrat."
+    allocate(drhoStrat(- nbz:nz + nbz), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: Could not allocate drhoStrat."
 
     ! allocate w_0
-    allocate (w_0(- nbz:nz + nbz), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate w_0"
+    allocate(w_0(- nbz:nz + nbz), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate w_0"
     !UAE
 
     ! allocate flux = (f,g,h / fRho, fRhoU, fRhoV, fRhoW, fTheta)
-    allocate (flux(- 1:nx, - 1:ny, - 1:nz, 3, nVar), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate flux"
+    allocate(flux(- 1:nx, - 1:ny, - 1:nz, 3, nVar), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate flux"
 
-    allocate (flux0(- 1:nx, - 1:ny, - 1:nz, 3, nVar), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate flux"
+    allocate(flux0(- 1:nx, - 1:ny, - 1:nz, 3, nVar), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate flux"
 
     ! allocate force
-    allocate (force(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate force"
+    allocate(force(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate force"
 
     ! allocate environm. pot. temp. perturbations
     !allocate(the_env(-nbx+1:sizeX+nbx,-nby+1:sizeY+nby,-nbz+1:sizeZ+nbz), stat=allocstat)
@@ -244,23 +251,23 @@ module init_module
     !allocate(u_env(-nbx+1:sizeX+nbx,-nby+1:sizeY+nby,-nbz+1:sizeZ+nbz), stat=allocstat)
     !if(allocstat /= 0) stop "init.f90: could not allocate u_env"
 
-    allocate (p_env_pp(1:nx, 1:ny, 0:nz + 1), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate p_env_pp"
+    allocate(p_env_pp(1:nx, 1:ny, 0:nz + 1), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate p_env_pp"
 
-    allocate (the_env_pp(1:nx, 1:ny, 0:nz + 1), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate the_env_pp"
+    allocate(the_env_pp(1:nx, 1:ny, 0:nz + 1), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate the_env_pp"
 
-    allocate (dens_env_pp(1:nx, 1:ny, 0:nz + 1), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate dens_env_pp"
+    allocate(dens_env_pp(1:nx, 1:ny, 0:nz + 1), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate dens_env_pp"
 
-    allocate (u_env_pp(0:nx, 1:ny, 0:nz + 1), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate u_env"
+    allocate(u_env_pp(0:nx, 1:ny, 0:nz + 1), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate u_env"
 
-    allocate (v_env_pp(1:nx, 0:ny, 0:nz + 1), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate v_env"
+    allocate(v_env_pp(1:nx, 0:ny, 0:nz + 1), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate v_env"
 
-    allocate (u_const(0:nx, 1:ny), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate u_const"
+    allocate(u_const(0:nx, 1:ny), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate u_const"
 
     !UAb
     !if (TestCase == "baroclinic_LC") then
@@ -275,55 +282,55 @@ module init_module
     !-------------------------------------
 
     ! read model equation specifications
-    read (unit = 10, nml = modelList)
+    read(unit = 10, nml = modelList)
 
     ! read solver specifications
-    read (unit = 10, nml = solverList)
+    read(unit = 10, nml = solverList)
 
     ! read Poisson solver specifications
-    read (unit = 10, nml = poissonSolverList)
+    read(unit = 10, nml = poissonSolverList)
 
     ! read atmosphere specifications
-    read (unit = 10, nml = atmosphereList)
+    read(unit = 10, nml = atmosphereList)
 
     ! read topography data
-    read (unit = 10, nml = topographyList)
+    read(unit = 10, nml = topographyList)
 
     ! read boundary info
-    read (unit = 10, nml = boundaryList)
+    read(unit = 10, nml = boundaryList)
 
     ! read boundary info2
-    read (unit = 10, nml = boundaryList2)
+    read(unit = 10, nml = boundaryList2)
 
     ! allocate varIn, varOut and offset
-    allocate (varIn(nVar), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate varIn"
+    allocate(varIn(nVar), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate varIn"
 
-    allocate (varOut(nVar), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate varOut"
+    allocate(varOut(nVar), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate varOut"
 
-    allocate (offset(nVar - 2), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate offset"
+    allocate(offset(nVar - 2), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate offset"
 
     ! read output specifications
-    read (unit = 10, nml = outputList)
-    if (include_ice) then
-      forall (i = 0:3)
+    read(unit = 10, nml = outputList)
+    if(include_ice) then
+      forall(i = 0:3)
       varOut(nVar - i) = 1
       varIn(nVar - i) = 1
       end forall
     end if
 
     ! read programme debug parameters
-    read (unit = 10, nml = debuggingList)
+    read(unit = 10, nml = debuggingList)
 
     ! read wkb infos
-    read (unit = 10, nml = wkbList)
+    read(unit = 10, nml = wkbList)
 
     ! read test case name
-    read (unit = 10, nml = testCaseList)
+    read(unit = 10, nml = testCaseList)
 
-    if (include_ice) then
+    if(include_ice) then
       ! read ice physics parametrization
       read (unit = 10, nml = iceLIst)
    end if
@@ -333,10 +340,10 @@ module init_module
    end if
 
     ! close input file pinc.f
-    close (unit = 10)
+    close(unit = 10)
 
     ! GBcorr: decide if heating is applied or not + error messages
-    if (heatingONK14 .and. (background == 'realistic' .or. background &
+    if(heatingONK14 .and. (background == 'realistic' .or. background &
         == 'isothermal' .or. background == 'isentropic' .or. background &
         == 'const-N')) then
       print *, "WARNING: you are using an idealized background &
@@ -349,56 +356,56 @@ module init_module
     endif
 
     !UAB
-    if (TestCase == "baroclinic_LC") then
-      allocate (var_env(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+    if(TestCase == "baroclinic_LC") then
+      allocate(var_env(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
           stat = allocstat)
-      if (allocstat /= 0) stop "init.f90: could not allocate var_env"
+      if(allocstat /= 0) stop "init.f90: could not allocate var_env"
 
-      if (background == "HeldSuarez") then
-        allocate (kt_hs(1:ny, 0:nz + 1), stat = allocstat)
-        if (allocstat /= 0) stop "init.f90: could not allocate kt_hs"
+      if(background == "HeldSuarez") then
+        allocate(kt_hs(1:ny, 0:nz + 1), stat = allocstat)
+        if(allocstat /= 0) stop "init.f90: could not allocate kt_hs"
 
-        allocate (kv_hs(0:ny + 1, 0:nz + 1), stat = allocstat)
-        if (allocstat /= 0) stop "init.f90: could not allocate kv_hs"
+        allocate(kv_hs(0:ny + 1, 0:nz + 1), stat = allocstat)
+        if(allocstat /= 0) stop "init.f90: could not allocate kv_hs"
 
-        allocate (kw_hs(0:nz + 1), stat = allocstat)
-        if (allocstat /= 0) stop "init.f90: could not allocate kw_hs"
+        allocate(kw_hs(0:nz + 1), stat = allocstat)
+        if(allocstat /= 0) stop "init.f90: could not allocate kw_hs"
 
       end if
     end if
 
     !if (spongeLayer) then
-    allocate (kr_sp(0:ny + 1, 0:nz + 1), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate kr_sp"
+    allocate(kr_sp(0:ny + 1, 0:nz + 1), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate kr_sp"
 
-    allocate (kr_sp_w(0:ny + 1, 0:nz + 1), stat = allocstat)
-    if (allocstat /= 0) stop "init.f90: could not allocate kr_sp_w"
+    allocate(kr_sp_w(0:ny + 1, 0:nz + 1), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate kr_sp_w"
     !end if
     !UAE
 
     ! TFC FJ
     ! Allocate damping coefficient for spongeTFC.
-    if (topography .and. spongeTFC) then
-      allocate (alphaTFC(0:(nx + 1), 0:(ny + 1), 0:(nz + 1)), stat = allocstat)
-      if (allocstat /= 0) stop "init.f90: could not allocate alphaTFC"
+    if(topography .and. spongeTFC) then
+      allocate(alphaTFC(0:(nx + 1), 0:(ny + 1), 0:(nz + 1)), stat = allocstat)
+      if(allocstat /= 0) stop "init.f90: could not allocate alphaTFC"
     end if
 
     ! TFC FJ
     ! Safety switch for general setup.
-    if (topography) then
-      if (model == "WKB" .or. .not. fluctuationMode .or. poissonSolverType &
+    if(topography) then
+      if(model == "WKB" .or. .not. fluctuationMode .or. poissonSolverType &
           /= "bicgstab" .or. reconstType /= "MUSCL" .or. musclType /= "muscl1" &
           .or. fluxType /= "upwind" .or. heatingONK14 .or. TurbScheme .or. &
-          rayTracer .or. pressureScaling .or. dens_relax .or. include_ice &
-          .or. background == "HeldSuarez") then
+          rayTracer .or. pressureScaling .or. dens_relax .or. include_ice .or. &
+          background == "HeldSuarez") then
         stop "Terrain-following coordinates not implemented for chosen setup!"
       end if
     end if
 
     ! TFC FJ
     ! Safety switch for test cases.
-    if (topography) then
-      if (.not. any(testCase == (/character (50) :: "sinus", "uniform_theta", &
+    if(topography) then
+      if(.not. any(testCase == (/character(50)::"sinus", "uniform_theta", &
           "monochromeWave", "wavePacket", "mountainwave", "Robert_Bubble", &
           "coldBubble", "smoothVortex", "atmosphereatrest", &
           "SkamarockKlemp94", "hotBubble", "hotBubble2D", "hotBubble3D"/))) then
@@ -408,7 +415,7 @@ module init_module
 
     ! TFC FJ
     ! Safety switch for non-TFC setup.
-    if (.not. topography) then
+    if(.not. topography) then
       freeSlipTFC = .false.
       testTFC = .false.
       spongeTFC = .false.
@@ -420,21 +427,21 @@ module init_module
     !---------------------------------------
 
     ! open info file
-    open (unit = 90, file = "info.txt", action = "write", form = "formatted", &
+    open(unit = 90, file = "info.txt", action = "write", form = "formatted", &
         status = "replace")
 
     ! write model info file
-    write (90, fmt = "(a)") ""
-    write (90, fmt = "(a)") "Model: " // trim(model)
-    write (90, fmt = "(a)") ""
+    write(90, fmt = "(a)") ""
+    write(90, fmt = "(a)") "Model: " // trim(model)
+    write(90, fmt = "(a)") ""
 
-    select case (model)
+    select case(model)
 
-    case ("anelastic")
+    case("anelastic")
 
       pressureScaling = .false.
 
-    case ("Boussinesq")
+    case("Boussinesq")
 
       ! TFC FJ
       ! Boussinesq model with fluctuationMode and bicgstab
@@ -476,7 +483,7 @@ module init_module
       ! ! never offset theta
       ! thetaOffset = .false.
 
-    case ("pseudo_incompressible")
+    case("pseudo_incompressible")
 
       updateMass = .true.
       predictMomentum = .true.
@@ -508,11 +515,11 @@ module init_module
       end if ! modified by Junhong Wei (20170216)
 
       !overwrite unsuitable input settings
-      if (zBoundary == "periodic") then
+      if(zBoundary == "periodic") then
         print *, "WARNING: zBoundary periodic not possible.  Reset to &
             solid_wall!"
         zBoundary = "solid_wall"
-        write (90, "(a)") "WARNING: zBoundary periodic not possible.  Reset to &
+        write(90, "(a)") "WARNING: zBoundary periodic not possible.  Reset to &
             solid_wall!"
       end if
 
@@ -521,7 +528,7 @@ module init_module
       stop "initialize: Unknown model"
     end select
 
-    close (90) ! info file
+    close(90) ! info file
 
   end subroutine setup
 
@@ -533,8 +540,8 @@ module init_module
     !------------------
 
     ! in/out variables
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (inout) :: var
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout):: var
 
     ! local variables
     integer :: i, j, k
@@ -579,7 +586,7 @@ module init_module
     real :: lambdaX, lambdaY ! hor. wave lengths
     real :: lambdaZ ! vert. wave lengths
 
-    complex, dimension (0:nx + 1, 0:ny + 1, 0:nz + 1, 5, 0:2) :: Psi
+    complex, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 5, 0:2) :: Psi
     real :: u1, w1, b1, p1
     real :: u2, w2, b2, p2
 
@@ -595,7 +602,7 @@ module init_module
     real :: xx
 
     ! random noise on background
-    real, dimension (0:nx + 1, 0:ny + 1, 0:nz + 1) :: randNoise
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1) :: randNoise
     real, parameter :: randAmp = 0.0
 
     ! jet stream
@@ -612,18 +619,18 @@ module init_module
     real :: tanhyP1, tanhyP2, ztdif, signmtanh_P1, signmtanh_P2
     real :: p_dim, p_dim1, tmp_dim, pressure, hor_wind, the_dim, rhe_dim, the, &
         ampl_rho
-    real, dimension (1:nx, 1:ny) :: P_ref, dPrefdy, Z_trop, T0_t
-    real, dimension (1:nx, 1:ny) :: gamma_tr, gamma_st
-    real, dimension (1:nx, 1:ny) :: dpdy_trop, P_trop
-    real, dimension (0:nz + 1) :: F_0, dF0dz, rho_n
+    real, dimension(1:nx, 1:ny) :: P_ref, dPrefdy, Z_trop, T0_t
+    real, dimension(1:nx, 1:ny) :: gamma_tr, gamma_st
+    real, dimension(1:nx, 1:ny) :: dpdy_trop, P_trop
+    real, dimension(0:nz + 1) :: F_0, dF0dz, rho_n
     real :: dthdz, streamfunc, cp, dexndy, dexndz, ex_pr_pert, dstdz
     real :: theta_bar_0, noise_mag
-    real, dimension (1:nx, 1:ny, 1:nz) :: noise
-    real, dimension (0:ny + 1, 0:nz + 1) :: pi_pr_yz
-    real, dimension (0:nx + 1, 0:nz + 1) :: pi_pr_xz
-    real, dimension (1:nx, 1:ny, 1:nz - 1) :: br_vais_sq, balance, balance1, &
+    real, dimension(1:nx, 1:ny, 1:nz) :: noise
+    real, dimension(0:ny + 1, 0:nz + 1) :: pi_pr_yz
+    real, dimension(0:nx + 1, 0:nz + 1) :: pi_pr_xz
+    real, dimension(1:nx, 1:ny, 1:nz - 1) :: br_vais_sq, balance, balance1, &
         balance2, balance3, balance4
-    character (len = 20) :: noise_var, defth
+    character(len = 20) :: noise_var, defth
 
     ! TFC FJ
     ! Baroclinic life cycles in TFC.
@@ -632,14 +639,14 @@ module init_module
         piFUEdgeL, piFDEdgeL, piUEdgeF, piDEdgeF, piUEdgeB, piDEdgeB, &
         piRUEdgeF, piRDEdgeF, piRUEdgeB, piRDEdgeB
     real :: piGrad
-    integer, dimension (1:nx, 1:ny) :: k_2_tfc
-    real, dimension (1:nx, 1:ny) :: z_2_tfc, theta_bar_0_tfc, alpha_t_tfc
-    real, dimension (1:nx, 1:ny, 1:nz) :: z_tr_diff_tfc, F_0_tfc, &
-        pi_pr_xz_tfc, pi_pr_yz_tfc
+    integer, dimension(1:nx, 1:ny) :: k_2_tfc
+    real, dimension(1:nx, 1:ny) :: z_2_tfc, theta_bar_0_tfc, alpha_t_tfc
+    real, dimension(1:nx, 1:ny, 1:nz) :: z_tr_diff_tfc, F_0_tfc, pi_pr_xz_tfc, &
+        pi_pr_yz_tfc
 
     integer :: i00, j00 ! modified by Junhong Wei (20161121)
 
-    real, dimension (- 1:nx, - 1:ny, - 1:nz, 3, nVar) :: flux
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar) :: flux
 
     real :: rho_int_m0, rho_int_00, rho_int_mp, rho_int_0p, rho_int_0m, &
         rho_int_pm, rho_int_p0
@@ -651,11 +658,11 @@ module init_module
 
     real :: ptptb_x, ptptb_y, ptptb_z, ptptb_dh, ptptb_dz, ptptb_amp
 
-    real, dimension (1:ny) :: s2_strtd, c2_strtd, c4_strtd
+    real, dimension(1:ny) :: s2_strtd, c2_strtd, c4_strtd
     real :: yjets, yjetn, dy_hs, tempev, pistar, thetastar, sig_pr, facsig
     real :: ka_hs, ks_hs, kf_hs
-    real, dimension (1:nx, 1:ny) :: tp_sponge, tp_sp1, tp_sp2 !FS
-    real, dimension (0:ny + 1) :: f_Coriolis_y !FS
+    real, dimension(1:nx, 1:ny) :: tp_sponge, tp_sp1, tp_sp2 !FS
+    real, dimension(0:ny + 1) :: f_Coriolis_y !FS
     real :: spongeDz
 
     integer :: switch, k_tropopause
@@ -674,16 +681,16 @@ module init_module
     !UAE
 
     ! open the namelist file
-    open (unit = 10, file = file_namelist, action = "read", form &
-        = "formatted", status = "old", position = "rewind")
+    open(unit = 10, file = file_namelist, action = "read", form = "formatted", &
+        status = "old", position = "rewind")
 
     !---------------------------
     !      General settings
     !---------------------------
 
-    select case (model)
+    select case(model)
 
-    case ("Boussinesq")
+    case("Boussinesq")
 
       ! TFC FJ
       ! var(:, :, :, 1) must remain zero! Background fields are constant!
@@ -699,9 +706,9 @@ module init_module
       ! vertical(2) = +cos(vert_theta*pi/180.)*sin(vert_alpha*pi/180.)
       ! vertical(3) = +sin(vert_theta*pi/180.)
 
-    case ("pseudo_incompressible")
+    case("pseudo_incompressible")
 
-      if (master) then ! modified by Junhong Wei (20161121)
+      if(master) then ! modified by Junhong Wei (20161121)
         print *, "WARNING: only wave packet test case is  changed to density &
             fluctuation mode!"
       end if ! modified by Junhong Wei (20161121)
@@ -709,7 +716,7 @@ module init_module
       ! set vertical always paralle to z-axis
       vertical = (/0.0, 0.0, 1.0/)
 
-    case ("WKB")
+    case("WKB")
       !
 
     case default
@@ -728,13 +735,13 @@ module init_module
     if (include_tracer) var(:, :, :, iVart) = 0.0
     !---------------------------------------------------------------
 
-    select case (testCase)
+    select case(testCase)
 
       !-------------------------------------
       !             Boussinesq only
       !-------------------------------------
 
-    case ("sinus")
+    case("sinus")
 
       ! TFC FJ
       ! Density fluctuations are stored in var(i, j, k, 6),
@@ -744,7 +751,7 @@ module init_module
       var(:, :, :, 2:4) = 0.0
 
       do i = - 2, nx + 3
-        xx = lx(0) + (real (i - 1) + 0.5) * dx
+        xx = lx(0) + (real(i - 1) + 0.5) * dx
         theta = sin(pi * xx * lRef)
         ! TFC FJ
         ! Density fluctuations are stored in var(i, j, k, 6)!
@@ -752,7 +759,7 @@ module init_module
         ! var(i,1,1,6) = theta
       end do
 
-    case ("uniform_theta")
+    case("uniform_theta")
 
       ! zero atmospheric background flow
       var(:, :, :, 2) = backgroundFlow_dim(1) / uRef
@@ -769,12 +776,12 @@ module init_module
       ! var(:,:,:,6) = 0.0 / thetaRef
 
       ! initialize the ice variables according to iceTestcase
-      if (include_ice) call setup_ice(var)
+      if(include_ice) call setup_ice(var)
 
-    case ("monochromeWave")
+    case("monochromeWave")
 
       ! read test case input data
-      read (unit = 10, nml = monochromeWave)
+      read(unit = 10, nml = monochromeWave)
 
       ! gather quantities
       th = vert_theta * pi / 180.0
@@ -798,7 +805,7 @@ module init_module
         do i = 1, nx
 
           ! phase
-          if (topography) then
+          if(topography) then
             ! TFC FJ
             phi = - kk * x(i) - mm * heightTFC(i, j, k)
           else
@@ -827,7 +834,7 @@ module init_module
 
           ! TFC FJ
           ! Compute terrain-following vertical wind.
-          if (topography) then
+          if(topography) then
             var(i, j, k, 4) = var(i, j, k, 4) / jac(i, j, k) + met(i, j, k, 1, &
                 3) * var(i, j, k, 2) + met(i, j, k, 2, 3) * var(i, j, k, 3)
           end if
@@ -870,7 +877,7 @@ module init_module
       !          Gravity Waves: wave resolving simulations or WKB
       !----------------------------------------------------------
 
-    case ('wavePacket') ! 1D/2D wave packet
+    case('wavePacket') ! 1D/2D wave packet
 
       !---------------------
       ! set up random noise
@@ -886,13 +893,13 @@ module init_module
       !--------------------
 
       ! read test case input data
-      read (unit = 10, nml = wavePacket)
+      read(unit = 10, nml = wavePacket)
 
       u0 = u0_jet_dim / uRef ! amplitude of jet
       L_jet = L_jet_dim / lRef ! half width of cos profile
       z0_jet = z0_jet_dim / lRef ! center of jet
 
-      if (topography) then
+      if(topography) then
         ! TFC FJ
         do k = 1, nz
           do j = 1, ny
@@ -900,7 +907,7 @@ module init_module
               delz = (heightTFC(i, j, k) - z0_jet)
 
               ! Cosine
-              if (abs(delz) .le. L_jet) then
+              if(abs(delz) .le. L_jet) then
                 u_jet = 0.5 * u0 * (1.0 + cos(pi * delz / L_jet))
               else
                 u_jet = 0.0
@@ -915,7 +922,7 @@ module init_module
           delz = (z(k) - z0_jet)
 
           ! Cosine
-          if (abs(delz) .le. L_jet) then
+          if(abs(delz) .le. L_jet) then
             u_jet = 0.5 * u0 * (1.0 + cos(pi * delz / L_jet))
           else
             u_jet = 0.0
@@ -933,7 +940,7 @@ module init_module
       do k = 0, (nz + 1)
         do j = 0, (ny + 1)
           do i = 0, (nx + 1)
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               phi = kk * x(i + i0) + ll * y(j + j0) + mm * heightTFC(i, j, k)
             else
@@ -941,22 +948,22 @@ module init_module
             end if
 
             ! wave 1
-            u1 = real (Psi(i, j, k, 1, 1) * exp(phi * imag))
-            w1 = real (Psi(i, j, k, 2, 1) * exp(phi * imag))
-            b1 = real (Psi(i, j, k, 3, 1) * exp(phi * imag))
-            p1 = real (Psi(i, j, k, 4, 1) * exp(phi * imag))
+            u1 = real(Psi(i, j, k, 1, 1) * exp(phi * imag))
+            w1 = real(Psi(i, j, k, 2, 1) * exp(phi * imag))
+            b1 = real(Psi(i, j, k, 3, 1) * exp(phi * imag))
+            p1 = real(Psi(i, j, k, 4, 1) * exp(phi * imag))
 
             ! wave 2
-            if (initWave2) then
+            if(initWave2) then
               stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
-              u2 = real (Psi(i, j, k, 1, 2) * exp(2. * phi * imag))
-              w2 = real (Psi(i, j, k, 2, 2) * exp(2. * phi * imag))
-              b2 = real (Psi(i, j, k, 3, 2) * exp(2. * phi * imag))
-              p2 = real (Psi(i, j, k, 4, 2) * exp(2. * phi * imag))
+              u2 = real(Psi(i, j, k, 1, 2) * exp(2. * phi * imag))
+              w2 = real(Psi(i, j, k, 2, 2) * exp(2. * phi * imag))
+              b2 = real(Psi(i, j, k, 3, 2) * exp(2. * phi * imag))
+              p2 = real(Psi(i, j, k, 4, 2) * exp(2. * phi * imag))
             end if
 
             ! sum of wave 1 and 2
-            if (initWave2) then
+            if(initWave2) then
               stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
               b = b1 + b2
               u = u1 + u2
@@ -970,7 +977,7 @@ module init_module
             end if
 
             ! additional vars
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               rho = 1.0 / (1.0 + Fr2 * b) * rhoStratTFC(i, j, k)
             else
@@ -979,15 +986,15 @@ module init_module
             theta = Fr2 * theta00 * b
 
             ! write to field
-            select case (model)
-            case ("pseudo_incompressible")
+            select case(model)
+            case("pseudo_incompressible")
 
               ! add random noise
               rho = rho + randNoise(i, j, k)
 
               ! subtract background for fluctuation mode
-              if (fluctuationMode) then
-                if (topography) then
+              if(fluctuationMode) then
+                if(topography) then
                   ! TFC FJ
                   rho = rho - rhoStratTFC(i, j, k)
                 else
@@ -999,13 +1006,13 @@ module init_module
               ! write to field
               var(i, j, k, 1) = rho
 
-            case ("Boussinesq")
+            case("Boussinesq")
 
               ! TFC FJ
               ! Density fluctuations are stored in var(i, j, k, 6),
               ! var(i, j, k, 1) must remain zero! Boussinesq model only
               ! works for fluctuationMode!
-              if (topography) then
+              if(topography) then
                 var(i, j, k, 6) = rho - rhoStratTFC(i, j, k)
               else
                 var(i, j, k, 6) = rho - rhoStrat(k)
@@ -1021,11 +1028,11 @@ module init_module
             var(i, j, k, 4) = w
             var(i, j, k, 5) = p
 
-            var(i, j, k, 3) = real (Psi(i, j, k, 5, 1) * exp(phi * imag))
+            var(i, j, k, 3) = real(Psi(i, j, k, 5, 1) * exp(phi * imag))
 
             ! TFC FJ
             ! Compute terrain-following vertical wind.
-            if (topography) then
+            if(topography) then
               var(i, j, k, 4) = var(i, j, k, 4) / jac(i, j, k) + met(i, j, k, &
                   1, 3) * var(i, j, k, 2) + met(i, j, k, 2, 3) * var(i, j, k, 3)
             end if
@@ -1043,16 +1050,16 @@ module init_module
         var(:, :, k, 4) = 0.5 * (var(:, :, k, 4) + var(:, :, k + 1, 4))
       end do
 
-      select case (model)
-      case ("pseudo_incompressible")
+      select case(model)
+      case("pseudo_incompressible")
 
         var(:, :, 0, 4) = 0.0 ! reset velocity at wall to zero
         var(:, :, nz, 4) = 0.0 ! reset velocity at wall to zero
 
-      case ("Boussinesq")
+      case("Boussinesq")
 
         ! TFC FJ
-        if (zBoundary == "solid_wall") then
+        if(zBoundary == "solid_wall") then
           var(:, :, 0, 4) = 0.0
           var(:, :, nz, 4) = 0.0
         end if
@@ -1067,16 +1074,16 @@ module init_module
       end do
 
       ! initialize the ice variables according to iceTestcase
-      if (include_ice) call setup_ice(var)
+      if(include_ice) call setup_ice(var)
 
       !---------------------------------------------------------------
 
-    case ('mountainwave')
+    case('mountainwave')
       ! for wave resolving simulation of mountain waves:
       ! read parameters for temporary wind relaxation
       ! zero-wind initial state for montain-wave simulations
 
-      read (unit = 10, nml = mountainwavelist)
+      read(unit = 10, nml = mountainwavelist)
 
       ! nondimensionalization
 
@@ -1087,7 +1094,7 @@ module init_module
 
       xextent_norelax = xextent_norelax / lRef
 
-      if (relax_background .and. xextent_norelax < lx(1) - lx(0)) then
+      if(relax_background .and. xextent_norelax < lx(1) - lx(0)) then
         ! increase relaxation wind u_relax so that u = u_relax after the
         ! relaxation period (in zonally symmetric case without topography)
         u_relax = u_relax / (1.0 - exp(4.0 * t_ramp / (pi * t_relax) - 1.0))
@@ -1101,6 +1108,20 @@ module init_module
         var(:, :, :, 2) = backgroundFlow_dim(1) / uRef
         var(:, :, :, 3) = backgroundFlow_dim(2) / uRef
         var(:, :, :, 4) = backgroundFlow_dim(3) / uRef
+
+        ! FJMar2023
+        ! Set background wind to zero in surface layer.
+        do k = 1, nz
+          do j = 1, ny
+            do i = 1, nx
+              if(heightTFC(i, j, k) < surface_layer_depth / lRef) then
+                var(i, j, k, 2) = 0.0
+                var(i, j, k, 3) = 0.0
+                var(i, j, k, 4) = 0.0
+              end if
+            end do
+          end do
+        end do
 
         ! ! Define initial background wind parallel to the topography (based on
         ! ! linearized no-normal-flow boundary condition).
@@ -1121,12 +1142,12 @@ module init_module
       do k = 0, (nz + 1)
         do j = 0, (ny + 1)
           do i = 0, (nx + 1)
-            select case (model)
-            case ("pseudo_incompressible")
+            select case(model)
+            case("pseudo_incompressible")
               ! initialization density = background density
               ! subtract background for fluctuation mode
 
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 rho = 0.0
               else
                 rho = rhoStrat(k)
@@ -1135,7 +1156,7 @@ module init_module
               ! write to field
               var(i, j, k, 1) = rho
 
-            case ("Boussinesq")
+            case("Boussinesq")
               ! initialization zero buoyancy fluctuations
 
               var(i, j, k, 6) = 0.0
@@ -1152,44 +1173,44 @@ module init_module
       end do
 
       ! initialize the ice variables according to iceTestcase
-      if (include_ice) call setup_ice(var)
+      if(include_ice) call setup_ice(var)
 
       !-----------------------------------------------------------------
 
-    case ('raytracer')
+    case('raytracer')
       ! WKB simulations: Wave packet or mountain waves
       ! for the full set up see routine setup_wkb
 
-      if (.not. raytracer) stop 'raytracer not set correctly'
+      if(.not. raytracer) stop 'raytracer not set correctly'
 
       ! read namelist for wkb ray tracer
-      read (unit = 10, nml = LagrangeRayTracing)
+      read(unit = 10, nml = LagrangeRayTracing)
 
-      if (sizeX == 1) then
+      if(sizeX == 1) then
         print *, 'sizeX = 1, hence fac_dk_init = 0'
         fac_dk_init = 0.0
       end if
 
-      if (sizeY == 1) then
+      if(sizeY == 1) then
         print *, 'sizeY = 1, hence fac_dl_init = 0'
         fac_dl_init = 0.0
       end if
 
-      if (fac_dk_init == 0.0) then
+      if(fac_dk_init == 0.0) then
         dk_init = 0.0
-      else if (wlrx_init /= 0.0) then
+      else if(wlrx_init /= 0.0) then
         dk_init = fac_dk_init * 2.0 * pi / wlrx_init
-      else if (wlry_init /= 0.0) then
+      else if(wlry_init /= 0.0) then
         dk_init = fac_dk_init * 2.0 * pi / wlry_init
       else
         stop 'ERROR: BOTH WLRX_INIT and WLRY_INIT = 0.0'
       end if
 
-      if (fac_dl_init == 0.0) then
+      if(fac_dl_init == 0.0) then
         dl_init = 0.0
-      else if (wlry_init /= 0.0) then
+      else if(wlry_init /= 0.0) then
         dl_init = fac_dl_init * 2.0 * pi / wlry_init
-      else if (wlrx_init /= 0.0) then
+      else if(wlrx_init /= 0.0) then
         dl_init = fac_dl_init * 2.0 * pi / wlrx_init
       else
         stop 'ERROR: BOTH WLRX_INIT and WLRY_INIT = 0.0'
@@ -1199,8 +1220,8 @@ module init_module
 
       ! in WKB mountain-wave case read parameters for wind relaxation
 
-      if (case_wkb == 3) then
-        read (unit = 10, nml = mountainwavelist)
+      if(case_wkb == 3) then
+        read(unit = 10, nml = mountainwavelist)
 
         ! nondimensionalization
 
@@ -1215,7 +1236,7 @@ module init_module
         ! relaxation period (in x-independent case without topography)
 
         ! TFC FJ
-        if (relax_background) then
+        if(relax_background) then
           u_relax = u_relax / (1.0 - exp(4.0 * t_ramp / (pi * t_relax) - 1.0))
           ! zero wind
           var(:, :, :, 2) = 0.0 ! u
@@ -1226,6 +1247,20 @@ module init_module
           var(:, :, :, 2) = backgroundFlow_dim(1) / uRef
           var(:, :, :, 3) = backgroundFlow_dim(2) / uRef
           var(:, :, :, 4) = backgroundFlow_dim(3) / uRef
+
+          ! FJMar2023
+          ! Set background wind to zero in surface layer.
+          do k = 1, nz
+            do j = 1, ny
+              do i = 1, nx
+                if(heightTFC(i, j, k) < surface_layer_depth / lRef) then
+                  var(i, j, k, 2) = 0.0
+                  var(i, j, k, 3) = 0.0
+                  var(i, j, k, 4) = 0.0
+                end if
+              end do
+            end do
+          end do
         end if
       else
         ! zero wind
@@ -1239,12 +1274,12 @@ module init_module
       do k = 0, (nz + 1)
         do j = 0, (ny + 1)
           do i = 0, (nx + 1)
-            select case (model)
-            case ("pseudo_incompressible")
+            select case(model)
+            case("pseudo_incompressible")
               ! initialization density = background density
               ! subtract background for fluctuation mode
 
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 rho = 0.0
               else
                 rho = rhoStrat(k)
@@ -1253,7 +1288,7 @@ module init_module
               ! write to field
               var(i, j, k, 1) = rho
 
-            case ("Boussinesq")
+            case("Boussinesq")
               ! initialization zero buoyancy fluctuations
 
               var(i, j, k, 6) = 0.0
@@ -1273,9 +1308,9 @@ module init_module
       !                Hot and cold bubbles
       !---------------------------------------------------
 
-    case ('Robert_Bubble')
+    case('Robert_Bubble')
       ! read test case input data
-      read (unit = 10, nml = robert_bubble)
+      read(unit = 10, nml = robert_bubble)
 
       ! atmospheric background flow
       var(:, :, :, 2) = backgroundFlow_dim(1) / uRef
@@ -1308,7 +1343,7 @@ module init_module
 
             ! hot bubble
             delX = (x(i) - xCenter1)
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               delz = heightTFC(i, j, k) - zCenter1
             else
@@ -1316,7 +1351,7 @@ module init_module
             end if
             r = sqrt(delX ** 2 + delZ ** 2) ! scaled radius
 
-            if (r <= a1) then
+            if(r <= a1) then
               dTheta = dTheta1
             else
               Gauss = exp(- (r - a1) ** 2 / sigma1 ** 2)
@@ -1325,7 +1360,7 @@ module init_module
 
             ! cold bubble
             delX = (x(i) - xCenter2)
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               delz = heightTFC(i, j, k) - zCenter2
             else
@@ -1333,7 +1368,7 @@ module init_module
             end if
             r = sqrt(delX ** 2 + delZ ** 2) ! scaled radius
 
-            if (r <= a2) then
+            if(r <= a2) then
               dTheta = dTheta + dTheta2
             else
               Gauss = exp(- (r - a2) ** 2 / sigma2 ** 2)
@@ -1341,22 +1376,22 @@ module init_module
             end if
 
             ! total potential temperature
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               theta = thetaStratTFC(i, j, k) + dTheta
             else
               theta = thetaStrat(k) + dTheta
             end if
 
-            select case (model)
+            select case(model)
 
-            case ("pseudo_incompressible")
+            case("pseudo_incompressible")
 
               ! calc pseudo-incompressible density rho*
-              if (referenceQuantities == "SI") then
+              if(referenceQuantities == "SI") then
                 rho = p0 ** kappa / Rsp * Pstrat(k) / theta
               else
-                if (topography) then
+                if(topography) then
                   ! TFC FJ
                   rho = pStratTFC(i, j, k) / theta
                 else
@@ -1365,8 +1400,8 @@ module init_module
               end if
 
               ! subtract background for fluctuation mode
-              if (fluctuationMode) then
-                if (topography) then
+              if(fluctuationMode) then
+                if(topography) then
                   ! TFC FJ
                   rho = rho - rhoStratTFC(i, j, k)
                 else
@@ -1377,13 +1412,13 @@ module init_module
 
               var(i, j, k, 1) = rho
 
-            case ("Boussinesq")
+            case("Boussinesq")
 
               ! set pot Temp deviation
               ! TFC FJ
               ! Density fluctuations are stored in var(i, j, k, 6)!
               ! Boussinesq model only works for fluctuationMode!
-              if (topography) then
+              if(topography) then
                 rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
               else
                 rho = pStrat(k) / theta - rhoStrat(k)
@@ -1401,12 +1436,12 @@ module init_module
 
       !------------------------------------------------------------------
 
-    case ('coldBubble')
+    case('coldBubble')
 
       ! read test case input data
-      read (unit = 10, nml = bubble)
+      read(unit = 10, nml = bubble)
 
-      if (referenceQuantities == "SI") then
+      if(referenceQuantities == "SI") then
         stop "initialize: SI units not allowed"
       end if
 
@@ -1425,7 +1460,7 @@ module init_module
         do j = 1, ny
           do i = 1, nx
             x_dim = x(i + i00) * lRef ! dimensional lenghts
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               z_dim = heightTFC(i, j, k) * lRef
             else
@@ -1437,22 +1472,22 @@ module init_module
 
             r = sqrt(delX ** 2 + delZ ** 2) ! scaled radius
 
-            if (r <= 1.0) then ! inside bubble
+            if(r <= 1.0) then ! inside bubble
               dTheta_dim = - 7.5 * (1. + cos(pi * r))
               != 0.5*dTheta0_dim * (1.0 + (cos(pi*r/2.0))**2)
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 theta = thetaStratTFC(i, j, k) + dTheta_dim / thetaRef
               else
                 theta = thetaStrat(k) + dTheta_dim / thetaRef
               end if
 
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 ! calc pseudo-incompressible density rho*
-                if (referenceQuantities == "SI") then
+                if(referenceQuantities == "SI") then
                   rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
                 else
-                  if (topography) then
+                  if(topography) then
                     ! TFC FJ
                     rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
                   else
@@ -1461,20 +1496,20 @@ module init_module
                 end if
               else
                 ! calc pseudo-incompressible density rho*
-                if (referenceQuantities == "SI") then
+                if(referenceQuantities == "SI") then
                   rho = p0 ** kappa / Rsp * Pstrat(k) / theta
                 else
                   rho = Pstrat(k) / theta
                 end if
               end if ! fluctuation mode
 
-              select case (model)
+              select case(model)
 
-              case ("pseudo_incompressible")
+              case("pseudo_incompressible")
 
                 var(i, j, k, 1) = rho
 
-              case ("Boussinesq")
+              case("Boussinesq")
 
                 ! TFC FJ
                 ! Density fluctuations are stored in var(i, j, k, 6),
@@ -1490,7 +1525,7 @@ module init_module
               end select
             else ! outside bubble
               ! keep background density
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 var(i, j, k, 1) = 0.
               else
                 var(i, j, k, 1) = rhoStrat(k)
@@ -1501,17 +1536,17 @@ module init_module
         end do
       end do
 
-    case ('smoothVortex')
+    case('smoothVortex')
 
       ! read test case input data
-      read (unit = 10, nml = bubble)
+      read(unit = 10, nml = bubble)
 
-      if (referenceQuantities == "SI") then
+      if(referenceQuantities == "SI") then
         stop "initialize: SI units not allowed"
       end if
 
       ! TFC FJ
-      if (model == "Boussinesq") then
+      if(model == "Boussinesq") then
         stop "Boussinesq model not ready for smoothVortex!"
       end if
 
@@ -1537,7 +1572,7 @@ module init_module
 
             th = atan(delY / delX)
 
-            if (r < 1.0) then
+            if(r < 1.0) then
               var(i, j, k, 2) = - 1024. * delY / r * (1. - r) ** 6 * r ** 6 &
                   + var(i, j, k, 2)
             end if
@@ -1559,7 +1594,7 @@ module init_module
 
             th = atan(delY / delX)
 
-            if (r < 1.0) then
+            if(r < 1.0) then
               var(i, j, k, 3) = 1024. * delX / r * (1. - r) ** 6 * r ** 6 &
                   + var(i, j, k, 3)
             end if
@@ -1580,7 +1615,7 @@ module init_module
 
             r = sqrt(delX ** 2 + delY ** 2) / 0.4
 
-            if (r < 1.0) then ! inside bubble
+            if(r < 1.0) then ! inside bubble
               var(i, j, k, 1) = var(i, j, k, 1) + 0.5 * (1. - r ** 2) ** 6
 
               rhodl = (1. + 0.5 * (1. - r ** 2) ** 6) / rhoCenter_dim
@@ -1622,8 +1657,8 @@ module init_module
 
             end if
 
-            if (fluctuationMode) then
-              if (topography) then
+            if(fluctuationMode) then
+              if(topography) then
                 ! TFC FJ
                 var(i, j, k, 1) = var(i, j, k, 1) / rhoRef - rhoStratTFC(i, j, &
                     k)
@@ -1657,7 +1692,7 @@ module init_module
         end do
       end do
 
-    case ('atmosphereatrest')
+    case('atmosphereatrest')
 
       var(:, :, :, 1) = 0.
       var(:, :, :, 2) = 0.
@@ -1665,12 +1700,12 @@ module init_module
       var(:, :, :, 4) = 0.
       var(:, :, :, 5) = 0.
 
-    case ('SkamarockKlemp94')
+    case('SkamarockKlemp94')
 
       ! read test case input data
-      read (unit = 10, nml = bubble)
+      read(unit = 10, nml = bubble)
 
-      if (referenceQuantities == "SI") then
+      if(referenceQuantities == "SI") then
         stop "initialize: SI units not allowed"
       end if
 
@@ -1691,7 +1726,7 @@ module init_module
         do j = 1, ny
           do i = 1, nx
             x_dim = x(i + i00) * lRef ! dimensional lenghts
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               z_dim = heightTFC(i, j, k) * lRef
             else
@@ -1708,19 +1743,19 @@ module init_module
                 - xCenter_dim) * 60. / lx_dim(1)) ** 2)
             ! = 0.5*dTheta0_dim * (1.0 + (cos(pi*r/2.0))**2)
 
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               theta = thetaStratTFC(i, j, k) + dTheta_dim / thetaRef
             else
               theta = thetaStrat(k) + dTheta_dim / thetaRef
             end if
 
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               ! calc pseudo-incompressible density rho*
-              if (referenceQuantities == "SI") then
+              if(referenceQuantities == "SI") then
                 rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
               else
-                if (topography) then
+                if(topography) then
                   ! TFC FJ
                   rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
                 else
@@ -1729,20 +1764,20 @@ module init_module
               end if
             else
               ! calc pseudo-incompressible density rho*
-              if (referenceQuantities == "SI") then
+              if(referenceQuantities == "SI") then
                 rho = p0 ** kappa / Rsp * Pstrat(k) / theta
               else
                 rho = Pstrat(k) / theta
               end if
             end if ! fluctuation mode
 
-            select case (model)
+            select case(model)
 
-            case ("pseudo_incompressible")
+            case("pseudo_incompressible")
 
               var(i, j, k, 1) = rho
 
-            case ("Boussinesq")
+            case("Boussinesq")
 
               ! TFC FJ
               ! Density fluctuations are stored in var(i, j, k, 6),
@@ -1763,7 +1798,7 @@ module init_module
       end do
 
       !-----------------------------------------------------------------
-    case ('hotBubble_heat')
+    case('hotBubble_heat')
 
       ! start velocity
       var(:, :, :, 1) = 0.
@@ -1774,7 +1809,7 @@ module init_module
       ! constant pressure variable pi'
       var(:, :, :, 5) = 0.0
 
-    case ('heatedLayer')
+    case('heatedLayer')
 
       ! start velocity
       var(:, :, :, 1) = 0.
@@ -1785,7 +1820,7 @@ module init_module
       ! constant pressure variable pi'
       var(:, :, :, 5) = 0.0
 
-    case ('hotBubble_heatedLayer')
+    case('hotBubble_heatedLayer')
 
       ! start velocity
       var(:, :, :, 1) = 0.
@@ -1796,10 +1831,10 @@ module init_module
       ! constant pressure variable pi'
       var(:, :, :, 5) = 0.0
 
-    case ('hotBubble')
+    case('hotBubble')
 
       ! read test case input data
-      read (unit = 10, nml = bubble)
+      read(unit = 10, nml = bubble)
 
       ! start velocity
       var(:, :, :, 2) = backgroundFlow(1)
@@ -1820,7 +1855,7 @@ module init_module
         do j = 1, ny
           do i = 1, nx
             x_dim = x(i) * lRef ! dimensional lenghts
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               z_dim = heightTFC(i, j, k) * lRef
             else
@@ -1833,30 +1868,30 @@ module init_module
 
             r = sqrt(delX ** 2 + delZ ** 2) ! scaled radius
 
-            if (r <= 1.0) then
+            if(r <= 1.0) then
               !--------------------
               !    inside bubble
               !--------------------
 
               dTheta = dTheta0 * (cos(pi * r / 2.0)) ** 2
 
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 theta = thetaStratTFC(i, j, k) + dTheta
               else
                 theta = thetaStrat(k) + dTheta
               end if
 
-              select case (model)
+              select case(model)
 
-              case ("pseudo_incompressible")
+              case("pseudo_incompressible")
 
-                if (fluctuationMode) then
+                if(fluctuationMode) then
                   ! calc pseudo-incompressible density rho*
-                  if (referenceQuantities == "SI") then
+                  if(referenceQuantities == "SI") then
                     rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
                   else
-                    if (topography) then
+                    if(topography) then
                       ! TFC FJ
                       rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
                     else
@@ -1865,7 +1900,7 @@ module init_module
                   end if
                 else
                   ! calc pseudo-incompressible density rho*
-                  if (referenceQuantities == "SI") then
+                  if(referenceQuantities == "SI") then
                     rho = p0 ** kappa / Rsp * Pstrat(k) / theta
                   else
                     rho = Pstrat(k) / theta
@@ -1874,13 +1909,13 @@ module init_module
 
                 var(i, j, k, 1) = rho
 
-              case ("Boussinesq")
+              case("Boussinesq")
 
                 ! TFC FJ
                 ! Density fluctuations are stored in var(i, j, k, 6),
                 ! var(i, j, k, 1) must remain zero! Boussinesq model
                 ! only works for fluctuationMode!
-                if (topography) then
+                if(topography) then
                   rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
                 else
                   rho = pStrat(k) / theta - rhoStrat(k)
@@ -1899,7 +1934,7 @@ module init_module
               !  outside bubble keep background density
               !------------------------------------------
 
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 var(i, j, k, 1) = 0.0
               else
                 var(i, j, k, 1) = rhoStrat(k)
@@ -1913,14 +1948,14 @@ module init_module
 
       !------------------------------------------------------------------
 
-    case ('hotBubble2D')
+    case('hotBubble2D')
 
       ! read test case input data
-      read (unit = 10, nml = wavePacket)
+      read(unit = 10, nml = wavePacket)
 
-      read (unit = 10, nml = bubble)
+      read(unit = 10, nml = bubble)
 
-      if (referenceQuantities == "SI") then
+      if(referenceQuantities == "SI") then
         stop "initialize: SI units not allowed"
       end if
 
@@ -1940,7 +1975,7 @@ module init_module
         do j = 1, ny
           do i = 1, nx
             x_dim = x(i + i00) * lRef ! dimensional lenghts
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               z_dim = heightTFC(i, j, k) * lRef
             else
@@ -1952,23 +1987,23 @@ module init_module
 
             r = sqrt(delX ** 2 + delZ ** 2) ! scaled radius
 
-            if (r <= 1.0) then ! inside bubble
+            if(r <= 1.0) then ! inside bubble
 
               dTheta_dim = dTheta0_dim * (cos(pi * r / 2.0)) ** 2
 
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 theta = thetaStratTFC(i, j, k) + dTheta_dim / thetaRef
               else
                 theta = thetaStrat(k) + dTheta_dim / thetaRef
               end if
 
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 ! calc pseudo-incompressible density rho*
-                if (referenceQuantities == "SI") then
+                if(referenceQuantities == "SI") then
                   rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
                 else
-                  if (topography) then
+                  if(topography) then
                     ! TFC FJ
                     rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
                   else
@@ -1977,20 +2012,20 @@ module init_module
                 end if
               else
                 ! calc pseudo-incompressible density rho*
-                if (referenceQuantities == "SI") then
+                if(referenceQuantities == "SI") then
                   rho = p0 ** kappa / Rsp * Pstrat(k) / theta
                 else
                   rho = Pstrat(k) / theta
                 end if
               end if ! fluctuation mode
 
-              select case (model)
+              select case(model)
 
-              case ("pseudo_incompressible")
+              case("pseudo_incompressible")
 
                 var(i, j, k, 1) = rho
 
-              case ("Boussinesq")
+              case("Boussinesq")
 
                 ! TFC FJ
                 ! Density fluctuations are stored in var(i, j, k, 6),
@@ -2007,17 +2042,17 @@ module init_module
 
             else ! outside bubble
 
-              select case (model)
+              select case(model)
 
-              case ("pseudo_incompressible")
+              case("pseudo_incompressible")
 
-                if (fluctuationMode) then
+                if(fluctuationMode) then
                   var(i, j, k, 1) = 0.0
                 else
                   var(i, j, k, 1) = rhoStrat(k)
                 end if
 
-              case ("Boussinesq")
+              case("Boussinesq")
 
                 ! TFC FJ
                 ! Density fluctuations are stored in var(i, j, k, 6),
@@ -2040,15 +2075,15 @@ module init_module
 
       !-------------------------------------------------------------------
 
-    case ('hotBubble3D')
+    case('hotBubble3D')
 
       ! read test case input data
-      read (unit = 10, nml = wavePacket)
+      read(unit = 10, nml = wavePacket)
 
       ! read test case input data
-      read (unit = 10, nml = bubble)
+      read(unit = 10, nml = bubble)
 
-      if (referenceQuantities == "SI") then
+      if(referenceQuantities == "SI") then
         stop "initialize: SI units not allowed"
       end if
 
@@ -2070,7 +2105,7 @@ module init_module
           do i = 1, nx
             x_dim = x(i + i00) * lRef ! dimensional lengh
             y_dim = y(j + j00) * lRef
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               z_dim = heightTFC(i, j, k) * lRef
             else
@@ -2083,23 +2118,23 @@ module init_module
 
             r = sqrt(delX ** 2 + delY ** 2 + delZ ** 2) ! scaled radius
 
-            if (r <= 1.0) then ! inside bubble
+            if(r <= 1.0) then ! inside bubble
 
               dTheta_dim = dTheta0_dim * (cos(pi * r / 2.0)) ** 2
 
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 theta = thetaStratTFC(i, j, k) + dTheta_dim / thetaRef
               else
                 theta = thetaStrat(k) + dTheta_dim / thetaRef
               end if
 
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 ! calc pseudo-incompressible density rho*
-                if (referenceQuantities == "SI") then
+                if(referenceQuantities == "SI") then
                   rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
                 else
-                  if (topography) then
+                  if(topography) then
                     ! TFC FJ
                     rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
                   else
@@ -2108,20 +2143,20 @@ module init_module
                 end if
               else
                 ! calc pseudo-incompressible density rho*
-                if (referenceQuantities == "SI") then
+                if(referenceQuantities == "SI") then
                   rho = p0 ** kappa / Rsp * Pstrat(k) / theta
                 else
                   rho = Pstrat(k) / theta
                 end if
               end if ! fluctuation mode
 
-              select case (model)
+              select case(model)
 
-              case ("pseudo_incompressible")
+              case("pseudo_incompressible")
 
                 var(i, j, k, 1) = rho
 
-              case ("Boussinesq")
+              case("Boussinesq")
 
                 ! TFC FJ
                 ! Density fluctuations are stored in var(i, j, k, 6),
@@ -2136,17 +2171,17 @@ module init_module
                 stop "initialize: unknown model."
               end select
             else ! outside bubble
-              select case (model)
+              select case(model)
 
-              case ("pseudo_incompressible")
+              case("pseudo_incompressible")
 
-                if (fluctuationMode) then
+                if(fluctuationMode) then
                   var(i, j, k, 1) = 0.0
                 else
                   var(i, j, k, 1) = rhoStrat(k)
                 end if
 
-              case ("Boussinesq")
+              case("Boussinesq")
 
                 ! TFC FJ
                 ! Density fluctuations are stored in var(i, j, k, 6),
@@ -2172,17 +2207,17 @@ module init_module
       ! or setup of Held & Suarez (1994): background = 'HeldSuarez'
       !----------------------------------------------------------------
 
-    case ('baroclinic_LC')
+    case('baroclinic_LC')
 
       !UAB
-      if ((background /= "const-N") .and. (background /= "HeldSuarez")) then
+      if((background /= "const-N") .and. (background /= "HeldSuarez")) then
         stop 'ERROR: baroclinic_LC needs for background either const-N  or &
             HeldSuarez'
       end if
       !UAE
 
       ! read test case input data
-      read (unit = 10, nml = baroclinic_LC)
+      read(unit = 10, nml = baroclinic_LC)
       !*****************************************************************
       ! initialize fields
       !*****************************************************************
@@ -2208,7 +2243,7 @@ module init_module
       jwdth = jwdth_dim / lRef ! jet width
 
       !UAB
-      if (background == "const-N") then
+      if(background == "const-N") then
         !UAE
         z_trpp0 = z_trpp0_dim / lRef ! mean tropopause height
 
@@ -2222,7 +2257,7 @@ module init_module
         ntrp = ntrp_dim * tRef ! Brunt-Vaisala frequency troposphere
         nstr = nstr_dim * tRef ! Brunt-Vaisala frequency stratosphere
         !UAB
-      else if (background == "HeldSuarez") then
+      else if(background == "HeldSuarez") then
         yjets = 0.75 * ymin + 0.25 * ymax
         yjetn = 0.25 * ymin + 0.75 * ymax
 
@@ -2233,11 +2268,11 @@ module init_module
       end if
       !UAE
 
-      if (master .and. jwdth > 0.5 * (ymax - ymin)) then
+      if(master .and. jwdth > 0.5 * (ymax - ymin)) then
         stop 'ERROR: jet width too large'
       end if
 
-      if (sizeY <= 1) stop 'ERROR: Barocl LC expects sizeY > 1'
+      if(sizeY <= 1) stop 'ERROR: Barocl LC expects sizeY > 1'
 
       ! set local index
 
@@ -2246,7 +2281,7 @@ module init_module
       j00 = js + nby - 1
 
       !UAB
-      if (background == "const-N") then
+      if(background == "const-N") then
         !UAE
         ! potential-temperature field
 
@@ -2255,24 +2290,24 @@ module init_module
 
           ! tropopause height
 
-          if (yloc < 0.5 * (ymax + ymin)) then
+          if(yloc < 0.5 * (ymax + ymin)) then
             yjet0 = 0.75 * ymin + 0.25 * ymax
 
-            if (yloc - yjet0 < - jwdth) then
+            if(yloc - yjet0 < - jwdth) then
               fstrpp = - 1.e0
-            else if (yloc - yjet0 >= - jwdth .and. yloc - yjet0 < jwdth) then
+            else if(yloc - yjet0 >= - jwdth .and. yloc - yjet0 < jwdth) then
               fstrpp = sin(0.5 * pi * (yloc - yjet0) / jwdth)
-            else if (yloc - yjet0 >= jwdth) then
+            else if(yloc - yjet0 >= jwdth) then
               fstrpp = 1.e0
             end if
           else
             yjet0 = 0.25 * ymin + 0.75 * ymax
 
-            if (yloc - yjet0 < - jwdth) then
+            if(yloc - yjet0 < - jwdth) then
               fstrpp = 1.e0
-            else if (yloc - yjet0 >= - jwdth .and. yloc - yjet0 < jwdth) then
+            else if(yloc - yjet0 >= - jwdth .and. yloc - yjet0 < jwdth) then
               fstrpp = - sin(0.5 * pi * (yloc - yjet0) / jwdth)
-            else if (yloc - yjet0 >= jwdth) then
+            else if(yloc - yjet0 >= jwdth) then
               fstrpp = - 1.e0
             end if
           end if
@@ -2280,35 +2315,35 @@ module init_module
           z_trpp = z_trpp0 + g_ndim * deltht / (2.0 * thet0 * (nstr ** 2 &
               - ntrp ** 2)) * fstrpp
 
-          if (topography) then
+          if(topography) then
             ! TFC FJ
             do i = 1, nz
               do k = 0, nz + 1
                 zloc = heightTFC(i, j, k)
 
-                if (zloc < z_trpp) then
+                if(zloc < z_trpp) then
                   ! below tropopause
 
-                  if (yloc < 0.5 * (ymax + ymin)) then
+                  if(yloc < 0.5 * (ymax + ymin)) then
                     yjet = yjet0 - kaptpp * zloc
 
-                    if (yloc - yjet < - jwdth) then
+                    if(yloc - yjet < - jwdth) then
                       fstht = - 1.0e0
-                    else if (yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) &
+                    else if(yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) &
                         then
                       fstht = sin(0.5 * pi * (yloc - yjet) / jwdth)
-                    else if (yloc - yjet >= jwdth) then
+                    else if(yloc - yjet >= jwdth) then
                       fstht = 1.0e0
                     end if
                   else
                     yjet = yjet0 + kaptpp * zloc
 
-                    if (yloc - yjet < - jwdth) then
+                    if(yloc - yjet < - jwdth) then
                       fstht = 1.0e0
-                    else if (yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) &
+                    else if(yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) &
                         then
                       fstht = - sin(0.5 * pi * (yloc - yjet) / jwdth)
-                    else if (yloc - yjet >= jwdth) then
+                    else if(yloc - yjet >= jwdth) then
                       fstht = - 1.0e0
                     end if
                   end if
@@ -2318,31 +2353,31 @@ module init_module
                 else
                   ! above tropopause
 
-                  if (yloc < 0.5 * (ymax + ymin)) then
+                  if(yloc < 0.5 * (ymax + ymin)) then
                     yjet = yjet0 - kaptpp * z_trpp
 
-                    if (yloc - yjet < - jwdth) then
+                    if(yloc - yjet < - jwdth) then
                       fstht = - 1.0e0
-                    else if (yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) &
+                    else if(yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) &
                         then
                       fstht = sin(0.5 * pi * (yloc - yjet) / jwdth)
-                    else if (yloc - yjet >= jwdth) then
+                    else if(yloc - yjet >= jwdth) then
                       fstht = 1.0e0
                     end if
                   else
                     yjet = yjet0 + kaptpp * z_trpp
 
-                    if (yloc - yjet < - jwdth) then
+                    if(yloc - yjet < - jwdth) then
                       fstht = 1.0e0
-                    else if (yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) &
+                    else if(yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) &
                         then
                       fstht = - sin(0.5 * pi * (yloc - yjet) / jwdth)
-                    else if (yloc - yjet >= jwdth) then
+                    else if(yloc - yjet >= jwdth) then
                       fstht = - 1.0e0
                     end if
                   end if
 
-                  if (zloc < z_baro) then
+                  if(zloc < z_baro) then
                     zeta_baro = sin(0.5 * pi * (z_baro - zloc) / (z_baro &
                         - z_trpp))
                   else
@@ -2364,29 +2399,27 @@ module init_module
             do k = 0, nz + 1
               zloc = z(k)
 
-              if (zloc < z_trpp) then
+              if(zloc < z_trpp) then
                 ! below tropopause
 
-                if (yloc < 0.5 * (ymax + ymin)) then
+                if(yloc < 0.5 * (ymax + ymin)) then
                   yjet = yjet0 - kaptpp * zloc
 
-                  if (yloc - yjet < - jwdth) then
+                  if(yloc - yjet < - jwdth) then
                     fstht = - 1.e0
-                  else if (yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) &
-                      then
+                  else if(yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) then
                     fstht = sin(0.5 * pi * (yloc - yjet) / jwdth)
-                  else if (yloc - yjet >= jwdth) then
+                  else if(yloc - yjet >= jwdth) then
                     fstht = 1.e0
                   end if
                 else
                   yjet = yjet0 + kaptpp * zloc
 
-                  if (yloc - yjet < - jwdth) then
+                  if(yloc - yjet < - jwdth) then
                     fstht = 1.e0
-                  else if (yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) &
-                      then
+                  else if(yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) then
                     fstht = - sin(0.5 * pi * (yloc - yjet) / jwdth)
-                  else if (yloc - yjet >= jwdth) then
+                  else if(yloc - yjet >= jwdth) then
                     fstht = - 1.e0
                   end if
                 end if
@@ -2396,31 +2429,29 @@ module init_module
               else
                 ! above tropopause
 
-                if (yloc < 0.5 * (ymax + ymin)) then
+                if(yloc < 0.5 * (ymax + ymin)) then
                   yjet = yjet0 - kaptpp * z_trpp
 
-                  if (yloc - yjet < - jwdth) then
+                  if(yloc - yjet < - jwdth) then
                     fstht = - 1.e0
-                  else if (yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) &
-                      then
+                  else if(yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) then
                     fstht = sin(0.5 * pi * (yloc - yjet) / jwdth)
-                  else if (yloc - yjet >= jwdth) then
+                  else if(yloc - yjet >= jwdth) then
                     fstht = 1.e0
                   end if
                 else
                   yjet = yjet0 + kaptpp * z_trpp
 
-                  if (yloc - yjet < - jwdth) then
+                  if(yloc - yjet < - jwdth) then
                     fstht = 1.e0
-                  else if (yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) &
-                      then
+                  else if(yloc - yjet >= - jwdth .and. yloc - yjet < jwdth) then
                     fstht = - sin(0.5 * pi * (yloc - yjet) / jwdth)
-                  else if (yloc - yjet >= jwdth) then
+                  else if(yloc - yjet >= jwdth) then
                     fstht = - 1.e0
                   end if
                 end if
 
-                if (zloc < z_baro) then
+                if(zloc < z_baro) then
                   zeta_baro = sin(0.5 * pi * (z_baro - zloc) / (z_baro &
                       - z_trpp))
                 else
@@ -2435,7 +2466,7 @@ module init_module
 
               dens_env_pp(:, j, k) = Pstrat(k) / the_env_pp(:, j, k)
 
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 var(1:nx, j, k, 1) = dens_env_pp(1:nx, j, k) - rhoStrat(k)
               else
                 var(1:nx, j, k, 1) = dens_env_pp(1:nx, j, k)
@@ -2449,11 +2480,11 @@ module init_module
 
         do j = 1, ny
           do i = 1, nx
-            if (fluctuationMode) then
+            if(fluctuationMode) then
               rhop0 = var(i, j, 0, 1)
               rhop1 = var(i, j, 1, 1)
 
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 rho0 = var(i, j, 0, 1) + rhoStratTFC(i, j, 0)
                 rho1 = var(i, j, 1, 1) + rhoStratTFC(i, j, 1)
@@ -2474,7 +2505,7 @@ module init_module
 
             rho = 0.5 * (rho0 + rho1)
 
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               var(i, j, 0, 5) = - 0.25 * 0.5 * (jac(i, j, 0) + jac(i, j, 1)) &
                   * dz * Ma2 * kappa * rho / (0.5 * (pStratTFC(i, j, 0) &
@@ -2491,11 +2522,11 @@ module init_module
         do k = 0, nz
           do j = 1, ny
             do i = 1, nx
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 rhop0 = var(i, j, k, 1)
                 rhop1 = var(i, j, k + 1, 1)
 
-                if (topography) then
+                if(topography) then
                   ! TFC FJ
                   rho0 = var(i, j, k, 1) + rhoStratTFC(i, j, k)
                   rho1 = var(i, j, k + 1, 1) + rhoStratTFC(i, j, k + 1)
@@ -2516,7 +2547,7 @@ module init_module
 
               rho = 0.5 * (rho0 + rho1)
 
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 var(i, j, k + 1, 5) = var(i, j, k, 5) + 0.5 * 0.5 * (jac(i, j, &
                     k) + jac(i, j, k + 1)) * dz * Ma2 * kappa * rho / (0.5 &
@@ -2529,7 +2560,7 @@ module init_module
             end do
           end do
         end do
-      else if (background == "HeldSuarez") then
+      else if(background == "HeldSuarez") then
         ! define stretched squared sine and cosine field
         ! define stretched quadrupled cosine field
 
@@ -2538,21 +2569,21 @@ module init_module
 
           !UAC: possibility of periodic Coriolis parameter
 
-          if (corset == 'periodic') then
+          if(corset == 'periodic') then
 
             s2_strtd(j) = cos(2. * pi * (yloc - ymin) / (ymax - ymin)) ** 2
             c2_strtd(j) = sin(2. * pi * (yloc - ymin) / (ymax - ymin)) ** 2
             c4_strtd(j) = sin(2. * pi * (yloc - ymin) / (ymax - ymin)) ** 4
 
-          else if (corset == 'constant') then
+          else if(corset == 'constant') then
 
-            if (yloc < ymin) then
+            if(yloc < ymin) then
               stop 'ERROR: y < ymin'
-            else if ((yloc >= ymin) .and. (yloc < yjets - 0.5 * dy_hs)) then
+            else if((yloc >= ymin) .and. (yloc < yjets - 0.5 * dy_hs)) then
               s2_strtd(j) = 1.0
               c2_strtd(j) = 0.0
               c4_strtd(j) = 0.0
-            else if ((yloc >= yjets - 0.5 * dy_hs) .and. (yloc < yjets + 0.5 &
+            else if((yloc >= yjets - 0.5 * dy_hs) .and. (yloc < yjets + 0.5 &
                 * dy_hs)) then
               s2_strtd(j) = sin((yloc - (yjets + 0.5 * dy_hs)) / dy_hs * 0.5 &
                   * pi) ** 2
@@ -2562,12 +2593,12 @@ module init_module
 
               c4_strtd(j) = cos((yloc - (yjets + 0.5 * dy_hs)) / dy_hs * 0.5 &
                   * pi) ** 4
-            else if ((yloc >= yjets + 0.5 * dy_hs) .and. (yloc < yjetn - 0.5 &
+            else if((yloc >= yjets + 0.5 * dy_hs) .and. (yloc < yjetn - 0.5 &
                 * dy_hs)) then
               s2_strtd(j) = 0.0
               c2_strtd(j) = 1.0
               c4_strtd(j) = 1.0
-            else if ((yloc >= yjetn - 0.5 * dy_hs) .and. (yloc < yjetn + 0.5 &
+            else if((yloc >= yjetn - 0.5 * dy_hs) .and. (yloc < yjetn + 0.5 &
                 * dy_hs)) then
               s2_strtd(j) = sin((yloc - (yjetn - 0.5 * dy_hs)) / dy_hs * 0.5 &
                   * pi) ** 2
@@ -2577,11 +2608,11 @@ module init_module
 
               c4_strtd(j) = cos((yloc - (yjetn - 0.5 * dy_hs)) / dy_hs * 0.5 &
                   * pi) ** 4
-            else if ((yloc >= yjetn + 0.5 * dy_hs) .and. (yloc <= ymax)) then
+            else if((yloc >= yjetn + 0.5 * dy_hs) .and. (yloc <= ymax)) then
               s2_strtd(j) = 1.0
               c2_strtd(j) = 0.0
               c4_strtd(j) = 0.0
-            else if (yloc > ymax) then
+            else if(yloc > ymax) then
               stop 'ERROR: y > ymax'
             end if
 
@@ -2600,19 +2631,19 @@ module init_module
         ! y- and z-dependent thermal relaxation rate
         ! z-dependent Rayleigh-damping-rate
 
-        if (ta_hs_dim == 0.0) then
+        if(ta_hs_dim == 0.0) then
           ka_hs = 0.0
         else
           ka_hs = tRef / ta_hs_dim
         end if
 
-        if (ts_hs_dim == 0.0) then
+        if(ts_hs_dim == 0.0) then
           ks_hs = 0.0
         else
           ks_hs = tRef / ts_hs_dim
         end if
 
-        if (tf_hs_dim == 0.0) then
+        if(tf_hs_dim == 0.0) then
           kf_hs = 0.0
         else
           kf_hs = tRef / tf_hs_dim
@@ -2691,7 +2722,7 @@ module init_module
           ! that it = 1 at the surface, by an Euler integration of
           ! hydrostatic equilibrium
 
-          if (topography) then
+          if(topography) then
             ! TFC FJ
             do i = 1, nx
               ! Set Exner pressure at the surface.
@@ -2737,7 +2768,7 @@ module init_module
 
           do k = 2, nz + 1
             do i = 1, nx
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 pistar = var(i, j, k - 2, 5) - 2.0 * dz * jac(i, j, k - 1) &
                     * kappa / the_env_pp(i, j, k - 1)
@@ -2752,7 +2783,7 @@ module init_module
 
               thetastar = tempev / pistar
 
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 var(i, j, k, 5) = var(i, j, k - 1, 5) - 0.5 * dz * 0.5 &
                     * (jac(i, j, k) + jac(i, j, k - 1)) * (kappa / thetastar &
@@ -2775,7 +2806,7 @@ module init_module
           ! (within the lower half of the sponge)
           ! by reduction of the pressure fluctuations
 
-          if (spongeLayer) then
+          if(spongeLayer) then
             kshalf = kSponge + int((nz - kSponge) / 2)
 
             do k = kSponge, kshalf
@@ -2802,7 +2833,7 @@ module init_module
           !UAE
 
           ! density
-          if (topography) then
+          if(topography) then
             do i = 1, nx
               do k = 0, nz + 1
                 dens_env_pp(i, j, k) = pStratTFC(i, j, k) / the_env_pp(i, j, k)
@@ -2813,7 +2844,7 @@ module init_module
             do k = 0, nz + 1
               dens_env_pp(:, j, k) = Pstrat(k) / the_env_pp(:, j, k)
 
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 var(1:nx, j, k, 1) = dens_env_pp(1:nx, j, k) - rhoStrat(k)
               else
                 var(1:nx, j, k, 1) = dens_env_pp(1:nx, j, k)
@@ -2825,8 +2856,8 @@ module init_module
         !UAB in case of periodic Coriolis parameter choose horizontally
         ! homogeneous atmosphere at rest as equilibrium
 
-        if (corset == 'periodic') then
-          if (topography) then
+        if(corset == 'periodic') then
+          if(topography) then
             ! TFC FJ
             do i = 1, nx
               do j = 1, ny
@@ -2841,7 +2872,7 @@ module init_module
             do k = 0, nz + 1
               dens_env_pp(:, :, k) = rhoStrat(k)
 
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 var(:, :, k, 1) = 0.
               else
                 var(:, :, k, 1) = rhoStrat(k)
@@ -2855,7 +2886,7 @@ module init_module
 
         ! subtract reference-atmosphere Exner pressure from the total
 
-        if (topography) then
+        if(topography) then
           ! TFC FJ
           do i = 1, nx
             do j = 1, ny
@@ -2884,14 +2915,14 @@ module init_module
       !UAC in case of periodic Coriolis parameter initilization zero wind
       ! (that is then also an equlibrium wind)
 
-      if (corset == 'periodic') then
+      if(corset == 'periodic') then
 
         var(:, :, :, 2) = 0.
 
         u_env_pp = 0.
         v_env_pp = 0.
 
-      else if (corset == 'constant') then
+      else if(corset == 'constant') then
 
         do k = 0, nz + 1
           do j = 1, ny
@@ -2905,8 +2936,8 @@ module init_module
 
               rho = var(i, j, k, 1)
 
-              if (fluctuationMode) then
-                if (topography) then
+              if(fluctuationMode) then
+                if(topography) then
                   ! TFC FJ
                   rho_int_0m = rho_int_0m + 0.5 * (rhoStratTFC(i, j, k) &
                       + rhoStratTFC(i, j - 1, k))
@@ -2932,8 +2963,8 @@ module init_module
               f_Coriolis_y(j) = f_Coriolis_dim
               !f_Coriolis_y(j) = f_Coriolis_dim*sin(pi*yloc/ymax)
               !UAE
-              if (f_Coriolis_y(j) /= 0.0) then
-                if (topography) then
+              if(f_Coriolis_y(j) /= 0.0) then
+                if(topography) then
                   ! TFC FJ
                   ! Compute values at cell edges.
                   pEdgeF = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
@@ -3014,8 +3045,8 @@ module init_module
 
       ! density fluctuations
 
-      if (timeScheme == "semiimplicit" .or. auxil_equ) then
-        if (fluctuationMode) then
+      if(timeScheme == "semiimplicit" .or. auxil_equ) then
+        if(fluctuationMode) then
           do k = - nbz, nz + nbz
             var(:, :, k, 6) = var(:, :, k, 1)
           end do
@@ -3037,7 +3068,7 @@ module init_module
       ! add local potential-temperature perturbation
       !-----------------------------------------------------------
 
-      if (add_ptptb) then
+      if(add_ptptb) then
         ptptb_x = ptptb_x_dim / lRef
         ptptb_y = ptptb_y_dim / lRef
         ptptb_z = ptptb_z_dim / lRef
@@ -3057,11 +3088,11 @@ module init_module
               xloc = x(i00 + i)
 
               ! TFC FJ
-              if (topography) then
+              if(topography) then
                 zloc = heightTFC(i, j, k)
               end if
 
-              if (ptptb_dh <= 0.) then
+              if(ptptb_dh <= 0.) then
                 rptb = sqrt(((zloc - ptptb_z) / ptptb_dz) ** 2)
               else
 
@@ -3070,14 +3101,14 @@ module init_module
                     / ptptb_dz) ** 2)
               end if
 
-              if (rptb <= 1.0) then
+              if(rptb <= 1.0) then
                 thtptb = ptptb_amp * cos(0.5 * pi * rptb) ** 2
               else
                 thtptb = 0.0
               end if
 
-              if (fluctuationMode) then
-                if (topography) then
+              if(fluctuationMode) then
+                if(topography) then
                   ! TFC FJ
                   rho = var(i, j, k, 1) * rhoStratTFC(i, j, k)
                 else
@@ -3087,15 +3118,15 @@ module init_module
                 rho = var(i, j, k, 1)
               end if
 
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 theta = pStratTFC(i, j, k) / rho + thtptb
               else
                 theta = Pstrat(k) / rho + thtptb
               end if
 
-              if (fluctuationMode) then
-                if (topography) then
+              if(fluctuationMode) then
+                if(topography) then
                   ! TFC FJ
                   var(i, j, k, 1) = pStratTFC(i, j, k) / theta &
                       - rhoStratTFC(i, j, k)
@@ -3122,7 +3153,7 @@ module init_module
               xloc = x(i00 + i)
 
               ! TFC FJ
-              if (topography) then
+              if(topography) then
                 zloc = heightTFC(i, j, k)
               end if
 
@@ -3130,14 +3161,14 @@ module init_module
                   - ptptb_y) / ptptb_dh) ** 2 + ((zloc - ptptb_z) / ptptb_dz) &
                   ** 2)
 
-              if (rptb <= 1.0) then
+              if(rptb <= 1.0) then
                 thtptb = ptptb_amp * cos(0.5 * pi * rptb) ** 2
               else
                 thtptb = 0.0
               end if
 
-              if (fluctuationMode) then
-                if (topography) then
+              if(fluctuationMode) then
+                if(topography) then
                   ! TFC FJ
                   rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
                 else
@@ -3147,15 +3178,15 @@ module init_module
                 rho = var(i, j, k, 1)
               end if
 
-              if (topography) then
+              if(topography) then
                 ! TFC FJ
                 theta = pStratTFC(i, j, k) / rho - thtptb
               else
                 theta = Pstrat(k) / rho - thtptb
               end if
 
-              if (fluctuationMode) then
-                if (topography) then
+              if(fluctuationMode) then
+                if(topography) then
                   ! TFC FJ
                   var(i, j, k, 1) = pStratTFC(i, j, k) / theta &
                       - rhoStratTFC(i, j, k)
@@ -3179,7 +3210,7 @@ module init_module
       noise_var = "none"
       noise_mag = 1.0
 
-      if (add_noise) then
+      if(add_noise) then
         call Random_Seed()
         call noise_array(noise_mag, noise_var, noise)
 
@@ -3188,9 +3219,9 @@ module init_module
             do i = 1, nx
               !UAC noise to b emultiplied to full density in case of
               ! periodic Coriolis parameter
-              if (corset == 'periodic') then
-                if (fluctuationMode) then
-                  if (topography) then
+              if(corset == 'periodic') then
+                if(fluctuationMode) then
+                  if(topography) then
                     ! TFC FJ
                     var(i, j, k, 1) = rhoStratTFC(i, j, k) * noise(i, j, k)
                   else
@@ -3199,8 +3230,8 @@ module init_module
                 else
                   var(i, j, k, 1) = rhoStrat(k) * (1.0 + noise(i, j, k))
                 end if
-              else if (corset == 'constant') then
-                if (fluctuationMode) then
+              else if(corset == 'constant') then
+                if(fluctuationMode) then
                   var(i, j, k, 1) = var(i, j, k, 1) * (1.0 + noise(i, j, k))
                 else
                   var(i, j, k, 1) = rhoStrat(k) + (var(i, j, k, 1) &
@@ -3217,10 +3248,10 @@ module init_module
       !------------------------------------------------
       !               Baroclinic life cycle: idealistic
       !------------------------------------------------
-    case ('baroclinic_ID')
+    case('baroclinic_ID')
 
       ! read test case input data
-      read (unit = 10, nml = baroclinic_ID)
+      read(unit = 10, nml = baroclinic_ID)
       !*****************************************************************
       ! initialize fields
       !*****************************************************************
@@ -3246,14 +3277,14 @@ module init_module
       Ly_end = ly_dim(1)
 
       ! to also enable test of 2D dynamics in x-z plane
-      if (sizeX > 1 .and. sizeY == 1) then
+      if(sizeX > 1 .and. sizeY == 1) then
         Lx_end = lx_dim(1)
         bar_sigma_x = bar_sigma_y
       end if
 
       L_z = z(nz) * lRef
 
-      if (topography) then
+      if(topography) then
         ! TFC FJ
         do i = 1, nx
           do j = 1, ny
@@ -3267,7 +3298,7 @@ module init_module
                 * thetaRef
 
             ! Set alpha_t_tfc.
-            if (sizeX > 1 .and. sizeY == 1) then
+            if(sizeX > 1 .and. sizeY == 1) then
               alpha_t_tfc(i, j) = u_strength * f_Coriolis_dim &
                   * theta_bar_0_tfc(i, j) * Lx_end * bar_sigma_x / (dTh_atm &
                   * g * z_2_tfc(i, j) * pi)
@@ -3284,10 +3315,10 @@ module init_module
 
         theta_bar_0 = thetaStrat(k_2) * thetaRef ! at the tropopause
 
-        if (master) print *, 'theta_bar_0 = ', theta_bar_0
+        if(master) print *, 'theta_bar_0 = ', theta_bar_0
 
         ! to also enable test of 2D dynamics in x-z plane
-        if (sizeX > 1 .and. sizeY == 1) then
+        if(sizeX > 1 .and. sizeY == 1) then
           alpha_t = u_strength * f_Coriolis_dim * theta_bar_0 * Lx_end &
               * bar_sigma_x / (dTh_atm * g * z_2 * pi)
         else
@@ -3297,14 +3328,14 @@ module init_module
       end if
 
       ! TFC FJ
-      if (master .and. .not. topography) then
+      if(master .and. .not. topography) then
         print *, "Barocl. test. instability measure alpha*dTh_atm/dz = ", &
             alpha_t * dTh_atm / (dz * lRef)
         print *, "Barocl. test. magnitude of \theta alpha*dTh_atm = ", alpha_t &
             * dTh_atm
       end if
 
-      if (init_2Dto3D) then
+      if(init_2Dto3D) then
         call init_data2D3D(lastrecordnum, var)
 
         ! achatzc: here is an isue, since the semi-implicit time-stepping
@@ -3334,24 +3365,24 @@ module init_module
         j00 = js + nby - 1
 
         ! TFC FJ
-        if (master .and. .not. topography) then
+        if(master .and. .not. topography) then
           print *, 'k_2 = ', k_2, 'Numerical tropopause is at z = ', z_2, ', &
               while H_t = ', z_tr_dim
         end if
 
         cp = Rsp / kappa
 
-        if (init_bal == "geostr_id") then
+        if(init_bal == "geostr_id") then
           ! determine the Exner-pressure fluctuations
 
-          if (topography) then
+          if(topography) then
             ! TFC FJ
             do i = 1, nx
               do j = 1, ny
                 do k = 1, nz
                   ! Set F_a.
                   z_dim = heightTFC(i, j, k) * lRef
-                  if (z_dim .lt. z_2_tfc(i, j)) then
+                  if(z_dim .lt. z_2_tfc(i, j)) then
                     F_0_tfc(i, j, k) = alpha_t_tfc(i, j) * (2.0 * z_dim &
                         * sin(pi * z_dim / (2.0 * z_2_tfc(i, j))) - z_dim &
                         ** 2.0 / z_2_tfc(i, j))
@@ -3364,20 +3395,20 @@ module init_module
                   F_a = F_0_tfc(i, j, k)
 
                   ! Determine Exner-pressure fluctuations.
-                  if (sizeX > 1 .and. sizeY == 1) then
+                  if(sizeX > 1 .and. sizeY == 1) then
                     x_dim = x(i + i00) * lRef
 
-                    if (x_dim < Lx_end * (0.25 - 0.5 * bar_sigma_x)) then
+                    if(x_dim < Lx_end * (0.25 - 0.5 * bar_sigma_x)) then
                       term_a = 1.0
-                    else if (x_dim >= Lx_end * (0.25 - 0.5 * bar_sigma_x) &
-                        .and. x_dim < Lx_end * (0.25 + 0.5 * bar_sigma_x)) then
+                    else if(x_dim >= Lx_end * (0.25 - 0.5 * bar_sigma_x) .and. &
+                        x_dim < Lx_end * (0.25 + 0.5 * bar_sigma_x)) then
                       term_a = 0.5 * (1.0 - sin(pi * ((x_dim - 0.25 * Lx_end) &
                           / (Lx_end * bar_sigma_x))))
-                    else if (x_dim >= Lx_end * (0.25 + 0.5 * bar_sigma_x) &
-                        .and. x_dim < Lx_end * (0.75 - 0.5 * bar_sigma_x)) then
+                    else if(x_dim >= Lx_end * (0.25 + 0.5 * bar_sigma_x) .and. &
+                        x_dim < Lx_end * (0.75 - 0.5 * bar_sigma_x)) then
                       term_a = 0.0
-                    else if (x_dim >= Lx_end * (0.75 - 0.5 * bar_sigma_x) &
-                        .and. x_dim < Lx_end * (0.75 + 0.5 * bar_sigma_x)) then
+                    else if(x_dim >= Lx_end * (0.75 - 0.5 * bar_sigma_x) .and. &
+                        x_dim < Lx_end * (0.75 + 0.5 * bar_sigma_x)) then
                       term_a = 0.5 * (1.0 + sin(pi * ((x_dim - 0.75 * Lx_end) &
                           / (Lx_end * bar_sigma_x))))
                     else
@@ -3387,14 +3418,14 @@ module init_module
                     term_b = (dTh_atm - 2.0 * dTh_atm * term_a) &
                         / theta_bar_0_tfc(i, j)
 
-                    if (balance_eq == "QG") then
+                    if(balance_eq == "QG") then
                       stop "ERROR: balance_eq == QG not provided"
                     else
                       streamfunc = g * F_a * term_b / f_Coriolis_dim
                       pi_pr_xz_tfc(i, j, k) = f_Coriolis_dim * streamfunc &
                           / (cp * thetaRef * thetaStratTFC(i, j, k))
 
-                      if (balance_eq == "QG") then
+                      if(balance_eq == "QG") then
                         stop "ERROR: balance_eq == QG not provided"
                       else
                         var(i, j, k, 5) = pi_pr_xz_tfc(i, j, k)
@@ -3403,17 +3434,17 @@ module init_module
                   else
                     y_dim = y(j + j00) * lRef
 
-                    if (y_dim < Ly_end * (0.25 - 0.5 * bar_sigma_y)) then
+                    if(y_dim < Ly_end * (0.25 - 0.5 * bar_sigma_y)) then
                       term_a = 1.0
-                    else if (y_dim >= Ly_end * (0.25 - 0.5 * bar_sigma_y) &
-                        .and. y_dim < Ly_end * (0.25 + 0.5 * bar_sigma_y)) then
+                    else if(y_dim >= Ly_end * (0.25 - 0.5 * bar_sigma_y) .and. &
+                        y_dim < Ly_end * (0.25 + 0.5 * bar_sigma_y)) then
                       term_a = 0.5 * (1.0 - sin(pi * ((y_dim - 0.25 * Ly_end) &
                           / (Ly_end * bar_sigma_y))))
-                    else if (y_dim >= Ly_end * (0.25 + 0.5 * bar_sigma_y) &
-                        .and. y_dim < Ly_end * (0.75 - 0.5 * bar_sigma_y)) then
+                    else if(y_dim >= Ly_end * (0.25 + 0.5 * bar_sigma_y) .and. &
+                        y_dim < Ly_end * (0.75 - 0.5 * bar_sigma_y)) then
                       term_a = 0.0
-                    else if (y_dim >= Ly_end * (0.75 - 0.5 * bar_sigma_y) &
-                        .and. y_dim < Ly_end * (0.75 + 0.5 * bar_sigma_y)) then
+                    else if(y_dim >= Ly_end * (0.75 - 0.5 * bar_sigma_y) .and. &
+                        y_dim < Ly_end * (0.75 + 0.5 * bar_sigma_y)) then
                       term_a = 0.5 * (1.0 + sin(pi * ((y_dim - 0.75 * Ly_end) &
                           / (Ly_end * bar_sigma_y))))
                     else
@@ -3423,7 +3454,7 @@ module init_module
                     term_b = (dTh_atm - 2.0 * dTh_atm * term_a) &
                         / theta_bar_0_tfc(i, j)
 
-                    if (balance_eq == "QG") then
+                    if(balance_eq == "QG") then
                       stop "ERROR: balance_eq == QG not provided"
                     else
                       streamfunc = g * F_a * term_b / f_Coriolis_dim
@@ -3431,7 +3462,7 @@ module init_module
                       pi_pr_yz_tfc(i, j, k) = f_Coriolis_dim * streamfunc &
                           / (cp * thetaRef * thetaStratTFC(i, j, k))
 
-                      if (balance_eq == "QG") then
+                      if(balance_eq == "QG") then
                         stop "ERROR: balance_eq == QG not provided"
                       else
                         var(i, j, k, 5) = pi_pr_yz_tfc(i, j, k)
@@ -3445,7 +3476,7 @@ module init_module
             do k = 0, nz + 1
               z_dim = z(k) * lRef
 
-              if (z_dim .lt. z_2) then ! Troposphere
+              if(z_dim .lt. z_2) then ! Troposphere
                 F_0(k) = alpha_t * (2. * z_dim * sin(pi * z_dim / (2. * z_2)) &
                     - z_dim ** 2 / z_2)
               else
@@ -3458,20 +3489,20 @@ module init_module
 
               ! below also enables test of 2D dynamics in x-z plane
 
-              if (sizeX > 1 .and. sizeY == 1) then
+              if(sizeX > 1 .and. sizeY == 1) then
                 do i = 1, nx
                   x_dim = x(i + i00) * lRef
 
-                  if (x_dim < Lx_end * (0.25 - 0.5 * bar_sigma_x)) then
+                  if(x_dim < Lx_end * (0.25 - 0.5 * bar_sigma_x)) then
                     term_a = 1.0
-                  else if (x_dim >= Lx_end * (0.25 - 0.5 * bar_sigma_x) .and. &
+                  else if(x_dim >= Lx_end * (0.25 - 0.5 * bar_sigma_x) .and. &
                       x_dim < Lx_end * (0.25 + 0.5 * bar_sigma_x)) then
                     term_a = 0.5 * (1.0 - sin(pi * ((x_dim - 0.25 * Lx_end) &
                         / (Lx_end * bar_sigma_x))))
-                  else if (x_dim >= Lx_end * (0.25 + 0.5 * bar_sigma_x) .and. &
+                  else if(x_dim >= Lx_end * (0.25 + 0.5 * bar_sigma_x) .and. &
                       x_dim < Lx_end * (0.75 - 0.5 * bar_sigma_x)) then
                     term_a = 0.0
-                  else if (x_dim >= Lx_end * (0.75 - 0.5 * bar_sigma_x) .and. &
+                  else if(x_dim >= Lx_end * (0.75 - 0.5 * bar_sigma_x) .and. &
                       x_dim < Lx_end * (0.75 + 0.5 * bar_sigma_x)) then
                     term_a = 0.5 * (1.0 + sin(pi * ((x_dim - 0.75 * Lx_end) &
                         / (Lx_end * bar_sigma_x))))
@@ -3481,7 +3512,7 @@ module init_module
 
                   term_b = (dTh_atm - 2. * dTh_atm * term_a) / theta_bar_0
 
-                  if (balance_eq == 'QG') then
+                  if(balance_eq == 'QG') then
                     stop 'ERROR: balance_eq == QG not provided'
                   else
                     streamfunc = g * F_a * term_b / (f_Coriolis_dim)
@@ -3489,7 +3520,7 @@ module init_module
                     pi_pr_xz(i, k) = f_Coriolis_dim * streamfunc / (cp &
                         * thetaRef * thetaStrat(k))
 
-                    if (balance_eq == 'QG') then
+                    if(balance_eq == 'QG') then
                       stop 'ERROR: balance_eq == QG not provided'
                     else
                       var(i, :, k, 5) = pi_pr_xz(i, k)
@@ -3500,16 +3531,16 @@ module init_module
                 do j = 1, ny
                   y_dim = y(j + j00) * lRef
 
-                  if (y_dim < Ly_end * (0.25 - 0.5 * bar_sigma_y)) then
+                  if(y_dim < Ly_end * (0.25 - 0.5 * bar_sigma_y)) then
                     term_a = 1.0
-                  else if (y_dim >= Ly_end * (0.25 - 0.5 * bar_sigma_y) .and. &
+                  else if(y_dim >= Ly_end * (0.25 - 0.5 * bar_sigma_y) .and. &
                       y_dim < Ly_end * (0.25 + 0.5 * bar_sigma_y)) then
                     term_a = 0.5 * (1.0 - sin(pi * ((y_dim - 0.25 * Ly_end) &
                         / (Ly_end * bar_sigma_y))))
-                  else if (y_dim >= Ly_end * (0.25 + 0.5 * bar_sigma_y) .and. &
+                  else if(y_dim >= Ly_end * (0.25 + 0.5 * bar_sigma_y) .and. &
                       y_dim < Ly_end * (0.75 - 0.5 * bar_sigma_y)) then
                     term_a = 0.0
-                  else if (y_dim >= Ly_end * (0.75 - 0.5 * bar_sigma_y) .and. &
+                  else if(y_dim >= Ly_end * (0.75 - 0.5 * bar_sigma_y) .and. &
                       y_dim < Ly_end * (0.75 + 0.5 * bar_sigma_y)) then
                     term_a = 0.5 * (1.0 + sin(pi * ((y_dim - 0.75 * Ly_end) &
                         / (Ly_end * bar_sigma_y))))
@@ -3519,7 +3550,7 @@ module init_module
 
                   term_b = (dTh_atm - 2. * dTh_atm * term_a) / theta_bar_0
 
-                  if (balance_eq == 'QG') then
+                  if(balance_eq == 'QG') then
                     stop 'ERROR: balance_eq == QG not provided'
                   else
                     streamfunc = g * F_a * term_b / (f_Coriolis_dim)
@@ -3527,7 +3558,7 @@ module init_module
                     pi_pr_yz(j, k) = f_Coriolis_dim * streamfunc / (cp &
                         * thetaRef * thetaStrat(k))
 
-                    if (balance_eq == 'QG') then
+                    if(balance_eq == 'QG') then
                       stop 'ERROR: balance_eq == QG not provided'
                     else
                       var(:, j, k, 5) = pi_pr_yz(j, k)
@@ -3540,7 +3571,7 @@ module init_module
 
           ! determine density from the Exner-pressure fluctuations
 
-          if (topography) then
+          if(topography) then
             ! TFC FJ
             do k = 1, nz
               do j = 1, ny
@@ -3564,7 +3595,7 @@ module init_module
                       - 1, 5)) + PstratTilde(k) * (var(i, j, k + 1, 5) &
                       - var(i, j, k, 5)))
 
-                  if (.not. fluctuationMode) then
+                  if(.not. fluctuationMode) then
                     var(i, j, k, 1) = var(i, j, k, 1) + rhoStrat(k)
                   end if
                 end do
@@ -3580,7 +3611,7 @@ module init_module
 
           ! below also enables test of 2D dynamics in x-z plane
 
-          if (sizeX > 1 .and. sizeY == 1) then
+          if(sizeX > 1 .and. sizeY == 1) then
             do k = 1, nz
               do j = 1, ny
                 do i = 1, nx
@@ -3597,8 +3628,8 @@ module init_module
 
                   rho = var(i, j, k, 1)
 
-                  if (fluctuationMode) then
-                    if (topography) then
+                  if(fluctuationMode) then
+                    if(topography) then
                       ! TFC FJ
                       rho_int_m0 = rho_int_m0 + 0.5 * (rhoStratTFC(i, j, k) &
                           + rhoStratTFC(i - 1, j, k)) * rhoRef
@@ -3619,7 +3650,7 @@ module init_module
                     end if
                   end if
 
-                  if (topography) then
+                  if(topography) then
                     ! TFC FJ
                     ! Compute values at cell edges.
                     pEdgeR = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
@@ -3685,7 +3716,7 @@ module init_module
                   end if
 
                   ! store env pot temp: local
-                  if (topography) then
+                  if(topography) then
                     ! TFC FJ
                     the_env_pp(i, j, k) = pStratTFC(i, j, k) / rho * rhoRef
                   else
@@ -3699,7 +3730,7 @@ module init_module
                   u_env_pp(i, j, k) = 0.
                   v_env_pp(i, j, k) = var(i, j, k, 3)
 
-                  if (timeScheme /= "semiimplicit" .and. .not. auxil_equ) then
+                  if(timeScheme /= "semiimplicit" .and. .not. auxil_equ) then
                     ! Here it is pot temp (re-calculated below)
                     var(i, j, k, 6) = the_env_pp(i, j, k)
                   end if
@@ -3731,8 +3762,8 @@ module init_module
 
                   rho = var(i, j, k, 1) * rhoRef
 
-                  if (fluctuationMode) then
-                    if (topography) then
+                  if(fluctuationMode) then
+                    if(topography) then
                       ! TFC FJ
                       rho_int_0m = rho_int_0m + 0.5 * (rhoStratTFC(i, j, k) &
                           + rhoStratTFC(i, j - 1, k)) * rhoRef
@@ -3753,7 +3784,7 @@ module init_module
                     end if
                   end if
 
-                  if (topography) then
+                  if(topography) then
                     ! TFC FJ
                     ! Compute values at cell edges.
                     pEdgeF = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
@@ -3819,7 +3850,7 @@ module init_module
                   end if
 
                   ! store env pot temp: local
-                  if (topography) then
+                  if(topography) then
                     ! TFC FJ
                     the_env_pp(i, j, k) = pStratTFC(i, j, k) / rho * rhoRef
                   else
@@ -3833,7 +3864,7 @@ module init_module
                   u_env_pp(i, j, k) = var(i, j, k, 2)
                   v_env_pp(i, j, k) = 0.
 
-                  if (timeScheme /= "semiimplicit" .and. .not. auxil_equ) then
+                  if(timeScheme /= "semiimplicit" .and. .not. auxil_equ) then
                     ! Here it is pot temp (re-calculated below)
                     var(i, j, k, 6) = the_env_pp(i, j, k)
                   end if
@@ -3854,11 +3885,11 @@ module init_module
           do j = 1, ny
             u_const(0:nx, j) = var(0:nx, j, nz, 2)
           end do
-        else if (init_bal == "hydrost") then
+        else if(init_bal == "hydrost") then
           do k = 1, nz
             do j = 1, ny
               do i = 1, nx
-                if (fluctuationMode) then
+                if(fluctuationMode) then
                   var(i, j, k, 1) = 0. ! density
                 else
                   var(i, j, k, 1) = rhoStrat(k) ! density
@@ -3873,7 +3904,7 @@ module init_module
                 ! var (... , 6) is used in semi-implicit time
                 ! stepping for the density fluctuations
 
-                if (timeScheme /= "semiimplicit" .and. .not. auxil_equ) then
+                if(timeScheme /= "semiimplicit" .and. .not. auxil_equ) then
                   var(i, j, k, 6) = thetaStrat(k) ! pot temp
                 end if
               end do
@@ -3890,7 +3921,7 @@ module init_module
             br_vais_sq(i, j, k) = g * (the_env_pp(i, j, k + 1) - the_env_pp(i, &
                 j, k)) / (dz * the_env_pp(i, j, k) * lRef)
             ! TFC FJ
-            if (topography) then
+            if(topography) then
               br_vais_sq(i, j, k) = br_vais_sq(i, j, k) / jac(i, j, k)
             end if
           end do
@@ -3901,11 +3932,11 @@ module init_module
       !        Output of background \theta
       !------------------------------------------
 
-      if (output_theta_bgr) then
+      if(output_theta_bgr) then
         call output_background(the_env_pp, nz, 'theta_bgr.dat', thetaRef)
       end if
 
-      if (output_rho_bgr) then
+      if(output_rho_bgr) then
         call output_background(dens_env_pp, nz, 'rho_bgr.dat', rhoRef)
       end if
 
@@ -3913,11 +3944,11 @@ module init_module
       !        Output of background \theta
       !------------------------------------------
 
-      if (output_br_vais_sq) then
+      if(output_br_vais_sq) then
         call output_background(br_vais_sq, nz - 1, 'Br_Va_bgr.dat', 1.)
       end if
 
-      if (topography) then
+      if(topography) then
         ! TFC FJ
         do k = 1, nz
           do j = 1, ny
@@ -3998,14 +4029,14 @@ module init_module
       noise_var = "none"
       noise_mag = 1.0
 
-      if (add_noise) then
+      if(add_noise) then
         call Random_Seed()
         call noise_array(noise_mag, noise_var, noise)
 
         do k = 1, nz
           do j = 1, ny
             do i = 1, nx
-              if (fluctuationMode) then
+              if(fluctuationMode) then
                 var(i, j, k, 1) = var(i, j, k, 1) * (1.0 + noise(i, j, k))
               else
                 var(i, j, k, 1) = rhoStrat(k) + (var(i, j, k, 1) &
@@ -4016,7 +4047,7 @@ module init_module
         end do
       end if
 
-    case ("densitySineTransport")
+    case("densitySineTransport")
 
       rho0 = 1.0; u0 = 1.0; v0 = 0.0; w0 = 0.0
 
@@ -4034,7 +4065,7 @@ module init_module
 
       ! ----------------------------------------------------------------
 
-    case ('densityDiscXYZ')
+    case('densityDiscXYZ')
       ! center and radius of disc
       x0 = 0.5; y0 = 0.5; z0 = 0.5; r0 = 1. / 3.
       u0 = 1.0; v0 = 1.0; w0 = 1.0 ! constant backround velocity
@@ -4049,7 +4080,7 @@ module init_module
             delY = y(j) - y0
             delZ = z(k) - z0
             r = sqrt(delX ** 2 + delY ** 2 + delZ ** 2)
-            if (r >= r0) var(i, j, k, 1) = var(i, j, k, 1) + rhoDisc
+            if(r >= r0) var(i, j, k, 1) = var(i, j, k, 1) + rhoDisc
           end do
         end do
       end do
@@ -4070,7 +4101,7 @@ module init_module
 
       ! ----------------------------------------------------------------
 
-    case ('densityDiscXZ')
+    case('densityDiscXZ')
       ! transport of a density disc with constant speed in x
       x0 = 0.5; z0 = 0.5; r0 = 1. / 3. ! center and radius of disc
       u0 = 1.0; v0 = 0.0; w0 = 0.0 ! constant backround velocity
@@ -4084,7 +4115,7 @@ module init_module
             delX = x(i) - x0
             delZ = z(k) - z0
             r = sqrt(delX ** 2 + delZ ** 2)
-            if (r >= r0) var(i, j, k, 1) = var(i, j, k, 1) + rhoDisc
+            if(r >= r0) var(i, j, k, 1) = var(i, j, k, 1) + rhoDisc
           end do
         end do
       end do
@@ -4097,7 +4128,7 @@ module init_module
 
       ! vertical velocity w
       var(:, :, :, 4) = w0
-      if (w0 /= 0.0) then
+      if(w0 /= 0.0) then
         var(:, :, - nbz:2, 4) = 0.0 ! zero near walls
         var(:, :, nz - 2:nz + nbz, 4) = 0.0
       end if
@@ -4107,7 +4138,7 @@ module init_module
 
       ! ----------------------------------------------------------------
 
-    case ('densityDiscXY')
+    case('densityDiscXY')
       x0 = 0.5; y0 = 0.5; r0 = 1. / 3. ! center and radius of disc
       u0 = 1.0; v0 = 1.0; w0 = 0.0 ! constant backround velocity
       rhoDisc = 0.1 ! density of disc
@@ -4120,7 +4151,7 @@ module init_module
             delX = x(i) - x0
             delY = y(j) - y0
             r = sqrt(delX ** 2 + delY ** 2)
-            if (r >= r0) var(i, j, k, 1) = var(i, j, k, 1) + rhoDisc
+            if(r >= r0) var(i, j, k, 1) = var(i, j, k, 1) + rhoDisc
           end do
         end do
       end do
@@ -4139,7 +4170,7 @@ module init_module
 
       ! -----------------------------------------------------------------
 
-    case ("greshoVortexXY")
+    case("greshoVortexXY")
       updateMass = .true.
       updateIce = .true.
 
@@ -4206,7 +4237,7 @@ module init_module
 
       ! -----------------------------------------------------------------
 
-    case ("greshoVortexXZ")
+    case("greshoVortexXZ")
       updateMass = .true.
       updateIce = .true.
 
@@ -4272,7 +4303,7 @@ module init_module
 
       ! --------------------------------------------------------------------------
 
-    case ("nIce_w_test") ! for pseudo_incompressible case
+    case("nIce_w_test") ! for pseudo_incompressible case
       ! This testcase emulates Peter Spichtinger's box model.
 
       updateMass = .false.
@@ -4292,7 +4323,7 @@ module init_module
       ! background pot temp
       do k = 0, nz
         var(:, :, k, 6) = thetaStrat(k)
-        if (fluctuationMode) then
+        if(fluctuationMode) then
           var(:, :, k, 1) = 0.0
         else
           var(:, :, k, 1) = rhoStrat(k)
@@ -4300,7 +4331,7 @@ module init_module
       end do
 
       ! initialize the ice variables according to iceTestcase
-      if (include_ice) then
+      if(include_ice) then
         call setup_ice(var)
       else
         stop "Error: ice variables must be included for nIce_w_test"
@@ -4308,7 +4339,7 @@ module init_module
 
       !---------------------------------------------------------------------------
 
-    case ("projectionTest")
+    case("projectionTest")
       ! test the projection step
 
       var(:, :, :, 1) = 1.0 ! constant density
@@ -4324,7 +4355,7 @@ module init_module
 
       ! -----------------------------------------------------------------
 
-    case ("matrixStructureTest")
+    case("matrixStructureTest")
       ! test the momentum transport at constant density and
       ! pressure along x.
 
@@ -4344,7 +4375,7 @@ module init_module
 
       ! ----------------------------------------------------------------
 
-    case ("momentumTransportX")
+    case("momentumTransportX")
       ! test the momentum transport at constant density and
       ! pressure along x.
       updateMass = .false.
@@ -4369,7 +4400,7 @@ module init_module
 
       ! ----------------------------------------------------------------
 
-    case ("momentumTransportY")
+    case("momentumTransportY")
       ! test the momentum transport at constant density and
       ! pressure along y.
       updateMass = .false.
@@ -4394,7 +4425,7 @@ module init_module
 
       ! ----------------------------------------------------------------
 
-    case ("momentumFluxTest")
+    case("momentumFluxTest")
       ! constant density
       var(:, :, :, 1) = 2.0
 
@@ -4408,7 +4439,7 @@ module init_module
 
       ! ----------------------------------------------------------------
 
-    case ("densityTransportX")
+    case("densityTransportX")
       ! density sine curve in x
       !       predictMomentum = .false.
       !       correctMomentum = .false.
@@ -4426,7 +4457,7 @@ module init_module
 
       ! -----------------------------------------------------------------
 
-    case ("densityTransportY")
+    case("densityTransportY")
       !       predictMomentum = .false.
       !       correctMomentum = .false.
       ! density sine curve in y
@@ -4445,7 +4476,7 @@ module init_module
 
       ! ------------------------------------------------------------
 
-    case ("massFluxTest")
+    case("massFluxTest")
       ! constant density
       var(:, :, :, 1) = 1.5
 
@@ -4457,27 +4488,27 @@ module init_module
       ! constant Exner pressure
       var(:, :, :, 5) = 1.0
 
-    case ("standard")
+    case("standard")
 
       do k = 1, nz
         var(:, :, k, :) = z(k) ! Schichtung
       end do
 
-    case ("xparabel")
+    case("xparabel")
       ! rho parabolic in x
       do i = - nbx, nx + nbx
         var(i, :, :, 1) = (x(i) + dx / 2) ** 3 - (x(i) - dx / 2) ** 3
         var(i, :, :, 1) = 1.0 / 3.0 / dx * var(i, :, :, 1)
       end do
 
-    case ("yparabel")
+    case("yparabel")
       ! u-velocity parabolic in y
       do j = - nby, ny + nby
         var(:, j, :, 2) = (y(j) + dy / 2) ** 3 - (y(j) - dy / 2) ** 3
         var(:, j, :, 2) = 1.0 / 3.0 / dy * var(:, j, :, 2)
       end do
 
-    case ("zparabel")
+    case("zparabel")
       ! u-velocity parabolic in z
       do k = - nbz, nz + nbz
         var(:, :, k, 2) = (z(k) + dz / 2) ** 3 - (z(k) - dz / 2) ** 3
@@ -4510,82 +4541,82 @@ module init_module
     !UAE
 
     ! close input file pinc.f
-    close (unit = 10)
+    close(unit = 10)
 
     !----------------------------------
     !     Output system settings
     !----------------------------------
 
-    if (master) then ! modified by Junhong Wei (20170216)
+    if(master) then ! modified by Junhong Wei (20170216)
 
       print *, ""
       print *, "Initializing System: "
       print *, "  1) Reference quantities: "
 
-      write (*, fmt = "(a25,f7.3,a)") "rhoRef = ", rhoRef, " kg/m^3"
-      write (*, fmt = "(a25,f7.3,a)") "pRef = ", pRef * 1.e-3, " kPa"
-      write (*, fmt = "(a25,f7.3,a)") "aRef,uRef = ", uRef, " m/s"
-      write (*, fmt = "(a25,f7.3,a)") "lRef = ", lRef * 1.e-3, " km"
-      write (*, fmt = "(a25,f7.3,a)") "tRef = ", tRef, " s"
-      write (*, fmt = "(a25,f7.3,a)") "thetaRef = ", thetaRef, " K"
-      write (*, fmt = "(a25,f7.3,a)") "FRef = ", FRef, " N/m^3"
+      write(*, fmt = "(a25,f7.3,a)") "rhoRef = ", rhoRef, " kg/m^3"
+      write(*, fmt = "(a25,f7.3,a)") "pRef = ", pRef * 1.e-3, " kPa"
+      write(*, fmt = "(a25,f7.3,a)") "aRef,uRef = ", uRef, " m/s"
+      write(*, fmt = "(a25,f7.3,a)") "lRef = ", lRef * 1.e-3, " km"
+      write(*, fmt = "(a25,f7.3,a)") "tRef = ", tRef, " s"
+      write(*, fmt = "(a25,f7.3,a)") "thetaRef = ", thetaRef, " K"
+      write(*, fmt = "(a25,f7.3,a)") "FRef = ", FRef, " N/m^3"
       print *, ""
 
       print *, "  2) Non-dimensional numbers: "
 
-      write (*, fmt = "(a25,es10.3)") "Ma = ", Ma
-      write (*, fmt = "(a25,es10.3)") "Fr = ", Fr
-      write (*, fmt = "(a25,es10.3)") "Re = ", Re
+      write(*, fmt = "(a25,es10.3)") "Ma = ", Ma
+      write(*, fmt = "(a25,es10.3)") "Fr = ", Fr
+      write(*, fmt = "(a25,es10.3)") "Re = ", Re
       print *, ""
 
       print *, "  3) Extreme values: "
-      write (*, fmt = "(a25,es10.1,a,f5.1,a)") "PStrat = ", PStrat(nz) * pRef &
+      write(*, fmt = "(a25,es10.1,a,f5.1,a)") "PStrat = ", PStrat(nz) * pRef &
           / 1000.0, " kPa at z = ", z(nz) * lRef / 1000.0, " km"
-      write (*, fmt = "(a25,es10.1,a,f5.1,a)") "rhoStrat = ", rhoStrat(nz) &
+      write(*, fmt = "(a25,es10.1,a,f5.1,a)") "rhoStrat = ", rhoStrat(nz) &
           * rhoRef, " kg/m3 at z = ", z(nz) * lRef / 1000.0, " km"
-      write (*, fmt = "(a25,es10.1,a,f5.1,a)") "thetaStrat = ", thetaStrat(nz) &
+      write(*, fmt = "(a25,es10.1,a,f5.1,a)") "thetaStrat = ", thetaStrat(nz) &
           * thetaRef, " K at z = ", z(nz) * lRef / 1000.0, "km"
       print *, ""
 
       print *, "  4) Constants: "
-      write (*, fmt = "(a25,f7.3,a)") "gamma = ", gamma, " "
-      write (*, fmt = "(a25,f7.3,a)") "g = ", g, " m/s^2"
-      write (*, fmt = "(a25,f7.3,a)") "R_sp = ", Rsp, " J/kg/K"
-      write (*, fmt = "(a25,f7.3,a)") "f_Coriolis = ", f_Coriolis_dim, " 1/s"
-      write (*, fmt = "(a25,f7.3,a)") "mu_viscous = ", mu_viscous_dim, " m^2/s"
-      write (*, fmt = "(a25,f7.3,a)") "mu_conduct = ", mu_conduct_dim, " m^2/s"
+      write(*, fmt = "(a25,f7.3,a)") "gamma = ", gamma, " "
+      write(*, fmt = "(a25,f7.3,a)") "g = ", g, " m/s^2"
+      write(*, fmt = "(a25,f7.3,a)") "R_sp = ", Rsp, " J/kg/K"
+      write(*, fmt = "(a25,f7.3,a)") "f_Coriolis = ", f_Coriolis_dim, " 1/s"
+      write(*, fmt = "(a25,f7.3,a)") "mu_viscous = ", mu_viscous_dim, " m^2/s"
+      write(*, fmt = "(a25,f7.3,a)") "mu_conduct = ", mu_conduct_dim, " m^2/s"
       print *, ""
 
       print *, "  5) Background: "
-      select case (background)
-      case ("isothermal")
-        write (*, fmt = "(a25,a15)") "background = ", background
-        write (*, fmt = "(a25,f7.3,a)") "T0 = ", Temp0_dim, " K"
-        write (*, fmt = "(a25,f7.4,a)") "N = ", sqrt(N2) / tRef, " 1/s"
-      case ("isentropic")
-        write (*, fmt = "(a25,a7)") "background = ", background
-        write (*, fmt = "(a25,f7.3,a)") "theta_0 = ", theta0_dim, " K"
-      case ("const-N")
-        write (*, fmt = "(a25,a7)") "background = ", background
-        write (*, fmt = "(a25,f7.3,a)") "N = ", N_BruntVaisala_dim, " 1/s"
-      case ("uniform")
-        write (*, fmt = "(a25,a15)") "background = ", background
-        write (*, fmt = "(a25,f7.3,a)") "rho0 = ", rhoStrat(1) * rhoRef, " &
+      select case(background)
+      case("isothermal")
+        write(*, fmt = "(a25,a15)") "background = ", background
+        write(*, fmt = "(a25,f7.3,a)") "T0 = ", Temp0_dim, " K"
+        write(*, fmt = "(a25,f7.4,a)") "N = ", sqrt(N2) / tRef, " 1/s"
+      case("isentropic")
+        write(*, fmt = "(a25,a7)") "background = ", background
+        write(*, fmt = "(a25,f7.3,a)") "theta_0 = ", theta0_dim, " K"
+      case("const-N")
+        write(*, fmt = "(a25,a7)") "background = ", background
+        write(*, fmt = "(a25,f7.3,a)") "N = ", N_BruntVaisala_dim, " 1/s"
+      case("uniform")
+        write(*, fmt = "(a25,a15)") "background = ", background
+        write(*, fmt = "(a25,f7.3,a)") "rho0 = ", rhoStrat(1) * rhoRef, " &
             kg/m^3"
-        write (*, fmt = "(a25,f7.1,a)") "theta0 = ", thetaStrat(1) * thetaRef, &
+        write(*, fmt = "(a25,f7.1,a)") "theta0 = ", thetaStrat(1) * thetaRef, &
             " K"
-        write (*, fmt = "(a25,f7.2,a)") "N_Brunt-Vaisala = ", NN / tRef, " 1/s"
+        write(*, fmt = "(a25,f7.2,a)") "N_Brunt-Vaisala = ", NN / tRef, " 1/s"
       end select
-      write (*, fmt = "(a25,f7.1,a)") "u0 = ", backgroundFlow(1) * uRef, " m/s"
-      write (*, fmt = "(a25,f7.1,a)") "v0 = ", backgroundFlow(2) * uRef, " m/s"
-      write (*, fmt = "(a25,f7.1,a)") "w0 = ", backgroundFlow(3) * uRef, " m/s"
+      write(*, fmt = "(a25,f7.1,a)") "u0 = ", backgroundFlow(1) * uRef, " m/s"
+      write(*, fmt = "(a25,f7.1,a)") "v0 = ", backgroundFlow(2) * uRef, " m/s"
+      write(*, fmt = "(a25,f7.1,a)") "w0 = ", backgroundFlow(3) * uRef, " m/s"
       print *, ""
 
       print *, "  6) Model equations: "
-      write (*, fmt = "(a25,a15)") "model = ", model
-      write (*, fmt = "(a25)") "inclination angle: "
-      write (*, fmt = "(a25,f5.1,a)") "theta = ", vert_theta, " deg"
-      write (*, fmt = "(a25,f5.1,a)") "alpha = ", vert_alpha, " deg"
+      write(*, fmt = "(a25,a15)") "model = ", model
+      write(*, fmt = "(a25)") "inclination angle: "
+      write(*, fmt = "(a25,f5.1,a)") "theta = ", vert_theta, " deg"
+      write(*, fmt = "(a25,f5.1,a)") "alpha = ", vert_alpha, " deg"
       print *, ""
 
       print *, "  7) Domain: "
@@ -4607,39 +4638,39 @@ module init_module
       print *, ""
 
       print *, "  8) Boundary conditions: "
-      write (*, fmt = "(a25,a)") "xBoundary = ", trim(xBoundary)
-      write (*, fmt = "(a25,a)") "yBoundary = ", trim(yBoundary)
-      write (*, fmt = "(a25,a)") "zBoundary = ", trim(zBoundary)
-      if (spongeLayer) then
-        write (*, fmt = "(a25,a)") "sponge layer = ", "on"
-        write (*, fmt = "(a25,f5.1,a)") "height = ", (lz(1) - lz(0)) &
+      write(*, fmt = "(a25,a)") "xBoundary = ", trim(xBoundary)
+      write(*, fmt = "(a25,a)") "yBoundary = ", trim(yBoundary)
+      write(*, fmt = "(a25,a)") "zBoundary = ", trim(zBoundary)
+      if(spongeLayer) then
+        write(*, fmt = "(a25,a)") "sponge layer = ", "on"
+        write(*, fmt = "(a25,f5.1,a)") "height = ", (lz(1) - lz(0)) &
             * spongeHeight * lRef / 1000.0, " km"
-        write (*, fmt = "(a25,es8.1,a)") "relaxation  = ", spongeAlphaZ_dim, " &
+        write(*, fmt = "(a25,es8.1,a)") "relaxation  = ", spongeAlphaZ_dim, " &
             1/s"
         !UAB
-        write (*, fmt = "(a25,es8.1,a)") "relaxation  = ", spongeAlphaZ_fac, " &
+        write(*, fmt = "(a25,es8.1,a)") "relaxation  = ", spongeAlphaZ_fac, " &
             1/dt"
         !UAC
       else
-        write (*, fmt = "(a25,a)") "sponge layer = ", "off"
+        write(*, fmt = "(a25,a)") "sponge layer = ", "off"
       end if
       print *, ""
 
       print *, "  9) Poisson Solver: "
-      write (*, fmt = "(a25,a)") "solver = ", poissonSolverType
-      write (*, fmt = "(a25,es8.1)") "tolPoisson = ", tolPoisson
-      write (*, fmt = "(a25,es8.1)") "tolCond = ", tolCond
+      write(*, fmt = "(a25,a)") "solver = ", poissonSolverType
+      write(*, fmt = "(a25,es8.1)") "tolPoisson = ", tolPoisson
+      write(*, fmt = "(a25,es8.1)") "tolCond = ", tolCond
       print *, ""
 
       print *, " 10) Topography: "
-      if (topography) then
-        write (*, fmt = "(a25,a)") "topography = ", "on"
-        write (*, fmt = "(a25,f6.1,a)") "mountain height = ", &
+      if(topography) then
+        write(*, fmt = "(a25,a)") "topography = ", "on"
+        write(*, fmt = "(a25,f6.1,a)") "mountain height = ", &
             mountainHeight_dim, " m"
-        write (*, fmt = "(a25,es8.1,a)") "mountain width = ", &
+        write(*, fmt = "(a25,es8.1,a)") "mountain width = ", &
             mountainWidth_dim, " m"
       else
-        write (*, fmt = "(a25,a)") "topography = ", "off"
+        write(*, fmt = "(a25,a)") "topography = ", "off"
       end if
       print *, ""
 
@@ -4652,14 +4683,14 @@ module init_module
     function discDensity(r)
       ! in/out
       real :: discDensity
-      real, intent (in) :: r
+      real, intent(in) :: r
 
       ! local variables
       real :: dens
 
-      if (r >= 1.0) then ! outer region
+      if(r >= 1.0) then ! outer region
         dens = 0.0
-      else if (r < 0.5) then ! 0 <= r < r0/2  region
+      else if(r < 0.5) then ! 0 <= r < r0/2  region
         dens = 4.0 * r ** 2
       else ! 1/2 <= r < 1
         dens = 4.0 * (1.0 - r) ** 2
@@ -4674,14 +4705,14 @@ module init_module
     function greshoVelocity(u0, r) ! gresho vortex with normed radius r0=1
       ! in/out
       real :: greshoVelocity
-      real, intent (in) :: u0, r
+      real, intent(in) :: u0, r
 
       ! local variables
       real :: u
 
-      if (r >= 1.0) then ! outer region
+      if(r >= 1.0) then ! outer region
         u = 0.0
-      else if (r < 0.5) then ! 0 <= r < r0/2  region
+      else if(r < 0.5) then ! 0 <= r < r0/2  region
         u = 2.0 * r
       else ! 1/2 <= r < 1
         u = 2.0 * (1.0 - r)
@@ -4696,14 +4727,14 @@ module init_module
     function greshoPressure(pInf, u0, r)
       ! in/out
       real :: greshoPressure
-      real, intent (in) :: pInf, u0, r
+      real, intent(in) :: pInf, u0, r
 
       ! local variables
       real :: p
 
-      if (r >= 1.0) then ! outer region
+      if(r >= 1.0) then ! outer region
         p = 0.0
-      else if (r < 0.5) then ! 0 <= r < r0/2  region
+      else if(r < 0.5) then ! 0 <= r < r0/2  region
         p = 4.0 * r ** 2
       else ! 1/2 <= r < 1
         p = 4.0 * (1.0 - r) ** 2
@@ -4728,10 +4759,10 @@ module init_module
 
       ! in/out variables
       ! wave amplitude
-      complex, dimension (0:nx + 1, 0:ny + 1, 0:nz + 1, 5, 0:2), intent (out) &
-          :: Psi
-      real, intent (out) :: kk, mm
-      real, intent (out) :: ll
+      complex, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 5, 0:2), intent(out) :: &
+          Psi
+      real, intent(out) :: kk, mm
+      real, intent(out) :: ll
 
       ! local variables
       real :: A, rho
@@ -4759,8 +4790,8 @@ module init_module
       complex :: M21, M22, M23, M24
       complex :: M31, M32, M33, M34
       complex :: M41, M42, M43, M44
-      complex, dimension (4) :: RHS, Sol
-      complex, dimension (4, 4) :: M2, M2inv
+      complex, dimension(4) :: RHS, Sol
+      complex, dimension(4, 4) :: M2, M2inv
       complex :: u21, w21, b22, pi23
 
       ! mean value calculation
@@ -4768,7 +4799,7 @@ module init_module
 
       ! debugging stuff
       complex :: summe
-      complex, dimension (4) :: term
+      complex, dimension(4) :: term
 
       ! more debugging stuff
       real :: B11_pinc
@@ -4780,7 +4811,7 @@ module init_module
 
       real :: Ro_GWP, RoInv_GWP !FS
 
-      if (f_Coriolis_dim /= 0.0) then !FS
+      if(f_Coriolis_dim /= 0.0) then !FS
         Ro_GWP = uRef / f_Coriolis_dim / lRef
         RoInv_GWP = 1.0 / Ro_GWP
       else
@@ -4813,13 +4844,13 @@ module init_module
 
       L_cos = L_cos_dim / lRef ! half length of cosine profile
 
-      if (ABS(lambdaY_dim) /= 0.0) then
+      if(ABS(lambdaY_dim) /= 0.0) then
         ll = 2.0 * pi / lambdaY
       else
         ll = 0.0
       end if
 
-      if (ABS(lambdaX_dim) /= 0.0) then
+      if(ABS(lambdaX_dim) /= 0.0) then
         kk = 2.0 * pi / lambdaX
       else
         kk = 0.0
@@ -4842,13 +4873,13 @@ module init_module
       wAmp = omi / N2 * bAmp
       pAmp = kappa * Ma2 * mm / kk ** 2 * omi2 / N2 * bAmp ! Exner pressure
 
-      close (10)
+      close(10)
 
       !----------------------
       !  output of init data
       !----------------------
 
-      if (master) then
+      if(master) then
         print *, "omi = ", omi / tRef
         print *, "mm = ", mm / lRef
 
@@ -4856,16 +4887,16 @@ module init_module
 
         print *, ""
         print *, "  0) Test case: "
-        write (*, fmt = "(a25,a35)") "Test case  = ", "wave packet (full model)"
-        write (*, fmt = "(a25,f10.1,a)") "lambda_x = ", lambdaX_dim, " m"
-        write (*, fmt = "(a25,f10.1,a)") "lambda_z = ", lambdaZ_dim, " m"
-        write (*, fmt = "(a25,f10.1a7)") "c_x  = ", omi / kk * uRef, " m/s"
-        write (*, fmt = "(a25,f10.1,a7)") "c_z  = ", omi / mm * uRef, " m/s"
-        write (*, fmt = "(a25,f10.1,a7)") "cg_x  = ", - NN * mm ** 2 / kTot &
+        write(*, fmt = "(a25,a35)") "Test case  = ", "wave packet (full model)"
+        write(*, fmt = "(a25,f10.1,a)") "lambda_x = ", lambdaX_dim, " m"
+        write(*, fmt = "(a25,f10.1,a)") "lambda_z = ", lambdaZ_dim, " m"
+        write(*, fmt = "(a25,f10.1a7)") "c_x  = ", omi / kk * uRef, " m/s"
+        write(*, fmt = "(a25,f10.1,a7)") "c_z  = ", omi / mm * uRef, " m/s"
+        write(*, fmt = "(a25,f10.1,a7)") "cg_x  = ", - NN * mm ** 2 / kTot &
             ** 3 * uRef, " m/s"
-        write (*, fmt = "(a25,f10.1,a7)") "cg_z  = ", NN * mm * kk / kTot ** 3 &
+        write(*, fmt = "(a25,f10.1,a7)") "cg_z  = ", NN * mm * kk / kTot ** 3 &
             * uRef, " m/s"
-        write (*, fmt = "(a25,f10.1,a7)") "u_jet  = ", u0_jet_dim, " m/s"
+        write(*, fmt = "(a25,f10.1,a7)") "u_jet  = ", u0_jet_dim, " m/s"
         print *, ""
       end if ! modified by Junhong Wei (20170216)
 
@@ -4879,46 +4910,46 @@ module init_module
           do i = 0, (nx + 1)
             ! profile: 1D and 2D
 
-            if (wavePacketDim == 1) then
+            if(wavePacketDim == 1) then
               delx = 0.0
             else
               delx = (x(i + i0) - xCenter)
             end if
 
-            if (wavePacketDim == 3) then
+            if(wavePacketDim == 3) then
               dely = (y(j + j0) - yCenter)
             else
               dely = 0.0
             end if
 
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               delz = heightTFC(i, j, k) - zCenter
             else
               delz = (z(k) - zCenter)
             end if
 
-            select case (wavePacketType)
+            select case(wavePacketType)
 
-            case (1)
+            case(1)
 
               ! Gaussian
               ! cosine profile horizontally so that fields are zero
               ! at the horizontal boundaries
               ! in case of zero sigma in x or y direction use infinity
 
-              if (sigma_x == 0.0) then
+              if(sigma_x == 0.0) then
                 envel = 1.0
-              else if (abs(delx) < sigma_x) then
+              else if(abs(delx) < sigma_x) then
                 envel = 1.0 - amp_mod_x + amp_mod_x * cos(delx * pi / (sigma_x &
                     * 2.0))
               else
                 envel = 1.0 - amp_mod_x
               end if
 
-              if (sigma_y == 0.0) then
+              if(sigma_y == 0.0) then
                 envel = 1.0 * envel
-              else if (abs(dely) < sigma_y) then
+              else if(abs(dely) < sigma_y) then
                 envel = (1.0 - amp_mod_y + amp_mod_y * cos(dely * pi &
                     / (sigma_y * 2.0))) * envel
               else
@@ -4927,10 +4958,10 @@ module init_module
 
               envel = envel * exp(- (delz ** 2) / 2. / sigma_z ** 2)
 
-            case (2)
+            case(2)
 
               ! Cosine
-              if (abs(delz) .le. L_cos) then
+              if(abs(delz) .le. L_cos) then
                 envel = 0.5 * (1.0 + cos(pi * delz / L_cos))
               else
                 envel = 0.0
@@ -4942,7 +4973,7 @@ module init_module
 
             b11 = cmplx(envel * bAmp, 0.0)
 
-            if (topography) then
+            if(topography) then
               ! TFC FJ
               theta0 = thetaStratTFC(i, j, k)
             else
@@ -4997,7 +5028,7 @@ module init_module
           w10_b = Psi(i, j, k - 1, 2, 1)
 
           ! Buoyancy and pot. temp.
-          if (topography) then
+          if(topography) then
             ! TFC FJ
             theta11_r = Fr2 * thetaStratTFC(i + 1, j, k) * Psi(i + 1, j, k, 3, &
                 1)
@@ -5020,7 +5051,7 @@ module init_module
           pi12_c = Psi(i, j, k, 4, 1)
 
           ! Background Exner pressure and pot. temp.
-          if (topography) then
+          if(topography) then
             ! TFC FJ
             pi0_t = (pStratTFC(i, j, k + 1) / p0) ** gamma_1
             pi0_c = (pStratTFC(i, j, k) / p0) ** gamma_1
@@ -5034,7 +5065,7 @@ module init_module
           end if
 
           ! derivatives
-          if (topography) then
+          if(topography) then
             ! TFC FJ
             du10_dx = 0.5 * (jac(i + 1, j, k) * u10_r - jac(i - 1, j, k) &
                 * u10_l) / dx / jac(i, j, k) + 0.5 * (jac(i, j, k + 1) &
@@ -5125,36 +5156,36 @@ module init_module
 
   !-------------------------------------------------------------------
 
-  function cphase(c) result (phi) ! currently not being used
+  function cphase(c) result(phi) ! currently not being used
 
     !------------------------------------
     !  phase of complex number
     !------------------------------------
 
     ! in/out
-    complex, intent (in) :: c
+    complex, intent(in) :: c
     real :: phi
 
     ! local vars
     real :: a, b
 
-    a = real (c)
+    a = real(c)
     b = aimag(c)
 
     ! first quadrant
-    if (a >= 0 .and. b >= 0) then
+    if(a >= 0 .and. b >= 0) then
       phi = atan(b / a)
 
       ! second quadrant
-    else if (a < 0. .and. b >= 0.) then
+    else if(a < 0. .and. b >= 0.) then
       phi = pi - atan(- b / a)
 
       ! third quadrant
-    else if (a < 0. .and. b < 0.) then
+    else if(a < 0. .and. b < 0.) then
       phi = - pi + atan(b / a)
 
       ! fourth quadrant
-    else if (a >= 0. .and. b < 0) then
+    else if(a >= 0. .and. b < 0) then
       phi = - atan(- b / a)
     else
       stop "wkb.f90/cphase: case not included. Stop."
@@ -5171,30 +5202,30 @@ module init_module
     !-------------------------------
 
     ! input counter
-    integer, intent (in) :: iIn
+    integer, intent(in) :: iIn
 
     ! argument fields
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (out) :: var
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(out) :: var
 
     ! local and global output field and record nbs.
-    real * 4, dimension (nx, ny) :: field_prc
+    real * 4, dimension(nx, ny) :: field_prc
     integer irc_prc, irc_out
-    real * 4, dimension (1, sizeY) :: field_in
+    real * 4, dimension(1, sizeY) :: field_in
 
     ! local variables
     integer :: i, j, k, iVar
 
     ! needed for output to screen
-    character (len = 20) :: fmt, form
+    character(len = 20) :: fmt, form
 
     integer :: i_prc, i_mst, i_out, j_prc, j_mst, j_out
 
-    if (master) then
+    if(master) then
       print *, ""
       print *, " Input from File ", fileinitstate2D
       print *, ""
-      write (*, fmt = "(a25,i15)") " reading record no. ", iIn
+      write(*, fmt = "(a25,i15)") " reading record no. ", iIn
     end if
 
     ! open input file
@@ -5212,19 +5243,19 @@ module init_module
 
     irc_prc = 0
     do iVar = 1, nVar
-      if (varIn(iVar) == 1) irc_prc = irc_prc + 1
+      if(varIn(iVar) == 1) irc_prc = irc_prc + 1
     end do
     irc_prc = irc_prc * iIn * nz
 
     do iVar = 1, nVar
-      if (varIn(iVar) == 1) then
+      if(varIn(iVar) == 1) then
         do k = 1, nz
           ! read data layerwise
 
           irc_prc = irc_prc + 1
 
-          if (master) then
-            read (40, rec = irc_prc) field_in
+          if(master) then
+            read(40, rec = irc_prc) field_in
 
             do j = 1, ny
               j_mst = j
@@ -5255,14 +5286,14 @@ module init_module
             do i = 1, nx
               ! non-dimensionalization
 
-              select case (iVar)
+              select case(iVar)
 
-              case (1) ! density
-                if (fluctuationMode) then
-                  if (rhoOffset) then
+              case(1) ! density
+                if(fluctuationMode) then
+                  if(rhoOffset) then
                     var(i, j, k, iVar) = field_prc(i, j) / rhoRef
                   else
-                    if (topography) then
+                    if(topography) then
                       ! TFC FJ
                       var(i, j, k, iVar) = field_prc(i, j) / rhoRef &
                           - rhoStratTFC(i, j, k)
@@ -5272,7 +5303,7 @@ module init_module
                     end if
                   end if
                 else
-                  if (rhoOffset) then
+                  if(rhoOffset) then
                     var(i, j, k, iVar) = field_prc(i, j) / rhoRef + rhoStrat(k)
                   else
                     var(i, j, k, iVar) = field_prc(i, j) / rhoRef
@@ -5281,26 +5312,26 @@ module init_module
 
                 ! interpolate velocities to cell faces
 
-              case (2) ! u velocity
+              case(2) ! u velocity
                 var(i, j, k, iVar) = field_prc(i, j) / uRef + offset(iVar)
 
-              case (3) ! v velocity
+              case(3) ! v velocity
                 var(i, j, k, iVar) = field_prc(i, j) / uRef + offset(iVar)
 
-              case (4) ! w velocity
+              case(4) ! w velocity
                 var(i, j, k, iVar) = field_prc(i, j) / uRef + offset(iVar)
 
-              case (5) ! Exner function pi'
+              case(5) ! Exner function pi'
                 !(deviation from background)
                 var(i, j, k, iVar) = field_prc(i, j)
 
-              case (6) ! potential temperature theta'
+              case(6) ! potential temperature theta'
                 ! (deviation from background, Boussinesq)
                 ! potential temperature not used
                 ! (only density  needed)
                 var(i, j, k, iVar) = field_prc(i, j) / thetaRef
 
-              case (7) ! dynamic Smagorinsky coefficient
+              case(7) ! dynamic Smagorinsky coefficient
                 !(deviation from background)
 
                 var(i, j, k, iVar) = field_prc(i, j) / (uRef * lRef)
@@ -5317,7 +5348,7 @@ module init_module
     !------------------------------------
     !              close file
     !------------------------------------
-    if (master) close (unit = 40)
+    if(master) close(unit = 40)
 
   end subroutine init_data2D3D
   !------------------------------------------------------------------
@@ -5371,23 +5402,23 @@ module init_module
     integer :: i, j, k
     integer :: allocstat, root
     real :: valRef, amplitude, perturbVal, sum_loc, sum_glob
-    character (len = 20) :: ntovar
+    character(len = 20) :: ntovar
     real :: rand ! random number
     real :: Lx, Ly, Lz
-    real, dimension (1:nx, 1:ny, 1:nz) :: noise
+    real, dimension(1:nx, 1:ny, 1:nz) :: noise
 
     !-------------------------------
     !  add noise
     !-------------------------------
 
-    select case (ntovar)
-    case ("rho")
+    select case(ntovar)
+    case("rho")
       valRef = rhoref
-    case ("vel")
+    case("vel")
       valRef = uref
-    case ("th")
+    case("th")
       valRef = thetaRef
-    case ("none")
+    case("none")
       valRef = 1.0
     case default
       stop "noise_array: Unknown variable"
@@ -5404,7 +5435,7 @@ module init_module
 
           ! non-dimensionalization ...
 
-          if (referenceQuantities == "SI") then
+          if(referenceQuantities == "SI") then
             noise(i, j, k) = perturbVal
           else
             noise(i, j, k) = perturbVal / valRef
@@ -5421,10 +5452,10 @@ module init_module
     integer :: i, j, k
     integer :: allocstat, root
     real :: valRef, amplitude, perturbVal, sum_loc, sum_glob
-    character (len = 20) :: ntovar
+    character(len = 20) :: ntovar
     real :: rand ! random number
     real :: Lx, Ly, Lz
-    real, dimension (1:nx, 1:ny, 1:nz) :: noise
+    real, dimension(1:nx, 1:ny, 1:nz) :: noise
 
     sum_loc = 0.
     sum_glob = 0.
@@ -5471,8 +5502,8 @@ module init_module
     integer :: xslice, zslice
     real :: calc_magn, max_loc, min_loc, max_glob, min_glob, valRef
     !real, dimension(1:nx, 1:ny, 1:nz)  :: field
-    real, dimension (1:ny) :: slice
-    character (len = 20) :: ntovar
+    real, dimension(1:ny) :: slice
+    character(len = 20) :: ntovar
 
     !slice(1:ny) = field(xslice, 1:ny, zslice)
 
@@ -5486,20 +5517,20 @@ module init_module
 
     calc_magn = max_glob - min_glob
 
-    select case (ntovar)
-    case ("rho")
+    select case(ntovar)
+    case("rho")
       valRef = rhoref
-    case ("vel")
+    case("vel")
       valRef = uref
-    case ("th")
+    case("th")
       valRef = thetaRef
     case default
       stop "noise_array: Unknown variable"
     end select
 
-    if (master) then
+    if(master) then
       print *, "Noise is added to variable ", ntovar
-      if (referenceQuantities == "SI") then
+      if(referenceQuantities == "SI") then
         print *, "Noise magnitude = ", calc_magn
       else
         print *, "Noise magnitude = ", calc_magn * valRef
@@ -5510,7 +5541,7 @@ module init_module
   subroutine averagevel(var)
     ! local variables
     integer :: i, j, k
-    real, dimension (:, :, :, :), allocatable, intent (out) :: var
+    real, dimension(:, :, :, :), allocatable, intent(out) :: var
 
     !-----------------------------
     !  Interpolate to cell faces
@@ -5543,11 +5574,11 @@ module init_module
 
     integer max_nz
     ! argument fields
-    real, dimension (1:nx, 1:ny, 1:max_nz), intent (in) :: th_bgr
-    character (len = *) :: filename_bgr
+    real, dimension(1:nx, 1:ny, 1:max_nz), intent(in) :: th_bgr
+    character(len = *) :: filename_bgr
 
     ! local and global output field and record nbs.
-    real * 4, dimension (nx, ny) :: field_prc
+    real * 4, dimension(nx, ny) :: field_prc
     !   real*4,dimension(SizeX,SizeY) :: field_out
     integer irc_prc, irc_out
 
@@ -5561,8 +5592,8 @@ module init_module
 
     integer :: i_prc, i_mst, i_out, j_prc, j_mst, j_out
 
-    if (master) then
-      if ((TestCase == "baroclinic_LC") .or. (TestCase == "baroclinic_ID")) then
+    if(master) then
+      if((TestCase == "baroclinic_LC") .or. (TestCase == "baroclinic_ID")) then
         print *, ""
         print *, " Output of background into file ", filename_bgr
         print *, ""
@@ -5595,22 +5626,22 @@ module init_module
       ! dimensionalization
       do j = 1, ny
         do i = 1, nx
-          select case (model)
+          select case(model)
 
-          case ("pseudo_incompressible")
+          case("pseudo_incompressible")
 
-            if (referenceQuantities == "SI") then
+            if(referenceQuantities == "SI") then
               theta_dim = th_bgr(i, j, k)
             else
               theta_dim = th_bgr(i, j, k) * ref
             end if
 
-            field_prc(i, j) = real (theta_dim, kind = 4)
+            field_prc(i, j) = real(theta_dim, kind = 4)
 
-          case ("Boussinesq")
+          case("Boussinesq")
             stop "output_background: background undefined"
 
-          case ("WKB")
+          case("WKB")
             stop "output_background: background undefined"
           case default
             stop "output_background: unknown model"
@@ -5624,7 +5655,7 @@ module init_module
       ! layerwise output
       irc_prc = irc_prc + 1
       call mpi_barrier(comm, ierror)
-      if (master) then
+      if(master) then
         do j = 1, ny
           j_mst = j
 
@@ -5643,14 +5674,14 @@ module init_module
           end do
         end do
 
-        write (51, rec = irc_prc) field_out
+        write(51, rec = irc_prc) field_out
       end if
     end do ! k
 
     !------------------------------------
     !              close file
     !------------------------------------
-    if (master) close (unit = 51)
+    if(master) close(unit = 51)
 
   end subroutine output_background
   !--------------------------------------------------------------------------

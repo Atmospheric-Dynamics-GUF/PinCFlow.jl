@@ -16,14 +16,14 @@ module output_module
   public :: output_field
   public :: output_profile
   public :: output_fluxes
-  public :: output_tfc_background
+  public :: output_background
 
   ! internal subroutines (listed for completeness)
   public :: init_output
   public :: terminate_output
 
   ! internal module variables (output variables)
-  real, dimension (:, :, :), allocatable :: optVar
+  real, dimension(:, :, :), allocatable :: optVar
 
   contains
 
@@ -34,19 +34,19 @@ module output_module
     !-------------------------------
 
     ! output counter
-    integer, intent (inout) :: iOut
+    integer, intent(inout) :: iOut
 
     ! argument fields
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (in) :: var
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
 
     ! local and global output field and record nbs.
-    real * 4, dimension (nx, ny) :: field_prc
+    real * 4, dimension(nx, ny) :: field_prc
     integer irc_prc, irc_out
 
     ! argument parameters
-    integer, intent (in) :: iTime
-    real, intent (in) :: time, cpuTime
+    integer, intent(in) :: iTime
+    real, intent(in) :: time, cpuTime
 
     ! local variables
     integer :: i, j, k, iVar
@@ -55,8 +55,8 @@ module output_module
     real :: rhotracer
 
     ! needed for output to screen
-    character (len = 20) :: fmt, form
-    character (len = 40) :: cpuTimeChar
+    character(len = 20) :: fmt, form
+    character(len = 40) :: cpuTimeChar
 
     ! CPU Time
     integer :: days, hours, mins, secs
@@ -72,12 +72,12 @@ module output_module
 
     time_dim = time * tRef
 
-    if (master) then ! modified by Junhong Wei (20161110)
+    if(master) then ! modified by Junhong Wei (20161110)
       print *, ""
       print *, " Output into File "
       print *, ""
-      write (*, fmt = "(a25,i15)") " at time step = ", iTime
-      write (*, fmt = "(a25,f15.1,a8)") " at physical time = ", time_dim, " &
+      write(*, fmt = "(a25,i15)") " at time step = ", iTime
+      write(*, fmt = "(a25,f15.1,a8)") " at physical time = ", time_dim, " &
           seconds"
     end if ! modified by Junhong Wei (20161110)
 
@@ -87,8 +87,8 @@ module output_module
 
     ! open output file
 
-    if (master) then
-      open (41, file = 'pf_all.dat', form = "unformatted", access = 'direct', &
+    if(master) then
+      open(41, file = 'pf_all.dat', form = "unformatted", access = 'direct', &
           recl = SizeX * SizeY * sizeofreal4)
     end if
 
@@ -102,10 +102,10 @@ module output_module
     timeVar = timeVar - 60.0 * mins
     secs = int(timeVar)
 
-    write (unit = cpuTimeChar, fmt = "(i2,a,2(i2.2,a),i2.2)") days, " ", &
-        hours, ":", mins, ":", secs
+    write(unit = cpuTimeChar, fmt = "(i2,a,2(i2.2,a),i2.2)") days, " ", hours, &
+        ":", mins, ":", secs
 
-    if (master) write (*, fmt = "(a25,a25)") "CPU time = ", cpuTimeChar
+    if(master) write(*, fmt = "(a25,a25)") "CPU time = ", cpuTimeChar
 
     !---------------------------------------
     !       dimensionalising and layerwise output
@@ -113,6 +113,7 @@ module output_module
 
     irc_prc = 0
     do iVar = 1, nVar
+      if(varOut(iVar) == 1) irc_prc = irc_prc + 1
        if (varOut(iVar)==1) irc_prc = irc_prc + 1
     end do
     irc_prc = irc_prc * iOut * nz
@@ -631,23 +632,23 @@ module output_module
     !-------------------------------
 
     ! input counter
-    integer, intent (in) :: iIn
+    integer, intent(in) :: iIn
 
     ! argument fields
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (out) :: var
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(out) :: var
 
-    real, intent (out) :: time
+    real, intent(out) :: time
 
     ! local and global output field and record nbs.
-    real * 4, dimension (nx, ny) :: field_prc
+    real * 4, dimension(nx, ny) :: field_prc
     integer irc_prc, irc_out
 
     ! local variables
     integer :: i, j, k, iVar
 
     ! needed for output to screen
-    character (len = 20) :: fmt, form
+    character(len = 20) :: fmt, form
 
     ! hotBubble input
     real :: rho, theta_dim
@@ -657,11 +658,11 @@ module output_module
 
     integer :: i_prc, i_mst, i_out, j_prc, j_mst, j_out
 
-    if (master) then
+    if(master) then
       print *, ""
       print *, " Input from File "
       print *, ""
-      write (*, fmt = "(a25,i15)") " reading record no. ", iIn
+      write(*, fmt = "(a25,i15)") " reading record no. ", iIn
     end if
 
     ! open input file
@@ -682,19 +683,19 @@ module output_module
 
     irc_prc = 0
     do iVar = 1, nVar
-      if (varIn(iVar) == 1) irc_prc = irc_prc + 1
+      if(varIn(iVar) == 1) irc_prc = irc_prc + 1
     end do
     irc_prc = irc_prc * iIn * nz
 
     do iVar = 1, nVar
-      if (varIn(iVar) == 1) then
+      if(varIn(iVar) == 1) then
         do k = 1, nz
           ! read data layerwise
 
           irc_prc = irc_prc + 1
 
-          if (master) then
-            read (40, rec = irc_prc) field_out
+          if(master) then
+            read(40, rec = irc_prc) field_out
 
             do j = 1, ny
               j_mst = j
@@ -725,14 +726,14 @@ module output_module
             do i = 1, nx
               ! non-dimensionalization
 
-              select case (iVar)
+              select case(iVar)
 
-              case (1) ! density
-                if (fluctuationMode) then
-                  if (rhoOffset) then
+              case(1) ! density
+                if(fluctuationMode) then
+                  if(rhoOffset) then
                     var(i, j, k, iVar) = field_prc(i, j) / rhoRef
                   else
-                    if (topography) then
+                    if(topography) then
                       ! TFC FJ
                       ! Adjustment for 3D background field in TFC.
                       var(i, j, k, iVar) = field_prc(i, j) / rhoRef &
@@ -743,7 +744,7 @@ module output_module
                     end if
                   end if
                 else
-                  if (rhoOffset) then
+                  if(rhoOffset) then
                     var(i, j, k, iVar) = field_prc(i, j) / rhoRef + rhoStrat(k)
                   else
                     var(i, j, k, iVar) = field_prc(i, j) / rhoRef
@@ -752,26 +753,26 @@ module output_module
 
                 ! interpolate velocities to cell faces
 
-              case (2) ! u velocity
+              case(2) ! u velocity
                 var(i, j, k, iVar) = field_prc(i, j) / uRef + offset(iVar)
 
-              case (3) ! v velocity
+              case(3) ! v velocity
                 var(i, j, k, iVar) = field_prc(i, j) / uRef + offset(iVar)
 
-              case (4) ! w velocity
+              case(4) ! w velocity
                 var(i, j, k, iVar) = field_prc(i, j) / uRef + offset(iVar)
 
-              case (5) ! Exner function pi'
+              case(5) ! Exner function pi'
                 !(deviation from background)
                 var(i, j, k, iVar) = field_prc(i, j)
 
-              case (6) ! potential temperature theta'
+              case(6) ! potential temperature theta'
                 ! (deviation from background, Boussinesq)
                 ! potential temperature not used
                 ! (only density  needed)
-                select case (model)
-                case ("pseudo_incompressible")
-                  if (topography) then
+                select case(model)
+                case("pseudo_incompressible")
+                  if(topography) then
                     ! TFC FJ
                     var(i, j, k, iVar) = (pStratTFC(i, j, k) / field_prc(i, &
                         j)) / rhoRef - rhoStratTFC(i, j, k)
@@ -780,7 +781,7 @@ module output_module
                         / rhoRef - rhoStrat(k)
                   end if
 
-                case ("Boussinesq")
+                case("Boussinesq")
                   ! TFC FJ
                   ! Boussinesq: density fluctuations are stored in
                   ! var(:, :, :, 6)!
@@ -789,13 +790,13 @@ module output_module
 
                   ! var(i,j,k,iVar) = field_prc(i,j)/thetaRef
 
-                case ("WKB")
+                case("WKB")
 
                 case default
                   stop "tec360: unknown model"
                 end select ! model
 
-              case (7) ! dynamic Smagorinsky coefficient
+              case(7) ! dynamic Smagorinsky coefficient
                 !(deviation from background)
 
                 var(i, j, k, iVar) = field_prc(i, j) / (uRef * lRef)
@@ -803,13 +804,13 @@ module output_module
               case default
                 !--------------------------------------
                 ! NEW: ice cases !    ! might be better to include reference units here
-                if (iVar == nVar - 3) then ! aerosol particle number concentration nAer
+                if(iVar == nVar - 3) then ! aerosol particle number concentration nAer
                   var(i, j, k, iVar) = field_prc(i, j) * rhoRef * lRef ** 3
-                else if (iVar == nVar - 2) then ! ice particle number concentration nIce
+                else if(iVar == nVar - 2) then ! ice particle number concentration nIce
                   var(i, j, k, iVar) = field_prc(i, j) * rhoRef * lRef ** 3
-                else if (iVar == nVar - 1) then ! ice particle mass concentration qIce
+                else if(iVar == nVar - 1) then ! ice particle mass concentration qIce
                   var(i, j, k, iVar) = field_prc(i, j)
-                else if (iVar == nVar) then ! water vapor mass concentration qv
+                else if(iVar == nVar) then ! water vapor mass concentration qv
                   var(i, j, k, iVar) = field_prc(i, j)
                   !---------------------------------
                 else
@@ -826,7 +827,7 @@ module output_module
     !              close file
     !------------------------------------
 
-    if (master) close (unit = 40)
+    if(master) close(unit = 40)
 
   end subroutine read_data
 
@@ -839,26 +840,26 @@ module output_module
     !--------------------------------------------------
 
     ! output counter
-    integer, intent (inout) :: iOut
+    integer, intent(inout) :: iOut
 
     ! wkb arguments
-    type (rayType), dimension (nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
-        intent (in) :: ray
+    type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
+        intent(in) :: ray
 
-    real, dimension (0:nx + 1, 0:ny + 1, 0:nz + 1, 1:6), intent (in) :: &
-        ray_var3D
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:6), intent(in) :: ray_var3D
 
     ! local variables
     integer :: i, j, k, iVar
 
     ! local and global output field and record nbs.
-    real * 4, dimension (nx, ny) :: field_prc
+    real * 4, dimension(nx, ny) :: field_prc
     integer irc_prc, irc_out
 
     integer :: i_prc, i_mst, i_out, j_prc, j_mst, j_out
 
+    ! FJFeb2023
     ! set counter
-    iOut = iOut - 1
+    ! iOut = iOut - 1
 
     !------------------------------
     !   prepare output file
@@ -875,7 +876,8 @@ module output_module
     !       dimensionalising and layerwise output
     !---------------------------------------
 
-    irc_prc = 6 * iOut * nz
+    ! FJFeb2023
+    irc_prc = 6 * (iOut - 1) * nz
 
     do iVar = 1, 6
       do k = 1, nz
@@ -883,26 +885,26 @@ module output_module
 
         do j = 1, ny
           do i = 1, nx
-            select case (iVar)
+            select case(iVar)
 
-            case (1) ! (du/dt)_GW
+            case(1) ! (du/dt)_GW
               field_prc(i, j) = ray_var3D(i, j, k, 1) * uRef / tRef
 
-            case (2) ! (dv/dt)_GW
+            case(2) ! (dv/dt)_GW
               field_prc(i, j) = ray_var3D(i, j, k, 2) * uRef / tRef
 
-            case (3) ! (dtheta/dt)_GW
+            case(3) ! (dtheta/dt)_GW
               field_prc(i, j) = ray_var3D(i, j, k, 3) * thetaRef / tRef
 
-            case (4) ! elastic term in x direction
+            case(4) ! elastic term in x direction
               field_prc(i, j) = ray_var3D(i, j, k, 4) * uRef / tRef
 
               !case(5) ! elastic term in y direction
               !  field_prc(i,j) = ray_var3D(i,j,k,5) * uRef/tRef
-            case (5) ! u'w' momentum flux , output chage by FDK
+            case(5) ! u'w' momentum flux , output chage by FDK
               field_prc(i, j) = ray_var3D(i, j, k, 5) * uRef ** 2
 
-            case (6) ! GW energy
+            case(6) ! GW energy
               field_prc(i, j) = ray_var3D(i, j, k, 6) * rhoRef * uRef ** 2 ! /tRef deleted by FDK
 
             case default
@@ -917,7 +919,7 @@ module output_module
 
         irc_prc = irc_prc + 1
         call mpi_barrier(comm, ierror)
-        if (master) then
+        if(master) then
           do j = 1, ny
             j_mst = j
 
@@ -936,7 +938,7 @@ module output_module
             end do
           end do
 
-          write (40, rec = irc_prc) field_out
+          write(40, rec = irc_prc) field_out
         end if
       end do ! k
     end do ! iVar
@@ -945,15 +947,16 @@ module output_module
     !              close file
     !------------------------------------
 
-    if (master) close (unit = 40)
+    if(master) close(unit = 40)
 
     !--------------------------------------------------------------
     ! here, after the parallelization of MS-GWaM, should also be
     ! optional output for all ray-volume quantities (x,y,z,k,l,m,N)
     !--------------------------------------------------------------
 
+    ! FJFeb2023
     ! set counter
-    iOut = iOut + 1
+    ! iOut = iOut + 1
 
   end subroutine output_wkb
 
@@ -968,17 +971,17 @@ module output_module
     integer :: allocstat
 
     ! divPu
-    allocate (optVar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+    allocate(optVar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
         = allocstat)
-    if (allocstat /= 0) stop "output.f90/init_output: could not allocate &
+    if(allocstat /= 0) stop "output.f90/init_output: could not allocate &
         optVar. Stop."
 
     ! for output global fields
-    allocate (field_mst(sizeX * nprocy, ny), stat = allocstat)
-    if (allocstat /= 0) stop "output.f90/init_output: could not allocate &
+    allocate(field_mst(sizeX * nprocy, ny), stat = allocstat)
+    if(allocstat /= 0) stop "output.f90/init_output: could not allocate &
         field_mst. Stop."
-    allocate (field_out(sizeX, sizeY), stat = allocstat)
-    if (allocstat /= 0) stop "output.f90/init_output: could not allocate &
+    allocate(field_out(sizeX, sizeY), stat = allocstat)
+    if(allocstat /= 0) stop "output.f90/init_output: could not allocate &
         field_out. Stop."
   end subroutine init_output
 
@@ -994,20 +997,20 @@ module output_module
 
     !---------------- deallocate variables -----------------------
 
-    deallocate (optVar, stat = allocstat)
-    if (allocstat /= 0) stop "output.f90/init_output: could not deallocate &
+    deallocate(optVar, stat = allocstat)
+    if(allocstat /= 0) stop "output.f90/init_output: could not deallocate &
         optVar. Stop."
 
-    deallocate (varIn, stat = allocstat)
-    if (allocstat /= 0) stop "output.f90/init_output: could not deallocate &
+    deallocate(varIn, stat = allocstat)
+    if(allocstat /= 0) stop "output.f90/init_output: could not deallocate &
         varIn. Stop."
 
-    deallocate (varOut, stat = allocstat)
-    if (allocstat /= 0) stop "output.f90/init_output: could not deallocate &
+    deallocate(varOut, stat = allocstat)
+    if(allocstat /= 0) stop "output.f90/init_output: could not deallocate &
         varOut. Stop."
 
-    deallocate (offset, stat = allocstat)
-    if (allocstat /= 0) stop "output.f90/init_output: could not deallocate &
+    deallocate(offset, stat = allocstat)
+    if(allocstat /= 0) stop "output.f90/init_output: could not deallocate &
         offset. Stop."
 
   end subroutine terminate_output
@@ -1021,14 +1024,14 @@ module output_module
     !-------------------------------
 
     ! output counter
-    integer, intent (in) :: iOut
+    integer, intent(in) :: iOut
 
     ! argument fields
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), intent &
-        (in) :: field
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
+        intent(in) :: field
 
     ! local and global output field and record nbs.
-    real * 4, dimension (nx, ny) :: field_prc
+    real * 4, dimension(nx, ny) :: field_prc
     integer irc_prc, irc_out
 
     ! local variables
@@ -1036,8 +1039,8 @@ module output_module
     real :: time_dim
 
     ! needed for output to screen
-    character (len = 20) :: fmt, form
-    character (len = 40) :: cpuTimeChar
+    character(len = 20) :: fmt, form
+    character(len = 40) :: cpuTimeChar
 
     ! CPU Time
     integer :: days, hours, mins, secs
@@ -1047,15 +1050,15 @@ module output_module
     real :: rho, theta_dim
 
     ! scale the variable
-    real, intent (in) :: scaling_coef
-    character (len = *) :: filename
+    real, intent(in) :: scaling_coef
+    character(len = *) :: filename
 
     ! buoyancy
     real :: b, b_dim, theta
 
     integer :: i_prc, i_mst, i_out, j_prc, j_mst, j_out
 
-    if (master) then ! modified by Junhong Wei (20161110)
+    if(master) then ! modified by Junhong Wei (20161110)
       print *, ""
       print *, " Output into File "
       print *, filename
@@ -1085,7 +1088,7 @@ module output_module
 
       do j = 1, ny
         do i = 1, nx
-          field_prc(i, j) = real (field(i, j, k) * scaling_coef, kind = 4)
+          field_prc(i, j) = real(field(i, j, k) * scaling_coef, kind = 4)
         end do ! i
         call mpi_gather(field_prc(1, j), nx, mpi_real, field_mst(1, j), nx, &
             mpi_real, 0, comm, ierror)
@@ -1096,7 +1099,7 @@ module output_module
       irc_prc = irc_prc + 1
       !            write(40,rec=irc_prc) field_prc
       call mpi_barrier(comm, ierror)
-      if (master) then
+      if(master) then
         do j = 1, ny
           j_mst = j
 
@@ -1115,7 +1118,7 @@ module output_module
           end do
         end do
 
-        write (21, rec = irc_prc) field_out
+        write(21, rec = irc_prc) field_out
       end if
     end do ! k
 
@@ -1123,7 +1126,7 @@ module output_module
     !              close file
     !------------------------------------
 
-    if (master) close (unit = 21)
+    if(master) close(unit = 21)
 
   end subroutine output_field
 
@@ -1136,14 +1139,14 @@ module output_module
     !-------------------------------
 
     ! output counter
-    integer, intent (inout) :: iOut
+    integer, intent(inout) :: iOut
 
     ! argument fields
     !UAC real,dimension(-nbz:nz+nbz),intent(in) :: field
-    real, dimension (- 1:nz + 2), intent (in) :: field
+    real, dimension(- 1:nz + 2), intent(in) :: field
 
     ! local and global output field and record nbs.
-    real * 4, dimension (nx, ny) :: field_prc
+    real * 4, dimension(nx, ny) :: field_prc
     integer irc_prc, irc_out
 
     ! local variables
@@ -1151,8 +1154,8 @@ module output_module
     real :: time_dim
 
     ! needed for output to screen
-    character (len = 20) :: fmt, form
-    character (len = 40) :: cpuTimeChar
+    character(len = 20) :: fmt, form
+    character(len = 40) :: cpuTimeChar
 
     ! CPU Time
     integer :: days, hours, mins, secs
@@ -1161,7 +1164,7 @@ module output_module
     ! hotBubble output
     real :: rho, theta_dim
 
-    character (len = *) :: filename
+    character(len = *) :: filename
 
     ! buoyancy
     real :: b, b_dim, theta
@@ -1170,12 +1173,13 @@ module output_module
 
     !  iOut = iOut - 1
 
-    if (master) then ! modified by Junhong Wei (20161110)
-      print *, ""
-      print *, " Output into File "
-      print *, filename
+    ! FJFeb2023
+    ! if(master) then ! modified by Junhong Wei (20161110)
+    !   print *, ""
+    !   print *, " Output into File "
+    !   print *, filename
 
-    end if ! modified by Junhong Wei (20161110)
+    ! end if ! modified by Junhong Wei (20161110)
 
     !------------------------------
     !   prepare output file
@@ -1192,14 +1196,16 @@ module output_module
     !       dimensionalising and layerwise output
     !---------------------------------------
 
-    irc_prc = 1
-    irc_prc = irc_prc * iOut * (nz)
+    ! FJFeb2023
+    ! irc_prc = 1
+    ! irc_prc = irc_prc * iOut * (nz)
+    irc_prc = (iOut - 1) * nz
 
     do k = 1, nz
       ! dimensionalization
 
       !testb
-      if (master) print *, k, field(k)
+      ! if(master) print *, k, field(k)
       !teste
 
       do j = 1, ny
@@ -1220,7 +1226,7 @@ module output_module
       irc_prc = irc_prc + 1
       !            write(40,rec=irc_prc) field_prc
       call mpi_barrier(comm, ierror)
-      if (master) then
+      if(master) then
         do j = 1, ny
           j_mst = j
 
@@ -1240,7 +1246,7 @@ module output_module
           end do
         end do
 
-        write (21, rec = irc_prc) field_out
+        write(21, rec = irc_prc) field_out
       end if
     end do ! k
 
@@ -1248,7 +1254,7 @@ module output_module
     !              close file
     !------------------------------------
 
-    if (master) close (unit = 21)
+    if(master) close(unit = 21)
 
     ! iOut = iOut + 1
 
@@ -1262,13 +1268,13 @@ module output_module
     !-------------------------------
 
     ! output counter
-    integer, intent (in) :: iIn
+    integer, intent(in) :: iIn
 
     ! argument fields
-    real, dimension (- nbz:nz + nbz), intent (out) :: field
+    real, dimension(- nbz:nz + nbz), intent(out) :: field
 
     ! local and global output field and record nbs.
-    real * 4, dimension (nx, ny) :: field_prc
+    real * 4, dimension(nx, ny) :: field_prc
     integer irc_prc, irc_out
 
     ! local variables
@@ -1276,8 +1282,8 @@ module output_module
     real :: time_dim
 
     ! needed for output to screen
-    character (len = 20) :: fmt, form
-    character (len = 40) :: cpuTimeChar
+    character(len = 20) :: fmt, form
+    character(len = 40) :: cpuTimeChar
 
     ! CPU Time
     integer :: days, hours, mins, secs
@@ -1286,7 +1292,7 @@ module output_module
     ! hotBubble output
     real :: rho, theta_dim
 
-    character (len = *) :: filename
+    character(len = *) :: filename
 
     ! buoyancy
     real :: b, b_dim, theta
@@ -1295,11 +1301,11 @@ module output_module
 
     !  iOut = iOut - 1
 
-    if (master) then
+    if(master) then
       print *, ""
       print *, " Input from File "
       print *, ""
-      write (*, fmt = "(a25,i15)") " reading record no. ", iIn
+      write(*, fmt = "(a25,i15)") " reading record no. ", iIn
     end if
 
     !------------------------------
@@ -1326,9 +1332,9 @@ module output_module
       ! read data layerwise
 
       irc_prc = irc_prc + 1
-      if (master) then
+      if(master) then
 
-        read (21, rec = irc_prc) field_out
+        read(21, rec = irc_prc) field_out
         do j = 1, ny
           j_mst = j
 
@@ -1368,7 +1374,7 @@ module output_module
     !              close file
     !------------------------------------
 
-    if (master) close (unit = 21)
+    if(master) close(unit = 21)
 
     ! iOut = iOut + 1
 
@@ -1381,29 +1387,29 @@ module output_module
     !-------------------------------
 
     ! output counter
-    integer, intent (inout) :: iOut
+    integer, intent(inout) :: iOut
 
     ! argument fields
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent (in) :: var
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
 
-    real, dimension (- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent (in) :: flux
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
 
     ! local and global output field and record nbs.
-    real * 4, dimension (nx, ny) :: field_prc
+    real * 4, dimension(nx, ny) :: field_prc
     integer irc_prc, irc_out
 
     ! argument parameters
-    integer, intent (in) :: iTime
-    real, intent (in) :: time, cpuTime
+    integer, intent(in) :: iTime
+    real, intent(in) :: time, cpuTime
 
     ! local variables
     integer :: i, j, k, iVar
     real :: time_dim
 
     ! needed for output to screen
-    character (len = 20) :: fmt, form
-    character (len = 40) :: cpuTimeChar
+    character(len = 20) :: fmt, form
+    character(len = 40) :: cpuTimeChar
 
     ! CPU Time
     integer :: days, hours, mins, secs
@@ -1417,7 +1423,7 @@ module output_module
 
     integer :: i_prc, i_mst, i_out, j_prc, j_mst, j_out
 
-    real, dimension (0:nz + 1) :: sum_local, sum_global !\bar rho
+    real, dimension(0:nz + 1) :: sum_local, sum_global !\bar rho
 
     sum_local = 0.
     sum_global = 0.
@@ -1435,12 +1441,12 @@ module output_module
 
     time_dim = time * tRef
 
-    if (master) then ! modified by Junhong Wei (20161110)
+    if(master) then ! modified by Junhong Wei (20161110)
       print *, ""
       print *, " Output into File "
       print *, ""
-      write (*, fmt = "(a25,i15)") " at time step = ", iTime
-      write (*, fmt = "(a25,f15.1,a8)") " at physical time = ", time_dim, " &
+      write(*, fmt = "(a25,i15)") " at time step = ", iTime
+      write(*, fmt = "(a25,f15.1,a8)") " at physical time = ", time_dim, " &
           seconds"
     end if ! modified by Junhong Wei (20161110)
 
@@ -1465,10 +1471,10 @@ module output_module
     timeVar = timeVar - 60.0 * mins
     secs = int(timeVar)
 
-    write (unit = cpuTimeChar, fmt = "(i2,a,2(i2.2,a),i2.2)") days, " ", &
-        hours, ":", mins, ":", secs
+    write(unit = cpuTimeChar, fmt = "(i2,a,2(i2.2,a),i2.2)") days, " ", hours, &
+        ":", mins, ":", secs
 
-    if (master) write (*, fmt = "(a25,a25)") "CPU time = ", cpuTimeChar
+    if(master) write(*, fmt = "(a25,a25)") "CPU time = ", cpuTimeChar
 
     !---------------------------------------
     !       dimensionalising and layerwise output
@@ -1477,42 +1483,42 @@ module output_module
     irc_prc = 7 * iOut * nz
 
     do iVar = 1, 7
-      if (varOut(iVar) == 1) then
+      if(varOut(iVar) == 1) then
         do k = 1, nz
           ! dimensionalization
 
           do j = 1, ny
             do i = 1, nx
-              select case (iVar)
+              select case(iVar)
 
-              case (1) ! f rho v
+              case(1) ! f rho v
                 field_prc(i, j) = rhoRef * uRef * f_Coriolis_dim * (0.5 &
                     * (var(i, j, k, 1) + var(i + 1, j, k, 1)) + rhoStrat(k)) &
                     * (0.25 * (var(i, j, k, 3) + var(i + 1, j, k, 3) + var(i, &
                     j + 1, k, 3) + var(i + 1, j + 1, k, 3)))
 
-              case (2) ! d/dy (rho v u)
+              case(2) ! d/dy (rho v u)
                 field_prc(i, j) = rhoRef * uRef * uRef * (flux(i, j, k, 2, 2))
 
-              case (3) ! d/dz (rho w u)
+              case(3) ! d/dz (rho w u)
                 field_prc(i, j) = rhoRef * uRef * uRef * (flux(i, j, k, 3, 2))
 
-              case (4) ! Fx
+              case(4) ! Fx
                 field_prc(i, j) = rhoRef * uRef * (kv_hs(j, k) + kr_sp(j, k)) &
                     / tRef * (0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1)) &
                     + rhoStrat(k)) * (var(i, j, k, 2) - var_env(i, j, k, 2))
 
-              case (5) ! f v
+              case(5) ! f v
                 field_prc(i, j) = uRef * f_Coriolis_dim * (0.25 * (var(i, j, &
                     k, 3) + var(i + 1, j, k, 3) + var(i, j + 1, k, 3) + var(i &
                     + 1, j + 1, k, 3)))
 
-              case (6) ! rhoStrat v u
+              case(6) ! rhoStrat v u
                 field_prc(i, j) = 0.5 * (var(i + 1, j, k, 3) + var(i, j, k, &
                     3)) * 0.5 * (var(i, j + 1, k, 2) + var(i, j, k, 2)) * uRef &
                     * uRef * sum_global(k) * rhoRef
 
-              case (7) ! rhoStrat w u
+              case(7) ! rhoStrat w u
                 field_prc(i, j) = 0.5 * (sum_global(k) + sum_global(k + 1)) &
                     * 0.5 * (var(i + 1, j, k, 4) + var(i, j, k, 4)) * 0.5 &
                     * (var(i, j, k + 1, 2) + var(i, j, k, 2)) * uRef * uRef &
@@ -1530,7 +1536,7 @@ module output_module
           irc_prc = irc_prc + 1
           !            write(40,rec=irc_prc) field_prc
           call mpi_barrier(comm, ierror)
-          if (master) then
+          if(master) then
             do j = 1, ny
               j_mst = j
 
@@ -1549,7 +1555,7 @@ module output_module
               end do
             end do
 
-            write (43, rec = irc_prc) field_out
+            write(43, rec = irc_prc) field_out
           end if
         end do ! k
       end if
@@ -1559,7 +1565,7 @@ module output_module
     !              close file
     !------------------------------------
 
-    if (master) close (unit = 43)
+    if(master) close(unit = 43)
 
     ! set counter
     !iOut = iOut + 1
@@ -1568,84 +1574,113 @@ module output_module
 
   !-----------------------------------------------------------------------------
 
-  subroutine output_tfc_background
+  subroutine output_background(iOut)
 
-    character (len = 20) :: filename
-    real * 4, dimension (nx, ny) :: field_prc
+    integer, intent(in) :: iOut
+    character(len = 20) :: filename
+    real * 4, dimension(nx, ny) :: field_prc
+    real * 4 :: field
     integer :: i_out, i_mst, i_prc, j_out, j_mst, j_prc
     integer :: irc_prc
     integer :: i, j, k
     integer :: iVar
 
-    ! pStratTFC, thetaStratTFC, rhoStratTFC, bvsStratTFC, piStratTFC
-
     do iVar = 1, 5
       ! Set filename.
-      if (iVar == 1) then
-        filename = "pStratTFC.dat"
-      else if (iVar == 2) then
-        filename = "thetaStratTFC.dat"
-      else if (iVar == 3) then
-        filename = "rhoStratTFC.dat"
-      else if (iVar == 4) then
-        filename = "bvsStratTFC.dat"
+      if(iVar == 1) then
+        filename = "pStrat.dat"
+      else if(iVar == 2) then
+        filename = "thetaStrat.dat"
+      else if(iVar == 3) then
+        filename = "rhoStrat.dat"
+      else if(iVar == 4) then
+        filename = "bvsStrat.dat"
       end if
 
-      ! Open file.
-      if (master) then
-        open (42, file = filename, form = "unformatted", access &
-            = "direct", recl = sizeX * sizeY * sizeofreal4)
-      end if
+      irc_prc = (iOut - 1) * nz
 
-      irc_prc = 0
+      if(topography) then
+        ! Open file.
+        if(master) then
+          open(42, file = filename, form = "unformatted", access = "direct", &
+              recl = sizeX * sizeY * sizeofreal4)
+        end if
 
-      do k = 1, nz
-        do j = 1, ny
-          ! Dimensionalize.
-          do i = 1, nx
-            if (iVar == 1) then
-              field_prc(i, j) = pStratTFC(i, j, k) * rhoRef * thetaRef
-            else if (iVar == 2) then
-              field_prc(i, j) = thetaStratTFC(i, j, k) * thetaRef
-            else if (iVar == 3) then
-              field_prc(i, j) = rhoStratTFC(i, j, k) * rhoRef
-            else if (iVar == 4) then
-              field_prc(i, j) = bvsStratTFC(i, j, k) / tRef ** 2.0
-            end if
+        do k = 1, nz
+          do j = 1, ny
+            ! Dimensionalize.
+            do i = 1, nx
+              if(iVar == 1) then
+                field_prc(i, j) = pStratTFC(i, j, k) * rhoRef * thetaRef
+              else if(iVar == 2) then
+                field_prc(i, j) = thetaStratTFC(i, j, k) * thetaRef
+              else if(iVar == 3) then
+                field_prc(i, j) = rhoStratTFC(i, j, k) * rhoRef
+              else if(iVar == 4) then
+                field_prc(i, j) = bvsStratTFC(i, j, k) / tRef ** 2.0
+              end if
+            end do
+
+            ! Distribute data over all processors.
+            call mpi_gather(field_prc(1, j), nx, mpi_real, field_mst(1, j), &
+                nx, mpi_real, 0, comm, ierror)
           end do
 
-          ! Distribute data over all processors.
-          call mpi_gather(field_prc(1, j), nx, mpi_real, field_mst(1, &
-              j), nx, mpi_real, 0, comm, ierror)
-        end do
+          irc_prc = irc_prc + 1
 
-        irc_prc = irc_prc + 1
+          call mpi_barrier(comm, ierror)
 
-        call mpi_barrier(comm, ierror)
-
-        ! Output layerwise.
-        if (master) then
-          do j = 1, ny
-            j_mst = j
-            do j_prc = 1, nprocy
-              j_out = ny * (j_prc - 1) + j
-              do i_prc = 1, nprocx
-                do i = 1, nx
-                  i_out = nx * (i_prc - 1) + i
-                  i_mst = nprocy * nx * (i_prc - 1) + (j_prc - 1) * nx + i
-                  field_out(i_out, j_out) = field_mst(i_mst, j_mst)
+          ! Output layerwise.
+          if(master) then
+            do j = 1, ny
+              j_mst = j
+              do j_prc = 1, nprocy
+                j_out = ny * (j_prc - 1) + j
+                do i_prc = 1, nprocx
+                  do i = 1, nx
+                    i_out = nx * (i_prc - 1) + i
+                    i_mst = nprocy * nx * (i_prc - 1) + (j_prc - 1) * nx + i
+                    field_out(i_out, j_out) = field_mst(i_mst, j_mst)
+                  end do
                 end do
               end do
             end do
-          end do
-          write (42, rec = irc_prc) field_out
-        end if
-      end do
+            write(42, rec = irc_prc) field_out
+          end if
+        end do
 
-      ! Close file.
-      if (master) close (unit = 42)
+        ! Close file.
+        if(master) close(unit = 42)
+      else
+        if(master) then
+          ! Open file.
+          open(42, file = filename, form = "unformatted", access = "direct", &
+              recl = sizeofreal4)
+
+          do k = 1, nz
+            ! Dimensionalize.
+            if(iVar == 1) then
+              field = pStrat(k) * rhoRef * thetaRef
+            else if(iVar == 2) then
+              field = thetaStrat(k) * thetaRef
+            else if(iVar == 3) then
+              field = rhoStrat(k) * rhoRef
+            else if(iVar == 4) then
+              field = bvsStrat(k) / tRef ** 2.0
+            end if
+
+            irc_prc = irc_prc + 1
+
+            ! Output layerwise.
+            write(42, rec = irc_prc) field
+          end do
+
+          ! Close file.
+          close(unit = 42)
+        end if
+      end if
     end do
 
-  end subroutine output_tfc_background
+  end subroutine output_background
 
 end module output_module
