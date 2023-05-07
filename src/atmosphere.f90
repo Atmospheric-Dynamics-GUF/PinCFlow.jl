@@ -17,20 +17,22 @@ module atmosphere_module
   public :: setHalosOfField2D
   public :: jac, met, chris, heightTFC, vertWindTFC, trafoTFC, stressTensTFC
 
-  real, dimension (:), allocatable :: PStrat, rhoStrat, thetaStrat, bvsStrat
-  real, dimension (:), allocatable :: PStrat_0, rhoStrat_0
-  real, dimension (:), allocatable :: rhoStrat_d, rhoStrat_s
+  ! FJFeb2023
+  public :: update_topography
 
-  real, dimension (:), allocatable :: pistrat
-  real, dimension (:), allocatable :: PStratTilde, rhoStratTilde, &
-      thetaStratTilde
+  real, dimension(:), allocatable :: PStrat, rhoStrat, thetaStrat, bvsStrat
+  real, dimension(:), allocatable :: PStrat_0, rhoStrat_0
+  real, dimension(:), allocatable :: rhoStrat_d, rhoStrat_s
 
-  real, dimension (:), allocatable :: PStrat00, PStrat01, rhoStrat00, &
+  real, dimension(:), allocatable :: pistrat
+  real, dimension(:), allocatable :: PStratTilde, rhoStratTilde, thetaStratTilde
+
+  real, dimension(:), allocatable :: PStrat00, PStrat01, rhoStrat00, &
       rhoStrat01, thetaStrat00, thetaStrat01, bvsStrat00, bvsStrat01, &
       PStratTilde00, PStratTilde01, rhoStratTilde00, rhoStratTilde01, &
       thetaStratTilde00, thetaStratTilde01
 
-  real, dimension (:), allocatable :: Ro, RoInv
+  real, dimension(:), allocatable :: Ro, RoInv
 
   ! reference quantites
   real :: rhoRef ! reference density
@@ -93,13 +95,13 @@ module atmosphere_module
   real :: zk ! zk = z(k)
 
   ! achatzb
-  real :: mountainHeight, mountainWidth, k_mountainw
+  real :: mountainHeight, mountainWidth, k_mountain
   real :: x_center, y_center
   ! achatze
 
   ! TFC FJ
   ! 3D background fields.
-  real, dimension (:, :, :), allocatable :: pStratTFC, thetaStratTFC, &
+  real, dimension(:, :, :), allocatable :: pStratTFC, thetaStratTFC, &
       rhoStratTFC, bvsStratTFC, piStratTFC
 
   contains
@@ -144,231 +146,225 @@ module atmosphere_module
 
     integer :: i00, j00
     real :: yloc, ymax
-    real, dimension (0:ny + 1) :: f_Coriolis_y
+    real, dimension(0:ny + 1) :: f_Coriolis_y
 
     real :: topos_u, topos_v, topos_w, x_sp_u, y_sp_u, z_sp_u, x_sp_v, y_sp_v, &
         z_sp_v, x_sp_w, y_sp_w, z_sp_w, dRP_u, dIP_u, dRP_v, dIP_v, dRP_w, dIP_w
 
     real :: rhodl, pcoeff_r1, p_dim1
 
-    ! TFC FJ
-    real, dimension ((- nbx):(sizeX + nbx), (- nby):(sizeY + nby)) :: x_rotated
-    real :: x_rotated_center
-
     ! allocate PStrat
-    if (.not. allocated(pStrat)) then
-      allocate (Pstrat(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
+    if(.not. allocated(pStrat)) then
+      allocate(Pstrat(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
     end if
 
     !UAB 200413
     ! allocate pStrat_0
-    if (.not. allocated(pStrat_0)) then
-      allocate (pStrat_0(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) then
+    if(.not. allocated(pStrat_0)) then
+      allocate(pStrat_0(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) then
         stop "atmosphere.f90: could not allocate pStrat_0"
       end if
     end if
     !UAE 200413
 
     ! allocate pistrat
-    if (.not. allocated(pistrat)) then
-      allocate (pistrat(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not allocate pistrat"
+    if(.not. allocated(pistrat)) then
+      allocate(pistrat(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not allocate pistrat"
     end if
 
     ! allocate pStratTilde -> P at half levels
-    if (.not. allocated(pStratTilde)) then
-      allocate (PstratTilde(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
+    if(.not. allocated(pStratTilde)) then
+      allocate(PstratTilde(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
     end if
 
     ! allocate rhoStrat
-    if (.not. allocated(rhoStrat)) then
-      allocate (rhoStrat(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) then
+    if(.not. allocated(rhoStrat)) then
+      allocate(rhoStrat(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) then
         stop "atmosphere.f90: could not allocate rhoStrat"
       end if
     end if
 
     ! allocate rhoStrat_d
-    if (.not. allocated(rhoStrat_d)) then
-      allocate (rhoStrat_d(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) then
+    if(.not. allocated(rhoStrat_d)) then
+      allocate(rhoStrat_d(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) then
         stop "atmosphere.f90: could not allocate rhoStrat_d"
       end if
     end if
 
-    if (.not. allocated(rhoStrat_s)) then
-      allocate (rhoStrat_s(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) then
+    if(.not. allocated(rhoStrat_s)) then
+      allocate(rhoStrat_s(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) then
         stop "atmosphere.f90: could not allocate rhoStrat_s"
       end if
     end if
 
     !UAB 200413
     ! allocate rhoStrat_0
-    if (.not. allocated(rhoStrat_0)) then
-      allocate (rhoStrat_0(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) then
+    if(.not. allocated(rhoStrat_0)) then
+      allocate(rhoStrat_0(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) then
         stop "atmosphere.f90: could not allocate rhoStrat_0"
       end if
     end if
     !UAE 200413
 
     ! allocate rhoStratTilde
-    if (.not. allocated(rhoStratTilde)) then
-      allocate (rhoStratTilde(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could n. all. rhoStratTilde"
+    if(.not. allocated(rhoStratTilde)) then
+      allocate(rhoStratTilde(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could n. all. rhoStratTilde"
     end if
 
     ! allocate thetaStrat
-    if (.not. allocated(thetaStrat)) then
-      allocate (thetaStrat(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat"
+    if(.not. allocated(thetaStrat)) then
+      allocate(thetaStrat(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat"
     end if
 
     ! allocate squared Brunt-Vaisala frequency bvsStrat
-    if (.not. allocated(bvsStrat)) then
+    if(.not. allocated(bvsStrat)) then
       !UAC allocate( bvsStrat(-1:nz+1),stat=allocstat)
-      allocate (bvsStrat(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not allocate bvsStrat"
+      allocate(bvsStrat(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not allocate bvsStrat"
     end if
 
     ! allocate thetaStratTilde
-    if (.not. allocated(thetaStratTilde)) then
-      allocate (thetaStratTilde(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
+    if(.not. allocated(thetaStratTilde)) then
+      allocate(thetaStratTilde(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
     end if
 
     ! allocate PStrat
-    if (.not. allocated(pStrat00)) then
-      allocate (Pstrat00(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
+    if(.not. allocated(pStrat00)) then
+      allocate(Pstrat00(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
     end if
 
     ! allocate PStrat
-    if (.not. allocated(pStrat01)) then
-      allocate (Pstrat01(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
+    if(.not. allocated(pStrat01)) then
+      allocate(Pstrat01(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
     end if
 
     ! allocate pStratTilde -> P at half levels
-    if (.not. allocated(pStratTilde00)) then
-      allocate (PstratTilde00(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
+    if(.not. allocated(pStratTilde00)) then
+      allocate(PstratTilde00(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
     end if
 
     ! allocate pStratTilde -> P at half levels
-    if (.not. allocated(pStratTilde01)) then
-      allocate (PstratTilde01(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
+    if(.not. allocated(pStratTilde01)) then
+      allocate(PstratTilde01(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not all. pStratTilde"
     end if
 
     ! allocate rhoStrat
-    if (.not. allocated(rhoStrat00)) then
-      allocate (rhoStrat00(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not allocate rhoStrat"
+    if(.not. allocated(rhoStrat00)) then
+      allocate(rhoStrat00(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not allocate rhoStrat"
     end if
 
     ! allocate rhoStratTilde
-    if (.not. allocated(rhoStratTilde00)) then
-      allocate (rhoStratTilde00(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could n. all. rhoStratTilde"
+    if(.not. allocated(rhoStratTilde00)) then
+      allocate(rhoStratTilde00(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could n. all. rhoStratTilde"
     end if
 
     ! allocate rhoStrat
-    if (.not. allocated(rhoStrat01)) then
-      allocate (rhoStrat01(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not allocate rhoStrat"
+    if(.not. allocated(rhoStrat01)) then
+      allocate(rhoStrat01(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not allocate rhoStrat"
     end if
 
     ! allocate rhoStratTilde
-    if (.not. allocated(rhoStratTilde01)) then
-      allocate (rhoStratTilde01(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could n. all. rhoStratTilde"
+    if(.not. allocated(rhoStratTilde01)) then
+      allocate(rhoStratTilde01(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could n. all. rhoStratTilde"
     end if
 
-    if (.not. allocated(thetaStrat00)) then
-      allocate (thetaStrat00(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat00"
+    if(.not. allocated(thetaStrat00)) then
+      allocate(thetaStrat00(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat00"
     end if
 
-    if (.not. allocated(thetaStratTilde00)) then
-      allocate (thetaStratTilde00(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
+    if(.not. allocated(thetaStratTilde00)) then
+      allocate(thetaStratTilde00(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
     end if
 
-    if (.not. allocated(thetaStrat01)) then
-      allocate (thetaStrat01(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat"
+    if(.not. allocated(thetaStrat01)) then
+      allocate(thetaStrat01(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not all. thetaStrat"
     end if
 
-    if (.not. allocated(thetaStratTilde01)) then
-      allocate (thetaStratTilde01(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
+    if(.not. allocated(thetaStratTilde01)) then
+      allocate(thetaStratTilde01(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: c. n. all. thetaStratTilde"
     end if
 
     ! allocate squared Brunt-Vaisala frequency bvsStrat
-    if (.not. allocated(bvsStrat00)) then
+    if(.not. allocated(bvsStrat00)) then
       !UAC allocate( bvsStrat00(-1:nz+1),stat=allocstat)
-      allocate (bvsStrat00(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not allocate bvsStrat"
+      allocate(bvsStrat00(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not allocate bvsStrat"
     end if
 
     ! allocate squared Brunt-Vaisala frequency bvsStrat
-    if (.not. allocated(bvsStrat01)) then
+    if(.not. allocated(bvsStrat01)) then
       !UAC allocate( bvsStrat01(-1:nz+1),stat=allocstat)
-      allocate (bvsStrat01(- 1:nz + 2), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not allocate bvsStrat"
+      allocate(bvsStrat01(- 1:nz + 2), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not allocate bvsStrat"
     end if
 
     ! allocate Ro !FS
-    if (.not. allocated(Ro)) then
-      allocate (Ro(0:ny + 1), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not allocate Ro"
+    if(.not. allocated(Ro)) then
+      allocate(Ro(0:ny + 1), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not allocate Ro"
     end if
 
     ! allocate RoInv !FS
-    if (.not. allocated(RoInv)) then
-      allocate (RoInv(0:ny + 1), stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not allocate RoInv"
+    if(.not. allocated(RoInv)) then
+      allocate(RoInv(0:ny + 1), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not allocate RoInv"
     end if
 
     ! TFC FJ
     ! Allocate 3D background fields.
-    if (topography) then
-      if (.not. allocated(pStratTFC)) then
-        allocate (pStratTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- 1):(nz &
+    if(topography) then
+      if(.not. allocated(pStratTFC)) then
+        allocate(pStratTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- 1):(nz &
             + 2)), stat = allocstat)
-        if (allocstat /= 0) stop "atmosphere.f90: could not allocate pStratTFC"
+        if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStratTFC"
       end if
 
-      if (.not. allocated(thetaStratTFC)) then
-        allocate (thetaStratTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- &
+      if(.not. allocated(thetaStratTFC)) then
+        allocate(thetaStratTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- &
             1):(nz + 2)), stat = allocstat)
-        if (allocstat /= 0) stop "atmosphere.f90: could not allocate &
+        if(allocstat /= 0) stop "atmosphere.f90: could not allocate &
             thetaStratTFC"
       end if
 
-      if (.not. allocated(rhoStratTFC)) then
-        allocate (rhoStratTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- &
-            1):(nz + 2)), stat = allocstat)
-        if (allocstat /= 0) stop "atmosphere.f90: could not allocate &
-            rhoStratTFC"
-      end if
-
-      if (.not. allocated(bvsStratTFC)) then
-        allocate (bvsStratTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- &
-            1):(nz + 2)), stat = allocstat)
-        if (allocstat /= 0) stop "atmosphere.f90: could not allocate &
-            bvsStratTFC"
-      end if
-
-      if (.not. allocated(piStratTFC)) then
-        allocate (piStratTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- 1):(nz &
+      if(.not. allocated(rhoStratTFC)) then
+        allocate(rhoStratTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- 1):(nz &
             + 2)), stat = allocstat)
-        if (allocstat /= 0) stop "atmosphere.f90: could not allocate piStratTFC"
+        if(allocstat /= 0) stop "atmosphere.f90: could not allocate rhoStratTFC"
+      end if
+
+      if(.not. allocated(bvsStratTFC)) then
+        allocate(bvsStratTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- 1):(nz &
+            + 2)), stat = allocstat)
+        if(allocstat /= 0) stop "atmosphere.f90: could not allocate bvsStratTFC"
+      end if
+
+      if(.not. allocated(piStratTFC)) then
+        allocate(piStratTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- 1):(nz &
+            + 2)), stat = allocstat)
+        if(allocstat /= 0) stop "atmosphere.f90: could not allocate piStratTFC"
       end if
     end if
 
@@ -376,7 +372,7 @@ module atmosphere_module
     !       auxiliary quantities
     !----------------------------------
 
-    if (testCase == "agnesiMountain") then
+    if(testCase == "agnesiMountain") then
       gamma = 1.0696864111498257 ! cf. Klein 2008
     else
       gamma = 1.4
@@ -391,9 +387,9 @@ module atmosphere_module
     !      nondimensional numbers
     !----------------------------------
 
-    select case (referenceQuantities)
+    select case(referenceQuantities)
 
-    case ("general")
+    case("general")
       ! free references
       rhoRef = 1.184 ! in kg/m^3
       pRef = 101325.0 ! in Pa = kg/m/s^2
@@ -407,7 +403,7 @@ module atmosphere_module
       thetaRef = aRef ** 2 / Rsp ! in K
       Fr = uRef / sqrt(g * lRef) !
 
-    case ("Klein")
+    case("Klein")
       ! if (testCase == "smoothVortex")then
       !    rhoRef = 0.5!1.184             ! in kg/m^3
       !    pRef = 101625.!101325.0            ! in Pa = kg/m/s^2
@@ -427,7 +423,7 @@ module atmosphere_module
       Fr = uRef / sqrt(g * lRef) ! Fr = 1
       !                          ! sig = Ma^2/Fr^2 = 1
 
-    case ("WKB")
+    case("WKB")
       eps = 0.1 ! asymptotic parameter ( Ma = Fr for eps = kappa! )
       rhoRef = 1.184 ! in kg/m^3
       pRef = 101325.0 ! in Pa = kg/m/s^2
@@ -440,7 +436,7 @@ module atmosphere_module
       lRef = eps * pRef / (kappa * rhoRef * g) ! in m
       tRef = lRef / uRef
 
-    case ("SI")
+    case("SI")
       stop "init_atmosphere: Problems w. Exner pr.. Use Klein's scaling."
       ! with this scaling all quantities are
       ! in SI units
@@ -479,9 +475,9 @@ module atmosphere_module
     ! FS: see now further below
 
     ! Reynolds number
-    if (.not. specifyReynolds) ReInv = mu_viscous_dim / uRef / lRef
+    if(.not. specifyReynolds) ReInv = mu_viscous_dim / uRef / lRef
 
-    if (ReInv < 1.0e-20) then
+    if(ReInv < 1.0e-20) then
       Re = 1.0e20 ! only used in timestep calculation routine
     else
       Re = 1.0 / ReInv
@@ -510,30 +506,30 @@ module atmosphere_module
 
     ! init cell size
 
-    dx = (lx(1) - lx(0)) / real (sizeX)
-    dy = (ly(1) - ly(0)) / real (sizeY)
-    dz = (lz(1) - lz(0)) / real (sizeZ)
+    dx = (lx(1) - lx(0)) / real(sizeX)
+    dy = (ly(1) - ly(0)) / real(sizeY)
+    dz = (lz(1) - lz(0)) / real(sizeZ)
 
     ! init cell coordinates
     do i = - nbx, sizeX + nbx ! modified by Junhong Wei (20161104)
-      x(i) = lx(0) + real (i - 1) * dx + dx / 2.0
+      x(i) = lx(0) + real(i - 1) * dx + dx / 2.0
     end do
 
     do j = - nby, sizeY + nby ! modified by Junhong Wei (20161104)
-      y(j) = ly(0) + real (j - 1) * dy + dy / 2.0
+      y(j) = ly(0) + real(j - 1) * dy + dy / 2.0
     end do
 
     do k = - nbz, sizeZ + nbz ! modified by Junhong Wei (20161104)
-      z(k) = lz(0) + real (k - 1) * dz + dz / 2.0
+      z(k) = lz(0) + real(k - 1) * dz + dz / 2.0
     end do
 
     j00 = js + nby - 1 !FS
-    if (TestCase == "baroclinic_LC") then
+    if(TestCase == "baroclinic_LC") then
       ymax = ly_dim(1) / lRef
       do j = 0, ny + 1
         yloc = y(j + j00)
         f_Coriolis_y(j) = f_Coriolis_dim !FSJuly2020*sin(4*atan(1.0)*yloc/ymax)
-        if (f_Coriolis_y(j) /= 0.0) then
+        if(f_Coriolis_y(j) /= 0.0) then
           Ro(j) = uRef / f_Coriolis_y(j) / lRef
           RoInv(j) = 1.0 / Ro(j)
         else
@@ -542,7 +538,7 @@ module atmosphere_module
         end if
       end do
     else
-      if (f_Coriolis_dim /= 0.0) then
+      if(f_Coriolis_dim /= 0.0) then
         Ro(0:ny + 1) = uRef / f_Coriolis_dim / lRef
         RoInv(0:ny + 1) = 1.0 / Ro(:)
       else
@@ -559,94 +555,77 @@ module atmosphere_module
 
     ! TFC FJ
     ! Topography setup.
-    if (topography) then
-      z_0 = z_0_dim / lRef
+    if(topography) then
+      ! z_0 = z_0_dim / lRef
 
       mountainHeight = mountainHeight_dim / lRef
       mountainWidth = mountainWidth_dim / lRef
 
       x_center = 0.5 * (lx(1) + lx(0))
       y_center = 0.5 * (ly(1) + ly(0))
-      x_rotated_center = sqrt(x_center ** 2.0 + y_center ** 2.0)
 
-      k_mountainw = pi / mountainWidth
+      k_mountain = pi / mountainWidth
 
       i00 = is + nbx - 1
       j00 = js + nby - 1
-
-      if (mountain_case == 2) then
-        do i = - nbx, sizeX + nbx
-          do j = - nby, sizeY + nby
-            x_rotated(i, j) = cos(0.25 * pi) * x(i) + sin(0.25 * pi) * y(j)
-          end do
-        end do
-      end if
 
       topography_surface = 0.0
 
       do j = - nby, ny + nby
         do i = - nbx, nx + nbx
-          if (mountain_case == 1) then
+          if(mountain_case == 0) then ! custom topography
+            exit
+          else if(mountain_case == 1) then ! cosine mountains
             topography_surface(i, j) = 0.5 * mountainHeight * (1.0 &
-                + cos(k_mountainw * (x(i + i00) - x_center)))
-          else if (mountain_case == 2) then
+                + cos(k_mountain * (x(i + i00) - x_center)))
+          else if(mountain_case == 2) then ! 3d cosine mountains (rotated axis)
             topography_surface(i, j) = 0.5 * mountainHeight * (1.0 &
-                + cos(k_mountainw * (x_rotated(i + i00, j + j00) &
-                - x_rotated_center)))
-          else if (mountain_case == 3) then
+                + cos(k_mountain / sqrt(2.0) * (x(i + i00) - x_center + y(j &
+                + j00 - y_center))))
+          else if(mountain_case == 3) then ! bell mountain
             topography_surface(i, j) = mountainHeight / (1.0 + ((x(i + i00) &
                 - x_center) ** 2.0) / (mountainWidth ** 2.0))
-          else if (mountain_case == 4) then
+          else if(mountain_case == 4) then ! 3d bell mountain
             topography_surface(i, j) = mountainHeight / (1.0 + ((x(i + i00) &
                 - x_center) ** 2.0 + (y(j + j00) - y_center) ** 2.0) &
                 / (mountainWidth ** 2.0)) ** 1.5
           else if (mountain_case == 5) then
             topography_surface(i, j) = mountainHeight * exp(- ((x(i + i00) &
-                - x_center) / mountainWidth) ** 2.0) * cos(5.0 * k_mountainw &
+                - x_center) / mountainWidth) ** 2.0) * cos(5.0 * k_mountain &
                 * (x(i + i00) - x_center) / 4.0) ** 2.0
-          else if (mountain_case == 6) then
-            if (sizeX /= 1 .and. sizeY == 1) then
-              if (abs(x(i + i00) - x_center) <= mountainWidth) then
-                topography_surface(i, j) = 0.25 * mountainHeight * (1.0 &
-                    + cos(k_mountainw * (x(i + i00) - x_center))) &
-                    * (1.0 + cos(range_fac * k_mountainw * (x(i + i00) &
-                    - x_center)))
-              end if
-            else if (sizeX == 1 .and. sizeY /= 1) then
-              if (abs(y(j + j00) - y_center) <= mountainWidth) then
-                topography_surface(i, j) = 0.25 * mountainHeight * (1.0 &
-                    + cos(k_mountainw * (y(j + j00) - y_center))) &
-                    * (1.0 + cos(range_fac * k_mountainw * (y(j + j00) &
-                    - y_center)))
-              end if
+          else if(mountain_case == 6) then ! cosine mountain range
+            if(abs(x(i + i00) - x_center) <= mountainWidth) then
+              topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + 0.5 &
+                  * (1.0 + cos(k_mountain * (x(i + i00) - x_center))) &
+                  * cos(range_factor * k_mountain * (x(i + i00) - x_center)))
             else
-              if (abs(x(i + i00) - x_center) <= mountainWidth .and. &
-                  abs(y(j + j00) - y_center) <= mountainWidth) then
-                topography_surface(i, j) = 0.125 * mountainHeight * (1.0 &
-                    + cos(k_mountainw * (x(i + i00) - x_center))) * (1.0 &
-                    + cos(k_mountainw * (y(j + j00) - y_center))) &
-                    * (1.0 + cos(range_fac * k_mountainw * (x(i + i00) &
-                    - x_center + y(j + j00) - y_center)))
-              end if
+              topography_surface(i, j) = 0.5 * mountainHeight
             end if
-          else if (mountain_case == 7) then
-            if (sizeX /= 1 .and. sizeY == 1) then
-              topography_surface(i, j) = 0.5 * mountainHeight * exp(- ((x(i &
-                  + i00) - x_center) / mountainWidth) ** 2.0) * (1.0 + cos(0.5 &
-                  * range_fac * k_mountainw * (x(i + i00) - x_center)))
-            else if (sizeX == 1 .and. sizeY /= 1) then
-              topography_surface(i, j) = 0.5 * mountainHeight * exp(- ((y(j &
-                  + j00) - y_center) / mountainWidth) ** 2.0) * (1.0 + cos(0.5 &
-                  * range_fac * k_mountainw * (y(j + j00) - y_center)))
+          else if(mountain_case == 7) then ! 3d cosine mountain range
+            if(abs(x(i + i00) - x_center) <= mountainWidth .and. abs(y(j &
+                + j00) - y_center) <= mountainWidth) then
+              topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + 0.25 &
+                  * (1.0 + cos(k_mountain * (x(i + i00) - x_center))) * (1.0 &
+                  + cos(k_mountain * (y(j + j00) - y_center))) &
+                  * cos(range_factor * k_mountain * (x(i + i00) - x_center &
+                  + y(j + j00) - y_center)))
             else
-              topography_surface(i, j) = 0.5 * mountainHeight * exp(- ((x(i &
-                  + i00) - x_center) / mountainWidth) ** 2.0 - ((y(j + j00) &
-                  - y_center) / mountainWidth) ** 2.0) * (1.0 + cos(0.5 &
-                  * range_fac * k_mountainw * (x(i + i00) - x_center + y(j &
-                  + j00) - y_center)))
+              topography_surface(i, j) = 0.5 * mountainHeight
             end if
+          else if(mountain_case == 8) then ! gaussian mountain range
+            topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + exp(- &
+                ((x(i + i00) - x_center) / mountainWidth) ** 2.0) * cos(0.5 &
+                * range_factor * k_mountain * (x(i + i00) - x_center)))
+          else if(mountain_case == 9) then ! 3d gaussian mountain range
+            topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + exp(- &
+                ((x(i + i00) - x_center) / mountainWidth) ** 2.0 - ((y(j &
+                + j00) - y_center) / mountainWidth) ** 2.0) * cos(0.5 &
+                * range_factor * k_mountain * (x(i + i00) - x_center + y(j &
+                + j00) - y_center)))
+          else
+            if(master) stop "Mountain case not defined!"
           end if
-          if (topography_surface(i, j) .lt. lz(0)) then
+          if(topography_surface(i, j) .lt. lz(0)) then
             print *, "Topography has negative values."
             print *, "lz_dim(0) should be set accordingly."
             stop
@@ -655,7 +634,7 @@ module atmosphere_module
       end do
 
       ! Read topography data.
-      if (mountain_case == 0) then
+      if(mountain_case == 0) then
         call read_topography
       end if
 
@@ -663,8 +642,19 @@ module atmosphere_module
       call setHalosOfField2D(topography_surface)
 
       ! Output topography data.
-      if (mountain_case /= 0) then
+      if(mountain_case /= 0) then
         call output_topography
+      end if
+
+      ! FJFeb2023
+      if(topographyTime > 0.0) then
+        allocate(final_topography_surface(- nbx:nx + nbx, - nby:ny + nby), &
+            stat = allocstat)
+        if(allocstat /= 0) stop "init.f90: could not allocate &
+            final_topography_surface"
+
+        final_topography_surface = topography_surface
+        topography_surface = 0.0
       end if
 
       ! kbl_topo(:,:,:) = nz + 2*nbz
@@ -954,12 +944,20 @@ module atmosphere_module
     !   Set up Sponge layer
     !---------------------------------------------
 
-    if (spongeLayer) then
-      kSponge = nz - ceiling(spongeHeight * real (nz))
-      zSponge = z(kSponge)
+    if(spongeLayer) then
+      if(diffusive_sponge) then
+        ! Difusive sponge (FJMar2023)
+        if(timescheme == "semiimplicit") stop "ERROR: Wrong time scheme for &
+            diffusive sponge!"
+        ksponge = 1
+        zSponge = Rsp * Temp0_dim / g / lRef
+      else
+        kSponge = nz - ceiling(spongeHeight * real(nz))
+        zSponge = z(kSponge)
+      end if
 
       ! Setup TFC sponge.
-      if (topography .and. spongeTFC .and. lateralSponge) then
+      if(topography .and. spongeTFC .and. lateralSponge) then
         xSponge0 = lx(0) + 0.5 * spongeHeight * (lx(1) - lx(0))
         ySponge0 = ly(0) + 0.5 * spongeHeight * (ly(1) - ly(0))
         xSponge1 = lx(1) - 0.5 * spongeHeight * (lx(1) - lx(0))
@@ -967,16 +965,16 @@ module atmosphere_module
       end if
     end if
 
-    select case (model)
+    select case(model)
       !--------------------------------------------------------------------
       !             Atmospheres for pseudo-incompressible
       !--------------------------------------------------------------------
 
-    case ("pseudo_incompressible", "WKB")
+    case("pseudo_incompressible", "WKB")
 
-      select case (background)
+      select case(background)
 
-      case ('smoothV')
+      case('smoothV')
 
         ! some stratified fields are still in use...
         rhodl = 1. / 0.5
@@ -1011,7 +1009,7 @@ module atmosphere_module
 
         ! TFC FJ
         ! Define 3D background fields.
-        if (topography) then
+        if(topography) then
           ! Define pStratTFC.
           pStratTFC = p00
           ! Define thetaStratTFC.
@@ -1024,12 +1022,12 @@ module atmosphere_module
         !   Isentropic troposphere / isothermal stratosphere
         !-----------------------------------------------------------
 
-      case ('realistic')
+      case('realistic')
 
         ! not implemented versions
-        if (referenceQuantities == "SI") stop "atmosphere.f90: &
+        if(referenceQuantities == "SI") stop "atmosphere.f90: &
             referenceQuantities = SI not impl.."
-        if (.not. fluctuationMode) stop "atmosphere.f90: only fluctuationMode &
+        if(.not. fluctuationMode) stop "atmosphere.f90: only fluctuationMode &
             = TRUE impl.."
 
         ! quantities at tropopause
@@ -1045,13 +1043,13 @@ module atmosphere_module
           zk = z(k)
           delZ = zk - z_tr
 
-          if (zk <= z_tr) then ! isentropic troposphere
+          if(zk <= z_tr) then ! isentropic troposphere
 
             thetaStrat(k) = theta_tr
 
             power = 1.0 / (gamma - 1.0)
             term = kappa * sig / theta_tr * zk
-            if (term > 1.0) stop "init_atmosphere: negative term. Stop."
+            if(term > 1.0) stop "init_atmosphere: negative term. Stop."
 
             Pstrat(k) = p0 * (1.0 - term) ** power
             rhoStrat(k) = PStrat(k) / thetaStrat(k)
@@ -1069,16 +1067,16 @@ module atmosphere_module
 
         ! quantities at half levels
         do k = - 1, nz + 2
-          if (k == nz + 2) then
+          if(k == nz + 2) then
             zk_half = z(k) + dz / 2.
             delZ = zk_half - z_tr
 
-            if (zk_half <= z_tr) then ! isentropic troposphere
+            if(zk_half <= z_tr) then ! isentropic troposphere
               thetaStratTilde(k) = theta_tr
 
               power = 1.0 / (gamma - 1.0)
               term = kappa * sig / theta_tr * zk_half
-              if (term > 1.0) stop "init_atmosphere: negative term. Stop."
+              if(term > 1.0) stop "init_atmosphere: negative term. Stop."
 
               PstratTilde(k) = p0 * (1.0 - term) ** power
               rhoStratTilde(k) = PStratTilde(k) / thetaStratTilde(k)
@@ -1097,15 +1095,15 @@ module atmosphere_module
 
         ! TFC FJ
         ! Define 3D background fields.
-        if (topography) then
+        if(topography) then
           do i = - nbx, nx + nbx
             do j = - nby, ny + nby
               do k = - 1, nz + 2
-                if (heightTFC(i, j, k) <= z_tr) then
+                if(heightTFC(i, j, k) <= z_tr) then
                   ! Isentropic troposphere.
                   power = 1.0 / (gamma - 1.0)
                   term = kappa * sig / theta_tr * heightTFC(i, j, k)
-                  if (term > 1.0) then
+                  if(term > 1.0) then
                     stop "init_atmosphere: negative term. Stop"
                   end if
                   ! Define pStratTFC.
@@ -1136,15 +1134,15 @@ module atmosphere_module
         !                    Isothermal atmosphere
         !-----------------------------------------------------------
 
-      case ('isothermal')
+      case('isothermal')
 
-        if (referenceQuantities == "SI") then
+        if(referenceQuantities == "SI") then
           !------------------------------------
           !   original equations in SI units
           !------------------------------------
 
-          if (fluctuationMode) stop "init_atmosphere: fluctuationMode not &
-              impl. for SI!"
+          if(fluctuationMode) stop "init_atmosphere: fluctuationMode not impl. &
+              for SI!"
           T0 = Temp0_dim / thetaRef ! T0 in K
           N2 = kappa * g ** 2 / Rsp / T0 ! isothermal Brunt-Vaisala fr.^2
           NN = sqrt(N2) !
@@ -1175,7 +1173,7 @@ module atmosphere_module
 
           ! rhoStrat and PStrat at half levels
           do k = - 1, nz + 2
-            if (k == nz + 2) then
+            if(k == nz + 2) then
               zk_half = z(k) + 0.5 * dz ! half level height
               PStratTilde(k) = p0 * exp(- sig * zk_half / gamma / T0)
               thetaStratTilde(k) = T0 * exp(kappa * sig / T0 * zk_half)
@@ -1194,7 +1192,7 @@ module atmosphere_module
 
           ! TFC FJ
           ! Define 3D background fields.
-          if (topography) then
+          if(topography) then
             do i = - nbx, nx + nbx
               do j = - nby, ny + nby
                 do k = - 1, nz + 2
@@ -1221,21 +1219,21 @@ module atmosphere_module
         !                        Isentropic atmosphere
         !-------------------------------------------------------------------
 
-      case ('isentropic')
+      case('isentropic')
 
-        if (include_ice .and. (iceTestcase == "1D_ISSR")) then
+        if(include_ice .and. (iceTestcase == "1D_ISSR")) then
           theta0_dim = T_nuc + 5.0
           press0_dim = p_nuc * (theta0_dim / T_nuc) ** kappaInv
           ! scaled reference pressure at z = 0
           p0 = press0_dim / pRef
         end if
 
-        if (referenceQuantities == "SI") then
+        if(referenceQuantities == "SI") then
           !------------------------------------
           !   original equations in SI units
           !------------------------------------
 
-          if (fluctuationMode) then
+          if(fluctuationMode) then
             stop "init_atmosphere: fluctuationMode not implmented for SI!"
           end if
 
@@ -1245,7 +1243,7 @@ module atmosphere_module
           power = 1.0 / (gamma - 1.0)
           do k = - 1, nz + 2
             term = kappa * g / Rsp / theta0 * z(k)
-            if (term > 1.0) then
+            if(term > 1.0) then
               stop "init_atmosphere: negative term with power.Stop."
             end if
             PStrat(k) = p0 * (1.0 - term) ** power
@@ -1266,7 +1264,7 @@ module atmosphere_module
           do k = - 1, nz + 2
             power = 1.0 / (gamma - 1.0)
             term = kappa * sig / theta0 * z(k)
-            if (term > 1.0) then
+            if(term > 1.0) then
               print *, "init_atmosphere: neg. term with power.Stopping."
               print *, "term = ", term
               print *, "kappa = ", kappa
@@ -1285,11 +1283,11 @@ module atmosphere_module
 
           ! quantities at half levels
           do k = - 1, nz + 2
-            if (k == nz + 2) then
+            if(k == nz + 2) then
               zk_half = z(k) + dz / 2.
               power = 1.0 / (gamma - 1.0)
               term = kappa * sig / theta0 * zk_half
-              if (term > 1.0) then
+              if(term > 1.0) then
                 print *, "init_atmosphere: neg. term with power."
                 print *, "term = ", term
                 print *, "kappa = ", kappa
@@ -1310,13 +1308,13 @@ module atmosphere_module
 
           ! TFC FJ
           ! Define 3D background fields.
-          if (topography) then
+          if(topography) then
             do i = - nbx, nx + nbx
               do j = - nby, ny + nby
                 do k = - 1, nz + 2
                   power = 1.0 / (gamma - 1.0)
                   term = kappa * sig / theta0 * heightTFC(i, j, k)
-                  if (term > 1.0) then
+                  if(term > 1.0) then
                     stop "init_atmosphere: negative term. Stop"
                   end if
                   ! Define pStratTFC.
@@ -1340,9 +1338,9 @@ module atmosphere_module
         !                   Stable atmosphere with constant N
         !----------------------------------------------------------------
 
-      case ('const-N')
+      case('const-N')
 
-        if (include_ice .and. (iceTestcase == "1D_ISSR")) then
+        if(include_ice .and. (iceTestcase == "1D_ISSR")) then
           theta0_dim = T_nuc + 5.0
           term = kappa * g ** 2 / (Rsp * N_BruntVaisala_dim ** 2)
           press0_dim = p_nuc / (1. + term / theta0_dim * ((theta0_dim - term) &
@@ -1351,11 +1349,11 @@ module atmosphere_module
           p0 = press0_dim / pRef
         end if
 
-        if (referenceQuantities == "SI") then
+        if(referenceQuantities == "SI") then
           !------------------------------------
           !   original equations in SI units
           !------------------------------------
-          if (fluctuationMode) then
+          if(fluctuationMode) then
             stop "init_atmosphere: fluctuationMode not implmented for SI!"
           end if
 
@@ -1370,7 +1368,7 @@ module atmosphere_module
             term = exp(- N2 / g * z(k))
 
             !if( term > 1.0 ) stop "init_atmosphere: root of a negative number."
-            if (1.0 + coeff * (term - 1.0) < 0.0) stop "init_atmosphere: root &
+            if(1.0 + coeff * (term - 1.0) < 0.0) stop "init_atmosphere: root &
                 of a negative number."
 
             PStrat(k) = p0 * (1.0 + coeff * (term - 1.0)) ** power
@@ -1395,7 +1393,7 @@ module atmosphere_module
 
             term = exp(- Fr2 * N2 * z(k))
 
-            if (1.0 + FrInv2 * kappa * sig / N2 / theta0 * (term - 1.0) < 0.0) &
+            if(1.0 + FrInv2 * kappa * sig / N2 / theta0 * (term - 1.0) < 0.0) &
                 then
               print *, "init_atmosphere: power of a neg. number."
               stop 'top of atmosphere too high for const-N'
@@ -1413,17 +1411,17 @@ module atmosphere_module
 
           ! rhoStrat at half levels
           do k = - 1, nz + 2
-            if (k == nz + 2) then
+            if(k == nz + 2) then
               zk_half = z(k) + dz / 2.
               thetaStratTilde(k) = theta0 * exp(Fr ** 2 * N2 * zk_half)
 
               term = exp(- Fr2 * N2 * zk_half)
 
-              if (term > 1.0) then
+              if(term > 1.0) then
                 stop "init_atmosphere: root of a negative number."
               end if
 
-              if (1.0 + FrInv2 * kappa * sig / N2 / theta0 * (term - 1.0) &
+              if(1.0 + FrInv2 * kappa * sig / N2 / theta0 * (term - 1.0) &
                   < 0.0) then
                 print *, "init_atmosphere: power of a neg. number."
                 stop 'top of atmosphere too high for const-N'
@@ -1441,7 +1439,7 @@ module atmosphere_module
 
           ! TFC FJ
           ! Define 3D background fields.
-          if (topography) then
+          if(topography) then
             do i = - nbx, nx + nbx
               do j = - nby, ny + nby
                 do k = - 1, nz + 2
@@ -1472,18 +1470,18 @@ module atmosphere_module
         ! Change: Elena Gagarina, 15.03.2018
         !-----------------------------------------------------------
 
-      case ('diflapse')
+      case('diflapse')
 
-        if (referenceQuantities == "SI") then
+        if(referenceQuantities == "SI") then
           stop "atmosphere.f90: referenceQuantities = SI not impl."
         end if
 
         ! quantities at tropopause
 
-        if (gamma_t /= 0.) pow_t = g / (Rsp * gamma_t)
-        if (gamma_s /= 0.) pow_s = g / (Rsp * gamma_s)
+        if(gamma_t /= 0.) pow_t = g / (Rsp * gamma_t)
+        if(gamma_s /= 0.) pow_s = g / (Rsp * gamma_s)
 
-        if (gamma_t /= 0.) then
+        if(gamma_t /= 0.) then
           p_t_b = press0_dim * (1. - gamma_t * z_tr_dim / Temp0_dim) ** pow_t
         else
           p_t_b = press0_dim * exp(- z_tr_dim / (Rsp * Temp0_dim / g))
@@ -1496,10 +1494,10 @@ module atmosphere_module
         do k = - 1, nz + 2
           zk = z(k) * lRef
 
-          if (zk < z_tr_dim) then
+          if(zk < z_tr_dim) then
             T_bar = Temp0_dim - gamma_t * zk
 
-            if (gamma_t /= 0.) then
+            if(gamma_t /= 0.) then
               p_bar = press0_dim * (1. - gamma_t * zk / Temp0_dim) ** pow_t
             else
               p_bar = press0_dim * exp(- zk / (Rsp * Temp0_dim / g))
@@ -1507,7 +1505,7 @@ module atmosphere_module
           else
             T_bar = Temp0_dim - gamma_t * z_tr_dim - gamma_s * (zk - z_tr_dim)
 
-            if (gamma_s /= 0.) then
+            if(gamma_s /= 0.) then
               p_bar = p_t_b * (1. - gamma_s * (zk - z_tr_dim) / T_c_b) ** pow_s
             else
               p_bar = p_t_b * exp(- (zk - z_tr_dim) / (Rsp * T_c_b / g))
@@ -1530,13 +1528,13 @@ module atmosphere_module
         ! solver
 
         do k = - 1, nz + 2
-          if (k == nz + 2) then
+          if(k == nz + 2) then
             zk_half = (z(k) + dz / 2.) * lRef
 
-            if (zk_half < z_tr_dim) then
+            if(zk_half < z_tr_dim) then
               T_bar = Temp0_dim - gamma_t * zk_half
 
-              if (gamma_t /= 0.) then
+              if(gamma_t /= 0.) then
                 p_bar = press0_dim * (1. - gamma_t * zk_half / Temp0_dim) &
                     ** pow_t
               else
@@ -1546,7 +1544,7 @@ module atmosphere_module
               T_bar = Temp0_dim - gamma_t * z_tr_dim - gamma_s * (zk_half &
                   - z_tr_dim)
 
-              if (gamma_s /= 0.) then
+              if(gamma_s /= 0.) then
                 p_bar = p_t_b * (1. - gamma_s * (zk_half - z_tr_dim) / T_c_b) &
                     ** pow_s
               else
@@ -1571,15 +1569,15 @@ module atmosphere_module
 
         ! TFC FJ
         ! Define 3D background fields.
-        if (topography) then
+        if(topography) then
           do i = - nbx, nx + nbx
             do j = - nby, ny + nby
               do k = - 1, nz + 2
                 zk = heightTFC(i, j, k) * lRef
 
-                if (zk < z_tr_dim) then
+                if(zk < z_tr_dim) then
                   T_bar = Temp0_dim - gamma_t * zk
-                  if (gamma_t /= 0.0) then
+                  if(gamma_t /= 0.0) then
                     p_bar = press0_dim * (1.0 - gamma_t * zk / Temp0_dim) &
                         ** pow_t
                   else
@@ -1588,7 +1586,7 @@ module atmosphere_module
                 else
                   T_bar = Temp0_dim - gamma_t * z_tr_dim - gamma_s * (zk &
                       - z_tr_dim)
-                  if (gamma_s /= 0.0) then
+                  if(gamma_s /= 0.0) then
                     p_bar = p_t_b * (1.0 - gamma_s * (zk - z_tr_dim) / T_c_b) &
                         ** pow_s
                   else
@@ -1614,9 +1612,9 @@ module atmosphere_module
         ! Setting for an atmmosphere according to Held & Suarez (1994)
         !-----------------------------------------------------------
 
-      case ('HeldSuarez')
+      case('HeldSuarez')
 
-        if (referenceQuantities /= "Klein") then
+        if(referenceQuantities /= "Klein") then
           stop "atmosphere.f90: referenceQuantities = Klein expected!"
         end if
 
@@ -1645,7 +1643,7 @@ module atmosphere_module
         pistrat(0) = 1.0 + 0.5 * dz * kappa / T_bar
         pistrat(1) = 1.0 - 0.5 * dz * kappa / T_bar
 
-        if (pistrat(1) <= 0.) then
+        if(pistrat(1) <= 0.) then
           print *, 'ERROR: non-positive pistrat at k =', 1
           stop
         end if
@@ -1674,7 +1672,7 @@ module atmosphere_module
         do k = 2, nz + 2 !nz-ceiling((0.4)*real(nz))!nz+2 !FS
           pistar = pistrat(k - 2) - 2.0 * dz * kappa / thetaStrat(k - 1)
 
-          if (pistar <= 0.) then
+          if(pistar <= 0.) then
             print *, 'ERROR: non-positive pistar at k =', k
             stop
           end if
@@ -1687,7 +1685,7 @@ module atmosphere_module
           pistrat(k) = pistrat(k - 1) - 0.5 * dz * (kappa / thetastar + kappa &
               / thetaStrat(k - 1))
 
-          if (pistrat(k) <= 0.) then
+          if(pistrat(k) <= 0.) then
             print *, 'ERROR: negative non-positive pistrat at k =', k
             stop
           end if
@@ -1756,7 +1754,7 @@ module atmosphere_module
         ! solver
 
         do k = - 1, nz + 2
-          if (k < nz + 2) then
+          if(k < nz + 2) then
             PStratTilde(k) = 0.5 * (PStrat(k) + PStrat(k + 1))
 
             rhoStratTilde(k) = 0.5 * (rhoStrat(k) + rhoStrat(k + 1))
@@ -1786,7 +1784,7 @@ module atmosphere_module
                 T_bar = max(tp_strato, tp_srf_trp - 0.5 * tpdiffhor_tropo)
                 ! Define Exner pressure.
                 piStratTFC(i, j, k) = 1.0 + heightTFC(i, j, k) * kappa / T_bar
-                if (k == 1 .and. piStratTFC(i, j, k) <= 0.0) then
+                if(k == 1 .and. piStratTFC(i, j, k) <= 0.0) then
                   stop "ERROR: non-positive piStratTFC at k = 1"
                 end if
                 T_bar = max(tp_strato, piStratTFC(i, j, k) * (tp_srf_trp - 0.5 &
@@ -1807,7 +1805,7 @@ module atmosphere_module
                 ! Leapfrog step.
                 piStar = piStratTFC(i, j, k - 2) - 2.0 * dz * jac(i, j, k - 1) &
                     * kappa / thetaStratTFC(i, j, k - 1)
-                if (piStar <= 0.0) then
+                if(piStar <= 0.0) then
                   print *, "ERROR: non-positive piStar at k =", k
                   stop
                 end if
@@ -1819,7 +1817,7 @@ module atmosphere_module
                 piStratTFC(i, j, k) = piStratTFC(i, j, k - 1) - 0.5 * dz * 0.5 &
                     * (jac(i, j, k) + jac(i, j, k - 1)) * (kappa / thetaStar &
                     + kappa / thetaStratTFC(i, j, k - 1))
-                if (piStratTFC(i, j, k) <= 0.0) then
+                if(piStratTFC(i, j, k) <= 0.0) then
                   print *, "ERROR: non-positive piStratTFC at k =", k
                   stop
                 end if
@@ -1881,20 +1879,20 @@ module atmosphere_module
 
       N2 = max(N2, bvsStrat(nz + 1))
 
-      if (N2 < 0.) then
+      if(N2 < 0.) then
         stop 'ERROR: N2 < 0'
       else
         NN = sqrt(N2)
       end if
       !UAE
 
-      if (TestCase == "smoothVortex") then
+      if(TestCase == "smoothVortex") then
         bvsstrat(:) = 0.
       end if
 
       ! TFC FJ
       ! Define bvsStratTFC.
-      if (topography) then
+      if(topography) then
         bvsStratTFC = 0.0
         do i = - nbx, nx + nbx
           do j = - nby, ny + nby
@@ -1915,20 +1913,20 @@ module atmosphere_module
             bvsStratTFC(i, j, nz + 2) = bvsStratTFC(i, j, nz + 1)
           end do
         end do
-        if (testCase == "smoothVortex") then
+        if(testCase == "smoothVortex") then
           bvsStratTFC = 0.0
         end if
       end if
 
-    case ("Boussinesq")
+    case("Boussinesq")
 
       !-------------------------------------------------------------------
       !             Atmospheres for Boussinesq
       !-------------------------------------------------------------------
 
-      select case (background)
+      select case(background)
 
-      case ('uniform_Boussinesq') ! uniform atmosphere for testing
+      case('uniform_Boussinesq') ! uniform atmosphere for testing
 
         rho00 = 1.0
         theta00 = theta0_dim / thetaRef
@@ -1946,7 +1944,7 @@ module atmosphere_module
         pStratTilde = p00
         thetaStratTilde = theta00
 
-      case ('stratified_Boussinesq')
+      case('stratified_Boussinesq')
 
         rho00 = 1.0
         theta00 = theta0_dim / thetaRef
@@ -1973,7 +1971,7 @@ module atmosphere_module
 
       ! TFC FJ
       ! Background fields.
-      if (topography) then
+      if(topography) then
         pStratTFC = p00
         thetaStratTFC = theta00
         rhoStratTFC = rho00
@@ -1999,52 +1997,52 @@ module atmosphere_module
 
     !---------------- deallocate variables -----------------------
 
-    deallocate (Pstrat, stat = allocstat)
-    if (allocstat /= 0) stop "atmosphere.f90: could not deallocate pStrat"
+    deallocate(Pstrat, stat = allocstat)
+    if(allocstat /= 0) stop "atmosphere.f90: could not deallocate pStrat"
 
     !UAB
-    deallocate (pistrat, stat = allocstat)
-    if (allocstat /= 0) stop "atmosphere.f90: could not deallocate pistrat"
+    deallocate(pistrat, stat = allocstat)
+    if(allocstat /= 0) stop "atmosphere.f90: could not deallocate pistrat"
     !UAE
 
-    deallocate (PstratTilde, stat = allocstat)
-    if (allocstat /= 0) stop "atmosphere.f90: could not deallocate pStratTilde"
+    deallocate(PstratTilde, stat = allocstat)
+    if(allocstat /= 0) stop "atmosphere.f90: could not deallocate pStratTilde"
 
-    deallocate (rhoStrat, stat = allocstat)
-    if (allocstat /= 0) stop "atmosphere.f90: could not deallocate pStrat"
+    deallocate(rhoStrat, stat = allocstat)
+    if(allocstat /= 0) stop "atmosphere.f90: could not deallocate pStrat"
 
-    deallocate (rhoStratTilde, stat = allocstat)
-    if (allocstat /= 0) stop "atmosphere.f90: could not deallocate pStrat"
+    deallocate(rhoStratTilde, stat = allocstat)
+    if(allocstat /= 0) stop "atmosphere.f90: could not deallocate pStrat"
 
-    deallocate (thetaStrat, stat = allocstat)
-    if (allocstat /= 0) stop "atmosphere.f90: could not dealloc thetaStrat"
+    deallocate(thetaStrat, stat = allocstat)
+    if(allocstat /= 0) stop "atmosphere.f90: could not dealloc thetaStrat"
 
-    deallocate (thetaStratTilde, stat = allocstat)
-    if (allocstat /= 0) stop "atmosphere.f90: could not dealloc thetaStratTilde"
+    deallocate(thetaStratTilde, stat = allocstat)
+    if(allocstat /= 0) stop "atmosphere.f90: could not dealloc thetaStratTilde"
 
-    deallocate (Ro, stat = allocstat) !FS
-    if (allocstat /= 0) stop "atmosphere.f90: could not dealloc Ro"
+    deallocate(Ro, stat = allocstat) !FS
+    if(allocstat /= 0) stop "atmosphere.f90: could not dealloc Ro"
 
-    deallocate (RoInv, stat = allocstat) !FS
-    if (allocstat /= 0) stop "atmosphere.f90: could not dealloc RoInv"
+    deallocate(RoInv, stat = allocstat) !FS
+    if(allocstat /= 0) stop "atmosphere.f90: could not dealloc RoInv"
 
     ! TFC FJ
     ! Deallocate 3D background fields.
-    if (topography) then
-      deallocate (pStratTFC, stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not dealloc pStratTFC"
+    if(topography) then
+      deallocate(pStratTFC, stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not dealloc pStratTFC"
 
-      deallocate (thetaStratTFC, stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not dealloc thetaStratTFC"
+      deallocate(thetaStratTFC, stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not dealloc thetaStratTFC"
 
-      deallocate (rhoStratTFC, stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not dealloc rhoStratTFC"
+      deallocate(rhoStratTFC, stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not dealloc rhoStratTFC"
 
-      deallocate (bvsStratTFC, stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not dealloc bvsStratTFC"
+      deallocate(bvsStratTFC, stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not dealloc bvsStratTFC"
 
-      deallocate (piStratTFC, stat = allocstat)
-      if (allocstat /= 0) stop "atmosphere.f90: could not dealloc piStratTFC"
+      deallocate(piStratTFC, stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not dealloc piStratTFC"
     end if
 
   end subroutine terminate_atmosphere
@@ -2061,13 +2059,13 @@ module atmosphere_module
     !-------------------------------
 
     ! in/out variables
-    real, dimension (- nbx:nx + nbx, - nby:ny + nby), intent (inout) :: field
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby), intent(inout) :: field
 
     ! auxiliary fields
-    real, dimension (nbx, - nby:ny + nby) :: xSliceLeft_send, xSliceRight_send
-    real, dimension (nbx, - nby:ny + nby) :: xSliceLeft_recv, xSliceRight_recv
-    real, dimension (- nbx:nx + nbx, nby) :: ySliceBack_send, ySliceForw_send
-    real, dimension (- nbx:nx + nbx, nby) :: ySliceBack_recv, ySliceForw_recv
+    real, dimension(nbx, - nby:ny + nby) :: xSliceLeft_send, xSliceRight_send
+    real, dimension(nbx, - nby:ny + nby) :: xSliceLeft_recv, xSliceRight_recv
+    real, dimension(- nbx:nx + nbx, nby) :: ySliceBack_send, ySliceForw_send
+    real, dimension(- nbx:nx + nbx, nby) :: ySliceBack_recv, ySliceForw_recv
 
     ! MPI variables
     integer :: dest, source, tag
@@ -2081,14 +2079,14 @@ module atmosphere_module
     !     find neighbour procs
     !-----------------------------
 
-    if (idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
-    if (jdim > 1) call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
+    if(idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
+    if(jdim > 1) call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
 
     !------------------------------
     !          x-direction
     !------------------------------
 
-    if (idim > 1) then
+    if(idim > 1) then
 
       ! slice size
       sendcount = nbx * (ny + 2 * nby + 1)
@@ -2142,7 +2140,7 @@ module atmosphere_module
     !          y-direction
     !------------------------------
 
-    if (jdim > 1) then
+    if(jdim > 1) then
 
       ! slice size
       sendcount = nby * (nx + 2 * nbx + 1)
@@ -2197,15 +2195,15 @@ module atmosphere_module
 
   subroutine output_topography
 
-    real * 4, dimension (sizeX, sizeY) :: topography_out
-    real * 4, dimension (sizeX * nprocy, ny) :: topography_mst
-    real * 4, dimension (nx, ny) :: topography_prc
+    real * 4, dimension(sizeX, sizeY) :: topography_out
+    real * 4, dimension(sizeX * nprocy, ny) :: topography_mst
+    real * 4, dimension(nx, ny) :: topography_prc
     integer :: i_out, i_mst, i_prc, j_out, j_mst, j_prc
     integer :: i, j, k
 
     ! Open file.
-    if (master) then
-      open (42, file = "topography.dat", form = "unformatted", access &
+    if(master) then
+      open(42, file = "topography.dat", form = "unformatted", access &
           = "direct", recl = sizeX * sizeY * sizeofreal4)
     end if
 
@@ -2222,7 +2220,7 @@ module atmosphere_module
     call mpi_barrier(comm, ierror)
 
     ! Output layerwise.
-    if (master) then
+    if(master) then
       do j = 1, ny
         j_mst = j
         do j_prc = 1, nprocy
@@ -2236,11 +2234,11 @@ module atmosphere_module
           end do
         end do
       end do
-      write (42, rec = 1) topography_out
+      write(42, rec = 1) topography_out
     end if
 
     ! Close file.
-    if (master) close (unit = 42)
+    if(master) close(unit = 42)
 
   end subroutine output_topography
 
@@ -2248,21 +2246,21 @@ module atmosphere_module
 
   subroutine read_topography
 
-    real * 4, dimension (sizeX, sizeY) :: topography_out
-    real * 4, dimension (sizeX * nprocy, ny) :: topography_mst
-    real * 4, dimension (nx, ny) :: topography_prc
+    real * 4, dimension(sizeX, sizeY) :: topography_out
+    real * 4, dimension(sizeX * nprocy, ny) :: topography_mst
+    real * 4, dimension(nx, ny) :: topography_prc
     integer :: i_out, i_mst, i_prc, j_out, j_mst, j_prc
     integer :: i, j, k
 
     ! Open file.
-    if (master) then
-      open (42, file = "topography.dat", form = "unformatted", access &
+    if(master) then
+      open(42, file = "topography.dat", form = "unformatted", access &
           = "direct", recl = sizeX * sizeY * sizeofreal4)
     end if
 
     ! Read data.
-    if (master) then
-      read (42, rec = 1) topography_out
+    if(master) then
+      read(42, rec = 1) topography_out
       do j = 1, ny
         j_mst = j
         do j_prc = 1, nprocy
@@ -2290,9 +2288,223 @@ module atmosphere_module
       end do
     end do
 
-    if (master) close (unit = 42)
+    if(master) close(unit = 42)
 
   end subroutine read_topography
+
+  !---------------------------------------------------------------------------
+
+  subroutine update_topography(time)
+
+    real, intent(in) :: time
+
+    real :: z_tr
+    real :: theta_tr
+    real :: press_tr
+    real :: T_tr
+
+    real :: power
+
+    real :: pow_t, pow_s, p_t_b
+    real :: T_bar, T_c_b, p_bar
+
+    integer :: i, j, k
+
+    if(topographyTime <= 0.0) return
+
+    if(any(topography_surface /= final_topography_surface)) then
+
+      ! Update topography.
+      if(time < topographyTime / tRef) then
+        topography_surface = time / topographyTime * tRef &
+            * final_topography_surface
+      else
+        topography_surface = final_topography_surface
+      end if
+
+      ! Update TFC background if necessary.
+      select case(background)
+
+      case("realistic")
+
+        z_tr = z_tr_dim / lRef
+        theta_tr = theta_tr_dim / thetaRef
+        press_tr = p0 * (1.0 - kappa * sig / theta_tr * z_tr) ** (1 / kappa)
+        T_tr = theta_tr * (press_tr / p0) ** kappa
+
+        do i = - nbx, nx + nbx
+          do j = - nby, ny + nby
+            do k = - 1, nz + 2
+              if(heightTFC(i, j, k) <= z_tr) then
+                ! Isentropic troposphere.
+                power = 1.0 / (gamma - 1.0)
+                term = kappa * sig / theta_tr * heightTFC(i, j, k)
+                if(term > 1.0) then
+                  stop "init_atmosphere: negative term. Stop"
+                end if
+                ! Define pStratTFC.
+                pStratTFC(i, j, k) = p0 * (1.0 - term) ** power
+                ! Define thetaStratTFC.
+                thetaStratTFC(i, j, k) = theta_tr
+                ! Define rhoStratTFC.
+                rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
+                    j, k)
+              else
+                ! Isothermal stratosphere.
+                ! Define pStratTFC.
+                pStratTFC(i, j, k) = p0 ** kappa * press_tr ** (1.0 / gamma) &
+                    * exp(- sig / gamma / T_tr * (heightTFC(i, j, k) - z_tr))
+                ! Define thetaStratTFC.
+                thetaStratTFC(i, j, k) = theta_tr * exp(kappa * sig / T_tr &
+                    * (heightTFC(i, j, k) - z_tr))
+                ! Define rhoStratTFC.
+                rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
+                    j, k)
+              end if
+            end do
+          end do
+        end do
+
+      case("isothermal")
+
+        T0 = Temp0_dim / thetaRef
+
+        do i = - nbx, nx + nbx
+          do j = - nby, ny + nby
+            do k = - 1, nz + 2
+              ! Define pStratTFC.
+              pStratTFC(i, j, k) = p0 * exp(- sig * heightTFC(i, j, k) / gamma &
+                  / T0)
+              ! Define thetaStratTFC.
+              thetaStratTFC(i, j, k) = T0 * exp(kappa * sig / T0 &
+                  * heightTFC(i, j, k))
+              ! Define rhoStratTFC.
+              rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, j, k)
+            end do
+          end do
+        end do
+
+      case("isentropic")
+
+        theta0 = theta0_dim / thetaRef
+
+        do i = - nbx, nx + nbx
+          do j = - nby, ny + nby
+            do k = - 1, nz + 2
+              power = 1.0 / (gamma - 1.0)
+              term = kappa * sig / theta0 * heightTFC(i, j, k)
+              if(term > 1.0) then
+                stop "init_atmosphere: negative term. Stop"
+              end if
+              ! Define pStratTFC.
+              pStratTFC(i, j, k) = p0 * (1.0 - term) ** power
+              ! Define thetaStratTFC.
+              thetaStratTFC(i, j, k) = theta0
+              ! Define rhoStratTFC.
+              rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, j, k)
+            end do
+          end do
+        end do
+
+      case("const-N")
+
+        theta0 = theta0_dim / thetaRef
+        N2 = (N_BruntVaisala_dim * tRef) ** 2
+        NN = sqrt(N2)
+
+        do i = - nbx, nx + nbx
+          do j = - nby, ny + nby
+            do k = - 1, nz + 2
+              power = 1.0 / (gamma - 1.0)
+              term = exp(- Fr2 * N2 * heightTFC(i, j, k))
+              ! Define pStratTFC.
+              pStratTFC(i, j, k) = p0 * (1.0 + FrInv2 * kappa * sig / N2 &
+                  / theta0 * (term - 1.0)) ** power
+              ! Define thetaStratTFC.
+              thetaStratTFC(i, j, k) = theta0 * exp(Fr ** 2.0 * N2 &
+                  * heightTFC(i, j, k))
+              ! Define rhoStratTFC.
+              rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, j, k)
+            end do
+          end do
+        end do
+
+      case("diflapse")
+
+        if(gamma_t /= 0.) pow_t = g / (Rsp * gamma_t)
+        if(gamma_s /= 0.) pow_s = g / (Rsp * gamma_s)
+
+        if(gamma_t /= 0.) then
+          p_t_b = press0_dim * (1. - gamma_t * z_tr_dim / Temp0_dim) ** pow_t
+        else
+          p_t_b = press0_dim * exp(- z_tr_dim / (Rsp * Temp0_dim / g))
+        end if
+
+        T_c_b = Temp0_dim - gamma_t * z_tr_dim
+
+        do i = - nbx, nx + nbx
+          do j = - nby, ny + nby
+            do k = - 1, nz + 2
+              zk = heightTFC(i, j, k) * lRef
+
+              if(zk < z_tr_dim) then
+                T_bar = Temp0_dim - gamma_t * zk
+                if(gamma_t /= 0.0) then
+                  p_bar = press0_dim * (1.0 - gamma_t * zk / Temp0_dim) ** pow_t
+                else
+                  p_bar = press0_dim * exp(- zk / (Rsp * Temp0_dim / g))
+                end if
+              else
+                T_bar = Temp0_dim - gamma_t * z_tr_dim - gamma_s * (zk &
+                    - z_tr_dim)
+                if(gamma_s /= 0.0) then
+                  p_bar = p_t_b * (1.0 - gamma_s * (zk - z_tr_dim) / T_c_b) &
+                      ** pow_s
+                else
+                  p_bar = p_t_b * exp(- (zk - z_tr_dim) / (Rsp * T_c_b / g))
+                end if
+              end if
+
+              ! Define thetaStratTFC.
+              thetaStratTFC(i, j, k) = T_bar * (press0_dim / p_bar) ** kappa &
+                  / thetaRef
+              ! Define rhoStratTFC.
+              rhoStratTFC(i, j, k) = p_bar / (Rsp * T_bar) / rhoRef
+              ! Define pStratTFC.
+              pStratTFC(i, j, k) = rhoStratTFC(i, j, k) * thetaStratTFC(i, j, k)
+            end do
+          end do
+        end do
+
+      end select
+
+      bvsStratTFC = 0.0
+      do i = - nbx, nx + nbx
+        do j = - nby, ny + nby
+          ! Lower boundary.
+          bvsStratTFC(i, j, - 1) = g_ndim / thetaStratTFC(i, j, 0) / jac(i, j, &
+              0) * (thetaStratTFC(i, j, 1) - thetaStratTFC(i, j, 0)) / dz
+          bvsStratTFC(i, j, 0) = bvsStratTFC(i, j, - 1)
+          ! Between boundaries.
+          do k = 1, nz
+            bvsStratTFC(i, j, k) = g_ndim / thetaStratTFC(i, j, k) / jac(i, j, &
+                k) * 0.5 * (thetaStratTFC(i, j, k + 1) - thetaStratTFC(i, j, k &
+                - 1)) / dz
+          end do
+          ! Upper boundary.
+          bvsStratTFC(i, j, nz + 1) = g_ndim / thetaStratTFC(i, j, nz + 1) &
+              / jac(i, j, nz + 1) * (thetaStratTFC(i, j, nz + 1) &
+              - thetaStratTFC(i, j, nz)) / dz
+          bvsStratTFC(i, j, nz + 2) = bvsStratTFC(i, j, nz + 1)
+        end do
+      end do
+      if(testCase == "smoothVortex") then
+        bvsStratTFC = 0.0
+      end if
+
+    end if
+
+  end subroutine update_topography
 
   !---------------------------------------------------------------------------
 
@@ -2316,15 +2528,15 @@ module atmosphere_module
     real :: met
     integer :: i, j, k, mu, nu
 
-    if ((mu == 1 .and. nu == 3) .or. (mu == 3 .and. nu == 1)) then
+    if((mu == 1 .and. nu == 3) .or. (mu == 3 .and. nu == 1)) then
       met = (topography_surface(i + 1, j) - topography_surface(i - 1, j)) &
           / (2.0 * dx) * (z(k) - (lz(1) - lz(0))) / ((lz(1) - lz(0)) &
           - topography_surface(i, j))
-    else if ((mu == 2 .and. nu == 3) .or. (mu == 3 .and. nu == 2)) then
+    else if((mu == 2 .and. nu == 3) .or. (mu == 3 .and. nu == 2)) then
       met = (topography_surface(i, j + 1) - topography_surface(i, j - 1)) &
           / (2.0 * dy) * (z(k) - (lz(1) - lz(0))) / ((lz(1) - lz(0)) &
           - topography_surface(i, j))
-    else if (mu == 3 .and. nu == 3) then
+    else if(mu == 3 .and. nu == 3) then
       met = ((lz(1) - lz(0)) / ((lz(1) - lz(0)) - topography_surface(i, j))) &
           ** 2.0 + ((z(k) - (lz(1) - lz(0))) / ((lz(1) - lz(0)) &
           - topography_surface(i, j))) ** 2.0 * (((topography_surface(i + 1, &
@@ -2343,23 +2555,23 @@ module atmosphere_module
     real :: chris
     integer :: i, j, k, mu, nu
 
-    if (mu == 1 .and. nu == 1) then
+    if(mu == 1 .and. nu == 1) then
       chris = - (topography_surface(i - 1, j) - 2.0 * topography_surface(i, j) &
           + topography_surface(i + 1, j)) / (dx ** 2.0) * (z(k) - (lz(1) &
           - lz(0))) / ((lz(1) - lz(0)) - topography_surface(i, j))
-    else if ((mu == 1 .and. nu == 2) .or. (mu == 2 .and. nu == 1)) then
+    else if((mu == 1 .and. nu == 2) .or. (mu == 2 .and. nu == 1)) then
       chris = - (topography_surface(i + 1, j + 1) - topography_surface(i - 1, &
           j + 1) - topography_surface(i + 1, j - 1) + topography_surface(i &
           - 1, j - 1)) / (4.0 * dx * dy) * (z(k) - (lz(1) - lz(0))) / ((lz(1) &
           - lz(0)) - topography_surface(i, j))
-    else if (mu == 2 .and. nu == 2) then
+    else if(mu == 2 .and. nu == 2) then
       chris = - (topography_surface(i, j - 1) - 2.0 * topography_surface(i, j) &
           + topography_surface(i, j + 1)) / (dy ** 2.0) * (z(k) - (lz(1) &
           - lz(0))) / ((lz(1) - lz(0)) - topography_surface(i, j))
-    else if ((mu == 1 .and. nu == 3) .or. (mu == 3 .and. nu == 1)) then
+    else if((mu == 1 .and. nu == 3) .or. (mu == 3 .and. nu == 1)) then
       chris = - (topography_surface(i + 1, j) - topography_surface(i - 1, j)) &
           / (2.0 * dx) / ((lz(1) - lz(0)) - topography_surface(i, j))
-    else if ((mu == 2 .and. nu == 3) .or. (mu == 3 .and. nu == 2)) then
+    else if((mu == 2 .and. nu == 3) .or. (mu == 3 .and. nu == 2)) then
       chris = - (topography_surface(i, j + 1) - topography_surface(i, j - 1)) &
           / (2.0 * dy) / ((lz(1) - lz(0)) - topography_surface(i, j))
     end if
@@ -2384,7 +2596,7 @@ module atmosphere_module
 
   function vertWindTFC(i, j, k, var)
 
-    real, dimension ((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
+    real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
         + nbz), nVar) :: var
     integer :: i, j, k
 
@@ -2413,7 +2625,7 @@ module atmosphere_module
     integer :: i, j, k
     real :: uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB, &
         vUEdgeB, wEdgeU
-    character (len = 3) :: wind
+    character(len = 3) :: wind
 
     real :: trafoTFC
     real :: jacEdgeU
@@ -2423,9 +2635,9 @@ module atmosphere_module
     real :: metEdgeRU, metEdgeLU, metEdgeFU, metEdgeBU
     real :: uEdgeRU, uEdgeLU, vEdgeFU, vEdgeBU
 
-    select case (ipolTFC)
+    select case(ipolTFC)
 
-    case (1)
+    case(1)
 
       ! Multiplication on rho grid
 
@@ -2434,19 +2646,19 @@ module atmosphere_module
       uU = 0.5 * (uUEdgeR + uUEdgeL)
       vC = 0.5 * (vEdgeF + vEdgeB)
       vU = 0.5 * (vUEdgeF + vUEdgeB)
-      if (wind == "car") then
+      if(wind == "car") then
         trafoTFC = - 0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) * uC + jac(i, j, &
             k + 1) * met(i, j, k + 1, 1, 3) * uU) - 0.5 * (jac(i, j, k) &
             * met(i, j, k, 2, 3) * vC + jac(i, j, k + 1) * met(i, j, k + 1, 2, &
             3) * vU) + jacEdgeU * wEdgeU
-      else if (wind == "tfc") then
+      else if(wind == "tfc") then
         trafoTFC = (0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) * uC + jac(i, j, &
             k + 1) * met(i, j, k + 1, 1, 3) * uU) + 0.5 * (jac(i, j, k) &
             * met(i, j, k, 2, 3) * vC + jac(i, j, k + 1) * met(i, j, k + 1, 2, &
             3) * vU) + wEdgeU) / jacEdgeU
       end if
 
-    case (2)
+    case(2)
 
       ! Multiplication on rho grid (inverted)
 
@@ -2455,17 +2667,17 @@ module atmosphere_module
       uU = 0.5 * (uUEdgeR + uUEdgeL)
       vC = 0.5 * (vEdgeF + vEdgeB)
       vU = 0.5 * (vUEdgeF + vUEdgeB)
-      if (wind == "car") then
+      if(wind == "car") then
         trafoTFC = jacEdgeU * (- 0.5 * (met(i, j, k, 1, 3) * uC + met(i, j, k &
             + 1, 1, 3) * uU) - 0.5 * (met(i, j, k, 2, 3) * vC + met(i, j, k &
             + 1, 2, 3) * vU) + wEdgeU)
-      else if (wind == "tfc") then
+      else if(wind == "tfc") then
         trafoTFC = 0.5 * (met(i, j, k, 1, 3) * uC + met(i, j, k + 1, 1, 3) &
             * uU) + 0.5 * (met(i, j, k, 2, 3) * vC + met(i, j, k + 1, 2, 3) &
             * vU) + wEdgeU / jacEdgeU
       end if
 
-    case (3)
+    case(3)
 
       ! Multiplication on u grid
 
@@ -2486,19 +2698,19 @@ module atmosphere_module
           * met(i, j - 1, k, 2, 3))
       metUEdgeB = 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 2, 3) + jac(i, j &
           - 1, k + 1) * met(i, j - 1, k + 1, 2, 3))
-      if (wind == "car") then
+      if(wind == "car") then
         trafoTFC = - 0.25 * (metEdgeR * uEdgeR + metUEdgeR * uUEdgeR &
             + metEdgeL * uEdgeL + metUEdgeL * uUEdgeL) - 0.25 * (metEdgeF &
             * vEdgeF + metUEdgeF * vUEdgeF + metEdgeB * vEdgeB + metUEdgeB &
             * vUEdgeB) + jacEdgeU * wEdgeU
-      else if (wind == "tfc") then
+      else if(wind == "tfc") then
         trafoTFC = (0.25 * (metEdgeR * uEdgeR + metUEdgeR * uUEdgeR + metEdgeL &
             * uEdgeL + metUEdgeL * uUEdgeL) + 0.25 * (metEdgeF * vEdgeF &
             + metUEdgeF * vUEdgeF + metEdgeB * vEdgeB + metUEdgeB * vUEdgeB) &
             + wEdgeU) / jacEdgeU
       end if
 
-    case (4)
+    case(4)
 
       ! Multiplication on u grid (inverted)
 
@@ -2511,19 +2723,19 @@ module atmosphere_module
       metUEdgeF = 0.5 * (met(i, j, k + 1, 2, 3) + met(i, j + 1, k + 1, 2, 3))
       metEdgeB = 0.5 * (met(i, j, k, 2, 3) + met(i, j - 1, k, 2, 3))
       metUEdgeB = 0.5 * (met(i, j, k + 1, 2, 3) + met(i, j - 1, k + 1, 2, 3))
-      if (wind == "car") then
+      if(wind == "car") then
         trafoTFC = jacEdgeU * (- 0.25 * (metEdgeR * uEdgeR + metUEdgeR &
             * uUEdgeR + metEdgeL * uEdgeL + metUEdgeL * uUEdgeL) - 0.25 &
             * (metEdgeF * vEdgeF + metUEdgeF * vUEdgeF + metEdgeB * vEdgeB &
             + metUEdgeB * vUEdgeB) + wEdgeU)
-      else if (wind == "tfc") then
+      else if(wind == "tfc") then
         trafoTFC = 0.25 * (metEdgeR * uEdgeR + metUEdgeR * uUEdgeR + metEdgeL &
             * uEdgeL + metUEdgeL * uUEdgeL) + 0.25 * (metEdgeF * vEdgeF &
             + metUEdgeF * vUEdgeF + metEdgeB * vEdgeB + metUEdgeB * vUEdgeB) &
             + wEdgeU / jacEdgeU
       end if
 
-    case (5)
+    case(5)
 
       ! Multiplication on uw grid
 
@@ -2544,15 +2756,15 @@ module atmosphere_module
       uEdgeLU = 0.5 * (uEdgeL + uUEdgeL)
       vEdgeFU = 0.5 * (vEdgeF + vUEdgeF)
       vEdgeBU = 0.5 * (vEdgeB + vUEdgeB)
-      if (wind == "car") then
+      if(wind == "car") then
         trafoTFC = - 0.5 * (metEdgeRU * uEdgeRU - metEdgeLU * uEdgeLU) - 0.5 &
             * (metEdgeFU * vEdgeFU - metEdgeBU * vEdgeBU) + jacEdgeU * wEdgeU
-      else if (wind == "tfc") then
+      else if(wind == "tfc") then
         trafoTFC = (0.5 * (metEdgeRU * uEdgeRU - metEdgeLU * uEdgeLU) + 0.5 &
             * (metEdgeFU * vEdgeFU - metEdgeBU * vEdgeBU) + wEdgeU) / jacEdgeU
       end if
 
-    case (6)
+    case(6)
 
       ! Multiplication on uw grid (inverted)
 
@@ -2569,11 +2781,11 @@ module atmosphere_module
       uEdgeLU = 0.5 * (uEdgeL + uUEdgeL)
       vEdgeFU = 0.5 * (vEdgeF + vUEdgeF)
       vEdgeBU = 0.5 * (vEdgeB + vUEdgeB)
-      if (wind == "car") then
+      if(wind == "car") then
         trafoTFC = jacEdgeU * (- 0.5 * (metEdgeRU * uEdgeRU - metEdgeLU &
             * uEdgeLU) - 0.5 * (metEdgeFU * vEdgeFU - metEdgeBU * vEdgeBU) &
             + wEdgeU)
-      else if (wind == "tfc") then
+      else if(wind == "tfc") then
         trafoTFC = 0.5 * (metEdgeRU * uEdgeRU - metEdgeLU * uEdgeLU) + 0.5 &
             * (metEdgeFU * vEdgeFU - metEdgeBU * vEdgeBU) + wEdgeU / jacEdgeU
       end if
@@ -2587,7 +2799,7 @@ module atmosphere_module
 
   function stressTensTFC(i, j, k, mu, nu, var)
 
-    real, dimension ((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
+    real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
         + nbz), nVar) :: var
     integer :: i, j, k, mu, nu
 
@@ -2627,7 +2839,7 @@ module atmosphere_module
     wB = 0.5 * (vertWindTFC(i, j - 1, k, var) + vertWindTFC(i, j - 1, k - 1, &
         var))
 
-    if (mu == 1 .and. nu == 1) then
+    if(mu == 1 .and. nu == 1) then
       stressTensTFC = (2.0 * (jacEdgeR * var(i, j, k, 2) - jacEdgeL * var(i &
           - 1, j, k, 2)) / dx + (jac(i, j, k + 1) * met(i, j, k + 1, 1, 3) &
           * uU - jac(i, j, k - 1) * met(i, j, k - 1, 1, 3) * uD) / dz - 2.0 &
@@ -2635,19 +2847,19 @@ module atmosphere_module
           2)) / dx + (jacEdgeF * var(i, j, k, 3) - jacEdgeB * var(i, j - 1, k, &
           3)) / dy + (jacEdgeU * var(i, j, k, 4) - jacEdgeD * var(i, j, k - 1, &
           4)) / dz)) / jac(i, j, k)
-    else if ((mu == 1 .and. nu == 2) .or. (mu == 2 .and. nu == 1)) then
+    else if((mu == 1 .and. nu == 2) .or. (mu == 2 .and. nu == 1)) then
       stressTensTFC = (0.5 * (jac(i, j + 1, k) * uF - jac(i, j - 1, k) * uB) &
           / dy + 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 2, 3) * uU &
           - jac(i, j, k - 1) * met(i, j, k - 1, 2, 3) * uD) / dz + 0.5 &
           * (jac(i + 1, j, k) * vR - jac(i - 1, j, k) * vL) / dx + 0.5 &
           * (jac(i, j, k + 1) * met(i, j, k + 1, 1, 3) * vU - jac(i, j, k - 1) &
           * met(i, j, k - 1, 1, 3) * vD) / dz) / jac(i, j, k)
-    else if ((mu == 1 .and. nu == 3) .or. (mu == 3 .and. nu == 1)) then
+    else if((mu == 1 .and. nu == 3) .or. (mu == 3 .and. nu == 1)) then
       stressTensTFC = (0.5 * (uU - uD) / dz + 0.5 * (jac(i + 1, j, k) * wR &
           - jac(i - 1, j, k) * wL) / dx + (met13EdgeU * vertWindTFC(i, j, k, &
           var) - met13EdgeD * vertWindTFC(i, j, k - 1, var)) / dz) / jac(i, j, &
           k)
-    else if (mu == 2 .and. nu == 2) then
+    else if(mu == 2 .and. nu == 2) then
       stressTensTFC = (2.0 * (jacEdgeF * var(i, j, k, 3) - jacEdgeB * var(i, j &
           - 1, k, 3)) / dy + (jac(i, j, k + 1) * met(i, j, k + 1, 2, 3) * vU &
           - jac(i, j, k - 1) * met(i, j, k - 1, 2, 3) * vD) / dz - 2.0 / 3.0 &
@@ -2655,12 +2867,12 @@ module atmosphere_module
           / dx + (jacEdgeF * var(i, j, k, 3) - jacEdgeB * var(i, j - 1, k, 3)) &
           / dy + (jacEdgeU * var(i, j, k, 4) - jacEdgeD * var(i, j, k - 1, 4)) &
           / dz)) / jac(i, j, k)
-    else if ((mu == 2 .and. nu == 3) .or. (mu == 3 .and. nu == 2)) then
+    else if((mu == 2 .and. nu == 3) .or. (mu == 3 .and. nu == 2)) then
       stressTensTFC = (0.5 * (vU - vD) / dz + 0.5 * (jac(i, j + 1, k) * wF &
           - jac(i, j - 1, k) * wB) / dy + (met23EdgeU * vertWindTFC(i, j, k, &
           var) - met23EdgeD * vertWindTFC(i, j, k - 1, var)) / dz) / jac(i, j, &
           k)
-    else if (mu == 3 .and. nu == 3) then
+    else if(mu == 3 .and. nu == 3) then
       stressTensTFC = (2.0 * (vertWindTFC(i, j, k, var) - vertWindTFC(i, j, k &
           - 1, var)) / dz - 2.0 / 3.0 * ((jacEdgeR * var(i, j, k, 2) &
           - jacEdgeL * var(i - 1, j, k, 2)) / dx + (jacEdgeF * var(i, j, k, 3) &
