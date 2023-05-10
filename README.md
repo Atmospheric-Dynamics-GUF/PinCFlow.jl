@@ -34,6 +34,8 @@ The code is shared in a GitLab repository. Any contributions to the code should 
 
 1. **Ensure that the model is stable and that all canonical tests reproduce the sample results.**
 
-1. Push the development branch of the fork.
+1. Push the development branch of the local repository to the fork.
 
 1. Request to merge the development branch of the fork into the development branch of the upstream repository.
+
+![](workflow.png "Workflow  ")
