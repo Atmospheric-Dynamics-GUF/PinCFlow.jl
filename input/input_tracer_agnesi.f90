@@ -12,7 +12,7 @@
 &domain
 
   ! nb of global grid cells
-  sizeX = 40,
+  sizeX = 120,
   sizeY = 1,
   sizeZ = 80,
   ! nb. of ghost cells
@@ -20,7 +20,7 @@
   nby = 2,
   nbz = 2,
   ! domain lenths in m
-  lx_dim =    0.0, 80.0e3
+  lx_dim =    0.0, 240.0e3
   ly_dim =    0.0, 80.0e3
   lz_dim =    0.0, 20.0e3
   ! nb of processors in x and y direction must be set in the batch file
@@ -47,7 +47,7 @@
                          ! automatically overwrites nVar, varOut, varIn and
                          ! offset by including additional dynamic variables
                          ! nIce, qIce and SIce
-  include_tracer = .false.,
+  include_tracer = .true.,
 &end
 
 
@@ -233,14 +233,14 @@
   spongeTFC = .true.       ! switch for unified sponge layer
   lateralSponge = .false.   ! switch for lateral sponge layers
   mountainHeight_dim = 1.e1 ! mountain height in m
-  mountainWidth_dim = 20e3 ! mountain half-width in m
-  mountain_case = 1         ! shape of orography
+  mountainWidth_dim = 10e3 ! mountain half-width in m
+  mountain_case = 3         ! shape of orography
                             ! 1 for cosine-shaped mountains
                             ! 2 for 3D cosine-shaped mountains (rotated)
                             ! 3 for bell-shaped mountain
                             ! 4 for 3D bell-shaped mountain
                             ! 5 for wave-packet-like mountain range
-  range_fac = 10            ! factor by which mountain range is wider than
+  range_factor = 10            ! factor by which mountain range is wider than
                             ! single mountains
 
 &end
@@ -264,7 +264,7 @@
   ! sponge layer at upper boundary
   spongeLayer = .true.       ! sponge with relaxation to background
   spongeHeight = 0.5         ! relative height of sponge layer
-  spongeAlphaZ_dim = 0.05 !1.4e-4 ! relaxation rate coeff in 1/s
+  spongeAlphaZ_dim = 0.2 !1.4e-4 ! relaxation rate coeff in 1/s
   spongeAlphaZ_fac = 1.0
 
 &end

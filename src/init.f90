@@ -210,12 +210,6 @@ module init_module
        if (allocstat /= 0) stop "init.f90: Could not allocate dTracer."
     end if
 
-    if (include_tracer) then
-       allocate (dTracer(-nbx:nx+nbx, -nby:ny + nby, -nbz : nz + nbz), stat &
-            = allocstat)
-       if (allocstat /= 0) stop "init.f90: Could not allocate dTracer."
-    end if
-
     !UAB
     ! allocate dPStrat
     allocate(dPStrat(- nbz:nz + nbz), stat = allocstat)
