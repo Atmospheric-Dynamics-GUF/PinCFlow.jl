@@ -12,16 +12,16 @@
 &domain
 
   ! nb of global grid cells
-  sizeX = 40,
+  sizeX = 300,
   sizeY = 1,
-  sizeZ = 80,
+  sizeZ = 100,
   ! nb. of ghost cells
   nbx = 2,
   nby = 2,
   nbz = 2,
   ! domain lenths in m
-  lx_dim =    0.0, 80.0e3
-  ly_dim =    0.0, 80.0e3
+  lx_dim =    0.0, 60.0e3
+  ly_dim =    0.0, 40.0e3
   lz_dim =    0.0, 20.0e3
   ! nb of processors in x and y direction must be set in the batch file
   nprocx = {nprocx},
@@ -47,7 +47,7 @@
                          ! automatically overwrites nVar, varOut, varIn and
                          ! offset by including additional dynamic variables
                          ! nIce, qIce and SIce
-  include_tracer = .false.,
+
 &end
 
 
@@ -57,7 +57,7 @@
 
 &modelList
 
-  model = "pseudo_incompressible"            ! pseudo_incompressible / Boussinesq / WKB
+  model = "pseudo_incompressible" ! pseudo_incompressible / Boussinesq / WKB
   vert_theta = 90.0               ! deg    angle of rotation about y
   vert_alpha = 0.0                ! det    angle of rotation about z'
 
@@ -72,16 +72,16 @@
 
   cfl = 0.4
   cfl_wave = 0.5                  ! passage rate of phase throuh a cell
-  dtMax_dim = 1.e3                ! max time step in s
-  tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
+  dtMax_dim = 5.e0                ! max time step in s
+  tStepChoice = "fix"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
-  timeScheme = "semiimplicit"       ! LS_Will_RK3 -> Williamson / Euler /
+  timeScheme = "semiimplicit"     ! LS_Will_RK3 -> Williamson / Euler /
                                   ! LS_TVD_RK3 / CL_TVD_RK3 / semiimplicit
   auxil_equ = .false.             ! auxiliary equation for the density
                                   ! fluctuations to be used in the explicit
                                   ! integration of the
                                   ! pseudo-incompressible system
-  fluxType   = "upwind"          ! ILES / central / upwind
+  fluxType   = "upwind"           ! ILES / central / upwind
   reconstType = "MUSCL"           ! MUSCL / constant / SALD / ALDM
   limiterType1 = "MCVariant"      ! minmod / Cada / MCVariant
   fluctuationMode = .true.        ! use rho' as primary variable
@@ -126,7 +126,7 @@
   poissonSolverType = "bicgstab" ! "bicgstab" / "gcr" / "adi" / "hypre"
   storageType = "opr"            ! "csr" (compressed sparse row)
                                  !  "opr" (lin operator)
-  preconditioner = "yes"         ! for operator-Solver: "no" / "yes"
+  preconditioner = "yes"          ! for operator-Solver: "no" / "yes"
   dtau = 4.0e-4                  ! time parameter for ADI (imperical value)
   maxIterADI = 2                 ! nb of iterations for ADI preconditioner
   initialCleaning = .true.       ! makes initial projection
@@ -160,7 +160,7 @@
                                        ! 0 for non-diffusive
                                        ! 2 * mu_viscous_dim corresponds to
                                        ! Pr = 0.5
-  background = "const-N"            ! const-N    -> set N_BruntVaisala_dim
+  background = "const-N"               ! const-N    -> set N_BruntVaisala_dim
                                        ! isothermal -> set Temp0_dim in K
                                        ! isentropic -> set theta0_dim in K
                                        ! uniform    -> constant density
@@ -198,10 +198,10 @@
   press0_dim =  100000.0               ! ground pressure (at z=0) in Pa:
                                        ! 101325.0 for z = 0 bottom of atmosphere
                                        ! 101.3250 for z = 0 at appr 60km
-  N_BruntVaisala_dim = 0.01            ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 0.01 !0.01            ! Brunt-Vaisala frequency for
                                        ! 1) "const-N" atmosphere in 1/s
                                        ! 2) "unifrom" Boussinesq
-  backgroundFlow_dim =  10.0, 0.0, 0.0  ! m/s
+  backgroundFlow_dim =  10.0, 0.0, 0.0 ! m/s
                                        ! zonal background flow velocity u
   f_Coriolis_dim = 0.                  ! 1/s
                                        ! Coriolis parameter
@@ -228,19 +228,21 @@
 
 &topographyList
 
-  topography = .true.      ! switch for bottom topography
-  testTFC = .false.          ! switch for TFC test
-  spongeTFC = .true.       ! switch for unified sponge layer
-  lateralSponge = .false.   ! switch for lateral sponge layers
-  mountainHeight_dim = 1.e1 ! mountain height in m
-  mountainWidth_dim = 20e3 ! mountain half-width in m
-  mountain_case = 1         ! shape of orography
+  topography = .true.       ! switch for bottom topography
+  testTFC = .false.         ! switch for TFC test
+  spongeTFC = .true.        ! switch for unified sponge layer
+  lateralSponge = .true.    ! switch for lateral sponge layers
+  topographyTime = 0.0      ! time over which topography height increases
+  mountainHeight_dim = 4.e2 ! mountain height in m
+  mountainWidth_dim = 1.e3  ! mountain half-width in m
+  mountain_case = 3         ! shape of orography
                             ! 1 for cosine-shaped mountains
                             ! 2 for 3D cosine-shaped mountains (rotated)
                             ! 3 for bell-shaped mountain
                             ! 4 for 3D bell-shaped mountain
-                            ! 5 for wave-packet-like mountain range
-  range_fac = 10            ! factor by which mountain range is wider than
+                            ! 5 for Gaussian mountain range
+                            ! 6 for wave-packet-like mountain range
+  range_factor = 10         ! factor by which mountain range is wider than
                             ! single mountains
 
 &end
@@ -264,7 +266,7 @@
   ! sponge layer at upper boundary
   spongeLayer = .true.       ! sponge with relaxation to background
   spongeHeight = 0.5         ! relative height of sponge layer
-  spongeAlphaZ_dim = 0.05 !1.4e-4 ! relaxation rate coeff in 1/s
+  spongeAlphaZ_dim = 0.01 !1.4e-4 ! relaxation rate coeff in 1/s
   spongeAlphaZ_fac = 1.0
 
 &end
@@ -285,22 +287,22 @@
 
 &outputList
 
-  outputType = "time"     ! timeStep / time
+  outputType = "time"         ! timeStep / time
   nOutput = 1                 ! output every nOutput's time step
                               ! for outputType = "timeStep"
-  maxIter = 10000                 ! stop after maxIter time steps
-  outputTimeDiff = 1.2e2      ! output every ... seconds
-  maxTime = 86.4e3            ! stop after maxTime seconds
+  maxIter = 10000             ! stop after maxIter time steps
+  outputTimeDiff = 5.0e0      ! output every ... seconds
+  maxTime = 36.0e2            ! stop after maxTime seconds
   dataFileName = ""           ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref" ! restart file in TEC360 format
   restart = .false.           ! true / false
   dimOut = .true., .false., .true.
                               ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
-  varOut = 1,1,1,1,0,0,0,0,1    ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,1,1,1,0    ! 1 = output, 0 = no output
                               ! primary variables: rho,u,v,w,pi',theta',
                               ! dyn. Smagorinsky coeff.
                               ! if include_ice varOut must have length nVar+3
-  varIn = 1,1,1,1,0,0,0,0,1     ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,1,1,1,0     ! 1 = output, 0 = no output
                               ! data written into restart file pf_all_in.dat
                               ! ( = output file pf_all.dat from previous run)
                               ! primary variables: rho,u,v,w,pi',theta',
@@ -396,19 +398,18 @@
 ! general
 &testCaseList
 
-  testCase = 'mountainwave' ! Boussinesq: uniform_theta, wavePacket
+  testCase = "mountainwave" ! Boussinesq: uniform_theta, wavePacket
                             ! agnesiMountain -> see topography
                             ! baroclinic_LC -> baroclinic life cycle with y-dep
                             ! tropopause
                             ! baroclinic_ID -> idealistic baroclinic life cycle
-  ! with const tropopause
-  ! tracer_and_steady_wind
+                            ! with const tropopause
 
 &end
 
 &monochromeWave
 
-  lambda_dim = 6000.0 ! m
+  lambdaZ_dim = 6000.0 ! m
                        ! vertical wave length
 
 &end
@@ -503,8 +504,14 @@
   branchr = 1,          ! frequency branch (dispersion relation)
   ! presently not used
   lindUinit = .false.,  ! ind. wind already at initial time (true/false)
-  ! oror_amp_dim = 50   ! orography amplititude height (m)
-  oror_amp_dim = 5.e2   ! orography amplititude height (m)
+
+  topographyTime_wkb = 0.0      ! time over which topography height increases
+  mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
+  mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
+  mountain_case_wkb = 1         ! WKB orography shape (corresponds to
+                                ! mountain_case in topography namelist)
+  range_factor_wkb = 10         ! factor by which mountain range is wider than
+                                ! single mountains
 
   zmin_wkb_dim = 0.0    ! minumum altitude (above the model bottom, in m)
                         ! for WKB wave-mean-flow interaction
@@ -536,7 +543,7 @@
                           ! temporary wind relexation
   t_relax = 5.e3          ! [s] total relaxation time
   t_ramp = 25.e2          ! [s] duration of ramping up/down the relaxation
-  xextent_norelax = 1.e5  ! [m] zonal extent of
+  xextent_norelax = 1.e10 ! [m] zonal extent of
                           ! region without wind relaxation
 
 &end
@@ -731,13 +738,5 @@
   output_rho_bgr = .true.                ! output environmental state
   output_br_vais_sq = .true.             ! output N^2 of environmental state
   output_heat = .true.
-
-&end
-
-  
-&tracerList
-
-tracerSetup = "increase_in_z_tracer"          ! gaussian_tracer_2D / gaussian_tracer_3D / layer_tracer /
-                                              ! increase_in_z_tracer
 
 &end

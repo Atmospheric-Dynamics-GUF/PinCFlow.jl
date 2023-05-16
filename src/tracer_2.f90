@@ -132,7 +132,7 @@ contains
           end do
        end do
 
-       dz_tr = 0.1 * dz
+       dz_tr = 1.0! 0.1 * dz
 
        print*, "dz_tr = ", dz_tr
        
@@ -148,9 +148,11 @@ contains
           end do
        else
           do kk = 1, nz
-             var(:,:,kk, iVart) = rho(:,:,kk) * dz_tr * (z(kk) -z(1)) 
+             var(:,:,kk, iVart) = rho(:,:,kk) * dz_tr * (z(kk) -z(1))
           end do
        end if
+
+       
 
     case( "like_density")
 

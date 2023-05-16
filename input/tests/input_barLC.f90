@@ -11,15 +11,17 @@
 
 &domain
 
-  sizeX = 16,
-  sizeY = 1,
-  sizeZ = 1000,
-  nbx = 3,
-  nby = 3,
-  nbz = 3,
-  lx_dim = 0.0, 300000.0,
-  ly_dim = 0.0, 300000.0,
-  lz_dim = 0.0, 100000.0,
+  sizeX = 21!28!42 !32 !32 !16 !32 !8 !64,          ! nb of global grid cells
+  sizeY = 84!112!168 !256 !128 !256 !64 !512, !FS
+  sizeZ = 75!100!150!20 !30 !80 !240 !240,
+  nbx = 2,                  ! nb. of ghost cells
+  nby = 2,
+  nbz = 2,
+  lx_dim =    0.0, 0.42e7!0.5e7 ! domain lenths in m
+  ly_dim =    -0.84e7, 0.84e7!-1.e7,1.e7!-2.e7, 2.e7 !-2.0e7,2.0e7
+  lz_dim =    0.0, 15.e4!3.e4!13.5e4!10.e4
+
+  ! nb of processors in x and y direction must be set in the batch file
   nprocx = {nprocx},
   nprocy = {nprocy},
 
@@ -38,8 +40,10 @@
                     ! 8 = heating term in the pressure solver
                     !    (due to GWs, only needed in WKB simulations)
   nOptVar = 4,
-
-  include_tracer = .false.,
+! to switch on ice physics just set include_ice=.true. and check that varIn, varOut and offset have the right lengths
+  include_ice = .false., ! include ice microphysics parametrization
+                         ! automatically overwrites nVar, varOut, varIn and offset
+                         ! by including additional dynamic variables nIce, qIce and SIce
 
 &end
 
@@ -63,9 +67,9 @@
 
 &solverList
 
-  cfl = 0.5
-  cfl_wave = 0.5              ! passage rate of phase throuh a cell
-  dtMax_dim = 900. !3.6e3               ! max time step in s
+  cfl = 0.1667!0.5!0.2
+  cfl_wave = 0.5                 ! passage rate of phase throuh a cell
+  dtMax_dim = 1800.                ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
   timeScheme = "semiimplicit"      ! LS_Will_RK3 -> Williamson / Euler /
@@ -78,18 +82,25 @@
   reconstType = "MUSCL"           ! MUSCL / constant / SALD / ALDM
   limiterType1 = "MCVariant"      ! minmod / Cada / MCVariant
   fluctuationMode = .true.        ! use rho' as primary variable
+  n_shap = 4                      ! (half) order of the shapiro filter
+  shap_dts_fac = 10.!5.         ! horizontal-Shapro-filter damping time
+                                  ! scale
+                                  ! (in units of dt, < 0 means no filter)
   TurbScheme = .false.            ! Turbulence Schwme
-  turb_dts = 5.e3                 ! (s) turbulent damping time scale for the
+  turb_dts = 5.e3       ! (s) turbulent damping time scale for the
                                   ! smallest grid scales
-  shap_dts_fac = -1.
-  DySmaScheme = .true.            ! Dynamic Smagorinsky Scheme for the
+  DySmaScheme = .false.            ! Dynamic Smagorinsky Scheme for the
                                   ! dynamic calculation of the turbulent
                                   ! damping time scale
   dtWave_on = .true.              ! .true. : include dtWave = pi/N to time
                                   !          step choice
 
-  heatingONK14 = .false.
- ! shap_dts_dim = -1.
+  heatingONK14 = .true. !.false. !.true.           ! pseudo-incompressible dynamics with
+                                  ! heating as in ONeill and Klein (2014)
+
+  dens_relax = .false. !.true.               ! switch for replacement of relaxational
+                                  ! heating by density relaxation
+
 
 &end
 
@@ -106,12 +117,12 @@
                                ! tolPoisson = tolPoisson*alpha,
                                ! where alpha is dynamically calculated
                                ! magnitude of gradients.
-  tolPoisson = 1.0e-4        ! abort criterion
+  tolPoisson = 1.0e-8          ! abort criterion
   tolCond = 1.e-23             ! tolerance value controlling the use of
                                ! the preconditioner
   abs_tol = 0.  !1.0e-7        ! it is unscaled abs. tol.,
                                ! lower bound for tolerance.
-  maxIterPoisson = 1000 !500
+  maxIterPoisson = 5000
   poissonSolverType = "bicgstab" ! "bicgstab" / "gcr" / "adi" / "hypre"
   storageType = "opr"          ! "csr" (compressed sparse row)
                                !  "opr" (lin operator)
@@ -141,17 +152,17 @@
                                  ! true-> give ReInv
   ReInv = 0.0                    ! inverse Reynolds number,
                                  ! ReInv = 0 -> inviscid flow
-  mu_viscous_dim = 0             ! m^2/s
+  mu_viscous_dim = 0.!1.5e-5        ! m^2/s
                                  ! kinematic viscosity: 0 for inviscid
                                  ! 1.5e-5 for z = 0 at bottom of atmosphere
                                  ! 1.5e-2 for z = 0 at 60km
-  mu_conduct_dim = 0.            ! m^2/s
+  mu_conduct_dim = 0. !3.e-5         ! m^2/s
                                  ! heat conductivity:
                                  ! 0 for non-diffusive
                                  ! 2 * mu_viscous_dim corresponds to
                                  ! Pr = 0.5
 
-  background = "isothermal"         ! const-N    -> set N_BruntVaisala_dim
+  background = "HeldSuarez"      ! const-N    -> set N_BruntVaisala_dim
                                  ! isothermal -> set Temp0_dim in K
                                  ! isentropic -> set theta0_dim in K
                                  ! uniform    -> constant density
@@ -166,12 +177,17 @@
                                  !              stratosphere,
                                  !              linear decline in
                                  !              temperature
+                                 ! HeldSuarez -> reference atmosphere for
+                                 !               Held & Suarez (1994) with
+                                 !               decreasing temperature in
+                                 !               tropoposphere and
+                                 !               isothermal stratosphere
                                  !
                                  ! for realistic background...
   z_tr_dim = 12000.0             ! m
                                  ! height of tropopause
                                  ! (need for baroclinic)
-  theta_tr_dim = 240             ! K
+  theta_tr_dim = 300             ! K
                                  ! const pot. temp. of troposphere
                                  ! (need for baroclinic)
 
@@ -182,25 +198,38 @@
                                  ! uniform    -> background pot temp for
                                  !               Boussinesq
 
-  Temp0_dim = 300                ! K
+  Temp0_dim =  300               ! K
                                  ! isothermal -> background temperature
 
-  press0_dim =  101325.0         ! ground pressure (at z=0) in Pa:
+  press0_dim =  100000.!101325.0         ! ground pressure (at z=0) in Pa:
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 0.02     ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 0.018     ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
   backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
                                  ! zonal background flow velocity u
 
-  f_Coriolis_dim = 10.0e-4           ! 1/s
+  f_Coriolis_dim = 1.e-4         ! 1/s
                                  ! Coriolis parameter
+
+  corset = "constant"            ! constant/ periodic
 
   gamma_t = 0.000                ! lapse rate in the troposphere
   gamma_s = 0.000                ! lapse rate in the stratosphere
+
+  tp_strato_dim = 200.           ! stratosphere temperature (K)
+                                 ! (used by HeldSuarez)
+  tp_srf_trp_dim = 315           ! tropical surface temperature (K)
+                                 ! (used by HeldSuarez)
+  tpdiffhor_tropo_dim = 30.!60.      ! tropospheric temperature difference
+                                 ! between poles and tropics (K)
+                                 ! (used by HeldSuarez)
+  ptdiffvert_tropo_dim = 20.!50. !10.     ! vertical potential-temperature
+                                 ! difference in troposphere (K)
+                                 ! (used by HeldSuarez)
 &end
 
 
@@ -211,7 +240,13 @@
 &topographyList
 
   topography = .false.      ! switch for bottom topography
-
+  mountainHeight_dim = 5.e2 ! in m
+  mountainWidth_dim = 1.e6  ! m
+                            ! shape of orography
+  mountain_case = 2         ! 1 for not-shifted single mountain,
+                            ! 2 for wave packet like
+  range_factor = 10         ! factor by which mountain range is wider than
+                            ! single mountains
 &end
 
 
@@ -232,9 +267,15 @@
   nbCellCorr = 1
 
   ! sponge layer at upper boundary
-  spongeLayer = .false.     ! sponge with relaxation to background
-  spongeHeight = 0.33      ! relative height of sponge layer
-  spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
+  ! in testCase of baroclinic_LC damping terms in RHS of momentum eqs
+  ! -> set spongeLayer = .false.
+  spongeLayer = .true.     ! sponge with relaxation to background
+  sponge_uv = .true.      ! sponge applied to horizontal winds as well
+                           ! (switch used in semi-implicit time stepping)
+  spongeHeight = 0.33     ! relative height of sponge layer
+  spongeAlphaZ_dim = 250.!5.e-4 !1.4e-4 !2.8e-4 !1.7e-3 ! relaxation rate coeff in 1/s
+  spongeAlphaZ_fac = 1.!2.!250.!2.!1.!0.5 ! relaxation rate coeff in 1/dt
+                         !(used in semi-implicit time stepping)
 &end
 
 &boundaryList2
@@ -260,34 +301,37 @@
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
-  maxIter = 10             ! stop after maxIter time steps
+  maxIter = 100             ! stop after maxIter time steps
 
-  outputTimeDiff = 1.08e4  ! output every ... seconds
-  maxTime        = 1.08e4  ! stop after maxTime seconds
+  outputTimeDiff = 172800.!1.44e4 !3.6e3 !8.64e4 !43200.!5.e4   ! output every ... seconds
+  maxTime = 1209600., !5.184e6!3.e6!2.5e6 !6.e6 !1.e5 !3.e6           ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
-  restart = .false.      ! true / false
+  restart = .false.        ! true / false
 
-  dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
+  dimOut = .true.,.false.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,1,1,1,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,1,1,1,0    ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
+  ! if include_ice varOut must have length nVar+3
 
-  varIn = 1,1,1,1,1,1,1,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,1,1,1,0    ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
   !                                          dyn. Smagorinsky coeff.
+  ! if include_ice varOut must have length nVar+3
 
 
-  iIn = 101                 ! no. of record to be read from restart file
+  iIn = 97                 ! no. of record to be read from restart file
                           ! pf_all_in.dat
                           ! (first record in file has no. = 0)
 
-  offset = 0.0, 0.0, 0.0, 0.0, 0.0 ! offset for primary variables
-  rhoOffset = .true.               ! subtract background
+  offset = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ! offset for primary variables
+  ! if include_ice offset must have length nVar+1, alse nVar-2
+  rhoOffset = .false.               ! subtract background
 
 
   ! optional variables
@@ -326,6 +370,8 @@
   showGhostCellsZ = .false. ! shows ghost cells in z
   detailedinfo = .false. ! provide info on the final state of Poisson solver
   RHS_diagnostics = .true. ! provide info about the RHS for Poisson problem
+
+  !PVinversion = .true. ! FSOctober2020, get streamfunction and balanced fields
 
 &end
 
@@ -376,7 +422,7 @@
 ! general
 &testCaseList
 
-  testCase = "wavePacket"
+  testCase = "baroclinic_LC"
   ! Boussinesq: uniform_theta, wavePacket
   ! agnesiMountain -> see topography
   ! baroclinic_LC -> baroclinic life cycle with y-dep tropopause
@@ -401,30 +447,31 @@
 
   wavePacketType = 1      ! 1 = Gaussian, 2 = Cosine
 
-  wavePacketDim = 1       ! 1 = 1D, 2 = 2D, 3 = 3D
+  wavePacketDim = 2       ! 1 = 1D, 2 = 2D, 3 = 3D
                           ! for a 2.5D Wave Packet use wavePacketDim = 2
 
   lambdaX_dim = 300000.0      ! wave length in x direction in m
                           ! lambdaX = 0.0 --> infinite wavelength
-  lambdaY_dim = 3.e5      ! wave length in y direction in m
+  lambdaY_dim = 0.0       ! wave length in y direction in m
                           ! lambday = 0.0 --> infinite wavelength
   lambdaZ_dim = -1000.0   ! vertical wave length in m
 
-  amplitudeFactor = 0.5   ! normalilized buoyancy amplitude
+  amplitudeFactor = 0.0   ! normalilized buoyancy amplitude
 
-  xCenter_dim = 4.5e6     ! center of wave packet in x direction in m
+  xCenter_dim = 450000.0     ! center of wave packet in x direction in m
 
-  yCenter_dim = 1.5e5     ! center of wave packet in y direction in m
-  zCenter_dim = 3.e4      ! center of wave packet in z direction in m
+  yCenter_dim = 2.e4      ! center of wave packet in y direction in m
+  zCenter_dim = 30000.0       ! center of wave packet in z direction in m
 
   sigma_dim = 5000.0      ! vertical width of Gaussian wavepacket in m
 
-  sigma_hor_dim = 1.5e6   ! cosine distribution width
+  sigma_hor_dim = 1500000.0   ! cosine distribution width
                           ! (in x direction, 0 means infinity)
-  sigma_hor_yyy_dim = 1.5e6  ! cosine distribution width
+  sigma_hor_yyy_dim = 0.0  ! cosine distribution width
+
                           ! (in y direction, 0 means infinity)
 
-  amp_mod_x = 1.0         ! fractional amplitude of amplitude modulation
+  amp_mod_x = 1.e0        ! fractional amplitude of amplitude modulation
                           ! in x direction
                           ! (0 = no modulation, 1 = total modulation)
   amp_mod_y = 1.0         ! fractional amplitude of amplitude modulation
@@ -453,11 +500,11 @@
 &LagrangeRayTracing
 
   xrmin_dim = 0.0,         ! left bound of initial rays (in x direction) (m)
-  xrmax_dim = 4.e6,        ! right bound of initial rays (in x dir.) (m)
+  xrmax_dim = 5.e6,   ! right bound of initial rays (in x dir.) (m)
   yrmin_dim = 0.0,         ! left bound of initial rays (in y direction) (m)
-  yrmax_dim = 4.e4,        ! right bound of initial rays (in y dir.) (m)
-  zrmin_dim = 3.e3,        ! bottom bound of initial rays (m)
-  zrmax_dim = 7.e4,        ! top bound of initial rays (m)
+  yrmax_dim = 5.e4,        ! right bound of initial rays (in y dir.) (m)
+  zrmin_dim = 3000.0,        ! bottom bound of initial rays (m)
+  zrmax_dim = 70000.0,        ! top bound of initial rays (m)
 
   nrxl = 1,               ! no. of ray vol. init. within one hor. x column
   nryl = 1,               ! no. of ray vol. init. within one hor. y column
@@ -476,6 +523,7 @@
 
   nsmth_wkb = 2,           ! half (number -1) of cells f. smooth. wkb fluxes
   lsmth_wkb = .true.,      ! log. switch for smooth. wkb data (true/false)
+  sm_filter = 2,
 
   lsaturation = .true.,    ! JaWi 16.12.16 (sat)
   alpha_sat = 1.0,         ! JaWi 16.12.16 (sat)
@@ -489,33 +537,34 @@
   wlrz_init = 1.e3,        ! initial lambda_z of the wave packet (m)
                            ! (0 means infinity)
 
-  xr0_dim = 2.e6           ! center of the wave packet in hor. (x-dir.) (m)
-  yr0_dim = 2.e4,          ! center of the wave packet in hor. (y-dir.) (m)
-  zr0_dim = 3.e4,          ! center of the wave packet in vertical (m)
+  xr0_dim = 2.5e6,           ! center of the wave packet in hor. (x-dir.) (m)
+  yr0_dim = 2.5e4,       ! center of the wave packet in hor. (y-dir.) (m)
+  zr0_dim = 3.e4,       ! center of the wave packet in vertical (m)
 
-  sigwpx_dim = 1.e6 ,      ! width of the wave packet in hor. (x-dir.) (m);
+  sigwpx_dim = 1.e6,      ! width of the wave packet in hor. (x-dir.) (m);
                            ! (0 means infinity)
   sigwpy_dim = 0.e0        ! width of the wave packet in hor. (y-dir.) (m);
                            ! (0 means infinity)
   sigwpz_dim = 5.e3,       ! width of the wave packet in vertical (m);
 
-  branchr = -1,            ! frequency branch (dispersion relation)
+  branchr = 1,            ! frequency branch (dispersion relation)
   !presently not used:
   lindUinit = .false.,     ! ind. wind already at initial time (true/false)
 
   mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
   mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
-  mountain_case_wkb = 1         ! WKB orography shape
-                                ! 1 for cosine-shaped envelope
-                                ! 2 for Gaussian envelope
+  mountain_case_wkb = 1         ! WKB orography shape (corresponds to
+                                ! mountain_case in topography namelist)
+  range_factor_wkb = 10         ! factor by which mountain range is wider than
+                                ! single mountains
 
-  zmin_wkb_dim = 0.e4      ! minumum altitude (above the model bottom, in m)
+  zmin_wkb_dim = 0.0     ! minumum altitude (above the model bottom, in m)
                            ! for WKB wave-mean-flow interaction
                            ! (zmin_wkb > 0 can help preventing the
                            ! ray volumes being trapped by the self-induced
                            ! mean wind)
 
-  nray_fac = 20            ! maximum factor (per wavenumber direction) by
+  nray_fac = 5            ! maximum factor (per wavenumber direction) by
                            ! which # of rays may increase in comparison to
                            ! initialization
 
@@ -536,12 +585,12 @@
 
 &mountainwavelist
 
-  u_relax = 75.0         ! [m/s] zonal wind to be attained by
+  u_relax = 7.5e1        ! [m/s] zonal wind to be attained by
 
                          ! temporary wind relexation
 
 
-  t_relax = 172800.0     ! [s] total relaxation time
+  t_relax = 8.64e4       ! [s] total relaxation time
 
   t_ramp = 3.6e3         ! [s] duration of ramping up/down the relaxation
 
@@ -564,6 +613,7 @@
   a1_dim = 150.0        !m radius of plateau
   sigma1_dim = 50.0     !m Gaussian edge profile
   xCenter1_dim = 0.0    !m zCenter1_dim = 300.0 !m
+  zCenter1_dim = 300.0 !m
 
 
   dTheta2_dim = -0.15   !K pot temp offset
@@ -586,45 +636,76 @@
 
 &end
 
-!----------------------------------------------------
+!-----------------------------------------------------------------
 !     baroclinic-wave life cycles
-!----------------------------------------------------
+!
+! either setup from Kuehnlein et al (2012): background = 'const-N'
+! or setup of Held & Suarez (1994): background = 'HeldSuarez'
+!-----------------------------------------------------------------
 
 &baroclinic_LC
 
   ! for baroclinic test case
+
+  zero_initial_state = .false.  ! zero_initial_state = .true. means that
+                                ! the equilibrium state is determined but
+                                ! that then the code is initialized with
+                                ! zero winds and and zero density and
+                                ! pressure fluctuations (to investigate
+                                ! the effect of the potential-temperature
+                                ! relaxation)
+
+  ! used be Kuehnlein et al (2019):
   z_trpp0_dim = 8.e3            ! mean tropopause height (m)
   z_baro_dim = 2.4e4            ! alt. above which the atmo. is barotr. (m)
   deltht_dim = 3.e1             ! meridional potential-temp. contrast (K)
   thet0_dim  = 2.73e2           ! characteristic potential temperature (K)
   ntrp_dim = 1.e-2              ! Brunt-Vaisala frequency troposphere (1/s)
   nstr_dim = 2.45e-2            ! Brunt-Vaisala frequency stratosphere (1/s)
-  jwdth_dim = 8.25e5            ! jet width (m)
   kaptpp = 7.e1                 ! jet slope
+  tau_relax = 864000.           ! relax. time, relax to the env. state if
+                                ! RelaxHeating = 1, 2, [sec]
+
+  tau_relax_low = 864000. !432000.!345600.! 432000.!777600.432000.! !9d
+  sigma_tau = 0.06             ! relative thickness of tau_relax(y) profile
+
+  tau_jet = 7200.               ! time for a jet formation, used if
+                                ! RelaxHeating = 2, [sec]
+
+  ! used by Held & Suarez (1994):
+  ta_hs_dim = 3456000.!777600.!8.64e5!3.456e6   ! thermal-relaxation time scale outside
+                                ! tropical boundary layer (s)
+                                ! zero means infinty
+  ts_hs_dim = 345600.!2.592e5!3.456e5!2.592e5     ! thermal-relaxation time scale in
+                                ! tropical boundary layer (s)
+                                ! zero means infinty
+  tf_hs_dim = 8.64e4            ! boundary-layer Rayleigh-damping time
+                                ! scale (s)
+                                ! zero means infinty
+  sigb_hs = 0.7                 ! sigma of boundary-layer top
+
+  ! used both by Kuehnlein et al (2012) and Held & Suarez (1994):
+  jwdth_dim = 2.1e6!4.2e6 !2.1e6              ! half (!) jet width (m)
 
   add_ptptb = .true.            ! add local potential-temperature
                                 ! perturbation
-  ptptb_x_dim = 5.e6            ! x coordinate of local
+  ptptb_x_dim = 2.1e6!2.5e6           ! x coordinate of local
                                 ! potential-temperature perturbation (m)
-  ptptb_y_dim = 4.e6            ! y coordinate of local
+  ptptb_y_dim = 4.2e6!5.e6           ! y coordinate of local
                                 ! potential-temperature perturbation (m)
-  ptptb_z_dim = 9.e3            ! z coordinate of local
+  ptptb_z_dim = 11.e3!9.e3           ! z coordinate of local
                                 ! potential-temperature perturbation (m)
-  ptptb_dh_dim = 5.e5           ! horizontal width of local
+  ptptb_dh_dim = 10.e5           ! horizontal width of local
                                 ! potential-temperature perturbation  (m)
-  ptptb_dz_dim = 2.e3           ! vertical width of local
+  ptptb_dz_dim = 4.e3!         ! vertical width of local
                                 ! potential-temperature perturbation  (m)
-  ptptb_amp_dim = 3.0           ! amplitute of local potential-temperature
+  ptptb_amp_dim = 0.3!1.           ! amplitute of local potential-temperature
                                 ! perturbation (K)
 
-  tau_relax = 1296000.          ! relax. time, relax to the env. state if
-                                ! RelaxHeating = 1, 2, [sec]
-  tau_jet = 7200.               ! time for a jet formation, used if
-                                ! RelaxHeating = 2, [sec]
-  RelaxHeating = 0              ! "1" if sharp relax to environmental state
+  RelaxHeating = 1 !0 !1              ! "1" if sharp relax to environmental state
                                 !     - heating sourse - RHS in divergence
                                 !     constraint, 1/tau
-                                ! "2" if smooth relax to env. state
+                               ! "2" if smooth relax to env. state
                                 !     - heating sourse - RHS in divergence
                                 !     constraint, cos(...)/tau
                                 ! "0" no relaxation
@@ -646,7 +727,7 @@
 
   add_noise = .false.           ! add noise to the initial potential
                                 ! temperature
-  proc_noise = 0.01             ! amplitude of noise is
+  proc_noise = 0.001             ! amplitude of noise is
                                 ! proc_noise*theta_tr_dim
   dTh_atm = 30.                 ! K, potential temperature deviation
                                 ! between poles and equator
@@ -667,7 +748,7 @@
   dTh_atm = 20.                          ! K,
                                          ! potential temperature deviation
   u_strength = 30.                       ! m/s: strength of jet
-  tau_relax = 1296000.                   ! relaxation time, relax to the
+  tau_relax = 1296000.                   ! relaxation tim, erelax to the
                                          ! environm. state
                                          !  if RelaxHeating = 1, 2, [sec]
   tau_jet = 7200.                        ! time for a jet formation,
@@ -714,17 +795,11 @@
                                          ! not used
   add_noise = .true.                     ! add noise to the initial
                                          ! potential temperature
-  proc_noise = 0.01                      ! amplitude of noise is
+  proc_noise = 0.001                      ! amplitude of noise is
                                          ! proc_noise*dTh_atm*2
   output_theta_bgr = .false.             ! output environmental state
   output_rho_bgr = .true.                ! output environmental state
   output_br_vais_sq = .true.             ! output N^2 of environmental state
-  output_heat = .true.
+  output_heat = .false.
 &end
 ! ---------- available test cases: -----------
-&tracerList
-
-  tracerSetup = "increase_in_z_tracer"          ! gaussian_tracer_2D / gaussian_tracer_3D / layer_tracer /
-  ! increase_in_z_tracer
-
-  &end
