@@ -32,7 +32,7 @@ dirScratch=/home/irmgard/Documents/Master/WS22/Masterarbeit/output-tracer
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/wavepacket1D
+dirWork=${dirScratch}/wavePacket3D
 
 mkdir ${dirWork}
 
@@ -43,7 +43,7 @@ cd ${dirWork} && rm *
 # copy namelist
 sed -e "s/{nprocx}/${nprocx}/" \
     -e "s/{nprocy}/${nprocy}/" \
-        ${dirNam}/input_wavePacket1D.f90 > input.f90
+        ${dirNam}/input_wavePacket3D.f90 > input.f90
 
 # run the raytracer
 mpirun -np ${ntasks} ${exe} 1>run.log 2>&1

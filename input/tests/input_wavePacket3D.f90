@@ -11,13 +11,13 @@
 
 &domain
 
-  sizeX = 16,
-  sizeY = 1,
+  sizeX = 512,
+  sizeY = 16,
   sizeZ = 1000,
   nbx = 3,
   nby = 3,
   nbz = 3,
-  lx_dim = 0.0, 300000.0,
+  lx_dim = 0.0, 9000000.0,
   ly_dim = 0.0, 300000.0,
   lz_dim = 0.0, 100000.0,
   nprocx = {nprocx},
@@ -38,8 +38,6 @@
                     ! 8 = heating term in the pressure solver
                     !    (due to GWs, only needed in WKB simulations)
   nOptVar = 4,
-
-  include_tracer = .false.,
 
 &end
 
@@ -189,14 +187,14 @@
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 0.02     ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 1.8-2     ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
   backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
                                  ! zonal background flow velocity u
 
-  f_Coriolis_dim = 10.0e-4           ! 1/s
+  f_Coriolis_dim = 0.0           ! 1/s
                                  ! Coriolis parameter
 
   gamma_t = 0.000                ! lapse rate in the troposphere
@@ -211,6 +209,13 @@
 &topographyList
 
   topography = .false.      ! switch for bottom topography
+  mountainHeight_dim = 5.e2 ! in m
+  mountainWidth_dim = 1.e6  ! m
+                            ! shape of orography
+  mountain_case = 2         ! 1 for not-shifted single mountain,
+                            ! 2 for wave packet like
+  range_factor = 10         ! factor by which mountain range is wider than
+                            ! single mountains
 
 &end
 
@@ -271,11 +276,11 @@
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,1,1,1,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,1,1,1   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,1,1,1,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,1,1,1   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -401,10 +406,10 @@
 
   wavePacketType = 1      ! 1 = Gaussian, 2 = Cosine
 
-  wavePacketDim = 1       ! 1 = 1D, 2 = 2D, 3 = 3D
+  wavePacketDim = 2       ! 1 = 1D, 2 = 2D, 3 = 3D
                           ! for a 2.5D Wave Packet use wavePacketDim = 2
 
-  lambdaX_dim = 300000.0      ! wave length in x direction in m
+  lambdaX_dim = 3.e5      ! wave length in x direction in m
                           ! lambdaX = 0.0 --> infinite wavelength
   lambdaY_dim = 3.e5      ! wave length in y direction in m
                           ! lambday = 0.0 --> infinite wavelength
@@ -505,9 +510,10 @@
 
   mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
   mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
-  mountain_case_wkb = 1         ! WKB orography shape
-                                ! 1 for cosine-shaped envelope
-                                ! 2 for Gaussian envelope
+  mountain_case_wkb = 1         ! WKB orography shape (corresponds to
+                                ! mountain_case in topography namelist)
+  range_factor_wkb = 10         ! factor by which mountain range is wider than
+                                ! single mountains
 
   zmin_wkb_dim = 0.e4      ! minumum altitude (above the model bottom, in m)
                            ! for WKB wave-mean-flow interaction
@@ -722,9 +728,3 @@
   output_heat = .true.
 &end
 ! ---------- available test cases: -----------
-&tracerList
-
-  tracerSetup = "increase_in_z_tracer"          ! gaussian_tracer_2D / gaussian_tracer_3D / layer_tracer /
-  ! increase_in_z_tracer
-
-  &end

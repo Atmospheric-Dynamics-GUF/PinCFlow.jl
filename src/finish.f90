@@ -78,11 +78,6 @@ module finish_module
       if (allocstat /= 0) stop "finish.f90: could not deallocate dTracer"
     end if
 
-    if (include_tracer) then
-      deallocate (dTracer, stat = allocstat)
-      if (allocstat /= 0) stop "finish.f90: could not deallocate dTracer"
-    end if
-
   end subroutine terminate
 
 end module finish_module

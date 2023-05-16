@@ -28,11 +28,11 @@ export GMON_OUT_PREFIX=gmon.out-
 # export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/jochum/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
 
 dirHome=/home/irmgard/Documents/Master/WS22/Masterarbeit/pinc-flow-tracer
-dirScratch=/home/irmgard/Documents/Master/WS22/Masterarbeit/output-tracer
+dirScratch=/home/irmgard/Documents/Master/WS22/Masterarbeit/output-tests
 
-dirNam=${dirHome}/input
+dirNam=${dirHome}/input/tests
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/cos_mountain_2023-05-13
+dirWork=${dirScratch}/wavePacket3D
 
 mkdir ${dirWork}
 
@@ -43,7 +43,7 @@ cd ${dirWork} && rm *
 # copy namelist
 sed -e "s/{nprocx}/${nprocx}/" \
     -e "s/{nprocy}/${nprocy}/" \
-        ${dirNam}/input_tracer_cos.f90 > input.f90
+        ${dirNam}/input_wavePacket3D.f90 > input.f90
 
 # run the raytracer
 mpirun -np ${ntasks} ${exe} 1>run.log 2>&1

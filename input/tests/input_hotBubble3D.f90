@@ -11,15 +11,17 @@
 
 &domain
 
-  sizeX = 16,
-  sizeY = 1,
-  sizeZ = 1000,
+  sizeX = 128,
+  sizeY = 32,
+  sizeZ = 128,
   nbx = 3,
   nby = 3,
   nbz = 3,
-  lx_dim = 0.0, 300000.0,
-  ly_dim = 0.0, 300000.0,
-  lz_dim = 0.0, 100000.0,
+  lx_dim =  -4000., 4000.,
+  ly_dim =  -4000., 4000.,
+  lz_dim =   0., 8000,
+
+  ! nb of processors in x and y direction must be set in the batch file
   nprocx = {nprocx},
   nprocy = {nprocy},
 
@@ -38,8 +40,6 @@
                     ! 8 = heating term in the pressure solver
                     !    (due to GWs, only needed in WKB simulations)
   nOptVar = 4,
-
-  include_tracer = .false.,
 
 &end
 
@@ -64,11 +64,11 @@
 &solverList
 
   cfl = 0.5
-  cfl_wave = 0.5              ! passage rate of phase throuh a cell
-  dtMax_dim = 900. !3.6e3               ! max time step in s
+  cfl_wave = 0.5                  ! passage rate of phase throuh a cell
+  dtMax_dim = 3.6e3               ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
-  timeScheme = "semiimplicit"      ! LS_Will_RK3 -> Williamson / Euler /
+  timeScheme = "LS_Will_RK3"      ! LS_Will_RK3 -> Williamson / Euler /
                                   ! LS_TVD_RK3 / CL_TVD_RK3 / semiimplicit
   auxil_equ = .false.             ! auxiliary equation for the density
                                   ! fluctuations to be used in the explicit
@@ -78,18 +78,17 @@
   reconstType = "MUSCL"           ! MUSCL / constant / SALD / ALDM
   limiterType1 = "MCVariant"      ! minmod / Cada / MCVariant
   fluctuationMode = .true.        ! use rho' as primary variable
-  TurbScheme = .false.            ! Turbulence Schwme
+  TurbScheme = .false.             ! Turbulence Schwme
   turb_dts = 5.e3                 ! (s) turbulent damping time scale for the
                                   ! smallest grid scales
-  shap_dts_fac = -1.
-  DySmaScheme = .true.            ! Dynamic Smagorinsky Scheme for the
+  DySmaScheme = .false.            ! Dynamic Smagorinsky Scheme for the
                                   ! dynamic calculation of the turbulent
                                   ! damping time scale
   dtWave_on = .true.              ! .true. : include dtWave = pi/N to time
                                   !          step choice
-
   heatingONK14 = .false.
- ! shap_dts_dim = -1.
+  shap_dts_fac = -1.              ! horizontal-Shapro-filter damping time
+                                  ! scale (s < 0 means no filter)
 
 &end
 
@@ -106,19 +105,19 @@
                                ! tolPoisson = tolPoisson*alpha,
                                ! where alpha is dynamically calculated
                                ! magnitude of gradients.
-  tolPoisson = 1.0e-4        ! abort criterion
+  tolPoisson = 1.0e-4          ! abort criterion
   tolCond = 1.e-23             ! tolerance value controlling the use of
                                ! the preconditioner
   abs_tol = 0.  !1.0e-7        ! it is unscaled abs. tol.,
                                ! lower bound for tolerance.
-  maxIterPoisson = 1000 !500
+  maxIterPoisson = 10000 !500
   poissonSolverType = "bicgstab" ! "bicgstab" / "gcr" / "adi" / "hypre"
   storageType = "opr"          ! "csr" (compressed sparse row)
                                !  "opr" (lin operator)
 
   preconditioner = "yes"       ! for operator-Solver: "no" / "yes"
-  dtau = 8.e-1                ! time parameter for ADI (imperical value)
-  maxIterADI = 10            ! nb of iterations for ADI preconditioner
+  dtau = 4.0e-4                ! time parameter for ADI (imperical value)
+  maxIterADI = 2               ! nb of iterations for ADI preconditioner
 
   initialCleaning = .true.     ! makes initial projection
   pressureScaling = .false.    ! .true. / .false. Scaling with PStrat
@@ -151,7 +150,7 @@
                                  ! 2 * mu_viscous_dim corresponds to
                                  ! Pr = 0.5
 
-  background = "isothermal"         ! const-N    -> set N_BruntVaisala_dim
+  background = "isentropic"      ! const-N    -> set N_BruntVaisala_dim
                                  ! isothermal -> set Temp0_dim in K
                                  ! isentropic -> set theta0_dim in K
                                  ! uniform    -> constant density
@@ -189,14 +188,14 @@
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 0.02     ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 1.8-2     ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
   backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
                                  ! zonal background flow velocity u
 
-  f_Coriolis_dim = 10.0e-4           ! 1/s
+  f_Coriolis_dim = 0.0           ! 1/s
                                  ! Coriolis parameter
 
   gamma_t = 0.000                ! lapse rate in the troposphere
@@ -211,7 +210,13 @@
 &topographyList
 
   topography = .false.      ! switch for bottom topography
-
+  mountainHeight_dim = 500. ! in m
+  mountainWidth_dim = 1.e6  ! m
+                            ! shape of orography
+  mountain_case = 2         ! 1 for not-shifted single mountain,
+                            ! 2 for wave packet like
+  range_factor = 10         ! factor by which mountain range is wider than
+                            ! single mountains
 &end
 
 
@@ -232,7 +237,7 @@
   nbCellCorr = 1
 
   ! sponge layer at upper boundary
-  spongeLayer = .false.     ! sponge with relaxation to background
+  spongeLayer = .true.     ! sponge with relaxation to background
   spongeHeight = 0.33      ! relative height of sponge layer
   spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
 &end
@@ -262,8 +267,8 @@
 
   maxIter = 10             ! stop after maxIter time steps
 
-  outputTimeDiff = 1.08e4  ! output every ... seconds
-  maxTime        = 1.08e4  ! stop after maxTime seconds
+  outputTimeDiff =  30     ! output every ... seconds
+  maxTime = 1200           ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -271,11 +276,11 @@
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,1,1,1,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,1,1,1   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,1,1,1,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,1,1,1   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -376,7 +381,7 @@
 ! general
 &testCaseList
 
-  testCase = "wavePacket"
+  testCase = "hotBubble3D"
   ! Boussinesq: uniform_theta, wavePacket
   ! agnesiMountain -> see topography
   ! baroclinic_LC -> baroclinic life cycle with y-dep tropopause
@@ -401,30 +406,31 @@
 
   wavePacketType = 1      ! 1 = Gaussian, 2 = Cosine
 
-  wavePacketDim = 1       ! 1 = 1D, 2 = 2D, 3 = 3D
+  wavePacketDim = 2       ! 1 = 1D, 2 = 2D, 3 = 3D
                           ! for a 2.5D Wave Packet use wavePacketDim = 2
 
-  lambdaX_dim = 300000.0      ! wave length in x direction in m
+  lambdaX_dim = 3.e5      ! wave length in x direction in m
                           ! lambdaX = 0.0 --> infinite wavelength
-  lambdaY_dim = 3.e5      ! wave length in y direction in m
+  lambdaY_dim = 0.0       ! wave length in y direction in m
                           ! lambday = 0.0 --> infinite wavelength
   lambdaZ_dim = -1000.0   ! vertical wave length in m
 
-  amplitudeFactor = 0.5   ! normalilized buoyancy amplitude
+  amplitudeFactor = 0.0   ! normalilized buoyancy amplitude
 
   xCenter_dim = 4.5e6     ! center of wave packet in x direction in m
 
-  yCenter_dim = 1.5e5     ! center of wave packet in y direction in m
+  yCenter_dim = 2.e4      ! center of wave packet in y direction in m
   zCenter_dim = 3.e4      ! center of wave packet in z direction in m
 
   sigma_dim = 5000.0      ! vertical width of Gaussian wavepacket in m
 
   sigma_hor_dim = 1.5e6   ! cosine distribution width
                           ! (in x direction, 0 means infinity)
-  sigma_hor_yyy_dim = 1.5e6  ! cosine distribution width
+  sigma_hor_yyy_dim = 0.0  ! cosine distribution width
+
                           ! (in y direction, 0 means infinity)
 
-  amp_mod_x = 1.0         ! fractional amplitude of amplitude modulation
+  amp_mod_x = 1.e0        ! fractional amplitude of amplitude modulation
                           ! in x direction
                           ! (0 = no modulation, 1 = total modulation)
   amp_mod_y = 1.0         ! fractional amplitude of amplitude modulation
@@ -505,9 +511,10 @@
 
   mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
   mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
-  mountain_case_wkb = 1         ! WKB orography shape
-                                ! 1 for cosine-shaped envelope
-                                ! 2 for Gaussian envelope
+  mountain_case_wkb = 1         ! WKB orography shape (corresponds to
+                                ! mountain_case in topography namelist)
+  range_factor_wkb = 10         ! factor by which mountain range is wider than
+                                ! single mountains
 
   zmin_wkb_dim = 0.e4      ! minumum altitude (above the model bottom, in m)
                            ! for WKB wave-mean-flow interaction
@@ -577,14 +584,16 @@
 ! test cases: hotBubble, coldBubble, hotBubble3D
 &bubble
 
-  dTheta0_dim = 6.0    !K
-  xRadius_dim = 2500.0 !m
-  zRadius_dim = 2500.0 !m
+  dTheta0_dim = 6.6    !K
+  xRadius_dim = 2000.0 !m
+  !yRadius_dim = 2000.0 !m
+  zRadius_dim = 2000.0 !m
   xCenter_dim = 0.0    !m
-  zCenter_dim = 0.0    !m
-  zExcentricity = 1.0
+  !yCenter_dim = 0.0    !m
+  zCenter_dim = 2750.0 !m
 
 &end
+
 
 !----------------------------------------------------
 !     baroclinic-wave life cycles
@@ -722,9 +731,3 @@
   output_heat = .true.
 &end
 ! ---------- available test cases: -----------
-&tracerList
-
-  tracerSetup = "increase_in_z_tracer"          ! gaussian_tracer_2D / gaussian_tracer_3D / layer_tracer /
-  ! increase_in_z_tracer
-
-  &end
