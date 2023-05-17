@@ -1,0 +1,21 @@
++ ntasks=1
++ nprocx=1
++ nprocy=1
++ export OMP_NUM_THREADS=1
++ OMP_NUM_THREADS=1
++ export GMON_OUT_PREFIX=gmon.out-
++ GMON_OUT_PREFIX=gmon.out-
++ dirHome=/home/atmodynamics/knop/
++ dirScratch=/scratch/atmodynamics/knop/
++ dirNam=/home/atmodynamics/knop//pinc/input
++ exe=/home/atmodynamics/knop//pinc/bin/pinc
++ dirWork=/scratch/atmodynamics/knop//output/test
++ mkdir /scratch/atmodynamics/knop//output/test
+mkdir: cannot create directory ‘/scratch/atmodynamics/knop//output/test’: File exists
++ cd /scratch/atmodynamics/knop//output/test
++ rm '*'
+rm: cannot remove ‘*’: No such file or directory
++ sed -e 's/{nprocx}/1/' -e 's/{nprocy}/1/' /home/atmodynamics/knop//pinc/input/input_test.f90
+sed: can't read /home/atmodynamics/knop//pinc/input/input_test.f90: No such file or directory
++ mpirun -np 1 /home/atmodynamics/knop//pinc/bin/pinc
++ exit 0
