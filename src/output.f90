@@ -114,7 +114,6 @@ module output_module
     irc_prc = 0
     do iVar = 1, nVar
       if(varOut(iVar) == 1) irc_prc = irc_prc + 1
-       if (varOut(iVar)==1) irc_prc = irc_prc + 1
     end do
     irc_prc = irc_prc * iOut * nz
 
