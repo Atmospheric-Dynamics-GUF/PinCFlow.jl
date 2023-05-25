@@ -1,0 +1,20 @@
++ ntasks=128
++ nprocx=64
++ nprocy=2
++ export OMP_NUM_THREADS=1
++ OMP_NUM_THREADS=1
++ export GMON_OUT_PREFIX=gmon.out-
++ GMON_OUT_PREFIX=gmon.out-
++ dirHome=/home/atmodynamics/knop/pinc-flow-tracer
++ dirScratch=/scratch/atmodynamics/knop
++ dirNam=/home/atmodynamics/knop/pinc-flow-tracer/input
++ exe=/home/atmodynamics/knop/pinc-flow-tracer/bin/pinc
++ dirWork=/scratch/atmodynamics/knop/output/wavePacket3D-tracer
++ mkdir /scratch/atmodynamics/knop/output/wavePacket3D-tracer
+mkdir: cannot create directory ‘/scratch/atmodynamics/knop/output/wavePacket3D-tracer’: File exists
++ cd /scratch/atmodynamics/knop/output/wavePacket3D-tracer
++ rm '*'
+rm: cannot remove ‘*’: No such file or directory
++ sed -e 's/{nprocx}/64/' -e 's/{nprocy}/2/' /home/atmodynamics/knop/pinc-flow-tracer/input/input_wavePacket3D-tracer.f90
++ mpirun -np 128 /home/atmodynamics/knop/pinc-flow-tracer/bin/pinc
++ exit 0
