@@ -12,7 +12,7 @@
 &domain
 
   sizeX = 512,
-  sizeY = 1,
+  sizeY = 16,
   sizeZ = 1000,
   nbx = 3,
   nby = 3,
@@ -38,7 +38,7 @@
                     ! 8 = heating term in the pressure solver
                     !    (due to GWs, only needed in WKB simulations)
   nOptVar = 4,
-  include_ice = .false.,
+
   include_tracer = .true.,
 
 &end
@@ -189,14 +189,14 @@
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 0.02     ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 1.8-2     ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
   backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
                                  ! zonal background flow velocity u
 
-  f_Coriolis_dim = 10.0e-4           ! 1/s
+  f_Coriolis_dim = 0.0           ! 1/s
                                  ! Coriolis parameter
 
   gamma_t = 0.000                ! lapse rate in the troposphere
@@ -211,6 +211,13 @@
 &topographyList
 
   topography = .false.      ! switch for bottom topography
+  mountainHeight_dim = 5.e2 ! in m
+  mountainWidth_dim = 1.e6  ! m
+                            ! shape of orography
+  mountain_case = 2         ! 1 for not-shifted single mountain,
+                            ! 2 for wave packet like
+  range_factor = 10         ! factor by which mountain range is wider than
+                            ! single mountains
 
 &end
 
@@ -232,7 +239,7 @@
   nbCellCorr = 1
 
   ! sponge layer at upper boundary
-  spongeLayer = .true.     ! sponge with relaxation to background
+  spongeLayer = .false.     ! sponge with relaxation to background
   spongeHeight = 0.33      ! relative height of sponge layer
   spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
 &end
@@ -262,7 +269,7 @@
 
   maxIter = 10             ! stop after maxIter time steps
 
-  outputTimeDiff = 1.08e4  ! output every ... seconds
+  outputTimeDiff = 1.8e3  ! output every ... seconds
   maxTime        = 1.08e4  ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
@@ -399,29 +406,29 @@
 
 &wavePacket
 
-  wavePacketType = 2      ! 1 = Gaussian, 2 = Cosine
+  wavePacketType = 1      ! 1 = Gaussian, 2 = Cosine
 
   wavePacketDim = 2       ! 1 = 1D, 2 = 2D, 3 = 3D
                           ! for a 2.5D Wave Packet use wavePacketDim = 2
 
-  lambdaX_dim = 300000.0       ! wave length in x direction in m
+  lambdaX_dim = 3.e5      ! wave length in x direction in m
                           ! lambdaX = 0.0 --> infinite wavelength
-  lambdaY_dim = 0.0!300000.0  ! wave length in y direction in m
+  lambdaY_dim = 3.e5      ! wave length in y direction in m
                           ! lambday = 0.0 --> infinite wavelength
   lambdaZ_dim = -1000.0   ! vertical wave length in m
 
   amplitudeFactor = 0.5   ! normalilized buoyancy amplitude
 
-  xCenter_dim = 4500000.0     ! center of wave packet in x direction in m
+  xCenter_dim = 4.5e6     ! center of wave packet in x direction in m
 
-  yCenter_dim = 150000.0     ! center of wave packet in y direction in m
-  zCenter_dim = 30000.0      ! center of wave packet in z direction in m
+  yCenter_dim = 1.5e5     ! center of wave packet in y direction in m
+  zCenter_dim = 3.e4      ! center of wave packet in z direction in m
 
   sigma_dim = 5000.0      ! vertical width of Gaussian wavepacket in m
 
-  sigma_hor_dim = 1500000.0   ! cosine distribution width
+  sigma_hor_dim = 1.5e6   ! cosine distribution width
                           ! (in x direction, 0 means infinity)
-  sigma_hor_yyy_dim = 1500000.0  ! cosine distribution width
+  sigma_hor_yyy_dim = 1.5e6  ! cosine distribution width
                           ! (in y direction, 0 means infinity)
 
   amp_mod_x = 1.0         ! fractional amplitude of amplitude modulation
@@ -505,9 +512,10 @@
 
   mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
   mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
-  mountain_case_wkb = 1         ! WKB orography shape
-                                ! 1 for cosine-shaped envelope
-                                ! 2 for Gaussian envelope
+  mountain_case_wkb = 1         ! WKB orography shape (corresponds to
+                                ! mountain_case in topography namelist)
+  range_factor_wkb = 10         ! factor by which mountain range is wider than
+                                ! single mountains
 
   zmin_wkb_dim = 0.e4      ! minumum altitude (above the model bottom, in m)
                            ! for WKB wave-mean-flow interaction
@@ -722,9 +730,9 @@
   output_heat = .true.
 &end
 ! ---------- available test cases: -----------
+
 &tracerList
 
-  tracerSetup = "increase_in_z_tracer"          ! gaussian_tracer_2D / gaussian_tracer_3D / layer_tracer /
-  ! increase_in_z_tracer
+tracerSetup = "increase_in_z_tracer"
 
-  &end
+&end
