@@ -13,8 +13,7 @@
 + mkdir /scratch/atmodynamics/knop/output/wavePacket3D-tracer
 mkdir: cannot create directory ‘/scratch/atmodynamics/knop/output/wavePacket3D-tracer’: File exists
 + cd /scratch/atmodynamics/knop/output/wavePacket3D-tracer
-+ rm '*'
-rm: cannot remove ‘*’: No such file or directory
++ rm bvsStrat.dat dt.dat info.txt input.f90 pf_all.dat pStrat.dat rhoStrat.dat run.log thetaStrat.dat
 + sed -e 's/{nprocx}/64/' -e 's/{nprocy}/2/' /home/atmodynamics/knop/pinc-flow-tracer/input/input_wavePacket3D-tracer.f90
 + mpirun -np 128 /home/atmodynamics/knop/pinc-flow-tracer/bin/pinc
 + exit 0

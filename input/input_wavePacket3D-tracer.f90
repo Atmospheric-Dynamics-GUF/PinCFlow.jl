@@ -196,7 +196,7 @@
   backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
                                  ! zonal background flow velocity u
 
-  f_Coriolis_dim = 0.0           ! 1/s
+  f_Coriolis_dim = 10.0e-4           ! 1/s
                                  ! Coriolis parameter
 
   gamma_t = 0.000                ! lapse rate in the troposphere
@@ -269,7 +269,7 @@
 
   maxIter = 10             ! stop after maxIter time steps
 
-  outputTimeDiff = 1.8e3  ! output every ... seconds
+  outputTimeDiff = 6.0e1  ! output every ... seconds
   maxTime        = 1.08e4  ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
