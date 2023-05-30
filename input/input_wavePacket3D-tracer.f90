@@ -269,7 +269,7 @@
 
   maxIter = 10             ! stop after maxIter time steps
 
-  outputTimeDiff = 6.0e1  ! output every ... seconds
+  outputTimeDiff = 1.08e4  ! output every ... seconds
   maxTime        = 1.08e4  ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
@@ -278,11 +278,11 @@
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',

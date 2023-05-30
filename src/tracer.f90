@@ -132,7 +132,7 @@ contains
           end do
        end do
 
-       dz_tr = 0.1 * dz
+       dz_tr = 1.0 / dz
 
        print*, "dz_tr = ", dz_tr
        
