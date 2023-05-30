@@ -153,7 +153,18 @@ module boundary_module
 
       end if
 
-      if(updateTheta) then
+      if (updateTracer) then
+        do i = 1, nbx
+          var(nx + i, :, :, iVart) = var(i, :, :, iVart)
+          var(- i + 1, :, :, iVart) = var(nx - i + 1, :, :, iVart)
+        end do
+
+        if (verbose .and. master) then
+          print *, "horizontalBoundary: x-horizontal BC for tracer set."
+        end if
+      end if
+
+      if (updateTheta) then
         ! pot. temp.  -> iVar = 6
 
         if(timeScheme == "semiimplicit") then
@@ -288,7 +299,16 @@ module boundary_module
 
       end if
 
-      if(updateTheta) then
+      if (updateTracer) then
+        tracerTilde(nx + 2, :, :, 1, 0) = tracerTilde(2, :, :, 1, 0)
+        tracerTilde(- 1, :, :, 1, 1) = tracerTilde(nx - 1, :, :, 1, 1)
+
+        if (verbose .and. master) then
+          print *, "horizontalBoundary: x-horizontal BC for tracerTilde set."
+        end if
+      end if
+
+      if (updateTheta) then
         ! reconstructed density needed in ghost cell i = nx+2
         thetaTilde(nx + 2, :, :, 1, 0) = thetaTilde(2, :, :, 1, 0)
 
@@ -378,7 +398,18 @@ module boundary_module
 
       end if
 
-      if(updateTheta) then
+      if (updateTracer) then
+        do j = 1, nby
+          var(:, ny + j, :, iVart) = var(:, j, :, iVart)
+          var(:, - j + 1, :, iVart) = var(:, ny - j + 1, :, iVart)
+        end do
+
+        if (verbose .and. master) then
+          print *, "horizontalBoundary: y-horizontal BC for tracer set."
+        end if
+      end if
+
+      if (updateTheta) then
         ! potential temperature -> iVar = 6
 
         if(timeScheme == "semiimplicit") then
@@ -515,7 +546,16 @@ module boundary_module
 
       end if
 
-      if(updateTheta) then
+      if (updateTracer) then
+        tracerTilde(:, ny + 2, :, 2, 0) = tracerTilde(:, 2, :, 2, 0)
+        tracerTilde(:, - 1, :, 2, 1) = tracerTilde(:, ny - 1, :, 2, 1)
+
+        if (verbose .and. master) then
+          print *, "horizontalBoundary: y-horizontal BC for tracerTilde set."
+        end if
+      end if
+
+      if (updateTheta) then
         ! reconstructed density needed in ghost cell j = ny+2
         thetaTilde(:, ny + 2, :, 2, 0) = thetaTilde(:, 2, :, 2, 0)
 
@@ -604,7 +644,18 @@ module boundary_module
 
       end if
 
-      if(updateTheta) then
+      if (updateTracer) then
+        do k = 1, nbz
+          var(:, :, nz + k, iVart) = - var(:, :, k, iVart)
+          var(:, :, - k + 1, iVart) = - var(:, :, nz - k + 1, iVart)
+        end do
+
+        if (verbose .and. master) then
+          print *, "setBoundary_z_periodic: z-periodic BC for tracer set."
+        end if
+      end if
+
+      if (updateTheta) then
         ! density -> iVar = 6
 
         if(timeScheme == "semiimplicit") then
@@ -902,7 +953,14 @@ module boundary_module
         end do
       end if
 
-      if(updateTheta) then
+      if (updateTracer) then
+        do k = 1, nbz
+          var(:, :, - k + 1, iVart) = - var(:, :, k, iVart)
+          var(:, :, nz + k, iVart) = - var(:, :, nz - k + 1, iVart)
+        end do
+      end if
+
+      if (updateTheta) then
         ! reflect at boundary withOUT change of sign
         ! theta -> iVar = 6
 
@@ -1338,6 +1396,11 @@ module boundary_module
         ! density fluctuations
         flux(:, :, 0, 3, 6) = 0.0
         flux(:, :, nz, 3, 6) = 0.0
+      end if
+
+      if (updateTracer) then
+        flux(:, :, 0, 3, iVart) = 0.0
+        flux(:, :, nz, 3, iVart) = 0.0
       end if
 
       ! ice variables iVar=nVar-3,nVar
