@@ -6,7 +6,9 @@ module poisson_module
   use atmosphere_module
   use algebra_module
   use bicgstab_tools_module
+  use bicgstab_tools_module
   use output_module
+  use sizeof_module
   use sizeof_module
 
   implicit none
@@ -866,7 +868,7 @@ module poisson_module
 
             ! TFC FJ
             ! Set additional matrix elements for TFC.
-            if(topography) then
+            if (topography) then
               ! ----------------- A(i+1,j,k+1) -----------------
 
               if(k < nz .or. zBoundary == "periodic") then
@@ -2214,11 +2216,11 @@ module poisson_module
       end do
     end do
 
-    if(master) then
-      open(42, file = "linear_operator_test.dat", form = "unformatted", access &
-          = "direct", recl = sizeX * sizeY * sizeZ * sizeofreal4)
-      write(42, rec = 1) diffOut
-      close(42)
+    if (master) then
+      open (42, file = "linear_operator_test.dat", form = "unformatted", &
+          access = "direct", recl = sizeX * sizeY * sizeZ * sizeofreal4)
+      write (42, rec = 1) diffOut
+      close (42)
     end if
 
   end subroutine linearOperatorTestTFC
@@ -6796,7 +6798,7 @@ module poisson_module
 
               ! ------------------ define matrix A -------------------
 
-              if(poissonSolverType == 'bicgstab') then
+              if (poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 acv_b(i, j, k) = ACV
@@ -6946,7 +6948,7 @@ module poisson_module
 
               ! ------------------ define matrix A -------------------
 
-              if(poissonSolverType == 'bicgstab') then
+              if (poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 acv_b(i, j, k) = ACV
@@ -6978,7 +6980,26 @@ module poisson_module
                 !   values_e(index_count_hypre + 4) = AF
                 !   values_e(index_count_hypre + 5) = AD
                 !   values_e(index_count_hypre + 6) = AU
+                ! else if (poissonSolverType == 'hypre') then
+                !   ! index_count_hypre
+                !   ! = ( i * j * k * ne_hypre_e ) - ne_hypre_e + 1
+
+                !   index_count_hypre = i
+                !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
+                !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
+
+                !   index_count_hypre = (index_count_hypre * ne_hypre_e) &
+                !       - ne_hypre_e + 1
+
+                !   values_e(index_count_hypre) = AC
+                !   values_e(index_count_hypre + 1) = AL
+                !   values_e(index_count_hypre + 2) = AR
+                !   values_e(index_count_hypre + 3) = AB
+                !   values_e(index_count_hypre + 4) = AF
+                !   values_e(index_count_hypre + 5) = AD
+                !   values_e(index_count_hypre + 6) = AU
               else
+                stop 'ERROR: val_PsIn expects bicgstab'
                 stop 'ERROR: val_PsIn expects bicgstab'
               end if
             end do ! i_loop
@@ -7311,7 +7332,7 @@ module poisson_module
 
             ! ------------------- define matrix A -------------------
 
-            if(poissonSolverType == 'bicgstab') then
+            if (poissonSolverType == 'bicgstab') then
               ac_b(i, j, k) = AC
 
               ach_b(i, j, k) = ACH
@@ -7352,7 +7373,30 @@ module poisson_module
               !   values_i(index_count_hypre + 8) = ALF
               !   values_i(index_count_hypre + 9) = ARB
               !   values_i(index_count_hypre + 10) = ARF
+              ! else if (poissonSolverType == 'hypre') then
+              !   ! index_count_hypre
+              !   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
+
+              !   index_count_hypre = i
+              !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
+              !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
+
+              !   index_count_hypre = (index_count_hypre * ne_hypre_i) &
+              !       - ne_hypre_i + 1
+
+              !   values_i(index_count_hypre) = AC
+              !   values_i(index_count_hypre + 1) = AL
+              !   values_i(index_count_hypre + 2) = AR
+              !   values_i(index_count_hypre + 3) = AB
+              !   values_i(index_count_hypre + 4) = AF
+              !   values_i(index_count_hypre + 5) = AD
+              !   values_i(index_count_hypre + 6) = AU
+              !   values_i(index_count_hypre + 7) = ALB
+              !   values_i(index_count_hypre + 8) = ALF
+              !   values_i(index_count_hypre + 9) = ARB
+              !   values_i(index_count_hypre + 10) = ARF
             else
+              stop 'ERROR: val_PsIn expects bicgstab'
               stop 'ERROR: val_PsIn expects bicgstab'
             end if
           end do ! i_loop
@@ -7582,7 +7626,7 @@ module poisson_module
 
               ! ------------------ define matrix A -------------------
 
-              if(poissonSolverType == 'bicgstab') then
+              if (poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 ach_b(i, j, k) = ACH
@@ -8267,7 +8311,7 @@ module poisson_module
               AD = AD / (fcscal * fcscal_d)
               AU = AU / (fcscal * fcscal_u)
 
-              if(poissonSolverType == 'bicgstab') then
+              if (poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 ach_b(i, j, k) = ACH
@@ -9981,7 +10025,7 @@ module poisson_module
 
               ! ------------------- define matrix A -------------------
 
-              if(poissonSolverType == 'bicgstab') then
+              if (poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 ach_b(i, j, k) = ACH
@@ -10045,7 +10089,15 @@ module poisson_module
   !==============================================================
 
   ! subroutine val_hypre_Bous
+  ! subroutine val_hypre_Bous
 
+  !   ! local variables
+  !   integer :: i, j, k
+  !   real :: pStratU, pStratD, rhoEdge
+  !   !UAC real :: AL,AR, AB,AF, AD,AU, AC
+  !   real :: AL, AR, AB, AF, AD, AU, AC, ACH, ACV
+  !   real :: dx2, dy2, dz2
+  !   integer :: index_count_hypre
   !   ! local variables
   !   integer :: i, j, k
   !   real :: pStratU, pStratD, rhoEdge
@@ -10061,7 +10113,18 @@ module poisson_module
   !         pseudo-incompressible case accordingly)'
   !     stop
   !   end if
+  !   if (topography) then
+  !     print *, 'ERROR: no topography allowed in Boussinesq mode'
+  !     print *, '(would require semi-implicit time stepping)'
+  !     print *, '(could be implemented easily by simplifying the  &
+  !         pseudo-incompressible case accordingly)'
+  !     stop
+  !   end if
 
+  !   ! auxiliary variables
+  !   dx2 = 1.0 / dx ** 2
+  !   dy2 = 1.0 / dy ** 2
+  !   dz2 = 1.0 / dz ** 2
   !   ! auxiliary variables
   !   dx2 = 1.0 / dx ** 2
   !   dy2 = 1.0 / dy ** 2
@@ -10070,11 +10133,18 @@ module poisson_module
   !   !---------------------------------
   !   !         Loop over field
   !   !---------------------------------
+  !   !---------------------------------
+  !   !         Loop over field
+  !   !---------------------------------
 
   !   do k = 1, nz
   !     do j = 1, ny
   !       do i = 1, nx
+  !   do k = 1, nz
+  !     do j = 1, ny
+  !       do i = 1, nx
 
+  !         ! stencil without topography
   !         ! stencil without topography
 
   !         ! ------------------ A(i+1,j,k) ------------------
