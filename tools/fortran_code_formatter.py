@@ -21,6 +21,7 @@ if len(sys.argv) >= 3:
 else:
     output_directory = "."
 
+    
 # Create output directory if not existing.
 if not os.path.exists(output_directory):
     os.makedirs(output_directory)

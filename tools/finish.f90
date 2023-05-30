@@ -17,7 +17,7 @@ module finish_module
     !-------------------
 
     ! in/out variables
-    real, dimension(:, :, :, :), allocatable :: var, var0, var1, force, &
+    real, dimension (:, :, :, :), allocatable :: var, var0, var1, force, &
         source, dMom, dIce
     real, dimension (:, :, :, :, :), allocatable :: flux
     real, dimension (:, :, :), allocatable :: dRho, dRhop, dTheta, dTracer
@@ -27,50 +27,50 @@ module finish_module
 
     !--------------- deallcoate grid -----------------------
 
-    deallocate(x, stat = allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate x"
+    deallocate (x, stat = allocstat)
+    if (allocstat /= 0) stop "finish.f90: could not deallocate x"
 
-    deallocate(y, stat = allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate y"
+    deallocate (y, stat = allocstat)
+    if (allocstat /= 0) stop "finish.f90: could not deallocate y"
 
-    deallocate(z, stat = allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate z"
+    deallocate (z, stat = allocstat)
+    if (allocstat /= 0) stop "finish.f90: could not deallocate z"
 
     !---------------- deallocate variables -----------------------
 
-    deallocate(var, stat = allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate var"
+    deallocate (var, stat = allocstat)
+    if (allocstat /= 0) stop "finish.f90: could not deallocate var"
 
     deallocate (var0, stat = allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate var0"
+    if (allocstat /= 0) stop "finish.f90: could not deallocate var0"
 
     deallocate (flux, stat = allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate flux"
+    if (allocstat /= 0) stop "finish.f90: could not deallocate flux"
 
     deallocate (force, stat = allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate force"
+    if (allocstat /= 0) stop "finish.f90: could not deallocate force"
 
     deallocate (source, stat = allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate source"
+    if (allocstat /= 0) stop "finish.f90: could not deallocate source"
 
     deallocate (dRho, stat = allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate dRho"
+    if (allocstat /= 0) stop "finish.f90: could not deallocate dRho"
 
     deallocate (var1, stat = allocstat)
     if (allocstat /= 0) stop "finish.f90: could not deallocate var1"
 
     deallocate (dRhop, stat = allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate dRhop"
+    if (allocstat /= 0) stop "finish.f90: could not deallocate dRhop"
 
     deallocate (dTheta, stat = allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate dTheta"
+    if (allocstat /= 0) stop "finish.f90: could not deallocate dTheta"
 
     deallocate (dMom, stat = allocstat)
     if (allocstat /= 0) stop "finish.f90: could not deallocate dMom"
 
     if (include_ice) then
-      deallocate(dIce, stat = allocstat)
-      if(allocstat /= 0) stop "finish.f90: could not deallocate dIce"
+      deallocate (dIce, stat = allocstat)
+      if (allocstat /= 0) stop "finish.f90: could not deallocate dIce"
     end if
 
     if (include_tracer) then
