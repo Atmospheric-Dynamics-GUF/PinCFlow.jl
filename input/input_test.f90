@@ -228,7 +228,7 @@
 
 &topographyList
 
-  topography = .true.      ! switch for bottom topography
+  topography = .false.      ! switch for bottom topography
   testTFC = .false.          ! switch for TFC test
   spongeTFC = .true.       ! switch for unified sponge layer
   lateralSponge = .false.   ! switch for lateral sponge layers
@@ -285,10 +285,10 @@
 
 &outputList
 
-  outputType = "time"     ! timeStep / time
+  outputType = "timeStep"     ! timeStep / time
   nOutput = 1                 ! output every nOutput's time step
                               ! for outputType = "timeStep"
-  maxIter = 10000                 ! stop after maxIter time steps
+  maxIter = 0!10000                 ! stop after maxIter time steps
   outputTimeDiff = 1.2e2      ! output every ... seconds
   maxTime = 86.4e3            ! stop after maxTime seconds
   dataFileName = ""           ! empty string "" -> dataFileName = testCase
@@ -396,7 +396,7 @@
 ! general
 &testCaseList
 
-  testCase = 'mountainwave' ! Boussinesq: uniform_theta, wavePacket
+  testCase = 'wavePacket' ! Boussinesq: uniform_theta, wavePacket
                             ! agnesiMountain -> see topography
                             ! baroclinic_LC -> baroclinic life cycle with y-dep
                             ! tropopause
