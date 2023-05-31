@@ -132,7 +132,7 @@ contains
           end do
        end do
 
-       dz_tr = 1.0 !/ (lz(1) - lz(0))
+       dz_tr = 1.0 *lRef!/ (lz(1) - lz(0))
 
        print*, "dz_tr = ", dz_tr
        
