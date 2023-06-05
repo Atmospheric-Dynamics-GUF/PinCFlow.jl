@@ -1,12 +1,12 @@
 #!/bin/bash
-#SBATCH --partition=test
+#SBATCH --partition=general2
 #SBATCH --job-name=wavePacket3D-tracer
 #SBATCH --ntasks=128
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2600
 #SBATCH --mail-type=ALL
 #SBATCH --mail-use=s9467794@stud.uni-frankfurt.de
-#SBATCH --time=00:10:00
+#SBATCH --time=01:00:00
 
 set -x
 
@@ -29,7 +29,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/wavePacket3D-tracer
+dirWork=${dirScratch}/output/wavePacket3D-tracer-spongelayer
 
 mkdir ${dirWork}
 
