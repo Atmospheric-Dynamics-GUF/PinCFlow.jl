@@ -239,7 +239,7 @@
   nbCellCorr = 1
 
   ! sponge layer at upper boundary
-  spongeLayer = .false.     ! sponge with relaxation to background
+  spongeLayer = .true.     ! sponge with relaxation to background
   spongeHeight = 0.33      ! relative height of sponge layer
   spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
 &end
@@ -269,7 +269,7 @@
 
   maxIter = 10             ! stop after maxIter time steps
 
-  outputTimeDiff = 1.08e4  ! output every ... seconds
+  outputTimeDiff = 1800.0  ! output every ... seconds
   maxTime        = 1.08e4  ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
@@ -428,7 +428,7 @@
 
   sigma_hor_dim = 1.5e6   ! cosine distribution width
                           ! (in x direction, 0 means infinity)
-  sigma_hor_yyy_dim = 1.5e6  ! cosine distribution width
+  sigma_hor_yyy_dim = 0.0  ! cosine distribution width
                           ! (in y direction, 0 means infinity)
 
   amp_mod_x = 1.0         ! fractional amplitude of amplitude modulation
