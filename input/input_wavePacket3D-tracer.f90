@@ -241,7 +241,7 @@
   ! sponge layer at upper boundary
   spongeLayer = .true.     ! sponge with relaxation to background
   spongeHeight = 0.33      ! relative height of sponge layer
-  spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
+  spongeAlphaZ_dim = 2.e-3!2.e-4 ! relaxation rate coeff in 1/s
 &end
 
 &boundaryList2
