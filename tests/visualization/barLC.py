@@ -4,9 +4,12 @@ import matplotlib.pyplot as pyplot
 import tools
 import style
 
+data_path = "/scratch/atmodynamics/dolaptchiev/PF/pinc/tests"
+ref_path = "/scratch/atmodynamics/dolaptchiev/PF/pinc/tests"
+
 # Import data.
-data = tools.ModelOutput("../barLC/")
-reference = tools.ModelOutput("../barLC/")
+data = tools.ModelOutput(data_path+"/barLC/")
+reference = tools.ModelOutput(ref_path+"/barLC/")
 
 # Adust coordinate unit.
 data.xx *= 0.001
@@ -64,6 +67,8 @@ for set in (reference, data):
 data.xx = data.xx[iz, int(0.5 * data.ny):data.ny]
 data.yy = data.yy[iz, int(0.5 * data.ny):data.ny]
 
+print('Exit before plotting')
+
 # Make plot.
 peak = numpy.max(numpy.abs(ugravity))
 rhopmax = numpy.max(numpy.abs(rhop))
@@ -74,12 +79,16 @@ axes.quiver(data.xx[::3, ::3], data.yy[::3, ::3], uu[::3, ::3],
         vv[::3, ::3], width = 0.01, scale = 500)
 axes.contour(data.xx, data.yy, rhop,
         linewidths = 1.0, colors = "black")
-axes.set_xlabel(r"$x \, \left[\mathrm{km}\right]$")
-axes.set_ylabel(r"$y \, \left[\mathrm{km}\right]$")
-figure.colorbar(plot, label = r"$\boldsymbol{\nabla}_z \cdot"
-        r"\boldsymbol{u} \, \left[\mathrm{s^{- 1}}\right]$")
-figure.savefig("../results/barLC.pdf")
+print('Do plotting')
+
+#*axes.set_xlabel(r"$x \, \left[\mathrm{km}\right]$")
+#*axes.set_ylabel(r"$y \, \left[\mathrm{km}\right]$")
+#*figure.colorbar(plot, label = r"$\boldsymbol{\nabla}_z \cdot"
+#*        r"\boldsymbol{u} \, \left[\mathrm{s^{- 1}}\right]$")
 figure.savefig("../results/barLC.png", dpi = 500)
+figure.savefig("../results/barLC.pdf")
+
+print('Plotting finished')
 
 # Make difference plot.
 if (data.psi != reference.psi).all():
@@ -92,9 +101,9 @@ if (data.psi != reference.psi).all():
             deltav[::3, ::3], width = 0.01, scale = 500)
     axes.contour(data.xx, data.yy, deltarhop,
             linewidths = 1.0, colors = "black")
-    axes.set_xlabel(r"$x \, \left[\mathrm{km}\right]$")
-    axes.set_ylabel(r"$y \, \left[\mathrm{km}\right]$")
-    figure.colorbar(plot, label = r"$\Delta \boldsymbol{\nabla}_z \cdot"
-            r"\boldsymbol{u} \, \left[\mathrm{s^{- 1}}\right]$")
-    figure.savefig("../results/barLC_difference.pdf")
-    figure.savefig("../results/barLC_difference.png", dpi = 500)
+#*    axes.set_xlabel(r"$x \, \left[\mathrm{km}\right]$")
+#*    axes.set_ylabel(r"$y \, \left[\mathrm{km}\right]$")
+#*    figure.colorbar(plot, label = r"$\Delta \boldsymbol{\nabla}_z \cdot"
+#*            r"\boldsymbol{u} \, \left[\mathrm{s^{- 1}}\right]$")
+#*    figure.savefig("../results/barLC_difference.pdf")
+#*    figure.savefig("../results/barLC_difference.png", dpi = 500)
