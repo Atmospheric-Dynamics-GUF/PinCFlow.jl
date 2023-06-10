@@ -589,7 +589,7 @@ module atmosphere_module
             topography_surface(i, j) = mountainHeight / (1.0 + ((x(i + i00) &
                 - x_center) ** 2.0 + (y(j + j00) - y_center) ** 2.0) &
                 / (mountainWidth ** 2.0)) ** 1.5
-          else if(mountain_case == 5) then ! simple mountain range
+          else if (mountain_case == 5) then
             topography_surface(i, j) = mountainHeight * exp(- ((x(i + i00) &
                 - x_center) / mountainWidth) ** 2.0) * cos(5.0 * k_mountain &
                 * (x(i + i00) - x_center) / 4.0) ** 2.0
@@ -1775,7 +1775,7 @@ module atmosphere_module
         ! TFC FJ
         ! Define 3D background fields.
         ! This implementation does not work yet.
-        if(topography) then
+        if (topography) then
           do i = - nbx, nx + nbx
             do j = - nby, ny + nby
               ! Define Exner pressure and 3D background fields at
