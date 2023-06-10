@@ -7,6 +7,7 @@ module flux_module
   use algebra_module
   use ice_module
   use sizeof_module
+  use sizeof_module
 
   implicit none
 
@@ -27,6 +28,7 @@ module flux_module
   public :: massSource
   public :: momentumSource
   public :: iceSource
+  public :: tracerFlux
 
   ! TFC FJ
   public :: setHalosOfField
@@ -37,15 +39,16 @@ module flux_module
   private :: slopeFunction
 
   ! internal module variables
-  real, dimension(:, :, :), allocatable :: rhoBar, rhopBar, rhoOld, rhopOld
-  real, dimension(:, :, :), allocatable :: uBar
-  real, dimension(:, :, :), allocatable :: vBar
-  real, dimension(:, :, :), allocatable :: wBar
-  real, dimension(:, :, :), allocatable :: thetaBar
-  real, dimension(:, :, :), allocatable :: nAerBar
-  real, dimension(:, :, :), allocatable :: nIceBar
-  real, dimension(:, :, :), allocatable :: qIceBar
-  real, dimension(:, :, :), allocatable :: qvBar
+  real, dimension (:, :, :), allocatable :: rhoBar, rhopBar, rhoOld, rhopOld
+  real, dimension (:, :, :), allocatable :: uBar
+  real, dimension (:, :, :), allocatable :: vBar
+  real, dimension (:, :, :), allocatable :: wBar
+  real, dimension (:, :, :), allocatable :: thetaBar
+  real, dimension (:, :, :), allocatable :: nAerBar
+  real, dimension (:, :, :), allocatable :: nIceBar
+  real, dimension (:, :, :), allocatable :: qIceBar
+  real, dimension (:, :, :), allocatable :: qvBar
+  real, dimension (:, :, :), allocatable :: tracerBar
 
   ! TFC FJ
   ! Needed for semi-implicit time scheme in TFC.
@@ -54,17 +57,18 @@ module flux_module
   ! if reconstType = MUSCL then uTilde, vTilde, and wTilde are the
   ! reconstructed specific momenta
 
-  real, dimension(:, :, :, :, :), allocatable :: rhoTilde
-  real, dimension(:, :, :, :, :), allocatable :: rhoTilde_mom !UA
-  real, dimension(:, :, :, :, :), allocatable :: rhopTilde
-  real, dimension(:, :, :, :, :), allocatable :: uTilde
-  real, dimension(:, :, :, :, :), allocatable :: vTilde
-  real, dimension(:, :, :, :, :), allocatable :: wTilde
-  real, dimension(:, :, :, :, :), allocatable :: thetaTilde
-  real, dimension(:, :, :, :, :), allocatable :: nAerTilde
-  real, dimension(:, :, :, :, :), allocatable :: nIceTilde
-  real, dimension(:, :, :, :, :), allocatable :: qIceTilde
-  real, dimension(:, :, :, :, :), allocatable :: qvTilde
+  real, dimension (:, :, :, :, :), allocatable :: rhoTilde
+  real, dimension (:, :, :, :, :), allocatable :: rhoTilde_mom !UA
+  real, dimension (:, :, :, :, :), allocatable :: rhopTilde
+  real, dimension (:, :, :, :, :), allocatable :: uTilde
+  real, dimension (:, :, :, :, :), allocatable :: vTilde
+  real, dimension (:, :, :, :, :), allocatable :: wTilde
+  real, dimension (:, :, :, :, :), allocatable :: thetaTilde
+  real, dimension (:, :, :, :, :), allocatable :: nAerTilde
+  real, dimension (:, :, :, :, :), allocatable :: nIceTilde
+  real, dimension (:, :, :, :, :), allocatable :: qIceTilde
+  real, dimension (:, :, :, :, :), allocatable :: qvTilde
+  real, dimension (:, :, :, :, :), allocatable :: tracerTilde
 
   ! public variables
   ! needed for
@@ -75,7 +79,8 @@ module flux_module
   public :: uTilde, vTilde, wTilde
   public :: rhoOld, rhopOld
   public :: nIceTilde, qIceTilde, qvTilde, nAerTilde
-
+  public :: tracerTilde
+ 
   ! TFC FJ
   ! Needed for semi-implicit time scheme in TFC.
   public :: uOldTFC, vOldTFC, wOldTFC
@@ -136,76 +141,76 @@ module flux_module
 
     select case(reconstType)
 
-      !----------------------------
-      !   Constant reconstruction
-      !----------------------------
+       !----------------------------
+       !   Constant reconstruction
+       !----------------------------
 
     case('constant2')
 
-      stop 'constant2 reconstruction disabled'
+       stop 'constant2 reconstruction disabled'
 
-      !       select case( variable )
-      !
-      !       case( "rho" )
-      !
-      !          do dir = 1,3
-      !             do lr = 0,1
-      !                rhoTilde(:,:,:,dir,lr) = var(:,:,:,1)
-      !             end do
-      !          end do
-      !
-      !       case( "rhop" )
-      !
-      !          do dir = 1,3
-      !             do lr = 0,1
-      !                rhopTilde(:,:,:,dir,lr) = var(:,:,:,6)
-      !             end do
-      !          end do
-      !
-      !       case( "uvw" )
-      !
-      !          do dir = 1,3
-      !             do lr = 0,1
-      !                uTilde(:,:,:,dir,lr) = var(:,:,:,2)
-      !                vTilde(:,:,:,dir,lr) = var(:,:,:,3)
-      !                wTilde(:,:,:,dir,lr) = var(:,:,:,4)
-      !             end do
-      !          end do
-      !
-      !
-      !       case( "theta" )
-      !
-      !          do dir = 1,3
-      !             do lr = 0,1
-      !                thetaTilde(:,:,:,dir,lr) = var(:,:,:,6)
-      !             end do
-      !          end do
-      !
-      !       case default
-      !          stop "reconstruction: unknown case model."
-      !       end select
+       !       select case( variable )
+       !
+       !       case( "rho" )
+       !
+       !          do dir = 1,3
+       !             do lr = 0,1
+       !                rhoTilde(:,:,:,dir,lr) = var(:,:,:,1)
+       !             end do
+       !          end do
+       !
+       !       case( "rhop" )
+       !
+       !          do dir = 1,3
+       !             do lr = 0,1
+       !                rhopTilde(:,:,:,dir,lr) = var(:,:,:,6)
+       !             end do
+       !          end do
+       !
+       !       case( "uvw" )
+       !
+       !          do dir = 1,3
+       !             do lr = 0,1
+       !                uTilde(:,:,:,dir,lr) = var(:,:,:,2)
+       !                vTilde(:,:,:,dir,lr) = var(:,:,:,3)
+       !                wTilde(:,:,:,dir,lr) = var(:,:,:,4)
+       !             end do
+       !          end do
+       !
+       !
+       !       case( "theta" )
+       !
+       !          do dir = 1,3
+       !             do lr = 0,1
+       !                thetaTilde(:,:,:,dir,lr) = var(:,:,:,6)
+       !             end do
+       !          end do
+       !
+       !       case default
+       !          stop "reconstruction: unknown case model."
+       !       end select
 
-      !-----------------------
-      !   MUSCL reconstrcution
-      !-----------------------
+       !-----------------------
+       !   MUSCL reconstrcution
+       !-----------------------
 
-      ! GBcorr: unified 2 reconstruction options for MUSCL
-      ! muscl1: cheap but less accurate (???)
-      ! muscl2: accurate (???) but expensive
+       ! GBcorr: unified 2 reconstruction options for MUSCL
+       ! muscl1: cheap but less accurate (???)
+       ! muscl2: accurate (???) but expensive
 
     case('MUSCL')
 
-      select case(musclType)
+       select case (musclType)
 
-        ! muscl1: cheap but less accurate (???)
-      case("muscl1")
+          ! muscl1: cheap but less accurate (???)
+       case ("muscl1")
 
-        select case(variable)
+          select case (variable)
 
-        case("rho")
+          case ("rho")
 
-          !rhoBar(:,:,:) = var(:,:,:,1)
-          !call reconstruct_MUSCL(rhoBar,rhoTilde,nxx,nyy,nzz,limiterType1)
+             !rhoBar(:,:,:) = var(:,:,:,1)
+             !call reconstruct_MUSCL(rhoBar,rhoTilde,nxx,nyy,nzz,limiterType1)
 
           ! GBcorr: to be consistent with current rouine: momentumFlux
           rhoBar = 0.0
@@ -235,11 +240,11 @@ module flux_module
           end if
           call reconstruct_MUSCL(rhoBar, rhoTilde, nxx, nyy, nzz, limiterType1)
 
-        case("rhop")
+          case ("rhop")
 
-          !rhopBar(:,:,:) = var(:,:,:,6)
-          !call reconstruct_MUSCL(rhopBar,rhopTilde,nxx,nyy,nzz,&
-          !                     & limiterType1)
+             !rhopBar(:,:,:) = var(:,:,:,6)
+             !call reconstruct_MUSCL(rhopBar,rhopTilde,nxx,nyy,nzz,&
+             !                     & limiterType1)
 
           ! GBcorr: to be consistent with current rouine: momentumFlux
           rhopBar = 0.0
@@ -270,7 +275,7 @@ module flux_module
           call reconstruct_MUSCL(rhopBar, rhopTilde, nxx, nyy, nzz, &
               limiterType1)
 
-        case("uvw")
+          case ("uvw")
 
           ! calculate specific momenta to be reconstructed
           if(fluctuationMode) then
@@ -399,133 +404,161 @@ module flux_module
             end do
           end if
 
-          ! reconstruct spcific momenta
-          call reconstruct_MUSCL(uBar, uTilde, nxx, nyy, nzz, limiterType1)
-          call reconstruct_MUSCL(vBar, vTilde, nxx, nyy, nzz, limiterType1)
-          call reconstruct_MUSCL(wBar, wTilde, nxx, nyy, nzz, limiterType1)
+             ! reconstruct spcific momenta
+             call reconstruct_MUSCL(uBar, uTilde, nxx, nyy, nzz, limiterType1)
+             call reconstruct_MUSCL(vBar, vTilde, nxx, nyy, nzz, limiterType1)
+             call reconstruct_MUSCL(wBar, wTilde, nxx, nyy, nzz, limiterType1)
 
-        case("theta")
+          case ("theta")
 
-          thetaBar(:, :, :) = var(:, :, :, 6)
-          call reconstruct_MUSCL(thetaBar, thetaTilde, nxx, nyy, nzz, &
-              limiterType1)
+             thetaBar(:, :, :) = var(:, :, :, 6)
+             call reconstruct_MUSCL(thetaBar, thetaTilde, nxx, nyy, nzz, &
+                  limiterType1)
 
-        case("ice")
+          case ("ice")
 
-          if(include_ice) then
+             if (include_ice) then
 
-            nAerBar(:, :, :) = var(:, :, :, nVar - 3)
-            nIceBar(:, :, :) = var(:, :, :, nVar - 2)
-            qIceBar(:, :, :) = var(:, :, :, nVar - 1)
-            qvBar(:, :, :) = var(:, :, :, nVar)
+                nAerBar(:, :, :) = var(:, :, :, nVar - 3)
+                nIceBar(:, :, :) = var(:, :, :, nVar - 2)
+                qIceBar(:, :, :) = var(:, :, :, nVar - 1)
+                qvBar(:, :, :) = var(:, :, :, nVar)
 
-            call reconstruct_MUSCL(nIceBar, nIceTilde, nxx, nyy, nzz, &
-                limiterType1)
-            call reconstruct_MUSCL(qIceBar, qIceTilde, nxx, nyy, nzz, &
-                limiterType1)
-            call reconstruct_MUSCL(qvBar, qvTilde, nxx, nyy, nzz, limiterType1)
+                call reconstruct_MUSCL(nIceBar, nIceTilde, nxx, nyy, nzz, &
+                     limiterType1)
+                call reconstruct_MUSCL(qIceBar, qIceTilde, nxx, nyy, nzz, &
+                     limiterType1)
+                call reconstruct_MUSCL(qvBar, qvTilde, nxx, nyy, nzz, limiterType1)
 
-          end if
+             end if
 
-        case default
-          stop "reconstruction: unknown case variable."
-        end select
+          case ("tracer")
 
-        ! muscl2: accurate (???) but expensive
-      case("muscl2")
+             tracerBar = 0.0
+             if (topography) then
+                do ix = - nbx, nx + nbx
+                   do jy = - nby, ny + nby
+                      do kz = 0, nz + 1
+                         if (pStratTFC(ix, jy, kz) == 0.0) then
+                            print *, "ERROR in rec. rho: pStratTFC = 0 at k =", kz
+                            stop
+                         end if
+                         tracerBar(ix, jy, kz) = var(ix, jy, kz, iVart)/pStratTFC(ix, jy, kz)
+                      end do
+                   end do
+                end do
+             else
+                do kz = 0, nz + 1
+                   if (Pstrat(kz) == 0.0) then
+                      print*, "Error in rec. rho: Pstrat(kz) = 0 at k = ", kz
+                      stop
+                   end if
 
-        select case(variable)
+                   tracerBar(:, :, kz) = var(:, :, kz, iVart)/Pstrat(kz)
+                end do
+             end if
+                
+             call reconstruct_MUSCL(tracerBar,tracerTilde,nxx,nyy,nzz,limiterType1)
 
-        case("rho")
+          case default
+             stop "reconstruction: unknown case variable."
+          end select
 
-          !UAB
-          rhoBar = 0.0
-          do kz = 0, nz + 1
-            if(Pstrat(kz) == 0.0) then
-              print *, 'ERROR in rec. rho: Pstrat(kz) = 0 at kz =', kz
-              stop
-            end if
-            rhoBar(:, :, kz) = (var(:, :, kz, 1)) / Pstrat(kz)
-          end do
-          call reconstruct_MUSCL(rhoBar, rhoTilde, nxx, nyy, nzz, limiterType1)
-          !UAE
+          ! muscl2: accurate (???) but expensive
+       case ("muscl2")
 
-        case("rhop")
+          select case (variable)
 
-          !UAB
-          rhopBar = 0.0
-          do kz = 0, nz + 1
-            if(Pstrat(kz) == 0.0) then
-              print *, 'ERROR in rec. rhop: Pstrat(kz) = 0 at kz =', kz
-              stop
-            end if
-            rhopBar(:, :, kz) = var(:, :, kz, 6) / Pstrat(kz)
-          end do
-          call reconstruct_MUSCL(rhopBar, rhopTilde, nxx, nyy, nzz, &
-              limiterType1)
-          !UAE
+          case ("rho")
 
-        case("uvw")
+             !UAB
+             rhoBar = 0.0
+             do kz = 0, nz + 1
+                if (Pstrat(kz) == 0.0) then
+                   print *, 'ERROR in rec. rho: Pstrat(kz) = 0 at kz =', kz
+                   stop
+                end if
+                rhoBar(:, :, kz) = (var(:, :, kz, 1)) / Pstrat(kz)
+             end do
+             call reconstruct_MUSCL(rhoBar, rhoTilde, nxx, nyy, nzz, limiterType1)
+             !UAE
 
-          !UAB
-          ! reconstruct specific momenta \rho \vec{v}/P
-          ! for this \rho/P and \vec v are reconstructed each and then the
-          ! product of the two is taken
+          case ("rhop")
 
-          ! reconstruct momentum in x direction
+             !UAB
+             rhopBar = 0.0
+             do kz = 0, nz + 1
+                if (Pstrat(kz) == 0.0) then
+                   print *, 'ERROR in rec. rhop: Pstrat(kz) = 0 at kz =', kz
+                   stop
+                end if
+                rhopBar(:, :, kz) = var(:, :, kz, 6) / Pstrat(kz)
+             end do
+             call reconstruct_MUSCL(rhopBar, rhopTilde, nxx, nyy, nzz, &
+                  limiterType1)
+             !UAE
 
-          rhoBar = 0.0
+          case ("uvw")
 
-          if(fluctuationMode) then
-            do kz = 0, nz + 1
-              if(Pstrat(kz) == 0.0) then
-                print *, 'ERROR in rec. u: Pstrat(kz) = 0 at kz =', kz
-                stop
-              end if
-              do ix = - nbx, nx + nbx - 1
-                rhoBar(ix, :, kz) = (0.5 * (var(ix, :, kz, 1) + var(ix + 1, :, &
-                    kz, 1)) + rhoStrat(kz)) / Pstrat(kz)
-                !FS:
-                ! = 0.5*&
-                !   ((var(ix,:,kz,1)+rhoStrat(kz))/Pstrat(kz) + &
-                !   (var(ix+1,:,kz,1)+rhoStrat(kz))/Pstrat(kz))
-              end do
-            end do
-          else
-            do kz = 0, nz + 1
-              if(Pstrat(kz) == 0.0) then
-                print *, 'ERROR in rec. u: Pstrat(kz) = 0 at kz =', kz
-                stop
-              end if
-              do ix = - nbx, nx + nbx - 1
-                rhoBar(ix, :, kz) = 0.5 * (var(ix, :, kz, 1) + var(ix + 1, :, &
-                    kz, 1)) / Pstrat(kz)
-                !FS:
-                != 0.5*&
-                !  ((var(ix,:,kz,1))/Pstrat(kz) + &
-                !  (var(ix+1,:,kz,1))/Pstrat(kz))
-              end do
-            end do
-          end if
+             !UAB
+             ! reconstruct specific momenta \rho \vec{v}/P
+             ! for this \rho/P and \vec v are reconstructed each and then the
+             ! product of the two is taken
 
-          call reconstruct_MUSCL(rhoBar, rhoTilde_mom, nxx, nyy, nzz, &
-              limiterType1)
+             ! reconstruct momentum in x direction
 
-          uBar = 0.0
+             rhoBar = 0.0
 
-          do kz = 0, nz + 1
-            do ix = - nbx, nx + nbx - 1
-              uBar(ix, :, kz) = var(ix, :, kz, 2)
-            end do
-          end do
+             if (fluctuationMode) then
+                do kz = 0, nz + 1
+                   if (Pstrat(kz) == 0.0) then
+                      print *, 'ERROR in rec. u: Pstrat(kz) = 0 at kz =', kz
+                      stop
+                   end if
+                   do ix = - nbx, nx + nbx - 1
+                      rhoBar(ix, :, kz) = (0.5 * (var(ix, :, kz, 1) + var(ix + 1, :, &
+                           kz, 1)) + rhoStrat(kz)) / Pstrat(kz)
+                      !FS:
+                      ! = 0.5*&
+                      !   ((var(ix,:,kz,1)+rhoStrat(kz))/Pstrat(kz) + &
+                      !   (var(ix+1,:,kz,1)+rhoStrat(kz))/Pstrat(kz))
+                   end do
+                end do
+             else
+                do kz = 0, nz + 1
+                   if (Pstrat(kz) == 0.0) then
+                      print *, 'ERROR in rec. u: Pstrat(kz) = 0 at kz =', kz
+                      stop
+                   end if
+                   do ix = - nbx, nx + nbx - 1
+                      rhoBar(ix, :, kz) = 0.5 * (var(ix, :, kz, 1) + var(ix + 1, :, &
+                           kz, 1)) / Pstrat(kz)
+                      !FS:
+                      != 0.5*&
+                      !  ((var(ix,:,kz,1))/Pstrat(kz) + &
+                      !  (var(ix+1,:,kz,1))/Pstrat(kz))
+                   end do
+                end do
+             end if
 
-          call reconstruct_MUSCL(uBar, uTilde, nxx, nyy, nzz, limiterType1)
+             call reconstruct_MUSCL(rhoBar, rhoTilde_mom, nxx, nyy, nzz, &
+                  limiterType1)
 
-          uTilde = uTilde * rhoTilde_mom
+             uBar = 0.0
 
-          ! reconstruct momentum in y direction
+             do kz = 0, nz + 1
+                do ix = - nbx, nx + nbx - 1
+                   uBar(ix, :, kz) = var(ix, :, kz, 2)
+                end do
+             end do
 
-          rhoBar = 0.0
+             call reconstruct_MUSCL(uBar, uTilde, nxx, nyy, nzz, limiterType1)
+
+             uTilde = uTilde * rhoTilde_mom
+
+             ! reconstruct momentum in y direction
+
+             rhoBar = 0.0
 
           if(fluctuationMode) then
             do kz = 0, nz + 1
@@ -559,24 +592,24 @@ module flux_module
             end do
           end if
 
-          call reconstruct_MUSCL(rhoBar, rhoTilde_mom, nxx, nyy, nzz, &
-              limiterType1)
+             call reconstruct_MUSCL(rhoBar, rhoTilde_mom, nxx, nyy, nzz, &
+                  limiterType1)
 
-          vBar = 0.0
+             vBar = 0.0
 
-          do kz = 0, nz + 1
-            do jy = - nby, ny + nby - 1
-              vBar(:, jy, kz) = var(:, jy, kz, 3)
-            end do
-          end do
+             do kz = 0, nz + 1
+                do jy = - nby, ny + nby - 1
+                   vBar(:, jy, kz) = var(:, jy, kz, 3)
+                end do
+             end do
 
-          call reconstruct_MUSCL(vBar, vTilde, nxx, nyy, nzz, limiterType1)
+             call reconstruct_MUSCL(vBar, vTilde, nxx, nyy, nzz, limiterType1)
 
-          vTilde = vTilde * rhoTilde_mom
+             vTilde = vTilde * rhoTilde_mom
 
-          ! reconstruct momentum in z direction
+             ! reconstruct momentum in z direction
 
-          rhoBar = 0.0
+             rhoBar = 0.0
 
           if(fluctuationMode) then
             do kz = 0, nz + 1
@@ -606,50 +639,53 @@ module flux_module
             end do
           end if
 
-          call reconstruct_MUSCL(rhoBar, rhoTilde_mom, nxx, nyy, nzz, &
-              limiterType1)
+             call reconstruct_MUSCL(rhoBar, rhoTilde_mom, nxx, nyy, nzz, &
+                  limiterType1)
 
-          wBar = 0.0
+             wBar = 0.0
 
-          do kz = 0, nz + 1
-            wBar(:, :, kz) = var(:, :, kz, 4)
-          end do
+             do kz = 0, nz + 1
+                wBar(:, :, kz) = var(:, :, kz, 4)
+             end do
 
-          call reconstruct_MUSCL(wBar, wTilde, nxx, nyy, nzz, limiterType1)
+             call reconstruct_MUSCL(wBar, wTilde, nxx, nyy, nzz, limiterType1)
 
-          wTilde = wTilde * rhoTilde_mom
-          !UAE
+             wTilde = wTilde * rhoTilde_mom
+             !UAE
 
-        case("theta")
+          case ("theta")
 
-          thetaBar(:, :, :) = var(:, :, :, 6)
-          call reconstruct_MUSCL(thetaBar, thetaTilde, nxx, nyy, nzz, &
-              limiterType1)
+             thetaBar(:, :, :) = var(:, :, :, 6)
+             call reconstruct_MUSCL(thetaBar, thetaTilde, nxx, nyy, nzz, &
+                  limiterType1)
 
-        case("ice")
+          case ("ice")
 
-          if(include_ice) then
+             if (include_ice) then
 
-            nAerBar(:, :, :) = var(:, :, :, nVar - 3)
-            nIceBar(:, :, :) = var(:, :, :, nVar - 2)
-            qIceBar(:, :, :) = var(:, :, :, nVar - 1)
-            qvBar(:, :, :) = var(:, :, :, nVar)
+                nAerBar(:, :, :) = var(:, :, :, nVar - 3)
+                nIceBar(:, :, :) = var(:, :, :, nVar - 2)
+                qIceBar(:, :, :) = var(:, :, :, nVar - 1)
+                qvBar(:, :, :) = var(:, :, :, nVar)
 
-            call reconstruct_MUSCL(nIceBar, nIceTilde, nxx, nyy, nzz, &
-                limiterType1)
-            call reconstruct_MUSCL(qIceBar, qIceTilde, nxx, nyy, nzz, &
-                limiterType1)
-            call reconstruct_MUSCL(qvBar, qvTilde, nxx, nyy, nzz, limiterType1)
+                call reconstruct_MUSCL(nIceBar, nIceTilde, nxx, nyy, nzz, &
+                     limiterType1)
+                call reconstruct_MUSCL(qIceBar, qIceTilde, nxx, nyy, nzz, &
+                     limiterType1)
+                call reconstruct_MUSCL(qvBar, qvTilde, nxx, nyy, nzz, limiterType1)
 
-          end if
+             end if
 
-        case default
-          stop "reconstruction: unknown case variable."
-        end select
+         
 
-      case default
-        stop "reconstruction: unknown case musclType."
-      end select
+
+          case default
+             stop "reconstruction: unknown case variable."
+          end select
+
+       case default
+          stop "reconstruction: unknown case musclType."
+       end select
 
       !---------------------------
       !     no reconstruction
@@ -706,7 +742,17 @@ module flux_module
           call reconstruct_SALD(qIceBar, qIceTilde)
           call reconstruct_SALD(qvBar, qvTilde)
 
-        end if
+       end if
+
+    case ("tracer")
+
+       if (include_tracer) then
+
+          tracerBar(:, :, :) = var(:, :, :, iVart)
+
+          call reconstruct_SALD(tracerBar, tracerTilde)
+
+       end if
 
       case default
         stop "reconstruction: unknown case variable."
@@ -759,7 +805,17 @@ module flux_module
           call reconstruct_ALDM(qIceBar, qIceTilde)
           call reconstruct_ALDM(qvBar, qvTilde)
 
-        end if
+       end if
+
+    case ("tracer")
+
+       if (include_tracer) then
+
+          tracerBar(:, :, :) = var(:, :, :, iVart)
+
+          call reconstruct_ALDM(tracerBar, tracerTilde)
+
+       end if
 
       case default
         stop "reconstruction: unknown case variable."
@@ -2515,6 +2571,216 @@ module flux_module
     if(verbose) print *, "rhoFlux: rho fluxes fRho, gRho and fRho calculated"
 
   end subroutine massFlux_0
+
+
+  !---------------------------------------------------------------------------
+  subroutine tracerFlux (vara,var,flux,fluxmode,Pstrata,PStratTildea)
+    implicit none
+    
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+         & intent(in) :: vara , var
+    character(len=*), intent(in) :: fluxmode
+
+    real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), &
+         & intent(out) :: flux
+
+    real, dimension(-1:nz+2), intent(in) :: PStrata,  PStratTildea
+
+    integer :: i,j,k,l
+    real :: tracerL , tracerR, uL,uR       ! L=Left i-1/2, R=Right i+1/2
+    real :: tracerB , tracerF, vB,vF       ! B=Backward j-1/2, F=Forward j+1/2
+    real :: tracerD , tracerU, wD,wU       ! D=Downward k-1/2, U=Upward k+1/2
+    real :: uSurf, vSurf , wSurf    ! velocities at cell surface
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: rho
+
+    real :: rhoStratEdgeR, rhoStratEdgeF, rhoStratEdgeU
+    real :: pEdgeR, pEdgeF, pEdgeU
+
+    real  :: fTracer, gTracer, hTracer
+         
+
+    if (TurbScheme) then
+       stop "fluxes.f90: TurbScheme not implemented for tracer."
+    end if
+
+    !-----------------------------------------
+    !       Zonal tracer fluxes in x: f
+    !-----------------------------------------
+    do k = 1,nz
+       do j = 1,ny
+          do i = 0,nx
+             select case( fluxType )
+             case( "central" )
+
+                tracerL = var(  i,j,k,iVart)
+                tracerR = var(i+1,j,k,iVart)
+                
+                if (fluxmode == "nln") then
+                   uSurf = var(i,j,k,2)
+                else if (fluxmode == "lin") then
+                   uSurf = vara(i,j,k,2)
+                else
+                   stop "fluxes.f90/tracerFlux: wrong fluxmode."
+                end if
+
+                fTracer = uSurf * 0.5 * (tracerL + tracerR)
+
+             case( "upwind" )
+
+                tracerR = tracerTilde(i+1,j,k,1,0)
+                tracerL = tracerTilde(  i,j,k,1,1)
+
+                if (topography) then
+                   pEdgeR = 0.5 * (jac(i,j,k) * pStratTFC(i,j,k) &
+                        + jac(i+1,j,k) * pStratTFC(i+1,j,k))
+                   if (fluxmode == "nln") then
+                      uSurf = pEdgeR * var(i,j,k,2)
+                   else if (fluxmode == "lin") then
+                      uSurf = pEdgeR * vara(i,j,k,2)
+                   else
+                      stop "fluxes.f90: wrong fluxmode"
+                   end if
+                else
+                   if (fluxmode == "nln") then
+                      uSurf = var(i,j,k,2) * Pstrat(k)
+                   else if (fluxmode == "lin") then
+                      uSurf = vara(i,j,k,2) * Pstrata(k)
+                   else
+                      stop "fluxes.f90: wrong fluxmode"
+                   end if
+                end if
+
+                fTracer = flux_muscl(uSurf,tracerL,tracerR)
+                
+             case default
+                stop "fluxes.f90: only fluxType central implemented for tracer."
+             end select
+
+             flux(i,j,k,1,iVart) = fTracer
+
+          end do
+       end do
+    end do
+
+    !-----------------------------------
+    ! Meridional tracer fluxes in y: g
+    !-----------------------------------
+    do k = 1,nz
+       do j = 0,ny
+          do i = 1,nx
+             select case( fluxType )
+
+             case( "central" )
+
+                tracerF = var(i,j+1,k,iVart)
+                tracerB = var(i,  j,k,iVart)
+                
+                if (fluxmode == "nln") then
+                   vSurf = var(i,j,k,3)
+                else if (fluxmode == "lin") then
+                   vSurf = vara(i,j,k,3)
+                else
+                   stop "fluxes.f90/tracerFlux: wrong fluxmode."
+                end if
+
+                gTracer = vSurf * 0.5 * (tracerF + tracerB)
+
+             case( "upwind" )
+
+                tracerF = tracerTilde(i,j+1,k,2,0)
+                tracerB = tracerTilde(i,  j,k,2,1)
+
+                if (topography) then
+                   pEdgeF = 0.5 * (jac(i,j,k) * pStratTFC(i,j,k) &
+                        + jac(i,j+1,k) * pStratTFC(i,j+1,k))
+                   if (fluxmode == "nln") then
+                      vSurf = pEdgeF * var(i,j,k,3)
+                   else if (fluxmode == "lin") then
+                      vSurf = pEdgeF * vara(i,j,k,3)
+                   else
+                      stop "fluxes.f90: wrong fluxmode"
+                   end if
+                else
+                   if (fluxmode == "nln") then
+                      vSurf = var(i,j,k,3) * Pstrat(k)
+                   else if (fluxmode == "lin") then
+                      vSurf = vara(i,j,k,3) * Pstrata(k)
+                   else
+                      stop "fluxes.f90: wrong fluxmode"
+                   end if
+                end if
+                
+                gTracer = flux_muscl(vSurf,tracerB,tracerF)
+
+             case default
+                stop "fluxes.f90: only fluxType central implemented for tracer."
+             end select
+             flux(i,j,k,2,iVart) = gTracer
+          end do
+       end do
+    end do
+
+    !--------------------------------
+    ! Vertical tracer fluxes in z: h
+    !-------------------------------
+    do k = 0,nz
+       do j = 1,ny
+          do i = 1,nx
+             select case( fluxType )
+
+             case( "central" )
+
+                tracerU = var(i,j,k+1,iVart)
+                tracerD = var(i,j,  k,iVart)
+                
+                if (fluxmode == "nln") then
+                   wSurf = var(i,j,k,4)
+                else if (fluxmode == "lin") then
+                   wSurf = vara(i,j,k,4)
+                else
+                   stop "fluxes.f90/tracerFlux: wrong fluxmode."
+                end if
+
+                hTracer = wSurf * 0.5 * (tracerD + tracerU)
+
+             case( "upwind" )
+
+                tracerU = tracerTilde(i,j,k+1,3,0)
+                tracerD = tracerTilde(i,j,  k,3,1)
+                
+                if (topography) then
+                    pEdgeU = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) &
+                             + jac(i, j, k + 1) * pStratTFC(i, j, k + 1))
+                    if(fluxmode == "nln") then
+                       wSurf = pEdgeU * var(i, j, k, 4)
+                    else if(fluxmode == "lin") then
+                       wSurf = pEdgeU * vara(i, j, k, 4)
+                    else
+                       stop "fluxes.f90: wrong fluxmode"
+                    end if
+                else
+                   if (fluxmode == "nln") then
+                      wSurf = var(i,j,k,4) * PstratTilde(k)
+                   else if (fluxmode == "lin") then
+                      wSurf = vara(i,j,k,4) * PstratTildea(k)
+                   else
+                      stop "fluxes.f90: wrong fluxmode"
+                   end if
+                end if
+
+                hTracer = flux_muscl(wSurf,tracerD,tracerU)
+
+             case default
+                stop "fluxes.f90: only fluxType central implemented for tracer."
+             end select
+
+             flux(i,j,k,3,iVart) = hTracer
+
+          end do
+       end do
+    end do
+
+  end subroutine tracerFlux
 
   !---------------------------------------------------------------------------
 
@@ -5649,6 +5915,13 @@ module flux_module
         = allocstat)
     if(allocstat /= 0) stop "fluxes.f90: could not allocate nAerBar"
 
+    allocate(tracerBar(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz),stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not allocate tracerBar"
+
+    allocate(tracerTilde(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,1:3,0:1),&
+         & stat=allocstat)
+    if(allocstat /= 0) stop "fluxes.f90: could not allocate tracerTilde"
+
     ! TFC FJ
     if(topography) then
 
@@ -5750,9 +6023,16 @@ module flux_module
     deallocate(qvBar, stat = allocstat)
     if(allocstat /= 0) stop "fluxes.f90: could not deallocate qvBar"
 
-    deallocate(nAerBar, stat = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not deallocate nAerBar"
+    deallocate (nAerBar, stat = allocstat)
+    if (allocstat /= 0) stop "fluxes.f90: could not deallocate nAerBar"
+    if (include_tracer) then
+       deallocate(tracerBar,stat=allocstat)
+       if(allocstat /= 0) stop "fluxes.f90: could not deallocate tracerBar"
 
+       deallocate(tracerTilde,stat=allocstat)
+       if(allocstat /= 0) stop "fluxes.f90: could not deallocate tracerTilde"
+    end if
+    
     ! TFC FJ
     if(topography) then
 
@@ -6088,10 +6368,10 @@ module flux_module
         print *, "flux divergence = ", sumOut2
         if(.not. testTFC) then
           recTFC = (iOut - 2) * nStages + RKStage
-          open(42, file = "momentum_flux_divergence_error.dat", form &
+          open (42, file = "momentum_flux_divergence_error.dat", form &
               = "unformatted", access = "direct", recl = 2 * sizeofreal4)
-          write(42, rec = recTFC) sumOut1, sumOut2
-          close(42)
+          write (42, rec = recTFC) sumOut1, sumOut2
+          close (42)
         end if
       end if
 

@@ -953,6 +953,11 @@ module wkb_module
 
     integer :: nrsuml, nr_sum
 
+    ! Mountain properties (FJJan2023)
+    real :: mountainHeight_wkb, mountainWidth_wkb
+    real :: x_center, y_center
+    real :: k_mountain_wkb
+
     ! Long number (FJJan2023)
     real :: long
 
@@ -979,6 +984,17 @@ module wkb_module
 
     zrmin = zrmin_dim / lRef
     zrmax = zrmax_dim / lRef
+
+    ! FJJan2023
+    mountainHeight_wkb = mountainHeight_wkb_dim / lRef
+    mountainWidth_wkb = mountainWidth_wkb_dim / lRef
+
+    ! FJJan2023
+    x_center = 0.5 * (lx(1) + lx(0))
+    y_center = 0.5 * (ly(1) + ly(0))
+
+    ! FJJan2023
+    k_mountain_wkb = pi / mountainWidth_wkb
 
     !-------------------------------------------
     ! compute maximum number of ray volumes  ...
