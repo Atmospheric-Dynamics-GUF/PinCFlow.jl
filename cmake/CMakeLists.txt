@@ -66,7 +66,6 @@ add_executable(pinc
         ../src/finish.f90
         ../src/ice.f90
         ../src/pinc.f90
-        ../src/tracer.f90
         )
 
 # Link MPI and Hypre from system libraries.
