@@ -581,6 +581,7 @@ module init_module
     real :: lambdaZ ! vert. wave lengths
 
     complex, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 5, 0:2) :: Psi
+    complex, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 6, 0:2) :: Psitr
     real :: u1, w1, b1, p1
     real :: u2, w2, b2, p2
 
@@ -1129,7 +1130,7 @@ module init_module
       !--------------------
       !     set up GWP
       !--------------------
-      call init_GWP_tracer(Psi, kk, mm, ll)
+      call init_GWP_tracer(Psitr, kk, mm, ll)
 
       do k = 0, (nz + 1)
          do j = 0, (ny + 1)
@@ -1142,11 +1143,11 @@ module init_module
                end if
 
                ! wave 1
-               u = real(Psi(i, j, k, 1) * exp(phi * imag))
-               w = real(Psi(i, j, k, 2) * exp(phi * imag))
-               b = real(Psi(i, j, k, 3) * exp(phi * imag))
-               p = real(Psi(i, j, k, 4) * exp(phi * imag))
-               t = real(Psi(i, j, k, 6) * exp(phi * imag))
+               u = real(Psitr(i, j, k, 1, 1) * exp(phi * imag))
+               w = real(Psitr(i, j, k, 2, 1) * exp(phi * imag))
+               b = real(Psitr(i, j, k, 3, 1) * exp(phi * imag))
+               p = real(Psitr(i, j, k, 4, 1) * exp(phi * imag))
+               t = real(Psitr(i, j, k, 6, 1) * exp(phi * imag))
 
                ! additional vars
                if(topography) then
@@ -1182,7 +1183,7 @@ module init_module
                var(i, j, k, 4) = w
                var(i, j, k, 5) = p
 
-               var(i, j, k, 3) = real(Psi(i, j, k, 5) * exp(phi * imag))
+               var(i, j, k, 3) = real(Psitr(i, j, k, 5, 1) * exp(phi * imag))
 
                var(i, j, k, iVart) = t
                ! TFC FJ
@@ -5305,7 +5306,7 @@ module init_module
 
       ! in/out variables
       ! wave amplitude
-      complex, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 6), intent(out) :: &
+      complex, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 6, 0:2), intent(out) :: &
           Psi
       real, intent(out) :: kk, mm
       real, intent(out) :: ll
@@ -5538,7 +5539,7 @@ module init_module
 
             t10 = cmplx(0.0, - 1.0/ lRef / omi) * w10
 
-            Psi(i, j, k, :) = (/u10, w10, b11, pi12, (tmp_var_3DWP &
+            Psi(i, j, k, :, 1) = (/u10, w10, b11, pi12, (tmp_var_3DWP &
                 * cmplx(ll * omi, - kk * RoInv_GWP) * b11), t10/)
 
           end do
