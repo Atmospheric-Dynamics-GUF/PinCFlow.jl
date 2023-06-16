@@ -18,6 +18,7 @@ contains
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz)::rho
 
     real :: tracer0 ! initial max. tracer ampl.
+    real :: tracer
     real :: xt0 , yt0 , zt0
     real :: sigtx, sigty, sigtz
     real :: k0t , m0t
@@ -54,15 +55,22 @@ contains
           do kk = 1, nz
              do jj = 1, ny
                 do ii = 1, nx
-                   
-                   var(ii,jj,kk, iVart) = rho(ii,jj,kk) * alpha * heightTFC(ii, jj, kk)
+                   if (testCase == 'wavePacketTracer') then
+                      var(ii, jj, kk, iVart) = (var(ii, jj, kk, iVart) + alpha * heightTFC(ii, jj, kk))*rho(ii, jj, kk)
+                   else
+                      var(ii,jj,kk, iVart) = rho(ii,jj,kk) * alpha * heightTFC(ii, jj, kk)
+                   end if
 
                 end do
              end do
           end do
        else
           do kk = 1, nz
-             var(:,:,kk, iVart) = rho(:,:,kk) * alpha * (z(kk) -z(1)) 
+             if (testCase == 'wavePacketTracer') then
+                var(:, :, kk, iVart) = rho(:, :, kk) * (var(:, :, kk, iVart) + alpha * (z(kk)-z(1)))
+             else
+                var(:,:,kk, iVart) = rho(:,:,kk) * alpha * (z(kk) -z(1))
+             end if
           end do
        end if
 
