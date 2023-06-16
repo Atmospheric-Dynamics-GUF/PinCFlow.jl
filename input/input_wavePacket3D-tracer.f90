@@ -383,7 +383,7 @@
 ! general
 &testCaseList
 
-  testCase = "wavePacket"
+  testCase = "wavePacketTracer"
   ! Boussinesq: uniform_theta, wavePacket
   ! agnesiMountain -> see topography
   ! baroclinic_LC -> baroclinic life cycle with y-dep tropopause

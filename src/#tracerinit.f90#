@@ -1,0 +1,256 @@
+subroutine init_GWP_tracer(Psi, kk, mm, ll)
+
+  !------------------------------------------------
+  !  calculate complex amplitudes for
+  !    1) first harmonics,  leading order: Psi(:,:,:,0)
+  !    2) second harmonics, leading order: Psi(:,:,:,1)
+  !------------------------------------------------
+
+  ! WARNING:
+  ! 2nd harmonics probably not ready for 2D and 3D wave packets
+
+  ! in/out variables
+  ! wave amplitude
+  complex, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 6), intent(out) :: &
+       Psi
+  real, intent(out) :: kk, mm
+  real, intent(out) :: ll
+
+  ! local variables
+  real :: A, rho
+  real :: omi
+  real :: kk2, mm2, omi2, kTot2
+  complex :: u10, w10, b11, pi12, t10
+  integer :: iRay
+  integer :: i, j, k
+  integer :: ii, jj
+
+  ! local amplitude values and derivatives
+  complex :: u10_r, u10_c, u10_l, u10_t, u10_b
+  complex :: w10_r, w10_c, w10_l, w10_t, w10_b
+  complex :: theta11_r, theta11_c, theta11_l, theta11_t, theta11_b
+  complex :: pi12_c
+  complex :: pi0_t, pi0_c, pi0_b
+  complex :: theta0_c
+  complex :: du10_dx, du10_dz, dw10_dx, dw10_dz
+  complex :: dpi0_dz, dtheta11_dx, dtheta11_dz
+  complex :: Div
+  complex :: Press, PressU, PressW
+  complex :: d1u10, d1w10, d1theta11
+  complex :: coeff, aux1
+  complex :: M11, M12, M13, M14
+  complex :: M21, M22, M23, M24
+  complex :: M31, M32, M33, M34
+  complex :: M41, M42, M43, M44
+  complex, dimension(4) :: RHS, Sol
+  complex, dimension(4, 4) :: M2, M2inv
+  complex :: u21, w21, b22, pi23
+
+  ! mean value calculation
+  real :: rho0, rho0_t, rho0_b, d_dz, ypsi
+
+  ! debugging stuff
+  complex :: summe
+  complex, dimension(4) :: term
+
+  ! more debugging stuff
+  real :: B11_pinc
+  real :: D1TH11
+
+  integer :: i0, j0 ! modified by Junhong Wei (20161201)
+
+  complex :: tmp_var_3DWP
+
+  real :: Ro_GWP, RoInv_GWP !FS
+
+  if(f_Coriolis_dim /= 0.0) then !FS
+     Ro_GWP = uRef / f_Coriolis_dim / lRef
+     RoInv_GWP = 1.0 / Ro_GWP
+  else
+     Ro_GWP = 1.d40
+     RoInv_GWP = 0.0
+  end if
+
+  !-----------------------
+  !      MPI stuff
+  !-----------------------
+  i0 = is + nbx - 1 ! 0 index, replace i -> i + i0 in x and y fields
+  j0 = js + nby - 1
+
+  !------------------------
+  !    Init data
+  !-----------------------
+
+  ! scale input data
+  lambdaX = lambdaX_dim / lRef ! non-dim wave length in x dir.
+  lambdaY = lambdaY_dim / lRef ! non-dim wave length in y dir.
+  lambdaZ = lambdaZ_dim / lRef ! non-dim vert. wave length
+
+  xCenter = xCenter_dim / lRef ! scaled position wave packtet x dir.
+  yCenter = yCenter_dim / lRef ! scaled position wave packtet y dir.
+  zCenter = zCenter_dim / lRef ! scaled position wave packtet z dir.
+
+  sigma_x = sigma_hor_dim / lRef ! x width of Gaussian distribution
+  sigma_y = sigma_hor_yyy_dim / lRef ! y width of Gaussian distribution
+  sigma_z = sigma_dim / lRef ! vert. width of Gaussian distribution
+
+  L_cos = L_cos_dim / lRef ! half length of cosine profile
+
+  if(ABS(lambdaY_dim) /= 0.0) then
+     ll = 2.0 * pi / lambdaY
+  else
+     ll = 0.0
+  end if
+
+  if(ABS(lambdaX_dim) /= 0.0) then
+     kk = 2.0 * pi / lambdaX
+  else
+     kk = 0.0
+  end if
+
+  mm = 2.0 * pi / lambdaZ
+  kk2 = kk ** 2
+  mm2 = mm ** 2
+  kTot2 = kk2 + mm2 + ll * ll
+  kTot = sqrt(kTot2)
+
+  ! intrinsic frequency
+  omi = omiSign * sqrt(N2 * (kk * kk + ll * ll) + RoInv_GWP * RoInv_GWP &
+       * mm * mm) / kTot
+  omi2 = omi ** 2
+
+  ! amplitude coefficients for wave 1
+  bAmp = amplitudeFactor * N2 / mm ! buoyancy
+  uAmp = mm / kk * omi / N2 * bAmp
+  wAmp = omi / N2 * bAmp
+  pAmp = kappa * Ma2 * mm / kk ** 2 * omi2 / N2 * bAmp ! Exner pressure
+
+  close(10)
+
+  !----------------------
+  !  output of init data
+  !----------------------
+
+  if(master) then
+     print *, "omi = ", omi / tRef
+     print *, "mm = ", mm / lRef
+
+     print *, "RoInv = ", RoInv_GWP / tRef ! modified by Junhong Wei
+
+     print *, ""
+     print *, "  0) Test case: "
+     write(*, fmt = "(a25,a35)") "Test case  = ", "wave packet (full model)"
+     write(*, fmt = "(a25,f10.1,a)") "lambda_x = ", lambdaX_dim, " m"
+     write(*, fmt = "(a25,f10.1,a)") "lambda_z = ", lambdaZ_dim, " m"
+     write(*, fmt = "(a25,f10.1a7)") "c_x  = ", omi / kk * uRef, " m/s"
+     write(*, fmt = "(a25,f10.1,a7)") "c_z  = ", omi / mm * uRef, " m/s"
+     write(*, fmt = "(a25,f10.1,a7)") "cg_x  = ", - NN * mm ** 2 / kTot &
+          ** 3 * uRef, " m/s"
+     write(*, fmt = "(a25,f10.1,a7)") "cg_z  = ", NN * mm * kk / kTot ** 3 &
+          * uRef, " m/s"
+     write(*, fmt = "(a25,f10.1,a7)") "u_jet  = ", u0_jet_dim, " m/s"
+     print *, ""
+  end if ! modified by Junhong Wei (20170216)
+
+  !---------------------------------------
+  !        calc amplitude Psi_1^0
+  !     (first harmonic, leading order)
+  !---------------------------------------
+
+  do k = 0, (nz + 1)
+     do j = 0, (ny + 1)
+        do i = 0, (nx + 1)
+           ! profile: 1D and 2D
+
+           if(wavePacketDim == 1) then
+              delx = 0.0
+           else
+              delx = (x(i + i0) - xCenter)
+           end if
+
+           if(wavePacketDim == 3) then
+              dely = (y(j + j0) - yCenter)
+           else
+              dely = 0.0
+           end if
+
+           if(topography) then
+              ! TFC FJ
+              delz = heightTFC(i, j, k) - zCenter
+           else
+              delz = (z(k) - zCenter)
+           end if
+
+           select case(wavePacketType)
+
+           case(1)
+
+              ! Gaussian
+              ! cosine profile horizontally so that fields are zero
+              ! at the horizontal boundaries
+              ! in case of zero sigma in x or y direction use infinity
+
+              if(sigma_x == 0.0) then
+                 envel = 1.0
+              else if(abs(delx) < sigma_x) then
+                 envel = 1.0 - amp_mod_x + amp_mod_x * cos(delx * pi / (sigma_x &
+                      * 2.0))
+              else
+                 envel = 1.0 - amp_mod_x
+              end if
+
+              if(sigma_y == 0.0) then
+                 envel = 1.0 * envel
+              else if(abs(dely) < sigma_y) then
+                 envel = (1.0 - amp_mod_y + amp_mod_y * cos(dely * pi &
+                      / (sigma_y * 2.0))) * envel
+              else
+                 envel = envel * (1.0 - amp_mod_y)
+              end if
+
+              envel = envel * exp(- (delz ** 2) / 2. / sigma_z ** 2)
+
+           case(2)
+
+              ! Cosine
+              if(abs(delz) .le. L_cos) then
+                 envel = 0.5 * (1.0 + cos(pi * delz / L_cos))
+              else
+                 envel = 0.0
+              end if
+
+           case default
+              stop "init.f90: unknown wavePacketType. Stop."
+           end select
+
+           b11 = cmplx(envel * bAmp, 0.0)
+
+           if(topography) then
+              ! TFC FJ
+              theta0 = thetaStratTFC(i, j, k)
+           else
+              theta0 = thetaStrat(k)
+           end if
+
+           tmp_var_3DWP = cmplx(0.0, (omi * omi - N2) / (mm * N2 * (omi * omi &
+                - RoInv_GWP * RoInv_GWP)))
+
+           u10 = tmp_var_3DWP * cmplx(kk * omi, ll * RoInv_GWP) * b11
+
+           w10 = cmplx(0.0, omi / N2) * b11
+
+           pi12 = cmplx(0.0, kappa * Ma2 * (omi * omi - N2) / N2 / mm &
+                / theta0) * b11
+
+           t10 = cmplx(0.0, - 1.0 / omi) * w10
+
+           Psi(i, j, k, :) = (/u10, w10, b11, pi12, (tmp_var_3DWP &
+                * cmplx(ll * omi, - kk * RoInv_GWP) * b11), t10/)
+
+        end do
+     end do
+  end do
+
+
+
+end subroutine init_GWP_tracer
