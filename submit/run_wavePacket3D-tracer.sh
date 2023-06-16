@@ -29,7 +29,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/wavePacket3D-tracer-spongelayer
+dirWork=${dirScratch}/output/wavePacket3D-tracer_2023-06-15
 
 mkdir ${dirWork}
 

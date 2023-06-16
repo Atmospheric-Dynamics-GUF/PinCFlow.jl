@@ -239,9 +239,9 @@
   nbCellCorr = 1
 
   ! sponge layer at upper boundary
-  spongeLayer = .true.     ! sponge with relaxation to background
-  spongeHeight = 0.33      ! relative height of sponge layer
-  spongeAlphaZ_dim = 2.e-3!2.e-4 ! relaxation rate coeff in 1/s
+  spongeLayer = .false.     ! sponge with relaxation to background
+  spongeHeight = 0.5      ! relative height of sponge layer
+  spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
 &end
 
 &boundaryList2
@@ -269,7 +269,7 @@
 
   maxIter = 10             ! stop after maxIter time steps
 
-  outputTimeDiff = 1800.0  ! output every ... seconds
+  outputTimeDiff = 1.08e4  ! output every ... seconds
   maxTime        = 1.08e4  ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
@@ -417,7 +417,7 @@
                           ! lambday = 0.0 --> infinite wavelength
   lambdaZ_dim = -1000.0   ! vertical wave length in m
 
-  amplitudeFactor = 0.5   ! normalilized buoyancy amplitude
+  amplitudeFactor = 0.1   ! normalilized buoyancy amplitude
 
   xCenter_dim = 4.5e6     ! center of wave packet in x direction in m
 
