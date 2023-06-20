@@ -262,12 +262,12 @@
 
 &outputList
 
-  outputType = "time"      ! timeStep / time
+  outputType = "timeStep"      ! timeStep / time
 
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
-  maxIter = 10             ! stop after maxIter time steps
+  maxIter = 0             ! stop after maxIter time steps
 
   outputTimeDiff = 1.08e4  ! output every ... seconds
   maxTime        = 1.08e4  ! stop after maxTime seconds
@@ -383,7 +383,7 @@
 ! general
 &testCaseList
 
-  testCase = "wavePacketTracer"
+  testCase = "wavePacket"
   ! Boussinesq: uniform_theta, wavePacket
   ! agnesiMountain -> see topography
   ! baroclinic_LC -> baroclinic life cycle with y-dep tropopause
@@ -417,7 +417,7 @@
                           ! lambday = 0.0 --> infinite wavelength
   lambdaZ_dim = -1000.0   ! vertical wave length in m
 
-  amplitudeFactor = 0.1   ! normalilized buoyancy amplitude
+  amplitudeFactor = 0.5   ! normalilized buoyancy amplitude
 
   xCenter_dim = 4.5e6     ! center of wave packet in x direction in m
 
