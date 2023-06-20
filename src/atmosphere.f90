@@ -102,7 +102,9 @@ module atmosphere_module
   ! TFC FJ
   ! 3D background fields.
   real, dimension(:, :, :), allocatable :: pStratTFC, thetaStratTFC, &
-      rhoStratTFC, bvsStratTFC, piStratTFC
+       rhoStratTFC, bvsStratTFC, piStratTFC
+
+  real :: alphaTracer
 
   contains
 
@@ -545,7 +547,12 @@ module atmosphere_module
         Ro(0:ny + 1) = 1.d40
         RoInv(0:ny + 1) = 0.0
       end if
-    end if
+   end if
+
+   ! IK
+   if (include_tracer) then
+      alphaTracer = 1.0*lRef
+   end if
 
     !----------------------------------
     !            setup topography
