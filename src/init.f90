@@ -1026,7 +1026,7 @@ module init_module
             var(i, j, k, 3) = real(Psi(i, j, k, 5, 1) * exp(phi * imag))
             
             if (include_tracer) then
-              var(i, j, k, iVart) = 1.0/lRef * 1.0/N2 * b
+              var(i, j, k, iVart) = alphaTracer * 1.0/N2 * b
             end if
 
             ! TFC FJ
