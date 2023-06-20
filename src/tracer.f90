@@ -52,7 +52,7 @@ contains
        end do
 
        alpha = 1.0 *lRef!/ (lz(1) - lz(0))
-       
+
        if(topography) then
           do kk = 1, nz
              do jj = 1, ny
@@ -76,7 +76,7 @@ contains
           end do
        end if
 
-    
+ 
     
     case default
        stop "tracer.f90: unkown tracer distribution setup"

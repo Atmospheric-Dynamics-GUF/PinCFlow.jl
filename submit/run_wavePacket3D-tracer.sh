@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --partition=general2
+#SBATCH --partition=test
 #SBATCH --job-name=wavePacket3D-tracer
 #SBATCH --ntasks=128
 #SBATCH --cpus-per-task=1
@@ -29,7 +29,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/wavePacket3D-tracer_2023-06-15
+dirWork=${dirScratch}/output/wavePacket3D-tracer_new
 
 mkdir ${dirWork}
 

@@ -970,7 +970,7 @@ module init_module
               w = w1
               p = p1
             end if
-
+            
             ! additional vars
             if(topography) then
               ! TFC FJ
@@ -1024,6 +1024,10 @@ module init_module
             var(i, j, k, 5) = p
 
             var(i, j, k, 3) = real(Psi(i, j, k, 5, 1) * exp(phi * imag))
+            
+            if (include_tracer) then
+              var(i, j, k, iVart) = 1.0/lRef * 1.0/N2 * b
+            end if
 
             ! TFC FJ
             ! Compute terrain-following vertical wind.
@@ -1070,10 +1074,6 @@ module init_module
 
       ! initialize the ice variables according to iceTestcase
       if(include_ice) call setup_ice(var)
-
-      if (include_tracer) then
-         var(:, :, :, iVart) = 1.0/lRef * 1.0/N2 * b
-      end if
 
       !--------------------------------------------------------------
    
