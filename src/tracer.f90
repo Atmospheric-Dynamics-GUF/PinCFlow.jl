@@ -51,7 +51,7 @@ contains
           end do
        end do
 
-       alpha = 1.0 *lRef!/ (lz(1) - lz(0))
+       alpha = alphaTracer!/ (lz(1) - lz(0))
 
        if(topography) then
           do kk = 1, nz
