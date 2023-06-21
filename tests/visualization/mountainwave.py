@@ -2,13 +2,24 @@ import numpy
 import matplotlib.pyplot as pyplot
 import matplotlib.animation as animation
 import tools
-import style
+#import style
 
 # Set script parameter.
 make_animation = False
 
+data_path = "/scratch/atmodynamics/dolaptchiev/PF/runs"
+ref_path = "/scratch/atmodynamics/dolaptchiev/PF/pinc/reference"
+
 # Import data.
-data = tools.ModelOutput("../mountainwave/")
+data = tools.ModelOutput(data_path+"/mountainwave/")
+reference = tools.ModelOutput(ref_path+"/mountainwave/")
+
+# Make difference plot.
+if (data.psi != reference.psi).all():
+    print('difference wrt reference file !!!')
+    print('exit')
+    exit()
+
 data.transform()
 
 # Shift grid.

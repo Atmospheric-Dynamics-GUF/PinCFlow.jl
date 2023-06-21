@@ -30,6 +30,7 @@ module update_module
   public :: set_spongeLayer
   public :: CoefDySma_update
   public :: Var3DSmthDySma
+  public :: ice2Update, ice2Update_source
 
   public :: setHaloAndBoundary
 
@@ -5905,73 +5906,72 @@ module update_module
   end subroutine massUpdate
 
   !-----------------------------------------------------------------------
-  subroutine tracerUpdate (var,flux,dt,q,m)
+  subroutine tracerUpdate(var, flux, dt, q, m)
 
     ! in/out variables
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         & intent(inout) :: var
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
 
-
-    real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
 
     real, intent(in) :: dt
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
-         & intent(inout) :: q
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
+        intent(inout) :: q
 
     integer, intent(in) :: m
     integer :: i00, j00
 
     ! local variables
-    integer :: i,j,k,l
-    real    :: fL,fR        ! flux Left/Right
-    real    :: gB,gF        ! flux Backward/Forward
-    real    :: hD,hU        ! flux Downward/Upward
-    real    :: fluxDiff     ! convective part
-    real    :: F            ! F(phi)
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: rho
+    integer :: i, j, k, l
+    real :: fL, fR ! flux Left/Right
+    real :: gB, gF ! flux Backward/Forward
+    real :: hD, hU ! flux Downward/Upward
+    real :: fluxDiff ! convective part
+    real :: F ! F(phi)
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz) :: rho
 
-    if( correctDivError ) then
-       print*,'ERROR: correction divergence error not allowed'
-       stop
+    if(correctDivError) then
+      print *, 'ERROR: correction divergence error not allowed'
+      stop
     end if
 
     ! init q
-    if (m == 1) q = 0.
+    if(m == 1) q = 0.
 
-    do k = 1,nz
-       do j = 1,ny
-          do i = 1,nx
-             fL = flux(i-1,j,k,1,iVart) ! mass flux accros left cell edge
-             fR = flux(i,j,k,1,iVart)   ! right
-             gB = flux(i,j-1,k,2,iVart) ! backward
-             gF = flux(i,j,k,2,iVart)   ! forward
-             hD = flux(i,j,k-1,3,iVart) ! downward
-             hU = flux(i,j,k,3,iVart)   ! upward
+    do k = 1, nz
+      do j = 1, ny
+        do i = 1, nx
+          fL = flux(i - 1, j, k, 1, iVart) ! mass flux accros left cell edge
+          fR = flux(i, j, k, 1, iVart) ! right
+          gB = flux(i, j - 1, k, 2, iVart) ! backward
+          gF = flux(i, j, k, 2, iVart) ! forward
+          hD = flux(i, j, k - 1, 3, iVart) ! downward
+          hU = flux(i, j, k, 3, iVart) ! upward
 
-             ! convective part
-             fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz
+          ! convective part
+          fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
 
-             if(topography) then
-                fluxDiff = fluxDiff / jac(i,j,k)
-             end if
+          if(topography) then
+            fluxDiff = fluxDiff / jac(i, j, k)
+          end if
 
-             ! F(phi)
-             F = -fluxDiff
+          ! F(phi)
+          F = - fluxDiff
 
-             if (dens_relax) then
-                stop "update.f90: dens_relax not implemented in tracerUpdate"
-             end if
+          if(dens_relax) then
+            stop "update.f90: dens_relax not implemented in tracerUpdate"
+          end if
 
-             ! update: q(m-1) -> q(m)
-             q(i,j,k) = dt*F + alpha(m) * q(i,j,k)
+          ! update: q(m-1) -> q(m)
+          q(i, j, k) = dt * F + alpha(m) * q(i, j, k)
 
-             ! update density
-             var(i,j,k,iVart) = var(i,j,k,iVart) + beta(m) * q(i,j,k)
+          ! update density
+          var(i, j, k, iVart) = var(i, j, k, iVart) + beta(m) * q(i, j, k)
 
-          end do
-       end do
+        end do
+      end do
     end do
-    
+
   end subroutine tracerUpdate
 
   !-----------------------------------------------------------------------
@@ -6103,6 +6103,220 @@ module update_module
         calculated."
 
   end subroutine iceUpdate
+
+  !-------------------------------------------------------------------------
+
+  subroutine ice2Update_source(var, flux, source, dt, q, m)
+    !-----------------------------
+    ! adds ice flux to cell ice field
+    !-----------------------------
+
+    ! in/out variables
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
+    ! flux(i,j,k,dir,iFlux)
+    ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
+    ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
+
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: source
+
+    real, intent(in) :: dt
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
+        intent(inout) :: q
+
+    integer, intent(in) :: m
+
+    ! local variables
+    integer :: i, j, k, l
+    real :: fL, fR ! flux Left/Right
+    real :: gB, gF ! flux Backward/Forward
+    real :: hD, hU ! flux Downward/Upward
+    real :: fluxDiff ! convective part
+    real :: F ! F(phi)
+
+    !!$    ! TFC FJ
+    !!$    real :: pEdgeU, pEdgeD
+    !!$    real :: piREdgeU, piLEdgeU, piFEdgeU, piBEdgeU, &
+    !!$         piREdgeD, piLEdgeD, piFEdgeD, piBEdgeD
+    !!$    real :: chris11EdgeU, chris11EdgeD, chris22EdgeU, chris22EdgeD, &
+    !!$         chris13EdgeU, chris13EdgeD, chris23EdgeU, chris23EdgeD
+    !!$    real :: piGradZEdgeU, piGradZEdgeD
+
+    integer :: ii, iVar
+
+    ! init q
+    if(m == 1) q = 0.
+
+    do ii = 1, nVarIce
+      iVar = iVarIce(ii)
+
+      do k = 1, nz
+        do j = 1, ny
+          do i = 1, nx
+
+            fL = flux(i - 1, j, k, 1, iVar) ! mass flux accros left cell edge
+            fR = flux(i, j, k, 1, iVar) ! right
+            gB = flux(i, j - 1, k, 2, iVar) ! backward
+            gF = flux(i, j, k, 2, iVar) ! forward
+            hD = flux(i, j, k - 1, 3, iVar) ! downward
+            hU = flux(i, j, k, 3, iVar) ! upward
+
+            ! convective part
+            fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
+
+            ! TFC FJ
+            ! Adjust mass flux divergence.
+            if(topography) then
+              fluxDiff = fluxDiff / jac(i, j, k)
+            end if
+
+            ! F(phi)
+            F = - fluxDiff + source(i, j, k, iVar)
+
+            ! update: q(m-1) -> q(m)
+            q(i, j, k, ii) = dt * F + alpha(m) * q(i, j, k, ii)
+
+            ! update fields
+            var(i, j, k, iVar) = var(i, j, k, iVar) + beta(m) * q(i, j, k, ii)
+
+          end do !i
+        end do !j
+      end do !k
+
+    end do !ii
+
+  end subroutine ice2Update_source
+
+  !-----------------------------------------------------------------------
+
+  subroutine ice2Update(var, flux, dt, q, m, int_mod, facray)
+    !-----------------------------
+    ! adds ice flux to cell ice field
+    !-----------------------------
+
+    ! in/out variables
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+
+    ! upd_var decides what is to be propagated in time:
+    ! rho => total density
+    ! rhop => density fluctuations
+
+    ! upd_mod decides which part of the equation is to be used:
+    ! tot => total equation (always the case for the total density)
+    ! lhs => only advection and molecular and turbulent diffusive fluxes
+    !        on the left-hand side of the density-fluctuation equation
+    ! rhs => only the right-hand side of the density-fluctuation equation
+
+    ! int_mod discriminates implicit and explicit time stepping:
+    ! expl => explicit time stepping
+    !         (always the case for the total density)
+    !         RK sub step for the total density
+    !         Euler step for the rhs of the density-fluctuation equation
+    ! impl => implicit-time-step part without pressure-gradient term
+    !         (only for the density fluctuations, only for rhs)
+
+    ! facray multiplies the Rayleigh-damping terms so that they are only
+    ! handled in the implicit time stepping (sponge and immersed boundary)
+    character(len = *), intent(in) :: int_mod
+
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
+    ! flux(i,j,k,dir,iFlux)
+    ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
+    ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
+
+    !UAC real, intent(in) :: dt
+    real, intent(in) :: dt, facray
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
+        intent(inout) :: q
+
+    integer, intent(in) :: m
+    integer :: i00, j00
+
+    ! local variables
+    integer :: i, j, k, l
+    real :: fL, fR ! flux Left/Right
+    real :: gB, gF ! flux Backward/Forward
+    real :: hD, hU ! flux Downward/Upward
+    real :: fluxDiff ! convective part
+    real :: F ! F(phi)
+
+    !    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: heat
+
+    !    real :: buoy0, buoy, rho, rhow, rhowm, rhop, wvrt, facw, facr, &
+    !         & pstw, pstwm, piU, piD, piGrad
+
+    ! TFC FJ
+    real :: pEdgeU, pEdgeD
+    real :: piREdgeU, piLEdgeU, piFEdgeU, piBEdgeU, piREdgeD, piLEdgeD, &
+        piFEdgeD, piBEdgeD
+    real :: chris11EdgeU, chris11EdgeD, chris22EdgeU, chris22EdgeD, &
+        chris13EdgeU, chris13EdgeD, chris23EdgeU, chris23EdgeD
+    real :: piGradZEdgeU, piGradZEdgeD
+
+    real :: rho_p
+
+    real, dimension(- nbz:nz + nbz) :: w_0
+    real, dimension(- nbz:nz + nbz) :: S_bar
+    real :: heat_flc
+
+    !UAB
+    real :: rho_e, pstw_e, pstwm_e, rhow_e, rhowm_e
+    !    !UAE
+
+    !    real, dimension(1:nz) :: sum_local, sum_global
+
+    !    real, dimension(-nbz:nz+nbz) :: rhopw_bar
+
+    real :: ymax, yloc
+    integer :: ii, iVar
+
+    ymax = ly_dim(1) / lRef
+
+    ! init q
+    if(m == 1) q = 0.
+
+    do ii = 1, nVarIce
+      iVar = iVarIce(ii)
+
+      do k = 1, nz
+        do j = 1, ny
+          do i = 1, nx
+
+            fL = flux(i - 1, j, k, 1, iVar) ! mass flux accros left cell edge
+            fR = flux(i, j, k, 1, iVar) ! right
+            gB = flux(i, j - 1, k, 2, iVar) ! backward
+            gF = flux(i, j, k, 2, iVar) ! forward
+            hD = flux(i, j, k - 1, 3, iVar) ! downward
+            hU = flux(i, j, k, 3, iVar) ! upward
+
+            ! convective part
+            fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
+
+            ! TFC FJ
+            ! Adjust mass flux divergence.
+            if(topography) then
+              fluxDiff = fluxDiff / jac(i, j, k)
+            end if
+
+            ! F(phi)
+            F = - fluxDiff
+
+            ! update: q(m-1) -> q(m)
+            q(i, j, k, ii) = dt * F + alpha(m) * q(i, j, k, ii)
+
+            ! update fields
+            var(i, j, k, iVar) = var(i, j, k, iVar) + beta(m) * q(i, j, k, ii)
+
+          end do !i
+        end do !j
+      end do !k
+
+    end do !ii
+
+  end subroutine ice2Update
 
   !-------------------------------------------------------------------------
 

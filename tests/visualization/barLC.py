@@ -2,10 +2,10 @@ import numpy
 import numpy.fft as fft
 import matplotlib.pyplot as pyplot
 import tools
-import style
+#import style
 
-data_path = "/scratch/atmodynamics/dolaptchiev/PF/pinc/tests"
-ref_path = "/scratch/atmodynamics/dolaptchiev/PF/pinc/tests"
+data_path = "/scratch/atmodynamics/dolaptchiev/PF/runs"
+ref_path = "/scratch/atmodynamics/dolaptchiev/PF/pinc/reference"
 
 # Import data.
 data = tools.ModelOutput(data_path+"/barLC/")
@@ -81,10 +81,10 @@ axes.contour(data.xx, data.yy, rhop,
         linewidths = 1.0, colors = "black")
 print('Do plotting')
 
-#*axes.set_xlabel(r"$x \, \left[\mathrm{km}\right]$")
-#*axes.set_ylabel(r"$y \, \left[\mathrm{km}\right]$")
-#*figure.colorbar(plot, label = r"$\boldsymbol{\nabla}_z \cdot"
-#*        r"\boldsymbol{u} \, \left[\mathrm{s^{- 1}}\right]$")
+#axes.set_xlabel(r"$x \, \left[\mathrm{km}\right]$")
+#axes.set_ylabel(r"$y \, \left[\mathrm{km}\right]$")
+#figure.colorbar(plot, label = r"$\boldsymbol{\nabla}_z \cdot"
+#        r"\boldsymbol{u} \, \left[\mathrm{s^{- 1}}\right]$")
 figure.savefig("../results/barLC.png", dpi = 500)
 figure.savefig("../results/barLC.pdf")
 

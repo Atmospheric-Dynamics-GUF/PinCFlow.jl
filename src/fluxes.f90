@@ -29,6 +29,7 @@ module flux_module
   public :: momentumSource
   public :: iceSource
   public :: tracerFlux
+  public :: ice2Flux
 
   ! TFC FJ
   public :: setHalosOfField
@@ -39,16 +40,17 @@ module flux_module
   private :: slopeFunction
 
   ! internal module variables
-  real, dimension (:, :, :), allocatable :: rhoBar, rhopBar, rhoOld, rhopOld
-  real, dimension (:, :, :), allocatable :: uBar
-  real, dimension (:, :, :), allocatable :: vBar
-  real, dimension (:, :, :), allocatable :: wBar
-  real, dimension (:, :, :), allocatable :: thetaBar
-  real, dimension (:, :, :), allocatable :: nAerBar
-  real, dimension (:, :, :), allocatable :: nIceBar
-  real, dimension (:, :, :), allocatable :: qIceBar
-  real, dimension (:, :, :), allocatable :: qvBar
-  real, dimension (:, :, :), allocatable :: tracerBar
+  real, dimension(:, :, :), allocatable :: rhoBar, rhopBar, rhoOld, rhopOld
+  real, dimension(:, :, :), allocatable :: uBar
+  real, dimension(:, :, :), allocatable :: vBar
+  real, dimension(:, :, :), allocatable :: wBar
+  real, dimension(:, :, :), allocatable :: thetaBar
+  real, dimension(:, :, :), allocatable :: nAerBar
+  real, dimension(:, :, :), allocatable :: nIceBar
+  real, dimension(:, :, :), allocatable :: qIceBar
+  real, dimension(:, :, :), allocatable :: qvBar
+  real, dimension(:, :, :), allocatable :: tracerBar
+  real, dimension(:, :, :), allocatable :: IceBar
 
   ! TFC FJ
   ! Needed for semi-implicit time scheme in TFC.
@@ -57,18 +59,18 @@ module flux_module
   ! if reconstType = MUSCL then uTilde, vTilde, and wTilde are the
   ! reconstructed specific momenta
 
-  real, dimension (:, :, :, :, :), allocatable :: rhoTilde
-  real, dimension (:, :, :, :, :), allocatable :: rhoTilde_mom !UA
-  real, dimension (:, :, :, :, :), allocatable :: rhopTilde
-  real, dimension (:, :, :, :, :), allocatable :: uTilde
-  real, dimension (:, :, :, :, :), allocatable :: vTilde
-  real, dimension (:, :, :, :, :), allocatable :: wTilde
-  real, dimension (:, :, :, :, :), allocatable :: thetaTilde
-  real, dimension (:, :, :, :, :), allocatable :: nAerTilde
-  real, dimension (:, :, :, :, :), allocatable :: nIceTilde
-  real, dimension (:, :, :, :, :), allocatable :: qIceTilde
-  real, dimension (:, :, :, :, :), allocatable :: qvTilde
-  real, dimension (:, :, :, :, :), allocatable :: tracerTilde
+  real, dimension(:, :, :, :, :), allocatable :: rhoTilde
+  real, dimension(:, :, :, :, :), allocatable :: rhoTilde_mom !UA
+  real, dimension(:, :, :, :, :), allocatable :: rhopTilde
+  real, dimension(:, :, :, :, :), allocatable :: uTilde
+  real, dimension(:, :, :, :, :), allocatable :: vTilde
+  real, dimension(:, :, :, :, :), allocatable :: wTilde
+  real, dimension(:, :, :, :, :), allocatable :: thetaTilde
+  real, dimension(:, :, :, :, :), allocatable :: nAerTilde
+  real, dimension(:, :, :, :, :), allocatable :: nIceTilde
+  real, dimension(:, :, :, :, :), allocatable :: qIceTilde
+  real, dimension(:, :, :, :, :), allocatable :: qvTilde
+  real, dimension(:, :, :, :, :), allocatable :: tracerTilde
 
   ! public variables
   ! needed for
@@ -80,7 +82,7 @@ module flux_module
   public :: rhoOld, rhopOld
   public :: nIceTilde, qIceTilde, qvTilde, nAerTilde
   public :: tracerTilde
- 
+
   ! TFC FJ
   ! Needed for semi-implicit time scheme in TFC.
   public :: uOldTFC, vOldTFC, wOldTFC
@@ -139,78 +141,81 @@ module flux_module
     real :: rhoEdgeR, rhoEdgeF, rhoEdgeU
     real :: pEdgeR, pEdgeF, pEdgeU
 
+    ! SD
+    integer :: ii, iVar
+
     select case(reconstType)
 
-       !----------------------------
-       !   Constant reconstruction
-       !----------------------------
+      !----------------------------
+      !   Constant reconstruction
+      !----------------------------
 
     case('constant2')
 
-       stop 'constant2 reconstruction disabled'
+      stop 'constant2 reconstruction disabled'
 
-       !       select case( variable )
-       !
-       !       case( "rho" )
-       !
-       !          do dir = 1,3
-       !             do lr = 0,1
-       !                rhoTilde(:,:,:,dir,lr) = var(:,:,:,1)
-       !             end do
-       !          end do
-       !
-       !       case( "rhop" )
-       !
-       !          do dir = 1,3
-       !             do lr = 0,1
-       !                rhopTilde(:,:,:,dir,lr) = var(:,:,:,6)
-       !             end do
-       !          end do
-       !
-       !       case( "uvw" )
-       !
-       !          do dir = 1,3
-       !             do lr = 0,1
-       !                uTilde(:,:,:,dir,lr) = var(:,:,:,2)
-       !                vTilde(:,:,:,dir,lr) = var(:,:,:,3)
-       !                wTilde(:,:,:,dir,lr) = var(:,:,:,4)
-       !             end do
-       !          end do
-       !
-       !
-       !       case( "theta" )
-       !
-       !          do dir = 1,3
-       !             do lr = 0,1
-       !                thetaTilde(:,:,:,dir,lr) = var(:,:,:,6)
-       !             end do
-       !          end do
-       !
-       !       case default
-       !          stop "reconstruction: unknown case model."
-       !       end select
+      !       select case( variable )
+      !
+      !       case( "rho" )
+      !
+      !          do dir = 1,3
+      !             do lr = 0,1
+      !                rhoTilde(:,:,:,dir,lr) = var(:,:,:,1)
+      !             end do
+      !          end do
+      !
+      !       case( "rhop" )
+      !
+      !          do dir = 1,3
+      !             do lr = 0,1
+      !                rhopTilde(:,:,:,dir,lr) = var(:,:,:,6)
+      !             end do
+      !          end do
+      !
+      !       case( "uvw" )
+      !
+      !          do dir = 1,3
+      !             do lr = 0,1
+      !                uTilde(:,:,:,dir,lr) = var(:,:,:,2)
+      !                vTilde(:,:,:,dir,lr) = var(:,:,:,3)
+      !                wTilde(:,:,:,dir,lr) = var(:,:,:,4)
+      !             end do
+      !          end do
+      !
+      !
+      !       case( "theta" )
+      !
+      !          do dir = 1,3
+      !             do lr = 0,1
+      !                thetaTilde(:,:,:,dir,lr) = var(:,:,:,6)
+      !             end do
+      !          end do
+      !
+      !       case default
+      !          stop "reconstruction: unknown case model."
+      !       end select
 
-       !-----------------------
-       !   MUSCL reconstrcution
-       !-----------------------
+      !-----------------------
+      !   MUSCL reconstrcution
+      !-----------------------
 
-       ! GBcorr: unified 2 reconstruction options for MUSCL
-       ! muscl1: cheap but less accurate (???)
-       ! muscl2: accurate (???) but expensive
+      ! GBcorr: unified 2 reconstruction options for MUSCL
+      ! muscl1: cheap but less accurate (???)
+      ! muscl2: accurate (???) but expensive
 
     case('MUSCL')
 
-       select case (musclType)
+      select case(musclType)
 
-          ! muscl1: cheap but less accurate (???)
-       case ("muscl1")
+        ! muscl1: cheap but less accurate (???)
+      case("muscl1")
 
-          select case (variable)
+        select case(variable)
 
-          case ("rho")
+        case("rho")
 
-             !rhoBar(:,:,:) = var(:,:,:,1)
-             !call reconstruct_MUSCL(rhoBar,rhoTilde,nxx,nyy,nzz,limiterType1)
+          !rhoBar(:,:,:) = var(:,:,:,1)
+          !call reconstruct_MUSCL(rhoBar,rhoTilde,nxx,nyy,nzz,limiterType1)
 
           ! GBcorr: to be consistent with current rouine: momentumFlux
           rhoBar = 0.0
@@ -240,11 +245,11 @@ module flux_module
           end if
           call reconstruct_MUSCL(rhoBar, rhoTilde, nxx, nyy, nzz, limiterType1)
 
-          case ("rhop")
+        case("rhop")
 
-             !rhopBar(:,:,:) = var(:,:,:,6)
-             !call reconstruct_MUSCL(rhopBar,rhopTilde,nxx,nyy,nzz,&
-             !                     & limiterType1)
+          !rhopBar(:,:,:) = var(:,:,:,6)
+          !call reconstruct_MUSCL(rhopBar,rhopTilde,nxx,nyy,nzz,&
+          !                     & limiterType1)
 
           ! GBcorr: to be consistent with current rouine: momentumFlux
           rhopBar = 0.0
@@ -275,7 +280,7 @@ module flux_module
           call reconstruct_MUSCL(rhopBar, rhopTilde, nxx, nyy, nzz, &
               limiterType1)
 
-          case ("uvw")
+        case("uvw")
 
           ! calculate specific momenta to be reconstructed
           if(fluctuationMode) then
@@ -404,161 +409,212 @@ module flux_module
             end do
           end if
 
-             ! reconstruct spcific momenta
-             call reconstruct_MUSCL(uBar, uTilde, nxx, nyy, nzz, limiterType1)
-             call reconstruct_MUSCL(vBar, vTilde, nxx, nyy, nzz, limiterType1)
-             call reconstruct_MUSCL(wBar, wTilde, nxx, nyy, nzz, limiterType1)
+          ! reconstruct spcific momenta
+          call reconstruct_MUSCL(uBar, uTilde, nxx, nyy, nzz, limiterType1)
+          call reconstruct_MUSCL(vBar, vTilde, nxx, nyy, nzz, limiterType1)
+          call reconstruct_MUSCL(wBar, wTilde, nxx, nyy, nzz, limiterType1)
 
-          case ("theta")
+        case("theta")
 
-             thetaBar(:, :, :) = var(:, :, :, 6)
-             call reconstruct_MUSCL(thetaBar, thetaTilde, nxx, nyy, nzz, &
-                  limiterType1)
+          thetaBar(:, :, :) = var(:, :, :, 6)
+          call reconstruct_MUSCL(thetaBar, thetaTilde, nxx, nyy, nzz, &
+              limiterType1)
 
-          case ("ice")
+        case("ice")
 
-             if (include_ice) then
+          if(include_ice) then
 
-                nAerBar(:, :, :) = var(:, :, :, nVar - 3)
-                nIceBar(:, :, :) = var(:, :, :, nVar - 2)
-                qIceBar(:, :, :) = var(:, :, :, nVar - 1)
-                qvBar(:, :, :) = var(:, :, :, nVar)
+            nAerBar(:, :, :) = var(:, :, :, nVar - 3)
+            nIceBar(:, :, :) = var(:, :, :, nVar - 2)
+            qIceBar(:, :, :) = var(:, :, :, nVar - 1)
+            qvBar(:, :, :) = var(:, :, :, nVar)
 
-                call reconstruct_MUSCL(nIceBar, nIceTilde, nxx, nyy, nzz, &
-                     limiterType1)
-                call reconstruct_MUSCL(qIceBar, qIceTilde, nxx, nyy, nzz, &
-                     limiterType1)
-                call reconstruct_MUSCL(qvBar, qvTilde, nxx, nyy, nzz, limiterType1)
+            call reconstruct_MUSCL(nIceBar, nIceTilde, nxx, nyy, nzz, &
+                limiterType1)
+            call reconstruct_MUSCL(qIceBar, qIceTilde, nxx, nyy, nzz, &
+                limiterType1)
+            call reconstruct_MUSCL(qvBar, qvTilde, nxx, nyy, nzz, limiterType1)
 
-             end if
+          end if
 
-          case ("tracer")
+        case("ice2")
 
-             tracerBar = 0.0
-             if (topography) then
-                do ix = - nbx, nx + nbx
-                   do jy = - nby, ny + nby
-                      do kz = 0, nz + 1
-                         if (pStratTFC(ix, jy, kz) == 0.0) then
-                            print *, "ERROR in rec. rho: pStratTFC = 0 at k =", kz
-                            stop
-                         end if
-                         tracerBar(ix, jy, kz) = var(ix, jy, kz, iVart)/pStratTFC(ix, jy, kz)
-                      end do
-                   end do
-                end do
-             else
-                do kz = 0, nz + 1
-                   if (Pstrat(kz) == 0.0) then
-                      print*, "Error in rec. rho: Pstrat(kz) = 0 at k = ", kz
+          do ii = 1, nVarIce
+            iVar = iVarIce(ii)
+
+            iceBar = 0.0
+            if(topography) then
+              ! TFC FJ
+              ! Adjust reconstruction for 3D fields.
+              do ix = - nbx, nx + nbx
+                do jy = - nby, ny + nby
+                  do kz = 0, nz + 1
+                    if(pStratTFC(ix, jy, kz) == 0.0) then
+                      print *, "ERROR in rec. rho: pStratTFC = 0 at k = ", kz
                       stop
-                   end if
-
-                   tracerBar(:, :, kz) = var(:, :, kz, iVart)/Pstrat(kz)
+                    end if
+                    iceBar(ix, jy, kz) = var(ix, jy, kz, iVar) / pStratTFC(ix, &
+                        jy, kz)
+                  end do
                 end do
-             end if
-                
-             call reconstruct_MUSCL(tracerBar,tracerTilde,nxx,nyy,nzz,limiterType1)
-
-          case default
-             stop "reconstruction: unknown case variable."
-          end select
-
-          ! muscl2: accurate (???) but expensive
-       case ("muscl2")
-
-          select case (variable)
-
-          case ("rho")
-
-             !UAB
-             rhoBar = 0.0
-             do kz = 0, nz + 1
-                if (Pstrat(kz) == 0.0) then
-                   print *, 'ERROR in rec. rho: Pstrat(kz) = 0 at kz =', kz
-                   stop
+              end do
+            else
+              do kz = 0, nz + 1
+                if(Pstrat(kz) == 0.0) then
+                  print *, 'ERROR in rec. rho: Pstrat(kz) = 0 at kz =', kz
+                  stop
                 end if
-                rhoBar(:, :, kz) = (var(:, :, kz, 1)) / Pstrat(kz)
-             end do
-             call reconstruct_MUSCL(rhoBar, rhoTilde, nxx, nyy, nzz, limiterType1)
-             !UAE
+                iceBar(:, :, kz) = (var(:, :, kz, iVar)) / Pstrat(kz)
+              end do
+            end if
 
-          case ("rhop")
+            if(iVar .eq. inN) then
 
-             !UAB
-             rhopBar = 0.0
-             do kz = 0, nz + 1
-                if (Pstrat(kz) == 0.0) then
-                   print *, 'ERROR in rec. rhop: Pstrat(kz) = 0 at kz =', kz
-                   stop
-                end if
-                rhopBar(:, :, kz) = var(:, :, kz, 6) / Pstrat(kz)
-             end do
-             call reconstruct_MUSCL(rhopBar, rhopTilde, nxx, nyy, nzz, &
-                  limiterType1)
-             !UAE
-
-          case ("uvw")
-
-             !UAB
-             ! reconstruct specific momenta \rho \vec{v}/P
-             ! for this \rho/P and \vec v are reconstructed each and then the
-             ! product of the two is taken
-
-             ! reconstruct momentum in x direction
-
-             rhoBar = 0.0
-
-             if (fluctuationMode) then
-                do kz = 0, nz + 1
-                   if (Pstrat(kz) == 0.0) then
-                      print *, 'ERROR in rec. u: Pstrat(kz) = 0 at kz =', kz
-                      stop
-                   end if
-                   do ix = - nbx, nx + nbx - 1
-                      rhoBar(ix, :, kz) = (0.5 * (var(ix, :, kz, 1) + var(ix + 1, :, &
-                           kz, 1)) + rhoStrat(kz)) / Pstrat(kz)
-                      !FS:
-                      ! = 0.5*&
-                      !   ((var(ix,:,kz,1)+rhoStrat(kz))/Pstrat(kz) + &
-                      !   (var(ix+1,:,kz,1)+rhoStrat(kz))/Pstrat(kz))
-                   end do
-                end do
-             else
-                do kz = 0, nz + 1
-                   if (Pstrat(kz) == 0.0) then
-                      print *, 'ERROR in rec. u: Pstrat(kz) = 0 at kz =', kz
-                      stop
-                   end if
-                   do ix = - nbx, nx + nbx - 1
-                      rhoBar(ix, :, kz) = 0.5 * (var(ix, :, kz, 1) + var(ix + 1, :, &
-                           kz, 1)) / Pstrat(kz)
-                      !FS:
-                      != 0.5*&
-                      !  ((var(ix,:,kz,1))/Pstrat(kz) + &
-                      !  (var(ix+1,:,kz,1))/Pstrat(kz))
-                   end do
-                end do
-             end if
-
-             call reconstruct_MUSCL(rhoBar, rhoTilde_mom, nxx, nyy, nzz, &
+              call reconstruct_MUSCL(iceBar, nIceTilde, nxx, nyy, nzz, &
                   limiterType1)
 
-             uBar = 0.0
+            elseif(iVar .eq. inQ) then
 
-             do kz = 0, nz + 1
-                do ix = - nbx, nx + nbx - 1
-                   uBar(ix, :, kz) = var(ix, :, kz, 2)
+              call reconstruct_MUSCL(iceBar, qIceTilde, nxx, nyy, nzz, &
+                  limiterType1)
+
+            elseif(iVar .eq. inQv) then
+
+              call reconstruct_MUSCL(iceBar, qvTilde, nxx, nyy, nzz, &
+                  limiterType1)
+
+            end if
+          end do !ii
+
+        case("tracer")
+
+          tracerBar = 0.0
+          if(topography) then
+            do ix = - nbx, nx + nbx
+              do jy = - nby, ny + nby
+                do kz = 0, nz + 1
+                  if(pStratTFC(ix, jy, kz) == 0.0) then
+                    print *, "ERROR in rec. rho: pStratTFC = 0 at k =", kz
+                    stop
+                  end if
+                  tracerBar(ix, jy, kz) = var(ix, jy, kz, iVart) &
+                      / pStratTFC(ix, jy, kz)
                 end do
-             end do
+              end do
+            end do
+          else
+            do kz = 0, nz + 1
+              if(Pstrat(kz) == 0.0) then
+                print *, "Error in rec. rho: Pstrat(kz) = 0 at k = ", kz
+                stop
+              end if
 
-             call reconstruct_MUSCL(uBar, uTilde, nxx, nyy, nzz, limiterType1)
+              tracerBar(:, :, kz) = var(:, :, kz, iVart) / Pstrat(kz)
+            end do
+          end if
 
-             uTilde = uTilde * rhoTilde_mom
+          call reconstruct_MUSCL(tracerBar, tracerTilde, nxx, nyy, nzz, &
+              limiterType1)
 
-             ! reconstruct momentum in y direction
+        case default
+          stop "reconstruction: unknown case variable."
+        end select
 
-             rhoBar = 0.0
+        ! muscl2: accurate (???) but expensive
+      case("muscl2")
+
+        select case(variable)
+
+        case("rho")
+
+          !UAB
+          rhoBar = 0.0
+          do kz = 0, nz + 1
+            if(Pstrat(kz) == 0.0) then
+              print *, 'ERROR in rec. rho: Pstrat(kz) = 0 at kz =', kz
+              stop
+            end if
+            rhoBar(:, :, kz) = (var(:, :, kz, 1)) / Pstrat(kz)
+          end do
+          call reconstruct_MUSCL(rhoBar, rhoTilde, nxx, nyy, nzz, limiterType1)
+          !UAE
+
+        case("rhop")
+
+          !UAB
+          rhopBar = 0.0
+          do kz = 0, nz + 1
+            if(Pstrat(kz) == 0.0) then
+              print *, 'ERROR in rec. rhop: Pstrat(kz) = 0 at kz =', kz
+              stop
+            end if
+            rhopBar(:, :, kz) = var(:, :, kz, 6) / Pstrat(kz)
+          end do
+          call reconstruct_MUSCL(rhopBar, rhopTilde, nxx, nyy, nzz, &
+              limiterType1)
+          !UAE
+
+        case("uvw")
+
+          !UAB
+          ! reconstruct specific momenta \rho \vec{v}/P
+          ! for this \rho/P and \vec v are reconstructed each and then the
+          ! product of the two is taken
+
+          ! reconstruct momentum in x direction
+
+          rhoBar = 0.0
+
+          if(fluctuationMode) then
+            do kz = 0, nz + 1
+              if(Pstrat(kz) == 0.0) then
+                print *, 'ERROR in rec. u: Pstrat(kz) = 0 at kz =', kz
+                stop
+              end if
+              do ix = - nbx, nx + nbx - 1
+                rhoBar(ix, :, kz) = (0.5 * (var(ix, :, kz, 1) + var(ix + 1, :, &
+                    kz, 1)) + rhoStrat(kz)) / Pstrat(kz)
+                !FS:
+                ! = 0.5*&
+                !   ((var(ix,:,kz,1)+rhoStrat(kz))/Pstrat(kz) + &
+                !   (var(ix+1,:,kz,1)+rhoStrat(kz))/Pstrat(kz))
+              end do
+            end do
+          else
+            do kz = 0, nz + 1
+              if(Pstrat(kz) == 0.0) then
+                print *, 'ERROR in rec. u: Pstrat(kz) = 0 at kz =', kz
+                stop
+              end if
+              do ix = - nbx, nx + nbx - 1
+                rhoBar(ix, :, kz) = 0.5 * (var(ix, :, kz, 1) + var(ix + 1, :, &
+                    kz, 1)) / Pstrat(kz)
+                !FS:
+                != 0.5*&
+                !  ((var(ix,:,kz,1))/Pstrat(kz) + &
+                !  (var(ix+1,:,kz,1))/Pstrat(kz))
+              end do
+            end do
+          end if
+
+          call reconstruct_MUSCL(rhoBar, rhoTilde_mom, nxx, nyy, nzz, &
+              limiterType1)
+
+          uBar = 0.0
+
+          do kz = 0, nz + 1
+            do ix = - nbx, nx + nbx - 1
+              uBar(ix, :, kz) = var(ix, :, kz, 2)
+            end do
+          end do
+
+          call reconstruct_MUSCL(uBar, uTilde, nxx, nyy, nzz, limiterType1)
+
+          uTilde = uTilde * rhoTilde_mom
+
+          ! reconstruct momentum in y direction
+
+          rhoBar = 0.0
 
           if(fluctuationMode) then
             do kz = 0, nz + 1
@@ -592,24 +648,24 @@ module flux_module
             end do
           end if
 
-             call reconstruct_MUSCL(rhoBar, rhoTilde_mom, nxx, nyy, nzz, &
-                  limiterType1)
+          call reconstruct_MUSCL(rhoBar, rhoTilde_mom, nxx, nyy, nzz, &
+              limiterType1)
 
-             vBar = 0.0
+          vBar = 0.0
 
-             do kz = 0, nz + 1
-                do jy = - nby, ny + nby - 1
-                   vBar(:, jy, kz) = var(:, jy, kz, 3)
-                end do
-             end do
+          do kz = 0, nz + 1
+            do jy = - nby, ny + nby - 1
+              vBar(:, jy, kz) = var(:, jy, kz, 3)
+            end do
+          end do
 
-             call reconstruct_MUSCL(vBar, vTilde, nxx, nyy, nzz, limiterType1)
+          call reconstruct_MUSCL(vBar, vTilde, nxx, nyy, nzz, limiterType1)
 
-             vTilde = vTilde * rhoTilde_mom
+          vTilde = vTilde * rhoTilde_mom
 
-             ! reconstruct momentum in z direction
+          ! reconstruct momentum in z direction
 
-             rhoBar = 0.0
+          rhoBar = 0.0
 
           if(fluctuationMode) then
             do kz = 0, nz + 1
@@ -639,53 +695,54 @@ module flux_module
             end do
           end if
 
-             call reconstruct_MUSCL(rhoBar, rhoTilde_mom, nxx, nyy, nzz, &
-                  limiterType1)
+          call reconstruct_MUSCL(rhoBar, rhoTilde_mom, nxx, nyy, nzz, &
+              limiterType1)
 
-             wBar = 0.0
+          wBar = 0.0
 
-             do kz = 0, nz + 1
-                wBar(:, :, kz) = var(:, :, kz, 4)
-             end do
+          do kz = 0, nz + 1
+            wBar(:, :, kz) = var(:, :, kz, 4)
+          end do
 
-             call reconstruct_MUSCL(wBar, wTilde, nxx, nyy, nzz, limiterType1)
+          call reconstruct_MUSCL(wBar, wTilde, nxx, nyy, nzz, limiterType1)
 
-             wTilde = wTilde * rhoTilde_mom
-             !UAE
+          wTilde = wTilde * rhoTilde_mom
+          !UAE
 
-          case ("theta")
+        case("theta")
 
-             thetaBar(:, :, :) = var(:, :, :, 6)
-             call reconstruct_MUSCL(thetaBar, thetaTilde, nxx, nyy, nzz, &
-                  limiterType1)
+          thetaBar(:, :, :) = var(:, :, :, 6)
+          call reconstruct_MUSCL(thetaBar, thetaTilde, nxx, nyy, nzz, &
+              limiterType1)
 
-          case ("ice")
+        case("ice")
 
-             if (include_ice) then
+          if(include_ice) then
 
-                nAerBar(:, :, :) = var(:, :, :, nVar - 3)
-                nIceBar(:, :, :) = var(:, :, :, nVar - 2)
-                qIceBar(:, :, :) = var(:, :, :, nVar - 1)
-                qvBar(:, :, :) = var(:, :, :, nVar)
+            nAerBar(:, :, :) = var(:, :, :, nVar - 3)
+            nIceBar(:, :, :) = var(:, :, :, nVar - 2)
+            qIceBar(:, :, :) = var(:, :, :, nVar - 1)
+            qvBar(:, :, :) = var(:, :, :, nVar)
 
-                call reconstruct_MUSCL(nIceBar, nIceTilde, nxx, nyy, nzz, &
-                     limiterType1)
-                call reconstruct_MUSCL(qIceBar, qIceTilde, nxx, nyy, nzz, &
-                     limiterType1)
-                call reconstruct_MUSCL(qvBar, qvTilde, nxx, nyy, nzz, limiterType1)
+            call reconstruct_MUSCL(nIceBar, nIceTilde, nxx, nyy, nzz, &
+                limiterType1)
+            call reconstruct_MUSCL(qIceBar, qIceTilde, nxx, nyy, nzz, &
+                limiterType1)
+            call reconstruct_MUSCL(qvBar, qvTilde, nxx, nyy, nzz, limiterType1)
 
-             end if
+          end if
 
-         
+        case("ice2")
 
+          print *, 'reconstruction: muscl2 does not work with ice2'
 
-          case default
-             stop "reconstruction: unknown case variable."
-          end select
+        case default
+          stop "reconstruction: unknown case variable."
+        end select
 
-       case default
-          stop "reconstruction: unknown case musclType."
-       end select
+      case default
+        stop "reconstruction: unknown case musclType."
+      end select
 
       !---------------------------
       !     no reconstruction
@@ -742,17 +799,17 @@ module flux_module
           call reconstruct_SALD(qIceBar, qIceTilde)
           call reconstruct_SALD(qvBar, qvTilde)
 
-       end if
+        end if
 
-    case ("tracer")
+      case("tracer")
 
-       if (include_tracer) then
+        if(include_tracer) then
 
           tracerBar(:, :, :) = var(:, :, :, iVart)
 
           call reconstruct_SALD(tracerBar, tracerTilde)
 
-       end if
+        end if
 
       case default
         stop "reconstruction: unknown case variable."
@@ -805,17 +862,17 @@ module flux_module
           call reconstruct_ALDM(qIceBar, qIceTilde)
           call reconstruct_ALDM(qvBar, qvTilde)
 
-       end if
+        end if
 
-    case ("tracer")
+      case("tracer")
 
-       if (include_tracer) then
+        if(include_tracer) then
 
           tracerBar(:, :, :) = var(:, :, :, iVart)
 
           call reconstruct_ALDM(tracerBar, tracerTilde)
 
-       end if
+        end if
 
       case default
         stop "reconstruction: unknown case variable."
@@ -2572,212 +2629,209 @@ module flux_module
 
   end subroutine massFlux_0
 
-
   !---------------------------------------------------------------------------
-  subroutine tracerFlux (vara,var,flux,fluxmode,Pstrata,PStratTildea)
+  subroutine tracerFlux(vara, var, flux, fluxmode, Pstrata, PStratTildea)
     implicit none
-    
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         & intent(in) :: vara , var
-    character(len=*), intent(in) :: fluxmode
 
-    real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), &
-         & intent(out) :: flux
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: vara, var
+    character(len = *), intent(in) :: fluxmode
 
-    real, dimension(-1:nz+2), intent(in) :: PStrata,  PStratTildea
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(out) :: flux
 
-    integer :: i,j,k,l
-    real :: tracerL , tracerR, uL,uR       ! L=Left i-1/2, R=Right i+1/2
-    real :: tracerB , tracerF, vB,vF       ! B=Backward j-1/2, F=Forward j+1/2
-    real :: tracerD , tracerU, wD,wU       ! D=Downward k-1/2, U=Upward k+1/2
-    real :: uSurf, vSurf , wSurf    ! velocities at cell surface
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: rho
+    real, dimension(- 1:nz + 2), intent(in) :: PStrata, PStratTildea
+
+    integer :: i, j, k, l
+    real :: tracerL, tracerR, uL, uR ! L=Left i-1/2, R=Right i+1/2
+    real :: tracerB, tracerF, vB, vF ! B=Backward j-1/2, F=Forward j+1/2
+    real :: tracerD, tracerU, wD, wU ! D=Downward k-1/2, U=Upward k+1/2
+    real :: uSurf, vSurf, wSurf ! velocities at cell surface
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz) :: rho
 
     real :: rhoStratEdgeR, rhoStratEdgeF, rhoStratEdgeU
     real :: pEdgeR, pEdgeF, pEdgeU
 
-    real  :: fTracer, gTracer, hTracer
-         
+    real :: fTracer, gTracer, hTracer
 
-    if (TurbScheme) then
-       stop "fluxes.f90: TurbScheme not implemented for tracer."
+    if(TurbScheme) then
+      stop "fluxes.f90: TurbScheme not implemented for tracer."
     end if
 
     !-----------------------------------------
     !       Zonal tracer fluxes in x: f
     !-----------------------------------------
-    do k = 1,nz
-       do j = 1,ny
-          do i = 0,nx
-             select case( fluxType )
-             case( "central" )
+    do k = 1, nz
+      do j = 1, ny
+        do i = 0, nx
+          select case(fluxType)
+          case("central")
 
-                tracerL = var(  i,j,k,iVart)
-                tracerR = var(i+1,j,k,iVart)
-                
-                if (fluxmode == "nln") then
-                   uSurf = var(i,j,k,2)
-                else if (fluxmode == "lin") then
-                   uSurf = vara(i,j,k,2)
-                else
-                   stop "fluxes.f90/tracerFlux: wrong fluxmode."
-                end if
+            tracerL = var(i, j, k, iVart)
+            tracerR = var(i + 1, j, k, iVart)
 
-                fTracer = uSurf * 0.5 * (tracerL + tracerR)
+            if(fluxmode == "nln") then
+              uSurf = var(i, j, k, 2)
+            else if(fluxmode == "lin") then
+              uSurf = vara(i, j, k, 2)
+            else
+              stop "fluxes.f90/tracerFlux: wrong fluxmode."
+            end if
 
-             case( "upwind" )
+            fTracer = uSurf * 0.5 * (tracerL + tracerR)
 
-                tracerR = tracerTilde(i+1,j,k,1,0)
-                tracerL = tracerTilde(  i,j,k,1,1)
+          case("upwind")
 
-                if (topography) then
-                   pEdgeR = 0.5 * (jac(i,j,k) * pStratTFC(i,j,k) &
-                        + jac(i+1,j,k) * pStratTFC(i+1,j,k))
-                   if (fluxmode == "nln") then
-                      uSurf = pEdgeR * var(i,j,k,2)
-                   else if (fluxmode == "lin") then
-                      uSurf = pEdgeR * vara(i,j,k,2)
-                   else
-                      stop "fluxes.f90: wrong fluxmode"
-                   end if
-                else
-                   if (fluxmode == "nln") then
-                      uSurf = var(i,j,k,2) * Pstrat(k)
-                   else if (fluxmode == "lin") then
-                      uSurf = vara(i,j,k,2) * Pstrata(k)
-                   else
-                      stop "fluxes.f90: wrong fluxmode"
-                   end if
-                end if
+            tracerR = tracerTilde(i + 1, j, k, 1, 0)
+            tracerL = tracerTilde(i, j, k, 1, 1)
 
-                fTracer = flux_muscl(uSurf,tracerL,tracerR)
-                
-             case default
-                stop "fluxes.f90: only fluxType central implemented for tracer."
-             end select
+            if(topography) then
+              pEdgeR = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i + 1, &
+                  j, k) * pStratTFC(i + 1, j, k))
+              if(fluxmode == "nln") then
+                uSurf = pEdgeR * var(i, j, k, 2)
+              else if(fluxmode == "lin") then
+                uSurf = pEdgeR * vara(i, j, k, 2)
+              else
+                stop "fluxes.f90: wrong fluxmode"
+              end if
+            else
+              if(fluxmode == "nln") then
+                uSurf = var(i, j, k, 2) * Pstrat(k)
+              else if(fluxmode == "lin") then
+                uSurf = vara(i, j, k, 2) * Pstrata(k)
+              else
+                stop "fluxes.f90: wrong fluxmode"
+              end if
+            end if
 
-             flux(i,j,k,1,iVart) = fTracer
+            fTracer = flux_muscl(uSurf, tracerL, tracerR)
 
-          end do
-       end do
+          case default
+            stop "fluxes.f90: only fluxType central implemented for tracer."
+          end select
+
+          flux(i, j, k, 1, iVart) = fTracer
+
+        end do
+      end do
     end do
 
     !-----------------------------------
     ! Meridional tracer fluxes in y: g
     !-----------------------------------
-    do k = 1,nz
-       do j = 0,ny
-          do i = 1,nx
-             select case( fluxType )
+    do k = 1, nz
+      do j = 0, ny
+        do i = 1, nx
+          select case(fluxType)
 
-             case( "central" )
+          case("central")
 
-                tracerF = var(i,j+1,k,iVart)
-                tracerB = var(i,  j,k,iVart)
-                
-                if (fluxmode == "nln") then
-                   vSurf = var(i,j,k,3)
-                else if (fluxmode == "lin") then
-                   vSurf = vara(i,j,k,3)
-                else
-                   stop "fluxes.f90/tracerFlux: wrong fluxmode."
-                end if
+            tracerF = var(i, j + 1, k, iVart)
+            tracerB = var(i, j, k, iVart)
 
-                gTracer = vSurf * 0.5 * (tracerF + tracerB)
+            if(fluxmode == "nln") then
+              vSurf = var(i, j, k, 3)
+            else if(fluxmode == "lin") then
+              vSurf = vara(i, j, k, 3)
+            else
+              stop "fluxes.f90/tracerFlux: wrong fluxmode."
+            end if
 
-             case( "upwind" )
+            gTracer = vSurf * 0.5 * (tracerF + tracerB)
 
-                tracerF = tracerTilde(i,j+1,k,2,0)
-                tracerB = tracerTilde(i,  j,k,2,1)
+          case("upwind")
 
-                if (topography) then
-                   pEdgeF = 0.5 * (jac(i,j,k) * pStratTFC(i,j,k) &
-                        + jac(i,j+1,k) * pStratTFC(i,j+1,k))
-                   if (fluxmode == "nln") then
-                      vSurf = pEdgeF * var(i,j,k,3)
-                   else if (fluxmode == "lin") then
-                      vSurf = pEdgeF * vara(i,j,k,3)
-                   else
-                      stop "fluxes.f90: wrong fluxmode"
-                   end if
-                else
-                   if (fluxmode == "nln") then
-                      vSurf = var(i,j,k,3) * Pstrat(k)
-                   else if (fluxmode == "lin") then
-                      vSurf = vara(i,j,k,3) * Pstrata(k)
-                   else
-                      stop "fluxes.f90: wrong fluxmode"
-                   end if
-                end if
-                
-                gTracer = flux_muscl(vSurf,tracerB,tracerF)
+            tracerF = tracerTilde(i, j + 1, k, 2, 0)
+            tracerB = tracerTilde(i, j, k, 2, 1)
 
-             case default
-                stop "fluxes.f90: only fluxType central implemented for tracer."
-             end select
-             flux(i,j,k,2,iVart) = gTracer
-          end do
-       end do
+            if(topography) then
+              pEdgeF = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
+                  + 1, k) * pStratTFC(i, j + 1, k))
+              if(fluxmode == "nln") then
+                vSurf = pEdgeF * var(i, j, k, 3)
+              else if(fluxmode == "lin") then
+                vSurf = pEdgeF * vara(i, j, k, 3)
+              else
+                stop "fluxes.f90: wrong fluxmode"
+              end if
+            else
+              if(fluxmode == "nln") then
+                vSurf = var(i, j, k, 3) * Pstrat(k)
+              else if(fluxmode == "lin") then
+                vSurf = vara(i, j, k, 3) * Pstrata(k)
+              else
+                stop "fluxes.f90: wrong fluxmode"
+              end if
+            end if
+
+            gTracer = flux_muscl(vSurf, tracerB, tracerF)
+
+          case default
+            stop "fluxes.f90: only fluxType central implemented for tracer."
+          end select
+          flux(i, j, k, 2, iVart) = gTracer
+        end do
+      end do
     end do
 
     !--------------------------------
     ! Vertical tracer fluxes in z: h
     !-------------------------------
-    do k = 0,nz
-       do j = 1,ny
-          do i = 1,nx
-             select case( fluxType )
+    do k = 0, nz
+      do j = 1, ny
+        do i = 1, nx
+          select case(fluxType)
 
-             case( "central" )
+          case("central")
 
-                tracerU = var(i,j,k+1,iVart)
-                tracerD = var(i,j,  k,iVart)
-                
-                if (fluxmode == "nln") then
-                   wSurf = var(i,j,k,4)
-                else if (fluxmode == "lin") then
-                   wSurf = vara(i,j,k,4)
-                else
-                   stop "fluxes.f90/tracerFlux: wrong fluxmode."
-                end if
+            tracerU = var(i, j, k + 1, iVart)
+            tracerD = var(i, j, k, iVart)
 
-                hTracer = wSurf * 0.5 * (tracerD + tracerU)
+            if(fluxmode == "nln") then
+              wSurf = var(i, j, k, 4)
+            else if(fluxmode == "lin") then
+              wSurf = vara(i, j, k, 4)
+            else
+              stop "fluxes.f90/tracerFlux: wrong fluxmode."
+            end if
 
-             case( "upwind" )
+            hTracer = wSurf * 0.5 * (tracerD + tracerU)
 
-                tracerU = tracerTilde(i,j,k+1,3,0)
-                tracerD = tracerTilde(i,j,  k,3,1)
-                
-                if (topography) then
-                    pEdgeU = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) &
-                             + jac(i, j, k + 1) * pStratTFC(i, j, k + 1))
-                    if(fluxmode == "nln") then
-                       wSurf = pEdgeU * var(i, j, k, 4)
-                    else if(fluxmode == "lin") then
-                       wSurf = pEdgeU * vara(i, j, k, 4)
-                    else
-                       stop "fluxes.f90: wrong fluxmode"
-                    end if
-                else
-                   if (fluxmode == "nln") then
-                      wSurf = var(i,j,k,4) * PstratTilde(k)
-                   else if (fluxmode == "lin") then
-                      wSurf = vara(i,j,k,4) * PstratTildea(k)
-                   else
-                      stop "fluxes.f90: wrong fluxmode"
-                   end if
-                end if
+          case("upwind")
 
-                hTracer = flux_muscl(wSurf,tracerD,tracerU)
+            tracerU = tracerTilde(i, j, k + 1, 3, 0)
+            tracerD = tracerTilde(i, j, k, 3, 1)
 
-             case default
-                stop "fluxes.f90: only fluxType central implemented for tracer."
-             end select
+            if(topography) then
+              pEdgeU = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, k &
+                  + 1) * pStratTFC(i, j, k + 1))
+              if(fluxmode == "nln") then
+                wSurf = pEdgeU * var(i, j, k, 4)
+              else if(fluxmode == "lin") then
+                wSurf = pEdgeU * vara(i, j, k, 4)
+              else
+                stop "fluxes.f90: wrong fluxmode"
+              end if
+            else
+              if(fluxmode == "nln") then
+                wSurf = var(i, j, k, 4) * PstratTilde(k)
+              else if(fluxmode == "lin") then
+                wSurf = vara(i, j, k, 4) * PstratTildea(k)
+              else
+                stop "fluxes.f90: wrong fluxmode"
+              end if
+            end if
 
-             flux(i,j,k,3,iVart) = hTracer
+            hTracer = flux_muscl(wSurf, tracerD, tracerU)
 
-          end do
-       end do
+          case default
+            stop "fluxes.f90: only fluxType central implemented for tracer."
+          end select
+
+          flux(i, j, k, 3, iVart) = hTracer
+
+        end do
+      end do
     end do
 
   end subroutine tracerFlux
@@ -5875,51 +5929,66 @@ module flux_module
         0:1), stat = allocstat)
     if(allocstat /= 0) stop "fluxes.f90: could not allocate thetaTilde"
 
-    !  nIceTilde
-    allocate(nIceTilde(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 1:3, &
-        0:1), stat = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not allocate nIceTilde"
+    !SD added if
+    if(include_ice .or. include_ice2) then
+      !  nIceTilde
+      allocate(nIceTilde(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 1:3, &
+          0:1), stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not allocate nIceTilde"
 
-    ! qIceTilde
-    allocate(qIceTilde(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 1:3, &
-        0:1), stat = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not allocate qIceTilde"
+      ! qIceTilde
+      allocate(qIceTilde(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 1:3, &
+          0:1), stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not allocate qIceTilde"
 
-    ! qvTilde
-    allocate(qvTilde(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 1:3, &
-        0:1), stat = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not allocate qvTilde"
+      ! qvTilde
+      allocate(qvTilde(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 1:3, &
+          0:1), stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not allocate qvTilde"
 
-    ! nAerTilde
-    allocate(nAerTilde(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 1:3, &
-        0:1), stat = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not allocate nAerTilde"
+      ! nAerTilde
+      allocate(nAerTilde(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 1:3, &
+          0:1), stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not allocate nAerTilde"
+    end if
 
-    ! nIceBar
-    allocate(nIceBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+    !SD
+    if(include_ice) then
+      ! nIceBar
+      allocate(nIceBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not allocate nIceBar"
+
+      ! qIceBar
+      allocate(qIceBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not allocate qIceBar"
+
+      ! qvBar
+      allocate(qvBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not allocate qvBar"
+
+      ! nAerBar
+      allocate(nAerBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not allocate nAerBar"
+    end if
+
+    if(include_ice2) then
+
+      allocate(IceBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not allocate IceBar"
+
+    end if
+
+    allocate(tracerBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
         = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not allocate nIceBar"
-
-    ! qIceBar
-    allocate(qIceBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
-        = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not allocate qIceBar"
-
-    ! qvBar
-    allocate(qvBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
-        = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not allocate qvBar"
-
-    ! nAerBar
-    allocate(nAerBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
-        = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not allocate nAerBar"
-
-    allocate(tracerBar(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz),stat=allocstat)
     if(allocstat /= 0) stop "fluxes.f90: could not allocate tracerBar"
 
-    allocate(tracerTilde(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,1:3,0:1),&
-         & stat=allocstat)
+    allocate(tracerTilde(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 1:3, &
+        0:1), stat = allocstat)
     if(allocstat /= 0) stop "fluxes.f90: could not allocate tracerTilde"
 
     ! TFC FJ
@@ -6002,37 +6071,55 @@ module flux_module
     deallocate(thetaTilde, stat = allocstat)
     if(allocstat /= 0) stop "fluxes.f90: could not deallocate thetaTilde"
 
-    deallocate(nIceTilde, stat = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not deallocate nIceTilde"
+    !SD
+    if(include_ice .or. include_ice2) then
 
-    deallocate(qIceTilde, stat = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not deallocate qIceTilde"
+      deallocate(nIceTilde, stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not deallocate nIceTilde"
 
-    deallocate(qvTilde, stat = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not deallocate qvTilde"
+      deallocate(qIceTilde, stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not deallocate qIceTilde"
 
-    deallocate(nAerTilde, stat = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not deallocate nAerTilde"
+      deallocate(qvTilde, stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not deallocate qvTilde"
 
-    deallocate(nIceBar, stat = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not deallocate nIceBar"
+      deallocate(nAerTilde, stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not deallocate nAerTilde"
 
-    deallocate(qIceBar, stat = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not deallocate qIceBar"
-
-    deallocate(qvBar, stat = allocstat)
-    if(allocstat /= 0) stop "fluxes.f90: could not deallocate qvBar"
-
-    deallocate (nAerBar, stat = allocstat)
-    if (allocstat /= 0) stop "fluxes.f90: could not deallocate nAerBar"
-    if (include_tracer) then
-       deallocate(tracerBar,stat=allocstat)
-       if(allocstat /= 0) stop "fluxes.f90: could not deallocate tracerBar"
-
-       deallocate(tracerTilde,stat=allocstat)
-       if(allocstat /= 0) stop "fluxes.f90: could not deallocate tracerTilde"
     end if
-    
+
+    !SD
+    if(include_ice) then
+
+      deallocate(nIceBar, stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not deallocate nIceBar"
+
+      deallocate(qIceBar, stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not deallocate qIceBar"
+
+      deallocate(qvBar, stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not deallocate qvBar"
+
+      deallocate(nAerBar, stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not deallocate nAerBar"
+
+    endif
+
+    if(include_ice2) then
+
+      deallocate(IceBar, stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not deallocate IceBar"
+
+    end if
+
+    if(include_tracer) then
+      deallocate(tracerBar, stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not deallocate tracerBar"
+
+      deallocate(tracerTilde, stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not deallocate tracerTilde"
+    end if
+
     ! TFC FJ
     if(topography) then
 
@@ -6368,10 +6455,10 @@ module flux_module
         print *, "flux divergence = ", sumOut2
         if(.not. testTFC) then
           recTFC = (iOut - 2) * nStages + RKStage
-          open (42, file = "momentum_flux_divergence_error.dat", form &
+          open(42, file = "momentum_flux_divergence_error.dat", form &
               = "unformatted", access = "direct", recl = 2 * sizeofreal4)
-          write (42, rec = recTFC) sumOut1, sumOut2
-          close (42)
+          write(42, rec = recTFC) sumOut1, sumOut2
+          close(42)
         end if
       end if
 
@@ -6408,5 +6495,429 @@ module flux_module
     print *, "Mass flux difference (lin):", maxval(abs(flux_tfc - flux))
 
   end subroutine massFluxTestTFC
+
+  subroutine ice2Flux(vara, var, flux, fluxmode, Pstrata, PStratTildea)
+    !---------------------------------------------------------------------
+    ! computes the tracer flux at all cell edges using reconstructed values
+    ! fluxmode = lin => linear flux, advecting velocities prescribed in
+    !                   vara
+    !            nln => nonlinear flux, advecting velocities from var
+    !
+    ! MUSCL assumes that the reconstructed tracer is tracer/P
+    !---------------------------------------------------------------------
+    implicit none
+
+    ! in/out variables
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: vara, var
+    character(len = *), intent(in) :: fluxmode
+
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(out) :: flux
+    ! flux(i,j,k,dir,iFlux)
+    ! dir = 1..3 > f,g,h-flux in x,y,z-direction
+    ! iFlux = 1..nVar > fRho, fRhoU, rRhoV, fRhoW, fRho
+    real, dimension(- 1:nz + 2), intent(in) :: PStrata, PStratTildea
+
+    integer :: i, j, k !,l
+    !    real :: rhoL,rhoR, uL,uR       ! L=Left i-1/2, R=Right i+1/2
+    !    real :: rhoB,rhoF, vB,vF       ! B=Backward j-1/2, F=Forward j+1/2
+    !    real :: rhoD,rhoU, wD,wU       ! D=Downward k-1/2, U=Upward k+1/2
+    real :: uSurf, vSurf, wSurf ! velocities at cell surface
+
+    real :: iceL, iceR ! L=Left i-1/2, R=Right i+1/2
+    real :: fIce, gIce, hIce
+
+    ! TFC FJ
+    real :: rhoStratEdgeR, rhoStratEdgeF, rhoStratEdgeU
+    real :: pEdgeR, pEdgeF, pEdgeU
+
+    !    real  :: fRho, gRho, hRho
+
+    ! avoid abs() for linerisation
+    real :: delta
+    real, parameter :: delta0 = 1.0e-6
+
+    !   variables for the turbulence scheme
+    real :: Pr_turb
+    real :: coef_t, drho_dxi, dtht_dxi
+
+    real :: delta_hs, delta_vs
+
+    integer :: iVar, ii
+
+    Pr_turb = 1.0 !0.5   !FS
+
+    ! squared grid scales for the anisotropic turbulence scheme
+
+    if(TurbScheme) then
+      if(ny == 1 .and. nx == 1) then
+        stop'ERROR: turbulence scheme assumes either nx > 1 or ny > 1'
+      else
+        if(nx == 1) then
+          delta_hs = dy ** 2 ! 2D problems in y and z
+        else if(ny == 1) then
+          delta_hs = dx ** 2 ! 2D problems in x and z
+        else
+          delta_hs = dx * dy ! 3D problems
+
+          if(dx / dy > 10.) then
+            print *, 'WARNING: dx/dy > 10!'
+            print *, 'The turbulence scheme is not ready for such  horizontal &
+                grid anisotropies!'
+          elseif(dy / dx > 10.) then
+            print *, 'WARNING: dy/dx > 10!'
+            print *, 'The turbulence scheme is not ready for such  horizontal &
+                grid anisotropies!'
+          end if
+        end if
+
+        delta_vs = dz ** 2
+      end if
+    end if
+
+    do ii = 1, nVarIce
+      iVar = iVarIce(ii)
+
+      !-----------------------------------------
+      !       Zonal rho fluxes in x: f
+      !-----------------------------------------
+
+      do k = 1, nz
+        do j = 1, ny
+          do i = 0, nx
+
+            select case(fluxType)
+
+            case("central")
+
+              !!$                if( fluctuationMode ) then
+              !!$                   rhoL = var(i,j,k,1) + rhoStrat(k)
+              !!$                   rhoR = var(i+1,j,k,1) + rhoStrat(k)
+              !!$                else
+              !!$                   rhoL = var(i,j,k,1)
+              !!$                   rhoR = var(i+1,j,k,1)
+              !!$                end if
+
+              iceR = var(i + 1, j, k, iVar)
+              iceL = var(i, j, k, iVar)
+
+              if(fluxmode == "nln") then
+                uSurf = var(i, j, k, 2)
+              else if(fluxmode == "lin") then
+                uSurf = vara(i, j, k, 2)
+              else
+                stop'ERROR: worng fluxmode'
+              end if
+
+              fIce = uSurf * 0.5 * (iceL + iceR)
+
+            case("upwind")
+
+              !!$                if( fluctuationMode ) then
+              !!$                    if(topography) then
+              !!$                        ! TFC FJ
+              !!$                        ! Adjust for 3D fields.
+              !!$                        rhoStratEdgeR = 0.5 * (rhoStratTFC(i, j, k) &
+              !!$                                        + rhoStratTFC(i + 1, j, k))
+              !!$                        pEdgeR = 0.5 * (pStratTFC(i, j, k) &
+              !!$                                 + pStratTFC(i + 1, j, k))
+              !!$                        rhoR = rhoTilde(i + 1, j, k, 1, 0) &
+              !!$                               + rhoStratEdgeR / pEdgeR
+              !!$                        rhoL = rhoTilde(i, j, k, 1, 1) &
+              !!$                               + rhoStratEdgeR / pEdgeR
+              !!$                    else
+              !!$                        !UAB reference density to be divided by P as well!
+              !!$                        rhoR = rhoTilde(i+1,j,k,1,0)+ rhoStrat(k)/Pstrat(k)
+              !!$                        rhoL = rhoTilde(i,j,k,1,1)+ rhoStrat(k)/Pstrat(k)
+              !!$                        !UAE
+              !!$                    end if
+              !!$                else
+              !!$                   rhoR = rhoTilde(i+1,j,k,1,0)
+              !!$                    rhoL = rhoTilde(i,j,k,1,1)
+              !!$                end if
+
+              if(iVar .eq. inN) then
+
+                iceR = nIceTilde(i + 1, j, k, 1, 0)
+                iceL = nIceTilde(i, j, k, 1, 1)
+
+              elseif(iVar .eq. inQ) then
+
+                iceR = qIceTilde(i + 1, j, k, 1, 0)
+                iceL = qIceTilde(i, j, k, 1, 1)
+
+              elseif(iVar .eq. inQv) then
+
+                iceR = qvTilde(i + 1, j, k, 1, 0)
+                iceL = qvTilde(i, j, k, 1, 1)
+
+              end if
+
+              if(topography) then
+                ! TFC FJ
+                pEdgeR = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i + 1, &
+                    j, k) * pStratTFC(i + 1, j, k))
+                if(fluxmode == "nln") then
+                  uSurf = pEdgeR * var(i, j, k, 2)
+                else if(fluxmode == "lin") then
+                  uSurf = pEdgeR * vara(i, j, k, 2)
+                else
+                  stop "ERROR: wrong fluxmode"
+                end if
+              else
+                if(fluxmode == "nln") then
+                  uSurf = var(i, j, k, 2) * Pstrat(k) !UA
+                else if(fluxmode == "lin") then
+                  uSurf = vara(i, j, k, 2) * Pstrata(k) !UA
+                else
+                  stop'ERROR: worng fluxmode'
+                end if
+              end if
+
+              fIce = flux_muscl(uSurf, iceL, iceR)
+
+            case("ILES")
+              print *, 'ice2Flux does not work with ILES'
+              stop
+
+            case default
+              stop"ice2Flux: unknown case fluxType"
+            end select
+
+            flux(i, j, k, 1, iVar) = fIce
+
+          end do
+        end do
+      end do
+
+      !-----------------------------------------
+      !    Meridional rho fluxes in y: g
+      !-----------------------------------------
+
+      do k = 1, nz
+        do j = 0, ny
+          do i = 1, nx
+
+            select case(fluxType)
+
+            case("central")
+              !!$                   if( fluctuationMode ) then
+              !!$                      rhoF = var(i,j+1,k,1) + rhoStrat(k)
+              !!$                      rhoB = var(i,j,k,1)   + rhoStrat(k)
+              !!$                   else
+              !!$                      rhoF = var(i,j+1,k,1)
+              !!$                      rhoB = var(i,j,k,1)
+              !!$                   end if
+
+              iceR = var(i, j + 1, k, iVar)
+              iceL = var(i, j, k, iVar)
+
+              if(fluxmode == "nln") then
+                vSurf = var(i, j, k, 3)
+              else if(fluxmode == "lin") then
+                vSurf = vara(i, j, k, 3)
+              else
+                stop'ERROR: worng fluxmode'
+              end if
+
+              gIce = vSurf * 0.5 * (iceL + iceR)
+
+            case("upwind")
+              !!$                   if( fluctuationMode ) then
+              !!$                      if(topography) then
+              !!$                         ! TFC FJ
+              !!$                         ! Adjust for 3D fields.
+              !!$                         rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) &
+              !!$                              + rhoStratTFC(i, j + 1, k))
+              !!$                         pEdgeF = 0.5 * (pStratTFC(i, j, k) &
+              !!$                              + pStratTFC(i, j + 1, k))
+              !!$                         rhoF = rhoTilde(i, j + 1, k, 2, 0) &
+              !!$                              + rhoStratEdgeF / pEdgeF
+              !!$                         rhoB = rhoTilde(i, j, k, 2, 1) &
+              !!$                              + rhoStratEdgeF / pEdgeF
+              !!$                      else
+              !!$                         !UAB reference density to be divided by P as well!
+              !!$                         rhoF = rhoTilde(i,j+1,k,2,0) + rhoStrat(k)/Pstrat(k)
+              !!$                         rhoB = rhoTilde(i,j,k,2,1)   + rhoStrat(k)/Pstrat(k)
+              !!$                         !UAE
+              !!$                      end if
+              !!$                   else
+              !!$                      rhoF = rhoTilde(i,j+1,k,2,0)
+              !!$                      rhoB = rhoTilde(i,j,k,2,1)
+              !!$                   end if
+
+              if(iVar .eq. inN) then
+
+                iceR = nIceTilde(i, j + 1, k, 2, 0)
+                iceL = nIceTilde(i, j, k, 2, 1)
+
+              elseif(iVar .eq. inQ) then
+
+                iceR = qIceTilde(i, j + 1, k, 2, 0)
+                iceL = qIceTilde(i, j, k, 2, 1)
+
+              elseif(iVar .eq. inQv) then
+
+                iceR = qvTilde(i, j + 1, k, 2, 0)
+                iceL = qvTilde(i, j, k, 2, 1)
+
+              end if
+
+              if(topography) then
+                ! TFC FJ
+                pEdgeF = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
+                    + 1, k) * pStratTFC(i, j + 1, k))
+                if(fluxmode == "nln") then
+                  vSurf = pEdgeF * var(i, j, k, 3)
+                else if(fluxmode == "lin") then
+                  vSurf = pEdgeF * vara(i, j, k, 3)
+                else
+                  stop "ERROR: wrong fluxmode"
+                end if
+              else
+                if(fluxmode == "nln") then
+                  vSurf = var(i, j, k, 3) * Pstrat(k) !UA
+                else if(fluxmode == "lin") then
+                  vSurf = vara(i, j, k, 3) * Pstrata(k) !UA
+                else
+                  stop'ERROR: worng fluxmode'
+                end if
+              end if
+
+              gIce = flux_muscl(vSurf, iceL, iceR)
+
+            case("ILES")
+
+              print *, 'ice2Flux does not work with ILES'
+              stop
+
+            case default
+              stop"ice2Flux: unknown case fluxType"
+            end select
+
+            flux(i, j, k, 2, iVar) = gIce
+          end do
+        end do
+      end do
+
+      !-----------------------------------------
+      !      Vertical rho fluxes in z: h
+      !-----------------------------------------
+
+      do k = 0, nz
+        do j = 1, ny
+          do i = 1, nx
+
+            select case(fluxType)
+
+            case("central")
+
+              !!$                if( fluctuationMode ) then
+              !!$                   rhoU = var(i,j,k+1,1) + rhoStratTilde(k)
+              !!$                   ! background rho at half level
+              !!$                   rhoD = var(i,j,k,1)   + rhoStratTilde(k)
+              !!$                else
+              !!$                   rhoU = var(i,j,k+1,1)
+              !!$                   rhoD = var(i,j,k,1)
+              !!$                end if
+
+              iceR = var(i, j, k + 1, iVar)
+              iceL = var(i, j, k, iVar)
+
+              if(fluxmode == "nln") then
+                wSurf = var(i, j, k, 4)
+              else if(fluxmode == "lin") then
+                wSurf = vara(i, j, k, 4)
+              else
+                stop'ERROR: worng fluxmode'
+              end if
+
+              hIce = wSurf * 0.5 * (iceL + iceR)
+
+            case("upwind")
+
+              !!$                if( fluctuationMode ) then
+              !!$                    if(topography) then
+              !!$                        ! TFC FJ
+              !!$                        ! Adjust for 3D fields.
+              !!$                        rhoStratEdgeU = 0.5 * (rhoStratTFC(i, j, k) &
+              !!$                                        + rhoStratTFC(i, j, k + 1))
+              !!$                        pEdgeU = 0.5 * (pStratTFC(i, j, k) &
+              !!$                                 + pStratTFC(i, j, k + 1))
+              !!$                        rhoU = rhoTilde(i, j, k + 1, 3, 0) &
+              !!$                               + rhoStratEdgeU / pEdgeU
+              !!$                        rhoD = rhoTilde(i, j, k, 3, 1) &
+              !!$                               + rhoStratEdgeU / pEdgeU
+              !!$                    else
+              !!$                        ! background at half level
+              !!$                        !UAB reference density to be divided by P as well!
+              !!$                        rhoU = rhoTilde(i,j,k+1,3,0) &
+              !!$                               + rhoStratTilde(k)/PstratTilde(k)
+              !!$                        rhoD = rhoTilde(i,j,k  ,3,1)&
+              !!$                               + rhoStratTilde(k)/PstratTilde(k)
+              !!$                        !UAE
+              !!$                    end if
+              !!$                else
+              !!$                    rhoU = rhoTilde(i,j,k+1,3,0)
+              !!$                    rhoD = rhoTilde(i,j,k,3,1)
+              !!$                end if
+              !!$
+              if(iVar .eq. inN) then
+
+                iceR = nIceTilde(i, j, k + 1, 3, 0)
+                iceL = nIceTilde(i, j, k, 3, 1)
+
+              elseif(iVar .eq. inQ) then
+
+                iceR = qIceTilde(i, j, k + 1, 3, 0)
+                iceL = qIceTilde(i, j, k, 3, 1)
+
+              elseif(iVar .eq. inQv) then
+
+                iceR = qvTilde(i, j, k + 1, 3, 0)
+                iceL = qvTilde(i, j, k, 3, 1)
+
+              end if
+
+              if(topography) then
+                ! TFC FJ
+                pEdgeU = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, &
+                    k + 1) * pStratTFC(i, j, k + 1))
+                if(fluxmode == "nln") then
+                  wSurf = pEdgeU * var(i, j, k, 4)
+                else if(fluxmode == "lin") then
+                  wSurf = pEdgeU * vara(i, j, k, 4)
+                else
+                  stop "ERROR: wrong fluxmode"
+                end if
+              else
+                if(fluxmode == "nln") then
+                  wSurf = var(i, j, k, 4) * PstratTilde(k) !UA
+                else if(fluxmode == "lin") then
+                  wSurf = vara(i, j, k, 4) * PstratTildea(k) !UA
+                else
+                  stop'ERROR: worng fluxmode'
+                end if
+              end if
+
+              hIce = flux_muscl(wSurf, iceL, iceR)
+
+            case("ILES")
+              print *, 'ice2Flux does not work with ILES'
+              stop
+
+            case default
+              stop"rhoFlux: unknown case fluxType"
+            end select
+
+            flux(i, j, k, 3, iVar) = hIce
+
+          end do
+        end do
+      end do
+
+    end do ! ii
+
+  end subroutine ice2Flux
 
 end module flux_module
