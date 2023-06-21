@@ -1,8 +1,8 @@
 # Makefile of PincFlowMSGWAM
 
 # Set compiler.
-FC = mpif90
-#FC = mpiifort
+#FC = mpif90
+FC = mpiifort
 COMPILER = $(shell echo `$(FC) --version` | sed 's/ .*//')
 
 # Set flags.
