@@ -11,8 +11,8 @@ data_path = "/scratch/atmodynamics/dolaptchiev/PF/runs"
 ref_path = "/scratch/atmodynamics/dolaptchiev/PF/pinc/reference"
 
 # Import data.
-data = tools.ModelOutput(data_path+"/hotBubble3D/")
-reference = tools.ModelOutput(ref_path+"/hotBubble3D/")
+data = tools.ModelOutput(data_path+"/hotBubble/")
+reference = tools.ModelOutput(ref_path+"/hotBubble/")
 
 # Adjust coordinate unit.
 data.xx *= 0.001

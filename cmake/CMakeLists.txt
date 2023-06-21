@@ -65,6 +65,9 @@ add_executable(pinc
         ../src/output.f90
         ../src/finish.f90
         ../src/ice.f90
+        ../src/ice2.f90
+        ../src/ice2_sub.f90
+        ../src/tracer.f90
         ../src/pinc.f90
         )
 

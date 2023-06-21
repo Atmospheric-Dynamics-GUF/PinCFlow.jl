@@ -1,11 +1,21 @@
 import numpy
 import matplotlib.pyplot as pyplot
 import tools
-import style
+#import style
+
+data_path = "/scratch/atmodynamics/dolaptchiev/PF/runs"
+ref_path = "/scratch/atmodynamics/dolaptchiev/PF/pinc/reference"
 
 # Import data.
-data = tools.ModelOutput("../IGW/")
-reference = tools.ModelOutput("../IGW/")
+data = tools.ModelOutput(data_path+"/IGW/")
+reference = tools.ModelOutput(ref_path+"/IGW/")
+
+# if tracer/ice2 includatmoed: 
+#import sys
+#file_index_opt_field = data_path+"/run00/"
+#sys.path.append(file_index_opt_field)
+#from index_opt_field import *
+#print(iTr)
 
 # Set plot parameters.
 choice = "xz"

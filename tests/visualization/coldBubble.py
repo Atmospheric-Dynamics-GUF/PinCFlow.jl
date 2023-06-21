@@ -1,11 +1,14 @@
 import numpy
 import matplotlib.pyplot as pyplot
 import tools
-import style
+#import style
+
+data_path = "/scratch/atmodynamics/dolaptchiev/PF/runs"
+ref_path = "/scratch/atmodynamics/dolaptchiev/PF/pinc/reference"
 
 # Import data.
-data = tools.ModelOutput("../coldBubble/")
-reference = tools.ModelOutput("../coldBubble/")
+data = tools.ModelOutput(data_path+"/coldBubble/")
+reference = tools.ModelOutput(ref_path+"/coldBubble/")
 
 # Set plot parameters.
 choice = "xz"

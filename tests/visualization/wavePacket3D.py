@@ -1,11 +1,14 @@
 import numpy
 import matplotlib.pyplot as pyplot
 import tools
-import style
+#import style
+
+data_path = "/scratch/atmodynamics/dolaptchiev/PF/runs"
+ref_path = "/scratch/atmodynamics/dolaptchiev/PF/pinc/reference"
 
 # Import data.
-data = tools.ModelOutput("../wavePacket3D/")
-reference = tools.ModelOutput("../wavePacket3D/")
+data = tools.ModelOutput(data_path+"/wavePacket3D/")
+reference = tools.ModelOutput(ref_path+"/wavePacket3D/")
 
 # Adust coordinate unit.
 data.xx = 0.001 * data.xx

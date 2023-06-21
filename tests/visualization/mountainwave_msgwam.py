@@ -1,11 +1,14 @@
 import numpy
 import matplotlib.pyplot as pyplot
 import tools
-import style
+#import style
+
+data_path = "/scratch/atmodynamics/dolaptchiev/PF/runs"
+ref_path = "/scratch/atmodynamics/dolaptchiev/PF/pinc/reference"
 
 # Import data.
-data = tools.ModelOutput("../mountainwave_msgwam/")
-reference = tools.ModelOutput("../mountainwave_msgwam/")
+data = tools.ModelOutput(data_path+"/mountainwave_msgwam/")
+reference = tools.ModelOutput(ref_path+"/mountainwave_msgwam/")
 
 # Adust coordinate unit.
 data.xx = 0.001 * data.xx
