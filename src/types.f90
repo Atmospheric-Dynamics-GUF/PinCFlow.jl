@@ -86,8 +86,10 @@ module type_module
   !-----------------------------------------------------------------
   integer :: nVar, nOptVar, iVart
   logical :: include_ice ! controls use of additional ice variables nAer,nIce,qIce and qv
+  logical :: include_ice2 !
   logical :: include_tracer
-  namelist / variables / nVar, nOptVar, include_ice , include_tracer
+  namelist / variables / nVar, nOptVar, include_ice, include_ice2, &
+      include_tracer
 
   !-----------------------------------------------------------------
   !                    Input / Output variables
@@ -805,7 +807,7 @@ module type_module
   !----------------------------------------------------------------
   !                           Tracer
   !----------------------------------------------------------------
-  character(len=20) :: tracerSetup
+  character(len = 20) :: tracerSetup
 
   namelist / tracerList / tracerSetup
 
@@ -839,6 +841,31 @@ module type_module
       ISSR_top, super_simplified, kT_linFit, dv_exp2, cm_dryAir, mu_linFit, &
       sedimentation_on, nucleation_on, evaporation_on, awi_type, &
       SIce_threshold_type
+
+  !SD: Ice physics 2
+  integer, dimension(:), allocatable :: iVarIce
+  integer :: inN, inQ, inQv, nVarIce
+
+  real :: J_nuc !Nucleation rate [#/kg/s]
+  real :: B_nuc !Exponent nucleation function (dimension less)
+  real, parameter :: S_c = 1.5 !Critical saturation ratio
+
+  !  real, parameter :: Mole_mass_water = 18.01528e-3, Mole_mass_dryAir = 28.9644e-3
+  real, parameter :: epsil0 = 0.62 !\approx Mole_mass_water/Mole_mass_dryAir
+  real, parameter :: meanMassIce = 1.E-12 ! mean mass ice crystals [kg]
+  real :: mRef ! reference mass
+  real, parameter :: PsatIceRef = 1 !reference saturation pressure [Pa]
+  real :: Dep ! deposition coefficient
+  real, dimension(:, :, :), allocatable :: PsatIce
+  real, parameter :: thetaRef_trp = 210. ! reference temperature in the tropopause region [K]
+  real, parameter :: L_ice = 2.8E6 ! constant latent heat  ice [J/kg]
+  real, parameter :: R_v = 461. ! specific gas constant for water vapor [J/kg/K]
+
+  real :: thetaRefRatio !thetaRef/thetaRef_tropo_pause
+
+  real :: L_hat, epsil0hat
+  real * 4, dimension(:, :, :, :), allocatable :: ofield
+  namelist / iceList2 / inN, inQ, inQv, nVarIce
 
   contains
 
