@@ -239,9 +239,9 @@
   nbCellCorr = 1
 
   ! sponge layer at upper boundary
-  spongeLayer = .false.     ! sponge with relaxation to background
-  spongeHeight = 0.5      ! relative height of sponge layer
-  spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
+  spongeLayer = .true.     ! sponge with relaxation to background
+  spongeHeight = 0.4      ! relative height of sponge layer
+  spongeAlphaZ_dim = 2.e-1 ! relaxation rate coeff in 1/s
 &end
 
 &boundaryList2
@@ -262,12 +262,12 @@
 
 &outputList
 
-  outputType = "timeStep"      ! timeStep / time
+  outputType = "time"      ! timeStep / time
 
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
-  maxIter = 0             ! stop after maxIter time steps
+  maxIter = 10             ! stop after maxIter time steps
 
   outputTimeDiff = 1.08e4  ! output every ... seconds
   maxTime        = 1.08e4  ! stop after maxTime seconds
