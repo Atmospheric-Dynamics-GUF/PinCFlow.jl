@@ -868,7 +868,7 @@ module poisson_module
 
             ! TFC FJ
             ! Set additional matrix elements for TFC.
-            if (topography) then
+            if(topography) then
               ! ----------------- A(i+1,j,k+1) -----------------
 
               if(k < nz .or. zBoundary == "periodic") then
@@ -2216,11 +2216,11 @@ module poisson_module
       end do
     end do
 
-    if (master) then
-      open (42, file = "linear_operator_test.dat", form = "unformatted", &
-          access = "direct", recl = sizeX * sizeY * sizeZ * sizeofreal4)
-      write (42, rec = 1) diffOut
-      close (42)
+    if(master) then
+      open(42, file = "linear_operator_test.dat", form = "unformatted", access &
+          = "direct", recl = sizeX * sizeY * sizeZ * sizeofreal4)
+      write(42, rec = 1) diffOut
+      close(42)
     end if
 
   end subroutine linearOperatorTestTFC
@@ -6798,7 +6798,7 @@ module poisson_module
 
               ! ------------------ define matrix A -------------------
 
-              if (poissonSolverType == 'bicgstab') then
+              if(poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 acv_b(i, j, k) = ACV
@@ -6948,7 +6948,7 @@ module poisson_module
 
               ! ------------------ define matrix A -------------------
 
-              if (poissonSolverType == 'bicgstab') then
+              if(poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 acv_b(i, j, k) = ACV
@@ -7332,7 +7332,7 @@ module poisson_module
 
             ! ------------------- define matrix A -------------------
 
-            if (poissonSolverType == 'bicgstab') then
+            if(poissonSolverType == 'bicgstab') then
               ac_b(i, j, k) = AC
 
               ach_b(i, j, k) = ACH
@@ -7626,7 +7626,7 @@ module poisson_module
 
               ! ------------------ define matrix A -------------------
 
-              if (poissonSolverType == 'bicgstab') then
+              if(poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 ach_b(i, j, k) = ACH
@@ -8311,7 +8311,7 @@ module poisson_module
               AD = AD / (fcscal * fcscal_d)
               AU = AU / (fcscal * fcscal_u)
 
-              if (poissonSolverType == 'bicgstab') then
+              if(poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 ach_b(i, j, k) = ACH
@@ -10025,7 +10025,7 @@ module poisson_module
 
               ! ------------------- define matrix A -------------------
 
-              if (poissonSolverType == 'bicgstab') then
+              if(poissonSolverType == 'bicgstab') then
                 ac_b(i, j, k) = AC
 
                 ach_b(i, j, k) = ACH

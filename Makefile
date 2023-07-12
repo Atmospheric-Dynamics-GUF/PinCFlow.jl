@@ -7,13 +7,12 @@ COMPILER = $(shell echo `$(FC) --version` | sed 's/ .*//')
 
 # Set flags.
 ifeq ($(COMPILER), ifort)
-  # FCFLAGS=-O0 -fpe0 -check all -real-size 64 -traceback -unroll=4 -ip
-  FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
+  FCFLAGS=-O0 -fpe0 -check all -real-size 64 -traceback -unroll=4 -ip
+  #FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
   MODULEFLAG=-module $(BUILD)
 else # GNU
   # FCFLAGS=-O0 -g -fcheck=all -Wall -Wno-unused-variable -fdefault-real-8 -fbacktrace -funroll-loops -Wno-unused-dummy-argument -Wno-conversion-extra
   FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch
-  # FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch
   MODULEFLAG= -J$(BUILD)
 endif
 
@@ -47,7 +46,10 @@ OFILES =	types.o \
 	pinc.o \
 	ice.o \
 	sizeof.o \
-	tracer.o
+	tracer.o \
+        ice2.o \
+        ice2_sub.o \
+        optField.o
 
 # Add build directory as prefix to path of *.o files.
 OBJ=$(addprefix $(BUILD)/, $(OFILES))
@@ -81,6 +83,7 @@ $(BUILD)/pinc.o: $(BUILD)/update.o
 $(BUILD)/pinc.o: $(BUILD)/poisson.o
 $(BUILD)/pinc.o: $(BUILD)/finish.o
 $(BUILD)/pinc.o: $(BUILD)/tracer.o
+$(BUILD)/pinc.o: $(BUILD)/ice2.o
 
 # fluxes.f90
 $(BUILD)/fluxes.o: $(BUILD)/types.o
@@ -131,6 +134,9 @@ $(BUILD)/init.o: $(BUILD)/mpi.o
 $(BUILD)/init.o: $(BUILD)/boundary.o
 $(BUILD)/init.o: $(BUILD)/sizeof.o
 $(BUILD)/init.o: $(BUILD)/tracer.o
+$(BUILD)/init.o: $(BUILD)/ice2.o
+$(BUILD)/init.o: $(BUILD)/ice2_sub.o
+$(BUILD)/init.o: $(BUILD)/optField.o
 
 # muscl.f90
 $(BUILD)/muscl.o: $(BUILD)/types.o
@@ -146,6 +152,7 @@ $(BUILD)/update.o: $(BUILD)/boundary.o
 # output.f90
 $(BUILD)/output.o: $(BUILD)/types.o
 $(BUILD)/output.o: $(BUILD)/sizeof.o
+$(BUILD)/output.o: $(BUILD)/ice2_sub.o
 
 # finish.f90
 $(BUILD)/finish.o: $(BUILD)/types.o
@@ -153,6 +160,11 @@ $(BUILD)/finish.o: $(BUILD)/types.o
 # ice.f90
 $(BUILD)/ice.o: $(BUILD)/types.o
 $(BUILD)/ice.o: $(BUILD)/atmosphere.o
+
+# ice2.f90
+$(BUILD)/ice2.o: $(BUILD)/types.o
+$(BUILD)/ice2.o: $(BUILD)/atmosphere.o
+$(BUILD)/ice2.o: $(BUILD)/update.o
 
 # cleaning
 TEMP = $(BUILD)/*.o $(BUILD)/*.mod $(BIN)/pinc

@@ -3,7 +3,8 @@ module output_module
   use type_module
   use atmosphere_module
   use sizeof_module
-
+  use ice2_sub_module, ONLY:output_ice
+  use opt_field_mod
   implicit none
 
   private
@@ -117,508 +118,210 @@ module output_module
     end do
     irc_prc = irc_prc * iOut * nz
 
-    if (include_tracer .and. include_ice) then
-       stop "output.f90: tracer and ice not an option yet."
+    if(include_tracer .and. include_ice) then
+      stop "output.f90: tracer and ice not an option yet."
     end if
 
-    if (include_tracer) then
+    do iVar = 1, nVar
+      if(varOut(iVar) == 1) then
+        do k = 1, nz
+          ! dimensionalization
 
-       if (nVar /= 9) stop "output.f90: tracer included but nVar /= 9?"
-       if (iVart /= 9) stop "output.f90: iVart should be 9"
+          do j = 1, ny
+            do i = 1, nx
+              select case(iVar)
 
-       do iVar = 1, nVar
-          if (varOut(iVar) == 1) then
-             do k = 1,nz
-                do j= 1,ny
-                   do i = 1,nx
-                      select case (iVar)
-                      case(1) ! density
-                         field_prc(i,j) = var(i,j,k,1) + rhoStrat(k)
-                         if(fluctuationMode) then
-                            if(rhoOffset) then
-                               field_prc(i,j) = var(i,j,k,iVar) * rhoRef
-                            else
-                               if(topography) then
-                                  ! TFC FJ
-                                  ! Adjustment for 3D background field in
-                                  ! TFC.
-                                  field_prc(i, j) &
-                                       = (var(i, j, k, iVar) &
-                                       + rhoStratTFC(i, j, k)) * rhoRef
-                               else
-                                  field_prc(i,j) &
-                                       = (var(i,j,k,iVar) + rhoStrat(k)) * rhoRef
-                               end if
-                            end if
-                         else
-                            if(rhoOffset) then
-                               field_prc(i,j) &
-                                    = (var(i,j,k,iVar) - rhoStrat(k)) * rhoRef
-                            else
-                               field_prc(i,j) = var(i,j,k,iVar) * rhoRef
-                            end if
-                         end if
-!!$
-                      case(2) ! u velocity
-                         field_prc(i,j) &
-                              = (var(i,j,k,iVar) - offset(iVar)) &
-                              * uRef
-
-                      case(3) ! v velocity
-                         field_prc(i,j) &
-                              = (var(i,j,k,iVar) - offset(iVar)) &
-                              * uRef
-
-                      case(4) ! w velocity
-                         field_prc(i,j) &
-                              = (var(i,j,k,iVar) - offset(iVar)) &
-                              * uRef
-
-                      case(5) ! Exner function pi' (deviation from background)
-                         field_prc(i,j) = var(i,j,k,iVar)
-
-                      case(6) ! potential temperature theta' (deviation from bg)
-
-                         select case(model)
-                         case("pseudo_incompressible")
-                            if (fluctuationMode ) then
-                               if(topography) then
-                                  ! TFC FJ
-                                  rho = var(i, j, k, 1) &
-                                       + rhoStratTFC(i, j, k)
-                               else
-                                  rho = var(i,j,k,1) + rhoStrat(k)
-                               end if
-                            else
-                               rho = var(i,j,k,1)
-                            end if
-                            if(topography) then
-                               ! TFC FJ
-                               theta_dim = pStratTFC(i, j, k) / rho * thetaRef
-                            else
-                               theta_dim = Pstrat(k) / rho * thetaRef
-                            end if
-                            if( thetaOffset ) then
-                               if(topography) then
-                                  theta_dim &
-                                       = theta_dim - thetaStratTFC(i, j, k) &
-                                       * thetaRef
-                               else
-                                  theta_dim &
-                                       = theta_dim - thetaStrat(k)*thetaRef
-                               end if
-                            end if
-                            field_prc(i,j) = theta_dim
-
-                         case( "Boussinesq" )
-                            ! TFC FJ
-                            ! Boussinesq: density fluctuations are stored in
-                            field_prc(i, j) = - var(i, j, k, iVar) * theta00 &
-                                 / rho00 * thetaRef
-
-                         case default
-                            stop "output.f90/output_data: unknown model"
-                         end select ! model
-
-                      case(7) ! dynamic Smagorinsky coefficient (deviation from bg)
-                         field_prc(i,j) = var(i,j,k,iVar) * uRef * lRef
-                      case(8)
-                         stop "output.f90/output_data: iVar = 8 should not be saved"
-                      case(9)
-                         if (iVart /= 9) stop "output.f90: iVart should be 9 if only tracer (no ice)."
-
-                         if(fluctuationMode) then
-                            if(topography) then
-                               ! TFC FJ
-                               ! Adjustment for 3D background field in
-                               ! TFC.
-                               rhotracer &
-                                    = (var(i, j, k, 1) &
-                                    + rhoStratTFC(i, j, k))
-                            else
-                               rhotracer &
-                                    = (var(i,j,k,1) + rhoStrat(k))
-                            end if
-                            !rhotracer = var(i,j,k,iVar)
-                         else
-                            rhotracer = var(i, j, k, 1)
-                         end if
-
-                         !rhotracer = 1.0
-                         
-                         field_prc(i,j) = var(i,j,k,iVart)/rhotracer! * rhoRef
-                      case default
-                         stop "output.f90: unkown iVar in output_data"
-                      end select ! iVar
-                   end do ! i
-                   call mpi_gather(field_prc(1,j),nx,mpi_real,&
-                                   field_mst(1,j),nx,mpi_real,0,comm,ierror)
-                end do ! j
-                irc_prc=irc_prc+1
-                !            write(40,rec=irc_prc) field_prc
-                call mpi_barrier(comm,ierror)
-                if(master) then
-                   do j=1,ny
-                      j_mst=j
-
-                      do j_prc= 1,nprocy
-                         j_out=ny*(j_prc-1)+j
-
-                         do i_prc=1,nprocx
-                            do i=1,nx
-                               i_out=nx*(i_prc-1)+i
-
-                               i_mst=nprocy*nx*(i_prc-1)+(j_prc-1)*nx+i
-
-                               field_out(i_out,j_out)=field_mst(i_mst,j_mst)
-                            end do
-                         end do
-                      end do
-                   end do
-
-                   write(41,rec=irc_prc) field_out
+              case(1) ! density
+                if(fluctuationMode) then
+                  if(rhoOffset) then
+                    field_prc(i, j) = var(i, j, k, iVar) * rhoRef
+                  else
+                    if(topography) then
+                      ! TFC FJ
+                      ! Adjustment for 3D background field in
+                      ! TFC.
+                      field_prc(i, j) = (var(i, j, k, iVar) + rhoStratTFC(i, &
+                          j, k)) * rhoRef
+                    else
+                      field_prc(i, j) = (var(i, j, k, iVar) + rhoStrat(k)) &
+                          * rhoRef
+                    end if
+                  end if
+                else
+                  if(rhoOffset) then
+                    field_prc(i, j) = (var(i, j, k, iVar) - rhoStrat(k)) &
+                        * rhoRef
+                  else
+                    field_prc(i, j) = var(i, j, k, iVar) * rhoRef
+                  end if
                 end if
 
-             end do
-          end if
-       end do ! iVar
+                ! average velocities to cell center
 
+              case(2) ! u velocity
+                field_prc(i, j) = (var(i, j, k, iVar) - offset(iVar)) * uRef
 
-    else if (include_ice .and. .not. include_tracer) then
-       do iVar = 1, nVar
-          if (varOut(iVar)==1) then
-             do k = 1, nz
-                ! dimensionalization
+              case(3) ! v velocity
+                field_prc(i, j) = (var(i, j, k, iVar) - offset(iVar)) * uRef
 
-                do j = 1, ny
-                   do i = 1, nx
-                      select case (iVar)
+              case(4) ! w velocity
+                field_prc(i, j) = (var(i, j, k, iVar) - offset(iVar)) * uRef
 
-                      case(1) ! density
-                         if(fluctuationMode) then
-                            if(rhoOffset) then
-                               field_prc(i,j) = var(i,j,k,iVar) * rhoRef
-                            else
-                               if(topography) then
-                                  ! TFC FJ
-                                  ! Adjustment for 3D background field in
-                                  ! TFC.
-                                  field_prc(i, j) &
-                                       = (var(i, j, k, iVar) &
-                                       + rhoStratTFC(i, j, k)) * rhoRef
-                               else
-                                  field_prc(i,j) &
-                                       = (var(i,j,k,iVar) + rhoStrat(k)) * rhoRef
-                               end if
-                            end if
-                         else
-                            if(rhoOffset) then
-                               field_prc(i,j) &
-                                    = (var(i,j,k,iVar) - rhoStrat(k)) * rhoRef
-                            else
-                               field_prc(i,j) = var(i,j,k,iVar) * rhoRef
-                            end if
-                         end if
+              case(5) ! Exner function pi'
+                !(deviation from background)
 
-                         ! average velocities to cell center
+                field_prc(i, j) = var(i, j, k, iVar)
 
-                      case(2) ! u velocity
-                         field_prc(i,j) &
-                              = (var(i,j,k,iVar) - offset(iVar)) &
-                              * uRef
+              case(6) ! potential temperature theta'
+                ! (deviation from background, Boussinesq)
 
-                      case(3) ! v velocity
-                         field_prc(i,j) &
-                              = (var(i,j,k,iVar) - offset(iVar)) &
-                              * uRef
+                select case(model)
 
-                      case(4) ! w velocity
-                         field_prc(i,j) &
-                              = (var(i,j,k,iVar) - offset(iVar)) &
-                              * uRef
+                case("pseudo_incompressible")
+                  if(fluctuationMode) then
+                    if(topography) then
+                      ! TFC FJ
+                      rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+                    else
+                      rho = var(i, j, k, 1) + rhoStrat(k)
+                    end if
+                  else
+                    rho = var(i, j, k, 1)
+                  end if
 
-                      case(5) ! Exner function pi'
-                         !(deviation from background)
+                  if(topography) then
+                    ! TFC FJ
+                    theta_dim = pStratTFC(i, j, k) / rho * thetaRef
+                  else
+                    theta_dim = Pstrat(k) / rho * thetaRef
+                  end if
 
-                         field_prc(i,j) = var(i,j,k,iVar)
+                  if(thetaOffset) then
+                    if(topography) then
+                      theta_dim = theta_dim - thetaStratTFC(i, j, k) * thetaRef
+                    else
+                      theta_dim = theta_dim - thetaStrat(k) * thetaRef
+                    end if
+                  end if
 
+                  field_prc(i, j) = theta_dim !thetaRef*(PStrat(k+1)/(var(i,j,k+1,1)+rhoStrat(k+1))-PStrat(k-1)/(var(i,j,k-1,1)+rhoStrat(k-1)))/(2.*dz*lRef)!theta_dim
 
+                case("Boussinesq")
+                  ! TFC FJ
+                  ! Boussinesq: density fluctuations are stored in
+                  ! var(:, :, :, 6)!
+                  field_prc(i, j) = - var(i, j, k, iVar) * theta00 / rho00 &
+                      * thetaRef
 
+                  ! field_prc(i,j) = var(i,j,k,iVar)*thetaRef
 
-                      case(6) ! potential temperature theta'
-                         ! (deviation from background, Boussinesq)
+                case("WKB")
 
-                         select case(model)
+                case default
+                  stop "tec360: unknown model"
+                end select ! model
 
-                         case("pseudo_incompressible")
-                            if (fluctuationMode ) then
-                               if(topography) then
-                                  ! TFC FJ
-                                  rho = var(i, j, k, 1) &
-                                       + rhoStratTFC(i, j, k)
-                               else
-                                  rho = var(i,j,k,1) + rhoStrat(k)
-                               end if
-                            else
-                               rho = var(i,j,k,1)
-                            end if
+              case(7) ! dynamic Smagorinsky coefficient
+                !(deviation from background)
+                field_prc(i, j) = var(i, j, k, iVar) * uRef * lRef
 
-                            if(topography) then
-                               ! TFC FJ
-                               theta_dim = pStratTFC(i, j, k) / rho * thetaRef
-                            else
-                               theta_dim = Pstrat(k) / rho * thetaRef
-                            end if
+              case default
 
-                            if( thetaOffset ) then
-                               if(topography) then
-                                  theta_dim &
-                                       = theta_dim - thetaStratTFC(i, j, k) &
-                                       * thetaRef
-                               else
-                                  theta_dim &
-                                       = theta_dim - thetaStrat(k)*thetaRef
-                               end if
-                            end if
+                if(include_ice) then
 
-                            field_prc(i,j) = theta_dim!thetaRef*(PStrat(k+1)/(var(i,j,k+1,1)+rhoStrat(k+1))-PStrat(k-1)/(var(i,j,k-1,1)+rhoStrat(k-1)))/(2.*dz*lRef)!theta_dim
-
-                         case( "Boussinesq" )
-                            ! TFC FJ
-                            ! Boussinesq: density fluctuations are stored in
-                            ! var(:, :, :, 6)!
-                            field_prc(i, j) = - var(i, j, k, iVar) * theta00 &
-                                 / rho00 * thetaRef
-
-                            ! field_prc(i,j) = var(i,j,k,iVar)*thetaRef
-
-                         case( "WKB" )
-
-                         case default
-                            stop "tec360: unknown model"
-                         end select ! model
-
-                      case(7) ! dynamic Smagorinsky coefficient
-                         !(deviation from background)
-                         field_prc(i,j) = var(i,j,k,iVar) * uRef * lRef
-
-                      case default
-
-                         if (include_ice) then
-
-                            if (iVar==nVar-3) then
-                               field_prc(i,j) = real(var(i,j,k,iVar) &
-                                    & / ( rhoRef * lRef**3 ),kind=4)
-                            else if (iVar==nVar-2) then
-                               field_prc(i,j) =  real(var(i,j,k,iVar) &
-                                    & / ( rhoRef * lRef**3 ),kind=4)
-                            else if (iVar==nVar-1) then
-                               field_prc(i,j) = real(var(i,j,k,iVar),kind=4)
-                            else if (iVar==nVar) then
-                               field_prc(i,j) = real(var(i,j,k,iVar),kind=4)
-                            end if
-                            !---------------------------------
-                         else
-                            stop "tec360: unknown iVar in output_data"
-                         end if
-                      end select ! iVar
-                   end do ! i
-                   call mpi_gather(field_prc(1,j),nx,mpi_real,&
-                        field_mst(1,j),nx,mpi_real,0,comm,ierror)
-                end do ! j
-
-                ! layerwise output
-
-                irc_prc=irc_prc+1
-                !            write(40,rec=irc_prc) field_prc
-                call mpi_barrier(comm,ierror)
-                if(master) then
-                   do j=1,ny
-                      j_mst=j
-
-                      do j_prc= 1,nprocy
-                         j_out=ny*(j_prc-1)+j
-
-                         do i_prc=1,nprocx
-                            do i=1,nx
-                               i_out=nx*(i_prc-1)+i
-
-                               i_mst=nprocy*nx*(i_prc-1)+(j_prc-1)*nx+i
-
-                               field_out(i_out,j_out)=field_mst(i_mst,j_mst)
-                            end do
-                         end do
-                      end do
-                   end do
-
-                   write(41,rec=irc_prc) field_out
+                  if(iVar == nVar - 3) then
+                    field_prc(i, j) = real(var(i, j, k, iVar) / (rhoRef * lRef &
+                        ** 3), kind = 4)
+                  else if(iVar == nVar - 2) then
+                    field_prc(i, j) = real(var(i, j, k, iVar) / (rhoRef * lRef &
+                        ** 3), kind = 4)
+                  else if(iVar == nVar - 1) then
+                    field_prc(i, j) = real(var(i, j, k, iVar), kind = 4)
+                  else if(iVar == nVar) then
+                    field_prc(i, j) = real(var(i, j, k, iVar), kind = 4)
+                    !---------------------------------
+                  else
+                    stop "tec360: unknown iVar in output_data"
+                  end if
                 end if
-             end do ! k
-          end if
-       end do ! iVar
-    else if (.not. include_tracer .and. .not. include_ice) then
-       do iVar = 1, nVar
-          if (varOut(iVar)==1) then
-             do k = 1, nz
-                ! dimensionalization
 
-                do j = 1, ny
-                   do i = 1, nx
-                      select case (iVar)
+                if(include_ice2) then
+                  if(any(iVar == iVarIce(:))) then
+                    !We should put dimensions
+                    !field_prc(i,j) = real(var(i,j,k,iVar),kind=4)
 
-                      case(1) ! density
-                         if(fluctuationMode) then
-                            if(rhoOffset) then
-                               field_prc(i,j) = var(i,j,k,iVar) * rhoRef
-                            else
-                               if(topography) then
-                                  ! TFC FJ
-                                  ! Adjustment for 3D background field in
-                                  ! TFC.
-                                  field_prc(i, j) &
-                                       = (var(i, j, k, iVar) &
-                                       + rhoStratTFC(i, j, k)) * rhoRef
-                               else
-                                  field_prc(i,j) &
-                                       = (var(i,j,k,iVar) + rhoStrat(k)) * rhoRef
-                               end if
-                            end if
-                         else
-                            if(rhoOffset) then
-                               field_prc(i,j) &
-                                    = (var(i,j,k,iVar) - rhoStrat(k)) * rhoRef
-                            else
-                               field_prc(i,j) = var(i,j,k,iVar) * rhoRef
-                            end if
-                         end if
+                    !.and. any(iVar == iVarIce)
 
-                         ! average velocities to cell center
-
-                      case(2) ! u velocity
-                         field_prc(i,j) &
-                              = (var(i,j,k,iVar) - offset(iVar)) &
-                              * uRef
-
-                      case(3) ! v velocity
-                         field_prc(i,j) &
-                              = (var(i,j,k,iVar) - offset(iVar)) &
-                              * uRef
-
-                      case(4) ! w velocity
-                         field_prc(i,j) &
-                              = (var(i,j,k,iVar) - offset(iVar)) &
-                              * uRef
-
-                      case(5) ! Exner function pi'
-                         !(deviation from background)
-
-                         field_prc(i,j) = var(i,j,k,iVar)
-
-
-
-
-                      case(6) ! potential temperature theta'
-                         ! (deviation from background, Boussinesq)
-
-                         select case(model)
-
-                         case("pseudo_incompressible")
-                            if (fluctuationMode ) then
-                               if(topography) then
-                                  ! TFC FJ
-                                  rho = var(i, j, k, 1) &
-                                       + rhoStratTFC(i, j, k)
-                               else
-                                  rho = var(i,j,k,1) + rhoStrat(k)
-                               end if
-                            else
-                               rho = var(i,j,k,1)
-                            end if
-
-                            if(topography) then
-                               ! TFC FJ
-                               theta_dim = pStratTFC(i, j, k) / rho * thetaRef
-                            else
-                               theta_dim = Pstrat(k) / rho * thetaRef
-                            end if
-
-                            if( thetaOffset ) then
-                               if(topography) then
-                                  theta_dim &
-                                       = theta_dim - thetaStratTFC(i, j, k) &
-                                       * thetaRef
-                               else
-                                  theta_dim &
-                                       = theta_dim - thetaStrat(k)*thetaRef
-                               end if
-                            end if
-
-                            field_prc(i,j) = theta_dim!thetaRef*(PStrat(k+1)/(var(i,j,k+1,1)+rhoStrat(k+1))-PStrat(k-1)/(var(i,j,k-1,1)+rhoStrat(k-1)))/(2.*dz*lRef)!theta_dim
-
-                         case( "Boussinesq" )
-                            ! TFC FJ
-                            ! Boussinesq: density fluctuations are stored in
-                            ! var(:, :, :, 6)!
-                            field_prc(i, j) = - var(i, j, k, iVar) * theta00 &
-                                 / rho00 * thetaRef
-
-                            ! field_prc(i,j) = var(i,j,k,iVar)*thetaRef
-
-                         case( "WKB" )
-
-                         case default
-                            stop "tec360: unknown model"
-                         end select ! model
-
-                      case(7) ! dynamic Smagorinsky coefficient
-                         !(deviation from background)
-                         field_prc(i,j) = var(i,j,k,iVar) * uRef * lRef
-
-                      case default
-                         stop "tec360: unknown iVar in output_data"
-
-                      end select ! iVar
-                   end do ! i
-                   call mpi_gather(field_prc(1,j),nx,mpi_real,&
-                        field_mst(1,j),nx,mpi_real,0,comm,ierror)
-                end do ! j
-
-                ! layerwise output
-
-                irc_prc=irc_prc+1
-                !            write(40,rec=irc_prc) field_prc
-                call mpi_barrier(comm,ierror)
-                if(master) then
-                   do j=1,ny
-                      j_mst=j
-
-                      do j_prc= 1,nprocy
-                         j_out=ny*(j_prc-1)+j
-
-                         do i_prc=1,nprocx
-                            do i=1,nx
-                               i_out=nx*(i_prc-1)+i
-
-                               i_mst=nprocy*nx*(i_prc-1)+(j_prc-1)*nx+i
-
-                               field_out(i_out,j_out)=field_mst(i_mst,j_mst)
-                            end do
-                         end do
-                      end do
-                   end do
-
-                   write(41,rec=irc_prc) field_out
+                    call output_ice(i, j, k, iVar, var, field_prc)
+                  end if !
                 end if
-             end do ! k
-          end if
-       end do ! iVar
-    end if
 
-    if(master) close(unit=41)
+                if(include_testoutput .and. (iVar .le. iVarO + 2) .and. (iVar &
+                    .ge. iVarO)) then
+                  !if ( iVar .eq. iVarO ) then
+                  field_prc(i, j) = var(i, j, k, iVar)
+                  !end if
+                end if
+
+                if(include_tracer .and. iVar == iVarT) then
+
+                  if(fluctuationMode) then
+                    if(topography) then
+                      ! TFC FJ
+                      ! Adjustment for 3D background field in
+                      ! TFC.
+                      rhotracer = (var(i, j, k, 1) + rhoStratTFC(i, j, k))
+                    else
+                      rhotracer = (var(i, j, k, 1) + rhoStrat(k))
+                    end if
+                    !rhotracer = var(i,j,k,iVar)
+                  else
+                    rhotracer = var(i, j, k, 1)
+                  end if
+
+                  !rhotracer = 1.0
+
+                  field_prc(i, j) = var(i, j, k, iVart) / rhotracer ! * rhoRef
+                end if
+              end select ! iVar
+            end do ! i
+            call mpi_gather(field_prc(1, j), nx, mpi_real, field_mst(1, j), &
+                nx, mpi_real, 0, comm, ierror)
+          end do ! j
+
+          ! layerwise output
+          irc_prc = irc_prc + 1
+          !            write(40,rec=irc_prc) field_prc
+          call mpi_barrier(comm, ierror)
+          if(master) then
+            do j = 1, ny
+              j_mst = j
+
+              do j_prc = 1, nprocy
+                j_out = ny * (j_prc - 1) + j
+
+                do i_prc = 1, nprocx
+                  do i = 1, nx
+                    i_out = nx * (i_prc - 1) + i
+
+                    i_mst = nprocy * nx * (i_prc - 1) + (j_prc - 1) * nx + i
+
+                    field_out(i_out, j_out) = field_mst(i_mst, j_mst)
+                  end do
+                end do
+              end do
+            end do
+
+            write(41, rec = irc_prc) field_out
+          end if
+        end do ! k
+      end if
+    end do ! iVar
+
+    if(master) close(unit = 41)
 
     ! set counter
     iOut = iOut + 1
-    
 
   end subroutine output_data
 
@@ -666,8 +369,8 @@ module output_module
 
     ! open input file
 
-    if (master) then
-      open (40, file = 'pf_all_in.dat', form = "unformatted", access &
+    if(master) then
+      open(40, file = 'pf_all_in.dat', form = "unformatted", access &
           = 'direct', recl = SizeX * SizeY * sizeofreal4)
       print *, "pf_all_in.dat opened"
     end if
@@ -866,8 +569,8 @@ module output_module
 
     ! open output file
 
-    if (master) then
-      open (40, file = 'pf_wkb_mean.dat', form = "unformatted", access &
+    if(master) then
+      open(40, file = 'pf_wkb_mean.dat', form = "unformatted", access &
           = 'direct', recl = SizeX * SizeY * sizeofreal4)
     end if
 
@@ -1070,8 +773,8 @@ module output_module
 
     ! open output file
 
-    if (master) then
-      open (21, file = filename, form = "unformatted", access = 'direct', recl &
+    if(master) then
+      open(21, file = filename, form = "unformatted", access = 'direct', recl &
           = SizeX * SizeY * sizeofreal4)
     end if
 
@@ -1186,8 +889,8 @@ module output_module
 
     ! open output file
 
-    if (master) then
-      open (21, file = filename, form = "unformatted", access = 'direct', recl &
+    if(master) then
+      open(21, file = filename, form = "unformatted", access = 'direct', recl &
           = SizeX * SizeY * sizeofreal4)
     end if
 
@@ -1313,8 +1016,8 @@ module output_module
 
     ! open output file
 
-    if (master) then
-      open (21, file = filename, form = "unformatted", access = 'direct', recl &
+    if(master) then
+      open(21, file = filename, form = "unformatted", access = 'direct', recl &
           = SizeX * SizeY * sizeofreal4)
       !      print*,"pf_all_in.dat opened"
     end if
@@ -1455,8 +1158,8 @@ module output_module
 
     ! open output file
 
-    if (master) then
-      open (43, file = 'fluxes.dat', form = "unformatted", access = 'direct', &
+    if(master) then
+      open(43, file = 'fluxes.dat', form = "unformatted", access = 'direct', &
           recl = SizeX * SizeY * sizeofreal4)
     end if
 
