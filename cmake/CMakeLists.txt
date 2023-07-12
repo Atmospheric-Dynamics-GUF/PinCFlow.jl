@@ -13,7 +13,7 @@ project(pinc Fortran)
 # Set language.
 enable_language(Fortran)
 
-# Set debug option.
+# Set debugq option.
 option(DEBUGFLAG "set to ON to enable debug compiler options" OFF)
 
 # Set directories for output binary independent of IDE definitions.
@@ -65,8 +65,11 @@ add_executable(pinc
         ../src/output.f90
         ../src/finish.f90
         ../src/ice.f90
-        ../src/pinc.f90
+        ../src/ice2.f90
+        ../src/ice2_sub.f90
         ../src/tracer.f90
+        ../src/optField.f90
+        ../src/pinc.f90
         )
 
 # Link MPI and Hypre from system libraries.
