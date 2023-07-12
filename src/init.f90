@@ -139,27 +139,23 @@ module init_module
 
     read(unit = 10, nml = variables)
 
-    !SD
-    !print*, include_tracer, include_ice2
-    call set_opt_field
-    
     if(include_ice .and. include_tracer) then
       stop "init.f90: cannot include ice and tracer. Check the namelist."
     end if
 
+    if(include_ice) nVar = nVar + 4
+
     !SD
-!!$    if(include_ice) nVar = nVar + 4
-!!$    if(include_tracer) then
-!!$      if(nVar /= 8) then
-!!$        stop "init.f90: nVar must be set to 8"
-!!$      end if
-!!$
-!!$      nVar = nVar + 1
-!!$      iVart = nVar
-!!$    end if
-!!$
-!!$    if(include_ice) nVar = nVar + 4 ! ?? see line 153
-!!$    if(include_ice2) nVar = nVar + 3
+    call set_opt_field
+    !!$    if(include_ice) nVar = nVar + 4
+    !!$    if(include_tracer) then
+    !!$      if(nVar /= 8) then
+    !!$        stop "init.f90: nVar must be set to 8"
+    !!$      end if
+    !!$
+    !!$      nVar = nVar + 1
+    !!$      iVart = nVar
+    !!$    end if
 
     ! allocate var = (rho,u,v,w,pEx)
     allocate(var(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), stat &
@@ -215,9 +211,6 @@ module init_module
 
     !SD
     if(include_ice2) then
-      allocate(iVarIce(ofIce%numVar), stat = allocstat)
-      if(allocstat /= 0) stop "init.f90: Could not allocate iVarIce."
-
       allocate(dIce(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), stat &
           = allocstat)
       if(allocstat /= 0) stop "init.f90: Could not allocate dIce."
@@ -352,27 +345,9 @@ module init_module
       read(unit = 10, nml = iceLIst)
     end if
 
-    if(include_ice2) then
-      ! read ice physics parametrization
-      read(unit = 10, nml = iceList2)
-
-      inN = ofIce%indVarPF(1)
-      inQ = ofIce%indVarPF(2)
-      inQv = ofIce%indVarPF(3)
-      nVarIce = ofIce%numVar
-      iVarIce = (/inN, inQ, inQv/)
-
-      ! set iVarIce
-      do j = 1, nVarIce
-        i = iVarIce(j)
-        varOut(i) = 1
-        varIn(i) = 1
-      end do
-    end if
-
-    if(include_tracer) then
-      read(unit = 10, nml = tracerList)
-    end if
+    !SD
+    call read_nml_opt_field
+    call write_index_opt_field
 
     ! close input file pinc.f
     close(unit = 10)

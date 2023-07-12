@@ -84,12 +84,12 @@ module type_module
   !-----------------------------------------------------------------
   !                          Variables
   !-----------------------------------------------------------------
-  integer :: nVar, nOptVar, iVart
+  integer :: nVar, nOptVar, iVarT, nBscVar
   logical :: include_ice ! controls use of additional ice variables nAer,nIce,qIce and qv
-  logical :: include_ice2 !
-  logical :: include_tracer
+  logical :: include_ice2 = .false., include_testoutput = .false.
+  logical :: include_tracer = .false.
   namelist / variables / nVar, nOptVar, include_ice, include_ice2, &
-      include_tracer
+      include_tracer, include_testoutput
 
   !-----------------------------------------------------------------
   !                    Input / Output variables
@@ -861,11 +861,16 @@ module type_module
   real, parameter :: L_ice = 2.8E6 ! constant latent heat  ice [J/kg]
   real, parameter :: R_v = 461. ! specific gas constant for water vapor [J/kg/K]
 
+  real :: dt_ice2 = 0.1 ! length of the microphysical time step [s]
+
   real :: thetaRefRatio !thetaRef/thetaRef_tropo_pause
 
   real :: L_hat, epsil0hat
   real * 4, dimension(:, :, :, :), allocatable :: ofield
-  namelist / iceList2 / inN, inQ, inQv, nVarIce
+  namelist / iceList2 / inN, inQ, inQv, nVarIce, dt_ice2
+
+  !include_testoutput
+  integer :: iVarO
 
   contains
 

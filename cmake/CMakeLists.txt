@@ -13,7 +13,7 @@ project(pinc Fortran)
 # Set language.
 enable_language(Fortran)
 
-# Set debug option.
+# Set debugq option.
 option(DEBUGFLAG "set to ON to enable debug compiler options" OFF)
 
 # Set directories for output binary independent of IDE definitions.
@@ -68,6 +68,7 @@ add_executable(pinc
         ../src/ice2.f90
         ../src/ice2_sub.f90
         ../src/tracer.f90
+        ../src/optField.f90
         ../src/pinc.f90
         )
 

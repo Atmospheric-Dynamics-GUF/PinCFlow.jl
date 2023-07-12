@@ -30,9 +30,6 @@ program pinc_prog
   ! test
   use algebra_module
 
-  !SD
-  !*use opt_field_mod
-
   !----------------------------------------------------
   implicit none
   !---------------------------------------------------
@@ -132,11 +129,10 @@ program pinc_prog
 
   ! stop
 
-  !-------------------------------------------------
-  !                    TEST
-  !-------------------------------------------------
-  !type(opt_field) :: ofTracer, ofIce, ofSomething
-  !call set_opt_field(ofTracer, ofIce, ofSomething)
+  !SD
+  integer :: n_step_ice, ii
+  real :: dtt_ice2
+  real :: tta !include_testoutput
 
   !-------------------------------------------------
   !                    Set up
@@ -464,6 +460,12 @@ program pinc_prog
       !open(125, file = 'theta_max.dat')
     end if
   end if
+
+  !SD
+  if(include_testoutput) then
+    tta = 0. !initial time for analyt sol.
+  end if
+
   !-----------------------------------------------------
   !                        Time loop
   !-----------------------------------------------------
@@ -1225,10 +1227,11 @@ program pinc_prog
         end if
 
         !SD
-        if(include_ice2) then
-          call integrate_ice(var, var0, flux, "lin", source, dt, dIce, &
-              RKstage, PStrat01, PStratTilde01)
-        end if
+        !old
+        !if(include_ice2) call integrate_ice(var, var0, flux, "lin", source, dt, dIce, &
+        !        RKstage, PStrat01, PStratTilde01)
+        if(include_ice2) call integrate_ice_advection(var, var0, flux, "lin", &
+            source, dt, dIce, RKstage, PStrat01, PStratTilde01)
 
       end do
 
@@ -1839,12 +1842,44 @@ program pinc_prog
               off!"
         end if
 
-        !SD
-        if(include_ice2) call integrate_ice(var, var0, flux, "nln", source, &
-            dt, dIce, RKstage, PStrat, PStratTilde) !pstrat, pstrattilde not relevant if "nln"
+        !SD old
+        !if(include_ice2) call integrate_ice(var, var0, flux, "nln", source, &
+        !     dt, dIce, RKstage, PStrat, PStratTilde) !pstrat, pstrattilde not relevant if "nln"
+        if(include_ice2) call integrate_ice_advection(var, var0, flux, "nln", &
+            source, dt, dIce, RKstage, PStrat, PStratTilde)
 
       end do Runge_Kutta_Loop
     end if ! timeScheme
+
+    !SD
+    ! integrate ice physics with fixed dry dynamics
+    if(include_ice2) then
+
+      n_step_ice = ceiling(dt * tRef / dt_ice2)
+      dtt_ice2 = dt / n_step_ice
+      !use outputTime
+      !*n_step_ice = outputTimeDiff / dt_ice2
+      !*dtt_ice2 = dt_ice2/tRef
+
+      !if(include_testoutput) then
+
+      !old
+      !tta = tta + dt !non-dimensional time for analyt. sol.
+
+      !*tta = tta + outputTimeDiff / tRef
+      !*var(:, :, :, iVarO) = var(:, :, :, iVarO+1)*exp(-0.01 * tta)
+
+      !end if
+
+      do ii = 1, n_step_ice
+        do RKstage = 1, nStages
+          !*call integrate_ice(var, var0, flux, "nln", source, &
+          !*     dtt_ice2, dIce, RKstage, PStrat, PStratTilde) !pstrat, pstrattilde not relevant if "nln"
+          call integrate_ice_physics(var, var0, flux, source, dtt_ice2, dIce, &
+              RKstage)
+        end do ! RKstage
+      end do !ii
+    end if !include_ice2
 
     !--------------------------------------------------------------
     !                           Output
