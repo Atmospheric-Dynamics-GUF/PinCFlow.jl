@@ -22,6 +22,7 @@ program pinc_prog
   use poisson_module
   use finish_module
   use ice_module
+  use ice2_module
   use sizeof_module
   use bicgstab_tools_module
   use tracer_module
@@ -51,11 +52,11 @@ program pinc_prog
   ! var(i,j,k,iVar) iVar = 1..5 > rho,u,v,w,pExner
   ! varG contains balance parts of current time step !FS October 2020
 
-  real, dimension (:, :, :), allocatable :: dRho, dRhop ! RK-Update for rho
-  real, dimension (:, :, :, :), allocatable :: dMom ! RK for rhoU,rhoV,rhoW
-  real, dimension (:, :, :), allocatable :: dTheta ! RK-Update for theta
-  real, dimension (:, :, :, :), allocatable :: dIce ! RK-Update for nAer,nIce,qIce,qv
-  real, dimension (:, :, :), allocatable :: dTracer
+  real, dimension(:, :, :), allocatable :: dRho, dRhop ! RK-Update for rho
+  real, dimension(:, :, :, :), allocatable :: dMom ! RK for rhoU,rhoV,rhoW
+  real, dimension(:, :, :), allocatable :: dTheta ! RK-Update for theta
+  real, dimension(:, :, :, :), allocatable :: dIce ! RK-Update for nAer,nIce,qIce,qv
+  real, dimension(:, :, :), allocatable :: dTracer
 
   real, dimension(:), allocatable :: dPStrat, drhoStrat !RK update for P
   real, dimension(:), allocatable :: w_0
@@ -128,6 +129,11 @@ program pinc_prog
 
   ! stop
 
+  !SD
+  integer :: n_step_ice, ii
+  real :: dtt_ice2
+  real :: tta !include_testoutput
+
   !-------------------------------------------------
   !                    Set up
   !-------------------------------------------------
@@ -186,7 +192,7 @@ program pinc_prog
 
   call initialise(var) ! set initial conditions
 
-  if (include_tracer) call setup_tracer(var)
+  if(include_tracer) call setup_tracer(var)
 
   ! TFC FJ
   if(.not. topography .and. model /= "Boussinesq") then
@@ -232,10 +238,10 @@ program pinc_prog
 
   var(:, :, :, 8) = 0.0 ! Heating due to GWs in the rotating atmosphere
 
-  if (poissonSolverType == 'bicgstab') then
+  if(poissonSolverType == 'bicgstab') then
     call SetUpBiCGStab ! Set BiCGStab arrays
-  ! else if (poissonSolverType == 'hypre') then
-  !   call SetUpHypre ! Set Up Hypre objects
+    ! else if (poissonSolverType == 'hypre') then
+    !   call SetUpHypre ! Set Up Hypre objects
   else
     stop 'ERROR: only BiCGStab ready to be used'
   end if
@@ -336,9 +342,9 @@ program pinc_prog
   !        Initial divergence cleaning
   !---------------------------------------------
 
-  if (initialCleaning) then
-     call setHalos(var, "var")
-     if (include_tracer) call setHalos (var, "tracer")
+  if(initialCleaning) then
+    call setHalos(var, "var")
+    if(include_tracer) call setHalos(var, "tracer")
     call setBoundary(var, flux, "var")
 
     ! 1) allocate variables
@@ -395,7 +401,7 @@ program pinc_prog
     if(maxTime < time * tRef) stop "restart error: maxTime < current time"
 
     call setHalos(var, "var")
-    if (include_tracer) call setHalos (var, "tracer")
+    if(include_tracer) call setHalos(var, "tracer")
     call setBoundary(var, flux, "var")
   end if
 
@@ -454,6 +460,12 @@ program pinc_prog
       !open(125, file = 'theta_max.dat')
     end if
   end if
+
+  !SD
+  if(include_testoutput) then
+    tta = 0. !initial time for analyt sol.
+  end if
+
   !-----------------------------------------------------
   !                        Time loop
   !-----------------------------------------------------
@@ -812,7 +824,7 @@ program pinc_prog
       PStratTilde00 = PStratTilde
 
       call setHalos(var0, "var")
-      if (include_tracer) call setHalos (var0, "tracer")
+      if(include_tracer) call setHalos(var0, "tracer")
       call setBoundary(var0, flux, "var")
 
       ! (1) explicit integration of convective and
@@ -828,17 +840,17 @@ program pinc_prog
       do RKstage = 1, nStages
         ! Reconstruction
 
-         call setHalos(var, "var")
-         if (include_tracer) call setHalos (var, "tracer")
+        call setHalos(var, "var")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         call reconstruction(var, "rho")
         call reconstruction(var, "rhop")
         call reconstruction(var, "uvw")
-        if (include_tracer) then
-           call reconstruction (var, "tracer")
+        if(include_tracer) then
+          call reconstruction(var, "tracer")
         end if
-        
+
         call setHalos(var, "varTilde")
         call setBoundary(var, flux, "varTilde")
 
@@ -846,10 +858,10 @@ program pinc_prog
 
         call massFlux(var0, var, flux, "lin", PStrat00, PStratTilde00)
         call momentumFlux(var0, var, flux, "lin", PStrat00, PStratTilde00)
-        if (include_tracer) then
-           call tracerFlux(var0, var, flux, "lin", PStrat00, PStratTilde00)
+        if(include_tracer) then
+          call tracerFlux(var0, var, flux, "lin", PStrat00, PStratTilde00)
         end if
-        
+
         call setBoundary(var, flux, "flux")
 
         ! store initial flux
@@ -863,16 +875,16 @@ program pinc_prog
             "expl", 1.)
 
         call massUpdate(var, flux, 0.5 * dt, dRhop, RKstage, "rhop", "lhs", &
-             "expl", 1.)
+            "expl", 1.)
 
-        if (include_tracer) then
-           call tracerUpdate(var, flux, 0.5 * dt, dTracer, RKstage)
+        if(include_tracer) then
+          call tracerUpdate(var, flux, 0.5 * dt, dTracer, RKstage)
         end if
 
         ! RK step for momentum
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         call momentumPredictor(var, flux, force, 0.5 * dt, dMom, RKstage, &
@@ -894,7 +906,7 @@ program pinc_prog
       !teste
 
       call setHalos(var, "var")
-      if (include_tracer) call setHalos (var, "tracer")
+      if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
 
       ! use initial flux for update of reference atmosphere and w0
@@ -933,7 +945,7 @@ program pinc_prog
             "rhs", "impl", 1.)
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         ! update density fluctuations (rhopStar)
@@ -942,7 +954,7 @@ program pinc_prog
             "impl", 1.)
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
       else
         rhopOld = var(:, :, :, 6) ! rhopOld for momentum predictor
@@ -958,7 +970,7 @@ program pinc_prog
             "rhs", "impl", 1.)
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
       end if
 
@@ -1037,7 +1049,7 @@ program pinc_prog
       nTotalBicg = nTotalBicg + nIterBicg
 
       call setHalos(var, "var")
-      if (include_tracer) call setHalos (var, "tracer")
+      if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
 
       !  if (heatingONK14 .or. TurbScheme .or. rayTracer) then
@@ -1088,8 +1100,8 @@ program pinc_prog
       var(:, :, :, 6) = var0(:, :, :, 6)
       var(:, :, :, 7) = var0(:, :, :, 7)
 
-      if (include_tracer) then
-         var(:, :, :, iVart) = var0(:, :, :, iVart)
+      if(include_tracer) then
+        var(:, :, :, iVart) = var0(:, :, :, iVart)
       end if
 
       PStrat = PStrat00
@@ -1101,7 +1113,7 @@ program pinc_prog
       PStratTilde = PStratTilde00
 
       call setHalos(var, "var")
-      if (include_tracer) call setHalos (var, "tracer")
+      if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
 
       rhopOld = var(:, :, :, 6) ! rhopOld for momentum predictor
@@ -1131,7 +1143,7 @@ program pinc_prog
       !            -> new u, v, w
 
       call setHalos(var, "var")
-      if (include_tracer) call setHalos (var, "tracer")
+      if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
 
       ! call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
@@ -1157,22 +1169,22 @@ program pinc_prog
       PStratTilde = PStratTilde01
 
       call setHalos(var0, "var")
-      if (include_tracer) call setHalos (var0, "tracer")
+      if(include_tracer) call setHalos(var0, "tracer")
       call setBoundary(var0, flux, "var")
 
       do RKstage = 1, nStages
         ! Reconstruction
 
-         call setHalos(var, "var")
-         if (include_tracer) call setHalos (var, "tracer")
+        call setHalos(var, "var")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         call reconstruction(var, "rho")
         call reconstruction(var, "rhop")
         call reconstruction(var, "uvw")
 
-        if (include_tracer) then
-           call reconstruction (var, "tracer")
+        if(include_tracer) then
+          call reconstruction(var, "tracer")
         end if
 
         call setHalos(var, "varTilde")
@@ -1183,8 +1195,8 @@ program pinc_prog
         call massFlux(var0, var, flux, "lin", PStrat01, PStratTilde01)
         call momentumFlux(var0, var, flux, "lin", PStrat01, PStratTilde01)
 
-        if (include_tracer) then
-           call tracerFlux(var0, var, flux, "lin", PStrat01, PStratTilde01)
+        if(include_tracer) then
+          call tracerFlux(var0, var, flux, "lin", PStrat01, PStratTilde01)
         end if
 
         call setBoundary(var, flux, "flux")
@@ -1196,15 +1208,15 @@ program pinc_prog
         call massUpdate(var, flux, dt, dRho, RKstage, "rho", "tot", "expl", 1.)
 
         call massUpdate(var, flux, dt, dRhop, RKstage, "rhop", "lhs", "expl", &
-             1.)
+            1.)
 
-        if (include_tracer) then
-           call tracerUpdate(var, flux, dt, dTracer, RKstage)
+        if(include_tracer) then
+          call tracerUpdate(var, flux, dt, dTracer, RKstage)
         end if
 
         ! RK step for momentum
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         call momentumPredictor(var, flux, force, dt, dMom, RKstage, "lhs", &
@@ -1213,6 +1225,13 @@ program pinc_prog
         if(topography .and. spongeTFC) then
           call set_spongeLayer(var, stepFrac(RKstage) * dt, "uvw")
         end if
+
+        !SD
+        !old
+        !if(include_ice2) call integrate_ice(var, var0, flux, "lin", source, dt, dIce, &
+        !        RKstage, PStrat01, PStratTilde01)
+        if(include_ice2) call integrate_ice_advection(var, var0, flux, "lin", &
+            source, dt, dIce, RKstage, PStrat01, PStratTilde01)
 
       end do
 
@@ -1226,7 +1245,7 @@ program pinc_prog
       !teste
 
       call setHalos(var, "var")
-      if (include_tracer) call setHalos (var, "tracer")
+      if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
 
       ! use initial flux for update of reference atmosphere and w0
@@ -1266,7 +1285,7 @@ program pinc_prog
             "rhs", "impl", 2.)
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         ! update density fluctuations (rhopStar)
@@ -1275,7 +1294,7 @@ program pinc_prog
             "impl", 2.)
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
       else
         rhopOld = var(:, :, :, 6) ! rhopOld for momentum predictor
@@ -1286,7 +1305,7 @@ program pinc_prog
             "impl", 2.)
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         call momentumPredictor(var, flux, force, 0.5 * dt, dMom, RKstage, &
@@ -1323,7 +1342,7 @@ program pinc_prog
       !            -> new rhop, u, v, w
 
       call setHalos(var, "var")
-      if (include_tracer) call setHalos (var, "tracer")
+      if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
 
       ! TFC FJ
@@ -1373,7 +1392,7 @@ program pinc_prog
 
       !UAB for safety
       call setHalos(var, "var")
-      if (include_tracer) call setHalos (var, "tracer")
+      if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
       !UAE
 
@@ -1496,7 +1515,7 @@ program pinc_prog
         ! Reconstruction
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos(var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         if(updateMass .or. (testcase == "nIce_w_test")) call &
@@ -1509,8 +1528,9 @@ program pinc_prog
         if(updateTheta) call reconstruction(var, "theta")
         if(predictMomentum .or. (testcase == "nIce_w_test")) call &
             reconstruction(var, "uvw")
-        if ((include_ice) .and. (updateIce)) call reconstruction(var, "ice")
-        if ((include_tracer) .and. (updateTracer)) call reconstruction(var, "tracer")
+        if((include_ice) .and. (updateIce)) call reconstruction(var, "ice")
+        if((include_tracer) .and. (updateTracer)) call reconstruction(var, &
+            "tracer")
 
         call setHalos(var, "varTilde")
         call setBoundary(var, flux, "varTilde")
@@ -1524,13 +1544,13 @@ program pinc_prog
                 properly'
             stop
           end if
-       end if
+        end if
 
-       if (updateTracer) then
-          call tracerFlux (var, var, flux, "nln", PStrat, PStratTilde)
-       end if
+        if(updateTracer) then
+          call tracerFlux(var, var, flux, "nln", PStrat, PStratTilde)
+        end if
 
-        if (updateTheta) then
+        if(updateTheta) then
           call thetaFlux(var, flux)
           call thetaSource(var, source)
         end if
@@ -1638,14 +1658,14 @@ program pinc_prog
         else
           if(iTime == 1 .and. RKstage == 1 .and. master) print *, "main: &
               MassUpdate off!"
-       end if
+        end if
 
-       if (updateTracer) then
-          if (RKstage == 1) dTracer = 0.0
+        if(updateTracer) then
+          if(RKstage == 1) dTracer = 0.0
           call tracerUpdate(var, flux, dt, dTracer, RKstage)
-       end if
+        end if
 
-        if (updateTheta) then
+        if(updateTheta) then
           ! theta_new
 
           call setHalos(var, "var")
@@ -1822,8 +1842,44 @@ program pinc_prog
               off!"
         end if
 
+        !SD old
+        !if(include_ice2) call integrate_ice(var, var0, flux, "nln", source, &
+        !     dt, dIce, RKstage, PStrat, PStratTilde) !pstrat, pstrattilde not relevant if "nln"
+        if(include_ice2) call integrate_ice_advection(var, var0, flux, "nln", &
+            source, dt, dIce, RKstage, PStrat, PStratTilde)
+
       end do Runge_Kutta_Loop
     end if ! timeScheme
+
+    !SD
+    ! integrate ice physics with fixed dry dynamics
+    if(include_ice2) then
+
+      n_step_ice = ceiling(dt * tRef / dt_ice2)
+      dtt_ice2 = dt / n_step_ice
+      !use outputTime
+      !*n_step_ice = outputTimeDiff / dt_ice2
+      !*dtt_ice2 = dt_ice2/tRef
+
+      !if(include_testoutput) then
+
+      !old
+      !tta = tta + dt !non-dimensional time for analyt. sol.
+
+      !*tta = tta + outputTimeDiff / tRef
+      !*var(:, :, :, iVarO) = var(:, :, :, iVarO+1)*exp(-0.01 * tta)
+
+      !end if
+
+      do ii = 1, n_step_ice
+        do RKstage = 1, nStages
+          !*call integrate_ice(var, var0, flux, "nln", source, &
+          !*     dtt_ice2, dIce, RKstage, PStrat, PStratTilde) !pstrat, pstrattilde not relevant if "nln"
+          call integrate_ice_physics(var, var0, flux, source, dtt_ice2, dIce, &
+              RKstage)
+        end do ! RKstage
+      end do !ii
+    end if !include_ice2
 
     !--------------------------------------------------------------
     !                           Output
@@ -1970,10 +2026,10 @@ program pinc_prog
   call terminate_atmosphere
   call terminate_output
 
-  if (poissonSolverType == 'bicgstab') then
+  if(poissonSolverType == 'bicgstab') then
     call CleanUpBiCGSTab ! Clean Up BiCGSTAB arrays
-  ! else if (poissonSolverType == 'hypre') then
-  !   call CleanUpHypre ! Clean Up Hypre objects
+    ! else if (poissonSolverType == 'hypre') then
+    !   call CleanUpHypre ! Clean Up Hypre objects
   else
     stop 'ERROR: BICGSTAB expected as Poisson solver'
   end if

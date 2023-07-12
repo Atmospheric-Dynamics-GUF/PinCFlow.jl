@@ -3,6 +3,9 @@ module init_module
   use type_module
   use atmosphere_module
   use ice_module
+  use ice2_module
+  !SD
+  use opt_field_mod
   use mpi_module
   use boundary_module
   use sizeof_module
@@ -49,15 +52,15 @@ module init_module
     !-----------------------------------------
 
     ! in/out variables
-    real, dimension (:, :, :, :), allocatable, intent (out) :: var, var0, &
-        var1, varG, source
-    real, dimension (:, :, :, :, :), allocatable, intent (out) :: flux, flux0
-    real, dimension (:, :, :, :), allocatable, intent (out) :: force
-    real, dimension (:, :, :), allocatable :: dRho, dRhop ! RK-Update for rho
-    real, dimension (:, :, :, :), allocatable :: dMom ! ...rhoU,rhoV,rhoW
-    real, dimension (:, :, :), allocatable :: dTheta ! RK-Update for theta
-    real, dimension (:, :, :, :), allocatable :: dIce ! RK-Update for nIce,qIce,qAer,qv
-    real, dimension (:, :, :), allocatable :: dTracer ! RK-Update for rhoTracer
+    real, dimension(:, :, :, :), allocatable, intent(out) :: var, var0, var1, &
+        varG, source
+    real, dimension(:, :, :, :, :), allocatable, intent(out) :: flux, flux0
+    real, dimension(:, :, :, :), allocatable, intent(out) :: force
+    real, dimension(:, :, :), allocatable :: dRho, dRhop ! RK-Update for rho
+    real, dimension(:, :, :, :), allocatable :: dMom ! ...rhoU,rhoV,rhoW
+    real, dimension(:, :, :), allocatable :: dTheta ! RK-Update for theta
+    real, dimension(:, :, :, :), allocatable :: dIce ! RK-Update for nIce,qIce,qAer,qv
+    real, dimension(:, :, :), allocatable :: dTracer ! RK-Update for rhoTracer
 
     !UAB
     real, dimension(:), allocatable :: dPStrat, drhoStrat ! RK-Update for P
@@ -134,23 +137,25 @@ module init_module
     !      allocate variable fields
     !-------------------------------------
 
-    read (unit = 10, nml = variables)
+    read(unit = 10, nml = variables)
 
-    if (include_ice .and. include_tracer) then
-       stop "init.f90: cannot include ice and tracer. Check the namelist."
+    if(include_ice .and. include_tracer) then
+      stop "init.f90: cannot include ice and tracer. Check the namelist."
     end if
 
-    if (include_ice) nVar = nVar + 4
-    if (include_tracer) then
-       if (nVar /= 8) then
-          stop "init.f90: nVar must be set to 8"
-       end if
+    if(include_ice) nVar = nVar + 4
 
-       nVar = nVar + 1
-       iVart = nVar
-    end if
-    
-    if (include_ice) nVar = nVar + 4
+    !SD
+    call set_opt_field
+    !!$    if(include_ice) nVar = nVar + 4
+    !!$    if(include_tracer) then
+    !!$      if(nVar /= 8) then
+    !!$        stop "init.f90: nVar must be set to 8"
+    !!$      end if
+    !!$
+    !!$      nVar = nVar + 1
+    !!$      iVart = nVar
+    !!$    end if
 
     ! allocate var = (rho,u,v,w,pEx)
     allocate(var(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), stat &
@@ -201,13 +206,24 @@ module init_module
     if(include_ice) then
       allocate(dIce(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 4), stat &
           = allocstat)
-      if (allocstat /= 0) stop "init.f90: Could not allocate dIce."
+      if(allocstat /= 0) stop "init.f90: Could not allocate dIce."
     end if
 
-    if (include_tracer) then
-       allocate (dTracer(-nbx:nx+nbx, -nby:ny + nby, -nbz : nz + nbz), stat &
-            = allocstat)
-       if (allocstat /= 0) stop "init.f90: Could not allocate dTracer."
+    !SD
+    if(include_ice2) then
+      allocate(dIce(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "init.f90: Could not allocate dIce."
+
+      allocate(ofield(nx, ny, nz, 6), stat = allocstat)
+      if(allocstat /= 0) stop "init.f90: Could not allocate field_out."
+
+    end if
+
+    if(include_tracer) then
+      allocate(dTracer(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "init.f90: Could not allocate dTracer."
     end if
 
     !UAB
@@ -326,12 +342,12 @@ module init_module
 
     if(include_ice) then
       ! read ice physics parametrization
-      read (unit = 10, nml = iceLIst)
-   end if
+      read(unit = 10, nml = iceLIst)
+    end if
 
-   if (include_tracer) then
-      read (unit = 10, nml = tracerList)
-   end if
+    !SD
+    call read_nml_opt_field
+    call write_index_opt_field
 
     ! close input file pinc.f
     close(unit = 10)
@@ -458,7 +474,7 @@ module init_module
       rayTracer = .false.
       pressureScaling = .false.
 
-      if (include_tracer) stop "init.f90: Boussinesq not implemented for tracer."
+      if(include_tracer) stop "init.f90: Boussinesq not implemented for tracer."
 
       ! updateMass = .false.
       ! predictMomentum = .true.
@@ -483,29 +499,29 @@ module init_module
       predictMomentum = .true.
       correctMomentum = .true.
       updateTheta = .false.
-      if (include_ice) then
-         updateIce = .true.
+      if(include_ice .or. include_ice2) then
+        updateIce = .true.
       end if
-      if (include_tracer) then
-         updateTracer = .true.
+      if(include_tracer) then
+        updateTracer = .true.
       end if
 
-      if (master) then ! modified by Junhong Wei (20170216)
-        write (90, "(a25)", advance = "no") "updateMass != "
-        write (90, *) updateMass
-        write (90, "(a25)", advance = "no") "predictMomentum != "
-        write (90, *) predictMomentum
-        write (90, "(a25)", advance = "no") "correctMomentum != "
-        write (90, *) correctMomentum
-        write (90, "(a25)", advance = "no") "updateTheta != "
-        write (90, *) updateTheta
-        write (90, *) ""
-        write (90, "(a25)", advance = "no") "updateIce != "
-        write (90, *) updateIce
-        write (90, *) ""
-        write(90,"(a25)",advance = "no") "updateTracer != " ! **IK**
-        write(90,*) updateTracer
-        write(90,*) ""
+      if(master) then ! modified by Junhong Wei (20170216)
+        write(90, "(a25)", advance = "no") "updateMass != "
+        write(90, *) updateMass
+        write(90, "(a25)", advance = "no") "predictMomentum != "
+        write(90, *) predictMomentum
+        write(90, "(a25)", advance = "no") "correctMomentum != "
+        write(90, *) correctMomentum
+        write(90, "(a25)", advance = "no") "updateTheta != "
+        write(90, *) updateTheta
+        write(90, *) ""
+        write(90, "(a25)", advance = "no") "updateIce != "
+        write(90, *) updateIce
+        write(90, *) ""
+        write(90, "(a25)", advance = "no") "updateTracer != " ! **IK**
+        write(90, *) updateTracer
+        write(90, *) ""
       end if ! modified by Junhong Wei (20170216)
 
       !overwrite unsuitable input settings
@@ -724,9 +740,9 @@ module init_module
     j0 = js + nby - 1
 
     ! on default there is no initial ice, humidity or aerosols in the atmosphere
-    if (include_ice) var(:, :, :, nVar - 3:nVar) = 0.0
-
-    if (include_tracer) var(:, :, :, iVart) = 0.0
+    if(include_ice) var(:, :, :, nVar - 3:nVar) = 0.0
+    if(include_ice2) var(:, :, :, iVarIce) = 0.0
+    if(include_tracer) var(:, :, :, iVart) = 0.0
     !---------------------------------------------------------------
 
     select case(testCase)
@@ -1168,6 +1184,9 @@ module init_module
 
       ! initialize the ice variables according to iceTestcase
       if(include_ice) call setup_ice(var)
+
+      !SD
+      if(include_ice2) call setup_ice2(var)
 
       !-----------------------------------------------------------------
 
@@ -5223,8 +5242,8 @@ module init_module
     end if
 
     ! open input file
-    if (master) then
-      open (40, file = fileinitstate2D, form = "unformatted", access &
+    if(master) then
+      open(40, file = fileinitstate2D, form = "unformatted", access &
           = 'direct', recl = 1 * SizeY * sizeofreal4)
       !      print*,"pf_all_in.dat opened"
     end if
@@ -5606,8 +5625,8 @@ module init_module
     ! open output file
 
     !   open(40,file=dataFile,form="unformatted",access='direct',recl=nx*ny)
-    if (master) then
-      open (51, file = filename_bgr, form = "unformatted", access = 'direct', &
+    if(master) then
+      open(51, file = filename_bgr, form = "unformatted", access = 'direct', &
           recl = SizeX * SizeY * sizeofreal4)
     end if
 
