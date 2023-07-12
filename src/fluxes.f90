@@ -6551,7 +6551,7 @@ module flux_module
 
     if(TurbScheme) then
       if(ny == 1 .and. nx == 1) then
-        stop'ERROR: turbulence scheme assumes either nx > 1 or ny > 1'
+        stop 'ERROR: turbulence scheme assumes either nx > 1 or ny > 1'
       else
         if(nx == 1) then
           delta_hs = dy ** 2 ! 2D problems in y and z
@@ -6606,7 +6606,7 @@ module flux_module
               else if(fluxmode == "lin") then
                 uSurf = vara(i, j, k, 2)
               else
-                stop'ERROR: worng fluxmode'
+                stop 'ERROR: worng fluxmode'
               end if
 
               fIce = uSurf * 0.5 * (iceL + iceR)
@@ -6670,7 +6670,7 @@ module flux_module
                 else if(fluxmode == "lin") then
                   uSurf = vara(i, j, k, 2) * Pstrata(k) !UA
                 else
-                  stop'ERROR: worng fluxmode'
+                  stop 'ERROR: worng fluxmode'
                 end if
               end if
 
@@ -6681,7 +6681,7 @@ module flux_module
               stop
 
             case default
-              stop"ice2Flux: unknown case fluxType"
+              stop "ice2Flux: unknown case fluxType"
             end select
 
             flux(i, j, k, 1, iVar) = fIce
@@ -6717,7 +6717,7 @@ module flux_module
               else if(fluxmode == "lin") then
                 vSurf = vara(i, j, k, 3)
               else
-                stop'ERROR: worng fluxmode'
+                stop 'ERROR: worng fluxmode'
               end if
 
               gIce = vSurf * 0.5 * (iceL + iceR)
@@ -6780,7 +6780,7 @@ module flux_module
                 else if(fluxmode == "lin") then
                   vSurf = vara(i, j, k, 3) * Pstrata(k) !UA
                 else
-                  stop'ERROR: worng fluxmode'
+                  stop 'ERROR: worng fluxmode'
                 end if
               end if
 
@@ -6792,7 +6792,7 @@ module flux_module
               stop
 
             case default
-              stop"ice2Flux: unknown case fluxType"
+              stop "ice2Flux: unknown case fluxType"
             end select
 
             flux(i, j, k, 2, iVar) = gIce
@@ -6829,7 +6829,7 @@ module flux_module
               else if(fluxmode == "lin") then
                 wSurf = vara(i, j, k, 4)
               else
-                stop'ERROR: worng fluxmode'
+                stop 'ERROR: worng fluxmode'
               end if
 
               hIce = wSurf * 0.5 * (iceL + iceR)
@@ -6896,7 +6896,7 @@ module flux_module
                 else if(fluxmode == "lin") then
                   wSurf = vara(i, j, k, 4) * PstratTildea(k) !UA
                 else
-                  stop'ERROR: worng fluxmode'
+                  stop 'ERROR: worng fluxmode'
                 end if
               end if
 
@@ -6907,7 +6907,7 @@ module flux_module
               stop
 
             case default
-              stop"rhoFlux: unknown case fluxType"
+              stop "rhoFlux: unknown case fluxType"
             end select
 
             flux(i, j, k, 3, iVar) = hIce
