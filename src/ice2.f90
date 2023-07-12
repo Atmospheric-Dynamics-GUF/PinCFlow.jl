@@ -264,9 +264,94 @@ module ice2_module
 
       end do !k
 
+      if(include_testoutput) then
+        var(:, :, :, iVarO + 1) = var(:, :, :, inQv)
+        var(:, :, :, iVarO) = var(:, :, :, inQv)
+      end if
+
     end select
 
   end subroutine setup_ice2
+
+  subroutine ice2Sources_test(var, source)
+
+    use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice2, &
+        nVarIce, inN, inQ, inQv, master, model, fluctuationMode, topography, &
+        thetaRefRatio, timeScheme, include_testoutput, iVarO
+    use mpi_module
+    use atmosphere_module, ONLY:PStrat01, PStratTilde01, PStrat, rhoStrat, &
+        piStrat, kappaInv, PStratTFC, piStratTfc, rhoStratTFC, gamma_1, p0
+    use boundary_module !, ONLY : setHalos, setBoundary, reconstruction
+    use flux_module
+
+    implicit none
+
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var !required if include_testout used
+    !        intent(in) :: var
+
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(out) :: source
+    real :: rho, pres, temp, theta, psi, Qv, SIce, NIce, exn_p
+    integer :: i, j, k
+
+    do k = 1, nz
+      do j = 1, ny
+        do i = 1, nx
+
+          if(model == "pseudo_incompressible") then
+
+            if(fluctuationMode) then
+
+              if(topography) then
+
+                rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+
+                theta = PstratTFC(i, j, k) / rho
+
+                !if ( timeScheme == "semiimplicit" ) then
+                !   print*, 'ice2Sources works only with explicit integration'
+                !   stop
+                !else
+                !problems in \pi if heating switched on
+                exn_p = var(i, j, k, 5) + (PstratTFC(i, j, k) / p0) ** gamma_1
+                !end if
+
+              else
+
+                rho = var(i, j, k, 1) + rhoStrat(k)
+
+                theta = Pstrat(k) / rho
+
+                !problems in \pi if heating of background
+                exn_p = var(i, j, k, 5) + (PStrat(k) / p0) ** gamma_1
+
+              end if ! topography
+
+            else
+
+              print *, ' ice2Sources works only with fluctuationMode == T '
+              stop
+
+            end if ! fluctuationMode
+
+          else
+
+            print *, ' ice2Sources works only with model &
+                == pseudo_incompressible '
+            stop
+
+          end if ! pseudo_inc
+
+          source(i, j, k, inN) = 0. !nucleation_n(SIce, rho)
+          source(i, j, k, inQ) = - 0.01 * var(i, j, k, inQ)
+          source(i, j, k, inQv) = - 0.01 * var(i, j, k, inQv)
+
+        end do
+      end do
+    end do
+
+  end subroutine ice2Sources_test
 
   subroutine ice2Sources(var, source)
 
@@ -344,16 +429,14 @@ module ice2_module
 
           else
 
-            print *, ' ice2Sources works only with model &
+            print *, ' ice2Sources works only with model  &
                 == pseudo_incompressible '
             stop
 
           end if ! pseudo_inc
 
           source(i, j, k, inN) = nucleation_n(SIce, rho)
-
           source(i, j, k, inQv) = deposition_qv(SIce, NIce, temp, pres, psi)
-
           source(i, j, k, inQ) = - source(i, j, k, inQv)
 
         end do
@@ -482,8 +565,13 @@ module ice2_module
       print *, 'ice2sources does not work with heating'
       stop
     else
+      !CHANGES
       call ice2Sources(var, source)
+      !call ice2Sources_test(var, source)
     end if
+
+    !CHANGES
+    !flux = 0.
 
     !call setBoundary (var, flux, "flux") !do nothing for "flux"?
 
@@ -620,7 +708,7 @@ module ice2_module
 
           else
 
-            print *, ' ice2Sources works only with model &
+            print *, ' ice2Sources works only with model  &
                 == pseudo_incompressible '
             stop
 
@@ -647,222 +735,99 @@ module ice2_module
 
   end subroutine redim_fields
 
+  subroutine integrate_ice_advection(var, var0, flux, fluxmode, source, dt, q, &
+      RKstage, PS0, PSTilde0)
+
+    use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice2, &
+        master, nVarIce, heatingONK14
+    use mpi_module
+
+    !use atmosphere_module, ONLY : PStrat01, PStratTilde01
+    use boundary_module, ONLY:setBoundary
+    use flux_module, ONLY:ice2Flux, reconstruction
+    use update_module, ONLY:ice2Update_apb
+
+    implicit none
+
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var, source
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var0
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar) :: flux
+    real, dimension(- 1:nz + 2), intent(in) :: PS0, PSTilde0
+    character(len = *), intent(in) :: fluxmode
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
+        intent(inout) :: q ! RK update for ice fields
+    real :: dt
+    integer :: RKstage
+
+    call setHalos(var, "ice2")
+    call setBoundary(var, flux, "ice2")
+
+    call reconstruction(var, "ice2")
+
+    !** ?? call setHalos( var, "iceTilde" )
+    call setBoundary(var, flux, "iceTilde")
+
+    ! Fluxes and Sources
+    call ice2Flux(var0, var, flux, fluxmode, PS0, PSTilde0)
+
+    call ice2Update_apb(var, flux, source, dt, q, RKstage, 'ADV')
+
+  end subroutine integrate_ice_advection
+
+  subroutine integrate_ice_physics(var, var0, flux, source, dt, q, RKstage)
+
+    use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice2, &
+        master, nVarIce, heatingONK14
+    use mpi_module
+
+    !use atmosphere_module, ONLY : PStrat01, PStratTilde01
+    use boundary_module, ONLY:setBoundary
+    !use flux_module, ONLY:ice2Flux, reconstruction
+    use update_module, ONLY:ice2Update_apb
+
+    implicit none
+
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var, source
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var0
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar) :: flux
+    !real, dimension(- 1:nz + 2), intent(in) :: PS0, PSTilde0
+    !character(len = *), intent(in) :: fluxmode
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
+        intent(inout) :: q ! RK update for ice fields
+    real :: dt
+    integer :: RKstage
+
+    ! NB make sure no boundary values required in sources
+
+    !call setHalos(var, "ice2")
+    !call setBoundary(var, flux, "ice2")
+
+    !call reconstruction(var, "ice2")
+
+    !** ?? call setHalos( var, "iceTilde" )
+    !call setBoundary(var, flux, "iceTilde")
+
+    ! Fluxes and Sources
+    !call ice2Flux(var0, var, flux, fluxmode, PS0, PSTilde0)
+
+    !ONLY works with Pstat, PstratTFC: no heating
+    if(heatingONK14) then
+      print *, 'ice2sources does not work with heating'
+      stop
+    else
+      !CHANGES
+      call ice2Sources(var, source)
+      !call ice2Sources_test(var, source)
+    end if
+
+    !call setBoundary (var, flux, "flux") !do nothing for "flux"?
+
+    call ice2Update_apb(var, flux, source, dt, q, RKstage, 'PHY')
+
+  end subroutine integrate_ice_physics
+
 end module ice2_module
-
-!!$    subroutine test_print_out
-!!$
-!!$      !SD
-!!$      initialCleaning = .false.
-!!$      !SD
-!!$      if (master) then
-!!$         print*, '--1.0--'
-!!$         print*,  var(1,1,2,2)
-!!$         print*,  var(1,1,1,2)
-!!$      end if
-!!$      !fluctuationmode = .false.
-!!$
-!!$      !SD
-!!$      if (master) then
-!!$         print*, '--2.0--'
-!!$         print*,  var(1,1,2,2)
-!!$         print*,  var(1,1,1,2)
-!!$         stop
-!!$      end if
-!!$
-!!$    end subroutine test_print_out
-
-subroutine integrate_ice_TEST(var, var0, flux, dt, dIce, RKstage)
-
-  use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice2
-  use mpi_module
-  !!$  use timeScheme_module
-  !!$  use init_module
-  !!$  use debug_module
-  !!$  use wkb_module
-  !!$  use output_module
-  !!$  use xweno_module
-  use atmosphere_module, ONLY:PStrat01, PStratTilde01
-  use boundary_module !, ONLY : setHalos, setBoundary, reconstruction
-  use flux_module
-  use update_module, ONLY:dIce, ice2Update
-  !!$  use ice_module
-
-  implicit none
-
-  real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-      intent(inout) :: var0, var
-  real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar) :: flux
-  real, dimension(:, :, :, :), allocatable :: dIce ! RK update for ice fields
-  real :: dt
-  integer :: RKstage
-
-  !SD
-  !!$           !TEST
-  !!$           call random_number(var(:,:,:,1))
-  !!$           var(:,:,:,9) = var(:,:,:,1)
-  !!$           var(:,:,:,10) = var(:,:,:,1)
-  !!$           var(:,:,:,11) = var(:,:,:,1)
-
-  call setHalos(var, "ice2")
-  call setBoundary(var, flux, "ice2")
-
-  !TEST
-  !!$           call setHalos( var, "var" )
-  !!$           call setBoundary (var, flux, "var")
-  !!$           !set z-Boundary for mass as for ice fields
-  !!$           var(:,:,-3:0,1) =  var(:,:,-3:0,9)
-  !!$           var(:,:,11:13,1) =  var(:,:,11:13,9)
-
-  call reconstruction(var, "ice2")
-
-  !TEST
-  !!$           call reconstruction (var, "rho")
-  !!$           if ( master ) then
-  !!$           print*, sum(abs(nIceTilde(:,:,:,:,:)- rhoTilde(:,:,:,:,:)))
-  !!$           print*, 'TEST 1'
-  !!$           print*, sum(abs(var(:,:,:,10)- var(:,:,:,1)))
-  !!$           print*, sum(abs(var(:,:,:,11)- var(:,:,:,1)))
-  !!$           end if
-
-  !** ?? call setHalos( var, "iceTilde" )
-  call setBoundary(var, flux, "iceTilde")
-
-  ! Fluxes and Sources
-
-  call ice2Flux(var0, var, flux, "nln", PStrat01, PStratTilde01)
-  !call setBoundary (var, flux, "flux") !do nothing for "flux"?
-  call ice2Update(var, flux, dt, dIce, RKstage, "expl", 1.)
-
-  !TEST
-  !!$           call massFlux (var0,var,flux,"nln",PStrat01,PStratTilde01)
-  !!$           !call setBoundary (var, flux, "flux") !do nothing for "flux"?
-  !!$           call massUpdate(var, flux, dt, dRho, RKstage, &
-  !!$           "rho", "tot", "expl", 1.)
-
-  !!$           !test
-  !!$           if ( master ) then
-  !!$           is=1 !-3
-  !!$           ie=3 !35
-  !!$           js=1 !-3
-  !!$           je=1  !7
-  !!$           ks=1 !-3
-  !!$           ke=1 !13
-  !*print*, flux(is:ie,js:je,ks:ke, 1, 9)
-  !*print*, 'QTilde', qIceTilde(is:ie,js:je,ks:ke, 2, :)
-  !!$           print*, 'TEST 2'
-  !!$           print*, sum(abs(var(is:ie,js:je,ks:ke, 10) - var(is:ie,js:je,ks:ke, 1)) )
-  !!$           print*, sum(abs(var(is:ie,js:je,ks:ke, 9) - var(is:ie,js:je,ks:ke, 1)) )
-  !!$           print*, 'Ice-Rho', sum(abs( var(:,:,:,11)- var(:,:,:,1)))
-  !!$           print*, 'Diff flux', sum(abs( flux(:,:,:,:,2)- flux(:,:,:,:,1)))
-  !!$           !print*, 'stop'
-  !!$           !stop
-  !!$           !end test
-  !!$           end if ! master
-  !!$           !print*, 'integrate ice', RKstage
-
-  !!         do RKstage = 1, nStages
-  !!$     ! Reconstruction
-  !!$
-  !!$     call massUpdate(var, flux, dt, dRhop, RKstage, &
-  !!$          & "rhop", "lhs", "expl",1.)
-  !!$
-  !!$     if(topography .and. spongeTFC) then
-  !!$        call set_spongeLayer(var, stepFrac(RKstage) * dt, "uvw")
-  !!$     end if
-  !!$
-  !!$  end do
-
-end subroutine integrate_ice_TEST
-
-!----------------------------------------------------
-!SD
-!test ice_integration
-!----------------------------------------------------
-
-!!$  dt = 1 ! [s]
-!!$  dt = dt/tRef
-!!$  maxIter = 3600./tRef/dt !
-!!$
-!!$  !output
-!!$
-!!$  irec = 1
-!!$  iOut = 1  !in units of dt
-!!$
-!!$  if(master) then
-!!$     open(44,file='test_output.dat',form="unformatted",access='direct',&
-!!$          & recl=nx*ny)
-!!$
-!!$     print*, ' **************************** '
-!!$     print*, 'SET TOPOGRAPHY HEIGHT TO ZERO'
-!!$     print*, ' **************************** '
-!!$  end if
-!!$
-!!$  var(:,:,:,1) = 0. !dens fluctuations set to 0
-!!$  !prescribe constant vertical velocity
-!!$  var(:,:,:,2) = 0. !u=0
-!!$  var(:,:,:,3) = 0. !v=0
-!!$  !NB this is vertical velocity in TFC
-!!$  do k = 1, nz
-!!$  var(:,:,k,4) = .2 / uRef/ Pstrat(k) !w \ne 0
-!!$  end do
-!!$
-!!$  var0(:,:,:,2:4) = var(:,:,:,2:4)
-!!$
-!!$  print*, 'Factor', N2/Tref**2, g**2*L_ice*kappa/Rsp/R_v/300**2
-!!$
-!!$  do iTime = 0, maxIter
-!!$
-!!$     !output
-!!$     if ( mod(iTime, iOut) == 0) then
-!!$
-!!$        if (master) then
-!!$
-!!$           print*, 'iTime', iTime
-!!$
-!!$           !compute dimensional n, q, qv, S
-!!$           !store in var0
-!!$           call redim_fields(var, var0)
-!!$
-!!$
-!!$           do ii = 1, 3
-!!$              iVar = iVarIce(ii)
-!!$              do k = 1, nz
-!!$
-!!$                 !OUTPUT var0
-!!$                 !ofield(1:nx, 1:ny, k, ii) = real(var0(1:nx,1:ny,k, iVar),4)
-!!$
-!!$                 !ofield(1:nx, 1:ny, k, ii) = real(var(1:nx,1:ny,k, iVar),4)
-!!$                 !OUTPUT FLUX
-!!$                 ofield(1:nx, 1:ny, k, ii) = real(flux(1:nx,1:ny,k, 3, iVar),4)
-!!$                 !ofield(1:nx, 1:ny, k, ii) = real(source(1:nx,1:ny,k, iVar),4)
-!!$                 write(44,rec=irec) ((ofield(i, j, k, ii), i=1, nx), j = 1, ny)
-!!$                 irec = irec + 1
-!!$
-!!$              end do !k
-!!$
-!!$                 !if (itime == 0) then
-!!$                 !  print*, 'itime', itime, ii, maxval(ofield(:, :, :, ii)), minval(ofield(:, :, :, ii)), ofield(1,1,1,1)
-!!$                 !end if
-!!$
-!!$           end do !ii
-!!$
-!!$           !save veritical velocity
-!!$
-!!$        end if ! master
-!!$     end if ! mod
-!!$
-!!$     do RKstage = 1, nStages
-!!$        call integrate_ice(var, var0, flux, "lin", source, dt, dIce, RKstage, PStrat, PStratTilde)
-!!$     end do
-!!$
-!!$  end do !iTime
-!!$
-!!$  if (master) then
-!!$     close(44)
-!!$     print*, 'TEST FINISHED ', ' irec=', irec-1
-!!$     stop
-!!$  end if
-
-!----------------------------------------------------
-! end test ice_integration
-!----------------------------------------------------

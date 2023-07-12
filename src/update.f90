@@ -30,8 +30,7 @@ module update_module
   public :: set_spongeLayer
   public :: CoefDySma_update
   public :: Var3DSmthDySma
-  public :: ice2Update, ice2Update_source
-
+  public :: ice2Update, ice2Update_source, ice2Update_apb
   public :: setHaloAndBoundary
 
   public :: smooth_shapiro
@@ -6188,6 +6187,106 @@ module update_module
     end do !ii
 
   end subroutine ice2Update_source
+
+  !-----------------------------------------------------------------------
+
+  subroutine ice2Update_apb(var, flux, source, dt, q, m, update_type)
+    !-----------------------------
+    ! adds ice flux to cell ice field
+    !-----------------------------
+
+    ! in/out variables
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
+    ! flux(i,j,k,dir,iFlux)
+    ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
+    ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
+
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: source
+
+    real, intent(in) :: dt
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
+        intent(inout) :: q
+
+    integer, intent(in) :: m
+    character(len = 3), intent(in) :: update_type
+
+    ! local variables
+    integer :: i, j, k, l
+    real :: fL, fR ! flux Left/Right
+    real :: gB, gF ! flux Backward/Forward
+    real :: hD, hU ! flux Downward/Upward
+    real :: fluxDiff ! convective part
+    real :: F ! F(phi)
+
+    !!$    ! TFC FJ
+    !!$    real :: pEdgeU, pEdgeD
+    !!$    real :: piREdgeU, piLEdgeU, piFEdgeU, piBEdgeU, &
+    !!$         piREdgeD, piLEdgeD, piFEdgeD, piBEdgeD
+    !!$    real :: chris11EdgeU, chris11EdgeD, chris22EdgeU, chris22EdgeD, &
+    !!$         chris13EdgeU, chris13EdgeD, chris23EdgeU, chris23EdgeD
+    !!$    real :: piGradZEdgeU, piGradZEdgeD
+
+    integer :: ii, iVar
+
+    ! init q
+    if(m == 1) q = 0.
+
+    do ii = 1, nVarIce
+      iVar = iVarIce(ii)
+
+      do k = 1, nz
+        do j = 1, ny
+          do i = 1, nx
+
+            if(update_type .eq. 'ADV' .or. update_type .eq. 'BOT') then
+
+              fL = flux(i - 1, j, k, 1, iVar) ! mass flux accros left cell edge
+              fR = flux(i, j, k, 1, iVar) ! right
+              gB = flux(i, j - 1, k, 2, iVar) ! backward
+              gF = flux(i, j, k, 2, iVar) ! forward
+              hD = flux(i, j, k - 1, 3, iVar) ! downward
+              hU = flux(i, j, k, 3, iVar) ! upward
+
+              ! convective part
+              fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
+
+              ! TFC FJ
+              ! Adjust mass flux divergence.
+              if(topography) then
+                fluxDiff = fluxDiff / jac(i, j, k)
+              end if
+
+            end if
+
+            if(update_type .eq. 'BOT') then
+              ! F(phi)
+              F = - fluxDiff + source(i, j, k, iVar)
+            elseif(update_type .eq. 'ADV') then
+              F = - fluxDiff
+            elseif(update_type .eq. 'PHY') then
+              F = source(i, j, k, iVar)
+            else
+              print *, 'wrong update_type in ice2Update_apb'
+              stop
+
+            end if
+
+            ! update: q(m-1) -> q(m)
+            q(i, j, k, ii) = dt * F + alpha(m) * q(i, j, k, ii)
+
+            ! update fields
+            var(i, j, k, iVar) = var(i, j, k, iVar) + beta(m) * q(i, j, k, ii)
+
+          end do !i
+        end do !j
+      end do !k
+
+    end do !ii
+
+  end subroutine ice2Update_apb
 
   !-----------------------------------------------------------------------
 
