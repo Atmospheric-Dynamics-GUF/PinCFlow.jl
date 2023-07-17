@@ -701,7 +701,7 @@ module update_module
     ! 3) WKB wave driving (cell-centered)
     ! mmp_mod = rhs =>
     ! 1) WKB wave driving (cell-centered)
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(in) :: force
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 4), intent(in) :: force
 
     real, intent(in) :: dt, facray
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), &
@@ -2314,7 +2314,7 @@ module update_module
     ! 3) WKB wave driving (cell-centered)
     ! mmp_mod = rhs =>
     ! 1) WKB wave driving (cell-centered)
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(in) :: force
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 4), intent(in) :: force
 
     !UAC real, intent(in) :: dt
     real, intent(in) :: dt, facray
@@ -5905,7 +5905,7 @@ module update_module
   end subroutine massUpdate
 
   !-----------------------------------------------------------------------
-  subroutine tracerUpdate (var,flux,dt,q,m)
+  subroutine tracerUpdate (var,flux,force,dt,q,m)
 
     ! in/out variables
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
@@ -5913,6 +5913,8 @@ module update_module
 
 
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
+
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 4), intent(in) :: force
 
     real, intent(in) :: dt
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
@@ -5928,7 +5930,8 @@ module update_module
     real    :: hD,hU        ! flux Downward/Upward
     real    :: fluxDiff     ! convective part
     real    :: F            ! F(phi)
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: rho
+    real    :: rho
+    real    :: forcetracer
 
     if( correctDivError ) then
        print*,'ERROR: correction divergence error not allowed'
@@ -5948,6 +5951,16 @@ module update_module
              hD = flux(i,j,k-1,3,iVart) ! downward
              hU = flux(i,j,k,3,iVart)   ! upward
 
+             if (fluctuationMode) then
+              if (topography) then
+                 rho = (var(i,j,k,1) + rhoStratTFC(i,j,k))
+              else
+                 rho = var(i,j,k,1) + rhoStrat(k)
+              end if
+            else
+              rho = var(i,j,k,1)
+            end if
+
              ! convective part
              fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz
 
@@ -5957,6 +5970,10 @@ module update_module
 
              ! F(phi)
              F = -fluxDiff
+             if (rayTracer) then
+              forcetracer = force(i, j, k, 4) 
+              F = F - rho * forcetracer
+             end if
 
              if (dens_relax) then
                 stop "update.f90: dens_relax not implemented in tracerUpdate"
@@ -8941,7 +8958,7 @@ module update_module
     real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
         + nbz), nVar), intent(inout) :: var
     real, dimension((- 1):nx, (- 1):ny, (- 1):nz, 3, nVar), intent(in) :: flux
-    real, dimension(0:(nx + 1), 0:(ny + 1), 0:(nz + 1), 3), intent(in) :: force
+    real, dimension(0:(nx + 1), 0:(ny + 1), 0:(nz + 1), 4), intent(in) :: force
     real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
         + nbz), 3), intent(inout) :: dMom
     character(len = *), intent(in) :: int_mod

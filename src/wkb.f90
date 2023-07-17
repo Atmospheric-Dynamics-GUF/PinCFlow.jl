@@ -96,9 +96,11 @@ module wkb_module
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
         intent(inout) :: var
 
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(inout) :: force
+    ! IKJuly2023 changed from 3 to 4 for tracer flux convergence
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 4), intent(inout) :: force
 
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:6), intent(inout) :: &
+    ! IKJuly2023 changed from 1:6 to 1:9 for tracer fluxes
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:9), intent(inout) :: &
         ray_var3D
 
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
@@ -119,6 +121,11 @@ module wkb_module
 
     real, allocatable :: var_ut(:, :, :)
     real, allocatable :: var_vt(:, :, :)
+
+    ! IKJuly2023
+    real, allocatable :: var_utracer(:, :, :)
+    real, allocatable :: var_vtracer(:, :, :)
+    real, allocatable :: var_wtracer(:, :, :)
 
     real, allocatable :: var_E(:, :, :)
 
@@ -156,6 +163,9 @@ module wkb_module
 
     real :: NNR
 
+    ! IKJuly2023 tracer flux stuff
+    real :: tracerfluxcoeff, dchidx, dchidy, dchidz
+
     allocate(var_uu(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_uv(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_uw(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
@@ -168,6 +178,11 @@ module wkb_module
 
     allocate(var_ut(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_vt(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
+
+    ! IKJuly2023
+    allocate(var_utracer(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
+    allocate(var_vtracer(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
+    allocate(var_wtracer(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
 
     allocate(var_E(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
 
@@ -187,6 +202,11 @@ module wkb_module
 
     var_ut = 0.0
     var_vt = 0.0
+
+    ! IKJuly2023
+    var_utracer = 0.0
+    var_vtracer = 0.0
+    var_wtracer = 0.0
 
     var_E = 0.0
 
@@ -571,6 +591,27 @@ module wkb_module
                         * g_ndim * omir * (wnrh ** 2 + wnrm ** 2))
                   end if
 
+                  ! IKJuly2023 tracer fluxes
+                  if(f_cor_nd /=0 .and. include_tracer) then
+
+                    tracerfluxcoeff = f_cor_nd / omir * wnrm &
+                        / (wnrh ** 2 + wnrm ** 2) * wadr / rhoStrat(kz)
+                    ! makeshift large-scale tracer gradient
+                    dchidx = (var(ix+1, jy, kz, iVart)-var(ix-1, jy, kz, iVart))&
+                      / (2.0 * dx * rhotot)
+                    dchidy = (var(ix, jy+1, kz, iVart)-var(ix, jy-1, kz, iVart))&
+                      / (2.0 * dy * rhotot)
+                    dchidz = (var(ix, jy, kz+1, iVart)-var(ix, jy, kz-1, iVart))&
+                      / (2.0 * dz * rhotot)
+
+                    var_utracer(ix, jy, kz) = var_utracer(ix, jy, kz) &
+                        + tracerfluxcoeff * (wnrm * dchidy - wnrl * dchidz)
+                    var_vtracer(ix, jy, kz) = var_vtracer(ix, jy, kz) &
+                        + tracerfluxcoeff * (wnrk * dchidz - wnrm * dchidx)
+                    var_wtracer(ix, jy, kz) = var_wtracer(ix, jy, kz) &
+                        + tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
+                  end if
+
                   var_E(ix, jy, kz) = var_E(ix, jy, kz) + wadr * omir
                 end do
               end do
@@ -589,6 +630,14 @@ module wkb_module
           !ray_var3D(ix,jy,kz,5) =  var_ETy(ix,jy,kz)
           ray_var3D(ix, jy, kz, 5) = var_uw(ix, jy, kz) ! output change by FDK
           ray_var3D(ix, jy, kz, 6) = var_E(ix, jy, kz)
+          
+          ! IKJuly2023
+          if (include_tracer) then
+            ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
+            ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
+            ray_var3D(ix, jy, kz, 9) = var_wtracer(ix, jy, kz)
+          end if  
+
         end do
       end do
     end do
@@ -629,6 +678,28 @@ module wkb_module
     call setboundary_wkb(var_vt)
 
     call setboundary_wkb(var_E)
+
+    ! IKJuly2023
+    if (include_tracer) then 
+      call setboundary_wkb(var_utracer)
+      call setboundary_wkb(var_vtracer)
+      call setboundary_wkb(var_wtracer)
+    end if  
+
+    ! IKJuly2023
+    if (include_tracer) then 
+      do kz = 1, nz
+        do jy = 1, ny
+          do ix = 1, nx
+            force(ix, jy, kz, 4) = force(ix, jy, kz, 4) &
+              + (var_utracer(ix+1, jy, kz)-var_utracer(ix-1, jy, kz))/(2.0*dx) &
+              + (var_vtracer(ix, jy+1, kz)-var_vtracer(ix, jy-1, kz))/(2.0*dy) &
+              + (var_wtracer(ix, jy, kz+1)-var_wtracer(ix, jy, kz-1))/(2.0*dz)
+          end do
+        end do
+      end do
+    end if  
+    
 
     ! wave impact on horizontal momentum
 
@@ -1153,7 +1224,8 @@ module wkb_module
     if(allocstat /= 0) stop "setup_wkb: could not allocate ddxRay"
 
     ! fields for data WKB output
-    allocate(ray_var3D(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:6), stat = allocstat)
+    ! IKJuly2023 increased from 1:6 to 1:9 for tracer flux (u'chi', v'chi', w'chi')
+    allocate(ray_var3D(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:7), stat = allocstat) 
     if(allocstat /= 0) stop "setup_wkb: could not allocate ray_var3D"
 
     ! needed for initialization of ray volumes:
