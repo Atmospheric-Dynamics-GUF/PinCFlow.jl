@@ -239,7 +239,7 @@
   nbCellCorr = 1
 
   ! sponge layer at upper boundary
-  spongeLayer = .true.     ! sponge with relaxation to background
+  spongeLayer = .false.     ! sponge with relaxation to background
   spongeHeight = 0.4      ! relative height of sponge layer
   spongeAlphaZ_dim = 2.e-1 ! relaxation rate coeff in 1/s
 &end
@@ -267,10 +267,10 @@
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
-  maxIter = 10             ! stop after maxIter time steps
+  maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff = 1.08e4  ! output every ... seconds
-  maxTime        = 1.08e4  ! stop after maxTime seconds
+  outputTimeDiff = 1800.0 !1.5e6  ! output every ... seconds
+  maxTime        = 1800.0 !1.5e6  ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -278,11 +278,11 @@
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -422,7 +422,7 @@
   xCenter_dim = 4.5e6     ! center of wave packet in x direction in m
 
   yCenter_dim = 1.5e5     ! center of wave packet in y direction in m
-  zCenter_dim = 3.e4      ! center of wave packet in z direction in m
+  zCenter_dim = 3.0e4      ! center of wave packet in z direction in m
 
   sigma_dim = 5000.0      ! vertical width of Gaussian wavepacket in m
 
@@ -438,7 +438,7 @@
                           ! in y direction
                           ! (0 = no modulation, 1 = total modulation)
 
-  L_cos_dim = 10000.0      ! half width of vertical cosine profile of GWP
+  L_cos_dim = 5000.0      ! half width of vertical cosine profile of GWP
 
   meanFlowX_dim = 0.0     ! mean flow in m/s / jet flow amplitude
   meanFlowZ_dim = 0.0     ! mean vertical flow m/s
