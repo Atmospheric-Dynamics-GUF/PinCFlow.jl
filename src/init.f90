@@ -149,8 +149,6 @@ module init_module
        nVar = nVar + 1
        iVart = nVar
     end if
-    
-    if (include_ice) nVar = nVar + 4
 
     ! allocate var = (rho,u,v,w,pEx)
     allocate(var(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), stat &

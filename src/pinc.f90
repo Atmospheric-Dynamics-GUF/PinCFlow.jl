@@ -866,7 +866,7 @@ program pinc_prog
              "expl", 1.)
 
         if (include_tracer) then
-           call tracerUpdate(var, flux, 0.5 * dt, dTracer, RKstage)
+           call tracerUpdate(var, flux, force, 0.5 * dt, dTracer, RKstage)
         end if
 
         ! RK step for momentum
@@ -1199,7 +1199,7 @@ program pinc_prog
              1.)
 
         if (include_tracer) then
-           call tracerUpdate(var, flux, dt, dTracer, RKstage)
+           call tracerUpdate(var, flux, force, dt, dTracer, RKstage)
         end if
 
         ! RK step for momentum
@@ -1642,7 +1642,7 @@ program pinc_prog
 
        if (updateTracer) then
           if (RKstage == 1) dTracer = 0.0
-          call tracerUpdate(var, flux, dt, dTracer, RKstage)
+          call tracerUpdate(var, flux, force, dt, dTracer, RKstage)
        end if
 
         if (updateTheta) then
