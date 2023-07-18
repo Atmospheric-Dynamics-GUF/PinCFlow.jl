@@ -230,7 +230,7 @@ module init_module
     if(allocstat /= 0) stop "init.f90: could not allocate flux"
 
     ! allocate force
-    allocate(force(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), stat = allocstat)
+    allocate(force(0:nx + 1, 0:ny + 1, 0:nz + 1, 4), stat = allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate force"
 
     ! allocate environm. pot. temp. perturbations
