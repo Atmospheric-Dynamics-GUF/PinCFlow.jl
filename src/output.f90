@@ -845,7 +845,7 @@ module output_module
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
         intent(in) :: ray
 
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:6), intent(in) :: ray_var3D
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:9), intent(in) :: ray_var3D
 
     ! local variables
     integer :: i, j, k, iVar
@@ -905,6 +905,27 @@ module output_module
 
             case(6) ! GW energy
               field_prc(i, j) = ray_var3D(i, j, k, 6) * rhoRef * uRef ** 2 ! /tRef deleted by FDK
+
+            case(7)
+              if (include_tracer) then 
+                field_prc(i, j) = ray_var3D(i, j, k, 7) * uRef
+              else
+                field_prc(i, j) = 0.0
+              end if
+            
+            case(8)
+              if (include_tracer) then 
+                field_prc(i, j) = ray_var3D(i, j, k, 8) * uRef
+              else
+                field_prc(i, j) = 0.0
+              end if
+
+            case(9)
+              if (include_tracer) then 
+                field_prc(i, j) = ray_var3D(i, j, k, 9) * uRef
+              else
+                field_prc(i, j) = 0.0
+              end if
 
             case default
               stop "output_wkb: unkown iVar"
