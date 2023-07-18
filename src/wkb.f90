@@ -1225,7 +1225,7 @@ module wkb_module
 
     ! fields for data WKB output
     ! IKJuly2023 increased from 1:6 to 1:9 for tracer flux (u'chi', v'chi', w'chi')
-    allocate(ray_var3D(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:7), stat = allocstat) 
+    allocate(ray_var3D(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:9), stat = allocstat) 
     if(allocstat /= 0) stop "setup_wkb: could not allocate ray_var3D"
 
     ! needed for initialization of ray volumes:
