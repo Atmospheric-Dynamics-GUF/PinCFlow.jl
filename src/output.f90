@@ -876,9 +876,9 @@ module output_module
     !---------------------------------------
 
     ! FJFeb2023
-    irc_prc = 6 * (iOut - 1) * nz
+    irc_prc = 9 * (iOut - 1) * nz
 
-    do iVar = 1, 6
+    do iVar = 1, 9
       do k = 1, nz
         ! dimensionalization
 
