@@ -631,13 +631,6 @@ module wkb_module
           ray_var3D(ix, jy, kz, 5) = var_uw(ix, jy, kz) ! output change by FDK
           ray_var3D(ix, jy, kz, 6) = var_E(ix, jy, kz)
           
-          ! IKJuly2023
-          if (include_tracer) then
-            ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 9) = var_wtracer(ix, jy, kz)
-          end if  
-
         end do
       end do
     end do
@@ -699,6 +692,20 @@ module wkb_module
         end do
       end do
     end if  
+
+    ! IK July2023
+    if (include_tracer) then
+      do kz = 1, nz
+        do jy = 1, ny
+          do ix = 1, nx
+            ! IKJuly2023
+            ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
+            ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
+            ray_var3D(ix, jy, kz, 9) = var_wtracer(ix, jy, kz)  
+          end do
+        end do
+      end do
+    end if
     
 
     ! wave impact on horizontal momentum
