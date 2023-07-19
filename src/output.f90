@@ -246,7 +246,7 @@ module output_module
 
                          !rhotracer = 1.0
                          
-                         field_prc(i,j) = var(i,j,k,iVart)/rhotracer - alphaTracer * (z(k)-z(1))
+                         field_prc(i,j) = var(i,j,k,iVart)/rhotracer!- alphaTracer * (z(k)-z(1))
                       case default
                          stop "output.f90: unkown iVar in output_data"
                       end select ! iVar
