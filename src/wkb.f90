@@ -164,7 +164,7 @@ module wkb_module
     real :: NNR
 
     ! IKJuly2023 tracer flux stuff
-    real :: tracerfluxcoeff, dchidx, dchidy, dchidz
+    real :: tracerfluxcoeff, dchidx, dchidy, dchidz, rhotracer
 
     allocate(var_uu(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_uv(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
@@ -597,15 +597,21 @@ module wkb_module
                     tracerfluxcoeff = f_cor_nd / omir * wnrm &
                         / (wnrh ** 2 + wnrm ** 2) * wadr / rhoStrat(kz)
                     ! makeshift large-scale tracer gradient
+
+                  if(fluctuationMode) then
+                    rhotracer = (var(ix, jy, kz, 1) + rhoStrat(k))
+                  else
+                    rhotracer = var(i, j, k, 1)
+                  end if
                     
                     dchidx = (var(ix+1, jy, kz, iVart)-var(ix-1, jy, kz, iVart))&
-                      / (2.0 * dx * rhotot)
+                      / (2.0 * dx * rhotracer)
 
                     dchidy = (var(ix, jy+1, kz, iVart)-var(ix, jy-1, kz, iVart))&
-                      / (2.0 * dy * rhotot)
+                      / (2.0 * dy * rhotracer)
 
                     dchidz = (var(ix, jy, kz+1, iVart)-var(ix, jy, kz-1, iVart))&
-                      / (2.0 * dz * rhotot)
+                      / (2.0 * dz * rhotracer)
 
                     var_utracer(ix, jy, kz) = var_utracer(ix, jy, kz) &
                         + tracerfluxcoeff * (wnrm * dchidy - wnrl * dchidz)
@@ -615,7 +621,7 @@ module wkb_module
                         + tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
 
                     
-                    print *, 'rhotot = ' , rhotot
+                    print *, 'rhotot = ' , rhotracer
                   end if
 
                   var_E(ix, jy, kz) = var_E(ix, jy, kz) + wadr * omir
