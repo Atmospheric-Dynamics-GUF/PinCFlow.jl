@@ -592,28 +592,28 @@ module wkb_module
                   end if
 
                   ! IKJuly2023 tracer fluxes
-                  !if(f_cor_nd /=0.0 .and. include_tracer .and. sizeX > 1 .and. sizeY > 1) then
+                  if(f_cor_nd /=0.0 .and. include_tracer .and. sizeX > 1 .and. sizeY > 1) then
 
-                  !  tracerfluxcoeff = f_cor_nd / omir * wnrm &
-                  !      / (wnrh ** 2 + wnrm ** 2) * wadr / rhoStrat(kz)
+                    tracerfluxcoeff = f_cor_nd / omir * wnrm &
+                        / (wnrh ** 2 + wnrm ** 2) * wadr / rhoStrat(kz)
                     ! makeshift large-scale tracer gradient
                     
-                  !  dchidx = (var(ix+1, jy, kz, iVart)-var(ix-1, jy, kz, iVart))&
-                  !    / (2.0 * dx * rhotot)
+                    dchidx = (var(ix+1, jy, kz, iVart)-var(ix-1, jy, kz, iVart))&
+                      / (2.0 * dx * rhotot)
 
-                  !  dchidy = (var(ix, jy+1, kz, iVart)-var(ix, jy-1, kz, iVart))&
-                  !    / (2.0 * dy * rhotot)
+                    dchidy = (var(ix, jy+1, kz, iVart)-var(ix, jy-1, kz, iVart))&
+                      / (2.0 * dy * rhotot)
 
-                  !  dchidz = (var(ix, jy, kz+1, iVart)-var(ix, jy, kz-1, iVart))&
-                  !    / (2.0 * dz * rhotot)
+                    dchidz = (var(ix, jy, kz+1, iVart)-var(ix, jy, kz-1, iVart))&
+                      / (2.0 * dz * rhotot)
 
-                  !  var_utracer(ix, jy, kz) = var_utracer(ix, jy, kz) &
-                  !      + tracerfluxcoeff * (wnrm * dchidy - wnrl * dchidz)
-                  !  var_vtracer(ix, jy, kz) = var_vtracer(ix, jy, kz) &
-                  !      + tracerfluxcoeff * (wnrk * dchidz - wnrm * dchidx)
-                  !  var_wtracer(ix, jy, kz) = var_wtracer(ix, jy, kz) &
-                  !      + tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
-                  !end if
+                    var_utracer(ix, jy, kz) = var_utracer(ix, jy, kz) &
+                        + tracerfluxcoeff * (wnrm * dchidy - wnrl * dchidz)
+                    var_vtracer(ix, jy, kz) = var_vtracer(ix, jy, kz) &
+                        + tracerfluxcoeff * (wnrk * dchidz - wnrm * dchidx)
+                    var_wtracer(ix, jy, kz) = var_wtracer(ix, jy, kz) &
+                        + tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
+                  end if
 
                   var_E(ix, jy, kz) = var_E(ix, jy, kz) + wadr * omir
                 end do
