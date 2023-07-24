@@ -11,9 +11,9 @@
 
 &domain
 
-  sizeX = 128 !512 !256 !128 !256 !1024,                  ! nb of global grid cells
+  sizeX = 128, !512 !256 !128 !256 !1024,                  ! nb of global grid cells
   sizeY = 4,
-  sizeZ = 32 !1024 !512 !256 !512 !2048,
+  sizeZ = 32, !1024 !512 !256 !512 !2048,
   nbx = 3,                  ! nb. of ghost cells
   nby = 3,
   nbz = 3,
@@ -266,8 +266,8 @@
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  1.08e4  ! output every ... seconds
-  maxTime = 1.08e4          ! stop after maxTime seconds
+  outputTimeDiff =  1800.0  ! output every ... seconds
+  maxTime = 1800.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
