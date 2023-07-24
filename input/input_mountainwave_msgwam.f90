@@ -12,14 +12,14 @@
 &domain
 
   sizeX = 128 !512 !256 !128 !256 !1024,                  ! nb of global grid cells
-  sizeY = 4,
+  sizeY = 3,
   sizeZ = 32 !1024 !512 !256 !512 !2048,
   nbx = 3,                  ! nb. of ghost cells
   nby = 3,
   nbz = 3,
-  lx_dim =   0.0, 9000000.0, ! domain lenths in m
-  ly_dim =   0.0, 300000.0,
-  lz_dim =   0.0, 100000.0,
+  lx_dim =   0.0, 5.e6 ! domain lenths in m
+  ly_dim =   0.0, 5.e4
+  lz_dim =   0.0, 1.e5
 
   ! nb of processors in x and y direction must be set in the batch file
   nprocx = {nprocx},
@@ -70,7 +70,7 @@
   dtMax_dim = 3.6e3               ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
-  timeScheme = "semiimplicit"      ! LS_Will_RK3 -> Williamson / Euler /
+  timeScheme = "LS_Will_RK3"      ! LS_Will_RK3 -> Williamson / Euler /
                                   ! LS_TVD_RK3 / CL_TVD_RK3 / semiimplicit
   auxil_equ = .false.             ! auxiliary equation for the density
                                   ! fluctuations to be used in the explicit
@@ -236,7 +236,7 @@
   nbCellCorr = 1
 
   ! sponge layer at upper boundary
-  spongeLayer = .false.     ! sponge with relaxation to background
+  spongeLayer = .true.     ! sponge with relaxation to background
   spongeHeight = 0.33      ! relative height of sponge layer
   spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
 &end
@@ -264,10 +264,10 @@
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
-  maxIter = 1             ! stop after maxIter time steps
+  maxIter = 100             ! stop after maxIter time steps
 
-  outputTimeDiff =  1.08e4  ! output every ... seconds
-  maxTime = 1.08e4          ! stop after maxTime seconds
+  outputTimeDiff =  1728  ! output every ... seconds
+  maxTime = 1728          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -486,20 +486,20 @@
   lsaturation = .true.,    ! JaWi 16.12.16 (sat)
   alpha_sat = 1.0,         ! JaWi 16.12.16 (sat)
 
-  case_wkb = 1,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
+  case_wkb = 3,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
   amp_wkb = 0.5            ! amplitude of the wave packet (wrt saturation)
 
-  wlrx_init = 3.e5,        ! initial lambda_x of the wave packet (m)
-  wlry_init = 3.e5          ! initial lambda_y of the wave packet (m)
+  wlrx_init = 2.e5,        ! initial lambda_x of the wave packet (m)
+  wlry_init = 2.e3,          ! initial lambda_y of the wave packet (m)
                            ! (0 means infinity)
-  wlrz_init = 1000.0,        ! initial lambda_z of the wave packet (m)
+  wlrz_init = 1.e3,        ! initial lambda_z of the wave packet (m)
                            ! (0 means infinity)
 
-  xr0_dim = 4.5e6           ! center of the wave packet in hor. (x-dir.) (m)
-  yr0_dim = 1.5e5,          ! center of the wave packet in hor. (y-dir.) (m)
+  xr0_dim = 2.5e6           ! center of the wave packet in hor. (x-dir.) (m)
+  yr0_dim = 2.e4,          ! center of the wave packet in hor. (y-dir.) (m)
   zr0_dim = 3.e4,          ! center of the wave packet in vertical (m)
 
-  sigwpx_dim = 1.5e6 ,      ! width of the wave packet in hor. (x-dir.) (m);
+  sigwpx_dim = 1.e6 ,      ! width of the wave packet in hor. (x-dir.) (m);
                            ! (0 means infinity)
   sigwpy_dim = 0.e0        ! width of the wave packet in hor. (y-dir.) (m);
                            ! (0 means infinity)
@@ -732,6 +732,6 @@
 
 &tracerList
 
-  tracerSetup = "increase_in_z_tracer"
+tracerSetup = "increase_in_z_tracer"
 
 &end
