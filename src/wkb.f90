@@ -638,19 +638,6 @@ module wkb_module
       end do
     end do
 
-    ! IK July2023
-    if (include_tracer) then
-      do kz = 1, nz
-        do jy = 1, ny
-          do ix = 1, nx
-            ! IKJuly2023
-            ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 9) = var_wtracer(ix, jy, kz)  
-          end do
-        end do
-      end do
-    end if
 
     ! testb
     ! print*,'in calc_meanFlow_effect:'
@@ -690,40 +677,39 @@ module wkb_module
     call setboundary_wkb(var_E)
 
     ! IKJuly2023
-    !if (include_tracer) then 
-    !  call setboundary_wkb(var_utracer)
-    !  call setboundary_wkb(var_vtracer)
-    !  call setboundary_wkb(var_wtracer)
-    !end if  
+    if (include_tracer) then 
+      call setboundary_wkb(var_utracer)
+      call setboundary_wkb(var_vtracer)
+      call setboundary_wkb(var_wtracer)
+    end if  
 
     ! IKJuly2023
-    !if (include_tracer) then 
-    !  do kz = 1, nz
-    !    do jy = 1, ny
-    !      do ix = 1, nx
-    !        force(ix, jy, kz, 4) = 0.0
-            !force(ix, jy, kz, 4) = force(ix, jy, kz, 4) &
-            !  + (var_utracer(ix+1, jy, kz)-var_utracer(ix-1, jy, kz))/(2.0*dx) &
-            !  + (var_vtracer(ix, jy+1, kz)-var_vtracer(ix, jy-1, kz))/(2.0*dy) &
-            !  + (var_wtracer(ix, jy, kz+1)-var_wtracer(ix, jy, kz-1))/(2.0*dz)
-    !      end do
-    !    end do
-    !  end do
-    !end if  
+    if (include_tracer) then 
+      do kz = 1, nz
+        do jy = 1, ny
+          do ix = 1, nx
+            force(ix, jy, kz, 4) = force(ix, jy, kz, 4) &
+              + (var_utracer(ix+1, jy, kz)-var_utracer(ix-1, jy, kz))/(2.0*dx) &
+              + (var_vtracer(ix, jy+1, kz)-var_vtracer(ix, jy-1, kz))/(2.0*dy) &
+              + (var_wtracer(ix, jy, kz+1)-var_wtracer(ix, jy, kz-1))/(2.0*dz)
+          end do
+        end do
+      end do
+    end if  
 
     ! IK July2023
-    !if (include_tracer) then
-    !  do kz = 1, nz
-    !    do jy = 1, ny
-    !      do ix = 1, nx
-    !        ! IKJuly2023
-    !        ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
-    !        ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
-    !        ray_var3D(ix, jy, kz, 9) = var_wtracer(ix, jy, kz)  
-    !      end do
-    !    end do
-    !  end do
-    !end if
+    if (include_tracer) then
+      do kz = 1, nz
+        do jy = 1, ny
+          do ix = 1, nx
+            ! IKJuly2023
+            ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
+            ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
+            ray_var3D(ix, jy, kz, 9) = force(ix, jy, kz, 4) !var_wtracer(ix, jy, kz)  
+          end do
+        end do
+      end do
+    end if
     
 
     ! wave impact on horizontal momentum
