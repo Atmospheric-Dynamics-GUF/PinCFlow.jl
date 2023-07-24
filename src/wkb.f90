@@ -621,7 +621,7 @@ module wkb_module
                         + tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
 
                     
-                    print *, 'rhotot = ' , rhotracer
+                    print *, 'dchidz = ' , dchidz
                   end if
 
                   var_E(ix, jy, kz) = var_E(ix, jy, kz) + wadr * omir
