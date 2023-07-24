@@ -3,7 +3,7 @@
 #SBATCH --job-name=mountainwave_msgwam
 #SBATCH --ntasks=64
 #SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=2600
+#SBATCH --mem-per-cpu=5200
 #SBATCH --mail-type=ALL
 #SBATCH --mail-use=s9467794@stud.uni-frankfurt.de
 #SBATCH --time=02:00:00
