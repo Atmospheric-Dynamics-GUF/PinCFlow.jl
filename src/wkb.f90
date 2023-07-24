@@ -620,8 +620,6 @@ module wkb_module
                     var_wtracer(ix, jy, kz) = var_wtracer(ix, jy, kz) &
                         + tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
 
-                    
-                    print *, 'dchidz = ' , dchidz
                   end if
 
                   var_E(ix, jy, kz) = var_E(ix, jy, kz) + wadr * omir
@@ -714,8 +712,8 @@ module wkb_module
           do ix = 1, nx
             ! IKJuly2023
             ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 9) = force(ix, jy, kz, 4) !var_wtracer(ix, jy, kz)  
+            ray_var3D(ix, jy, kz, 8) = var_wtracer(ix, jy, kz)
+            ray_var3D(ix, jy, kz, 9) = force(ix, jy, kz, 4)
           end do
         end do
       end do
