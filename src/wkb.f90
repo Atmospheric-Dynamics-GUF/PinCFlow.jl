@@ -614,7 +614,7 @@ module wkb_module
                     var_wtracer(ix, jy, kz) = var_wtracer(ix, jy, kz) &
                         + tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
 
-                    print *, 'var(ix, jy, kz, iVart) = ' , var(ix+1, jy, kz, iVart)-var(ix-1, jy, kz, iVart)
+                    print *, 'rhotot = ' , rhotot
                   end if
 
                   var_E(ix, jy, kz) = var_E(ix, jy, kz) + wadr * omir
