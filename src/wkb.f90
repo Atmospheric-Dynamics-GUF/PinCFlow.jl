@@ -705,7 +705,7 @@ module wkb_module
             ! IKJuly2023
             ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
             ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 9) = 200. ! test var_wtracer(ix, jy, kz)  
+            ray_var3D(ix, jy, kz, 9) = var_wtracer(ix, jy, kz)  
           end do
         end do
       end do
