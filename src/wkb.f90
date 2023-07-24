@@ -614,6 +614,7 @@ module wkb_module
                     var_wtracer(ix, jy, kz) = var_wtracer(ix, jy, kz) &
                         + tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
 
+                    
                     print *, 'rhotot = ' , rhotot
                   end if
 
