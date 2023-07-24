@@ -599,9 +599,9 @@ module wkb_module
                     ! makeshift large-scale tracer gradient
 
                   if(fluctuationMode) then
-                    rhotracer = (var(ix, jy, kz, 1) + rhoStrat(k))
+                    rhotracer = (var(ix, jy, kz, 1) + rhoStrat(kz))
                   else
-                    rhotracer = var(i, j, k, 1)
+                    rhotracer = var(ix, jy, kz, 1)
                   end if
                     
                     dchidx = (var(ix+1, jy, kz, iVart)-var(ix-1, jy, kz, iVart))&
