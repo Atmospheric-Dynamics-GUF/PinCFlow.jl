@@ -619,8 +619,6 @@ module wkb_module
                         + tracerfluxcoeff * (wnrk * dchidz - wnrm * dchidx)
                     var_wtracer(ix, jy, kz) = var_wtracer(ix, jy, kz) &
                         + tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
-
-                    print *, 'var_utracer(ix, jy, kz) = ' , var_utracer(ix, jy, kz)
                   end if
 
                   var_E(ix, jy, kz) = var_E(ix, jy, kz) + wadr * omir
@@ -630,6 +628,10 @@ module wkb_module
           end do
         end do
       end do
+    end do
+
+    do kz = 1, nz
+      print *, 'var_utracer = ', var_utracer(:, 1, kz)
     end do
 
     !! for output of u'w', E_w/rho, u, v, w:
