@@ -259,15 +259,15 @@
 
 &outputList
 
-  outputType = "timeStep"      ! timeStep / time
+  outputType = "time"      ! timeStep / time
 
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  1800.0  ! output every ... seconds
-  maxTime = 1800.0          ! stop after maxTime seconds
+  outputTimeDiff =  1.08e4  ! output every ... seconds
+  maxTime = 1.08e4          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -275,11 +275,11 @@
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,1,1,1,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,1,1,1,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -509,7 +509,7 @@
   !presently not used:
   lindUinit = .false.,     ! ind. wind already at initial time (true/false)
 
-  mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
+  mountainHeight_wkb_dim = 0.e0 ! WKB mountain height (m)
   mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
   mountain_case_wkb = 6         ! WKB orography shape (corresponds to
                                 ! mountain_case in topography namelist)
