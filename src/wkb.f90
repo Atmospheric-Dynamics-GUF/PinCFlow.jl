@@ -630,9 +630,6 @@ module wkb_module
       end do
     end do
 
-    do kz = 1, nz
-      print *, 'var_utracer = ', var_utracer(:, 1, kz)
-    end do
 
     !! for output of u'w', E_w/rho, u, v, w:
     ! for output of u'w', E_w, u, v, w:
@@ -693,6 +690,20 @@ module wkb_module
       call setboundary_wkb(var_wtracer)
     end if  
 
+    if (lsmth_wkb) then
+      if(sm_filter == 1) then
+        call smooth_wkb_box(var_utracer, nsmth_wkb, 111)
+        call smooth_wkb_box(var_vtracer, nsmth_wkb, 111)
+        call smooth_wkb_box(var_wtracer, nsmth_wkb, 111)
+      elseif(sm_filter == 2) then
+        call smooth_wkb_shapiro(var_utracer, nsmth_wkb, 111)
+        call smooth_wkb_shapiro(var_vtracer, nsmth_wkb, 111)
+        call smooth_wkb_shapiro(var_wtracer, nsmth_wkb, 111)
+      else
+        stop 'WRONG sm_filter'
+      end if
+    end if
+
     ! IKJuly2023
     if (include_tracer) then 
       do kz = 1, nz
@@ -702,11 +713,23 @@ module wkb_module
               + (var_utracer(ix+1, jy, kz)-var_utracer(ix-1, jy, kz))/(2.0*dx) &
               + (var_vtracer(ix, jy+1, kz)-var_vtracer(ix, jy-1, kz))/(2.0*dy) &
               + (var_wtracer(ix, jy, kz+1)-var_wtracer(ix, jy, kz-1))/(2.0*dz)
-
           end do
         end do
       end do
     end if  
+
+    if (include_tracer) then
+      call setboundary_frc_wkb(force(:, :, :, 4))
+      ! if (lsmth_wkb) then
+      !   if(sm_filter == 1) then
+      !     call smooth_wkb_box(force(:, :, :, 4), nsmth_wkb, 111)
+      !   elseif(sm_filter == 2) then
+      !     call smooth_wkb_shapiro(force(:, :, :, 4), nsmth_wkb, 111)
+      !   else
+      !     stop 'WRONG sm_filter'
+      !   end if
+      ! end if
+    end if
 
     ! IK July2023
     if (include_tracer) then
@@ -716,7 +739,7 @@ module wkb_module
             ! IKJuly2023
             ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
             ray_var3D(ix, jy, kz, 8) = var_wtracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 9) = force(ix, jy, kz, 4)
+            ray_var3D(ix, jy, kz, 9) = force(ix, jy, kz, 4) / uRef
           end do
         end do
       end do
