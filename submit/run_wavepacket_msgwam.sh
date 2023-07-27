@@ -29,7 +29,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/wavepacket_msgwam
+dirWork=${dirScratch}/output/wavepacket_msgwam_smooth
 
 mkdir ${dirWork}
 
