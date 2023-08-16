@@ -269,8 +269,8 @@
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff = 1800.0 !1.5e6  ! output every ... seconds
-  maxTime        = 1800.0 !1.5e6  ! stop after maxTime seconds
+  outputTimeDiff = 86400.0 !1.5e6  ! output every ... seconds
+  maxTime        = 86400.0 !1.5e6  ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -408,7 +408,7 @@
 
   wavePacketType = 1      ! 1 = Gaussian, 2 = Cosine
 
-  wavePacketDim = 2       ! 1 = 1D, 2 = 2D, 3 = 3D
+  wavePacketDim = 3       ! 1 = 1D, 2 = 2D, 3 = 3D
                           ! for a 2.5D Wave Packet use wavePacketDim = 2
 
   lambdaX_dim = 3.e5      ! wave length in x direction in m

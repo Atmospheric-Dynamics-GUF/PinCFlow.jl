@@ -3,17 +3,17 @@
 #SBATCH --job-name=wavePacket3D-tracer
 #SBATCH --ntasks=128
 #SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=2600
+#SBATCH --mem-per-cpu=5200
 #SBATCH --mail-type=ALL
 #SBATCH --mail-use=s9467794@stud.uni-frankfurt.de
-#SBATCH --time=00:10:00
+#SBATCH --time=02:00:00
 
 set -x
 
 # no. of processors ntasks must be nprocx * nprocy
 ntasks=128
-nprocx=64
-nprocy=2
+nprocx=128
+nprocy=1
 
 # OpenMP settings
 export OMP_NUM_THREADS=1
@@ -29,7 +29,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/wavePacket3D-tracer_30min
+dirWork=${dirScratch}/output/wavepacket_LES_2DWP00
 
 mkdir ${dirWork}
 
@@ -40,7 +40,7 @@ cd ${dirWork} && rm *
 # copy namelist
 sed -e "s/{nprocx}/${nprocx}/" \
     -e "s/{nprocy}/${nprocy}/" \
-        ${dirNam}/input_wavePacket3D-tracer.f90 > input.f90
+        ${dirNam}/input_wavepacket_LES_2DWP00.f90 > input.f90
 
 # run the raytracer
 mpirun -np ${ntasks} ${exe} 1>run.log 2>&1

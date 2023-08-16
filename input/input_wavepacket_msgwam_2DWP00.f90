@@ -41,7 +41,7 @@
                     !    (due to GWs, only needed in WKB simulations)
   nOptVar = 4,
 
-  include_tracer = .true.,
+  include_tracer = .false.,
 
 &end
 
@@ -174,20 +174,20 @@
                                  ! (need for baroclinic)
 
 
-  theta0_dim = 300               ! K
+  theta0_dim = 240               ! K
                                  ! isentropic -> background pot. temp.
                                  ! const-N    -> ground pot. temp.
                                  ! uniform    -> background pot temp for
                                  !               Boussinesq
 
-  Temp0_dim = 300                ! K
+  Temp0_dim = 240                ! K
                                  ! isothermal -> background temperature
 
   press0_dim =  101325.0         ! ground pressure (at z=0) in Pa:
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 1.8-2     ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 0.02     ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
@@ -275,11 +275,11 @@
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,0,0,0   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,0,0,0,0   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -465,18 +465,18 @@
   zrmax_dim = 100000.0,        ! top bound of initial rays (m)
 
   nrxl = 1,               ! no. of ray vol. init. within one hor. x column
-  nryl = 1,               ! no. of ray vol. init. within one hor. y column
+  nryl = 0,               ! no. of ray vol. init. within one hor. y column
   nrzl = 1,               ! no. of ray vol. init. within one vert. layer
 
   fac_dk_init = 0.1,     ! init. width of total ray vol. in k space
                            ! (fraction of the initial wave number in x dir.)
-  fac_dl_init = 0.1,     ! init. width of total ray vol. in l space
+  fac_dl_init = 0.0,     ! init. width of total ray vol. in l space
                            ! (fraction of the initial wave number in y dir.)
   fac_dm_init = 0.1,     ! init. width of total ray vol. in m space
                            ! (fraction of the initial vert. wave number)
 
   nrk_init = 1,            ! no. of ray volumes initialized within dk
-  nrl_init = 1,            ! no. of ray volumes initialized within dl
+  nrl_init = 0,            ! no. of ray volumes initialized within dl
   nrm_init = 1,            ! no. of ray volumes initialized within dm
 
   nsmth_wkb = 2,           ! half (number -1) of cells f. smooth. wkb fluxes
@@ -486,13 +486,13 @@
   lsaturation = .true.,    ! JaWi 16.12.16 (sat)
   alpha_sat = 1.0,         ! JaWi 16.12.16 (sat)
 
-  case_wkb = 2,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
+  case_wkb = 1,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
   amp_wkb = 0.5            ! amplitude of the wave packet (wrt saturation)
 
   wlrx_init = 3.e5,        ! initial lambda_x of the wave packet (m)
-  wlry_init = 3.e5          ! initial lambda_y of the wave packet (m)
+  wlry_init = 0.0,          ! initial lambda_y of the wave packet (m)
                            ! (0 means infinity)
-  wlrz_init = -1000.0,        ! initial lambda_z of the wave packet (m)
+  wlrz_init = 1000.0,        ! initial lambda_z of the wave packet (m)
                            ! (0 means infinity)
 
   xr0_dim = 4.5e6           ! center of the wave packet in hor. (x-dir.) (m)
@@ -505,7 +505,7 @@
                            ! (0 means infinity)
   sigwpz_dim = 5.e3,       ! width of the wave packet in vertical (m);
 
-  branchr = -1,            ! frequency branch (dispersion relation)
+  branchr = 1,            ! frequency branch (dispersion relation)
   !presently not used:
   lindUinit = .false.,     ! ind. wind already at initial time (true/false)
 
