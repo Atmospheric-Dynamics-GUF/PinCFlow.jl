@@ -11,9 +11,9 @@
 
 &domain
 
-  sizeX = 128, !512 !256 !128 !256 !1024,                  ! nb of global grid cells
-  sizeY = 4,
-  sizeZ = 32, !1024 !512 !256 !512 !2048,
+  sizeX = 32, !512 !256 !128 !256 !1024,                  ! nb of global grid cells
+  sizeY = 1,
+  sizeZ = 100, !1024 !512 !256 !512 !2048,
   nbx = 3,                  ! nb. of ghost cells
   nby = 3,
   nbz = 3,
@@ -104,7 +104,7 @@
                                ! tolPoisson = tolPoisson*alpha,
                                ! where alpha is dynamically calculated
                                ! magnitude of gradients.
-  tolPoisson = 1.0e-4          ! abort criterion
+  tolPoisson = 1.0e-2          ! abort criterion
   tolCond = 1.e-23             ! tolerance value controlling the use of
                                ! the preconditioner
   abs_tol = 0.  !1.0e-7        ! it is unscaled abs. tol.,
@@ -187,7 +187,7 @@
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 1.8e-2    ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 1.8-2     ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
@@ -266,8 +266,8 @@
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  1.08e4  ! output every ... seconds
-  maxTime = 1.08e4          ! stop after maxTime seconds
+  outputTimeDiff =  86400.0  ! output every ... seconds
+  maxTime = 86400.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -458,11 +458,11 @@
 &LagrangeRayTracing
 
   xrmin_dim = 0.0,         ! left bound of initial rays (in x direction) (m)
-  xrmax_dim = 5.e6,        ! right bound of initial rays (in x dir.) (m)
+  xrmax_dim = 9000000.0,        ! right bound of initial rays (in x dir.) (m)
   yrmin_dim = 0.0,         ! left bound of initial rays (in y direction) (m)
-  yrmax_dim = 5.e4,        ! right bound of initial rays (in y dir.) (m)
-  zrmin_dim = 3.e3,        ! bottom bound of initial rays (m)
-  zrmax_dim = 7.e4,        ! top bound of initial rays (m)
+  yrmax_dim = 300000.0,        ! right bound of initial rays (in y dir.) (m)
+  zrmin_dim = 0.0,        ! bottom bound of initial rays (m)
+  zrmax_dim = 100000.0,        ! top bound of initial rays (m)
 
   nrxl = 1,               ! no. of ray vol. init. within one hor. x column
   nryl = 1,               ! no. of ray vol. init. within one hor. y column
@@ -480,19 +480,19 @@
   nrm_init = 1,            ! no. of ray volumes initialized within dm
 
   nsmth_wkb = 2,           ! half (number -1) of cells f. smooth. wkb fluxes
-  lsmth_wkb = .true.,      ! log. switch for smooth. wkb data (true/false)
+  lsmth_wkb = .false.,      ! log. switch for smooth. wkb data (true/false)
   sm_filter = 2,
 
   lsaturation = .true.,    ! JaWi 16.12.16 (sat)
   alpha_sat = 1.0,         ! JaWi 16.12.16 (sat)
 
-  case_wkb = 1,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
+  case_wkb = 2,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
   amp_wkb = 0.5            ! amplitude of the wave packet (wrt saturation)
 
   wlrx_init = 3.e5,        ! initial lambda_x of the wave packet (m)
   wlry_init = 3.e5          ! initial lambda_y of the wave packet (m)
                            ! (0 means infinity)
-  wlrz_init = 1000.0,        ! initial lambda_z of the wave packet (m)
+  wlrz_init = -1000.0,        ! initial lambda_z of the wave packet (m)
                            ! (0 means infinity)
 
   xr0_dim = 4.5e6           ! center of the wave packet in hor. (x-dir.) (m)

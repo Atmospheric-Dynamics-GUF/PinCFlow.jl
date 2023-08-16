@@ -908,21 +908,21 @@ module output_module
 
             case(7)
               if (include_tracer) then 
-                field_prc(i, j) = ray_var3D(i, j, k, 7) * uRef
+                field_prc(i, j) = ray_var3D(i, j, k, 7)
               else
                 field_prc(i, j) = 0.0
               end if
             
             case(8)
               if (include_tracer) then 
-                field_prc(i, j) = ray_var3D(i, j, k, 8) * uRef
+                field_prc(i, j) = ray_var3D(i, j, k, 8)
               else
                 field_prc(i, j) = 0.0
               end if
 
             case(9)
               if (include_tracer) then 
-                field_prc(i, j) = ray_var3D(i, j, k, 9) * uRef
+                field_prc(i, j) = ray_var3D(i, j, k, 9)
               else
                 field_prc(i, j) = 0.0
               end if

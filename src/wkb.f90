@@ -164,7 +164,7 @@ module wkb_module
     real :: NNR
 
     ! IKJuly2023 tracer flux stuff
-    real :: tracerfluxcoeff, dchidx, dchidy, dchidz, rhotracer
+    real :: tracerfluxcoeff, dchidx, dchidy, dchidz, rhotracer, dutracer, dvtracer
 
     allocate(var_uu(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_uv(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
@@ -592,7 +592,7 @@ module wkb_module
                   end if
 
                   ! IKJuly2023 tracer fluxes
-                  if(f_cor_nd /=0.0 .and. include_tracer .and. sizeX > 1 .and. sizeY > 1) then
+                  if(f_cor_nd /=0.0 .and. include_tracer) then
 
                     tracerfluxcoeff = f_cor_nd / omir * wnrm &
                         / (wnrh ** 2 + wnrm ** 2) * wadr / rhoStrat(kz)
@@ -604,11 +604,19 @@ module wkb_module
                     rhotracer = var(ix, jy, kz, 1)
                   end if
                     
-                    dchidx = (var(ix+1, jy, kz, iVart)-var(ix-1, jy, kz, iVart))&
-                      / (2.0 * dx * rhotracer)
+                    if (sizeX > 1) then
+                      dchidx = (var(ix+1, jy, kz, iVart)-var(ix-1, jy, kz, iVart))&
+                        / (2.0 * dx * rhotracer)
+                    else
+                      dchidx = 0.0
+                    end if
 
-                    dchidy = (var(ix, jy+1, kz, iVart)-var(ix, jy-1, kz, iVart))&
-                      / (2.0 * dy * rhotracer)
+                    if (sizeY > 1) then
+                      dchidy = (var(ix, jy+1, kz, iVart)-var(ix, jy-1, kz, iVart))&
+                        / (2.0 * dy * rhotracer)
+                    else
+                      dchidy = 0.0
+                    end if
 
                     dchidz = (var(ix, jy, kz+1, iVart)-var(ix, jy, kz-1, iVart))&
                       / (2.0 * dz * rhotracer)
@@ -709,9 +717,21 @@ module wkb_module
       do kz = 1, nz
         do jy = 1, ny
           do ix = 1, nx
+
+            if (sizeX > 1) then
+              dutracer = (var_utracer(ix+1, jy, kz)-var_utracer(ix-1, jy, kz))/(2.0*dx)
+            else
+              dutracer = 0.0
+            end if
+
+            if (sizeY > 1) then 
+              dvtracer = (var_vtracer(ix, jy+1, kz)-var_vtracer(ix, jy-1, kz))/(2.0*dy)
+            else
+              dvtracer = 0.0
+            end if
+
             force(ix, jy, kz, 4) = force(ix, jy, kz, 4) &
-              + (var_utracer(ix+1, jy, kz)-var_utracer(ix-1, jy, kz))/(2.0*dx) &
-              + (var_vtracer(ix, jy+1, kz)-var_vtracer(ix, jy-1, kz))/(2.0*dy) &
+              + dutracer + dvtracer &
               + (var_wtracer(ix, jy, kz+1)-var_wtracer(ix, jy, kz-1))/(2.0*dz)
           end do
         end do
@@ -739,7 +759,7 @@ module wkb_module
             ! IKJuly2023
             ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
             ray_var3D(ix, jy, kz, 8) = var_wtracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 9) = force(ix, jy, kz, 4) / uRef
+            ray_var3D(ix, jy, kz, 9) = force(ix, jy, kz, 4)
           end do
         end do
       end do
