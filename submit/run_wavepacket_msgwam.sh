@@ -1,9 +1,9 @@
 #!/bin/bash
-#SBATCH --partition=test
+#SBATCH --partition=general2
 #SBATCH --job-name=wavepacket_msgwam
-#SBATCH --ntasks=64
+#SBATCH --ntasks=32
 #SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=5200
+#SBATCH --mem-per-cpu=10400
 #SBATCH --mail-type=ALL
 #SBATCH --mail-use=s9467794@stud.uni-frankfurt.de
 #SBATCH --time=02:00:00
@@ -11,8 +11,8 @@
 set -x
 
 # no. of processors ntasks must be nprocx * nprocy
-ntasks=64
-nprocx=64
+ntasks=32
+nprocx=32
 nprocy=1
 
 # OpenMP settings
@@ -29,7 +29,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/wavepacket_msgwam_smooth
+dirWork=${dirScratch}/output/wavepacket_msgwam_24h
 
 mkdir ${dirWork}
 
