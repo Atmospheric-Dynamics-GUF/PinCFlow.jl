@@ -5921,7 +5921,6 @@ module update_module
          & intent(inout) :: q
 
     integer, intent(in) :: m
-    integer :: i00, j00
 
     ! local variables
     integer :: i,j,k,l
@@ -5934,59 +5933,59 @@ module update_module
     real    :: forcetracer
 
     if( correctDivError ) then
-       print*,'ERROR: correction divergence error not allowed'
-       stop
+      print*,'ERROR: correction divergence error not allowed'
+      stop
     end if
 
     ! init q
     if (m == 1) q = 0.
 
     do k = 1,nz
-       do j = 1,ny
-          do i = 1,nx
-             fL = flux(i-1,j,k,1,iVart) ! mass flux accros left cell edge
-             fR = flux(i,j,k,1,iVart)   ! right
-             gB = flux(i,j-1,k,2,iVart) ! backward
-             gF = flux(i,j,k,2,iVart)   ! forward
-             hD = flux(i,j,k-1,3,iVart) ! downward
-             hU = flux(i,j,k,3,iVart)   ! upward
+      do j = 1,ny
+        do i = 1,nx
+          fL = flux(i-1,j,k,1,iVart) ! mass flux accros left cell edge
+          fR = flux(i,j,k,1,iVart)   ! right
+          gB = flux(i,j-1,k,2,iVart) ! backward
+          gF = flux(i,j,k,2,iVart)   ! forward
+          hD = flux(i,j,k-1,3,iVart) ! downward
+          hU = flux(i,j,k,3,iVart)   ! upward
 
-             if (fluctuationMode) then
-              if (topography) then
-                 rho = (var(i,j,k,1) + rhoStratTFC(i,j,k))
-              else
-                 rho = var(i,j,k,1) + rhoStrat(k)
-              end if
+          if (fluctuationMode) then
+            if (topography) then
+              rho = var(i,j,k,1) + rhoStratTFC(i,j,k)
             else
-              rho = var(i,j,k,1)
+              rho = var(i,j,k,1) + rhoStrat(k)
             end if
+          else
+            rho = var(i,j,k,1)
+          end if
 
-             ! convective part
-             fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz
+          ! convective part
+          fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz
 
-             if(topography) then
-                fluxDiff = fluxDiff / jac(i,j,k)
-             end if
+          if(topography) then
+            fluxDiff = fluxDiff / jac(i,j,k)
+          end if
 
-             ! F(phi)
-             F = -fluxDiff
-             if (rayTracer) then
-              forcetracer = 0.0! force(i, j, k, 4) 
-              F = F - rho * forcetracer
-             end if
+          ! F(phi)
+          F = -fluxDiff
+          if (rayTracer) then
+            forcetracer = force(i, j, k, 4) 
+            F = F - rho * forcetracer
+          end if
 
-             if (dens_relax) then
-                stop "update.f90: dens_relax not implemented in tracerUpdate"
-             end if
+          if (dens_relax) then
+            stop "update.f90: dens_relax not implemented in tracerUpdate"
+          end if
 
-             ! update: q(m-1) -> q(m)
-             q(i,j,k) = dt*F + alpha(m) * q(i,j,k)
+          ! update: q(m-1) -> q(m)
+          q(i,j,k) = dt*F + alpha(m) * q(i,j,k)
 
-             ! update density
-             var(i,j,k,iVart) = var(i,j,k,iVart) + beta(m) * q(i,j,k)
+          ! update density
+          var(i,j,k,iVart) = var(i,j,k,iVart) + beta(m) * q(i,j,k)
 
-          end do
-       end do
+        end do
+      end do
     end do
     
   end subroutine tracerUpdate

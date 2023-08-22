@@ -12,13 +12,13 @@
 &domain
 
   sizeX = 512,
-  sizeY = 16,
+  sizeY = 1,
   sizeZ = 1000,
   nbx = 3,
   nby = 3,
   nbz = 3,
   lx_dim = 0.0, 9000000.0,
-  ly_dim = 0.0, 300000.0,
+  ly_dim = 0.0, 40000.0,
   lz_dim = 0.0, 100000.0,
   nprocx = {nprocx},
   nprocy = {nprocy},
@@ -406,14 +406,14 @@
 
 &wavePacket
 
-  wavePacketType = 1      ! 1 = Gaussian, 2 = Cosine
+  wavePacketType = 2      ! 1 = Gaussian, 2 = Cosine
 
-  wavePacketDim = 3       ! 1 = 1D, 2 = 2D, 3 = 3D
+  wavePacketDim = 2       ! 1 = 1D, 2 = 2D, 3 = 3D
                           ! for a 2.5D Wave Packet use wavePacketDim = 2
 
   lambdaX_dim = 3.e5      ! wave length in x direction in m
                           ! lambdaX = 0.0 --> infinite wavelength
-  lambdaY_dim = 3.e5      ! wave length in y direction in m
+  lambdaY_dim = 0.0      ! wave length in y direction in m
                           ! lambday = 0.0 --> infinite wavelength
   lambdaZ_dim = -1000.0   ! vertical wave length in m
 
@@ -421,7 +421,7 @@
 
   xCenter_dim = 4.5e6     ! center of wave packet in x direction in m
 
-  yCenter_dim = 1.5e5     ! center of wave packet in y direction in m
+  yCenter_dim = 20000.0     ! center of wave packet in y direction in m
   zCenter_dim = 3.0e4      ! center of wave packet in z direction in m
 
   sigma_dim = 5000.0      ! vertical width of Gaussian wavepacket in m
