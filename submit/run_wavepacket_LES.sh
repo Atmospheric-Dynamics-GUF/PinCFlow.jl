@@ -1,19 +1,17 @@
 #!/bin/bash
 #SBATCH --partition=general2
 #SBATCH --job-name=wavePacket3D-tracer
-#SBATCH --ntasks=128
+#SBATCH --ntasks=64
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2600
-#SBATCH --mail-type=ALL
-#SBATCH --mail-use=s9467794@stud.uni-frankfurt.de
 #SBATCH --time=02:00:00
 
 set -x
 
 # no. of processors ntasks must be nprocx * nprocy
-ntasks=128
+ntasks=64
 nprocx=64
-nprocy=2
+nprocy=1
 
 # OpenMP settings
 export OMP_NUM_THREADS=1
@@ -29,7 +27,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/wavepacket_LES_24h
+dirWork=${dirScratch}/output/wavepacket_LES
 
 mkdir ${dirWork}
 
