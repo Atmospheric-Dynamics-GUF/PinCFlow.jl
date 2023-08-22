@@ -1,17 +1,18 @@
 #!/bin/bash
 #SBATCH --partition=general2
-#SBATCH --job-name=wavePacket3D-tracer
-#SBATCH --ntasks=64
+#SBATCH --job-name=2Dlescos
+#SBATCH --ntasks=128
 #SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=2600
-#SBATCH --time=02:00:00
+#SBATCH --mem-per-cpu=2800
+#SBATCH --mail-type=FAIL
+#SBATCH --time=48:00:00
 
 set -x
 
 # no. of processors ntasks must be nprocx * nprocy
-ntasks=64
+ntasks=128
 nprocx=64
-nprocy=1
+nprocy=2
 
 # OpenMP settings
 export OMP_NUM_THREADS=1
@@ -27,7 +28,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/wavepacket_LES
+dirWork=${dirScratch}/output/wavepacket_LES_3DWP00_cosine
 
 mkdir ${dirWork}
 
@@ -38,7 +39,7 @@ cd ${dirWork} && rm *
 # copy namelist
 sed -e "s/{nprocx}/${nprocx}/" \
     -e "s/{nprocy}/${nprocy}/" \
-        ${dirNam}/input_wavepacket_LES.f90 > input.f90
+        ${dirNam}/input_wavepacket_LES_3DWP00_cosine.f90 > input.f90
 
 # run the raytracer
 mpirun -np ${ntasks} ${exe} 1>run.log 2>&1

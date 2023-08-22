@@ -1075,7 +1075,208 @@ module init_module
 
       !--------------------------------------------------------------
    
+    case('wavePacket_gauss') ! 1D/2D wave packet
 
+      !---------------------
+      ! set up random noise
+      !---------------------
+
+      call random_number(randNoise)
+      do k = 1, nz
+        randNoise(:, :, k) = randNoise(:, :, k) * randAmp
+      end do
+
+      !--------------------
+      ! set up jet stream
+      !--------------------
+
+      ! read test case input data
+      read(unit = 10, nml = wavePacket)
+
+      u0 = u0_jet_dim / uRef ! amplitude of jet
+      L_jet = L_jet_dim / lRef ! half width of cos profile
+      z0_jet = z0_jet_dim / lRef ! center of jet
+
+      if(topography) then
+        ! TFC FJ
+        do k = 1, nz
+          do j = 1, ny
+            do i = 1, nx
+              delz = (heightTFC(i, j, k) - z0_jet)
+
+              ! Cosine
+              if(abs(delz) .le. L_jet) then
+                u_jet = 0.5 * u0 * (1.0 + cos(pi * delz / L_jet))
+              else
+                u_jet = 0.0
+              end if
+
+              var(i, j, k, 2) = u_jet
+            end do
+          end do
+        end do
+      else
+        do k = 1, nz
+          delz = (z(k) - z0_jet)
+
+          ! Cosine
+          if(abs(delz) .le. L_jet) then
+            u_jet = 0.5 * u0 * (1.0 + cos(pi * delz / L_jet))
+          else
+            u_jet = 0.0
+          end if
+
+          var(:, :, k, 2) = u_jet
+        end do
+      end if
+
+      !--------------------
+      !     set up GWP
+      !--------------------
+      call init_GWP_gauss(Psi, kk, mm, ll)
+
+      do k = 0, (nz + 1)
+        do j = 0, (ny + 1)
+          do i = 0, (nx + 1)
+            if(topography) then
+              ! TFC FJ
+              phi = kk * x(i + i0) + ll * y(j + j0) + mm * heightTFC(i, j, k)
+            else
+              phi = kk * x(i + i0) + mm * z(k) + ll * y(j + j0)
+            end if
+
+            ! wave 1
+            u1 = real(Psi(i, j, k, 1, 1) * exp(phi * imag))
+            w1 = real(Psi(i, j, k, 2, 1) * exp(phi * imag))
+            b1 = real(Psi(i, j, k, 3, 1) * exp(phi * imag))
+            p1 = real(Psi(i, j, k, 4, 1) * exp(phi * imag))
+
+            ! wave 2
+            if(initWave2) then
+              stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
+              u2 = real(Psi(i, j, k, 1, 2) * exp(2. * phi * imag))
+              w2 = real(Psi(i, j, k, 2, 2) * exp(2. * phi * imag))
+              b2 = real(Psi(i, j, k, 3, 2) * exp(2. * phi * imag))
+              p2 = real(Psi(i, j, k, 4, 2) * exp(2. * phi * imag))
+            end if
+
+            ! sum of wave 1 and 2
+            if(initWave2) then
+              stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
+              b = b1 + b2
+              u = u1 + u2
+              w = w1 + w2
+              p = p1 + p2
+            else
+              b = b1
+              u = u1
+              w = w1
+              p = p1
+            end if
+            
+            ! additional vars
+            if(topography) then
+              ! TFC FJ
+              rho = 1.0 / (1.0 + Fr2 * b) * rhoStratTFC(i, j, k)
+            else
+              rho = 1. / (1. + Fr2 * b) * rhoStrat(k)
+            end if
+            theta = Fr2 * theta00 * b
+
+            ! write to field
+            select case(model)
+            case("pseudo_incompressible")
+
+              ! add random noise
+              rho = rho + randNoise(i, j, k)
+
+              ! subtract background for fluctuation mode
+              if(fluctuationMode) then
+                if(topography) then
+                  ! TFC FJ
+                  rho = rho - rhoStratTFC(i, j, k)
+                else
+                  rho = rho - rhoStrat(k)
+                end if
+              end if
+              ! if( fluctuationMode ) rho = rho - rhoStrat(k)
+
+              ! write to field
+              var(i, j, k, 1) = rho
+
+            case("Boussinesq")
+
+              ! TFC FJ
+              ! Density fluctuations are stored in var(i, j, k, 6),
+              ! var(i, j, k, 1) must remain zero! Boussinesq model only
+              ! works for fluctuationMode!
+              if(topography) then
+                var(i, j, k, 6) = rho - rhoStratTFC(i, j, k)
+              else
+                var(i, j, k, 6) = rho - rhoStrat(k)
+              end if
+
+              ! var(i,j,k,6) = theta
+
+            case default
+              stop "initialize: unknown case model"
+            end select
+
+            var(i, j, k, 2) = var(i, j, k, 2) + u
+            var(i, j, k, 4) = w
+            var(i, j, k, 5) = p
+
+            var(i, j, k, 3) = real(Psi(i, j, k, 5, 1) * exp(phi * imag))
+            
+            if (include_tracer) then
+              var(i, j, k, iVart) = alphaTracer * 1.0/N2 * b
+            end if
+
+            ! TFC FJ
+            ! Compute terrain-following vertical wind.
+            if(topography) then
+              var(i, j, k, 4) = var(i, j, k, 4) / jac(i, j, k) + met(i, j, k, &
+                  1, 3) * var(i, j, k, 2) + met(i, j, k, 2, 3) * var(i, j, k, 3)
+            end if
+          end do
+        end do ! modified by Junhong Wei for 3DWP (20170922)
+      end do
+
+      ! average zonal velocities to cell face...
+      do i = 0, nx
+        var(i, :, :, 2) = 0.5 * (var(i, :, :, 2) + var(i + 1, :, :, 2))
+      end do
+
+      ! average vertical velocities to cell faces
+      do k = 0, nz ! modified by Junhong Wei for 3DWP (20171204)
+        var(:, :, k, 4) = 0.5 * (var(:, :, k, 4) + var(:, :, k + 1, 4))
+      end do
+
+      select case(model)
+      case("pseudo_incompressible")
+
+        var(:, :, 0, 4) = 0.0 ! reset velocity at wall to zero
+        var(:, :, nz, 4) = 0.0 ! reset velocity at wall to zero
+
+      case("Boussinesq")
+
+        ! TFC FJ
+        if(zBoundary == "solid_wall") then
+          var(:, :, 0, 4) = 0.0
+          var(:, :, nz, 4) = 0.0
+        end if
+
+      case default
+        stop "initialize: unknown case model"
+      end select
+
+      ! average meridional velocities to cell face...
+      do j = 0, ny
+        var(:, j, :, 3) = 0.5 * (var(:, j, :, 3) + var(:, j + 1, :, 3))
+      end do
+
+      ! initialize the ice variables according to iceTestcase
+      if(include_ice) call setup_ice(var)
       !---------------------------------------------------------------
 
     case('mountainwave')
@@ -4960,9 +5161,28 @@ module init_module
 
             case(2)
 
+              ! IKAug2023 begin  
+              ! to match the raytracer cosine case
+              if(sigma_x == 0.0) then
+                envel = 1.0
+              else if(abs(delx) < sigma_x) then
+                envel = 0.5 * (1.0 + cos(delx * pi / sigma_x))
+              else
+                envel = 0.0
+              end if
+
+              if(sigma_y == 0.0) then
+                envel = 1.0 * envel
+              else if(abs(dely) < sigma_y) then
+                envel = envel * 0.5 * (1.0 + cos(dely * pi / sigma_y))
+              else
+                envel = 0.0
+              end if
+              ! IKAug2023 end
+
               ! Cosine
               if(abs(delz) .le. L_cos) then
-                envel = 0.5 * (1.0 + cos(pi * delz / L_cos))
+                envel = envel * 0.5 * (1.0 + cos(pi * delz / L_cos))
               else
                 envel = 0.0
               end if
@@ -5151,6 +5371,802 @@ module init_module
       end do
 
     end subroutine init_GWP
+
+ !-----------------------------------------------------------
+
+    subroutine init_GWP_gauss2(Psi, kk, mm, ll)
+
+      !------------------------------------------------
+      !  calculate complex amplitudes for
+      !    1) first harmonics,  leading order: Psi(:,:,:,0)
+      !    2) second harmonics, leading order: Psi(:,:,:,1)
+      !------------------------------------------------
+
+      ! WARNING:
+      ! 2nd harmonics probably not ready for 2D and 3D wave packets
+
+      ! in/out variables
+      ! wave amplitude
+      complex, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 5, 0:2), intent(out) :: &
+          Psi
+      real, intent(out) :: kk, mm
+      real, intent(out) :: ll
+
+      ! local variables
+      real :: A, rho
+      real :: omi
+      real :: kk2, mm2, omi2, kTot2
+      complex :: u10, w10, b11, pi12
+      integer :: iRay
+      integer :: i, j, k
+      integer :: ii, jj
+
+      ! local amplitude values and derivatives
+      complex :: u10_r, u10_c, u10_l, u10_t, u10_b
+      complex :: w10_r, w10_c, w10_l, w10_t, w10_b
+      complex :: theta11_r, theta11_c, theta11_l, theta11_t, theta11_b
+      complex :: pi12_c
+      complex :: pi0_t, pi0_c, pi0_b
+      complex :: theta0_c
+      complex :: du10_dx, du10_dz, dw10_dx, dw10_dz
+      complex :: dpi0_dz, dtheta11_dx, dtheta11_dz
+      complex :: Div
+      complex :: Press, PressU, PressW
+      complex :: d1u10, d1w10, d1theta11
+      complex :: coeff, aux1
+      complex :: M11, M12, M13, M14
+      complex :: M21, M22, M23, M24
+      complex :: M31, M32, M33, M34
+      complex :: M41, M42, M43, M44
+      complex, dimension(4) :: RHS, Sol
+      complex, dimension(4, 4) :: M2, M2inv
+      complex :: u21, w21, b22, pi23
+
+      ! mean value calculation
+      real :: rho0, rho0_t, rho0_b, d_dz, ypsi
+
+      ! debugging stuff
+      complex :: summe
+      complex, dimension(4) :: term
+
+      ! more debugging stuff
+      real :: B11_pinc
+      real :: D1TH11
+
+      integer :: i0, j0 ! modified by Junhong Wei (20161201)
+
+      complex :: tmp_var_3DWP
+
+      real :: Ro_GWP, RoInv_GWP !FS
+
+      if(f_Coriolis_dim /= 0.0) then !FS
+        Ro_GWP = uRef / f_Coriolis_dim / lRef
+        RoInv_GWP = 1.0 / Ro_GWP
+      else
+        Ro_GWP = 1.d40
+        RoInv_GWP = 0.0
+      end if
+
+      !-----------------------
+      !      MPI stuff
+      !-----------------------
+      i0 = is + nbx - 1 ! 0 index, replace i -> i + i0 in x and y fields
+      j0 = js + nby - 1
+
+      !------------------------
+      !    Init data
+      !-----------------------
+
+      ! scale input data
+      lambdaX = lambdaX_dim / lRef ! non-dim wave length in x dir.
+      lambdaY = lambdaY_dim / lRef ! non-dim wave length in y dir.
+      lambdaZ = lambdaZ_dim / lRef ! non-dim vert. wave length
+
+      xCenter = xCenter_dim / lRef ! scaled position wave packtet x dir.
+      yCenter = yCenter_dim / lRef ! scaled position wave packtet y dir.
+      zCenter = zCenter_dim / lRef ! scaled position wave packtet z dir.
+
+      sigma_x = sigma_hor_dim / lRef ! x width of Gaussian distribution
+      sigma_y = sigma_hor_yyy_dim / lRef ! y width of Gaussian distribution
+      sigma_z = sigma_dim / lRef ! vert. width of Gaussian distribution
+
+      L_cos = L_cos_dim / lRef ! half length of cosine profile
+
+      if(ABS(lambdaY_dim) /= 0.0) then
+        ll = 2.0 * pi / lambdaY
+      else
+        ll = 0.0
+      end if
+
+      if(ABS(lambdaX_dim) /= 0.0) then
+        kk = 2.0 * pi / lambdaX
+      else
+        kk = 0.0
+      end if
+
+      mm = 2.0 * pi / lambdaZ
+      kk2 = kk ** 2
+      mm2 = mm ** 2
+      kTot2 = kk2 + mm2 + ll * ll
+      kTot = sqrt(kTot2)
+
+      ! intrinsic frequency
+      omi = omiSign * sqrt(N2 * (kk * kk + ll * ll) + RoInv_GWP * RoInv_GWP &
+          * mm * mm) / kTot
+      omi2 = omi ** 2
+
+      ! amplitude coefficients for wave 1
+      bAmp = amplitudeFactor * N2 / mm ! buoyancy
+      uAmp = mm / kk * omi / N2 * bAmp
+      wAmp = omi / N2 * bAmp
+      pAmp = kappa * Ma2 * mm / kk ** 2 * omi2 / N2 * bAmp ! Exner pressure
+
+      close(10)
+
+      !----------------------
+      !  output of init data
+      !----------------------
+
+      if(master) then
+        print *, "omi = ", omi / tRef
+        print *, "mm = ", mm / lRef
+
+        print *, "RoInv = ", RoInv_GWP / tRef ! modified by Junhong Wei
+
+        print *, ""
+        print *, "  0) Test case: "
+        write(*, fmt = "(a25,a35)") "Test case  = ", "wave packet (full model)"
+        write(*, fmt = "(a25,f10.1,a)") "lambda_x = ", lambdaX_dim, " m"
+        write(*, fmt = "(a25,f10.1,a)") "lambda_z = ", lambdaZ_dim, " m"
+        write(*, fmt = "(a25,f10.1a7)") "c_x  = ", omi / kk * uRef, " m/s"
+        write(*, fmt = "(a25,f10.1,a7)") "c_z  = ", omi / mm * uRef, " m/s"
+        write(*, fmt = "(a25,f10.1,a7)") "cg_x  = ", - NN * mm ** 2 / kTot &
+            ** 3 * uRef, " m/s"
+        write(*, fmt = "(a25,f10.1,a7)") "cg_z  = ", NN * mm * kk / kTot ** 3 &
+            * uRef, " m/s"
+        write(*, fmt = "(a25,f10.1,a7)") "u_jet  = ", u0_jet_dim, " m/s"
+        print *, ""
+      end if ! modified by Junhong Wei (20170216)
+
+      !---------------------------------------
+      !        calc amplitude Psi_1^0
+      !     (first harmonic, leading order)
+      !---------------------------------------
+
+      do k = 0, (nz + 1)
+        do j = 0, (ny + 1)
+          do i = 0, (nx + 1)
+            ! profile: 1D and 2D
+
+            if(wavePacketDim == 1) then
+              delx = 0.0
+            else
+              delx = (x(i + i0) - xCenter)
+            end if
+
+            if(wavePacketDim == 3) then
+              dely = (y(j + j0) - yCenter)
+            else
+              dely = 0.0
+            end if
+
+            if(topography) then
+              ! TFC FJ
+              delz = heightTFC(i, j, k) - zCenter
+            else
+              delz = (z(k) - zCenter)
+            end if
+
+            select case(wavePacketType)
+
+            case(1)
+
+              ! Gaussian
+
+              envel = ( exp(-(delz**2)/2./sigma_z**2) ) &
+                * ( exp(-(delx**2)/2./sigma_x**2) ) &
+                * ( exp(-(dely**2)/2./sigma_y**2) )   
+
+            case(2)
+
+              stop "init.f90: wavepacket_gauss only with wavePacketType = 1."
+
+            case default
+              stop "init.f90: unknown wavePacketType. Stop."
+            end select
+
+            b11 = cmplx(envel * bAmp, 0.0)
+
+            if(topography) then
+              ! TFC FJ
+              theta0 = thetaStratTFC(i, j, k)
+            else
+              theta0 = thetaStrat(k)
+            end if
+
+            tmp_var_3DWP = cmplx(0.0, (omi * omi - N2) / (mm * N2 * (omi * omi &
+                - RoInv_GWP * RoInv_GWP)))
+
+            u10 = tmp_var_3DWP * cmplx(kk * omi, ll * RoInv_GWP) * b11
+
+            w10 = cmplx(0.0, omi / N2) * b11
+
+            pi12 = cmplx(0.0, kappa * Ma2 * (omi * omi - N2) / N2 / mm &
+                / theta0) * b11
+
+            Psi(i, j, k, :, 1) = (/u10, w10, b11, pi12, (tmp_var_3DWP &
+                * cmplx(ll * omi, - kk * RoInv_GWP) * b11)/)
+
+          end do
+        end do
+      end do
+
+      !---------------------------------------
+      !        calc amplitude Psi_2^1
+      !     (second harmonic, first order)
+      !---------------------------------------
+
+      ! WARNING:
+      ! this part would probably still tp be adjusted fpor 2D or 3D wave p.
+
+      do k = 1, nz
+        j = 1
+        do i = 1, nx
+
+          !-------------------------
+          !       Set up RHS
+          !-------------------------
+
+          ! zonal velocities right, center, left, top, bottom
+          u10_r = Psi(i + 1, j, k, 1, 1)
+          u10_c = Psi(i, j, k, 1, 1)
+          u10_l = Psi(i - 1, j, k, 1, 1)
+          u10_t = Psi(i, j, k + 1, 1, 1)
+          u10_b = Psi(i, j, k - 1, 1, 1)
+
+          ! vertical velocities top, center, bottom
+          w10_r = Psi(i + 1, j, k, 2, 1)
+          w10_l = Psi(i - 1, j, k, 2, 1)
+          w10_t = Psi(i, j, k + 1, 2, 1)
+          w10_c = Psi(i, j, k, 2, 1)
+          w10_b = Psi(i, j, k - 1, 2, 1)
+
+          ! Buoyancy and pot. temp.
+          if(topography) then
+            ! TFC FJ
+            theta11_r = Fr2 * thetaStratTFC(i + 1, j, k) * Psi(i + 1, j, k, 3, &
+                1)
+            theta11_c = Fr2 * thetaStratTFC(i, j, k) * Psi(i, j, k, 3, 1)
+            theta11_l = Fr2 * thetaStratTFC(i - 1, j, k) * Psi(i - 1, j, k, 3, &
+                1)
+            theta11_t = Fr2 * thetaStratTFC(i, j, k + 1) * Psi(i, j, k + 1, 3, &
+                1)
+            theta11_b = Fr2 * thetaStratTFC(i, j, k - 1) * Psi(i, j, k - 1, 3, &
+                1)
+          else
+            theta11_r = Fr2 * thetaStrat(k) * Psi(i + 1, j, k, 3, 1)
+            theta11_c = Fr2 * thetaStrat(k) * Psi(i, j, k, 3, 1)
+            theta11_l = Fr2 * thetaStrat(k) * Psi(i - 1, j, k, 3, 1)
+            theta11_t = Fr2 * thetaStrat(k + 1) * Psi(i, j, k + 1, 3, 1)
+            theta11_b = Fr2 * thetaStrat(k - 1) * Psi(i, j, k - 1, 3, 1)
+          end if
+
+          ! Second order Exner pressure
+          pi12_c = Psi(i, j, k, 4, 1)
+
+          ! Background Exner pressure and pot. temp.
+          if(topography) then
+            ! TFC FJ
+            pi0_t = (pStratTFC(i, j, k + 1) / p0) ** gamma_1
+            pi0_c = (pStratTFC(i, j, k) / p0) ** gamma_1
+            pi0_b = (pStratTFC(i, j, k - 1) / p0) ** gamma_1
+            theta0_c = thetaStratTFC(i, j, k)
+          else
+            pi0_t = (Pstrat(k + 1) / p0) ** gamma_1
+            pi0_c = (Pstrat(k) / p0) ** gamma_1
+            pi0_b = (Pstrat(k - 1) / p0) ** gamma_1
+            theta0_c = thetaStrat(k)
+          end if
+
+          ! derivatives
+          if(topography) then
+            ! TFC FJ
+            du10_dx = 0.5 * (jac(i + 1, j, k) * u10_r - jac(i - 1, j, k) &
+                * u10_l) / dx / jac(i, j, k) + 0.5 * (jac(i, j, k + 1) &
+                * met(i, j, k + 1, 1, 3) * u10_t - jac(i, j, k - 1) * met(i, &
+                j, k - 1, 1, 3) * u10_b) / dz / jac(i, j, k)
+            du10_dz = 0.5 * (u10_t - u10_b) / dz / jac(i, j, k)
+            dw10_dx = 0.5 * (jac(i + 1, j, k) * w10_r - jac(i - 1, j, k) &
+                * w10_l) / dx / jac(i, j, k) + 0.5 * (jac(i, j, k + 1) &
+                * met(i, j, k + 1, 1, 3) * w10_t - jac(i, j, k - 1) * met(i, &
+                j, k - 1, 1, 3) * w10_b) / dz / jac(i, j, k)
+            dw10_dz = 0.5 * (w10_t - w10_b) / dz / jac(i, j, k)
+            dpi0_dz = 0.5 * (pi0_t - pi0_b) / dz / jac(i, j, k)
+            dtheta11_dx = 0.5 * (jac(i + 1, j, k) * theta11_r - jac(i - 1, j, &
+                k) * theta11_l) / dx / jac(i, j, k) + 0.5 * (jac(i, j, k + 1) &
+                * met(i, j, k + 1, 1, 3) * theta11_t - jac(i, j, k - 1) &
+                * met(i, j, k - 1, 1, 3) * theta11_b) / dz / jac(i, j, k)
+            dtheta11_dz = 0.5 * (theta11_t - theta11_b) / dz / jac(i, j, k)
+          else
+            du10_dx = 0.5 * (u10_r - u10_l) / dx
+            du10_dz = 0.5 * (u10_t - u10_b) / dz
+            dw10_dx = 0.5 * (w10_r - w10_l) / dx
+            dw10_dz = 0.5 * (w10_t - w10_b) / dz
+            dpi0_dz = 0.5 * (pi0_t - pi0_b) / dz
+            dtheta11_dx = 0.5 * (theta11_r - theta11_l) / dx
+            dtheta11_dz = 0.5 * (theta11_t - theta11_b) / dz
+          end if
+
+          ! divergence term -> Eq. (7.21)
+          Div = - du10_dx - dw10_dz - (1. - kappa) / kappa * w10_c / pi0_c &
+              * dpi0_dz
+
+          ! Pressure terms
+          Press = 0.5 * kappaInv * MaInv2 * imag * theta11_c * pi12_c
+          PressU = kk * Press
+          PressW = mm * Press
+
+          ! intermediate terms
+          d1u10 = 0.5 * (u10_c * du10_dx + w10_c * du10_dz + Div * u10_c)
+          d1w10 = 0.5 * (u10_c * dw10_dx + w10_c * dw10_dz + Div * w10_c)
+          d1theta11 = 0.5 * (u10_c * dtheta11_dx + w10_c * dtheta11_dz + Div &
+              * theta11_c)
+
+          RHS(1) = - d1u10 - PressU
+          RHS(2) = - d1w10 - PressW
+          RHS(3) = - FrInv2 / NN / theta0_c * d1theta11
+          RHS(4) = (0.0, 0.0)
+
+          !----------------------------------------------------
+          !       Set up inverted system matrix M(2om,2k,2m)
+          !----------------------------------------------------
+
+          coeff = 1. / (4. * omi2 * kTot2 - kk2 * N2)
+          aux1 = 4. * omi2 - N2
+
+          M11 = 2. * imag * mm2 * omi; M12 = - 2. * imag * kk * mm * omi; M13 &
+              = kk * mm * NN; M14 = - 0.5 * imag * kk * aux1
+          M21 = M12; M22 = 2. * imag * kk2 * omi; M23 = - kk2 * NN; M24 = - 2. &
+              * imag * omi2 * mm
+          M31 = - M13; M32 = - M23; M33 = 2. * imag * omi * kTot2; M34 = - omi &
+              * mm * NN
+          M41 = M14; M42 = M24; M43 = - M34; M44 = - 0.5 * imag * omi * aux1
+
+          ! inverted matrix: check ok
+          M2inv(1, :) = (/M11, M12, M13, M14/)
+          M2inv(2, :) = (/M21, M22, M23, M24/)
+          M2inv(3, :) = (/M31, M32, M33, M34/)
+          M2inv(4, :) = (/M41, M42, M43, M44/)
+          M2inv = coeff * M2inv
+
+          !---------------------------------------
+          !   Solve linear System -> save in Psi
+          !---------------------------------------
+
+          sol = matmul(M2inv, RHS)
+
+          u21 = sol(1)
+          w21 = sol(2)
+          b22 = sol(3) * NN
+          pi23 = sol(4) * kappa * Ma2 / theta0_c
+
+          Psi(i, j, k, :, 2) = (/u21, w21, b22, pi23, (cmplx(0.0, 0.0) * b11)/)
+        end do
+      end do
+
+    end subroutine init_GWP_gauss2
+
+    !-------------------------------------------------------------------
+    subroutine init_GWP_gauss(Psi,kk,mm, ll_3DWP )   ! modified by Junhong Wei for 3DWP (20170828)
+
+      !------------------------------------------------
+      !  calculate complex amplitudes for
+      !    1) first harmonics,  leading order: Psi(:,:,:,0)
+      !    2) second harmonics, leading order: Psi(:,:,:,1)
+      !------------------------------------------------
+
+      ! in/out variables
+      !real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
+      !     & intent(in) :: var                         ! mean flow velocities    
+
+      !    type(rayType), dimension(nRay)        :: ray
+      !    real, dimension(0:nx+1,0:ny+1,0:nz+1) :: waveAct 
+
+      ! wave amplitude
+!      complex, dimension(0:nx+1,0:ny+1,0:nz+1,4,0:2), intent(out) :: Psi ! modified by Junhong Wei
+      complex, dimension(0:nx+1,0:ny+1,0:nz+1,5,0:2), intent(out) :: Psi ! modified by Junhong Wei
+      real, intent(out) :: kk,mm
+      real, intent(out) :: ll_3DWP   ! modified by Junhong Wei for 3DWP (20170828)
+
+      ! local variables
+      real :: A, rho
+      real :: omi , ll
+      real :: kk2,mm2,omi2, kTot2
+      complex :: u10,w10,b11,pi12
+      integer :: iRay
+      integer :: i,j,k
+      integer :: ii,jj
+
+      ! local amplitude values and derivatives
+      complex :: u10_r, u10_c, u10_l, u10_t, u10_b
+      complex :: w10_r, w10_c, w10_l, w10_t, w10_b
+      complex :: theta11_r, theta11_c, theta11_l, theta11_t, theta11_b
+      complex :: pi12_c 
+      complex :: pi0_t, pi0_c, pi0_b
+      complex :: theta0_c
+      complex :: du10_dx, du10_dz, dw10_dx, dw10_dz 
+      complex :: dpi0_dz, dtheta11_dx, dtheta11_dz
+      complex :: Div
+      complex :: Press, PressU, PressW
+      complex :: d1u10, d1w10, d1theta11
+      complex :: coeff, aux1
+      complex :: M11,M12,M13,M14
+      complex :: M21,M22,M23,M24
+      complex :: M31,M32,M33,M34
+      complex :: M41,M42,M43,M44
+      complex, dimension(4) :: RHS, Sol
+      complex, dimension(4,4) :: M2, M2inv
+      complex :: u21, w21,b22, pi23
+
+      ! mean value calculation
+      real :: rho0, rho0_t, rho0_b, d_dz, ypsi
+
+
+      ! debugging stuff
+      complex :: summe
+      complex, dimension(4) :: term
+
+      ! local fields
+      !    real, dimension(nx,ny,nz) :: omegaMean   ! cell averaged intrinsic freq.
+      !    real, dimension(nx,ny,nz) :: kMean, mMean ! cell mean wave numbers
+
+      ! more debugging stuff
+      real :: B11_pinc
+      real :: D1TH11
+
+    integer :: i0, j0   ! modified by Junhong Wei (20161201)
+
+      complex :: tmp_var_3DWP   ! modified by Junhong Wei for 3DWP (20170921)
+
+      real :: Ro_GWP, RoInv_GWP
+
+      if(f_Coriolis_dim /= 0.0) then !FS
+        Ro_GWP = uRef / f_Coriolis_dim / lRef
+        RoInv_GWP = 1.0 / Ro_GWP
+      else
+        Ro_GWP = 1.d40
+        RoInv_GWP = 0.0
+      end if
+! modified by Junhong Wei (20161201) *** starting line ***
+    !-----------------------
+    !      MPI stuff
+    !-----------------------
+    i0 = is + nbx - 1   ! 0 index, replace i -> i + i0 in x and y fields
+    j0 = js + nby - 1
+! modified by Junhong Wei (20161201) *** finishing line ***
+
+      !------------------------
+      !    Init data
+      !-----------------------
+
+      ! open input file input.f90
+      open (unit=20, file="input.f90", action="read", &
+           form="formatted", status="old", position="rewind")
+
+      ! read test case input data
+      read (unit=20, nml=wavePacket)
+
+      ! scale input data
+      lambdaX = lambdaX_dim/lRef     ! non-dim zonal wave length
+      lambdaZ = lambdaZ_dim/lRef     !         vert. wave length
+
+      xCenter = xCenter_dim/lRef     ! scaled position of wave packtet
+      zCenter = zCenter_dim/lRef 
+
+      sigma_z = sigma_dim/lRef         ! sigma width of Gaussian distribution
+      sigma_x = sigma_hor_dim/lRef ! sigma width of Gaussian distribution  ! modified by Junhong Wei (20170214)
+      L_cos = L_cos_dim/lRef         ! half length of cosine profile
+
+      lambdaY = lambdaY_dim/lRef     !         meridional wave length   ! modified by Junhong Wei for 3DWP (20170828)
+      yCenter = yCenter_dim/lRef     ! scaled position of wave packtet  ! modified by Junhong Wei for 3DWP (20170828)
+      sigma_y = sigma_hor_yyy_dim/lRef ! sigma width of Gaussian distribution  ! modified by Junhong Wei for 3DWP (20170828)
+
+      if( (ABS(lambdaY_dim)) /= 0.0 ) then   ! modified by Junhong Wei for 3DWP (20170921)
+        ll_3DWP = 2.0*pi/lambdaY     ! modified by Junhong Wei for 3DWP (20170828)
+      else                            ! modified by Junhong Wei for 3DWP (20170828)
+        ll_3DWP = 0.0                ! modified by Junhong Wei for 3DWP (20170828)
+      end if                          ! modified by Junhong Wei for 3DWP (20170828)
+
+      ! wave numbers 
+!      kk = 2.0*pi/lambdaX    !xxx  new signs by Ulrich, 14.9.2012   ! modified by Junhong Wei for 3DWP (20171128)
+
+            if( (ABS(lambdaX_dim)) /= 0.0 ) then   ! modified by Junhong Wei for 3DWP (20171128)
+               kk = 2.0*pi/lambdaX     ! modified by Junhong Wei for 3DWP (20171128)
+            else                            ! modified by Junhong Wei for 3DWP (20171128)
+               kk = 0.0                ! modified by Junhong Wei for 3DWP (20171128)
+            end if                          ! modified by Junhong Wei for 3DWP (20171128)
+
+      mm = 2.0*pi/lambdaZ   
+      kk2 = kk**2
+      mm2 = mm**2
+!      kTot2 = kk2 + mm2   ! modified by Junhong Wei for 3DWP (20170828)
+      kTot2 = kk2 + mm2 +  ll_3DWP * ll_3DWP   ! modified by Junhong Wei for 3DWP (20170828)
+      kTot = sqrt(kTot2)
+
+      ! intrinsic frequency
+      ll = ll_3DWP
+
+      omi = omiSign * sqrt(N2 * (kk * kk + ll * ll) + RoInv_GWP * RoInv_GWP &
+      * mm * mm) / kTot  ! modified by Junhong Wei for 3DWP (20170828)
+      omi2 = omi**2
+
+      ! amplitude coefficients for wave 1
+      bAmp = amplitudeFactor * N2/mm                  ! buoyancy
+      uAmp = mm/kk * omi/N2 * bAmp
+      wAmp = omi/N2 * bAmp
+      pAmp = kappa*Ma2 * mm/kk**2 * omi2/N2 * bAmp    ! Exner pressure
+
+
+      close(20)
+
+       !----------------------
+       !  output of init data
+       !----------------------
+
+    if( master ) then   ! modified by Junhong Wei (20170216)
+
+!xxx
+
+print*,"omi = ", omi/tRef
+print*,"mm = ", mm/lRef
+
+print*,"RoInv = ", RoInv/tRef   ! modified by Junhong Wei
+
+       print*,""
+       print*,"  0) Test case: "
+       write(*,fmt="(a25,a35)") "Test case  = ", "wave packet (full model)"
+       write(*,fmt="(a25,f10.1,a)") "lambda_x = ", lambdaX_dim, " m"
+       write(*,fmt="(a25,f10.1,a)") "lambda_z = ", lambdaZ_dim, " m"
+       write(*,fmt="(a25,f10.1a7)") "c_x  = ", omi/kk*uRef, " m/s"
+       write(*,fmt="(a25,f10.1,a7)") "c_z  = ", omi/mm*uRef, " m/s"
+       ! new sign by Ulrich Achatz, 14.9.2012
+       write(*,fmt="(a25,f10.1,a7)") "cg_x  = ", -NN*mm**2/kTot**3 * uRef, " m/s"
+       write(*,fmt="(a25,f10.1,a7)") "cg_z  = ", NN*mm*kk/kTot**3 * uRef, " m/s"
+       write(*,fmt="(a25,f10.1,a7)") "u_jet  = ", u0_jet_dim, " m/s"
+       print*,""
+
+    end if   ! modified by Junhong Wei (20170216)
+
+
+
+      !---------------------------------------
+      !        calc amplitude Psi_1^0 
+      !     (first harmonic, leading order)
+      !---------------------------------------
+
+!      do k = 1,nz
+      do k = 0,(nz+1)   ! modified by Junhong Wei for 3DWP (20171204)
+!         j = 1   ! modified by Junhong Wei for 3DWP (20170921)
+          do j = 0,(ny+1)   ! modified by Junhong Wei for 3DWP (20170921)
+!         do i = 1,nx ! modified by Junhong Wei (20161207)
+         do i = 0,(nx+1) ! modified by Junhong Wei (20161207)
+
+
+            ! profile: 1D and 2D
+            if( wavePacketDim == 1 ) then
+               delx = 0.0
+            else
+!               delx = (x(i)-xCenter)   ! modified by Junhong Wei (20161201)
+               delx = ( x(i+i0) -xCenter)   ! modified by Junhong Wei (20161201)
+            end if
+
+            if( wavePacketDim == 3 ) then
+               dely = ( y(j+j0) -yCenter)
+            else
+               dely = 0.0
+            end if
+
+            delz = (z(k)-zCenter)
+
+            select case(wavePacketType) 
+
+            case(1)
+
+        
+     envel = ( exp(-(delz**2)/2./sigma_z**2) ) * ( exp(-(delx**2)/2./sigma_x**2) ) * ( exp(-(dely**2)/2./sigma_y**2) )   ! modified by Junhong Wei for 3DWP (20170921)
+
+
+            case(2) 
+
+               ! Cosine
+               if( abs(delz) .le. L_cos ) then
+                  envel = 0.5*(1.0 + cos(pi*delz/L_cos))
+               else
+                  envel = 0.0
+               end if
+
+            case default
+               stop"init.f90: unknown wavePacketType. Stop."
+            end select
+
+
+
+            b11 = cmplx(envel*bAmp, 0.0 )
+
+!           Modified by Junhong Wei
+
+            theta0 = thetaStrat(k)
+
+            tmp_var_3DWP = cmplx( 0.0,  ((omi*omi)-N2) / ( mm*N2*( (omi*omi)-(RoInv_GWP*RoInv_GWP) ) )    )   ! modified by Junhong Wei for 3DWP (20170921)
+
+!            u10 = cmplx(0.0, -mm/kk * omi/N2) * b11
+!            u10 = cmplx(0.0, ((omi*omi)-N2)*kk*omi / ( mm*N2*( (omi*omi)-(RoInv*RoInv) ) )  ) * b11   ! modified by Junhong Wei for 3DWP (20170921)
+
+            u10 = tmp_var_3DWP * cmplx( kk*omi, ll_3DWP*RoInv_GWP ) * b11   ! modified by Junhong Wei for 3DWP (20170921)
+
+            w10 = cmplx(0.0, omi/N2) * b11
+
+!            pi12 = cmplx(0.0, -kappa*Ma2* mm/kk**2 * omi**2/N2 / theta0) * b11
+            pi12 = cmplx(0.0, kappa*Ma2*( (omi*omi)-N2 ) / N2 / mm / theta0) * b11
+
+!            Psi(i,j,k,:,1) = (/u10, w10, b11, pi12/) ! modified by Junhong Wei
+
+!            Psi(i,j,k,:,1) = (/u10, w10, b11, pi12, ( cmplx( 0.0, 0.0 ) * b11 ) /) ! modified by Junhong Wei
+!            Psi(i,j,k,:,1) = (/u10, w10, b11, pi12, ( cmplx( ((omi*omi)-N2)*kk*RoInv / ( mm*N2*( (omi*omi)-(RoInv*RoInv) ) )  , 0.0 ) * b11 ) /) ! modified by Junhong Wei   ! modified by Junhong Wei for 3DWP (20170921)
+
+
+            Psi(i,j,k,:,1) = (/u10, w10, b11, pi12, ( tmp_var_3DWP * cmplx( ll_3DWP*omi, kk*RoInv*(0.0-1.0) ) * b11 ) /) ! modified by Junhong Wei for 3DWP (20170921)
+
+!           Modified by Junhong Wei
+
+         end do
+       end do   ! modified by Junhong Wei for 3DWP (20170921)
+      end do
+
+
+! modified by Junhong Wei (20161207) *** starting line ***
+!
+!      !---------------------------------------
+!      !    set ghost cell values for Psi_1^0 
+!      !    x/y: Periodic, z: solid wall 
+!      !---------------------------------------
+!
+!      ! periodic in x
+!      Psi(0,:,:,:,1) = Psi(nx,:,:,:,1)
+!      Psi(nx+1,:,:,:,1) = Psi(1,:,:,:,1)
+!
+!      ! periodic in y
+!      ! implement for 3D
+!
+!      ! solid wall -> reflect u10 and w10 with change of sign
+!      Psi(:,:,nz+1,2,1) = -Psi(:,:,nz,2,1)
+!      Psi(:,:,0,2,1) = -Psi(:,:,1,2,1)
+!
+!      ! solid wall: reflect b11 and pi12 without change of sign 
+!      Psi(:,:,nz+1,3:4,1) = Psi(:,:,nz,3:4,1)
+!      Psi(:,:,0,3:4,1) = Psi(:,:,1,3:4,1)
+!
+! modified by Junhong Wei (20161207) *** finishing line ***
+
+
+      !---------------------------------------
+      !        calc amplitude Psi_2^1 
+      !     (second harmonic, first order)
+      !---------------------------------------
+
+      do k = 1,nz
+         j = 1
+         do i = 1,nx
+
+            !-------------------------
+            !       Set up RHS
+            !-------------------------
+
+            ! zonal velocities right, center, left, top, bottom
+            u10_r = Psi(i+1,j, k ,1,1)
+            u10_c = Psi( i ,j, k ,1,1)
+            u10_l = Psi(i-1,j, k ,1,1)
+            u10_t = Psi( i ,j,k+1,1,1)
+            u10_b = Psi( i ,j,k-1,1,1)
+
+            ! vertical velocities top, center, bottom
+            w10_r = Psi(i+1,j, k ,2,1)
+            w10_l = Psi(i-1,j, k ,2,1)          
+            w10_t = Psi( i ,j,k+1,2,1)
+            w10_c = Psi( i ,j, k ,2,1)
+            w10_b = Psi( i ,j,k-1,2,1)
+
+
+            ! Buoyancy and pot. temp.
+            theta11_r = Fr2 * thetaStrat(k) * Psi(i+1,j,k,3,1)
+            theta11_c = Fr2 * thetaStrat(k) * Psi(i,j,k,3,1)
+            theta11_l = Fr2 * thetaStrat(k) * Psi(i-1,j,k,3,1)
+            theta11_t = Fr2 * thetaStrat(k+1) * Psi(i,j,k+1,3,1)
+            theta11_b = Fr2 * thetaStrat(k-1) * Psi(i,j,k-1,3,1)
+
+            ! Second order Exner pressure
+            pi12_c = Psi(i,j,k,4,1)
+
+            ! Background Exner pressure and pot. temp.
+            pi0_t = (Pstrat(k+1)/p0)**gamma_1
+            pi0_c = (Pstrat(k)/p0)**gamma_1
+            pi0_b = (Pstrat(k-1)/p0)**gamma_1
+            theta0_c = thetaStrat(k)
+
+
+            ! derivatives          
+            du10_dx = 0.5*(u10_r - u10_l)/dx
+            du10_dz = 0.5*(u10_t - u10_b)/dz
+            dw10_dx = 0.5*(w10_r - w10_l)/dx
+            dw10_dz = 0.5*(w10_t - w10_b)/dz
+            dpi0_dz = 0.5*(pi0_t - pi0_b)/dz
+            dtheta11_dx = 0.5*(theta11_r - theta11_l)/dx
+            dtheta11_dz = 0.5*(theta11_t - theta11_b)/dz
+
+            ! divergence term -> Eq. (7.21)
+            Div = -du10_dx - dw10_dz - (1.-kappa)/kappa*w10_c/pi0_c*dpi0_dz
+
+            ! Pressure terms
+            Press = 0.5*kappaInv*MaInv2*imag*theta11_c*pi12_c
+            PressU = kk*Press
+            PressW = mm*Press
+
+
+            ! intermediate terms
+            d1u10 = 0.5*(u10_c*du10_dx + w10_c*du10_dz + Div*u10_c)
+            d1w10 = 0.5*(u10_c*dw10_dx + w10_c*dw10_dz + Div*w10_c)
+            d1theta11 = 0.5*(u10_c*dtheta11_dx + w10_c*dtheta11_dz + Div*theta11_c)
+
+            RHS(1) = -d1u10 - PressU
+            RHS(2) = -d1w10 - PressW
+            RHS(3) = -FrInv2/NN/theta0_c * d1theta11
+            RHS(4) = (0.0, 0.0)
+
+
+            !----------------------------------------------------
+            !       Set up inverted system matrix M(2om,2k,2m)
+            !----------------------------------------------------
+
+            coeff = 1./(4.*omi2*kTot2 - kk2*N2)
+            aux1 = 4.*omi2-N2
+
+            M11 = 2.*imag*mm2*omi; M12 = -2.*imag*kk*mm*omi; M13 = kk*mm*NN; M14 = -0.5*imag*kk*aux1
+            M21 = M12;           M22 = 2.*imag*kk2*omi;    M23 = -kk2*NN;  M24 = -2.*imag*omi2*mm
+            M31 = -M13;          M32 = -M23;             M33 = 2.*imag*omi*kTot2; M34 = -omi*mm*NN
+            M41 = M14;           M42 = M24;              M43 = -M34;     M44 = -0.5*imag*omi*aux1
+
+
+            ! inverted matrix: check ok
+            M2inv(1,:) = (/M11,M12,M13,M14/)
+            M2inv(2,:) = (/M21,M22,M23,M24/)
+            M2inv(3,:) = (/M31,M32,M33,M34/)
+            M2inv(4,:) = (/M41,M42,M43,M44/)
+            M2inv = coeff*M2inv
+
+
+            !---------------------------------------
+            !   Solve linear System -> save in Psi
+            !---------------------------------------
+
+            sol = matmul(M2inv,RHS)
+
+            u21 = sol(1)
+            w21 = sol(2)
+            b22 = sol(3) * NN
+            pi23 = sol(4) * kappa*Ma2 / theta0_c
+
+!            Psi(i,j,k,:,2) = (/u21,w21,b22,pi23/) ! modified by Junhong Wei
+
+!            Psi(i,j,k,:,2) = (/u21,w21,b22,pi23,u21/) ! modified by Junhong Wei
+
+            Psi(i,j,k,:,2) = (/u21,w21,b22,pi23, ( cmplx( 0.0, 0.0 ) * b11 ) /) ! modified by Junhong Wei
+
+         end do
+      end do
+
+
+
+    end subroutine init_GWP_gauss
 
 
     !-------------------------------------------------------------------

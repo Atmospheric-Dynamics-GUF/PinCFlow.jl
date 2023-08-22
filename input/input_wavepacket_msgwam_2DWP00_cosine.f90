@@ -11,19 +11,19 @@
 
 &domain
 
-  sizeX = 128 !512 !256 !128 !256 !1024,                  ! nb of global grid cells
-  sizeY = 3,
-  sizeZ = 32 !1024 !512 !256 !512 !2048,
+  sizeX = 32, !512 !256 !128 !256 !1024,                  ! nb of global grid cells
+  sizeY = 4,
+  sizeZ = 100, !1024 !512 !256 !512 !2048,
   nbx = 3,                  ! nb. of ghost cells
   nby = 3,
   nbz = 3,
-  lx_dim =   0.0, 5.e6 ! domain lenths in m
-  ly_dim =   0.0, 5.e4
-  lz_dim =   0.0, 1.e5
+  lx_dim =   0.0, 9.e6, ! domain lenths in m
+  ly_dim =   0.0, 3.e4,
+  lz_dim =   0.0, 1.e5,
 
   ! nb of processors in x and y direction must be set in the batch file
-  nprocx = {nprocx},
-  nprocy = {nprocy},
+  nprocx = 8,
+  nprocy = 1,
 
 &end
 
@@ -41,7 +41,7 @@
                     !    (due to GWs, only needed in WKB simulations)
   nOptVar = 4,
 
-  include_tracer = .true.,
+  include_tracer = .false.,
 
 &end
 
@@ -174,27 +174,27 @@
                                  ! (need for baroclinic)
 
 
-  theta0_dim = 300               ! K
+  theta0_dim = 240               ! K
                                  ! isentropic -> background pot. temp.
                                  ! const-N    -> ground pot. temp.
                                  ! uniform    -> background pot temp for
                                  !               Boussinesq
 
-  Temp0_dim = 300                ! K
+  Temp0_dim = 240                ! K
                                  ! isothermal -> background temperature
 
-  press0_dim =  101325.0         ! ground pressure (at z=0) in Pa:
+  press0_dim =  68880.0          ! ground pressure (at z=0) in Pa:
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 1.8e-2    ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 2.d-2     ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
   backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
                                  ! zonal background flow velocity u
 
-  f_Coriolis_dim = 10.0e-4           ! 1/s
+  f_Coriolis_dim = 0.0001           ! 1/s
                                  ! Coriolis parameter
 
   gamma_t = 0.000                ! lapse rate in the troposphere
@@ -264,10 +264,10 @@
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
-  maxIter = 100             ! stop after maxIter time steps
+  maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  1728  ! output every ... seconds
-  maxTime = 1728          ! stop after maxTime seconds
+  outputTimeDiff =  9000.0  ! output every ... seconds
+  maxTime = 90000.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -275,11 +275,11 @@
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,1,1,1,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,0,0   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,1,1,1,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,0,0,0   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -458,26 +458,26 @@
 &LagrangeRayTracing
 
   xrmin_dim = 0.0,         ! left bound of initial rays (in x direction) (m)
-  xrmax_dim = 5.e6,        ! right bound of initial rays (in x dir.) (m)
+  xrmax_dim = 9.e6,        ! right bound of initial rays (in x dir.) (m)
   yrmin_dim = 0.0,         ! left bound of initial rays (in y direction) (m)
-  yrmax_dim = 5.e4,        ! right bound of initial rays (in y dir.) (m)
+  yrmax_dim = 3.e4,        ! right bound of initial rays (in y dir.) (m)
   zrmin_dim = 3.e3,        ! bottom bound of initial rays (m)
   zrmax_dim = 7.e4,        ! top bound of initial rays (m)
 
-  nrxl = 1,               ! no. of ray vol. init. within one hor. x column
-  nryl = 1,               ! no. of ray vol. init. within one hor. y column
-  nrzl = 1,               ! no. of ray vol. init. within one vert. layer
+  nrxl = 4,               ! no. of ray vol. init. within one hor. x column
+  nryl = 4,               ! no. of ray vol. init. within one hor. y column
+  nrzl = 4,               ! no. of ray vol. init. within one vert. layer
 
   fac_dk_init = 0.1,     ! init. width of total ray vol. in k space
                            ! (fraction of the initial wave number in x dir.)
   fac_dl_init = 0.1,     ! init. width of total ray vol. in l space
                            ! (fraction of the initial wave number in y dir.)
-  fac_dm_init = 0.1,     ! init. width of total ray vol. in m space
+  fac_dm_init = 0.0016,     ! init. width of total ray vol. in m space
                            ! (fraction of the initial vert. wave number)
 
-  nrk_init = 1,            ! no. of ray volumes initialized within dk
-  nrl_init = 1,            ! no. of ray volumes initialized within dl
-  nrm_init = 1,            ! no. of ray volumes initialized within dm
+  nrk_init = 2,            ! no. of ray volumes initialized within dk
+  nrl_init = 2,            ! no. of ray volumes initialized within dl
+  nrm_init = 2,            ! no. of ray volumes initialized within dm
 
   nsmth_wkb = 2,           ! half (number -1) of cells f. smooth. wkb fluxes
   lsmth_wkb = .true.,      ! log. switch for smooth. wkb data (true/false)
@@ -486,17 +486,17 @@
   lsaturation = .true.,    ! JaWi 16.12.16 (sat)
   alpha_sat = 1.0,         ! JaWi 16.12.16 (sat)
 
-  case_wkb = 3,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
+  case_wkb = 2,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
   amp_wkb = 0.5            ! amplitude of the wave packet (wrt saturation)
 
-  wlrx_init = 2.e5,        ! initial lambda_x of the wave packet (m)
-  wlry_init = 2.e3,          ! initial lambda_y of the wave packet (m)
+  wlrx_init = 3.e5,        ! initial lambda_x of the wave packet (m)
+  wlry_init = 0.0,          ! initial lambda_y of the wave packet (m)
                            ! (0 means infinity)
-  wlrz_init = 1.e3,        ! initial lambda_z of the wave packet (m)
+  wlrz_init = -1.e3,        ! initial lambda_z of the wave packet (m)
                            ! (0 means infinity)
 
-  xr0_dim = 2.5e6           ! center of the wave packet in hor. (x-dir.) (m)
-  yr0_dim = 2.e4,          ! center of the wave packet in hor. (y-dir.) (m)
+  xr0_dim = 4.5e6           ! center of the wave packet in hor. (x-dir.) (m)
+  yr0_dim = 1.5e4,          ! center of the wave packet in hor. (y-dir.) (m)
   zr0_dim = 3.e4,          ! center of the wave packet in vertical (m)
 
   sigwpx_dim = 1.e6 ,      ! width of the wave packet in hor. (x-dir.) (m);
@@ -505,24 +505,24 @@
                            ! (0 means infinity)
   sigwpz_dim = 5.e3,       ! width of the wave packet in vertical (m);
 
-  branchr = -1,            ! frequency branch (dispersion relation)
+  branchr = 1,            ! frequency branch (dispersion relation)
   !presently not used:
   lindUinit = .false.,     ! ind. wind already at initial time (true/false)
 
-  mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
-  mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
+  mountainHeight_wkb_dim = 0.e0 ! WKB mountain height (m)
+  mountainWidth_wkb_dim = 1.e0  ! WKB mountain half-width (m)
   mountain_case_wkb = 6         ! WKB orography shape (corresponds to
                                 ! mountain_case in topography namelist)
   range_factor_wkb = 10         ! factor by which mountain range is wider than
                                 ! single mountains
 
-  zmin_wkb_dim = 1000.0     ! minumum altitude (above the model bottom, in m)
+  zmin_wkb_dim = 0.0     ! minumum altitude (above the model bottom, in m)
                            ! for WKB wave-mean-flow interaction
                            ! (zmin_wkb > 0 can help preventing the
                            ! ray volumes being trapped by the self-induced
                            ! mean wind)
 
-  nray_fac = 20            ! maximum factor (per wavenumber direction) by
+  nray_fac = 1            ! maximum factor (per wavenumber direction) by
                            ! which # of rays may increase in comparison to
                            ! initialization
 
@@ -732,6 +732,6 @@
 
 &tracerList
 
-tracerSetup = "increase_in_z_tracer"
+  tracerSetup = "increase_in_z_tracer"
 
 &end

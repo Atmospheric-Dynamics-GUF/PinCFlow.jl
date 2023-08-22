@@ -17,9 +17,9 @@ sizeZ = 1000,
 nbx = 3,
 nby = 3,
 nbz = 3,
-lx_dim = 0.0, 9000000.0,
-ly_dim = 0.0, 40000.0,
-lz_dim = 0.0, 100000.0,
+lx_dim = 0.0, 9.e6,
+ly_dim = 0.0, 3.e5,
+lz_dim = 0.0, 1.e5,
 nprocx = {nprocx},
 nprocy = {nprocy},
 
@@ -39,7 +39,7 @@ nVar = 8,         ! number of dependent variables
                   !    (due to GWs, only needed in WKB simulations)
 nOptVar = 4,
 
-include_tracer = .false.,
+include_tracer = .true.,
 
 &end
 
@@ -63,33 +63,29 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
 
 &solverList
 
-cfl = 0.5
-cfl_wave = 0.5              ! passage rate of phase throuh a cell
-dtMax_dim = 1.0 !3.6e3               ! max time step in s
-tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
-                                ! "cfl" -> stability criteria used
-timeScheme = "LS_Will_RK3"      ! LS_Will_RK3 -> Williamson / Euler /
-                                ! LS_TVD_RK3 / CL_TVD_RK3 / semiimplicit
-auxil_equ = .false.             ! auxiliary equation for the density
-                                ! fluctuations to be used in the explicit
-                                ! integration of the
-                                ! pseudo-incompressible system
-fluxType   = "central"           ! ILES / central / upwind
-reconstType = "constant"           ! MUSCL / constant / SALD / ALDM
-limiterType1 = "MCVariant"      ! minmod / Cada / MCVariant
-fluctuationMode = .true.        ! use rho' as primary variable
-TurbScheme = .false.            ! Turbulence Schwme
-turb_dts = 5.e3                 ! (s) turbulent damping time scale for the
-                                ! smallest grid scales
-shap_dts_fac = -1.
-DySmaScheme = .true.            ! Dynamic Smagorinsky Scheme for the
-                                ! dynamic calculation of the turbulent
-                                ! damping time scale
-dtWave_on = .true.              ! .true. : include dtWave = pi/N to time
-                                !          step choice
-
-heatingONK14 = .false.
-! shap_dts_dim = -1.
+  cfl = 0.5
+  cfl_wave = 0.5                 ! passage rate of phase throuh a cell
+  dtMax_dim = 900.               ! max time step in s
+  tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
+                                  ! "cfl" -> stability criteria used
+  timeScheme = "LS_Will_RK3"      ! LS_Will_RK3 -> Williamson / Euler /
+                                  ! LS_TVD_RK3 / CL_TVD_RK3 / semiimplicit
+  auxil_equ = .false.             ! auxiliary equation for the density
+                                  ! fluctuations to be used in the explicit
+                                  ! integration of the
+                                  ! pseudo-incompressible system
+  fluxType   = "upwind"           ! ILES / central / upwind
+  reconstType = "MUSCL"           ! MUSCL / constant / SALD / ALDM
+  limiterType1 = "MCVariant"      ! minmod / Cada / MCVariant
+  fluctuationMode = .true.        ! use rho' as primary variable
+  TurbScheme = .false.            ! Turbulence Schwme
+  turb_dts = 5.e3                 ! (s) turbulent damping time scale for the
+                                  ! smallest grid scales
+  DySmaScheme = .false.            ! Dynamic Smagorinsky Scheme for the
+                                  ! dynamic calculation of the turbulent
+                                  ! damping time scale
+  dtWave_on = .true.              ! .true. : include dtWave = pi/N to time
+                                  !          step choice
 
 &end
 
@@ -98,33 +94,33 @@ heatingONK14 = .false.
 !-------------------------------------------------
 
 &poissonSolverList
-tolcrit = "abs"              ! tolerance criterion:
-                             ! "abs" for absolute, faster convergence
-                             ! "rel" for relative tol., more demanding
-tolscale = .true.            ! scaling of the tolerance.
-                             ! If tolcrit = "abs" and tolscale = .true.,
-                             ! tolPoisson = tolPoisson*alpha,
-                             ! where alpha is dynamically calculated
-                             ! magnitude of gradients.
-tolPoisson = 1.0e-2        ! abort criterion
-tolCond = 1.e-23             ! tolerance value controlling the use of
-                             ! the preconditioner
-abs_tol = 0.  !1.0e-7        ! it is unscaled abs. tol.,
-                             ! lower bound for tolerance.
-maxIterPoisson = 500
-poissonSolverType = "bicgstab" ! "bicgstab" / "gcr" / "adi" / "hypre"
-storageType = "opr"          ! "csr" (compressed sparse row)
-                             !  "opr" (lin operator)
+  tolcrit = "abs"              ! tolerance criterion:
+                               ! "abs" for absolute, faster convergence
+                               ! "rel" for relative tol., more demanding
+  tolscale = .true.            ! scaling of the tolerance.
+                               ! If tolcrit = "abs" and tolscale = .true.,
+                               ! tolPoisson = tolPoisson*alpha,
+                               ! where alpha is dynamically calculated
+                               ! magnitude of gradients.
+  tolPoisson = 1.0e-4          ! abort criterion
+  tolCond = 1.e-23             ! tolerance value controlling the use of
+                               ! the preconditioner
+  abs_tol = 0.  !1.0e-7        ! it is unscaled abs. tol.,
+                               ! lower bound for tolerance.
+  maxIterPoisson = 1000 ! 500
+  poissonSolverType = "bicgstab" ! "bicgstab" / "gcr" / "adi" / "hypre"
+  storageType = "opr"          ! "csr" (compressed sparse row)
+                               !  "opr" (lin operator)
 
-preconditioner = "no"       ! for operator-Solver: "no" / "yes"
-dtau = 4.0e-4                ! time parameter for ADI (imperical value)
-maxIterADI = 2            ! nb of iterations for ADI preconditioner
+  preconditioner = "yes"       ! for operator-Solver: "no" / "yes"
+  dtau = 8.e-1                ! time parameter for ADI (imperical value)
+  maxIterADI = 10               ! nb of iterations for ADI preconditioner
 
-initialCleaning = .false.     ! makes initial projection
-pressureScaling = .true.    ! .true. / .false. Scaling with PStrat
-useNAG = .false.             ! use NAG routine for TDMA algorithm
-correctMomentum = .true.     ! turn velocity projection on/off
-correctDivError = .false.    ! true -> subtract rho*div(u)
+  initialCleaning = .true.     ! makes initial projection
+  pressureScaling = .false.    ! .true. / .false. Scaling with PStrat
+  useNAG = .false.             ! use NAG routine for TDMA algorithm
+  correctMomentum = .true.     ! turn velocity projection on/off
+  correctDivError = .false.    ! true -> subtract rho*div(u)
 
 &end
 
@@ -135,72 +131,72 @@ correctDivError = .false.    ! true -> subtract rho*div(u)
 
 &atmosphereList
 
-referenceQuantities = "Klein"  ! Klein / WKB / SI / general
+  referenceQuantities = "Klein"  ! Klein / WKB / SI / general
 
-specifyReynolds = .false.      ! false -> give mu_viscous,
-                               ! true-> give ReInv
-ReInv = 0.0                    ! inverse Reynolds number,
-                               ! ReInv = 0 -> inviscid flow
-mu_viscous_dim = 0.0             ! m^2/s
-                               ! kinematic viscosity: 0 for inviscid
-                               ! 1.5e-5 for z = 0 at bottom of atmosphere
-                               ! 1.5e-2 for z = 0 at 60km
-mu_conduct_dim = 0.            ! m^2/s
-                               ! heat conductivity:
-                               ! 0 for non-diffusive
-                               ! 2 * mu_viscous_dim corresponds to
-                               ! Pr = 0.5
+  specifyReynolds = .false.      ! false -> give mu_viscous,
+                                 ! true-> give ReInv
+  ReInv = 0.0                    ! inverse Reynolds number,
+                                 ! ReInv = 0 -> inviscid flow
+  mu_viscous_dim = 0             ! m^2/s
+                                 ! kinematic viscosity: 0 for inviscid
+                                 ! 1.5e-5 for z = 0 at bottom of atmosphere
+                                 ! 1.5e-2 for z = 0 at 60km
+  mu_conduct_dim = 0.            ! m^2/s
+                                 ! heat conductivity:
+                                 ! 0 for non-diffusive
+                                 ! 2 * mu_viscous_dim corresponds to
+                                 ! Pr = 0.5
 
-background = "isothermal"         ! const-N    -> set N_BruntVaisala_dim
-                               ! isothermal -> set Temp0_dim in K
-                               ! isentropic -> set theta0_dim in K
-                               ! uniform    -> constant density
-                               !               (Boussinesq)
-                               ! realistic  -> isentr. troposphere /
-                               !               isoth. stratosphere
-                               ! baroclinic  -> diff lapse rates in
-                               !                atmosphere and
-                               !                stratosphere
-                               ! diflapse  -> diff lapse rates in
-                               !              atmosphere and
-                               !              stratosphere,
-                               !              linear decline in
-                               !              temperature
-                               !
-                               ! for realistic background...
-z_tr_dim = 12000.0             ! m
-                               ! height of tropopause
-                               ! (need for baroclinic)
-theta_tr_dim = 240             ! K
-                               ! const pot. temp. of troposphere
-                               ! (need for baroclinic)
+  background = "isothermal"         ! const-N    -> set N_BruntVaisala_dim
+                                 ! isothermal -> set Temp0_dim in K
+                                 ! isentropic -> set theta0_dim in K
+                                 ! uniform    -> constant density
+                                 !               (Boussinesq)
+                                 ! realistic  -> isentr. troposphere /
+                                 !               isoth. stratosphere
+                                 ! baroclinic  -> diff lapse rates in
+                                 !                atmosphere and
+                                 !                stratosphere
+                                 ! diflapse  -> diff lapse rates in
+                                 !              atmosphere and
+                                 !              stratosphere,
+                                 !              linear decline in
+                                 !              temperature
+                                 !
+                                 ! for realistic background...
+  z_tr_dim = 12000.0             ! m
+                                 ! height of tropopause
+                                 ! (need for baroclinic)
+  theta_tr_dim = 240             ! K
+                                 ! const pot. temp. of troposphere
+                                 ! (need for baroclinic)
 
 
-theta0_dim = 240               ! K
-                               ! isentropic -> background pot. temp.
-                               ! const-N    -> ground pot. temp.
-                               ! uniform    -> background pot temp for
-                               !               Boussinesq
+  theta0_dim = 240               ! K
+                                 ! isentropic -> background pot. temp.
+                                 ! const-N    -> ground pot. temp.
+                                 ! uniform    -> background pot temp for
+                                 !               Boussinesq
 
-Temp0_dim = 240                ! K
-                               ! isothermal -> background temperature
+  Temp0_dim = 240                ! K
+                                 ! isothermal -> background temperature
 
-press0_dim =  68880.0         ! ground pressure (at z=0) in Pa:
-                               ! 101325.0 for z = 0 bottom of atmosphere
-                               ! 101.3250 for z = 0 at appr 60km
+  press0_dim =  68880.0          ! ground pressure (at z=0) in Pa:
+                                 ! 101325.0 for z = 0 bottom of atmosphere
+                                 ! 101.3250 for z = 0 at appr 60km
 
-N_BruntVaisala_dim = 0.020     ! Brunt-Vaisala frequency for
-                               ! 1) "const-N" atmosphere in 1/s
-                               ! 2) "unifrom" Boussinesq
+  N_BruntVaisala_dim = 2.d-2     ! Brunt-Vaisala frequency for
+                                 ! 1) "const-N" atmosphere in 1/s
+                                 ! 2) "unifrom" Boussinesq
 
-backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
-                               ! zonal background flow velocity u
+  backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
+                                 ! zonal background flow velocity u
 
-f_Coriolis_dim = 0.00010           ! 1/s
-                               ! Coriolis parameter
+  f_Coriolis_dim = 0.0001           ! 1/s
+                                 ! Coriolis parameter
 
-gamma_t = 0.000                ! lapse rate in the troposphere
-gamma_s = 0.000                ! lapse rate in the stratosphere
+  gamma_t = 0.000                ! lapse rate in the troposphere
+  gamma_s = 0.000                ! lapse rate in the stratosphere
 &end
 
 
@@ -228,28 +224,28 @@ range_factor = 10         ! factor by which mountain range is wider than
 
 &boundaryList
 
-! correction of solid wall boundary
-rhoFluxCorr = .false.    ! replace vertical mass flux by CDS at k=1,
-                         ! k=nz-1
-uFluxCorr = .false.
-vFluxCorr = .false.
-wFluxCorr = .false.
-thetaFluxCorr = .false.  ! replace vertical theta flux by CDS at k=1,
-                         ! k=nz-1
-nbCellCorr = 1
+  ! correction of solid wall boundary
+  rhoFluxCorr = .false.    ! replace vertical mass flux by CDS at k=1,
+                           ! k=nz-1
+  uFluxCorr = .false.
+  vFluxCorr = .false.
+  wFluxCorr = .false.
+  thetaFluxCorr = .false.  ! replace vertical theta flux by CDS at k=1,
+                           ! k=nz-1
+  nbCellCorr = 1
 
-! sponge layer at upper boundary
-spongeLayer = .false.     ! sponge with relaxation to background
-spongeHeight = 0.4      ! relative height of sponge layer
-spongeAlphaZ_dim = 2.e-1 ! relaxation rate coeff in 1/s
+  ! sponge layer at upper boundary
+  spongeLayer = .true.     ! sponge with relaxation to background
+  spongeHeight = 0.33      ! relative height of sponge layer
+  spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
 &end
 
 &boundaryList2
 
-! boundary types
-xBoundary = "periodic"   ! periodic
-yBoundary = "periodic"   ! periodic
-zBoundary = "solid_wall" ! periodic / solid_wall
+  ! boundary types
+  xBoundary = "periodic"   ! periodic
+  yBoundary = "periodic"   ! periodic
+  zBoundary = "solid_wall" ! periodic / solid_wall
 
 &end
 
@@ -262,77 +258,77 @@ zBoundary = "solid_wall" ! periodic / solid_wall
 
 &outputList
 
-outputType = "time"      ! timeStep / time
+  outputType = "time"      ! timeStep / time
 
-nOutput = 1              ! output every nOutput's time step
-                         ! for outputType = "timeStep"
+  nOutput = 1              ! output every nOutput's time step
+                           ! for outputType = "timeStep"
 
-maxIter = 1             ! stop after maxIter time steps
+  maxIter = 1             ! stop after maxIter time steps
 
-outputTimeDiff = 86400.0 !1.5e6  ! output every ... seconds
-maxTime        = 86400.0 !1.5e6  ! stop after maxTime seconds
+  outputTimeDiff =  9000.0  ! output every ... seconds
+  maxTime = 90000.0          ! stop after maxTime seconds
 
-dataFileName = ""        ! empty string "" -> dataFileName = testCase
-restartFile = "restart.ref"   ! restart file in TEC360 format
-restart = .false.      ! true / false
+  dataFileName = ""        ! empty string "" -> dataFileName = testCase
+  restartFile = "restart.ref"   ! restart file in TEC360 format
+  restart = .false.      ! true / false
 
-dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
+  dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-varOut = 1,1,1,1,0,0,0,0   ! 1 = output, 0 = no output
-!                        primary variables: rho,u,v,w,pi',theta',
-!                                           dyn. Smagorinsky coeff.
+  varOut = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  !                        primary variables: rho,u,v,w,pi',theta',
+  !                                           dyn. Smagorinsky coeff.
 
-varIn = 1,1,1,1,0,0,0,0   ! 1 = output, 0 = no output
-!                       data written into restart file pf_all_in.dat
-!                       ( = output file pf_all.dat from previous run)
-!                       primary variables: rho,u,v,w,pi',theta',
-!                                          dyn. Smagorinsky coeff.
+  varIn = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  !                       data written into restart file pf_all_in.dat
+  !                       ( = output file pf_all.dat from previous run)
+  !                       primary variables: rho,u,v,w,pi',theta',
+  !                                          dyn. Smagorinsky coeff.
 
 
-iIn = 101                 ! no. of record to be read from restart file
-                        ! pf_all_in.dat
-                        ! (first record in file has no. = 0)
+  iIn = 23                 ! no. of record to be read from restart file
+                          ! pf_all_in.dat
+                          ! (first record in file has no. = 0)
 
-offset = 0.0, 0.0, 0.0, 0.0, 0.0 ! offset for primary variables
-rhoOffset = .true.               ! subtract background
+  offset = 0.0, 0.0, 0.0, 0.0, 0.0 ! offset for primary variables
+  rhoOffset = .true.               ! subtract background
 
 
 ! optional variables
-optVarOut = 0,0,0, 0,0,0  ! 1 = output, 0 = no output for
-!                         1) p-pBar in kPa
-!                         2) buoyancy
-!                         3) background pressure pBar in kPa
-!                         4) background density rhoBar in kg/m^3
-!                         5) div(Pu)
-!                         6) stratification perturbation db/dz
-thetaOffset = .true.               ! subtract background
+  optVarOut = 0,0,0, 0,0,0  ! 1 = output, 0 = no output for
+  !                         1) p-pBar in kPa
+  !                         2) buoyancy
+  !                         3) background pressure pBar in kPa
+  !                         4) background density rhoBar in kg/m^3
+  !                         5) div(Pu)
+  !                         6) stratification perturbation db/dz
+  thetaOffset = .false.               ! subtract background
 
-! WKB variables
-wkbVarOut = 0,0,0,0, 0,0,0,0, 0,0,0,0
-!                         1) Wave action amplitude
-!                         2) u00 in m/s
-!                         3) th02
-!                         4) pi02
+  ! WKB variables
+  wkbVarOut = 0,0,0,0, 0,0,0,0, 0,0,0,0
+  !                         1) Wave action amplitude
+  !                         2) u00 in m/s
+  !                         3) th02
+  !                         4) pi02
 
-!                         5) u10 in m/s
-!                         6) w10 in m/s
-!                         7) b11 in m/s^2
-!                         8) pi12
+  !                         5) u10 in m/s
+  !                         6) w10 in m/s
+  !                         7) b11 in m/s^2
+  !                         8) pi12
 
-!                         9) u21 in m/s
-!                         10) w21 in m/s
-!                         11) b22 in m/s^2
-!                         12) pi23
+  !                         9) u21 in m/s
+  !                         10) w21 in m/s
+  !                         11) b22 in m/s^2
+  !                         12) pi23
 
 
 
-solutionTime = .true.     ! TECPLOT's "solution time" out yes/no
-solutionTimeUnit = "min"    ! "s", "min" or "h"
-showGhostCellsX = .false. ! shows ghost cells in x
-showGhostCellsY = .false. ! shows ghost cells in y
-showGhostCellsZ = .false. ! shows ghost cells in z
-detailedinfo = .false. ! provide info on the final state of Poisson solver
-RHS_diagnostics = .false. ! provide info about the RHS for Poisson problem
+  solutionTime = .true.     ! TECPLOT's "solution time" out yes/no
+  solutionTimeUnit = "min"    ! "s", "min" or "h"
+  showGhostCellsX = .false. ! shows ghost cells in x
+  showGhostCellsY = .false. ! shows ghost cells in y
+  showGhostCellsZ = .false. ! shows ghost cells in z
+  detailedinfo = .false. ! provide info on the final state of Poisson solver
+  RHS_diagnostics = .true. ! provide info about the RHS for Poisson problem
 
 &end
 
@@ -406,29 +402,29 @@ lambdaZ_dim = 6000.0 !m       vertical wave length
 
 &wavePacket
 
-wavePacketType = 1      ! 1 = Gaussian, 2 = Cosine
+wavePacketType = 2      ! 1 = Gaussian, 2 = Cosine
 
-wavePacketDim = 2       ! 1 = 1D, 2 = 2D, 3 = 3D
+wavePacketDim = 3       ! 1 = 1D, 2 = 2D, 3 = 3D
                         ! for a 2.5D Wave Packet use wavePacketDim = 2
 
-lambdaX_dim = 300000.0      ! wave length in x direction in m
+lambdaX_dim = 3.e5      ! wave length in x direction in m
                         ! lambdaX = 0.0 --> infinite wavelength
-lambdaY_dim = 0.0      ! wave length in y direction in m
+lambdaY_dim = 3.e5      ! wave length in y direction in m
                         ! lambday = 0.0 --> infinite wavelength
-lambdaZ_dim = -1000.0   ! vertical wave length in m
+lambdaZ_dim = -1.e3   ! vertical wave length in m
 
 amplitudeFactor = 0.5   ! normalilized buoyancy amplitude
 
 xCenter_dim = 4.5e6     ! center of wave packet in x direction in m
 
-yCenter_dim = 20000.0     ! center of wave packet in y direction in m
-zCenter_dim = 3.0e4      ! center of wave packet in z direction in m
+yCenter_dim = 1.5e4     ! center of wave packet in y direction in m
+zCenter_dim = 3.e4      ! center of wave packet in z direction in m
 
-sigma_dim = 5000.0      ! vertical width of Gaussian wavepacket in m
+sigma_dim = 5.e3      ! vertical width of Gaussian wavepacket in m
 
-sigma_hor_dim = 1.5e6   ! cosine distribution width
+sigma_hor_dim = 1.e6   ! cosine distribution width
                         ! (in x direction, 0 means infinity)
-sigma_hor_yyy_dim = 1.5e6  ! cosine distribution width
+sigma_hor_yyy_dim = 0.0  ! cosine distribution width
                         ! (in y direction, 0 means infinity)
 
 amp_mod_x = 1.0         ! fractional amplitude of amplitude modulation
@@ -438,7 +434,7 @@ amp_mod_y = 1.0         ! fractional amplitude of amplitude modulation
                         ! in y direction
                         ! (0 = no modulation, 1 = total modulation)
 
-L_cos_dim = 10000.0      ! half width of vertical cosine profile of GWP
+L_cos_dim = 5.e3      ! half width of vertical cosine profile of GWP
 
 meanFlowX_dim = 0.0     ! mean flow in m/s / jet flow amplitude
 meanFlowZ_dim = 0.0     ! mean vertical flow m/s

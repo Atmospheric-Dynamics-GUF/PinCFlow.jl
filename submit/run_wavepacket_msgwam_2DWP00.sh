@@ -1,18 +1,17 @@
 #!/bin/bash
 #SBATCH --partition=general2
-#SBATCH --job-name=wavepacket_msgwam
-#SBATCH --ntasks=32
+#SBATCH --job-name=2Dmscos
+#SBATCH --ntasks=16
 #SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=10400
-#SBATCH --mail-type=ALL
-#SBATCH --mail-use=s9467794@stud.uni-frankfurt.de
-#SBATCH --time=02:00:00
+#SBATCH --mem-per-cpu=2600
+#SBATCH --hint=nomultithread
+#SBATCH --time=48:00:00
 
 set -x
 
 # no. of processors ntasks must be nprocx * nprocy
-ntasks=32
-nprocx=32
+ntasks=8
+nprocx=8
 nprocy=1
 
 # OpenMP settings
