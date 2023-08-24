@@ -1,0 +1,19 @@
++ ntasks=8
++ nprocx=8
++ nprocy=1
++ export OMP_NUM_THREADS=1
++ OMP_NUM_THREADS=1
++ export GMON_OUT_PREFIX=gmon.out-
++ GMON_OUT_PREFIX=gmon.out-
++ dirHome=/home/atmodynamics/knop/pinc-flow-tracer
++ dirScratch=/scratch/atmodynamics/knop
++ dirNam=/home/atmodynamics/knop/pinc-flow-tracer/input
++ exe=/home/atmodynamics/knop/pinc-flow-tracer/bin/pinc
++ dirWork=/scratch/atmodynamics/knop/output/3DWP_msgwam_cos_1TS
++ mkdir /scratch/atmodynamics/knop/output/3DWP_msgwam_cos_1TS
+mkdir: cannot create directory ‘/scratch/atmodynamics/knop/output/3DWP_msgwam_cos_1TS’: File exists
++ cd /scratch/atmodynamics/knop/output/3DWP_msgwam_cos_1TS
++ rm bvsStrat.dat dt.dat info.txt input.f90 pf_all.dat pf_wkb_mean.dat pStrat.dat rhoStrat.dat run.log thetaStrat.dat
++ sed -e 's/{nprocx}/8/' -e 's/{nprocy}/1/' /home/atmodynamics/knop/pinc-flow-tracer/input/input_3DWP_msgwam_cos.f90
++ mpirun -np 8 /home/atmodynamics/knop/pinc-flow-tracer/bin/pinc
++ exit 0
