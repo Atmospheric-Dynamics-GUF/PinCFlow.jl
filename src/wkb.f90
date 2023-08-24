@@ -164,7 +164,7 @@ module wkb_module
     real :: NNR
 
     ! IKJuly2023 tracer flux stuff
-    real :: tracerfluxcoeff, dchidx, dchidy, dchidz, rhotracer, dutracer, dvtracer
+    real :: tracerfluxcoeff, dchidx, dchidy, dchidz, rhotracerp, rhotracerm, dutracer, dvtracer
 
     allocate(var_uu(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_uv(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
@@ -598,35 +598,57 @@ module wkb_module
                         / (wnrh ** 2 + wnrm ** 2) * wadr / rhoStrat(kz)
                     ! makeshift large-scale tracer gradient
 
-                  if(fluctuationMode) then
-                    rhotracer = (var(ix, jy, kz, 1) + rhoStrat(kz))
+                  if (sizeX > 1) then
+                    if (fluctuationMode) then
+                      rhotracerp = var(ixrv+1, jyrv, kzrv, 1) + rhoStrat(kzrv)
+                      rhotracerm = var(ixrv-1, jyrv, kzrv, 1) + rhoStrat(kzrv)
+                    else
+                      rhotracerp = var(ixrv+1, jyrv, kzrv, 1)
+                      rhotracerm = var(ixrv-1, jyrv, kzrv, 1)
+                    end if
+
+                    dchidx = ( var(ixrv+1, jyrv, kzrv, iVart) / rhotracerp   & 
+                             - var(ixrv-1, jyrv, kzrv, iVart) / rhotracerm ) &
+                             / (2.0 * dx)
                   else
-                    rhotracer = var(ix, jy, kz, 1)
+                    dchidx = 0.0
                   end if
-                    
-                    if (sizeX > 1) then
-                      dchidx = (var(ix+1, jy, kz, iVart)-var(ix-1, jy, kz, iVart))&
-                        / (2.0 * dx * rhotracer)
+
+                  if (sizeY > 1) then
+                    if (fluctuationMode) then
+                      rhotracerp = var(ixrv, jyrv+1, kzrv, 1) + rhoStrat(kzrv)
+                      rhotracerm = var(ixrv, jyrv-1, kzrv, 1) + rhoStrat(kzrv)
                     else
-                      dchidx = 0.0
+                      rhotracerp = var(ixrv, jyrv+1, kzrv, 1)
+                      rhotracerm = var(ixrv, jyrv-1, kzrv, 1)
                     end if
 
-                    if (sizeY > 1) then
-                      dchidy = (var(ix, jy+1, kz, iVart)-var(ix, jy-1, kz, iVart))&
-                        / (2.0 * dy * rhotracer)
-                    else
-                      dchidy = 0.0
-                    end if
+                    dchidy = ( var(ixrv, jyrv+1, kzrv, iVart) / rhotracerp   &
+                             - var(ixrv, jyrv-1, kzrv, iVart) / rhotracerm ) &
+                             / (2.0 * dy)
+                  else
+                    dchidy = 0.0
+                  end if
 
-                    dchidz = (var(ix, jy, kz+1, iVart)-var(ix, jy, kz-1, iVart))&
-                      / (2.0 * dz * rhotracer)
+                  if (fluctuationMode) then
+                    rhotracerp = var(ixrv, jyrv, kzrv+1, 1) + rhoStrat(kzrv)
+                    rhotracerm = var(ixrv, jyrv, kzrv-1, 1) + rhoStrat(kzrv)
+                  else
+                    rhotracerp = var(ixrv, jyrv, kzrv+1, 1)
+                    rhotracerm = var(ixrv, jyrv, kzrv-1, 1)
+                  end if
 
-                    var_utracer(ix, jy, kz) = var_utracer(ix, jy, kz) &
-                        + tracerfluxcoeff * (wnrm * dchidy - wnrl * dchidz)
-                    var_vtracer(ix, jy, kz) = var_vtracer(ix, jy, kz) &
-                        + tracerfluxcoeff * (wnrk * dchidz - wnrm * dchidx)
-                    var_wtracer(ix, jy, kz) = var_wtracer(ix, jy, kz) &
-                        + tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
+                  dchidz = ( var(ixrv, jyrv, kzrv+1, iVart) / rhotracerp   &
+                           - var(ixrv, jyrv, kzrv-1, iVart) / rhotracerm ) &
+                           / (2.0 * dz)
+
+
+                  var_utracer(ix, jy, kz) = var_utracer(ix, jy, kz) &
+                      + tracerfluxcoeff * (wnrm * dchidy - wnrl * dchidz)
+                  var_vtracer(ix, jy, kz) = var_vtracer(ix, jy, kz) &
+                      + tracerfluxcoeff * (wnrk * dchidz - wnrm * dchidx)
+                  var_wtracer(ix, jy, kz) = var_wtracer(ix, jy, kz) &
+                      + tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
                   end if
 
                   var_E(ix, jy, kz) = var_E(ix, jy, kz) + wadr * omir
@@ -1498,6 +1520,27 @@ module wkb_module
               else
                 fld_amp(ix, jy, kz) = 0.0
               end if
+            elseif(case_wkb == 4) then ! to match the wavepacket case gaussian
+              fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz) * exp(- (z(kz) - zr0)**2. &
+                  / 2.0 / sigwpz ** 2. )
+                  
+              if(sigwpx > 0.0) then
+                if(abs(x(ix + ix0) - xr0) < sigwpx) then
+                  fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz) &
+                        * cos(pi * (x(ix + ix0) - xr0) / (2. * sigwpx))
+                else
+                  fld_amp(ix, jy, kz) = 0.0
+                end if
+              end if
+  
+                if(sigwpy > 0.0) then
+                  if(abs(y(jy + jy0) - yr0) < sigwpy) then
+                    fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz)  &
+                        * cos(pi * (y(jy + jy0) - yr0) / (2. * sigwpy))
+                  else
+                    fld_amp(ix, jy, kz) = 0.0
+                  end if
+                end if
             end if
             ! testb
             ! fld_ene(ix,jy,kz) &

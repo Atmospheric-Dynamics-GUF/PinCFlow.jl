@@ -1,10 +1,11 @@
 #!/bin/bash
 #SBATCH --partition=general2
-#SBATCH --job-name=2Dlescos
+#SBATCH --job-name=3Dlescos
 #SBATCH --ntasks=128
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2800
-#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=ALL
+#SBATCH --mail-use=s9467794@stud.uni-frankfurt.de
 #SBATCH --time=48:00:00
 
 set -x
@@ -28,7 +29,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/wavepacket_LES_3DWP00_cosine
+dirWork=${dirScratch}/output/wavepacket_3DWP00_1TS
 
 mkdir ${dirWork}
 
@@ -39,7 +40,7 @@ cd ${dirWork} && rm *
 # copy namelist
 sed -e "s/{nprocx}/${nprocx}/" \
     -e "s/{nprocy}/${nprocy}/" \
-        ${dirNam}/input_wavepacket_LES_3DWP00_cosine.f90 > input.f90
+        ${dirNam}/input_wavepacket_3DWP00.f90 > input.f90
 
 # run the raytracer
 mpirun -np ${ntasks} ${exe} 1>run.log 2>&1

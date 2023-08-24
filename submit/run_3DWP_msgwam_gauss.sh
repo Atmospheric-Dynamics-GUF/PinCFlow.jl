@@ -1,11 +1,10 @@
 #!/bin/bash
-#SBATCH --partition=general2
-#SBATCH --job-name=3Dmscos
-#SBATCH --ntasks=16
+#SBATCH --partition=test
+#SBATCH --job-name=3DWPMSG
+#SBATCH --ntasks=8
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2600
-#SBATCH --hint=nomultithread
-#SBATCH --time=48:00:00
+#SBATCH --time=00:20:00
 
 set -x
 
@@ -28,7 +27,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/wavepacket_msgwam_3DWP00_cosine_plus
+dirWork=${dirScratch}/output/3DWP_msgwam_gauss_1TS
 
 mkdir ${dirWork}
 
@@ -39,7 +38,7 @@ cd ${dirWork} && rm *
 # copy namelist
 sed -e "s/{nprocx}/${nprocx}/" \
     -e "s/{nprocy}/${nprocy}/" \
-        ${dirNam}/input_wavepacket_msgwam_3DWP00_cosine.f90 > input.f90
+        ${dirNam}/input_3DWP_msgwam_gauss.f90 > input.f90
 
 # run the raytracer
 mpirun -np ${ntasks} ${exe} 1>run.log 2>&1

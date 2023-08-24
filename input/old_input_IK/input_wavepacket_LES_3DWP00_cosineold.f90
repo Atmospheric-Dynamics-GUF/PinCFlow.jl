@@ -172,27 +172,27 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
                                  ! (need for baroclinic)
 
 
-  theta0_dim = 240               ! K
+  theta0_dim = 300               ! K
                                  ! isentropic -> background pot. temp.
                                  ! const-N    -> ground pot. temp.
                                  ! uniform    -> background pot temp for
                                  !               Boussinesq
 
-  Temp0_dim = 240                ! K
+  Temp0_dim = 300                ! K
                                  ! isothermal -> background temperature
 
-  press0_dim =  68880.0          ! ground pressure (at z=0) in Pa:
+  press0_dim =  101325.0         ! ground pressure (at z=0) in Pa:
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 2.d-2     ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 1.8-2     ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
   backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
                                  ! zonal background flow velocity u
 
-  f_Coriolis_dim = 0.0001           ! 1/s
+  f_Coriolis_dim = 0.0           ! 1/s
                                  ! Coriolis parameter
 
   gamma_t = 0.000                ! lapse rate in the troposphere
@@ -258,14 +258,14 @@ range_factor = 10         ! factor by which mountain range is wider than
 
 &outputList
 
-  outputType = "time"      ! timeStep / time
+  outputType = "timeStep"      ! timeStep / time
 
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  9000.0  ! output every ... seconds
+  outputTimeDiff =  90000.0  ! output every ... seconds
   maxTime = 90000.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
@@ -402,7 +402,7 @@ lambdaZ_dim = 6000.0 !m       vertical wave length
 
 &wavePacket
 
-wavePacketType = 2      ! 1 = Gaussian, 2 = Cosine
+wavePacketType = 1      ! 1 = Gaussian, 2 = Cosine
 
 wavePacketDim = 3       ! 1 = 1D, 2 = 2D, 3 = 3D
                         ! for a 2.5D Wave Packet use wavePacketDim = 2
@@ -422,7 +422,7 @@ zCenter_dim = 3.e4      ! center of wave packet in z direction in m
 
 sigma_dim = 5.e3      ! vertical width of Gaussian wavepacket in m
 
-sigma_hor_dim = 1.e6   ! cosine distribution width
+sigma_hor_dim = 1.5e6   ! cosine distribution width
                         ! (in x direction, 0 means infinity)
 sigma_hor_yyy_dim = 0.0  ! cosine distribution width
                         ! (in y direction, 0 means infinity)
@@ -434,7 +434,7 @@ amp_mod_y = 1.0         ! fractional amplitude of amplitude modulation
                         ! in y direction
                         ! (0 = no modulation, 1 = total modulation)
 
-L_cos_dim = 5.e3      ! half width of vertical cosine profile of GWP
+L_cos_dim = 10000.0      ! half width of vertical cosine profile of GWP
 
 meanFlowX_dim = 0.0     ! mean flow in m/s / jet flow amplitude
 meanFlowZ_dim = 0.0     ! mean vertical flow m/s

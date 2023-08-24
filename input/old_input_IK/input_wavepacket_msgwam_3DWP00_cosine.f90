@@ -12,7 +12,7 @@
 &domain
 
   sizeX = 32, !512 !256 !128 !256 !1024,                  ! nb of global grid cells
-  sizeY = 4,
+  sizeY = 2,
   sizeZ = 100, !1024 !512 !256 !512 !2048,
   nbx = 3,                  ! nb. of ghost cells
   nby = 3,
@@ -174,27 +174,27 @@
                                  ! (need for baroclinic)
 
 
-  theta0_dim = 240               ! K
+  theta0_dim = 300               ! K
                                  ! isentropic -> background pot. temp.
                                  ! const-N    -> ground pot. temp.
                                  ! uniform    -> background pot temp for
                                  !               Boussinesq
 
-  Temp0_dim = 240                ! K
+  Temp0_dim = 300                ! K
                                  ! isothermal -> background temperature
 
-  press0_dim =  68880.0          ! ground pressure (at z=0) in Pa:
+  press0_dim =  101325.0         ! ground pressure (at z=0) in Pa:
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 2.d-2     ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 1.8-2     ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
   backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
                                  ! zonal background flow velocity u
 
-  f_Coriolis_dim = 0.0001           ! 1/s
+  f_Coriolis_dim = 0.0           ! 1/s
                                  ! Coriolis parameter
 
   gamma_t = 0.000                ! lapse rate in the troposphere
@@ -259,7 +259,7 @@
 
 &outputList
 
-  outputType = "time"      ! timeStep / time
+  outputType = "timeStep"      ! timeStep / time
 
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
@@ -460,9 +460,9 @@
   xrmin_dim = 0.0,         ! left bound of initial rays (in x direction) (m)
   xrmax_dim = 9.e6,        ! right bound of initial rays (in x dir.) (m)
   yrmin_dim = 0.0,         ! left bound of initial rays (in y direction) (m)
-  yrmax_dim = 3.e4,        ! right bound of initial rays (in y dir.) (m)
-  zrmin_dim = 3.e3,        ! bottom bound of initial rays (m)
-  zrmax_dim = 7.e4,        ! top bound of initial rays (m)
+  yrmax_dim = 3.e5,        ! right bound of initial rays (in y dir.) (m)
+  zrmin_dim = 0.0,        ! bottom bound of initial rays (m)
+  zrmax_dim = 1.e5,        ! top bound of initial rays (m)
 
   nrxl = 4,               ! no. of ray vol. init. within one hor. x column
   nryl = 4,               ! no. of ray vol. init. within one hor. y column
@@ -486,7 +486,7 @@
   lsaturation = .true.,    ! JaWi 16.12.16 (sat)
   alpha_sat = 1.0,         ! JaWi 16.12.16 (sat)
 
-  case_wkb = 2,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
+  case_wkb = 4,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
   amp_wkb = 0.5            ! amplitude of the wave packet (wrt saturation)
 
   wlrx_init = 3.e5,        ! initial lambda_x of the wave packet (m)
@@ -499,7 +499,7 @@
   yr0_dim = 1.5e4,          ! center of the wave packet in hor. (y-dir.) (m)
   zr0_dim = 3.e4,          ! center of the wave packet in vertical (m)
 
-  sigwpx_dim = 1.e6 ,      ! width of the wave packet in hor. (x-dir.) (m);
+  sigwpx_dim = 1.5e6 ,      ! width of the wave packet in hor. (x-dir.) (m);
                            ! (0 means infinity)
   sigwpy_dim = 0.e0        ! width of the wave packet in hor. (y-dir.) (m);
                            ! (0 means infinity)
