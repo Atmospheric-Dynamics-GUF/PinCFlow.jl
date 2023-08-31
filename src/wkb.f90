@@ -598,57 +598,50 @@ module wkb_module
                         / (wnrh ** 2 + wnrm ** 2) * wadr / rhoStrat(kz)
                     ! makeshift large-scale tracer gradient
 
-                  if (sizeX > 1) then
-                    if (fluctuationMode) then
-                      rhotracerp = var(ixrv+1, jyrv, kzrv, 1) + rhoStrat(kzrv)
-                      rhotracerm = var(ixrv-1, jyrv, kzrv, 1) + rhoStrat(kzrv)
-                    else
-                      rhotracerp = var(ixrv+1, jyrv, kzrv, 1)
-                      rhotracerm = var(ixrv-1, jyrv, kzrv, 1)
-                    end if
+                    ! if (sizeX > 1) then
+                    !   if (fluctuationMode) then
+                    !     rhotracerp = var(ix+1, jy, kz, 1) + rhoStrat(kz)
+                    !     rhotracerm = var(ix-1, jy, kz, 1) + rhoStrat(kz)
+                    !   else
+                    !     rhotracerp = var(ix+1, jy, kz, 1)
+                    !     rhotracerm = var(ix-1, jy, kz, 1)
+                    !   end if
 
-                    dchidx = ( var(ixrv+1, jyrv, kzrv, iVart) / rhotracerp   & 
-                             - var(ixrv-1, jyrv, kzrv, iVart) / rhotracerm ) &
-                             / (2.0 * dx)
-                  else
-                    dchidx = 0.0
-                  end if
+                    !   dchidx = ( var(ix+1, jy, kz, iVart) / rhotracerp   & 
+                    !            - var(ix-1, jy, kz, iVart) / rhotracerm ) &
+                    !            / (2.0 * dx)
+                    ! else
+                    !   dchidx = 0.0
+                    ! end if
 
-                  if (sizeY > 1) then
-                    if (fluctuationMode) then
-                      rhotracerp = var(ixrv, jyrv+1, kzrv, 1) + rhoStrat(kzrv)
-                      rhotracerm = var(ixrv, jyrv-1, kzrv, 1) + rhoStrat(kzrv)
-                    else
-                      rhotracerp = var(ixrv, jyrv+1, kzrv, 1)
-                      rhotracerm = var(ixrv, jyrv-1, kzrv, 1)
-                    end if
+                    ! if (sizeY > 1) then
+                    !   if (fluctuationMode) then
+                    !     rhotracerp = var(ix, jy+1, kz, 1) + rhoStrat(kz)
+                    !     rhotracerm = var(ix, jy-1, kz, 1) + rhoStrat(kz)
+                    !   else
+                    !     rhotracerp = var(ix, jy+1, kz, 1)
+                    !     rhotracerm = var(ix, jy-1, kz, 1)
+                    !   end if
 
-                    dchidy = ( var(ixrv, jyrv+1, kzrv, iVart) / rhotracerp   &
-                             - var(ixrv, jyrv-1, kzrv, iVart) / rhotracerm ) &
-                             / (2.0 * dy)
-                  else
-                    dchidy = 0.0
-                  end if
+                    !   dchidy = ( var(ix, jy+1, kz, iVart) / rhotracerp   &
+                    !            - var(ix, jy-1, kz, iVart) / rhotracerm ) &
+                    !            / (2.0 * dy)
+                    ! else
+                    !   dchidy = 0.0
+                    ! end if
 
-                  if (fluctuationMode) then
-                    rhotracerp = var(ixrv, jyrv, kzrv+1, 1) + rhoStrat(kzrv)
-                    rhotracerm = var(ixrv, jyrv, kzrv-1, 1) + rhoStrat(kzrv)
-                  else
-                    rhotracerp = var(ixrv, jyrv, kzrv+1, 1)
-                    rhotracerm = var(ixrv, jyrv, kzrv-1, 1)
-                  end if
+                    call tracerderivative(x(ix), 1, jy, kz, var, dchidx)
+                    call tracerderivative(y(jy), 2, ix, kz, var, dchidy)
+                    call tracerderivative(z(kz), 3, ix, jy, var, dchidz)
+                    
+                    dchidz = - 1.0 * dchidz
 
-                  dchidz = ( var(ixrv, jyrv, kzrv+1, iVart) / rhotracerp   &
-                           - var(ixrv, jyrv, kzrv-1, iVart) / rhotracerm ) &
-                           / (2.0 * dz)
-
-
-                  var_utracer(ix, jy, kz) = var_utracer(ix, jy, kz) &
-                      + tracerfluxcoeff * (wnrm * dchidy - wnrl * dchidz)
-                  var_vtracer(ix, jy, kz) = var_vtracer(ix, jy, kz) &
-                      + tracerfluxcoeff * (wnrk * dchidz - wnrm * dchidx)
-                  var_wtracer(ix, jy, kz) = var_wtracer(ix, jy, kz) &
-                      + tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
+                    var_utracer(ix, jy, kz) = var_utracer(ix, jy, kz) &
+                        + tracerfluxcoeff * (wnrm * dchidy - wnrl * dchidz)
+                    var_vtracer(ix, jy, kz) = var_vtracer(ix, jy, kz) &
+                        + tracerfluxcoeff * (wnrk * dchidz - wnrm * dchidx)
+                    var_wtracer(ix, jy, kz) = var_wtracer(ix, jy, kz) &
+                        + tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
                   end if
 
                   var_E(ix, jy, kz) = var_E(ix, jy, kz) + wadr * omir
@@ -786,7 +779,7 @@ module wkb_module
         end do
       end do
     end if
-    
+
 
     ! wave impact on horizontal momentum
 
@@ -1941,6 +1934,265 @@ module wkb_module
   end subroutine stratification
 
   !------------------------------------------------------------------------
+  subroutine tracerderivative2(xlc_in, ylc_in, zlc_in, var, dchidxyz)
+    
+    integer, intent(in) :: xlc_in, ylc_in
+    real, intent(in) :: zlc_in
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+    intent(in) :: var
+    real, intent(out) :: dchidxyz
+
+    integer :: kzu, kzd, jyf, jyb, ixr, ixl 
+
+    real :: xlc, ylc, zlc
+    real :: zu, zd, yf, yb, xr, xl
+    real :: tracu, tracd, tracl, tracr, tracf, tracb
+    real :: rhodp, rhodm, rhoup, rhoum
+
+    real :: factor 
+
+    xlc = xlc_in
+    ylc = ylc_in
+    zlc = zlc_in
+
+    ! currently, xlc and ylc are indices
+    ! zlc is an altitude position
+
+    kzd = max( -1, floor( (zlc - lz(0)) / dz))
+    kzu = kzd + 1
+
+    if (kzu + 1 > nz + 1) then
+      kzu = nz
+      kzd = nz - 1
+    end if
+
+    zu = z(kzu) + 0.5 * dz
+    zd = z(kzd) + 0.5 * dz
+
+    if (fluctuationMode) then
+      rhodp = var(xlc, ylc, kzd + 1, 1) + rhoStrat(kzd + 1)
+      rhodm = var(xlc, ylc, kzd, 1) + rhoStrat(kzd)
+
+      rhoup = var(xlc, ylc, kzu + 1, 1) + rhoStrat(kzu + 1)
+      rhoum = var(xlc, ylc, kzu, 1) + rhoStrat(kzu)
+    else
+      rhodp = var(xlc, ylc, kzd + 1, 1)
+      rhodm = var(xlc, ylc, kzd, 1)
+
+      rhoup = var(xlc, ylc, kzu + 1, 1)
+      rhoum = var(xlc, ylc, kzu, 1)
+    end if
+
+    tracd = (var(xlc, ylc, kzd + 1, iVart) / rhodp &
+           - var(xlc, ylc, kzd    , iVart) / rhodm) / dz
+    tracu = (var(xlc, ylc, kzu + 1, iVart) / rhoup &
+           - var(xlc, ylc, kzu    , iVart) / rhoum) / dz 
+
+    if (zu < zd) then
+      print *, 'ERROR IN TRACERDERIVATIVE: zu =', zu, '< zd =', zd
+      stop
+    elseif (zu == zd) then
+      factor = 0.0
+    elseif (zlc > zu) then 
+      factor = 0.0
+    elseif (zlc > zd) then 
+      factor = (zu - zlc) / dz
+    else
+      factor = 1.0
+    end if 
+
+    dchidxyz = factor * tracd + (1.0 - factor) * tracu
+
+  end subroutine tracerderivative2
+  !------------------------------------------------------------------------
+
+  subroutine tracerderivative(position, direction, indexa, indexb, var, dchidxyz)
+
+    real, intent(in) :: position ! at which the derivative of chi should be calculated
+    integer, intent(in) :: direction ! 1: x, 2: y, 3: z
+    integer, intent(in) :: indexa, indexb ! indices for the remaining two directions
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+    intent(in) :: var
+    real, intent(out) :: dchidxyz 
+
+    integer :: kzu, kzd, jyf, jyb, ixr, ixl 
+
+    real :: xlc, ylc, zlc
+    real :: zu, zd, yf, yb, xr, xl
+    real :: tracu, tracd, tracl, tracr, tracf, tracb
+    real :: rhodp, rhodm, rhoup, rhoum
+    real :: rhofp, rhofm, rhobp, rhobm
+    real :: rholp, rholm, rhorp, rhorm
+    integer :: ixx, jyy, kzz
+
+    real :: factor
+
+    if ( direction == 3 ) then
+      ixx = indexa
+      jyy = indexb
+      zlc = position
+
+      kzd = max( -1, floor( (zlc - lz(0)) / dz))
+      kzu = kzd + 1
+
+      if (kzu + 1 > nz + 1) then
+        kzu = nz
+        kzd = nz - 1
+      end if
+
+      zu = z(kzu) + 0.5 * dz
+      zd = z(kzd) + 0.5 * dz
+
+      if (fluctuationMode) then
+        rhodp = var(ixx, jyy, kzd + 1, 1) + rhoStrat(kzd + 1)
+        rhodm = var(ixx, jyy, kzd, 1) + rhoStrat(kzd)
+
+        rhoup = var(ixx, jyy, kzu + 1, 1) + rhoStrat(kzu + 1)
+        rhoum = var(ixx, jyy, kzu, 1) + rhoStrat(kzu)
+      else
+        rhodp = var(ixx, jyy, kzd + 1, 1)
+        rhodm = var(ixx, jyy, kzd, 1)
+
+        rhoup = var(ixx, jyy, kzu + 1, 1)
+        rhoum = var(ixx, jyy, kzu, 1)
+      end if
+
+      tracd = (var(ixx, jyy, kzd + 1, iVart) / rhodp &
+             - var(ixx, jyy, kzd    , iVart) / rhodm) / dz
+      tracu = (var(ixx, jyy, kzu + 1, iVart) / rhoup &
+             - var(ixx, jyy, kzu    , iVart) / rhoum) / dz 
+
+      if (zu < zd) then
+        print *, 'ERROR IN TRACERDERIVATIVE: zu =', zu, '< zd =', zd
+        stop
+      elseif (zu == zd) then
+        factor = 0.0
+      elseif (zlc > zu) then 
+        factor = 0.0
+      elseif (zlc > zd) then 
+        factor = (zu - zlc) / dz
+      else
+        factor = 1.0
+      end if 
+
+      dchidxyz = factor * tracd + (1.0 - factor) * tracu
+
+    elseif ( direction == 2 ) then
+      if (sizeY == 1) then
+        dchidxyz = 0.0
+      else
+        ixx = indexa 
+        ylc = position
+        kzz = indexb
+
+        jyb = max( -1, floor((ylc - ly(0)) / dy))
+        jyf = jyb + 1
+
+        if (jyf + 1 > ny + 1) then
+          jyf = ny
+          jyb = ny - 1
+        end if
+
+        yf = y(jyf) + 0.5 * dy
+        yb = y(jyb) + 0.5 * dy
+
+        if (fluctuationMode) then
+          rhobp = var(ixx, jyb + 1, kzz, 1) + rhoStrat(kzz)
+          rhobm = var(ixx, jyb, kzz, 1) + rhoStrat(kzz)
+
+          rhofp = var(ixx, jyf + 1, kzz, 1) + rhoStrat(kzz)
+          rhofm = var(ixx, jyf, kzz, 1) + rhoStrat(kzz)
+        else
+          rhobp = var(ixx, jyb + 1, kzz, 1)
+          rhobm = var(ixx, jyb, kzz, 1)
+
+          rhofp = var(ixx, jyf + 1, kzz, 1)
+          rhofm = var(ixx, jyf, kzz, 1)
+        end if
+
+        tracb = (var(ixx, jyb + 1, kzz, iVart) / rhobp & 
+               - var(ixx, jyb    , kzz, iVart) / rhobm) / dy
+        tracf = (var(ixx, jyf + 1, kzz, iVart) / rhofp & 
+               - var(ixx, jyf    , kzz, iVart) / rhofm) / dy
+        
+        if (yf < yb) then
+          print *, 'ERROR IN TRACERDERIVATIVE: yf =', yf, '< yb =', yb
+          stop
+        elseif (yf == yb) then
+          factor = 0.0
+        elseif (ylc > yf) then
+          factor = 0.0
+        elseif (ylc > yb) then
+          factor = (yf - ylc) / dy
+        else
+          factor = 1.0
+        end if
+
+        dchidxyz = factor * tracb + (1.0 - factor) * tracf
+      end if
+
+    elseif ( direction == 1 ) then
+      if (sizeX == 1) then
+        dchidxyz = 0.0
+      else
+        xlc = position
+        jyy = indexa
+        kzz = indexb 
+
+        ixl = max( -1, floor( (xlc - lx(0)) / dx))
+        ixr = ixl + 1
+
+        if (ixr + 1 > nx + 1) then
+          ixr = nx
+          ixl = nx - 1
+        end if
+
+        xr = x(ixr) + 0.5 * dx 
+        xl = x(ixl) + 0.5 * dx
+
+        if (fluctuationMode) then
+          rholp = var(ixl + 1, jyy, kzz, 1) + rhoStrat(kzz)
+          rholm = var(ixl, jyy, kzz, 1) + rhoStrat(kzz)
+
+          rhorp = var(ixr + 1, jyy, kzz, 1) + rhoStrat(kzz)
+          rhorm = var(ixr, jyy, kzz, 1) + rhoStrat(kzz)
+        else
+          rholp = var(ixl + 1, jyy, kzz, 1)
+          rholm = var(ixl, jyy, kzz, 1)
+
+          rhorp = var(ixr + 1, jyy, kzz, 1)
+          rhorm = var(ixr, jyy, kzz, 1)
+        end if
+
+        tracl = (var(ixl + 1, jyy, kzz, iVart) / rholp & 
+               - var(ixl    , jyy, kzz, iVart) / rholm) / dx 
+        tracr = (var(ixr + 1, jyy, kzz, iVart) / rhorp &
+               - var(ixr    , jyy, kzz, iVart) / rhorm) /dx
+        
+        if (xr < xl) then
+          print *, 'ERROR IN TRACERDERIVATIVE: xr =', xr, '< xl =', xl 
+          stop
+        elseif (xr == xl) then 
+          factor = 0.0
+        elseif (xlc > xr) then
+          factor = 0.0
+        elseif (xlc > xl) then
+          factor = (xr - xlc) / dx
+        else
+          factor = 1.0
+        end if
+
+        dchidxyz = factor * tracl + (1.0 - factor) * tracr
+      end if
+    else
+      print *, "ERROR IN TRACERDERIVATIVE: direction must be 1, 2, or 3."
+      stop 
+    end if
+
+
+
+
+  end subroutine tracerderivative
 
   subroutine meanflow(xlc_in, ylc_in, zlc_in, var, flwtpe, flw)
 
