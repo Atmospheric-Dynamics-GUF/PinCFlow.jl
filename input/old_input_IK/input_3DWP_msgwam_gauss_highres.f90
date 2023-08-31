@@ -11,16 +11,16 @@
 
 &domain
 
-  sizeX = 32,
-  sizeY = 10,
-  sizeZ = 100,
+  sizeX = 128,
+  sizeY = 4,
+  sizeZ = 400,
   nbx = 3,
   nby = 3,
   nbz = 3,
   lx_dim = 0.0, 9000000.0,
-  ly_dim = 0.0, 3000000.0,
+  ly_dim = 0.0, 300000.0,
   lz_dim = 0.0, 100000.0,
-  nprocx = 8,
+  nprocx = 64,
   nprocy = 1,
 
 &end
@@ -262,7 +262,7 @@
 
 &outputList
 
-  outputType = "timeStep"      ! timeStep / time
+  outputType = "time"      ! timeStep / time
 
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
@@ -482,7 +482,7 @@
   nrm_init = 2,            ! no. of ray volumes initialized within dm
 
   nsmth_wkb = 2,           ! half (number -1) of cells f. smooth. wkb fluxes
-  lsmth_wkb = .true.,      ! log. switch for smooth. wkb data (true/false)
+  lsmth_wkb = .false.,      ! log. switch for smooth. wkb data (true/false)
   sm_filter = 2,
 
   lsaturation = .true.,    ! JaWi 16.12.16 (sat)

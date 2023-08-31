@@ -33,6 +33,7 @@ contains
 
        if (testCase == 'wavePacket') then
           tracerprime = var(:, :, :, iVart)
+          !tracerprime = - tracerprime
        end if
        
        do kk = 1,nz
