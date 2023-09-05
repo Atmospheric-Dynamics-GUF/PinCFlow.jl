@@ -14,9 +14,9 @@
 sizeX = 512,
 sizeY = 16,
 sizeZ = 1000,
-nbx = 2,
-nby = 2,
-nbz = 2,
+nbx = 3,
+nby = 3,
+nbz = 3,
 lx_dim = 0.0, 9.e6,
 ly_dim = 0.0, 3.e5,
 lz_dim = 0.0, 1.e5,
@@ -81,7 +81,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
   TurbScheme = .false.            ! Turbulence Schwme
   turb_dts = 5.e3                 ! (s) turbulent damping time scale for the
                                   ! smallest grid scales
-  DySmaScheme = .false.            ! Dynamic Smagorinsky Scheme for the
+  DySmaScheme = .true.            ! Dynamic Smagorinsky Scheme for the
                                   ! dynamic calculation of the turbulent
                                   ! damping time scale
   dtWave_on = .true.              ! .true. : include dtWave = pi/N to time
@@ -172,20 +172,20 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
                                  ! (need for baroclinic)
 
 
-  theta0_dim = 240               ! K
+  theta0_dim = 300               ! K
                                  ! isentropic -> background pot. temp.
                                  ! const-N    -> ground pot. temp.
                                  ! uniform    -> background pot temp for
                                  !               Boussinesq
 
-  Temp0_dim = 240                ! K
+  Temp0_dim = 300                ! K
                                  ! isothermal -> background temperature
 
   press0_dim =  101325.0         ! ground pressure (at z=0) in Pa:
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 0.02     ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 1.8-2     ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
@@ -235,7 +235,7 @@ range_factor = 10         ! factor by which mountain range is wider than
   nbCellCorr = 1
 
   ! sponge layer at upper boundary
-  spongeLayer = .true.     ! sponge with relaxation to background
+  spongeLayer = .false.     ! sponge with relaxation to background
   spongeHeight = 0.33      ! relative height of sponge layer
   spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
 &end
@@ -270,7 +270,7 @@ range_factor = 10         ! factor by which mountain range is wider than
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
-  restart = .true.      ! true / false
+  restart = .false.      ! true / false
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
