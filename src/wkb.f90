@@ -594,47 +594,12 @@ module wkb_module
                   ! IKJuly2023 tracer fluxes
                   if(f_cor_nd /=0.0 .and. include_tracer) then
 
-                    tracerfluxcoeff = f_cor_nd / omir * wnrm &
+                    tracerfluxcoeff = - f_cor_nd / omir * wnrm &
                         / (wnrh ** 2 + wnrm ** 2) * wadr / rhoStrat(kz)
-                    ! makeshift large-scale tracer gradient
-
-                    ! if (sizeX > 1) then
-                    !   if (fluctuationMode) then
-                    !     rhotracerp = var(ix+1, jy, kz, 1) + rhoStrat(kz)
-                    !     rhotracerm = var(ix-1, jy, kz, 1) + rhoStrat(kz)
-                    !   else
-                    !     rhotracerp = var(ix+1, jy, kz, 1)
-                    !     rhotracerm = var(ix-1, jy, kz, 1)
-                    !   end if
-
-                    !   dchidx = ( var(ix+1, jy, kz, iVart) / rhotracerp   & 
-                    !            - var(ix-1, jy, kz, iVart) / rhotracerm ) &
-                    !            / (2.0 * dx)
-                    ! else
-                    !   dchidx = 0.0
-                    ! end if
-
-                    ! if (sizeY > 1) then
-                    !   if (fluctuationMode) then
-                    !     rhotracerp = var(ix, jy+1, kz, 1) + rhoStrat(kz)
-                    !     rhotracerm = var(ix, jy-1, kz, 1) + rhoStrat(kz)
-                    !   else
-                    !     rhotracerp = var(ix, jy+1, kz, 1)
-                    !     rhotracerm = var(ix, jy-1, kz, 1)
-                    !   end if
-
-                    !   dchidy = ( var(ix, jy+1, kz, iVart) / rhotracerp   &
-                    !            - var(ix, jy-1, kz, iVart) / rhotracerm ) &
-                    !            / (2.0 * dy)
-                    ! else
-                    !   dchidy = 0.0
-                    ! end if
 
                     call tracerderivative(x(ix), 1, jy, kz, var, dchidx)
                     call tracerderivative(y(jy), 2, ix, kz, var, dchidy)
                     call tracerderivative(z(kz), 3, ix, jy, var, dchidz)
-                    
-                    dchidz = - 1.0 * dchidz
 
                     var_utracer(ix, jy, kz) = var_utracer(ix, jy, kz) &
                         + tracerfluxcoeff * (wnrm * dchidy - wnrl * dchidz)
