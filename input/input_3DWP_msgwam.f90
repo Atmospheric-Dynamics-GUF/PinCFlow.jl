@@ -83,7 +83,7 @@
   TurbScheme = .false.            ! Turbulence Schwme
   turb_dts = 5.e3                 ! (s) turbulent damping time scale for the
                                   ! smallest grid scales
-  DySmaScheme = .false.            ! Dynamic Smagorinsky Scheme for the
+  DySmaScheme = .true.            ! Dynamic Smagorinsky Scheme for the
                                   ! dynamic calculation of the turbulent
                                   ! damping time scale
   dtWave_on = .true.              ! .true. : include dtWave = pi/N to time
@@ -174,20 +174,20 @@
                                  ! (need for baroclinic)
 
 
-  theta0_dim = 240               ! K
+  theta0_dim = 300               ! K
                                  ! isentropic -> background pot. temp.
                                  ! const-N    -> ground pot. temp.
                                  ! uniform    -> background pot temp for
                                  !               Boussinesq
 
-  Temp0_dim = 240                ! K
+  Temp0_dim = 300                ! K
                                  ! isothermal -> background temperature
 
   press0_dim =  101325.0         ! ground pressure (at z=0) in Pa:
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 0.02     ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 1.8-2     ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
@@ -236,7 +236,7 @@
   nbCellCorr = 1
 
   ! sponge layer at upper boundary
-  spongeLayer = .true.     ! sponge with relaxation to background
+  spongeLayer = .false.     ! sponge with relaxation to background
   spongeHeight = 0.33      ! relative height of sponge layer
   spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
 &end
@@ -503,7 +503,7 @@
                            ! (0 means infinity)
   sigwpy_dim = 0.e0        ! width of the wave packet in hor. (y-dir.) (m);
                            ! (0 means infinity)
-  sigwpz_dim = 5.e3,       ! width of the wave packet in vertical (m);
+  sigwpz_dim = 1.e4,       ! width of the wave packet in vertical (m);
 
   branchr = 1,            ! frequency branch (dispersion relation)
   !presently not used:
