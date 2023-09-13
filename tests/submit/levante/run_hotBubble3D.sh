@@ -12,7 +12,11 @@
 
 set -x
 
-#missing ulimit statement
+# limit stacksize ... adjust to your programs need
+# and core file size
+ulimit -s 204800
+ulimit -c 0
+
 # set Intel MPI environment variables
 export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
