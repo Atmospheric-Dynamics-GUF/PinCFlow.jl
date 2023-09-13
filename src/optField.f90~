@@ -1,0 +1,121 @@
+module opt_field_mod
+
+  implicit none
+  !integer, parameter :: numBscVar = 8 ! number of "basic" PincFlow fields
+
+  contains
+
+  subroutine set_opt_field
+
+    use type_module, ONLY:include_tracer, include_ice2, master, nVar, nBscVar, &
+        iVarIce, nVarIce, inN, inQ, inQv, iVarT, iVarO, include_testoutput
+
+    integer :: numOfld, indM1, numOfldVar, allocstat !auxillary variables
+
+    nBscVar = nVar !
+    indM1 = nBscVar
+
+    if(include_tracer) then
+      nVar = nVar + 1
+      iVarT = indM1 + 1
+      indM1 = indM1 + 1
+    end if
+
+    if(include_ice2) then
+      nVarIce = 3
+      nVar = nVar + nVarIce
+
+      inN = indM1 + 1
+      inQ = indM1 + 2
+      inQv = indM1 + 3
+      indM1 = indM1 + nVarIce
+
+      allocate(iVarIce(nVarIce), stat = allocstat)
+      if(allocstat /= 0) stop "set_dim_opt_field.f90: Could not allocate &
+          iVarIce."
+
+      iVarIce = (/inN, inQ, inQv/)
+    end if
+
+    if(include_testoutput) then
+      nVar = nVar + 3
+      iVarO = indM1 + 1
+      indM1 = indM1 + 3
+    end if
+
+  end subroutine set_opt_field
+
+  subroutine read_nml_opt_field
+
+    use type_module, ONLY:master, include_tracer, include_ice2, iceList2, tracerList, nVar, &
+        nBscVar, varOut, varIn, iVarIce, nVarIce, inN, inQ, inQv, iVarT, varOut, &
+        include_testoutput, iVarO, varOut, varIn
+    integer i, j, del
+
+    if(include_ice2) then
+      ! read ice physics parametrization
+      read(unit = 10, nml = iceList2)
+
+       do j = 1, nVarIce
+        i = iVarIce(j)
+        varOut(i) = 1
+        varIn(i) = 1
+      end do
+    end if
+
+    if(include_tracer) then
+      read(unit = 10, nml = tracerList)
+      varOut(iVarT) = 1
+      varIn(iVarT) = 1
+    end if
+
+    if(include_testoutput) then
+       varOut(iVarO:iVarO + 2) = 1
+       varIn(iVarO:iVarO + 2) = 1
+    end if
+
+  end subroutine read_nml_opt_field
+
+  subroutine write_index_opt_field
+
+    use type_module, ONLY:master, include_tracer, include_ice2, master, nVar, &
+        nBscVar, iVarIce, nVarIce, inN, inQ, inQv, iVarT, varOut, &
+        include_testoutput, iVarO, varOut, varIn
+    integer i, j, del
+
+    if(master) then
+      open(555, file = 'index_opt_field.py')
+
+      !check if all basic fields are output
+      j = 0
+      do i = 1, nBscVar
+        if(varOut(i) == 1) then
+          j = j + 1
+        end if
+      end do
+
+      ! python index starts at 0 ( + 1 shift in del)
+      del = nBscVar - j + 1
+
+      if(include_tracer) then
+        write(555, "(a,i2.1)") 'iTr = ', iVarT - del
+      end if
+
+      if(include_ice2) then
+        write(555, "(a,i2.1)") 'iIce1 = ', inN - del
+        write(555, "(a,i2.1)") 'iIce2 = ', inQ - del
+        write(555, "(a,i2.1)") 'iIce3 = ', inQv - del
+      end if
+
+      if(include_testoutput) then
+        write(555, "(a,i2.1)") 'iO1 = ', iVarO - del
+        write(555, "(a,i2.1)") 'iO2 = ', iVarO - del + 1
+        write(555, "(a,i2.1)") 'iO3 = ', iVarO - del + 2
+      end if
+
+      close(555)
+    end if
+
+  end subroutine write_index_opt_field
+
+end module opt_field_mod
