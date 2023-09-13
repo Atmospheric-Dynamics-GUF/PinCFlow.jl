@@ -1,0 +1,4 @@
+#!/bin/bash
+sbatch run_IGW.sh ; sbatch run_coldBubble.sh ;sbatch run_hotBubble3D.sh; sbatch run_mountainwave.sh;
+
+sbatch run_mountainwave_msgwam.sh ; sbatch run_wavePacket3D.sh; sbatch run_barLC.sh  ;
