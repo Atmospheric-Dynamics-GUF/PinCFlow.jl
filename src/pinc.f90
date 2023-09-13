@@ -190,7 +190,9 @@ program pinc_prog
   call init_atmosphere ! set atmospheric background state
   call init_output
 
-  call initialise(var) ! set initial conditions
+  !SD
+  call initialise(var, flux) ! set initial conditions
+  !call initialise(var) ! set initial conditions
 
   if(include_tracer) call setup_tracer(var)
 
@@ -2027,9 +2029,17 @@ program pinc_prog
   call terminate_output
 
   if(poissonSolverType == 'bicgstab') then
-    call CleanUpBiCGSTab ! Clean Up BiCGSTAB arrays
-    ! else if (poissonSolverType == 'hypre') then
-    !   call CleanUpHypre ! Clean Up Hypre objects
+
+    !CHANGES : cleaning master leads to MPI error ?
+    if(master) then
+      ! do nothing
+      !call CleanUpBiCGSTab ! Clean Up BiCGSTAB arrays
+    else
+      call CleanUpBiCGSTab ! Clean Up BiCGSTAB arrays
+      ! else if (poissonSolverType == 'hypre') then
+      !   call CleanUpHypre ! Clean Up Hypre objects
+    end if
+
   else
     stop 'ERROR: BICGSTAB expected as Poisson solver'
   end if
