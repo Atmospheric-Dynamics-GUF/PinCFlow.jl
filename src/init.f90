@@ -544,7 +544,9 @@ module init_module
 
   ! --------------------------------------------------------------------
 
-  subroutine initialise(var)
+  !SD
+  subroutine initialise(var, flux)
+  !subroutine initialise(var)
     !------------------
     ! setup test cases
     !------------------
@@ -596,7 +598,13 @@ module init_module
     real :: lambdaX, lambdaY ! hor. wave lengths
     real :: lambdaZ ! vert. wave lengths
 
-    complex, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 5, 0:2) :: Psi
+    !SD
+    !complex, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 5, 0:2) :: Psi
+    complex, dimension(:, :, :, :, :), allocatable :: Psi
+
+    !SD
+    integer :: allocstat
+
     real :: u1, w1, b1, p1
     real :: u2, w2, b2, p2
 
@@ -612,7 +620,9 @@ module init_module
     real :: xx
 
     ! random noise on background
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1) :: randNoise
+    !SD
+    !real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1) :: randNoise
+    real, allocatable, dimension(:, :, :) :: randNoise
     real, parameter :: randAmp = 0.0
 
     ! jet stream
@@ -656,6 +666,7 @@ module init_module
 
     integer :: i00, j00 ! modified by Junhong Wei (20161121)
 
+    !SD
     real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar) :: flux
 
     real :: rho_int_m0, rho_int_00, rho_int_mp, rho_int_0p, rho_int_0m, &
@@ -888,6 +899,12 @@ module init_module
       !----------------------------------------------------------
 
     case('wavePacket') ! 1D/2D wave packet
+
+      !SD
+      allocate(Psi(0:nx + 1, 0:ny + 1, 0:nz + 1, 5, 0:2), stat = allocstat)
+      if(allocstat /= 0) stop "init.f90: Could not allocate Psi."
+      allocate(randNoise(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
+      if(allocstat /= 0) stop "init.f90: Could not allocate randNoise."
 
       !---------------------
       ! set up random noise
