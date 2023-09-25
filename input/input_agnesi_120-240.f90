@@ -24,8 +24,8 @@
   ly_dim =    0.0, 80.0e3
   lz_dim =    0.0, 20.0e3
   ! nb of processors in x and y direction must be set in the batch file
-  nprocx = {nprocx},
-  nprocy = {nprocy},
+  nprocx = 1,
+  nprocy = 1,
 
 &end
 
@@ -232,8 +232,8 @@
   testTFC = .false.          ! switch for TFC test
   spongeTFC = .true.       ! switch for unified sponge layer
   lateralSponge = .false.   ! switch for lateral sponge layers
-  mountainHeight_dim = 1.e1 ! mountain height in m
-  mountainWidth_dim = 10e3 ! mountain half-width in m
+  mountainHeight_dim = 10.0 ! mountain height in m
+  mountainWidth_dim = 10.e3 ! mountain half-width in m
   mountain_case = 3         ! shape of orography
                             ! 1 for cosine-shaped mountains
                             ! 2 for 3D cosine-shaped mountains (rotated)
@@ -261,11 +261,11 @@
   thetaFluxCorr = .false.     ! replace vertical theta flux by CDS at k=1,
                               ! k=nz-1
   nbCellCorr = 1
-  ! sponge layer at upper boundary
-  spongeLayer = .true.     ! sponge with relaxation to background
-  spongeHeight = 0.5      ! relative height of sponge layer
-  spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
-
+! sponge layer at upper boundary
+  spongeLayer = .true.       ! sponge with relaxation to background
+  spongeHeight = 0.5         ! relative height of sponge layer
+  spongeAlphaZ_dim = 0.05 !1.4e-4 ! relaxation rate coeff in 1/s
+  spongeAlphaZ_fac = 1.0
 &end
 
 &boundaryList2
@@ -287,9 +287,9 @@
   outputType = "time"     ! timeStep / time
   nOutput = 1                 ! output every nOutput's time step
                               ! for outputType = "timeStep"
-  maxIter = 10                 ! stop after maxIter time steps
-  outputTimeDiff = 86.4e3     ! output every ... seconds
-  maxTime = 86.4e3            ! stop after maxTime seconds
+  maxIter = 1                 ! stop after maxIter time steps
+  outputTimeDiff = 1.08e3     ! output every ... seconds
+  maxTime = 1.08e3            ! stop after maxTime seconds
   dataFileName = ""           ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref" ! restart file in TEC360 format
   restart = .false.           ! true / false
@@ -535,7 +535,7 @@
                           ! temporary wind relexation
   t_relax = 5.e3          ! [s] total relaxation time
   t_ramp = 25.e2          ! [s] duration of ramping up/down the relaxation
-  xextent_norelax = 1.e5  ! [m] zonal extent of
+  xextent_norelax = 240.e3  ! [m] zonal extent of
                           ! region without wind relaxation
 
 &end

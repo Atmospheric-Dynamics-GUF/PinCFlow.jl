@@ -100,7 +100,7 @@ module wkb_module
     real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 4), intent(inout) :: force
 
     ! IKJuly2023 changed from 1:6 to 1:9 for tracer fluxes
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:9), intent(inout) :: &
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:10), intent(inout) :: &
         ray_var3D
 
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
@@ -738,8 +738,9 @@ module wkb_module
           do ix = 1, nx
             ! IKJuly2023
             ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 8) = var_wtracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 9) = force(ix, jy, kz, 4)
+            ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
+            ray_var3D(ix, jy, kz, 9) = var_wtracer(ix, jy, kz)
+            ray_var3D(ix, jy, kz, 10) = force(ix, jy, kz, 4)
           end do
         end do
       end do
@@ -1270,7 +1271,7 @@ module wkb_module
 
     ! fields for data WKB output
     ! IKJuly2023 increased from 1:6 to 1:9 for tracer flux (u'chi', v'chi', w'chi')
-    allocate(ray_var3D(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:9), stat = allocstat) 
+    allocate(ray_var3D(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:10), stat = allocstat) 
     if(allocstat /= 0) stop "setup_wkb: could not allocate ray_var3D"
 
     ! needed for initialization of ray volumes:
@@ -5620,11 +5621,23 @@ module wkb_module
 
     ! Long number (FJJan2023)
     real :: long
+        ! Wave mode (FJApr2023)
+    integer :: iwm
+
+    ! Relaxation parameters (FJJun2023)
+    real :: alphaSponge, betaSponge
+    real :: spongeAlphaZ, spongeDz
 
     ix0 = is + nbx - 1
     jy0 = js + nby - 1
 
     f_cor_nd = f_Coriolis_dim * tRef
+        ! FJJun2023
+    ! Compute relaxation parameters.
+    spongeAlphaZ = 2.0 * spongeAlphaZ_dim * tRef
+    ! spongeDz = z(nz) - z(kSponge)
+    spongeDz = lz(1) - zSponge
+
 
     ! relaunching lower-boundary ray volumes
 
@@ -5792,8 +5805,8 @@ module wkb_module
               end if
 
               ! surface wave-action density
-              amp = 0.5 * rhoStrat(0) * displm ** 2 * omir * (wnrh_init ** 2 &
-                  + wnrm ** 2) / wnrh_init ** 2
+              amp = 0.5 * rhoStrat(kz) * displm ** 2 * omir * (wnrh_init &
+                    ** 2 + wnrm ** 2) / wnrh_init ** 2
             else
               amp = 0.0
               wnrm = 0.0
@@ -6260,6 +6273,34 @@ module wkb_module
         end do ! ix
       end do ! jy
     end do ! kz
+
+
+    if(spongeLayer) then
+      do kz = 1, nz
+        do jy = 1, ny
+          do ix = 1, nx
+            do iRay = 1, nRay(ix, jy, kz)
+              alphaSponge = 0.0
+
+              zr = ray(iRay, ix, jy, kz)%z
+
+              ! Vertical sponge.
+              if(zr >= zSponge) then
+
+                alphaSponge = alphaSponge + spongeAlphaZ * ((zr &
+                    - zSponge) / spongeDz) ** sponge_order
+              end if
+              ! Apply total sponge.
+              betaSponge = 1.0 / (1.0 + alphaSponge * dt)
+
+              ray(iRay, ix, jy, kz)%dens = betaSponge &
+                  * ray(iRay, ix, jy, kz)%dens
+
+            end do
+          end do
+        end do
+      end do
+    end if
 
   end subroutine transport_rayvol
 

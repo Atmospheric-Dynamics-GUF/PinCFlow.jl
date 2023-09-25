@@ -265,8 +265,8 @@ range_factor = 10         ! factor by which mountain range is wider than
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  9000.0  ! output every ... seconds
-  maxTime = 90000.0          ! stop after maxTime seconds
+  outputTimeDiff =  900.0  ! output every ... seconds
+  maxTime = 9000.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format

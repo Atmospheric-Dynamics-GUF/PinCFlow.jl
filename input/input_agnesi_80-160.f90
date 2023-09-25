@@ -261,12 +261,11 @@
   thetaFluxCorr = .false.     ! replace vertical theta flux by CDS at k=1,
                               ! k=nz-1
   nbCellCorr = 1
-  ! sponge layer at upper boundary
+! sponge layer at upper boundary
   spongeLayer = .true.       ! sponge with relaxation to background
-  spongeHeight = 0.33         ! relative height of sponge layer
-  spongeAlphaZ_dim = 0.2 !1.4e-4 ! relaxation rate coeff in 1/s
+  spongeHeight = 0.5         ! relative height of sponge layer
+  spongeAlphaZ_dim = 0.05 !1.4e-4 ! relaxation rate coeff in 1/s
   spongeAlphaZ_fac = 1.0
-
 &end
 
 &boundaryList2
@@ -288,9 +287,9 @@
   outputType = "time"     ! timeStep / time
   nOutput = 1                 ! output every nOutput's time step
                               ! for outputType = "timeStep"
-  maxIter = 10000                 ! stop after maxIter time steps
-  outputTimeDiff = 86.4e3      ! output every ... seconds
-  maxTime = 86.4e3            ! stop after maxTime seconds
+  maxIter = 1                 ! stop after maxIter time steps
+  outputTimeDiff = 1.08e4      ! output every ... seconds
+  maxTime = 1.08e4            ! stop after maxTime seconds
   dataFileName = ""           ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref" ! restart file in TEC360 format
   restart = .false.           ! true / false
@@ -536,7 +535,7 @@
                           ! temporary wind relexation
   t_relax = 5.e3          ! [s] total relaxation time
   t_ramp = 25.e2          ! [s] duration of ramping up/down the relaxation
-  xextent_norelax = 1.e5  ! [m] zonal extent of
+  xextent_norelax = 1.e6  ! [m] zonal extent of
                           ! region without wind relaxation
 
 &end

@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --partition=general2
+#SBATCH --partition=test
 #SBATCH --job-name=3DWP_MS
 #SBATCH --ntasks=8
 #SBATCH --mem-per-cpu=5200
@@ -26,7 +26,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/2023-09-04/3DWP_msgwam_25h
+dirWork=${dirScratch}/output/2023-09-14/gauss/3DWP_msgwam_150min_gauss_noforce
 
 mkdir ${dirWork}
 
