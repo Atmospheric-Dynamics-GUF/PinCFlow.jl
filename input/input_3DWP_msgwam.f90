@@ -11,9 +11,9 @@
 
 &domain
 
-  sizeX = 32,!96, !64, !                ! nb of global grid cells
+  sizeX = 32,!, !64, !32                ! nb of global grid cells
   sizeY = 1,
-  sizeZ = 100,!300!, 200, ! 
+  sizeZ = 100,!, !200, !100 
   nbx = 2,                  ! nb. of ghost cells
   nby = 2,
   nbz = 2,
@@ -266,8 +266,8 @@
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  9000.0  ! output every ... seconds
-  maxTime = 90000.0          ! stop after maxTime seconds
+  outputTimeDiff =  900.0  !1080.0 ! output every ... seconds
+  maxTime = 9000.0          ! 10800.0 !stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -457,8 +457,8 @@
 
 &LagrangeRayTracing
 
-  xrmin_dim = 0.0,         ! left bound of initial rays (in x direction) (m)
-  xrmax_dim = 9.e6,        ! right bound of initial rays (in x dir.) (m)
+  xrmin_dim = 3.e6,         ! left bound of initial rays (in x direction) (m)
+  xrmax_dim = 6.e6,        ! right bound of initial rays (in x dir.) (m)
   yrmin_dim = 0.0,         ! left bound of initial rays (in y direction) (m)
   yrmax_dim = 3.e5,        ! right bound of initial rays (in y dir.) (m)
   zrmin_dim = 0.0,        ! bottom bound of initial rays (m)
@@ -503,7 +503,7 @@
                            ! (0 means infinity)
   sigwpy_dim = 0.e0        ! width of the wave packet in hor. (y-dir.) (m);
                            ! (0 means infinity)
-  sigwpz_dim = 1.e4,       ! width of the wave packet in vertical (m);
+  sigwpz_dim = 5.e3,       ! width of the wave packet in vertical (m);
 
   branchr = 1,            ! frequency branch (dispersion relation)
   !presently not used:
