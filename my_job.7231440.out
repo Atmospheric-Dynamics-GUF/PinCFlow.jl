@@ -1,0 +1,36 @@
+userName
+runName  3DWP_LES
+inputFile input_3DWP_LES.f90
+
+********************************************************************************
+*                                                                              *
+*  This is the automated job summary provided by DKRZ.                         *
+*  If you encounter problems, need assistance or have any suggestion, please   *
+*  write an email to                                                           *
+*                                                                              *
+*  --  support@dkrz.de --                                                      *
+*                                                                              *
+*                       We hope you enjoyed the DKRZ supercomputer LEVANTE ... *
+*
+* JobID            : 7231440
+* JobName          : 3DWP                                              
+* Account          : bb1097
+* User             : b382140 (250259), bb1097 (1583)                   
+* Partition        : compute
+* QOS              : normal
+* Nodelist         : l[40022,40024] (2)                                        
+* Submit date      : 2023-10-08T13:05:45
+* Start time       : 2023-10-08T13:05:49
+* End time         : 2023-10-08T13:12:37
+* Elapsed time     : 00:06:48 (Timelimit=02:00:00)                     
+* Command          : /home/b/b382140/pinc-flow-tracer/submit/
+*                    run_3DWP_LES_levante.sh
+* WorkDir          : /home/b/b382140/pinc-flow-tracer
+*
+* StepID | JobName      NodeHours    MaxRSS [Byte] (@task)
+* ------------------------------------------------------------------------------
+* batch  | batch             0.23
+* extern | extern            0.23                2552K (0)
+* 0      | pinc              0.23             399996K (52)
+* ------------------------------------------------------------------------------
+

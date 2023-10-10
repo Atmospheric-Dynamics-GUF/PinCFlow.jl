@@ -1,0 +1,36 @@
+userName
+runName  3DWP_msgwam
+inputFile input_3DWP_msgwam.f90
+
+********************************************************************************
+*                                                                              *
+*  This is the automated job summary provided by DKRZ.                         *
+*  If you encounter problems, need assistance or have any suggestion, please   *
+*  write an email to                                                           *
+*                                                                              *
+*  --  support@dkrz.de --                                                      *
+*                                                                              *
+*                       We hope you enjoyed the DKRZ supercomputer LEVANTE ... *
+*
+* JobID            : 7231461
+* JobName          : 3DWPMS                                            
+* Account          : bb1097
+* User             : b382140 (250259), bb1097 (1583)                   
+* Partition        : compute
+* QOS              : normal
+* Nodelist         : l10342 (1)                                                
+* Submit date      : 2023-10-08T13:11:44
+* Start time       : 2023-10-08T13:11:45
+* End time         : 2023-10-08T13:12:16
+* Elapsed time     : 00:00:31 (Timelimit=02:00:00)                     
+* Command          : /home/b/b382140/pinc-flow-tracer/submit/
+*                    run_3DWP_msgwam_levante.sh
+* WorkDir          : /home/b/b382140/pinc-flow-tracer
+*
+* StepID | JobName      NodeHours    MaxRSS [Byte] (@task)
+* ------------------------------------------------------------------------------
+* batch  | batch           0.0086
+* extern | extern          0.0086                2552K (0)
+* 0      | pinc            0.0081              175824K (4)
+* ------------------------------------------------------------------------------
+
