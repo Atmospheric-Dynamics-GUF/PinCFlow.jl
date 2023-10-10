@@ -5986,7 +5986,7 @@ print*,"RoInv = ", RoInv/tRef   ! modified by Junhong Wei
                end if
 
             case default
-               stop"init.f90: unknown wavePacketType. Stop."
+               stop "init.f90: unknown wavePacketType. Stop."
             end select
 
 

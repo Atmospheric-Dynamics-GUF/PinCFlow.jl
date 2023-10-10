@@ -1,8 +1,8 @@
 # Makefile of PincFlowMSGWAM
 
 # Set compiler.
-#FC = mpif90
-FC = mpiifort
+FC = mpif90
+#FC = mpiifort
 COMPILER = $(shell echo `$(FC) --version` | sed 's/ .*//')
 
 # Set flags.
@@ -11,8 +11,8 @@ ifeq ($(COMPILER), ifort)
   FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
   MODULEFLAG=-module $(BUILD)
 else # GNU
-  FCFLAGS=-O0 -g -fallow-argument-mismatch -fcheck=all -Wall -Wno-unused-variable -fdefault-real-8 -fbacktrace -funroll-loops -Wno-unused-dummy-argument -Wno-conversion-extra
-  # FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch
+  # FCFLAGS=-O0 -g -fallow-argument-mismatch -fcheck=all -Wall -Wno-unused-variable -fdefault-real-8 -fbacktrace -funroll-loops -Wno-unused-dummy-argument -Wno-conversion-extra
+  FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch
   # FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch
   MODULEFLAG= -J$(BUILD)
 endif
