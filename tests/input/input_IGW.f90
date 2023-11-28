@@ -22,8 +22,8 @@
   lz_dim =    0.0,  10000.
 
   ! nb of processors in x and y direction must be set in the batch file
-  nprocx = 1,
-  nprocy = 1,
+  nprocx = {nprocx},
+  nprocy = {nprocy},
 
 &end
 

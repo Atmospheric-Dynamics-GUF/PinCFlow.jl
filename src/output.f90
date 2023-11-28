@@ -604,7 +604,7 @@ module output_module
               !case(5) ! elastic term in y direction
               !  field_prc(i,j) = ray_var3D(i,j,k,5) * uRef/tRef
             case(5) ! u'w' momentum flux , output chage by FDK
-              field_prc(i, j) = ray_var3D(i, j, k, 5) * uRef ** 2
+              field_prc(i, j) = ray_var3D(i, j, k, 5) * rhoRef * uRef ** 2
 
             case(6) ! GW energy
               field_prc(i, j) = ray_var3D(i, j, k, 6) * rhoRef * uRef ** 2 ! /tRef deleted by FDK
@@ -1182,7 +1182,8 @@ module output_module
     !       dimensionalising and layerwise output
     !---------------------------------------
 
-    irc_prc = 7 * iOut * nz
+    ! irc_prc = 7 * iOut * nz
+    irc_prc = 7 * (iOut - 1) * nz
 
     do iVar = 1, 7
       if(varOut(iVar) == 1) then

@@ -9,7 +9,6 @@ module init_module
   use mpi_module
   use boundary_module
   use sizeof_module
-  use sizeof_module
 
   implicit none
 
@@ -340,6 +339,10 @@ module init_module
     ! read test case name
     read(unit = 10, nml = testCaseList)
 
+    if(raytracer) then
+      read(unit = 10, nml = LagrangeRayTracing)
+    end if
+
     if(include_ice) then
       ! read ice physics parametrization
       read(unit = 10, nml = iceLIst)
@@ -393,11 +396,11 @@ module init_module
     !end if
     !UAE
 
-    ! TFC FJ
-    ! Allocate damping coefficient for spongeTFC.
-    if(topography .and. spongeTFC) then
-      allocate(alphaTFC(0:(nx + 1), 0:(ny + 1), 0:(nz + 1)), stat = allocstat)
-      if(allocstat /= 0) stop "init.f90: could not allocate alphaTFC"
+    ! Allocate damping coefficient for unified sponge.
+    if(unifiedSponge) then
+      allocate(alphaUnifiedSponge(0:(nx + 1), 0:(ny + 1), 0:(nz + 1)), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "init.f90: could not allocate alphaUnifiedSponge"
     end if
 
     ! TFC FJ
@@ -405,9 +408,8 @@ module init_module
     if(topography) then
       if(model == "WKB" .or. .not. fluctuationMode .or. poissonSolverType &
           /= "bicgstab" .or. reconstType /= "MUSCL" .or. musclType /= "muscl1" &
-          .or. fluxType /= "upwind" .or. heatingONK14 .or. TurbScheme .or. &
-          rayTracer .or. pressureScaling .or. dens_relax .or. include_ice .or. &
-          background == "HeldSuarez") then
+          .or. fluxType /= "upwind" .or. heatingONK14 .or. pressureScaling &
+          .or. dens_relax .or. include_ice .or. background == "HeldSuarez") then
         stop "Terrain-following coordinates not implemented for chosen setup!"
       end if
     end if
@@ -416,8 +418,8 @@ module init_module
     ! Safety switch for test cases.
     if(topography) then
       if(.not. any(testCase == (/character(50)::"sinus", "uniform_theta", &
-          "monochromeWave", "wavePacket", "mountainwave", "Robert_Bubble", &
-          "coldBubble", "smoothVortex", "atmosphereatrest", &
+          "monochromeWave", "wavePacket", "mountainwave", "raytracer", &
+          "Robert_Bubble", "coldBubble", "smoothVortex", "atmosphereatrest", &
           "SkamarockKlemp94", "hotBubble", "hotBubble2D", "hotBubble3D"/))) then
         stop "Terrain-following coordinates not implemented for chosen testCase"
       end if
@@ -428,8 +430,20 @@ module init_module
     if(.not. topography) then
       freeSlipTFC = .false.
       testTFC = .false.
-      spongeTFC = .false.
-      lateralSponge = .false.
+    end if
+
+    ! Safety switch for unified sponge.
+    if(unifiedSponge) then
+      if(sponge_uv .or. testCase == "baroclinic_LC") then
+        stop "Unified sponge not ready for chosen setup!"
+      end if
+    end if
+
+    ! Safety switch for halos in TFC
+    if(topography) then
+      if(.not. (nbx >= 3 .and. nby >= 3 .and. nbz >= 3)) then
+        stop "Three halos / ghost cells are needed in TFC!"
+      end if
     end if
 
     !---------------------------------------
@@ -546,7 +560,7 @@ module init_module
 
   !SD
   subroutine initialise(var, flux)
-  !subroutine initialise(var)
+    !subroutine initialise(var)
     !------------------
     ! setup test cases
     !------------------
@@ -1115,20 +1129,26 @@ module init_module
       ! nondimensionalization
 
       u_relax = u_relax / uRef
+      v_relax = v_relax / uRef
+      w_relax = w_relax / uRef
 
       t_relax = t_relax / tRef
-      t_ramp = t_ramp / tRef
+      ! t_ramp = t_ramp / tRef
 
-      xextent_norelax = xextent_norelax / lRef
+      ! xextent_norelax = xextent_norelax / lRef
 
-      if(relax_background .and. xextent_norelax < lx(1) - lx(0)) then
-        ! increase relaxation wind u_relax so that u = u_relax after the
-        ! relaxation period (in zonally symmetric case without topography)
-        u_relax = u_relax / (1.0 - exp(4.0 * t_ramp / (pi * t_relax) - 1.0))
-        ! zero wind
-        var(:, :, :, 2) = 0.0 ! u
-        var(:, :, :, 3) = 0.0 ! v
-        var(:, :, :, 4) = 0.0 ! w
+      ! if(wind_relaxation .and. xextent_norelax < lx(1) - lx(0)) then
+      !   ! increase relaxation wind u_relax so that u = u_relax after the
+      !   ! relaxation period (in zonally symmetric case without topography)
+      !   u_relax = u_relax / (1.0 - exp(4.0 * t_ramp / (pi * t_relax) - 1.0))
+      !   ! zero wind
+      !   var(:, :, :, 2) = 0.0 ! u
+      !   var(:, :, :, 3) = 0.0 ! v
+      !   var(:, :, :, 4) = 0.0 ! w
+      if(wind_relaxation) then
+        var(:, :, :, 2) = 0.0
+        var(:, :, :, 3) = 0.0
+        var(:, :, :, 4) = 0.0
       else
         ! TFC FJ
         ! Provide initialization with constant background wind.
@@ -1256,22 +1276,28 @@ module init_module
         ! nondimensionalization
 
         u_relax = u_relax / uRef
+        v_relax = v_relax / uRef
+        w_relax = w_relax / uRef
 
         t_relax = t_relax / tRef
-        t_ramp = t_ramp / tRef
+        ! t_ramp = t_ramp / tRef
 
-        xextent_norelax = xextent_norelax / lRef
+        ! xextent_norelax = xextent_norelax / lRef
 
         ! increase relaxation wind u_relax so that u = u_relax after the
         ! relaxation period (in x-independent case without topography)
 
         ! TFC FJ
-        if(relax_background) then
-          u_relax = u_relax / (1.0 - exp(4.0 * t_ramp / (pi * t_relax) - 1.0))
-          ! zero wind
-          var(:, :, :, 2) = 0.0 ! u
-          var(:, :, :, 3) = 0.0 ! v
-          var(:, :, :, 4) = 0.0 ! w
+        ! if(wind_relaxation) then
+        !   u_relax = u_relax / (1.0 - exp(4.0 * t_ramp / (pi * t_relax) - 1.0))
+        !   ! zero wind
+        !   var(:, :, :, 2) = 0.0 ! u
+        !   var(:, :, :, 3) = 0.0 ! v
+        !   var(:, :, :, 4) = 0.0 ! w
+        if(wind_relaxation) then
+          var(:, :, :, 2) = 0.0
+          var(:, :, :, 3) = 0.0
+          var(:, :, :, 4) = 0.0
         else
           ! Provide initialization with constant background wind.
           var(:, :, :, 2) = backgroundFlow_dim(1) / uRef

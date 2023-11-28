@@ -556,94 +556,117 @@ module atmosphere_module
     ! TFC FJ
     ! Topography setup.
     if(topography) then
-      ! z_0 = z_0_dim / lRef
+      if(lz(0) /= 0.0) stop "lz(0) must be zero for TFC!"
 
-      mountainHeight = mountainHeight_dim / lRef
-      mountainWidth = mountainWidth_dim / lRef
+      if(raytracer .and. case_wkb == 3) then
+        topography_surface = 0.0
 
-      x_center = 0.5 * (lx(1) + lx(0))
-      y_center = 0.5 * (ly(1) + ly(0))
+        if(mountain_case_wkb == 0) then
+          call read_topography
+        else
+          topography_surface = 0.5 * mountainHeight_wkb_dim / lRef
+        end if
 
-      k_mountain = pi / mountainWidth
+        call setHalosOfField2D(topography_surface)
 
-      i00 = is + nbx - 1
-      j00 = js + nby - 1
+        if(mountain_case_wkb /= 0) then
+          call output_topography
+        end if
+      else
+        mountainHeight = mountainHeight_dim / lRef
+        mountainWidth = mountainWidth_dim / lRef
 
-      topography_surface = 0.0
+        x_center = 0.5 * (lx(1) + lx(0))
+        y_center = 0.5 * (ly(1) + ly(0))
 
-      do j = - nby, ny + nby
-        do i = - nbx, nx + nbx
-          if(mountain_case == 0) then ! custom topography
-            exit
-          else if(mountain_case == 1) then ! cosine mountains
-            topography_surface(i, j) = 0.5 * mountainHeight * (1.0 &
-                + cos(k_mountain * (x(i + i00) - x_center)))
-          else if(mountain_case == 2) then ! 3d cosine mountains (rotated axis)
-            topography_surface(i, j) = 0.5 * mountainHeight * (1.0 &
-                + cos(k_mountain / sqrt(2.0) * (x(i + i00) - x_center + y(j &
-                + j00 - y_center))))
-          else if(mountain_case == 3) then ! bell mountain
-            topography_surface(i, j) = mountainHeight / (1.0 + ((x(i + i00) &
-                - x_center) ** 2.0) / (mountainWidth ** 2.0))
-          else if(mountain_case == 4) then ! 3d bell mountain
-            topography_surface(i, j) = mountainHeight / (1.0 + ((x(i + i00) &
-                - x_center) ** 2.0 + (y(j + j00) - y_center) ** 2.0) &
-                / (mountainWidth ** 2.0)) ** 1.5
-          else if(mountain_case == 5) then
-            topography_surface(i, j) = mountainHeight * exp(- ((x(i + i00) &
-                - x_center) / mountainWidth) ** 2.0) * cos(5.0 * k_mountain &
-                * (x(i + i00) - x_center) / 4.0) ** 2.0
-          else if(mountain_case == 6) then ! cosine mountain range
-            if(abs(x(i + i00) - x_center) <= mountainWidth) then
-              topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + 0.5 &
-                  * (1.0 + cos(k_mountain * (x(i + i00) - x_center))) &
-                  * cos(range_factor * k_mountain * (x(i + i00) - x_center)))
+        k_mountain = pi / mountainWidth
+
+        i00 = is + nbx - 1
+        j00 = js + nby - 1
+
+        topography_surface = 0.0
+
+        do j = - nby, ny + nby
+          do i = - nbx, nx + nbx
+            if(mountain_case == 0) then ! custom topography
+              exit
+            else if(mountain_case == 1) then ! cosine mountains
+              topography_surface(i, j) = 0.5 * mountainHeight * (1.0 &
+                  + cos(k_mountain * (x(i + i00) - x_center)))
+            else if(mountain_case == 2) then ! 3d cosine mountains
+              topography_surface(i, j) = 0.5 * mountainHeight * (1.0 &
+                  + cos(k_mountain / sqrt(2.0) * (x(i + i00) - x_center + y(j &
+                  + j00 - y_center))))
+            else if(mountain_case == 3) then ! bell mountain
+              topography_surface(i, j) = mountainHeight / (1.0 + ((x(i + i00) &
+                  - x_center) ** 2.0) / (mountainWidth ** 2.0))
+            else if(mountain_case == 4) then ! 3d bell mountain
+              topography_surface(i, j) = mountainHeight / (1.0 + ((x(i + i00) &
+                  - x_center) ** 2.0 + (y(j + j00) - y_center) ** 2.0) &
+                  / (mountainWidth ** 2.0)) ** 1.5
+            else if(mountain_case == 5) then ! simple mountain range
+              topography_surface(i, j) = mountainHeight * exp(- ((x(i + i00) &
+                  - x_center) / mountainWidth) ** 2.0) * cos(5.0 * k_mountain &
+                  * (x(i + i00) - x_center) / 4.0) ** 2.0
+            else if(mountain_case == 6) then ! cosine mountain range
+              if(abs(x(i + i00) - x_center) <= mountainWidth) then
+                topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + 0.5 &
+                    * (1.0 + cos(k_mountain * (x(i + i00) - x_center))) &
+                    * cos(range_factor * k_mountain * (x(i + i00) - x_center)))
+              else
+                topography_surface(i, j) = 0.5 * mountainHeight
+              end if
+            else if(mountain_case == 7) then ! 3d cosine mountain range
+              if(abs(x(i + i00) - x_center) <= mountainWidth .and. abs(y(j &
+                  + j00) - y_center) <= mountainWidth) then
+                topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + 0.25 &
+                    * (1.0 + cos(k_mountain * (x(i + i00) - x_center))) * (1.0 &
+                    + cos(k_mountain * (y(j + j00) - y_center))) &
+                    * cos(range_factor * k_mountain * (x(i + i00) - x_center &
+                    + y(j + j00) - y_center)))
+              else
+                topography_surface(i, j) = 0.5 * mountainHeight
+              end if
+            else if(mountain_case == 8) then ! gaussian mountain range
+              topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + exp(- &
+                  ((x(i + i00) - x_center) / mountainWidth) ** 2.0) * cos(0.5 &
+                  * range_factor * k_mountain * (x(i + i00) - x_center)))
+            else if(mountain_case == 9) then ! 3d gaussian mountain range
+              topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + exp(- &
+                  ((x(i + i00) - x_center) / mountainWidth) ** 2.0 - ((y(j &
+                  + j00) - y_center) / mountainWidth) ** 2.0) * cos(0.5 &
+                  * range_factor * k_mountain * (x(i + i00) - x_center + y(j &
+                  + j00) - y_center)))
+            else if(mountain_case == 10) then ! localized cosine mountain
+              if(abs(x(i + i00) - x_center) <= 1.5 * mountainWidth) then
+                topography_surface(i, j) = 0.5 * mountainHeight * (1.0 &
+                    + cos(k_mountain * (x(i + i00) - x_center)))
+              else
+                topography_surface(i, j) = 0.5 * mountainHeight
+              end if
             else
-              topography_surface(i, j) = 0.5 * mountainHeight
+              if(master) stop "Mountain case not defined!"
             end if
-          else if(mountain_case == 7) then ! 3d cosine mountain range
-            if(abs(x(i + i00) - x_center) <= mountainWidth .and. abs(y(j &
-                + j00) - y_center) <= mountainWidth) then
-              topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + 0.25 &
-                  * (1.0 + cos(k_mountain * (x(i + i00) - x_center))) * (1.0 &
-                  + cos(k_mountain * (y(j + j00) - y_center))) &
-                  * cos(range_factor * k_mountain * (x(i + i00) - x_center &
-                  + y(j + j00) - y_center)))
-            else
-              topography_surface(i, j) = 0.5 * mountainHeight
+            if(topography_surface(i, j) .lt. lz(0)) then
+              print *, "Topography has negative values."
+              print *, "lz_dim(0) should be set accordingly."
+              stop
             end if
-          else if(mountain_case == 8) then ! gaussian mountain range
-            topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + exp(- &
-                ((x(i + i00) - x_center) / mountainWidth) ** 2.0) * cos(0.5 &
-                * range_factor * k_mountain * (x(i + i00) - x_center)))
-          else if(mountain_case == 9) then ! 3d gaussian mountain range
-            topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + exp(- &
-                ((x(i + i00) - x_center) / mountainWidth) ** 2.0 - ((y(j &
-                + j00) - y_center) / mountainWidth) ** 2.0) * cos(0.5 &
-                * range_factor * k_mountain * (x(i + i00) - x_center + y(j &
-                + j00) - y_center)))
-          else
-            if(master) stop "Mountain case not defined!"
-          end if
-          if(topography_surface(i, j) .lt. lz(0)) then
-            print *, "Topography has negative values."
-            print *, "lz_dim(0) should be set accordingly."
-            stop
-          end if
+          end do
         end do
-      end do
 
-      ! Read topography data.
-      if(mountain_case == 0) then
-        call read_topography
-      end if
+        ! Read topography data.
+        if(mountain_case == 0) then
+          call read_topography
+        end if
 
-      ! Ensure periodicity of topography.
-      call setHalosOfField2D(topography_surface)
+        ! Ensure periodicity of topography.
+        call setHalosOfField2D(topography_surface)
 
-      ! Output topography data.
-      if(mountain_case /= 0) then
-        call output_topography
+        ! Output topography data.
+        if(mountain_case /= 0) then
+          call output_topography
+        end if
       end if
 
       ! FJFeb2023
@@ -945,19 +968,18 @@ module atmosphere_module
     !---------------------------------------------
 
     if(spongeLayer) then
-      if(diffusive_sponge) then
-        ! Difusive sponge (FJMar2023)
+      if(verticalSponge == "exponential") then
         if(timescheme == "semiimplicit") stop "ERROR: Wrong time scheme for &
-            diffusive sponge!"
+            exponential sponge!"
         ksponge = 1
         zSponge = Rsp * Temp0_dim / g / lRef
       else
         kSponge = nz - ceiling(spongeHeight * real(nz))
-        zSponge = z(kSponge)
+        zSponge = lz(0) + (1.0 - spongeHeight) * (lz(1) - lz(0))
       end if
 
-      ! Setup TFC sponge.
-      if(topography .and. spongeTFC .and. lateralSponge) then
+      ! Setup lateral sponge.
+      if(lateralSponge) then
         xSponge0 = lx(0) + 0.5 * spongeHeight * (lx(1) - lx(0))
         ySponge0 = ly(0) + 0.5 * spongeHeight * (ly(1) - ly(0))
         xSponge1 = lx(1) - 0.5 * spongeHeight * (lx(1) - lx(0))
