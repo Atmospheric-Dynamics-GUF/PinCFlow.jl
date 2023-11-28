@@ -1,20 +1,20 @@
 #!/bin/bash
 #SBATCH --partition=compute
-#SBATCH --job-name=hotBubble3D
+#SBATCH --job-name=wavePacket3D
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=128
 #SBATCH --time=01:00:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
-#SBATCH --output=hotBubble3D.o%j
-#SBATCH --error=hotBubble3D.e%j
+#SBATCH --output=wavePacket3D.o%j
+#SBATCH --error=wavePacket3D.e%j
 
 set -x
 
 # Set number of processors (product must be equal to number of tasks).
 ntasks=128
-nprocx=16
-nprocy=8
+nprocx=64
+nprocy=2
 
 # Limit stacksize (adjust to your programs need and core file size).
 ulimit -s 204800
@@ -31,43 +31,22 @@ export OMPI_MCA_pml_ucx_opal_mem_hooks=1
 export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
-userName=$(whoami)
-echo userName
-
-runName=hotBubble3D
-echo "runName " $runName
-
-inputFile=input_hotBubble3D.f90
-echo "inputFile "$inputFile
-
 # Define directories.
-dirHome=/home/b/${userName}/PF/pinc
-dirScratch=/scratch/b/${userName}/PF/runs/${runName}
-dirSaveCode=/home/b/${userName}/PF/runs/${runName}
-
-dirInput=${dirHome}/input
-dirSubmit=${dirHome}/submit
-exe=${dirHome}/bin/pinc
-
-mkdir -p ${dirScratch}
-mkdir -p ${dirSaveCode}
-
-# Copy source dir, input.f90 in dirSaveCode
-cp -rp ${dirHome}/src ${dirSaveCode}/.
-cp  -p $BASH_SOURCE   ${dirSaveCode}/.
+dirHome=/home/b/b381733/dissertation
+dirScratch=/scratch/b/b381733/dissertation
+dirNam=${dirHome}/pinc/tests/input
+exe=${dirHome}/pinc/bin/pinc
+dirWork=${dirScratch}/pinc/tests/wavePacket3D
+mkdir ${dirWork}
 
 # Go to work directory.
-cd ${dirScratch}/ && rm -r *
+cd ${dirWork}
+rm *
 
 # Copy namelist.
 sed -e "s/{nprocx}/${nprocx}/" \
     -e "s/{nprocy}/${nprocy}/" \
-        ${dirInput}/${inputFile} > input.f90
-
-# Copy script in dirSaveCode
-if [ ${dirSaveCode} != ${dirScratch} ]; then
-   cp -p ${dirScratch}/input.f90 ${dirSaveCode}/.
-fi
+        ${dirNam}/input_wavePacket3D.f90 > input.f90
 
 # Run the model.
 srun -l --cpu_bind=verbose --hint=nomultithread \

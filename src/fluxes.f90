@@ -7,7 +7,6 @@ module flux_module
   use algebra_module
   use ice_module
   use sizeof_module
-  use sizeof_module
 
   implicit none
 
@@ -1291,6 +1290,9 @@ module flux_module
     real :: rhoD, rhoU, wD, wU ! D=Downward k-1/2, U=Upward k+1/2
     real :: uSurf, vSurf, wSurf ! velocities at cell surface
 
+    real :: pL, pR, pB, pF, pD, pU
+    real :: metD, metU
+
     ! TFC FJ
     real :: rhoStratEdgeR, rhoStratEdgeF, rhoStratEdgeU
     real :: pEdgeR, pEdgeF, pEdgeU
@@ -1887,123 +1889,261 @@ module flux_module
 
     ! TFC FJ
     ! No contributions from molecular and turbulent diffusion for TFC.
-    if(topography) then
-      return
-    end if
+    ! if(topography) then
+    !   return
+    ! end if
 
     ! flux in x direction
 
-    do k = 1, nz
-      do j = 1, ny
-        do i = 0, nx
-          ! density dependent diffusivity
-          ! turbulence scheme allowing for anisotropic grids
+    if(topography) then
+      do k = 1, nz
+        do j = 1, ny
+          do i = 0, nx
+            select case(model)
+            case("pseudo_incompressible")
+              coef_t = mu_conduct * 0.5 * (rhoStratTFC(i, j, 1) &
+                  / rhoStratTFC(i, j, k) + rhoStratTFC(i + 1, j, 1) &
+                  / rhoStratTFC(i + 1, j, k))
+            case("Boussinesq")
+              coef_t = mu_conduct
+            case default
+              stop "diffusivity: unkown case model."
+            end select
 
-          select case(model)
-          case("pseudo_incompressible")
-            coef_t = mu_conduct * rhoStrat(1) / rhoStrat(k)
-          case("Boussinesq")
-            coef_t = mu_conduct
-          case default
-            stop "diffusivity: unkown case model."
-          end select
+            if(TurbScheme) then
+              coef_t = coef_t + 0.5 * (var(i, j, k, 7) + var(i + 1, j, k, 7)) &
+                  * delta_hs / Pr_turb
+            end if
 
-          if(TurbScheme) then
-            coef_t = coef_t + 0.5 * (var(i, j, k, 7) + var(i + 1, j, k, 7)) &
-                * delta_hs / Pr_turb
-          end if
+            rhoL = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+            rhoR = var(i + 1, j, k, 1) + rhoStratTFC(i + 1, j, k)
+            rhoD = 0.5 * (var(i, j, k - 1, 1) + rhoStratTFC(i, j, k - 1) &
+                + var(i + 1, j, k - 1, 1) + rhoStratTFC(i + 1, j, k - 1))
+            rhoU = 0.5 * (var(i, j, k + 1, 1) + rhoStratTFC(i, j, k + 1) &
+                + var(i + 1, j, k + 1, 1) + rhoStratTFC(i + 1, j, k + 1))
 
-          if(fluctuationMode) then
-            rhoL = var(i, j, k, 1) + rhoStrat(k)
-            rhoR = var(i + 1, j, k, 1) + rhoStrat(k)
-          else
-            rhoL = var(i, j, k, 1)
-            rhoR = var(i + 1, j, k, 1)
-          end if
+            pL = pStratTFC(i, j, k)
+            pR = pStratTFC(i + 1, j, k)
+            pD = 0.5 * (pStratTFC(i, j, k - 1) + pStratTFC(i + 1, j, k - 1))
+            pU = 0.5 * (pStratTFC(i, j, k + 1) + pStratTFC(i + 1, j, k + 1))
 
-          dtht_dxi = (Pstrat(k) / rhoR - Pstrat(k) / rhoL) / dx
+            dtht_dxi = 0.5 * (jac(i, j, k) + jac(i + 1, j, k)) * (pR / rhoR &
+                - pL / rhoL) / dx + 0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) &
+                + jac(i + 1, j, k) * met(i + 1, j, k, 1, 3)) * (pU / rhoU - pD &
+                / rhoD) / (2.0 * dz)
 
-          flux(i, j, k, 1, 5) = - coef_t * dtht_dxi
-
+            flux(i, j, k, 1, 5) = - coef_t * dtht_dxi
+          end do
         end do
       end do
-    end do
+    else
+      do k = 1, nz
+        do j = 1, ny
+          do i = 0, nx
+            ! density dependent diffusivity
+            ! turbulence scheme allowing for anisotropic grids
+
+            select case(model)
+            case("pseudo_incompressible")
+              coef_t = mu_conduct * rhoStrat(1) / rhoStrat(k)
+            case("Boussinesq")
+              coef_t = mu_conduct
+            case default
+              stop "diffusivity: unkown case model."
+            end select
+
+            if(TurbScheme) then
+              coef_t = coef_t + 0.5 * (var(i, j, k, 7) + var(i + 1, j, k, 7)) &
+                  * delta_hs / Pr_turb
+            end if
+
+            if(fluctuationMode) then
+              rhoL = var(i, j, k, 1) + rhoStrat(k)
+              rhoR = var(i + 1, j, k, 1) + rhoStrat(k)
+            else
+              rhoL = var(i, j, k, 1)
+              rhoR = var(i + 1, j, k, 1)
+            end if
+
+            dtht_dxi = (Pstrat(k) / rhoR - Pstrat(k) / rhoL) / dx
+
+            flux(i, j, k, 1, 5) = - coef_t * dtht_dxi
+
+          end do
+        end do
+      end do
+    end if
 
     ! flux in y direction
 
-    do k = 1, nz
-      do j = 0, ny
-        do i = 1, nx
-          ! density dependent diffusivity
-          ! turbulence scheme allowing for anisotropic grids
+    if(topography) then
+      do k = 1, nz
+        do j = 1, ny
+          do i = 0, nx
+            select case(model)
+            case("pseudo_incompressible")
+              coef_t = mu_conduct * 0.5 * (rhoStratTFC(i, j, 1) &
+                  / rhoStratTFC(i, j, k) + rhoStratTFC(i, j + 1, 1) &
+                  / rhoStratTFC(i, j + 1, k))
+            case("Boussinesq")
+              coef_t = mu_conduct
+            case default
+              stop "diffusivity: unkown case model."
+            end select
 
-          select case(model)
-          case("pseudo_incompressible")
-            coef_t = mu_conduct * rhoStrat(1) / rhoStrat(k)
-          case("Boussinesq")
-            coef_t = mu_conduct
-          case default
-            stop "diffusivity: unkown case model."
-          end select
+            if(TurbScheme) then
+              coef_t = coef_t + 0.5 * (var(i, j, k, 7) + var(i, j + 1, k, 7)) &
+                  * delta_hs / Pr_turb
+            end if
 
-          if(TurbScheme) then
-            coef_t = coef_t + 0.5 * (var(i, j, k, 7) + var(i, j + 1, k, 7)) &
-                * delta_hs / Pr_turb !UA
-          end if
+            rhoB = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+            rhoF = var(i, j + 1, k, 1) + rhoStratTFC(i, j + 1, k)
+            rhoD = 0.5 * (var(i, j, k - 1, 1) + rhoStratTFC(i, j, k - 1) &
+                + var(i, j + 1, k - 1, 1) + rhoStratTFC(i, j + 1, k - 1))
+            rhoU = 0.5 * (var(i, j, k + 1, 1) + rhoStratTFC(i, j, k + 1) &
+                + var(i, j + 1, k + 1, 1) + rhoStratTFC(i, j + 1, k + 1))
 
-          if(fluctuationMode) then
-            rhoF = var(i, j + 1, k, 1) + rhoStrat(k)
-            rhoB = var(i, j, k, 1) + rhoStrat(k)
-          else
-            rhoF = var(i, j + 1, k, 1)
-            rhoB = var(i, j, k, 1)
-          end if
+            pB = pStratTFC(i, j, k)
+            pF = pStratTFC(i, j + 1, k)
+            pD = 0.5 * (pStratTFC(i, j, k - 1) + pStratTFC(i, j + 1, k - 1))
+            pU = 0.5 * (pStratTFC(i, j, k + 1) + pStratTFC(i, j + 1, k + 1))
 
-          dtht_dxi = (Pstrat(k) / rhoF - Pstrat(k) / rhoB) / dy
+            dtht_dxi = 0.5 * (jac(i, j, k) + jac(i, j + 1, k)) * (pF / rhoF &
+                - pB / rhoB) / dy + 0.5 * (jac(i, j, k) * met(i, j, k, 2, 3) &
+                + jac(i, j + 1, k) * met(i, j + 1, k, 2, 3)) * (pU / rhoU - pD &
+                / rhoD) / (2.0 * dz)
 
-          flux(i, j, k, 2, 5) = - coef_t * dtht_dxi
-
+            flux(i, j, k, 1, 5) = - coef_t * dtht_dxi
+          end do
         end do
       end do
-    end do
+    else
+      do k = 1, nz
+        do j = 0, ny
+          do i = 1, nx
+            ! density dependent diffusivity
+            ! turbulence scheme allowing for anisotropic grids
+
+            select case(model)
+            case("pseudo_incompressible")
+              coef_t = mu_conduct * rhoStrat(1) / rhoStrat(k)
+            case("Boussinesq")
+              coef_t = mu_conduct
+            case default
+              stop "diffusivity: unkown case model."
+            end select
+
+            if(TurbScheme) then
+              coef_t = coef_t + 0.5 * (var(i, j, k, 7) + var(i, j + 1, k, 7)) &
+                  * delta_hs / Pr_turb !UA
+            end if
+
+            if(fluctuationMode) then
+              rhoF = var(i, j + 1, k, 1) + rhoStrat(k)
+              rhoB = var(i, j, k, 1) + rhoStrat(k)
+            else
+              rhoF = var(i, j + 1, k, 1)
+              rhoB = var(i, j, k, 1)
+            end if
+
+            dtht_dxi = (Pstrat(k) / rhoF - Pstrat(k) / rhoB) / dy
+
+            flux(i, j, k, 2, 5) = - coef_t * dtht_dxi
+
+          end do
+        end do
+      end do
+    end if
 
     ! flux in z direction
 
-    do k = 0, nz
-      do j = 1, ny
-        do i = 1, nx
-          ! density dependent diffusivity
-          ! turbulence scheme allowing for anisotropic grids
+    if(topography) then
+      do k = 1, nz
+        do j = 1, ny
+          do i = 0, nx
+            select case(model)
+            case("pseudo_incompressible")
+              coef_t = mu_conduct * 0.5 * (rhoStratTFC(i, j, 1) &
+                  / rhoStratTFC(i, j, k) + rhoStratTFC(i, j, 1) &
+                  / rhoStratTFC(i, j, k + 1))
+            case("Boussinesq")
+              coef_t = mu_conduct
+            case default
+              stop "diffusivity: unkown case model."
+            end select
 
-          select case(model)
-          case("pseudo_incompressible")
-            coef_t = mu_conduct * rhoStrat(1) / rhoStrat(k)
-          case("Boussinesq")
-            coef_t = mu_conduct
-          case default
-            stop "diffusivity: unkown case model."
-          end select
+            if(TurbScheme) then
+              coef_t = coef_t + 0.5 * (var(i, j, k, 7) + var(i, j, k + 1, 7)) &
+                  * jac(i, j, k) ** 2.0 * delta_vs / Pr_turb
+            end if
 
-          if(TurbScheme) then
-            coef_t = coef_t + 0.5 * (var(i, j, k, 7) + var(i, j, k + 1, 7)) &
-                * delta_vs / Pr_turb !UA
-          end if
+            rhoL = 0.5 * (var(i - 1, j, k, 1) + rhoStratTFC(i - 1, j, k) &
+                + var(i - 1, j, k + 1, 1) + rhoStratTFC(i - 1, j, k + 1))
+            rhoR = 0.5 * (var(i + 1, j, k, 1) + rhoStratTFC(i + 1, j, k) &
+                + var(i + 1, j, k + 1, 1) + rhoStratTFC(i + 1, j, k + 1))
+            rhoB = 0.5 * (var(i, j - 1, k, 1) + rhoStratTFC(i, j - 1, k) &
+                + var(i, j - 1, k + 1, 1) + rhoStratTFC(i, j - 1, k + 1))
+            rhoF = 0.5 * (var(i, j + 1, k, 1) + rhoStratTFC(i, j + 1, k) &
+                + var(i, j + 1, k + 1, 1) + rhoStratTFC(i, j + 1, k + 1))
+            rhoD = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+            rhoU = var(i, j, k + 1, 1) + rhoStratTFC(i, j, k + 1)
 
-          if(fluctuationMode) then
-            rhoU = var(i, j, k + 1, 1) + rhoStrat(k + 1)
-            rhoD = var(i, j, k, 1) + rhoStrat(k)
-          else
-            rhoU = var(i, j, k + 1, 1)
-            rhoD = var(i, j, k, 1)
-          end if
+            pL = 0.5 * (pStratTFC(i - 1, j, k) + pStratTFC(i - 1, j, k + 1))
+            pR = 0.5 * (pStratTFC(i + 1, j, k) + pStratTFC(i + 1, j, k + 1))
+            pB = 0.5 * (pStratTFC(i, j - 1, k) + pStratTFC(i, j - 1, k + 1))
+            pF = 0.5 * (pStratTFC(i, j + 1, k) + pStratTFC(i, j + 1, k + 1))
+            pD = pStratTFC(i, j, k)
+            pU = pStratTFC(i, j, k + 1)
 
-          dtht_dxi = (Pstrat(k + 1) / rhoU - Pstrat(k) / rhoD) / dz
+            dtht_dxi = 0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) + jac(i, j, k &
+                + 1) * met(i, j, k + 1, 1, 3)) * (pR / rhoR - pL / rhoL) &
+                / (2.0 * dx) + 0.5 * (jac(i, j, k) * met(i, j, k, 2, 3) &
+                + jac(i, j, k + 1) * met(i, j, k + 1, 2, 3)) * (pF / rhoF - pB &
+                / rhoB) / (2.0 * dy) + 0.5 * (jac(i, j, k) * met(i, j, k, 3, &
+                3) + jac(i, j, k + 1) * met(i, j, k + 1, 3, 3)) * (pU / rhoU &
+                - pD / rhoD) / dz
 
-          flux(i, j, k, 3, 5) = - coef_t * dtht_dxi
-
+            flux(i, j, k, 1, 5) = - coef_t * dtht_dxi
+          end do
         end do
       end do
-    end do
+    else
+      do k = 0, nz
+        do j = 1, ny
+          do i = 1, nx
+            ! density dependent diffusivity
+            ! turbulence scheme allowing for anisotropic grids
+
+            select case(model)
+            case("pseudo_incompressible")
+              coef_t = mu_conduct * rhoStrat(1) / rhoStrat(k)
+            case("Boussinesq")
+              coef_t = mu_conduct
+            case default
+              stop "diffusivity: unkown case model."
+            end select
+
+            if(TurbScheme) then
+              coef_t = coef_t + 0.5 * (var(i, j, k, 7) + var(i, j, k + 1, 7)) &
+                  * delta_vs / Pr_turb !UA
+            end if
+
+            if(fluctuationMode) then
+              rhoU = var(i, j, k + 1, 1) + rhoStrat(k + 1)
+              rhoD = var(i, j, k, 1) + rhoStrat(k)
+            else
+              rhoU = var(i, j, k + 1, 1)
+              rhoD = var(i, j, k, 1)
+            end if
+
+            dtht_dxi = (Pstrat(k + 1) / rhoU - Pstrat(k) / rhoD) / dz
+
+            flux(i, j, k, 3, 5) = - coef_t * dtht_dxi
+
+          end do
+        end do
+      end do
+    end if
 
     if(verbose) print *, "rhoFlux: rho fluxes fRho, gRho and fRho calculated"
 
@@ -3464,46 +3604,46 @@ module flux_module
     end if ! not semiimplicit
 
     !--------------------------------------------
-    !             zonal wind relaxation
+    !               wind relaxation
     !--------------------------------------------
 
     ! TFC FJ
-    if(.not. relax_background) return
+    if(.not. wind_relaxation) return
 
-    i0 = is + nbx - 1
+    ! i0 = is + nbx - 1
 
     if((testCase == "mountainwave") .or. (raytracer .and. case_wkb == 3)) then
 
-      if(time < t_ramp) then
-        ft_relax = (1.0 - cos(time * pi / (t_ramp * 2.0))) / t_relax
-      else if(time < t_relax - t_ramp) then
-        ft_relax = 1.0 / t_relax
-      else if(time < t_relax) then
-        ft_relax = (1.0 - cos((t_relax - time) * pi / (t_ramp * 2.0))) / t_relax
-      else
-        ft_relax = 0.0
-      end if
+      ! if(time < t_ramp) then
+      !   ft_relax = (1.0 - cos(time * pi / (t_ramp * 2.0))) / t_relax
+      ! else if(time < t_relax - t_ramp) then
+      !   ft_relax = 1.0 / t_relax
+      ! else if(time < t_relax) then
+      !   ft_relax = (1.0 - cos((t_relax - time) * pi / (t_ramp * 2.0))) / t_relax
+      ! else
+      !   ft_relax = 0.0
+      ! end if
 
-      xextent_relax = lx(1) - lx(0) - xextent_norelax
+      ! xextent_relax = lx(1) - lx(0) - xextent_norelax
 
-      ! if no-relaxation zone is larger than model domain then no
-      ! relaxation
+      ! ! if no-relaxation zone is larger than model domain then no
+      ! ! relaxation
 
-      if(xextent_relax > 0.0) then
-        do i = 0, nx + 1
-          if(x(i0 + i) < lx(0) + 0.5 * xextent_relax) then
-            fx_relax(i) = cos((x(i0 + i) - lx(0)) * pi / xextent_relax)
-          else if(x(i0 + i) < lx(1) - 0.5 * xextent_relax) then
-            fx_relax(i) = 0.0
-          else
-            fx_relax(i) = cos((lx(1) - x(i0 + i)) * pi / xextent_relax)
-          end if
-        end do
-      else
-        do i = 0, nx + 1
-          fx_relax(i) = 0.0
-        end do
-      end if
+      ! if(xextent_relax > 0.0) then
+      !   do i = 0, nx + 1
+      !     if(x(i0 + i) < lx(0) + 0.5 * xextent_relax) then
+      !       fx_relax(i) = cos((x(i0 + i) - lx(0)) * pi / xextent_relax)
+      !     else if(x(i0 + i) < lx(1) - 0.5 * xextent_relax) then
+      !       fx_relax(i) = 0.0
+      !     else
+      !       fx_relax(i) = cos((lx(1) - x(i0 + i)) * pi / xextent_relax)
+      !     end if
+      !   end do
+      ! else
+      !   do i = 0, nx + 1
+      !     fx_relax(i) = 0.0
+      !   end do
+      ! end if
 
       do k = 0, nz + 1
         do j = 0, ny + 1
@@ -3519,23 +3659,30 @@ module flux_module
               if(fluctuationMode) then
                 if(topography) then
                   ! TFC FJ
-                  ! Adjust for 3D fields.
-                  rho = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1) &
-                      + rhoStratTFC(i, j, k) + rhoStratTFC(i + 1, j, k))
+                  rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
                 else
-                  rho = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1)) &
-                      + rhoStrat(k)
+                  rho = var(i, j, k, 1) + rhoStrat(k)
                 end if
               else
-                rho = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1))
+                rho = var(i, j, k, 1)
               end if
 
             case default
               stop "volumeForce: unknown case model."
             end select
 
-            force(i, j, k, 1) = force(i, j, k, 1) - rho * ft_relax &
-                * fx_relax(i) * (var(i, j, k, 2) - u_relax)
+            ! force(i, j, k, 1) = force(i, j, k, 1) - rho * ft_relax &
+            !     * fx_relax(i) * (0.5 * (var(i, j, k, 2) + var(i - 1, j, k, 2)) &
+            !     - u_relax)
+
+            force(i, j, k, 1) = force(i, j, k, 1) - rho * (0.5 * (var(i, j, k, &
+                2) + var(i - 1, j, k, 2)) - u_relax) / t_relax
+
+            force(i, j, k, 2) = force(i, j, k, 2) - rho * (0.5 * (var(i, j, k, &
+                3) + var(i, j - 1, k, 3)) - v_relax) / t_relax
+
+            force(i, j, k, 3) = force(i, j, k, 3) - rho * (0.5 * (var(i, j, k, &
+                4) + var(i, j, k - 1, 4)) - w_relax) / t_relax
 
           end do
         end do
@@ -5000,9 +5147,9 @@ module flux_module
     !-------------------------------------------------------------------
 
     ! TFC FJ
-    if(topography .and. mu_viscous_dim == 0.0) then
-      return
-    end if
+    ! if(topography .and. mu_viscous_dim == 0.0) then
+    !   return
+    ! end if
 
     select case(model)
 
@@ -5022,11 +5169,23 @@ module flux_module
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
-
-              fRhoU_visc = (ReInv + (rho00 * delta_hs * var(i, j, k, 7))) &
-                  * (du_dx + du_dx)
+              if(topography) then
+                fRhoU_visc = (ReInv + (rho00 * delta_hs * var(i + 1, j, k, &
+                    7))) * jac(i + 1, j, k) * stressTensTFC(i + 1, j, k, 1, 1, &
+                    var)
+              else
+                ! fRhoU_visc = (ReInv + (rho00 * delta_hs * var(i, j, k, 7))) &
+                !     * (du_dx + du_dx)
+                fRhoU_visc = (ReInv + (rho00 * delta_hs * var(i + 1, j, k, &
+                    7))) * (du_dx + du_dx)
+              end if
             else
-              fRhoU_visc = ReInv * (du_dx + du_dx)
+              if(topography) then
+                fRhoU_visc = ReInv * jac(i + 1, j, k) * stressTensTFC(i + 1, &
+                    j, k, 1, 1, var)
+              else
+                fRhoU_visc = ReInv * (du_dx + du_dx)
+              end if
             end if
 
             flux(i, j, k, 1, 2) = flux(i, j, k, 1, 2) - fRhoU_visc
@@ -5044,11 +5203,31 @@ module flux_module
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
-
-              gRhoU_visc = (ReInv + (rho00 * delta_hs * var(i, j, k, 7))) &
-                  * (du_dy + dv_dx)
+              if(topography) then
+                gRhoU_visc = (ReInv + (rho00 * 0.25 * delta_hs * (var(i, j, k, &
+                    7) + var(i + 1, j, k, 7) + var(i, j + 1, k, 7) + var(i &
+                    + 1, j + 1, k, 7)))) * 0.25 * (jac(i, j, k) &
+                    * stressTensTFC(i, j, k, 1, 2, var) + jac(i + 1, j, k) &
+                    * stressTensTFC(i + 1, j, k, 1, 2, var) + jac(i, j + 1, k) &
+                    * stressTensTFC(i, j + 1, k, 1, 2, var) + jac(i + 1, j &
+                    + 1, k) * stressTensTFC(i + 1, j + 1, k, 1, 2, var))
+              else
+                ! gRhoU_visc = (ReInv + (rho00 * delta_hs * var(i, j, k, 7))) &
+                !     * (du_dy + dv_dx)
+                gRhoU_visc = (ReInv + (rho00 * delta_hs * 0.25 * (var(i, j, k, &
+                    7) + var(i + 1, j, k, 7) + var(i, j + 1, k, 7) + var(i &
+                    + 1, j + 1, k, 7)))) * (du_dy + dv_dx)
+              end if
             else
-              gRhoU_visc = ReInv * (du_dy + dv_dx)
+              if(topography) then
+                gRhoU_visc = ReInv * 0.25 * (jac(i, j, k) * stressTensTFC(i, &
+                    j, k, 1, 2, var) + jac(i + 1, j, k) * stressTensTFC(i + 1, &
+                    j, k, 1, 2, var) + jac(i, j + 1, k) * stressTensTFC(i, j &
+                    + 1, k, 1, 2, var) + jac(i + 1, j + 1, k) &
+                    * stressTensTFC(i + 1, j + 1, k, 1, 2, var))
+              else
+                gRhoU_visc = ReInv * (du_dy + dv_dx)
+              end if
             end if
 
             flux(i, j, k, 2, 2) = flux(i, j, k, 2, 2) - gRhoU_visc
@@ -5066,11 +5245,61 @@ module flux_module
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
-
-              hRhoU_visc = (ReInv + (rho00 * delta_vs * var(i, j, k, 7))) &
-                  * (du_dz + dw_dx)
+              if(topography) then
+                stressTens13 = met(i, j, k, 1, 3) * stressTensTFC(i, j, k, 1, &
+                    1, var) + met(i, j, k, 2, 3) * stressTensTFC(i, j, k, 1, &
+                    2, var) + stressTensTFC(i, j, k, 1, 3, var) / jac(i, j, k)
+                stressTens13R = met(i + 1, j, k, 1, 3) * stressTensTFC(i + 1, &
+                    j, k, 1, 1, var) + met(i + 1, j, k, 2, 3) &
+                    * stressTensTFC(i + 1, j, k, 1, 2, var) + stressTensTFC(i &
+                    + 1, j, k, 1, 3, var) / jac(i + 1, j, k)
+                stressTens13U = met(i, j, k + 1, 1, 3) * stressTensTFC(i, j, k &
+                    + 1, 1, 1, var) + met(i, j, k + 1, 2, 3) &
+                    * stressTensTFC(i, j, k + 1, 1, 2, var) + stressTensTFC(i, &
+                    j, k + 1, 1, 3, var) / jac(i, j, k + 1)
+                stressTens13RU = met(i + 1, j, k + 1, 1, 3) * stressTensTFC(i &
+                    + 1, j, k + 1, 1, 1, var) + met(i + 1, j, k + 1, 2, 3) &
+                    * stressTensTFC(i + 1, j, k + 1, 1, 2, var) &
+                    + stressTensTFC(i + 1, j, k + 1, 1, 3, var) / jac(i + 1, &
+                    j, k + 1)
+                hRhoU_visc = (ReInv + (rho00 * 0.25 * delta_vs * (jac(i, j, k) &
+                    ** 2.0 * var(i, j, k, 7) + jac(i + 1, j, k) ** 2.0 * var(i &
+                    + 1, j, k, 7) + jac(i, j, k + 1) ** 2.0 * var(i, j, k + 1, &
+                    7) + jac(i + 1, j, k + 1) ** 2.0 * var(i + 1, j, k + 1, &
+                    7)))) * 0.25 * (jac(i, j, k) * stressTens13 + jac(i + 1, &
+                    j, k) * stressTens13R + jac(i, j, k + 1) * stressTens13U &
+                    + jac(i + 1, j, k + 1) * stressTens13RU)
+              else
+                ! hRhoU_visc = (ReInv + (rho00 * delta_vs * var(i, j, k, 7))) &
+                !     * (du_dz + dw_dx)
+                hRhoU_visc = (ReInv + (rho00 * delta_vs * 0.25 * (var(i, j, k, &
+                    7) + var(i + 1, j, k, 7) + var(i, j, k + 1, 7) + var(i &
+                    + 1, j, k + 1, 7)))) * (du_dz + dw_dx)
+              end if
             else
-              hRhoU_visc = ReInv * (du_dz + dw_dx)
+              if(topography) then
+                stressTens13 = met(i, j, k, 1, 3) * stressTensTFC(i, j, k, 1, &
+                    1, var) + met(i, j, k, 2, 3) * stressTensTFC(i, j, k, 1, &
+                    2, var) + stressTensTFC(i, j, k, 1, 3, var) / jac(i, j, k)
+                stressTens13R = met(i + 1, j, k, 1, 3) * stressTensTFC(i + 1, &
+                    j, k, 1, 1, var) + met(i + 1, j, k, 2, 3) &
+                    * stressTensTFC(i + 1, j, k, 1, 2, var) + stressTensTFC(i &
+                    + 1, j, k, 1, 3, var) / jac(i + 1, j, k)
+                stressTens13U = met(i, j, k + 1, 1, 3) * stressTensTFC(i, j, k &
+                    + 1, 1, 1, var) + met(i, j, k + 1, 2, 3) &
+                    * stressTensTFC(i, j, k + 1, 1, 2, var) + stressTensTFC(i, &
+                    j, k + 1, 1, 3, var) / jac(i, j, k + 1)
+                stressTens13RU = met(i + 1, j, k + 1, 1, 3) * stressTensTFC(i &
+                    + 1, j, k + 1, 1, 1, var) + met(i + 1, j, k + 1, 2, 3) &
+                    * stressTensTFC(i + 1, j, k + 1, 1, 2, var) &
+                    + stressTensTFC(i + 1, j, k + 1, 1, 3, var) / jac(i + 1, &
+                    j, k + 1)
+                hRhoU_visc = ReInv * 0.25 * (jac(i, j, k) * stressTens13 &
+                    + jac(i + 1, j, k) * stressTens13R + jac(i, j, k + 1) &
+                    * stressTens13U + jac(i + 1, j, k + 1) * stressTens13RU)
+              else
+                hRhoU_visc = ReInv * (du_dz + dw_dx)
+              end if
             end if
 
             flux(i, j, k, 3, 2) = flux(i, j, k, 3, 2) - hRhoU_visc
@@ -5092,11 +5321,31 @@ module flux_module
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
-
-              fRhoV_visc = (ReInv + (rho00 * delta_hs * var(i, j, k, 7))) &
-                  * (dv_dx + du_dy)
+              if(topography) then
+                fRhoV_visc = (ReInv + (rho00 * 0.25 * delta_hs * (var(i, j, k, &
+                    7) + var(i + 1, j, k, 7) + var(i, j + 1, k, 7) + var(i &
+                    + 1, j + 1, k, 7)))) * 0.25 * (jac(i, j, k) &
+                    * stressTensTFC(i, j, k, 2, 1, var) + jac(i + 1, j, k) &
+                    * stressTensTFC(i + 1, j, k, 2, 1, var) + jac(i, j + 1, k) &
+                    * stressTensTFC(i, j + 1, k, 2, 1, var) + jac(i + 1, j &
+                    + 1, k) * stressTensTFC(i + 1, j + 1, k, 2, 1, var))
+              else
+                ! fRhoV_visc = (ReInv + (rho00 * delta_hs * var(i, j, k, 7))) &
+                !     * (dv_dx + du_dy)
+                fRhoV_visc = (ReInv + (rho00 * delta_hs * 0.25 * (var(i, j, k, &
+                    7) + var(i + 1, j, k, 7) + var(i, j + 1, k, 7) + var(i &
+                    + 1, j + 1, k, 7)))) * (dv_dx + du_dy)
+              end if
             else
-              fRhoV_visc = ReInv * (dv_dx + du_dy)
+              if(topography) then
+                fRhoV_visc = ReInv * 0.25 * (jac(i, j, k) * stressTensTFC(i, &
+                    j, k, 2, 1, var) + jac(i + 1, j, k) * stressTensTFC(i + 1, &
+                    j, k, 2, 1, var) + jac(i, j + 1, k) * stressTensTFC(i, j &
+                    + 1, k, 2, 1, var) + jac(i + 1, j + 1, k) &
+                    * stressTensTFC(i + 1, j + 1, k, 2, 1, var))
+              else
+                fRhoV_visc = ReInv * (dv_dx + du_dy)
+              end if
             end if
 
             flux(i, j, k, 1, 3) = flux(i, j, k, 1, 3) - fRhoV_visc
@@ -5113,11 +5362,23 @@ module flux_module
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
-
-              gRhoV_visc = (ReInv + (rho00 * delta_hs * var(i, j, k, 7))) &
-                  * (dv_dy + dv_dy)
+              if(topography) then
+                gRhoV_visc = (ReInv + (rho00 * delta_hs * var(i, j + 1, k, &
+                    7))) * jac(i, j + 1, k) * stressTensTFC(i, j + 1, k, 2, 2, &
+                    var)
+              else
+                ! gRhoV_visc = (ReInv + (rho00 * delta_hs * var(i, j, k, 7))) &
+                !     * (dv_dy + dv_dy)
+                gRhoV_visc = (ReInv + (rho00 * delta_hs * var(i, j + 1, k, &
+                    7))) * (dv_dy + dv_dy)
+              end if
             else
-              gRhoV_visc = ReInv * (dv_dy + dv_dy)
+              if(topography) then
+                gRhoV_visc = ReInv * jac(i, j + 1, k) * stressTensTFC(i, j &
+                    + 1, k, 2, 2, var)
+              else
+                gRhoV_visc = ReInv * (dv_dy + dv_dy)
+              end if
             end if
 
             flux(i, j, k, 2, 3) = flux(i, j, k, 2, 3) - gRhoV_visc
@@ -5135,11 +5396,45 @@ module flux_module
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
-
-              hRhoV_visc = (ReInv + (rho00 * delta_vs * var(i, j, k, 7))) &
-                  * (dv_dz + dw_dy)
+              if(topography) then
+                stressTens23 = met(i, j, k, 1, 3) * stressTensTFC(i, j, k, 2, &
+                    1, var) + met(i, j, k, 2, 3) * stressTensTFC(i, j, k, 2, &
+                    2, var) + stressTensTFC(i, j, k, 2, 3, var) / jac(i, j, k)
+                stressTens23F = met(i, j + 1, k, 1, 3) * stressTensTFC(i, j &
+                    + 1, k, 2, 1, var) + met(i, j + 1, k, 2, 3) &
+                    * stressTensTFC(i, j + 1, k, 2, 2, var) + stressTensTFC(i, &
+                    j + 1, k, 2, 3, var) / jac(i, j + 1, k)
+                stressTens23U = met(i, j, k + 1, 1, 3) * stressTensTFC(i, j, k &
+                    + 1, 2, 1, var) + met(i, j, k + 1, 2, 3) &
+                    * stressTensTFC(i, j, k + 1, 2, 2, var) + stressTensTFC(i, &
+                    j, k + 1, 2, 3, var) / jac(i, j, k + 1)
+                stressTens23FU = met(i, j + 1, k + 1, 1, 3) * stressTensTFC(i, &
+                    j + 1, k + 1, 2, 1, var) + met(i, j + 1, k + 1, 2, 3) &
+                    * stressTensTFC(i, j + 1, k + 1, 2, 2, var) &
+                    + stressTensTFC(i, j + 1, k + 1, 2, 3, var) / jac(i, j &
+                    + 1, k + 1)
+                hRhoV_visc = (ReInv + (rho00 * 0.25 * delta_vs * (jac(i, j, k) &
+                    ** 2.0 * var(i, j, k, 7) + jac(i, j + 1, k) ** 2.0 &
+                    * var(i, j + 1, k, 7) + jac(i, j, k + 1) ** 2.0 * var(i, &
+                    j, k + 1, 7) + jac(i, j + 1, k + 1) ** 2.0 * var(i, j + 1, &
+                    k + 1, 7)))) * 0.25 * (jac(i, j, k) * stressTens23 &
+                    + jac(i, j + 1, k) * stressTens23F + jac(i, j, k + 1) &
+                    * stressTens23U + jac(i, j + 1, k + 1) * stressTens23FU)
+              else
+                ! hRhoV_visc = (ReInv + (rho00 * delta_vs * var(i, j, k, 7))) &
+                !     * (dv_dz + dw_dy)
+                hRhoV_visc = (ReInv + (rho00 * delta_vs * 0.25 * (var(i, j, k, &
+                    7) + var(i, j + 1, k, 7) + var(i, j, k + 1, 7) + var(i, j &
+                    + 1, k + 1, 7)))) * (dv_dz + dw_dy)
+              end if
             else
-              hRhoV_visc = ReInv * (dv_dz + dw_dy)
+              if(topography) then
+                hRhoV_visc = ReInv * 0.25 * (jac(i, j, k) * stressTens23 &
+                    + jac(i, j + 1, k) * stressTens23F + jac(i, j, k + 1) &
+                    * stressTens23U + jac(i, j + 1, k + 1) * stressTens23FU)
+              else
+                hRhoV_visc = ReInv * (dv_dz + dw_dy)
+              end if
             end if
 
             flux(i, j, k, 3, 3) = flux(i, j, k, 3, 3) - hRhoV_visc
@@ -5161,11 +5456,33 @@ module flux_module
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
-
-              fRhoW_visc = (ReInv + (rho00 * delta_vs * var(i, j, k, 7))) &
-                  * (dw_dx + du_dz)
+              if(topography) then
+                fRhoW_visc = (ReInv + (rho00 * 0.25 * delta_vs * (jac(i, j, k) &
+                    ** 2.0 * var(i, j, k, 7) + jac(i + 1, j, k) ** 2.0 * var(i &
+                    + 1, j, k, 7) + jac(i, j, k + 1) ** 2.0 * var(i, j, k + 1, &
+                    7) + jac(i + 1, j, k + 1) ** 2.0 * var(i + 1, j, k + 1, &
+                    7)))) * 0.25 * (jac(i, j, k) * stressTensTFC(i, j, k, 3, &
+                    1, var) + jac(i + 1, j, k) * stressTensTFC(i + 1, j, k, 3, &
+                    1, var) + jac(i, j, k + 1) * stressTensTFC(i, j, k + 1, 3, &
+                    1, var) + jac(i + 1, j, k + 1) * stressTensTFC(i + 1, j, k &
+                    + 1, 3, 1, var))
+              else
+                ! fRhoW_visc = (ReInv + (rho00 * delta_vs * var(i, j, k, 7))) &
+                !     * (dw_dx + du_dz)
+                fRhoW_visc = (ReInv + (rho00 * delta_vs * 0.25 * (var(i, j, k, &
+                    7) + var(i + 1, j, k, 7) + var(i, j, k + 1, 7) + var(i &
+                    + 1, j, k + 1, 7)))) * (dw_dx + du_dz)
+              end if
             else
-              fRhoW_visc = ReInv * (dw_dx + du_dz)
+              if(topography) then
+                fRhoW_visc = ReInv * 0.25 * (jac(i, j, k) * stressTensTFC(i, &
+                    j, k, 3, 1, var) + jac(i + 1, j, k) * stressTensTFC(i + 1, &
+                    j, k, 3, 1, var) + jac(i, j, k + 1) * stressTensTFC(i, j, &
+                    k + 1, 3, 1, var) + jac(i + 1, j, k + 1) * stressTensTFC(i &
+                    + 1, j, k + 1, 3, 1, var))
+              else
+                fRhoW_visc = ReInv * (dw_dx + du_dz)
+              end if
             end if
 
             flux(i, j, k, 1, 4) = flux(i, j, k, 1, 4) - fRhoW_visc
@@ -5183,11 +5500,33 @@ module flux_module
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
-
-              gRhoW_visc = (ReInv + (rho00 * delta_vs * var(i, j, k, 7))) &
-                  * (dw_dy + dv_dz)
+              if(topography) then
+                gRhoW_visc = (ReInv + (rho00 * 0.25 * delta_vs * (jac(i, j, k) &
+                    ** 2.0 * var(i, j, k, 7) + jac(i, j + 1, k) ** 2.0 &
+                    * var(i, j + 1, k, 7) + jac(i, j, k + 1) ** 2.0 * var(i, &
+                    j, k + 1, 7) + jac(i, j + 1, k + 1) ** 2.0 * var(i, j + 1, &
+                    k + 1, 7)))) * 0.25 * (jac(i, j, k) * stressTensTFC(i, j, &
+                    k, 3, 2, var) + jac(i, j + 1, k) * stressTensTFC(i, j + 1, &
+                    k, 3, 2, var) + jac(i, j, k + 1) * stressTensTFC(i, j, k &
+                    + 1, 3, 2, var) + jac(i, j + 1, k + 1) * stressTensTFC(i, &
+                    j + 1, k + 1, 3, 2, var))
+              else
+                ! gRhoW_visc = (ReInv + (rho00 * delta_vs * var(i, j, k, 7))) &
+                !     * (dw_dy + dv_dz)
+                gRhoW_visc = (ReInv + (rho00 * delta_vs * 0.25 * (var(i, j, k, &
+                    7) + var(i, j + 1, k, 7) + var(i, j, k + 1, 7) + var(i, j &
+                    + 1, k + 1, 7)))) * (dw_dy + dv_dz)
+              end if
             else
-              gRhoW_visc = ReInv * (dw_dy + dv_dz)
+              if(topography) then
+                gRhoW_visc = ReInv * 0.25 * (jac(i, j, k) * stressTensTFC(i, &
+                    j, k, 3, 2, var) + jac(i, j + 1, k) * stressTensTFC(i, j &
+                    + 1, k, 3, 2, var) + jac(i, j, k + 1) * stressTensTFC(i, &
+                    j, k + 1, 3, 2, var) + jac(i, j + 1, k + 1) &
+                    * stressTensTFC(i, j + 1, k + 1, 3, 2, var))
+              else
+                gRhoW_visc = ReInv * (dw_dy + dv_dz)
+              end if
             end if
 
             flux(i, j, k, 2, 4) = flux(i, j, k, 2, 4) - gRhoW_visc
@@ -5204,11 +5543,28 @@ module flux_module
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
-
-              hRhoW_visc = (ReInv + (rho00 * delta_vs * var(i, j, k, 7))) &
-                  * (dw_dz + dw_dz)
+              if(topography) then
+                hRhoW_visc = (ReInv + (rho00 * delta_vs * jac(i, j, k + 1) &
+                    ** 2.0 * var(i, j, k + 1, 7))) * (jac(i, j, k + 1) &
+                    * met(i, j, k + 1, 1, 3) * stressTensTFC(i, j, k + 1, 3, &
+                    1, var) + jac(i, j, k + 1) * met(i, j, k + 1, 2, 3) &
+                    * stressTensTFC(i, j, k + 1, 3, 2, var) + stressTensTFC(i, &
+                    j, k + 1, 3, 3, var))
+              else
+                ! hRhoW_visc = (ReInv + (rho00 * delta_vs * var(i, j, k, 7))) &
+                !     * (dw_dz + dw_dz)
+                hRhoW_visc = (ReInv + (rho00 * delta_vs * var(i, j, k + 1, &
+                    7))) * (dw_dz + dw_dz)
+              end if
             else
-              hRhoW_visc = ReInv * (dw_dz + dw_dz)
+              if(topography) then
+                hRhoW_visc = ReInv * (jac(i, j, k + 1) * met(i, j, k + 1, 1, &
+                    3) * stressTensTFC(i, j, k + 1, 3, 1, var) + jac(i, j, k &
+                    + 1) * met(i, j, k + 1, 2, 3) * stressTensTFC(i, j, k + 1, &
+                    3, 2, var) + stressTensTFC(i, j, k + 1, 3, 3, var))
+              else
+                hRhoW_visc = ReInv * (dw_dz + dw_dz)
+              end if
             end if
 
             flux(i, j, k, 3, 4) = flux(i, j, k, 3, 4) - hRhoW_visc
@@ -5255,16 +5611,29 @@ module flux_module
 
             div = divU(i + 1, j, k)
 
-            coef_v = ReInv * rhoStrat(1)
+            if(topography) then
+              coef_v = ReInv * rhoStratTFC(i + 1, j, 1)
+            else
+              coef_v = ReInv * rhoStrat(1)
+            end if
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
               if(fluctuationMode) then
-                coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_hs &
-                    * var(i, j, k, 7)
+                if(topography) then
+                  coef_v = coef_v + (var(i + 1, j, k, 1) + rhoStratTFC(i + 1, &
+                      j, k)) * delta_hs * var(i + 1, j, k, 7)
+                else
+                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_hs &
+                  !     * var(i, j, k, 7)
+                  coef_v = coef_v + (var(i + 1, j, k, 1) + rhoStrat(k)) &
+                      * delta_hs * var(i + 1, j, k, 7)
+                end if
               else
-                coef_v = coef_v + var(i, j, k, 1) * delta_hs * var(i, j, k, 7)
+                ! coef_v = coef_v + var(i, j, k, 1) * delta_hs * var(i, j, k, 7)
+                coef_v = coef_v + var(i + 1, j, k, 1) * delta_hs * var(i + 1, &
+                    j, k, 7)
               end if
             end if
 
@@ -5289,16 +5658,40 @@ module flux_module
             du_dy = (var(i, j + 1, k, 2) - var(i, j, k, 2)) / dy
             dv_dx = (var(i + 1, j, k, 3) - var(i, j, k, 3)) / dx ! dv/dx
 
-            coef_v = ReInv * rhoStrat(1)
+            if(topography) then
+              coef_v = ReInv * 0.25 * (rhoStratTFC(i, j, 1) + rhoStratTFC(i &
+                  + 1, j, 1) + rhoStratTFC(i, j + 1, 1) + rhoStratTFC(i + 1, j &
+                  + 1, 1))
+            else
+              coef_v = ReInv * rhoStrat(1)
+            end if
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
               if(fluctuationMode) then
-                coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_hs &
-                    * var(i, j, k, 7)
+                if(topography) then
+                  coef_v = coef_v + 0.25 * delta_hs * ((var(i, j, k, 1) &
+                      + rhoStratTFC(i, j, k)) * var(i, j, k, 7) + (var(i + 1, &
+                      j, k, 1) + rhoStratTFC(i + 1, j, k)) * var(i + 1, j, k, &
+                      7) + (var(i, j + 1, k, 1) + rhoStratTFC(i, j + 1, k)) &
+                      * var(i, j + 1, k, 7) + (var(i + 1, j + 1, k, 1) &
+                      + rhoStratTFC(i + 1, j + 1, k)) * var(i + 1, j + 1, k, 7))
+                else
+                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_hs &
+                  !     * var(i, j, k, 7)
+                  coef_v = coef_v + (0.25 * (var(i, j, k, 1) + var(i + 1, j, &
+                      k, 1) + var(i, j + 1, k, 1) + var(i + 1, j + 1, k, 1)) &
+                      + rhoStrat(k)) * delta_hs * 0.25 * (var(i, j, k, 7) &
+                      + var(i + 1, j, k, 7) + var(i, j + 1, k, 7) + var(i + 1, &
+                      j + 1, k, 7))
+                end if
               else
-                coef_v = coef_v + var(i, j, k, 1) * delta_hs * var(i, j, k, 7)
+                ! coef_v = coef_v + var(i, j, k, 1) * delta_hs * var(i, j, k, 7)
+                coef_v = coef_v + 0.25 * (var(i, j, k, 1) + var(i + 1, j, k, &
+                    1) + var(i, j + 1, k, 1) + var(i + 1, j + 1, k, 1)) &
+                    * delta_hs * 0.25 * (var(i, j, k, 7) + var(i + 1, j, k, 7) &
+                    + var(i, j + 1, k, 7) + var(i + 1, j + 1, k, 7))
               end if
             end if
 
@@ -5326,16 +5719,41 @@ module flux_module
             du_dz = (var(i, j, k + 1, 2) - var(i, j, k, 2)) / dz
             dw_dx = (var(i + 1, j, k, 4) - var(i, j, k, 4)) / dx ! dw/dx
 
-            coef_v = ReInv * rhoStrat(1)
+            if(topography) then
+              coef_v = ReInv * 0.5 * (rhoStratTFC(i, j, 1) + rhoStratTFC(i &
+                  + 1, j, 1))
+            else
+              coef_v = ReInv * rhoStrat(1)
+            end if
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
               if(fluctuationMode) then
-                coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_vs &
-                    * var(i, j, k, 7)
+                if(topography) then
+                  coef_v = coef_v + 0.25 * delta_vs * ((var(i, j, k, 1) &
+                      + rhoStratTFC(i, j, k)) * jac(i, j, k) ** 2.0 * var(i, &
+                      j, k, 7) + (var(i + 1, j, k, 1) + rhoStratTFC(i + 1, j, &
+                      k)) * jac(i + 1, j, k) ** 2.0 * var(i + 1, j, k, 7) &
+                      + (var(i, j, k + 1, 1) + rhoStratTFC(i, j, k + 1)) &
+                      * jac(i, j, k + 1) ** 2.0 * var(i, j, k + 1, 7) + (var(i &
+                      + 1, j, k + 1, 1) + rhoStratTFC(i + 1, j, k + 1)) &
+                      * jac(i + 1, j, k + 1) ** 2.0 * var(i + 1, j, k + 1, 7))
+                else
+                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_vs &
+                  !     * var(i, j, k, 7)
+                  coef_v = coef_v + (0.25 * (var(i, j, k, 1) + var(i + 1, j, &
+                      k, 1) + var(i, j, k + 1, 1) + var(i + 1, j, k + 1, 1)) &
+                      + rhoStratTilde(k)) * delta_vs * 0.25 * (var(i, j, k, 7) &
+                      + var(i + 1, j, k, 7) + var(i, j, k + 1, 7) + var(i + 1, &
+                      j, k + 1, 7))
+                end if
               else
-                coef_v = coef_v + var(i, j, k, 1) * delta_vs * var(i, j, k, 7)
+                ! coef_v = coef_v + var(i, j, k, 1) * delta_vs * var(i, j, k, 7)
+                coef_v = coef_v + 0.25 * (var(i, j, k, 1) + var(i + 1, j, k, &
+                    1) + var(i, j, k + 1, 1) + var(i + 1, j, k + 1, 1)) &
+                    * delta_vs * 0.25 * (var(i, j, k, 7) + var(i + 1, j, k, 7) &
+                    + var(i, j, k + 1, 7) + var(i + 1, j, k + 1, 7))
               end if
             end if
 
@@ -5382,16 +5800,40 @@ module flux_module
             dv_dx = (var(i + 1, j, k, 3) - var(i, j, k, 3)) / dx
             du_dy = (var(i, j + 1, k, 2) - var(i, j, k, 2)) / dy ! dv/dy
 
-            coef_v = ReInv * rhoStrat(1)
+            if(topography) then
+              coef_v = ReInv * 0.25 * (rhoStratTFC(i, j, 1) + rhoStratTFC(i &
+                  + 1, j, 1) + rhoStratTFC(i, j + 1, 1) + rhoStratTFC(i + 1, j &
+                  + 1, 1))
+            else
+              coef_v = ReInv * rhoStrat(1)
+            end if
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
               if(fluctuationMode) then
-                coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_hs &
-                    * var(i, j, k, 7)
+                if(topography) then
+                  coef_v = coef_v + 0.25 * delta_hs * ((var(i, j, k, 1) &
+                      + rhoStratTFC(i, j, k)) * var(i, j, k, 7) + (var(i + 1, &
+                      j, k, 1) + rhoStratTFC(i + 1, j, k)) * var(i + 1, j, k, &
+                      7) + (var(i, j + 1, k, 1) + rhoStratTFC(i, j + 1, k)) &
+                      * var(i, j + 1, k, 7) + (var(i + 1, j + 1, k, 1) &
+                      + rhoStratTFC(i + 1, j + 1, k)) * var(i + 1, j + 1, k, 7))
+                else
+                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_hs &
+                  !     * var(i, j, k, 7)
+                  coef_v = coef_v + (0.25 * (var(i, j, k, 1) + var(i + 1, j, &
+                      k, 1) + var(i, j + 1, k, 1) + var(i + 1, j + 1, k, 1)) &
+                      + rhoStrat(k)) * delta_hs * 0.25 * (var(i, j, k, 7) &
+                      + var(i + 1, j, k, 7) + var(i, j + 1, k, 7) + var(i + 1, &
+                      j + 1, k, 7))
+                end if
               else
-                coef_v = coef_v + var(i, j, k, 1) * delta_hs * var(i, j, k, 7)
+                ! coef_v = coef_v + var(i, j, k, 1) * delta_hs * var(i, j, k, 7)
+                coef_v = coef_v + 0.25 * (var(i, j, k, 1) + var(i + 1, j, k, &
+                    1) + var(i, j + 1, k, 1) + var(i + 1, j + 1, k, 1)) &
+                    * delta_hs * 0.25 * (var(i, j, k, 7) + var(i + 1, j, k, 7) &
+                    + var(i, j + 1, k, 7) + var(i + 1, j + 1, k, 7))
               end if
             end if
 
@@ -5420,16 +5862,29 @@ module flux_module
 
             div = divU(i, j + 1, k)
 
-            coef_v = ReInv * rhoStrat(1)
+            if(topography) then
+              coef_v = ReInv * rhoStratTFC(i, j + 1, 1)
+            else
+              coef_v = ReInv * rhoStrat(1)
+            end if
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
               if(fluctuationMode) then
-                coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_hs &
-                    * var(i, j, k, 7)
+                if(topography) then
+                  coef_v = coef_v + (var(i, j + 1, k, 1) + rhoStratTFC(i, j &
+                      + 1, k)) * delta_hs * var(i, j + 1, k, 7)
+                else
+                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_hs &
+                  !     * var(i, j, k, 7)
+                  coef_v = coef_v + (var(i, j + 1, k, 1) + rhoStrat(k)) &
+                      * delta_hs * var(i, j + 1, k, 7)
+                end if
               else
-                coef_v = coef_v + var(i, j, k, 1) * delta_hs * var(i, j, k, 7)
+                ! coef_v = coef_v + var(i, j, k, 1) * delta_hs * var(i, j, k, 7)
+                coef_v = coef_v + var(i, j + 1, k, 1) * delta_hs * var(i, j &
+                    + 1, k, 7)
               end if
             end if
 
@@ -5454,16 +5909,42 @@ module flux_module
             dv_dz = (var(i, j, k + 1, 3) - var(i, j, k, 3)) / dz
             dw_dy = (var(i, j + 1, k, 4) - var(i, j, k, 4)) / dy ! dw/dy
 
-            coef_v = ReInv * rhoStrat(1)
+            if(topography) then
+              coef_v = ReInv * 0.5 * (rhoStratTFC(i, j, 1) + rhoStratTFC(i, j &
+                  + 1, 1))
+            else
+              coef_v = ReInv * rhoStrat(1)
+            end if
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
               if(fluctuationMode) then
-                coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_vs &
-                    * var(i, j, k, 7)
+                if(topography) then
+                  coef_v = coef_v + 0.25 * delta_vs * ((var(i, j, k, 1) &
+                      + rhoStratTFC(i, j, k)) * jac(i, j, k) ** 2.0 * var(i, &
+                      j, k, 7) + (var(i, j + 1, k, 1) + rhoStratTFC(i, j + 1, &
+                      k)) * jac(i, j + 1, k) ** 2.0 * var(i, j + 1, k, 7) &
+                      + (var(i, j, k + 1, 1) + rhoStratTFC(i, j, k + 1)) &
+                      * jac(i, j, k + 1) ** 2.0 * var(i, j, k + 1, 7) &
+                      + (var(i, j + 1, k + 1, 1) + rhoStratTFC(i, j + 1, k &
+                      + 1)) * jac(i, j + 1, k + 1) ** 2.0 * var(i, j + 1, k &
+                      + 1, 7))
+                else
+                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_vs &
+                  !     * var(i, j, k, 7)
+                  coef_v = coef_v + (0.25 * (var(i, j, k, 1) + var(i, j + 1, &
+                      k, 1) + var(i, j, k + 1, 1) + var(i, j + 1, k + 1, 1)) &
+                      + rhoStratTilde(k)) * delta_vs * 0.25 * (var(i, j, k, 7) &
+                      + var(i + 1, j, k, 7) + var(i, j, k + 1, 7) + var(i + 1, &
+                      j, k + 1, 7))
+                end if
               else
-                coef_v = coef_v + var(i, j, k, 1) * delta_vs * var(i, j, k, 7)
+                ! coef_v = coef_v + var(i, j, k, 1) * delta_vs * var(i, j, k, 7)
+                coef_v = coef_v + 0.25 * (var(i, j, k, 1) + var(i, j + 1, k, &
+                    1) + var(i, j, k + 1, 1) + var(i, j + 1, k + 1, 1)) &
+                    * delta_vs * 0.25 * (var(i, j, k, 7) + var(i, j + 1, k, 7) &
+                    + var(i, j, k + 1, 7) + var(i, j + 1, k + 1, 7))
               end if
             end if
 
@@ -5509,16 +5990,41 @@ module flux_module
             dw_dx = (var(i + 1, j, k, 4) - var(i, j, k, 4)) / dx
             du_dz = (var(i, j, k + 1, 2) - var(i, j, k, 2)) / dz ! du/dz
 
-            coef_v = ReInv * rhoStrat(1)
+            if(topography) then
+              coef_v = ReInv * 0.5 * (rhoStratTFC(i, j, 1) + rhoStratTFC(i &
+                  + 1, j, 1))
+            else
+              coef_v = ReInv * rhoStrat(1)
+            end if
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
               if(fluctuationMode) then
-                coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_vs &
-                    * var(i, j, k, 7)
+                if(topography) then
+                  coef_v = coef_v + 0.25 * delta_vs * ((var(i, j, k, 1) &
+                      + rhoStratTFC(i, j, k)) * jac(i, j, k) ** 2.0 * var(i, &
+                      j, k, 7) + (var(i + 1, j, k, 1) + rhoStratTFC(i + 1, j, &
+                      k)) * jac(i + 1, j, k) ** 2.0 * var(i + 1, j, k, 7) &
+                      + (var(i, j, k + 1, 1) + rhoStratTFC(i, j, k + 1)) &
+                      * jac(i, j, k + 1) ** 2.0 * var(i, j, k + 1, 7) + (var(i &
+                      + 1, j, k + 1, 1) + rhoStratTFC(i + 1, j, k + 1)) &
+                      * jac(i + 1, j, k + 1) ** 2.0 * var(i + 1, j, k + 1, 7))
+                else
+                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_vs &
+                  !     * var(i, j, k, 7)
+                  coef_v = coef_v + (0.25 * (var(i, j, k, 1) + var(i + 1, j, &
+                      k, 1) + var(i, j, k + 1, 1) + var(i + 1, j, k + 1, 1)) &
+                      + rhoStratTilde(k)) * delta_vs * 0.25 * (var(i, j, k, 7) &
+                      + var(i + 1, j, k, 7) + var(i, j, k + 1, 7) + var(i + 1, &
+                      j, k + 1, 7))
+                end if
               else
-                coef_v = coef_v + var(i, j, k, 1) * delta_vs * var(i, j, k, 7)
+                ! coef_v = coef_v + var(i, j, k, 1) * delta_vs * var(i, j, k, 7)
+                coef_v = coef_v + 0.25 * (var(i, j, k, 1) + var(i + 1, j, k, &
+                    1) + var(i, j, k + 1, 1) + var(i + 1, j, k + 1, 1)) &
+                    * delta_vs * 0.25 * (var(i, j, k, 7) + var(i + 1, j, k, 7) &
+                    + var(i, j, k + 1, 7) + var(i + 1, j, k + 1, 7))
               end if
             end if
 
@@ -5546,16 +6052,42 @@ module flux_module
             dw_dy = (var(i, j + 1, k, 4) - var(i, j, k, 4)) / dy
             dv_dz = (var(i, j, k + 1, 2) - var(i, j, k, 2)) / dz ! dv/dz
 
-            coef_v = ReInv * rhoStrat(1)
+            if(topography) then
+              coef_v = ReInv * 0.5 * (rhoStratTFC(i, j, 1) + rhoStratTFC(i, j &
+                  + 1, 1))
+            else
+              coef_v = ReInv * rhoStrat(1)
+            end if
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
               if(fluctuationMode) then
-                coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_vs &
-                    * var(i, j, k, 7)
+                if(topography) then
+                  coef_v = coef_v + 0.25 * delta_vs * ((var(i, j, k, 1) &
+                      + rhoStratTFC(i, j, k)) * jac(i, j, k) ** 2.0 * var(i, &
+                      j, k, 7) + (var(i, j + 1, k, 1) + rhoStratTFC(i, j + 1, &
+                      k)) * jac(i, j + 1, k) ** 2.0 * var(i, j + 1, k, 7) &
+                      + (var(i, j, k + 1, 1) + rhoStratTFC(i, j, k + 1)) &
+                      * jac(i, j, k + 1) ** 2.0 * var(i, j, k + 1, 7) &
+                      + (var(i, j + 1, k + 1, 1) + rhoStratTFC(i, j + 1, k &
+                      + 1)) * jac(i, j + 1, k + 1) ** 2.0 * var(i, j + 1, k &
+                      + 1, 7))
+                else
+                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_vs &
+                  !     * var(i, j, k, 7)
+                  coef_v = coef_v + (0.25 * (var(i, j, k, 1) + var(i, j + 1, &
+                      k, 1) + var(i, j, k + 1, 1) + var(i, j + 1, k + 1, 1)) &
+                      + rhoStratTilde(k)) * delta_vs * 0.25 * (var(i, j, k, 7) &
+                      + var(i, j + 1, k, 7) + var(i, j, k + 1, 7) + var(i, j &
+                      + 1, k + 1, 7))
+                end if
               else
-                coef_v = coef_v + var(i, j, k, 1) * delta_vs * var(i, j, k, 7)
+                ! coef_v = coef_v + var(i, j, k, 1) * delta_vs * var(i, j, k, 7)
+                coef_v = coef_v + 0.25 * (var(i, j, k, 1) + var(i, j + 1, k, &
+                    1) + var(i, j, k + 1, 1) + var(i, j + 1, k + 1, 1)) &
+                    * delta_vs * 0.25 * (var(i, j, k, 7) + var(i, j + 1, k, 7) &
+                    + var(i, j, k + 1, 7) + var(i, j + 1, k + 1, 7))
               end if
             end if
 
@@ -5584,22 +6116,35 @@ module flux_module
 
             div = divU(i, j, k + 1)
 
-            coef_v = ReInv * rhoStrat(1)
+            if(topography) then
+              coef_v = ReInv * rhoStratTFC(i, j, 1)
+            else
+              coef_v = ReInv * rhoStrat(1)
+            end if
 
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
               if(fluctuationMode) then
-                if(k == - 1) then
-                  rhos = rhoStrat(0)
+                if(topography) then
+                  coef_v = coef_v + (var(i, j, k + 1, 1) + rhoStratTFC(i, j, k &
+                      + 1)) * delta_vs * jac(i, j, k + 1) ** 2.0 * var(i, j, k &
+                      + 1, 7)
                 else
-                  rhos = rhoStrat(k)
+                  ! if(k == - 1) then
+                  !   rhos = rhoStrat(0)
+                  ! else
+                  !   rhos = rhoStrat(k)
+                  ! end if
+                  ! coef_v = coef_v + (var(i, j, k, 1) + rhos) * delta_vs &
+                  !     * var(i, j, k, 7)
+                  coef_v = coef_v + (var(i, j, k + 1, 1) + rhoStrat(k + 1)) &
+                      * delta_vs * var(i, j, k + 1, 7)
                 end if
-
-                coef_v = coef_v + (var(i, j, k, 1) + rhos) * delta_vs * var(i, &
-                    j, k, 7)
               else
-                coef_v = coef_v + var(i, j, k, 1) * delta_vs * var(i, j, k, 7)
+                ! coef_v = coef_v + var(i, j, k, 1) * delta_vs * var(i, j, k, 7)
+                coef_v = coef_v + var(i, j, k + 1, 1) * delta_vs * var(i, j, k &
+                    + 1, 7)
               end if
             end if
 

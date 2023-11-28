@@ -229,11 +229,12 @@ program pinc_prog
 
     do k = 1, nz
       rhoStrat_s(k) = rhoStrat(k) - sum_global(k)
-      if(master) then
-        print *, 'rhoStrat(', k, ') =', rhoStrat(k)
-        print *, 'sum_global(', k, ') =', sum_global(k)
-        print *, 'rhoStrat_d(', k, ') =', rhoStrat_s(k)
-      end if
+      ! FJApr2023
+      ! if(master) then
+      !   print *, 'rhoStrat(', k, ') =', rhoStrat(k)
+      !   print *, 'sum_global(', k, ') =', sum_global(k)
+      !   print *, 'rhoStrat_d(', k, ') =', rhoStrat_s(k)
+      ! end if
     end do
 
   end if
@@ -579,6 +580,21 @@ program pinc_prog
       call update_topography(time)
     end if
 
+    ! Check for static instability.
+    ! if(topography) then
+    !   do k = 2, nz
+    !     do j = 1, ny
+    !       do i = 1, nx
+    !         if(pStratTFC(i, j, k) / (var(i, j, k, 1) + rhoStratTFC(i, j, k)) &
+    !             < pStratTFC(i, j, k - 1) / (var(i, j, k - 1, 1) &
+    !             + rhoStratTFC(i, j, k - 1))) then
+    !           print *, "Static instability at z =", heightTFC(i, j, k), "m"
+    !         end if
+    !       end do
+    !     end do
+    !   end do
+    ! end if
+
     !-----------------------------------------------------------------
     ! relaxation rate for
     ! (1) Rayleigh damping in land cells and
@@ -611,63 +627,76 @@ program pinc_prog
     ! end if
 
     if(spongeLayer) then
-      if(topography .and. spongeTFC) then
-        ! TFC FJ
-        ! TFC sponge layers.
+      if(unifiedSponge) then
+        ! Unified sponge layer.
 
         kr_sp = 0.0
         kr_sp_w = 0.0
 
         spongeAlphaZ = spongeAlphaZ_dim * tRef
 
+        alphaUnifiedSponge = 0.0
+
         if(lateralSponge) then
           i00 = is + nbx - 1
           j00 = js + nby - 1
           spongeAlphaX = spongeAlphaZ
           spongeAlphaY = spongeAlphaZ
-        end if
 
-        do k = 1, nz
-          do j = 1, ny
-            do i = 1, nx
-              alphaTFC(i, j, k) = 0.0
-
-              if(lateralSponge) then
+          do k = 1, nz
+            do j = 1, ny
+              do i = 1, nx
                 ! Zonal sponge.
                 if(x(i00 + i) <= xSponge0) then
-                  alphaTFC(i, j, k) = alphaTFC(i, j, k) + spongeAlphaX &
-                      * sin(0.5 * pi * (xSponge0 - x(i00 + i)) / (xSponge0 &
-                      - lx(0))) ** 2.0
+                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                      + spongeAlphaX * sin(0.5 * pi * (xSponge0 - x(i00 + i)) &
+                      / (xSponge0 - lx(0))) ** 2.0
                 else if(x(i00 + i) >= xSponge1) then
-                  alphaTFC(i, j, k) = alphaTFC(i, j, k) + spongeAlphaX &
-                      * sin(0.5 * pi * (x(i00 + i) - xSponge1) / (lx(1) &
-                      - xSponge1)) ** 2.0
+                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                      + spongeAlphaX * sin(0.5 * pi * (x(i00 + i) - xSponge1) &
+                      / (lx(1) - xSponge1)) ** 2.0
                 end if
 
                 ! Meridional sponge.
                 if(y(j00 + j) <= ySponge0) then
-                  alphaTFC(i, j, k) = alphaTFC(i, j, k) + spongeAlphaY &
-                      * sin(0.5 * pi * (ySponge0 - y(j00 + j)) / (ySponge0 &
-                      - ly(0))) ** 2.0
+                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                      + spongeAlphaY * sin(0.5 * pi * (ySponge0 - y(j00 + j)) &
+                      / (ySponge0 - ly(0))) ** 2.0
                 else if(y(j00 + j) >= ySponge1) then
-                  alphaTFC(i, j, k) = alphaTFC(i, j, k) + spongeAlphaY &
-                      * sin(0.5 * pi * (y(j00 + j) - ySponge1) / (ly(1) &
-                      - ySponge1)) ** 2.0
+                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                      + spongeAlphaY * sin(0.5 * pi * (y(j00 + j) - ySponge1) &
+                      / (ly(1) - ySponge1)) ** 2.0
                 end if
-              end if
-
-              ! Vertical sponge.
-              if(heightTFC(i, j, k) >= zSponge) then
-                alphaTFC(i, j, k) = alphaTFC(i, j, k) + spongeAlphaZ * sin(0.5 &
-                    * pi * (heightTFC(i, j, k) - zSponge) / (lz(1) - zSponge)) &
-                    ** 2.0
-              end if
-
-              ! Adjust for terrain-following velocity.
-              alphaTFC(i, j, k) = alphaTFC(i, j, k) / jac(i, j, k)
+              end do
             end do
           end do
-        end do
+        end if
+
+        if(topography) then
+          do k = 1, nz
+            do j = 1, ny
+              do i = 1, nx
+                ! Vertical sponge.
+                if(heightTFC(i, j, k) >= zSponge) then
+                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                      + spongeAlphaZ * sin(0.5 * pi * (heightTFC(i, j, k) &
+                      - zSponge) / (lz(1) - zSponge)) ** 2.0
+                end if
+
+                ! Adjust for terrain-following velocity.
+                alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                    / jac(i, j, k)
+              end do
+            end do
+          end do
+        else
+          do k = kSponge, nz
+            ! Vertical sponge.
+            alphaUnifiedSponge(:, :, k) = alphaUnifiedSponge(:, :, k) &
+                + spongeAlphaZ * sin(0.5 * pi * (z(k) - zSponge) / (lz(1) &
+                - zSponge)) ** 2.0
+          end do
+        end if
       else
         ! allocate( alpbls(0:ny+1),stat=allocstat)
         ! if(allocstat /= 0) stop "pinc.f90: could not allocate alpbls"
@@ -746,8 +775,8 @@ program pinc_prog
 
       if(rayTracer) then
         do RKstage = 1, nStages
+          call calc_meanFlow_effect(ray, var, force, ray_var3D, time)
           call transport_rayvol(var, ray, dt, RKstage, time)
-
           if(RKstage == nStages) then
             call boundary_rayvol(ray)
             call split_rayvol(ray)
@@ -755,7 +784,7 @@ program pinc_prog
             call merge_rayvol(ray)
 
             ! GW effects are put into force(...,1/2) and var(...,8)
-            call calc_meanFlow_effect(ray, var, force, ray_var3D)
+            ! call calc_meanFlow_effect(ray, var, force, ray_var3D, time)
           end if
         end do
       end if
@@ -802,7 +831,7 @@ program pinc_prog
 
           ! limit Smagorinsky coefficient so that the damping time
           ! scale for the 2dx-wave is shorter than a time step
-          var(:, :, :, 7) = min(var(:, :, :, 7), 1.e0 / (dt * pi ** 2))
+          ! var(:, :, :, 7) = min(var(:, :, :, 7), 1.e0 / (dt * pi ** 2))
         else
           var(:, :, :, 7) = tRef / turb_dts
         end if
@@ -892,7 +921,7 @@ program pinc_prog
         call momentumPredictor(var, flux, force, 0.5 * dt, dMom, RKstage, &
             "lhs", "expl", 1.)
 
-        if(topography .and. spongeTFC) then
+        if(unifiedSponge) then
           call set_spongeLayer(var, stepFrac(RKstage) * 0.5 * dt, "uvw")
         end if
 
@@ -1224,7 +1253,7 @@ program pinc_prog
         call momentumPredictor(var, flux, force, dt, dMom, RKstage, "lhs", &
             "expl", 1.)
 
-        if(topography .and. spongeTFC) then
+        if(unifiedSponge) then
           call set_spongeLayer(var, stepFrac(RKstage) * dt, "uvw")
         end if
 
@@ -1434,6 +1463,7 @@ program pinc_prog
           if(DySmaScheme) then
             call CoefDySma_update(var)
             !call CoefDySma_update(var,dt)
+            ! var(:, :, :, 7) = min(var(:, :, :, 7), 1.e0 / (dt * pi ** 2))
           else
             var(:, :, :, 7) = tRef / turb_dts
           end if
@@ -1504,7 +1534,7 @@ program pinc_prog
         ! Lag Ray tracer (position-wavenumber space method)
 
         if(rayTracer) then
-          call calc_meanFlow_effect(ray, var, force, ray_var3D)
+          call calc_meanFlow_effect(ray, var, force, ray_var3D, time)
           call transport_rayvol(var, ray, dt, RKstage, time)
           if(RKstage == nStages) then
             call boundary_rayvol(ray)
