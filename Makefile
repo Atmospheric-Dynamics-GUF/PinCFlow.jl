@@ -1,24 +1,20 @@
-# Makefile of PincFlowMSGWAM
+# Makefile of PincFlow
 
 # Set compiler.
-# FC = mpif90
-FC = mpiifort
+FC = mpif90
+# FC = mpiifort
 COMPILER = $(shell echo `$(FC) --version` | sed 's/ .*//')
 
 # Set flags.
 ifeq ($(COMPILER), ifort)
-  FCFLAGS=-O0 -fpe0 -check all -real-size 64 -traceback -unroll=4 -ip
-  #FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
+  # FCFLAGS=-O0 -g -check all -real-size 64 -traceback -unroll=4 -ip
+  FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
   MODULEFLAG=-module $(BUILD)
 else # GNU
   # FCFLAGS=-O0 -g -fcheck=all -Wall -Wno-unused-variable -fdefault-real-8 -fbacktrace -funroll-loops -Wno-unused-dummy-argument -Wno-conversion-extra
-  FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch
+  FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch -w
   MODULEFLAG= -J$(BUILD)
 endif
-
-# Set path to Hypre library.
-# LIBHYPRE ?= /usr/lib/hypre/src/lib
-# LIBHYPRE ?= /home/atmodynamics/jochum/libraries/spack/opt/spack/linux-scientific7-haswell/gcc-4.8.5/hypre-2.26.0-fgfu4ncdxl7ullqryad7jtdzgzqfacjw/lib
 
 # Define directories for sources and binaries.
 BIN = $(shell mkdir -p ./bin) ./bin
@@ -47,9 +43,9 @@ OFILES =	types.o \
 	ice.o \
 	sizeof.o \
 	tracer.o \
-        ice2.o \
-        ice2_sub.o \
-        optField.o
+	ice2.o \
+	ice2_sub.o \
+	optField.o
 
 # Add build directory as prefix to path of *.o files.
 OBJ=$(addprefix $(BUILD)/, $(OFILES))
@@ -61,8 +57,8 @@ $(BUILD)/%.o: $(SOURCE)/%.f90
 # Set the main target.
 pinc:$(OBJ)
 	$(FC) $(FCFLAGS) -o $(BIN)/pinc $(OBJ)
-# pinc:$(OBJ)
-# 	$(FC) $(FCFLAGS) -o $(BIN)/pinc $(OBJ) -L$(LIBHYPRE) -lHYPRE
+	mkdir -p code
+	cp -r $(SOURCE)/* ./code
 
 # List dependencies.
 
@@ -153,6 +149,7 @@ $(BUILD)/update.o: $(BUILD)/boundary.o
 $(BUILD)/output.o: $(BUILD)/types.o
 $(BUILD)/output.o: $(BUILD)/sizeof.o
 $(BUILD)/output.o: $(BUILD)/ice2_sub.o
+$(BUILD)/output.o: $(BUILD)/optField.o
 
 # finish.f90
 $(BUILD)/finish.o: $(BUILD)/types.o

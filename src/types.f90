@@ -247,6 +247,8 @@ module type_module
   logical :: lsaturation ! JaWi 16.12.16 (sat)
   real :: alpha_sat ! JaWi 16.12.16 (sat)
 
+  logical :: steady_state
+
   integer :: case_wkb !1/2: Gaussian/Cosine wave packet; 3: mountain
 
   real :: amp_wkb
@@ -274,8 +276,11 @@ module type_module
 
   ! Long number scaling of displacement (FJJan2023)
   logical :: long_scaling
-  integer :: long_fit
-  real :: along, blong
+  character(len = 50) :: long_method
+  real :: long_threshold
+
+  ! Number of wave modes (FJApr2023)
+  integer :: nwm
 
   real :: zmin_wkb_dim, zmin_wkb
 
@@ -290,12 +295,13 @@ module type_module
   namelist / LagrangeRayTracing / xrmin_dim, xrmax_dim, yrmin_dim, yrmax_dim, &
       zrmin_dim, zrmax_dim, nrxl, nryl, nrzl, fac_dk_init, fac_dl_init, &
       fac_dm_init, nrk_init, nrl_init, nrm_init, nsmth_wkb, lsmth_wkb, &
-      sm_filter, lsaturation, alpha_sat, case_wkb, amp_wkb, wlrx_init, &
-      wlry_init, wlrz_init, xr0_dim, yr0_dim, zr0_dim, sigwpx_dim, sigwpy_dim, &
-      sigwpz_dim, branchr, lindUinit, topographyTime_wkb, &
+      sm_filter, lsaturation, alpha_sat, steady_state, case_wkb, amp_wkb, &
+      wlrx_init, wlry_init, wlrz_init, xr0_dim, yr0_dim, zr0_dim, sigwpx_dim, &
+      sigwpy_dim, sigwpz_dim, branchr, lindUinit, topographyTime_wkb, &
       mountainHeight_wkb_dim, mountainWidth_wkb_dim, mountain_case_wkb, &
-      range_factor_wkb, long_scaling, long_fit, along, blong, zmin_wkb_dim, &
-      nray_fac, cons_merge ! JaWi: new nml!      ! Jan Weinkaemmerer, 27.11.18
+      range_factor_wkb, long_scaling, long_method, long_threshold, nwm, &
+      zmin_wkb_dim, nray_fac, cons_merge ! JaWi: new nml!
+  ! Jan Weinkaemmerer, 27.11.18
 
   !------------------------------------------
   ! hotBubble, coldBubble, hotBubble3D
@@ -318,7 +324,7 @@ module type_module
   !-----------------------------------------------------------------
 
   ! zonal wind to be attained by temporary wind relexation
-  real :: u_relax
+  real :: u_relax, v_relax, w_relax
   ! total relaxation time
   real :: t_relax
   ! duration of ramping up/down the relaxation
@@ -327,12 +333,12 @@ module type_module
   real :: xextent_norelax
   ! TFC FJ
   ! Switch for background relaxation.
-  logical :: relax_background
+  logical :: wind_relaxation
   ! FJMar2023
   ! Surface layer depth.
   real :: surface_layer_depth
-  namelist / mountainwavelist / u_relax, t_relax, t_ramp, xextent_norelax, &
-      relax_background, surface_layer_depth
+  namelist / mountainwavelist / u_relax, v_relax, w_relax, t_relax, t_ramp, &
+      xextent_norelax, wind_relaxation, surface_layer_depth
   ! achatze
 
   !-----------------------------------------------------------------
@@ -688,9 +694,6 @@ module type_module
   integer :: ipolTFC
   logical :: freeSlipTFC
   logical :: testTFC
-  logical :: spongeTFC, lateralSponge
-  real :: xSponge0, ySponge0, xSponge1, ySponge1
-  real, dimension(:, :, :), allocatable :: alphaTFC
 
   ! FJFeb2023
   real :: topographyTime
@@ -702,8 +705,8 @@ module type_module
 
   ! TFC FJ
   namelist / topographyList / topography, ipolTFC, freeSlipTFC, testTFC, &
-      spongeTFC, lateralSponge, topographyTime, mountainHeight_dim, &
-      mountainWidth_dim, mountain_case, range_factor, z_0_dim
+      topographyTime, mountainHeight_dim, mountainWidth_dim, mountain_case, &
+      range_factor, z_0_dim
   !UAB
   !UAE
 
@@ -724,11 +727,19 @@ module type_module
   !UAC real    :: spongeAlphaZ_dim
   real :: spongeAlphaZ_dim, spongeAlphaZ_fac
 
-  ! Sponge order (FJMar2023)
-  integer :: sponge_order
+  ! Unified and lateral sponge layers (FJJun2023)
+  logical :: unifiedSponge, lateralSponge
+  real, dimension(:, :, :), allocatable :: alphaUnifiedSponge
+  real :: xSponge0, ySponge0, xSponge1, ySponge1
 
-  ! Diffusive sponge (FJMar2023)
-  logical :: diffusive_sponge
+  ! Vertical sponge layer
+  character(len = 50) :: verticalSponge
+
+  ! Order of polynomial sponge
+  integer :: spongeOrder
+
+  ! Damping time of COSMO sponge (in time steps)
+  integer :: cosmoSteps
 
   ! gaga: backup, delete later
   character(len = 10) :: utopcond ! dudz=0 or default u=0
@@ -744,8 +755,9 @@ module type_module
 
   namelist / boundaryList / rhoFluxCorr, iceFluxCorr, uFluxCorr, vFluxCorr, &
       wFluxCorr, thetaFluxCorr, nbCellCorr, spongeLayer, sponge_uv, &
-      spongeHeight, zSponge, spongeAlphaZ_dim, spongeAlphaZ_fac, sponge_order, &
-      diffusive_sponge, utopcond, rhocond, thcond
+      spongeHeight, zSponge, spongeAlphaZ_dim, spongeAlphaZ_fac, &
+      unifiedSponge, lateralSponge, verticalSponge, spongeOrder, cosmoSteps, &
+      utopcond, rhocond, thcond
   !UAC & spongeLayer, spongeHeight, &
   !UAC & spongeAlphaZ_dim, utopcond, rhocond, thcond
 
@@ -897,28 +909,43 @@ module type_module
     ipolTFC = 2
     freeSlipTFC = .false.
     testTFC = .false.
-    spongeTFC = .false.
-    lateralSponge = .false.
-    relax_background = .true.
+    wind_relaxation = .false.
 
     ! Surface layer depth (FJMar2023)
     surface_layer_depth = 0.0
 
     ! Long number scaling (FJJan2023)
     long_scaling = .false.
-    long_fit = 1
-    along = 0.5
-    blong = 1.0
+    long_method = "lott_miller"
+    long_threshold = 0.25
+
+    ! Number of wave modes (FJApr2023)
+    nwm = 1
 
     ! Topography growth (FJFeb2023)
     topographyTime = 0.0
     topographyTime_wkb = 0.0
 
-    ! Sponge order (FJMar2023)
-    sponge_order = 1
+    ! Unified and lateral sponges (FJJun2023)
+    unifiedSponge = .false.
+    lateralSponge = .false.
 
-    ! Diffusive sponge (FJMar2023)
-    diffusive_sponge = .false.
+    ! Vertical sponge
+    verticalSponge = "polynomial"
+
+    ! Sponge order (FJMar2023)
+    spongeOrder = 1
+
+    ! COSMO steps (FJJul2023)
+    cosmoSteps = 10
+
+    ! Steady state in WKB model
+    steady_state = .false.
+
+    ! Wind relaxation
+    u_relax = 0.0
+    v_relax = 0.0
+    w_relax = 0.0
 
   end subroutine default_values
 

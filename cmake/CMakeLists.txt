@@ -1,11 +1,11 @@
-# CMakeLists of PincFlowMSGWAM
+# CMakeLists of PincFlow
 
 # Specify minimum cmake version.
 cmake_minimum_required(VERSION 2.8)
 
 # Set compiler.
-# set(CMAKE_Fortran_COMPILER mpif90)
-set(CMAKE_Fortran_COMPILER mpiifort)
+set(CMAKE_Fortran_COMPILER mpif90)
+# set(CMAKE_Fortran_COMPILER mpiifort)
 
 # Set project name.
 project(pinc Fortran)
@@ -13,7 +13,7 @@ project(pinc Fortran)
 # Set language.
 enable_language(Fortran)
 
-# Set debugq option.
+# Set debug option.
 option(DEBUGFLAG "set to ON to enable debug compiler options" OFF)
 
 # Set directories for output binary independent of IDE definitions.
@@ -25,12 +25,11 @@ if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
     if (DEBUGFLAG)
         add_compile_options(-O0 -g -fcheck=all -Wall -fdefault-real-8 -fbacktrace -funroll-loops -Wno-unused-dummy-argument -Wno-conversion-extra -Wno-unused-variable)
     else()
-        add_compile_options(-O3 -fdefault-real-8 -fbacktrace -funroll-loops)
-        # add_compile_options(-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch)
+        add_compile_options(-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch)
     endif()
 elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
     if (DEBUGFLAG)
-        add_compile_options(-O0 -fpe0 -check all -real-size 64 -traceback -unroll=4 -ip)
+        add_compile_options(-O0 -g -fpe0 -check all -real-size 64 -traceback -unroll=4 -ip)
     else()
         add_compile_options(-O3 -real-size 64 -traceback -unroll=4 -ip)
     endif()
@@ -39,10 +38,6 @@ endif()
 # Find MPI module.
 find_package(MPI)
 include_directories(${MPI_Fortran_INCLUDE_PATH})
-
-# Set link to HYPRE library.
-# set(HYPRE /usr/lib/x86_64-linux-gnu/libHYPRE-2.22.1.so)
-# set(HYPRE /home/atmodynamics/jochum/libraries/spack/opt/spack/linux-scientific7-haswell/gcc-4.8.5/hypre-2.26.0-fgfu4ncdxl7ullqryad7jtdzgzqfacjw/lib/libHYPRE.so)
 
 # Compile executable.
 add_executable(pinc
@@ -73,7 +68,7 @@ add_executable(pinc
         )
 
 # Link MPI and Hypre from system libraries.
-target_link_libraries(pinc ${MPI_Fortran_LIBRARIES})# ${HYPRE})
+target_link_libraries(pinc ${MPI_Fortran_LIBRARIES})
 
 # Inform about debug options.
 message("[INFO] Compiler ID is " ${CMAKE_Fortran_COMPILER_ID})
