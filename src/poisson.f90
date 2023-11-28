@@ -6,9 +6,7 @@ module poisson_module
   use atmosphere_module
   use algebra_module
   use bicgstab_tools_module
-  use bicgstab_tools_module
   use output_module
-  use sizeof_module
   use sizeof_module
 
   implicit none
@@ -432,8 +430,9 @@ module poisson_module
       if(niter == 0) then
         s_pc = sIn
       else
-        !call linOpr( s_pc, q_pc, opt, 'hnd' )
-        call linOpr(s_pc, q_pc, opt, 'hor')
+        ! call linOpr(s_pc, q_pc, opt, 'hor')
+        ! Treat all diagonal elements implicitly.
+        call linOpr(s_pc, q_pc, opt, 'hnd')
 
         s_pc = s_pc + deta * (q_pc - sIn)
       end if
@@ -452,10 +451,11 @@ module poisson_module
             q_pc(i, j, 1) = - au_b(i, j, 1) / ac_b(i, j, 1)
             s_pc(i, j, 1) = s_pc(i, j, 1) / ac_b(i, j, 1)
           else
-            q_pc(i, j, 1) = deta * au_b(i, j, 1) / (1. - deta * acv_b(i, j, 1))
-            s_pc(i, j, 1) = s_pc(i, j, 1) / (1. - deta * acv_b(i, j, 1))
-            !q_pc(i,j,1) = deta * au_b(i,j,1)/(1. - deta*ac_b(i,j,1))
-            !s_pc(i,j,1) = s_pc(i,j,1)/(1. - deta*ac_b(i,j,1))
+            ! q_pc(i, j, 1) = deta * au_b(i, j, 1) / (1. - deta * acv_b(i, j, 1))
+            ! s_pc(i, j, 1) = s_pc(i, j, 1) / (1. - deta * acv_b(i, j, 1))
+            ! Treat all diagonal elements implicity.
+            q_pc(i, j, 1) = deta * au_b(i, j, 1) / (1. - deta * ac_b(i, j, 1))
+            s_pc(i, j, 1) = s_pc(i, j, 1) / (1. - deta * ac_b(i, j, 1))
           end if
         end do
       end do
@@ -472,12 +472,11 @@ module poisson_module
               s_pc(i, j, k) = (s_pc(i, j, k) - ad_b(i, j, k) * s_pc(i, j, k &
                   - 1)) * p_pc(i, j)
             else
-              p_pc(i, j) = 1.0 / (1. - deta * acv_b(i, j, k) - deta * ad_b(i, &
+              ! p_pc(i, j) = 1.0 / (1. - deta * acv_b(i, j, k) - deta * ad_b(i, &
+              !     j, k) * q_pc(i, j, k - 1))
+              ! Treat all diagonal elements implicitly.
+              p_pc(i, j) = 1.0 / (1. - deta * ac_b(i, j, k) - deta * ad_b(i, &
                   j, k) * q_pc(i, j, k - 1))
-              !p_pc(i,j) &
-              != 1.0 &
-              !  /(  1. - deta*ac_b(i,j,k) &
-              !    - deta*ad_b(i,j,k)*q_pc(i,j,k-1))
 
               q_pc(i, j, k) = deta * au_b(i, j, k) * p_pc(i, j)
 
@@ -611,6 +610,118 @@ module poisson_module
     return
 
   end subroutine preCond_0
+
+  !----------------------------------------------------------------------
+
+  subroutine preCondExperiment(sIn, sOut, opt)
+    ! --------------------------------------
+    !   preconditioner for BiCGStab
+    !   solves vertical problem exploiting its tri-diagonal character
+    !   (Isaacson & Keller 1966, see also Durran's book appendix A.2)
+    ! --------------------------------------
+
+    ! in/out variables
+    real, dimension(1:nx, 1:ny, 1:nz), intent(out) :: sOut
+    real, dimension(1:nx, 1:ny, 1:nz), intent(in) :: sIn
+
+    ! opt = expl =>
+    ! pressure solver for explicit problem and corresponding correction
+    ! of the winds
+    ! opt = impl =>
+    ! pressure solver for implicit problem and corresponding correction
+    ! of the winds and density fluctuations
+    character(len = *), intent(in) :: opt
+
+    ! local field
+    real, dimension(1:nx, 1:ny, 1:nz) :: s_pc, q_pc
+    real, dimension(1:nx, 1:ny) :: p_pc
+
+    ! local variables
+    integer :: k
+    integer :: i, j
+    integer :: niter
+
+    real :: deta
+
+    ! pseudo timestep
+
+    deta = dtau / (2. * (1. / dx ** 2 + 1. / dy ** 2))
+
+    s_pc = 0.
+
+    do niter = 1, maxIterADI
+      if(niter == 0) then
+        s_pc = sIn
+      else
+        call linOpr(s_pc, q_pc, opt, 'hnd')
+
+        s_pc = ach_b * s_pc + deta * (q_pc - sIn)
+      end if
+
+      ! upward sweep
+
+      do j = 1, ny
+        do i = 1, nx
+          au_b(i, j, nz) = 0.0
+        end do
+      end do
+
+      do j = 1, ny
+        do i = 1, nx
+          if(niter == 0) then
+            q_pc(i, j, 1) = - au_b(i, j, 1) / ac_b(i, j, 1)
+            s_pc(i, j, 1) = s_pc(i, j, 1) / ac_b(i, j, 1)
+          else
+            q_pc(i, j, 1) = deta * au_b(i, j, 1) / (ach_b(i, j, 1) - deta &
+                * ac_b(i, j, 1))
+            s_pc(i, j, 1) = s_pc(i, j, 1) / (ach_b(i, j, 1) - deta * ac_b(i, &
+                j, 1))
+          end if
+        end do
+      end do
+
+      do k = 2, nz
+        do j = 1, ny
+          do i = 1, nx
+            if(niter == 0) then
+              p_pc(i, j) = 1.0 / (ac_b(i, j, k) + ad_b(i, j, k) * q_pc(i, j, k &
+                  - 1))
+
+              q_pc(i, j, k) = - au_b(i, j, k) * p_pc(i, j)
+
+              s_pc(i, j, k) = (s_pc(i, j, k) - ad_b(i, j, k) * s_pc(i, j, k &
+                  - 1)) * p_pc(i, j)
+            else
+              p_pc(i, j) = 1.0 / (ach_b(i, j, k) - deta * ac_b(i, j, k) - deta &
+                  * ad_b(i, j, k) * q_pc(i, j, k - 1))
+
+              q_pc(i, j, k) = deta * au_b(i, j, k) * p_pc(i, j)
+
+              s_pc(i, j, k) = (s_pc(i, j, k) + deta * ad_b(i, j, k) * s_pc(i, &
+                  j, k - 1)) * p_pc(i, j)
+            end if
+          end do
+        end do
+      end do
+
+      ! backward pass
+
+      do k = nz - 1, 1, - 1
+        do j = 1, ny
+          do i = 1, nx
+            s_pc(i, j, k) = s_pc(i, j, k) + q_pc(i, j, k) * s_pc(i, j, k + 1)
+          end do
+        end do
+      end do
+    end do
+
+    ! final result
+
+    sOut = s_pc
+
+    return
+
+  end subroutine preCondExperiment
 
   !----------------------------------------------------------------------
 
@@ -782,6 +893,13 @@ module poisson_module
       else
         stop "Poisson: unknown case xBoundary"
       end if
+
+      ! set vertical boundary conditions
+      if(zBoundary == "periodic") then
+        s(:, :, 0) = s(:, :, nz)
+        s(:, :, nz + 1) = s(:, :, 1)
+      end if
+
       if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
           copied."
 
@@ -4753,7 +4871,12 @@ module poisson_module
               end if
 
               if(spongeLayer) then
-                facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
+                if(unifiedSponge) then
+                  facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
+                      + alphaUnifiedSponge(i, j, k + 1))
+                else
+                  facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
+                end if
               end if
 
               pEdge = 0.5 * (pStrat(k + 1) + pStrat(k))
@@ -4923,7 +5046,13 @@ module poisson_module
                 end if
               end if
 
-              if(spongeLayer) facw = facw + dt * kr_sp(j, k)
+              if(spongeLayer) then
+                if(unifiedSponge) then
+                  facw = facw + dt * alphaUnifiedSponge(i, j, k)
+                else
+                  facw = facw + dt * kr_sp(j, k)
+                end if
+              end if
 
               rho = var(i, j, k, 1)
               if(fluctuationMode) rho = rho + rhoStrat(k)
@@ -5648,10 +5777,10 @@ module poisson_module
               end if
 
               if(spongeLayer) then
-                if(topography .and. spongeTFC) then
+                if(unifiedSponge) then
                   ! TFC FJ
-                  facw = facw + dt * 0.5 * (alphaTFC(i, j, k) + alphaTFC(i, j, &
-                      k + 1))
+                  facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
+                      + alphaUnifiedSponge(i, j, k + 1))
                 else
                   facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
                 end if
@@ -5972,9 +6101,9 @@ module poisson_module
               end if
 
               if(spongeLayer) then
-                if(topography .and. spongeTFC) then
+                if(unifiedSponge) then
                   ! TFC FJ
-                  facw = facw + dt * alphaTFC(i, j, k)
+                  facw = facw + dt * alphaUnifiedSponge(i, j, k)
                 else
                   facw = facw + dt * kr_sp(j, k)
                 end if
@@ -6362,6 +6491,9 @@ module poisson_module
     i00 = is + nbx - 1
     j00 = js + nby - 1
 
+    ! No heating in TFC (FJApr2023)
+    if(topography) return
+
     !-------------------------------------------------------
     ! calculate the environment-induced negative (!) heating
     !-------------------------------------------------------
@@ -6583,7 +6715,7 @@ module poisson_module
     !UAE
 
     !UAB
-    if(spongeLayer) then
+    if(spongeLayer .and. .not. unifiedSponge) then
       khmax = ksponge + int((nz - kSponge) / 2)
 
       !do k = kSponge,nz
@@ -6980,26 +7112,7 @@ module poisson_module
                 !   values_e(index_count_hypre + 4) = AF
                 !   values_e(index_count_hypre + 5) = AD
                 !   values_e(index_count_hypre + 6) = AU
-                ! else if (poissonSolverType == 'hypre') then
-                !   ! index_count_hypre
-                !   ! = ( i * j * k * ne_hypre_e ) - ne_hypre_e + 1
-
-                !   index_count_hypre = i
-                !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
-                !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
-
-                !   index_count_hypre = (index_count_hypre * ne_hypre_e) &
-                !       - ne_hypre_e + 1
-
-                !   values_e(index_count_hypre) = AC
-                !   values_e(index_count_hypre + 1) = AL
-                !   values_e(index_count_hypre + 2) = AR
-                !   values_e(index_count_hypre + 3) = AB
-                !   values_e(index_count_hypre + 4) = AF
-                !   values_e(index_count_hypre + 5) = AD
-                !   values_e(index_count_hypre + 6) = AU
               else
-                stop 'ERROR: val_PsIn expects bicgstab'
                 stop 'ERROR: val_PsIn expects bicgstab'
               end if
             end do ! i_loop
@@ -7223,7 +7336,12 @@ module poisson_module
               end if
 
               if(spongeLayer) then
-                facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
+                if(unifiedSponge) then
+                  facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
+                      + alphaUnifiedSponge(i, j, k + 1))
+                else
+                  facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
+                end if
               end if
 
               bvsstw = 0.5 * (bvsStrat(k) + bvsStrat(k + 1))
@@ -7272,7 +7390,12 @@ module poisson_module
               end if
 
               if(spongeLayer) then
-                facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k - 1))
+                if(unifiedSponge) then
+                  facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
+                      + alphaUnifiedSponge(i, j, k - 1))
+                else
+                  facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k - 1))
+                end if
               end if
 
               bvsstw = 0.5 * (bvsStrat(k - 1) + bvsStrat(k))
@@ -7373,30 +7496,7 @@ module poisson_module
               !   values_i(index_count_hypre + 8) = ALF
               !   values_i(index_count_hypre + 9) = ARB
               !   values_i(index_count_hypre + 10) = ARF
-              ! else if (poissonSolverType == 'hypre') then
-              !   ! index_count_hypre
-              !   ! = ( i * j * k * ne_hypre_i ) - ne_hypre_i + 1
-
-              !   index_count_hypre = i
-              !   index_count_hypre = index_count_hypre + ((j - 1) * nx)
-              !   index_count_hypre = index_count_hypre + ((k - 1) * nx * ny)
-
-              !   index_count_hypre = (index_count_hypre * ne_hypre_i) &
-              !       - ne_hypre_i + 1
-
-              !   values_i(index_count_hypre) = AC
-              !   values_i(index_count_hypre + 1) = AL
-              !   values_i(index_count_hypre + 2) = AR
-              !   values_i(index_count_hypre + 3) = AB
-              !   values_i(index_count_hypre + 4) = AF
-              !   values_i(index_count_hypre + 5) = AD
-              !   values_i(index_count_hypre + 6) = AU
-              !   values_i(index_count_hypre + 7) = ALB
-              !   values_i(index_count_hypre + 8) = ALF
-              !   values_i(index_count_hypre + 9) = ARB
-              !   values_i(index_count_hypre + 10) = ARF
             else
-              stop 'ERROR: val_PsIn expects bicgstab'
               stop 'ERROR: val_PsIn expects bicgstab'
             end if
           end do ! i_loop
@@ -8503,11 +8603,11 @@ module poisson_module
                   facDEdgeB = facDEdgeB + 0.5 * dt * (kr_sp(j, k - 1) &
                       + kr_sp(j - 1, k - 1))
                 end if
-                if(spongeTFC) then
-                  facEdgeU = facEdgeU + 0.5 * dt * (alphaTFC(i, j, k) &
-                      + alphaTFC(i, j, k + 1))
-                  facEdgeD = facEdgeD + 0.5 * dt * (alphaTFC(i, j, k) &
-                      + alphaTFC(i, j, k - 1))
+                if(unifiedSponge) then
+                  facEdgeU = facEdgeU + 0.5 * dt * (alphaUnifiedSponge(i, j, &
+                      k) + alphaUnifiedSponge(i, j, k + 1))
+                  facEdgeD = facEdgeD + 0.5 * dt * (alphaUnifiedSponge(i, j, &
+                      k) + alphaUnifiedSponge(i, j, k - 1))
                 else
                   facEdgeU = facEdgeU + 0.5 * dt * (kr_sp(j, k) + kr_sp(j, k &
                       + 1))
@@ -9911,7 +10011,12 @@ module poisson_module
                 end if
 
                 if(spongeLayer) then
-                  facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
+                  if(unifiedSponge) then
+                    facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
+                        + alphaUnifiedSponge(i, j, k + 1))
+                  else
+                    facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
+                  end if
                 end if
 
                 bvsstw = 0.5 * (bvsStrat(k) + bvsStrat(k + 1))
@@ -9963,7 +10068,12 @@ module poisson_module
                 end if
 
                 if(spongeLayer) then
-                  facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k - 1))
+                  if(unifiedSponge) then
+                    facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
+                        + alphaUnifiedSponge(i, j, k - 1))
+                  else
+                    facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k - 1))
+                  end if
                 end if
 
                 bvsstw = 0.5 * (bvsStrat(k - 1) + bvsStrat(k))
@@ -10089,15 +10199,7 @@ module poisson_module
   !==============================================================
 
   ! subroutine val_hypre_Bous
-  ! subroutine val_hypre_Bous
 
-  !   ! local variables
-  !   integer :: i, j, k
-  !   real :: pStratU, pStratD, rhoEdge
-  !   !UAC real :: AL,AR, AB,AF, AD,AU, AC
-  !   real :: AL, AR, AB, AF, AD, AU, AC, ACH, ACV
-  !   real :: dx2, dy2, dz2
-  !   integer :: index_count_hypre
   !   ! local variables
   !   integer :: i, j, k
   !   real :: pStratU, pStratD, rhoEdge
@@ -10113,18 +10215,7 @@ module poisson_module
   !         pseudo-incompressible case accordingly)'
   !     stop
   !   end if
-  !   if (topography) then
-  !     print *, 'ERROR: no topography allowed in Boussinesq mode'
-  !     print *, '(would require semi-implicit time stepping)'
-  !     print *, '(could be implemented easily by simplifying the  &
-  !         pseudo-incompressible case accordingly)'
-  !     stop
-  !   end if
 
-  !   ! auxiliary variables
-  !   dx2 = 1.0 / dx ** 2
-  !   dy2 = 1.0 / dy ** 2
-  !   dz2 = 1.0 / dz ** 2
   !   ! auxiliary variables
   !   dx2 = 1.0 / dx ** 2
   !   dy2 = 1.0 / dy ** 2
@@ -10133,18 +10224,11 @@ module poisson_module
   !   !---------------------------------
   !   !         Loop over field
   !   !---------------------------------
-  !   !---------------------------------
-  !   !         Loop over field
-  !   !---------------------------------
 
   !   do k = 1, nz
   !     do j = 1, ny
   !       do i = 1, nx
-  !   do k = 1, nz
-  !     do j = 1, ny
-  !       do i = 1, nx
 
-  !         ! stencil without topography
   !         ! stencil without topography
 
   !         ! ------------------ A(i+1,j,k) ------------------
@@ -10243,6 +10327,9 @@ module poisson_module
     w_0 = 0.
     S_bar = 0.
     heat = 0.
+
+    ! No heating in TFC (FJApr2023)
+    if(topography) return
 
     ! negative (!) heating, i.e. -S eq(9)  ONeill+Klein2014
     call calculate_heating(var, flux, heat)

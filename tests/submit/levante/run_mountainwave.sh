@@ -1,37 +1,35 @@
 #!/bin/bash
-#SBATCH --job-name=mountainwave
 #SBATCH --partition=compute
-##SBATCH --partition=interactive
-#SBATCH --nodes=2
+#SBATCH --job-name=mountainwave
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-node=75
-#SBATCH --exclusive
-#SBATCH --time=02:00:00
+#SBATCH --time=01:00:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
-#SBATCH --output=my_job.%j.out
+#SBATCH --output=mountainwave.o%j
+#SBATCH --error=mountainwave.e%j
 
-#set -x
-set -e
+set -x
 
-# limit stacksize ... adjust to your programs need
-# and core file size
+# Set number of processors (product must be equal to number of tasks).
+ntasks=75
+nprocx=75
+nprocy=1
+
+# Limit stacksize (adjust to your programs need and core file size).
 ulimit -s 204800
 ulimit -c 0
 
-# set Intel MPI environment variables
+# Set OpenMPI configuration.
+export OMPI_MCA_osc="ucx"
+export OMPI_MCA_pml="ucx"
+export OMPI_MCA_btl="self"
+export UCX_HANDLE_ERRORS="bt"
+export OMPI_MCA_pml_ucx_opal_mem_hooks=1
+
+# Set Intel MPI configuration.
 export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
-
-# Set number of processors (product must be equal to number of tasks).
-#ntasks=150
-#nprocx=150
-#nprocy=1
-ntasks=150
-nprocx=150
-nprocy=1
-
-# Set OpenMP configuration.
-export OMP_NUM_THREADS=1
 
 userName=$(whoami)
 echo userName
@@ -69,13 +67,10 @@ sed -e "s/{nprocx}/${nprocx}/" \
 # Copy script in dirSaveCode
 if [ ${dirSaveCode} != ${dirScratch} ]; then
    cp -p ${dirScratch}/input.f90 ${dirSaveCode}/.
-fi   
+fi
 
 # Run the model.
-#mpirun -np ${ntasks} ${exe} 1>run.log 2>&1
-
 srun -l --cpu_bind=verbose --hint=nomultithread \
   --distribution=block:cyclic ${exe} 1>run.log 2>&1
 
 exit 0
-

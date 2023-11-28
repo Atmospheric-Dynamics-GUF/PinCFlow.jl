@@ -1,29 +1,35 @@
 #!/bin/bash
-#SBATCH --job-name=IGW
 #SBATCH --partition=compute
+#SBATCH --job-name=IGW
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --exclusive
-#SBATCH --time=00:30:00
+#SBATCH --time=01:00:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
-#SBATCH --output=my_job.%j.out
-
-# limit stacksize ... adjust to your programs need
-# and core file size
-ulimit -s 204800
-ulimit -c 0
+#SBATCH --output=IGW.o%j
+#SBATCH --error=IGW.e%j
 
 set -x
-#set -e
 
 # Set number of processors (product must be equal to number of tasks).
 ntasks=1
 nprocx=1
 nprocy=1
 
-# Set OpenMP configuration.
-export OMP_NUM_THREADS=1
+# Limit stacksize (adjust to your programs need and core file size).
+ulimit -s 204800
+ulimit -c 0
+
+# Set OpenMPI configuration.
+export OMPI_MCA_osc="ucx"
+export OMPI_MCA_pml="ucx"
+export OMPI_MCA_btl="self"
+export UCX_HANDLE_ERRORS="bt"
+export OMPI_MCA_pml_ucx_opal_mem_hooks=1
+
+# Set Intel MPI configuration.
+export I_MPI_PMI=pmi
+export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 userName=$(whoami)
 echo userName
@@ -61,11 +67,10 @@ sed -e "s/{nprocx}/${nprocx}/" \
 # Copy script in dirSaveCode
 if [ ${dirSaveCode} != ${dirScratch} ]; then
    cp -p ${dirScratch}/input.f90 ${dirSaveCode}/.
-fi   
+fi
 
 # Run the model.
 srun -l --cpu_bind=verbose --hint=nomultithread \
   --distribution=block:cyclic ${exe} 1>run.log 2>&1
 
 exit 0
-
