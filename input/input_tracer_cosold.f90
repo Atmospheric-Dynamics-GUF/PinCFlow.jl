@@ -12,15 +12,15 @@
 &domain
 
   ! nb of global grid cells
-  sizeX = 120,
+  sizeX = 40,
   sizeY = 1,
   sizeZ = 80,
   ! nb. of ghost cells
-  nbx = 3,
-  nby = 3,
-  nbz = 3,
+  nbx = 2,
+  nby = 2,
+  nbz = 2,
   ! domain lenths in m
-  lx_dim =    0.0, 240.0e3
+  lx_dim =    0.0, 80.0e3
   ly_dim =    0.0, 80.0e3
   lz_dim =    0.0, 20.0e3
   ! nb of processors in x and y direction must be set in the batch file
@@ -160,7 +160,7 @@
                                        ! 0 for non-diffusive
                                        ! 2 * mu_viscous_dim corresponds to
                                        ! Pr = 0.5
-  background = "isothermal"            ! const-N    -> set N_BruntVaisala_dim
+  background = "const-N"            ! const-N    -> set N_BruntVaisala_dim
                                        ! isothermal -> set Temp0_dim in K
                                        ! isentropic -> set theta0_dim in K
                                        ! uniform    -> constant density
@@ -195,13 +195,13 @@
                                        !               Boussinesq
   Temp0_dim =  300                     ! K
                                        ! isothermal -> background temperature
-  press0_dim =  101325.0               ! ground pressure (at z=0) in Pa:
+  press0_dim =  100000.0               ! ground pressure (at z=0) in Pa:
                                        ! 101325.0 for z = 0 bottom of atmosphere
                                        ! 101.3250 for z = 0 at appr 60km
-  N_BruntVaisala_dim = 0.018            ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 0.01            ! Brunt-Vaisala frequency for
                                        ! 1) "const-N" atmosphere in 1/s
                                        ! 2) "unifrom" Boussinesq
-  backgroundFlow_dim =  20.0, 0.0, 0.0  ! m/s
+  backgroundFlow_dim =  10.0, 0.0, 0.0  ! m/s
                                        ! zonal background flow velocity u
   f_Coriolis_dim = 0.                  ! 1/s
                                        ! Coriolis parameter
@@ -233,8 +233,8 @@
   spongeTFC = .true.       ! switch for unified sponge layer
   lateralSponge = .false.   ! switch for lateral sponge layers
   mountainHeight_dim = 1.e1 ! mountain height in m
-  mountainWidth_dim = 10e3 ! mountain half-width in m
-  mountain_case = 3         ! shape of orography
+  mountainWidth_dim = 20e3 ! mountain half-width in m
+  mountain_case = 1         ! shape of orography
                             ! 1 for cosine-shaped mountains
                             ! 2 for 3D cosine-shaped mountains (rotated)
                             ! 3 for bell-shaped mountain
@@ -262,10 +262,9 @@
                               ! k=nz-1
   nbCellCorr = 1
   ! sponge layer at upper boundary
-  spongeLayer = .true.       ! sponge with relaxation to background
-  spongeHeight = 0.5         ! relative height of sponge layer
-  spongeAlphaZ_dim = 0.2 !1.4e-4 ! relaxation rate coeff in 1/s
-  spongeAlphaZ_fac = 1.0
+  spongeLayer = .true.     ! sponge with relaxation to background
+  spongeHeight = 0.33      ! relative height of sponge layer
+  spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
 
 &end
 
@@ -285,18 +284,18 @@
 
 &outputList
 
-  outputType = "time"     ! timeStep / time
+  outputType = "time"         ! timeStep / time
   nOutput = 1                 ! output every nOutput's time step
                               ! for outputType = "timeStep"
-  maxIter = 10                 ! stop after maxIter time steps
-  outputTimeDiff = 86.4e3      ! output every ... seconds
+  maxIter = 1                 ! stop after maxIter time steps
+  outputTimeDiff = 86.4e3     ! output every ... seconds
   maxTime = 86.4e3            ! stop after maxTime seconds
   dataFileName = ""           ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref" ! restart file in TEC360 format
   restart = .false.           ! true / false
   dimOut = .true., .false., .true.
                               ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
-  varOut = 1,1,1,1,0,0,0,0,1    ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,0,0,0,1  ! 1 = output, 0 = no output
                               ! primary variables: rho,u,v,w,pi',theta',
                               ! dyn. Smagorinsky coeff.
                               ! if include_ice varOut must have length nVar+3
@@ -536,7 +535,7 @@
                           ! temporary wind relexation
   t_relax = 5.e3          ! [s] total relaxation time
   t_ramp = 25.e2          ! [s] duration of ramping up/down the relaxation
-  xextent_norelax = 4.e5  ! [m] zonal extent of
+  xextent_norelax = 1.e5  ! [m] zonal extent of
                           ! region without wind relaxation
 
 &end
