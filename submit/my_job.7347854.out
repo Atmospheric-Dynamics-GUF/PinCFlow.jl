@@ -1,0 +1,36 @@
+userName
+runName  agnesi_350K
+inputFile input_tracer_agnesi.f90
+
+********************************************************************************
+*                                                                              *
+*  This is the automated job summary provided by DKRZ.                         *
+*  If you encounter problems, need assistance or have any suggestion, please   *
+*  write an email to                                                           *
+*                                                                              *
+*  --  support@dkrz.de --                                                      *
+*                                                                              *
+*                       We hope you enjoyed the DKRZ supercomputer LEVANTE ... *
+*
+* JobID            : 7347854
+* JobName          : 3DWP                                              
+* Account          : bb1097
+* User             : b382140 (250259), bb1097 (1583)                   
+* Partition        : compute
+* QOS              : normal
+* Nodelist         : l10338 (1)                                                
+* Submit date      : 2023-10-17T08:52:34
+* Start time       : 2023-10-17T08:52:46
+* End time         : 2023-10-17T09:03:52
+* Elapsed time     : 00:11:06 (Timelimit=02:00:00)                     
+* Command          : /home/b/b382140/pinc-flow-tracer/submit/
+*                    run_agnesi_levante.sh
+* WorkDir          : /home/b/b382140/pinc-flow-tracer/submit
+*
+* StepID | JobName      NodeHours    MaxRSS [Byte] (@task)
+* ------------------------------------------------------------------------------
+* batch  | batch             0.18
+* extern | extern            0.18                2552K (0)
+* 0      | pinc              0.18              143076K (6)
+* ------------------------------------------------------------------------------
+

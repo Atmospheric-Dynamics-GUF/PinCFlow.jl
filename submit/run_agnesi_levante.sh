@@ -2,8 +2,8 @@
 #SBATCH --job-name=3DWP
 #SBATCH --partition=compute
 ##SBATCH --partition=interactive
-#SBATCH --nodes=2
-#SBATCH --ntasks-per-node=32
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=8
 #SBATCH --exclusive
 #SBATCH --time=02:00:00
 #SBATCH --mail-type=FAIL
@@ -26,8 +26,8 @@ export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 #ntasks=150
 #nprocx=150
 #nprocy=1
-ntasks=64
-nprocx=64
+ntasks=8
+nprocx=8
 nprocy=1
 
 # Set OpenMP configuration.
@@ -36,10 +36,10 @@ export OMP_NUM_THREADS=1
 userName=b382140
 echo userName
 
-runName=3DWP_LES
+runName=agnesi_20u0
 echo "runName " $runName
 
-inputFile=input_3DWP_LES.f90
+inputFile=input_tracer_agnesi.f90
 echo "inputFile "$inputFile
 
 # Define directories.
