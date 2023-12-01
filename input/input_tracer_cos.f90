@@ -16,9 +16,9 @@
   sizeY = 1,
   sizeZ = 80,
   ! nb. of ghost cells
-  nbx = 2,
-  nby = 2,
-  nbz = 2,
+  nbx = 3,
+  nby = 3,
+  nbz = 3,
   ! domain lenths in m
   lx_dim =    0.0, 80.0e3
   ly_dim =    0.0, 80.0e3
@@ -160,7 +160,7 @@
                                        ! 0 for non-diffusive
                                        ! 2 * mu_viscous_dim corresponds to
                                        ! Pr = 0.5
-  background = "const-N"            ! const-N    -> set N_BruntVaisala_dim
+  background = "isothermal"            ! const-N    -> set N_BruntVaisala_dim
                                        ! isothermal -> set Temp0_dim in K
                                        ! isentropic -> set theta0_dim in K
                                        ! uniform    -> constant density
@@ -195,13 +195,13 @@
                                        !               Boussinesq
   Temp0_dim =  300                     ! K
                                        ! isothermal -> background temperature
-  press0_dim =  100000.0               ! ground pressure (at z=0) in Pa:
+  press0_dim =  101325.0               ! ground pressure (at z=0) in Pa:
                                        ! 101325.0 for z = 0 bottom of atmosphere
                                        ! 101.3250 for z = 0 at appr 60km
-  N_BruntVaisala_dim = 0.01            ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 0.018            ! Brunt-Vaisala frequency for
                                        ! 1) "const-N" atmosphere in 1/s
                                        ! 2) "unifrom" Boussinesq
-  backgroundFlow_dim =  10.0, 0.0, 0.0  ! m/s
+  backgroundFlow_dim =  20.0, 0.0, 0.0  ! m/s
                                        ! zonal background flow velocity u
   f_Coriolis_dim = 0.                  ! 1/s
                                        ! Coriolis parameter
@@ -262,9 +262,10 @@
                               ! k=nz-1
   nbCellCorr = 1
   ! sponge layer at upper boundary
-  spongeLayer = .true.     ! sponge with relaxation to background
-  spongeHeight = 0.33      ! relative height of sponge layer
-  spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
+  spongeLayer = .true.       ! sponge with relaxation to background
+  spongeHeight = 0.5         ! relative height of sponge layer
+  spongeAlphaZ_dim = 0.05 !1.4e-4 ! relaxation rate coeff in 1/s
+  spongeAlphaZ_fac = 1.0
 
 &end
 
@@ -284,18 +285,18 @@
 
 &outputList
 
-  outputType = "time"         ! timeStep / time
+  outputType = "time"     ! timeStep / time
   nOutput = 1                 ! output every nOutput's time step
                               ! for outputType = "timeStep"
-  maxIter = 1                 ! stop after maxIter time steps
-  outputTimeDiff = 86.4e3     ! output every ... seconds
+  maxIter = 10000                 ! stop after maxIter time steps
+  outputTimeDiff = 1.2e2      ! output every ... seconds
   maxTime = 86.4e3            ! stop after maxTime seconds
   dataFileName = ""           ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref" ! restart file in TEC360 format
   restart = .false.           ! true / false
   dimOut = .true., .false., .true.
                               ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
-  varOut = 1,1,1,1,0,0,0,0,1  ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,0,0,0,1    ! 1 = output, 0 = no output
                               ! primary variables: rho,u,v,w,pi',theta',
                               ! dyn. Smagorinsky coeff.
                               ! if include_ice varOut must have length nVar+3

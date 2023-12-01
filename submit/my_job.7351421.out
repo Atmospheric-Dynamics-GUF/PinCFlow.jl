@@ -1,0 +1,35 @@
+userName
+runName  cos_20u0
+inputFile input_tracer_cos.f90
+
+********************************************************************************
+*                                                                              *
+*  This is the automated job summary provided by DKRZ.                         *
+*  If you encounter problems, need assistance or have any suggestion, please   *
+*  write an email to                                                           *
+*                                                                              *
+*  --  support@dkrz.de --                                                      *
+*                                                                              *
+*                       We hope you enjoyed the DKRZ supercomputer LEVANTE ... *
+*
+* JobID            : 7351421
+* JobName          : 3DWP                                              
+* Account          : bb1097
+* User             : b382140 (250259), bb1097 (1583)                   
+* Partition        : compute
+* QOS              : normal
+* Nodelist         : l10693 (1)                                                
+* Submit date      : 2023-10-17T12:28:24
+* Start time       : 2023-10-17T12:28:40
+* End time         : 2023-10-17T12:33:48
+* Elapsed time     : 00:05:08 (Timelimit=02:00:00)                     
+* Command          : /home/b/b382140/pinc-flow-tracer/submit/run_cos_levante.sh
+* WorkDir          : /home/b/b382140/pinc-flow-tracer/submit
+*
+* StepID | JobName      NodeHours    MaxRSS [Byte] (@task)
+* ------------------------------------------------------------------------------
+* batch  | batch            0.086
+* extern | extern           0.086                2552K (0)
+* 0      | pinc             0.085              136244K (0)
+* ------------------------------------------------------------------------------
+
