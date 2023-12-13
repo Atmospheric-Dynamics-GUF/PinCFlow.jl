@@ -1,0 +1,19 @@
++ ntasks=8
++ nprocx=8
++ nprocy=1
++ export OMP_NUM_THREADS=1
++ OMP_NUM_THREADS=1
++ export GMON_OUT_PREFIX=gmon.out-
++ GMON_OUT_PREFIX=gmon.out-
++ dirHome=/home/atmodynamics/knop/pinc-flow-tracer
++ dirScratch=/scratch/atmodynamics/knop
++ dirNam=/home/atmodynamics/knop/pinc-flow-tracer/input
++ exe=/home/atmodynamics/knop/pinc-flow-tracer/bin/pinc
++ dirWork=/scratch/atmodynamics/knop/output/2023-12-12/3DWP_msgwam_900min
++ mkdir /scratch/atmodynamics/knop/output/2023-12-12/3DWP_msgwam_900min
++ cd /scratch/atmodynamics/knop/output/2023-12-12/3DWP_msgwam_900min
++ rm '*'
+rm: cannot remove '*': No such file or directory
++ sed -e 's/{nprocx}/8/' -e 's/{nprocy}/1/' /home/atmodynamics/knop/pinc-flow-tracer/input/input_3DWP_msgwam.f90
++ mpirun -np 8 /home/atmodynamics/knop/pinc-flow-tracer/bin/pinc
++ exit 0

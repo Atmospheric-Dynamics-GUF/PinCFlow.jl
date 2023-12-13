@@ -1,0 +1,19 @@
++ ntasks=512
++ nprocx=256
++ nprocy=2
++ export OMP_NUM_THREADS=1
++ OMP_NUM_THREADS=1
++ export GMON_OUT_PREFIX=gmon.out-
++ GMON_OUT_PREFIX=gmon.out-
++ dirHome=/home/atmodynamics/knop/pinc-flow-tracer
++ dirScratch=/scratch/atmodynamics/knop
++ dirNam=/home/atmodynamics/knop/pinc-flow-tracer/input
++ exe=/home/atmodynamics/knop/pinc-flow-tracer/bin/pinc
++ dirWork=/scratch/atmodynamics/knop/output/2023-12-12/3DWP_waveresolve_900min
++ mkdir /scratch/atmodynamics/knop/output/2023-12-12/3DWP_waveresolve_900min
++ cd /scratch/atmodynamics/knop/output/2023-12-12/3DWP_waveresolve_900min
++ rm '*'
+rm: cannot remove '*': No such file or directory
++ sed -e 's/{nprocx}/256/' -e 's/{nprocy}/2/' /home/atmodynamics/knop/pinc-flow-tracer/input/input_3DWP_waveresolve.f90
++ mpirun -np 512 /home/atmodynamics/knop/pinc-flow-tracer/bin/pinc
++ exit 0

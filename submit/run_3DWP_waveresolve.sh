@@ -1,15 +1,15 @@
 #!/bin/bash
-#SBATCH --partition=test
-#SBATCH --job-name=3DWP_LES
-#SBATCH --ntasks=128
+#SBATCH --partition=general2
+#SBATCH --job-name=3DWP_WR
+#SBATCH --ntasks=512
 #SBATCH --mem-per-cpu=2600
-#SBATCH --time=02:00:00
+#SBATCH --time=20:00:00
 
 set -x
 
 # no. of processors ntasks must be nprocx * nprocy
-ntasks=128
-nprocx=64
+ntasks=512
+nprocx=256
 nprocy=2
 
 # OpenMP settings
@@ -26,7 +26,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/2023-09-14/3DWP_LES_150min_gauss
+dirWork=${dirScratch}/output/2023-12-12/3DWP_waveresolve_900min
 
 mkdir ${dirWork}
 
@@ -37,7 +37,7 @@ cd ${dirWork} && rm *
 # copy namelist
 sed -e "s/{nprocx}/${nprocx}/" \
     -e "s/{nprocy}/${nprocy}/" \
-        ${dirNam}/input_3DWP_LES.f90 > input.f90
+        ${dirNam}/input_3DWP_waveresolve.f90 > input.f90
 
 # run the raytracer
 mpirun -np ${ntasks} ${exe} 1>run.log 2>&1

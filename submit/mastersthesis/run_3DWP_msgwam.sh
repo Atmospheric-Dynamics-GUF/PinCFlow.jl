@@ -1,15 +1,15 @@
 #!/bin/bash
 #SBATCH --partition=general2
 #SBATCH --job-name=3DWP_MS
-#SBATCH --ntasks=8
+#SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=2600
 #SBATCH --time=02:00:00
 
 set -x
 
 # no. of processors ntasks must be nprocx * nprocy
-ntasks=8
-nprocx=8
+ntasks=1
+nprocx=1
 nprocy=1
 
 # OpenMP settings
@@ -26,7 +26,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/2023-12-12/3DWP_msgwam_900min
+dirWork=${dirScratch}/output/2023-12-01/f_10e-3/3DWP-msgwam
 
 mkdir ${dirWork}
 

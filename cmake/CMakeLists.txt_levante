@@ -13,7 +13,7 @@ project(pinc Fortran)
 # Set language.
 enable_language(Fortran)
 
-# Set debug option.
+# Set debugq option.
 option(DEBUGFLAG "set to ON to enable debug compiler options" OFF)
 
 # Set directories for output binary independent of IDE definitions.
@@ -30,9 +30,9 @@ if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
     endif()
 elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
     if (DEBUGFLAG)
-        add_compile_options(-O0 -fpe0 -check all -real-size 64 -traceback -unroll=4 -ip)
+        add_compile_options(-O0 -g -march=core-avx2 -fp-model source -fpe0 -check all -real-size 64 -traceback -unroll=4 -fnoinline -no-ip )
     else()
-        add_compile_options(-O3 -real-size 64 -traceback -unroll=4 -ip)
+        add_compile_options(-O3 -march=core-avx2 -fp-model source -real-size 64 -traceback -unroll=4 -ip)
     endif()
 endif()
 
@@ -65,8 +65,8 @@ add_executable(pinc
         ../src/output.f90
         ../src/finish.f90
         ../src/ice.f90
-        ../src/pinc.f90
         ../src/tracer.f90
+        ../src/pinc.f90
         )
 
 # Link MPI and Hypre from system libraries.
@@ -76,3 +76,4 @@ target_link_libraries(pinc ${MPI_Fortran_LIBRARIES})# ${HYPRE})
 message("[INFO] Compiler ID is " ${CMAKE_Fortran_COMPILER_ID})
 message("[INFO] DEBUGFLAG is " ${DEBUGFLAG})
 add_custom_command(TARGET pinc POST_BUILD COMMAND echo "[INFO] DEBUGFLAG is " ${DEBUGFLAG})
+

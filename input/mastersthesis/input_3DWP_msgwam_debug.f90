@@ -259,15 +259,15 @@
 
 &outputList
 
-  outputType = "time"      ! timeStep / time
+  outputType = "timeStep"      ! timeStep / time
 
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  9000.0  !1080.0 ! output every ... seconds
-  maxTime = 54000.0          ! 10800.0 !stop after maxTime seconds
+  outputTimeDiff =  900.0  !1080.0 ! output every ... seconds
+  maxTime = 9000.0          ! 10800.0 !stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -499,11 +499,11 @@
   yr0_dim = 1.5e4,          ! center of the wave packet in hor. (y-dir.) (m)
   zr0_dim = 3.e4,          ! center of the wave packet in vertical (m)
 
-  sigwpx_dim = 1.5e6 ,      ! width of the wave packet in hor. (x-dir.) (m);
+  sigwpx_dim = 1.25e6 ,      ! width of the wave packet in hor. (x-dir.) (m);
                            ! (0 means infinity)
   sigwpy_dim = 0.e0        ! width of the wave packet in hor. (y-dir.) (m);
                            ! (0 means infinity)
-  sigwpz_dim = 5.e3,       ! width of the wave packet in vertical (m);
+  sigwpz_dim = 3.5e3,       ! width of the wave packet in vertical (m);
 
   branchr = 1,            ! frequency branch (dispersion relation)
   !presently not used:
@@ -733,7 +733,5 @@
 &tracerList
 
   tracerSetup = "increase_in_z_tracer"
-
-  include_GW_force = .true.
 
 &end
