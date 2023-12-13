@@ -1479,14 +1479,22 @@ module wkb_module
               else
                 fld_amp(ix, jy, kz) = 0.0
               end if
+
             elseif(case_wkb == 4) then ! to match the wavepacket case gaussian
+              ! fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz) * exp(- (z(kz) - zr0)**2. &
+              !     / 2.0 / sigwpz ** 2. )
+              ! Correction IK20231204
               fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz) * exp(- (z(kz) - zr0)**2. &
-                  / 2.0 / sigwpz ** 2. )
+                  / sigwpz ** 2. )
                   
               if(sigwpx > 0.0) then
                 if(abs(x(ix + ix0) - xr0) < sigwpx) then
+                  ! fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz) &
+                  !       * cos(pi * (x(ix + ix0) - xr0) / (2. * sigwpx))
+
+                  ! Correction IK20231204
                   fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz) &
-                        * cos(pi * (x(ix + ix0) - xr0) / (2. * sigwpx))
+                        * cos(pi * (x(ix + ix0) - xr0) / (2. * sigwpx)) ** 2
                 else
                   fld_amp(ix, jy, kz) = 0.0
                 end if
@@ -1494,6 +1502,10 @@ module wkb_module
   
                 if(sigwpy > 0.0) then
                   if(abs(y(jy + jy0) - yr0) < sigwpy) then
+                    !fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz)  &
+                    !    * cos(pi * (y(jy + jy0) - yr0) / (2. * sigwpy))
+
+                    ! Correction IK20231204
                     fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz)  &
                         * cos(pi * (y(jy + jy0) - yr0) / (2. * sigwpy))
                   else
