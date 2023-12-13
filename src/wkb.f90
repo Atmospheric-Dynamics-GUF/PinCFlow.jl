@@ -6649,7 +6649,7 @@ module wkb_module
 
   !---------------------------------------------------------------------
 
-  subroutine saturation_3D(ray, dt)
+  subroutine saturation_3D(ray, var, force, dt)
 
     ! Original subroutine: saturation by G. Boeloeni (2016)
     ! ---------------------------------------------------
@@ -6671,6 +6671,13 @@ module wkb_module
 
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
         intent(inout) :: ray
+    
+    ! IK231213
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 4), intent(inout) :: force
+
+
     ! time step
     real, intent(in) :: dt
 
@@ -6870,6 +6877,21 @@ module wkb_module
         end do
       end do
     end do
+
+    ! IK231213 diffusion for tracer 
+    if (include_tracer .and. include_mixing) then
+      do kz = 1, nz 
+        do jy = 1, ny 
+          do ix = 1, nx 
+              force(ix, jy, kz, 4) = force(ix, jy, kz, 4) - diffusion(ix, jy, kz) & 
+                * ((var(ix, jy, kz + 1, iVart) - var(ix, jy, kz - 1, iVart)) / (2 * dz) & 
+                  +(var(ix, jy + 1, kz, iVart) - var(ix, jy - 1, kz, iVart)) / (2 * dy) &
+                  +(var(ix + 1, jy, kz, iVart) - var(ix - 1, jy, kz, iVart)) / (2 * dx) )
+          end do 
+        end do 
+      end do
+    end if
+
 
     ! loop for reducing wave action density
     ! if m^2*B^2 exceeds saturation threshold
