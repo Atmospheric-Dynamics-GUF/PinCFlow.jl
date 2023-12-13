@@ -26,7 +26,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/2023-12-12/3DWP_msgwam_900min
+dirWork=${dirScratch}/output/2023-12-13/3DWP_msgwam_150min
 
 mkdir ${dirWork}
 

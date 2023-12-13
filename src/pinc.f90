@@ -700,7 +700,7 @@ program pinc_prog
 
     if(rayTracer) then
       if(lsaturation) then
-        call saturation_3D(ray, dt)
+        call saturation_3D(ray, var, force, dt)
       end if
     end if
 

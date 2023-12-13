@@ -266,8 +266,8 @@
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  9000.0  !1080.0 ! output every ... seconds
-  maxTime = 54000.0          ! 10800.0 !stop after maxTime seconds
+  outputTimeDiff =  900.0  !1080.0 ! output every ... seconds
+  maxTime = 9000.0          ! 10800.0 !stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -487,7 +487,7 @@
   alpha_sat = 1.0,         ! JaWi 16.12.16 (sat)
 
   case_wkb = 4,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
-  amp_wkb = 0.5            ! amplitude of the wave packet (wrt saturation)
+  amp_wkb = 1.2            ! amplitude of the wave packet (wrt saturation)
 
   wlrx_init = 3.e5,        ! initial lambda_x of the wave packet (m)
   wlry_init = 3.e5,          ! initial lambda_y of the wave packet (m)
@@ -735,5 +735,7 @@
   tracerSetup = "increase_in_z_tracer"
 
   include_GW_force = .true.
+
+  include_mixing = .true.
 
 &end
