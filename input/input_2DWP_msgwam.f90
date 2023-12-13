@@ -194,7 +194,7 @@
   backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
                                  ! zonal background flow velocity u
 
-  f_Coriolis_dim = 10.e-4           ! 1/s
+  f_Coriolis_dim = 10.e-3           ! 1/s
                                  ! Coriolis parameter
 
   gamma_t = 0.000                ! lapse rate in the troposphere
@@ -259,15 +259,15 @@
 
 &outputList
 
-  outputType = "time"      ! timeStep / time
+  outputType = "timeStep"      ! timeStep / time
 
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  9000.0  !1080.0 ! output every ... seconds
-  maxTime = 54000.0          ! 10800.0 !stop after maxTime seconds
+  outputTimeDiff =  900.0  !1080.0 ! output every ... seconds
+  maxTime = 9000.0          ! 10800.0 !stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -490,7 +490,7 @@
   amp_wkb = 0.5            ! amplitude of the wave packet (wrt saturation)
 
   wlrx_init = 3.e5,        ! initial lambda_x of the wave packet (m)
-  wlry_init = 3.e5,          ! initial lambda_y of the wave packet (m)
+  wlry_init = 0.0,          ! initial lambda_y of the wave packet (m)
                            ! (0 means infinity)
   wlrz_init = -1.e3,        ! initial lambda_z of the wave packet (m)
                            ! (0 means infinity)
@@ -733,7 +733,5 @@
 &tracerList
 
   tracerSetup = "increase_in_z_tracer"
-
-  include_GW_force = .true.
 
 &end

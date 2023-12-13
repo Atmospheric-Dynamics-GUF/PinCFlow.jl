@@ -5970,7 +5970,11 @@ module update_module
           ! F(phi)
           F = -fluxDiff
           if (rayTracer) then
-            forcetracer = 0.0!force(i, j, k, 4) 
+            if (include_GW_force) then 
+              forcetracer = force(i, j, k, 4) 
+            else
+              forcetracer = 0.0
+            end if
             F = F - rho * forcetracer
           end if
 
