@@ -5914,7 +5914,7 @@ module update_module
 
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
 
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 4), intent(in) :: force
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 5), intent(in) :: force
 
     real, intent(in) :: dt
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
@@ -5970,8 +5970,12 @@ module update_module
           ! F(phi)
           F = -fluxDiff
           if (rayTracer) then
-            if (include_GW_force) then 
-              forcetracer = force(i, j, k, 4) 
+            if (include_GW_force .and. include_mixing) then 
+              forcetracer = force(i, j, k, 4) - force(i, j, k, 5)
+            else if (include_GW_force .and. .not. include_mixing) then 
+              forcetracer = force(i, j, k, 4)
+            else if (include_mixing .and. .not. include_GW_force) then 
+              forcetracer = - force(i, j, k, 5)
             else
               forcetracer = 0.0
             end if
