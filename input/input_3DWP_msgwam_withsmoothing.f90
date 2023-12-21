@@ -14,11 +14,11 @@
   sizeX = 32,!, !64, !32                ! nb of global grid cells
   sizeY = 1,
   sizeZ = 100,!, !200, !100 
-  nbx = 2,                  ! nb. of ghost cells
-  nby = 2,
-  nbz = 2,
+  nbx = 3,                  ! nb. of ghost cells
+  nby = 3,
+  nbz = 3,
   lx_dim =   0.0, 9.e6, ! domain lenths in m
-  ly_dim =   0.0, 3.e5,
+  ly_dim =   0.0, 9.e5,
   lz_dim =   0.0, 1.e5,
 
   ! nb of processors in x and y direction must be set in the batch file
@@ -66,8 +66,8 @@
 &solverList
 
   cfl = 0.5
-  cfl_wave = 0.5                 ! passage rate of phase throuh a cell
-  dtMax_dim = 3.6e3               ! max time step in s
+  cfl_wave = 0.25                 ! passage rate of phase throuh a cell
+  dtMax_dim = 1.0               ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
   timeScheme = "LS_Will_RK3"      ! LS_Will_RK3 -> Williamson / Euler /
@@ -194,7 +194,7 @@
   backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
                                  ! zonal background flow velocity u
 
-  f_Coriolis_dim = 10.e-3           ! 1/s
+  f_Coriolis_dim = 10.e-4           ! 1/s
                                  ! Coriolis parameter
 
   gamma_t = 0.000                ! lapse rate in the troposphere
@@ -266,8 +266,8 @@
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  900.0  !1080.0 ! output every ... seconds
-  maxTime = 9000.0          ! 10800.0 !stop after maxTime seconds
+  outputTimeDiff =  9000.0  !1080.0 ! output every ... seconds
+  maxTime = 54000.0          ! 10800.0 !stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -460,12 +460,12 @@
   xrmin_dim = 3.e6,         ! left bound of initial rays (in x direction) (m)
   xrmax_dim = 6.e6,        ! right bound of initial rays (in x dir.) (m)
   yrmin_dim = 0.0,         ! left bound of initial rays (in y direction) (m)
-  yrmax_dim = 3.e5,        ! right bound of initial rays (in y dir.) (m)
+  yrmax_dim = 9.e5,        ! right bound of initial rays (in y dir.) (m)
   zrmin_dim = 0.0,        ! bottom bound of initial rays (m)
   zrmax_dim = 1.e5,        ! top bound of initial rays (m)
 
   nrxl = 4,               ! no. of ray vol. init. within one hor. x column
-  nryl = 1,               ! no. of ray vol. init. within one hor. y column
+  nryl = 2,               ! no. of ray vol. init. within one hor. y column
   nrzl = 4,               ! no. of ray vol. init. within one vert. layer
 
   fac_dk_init = 0.1,     ! init. width of total ray vol. in k space
@@ -480,17 +480,17 @@
   nrm_init = 2,            ! no. of ray volumes initialized within dm
 
   nsmth_wkb = 2,           ! half (number -1) of cells f. smooth. wkb fluxes
-  lsmth_wkb = .false.,      ! log. switch for smooth. wkb data (true/false)
+  lsmth_wkb = .true.,      ! log. switch for smooth. wkb data (true/false)
   sm_filter = 2,
 
-  lsaturation = .true.,    ! JaWi 16.12.16 (sat)
+  lsaturation = .false.,    ! JaWi 16.12.16 (sat)
   alpha_sat = 1.0,         ! JaWi 16.12.16 (sat)
 
   case_wkb = 4,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
   amp_wkb = 0.5            ! amplitude of the wave packet (wrt saturation)
 
   wlrx_init = 3.e5,        ! initial lambda_x of the wave packet (m)
-  wlry_init = 0.0,          ! initial lambda_y of the wave packet (m)
+  wlry_init = 3.e5,          ! initial lambda_y of the wave packet (m)
                            ! (0 means infinity)
   wlrz_init = -1.e3,        ! initial lambda_z of the wave packet (m)
                            ! (0 means infinity)
@@ -733,5 +733,9 @@
 &tracerList
 
   tracerSetup = "increase_in_z_tracer"
+
+  include_GW_force = .true.
+
+  include_mixing = .false.
 
 &end

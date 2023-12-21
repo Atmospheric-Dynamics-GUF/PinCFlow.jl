@@ -26,7 +26,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/2023-12-19/3DWP/3DWP_msgwam_900min
+dirWork=${dirScratch}/output/2023-12-19/3DWP_msgwam_900min_withsmoothing
 
 mkdir ${dirWork}
 
@@ -37,7 +37,7 @@ cd ${dirWork} && rm *
 # copy namelist
 sed -e "s/{nprocx}/${nprocx}/" \
     -e "s/{nprocy}/${nprocy}/" \
-        ${dirNam}/input_3DWP_msgwam.f90 > input.f90
+        ${dirNam}/input_3DWP_msgwam_withsmoothing.f90 > input.f90
 
 # run the raytracer
 mpirun -np ${ntasks} ${exe} 1>run.log 2>&1
