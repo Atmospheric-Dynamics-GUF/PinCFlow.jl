@@ -27,7 +27,7 @@ module output_module
 
   contains
 
-  subroutine output_data(iOut, var, iTime, time, cpuTime)
+  subroutine output_data(iOut, var,  iTime, time, cpuTime)
 
     !-------------------------------
     !  writes data to file pf_all.dat
@@ -246,11 +246,11 @@ module output_module
 
                          !rhotracer = 1.0
                          
-                         if (testCase == 'mountainwave') then
-                          field_prc(i,j) = var(i,j,k,iVart)/rhotracer
-                         else
-                          field_prc(i,j) = var(i,j,k,iVart)/rhotracer - alphaTracer * (z(k)-z(1))
-                         end if
+                          if (tracerdifference) then
+                            field_prc(i,j) = (var(i,j,k,iVart)-initialtracer(i,j,k))/rhotracer!alphaTracer * (z(k)-z(1))
+                          else
+                            field_prc(i,j) = (var(i,j,k,iVart))/rhotracer!alphaTracer * (z(k)-z(1))
+                          end if
                       case default
                          stop "output.f90: unkown iVar in output_data"
                       end select ! iVar
@@ -849,7 +849,7 @@ module output_module
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
         intent(in) :: ray
 
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:10), intent(in) :: ray_var3D
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:11), intent(in) :: ray_var3D
 
     ! local variables
     integer :: i, j, k, iVar
@@ -880,9 +880,9 @@ module output_module
     !---------------------------------------
 
     ! FJFeb2023
-    irc_prc = 10 * (iOut - 1) * nz
+    irc_prc = 11 * (iOut - 1) * nz
 
-    do iVar = 1, 10
+    do iVar = 1, 11
       do k = 1, nz
         ! dimensionalization
 
@@ -934,6 +934,13 @@ module output_module
             case(10) ! tracer forcing
               if (include_tracer) then 
                 field_prc(i, j) = ray_var3D(i, j, k, 10) / tRef
+              else
+                field_prc(i, j) = 0.0
+              end if
+
+            case(11) ! tracer diffusion
+              if (include_tracer) then 
+                field_prc(i, j) = ray_var3D(i, j, k, 11) / lRef**2.0
               else
                 field_prc(i, j) = 0.0
               end if

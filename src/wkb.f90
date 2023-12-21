@@ -85,7 +85,7 @@ module wkb_module
 
   !-----------------------------------------------------------------------
 
-  subroutine calc_meanFlow_effect(ray, var, force, ray_var3D)
+  subroutine calc_meanFlow_effect(ray, var, force, ray_var3D, dt)
 
     ! supplemements cell-centered volume forces by WKB force
     ! as well as the heating by entropy-flux convergence
@@ -97,14 +97,16 @@ module wkb_module
         intent(inout) :: var
 
     ! IKJuly2023 changed from 3 to 4 for tracer flux convergence
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 4), intent(inout) :: force
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 5), intent(inout) :: force
 
     ! IKJuly2023 changed from 1:6 to 1:9 for tracer fluxes
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:10), intent(inout) :: &
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:11), intent(inout) :: &
         ray_var3D
 
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
         intent(inout) :: ray
+
+    real, intent(in) :: dt
 
     ! local variables
     real :: F
@@ -164,7 +166,11 @@ module wkb_module
     real :: NNR
 
     ! IKJuly2023 tracer flux stuff
-    real :: tracerfluxcoeff, dchidx, dchidy, dchidz, rhotracerp, rhotracerm, dutracer, dvtracer
+    real :: tracerfluxcoeff, dchidx, dchidy, dchidz, rhotracerp, rhotracerm, dutracer, dvtracer, rhotracern
+    ! IKDec2023 tracer diffusion stuff
+    real :: laplacetracer
+    real, allocatable :: diffusioncoeff(:, :, :)
+
 
     allocate(var_uu(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_uv(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
@@ -189,6 +195,8 @@ module wkb_module
     allocate(var_drudt(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_drvdt(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_drtdt(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
+
+    allocate(diffusioncoeff(0:nx+1, 0:ny+1, 0:nz+1))
 
     var_uu = 0.0
     var_uv = 0.0
@@ -693,26 +701,80 @@ module wkb_module
     end if
 
     ! IKJuly2023
+    laplacetracer = 0.0
     if (include_tracer) then 
+      if (include_mixing) then
+        call diffusioncoefficient(ray, dt, diffusioncoeff)
+      else
+        diffusioncoeff = 0.0
+      end if
+
       do kz = 1, nz
         do jy = 1, ny
           do ix = 1, nx
-
+            laplacetracer = 0.0
             if (sizeX > 1) then
               dutracer = (var_utracer(ix+1, jy, kz)-var_utracer(ix-1, jy, kz))/(2.0*dx)
+
+              if (fluctuationMode) then 
+                rhotracerp = var(ix+1, jy, kz, 1) + rhoStrat(kz)
+                rhotracern = var(ix  , jy, kz, 1) + rhoStrat(kz)
+                rhotracerm = var(ix-1, jy, kz, 1) + rhoStrat(kz)
+              else 
+                rhotracerp = var(ix+1, jy, kz, 1)
+                rhotracern = var(ix  , jy, kz, 1)
+                rhotracerm = var(ix-1, jy, kz, 1)
+              end if
+              laplacetracer = (var(ix+1, jy, kz, iVart)/rhotracerp & 
+                         - 2.0*var(ix  , jy, kz, iVart)/rhotracern & 
+                         +     var(ix-1, jy, kz, iVart)/rhotracerm)/(dx**2.)
             else
               dutracer = 0.0
+              laplacetracer = 0.0
             end if
 
             if (sizeY > 1) then 
               dvtracer = (var_vtracer(ix, jy+1, kz)-var_vtracer(ix, jy-1, kz))/(2.0*dy)
+
+              if (fluctuationMode) then 
+                rhotracerp = var(ix, jy+1, kz, 1) + rhoStrat(kz)
+                rhotracern = var(ix  , jy, kz, 1) + rhoStrat(kz)
+                rhotracerm = var(ix, jy-1, kz, 1) + rhoStrat(kz)
+              else 
+                rhotracerp = var(ix, jy+1, kz, 1)
+                rhotracern = var(ix  , jy, kz, 1)
+                rhotracerm = var(ix, jy-1, kz, 1)
+              end if
+
+              laplacetracer = laplacetracer &
+                +    (var(ix, jy+1, kz, iVart)/rhotracerp & 
+                - 2.0*var(ix, jy  , kz, iVart)/rhotracern & 
+                +     var(ix, jy-1, kz, iVart)/rhotracerm)/(dy**2.)
             else
               dvtracer = 0.0
+              laplacetracer = laplacetracer
             end if
 
             force(ix, jy, kz, 4) = force(ix, jy, kz, 4) &
               + dutracer + dvtracer &
               + (var_wtracer(ix, jy, kz+1)-var_wtracer(ix, jy, kz-1))/(2.0*dz)
+
+            if (fluctuationMode) then 
+              rhotracerp = var(ix, jy, kz+1, 1) + rhoStrat(kz+1)
+              rhotracern = var(ix  , jy, kz, 1) + rhoStrat(kz)
+              rhotracerm = var(ix, jy, kz-1, 1) + rhoStrat(kz-1)
+            else 
+              rhotracerp = var(ix, jy, kz+1, 1)
+              rhotracern = var(ix  , jy, kz, 1)
+              rhotracerm = var(ix, jy, kz-1, 1)
+            end if
+
+            laplacetracer = laplacetracer &
+              +    (var(ix, jy, kz+1, iVart)/rhotracerp & 
+              - 2.0*var(ix, jy, kz  , iVart)/rhotracern & 
+              +     var(ix, jy, kz-1, iVart)/rhotracerm)/(dz**2.)
+
+            force(ix,jy,kz,5) = diffusioncoeff(ix,jy,kz)*laplacetracer
           end do
         end do
       end do
@@ -741,6 +803,7 @@ module wkb_module
             ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
             ray_var3D(ix, jy, kz, 9) = var_wtracer(ix, jy, kz)
             ray_var3D(ix, jy, kz, 10) = force(ix, jy, kz, 4)
+            ray_var3D(ix, jy, kz, 11) = force(ix, jy, kz, 5)
           end do
         end do
       end do
@@ -1271,7 +1334,7 @@ module wkb_module
 
     ! fields for data WKB output
     ! IKJuly2023 increased from 1:6 to 1:9 for tracer flux (u'chi', v'chi', w'chi')
-    allocate(ray_var3D(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:10), stat = allocstat) 
+    allocate(ray_var3D(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:11), stat = allocstat) 
     if(allocstat /= 0) stop "setup_wkb: could not allocate ray_var3D"
 
     ! needed for initialization of ray volumes:
@@ -6649,7 +6712,7 @@ module wkb_module
 
   !---------------------------------------------------------------------
 
-  subroutine saturation_3D(ray, var, force, dt)
+  subroutine saturation_3D(ray, dt)
 
     ! Original subroutine: saturation by G. Boeloeni (2016)
     ! ---------------------------------------------------
@@ -6672,11 +6735,6 @@ module wkb_module
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
         intent(inout) :: ray
     
-    ! IK231213
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(in) :: var
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 4), intent(inout) :: force
-
 
     ! time step
     real, intent(in) :: dt
@@ -6877,21 +6935,6 @@ module wkb_module
         end do
       end do
     end do
-
-    ! IK231213 diffusion for tracer 
-    if (include_tracer .and. include_mixing) then
-      do kz = 1, nz 
-        do jy = 1, ny 
-          do ix = 1, nx 
-              force(ix, jy, kz, 4) = force(ix, jy, kz, 4) - diffusion(ix, jy, kz) & 
-                * ((var(ix, jy, kz + 1, iVart) - var(ix, jy, kz - 1, iVart)) / (2 * dz) & 
-                  +(var(ix, jy + 1, kz, iVart) - var(ix, jy - 1, kz, iVart)) / (2 * dy) &
-                  +(var(ix + 1, jy, kz, iVart) - var(ix - 1, jy, kz, iVart)) / (2 * dx) )
-          end do 
-        end do 
-      end do
-    end if
-
 
     ! loop for reducing wave action density
     ! if m^2*B^2 exceeds saturation threshold
@@ -7175,6 +7218,226 @@ module wkb_module
 
   end subroutine saturation_3D
 
+
+  !-----------------------------------------------------------------------
+  subroutine diffusioncoefficient(ray, dt, diffusioncoeff)
+
+    implicit none
+
+    type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
+        intent(in) :: ray
+    
+    ! IK231213
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(out) :: diffusioncoeff
+
+
+    ! time step
+    real, intent(in) :: dt
+
+    ! indices, etc.
+    integer iRay, kzmax, kzmin
+
+    integer :: ix, jy, kz
+
+    integer :: ix0, jy0
+
+    ! ray-volume wave-action density
+    real densr
+    ! ray-volume proportion on the x-, y-, and z-grid
+    real dxi, dyi, dzi
+    ! m^2 * B^2
+    real mB2(0:nx + 1, 0:ny + 1, 0:sizeZ + 1)
+    ! m^2 * B^2 * (kh^2+m^2)
+    real mB2K2(0:nx + 1, 0:ny + 1, 0:sizeZ + 1)
+    ! diffusivity coefficient
+    real diffusion(0:nx + 1, 0:ny + 1, 0:sizeZ + 1), kappa
+    ! variables for integrals over m
+    real integral1, integral2
+
+    real :: wnrk, wnrl, wnrm, wnrhs, NN_nd, dwnrk, dwnrl, dwnrm, omir
+
+    real :: xr, yr, zr
+    real :: dxr, dyr, dzr
+
+    real :: facpsp
+
+    ix0 = is + nbx - 1
+    jy0 = js + nby - 1
+
+    ! compute saturation amplitude (m^2*B^2) for each level
+
+    mB2 = 0.0
+    mB2K2 = 0.0
+
+    do kzrv = 1, nz
+      do jyrv = 1, ny
+        do ixrv = 1, nx
+          if(nRay(ixrv, jyrv, kzrv) < 1) cycle
+
+          do iRay = 1, nRay(ixrv, jyrv, kzrv)
+            ! skip counting ray volumes with zero wave-action density
+
+            if(ray(iRay, ixrv, jyrv, kzrv)%dens == 0.0) cycle
+
+            xr = ray(iRay, ixrv, jyrv, kzrv)%x
+            yr = ray(iRay, ixrv, jyrv, kzrv)%y
+            zr = ray(iRay, ixrv, jyrv, kzrv)%z
+
+            dxr = ray(iRay, ixrv, jyrv, kzrv)%dxray
+            dyr = ray(iRay, ixrv, jyrv, kzrv)%dyray
+            dzr = ray(iRay, ixrv, jyrv, kzrv)%dzray
+
+            ! vertical boundary conditions:
+            ! zBoundary = 'periodic': implement periodicity
+            ! zBoundary = 'solid_wall': skip counting ray volumes
+            !                           that have completely left the
+            !                           model domain
+
+            if(zr < lz(0)) then
+              select case(zBoundary)
+              case("periodic")
+                zr = lz(1) + mod(zr - lz(0), lz(1) - lz(0))
+              case("solid_wall")
+                cycle
+              case default
+                stop "saturation_3D: unknown case zBoundary"
+              end select
+            elseif(zr > lz(1)) then
+              select case(zBoundary)
+              case("periodic")
+                zr = lz(0) + mod(zr - lz(1), lz(1) - lz(0))
+              case("solid_wall")
+                cycle
+              case default
+                stop "saturation_3D: unknown case zBoundary"
+              end select
+            end if
+
+            kz = floor((zr - lz(0)) / dz) + 1
+
+            !  extra skip counting rays propagating out of the domain
+            if(kz < 1 .or. kz > sizeZ) cycle
+
+            ! implement horizontal boundary conditions for ray-volume
+            ! positions
+
+            if(sizeX > 1) then
+              if(xr < lx(0)) then
+                select case(xBoundary)
+                case("periodic")
+                  xr = lx(1) + mod(xr - lx(0), lx(1) - lx(0))
+                case default
+                  stop "saturation_3D: unknown case xBoundary"
+                end select
+              elseif(xr > lx(1)) then
+                select case(xBoundary)
+                case("periodic")
+                  xr = lx(0) + mod(xr - lx(1), lx(1) - lx(0))
+                case default
+                  stop "saturation_3D: unknown case xBoundary"
+                end select
+              end if
+
+              ix = floor((xr - lx(0)) / dx) + 1 - ix0
+            else
+              ix = 1
+            end if
+
+            if(sizeY > 1) then
+              if(yr < ly(0)) then
+                select case(yBoundary)
+                case("periodic")
+                  yr = ly(1) + mod(yr - ly(0), ly(1) - ly(0))
+                case default
+                  stop "saturation_3D: unknown case yBoundary"
+                end select
+              elseif(yr > ly(1)) then
+                select case(yBoundary)
+                case("periodic")
+                  yr = ly(0) + mod(yr - ly(1), ly(1) - ly(0))
+                case default
+                  stop "saturation_3D: unknown case yBoundary"
+                end select
+              end if
+
+              jy = floor((yr - ly(0)) / dy) + 1 - jy0
+            else
+              jy = 1
+            end if
+
+            call stratification(z(kz), 1, NN_nd)
+
+            wnrk = ray(iRay, ixrv, jyrv, kzrv)%k
+            wnrl = ray(iRay, ixrv, jyrv, kzrv)%l
+            wnrm = ray(iRay, ixrv, jyrv, kzrv)%m
+
+            wnrhs = wnrk ** 2 + wnrl ** 2
+
+            dwnrk = ray(iRay, ixrv, jyrv, kzrv)%dkray
+            dwnrl = ray(iRay, ixrv, jyrv, kzrv)%dlray
+            dwnrm = ray(iRay, ixrv, jyrv, kzrv)%dmray
+
+            omir = ray(iRay, ixrv, jyrv, kzrv)%omega
+
+            densr = ray(iRay, ixrv, jyrv, kzrv)%dens
+
+            ! spatial extension of ray to be taken into account
+            dzi = min(dzr, dz)
+
+            facpsp = dzi / dz * dwnrm
+
+            if(fac_dk_init /= 0.0) then
+              dxi = min(dxr, dx)
+
+              facpsp = facpsp * dxi / dx * dwnrk
+            end if
+
+            if(fac_dl_init /= 0.0) then
+              dyi = min(dyr, dy)
+
+              facpsp = facpsp * dyi / dy * dwnrl
+            end if
+
+            integral1 = wnrhs * wnrm ** 2 / ((wnrhs + wnrm ** 2) * omir) &
+                * facpsp
+
+            mB2(ix, jy, kz) = mB2(ix, jy, kz) + 2.0 * NN_nd ** 2 &
+                / rhoStrat(kz) * densr * integral1
+
+            integral2 = wnrhs * wnrm ** 2 / omir * facpsp
+
+            mB2K2(ix, jy, kz) = mB2K2(ix, jy, kz) + 2.0 * NN_nd ** 2 &
+                / rhoStrat(kz) * densr * integral2
+          end do
+        end do ! ixrv
+      end do ! jyrv
+    end do ! kzrv
+
+    ! loop for computing the diffusivity coefficient
+
+    do kz = 1, sizeZ
+      call stratification(z(kz), 1, NN_nd)
+
+      do jy = 1, ny
+        do ix = 1, nx
+          if(mB2K2(ix, jy, kz) == 0.0 .or. mB2(ix, jy, kz) < alpha_sat ** 2 &
+              * NN_nd ** 2) then
+            diffusion(ix, jy, kz) = 0.0
+          else
+            diffusion(ix, jy, kz) = (mB2(ix, jy, kz) - alpha_sat ** 2 * NN_nd &
+                ** 2) / (2.0 * dt * mB2K2(ix, jy, kz))
+          endif
+        end do
+      end do
+    end do
+
+    ! IK231213 diffusion for tracer 
+    if (include_tracer .and. include_mixing) then
+      diffusioncoeff = diffusion
+    end if
+
+
+  end subroutine diffusioncoefficient
   !------------------------------------------------------------------------
 
   subroutine smooth_wkb_shapiro(flxwkb, nsmth, homog_dir)

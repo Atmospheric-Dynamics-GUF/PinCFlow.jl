@@ -806,9 +806,9 @@ module type_module
   !                           Tracer
   !----------------------------------------------------------------
   character(len=20) :: tracerSetup
-  logical :: include_GW_force, include_mixing
+  logical :: include_GW_force, include_mixing, tracerdifference
 
-  namelist / tracerList / tracerSetup, include_GW_force, include_mixing
+  namelist / tracerList / tracerSetup, include_GW_force, include_mixing, tracerdifference
 
   !-----------------------------------------------------------------
   !                           Ice physics

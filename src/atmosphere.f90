@@ -105,6 +105,7 @@ module atmosphere_module
        rhoStratTFC, bvsStratTFC, piStratTFC
 
   real :: alphaTracer
+  real, dimension(:, :, :), allocatable :: initialtracer
 
   contains
 
@@ -370,6 +371,12 @@ module atmosphere_module
       end if
     end if
 
+    if (include_tracer) then
+      if(.not. allocated(initialtracer)) then
+        allocate(initialtracer(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz))
+        if(allocstat /=0) stop "atmosphere.f90: could not allocate initialtracer"
+      end if
+    end if
     !----------------------------------
     !       auxiliary quantities
     !----------------------------------

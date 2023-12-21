@@ -700,7 +700,7 @@ program pinc_prog
 
     if(rayTracer) then
       if(lsaturation) then
-        call saturation_3D(ray, var, force, dt)
+        call saturation_3D(ray, dt)
       end if
     end if
 
@@ -741,7 +741,7 @@ program pinc_prog
             call merge_rayvol(ray)
 
             ! GW effects are put into force(...,1/2) and var(...,8)
-            call calc_meanFlow_effect(ray, var, force, ray_var3D)
+            call calc_meanFlow_effect(ray, var, force, ray_var3D, dt)
           end if
         end do
       end if
@@ -1483,7 +1483,7 @@ program pinc_prog
         ! Lag Ray tracer (position-wavenumber space method)
 
         if(rayTracer) then
-          call calc_meanFlow_effect(ray, var, force, ray_var3D)
+          call calc_meanFlow_effect(ray, var, force, ray_var3D, dt)
           call transport_rayvol(var, ray, dt, RKstage, time)
           if(RKstage == nStages) then
             call boundary_rayvol(ray)
