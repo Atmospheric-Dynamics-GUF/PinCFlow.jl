@@ -684,25 +684,54 @@ module wkb_module
       call setboundary_wkb(var_utracer)
       call setboundary_wkb(var_vtracer)
       call setboundary_wkb(var_wtracer)
-    end if  
 
-    if (lsmth_wkb) then
-      if(sm_filter == 1) then
-        call smooth_wkb_box(var_utracer, nsmth_wkb, 111)
-        call smooth_wkb_box(var_vtracer, nsmth_wkb, 111)
-        call smooth_wkb_box(var_wtracer, nsmth_wkb, 111)
-      elseif(sm_filter == 2) then
-        call smooth_wkb_shapiro(var_utracer, nsmth_wkb, 111)
-        call smooth_wkb_shapiro(var_vtracer, nsmth_wkb, 111)
-        call smooth_wkb_shapiro(var_wtracer, nsmth_wkb, 111)
-      else
-        stop 'WRONG sm_filter'
-      end if
-    end if
+      if(lsmth_wkb) then
+        if(sizeY == 1) then
+          if(sizeX > 1) then
+            if(sm_filter == 1) then
+              call smooth_wkb_box(var_utracer, nsmth_wkb, 101)
+              call smooth_wkb_box(var_vtracer, nsmth_wkb, 101)
+              call smooth_wkb_box(var_wtracer, nsmth_wkb, 101)
+            elseif(sm_filter == 2) then
+              call smooth_wkb_shapiro(var_utracer, nsmth_wkb, 101)
+              call smooth_wkb_shapiro(var_vtracer, nsmth_wkb, 101)
+              call smooth_wkb_shapiro(var_wtracer, nsmth_wkb, 101)
+            else
+              stop 'WRONG sm_filter'
+            end if
+          else
+            stop 'SMOOTHING JUST IN Z NOT YET IMPLEMENTED'
+          endif
+        elseif(sizeX == 1) then
+          if(sm_filter == 1) then
+            call smooth_wkb_box(var_utracer, nsmth_wkb, 11)
+            call smooth_wkb_box(var_vtracer, nsmth_wkb, 11)
+            call smooth_wkb_box(var_wtracer, nsmth_wkb, 11)
+          elseif(sm_filter == 2) then
+            call smooth_wkb_shapiro(var_utracer, nsmth_wkb, 11)
+            call smooth_wkb_shapiro(var_vtracer, nsmth_wkb, 11)
+            call smooth_wkb_shapiro(var_wtracer, nsmth_wkb, 11)
+          else
+            stop 'WRONG sm_filter'
+          end if
+        elseif(sizeX > 1) then
+          if(sm_filter == 1) then
+            call smooth_wkb_box(var_utracer, nsmth_wkb, 111)
+            call smooth_wkb_box(var_vtracer, nsmth_wkb, 111)
+            call smooth_wkb_box(var_wtracer, nsmth_wkb, 111)
+          elseif(sm_filter == 2) then
+            call smooth_wkb_shapiro(var_utracer, nsmth_wkb, 111)
+            call smooth_wkb_shapiro(var_vtracer, nsmth_wkb, 111)
+            call smooth_wkb_shapiro(var_wtracer, nsmth_wkb, 111)
+          else
+            stop 'WRONG sm_filter'
+          end if
+        endif
+      endif
 
-    ! IKJuly2023
-    laplacetracer = 0.0
-    if (include_tracer) then 
+
+      ! IKJuly2023
+      laplacetracer = 0.0
       if (include_mixing) then
         call diffusioncoefficient(ray, dt, diffusioncoeff)
       else
@@ -778,23 +807,10 @@ module wkb_module
           end do
         end do
       end do
-    end if  
 
-    if (include_tracer) then
       call setboundary_frc_wkb(force(:, :, :, 4))
-      ! if (lsmth_wkb) then
-      !   if(sm_filter == 1) then
-      !     call smooth_wkb_box(force(:, :, :, 4), nsmth_wkb, 111)
-      !   elseif(sm_filter == 2) then
-      !     call smooth_wkb_shapiro(force(:, :, :, 4), nsmth_wkb, 111)
-      !   else
-      !     stop 'WRONG sm_filter'
-      !   end if
-      ! end if
-    end if
 
-    ! IK July2023
-    if (include_tracer) then
+
       do kz = 1, nz
         do jy = 1, ny
           do ix = 1, nx

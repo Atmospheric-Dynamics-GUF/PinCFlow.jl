@@ -940,7 +940,7 @@ module output_module
 
             case(11) ! tracer diffusion
               if (include_tracer) then 
-                field_prc(i, j) = ray_var3D(i, j, k, 11) / lRef**2.0
+                field_prc(i, j) = ray_var3D(i, j, k, 11) / tRef
               else
                 field_prc(i, j) = 0.0
               end if
