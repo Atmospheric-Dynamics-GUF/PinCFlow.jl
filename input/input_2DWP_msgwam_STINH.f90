@@ -11,13 +11,13 @@
 
 &domain
 
-sizeX = 1,!, !64, !32                ! nb of global grid cells
+sizeX = 3,!, !64, !32                ! nb of global grid cells
 sizeY = 1,
 sizeZ = 300,!, !200, !100 
-nbx = 2,                  ! nb. of ghost cells
-nby = 2,
-nbz = 2,
-lx_dim =   0.0, 1.e3, ! domain lenths in m
+nbx = 3,                  ! nb. of ghost cells
+nby = 3,
+nbz = 3,
+lx_dim =   0.0, 3.e3, ! domain lenths in m
 ly_dim =   0.0, 1.e3,
 lz_dim =   0.0, 3.e4,
 
@@ -267,8 +267,8 @@ range_factor = 10         ! factor by which mountain range is wider than
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  60.0   ! output every ... seconds
-  maxTime = 18000.0          ! stop after maxTime seconds
+  outputTimeDiff =  24.0   ! output every ... seconds
+  maxTime = 7200.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -458,13 +458,13 @@ omiSign = -1            ! frequency branch
 &LagrangeRayTracing
 
 xrmin_dim = 0.0,         ! left bound of initial rays (in x direction) (m)
-xrmax_dim = 1.e3,        ! right bound of initial rays (in x dir.) (m)
+xrmax_dim = 3.e3,        ! right bound of initial rays (in x dir.) (m)
 yrmin_dim = 0.0,         ! left bound of initial rays (in y direction) (m)
 yrmax_dim = 1.e3,        ! right bound of initial rays (in y dir.) (m)
 zrmin_dim = 0.0,        ! bottom bound of initial rays (m)
 zrmax_dim = 2.e4,        ! top bound of initial rays (m)
 
-nrxl = 1,               ! no. of ray vol. init. within one hor. x column
+nrxl = 2,               ! no. of ray vol. init. within one hor. x column
 nryl = 1,               ! no. of ray vol. init. within one hor. y column
 nrzl = 1,               ! no. of ray vol. init. within one vert. layer
 
@@ -479,15 +479,15 @@ nrk_init = 1,            ! no. of ray volumes initialized within dk
 nrl_init = 1,            ! no. of ray volumes initialized within dl
 nrm_init = 20,            ! no. of ray volumes initialized within dm
 
-nsmth_wkb = 1,           ! half (number -1) of cells f. smooth. wkb fluxes
-lsmth_wkb = .false.,      ! log. switch for smooth. wkb data (true/false)
-sm_filter = 1,
+nsmth_wkb = 2,           ! half (number -1) of cells f. smooth. wkb fluxes
+lsmth_wkb = .true.,      ! log. switch for smooth. wkb data (true/false)
+sm_filter = 2,
 
 lsaturation = .true.,    ! JaWi 16.12.16 (sat)
-alpha_sat = 1.0,         ! JaWi 16.12.16 (sat)
+alpha_sat = 1.4,         ! JaWi 16.12.16 (sat)
 
 case_wkb = 1,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
-amp_wkb = 0.9            ! amplitude of the wave packet (wrt saturation)
+amp_wkb = 1.2            ! amplitude of the wave packet (wrt saturation)
 
 wlrx_init = 1.e3,        ! initial lambda_x of the wave packet (m)
 wlry_init = 0.0,          ! initial lambda_y of the wave packet (m)
@@ -526,7 +526,7 @@ nray_fac = 2             ! maximum factor (per wavenumber direction) by
                          ! which # of rays may increase in comparison to
                          ! initialization
 
-cons_merge = "en"        ! quantity to be conserved
+cons_merge = "wa"        ! quantity to be conserved
                          ! ("wa" = wave action/ "en" = wave energy)
                          ! under ray-volume merging
 
@@ -734,10 +734,14 @@ output_heat = .true.
 
 tracerSetup = "quadratic_increase"!"increase_in_z_tracer"
 
+include_prime = .false.
+
 tracerdifference = .true.
 
 include_GW_force = .false.
 
 include_mixing = .true.
+
+diffusionbeta = 1.0
 
 &end

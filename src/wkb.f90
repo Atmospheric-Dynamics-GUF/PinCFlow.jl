@@ -618,6 +618,7 @@ module wkb_module
                   end if
 
                   var_E(ix, jy, kz) = var_E(ix, jy, kz) + wadr * omir
+
                 end do
               end do
             end do
@@ -636,7 +637,6 @@ module wkb_module
           !ray_var3D(ix,jy,kz,5) =  var_ETy(ix,jy,kz)
           ray_var3D(ix, jy, kz, 5) = var_uw(ix, jy, kz) ! output change by FDK
           ray_var3D(ix, jy, kz, 6) = var_E(ix, jy, kz)
-          
         end do
       end do
     end do
@@ -734,6 +734,7 @@ module wkb_module
       laplacetracer = 0.0
       if (include_mixing) then
         call diffusioncoefficient(ray, dt, diffusioncoeff)
+        diffusioncoeff = diffusionbeta * diffusioncoeff
       else
         diffusioncoeff = 0.0
       end if
@@ -754,9 +755,12 @@ module wkb_module
                 rhotracern = var(ix  , jy, kz, 1)
                 rhotracerm = var(ix-1, jy, kz, 1)
               end if
-              laplacetracer = (var(ix+1, jy, kz, iVart)/rhotracerp & 
-                         - 2.0*var(ix  , jy, kz, iVart)/rhotracern & 
-                         +     var(ix-1, jy, kz, iVart)/rhotracerm)/(dx**2.)
+              laplacetracer = ( (diffusioncoeff(ix+1,jy,kz)+diffusioncoeff(ix,jy,kz)) &
+                              * (var(ix+1, jy, kz, iVart)/rhotracerp & 
+                               - var(ix  , jy, kz, iVart)/rhotracern) & 
+                              - (diffusioncoeff(ix,jy,kz)+diffusioncoeff(ix-1,jy,kz)) &
+                              * (var(ix  , jy, kz, iVart)/rhotracern & 
+                               - var(ix-1, jy, kz, iVart)/rhotracerm) ) / (2. * dx ** 2.)
             else
               dutracer = 0.0
               laplacetracer = 0.0
@@ -776,9 +780,12 @@ module wkb_module
               end if
 
               laplacetracer = laplacetracer &
-                +    (var(ix, jy+1, kz, iVart)/rhotracerp & 
-                - 2.0*var(ix, jy  , kz, iVart)/rhotracern & 
-                +     var(ix, jy-1, kz, iVart)/rhotracerm)/(dy**2.)
+                            + ( (diffusioncoeff(ix,jy+1,kz)+diffusioncoeff(ix,jy,kz)) &
+                              * (var(ix, jy+1, kz, iVart)/rhotracerp & 
+                              -  var(ix  , jy, kz, iVart)/rhotracern) & 
+                              - (diffusioncoeff(ix,jy,kz)+diffusioncoeff(ix,jy-1,kz)) &
+                              * (var(ix  , jy, kz, iVart)/rhotracern & 
+                               - var(ix, jy-1, kz, iVart)/rhotracerm) ) / (2. * dy ** 2.)
             else
               dvtracer = 0.0
               laplacetracer = laplacetracer
@@ -799,17 +806,20 @@ module wkb_module
             end if
 
             laplacetracer = laplacetracer &
-              +    (var(ix, jy, kz+1, iVart)/rhotracerp & 
-              - 2.0*var(ix, jy, kz  , iVart)/rhotracern & 
-              +     var(ix, jy, kz-1, iVart)/rhotracerm)/(dz**2.)
+                          + ( (diffusioncoeff(ix,jy,kz+1)+diffusioncoeff(ix,jy,kz)) &
+                            * (var(ix, jy, kz+1, iVart)/rhotracerp & 
+                            -  var(ix  , jy, kz, iVart)/rhotracern) & 
+                            - (diffusioncoeff(ix,jy,kz)+diffusioncoeff(ix,jy,kz-1)) &
+                            * (var(ix  , jy, kz, iVart)/rhotracern & 
+                             - var(ix, jy, kz-1, iVart)/rhotracerm) ) / (2. * dz ** 2.)
 
-            force(ix,jy,kz,5) = diffusioncoeff(ix,jy,kz)*laplacetracer
+            force(ix,jy,kz,5) = laplacetracer
           end do
         end do
       end do
 
       call setboundary_frc_wkb(force(:, :, :, 4))
-
+      call setboundary_frc_wkb(force(:, :, :, 5))
 
       do kz = 1, nz
         do jy = 1, ny

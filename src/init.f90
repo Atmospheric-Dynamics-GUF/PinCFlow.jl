@@ -4875,6 +4875,20 @@ module init_module
       end if
       print *, ""
 
+      print *, "11) Tracer: "
+      if (include_tracer) then
+        write(*, fmt = "(a25,a)") "include_tracer = ", include_tracer
+        if (raytracer) then
+          write(*, fmt = "(a25,a)") "include_GW_force = ", include_GW_force
+          write(*, fmt = "(a25,a)") "include_mixing = ", include_mixing 
+          write(*, fmt = "(a25,f7.1)") "diffusionbeta = ", diffusionbeta
+        else 
+          write(*, fmt = "(a25,a)") "tracerdifference = ", tracerdifference 
+        end if
+      else 
+        write(*, fmt = "(a25,a)") "include_tracer = ", include_tracer 
+      end if
+
     end if ! modified by Junhong Wei (20170216)
 
     !-------------------------------------------------------------------

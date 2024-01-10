@@ -11,12 +11,12 @@
 
 &domain
 
-  sizeX = 62,!, !64, !32                ! nb of global grid cells
+  sizeX = 32,!, !64, !32                ! nb of global grid cells
   sizeY = 1,
-  sizeZ = 200,!, !200, !100 
-  nbx = 2,                  ! nb. of ghost cells
-  nby = 2,
-  nbz = 2,
+  sizeZ = 100,!, !200, !100 
+  nbx = 3,                  ! nb. of ghost cells
+  nby = 3,
+  nbz = 3,
   lx_dim =   0.0, 9.e6, ! domain lenths in m
   ly_dim =   0.0, 9.e5,
   lz_dim =   0.0, 1.e5,
@@ -264,7 +264,7 @@
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
-  maxIter = 1             ! stop after maxIter time steps
+  maxIter = 10             ! stop after maxIter time steps
 
   outputTimeDiff =  9000.0  !1080.0 ! output every ... seconds
   maxTime = 54000.0          ! 10800.0 !stop after maxTime seconds
@@ -275,11 +275,11 @@
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -465,7 +465,7 @@
   zrmax_dim = 1.e5,        ! top bound of initial rays (m)
 
   nrxl = 4,               ! no. of ray vol. init. within one hor. x column
-  nryl = 2,               ! no. of ray vol. init. within one hor. y column
+  nryl = 1,               ! no. of ray vol. init. within one hor. y column
   nrzl = 4,               ! no. of ray vol. init. within one vert. layer
 
   fac_dk_init = 0.1,     ! init. width of total ray vol. in k space
@@ -480,7 +480,7 @@
   nrm_init = 2,            ! no. of ray volumes initialized within dm
 
   nsmth_wkb = 2,           ! half (number -1) of cells f. smooth. wkb fluxes
-  lsmth_wkb = .false.,      ! log. switch for smooth. wkb data (true/false)
+  lsmth_wkb = .true.,      ! log. switch for smooth. wkb data (true/false)
   sm_filter = 2,
 
   lsaturation = .false.,    ! JaWi 16.12.16 (sat)
@@ -734,8 +734,14 @@
 
   tracerSetup = "increase_in_z_tracer"
 
+  include_prime = .false.
+  
+  tracerdifference = .true.
+  
   include_GW_force = .true.
-
+  
   include_mixing = .false.
+  
+  diffusionbeta = 2.0
 
 &end
