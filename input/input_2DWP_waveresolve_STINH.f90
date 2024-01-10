@@ -265,8 +265,8 @@ range_factor = 10         ! factor by which mountain range is wider than
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  60.0  ! output every ... seconds
-  maxTime = 18000.0          ! stop after maxTime seconds
+  outputTimeDiff =  24.0  ! output every ... seconds
+  maxTime = 7200.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -413,7 +413,7 @@ lambdaY_dim = 0.0       ! wave length in y direction in m
                         ! lambday = 0.0 --> infinite wavelength
 lambdaZ_dim = 1.e3      ! vertical wave length in m
 
-amplitudeFactor = 0.9   ! normalilized buoyancy amplitude
+amplitudeFactor = 1.2   ! normalilized buoyancy amplitude
 
 xCenter_dim = 500.0     ! center of wave packet in x direction in m
 
@@ -731,10 +731,14 @@ output_heat = .true.
 
 tracerSetup = "quadratic_increase"!"increase_in_z_tracer"
 
+include_prime = .true.
+
 tracerdifference = .true.
 
 include_GW_force = .false.
 
-include_mixing = .false.
+include_mixing = .true.
+
+diffusionbeta = 2.0
 
 &end
