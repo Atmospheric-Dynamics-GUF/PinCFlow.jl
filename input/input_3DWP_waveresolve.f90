@@ -263,10 +263,10 @@ range_factor = 10         ! factor by which mountain range is wider than
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
-  maxIter = 1             ! stop after maxIter time steps
+  maxIter = 10             ! stop after maxIter time steps
 
-  outputTimeDiff =  9000.0  ! output every ... seconds
-  maxTime = 54000.0          ! stop after maxTime seconds
+  outputTimeDiff =  900.0!9000.0  ! output every ... seconds
+  maxTime = 9000.0!54000.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -274,11 +274,11 @@ range_factor = 10         ! factor by which mountain range is wider than
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -301,7 +301,7 @@ range_factor = 10         ! factor by which mountain range is wider than
   !                         4) background density rhoBar in kg/m^3
   !                         5) div(Pu)
   !                         6) stratification perturbation db/dz
-  thetaOffset = .false.               ! subtract background
+  thetaOffset = .true.               ! subtract background
 
   ! WKB variables
   wkbVarOut = 0,0,0,0, 0,0,0,0, 0,0,0,0
@@ -731,6 +731,14 @@ output_heat = .true.
 
 tracerSetup = "increase_in_z_tracer"
 
-include_GW_force = .true.
+include_prime = .false.
+
+tracerdifference = .true.
+
+include_GW_force = .false.
+
+include_mixing = .true.
+
+diffusionbeta = 2.0
 
 &end

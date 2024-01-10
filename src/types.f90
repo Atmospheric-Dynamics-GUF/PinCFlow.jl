@@ -806,9 +806,11 @@ module type_module
   !                           Tracer
   !----------------------------------------------------------------
   character(len=20) :: tracerSetup
-  logical :: include_GW_force, include_mixing, tracerdifference
+  logical :: include_GW_force, include_mixing, tracerdifference, include_prime
+  real :: diffusionbeta
 
-  namelist / tracerList / tracerSetup, include_GW_force, include_mixing, tracerdifference
+  namelist / tracerList / tracerSetup, include_GW_force, include_mixing, tracerdifference, &
+            diffusionbeta, include_prime
 
   !-----------------------------------------------------------------
   !                           Ice physics
@@ -888,6 +890,11 @@ module type_module
 
     ! Diffusive sponge (FJMar2023)
     diffusive_sponge = .false.
+
+    ! IKDec2023
+    tracerdifference = .true.
+    include_GW_force = .true.
+    include_mixing = .true.
 
   end subroutine default_values
 

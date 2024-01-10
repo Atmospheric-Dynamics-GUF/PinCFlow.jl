@@ -701,7 +701,7 @@ module update_module
     ! 3) WKB wave driving (cell-centered)
     ! mmp_mod = rhs =>
     ! 1) WKB wave driving (cell-centered)
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 4), intent(in) :: force
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 5), intent(in) :: force
 
     real, intent(in) :: dt, facray
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), &
@@ -2314,7 +2314,7 @@ module update_module
     ! 3) WKB wave driving (cell-centered)
     ! mmp_mod = rhs =>
     ! 1) WKB wave driving (cell-centered)
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 4), intent(in) :: force
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 5), intent(in) :: force
 
     !UAC real, intent(in) :: dt
     real, intent(in) :: dt, facray
@@ -5979,7 +5979,7 @@ module update_module
             else
               forcetracer = 0.0
             end if
-            F = F - rho * forcetracer
+            F = F - rho * forcetracer !
           end if
 
           if (dens_relax) then
@@ -8965,7 +8965,7 @@ module update_module
     real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
         + nbz), nVar), intent(inout) :: var
     real, dimension((- 1):nx, (- 1):ny, (- 1):nz, 3, nVar), intent(in) :: flux
-    real, dimension(0:(nx + 1), 0:(ny + 1), 0:(nz + 1), 4), intent(in) :: force
+    real, dimension(0:(nx + 1), 0:(ny + 1), 0:(nz + 1), 5), intent(in) :: force
     real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
         + nbz), 3), intent(inout) :: dMom
     character(len = *), intent(in) :: int_mod

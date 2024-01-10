@@ -908,7 +908,7 @@ module output_module
               field_prc(i, j) = ray_var3D(i, j, k, 5) * uRef ** 2
 
             case(6) ! GW energy
-              field_prc(i, j) = ray_var3D(i, j, k, 6) * rhoRef * uRef ** 2 ! /tRef deleted by FDK
+              field_prc(i, j) = ray_var3D(i, j, k, 6) *  uRef ** 2 ! /tRef deleted by FDK; rhoRef *
 
             case(7) ! u'chi'
               if (include_tracer) then 

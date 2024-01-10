@@ -3269,7 +3269,7 @@ module flux_module
         intent(in) :: var
 
     ! volume forces
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(inout) :: force
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 5), intent(inout) :: force
 
     ! local variables
     integer :: i, j, k, l
@@ -3333,7 +3333,7 @@ module flux_module
               gForce = gForce / jac(i, j, k)
             end if
 
-            force(i, j, k, :) = force(i, j, k, :) + gForce
+            force(i, j, k, 1:3) = force(i, j, k, 1:3) + gForce
 
           end do
         end do
@@ -3391,13 +3391,13 @@ module flux_module
             ! Coriolis force normally written in LHS with "+"
             ! gets now a "-" since force is assumed on the RHS
 
-            force(i, j, k, :) = force(i, j, k, :) - (rho * RoInv(j) * (/f1, &
+            force(i, j, k, 1:3) = force(i, j, k, 1:3) - (rho * RoInv(j) * (/f1, &
                 f2, f3/))
 
             ! TFC FJ
             ! Add vertical Coriolis force component in TFC.
             if(topography) then
-              force(i, j, k, :) = force(i, j, k, :) + rho * RoInv(j) &
+              force(i, j, k, 1:3) = force(i, j, k, 1:3) + rho * RoInv(j) &
                   * vertical * (met(i, j, k, 3, 1) * u2 - met(i, j, k, 3, 2) &
                   * u1)
             end if
