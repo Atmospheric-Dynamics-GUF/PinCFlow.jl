@@ -809,8 +809,8 @@ module type_module
   logical :: include_GW_force, include_mixing, tracerdifference, include_prime
   real :: diffusionbeta
 
-  namelist / tracerList / tracerSetup, include_GW_force, include_mixing, tracerdifference, &
-            diffusionbeta, include_prime
+  namelist / tracerList / tracerSetup, include_GW_force, include_mixing, tracerdifference, include_prime, &
+            diffusionbeta
 
   !-----------------------------------------------------------------
   !                           Ice physics
@@ -892,6 +892,7 @@ module type_module
     diffusive_sponge = .false.
 
     ! IKDec2023
+    include_prime = .true.
     tracerdifference = .true.
     include_GW_force = .true.
     include_mixing = .true.

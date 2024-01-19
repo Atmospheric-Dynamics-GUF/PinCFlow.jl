@@ -825,11 +825,57 @@ module wkb_module
         do jy = 1, ny
           do ix = 1, nx
             ! IKJuly2023
-            ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 9) = var_wtracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 10) = force(ix, jy, kz, 4)
-            ray_var3D(ix, jy, kz, 11) = force(ix, jy, kz, 5)
+            ray_var3D(ix, jy, kz, 7) = diffusioncoeff(ix, jy, kz) * lRef**2.0 / tRef !var_utracer(ix, jy, kz)
+
+            !------------------------------------------------------
+            if (sizeX > 1) then
+              if (fluctuationMode) then 
+                rhotracerp = var(ix+1, jy, kz, 1) + rhoStrat(kz)
+                rhotracerm = var(ix-1, jy, kz, 1) + rhoStrat(kz)
+              else 
+                rhotracerp = var(ix+1, jy, kz, 1)
+                rhotracerm = var(ix-1, jy, kz, 1)
+              end if
+              ray_var3D(ix, jy, kz, 8) = diffusioncoeff(ix,jy,kz) &
+                              * (var(ix+1, jy, kz, iVart)/rhotracerp & 
+                               - var(ix-1, jy, kz, iVart)/rhotracerm) /dx * lRef / tRef
+            else
+              ray_var3D(ix, jy, kz, 8) = 0.0
+            end if
+
+            if (sizeY > 1) then
+              if (fluctuationMode) then 
+                rhotracerp = var(ix, jy+1, kz, 1) + rhoStrat(kz)
+                rhotracerm = var(ix, jy-1, kz, 1) + rhoStrat(kz)
+              else 
+                rhotracerp = var(ix, jy+1, kz, 1)
+                rhotracerm = var(ix, jy-1, kz, 1)
+              end if
+
+              ray_var3D(ix, jy, kz, 9) = (diffusioncoeff(ix,jy,kz)) &
+                                        * (var(ix, jy+1, kz, iVart)/rhotracerp & 
+                                        -  var(ix, jy-1, kz, iVart)/rhotracerm)/dy * lRef/tRef
+            else
+              ray_var3D(ix, jy, kz, 9) = 0.0
+            end if
+
+            if (fluctuationMode) then 
+              rhotracerp = var(ix, jy, kz+1, 1) + rhoStrat(kz+1)
+              rhotracerm = var(ix, jy, kz-1, 1) + rhoStrat(kz-1)
+            else 
+              rhotracerp = var(ix, jy, kz+1, 1)
+              rhotracerm = var(ix, jy, kz-1, 1)
+            end if
+
+            ray_var3D(ix, jy, kz, 10) = (diffusioncoeff(ix,jy,kz)) &
+                            * (var(ix, jy, kz+1, iVart)/rhotracerp & 
+                            -  var(ix , jy,kz-1, iVart)/rhotracerm)/ dz * lRef/tRef
+            !------------------------------------------------------
+
+            !ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
+            !ray_var3D(ix, jy, kz, 9) = var_wtracer(ix, jy, kz)
+            !ray_var3D(ix, jy, kz, 10) =  force(ix, jy, kz, 4)
+            ray_var3D(ix, jy, kz, 11) = force(ix, jy, kz, 5) / tRef
           end do
         end do
       end do
