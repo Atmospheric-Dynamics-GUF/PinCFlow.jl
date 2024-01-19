@@ -33,9 +33,6 @@ contains
 
        if (testCase == 'wavePacket') then
           tracerprime = var(:, :, :, iVart)
-          if (include_prime .eqv. .false.) then
-            tracerprime = 0.0
-          end if
           !tracerprime = - tracerprime
        end if
        
@@ -66,7 +63,7 @@ contains
                    else
                       var(ii,jj,kk, iVart)   = rho(ii,jj,kk)*alpha * heightTFC(ii, jj, kk)
                    end if
-                   initialtracer(ii, jj, kk) = rho(ii,jj,kk)*alpha * heightTFC(ii, jj, kk)
+                   initialtracer(ii, jj, kk) = alpha * heightTFC(ii, jj, kk) ! rho(ii,jj,kk)*
                 end do
              end do
           end do
@@ -77,7 +74,7 @@ contains
              else
                 var(:,:,kk, iVart) = rho(:,:,kk) * alpha * (z(kk) -z(1))
              end if
-             initialtracer(:, :, kk) = rho(:,:,kk) * alpha * (z(kk) -z(1))
+             initialtracer(:, :, kk) = alpha * (z(kk) -z(1)) ! rho(:,:,kk) * 
           end do
        end if
 
