@@ -11,15 +11,15 @@
 
 &domain
 
-sizeX = 32,
-sizeY = 1,
-sizeZ = 960,
-nbx = 3,
-nby = 3,
-nbz = 3,
-lx_dim = 0.0, 1.e3,
-ly_dim = 0.0, 40.e3,
-lz_dim = 0.0, 30.e3,
+sizeX = 512, !512, !32,
+sizeY = 16,
+sizeZ = 1000,
+nbx = 4,
+nby = 4,
+nbz = 4,
+lx_dim = 0.0, 9000.e3,
+ly_dim = 0.0, 300.e3,
+lz_dim = 0.0, 100.e3,
 nprocx = {nprocx},
 nprocy = {nprocy},
 
@@ -64,7 +64,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
 &solverList
 
   cfl = 0.5
-  cfl_wave = 0.25                 ! passage rate of phase throuh a cell
+  cfl_wave = 0.5                 ! passage rate of phase throuh a cell
   dtMax_dim = 10.0                 ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
@@ -102,19 +102,19 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
                                ! tolPoisson = tolPoisson*alpha,
                                ! where alpha is dynamically calculated
                                ! magnitude of gradients.
-  tolPoisson = 1.0e-9          ! abort criterion
+  tolPoisson = 1.0e-4          ! abort criterion
   tolCond = 1.e-23             ! tolerance value controlling the use of
                                ! the preconditioner
   abs_tol = 0.  !1.0e-7        ! it is unscaled abs. tol.,
                                ! lower bound for tolerance.
-  maxIterPoisson = 5000       ! 1000
+  maxIterPoisson = 1000       ! 1000
   poissonSolverType = "bicgstab" ! "bicgstab" / "gcr" / "adi" / "hypre"
   storageType = "opr"          ! "csr" (compressed sparse row)
                                !  "opr" (lin operator)
 
   preconditioner = "yes"        ! for operator-Solver: "no" / "yes"
-  dtau = 4.0e-4                ! time parameter for ADI (imperical value)
-  maxIterADI = 2               ! nb of iterations for ADI preconditioner
+  dtau = 8.e-1                ! time parameter for ADI (imperical value)
+  maxIterADI = 10               ! nb of iterations for ADI preconditioner
 
   initialCleaning = .true.    ! makes initial projection
   pressureScaling = .false.     ! .true. / .false. Scaling with PStrat
@@ -181,18 +181,18 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
   Temp0_dim = 300                ! K
                                  ! isothermal -> background temperature
 
-  press0_dim =  101325.0         ! ground pressure (at z=0) in Pa:
+  press0_dim =  68880.0         ! ground pressure (at z=0) in Pa:
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 0.017     ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 0.018     ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
   backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
                                  ! zonal background flow velocity u
 
-  f_Coriolis_dim = 0.0           ! 1/s
+  f_Coriolis_dim = 1.e-4           ! 1/s
                                  ! Coriolis parameter
 
   gamma_t = 0.000                ! lapse rate in the troposphere
@@ -265,8 +265,8 @@ range_factor = 10         ! factor by which mountain range is wider than
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  24.0  ! output every ... seconds
-  maxTime = 7200.0          ! stop after maxTime seconds
+  outputTimeDiff =  9000.0  ! output every ... seconds
+  maxTime = 90000.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -274,11 +274,11 @@ range_factor = 10         ! factor by which mountain range is wider than
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -301,7 +301,7 @@ range_factor = 10         ! factor by which mountain range is wider than
   !                         4) background density rhoBar in kg/m^3
   !                         5) div(Pu)
   !                         6) stratification perturbation db/dz
-  thetaOffset = .false.               ! subtract background
+  thetaOffset = .true.               ! subtract background
 
   ! WKB variables
   wkbVarOut = 0,0,0,0, 0,0,0,0, 0,0,0,0
@@ -404,25 +404,25 @@ lambdaZ_dim = 6000.0 !m       vertical wave length
 
 wavePacketType = 1      ! 1 = Gaussian, 2 = Cosine
 
-wavePacketDim = 1       ! 1 = 1D, 2 = 2D, 3 = 3D
+wavePacketDim = 2       ! 1 = 1D, 2 = 2D, 3 = 3D
                         ! for a 2.5D Wave Packet use wavePacketDim = 2
 
-lambdaX_dim = 1.e3      ! wave length in x direction in m
+lambdaX_dim = 0.0      ! wave length in x direction in m
                         ! lambdaX = 0.0 --> infinite wavelength
-lambdaY_dim = 0.0       ! wave length in y direction in m
+lambdaY_dim = 300.e3       ! wave length in y direction in m
                         ! lambday = 0.0 --> infinite wavelength
 lambdaZ_dim = 1.e3      ! vertical wave length in m
 
-amplitudeFactor = 1.2   ! normalilized buoyancy amplitude
+amplitudeFactor = 0.1   ! normalilized buoyancy amplitude
 
-xCenter_dim = 500.0     ! center of wave packet in x direction in m
+xCenter_dim = 4500.e3     ! center of wave packet in x direction in m
 
 yCenter_dim = 1.5e4     ! center of wave packet in y direction in m
-zCenter_dim = 10.e3     ! center of wave packet in z direction in m
+zCenter_dim = 30.e3     ! center of wave packet in z direction in m
 
-sigma_dim = 2.e3        ! vertical width of Gaussian wavepacket in m
+sigma_dim = 5.e3        ! vertical width of Gaussian wavepacket in m
 
-sigma_hor_dim = 0.0     ! cosine distribution width
+sigma_hor_dim =1500.e3     ! cosine distribution width
                         ! (in x direction, 0 means infinity)
 sigma_hor_yyy_dim = 0.0 ! cosine distribution width
                         ! (in y direction, 0 means infinity)
@@ -443,7 +443,7 @@ L_jet_dim = 5000.0      ! half width vertical cosine profile of jet in 1m
 z0_jet_dim = 50000.0    ! center of jet stream
 
 
-omiSign = -1            ! frequency branch
+omiSign = 1            ! frequency branch
 
 &end
 
@@ -729,7 +729,7 @@ output_heat = .true.
 
 &tracerList
 
-tracerSetup = "quadratic_increase"!"increase_in_z_tracer"
+tracerSetup = "increase_in_z_tracer"!"quadratic_increase"!
 
 include_prime = .true.
 
