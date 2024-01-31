@@ -738,7 +738,7 @@ include_prime = .false.
 
 tracerdifference = .true.
 
-include_GW_force = .true.
+include_GW_force = .false.
 
 include_mixing = .false.
 

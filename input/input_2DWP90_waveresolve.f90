@@ -65,7 +65,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
 
   cfl = 0.5
   cfl_wave = 0.5                 ! passage rate of phase throuh a cell
-  dtMax_dim = 10.0                 ! max time step in s
+  dtMax_dim = 100.0                 ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
   timeScheme = "semiimplicit"      ! LS_Will_RK3 -> Williamson / Euler /
@@ -274,7 +274,7 @@ range_factor = 10         ! factor by which mountain range is wider than
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,1,0,1,1   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
@@ -413,7 +413,7 @@ lambdaY_dim = 300.e3       ! wave length in y direction in m
                         ! lambday = 0.0 --> infinite wavelength
 lambdaZ_dim = 1.e3      ! vertical wave length in m
 
-amplitudeFactor = 0.1   ! normalilized buoyancy amplitude
+amplitudeFactor = 0.5   ! normalilized buoyancy amplitude
 
 xCenter_dim = 4500.e3     ! center of wave packet in x direction in m
 

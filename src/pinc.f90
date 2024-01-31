@@ -70,6 +70,7 @@ program pinc_prog
   !--------------------
   type(rayType), dimension(:, :, :, :), allocatable :: ray
   real, dimension(:, :, :, :), allocatable :: ray_var3D
+  real, dimension(:, :, :), allocatable :: diffusioncoeff
 
   ! topography via force field
   real, dimension(:, :, :, :), allocatable :: force ! volume forces
@@ -406,7 +407,7 @@ program pinc_prog
   if(rayTracer) then
     ! allocate ray fields
 
-    call setup_wkb(ray, ray_var3D, var)
+    call setup_wkb(ray, ray_var3D, var, diffusioncoeff)
   end if
 
   !------------------------------------------
@@ -700,7 +701,7 @@ program pinc_prog
 
     if(rayTracer) then
       if(lsaturation) then
-        call saturation_3D(ray, dt)
+        call saturation_3D(ray, dt, diffusioncoeff)
       end if
     end if
 
@@ -741,7 +742,7 @@ program pinc_prog
             call merge_rayvol(ray)
 
             ! GW effects are put into force(...,1/2) and var(...,8)
-            call calc_meanFlow_effect(ray, var, force, ray_var3D, dt)
+            call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff)
           end if
         end do
       end if
@@ -1483,7 +1484,7 @@ program pinc_prog
         ! Lag Ray tracer (position-wavenumber space method)
 
         if(rayTracer) then
-          call calc_meanFlow_effect(ray, var, force, ray_var3D, dt)
+          call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff)
           call transport_rayvol(var, ray, dt, RKstage, time)
           if(RKstage == nStages) then
             call boundary_rayvol(ray)

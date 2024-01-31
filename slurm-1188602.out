@@ -1,0 +1,19 @@
++ ntasks=8
++ nprocx=8
++ nprocy=1
++ export OMP_NUM_THREADS=1
++ OMP_NUM_THREADS=1
++ export GMON_OUT_PREFIX=gmon.out-
++ GMON_OUT_PREFIX=gmon.out-
++ dirHome=/home/atmodynamics/knop/pinc-flow-tracer
++ dirScratch=/scratch/atmodynamics/knop
++ dirNam=/home/atmodynamics/knop/pinc-flow-tracer/input
++ exe=/home/atmodynamics/knop/pinc-flow-tracer/bin/pinc
++ dirWork=/scratch/atmodynamics/knop/output/2024/2024-01-29/instability_wkb
++ mkdir /scratch/atmodynamics/knop/output/2024/2024-01-29/instability_wkb
+mkdir: cannot create directory ‘/scratch/atmodynamics/knop/output/2024/2024-01-29/instability_wkb’: File exists
++ cd /scratch/atmodynamics/knop/output/2024/2024-01-29/instability_wkb
++ rm input.f90 run.log
++ sed -e 's/{nprocx}/8/' -e 's/{nprocy}/1/' /home/atmodynamics/knop/pinc-flow-tracer/input/input_instability_wkb.f90
++ mpirun -np 8 /home/atmodynamics/knop/pinc-flow-tracer/bin/pinc
++ exit 0

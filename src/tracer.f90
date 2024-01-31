@@ -112,7 +112,7 @@ contains
                      else
                         var(ii,jj,kk, iVart)   = rho(ii,jj,kk)*alpha * heightTFC(ii, jj, kk)**2.0
                      end if
-                     initialtracer(ii,jj,kk)  = rho(ii,jj,kk)*alpha * heightTFC(ii, jj, kk)**2.0
+                     initialtracer(ii,jj,kk)  = alpha * heightTFC(ii, jj, kk)**2.0
                   end do
                end do
             end do
@@ -123,7 +123,7 @@ contains
                else
                   var(:,:,kk, iVart) = rho(:,:,kk) * alpha * (z(kk) -z(1))**2.0
                end if
-               initialtracer(:,:,kk) = rho(:,:,kk) * alpha * (z(kk) -z(1))**2.0
+               initialtracer(:,:,kk) = alpha * (z(kk) -z(1))**2.0
             end do
          end if
 
