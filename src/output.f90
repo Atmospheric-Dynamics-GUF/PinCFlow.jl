@@ -126,6 +126,7 @@ module output_module
     if (include_tracer) then
 
       meantracer = 0.0
+      tracerdrho = 0.0
       if (nVar /= 9) stop "output.f90: tracer included but nVar /= 9?"
       if (iVart /= 9) stop "output.f90: iVart should be 9"
 
@@ -244,40 +245,11 @@ module output_module
 
                       case(7) ! dynamic Smagorinsky coefficient (deviation from bg)
                          field_prc(i,j) = var(i,j,k,iVar) * uRef * lRef
-                      case(8)
-                         stop "output.f90/output_data: iVar = 8 should not be saved"
-                      case(9)
-                         if (iVart /= 9) stop "output.f90: iVart should be 9 if only tracer (no ice)."
+                      case(8) ! large-scale tracer mixing ratio
+                        field_prc(i, j) = meantracer(i, k)
+                      case(9) ! tracer mixing ratio fluctuations
+                        field_prc(i, j) = tracerdrho(i,j,k)
 
-                        !  if(fluctuationMode) then
-                        !     if(topography) then
-                        !        ! TFC FJ
-                        !        ! Adjustment for 3D background field in
-                        !        ! TFC.
-                        !        rhotracer &
-                        !             = (var(i, j, k, 1) &
-                        !             + rhoStratTFC(i, j, k))
-                        !     else
-                        !        rhotracer &
-                        !             = (var(i,j,k,1) + rhoStrat(k))
-                        !     end if
-                        !     !rhotracer = var(i,j,k,iVar)
-                        !  else
-                        !     rhotracer = var(i, j, k, 1)
-                        !  end if
-
-                         !rhotracer = 1.0
-                         
-                          ! if (tracerdifference) then
-                          !   ! field_prc(i,j) = (var(i,j,k,iVart)-initialtracer(i,j,k))/rhotracer!alphaTracer * (z(k)-z(1))
-                          !   ! field_prc(i, j) = sum(tracerdrho(i, :, k))/ny - alphaTracer * (z(k) -z(1))! initialtracer(i,j,k)
-                          !   !field_prc(i, j) = tracerdrho(i,j,k) - initialtracer(i, j, k)
-                          ! else
-                          !   ! field_prc(i,j) = (var(i,j,k,iVart))/rhotracer!alphaTracer * (z(k)-z(1))
-                          !   field_prc(i, j) = tracerdrho(i, j, k)
-                          ! end if
-
-                         field_prc(i, j) = meantracer(i, k)
                       case default
                          stop "output.f90: unkown iVar in output_data"
                       end select ! iVar
@@ -939,35 +911,35 @@ module output_module
 
             case(7) ! u'chi'
               if (include_tracer) then 
-                field_prc(i, j) = ray_var3D(i, j, k, 7) !* uRef
+                field_prc(i, j) = ray_var3D(i, j, k, 7) * uRef
               else
                 field_prc(i, j) = 0.0
               end if
 
             case(8) ! v'chi'
               if (include_tracer) then
-                field_prc(i, j) = ray_var3D(i, j, k, 8)! * uRef
+                field_prc(i, j) = ray_var3D(i, j, k, 8) * uRef
               else
                 field_prc(i, j) = 0.0
               end if
             
             case(9) ! w'chi'
               if (include_tracer) then 
-                field_prc(i, j) = ray_var3D(i, j, k, 9)! * uRef
+                field_prc(i, j) = ray_var3D(i, j, k, 9) * uRef
               else
                 field_prc(i, j) = 0.0
               end if
 
             case(10) ! tracer forcing
               if (include_tracer) then 
-                field_prc(i, j) = ray_var3D(i, j, k, 10)! / tRef
+                field_prc(i, j) = ray_var3D(i, j, k, 10) / tRef
               else
                 field_prc(i, j) = 0.0
               end if
 
             case(11) ! tracer diffusion
               if (include_tracer) then 
-                field_prc(i, j) = ray_var3D(i, j, k, 11)! / tRef
+                field_prc(i, j) = ray_var3D(i, j, k, 11) / tRef
               else
                 field_prc(i, j) = 0.0
               end if

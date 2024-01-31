@@ -11,15 +11,15 @@
 
 &domain
 
-sizeX = 512, !32,
-sizeY = 16,
-sizeZ = 1000,
-nbx = 3,
-nby = 3,
-nbz = 3,
-lx_dim = 0.0, 9000.e3,
-ly_dim = 0.0, 300.e3,
-lz_dim = 0.0, 100.e3,
+sizeX = 32, !512, !32,
+sizeY = 1,
+sizeZ = 854,
+nbx = 4,
+nby = 4,
+nbz = 4,
+lx_dim =   0.0, 30.e3, ! domain lenths in m
+ly_dim =   0.0, 30.e3,
+lz_dim =   0.0, 80.e3,
 nprocx = {nprocx},
 nprocy = {nprocy},
 
@@ -64,7 +64,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
 &solverList
 
   cfl = 0.5
-  cfl_wave = 0.5                 ! passage rate of phase throuh a cell
+  cfl_wave = 0.25                 ! passage rate of phase throuh a cell
   dtMax_dim = 10.0                 ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
@@ -81,7 +81,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
   TurbScheme = .false.            ! Turbulence Schwme
   turb_dts = 5.e3                 ! (s) turbulent damping time scale for the
                                   ! smallest grid scales
-  DySmaScheme = .true.            ! Dynamic Smagorinsky Scheme for the
+  DySmaScheme = .false.            ! Dynamic Smagorinsky Scheme for the
                                   ! dynamic calculation of the turbulent
                                   ! damping time scale
   dtWave_on = .true.              ! .true. : include dtWave = pi/N to time
@@ -181,18 +181,18 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
   Temp0_dim = 300                ! K
                                  ! isothermal -> background temperature
 
-  press0_dim =  101325.0         ! ground pressure (at z=0) in Pa:
+  press0_dim =  68880.0         ! ground pressure (at z=0) in Pa:
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 0.017     ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 0.018     ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
   backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
                                  ! zonal background flow velocity u
 
-  f_Coriolis_dim = 1.e-4           ! 1/s
+  f_Coriolis_dim = 0.0           ! 1/s
                                  ! Coriolis parameter
 
   gamma_t = 0.000                ! lapse rate in the troposphere
@@ -263,10 +263,10 @@ range_factor = 10         ! factor by which mountain range is wider than
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
-  maxIter = 1             ! stop after maxIter time steps
+  maxIter = 10             ! stop after maxIter time steps
 
-  outputTimeDiff =  3000.0  ! output every ... seconds
-  maxTime = 30000.0          ! stop after maxTime seconds
+  outputTimeDiff =  60.0   ! output every ... seconds
+  maxTime = 72000.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -274,11 +274,11 @@ range_factor = 10         ! factor by which mountain range is wider than
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,1,0,1,1   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -301,7 +301,7 @@ range_factor = 10         ! factor by which mountain range is wider than
   !                         4) background density rhoBar in kg/m^3
   !                         5) div(Pu)
   !                         6) stratification perturbation db/dz
-  thetaOffset = .false.               ! subtract background
+  thetaOffset = .true.               ! subtract background
 
   ! WKB variables
   wkbVarOut = 0,0,0,0, 0,0,0,0, 0,0,0,0
@@ -404,25 +404,25 @@ lambdaZ_dim = 6000.0 !m       vertical wave length
 
 wavePacketType = 1      ! 1 = Gaussian, 2 = Cosine
 
-wavePacketDim = 2       ! 1 = 1D, 2 = 2D, 3 = 3D
+wavePacketDim = 1       ! 1 = 1D, 2 = 2D, 3 = 3D
                         ! for a 2.5D Wave Packet use wavePacketDim = 2
 
-lambdaX_dim = 0.0      ! wave length in x direction in m
+lambdaX_dim = 30.0e3      ! wave length in x direction in m
                         ! lambdaX = 0.0 --> infinite wavelength
-lambdaY_dim = 300.e3       ! wave length in y direction in m
+lambdaY_dim = 0.0e3       ! wave length in y direction in m
                         ! lambday = 0.0 --> infinite wavelength
-lambdaZ_dim = 1.e3      ! vertical wave length in m
+lambdaZ_dim = 3.e3      ! vertical wave length in m
 
 amplitudeFactor = 0.5   ! normalilized buoyancy amplitude
 
-xCenter_dim = 4500.e3     ! center of wave packet in x direction in m
+xCenter_dim = 0.0e3     ! center of wave packet in x direction in m
 
-yCenter_dim = 1.5e4     ! center of wave packet in y direction in m
-zCenter_dim = 30.e3     ! center of wave packet in z direction in m
+yCenter_dim = 0.0e4     ! center of wave packet in y direction in m
+zCenter_dim = 10.e3     ! center of wave packet in z direction in m
 
 sigma_dim = 5.e3        ! vertical width of Gaussian wavepacket in m
 
-sigma_hor_dim = 1500.e3     ! cosine distribution width
+sigma_hor_dim = 0.0     ! cosine distribution width
                         ! (in x direction, 0 means infinity)
 sigma_hor_yyy_dim = 0.0 ! cosine distribution width
                         ! (in y direction, 0 means infinity)
@@ -443,7 +443,7 @@ L_jet_dim = 5000.0      ! half width vertical cosine profile of jet in 1m
 z0_jet_dim = 50000.0    ! center of jet stream
 
 
-omiSign = 1            ! frequency branch
+omiSign = -1            ! frequency branch
 
 &end
 
