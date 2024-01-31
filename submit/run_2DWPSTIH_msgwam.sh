@@ -1,15 +1,15 @@
 #!/bin/bash
 #SBATCH --partition=general2
-#SBATCH --job-name=STINHWR
-#SBATCH --ntasks=160
+#SBATCH --job-name=2DWPms
+#SBATCH --ntasks=8
 #SBATCH --mem-per-cpu=2600
 #SBATCH --time=96:00:00
 
 set -x
 
 # no. of processors ntasks must be nprocx * nprocy
-ntasks=160
-nprocx=160
+ntasks=8
+nprocx=8
 nprocy=1
 
 # OpenMP settings
@@ -26,7 +26,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/2024/2024-01-03/STINH/3DWP_waveresolve_STINH
+dirWork=${dirScratch}/output/2024/2024-01-22/2DWPSTIH/2DWPSTIH_msgwam
 
 mkdir ${dirWork}
 
@@ -37,7 +37,7 @@ cd ${dirWork} && rm *
 # copy namelist
 sed -e "s/{nprocx}/${nprocx}/" \
     -e "s/{nprocy}/${nprocy}/" \
-        ${dirNam}/input_3DWP_waveresolve_STINH.f90 > input.f90
+        ${dirNam}/input_2DWPSTIH_msgwam.f90 > input.f90
 
 # run the raytracer
 mpirun -np ${ntasks} ${exe} 1>run.log 2>&1

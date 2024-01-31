@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --partition=general2
-#SBATCH --job-name=2DWP90M
+#SBATCH --job-name=2DWPmwf
 #SBATCH --ntasks=8
 #SBATCH --mem-per-cpu=2600
-#SBATCH --time=02:00:00
+#SBATCH --time=96:00:00
 
 set -x
 
@@ -26,7 +26,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/2024/2024-01-19/2DWP90_msgwam_N0018
+dirWork=${dirScratch}/output/2024/2024-01-22/2DWP90_final/2DWP90_msgwam
 
 mkdir ${dirWork}
 
