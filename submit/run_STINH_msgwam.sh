@@ -3,7 +3,7 @@
 #SBATCH --job-name=STINHMS
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=2600
-#SBATCH --time=96:00:00
+#SBATCH --time=00:10:00
 
 set -x
 
@@ -26,7 +26,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/2024/2024-01-30/STINH/STINH_msgwam
+dirWork=${dirScratch}/output/2024/2024-01-30/STINH/STINH_msgwam_withfluxes #_inducedwind
 
 mkdir ${dirWork}
 

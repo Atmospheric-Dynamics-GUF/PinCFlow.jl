@@ -76,7 +76,7 @@ module output_module
 
     if(master) then ! modified by Junhong Wei (20161110)
       print *, ""
-      print *, " Output into File "
+      print *, " Output into File"
       print *, ""
       write(*, fmt = "(a25,i15)") " at time step = ", iTime
       write(*, fmt = "(a25,f15.1,a8)") " at physical time = ", time_dim, " &
@@ -129,26 +129,6 @@ module output_module
       tracerdrho = 0.0
       if (nVar /= 9) stop "output.f90: tracer included but nVar /= 9?"
       if (iVart /= 9) stop "output.f90: iVart should be 9"
-
-      do k = 1,nz
-        do i = 1,nx  
-          do j = 1,ny
-            if(fluctuationMode) then
-              if(topography) then
-                rhotracer = (var(i, j, k, 1) + rhoStratTFC(i, j, k))
-              else
-                rhotracer = (var(i,j,k,1) + rhoStrat(k))
-              end if
-            else
-              rhotracer = var(i, j, k, 1)
-            end if
-            tracerdrho(i, j, k) = var(i, j, k, iVart)/rhotracer - initialtracer(i, j, k)
-            meantracer(i, k) = meantracer(i, k) + tracerdrho(i, j, k)
-          end do
-          meantracer(i, k) = meantracer(i, k) / ny
-        end do
-      end do
-
 
        do iVar = 1, nVar
           if (varOut(iVar) == 1) then
@@ -246,8 +226,18 @@ module output_module
                       case(7) ! dynamic Smagorinsky coefficient (deviation from bg)
                          field_prc(i,j) = var(i,j,k,iVar) * uRef * lRef
                       case(8) ! large-scale tracer mixing ratio
-                        field_prc(i, j) = meantracer(i, k)
+                        field_prc(i, j) = initialtracer(i,j,k)
                       case(9) ! tracer mixing ratio fluctuations
+                        if(fluctuationMode) then
+                          if(topography) then
+                            rhotracer = (var(i, j, k, 1) + rhoStratTFC(i, j, k))
+                          else
+                            rhotracer = (var(i,j,k,1) + rhoStrat(k))
+                          end if
+                        else
+                          rhotracer = var(i, j, k, 1)
+                        end if
+                        tracerdrho(i, j, k) = var(i, j, k, iVart)/rhotracer - initialtracer(i, j, k)
                         field_prc(i, j) = tracerdrho(i,j,k)
 
                       case default
@@ -621,6 +611,7 @@ module output_module
 
     ! set counter
     iOut = iOut + 1
+    !iOut = iOut
     
 
   end subroutine output_data
@@ -932,7 +923,7 @@ module output_module
 
             case(10) ! tracer forcing
               if (include_tracer) then 
-                field_prc(i, j) = ray_var3D(i, j, k, 10) / tRef
+                field_prc(i, j) = ray_var3D(i, j, k, 10) *lRef ** 2.0 / tRef
               else
                 field_prc(i, j) = 0.0
               end if
@@ -1517,10 +1508,10 @@ module output_module
     !       dimensionalising and layerwise output
     !---------------------------------------
 
-    irc_prc = 7 * iOut * nz
+    irc_prc = 10 * iOut * nz
 
-    do iVar = 1, 7
-      if(varOut(iVar) == 1) then
+    do iVar = 1, 10
+      !if(varOut(iVar) == 1) then
         do k = 1, nz
           ! dimensionalization
 
@@ -1561,6 +1552,27 @@ module output_module
                     * (var(i, j, k + 1, 2) + var(i, j, k, 2)) * uRef * uRef &
                     * rhoRef
 
+              case(8) ! zonal tracer flux (rho u chi)
+                if (include_tracer) then 
+                  field_prc(i, j) = rhoRef * uRef * flux(i, j, k, 1, iVart)
+                else
+                  field_prc(i, j) = 0.0
+                end if 
+              
+              case(9) ! meridional tracer flux (rho v chi)
+                if (include_tracer) then 
+                  field_prc(i, j) = rhoRef * uRef * flux(i, j, k, 2, iVart)
+                else
+                  field_prc(i, j) = 0.0
+                end if 
+              
+              case(10) ! vertical tracer flux (rho w chi)
+                if (include_tracer) then 
+                  field_prc(i, j) = rhoRef * uRef * flux(i, j, k, 3, iVart)
+                else
+                  field_prc(i, j) = 0.0
+                end if 
+
               case default
               end select ! iVar
             end do ! i
@@ -1595,7 +1607,7 @@ module output_module
             write(43, rec = irc_prc) field_out
           end if
         end do ! k
-      end if
+      !end if
     end do ! iVar
 
     !------------------------------------
@@ -1605,7 +1617,7 @@ module output_module
     if(master) close(unit = 43)
 
     ! set counter
-    !iOut = iOut + 1
+    iOut = iOut + 1
 
   end subroutine output_fluxes
 

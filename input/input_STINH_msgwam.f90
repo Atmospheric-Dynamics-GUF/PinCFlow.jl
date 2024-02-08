@@ -194,7 +194,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
   backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
                                  ! zonal background flow velocity u
 
-  f_Coriolis_dim = 1.e-4           ! 1/s
+  f_Coriolis_dim = 0.0!1.e-4           ! 1/s
                                  ! Coriolis parameter
 
   gamma_t = 0.000                ! lapse rate in the troposphere
@@ -267,8 +267,8 @@ range_factor = 10         ! factor by which mountain range is wider than
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  60.0   ! output every ... seconds
-  maxTime = 18000.0          ! stop after maxTime seconds
+  outputTimeDiff =  1.0   ! output every ... seconds
+  maxTime = 1.! 18000.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -738,7 +738,7 @@ include_prime = .false.
 
 tracerdifference = .true.
 
-include_GW_force = .true.
+include_GW_force = .false.
 
 include_mixing = .true.
 
