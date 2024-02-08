@@ -116,7 +116,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
   dtau = 4.0e-4                ! time parameter for ADI (imperical value)
   maxIterADI = 2               ! nb of iterations for ADI preconditioner
 
-  initialCleaning = .true.    ! makes initial projection
+  initialCleaning = .false.    ! makes initial projection
   pressureScaling = .false.     ! .true. / .false. Scaling with PStrat
   useNAG = .false.             ! use NAG routine for TDMA algorithm
   correctMomentum = .true.     ! turn velocity projection on/off
@@ -147,7 +147,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
                                  ! 2 * mu_viscous_dim corresponds to
                                  ! Pr = 0.5
 
-  background = "isothermal"         ! const-N    -> set N_BruntVaisala_dim
+  background = "isothermal"      ! const-N    -> set N_BruntVaisala_dim
                                  ! isothermal -> set Temp0_dim in K
                                  ! isentropic -> set theta0_dim in K
                                  ! uniform    -> constant density
@@ -192,7 +192,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
   backgroundFlow_dim =  0.0, 0.0, 0.0 !m/s
                                  ! zonal background flow velocity u
 
-  f_Coriolis_dim = 1.e-4           ! 1/s
+  f_Coriolis_dim = 0.0           ! 1/s
                                  ! Coriolis parameter
 
   gamma_t = 0.000                ! lapse rate in the troposphere
@@ -265,8 +265,8 @@ range_factor = 10         ! factor by which mountain range is wider than
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  60.0  ! output every ... seconds
-  maxTime = 18000.0          ! stop after maxTime seconds
+  outputTimeDiff =  1.0  ! output every ... seconds
+  maxTime = 1.!18000.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -404,7 +404,7 @@ lambdaZ_dim = 6000.0 !m       vertical wave length
 
 wavePacketType = 1      ! 1 = Gaussian, 2 = Cosine
 
-wavePacketDim = 1       ! 1 = 1D, 2 = 2D, 3 = 3D
+wavePacketDim = 2       ! 1 = 1D, 2 = 2D, 3 = 3D
                         ! for a 2.5D Wave Packet use wavePacketDim = 2
 
 lambdaX_dim = 1.e3      ! wave length in x direction in m
@@ -442,9 +442,9 @@ u0_jet_dim = 0.0        ! amplitude max of jet velocity
 L_jet_dim = 5000.0      ! half width vertical cosine profile of jet in 1m
 z0_jet_dim = 50000.0    ! center of jet stream
 
-
 omiSign = -1            ! frequency branch
 
+inducedwind = .true.
 &end
 
 
