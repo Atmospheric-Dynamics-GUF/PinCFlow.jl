@@ -740,6 +740,7 @@ module wkb_module
       ! else
       !   diffusioncoeff = 0.0
       ! end if
+
       do kz = 1, nz
         do jy = 1, ny
           do ix = 1, nx
@@ -828,7 +829,7 @@ module wkb_module
             ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
             ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
             ray_var3D(ix, jy, kz, 9) = var_wtracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 10) = diffusioncoeff(ix, jy, kz)  * tRef!force(ix, jy, kz, 4)
+            ray_var3D(ix, jy, kz, 10) = diffusioncoeff(ix, jy, kz) !force(ix, jy, kz, 4)
             ray_var3D(ix, jy, kz, 11) = force(ix, jy, kz, 5)
           end do
         end do
@@ -1113,7 +1114,7 @@ module wkb_module
     type(rayType), dimension(:, :, :, :), allocatable, intent(out) :: ray
     real, dimension(:, :, :, :), allocatable, intent(out) :: ray_var3D
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(in) :: var
+        intent(inout) :: var
     real, dimension(:, :, :), allocatable, intent(out) :: diffusioncoeff
 
     ! local variables
@@ -1612,6 +1613,12 @@ module wkb_module
             ! teste
           end do
         end do
+      end do
+    end if
+
+    if (lindUinit) then 
+      do kz = 1, (nz)
+        var(:, :, kz, 2) = var(:, :, kz, 2) + wnrk_init * fld_amp(:, :, kz) / rhoStrat(kz)
       end do
     end if
 
@@ -6771,7 +6778,7 @@ module wkb_module
 
     ! IK231213
     real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(inout) :: diffusioncoeff
-
+    real :: difftest 
     ! indices, etc.
     integer iRay, kzmax, kzmin
 
@@ -6986,9 +6993,31 @@ module wkb_module
             diffusion(ix, jy, kz) = (mB2(ix, jy, kz) - alpha_sat ** 2 * NN_nd &
                 ** 2) / (2.0 * dt * mB2K2(ix, jy, kz))
           endif
-          if (include_tracer .and. include_mixing) then
+
+          if (include_tracer .and. include_mixing) then 
             diffusioncoeff(ix, jy, kz) = diffusion(ix, jy, kz)
           end if
+
+          ! if (include_tracer .and. include_mixing) then 
+          !   if (mB2K2(ix, jy, kz) == 0.0) then 
+          !     diffusioncoeff(ix, jy, kz) = 0.0 
+          !   else 
+          !     difftest = (mB2(ix, jy, kz) - alpha_sat ** 2 * NN_nd &
+          !     ** 2) / (2.0 * dt * mB2K2(ix, jy, kz))
+          !     if (abs(difftest*lRef**2./tRef) < 4.) then
+          !       diffusioncoeff(ix, jy, kz) = difftest
+          !     else
+          !       diffusioncoeff(ix, jy, kz) = 0.0
+          !     end if
+          !   end if
+          !   ! if (mB2K2(ix, jy, kz) == 0.0 .or. abs(mB2(ix, jy, kz)) <= alpha_sat ** 2 &
+          !   ! * NN_nd ** 2) then 
+          !   !   diffusioncoeff(ix, jy, kz) = 0.0 
+          !   ! else 
+          !   !   diffusioncoeff(ix, jy, kz) = (mB2(ix, jy, kz) - alpha_sat ** 2 * NN_nd &
+          !   !   ** 2) / (2.0 * dt * mB2K2(ix, jy, kz))
+          !   ! end if
+          ! end if 
         end do
       end do
     end do

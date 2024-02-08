@@ -5960,6 +5960,9 @@ module update_module
             rho = var(i,j,k,1)
           end if
 
+          if (k>=317 .and. k<=323) then
+            print *, "Flux = ", flux(i, j, k, 3, iVart) * uRef *rhoRef
+          end if 
           ! convective part
           fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz
 

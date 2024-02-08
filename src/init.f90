@@ -660,6 +660,8 @@ module init_module
 
     integer :: switch, k_tropopause
 
+    real :: indwindcoeff
+
     !UAB
     integer :: kshalf
     real :: fchtms, zhtmsd, zhtmsu
@@ -928,7 +930,8 @@ module init_module
       !--------------------
       !     set up GWP
       !--------------------
-      call init_GWP(Psi, kk, mm, ll)
+      call init_GWP(Psi, kk, mm, ll, indwindcoeff)
+
 
       do k = 0, (nz + 1)
         do j = 0, (ny + 1)
@@ -1029,9 +1032,9 @@ module init_module
                   stop 'init.f90: wavepacket tracer prime and topography not implemented'
                 else
                   if (tracerSetup == "quadratic_increase") then
-                    var(i, j, k, iVart) = 2.0 * alphaTracer * (z(k)-z(1))* 1.0/N2 * b
+                    var(i, j, k, iVart) = 2.0 * alphaTracer * (z(k)-z(1))/N2 * b
                   else if (tracerSetup == "increase_in_z_tracer") then
-                    var(i, j, k, iVart) = alphaTracer * 1.0/N2 * b
+                    var(i, j, k, iVart) = alphaTracer /N2 * b
                   else
                     stop 'init.f90: unknown initial tracer with wavepacket tracer prime'
                   end if
@@ -1041,8 +1044,9 @@ module init_module
               end if
             end if
 
-            ! var(i,j,k,2) = var(i,j,k,2) + b**2. * sqrt(kk**2. + mm**2.) &
-            !                / (NN **3.)
+            if (inducedwind) then
+              var(i, j, k, 2) = var(i, j, k, 2) + indwindcoeff * b**2.
+            end if
 
             ! TFC FJ
             ! Compute terrain-following vertical wind.
@@ -1060,6 +1064,7 @@ module init_module
       end do
 
       ! average vertical velocities to cell faces
+
       do k = 0, nz ! modified by Junhong Wei for 3DWP (20171204)
         var(:, :, k, 4) = 0.5 * (var(:, :, k, 4) + var(:, :, k + 1, 4))
       end do
@@ -4797,7 +4802,7 @@ module init_module
 
     !---------------------------------------------------------------------
 
-    subroutine init_GWP(Psi, kk, mm, ll)
+    subroutine init_GWP(Psi, kk, mm, ll, indwindcoeff)
 
       !------------------------------------------------
       !  calculate complex amplitudes for
@@ -4814,6 +4819,7 @@ module init_module
           Psi
       real, intent(out) :: kk, mm
       real, intent(out) :: ll
+      real, intent(out) :: indwindcoeff
 
       ! local variables
       real :: A, rho
@@ -4924,6 +4930,7 @@ module init_module
       wAmp = omi / N2 * bAmp
       pAmp = kappa * Ma2 * mm / kk ** 2 * omi2 / N2 * bAmp ! Exner pressure
 
+      indwindcoeff = kk * omi * kTot2 / (N2**2. * (kk * kk + ll * ll))
       close(10)
 
       !----------------------
@@ -4935,7 +4942,6 @@ module init_module
         print *, "mm = ", mm / lRef
 
         print *, "RoInv = ", RoInv_GWP / tRef ! modified by Junhong Wei
-
         print *, ""
         print *, "  0) Test case: "
         write(*, fmt = "(a25,a35)") "Test case  = ", "wave packet (full model)"
@@ -5076,147 +5082,148 @@ module init_module
       ! this part would probably still tp be adjusted fpor 2D or 3D wave p.
 
       do k = 1, nz
-        j = 1
-        do i = 1, nx
+        do j = 1, ny
+          do i = 1, nx
 
-          !-------------------------
-          !       Set up RHS
-          !-------------------------
+            !-------------------------
+            !       Set up RHS
+            !-------------------------
 
-          ! zonal velocities right, center, left, top, bottom
-          u10_r = Psi(i + 1, j, k, 1, 1)
-          u10_c = Psi(i, j, k, 1, 1)
-          u10_l = Psi(i - 1, j, k, 1, 1)
-          u10_t = Psi(i, j, k + 1, 1, 1)
-          u10_b = Psi(i, j, k - 1, 1, 1)
+            ! zonal velocities right, center, left, top, bottom
+            u10_r = Psi(i + 1, j, k, 1, 1)
+            u10_c = Psi(i, j, k, 1, 1)
+            u10_l = Psi(i - 1, j, k, 1, 1)
+            u10_t = Psi(i, j, k + 1, 1, 1)
+            u10_b = Psi(i, j, k - 1, 1, 1)
 
-          ! vertical velocities top, center, bottom
-          w10_r = Psi(i + 1, j, k, 2, 1)
-          w10_l = Psi(i - 1, j, k, 2, 1)
-          w10_t = Psi(i, j, k + 1, 2, 1)
-          w10_c = Psi(i, j, k, 2, 1)
-          w10_b = Psi(i, j, k - 1, 2, 1)
+            ! vertical velocities top, center, bottom
+            w10_r = Psi(i + 1, j, k, 2, 1)
+            w10_l = Psi(i - 1, j, k, 2, 1)
+            w10_t = Psi(i, j, k + 1, 2, 1)
+            w10_c = Psi(i, j, k, 2, 1)
+            w10_b = Psi(i, j, k - 1, 2, 1)
 
-          ! Buoyancy and pot. temp.
-          if(topography) then
-            ! TFC FJ
-            theta11_r = Fr2 * thetaStratTFC(i + 1, j, k) * Psi(i + 1, j, k, 3, &
-                1)
-            theta11_c = Fr2 * thetaStratTFC(i, j, k) * Psi(i, j, k, 3, 1)
-            theta11_l = Fr2 * thetaStratTFC(i - 1, j, k) * Psi(i - 1, j, k, 3, &
-                1)
-            theta11_t = Fr2 * thetaStratTFC(i, j, k + 1) * Psi(i, j, k + 1, 3, &
-                1)
-            theta11_b = Fr2 * thetaStratTFC(i, j, k - 1) * Psi(i, j, k - 1, 3, &
-                1)
-          else
-            theta11_r = Fr2 * thetaStrat(k) * Psi(i + 1, j, k, 3, 1)
-            theta11_c = Fr2 * thetaStrat(k) * Psi(i, j, k, 3, 1)
-            theta11_l = Fr2 * thetaStrat(k) * Psi(i - 1, j, k, 3, 1)
-            theta11_t = Fr2 * thetaStrat(k + 1) * Psi(i, j, k + 1, 3, 1)
-            theta11_b = Fr2 * thetaStrat(k - 1) * Psi(i, j, k - 1, 3, 1)
-          end if
+            ! Buoyancy and pot. temp.
+            if(topography) then
+              ! TFC FJ
+              theta11_r = Fr2 * thetaStratTFC(i + 1, j, k) * Psi(i + 1, j, k, 3, &
+                  1)
+              theta11_c = Fr2 * thetaStratTFC(i, j, k) * Psi(i, j, k, 3, 1)
+              theta11_l = Fr2 * thetaStratTFC(i - 1, j, k) * Psi(i - 1, j, k, 3, &
+                  1)
+              theta11_t = Fr2 * thetaStratTFC(i, j, k + 1) * Psi(i, j, k + 1, 3, &
+                  1)
+              theta11_b = Fr2 * thetaStratTFC(i, j, k - 1) * Psi(i, j, k - 1, 3, &
+                  1)
+            else
+              theta11_r = Fr2 * thetaStrat(k) * Psi(i + 1, j, k, 3, 1)
+              theta11_c = Fr2 * thetaStrat(k) * Psi(i, j, k, 3, 1)
+              theta11_l = Fr2 * thetaStrat(k) * Psi(i - 1, j, k, 3, 1)
+              theta11_t = Fr2 * thetaStrat(k + 1) * Psi(i, j, k + 1, 3, 1)
+              theta11_b = Fr2 * thetaStrat(k - 1) * Psi(i, j, k - 1, 3, 1)
+            end if
 
-          ! Second order Exner pressure
-          pi12_c = Psi(i, j, k, 4, 1)
+            ! Second order Exner pressure
+            pi12_c = Psi(i, j, k, 4, 1)
 
-          ! Background Exner pressure and pot. temp.
-          if(topography) then
-            ! TFC FJ
-            pi0_t = (pStratTFC(i, j, k + 1) / p0) ** gamma_1
-            pi0_c = (pStratTFC(i, j, k) / p0) ** gamma_1
-            pi0_b = (pStratTFC(i, j, k - 1) / p0) ** gamma_1
-            theta0_c = thetaStratTFC(i, j, k)
-          else
-            pi0_t = (Pstrat(k + 1) / p0) ** gamma_1
-            pi0_c = (Pstrat(k) / p0) ** gamma_1
-            pi0_b = (Pstrat(k - 1) / p0) ** gamma_1
-            theta0_c = thetaStrat(k)
-          end if
+            ! Background Exner pressure and pot. temp.
+            if(topography) then
+              ! TFC FJ
+              pi0_t = (pStratTFC(i, j, k + 1) / p0) ** gamma_1
+              pi0_c = (pStratTFC(i, j, k) / p0) ** gamma_1
+              pi0_b = (pStratTFC(i, j, k - 1) / p0) ** gamma_1
+              theta0_c = thetaStratTFC(i, j, k)
+            else
+              pi0_t = (Pstrat(k + 1) / p0) ** gamma_1
+              pi0_c = (Pstrat(k) / p0) ** gamma_1
+              pi0_b = (Pstrat(k - 1) / p0) ** gamma_1
+              theta0_c = thetaStrat(k)
+            end if
 
-          ! derivatives
-          if(topography) then
-            ! TFC FJ
-            du10_dx = 0.5 * (jac(i + 1, j, k) * u10_r - jac(i - 1, j, k) &
-                * u10_l) / dx / jac(i, j, k) + 0.5 * (jac(i, j, k + 1) &
-                * met(i, j, k + 1, 1, 3) * u10_t - jac(i, j, k - 1) * met(i, &
-                j, k - 1, 1, 3) * u10_b) / dz / jac(i, j, k)
-            du10_dz = 0.5 * (u10_t - u10_b) / dz / jac(i, j, k)
-            dw10_dx = 0.5 * (jac(i + 1, j, k) * w10_r - jac(i - 1, j, k) &
-                * w10_l) / dx / jac(i, j, k) + 0.5 * (jac(i, j, k + 1) &
-                * met(i, j, k + 1, 1, 3) * w10_t - jac(i, j, k - 1) * met(i, &
-                j, k - 1, 1, 3) * w10_b) / dz / jac(i, j, k)
-            dw10_dz = 0.5 * (w10_t - w10_b) / dz / jac(i, j, k)
-            dpi0_dz = 0.5 * (pi0_t - pi0_b) / dz / jac(i, j, k)
-            dtheta11_dx = 0.5 * (jac(i + 1, j, k) * theta11_r - jac(i - 1, j, &
-                k) * theta11_l) / dx / jac(i, j, k) + 0.5 * (jac(i, j, k + 1) &
-                * met(i, j, k + 1, 1, 3) * theta11_t - jac(i, j, k - 1) &
-                * met(i, j, k - 1, 1, 3) * theta11_b) / dz / jac(i, j, k)
-            dtheta11_dz = 0.5 * (theta11_t - theta11_b) / dz / jac(i, j, k)
-          else
-            du10_dx = 0.5 * (u10_r - u10_l) / dx
-            du10_dz = 0.5 * (u10_t - u10_b) / dz
-            dw10_dx = 0.5 * (w10_r - w10_l) / dx
-            dw10_dz = 0.5 * (w10_t - w10_b) / dz
-            dpi0_dz = 0.5 * (pi0_t - pi0_b) / dz
-            dtheta11_dx = 0.5 * (theta11_r - theta11_l) / dx
-            dtheta11_dz = 0.5 * (theta11_t - theta11_b) / dz
-          end if
+            ! derivatives
+            if(topography) then
+              ! TFC FJ
+              du10_dx = 0.5 * (jac(i + 1, j, k) * u10_r - jac(i - 1, j, k) &
+                  * u10_l) / dx / jac(i, j, k) + 0.5 * (jac(i, j, k + 1) &
+                  * met(i, j, k + 1, 1, 3) * u10_t - jac(i, j, k - 1) * met(i, &
+                  j, k - 1, 1, 3) * u10_b) / dz / jac(i, j, k)
+              du10_dz = 0.5 * (u10_t - u10_b) / dz / jac(i, j, k)
+              dw10_dx = 0.5 * (jac(i + 1, j, k) * w10_r - jac(i - 1, j, k) &
+                  * w10_l) / dx / jac(i, j, k) + 0.5 * (jac(i, j, k + 1) &
+                  * met(i, j, k + 1, 1, 3) * w10_t - jac(i, j, k - 1) * met(i, &
+                  j, k - 1, 1, 3) * w10_b) / dz / jac(i, j, k)
+              dw10_dz = 0.5 * (w10_t - w10_b) / dz / jac(i, j, k)
+              dpi0_dz = 0.5 * (pi0_t - pi0_b) / dz / jac(i, j, k)
+              dtheta11_dx = 0.5 * (jac(i + 1, j, k) * theta11_r - jac(i - 1, j, &
+                  k) * theta11_l) / dx / jac(i, j, k) + 0.5 * (jac(i, j, k + 1) &
+                  * met(i, j, k + 1, 1, 3) * theta11_t - jac(i, j, k - 1) &
+                  * met(i, j, k - 1, 1, 3) * theta11_b) / dz / jac(i, j, k)
+              dtheta11_dz = 0.5 * (theta11_t - theta11_b) / dz / jac(i, j, k)
+            else
+              du10_dx = 0.5 * (u10_r - u10_l) / dx
+              du10_dz = 0.5 * (u10_t - u10_b) / dz
+              dw10_dx = 0.5 * (w10_r - w10_l) / dx
+              dw10_dz = 0.5 * (w10_t - w10_b) / dz
+              dpi0_dz = 0.5 * (pi0_t - pi0_b) / dz
+              dtheta11_dx = 0.5 * (theta11_r - theta11_l) / dx
+              dtheta11_dz = 0.5 * (theta11_t - theta11_b) / dz
+            end if
 
-          ! divergence term -> Eq. (7.21)
-          Div = - du10_dx - dw10_dz - (1. - kappa) / kappa * w10_c / pi0_c &
-              * dpi0_dz
+            ! divergence term -> Eq. (7.21)
+            Div = - du10_dx - dw10_dz - (1. - kappa) / kappa * w10_c / pi0_c &
+                * dpi0_dz
 
-          ! Pressure terms
-          Press = 0.5 * kappaInv * MaInv2 * imag * theta11_c * pi12_c
-          PressU = kk * Press
-          PressW = mm * Press
+            ! Pressure terms
+            Press = 0.5 * kappaInv * MaInv2 * imag * theta11_c * pi12_c
+            PressU = kk * Press
+            PressW = mm * Press
 
-          ! intermediate terms
-          d1u10 = 0.5 * (u10_c * du10_dx + w10_c * du10_dz + Div * u10_c)
-          d1w10 = 0.5 * (u10_c * dw10_dx + w10_c * dw10_dz + Div * w10_c)
-          d1theta11 = 0.5 * (u10_c * dtheta11_dx + w10_c * dtheta11_dz + Div &
-              * theta11_c)
+            ! intermediate terms
+            d1u10 = 0.5 * (u10_c * du10_dx + w10_c * du10_dz + Div * u10_c)
+            d1w10 = 0.5 * (u10_c * dw10_dx + w10_c * dw10_dz + Div * w10_c)
+            d1theta11 = 0.5 * (u10_c * dtheta11_dx + w10_c * dtheta11_dz + Div &
+                * theta11_c)
 
-          RHS(1) = - d1u10 - PressU
-          RHS(2) = - d1w10 - PressW
-          RHS(3) = - FrInv2 / NN / theta0_c * d1theta11
-          RHS(4) = (0.0, 0.0)
+            RHS(1) = - d1u10 - PressU
+            RHS(2) = - d1w10 - PressW
+            RHS(3) = - FrInv2 / NN / theta0_c * d1theta11
+            RHS(4) = (0.0, 0.0)
 
-          !----------------------------------------------------
-          !       Set up inverted system matrix M(2om,2k,2m)
-          !----------------------------------------------------
+            !----------------------------------------------------
+            !       Set up inverted system matrix M(2om,2k,2m)
+            !----------------------------------------------------
 
-          coeff = 1. / (4. * omi2 * kTot2 - kk2 * N2)
-          aux1 = 4. * omi2 - N2
+            coeff = 1. / (4. * omi2 * kTot2 - kk2 * N2)
+            aux1 = 4. * omi2 - N2
 
-          M11 = 2. * imag * mm2 * omi; M12 = - 2. * imag * kk * mm * omi; M13 &
-              = kk * mm * NN; M14 = - 0.5 * imag * kk * aux1
-          M21 = M12; M22 = 2. * imag * kk2 * omi; M23 = - kk2 * NN; M24 = - 2. &
-              * imag * omi2 * mm
-          M31 = - M13; M32 = - M23; M33 = 2. * imag * omi * kTot2; M34 = - omi &
-              * mm * NN
-          M41 = M14; M42 = M24; M43 = - M34; M44 = - 0.5 * imag * omi * aux1
+            M11 = 2. * imag * mm2 * omi; M12 = - 2. * imag * kk * mm * omi; M13 &
+                = kk * mm * NN; M14 = - 0.5 * imag * kk * aux1
+            M21 = M12; M22 = 2. * imag * kk2 * omi; M23 = - kk2 * NN; M24 = - 2. &
+                * imag * omi2 * mm
+            M31 = - M13; M32 = - M23; M33 = 2. * imag * omi * kTot2; M34 = - omi &
+                * mm * NN
+            M41 = M14; M42 = M24; M43 = - M34; M44 = - 0.5 * imag * omi * aux1
 
-          ! inverted matrix: check ok
-          M2inv(1, :) = (/M11, M12, M13, M14/)
-          M2inv(2, :) = (/M21, M22, M23, M24/)
-          M2inv(3, :) = (/M31, M32, M33, M34/)
-          M2inv(4, :) = (/M41, M42, M43, M44/)
-          M2inv = coeff * M2inv
+            ! inverted matrix: check ok
+            M2inv(1, :) = (/M11, M12, M13, M14/)
+            M2inv(2, :) = (/M21, M22, M23, M24/)
+            M2inv(3, :) = (/M31, M32, M33, M34/)
+            M2inv(4, :) = (/M41, M42, M43, M44/)
+            M2inv = coeff * M2inv
 
-          !---------------------------------------
-          !   Solve linear System -> save in Psi
-          !---------------------------------------
+            !---------------------------------------
+            !   Solve linear System -> save in Psi
+            !---------------------------------------
 
-          sol = matmul(M2inv, RHS)
+            sol = matmul(M2inv, RHS)
 
-          u21 = sol(1)
-          w21 = sol(2)
-          b22 = sol(3) * NN
-          pi23 = sol(4) * kappa * Ma2 / theta0_c
+            u21 = sol(1)
+            w21 = sol(2)
+            b22 = sol(3) * NN
+            pi23 = sol(4) * kappa * Ma2 / theta0_c
 
-          Psi(i, j, k, :, 2) = (/u21, w21, b22, pi23, (cmplx(0.0, 0.0) * b11)/)
+            Psi(i, j, k, :, 2) = (/u21, w21, b22, pi23, (cmplx(0.0, 0.0) * b11)/)
+          end do
         end do
       end do
 

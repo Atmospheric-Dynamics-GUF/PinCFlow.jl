@@ -199,13 +199,14 @@ module type_module
   real :: xCenter_dim, yCenter_dim, zCenter_dim
   ! achatzb
   real :: amp_mod_x, amp_mod_y
+  logical :: inducedwind
   ! achatze
 
   namelist / wavePacket / wavePacketType, wavePacketDim, lambdaX_dim, &
       lambdaY_dim, lambdaZ_dim, meanFlowX_dim, meanFlowZ_dim, amplitudeFactor, &
       xCenter_dim, yCenter_dim, zCenter_dim, sigma_dim, sigma_hor_dim, &
       amp_mod_x, sigma_hor_yyy_dim, amp_mod_y, L_cos_dim, omiSign, u0_jet_dim, &
-      z0_jet_dim, L_jet_dim
+      z0_jet_dim, L_jet_dim, inducedwind
   ! achatzb
   ! achatze
   ! achatzb
