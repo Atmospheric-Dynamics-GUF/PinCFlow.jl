@@ -11,9 +11,9 @@
 
 &domain
 
-sizeX = 512, !512, !32,
-sizeY = 16,
-sizeZ = 1000,
+sizeX = 1024, !512, !32,
+sizeY = 32,
+sizeZ = 3200,
 nbx = 4,
 nby = 4,
 nbz = 4,
@@ -266,7 +266,7 @@ range_factor = 10         ! factor by which mountain range is wider than
   maxIter = 1             ! stop after maxIter time steps
 
   outputTimeDiff =  9000.0  ! output every ... seconds
-  maxTime = 90000.0          ! stop after maxTime seconds
+  maxTime = 9000.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -274,11 +274,11 @@ range_factor = 10         ! factor by which mountain range is wider than
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,0,1,0,1,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,0,0,1,1   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -413,7 +413,7 @@ lambdaY_dim = 300.e3       ! wave length in y direction in m
                         ! lambday = 0.0 --> infinite wavelength
 lambdaZ_dim = 1.e3      ! vertical wave length in m
 
-amplitudeFactor = 0.5   ! normalilized buoyancy amplitude
+amplitudeFactor = 0.9   ! normalilized buoyancy amplitude
 
 xCenter_dim = 4500.e3     ! center of wave packet in x direction in m
 
@@ -444,6 +444,8 @@ z0_jet_dim = 50000.0    ! center of jet stream
 
 
 omiSign = 1            ! frequency branch
+
+inducedwind = .false.
 
 &end
 

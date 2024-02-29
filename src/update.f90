@@ -701,7 +701,7 @@ module update_module
     ! 3) WKB wave driving (cell-centered)
     ! mmp_mod = rhs =>
     ! 1) WKB wave driving (cell-centered)
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 5), intent(in) :: force
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(in) :: force
 
     real, intent(in) :: dt, facray
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), &
@@ -2314,7 +2314,7 @@ module update_module
     ! 3) WKB wave driving (cell-centered)
     ! mmp_mod = rhs =>
     ! 1) WKB wave driving (cell-centered)
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 5), intent(in) :: force
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(in) :: force
 
     !UAC real, intent(in) :: dt
     real, intent(in) :: dt, facray
@@ -5905,7 +5905,7 @@ module update_module
   end subroutine massUpdate
 
   !-----------------------------------------------------------------------
-  subroutine tracerUpdate (var,flux,force,dt,q,m)
+  subroutine tracerUpdate (var,flux,tracerforce,dt,q,m)
 
     ! in/out variables
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
@@ -5914,7 +5914,7 @@ module update_module
 
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
 
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 5), intent(in) :: force
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(in) :: tracerforce
 
     real, intent(in) :: dt
     real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
@@ -5930,7 +5930,7 @@ module update_module
     real    :: fluxDiff     ! convective part
     real    :: F            ! F(phi)
     real    :: rho
-    real    :: forcetracer
+    real    :: forcetracer  ! additional rhs terms from gw parameterization
 
     if( correctDivError ) then
       print*,'ERROR: correction divergence error not allowed'
@@ -5960,10 +5960,7 @@ module update_module
             rho = var(i,j,k,1)
           end if
 
-          if (k>=317 .and. k<=323) then
-            print *, "Flux = ", flux(i, j, k, 3, iVart) * uRef *rhoRef
-          end if 
-          ! convective part
+          ! convective part, advection due to wind
           fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz
 
           if(topography) then
@@ -5973,16 +5970,26 @@ module update_module
           ! F(phi)
           F = -fluxDiff
           if (rayTracer) then
-            if (include_GW_force .and. include_mixing) then 
-              forcetracer = force(i, j, k, 4) - force(i, j, k, 5)
-            else if (include_GW_force .and. .not. include_mixing) then 
-              forcetracer = force(i, j, k, 4)
-            else if (include_mixing .and. .not. include_GW_force) then 
-              forcetracer = - force(i, j, k, 5)
-            else
-              forcetracer = 0.0
+            ! additional rhs terms due to gw and turbulence impact
+            ! saved in forcetracer
+            forcetracer = 0.0
+
+            ! include leading order gw tracer flux convergence
+            if (include_gw_tracer_forcing) then
+              forcetracer = forcetracer + tracerforce(i, j, k, 1)
             end if
-            F = F - rho * forcetracer !
+
+            ! include next-order gw tracer flux convergence
+            if (include_env_tracer_forcing) then 
+              forcetracer = forcetracer + tracerforce(i, j, k, 2)
+            end if
+
+            ! include diffusive mixing of tracer
+            if (include_tracer_mixing) then 
+              forcetracer = forcetracer - tracerforce(i, j, k, 3)
+            end if
+
+            F = F - rho * forcetracer 
           end if
 
           if (dens_relax) then
@@ -8968,7 +8975,7 @@ module update_module
     real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
         + nbz), nVar), intent(inout) :: var
     real, dimension((- 1):nx, (- 1):ny, (- 1):nz, 3, nVar), intent(in) :: flux
-    real, dimension(0:(nx + 1), 0:(ny + 1), 0:(nz + 1), 5), intent(in) :: force
+    real, dimension(0:(nx + 1), 0:(ny + 1), 0:(nz + 1), 3), intent(in) :: force
     real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
         + nbz), 3), intent(inout) :: dMom
     character(len = *), intent(in) :: int_mod

@@ -71,9 +71,11 @@ program pinc_prog
   type(rayType), dimension(:, :, :, :), allocatable :: ray
   real, dimension(:, :, :, :), allocatable :: ray_var3D
   real, dimension(:, :, :), allocatable :: diffusioncoeff
+  real, dimension(:, :, :), allocatable :: tracerfluxvar
 
   ! topography via force field
   real, dimension(:, :, :, :), allocatable :: force ! volume forces
+  real, dimension(:, :, :, :), allocatable :: tracerforce ! tracer forcing
   ! force(i,j,k,forceVector)
 
   ! output per timeStep
@@ -121,13 +123,6 @@ program pinc_prog
   ! TFC FJ
   integer :: i00
   real :: spongeAlphaZ, spongeAlphaY, spongeAlphaX
-
-  ! real :: x22 = 3.143
-  ! real(8) :: y22 = 2.33
-  ! print *, EPSILON(x22)
-  ! print *, EPSILON(y22)
-
-  ! stop
 
   !-------------------------------------------------
   !                    Set up
@@ -180,7 +175,7 @@ program pinc_prog
   ! 1) allocate variables
   ! 2) read input.f90
   call setup(var, var0, var1, varG, flux, flux0, force, source, dRho, dRhop, &
-      dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer)
+      dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer, tracerforce)
 
   call init_atmosphere ! set atmospheric background state
   call init_output
@@ -235,8 +230,6 @@ program pinc_prog
 
   if (poissonSolverType == 'bicgstab') then
     call SetUpBiCGStab ! Set BiCGStab arrays
-  ! else if (poissonSolverType == 'hypre') then
-  !   call SetUpHypre ! Set Up Hypre objects
   else
     stop 'ERROR: only BiCGStab ready to be used'
   end if
@@ -344,9 +337,6 @@ program pinc_prog
 
     ! 1) allocate variables
     ! 2) read the namelist
-    !call setup(var,var0,var1,flux,force,source,dRho,dRhop,dMom,dTheta, &
-    !       & dPStrat,drhoStrat,w_0,dIce)
-
     flux = 0.
     dMom = 0.
 
@@ -368,11 +358,8 @@ program pinc_prog
   !-------------------------------------------------------------------
   ! store initial reference atmosphere
   !-------------------------------------------------------------------
-
-  !if (heatingONK14 .or. TurbScheme .or. rayTracer) then
   rhoStrat_0 = rhoStrat
   pStrat_0 = pStrat
-  !end if
 
   !-------------------------------------------------
   !              Read initial data
@@ -383,14 +370,8 @@ program pinc_prog
     offset = 0.
 
     call read_profile(iIn, PStrat, "Pstrat_in.dat")
-    !the following three calls could be deleted
-    ! call read_profile (iIn, rhoStrat,"rhostrat_in.dat")
-    ! call read_profile (iIn, thetaStrat,"thetastrat_in.dat")
-    ! call read_profile (iIn, bvsStrat,"bvsstrat_in.dat")
-
     call read_data(iIn, var, time)
 
-    !var(1:nx,1:ny,1:nz,6) = var(1:nx,1:ny,1:nz,1)
     piStrat(:) = PStrat(:) ** (kappa / (1. - kappa))
 
     if(maxTime < time * tRef) stop "restart error: maxTime < current time"
@@ -407,27 +388,17 @@ program pinc_prog
   if(rayTracer) then
     ! allocate ray fields
 
-    call setup_wkb(ray, ray_var3D, var, diffusioncoeff)
+    call setup_wkb(ray, ray_var3D, var, diffusioncoeff, tracerfluxvar)
   end if
 
   !------------------------------------------
   !              Initial output
   !------------------------------------------
-
   call output_data(iOut, var, iTime, time, cpuTime)
   if(TestCase == 'baroclinic_LC') then
     call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
   end if
 
-  ! TFC FJ
-  ! if(.not. topography .and. model /= "Boussinesq") then
-  !   call output_profile(iOut, PStrat, "pStrat.dat")
-  !   call output_profile(iOut, rhoStrat, "rhoStrat.dat")
-  !   call output_profile(iOut, thetaStrat, "thetaStrat.dat")
-  !   call output_profile(iOut, bvsstrat, "bvsStrat.dat")
-  ! else if(topography .and. model /= "Boussinesq") then
-  !   call output_background(iOut)
-  ! end if
   ! FJFeb2023
   if(model /= "Boussinesq") then
     call output_background(iOut)
@@ -494,8 +465,6 @@ program pinc_prog
 
     end if
 
-    20 continue
-
     ! abort if time step too small
     if(dt * tRef < dtMin_dim) then
       if(master) then
@@ -515,16 +484,6 @@ program pinc_prog
         call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
       end if
 
-      ! TFC FJ
-      ! if(.not. topography .and. model /= "Boussinesq") then
-      !   call output_profile(iOut, PStrat, "pStrat.dat")
-      !   call output_profile(iOut, rhoStrat,"rhoStrat.dat")
-      !   call output_profile(iOut, thetaStrat,"thetaStrat.dat")
-      !   call output_profile(iOut, bvsstrat,"bvsStrat.dat")
-      ! else if(topography .and. topographyTime > 0.0 .and. model &
-      !     /= "Boussinesq") then
-      !   call output_background(iOut)
-      ! end if
       ! FJFeb2023
       if(model /= "Boussinesq") then
         call output_background(iOut)
@@ -577,26 +536,6 @@ program pinc_prog
     !-----------------------------------------------------------------
     ! for sponge:
     !-----------------------------------------------------------------
-
-    ! if (spongeLayer) then
-    !    ! maximum damping rate
-
-    !    alpspg = spongeAlphaZ_fac/dt
-
-    !    ! sponge-layer relaxation
-
-    !    alpbls = kr_sp(kSponge-1)
-
-    !    do k = kSponge,nz
-    !       kr_sp(k) &
-    !       = alpbls &
-    !         + (alpspg - alpbls) &
-    !           * sin(0.5*pi * (z(k) - zSponge)/(z(nz) - zSponge))**2
-    !    end do
-
-    !    kr_sp(nz+1) = kr_sp(nz)
-    ! end if
-
     if(spongeLayer) then
       if(topography .and. spongeTFC) then
         ! TFC FJ
@@ -729,6 +668,11 @@ program pinc_prog
 
       force = 0.0
 
+      ! initialize zero tracer force
+      if (include_tracer) then 
+        tracerforce = 0.0
+      end if
+
       ! Lagrangian WKB model (position-wavenumber space method)
 
       if(rayTracer) then
@@ -742,7 +686,7 @@ program pinc_prog
             call merge_rayvol(ray)
 
             ! GW effects are put into force(...,1/2) and var(...,8)
-            call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff)
+            call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff, tracerfluxvar, tracerforce)
           end if
         end do
       end if
@@ -803,13 +747,8 @@ program pinc_prog
       !for update of P and rhoStrat in (5)
 
       PStrat00 = PStrat
-      !rhoStrat00 = rhoStrat
       heating_switch = 0
 
-      ! thetaStrat00 = thetaStrat
-      ! bvsStrat00 = bvsStrat
-      ! thetaStratTilde00 = thetaStratTilde
-      ! rhoStratTilde00 = rhoStratTilde
       PStratTilde00 = PStratTilde
 
       call setHalos(var0, "var")
@@ -867,7 +806,7 @@ program pinc_prog
              "expl", 1.)
 
         if (include_tracer) then
-           call tracerUpdate(var, flux, force, 0.5 * dt, dTracer, RKstage)
+           call tracerUpdate(var, flux, tracerforce, 0.5 * dt, dTracer, RKstage)
         end if
 
         ! RK step for momentum
@@ -901,10 +840,6 @@ program pinc_prog
       ! use initial flux for update of reference atmosphere and w0
       flux = flux0
 
-      !testb
-      !goto 30
-      !teste
-
       if(heatingONK14 .or. TurbScheme .or. rayTracer) then
         if(model == 'Boussinesq') then
           print *, "main:ONeill+Klein2014 heating only for  &
@@ -918,8 +853,6 @@ program pinc_prog
         call BGstate_update(var, flux, 0.5 * dt, RKstage, dPStrat, drhoStrat, &
             "impl", heating_switch)
       end if
-
-      30 continue
 
       if(topography) then
         ! TFC FJ
@@ -975,25 +908,8 @@ program pinc_prog
         call smooth_hor_shapiro(fc_shap, n_shap, flux, var, 0.5 * dt)
       end if
 
-      !  if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-      !    if (model == 'Boussinesq') then
-      !       print*, "main:ONeill+Klein2014 heating only for &
-      !              & pseudo-incompressible dyn."
-      !       stop
-      !    end if
-
-      !    RKstage = 1
-      !    dPStrat = 0.
-      !    drhoStrat = 0.
-      !    call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
-      !                      & "impl",heating_switch)
-      ! end if
-
       ! corrector: rhopStar, uStar, vStar, wStar
       !            -> new rhop, u, v, w
-
-      !call setHalos( var, "var" )
-      !call setBoundary (var,flux,"var")
 
       call Corrector(var, flux, dMom, 0.5 * dt, errFlagBicg, nIterBicg, &
           RKstage, "impl", 1., 1.)
@@ -1003,17 +919,7 @@ program pinc_prog
         if(TestCase == 'baroclinic_LC') then
           call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
         end if
-        ! TFC FJ
-        ! if(.not. topography .and. model /= "Boussinesq") then
-        !   call output_profile(iOut, PStrat, "pStrat.dat")
-        !   call output_profile(iOut, rhoStrat,"rhoStrat.dat")
-        !   call output_profile(iOut, thetaStrat,"thetaStrat.dat")
-        !   call output_profile(iOut, bvsstrat,"bvsStrat.dat")
-        ! else if(topography .and. topographyTime > 0.0 .and. model &
-        !     /= "Boussinesq") then
-        !   call output_background(iOut)
-        ! end if
-        ! FJFeb2023
+
         if(model /= "Boussinesq") then
           call output_background(iOut)
         end if
@@ -1041,30 +947,11 @@ program pinc_prog
       if (include_tracer) call setHalos (var, "tracer")
       call setBoundary(var, flux, "var")
 
-      !  if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-      !    if (model == 'Boussinesq') then
-      !       print*, "main:ONeill+Klein2014 heating only for &
-      !              & pseudo-incompressible dyn."
-      !       stop
-      !    end if
-
-      !    RKstage = 1
-      !    dPStrat = 0.
-      !    drhoStrat = 0.
-      !    call BGstate_update(var,flux,0.5*dt,RKstage,dPStrat,drhoStrat, &
-      !                      & "impl",heating_switch)
-      ! end if
-
       ! put new state into var1 in order to save the advection velocities
 
       var1 = var
 
       PStrat01 = PStrat
-      ! rhoStrat01 = rhoStrat
-      ! thetaStrat01 = thetaStrat
-      ! bvsStrat01 = bvsStrat
-      ! thetaStratTilde01 = thetaStratTilde
-      ! rhoStratTilde01 = rhoStratTilde
       PStratTilde01 = PStratTilde
 
       ! (3) explicit integration of the linear right-hand sides of the
@@ -1094,11 +981,6 @@ program pinc_prog
       end if
 
       PStrat = PStrat00
-      ! rhoStrat = rhoStrat00
-      ! thetaStrat = thetaStrat00
-      ! bvsStrat = bvsStrat00
-      ! thetaStratTilde = thetaStratTilde00
-      ! rhoStratTilde = rhoStratTilde00
       PStratTilde = PStratTilde00
 
       call setHalos(var, "var")
@@ -1135,9 +1017,6 @@ program pinc_prog
       if (include_tracer) call setHalos (var, "tracer")
       call setBoundary(var, flux, "var")
 
-      ! call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
-      !                & RKstage, "expl", 2.,1.)
-
       ! (4) explicit integration of convective and
       !     viscous-diffusive/turbulent fluxes over a full time step,
       !     with the advection velocity kept constant
@@ -1150,11 +1029,6 @@ program pinc_prog
       var0 = var1
       !FS
       PStrat = PStrat01
-      ! rhoStrat = rhoStrat01
-      ! thetaStrat = thetaStrat01
-      ! bvsStrat = bvsStrat01
-      ! thetaStratTilde = thetaStratTilde01
-      ! rhoStratTilde = rhoStratTilde01
       PStratTilde = PStratTilde01
 
       call setHalos(var0, "var")
@@ -1200,7 +1074,7 @@ program pinc_prog
              1.)
 
         if (include_tracer) then
-           call tracerUpdate(var, flux, force, dt, dTracer, RKstage)
+           call tracerUpdate(var, flux, tracerforce, dt, dTracer, RKstage)
         end if
 
         ! RK step for momentum
@@ -1233,10 +1107,6 @@ program pinc_prog
       ! use initial flux for update of reference atmosphere and w0
       flux = flux0
 
-      !testb
-      !goto 50
-      !teste
-
       if(heatingONK14 .or. TurbScheme .or. rayTracer) then
         if(model == 'Boussinesq') then
           print *, "main:ONeill+Klein2014 heating only for  &
@@ -1251,8 +1121,6 @@ program pinc_prog
         call BGstate_update(var, flux, dt, RKstage, dPStrat, drhoStrat, &
             "impl", heating_switch) !FS 0.5*dt -> dt
       end if
-
-      50 continue
 
       if(topography) then
         ! TFC FJ
@@ -1294,7 +1162,7 @@ program pinc_prog
             "rhs", "impl", 2.)
       end if
 
-      ! ! Shapiro filter
+      ! Shapiro filter
 
       if(shap_dts_fac > 0.) then
         ! smoothing of the fields in order to limit grid-point noise
@@ -1306,20 +1174,6 @@ program pinc_prog
         call smooth_hor_shapiro(fc_shap, n_shap, flux, var, 0.5 * dt)
       end if
 
-      ! if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-      !    if (model == 'Boussinesq') then
-      !       print*, "main:ONeill+Klein2014 heating only for &
-      !              & pseudo-incompressible dyn."
-      !       stop
-      !    end if
-
-      !    RKstage = 1
-      !    dPStrat = 0.
-      !    drhoStrat = 0.
-      !    heating_switch = 1
-      !    call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
-      !                      & "impl",heating_switch) !FS 0.5*dt -> dt
-      ! end if
       ! corrector: rhopStar, uStar, vStar, wStar
       !            -> new rhop, u, v, w
 
@@ -1340,16 +1194,6 @@ program pinc_prog
         if(TestCase == 'baroclinic_LC') then
           call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
         end if
-        ! TFC FJ
-        ! if(.not. topography .and. model /= "Boussinesq") then
-        !   call output_profile(iOut, PStrat, "pStrat.dat")
-        !   call output_profile(iOut, rhoStrat,"rhoStrat.dat")
-        !   call output_profile(iOut, thetaStrat,"thetaStrat.dat")
-        !   call output_profile(iOut, bvsstrat,"bvsStrat.dat")
-        ! else if(topography .and. topographyTime > 0.0 .and. model &
-        !     /= "Boussinesq") then
-        !   call output_background(iOut)
-        ! end if
         ! FJFeb2023
         if(model /= "Boussinesq") then
           call output_background(iOut)
@@ -1360,18 +1204,6 @@ program pinc_prog
         stop
       end if
 
-      ! Shapiro filter
-
-      ! if (shap_dts_fac > 0.) then
-      !    ! smoothing of the fields in order to limit grid-point noise
-
-      !    shap_dts = shap_dts_fac * dt
-
-      !    fc_shap = min( 1.0, 0.5*dt/shap_dts)
-
-      !    call smooth_hor_shapiro(fc_shap,n_shap,flux,var,0.5*dt)
-      ! end if
-
       !UAB for safety
       call setHalos(var, "var")
       if (include_tracer) call setHalos (var, "tracer")
@@ -1379,21 +1211,6 @@ program pinc_prog
       !UAE
 
       nTotalBicg = nTotalBicg + nIterBicg
-
-      ! if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-      !    if (model == 'Boussinesq') then
-      !       print*, "main:ONeill+Klein2014 heating only for &
-      !              & pseudo-incompressible dyn."
-      !       stop
-      !    end if
-
-      !    RKstage = 1
-      !    dPStrat = 0.
-      !    drhoStrat = 0.
-      !    heating_switch = 1
-      !    call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
-      !                      & "impl",heating_switch) !FS 0.5*dt -> dt
-      ! end if
 
       !testb
       if(master) print *, 'semi-implicit time step done'
@@ -1426,9 +1243,6 @@ program pinc_prog
         end if
 
         ! initialize density fluctuations for the integration
-
-        !if (auxil_equ .and. iTime == 1) then
-        !if (auxil_equ) then
         if(auxil_equ .or. heatingONK14 .or. TurbScheme .or. rayTracer) then
           !UAE 200413
           ! TFC FJ
@@ -1437,17 +1251,7 @@ program pinc_prog
                 Boussinesq"
           end if
 
-          ! if (model /= "pseudo_incompressible") then
-          !    print*,'auxiliary equation only ready for &
-          !          & pseudo-incompressible'
-          !    stop
-          ! end if
-
           alprlx = 0.
-
-          !testb
-          !if (iTime > 1) goto 450
-          !teste
 
           ! TFC FJ
           ! Boussinesq: density fluctuations are only stored in
@@ -1474,7 +1278,6 @@ program pinc_prog
 
           var0 = var !UA 200413
 
-          450 continue
         end if
 
         ! initialize zero volume force
@@ -1484,13 +1287,13 @@ program pinc_prog
         ! Lag Ray tracer (position-wavenumber space method)
 
         if(rayTracer) then
-          call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff)
           call transport_rayvol(var, ray, dt, RKstage, time)
           if(RKstage == nStages) then
             call boundary_rayvol(ray)
             call split_rayvol(ray)
             call shift_rayvol(ray)
             call merge_rayvol(ray)
+            call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff, tracerfluxvar, tracerforce)
           end if
         end if
 
@@ -1701,24 +1504,6 @@ program pinc_prog
           call smooth_hor_shapiro(fc_shap, n_shap, flux, var, dt_Poisson)
         end if
 
-        ! implementation of heating ONeill and Klein 2014
-
-        ! if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-
-        !    if (model == 'Boussinesq') then
-        !       print*, "main:ONeill+Klein2014 heating only for &
-        !              & pseudo-incompressible dyn."
-        !       stop
-        !    end if
-
-        !    if ( RKstage==1 ) dPStrat = 0.                    ! init q
-        !    if ( RKstage==1 ) drhoStrat = 0.
-
-        !    call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
-        !                      & "expl",heating_switch)
-
-        ! end if
-
         if(correctMomentum) then
           ! corrector: dp, du -> u_new, p_new
 
@@ -1743,17 +1528,6 @@ program pinc_prog
               call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
             end if
 
-            ! TFC FJ
-            ! if(.not. topography .and. model /= "Boussinesq") then
-            !   call output_profile(iOut, PStrat, "pStrat.dat")
-            !   call output_profile(iOut, rhoStrat,"rhoStrat.dat")
-            !   call output_profile(iOut, thetaStrat,"thetaStrat.dat")
-            !   call output_profile(iOut, bvsstrat,"bvsStrat.dat")
-            ! else if(topography .and. topographyTime > 0.0 .and. model &
-            !     /= "Boussinesq") then
-            !   call output_background(iOut)
-            ! end if
-            ! FJFeb2023
             if(model /= "Boussinesq") then
               call output_background(iOut)
             end if
@@ -1762,24 +1536,6 @@ program pinc_prog
 
             stop
           end if
-
-          ! implementation of heating ONeill and Klein 2014
-
-          ! if (heatingONK14 .or. TurbScheme .or. rayTracer) then
-
-          !    if (model == 'Boussinesq') then
-          !       print*, "main:ONeill+Klein2014 heating only for &
-          !            & pseudo-incompressible dyn."
-          !       stop
-          !    end if
-
-          !    if ( RKstage==1 ) dPStrat = 0.                    ! init q
-          !    if ( RKstage==1 ) drhoStrat = 0.
-
-          !    call BGstate_update(var,flux,dt,RKstage,dPStrat,drhoStrat, &
-          !         & "expl",heating_switch)
-
-          ! end if
 
           nTotalBicg = nTotalBicg + nIterBicg
 
@@ -1797,17 +1553,6 @@ program pinc_prog
               call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
             end if
 
-            ! TFC FJ
-            ! if(.not. topography .and. model /= "Boussinesq") then
-            !   call output_profile(iOut, PStrat, "pStrat.dat")
-            !   call output_profile(iOut, rhoStrat,"rhoStrat.dat")
-            !   call output_profile(iOut, thetaStrat,"thetaStrat.dat")
-            !   call output_profile(iOut, bvsstrat,"bvsStrat.dat")
-            ! else if(topography .and. topographyTime > 0.0 .and. model &
-            !     /= "Boussinesq") then
-            !   call output_background(iOut)
-            ! end if
-            ! FJFeb2023
             if(model /= "Boussinesq") then
               call output_background(iOut)
             end if
@@ -1829,7 +1574,6 @@ program pinc_prog
     !--------------------------------------------------------------
     !                           Output
     !--------------------------------------------------------------
-    111 continue
     select case(outputType)
     case('time')
       if(output) then
@@ -1843,17 +1587,6 @@ program pinc_prog
           call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
         end if
 
-        ! TFC FJ
-        ! if(.not. topography .and. model /= "Boussinesq") then
-        !   call output_profile(iOut, PStrat, "pStrat.dat")
-        !   call output_profile(iOut, rhoStrat,"rhoStrat.dat")
-        !   call output_profile(iOut, thetaStrat,"thetaStrat.dat")
-        !   call output_profile(iOut, bvsstrat,"bvsStrat.dat")
-        ! else if(topography .and. topographyTime > 0.0 .and. model &
-        !     /= "Boussinesq") then
-        !   call output_background(iOut)
-        ! end if
-        ! FJFeb2023
         if(model /= "Boussinesq") then
           call output_background(iOut)
         end if
@@ -1878,17 +1611,6 @@ program pinc_prog
           call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
         end if
 
-        ! TFC FJ
-        ! if(.not. topography .and. model /= "Boussinesq") then
-        !   call output_profile(iOut, PStrat, "pStrat.dat")
-        !   call output_profile(iOut, rhoStrat,"rhoStrat.dat")
-        !   call output_profile(iOut, thetaStrat,"thetaStrat.dat")
-        !   call output_profile(iOut, bvsstrat,"bvsStrat.dat")
-        ! else if(topography .and. topographyTime > 0.0 .and. model &
-        !     /= "Boussinesq") then
-        !   call output_background(iOut)
-        ! end if
-        ! FJFeb2023
         if(model /= "Boussinesq") then
           call output_background(iOut)
         end if
@@ -1967,7 +1689,7 @@ program pinc_prog
   call terminate_fluxes
   call terminate_poisson
   call terminate(var, var0, var1, flux, force, source, dRho, dRhop, dMom, &
-      dTheta, dIce, dTracer)
+      dTheta, dIce, dTracer, tracerforce)
   call terminate_atmosphere
   call terminate_output
 
