@@ -11,15 +11,15 @@
 
 &domain
 
-sizeX = 32, !512, !32,
+sizeX = 32,
 sizeY = 1,
 sizeZ = 854,
-nbx = 4,
-nby = 4,
-nbz = 4,
-lx_dim =   0.0, 30.e3, ! domain lenths in m
-ly_dim =   0.0, 30.e3,
-lz_dim =   0.0, 80.e3,
+nbx = 3,
+nby = 3,
+nbz = 3,
+lx_dim = 0.0, 30.e3,
+ly_dim = 0.0, 40.e3,
+lz_dim = 0.0, 80.e3,
 nprocx = {nprocx},
 nprocy = {nprocy},
 
@@ -102,19 +102,19 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
                                ! tolPoisson = tolPoisson*alpha,
                                ! where alpha is dynamically calculated
                                ! magnitude of gradients.
-  tolPoisson = 1.0e-4          ! abort criterion
+  tolPoisson = 1.0e-9          ! abort criterion
   tolCond = 1.e-23             ! tolerance value controlling the use of
                                ! the preconditioner
   abs_tol = 0.  !1.0e-7        ! it is unscaled abs. tol.,
                                ! lower bound for tolerance.
-  maxIterPoisson = 1000       ! 1000
+  maxIterPoisson = 5000       ! 1000
   poissonSolverType = "bicgstab" ! "bicgstab" / "gcr" / "adi" / "hypre"
   storageType = "opr"          ! "csr" (compressed sparse row)
                                !  "opr" (lin operator)
 
   preconditioner = "yes"        ! for operator-Solver: "no" / "yes"
-  dtau = 8.e-1                ! time parameter for ADI (imperical value)
-  maxIterADI = 10               ! nb of iterations for ADI preconditioner
+  dtau = 4.0e-4                ! time parameter for ADI (imperical value)
+  maxIterADI = 2               ! nb of iterations for ADI preconditioner
 
   initialCleaning = .true.    ! makes initial projection
   pressureScaling = .false.     ! .true. / .false. Scaling with PStrat
@@ -147,7 +147,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
                                  ! 2 * mu_viscous_dim corresponds to
                                  ! Pr = 0.5
 
-  background = "isothermal"         ! const-N    -> set N_BruntVaisala_dim
+  background = "isothermal"      ! const-N    -> set N_BruntVaisala_dim
                                  ! isothermal -> set Temp0_dim in K
                                  ! isentropic -> set theta0_dim in K
                                  ! uniform    -> constant density
@@ -181,11 +181,11 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
   Temp0_dim = 300                ! K
                                  ! isothermal -> background temperature
 
-  press0_dim =  68880.0         ! ground pressure (at z=0) in Pa:
+  press0_dim =  101325.0         ! ground pressure (at z=0) in Pa:
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 0.018     ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 0.017     ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
@@ -263,10 +263,10 @@ range_factor = 10         ! factor by which mountain range is wider than
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
-  maxIter = 10             ! stop after maxIter time steps
+  maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  60.0   ! output every ... seconds
-  maxTime = 72000.0          ! stop after maxTime seconds
+  outputTimeDiff =  60.  ! output every ... seconds
+  maxTime = 72000.!18000.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -278,7 +278,7 @@ range_factor = 10         ! factor by which mountain range is wider than
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,0,1,0,1,1   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -301,7 +301,7 @@ range_factor = 10         ! factor by which mountain range is wider than
   !                         4) background density rhoBar in kg/m^3
   !                         5) div(Pu)
   !                         6) stratification perturbation db/dz
-  thetaOffset = .true.               ! subtract background
+  thetaOffset = .false.               ! subtract background
 
   ! WKB variables
   wkbVarOut = 0,0,0,0, 0,0,0,0, 0,0,0,0
@@ -404,20 +404,20 @@ lambdaZ_dim = 6000.0 !m       vertical wave length
 
 wavePacketType = 1      ! 1 = Gaussian, 2 = Cosine
 
-wavePacketDim = 1       ! 1 = 1D, 2 = 2D, 3 = 3D
+wavePacketDim = 2       ! 1 = 1D, 2 = 2D, 3 = 3D
                         ! for a 2.5D Wave Packet use wavePacketDim = 2
 
-lambdaX_dim = 30.0e3      ! wave length in x direction in m
+lambdaX_dim = 30.e3      ! wave length in x direction in m
                         ! lambdaX = 0.0 --> infinite wavelength
-lambdaY_dim = 0.0e3       ! wave length in y direction in m
+lambdaY_dim = 0.0       ! wave length in y direction in m
                         ! lambday = 0.0 --> infinite wavelength
 lambdaZ_dim = 3.e3      ! vertical wave length in m
 
 amplitudeFactor = 0.5   ! normalilized buoyancy amplitude
 
-xCenter_dim = 0.0e3     ! center of wave packet in x direction in m
+xCenter_dim = 500.0     ! center of wave packet in x direction in m
 
-yCenter_dim = 0.0e4     ! center of wave packet in y direction in m
+yCenter_dim = 1.5e4     ! center of wave packet in y direction in m
 zCenter_dim = 10.e3     ! center of wave packet in z direction in m
 
 sigma_dim = 5.e3        ! vertical width of Gaussian wavepacket in m
@@ -442,9 +442,9 @@ u0_jet_dim = 0.0        ! amplitude max of jet velocity
 L_jet_dim = 5000.0      ! half width vertical cosine profile of jet in 1m
 z0_jet_dim = 50000.0    ! center of jet stream
 
-
 omiSign = -1            ! frequency branch
 
+inducedwind = .false.
 &end
 
 
@@ -480,7 +480,7 @@ nrm_init = 2,            ! no. of ray volumes initialized within dm
 nsmth_wkb = 2,           ! half (number -1) of cells f. smooth. wkb fluxes
 lsmth_wkb = .true.,      ! log. switch for smooth. wkb data (true/false)
 
-lsaturation = .true.,    ! JaWi 16.12.16 (sat)
+lsaturation = .false.,    ! JaWi 16.12.16 (sat)
 alpha_sat = 1.0,         ! JaWi 16.12.16 (sat)
 
 case_wkb = 3,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
@@ -504,7 +504,7 @@ sigwpz_dim = 5.e3,       ! width of the wave packet in vertical (m);
 
 branchr = 1,            ! frequency branch (dispersion relation)
 !presently not used:
-lindUinit = .false.,     ! ind. wind already at initial time (true/false)
+lindUinit = .true.,     ! ind. wind already at initial time (true/false)
 
 mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
 mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
@@ -730,12 +730,11 @@ output_heat = .true.
 &tracerList
 
 tracerSetup = "increase_in_z_tracer"!"quadratic_increase"!
-
 include_prime = .true.
 
 tracerdifference = .true.
 
-include_GW_force = .false.
+include_GW_force = .true.
 
 include_mixing = .true.
 

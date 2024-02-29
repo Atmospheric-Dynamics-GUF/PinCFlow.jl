@@ -41,7 +41,7 @@ module init_module
   !UAB
   !subrouine setup (var,var0,var1,flux,force,source,dRho,dRhop,dMom,dTheta)
   subroutine setup(var, var0, var1, varG, flux, flux0, force, source, dRho, &
-      dRhop, dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer)
+      dRhop, dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer, tracerforce)
 
     !UAE
     !-----------------------------------------
@@ -53,6 +53,7 @@ module init_module
         var1, varG, source
     real, dimension (:, :, :, :, :), allocatable, intent (out) :: flux, flux0
     real, dimension (:, :, :, :), allocatable, intent (out) :: force
+    real, dimension (:, :, :, :), allocatable, intent (out) :: tracerforce ! tracer forcing in WKB
     real, dimension (:, :, :), allocatable :: dRho, dRhop ! RK-Update for rho
     real, dimension (:, :, :, :), allocatable :: dMom ! ...rhoU,rhoV,rhoW
     real, dimension (:, :, :), allocatable :: dTheta ! RK-Update for theta
@@ -141,11 +142,15 @@ module init_module
     end if
 
     if (include_ice) nVar = nVar + 4
+
     if (include_tracer) then
        if (nVar /= 8) then
           stop "init.f90: nVar must be set to 8"
        end if
-
+       ! increase nVar by 1 to include tracer
+       ! tracer variables saved in index iVart
+       ! e.g. in var(:, :, :, iVart) or
+       ! fluxes(:, :, :, :, iVart)
        nVar = nVar + 1
        iVart = nVar
     end if
@@ -230,8 +235,12 @@ module init_module
     if(allocstat /= 0) stop "init.f90: could not allocate flux"
 
     ! allocate force
-    allocate(force(0:nx + 1, 0:ny + 1, 0:nz + 1, 5), stat = allocstat)
+    allocate(force(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), stat = allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate force"
+
+    ! allocate tracerforce
+    allocate(tracerforce(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), stat = allocstat)
+    if(allocstat /= 0) stop "init.f90: could not allocate tracerforce"
 
     ! allocate environm. pot. temp. perturbations
     !allocate(the_env(-nbx+1:sizeX+nbx,-nby+1:sizeY+nby,-nbz+1:sizeZ+nbz), stat=allocstat)
@@ -327,6 +336,7 @@ module init_module
       read (unit = 10, nml = iceLIst)
    end if
 
+   ! read tracer namelist
    if (include_tracer) then
       read (unit = 10, nml = tracerList)
    end if
@@ -727,6 +737,7 @@ module init_module
     ! on default there is no initial ice, humidity or aerosols in the atmosphere
     if (include_ice) var(:, :, :, nVar - 3:nVar) = 0.0
 
+    ! just for safety reasons
     if (include_tracer) var(:, :, :, iVart) = 0.0
     !---------------------------------------------------------------
 
@@ -1021,20 +1032,25 @@ module init_module
             end select
 
             var(i, j, k, 2) = var(i, j, k, 2) + u
+            var(i, j, k, 3) = real(Psi(i, j, k, 5, 1) * exp(phi * imag))
             var(i, j, k, 4) = w
             var(i, j, k, 5) = p
 
-            var(i, j, k, 3) = real(Psi(i, j, k, 5, 1) * exp(phi * imag))
             
             if (include_tracer) then
+              ! include_prime: chi = <chi> + chi'
+              ! where chi' = alphaTracer/N^2 * b'
+              ! from inserting WKB ansatz into linearized
+              ! equation for chi' and using polarization
+              ! relation
               if (include_prime) then
                 if (topography) then 
                   stop 'init.f90: wavepacket tracer prime and topography not implemented'
                 else
-                  if (tracerSetup == "quadratic_increase") then
-                    var(i, j, k, iVart) = 2.0 * alphaTracer * (z(k)-z(1))/N2 * b
-                  else if (tracerSetup == "increase_in_z_tracer") then
-                    var(i, j, k, iVart) = alphaTracer /N2 * b
+                  ! only set up for <chi>=alphaTracer*z 
+                  ! large-scale tracer distribution
+                  if (tracerSetup == "increase_in_z_tracer") then
+                    var(i, j, k, iVart) = alphaTracer/N2 * b
                   else
                     stop 'init.f90: unknown initial tracer with wavepacket tracer prime'
                   end if
@@ -1045,6 +1061,7 @@ module init_module
             end if
 
             if (inducedwind) then
+              !stop "Error: induced wind currently not possible. Potential error in code."
               var(i, j, k, 2) = var(i, j, k, 2) + indwindcoeff * b**2.
             end if
 
@@ -1063,8 +1080,12 @@ module init_module
         var(i, :, :, 2) = 0.5 * (var(i, :, :, 2) + var(i + 1, :, :, 2))
       end do
 
-      ! average vertical velocities to cell faces
+      ! average meridional velocities to cell face...
+      do j = 0, ny
+        var(:, j, :, 3) = 0.5 * (var(:, j, :, 3) + var(:, j + 1, :, 3))
+      end do
 
+      ! average vertical velocities to cell faces
       do k = 0, nz ! modified by Junhong Wei for 3DWP (20171204)
         var(:, :, k, 4) = 0.5 * (var(:, :, k, 4) + var(:, :, k + 1, 4))
       end do
@@ -1087,10 +1108,6 @@ module init_module
         stop "initialize: unknown case model"
       end select
 
-      ! average meridional velocities to cell face...
-      do j = 0, ny
-        var(:, j, :, 3) = 0.5 * (var(:, j, :, 3) + var(:, j + 1, :, 3))
-      end do
 
       ! initialize the ice variables according to iceTestcase
       if(include_ice) call setup_ice(var)
@@ -4704,19 +4721,17 @@ module init_module
         end if
 
         if (raytracer) then
-          if (include_GW_force) then
-            write(*, fmt = "(a25,a)") "include_GW_force = ", "on"
+          if (include_gw_tracer_forcing) then
+            write(*, fmt = "(a25,a)") "include_gw_tracer_forcing = ", "on"
           else
-            write(*, fmt = "(a25,a)") "include_GW_force = ", "off"
+            write(*, fmt = "(a25,a)") "include_gw_tracer_forcing = ", "off"
           end if
 
-          if (include_mixing) then
-            write(*, fmt = "(a25,a)") "include_mixing = ", "on"
+          if (include_tracer_mixing) then
+            write(*, fmt = "(a25,a)") "include_tracer_mixing = ", "on"
           else
-            write(*, fmt = "(a25,a)") "include_mixing = ", "off"
+            write(*, fmt = "(a25,a)") "include_tracer_mixing = ", "off"
           end if
-
-          write(*, fmt = "(a25,f7.1)") "diffusionbeta = ", diffusionbeta
         else 
           if (include_prime) then
             write(*, fmt = "(a25,a)") "include_prime = ", "on"
@@ -5043,6 +5058,11 @@ module init_module
                 envel = 0.0
               end if
 
+            
+            case(4)           
+              envel = 0.0
+              envel = 1./(exp((z(k)-zCenter-sigma_z)/(lambdaZ)) + 1) &
+                     +1./(exp(-(z(k)-zCenter+sigma_z)/(lambdaZ)) + 1) - 1. 
             case default
               stop "init.f90: unknown wavePacketType. Stop."
             end select

@@ -153,6 +153,7 @@ module boundary_module
 
       end if
 
+      ! set boundaries if including tracer
       if (updateTracer) then
         do i = 1, nbx
           var(nx + i, :, :, iVart) = var(i, :, :, iVart)
@@ -299,6 +300,7 @@ module boundary_module
 
       end if
 
+      ! set boundaries if including tracer
       if (updateTracer) then
         tracerTilde(nx + 2, :, :, 1, 0) = tracerTilde(2, :, :, 1, 0)
         tracerTilde(- 1, :, :, 1, 1) = tracerTilde(nx - 1, :, :, 1, 1)
@@ -398,6 +400,7 @@ module boundary_module
 
       end if
 
+      ! set boundaries if including tracer
       if (updateTracer) then
         do j = 1, nby
           var(:, ny + j, :, iVart) = var(:, j, :, iVart)
@@ -546,6 +549,7 @@ module boundary_module
 
       end if
 
+      ! set boundaries if including tracer
       if (updateTracer) then
         tracerTilde(:, ny + 2, :, 2, 0) = tracerTilde(:, 2, :, 2, 0)
         tracerTilde(:, - 1, :, 2, 1) = tracerTilde(:, ny - 1, :, 2, 1)
@@ -644,6 +648,7 @@ module boundary_module
 
       end if
 
+      ! set boundaries if including tracer
       if (updateTracer) then
         do k = 1, nbz
           var(:, :, nz + k, iVart) = - var(:, :, k, iVart)
@@ -1398,6 +1403,8 @@ module boundary_module
         flux(:, :, nz, 3, 6) = 0.0
       end if
 
+      ! set vertical tracer fluxes at wall to 0 
+      ! if including tracer
       if (updateTracer) then
         flux(:, :, 0, 3, iVart) = 0.0
         flux(:, :, nz, 3, iVart) = 0.0

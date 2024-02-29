@@ -86,7 +86,8 @@ module type_module
   !-----------------------------------------------------------------
   integer :: nVar, nOptVar, iVart
   logical :: include_ice ! controls use of additional ice variables nAer,nIce,qIce and qv
-  logical :: include_tracer
+  ! switch for including advection of passive tracer chi
+  logical :: include_tracer 
   namelist / variables / nVar, nOptVar, include_ice , include_tracer
 
   !-----------------------------------------------------------------
@@ -525,7 +526,7 @@ module type_module
   logical :: predictMomentum ! transport of momentum=var(2-4) on/off
   logical :: updateTheta ! transport of theta=var(6) on/off
   logical :: updateIce ! transport of ice=var(nVar-2:nVar) on/off
-  logical :: updateTracer
+  logical :: updateTracer ! transport of tracer=var(iVart) on/off
 
   !-----------------------------------------------------------------
   !                          Poisson solver
@@ -807,11 +808,12 @@ module type_module
   !                           Tracer
   !----------------------------------------------------------------
   character(len=20) :: tracerSetup
-  logical :: include_GW_force, include_mixing, tracerdifference, include_prime
-  real :: diffusionbeta
+  logical :: include_gw_tracer_forcing, include_tracer_mixing, &
+  include_env_tracer_forcing, tracerdifference, include_prime
 
-  namelist / tracerList / tracerSetup, include_GW_force, include_mixing, tracerdifference, include_prime, &
-            diffusionbeta
+  namelist / tracerList / tracerSetup, include_gw_tracer_forcing, &
+            include_tracer_mixing, tracerdifference, &
+            include_prime, include_env_tracer_forcing
 
   !-----------------------------------------------------------------
   !                           Ice physics
@@ -892,11 +894,13 @@ module type_module
     ! Diffusive sponge (FJMar2023)
     diffusive_sponge = .false.
 
-    ! IKDec2023
+    ! default settings for tracer in case
+    ! they're not included in namelist
     include_prime = .true.
     tracerdifference = .true.
-    include_GW_force = .true.
-    include_mixing = .true.
+    include_gw_tracer_forcing = .true. ! leading order tracer fluxes
+    include_tracer_mixing = .true. ! diffusive mixing of tracer
+    include_env_tracer_forcing = .true. ! next-order tracer fluxes
 
   end subroutine default_values
 

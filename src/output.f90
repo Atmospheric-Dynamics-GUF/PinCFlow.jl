@@ -112,13 +112,14 @@ module output_module
     !---------------------------------------
     !       dimensionalising and layerwise output
     !---------------------------------------
-
+    
     irc_prc = 0
     do iVar = 1, nVar
       if(varOut(iVar) == 1) irc_prc = irc_prc + 1
     end do
     irc_prc = irc_prc * iOut * nz
 
+    ! just for safety. 
     if (include_tracer .and. include_ice) then
        stop "output.f90: tracer and ice not an option yet."
     end if
@@ -227,6 +228,7 @@ module output_module
                          field_prc(i,j) = var(i,j,k,iVar) * uRef * lRef
                       case(8) ! large-scale tracer mixing ratio
                         field_prc(i, j) = initialtracer(i,j,k)
+                    
                       case(9) ! tracer mixing ratio fluctuations
                         if(fluctuationMode) then
                           if(topography) then
@@ -839,7 +841,7 @@ module output_module
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
         intent(in) :: ray
 
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:11), intent(in) :: ray_var3D
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:13), intent(in) :: ray_var3D
 
     ! local variables
     integer :: i, j, k, iVar
@@ -870,9 +872,9 @@ module output_module
     !---------------------------------------
 
     ! FJFeb2023
-    irc_prc = 11 * (iOut - 1) * nz
+    irc_prc = 13 * (iOut - 1) * nz
 
-    do iVar = 1, 11
+    do iVar = 1, 13
       do k = 1, nz
         ! dimensionalization
 
@@ -900,37 +902,53 @@ module output_module
             case(6) ! GW energy
               field_prc(i, j) = ray_var3D(i, j, k, 6) *  uRef ** 2 ! /tRef deleted by FDK; rhoRef *
 
-            case(7) ! u'chi'
+            case(7) ! u'chi' (zonal gw tracer flux [m/s])
               if (include_tracer) then 
-                field_prc(i, j) = ray_var3D(i, j, k, 7) * uRef
+                field_prc(i, j) = ray_var3D(i, j, k, 7) !* uRef
               else
                 field_prc(i, j) = 0.0
               end if
 
-            case(8) ! v'chi'
+            case(8) ! v'chi' (meridional gw tracer flux [m/s])
               if (include_tracer) then
-                field_prc(i, j) = ray_var3D(i, j, k, 8) * uRef
+                field_prc(i, j) = ray_var3D(i, j, k, 8) !* uRef
               else
                 field_prc(i, j) = 0.0
               end if
             
-            case(9) ! w'chi'
+            case(9) ! w'chi' (vertical gw tracer flux [m/s])
               if (include_tracer) then 
                 field_prc(i, j) = ray_var3D(i, j, k, 9) * uRef
               else
                 field_prc(i, j) = 0.0
               end if
 
-            case(10) ! tracer forcing
+            case(10) ! w'chi' (next-order vertical gw tracer flux [m/s])
               if (include_tracer) then 
-                field_prc(i, j) = ray_var3D(i, j, k, 10) *lRef ** 2.0 / tRef
+                field_prc(i, j) = ray_var3D(i, j, k, 10) * uRef
+              else
+                field_prc(i, j) = 0.0
+              end if  
+
+            case(11) 
+              ! tracer forcing (leading order gw tracer flux convergence [m^2/s])
+              if (include_tracer) then 
+                field_prc(i, j) = ray_var3D(i, j, k, 11) *lRef ** 2.0 / tRef
               else
                 field_prc(i, j) = 0.0
               end if
 
-            case(11) ! tracer diffusion
+            case(12) 
+              ! tracer forcing (next-order gw tracer flux convergence [m^2/s])
               if (include_tracer) then 
-                field_prc(i, j) = ray_var3D(i, j, k, 11) / tRef
+                field_prc(i, j) = ray_var3D(i, j, k, 12) * lRef ** 2.0 / tRef
+              else
+                field_prc(i, j) = 0.0
+              end if
+
+            case(13) ! tracer diffusion (diffusive mixing of tracer [1/s])
+              if (include_tracer) then 
+                field_prc(i, j) = ray_var3D(i, j, k, 13) / tRef
               else
                 field_prc(i, j) = 0.0
               end if

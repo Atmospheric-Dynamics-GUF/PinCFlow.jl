@@ -103,9 +103,10 @@ module atmosphere_module
   ! 3D background fields.
   real, dimension(:, :, :), allocatable :: pStratTFC, thetaStratTFC, &
        rhoStratTFC, bvsStratTFC, piStratTFC
-
+  
+  ! tracer variables
   real :: alphaTracer
-  real, dimension(:, :, :), allocatable :: initialtracer
+  real, dimension(:, :, :), allocatable :: initialtracer, initialtracerrho
 
   contains
 
@@ -371,10 +372,16 @@ module atmosphere_module
       end if
     end if
 
+    ! save the initial tracer distributions in
+    ! initialtracer and initialtracerrho = initialtracer*rho
     if (include_tracer) then
       if(.not. allocated(initialtracer)) then
         allocate(initialtracer(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz))
         if(allocstat /=0) stop "atmosphere.f90: could not allocate initialtracer"
+      end if
+      if(.not. allocated(initialtracerrho)) then
+        allocate(initialtracerrho(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz))
+        if(allocstat /=0) stop "atmosphere.f90: could not allocate initialtracerrho"
       end if
     end if
     !----------------------------------
@@ -556,17 +563,16 @@ module atmosphere_module
       end if
    end if
 
-   ! IK
+   ! initial large-scale tracer distribution
+   ! X(z) = alpha*z
+   ! for linear_increase_in_z
    if (include_tracer) then
-      alphaTracer = 1.0*lRef
+      alphaTracer = lRef
    end if
 
     !----------------------------------
     !            setup topography
     !----------------------------------
-
-    !UAB
-
     ! TFC FJ
     ! Topography setup.
     if(topography) then

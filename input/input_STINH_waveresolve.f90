@@ -116,7 +116,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
   dtau = 4.0e-4                ! time parameter for ADI (imperical value)
   maxIterADI = 2               ! nb of iterations for ADI preconditioner
 
-  initialCleaning = .false.    ! makes initial projection
+  initialCleaning = .true.    ! makes initial projection
   pressureScaling = .false.     ! .true. / .false. Scaling with PStrat
   useNAG = .false.             ! use NAG routine for TDMA algorithm
   correctMomentum = .true.     ! turn velocity projection on/off
@@ -265,8 +265,8 @@ range_factor = 10         ! factor by which mountain range is wider than
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  1.0  ! output every ... seconds
-  maxTime = 1.!18000.0          ! stop after maxTime seconds
+  outputTimeDiff =  12.  ! output every ... seconds
+  maxTime = 7200.!18000.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -274,11 +274,11 @@ range_factor = 10         ! factor by which mountain range is wider than
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,1,0,1,1   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,0,1,0,0,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,0,1,0,1,1   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -480,7 +480,7 @@ nrm_init = 2,            ! no. of ray volumes initialized within dm
 nsmth_wkb = 2,           ! half (number -1) of cells f. smooth. wkb fluxes
 lsmth_wkb = .true.,      ! log. switch for smooth. wkb data (true/false)
 
-lsaturation = .true.,    ! JaWi 16.12.16 (sat)
+lsaturation = .false.,    ! JaWi 16.12.16 (sat)
 alpha_sat = 1.0,         ! JaWi 16.12.16 (sat)
 
 case_wkb = 3,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
@@ -504,7 +504,7 @@ sigwpz_dim = 5.e3,       ! width of the wave packet in vertical (m);
 
 branchr = 1,            ! frequency branch (dispersion relation)
 !presently not used:
-lindUinit = .false.,     ! ind. wind already at initial time (true/false)
+lindUinit = .true.,     ! ind. wind already at initial time (true/false)
 
 mountainHeight_wkb_dim = 5.e2 ! WKB mountain height (m)
 mountainWidth_wkb_dim = 1.e6  ! WKB mountain half-width (m)
@@ -734,7 +734,7 @@ include_prime = .true.
 
 tracerdifference = .true.
 
-include_GW_force = .false.
+include_GW_force = .true.
 
 include_mixing = .true.
 
