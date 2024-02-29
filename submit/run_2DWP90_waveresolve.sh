@@ -26,7 +26,7 @@ dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/2024/2024-01-22/2DWP90_final/2DWP90_waveresolve
+dirWork=${dirScratch}/output/2024/2024-02-09/2DWP90/2DWP90_waveresolve
 
 mkdir ${dirWork}
 

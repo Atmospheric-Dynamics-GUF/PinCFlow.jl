@@ -13,7 +13,7 @@
 
 sizeX = 3,!, !64, !32                ! nb of global grid cells
 sizeY = 1,
-sizeZ = 960,!, !200, !100 
+sizeZ = 300,!, !200, !100 
 nbx = 3,                  ! nb. of ghost cells
 nby = 3,
 nbz = 3,
@@ -67,7 +67,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
 
   cfl = 0.5
   cfl_wave = 0.25                 ! passage rate of phase throuh a cell
-  dtMax_dim = 5.0                 ! max time step in s
+  dtMax_dim = 10.0                 ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
   timeScheme = "semiimplicit"      ! LS_Will_RK3 -> Williamson / Euler /
@@ -265,14 +265,14 @@ range_factor = 10         ! factor by which mountain range is wider than
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
-  maxIter = 1             ! stop after maxIter time steps
+  maxIter = 1              ! stop after maxIter time steps
 
-  outputTimeDiff =  1.0   ! output every ... seconds
-  maxTime = 1.! 18000.0          ! stop after maxTime seconds
+  outputTimeDiff =  12.0   ! output every ... seconds
+  maxTime = 7200.! 18000.0 ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
-  restart = .false.      ! true / false
+  restart = .false.        ! true / false
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
@@ -462,7 +462,7 @@ xrmax_dim = 1.e3,        ! right bound of initial rays (in x dir.) (m)
 yrmin_dim = 0.0,         ! left bound of initial rays (in y direction) (m)
 yrmax_dim = 40.e3,        ! right bound of initial rays (in y dir.) (m)
 zrmin_dim = 0.0,        ! bottom bound of initial rays (m)
-zrmax_dim = 3.e4,        ! top bound of initial rays (m)
+zrmax_dim = 2.e4,        ! top bound of initial rays (m)
 
 nrxl = 2,               ! no. of ray vol. init. within one hor. x column
 nryl = 1,               ! no. of ray vol. init. within one hor. y column
@@ -503,7 +503,7 @@ sigwpx_dim = 0.0 ,      ! width of the wave packet in hor. (x-dir.) (m);
                          ! (0 means infinity)
 sigwpy_dim = 0.e0        ! width of the wave packet in hor. (y-dir.) (m);
                          ! (0 means infinity)
-sigwpz_dim = 2.e3,       ! width of the wave packet in vertical (m);
+sigwpz_dim = 2.e3,       ! width of the wave packet in vertical (m);#
 
 branchr = -1,            ! frequency branch (dispersion relation)
 !presently not used:
@@ -738,7 +738,7 @@ include_prime = .false.
 
 tracerdifference = .true.
 
-include_GW_force = .false.
+include_GW_force = .true.
 
 include_mixing = .true.
 

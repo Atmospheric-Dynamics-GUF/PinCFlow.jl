@@ -1,9 +1,9 @@
 #!/bin/bash
-#SBATCH --partition=general2
-#SBATCH --job-name=STIHms
+#SBATCH --partition=test
+#SBATCH --job-name=stihWKB
 #SBATCH --ntasks=1
-#SBATCH --mem-per-cpu=2600
-#SBATCH --time=96:00:00
+#SBATCH --mem-per-cpu=2000
+#SBATCH --time=02:00:00
 
 set -x
 
@@ -18,15 +18,12 @@ export OMP_NUM_THREADS=1
 # gprof for MPI
 export GMON_OUT_PREFIX=gmon.out-
 
-# env variable export
-# export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/jochum/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
-
 dirHome=/home/atmodynamics/knop/pinc-flow-tracer
 dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/2024/2024-01-22/STIH/STIH_msgwam3
+dirWork=${dirScratch}/output/2024/2024-02-29/STIH_msgwam
 
 mkdir ${dirWork}
 

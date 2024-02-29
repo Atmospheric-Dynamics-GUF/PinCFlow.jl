@@ -17,8 +17,8 @@ sizeZ = 100,!, !200, !100
 nbx = 3,                  ! nb. of ghost cells
 nby = 3,
 nbz = 3,
-lx_dim =   0.0, 9000.e3, ! domain lenths in m
-ly_dim =   0.0, 300.e3,
+lx_dim =   0.0, 900.e3, ! domain lenths in m
+ly_dim =   0.0, 1.e3,
 lz_dim =   0.0, 100.e3,
 
 ! nb of processors in x and y direction must be set in the batch file
@@ -67,7 +67,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
 
   cfl = 0.5
   cfl_wave = 0.25                 ! passage rate of phase throuh a cell
-  dtMax_dim = 100.0                 ! max time step in s
+  dtMax_dim = 1.0                 ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
   timeScheme = "semiimplicit"      ! LS_Will_RK3 -> Williamson / Euler /
@@ -267,8 +267,8 @@ range_factor = 10         ! factor by which mountain range is wider than
 
   maxIter = 1             ! stop after maxIter time steps
 
-  outputTimeDiff =  9000.0   ! output every ... seconds
-  maxTime = 90000.0          ! stop after maxTime seconds
+  outputTimeDiff =  60.0   ! output every ... seconds
+  maxTime = 7200.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -458,9 +458,9 @@ omiSign = -1            ! frequency branch
 &LagrangeRayTracing
 
 xrmin_dim = 0.0,         ! left bound of initial rays (in x direction) (m)
-xrmax_dim = 9000.e3,        ! right bound of initial rays (in x dir.) (m)
+xrmax_dim = 900.e3,        ! right bound of initial rays (in x dir.) (m)
 yrmin_dim = 0.0,         ! left bound of initial rays (in y direction) (m)
-yrmax_dim = 300.e3,        ! right bound of initial rays (in y dir.) (m)
+yrmax_dim = 1.e3,        ! right bound of initial rays (in y dir.) (m)
 zrmin_dim = 0.0,        ! bottom bound of initial rays (m)
 zrmax_dim = 100.e3,        ! top bound of initial rays (m)
 
@@ -483,19 +483,19 @@ nsmth_wkb = 2,           ! half (number -1) of cells f. smooth. wkb fluxes
 lsmth_wkb = .true.,      ! log. switch for smooth. wkb data (true/false)
 sm_filter = 2,
 
-lsaturation = .false.,    ! JaWi 16.12.16 (sat)
+lsaturation = .true.,    ! JaWi 16.12.16 (sat)
 alpha_sat = 1.4,         ! JaWi 16.12.16 (sat)
 
 case_wkb = 4,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
-amp_wkb = 0.5            ! amplitude of the wave packet (wrt saturation)
+amp_wkb = 0.9            ! amplitude of the wave packet (wrt saturation)
 
 wlrx_init = 0.0,        ! initial lambda_x of the wave packet (m)
-wlry_init = 300.e3,          ! initial lambda_y of the wave packet (m)
+wlry_init = 1.e3,          ! initial lambda_y of the wave packet (m)
                          ! (0 means infinity)
 wlrz_init = 1.e3,        ! initial lambda_z of the wave packet (m)
                          ! (0 means infinity)
 
-xr0_dim = 4500.e3           ! center of the wave packet in hor. (x-dir.) (m)
+xr0_dim = 450.e3           ! center of the wave packet in hor. (x-dir.) (m)
 yr0_dim = 1.5e4,          ! center of the wave packet in hor. (y-dir.) (m)
 zr0_dim = 30.e3,          ! center of the wave packet in vertical (m)
 
@@ -505,7 +505,7 @@ sigwpy_dim = 0.e0        ! width of the wave packet in hor. (y-dir.) (m);
                          ! (0 means infinity)
 sigwpz_dim = 5.e3,       ! width of the wave packet in vertical (m);
 
-branchr = 1,            ! frequency branch (dispersion relation)
+branchr = -1,            ! frequency branch (dispersion relation)
 !presently not used:
 lindUinit = .false.,     ! ind. wind already at initial time (true/false)
 
@@ -740,7 +740,7 @@ tracerdifference = .true.
 
 include_GW_force = .true.
 
-include_mixing = .false.
+include_mixing = .true.
 
 diffusionbeta = 1.0
 

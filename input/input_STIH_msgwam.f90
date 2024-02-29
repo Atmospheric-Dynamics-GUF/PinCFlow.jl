@@ -13,12 +13,12 @@
 
 sizeX = 3,!, !64, !32                ! nb of global grid cells
 sizeY = 1,
-sizeZ = 266,!, !200, !100 
+sizeZ = 266,
 nbx = 3,                  ! nb. of ghost cells
 nby = 3,
 nbz = 3,
 lx_dim =   0.0, 30.e3, ! domain lenths in m
-ly_dim =   0.0, 30.e3,
+ly_dim =   0.0, 40.e3,
 lz_dim =   0.0, 80.e3,
 
 ! nb of processors in x and y direction must be set in the batch file
@@ -83,7 +83,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
   TurbScheme = .false.            ! Turbulence Schwme
   turb_dts = 5.e3                 ! (s) turbulent damping time scale for the
                                   ! smallest grid scales
-  DySmaScheme = .true.            ! Dynamic Smagorinsky Scheme for the
+  DySmaScheme = .false.            ! Dynamic Smagorinsky Scheme for the
                                   ! dynamic calculation of the turbulent
                                   ! damping time scale
   dtWave_on = .true.              ! .true. : include dtWave = pi/N to time
@@ -183,11 +183,11 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
   Temp0_dim = 300                ! K
                                  ! isothermal -> background temperature
 
-  press0_dim =  68880.0         ! ground pressure (at z=0) in Pa:
+  press0_dim =  101325.0         ! ground pressure (at z=0) in Pa:
                                  ! 101325.0 for z = 0 bottom of atmosphere
                                  ! 101.3250 for z = 0 at appr 60km
 
-  N_BruntVaisala_dim = 0.018     ! Brunt-Vaisala frequency for
+  N_BruntVaisala_dim = 0.017     ! Brunt-Vaisala frequency for
                                  ! 1) "const-N" atmosphere in 1/s
                                  ! 2) "unifrom" Boussinesq
 
@@ -265,22 +265,22 @@ range_factor = 10         ! factor by which mountain range is wider than
   nOutput = 1              ! output every nOutput's time step
                            ! for outputType = "timeStep"
 
-  maxIter = 10             ! stop after maxIter time steps
+  maxIter = 1              ! stop after maxIter time steps
 
-  outputTimeDiff =  240.0   ! output every ... seconds
-  maxTime = 72000.0          ! stop after maxTime seconds
+  outputTimeDiff =  60.0   ! output every ... seconds
+  maxTime = 36000.         ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
-  restart = .false.      ! true / false
+  restart = .false.        ! true / false
 
   dimOut = .true.,.true.,.true.      ! 2D(x,z)-plot dimOut = 1,0,1, 3D with 1,1,1
 
-  varOut = 1,1,1,1,0,1,0,1,1   ! 1 = output, 0 = no output
+  varOut = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
   !                        primary variables: rho,u,v,w,pi',theta',
   !                                           dyn. Smagorinsky coeff.
 
-  varIn = 1,1,1,1,0,1,0,1,1   ! 1 = output, 0 = no output
+  varIn = 1,1,1,1,0,0,0,0,1   ! 1 = output, 0 = no output
   !                       data written into restart file pf_all_in.dat
   !                       ( = output file pf_all.dat from previous run)
   !                       primary variables: rho,u,v,w,pi',theta',
@@ -458,15 +458,15 @@ omiSign = -1            ! frequency branch
 &LagrangeRayTracing
 
 xrmin_dim = 0.0,         ! left bound of initial rays (in x direction) (m)
-xrmax_dim = 30.e3,        ! right bound of initial rays (in x dir.) (m)
+xrmax_dim = 30.e3,       ! right bound of initial rays (in x dir.) (m)
 yrmin_dim = 0.0,         ! left bound of initial rays (in y direction) (m)
-yrmax_dim = 30.e3,        ! right bound of initial rays (in y dir.) (m)
-zrmin_dim = 0.0,        ! bottom bound of initial rays (m)
-zrmax_dim = 2.e4,        ! top bound of initial rays (m)
+yrmax_dim = 40.e3,       ! right bound of initial rays (in y dir.) (m)
+zrmin_dim = 0.0,         ! bottom bound of initial rays (m)
+zrmax_dim = 80.e3,       ! top bound of initial rays (m)
 
-nrxl = 3,               ! no. of ray vol. init. within one hor. x column
+nrxl = 2,               ! no. of ray vol. init. within one hor. x column
 nryl = 1,               ! no. of ray vol. init. within one hor. y column
-nrzl = 3,               ! no. of ray vol. init. within one vert. layer
+nrzl = 2,               ! no. of ray vol. init. within one vert. layer
 
 fac_dk_init = 0.1,     ! init. width of total ray vol. in k space
                          ! (fraction of the initial wave number in x dir.)
@@ -475,7 +475,7 @@ fac_dl_init = 0.1,     ! init. width of total ray vol. in l space
 fac_dm_init = 1.e-4,     ! init. width of total ray vol. in m space
                          ! (fraction of the initial vert. wave number)
 
-nrk_init = 20,            ! no. of ray volumes initialized within dk
+nrk_init = 2,            ! no. of ray volumes initialized within dk
 nrl_init = 1,            ! no. of ray volumes initialized within dl
 nrm_init = 20,            ! no. of ray volumes initialized within dm
 
@@ -484,26 +484,26 @@ lsmth_wkb = .true.,      ! log. switch for smooth. wkb data (true/false)
 sm_filter = 2,
 
 lsaturation = .true.,    ! JaWi 16.12.16 (sat)
-alpha_sat = 2.0,         ! JaWi 16.12.16 (sat)
+alpha_sat = 2.,         ! JaWi 16.12.16 (sat)
 
-case_wkb = 4,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
+case_wkb = 1,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
 amp_wkb = 0.5            ! amplitude of the wave packet (wrt saturation)
 
-wlrx_init = 30.0e3,        ! initial lambda_x of the wave packet (m)
-wlry_init = 0.e3,          ! initial lambda_y of the wave packet (m)
+wlrx_init = 30.e3,        ! initial lambda_x of the wave packet (m)
+wlry_init = 0.0,          ! initial lambda_y of the wave packet (m)
                          ! (0 means infinity)
 wlrz_init = 3.e3,        ! initial lambda_z of the wave packet (m)
                          ! (0 means infinity)
 
-xr0_dim = 0.e3           ! center of the wave packet in hor. (x-dir.) (m)
-yr0_dim = 0e3,          ! center of the wave packet in hor. (y-dir.) (m)
-zr0_dim = 10.e3,          ! center of the wave packet in vertical (m)
+xr0_dim = 4.5e6           ! center of the wave packet in hor. (x-dir.) (m)
+yr0_dim = 1.5e4,          ! center of the wave packet in hor. (y-dir.) (m)
+zr0_dim = 1.e4,          ! center of the wave packet in vertical (m)
 
-sigwpx_dim = 0.e0 ,      ! width of the wave packet in hor. (x-dir.) (m);
+sigwpx_dim = 0.0 ,      ! width of the wave packet in hor. (x-dir.) (m);
                          ! (0 means infinity)
 sigwpy_dim = 0.e0        ! width of the wave packet in hor. (y-dir.) (m);
                          ! (0 means infinity)
-sigwpz_dim = 5.e3,       ! width of the wave packet in vertical (m);
+sigwpz_dim = 5.e3,       ! width of the wave packet in vertical (m);#
 
 branchr = -1,            ! frequency branch (dispersion relation)
 !presently not used:
@@ -522,7 +522,7 @@ zmin_wkb_dim = 0.0     ! minumum altitude (above the model bottom, in m)
                          ! ray volumes being trapped by the self-induced
                          ! mean wind)
 
-nray_fac = 1             ! maximum factor (per wavenumber direction) by
+nray_fac = 2             ! maximum factor (per wavenumber direction) by
                          ! which # of rays may increase in comparison to
                          ! initialization
 
@@ -732,16 +732,10 @@ output_heat = .true.
 
 &tracerList
 
-tracerSetup = "increase_in_z_tracer"!"quadratic_increase"!
-
+tracerSetup = "increase_in_z_tracer"
 include_prime = .false.
-
 tracerdifference = .true.
-
-include_GW_force = .false.
-
-include_mixing = .true.
-
-diffusionbeta = 3.0
-
+include_gw_tracer_forcing = .true.
+include_env_tracer_forcing = .true.
+include_tracer_mixing = .true.
 &end

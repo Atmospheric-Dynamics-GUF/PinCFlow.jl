@@ -11,14 +11,14 @@ module finish_module
   contains
 
   subroutine terminate(var, var0, var1, flux, force, source, dRho, dRhop, &
-      dMom, dTheta, dIce, dTracer)
+      dMom, dTheta, dIce, dTracer, tracerforce)
     !-------------------
     ! deallocate fields
     !-------------------
 
     ! in/out variables
     real, dimension(:, :, :, :), allocatable :: var, var0, var1, force, &
-        source, dMom, dIce
+        source, dMom, dIce, tracerforce
     real, dimension (:, :, :, :, :), allocatable :: flux
     real, dimension (:, :, :), allocatable :: dRho, dRhop, dTheta, dTracer
 
@@ -77,6 +77,9 @@ module finish_module
       deallocate (dTracer, stat = allocstat)
       if (allocstat /= 0) stop "finish.f90: could not deallocate dTracer"
     end if
+
+    deallocate (tracerforce, stat = allocstat)
+    if(allocstat /= 0) stop "finish.f90: could not deallocate tracerforce"
 
   end subroutine terminate
 
