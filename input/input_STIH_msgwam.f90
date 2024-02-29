@@ -13,13 +13,13 @@
 
 sizeX = 3,!, !64, !32                ! nb of global grid cells
 sizeY = 1,
-sizeZ = 266,
+sizeZ = 532,
 nbx = 3,                  ! nb. of ghost cells
 nby = 3,
 nbz = 3,
 lx_dim =   0.0, 30.e3, ! domain lenths in m
 ly_dim =   0.0, 40.e3,
-lz_dim =   0.0, 80.e3,
+lz_dim =   0.0, 160.e3,
 
 ! nb of processors in x and y direction must be set in the batch file
 nprocx = {nprocx},
