@@ -41,41 +41,41 @@ module finish_module
     deallocate(var, stat = allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate var"
 
-    deallocate (var0, stat = allocstat)
+    deallocate(var0, stat = allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate var0"
 
-    deallocate (flux, stat = allocstat)
+    deallocate(flux, stat = allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate flux"
 
-    deallocate (force, stat = allocstat)
+    deallocate(force, stat = allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate force"
 
-    deallocate (source, stat = allocstat)
+    deallocate(source, stat = allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate source"
 
-    deallocate (dRho, stat = allocstat)
+    deallocate(dRho, stat = allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate dRho"
 
-    deallocate (var1, stat = allocstat)
-    if (allocstat /= 0) stop "finish.f90: could not deallocate var1"
+    deallocate(var1, stat = allocstat)
+    if(allocstat /= 0) stop "finish.f90: could not deallocate var1"
 
-    deallocate (dRhop, stat = allocstat)
+    deallocate(dRhop, stat = allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate dRhop"
 
-    deallocate (dTheta, stat = allocstat)
+    deallocate(dTheta, stat = allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate dTheta"
 
-    deallocate (dMom, stat = allocstat)
-    if (allocstat /= 0) stop "finish.f90: could not deallocate dMom"
+    deallocate(dMom, stat = allocstat)
+    if(allocstat /= 0) stop "finish.f90: could not deallocate dMom"
 
-    if (include_ice) then
+    if(include_ice) then
       deallocate(dIce, stat = allocstat)
       if(allocstat /= 0) stop "finish.f90: could not deallocate dIce"
     end if
 
-    if (include_tracer) then
-      deallocate (dTracer, stat = allocstat)
-      if (allocstat /= 0) stop "finish.f90: could not deallocate dTracer"
+    if(include_tracer) then
+      deallocate(dTracer, stat = allocstat)
+      if(allocstat /= 0) stop "finish.f90: could not deallocate dTracer"
     end if
 
     deallocate (tracerforce, stat = allocstat)

@@ -22,12 +22,20 @@ In addition to the source code (`src`), the following resources are provided.
 
 The code is shared in a GitLab repository. Any contributions to the code should adhere to the following workflow.
 
-1. A fork should be created from the upstream repository. Note that in the latter, there are only two active branches called master and development, neither of which can be pushed to.
+1. Create a fork from the upstream repository.
 
-1. The forked repository may be cloned and the desired changes implemented on the corresponding local repository.
+1. Clone the fork to create a local repository.
 
-1. Changes should be committed in reproducible steps and pushed to the fork on a regular basis.
+1. Make your changes on the development branch of the local repository.
 
-1. **Before any changes can be included in the upstream repository, the model must be stable and all canonical tests must reproduce the sample results.**
+1. Commit your changes in reproducible steps.
 
-1. To implement the changes on the upstream repository, a merge request has to be issued. The latter will be taken care of by the upstream maintainer. Merge requests to the master branch will not be accepted.
+1. Pull the development branch of the upstream repository and merge it into the development branch of the local repository, resolving merge conflicts if necessary.
+
+1. **Ensure that the model is stable and that all canonical tests reproduce the sample results.**
+
+1. Push the development branch of the local repository to the fork.
+
+1. Request to merge the development branch of the fork into the development branch of the upstream repository.
+
+![](workflow.png "Workflow  ")
