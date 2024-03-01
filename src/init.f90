@@ -3,9 +3,11 @@ module init_module
   use type_module
   use atmosphere_module
   use ice_module
+  use ice2_module
+  !SD
+  use opt_field_mod
   use mpi_module
   use boundary_module
-  use sizeof_module
   use sizeof_module
 
   implicit none
@@ -135,25 +137,25 @@ module init_module
     !      allocate variable fields
     !-------------------------------------
 
-    read (unit = 10, nml = variables)
+    read(unit = 10, nml = variables)
 
-    if (include_ice .and. include_tracer) then
-       stop "init.f90: cannot include ice and tracer. Check the namelist."
+    if(include_ice .and. include_tracer) then
+      stop "init.f90: cannot include ice and tracer. Check the namelist."
     end if
 
-    if (include_ice) nVar = nVar + 4
+    if(include_ice) nVar = nVar + 4
 
-    if (include_tracer) then
-       if (nVar /= 8) then
-          stop "init.f90: nVar must be set to 8"
-       end if
-       ! increase nVar by 1 to include tracer
-       ! tracer variables saved in index iVart
-       ! e.g. in var(:, :, :, iVart) or
-       ! fluxes(:, :, :, :, iVart)
-       nVar = nVar + 1
-       iVart = nVar
-    end if
+    !SD
+    call set_opt_field
+    !!$    if(include_ice) nVar = nVar + 4
+    !!$    if(include_tracer) then
+    !!$      if(nVar /= 8) then
+    !!$        stop "init.f90: nVar must be set to 8"
+    !!$      end if
+    !!$
+    !!$      nVar = nVar + 1
+    !!$      iVart = nVar
+    !!$    end if
 
     ! allocate var = (rho,u,v,w,pEx)
     allocate(var(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), stat &
@@ -204,13 +206,24 @@ module init_module
     if(include_ice) then
       allocate(dIce(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 4), stat &
           = allocstat)
-      if (allocstat /= 0) stop "init.f90: Could not allocate dIce."
+      if(allocstat /= 0) stop "init.f90: Could not allocate dIce."
     end if
 
-    if (include_tracer) then
-       allocate (dTracer(-nbx:nx+nbx, -nby:ny + nby, -nbz : nz + nbz), stat &
-            = allocstat)
-       if (allocstat /= 0) stop "init.f90: Could not allocate dTracer."
+    !SD
+    if(include_ice2) then
+      allocate(dIce(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "init.f90: Could not allocate dIce."
+
+      allocate(ofield(nx, ny, nz, 6), stat = allocstat)
+      if(allocstat /= 0) stop "init.f90: Could not allocate field_out."
+
+    end if
+
+    if(include_tracer) then
+      allocate(dTracer(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "init.f90: Could not allocate dTracer."
     end if
 
     !UAB
@@ -331,15 +344,18 @@ module init_module
     ! read test case name
     read(unit = 10, nml = testCaseList)
 
+    if(raytracer) then
+      read(unit = 10, nml = LagrangeRayTracing)
+    end if
+
     if(include_ice) then
       ! read ice physics parametrization
-      read (unit = 10, nml = iceLIst)
-   end if
+      read(unit = 10, nml = iceLIst)
+    end if
 
-   ! read tracer namelist
-   if (include_tracer) then
-      read (unit = 10, nml = tracerList)
-   end if
+    !SD
+    call read_nml_opt_field
+    call write_index_opt_field
 
     ! close input file pinc.f
     close(unit = 10)
@@ -385,11 +401,11 @@ module init_module
     !end if
     !UAE
 
-    ! TFC FJ
-    ! Allocate damping coefficient for spongeTFC.
-    if(topography .and. spongeTFC) then
-      allocate(alphaTFC(0:(nx + 1), 0:(ny + 1), 0:(nz + 1)), stat = allocstat)
-      if(allocstat /= 0) stop "init.f90: could not allocate alphaTFC"
+    ! Allocate damping coefficient for unified sponge.
+    if(unifiedSponge) then
+      allocate(alphaUnifiedSponge(0:(nx + 1), 0:(ny + 1), 0:(nz + 1)), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "init.f90: could not allocate alphaUnifiedSponge"
     end if
 
     ! TFC FJ
@@ -397,9 +413,8 @@ module init_module
     if(topography) then
       if(model == "WKB" .or. .not. fluctuationMode .or. poissonSolverType &
           /= "bicgstab" .or. reconstType /= "MUSCL" .or. musclType /= "muscl1" &
-          .or. fluxType /= "upwind" .or. heatingONK14 .or. TurbScheme .or. &
-          rayTracer .or. pressureScaling .or. dens_relax .or. include_ice .or. &
-          background == "HeldSuarez") then
+          .or. fluxType /= "upwind" .or. heatingONK14 .or. pressureScaling &
+          .or. dens_relax .or. include_ice .or. background == "HeldSuarez") then
         stop "Terrain-following coordinates not implemented for chosen setup!"
       end if
     end if
@@ -408,8 +423,8 @@ module init_module
     ! Safety switch for test cases.
     if(topography) then
       if(.not. any(testCase == (/character(50)::"sinus", "uniform_theta", &
-          "monochromeWave", "wavePacket", "mountainwave", "Robert_Bubble", &
-          "coldBubble", "smoothVortex", "atmosphereatrest", &
+          "monochromeWave", "wavePacket", "mountainwave", "raytracer", &
+          "Robert_Bubble", "coldBubble", "smoothVortex", "atmosphereatrest", &
           "SkamarockKlemp94", "hotBubble", "hotBubble2D", "hotBubble3D"/))) then
         stop "Terrain-following coordinates not implemented for chosen testCase"
       end if
@@ -420,8 +435,20 @@ module init_module
     if(.not. topography) then
       freeSlipTFC = .false.
       testTFC = .false.
-      spongeTFC = .false.
-      lateralSponge = .false.
+    end if
+
+    ! Safety switch for unified sponge.
+    if(unifiedSponge) then
+      if(sponge_uv .or. testCase == "baroclinic_LC") then
+        stop "Unified sponge not ready for chosen setup!"
+      end if
+    end if
+
+    ! Safety switch for halos in TFC
+    if(topography) then
+      if(.not. (nbx >= 3 .and. nby >= 3 .and. nbz >= 3)) then
+        stop "Three halos / ghost cells are needed in TFC!"
+      end if
     end if
 
     !---------------------------------------
@@ -466,7 +493,7 @@ module init_module
       rayTracer = .false.
       pressureScaling = .false.
 
-      if (include_tracer) stop "init.f90: Boussinesq not implemented for tracer."
+      if(include_tracer) stop "init.f90: Boussinesq not implemented for tracer."
 
       ! updateMass = .false.
       ! predictMomentum = .true.
@@ -491,29 +518,29 @@ module init_module
       predictMomentum = .true.
       correctMomentum = .true.
       updateTheta = .false.
-      if (include_ice) then
-         updateIce = .true.
+      if(include_ice .or. include_ice2) then
+        updateIce = .true.
       end if
-      if (include_tracer) then
-         updateTracer = .true.
+      if(include_tracer) then
+        updateTracer = .true.
       end if
 
-      if (master) then ! modified by Junhong Wei (20170216)
-        write (90, "(a25)", advance = "no") "updateMass != "
-        write (90, *) updateMass
-        write (90, "(a25)", advance = "no") "predictMomentum != "
-        write (90, *) predictMomentum
-        write (90, "(a25)", advance = "no") "correctMomentum != "
-        write (90, *) correctMomentum
-        write (90, "(a25)", advance = "no") "updateTheta != "
-        write (90, *) updateTheta
-        write (90, *) ""
-        write (90, "(a25)", advance = "no") "updateIce != "
-        write (90, *) updateIce
-        write (90, *) ""
-        write(90,"(a25)",advance = "no") "updateTracer != " ! **IK**
-        write(90,*) updateTracer
-        write(90,*) ""
+      if(master) then ! modified by Junhong Wei (20170216)
+        write(90, "(a25)", advance = "no") "updateMass != "
+        write(90, *) updateMass
+        write(90, "(a25)", advance = "no") "predictMomentum != "
+        write(90, *) predictMomentum
+        write(90, "(a25)", advance = "no") "correctMomentum != "
+        write(90, *) correctMomentum
+        write(90, "(a25)", advance = "no") "updateTheta != "
+        write(90, *) updateTheta
+        write(90, *) ""
+        write(90, "(a25)", advance = "no") "updateIce != "
+        write(90, *) updateIce
+        write(90, *) ""
+        write(90, "(a25)", advance = "no") "updateTracer != " ! **IK**
+        write(90, *) updateTracer
+        write(90, *) ""
       end if ! modified by Junhong Wei (20170216)
 
       !overwrite unsuitable input settings
@@ -536,7 +563,9 @@ module init_module
 
   ! --------------------------------------------------------------------
 
-  subroutine initialise(var)
+  !SD
+  subroutine initialise(var, flux)
+    !subroutine initialise(var)
     !------------------
     ! setup test cases
     !------------------
@@ -588,8 +617,12 @@ module init_module
     real :: lambdaX, lambdaY ! hor. wave lengths
     real :: lambdaZ ! vert. wave lengths
 
-    complex, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 5, 0:2) :: Psi
-    complex, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 6, 0:2) :: Psitr
+    !SD
+    complex, dimension(:, :, :, :, :), allocatable :: Psi
+
+    !SD
+    integer :: allocstat 
+
     real :: u1, w1, b1, p1
     real :: u2, w2, b2, p2
 
@@ -605,7 +638,9 @@ module init_module
     real :: xx
 
     ! random noise on background
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1) :: randNoise
+    !SD
+    !real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1) :: randNoise
+    real, allocatable, dimension(:, :, :) :: randNoise
     real, parameter :: randAmp = 0.0
 
     ! jet stream
@@ -649,6 +684,7 @@ module init_module
 
     integer :: i00, j00 ! modified by Junhong Wei (20161121)
 
+    !SD
     real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar) :: flux
 
     real :: rho_int_m0, rho_int_00, rho_int_mp, rho_int_0p, rho_int_0m, &
@@ -735,10 +771,10 @@ module init_module
     j0 = js + nby - 1
 
     ! on default there is no initial ice, humidity or aerosols in the atmosphere
-    if (include_ice) var(:, :, :, nVar - 3:nVar) = 0.0
-
+    if(include_ice) var(:, :, :, nVar - 3:nVar) = 0.0
+    if(include_ice2) var(:, :, :, iVarIce) = 0.0
     ! just for safety reasons
-    if (include_tracer) var(:, :, :, iVart) = 0.0
+    if(include_tracer) var(:, :, :, iVart) = 0.0
     !---------------------------------------------------------------
 
     select case(testCase)
@@ -884,6 +920,12 @@ module init_module
       !----------------------------------------------------------
 
     case('wavePacket') ! 1D/2D wave packet
+
+      !SD
+      allocate(Psi(0:nx + 1, 0:ny + 1, 0:nz + 1, 5, 0:2), stat = allocstat)
+      if(allocstat /= 0) stop "init.f90: Could not allocate Psi."
+      allocate(randNoise(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
+      if(allocstat /= 0) stop "init.f90: Could not allocate randNoise."
 
       !---------------------
       ! set up random noise
@@ -1124,20 +1166,26 @@ module init_module
       ! nondimensionalization
 
       u_relax = u_relax / uRef
+      v_relax = v_relax / uRef
+      w_relax = w_relax / uRef
 
       t_relax = t_relax / tRef
-      t_ramp = t_ramp / tRef
+      ! t_ramp = t_ramp / tRef
 
-      xextent_norelax = xextent_norelax / lRef
+      ! xextent_norelax = xextent_norelax / lRef
 
-      if(relax_background .and. xextent_norelax < lx(1) - lx(0)) then
-        ! increase relaxation wind u_relax so that u = u_relax after the
-        ! relaxation period (in zonally symmetric case without topography)
-        u_relax = u_relax / (1.0 - exp(4.0 * t_ramp / (pi * t_relax) - 1.0))
-        ! zero wind
-        var(:, :, :, 2) = 0.0 ! u
-        var(:, :, :, 3) = 0.0 ! v
-        var(:, :, :, 4) = 0.0 ! w
+      ! if(wind_relaxation .and. xextent_norelax < lx(1) - lx(0)) then
+      !   ! increase relaxation wind u_relax so that u = u_relax after the
+      !   ! relaxation period (in zonally symmetric case without topography)
+      !   u_relax = u_relax / (1.0 - exp(4.0 * t_ramp / (pi * t_relax) - 1.0))
+      !   ! zero wind
+      !   var(:, :, :, 2) = 0.0 ! u
+      !   var(:, :, :, 3) = 0.0 ! v
+      !   var(:, :, :, 4) = 0.0 ! w
+      if(wind_relaxation) then
+        var(:, :, :, 2) = 0.0
+        var(:, :, :, 3) = 0.0
+        var(:, :, :, 4) = 0.0
       else
         ! TFC FJ
         ! Provide initialization with constant background wind.
@@ -1211,6 +1259,9 @@ module init_module
       ! initialize the ice variables according to iceTestcase
       if(include_ice) call setup_ice(var)
 
+      !SD
+      if(include_ice2) call setup_ice2(var)
+
       !-----------------------------------------------------------------
 
     case('raytracer')
@@ -1262,22 +1313,28 @@ module init_module
         ! nondimensionalization
 
         u_relax = u_relax / uRef
+        v_relax = v_relax / uRef
+        w_relax = w_relax / uRef
 
         t_relax = t_relax / tRef
-        t_ramp = t_ramp / tRef
+        ! t_ramp = t_ramp / tRef
 
-        xextent_norelax = xextent_norelax / lRef
+        ! xextent_norelax = xextent_norelax / lRef
 
         ! increase relaxation wind u_relax so that u = u_relax after the
         ! relaxation period (in x-independent case without topography)
 
         ! TFC FJ
-        if(relax_background) then
-          u_relax = u_relax / (1.0 - exp(4.0 * t_ramp / (pi * t_relax) - 1.0))
-          ! zero wind
-          var(:, :, :, 2) = 0.0 ! u
-          var(:, :, :, 3) = 0.0 ! v
-          var(:, :, :, 4) = 0.0 ! w
+        ! if(wind_relaxation) then
+        !   u_relax = u_relax / (1.0 - exp(4.0 * t_ramp / (pi * t_relax) - 1.0))
+        !   ! zero wind
+        !   var(:, :, :, 2) = 0.0 ! u
+        !   var(:, :, :, 3) = 0.0 ! v
+        !   var(:, :, :, 4) = 0.0 ! w
+        if(wind_relaxation) then
+          var(:, :, :, 2) = 0.0
+          var(:, :, :, 3) = 0.0
+          var(:, :, :, 4) = 0.0
         else
           ! Provide initialization with constant background wind.
           var(:, :, :, 2) = backgroundFlow_dim(1) / uRef
@@ -5328,8 +5385,8 @@ module init_module
     end if
 
     ! open input file
-    if (master) then
-      open (40, file = fileinitstate2D, form = "unformatted", access &
+    if(master) then
+      open(40, file = fileinitstate2D, form = "unformatted", access &
           = 'direct', recl = 1 * SizeY * sizeofreal4)
       !      print*,"pf_all_in.dat opened"
     end if
@@ -5711,8 +5768,8 @@ module init_module
     ! open output file
 
     !   open(40,file=dataFile,form="unformatted",access='direct',recl=nx*ny)
-    if (master) then
-      open (51, file = filename_bgr, form = "unformatted", access = 'direct', &
+    if(master) then
+      open(51, file = filename_bgr, form = "unformatted", access = 'direct', &
           recl = SizeX * SizeY * sizeofreal4)
     end if
 

@@ -9,7 +9,7 @@ module tracer_module
 
   public :: setup_tracer
 
-contains
+  contains
 
    subroutine setup_tracer (var)
       ! setup initial tracer mixing ratio distribution

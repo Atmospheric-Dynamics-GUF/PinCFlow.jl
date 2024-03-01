@@ -30,7 +30,7 @@ module update_module
   public :: set_spongeLayer
   public :: CoefDySma_update
   public :: Var3DSmthDySma
-
+  public :: ice2Update, ice2Update_source, ice2Update_apb
   public :: setHaloAndBoundary
 
   public :: smooth_shapiro
@@ -96,15 +96,16 @@ module update_module
     spongeAlphaZ = spongeAlphaZ_dim * tRef
 
     ! thickness of sponge layer
-    spongeDz = z(nz) - z(kSponge)
+    ! spongeDz = z(nz) - z(kSponge)
+    spongeDz = lz(1) - zSponge
 
     ! TFC FJ
     ! Meridional dependence is only implemented for semi-implicit procedure!
     c4_strtd = 1.0
 
     ! TFC FJ
-    ! Define parameters needed for TFC sponge layers.
-    if(topography .and. spongeTFC .and. lateralSponge) then
+    ! Define parameters needed for lateral sponge layers.
+    if(lateralSponge) then
       i00 = is + nbx - 1
       j00 = js + nby - 1
       spongeAlphaX = spongeAlphaZ
@@ -132,7 +133,7 @@ module update_module
 
       do k = kSponge, nz
 
-        alpha = spongeAlphaZ * ((z(k) - zSponge) / spongeDz) ** sponge_order
+        alpha = spongeAlphaZ * ((z(k) - zSponge) / spongeDz) ** spongeOrder
         beta = 1. / (1. + alpha * 0.5 * dt) ** 2
 
         rhoStrat(k) = (1. - beta) * rhoStrat_0(k) + beta * rhoStrat(k)
@@ -199,13 +200,13 @@ module update_module
     case("rho")
 
       ! TFC FJ
-      ! No sponge applied to any quantity other than w.
-      ! No sponge applied to rho in Boussinesq model.
-      if(.not. spongeTFC .and. model /= "Boussinesq") then
-        do k = kSponge, nz
+      ! Unified sponge is not applied to any quantity other than w.
+      ! No sponge is applied to rho in Boussinesq model.
+      if(.not. unifiedSponge .and. model /= "Boussinesq") then
+        ! do k = kSponge, nz
+        do k = 1, nz
           do j = 1, ny
             do i = 1, nx
-
               if((TestCase == "baroclinic_LC") .or. (TestCase &
                   == "baroclinic_ID")) then
                 !UAB 200413
@@ -229,18 +230,63 @@ module update_module
                 end if
               end if
 
+              alpha = 0.0
               rho_old = var(i, j, k, 1)
-              if(diffusive_sponge) then
-                alpha = spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
-              else
-                alpha = c4_strtd(j) * spongeAlphaZ * ((z(k) - zSponge) &
-                    / spongeDz) ** sponge_order
+              if(lateralSponge) then
+                ! Zonal sponge.
+                if(x(i00 + i) <= xSponge0) then
+                  alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
+                      / (xSponge0 - lx(0))) ** spongeOrder
+                else if(x(i00 + i) >= xSponge1) then
+                  alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
+                      / (lx(1) - xSponge1)) ** spongeOrder
+                end if
+                ! Meridional sponge.
+                if(y(j00 + j) <= ySponge0) then
+                  alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
+                      / (ySponge0 - ly(0))) ** spongeOrder
+                else if(y(j00 + j) >= ySponge1) then
+                  alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
+                      / (ly(1) - ySponge1)) ** spongeOrder
+                end if
               end if
-              beta = 1. / (1. + alpha * 0.5 * dt) ** 2
-              rho_new = (1. - beta) * rho_bg + beta * rho_old
-
+              if(topography) then
+                ! Vertical sponge.
+                if(verticalSponge == "exponential") then
+                  alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
+                      - lz(1)) / zSponge)
+                end if
+                if(heightTFC(i, j, k) >= zSponge) then
+                  if(verticalSponge == "cosmo") then
+                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                        * (heightTFC(i, j, k) - zSponge) / spongeDz))
+                  else if(verticalSponge == "polynomial") then
+                    alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
+                        - zSponge) / spongeDz) ** spongeOrder
+                  else if(verticalSponge == "constant") then
+                    alpha = alpha + spongeAlphaZ
+                  end if
+                end if
+              else
+                ! Vertical sponge.
+                if(verticalSponge == "exponential") then
+                  alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
+                end if
+                if(z(k) >= zSponge) then
+                  if(verticalSponge == "cosmo") then
+                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                        * (z(k) - zSponge) / spongeDz))
+                  else if(verticalSponge == "polynomial") then
+                    alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) &
+                        / spongeDz) ** spongeOrder
+                  else if(verticalSponge == "constant") then
+                    alpha = alpha + spongeAlphaZ
+                  end if
+                end if
+              end if
+              beta = 1.0 / (1.0 + alpha * dt)
+              rho_new = (1.0 - beta) * rho_bg + beta * rho_old
               var(i, j, k, 1) = rho_new
-
             end do
           end do
         end do
@@ -249,12 +295,12 @@ module update_module
     case("rhop")
 
       ! TFC FJ
-      ! No sponge applied to any quantity other than w.
-      if(.not. spongeTFC) then
-        do k = kSponge, nz
+      ! Unified sponge is not applied to any quantity other than w.
+      if(.not. unifiedSponge) then
+        ! do k = kSponge, nz
+        do k = 1, nz
           do j = 1, ny
             do i = 1, nx
-
               if((TestCase == "baroclinic_LC") .or. (TestCase &
                   == "baroclinic_ID")) then
                 if(topography) then
@@ -267,18 +313,63 @@ module update_module
                 rho_bg = 0.0 ! push back to zero perturbation
               end if
 
+              alpha = 0.0
               rho_old = var(i, j, k, 6)
-              if(diffusive_sponge) then
-                alpha = spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
-              else
-                alpha = c4_strtd(j) * spongeAlphaZ * ((z(k) - zSponge) &
-                    / spongeDz) ** sponge_order
+              if(lateralSponge) then
+                ! Zonal sponge.
+                if(x(i00 + i) <= xSponge0) then
+                  alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
+                      / (xSponge0 - lx(0))) ** spongeOrder
+                else if(x(i00 + i) >= xSponge1) then
+                  alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
+                      / (lx(1) - xSponge1)) ** spongeOrder
+                end if
+                ! Meridional sponge.
+                if(y(j00 + j) <= ySponge0) then
+                  alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
+                      / (ySponge0 - ly(0))) ** spongeOrder
+                else if(y(j00 + j) >= ySponge1) then
+                  alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
+                      / (ly(1) - ySponge1)) ** spongeOrder
+                end if
               end if
-              beta = 1. / (1. + alpha * 0.5 * dt) ** 2
-              rho_new = (1. - beta) * rho_bg + beta * rho_old
-
+              if(topography) then
+                ! Vertical sponge.
+                if(verticalSponge == "exponential") then
+                  alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
+                      - lz(1)) / zSponge)
+                end if
+                if(heightTFC(i, j, k) >= zSponge) then
+                  if(verticalSponge == "cosmo") then
+                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                        * (heightTFC(i, j, k) - zSponge) / spongeDz))
+                  else if(verticalSponge == "polynomial") then
+                    alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
+                        - zSponge) / spongeDz) ** spongeOrder
+                  else if(verticalSponge == "constant") then
+                    alpha = alpha + spongeAlphaZ
+                  end if
+                end if
+              else
+                ! Vertical sponge.
+                if(verticalSponge == "exponential") then
+                  alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
+                end if
+                if(z(k) >= zSponge) then
+                  if(verticalSponge == "cosmo") then
+                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                        * (z(k) - zSponge) / spongeDz))
+                  else if(verticalSponge == "polynomial") then
+                    alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) &
+                        / spongeDz) ** spongeOrder
+                  else if(verticalSponge == "constant") then
+                    alpha = alpha + spongeAlphaZ
+                  end if
+                end if
+              end if
+              beta = 1.0 / (1.0 + alpha * dt)
+              rho_new = (1.0 - beta) * rho_bg + beta * rho_old
               var(i, j, k, 6) = rho_new
-
             end do
           end do
         end do
@@ -291,10 +382,10 @@ module update_module
       qIce_bg = 0.0
       qv_bg = 0.0
 
-      do k = kSponge, nz
+      ! do k = kSponge, nz
+      do k = 1, nz
         do j = 1, ny
           do i = 1, nx
-
             select case(iceTestcase)
             case("homogeneous_qv")
               qv_bg = 0.0 !init_qv
@@ -304,13 +395,60 @@ module update_module
               qv_bg = 0.0 !epsilon0 * init_SIce * p_saturation(T) / p
             end select
 
-            if(diffusive_sponge) then
-              alpha = spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
-            else
-              alpha = spongeAlphaZ * ((z(k) - zSponge) / spongeDz) &
-                  ** sponge_order
+            alpha = 0.0
+            if(lateralSponge) then
+              ! Zonal sponge.
+              if(x(i00 + i) <= xSponge0) then
+                alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
+                    / (xSponge0 - lx(0))) ** spongeOrder
+              else if(x(i00 + i) >= xSponge1) then
+                alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
+                    / (lx(1) - xSponge1)) ** spongeOrder
+              end if
+              ! Meridional sponge.
+              if(y(j00 + j) <= ySponge0) then
+                alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
+                    / (ySponge0 - ly(0))) ** spongeOrder
+              else if(y(j00 + j) >= ySponge1) then
+                alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
+                    / (ly(1) - ySponge1)) ** spongeOrder
+              end if
             end if
-            beta = 1. / (1. + alpha * 0.5 * dt) ** 2
+            if(topography) then
+              ! Vertical sponge.
+              if(verticalSponge == "exponential") then
+                alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
+                    - lz(1)) / zSponge)
+              end if
+              if(heightTFC(i, j, k) >= zSponge) then
+                if(verticalSponge == "cosmo") then
+                  alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                      * (heightTFC(i, j, k) - zSponge) / spongeDz))
+                else if(verticalSponge == "polynomial") then
+                  alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
+                      - zSponge) / spongeDz) ** spongeOrder
+                else if(verticalSponge == "constant") then
+                  alpha = alpha + spongeAlphaZ
+                end if
+              end if
+            else
+              ! Vertical sponge.
+              if(verticalSponge == "exponential") then
+                alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
+              end if
+              if(z(k) >= zSponge) then
+                if(verticalSponge == "cosmo") then
+                  alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                      * (z(k) - zSponge) / spongeDz))
+                else if(verticalSponge == "polynomial") then
+                  alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) / spongeDz) &
+                      ** spongeOrder
+                else if(verticalSponge == "constant") then
+                  alpha = alpha + spongeAlphaZ
+                end if
+              end if
+            end if
+            beta = 1.0 / (1.0 + alpha * dt)
             var(i, j, k, nVar - 3) = (1. - beta) * nAer_bg + beta * var(i, j, &
                 k, nVar - 3)
             var(i, j, k, nVar - 2) = (1. - beta) * nIce_bg + beta * var(i, j, &
@@ -322,7 +460,6 @@ module update_module
               if(var(i, j, k, nVar - iVar) .lt. 0.0) var(i, j, k, nVar - iVar) &
                   = 0.0
             end do
-
           end do
         end do
       end do
@@ -359,22 +496,25 @@ module update_module
 
       ! local horizontal sum in the sponge layer
 
-      do k = kSponge, nz
+      ! do k = kSponge, nz
+      do k = 1, nz
         sum_local(k) = sum(var(1:nx, 1:ny, k, 2))
       end do
 
       ! global sum and average
 
-      call mpi_allreduce(sum_local(kSponge), sum_global(kSponge), nz - kSponge &
-          + 1, mpi_double_precision, mpi_sum, comm, ierror)
+      ! call mpi_allreduce(sum_local(kSponge), sum_global(kSponge), nz - kSponge &
+      !     + 1, mpi_double_precision, mpi_sum, comm, ierror)
+      call mpi_allreduce(sum_local(1), sum_global(1), nz, &
+          mpi_double_precision, mpi_sum, comm, ierror)
       sum_global = sum_global / (sizeX * sizeY)
 
       ! TFC FJ
-      ! No sponge applied to any quantity other than w.
-      if(.not. spongeTFC) then
-        do k = kSponge, nz
+      ! Unified sponge is not applied to any quantity other than w.
+      if(.not. unifiedSponge) then
+        ! do k = kSponge, nz
+        do k = 1, nz
           do j = 1, ny
-            !do i = 0,nx
             do i = 1, nx
               if((TestCase == "baroclinic_LC") .or. (TestCase &
                   == "baroclinic_ID")) then
@@ -390,18 +530,65 @@ module update_module
                 end if
               else
                 uBG = sum_global(k)
+                ! uBG = backgroundFlow_dim(1) / uRef
               end if
 
+              alpha = 0.0
               uOld = var(i, j, k, 2)
-              if(diffusive_sponge) then
-                alpha = spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
-              else
-                alpha = c4_strtd(j) * spongeAlphaZ * ((z(k) - zSponge) &
-                    / spongeDz) ** sponge_order
+              if(lateralSponge) then
+                ! Zonal sponge.
+                if(x(i00 + i) <= xSponge0) then
+                  alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
+                      / (xSponge0 - lx(0))) ** spongeOrder
+                else if(x(i00 + i) >= xSponge1) then
+                  alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
+                      / (lx(1) - xSponge1)) ** spongeOrder
+                end if
+                ! Meridional sponge.
+                if(y(j00 + j) <= ySponge0) then
+                  alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
+                      / (ySponge0 - ly(0))) ** spongeOrder
+                else if(y(j00 + j) >= ySponge1) then
+                  alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
+                      / (ly(1) - ySponge1)) ** spongeOrder
+                end if
               end if
-              beta = 1. / (1. + alpha * 0.5 * dt) ** 2
-              uNew = (1. - beta) * uBG + beta * uOld
-
+              if(topography) then
+                ! Vertical sponge.
+                if(verticalSponge == "exponential") then
+                  alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
+                      - lz(1)) / zSponge)
+                end if
+                if(heightTFC(i, j, k) >= zSponge) then
+                  if(verticalSponge == "cosmo") then
+                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                        * (heightTFC(i, j, k) - zSponge) / spongeDz))
+                  else if(verticalSponge == "polynomial") then
+                    alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
+                        - zSponge) / spongeDz) ** spongeOrder
+                  else if(verticalSponge == "constant") then
+                    alpha = alpha + spongeAlphaZ
+                  end if
+                end if
+              else
+                ! Vertical sponge.
+                if(verticalSponge == "exponential") then
+                  alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
+                end if
+                if(z(k) >= zSponge) then
+                  if(verticalSponge == "cosmo") then
+                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                        * (z(k) - zSponge) / spongeDz))
+                  else if(verticalSponge == "polynomial") then
+                    alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) &
+                        / spongeDz) ** spongeOrder
+                  else if(verticalSponge == "constant") then
+                    alpha = alpha + spongeAlphaZ
+                  end if
+                end if
+              end if
+              beta = 1.0 / (1.0 + alpha * dt)
+              uNew = (1.0 - beta) * uBG + beta * uOld
               var(i, j, k, 2) = uNew
             end do
           end do
@@ -417,21 +604,24 @@ module update_module
 
       ! local horizontal sum in the sponge layer
 
-      do k = kSponge, nz
+      ! do k = kSponge, nz
+      do k = 1, nz
         sum_local(k) = sum(var(1:nx, 1:ny, k, 3))
       end do
 
       ! global sum and average
 
-      call mpi_allreduce(sum_local(kSponge), sum_global(kSponge), nz - kSponge &
-          + 1, mpi_double_precision, mpi_sum, comm, ierror)
+      ! call mpi_allreduce(sum_local(kSponge), sum_global(kSponge), nz - kSponge &
+      !     + 1, mpi_double_precision, mpi_sum, comm, ierror)
+      call mpi_allreduce(sum_local(1), sum_global(1), nz, &
+          mpi_double_precision, mpi_sum, comm, ierror)
       sum_global = sum_global / (sizeX * sizeY)
 
       ! TFC FJ
-      ! No sponge applied to any quantity other than w.
-      if(.not. spongeTFC) then
-        do k = kSponge, nz
-          !do j = 0,ny !gaga 1->0
+      ! Unified sponge is not applied to any quantity other than w.
+      if(.not. unifiedSponge) then
+        ! do k = kSponge, nz
+        do k = 1, nz
           do j = 1, ny
             do i = 1, nx
               if((TestCase == "baroclinic_LC") .or. (TestCase &
@@ -448,20 +638,66 @@ module update_module
                 end if
               else
                 vBG = sum_global(k)
+                ! vBG = backgroundFlow_dim(2) / uRef
               end if
 
+              alpha = 0.0
               vOld = var(i, j, k, 3)
-              if(diffusive_sponge) then
-                alpha = spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
-              else
-                alpha = c4_strtd(j) * spongeAlphaZ * ((z(k) - zSponge) &
-                    / spongeDz) ** sponge_order
+              if(lateralSponge) then
+                ! Zonal sponge.
+                if(x(i00 + i) <= xSponge0) then
+                  alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
+                      / (xSponge0 - lx(0))) ** spongeOrder
+                else if(x(i00 + i) >= xSponge1) then
+                  alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
+                      / (lx(1) - xSponge1)) ** spongeOrder
+                end if
+                ! Meridional sponge.
+                if(y(j00 + j) <= ySponge0) then
+                  alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
+                      / (ySponge0 - ly(0))) ** spongeOrder
+                else if(y(j00 + j) >= ySponge1) then
+                  alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
+                      / (ly(1) - ySponge1)) ** spongeOrder
+                end if
               end if
-              beta = 1. / (1. + alpha * 0.5 * dt) ** 2
-              vNew = (1. - beta) * vBG + beta * vOld
-
+              if(topography) then
+                ! Vertical sponge.
+                if(verticalSponge == "exponential") then
+                  alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
+                      - lz(1)) / zSponge)
+                end if
+                if(heightTFC(i, j, k) >= zSponge) then
+                  if(verticalSponge == "cosmo") then
+                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                        * (heightTFC(i, j, k) - zSponge) / spongeDz))
+                  else if(verticalSponge == "polynomial") then
+                    alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
+                        - zSponge) / spongeDz) ** spongeOrder
+                  else if(verticalSponge == "constant") then
+                    alpha = alpha + spongeAlphaZ
+                  end if
+                end if
+              else
+                ! Vertical sponge.
+                if(verticalSponge == "exponential") then
+                  alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
+                end if
+                if(z(k) >= zSponge) then
+                  if(verticalSponge == "cosmo") then
+                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                        * (z(k) - zSponge) / spongeDz))
+                  else if(verticalSponge == "polynomial") then
+                    alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) &
+                        / spongeDz) ** spongeOrder
+                  else if(verticalSponge == "constant") then
+                    alpha = alpha + spongeAlphaZ
+                  end if
+                end if
+              end if
+              beta = 1.0 / (1.0 + alpha * dt)
+              vNew = (1.0 - beta) * vBG + beta * vOld
               var(i, j, k, 3) = vNew
-
             end do
           end do
         end do
@@ -469,9 +705,9 @@ module update_module
 
       ! achatzb relax w to zero
 
-      if(topography .and. spongeTFC) then
+      if(unifiedSponge) then
         ! TFC FJ
-        ! TFC sponge layers.
+        ! Unified sponge layers (FJJun2023).
         do k = 1, nz
           do j = 1, ny
             do i = 1, nx
@@ -495,13 +731,21 @@ module update_module
                       - ySponge1) / (ly(1) - ySponge1)) ** 2.0
                 end if
               end if
-              ! Vertical sponge.
-              if(heightTFC(i, j, k) >= zSponge) then
-                alpha = alpha + spongeAlphaZ * sin(0.5 * pi * (heightTFC(i, j, &
-                    k) - zSponge) / (lz(1) - zSponge)) ** 2.0
+              if(topography) then
+                ! Vertical sponge.
+                if(heightTFC(i, j, k) >= zSponge) then
+                  alpha = alpha + spongeAlphaZ * sin(0.5 * pi * (heightTFC(i, &
+                      j, k) - zSponge) / (lz(1) - zSponge)) ** 2.0
+                end if
+                ! Adjust for terrain-following velocity.
+                alpha = alpha / jac(i, j, k)
+              else
+                ! Vertical sponge.
+                if(z(k) >= zSponge) then
+                  alpha = alpha + spongeAlphaZ * sin(0.5 * pi * (z(k) &
+                      - zSponge) / (lz(1) - zSponge)) ** 2.0
+                end if
               end if
-              ! Adjust for terrain-following velocity.
-              alpha = alpha / jac(i, j, k)
               ! Apply total sponge.
               beta = 1.0 / (1.0 + alpha * dt)
               wNew = beta * wOld
@@ -510,20 +754,67 @@ module update_module
           end do
         end do
       else
-        do k = kSponge, nz
-          wBG = backgroundFlow_dim(3) / uRef !0.0
+        wBG = backgroundFlow_dim(3) / uRef !0.0
+        ! do k = kSponge, nz
+        do k = 1, nz
           do j = 1, ny
             do i = 1, nx
+              alpha = 0.0
               wOld = var(i, j, k, 4)
-              if(diffusive_sponge) then
-                alpha = spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
-              else
-                alpha = c4_strtd(j) * spongeAlphaZ * ((z(k) - zSponge) &
-                    / spongeDz) ** sponge_order
+              if(lateralSponge) then
+                ! Zonal sponge.
+                if(x(i00 + i) <= xSponge0) then
+                  alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
+                      / (xSponge0 - lx(0))) ** spongeOrder
+                else if(x(i00 + i) >= xSponge1) then
+                  alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
+                      / (lx(1) - xSponge1)) ** spongeOrder
+                end if
+                ! Meridional sponge.
+                if(y(j00 + j) <= ySponge0) then
+                  alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
+                      / (ySponge0 - ly(0))) ** spongeOrder
+                else if(y(j00 + j) >= ySponge1) then
+                  alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
+                      / (ly(1) - ySponge1)) ** spongeOrder
+                end if
               end if
-              beta = 1. / (1. + alpha * 0.5 * dt) ** 2
-              wNew = (1. - beta) * wBG + beta * wOld
-
+              if(topography) then
+                ! Vertical sponge.
+                if(verticalSponge == "exponential") then
+                  alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
+                      - lz(1)) / zSponge)
+                end if
+                if(heightTFC(i, j, k) >= zSponge) then
+                  if(verticalSponge == "cosmo") then
+                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                        * (heightTFC(i, j, k) - zSponge) / spongeDz))
+                  else if(verticalSponge == "polynomial") then
+                    alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
+                        - zSponge) / spongeDz) ** spongeOrder
+                  else if(verticalSponge == "constant") then
+                    alpha = alpha + spongeAlphaZ
+                  end if
+                end if
+              else
+                ! Vertical sponge.
+                if(verticalSponge == "exponential") then
+                  alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
+                end if
+                if(z(k) >= zSponge) then
+                  if(verticalSponge == "cosmo") then
+                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                        * (z(k) - zSponge) / spongeDz))
+                  else if(verticalSponge == "polynomial") then
+                    alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) &
+                        / spongeDz) ** spongeOrder
+                  else if(verticalSponge == "constant") then
+                    alpha = alpha + spongeAlphaZ
+                  end if
+                end if
+              end if
+              beta = 1.0 / (1.0 + alpha * dt)
+              wNew = (1.0 - beta) * wBG + beta * wOld
               var(i, j, k, 4) = wNew
             end do
           end do
@@ -2091,8 +2382,13 @@ module update_module
               end if
 
               if(spongeLayer) then
-                wAst = wAst - dt * 0.5 * (kr_sp_w(j, k) + kr_sp_w(j, k + 1)) &
-                    * wvert
+                if(unifiedSponge) then
+                  wAst = wAst - dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
+                      + alphaUnifiedSponge(i, j, k + 1)) * wvert
+                else
+                  wAst = wAst - dt * 0.5 * (kr_sp_w(j, k) + kr_sp_w(j, k + 1)) &
+                      * wvert
+                end if
               end if
 
               var(i, j, k, 4) = wAst
@@ -2205,7 +2501,12 @@ module update_module
               end if
 
               if(spongeLayer) then
-                facw = facw + dt * 0.5 * (kr_sp_w(j, k) + kr_sp_w(j, k + 1))
+                if(unifiedSponge) then
+                  facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
+                      + alphaUnifiedSponge(i, j, k + 1))
+                else
+                  facw = facw + dt * 0.5 * (kr_sp_w(j, k) + kr_sp_w(j, k + 1))
+                end if
               end if
 
               !heat0 &
@@ -2459,7 +2760,7 @@ module update_module
     if(m == 1) q = 0.
 
     if(mmp_mod == 'rhs') then
-      if(int_mod == 'expl' .and. .not. spongeTFC) then
+      if(int_mod == 'expl' .and. .not. unifiedSponge) then
         ! TFC FJ
         spongeLayer_s = spongeLayer
         ! topography_s = topography
@@ -4674,10 +4975,10 @@ module update_module
               end if
 
               if(spongeLayer) then
-                if(topography .and. spongeTFC) then
+                if(unifiedSponge) then
                   ! TFC FJ
-                  wAst = wAst - dt * 0.5 * (alphaTFC(i, j, k) + alphaTFC(i, j, &
-                      k + 1)) * wvert
+                  wAst = wAst - dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
+                      + alphaUnifiedSponge(i, j, k + 1)) * wvert
                 else
                   wAst = wAst - dt * 0.5 * (kr_sp_w(j, k) + kr_sp_w(j, k + 1)) &
                       * wvert
@@ -4901,10 +5202,10 @@ module update_module
               end if
 
               if(spongeLayer) then
-                if(topography .and. spongeTFC) then
+                if(unifiedSponge) then
                   ! TFC FJ
-                  facw = facw + dt * 0.5 * (alphaTFC(i, j, k) + alphaTFC(i, j, &
-                      k + 1))
+                  facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
+                      + alphaUnifiedSponge(i, j, k + 1))
                 else
                   facw = facw + dt * 0.5 * (kr_sp_w(j, k) + kr_sp_w(j, k + 1))
                 end if
@@ -4986,7 +5287,7 @@ module update_module
     end if
 
     if(mmp_mod == 'rhs') then
-      if(int_mod == 'expl' .and. .not. spongeTFC) then
+      if(int_mod == 'expl' .and. .not. unifiedSponge) then
         ! TFC FJ
         spongeLayer = spongeLayer_s
         ! topography = topography_s
@@ -5760,9 +6061,9 @@ module update_module
                 end if
 
                 if(spongeLayer) then
-                  if(topography .and. spongeTFC) then
+                  if(unifiedSponge) then
                     ! TFC FJ
-                    facw = facw + dt * alphaTFC(i, j, k)
+                    facw = facw + dt * alphaUnifiedSponge(i, j, k)
                   else
                     facw = facw + dt * kr_sp_w(j, k)
                   end if
@@ -5908,8 +6209,8 @@ module update_module
   subroutine tracerUpdate (var,flux,tracerforce,dt,q,m)
 
     ! in/out variables
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-         & intent(inout) :: var
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
 
 
     real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
@@ -5917,8 +6218,8 @@ module update_module
     real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(in) :: tracerforce
 
     real, intent(in) :: dt
-    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
-         & intent(inout) :: q
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
+        intent(inout) :: q
 
     integer, intent(in) :: m
 
@@ -5938,7 +6239,7 @@ module update_module
     end if
 
     ! init q
-    if (m == 1) q = 0.
+    if(m == 1) q = 0.
 
     do k = 1,nz
       do j = 1,ny
@@ -6004,8 +6305,10 @@ module update_module
 
         end do
       end do
+        end do
+      end do
     end do
-    
+
   end subroutine tracerUpdate
 
   !-----------------------------------------------------------------------
@@ -6137,6 +6440,320 @@ module update_module
         calculated."
 
   end subroutine iceUpdate
+
+  !-------------------------------------------------------------------------
+
+  subroutine ice2Update_source(var, flux, source, dt, q, m)
+    !-----------------------------
+    ! adds ice flux to cell ice field
+    !-----------------------------
+
+    ! in/out variables
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
+    ! flux(i,j,k,dir,iFlux)
+    ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
+    ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
+
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: source
+
+    real, intent(in) :: dt
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
+        intent(inout) :: q
+
+    integer, intent(in) :: m
+
+    ! local variables
+    integer :: i, j, k, l
+    real :: fL, fR ! flux Left/Right
+    real :: gB, gF ! flux Backward/Forward
+    real :: hD, hU ! flux Downward/Upward
+    real :: fluxDiff ! convective part
+    real :: F ! F(phi)
+
+    !!$    ! TFC FJ
+    !!$    real :: pEdgeU, pEdgeD
+    !!$    real :: piREdgeU, piLEdgeU, piFEdgeU, piBEdgeU, &
+    !!$         piREdgeD, piLEdgeD, piFEdgeD, piBEdgeD
+    !!$    real :: chris11EdgeU, chris11EdgeD, chris22EdgeU, chris22EdgeD, &
+    !!$         chris13EdgeU, chris13EdgeD, chris23EdgeU, chris23EdgeD
+    !!$    real :: piGradZEdgeU, piGradZEdgeD
+
+    integer :: ii, iVar
+
+    ! init q
+    if(m == 1) q = 0.
+
+    do ii = 1, nVarIce
+      iVar = iVarIce(ii)
+
+      do k = 1, nz
+        do j = 1, ny
+          do i = 1, nx
+
+            fL = flux(i - 1, j, k, 1, iVar) ! mass flux accros left cell edge
+            fR = flux(i, j, k, 1, iVar) ! right
+            gB = flux(i, j - 1, k, 2, iVar) ! backward
+            gF = flux(i, j, k, 2, iVar) ! forward
+            hD = flux(i, j, k - 1, 3, iVar) ! downward
+            hU = flux(i, j, k, 3, iVar) ! upward
+
+            ! convective part
+            fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
+
+            ! TFC FJ
+            ! Adjust mass flux divergence.
+            if(topography) then
+              fluxDiff = fluxDiff / jac(i, j, k)
+            end if
+
+            ! F(phi)
+            F = - fluxDiff + source(i, j, k, iVar)
+
+            ! update: q(m-1) -> q(m)
+            q(i, j, k, ii) = dt * F + alpha(m) * q(i, j, k, ii)
+
+            ! update fields
+            var(i, j, k, iVar) = var(i, j, k, iVar) + beta(m) * q(i, j, k, ii)
+
+          end do !i
+        end do !j
+      end do !k
+
+    end do !ii
+
+  end subroutine ice2Update_source
+
+  !-----------------------------------------------------------------------
+
+  subroutine ice2Update_apb(var, flux, source, dt, q, m, update_type)
+    !-----------------------------
+    ! adds ice flux to cell ice field
+    !-----------------------------
+
+    ! in/out variables
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
+    ! flux(i,j,k,dir,iFlux)
+    ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
+    ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
+
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: source
+
+    real, intent(in) :: dt
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
+        intent(inout) :: q
+
+    integer, intent(in) :: m
+    character(len = 3), intent(in) :: update_type
+
+    ! local variables
+    integer :: i, j, k, l
+    real :: fL, fR ! flux Left/Right
+    real :: gB, gF ! flux Backward/Forward
+    real :: hD, hU ! flux Downward/Upward
+    real :: fluxDiff ! convective part
+    real :: F ! F(phi)
+
+    !!$    ! TFC FJ
+    !!$    real :: pEdgeU, pEdgeD
+    !!$    real :: piREdgeU, piLEdgeU, piFEdgeU, piBEdgeU, &
+    !!$         piREdgeD, piLEdgeD, piFEdgeD, piBEdgeD
+    !!$    real :: chris11EdgeU, chris11EdgeD, chris22EdgeU, chris22EdgeD, &
+    !!$         chris13EdgeU, chris13EdgeD, chris23EdgeU, chris23EdgeD
+    !!$    real :: piGradZEdgeU, piGradZEdgeD
+
+    integer :: ii, iVar
+
+    ! init q
+    if(m == 1) q = 0.
+
+    do ii = 1, nVarIce
+      iVar = iVarIce(ii)
+
+      do k = 1, nz
+        do j = 1, ny
+          do i = 1, nx
+
+            if(update_type .eq. 'ADV' .or. update_type .eq. 'BOT') then
+
+              fL = flux(i - 1, j, k, 1, iVar) ! mass flux accros left cell edge
+              fR = flux(i, j, k, 1, iVar) ! right
+              gB = flux(i, j - 1, k, 2, iVar) ! backward
+              gF = flux(i, j, k, 2, iVar) ! forward
+              hD = flux(i, j, k - 1, 3, iVar) ! downward
+              hU = flux(i, j, k, 3, iVar) ! upward
+
+              ! convective part
+              fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
+
+              ! TFC FJ
+              ! Adjust mass flux divergence.
+              if(topography) then
+                fluxDiff = fluxDiff / jac(i, j, k)
+              end if
+
+            end if
+
+            if(update_type .eq. 'BOT') then
+              ! F(phi)
+              F = - fluxDiff + source(i, j, k, iVar)
+            elseif(update_type .eq. 'ADV') then
+              F = - fluxDiff
+            elseif(update_type .eq. 'PHY') then
+              F = source(i, j, k, iVar)
+            else
+              print *, 'wrong update_type in ice2Update_apb'
+              stop
+
+            end if
+
+            ! update: q(m-1) -> q(m)
+            q(i, j, k, ii) = dt * F + alpha(m) * q(i, j, k, ii)
+
+            ! update fields
+            var(i, j, k, iVar) = var(i, j, k, iVar) + beta(m) * q(i, j, k, ii)
+
+          end do !i
+        end do !j
+      end do !k
+
+    end do !ii
+
+  end subroutine ice2Update_apb
+
+  !-----------------------------------------------------------------------
+
+  subroutine ice2Update(var, flux, dt, q, m, int_mod, facray)
+    !-----------------------------
+    ! adds ice flux to cell ice field
+    !-----------------------------
+
+    ! in/out variables
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+
+    ! upd_var decides what is to be propagated in time:
+    ! rho => total density
+    ! rhop => density fluctuations
+
+    ! upd_mod decides which part of the equation is to be used:
+    ! tot => total equation (always the case for the total density)
+    ! lhs => only advection and molecular and turbulent diffusive fluxes
+    !        on the left-hand side of the density-fluctuation equation
+    ! rhs => only the right-hand side of the density-fluctuation equation
+
+    ! int_mod discriminates implicit and explicit time stepping:
+    ! expl => explicit time stepping
+    !         (always the case for the total density)
+    !         RK sub step for the total density
+    !         Euler step for the rhs of the density-fluctuation equation
+    ! impl => implicit-time-step part without pressure-gradient term
+    !         (only for the density fluctuations, only for rhs)
+
+    ! facray multiplies the Rayleigh-damping terms so that they are only
+    ! handled in the implicit time stepping (sponge and immersed boundary)
+    character(len = *), intent(in) :: int_mod
+
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
+    ! flux(i,j,k,dir,iFlux)
+    ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
+    ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
+
+    !UAC real, intent(in) :: dt
+    real, intent(in) :: dt, facray
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
+        intent(inout) :: q
+
+    integer, intent(in) :: m
+    integer :: i00, j00
+
+    ! local variables
+    integer :: i, j, k, l
+    real :: fL, fR ! flux Left/Right
+    real :: gB, gF ! flux Backward/Forward
+    real :: hD, hU ! flux Downward/Upward
+    real :: fluxDiff ! convective part
+    real :: F ! F(phi)
+
+    !    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: heat
+
+    !    real :: buoy0, buoy, rho, rhow, rhowm, rhop, wvrt, facw, facr, &
+    !         & pstw, pstwm, piU, piD, piGrad
+
+    ! TFC FJ
+    real :: pEdgeU, pEdgeD
+    real :: piREdgeU, piLEdgeU, piFEdgeU, piBEdgeU, piREdgeD, piLEdgeD, &
+        piFEdgeD, piBEdgeD
+    real :: chris11EdgeU, chris11EdgeD, chris22EdgeU, chris22EdgeD, &
+        chris13EdgeU, chris13EdgeD, chris23EdgeU, chris23EdgeD
+    real :: piGradZEdgeU, piGradZEdgeD
+
+    real :: rho_p
+
+    real, dimension(- nbz:nz + nbz) :: w_0
+    real, dimension(- nbz:nz + nbz) :: S_bar
+    real :: heat_flc
+
+    !UAB
+    real :: rho_e, pstw_e, pstwm_e, rhow_e, rhowm_e
+    !    !UAE
+
+    !    real, dimension(1:nz) :: sum_local, sum_global
+
+    !    real, dimension(-nbz:nz+nbz) :: rhopw_bar
+
+    real :: ymax, yloc
+    integer :: ii, iVar
+
+    ymax = ly_dim(1) / lRef
+
+    ! init q
+    if(m == 1) q = 0.
+
+    do ii = 1, nVarIce
+      iVar = iVarIce(ii)
+
+      do k = 1, nz
+        do j = 1, ny
+          do i = 1, nx
+
+            fL = flux(i - 1, j, k, 1, iVar) ! mass flux accros left cell edge
+            fR = flux(i, j, k, 1, iVar) ! right
+            gB = flux(i, j - 1, k, 2, iVar) ! backward
+            gF = flux(i, j, k, 2, iVar) ! forward
+            hD = flux(i, j, k - 1, 3, iVar) ! downward
+            hU = flux(i, j, k, 3, iVar) ! upward
+
+            ! convective part
+            fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
+
+            ! TFC FJ
+            ! Adjust mass flux divergence.
+            if(topography) then
+              fluxDiff = fluxDiff / jac(i, j, k)
+            end if
+
+            ! F(phi)
+            F = - fluxDiff
+
+            ! update: q(m-1) -> q(m)
+            q(i, j, k, ii) = dt * F + alpha(m) * q(i, j, k, ii)
+
+            ! update fields
+            var(i, j, k, iVar) = var(i, j, k, iVar) + beta(m) * q(i, j, k, ii)
+
+          end do !i
+        end do !j
+      end do !k
+
+    end do !ii
+
+  end subroutine ice2Update
 
   !-------------------------------------------------------------------------
 
@@ -6333,6 +6950,16 @@ module update_module
 
         if(raytracer) then
           dtWKB_loc = dz / (cgz_max + small)
+          if(topography) then
+            do k = 1, nz
+              do j = 1, ny
+                do i = 1, nx
+                  dtWKB_loc = min(dtWKB_loc, jac(i, j, k) * dz / (cgz_max &
+                      + small))
+                end do
+              end do
+            end do
+          end if
 
           if(sizeX > 1) dtWKB_loc = min(dtWKB_loc, dx / (cgx_max + small))
           if(sizeY > 1) dtWKB_loc = min(dtWKB_loc, dy / (cgy_max + small))
@@ -6499,6 +7126,11 @@ module update_module
     real :: dv_dx, dv_dy, dv_dz
     real :: dw_dx, dw_dy, dw_dz
 
+    ! Jacobian and metric tensor
+    real :: jacEdgeL, jacEdgeR, jacEdgeB, jacEdgeF
+    real :: met13D, met13U, met23D, met23U, met13EdgeD, met13EdgeU, &
+        met23EdgeD, met23EdgeU
+
     ! allocatable fields
     real, dimension(:, :, :, :, :), allocatable :: Sij, Lij, Mij
     real, dimension(:, :, :), allocatable :: S_norm
@@ -6614,30 +7246,82 @@ module update_module
           vD = 0.5 * (var(i, j, k - 1, 3) + var(i, j - 1, k - 1, 3))
           vU = 0.5 * (var(i, j, k + 1, 3) + var(i, j - 1, k + 1, 3))
 
-          wL = 0.5 * (var(i - 1, j, k - 1, 4) + var(i - 1, j, k, 4))
-          wR = 0.5 * (var(i + 1, j, k - 1, 4) + var(i + 1, j, k, 4))
-          wB = 0.5 * (var(i, j - 1, k - 1, 4) + var(i, j - 1, k, 4))
-          wF = 0.5 * (var(i, j + 1, k - 1, 4) + var(i, j + 1, k, 4))
-          wD = var(i, j, k - 1, 4)
-          wU = var(i, j, k, 4)
+          if(topography) then
+            wL = 0.5 * (vertWindTFC(i - 1, j, k - 1, var) + vertWindTFC(i - 1, &
+                j, k, var))
+            wR = 0.5 * (vertWindTFC(i + 1, j, k - 1, var) + vertWindTFC(i + 1, &
+                j, k, var))
+            wB = 0.5 * (vertWindTFC(i, j - 1, k - 1, var) + vertWindTFC(i, j &
+                - 1, k, var))
+            wF = 0.5 * (vertWindTFC(i, j + 1, k - 1, var) + vertWindTFC(i, j &
+                + 1, k, var))
+            wD = vertWindTFC(i, j, k - 1, var)
+            wU = vertWindTFC(i, j, k, var)
+          else
+            wL = 0.5 * (var(i - 1, j, k - 1, 4) + var(i - 1, j, k, 4))
+            wR = 0.5 * (var(i + 1, j, k - 1, 4) + var(i + 1, j, k, 4))
+            wB = 0.5 * (var(i, j - 1, k - 1, 4) + var(i, j - 1, k, 4))
+            wF = 0.5 * (var(i, j + 1, k - 1, 4) + var(i, j + 1, k, 4))
+            wD = var(i, j, k - 1, 4)
+            wU = var(i, j, k, 4)
+          end if
 
-          du_dx = (uR - uL) / dx
+          if(topography) then
+            jacEdgeL = 0.5 * (jac(i, j, k) + jac(i - 1, j, k))
+            jacEdgeR = 0.5 * (jac(i, j, k) + jac(i + 1, j, k))
+            jacEdgeB = 0.5 * (jac(i, j, k) + jac(i, j - 1, k))
+            jacEdgeF = 0.5 * (jac(i, j, k) + jac(i, j + 1, k))
+            met13D = jac(i, j, k - 1) * met(i, j, k - 1, 1, 3)
+            met13U = jac(i, j, k + 1) * met(i, j, k + 1, 1, 3)
+            met23D = jac(i, j, k - 1) * met(i, j, k - 1, 2, 3)
+            met23U = jac(i, j, k + 1) * met(i, j, k + 1, 2, 3)
+            met13EdgeD = 0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) + jac(i, j, &
+                k - 1) * met(i, j, k - 1, 1, 3))
+            met13EdgeU = 0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) + jac(i, j, &
+                k + 1) * met(i, j, k + 1, 1, 3))
+            met23EdgeD = 0.5 * (jac(i, j, k) * met(i, j, k, 2, 3) + jac(i, j, &
+                k - 1) * met(i, j, k - 1, 2, 3))
+            met23EdgeU = 0.5 * (jac(i, j, k) * met(i, j, k, 2, 3) + jac(i, j, &
+                k + 1) * met(i, j, k + 1, 2, 3))
+          end if
 
-          !UA in case without averaging, no factor 2!
+          if(topography) then
+            du_dx = ((jacEdgeR * uR - jacEdgeL * uL) / dx + (met13U * uU &
+                - met13D * uD) / (2.0 * dz)) / jac(i, j, k)
+            du_dy = ((jac(i, j + 1, k) * uF - jac(i, j - 1, k) * uB) / (2.0 &
+                * dy) + (met23U * uU - met23D * uD) / (2.0 * dz)) / jac(i, j, k)
+            du_dz = (uU - uD) / (2.0 * dz) / jac(i, j, k)
 
-          ! replied by JW (20160824): For now, there is no revision on
-          ! this part, since it is a relatively minor issue at the moment.
+            dv_dx = ((jac(i + 1, j, k) * vR - jac(i - 1, j, k) * vL) / (2.0 &
+                * dx) + (met13U * vU - met13D * vD) / (2.0 * dz)) / jac(i, j, k)
+            dv_dy = ((jacEdgeF * vF - jacEdgeB * vB) / dy + (met23U * vU &
+                - met23D * vD) / (2.0 * dz)) / jac(i, j, k)
+            dv_dz = (vU - vD) / (2.0 * dz) / jac(i, j, k)
 
-          du_dy = (uF - uB) / (2.0 * dy)
-          du_dz = (uU - uD) / (2.0 * dz)
+            dw_dx = ((jac(i + 1, j, k) * wR - jac(i - 1, j, k) * wL) / (2.0 &
+                * dx) + (met13EdgeU * wU - met13EdgeD * wD) / dz) / jac(i, j, k)
+            dw_dy = ((jac(i, j + 1, k) * wF - jac(i, j - 1, k) * wB) / (2.0 &
+                * dy) + (met23EdgeU * wU - met23EdgeD * wD) / dz) / jac(i, j, k)
+            dw_dz = (wU - wD) / dz / jac(i, j, k)
+          else
+            du_dx = (uR - uL) / dx
 
-          dv_dx = (vR - vL) / (2.0 * dx)
-          dv_dy = (vF - vB) / dy
-          dv_dz = (vU - vD) / (2.0 * dz)
+            !UA in case without averaging, no factor 2!
 
-          dw_dx = (wR - wL) / (2.0 * dx)
-          dw_dy = (wF - wB) / (2.0 * dy)
-          dw_dz = (wU - wD) / dz
+            ! replied by JW (20160824): For now, there is no revision on
+            ! this part, since it is a relatively minor issue at the moment.
+
+            du_dy = (uF - uB) / (2.0 * dy)
+            du_dz = (uU - uD) / (2.0 * dz)
+
+            dv_dx = (vR - vL) / (2.0 * dx)
+            dv_dy = (vF - vB) / dy
+            dv_dz = (vU - vD) / (2.0 * dz)
+
+            dw_dx = (wR - wL) / (2.0 * dx)
+            dw_dy = (wF - wB) / (2.0 * dy)
+            dw_dz = (wU - wD) / dz
+          end if
 
           Sij(i, j, k, 1, 1) = 0.5 * (du_dx + du_dx)
           Sij(i, j, k, 1, 2) = 0.5 * (du_dy + dv_dx)
@@ -6648,6 +7332,13 @@ module update_module
           Sij(i, j, k, 3, 1) = 0.5 * (dw_dx + du_dz)
           Sij(i, j, k, 3, 2) = 0.5 * (dw_dy + dv_dz)
           Sij(i, j, k, 3, 3) = 0.5 * (dw_dz + dw_dz)
+
+          Sij(i, j, k, 1, 1) = Sij(i, j, k, 1, 1) - (du_dx + dv_dy + dw_dz) &
+              / 3.0
+          Sij(i, j, k, 2, 2) = Sij(i, j, k, 2, 2) - (du_dx + dv_dy + dw_dz) &
+              / 3.0
+          Sij(i, j, k, 3, 3) = Sij(i, j, k, 3, 3) - (du_dx + dv_dy + dw_dz) &
+              / 3.0
 
           S_norm(i, j, k) = 0.0
 
@@ -6674,7 +7365,12 @@ module update_module
         do i = 1, nx
           ui_smth(i, j, k, 1) = 0.5 * (var(i, j, k, 2) + var(i - 1, j, k, 2))
           ui_smth(i, j, k, 2) = 0.5 * (var(i, j, k, 3) + var(i, j - 1, k, 3))
-          ui_smth(i, j, k, 3) = 0.5 * (var(i, j, k, 4) + var(i, j, k - 1, 4))
+          if(topography) then
+            ui_smth(i, j, k, 3) = 0.5 * (vertWindTFC(i, j, k, var) &
+                + vertWindTFC(i, j, k - 1, var))
+          else
+            ui_smth(i, j, k, 3) = 0.5 * (var(i, j, k, 4) + var(i, j, k - 1, 4))
+          end if
 
           Sn_smth(i, j, k) = S_norm(i, j, k)
 
@@ -6779,7 +7475,12 @@ module update_module
               ! allow for grid anisotropy
 
               if(iw == 3 .or. jw == 3) then
-                Mij(i, j, k, iw, jw) = Mij(i, j, k, iw, jw) * delta_vs
+                if(topography) then
+                  Mij(i, j, k, iw, jw) = Mij(i, j, k, iw, jw) * jac(i, j, k) &
+                      ** 2.0 * delta_vs
+                else
+                  Mij(i, j, k, iw, jw) = Mij(i, j, k, iw, jw) * delta_vs
+                end if
               else
                 Mij(i, j, k, iw, jw) = Mij(i, j, k, iw, jw) * delta_hs
               end if
@@ -8669,6 +9370,9 @@ module update_module
     real :: expo
 
     real :: sum_d, sum_n
+
+    ! No heating in TFC (FJApr2023)
+    if(topography) return
 
     ! w0_mod = 'Almgrenetal08'
     w0_mod = 'ONK14'
