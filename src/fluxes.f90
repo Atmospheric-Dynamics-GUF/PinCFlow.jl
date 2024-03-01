@@ -497,7 +497,7 @@ module flux_module
                     print *, "ERROR in rec. rho: pStratTFC = 0 at k =", kz
                     stop
                   end if
-                  tracerBar(ix, jy, kz) = var(ix, jy, kz, iVart) &
+                  tracerBar(ix, jy, kz) = var(ix, jy, kz, iVarT) &
                       / pStratTFC(ix, jy, kz)
                 end do
               end do
@@ -509,7 +509,7 @@ module flux_module
                 stop
               end if
 
-              tracerBar(:, :, kz) = var(:, :, kz, iVart) / Pstrat(kz)
+              tracerBar(:, :, kz) = var(:, :, kz, iVarT) / Pstrat(kz)
             end do
           end if
 
@@ -805,7 +805,7 @@ module flux_module
 
         if (include_tracer) then
 
-            tracerBar(:, :, :) = var(:, :, :, iVart)
+            tracerBar(:, :, :) = var(:, :, :, iVarT)
 
             call reconstruct_SALD(tracerBar, tracerTilde)
 
@@ -869,7 +869,7 @@ module flux_module
 
         if (include_tracer) then
 
-            tracerBar(:, :, :) = var(:, :, :, iVart)
+            tracerBar(:, :, :) = var(:, :, :, iVarT)
 
             call reconstruct_ALDM(tracerBar, tracerTilde)
 
@@ -2774,9 +2774,9 @@ module flux_module
   !---------------------------------------------------------------------------
   subroutine tracerFlux(vara, var, flux, fluxmode, Pstrata, PStratTildea)
     ! calculate tracer fluxes
-    ! zonal:      u*rho*chi = flux(:, :, :, 1, iVart)
-    ! meridional: v*rho*chi = flux(:, :, :, 2, iVart)
-    ! vertical:   w*rho*chi = flux(:, :, :, 3, iVart)
+    ! zonal:      u*rho*chi = flux(:, :, :, 1, iVarT)
+    ! meridional: v*rho*chi = flux(:, :, :, 2, iVarT)
+    ! vertical:   w*rho*chi = flux(:, :, :, 3, iVarT)
     implicit none
 
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
@@ -2817,8 +2817,8 @@ module flux_module
           select case( fluxType )
             case( "central" )
 
-              tracerL = var(  i,j,k,iVart)
-              tracerR = var(i+1,j,k,iVart)
+              tracerL = var(  i,j,k,iVarT)
+              tracerR = var(i+1,j,k,iVarT)
               
               if (fluxmode == "nln") then
                 uSurf = var(i,j,k,2)
@@ -2861,7 +2861,7 @@ module flux_module
                 stop "fluxes.f90: only fluxType central and upwind implemented for tracer."
           end select
 
-          flux(i,j,k,1,iVart) = fTracer
+          flux(i,j,k,1,iVarT) = fTracer
 
         end do
       end do
@@ -2879,8 +2879,8 @@ module flux_module
 
             case( "central" )
 
-              tracerF = var(i,j+1,k,iVart)
-              tracerB = var(i,  j,k,iVart)
+              tracerF = var(i,j+1,k,iVarT)
+              tracerB = var(i,  j,k,iVarT)
               
               if (fluxmode == "nln") then
                   vSurf = var(i,j,k,3)
@@ -2922,7 +2922,7 @@ module flux_module
             case default
               stop "fluxes.f90: only fluxType central and upwind implemented for tracer."
           end select
-          flux(i,j,k,2,iVart) = gTracer
+          flux(i,j,k,2,iVarT) = gTracer
         end do
       end do
     end do
@@ -2937,8 +2937,8 @@ module flux_module
 
             case( "central" )
 
-              tracerU = var(i,j,k+1,iVart)
-              tracerD = var(i,j,  k,iVart)
+              tracerU = var(i,j,k+1,iVarT)
+              tracerD = var(i,j,  k,iVarT)
               
               if (fluxmode == "nln") then
                 wSurf = var(i,j,k,4)
@@ -2981,7 +2981,7 @@ module flux_module
               stop "fluxes.f90: only fluxType central and upwind implemented for tracer."
           end select
 
-          flux(i,j,k,3,iVart) = hTracer
+          flux(i,j,k,3,iVarT) = hTracer
 
         end do
       end do

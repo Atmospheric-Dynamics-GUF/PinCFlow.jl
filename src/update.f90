@@ -6244,12 +6244,12 @@ module update_module
     do k = 1,nz
       do j = 1,ny
         do i = 1,nx
-          fL = flux(i-1,j,k,1,iVart) ! mass flux accros left cell edge
-          fR = flux(i,j,k,1,iVart)   ! right
-          gB = flux(i,j-1,k,2,iVart) ! backward
-          gF = flux(i,j,k,2,iVart)   ! forward
-          hD = flux(i,j,k-1,3,iVart) ! downward
-          hU = flux(i,j,k,3,iVart)   ! upward
+          fL = flux(i-1,j,k,1,iVarT) ! mass flux accros left cell edge
+          fR = flux(i,j,k,1,iVarT)   ! right
+          gB = flux(i,j-1,k,2,iVarT) ! backward
+          gF = flux(i,j,k,2,iVarT)   ! forward
+          hD = flux(i,j,k-1,3,iVarT) ! downward
+          hU = flux(i,j,k,3,iVarT)   ! upward
 
           if (fluctuationMode) then
             if (topography) then
@@ -6301,7 +6301,7 @@ module update_module
           q(i,j,k) = dt*F + alpha(m) * q(i,j,k)
 
           ! update density
-          var(i,j,k,iVart) = var(i,j,k,iVart) + beta(m) * q(i,j,k)
+          var(i,j,k,iVarT) = var(i,j,k,iVarT) + beta(m) * q(i,j,k)
 
         end do
       end do
