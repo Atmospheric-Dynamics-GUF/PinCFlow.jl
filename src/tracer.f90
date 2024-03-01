@@ -13,7 +13,7 @@ module tracer_module
 
    subroutine setup_tracer (var)
       ! setup initial tracer mixing ratio distribution
-      ! rho*chi = var(:, :, :, iVart)
+      ! rho*chi = var(:, :, :, iVarT)
       ! 
       ! initial large-scale tracer mixing ratio saved in 
       ! initialtracer(:, :, :) or 
@@ -32,7 +32,7 @@ module tracer_module
             
             ! wavepacket initial tracer chi = alphaTracer*z + tracerprime
             if (testCase == 'wavePacket') then
-               tracerprime = var(:, :, :, iVart)
+               tracerprime = var(:, :, :, iVarT)
             end if
             
             ! determine total density
@@ -57,11 +57,11 @@ module tracer_module
                   do jj = 1, ny
                      do ii = 1, nx
                         if (testCase == 'wavePacket') then
-                           var(ii, jj, kk, iVart) = rho(ii,jj,kk) & 
+                           var(ii, jj, kk, iVarT) = rho(ii,jj,kk) & 
                               *(tracerprime(ii, jj, kk) & 
                                  + alphaTracer * heightTFC(ii, jj, kk))
                         else
-                           var(ii, jj, kk, iVart) = rho(ii,jj,kk) &
+                           var(ii, jj, kk, iVarT) = rho(ii,jj,kk) &
                               * alphaTracer * heightTFC(ii, jj, kk)
                         end if
                         initialtracer(ii, jj, kk) = &
@@ -75,10 +75,10 @@ module tracer_module
             else
                do kk = 1, nz
                   if (testCase == 'wavePacket') then
-                     var(:, :, kk, iVart) = rho(:, :, kk) &
+                     var(:, :, kk, iVarT) = rho(:, :, kk) &
                         * (tracerprime(:, :, kk) + alphaTracer * (z(kk)-z(1)))
                   else
-                     var(:, :, kk, iVart) = rho(:, :, kk) &
+                     var(:, :, kk, iVarT) = rho(:, :, kk) &
                         * alphaTracer * (z(kk) -z(1))
                   end if
                   initialtracer(:, :, kk) = alphaTracer * (z(kk) -z(1))

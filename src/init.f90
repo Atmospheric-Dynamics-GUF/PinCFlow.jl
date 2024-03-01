@@ -154,7 +154,7 @@ module init_module
     !!$      end if
     !!$
     !!$      nVar = nVar + 1
-    !!$      iVart = nVar
+    !!$      iVarT = nVar
     !!$    end if
 
     ! allocate var = (rho,u,v,w,pEx)
@@ -774,7 +774,7 @@ module init_module
     if(include_ice) var(:, :, :, nVar - 3:nVar) = 0.0
     if(include_ice2) var(:, :, :, iVarIce) = 0.0
     ! just for safety reasons
-    if(include_tracer) var(:, :, :, iVart) = 0.0
+    if(include_tracer) var(:, :, :, iVarT) = 0.0
     !---------------------------------------------------------------
 
     select case(testCase)
@@ -1092,13 +1092,13 @@ module init_module
                   ! only set up for <chi>=alphaTracer*z 
                   ! large-scale tracer distribution
                   if (tracerSetup == "increase_in_z_tracer") then
-                    var(i, j, k, iVart) = alphaTracer/N2 * b
+                    var(i, j, k, iVarT) = alphaTracer/N2 * b
                   else
                     stop 'init.f90: unknown initial tracer with wavepacket tracer prime'
                   end if
                 end if
               else
-                var(i, j, k, iVart) = 0.0
+                var(i, j, k, iVarT) = 0.0
               end if
             end if
 

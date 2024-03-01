@@ -1020,7 +1020,7 @@ program pinc_prog
       var(:, :, :, 7) = var0(:, :, :, 7)
 
       if(include_tracer) then
-        var(:, :, :, iVart) = var0(:, :, :, iVart)
+        var(:, :, :, iVarT) = var0(:, :, :, iVarT)
       end if
 
       PStrat = PStrat00
