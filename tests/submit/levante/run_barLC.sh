@@ -1,11 +1,13 @@
 #!/bin/bash
-#SBATCH --partition=general1
+#SBATCH --partition=compute
 #SBATCH --job-name=barLC
-#SBATCH --ntasks=147
-#SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=2000
-#SBATCH --mail-type=FAIL
+#SBATCH --nodes=3
+#SBATCH --ntasks-per-node=49
 #SBATCH --time=01:00:00
+#SBATCH --mail-type=FAIL
+#SBATCH --account=bb1097
+#SBATCH --output=barLC.o%j
+#SBATCH --error=barLC.e%j
 
 set -x
 
@@ -13,6 +15,21 @@ set -x
 ntasks=147
 nprocx=7
 nprocy=21
+
+# Limit stacksize (adjust to your programs need and core file size).
+ulimit -s 204800
+ulimit -c 0
+
+# Set OpenMPI configuration.
+export OMPI_MCA_osc="ucx"
+export OMPI_MCA_pml="ucx"
+export OMPI_MCA_btl="self"
+export UCX_HANDLE_ERRORS="bt"
+export OMPI_MCA_pml_ucx_opal_mem_hooks=1
+
+# Set Intel MPI configuration.
+export I_MPI_PMI=pmi
+export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
 userName=$(whoami)
 echo userName
@@ -24,9 +41,9 @@ inputFile=input_barLC.f90
 echo "inputFile "$inputFile
 
 # Define directories.
-dirHome=/home/atmodynamics/${userName}/PF/pinc
-dirScratch=/scratch/atmodynamics/${userName}/PF/runs/${runName}
-dirSaveCode=/home/atmodynamics/${userName}/PF/runs/${runName}
+dirHome=/home/b/${userName}/PF/pinc
+dirScratch=/scratch/b/${userName}/PF/runs/${runName}
+dirSaveCode=/home/b/${userName}/PF/runs/${runName}
 
 dirInput=${dirHome}/input
 dirSubmit=${dirHome}/submit
@@ -53,6 +70,7 @@ if [ ${dirSaveCode} != ${dirScratch} ]; then
 fi
 
 # Run the model.
-mpirun -np ${ntasks} ${exe} 1>run.log 2>&1
+srun -l --cpu_bind=verbose --hint=nomultithread \
+     --distribution=block:cyclic ${exe} 1>run.log 2>&1
 
 exit 0

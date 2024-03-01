@@ -16,9 +16,9 @@
   sizeY = 1,
   sizeZ = 100,
   ! nb. of ghost cells
-  nbx = 2,
-  nby = 2,
-  nbz = 2,
+  nbx = 3,
+  nby = 3,
+  nbz = 3,
   ! domain lenths in m
   lx_dim =    0.0, 60.0e3
   ly_dim =    0.0, 40.0e3
@@ -230,8 +230,6 @@
 
   topography = .true.       ! switch for bottom topography
   testTFC = .false.         ! switch for TFC test
-  spongeTFC = .true.        ! switch for unified sponge layer
-  lateralSponge = .true.    ! switch for lateral sponge layers
   topographyTime = 0.0      ! time over which topography height increases
   mountainHeight_dim = 4.e2 ! mountain height in m
   mountainWidth_dim = 1.e3  ! mountain half-width in m
@@ -268,6 +266,8 @@
   spongeHeight = 0.5         ! relative height of sponge layer
   spongeAlphaZ_dim = 0.01 !1.4e-4 ! relaxation rate coeff in 1/s
   spongeAlphaZ_fac = 1.0
+  unifiedSponge = .true.     ! switch for unified sponge layers
+  lateralSponge = .true.     ! switch for lateral sponge layers
 
 &end
 

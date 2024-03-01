@@ -104,7 +104,7 @@ module boundary_module
     character(len = *), intent(in) :: option
 
     ! local variables
-    integer :: i, j, k, iVar
+    integer :: i, j, k, iVar, ii
 
     real, dimension(- nby:ny + nby, - nbz:nz + nbz) :: uBound
 
@@ -160,12 +160,12 @@ module boundary_module
           var(- i + 1, :, :, iVart) = var(nx - i + 1, :, :, iVart)
         end do
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "horizontalBoundary: x-horizontal BC for tracer set."
         end if
       end if
 
-      if (updateTheta) then
+      if(updateTheta) then
         ! pot. temp.  -> iVar = 6
 
         if(timeScheme == "semiimplicit") then
@@ -228,6 +228,19 @@ module boundary_module
 
       if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal BC &
           for ice variables set."
+
+    case("ice2")
+      ! ice2 variables
+      do ii = 1, nVarIce
+        iVar = iVarIce(ii)
+        do i = 1, nbx
+          var(nx + i, :, :, iVar) = var(i, :, :, iVar)
+          var(- i + 1, :, :, iVar) = var(nx - i + 1, :, :, iVar)
+        end do
+      end do
+
+      if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal BC &
+          for ice2 variables set."
 
     case("iceTilde")
       ! reconstructed density needed in ghost cell i = nx+2
@@ -305,12 +318,12 @@ module boundary_module
         tracerTilde(nx + 2, :, :, 1, 0) = tracerTilde(2, :, :, 1, 0)
         tracerTilde(- 1, :, :, 1, 1) = tracerTilde(nx - 1, :, :, 1, 1)
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "horizontalBoundary: x-horizontal BC for tracerTilde set."
         end if
       end if
 
-      if (updateTheta) then
+      if(updateTheta) then
         ! reconstructed density needed in ghost cell i = nx+2
         thetaTilde(nx + 2, :, :, 1, 0) = thetaTilde(2, :, :, 1, 0)
 
@@ -351,7 +364,7 @@ module boundary_module
     character(len = *), intent(in) :: option
 
     ! local variables
-    integer :: i, j, k, iVar
+    integer :: i, j, k, iVar, ii
 
     real, dimension(- nbx:nx + nbx, - nbz:nz + nbz) :: vBound
 
@@ -407,12 +420,12 @@ module boundary_module
           var(:, - j + 1, :, iVart) = var(:, ny - j + 1, :, iVart)
         end do
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "horizontalBoundary: y-horizontal BC for tracer set."
         end if
       end if
 
-      if (updateTheta) then
+      if(updateTheta) then
         ! potential temperature -> iVar = 6
 
         if(timeScheme == "semiimplicit") then
@@ -468,6 +481,19 @@ module boundary_module
     case("ice")
       ! ice variables -> iVar = nVar-3, nVar
       do iVar = nVar - 3, nVar
+        do j = 1, nby
+          var(:, ny + j, :, iVar) = var(:, j, :, iVar)
+          var(:, - j + 1, :, iVar) = var(:, ny - j + 1, :, iVar)
+        end do
+      end do
+
+      if(verbose .and. master) print *, "horizontalBoundary:  y-horizontal BC &
+          for ice variables set."
+
+    case("ice2")
+      ! ice variables
+      do ii = 1, nVarIce
+        iVar = iVarIce(ii)
         do j = 1, nby
           var(:, ny + j, :, iVar) = var(:, j, :, iVar)
           var(:, - j + 1, :, iVar) = var(:, ny - j + 1, :, iVar)
@@ -554,12 +580,12 @@ module boundary_module
         tracerTilde(:, ny + 2, :, 2, 0) = tracerTilde(:, 2, :, 2, 0)
         tracerTilde(:, - 1, :, 2, 1) = tracerTilde(:, ny - 1, :, 2, 1)
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "horizontalBoundary: y-horizontal BC for tracerTilde set."
         end if
       end if
 
-      if (updateTheta) then
+      if(updateTheta) then
         ! reconstructed density needed in ghost cell j = ny+2
         thetaTilde(:, ny + 2, :, 2, 0) = thetaTilde(:, 2, :, 2, 0)
 
@@ -599,7 +625,7 @@ module boundary_module
     character(len = *), intent(in) :: option
 
     ! local variables
-    integer :: i, j, k, iVar
+    integer :: i, j, k, iVar, ii
 
     real, dimension(- nbx:nx + nbx, - nby:ny + nby) :: wBound
 
@@ -655,12 +681,12 @@ module boundary_module
           var(:, :, - k + 1, iVart) = - var(:, :, nz - k + 1, iVart)
         end do
 
-        if (verbose .and. master) then
+        if(verbose .and. master) then
           print *, "setBoundary_z_periodic: z-periodic BC for tracer set."
         end if
       end if
 
-      if (updateTheta) then
+      if(updateTheta) then
         ! density -> iVar = 6
 
         if(timeScheme == "semiimplicit") then
@@ -714,6 +740,19 @@ module boundary_module
     case("ice")
       ! ice variables -> iVar = nVar-3, nVar
       do iVar = nVar - 3, nVar
+        do k = 1, nbz
+          var(:, :, nz + k, iVar) = var(:, :, k, iVar)
+          var(:, :, - k + 1, iVar) = var(:, :, nz - k + 1, iVar)
+        end do
+      end do
+
+      if(verbose .and. master) print *, "setBoundary_z_periodic:  z-periodic &
+          BC for ice variables set."
+
+    case("ice2")
+      ! ice variables
+      do ii = 1, nVarIce
+        iVar = iVarIce(ii)
         do k = 1, nbz
           var(:, :, nz + k, iVar) = var(:, :, k, iVar)
           var(:, :, - k + 1, iVar) = var(:, :, nz - k + 1, iVar)
@@ -834,7 +873,7 @@ module boundary_module
     character(len = *), intent(in) :: option
 
     ! local variables
-    integer :: i, j, k, iVar
+    integer :: i, j, k, iVar, ii
     real, dimension(- nby:ny + nby, - nbz:nz + nbz) :: uBound
     real, dimension(- nbx:nx + nbx, - nbz:nz + nbz) :: vBound
 
@@ -958,14 +997,14 @@ module boundary_module
         end do
       end if
 
-      if (updateTracer) then
+      if(updateTracer) then
         do k = 1, nbz
           var(:, :, - k + 1, iVart) = - var(:, :, k, iVart)
           var(:, :, nz + k, iVart) = - var(:, :, nz - k + 1, iVart)
         end do
       end if
 
-      if (updateTheta) then
+      if(updateTheta) then
         ! reflect at boundary withOUT change of sign
         ! theta -> iVar = 6
 
@@ -1286,6 +1325,17 @@ module boundary_module
         do k = 1, nbz
           var(:, :, - k + 1, iVar) = var(:, :, k, iVar)
           var(:, :, nz + k, iVar) = var(:, :, nz - k + 1, iVar)
+        end do
+      end do
+
+    case("ice2")
+      ! reflect at boundary with change of sign
+      ! at boundary var = 0
+      do ii = 1, nVarIce
+        iVar = iVarIce(ii)
+        do k = 1, nbz
+          var(:, :, - k + 1, iVar) = - var(:, :, k, iVar)
+          var(:, :, nz + k, iVar) = - var(:, :, nz - k + 1, iVar)
         end do
       end do
 

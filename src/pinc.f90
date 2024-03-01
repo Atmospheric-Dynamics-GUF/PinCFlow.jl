@@ -22,6 +22,7 @@ program pinc_prog
   use poisson_module
   use finish_module
   use ice_module
+  use ice2_module
   use sizeof_module
   use bicgstab_tools_module
   use tracer_module
@@ -51,11 +52,11 @@ program pinc_prog
   ! var(i,j,k,iVar) iVar = 1..5 > rho,u,v,w,pExner
   ! varG contains balance parts of current time step !FS October 2020
 
-  real, dimension (:, :, :), allocatable :: dRho, dRhop ! RK-Update for rho
-  real, dimension (:, :, :, :), allocatable :: dMom ! RK for rhoU,rhoV,rhoW
-  real, dimension (:, :, :), allocatable :: dTheta ! RK-Update for theta
-  real, dimension (:, :, :, :), allocatable :: dIce ! RK-Update for nAer,nIce,qIce,qv
-  real, dimension (:, :, :), allocatable :: dTracer
+  real, dimension(:, :, :), allocatable :: dRho, dRhop ! RK-Update for rho
+  real, dimension(:, :, :, :), allocatable :: dMom ! RK for rhoU,rhoV,rhoW
+  real, dimension(:, :, :), allocatable :: dTheta ! RK-Update for theta
+  real, dimension(:, :, :, :), allocatable :: dIce ! RK-Update for nAer,nIce,qIce,qv
+  real, dimension(:, :, :), allocatable :: dTracer
 
   real, dimension(:), allocatable :: dPStrat, drhoStrat !RK update for P
   real, dimension(:), allocatable :: w_0
@@ -124,6 +125,11 @@ program pinc_prog
   integer :: i00
   real :: spongeAlphaZ, spongeAlphaY, spongeAlphaX
 
+  !SD
+  integer :: n_step_ice, ii
+  real :: dtt_ice2
+  real :: tta !include_testoutput
+
   !-------------------------------------------------
   !                    Set up
   !-------------------------------------------------
@@ -180,9 +186,11 @@ program pinc_prog
   call init_atmosphere ! set atmospheric background state
   call init_output
 
-  call initialise(var) ! set initial conditions
+  !SD
+  call initialise(var, flux) ! set initial conditions
+  !call initialise(var) ! set initial conditions
 
-  if (include_tracer) call setup_tracer(var)
+  if(include_tracer) call setup_tracer(var)
 
   ! TFC FJ
   if(.not. topography .and. model /= "Boussinesq") then
@@ -217,18 +225,19 @@ program pinc_prog
 
     do k = 1, nz
       rhoStrat_s(k) = rhoStrat(k) - sum_global(k)
-      if(master) then
-        print *, 'rhoStrat(', k, ') =', rhoStrat(k)
-        print *, 'sum_global(', k, ') =', sum_global(k)
-        print *, 'rhoStrat_d(', k, ') =', rhoStrat_s(k)
-      end if
+      ! FJApr2023
+      ! if(master) then
+      !   print *, 'rhoStrat(', k, ') =', rhoStrat(k)
+      !   print *, 'sum_global(', k, ') =', sum_global(k)
+      !   print *, 'rhoStrat_d(', k, ') =', rhoStrat_s(k)
+      ! end if
     end do
 
   end if
 
   var(:, :, :, 8) = 0.0 ! Heating due to GWs in the rotating atmosphere
 
-  if (poissonSolverType == 'bicgstab') then
+  if(poissonSolverType == 'bicgstab') then
     call SetUpBiCGStab ! Set BiCGStab arrays
   else
     stop 'ERROR: only BiCGStab ready to be used'
@@ -330,9 +339,9 @@ program pinc_prog
   !        Initial divergence cleaning
   !---------------------------------------------
 
-  if (initialCleaning) then
-     call setHalos(var, "var")
-     if (include_tracer) call setHalos (var, "tracer")
+  if(initialCleaning) then
+    call setHalos(var, "var")
+    if(include_tracer) call setHalos(var, "tracer")
     call setBoundary(var, flux, "var")
 
     ! 1) allocate variables
@@ -377,7 +386,7 @@ program pinc_prog
     if(maxTime < time * tRef) stop "restart error: maxTime < current time"
 
     call setHalos(var, "var")
-    if (include_tracer) call setHalos (var, "tracer")
+    if(include_tracer) call setHalos(var, "tracer")
     call setBoundary(var, flux, "var")
   end if
 
@@ -426,6 +435,12 @@ program pinc_prog
       !open(125, file = 'theta_max.dat')
     end if
   end if
+
+  !SD
+  if(include_testoutput) then
+    tta = 0. !initial time for analyt sol.
+  end if
+
   !-----------------------------------------------------
   !                        Time loop
   !-----------------------------------------------------
@@ -525,6 +540,21 @@ program pinc_prog
       call update_topography(time)
     end if
 
+    ! Check for static instability.
+    ! if(topography) then
+    !   do k = 2, nz
+    !     do j = 1, ny
+    !       do i = 1, nx
+    !         if(pStratTFC(i, j, k) / (var(i, j, k, 1) + rhoStratTFC(i, j, k)) &
+    !             < pStratTFC(i, j, k - 1) / (var(i, j, k - 1, 1) &
+    !             + rhoStratTFC(i, j, k - 1))) then
+    !           print *, "Static instability at z =", heightTFC(i, j, k), "m"
+    !         end if
+    !       end do
+    !     end do
+    !   end do
+    ! end if
+
     !-----------------------------------------------------------------
     ! relaxation rate for
     ! (1) Rayleigh damping in land cells and
@@ -537,63 +567,76 @@ program pinc_prog
     ! for sponge:
     !-----------------------------------------------------------------
     if(spongeLayer) then
-      if(topography .and. spongeTFC) then
-        ! TFC FJ
-        ! TFC sponge layers.
+      if(unifiedSponge) then
+        ! Unified sponge layer.
 
         kr_sp = 0.0
         kr_sp_w = 0.0
 
         spongeAlphaZ = spongeAlphaZ_dim * tRef
 
+        alphaUnifiedSponge = 0.0
+
         if(lateralSponge) then
           i00 = is + nbx - 1
           j00 = js + nby - 1
           spongeAlphaX = spongeAlphaZ
           spongeAlphaY = spongeAlphaZ
-        end if
 
-        do k = 1, nz
-          do j = 1, ny
-            do i = 1, nx
-              alphaTFC(i, j, k) = 0.0
-
-              if(lateralSponge) then
+          do k = 1, nz
+            do j = 1, ny
+              do i = 1, nx
                 ! Zonal sponge.
                 if(x(i00 + i) <= xSponge0) then
-                  alphaTFC(i, j, k) = alphaTFC(i, j, k) + spongeAlphaX &
-                      * sin(0.5 * pi * (xSponge0 - x(i00 + i)) / (xSponge0 &
-                      - lx(0))) ** 2.0
+                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                      + spongeAlphaX * sin(0.5 * pi * (xSponge0 - x(i00 + i)) &
+                      / (xSponge0 - lx(0))) ** 2.0
                 else if(x(i00 + i) >= xSponge1) then
-                  alphaTFC(i, j, k) = alphaTFC(i, j, k) + spongeAlphaX &
-                      * sin(0.5 * pi * (x(i00 + i) - xSponge1) / (lx(1) &
-                      - xSponge1)) ** 2.0
+                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                      + spongeAlphaX * sin(0.5 * pi * (x(i00 + i) - xSponge1) &
+                      / (lx(1) - xSponge1)) ** 2.0
                 end if
 
                 ! Meridional sponge.
                 if(y(j00 + j) <= ySponge0) then
-                  alphaTFC(i, j, k) = alphaTFC(i, j, k) + spongeAlphaY &
-                      * sin(0.5 * pi * (ySponge0 - y(j00 + j)) / (ySponge0 &
-                      - ly(0))) ** 2.0
+                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                      + spongeAlphaY * sin(0.5 * pi * (ySponge0 - y(j00 + j)) &
+                      / (ySponge0 - ly(0))) ** 2.0
                 else if(y(j00 + j) >= ySponge1) then
-                  alphaTFC(i, j, k) = alphaTFC(i, j, k) + spongeAlphaY &
-                      * sin(0.5 * pi * (y(j00 + j) - ySponge1) / (ly(1) &
-                      - ySponge1)) ** 2.0
+                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                      + spongeAlphaY * sin(0.5 * pi * (y(j00 + j) - ySponge1) &
+                      / (ly(1) - ySponge1)) ** 2.0
                 end if
-              end if
-
-              ! Vertical sponge.
-              if(heightTFC(i, j, k) >= zSponge) then
-                alphaTFC(i, j, k) = alphaTFC(i, j, k) + spongeAlphaZ * sin(0.5 &
-                    * pi * (heightTFC(i, j, k) - zSponge) / (lz(1) - zSponge)) &
-                    ** 2.0
-              end if
-
-              ! Adjust for terrain-following velocity.
-              alphaTFC(i, j, k) = alphaTFC(i, j, k) / jac(i, j, k)
+              end do
             end do
           end do
-        end do
+        end if
+
+        if(topography) then
+          do k = 1, nz
+            do j = 1, ny
+              do i = 1, nx
+                ! Vertical sponge.
+                if(heightTFC(i, j, k) >= zSponge) then
+                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                      + spongeAlphaZ * sin(0.5 * pi * (heightTFC(i, j, k) &
+                      - zSponge) / (lz(1) - zSponge)) ** 2.0
+                end if
+
+                ! Adjust for terrain-following velocity.
+                alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                    / jac(i, j, k)
+              end do
+            end do
+          end do
+        else
+          do k = kSponge, nz
+            ! Vertical sponge.
+            alphaUnifiedSponge(:, :, k) = alphaUnifiedSponge(:, :, k) &
+                + spongeAlphaZ * sin(0.5 * pi * (z(k) - zSponge) / (lz(1) &
+                - zSponge)) ** 2.0
+          end do
+        end if
       else
         ! allocate( alpbls(0:ny+1),stat=allocstat)
         ! if(allocstat /= 0) stop "pinc.f90: could not allocate alpbls"
@@ -677,8 +720,8 @@ program pinc_prog
 
       if(rayTracer) then
         do RKstage = 1, nStages
+          call calc_meanFlow_effect(ray, var, force, ray_var3D, time)
           call transport_rayvol(var, ray, dt, RKstage, time)
-
           if(RKstage == nStages) then
             call boundary_rayvol(ray)
             call split_rayvol(ray)
@@ -733,7 +776,7 @@ program pinc_prog
 
           ! limit Smagorinsky coefficient so that the damping time
           ! scale for the 2dx-wave is shorter than a time step
-          var(:, :, :, 7) = min(var(:, :, :, 7), 1.e0 / (dt * pi ** 2))
+          ! var(:, :, :, 7) = min(var(:, :, :, 7), 1.e0 / (dt * pi ** 2))
         else
           var(:, :, :, 7) = tRef / turb_dts
         end if
@@ -752,7 +795,7 @@ program pinc_prog
       PStratTilde00 = PStratTilde
 
       call setHalos(var0, "var")
-      if (include_tracer) call setHalos (var0, "tracer")
+      if(include_tracer) call setHalos(var0, "tracer")
       call setBoundary(var0, flux, "var")
 
       ! (1) explicit integration of convective and
@@ -768,17 +811,17 @@ program pinc_prog
       do RKstage = 1, nStages
         ! Reconstruction
 
-         call setHalos(var, "var")
-         if (include_tracer) call setHalos (var, "tracer")
+        call setHalos(var, "var")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         call reconstruction(var, "rho")
         call reconstruction(var, "rhop")
         call reconstruction(var, "uvw")
-        if (include_tracer) then
-           call reconstruction (var, "tracer")
+        if(include_tracer) then
+          call reconstruction(var, "tracer")
         end if
-        
+
         call setHalos(var, "varTilde")
         call setBoundary(var, flux, "varTilde")
 
@@ -786,10 +829,10 @@ program pinc_prog
 
         call massFlux(var0, var, flux, "lin", PStrat00, PStratTilde00)
         call momentumFlux(var0, var, flux, "lin", PStrat00, PStratTilde00)
-        if (include_tracer) then
-           call tracerFlux(var0, var, flux, "lin", PStrat00, PStratTilde00)
+        if(include_tracer) then
+          call tracerFlux(var0, var, flux, "lin", PStrat00, PStratTilde00)
         end if
-        
+
         call setBoundary(var, flux, "flux")
 
         ! store initial flux
@@ -803,7 +846,7 @@ program pinc_prog
             "expl", 1.)
 
         call massUpdate(var, flux, 0.5 * dt, dRhop, RKstage, "rhop", "lhs", &
-             "expl", 1.)
+            "expl", 1.)
 
         if (include_tracer) then
            call tracerUpdate(var, flux, tracerforce, 0.5 * dt, dTracer, RKstage)
@@ -812,13 +855,13 @@ program pinc_prog
         ! RK step for momentum
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         call momentumPredictor(var, flux, force, 0.5 * dt, dMom, RKstage, &
             "lhs", "expl", 1.)
 
-        if(topography .and. spongeTFC) then
+        if(unifiedSponge) then
           call set_spongeLayer(var, stepFrac(RKstage) * 0.5 * dt, "uvw")
         end if
 
@@ -834,7 +877,7 @@ program pinc_prog
       !teste
 
       call setHalos(var, "var")
-      if (include_tracer) call setHalos (var, "tracer")
+      if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
 
       ! use initial flux for update of reference atmosphere and w0
@@ -867,7 +910,7 @@ program pinc_prog
             "rhs", "impl", 1.)
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         ! update density fluctuations (rhopStar)
@@ -876,7 +919,7 @@ program pinc_prog
             "impl", 1.)
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
       else
         rhopOld = var(:, :, :, 6) ! rhopOld for momentum predictor
@@ -892,7 +935,7 @@ program pinc_prog
             "rhs", "impl", 1.)
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
       end if
 
@@ -944,7 +987,7 @@ program pinc_prog
       nTotalBicg = nTotalBicg + nIterBicg
 
       call setHalos(var, "var")
-      if (include_tracer) call setHalos (var, "tracer")
+      if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
 
       ! put new state into var1 in order to save the advection velocities
@@ -976,15 +1019,15 @@ program pinc_prog
       var(:, :, :, 6) = var0(:, :, :, 6)
       var(:, :, :, 7) = var0(:, :, :, 7)
 
-      if (include_tracer) then
-         var(:, :, :, iVart) = var0(:, :, :, iVart)
+      if(include_tracer) then
+        var(:, :, :, iVart) = var0(:, :, :, iVart)
       end if
 
       PStrat = PStrat00
       PStratTilde = PStratTilde00
 
       call setHalos(var, "var")
-      if (include_tracer) call setHalos (var, "tracer")
+      if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
 
       rhopOld = var(:, :, :, 6) ! rhopOld for momentum predictor
@@ -1014,7 +1057,7 @@ program pinc_prog
       !            -> new u, v, w
 
       call setHalos(var, "var")
-      if (include_tracer) call setHalos (var, "tracer")
+      if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
 
       ! (4) explicit integration of convective and
@@ -1032,22 +1075,22 @@ program pinc_prog
       PStratTilde = PStratTilde01
 
       call setHalos(var0, "var")
-      if (include_tracer) call setHalos (var0, "tracer")
+      if(include_tracer) call setHalos(var0, "tracer")
       call setBoundary(var0, flux, "var")
 
       do RKstage = 1, nStages
         ! Reconstruction
 
-         call setHalos(var, "var")
-         if (include_tracer) call setHalos (var, "tracer")
+        call setHalos(var, "var")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         call reconstruction(var, "rho")
         call reconstruction(var, "rhop")
         call reconstruction(var, "uvw")
 
-        if (include_tracer) then
-           call reconstruction (var, "tracer")
+        if(include_tracer) then
+          call reconstruction(var, "tracer")
         end if
 
         call setHalos(var, "varTilde")
@@ -1058,8 +1101,8 @@ program pinc_prog
         call massFlux(var0, var, flux, "lin", PStrat01, PStratTilde01)
         call momentumFlux(var0, var, flux, "lin", PStrat01, PStratTilde01)
 
-        if (include_tracer) then
-           call tracerFlux(var0, var, flux, "lin", PStrat01, PStratTilde01)
+        if(include_tracer) then
+          call tracerFlux(var0, var, flux, "lin", PStrat01, PStratTilde01)
         end if
 
         call setBoundary(var, flux, "flux")
@@ -1071,7 +1114,7 @@ program pinc_prog
         call massUpdate(var, flux, dt, dRho, RKstage, "rho", "tot", "expl", 1.)
 
         call massUpdate(var, flux, dt, dRhop, RKstage, "rhop", "lhs", "expl", &
-             1.)
+            1.)
 
         if (include_tracer) then
            call tracerUpdate(var, flux, tracerforce, dt, dTracer, RKstage)
@@ -1079,15 +1122,22 @@ program pinc_prog
 
         ! RK step for momentum
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         call momentumPredictor(var, flux, force, dt, dMom, RKstage, "lhs", &
             "expl", 1.)
 
-        if(topography .and. spongeTFC) then
+        if(unifiedSponge) then
           call set_spongeLayer(var, stepFrac(RKstage) * dt, "uvw")
         end if
+
+        !SD
+        !old
+        !if(include_ice2) call integrate_ice(var, var0, flux, "lin", source, dt, dIce, &
+        !        RKstage, PStrat01, PStratTilde01)
+        if(include_ice2) call integrate_ice_advection(var, var0, flux, "lin", &
+            source, dt, dIce, RKstage, PStrat01, PStratTilde01)
 
       end do
 
@@ -1101,7 +1151,7 @@ program pinc_prog
       !teste
 
       call setHalos(var, "var")
-      if (include_tracer) call setHalos (var, "tracer")
+      if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
 
       ! use initial flux for update of reference atmosphere and w0
@@ -1135,7 +1185,7 @@ program pinc_prog
             "rhs", "impl", 2.)
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         ! update density fluctuations (rhopStar)
@@ -1144,7 +1194,7 @@ program pinc_prog
             "impl", 2.)
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
       else
         rhopOld = var(:, :, :, 6) ! rhopOld for momentum predictor
@@ -1155,7 +1205,7 @@ program pinc_prog
             "impl", 2.)
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos (var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         call momentumPredictor(var, flux, force, 0.5 * dt, dMom, RKstage, &
@@ -1178,7 +1228,7 @@ program pinc_prog
       !            -> new rhop, u, v, w
 
       call setHalos(var, "var")
-      if (include_tracer) call setHalos (var, "tracer")
+      if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
 
       ! TFC FJ
@@ -1206,7 +1256,7 @@ program pinc_prog
 
       !UAB for safety
       call setHalos(var, "var")
-      if (include_tracer) call setHalos (var, "tracer")
+      if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
       !UAE
 
@@ -1231,6 +1281,7 @@ program pinc_prog
           if(DySmaScheme) then
             call CoefDySma_update(var)
             !call CoefDySma_update(var,dt)
+            ! var(:, :, :, 7) = min(var(:, :, :, 7), 1.e0 / (dt * pi ** 2))
           else
             var(:, :, :, 7) = tRef / turb_dts
           end if
@@ -1287,20 +1338,20 @@ program pinc_prog
         ! Lag Ray tracer (position-wavenumber space method)
 
         if(rayTracer) then
+          call calc_meanFlow_effect(ray, var, force, ray_var3D, time)
           call transport_rayvol(var, ray, dt, RKstage, time)
           if(RKstage == nStages) then
             call boundary_rayvol(ray)
             call split_rayvol(ray)
             call shift_rayvol(ray)
             call merge_rayvol(ray)
-            call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff, tracerfluxvar, tracerforce)
           end if
         end if
 
         ! Reconstruction
 
         call setHalos(var, "var")
-        if (include_tracer) call setHalos(var, "tracer")
+        if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         if(updateMass .or. (testcase == "nIce_w_test")) call &
@@ -1313,8 +1364,9 @@ program pinc_prog
         if(updateTheta) call reconstruction(var, "theta")
         if(predictMomentum .or. (testcase == "nIce_w_test")) call &
             reconstruction(var, "uvw")
-        if ((include_ice) .and. (updateIce)) call reconstruction(var, "ice")
-        if ((include_tracer) .and. (updateTracer)) call reconstruction(var, "tracer")
+        if((include_ice) .and. (updateIce)) call reconstruction(var, "ice")
+        if((include_tracer) .and. (updateTracer)) call reconstruction(var, &
+            "tracer")
 
         call setHalos(var, "varTilde")
         call setBoundary(var, flux, "varTilde")
@@ -1328,13 +1380,13 @@ program pinc_prog
                 properly'
             stop
           end if
-       end if
+        end if
 
-       if (updateTracer) then
-          call tracerFlux (var, var, flux, "nln", PStrat, PStratTilde)
-       end if
+        if(updateTracer) then
+          call tracerFlux(var, var, flux, "nln", PStrat, PStratTilde)
+        end if
 
-        if (updateTheta) then
+        if(updateTheta) then
           call thetaFlux(var, flux)
           call thetaSource(var, source)
         end if
@@ -1442,14 +1494,14 @@ program pinc_prog
         else
           if(iTime == 1 .and. RKstage == 1 .and. master) print *, "main: &
               MassUpdate off!"
-       end if
+        end if
 
        if (updateTracer) then
           if (RKstage == 1) dTracer = 0.0
-          call tracerUpdate(var, flux, force, dt, dTracer, RKstage)
+          call tracerUpdate(var, flux, tracerforce, dt, dTracer, RKstage)
        end if
 
-        if (updateTheta) then
+        if(updateTheta) then
           ! theta_new
 
           call setHalos(var, "var")
@@ -1568,8 +1620,44 @@ program pinc_prog
               off!"
         end if
 
+        !SD old
+        !if(include_ice2) call integrate_ice(var, var0, flux, "nln", source, &
+        !     dt, dIce, RKstage, PStrat, PStratTilde) !pstrat, pstrattilde not relevant if "nln"
+        if(include_ice2) call integrate_ice_advection(var, var0, flux, "nln", &
+            source, dt, dIce, RKstage, PStrat, PStratTilde)
+
       end do Runge_Kutta_Loop
     end if ! timeScheme
+
+    !SD
+    ! integrate ice physics with fixed dry dynamics
+    if(include_ice2) then
+
+      n_step_ice = ceiling(dt * tRef / dt_ice2)
+      dtt_ice2 = dt / n_step_ice
+      !use outputTime
+      !*n_step_ice = outputTimeDiff / dt_ice2
+      !*dtt_ice2 = dt_ice2/tRef
+
+      !if(include_testoutput) then
+
+      !old
+      !tta = tta + dt !non-dimensional time for analyt. sol.
+
+      !*tta = tta + outputTimeDiff / tRef
+      !*var(:, :, :, iVarO) = var(:, :, :, iVarO+1)*exp(-0.01 * tta)
+
+      !end if
+
+      do ii = 1, n_step_ice
+        do RKstage = 1, nStages
+          !*call integrate_ice(var, var0, flux, "nln", source, &
+          !*     dtt_ice2, dIce, RKstage, PStrat, PStratTilde) !pstrat, pstrattilde not relevant if "nln"
+          call integrate_ice_physics(var, var0, flux, source, dtt_ice2, dIce, &
+              RKstage)
+        end do ! RKstage
+      end do !ii
+    end if !include_ice2
 
     !--------------------------------------------------------------
     !                           Output
@@ -1693,10 +1781,18 @@ program pinc_prog
   call terminate_atmosphere
   call terminate_output
 
-  if (poissonSolverType == 'bicgstab') then
-    call CleanUpBiCGSTab ! Clean Up BiCGSTAB arrays
-  ! else if (poissonSolverType == 'hypre') then
-  !   call CleanUpHypre ! Clean Up Hypre objects
+  if(poissonSolverType == 'bicgstab') then
+
+    !CHANGES : cleaning master leads to MPI error ?
+    if(master) then
+      ! do nothing
+      !call CleanUpBiCGSTab ! Clean Up BiCGSTAB arrays
+    else
+      call CleanUpBiCGSTab ! Clean Up BiCGSTAB arrays
+      ! else if (poissonSolverType == 'hypre') then
+      !   call CleanUpHypre ! Clean Up Hypre objects
+    end if
+
   else
     stop 'ERROR: BICGSTAB expected as Poisson solver'
   end if
