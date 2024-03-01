@@ -683,7 +683,7 @@ module mpi_module
 
     case("tracer")
 
-      iVar = iVart
+      iVar = iVarT
 
       !------------------------------
       !          x-direction

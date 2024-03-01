@@ -533,7 +533,7 @@ module type_module
   logical :: predictMomentum ! transport of momentum=var(2-4) on/off
   logical :: updateTheta ! transport of theta=var(6) on/off
   logical :: updateIce ! transport of ice=var(nVar-2:nVar) on/off
-  logical :: updateTracer ! transport of tracer=var(iVart) on/off
+  logical :: updateTracer ! transport of tracer=var(iVarT) on/off
 
   !-----------------------------------------------------------------
   !                          Poisson solver

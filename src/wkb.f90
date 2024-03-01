@@ -923,11 +923,11 @@ module wkb_module
                 rhotracerm = var(ix-1, jy, kz, 1)
               end if
               laplacetracer = ( (diffusioncoeff(ix+1,jy,kz)+diffusioncoeff(ix,jy,kz)) &
-                              * (var(ix+1, jy, kz, iVart)/rhotracerp & 
-                               - var(ix  , jy, kz, iVart)/rhotracern) & 
+                              * (var(ix+1, jy, kz, iVarT)/rhotracerp & 
+                               - var(ix  , jy, kz, iVarT)/rhotracern) & 
                               - (diffusioncoeff(ix,jy,kz)+diffusioncoeff(ix-1,jy,kz)) &
-                              * (var(ix  , jy, kz, iVart)/rhotracern & 
-                               - var(ix-1, jy, kz, iVart)/rhotracerm) ) / (2. * dx ** 2.)
+                              * (var(ix  , jy, kz, iVarT)/rhotracern & 
+                               - var(ix-1, jy, kz, iVarT)/rhotracerm) ) / (2. * dx ** 2.)
             else
               dutracer = 0.0
               laplacetracer = 0.0
@@ -950,11 +950,11 @@ module wkb_module
 
               laplacetracer = laplacetracer &
                             + ( (diffusioncoeff(ix,jy+1,kz)+diffusioncoeff(ix,jy,kz)) &
-                              * (var(ix, jy+1, kz, iVart)/rhotracerp & 
-                              -  var(ix  , jy, kz, iVart)/rhotracern) & 
+                              * (var(ix, jy+1, kz, iVarT)/rhotracerp & 
+                              -  var(ix  , jy, kz, iVarT)/rhotracern) & 
                               - (diffusioncoeff(ix,jy,kz)+diffusioncoeff(ix,jy-1,kz)) &
-                              * (var(ix  , jy, kz, iVart)/rhotracern & 
-                               - var(ix, jy-1, kz, iVart)/rhotracerm) ) / (2. * dy ** 2.)
+                              * (var(ix  , jy, kz, iVarT)/rhotracern & 
+                               - var(ix, jy-1, kz, iVarT)/rhotracerm) ) / (2. * dy ** 2.)
             else
               dvtracer = 0.0
               laplacetracer = laplacetracer
@@ -978,11 +978,11 @@ module wkb_module
 
             laplacetracer = laplacetracer &
                           + ( (diffusioncoeff(ix,jy,kz+1)+diffusioncoeff(ix,jy,kz)) &
-                            * (var(ix, jy, kz+1, iVart)/rhotracerp & 
-                            -  var(ix  , jy, kz, iVart)/rhotracern) & 
+                            * (var(ix, jy, kz+1, iVarT)/rhotracerp & 
+                            -  var(ix  , jy, kz, iVarT)/rhotracern) & 
                             - (diffusioncoeff(ix,jy,kz)+diffusioncoeff(ix,jy,kz-1)) &
-                            * (var(ix  , jy, kz, iVart)/rhotracern & 
-                             - var(ix, jy, kz-1, iVart)/rhotracerm) ) / (2. * dz ** 2.)
+                            * (var(ix  , jy, kz, iVarT)/rhotracern & 
+                             - var(ix, jy, kz-1, iVarT)/rhotracerm) ) / (2. * dz ** 2.)
 
             ! save diffusive mixing
             tracerforce(ix,jy,kz,3) = laplacetracer
@@ -2748,10 +2748,10 @@ module wkb_module
         rhoum = var(ixx, jyy, kzu, 1)
       end if
 
-      tracd = (var(ixx, jyy, kzd + 1, iVart) / rhodp &
-             - var(ixx, jyy, kzd    , iVart) / rhodm) / dz
-      tracu = (var(ixx, jyy, kzu + 1, iVart) / rhoup &
-             - var(ixx, jyy, kzu    , iVart) / rhoum) / dz 
+      tracd = (var(ixx, jyy, kzd + 1, iVarT) / rhodp &
+             - var(ixx, jyy, kzd    , iVarT) / rhodm) / dz
+      tracu = (var(ixx, jyy, kzu + 1, iVarT) / rhoup &
+             - var(ixx, jyy, kzu    , iVarT) / rhoum) / dz 
 
       if (zu < zd) then
         print *, 'ERROR IN TRACERDERIVATIVE: zu =', zu, '< zd =', zd
@@ -2831,10 +2831,10 @@ module wkb_module
           rhofm = var(ixx, jyf, kzz, 1)
         end if
 
-        tracb = (var(ixx, jyb + 1, kzz, iVart) / rhobp & 
-               - var(ixx, jyb    , kzz, iVart) / rhobm) / dy
-        tracf = (var(ixx, jyf + 1, kzz, iVart) / rhofp & 
-               - var(ixx, jyf    , kzz, iVart) / rhofm) / dy
+        tracb = (var(ixx, jyb + 1, kzz, iVarT) / rhobp & 
+               - var(ixx, jyb    , kzz, iVarT) / rhobm) / dy
+        tracf = (var(ixx, jyf + 1, kzz, iVarT) / rhofp & 
+               - var(ixx, jyf    , kzz, iVarT) / rhofm) / dy
         
         if (yf < yb) then
           print *, 'ERROR IN TRACERDERIVATIVE: yf =', yf, '< yb =', yb
@@ -2916,10 +2916,10 @@ module wkb_module
           rhorm = var(ixr, jyy, kzz, 1)
         end if
 
-        tracl = (var(ixl + 1, jyy, kzz, iVart) / rholp & 
-               - var(ixl    , jyy, kzz, iVart) / rholm) / dx 
-        tracr = (var(ixr + 1, jyy, kzz, iVart) / rhorp &
-               - var(ixr    , jyy, kzz, iVart) / rhorm) /dx
+        tracl = (var(ixl + 1, jyy, kzz, iVarT) / rholp & 
+               - var(ixl    , jyy, kzz, iVarT) / rholm) / dx 
+        tracr = (var(ixr + 1, jyy, kzz, iVarT) / rhorp &
+               - var(ixr    , jyy, kzz, iVarT) / rhorm) /dx
         
         if (xr < xl) then
           print *, 'ERROR IN TRACERDERIVATIVE: xr =', xr, '< xl =', xl 
@@ -2998,10 +2998,10 @@ module wkb_module
         rhoum = var(ixx, jyy, kzu, 1)
       end if
 
-      tracd = (var(ixx, jyy, kzd + 1, iVart) / rhodp &
-             - var(ixx, jyy, kzd    , iVart) / rhodm) / dz
-      tracu = (var(ixx, jyy, kzu + 1, iVart) / rhoup &
-             - var(ixx, jyy, kzu    , iVart) / rhoum) / dz 
+      tracd = (var(ixx, jyy, kzd + 1, iVarT) / rhodp &
+             - var(ixx, jyy, kzd    , iVarT) / rhodm) / dz
+      tracu = (var(ixx, jyy, kzu + 1, iVarT) / rhoup &
+             - var(ixx, jyy, kzu    , iVarT) / rhoum) / dz 
 
       if (zu < zd) then
         print *, 'ERROR IN TRACERDERIVATIVE: zu =', zu, '< zd =', zd
@@ -3051,10 +3051,10 @@ module wkb_module
           rhofm = var(ixx, jyf, kzz, 1)
         end if
 
-        tracb = (var(ixx, jyb + 1, kzz, iVart) / rhobp & 
-               - var(ixx, jyb    , kzz, iVart) / rhobm) / dy
-        tracf = (var(ixx, jyf + 1, kzz, iVart) / rhofp & 
-               - var(ixx, jyf    , kzz, iVart) / rhofm) / dy
+        tracb = (var(ixx, jyb + 1, kzz, iVarT) / rhobp & 
+               - var(ixx, jyb    , kzz, iVarT) / rhobm) / dy
+        tracf = (var(ixx, jyf + 1, kzz, iVarT) / rhofp & 
+               - var(ixx, jyf    , kzz, iVarT) / rhofm) / dy
         
         if (yf < yb) then
           print *, 'ERROR IN TRACERDERIVATIVE: yf =', yf, '< yb =', yb
@@ -3105,10 +3105,10 @@ module wkb_module
           rhorm = var(ixr, jyy, kzz, 1)
         end if
 
-        tracl = (var(ixl + 1, jyy, kzz, iVart) / rholp & 
-               - var(ixl    , jyy, kzz, iVart) / rholm) / dx 
-        tracr = (var(ixr + 1, jyy, kzz, iVart) / rhorp &
-               - var(ixr    , jyy, kzz, iVart) / rhorm) /dx
+        tracl = (var(ixl + 1, jyy, kzz, iVarT) / rholp & 
+               - var(ixl    , jyy, kzz, iVarT) / rholm) / dx 
+        tracr = (var(ixr + 1, jyy, kzz, iVarT) / rhorp &
+               - var(ixr    , jyy, kzz, iVarT) / rhorm) /dx
         
         if (xr < xl) then
           print *, 'ERROR IN TRACERDERIVATIVE: xr =', xr, '< xl =', xl 

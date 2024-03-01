@@ -286,7 +286,7 @@ module output_module
 
                   !rhotracer = 1.0
 
-                  field_prc(i, j) = var(i, j, k, iVart) / rhotracer ! * rhoRef
+                  field_prc(i, j) = var(i, j, k, iVarT) / rhotracer ! * rhoRef
                 end if
               end select ! iVar
             end do ! i
@@ -1285,21 +1285,21 @@ module output_module
 
               case(8) ! zonal tracer flux (rho u chi)
                 if (include_tracer) then 
-                  field_prc(i, j) = rhoRef * uRef * flux(i, j, k, 1, iVart)
+                  field_prc(i, j) = rhoRef * uRef * flux(i, j, k, 1, iVarT)
                 else
                   field_prc(i, j) = 0.0
                 end if 
               
               case(9) ! meridional tracer flux (rho v chi)
                 if (include_tracer) then 
-                  field_prc(i, j) = rhoRef * uRef * flux(i, j, k, 2, iVart)
+                  field_prc(i, j) = rhoRef * uRef * flux(i, j, k, 2, iVarT)
                 else
                   field_prc(i, j) = 0.0
                 end if 
               
               case(10) ! vertical tracer flux (rho w chi)
                 if (include_tracer) then 
-                  field_prc(i, j) = rhoRef * uRef * flux(i, j, k, 3, iVart)
+                  field_prc(i, j) = rhoRef * uRef * flux(i, j, k, 3, iVarT)
                 else
                   field_prc(i, j) = 0.0
                 end if 

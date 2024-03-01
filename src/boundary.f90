@@ -156,8 +156,8 @@ module boundary_module
       ! set boundaries if including tracer
       if (updateTracer) then
         do i = 1, nbx
-          var(nx + i, :, :, iVart) = var(i, :, :, iVart)
-          var(- i + 1, :, :, iVart) = var(nx - i + 1, :, :, iVart)
+          var(nx + i, :, :, iVarT) = var(i, :, :, iVarT)
+          var(- i + 1, :, :, iVarT) = var(nx - i + 1, :, :, iVarT)
         end do
 
         if(verbose .and. master) then
@@ -416,8 +416,8 @@ module boundary_module
       ! set boundaries if including tracer
       if (updateTracer) then
         do j = 1, nby
-          var(:, ny + j, :, iVart) = var(:, j, :, iVart)
-          var(:, - j + 1, :, iVart) = var(:, ny - j + 1, :, iVart)
+          var(:, ny + j, :, iVarT) = var(:, j, :, iVarT)
+          var(:, - j + 1, :, iVarT) = var(:, ny - j + 1, :, iVarT)
         end do
 
         if(verbose .and. master) then
@@ -677,8 +677,8 @@ module boundary_module
       ! set boundaries if including tracer
       if (updateTracer) then
         do k = 1, nbz
-          var(:, :, nz + k, iVart) = - var(:, :, k, iVart)
-          var(:, :, - k + 1, iVart) = - var(:, :, nz - k + 1, iVart)
+          var(:, :, nz + k, iVarT) = - var(:, :, k, iVarT)
+          var(:, :, - k + 1, iVarT) = - var(:, :, nz - k + 1, iVarT)
         end do
 
         if(verbose .and. master) then
@@ -999,8 +999,8 @@ module boundary_module
 
       if(updateTracer) then
         do k = 1, nbz
-          var(:, :, - k + 1, iVart) = - var(:, :, k, iVart)
-          var(:, :, nz + k, iVart) = - var(:, :, nz - k + 1, iVart)
+          var(:, :, - k + 1, iVarT) = - var(:, :, k, iVarT)
+          var(:, :, nz + k, iVarT) = - var(:, :, nz - k + 1, iVarT)
         end do
       end if
 
@@ -1456,8 +1456,8 @@ module boundary_module
       ! set vertical tracer fluxes at wall to 0 
       ! if including tracer
       if (updateTracer) then
-        flux(:, :, 0, 3, iVart) = 0.0
-        flux(:, :, nz, 3, iVart) = 0.0
+        flux(:, :, 0, 3, iVarT) = 0.0
+        flux(:, :, nz, 3, iVarT) = 0.0
       end if
 
       ! ice variables iVar=nVar-3,nVar
