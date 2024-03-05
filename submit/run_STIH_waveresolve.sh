@@ -19,15 +19,12 @@ export OMP_NUM_THREADS=1
 # gprof for MPI
 export GMON_OUT_PREFIX=gmon.out-
 
-# env variable export
-# export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/home/atmodynamics/jochum/spack/opt/spack/linux-scientific7-x86_64/intel-18.0.3/hypre-2.15.1-j7lo2mzfhd7bnrcivaf6bsaqjwimsp3m/lib/
-
 dirHome=/home/atmodynamics/knop/pinc-flow-tracer
 dirScratch=/scratch/atmodynamics/knop
 
 dirNam=${dirHome}/input
 exe=${dirHome}/bin/pinc
-dirWork=${dirScratch}/output/2024/2024-02-29/STIH_waveresolve
+dirWork=${dirScratch}/output/2024/2024-03-01/STIH_waveresolve
 
 mkdir ${dirWork}
 

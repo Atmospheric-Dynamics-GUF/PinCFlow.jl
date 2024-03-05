@@ -12,7 +12,7 @@ ifeq ($(COMPILER), ifort)
   MODULEFLAG=-module $(BUILD)
 else # GNU
   # FCFLAGS=-O0 -g -fallow-argument-mismatch -fcheck=all -Wall -Wno-unused-variable -fdefault-real-8 -fbacktrace -funroll-loops -Wno-unused-dummy-argument -Wno-conversion-extra
-  FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch -w
+  FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch -w -fmax-errors=1 
   MODULEFLAG= -J$(BUILD)
 endif
 

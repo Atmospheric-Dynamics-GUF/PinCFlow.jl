@@ -13,13 +13,13 @@
 
 sizeX = 3,!, !64, !32                ! nb of global grid cells
 sizeY = 1,
-sizeZ = 532,
+sizeZ = 400,
 nbx = 3,                  ! nb. of ghost cells
 nby = 3,
 nbz = 3,
 lx_dim =   0.0, 30.e3, ! domain lenths in m
 ly_dim =   0.0, 40.e3,
-lz_dim =   0.0, 160.e3,
+lz_dim =   0.0, 120.e3,
 
 ! nb of processors in x and y direction must be set in the batch file
 nprocx = {nprocx},
@@ -70,7 +70,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
   dtMax_dim = 10.0                 ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
-  timeScheme = "semiimplicit"      ! LS_Will_RK3 -> Williamson / Euler /
+  timeScheme = "LS_Will_RK3"      ! LS_Will_RK3 -> Williamson / Euler /
                                   ! LS_TVD_RK3 / CL_TVD_RK3 / semiimplicit
   auxil_equ = .false.             ! auxiliary equation for the density
                                   ! fluctuations to be used in the explicit
@@ -237,9 +237,15 @@ range_factor = 10         ! factor by which mountain range is wider than
   nbCellCorr = 1
 
   ! sponge layer at upper boundary
-  spongeLayer = .false.     ! sponge with relaxation to background
-  spongeHeight = 0.33      ! relative height of sponge layer
-  spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
+  spongeLayer = .true.        ! sponge with relaxation to background
+  spongeHeight = 0.09         ! relative height of sponge layer
+  spongeAlphaZ_dim = 0.0179   ! relaxation rate coeff in 1/s
+  spongeAlphaZ_fac = 1.0
+  unifiedSponge = .false.     ! switch for unified sponge layers
+  lateralSponge = .false.     ! switch for lateral sponge layers
+  verticalSponge = "exponential"
+  spongeOrder = 4
+  cosmoSteps = 500
 &end
 
 &boundaryList2

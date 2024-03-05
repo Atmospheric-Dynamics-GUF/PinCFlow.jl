@@ -810,7 +810,6 @@ module flux_module
             call reconstruct_SALD(tracerBar, tracerTilde)
 
         end if
-        end if
 
       case default
         stop "reconstruction: unknown case variable."
@@ -2806,11 +2805,6 @@ module flux_module
     !-----------------------------------------
     !       Zonal tracer fluxes in x: f
     !-----------------------------------------
-    do k = 1, nz
-      do j = 1, ny
-        do i = 0, nx
-          select case(fluxType)
-          case("central")
     do k = 1,nz
       do j = 1,ny
         do i = 0,nx
@@ -2863,8 +2857,6 @@ module flux_module
 
           flux(i,j,k,1,iVarT) = fTracer
 
-        end do
-      end do
         end do
       end do
     end do
@@ -2983,8 +2975,6 @@ module flux_module
 
           flux(i,j,k,3,iVarT) = hTracer
 
-        end do
-      end do
         end do
       end do
     end do
