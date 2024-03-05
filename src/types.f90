@@ -62,16 +62,13 @@ module type_module
   !              for output global fields to single file
   !--------------------------------------------------------------
 
-  ! real*4, dimension(:,:), allocatable :: field_out
   real * 4, dimension(:, :), allocatable :: field_out, field_mst
 
-  !UAB
   !-----------------------------------------------------------------
   ! for sponge: maximum damping rate in 1/dt
   !-----------------------------------------------------------------
 
   real :: alpspg
-  !UAE
 
   !-----------------------------------------------------------------
   ! for
@@ -720,12 +717,10 @@ module type_module
   integer :: nbCellCorr
 
   ! sponge layer
-  !UAc logical :: spongeLayer
   logical :: spongeLayer, sponge_uv
   real :: spongeHeight
   integer :: kSponge
   real :: zSponge
-  !UAC real    :: spongeAlphaZ_dim
   real :: spongeAlphaZ_dim, spongeAlphaZ_fac
 
   ! Unified and lateral sponge layers (FJJun2023)
@@ -759,8 +754,6 @@ module type_module
       spongeHeight, zSponge, spongeAlphaZ_dim, spongeAlphaZ_fac, &
       unifiedSponge, lateralSponge, verticalSponge, spongeOrder, cosmoSteps, &
       utopcond, rhocond, thcond
-  !UAC & spongeLayer, spongeHeight, &
-  !UAC & spongeAlphaZ_dim, utopcond, rhocond, thcond
 
   ! boundary types
   character(len = 15) :: xBoundary

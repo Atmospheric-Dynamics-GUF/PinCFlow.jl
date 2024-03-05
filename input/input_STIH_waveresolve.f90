@@ -13,13 +13,13 @@
 
 sizeX = 32,
 sizeY = 1,
-sizeZ = 854,
+sizeZ = 1280,
 nbx = 3,
 nby = 3,
 nbz = 3,
 lx_dim = 0.0, 30.e3,
 ly_dim = 0.0, 40.e3,
-lz_dim = 0.0, 80.e3,
+lz_dim = 0.0, 120.e3,
 nprocx = {nprocx},
 nprocy = {nprocy},
 
@@ -68,7 +68,7 @@ vert_alpha = 0.0                ! det    angle of rotation about z'
   dtMax_dim = 10.0                 ! max time step in s
   tStepChoice = "cfl"             ! "fix" -> time step dtMax_dim is taken
                                   ! "cfl" -> stability criteria used
-  timeScheme = "semiimplicit"      ! LS_Will_RK3 -> Williamson / Euler /
+  timeScheme = "LS_Will_RK3"      ! LS_Will_RK3 -> Williamson / Euler /
                                   ! LS_TVD_RK3 / CL_TVD_RK3 / semiimplicit
   auxil_equ = .false.             ! auxiliary equation for the density
                                   ! fluctuations to be used in the explicit
@@ -235,9 +235,15 @@ range_factor = 10         ! factor by which mountain range is wider than
   nbCellCorr = 1
 
   ! sponge layer at upper boundary
-  spongeLayer = .false.     ! sponge with relaxation to background
-  spongeHeight = 0.33      ! relative height of sponge layer
-  spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
+  spongeLayer = .true.        ! sponge with relaxation to background
+  spongeHeight = 0.09         ! relative height of sponge layer
+  spongeAlphaZ_dim = 0.0179   ! relaxation rate coeff in 1/s
+  spongeAlphaZ_fac = 1.0
+  unifiedSponge = .false.     ! switch for unified sponge layers
+  lateralSponge = .false.     ! switch for lateral sponge layers
+  verticalSponge = "exponential"
+  spongeOrder = 4
+  cosmoSteps = 500
 &end
 
 &boundaryList2
@@ -266,7 +272,7 @@ range_factor = 10         ! factor by which mountain range is wider than
   maxIter = 1             ! stop after maxIter time steps
 
   outputTimeDiff =  60.  ! output every ... seconds
-  maxTime = 72000.!18000.0          ! stop after maxTime seconds
+  maxTime = 36000.!18000.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -731,13 +737,9 @@ output_heat = .true.
 
 tracerSetup = "increase_in_z_tracer"!"quadratic_increase"!
 include_prime = .true.
-
 tracerdifference = .true.
-
-include_GW_force = .true.
-
-include_mixing = .true.
-
-diffusionbeta = 2.0
+include_gw_tracer_forcing = .false.
+include_env_tracer_forcing = .false.
+include_tracer_mixing = .false.
 
 &end

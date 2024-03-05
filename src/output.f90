@@ -121,8 +121,6 @@ module output_module
     irc_prc = irc_prc * iOut * nz
 
     ! just for safety. 
-    if (include_tracer .and. include_ice) then
-       stop "output.f90: tracer and ice not an option yet."
     if(include_tracer .and. include_ice) then
       stop "output.f90: tracer and ice not an option yet."
     end if
@@ -284,9 +282,8 @@ module output_module
                     rhotracer = var(i, j, k, 1)
                   end if
 
-                  !rhotracer = 1.0
-
-                  field_prc(i, j) = var(i, j, k, iVarT) / rhotracer ! * rhoRef
+                  field_prc(i, j) = var(i, j, k, iVarT) / rhotracer &
+                                  - initialtracer(i, j, k)
                 end if
               end select ! iVar
             end do ! i

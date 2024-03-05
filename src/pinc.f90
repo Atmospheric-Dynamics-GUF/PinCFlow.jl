@@ -72,7 +72,7 @@ program pinc_prog
   type(rayType), dimension(:, :, :, :), allocatable :: ray
   real, dimension(:, :, :, :), allocatable :: ray_var3D
   real, dimension(:, :, :), allocatable :: diffusioncoeff
-  real, dimension(:, :, :), allocatable :: tracerfluxvar
+  real, dimension(:, :, :, :), allocatable :: tracerfluxvar
 
   ! topography via force field
   real, dimension(:, :, :, :), allocatable :: force ! volume forces
@@ -720,7 +720,7 @@ program pinc_prog
 
       if(rayTracer) then
         do RKstage = 1, nStages
-          call calc_meanFlow_effect(ray, var, force, ray_var3D, time)
+          !call calc_meanFlow_effect(ray, var, force, ray_var3D, time)
           call transport_rayvol(var, ray, dt, RKstage, time)
           if(RKstage == nStages) then
             call boundary_rayvol(ray)
@@ -1338,13 +1338,14 @@ program pinc_prog
         ! Lag Ray tracer (position-wavenumber space method)
 
         if(rayTracer) then
-          call calc_meanFlow_effect(ray, var, force, ray_var3D, time)
+          !call calc_meanFlow_effect(ray, var, force, ray_var3D, time)
           call transport_rayvol(var, ray, dt, RKstage, time)
           if(RKstage == nStages) then
             call boundary_rayvol(ray)
             call split_rayvol(ray)
             call shift_rayvol(ray)
             call merge_rayvol(ray)
+            call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff, tracerfluxvar, tracerforce)
           end if
         end if
 

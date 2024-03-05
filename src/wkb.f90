@@ -129,8 +129,8 @@ module wkb_module
     ! tracerfluxvar: current time step 
     ! tracer flux calculated from time derivative of tracerfluxvar
     ! tracer flux \propto (tracerfluxvar-tracerfluxvarold)/dt
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(inout) :: tracerfluxvar
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1) :: tracerfluxvarold
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:nwm), intent(inout) :: tracerfluxvar
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:nwm) :: tracerfluxvarold
 
     ! local variables
     real :: F
@@ -170,7 +170,7 @@ module wkb_module
     integer :: jymin, jymax
     integer :: kzmin, kzmax
     integer :: ixr, jyr, kzr
-    integer :: ix, jy, kz
+    integer :: ix, jy, kz, im
 
     integer :: ix0, jy0
 
@@ -296,15 +296,12 @@ module wkb_module
             !                           model domain
 
             ! FJApr2023
-            ! if(zr < lz(0)) then
             if((.not. topography .and. zr < lz(0)) .or. (topography .and. zr &
                 < topography_surface(ixrv, jyrv))) then
               select case(zBoundary)
               case("periodic")
                 zr = lz(1) + mod(zr - lz(0), lz(1) - lz(0))
               case("solid_wall")
-                ! FJApr2023
-                ! if(zr + 0.5 * dzr < lz(0)) cycle
                 if((.not. topography .and. zr + 0.5 * dzr < lz(0)) .or. &
                     (topography .and. zr + 0.5 * dzr &
                     < topography_surface(ixrv, jyrv))) cycle
@@ -435,8 +432,6 @@ module wkb_module
 
             wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
 
-            ! FJApr2023
-            ! if(zr < lz(0) - dz) then
             if((.not. topography .and. zr < lz(0) - dz) .or. (topography .and. &
                 zr < topography_surface(ixrv, jyrv) - jac(ixrv, jyrv, kzrv) &
                 * dz)) then
@@ -535,6 +530,11 @@ module wkb_module
 
             ! FJMay2023
             if(topography) then
+
+              if (include_tracer) then 
+                stop "Tracer, topography, and ray tracer not possible."
+              end if
+
               do ix = ixmin, ixmax
                 if(sizeX > 1) then
                   dxi = (min((xr + dxr * 0.5), lx(0) + (ix + ix0) * dx) &
@@ -554,11 +554,6 @@ module wkb_module
                   else
                     fcpspy = 1.0
                   end if
-
-                  ! kzmin = max(1, minloc(abs(zTildeTFC(ix, jy, :) - zr + 0.5 &
-                  !         * dzr), dim = 1) + lbound(zTildeTFC, 3) - 1)
-                  ! kzmax = min(nz, minloc(abs(zTildeTFC(ix, jy, :) - zr + 0.5 &
-                  !         * dzr), dim = 1) + lbound(zTildeTFC, 3) - 1)
 
                   ! Jacobian is height-independent!
                   kzmin = max(1, floor((zr - dzr * 0.5 &
@@ -718,35 +713,35 @@ module wkb_module
                     var_E(ix, jy, kz) = var_E(ix, jy, kz) + wadr * omir
 
 
-                  if (include_tracer) then 
-                    ! leading order gravity wave tracer fluxes
-                    ! calculation of equations 2.91 - 2.93 in IK masters thesis
-                    if(f_cor_nd /=0.0) then
-                      
-                      tracerfluxcoeff = - f_cor_nd / omir * wnrm &
-                          / (wnrh ** 2 + wnrm ** 2) * wadr / rhoStrat(kz)
-                      
-                      ! determine derivative of large-scale tracer at location
-                      ! of ray volume
-                      call tracerderivative(x(ix), 1, y(jy), z(kz), var, dchidx)
-                      call tracerderivative(y(jy), 2, x(ix), z(kz), var, dchidy)
-                      call tracerderivative(z(kz), 3, x(ix), y(jy), var, dchidz)
+                    if (include_tracer) then 
+                      ! leading order gravity wave tracer fluxes
+                      ! calculation of equations 2.91 - 2.93 in IK masters thesis
+                      if(f_cor_nd /=0.0) then
+                        
+                        tracerfluxcoeff = - f_cor_nd / omir * wnrm &
+                            / (wnrh ** 2 + wnrm ** 2) * wadr / rhoStrat(kz)
+                        
+                        ! determine derivative of large-scale tracer at location
+                        ! of ray volume
+                        call tracerderivative(x(ix), 1, y(jy), z(kz), var, dchidx)
+                        call tracerderivative(y(jy), 2, x(ix), z(kz), var, dchidy)
+                        call tracerderivative(z(kz), 3, x(ix), y(jy), var, dchidz)
 
-                      var_utracer(ix, jy, kz) = var_utracer(ix, jy, kz) &
-                          + tracerfluxcoeff * (wnrm * dchidy - wnrl * dchidz)
-                      var_vtracer(ix, jy, kz) = var_vtracer(ix, jy, kz) &
-                          + tracerfluxcoeff * (wnrk * dchidz - wnrm * dchidx)
-                      var_wtracer(ix, jy, kz) = var_wtracer(ix, jy, kz) &
-                          + tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
+                        var_utracer(ix, jy, kz) = var_utracer(ix, jy, kz) &
+                            + tracerfluxcoeff * (wnrm * dchidy - wnrl * dchidz)
+                        var_vtracer(ix, jy, kz) = var_vtracer(ix, jy, kz) &
+                            + tracerfluxcoeff * (wnrk * dchidz - wnrm * dchidx)
+                        var_wtracer(ix, jy, kz) = var_wtracer(ix, jy, kz) &
+                            + tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
+                      end if
+
+                      ! update tracerfluxvar to calculate
+                      ! next-order gravity wave tracer fluxes
+                      ! actual fluxes calculated later on
+                      tracerfluxvar(ix, jy, kz, :) = tracerfluxvar(ix, jy, kz, :) &
+                      + alphaTracer**2. * wadr / rhoStrat(kz) * wnrh**2. &
+                      /(omir*(wnrh ** 2 + wnrm ** 2))
                     end if
-
-                    ! update tracerfluxvar to calculate
-                    ! next-order gravity wave tracer fluxes
-                    ! actual fluxes calculated later on
-                    tracerfluxvar(ix, jy, kz) = tracerfluxvar(ix, jy, kz) &
-                    + alphaTracer**2. * wadr / rhoStrat(kz) * wnrh**2. &
-                    /(omir*(wnrh ** 2 + wnrm ** 2))
-                  end if
 
                   end do
                 end do
@@ -762,20 +757,22 @@ module wkb_module
       do kz =1, nz
         do jy = 1, ny
           do ix = 1, nx
-            ! next-order forcing only where no diffusion due to gw breaking
-            ! otherwise too large tracer fluxes
-            if (diffusioncoeff(ix, jy, kz) == 0.0) then
-              ! calculate tracer fluxes
-              var_wtracerEnv(ix, jy, kz) = &
-              - (tracerfluxvar(ix, jy, kz) - tracerfluxvarold(ix, jy, kz))& 
-              /dt/(2.*alphaTracer)
-            else
-              var_wtracerEnv(ix, jy, kz) = 0.0
-            end if
+            do im = 1, nwm
+              ! next-order forcing only where no diffusion due to gw breaking
+              ! otherwise too large tracer fluxes
+              if (diffusioncoeff(ix, jy, kz) == 0.0) then
+                ! calculate tracer fluxes
+                var_wtracerEnv(ix, jy, kz) = &
+                - (tracerfluxvar(ix, jy, kz, im) &
+                  - tracerfluxvarold(ix, jy, kz, im))& 
+                /dt/(2.*alphaTracer)
+              else
+                var_wtracerEnv(ix, jy, kz) = 0.0
+              end if
+            end do
           end do
         end do
       end do
-      var_wtracerEnv(:, :, nz:) = 0.0
     end if
 
     ! for output of u'w', E_w, u, v, w:
@@ -783,7 +780,6 @@ module wkb_module
       do jy = 1, ny
         do ix = 1, nx
           ray_var3D(ix, jy, kz, 4) = var_ETx(ix, jy, kz)
-          !ray_var3D(ix,jy,kz,5) =  var_ETy(ix,jy,kz)
           ray_var3D(ix, jy, kz, 5) = var_uw(ix, jy, kz) ! output change by FDK
           ray_var3D(ix, jy, kz, 6) = var_E(ix, jy, kz)
         end do
@@ -994,7 +990,6 @@ module wkb_module
           end do
         end do
       end do
-      tracerforce(ix, jy, nz:, 2) = 0.0
 
       call setboundary_frc_wkb(tracerforce(:, :, :, 1))
       call setboundary_frc_wkb(tracerforce(:, :, :, 2))
@@ -1421,27 +1416,23 @@ module wkb_module
     real, dimension(:, :, :, :), allocatable, intent(out) :: ray_var3D
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
         intent(inout) :: var
+    
+    ! turbulent eddy diffusivity. Needed for the mixing of tracer
     real, dimension(:, :, :), allocatable, intent(out) :: diffusioncoeff
 
-    real, dimension(:, :, :), allocatable, intent(out) :: tracerfluxvar
+    ! variable to calculate the next-order gw tracer fluxes
+    ! initial tracerfluxvar calculated in setup_wkb
+    real, dimension(:, :, :, :), allocatable, intent(out) :: tracerfluxvar
 
     ! local variables
     integer :: allocstat
 
     ! FJApr2023
-    ! real, allocatable :: omi_notop(:), omi_sfc(:, :), wnk_sfc(:, :), &
-    !     wnl_sfc(:, :), wnm_sfc(:, :)
-    ! real, allocatable :: fld_amp(:, :, :) ! 3D wave action distribution
     real, allocatable :: omi_notop(:, :, :), omi_sfc(:, :, :), wnk_sfc(:, :, &
         :), wnl_sfc(:, :, :), wnm_sfc(:, :, :)
     real, allocatable :: fld_amp(:, :, :, :)
 
-    ! testb
-    ! real, allocatable :: fld_ene(:,:,:)  ! 3D density-normalized
-    !                                      ! energy-density field
-    ! teste
-
-    integer :: ix, jy, kz
+    integer :: ix, jy, kz, im
     integer :: ix2, jy2, kz2
     integer :: ik, jl, km
     integer :: ixmin, ixmax
@@ -1533,7 +1524,6 @@ module wkb_module
     end if
 
     ! factor x-k space
-
     if(case_wkb == 3) then ! topography
       ixmin = 1
       ixmax = nx
@@ -1558,7 +1548,6 @@ module wkb_module
     end if
 
     ! factor y-l space
-
     if(case_wkb == 3) then
       jymin = 1
       jymax = ny
@@ -1579,12 +1568,11 @@ module wkb_module
 
     ! maximum # of r.v. allowed in a cell before r.v. are merged
     ! FJApr2023
-    ! nray_max = nxRay * nyRay * nzRay
     nray_max = nxRay * nyRay * nzRay * nwm
 
-    ! work-space size per wavenumber direction chosen to be twice the
+    ! work-space size per wavenumber direction chosen to be double the
     ! maximum number of r.v. allowed before they are merged
-    ! (should this turn out to be too small, change to thrice, quadruple,
+    ! (should this turn out to be too small, change to triple, quadruple,
     ! etc)
 
     if(nxRay > 1) then
@@ -1608,7 +1596,6 @@ module wkb_module
     nray_wrk = nxRay_wrk * nyRay_wrk * nzRay_wrk
 
     ! FJApr2023
-    ! n_sfc = nrm_init
     n_sfc = nrm_init * nwm
     if(nxRay > 1) n_sfc = n_sfc * nxRay / nray_fac
     if(nyRay > 1) n_sfc = n_sfc * nyRay / nray_fac
@@ -1681,29 +1668,23 @@ module wkb_module
     allocate(diffusioncoeff(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate diffusioncoeff"
 
-    allocate(tracerfluxvar(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
+    allocate(tracerfluxvar(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:nwm), stat = allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate tracerfluxvar"
 
     ! needed for initialization of ray volumes:
     if(case_wkb == 3) then
       ! FJApr2023
-      ! allocate(omi_sfc(1:nx, 1:ny))
-      ! allocate(wnk_sfc(1:nx, 1:ny))
-      ! allocate(wnl_sfc(1:nx, 1:ny))
-      ! allocate(wnm_sfc(1:nx, 1:ny))
       allocate(omi_sfc(1:nx, 1:ny, 1:nwm))
       allocate(wnk_sfc(1:nx, 1:ny, 1:nwm))
       allocate(wnl_sfc(1:nx, 1:ny, 1:nwm))
       allocate(wnm_sfc(1:nx, 1:ny, 1:nwm))
     else
       ! FJApr2023
-      ! allocate(omi_notop(1:sizeZ))
       allocate(omi_notop(1:nx, 1:ny, 1:sizeZ))
     end if
 
     ! FJApr2023
-    ! allocate(fld_amp(1:nx, 1:ny, 0:sizeZ)) ! 3D wave action field
-    allocate(fld_amp(1:nx, 1:ny, 0:sizeZ, 1:nwm))
+    allocate(fld_amp(1:nx, 1:ny, 0:sizeZ, 1:nwm)) ! 3D wave action field
 
     ! FJApr2023
     ! Store TFC levels for interpolations. Note that ray volumes beyond the
@@ -1725,11 +1706,6 @@ module wkb_module
 
     if(steady_state .and. case_wkb /= 3) stop "Steady state is implemented for &
         case_wkb == 3!"
-
-    ! testb
-    ! allocate (fld_ene(1:nx,1:ny,0:sizeZ)) ! 3D density-normalized
-    !                                             ! energy-density field
-    ! teste
 
     ! non-dimensional wave numbers
 
@@ -1964,7 +1940,6 @@ module wkb_module
                   + wnrm_init ** 2))
 
               ! wave-action density
-
               fld_amp(ix, jy, kz, :) = (amp_wkb / wnrm_init) ** 2 * (wnrh_init &
                   ** 2 + wnrm_init ** 2) / (2.0 * wnrh_init ** 2) &
                   * omi_notop(ix, jy, kz) * rhoStratTFC(ix, jy, kz)
@@ -2016,25 +1991,14 @@ module wkb_module
           ! local squared Brunt-Vaisala frequency
           call stratification(z(kz), 1, NN_nd)
 
-          ! FJApr2023
-          ! intrinsic frequency
-          ! omi_notop(kz) = branchr * sqrt((NN_nd * wnrh_init ** 2 + f_cor_nd ** 2 &
-          !     * wnrm_init ** 2) / (wnrh_init ** 2 + wnrm_init ** 2))
-
           ! wave-action density
-
           do jy = 1, ny
             do ix = 1, nx
-              ! FJApr2023
               ! intrinsic frequency
               omi_notop(ix, jy, kz) = branchr * sqrt((NN_nd * wnrh_init ** 2 &
                   + f_cor_nd ** 2 * wnrm_init ** 2) / (wnrh_init ** 2 &
                   + wnrm_init ** 2))
 
-              ! FJApr2023
-              ! fld_amp(ix, jy, kz, :) = (amp_wkb / wnrm_init) ** 2 &
-              !     * (wnrh_init ** 2 + wnrm_init ** 2) / (2.0 * wnrh_init ** 2) &
-              !     * omi_notop(kz) * rhoStrat(kz)
               fld_amp(ix, jy, kz, :) = (amp_wkb / wnrm_init) ** 2 * (wnrh_init &
                   ** 2 + wnrm_init ** 2) / (2.0 * wnrh_init ** 2) &
                   * omi_notop(ix, jy, kz) * rhoStrat(kz)
@@ -2065,83 +2029,70 @@ module wkb_module
                       fld_amp(ix, jy, kz, :) = 0.0
                     end if
                   end if
-
+                end if
                 if(sigwpy > 0.0) then
                   if(abs(y(jy + jy0) - yr0) < sigwpy) then
-                    fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz) * 0.5 * (1.0 &
+                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 * (1.0 &
                         + cos(pi * (y(jy + jy0) - yr0) / sigwpy))
                   else
-                    fld_amp(ix, jy, kz) = 0.0
+                    fld_amp(ix, jy, kz, :) = 0.0
+                  end if
+                
+                else
+                  fld_amp(ix, jy, kz, :) = 0.0
+                end if
+
+              elseif(case_wkb == 4) then ! to match the wavepacket case gaussian
+                fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) &
+                  * exp(- (z(kz) - zr0)**2. / sigwpz ** 2. )
+                  
+                if(sigwpx > 0.0) then
+                  if(abs(x(ix + ix0) - xr0) < sigwpx) then
+                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) &
+                          * cos(pi * (x(ix + ix0) - xr0) / (2. * sigwpx)) ** 2.
+                  else
+                    fld_amp(ix, jy, kz, :) = 0.0
                   end if
                 end if
-              else
-                fld_amp(ix, jy, kz) = 0.0
-              end if
-
-            elseif(case_wkb == 4) then ! to match the wavepacket case gaussian
-              ! fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz) * exp(- (z(kz) - zr0)**2. &
-              !     / 2.0 / sigwpz ** 2. )
-              ! Correction IK20231204
-              fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz) * exp(- (z(kz) - zr0)**2. &
-                  / sigwpz ** 2. )
-                  
-              if(sigwpx > 0.0) then
-                if(abs(x(ix + ix0) - xr0) < sigwpx) then
-                  ! fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz) &
-                  !       * cos(pi * (x(ix + ix0) - xr0) / (2. * sigwpx))
-
-                  ! Correction IK20231204
-                  fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz) &
-                        * cos(pi * (x(ix + ix0) - xr0) / (2. * sigwpx)) ** 2
-                else
-                  fld_amp(ix, jy, kz) = 0.0
+    
+                if(sigwpy > 0.0) then
+                  if(abs(y(jy + jy0) - yr0) < sigwpy) then
+                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :)  &
+                        * cos(pi * (y(jy + jy0) - yr0) / (2. * sigwpy)) ** 2.
+                  else
+                    fld_amp(ix, jy, kz, :) = 0.0
+                  end if
                 end if
               end if
-  
-              if(sigwpy > 0.0) then
-                if(abs(y(jy + jy0) - yr0) < sigwpy) then
-                  !fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz)  &
-                  !    * cos(pi * (y(jy + jy0) - yr0) / (2. * sigwpy))
 
-                  ! Correction IK20231204
-                  fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz)  &
-                      * cos(pi * (y(jy + jy0) - yr0) / (2. * sigwpy))
-                else
-                  fld_amp(ix, jy, kz) = 0.0
-                end if
+              ! caluculate initial tracerfluxvar, needed for the 
+              ! next-order gw tracer fluxes (see calc_meanFlow_effect)
+              if (include_tracer) then
+                tracerfluxvar(ix, jy, kz, :) = alphaTracer**2. &
+                  * fld_amp(ix, jy, kz, :) /rhoStrat(kz) &
+                  * wnrh_init**2./omi_notop(ix, jy, kz)/(wnrh_init ** 2 + wnrm_init ** 2)
               end if
-            elseif(case_wkb == 5) then ! matches wavepacket case 4
-              fld_amp(ix, jy, kz) = fld_amp(ix, jy, kz) * &
-              (1./(exp((z(kz)-zr0-sigwpz)*wnrm_init/(2.*pi))+1.) &
-              +1./(exp(-(z(kz)-zr0+sigwpz)*wnrm_init/(2.*pi))+1.)-1.)**2.
-            end if
-            ! testb
-            ! fld_ene(ix,jy,kz) &
-            ! = fld_amp(ix,jy,kz) * omi_notop(kz) / rhoStrat(kz)
-            ! teste
 
-            if (include_tracer) then
-              tracerfluxvar(ix, jy, kz) = alphaTracer**2. &
-                * fld_amp(ix, jy, kz) /rhoStrat(kz) &
-                * wnrh_init**2./omi_notop(kz)/(wnrh_init ** 2 + wnrm_init ** 2)
-            end if
-
+            end do
           end do
+        end do
+      end if
+    end if
+
+    ! initialize with wave-induced zonal wind
+    ! currently only available for 1D
+    if (lindUinit) then 
+      if ((sigwpx > 0.0) .or. (sigwpy > 0.0) .or. (wlry_init /= 0.0)) then
+        stop "setup_wkb: lindUinit only possible for 1D wavepacket envelope in z and wavelength in y = 0."
+      end if
+
+      do kz = 1, (nz)
+        do im = 1, nwm
+          var(:, :, kz, 2) = var(:, :, kz, 2) + wnrk_init &
+          * fld_amp(:, :, kz, im) / rhoStrat(kz)
         end do
       end do
     end if
-
-    if (lindUinit) then 
-      do kz = 1, (nz)
-        var(:, :, kz, 2) = var(:, :, kz, 2) + wnrk_init * fld_amp(:, :, kz) / rhoStrat(kz)
-      end do
-    end if
-
-    ! testb
-    ! print*,'in setup_wkb:'
-    ! print*,'peak density-normalized energy density =',&
-    !       & maxval(fld_ene(:,:,:)) * uRef**2
-    ! teste
 
     cgx_max = 0.0
     cgy_max = 0.0
@@ -2163,7 +2114,6 @@ module wkb_module
     dm_ini_nd = dm_init * lRef
 
     if(ixmin <= ixmax .and. jymin <= jymax) then
-
       !  in x-k subspace, loop over all spatial cells with ray volumes
       do ix = ixmin, ixmax
         ! likewise for y-l subspace
@@ -2172,10 +2122,6 @@ module wkb_module
           do kz = kzmin, kzmax
             iRay = 0
             i_sfc = 0
-
-            ! FJApr2023
-            ! if(topography .and. (zTFC(ix, jy, kz) < zrmin &
-            !     .or. zTFC(ix, jy, kz) > zrmax)) cycle
 
             ! in x-k subspace, loop over all r.v. within one spatial cell
             do ix2 = 1, nrxl
@@ -2216,8 +2162,6 @@ module wkb_module
                             ! excluded cases indicated by negative
                             ! ray-volume index
 
-                            ! FJApr2023
-                            ! if(fld_amp(ix, jy, kz) == 0.0) then
                             if(fld_amp(ix, jy, kz, iwm) == 0.0) then
                               ir_sfc(i_sfc, ix, jy) = - 1
                               cycle
@@ -2276,10 +2220,6 @@ module wkb_module
                           ! ray-volume wave numbers
 
                           if(case_wkb == 3) then
-                            ! FJApr2023
-                            ! wnk_0 = wnk_sfc(ix, jy)
-                            ! wnl_0 = wnl_sfc(ix, jy)
-                            ! wnm_0 = wnm_sfc(ix, jy)
                             wnk_0 = wnk_sfc(ix, jy, iwm)
                             wnl_0 = wnl_sfc(ix, jy, iwm)
                             wnm_0 = wnm_sfc(ix, jy, iwm)
@@ -2348,9 +2288,6 @@ module wkb_module
                           if(kz == sizeZ) then
                             ray(iRay, ix, jy, kz)%dens = 0.0
                           else
-                            ! FJApr2023
-                            ! ray(iRay, ix, jy, kz)%dens = fld_amp(ix, jy, kz) &
-                            !     / pspvol
                             ray(iRay, ix, jy, kz)%dens = fld_amp(ix, jy, kz, &
                                 iwm) / pspvol
                           endif
@@ -2358,12 +2295,8 @@ module wkb_module
                           ! intrinsic frequency
 
                           if(case_wkb == 3) then
-                            ! FJApr2023
-                            ! ray(iRay, ix, jy, kz)%omega = omi_sfc(ix, jy)
                             ray(iRay, ix, jy, kz)%omega = omi_sfc(ix, jy, iwm)
                           else
-                            ! FJApr2023
-                            ! ray(iRay, ix, jy, kz)%omega = omi_notop(kz)
                             ray(iRay, ix, jy, kz)%omega = omi_notop(ix, jy, kz)
                           end if
 
@@ -2508,16 +2441,7 @@ module wkb_module
 
     if(strtpe == 1) then
       if(topography) then
-        ! FJApr2023
         ! Locate the two closest levels.
-        ! ixjykz = minloc(abs(zTFC - zlc))
-        ! ixd = ixjykz(1) + lbound(zTFC, 1) - 1
-        ! jyd = ixjykz(2) + lbound(zTFC, 2) - 1
-        ! kzd = ixjykz(3) + lbound(zTFC, 3) - 1
-        ! ixjykz = minloc(abs(zTFC + zTFC(ixd, jyd, kzd) - 2.0 * zlc))
-        ! ixu = ixjykz(1) + lbound(zTFC, 1) - 1
-        ! jyu = ixjykz(2) + lbound(zTFC, 2) - 1
-        ! kzu = ixjykz(3) + lbound(zTFC, 3) - 1
         kzd = max(- 1, floor((zlc - 0.5 * jac(0, 0, 0) * dz &
             - topography_surface(0, 0)) / jac(0, 0, 0) / dz) + 1)
         kzu = kzd + 1
@@ -2528,24 +2452,11 @@ module wkb_module
         end if
 
         ! Assign the values.
-        ! zd = zTFC(ixd, jyd, kzd)
-        ! zu = zTFC(ixu, jyu, kzu)
-        ! strd = bvsStratTFC(ixd, jyd, kzd)
-        ! stru = bvsStratTFC(ixu, jyu, kzu)
         zd = zTFC(0, 0, kzd)
         zu = zTFC(0, 0, kzu)
         strd = bvsStratTFC(0, 0, kzd)
         stru = bvsStratTFC(0, 0, kzu)
 
-        ! Switch the levels if necessary.
-        ! if(zd > zu) then
-        !   zd = zd + zu
-        !   zu = zd - zu
-        !   zd = zd - zu
-        !   strd = strd + stru
-        !   stru = strd - stru
-        !   strd = strd - stru
-        ! end if
       else
         kzd = max(- 1, floor((zlc - 0.5 * dz - lz(0)) / dz) + 1)
 
@@ -2564,16 +2475,7 @@ module wkb_module
       end if
     elseif(strtpe == 2) then
       if(topography) then
-        ! FJApr2023
         ! Locate the two closest levels.
-        ! ixjykz = minloc(abs(zTildeTFC - zlc))
-        ! ixd = ixjykz(1) + lbound(zTildeTFC, 1) - 1
-        ! jyd = ixjykz(2) + lbound(zTildeTFC, 2) - 1
-        ! kzd = ixjykz(3) + lbound(zTildeTFC, 3) - 1
-        ! ixjykz = minloc(abs(zTildeTFC + zTildeTFC(ixd, jyd, kzd) - 2.0 * zlc))
-        ! ixu = ixjykz(1) + lbound(zTildeTFC, 1) - 1
-        ! jyu = ixjykz(2) + lbound(zTildeTFC, 2) - 1
-        ! kzu = ixjykz(3) + lbound(zTildeTFC, 3) - 1
         kzd = max(- 1, floor((zlc - topography_surface(0, 0)) / jac(0, 0, 0) &
             / dz))
         kzu = kzd + 1
@@ -2584,12 +2486,6 @@ module wkb_module
         end if
 
         ! Assign the values.
-        ! zd = zTildeTFC(ixd, jyd, kzd)
-        ! zu = zTildeTFC(ixu, jyu, kzu)
-        ! strd = (bvsStratTFC(ixd, jyd, kzd + 1) - bvsStratTFC(ixd, jyd, kzd)) &
-        !     * 2.0 / (jac(ixd, jyd, kzd) + jac(ixd, jyd, kzd + 1)) / dz
-        ! stru = (bvsStratTFC(ixu, jyu, kzu + 1) - bvsStratTFC(ixu, jyu, kzu)) &
-        !     * 2.0 / (jac(ixu, jyu, kzu) + jac(ixu, jyu, kzu + 1)) / dz
         zd = zTildeTFC(0, 0, kzd)
         zu = zTildeTFC(0, 0, kzu)
         strd = (bvsStratTFC(0, 0, kzd + 1) - bvsStratTFC(0, 0, kzd)) * 2.0 &
@@ -2597,15 +2493,6 @@ module wkb_module
         stru = (bvsStratTFC(0, 0, kzu + 1) - bvsStratTFC(0, 0, kzu)) * 2.0 &
             / (jac(0, 0, kzu) + jac(0, 0, kzu + 1)) / dz
 
-        ! Switch the levels if necessary.
-        ! if(zd > zu) then
-        !   zd = zd + zu
-        !   zu = zd - zu
-        !   zd = zd - zu
-        !   strd = strd + stru
-        !   stru = strd - stru
-        !   strd = strd - stru
-        ! end if
       else
         kzd = max(- 1, floor((zlc - lz(0)) / dz))
 
@@ -2637,8 +2524,6 @@ module wkb_module
     elseif(zlc > zu) then
       factor = 0.0
     elseif(zlc > zd) then
-      ! FJApr2023
-      ! factor = (zu - zlc) / dz
       factor = (zu - zlc) / (zu - zd)
     else
       factor = 1.0
@@ -2722,7 +2607,7 @@ module wkb_module
       end if
 
       zlc = position
-
+      
       kzd = max( -1, floor( (zlc - lz(0)) / dz))
       kzu = kzd + 1
 
@@ -3206,60 +3091,6 @@ module wkb_module
       end select
     end if
 
-    !! implement horizontal boundary conditions for ray-volume positions
-
-    !if (sizeX > 1) then
-    !   if(xlc < lx(0)) then
-    !      select case (xBoundary)
-    !         case ("periodic")
-    !            xlc = lx(1) + mod(xlc - lx(0),lx(1) - lx(0))
-    !            ! testb
-    !              if (xlc < lx(0)) then
-    !                 print*,'ERROR IN MEANFLOW: xlc =',xlc,'< lx(0) =', &
-    !                         & lx(0),'with lx(1) =',lx(1)
-    !                 print*,'lRef =',lRef
-    !                 stop
-    !              end if
-    !            ! teste
-    !         case default
-    !            stop"calc_meanflow_effect: unknown case xBoundary"
-    !      end select
-    !     elseif (xlc > lx(1)) then
-    !      select case (xBoundary)
-    !         case ("periodic")
-    !            xlc = lx(0) + mod(xlc - lx(1),lx(1) - lx(0))
-    !            ! testb
-    !              if (xlc > lx(1)) then
-    !                 print*,'ERROR IN MEANFLOW: xlc =',xlc,'> lx(1) =', &
-    !                         & lx(1),'with lx(0) =',lx(0)
-    !                 print*,'lRef =',lRef
-    !                 stop
-    !              end if
-    !            ! teste
-    !         case default
-    !            stop"calc_meanflow_effect: unknown case xBoundary"
-    !      end select
-    !   end if
-    !end if
-
-    !if (sizeY > 1) then
-    !   if(ylc < ly(0)) then
-    !      select case (yBoundary)
-    !         case ("periodic")
-    !            ylc = ly(1) + mod(ylc - ly(0),ly(1) - ly(0))
-    !         case default
-    !            stop"calc_meanflow_effect: unknown case yBoundary"
-    !      end select
-    !     elseif (ylc > ly(1)) then
-    !      select case (yBoundary)
-    !         case ("periodic")
-    !            ylc = ly(0) + mod(ylc - ly(1),ly(1) - ly(0))
-    !         case default
-    !            stop"calc_meanflow_effect: unknown case yBoundary"
-    !      end select
-    !   end if
-    !end if
-
     if(flwtpe == 1) then
       ! interpolate u using staggered-grid distribution
 
@@ -3346,16 +3177,6 @@ module wkb_module
         yb = y(jyb + jy0)
 
         ! Locate the closest points in vertical direction.
-
-        ! kzlbd = minloc(abs(zTFC(ixl, jyb, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzlbu = minloc(abs(zTFC(ixl, jyb, :) + zTFC(ixl, jyb, kzlbd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzlbd > kzlbu) then
-        !   kzlbd = kzlbd + kzlbu
-        !   kzlbu = kzlbd - kzlbu
-        !   kzlbd = kzlbd - kzlbu
-        ! end if
         kzlbd = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
             - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 1)
         kzlbu = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
@@ -3367,15 +3188,6 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        ! kzlfd = minloc(abs(zTFC(ixl, jyf, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzlfu = minloc(abs(zTFC(ixl, jyf, :) + zTFC(ixl, jyf, kzlfd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzlfd > kzlfu) then
-        !   kzlfd = kzlfd + kzlfu
-        !   kzlfu = kzlfd - kzlfu
-        !   kzlfd = kzlfd - kzlfu
-        ! end if
         kzlfd = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
             - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 1)
         kzlfu = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
@@ -3387,15 +3199,6 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        ! kzrbd = minloc(abs(zTFC(ixr, jyb, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzrbu = minloc(abs(zTFC(ixr, jyb, :) + zTFC(ixr, jyb, kzrbd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzrbd > kzrbu) then
-        !   kzrbd = kzrbd + kzrbu
-        !   kzrbu = kzrbd - kzrbu
-        !   kzrbd = kzrbd - kzrbu
-        ! end if
         kzrbd = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
             - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 1)
         kzrbu = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
@@ -3407,15 +3210,6 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        ! kzrfd = minloc(abs(zTFC(ixr, jyf, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzrfu = minloc(abs(zTFC(ixr, jyf, :) + zTFC(ixr, jyf, kzrfd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzrfd > kzrfu) then
-        !   kzrfd = kzrfd + kzrfu
-        !   kzrfu = kzrfd - kzrfu
-        !   kzrfd = kzrfd - kzrfu
-        ! end if
         kzrfd = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
             - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 1)
         kzrfu = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
@@ -3582,15 +3376,6 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        ! kzlbd = minloc(abs(zTFC(ixl, jyb, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzlbu = minloc(abs(zTFC(ixl, jyb, :) + zTFC(ixl, jyb, kzlbd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzlbd > kzlbu) then
-        !   kzlbd = kzlbd + kzlbu
-        !   kzlbu = kzlbd - kzlbu
-        !   kzlbd = kzlbd - kzlbu
-        ! end if
         kzlbd = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
             - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 1)
         kzlbu = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
@@ -3622,15 +3407,6 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        ! kzrbd = minloc(abs(zTFC(ixr, jyb, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzrbu = minloc(abs(zTFC(ixr, jyb, :) + zTFC(ixr, jyb, kzrbd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzrbd > kzrbu) then
-        !   kzrbd = kzrbd + kzrbu
-        !   kzrbu = kzrbd - kzrbu
-        !   kzrbd = kzrbd - kzrbu
-        ! end if
         kzrbd = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
             - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 1)
         kzrbu = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
@@ -3642,15 +3418,6 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        ! kzrfd = minloc(abs(zTFC(ixr, jyf, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzrfu = minloc(abs(zTFC(ixr, jyf, :) + zTFC(ixr, jyf, kzrfd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzrfd > kzrfu) then
-        !   kzrfd = kzrfd + kzrfu
-        !   kzrfu = kzrfd - kzrfu
-        !   kzrfd = kzrfd - kzrfu
-        ! end if
         kzrfd = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
             - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 1)
         kzrfu = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
@@ -3816,15 +3583,6 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        ! kzlbd = minloc(abs(zTildeTFC(ixl, jyb, :) - zlc), dim = 1) &
-        !     + lbound(zTildeTFC, 3) - 1
-        ! kzlbu = minloc(abs(zTildeTFC(ixl, jyb, :) + zTildeTFC(ixl, jyb, kzlbd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTildeTFC, 3) - 1
-        ! if(kzlbd > kzlbu) then
-        !   kzlbd = kzlbd + kzlbu
-        !   kzlbu = kzlbd - kzlbu
-        !   kzlbd = kzlbd - kzlbu
-        ! end if
         kzlbd = max(- nbz, floor((zlc - topography_surface(ixl, jyb)) &
             / jac(ixl, jyb, 0) / dz))
         kzlbu = kzlbd + 1
@@ -3835,15 +3593,6 @@ module wkb_module
         zlbd = zTildeTFC(ixl, jyb, kzlbd)
         zlbu = zTildeTFC(ixl, jyb, kzlbu)
 
-        ! kzlfd = minloc(abs(zTildeTFC(ixl, jyf, :) - zlc), dim = 1) &
-        !     + lbound(zTildeTFC, 3) - 1
-        ! kzlfu = minloc(abs(zTildeTFC(ixl, jyf, :) + zTildeTFC(ixl, jyf, kzlfd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTildeTFC, 3) - 1
-        ! if(kzlfd > kzlfu) then
-        !   kzlfd = kzlfd + kzlfu
-        !   kzlfu = kzlfd - kzlfu
-        !   kzlfd = kzlfd - kzlfu
-        ! end if
         kzlfd = max(- nbz, floor((zlc - topography_surface(ixl, jyf)) &
             / jac(ixl, jyf, 0) / dz))
         kzlfu = kzlfd + 1
@@ -3854,15 +3603,6 @@ module wkb_module
         zlfd = zTildeTFC(ixl, jyf, kzlfd)
         zlfu = zTildeTFC(ixl, jyf, kzlfu)
 
-        ! kzrbd = minloc(abs(zTildeTFC(ixr, jyb, :) - zlc), dim = 1) &
-        !     + lbound(zTildeTFC, 3) - 1
-        ! kzrbu = minloc(abs(zTildeTFC(ixr, jyb, :) + zTildeTFC(ixr, jyb, kzrbd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTildeTFC, 3) - 1
-        ! if(kzrbd > kzrbu) then
-        !   kzrbd = kzrbd + kzrbu
-        !   kzrbu = kzrbd - kzrbu
-        !   kzrbd = kzrbd - kzrbu
-        ! end if
         kzrbd = max(- nbz, floor((zlc - topography_surface(ixr, jyb)) &
             / jac(ixr, jyb, 0) / dz))
         kzrbu = kzrbd + 1
@@ -3873,15 +3613,6 @@ module wkb_module
         zrbd = zTildeTFC(ixr, jyb, kzrbd)
         zrbu = zTildeTFC(ixr, jyb, kzrbu)
 
-        ! kzrfd = minloc(abs(zTildeTFC(ixr, jyf, :) - zlc), dim = 1) &
-        !     + lbound(zTildeTFC, 3) - 1
-        ! kzrfu = minloc(abs(zTildeTFC(ixr, jyf, :) + zTildeTFC(ixr, jyf, kzrfd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTildeTFC, 3) - 1
-        ! if(kzrfd > kzrfu) then
-        !   kzrfd = kzrfd + kzrfu
-        !   kzrfu = kzrfd - kzrfu
-        !   kzrfd = kzrfd - kzrfu
-        ! end if
         kzrfd = max(- nbz, floor((zlc - topography_surface(ixr, jyf)) &
             / jac(ixr, jyf, 0) / dz))
         kzrfu = kzrfd + 1
@@ -4102,15 +3833,6 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        ! kzlbd = minloc(abs(zTFC(ixl, jyb, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzlbu = minloc(abs(zTFC(ixl, jyb, :) + zTFC(ixl, jyb, kzlbd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzlbd > kzlbu) then
-        !   kzlbd = kzlbd + kzlbu
-        !   kzlbu = kzlbd - kzlbu
-        !   kzlbd = kzlbd - kzlbu
-        ! end if
         kzlbd = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
             - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 1)
         kzlbu = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
@@ -4122,15 +3844,6 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        ! kzlfd = minloc(abs(zTFC(ixl, jyf, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzlfu = minloc(abs(zTFC(ixl, jyf, :) + zTFC(ixl, jyf, kzlfd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzlfd > kzlfu) then
-        !   kzlfd = kzlfd + kzlfu
-        !   kzlfu = kzlfd - kzlfu
-        !   kzlfd = kzlfd - kzlfu
-        ! end if
         kzlfd = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
             - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 1)
         kzlfu = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
@@ -4142,15 +3855,6 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        ! kzrbd = minloc(abs(zTFC(ixr, jyb, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzrbu = minloc(abs(zTFC(ixr, jyb, :) + zTFC(ixr, jyb, kzrbd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzrbd > kzrbu) then
-        !   kzrbd = kzrbd + kzrbu
-        !   kzrbu = kzrbd - kzrbu
-        !   kzrbd = kzrbd - kzrbu
-        ! end if
         kzrbd = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
             - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 1)
         kzrbu = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
@@ -4162,15 +3866,6 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        ! kzrfd = minloc(abs(zTFC(ixr, jyf, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzrfu = minloc(abs(zTFC(ixr, jyf, :) + zTFC(ixr, jyf, kzrfd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzrfd > kzrfu) then
-        !   kzrfd = kzrfd + kzrfu
-        !   kzrfu = kzrfd - kzrfu
-        !   kzrfd = kzrfd - kzrfu
-        ! end if
         kzrfd = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
             - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 1)
         kzrfu = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
@@ -4396,15 +4091,6 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        ! kzlbd = minloc(abs(zTFC(ixl, jyb, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzlbu = minloc(abs(zTFC(ixl, jyb, :) + zTFC(ixl, jyb, kzlbd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzlbd > kzlbu) then
-        !   kzlbd = kzlbd + kzlbu
-        !   kzlbu = kzlbd - kzlbu
-        !   kzlbd = kzlbd - kzlbu
-        ! end if
         kzlbd = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
             - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 1)
         kzlbu = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
@@ -4416,15 +4102,6 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        ! kzlfd = minloc(abs(zTFC(ixl, jyf, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzlfu = minloc(abs(zTFC(ixl, jyf, :) + zTFC(ixl, jyf, kzlfd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzlfd > kzlfu) then
-        !   kzlfd = kzlfd + kzlfu
-        !   kzlfu = kzlfd - kzlfu
-        !   kzlfd = kzlfd - kzlfu
-        ! end if
         kzlfd = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
             - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 1)
         kzlfu = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
@@ -4436,15 +4113,6 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        ! kzrbd = minloc(abs(zTFC(ixr, jyb, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzrbu = minloc(abs(zTFC(ixr, jyb, :) + zTFC(ixr, jyb, kzrbd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzrbd > kzrbu) then
-        !   kzrbd = kzrbd + kzrbu
-        !   kzrbu = kzrbd - kzrbu
-        !   kzrbd = kzrbd - kzrbu
-        ! end if
         kzrbd = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
             - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 1)
         kzrbu = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
@@ -4456,15 +4124,6 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        ! kzrfd = minloc(abs(zTFC(ixr, jyf, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzrfu = minloc(abs(zTFC(ixr, jyf, :) + zTFC(ixr, jyf, kzrfd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzrfd > kzrfu) then
-        !   kzrfd = kzrfd + kzrfu
-        !   kzrfu = kzrfd - kzrfu
-        !   kzrfd = kzrfd - kzrfu
-        ! end if
         kzrfd = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
             - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 1)
         kzrfu = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
@@ -4756,15 +4415,6 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        ! kzlbd = minloc(abs(zTildeTFC(ixl, jyb, :) - zlc), dim = 1) &
-        !     + lbound(zTildeTFC, 3) - 1
-        ! kzlbu = minloc(abs(zTildeTFC(ixl, jyb, :) + zTildeTFC(ixl, jyb, kzlbd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTildeTFC, 3) - 1
-        ! if(kzlbd > kzlbu) then
-        !   kzlbd = kzlbd + kzlbu
-        !   kzlbu = kzlbd - kzlbu
-        !   kzlbd = kzlbd - kzlbu
-        ! end if
         kzlbd = max(- nbz, floor((zlc - topography_surface(ixl, jyb)) &
             / jac(ixl, jyb, 0) / dz))
         kzlbu = kzlbd + 1
@@ -4775,15 +4425,6 @@ module wkb_module
         zlbd = zTildeTFC(ixl, jyb, kzlbd)
         zlbu = zTildeTFC(ixl, jyb, kzlbu)
 
-        ! kzlfd = minloc(abs(zTildeTFC(ixl, jyf, :) - zlc), dim = 1) &
-        !     + lbound(zTildeTFC, 3) - 1
-        ! kzlfu = minloc(abs(zTildeTFC(ixl, jyf, :) + zTildeTFC(ixl, jyf, kzlfd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTildeTFC, 3) - 1
-        ! if(kzlfd > kzlfu) then
-        !   kzlfd = kzlfd + kzlfu
-        !   kzlfu = kzlfd - kzlfu
-        !   kzlfd = kzlfd - kzlfu
-        ! end if
         kzlfd = max(- nbz, floor((zlc - topography_surface(ixl, jyf)) &
             / jac(ixl, jyf, 0) / dz))
         kzlfu = kzlfd + 1
@@ -4794,15 +4435,6 @@ module wkb_module
         zlfd = zTildeTFC(ixl, jyf, kzlfd)
         zlfu = zTildeTFC(ixl, jyf, kzlfu)
 
-        ! kzrbd = minloc(abs(zTildeTFC(ixr, jyb, :) - zlc), dim = 1) &
-        !     + lbound(zTildeTFC, 3) - 1
-        ! kzrbu = minloc(abs(zTildeTFC(ixr, jyb, :) + zTildeTFC(ixr, jyb, kzrbd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTildeTFC, 3) - 1
-        ! if(kzrbd > kzrbu) then
-        !   kzrbd = kzrbd + kzrbu
-        !   kzrbu = kzrbd - kzrbu
-        !   kzrbd = kzrbd - kzrbu
-        ! end if
         kzrbd = max(- nbz, floor((zlc - topography_surface(ixr, jyb)) &
             / jac(ixr, jyb, 0) / dz))
         kzrbu = kzrbd + 1
@@ -4813,15 +4445,6 @@ module wkb_module
         zrbd = zTildeTFC(ixr, jyb, kzrbd)
         zrbu = zTildeTFC(ixr, jyb, kzrbu)
 
-        ! kzrfd = minloc(abs(zTildeTFC(ixr, jyf, :) - zlc), dim = 1) &
-        !     + lbound(zTildeTFC, 3) - 1
-        ! kzrfu = minloc(abs(zTildeTFC(ixr, jyf, :) + zTildeTFC(ixr, jyf, kzrfd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTildeTFC, 3) - 1
-        ! if(kzrfd > kzrfu) then
-        !   kzrfd = kzrfd + kzrfu
-        !   kzrfu = kzrfd - kzrfu
-        !   kzrfd = kzrfd - kzrfu
-        ! end if
         kzrfd = max(- nbz, floor((zlc - topography_surface(ixr, jyf)) &
             / jac(ixr, jyf, 0) / dz))
         kzrfu = kzlbd + 1
@@ -5140,15 +4763,6 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        ! kzlbd = minloc(abs(zTFC(ixl, jyb, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzlbu = minloc(abs(zTFC(ixl, jyb, :) + zTFC(ixl, jyb, kzlbd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzlbd > kzlbu) then
-        !   kzlbd = kzlbd + kzlbu
-        !   kzlbu = kzlbd - kzlbu
-        !   kzlbd = kzlbd - kzlbu
-        ! end if
         kzlbd = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
             - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 1)
         kzlbu = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
@@ -5160,15 +4774,6 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        ! kzlfd = minloc(abs(zTFC(ixl, jyf, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzlfu = minloc(abs(zTFC(ixl, jyf, :) + zTFC(ixl, jyf, kzlfd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzlfd > kzlfu) then
-        !   kzlfd = kzlfd + kzlfu
-        !   kzlfu = kzlfd - kzlfu
-        !   kzlfd = kzlfd - kzlfu
-        ! end if
         kzlfd = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
             - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 1)
         kzlfu = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
@@ -5180,15 +4785,6 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        ! kzrbd = minloc(abs(zTFC(ixr, jyb, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzrbu = minloc(abs(zTFC(ixr, jyb, :) + zTFC(ixr, jyb, kzrbd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzrbd > kzrbu) then
-        !   kzrbd = kzrbd + kzrbu
-        !   kzrbu = kzrbd - kzrbu
-        !   kzrbd = kzrbd - kzrbu
-        ! end if
         kzrbd = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
             - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 1)
         kzrbu = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
@@ -5200,15 +4796,6 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        ! kzrfd = minloc(abs(zTFC(ixr, jyf, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzrfu = minloc(abs(zTFC(ixr, jyf, :) + zTFC(ixr, jyf, kzrfd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzrfd > kzrfu) then
-        !   kzrfd = kzrfd + kzrfu
-        !   kzrfu = kzrfd - kzrfu
-        !   kzrfd = kzrfd - kzrfu
-        ! end if
         kzrfd = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
             - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 1)
         kzrfu = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
@@ -5499,15 +5086,6 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        ! kzlbd = minloc(abs(zTFC(ixl, jyb, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzlbu = minloc(abs(zTFC(ixl, jyb, :) + zTFC(ixl, jyb, kzlbd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzlbd > kzlbu) then
-        !   kzlbd = kzlbd + kzlbu
-        !   kzlbu = kzlbd - kzlbu
-        !   kzlbd = kzlbd - kzlbu
-        ! end if
         kzlbd = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
             - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 1)
         kzlbu = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
@@ -5519,15 +5097,6 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        ! kzlfd = minloc(abs(zTFC(ixl, jyf, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzlfu = minloc(abs(zTFC(ixl, jyf, :) + zTFC(ixl, jyf, kzlfd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzlfd > kzlfu) then
-        !   kzlfd = kzlfd + kzlfu
-        !   kzlfu = kzlfd - kzlfu
-        !   kzlfd = kzlfd - kzlfu
-        ! end if
         kzlfd = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
             - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 1)
         kzlfu = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
@@ -5539,15 +5108,6 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        ! kzrbd = minloc(abs(zTFC(ixr, jyb, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzrbu = minloc(abs(zTFC(ixr, jyb, :) + zTFC(ixr, jyb, kzrbd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzrbd > kzrbu) then
-        !   kzrbd = kzrbd + kzrbu
-        !   kzrbu = kzrbd - kzrbu
-        !   kzrbd = kzrbd - kzrbu
-        ! end if
         kzrbd = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
             - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 1)
         kzrbu = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
@@ -5559,15 +5119,6 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        ! kzrfd = minloc(abs(zTFC(ixr, jyf, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzrfu = minloc(abs(zTFC(ixr, jyf, :) + zTFC(ixr, jyf, kzrfd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzrfd > kzrfu) then
-        !   kzrfd = kzrfd + kzrfu
-        !   kzrfu = kzrfd - kzrfu
-        !   kzrfd = kzrfd - kzrfu
-        ! end if
         kzrfd = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
             - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 1)
         kzrfu = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
@@ -5792,15 +5343,6 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        ! kzlbd = minloc(abs(zTildeTFC(ixl, jyb, :) - zlc), dim = 1) &
-        !     + lbound(zTildeTFC, 3) - 1
-        ! kzlbu = minloc(abs(zTildeTFC(ixl, jyb, :) + zTildeTFC(ixl, jyb, kzlbd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTildeTFC, 3) - 1
-        ! if(kzlbd > kzlbu) then
-        !   kzlbd = kzlbd + kzlbu
-        !   kzlbu = kzlbd - kzlbu
-        !   kzlbd = kzlbd - kzlbu
-        ! end if
         kzlbd = max(- nbz, floor((zlc - topography_surface(ixl, jyb)) &
             / jac(ixl, jyb, 0) / dz))
         kzlbu = kzlbd + 1
@@ -5811,15 +5353,6 @@ module wkb_module
         zlbd = zTildeTFC(ixl, jyb, kzlbd)
         zlbu = zTildeTFC(ixl, jyb, kzlbu)
 
-        ! kzlfd = minloc(abs(zTildeTFC(ixl, jyf, :) - zlc), dim = 1) &
-        !     + lbound(zTildeTFC, 3) - 1
-        ! kzlfu = minloc(abs(zTildeTFC(ixl, jyf, :) + zTildeTFC(ixl, jyf, kzlfd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTildeTFC, 3) - 1
-        ! if(kzlfd > kzlfu) then
-        !   kzlfd = kzlfd + kzlfu
-        !   kzlfu = kzlfd - kzlfu
-        !   kzlfd = kzlfd - kzlfu
-        ! end if
         kzlfd = max(- nbz, floor((zlc - topography_surface(ixl, jyf)) &
             / jac(ixl, jyf, 0) / dz))
         kzlfu = kzlfd + 1
@@ -5830,15 +5363,6 @@ module wkb_module
         zlfd = zTildeTFC(ixl, jyf, kzlfd)
         zlfu = zTildeTFC(ixl, jyf, kzlfu)
 
-        ! kzrbd = minloc(abs(zTildeTFC(ixr, jyb, :) - zlc), dim = 1) &
-        !     + lbound(zTildeTFC, 3) - 1
-        ! kzrbu = minloc(abs(zTildeTFC(ixr, jyb, :) + zTildeTFC(ixr, jyb, kzrbd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTildeTFC, 3) - 1
-        ! if(kzrbd > kzrbu) then
-        !   kzrbd = kzrbd + kzrbu
-        !   kzrbu = kzrbd - kzrbu
-        !   kzrbd = kzrbd - kzrbu
-        ! end if
         kzrbd = max(- nbz, floor((zlc - topography_surface(ixr, jyb)) &
             / jac(ixr, jyb, 0) / dz))
         kzrbu = kzrbd + 1
@@ -5849,15 +5373,6 @@ module wkb_module
         zrbd = zTildeTFC(ixr, jyb, kzrbd)
         zrbu = zTildeTFC(ixr, jyb, kzrbu)
 
-        ! kzrfd = minloc(abs(zTildeTFC(ixr, jyf, :) - zlc), dim = 1) &
-        !     + lbound(zTildeTFC, 3) - 1
-        ! kzrfu = minloc(abs(zTildeTFC(ixr, jyf, :) + zTildeTFC(ixr, jyf, kzrfd) &
-        !     - 2.0 * zlc), dim = 1) + lbound(zTildeTFC, 3) - 1
-        ! if(kzrfd > kzrfu) then
-        !   kzrfd = kzrfd + kzrfu
-        !   kzrfu = kzrfd - kzrfu
-        !   kzrfd = kzrfd - kzrfu
-        ! end if
         kzrfd = max(- nbz, floor((zlc - topography_surface(ixr, jyf)) &
             / jac(ixr, jyf, 0) / dz))
         kzrfu = kzrfd + 1
