@@ -6305,8 +6305,6 @@ module update_module
 
         end do
       end do
-        end do
-      end do
     end do
 
   end subroutine tracerUpdate
