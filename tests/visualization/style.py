@@ -19,7 +19,7 @@ preamble = (r"\usepackage{amsmath, amstext, amssymb, amsfonts, amsthm}" \
     r"\renewcommand*\ttdefault{lmtt}")
 
 # Set plot parameters.
-pyplot.style.use("seaborn-bright")
+pyplot.style.use("seaborn-v0_8-bright")
 pyplot.rcParams["figure.constrained_layout.use"] = True
 pyplot.rcParams["figure.figsize"] = (4.0, 3.0)
 pyplot.rcParams["font.family"] = "serif"
