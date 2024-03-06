@@ -15,8 +15,8 @@ if "levante" in host_name:
 
 elif "login" in host_name:
     # Goethe cluster
-    data_path = "/scratch/atmodynamics/" + user_name + "/output/2024/2024-03-05/tests"
-    reference_path = "/scratch/atmodynamics/" + user_name + "/output/2024/2024-03-05/tests"
+  data_path = "/scratch/atmodynamics/" + user_name + "/PF/runs"
+  reference_path = "/scratch/atmodynamics/" + user_name + "/PF/pinc/reference"
 
 else:
   # Local machine
