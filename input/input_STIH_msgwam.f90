@@ -274,7 +274,7 @@ range_factor = 10         ! factor by which mountain range is wider than
   maxIter = 1              ! stop after maxIter time steps
 
   outputTimeDiff =  60.0   ! output every ... seconds
-  maxTime = 36000.         ! stop after maxTime seconds
+  maxTime = 24000.         ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -493,7 +493,7 @@ lsaturation = .true.,    ! JaWi 16.12.16 (sat)
 alpha_sat = 2.,         ! JaWi 16.12.16 (sat)
 
 case_wkb = 1,            ! 1/2: Gaussian/Cosine wave packet; 3: mountain
-amp_wkb = 0.5            ! amplitude of the wave packet (wrt saturation)
+amp_wkb = 0.9            ! amplitude of the wave packet (wrt saturation)
 
 wlrx_init = 30.e3,        ! initial lambda_x of the wave packet (m)
 wlry_init = 0.0,          ! initial lambda_y of the wave packet (m)
