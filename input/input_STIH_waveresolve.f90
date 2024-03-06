@@ -272,7 +272,7 @@ range_factor = 10         ! factor by which mountain range is wider than
   maxIter = 1             ! stop after maxIter time steps
 
   outputTimeDiff =  60.  ! output every ... seconds
-  maxTime = 36000.!18000.0          ! stop after maxTime seconds
+  maxTime = 24000.!18000.0          ! stop after maxTime seconds
 
   dataFileName = ""        ! empty string "" -> dataFileName = testCase
   restartFile = "restart.ref"   ! restart file in TEC360 format
@@ -419,7 +419,7 @@ lambdaY_dim = 0.0       ! wave length in y direction in m
                         ! lambday = 0.0 --> infinite wavelength
 lambdaZ_dim = 3.e3      ! vertical wave length in m
 
-amplitudeFactor = 0.5   ! normalilized buoyancy amplitude
+amplitudeFactor = 0.9   ! normalilized buoyancy amplitude
 
 xCenter_dim = 500.0     ! center of wave packet in x direction in m
 
