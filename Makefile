@@ -2,7 +2,7 @@
 
 # Set compiler.
 FC = mpif90
-#FC = mpiifort
+#FC = mpiifortc
 COMPILER = $(shell echo `$(FC) --version` | sed 's/ .*//')
 
 # Set flags.
