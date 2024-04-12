@@ -790,6 +790,11 @@ module type_module
     real :: dzray ! dz associated with each ray volume
 
     real :: dens ! wave-action density
+
+    !SD
+    ! initail phase ray volume
+    real :: dphi ! initial phase
+
   end type rayType
 
   ! total number of active rays
@@ -813,13 +818,13 @@ module type_module
   !----------------------------------------------------------------
   !                           Tracer
   !----------------------------------------------------------------
-  character(len=20) :: tracerSetup
+  character(len = 20) :: tracerSetup
   logical :: include_gw_tracer_forcing, include_tracer_mixing, &
-  include_env_tracer_forcing, tracerdifference, include_prime
+      include_env_tracer_forcing, tracerdifference, include_prime
 
   namelist / tracerList / tracerSetup, include_gw_tracer_forcing, &
-            include_tracer_mixing, tracerdifference, &
-            include_prime, include_env_tracer_forcing
+      include_tracer_mixing, tracerdifference, include_prime, &
+      include_env_tracer_forcing
 
   !-----------------------------------------------------------------
   !                           Ice physics
@@ -853,7 +858,14 @@ module type_module
       SIce_threshold_type
 
   !SD: Ice physics 2
+  type opt_rayType
+    real :: Fsat !full saturation ration within ray volume
+    real :: Msat !mean saturation ration within ray volume
+    real :: w ! vertical velocity amplitude
+  end type opt_rayType
+
   integer, dimension(:), allocatable :: iVarIce
+  type(opt_rayType), dimension(:, :, :, :), allocatable :: opt_ray
   integer :: inN, inQ, inQv, nVarIce
 
   real :: J_nuc !Nucleation rate [#/kg/s]
@@ -874,13 +886,29 @@ module type_module
   real :: dt_ice2 = 0.1 ! length of the microphysical time step [s]
 
   real :: thetaRefRatio !thetaRef/thetaRef_tropo_pause
-
-  real :: L_hat, epsil0hat
+  real :: L_hat, Li_hat, epsil0hat
+  real :: alr_ndim ! non-dimensioanl adiabatic lapse rate
   real * 4, dimension(:, :, :, :), allocatable :: ofield
-  namelist / iceList2 / inN, inQ, inQv, nVarIce, dt_ice2
+
+  logical :: no_ice_source ! set to true if only ice advection and no ice source
+  ! are considered
+  logical, parameter :: compare_raytracer = .True. ! modify Wavepacket simulation to facilitate comparison with raytracer
+  namelist / iceList2 / inN, inQ, inQv, nVarIce, dt_ice2, no_ice_source
+
+  real, allocatable :: var_ww(:, :, :) ! flux <w'w'> from RayTracer
 
   !include_testoutput
-  integer :: iVarO
+  integer :: iVarO, iVarS, iVarP, iVarAW
+
+  !output ray volumes
+  real * 4, dimension(:), allocatable :: nor_mst
+  real * 4, dimension(:, :), allocatable :: vct_out, vct_prc, vct_mst
+
+  integer, parameter :: NFR = 15 ! number of quantities stored for each ray volume
+  ! \vec x, \vec k, \vec dx, \vec dk, omega, density,
+  ! vertical vel.
+  integer :: TTNOR ! total number of rays
+  integer :: NoR_out ! counter for ray volumes output
 
   contains
 
@@ -934,7 +962,6 @@ module type_module
     ! Sponge order (FJMar2023)
     spongeOrder = 1
 
-    
     ! COSMO steps (FJJul2023)
     cosmoSteps = 10
 
@@ -957,6 +984,9 @@ module type_module
     include_gw_tracer_forcing = .true. ! leading order tracer fluxes
     include_tracer_mixing = .true. ! diffusive mixing of tracer
     include_env_tracer_forcing = .true. ! next-order tracer fluxes
+
+    ! include ice_source (SD2023)
+    no_ice_source = .false.
 
   end subroutine default_values
 

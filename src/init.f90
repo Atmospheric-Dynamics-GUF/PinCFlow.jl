@@ -4,7 +4,6 @@ module init_module
   use atmosphere_module
   use ice_module
   use ice2_module
-  !SD
   use opt_field_mod
   use mpi_module
   use boundary_module
@@ -51,16 +50,16 @@ module init_module
     !-----------------------------------------
 
     ! in/out variables
-    real, dimension (:, :, :, :), allocatable, intent (out) :: var, var0, &
-        var1, varG, source
-    real, dimension (:, :, :, :, :), allocatable, intent (out) :: flux, flux0
-    real, dimension (:, :, :, :), allocatable, intent (out) :: force
-    real, dimension (:, :, :, :), allocatable, intent (out) :: tracerforce ! tracer forcing in WKB
-    real, dimension (:, :, :), allocatable :: dRho, dRhop ! RK-Update for rho
-    real, dimension (:, :, :, :), allocatable :: dMom ! ...rhoU,rhoV,rhoW
-    real, dimension (:, :, :), allocatable :: dTheta ! RK-Update for theta
-    real, dimension (:, :, :, :), allocatable :: dIce ! RK-Update for nIce,qIce,qAer,qv
-    real, dimension (:, :, :), allocatable :: dTracer ! RK-Update for rhoTracer
+    real, dimension(:, :, :, :), allocatable, intent(out) :: var, var0, var1, &
+        varG, source
+    real, dimension(:, :, :, :, :), allocatable, intent(out) :: flux, flux0
+    real, dimension(:, :, :, :), allocatable, intent(out) :: force
+    real, dimension(:, :, :, :), allocatable, intent(out) :: tracerforce ! tracer forcing in WKB
+    real, dimension(:, :, :), allocatable :: dRho, dRhop ! RK-Update for rho
+    real, dimension(:, :, :, :), allocatable :: dMom ! ...rhoU,rhoV,rhoW
+    real, dimension(:, :, :), allocatable :: dTheta ! RK-Update for theta
+    real, dimension(:, :, :, :), allocatable :: dIce ! RK-Update for nIce,qIce,qAer,qv
+    real, dimension(:, :, :), allocatable :: dTracer ! RK-Update for rhoTracer
 
     !UAB
     real, dimension(:), allocatable :: dPStrat, drhoStrat ! RK-Update for P
@@ -145,17 +144,7 @@ module init_module
 
     if(include_ice) nVar = nVar + 4
 
-    !SD
     call set_opt_field
-    !!$    if(include_ice) nVar = nVar + 4
-    !!$    if(include_tracer) then
-    !!$      if(nVar /= 8) then
-    !!$        stop "init.f90: nVar must be set to 8"
-    !!$      end if
-    !!$
-    !!$      nVar = nVar + 1
-    !!$      iVarT = nVar
-    !!$    end if
 
     ! allocate var = (rho,u,v,w,pEx)
     allocate(var(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), stat &
@@ -209,21 +198,28 @@ module init_module
       if(allocstat /= 0) stop "init.f90: Could not allocate dIce."
     end if
 
-    !SD
     if(include_ice2) then
       allocate(dIce(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), stat &
           = allocstat)
       if(allocstat /= 0) stop "init.f90: Could not allocate dIce."
-
-      allocate(ofield(nx, ny, nz, 6), stat = allocstat)
-      if(allocstat /= 0) stop "init.f90: Could not allocate field_out."
-
-    end if
+    end if !include_ice2
 
     if(include_tracer) then
       allocate(dTracer(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
           = allocstat)
       if(allocstat /= 0) stop "init.f90: Could not allocate dTracer."
+    end if
+
+    !SD
+    if(include_testoutput) then
+
+      allocate(ofield(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 6), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "init.f90: Could not allocate ofield."
+
+      !init
+      ofield = 0.
+
     end if
 
     !UAB
@@ -353,7 +349,6 @@ module init_module
       read(unit = 10, nml = iceLIst)
     end if
 
-    !SD
     call read_nml_opt_field
     call write_index_opt_field
 
@@ -563,9 +558,9 @@ module init_module
 
   ! --------------------------------------------------------------------
 
-  !SD
   subroutine initialise(var, flux)
-    !subroutine initialise(var)
+    implicit none
+
     !------------------
     ! setup test cases
     !------------------
@@ -613,15 +608,16 @@ module init_module
     real :: xCenter, yCenter ! center of distribution (hor.)
     real :: zCenter ! center of distribution (vert.)
     real :: phi ! local phase
-    real :: u, v, w, b, t! buoyancy, velocities
+    real :: u, v, w, b, t ! buoyancy, velocities
     real :: lambdaX, lambdaY ! hor. wave lengths
     real :: lambdaZ ! vert. wave lengths
 
-    !SD
     complex, dimension(:, :, :, :, :), allocatable :: Psi
+    ! reconstruct waveaction density for wavepacket testcase
+    !    real :: kk2, mm2, kTot2, maxPsi
+    !    real :: Ro_GWP, RoInv_GWP !FS
 
-    !SD
-    integer :: allocstat 
+    integer :: allocstat
 
     real :: u1, w1, b1, p1
     real :: u2, w2, b2, p2
@@ -985,7 +981,6 @@ module init_module
       !--------------------
       call init_GWP(Psi, kk, mm, ll, indwindcoeff)
 
-
       do k = 0, (nz + 1)
         do j = 0, (ny + 1)
           do i = 0, (nx + 1)
@@ -1024,7 +1019,7 @@ module init_module
               w = w1
               p = p1
             end if
-            
+
             ! additional vars
             if(topography) then
               ! TFC FJ
@@ -1078,23 +1073,24 @@ module init_module
             var(i, j, k, 4) = w
             var(i, j, k, 5) = p
 
-            
-            if (include_tracer) then
+            if(include_tracer) then
               ! include_prime: chi = <chi> + chi'
               ! where chi' = alphaTracer/N^2 * b'
               ! from inserting WKB ansatz into linearized
               ! equation for chi' and using polarization
               ! relation
-              if (include_prime) then
-                if (topography) then 
-                  stop 'init.f90: wavepacket tracer prime and topography not implemented'
+              if(include_prime) then
+                if(topography) then
+                  stop 'init.f90: wavepacket tracer prime and topography not &
+                      implemented'
                 else
-                  ! only set up for <chi>=alphaTracer*z 
+                  ! only set up for <chi>=alphaTracer*z
                   ! large-scale tracer distribution
-                  if (tracerSetup == "increase_in_z_tracer") then
-                    var(i, j, k, iVarT) = alphaTracer/N2 * b
+                  if(tracerSetup == "increase_in_z_tracer") then
+                    var(i, j, k, iVarT) = alphaTracer / N2 * b
                   else
-                    stop 'init.f90: unknown initial tracer with wavepacket tracer prime'
+                    stop 'init.f90: unknown initial tracer with wavepacket &
+                        tracer prime'
                   end if
                 end if
               else
@@ -1102,9 +1098,13 @@ module init_module
               end if
             end if
 
-            if (inducedwind) then
+            if(inducedwind) then
               !stop "Error: induced wind currently not possible. Potential error in code."
-              var(i, j, k, 2) = var(i, j, k, 2) + indwindcoeff * b**2.
+              var(i, j, k, 2) = var(i, j, k, 2) + indwindcoeff * b ** 2.
+            end if
+
+            if(include_testoutput .and. testCase == 'wavePacket') then
+              ofield(i, j, k, 4) = real(Psi(i, j, k, 2, 1) * exp(phi * imag))
             end if
 
             ! TFC FJ
@@ -1150,12 +1150,14 @@ module init_module
         stop "initialize: unknown case model"
       end select
 
-
       ! initialize the ice variables according to iceTestcase
       if(include_ice) call setup_ice(var)
 
-      !--------------------------------------------------------------
-   
+      !SD
+      if(include_ice2) call setup_ice2(var)
+
+      !---------------------------------------------------------------
+
     case('mountainwave')
       ! for wave resolving simulation of mountain waves:
       ! read parameters for temporary wind relaxation
@@ -1396,6 +1398,9 @@ module init_module
           end do
         end do
       end do
+
+      !SD
+      if(include_ice2) call setup_ice2(var)
 
       !---------------------------------------------------
       !                Hot and cold bubbles
@@ -4768,35 +4773,35 @@ module init_module
       print *, ""
 
       print *, "11) Tracer: "
-      if (include_tracer) then
+      if(include_tracer) then
         write(*, fmt = "(a25,a)") "tracer = ", "on"
 
-        if (tracerdifference) then
+        if(tracerdifference) then
           write(*, fmt = "(a25,a)") "tracerdifference = ", "on"
         else
           write(*, fmt = "(a25,a)") "tracerdifference = ", "off"
         end if
 
-        if (raytracer) then
-          if (include_gw_tracer_forcing) then
+        if(raytracer) then
+          if(include_gw_tracer_forcing) then
             write(*, fmt = "(a25,a)") "include_gw_tracer_forcing = ", "on"
           else
             write(*, fmt = "(a25,a)") "include_gw_tracer_forcing = ", "off"
           end if
 
-          if (include_tracer_mixing) then
+          if(include_tracer_mixing) then
             write(*, fmt = "(a25,a)") "include_tracer_mixing = ", "on"
           else
             write(*, fmt = "(a25,a)") "include_tracer_mixing = ", "off"
           end if
-        else 
-          if (include_prime) then
+        else
+          if(include_prime) then
             write(*, fmt = "(a25,a)") "include_prime = ", "on"
           else
             write(*, fmt = "(a25,a)") "include_prime = ", "off"
           end if
         end if
-      else 
+      else
         write(*, fmt = "(a25,a)") "include_tracer = ", "off"
       end if
 
@@ -5002,7 +5007,7 @@ module init_module
       wAmp = omi / N2 * bAmp
       pAmp = kappa * Ma2 * mm / kk ** 2 * omi2 / N2 * bAmp ! Exner pressure
 
-      indwindcoeff = kk * omi * kTot2 / (N2**2. * (kk * kk + ll * ll))
+      indwindcoeff = kk * omi * kTot2 / (N2 ** 2. * (kk * kk + ll * ll))
       close(10)
 
       !----------------------
@@ -5067,29 +5072,51 @@ module init_module
               ! at the horizontal boundaries
               ! in case of zero sigma in x or y direction use infinity
 
+              !!$              if(sigma_x == 0.0) then
+              !!$                envel = 1.0
+              !!$              else if(abs(delx) < sigma_x) then
+              !!$                envel = 1.0 - amp_mod_x + amp_mod_x * cos(delx * pi / (sigma_x &
+              !!$                    * 2.0))
+              !!$              else
+              !!$                envel = 1.0 - amp_mod_x
+              !!$              end if
+              !!$
+              !!$              if(sigma_y == 0.0) then
+              !!$                envel = 1.0 * envel
+              !!$              else if(abs(dely) < sigma_y) then
+              !!$                envel = (1.0 - amp_mod_y + amp_mod_y * cos(dely * pi &
+              !!$                    / (sigma_y * 2.0))) * envel
+              !!$              else
+              !!$                envel = envel * (1.0 - amp_mod_y)
+              !!$              end if
+              !!$
+              !!$              envel = envel * exp(- (delz ** 2) / 2. / sigma_z ** 2)
+
               if(sigma_x == 0.0) then
                 envel = 1.0
               else if(abs(delx) < sigma_x) then
-                envel = 1.0 - amp_mod_x + amp_mod_x * cos(delx * pi / (sigma_x &
-                    * 2.0))
+                envel = 0.5 * (1.0 + cos(delx * pi / sigma_x))
               else
-                envel = 1.0 - amp_mod_x
+                envel = 0.
               end if
 
               if(sigma_y == 0.0) then
                 envel = 1.0 * envel
               else if(abs(dely) < sigma_y) then
-                envel = (1.0 - amp_mod_y + amp_mod_y * cos(dely * pi &
-                    / (sigma_y * 2.0))) * envel
+                envel = 0.5 * (1.0 + cos(dely * pi / sigma_y)) * envel
               else
-                envel = envel * (1.0 - amp_mod_y)
+                envel = 0.
               end if
 
-              envel = envel * exp(- (delz ** 2) / 2. / sigma_z ** 2)
+              if(compare_raytracer) then
+                envel = envel * exp(- (delz / sigma_z) ** 2)
+              else
+                envel = envel * exp(- (delz / sigma_z) ** 2 / 2.)
+              end if
 
             case(2)
 
-              ! IKAug2023 begin  
+              ! IKAug2023 begin
               ! to match the raytracer cosine case
               if(sigma_x == 0.0) then
                 envel = 1.0
@@ -5098,7 +5125,6 @@ module init_module
               else
                 envel = 0.0
               end if
-
               if(sigma_y == 0.0) then
                 envel = 1.0 * envel
               else if(abs(dely) < sigma_y) then
@@ -5108,21 +5134,38 @@ module init_module
               end if
               ! IKAug2023 end
 
-              ! Cosine
-              if(abs(delz) .le. L_cos) then
-                envel = envel * 0.5 * (1.0 + cos(pi * delz / L_cos))
+              if(compare_raytracer) then
+                ! Cosine
+                if(abs(delz) .le. sigma_z) then
+                  envel = 0.5 * (1.0 + cos(pi * delz / sigma_z)) * envel
+                else
+                  envel = 0.0
+                end if
               else
-                envel = 0.0
+                ! Cosine
+                if(abs(delz) .le. L_cos) then
+                  envel = envel * 0.5 * (1.0 + cos(pi * delz / L_cos))
+                else
+                  envel = 0.0
+                end if
               end if
-
-            
-            case(4)           
+            case(4)
               envel = 0.0
-              envel = 1./(exp((z(k)-zCenter-sigma_z)/(lambdaZ)) + 1) &
-                     +1./(exp(-(z(k)-zCenter+sigma_z)/(lambdaZ)) + 1) - 1. 
+              envel = 1. / (exp((z(k) - zCenter - sigma_z) / (lambdaZ)) + 1) &
+                  + 1. / (exp(- (z(k) - zCenter + sigma_z) / (lambdaZ)) + 1) &
+                  - 1.
             case default
               stop "init.f90: unknown wavePacketType. Stop."
+
             end select
+
+            if(compare_raytracer) then
+              !SD
+              !fix for wavepacket structure:
+              !in raytracer cos-wavepacket in waveaction density A
+              !here cos-wavepacket in buoyancy b with A \sim b^2
+              envel = sqrt(envel)
+            end if
 
             b11 = cmplx(envel * bAmp, 0.0)
 
@@ -5183,15 +5226,15 @@ module init_module
             ! Buoyancy and pot. temp.
             if(topography) then
               ! TFC FJ
-              theta11_r = Fr2 * thetaStratTFC(i + 1, j, k) * Psi(i + 1, j, k, 3, &
-                  1)
+              theta11_r = Fr2 * thetaStratTFC(i + 1, j, k) * Psi(i + 1, j, k, &
+                  3, 1)
               theta11_c = Fr2 * thetaStratTFC(i, j, k) * Psi(i, j, k, 3, 1)
-              theta11_l = Fr2 * thetaStratTFC(i - 1, j, k) * Psi(i - 1, j, k, 3, &
-                  1)
-              theta11_t = Fr2 * thetaStratTFC(i, j, k + 1) * Psi(i, j, k + 1, 3, &
-                  1)
-              theta11_b = Fr2 * thetaStratTFC(i, j, k - 1) * Psi(i, j, k - 1, 3, &
-                  1)
+              theta11_l = Fr2 * thetaStratTFC(i - 1, j, k) * Psi(i - 1, j, k, &
+                  3, 1)
+              theta11_t = Fr2 * thetaStratTFC(i, j, k + 1) * Psi(i, j, k + 1, &
+                  3, 1)
+              theta11_b = Fr2 * thetaStratTFC(i, j, k - 1) * Psi(i, j, k - 1, &
+                  3, 1)
             else
               theta11_r = Fr2 * thetaStrat(k) * Psi(i + 1, j, k, 3, 1)
               theta11_c = Fr2 * thetaStrat(k) * Psi(i, j, k, 3, 1)
@@ -5231,9 +5274,9 @@ module init_module
                   j, k - 1, 1, 3) * w10_b) / dz / jac(i, j, k)
               dw10_dz = 0.5 * (w10_t - w10_b) / dz / jac(i, j, k)
               dpi0_dz = 0.5 * (pi0_t - pi0_b) / dz / jac(i, j, k)
-              dtheta11_dx = 0.5 * (jac(i + 1, j, k) * theta11_r - jac(i - 1, j, &
-                  k) * theta11_l) / dx / jac(i, j, k) + 0.5 * (jac(i, j, k + 1) &
-                  * met(i, j, k + 1, 1, 3) * theta11_t - jac(i, j, k - 1) &
+              dtheta11_dx = 0.5 * (jac(i + 1, j, k) * theta11_r - jac(i - 1, &
+                  j, k) * theta11_l) / dx / jac(i, j, k) + 0.5 * (jac(i, j, k &
+                  + 1) * met(i, j, k + 1, 1, 3) * theta11_t - jac(i, j, k - 1) &
                   * met(i, j, k - 1, 1, 3) * theta11_b) / dz / jac(i, j, k)
               dtheta11_dz = 0.5 * (theta11_t - theta11_b) / dz / jac(i, j, k)
             else
@@ -5273,12 +5316,12 @@ module init_module
             coeff = 1. / (4. * omi2 * kTot2 - kk2 * N2)
             aux1 = 4. * omi2 - N2
 
-            M11 = 2. * imag * mm2 * omi; M12 = - 2. * imag * kk * mm * omi; M13 &
-                = kk * mm * NN; M14 = - 0.5 * imag * kk * aux1
-            M21 = M12; M22 = 2. * imag * kk2 * omi; M23 = - kk2 * NN; M24 = - 2. &
-                * imag * omi2 * mm
-            M31 = - M13; M32 = - M23; M33 = 2. * imag * omi * kTot2; M34 = - omi &
-                * mm * NN
+            M11 = 2. * imag * mm2 * omi; M12 = - 2. * imag * kk * mm * omi; &
+                M13 = kk * mm * NN; M14 = - 0.5 * imag * kk * aux1
+            M21 = M12; M22 = 2. * imag * kk2 * omi; M23 = - kk2 * NN; M24 = &
+                - 2. * imag * omi2 * mm
+            M31 = - M13; M32 = - M23; M33 = 2. * imag * omi * kTot2; M34 = &
+                - omi * mm * NN
             M41 = M14; M42 = M24; M43 = - M34; M44 = - 0.5 * imag * omi * aux1
 
             ! inverted matrix: check ok
@@ -5299,7 +5342,8 @@ module init_module
             b22 = sol(3) * NN
             pi23 = sol(4) * kappa * Ma2 / theta0_c
 
-            Psi(i, j, k, :, 2) = (/u21, w21, b22, pi23, (cmplx(0.0, 0.0) * b11)/)
+            Psi(i, j, k, :, 2) = (/u21, w21, b22, pi23, (cmplx(0.0, 0.0) * &
+                b11)/)
           end do
         end do
       end do
@@ -5307,7 +5351,7 @@ module init_module
     end subroutine init_GWP
 
     !-------------------------------------------------------------------
-    
+
   end subroutine initialise
 
   !-------------------------------------------------------------------
