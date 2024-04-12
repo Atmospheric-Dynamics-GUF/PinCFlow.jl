@@ -28,7 +28,7 @@ module output_module
 
   contains
 
-  subroutine output_data(iOut, var,  iTime, time, cpuTime)
+  subroutine output_data(iOut, var, iTime, time, cpuTime)
 
     !-------------------------------
     !  writes data to file pf_all.dat
@@ -113,14 +113,14 @@ module output_module
     !---------------------------------------
     !       dimensionalising and layerwise output
     !---------------------------------------
-    
+
     irc_prc = 0
     do iVar = 1, nVar
       if(varOut(iVar) == 1) irc_prc = irc_prc + 1
     end do
     irc_prc = irc_prc * iOut * nz
 
-    ! just for safety. 
+    ! just for safety.
     if(include_tracer .and. include_ice) then
       stop "output.f90: tracer and ice not an option yet."
     end if
@@ -208,8 +208,8 @@ module output_module
                   end if
 
                   field_prc(i, j) = theta_dim !thetaRef*(PStrat(k+1)/(var(i,j,k+1,1)+rhoStrat(k+1))-PStrat(k-1)/(var(i,j,k-1,1)+rhoStrat(k-1)))/(2.*dz*lRef)!theta_dim
-
-                case("Boussinesq")
+ 
+               case("Boussinesq")
                   ! TFC FJ
                   ! Boussinesq: density fluctuations are stored in
                   ! var(:, :, :, 6)!
@@ -261,9 +261,23 @@ module output_module
 
                 if(include_testoutput .and. (iVar .le. iVarO + 2) .and. (iVar &
                     .ge. iVarO)) then
-                  !if ( iVar .eq. iVarO ) then
-                  field_prc(i, j) = var(i, j, k, iVar)
+
+                  !if ( testCase=='wavePacket' .and. iVarO+1 .eq. iVar  ) then
+                  !   ofield(i, j, k, 5) = var(i, j, k, 4)*uRef !**2 !save
+                  !w**2
                   !end if
+
+                  if(iVarO .eq. iVar) then
+                    field_prc(i, j) = var(i, j, k, iVarO)
+                    !field_prc(i, j) = ofield(i, j, k, 4)
+                  elseif(iVarO + 1 .eq. iVar) then
+                    field_prc(i, j) = var(i, j, k, iVarO + 1)
+                    !field_prc(i, j) = ofield(i, j, k, 5)
+                  elseif(iVarO + 2 .eq. iVar) then
+                    field_prc(i, j) = var(i, j, k, iVarO + 2)
+                    !field_prc(i, j) = ofield(i, j, k, 6)
+                  end if
+
                 end if
 
                 if(include_tracer .and. iVar == iVarT) then
@@ -283,7 +297,7 @@ module output_module
                   end if
 
                   field_prc(i, j) = var(i, j, k, iVarT) / rhotracer &
-                                  - initialtracer(i, j, k)
+                      - initialtracer(i, j, k)
                 end if
               end select ! iVar
             end do ! i
@@ -539,6 +553,8 @@ module output_module
 
   subroutine output_wkb(iOut, ray, ray_var3D)
 
+    !SD include opt_ray
+    !*use type_module, ONLY : opt_ray
     !--------------------------------------------------
     !  WKB output to pf_wkb_mean.dat and pf_wkb_ray.dat
     !--------------------------------------------------
@@ -560,6 +576,10 @@ module output_module
     integer irc_prc, irc_out
 
     integer :: i_prc, i_mst, i_out, j_prc, j_mst, j_out
+
+    !SD
+    integer :: NoR, iRay, TNoR, cRay, NoR_prc
+    real, dimension(NFR) :: vct
 
     ! FJFeb2023
     ! set counter
@@ -609,54 +629,54 @@ module output_module
               field_prc(i, j) = ray_var3D(i, j, k, 5) * rhoRef * uRef ** 2
 
             case(6) ! GW energy
-              field_prc(i, j) = ray_var3D(i, j, k, 6) *  uRef ** 2 ! /tRef deleted by FDK; rhoRef *
+              field_prc(i, j) = ray_var3D(i, j, k, 6) * uRef ** 2 ! /tRef deleted by FDK; rhoRef *
 
             case(7) ! u'chi' (zonal gw tracer flux [m/s])
-              if (include_tracer) then 
+              if(include_tracer) then
                 field_prc(i, j) = ray_var3D(i, j, k, 7) !* uRef
               else
                 field_prc(i, j) = 0.0
               end if
 
             case(8) ! v'chi' (meridional gw tracer flux [m/s])
-              if (include_tracer) then
+              if(include_tracer) then
                 field_prc(i, j) = ray_var3D(i, j, k, 8) !* uRef
               else
                 field_prc(i, j) = 0.0
               end if
-            
+
             case(9) ! w'chi' (vertical gw tracer flux [m/s])
-              if (include_tracer) then 
+              if(include_tracer) then
                 field_prc(i, j) = ray_var3D(i, j, k, 9) * uRef
               else
                 field_prc(i, j) = 0.0
               end if
 
             case(10) ! w'chi' (next-order vertical gw tracer flux [m/s])
-              if (include_tracer) then 
+              if(include_tracer) then
                 field_prc(i, j) = ray_var3D(i, j, k, 10) * uRef
-              else
-                field_prc(i, j) = 0.0
-              end if  
-
-            case(11) 
-              ! tracer forcing (leading order gw tracer flux convergence [m^2/s])
-              if (include_tracer) then 
-                field_prc(i, j) = ray_var3D(i, j, k, 11) *lRef ** 2.0 / tRef
               else
                 field_prc(i, j) = 0.0
               end if
 
-            case(12) 
+            case(11)
+              ! tracer forcing (leading order gw tracer flux convergence [m^2/s])
+              if(include_tracer) then
+                field_prc(i, j) = ray_var3D(i, j, k, 11) * lRef ** 2.0 / tRef
+              else
+                field_prc(i, j) = 0.0
+              end if
+
+            case(12)
               ! tracer forcing (next-order gw tracer flux convergence [m^2/s])
-              if (include_tracer) then 
+              if(include_tracer) then
                 field_prc(i, j) = ray_var3D(i, j, k, 12) * lRef ** 2.0 / tRef
               else
                 field_prc(i, j) = 0.0
               end if
 
             case(13) ! tracer diffusion (diffusive mixing of tracer [1/s])
-              if (include_tracer) then 
+              if(include_tracer) then
                 field_prc(i, j) = ray_var3D(i, j, k, 13) / tRef
               else
                 field_prc(i, j) = 0.0
@@ -713,6 +733,125 @@ module output_module
     ! set counter
     ! iOut = iOut + 1
 
+    !--------------------------------------------------------------
+    ! SD
+    ! output ray volumes
+    !--------------------------------------------------------------
+
+    if(include_ice2) then
+
+      TNOR = 12800 * 16 ! total number of rays for pir09
+      NOR_prc = TNOR / nprocx / nprocy ! number of rays per processor
+
+      if(master) then
+        open(40, file = 'pf_norays.dat', form = "unformatted", access &
+            = 'direct', recl = sizeofreal4)
+        open(44, file = 'pf_rays.dat', form = "unformatted", access &
+            = 'direct', recl = TNOR * NFR * sizeofreal4)
+      end if
+
+      !irc_prc = NOR * (iOut - 1)
+
+      cRay = 0
+
+      do k = 1, nz
+        do j = 1, ny
+          do i = 1, nx
+
+            NOR = nRay(i, j, k)
+
+            if(NOR < 1) cycle
+
+            do iRay = 1, NOR
+
+              !count all rays
+              cRay = cRay + 1
+
+              ! vector x
+              vct(1) = ray(iRay, i, j, k)%x * lRef
+              vct(2) = ray(iRay, i, j, k)%y * lRef
+              vct(3) = ray(iRay, i, j, k)%z * lRef
+
+              ! vector k
+              vct(4) = ray(iRay, i, j, k)%k / lRef
+              vct(5) = ray(iRay, i, j, k)%l / lRef
+              vct(6) = ray(iRay, i, j, k)%m / lRef
+
+              ! vector dx
+              vct(7) = ray(iRay, i, j, k)%dxray * lRef
+              vct(8) = ray(iRay, i, j, k)%dyray * lRef
+              vct(9) = ray(iRay, i, j, k)%dzray * lRef
+
+              ! vector dk
+              vct(10) = ray(iRay, i, j, k)%dkray / lRef
+              vct(11) = ray(iRay, i, j, k)%dlray / lRef
+              vct(12) = ray(iRay, i, j, k)%dmray / lRef
+
+              vct(13) = ray(iRay, i, j, k)%omega / tRef
+              vct(14) = ray(iRay, i, j, k)%dens
+
+              ! vertical vel.
+              vct(15) = opt_ray(iRay, i, j, k)%w
+
+              vct_prc(cRay, 1:NFR) = real(vct, 4)
+
+            end do !iRay
+          end do ! i
+        end do ! j
+      end do ! k
+
+      print *, 'PRC', is, x(is + 2) * lRef / 10 + 3
+
+      do j = 1, NFR
+        call mpi_gather(vct_prc(1, j), NOR_prc, mpi_real, vct_mst(1, j), &
+            NOR_prc, mpi_real, 0, comm, ierror)
+      end do
+      !!$
+      !!$!     call mpi_gather(real(TNOR,4), 1, mpi_real, nor_mst(1), 1, &
+      !!$!          mpi_real, 0, comm, ierror)
+      !*        irc_prc = irc_prc + 1
+
+      call mpi_barrier(comm, ierror)
+      if(master) then
+
+        print *, 'TTNOR', TNOR, NOR_prc, cRay, sum(NRay)
+
+        !output fields
+        write(40, rec = iOut) real(TNOR, 4)
+
+        !*************************
+        !TEST output
+        !*************************
+        !!$!*        write(*, *) 'iOut', iOut, TNOR
+        !!$
+        !!$!*        vct_mst(1, 1) = iOut*2 ! x-coord.
+        !!$!*        vct_mst(1, 3) = iOut ! z-coord.
+        !!$!*
+        !!$!*        vct_mst(1, 7) = 1. ! dx
+        !!$!*        vct_mst(1, 9) = .5 ! dz
+
+        !*************************
+        !END TEST
+        !*************************
+
+        !!$        do j = 1, TNOR
+        !!$           write(44, rec=NoR_out + j) vct_mst(j, 1:NFR)
+        !!$        end do
+        !NoR_out = NoR_out + TNOR
+
+        write(44, rec = NoR_out) ((vct_mst(j, i), i = 1, NFR), j = 1, TNOR)
+
+        NoR_out = NoR_out + 1
+
+        close(40)
+        close(44)
+
+        print *, 'output_wkb finished'
+
+      end if ! master
+
+    end if ! include_ice2
+
   end subroutine output_wkb
 
   !---------------------------------------------------------------------
@@ -739,7 +878,7 @@ module output_module
     if(allocstat /= 0) stop "output.f90/init_output: could not allocate &
         field_out. Stop."
   end subroutine init_output
-
+  !
   !--------------------------------------------------------------------------
 
   subroutine terminate_output
@@ -1240,101 +1379,101 @@ module output_module
 
     do iVar = 1, 10
       !if(varOut(iVar) == 1) then
-        do k = 1, nz
-          ! dimensionalization
+      do k = 1, nz
+        ! dimensionalization
 
+        do j = 1, ny
+          do i = 1, nx
+            select case(iVar)
+
+            case(1) ! f rho v
+              field_prc(i, j) = rhoRef * uRef * f_Coriolis_dim * (0.5 &
+                  * (var(i, j, k, 1) + var(i + 1, j, k, 1)) + rhoStrat(k)) &
+                  * (0.25 * (var(i, j, k, 3) + var(i + 1, j, k, 3) + var(i, j &
+                  + 1, k, 3) + var(i + 1, j + 1, k, 3)))
+
+            case(2) ! d/dy (rho v u)
+              field_prc(i, j) = rhoRef * uRef * uRef * (flux(i, j, k, 2, 2))
+
+            case(3) ! d/dz (rho w u)
+              field_prc(i, j) = rhoRef * uRef * uRef * (flux(i, j, k, 3, 2))
+
+            case(4) ! Fx
+              field_prc(i, j) = rhoRef * uRef * (kv_hs(j, k) + kr_sp(j, k)) &
+                  / tRef * (0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1)) &
+                  + rhoStrat(k)) * (var(i, j, k, 2) - var_env(i, j, k, 2))
+
+            case(5) ! f v
+              field_prc(i, j) = uRef * f_Coriolis_dim * (0.25 * (var(i, j, k, &
+                  3) + var(i + 1, j, k, 3) + var(i, j + 1, k, 3) + var(i + 1, &
+                  j + 1, k, 3)))
+
+            case(6) ! rhoStrat v u
+              field_prc(i, j) = 0.5 * (var(i + 1, j, k, 3) + var(i, j, k, 3)) &
+                  * 0.5 * (var(i, j + 1, k, 2) + var(i, j, k, 2)) * uRef &
+                  * uRef * sum_global(k) * rhoRef
+
+            case(7) ! rhoStrat w u
+              field_prc(i, j) = 0.5 * (sum_global(k) + sum_global(k + 1)) &
+                  * 0.5 * (var(i + 1, j, k, 4) + var(i, j, k, 4)) * 0.5 &
+                  * (var(i, j, k + 1, 2) + var(i, j, k, 2)) * uRef * uRef &
+                  * rhoRef
+
+            case(8) ! zonal tracer flux (rho u chi)
+              if(include_tracer) then
+                field_prc(i, j) = rhoRef * uRef * flux(i, j, k, 1, iVarT)
+              else
+                field_prc(i, j) = 0.0
+              end if
+
+            case(9) ! meridional tracer flux (rho v chi)
+              if(include_tracer) then
+                field_prc(i, j) = rhoRef * uRef * flux(i, j, k, 2, iVarT)
+              else
+                field_prc(i, j) = 0.0
+              end if
+
+            case(10) ! vertical tracer flux (rho w chi)
+              if(include_tracer) then
+                field_prc(i, j) = rhoRef * uRef * flux(i, j, k, 3, iVarT)
+              else
+                field_prc(i, j) = 0.0
+              end if
+
+            case default
+            end select ! iVar
+          end do ! i
+          call mpi_gather(field_prc(1, j), nx, mpi_real, field_mst(1, j), nx, &
+              mpi_real, 0, comm, ierror)
+        end do ! j
+
+        ! layerwise output
+
+        irc_prc = irc_prc + 1
+        !            write(40,rec=irc_prc) field_prc
+        call mpi_barrier(comm, ierror)
+        if(master) then
           do j = 1, ny
-            do i = 1, nx
-              select case(iVar)
+            j_mst = j
 
-              case(1) ! f rho v
-                field_prc(i, j) = rhoRef * uRef * f_Coriolis_dim * (0.5 &
-                    * (var(i, j, k, 1) + var(i + 1, j, k, 1)) + rhoStrat(k)) &
-                    * (0.25 * (var(i, j, k, 3) + var(i + 1, j, k, 3) + var(i, &
-                    j + 1, k, 3) + var(i + 1, j + 1, k, 3)))
+            do j_prc = 1, nprocy
+              j_out = ny * (j_prc - 1) + j
 
-              case(2) ! d/dy (rho v u)
-                field_prc(i, j) = rhoRef * uRef * uRef * (flux(i, j, k, 2, 2))
+              do i_prc = 1, nprocx
+                do i = 1, nx
+                  i_out = nx * (i_prc - 1) + i
 
-              case(3) ! d/dz (rho w u)
-                field_prc(i, j) = rhoRef * uRef * uRef * (flux(i, j, k, 3, 2))
+                  i_mst = nprocy * nx * (i_prc - 1) + (j_prc - 1) * nx + i
 
-              case(4) ! Fx
-                field_prc(i, j) = rhoRef * uRef * (kv_hs(j, k) + kr_sp(j, k)) &
-                    / tRef * (0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1)) &
-                    + rhoStrat(k)) * (var(i, j, k, 2) - var_env(i, j, k, 2))
-
-              case(5) ! f v
-                field_prc(i, j) = uRef * f_Coriolis_dim * (0.25 * (var(i, j, &
-                    k, 3) + var(i + 1, j, k, 3) + var(i, j + 1, k, 3) + var(i &
-                    + 1, j + 1, k, 3)))
-
-              case(6) ! rhoStrat v u
-                field_prc(i, j) = 0.5 * (var(i + 1, j, k, 3) + var(i, j, k, &
-                    3)) * 0.5 * (var(i, j + 1, k, 2) + var(i, j, k, 2)) * uRef &
-                    * uRef * sum_global(k) * rhoRef
-
-              case(7) ! rhoStrat w u
-                field_prc(i, j) = 0.5 * (sum_global(k) + sum_global(k + 1)) &
-                    * 0.5 * (var(i + 1, j, k, 4) + var(i, j, k, 4)) * 0.5 &
-                    * (var(i, j, k + 1, 2) + var(i, j, k, 2)) * uRef * uRef &
-                    * rhoRef
-
-              case(8) ! zonal tracer flux (rho u chi)
-                if (include_tracer) then 
-                  field_prc(i, j) = rhoRef * uRef * flux(i, j, k, 1, iVarT)
-                else
-                  field_prc(i, j) = 0.0
-                end if 
-              
-              case(9) ! meridional tracer flux (rho v chi)
-                if (include_tracer) then 
-                  field_prc(i, j) = rhoRef * uRef * flux(i, j, k, 2, iVarT)
-                else
-                  field_prc(i, j) = 0.0
-                end if 
-              
-              case(10) ! vertical tracer flux (rho w chi)
-                if (include_tracer) then 
-                  field_prc(i, j) = rhoRef * uRef * flux(i, j, k, 3, iVarT)
-                else
-                  field_prc(i, j) = 0.0
-                end if 
-
-              case default
-              end select ! iVar
-            end do ! i
-            call mpi_gather(field_prc(1, j), nx, mpi_real, field_mst(1, j), &
-                nx, mpi_real, 0, comm, ierror)
-          end do ! j
-
-          ! layerwise output
-
-          irc_prc = irc_prc + 1
-          !            write(40,rec=irc_prc) field_prc
-          call mpi_barrier(comm, ierror)
-          if(master) then
-            do j = 1, ny
-              j_mst = j
-
-              do j_prc = 1, nprocy
-                j_out = ny * (j_prc - 1) + j
-
-                do i_prc = 1, nprocx
-                  do i = 1, nx
-                    i_out = nx * (i_prc - 1) + i
-
-                    i_mst = nprocy * nx * (i_prc - 1) + (j_prc - 1) * nx + i
-
-                    field_out(i_out, j_out) = field_mst(i_mst, j_mst)
-                  end do
+                  field_out(i_out, j_out) = field_mst(i_mst, j_mst)
                 end do
               end do
             end do
+          end do
 
-            write(43, rec = irc_prc) field_out
-          end if
-        end do ! k
+          write(43, rec = irc_prc) field_out
+        end if
+      end do ! k
       !end if
     end do ! iVar
 
@@ -1461,3 +1600,4 @@ module output_module
   end subroutine output_background
 
 end module output_module
+

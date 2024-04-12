@@ -30,7 +30,7 @@ module update_module
   public :: set_spongeLayer
   public :: CoefDySma_update
   public :: Var3DSmthDySma
-  public :: ice2Update, ice2Update_source, ice2Update_apb
+  public :: ice2Update, ice2Update_apb, timeUpdate
   public :: setHaloAndBoundary
 
   public :: smooth_shapiro
@@ -6206,14 +6206,13 @@ module update_module
   end subroutine massUpdate
 
   !-----------------------------------------------------------------------
-  subroutine tracerUpdate (var,flux,tracerforce,dt,q,m)
+  subroutine tracerUpdate(var, flux, tracerforce, dt, q, m)
 
     ! in/out variables
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
         intent(inout) :: var
 
-
-    real, dimension(-1:nx,-1:ny,-1:nz,3,nVar), intent(in) :: flux
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
 
     real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(in) :: tracerforce
 
@@ -6224,84 +6223,84 @@ module update_module
     integer, intent(in) :: m
 
     ! local variables
-    integer :: i,j,k,l
-    real    :: fL,fR        ! flux Left/Right
-    real    :: gB,gF        ! flux Backward/Forward
-    real    :: hD,hU        ! flux Downward/Upward
-    real    :: fluxDiff     ! convective part
-    real    :: F            ! F(phi)
-    real    :: rho
-    real    :: forcetracer  ! additional rhs terms from gw parameterization
+    integer :: i, j, k, l
+    real :: fL, fR ! flux Left/Right
+    real :: gB, gF ! flux Backward/Forward
+    real :: hD, hU ! flux Downward/Upward
+    real :: fluxDiff ! convective part
+    real :: F ! F(phi)
+    real :: rho
+    real :: forcetracer ! additional rhs terms from gw parameterization
 
-    if( correctDivError ) then
-      print*,'ERROR: correction divergence error not allowed'
+    if(correctDivError) then
+      print *, 'ERROR: correction divergence error not allowed'
       stop
     end if
 
     ! init q
     if(m == 1) q = 0.
 
-    do k = 1,nz
-      do j = 1,ny
-        do i = 1,nx
-          fL = flux(i-1,j,k,1,iVarT) ! mass flux accros left cell edge
-          fR = flux(i,j,k,1,iVarT)   ! right
-          gB = flux(i,j-1,k,2,iVarT) ! backward
-          gF = flux(i,j,k,2,iVarT)   ! forward
-          hD = flux(i,j,k-1,3,iVarT) ! downward
-          hU = flux(i,j,k,3,iVarT)   ! upward
+    do k = 1, nz
+      do j = 1, ny
+        do i = 1, nx
+          fL = flux(i - 1, j, k, 1, iVarT) ! mass flux accros left cell edge
+          fR = flux(i, j, k, 1, iVarT) ! right
+          gB = flux(i, j - 1, k, 2, iVarT) ! backward
+          gF = flux(i, j, k, 2, iVarT) ! forward
+          hD = flux(i, j, k - 1, 3, iVarT) ! downward
+          hU = flux(i, j, k, 3, iVarT) ! upward
 
-          if (fluctuationMode) then
-            if (topography) then
-              rho = var(i,j,k,1) + rhoStratTFC(i,j,k)
+          if(fluctuationMode) then
+            if(topography) then
+              rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
             else
-              rho = var(i,j,k,1) + rhoStrat(k)
+              rho = var(i, j, k, 1) + rhoStrat(k)
             end if
           else
-            rho = var(i,j,k,1)
+            rho = var(i, j, k, 1)
           end if
 
           ! convective part, advection due to wind
-          fluxDiff = (fR-fL)/dx + (gF-gB)/dy + (hU-hD)/dz
+          fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
 
           if(topography) then
-            fluxDiff = fluxDiff / jac(i,j,k)
+            fluxDiff = fluxDiff / jac(i, j, k)
           end if
 
           ! F(phi)
-          F = -fluxDiff
-          if (rayTracer) then
+          F = - fluxDiff
+          if(rayTracer) then
             ! additional rhs terms due to gw and turbulence impact
             ! saved in forcetracer
             forcetracer = 0.0
 
             ! include leading order gw tracer flux convergence
-            if (include_gw_tracer_forcing) then
+            if(include_gw_tracer_forcing) then
               forcetracer = forcetracer + tracerforce(i, j, k, 1)
             end if
 
             ! include next-order gw tracer flux convergence
-            if (include_env_tracer_forcing) then 
+            if(include_env_tracer_forcing) then
               forcetracer = forcetracer + tracerforce(i, j, k, 2)
             end if
 
             ! include diffusive mixing of tracer
-            if (include_tracer_mixing) then 
+            if(include_tracer_mixing) then
               forcetracer = forcetracer - tracerforce(i, j, k, 3)
             end if
 
-            F = F - rho * forcetracer 
+            F = F - rho * forcetracer
           end if
 
-          if (dens_relax) then
+          if(dens_relax) then
             stop "update.f90: dens_relax not implemented in tracerUpdate"
           end if
 
           ! update: q(m-1) -> q(m)
-          q(i,j,k) = dt*F + alpha(m) * q(i,j,k)
+          q(i, j, k) = dt * F + alpha(m) * q(i, j, k)
 
           ! update density
-          var(i,j,k,iVarT) = var(i,j,k,iVarT) + beta(m) * q(i,j,k)
+          var(i, j, k, iVarT) = var(i, j, k, iVarT) + beta(m) * q(i, j, k)
 
         end do
       end do
@@ -6440,91 +6439,27 @@ module update_module
   end subroutine iceUpdate
 
   !-------------------------------------------------------------------------
+  subroutine timeUpdate(time, dt, q, m)
 
-  subroutine ice2Update_source(var, flux, source, dt, q, m)
-    !-----------------------------
-    ! adds ice flux to cell ice field
-    !-----------------------------
-
+    implicit none
     ! in/out variables
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(inout) :: var
-    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
-    ! flux(i,j,k,dir,iFlux)
-    ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
-    ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
-
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(in) :: source
-
+    real, intent(inout) :: time
+    real, intent(inout) :: q
     real, intent(in) :: dt
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
-        intent(inout) :: q
-
     integer, intent(in) :: m
 
-    ! local variables
-    integer :: i, j, k, l
-    real :: fL, fR ! flux Left/Right
-    real :: gB, gF ! flux Backward/Forward
-    real :: hD, hU ! flux Downward/Upward
-    real :: fluxDiff ! convective part
-    real :: F ! F(phi)
-
-    !!$    ! TFC FJ
-    !!$    real :: pEdgeU, pEdgeD
-    !!$    real :: piREdgeU, piLEdgeU, piFEdgeU, piBEdgeU, &
-    !!$         piREdgeD, piLEdgeD, piFEdgeD, piBEdgeD
-    !!$    real :: chris11EdgeU, chris11EdgeD, chris22EdgeU, chris22EdgeD, &
-    !!$         chris13EdgeU, chris13EdgeD, chris23EdgeU, chris23EdgeD
-    !!$    real :: piGradZEdgeU, piGradZEdgeD
-
-    integer :: ii, iVar
-
     ! init q
-    if(m == 1) q = 0.
+    !if(m == 1) q = 0. !alpha(1) allways 0 ?!
 
-    do ii = 1, nVarIce
-      iVar = iVarIce(ii)
+    ! update: q(m-1) -> q(m)
+    q = dt + alpha(m) * q
 
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
+    ! update time
+    time = time + beta(m) * q
 
-            fL = flux(i - 1, j, k, 1, iVar) ! mass flux accros left cell edge
-            fR = flux(i, j, k, 1, iVar) ! right
-            gB = flux(i, j - 1, k, 2, iVar) ! backward
-            gF = flux(i, j, k, 2, iVar) ! forward
-            hD = flux(i, j, k - 1, 3, iVar) ! downward
-            hU = flux(i, j, k, 3, iVar) ! upward
+  end subroutine timeUpdate
 
-            ! convective part
-            fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
-
-            ! TFC FJ
-            ! Adjust mass flux divergence.
-            if(topography) then
-              fluxDiff = fluxDiff / jac(i, j, k)
-            end if
-
-            ! F(phi)
-            F = - fluxDiff + source(i, j, k, iVar)
-
-            ! update: q(m-1) -> q(m)
-            q(i, j, k, ii) = dt * F + alpha(m) * q(i, j, k, ii)
-
-            ! update fields
-            var(i, j, k, iVar) = var(i, j, k, iVar) + beta(m) * q(i, j, k, ii)
-
-          end do !i
-        end do !j
-      end do !k
-
-    end do !ii
-
-  end subroutine ice2Update_source
-
-  !-----------------------------------------------------------------------
+  !-------------------------------------------------------------------------
 
   subroutine ice2Update_apb(var, flux, source, dt, q, m, update_type)
     !-----------------------------
