@@ -8,6 +8,7 @@ module wkb_module
   use timeScheme_module
   use atmosphere_module
   use muscl_module
+  use ice2_module, ONLY:Psat_ice
 
   implicit none
 
@@ -52,6 +53,9 @@ module wkb_module
   public :: setup_topography_wkb
   public :: update_topography_wkb
 
+  !SD
+  public :: calc_ice
+
   !------------------------------
   !   private module variables
   !------------------------------
@@ -94,7 +98,8 @@ module wkb_module
 
   !-----------------------------------------------------------------------
 
-  subroutine calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff, tracerfluxvar, tracerforce)
+  subroutine calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
+      diffusioncoeff, tracerfluxvar, tracerforce)
 
     ! supplemements cell-centered volume forces by WKB force
     ! as well as the heating by entropy-flux convergence
@@ -109,7 +114,8 @@ module wkb_module
     real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(inout) :: force
 
     ! tracer forcing terms
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(inout) :: tracerforce
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(inout) :: &
+        tracerforce
 
     ! IKJuly2023 changed from 1:6 to 1:11 for tracer fluxes
     real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:13), intent(inout) :: &
@@ -126,10 +132,11 @@ module wkb_module
 
     ! additional tracer forcing due to next-order forcing terms
     ! tracerfluxvarold: previous time step
-    ! tracerfluxvar: current time step 
+    ! tracerfluxvar: current time step
     ! tracer flux calculated from time derivative of tracerfluxvar
     ! tracer flux \propto (tracerfluxvar-tracerfluxvarold)/dt
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:nwm), intent(inout) :: tracerfluxvar
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:nwm), intent(inout) :: &
+        tracerfluxvar
     real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:nwm) :: tracerfluxvarold
 
     ! local variables
@@ -195,11 +202,11 @@ module wkb_module
     real :: NNR
 
     ! IKJuly2023 tracer flux stuff
-    real :: tracerfluxcoeff, dchidx, dchidy, dchidz, rhotracerp, rhotracerm, dutracer, dvtracer, rhotracern
+    real :: tracerfluxcoeff, dchidx, dchidy, dchidz, rhotracerp, rhotracerm, &
+        dutracer, dvtracer, rhotracern
     ! IKDec2023 tracer diffusion stuff
     real :: laplacetracer
     !real, allocatable :: diffusioncoeff(:, :, :)
-
 
     allocate(var_uu(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_uv(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
@@ -225,7 +232,6 @@ module wkb_module
     allocate(var_drudt(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_drvdt(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_drtdt(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
-
 
     var_uu = 0.0
     var_uv = 0.0
@@ -258,12 +264,12 @@ module wkb_module
 
     ! update tracerfluxvarold, set tracerfluxvar to 0
     ! new tracerfluxvar calculated later on
-    if (include_tracer) then 
-      tracerfluxvarold = tracerfluxvar 
+    if(include_tracer) then
+      tracerfluxvarold = tracerfluxvar
       tracerfluxvar = 0.0
     end if
 
-    do kzrv = 0, nz 
+    do kzrv = 0, nz
       do jyrv = 0, ny + 1
         ! loop including ghost cells in order to get all fluxes
         ! affecting a cell
@@ -531,7 +537,7 @@ module wkb_module
             ! FJMay2023
             if(topography) then
 
-              if (include_tracer) then 
+              if(include_tracer) then
                 stop "Tracer, topography, and ray tracer not possible."
               end if
 
@@ -712,20 +718,22 @@ module wkb_module
 
                     var_E(ix, jy, kz) = var_E(ix, jy, kz) + wadr * omir
 
-
-                    if (include_tracer) then 
+                    if(include_tracer) then
                       ! leading order gravity wave tracer fluxes
                       ! calculation of equations 2.91 - 2.93 in IK masters thesis
-                      if(f_cor_nd /=0.0) then
-                        
-                        tracerfluxcoeff = - f_cor_nd / omir * wnrm &
-                            / (wnrh ** 2 + wnrm ** 2) * wadr / rhoStrat(kz)
-                        
+                      if(f_cor_nd /= 0.0) then
+
+                        tracerfluxcoeff = - f_cor_nd / omir * wnrm / (wnrh &
+                            ** 2 + wnrm ** 2) * wadr / rhoStrat(kz)
+
                         ! determine derivative of large-scale tracer at location
                         ! of ray volume
-                        call tracerderivative(x(ix), 1, y(jy), z(kz), var, dchidx)
-                        call tracerderivative(y(jy), 2, x(ix), z(kz), var, dchidy)
-                        call tracerderivative(z(kz), 3, x(ix), y(jy), var, dchidz)
+                        call tracerderivative(x(ix), 1, y(jy), z(kz), var, &
+                            dchidx)
+                        call tracerderivative(y(jy), 2, x(ix), z(kz), var, &
+                            dchidy)
+                        call tracerderivative(z(kz), 3, x(ix), y(jy), var, &
+                            dchidz)
 
                         var_utracer(ix, jy, kz) = var_utracer(ix, jy, kz) &
                             + tracerfluxcoeff * (wnrm * dchidy - wnrl * dchidz)
@@ -738,9 +746,9 @@ module wkb_module
                       ! update tracerfluxvar to calculate
                       ! next-order gravity wave tracer fluxes
                       ! actual fluxes calculated later on
-                      tracerfluxvar(ix, jy, kz, :) = tracerfluxvar(ix, jy, kz, :) &
-                      + alphaTracer**2. * wadr / rhoStrat(kz) * wnrh**2. &
-                      /(omir*(wnrh ** 2 + wnrm ** 2))
+                      tracerfluxvar(ix, jy, kz, :) = tracerfluxvar(ix, jy, kz, &
+                          :) + alphaTracer ** 2. * wadr / rhoStrat(kz) * wnrh &
+                          ** 2. / (omir * (wnrh ** 2 + wnrm ** 2))
                     end if
 
                   end do
@@ -753,19 +761,18 @@ module wkb_module
     end do
 
     ! calculate next-order gravity wave tracer fluxes
-    if (include_tracer) then 
-      do kz =1, nz
+    if(include_tracer) then
+      do kz = 1, nz
         do jy = 1, ny
           do ix = 1, nx
             do im = 1, nwm
               ! next-order forcing only where no diffusion due to gw breaking
               ! otherwise too large tracer fluxes
-              if (diffusioncoeff(ix, jy, kz) == 0.0) then
+              if(diffusioncoeff(ix, jy, kz) == 0.0) then
                 ! calculate tracer fluxes
-                var_wtracerEnv(ix, jy, kz) = &
-                - (tracerfluxvar(ix, jy, kz, im) &
-                  - tracerfluxvarold(ix, jy, kz, im))& 
-                /dt/(2.*alphaTracer)
+                var_wtracerEnv(ix, jy, kz) = - (tracerfluxvar(ix, jy, kz, im) &
+                    - tracerfluxvarold(ix, jy, kz, im)) / dt / (2. &
+                    * alphaTracer)
               else
                 var_wtracerEnv(ix, jy, kz) = 0.0
               end if
@@ -841,7 +848,7 @@ module wkb_module
     ! set boundary conditions for tracer fluxes
     ! and calculate diffusive mixing of tracer
     ! and tracer flux convergence
-    if (include_tracer) then 
+    if(include_tracer) then
       call setboundary_wkb(var_utracer)
       call setboundary_wkb(var_vtracer)
       call setboundary_wkb(var_wtracer)
@@ -897,96 +904,94 @@ module wkb_module
         endif
       endif
 
-
       ! calculate diffusive mixing
       laplacetracer = 0.0
       do kz = 1, nz
         do jy = 1, ny
           do ix = 1, nx
-            if (sizeX > 1) then
+            if(sizeX > 1) then
 
               ! d<u'chi'>/dx (for tracer flux convergence)
-              dutracer = (var_utracer(ix+1, jy, kz)-var_utracer(ix-1, jy, kz))/(2.0*dx)
+              dutracer = (var_utracer(ix + 1, jy, kz) - var_utracer(ix - 1, &
+                  jy, kz)) / (2.0 * dx)
 
               ! x-contribution to div(K grad<chi>) (diffusive mixing)
-              if (fluctuationMode) then 
-                rhotracerp = var(ix+1, jy, kz, 1) + rhoStrat(kz)
-                rhotracern = var(ix  , jy, kz, 1) + rhoStrat(kz)
-                rhotracerm = var(ix-1, jy, kz, 1) + rhoStrat(kz)
-              else 
-                rhotracerp = var(ix+1, jy, kz, 1)
-                rhotracern = var(ix  , jy, kz, 1)
-                rhotracerm = var(ix-1, jy, kz, 1)
+              if(fluctuationMode) then
+                rhotracerp = var(ix + 1, jy, kz, 1) + rhoStrat(kz)
+                rhotracern = var(ix, jy, kz, 1) + rhoStrat(kz)
+                rhotracerm = var(ix - 1, jy, kz, 1) + rhoStrat(kz)
+              else
+                rhotracerp = var(ix + 1, jy, kz, 1)
+                rhotracern = var(ix, jy, kz, 1)
+                rhotracerm = var(ix - 1, jy, kz, 1)
               end if
-              laplacetracer = ( (diffusioncoeff(ix+1,jy,kz)+diffusioncoeff(ix,jy,kz)) &
-                              * (var(ix+1, jy, kz, iVarT)/rhotracerp & 
-                               - var(ix  , jy, kz, iVarT)/rhotracern) & 
-                              - (diffusioncoeff(ix,jy,kz)+diffusioncoeff(ix-1,jy,kz)) &
-                              * (var(ix  , jy, kz, iVarT)/rhotracern & 
-                               - var(ix-1, jy, kz, iVarT)/rhotracerm) ) / (2. * dx ** 2.)
+              laplacetracer = ((diffusioncoeff(ix + 1, jy, kz) &
+                  + diffusioncoeff(ix, jy, kz)) * (var(ix + 1, jy, kz, iVarT) &
+                  / rhotracerp - var(ix, jy, kz, iVarT) / rhotracern) &
+                  - (diffusioncoeff(ix, jy, kz) + diffusioncoeff(ix - 1, jy, &
+                  kz)) * (var(ix, jy, kz, iVarT) / rhotracern - var(ix - 1, &
+                  jy, kz, iVarT) / rhotracerm)) / (2. * dx ** 2.)
             else
               dutracer = 0.0
               laplacetracer = 0.0
             end if
 
-            if (sizeY > 1) then 
+            if(sizeY > 1) then
               ! d<v'chi'>/dy (for tracer flux convergence)
-              dvtracer = (var_vtracer(ix, jy+1, kz)-var_vtracer(ix, jy-1, kz))/(2.0*dy)
+              dvtracer = (var_vtracer(ix, jy + 1, kz) - var_vtracer(ix, jy &
+                  - 1, kz)) / (2.0 * dy)
 
               ! y-contribution to div(K grad<chi>) (diffusive mixing)
-              if (fluctuationMode) then 
-                rhotracerp = var(ix, jy+1, kz, 1) + rhoStrat(kz)
-                rhotracern = var(ix  , jy, kz, 1) + rhoStrat(kz)
-                rhotracerm = var(ix, jy-1, kz, 1) + rhoStrat(kz)
-              else 
-                rhotracerp = var(ix, jy+1, kz, 1)
-                rhotracern = var(ix  , jy, kz, 1)
-                rhotracerm = var(ix, jy-1, kz, 1)
+              if(fluctuationMode) then
+                rhotracerp = var(ix, jy + 1, kz, 1) + rhoStrat(kz)
+                rhotracern = var(ix, jy, kz, 1) + rhoStrat(kz)
+                rhotracerm = var(ix, jy - 1, kz, 1) + rhoStrat(kz)
+              else
+                rhotracerp = var(ix, jy + 1, kz, 1)
+                rhotracern = var(ix, jy, kz, 1)
+                rhotracerm = var(ix, jy - 1, kz, 1)
               end if
 
-              laplacetracer = laplacetracer &
-                            + ( (diffusioncoeff(ix,jy+1,kz)+diffusioncoeff(ix,jy,kz)) &
-                              * (var(ix, jy+1, kz, iVarT)/rhotracerp & 
-                              -  var(ix  , jy, kz, iVarT)/rhotracern) & 
-                              - (diffusioncoeff(ix,jy,kz)+diffusioncoeff(ix,jy-1,kz)) &
-                              * (var(ix  , jy, kz, iVarT)/rhotracern & 
-                               - var(ix, jy-1, kz, iVarT)/rhotracerm) ) / (2. * dy ** 2.)
+              laplacetracer = laplacetracer + ((diffusioncoeff(ix, jy + 1, kz) &
+                  + diffusioncoeff(ix, jy, kz)) * (var(ix, jy + 1, kz, iVarT) &
+                  / rhotracerp - var(ix, jy, kz, iVarT) / rhotracern) &
+                  - (diffusioncoeff(ix, jy, kz) + diffusioncoeff(ix, jy - 1, &
+                  kz)) * (var(ix, jy, kz, iVarT) / rhotracern - var(ix, jy &
+                  - 1, kz, iVarT) / rhotracerm)) / (2. * dy ** 2.)
             else
               dvtracer = 0.0
               laplacetracer = laplacetracer
             end if
 
             ! tracer flux convergence (leading order gw tracer fluxes)
-            tracerforce(ix, jy, kz, 1) = tracerforce(ix, jy, kz, 1) &
-              + dutracer + dvtracer &
-              + (var_wtracer(ix, jy, kz+1)-var_wtracer(ix, jy, kz-1))/(2.0*dz)
+            tracerforce(ix, jy, kz, 1) = tracerforce(ix, jy, kz, 1) + dutracer &
+                + dvtracer + (var_wtracer(ix, jy, kz + 1) - var_wtracer(ix, &
+                jy, kz - 1)) / (2.0 * dz)
 
             ! z-contribution to div(K grad<chi>) (diffusive mixing)
-            if (fluctuationMode) then 
-              rhotracerp = var(ix, jy, kz+1, 1) + rhoStrat(kz+1)
-              rhotracern = var(ix  , jy, kz, 1) + rhoStrat(kz)
-              rhotracerm = var(ix, jy, kz-1, 1) + rhoStrat(kz-1)
-            else 
-              rhotracerp = var(ix, jy, kz+1, 1)
-              rhotracern = var(ix  , jy, kz, 1)
-              rhotracerm = var(ix, jy, kz-1, 1)
+            if(fluctuationMode) then
+              rhotracerp = var(ix, jy, kz + 1, 1) + rhoStrat(kz + 1)
+              rhotracern = var(ix, jy, kz, 1) + rhoStrat(kz)
+              rhotracerm = var(ix, jy, kz - 1, 1) + rhoStrat(kz - 1)
+            else
+              rhotracerp = var(ix, jy, kz + 1, 1)
+              rhotracern = var(ix, jy, kz, 1)
+              rhotracerm = var(ix, jy, kz - 1, 1)
             end if
 
-            laplacetracer = laplacetracer &
-                          + ( (diffusioncoeff(ix,jy,kz+1)+diffusioncoeff(ix,jy,kz)) &
-                            * (var(ix, jy, kz+1, iVarT)/rhotracerp & 
-                            -  var(ix  , jy, kz, iVarT)/rhotracern) & 
-                            - (diffusioncoeff(ix,jy,kz)+diffusioncoeff(ix,jy,kz-1)) &
-                            * (var(ix  , jy, kz, iVarT)/rhotracern & 
-                             - var(ix, jy, kz-1, iVarT)/rhotracerm) ) / (2. * dz ** 2.)
+            laplacetracer = laplacetracer + ((diffusioncoeff(ix, jy, kz + 1) &
+                + diffusioncoeff(ix, jy, kz)) * (var(ix, jy, kz + 1, iVarT) &
+                / rhotracerp - var(ix, jy, kz, iVarT) / rhotracern) &
+                - (diffusioncoeff(ix, jy, kz) + diffusioncoeff(ix, jy, kz &
+                - 1)) * (var(ix, jy, kz, iVarT) / rhotracern - var(ix, jy, kz &
+                - 1, iVarT) / rhotracerm)) / (2. * dz ** 2.)
 
             ! save diffusive mixing
-            tracerforce(ix,jy,kz,3) = laplacetracer
+            tracerforce(ix, jy, kz, 3) = laplacetracer
 
             ! next-order gw tracer fluxes
-            tracerforce(ix,jy,kz,2) = &
-              (var_wtracerEnv(ix, jy, kz+1)-var_wtracerEnv(ix, jy, kz-1))&
-              /(2.0*dz)
+            tracerforce(ix, jy, kz, 2) = (var_wtracerEnv(ix, jy, kz + 1) &
+                - var_wtracerEnv(ix, jy, kz - 1)) / (2.0 * dz)
           end do
         end do
       end do
@@ -1009,7 +1014,6 @@ module wkb_module
         end do
       end do
     end if
-
 
     ! wave impact on horizontal momentum
 
@@ -1283,7 +1287,11 @@ module wkb_module
       do jy = 1, ny
         do ix = 1, nx
           ! FJApr2023
-          if(topography .and. zTFC(ix, jy, kz) < lz(0) + zmin_wkb) cycle
+          !*if(topography .and. zTFC(ix, jy, kz) < lz(0) + zmin_wkb) cycle
+          ! SD
+          if(topography) then
+            if(zTFC(ix, jy, kz) < lz(0) + zmin_wkb) cycle
+          end if
           select case(model)
           case("Boussinesq")
             rhotot = rho00
@@ -1416,7 +1424,7 @@ module wkb_module
     real, dimension(:, :, :, :), allocatable, intent(out) :: ray_var3D
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
         intent(inout) :: var
-    
+
     ! turbulent eddy diffusivity. Needed for the mixing of tracer
     real, dimension(:, :, :), allocatable, intent(out) :: diffusioncoeff
 
@@ -1469,6 +1477,9 @@ module wkb_module
 
     ! Wave mode (FJApr2023)
     integer :: iwm
+
+    !SD
+    real :: dphi
 
     ix0 = is + nbx - 1
     jy0 = js + nby - 1
@@ -1662,13 +1673,14 @@ module wkb_module
 
     ! fields for data WKB output
     ! IKJuly2023 increased from 1:6 to 1:13 for tracer flux (u'chi', v'chi', w'chi', next-order w'chi', 3 tracer forcing terms)
-    allocate(ray_var3D(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:13), stat = allocstat) 
+    allocate(ray_var3D(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:13), stat = allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate ray_var3D"
 
     allocate(diffusioncoeff(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate diffusioncoeff"
 
-    allocate(tracerfluxvar(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:nwm), stat = allocstat)
+    allocate(tracerfluxvar(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:nwm), stat &
+        = allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate tracerfluxvar"
 
     ! needed for initialization of ray volumes:
@@ -2006,15 +2018,34 @@ module wkb_module
               if(case_wkb == 1) then
                 fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
                     ((z(kz) - zr0) / sigwpz) ** 2)
+                if(compare_raytracer) then
+                  if(sigwpx > 0.0) then
+                    if(abs(x(ix + ix0) - xr0) < sigwpx) then
+                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
+                          * (1.0 + cos(pi * (x(ix + ix0) - xr0) / sigwpx))
+                    else
+                      fld_amp(ix, jy, kz, :) = 0.0
+                    end if
+                  end if
 
-                if(sigwpx_dim > 0.0) then
-                  fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
-                      ((x(ix + ix0) - xr0) / sigwpx) ** 2)
-                end if
+                  if(sigwpy > 0.0) then
+                    if(abs(y(jy + jy0) - yr0) < sigwpy) then
+                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
+                          * (1.0 + cos(pi * (y(jy + jy0) - yr0) / sigwpy))
+                    else
+                      fld_amp(ix, jy, kz, :) = 0.0
+                    end if
+                  end if
+                else
+                  if(sigwpx_dim > 0.0) then
+                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
+                        ((x(ix + ix0) - xr0) / sigwpx) ** 2)
+                  end if
 
-                if(sigwpy_dim > 0.0) then
-                  fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
-                      ((y(jy + jy0) - yr0) / sigwpy) ** 2)
+                  if(sigwpy_dim > 0.0) then
+                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
+                        ((y(jy + jy0) - yr0) / sigwpy) ** 2)
+                  end if
                 end if
               elseif(case_wkb == 2) then
                 if(abs(z(kz) - zr0) < sigwpz) then
@@ -2029,48 +2060,49 @@ module wkb_module
                       fld_amp(ix, jy, kz, :) = 0.0
                     end if
                   end if
-                end if
-                if(sigwpy > 0.0) then
-                  if(abs(y(jy + jy0) - yr0) < sigwpy) then
-                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 * (1.0 &
-                        + cos(pi * (y(jy + jy0) - yr0) / sigwpy))
-                  else
-                    fld_amp(ix, jy, kz, :) = 0.0
+
+                  if(sigwpy > 0.0) then
+                    if(abs(y(jy + jy0) - yr0) < sigwpy) then
+                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
+                          * (1.0 + cos(pi * (y(jy + jy0) - yr0) / sigwpy))
+                    else
+                      fld_amp(ix, jy, kz, :) = 0.0
+                    end if
                   end if
-                
+
                 else
                   fld_amp(ix, jy, kz, :) = 0.0
                 end if
 
               elseif(case_wkb == 4) then ! to match the wavepacket case gaussian
-                fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) &
-                  * exp(- (z(kz) - zr0)**2. / sigwpz ** 2. )
-                  
+                fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- (z(kz) &
+                    - zr0) ** 2. / sigwpz ** 2.)
+
                 if(sigwpx > 0.0) then
                   if(abs(x(ix + ix0) - xr0) < sigwpx) then
-                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) &
-                          * cos(pi * (x(ix + ix0) - xr0) / (2. * sigwpx)) ** 2.
+                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
+                        * (x(ix + ix0) - xr0) / (2. * sigwpx)) ** 2.
                   else
                     fld_amp(ix, jy, kz, :) = 0.0
                   end if
                 end if
-    
+
                 if(sigwpy > 0.0) then
                   if(abs(y(jy + jy0) - yr0) < sigwpy) then
-                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :)  &
-                        * cos(pi * (y(jy + jy0) - yr0) / (2. * sigwpy)) ** 2.
+                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
+                        * (y(jy + jy0) - yr0) / (2. * sigwpy)) ** 2.
                   else
                     fld_amp(ix, jy, kz, :) = 0.0
                   end if
                 end if
               end if
 
-              ! caluculate initial tracerfluxvar, needed for the 
+              ! caluculate initial tracerfluxvar, needed for the
               ! next-order gw tracer fluxes (see calc_meanFlow_effect)
-              if (include_tracer) then
-                tracerfluxvar(ix, jy, kz, :) = alphaTracer**2. &
-                  * fld_amp(ix, jy, kz, :) /rhoStrat(kz) &
-                  * wnrh_init**2./omi_notop(ix, jy, kz)/(wnrh_init ** 2 + wnrm_init ** 2)
+              if(include_tracer) then
+                tracerfluxvar(ix, jy, kz, :) = alphaTracer ** 2. * fld_amp(ix, &
+                    jy, kz, :) / rhoStrat(kz) * wnrh_init ** 2. &
+                    / omi_notop(ix, jy, kz) / (wnrh_init ** 2 + wnrm_init ** 2)
               end if
 
             end do
@@ -2081,15 +2113,16 @@ module wkb_module
 
     ! initialize with wave-induced zonal wind
     ! currently only available for 1D
-    if (lindUinit) then 
-      if ((sigwpx > 0.0) .or. (sigwpy > 0.0) .or. (wlry_init /= 0.0)) then
-        stop "setup_wkb: lindUinit only possible for 1D wavepacket envelope in z and wavelength in y = 0."
+    if(lindUinit) then
+      if((sigwpx > 0.0) .or. (sigwpy > 0.0) .or. (wlry_init /= 0.0)) then
+        stop "setup_wkb: lindUinit only possible for 1D wavepacket envelope in &
+            z and wavelength in y = 0."
       end if
 
       do kz = 1, (nz)
         do im = 1, nwm
-          var(:, :, kz, 2) = var(:, :, kz, 2) + wnrk_init &
-          * fld_amp(:, :, kz, im) / rhoStrat(kz)
+          var(:, :, kz, 2) = var(:, :, kz, 2) + wnrk_init * fld_amp(:, :, kz, &
+              im) / rhoStrat(kz)
         end do
       end do
     end if
@@ -2335,6 +2368,13 @@ module wkb_module
                           if(abs(wzr + cgirz) > abs(cgz_max)) then
                             cgz_max = abs(wzr + cgirz)
                           end if
+
+                          ! SD
+                          if(include_ice2) then
+                            dphi = wnrk * xr + wnrl * yr + wnrm * zr
+                            ray(iRay, ix, jy, kz)%dphi = dphi
+                          end if
+
                         end do ! iwm
                       end do ! km
                     end do ! kz2
@@ -2371,6 +2411,38 @@ module wkb_module
 
     end if
 
+    !SD
+    !double check if output rays needed
+    if(include_ice2) then
+
+      allocate(nor_mst(nprocx * nprocy), stat = allocstat)
+      if(allocstat /= 0) stop "wkb.f90/setup_wkb: could not allocate nor_mst. &
+          Stop."
+      allocate(vct_prc(nray_wrk * nx * ny * nz, NFR), stat = allocstat)
+      if(allocstat /= 0) stop "wkb.f90/setup_wkb: could not allocate vct_prc. &
+          Stop."
+      allocate(vct_mst(nray_wrk * sizeX * sizeY * sizeZ, NFR), stat = allocstat)
+      if(allocstat /= 0) stop "wkb.f90/setup_wkb: could not allocate vct_mst. &
+          Stop."
+      !allocate(vct_out(nray_wrk*sizeX*sizeY*sizeZ, NFR), stat = allocstat)
+      !if(allocstat /= 0) stop "wkb.f90/setup_wkb: could not allocate &
+      !     vec_out. Stop."
+
+      !Saturation field ect.
+      allocate(opt_ray(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "setup_wkb: could not allocate opt_ray"
+
+      ! init values
+      nor_mst = 0.
+      vct_prc = 0.
+      vct_mst = 0.
+      NoR_out = 1.
+
+      if(case_wkb == 3) stop 'RayTracer+Ice2+Topography not supported'
+      if(topography) stop 'RayTracer+Ice2+Topography not supported'
+
+    end if
     !-------------------------------
     !       Feedback on Screen
     !-------------------------------
@@ -2550,7 +2622,8 @@ module wkb_module
   end subroutine stratification
 
   !------------------------------------------------------------------------
-  subroutine tracerderivative(position, direction, position2, position3, var, dchidxyz)
+  subroutine tracerderivative(position, direction, position2, position3, var, &
+      dchidxyz)
 
     ! calculate the large-scale tracer derivative wrt x, y, and z
 
@@ -2558,10 +2631,10 @@ module wkb_module
     integer, intent(in) :: direction ! 1: x, 2: y, 3: z
     real, intent(in) :: position2, position3 ! indices for the remaining two directions
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-    intent(in) :: var
-    real, intent(out) :: dchidxyz 
+        intent(in) :: var
+    real, intent(out) :: dchidxyz
 
-    integer :: kzu, kzd, jyf, jyb, ixr, ixl 
+    integer :: kzu, kzd, jyf, jyb, ixr, ixl
     real :: xlc, ylc, zlc
     real :: zu, zd, yf, yb, xr, xl
     real :: tracu, tracd, tracl, tracr, tracf, tracb
@@ -2572,46 +2645,46 @@ module wkb_module
 
     real :: factor
 
-    if ( direction == 3 ) then
+    if(direction == 3) then
       xlc = position2
-      ylc = position3 
+      ylc = position3
 
       ! find closest index on x-axis
-      ixl = max( -1, floor( (xlc - lx(0)) / dx))
+      ixl = max(- 1, floor((xlc - lx(0)) / dx))
       ixr = ixl + 1
 
-      if (ixr + 1 > nx + 1) then
+      if(ixr + 1 > nx + 1) then
         ixr = nx
         ixl = nx - 1
       end if
 
-      if (abs(x(ixr)-xlc) > abs(xlc-x(ixl))) then
-        ixx = ixl 
-      else 
+      if(abs(x(ixr) - xlc) > abs(xlc - x(ixl))) then
+        ixx = ixl
+      else
         ixx = ixr
       end if
 
       ! find closest index on y-axis
-      jyb = max( -1, floor((ylc - ly(0)) / dy))
+      jyb = max(- 1, floor((ylc - ly(0)) / dy))
       jyf = jyb + 1
 
-      if (jyf + 1 > ny + 1) then
+      if(jyf + 1 > ny + 1) then
         jyf = ny
         jyb = ny - 1
       end if
 
-      if (abs(y(jyf)-ylc) > abs(ylc-y(jyb))) then 
-        jyy = jyb 
-      else 
+      if(abs(y(jyf) - ylc) > abs(ylc - y(jyb))) then
+        jyy = jyb
+      else
         jyy = jyf
       end if
 
       zlc = position
-      
-      kzd = max( -1, floor( (zlc - lz(0)) / dz))
+
+      kzd = max(- 1, floor((zlc - lz(0)) / dz))
       kzu = kzd + 1
 
-      if (kzu + 1 > nz + 1) then
+      if(kzu + 1 > nz + 1) then
         kzu = nz
         kzd = nz - 1
       end if
@@ -2619,7 +2692,7 @@ module wkb_module
       zu = z(kzu) + 0.5 * dz
       zd = z(kzd) + 0.5 * dz
 
-      if (fluctuationMode) then
+      if(fluctuationMode) then
         rhodp = var(ixx, jyy, kzd + 1, 1) + rhoStrat(kzd + 1)
         rhodm = var(ixx, jyy, kzd, 1) + rhoStrat(kzd)
 
@@ -2633,28 +2706,28 @@ module wkb_module
         rhoum = var(ixx, jyy, kzu, 1)
       end if
 
-      tracd = (var(ixx, jyy, kzd + 1, iVarT) / rhodp &
-             - var(ixx, jyy, kzd    , iVarT) / rhodm) / dz
-      tracu = (var(ixx, jyy, kzu + 1, iVarT) / rhoup &
-             - var(ixx, jyy, kzu    , iVarT) / rhoum) / dz 
+      tracd = (var(ixx, jyy, kzd + 1, iVarT) / rhodp - var(ixx, jyy, kzd, &
+          iVarT) / rhodm) / dz
+      tracu = (var(ixx, jyy, kzu + 1, iVarT) / rhoup - var(ixx, jyy, kzu, &
+          iVarT) / rhoum) / dz
 
-      if (zu < zd) then
+      if(zu < zd) then
         print *, 'ERROR IN TRACERDERIVATIVE: zu =', zu, '< zd =', zd
         stop
-      elseif (zu == zd) then
+      elseif(zu == zd) then
         factor = 0.0
-      elseif (zlc > zu) then 
+      elseif(zlc > zu) then
         factor = 0.0
-      elseif (zlc > zd) then 
+      elseif(zlc > zd) then
         factor = (zu - zlc) / dz
       else
         factor = 1.0
-      end if 
+      end if
 
       dchidxyz = factor * tracd + (1.0 - factor) * tracu
 
-    elseif ( direction == 2 ) then
-      if (sizeY == 1) then
+    elseif(direction == 2) then
+      if(sizeY == 1) then
         dchidxyz = 0.0
       else
         xlc = position2
@@ -2662,39 +2735,39 @@ module wkb_module
         zlc = position3
 
         ! find closest index on x-axis
-        ixl = max( -1, floor( (xlc - lx(0)) / dx))
+        ixl = max(- 1, floor((xlc - lx(0)) / dx))
         ixr = ixl + 1
 
-        if (ixr + 1 > nx + 1) then
+        if(ixr + 1 > nx + 1) then
           ixr = nx
           ixl = nx - 1
         end if
 
-        if (abs(x(ixr)-xlc) > abs(xlc-x(ixl))) then
-          ixx = ixl 
-        else 
+        if(abs(x(ixr) - xlc) > abs(xlc - x(ixl))) then
+          ixx = ixl
+        else
           ixx = ixr
         end if
 
         ! find closest index on z-axis
-        kzd = max( -1, floor( (zlc - lz(0)) / dz))
+        kzd = max(- 1, floor((zlc - lz(0)) / dz))
         kzu = kzd + 1
 
-        if (kzu + 1 > nz + 1) then
+        if(kzu + 1 > nz + 1) then
           kzu = nz
           kzd = nz - 1
         end if
 
-        if (abs(z(kzu)-zlc) > abs(zlc-z(kzd))) then 
+        if(abs(z(kzu) - zlc) > abs(zlc - z(kzd))) then
           kzz = kzd
-        else 
-          kzz = kzu 
-        end if 
+        else
+          kzz = kzu
+        end if
 
-        jyb = max( -1, floor((ylc - ly(0)) / dy))
+        jyb = max(- 1, floor((ylc - ly(0)) / dy))
         jyf = jyb + 1
 
-        if (jyf + 1 > ny + 1) then
+        if(jyf + 1 > ny + 1) then
           jyf = ny
           jyb = ny - 1
         end if
@@ -2702,7 +2775,7 @@ module wkb_module
         yf = y(jyf) + 0.5 * dy
         yb = y(jyb) + 0.5 * dy
 
-        if (fluctuationMode) then
+        if(fluctuationMode) then
           rhobp = var(ixx, jyb + 1, kzz, 1) + rhoStrat(kzz)
           rhobm = var(ixx, jyb, kzz, 1) + rhoStrat(kzz)
 
@@ -2716,19 +2789,19 @@ module wkb_module
           rhofm = var(ixx, jyf, kzz, 1)
         end if
 
-        tracb = (var(ixx, jyb + 1, kzz, iVarT) / rhobp & 
-               - var(ixx, jyb    , kzz, iVarT) / rhobm) / dy
-        tracf = (var(ixx, jyf + 1, kzz, iVarT) / rhofp & 
-               - var(ixx, jyf    , kzz, iVarT) / rhofm) / dy
-        
-        if (yf < yb) then
+        tracb = (var(ixx, jyb + 1, kzz, iVarT) / rhobp - var(ixx, jyb, kzz, &
+            iVarT) / rhobm) / dy
+        tracf = (var(ixx, jyf + 1, kzz, iVarT) / rhofp - var(ixx, jyf, kzz, &
+            iVarT) / rhofm) / dy
+
+        if(yf < yb) then
           print *, 'ERROR IN TRACERDERIVATIVE: yf =', yf, '< yb =', yb
           stop
-        elseif (yf == yb) then
+        elseif(yf == yb) then
           factor = 0.0
-        elseif (ylc > yf) then
+        elseif(ylc > yf) then
           factor = 0.0
-        elseif (ylc > yb) then
+        elseif(ylc > yb) then
           factor = (yf - ylc) / dy
         else
           factor = 1.0
@@ -2737,57 +2810,56 @@ module wkb_module
         dchidxyz = factor * tracb + (1.0 - factor) * tracf
       end if
 
-    elseif ( direction == 1 ) then
-      if (sizeX == 1) then
+    elseif(direction == 1) then
+      if(sizeX == 1) then
         dchidxyz = 0.0
       else
         xlc = position
         ylc = position2
-        zlc = position3 
+        zlc = position3
 
         ! find closest index on y-axis
-        jyb = max( -1, floor((ylc - ly(0)) / dy))
+        jyb = max(- 1, floor((ylc - ly(0)) / dy))
         jyf = jyb + 1
-  
-        if (jyf + 1 > ny + 1) then
+
+        if(jyf + 1 > ny + 1) then
           jyf = ny
           jyb = ny - 1
         end if
-  
-        if (abs(y(jyf)-ylc) > abs(ylc-y(jyb))) then 
-          jyy = jyb 
-        else 
+
+        if(abs(y(jyf) - ylc) > abs(ylc - y(jyb))) then
+          jyy = jyb
+        else
           jyy = jyf
         end if
 
         ! find closest index on z-axis
-        kzd = max( -1, floor( (zlc - lz(0)) / dz))
+        kzd = max(- 1, floor((zlc - lz(0)) / dz))
         kzu = kzd + 1
 
-        if (kzu + 1 > nz + 1) then
+        if(kzu + 1 > nz + 1) then
           kzu = nz
           kzd = nz - 1
         end if
 
-        if (abs(z(kzu)-zlc) > abs(zlc-z(kzd))) then 
+        if(abs(z(kzu) - zlc) > abs(zlc - z(kzd))) then
           kzz = kzd
-        else 
-          kzz = kzu 
-        end if 
+        else
+          kzz = kzu
+        end if
 
-
-        ixl = max( -1, floor( (xlc - lx(0)) / dx))
+        ixl = max(- 1, floor((xlc - lx(0)) / dx))
         ixr = ixl + 1
 
-        if (ixr + 1 > nx + 1) then
+        if(ixr + 1 > nx + 1) then
           ixr = nx
           ixl = nx - 1
         end if
 
-        xr = x(ixr) + 0.5 * dx 
+        xr = x(ixr) + 0.5 * dx
         xl = x(ixl) + 0.5 * dx
 
-        if (fluctuationMode) then
+        if(fluctuationMode) then
           rholp = var(ixl + 1, jyy, kzz, 1) + rhoStrat(kzz)
           rholm = var(ixl, jyy, kzz, 1) + rhoStrat(kzz)
 
@@ -2801,19 +2873,19 @@ module wkb_module
           rhorm = var(ixr, jyy, kzz, 1)
         end if
 
-        tracl = (var(ixl + 1, jyy, kzz, iVarT) / rholp & 
-               - var(ixl    , jyy, kzz, iVarT) / rholm) / dx 
-        tracr = (var(ixr + 1, jyy, kzz, iVarT) / rhorp &
-               - var(ixr    , jyy, kzz, iVarT) / rhorm) /dx
-        
-        if (xr < xl) then
-          print *, 'ERROR IN TRACERDERIVATIVE: xr =', xr, '< xl =', xl 
+        tracl = (var(ixl + 1, jyy, kzz, iVarT) / rholp - var(ixl, jyy, kzz, &
+            iVarT) / rholm) / dx
+        tracr = (var(ixr + 1, jyy, kzz, iVarT) / rhorp - var(ixr, jyy, kzz, &
+            iVarT) / rhorm) / dx
+
+        if(xr < xl) then
+          print *, 'ERROR IN TRACERDERIVATIVE: xr =', xr, '< xl =', xl
           stop
-        elseif (xr == xl) then 
+        elseif(xr == xl) then
           factor = 0.0
-        elseif (xlc > xr) then
+        elseif(xlc > xr) then
           factor = 0.0
-        elseif (xlc > xl) then
+        elseif(xlc > xl) then
           factor = (xr - xlc) / dx
         else
           factor = 1.0
@@ -2823,25 +2895,23 @@ module wkb_module
       end if
     else
       print *, "ERROR IN TRACERDERIVATIVE: direction must be 1, 2, or 3."
-      stop 
+      stop
     end if
-
-
-
 
   end subroutine tracerderivative
   !------------------------------------------------------------------------
 
-  subroutine tracerderivative2(position, direction, indexa, indexb, var, dchidxyz)
+  subroutine tracerderivative2(position, direction, indexa, indexb, var, &
+      dchidxyz)
 
     real, intent(in) :: position ! at which the derivative of chi should be calculated
     integer, intent(in) :: direction ! 1: x, 2: y, 3: z
     integer, intent(in) :: indexa, indexb ! indices for the remaining two directions
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-    intent(in) :: var
-    real, intent(out) :: dchidxyz 
+        intent(in) :: var
+    real, intent(out) :: dchidxyz
 
-    integer :: kzu, kzd, jyf, jyb, ixr, ixl 
+    integer :: kzu, kzd, jyf, jyb, ixr, ixl
 
     real :: xlc, ylc, zlc
     real :: zu, zd, yf, yb, xr, xl
@@ -2853,15 +2923,15 @@ module wkb_module
 
     real :: factor
 
-    if ( direction == 3 ) then
+    if(direction == 3) then
       ixx = indexa
       jyy = indexb
       zlc = position
 
-      kzd = max( -1, floor( (zlc - lz(0)) / dz))
+      kzd = max(- 1, floor((zlc - lz(0)) / dz))
       kzu = kzd + 1
 
-      if (kzu + 1 > nz + 1) then
+      if(kzu + 1 > nz + 1) then
         kzu = nz
         kzd = nz - 1
       end if
@@ -2869,7 +2939,7 @@ module wkb_module
       zu = z(kzu) + 0.5 * dz
       zd = z(kzd) + 0.5 * dz
 
-      if (fluctuationMode) then
+      if(fluctuationMode) then
         rhodp = var(ixx, jyy, kzd + 1, 1) + rhoStrat(kzd + 1)
         rhodm = var(ixx, jyy, kzd, 1) + rhoStrat(kzd)
 
@@ -2883,38 +2953,38 @@ module wkb_module
         rhoum = var(ixx, jyy, kzu, 1)
       end if
 
-      tracd = (var(ixx, jyy, kzd + 1, iVarT) / rhodp &
-             - var(ixx, jyy, kzd    , iVarT) / rhodm) / dz
-      tracu = (var(ixx, jyy, kzu + 1, iVarT) / rhoup &
-             - var(ixx, jyy, kzu    , iVarT) / rhoum) / dz 
+      tracd = (var(ixx, jyy, kzd + 1, iVarT) / rhodp - var(ixx, jyy, kzd, &
+          iVarT) / rhodm) / dz
+      tracu = (var(ixx, jyy, kzu + 1, iVarT) / rhoup - var(ixx, jyy, kzu, &
+          iVarT) / rhoum) / dz
 
-      if (zu < zd) then
+      if(zu < zd) then
         print *, 'ERROR IN TRACERDERIVATIVE: zu =', zu, '< zd =', zd
         stop
-      elseif (zu == zd) then
+      elseif(zu == zd) then
         factor = 0.0
-      elseif (zlc > zu) then 
+      elseif(zlc > zu) then
         factor = 0.0
-      elseif (zlc > zd) then 
+      elseif(zlc > zd) then
         factor = (zu - zlc) / dz
       else
         factor = 1.0
-      end if 
+      end if
 
       dchidxyz = factor * tracd + (1.0 - factor) * tracu
 
-    elseif ( direction == 2 ) then
-      if (sizeY == 1) then
+    elseif(direction == 2) then
+      if(sizeY == 1) then
         dchidxyz = 0.0
       else
-        ixx = indexa 
+        ixx = indexa
         ylc = position
         kzz = indexb
 
-        jyb = max( -1, floor((ylc - ly(0)) / dy))
+        jyb = max(- 1, floor((ylc - ly(0)) / dy))
         jyf = jyb + 1
 
-        if (jyf + 1 > ny + 1) then
+        if(jyf + 1 > ny + 1) then
           jyf = ny
           jyb = ny - 1
         end if
@@ -2922,7 +2992,7 @@ module wkb_module
         yf = y(jyf) + 0.5 * dy
         yb = y(jyb) + 0.5 * dy
 
-        if (fluctuationMode) then
+        if(fluctuationMode) then
           rhobp = var(ixx, jyb + 1, kzz, 1) + rhoStrat(kzz)
           rhobm = var(ixx, jyb, kzz, 1) + rhoStrat(kzz)
 
@@ -2936,19 +3006,19 @@ module wkb_module
           rhofm = var(ixx, jyf, kzz, 1)
         end if
 
-        tracb = (var(ixx, jyb + 1, kzz, iVarT) / rhobp & 
-               - var(ixx, jyb    , kzz, iVarT) / rhobm) / dy
-        tracf = (var(ixx, jyf + 1, kzz, iVarT) / rhofp & 
-               - var(ixx, jyf    , kzz, iVarT) / rhofm) / dy
-        
-        if (yf < yb) then
+        tracb = (var(ixx, jyb + 1, kzz, iVarT) / rhobp - var(ixx, jyb, kzz, &
+            iVarT) / rhobm) / dy
+        tracf = (var(ixx, jyf + 1, kzz, iVarT) / rhofp - var(ixx, jyf, kzz, &
+            iVarT) / rhofm) / dy
+
+        if(yf < yb) then
           print *, 'ERROR IN TRACERDERIVATIVE: yf =', yf, '< yb =', yb
           stop
-        elseif (yf == yb) then
+        elseif(yf == yb) then
           factor = 0.0
-        elseif (ylc > yf) then
+        elseif(ylc > yf) then
           factor = 0.0
-        elseif (ylc > yb) then
+        elseif(ylc > yb) then
           factor = (yf - ylc) / dy
         else
           factor = 1.0
@@ -2957,26 +3027,26 @@ module wkb_module
         dchidxyz = factor * tracb + (1.0 - factor) * tracf
       end if
 
-    elseif ( direction == 1 ) then
-      if (sizeX == 1) then
+    elseif(direction == 1) then
+      if(sizeX == 1) then
         dchidxyz = 0.0
       else
         xlc = position
         jyy = indexa
-        kzz = indexb 
+        kzz = indexb
 
-        ixl = max( -1, floor( (xlc - lx(0)) / dx))
+        ixl = max(- 1, floor((xlc - lx(0)) / dx))
         ixr = ixl + 1
 
-        if (ixr + 1 > nx + 1) then
+        if(ixr + 1 > nx + 1) then
           ixr = nx
           ixl = nx - 1
         end if
 
-        xr = x(ixr) + 0.5 * dx 
+        xr = x(ixr) + 0.5 * dx
         xl = x(ixl) + 0.5 * dx
 
-        if (fluctuationMode) then
+        if(fluctuationMode) then
           rholp = var(ixl + 1, jyy, kzz, 1) + rhoStrat(kzz)
           rholm = var(ixl, jyy, kzz, 1) + rhoStrat(kzz)
 
@@ -2990,19 +3060,19 @@ module wkb_module
           rhorm = var(ixr, jyy, kzz, 1)
         end if
 
-        tracl = (var(ixl + 1, jyy, kzz, iVarT) / rholp & 
-               - var(ixl    , jyy, kzz, iVarT) / rholm) / dx 
-        tracr = (var(ixr + 1, jyy, kzz, iVarT) / rhorp &
-               - var(ixr    , jyy, kzz, iVarT) / rhorm) /dx
-        
-        if (xr < xl) then
-          print *, 'ERROR IN TRACERDERIVATIVE: xr =', xr, '< xl =', xl 
+        tracl = (var(ixl + 1, jyy, kzz, iVarT) / rholp - var(ixl, jyy, kzz, &
+            iVarT) / rholm) / dx
+        tracr = (var(ixr + 1, jyy, kzz, iVarT) / rhorp - var(ixr, jyy, kzz, &
+            iVarT) / rhorm) / dx
+
+        if(xr < xl) then
+          print *, 'ERROR IN TRACERDERIVATIVE: xr =', xr, '< xl =', xl
           stop
-        elseif (xr == xl) then 
+        elseif(xr == xl) then
           factor = 0.0
-        elseif (xlc > xr) then
+        elseif(xlc > xr) then
           factor = 0.0
-        elseif (xlc > xl) then
+        elseif(xlc > xl) then
           factor = (xr - xlc) / dx
         else
           factor = 1.0
@@ -3012,11 +3082,8 @@ module wkb_module
       end if
     else
       print *, "ERROR IN TRACERDERIVATIVE: direction must be 1, 2, or 3."
-      stop 
+      stop
     end if
-
-
-
 
   end subroutine tracerderivative2
 
@@ -5997,6 +6064,8 @@ module wkb_module
 
     integer :: ix0, jy0
 
+    logical :: outside
+
     if(steady_state) return
 
     allocate(nshl(0:nx + 1, 0:ny + 1, - 1:nz + 2))
@@ -6482,9 +6551,21 @@ module wkb_module
 
                   ! FJApr2023
                   ! if(zr > z(kz - 1) + 0.5 * dz) then
-                  if((.not. topography .and. zr > z(kz - 1) + 0.5 * dz) .or. &
-                      (topography .and. zr > zTFC(ix, jy, kz - 1) + 0.5 &
-                      * jac(ix, jy, kz - 1) * dz)) then
+                  !*if((.not. topography .and. zr > z(kz - 1) + 0.5 * dz) .or. &
+                  !*    (topography .and. zr > zTFC(ix, jy, kz - 1) + 0.5 &
+                  !*    * jac(ix, jy, kz - 1) * dz)) then
+                  !SD
+                  if(.not. topography .and. zr > z(kz - 1) + 0.5 * dz) then
+                    outside = .true.
+                  elseif(topography) then
+                    if(zr > zTFC(ix, jy, kz - 1) + 0.5 * jac(ix, jy, kz - 1) &
+                        * dz) then
+                      outside = .true.
+                    end if
+                  else
+                    outside = .false.
+                  end if
+                  if(outside) then
                     nrlc = nrlc + 1
 
                     ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz - 1)
@@ -6511,15 +6592,27 @@ module wkb_module
                   zr = ray(iRay, ix, jy, kz + 1)%z
 
                   ! FJApr2023
-                  ! if(zr < z(kz + 1) - 0.5 * dz) then
-                  if((.not. topography .and. zr < z(kz + 1) - 0.5 * dz) .or. &
-                      (topography .and. zr < zTFC(ix, jy, kz + 1) - 0.5 &
-                      * jac(ix, jy, kz + 1) * dz)) then
-                    ! r.v. having propagated into layers below the
-                    ! model bottom are tagged to be deleted
-                    ! below, but they are not transferred
-                    ! (a reflecting boundary condition would be
-                    ! more physical ...)
+                  !if(zr < z(kz + 1) - 0.5 * dz) then
+                  !*if((.not. topography .and. zr < z(kz + 1) - 0.5 * dz) .or. &
+                  !*    (topography .and. zr < zTFC(ix, jy, kz + 1) - 0.5 &
+                  !*    * jac(ix, jy, kz + 1) * dz)) then
+                  ! r.v. having propagated into layers below the
+                  ! model bottom are tagged to be deleted
+                  ! below, but they are not transferred
+                  ! (a reflecting boundary condition would be
+                  ! more physical ...)
+                  ! SD
+                  if(.not. topography .and. zr < z(kz + 1) - 0.5 * dz) then
+                    outside = .true.
+                  else if(topography) then
+                    if(zr < zTFC(ix, jy, kz + 1) - 0.5 * jac(ix, jy, kz + 1) &
+                        * dz) then
+                      outside = .true.
+                    end if
+                  else
+                    outside = .false.
+                  end if
+                  if(outside) then
                     if(kz > 0) then
                       nrlc = nrlc + 1
                       ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz + 1)
@@ -9240,13 +9333,13 @@ module wkb_module
 
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
         intent(inout) :: ray
-    
 
     ! time step
     real, intent(in) :: dt
 
     ! give eddy diffusity K as output
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(inout) :: diffusioncoeff
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(inout) :: &
+        diffusioncoeff
 
     ! indices, etc.
     integer iRay, kzmax, kzmin
@@ -9479,7 +9572,7 @@ module wkb_module
               diffusion(ix, jy, kz) = (mB2(ix, jy, kz) - alpha_sat ** 2 &
                   * NN_nd ** 2) / (2.0 * dt * mB2K2(ix, jy, kz))
             endif
-            if (include_tracer) then 
+            if(include_tracer) then
               diffusioncoeff(ix, jy, kz) = diffusion(ix, jy, kz)
             end if
           end do
@@ -9497,7 +9590,7 @@ module wkb_module
               diffusion(ix, jy, kz) = (mB2(ix, jy, kz) - alpha_sat ** 2 &
                   * NN_nd ** 2) / (2.0 * dt * mB2K2(ix, jy, kz))
             endif
-            if (include_tracer) then 
+            if(include_tracer) then
               diffusioncoeff(ix, jy, kz) = diffusion(ix, jy, kz)
             end if
           end do
@@ -9850,7 +9943,6 @@ module wkb_module
     return
 
   end subroutine saturation_3D
-
 
   !----------------------------------------------------------------------
   subroutine smooth_wkb_shapiro(flxwkb, nsmth, homog_dir)
@@ -12793,5 +12885,538 @@ module wkb_module
     end if
 
   end function amplitude_scaling
+  subroutine calc_ice(ray, var)
+
+    ! supplemements cell-centered volume forces by WKB force
+    ! as well as the heating by entropy-flux convergence
+
+    implicit none
+
+    ! in/out variables
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
+
+    !    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(inout) :: force
+
+    !    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:6), intent(inout) :: &
+    !        ray_var3D
+
+    type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
+        intent(in) :: ray
+
+    ! local variables
+    real :: F
+
+    real, allocatable :: var_uu(:, :, :)
+    real, allocatable :: var_uv(:, :, :)
+    real, allocatable :: var_uw(:, :, :)
+
+    real, allocatable :: var_vv(:, :, :)
+    real, allocatable :: var_vw(:, :, :)
+
+    real, allocatable :: var_ETx(:, :, :)
+    real, allocatable :: var_ETy(:, :, :)
+
+    real, allocatable :: var_ut(:, :, :)
+    real, allocatable :: var_vt(:, :, :)
+
+    real, allocatable :: var_E(:, :, :)
+
+    real, allocatable :: var_drudt(:, :, :)
+    real, allocatable :: var_drvdt(:, :, :)
+    real, allocatable :: var_drtdt(:, :, :)
+
+    real :: dxi, dyi, dzi
+
+    integer :: ixmin, ixmax
+    integer :: jymin, jymax
+    integer :: kzmin, kzmax
+    integer :: ixr, jyr, kzr
+    integer :: ix, jy, kz
+
+    integer :: ix0, jy0
+
+    real :: rhotot
+
+    real :: wnrk
+    real :: wnrl
+    real :: wnrm
+    real :: wnrh
+    real :: dwnrk, dwnrl, dwnrm
+    real :: f_cor_nd
+
+    real :: cgirx, cgiry, cgirz
+    real :: omir
+
+    real :: xr, yr, zr
+    real :: dxr, dyr, dzr
+
+    real :: fcpspx, fcpspy, fcpspz
+    real :: wadr
+
+    real :: NNR
+
+    !SD
+    real :: fcpswn
+    real :: amprw, amprw2, amprb, amprt, amprp, amprep, amprpt
+    real :: amprw_tt, amprb_tt, amprt_tt, amprp_tt, amprep_tt, amprpt_tt
+    real :: C_p, phase, fac_ep, fac_pt
+    real :: MeanT, MeanExnP, MeanTheta, MeanPi, MeanP, MeanPsi, MeanS
+    real :: FullT, FullExnP, FullTheta, FullPi, FullP, FullPsi, FullRho, FullS
+    real :: TildS
+    real :: tldpi, rho
+    integer :: cnt
+
+    f_cor_nd = f_Coriolis_dim * tRef
+
+    do kzrv = 0, nz
+      do jyrv = 0, ny + 1
+        ! loop including ghost cells in order to get all fluxes
+        ! affecting a cell
+        ! (assuming that ray volumes are not wider in y than dy)
+
+        do ixrv = 0, nx + 1
+          ! loop including ghost cells in order to get all fluxes
+          ! affecting a cell
+          ! (assuming that ray volumes are not wider in x than dx)
+
+          if(nRay(ixrv, jyrv, kzrv) < 1) cycle
+
+          !SD
+          ! compute coarse grid fields (non-dimensional)
+
+          !allways fluctuation mode
+          ! NO topography
+          rho = var(ixrv, jyrv, kzrv, 1) + rhoStrat(kzrv)
+
+          !problems in \pi
+          !if heating switched on
+          MeanTheta = Pstrat(kzrv) / rho
+
+          MeanExnP = var(ixrv, jyrv, kzrv, 5) + (PStrat(kzrv) / p0) ** gamma_1
+
+          MeanP = p0 * MeanExnP ** kappaInv !kappaInv = c_p/R
+
+          MeanT = MeanTheta * MeanExnP
+
+          MeanPsi = Psat_ice(MeanT)
+
+          MeanPi = MeanP / MeanPsi
+
+          do iRay = 1, nRay(ixrv, jyrv, kzrv)
+            ! skip counting ray volumes with zero wave-action density
+
+            if(ray(iRay, ixrv, jyrv, kzrv)%dens == 0.0) cycle
+
+            xr = ray(iRay, ixrv, jyrv, kzrv)%x
+            yr = ray(iRay, ixrv, jyrv, kzrv)%y
+            zr = ray(iRay, ixrv, jyrv, kzrv)%z
+
+            dxr = ray(iRay, ixrv, jyrv, kzrv)%dxray
+            dyr = ray(iRay, ixrv, jyrv, kzrv)%dyray
+            dzr = ray(iRay, ixrv, jyrv, kzrv)%dzray
+
+            ! vertical boundary conditions:
+            ! zBoundary = 'periodic': implement periodicity
+            ! zBoundary = 'solid_wall': skip counting ray volumes
+            !                           that have completely left the
+            !                           model domain
+
+            if(zr < lz(0)) then
+              select case(zBoundary)
+              case("periodic")
+                zr = lz(1) + mod(zr - lz(0), lz(1) - lz(0))
+              case("solid_wall")
+                if(zr + 0.5 * dzr < lz(0)) cycle
+              case default
+                stop "calc_meanflow_effect: unknown case zBoundary"
+              end select
+            elseif(zr > lz(1)) then
+              select case(zBoundary)
+              case("periodic")
+                zr = lz(0) + mod(zr - lz(1), lz(1) - lz(0))
+              case("solid_wall")
+                if(zr - 0.5 * dzr > lz(1)) cycle
+              case default
+                stop "calc_meanflow_effect: unknown case zBoundary"
+              end select
+            end if
+
+            ! implement horizontal boundary conditions for ray-volume
+            ! positions
+
+            if(sizeX > 1) then
+              if(xBoundary /= "periodic") then
+                print *, 'ERROR in calc_meanflow_effect:  boundary conditions &
+                    in x must be periodic'
+                stop
+              end if
+
+              ! for leftmost cpu make sure that xr in
+              ! ghost cell to the left is between x(0) - dx
+              ! and x(0)
+
+              if(ixrv == 0 .and. is + nbx == 1) then
+                if(xr > lx(1) - dx .and. xr < lx(1)) then
+                  xr = xr - lx(1) + lx(0)
+                elseif(xr > lx(0) - dx .and. xr < lx(0)) then
+                  xr = xr
+                else
+                  print *, 'ERROR in calc_meanflow_effect:'
+                  print *, 'xr =', xr
+                  print *, 'but r.v. is in ghost cell to the  left of the &
+                      leftmost cpu so that  one should have either'
+                  print *, lx(1) - dx, '= lx(1) - dx < xr < lx(1) =', lx(1), ' &
+                      or'
+                  print *, lx(0) - dx, '= lx(0) - dx < xr < lx(0) =', lx(0)
+                  stop
+                end if
+              end if
+
+              ! for rightmost cpu make sure that xr in
+              ! ghost cell to the right is between x(0) + L_x
+              ! and x(0) + L_x + dx
+
+              if(ixrv == nx + 1 .and. is + nbx + nx == sizeX) then
+                if(xr > lx(0) .and. xr < lx(0) + dx) then
+                  xr = xr + lx(1) - lx(0)
+                elseif(xr > lx(1) .and. xr < lx(1) + dx) then
+                  xr = xr
+                else
+                  print *, 'ERROR in calc_meanflow_effect:'
+                  print *, 'xr =', xr
+                  print *, 'but r.v. is in ghost cell to the  right of the &
+                      rightmost cpu so that  one should have either'
+                  print *, lx(0), '= lx(0) < xr < lx(0) + dx =', lx(0) + dx, ' &
+                      or'
+                  print *, lx(1), '= lx(1) < xr < lx(1) + dx =', lx(1) + dx
+                  stop
+                end if
+              end if
+
+              !if(xr < lx(0)) then
+              !   select case (xBoundary)
+              !      case ("periodic")
+              !         xr = lx(1) + mod(xr - lx(0),lx(1) - lx(0))
+              !      case default
+              !         stop"calc_meanflow_effect: unknown case &
+              !              & xBoundary"
+              !   end select
+              !  elseif (xr > lx(1)) then
+              !   select case (xBoundary)
+              !      case ("periodic")
+              !         xr = lx(0) + mod(xr - lx(1),lx(1) - lx(0))
+              !      case default
+              !         stop"calc_meanflow_effect: unknown case &
+              !              & xBoundary"
+              !   end select
+              !end if
+            end if
+
+            if(sizeY > 1) then
+              if(yBoundary /= "periodic") then
+                print *, 'ERROR in calc_meanflow_effect:  boundary conditions &
+                    in y must be periodic'
+                stop
+              end if
+
+              ! for first cpu in y direct. make sure that yr in
+              ! ghost cell in front is between y(0) - dy
+              ! and y(0)
+
+              if(jyrv == 0 .and. js + nby == 1) then
+                if(yr > ly(1) - dy .and. yr < ly(1)) then
+                  yr = yr - ly(1) + ly(0)
+                elseif(yr > ly(0) - dy .and. yr < ly(0)) then
+                  yr = yr
+                else
+                  print *, 'ERROR in calc_meanflow_effect:'
+                  print *, 'yr =', yr
+                  print *, 'but r.v. is in ghost cell in front of the first &
+                      cpu in y dir. so that  one should have either'
+                  print *, ly(1) - dy, '= ly(1) - dy < yr < ly(1) =', ly(1), ' &
+                      or'
+                  print *, ly(0) - dy, '= ly(0) - dy < yr < ly(0) =', ly(0)
+                  stop
+                end if
+              end if
+
+              ! for last cpu in y direction make sure that yr
+              ! in ghost cell behind is between
+              ! y(0) + L_y and y(0) + L_y + dy
+
+              if(jyrv == ny + 1 .and. js + nby + ny == sizeY) then
+                if(yr > ly(0) .and. yr < ly(0) + dy) then
+                  yr = yr + ly(1) - ly(0)
+                elseif(yr > ly(1) .and. yr < ly(1) + dy) then
+                  yr = yr
+                else
+                  print *, 'ERROR in calc_meanflow_effect:'
+                  print *, 'yr =', yr
+                  print *, 'but r.v. is in ghost cell behind the last cpu in y &
+                      dir. so that  one should have either'
+                  print *, ly(0), '= ly(0) < yr < ly(0) + dy =', ly(0) + dy, ' &
+                      or'
+                  print *, ly(1), '= ly(1) < yr < ly(1) + dy =', ly(1) + dy
+                  stop
+                end if
+              end if
+
+              !if(yr < ly(0)) then
+              !   select case (yBoundary)
+              !      case ("periodic")
+              !         yr = ly(1) + mod(yr - ly(0),ly(1) - ly(0))
+              !      case default
+              !         stop"calc_meanflow_effect: unknown case &
+              !              & yBoundary"
+              !   end select
+              !  elseif (yr > ly(1)) then
+              !   select case (yBoundary)
+              !      case ("periodic")
+              !         yr = ly(0) + mod(yr - ly(1),ly(1) - ly(0))
+              !      case default
+              !         stop"calc_meanflow_effect: unknown case &
+              !              & yBoundary"
+              !   end select
+              !end if
+            end if
+
+            wnrk = ray(iRay, ixrv, jyrv, kzrv)%k
+            wnrl = ray(iRay, ixrv, jyrv, kzrv)%l
+            wnrm = ray(iRay, ixrv, jyrv, kzrv)%m
+
+            dwnrk = ray(iRay, ixrv, jyrv, kzrv)%dkray
+            dwnrl = ray(iRay, ixrv, jyrv, kzrv)%dlray
+            dwnrm = ray(iRay, ixrv, jyrv, kzrv)%dmray
+
+            wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
+
+            if(zr < lz(0) - dz) then
+              print *, 'ERROR IN calc_meanflow_effect: RAY VOLUME', iRay, 'in &
+                  cell', ixrv, jyrv, kzrv, 'TOO LOW'
+              stop
+            end if
+
+            call stratification(zr, 1, NNr)
+
+            omir = branchr * sqrt(NNr * wnrh ** 2 + f_cor_nd ** 2 * wnrm ** 2) &
+                / sqrt(wnrh ** 2 + wnrm ** 2)
+
+            cgirx = wnrk * (NNr - omir ** 2) / (omir * (wnrh ** 2 + wnrm ** 2))
+            cgiry = wnrl * (NNr - omir ** 2) / (omir * (wnrh ** 2 + wnrm ** 2))
+
+            cgirz = - wnrm * (omir ** 2 - f_cor_nd ** 2) / (omir * (wnrh ** 2 &
+                + wnrm ** 2))
+
+            ! indices of range of cells touched by a ray volume
+
+            if(sizeX > 1) then
+              ! last x-index leftmost of cpu
+              ix0 = is + nbx - 1
+
+              ixmin = floor((xr - dxr * 0.5 - lx(0)) / dx) + 1 - ix0
+              ixmax = floor((xr + dxr * 0.5 - lx(0)) / dx) + 1 - ix0
+
+              if(ixmin > nx + 1) then
+                print *, 'ixmin =', ixmin, '> nx+1 = ', nx + 1
+                print *, 'ixrv = ', ixrv
+                print *, 'xr =', xr
+                print *, 'dxr =', dxr
+                print *, 'dx =', dx
+                print *, 'lx(0) =', lx(0)
+                print *, 'lx(1) =', lx(1)
+                print *, 'ix0 =', ix0
+                print *, 'floor((xr - dxr*0.5 - lx(0)) / dx) + 1 =', floor((xr &
+                    - dxr * 0.5 - lx(0)) / dx) + 1
+                stop
+              else
+                ! no fluxes calculated for the ghost cells
+                ! (that are taken care of by the boundary-condition
+                ! routines)
+
+                ixmin = max(ixmin, 1)
+              end if
+
+              if(ixmax < 0) then
+                print *, 'ixmax =', ixmax, '< 0'
+                stop
+              else
+                ! no fluxes calculated for the ghost cells
+                ! (that are taken care of by the boundary-condition
+                ! routines)
+
+                ixmax = min(ixmax, nx)
+              end if
+            else
+              ixmin = 1
+              ixmax = 1
+            end if
+
+            if(sizeY > 1) then
+              ! last y-index in front of cpu
+              jy0 = js + nby - 1
+
+              jymin = floor((yr - dyr * 0.5 - ly(0)) / dy) + 1 - jy0
+              jymax = floor((yr + dyr * 0.5 - ly(0)) / dy) + 1 - jy0
+
+              if(jymin > ny + 1) then
+                print *, 'jymin =', jymin, '> ny+1 = ', ny + 1
+                stop
+              else
+                ! no fluxes calculated for the ghost cells
+                ! (that are taken care of by the boundary-condition
+                ! routines)
+
+                jymin = max(jymin, 1)
+              end if
+
+              if(jymax < 0) then
+                print *, 'jymax =', jymax, '< 0'
+                stop
+              else
+                ! no fluxes calculated for the ghost cells
+                ! (that are taken care of by the boundary-condition
+                ! routines)
+
+                jymax = min(jymax, ny)
+              end if
+            else
+              jymin = 1
+              jymax = 1
+            end if
+
+            kzmin = max(1, floor((zr - dzr * 0.5 - lz(0)) / dz) + 1)
+            kzmax = min(nz, floor((zr + dzr * 0.5 - lz(0)) / dz) + 1)
+
+            ! calculate momentum-flux / energy / elastic-term
+            ! contribution from each ray volume
+
+            do kz = kzmin, kzmax
+              dzi = (min((zr + dzr * 0.5), lz(0) + kz * dz) - max((zr - dzr &
+                  * 0.5), lz(0) + (kz - 1) * dz))
+
+              fcpspz = dwnrm * dzi / dz
+
+              !SD
+              fcpswn = dwnrm
+
+              do jy = jymin, jymax
+                if(sizeY > 1) then
+                  dyi = (min((yr + dyr * 0.5), ly(0) + (jy + jy0) * dy) &
+                      - max((yr - dyr * 0.5), ly(0) + (jy + jy0 - 1) * dy))
+
+                  fcpspy = dwnrl * dyi / dy
+
+                  !SD
+                  fcpswn = fcpswn * dwnrl
+
+                else
+                  fcpspy = 1.0
+                end if
+
+                do ix = ixmin, ixmax
+                  if(sizeX > 1) then
+                    dxi = (min((xr + dxr * 0.5), lx(0) + (ix + ix0) * dx) &
+                        - max((xr - dxr * 0.5), lx(0) + (ix + ix0 - 1) * dx))
+
+                    fcpspx = dwnrk * dxi / dx
+
+                    !SD
+                    fcpswn = fcpswn * dwnrk
+                  else
+                    fcpspx = 1.0
+                  end if
+
+                  wadr = fcpspx * fcpspy * fcpspz * ray(iRay, ixrv, jyrv, &
+                      kzrv)%dens
+
+                  !**********************************
+                  ! compute S fluctuations
+                  !
+                  ! relevant for Exner-pressure, ..
+                  ! NB: Qv = rho q_v but in fluctuation mode
+                  !     Qv = \tilde rho q_v !!
+                  !**********************************
+
+                  !vertical velocity squared
+                  amprw2 = wadr * abs(omir) * 2. * wnrh ** 2 / (wnrh ** 2 &
+                      + wnrm ** 2) / rhoStrat(kz)
+
+                  ofield(ix, jy, kz, 4) = ofield(ix, jy, kz, 4) + amprw2
+                  !amprw = sqrt(amprw2)
+                  !ofield(ix, jy, kz, 5) = ofield(ix, jy, kz, 5) + amprw
+
+                  !ofield(ixrv, jyrv, kzrv, 6) = ofield(ixrv, jyrv, kzrv, 6) + wadr
+
+                  !fine, ray-volume grid
+                  !opt_ray(iRay, ixrv, jyrv, kzrv)%w = amprw*
+
+                  !save maximum amplitude vertical vel. of a ray
+                  amprw = sqrt(fcpswn * abs(omir) * 2. * wnrh ** 2 / (wnrh &
+                      ** 2 + wnrm ** 2) / rhoStrat(kz) * ray(iRay, ixrv, jyrv, &
+                      kzrv)%dens)
+
+                  if(amprw .gt. ofield(ix, jy, kz, 6)) then
+
+                    ofield(ix, jy, kz, 6) = amprw
+                    ofield(ix, jy, kz, 2) = omir
+                    ofield(ix, jy, kz, 3) = ray(iRay, ixrv, jyrv, kzrv)%dphi
+                  end if
+
+                end do ! ix
+              end do !jy
+            end do !kz
+
+            !***************************************
+            ! compute fluctuation inside each RV
+            !***************************************
+
+            !!$            fac_w2 = omir * 2. * wnrh** 2 &
+            !!$                 / (wnrh ** 2 + wnrm ** 2) / rhoStrat(kzrv) * &
+            !!$                 dwnrk * dwnrl * dwnrm * ray(iRay, ixrv, jyrv, kzrv)%dens
+            !!$
+            !!$            amprw = sqrt(abs(fac_w2))
+            !!$
+            !!$            !standard deviation w
+            !!$            opt_ray(iRay, ixrv, jyrv, kzrv)%w = sqrt(fac_w2/2)
+            !!$
+            !!$            !buoyancy
+            !!$            !up to sign of omega
+            !!$            amprb = amprw * NNr / omir
+            !!$
+            !!$            ! Exner pressure
+            !!$            amprep = kappa * rhoStrat(kzrv)/Pstrat(kzrv) * &
+            !!$                 (omir**2 - NNr) / NNr * amprb / wnrm
+            !!$
+            !!$            ! pot. temperature
+            !!$            amprpt = amprb * Pstrat(kzrv)/rhoStrat(kzrv)/g_ndim
+
+            ! temperature
+            ! T = \teta \pi
+            ! nonlinear relation
+            !amprt = amprpt * amprep
+
+            ! pressure
+            ! nonlinear relation
+            !amprp = p0 * amprep ** kappaInv
+
+            !***************************************
+            ! end compute fluctuation inside each RV
+            !***************************************
+
+          end do !iray
+        end do !ixrv
+      end do !jyrv
+    end do !kzrv
+
+    !***************************************
+    ! compute effective fluctuations
+    !***************************************
+
+    !standard deviation vertical vel.
+
+    ofield(1:nx, 1:ny, 1:nz, 5) = sqrt(ofield(1:nx, 1:ny, 1:nz, 4)) / 2.
+
+  end subroutine calc_ice
 
 end module wkb_module
