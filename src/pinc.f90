@@ -128,7 +128,7 @@ program pinc_prog
   !SD
   integer :: n_step_ice, ii
   real :: dtt_ice2
-  real :: tta !include_testoutput
+  real :: uTime, qTime
 
   !-------------------------------------------------
   !                    Set up
@@ -186,9 +186,7 @@ program pinc_prog
   call init_atmosphere ! set atmospheric background state
   call init_output
 
-  !SD
   call initialise(var, flux) ! set initial conditions
-  !call initialise(var) ! set initial conditions
 
   if(include_tracer) call setup_tracer(var)
 
@@ -395,9 +393,18 @@ program pinc_prog
   !---------------------------------------------
 
   if(rayTracer) then
+
     ! allocate ray fields
 
     call setup_wkb(ray, ray_var3D, var, diffusioncoeff, tracerfluxvar)
+
+    if(include_ice2) then
+      uTime = 0 !set initial time
+      !Init ofield to zero except omega, phi (2,3)
+      ofield(:, :, :, 1) = 0. !p_i(0)
+      ofield(:, :, :, 4:6) = 0.
+      call calc_ice(ray, var)
+    end if
   end if
 
   !------------------------------------------
@@ -434,11 +441,6 @@ program pinc_prog
       open(124, file = 'w_max.dat')
       !open(125, file = 'theta_max.dat')
     end if
-  end if
-
-  !SD
-  if(include_testoutput) then
-    tta = 0. !initial time for analyt sol.
   end if
 
   !-----------------------------------------------------
@@ -712,7 +714,7 @@ program pinc_prog
       force = 0.0
 
       ! initialize zero tracer force
-      if (include_tracer) then 
+      if(include_tracer) then
         tracerforce = 0.0
       end if
 
@@ -729,7 +731,14 @@ program pinc_prog
             call merge_rayvol(ray)
 
             ! GW effects are put into force(...,1/2) and var(...,8)
-            call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff, tracerfluxvar, tracerforce)
+            call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
+                diffusioncoeff, tracerfluxvar, tracerforce)
+
+            ! SD
+            if(include_ice2) then
+              call calc_ice(ray, var)
+            end if
+
           end if
         end do
       end if
@@ -848,8 +857,8 @@ program pinc_prog
         call massUpdate(var, flux, 0.5 * dt, dRhop, RKstage, "rhop", "lhs", &
             "expl", 1.)
 
-        if (include_tracer) then
-           call tracerUpdate(var, flux, tracerforce, 0.5 * dt, dTracer, RKstage)
+        if(include_tracer) then
+          call tracerUpdate(var, flux, tracerforce, 0.5 * dt, dTracer, RKstage)
         end if
 
         ! RK step for momentum
@@ -1116,8 +1125,8 @@ program pinc_prog
         call massUpdate(var, flux, dt, dRhop, RKstage, "rhop", "lhs", "expl", &
             1.)
 
-        if (include_tracer) then
-           call tracerUpdate(var, flux, tracerforce, dt, dTracer, RKstage)
+        if(include_tracer) then
+          call tracerUpdate(var, flux, tracerforce, dt, dTracer, RKstage)
         end if
 
         ! RK step for momentum
@@ -1133,11 +1142,8 @@ program pinc_prog
         end if
 
         !SD
-        !old
-        !if(include_ice2) call integrate_ice(var, var0, flux, "lin", source, dt, dIce, &
-        !        RKstage, PStrat01, PStratTilde01)
-        if(include_ice2) call integrate_ice_advection(var, var0, flux, "lin", &
-            source, dt, dIce, RKstage, PStrat01, PStratTilde01)
+        !if(include_ice2) call integrate_ice_advection(var, var0, flux, "lin", &
+        !    source, dt, dIce, RKstage, PStrat01, PStratTilde01)
 
       end do
 
@@ -1338,16 +1344,35 @@ program pinc_prog
         ! Lag Ray tracer (position-wavenumber space method)
 
         if(rayTracer) then
-          !call calc_meanFlow_effect(ray, var, force, ray_var3D, time)
-          call transport_rayvol(var, ray, dt, RKstage, time)
-          if(RKstage == nStages) then
+
+          if(.not. include_ice2) then
+            !call calc_meanFlow_effect(ray, var, force, ray_var3D, time)
+            call transport_rayvol(var, ray, dt, RKstage, time)
+
+            if(RKstage == nStages) then
+              call boundary_rayvol(ray)
+              call split_rayvol(ray)
+              call shift_rayvol(ray)
+              call merge_rayvol(ray)
+              call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
+                  diffusioncoeff, tracerfluxvar, tracerforce)
+            end if ! RKstage=nstage
+
+          elseif(include_ice2) then
+
+            call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
+                diffusioncoeff, tracerfluxvar, tracerforce)
+            call transport_rayvol(var, ray, dt, RKstage, time)
             call boundary_rayvol(ray)
             call split_rayvol(ray)
             call shift_rayvol(ray)
             call merge_rayvol(ray)
-            call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff, tracerfluxvar, tracerforce)
-          end if
-        end if
+            !SD put calc_meanflow above for comparing
+            !call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff, tracerfluxvar, tracerforce)
+            call calc_ice(ray, var)
+
+          end if ! include_ice2
+        end if ! raytracer
 
         ! Reconstruction
 
@@ -1497,10 +1522,10 @@ program pinc_prog
               MassUpdate off!"
         end if
 
-       if (updateTracer) then
-          if (RKstage == 1) dTracer = 0.0
+        if(updateTracer) then
+          if(RKstage == 1) dTracer = 0.0
           call tracerUpdate(var, flux, tracerforce, dt, dTracer, RKstage)
-       end if
+        end if
 
         if(updateTheta) then
           ! theta_new
@@ -1621,43 +1646,30 @@ program pinc_prog
               off!"
         end if
 
-        !SD old
-        !if(include_ice2) call integrate_ice(var, var0, flux, "nln", source, &
-        !     dt, dIce, RKstage, PStrat, PStratTilde) !pstrat, pstrattilde not relevant if "nln"
-        if(include_ice2) call integrate_ice_advection(var, var0, flux, "nln", &
-            source, dt, dIce, RKstage, PStrat, PStratTilde)
+        !SD
+        !if(include_ice2) call integrate_ice_advection(var, var0, flux, "nln", &
+        !    source, dt, dIce, RKstage, PStrat, PStratTilde)
 
       end do Runge_Kutta_Loop
     end if ! timeScheme
 
     !SD
-    ! integrate ice physics with fixed dry dynamics
+    ! integrate ice physics/advection with fixed dry dynamics
     if(include_ice2) then
 
       n_step_ice = ceiling(dt * tRef / dt_ice2)
       dtt_ice2 = dt / n_step_ice
-      !use outputTime
-      !*n_step_ice = outputTimeDiff / dt_ice2
-      !*dtt_ice2 = dt_ice2/tRef
-
-      !if(include_testoutput) then
-
-      !old
-      !tta = tta + dt !non-dimensional time for analyt. sol.
-
-      !*tta = tta + outputTimeDiff / tRef
-      !*var(:, :, :, iVarO) = var(:, :, :, iVarO+1)*exp(-0.01 * tta)
-
-      !end if
 
       do ii = 1, n_step_ice
         do RKstage = 1, nStages
-          !*call integrate_ice(var, var0, flux, "nln", source, &
-          !*     dtt_ice2, dIce, RKstage, PStrat, PStratTilde) !pstrat, pstrattilde not relevant if "nln"
-          call integrate_ice_physics(var, var0, flux, source, dtt_ice2, dIce, &
-              RKstage)
+          call integrate_ice2(var, var0, flux, "nln", source, dtt_ice2, dIce, &
+              RKstage, PStrat, PStratTilde, 'BOT', uTime, qTime)
         end do ! RKstage
       end do !ii
+      if(master) then
+        print *, 'maxval', maxval(var(:, :, :, inN)), maxval(var(:, :, :, &
+            inQ)), maxval(var(:, :, :, inQv))
+      end if
     end if !include_ice2
 
     !--------------------------------------------------------------
