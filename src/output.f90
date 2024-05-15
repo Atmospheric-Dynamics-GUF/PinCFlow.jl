@@ -208,8 +208,8 @@ module output_module
                   end if
 
                   field_prc(i, j) = theta_dim !thetaRef*(PStrat(k+1)/(var(i,j,k+1,1)+rhoStrat(k+1))-PStrat(k-1)/(var(i,j,k-1,1)+rhoStrat(k-1)))/(2.*dz*lRef)!theta_dim
- 
-               case("Boussinesq")
+
+                case("Boussinesq")
                   ! TFC FJ
                   ! Boussinesq: density fluctuations are stored in
                   ! var(:, :, :, 6)!
@@ -721,6 +721,49 @@ module output_module
     !------------------------------------
     !              close file
     !------------------------------------
+
+    ! if(master) close(unit = 40)
+
+    ! !------------------------------------
+    ! !        Number of ray volumes
+    ! !------------------------------------
+
+    ! if(master) then
+    !   open(40, file = 'pf_wkb_nray.dat', form = "unformatted", access &
+    !       = 'direct', recl = SizeX * SizeY * sizeofreal4)
+    ! end if
+
+    ! irc_prc = (iOut - 1) * nz
+
+    ! do k = 1, nz
+    !   do j = 1, ny
+    !     do i = 1, nx
+    !       field_prc(i, j) = real(nRay(i, j, k), kind = 4)
+    !     end do
+    !     call mpi_gather(field_prc(1, j), nx, mpi_real, field_mst(1, j), nx, &
+    !         mpi_real, 0, comm, ierror)
+    !   end do
+
+    !   irc_prc = irc_prc + 1
+    !   call mpi_barrier(comm, ierror)
+    !   if(master) then
+    !     do j = 1, ny
+    !       j_mst = j
+    !       do j_prc = 1, nprocy
+    !         j_out = ny * (j_prc - 1) + j
+    !         do i_prc = 1, nprocx
+    !           do i = 1, nx
+    !             i_out = nx * (i_prc - 1) + i
+    !             i_mst = nprocy * nx * (i_prc - 1) + (j_prc - 1) * nx + i
+    !             field_out(i_out, j_out) = field_mst(i_mst, j_mst)
+    !           end do
+    !         end do
+    !       end do
+    !     end do
+
+    !     write(40, rec = irc_prc) field_out
+    !   end if
+    ! end do
 
     if(master) close(unit = 40)
 
@@ -1321,9 +1364,15 @@ module output_module
 
     sum_local = 0.
     sum_global = 0.
-    do k = 0, nz + 1
-      sum_local(k) = sum(var(1:nx, 1:ny, k, 1) + rhoStrat(k))
-    end do
+    if(topography) then
+      do k = 0, nz + 1
+        sum_local(k) = sum(var(1:nx, 1:ny, k, 1) + rhoStratTFC(1:nx, 1:ny, k))
+      end do
+    else
+      do k = 0, nz + 1
+        sum_local(k) = sum(var(1:nx, 1:ny, k, 1) + rhoStrat(k))
+      end do
+    end if
 
     ! global sum and average
 
@@ -1375,7 +1424,7 @@ module output_module
     !---------------------------------------
 
     ! irc_prc = 7 * iOut * nz
-    irc_prc = 7 * (iOut - 1) * nz
+    irc_prc = 10 * (iOut - 1) * nz
 
     do iVar = 1, 10
       !if(varOut(iVar) == 1) then
@@ -1387,10 +1436,18 @@ module output_module
             select case(iVar)
 
             case(1) ! f rho v
-              field_prc(i, j) = rhoRef * uRef * f_Coriolis_dim * (0.5 &
-                  * (var(i, j, k, 1) + var(i + 1, j, k, 1)) + rhoStrat(k)) &
-                  * (0.25 * (var(i, j, k, 3) + var(i + 1, j, k, 3) + var(i, j &
-                  + 1, k, 3) + var(i + 1, j + 1, k, 3)))
+              if(topography) then
+                field_prc(i, j) = rhoRef * uRef * f_Coriolis_dim * 0.5 &
+                    * (var(i, j, k, 1) + rhoStratTFC(i, j, k) + var(i + 1, j, &
+                    k, 1) + rhoStratTFC(i + 1, j, k)) * 0.25 * (var(i, j, k, &
+                    3) + var(i + 1, j, k, 3) + var(i, j + 1, k, 3) + var(i &
+                    + 1, j + 1, k, 3))
+              else
+                field_prc(i, j) = rhoRef * uRef * f_Coriolis_dim * (0.5 &
+                    * (var(i, j, k, 1) + var(i + 1, j, k, 1)) + rhoStrat(k)) &
+                    * (0.25 * (var(i, j, k, 3) + var(i + 1, j, k, 3) + var(i, &
+                    j + 1, k, 3) + var(i + 1, j + 1, k, 3)))
+              end if
 
             case(2) ! d/dy (rho v u)
               field_prc(i, j) = rhoRef * uRef * uRef * (flux(i, j, k, 2, 2))
@@ -1399,9 +1456,16 @@ module output_module
               field_prc(i, j) = rhoRef * uRef * uRef * (flux(i, j, k, 3, 2))
 
             case(4) ! Fx
-              field_prc(i, j) = rhoRef * uRef * (kv_hs(j, k) + kr_sp(j, k)) &
-                  / tRef * (0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1)) &
-                  + rhoStrat(k)) * (var(i, j, k, 2) - var_env(i, j, k, 2))
+              if(topography) then
+                field_prc(i, j) = rhoRef * uRef * kr_sp_tfc(i, j, k) / tRef &
+                    * 0.5 * (var(i, j, k, 1) + rhoStratTFC(i, j, k) + var(i &
+                    + 1, j, k, 1) + rhoStratTFC(i + 1, j, k)) * (var(i, j, k, &
+                    2) - var_env(i, j, k, 2))
+              else
+                field_prc(i, j) = rhoRef * uRef * (kv_hs(j, k) + kr_sp(j, k)) &
+                    / tRef * (0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1)) &
+                    + rhoStrat(k)) * (var(i, j, k, 2) - var_env(i, j, k, 2))
+              end if
 
             case(5) ! f v
               field_prc(i, j) = uRef * f_Coriolis_dim * (0.25 * (var(i, j, k, &
@@ -1414,10 +1478,17 @@ module output_module
                   * uRef * sum_global(k) * rhoRef
 
             case(7) ! rhoStrat w u
-              field_prc(i, j) = 0.5 * (sum_global(k) + sum_global(k + 1)) &
-                  * 0.5 * (var(i + 1, j, k, 4) + var(i, j, k, 4)) * 0.5 &
-                  * (var(i, j, k + 1, 2) + var(i, j, k, 2)) * uRef * uRef &
-                  * rhoRef
+              if(topography) then
+                field_prc(i, j) = 0.5 * (sum_global(k) + sum_global(k + 1)) &
+                    * 0.5 * (vertWindTFC(i + 1, j, k, var) + vertWindTFC(i, j, &
+                    k, var)) * 0.5 * (var(i, j, k + 1, 2) + var(i, j, k, 2)) &
+                    * uRef * uRef * rhoRef
+              else
+                field_prc(i, j) = 0.5 * (sum_global(k) + sum_global(k + 1)) &
+                    * 0.5 * (var(i + 1, j, k, 4) + var(i, j, k, 4)) * 0.5 &
+                    * (var(i, j, k + 1, 2) + var(i, j, k, 2)) * uRef * uRef &
+                    * rhoRef
+              end if
 
             case(8) ! zonal tracer flux (rho u chi)
               if(include_tracer) then
@@ -1600,4 +1671,3 @@ module output_module
   end subroutine output_background
 
 end module output_module
-

@@ -1979,8 +1979,8 @@ module flux_module
 
     if(topography) then
       do k = 1, nz
-        do j = 1, ny
-          do i = 0, nx
+        do j = 0, ny
+          do i = 1, nx
             select case(model)
             case("pseudo_incompressible")
               coef_t = mu_conduct * 0.5 * (rhoStratTFC(i, j, 1) &
@@ -2014,7 +2014,7 @@ module flux_module
                 + jac(i, j + 1, k) * met(i, j + 1, k, 2, 3)) * (pU / rhoU - pD &
                 / rhoD) / (2.0 * dz)
 
-            flux(i, j, k, 1, 5) = - coef_t * dtht_dxi
+            flux(i, j, k, 2, 5) = - coef_t * dtht_dxi
           end do
         end do
       end do
@@ -2059,9 +2059,9 @@ module flux_module
     ! flux in z direction
 
     if(topography) then
-      do k = 1, nz
+      do k = 0, nz
         do j = 1, ny
-          do i = 0, nx
+          do i = 1, nx
             select case(model)
             case("pseudo_incompressible")
               coef_t = mu_conduct * 0.5 * (rhoStratTFC(i, j, 1) &
@@ -2104,7 +2104,7 @@ module flux_module
                 3) + jac(i, j, k + 1) * met(i, j, k + 1, 3, 3)) * (pU / rhoU &
                 - pD / rhoD) / dz
 
-            flux(i, j, k, 1, 5) = - coef_t * dtht_dxi
+            flux(i, j, k, 3, 5) = - coef_t * dtht_dxi
           end do
         end do
       end do
@@ -3610,6 +3610,43 @@ module flux_module
 
       !FS end if ! RoInv > 0.0
     end if ! not semiimplicit
+
+    !--------------------------------------------
+    !             topography growth
+    !--------------------------------------------
+
+    if(topography .and. topographyTime > 0.0) then
+      do k = 0, nz + 1
+        do j = 0, ny + 1
+          do i = 0, nx + 1
+            ! Zonal part
+            force(i, j, k, 3) = force(i, j, k, 3) + (var(i, j, k, 1) &
+                + rhoStratTFC(i, j, k)) * 0.5 * (var(i, j, k, 2) + var(i - 1, &
+                j, k, 2)) * tRef / topographyTime &
+                * ((final_topography_surface(i + 1, j) &
+                - final_topography_surface(i - 1, j)) / (2.0 * dx) * (z(k) &
+                - (lz(1) - lz(0))) / (lz(1) - lz(0) - topography_surface(i, &
+                j)) + met(i, j, k, 1, 3) * final_topography_surface(i, j) &
+                / (lz(1) - lz(0) - topography_surface(i, j)))
+            ! Meridional part
+            force(i, j, k, 3) = force(i, j, k, 3) + (var(i, j, k, 1) &
+                + rhoStratTFC(i, j, k)) * 0.5 * (var(i, j, k, 3) + var(i, j &
+                - 1, k, 3)) * tRef / topographyTime &
+                * ((final_topography_surface(i, j + 1) &
+                - final_topography_surface(i, j - 1)) / (2.0 * dy) * (z(k) &
+                - (lz(1) - lz(0))) / (lz(1) - lz(0) - topography_surface(i, &
+                j)) + met(i, j, k, 2, 3) * final_topography_surface(i, j) &
+                / (lz(1) - lz(0) - topography_surface(i, j)))
+            ! Vertical part
+            force(i, j, k, 3) = force(i, j, k, 3) + (var(i, j, k, 1) &
+                + rhoStratTFC(i, j, k)) * 0.5 * (vertWindTFC(i, j, k, var) &
+                + vertWindTFC(i, j, k - 1, var)) * tRef / topographyTime &
+                / jac(i, j, k) * final_topography_surface(i, j) / (lz(1) &
+                - lz(0) - topography_surface(i, j))
+          end do
+        end do
+      end do
+    end if
 
     !--------------------------------------------
     !               wind relaxation

@@ -31,22 +31,43 @@ export OMPI_MCA_pml_ucx_opal_mem_hooks=1
 export I_MPI_PMI=pmi
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 
+userName=$(whoami)
+echo userName
+
+runName=wavePacket3D
+echo "runName " $runName
+
+inputFile=input_wavePacket3D.f90
+echo "inputFile "$inputFile
+
 # Define directories.
-dirHome=/home/b/b381733/dissertation
-dirScratch=/scratch/b/b381733/dissertation
-dirNam=${dirHome}/pinc/tests/input
-exe=${dirHome}/pinc/bin/pinc
-dirWork=${dirScratch}/pinc/tests/wavePacket3D
-mkdir ${dirWork}
+dirHome=/home/b/${userName}/PF/pinc
+dirScratch=/scratch/b/${userName}/PF/runs/${runName}
+dirSaveCode=/home/b/${userName}/PF/runs/${runName}
+
+dirInput=${dirHome}/input
+dirSubmit=${dirHome}/submit
+exe=${dirHome}/bin/pinc
+
+mkdir -p ${dirScratch}
+mkdir -p ${dirSaveCode}
+
+# Copy source dir, input.f90 in dirSaveCode
+cp -rp ${dirHome}/src ${dirSaveCode}/.
+cp  -p $BASH_SOURCE   ${dirSaveCode}/.
 
 # Go to work directory.
-cd ${dirWork}
-rm *
+cd ${dirScratch}/ && rm -r *
 
 # Copy namelist.
 sed -e "s/{nprocx}/${nprocx}/" \
     -e "s/{nprocy}/${nprocy}/" \
-        ${dirNam}/input_wavePacket3D.f90 > input.f90
+        ${dirInput}/${inputFile} > input.f90
+
+# Copy script in dirSaveCode
+if [ ${dirSaveCode} != ${dirScratch} ]; then
+   cp -p ${dirScratch}/input.f90 ${dirSaveCode}/.
+fi
 
 # Run the model.
 srun -l --cpu_bind=verbose --hint=nomultithread \

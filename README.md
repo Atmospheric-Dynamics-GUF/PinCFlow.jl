@@ -38,4 +38,4 @@ The code is shared in a GitLab repository. Any contributions to the code should 
 
 1. Request to merge the development branch of the fork into the development branch of the upstream repository.
 
-![](workflow.png "Workflow  ")
+![](workflow.png "Workflow")

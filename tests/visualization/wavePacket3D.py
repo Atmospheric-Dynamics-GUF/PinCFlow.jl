@@ -9,12 +9,12 @@ host_name = subprocess.getoutput("hostname")
 user_name = subprocess.getoutput("whoami")
 
 if "levante" in host_name:
-    # Levante cluster
-    data_path = "/scratch/b/" + user_name + "/PF/runs"
-    reference_path = "/scratch/b/" + user_name + "/PF/pinc/reference"
+  # Levante cluster
+  data_path = "/scratch/b/" + user_name + "/PF/runs"
+  reference_path = "/scratch/b/" + user_name + "/PF/pinc/reference"
 
 elif "login" in host_name:
-    # Goethe cluster
+  # Goethe cluster
   data_path = "/scratch/atmodynamics/" + user_name + "/PF/runs"
   reference_path = "/scratch/atmodynamics/" + user_name + "/PF/pinc/reference"
 

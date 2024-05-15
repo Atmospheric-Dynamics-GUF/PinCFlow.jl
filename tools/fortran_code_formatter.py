@@ -50,40 +50,41 @@ operators = re.compile(r"(\+|\-|\*|\/|\=|\>|\<|\.eq\.|\.ne\.|\.gt\.|\.lt\." \
 
 # Collect indent triggers.
 positive_indent_triggers = re.compile("".join((r"^(\d+\s*)?(\w+\s*:\s*)?(", \
-    "|".join(("if\s*\(.*\)\s*then", \
-    "else(\s*if\s*\(.*\)\s*then)?", \
-    "do(\s+\w+.*)?", \
-    "select\s*(case|rank|type)\s*\(.*\)", \
-    "((case|rank|type\s+is|class\s+is)\s*(\(.*\)|default)|class\s+default)", \
-    "associate\s*\(.*\)", \
-    "block", \
-    "(?!end)(\w+\s+)*\s*subroutine\s+\w+\s*(\(.*\))?", \
-    "(?!end)(\w+\s+)*\s*function\s+\w+\s*(\(.*\))?(\s*result\s*\(\w+\))?", \
-    "module\s+\w+", \
-    "submodule\s*\(\w+\)\s*\w+", \
-    "type(\s*,\s*(bind\s*\(.*\)|extends\s*\(.*\)|abstract|public|private))*" \
-    "(\s*::\s*|\s+)\w+", \
-    "program\s+\w+", \
-    "(?!end)(\w+\s+)*\s*interface(\s+\w+|\s+(operator|assignment)\s*\(.*\))?", \
-    "enum(\s*,\s*(bind\s*\(.*\)))?((\s*::\s*|\s+)\w+)?")), r")$")), \
+    r"|".join((r"if\s*\(.*\)\s*then", \
+    r"else(\s*if\s*\(.*\)\s*then)?", \
+    r"do(\s+\w+.*)?", \
+    r"select\s*(case|rank|type)\s*\(.*\)", \
+    r"((case|rank|type\s+is|class\s+is)\s*(\(.*\)|default)|class\s+default)", \
+    r"associate\s*\(.*\)", \
+    r"block", \
+    r"(?!end)(\w+\s+)*\s*subroutine\s+\w+\s*(\(.*\))?", \
+    r"(?!end)(\w+\s+)*\s*function\s+\w+\s*(\(.*\))?(\s*result\s*\(\w+\))?", \
+    r"module\s+\w+", \
+    r"submodule\s*\(\w+\)\s*\w+", \
+    r"type(\s*,\s*(bind\s*\(.*\)|extends\s*\(.*\)|abstract|public|private))*" \
+    r"(\s*::\s*|\s+)\w+", \
+    r"program\s+\w+", \
+    r"(?!end)(\w+\s+)*\s*interface(\s+\w+|\s+(operator|assignment)" \
+    r"\s*\(.*\))?", \
+    r"enum(\s*,\s*(bind\s*\(.*\)))?((\s*::\s*|\s+)\w+)?")), r")$")), \
     flags = re.IGNORECASE)
 negative_indent_triggers = re.compile("".join((r"^(\d+\s*)?((", \
-    "|".join(("else(\s*if\s*\(.*\)\s*then)?", \
-    "end\s*if", \
-    "end\s*do", \
-    "((case|rank|type\s+is|class\s+is)\s*(\(.*\)|default)|" \
-    "class\s+default)", \
-    "end\s*select", \
-    "end\s*associate", \
-    "end\s*block", \
-    "end\s*subroutine", \
-    "end\s*function", \
-    "end\s*module", \
-    "end\s*submodule", \
-    "end\s*type", \
-    "end\s*program", \
-    "end\s*interface(\s+\w+|\s+(operator|assignment)\s*\(.*\))?", \
-    "end\s*enum")), r")(\s+\w+)?|end)$")), flags = re.IGNORECASE)
+    r"|".join((r"else(\s*if\s*\(.*\)\s*then)?", \
+    r"end\s*if", \
+    r"end\s*do", \
+    r"((case|rank|type\s+is|class\s+is)\s*(\(.*\)|default)|" \
+    r"class\s+default)", \
+    r"end\s*select", \
+    r"end\s*associate", \
+    r"end\s*block", \
+    r"end\s*subroutine", \
+    r"end\s*function", \
+    r"end\s*module", \
+    r"end\s*submodule", \
+    r"end\s*type", \
+    r"end\s*program", \
+    r"end\s*interface(\s+\w+|\s+(operator|assignment)\s*\(.*\))?", \
+    r"end\s*enum")), r")(\s+\w+)?|end)$")), flags = re.IGNORECASE)
 
 # Define expressions for line break detection.
 linebreak_comments = re.compile(r"(\n[^!\n]+& *(!.*)?\n)" \

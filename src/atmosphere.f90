@@ -586,6 +586,15 @@ module atmosphere_module
 
         if(mountain_case_wkb == 0) then
           call read_topography
+        else if(mountain_case_wkb == 10) then
+          do j = - nby, ny + nby
+            do i = - nbx, nx + nbx
+              if(abs(x(i + i00) - x_center) <= mountainWidth_wkb_dim / lRef) &
+                  then
+                topography_surface(i, j) = 0.5 * mountainHeight_wkb_dim / lRef
+              end if
+            end do
+          end do
         else
           topography_surface = 0.5 * mountainHeight_wkb_dim / lRef
         end if
@@ -661,11 +670,11 @@ module atmosphere_module
                   * range_factor * k_mountain * (x(i + i00) - x_center + y(j &
                   + j00) - y_center)))
             else if(mountain_case == 10) then ! localized cosine mountain
-              if(abs(x(i + i00) - x_center) <= 1.5 * mountainWidth) then
+              if(abs(x(i + i00) - x_center) <= mountainWidth) then
                 topography_surface(i, j) = 0.5 * mountainHeight * (1.0 &
                     + cos(k_mountain * (x(i + i00) - x_center)))
               else
-                topography_surface(i, j) = 0.5 * mountainHeight
+                topography_surface(i, j) = 0.0
               end if
             else
               if(master) stop "Mountain case not defined!"
@@ -991,22 +1000,27 @@ module atmosphere_module
     !---------------------------------------------
 
     if(spongeLayer) then
-      if(verticalSponge == "exponential") then
-        if(timescheme == "semiimplicit") stop "ERROR: Wrong time scheme for &
-            exponential sponge!"
-        ksponge = 1
-        zSponge = Rsp * Temp0_dim / g / lRef
+      if(unifiedSponge) then
+        if(spongeType == "exponential") then
+          kSponge = 1
+        else
+          kSponge = nz - ceiling(spongeHeight * real(nz))
+        end if
+
+        dzSponge = spongeHeight * (lz(1) - lz(0))
+        zSponge = lz(1) - dzSponge
+
+        if(lateralSponge) then
+          dxSponge = 0.5 * spongeHeight * (lx(1) - lx(0))
+          dySponge = 0.5 * spongeHeight * (ly(1) - ly(0))
+          xSponge0 = lx(0) + dxSponge
+          ySponge0 = ly(0) + dySponge
+          xSponge1 = lx(1) - dxSponge
+          ySponge1 = ly(1) - dySponge
+        end if
       else
         kSponge = nz - ceiling(spongeHeight * real(nz))
         zSponge = lz(0) + (1.0 - spongeHeight) * (lz(1) - lz(0))
-      end if
-
-      ! Setup lateral sponge.
-      if(lateralSponge) then
-        xSponge0 = lx(0) + 0.5 * spongeHeight * (lx(1) - lx(0))
-        ySponge0 = ly(0) + 0.5 * spongeHeight * (ly(1) - ly(0))
-        xSponge1 = lx(1) - 0.5 * spongeHeight * (lx(1) - lx(0))
-        ySponge1 = ly(1) - 0.5 * spongeHeight * (ly(1) - ly(0))
       end if
     end if
 
@@ -1828,7 +1842,7 @@ module atmosphere_module
               do k = 0, 1
                 T_bar = max(tp_strato, tp_srf_trp - 0.5 * tpdiffhor_tropo)
                 ! Define Exner pressure.
-                piStratTFC(i, j, k) = 1.0 + heightTFC(i, j, k) * kappa / T_bar
+                piStratTFC(i, j, k) = 1.0 - heightTFC(i, j, k) * kappa / T_bar
                 if(k == 1 .and. piStratTFC(i, j, k) <= 0.0) then
                   stop "ERROR: non-positive piStratTFC at k = 1"
                 end if
@@ -2367,6 +2381,9 @@ module atmosphere_module
         topography_surface = final_topography_surface
       end if
 
+      ! Return if model is Boussinesq.
+      if(model == "Boussinesq") return
+
       ! Update TFC background if necessary.
       select case(background)
 
@@ -2547,6 +2564,11 @@ module atmosphere_module
         bvsStratTFC = 0.0
       end if
 
+    else
+
+      ! Topography is fully grown.
+      topographyTime = 0.0
+
     end if
 
   end subroutine update_topography
@@ -2635,6 +2657,17 @@ module atmosphere_module
         - lz(0)) + topography_surface(i, j)
 
   end function heightTFC
+
+  function levelTFC(i, j, height)
+
+    real :: levelTFC
+    integer :: i, j
+    real :: height
+
+    levelTFC = (lz(1) - lz(0)) * (height - topography_surface(i, j)) / ((lz(1) &
+        - lz(0)) - topography_surface(i, j))
+
+  end function levelTFC
 
   ! TFC FJ
   ! Transformation of the vertical wind.
