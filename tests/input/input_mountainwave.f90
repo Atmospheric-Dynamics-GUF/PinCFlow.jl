@@ -268,6 +268,7 @@
   spongeAlphaZ_fac = 1.0
   unifiedSponge = .true.     ! switch for unified sponge layers
   lateralSponge = .true.     ! switch for lateral sponge layers
+  spongeType = "sinusoidal"
 
 &end
 
