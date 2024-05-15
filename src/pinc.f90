@@ -125,6 +125,8 @@ program pinc_prog
   integer :: i00
   real :: spongeAlphaZ, spongeAlphaY, spongeAlphaX
 
+  real :: height
+
   !SD
   integer :: n_step_ice, ii
   real :: dtt_ice2
@@ -263,8 +265,8 @@ program pinc_prog
   ! TFC tests.
   if(topography .and. testTFC) then
     do k = 1, nz
-      kr_sp(:, k) = k
-      kr_sp_w(:, k) = k
+      kr_sp_tfc(:, :, k) = k
+      kr_sp_w_tfc(:, :, k) = k
     end do
     pStrat_0 = pStrat
     call random_number(var)
@@ -430,7 +432,6 @@ program pinc_prog
   ! and consider restart time
 
   if(spongeLayer) then
-
     allocate(alpbls(0:ny + 1), stat = allocstat)
     if(allocstat /= 0) stop "pinc.f90: could not allocate alpbls"
   end if
@@ -570,75 +571,140 @@ program pinc_prog
     !-----------------------------------------------------------------
     if(spongeLayer) then
       if(unifiedSponge) then
-        ! Unified sponge layer.
-
         kr_sp = 0.0
         kr_sp_w = 0.0
+        if(topography) then
+          kr_sp_tfc = 0.0
+          kr_sp_w_tfc = 0.0
+        end if
 
         spongeAlphaZ = spongeAlphaZ_dim * tRef
-
-        alphaUnifiedSponge = 0.0
 
         if(lateralSponge) then
           i00 = is + nbx - 1
           j00 = js + nby - 1
           spongeAlphaX = spongeAlphaZ
           spongeAlphaY = spongeAlphaZ
-
-          do k = 1, nz
-            do j = 1, ny
-              do i = 1, nx
-                ! Zonal sponge.
-                if(x(i00 + i) <= xSponge0) then
-                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                      + spongeAlphaX * sin(0.5 * pi * (xSponge0 - x(i00 + i)) &
-                      / (xSponge0 - lx(0))) ** 2.0
-                else if(x(i00 + i) >= xSponge1) then
-                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                      + spongeAlphaX * sin(0.5 * pi * (x(i00 + i) - xSponge1) &
-                      / (lx(1) - xSponge1)) ** 2.0
-                end if
-
-                ! Meridional sponge.
-                if(y(j00 + j) <= ySponge0) then
-                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                      + spongeAlphaY * sin(0.5 * pi * (ySponge0 - y(j00 + j)) &
-                      / (ySponge0 - ly(0))) ** 2.0
-                else if(y(j00 + j) >= ySponge1) then
-                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                      + spongeAlphaY * sin(0.5 * pi * (y(j00 + j) - ySponge1) &
-                      / (ly(1) - ySponge1)) ** 2.0
-                end if
-              end do
-            end do
-          end do
         end if
 
-        if(topography) then
-          do k = 1, nz
-            do j = 1, ny
-              do i = 1, nx
-                ! Vertical sponge.
-                if(heightTFC(i, j, k) >= zSponge) then
-                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                      + spongeAlphaZ * sin(0.5 * pi * (heightTFC(i, j, k) &
-                      - zSponge) / (lz(1) - zSponge)) ** 2.0
-                end if
+        alphaUnifiedSponge = 0.0
 
-                ! Adjust for terrain-following velocity.
+        do k = 1, nz
+          do j = 0, ny + 1
+            do i = 0, nx + 1
+              if(topography) then
+                height = heightTFC(i, j, k)
+              else
+                height = z(k)
+              end if
+
+              if(spongeType == "exponential") then
                 alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                    / jac(i, j, k)
-              end do
+                    + spongeAlphaZ * exp((height - lz(1)) / dzSponge)
+                if(lateralSponge) then
+                  if(x(i00 + i) <= 0.5 * (lx(0) + lx(1))) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + spongeAlphaX * exp((lx(0) - x(i00 + i)) / dxSponge)
+                  else
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + spongeAlphaX * exp((x(i00 + i) - lx(1)) / dxSponge)
+                  end if
+                  if(y(j00 + j) <= 0.5 * (ly(0) + ly(1))) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + spongeAlphaY * exp((ly(0) - y(j00 + j)) / dySponge)
+                  else
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + spongeAlphaY * exp((y(j00 + j) - ly(1)) / dySponge)
+                  end if
+                end if
+
+              else if(spongeType == "cosmo") then
+                if(height >= zSponge) then
+                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                      + 0.5 / cosmoSteps / dt * (1.0 - cos(pi * (height &
+                      - zSponge) / dzSponge))
+                end if
+                if(lateralSponge) then
+                  if(x(i00 + i) <= xSponge0) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + 0.5 / cosmoSteps / dt * (1.0 - cos(pi * (xSponge0 &
+                        - x(i00 + i)) / dxSponge))
+                  else if(x(i00 + i) >= xSponge1) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + 0.5 / cosmoSteps / dt * (1.0 - cos(pi * (x(i00 + i) &
+                        - xSponge1) / dxSponge))
+                  end if
+                  if(y(j00 + j) <= ySponge0) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + 0.5 / cosmoSteps / dt * (1.0 - cos(pi * (ySponge0 &
+                        - y(j00 + j)) / dySponge))
+                  else if(y(j00 + j) >= ySponge1) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + 0.5 / cosmoSteps / dt * (1.0 - cos(pi * (y(j00 + j) &
+                        - ySponge1) / dySponge))
+                  end if
+                end if
+
+              else if(spongeType == "polynomial") then
+                if(height >= zSponge) then
+                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                      + spongeAlphaZ * ((height - zSponge) / dzSponge) &
+                      ** spongeOrder
+                end if
+                if(lateralSponge) then
+                  if(x(i00 + i) <= xSponge0) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + spongeAlphaX * ((xSponge0 - x(i00 + i)) / dxSponge) &
+                        ** spongeOrder
+                  else if(x(i00 + i) >= xSponge1) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + spongeAlphaX * ((x(i00 + i) - xSponge1) / dxSponge) &
+                        ** spongeOrder
+                  end if
+                  if(y(j00 + j) <= ySponge0) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + spongeAlphaY * ((ySponge0 - y(j00 + j)) / dySponge) &
+                        ** spongeOrder
+                  else if(y(j00 + j) >= ySponge1) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + spongeAlphaY * ((y(j00 + j) - ySponge1) / dySponge) &
+                        ** spongeOrder
+                  end if
+                end if
+
+              else if(spongeType == "sinusoidal") then
+                if(height >= zSponge) then
+                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                      + spongeAlphaZ * sin(0.5 * pi * (height - zSponge) &
+                      / dzSponge) ** 2.0
+                end if
+                if(lateralSponge) then
+                  if(x(i00 + i) <= xSponge0) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + spongeAlphaX * sin(0.5 * pi * (xSponge0 - x(i00 &
+                        + i)) / dxSponge) ** 2.0
+                  else if(x(i00 + i) >= xSponge1) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + spongeAlphaX * sin(0.5 * pi * (x(i00 + i) &
+                        - xSponge1) / dxSponge) ** 2.0
+                  end if
+                  if(y(j00 + j) <= ySponge0) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + spongeAlphaY * sin(0.5 * pi * (ySponge0 - y(j00 &
+                        + j)) / dySponge) ** 2.0
+                  else if(y(j00 + j) >= ySponge1) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        + spongeAlphaY * sin(0.5 * pi * (y(j00 + j) &
+                        - ySponge1) / dySponge) ** 2.0
+                  end if
+                end if
+              end if
             end do
           end do
-        else
-          do k = kSponge, nz
-            ! Vertical sponge.
-            alphaUnifiedSponge(:, :, k) = alphaUnifiedSponge(:, :, k) &
-                + spongeAlphaZ * sin(0.5 * pi * (z(k) - zSponge) / (lz(1) &
-                - zSponge)) ** 2.0
-          end do
-        end if
+        end do
+
+        alphaUnifiedSponge(:, :, 0) = alphaUnifiedSponge(:, :, 1)
+        alphaUnifiedSponge(:, :, nz + 1) = alphaUnifiedSponge(:, :, nz)
       else
         ! allocate( alpbls(0:ny+1),stat=allocstat)
         ! if(allocstat /= 0) stop "pinc.f90: could not allocate alpbls"
@@ -648,34 +714,53 @@ program pinc_prog
 
         ! sponge-layer relaxation
 
-        alpbls(:) = 0. !kr_sp(:,kSponge-1)
+        if(topography) then
+          do k = 1, nz
+            do j = 1, ny
+              do i = 1, nx
+                if(heightTFC(i, j, k) >= zSponge) then
+                  kr_sp_tfc(i, j, k) = alpspg * sin(0.5 * pi * (heightTFC(i, &
+                      j, k) - zSponge) / (lz(1) - zSponge)) ** 2.0
+                  kr_sp_w_tfc(i, j, k) = kr_sp_tfc(i, j, k) / jac(i, j, k)
+                end if
+              end do
+            end do
+          end do
 
-        j00 = js + nby - 1
-        ymax = ly_dim(1) / lRef
-        ymin = ly_dim(0) / lRef
+          kr_sp_tfc(:, :, 0) = kr_sp_tfc(:, :, 1)
+          kr_sp_tfc(:, :, nz + 1) = kr_sp_tfc(:, :, nz)
+          kr_sp_w_tfc(:, :, 0) = kr_sp_w_tfc(:, :, 1)
+          kr_sp_w_tfc(:, :, nz + 1) = kr_sp_w_tfc(:, :, nz)
+        else
+          alpbls(:) = 0. !kr_sp(:,kSponge-1)
 
-        do k = kSponge, nz
-          kr_sp(:, k) = alpbls(:) + (alpspg - alpbls(:)) * sin(0.5 * pi &
-              * (z(k) - zSponge) / (z(nz) - zSponge)) ** 2
-          kr_sp_w(:, k) = kr_sp(:, k)
-        end do
+          j00 = js + nby - 1
+          ymax = ly_dim(1) / lRef
+          ymin = ly_dim(0) / lRef
 
-        ! do j = 1, ny
-        !    yloc = y(j+j00)
-        !    if (yloc <= 0.) then
-        !       kr_sp_w(j,:) = kr_sp_w(j,:)+ alpspg* &! abs(sin(pi*yloc/ymax)) ! &
-        !             (1. &
-        !             + (0.-1.) &
-        !               *( 1.0 &
-        !                 -0.5 &
-        !                  *( tanh(((-1.)*yloc/ymax-0.25)/sigma_tau) &
-        !                    -tanh(((-1.)*yloc/ymax-0.75)/sigma_tau))) )
-        !    end if
-        ! end do
+          do k = kSponge, nz
+            kr_sp(:, k) = alpbls(:) + (alpspg - alpbls(:)) * sin(0.5 * pi &
+                * (z(k) - zSponge) / (z(nz) - zSponge)) ** 2
+            kr_sp_w(:, k) = kr_sp(:, k)
+          end do
 
-        kr_sp(:, nz + 1) = kr_sp(:, nz)
-        kr_sp_w(ny + 1, :) = kr_sp_w(ny, :)
-        kr_sp_w(0, :) = kr_sp_w(1, :)
+          ! do j = 1, ny
+          !    yloc = y(j+j00)
+          !    if (yloc <= 0.) then
+          !       kr_sp_w(j,:) = kr_sp_w(j,:)+ alpspg* &! abs(sin(pi*yloc/ymax)) ! &
+          !             (1. &
+          !             + (0.-1.) &
+          !               *( 1.0 &
+          !                 -0.5 &
+          !                  *( tanh(((-1.)*yloc/ymax-0.25)/sigma_tau) &
+          !                    -tanh(((-1.)*yloc/ymax-0.75)/sigma_tau))) )
+          !    end if
+          ! end do
+
+          kr_sp(:, nz + 1) = kr_sp(:, nz)
+          kr_sp_w(ny + 1, :) = kr_sp_w(ny, :)
+          kr_sp_w(0, :) = kr_sp_w(1, :)
+        end if
       end if
     end if
 
@@ -722,30 +807,34 @@ program pinc_prog
 
       if(rayTracer) then
         do RKstage = 1, nStages
-          !call calc_meanFlow_effect(ray, var, force, ray_var3D, time)
+          ! call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
+          !     diffusioncoeff, tracerfluxvar, tracerforce)
           call transport_rayvol(var, ray, dt, RKstage, time)
+
+          ! if(include_ice2) then
+          !   call calc_ice(ray, var)
+          ! end if
+
           if(RKstage == nStages) then
             call boundary_rayvol(ray)
             call split_rayvol(ray)
             call shift_rayvol(ray)
             call merge_rayvol(ray)
 
-            ! GW effects are put into force(...,1/2) and var(...,8)
             call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
                 diffusioncoeff, tracerfluxvar, tracerforce)
 
-            ! SD
             if(include_ice2) then
               call calc_ice(ray, var)
             end if
-
           end if
         end do
       end if
 
       ! wind relaxation at horizontal boundaries
 
-      if((testCase == "mountainwave") .or. (raytracer .and. case_wkb == 3)) then
+      if((testCase == "mountainwave") .or. (raytracer .and. case_wkb == 3) &
+          .or. (topography .and. topographyTime > 0.0)) then
         call volumeForce(var, time, force)
       end if
 
@@ -854,8 +943,12 @@ program pinc_prog
         call massUpdate(var, flux, 0.5 * dt, dRho, RKstage, "rho", "tot", &
             "expl", 1.)
 
+        call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, "rho")
+
         call massUpdate(var, flux, 0.5 * dt, dRhop, RKstage, "rhop", "lhs", &
             "expl", 1.)
+
+        call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, "rhop")
 
         if(include_tracer) then
           call tracerUpdate(var, flux, tracerforce, 0.5 * dt, dTracer, RKstage)
@@ -870,9 +963,7 @@ program pinc_prog
         call momentumPredictor(var, flux, force, 0.5 * dt, dMom, RKstage, &
             "lhs", "expl", 1.)
 
-        if(unifiedSponge) then
-          call set_spongeLayer(var, stepFrac(RKstage) * 0.5 * dt, "uvw")
-        end if
+        call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, "uvw")
 
       end do
 
@@ -1122,8 +1213,12 @@ program pinc_prog
 
         call massUpdate(var, flux, dt, dRho, RKstage, "rho", "tot", "expl", 1.)
 
+        call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "rho")
+
         call massUpdate(var, flux, dt, dRhop, RKstage, "rhop", "lhs", "expl", &
             1.)
+
+        call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "rhop")
 
         if(include_tracer) then
           call tracerUpdate(var, flux, tracerforce, dt, dTracer, RKstage)
@@ -1137,9 +1232,7 @@ program pinc_prog
         call momentumPredictor(var, flux, force, dt, dMom, RKstage, "lhs", &
             "expl", 1.)
 
-        if(unifiedSponge) then
-          call set_spongeLayer(var, stepFrac(RKstage) * dt, "uvw")
-        end if
+        call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "uvw")
 
         !SD
         !if(include_ice2) call integrate_ice_advection(var, var0, flux, "lin", &
@@ -1344,35 +1437,21 @@ program pinc_prog
         ! Lag Ray tracer (position-wavenumber space method)
 
         if(rayTracer) then
+          call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
+              diffusioncoeff, tracerfluxvar, tracerforce)
+          call transport_rayvol(var, ray, dt, RKstage, time)
 
-          if(.not. include_ice2) then
-            !call calc_meanFlow_effect(ray, var, force, ray_var3D, time)
-            call transport_rayvol(var, ray, dt, RKstage, time)
+          if(include_ice2) then
+            call calc_ice(ray, var)
+          end if
 
-            if(RKstage == nStages) then
-              call boundary_rayvol(ray)
-              call split_rayvol(ray)
-              call shift_rayvol(ray)
-              call merge_rayvol(ray)
-              call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
-                  diffusioncoeff, tracerfluxvar, tracerforce)
-            end if ! RKstage=nstage
-
-          elseif(include_ice2) then
-
-            call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
-                diffusioncoeff, tracerfluxvar, tracerforce)
-            call transport_rayvol(var, ray, dt, RKstage, time)
+          if(RKstage == nStages) then
             call boundary_rayvol(ray)
             call split_rayvol(ray)
             call shift_rayvol(ray)
             call merge_rayvol(ray)
-            !SD put calc_meanflow above for comparing
-            !call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff, tracerfluxvar, tracerforce)
-            call calc_ice(ray, var)
-
-          end if ! include_ice2
-        end if ! raytracer
+          end if
+        end if
 
         ! Reconstruction
 
@@ -1455,8 +1534,10 @@ program pinc_prog
                   call setBoundary(var, flux, "iceFlux")
                   call iceUpdate(var, var0, flux, source, dt_ice / tRef, dIce, &
                       Ice_RKstage)
-                  call set_spongeLayer(var, stepFrac(RKstage) * dt_ice / tRef, &
-                      "ice")
+                  ! call set_spongeLayer(var, stepFrac(RKstage) * dt_ice / tRef, &
+                  !     "ice")
+                  call applyUnifiedSponge(var, stepFrac(RKstage) * dt_ice &
+                      / tRef, "ice")
                 end do
               end if
             end do
@@ -1497,7 +1578,8 @@ program pinc_prog
               1.)
           !UAE
           if(testCase /= 'baroclinic_LC') then
-            call set_spongeLayer(var, stepFrac(RKstage) * dt, "rho")
+            ! call set_spongeLayer(var, stepFrac(RKstage) * dt, "rho")
+            call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "rho")
           end if
           !UAE 200413
 
@@ -1512,7 +1594,8 @@ program pinc_prog
                 "expl", 1.)
             !UAE
             if(testCase /= 'baroclinic_LC') then
-              call set_spongeLayer(var, stepFrac(RKstage) * dt, "rhop")
+              ! call set_spongeLayer(var, stepFrac(RKstage) * dt, "rhop")
+              call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "rhop")
             end if
             !UAE 200413
           end if
@@ -1556,7 +1639,8 @@ program pinc_prog
               "expl", 1.)
           !UAE
           if(testCase /= 'baroclinic_LC') then
-            call set_spongeLayer(var, stepFrac(RKstage) * dt, "uvw")
+            ! call set_spongeLayer(var, stepFrac(RKstage) * dt, "uvw")
+            call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "uvw")
           end if
         else
           if(iTime == 1 .and. RKstage == 1 .and. master) print *, "main: &

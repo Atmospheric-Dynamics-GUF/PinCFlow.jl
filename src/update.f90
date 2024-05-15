@@ -41,6 +41,8 @@ module update_module
   ! TFC FJ
   public :: momentumPredictorTestTFC, massUpdateTestTFC
 
+  public :: applyUnifiedSponge
+
   !-------------------------------
   !    private module variables
   !------------------------------
@@ -199,10 +201,8 @@ module update_module
 
     case("rho")
 
-      ! TFC FJ
-      ! Unified sponge is not applied to any quantity other than w.
       ! No sponge is applied to rho in Boussinesq model.
-      if(.not. unifiedSponge .and. model /= "Boussinesq") then
+      if(model /= "Boussinesq") then
         ! do k = kSponge, nz
         do k = 1, nz
           do j = 1, ny
@@ -236,50 +236,50 @@ module update_module
                 ! Zonal sponge.
                 if(x(i00 + i) <= xSponge0) then
                   alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
-                      / (xSponge0 - lx(0))) ** spongeOrder
+                      / dxSponge) ** spongeOrder
                 else if(x(i00 + i) >= xSponge1) then
                   alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
-                      / (lx(1) - xSponge1)) ** spongeOrder
+                      / dxSponge) ** spongeOrder
                 end if
                 ! Meridional sponge.
                 if(y(j00 + j) <= ySponge0) then
                   alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
-                      / (ySponge0 - ly(0))) ** spongeOrder
+                      / dySponge) ** spongeOrder
                 else if(y(j00 + j) >= ySponge1) then
                   alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
-                      / (ly(1) - ySponge1)) ** spongeOrder
+                      / dySponge) ** spongeOrder
                 end if
               end if
               if(topography) then
                 ! Vertical sponge.
-                if(verticalSponge == "exponential") then
+                if(spongeType == "exponential") then
                   alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
                       - lz(1)) / zSponge)
                 end if
                 if(heightTFC(i, j, k) >= zSponge) then
-                  if(verticalSponge == "cosmo") then
+                  if(spongeType == "cosmo") then
                     alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
                         * (heightTFC(i, j, k) - zSponge) / spongeDz))
-                  else if(verticalSponge == "polynomial") then
+                  else if(spongeType == "polynomial") then
                     alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
                         - zSponge) / spongeDz) ** spongeOrder
-                  else if(verticalSponge == "constant") then
+                  else if(spongeType == "constant") then
                     alpha = alpha + spongeAlphaZ
                   end if
                 end if
               else
                 ! Vertical sponge.
-                if(verticalSponge == "exponential") then
+                if(spongeType == "exponential") then
                   alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
                 end if
                 if(z(k) >= zSponge) then
-                  if(verticalSponge == "cosmo") then
+                  if(spongeType == "cosmo") then
                     alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
                         * (z(k) - zSponge) / spongeDz))
-                  else if(verticalSponge == "polynomial") then
+                  else if(spongeType == "polynomial") then
                     alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) &
                         / spongeDz) ** spongeOrder
-                  else if(verticalSponge == "constant") then
+                  else if(spongeType == "constant") then
                     alpha = alpha + spongeAlphaZ
                   end if
                 end if
@@ -294,86 +294,82 @@ module update_module
 
     case("rhop")
 
-      ! TFC FJ
-      ! Unified sponge is not applied to any quantity other than w.
-      if(.not. unifiedSponge) then
-        ! do k = kSponge, nz
-        do k = 1, nz
-          do j = 1, ny
-            do i = 1, nx
-              if((TestCase == "baroclinic_LC") .or. (TestCase &
-                  == "baroclinic_ID")) then
-                if(topography) then
-                  ! TFC FJ
-                  rho_bg = dens_env_pp(i, j, k) - rhoStratTFC(i, j, k)
-                else
-                  rho_bg = dens_env_pp(i, j, k) - rhoStrat(k)
-                end if
-              else
-                rho_bg = 0.0 ! push back to zero perturbation
-              end if
-
-              alpha = 0.0
-              rho_old = var(i, j, k, 6)
-              if(lateralSponge) then
-                ! Zonal sponge.
-                if(x(i00 + i) <= xSponge0) then
-                  alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
-                      / (xSponge0 - lx(0))) ** spongeOrder
-                else if(x(i00 + i) >= xSponge1) then
-                  alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
-                      / (lx(1) - xSponge1)) ** spongeOrder
-                end if
-                ! Meridional sponge.
-                if(y(j00 + j) <= ySponge0) then
-                  alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
-                      / (ySponge0 - ly(0))) ** spongeOrder
-                else if(y(j00 + j) >= ySponge1) then
-                  alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
-                      / (ly(1) - ySponge1)) ** spongeOrder
-                end if
-              end if
+      ! do k = kSponge, nz
+      do k = 1, nz
+        do j = 1, ny
+          do i = 1, nx
+            if((TestCase == "baroclinic_LC") .or. (TestCase &
+                == "baroclinic_ID")) then
               if(topography) then
-                ! Vertical sponge.
-                if(verticalSponge == "exponential") then
-                  alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
-                      - lz(1)) / zSponge)
-                end if
-                if(heightTFC(i, j, k) >= zSponge) then
-                  if(verticalSponge == "cosmo") then
-                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
-                        * (heightTFC(i, j, k) - zSponge) / spongeDz))
-                  else if(verticalSponge == "polynomial") then
-                    alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
-                        - zSponge) / spongeDz) ** spongeOrder
-                  else if(verticalSponge == "constant") then
-                    alpha = alpha + spongeAlphaZ
-                  end if
-                end if
+                ! TFC FJ
+                rho_bg = dens_env_pp(i, j, k) - rhoStratTFC(i, j, k)
               else
-                ! Vertical sponge.
-                if(verticalSponge == "exponential") then
-                  alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
-                end if
-                if(z(k) >= zSponge) then
-                  if(verticalSponge == "cosmo") then
-                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
-                        * (z(k) - zSponge) / spongeDz))
-                  else if(verticalSponge == "polynomial") then
-                    alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) &
-                        / spongeDz) ** spongeOrder
-                  else if(verticalSponge == "constant") then
-                    alpha = alpha + spongeAlphaZ
-                  end if
+                rho_bg = dens_env_pp(i, j, k) - rhoStrat(k)
+              end if
+            else
+              rho_bg = 0.0 ! push back to zero perturbation
+            end if
+
+            alpha = 0.0
+            rho_old = var(i, j, k, 6)
+            if(lateralSponge) then
+              ! Zonal sponge.
+              if(x(i00 + i) <= xSponge0) then
+                alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
+                    / dxSponge) ** spongeOrder
+              else if(x(i00 + i) >= xSponge1) then
+                alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
+                    / dxSponge) ** spongeOrder
+              end if
+              ! Meridional sponge.
+              if(y(j00 + j) <= ySponge0) then
+                alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
+                    / dySponge) ** spongeOrder
+              else if(y(j00 + j) >= ySponge1) then
+                alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
+                    / dySponge) ** spongeOrder
+              end if
+            end if
+            if(topography) then
+              ! Vertical sponge.
+              if(spongeType == "exponential") then
+                alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
+                    - lz(1)) / zSponge)
+              end if
+              if(heightTFC(i, j, k) >= zSponge) then
+                if(spongeType == "cosmo") then
+                  alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                      * (heightTFC(i, j, k) - zSponge) / spongeDz))
+                else if(spongeType == "polynomial") then
+                  alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
+                      - zSponge) / spongeDz) ** spongeOrder
+                else if(spongeType == "constant") then
+                  alpha = alpha + spongeAlphaZ
                 end if
               end if
-              beta = 1.0 / (1.0 + alpha * dt)
-              rho_new = (1.0 - beta) * rho_bg + beta * rho_old
-              var(i, j, k, 6) = rho_new
-            end do
+            else
+              ! Vertical sponge.
+              if(spongeType == "exponential") then
+                alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
+              end if
+              if(z(k) >= zSponge) then
+                if(spongeType == "cosmo") then
+                  alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                      * (z(k) - zSponge) / spongeDz))
+                else if(spongeType == "polynomial") then
+                  alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) / spongeDz) &
+                      ** spongeOrder
+                else if(spongeType == "constant") then
+                  alpha = alpha + spongeAlphaZ
+                end if
+              end if
+            end if
+            beta = 1.0 / (1.0 + alpha * dt)
+            rho_new = (1.0 - beta) * rho_bg + beta * rho_old
+            var(i, j, k, 6) = rho_new
           end do
         end do
-      end if
+      end do
 
     case("ice")
 
@@ -400,50 +396,50 @@ module update_module
               ! Zonal sponge.
               if(x(i00 + i) <= xSponge0) then
                 alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
-                    / (xSponge0 - lx(0))) ** spongeOrder
+                    / dxSponge) ** spongeOrder
               else if(x(i00 + i) >= xSponge1) then
                 alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
-                    / (lx(1) - xSponge1)) ** spongeOrder
+                    / dxSponge) ** spongeOrder
               end if
               ! Meridional sponge.
               if(y(j00 + j) <= ySponge0) then
                 alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
-                    / (ySponge0 - ly(0))) ** spongeOrder
+                    / dySponge) ** spongeOrder
               else if(y(j00 + j) >= ySponge1) then
                 alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
-                    / (ly(1) - ySponge1)) ** spongeOrder
+                    / dySponge) ** spongeOrder
               end if
             end if
             if(topography) then
               ! Vertical sponge.
-              if(verticalSponge == "exponential") then
+              if(spongeType == "exponential") then
                 alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
                     - lz(1)) / zSponge)
               end if
               if(heightTFC(i, j, k) >= zSponge) then
-                if(verticalSponge == "cosmo") then
+                if(spongeType == "cosmo") then
                   alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
                       * (heightTFC(i, j, k) - zSponge) / spongeDz))
-                else if(verticalSponge == "polynomial") then
+                else if(spongeType == "polynomial") then
                   alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
                       - zSponge) / spongeDz) ** spongeOrder
-                else if(verticalSponge == "constant") then
+                else if(spongeType == "constant") then
                   alpha = alpha + spongeAlphaZ
                 end if
               end if
             else
               ! Vertical sponge.
-              if(verticalSponge == "exponential") then
+              if(spongeType == "exponential") then
                 alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
               end if
               if(z(k) >= zSponge) then
-                if(verticalSponge == "cosmo") then
+                if(spongeType == "cosmo") then
                   alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
                       * (z(k) - zSponge) / spongeDz))
-                else if(verticalSponge == "polynomial") then
+                else if(spongeType == "polynomial") then
                   alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) / spongeDz) &
                       ** spongeOrder
-                else if(verticalSponge == "constant") then
+                else if(spongeType == "constant") then
                   alpha = alpha + spongeAlphaZ
                 end if
               end if
@@ -509,91 +505,87 @@ module update_module
           mpi_double_precision, mpi_sum, comm, ierror)
       sum_global = sum_global / (sizeX * sizeY)
 
-      ! TFC FJ
-      ! Unified sponge is not applied to any quantity other than w.
-      if(.not. unifiedSponge) then
-        ! do k = kSponge, nz
-        do k = 1, nz
-          do j = 1, ny
-            do i = 1, nx
-              if((TestCase == "baroclinic_LC") .or. (TestCase &
-                  == "baroclinic_ID")) then
-                if(Sponge_Rel_Bal_Type == "hyd") then
-                  ! relax to hydrost bal
-                  uBG = 0.
-                else if(Sponge_Rel_Bal_Type == "env") then
-                  ! relax to geostr bal
-                  uBG = u_env_pp(i, j, k)
-                else
-                  ! free development
-                  uBG = var(i, j, k, 2)
-                end if
+      ! do k = kSponge, nz
+      do k = 1, nz
+        do j = 1, ny
+          do i = 1, nx
+            if((TestCase == "baroclinic_LC") .or. (TestCase &
+                == "baroclinic_ID")) then
+              if(Sponge_Rel_Bal_Type == "hyd") then
+                ! relax to hydrost bal
+                uBG = 0.
+              else if(Sponge_Rel_Bal_Type == "env") then
+                ! relax to geostr bal
+                uBG = u_env_pp(i, j, k)
               else
-                uBG = sum_global(k)
-                ! uBG = backgroundFlow_dim(1) / uRef
+                ! free development
+                uBG = var(i, j, k, 2)
               end if
+            else
+              uBG = sum_global(k)
+              ! uBG = backgroundFlow_dim(1) / uRef
+            end if
 
-              alpha = 0.0
-              uOld = var(i, j, k, 2)
-              if(lateralSponge) then
-                ! Zonal sponge.
-                if(x(i00 + i) <= xSponge0) then
-                  alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
-                      / (xSponge0 - lx(0))) ** spongeOrder
-                else if(x(i00 + i) >= xSponge1) then
-                  alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
-                      / (lx(1) - xSponge1)) ** spongeOrder
-                end if
-                ! Meridional sponge.
-                if(y(j00 + j) <= ySponge0) then
-                  alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
-                      / (ySponge0 - ly(0))) ** spongeOrder
-                else if(y(j00 + j) >= ySponge1) then
-                  alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
-                      / (ly(1) - ySponge1)) ** spongeOrder
+            alpha = 0.0
+            uOld = var(i, j, k, 2)
+            if(lateralSponge) then
+              ! Zonal sponge.
+              if(x(i00 + i) <= xSponge0) then
+                alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
+                    / dxSponge) ** spongeOrder
+              else if(x(i00 + i) >= xSponge1) then
+                alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
+                    / dxSponge) ** spongeOrder
+              end if
+              ! Meridional sponge.
+              if(y(j00 + j) <= ySponge0) then
+                alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
+                    / dySponge) ** spongeOrder
+              else if(y(j00 + j) >= ySponge1) then
+                alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
+                    / dySponge) ** spongeOrder
+              end if
+            end if
+            if(topography) then
+              ! Vertical sponge.
+              if(spongeType == "exponential") then
+                alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
+                    - lz(1)) / zSponge)
+              end if
+              if(heightTFC(i, j, k) >= zSponge) then
+                if(spongeType == "cosmo") then
+                  alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                      * (heightTFC(i, j, k) - zSponge) / spongeDz))
+                else if(spongeType == "polynomial") then
+                  alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
+                      - zSponge) / spongeDz) ** spongeOrder
+                else if(spongeType == "constant") then
+                  alpha = alpha + spongeAlphaZ
                 end if
               end if
-              if(topography) then
-                ! Vertical sponge.
-                if(verticalSponge == "exponential") then
-                  alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
-                      - lz(1)) / zSponge)
-                end if
-                if(heightTFC(i, j, k) >= zSponge) then
-                  if(verticalSponge == "cosmo") then
-                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
-                        * (heightTFC(i, j, k) - zSponge) / spongeDz))
-                  else if(verticalSponge == "polynomial") then
-                    alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
-                        - zSponge) / spongeDz) ** spongeOrder
-                  else if(verticalSponge == "constant") then
-                    alpha = alpha + spongeAlphaZ
-                  end if
-                end if
-              else
-                ! Vertical sponge.
-                if(verticalSponge == "exponential") then
-                  alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
-                end if
-                if(z(k) >= zSponge) then
-                  if(verticalSponge == "cosmo") then
-                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
-                        * (z(k) - zSponge) / spongeDz))
-                  else if(verticalSponge == "polynomial") then
-                    alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) &
-                        / spongeDz) ** spongeOrder
-                  else if(verticalSponge == "constant") then
-                    alpha = alpha + spongeAlphaZ
-                  end if
+            else
+              ! Vertical sponge.
+              if(spongeType == "exponential") then
+                alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
+              end if
+              if(z(k) >= zSponge) then
+                if(spongeType == "cosmo") then
+                  alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                      * (z(k) - zSponge) / spongeDz))
+                else if(spongeType == "polynomial") then
+                  alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) / spongeDz) &
+                      ** spongeOrder
+                else if(spongeType == "constant") then
+                  alpha = alpha + spongeAlphaZ
                 end if
               end if
-              beta = 1.0 / (1.0 + alpha * dt)
-              uNew = (1.0 - beta) * uBG + beta * uOld
-              var(i, j, k, 2) = uNew
-            end do
+            end if
+            beta = 1.0 / (1.0 + alpha * dt)
+            uNew = (1.0 - beta) * uBG + beta * uOld
+            var(i, j, k, 2) = uNew
           end do
         end do
-      end if
+      end do
 
       ! relax v to:
       !   baroclinic cases (2D or 3D):
@@ -617,215 +609,352 @@ module update_module
           mpi_double_precision, mpi_sum, comm, ierror)
       sum_global = sum_global / (sizeX * sizeY)
 
-      ! TFC FJ
-      ! Unified sponge is not applied to any quantity other than w.
-      if(.not. unifiedSponge) then
-        ! do k = kSponge, nz
-        do k = 1, nz
-          do j = 1, ny
-            do i = 1, nx
-              if((TestCase == "baroclinic_LC") .or. (TestCase &
-                  == "baroclinic_ID")) then
-                if(Sponge_Rel_Bal_Type == "hyd") then
-                  ! relax to hydrost bal
-                  vBG = 0.
-                else if(Sponge_Rel_Bal_Type == "env") then
-                  ! relax to geostr bal
-                  vBG = v_env_pp(i, j, k)
-                else
-                  ! free development
-                  vBG = var(i, j, k, 3)
-                end if
+      ! do k = kSponge, nz
+      do k = 1, nz
+        do j = 1, ny
+          do i = 1, nx
+            if((TestCase == "baroclinic_LC") .or. (TestCase &
+                == "baroclinic_ID")) then
+              if(Sponge_Rel_Bal_Type == "hyd") then
+                ! relax to hydrost bal
+                vBG = 0.
+              else if(Sponge_Rel_Bal_Type == "env") then
+                ! relax to geostr bal
+                vBG = v_env_pp(i, j, k)
               else
-                vBG = sum_global(k)
-                ! vBG = backgroundFlow_dim(2) / uRef
+                ! free development
+                vBG = var(i, j, k, 3)
               end if
+            else
+              vBG = sum_global(k)
+              ! vBG = backgroundFlow_dim(2) / uRef
+            end if
 
-              alpha = 0.0
-              vOld = var(i, j, k, 3)
-              if(lateralSponge) then
-                ! Zonal sponge.
-                if(x(i00 + i) <= xSponge0) then
-                  alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
-                      / (xSponge0 - lx(0))) ** spongeOrder
-                else if(x(i00 + i) >= xSponge1) then
-                  alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
-                      / (lx(1) - xSponge1)) ** spongeOrder
-                end if
-                ! Meridional sponge.
-                if(y(j00 + j) <= ySponge0) then
-                  alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
-                      / (ySponge0 - ly(0))) ** spongeOrder
-                else if(y(j00 + j) >= ySponge1) then
-                  alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
-                      / (ly(1) - ySponge1)) ** spongeOrder
+            alpha = 0.0
+            vOld = var(i, j, k, 3)
+            if(lateralSponge) then
+              ! Zonal sponge.
+              if(x(i00 + i) <= xSponge0) then
+                alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
+                    / dxSponge) ** spongeOrder
+              else if(x(i00 + i) >= xSponge1) then
+                alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
+                    / dxSponge) ** spongeOrder
+              end if
+              ! Meridional sponge.
+              if(y(j00 + j) <= ySponge0) then
+                alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
+                    / dySponge) ** spongeOrder
+              else if(y(j00 + j) >= ySponge1) then
+                alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
+                    / dySponge) ** spongeOrder
+              end if
+            end if
+            if(topography) then
+              ! Vertical sponge.
+              if(spongeType == "exponential") then
+                alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
+                    - lz(1)) / zSponge)
+              end if
+              if(heightTFC(i, j, k) >= zSponge) then
+                if(spongeType == "cosmo") then
+                  alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                      * (heightTFC(i, j, k) - zSponge) / spongeDz))
+                else if(spongeType == "polynomial") then
+                  alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
+                      - zSponge) / spongeDz) ** spongeOrder
+                else if(spongeType == "constant") then
+                  alpha = alpha + spongeAlphaZ
                 end if
               end if
-              if(topography) then
-                ! Vertical sponge.
-                if(verticalSponge == "exponential") then
-                  alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
-                      - lz(1)) / zSponge)
-                end if
-                if(heightTFC(i, j, k) >= zSponge) then
-                  if(verticalSponge == "cosmo") then
-                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
-                        * (heightTFC(i, j, k) - zSponge) / spongeDz))
-                  else if(verticalSponge == "polynomial") then
-                    alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
-                        - zSponge) / spongeDz) ** spongeOrder
-                  else if(verticalSponge == "constant") then
-                    alpha = alpha + spongeAlphaZ
-                  end if
-                end if
-              else
-                ! Vertical sponge.
-                if(verticalSponge == "exponential") then
-                  alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
-                end if
-                if(z(k) >= zSponge) then
-                  if(verticalSponge == "cosmo") then
-                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
-                        * (z(k) - zSponge) / spongeDz))
-                  else if(verticalSponge == "polynomial") then
-                    alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) &
-                        / spongeDz) ** spongeOrder
-                  else if(verticalSponge == "constant") then
-                    alpha = alpha + spongeAlphaZ
-                  end if
+            else
+              ! Vertical sponge.
+              if(spongeType == "exponential") then
+                alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
+              end if
+              if(z(k) >= zSponge) then
+                if(spongeType == "cosmo") then
+                  alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                      * (z(k) - zSponge) / spongeDz))
+                else if(spongeType == "polynomial") then
+                  alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) / spongeDz) &
+                      ** spongeOrder
+                else if(spongeType == "constant") then
+                  alpha = alpha + spongeAlphaZ
                 end if
               end if
-              beta = 1.0 / (1.0 + alpha * dt)
-              vNew = (1.0 - beta) * vBG + beta * vOld
-              var(i, j, k, 3) = vNew
-            end do
+            end if
+            beta = 1.0 / (1.0 + alpha * dt)
+            vNew = (1.0 - beta) * vBG + beta * vOld
+            var(i, j, k, 3) = vNew
           end do
         end do
-      end if
+      end do
 
       ! achatzb relax w to zero
 
-      if(unifiedSponge) then
-        ! TFC FJ
-        ! Unified sponge layers (FJJun2023).
-        do k = 1, nz
-          do j = 1, ny
-            do i = 1, nx
-              wOld = var(i, j, k, 4)
-              alpha = 0.0
-              if(lateralSponge) then
-                ! Zonal sponge.
-                if(x(i00 + i) <= xSponge0) then
-                  alpha = alpha + spongeAlphaX * sin(0.5 * pi * (xSponge0 &
-                      - x(i00 + i)) / (xSponge0 - lx(0))) ** 2.0
-                else if(x(i00 + i) >= xSponge1) then
-                  alpha = alpha + spongeAlphaX * sin(0.5 * pi * (x(i00 + i) &
-                      - xSponge1) / (lx(1) - xSponge1)) ** 2.0
-                end if
-                ! Meridional sponge.
-                if(y(j00 + j) <= ySponge0) then
-                  alpha = alpha + spongeAlphaY * sin(0.5 * pi * (ySponge0 &
-                      - y(j00 + j)) / (ySponge0 - ly(0))) ** 2.0
-                else if(y(j00 + j) >= ySponge1) then
-                  alpha = alpha + spongeAlphaY * sin(0.5 * pi * (y(j00 + j) &
-                      - ySponge1) / (ly(1) - ySponge1)) ** 2.0
+      wBG = backgroundFlow_dim(3) / uRef !0.0
+      ! do k = kSponge, nz
+      do k = 1, nz
+        do j = 1, ny
+          do i = 1, nx
+            alpha = 0.0
+            wOld = var(i, j, k, 4)
+            if(lateralSponge) then
+              ! Zonal sponge.
+              if(x(i00 + i) <= xSponge0) then
+                alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
+                    / dxSponge) ** spongeOrder
+              else if(x(i00 + i) >= xSponge1) then
+                alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
+                    / dxSponge) ** spongeOrder
+              end if
+              ! Meridional sponge.
+              if(y(j00 + j) <= ySponge0) then
+                alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
+                    / dySponge) ** spongeOrder
+              else if(y(j00 + j) >= ySponge1) then
+                alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
+                    / dySponge) ** spongeOrder
+              end if
+            end if
+            if(topography) then
+              ! Vertical sponge.
+              if(spongeType == "exponential") then
+                alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
+                    - lz(1)) / zSponge)
+              end if
+              if(heightTFC(i, j, k) >= zSponge) then
+                if(spongeType == "cosmo") then
+                  alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                      * (heightTFC(i, j, k) - zSponge) / spongeDz))
+                else if(spongeType == "polynomial") then
+                  alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
+                      - zSponge) / spongeDz) ** spongeOrder
+                else if(spongeType == "constant") then
+                  alpha = alpha + spongeAlphaZ
                 end if
               end if
-              if(topography) then
-                ! Vertical sponge.
-                if(heightTFC(i, j, k) >= zSponge) then
-                  alpha = alpha + spongeAlphaZ * sin(0.5 * pi * (heightTFC(i, &
-                      j, k) - zSponge) / (lz(1) - zSponge)) ** 2.0
-                end if
-                ! Adjust for terrain-following velocity.
-                alpha = alpha / jac(i, j, k)
-              else
-                ! Vertical sponge.
-                if(z(k) >= zSponge) then
-                  alpha = alpha + spongeAlphaZ * sin(0.5 * pi * (z(k) &
-                      - zSponge) / (lz(1) - zSponge)) ** 2.0
+            else
+              ! Vertical sponge.
+              if(spongeType == "exponential") then
+                alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
+              end if
+              if(z(k) >= zSponge) then
+                if(spongeType == "cosmo") then
+                  alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                      * (z(k) - zSponge) / spongeDz))
+                else if(spongeType == "polynomial") then
+                  alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) / spongeDz) &
+                      ** spongeOrder
+                else if(spongeType == "constant") then
+                  alpha = alpha + spongeAlphaZ
                 end if
               end if
-              ! Apply total sponge.
-              beta = 1.0 / (1.0 + alpha * dt)
-              wNew = beta * wOld
-              var(i, j, k, 4) = wNew
-            end do
+            end if
+            beta = 1.0 / (1.0 + alpha * dt)
+            wNew = (1.0 - beta) * wBG + beta * wOld
+            var(i, j, k, 4) = wNew
           end do
         end do
-      else
-        wBG = backgroundFlow_dim(3) / uRef !0.0
-        ! do k = kSponge, nz
-        do k = 1, nz
-          do j = 1, ny
-            do i = 1, nx
-              alpha = 0.0
-              wOld = var(i, j, k, 4)
-              if(lateralSponge) then
-                ! Zonal sponge.
-                if(x(i00 + i) <= xSponge0) then
-                  alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
-                      / (xSponge0 - lx(0))) ** spongeOrder
-                else if(x(i00 + i) >= xSponge1) then
-                  alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
-                      / (lx(1) - xSponge1)) ** spongeOrder
-                end if
-                ! Meridional sponge.
-                if(y(j00 + j) <= ySponge0) then
-                  alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
-                      / (ySponge0 - ly(0))) ** spongeOrder
-                else if(y(j00 + j) >= ySponge1) then
-                  alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
-                      / (ly(1) - ySponge1)) ** spongeOrder
-                end if
-              end if
-              if(topography) then
-                ! Vertical sponge.
-                if(verticalSponge == "exponential") then
-                  alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
-                      - lz(1)) / zSponge)
-                end if
-                if(heightTFC(i, j, k) >= zSponge) then
-                  if(verticalSponge == "cosmo") then
-                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
-                        * (heightTFC(i, j, k) - zSponge) / spongeDz))
-                  else if(verticalSponge == "polynomial") then
-                    alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
-                        - zSponge) / spongeDz) ** spongeOrder
-                  else if(verticalSponge == "constant") then
-                    alpha = alpha + spongeAlphaZ
-                  end if
-                end if
-              else
-                ! Vertical sponge.
-                if(verticalSponge == "exponential") then
-                  alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
-                end if
-                if(z(k) >= zSponge) then
-                  if(verticalSponge == "cosmo") then
-                    alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
-                        * (z(k) - zSponge) / spongeDz))
-                  else if(verticalSponge == "polynomial") then
-                    alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) &
-                        / spongeDz) ** spongeOrder
-                  else if(verticalSponge == "constant") then
-                    alpha = alpha + spongeAlphaZ
-                  end if
-                end if
-              end if
-              beta = 1.0 / (1.0 + alpha * dt)
-              wNew = (1.0 - beta) * wBG + beta * wOld
-              var(i, j, k, 4) = wNew
-            end do
-          end do
-        end do
-      end if
+      end do
 
     case default
       stop "spongeLayer: Unknown variable"
     end select
 
   end subroutine set_spongeLayer
+
+  !---------------------------------------------------------------------
+
+  subroutine applyUnifiedSponge(var, dt, variable)
+    !--------------------------------------
+    ! relaxes the predicted solution to
+    ! the background state
+    !--------------------------------------
+
+    ! in/out variables
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+    real, intent(in) :: dt
+    character(len = *), intent(in) :: variable
+
+    ! local variables
+    integer :: i, j, k, iVar
+
+    ! relaxation parameters
+    real :: alpha, beta
+
+    ! variables for rho
+    real :: rho_old, rho_bg, rho_new
+    real :: uOld, uBG, uNew
+    real :: vOld, vBG, vNew
+    real :: wOld, wBG, wNew
+
+    ! variables for ice
+    real :: nAer_bg, nIce_bg, qIce_bg, qv_bg
+    real :: T, p
+
+    real, dimension(1:nz) :: sum_local, sum_global
+
+    if(.not. spongeLayer .or. .not. unifiedSponge) return
+
+    select case(variable)
+
+    case("rho")
+
+      ! No sponge is applied to rho in Boussinesq model.
+      if(model /= "Boussinesq") then
+        do k = 1, nz
+          if(fluctuationMode) then
+            rho_bg = 0.0
+          else
+            rho_bg = rhoStrat(k)
+          end if
+          do j = 1, ny
+            do i = 1, nx
+              alpha = alphaUnifiedSponge(i, j, k)
+              rho_old = var(i, j, k, 1)
+              beta = 1.0 / (1.0 + alpha * dt)
+              rho_new = (1.0 - beta) * rho_bg + beta * rho_old
+              var(i, j, k, 1) = rho_new
+            end do
+          end do
+        end do
+      end if
+
+    case("rhop")
+
+      rho_bg = 0.0
+      do k = 1, nz
+        do j = 1, ny
+          do i = 1, nx
+            alpha = alphaUnifiedSponge(i, j, k)
+            rho_old = var(i, j, k, 6)
+            beta = 1.0 / (1.0 + alpha * dt)
+            rho_new = (1.0 - beta) * rho_bg + beta * rho_old
+            var(i, j, k, 6) = rho_new
+          end do
+        end do
+      end do
+
+    case("ice")
+
+      nAer_bg = 0.0
+      nIce_bg = 0.0
+      qIce_bg = 0.0
+      qv_bg = 0.0
+
+      do k = 1, nz
+        do j = 1, ny
+          do i = 1, nx
+            alpha = alphaUnifiedSponge(i, j, k)
+            beta = 1.0 / (1.0 + alpha * dt)
+            var(i, j, k, nVar - 3) = (1. - beta) * nAer_bg + beta * var(i, j, &
+                k, nVar - 3)
+            var(i, j, k, nVar - 2) = (1. - beta) * nIce_bg + beta * var(i, j, &
+                k, nVar - 2)
+            var(i, j, k, nVar - 1) = (1. - beta) * qIce_bg + beta * var(i, j, &
+                k, nVar - 1)
+            var(i, j, k, nVar) = (1. - beta) * qv_bg + beta * var(i, j, k, nVar)
+            do iVar = 0, 3
+              if(var(i, j, k, nVar - iVar) .lt. 0.0) var(i, j, k, nVar - iVar) &
+                  = 0.0
+            end do
+          end do
+        end do
+      end do
+
+    case("uvw")
+
+      ! Sponge for zonal wind
+
+      ! Local horizontal sum
+      do k = 1, nz
+        sum_local(k) = sum(var(1:nx, 1:ny, k, 2))
+      end do
+
+      ! Global sum and average
+      call mpi_allreduce(sum_local(1), sum_global(1), nz, &
+          mpi_double_precision, mpi_sum, comm, ierror)
+      sum_global = sum_global / (sizeX * sizeY)
+
+      do k = 1, nz
+        uBG = sum_global(k)
+        do j = 1, ny
+          do i = 1, nx
+            alpha = 0.5 * (alphaUnifiedSponge(i, j, k) + alphaUnifiedSponge(i &
+                + 1, j, k))
+            uOld = var(i, j, k, 2)
+            beta = 1.0 / (1.0 + alpha * dt)
+            uNew = (1.0 - beta) * uBG + beta * uOld
+            var(i, j, k, 2) = uNew
+          end do
+        end do
+      end do
+
+      ! Sponge for meridional wind
+
+      ! Local horizontal sum
+      do k = 1, nz
+        sum_local(k) = sum(var(1:nx, 1:ny, k, 3))
+      end do
+
+      ! Global sum and average
+      call mpi_allreduce(sum_local(1), sum_global(1), nz, &
+          mpi_double_precision, mpi_sum, comm, ierror)
+      sum_global = sum_global / (sizeX * sizeY)
+
+      do k = 1, nz
+        vBG = sum_global(k)
+        do j = 1, ny
+          do i = 1, nx
+            alpha = 0.5 * (alphaUnifiedSponge(i, j, k) + alphaUnifiedSponge(i, &
+                j + 1, k))
+            vOld = var(i, j, k, 3)
+            beta = 1.0 / (1.0 + alpha * dt)
+            vNew = (1.0 - beta) * vBG + beta * vOld
+            var(i, j, k, 3) = vNew
+          end do
+        end do
+      end do
+
+      ! Sponge for vertical wind
+
+      ! Local horizontal sum
+      do k = 1, nz
+        sum_local(k) = sum(var(1:nx, 1:ny, k, 4))
+      end do
+
+      ! Global sum and average
+      call mpi_allreduce(sum_local(1), sum_global(1), nz, &
+          mpi_double_precision, mpi_sum, comm, ierror)
+      sum_global = sum_global / (sizeX * sizeY)
+
+      do k = 1, nz
+        wBG = sum_global(k)
+        do j = 1, ny
+          do i = 1, nx
+            if(topography) then
+              alpha = 0.5 * (alphaUnifiedSponge(i, j, k) / jac(i, j, k) &
+                  + alphaUnifiedSponge(i, j, k + 1) / jac(i, j, k + 1))
+            else
+              alpha = 0.5 * (alphaUnifiedSponge(i, j, k) &
+                  + alphaUnifiedSponge(i, j, k + 1))
+            end if
+            wOld = var(i, j, k, 4)
+            beta = 1.0 / (1.0 + alpha * dt)
+            wNew = (1.0 - beta) * wBG + beta * wOld
+            var(i, j, k, 4) = wNew
+          end do
+        end do
+      end do
+
+    case default
+      stop "applyUnifiedSponge: Unknown variable!"
+    end select
+
+  end subroutine applyUnifiedSponge
 
   !---------------------------------------------------------------------
 
@@ -2382,13 +2511,8 @@ module update_module
               end if
 
               if(spongeLayer) then
-                if(unifiedSponge) then
-                  wAst = wAst - dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
-                      + alphaUnifiedSponge(i, j, k + 1)) * wvert
-                else
-                  wAst = wAst - dt * 0.5 * (kr_sp_w(j, k) + kr_sp_w(j, k + 1)) &
-                      * wvert
-                end if
+                wAst = wAst - dt * 0.5 * (kr_sp_w(j, k) + kr_sp_w(j, k + 1)) &
+                    * wvert
               end if
 
               var(i, j, k, 4) = wAst
@@ -2501,12 +2625,7 @@ module update_module
               end if
 
               if(spongeLayer) then
-                if(unifiedSponge) then
-                  facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
-                      + alphaUnifiedSponge(i, j, k + 1))
-                else
-                  facw = facw + dt * 0.5 * (kr_sp_w(j, k) + kr_sp_w(j, k + 1))
-                end if
+                facw = facw + dt * 0.5 * (kr_sp_w(j, k) + kr_sp_w(j, k + 1))
               end if
 
               !heat0 &
@@ -2690,7 +2809,7 @@ module update_module
     real :: rhov0m, rhov00, rhov1m, rhov10
     real :: rhou00, rhoum0, rhou01, rhoum1
     real :: rho000, rho001
-    real :: volfcx, volfcy
+    real :: volfcx, volfcy, volfcz
     real :: bvsstw
 
     !UAB
@@ -2760,7 +2879,7 @@ module update_module
     if(m == 1) q = 0.
 
     if(mmp_mod == 'rhs') then
-      if(int_mod == 'expl' .and. .not. unifiedSponge) then
+      if(int_mod == 'expl') then
         ! TFC FJ
         spongeLayer_s = spongeLayer
         ! topography_s = topography
@@ -2771,6 +2890,10 @@ module update_module
         kr_sp = kr_sp * facray
         kr_sp_w = kr_sp_w * facray
         alprlx = alprlx * facray
+        if(topography) then
+          kr_sp_tfc = kr_sp_tfc * facray
+          kr_sp_w_tfc = kr_sp_w_tfc * facray
+        end if
       end if
     end if
 
@@ -2878,12 +3001,12 @@ module update_module
                 end if
               else
                 piGrad = kappaInv * MaInv2 * Pstrat(k) * (piR - piL) / dx
-              end if
 
-              if(TestCase == "baroclinic_LC") then !FS
-                piGrad = piGrad + kappaInv * MaInv2 * (PStrat(k) &
-                    - pStrat_0(k)) * (var_env(i + 1, j, k, 5) - var_env(i, j, &
-                    k, 5)) / dx
+                if(TestCase == "baroclinic_LC") then !FS
+                  piGrad = piGrad + kappaInv * MaInv2 * (PStrat(k) &
+                      - pStrat_0(k)) * (var_env(i + 1, j, k, 5) - var_env(i, &
+                      j, k, 5)) / dx
+                end if
               end if
 
               !---- volume forces
@@ -3215,7 +3338,8 @@ module update_module
               end if
 
               ! gravity-wave forcing
-              if(raytracer .or. (testCase == "mountainwave")) then
+              if(raytracer .or. (testCase == "mountainwave") .or. (topography &
+                  .and. topographyTime > 0.0)) then
                 volfcx = 0.5 * (force(i, j, k, 1) + force(i + 1, j, k, 1))
               else
                 volfcx = 0.0
@@ -3279,7 +3403,12 @@ module update_module
               end if
 
               if(spongeLayer .and. sponge_uv) then
-                uAst = uAst - dt * kr_sp(j, k) * uhorx
+                if(topography) then
+                  uAst = uAst - dt * 0.5 * (kr_sp_tfc(i, j, k) + kr_sp_tfc(i &
+                      + 1, j, k)) * uhorx
+                else
+                  uAst = uAst - dt * kr_sp(j, k) * uhorx
+                end if
               end if
 
               usave(i, j, k) = uAst
@@ -3497,7 +3626,8 @@ module update_module
               end if
 
               ! gravity-wave forcing
-              if(raytracer .or. (testCase == "mountainwave")) then
+              if(raytracer .or. (testCase == "mountainwave") .or. (topography &
+                  .and. topographyTime > 0.0)) then
                 volfcx = 0.5 * (force(i, j, k, 1) + force(i + 1, j, k, 1))
                 volfcy = 0.5 * (force(i, j, k, 2) + force(i, j + 1, k, 2))
               else
@@ -3536,7 +3666,12 @@ module update_module
               end if
 
               if(spongeLayer .and. sponge_uv) then
-                facu = facu + dt * kr_sp(j, k)
+                if(topography) then
+                  facu = facu + dt * 0.5 * (kr_sp_tfc(i, j, k) + kr_sp_tfc(i &
+                      + 1, j, k))
+                else
+                  facu = facu + dt * kr_sp(j, k)
+                end if
               end if
 
               facv = facu
@@ -3678,12 +3813,12 @@ module update_module
                 end if
               else
                 piGrad = kappaInv * MaInv2 * pStrat(k) * (piF - piB) / dy
-              end if
 
-              if(TestCase == "baroclinic_LC") then !FS
-                piGrad = piGrad + kappaInv * MaInv2 * (PStrat(k) &
-                    - pStrat_0(k)) * (var_env(i, j + 1, k, 5) - var_env(i, j, &
-                    k, 5)) / dy
+                if(TestCase == "baroclinic_LC") then !FS
+                  piGrad = piGrad + kappaInv * MaInv2 * (PStrat(k) &
+                      - pStrat_0(k)) * (var_env(i, j + 1, k, 5) - var_env(i, &
+                      j, k, 5)) / dy
+                end if
               end if
 
               !---- volume forces
@@ -4025,7 +4160,8 @@ module update_module
               end if
 
               ! gravity-wave forcing
-              if(raytracer .or. (testCase == "mountainwave")) then
+              if(raytracer .or. (testCase == "mountainwave") .or. (topography &
+                  .and. topographyTime > 0.0)) then
                 volfcy = 0.5 * (force(i, j, k, 2) + force(i, j + 1, k, 2))
               else
                 volfcy = 0.0
@@ -4095,7 +4231,13 @@ module update_module
               end if
 
               if(spongeLayer .and. sponge_uv) then
-                vAst = vAst - dt * 0.5 * (kr_sp(j, k) + kr_sp(j + 1, k)) * vhory
+                if(topography) then
+                  vAst = vAst - dt * 0.5 * (kr_sp_tfc(i, j, k) + kr_sp_tfc(i, &
+                      j + 1, k)) * vhory
+                else
+                  vAst = vAst - dt * 0.5 * (kr_sp(j, k) + kr_sp(j + 1, k)) &
+                      * vhory
+                end if
               end if
 
               var(i, j, k, 3) = vAst
@@ -4309,7 +4451,8 @@ module update_module
               end if
 
               ! gravity-wave forcing
-              if(raytracer .or. (testCase == "mountainwave")) then
+              if(raytracer .or. (testCase == "mountainwave") .or. (topography &
+                  .and. topographyTime > 0.0)) then
                 volfcx = 0.5 * (force(i, j, k, 1) + force(i + 1, j, k, 1))
                 volfcy = 0.5 * (force(i, j, k, 2) + force(i, j + 1, k, 2))
               else
@@ -4351,7 +4494,12 @@ module update_module
               end if
 
               if(spongeLayer .and. sponge_uv) then
-                facv = facv + dt * 0.5 * (kr_sp(j, k) + kr_sp(j + 1, k))
+                if(topography) then
+                  facv = facv + dt * 0.5 * (kr_sp_tfc(i, j, k) + kr_sp_tfc(i, &
+                      j + 1, k))
+                else
+                  facv = facv + dt * 0.5 * (kr_sp(j, k) + kr_sp(j + 1, k))
+                end if
               end if
 
               facu = facv
@@ -4562,12 +4710,12 @@ module update_module
               else
                 piGrad = 0.5 * kappaInv * MaInv2 * (Pstrat(k) + Pstrat(k + 1)) &
                     * (piU - piD) / dz
-              end if
 
-              if(TestCase == "baroclinic_LC") then !FS
-                piGrad = piGrad + 0.5 * kappaInv * MaInv2 * (Pstrat(k) &
-                    + Pstrat(k + 1) - pStrat_0(k) - pStrat_0(k + 1)) &
-                    * (var_env(i, j, k + 1, 5) - var_env(i, j, k, 5)) / dz
+                if(TestCase == "baroclinic_LC") then !FS
+                  piGrad = piGrad + 0.5 * kappaInv * MaInv2 * (Pstrat(k) &
+                      + Pstrat(k + 1) - pStrat_0(k) - pStrat_0(k + 1)) &
+                      * (var_env(i, j, k + 1, 5) - var_env(i, j, k, 5)) / dz
+                end if
               end if
 
               !---- volume forces
@@ -4913,6 +5061,13 @@ module update_module
                 end if
               end if
 
+              ! Metric terms due to topography growth.
+              if(topography .and. topographyTime > 0.0) then
+                volfcz = 0.5 * (force(i, j, k, 3) + force(i, j, k + 1, 3))
+              else
+                volfcz = 0.0
+              end if
+
               ! wstar
               wvert = var(i, j, k, 4)
 
@@ -4939,7 +5094,7 @@ module update_module
                 end if
               end if
 
-              wAst = wvert + dt * (buoy - piGrad)
+              wAst = wvert + dt * (buoy - piGrad + volfcz / rhow)
 
               ! if (topography) then
               !    ! Rayleigh damping for topography (immersed boundary)
@@ -4975,10 +5130,9 @@ module update_module
               end if
 
               if(spongeLayer) then
-                if(unifiedSponge) then
-                  ! TFC FJ
-                  wAst = wAst - dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
-                      + alphaUnifiedSponge(i, j, k + 1)) * wvert
+                if(topography) then
+                  wAst = wAst - dt * 0.5 * (kr_sp_w_tfc(i, j, k) &
+                      + kr_sp_w_tfc(i, j, k + 1)) * wvert
                 else
                   wAst = wAst - dt * 0.5 * (kr_sp_w(j, k) + kr_sp_w(j, k + 1)) &
                       * wvert
@@ -5165,6 +5319,13 @@ module update_module
                 end if
               end if
 
+              ! Metric terms due to topography growth.
+              if(topography .and. topographyTime > 0.0) then
+                volfcz = 0.5 * (force(i, j, k, 3) + force(i, j, k + 1, 3))
+              else
+                volfcz = 0.0
+              end if
+
               ! wstar
               wvert = var(i, j, k, 4)
 
@@ -5202,10 +5363,9 @@ module update_module
               end if
 
               if(spongeLayer) then
-                if(unifiedSponge) then
-                  ! TFC FJ
-                  facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
-                      + alphaUnifiedSponge(i, j, k + 1))
+                if(topography) then
+                  facw = facw + dt * 0.5 * (kr_sp_w_tfc(i, j, k) &
+                      + kr_sp_w_tfc(i, j, k + 1))
                 else
                   facw = facw + dt * 0.5 * (kr_sp_w(j, k) + kr_sp_w(j, k + 1))
                 end if
@@ -5244,10 +5404,11 @@ module update_module
                 vC = 0.5 * (var(i, j, k, 3) + var(i, j - 1, k, 3))
                 vU = 0.5 * (var(i, j, k + 1, 3) + var(i, j - 1, k + 1, 3))
                 wAst = 1.0 / (facw + rhoStratEdgeU / rhow * bvsstw * dt &
-                    ** 2.0) * (wvert - dt * piGrad + dt * buoy + rhoStratEdgeU &
-                    / rhow * bvsstw * dt ** 2.0 * (0.5 * (met(i, j, k, 1, 3) &
-                    * uC + met(i, j, k + 1, 1, 3) * uU) + 0.5 * (met(i, j, k, &
-                    2, 3) * vC + met(i, j, k + 1, 2, 3) * vU)))
+                    ** 2.0) * (wvert - dt * piGrad + dt * buoy + dt * volfcz &
+                    / rhow + rhoStratEdgeU / rhow * bvsstw * dt ** 2.0 * (0.5 &
+                    * (met(i, j, k, 1, 3) * uC + met(i, j, k + 1, 1, 3) * uU) &
+                    + 0.5 * (met(i, j, k, 2, 3) * vC + met(i, j, k + 1, 2, 3) &
+                    * vU)))
               else
                 if(TestCase == "baroclinic_LC") then
                   wAst = 1.0 / (facw + rhoStratTilde(k) / rhow * pstw / pstw_0 &
@@ -5287,7 +5448,7 @@ module update_module
     end if
 
     if(mmp_mod == 'rhs') then
-      if(int_mod == 'expl' .and. .not. unifiedSponge) then
+      if(int_mod == 'expl') then
         ! TFC FJ
         spongeLayer = spongeLayer_s
         ! topography = topography_s
@@ -5295,6 +5456,10 @@ module update_module
         kr_sp = kr_sp / facray
         kr_sp_w = kr_sp_w / facray
         alprlx = alprlx / facray
+        if(topography) then
+          kr_sp_tfc = kr_sp_tfc / facray
+          kr_sp_w_tfc = kr_sp_w_tfc / facray
+        end if
       end if
     end if
 
@@ -5783,6 +5948,10 @@ module update_module
           kr_sp = kr_sp * facray
           kr_sp_w = kr_sp_w * facray
           alprlx = alprlx * facray
+          if(topography) then
+            kr_sp_tfc = kr_sp_tfc * facray
+            kr_sp_w_tfc = kr_sp_w_tfc * facray
+          end if
 
           do k = 1, nz
             pstw = 0.5 * (Pstrat(k) + Pstrat(k + 1))
@@ -6061,9 +6230,8 @@ module update_module
                 end if
 
                 if(spongeLayer) then
-                  if(unifiedSponge) then
-                    ! TFC FJ
-                    facw = facw + dt * alphaUnifiedSponge(i, j, k)
+                  if(topography) then
+                    facw = facw + dt * kr_sp_w_tfc(i, j, k)
                   else
                     facw = facw + dt * kr_sp_w(j, k)
                   end if
@@ -6144,6 +6312,10 @@ module update_module
           kr_sp = kr_sp / facray
           kr_sp_w = kr_sp_w / facray
           alprlx = alprlx / facray
+          if(topography) then
+            kr_sp_tfc = kr_sp_tfc / facray
+            kr_sp_w_tfc = kr_sp_w_tfc / facray
+          end if
 
         else if(int_mod == "expl") then
           do k = 1, nz
@@ -6790,8 +6962,13 @@ module update_module
 
               case("pseudo_incompressible")
                 if(fluctuationMode) then
-                  bMaxNew = abs(var(i, j, k, 1)) / (rhoStrat(k) + var(i, j, k, &
-                      1)) * vertical
+                  if(topography) then
+                    bMaxNew = abs(var(i, j, k, 1)) / (rhoStratTFC(i, j, k) &
+                        + var(i, j, k, 1)) * vertical
+                  else
+                    bMaxNew = abs(var(i, j, k, 1)) / (rhoStrat(k) + var(i, j, &
+                        k, 1)) * vertical
+                  end if
                 else
                   bMaxNew = abs(rhoStrat(k) - var(i, j, k, 1)) / var(i, j, k, &
                       1) * vertical
@@ -7740,7 +7917,7 @@ module update_module
             !  end do
 
             !  if(nsmthall > 0) then
-            var3D_DySma(i, j, k) = var3D_DySma(i, j, k) / nsmthall
+            !     var3D_DySma(i, j, k) = var3D_DySma(i, j, k) / nsmthall
             !  end if
             ! else
             !   var3D_DySma(i,j,k)&
