@@ -209,6 +209,7 @@
 &topographyList
 
   topography = .false.      ! switch for bottom topography
+  topographyTime = 0.0
   mountainHeight_dim = 5.e2 ! in m
   mountainWidth_dim = 1.e6  ! m
                             ! shape of orography

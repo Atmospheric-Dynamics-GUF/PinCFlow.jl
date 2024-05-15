@@ -3012,6 +3012,18 @@ module poisson_module
 
       case("Boussinesq")
 
+        ! Update tensor elements when topography is growing.
+        if(topography .and. topographyTime > 0.0) then
+          call val_PsIn(var, dt, opt, facray)
+          if(opt == "expl") then
+            expEle = .true.
+            impEle = .false.
+          else if(opt == "impl") then
+            impEle = .true.
+            expEle = .false.
+          end if
+        end if
+
         ! TFC FJ
         ! Tensor elements are constant. Due to the scaling, the subroutine also
         ! works for the Boussinesq model.
@@ -4871,12 +4883,7 @@ module poisson_module
               end if
 
               if(spongeLayer) then
-                if(unifiedSponge) then
-                  facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
-                      + alphaUnifiedSponge(i, j, k + 1))
-                else
-                  facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
-                end if
+                facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
               end if
 
               pEdge = 0.5 * (pStrat(k + 1) + pStrat(k))
@@ -5047,11 +5054,7 @@ module poisson_module
               end if
 
               if(spongeLayer) then
-                if(unifiedSponge) then
-                  facw = facw + dt * alphaUnifiedSponge(i, j, k)
-                else
-                  facw = facw + dt * kr_sp(j, k)
-                end if
+                facw = facw + dt * kr_sp(j, k)
               end if
 
               rho = var(i, j, k, 1)
@@ -5219,6 +5222,10 @@ module poisson_module
       if(opt == "impl") then
         kr_sp = kr_sp * facray
         alprlx = alprlx * facray
+        if(topography) then
+          kr_sp_tfc = kr_sp_tfc * facray
+          kr_sp_w_tfc = kr_sp_w_tfc * facray
+        end if
       end if
     end if
 
@@ -5251,7 +5258,12 @@ module poisson_module
               end if
 
               if(spongeLayer .and. sponge_uv) then
-                facu = facu + dt * kr_sp(j, k)
+                if(topography) then
+                  facu = facu + dt * 0.5 * (kr_sp_tfc(i, j, k) + kr_sp_tfc(i &
+                      + 1, j, k))
+                else
+                  facu = facu + dt * kr_sp(j, k)
+                end if
               end if
 
               facv = facu
@@ -5505,7 +5517,12 @@ module poisson_module
               end if
 
               if(spongeLayer .and. sponge_uv) then
-                facv = facv + dt * 0.5 * (kr_sp(j, k) + kr_sp(j + 1, k))
+                if(topography) then
+                  facv = facv + dt * 0.5 * (kr_sp_tfc(i, j, k) + kr_sp_tfc(i, &
+                      j + 1, k))
+                else
+                  facv = facv + dt * 0.5 * (kr_sp(j, k) + kr_sp(j + 1, k))
+                end if
               end if
 
               facu = facv
@@ -5777,10 +5794,9 @@ module poisson_module
               end if
 
               if(spongeLayer) then
-                if(unifiedSponge) then
-                  ! TFC FJ
-                  facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
-                      + alphaUnifiedSponge(i, j, k + 1))
+                if(topography) then
+                  facw = facw + dt * 0.5 * (kr_sp_w_tfc(i, j, k) &
+                      + kr_sp_w_tfc(i, j, k + 1))
                 else
                   facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
                 end if
@@ -6101,9 +6117,8 @@ module poisson_module
               end if
 
               if(spongeLayer) then
-                if(unifiedSponge) then
-                  ! TFC FJ
-                  facw = facw + dt * alphaUnifiedSponge(i, j, k)
+                if(topography) then
+                  facw = facw + dt * kr_sp_w_tfc(i, j, k)
                 else
                   facw = facw + dt * kr_sp(j, k)
                 end if
@@ -6200,10 +6215,11 @@ module poisson_module
                 db = - 1.0 / (facw + rhoStratTFC(i, j, k) / rho &
                     * bvsStratTFC(i, j, k) * dt ** 2.0) * (- rhoStratTFC(i, j, &
                     k) / rho * bvsStratTFC(i, j, k) * facprs * dt ** 2.0 &
-                    * pGradZ + rhoStratTFC(i, j, k) / rho * bvsStratTFC(i, j, &
-                    k) * dt * jac(i, j, k) * facw * 0.5 * (met(i, j, k, 1, 3) &
-                    * (corX(i, j, k) + corX(i - 1, j, k)) + met(i, j, k, 2, 3) &
-                    * (corY(i, j, k) + corY(i, j - 1, k))))
+                    * jac(i, j, k) * pGradZ + rhoStratTFC(i, j, k) / rho &
+                    * bvsStratTFC(i, j, k) * dt * jac(i, j, k) * facw * 0.5 &
+                    * (met(i, j, k, 1, 3) * (corX(i, j, k) + corX(i - 1, j, &
+                    k)) + met(i, j, k, 2, 3) * (corY(i, j, k) + corY(i, j - 1, &
+                    k))))
               else
                 rho = var(i, j, k, 1)
                 if(fluctuationMode) rho = rho + rhoStrat(k)
@@ -6252,6 +6268,10 @@ module poisson_module
       if(opt == "impl") then
         kr_sp = kr_sp / facray
         alprlx = alprlx / facray
+        if(topography) then
+          kr_sp_tfc = kr_sp_tfc / facray
+          kr_sp_w_tfc = kr_sp_w_tfc / facray
+        end if
       end if
     end if
 
@@ -6478,6 +6498,8 @@ module poisson_module
     !FS                 ! time for barocl. l. c.
     real :: tau_jet_sc, tau_relax_sc ! Klein scaling for relax param.
 
+    real, dimension(1:nx, 1:ny, 1:nz) :: tau_relax_i_tfc
+
     real :: ymax, ymin, yloc, r, theta, dTheta_dim, delX, delZ, x_dim, z_dim
     integer :: j00, i00
 
@@ -6570,11 +6592,15 @@ module poisson_module
 
       !UAB
       if(background == "HeldSuarez") then
-        do k = 1, nz
-          do j = 1, ny
-            tau_relax_i(j, k) = kt_hs(j, k)
+        if(topography) then
+          tau_relax_i_tfc = kt_hs_tfc
+        else
+          do k = 1, nz
+            do j = 1, ny
+              tau_relax_i(j, k) = kt_hs(j, k)
+            end do
           end do
-        end do
+        end if
       else
         !UAE
         do k = 1, nz
@@ -6602,7 +6628,11 @@ module poisson_module
                   / 0.02)))
             end if
 
-            tau_relax_i(j, k) = 1. / (tau_relax_sc)
+            if(topography) then
+              tau_relax_i_tfc(:, j, k) = 1.0 / tau_relax_sc
+            else
+              tau_relax_i(j, k) = 1. / (tau_relax_sc)
+            end if
           end do
         end do
         !UAB
@@ -6612,10 +6642,17 @@ module poisson_module
       !UAE
 
       if(master) then
-        print *, ""
-        print *, " Poisson Solver, Thermal Relaxation is on: "
-        print *, " Relaxation factor: Div = - rho(Th - Th_e)/tau: "
-        print *, "tau = ", tref / tau_relax_i(1, 1), " s"
+        if(topography) then
+          print *, ""
+          print *, " Poisson Solver, Thermal Relaxation is on: "
+          print *, " Relaxation factor: div = - rho * (theta - theta_e) / tau: "
+          print *, " tau = ", tref / tau_relax_i_tfc(1, 1, 1), " s"
+        else
+          print *, ""
+          print *, " Poisson Solver, Thermal Relaxation is on: "
+          print *, " Relaxation factor: Div = - rho(Th - Th_e)/tau: "
+          print *, "tau = ", tref / tau_relax_i(1, 1), " s"
+        end if
       end if
 
       !UA theta_bar_0 = (thetaStrat(1) + thetaStrat(nz))/2.
@@ -6650,12 +6687,20 @@ module poisson_module
         do j = 1, ny
           do i = 1, nx
             if(fluctuationMode) then
-              rho = var(i, j, k, 1) + rhoStrat(k)
+              if(topography) then
+                rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+              else
+                rho = var(i, j, k, 1) + rhoStrat(k)
+              end if
             else
               rho = var(i, j, k, 1)
             end if
 
-            the = Pstrat(k) / rho
+            if(topography) then
+              the = pStratTFC(i, j, k) / rho
+            else
+              the = Pstrat(k) / rho
+            end if
 
             heat(i, j, k) = the - the_env_pp(i, j, k)
 
@@ -6665,20 +6710,31 @@ module poisson_module
 
       ! heating
 
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
-            if(fluctuationMode) then
-              rho = var(i, j, k, 1) + rhoStrat(k)
-            else
-              rho = var(i, j, k, 1)
-            end if
-
-            heat(i, j, k) = rho * heat(i, j, k) * tau_relax_i(j, k)
-
+      if(topography) then
+        do k = 1, nz
+          do j = 1, ny
+            do i = 1, nx
+              rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+              heat(i, j, k) = rho * heat(i, j, k) * tau_relax_i_tfc(i, j, k)
+            end do
           end do
         end do
-      end do
+      else
+        do k = 1, nz
+          do j = 1, ny
+            do i = 1, nx
+              if(fluctuationMode) then
+                rho = var(i, j, k, 1) + rhoStrat(k)
+              else
+                rho = var(i, j, k, 1)
+              end if
+
+              heat(i, j, k) = rho * heat(i, j, k) * tau_relax_i(j, k)
+
+            end do
+          end do
+        end do
+      end if
 
     end if
 
@@ -6693,7 +6749,12 @@ module poisson_module
         do j = 1, ny
           do i = 1, nx
             if(fluctuationMode) then
-              rho = var(i, j, k, 1) + rhoStrat(k)
+              if(topography) then
+                ! Divide by Jacobian for divergence below.
+                rho = (var(i, j, k, 1) + rhoStratTFC(i, j, k)) / jac(i, j, k)
+              else
+                rho = var(i, j, k, 1) + rhoStrat(k)
+              end if
             else
               rho = var(i, j, k, 1)
             end if
@@ -6716,22 +6777,37 @@ module poisson_module
 
     !UAB
     if(spongeLayer .and. .not. unifiedSponge) then
-      khmax = ksponge + int((nz - kSponge) / 2)
+      if(topography) then
+        do k = 1, nz
+          do j = 1, ny
+            do i = 1, nx
+              if(heightTFC(i, j, k) > zSponge + 0.5 * (lz(1) - zSponge)) then
+                heat(i, j, k) = 0.0
+              else if(heightTFC(i, j, k) >= zSponge) then
+                heat(i, j, k) = heat(i, j, k) * cos(0.5 * pi * (heightTFC(i, &
+                    j, k) - zSponge) / (0.5 * (lz(1) - zSponge))) ** 2.0
+              end if
+            end do
+          end do
+        end do
+      else
+        khmax = ksponge + int((nz - kSponge) / 2)
 
-      !do k = kSponge,nz
-      !   heat(:,:,k) &
-      !   = heat(:,:,k) &
-      !     * cos(0.5*pi * (z(k) - zSponge)/(z(nz) - zSponge))**2
-      !end do
+        !do k = kSponge,nz
+        !   heat(:,:,k) &
+        !   = heat(:,:,k) &
+        !     * cos(0.5*pi * (z(k) - zSponge)/(z(nz) - zSponge))**2
+        !end do
 
-      do k = kSponge, khmax
-        heat(:, :, k) = heat(:, :, k) * cos(0.5 * pi * (z(k) - zSponge) &
-            / (z(khmax) - zSponge)) ** 2
-      end do
+        do k = kSponge, khmax
+          heat(:, :, k) = heat(:, :, k) * cos(0.5 * pi * (z(k) - zSponge) &
+              / (z(khmax) - zSponge)) ** 2
+        end do
 
-      do k = khmax + 1, nz
-        heat(:, :, k) = 0.
-      end do
+        do k = khmax + 1, nz
+          heat(:, :, k) = 0.
+        end do
+      end if
     end if
     !UAE
 
@@ -7336,12 +7412,7 @@ module poisson_module
               end if
 
               if(spongeLayer) then
-                if(unifiedSponge) then
-                  facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
-                      + alphaUnifiedSponge(i, j, k + 1))
-                else
-                  facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
-                end if
+                facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
               end if
 
               bvsstw = 0.5 * (bvsStrat(k) + bvsStrat(k + 1))
@@ -7390,12 +7461,7 @@ module poisson_module
               end if
 
               if(spongeLayer) then
-                if(unifiedSponge) then
-                  facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
-                      + alphaUnifiedSponge(i, j, k - 1))
-                else
-                  facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k - 1))
-                end if
+                facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k - 1))
               end if
 
               bvsstw = 0.5 * (bvsStrat(k - 1) + bvsStrat(k))
@@ -8460,6 +8526,8 @@ module poisson_module
       alprlx = alprlx * facray
 
       if(topography) then
+        kr_sp_tfc = kr_sp_tfc * facray
+        kr_sp_w_tfc = kr_sp_w_tfc * facray
         do k = 1, nz
           ! Compute scaling factors
           fcscal = sqrt(pStrat(k) ** 2.0 / rhoStrat(k))
@@ -8584,61 +8652,60 @@ module poisson_module
               facEdgeD = 1.0
               if(spongeLayer) then
                 if(sponge_uv) then
-                  facEdgeR = facEdgeR + dt * kr_sp(j, k)
-                  facEdgeL = facEdgeL + dt * kr_sp(j, k)
-                  facEdgeF = facEdgeF + 0.5 * dt * (kr_sp(j, k) + kr_sp(j + 1, &
-                      k))
-                  facEdgeB = facEdgeB + 0.5 * dt * (kr_sp(j, k) + kr_sp(j - 1, &
-                      k))
-                  facUEdgeR = facUEdgeR + dt * kr_sp(j, k + 1)
-                  facUEdgeL = facUEdgeL + dt * kr_sp(j, k + 1)
-                  facUEdgeF = facUEdgeF + 0.5 * dt * (kr_sp(j, k + 1) &
-                      + kr_sp(j + 1, k + 1))
-                  facUEdgeB = facUEdgeB + 0.5 * dt * (kr_sp(j, k + 1) &
-                      + kr_sp(j - 1, k + 1))
-                  facDEdgeR = facDEdgeR + dt * kr_sp(j, k - 1)
-                  facDEdgeL = facDEdgeL + dt * kr_sp(j, k - 1)
-                  facDEdgeF = facDEdgeF + 0.5 * dt * (kr_sp(j, k - 1) &
-                      + kr_sp(j + 1, k - 1))
-                  facDEdgeB = facDEdgeB + 0.5 * dt * (kr_sp(j, k - 1) &
-                      + kr_sp(j - 1, k - 1))
+                  facEdgeR = facEdgeR + dt * 0.5 * (kr_sp_tfc(i, j, k) &
+                      + kr_sp_tfc(i + 1, j, k))
+                  facEdgeL = facEdgeL + dt * 0.5 * (kr_sp_tfc(i, j, k) &
+                      + kr_sp_tfc(i - 1, j, k))
+                  facEdgeF = facEdgeF + dt * 0.5 * (kr_sp_tfc(i, j, k) &
+                      + kr_sp_tfc(i, j + 1, k))
+                  facEdgeB = facEdgeB + dt * 0.5 * (kr_sp_tfc(i, j, k) &
+                      + kr_sp_tfc(i, j - 1, k))
+                  facUEdgeR = facUEdgeR + dt * 0.5 * (kr_sp_tfc(i, j, k + 1) &
+                      + kr_sp_tfc(i + 1, j, k + 1))
+                  facUEdgeL = facUEdgeL + dt * 0.5 * (kr_sp_tfc(i, j, k + 1) &
+                      + kr_sp_tfc(i - 1, j, k + 1))
+                  facUEdgeF = facUEdgeF + dt * 0.5 * (kr_sp_tfc(i, j, k + 1) &
+                      + kr_sp_tfc(i, j + 1, k + 1))
+                  facUEdgeB = facUEdgeB + dt * 0.5 * (kr_sp_tfc(i, j, k + 1) &
+                      + kr_sp_tfc(i, j - 1, k + 1))
+                  facDEdgeR = facDEdgeR + dt * 0.5 * (kr_sp_tfc(i, j, k - 1) &
+                      + kr_sp_tfc(i + 1, j, k - 1))
+                  facDEdgeL = facDEdgeL + dt * 0.5 * (kr_sp_tfc(i, j, k - 1) &
+                      + kr_sp_tfc(i - 1, j, k - 1))
+                  facDEdgeF = facDEdgeF + dt * 0.5 * (kr_sp_tfc(i, j, k - 1) &
+                      + kr_sp_tfc(i, j + 1, k - 1))
+                  facDEdgeB = facDEdgeB + dt * 0.5 * (kr_sp_tfc(i, j, k - 1) &
+                      + kr_sp_tfc(i, j - 1, k - 1))
                 end if
-                if(unifiedSponge) then
-                  facEdgeU = facEdgeU + 0.5 * dt * (alphaUnifiedSponge(i, j, &
-                      k) + alphaUnifiedSponge(i, j, k + 1))
-                  facEdgeD = facEdgeD + 0.5 * dt * (alphaUnifiedSponge(i, j, &
-                      k) + alphaUnifiedSponge(i, j, k - 1))
-                else
-                  facEdgeU = facEdgeU + 0.5 * dt * (kr_sp(j, k) + kr_sp(j, k &
-                      + 1))
-                  facEdgeD = facEdgeD + 0.5 * dt * (kr_sp(j, k) + kr_sp(j, k &
-                      - 1))
-                end if
+                facEdgeU = facEdgeU + dt * 0.5 * (kr_sp_w_tfc(i, j, k) &
+                    + kr_sp_w_tfc(i, j, k + 1))
+                facEdgeD = facEdgeD + dt * 0.5 * (kr_sp_w_tfc(i, j, k) &
+                    + kr_sp_w_tfc(i, j, k - 1))
               end if
-              if(testCase == "baroclinic_LC") then
-                if(background == "HeldSuarez") then
-                  facEdgeR = facEdgeR + dt * kv_hs(j, k)
-                  facEdgeL = facEdgeL + dt * kv_hs(j, k)
-                  facEdgeF = facEdgeF + 0.5 * dt * (kv_hs(j, k) + kv_hs(j + 1, &
-                      k))
-                  facEdgeB = facEdgeB + 0.5 * dt * (kv_hs(j, k) + kv_hs(j - 1, &
-                      k))
-                  facUEdgeR = facUEdgeR + dt * kv_hs(j, k + 1)
-                  facUEdgeL = facUEdgeL + dt * kv_hs(j, k + 1)
-                  facUEdgeF = facUEdgeF + 0.5 * dt * (kv_hs(j, k + 1) &
-                      + kv_hs(j + 1, k + 1))
-                  facUEdgeB = facUEdgeB + 0.5 * dt * (kv_hs(j, k + 1) &
-                      + kv_hs(j - 1, k + 1))
-                  facDEdgeR = facDEdgeR + dt * kv_hs(j, k - 1)
-                  facDEdgeL = facDEdgeL + dt * kv_hs(j, k - 1)
-                  facDEdgeF = facDEdgeF + 0.5 * dt * (kv_hs(j, k - 1) &
-                      + kv_hs(j + 1, k - 1))
-                  facDEdgeB = facDEdgeB + 0.5 * dt * (kv_hs(j, k - 1) &
-                      + kv_hs(j - 1, k - 1))
-                  facEdgeU = facEdgeU + 0.5 * dt * (kw_hs(k) + kw_hs(k + 1))
-                  facEdgeD = facEdgeD + 0.5 * dt * (kw_hs(k) + kw_hs(k - 1))
-                end if
-              end if
+              ! if(testCase == "baroclinic_LC") then
+              !   if(background == "HeldSuarez") then
+              !     facEdgeR = facEdgeR + dt * kv_hs(j, k)
+              !     facEdgeL = facEdgeL + dt * kv_hs(j, k)
+              !     facEdgeF = facEdgeF + 0.5 * dt * (kv_hs(j, k) + kv_hs(j + 1, &
+              !         k))
+              !     facEdgeB = facEdgeB + 0.5 * dt * (kv_hs(j, k) + kv_hs(j - 1, &
+              !         k))
+              !     facUEdgeR = facUEdgeR + dt * kv_hs(j, k + 1)
+              !     facUEdgeL = facUEdgeL + dt * kv_hs(j, k + 1)
+              !     facUEdgeF = facUEdgeF + 0.5 * dt * (kv_hs(j, k + 1) &
+              !         + kv_hs(j + 1, k + 1))
+              !     facUEdgeB = facUEdgeB + 0.5 * dt * (kv_hs(j, k + 1) &
+              !         + kv_hs(j - 1, k + 1))
+              !     facDEdgeR = facDEdgeR + dt * kv_hs(j, k - 1)
+              !     facDEdgeL = facDEdgeL + dt * kv_hs(j, k - 1)
+              !     facDEdgeF = facDEdgeF + 0.5 * dt * (kv_hs(j, k - 1) &
+              !         + kv_hs(j + 1, k - 1))
+              !     facDEdgeB = facDEdgeB + 0.5 * dt * (kv_hs(j, k - 1) &
+              !         + kv_hs(j - 1, k - 1))
+              !     facEdgeU = facEdgeU + 0.5 * dt * (kw_hs(k) + kw_hs(k + 1))
+              !     facEdgeD = facEdgeD + 0.5 * dt * (kw_hs(k) + kw_hs(k - 1))
+              !   end if
+              ! end if
 
               ! Compute implicit coefficients.
               impHorEdgeR = 1.0 / (facEdgeR ** 2.0)
@@ -9603,6 +9670,8 @@ module poisson_module
             end do
           end do
         end do
+        kr_sp_tfc = kr_sp_tfc / facray
+        kr_sp_w_tfc = kr_sp_w_tfc / facray
       else
         do k = 1, nz
           fcscal = sqrt(Pstrat(k) ** 2 / rhoStrat(k))
@@ -10011,12 +10080,7 @@ module poisson_module
                 end if
 
                 if(spongeLayer) then
-                  if(unifiedSponge) then
-                    facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
-                        + alphaUnifiedSponge(i, j, k + 1))
-                  else
-                    facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
-                  end if
+                  facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
                 end if
 
                 bvsstw = 0.5 * (bvsStrat(k) + bvsStrat(k + 1))
@@ -10068,12 +10132,7 @@ module poisson_module
                 end if
 
                 if(spongeLayer) then
-                  if(unifiedSponge) then
-                    facw = facw + dt * 0.5 * (alphaUnifiedSponge(i, j, k) &
-                        + alphaUnifiedSponge(i, j, k - 1))
-                  else
-                    facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k - 1))
-                  end if
+                  facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k - 1))
                 end if
 
                 bvsstw = 0.5 * (bvsStrat(k - 1) + bvsStrat(k))

@@ -50,8 +50,8 @@ for data_set in (reference, data):
   uu = data_set.psi[it, 1, iz, int(0.5 * data_set.ny):data_set.ny]
   vv = data_set.psi[it, 2, iz, int(0.5 * data_set.ny):data_set.ny]
   ww = data_set.psi[it, 3, iz, int(0.5 * data_set.ny):data_set.ny]
-  pi = data_set.psi[it, 4, iz, int(0.5 * data.ny):data_set.ny]
-  rhop = data_set.psi[it, 5, 0, int(0.5 * data_set.ny):data_set.ny]
+  pi = data_set.psi[it, 4, iz, int(0.5 * data_set.ny):data_set.ny]
+  theta = data_set.psi[it, 5, 0, int(0.5 * data_set.ny):data_set.ny]
 
   # Compute divergence.
   divergence = numpy.zeros_like(uu)
@@ -76,12 +76,12 @@ for data_set in (reference, data):
     deltaugravity = ugravity.copy()
     deltau = uu.copy()
     deltav = vv.copy()
-    deltarhop = rhop.copy()
+    deltatheta = theta.copy()
   elif data_set == data:
     deltaugravity = ugravity - deltaugravity
     deltau = uu - deltau
     deltav = vv - deltav
-    deltarhop = rhop - deltarhop
+    deltatheta = theta - deltatheta
 
 # Adjust plotting area.
 data.xx = data.xx[iz, int(0.5 * data.ny):data.ny]
@@ -89,13 +89,13 @@ data.yy = data.yy[iz, int(0.5 * data.ny):data.ny]
 
 # Make plot.
 peak = numpy.max(numpy.abs(ugravity))
-rhopmax = numpy.max(numpy.abs(rhop))
+thetamax = numpy.max(numpy.abs(theta))
 figure, axes = pyplot.subplots()
 plot = axes.pcolormesh(data.xx, data.yy, ugravity, vmax = peak, vmin = - peak, \
     shading = "gouraud", cmap = "seismic")
 axes.quiver(data.xx[::3, ::3], data.yy[::3, ::3], uu[::3, ::3], vv[::3, ::3], \
     width = 0.01, scale = 500)
-axes.contour(data.xx, data.yy, rhop, linewidths = 1.0, colors = "black")
+axes.contour(data.xx, data.yy, theta, linewidths = 1.0, colors = "black")
 axes.set_xlabel(r"$x \, \left[\mathrm{km}\right]$")
 axes.set_ylabel(r"$y \, \left[\mathrm{km}\right]$")
 figure.colorbar(plot, label = r"$\boldsymbol{\nabla}_z \cdot" \
@@ -106,13 +106,13 @@ figure.savefig("".join((data_path, "/results/barLC.png")), dpi = 500)
 # Make difference plot.
 if data_path != reference_path:
   peak = numpy.max(numpy.abs(deltaugravity))
-  rhopmax = numpy.max(numpy.abs(deltarhop))
+  thetamax = numpy.max(numpy.abs(deltatheta))
   figure, axes = pyplot.subplots()
   plot = axes.pcolormesh(data.xx, data.yy, deltaugravity, vmax = peak, vmin = \
       - peak, shading = "gouraud", cmap = "seismic")
   axes.quiver(data.xx[::3, ::3], data.yy[::3, ::3], deltau[::3, ::3], \
       deltav[::3, ::3], width = 0.01, scale = 500)
-  axes.contour(data.xx, data.yy, deltarhop, linewidths = 1.0, colors = "black")
+  axes.contour(data.xx, data.yy, deltatheta, linewidths = 1.0, colors = "black")
   axes.set_xlabel(r"$x \, \left[\mathrm{km}\right]$")
   axes.set_ylabel(r"$y \, \left[\mathrm{km}\right]$")
   figure.colorbar(plot, label = r"$\Delta \boldsymbol{\nabla}_z \cdot" \

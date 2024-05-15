@@ -273,9 +273,7 @@ module type_module
   integer :: range_factor_wkb ! FJFeb2023
 
   ! Long number scaling of displacement (FJJan2023)
-  logical :: long_scaling
-  character(len = 50) :: long_method
-  real :: long_threshold
+  logical :: blocking
 
   ! Number of wave modes (FJApr2023)
   integer :: nwm
@@ -297,8 +295,7 @@ module type_module
       wlrx_init, wlry_init, wlrz_init, xr0_dim, yr0_dim, zr0_dim, sigwpx_dim, &
       sigwpy_dim, sigwpz_dim, branchr, lindUinit, topographyTime_wkb, &
       mountainHeight_wkb_dim, mountainWidth_wkb_dim, mountain_case_wkb, &
-      range_factor_wkb, long_scaling, long_method, long_threshold, nwm, &
-      zmin_wkb_dim, nray_fac, cons_merge ! JaWi: new nml!
+      range_factor_wkb, blocking, nwm, zmin_wkb_dim, nray_fac, cons_merge ! JaWi: new nml!
   ! Jan Weinkaemmerer, 27.11.18
 
   !------------------------------------------
@@ -405,6 +402,9 @@ module type_module
   ! relaxation rates for Held & Suarez (1994)
   real, dimension(:, :), allocatable :: kr_sp, kr_sp_w
   !UAE
+
+  real, dimension(:, :, :), allocatable :: kt_hs_tfc
+  real, dimension(:, :, :), allocatable :: kr_sp_tfc, kr_sp_w_tfc
 
   ! switch of thermal relaxation in the divergence constraint
   integer :: RelaxHeating
@@ -727,9 +727,10 @@ module type_module
   logical :: unifiedSponge, lateralSponge
   real, dimension(:, :, :), allocatable :: alphaUnifiedSponge
   real :: xSponge0, ySponge0, xSponge1, ySponge1
+  real :: dxSponge, dySponge, dzSponge
 
   ! Vertical sponge layer
-  character(len = 50) :: verticalSponge
+  character(len = 50) :: spongeType
 
   ! Order of polynomial sponge
   integer :: spongeOrder
@@ -751,9 +752,11 @@ module type_module
 
   namelist / boundaryList / rhoFluxCorr, iceFluxCorr, uFluxCorr, vFluxCorr, &
       wFluxCorr, thetaFluxCorr, nbCellCorr, spongeLayer, sponge_uv, &
-      spongeHeight, zSponge, spongeAlphaZ_dim, spongeAlphaZ_fac, &
-      unifiedSponge, lateralSponge, verticalSponge, spongeOrder, cosmoSteps, &
-      utopcond, rhocond, thcond
+      spongeHeight, spongeAlphaZ_dim, spongeAlphaZ_fac, unifiedSponge, &
+      lateralSponge, spongeType, spongeOrder, cosmoSteps, utopcond, rhocond, &
+      thcond
+  !UAC & spongeLayer, spongeHeight, &
+  !UAC & spongeAlphaZ_dim, utopcond, rhocond, thcond
 
   ! boundary types
   character(len = 15) :: xBoundary
@@ -918,74 +921,353 @@ module type_module
     !                     Set default values
     !-----------------------------------------------------------------
 
-    ! GBcorr: set default values. This is just an initial set here,
-    ! which I found important for the test I did. But extending it
-    ! would be really good because logicals, if not set explicitly,
-    ! are initialized as .T. or .F. depending on the platform. So
-    ! particular "random" settings should be avoided by defaults.
+    ! FJ: Parameters marked as deprecated do not appear in the code or comments
+    ! and can be removed!
 
-    musclType = "muscl1" ! muscl1 / muscl2
-    heatingONK14 = .false. ! heating implemented as Oneil and Klein (2014)
-    !UAC shap_dts_dim = -1.              ! Shaprio filter switched off
-    shap_dts_fac = - 1. ! Shaprio filter switched off
-    corset = "constant" ! periodic Coriolis parameter
-    ! (mimicking real earth)
+    ! Variables
+    nVar = 8
+    nOptVar = 4 ! deprecated
+    include_ice = .false.
+    include_ice2 = .false.
+    include_tracer = .false.
+    include_testoutput = .false.
 
-    ! TFC FJ
+    ! Input/Output
+    dataFileName = "" ! deprecated
+    restartFile = "" ! deprecated
+    dimOut = [.false., .false., .false.]
+    ! varOut = [1, 1, 1, 1, 1, 1, 1, 0] ! must be allocated
+    ! varIn = [1, 1, 1, 1, 1, 1, 1, 0] ! must be allocated
+    iIn = 1
+    ! offset = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0] ! must be allocated
+    optVarOut = [0, 0, 0, 0, 0, 0]
+    wkbVarOut = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    outputType = "time"
+    nOutput = 1
+    maxIter = 1
+    outputTimeDiff = 3600.0
+    maxTime = 3600.0
+    solutionTime = .false. ! deprecated
+    solutionTimeUnit = "s" ! deprecated
+    restart = .false.
+    showGhostCellsX = .false. ! deprecated
+    showGhostCellsY = .false. ! deprecated
+    showGhostCellsZ = .false. ! deprecated
+    thetaOffset = .false.
+    rhoOffset = .false.
+    detailedinfo = .false.
+    RHS_diagnostics = .false.
+    PVinversion = .false. ! deprecated
+
+    ! Parameter study
+    parameterStudy = .false. ! deprecated
+    startParam = 0; endParam = 0; stepParam = 0 ! deprecated
+    paramName = "" ! deprecated
+
+    ! Debugging
+    verbose = .false.
+    dtMin_dim = 1.0e-6
+
+    ! Test cases
+    testCase = "IGW"
+
+    ! Monochromatic wave
+    lambda_dim = 0.1 * (lz_dim(1) - lz_dim(0))
+
+    ! Wave packet
+    wavePacketType = 1
+    wavePacketDim = 1
+    lambdaX_dim = 0.1 * (lx_dim(1) - lx_dim(0))
+    lambdaY_dim = 0.1 * (ly_dim(1) - ly_dim(0))
+    lambdaZ_dim = 0.1 * (lz_dim(1) - lz_dim(0))
+    meanFlowX_dim = 0.0 ! deprecated
+    meanFlowZ_dim = 0.0 ! deprecated
+    amplitudeFactor = 1.0
+    xCenter_dim = 0.5 * (lx_dim(0) + lx_dim(1))
+    yCenter_dim = 0.5 * (ly_dim(0) + ly_dim(1))
+    zCenter_dim = 0.5 * (lz_dim(0) + lz_dim(1))
+    sigma_hor_dim = 0.5 * (lx_dim(1) - lx_dim(0))
+    sigma_hor_yyy_dim = 0.5 * (ly_dim(1) - ly_dim(0))
+    sigma_dim = 0.5 * (lz_dim(1) - lz_dim(0))
+    amp_mod_x = 1.0
+    amp_mod_y = 1.0
+    L_cos_dim = 0.5 * (lz_dim(1) - lz_dim(0))
+    omiSign = 1
+    u0_jet_dim = 0.0
+    z0_jet_dim = 0.0
+    L_jet_dim = 0.0
+    inducedwind = .false.
+
+    ! Lagrangian ray tracer
+    xrmin_dim = lx_dim(0); xrmax_dim = lx_dim(1)
+    yrmin_dim = ly_dim(0); yrmax_dim = ly_dim(1)
+    zrmin_dim = lz_dim(0); zrmax_dim = lz_dim(1)
+    nrxl = 1; nryl = 1; nrzl = 1
+    fac_dk_init = 0.1; fac_dl_init = 0.1; fac_dm_init = 0.1
+    nrk_init = 1; nrl_init = 1; nrm_init = 1
+    nsmth_wkb = 2
+    lsmth_wkb = .true.
+    sm_filter = 2
+    lsaturation = .true.
+    alpha_sat = 1.0
+    steady_state = .false.
+    case_wkb = 3
+    amp_wkb = 1.0
+    wlrx_init = 0.1 * (lx_dim(1) - lx_dim(0))
+    wlry_init = 0.1 * (ly_dim(1) - ly_dim(0))
+    wlrz_init = 0.1 * (lz_dim(1) - lz_dim(0))
+    xr0_dim = 0.5 * (lx_dim(0) + lx_dim(1))
+    yr0_dim = 0.5 * (ly_dim(0) + ly_dim(1))
+    zr0_dim = 0.5 * (lz_dim(0) + lz_dim(1))
+    sigwpx_dim = 0.5 * (lx_dim(1) - lx_dim(0))
+    sigwpy_dim = 0.5 * (ly_dim(1) - ly_dim(0))
+    sigwpz_dim = 0.5 * (lz_dim(1) - lz_dim(0))
+    branchr = 1
+    lindUinit = .false. ! deprecated
+    topographyTime_wkb = 0.0
+    mountainHeight_wkb_dim = 0.1 * (lz_dim(1) - lz_dim(0))
+    mountainWidth_wkb_dim = 0.1 * (lx_dim(1) - lx_dim(0))
+    mountain_case_wkb = 1
+    range_factor_wkb = 1
+    blocking = .false.
+    nwm = 1
+    zmin_wkb_dim = 0.0
+    nray_fac = 20
+    cons_merge = "en"
+
+    ! Bubbles
+    dTheta0_dim = 1.0
+    xRadius_dim = 0.5 * (lx_dim(1) - lx_dim(0))
+    zRadius_dim = 0.5 * (lz_dim(1) - lz_dim(0))
+    xCenter_dim = 0.5 * (lx_dim(0) + lx_dim(1))
+    yCenter_dim = 0.5 * (ly_dim(0) + ly_dim(1))
+    zCenter_dim = 0.5 * (lz_dim(0) + lz_dim(1))
+    zExcentricity = 1.0
+    rhoCenter_dim = 1000.0
+
+    ! Robert bubble
+    dTheta1_dim = 1.0
+    a1_dim = 0.25 * min(lx_dim(1) - lx_dim(0), lz_dim(1) - lz_dim(0))
+    sigma1_dim = 0.25 * min(lx_dim(1) - lx_dim(0), lz_dim(1) - lz_dim(0))
+    xCenter1_dim = 0.25 * (lx_dim(0) + lx_dim(1))
+    zCenter1_dim = 0.25 * (lz_dim(0) + lz_dim(1))
+    dTheta2_dim = - 1.0
+    a2_dim = 0.25 * min(lx_dim(1) - lx_dim(0), lz_dim(1) - lz_dim(0))
+    sigma2_dim = 0.25 * min(lx_dim(1) - lx_dim(0), lz_dim(1) - lz_dim(0))
+    xCenter2_dim = 0.75 * (lx_dim(0) + lx_dim(1))
+    zCenter2_dim = 0.75 * (lz_dim(0) + lz_dim(1))
+
+    ! Mountain wave
+    u_relax = 10.0
+    v_relax = 0.0
+    w_relax = 0.0
+    t_relax = 0.0
+    t_ramp = 0.0
+    xextent_norelax = 0.0
+    wind_relaxation = .false.
+    surface_layer_depth = 0.0
+
+    ! Baroclinic life cycle (realistic)
+    zero_initial_state = .false.
+    z_trpp0_dim = 10000.0
+    z_baro_dim = 20000.0
+    deltht_dim = 30.0 ! deprecated
+    thet0_dim = 300.0
+    ntrp_dim = 0.01
+    nstr_dim = 0.02
+    jwdth_dim = 0.0
+    kaptpp = 0.0
+    t_relax_bar = 0.0 ! deprecated
+    add_ptptb = .false.
+    ptptb_x_dim = 0.5 * (lx_dim(0) + lx_dim(1))
+    ptptb_y_dim = 0.5 * (ly_dim(0) + ly_dim(1))
+    ptptb_z_dim = 0.5 * (lz_dim(0) + lz_dim(1))
+    ptptb_dh_dim = 0.1 * min(lx_dim(1) - lx_dim(0), ly_dim(1) - ly_dim(0))
+    ptptb_dz_dim = 0.1 * (lz_dim(1) - lz_dim(0))
+    ptptb_amp_dim = 1.0
+    dTh_atm = 30.0
+    add_noise = .false.
+    proc_noise = 0.1
+    tau_relax = 0.0
+    tau_relax_low = 0.0
+    sigma_tau = 0.0
+    tau_jet = 0.0
+    RelaxHeating = 0
+    Sponge_Rel_Type = "constant"
+    Sponge_Rel_Bal_Type = "env"
+    init_2Dto3D = .false.
+    fileinitstate2D = ""
+    ta_hs_dim = 0.0
+    ts_hs_dim = 0.0
+    tf_hs_dim = 0.0
+    sigb_hs = 0.0
+
+    ! Baroclinic life cycle (idealized)
+    bar_sigma_y = 0.5 * (ly_dim(1) - ly_dim(0))
+    u_strength = 30.0
+    dTh_atm = 30.0
+    add_noise = .false.
+    proc_noise = 0.1
+    init_2Dto3D = .false.
+    tau_relax = 0.0
+    tau_jet = 0.0
+    RelaxHeating = 0
+    init_bal = "geostr_id"
+    Sponge_Rel_Type = "constant"
+    Sponge_Rel_Bal_Type = "env"
+    lastrecordnum = 0
+    fileinitstate2D = ""
+    height_eps_z = 0.0 ! deprecated
+    output_theta_bgr = .false.
+    output_br_vais_sq = .false.
+    output_heat = .false.
+    z_bl = 0.0 ! deprecated
+    balance_eq = "PI"
+    output_rho_bgr = .false.
+
+    ! Model equations
+    model = "pseudo_incompressible"
+    vert_theta = 90.0
+    vert_alpha = 0.0
+
+    ! Solver
+    cfl = 0.5
+    cfl_wave = 0.5
+    dtMax_dim = 1.0e3
+    tStepChoice = "cfl"
+    timeScheme = "LS_Will_RK3"
+    auxil_equ = .false.
+    fluxType = "upwind"
+    reconstType = "MUSCL"
+    musclType = "muscl1"
+    limiterType1 = "MCVariant"
+    fluctuationMode = .true.
+    TurbScheme = .false.
+    turb_dts = 5.0e3
+    DySmaScheme = .false.
+    dtWave_on = .true.
+    heatingONK14 = .false.
+    dens_relax = .false.
+    shap_dts_fac = - 1.0
+    n_shap = 1
+
+    ! Poisson solver
+    tolPoisson = 1.0e-8
+    abs_tol = 0.0
+    tolCond = 1.0e-23
+    maxIterPoisson = 1000
+    poissonSolverType = "bicgstab"
+    storageType = "opr" ! deprecated
+    preconditioner = "yes"
+    dtau = 4.0e-4
+    maxIterADI = 2
+    initialCleaning = .true.
+    pressureScaling = .false.
+    useNAG = .false. ! deprecated
+    correctMomentum = .true.
+    correctDivError = .false.
+    tolcrit = "abs"
+    tolscale = .true. ! deprecated
+
+    ! Atmosphere
+    referenceQuantities = "Klein"
+    specifyReynolds = .false.
+    ReInv = 0.0
+    mu_viscous_dim = 0.0
+    mu_conduct_dim = 0.0
+    background = "isothermal"
+    N_BruntVaisala_dim = 0.01
+    theta0_dim = 300.0
+    Temp0_dim = 300.0
+    press0_dim = 100000.0
+    backgroundFlow_dim = [10.0, 0.0, 0.0]
+    f_Coriolis_dim = 0.0
+    corset = "constant"
+    z_tr_dim = 15000.0
+    theta_tr_dim = 300.0
+    gamma_t = 0.0
+    gamma_s = 0.0
+    bvarOut = 0 ! deprecated
+    tp_strato_dim = 200.0
+    tp_srf_trp_dim = 300.0
+    tpdiffhor_tropo_dim = 50.0
+    ptdiffvert_tropo_dim = 10.0
+
+    ! Topography
+    topography = .false.
     ipolTFC = 2
     freeSlipTFC = .false.
     testTFC = .false.
-    wind_relaxation = .false.
-
-    ! Surface layer depth (FJMar2023)
-    surface_layer_depth = 0.0
-
-    ! Long number scaling (FJJan2023)
-    long_scaling = .false.
-    long_method = "lott_miller"
-    long_threshold = 0.25
-
-    ! Number of wave modes (FJApr2023)
-    nwm = 1
-
-    ! Topography growth (FJFeb2023)
     topographyTime = 0.0
-    topographyTime_wkb = 0.0
+    mountainHeight_dim = 0.1 * (lz_dim(1) - lz_dim(0))
+    mountainWidth_dim = 0.1 * (lx_dim(1) - lx_dim(0))
+    mountain_case = 1
+    range_factor = 1
+    z_0_dim = 0.0 ! deprecated
 
-    ! Unified and lateral sponges (FJJun2023)
+    ! Boundaries
+    rhoFluxCorr = .false.
+    iceFluxCorr = .false.
+    uFluxCorr = .false.; vFluxCorr = .false.; wFluxCorr = .false.
+    thetaFluxCorr = .false.
+    nbCellCorr = 0
+    spongeLayer = .false.
+    sponge_uv = .false.
+    spongeHeight = 0.33
+    spongeAlphaZ_dim = 0.01
+    spongeAlphaZ_fac = 0.01
     unifiedSponge = .false.
     lateralSponge = .false.
-
-    ! Vertical sponge
-    verticalSponge = "polynomial"
-
-    ! Sponge order (FJMar2023)
+    spongeType = "polynomial"
     spongeOrder = 1
+    cosmoSteps = 1
+    utopcond = "" ! deprecated
+    rhocond = "" ! deprecated
+    thcond = "" ! deprecated
+    xBoundary = "periodic"
+    yBoundary = "periodic"
+    zBoundary = "solid_wall"
 
-    ! COSMO steps (FJJul2023)
-    cosmoSteps = 10
+    ! WKB
+    rayTracer = .false.
+    nRayRatioX = 1; nRayRatioY = 1; nRayRatioZ = 1 ! deprecated
 
-    ! Steady state in WKB model
-    steady_state = .false.
-
-    ! Wind relaxation
-    u_relax = 0.0
-    v_relax = 0.0
-    w_relax = 0.0
-
-    ! wavepacket initialize with induced zonal wind
-    inducedwind = .False.
-    lindUinit = .False.
-
-    ! default settings for tracer in case
-    ! they're not included in namelist
-    include_prime = .true.
+    ! Tracer
+    tracerSetup = "thin_layer"
+    include_gw_tracer_forcing = .true.
+    include_tracer_mixing = .true.
     tracerdifference = .true.
-    include_gw_tracer_forcing = .true. ! leading order tracer fluxes
-    include_tracer_mixing = .true. ! diffusive mixing of tracer
-    include_env_tracer_forcing = .true. ! next-order tracer fluxes
+    include_prime = .true.
+    include_env_tracer_forcing = .true.
 
-    ! include ice_source (SD2023)
+    ! Ice
+    iceTestcase = "ice_cloud"
+    init_SIce = 1.0e5
+    init_nAer = 1.0e8
+    init_qv = 1.0e-4
+    init_m_ice = 1.0e-16
+    radius_solution = 1.0e-8
+    sigma_r = 1.0
+    T_nuc = 200.0
+    p_nuc = 2.0e4
+    dt_ice = 1.0e-3
+    NUC_approx_type = "linFit"
+    ISSR_top = 0.0
+    super_simplified = .false.
+    kT_linFit = .false.
+    dv_exp2 = .false.
+    cm_dryAir = .false.
+    mu_linFit = .false.
+    sedimentation_on = .false.
+    nucleation_on = .false.
+    evaporation_on = .false.
+    awi_type = "const"
+    SIce_threshold_type = "linFit"
+    inN = 0
+    inQ = 0
+    inQv = 0
+    nVarIce = 0
+    dt_ice2 = 0.0
     no_ice_source = .false.
 
   end subroutine default_values
