@@ -384,6 +384,10 @@ module init_module
         allocate(kw_hs(0:nz + 1), stat = allocstat)
         if(allocstat /= 0) stop "init.f90: could not allocate kw_hs"
 
+        if(topography) then
+          allocate(kt_hs_tfc(1:nx, 1:ny, 1:nz), stat = allocstat)
+          if(allocstat /= 0) stop "init.f90: could not allocate kt_hs_tfc"
+        end if
       end if
     end if
 
@@ -396,8 +400,17 @@ module init_module
     !end if
     !UAE
 
+    if(topography) then
+      allocate(kr_sp_tfc(0:(nx + 1), 0:(ny + 1), 0:(nz + 1)), stat = allocstat)
+      if(allocstat /= 0) stop "init.f90: could not allocate kr_sp_tfc"
+
+      allocate(kr_sp_w_tfc(0:(nx + 1), 0:(ny + 1), 0:(nz + 1)), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "init.f90: could not allocate kr_sp_w_tfc"
+    end if
+
     ! Allocate damping coefficient for unified sponge.
-    if(unifiedSponge) then
+    if(spongeLayer .and. unifiedSponge) then
       allocate(alphaUnifiedSponge(0:(nx + 1), 0:(ny + 1), 0:(nz + 1)), stat &
           = allocstat)
       if(allocstat /= 0) stop "init.f90: could not allocate alphaUnifiedSponge"
@@ -409,7 +422,7 @@ module init_module
       if(model == "WKB" .or. .not. fluctuationMode .or. poissonSolverType &
           /= "bicgstab" .or. reconstType /= "MUSCL" .or. musclType /= "muscl1" &
           .or. fluxType /= "upwind" .or. heatingONK14 .or. pressureScaling &
-          .or. dens_relax .or. include_ice .or. background == "HeldSuarez") then
+          .or. dens_relax .or. include_ice) then
         stop "Terrain-following coordinates not implemented for chosen setup!"
       end if
     end if
@@ -433,8 +446,8 @@ module init_module
     end if
 
     ! Safety switch for unified sponge.
-    if(unifiedSponge) then
-      if(sponge_uv .or. testCase == "baroclinic_LC") then
+    if(spongeLayer .and. unifiedSponge) then
+      if(testCase == "baroclinic_LC" .or. testCase == "baroclinic_ID") then
         stop "Unified sponge not ready for chosen setup!"
       end if
     end if
@@ -476,7 +489,9 @@ module init_module
       predictMomentum = .true.
       correctMomentum = .true.
       updateTheta = .false.
-      updateIce = .true.
+      if(include_ice .or. include_ice2) then
+        updateIce = .true.
+      end if
       auxil_equ = .true.
       fluctuationMode = .true.
       poissonSolverType = "bicgstab"
@@ -675,8 +690,7 @@ module init_module
     real :: piGrad
     integer, dimension(1:nx, 1:ny) :: k_2_tfc
     real, dimension(1:nx, 1:ny) :: z_2_tfc, theta_bar_0_tfc, alpha_t_tfc
-    real, dimension(1:nx, 1:ny, 1:nz) :: z_tr_diff_tfc, F_0_tfc, pi_pr_xz_tfc, &
-        pi_pr_yz_tfc
+    real, dimension(1:nx, 1:ny, 1:nz) :: F_0_tfc, pi_pr_xz_tfc, pi_pr_yz_tfc
 
     integer :: i00, j00 ! modified by Junhong Wei (20161121)
 
@@ -2415,7 +2429,7 @@ module init_module
 
           if(topography) then
             ! TFC FJ
-            do i = 1, nz
+            do i = 1, nx
               do k = 0, nz + 1
                 zloc = heightTFC(i, j, k)
 
@@ -2603,11 +2617,13 @@ module init_module
 
             rho = 0.5 * (rho0 + rho1)
 
+            ! FJApr2024
+            ! It seems like there is one factor 1/2 too much here...
             if(topography) then
               ! TFC FJ
-              var(i, j, 0, 5) = - 0.25 * 0.5 * (jac(i, j, 0) + jac(i, j, 1)) &
-                  * dz * Ma2 * kappa * rho / (0.5 * (pStratTFC(i, j, 0) &
-                  + pStratTFC(i, j, 1))) * 0.5 * (buoy0 + buoy1)
+              var(i, j, 0, 5) = 0.5 * heightTFC(i, j, 0) * Ma2 * kappa * rho &
+                  / (0.5 * (pStratTFC(i, j, 0) + pStratTFC(i, j, 1))) * 0.5 &
+                  * (buoy0 + buoy1)
             else
               var(i, j, 0, 5) = - 0.25 * dz * Ma2 * kappa * rho &
                   / PstratTilde(0) * 0.5 * (buoy0 + buoy1)
@@ -2645,6 +2661,8 @@ module init_module
 
               rho = 0.5 * (rho0 + rho1)
 
+              ! FJApr2024
+              ! It seems like there is one factor 1/2 too much here...
               if(topography) then
                 ! TFC FJ
                 var(i, j, k + 1, 5) = var(i, j, k, 5) + 0.5 * 0.5 * (jac(i, j, &
@@ -2750,49 +2768,81 @@ module init_module
         kv_hs = 0.
         kw_hs = 0.
 
-        do k = 0, nz + 1
-          sig_pr = pistrat(k) ** (1.0 / kappa)
-          facsig = max(0.0, (sig_pr - sigb_hs) / (1.0 - sigb_hs))
+        kr_sp = 0.0
+        kr_sp_w = 0.0
 
-          !Held + Suarez 1994: BL drag:
-          !UAC kv_hs(:,k) = kf_hs*facsig
-          kr_sp(:, k) = kf_hs * facsig
-          kv_hs(:, k) = 0.
-          kr_sp_w(:, k) = 0.
-          !UAE
+        if(topography) then
+          kr_sp_tfc = 0.0
+          kr_sp_w_tfc = 0.0
+          ! Held & Suarez (1994) boundary layer drag (wind)
+          do k = 0, nz + 1
+            do j = 0, ny + 1
+              do i = 0, nx + 1
+                sig_pr = piStratTFC(i, j, k) ** (1.0 / kappa)
+                facsig = max(0.0, (sig_pr - sigb_hs) / (1.0 - sigb_hs))
 
-          !Shepherd 1996: Rayleigh BL drag
-          !if (z(k) <= 5.e3/lRef) then
-          !   kv_hs(:,k) = (1.+cos(pi*z(k)/(5.e3/lRef)))*tRef/(6.*86400.)
-          !end if
-
-          do j = 1, ny
-            ! Held Suarez 1994:
-            kt_hs(j, k) = ka_hs + (ks_hs - ka_hs) * c4_strtd(j) * facsig
-
-            !!Hien et al. (2018):
-            ! yloc = y(j+j00)
-            ! if (yloc > 0.5*(ymax+ymin)) then
-            !   ! meridionally dependent tau_sc
-
-            !   kt_hs(j,k) &
-            !   =  1./( ta_hs_dim/tref &
-            !     + (ts_hs_dim/tref - ta_hs_dim/tref)*facsig &
-            !       *( 1.0 &
-            !         -0.5&
-            !          *( tanh((yloc/ymax-0.25)/sigma_tau) &
-            !            -tanh((yloc/ymax-0.75)/sigma_tau)))  )
-            !  else
-            !   kt_hs(j,k)  &
-            !    =   1./(ta_hs_dim/tref &
-            !     + (ts_hs_dim/tref - ta_hs_dim/tref)*facsig &
-            !       *( 1.0 &
-            !         -0.5 &
-            !          *( tanh(((-1.)*yloc/ymax-0.25)/sigma_tau) &
-            !            -tanh(((-1.)*yloc/ymax-0.75)/sigma_tau))) )
-            ! end if
+                kr_sp_tfc(i, j, k) = kf_hs * facsig
+                kr_sp_w_tfc(i, j, k) = 0.0
+              end do
+            end do
           end do
-        end do
+          ! Held & Suarez (1994) boundary layer drag (temperature)
+          do k = 1, nz
+            do j = 1, ny
+              do i = 1, nx
+                sig_pr = piStratTFC(i, j, k) ** (1.0 / kappa)
+                facsig = max(0.0, (sig_pr - sigb_hs) / (1.0 - sigb_hs))
+
+                kt_hs_tfc(i, j, k) = ka_hs + (ks_hs - ka_hs) * c4_strtd(j) &
+                    * facsig
+              end do
+            end do
+          end do
+        else
+          do k = 0, nz + 1
+            sig_pr = pistrat(k) ** (1.0 / kappa)
+            facsig = max(0.0, (sig_pr - sigb_hs) / (1.0 - sigb_hs))
+
+            !Held + Suarez 1994: BL drag:
+            !UAC kv_hs(:,k) = kf_hs*facsig
+            kr_sp(:, k) = kf_hs * facsig
+            kv_hs(:, k) = 0.
+            kr_sp_w(:, k) = 0.
+            !UAE
+
+            !Shepherd 1996: Rayleigh BL drag
+            !if (z(k) <= 5.e3/lRef) then
+            !   kv_hs(:,k) = (1.+cos(pi*z(k)/(5.e3/lRef)))*tRef/(6.*86400.)
+            !end if
+
+            do j = 1, ny
+              ! Held Suarez 1994:
+              kt_hs(j, k) = ka_hs + (ks_hs - ka_hs) * c4_strtd(j) * facsig
+
+              !!Hien et al. (2018):
+              ! yloc = y(j+j00)
+              ! if (yloc > 0.5*(ymax+ymin)) then
+              !   ! meridionally dependent tau_sc
+
+              !   kt_hs(j,k) &
+              !   =  1./( ta_hs_dim/tref &
+              !     + (ts_hs_dim/tref - ta_hs_dim/tref)*facsig &
+              !       *( 1.0 &
+              !         -0.5&
+              !          *( tanh((yloc/ymax-0.25)/sigma_tau) &
+              !            -tanh((yloc/ymax-0.75)/sigma_tau)))  )
+              !  else
+              !   kt_hs(j,k)  &
+              !    =   1./(ta_hs_dim/tref &
+              !     + (ts_hs_dim/tref - ta_hs_dim/tref)*facsig &
+              !       *( 1.0 &
+              !         -0.5 &
+              !          *( tanh(((-1.)*yloc/ymax-0.25)/sigma_tau) &
+              !            -tanh(((-1.)*yloc/ymax-0.75)/sigma_tau))) )
+              ! end if
+            end do
+          end do
+        end if
 
         !!UAB
         !! increased heating in mesosphere
@@ -2826,10 +2876,8 @@ module init_module
               ! Set Exner pressure at the surface.
               tempev = max(tp_strato, tp_srf_trp - tpdiffhor_tropo &
                   * s2_strtd(j))
-              var(i, j, 0, 5) = 1.0 + 0.5 * dz * 0.5 * (jac(i, j, 0) + jac(i, &
-                  j, 1)) * kappa / tempev
-              var(i, j, 1, 5) = 1.0 - 0.5 * dz * 0.5 * (jac(i, j, 0) + jac(i, &
-                  j, 1)) * kappa / tempev
+              var(i, j, 0, 5) = 1.0 - heightTFC(i, j, 0) * kappa / tempev
+              var(i, j, 1, 5) = 1.0 - heightTFC(i, j, 1) * kappa / tempev
               ! Set potential temperature at the surface.
               do k = 0, 1
                 tempev = max(tp_strato, var(i, j, k, 5) * (tp_srf_trp &
@@ -2905,28 +2953,49 @@ module init_module
           ! by reduction of the pressure fluctuations
 
           if(spongeLayer) then
-            kshalf = kSponge + int((nz - kSponge) / 2)
-
-            do k = kSponge, kshalf
-              do i = 1, nx
-                var(i, j, k, 5) = pistrat(k) + cos(0.5 * pi * (z(k) - zSponge) &
-                    / (z(kshalf) - zSponge)) ** 2 * (var(i, j, k, 5) &
-                    - pistrat(k))
+            if(topography) then
+              do k = 0, nz + 1
+                do i = 1, nx
+                  if(heightTFC(i, j, k) >= zSponge) then
+                    if(heightTFC(i, j, k) >= zSponge + 0.5 * (lz(1) &
+                        - zSponge)) then
+                      var(i, j, k, 5) = piStratTFC(i, j, k)
+                    else
+                      var(i, j, k, 5) = piStratTFC(i, j, k) + cos(0.5 * pi &
+                          * (heightTFC(i, j, k) - zSponge) / (0.5 * (lz(1) &
+                          - zSponge))) ** 2.0 * (var(i, j, k, 5) &
+                          - piStratTFC(i, j, k))
+                    end if
+                    the_env_pp(i, j, k) = - kappa * 0.5 * (jac(i, j, k) &
+                        + jac(i, j, k - 1)) * dz / (var(i, j, k, 5) - var(i, &
+                        j, k - 1, 5))
+                  end if
+                end do
               end do
-            end do
+            else
+              kshalf = kSponge + int((nz - kSponge) / 2)
 
-            do k = kshalf + 1, nz + 1
-              do i = 1, nx
-                var(i, j, k, 5) = pistrat(k)
+              do k = kSponge, kshalf
+                do i = 1, nx
+                  var(i, j, k, 5) = pistrat(k) + cos(0.5 * pi * (z(k) &
+                      - zSponge) / (z(kshalf) - zSponge)) ** 2 * (var(i, j, k, &
+                      5) - pistrat(k))
+                end do
               end do
-            end do
 
-            do k = kSponge, nz + 1
-              do i = 1, nx
-                the_env_pp(i, j, k) = - kappa * dz / (var(i, j, k, 5) - var(i, &
-                    j, k - 1, 5))
+              do k = kshalf + 1, nz + 1
+                do i = 1, nx
+                  var(i, j, k, 5) = pistrat(k)
+                end do
               end do
-            end do
+
+              do k = kSponge, nz + 1
+                do i = 1, nx
+                  the_env_pp(i, j, k) = - kappa * dz / (var(i, j, k, 5) &
+                      - var(i, j, k - 1, 5))
+                end do
+              end do
+            end if
           end if
           !UAE
 
@@ -3208,7 +3277,7 @@ module init_module
               if(fluctuationMode) then
                 if(topography) then
                   ! TFC FJ
-                  rho = var(i, j, k, 1) * rhoStratTFC(i, j, k)
+                  rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
                 else
                   rho = var(i, j, k, 1) + rhoStrat(k)
                 end if
@@ -3387,10 +3456,8 @@ module init_module
         do i = 1, nx
           do j = 1, ny
             ! Find numerical tropopause.
-            do k = 1, nz
-              z_tr_diff_tfc(i, j, k) = z_tr_dim - heightTFC(i, j, k) * lRef
-            end do
-            k_2_tfc(i, j) = int(minloc(z_tr_diff_tfc(i, j, :), dim = 1))
+            k_2_tfc(i, j) = int((levelTFC(i, j, z_tr_dim / lRef) - 0.5 * dz) &
+                / dz) + 1
             z_2_tfc(i, j) = heightTFC(i, j, k_2_tfc(i, j)) * lRef
             theta_bar_0_tfc(i, j) = thetaStratTFC(i, j, k_2_tfc(i, j)) &
                 * thetaRef

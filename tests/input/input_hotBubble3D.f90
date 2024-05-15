@@ -210,6 +210,7 @@
 &topographyList
 
   topography = .false.      ! switch for bottom topography
+  topographyTime = 0.0
   mountainHeight_dim = 500. ! in m
   mountainWidth_dim = 1.e6  ! m
                             ! shape of orography
@@ -240,6 +241,7 @@
   spongeLayer = .true.     ! sponge with relaxation to background
   spongeHeight = 0.33      ! relative height of sponge layer
   spongeAlphaZ_dim = 2.e-4 ! relaxation rate coeff in 1/s
+  unifiedSponge = .true.
 &end
 
 &boundaryList2

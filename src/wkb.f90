@@ -86,7 +86,7 @@ module wkb_module
       topography_spectrum, final_topography_spectrum
 
   ! FJMar2023
-  real, dimension(:, :), allocatable :: decision_tree
+  ! real, dimension(:, :), allocatable :: reduction
 
   ! FJAug2023
   ! real, dimension(:, :), allocatable :: hidden_weights, output_weights
@@ -123,6 +123,8 @@ module wkb_module
 
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
         intent(inout) :: ray
+
+    ! real, intent(in) :: time
 
     ! time-step size, necessary for calculation of tracer forcing term
     real, intent(in) :: dt
@@ -167,9 +169,6 @@ module wkb_module
     real, allocatable :: var_drudt(:, :, :)
     real, allocatable :: var_drvdt(:, :, :)
     real, allocatable :: var_drtdt(:, :, :)
-
-    ! FJJun2023
-    real, dimension(1:2) :: scaling
 
     real :: dxi, dyi, dzi
 
@@ -232,6 +231,9 @@ module wkb_module
     allocate(var_drudt(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_drvdt(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_drtdt(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
+
+    ! ! Only allow mean flow impact after ray volumes have distributed (FJJul2023)
+    ! if(case_wkb == 3 .and. time < topographyTime_wkb / tRef) return
 
     var_uu = 0.0
     var_uv = 0.0
@@ -439,7 +441,7 @@ module wkb_module
             wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
 
             if((.not. topography .and. zr < lz(0) - dz) .or. (topography .and. &
-                zr < topography_surface(ixrv, jyrv) - jac(ixrv, jyrv, kzrv) &
+                zr < topography_surface(ixrv, jyrv) - jac(ixrv, jyrv, 0) &
                 * dz)) then
               print *, 'ERROR IN calc_meanflow_effect: RAY VOLUME', iRay, 'in &
                   cell', ixrv, jyrv, kzrv, 'TOO LOW'
@@ -561,11 +563,10 @@ module wkb_module
                     fcpspy = 1.0
                   end if
 
-                  ! Jacobian is height-independent!
-                  kzmin = max(1, floor((zr - dzr * 0.5 &
-                      - topography_surface(ix, jy)) / jac(ix, jy, 0) / dz) + 1)
-                  kzmax = min(nz, floor((zr + dzr * 0.5 &
-                      - topography_surface(ix, jy)) / jac(ix, jy, 0) / dz) + 1)
+                  kzmin = max(1, floor((levelTFC(ix, jy, zr - dzr * 0.5) &
+                      - lz(0)) / dz) + 1)
+                  kzmax = min(nz, floor((levelTFC(ix, jy, zr + dzr * 0.5) &
+                      - lz(0)) / dz) + 1)
 
                   do kz = kzmin, kzmax
                     dzi = (min((zr + dzr * 0.5), topography_surface(ix, jy) &
@@ -1717,7 +1718,7 @@ module wkb_module
     end if
 
     if(steady_state .and. case_wkb /= 3) stop "Steady state is implemented for &
-        case_wkb == 3!"
+        case_wkb == 3 only!"
 
     ! non-dimensional wave numbers
 
@@ -1792,12 +1793,12 @@ module wkb_module
                 displm = topography_spectrum(ix, jy, iwm)
 
                 ! Long number scaling
-                if(long_scaling) then
+                if(blocking) then
                   ! Compute Long number.
                   long = sqrt(NN_nd / (var(ix, jy, 1, 2) ** 2.0 + var(ix, jy, &
-                      1, 3) ** 2.0)) * topography_spectrum(ix, jy, iwm)
+                      1, 3) ** 2.0)) * sum(abs(topography_spectrum(ix, jy, :)))
                   ! Apply scaling.
-                  displm = displm * amplitude_scaling(long)
+                  displm = displm * wave_amplitude_reduction(long)
                 end if
 
                 ! Surface wave-action density
@@ -1904,13 +1905,13 @@ module wkb_module
                 !       / sigwpy))
                 ! end if
 
-                ! Long number scaling (FJMar2023)
-                if(long_scaling) then
+                ! Long number scaling
+                if(blocking) then
                   ! Compute Long number.
                   long = sqrt(NN_nd / (var(ix, jy, 1, 2) ** 2.0 + var(ix, jy, &
-                      1, 3) ** 2.0)) * topography_spectrum(ix, jy, iwm)
+                      1, 3) ** 2.0)) * sum(abs(topography_spectrum(ix, jy, :)))
                   ! Apply scaling.
-                  displm = displm * amplitude_scaling(long)
+                  displm = displm * wave_amplitude_reduction(long)
                 end if
 
                 ! surface wave-action density
@@ -2156,6 +2157,10 @@ module wkb_module
             iRay = 0
             i_sfc = 0
 
+            ! FJApr2023
+            ! if(topography .and. (zTFC(ix, jy, kz) < zrmin &
+            !     .or. zTFC(ix, jy, kz) > zrmax)) cycle
+
             ! in x-k subspace, loop over all r.v. within one spatial cell
             do ix2 = 1, nrxl
               ! in x-k subspace, loop over all r.v. within the
@@ -2195,7 +2200,8 @@ module wkb_module
                             ! excluded cases indicated by negative
                             ! ray-volume index
 
-                            if(fld_amp(ix, jy, kz, iwm) == 0.0) then
+                            if(.not. steady_state .and. fld_amp(ix, jy, kz, &
+                                iwm) == 0.0) then
                               ir_sfc(i_sfc, ix, jy) = - 1
                               cycle
                             else
@@ -2488,10 +2494,6 @@ module wkb_module
 
     integer :: kzu, kzd
 
-    ! FJApr2023
-    integer, dimension(1:3) :: ixjykz
-    integer :: ixd, ixu, jyd, jyu
-
     real :: zu, zd
     real :: strd, stru
 
@@ -2514,8 +2516,7 @@ module wkb_module
     if(strtpe == 1) then
       if(topography) then
         ! Locate the two closest levels.
-        kzd = max(- 1, floor((zlc - 0.5 * jac(0, 0, 0) * dz &
-            - topography_surface(0, 0)) / jac(0, 0, 0) / dz) + 1)
+        kzd = max(- 1, floor((levelTFC(0, 0, zlc) - 0.5 * dz - lz(0)) / dz) + 1)
         kzu = kzd + 1
 
         if(kzu > nz + 1) then
@@ -2528,7 +2529,6 @@ module wkb_module
         zu = zTFC(0, 0, kzu)
         strd = bvsStratTFC(0, 0, kzd)
         stru = bvsStratTFC(0, 0, kzu)
-
       else
         kzd = max(- 1, floor((zlc - 0.5 * dz - lz(0)) / dz) + 1)
 
@@ -2548,8 +2548,7 @@ module wkb_module
     elseif(strtpe == 2) then
       if(topography) then
         ! Locate the two closest levels.
-        kzd = max(- 1, floor((zlc - topography_surface(0, 0)) / jac(0, 0, 0) &
-            / dz))
+        kzd = max(- 1, floor((levelTFC(0, 0, zlc) - lz(0)) / dz))
         kzu = kzd + 1
 
         if(kzu + 1 > nz + 1) then
@@ -2564,7 +2563,6 @@ module wkb_module
             / (jac(0, 0, kzd) + jac(0, 0, kzd + 1)) / dz
         stru = (bvsStratTFC(0, 0, kzu + 1) - bvsStratTFC(0, 0, kzu)) * 2.0 &
             / (jac(0, 0, kzu) + jac(0, 0, kzu + 1)) / dz
-
       else
         kzd = max(- 1, floor((zlc - lz(0)) / dz))
 
@@ -3244,10 +3242,11 @@ module wkb_module
         yb = y(jyb + jy0)
 
         ! Locate the closest points in vertical direction.
-        kzlbd = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
-            - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 1)
-        kzlbu = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
-            - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 2)
+
+        kzlbd = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzlbu = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzlbd > nz) then
           kzlbu = nz
           kzlbd = nz
@@ -3255,10 +3254,10 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
-            - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 1)
-        kzlfu = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
-            - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 2)
+        kzlfd = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzlfu = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzlfd > nz) then
           kzlfu = nz
           kzlfd = nz
@@ -3266,10 +3265,10 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
-            - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 1)
-        kzrbu = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
-            - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 2)
+        kzrbd = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzrbu = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzrbd > nz) then
           kzrbu = nz
           kzrbd = nz
@@ -3277,10 +3276,10 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
-            - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 1)
-        kzrfu = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
-            - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 2)
+        kzrfd = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzrfu = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzrfd > nz) then
           kzrfu = nz
           kzrfd = nz
@@ -3443,10 +3442,10 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
-            - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 1)
-        kzlbu = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
-            - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 2)
+        kzlbd = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzlbu = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzlbd > nz) then
           kzlbu = nz
           kzlbd = nz
@@ -3454,19 +3453,10 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        ! kzlfd = minloc(abs(zTFC(ixl, jyf, :) - zlc), dim = 1) + lbound(zTFC, &
-        !     3) - 1
-        ! kzlfu = minloc(abs(zTFC(ixl, jyf, :) + zTFC(ixl, jyf, kzlfd) - 2.0 &
-        !     * zlc), dim = 1) + lbound(zTFC, 3) - 1
-        ! if(kzlfd > kzlfu) then
-        !   kzlfd = kzlfd + kzlfu
-        !   kzlfu = kzlfd - kzlfu
-        !   kzlfd = kzlfd - kzlfu
-        ! end if
-        kzlfd = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
-            - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 1)
-        kzlfu = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
-            - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 2)
+        kzlfd = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzlfu = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzlfd > nz) then
           kzlfu = nz
           kzlfd = nz
@@ -3474,10 +3464,10 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
-            - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 1)
-        kzrbu = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
-            - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 2)
+        kzrbd = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzrbu = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzrbd > nz) then
           kzrbu = nz
           kzrbd = nz
@@ -3485,10 +3475,10 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
-            - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 1)
-        kzrfu = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
-            - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 2)
+        kzrfd = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzrfu = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzrfd > nz) then
           kzrfu = nz
           kzrfd = nz
@@ -3650,8 +3640,7 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(- nbz, floor((zlc - topography_surface(ixl, jyb)) &
-            / jac(ixl, jyb, 0) / dz))
+        kzlbd = max(- nbz, floor((levelTFC(ixl, jyb, zlc) - lz(0)) / dz))
         kzlbu = kzlbd + 1
         if(kzlbd > nz) then
           kzlbu = nz
@@ -3660,8 +3649,7 @@ module wkb_module
         zlbd = zTildeTFC(ixl, jyb, kzlbd)
         zlbu = zTildeTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(- nbz, floor((zlc - topography_surface(ixl, jyf)) &
-            / jac(ixl, jyf, 0) / dz))
+        kzlfd = max(- nbz, floor((levelTFC(ixl, jyf, zlc) - lz(0)) / dz))
         kzlfu = kzlfd + 1
         if(kzlfd > nz) then
           kzlfu = nz
@@ -3670,8 +3658,7 @@ module wkb_module
         zlfd = zTildeTFC(ixl, jyf, kzlfd)
         zlfu = zTildeTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(- nbz, floor((zlc - topography_surface(ixr, jyb)) &
-            / jac(ixr, jyb, 0) / dz))
+        kzrbd = max(- nbz, floor((levelTFC(ixr, jyb, zlc) - lz(0)) / dz))
         kzrbu = kzrbd + 1
         if(kzrbd > nz) then
           kzrbu = nz
@@ -3680,8 +3667,7 @@ module wkb_module
         zrbd = zTildeTFC(ixr, jyb, kzrbd)
         zrbu = zTildeTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(- nbz, floor((zlc - topography_surface(ixr, jyf)) &
-            / jac(ixr, jyf, 0) / dz))
+        kzrfd = max(- nbz, floor((levelTFC(ixr, jyf, zlc) - lz(0)) / dz))
         kzrfu = kzrfd + 1
         if(kzrfd > nz) then
           kzrfu = nz
@@ -3900,10 +3886,10 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
-            - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 1)
-        kzlbu = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
-            - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 2)
+        kzlbd = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzlbu = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzlbd > nz) then
           kzlbu = nz
           kzlbd = nz
@@ -3911,10 +3897,10 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
-            - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 1)
-        kzlfu = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
-            - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 2)
+        kzlfd = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzlfu = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzlfd > nz) then
           kzlfu = nz
           kzlfd = nz
@@ -3922,10 +3908,10 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
-            - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 1)
-        kzrbu = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
-            - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 2)
+        kzrbd = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzrbu = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzrbd > nz) then
           kzrbu = nz
           kzrbd = nz
@@ -3933,10 +3919,10 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
-            - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 1)
-        kzrfu = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
-            - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 2)
+        kzrfd = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzrfu = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzrfd > nz) then
           kzrfu = nz
           kzrfd = nz
@@ -4158,10 +4144,10 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
-            - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 1)
-        kzlbu = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
-            - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 2)
+        kzlbd = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzlbu = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzlbd > nz) then
           kzlbu = nz
           kzlbd = nz
@@ -4169,10 +4155,10 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
-            - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 1)
-        kzlfu = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
-            - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 2)
+        kzlfd = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzlfu = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzlfd > nz) then
           kzlfu = nz
           kzlfd = nz
@@ -4180,10 +4166,10 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
-            - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 1)
-        kzrbu = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
-            - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 2)
+        kzrbd = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzrbu = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzrbd > nz) then
           kzrbu = nz
           kzrbd = nz
@@ -4191,10 +4177,10 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
-            - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 1)
-        kzrfu = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
-            - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 2)
+        kzrfd = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzrfu = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzrfd > nz) then
           kzrfu = nz
           kzrfd = nz
@@ -4482,8 +4468,7 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(- nbz, floor((zlc - topography_surface(ixl, jyb)) &
-            / jac(ixl, jyb, 0) / dz))
+        kzlbd = max(- nbz, floor((levelTFC(ixl, jyb, zlc) - lz(0)) / dz))
         kzlbu = kzlbd + 1
         if(kzlbd > nz) then
           kzlbu = nz + 1
@@ -4492,8 +4477,7 @@ module wkb_module
         zlbd = zTildeTFC(ixl, jyb, kzlbd)
         zlbu = zTildeTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(- nbz, floor((zlc - topography_surface(ixl, jyf)) &
-            / jac(ixl, jyf, 0) / dz))
+        kzlfd = max(- nbz, floor((levelTFC(ixl, jyf, zlc) - lz(0)) / dz))
         kzlfu = kzlfd + 1
         if(kzlfd > nz) then
           kzlfu = nz + 1
@@ -4502,8 +4486,7 @@ module wkb_module
         zlfd = zTildeTFC(ixl, jyf, kzlfd)
         zlfu = zTildeTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(- nbz, floor((zlc - topography_surface(ixr, jyb)) &
-            / jac(ixr, jyb, 0) / dz))
+        kzrbd = max(- nbz, floor((levelTFC(ixr, jyb, zlc) - lz(0)) / dz))
         kzrbu = kzrbd + 1
         if(kzrbd > nz) then
           kzrbu = nz + 1
@@ -4512,8 +4495,7 @@ module wkb_module
         zrbd = zTildeTFC(ixr, jyb, kzrbd)
         zrbu = zTildeTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(- nbz, floor((zlc - topography_surface(ixr, jyf)) &
-            / jac(ixr, jyf, 0) / dz))
+        kzrfd = max(- nbz, floor((levelTFC(ixr, jyf, zlc) - lz(0)) / dz))
         kzrfu = kzlbd + 1
         if(kzrfd > nz) then
           kzrfu = nz + 1
@@ -4830,10 +4812,10 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
-            - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 1)
-        kzlbu = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
-            - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 2)
+        kzlbd = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzlbu = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzlbd > nz) then
           kzlbu = nz
           kzlbd = nz
@@ -4841,10 +4823,10 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
-            - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 1)
-        kzlfu = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
-            - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 2)
+        kzlfd = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzlfu = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzlfd > nz) then
           kzlfu = nz
           kzlfd = nz
@@ -4852,10 +4834,10 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
-            - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 1)
-        kzrbu = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
-            - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 2)
+        kzrbd = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzrbu = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzrbd > nz) then
           kzrbu = nz
           kzrbd = nz
@@ -4863,10 +4845,10 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
-            - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 1)
-        kzrfu = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
-            - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 2)
+        kzrfd = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzrfu = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzrfd > nz) then
           kzrfu = nz
           kzrfd = nz
@@ -5153,10 +5135,10 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
-            - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 1)
-        kzlbu = max(1, floor((zlc - 0.5 * jac(ixl, jyb, 0) * dz &
-            - topography_surface(ixl, jyb)) / jac(ixl, jyb, 0) / dz) + 2)
+        kzlbd = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzlbu = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzlbd > nz) then
           kzlbu = nz
           kzlbd = nz
@@ -5164,10 +5146,10 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
-            - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 1)
-        kzlfu = max(1, floor((zlc - 0.5 * jac(ixl, jyf, 0) * dz &
-            - topography_surface(ixl, jyf)) / jac(ixl, jyf, 0) / dz) + 2)
+        kzlfd = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzlfu = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzlfd > nz) then
           kzlfu = nz
           kzlfd = nz
@@ -5175,10 +5157,10 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
-            - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 1)
-        kzrbu = max(1, floor((zlc - 0.5 * jac(ixr, jyb, 0) * dz &
-            - topography_surface(ixr, jyb)) / jac(ixr, jyb, 0) / dz) + 2)
+        kzrbd = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzrbu = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzrbd > nz) then
           kzrbu = nz
           kzrbd = nz
@@ -5186,10 +5168,10 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
-            - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 1)
-        kzrfu = max(1, floor((zlc - 0.5 * jac(ixr, jyf, 0) * dz &
-            - topography_surface(ixr, jyf)) / jac(ixr, jyf, 0) / dz) + 2)
+        kzrfd = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 1)
+        kzrfu = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
+            / dz) + 2)
         if(kzrfd > nz) then
           kzrfu = nz
           kzrfd = nz
@@ -5410,8 +5392,7 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(- nbz, floor((zlc - topography_surface(ixl, jyb)) &
-            / jac(ixl, jyb, 0) / dz))
+        kzlbd = max(- nbz, floor((levelTFC(ixl, jyb, zlc) - lz(0)) / dz))
         kzlbu = kzlbd + 1
         if(kzlbd > nz) then
           kzlbu = nz + 1
@@ -5420,8 +5401,7 @@ module wkb_module
         zlbd = zTildeTFC(ixl, jyb, kzlbd)
         zlbu = zTildeTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(- nbz, floor((zlc - topography_surface(ixl, jyf)) &
-            / jac(ixl, jyf, 0) / dz))
+        kzlfd = max(- nbz, floor((levelTFC(ixl, jyf, zlc) - lz(0)) / dz))
         kzlfu = kzlfd + 1
         if(kzlfd > nz) then
           kzlfu = nz + 1
@@ -5430,8 +5410,7 @@ module wkb_module
         zlfd = zTildeTFC(ixl, jyf, kzlfd)
         zlfu = zTildeTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(- nbz, floor((zlc - topography_surface(ixr, jyb)) &
-            / jac(ixr, jyb, 0) / dz))
+        kzrbd = max(- nbz, floor((levelTFC(ixr, jyb, zlc) - lz(0)) / dz))
         kzrbu = kzrbd + 1
         if(kzrbd > nz) then
           kzrbu = nz + 1
@@ -5440,8 +5419,7 @@ module wkb_module
         zrbd = zTildeTFC(ixr, jyb, kzrbd)
         zrbu = zTildeTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(- nbz, floor((zlc - topography_surface(ixr, jyf)) &
-            / jac(ixr, jyf, 0) / dz))
+        kzrfd = max(- nbz, floor((levelTFC(ixr, jyf, zlc) - lz(0)) / dz))
         kzrfu = kzrfd + 1
         if(kzrfd > nz) then
           kzrfu = nz + 1
@@ -6557,10 +6535,12 @@ module wkb_module
                   !SD
                   if(.not. topography .and. zr > z(kz - 1) + 0.5 * dz) then
                     outside = .true.
-                  elseif(topography) then
+                  else if(topography) then
                     if(zr > zTFC(ix, jy, kz - 1) + 0.5 * jac(ix, jy, kz - 1) &
                         * dz) then
                       outside = .true.
+                    else
+                      outside = .false.
                     end if
                   else
                     outside = .false.
@@ -6608,6 +6588,8 @@ module wkb_module
                     if(zr < zTFC(ix, jy, kz + 1) - 0.5 * jac(ix, jy, kz + 1) &
                         * dz) then
                       outside = .true.
+                    else
+                      outside = .false.
                     end if
                   else
                     outside = .false.
@@ -8109,6 +8091,7 @@ module wkb_module
     real :: spongeAlphaZ, spongeDz
     real :: spongeAlphaX, spongeAlphaY
 
+    integer :: kz0
     real :: cgirz0
 
     real :: integral1, integral2, m2b2, m2b2k2, diffusion
@@ -8128,6 +8111,19 @@ module wkb_module
     if(lateralSponge) then
       spongeAlphaX = spongeAlphaZ
       spongeAlphaY = spongeAlphaZ
+    end if
+
+    ! Update height.
+    if(topography .and. topographyTime > 0.0) then
+      do ix = - nbx, nx + nbx
+        do jy = - nby, ny + nby
+          do kz = - nbz, nz + nbz
+            zTFC(ix, jy, kz) = heightTFC(ix, jy, kz)
+            zTildeTFC(ix, jy, kz) = heightTFC(ix, jy, kz) + 0.5 * jac(ix, jy, &
+                kz) * dz
+          end do
+        end do
+      end do
     end if
 
     ! relaunching lower-boundary ray volumes
@@ -8173,19 +8169,6 @@ module wkb_module
       ! FJFeb2023
       if(topographyTime_wkb > 0.0) then
         call update_topography_wkb(time)
-      end if
-
-      ! FJJun2023
-      if(topography .and. topographyTime > 0.0) then
-        do ix = - nbx, nx + nbx
-          do jy = - nby, ny + nby
-            do kz = - nbz, nz + nbz
-              zTFC(ix, jy, kz) = heightTFC(ix, jy, kz)
-              zTildeTFC(ix, jy, kz) = heightTFC(ix, jy, kz) + 0.5 * jac(ix, &
-                  jy, kz) * dz
-            end do
-          end do
-        end do
       end if
 
       ! nondimensional wave-number widths to be filled by ray volumes
@@ -8297,12 +8280,12 @@ module wkb_module
               ! end if
 
               ! Long number scaling (FJJan2023)
-              if(long_scaling) then
+              if(blocking) then
                 ! Compute Long number.
                 long = sqrt(NN_nd / (var(ix, jy, 1, 2) ** 2.0 + var(ix, jy, 1, &
-                    3) ** 2.0)) * topography_spectrum(ix, jy, iwm)
+                    3) ** 2.0)) * sum(abs(topography_spectrum(ix, jy, :)))
                 ! Apply scaling.
-                displm = displm * amplitude_scaling(long)
+                displm = displm * wave_amplitude_reduction(long)
               end if
 
               ! surface wave-action density
@@ -8323,76 +8306,84 @@ module wkb_module
             ! only launch new ray volume if wave-action-density is
             ! non-zero
 
-            if(amp /= 0.0) then
-              ! for cases (1) and (2) increase the number of r.v.
-              ! in case (3) the old r.v. is replaced by the new one
-              ! FJApr2023
-              ! if(iRay < 0 .or. (iRay > 0 .and. zr + 0.5 * dzr > lz(0))) then
-              if(iRay < 0 .or. (iRay > 0 .and. ((.not. topography .and. zr &
-                  + 0.5 * dzr > lz(0)) .or. (topography .and. zr + 0.5 * dzr &
-                  > topography_surface(ix, jy))))) then
-                nRay(ix, jy, kz) = nRay(ix, jy, kz) + 1
-
-                if(nRay(ix, jy, kz) > nray_wrk) then
-                  print *, 'ERROR at ix,jy,kz =', ix, jy, kz
-                  print *, 'nRay =', nRay(ix, jy, kz), '> nray_wrk =', nray_wrk
-                  stop
-                end if
-              end if
-
-              ! FJApr2023
-              ! if(iRay > 0 .and. zr + 0.5 * dzr > lz(0)) then
-              if(iRay > 0 .and. .not. topography .and. zr + 0.5 * dzr > lz(0)) &
-                  then
-                nrlc = nRay(ix, jy, kz)
-
-                ! case (2):
-                ! move old ray volume to last in the row
-                ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
-
-                ! clip it so that only the part above the lower
-                ! boundary is kept
-
-                if(ray(nrlc, ix, jy, kz)%z - 0.5 * ray(nrlc, ix, jy, kz)%dzray &
-                    < lz(0)) then
-                  ray(nrlc, ix, jy, kz)%dzray = ray(nrlc, ix, jy, kz)%z + 0.5 &
-                      * ray(nrlc, ix, jy, kz)%dzray - lz(0)
-
-                  ray(nrlc, ix, jy, kz)%z = lz(0) + 0.5 * ray(nrlc, ix, jy, &
-                      kz)%dzray
-
-                  ray(nrlc, ix, jy, kz)%area_zm = ray(nrlc, ix, jy, kz)%dzray &
-                      * ray(nrlc, ix, jy, kz)%dmray
-                end if
+            if(.not. steady_state) then
+              if(amp /= 0.0) then
+                ! for cases (1) and (2) increase the number of r.v.
+                ! in case (3) the old r.v. is replaced by the new one
                 ! FJApr2023
-              else if(iRay > 0 .and. topography .and. zr + 0.5 * dzr &
-                  > topography_surface(ix, jy)) then
-                nrlc = nRay(ix, jy, kz)
+                ! if(iRay < 0 .or. (iRay > 0 .and. zr + 0.5 * dzr > lz(0))) then
+                if(iRay < 0 .or. (iRay > 0 .and. ((.not. topography .and. zr &
+                    + 0.5 * dzr > lz(0)) .or. (topography .and. zr + 0.5 * dzr &
+                    > topography_surface(ix, jy))))) then
+                  nRay(ix, jy, kz) = nRay(ix, jy, kz) + 1
 
-                ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
-
-                if(ray(nrlc, ix, jy, kz)%z - 0.5 * ray(nrlc, ix, jy, kz)%dzray &
-                    < topography_surface(ix, jy)) then
-                  ray(nrlc, ix, jy, kz)%dzray = ray(nrlc, ix, jy, kz)%z + 0.5 &
-                      * ray(nrlc, ix, jy, kz)%dzray - topography_surface(ix, jy)
-
-                  ray(nrlc, ix, jy, kz)%z = topography_surface(ix, jy) + 0.5 &
-                      * ray(nrlc, ix, jy, kz)%dzray
-
-                  ray(nrlc, ix, jy, kz)%area_zm = ray(nrlc, ix, jy, kz)%dzray &
-                      * ray(nrlc, ix, jy, kz)%dmray
+                  if(nRay(ix, jy, kz) > nray_wrk) then
+                    print *, 'ERROR at ix,jy,kz =', ix, jy, kz
+                    print *, 'nRay =', nRay(ix, jy, kz), '> nray_wrk =', &
+                        nray_wrk
+                    stop
+                  end if
                 end if
-              elseif(iRay < 0) then
-                ! case (1):
 
-                iRay = nRay(ix, jy, kz)
-                ir_sfc(i_sfc, ix, jy) = iRay
+                ! FJApr2023
+                ! if(iRay > 0 .and. zr + 0.5 * dzr > lz(0)) then
+                if(iRay > 0 .and. .not. topography .and. zr + 0.5 * dzr &
+                    > lz(0)) then
+                  nrlc = nRay(ix, jy, kz)
+
+                  ! case (2):
+                  ! move old ray volume to last in the row
+                  ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+
+                  ! clip it so that only the part above the lower
+                  ! boundary is kept
+
+                  if(ray(nrlc, ix, jy, kz)%z - 0.5 * ray(nrlc, ix, jy, &
+                      kz)%dzray < lz(0)) then
+                    ray(nrlc, ix, jy, kz)%dzray = ray(nrlc, ix, jy, kz)%z &
+                        + 0.5 * ray(nrlc, ix, jy, kz)%dzray - lz(0)
+
+                    ray(nrlc, ix, jy, kz)%z = lz(0) + 0.5 * ray(nrlc, ix, jy, &
+                        kz)%dzray
+
+                    ray(nrlc, ix, jy, kz)%area_zm = ray(nrlc, ix, jy, &
+                        kz)%dzray * ray(nrlc, ix, jy, kz)%dmray
+                  end if
+                  ! FJApr2023
+                else if(iRay > 0 .and. topography .and. zr + 0.5 * dzr &
+                    > topography_surface(ix, jy)) then
+                  ! print *, "CASE 2 OF LAUNCH ALGORITHM TRIGGERED!"
+                  nrlc = nRay(ix, jy, kz)
+
+                  ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+
+                  if(ray(nrlc, ix, jy, kz)%z - 0.5 * ray(nrlc, ix, jy, &
+                      kz)%dzray < topography_surface(ix, jy)) then
+                    ray(nrlc, ix, jy, kz)%dzray = ray(nrlc, ix, jy, kz)%z &
+                        + 0.5 * ray(nrlc, ix, jy, kz)%dzray &
+                        - topography_surface(ix, jy)
+
+                    ray(nrlc, ix, jy, kz)%z = topography_surface(ix, jy) + 0.5 &
+                        * ray(nrlc, ix, jy, kz)%dzray
+
+                    ray(nrlc, ix, jy, kz)%area_zm = ray(nrlc, ix, jy, &
+                        kz)%dzray * ray(nrlc, ix, jy, kz)%dmray
+                  end if
+                elseif(iRay < 0) then
+                  ! print *, "CASE 1 OF LAUNCH ALGORITHM TRIGGERED!"
+                  ! case (1):
+
+                  iRay = nRay(ix, jy, kz)
+                  ir_sfc(i_sfc, ix, jy) = iRay
+                  ! else
+                  !   print *, "CASE 3 OF LAUNCH ALGORITHM TRIGGERED!"
+                end if
+                ! case (3): keep same iRay and fill it with new r.v.
+                ! ie: nothing to be done here!
+              else
+                ir_sfc(i_sfc, ix, jy) = - 1
+                cycle
               end if
-              ! case (3): keep same iRay and fill it with new r.v.
-              ! ie: nothing to be done here!
-            else
-              ir_sfc(i_sfc, ix, jy) = - 1
-              cycle
             end if
 
             ! ray-volume positions
@@ -8493,7 +8484,7 @@ module wkb_module
       do kz = 1, nz
         do jy = 1, ny
           do ix = 1, nx
-            ! Setup saturation computation.
+            ! Set up saturation computation.
             integral1 = 0.0
             integral2 = 0.0
             m2b2 = 0.0
@@ -8508,10 +8499,12 @@ module wkb_module
               ! Prepare ray volume.
               ray(iRay, ix, jy, kz) = ray(iRay, ix, jy, kz - 1)
 
-              ! Set vertical position.
+              ! Set vertical position (and extent).
               if(topography) then
-                ray(iRay, ix, jy, kz)%z = ray(iRay, ix, jy, kz - 1)%z &
-                    + jac(ix, jy, kz) * dz
+                ray(iRay, ix, jy, kz)%z = ray(iRay, ix, jy, kz - 1)%z + 0.5 &
+                    * (jac(ix, jy, kz - 1) + jac(ix, jy, kz)) * dz
+                ray(iRay, ix, jy, kz)%dzray = ray(iRay, ix, jy, kz - 1)%dzray &
+                    * jac(ix, jy, kz) / jac(ix, jy, kz - 1)
               else
                 ray(iRay, ix, jy, kz)%z = ray(iRay, ix, jy, kz - 1)%z + dz
               end if
@@ -8521,15 +8514,14 @@ module wkb_module
               wnrl = ray(iRay, ix, jy, kz)%l
               wnrh = sqrt(wnrk ** 2.0 + wnrl ** 2.0)
 
-              ! Compute vertical group velocity at the source.
-              if(kz == 1) then
-                call stratification(ray(iRay, ix, jy, 1)%z, 1, NN_nd)
-              else
-                call stratification(ray(iRay, ix, jy, kz - 1)%z, 1, NN_nd)
-              end if
-              omir = ray(iRay, ix, jy, kz - 1)%omega
-              if(omir ** 2 > f_cor_nd .and. omir ** 2 < NN_nd) then
-                wnrm = ray(iRay, ix, jy, kz - 1)%m
+              ! Set reference level.
+              kz0 = max(1, kz - 1)
+
+              ! Compute vertical group velocity at the level below.
+              call stratification(ray(iRay, ix, jy, kz0)%z, 1, NN_nd)
+              omir = ray(iRay, ix, jy, kz0)%omega
+              if(omir ** 2 > f_cor_nd ** 2 .and. omir ** 2 < NN_nd) then
+                wnrm = ray(iRay, ix, jy, kz0)%m
                 cgirz0 = wnrm * (f_cor_nd ** 2 - NN_nd) * wnrh ** 2 / omir &
                     / (wnrh ** 2 + wnrm ** 2) ** 2
               else
@@ -8540,14 +8532,10 @@ module wkb_module
               ! Compute local intrinsic frequency, vertical
               ! wavenumber and vertical group velocity.
               call stratification(ray(iRay, ix, jy, kz)%z, 1, NN_nd)
-              if(kz == 1) then
-                omir = ray(iRay, ix, jy, 0)%omega
-              else
-                omir = branchr * abs(ray(iRay, ix, jy, kz - 1)%omega + var(ix, &
-                    jy, kz - 1, 2) * wnrk + var(ix, jy, kz - 1, 3) * wnrl &
-                    - var(ix, jy, kz, 2) * wnrk - var(ix, jy, kz, 3) * wnrl)
-              end if
-              if(omir ** 2 > f_cor_nd .and. omir ** 2 < NN_nd) then
+              omir = branchr * abs(ray(iRay, ix, jy, kz0)%omega + var(ix, jy, &
+                  kz0, 2) * wnrk + var(ix, jy, kz0, 3) * wnrl - var(ix, jy, &
+                  kz, 2) * wnrk - var(ix, jy, kz, 3) * wnrl)
+              if(omir ** 2 > f_cor_nd ** 2 .and. omir ** 2 < NN_nd) then
                 wnrm = - branchr * sqrt(wnrh ** 2 * (NN_nd - omir ** 2) &
                     / (omir ** 2 - f_cor_nd ** 2))
                 cgirz = wnrm * (f_cor_nd ** 2 - NN_nd) * wnrh ** 2 / omir &
@@ -8562,85 +8550,23 @@ module wkb_module
               ray(iRay, ix, jy, kz)%m = wnrm
 
               ! Set local wave action density.
-              if(spongeLayer) then
-                alphaSponge = 0.0
+              if(spongeLayer .and. unifiedSponge) then
                 xr = ray(iRay, ix, jy, kz)%x
                 yr = ray(iRay, ix, jy, kz)%y
                 zr = ray(iRay, ix, jy, kz)%z
-                if(unifiedSponge) then
-                  if(lateralSponge) then
-                    ! Zonal sponge.
-                    if(xr <= xSponge0) then
-                      alphaSponge = alphaSponge + spongeAlphaX * sin(0.5 * pi &
-                          * (xSponge0 - xr) / (xSponge0 - lx(0))) ** 2.0
-                    else if(xr >= xSponge1) then
-                      alphaSponge = alphaSponge + spongeAlphaX * sin(0.5 * pi &
-                          * (xr - xSponge1) / (lx(1) - xSponge1)) ** 2.0
-                    end if
-                    ! Meridional sponge.
-                    if(yr <= ySponge0) then
-                      alphaSponge = alphaSponge + spongeAlphaY * sin(0.5 * pi &
-                          * (ySponge0 - yr) / (ySponge0 - ly(0))) ** 2.0
-                    else if(yr >= ySponge1) then
-                      alphaSponge = alphaSponge + spongeAlphaY * sin(0.5 * pi &
-                          * (yr - ySponge1) / (ly(1) - ySponge1)) ** 2.0
-                    end if
-                  end if
-                  ! Vertical sponge.
-                  if(zr >= zSponge) then
-                    alphaSponge = alphaSponge + spongeAlphaZ * sin(0.5 * pi &
-                        * (zr - zSponge) / (lz(1) - zSponge)) ** 2.0
-                  end if
-                else
-                  if(lateralSponge) then
-                    ! Zonal sponge.
-                    if(xr <= xSponge0) then
-                      alphaSponge = alphaSponge + spongeAlphaX * ((xSponge0 &
-                          - xr) / (xSponge0 - lx(0))) ** spongeOrder
-                    else if(xr >= xSponge1) then
-                      alphaSponge = alphaSponge + spongeAlphaX * ((xr &
-                          - xSponge1) / (lx(1) - xSponge1)) ** spongeOrder
-                    end if
-                    ! Meridional sponge.
-                    if(yr <= ySponge0) then
-                      alphaSponge = alphaSponge + spongeAlphaY * ((ySponge0 &
-                          - yr) / (ySponge0 - ly(0))) ** spongeOrder
-                    else if(yr >= ySponge1) then
-                      alphaSponge = alphaSponge + spongeAlphaY * ((yr &
-                          - ySponge1) / (ly(1) - ySponge1)) ** spongeOrder
-                    end if
-                  end if
-                  ! Vertical sponge.
-                  if(verticalSponge == "exponential") then
-                    alphaSponge = alphaSponge + spongeAlphaZ * exp((zr &
-                        - lz(1)) / zSponge)
-                  end if
-                  if(zr >= zSponge) then
-                    if(verticalSponge == "cosmo") then
-                      alphaSponge = alphaSponge + 1.0 / cosmoSteps &
-                          / stepFrac(RKStage) / dt * (1.0 - cos(pi * (zr &
-                          - zSponge) / spongeDz))
-                    else if(verticalSponge == "polynomial") then
-                      alphaSponge = alphaSponge + spongeAlphaZ * ((zr &
-                          - zSponge) / spongeDz) ** spongeOrder
-                    else if(verticalSponge == "constant") then
-                      alphaSponge = alphaSponge + spongeAlphaZ
-                    end if
-                  end if
-                end if
-                ! Apply total sponge.
+                alphaSponge = 2.0 * interpolate_sponge(xr, yr, zr)
                 if(topography) then
                   ray(iRay, ix, jy, kz)%dens = 1.0 / (1.0 + alphaSponge &
-                      / cgirz * jac(ix, jy, kz) * dz) * cgirz0 * ray(iRay, ix, &
-                      jy, kz - 1)%dens / cgirz
+                      / cgirz * 0.5 * (jac(ix, jy, kz - 1) + jac(ix, jy, kz)) &
+                      * dz) * cgirz0 * ray(iRay, ix, jy, kz0)%dens / cgirz
                 else
                   ray(iRay, ix, jy, kz)%dens = 1.0 / (1.0 + alphaSponge &
-                      / cgirz * dz) * cgirz0 * ray(iRay, ix, jy, kz - 1)%dens &
+                      / cgirz * dz) * cgirz0 * ray(iRay, ix, jy, kz0)%dens &
                       / cgirz
                 end if
               else
-                ray(iRay, ix, jy, kz)%dens = cgirz0 * ray(iRay, ix, jy, kz &
-                    - 1)%dens / cgirz
+                ray(iRay, ix, jy, kz)%dens = cgirz0 * ray(iRay, ix, jy, &
+                    kz0)%dens / cgirz
               end if
 
               ! Get ray volume extents.
@@ -8707,7 +8633,7 @@ module wkb_module
               wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
               call stratification(ray(iRay, ix, jy, kz)%z, 1, NN_nd)
               omir = ray(iRay, ix, jy, kz)%omega
-              if(omir ** 2 > f_cor_nd .and. omir ** 2 < NN_nd) then
+              if(omir ** 2 > f_cor_nd ** 2 .and. omir ** 2 < NN_nd) then
                 cgirz = wnrm * (f_cor_nd ** 2 - NN_nd) * wnrh ** 2 / omir &
                     / (wnrh ** 2 + wnrm ** 2) ** 2
               else
@@ -8715,8 +8641,9 @@ module wkb_module
               end if
               if(topography) then
                 ray(iRay, ix, jy, kz)%dens = ray(iRay, ix, jy, kz)%dens &
-                    * max(0.0, 1.0 - jac(ix, jy, kz) * dz / cgirz * 2.0 &
-                    * diffusion * (wnrh ** 2 + wnrm ** 2))
+                    * max(0.0, 1.0 - 0.5 * (jac(ix, jy, kz - 1) + jac(ix, jy, &
+                    kz)) * dz / cgirz * 2.0 * diffusion * (wnrh ** 2 + wnrm &
+                    ** 2))
               else
                 ray(iRay, ix, jy, kz)%dens = ray(iRay, ix, jy, kz)%dens &
                     * max(0.0, 1.0 - dz / cgirz * 2.0 * diffusion * (wnrh ** 2 &
@@ -8770,16 +8697,18 @@ module wkb_module
             zr2 = zr + 0.5 * dzr
 
             !skip ray volumes that have left the domain
-            if(topography) then
-              ! FJApr2023
-              if(zr1 < topography_surface(ix, jy) - jac(ix, jy, kz) * dz) then
-                nskip = nskip + 1
-                cycle
-              end if
-            else
-              if(zr1 < lz(0) - dz) then
-                nskip = nskip + 1
-                cycle
+            if(case_wkb /= 3) then
+              if(topography) then
+                ! FJApr2023
+                if(zr1 < topography_surface(ix, jy) - jac(ix, jy, 0) * dz) then
+                  nskip = nskip + 1
+                  cycle
+                end if
+              else
+                if(zr1 < lz(0) - dz) then
+                  nskip = nskip + 1
+                  cycle
+                end if
               end if
             end if
 
@@ -9075,100 +9004,22 @@ module wkb_module
 
     ! FJJun2023
     ! Sponge layer
-    if(spongeLayer) then
-      if(unifiedSponge) then
-        do kz = 1, nz
-          do jy = 1, ny
-            do ix = 1, nx
-              do iRay = 1, nRay(ix, jy, kz)
-                alphaSponge = 0.0
-                xr = ray(iRay, ix, jy, kz)%x
-                yr = ray(iRay, ix, jy, kz)%y
-                zr = ray(iRay, ix, jy, kz)%z
-                if(lateralSponge) then
-                  ! Zonal sponge.
-                  if(xr <= xSponge0) then
-                    alphaSponge = alphaSponge + spongeAlphaX * sin(0.5 * pi &
-                        * (xSponge0 - xr) / (xSponge0 - lx(0))) ** 2.0
-                  else if(xr >= xSponge1) then
-                    alphaSponge = alphaSponge + spongeAlphaX * sin(0.5 * pi &
-                        * (xr - xSponge1) / (lx(1) - xSponge1)) ** 2.0
-                  end if
-                  ! Meridional sponge.
-                  if(yr <= ySponge0) then
-                    alphaSponge = alphaSponge + spongeAlphaY * sin(0.5 * pi &
-                        * (ySponge0 - yr) / (ySponge0 - ly(0))) ** 2.0
-                  else if(yr >= ySponge1) then
-                    alphaSponge = alphaSponge + spongeAlphaY * sin(0.5 * pi &
-                        * (yr - ySponge1) / (ly(1) - ySponge1)) ** 2.0
-                  end if
-                end if
-                ! Vertical sponge.
-                if(zr >= zSponge) then
-                  alphaSponge = alphaSponge + spongeAlphaZ * sin(0.5 * pi &
-                      * (zr - zSponge) / (lz(1) - zSponge)) ** 2.0
-                end if
-                ! Apply total sponge.
-                betaSponge = 1.0 / (1.0 + alphaSponge * stepFrac(RKStage) * dt)
-                ray(iRay, ix, jy, kz)%dens = betaSponge * ray(iRay, ix, jy, &
-                    kz)%dens
-              end do
+    if(spongeLayer .and. unifiedSponge) then
+      do kz = 1, nz
+        do jy = 1, ny
+          do ix = 1, nx
+            do iRay = 1, nRay(ix, jy, kz)
+              xr = ray(iRay, ix, jy, kz)%x
+              yr = ray(iRay, ix, jy, kz)%y
+              zr = ray(iRay, ix, jy, kz)%z
+              alphaSponge = 2.0 * interpolate_sponge(xr, yr, zr)
+              betaSponge = 1.0 / (1.0 + alphaSponge * stepFrac(RKStage) * dt)
+              ray(iRay, ix, jy, kz)%dens = betaSponge * ray(iRay, ix, jy, &
+                  kz)%dens
             end do
           end do
         end do
-      else
-        do kz = 1, nz
-          do jy = 1, ny
-            do ix = 1, nx
-              do iRay = 1, nRay(ix, jy, kz)
-                alphaSponge = 0.0
-                xr = ray(iRay, ix, jy, kz)%x
-                yr = ray(iRay, ix, jy, kz)%y
-                zr = ray(iRay, ix, jy, kz)%z
-                if(lateralSponge) then
-                  ! Zonal sponge.
-                  if(xr <= xSponge0) then
-                    alphaSponge = alphaSponge + spongeAlphaX * ((xSponge0 &
-                        - xr) / (xSponge0 - lx(0))) ** spongeOrder
-                  else if(xr >= xSponge1) then
-                    alphaSponge = alphaSponge + spongeAlphaX * ((xr &
-                        - xSponge1) / (lx(1) - xSponge1)) ** spongeOrder
-                  end if
-                  ! Meridional sponge.
-                  if(yr <= ySponge0) then
-                    alphaSponge = alphaSponge + spongeAlphaY * ((ySponge0 &
-                        - yr) / (ySponge0 - ly(0))) ** spongeOrder
-                  else if(yr >= ySponge1) then
-                    alphaSponge = alphaSponge + spongeAlphaY * ((yr &
-                        - ySponge1) / (ly(1) - ySponge1)) ** spongeOrder
-                  end if
-                end if
-                ! Vertical sponge.
-                if(verticalSponge == "exponential") then
-                  alphaSponge = alphaSponge + spongeAlphaZ * exp((zr - lz(1)) &
-                      / zSponge)
-                end if
-                if(zr >= zSponge) then
-                  if(verticalSponge == "cosmo") then
-                    alphaSponge = alphaSponge + 1.0 / cosmoSteps &
-                        / stepFrac(RKStage) / dt * (1.0 - cos(pi * (zr &
-                        - zSponge) / spongeDz))
-                  else if(verticalSponge == "polynomial") then
-                    alphaSponge = alphaSponge + spongeAlphaZ * ((zr - zSponge) &
-                        / spongeDz) ** spongeOrder
-                  else if(verticalSponge == "constant") then
-                    alphaSponge = alphaSponge + spongeAlphaZ
-                  end if
-                end if
-                ! Apply total sponge.
-                betaSponge = 1.0 / (1.0 + alphaSponge * stepFrac(RKStage) * dt)
-                ray(iRay, ix, jy, kz)%dens = betaSponge * ray(iRay, ix, jy, &
-                    kz)%dens
-              end do
-            end do
-          end do
-        end do
-      end if
+      end do
     end if
 
   end subroutine transport_rayvol
@@ -9483,17 +9334,15 @@ module wkb_module
             ! Skip rays propagating out of the domain. Compute stratification.
             ! Why half-levels?
             if(topography) then
-              ! kz = minloc(abs(zTFC(ix, jy, :) - zr), dim = 1) + lbound(zTFC, &
-              !     3) - 1
-              kz = floor((zr - topography_surface(ix, jy)) / jac(ix, jy, 0) &
-                  / dz) + 1
+              kz = floor((levelTFC(ix, jy, zr) - lz(0)) / dz) + 1
               if(kz < 1 .or. kz > sizeZ) cycle
-              call stratification(zTFC(ix, jy, kz), 1, NN_nd)
+              ! call stratification(zTFC(ix, jy, kz), 1, NN_nd)
             else
               kz = floor((zr - lz(0)) / dz) + 1
               if(kz < 1 .or. kz > sizeZ) cycle
-              call stratification(z(kz), 1, NN_nd)
+              ! call stratification(z(kz), 1, NN_nd)
             end if
+            call stratification(zr, 1, NN_nd)
 
             wnrk = ray(iRay, ixrv, jyrv, kzrv)%k
             wnrl = ray(iRay, ixrv, jyrv, kzrv)%l
@@ -9705,10 +9554,7 @@ module wkb_module
             ! Skip rays propagating out of the domain.
             ! Why half-levels?
             if(topography) then
-              ! kz = minloc(abs(zTFC(ix, jy, :) - zr), dim = 1) + lbound(zTFC, &
-              !     3) - 1
-              kz = floor((zr - topography_surface(ix, jy)) / jac(ix, jy, 0) &
-                  / dz) + 1
+              kz = floor((levelTFC(ix, jy, zr) - lz(0)) / dz) + 1
               if(kz < 1 .or. kz > sizeZ) cycle
             else
               kz = floor((zr - lz(0)) / dz) + 1
@@ -9844,17 +9690,15 @@ module wkb_module
             ! Skip rays propagating out of the domain. Compute stratification.
             ! Why half-levels?
             if(topography) then
-              ! kz = minloc(abs(zTFC(ix, jy, :) - zr), dim = 1) + lbound(zTFC, &
-              !     3) - 1
-              kz = floor((zr - topography_surface(ix, jy)) / jac(ix, jy, 0) &
-                  / dz) + 1
+              kz = floor((levelTFC(ix, jy, zr) - lz(0)) / dz) + 1
               if(kz < 1 .or. kz > sizeZ) cycle
-              call stratification(zTFC(ix, jy, kz), 1, NN_nd)
+              ! call stratification(zTFC(ix, jy, kz), 1, NN_nd)
             else
               kz = floor((zr - lz(0)) / dz) + 1
               if(kz < 1 .or. kz > sizeZ) cycle
-              call stratification(z(kz), 1, NN_nd)
+              ! call stratification(z(kz), 1, NN_nd)
             end if
+            call stratification(zr, 1, NN_nd)
 
             wnrk = ray(iRay, ixrv, jyrv, kzrv)%k
             wnrl = ray(iRay, ixrv, jyrv, kzrv)%l
@@ -9944,7 +9788,8 @@ module wkb_module
 
   end subroutine saturation_3D
 
-  !----------------------------------------------------------------------
+  !------------------------------------------------------------------------
+
   subroutine smooth_wkb_shapiro(flxwkb, nsmth, homog_dir)
 
     !--------------------------------------------------------------------
@@ -12638,17 +12483,17 @@ module wkb_module
           if(abs(x(ix + ix0) - x_center) <= mountainWidth_wkb) then
             topography_spectrum(ix, jy, 1) = 0.25 * mountainHeight_wkb * (1.0 &
                 + cos(k_mountain_wkb * (x(ix + ix0) - x_center)))
+            k_spectrum(ix, jy, 1) = range_factor_wkb * k_mountain_wkb
           end if
-          k_spectrum(ix, jy, 1) = range_factor_wkb * k_mountain_wkb
         else if(mountain_case_wkb == 7) then
           if(abs(x(ix + ix0) - x_center) <= mountainWidth_wkb .and. abs(y(jy &
               + jy0) - y_center) <= mountainWidth_wkb) then
             topography_spectrum(ix, jy, 1) = 0.125 * mountainHeight_wkb * (1.0 &
                 + cos(k_mountain_wkb * (x(ix + ix0) - x_center))) * (1.0 &
                 + cos(k_mountain_wkb * (y(jy + jy0) - y_center)))
+            k_spectrum(ix, jy, 1) = range_factor_wkb * k_mountain_wkb
+            l_spectrum(ix, jy, 1) = range_factor_wkb * k_mountain_wkb
           end if
-          k_spectrum(ix, jy, 1) = range_factor_wkb * k_mountain_wkb
-          l_spectrum(ix, jy, 1) = range_factor_wkb * k_mountain_wkb
         else if(mountain_case_wkb == 8) then
           topography_spectrum(ix, jy, 1) = 0.5 * mountainHeight_wkb * exp(- &
               ((x(ix + ix0) - x_center) / mountainWidth_wkb) ** 2.0)
@@ -12660,10 +12505,10 @@ module wkb_module
           k_spectrum(ix, jy, 1) = 0.5 * range_factor_wkb * k_mountain_wkb
           l_spectrum(ix, jy, 1) = 0.5 * range_factor_wkb * k_mountain_wkb
         else if(mountain_case == 10) then
-          if(abs(x(ix + ix0) - x_center) <= 1.5 * mountainWidth_wkb) then
+          if(abs(x(ix + ix0) - x_center) <= mountainWidth_wkb) then
             topography_spectrum(ix, jy, 1) = 0.5 * mountainHeight_wkb
+            k_spectrum(ix, jy, 1) = k_mountain_wkb
           end if
-          k_spectrum(ix, jy, 1) = k_mountain_wkb
         else
           if(master) stop "Mountain case not defined!"
         end if
@@ -12674,8 +12519,6 @@ module wkb_module
       call read_wkb_topography
     end if
 
-    ! topography_spectrum = topography_spectrum / sqrt(2.0)
-
     if(topographyTime_wkb > 0.0) then
       allocate(final_topography_spectrum(1:nx, 1:ny, 1:nwm), stat = allocstat)
       if(allocstat /= 0) stop "setup_topography_wkb: could not allocate &
@@ -12685,73 +12528,33 @@ module wkb_module
       topography_spectrum = 0.0
     end if
 
-    if(long_scaling .and. long_method == "decision_tree") then
-      if(master) then
-        open(42, file = "decision_tree.txt")
-        size = 0
-        do
-          read(42, *, iostat = iostat)
-          if(iostat /= 0) exit
-          size = size + 1
-        end do
-        close(42)
-      end if
-      call mpi_bcast(size, 1, mpi_integer, root, mpi_comm_world, ierror)
+    ! if(blocking) then
+    !   if(master) then
+    !     open(42, file = "reduction.txt")
+    !     size = 0
+    !     do
+    !       read(42, *, iostat = iostat)
+    !       if(iostat /= 0) exit
+    !       size = size + 1
+    !     end do
+    !     close(42)
+    !   end if
+    !   call mpi_bcast(size, 1, mpi_integer, root, mpi_comm_world, ierror)
 
-      allocate(decision_tree(1:size, 1:4), stat = allocstat)
-      if(allocstat /= 0) stop "setup_topography_wkb: could not allocate &
-          decision_tree"
+    !   allocate(reduction(1:size, 1:4), stat = allocstat)
+    !   if(allocstat /= 0) stop "setup_topography_wkb: could not allocate &
+    !       reduction"
 
-      if(master) then
-        open(42, file = "decision_tree.txt")
-        do row = 1, size
-          read(42, *) (decision_tree(row, column), column = 1, 4)
-        end do
-        close(42)
-      end if
-      call mpi_bcast(decision_tree, size * 4, mpi_double_precision, root, &
-          mpi_comm_world, ierror)
-      ! else if(long_scaling .and. long_method == "extreme_learning_machine") then
-      !   if(master) then
-      !     open(42, file = "output_weights.txt")
-      !     size = 0
-      !     do
-      !       read(42, *, iostat = iostat)
-      !       if(iostat /= 0) exit
-      !       size = size + 1
-      !     end do
-      !     close(42)
-      !   end if
-      !   call mpi_bcast(size, 1, mpi_integer, root, mpi_comm_world, ierror)
-
-      !   allocate(hidden_weights(1:2, 1:(size - 1)), stat = allocstat)
-      !   if(allocstat /= 0) stop "setup_topography_wkb: could not allocate &
-      !       hidden_weights"
-
-      !   allocate(output_weights(1:size, 1:1), stat = allocstat)
-      !   if(allocstat /= 0) stop "setup_topography_wkb: could not allocate &
-      !       output_weights"
-
-      !   if(master) then
-      !     open(42, file = "hidden_weights.txt")
-      !     do row = 1, 2
-      !       read(42, *) (hidden_weights(row, column), column = 1, size - 1)
-      !     end do
-      !     close(42)
-      !   end if
-      !   call mpi_bcast(hidden_weights, 2 * (size - 1), mpi_double_precision, &
-      !       root, mpi_comm_world, ierror)
-
-      !   if(master) then
-      !     open(42, file = "output_weights.txt")
-      !     do row = 1, size
-      !       read(42, *) (output_weights(row, column), column = 1, 1)
-      !     end do
-      !     close(42)
-      !   end if
-      !   call mpi_bcast(output_weights, size * 1, mpi_double_precision, root, &
-      !       mpi_comm_world, ierror)
-    end if
+    !   if(master) then
+    !     open(42, file = "reduction.txt")
+    !     do row = 1, size
+    !       read(42, *) (reduction(row, column), column = 1, 4)
+    !     end do
+    !     close(42)
+    !   end if
+    !   call mpi_bcast(reduction, size * 4, mpi_double_precision, root, &
+    !       mpi_comm_world, ierror)
+    ! end if
 
   end subroutine setup_topography_wkb
 
@@ -12770,6 +12573,8 @@ module wkb_module
       else
         topography_spectrum = final_topography_spectrum
       end if
+    else
+      topographyTime_wkb = 0.0
     end if
 
   end subroutine update_topography_wkb
@@ -12840,51 +12645,256 @@ module wkb_module
 
   ! ----------------------------------------------------------------------
 
-  function amplitude_scaling(long) result(scaling)
+  function interpolate_sponge(xlc, ylc, zlc) result(alpha)
 
-    ! The columns of decision_tree contain (in order) the node indices, split
+    real :: xlc, ylc, zlc
+    real :: alpha
+
+    integer :: ix0, jy0
+
+    integer :: ixl, ixr
+    integer :: jyb, jyf
+    integer :: kzlbd, kzlbu, kzlfd, kzlfu, kzrbd, kzrbu, kzrfd, kzrfu
+    integer :: kzd, kzu
+
+    real :: xl, xr
+    real :: yb, yf
+    real :: zlbd, zlbu, zlfd, zlfu, zrbd, zrbu, zrfd, zrfu
+    real :: zbd, zbu, zfd, zfu
+    real :: zd, zu
+
+    real :: alphalbd, alphalbu, alphalfd, alphalfu, alpharbd, alpharbu, &
+        alpharfd, alpharfu
+    real :: alphabd, alphabu, alphafd, alphafu
+    real :: alphad, alphau
+
+    real :: factor
+
+    ix0 = is + nbx - 1
+    jy0 = js + nby - 1
+
+    ! Dermine closest points in horizontal direction.
+    if(sizeX > 1) then
+      ixl = floor((xlc - 0.5 * dx - lx(0)) / dx) + 1 - ix0
+      ixr = ixl + 1
+    else
+      ixl = 1
+      ixr = 1
+    end if
+    xl = x(ix0 + ixl)
+    xr = x(ix0 + ixr)
+
+    ! Determine closest points in meridional direction.
+    if(sizeY > 1) then
+      jyb = floor((ylc - 0.5 * dy - ly(0)) / dy) + 1 - jy0
+      jyf = jyb + 1
+    else
+      jyb = 1
+      jyf = 1
+    end if
+    yb = y(jy0 + jyb)
+    yf = y(jy0 + jyf)
+
+    ! Determine closest points in vertical direction and set interpolation
+    ! values.
+    if(topography) then
+      kzlbd = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) / dz) &
+          + 1)
+      kzlbu = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) / dz) &
+          + 2)
+      if(kzlbd > nz) then
+        kzlbd = nz
+        kzlbu = nz
+      end if
+      zlbd = zTFC(ixl, jyb, kzlbd)
+      zlbu = zTFC(ixl, jyb, kzlbu)
+      alphalbd = alphaUnifiedSponge(ixl, jyb, kzlbd)
+      alphalbu = alphaUnifiedSponge(ixl, jyb, kzlbu)
+      kzlfd = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) / dz) &
+          + 1)
+      kzlfu = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) / dz) &
+          + 2)
+      if(kzlfd > nz) then
+        kzlfd = nz
+        kzlfu = nz
+      end if
+      zlfd = zTFC(ixl, jyf, kzlfd)
+      zlfu = zTFC(ixl, jyf, kzlfu)
+      alphalfd = alphaUnifiedSponge(ixl, jyf, kzlfd)
+      alphalfu = alphaUnifiedSponge(ixl, jyf, kzlfu)
+      kzrbd = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) / dz) &
+          + 1)
+      kzrbu = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) / dz) &
+          + 2)
+      if(kzrbd > nz) then
+        kzrbd = nz
+        kzrbu = nz
+      end if
+      zrbd = zTFC(ixr, jyb, kzrbd)
+      zrbu = zTFC(ixr, jyb, kzrbu)
+      alpharbd = alphaUnifiedSponge(ixr, jyb, kzrbd)
+      alpharbu = alphaUnifiedSponge(ixr, jyb, kzrbu)
+      kzrfd = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) / dz) &
+          + 1)
+      kzrfu = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) / dz) &
+          + 2)
+      if(kzrfd > nz) then
+        kzrfd = nz
+        kzrfu = nz
+      end if
+      zrfd = zTFC(ixr, jyf, kzrfd)
+      zrfu = zTFC(ixr, jyf, kzrfu)
+      alpharfd = alphaUnifiedSponge(ixr, jyf, kzrfd)
+      alpharfu = alphaUnifiedSponge(ixr, jyf, kzrfu)
+    else
+      kzd = max(1, floor((zlc - 0.5 * dz - lz(0)) / dz) + 1)
+      kzu = max(1, floor((zlc - 0.5 * dz - lz(0)) / dz) + 2)
+      if(kzd > nz) then
+        kzd = nz
+        kzu = nz
+      end if
+      zd = z(kzd)
+      zu = z(kzu)
+      alphalbd = alphaUnifiedSponge(ixl, jyb, kzd)
+      alphalbu = alphaUnifiedSponge(ixl, jyb, kzu)
+      alphalfd = alphaUnifiedSponge(ixl, jyf, kzd)
+      alphalfu = alphaUnifiedSponge(ixl, jyf, kzu)
+      alpharbd = alphaUnifiedSponge(ixr, jyb, kzd)
+      alpharbu = alphaUnifiedSponge(ixr, jyb, kzu)
+      alpharfd = alphaUnifiedSponge(ixr, jyf, kzd)
+      alpharfu = alphaUnifiedSponge(ixr, jyf, kzu)
+    end if
+
+    ! Interpolate in x.
+    if(sizeX > 1) then
+      if(xr == xl) then
+        factor = 0.0
+      elseif(xlc > xr) then
+        factor = 0.0
+      elseif(xlc > xl) then
+        factor = (xr - xlc) / (xr - xl)
+      else
+        factor = 1.0
+      end if
+
+      if(topography) then
+        zbd = factor * zlbd + (1.0 - factor) * zrbd
+        zbu = factor * zlbu + (1.0 - factor) * zrbu
+
+        zfd = factor * zlfd + (1.0 - factor) * zrfd
+        zfu = factor * zlfu + (1.0 - factor) * zrfu
+      end if
+
+      alphabd = factor * alphalbd + (1.0 - factor) * alpharbd
+      alphabu = factor * alphalbu + (1.0 - factor) * alpharbu
+
+      alphafd = factor * alphalfd + (1.0 - factor) * alpharfd
+      alphafu = factor * alphalfu + (1.0 - factor) * alpharfu
+    else
+      if(topography) then
+        zbd = zlbd
+        zbu = zlbu
+
+        zfd = zlfd
+        zfu = zlfu
+      end if
+
+      alphabd = alphalbd
+      alphabu = alphalbu
+
+      alphafd = alphalfd
+      alphafu = alphalfu
+    end if
+
+    ! Interpolate in y.
+    if(sizeY > 1) then
+      if(yf == yb) then
+        factor = 0.0
+      elseif(ylc > yf) then
+        factor = 0.0
+      elseif(ylc > yb) then
+        factor = (yf - ylc) / (yf - yb)
+      else
+        factor = 1.0
+      end if
+
+      if(topography) then
+        zd = factor * zbd + (1.0 - factor) * zfd
+        zu = factor * zbu + (1.0 - factor) * zfu
+      end if
+
+      alphad = factor * alphabd + (1.0 - factor) * alphafd
+      alphau = factor * alphabu + (1.0 - factor) * alphafu
+    else
+      if(topography) then
+        zd = zbd
+        zu = zbu
+      end if
+
+      alphad = alphabd
+      alphau = alphabu
+    end if
+
+    ! Interpolate in z.
+    if(zu == zd) then
+      factor = 0.0
+    elseif(zlc > zu) then
+      factor = 0.0
+    elseif(zlc > zd) then
+      factor = (zu - zlc) / (zu - zd)
+    else
+      factor = 1.0
+    end if
+
+    alpha = factor * alphad + (1.0 - factor) * alphau
+
+  end function
+
+  ! ----------------------------------------------------------------------
+
+  function wave_amplitude_reduction(long) result(factor)
+
+    ! The columns of reduction contain (in order) the node indices, split
     ! feature indices, split thresholds and node values.
 
     real :: long
-    real :: scaling
+    real :: factor
+    real, parameter :: cc = 0.25
 
-    real, dimension(0:0) :: features
-    real, dimension(0:0) :: labels
-    real :: node
-    logical :: leaf
-    integer :: index, split
+    ! real, dimension(0:0) :: features
+    ! real, dimension(0:0) :: labels
+    ! real :: node
+    ! logical :: leaf
+    ! integer :: index, split
 
-    features = [long]
+    ! features = [long]
 
-    if(long_method == "decision_tree") then
-      node = 0.0
-      leaf = .false.
-      do while(.not. leaf)
-        if(.not. any(decision_tree(:, 1) == node)) then
-          leaf = .true.
-          cycle
-        end if
-        index = findloc(decision_tree(:, 1), node, dim = 1)
-        split = int(decision_tree(index, 2))
-        scaling = decision_tree(index, 4)
-        if(features(split) <= decision_tree(index, 3)) then
-          node = 2.0 * node + 1.0
-        else if(features(split) >= decision_tree(index, 3)) then
-          node = 2.0 * node + 2.0
-        end if
-      end do
-      ! else if(long_method == "extreme_learning_machine") then
-      !   labels = matmul(1.0 / (1.0 + exp(- (matmul(features, &
-      !       hidden_weights(:size(features), :)) &
-      !       + hidden_weights(size(features) + 1, :)))), &
-      !       output_weights(:size(hidden_weights(1, :)), :)) &
-      !       + output_weights(size(hidden_weights(1, :)) + 1, :)
-      !   scaling = labels(0)
-    else if(long_method == "lott_miller") then
-      scaling = min(1.0, long_threshold / long)
+    ! ! Decision tree:
+    ! node = 0.0
+    ! leaf = .false.
+    ! do while(.not. leaf)
+    !   if(.not. any(reduction(:, 1) == node)) then
+    !     leaf = .true.
+    !     cycle
+    !   end if
+    !   index = findloc(reduction(:, 1), node, dim = 1)
+    !   split = int(reduction(index, 2))
+    !   factor = reduction(index, 4)
+    !   if(features(split) <= reduction(index, 3)) then
+    !     node = 2.0 * node + 1.0
+    !   else if(features(split) >= reduction(index, 3)) then
+    !     node = 2.0 * node + 2.0
+    !   end if
+    ! end do
+
+    if(long == 0.0) then
+      factor = 1.0
+    else
+      factor = min(1.0, cc / long)
     end if
 
-  end function amplitude_scaling
+  end function wave_amplitude_reduction
+
   subroutine calc_ice(ray, var)
 
     ! supplemements cell-centered volume forces by WKB force

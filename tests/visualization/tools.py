@@ -36,33 +36,20 @@ class ModelOutput:
     values = [eval(entry) if "=" not in entry else entry for entry in values]
 
     # Save to dictionary.
-    input = {keys[nn]: values[nn] for nn in range(len(keys))}
-    self.input = input
+    parameters = {keys[nn]: values[nn] for nn in range(len(keys))}
+    self.parameters = parameters
 
     # Set attributes.
-    self.nx = input["sizeX"]
-    self.ny = input["sizeY"]
-    self.nz = input["sizeZ"]
-    self.lx = input["lx_dim"][1] - input["lx_dim"][0]
-    self.ly = input["ly_dim"][1] - input["ly_dim"][0]
-    self.lz = input["lz_dim"][1] - input["lz_dim"][0]
-    self.n0 = input["N_BruntVaisala_dim"]
-    self.f0 = input["f_Coriolis_dim"]
-    self.u0 = input["backgroundFlow_dim"][0]
-    self.v0 = input["backgroundFlow_dim"][1]
-    self.w0 = input["backgroundFlow_dim"][2]
-    self.topography = input["topography"]
-    self.output_type = input["outputType"]
-    self.dt = input["outputTimeDiff"]
-    self.lt = input["maxTime"]
-    self.npsi = numpy.sum(input["varOut"])
-
-    # Set topography attributes.
-    if self.topography:
-      self.t0 = input["topographyTime"]
-      self.h0 = input["mountainHeight_dim"]
-      self.l0 = input["mountainWidth_dim"]
-      self.r0 = input["range_factor"]
+    self.nx = parameters["sizeX"]
+    self.ny = parameters["sizeY"]
+    self.nz = parameters["sizeZ"]
+    self.lx = parameters["lx_dim"][1] - parameters["lx_dim"][0]
+    self.ly = parameters["ly_dim"][1] - parameters["ly_dim"][0]
+    self.lz = parameters["lz_dim"][1] - parameters["lz_dim"][0]
+    self.topography = parameters["topography"]
+    self.topography_time = parameters["topographyTime"]
+    self.output_type = parameters["outputType"]
+    self.npsi = numpy.sum(parameters["varOut"])
 
     # Define grid spacing.
     self.dx = self.lx / self.nx
@@ -93,23 +80,25 @@ class ModelOutput:
       self.psi[:, 3, 1:] = 0.5 * (self.psi[:, 3, 1:] + self.psi[:, 3, :(- 1)])
 
     # Compute output times.
+    self.tt = numpy.arange(self.nt, dtype = "float32")
     if self.output_type == "time":
-      self.tt = numpy.zeros(self.nt)
-      start = int(self.nt - self.lt / self.dt)
-      if start >= 0:
-        self.tt[start:] = numpy.arange(start, self.nt) * self.dt
+      self.tt *= parameters["outputTimeDiff"]
+    elif self.output_type == "timeStep":
+      self.tt[1:] = numpy.loadtxt("".join((path, "dt.dat")), \
+          dtype = "float32")[:, 1].cumsum()[(parameters["nOutput"] \
+          - 1)::parameters["nOutput"]]
 
     # Define topography.
     if self.topography:
       hh = numpy.fromfile("".join((path, "topography.dat")), dtype = "float32")
-      self.hh = numpy.reshape(hh, (self.ny, self.nx))
-      self.hh = self.hh * numpy.ones((self.nt, self.ny, self.nx))
-      if self.t0 > 0.0:
-        self.hh[self.tt < self.t0] *= (self.tt[self.tt < self.t0, None, None] \
-            / self.t0)
+      self.hh = numpy.reshape(hh, (self.ny, self.nx)) * numpy.ones((self.nt, \
+          self.ny, self.nx))
+      if self.topography_time > 0.0:
+        self.hh[self.tt < self.topography_time] *= self.tt[self.tt \
+            < self.topography_time, None, None] / self.topography_time
 
     # Import background fields.
-    if self.input["model"] != "Boussinesq":
+    if self.parameters["model"] != "Boussinesq":
       pbar = numpy.fromfile("".join((path, "pStrat.dat")), dtype = "float32")
       thetabar = numpy.fromfile("".join((path, "thetaStrat.dat")), dtype \
           = "float32")
@@ -129,10 +118,10 @@ class ModelOutput:
         self.n2bar = n2bar.reshape((self.nt, self.nz))
 
     # Import WKB data.
-    if self.input["rayTracer"]:
+    if self.parameters["rayTracer"]:
       wkb = numpy.fromfile("".join((path, "pf_wkb_mean.dat")), dtype \
           = "float32")
-      self.wkb = numpy.reshape(wkb, (self.nt, 6, self.nz, self.ny, self.nx))
+      self.wkb = numpy.reshape(wkb, (self.nt, 13, self.nz, self.ny, self.nx))
 
   def transform(self, interpolation = False):
     """Transform and interpolate data."""
@@ -183,7 +172,7 @@ class ModelOutput:
                 psi = numpy.interp(self.zz[:, iy, ix], self.zc[it, :, iy, ix], \
                     self.psi[it, ipsi, :, iy, ix])
                 self.psi[it, ipsi, :, iy, ix] = psi
-        if self.input["model"] != "Boussinesq":
+        if self.parameters["model"] != "Boussinesq":
           for it in range(self.nt):
             for iy in range(self.ny):
               for ix in range(self.nx):
@@ -199,7 +188,7 @@ class ModelOutput:
                 n2bar = numpy.interp(self.zz[:, iy, ix], self.zc[it, :, iy, \
                     ix], self.n2bar[it, :, iy, ix])
                 self.n2bar[it, :, iy, ix] = n2bar
-        if self.input["rayTracer"]:
+        if self.parameters["rayTracer"]:
           for it in range(self.nt):
             for iwkb in range(self.wkb.shape[1]):
               for iy in range(self.ny):
