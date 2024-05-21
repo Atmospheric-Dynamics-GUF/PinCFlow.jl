@@ -2270,14 +2270,18 @@ module wkb_module
 
                           ! FJApr2023
                           ! Ensure correct wavenumber extents.
-                          dk_ini_nd = fac_dk_init * abs(wnk_0)
+                          if(case_wkb == 3) then
+                            dk_ini_nd = fac_dk_init * abs(wnk_0)
+                          end if
 
                           ray(iRay, ix, jy, kz)%k = (wnk_0 - 0.5 * dk_ini_nd &
                               + (real(ik) - 0.5) * dk_ini_nd / nrk_init)
 
                           ! FJApr2023
                           ! Ensure correct wavenumber extents.
-                          dl_ini_nd = fac_dl_init * abs(wnl_0)
+                          if(case_wkb == 3) then
+                            dl_ini_nd = fac_dl_init * abs(wnl_0)
+                          end if
 
                           ray(iRay, ix, jy, kz)%l = (wnl_0 - 0.5 * dl_ini_nd &
                               + (real(jl) - 0.5) * dl_ini_nd / nrl_init)
