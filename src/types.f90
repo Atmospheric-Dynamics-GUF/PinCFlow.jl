@@ -795,7 +795,7 @@ module type_module
     real :: dens ! wave-action density
 
     !SD
-    ! initail phase ray volume
+    ! initial phase ray volume
     real :: dphi ! initial phase
 
   end type rayType
@@ -829,6 +829,26 @@ module type_module
       include_tracer_mixing, tracerdifference, include_prime, &
       include_env_tracer_forcing
 
+	type waveAmp
+		! components of the vectors given in (10.358)-(10.360) in
+		! Achatz, Atmospheric Dynamics (2022)
+		! (10.358): nowamp (next-order wave amplitudes)
+		! (10.359): rhsamp (right-hand side of next-order wave amp. equations)
+		! (10.360): lowamp (leading-order wave amplitudes)
+
+		complex :: u  ! leading-order zonal wind amplitude uhat^(0) in lowamp
+								  ! next-order zonal wind amp. uhat^(1) in nowamp
+								  ! rhs of equation for uhat^(1) given in (10.352)
+		complex :: v  ! wave as for u, but meridional wind
+		complex :: w  ! vertical wind component
+								  ! rhs equation given in (10.350)
+		complex :: b	! buoyancy component as given in the book, so
+									! divided by N !!
+									! rhs equation given in (10.337)
+		complex :: pi	! Exner-pressure component as given in book,
+									! so multiplied by c_p/R * thetaStrat
+									! rhs equation given in (10.327)
+	end type waveAmp
   !-----------------------------------------------------------------
   !                           Ice physics
   !-----------------------------------------------------------------

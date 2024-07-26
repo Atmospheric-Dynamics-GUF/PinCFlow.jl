@@ -503,7 +503,7 @@ module init_module
       rayTracer = .false.
       pressureScaling = .false.
 
-      if(include_tracer) stop "init.f90: Boussinesq not implemented for tracer."
+      updateTracer = .true.
 
       ! updateMass = .false.
       ! predictMomentum = .true.
@@ -632,6 +632,7 @@ module init_module
     !    real :: kk2, mm2, kTot2, maxPsi
     !    real :: Ro_GWP, RoInv_GWP !FS
 
+    !SD
     integer :: allocstat
 
     real :: u1, w1, b1, p1
@@ -5096,6 +5097,9 @@ module init_module
         write(*, fmt = "(a25,f10.1,a7)") "cg_x  = ", - NN * mm ** 2 / kTot &
             ** 3 * uRef, " m/s"
         write(*, fmt = "(a25,f10.1,a7)") "cg_z  = ", NN * mm * kk / kTot ** 3 &
+            * uRef, " m/s"
+        write(*, fmt = "(a25,f10.1,a7)") "cg_z2  = ", & 
+          - (NN**2. - (f_Coriolis_dim / lRef)**2.) * mm * (kk**2. + ll**2.) / kTot2 ** 2. / omi &
             * uRef, " m/s"
         write(*, fmt = "(a25,f10.1,a7)") "u_jet  = ", u0_jet_dim, " m/s"
         print *, ""
