@@ -99,7 +99,8 @@ module wkb_module
   !-----------------------------------------------------------------------
 
   subroutine calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
-      diffusioncoeff, tracerfluxvar, tracerforce)
+      diffusioncoeff, tracerfluxvar, tracerforce, &
+      lowamp, nowamp, rhsamp)
 
     ! supplemements cell-centered volume forces by WKB force
     ! as well as the heating by entropy-flux convergence
@@ -132,6 +133,8 @@ module wkb_module
     ! turbulent eddy diffusivity for tracer mixing parameterization
     real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(in) :: diffusioncoeff
 
+    type(waveAmp), dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), &
+        intent(inout) :: lowamp, nowamp, rhsamp
     ! additional tracer forcing due to next-order forcing terms
     ! tracerfluxvarold: previous time step
     ! tracerfluxvar: current time step
@@ -254,6 +257,24 @@ module wkb_module
     var_wtracer = 0.0
     var_wtracerEnv = 0.0
 
+    lowamp(:, :, :)%u = 0.0 
+    lowamp(:, :, :)%v = 0.0 
+    lowamp(:, :, :)%w = 0.0 
+    lowamp(:, :, :)%b = 0.0 
+    lowamp(:, :, :)%pi = 0.0 
+
+    nowamp(:, :, :)%u = 0.0 
+    nowamp(:, :, :)%v = 0.0 
+    nowamp(:, :, :)%w = 0.0 
+    nowamp(:, :, :)%b = 0.0 
+    nowamp(:, :, :)%pi = 0.0 
+
+    rhsamp(:, :, :)%u = 0.0 
+    rhsamp(:, :, :)%v = 0.0 
+    rhsamp(:, :, :)%w = 0.0 
+    rhsamp(:, :, :)%b = 0.0 
+    rhsamp(:, :, :)%pi = 0.0 
+
     var_E = 0.0
 
     var_drudt = 0.0
@@ -271,7 +292,7 @@ module wkb_module
       tracerfluxvar = 0.0
     end if
 
-    do kzrv = 0, nz
+    do kzrv = 0, nz + 1
       do jyrv = 0, ny + 1
         ! loop including ghost cells in order to get all fluxes
         ! affecting a cell
@@ -750,6 +771,25 @@ module wkb_module
                       tracerfluxvar(ix, jy, kz, :) = tracerfluxvar(ix, jy, kz, &
                           :) + alphaTracer ** 2. * wadr / rhoStrat(kz) * wnrh &
                           ** 2. / (omir * (wnrh ** 2 + wnrm ** 2))
+
+                      ! calculate |bhat^(2)| from wave-action density:
+                      lowamp(ix, jy, kz)%b = lowamp(ix, jy, kz)%b &
+                          + sqrt(wadr * 2. * NNr**4. * wnrh**2. / &
+                          (rhoStrat(kz) * (wnrh**2. + wnrm**2.)))
+                      lowamp(ix, jy, kz)%u = lowamp(ix, jy, kz)%u &
+                          + (omir ** 2. - NNr ** 2.) / (omir ** 2. - & 
+                          f_cor_nd ** 2.) / (wnrm * NNr) * cmplx(wnrl &
+                          * f_cor_nd, wnrk * omir) * lowamp(ix, jy, kz)%b
+                      lowamp(ix, jy, kz)%v = lowamp(ix, jy, kz)%v &
+                          + (omir ** 2. - NNr ** 2.) / (omir ** 2. - & 
+                          f_cor_nd ** 2.) / (wnrm * NNr) * cmplx(-wnrk &
+                          * f_cor_nd, wnrl * omir) * lowamp(ix, jy, kz)%b
+                      lowamp(ix, jy, kz)%w = lowamp(ix, jy, kz)%w &
+                          + cmplx(0.0, omir / NNr) * lowamp(ix, jy, kz)%b 
+                      lowamp(ix, jy, kz)%pi = lowamp(ix, jy, kz)%pi &
+                          + cmplx(0.0, (omir ** 2. - NNr ** 2.) / NNr / wnrm) &
+                          * lowamp(ix, jy, kz)%b
+                      
                     end if
 
                   end do
@@ -762,26 +802,26 @@ module wkb_module
     end do
 
     ! calculate next-order gravity wave tracer fluxes
-    if(include_tracer) then
-      do kz = 1, nz
-        do jy = 1, ny
-          do ix = 1, nx
-            do im = 1, nwm
-              ! next-order forcing only where no diffusion due to gw breaking
-              ! otherwise too large tracer fluxes
-              if(diffusioncoeff(ix, jy, kz) == 0.0) then
-                ! calculate tracer fluxes
-                var_wtracerEnv(ix, jy, kz) = - (tracerfluxvar(ix, jy, kz, im) &
-                    - tracerfluxvarold(ix, jy, kz, im)) / dt / (2. &
-                    * alphaTracer)
-              else
-                var_wtracerEnv(ix, jy, kz) = 0.0
-              end if
-            end do
-          end do
-        end do
-      end do
-    end if
+    ! if(include_tracer) then
+    !   do kz = 1, nz
+    !     do jy = 1, ny
+    !       do ix = 1, nx
+    !         do im = 1, nwm
+    !           ! next-order forcing only where no diffusion due to gw breaking
+    !           ! otherwise too large tracer fluxes
+    !           if(diffusioncoeff(ix, jy, kz) == 0.0) then
+    !             ! calculate tracer fluxes
+    !             var_wtracerEnv(ix, jy, kz) = - (tracerfluxvar(ix, jy, kz, im) &
+    !                 - tracerfluxvarold(ix, jy, kz, im)) / dt / (2. &
+    !                 * alphaTracer)
+    !           else
+    !             var_wtracerEnv(ix, jy, kz) = 0.0
+    !           end if
+    !         end do
+    !       end do
+    !     end do
+    !   end do
+    ! end if
 
     ! for output of u'w', E_w, u, v, w:
     do kz = 1, nz
@@ -991,8 +1031,8 @@ module wkb_module
             tracerforce(ix, jy, kz, 3) = laplacetracer
 
             ! next-order gw tracer fluxes
-            tracerforce(ix, jy, kz, 2) = (var_wtracerEnv(ix, jy, kz + 1) &
-                - var_wtracerEnv(ix, jy, kz - 1)) / (2.0 * dz)
+            ! tracerforce(ix, jy, kz, 2) = (var_wtracerEnv(ix, jy, kz + 1) &
+            !     - var_wtracerEnv(ix, jy, kz - 1)) / (2.0 * dz)
           end do
         end do
       end do
@@ -1007,7 +1047,7 @@ module wkb_module
             ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
             ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
             ray_var3D(ix, jy, kz, 9) = var_wtracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 10) = var_wtracerEnv(ix, jy, kz)
+            ray_var3D(ix, jy, kz, 10) = lowamp(ix, jy, kz)%b!var_wtracerEnv(ix, jy, kz)
             ray_var3D(ix, jy, kz, 11) = tracerforce(ix, jy, kz, 1)
             ray_var3D(ix, jy, kz, 12) = tracerforce(ix, jy, kz, 2)
             ray_var3D(ix, jy, kz, 13) = tracerforce(ix, jy, kz, 3)
@@ -1409,7 +1449,8 @@ module wkb_module
 
   !---------------------------------------------------------------------
 
-  subroutine setup_wkb(ray, ray_var3D, var, diffusioncoeff, tracerfluxvar)
+  subroutine setup_wkb(ray, ray_var3D, var, diffusioncoeff, tracerfluxvar, &
+    lowamp, nowamp, rhsamp)
 
     !------------------------------------------------
     ! allocate ray field
@@ -1432,6 +1473,10 @@ module wkb_module
     ! variable to calculate the next-order gw tracer fluxes
     ! initial tracerfluxvar calculated in setup_wkb
     real, dimension(:, :, :, :), allocatable, intent(out) :: tracerfluxvar
+
+    type(waveAmp), dimension(:, :, :), allocatable, intent(out) :: lowamp
+    type(waveAmp), dimension(:, :, :), allocatable, intent(out) :: nowamp
+    type(waveAmp), dimension(:, :, :), allocatable, intent(out) :: rhsamp
 
     ! local variables
     integer :: allocstat
@@ -1684,6 +1729,36 @@ module wkb_module
         = allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate tracerfluxvar"
 
+    allocate(lowamp(0:nx + 1, 0:ny + 1, 0:nz + 1), stat &
+        = allocstat)
+    if(allocstat /= 0) stop "setup_wkb: could not allocate lowamp"
+
+    allocate(nowamp(0:nx + 1, 0:ny + 1, 0:nz + 1), stat &
+    = allocstat)
+    if(allocstat /= 0) stop "setup_wkb: could not allocate nowamp"
+
+    allocate(rhsamp(0:nx + 1, 0:ny + 1, 0:nz + 1), stat &
+    = allocstat)
+    if(allocstat /= 0) stop "setup_wkb: could not allocate rhsamp"
+
+    lowamp(:, :, :)%u = 0.0 
+    lowamp(:, :, :)%v = 0.0 
+    lowamp(:, :, :)%w = 0.0 
+    lowamp(:, :, :)%b = 0.0 
+    lowamp(:, :, :)%pi = 0.0 
+
+    nowamp(:, :, :)%u = 0.0 
+    nowamp(:, :, :)%v = 0.0 
+    nowamp(:, :, :)%w = 0.0 
+    nowamp(:, :, :)%b = 0.0 
+    nowamp(:, :, :)%pi = 0.0 
+
+    rhsamp(:, :, :)%u = 0.0 
+    rhsamp(:, :, :)%v = 0.0 
+    rhsamp(:, :, :)%w = 0.0 
+    rhsamp(:, :, :)%b = 0.0 
+    rhsamp(:, :, :)%pi = 0.0 
+
     ! needed for initialization of ray volumes:
     if(case_wkb == 3) then
       ! FJApr2023
@@ -1810,6 +1885,7 @@ module wkb_module
                 wnrm = 0.0
               end if
               wnm_sfc(ix, jy, iwm) = wnrm
+
             end do
           end do
         end do
@@ -2105,6 +2181,26 @@ module wkb_module
                     jy, kz, :) / rhoStrat(kz) * wnrh_init ** 2. &
                     / omi_notop(ix, jy, kz) / (wnrh_init ** 2 + wnrm_init ** 2)
               end if
+
+              ! calculate leading-order wave amplitudes
+              lowamp(ix, jy, kz)%b = cmplx(sqrt(fld_amp(ix, jy, kz, 1) &
+                  * 2. * NN_nd ** 3. * wnrh_init ** 2. & 
+                  / (rhoStrat(kz) * (wnrh_init ** 2. + wnrm_init ** 2.))), 0.0)
+              lowamp(ix, jy, kz)%u = (omi_notop(ix, jy, kz) ** 2. & 
+                  - NN_nd ** 2.) / (omi_notop(ix, jy, kz) ** 2. &
+                  - f_cor_nd ** 2.) / (wnrm_init * NN_nd) * &
+                  cmplx(wnrl_init * f_cor_nd, wnrk_init * &
+                  omi_notop(ix, jy, kz)) * lowamp(ix, jy, kz)%b 
+              lowamp(ix, jy, kz)%v = (omi_notop(ix, jy, kz) ** 2. & 
+                  - NN_nd ** 2.) / (omi_notop(ix, jy, kz) ** 2. &
+                  - f_cor_nd ** 2.) / (wnrm_init * NN_nd) * &
+                  cmplx(- wnrk_init * f_cor_nd, wnrl_init * &
+                  omi_notop(ix, jy, kz)) * lowamp(ix, jy, kz)%b    
+              lowamp(ix, jy, kz)%w = cmplx(0.0, omi_notop(ix, jy, kz) &
+                  / NN_nd) * lowamp(ix, jy, kz)%b 
+              lowamp(ix, jy, kz)%pi= cmplx(0.0, (omi_notop(ix, jy, & 
+                  kz) ** 2. - NN_nd ** 2.) / NN_nd / wnrm_init) * &
+                  lowamp(ix, jy, kz)%b
 
             end do
           end do
