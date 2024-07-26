@@ -73,6 +73,7 @@ program pinc_prog
   real, dimension(:, :, :, :), allocatable :: ray_var3D
   real, dimension(:, :, :), allocatable :: diffusioncoeff
   real, dimension(:, :, :, :), allocatable :: tracerfluxvar
+  type(waveAmp), dimension(:, :, :), allocatable :: lowamp, nowamp, rhsamp
 
   ! topography via force field
   real, dimension(:, :, :, :), allocatable :: force ! volume forces
@@ -398,7 +399,8 @@ program pinc_prog
 
     ! allocate ray fields
 
-    call setup_wkb(ray, ray_var3D, var, diffusioncoeff, tracerfluxvar)
+    call setup_wkb(ray, ray_var3D, var, diffusioncoeff, tracerfluxvar, &
+        lowamp, nowamp, rhsamp)
 
     if(include_ice2) then
       uTime = 0 !set initial time
@@ -822,7 +824,8 @@ program pinc_prog
             call merge_rayvol(ray)
 
             call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
-                diffusioncoeff, tracerfluxvar, tracerforce)
+                diffusioncoeff, tracerfluxvar, tracerforce, &
+                lowamp, nowamp, rhsamp)
 
             if(include_ice2) then
               call calc_ice(ray, var)
@@ -1438,7 +1441,8 @@ program pinc_prog
 
         if(rayTracer) then
           call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
-              diffusioncoeff, tracerfluxvar, tracerforce)
+              diffusioncoeff, tracerfluxvar, tracerforce, &
+              lowamp, nowamp, rhsamp)
           call transport_rayvol(var, ray, dt, RKstage, time)
 
           if(include_ice2) then
