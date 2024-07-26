@@ -296,8 +296,12 @@ module output_module
                     rhotracer = var(i, j, k, 1)
                   end if
 
-                  field_prc(i, j) = var(i, j, k, iVarT) / rhotracer &
-                      - initialtracer(i, j, k)
+                  if(tracerdifference) then
+                    field_prc(i, j) = var(i, j, k, iVarT) / rhotracer &
+                        - initialtracer(i, j, k)
+                  else
+                    field_prc(i, j) = var(i, j, k, iVarT) / rhotracer
+                  end if
                 end if
               end select ! iVar
             end do ! i
@@ -357,6 +361,8 @@ module output_module
         intent(out) :: var
 
     real, intent(out) :: time
+
+    real :: rhotracer
 
     ! local and global output field and record nbs.
     real * 4, dimension(nx, ny) :: field_prc
@@ -520,26 +526,58 @@ module output_module
                 var(i, j, k, iVar) = field_prc(i, j) / (uRef * lRef)
 
               case default
-                !--------------------------------------
-                ! NEW: ice cases !    ! might be better to include reference units here
-                if(iVar == nVar - 3) then ! aerosol particle number concentration nAer
-                  var(i, j, k, iVar) = field_prc(i, j) * rhoRef * lRef ** 3
-                else if(iVar == nVar - 2) then ! ice particle number concentration nIce
-                  var(i, j, k, iVar) = field_prc(i, j) * rhoRef * lRef ** 3
-                else if(iVar == nVar - 1) then ! ice particle mass concentration qIce
-                  var(i, j, k, iVar) = field_prc(i, j)
-                else if(iVar == nVar) then ! water vapor mass concentration qv
-                  var(i, j, k, iVar) = field_prc(i, j)
-                  !---------------------------------
-                else
-                  stop "tec360: unknown iVar"
+
+                if(include_ice .or. include_ice2) then 
+
+                  stop "read_data: include_ice(2) not possible for restart"
+
                 end if
+
+                if(include_tracer) then 
+
+                  var(i, j, k, iVarT) = field_prc(i, j) + initialtracer(i, j, k)
+                
+                end if
+
+                ! !--------------------------------------
+                ! ! NEW: ice cases !    ! might be better to include reference units here
+                ! if(iVar == nVar - 3) then ! aerosol particle number concentration nAer
+                !   var(i, j, k, iVar) = field_prc(i, j) * rhoRef * lRef ** 3
+                ! else if(iVar == nVar - 2) then ! ice particle number concentration nIce
+                !   var(i, j, k, iVar) = field_prc(i, j) * rhoRef * lRef ** 3
+                ! else if(iVar == nVar - 1) then ! ice particle mass concentration qIce
+                !   var(i, j, k, iVar) = field_prc(i, j)
+                ! else if(iVar == nVar) then ! water vapor mass concentration qv
+                !   var(i, j, k, iVar) = field_prc(i, j)
+                !   !---------------------------------
+                ! else
+                !   stop "tec360: unknown iVar"
+                ! end if
               end select ! iVar
             end do ! i
           end do ! j
         end do ! k
       end if
     end do ! iVar
+
+    if (include_tracer) then 
+      do k = 1, nz
+        do j = 1, ny 
+          do i = 1, nx
+            if(fluctuationMode) then
+              if(topography) then
+                rhotracer = (var(i, j, k, 1) + rhoStratTFC(i, j, k))
+              else
+                rhotracer = (var(i, j, k, 1) + rhoStrat(k))
+              end if
+            else
+              rhotracer = var(i, j, k, 1)
+            end if
+            var(i, j, k, iVarT) = var(i, j, k, iVarT) * rhotracer 
+          end do
+        end do  
+      end do
+    end if
 
     !------------------------------------
     !              close file
@@ -653,8 +691,9 @@ module output_module
               end if
 
             case(10) ! w'chi' (next-order vertical gw tracer flux [m/s])
+              ! currently leading-order buoyancy wave amplitude |bhat2^(2)|
               if(include_tracer) then
-                field_prc(i, j) = ray_var3D(i, j, k, 10) * uRef
+                field_prc(i, j) = ray_var3D(i, j, k, 10) !* uRef
               else
                 field_prc(i, j) = 0.0
               end if
@@ -662,7 +701,7 @@ module output_module
             case(11)
               ! tracer forcing (leading order gw tracer flux convergence [m^2/s])
               if(include_tracer) then
-                field_prc(i, j) = ray_var3D(i, j, k, 11) * lRef ** 2.0 / tRef
+                field_prc(i, j) = ray_var3D(i, j, k, 11) / tRef
               else
                 field_prc(i, j) = 0.0
               end if
@@ -670,7 +709,7 @@ module output_module
             case(12)
               ! tracer forcing (next-order gw tracer flux convergence [m^2/s])
               if(include_tracer) then
-                field_prc(i, j) = ray_var3D(i, j, k, 12) * lRef ** 2.0 / tRef
+                field_prc(i, j) = ray_var3D(i, j, k, 12) / tRef
               else
                 field_prc(i, j) = 0.0
               end if

@@ -57,8 +57,6 @@ $(BUILD)/%.o: $(SOURCE)/%.f90
 # Set the main target.
 pinc:$(OBJ)
 	$(FC) $(FCFLAGS) -o $(BIN)/pinc $(OBJ)
-	mkdir -p code
-	cp -r $(SOURCE)/* ./code
 
 # List dependencies.
 
