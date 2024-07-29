@@ -795,7 +795,7 @@ module poisson_module
 
       ! TFC FJ
       ! No changes for Boussinesq model required.
-    case("pseudo_incompressible", "Boussinesq")
+    case("pseudo_incompressible", "Boussinesq", "compressible")
 
       !----------------------------
       !   set Halo cells: xSlice
@@ -2433,7 +2433,12 @@ module poisson_module
     !if (raytracer) heat(:,:,:) = heat(:,:,:) + var(:,:,:,8)
 
     ! GBcorr -> FS
-    if(heatingONK14 .or. TurbScheme .or. rayTracer) then
+
+    if(model == "compressible") then
+      heat = 0.
+      S_bar = 0.
+      w_0 = 0.
+    elseif(heatingONK14 .or. TurbScheme .or. rayTracer) then
       !if (heating) then
       !UAC call heat_w0(var,flux,heat,S_bar,w_0)
       call heat_w0(var, flux, dt, heat, S_bar, w_0)
@@ -2445,11 +2450,13 @@ module poisson_module
 
     ! subtreact horizontal mean of heat(:,:,:)
 
-    do i = 1, nx
-      do j = 1, ny
-        heat(i, j, 1:nz) = heat(i, j, 1:nz) - S_bar(1:nz)
+    if(model /= "compressible") then
+      do i = 1, nx
+        do j = 1, ny
+          heat(i, j, 1:nz) = heat(i, j, 1:nz) - S_bar(1:nz)
+        end do
       end do
-    end do
+    end if
     !UAE
 
     ! scale RHS with Ma^2 * kappa, hence ...
@@ -2492,7 +2499,7 @@ module poisson_module
 
     select case(model)
 
-    case("pseudo_incompressible")
+    case("pseudo_incompressible", "compressible")
 
       if(topography) then
         ! TFC FJ
@@ -2509,19 +2516,28 @@ module poisson_module
               vB = var(i, j - 1, k, 3)
               wU = var(i, j, k, 4) - w_0(k)
               wD = var(i, j, k - 1, 4) - w_0(k - 1)
-              ! Compute pStrat at cell edges.
-              pEdgeR = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i + 1, &
-                  j, k) * pStratTFC(i + 1, j, k))
-              pEdgeL = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i - 1, &
-                  j, k) * pStratTFC(i - 1, j, k))
-              pEdgeF = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
-                  + 1, k) * pStratTFC(i, j + 1, k))
-              pEdgeB = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
-                  - 1, k) * pStratTFC(i, j - 1, k))
-              pEdgeU = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, k &
-                  + 1) * pStratTFC(i, j, k + 1))
-              pEdgeD = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, k &
-                  - 1) * pStratTFC(i, j, k - 1))
+
+              if(model == "compressible") then ! JP already in var
+                pEdgeR = 1.0
+                pEdgeL = 1.0
+                pEdgeF = 1.0
+                pEdgeB = 1.0
+                pEdgeU = 1.0
+                pEdgeD = 1.0
+              else ! Compute pStrat at cell edges.
+                pEdgeR = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i + 1, &
+                    j, k) * pStratTFC(i + 1, j, k))
+                pEdgeL = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i - 1, &
+                    j, k) * pStratTFC(i - 1, j, k))
+                pEdgeF = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
+                    + 1, k) * pStratTFC(i, j + 1, k))
+                pEdgeB = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
+                    - 1, k) * pStratTFC(i, j - 1, k))
+                pEdgeU = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, &
+                    k + 1) * pStratTFC(i, j, k + 1))
+                pEdgeD = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, &
+                    k - 1) * pStratTFC(i, j, k - 1))
+              end if
               ! Compute RHS.
               bu = (pEdgeR * uR - pEdgeL * uL) / dx / jac(i, j, k) * Ma ** 2.0 &
                   * kappa
@@ -2529,19 +2545,21 @@ module poisson_module
                   * kappa
               bw = (pEdgeU * wU - pEdgeD * wD) / dz / jac(i, j, k) * Ma ** 2.0 &
                   * kappa
-              divSum_local = divSum_local + bu + bv + bw
+              divSum_local = divSum_local + bu + bv + bw + heat(i, j, k)
               bu = bu / fcscal
               bv = bv / fcscal
               bw = bw / fcscal
-              b(i, j, k) = bu + bv + bw
+              heat(i, j, k) = heat(i, j, k) / fcscal
+              b(i, j, k) = bu + bv + bw + heat(i, j, k)
               ! Compute check sum for solvability criterion.
               divL2_local = divL2_local + b(i, j, k) ** 2.0
-              bl2loc = bu ** 2.0 + bv ** 2.0 + bw ** 2.0
+              bl2loc = bu ** 2.0 + bv ** 2.0 + bw ** 2.0 + (heat(i, j, k)) ** 2
               divL2_norm_local = divL2_norm_local + bl2loc
               if(RHS_diagnostics) then
                 dPudx_norm_local = dPudx_norm_local + bu ** 2.0
                 dPvdy_norm_local = dPvdy_norm_local + bv ** 2.0
                 dPwdz_norm_local = dPwdz_norm_local + bw ** 2.0
+                Q_norm_local = Q_norm_local + (heat(i, j, k)) ** 2
               end if
               if(abs(b(i, j, k)) > divMax) then
                 divMax = abs(b(i, j, k))
@@ -2868,7 +2886,7 @@ module poisson_module
         write(*, fmt = "(a25,es17.6)") "normalized L2(div(u)) = ", divL2 &
             / divL2_norm
 
-      case("pseudo_incompressible")
+      case("pseudo_incompressible", "compressible")
 
         write(*, fmt = "(a25,es17.6)") "L2(div(Pu)) [Pa/s] = ", divL2 * rhoRef &
             * thetaRef * uRef / lRef
@@ -2911,7 +2929,7 @@ module poisson_module
           write(*, fmt = "(a25,es17.6)") "normalized L2(div(u)) = ", divL2 &
               / divL2_norm
 
-        case("pseudo_incompressible")
+        case("pseudo_incompressible", "compressible")
 
           write(*, fmt = "(a25,es17.6)") "L2(div(Pu)) [Pa/s] = ", divL2 &
               * rhoRef * thetaRef * uRef / lRef
@@ -3005,7 +3023,7 @@ module poisson_module
 
       select case(model)
 
-      case("pseudo_incompressible")
+      case("pseudo_incompressible", "compressible")
 
         !UAC call val_PsIn(var, dt, opt)
         call val_PsIn(var, dt, opt, facray)
@@ -3082,12 +3100,14 @@ module poisson_module
     !UAB
     if(errFlagBicg) return
 
-    if(model == "pseudo_incompressible") then
+    select case(model)
+    case("pseudo_incompressible", "compressible")
       do k = 1, nz
         fcscal = sqrt(Pstrat(k) ** 2 / rhoStrat(k))
         sol(:, :, k) = sol(:, :, k) / fcscal
       end do
-    end if
+    case default
+    end select
     !UAE
 
     ! now get dp from dt * dp ...
@@ -5176,6 +5196,9 @@ module poisson_module
     ! TFC FJ
     integer :: k0, k1
 
+    ! SK compressible
+    real :: JPR, JPF, JPU
+
     ! verbose
     logical, parameter :: giveInfo = .true.
 
@@ -5316,7 +5339,14 @@ module poisson_module
                 end if
                 ! Compute velocity correction.
                 corX(i, j, k) = facprs * dt / facu * pGradX
-                du = - corX(i, j, k)
+                if(model == "compressible") then ! multiply with JP
+                  JPR = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i + 1, &
+                      j, k) * var(i + 1, j, k, iVarP))
+
+                  du = - JPR * corX(i, j, k)
+                else
+                  du = - corX(i, j, k)
+                end if
               else
                 rhov0m = 0.5 * (var(i, j - 1, k, 1) + var(i, j, k, 1))
                 if(fluctuationMode) rhov0m = rhov0m + rhoStrat(k)
@@ -5410,7 +5440,14 @@ module poisson_module
                     k) - dp(i, j, k)) / dx
               end if
 
-              du = - dt * pGradX
+              if(model == "compressible") then ! multiply with JP
+                JPR = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i + 1, &
+                    j, k) * var(i + 1, j, k, iVarP))
+
+                du = - dt * pGradX * JPR
+              else
+                du = - dt * pGradX
+              end if
 
               var(i, j, k, 2) = var(i, j, k, 2) + du
             end do
@@ -5575,7 +5612,14 @@ module poisson_module
                 end if
                 ! Compute velocity correction.
                 corY(i, j, k) = facprs * dt / facv * pGradY
-                dv = - corY(i, j, k)
+                if(model == "compressible") then ! multiply with JP
+                  JPF = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, j &
+                      + 1, k) * var(i, j + 1, k, iVarP))
+
+                  dv = - JPF * corY(i, j, k)
+                else
+                  dv = - corY(i, j, k)
+                end if
               else
                 rhou00 = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1))
                 if(fluctuationMode) rhou00 = rhou00 + rhoStrat(k)
@@ -5671,7 +5715,14 @@ module poisson_module
                     k) - dp(i, j, k)) / dy
               end if
 
-              dv = - dt * pGradY
+              if(model == "compressible") then ! multiply with JP
+                JPF = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, j &
+                    + 1, k) * var(i, j + 1, k, iVarP))
+
+                dv = - dt * pGradY * JPF
+              else
+                dv = - dt * pGradY
+              end if
 
               var(i, j, k, 3) = var(i, j, k, 3) + dv
             end do
@@ -5846,15 +5897,29 @@ module poisson_module
                     / dz) + kappaInv * MaInv2 / rhoEdge * (chris11EdgeU &
                     + chris22EdgeU + 2.0 * (chris13EdgeU + chris23EdgeU))
                 ! Compute velocity correction.
-                dw = - facprs * dt / (facw + rhoStratEdgeU / rhoEdge * bvsstw &
-                    * dt ** 2.0) * pGradZ - 1.0 / (facw + rhoStratEdgeU &
-                    / rhoEdge * bvsstw * dt ** 2.0) * rhoStratEdgeU / rhoEdge &
-                    * bvsstw * dt ** 2.0 * (0.25 * (met(i, j, k, 1, 3) &
-                    * (corX(i, j, k) + corX(i - 1, j, k)) + met(i, j, k + 1, &
-                    1, 3) * (corX(i, j, k + 1) + corX(i - 1, j, k + 1))) &
-                    + 0.25 * (met(i, j, k, 2, 3) * (corY(i, j, k) + corY(i, j &
-                    - 1, k)) + met(i, j, k + 1, 2, 3) * (corY(i, j, k + 1) &
-                    + corY(i, j - 1, k + 1))))
+                if(model == "compressible") then
+                  JPU = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, j, &
+                      k + 1) * var(i, j, k + 1, iVarP))
+
+                  dw = - facprs * dt / (facw + bvsstw * dt ** 2.0) * JPU &
+                      * pGradZ - 1.0 / (facw + bvsstw * dt ** 2.0) * bvsstw &
+                      * dt ** 2.0 * JPU * (0.25 * (met(i, j, k, 1, 3) &
+                      * (corX(i, j, k) + corX(i - 1, j, k)) + met(i, j, k + 1, &
+                      1, 3) * (corX(i, j, k + 1) + corX(i - 1, j, k + 1))) &
+                      + 0.25 * (met(i, j, k, 2, 3) * (corY(i, j, k) + corY(i, &
+                      j - 1, k)) + met(i, j, k + 1, 2, 3) * (corY(i, j, k + 1) &
+                      + corY(i, j - 1, k + 1))))
+                else
+                  dw = - facprs * dt / (facw + rhoStratEdgeU / rhoEdge &
+                      * bvsstw * dt ** 2.0) * pGradZ - 1.0 / (facw &
+                      + rhoStratEdgeU / rhoEdge * bvsstw * dt ** 2.0) &
+                      * rhoStratEdgeU / rhoEdge * bvsstw * dt ** 2.0 * (0.25 &
+                      * (met(i, j, k, 1, 3) * (corX(i, j, k) + corX(i - 1, j, &
+                      k)) + met(i, j, k + 1, 1, 3) * (corX(i, j, k + 1) &
+                      + corX(i - 1, j, k + 1))) + 0.25 * (met(i, j, k, 2, 3) &
+                      * (corY(i, j, k) + corY(i, j - 1, k)) + met(i, j, k + 1, &
+                      2, 3) * (corY(i, j, k + 1) + corY(i, j - 1, k + 1))))
+                end if
               else
                 pEdge = 0.5 * (pStrat(k + 1) + pStrat(k))
                 pEdge_0 = 0.5 * (pStrat_0(k + 1) + pStrat_0(k))
@@ -5933,7 +5998,14 @@ module poisson_module
                     / dz) + kappaInv * MaInv2 / rhoEdge * (chris11EdgeU &
                     + chris22EdgeU + 2.0 * (chris13EdgeU + chris23EdgeU))
                 ! Correct vertical velocity.
-                dw = - dt * pGradZ
+                if(model == "compressible") then
+                  JPU = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, j, &
+                      k + 1) * var(i, j, k + 1, iVarP))
+
+                  dw = - dt * pGradZ * JPU
+                else
+                  dw = - dt * pGradZ
+                end if
               else
                 if(fluctuationMode) then
                   pEdge = pStratTilde(k)
@@ -6212,14 +6284,23 @@ module poisson_module
                 ! Interpolate.
                 pGradZ = 0.5 * (pGradZEdgeU + pGradZEdgeD)
                 ! Compute buoyancy correction.
-                db = - 1.0 / (facw + rhoStratTFC(i, j, k) / rho &
-                    * bvsStratTFC(i, j, k) * dt ** 2.0) * (- rhoStratTFC(i, j, &
-                    k) / rho * bvsStratTFC(i, j, k) * facprs * dt ** 2.0 &
-                    * jac(i, j, k) * pGradZ + rhoStratTFC(i, j, k) / rho &
-                    * bvsStratTFC(i, j, k) * dt * jac(i, j, k) * facw * 0.5 &
-                    * (met(i, j, k, 1, 3) * (corX(i, j, k) + corX(i - 1, j, &
-                    k)) + met(i, j, k, 2, 3) * (corY(i, j, k) + corY(i, j - 1, &
-                    k))))
+                if(model == "compressible") then
+                  db = - 1.0 / (facw + bvsStratTFC(i, j, k) * dt ** 2.0) * (- &
+                      bvsStratTFC(i, j, k) * facprs * dt ** 2.0 * jac(i, j, k) &
+                      * pGradZ + bvsStratTFC(i, j, k) * dt * jac(i, j, k) &
+                      * facw * 0.5 * (met(i, j, k, 1, 3) * (corX(i, j, k) &
+                      + corX(i - 1, j, k)) + met(i, j, k, 2, 3) * (corY(i, j, &
+                      k) + corY(i, j - 1, k))))
+                else
+                  db = - 1.0 / (facw + rhoStratTFC(i, j, k) / rho &
+                      * bvsStratTFC(i, j, k) * dt ** 2.0) * (- rhoStratTFC(i, &
+                      j, k) / rho * bvsStratTFC(i, j, k) * facprs * dt ** 2.0 &
+                      * jac(i, j, k) * pGradZ + rhoStratTFC(i, j, k) / rho &
+                      * bvsStratTFC(i, j, k) * dt * jac(i, j, k) * facw * 0.5 &
+                      * (met(i, j, k, 1, 3) * (corX(i, j, k) + corX(i - 1, j, &
+                      k)) + met(i, j, k, 2, 3) * (corY(i, j, k) + corY(i, j &
+                      - 1, k))))
+                end if
               else
                 rho = var(i, j, k, 1)
                 if(fluctuationMode) rho = rho + rhoStrat(k)
@@ -6514,7 +6595,7 @@ module poisson_module
     j00 = js + nby - 1
 
     ! No heating in TFC (FJApr2023)
-    if(topography) return
+    if(topography .and. model /= "compressible") return
 
     !-------------------------------------------------------
     ! calculate the environment-induced negative (!) heating
@@ -7626,6 +7707,9 @@ module poisson_module
     real :: f_cor_v
     real :: fcscal, fcscal_u, fcscal_d
 
+    ! SK compressible
+    real :: dPdPi
+
     ! TFC FJ
     real :: ARU, ARD, ALU, ALD, AFU, AFD, ABU, ABD
     real :: AUU, ADD, ARUU, ARDD, ALUU, ALDD, AFUU, AFDD, ABUU, ABDD
@@ -7896,6 +7980,12 @@ module poisson_module
               rhoEdgeD = 0.5 * (var(i, j, k, 1) + var(i, j, k - 1, 1) &
                   + rhoStratTFC(i, j, k) + rhoStratTFC(i, j, k - 1))
 
+              ! Compute (dP / dpi) for compressible model for AC
+              if(model == "compressible") then
+                dPdPi = 1 / (gamma - 1) * (Rsp / pref) ** (1 - gamma) * var(i, &
+                    j, k, iVarP) ** (2 - gamma)
+              end if
+
               ! --------------------- A(i,j,k) ---------------------
 
               if(k == 1 .and. zBoundary == "solid_wall") then
@@ -7940,6 +8030,10 @@ module poisson_module
                     1) + chris(i, j, k, 2, 2) + 2.0 * chris(i, j, k, 1, 3) &
                     * met(i, j, k, 1, 3) + 2.0 * chris(i, j, k, 2, 3) * met(i, &
                     j, k, 2, 3))
+              end if
+
+              if(model == "compressible") then
+                AC = AC - (dPdPi / dt) / (dt * Rsp / kappa)
               end if
 
               ! -------------------- A(i+1,j,k) --------------------
@@ -8612,6 +8706,18 @@ module poisson_module
                   + rhoStratEdgeU
               rhoEdgeD = 0.5 * (var(i, j, k, 1) + var(i, j, k - 1, 1)) &
                   + rhoStratEdgeD
+
+              ! In the compressible model, N2 depends on the full density,
+              ! so that the factor rhoStrat / rho is replaced by 1.
+              if(model == "compressible") then
+                rhoStratEdgeR = rhoEdgeR
+                rhoStratEdgeL = rhoEdgeL
+                rhoStratEdgeF = rhoEdgeF
+                rhoStratEdgeB = rhoEdgeB
+                rhoStratEdgeU = rhoEdgeU
+                rhoStratEdgeD = rhoEdgeD
+              end if
+
               rhoUEdgeR = 0.5 * (var(i, j, k + 1, 1) + var(i + 1, j, k + 1, 1) &
                   + rhoStratTFC(i, j, k + 1) + rhoStratTFC(i + 1, j, k + 1))
               rhoUEdgeL = 0.5 * (var(i, j, k + 1, 1) + var(i - 1, j, k + 1, 1) &
@@ -8634,6 +8740,12 @@ module poisson_module
                   k + 1))
               bvsStratEdgeD = 0.5 * (bvsStratTFC(i, j, k) + bvsStratTFC(i, j, &
                   k - 1))
+
+              ! Compute (dP / dpi) for compressible model for AC
+              if(model == "compressible") then
+                dPdPi = 1 / (gamma - 1) * (Rsp / pref) ** (1 - gamma) * var(i, &
+                    j, k, iVarP) ** (2 - gamma)
+              end if
 
               ! Compute Rayleigh damping terms.
               facEdgeR = 1.0
@@ -9006,6 +9118,10 @@ module poisson_module
                     / dz + gDEdgeL * pDEdgeLGra * 0.25 * met(i, j, k, 1, 3) &
                     / dz + gDEdgeF * pDEdgeFGra * 0.25 * met(i, j, k, 2, 3) &
                     / dz + gDEdgeB * pDEdgeBGra * 0.25 * met(i, j, k, 2, 3) / dz
+              end if
+
+              if(model == "compressible") then
+                AC = AC - (dPdPi / dt) / (dt * Rsp / kappa)
               end if
 
               ! ------------------ A(i+1,j,k) -------------------!

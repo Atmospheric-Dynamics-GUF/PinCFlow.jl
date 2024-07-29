@@ -51,6 +51,23 @@ class ModelOutput:
     self.output_type = parameters["outputType"]
     self.npsi = numpy.sum(parameters["varOut"])
 
+    # Adjust number of variables.
+    varout = list(parameters["varOut"]) + max(0, 20 - self.npsi) * [0]
+    ivar = 7
+    if "model" in parameters and parameters["model"] == "compressible":
+      ivar += 1
+      varout[ivar] = 0
+    if "include_tracer" in parameters and parameters["include_tracer"]:
+      ivar += 1
+      varout[ivar] = 1
+    if "include_ice2" in parameters and parameters["include_ice2"]:
+      ivar += 3
+      varout[(ivar - 2):(ivar + 1)] = [1, 1, 1]
+    if "include_testoutput" in parameters and parameters["include_testoutput"]:
+      ivar += 3
+      varout[(ivar - 2):(ivar + 1)] = [1, 1, 1]
+    self.npsi = numpy.sum(varout)
+
     # Define grid spacing.
     self.dx = self.lx / self.nx
     self.dy = self.ly / self.ny

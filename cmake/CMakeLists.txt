@@ -23,7 +23,7 @@ set(CMAKE_Fortran_MODULE_DIRECTORY "../build")
 # Set compiler options.
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
     if (DEBUGFLAG)
-        add_compile_options(-O0 -g -fcheck=all -Wall -fdefault-real-8 -fbacktrace -funroll-loops -Wno-unused-dummy-argument -Wno-conversion-extra -Wno-unused-variable)
+        add_compile_options(-O0 -g -fcheck=all -Wall -fdefault-real-8 -fbacktrace -funroll-loops -Wno-unused-dummy-argument -Wno-conversion-extra -Wno-unused-variable -fallow-argument-mismatch)
     else()
         add_compile_options(-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch -w)
     endif()
