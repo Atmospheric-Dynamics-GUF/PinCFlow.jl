@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --partition=compute
-#SBATCH --job-name=2DWP90
+#SBATCH --job-name=2DWP90_msgwam
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=16
 #SBATCH --time=01:00:00

@@ -71,8 +71,9 @@ module mpi_module
     integer :: sendcount, recvcount
 
     ! locals
-    integer :: i, j, k, iVar, ii
+    integer :: i, j, k, iVar, ii, nTilde, nT
     integer :: i0, j0, k0
+    integer :: nloops
 
     !-----------------------------
     !     Find neighbour procs
@@ -89,8 +90,17 @@ module mpi_module
       !          x-direction
       !------------------------------
 
+      ! for compressible model loop also for iVarP
+      if(model == "compressible") then
+        nloops = iVarP
+      else
+        nloops = 6
+      end if
+
       if(idim > 1) then
-        do iVar = 1, 6
+        do iVar = 1, nloops
+          if(all(iVar /= [1, 2, 3, 4, 5, 6, iVarP])) cycle
+
           ! slice size
           sendcount = nbx * (ny + 2 * nby + 1) * (nz + 2 * nbz + 1)
           recvcount = sendcount
@@ -138,68 +148,6 @@ module mpi_module
 
       if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
           copied."
-
-      !------------------------------
-      !   Theta transport: iVar = 6
-      !------------------------------
-      !if( updateTheta ) then
-      iVar = 6
-
-      ! slice size
-      sendcount = nbx * (ny + 2 * nby + 1) * nz
-      recvcount = sendcount
-
-      ! read slice into contiguous array
-      do i = 1, nbx
-        xSliceLeft_send(i, - nby:ny + nby, 1:nz) = var(i, - nby:ny + nby, &
-            1:nz, iVar)
-        xSliceRight_send(i, - nby:ny + nby, 1:nz) = var(nx - nbx + i, - nby:ny &
-            + nby, 1:nz, iVar)
-      end do
-
-      if(idim > 1) then
-
-        ! left -> right
-        source = left
-        dest = right
-        tag = 100
-
-        i0 = 1; j0 = - nby; k0 = 1
-
-        call mpi_sendrecv(xSliceRight_send(i0, j0, k0), sendcount, &
-            mpi_double_precision, dest, tag, xSliceLeft_recv(i0, j0, k0), &
-            recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-            sts_left, ierror)
-
-        ! right -> left
-        source = right
-        dest = left
-        tag = 100
-
-        call mpi_sendrecv(xSliceLeft_send(i0, j0, k0), sendcount, &
-            mpi_double_precision, dest, tag, xSliceRight_recv(i0, j0, k0), &
-            recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-            sts_right, ierror)
-
-        ! write auxiliary slice to var field
-        do i = 1, nbx
-
-          ! right halos
-          var(nx + i, - nby:ny + nby, 1:nz, iVar) = xSliceRight_recv(i, &
-              - nby:ny + nby, 1:nz)
-
-          ! left halos
-          var(- nbx + i, - nby:ny + nby, 1:nz, iVar) = xSliceLeft_recv(i, &
-              - nby:ny + nby, 1:nz)
-
-        end do
-
-      end if
-
-      if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
-          copied."
-
-      !end if ! updateTheta
 
       !------------------------------------------------
       !   ice variable transport: iVar = nVar-3, nVar
@@ -272,7 +220,9 @@ module mpi_module
       !------------------------------
 
       if(jdim > 1) then
-        do iVar = 1, 6
+        do iVar = 1, nloops
+          if(all(iVar /= [1, 2, 3, 4, 5, 6, iVarP])) cycle
+
           ! slice size
           sendcount = nby * (nx + 2 * nbx + 1) * (nz + 2 * nbz + 1)
           recvcount = sendcount
@@ -320,68 +270,6 @@ module mpi_module
 
       if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
           copied."
-
-      !------------------------------
-      !   Theta transport: iVar = 6
-      !------------------------------
-      !if( updateTheta ) then
-      iVar = 6
-
-      ! slice size
-      sendcount = nby * (nx + 2 * nbx + 1) * nz
-      recvcount = sendcount
-
-      ! read slice into contiguous array
-      do j = 1, nby
-        ySliceBack_send(- nbx:nx + nbx, j, 1:nz) = var(- nbx:nx + nbx, j, &
-            1:nz, iVar)
-        ySliceForw_send(- nbx:nx + nbx, j, 1:nz) = var(- nbx:nx + nbx, ny &
-            - nby + j, 1:nz, iVar)
-      end do
-
-      if(jdim > 1) then
-
-        ! back -> forw
-        source = back
-        dest = forw
-        tag = 100
-
-        i0 = - nbx; j0 = 1; k0 = 1
-
-        call mpi_sendrecv(ySliceForw_send(i0, j0, k0), sendcount, &
-            mpi_double_precision, dest, tag, ySliceBack_recv(i0, j0, k0), &
-            recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-            sts_back, ierror)
-
-        ! forw -> back
-        source = forw
-        dest = back
-        tag = 100
-
-        call mpi_sendrecv(ySliceBack_send(i0, j0, k0), sendcount, &
-            mpi_double_precision, dest, tag, ySliceForw_recv(i0, j0, k0), &
-            recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-            sts_forw, ierror)
-
-        ! write auxiliary slice to var field
-        do j = 1, nby
-
-          ! right halos
-          var(- nbx:nx + nbx, ny + j, 1:nz, iVar) = ySliceForw_recv(- nbx:nx &
-              + nbx, j, 1:nz)
-
-          ! left halos
-          var(- nbx:nx + nbx, - nby + j, 1:nz, iVar) = ySliceBack_recv(- &
-              nbx:nx + nbx, j, 1:nz)
-
-        end do
-
-      end if
-
-      if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
-          copied."
-
-      !end if ! updateTheta
 
       !------------------------------------------------
       !   ice variable transport: iVar = nVar-3, nVar
@@ -803,109 +691,143 @@ module mpi_module
       !      achatz: this part seems to prohibit using less than two ghost cells.
       !      Can it be removed?
 
-      !------------------------------
-      !          x-direction
-      !------------------------------
-      ! reconstructed density needed in ghost cell i = nx+2
-      ! ...in ghost cell i = -1
-
-      !if( updateMass ) then
-
-      ! slice size
-      sendcount = ny * nz
-      recvcount = sendcount
-
-      ! read slice into contiguous array
-      x1SliceLeft_send(1:ny, 1:nz) = rhoTilde(2, 1:ny, 1:nz, 1, 0)
-      x1SliceRight_send(1:ny, 1:nz) = rhoTilde(nx - 1, 1:ny, 1:nz, 1, 1)
-
-      if(idim > 1) then
-
-        ! left -> right
-        source = left
-        dest = right
-        tag = 100
-
-        call mpi_sendrecv(x1SliceRight_send(1, 1), sendcount, &
-            mpi_double_precision, dest, tag, x1SliceLeft_recv(1, 1), &
-            recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-            sts_left, ierror)
-
-        ! right -> left
-        source = right
-        dest = left
-        tag = 100
-        call mpi_sendrecv(x1SliceLeft_send(1, 1), sendcount, &
-            mpi_double_precision, dest, tag, x1SliceRight_recv(1, 1), &
-            recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-            sts_right, ierror)
-
-        ! write auxiliary slice to var field
-
-        ! right halos
-        rhoTilde(nx + 2, 1:ny, 1:nz, 1, 0) = x1SliceRight_recv(1:ny, 1:nz)
-
-        ! left halos
-        rhoTilde(- 1, 1:ny, 1:nz, 1, 1) = x1SliceLeft_recv(1:ny, 1:nz)
-
-      end if
-
-      if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
-          copied."
-
+      ! if only for rhoTilde
+      nTilde = 1
+      ! if for another VarTilde set nTilde = 2
+      !if ( model == "compressible" ) then
+      !  nTilde = 2
       !end if
 
-      !------------------------------
-      !          y-direction
-      !------------------------------
-      ! reconstructed density needed in ghost cell j = ny+2
-      ! ...in ghost cell j = -1
+      do nT = 1, nTilde
+        !------------------------------
+        !          x-direction
+        !------------------------------
+        ! reconstructed density needed in ghost cell i = nx+2
+        ! ...in ghost cell i = -1
 
-      !if( updateMass ) then
+        !if( updateMass ) then
 
-      ! slice size
-      sendcount = nx * nz
-      recvcount = sendcount
+        ! slice size
+        sendcount = ny * nz
+        recvcount = sendcount
 
-      ! read slice into contiguous array
-      y1SliceBack_send(1:nx, 1:nz) = rhoTilde(1:nx, 2, 1:nz, 2, 0)
-      y1SliceForw_send(1:nx, 1:nz) = rhoTilde(1:nx, ny - 1, 1:nz, 2, 1)
+        ! read slice into contiguous array
+        if(nT == 1) then
+          x1SliceLeft_send(1:ny, 1:nz) = rhoTilde(2, 1:ny, 1:nz, 1, 0)
+          x1SliceRight_send(1:ny, 1:nz) = rhoTilde(nx - 1, 1:ny, 1:nz, 1, 1)
+        else if(nT == 2) then
+          x1SliceLeft_send(1:ny, 1:nz) = PTilde(2, 1:ny, 1:nz, 1, 0)
+          x1SliceRight_send(1:ny, 1:nz) = PTilde(nx - 1, 1:ny, 1:nz, 1, 1)
+        end if
 
-      if(jdim > 1) then
+        if(idim > 1) then
 
-        ! back -> forw
-        source = back
-        dest = forw
-        tag = 100
+          ! left -> right
+          source = left
+          dest = right
+          tag = 100
 
-        call mpi_sendrecv(y1SliceForw_send(1, 1), sendcount, &
-            mpi_double_precision, dest, tag, y1SliceBack_recv(1, 1), &
-            recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-            sts_back, ierror)
+          call mpi_sendrecv(x1SliceRight_send(1, 1), sendcount, &
+              mpi_double_precision, dest, tag, x1SliceLeft_recv(1, 1), &
+              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+              sts_left, ierror)
 
-        ! forw -> back
-        source = forw
-        dest = back
-        tag = 100
-        call mpi_sendrecv(y1SliceBack_send(1, 1), sendcount, &
-            mpi_double_precision, dest, tag, y1SliceForw_recv(1, 1), &
-            recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-            sts_right, ierror)
+          ! right -> left
+          source = right
+          dest = left
+          tag = 100
+          call mpi_sendrecv(x1SliceLeft_send(1, 1), sendcount, &
+              mpi_double_precision, dest, tag, x1SliceRight_recv(1, 1), &
+              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+              sts_right, ierror)
 
-        ! write auxiliary slice to var field
+          ! write auxiliary slice to var field
+          if(nT == 1) then ! rhoTilde
+            ! right halos
+            rhoTilde(nx + 2, 1:ny, 1:nz, 1, 0) = x1SliceRight_recv(1:ny, 1:nz)
 
-        ! right halos
-        rhoTilde(1:nx, ny + 2, 1:nz, 2, 0) = y1SliceForw_recv(1:nx, 1:nz)
+            ! left halos
+            rhoTilde(- 1, 1:ny, 1:nz, 1, 1) = x1SliceLeft_recv(1:ny, 1:nz)
+          else if(nT == 2) then ! PTilde
+            ! right halos
+            PTilde(nx + 2, 1:ny, 1:nz, 1, 0) = x1SliceRight_recv(1:ny, 1:nz)
 
-        ! left halos
-        rhoTilde(1:nx, - 1, 1:nz, 2, 1) = y1SliceBack_recv(1:nx, 1:nz)
+            ! left halos
+            PTilde(- 1, 1:ny, 1:nz, 1, 1) = x1SliceLeft_recv(1:ny, 1:nz)
+          end if
 
-      end if
+        end if
 
-      if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
-          copied."
+        if(verbose .and. master) print *, "horizontalHalos:  x-horizontal &
+            halos copied."
 
-      !end if ! updateMass
+        !end if
+
+        !------------------------------
+        !          y-direction
+        !------------------------------
+        ! reconstructed density needed in ghost cell j = ny+2
+        ! ...in ghost cell j = -1
+
+        !if( updateMass ) then
+
+        ! slice size
+        sendcount = nx * nz
+        recvcount = sendcount
+
+        ! read slice into contiguous array
+        if(nT == 1) then
+          y1SliceBack_send(1:nx, 1:nz) = rhoTilde(1:nx, 2, 1:nz, 2, 0)
+          y1SliceForw_send(1:nx, 1:nz) = rhoTilde(1:nx, ny - 1, 1:nz, 2, 1)
+        else if(nT == 2) then
+          y1SliceBack_send(1:nx, 1:nz) = PTilde(1:nx, 2, 1:nz, 2, 0)
+          y1SliceForw_send(1:nx, 1:nz) = PTilde(1:nx, ny - 1, 1:nz, 2, 1)
+        end if
+
+        if(jdim > 1) then
+
+          ! back -> forw
+          source = back
+          dest = forw
+          tag = 100
+
+          call mpi_sendrecv(y1SliceForw_send(1, 1), sendcount, &
+              mpi_double_precision, dest, tag, y1SliceBack_recv(1, 1), &
+              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+              sts_back, ierror)
+
+          ! forw -> back
+          source = forw
+          dest = back
+          tag = 100
+          call mpi_sendrecv(y1SliceBack_send(1, 1), sendcount, &
+              mpi_double_precision, dest, tag, y1SliceForw_recv(1, 1), &
+              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+              sts_right, ierror)
+
+          ! write auxiliary slice to var field
+
+          if(nT == 1) then ! rhoTilde
+            ! right halos
+            rhoTilde(1:nx, ny + 2, 1:nz, 2, 0) = y1SliceForw_recv(1:nx, 1:nz)
+
+            ! left halos
+            rhoTilde(1:nx, - 1, 1:nz, 2, 1) = y1SliceBack_recv(1:nx, 1:nz)
+          else if(nT == 2) then ! PTilde
+            ! right halos
+            PTilde(1:nx, ny + 2, 1:nz, 2, 0) = y1SliceForw_recv(1:nx, 1:nz)
+
+            ! left halos
+            PTilde(1:nx, - 1, 1:nz, 2, 1) = y1SliceBack_recv(1:nx, 1:nz)
+          end if
+
+        end if
+
+        if(verbose .and. master) print *, "horizontalHalos:  y-horizontal &
+            halos copied."
+
+        !end if ! updateMass
+      end do
 
     case default
 

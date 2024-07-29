@@ -57,6 +57,7 @@ program pinc_prog
   real, dimension(:, :, :), allocatable :: dTheta ! RK-Update for theta
   real, dimension(:, :, :, :), allocatable :: dIce ! RK-Update for nAer,nIce,qIce,qv
   real, dimension(:, :, :), allocatable :: dTracer
+  real, dimension(:, :, :), allocatable :: dPot !RK-Update for P
 
   real, dimension(:), allocatable :: dPStrat, drhoStrat !RK update for P
   real, dimension(:), allocatable :: w_0
@@ -184,12 +185,17 @@ program pinc_prog
   ! 1) allocate variables
   ! 2) read input.f90
   call setup(var, var0, var1, varG, flux, flux0, force, source, dRho, dRhop, &
-      dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer, tracerforce)
+      dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer, tracerforce, dPot)
 
   call init_atmosphere ! set atmospheric background state
   call init_output
 
   call initialise(var, flux) ! set initial conditions
+
+  ! put PstratTFC into var
+  if(model == "compressible") then
+    var(:, :, :, iVarP) = pStratTFC(:, :, :)
+  end if
 
   if(include_tracer) call setup_tracer(var)
 
@@ -357,8 +363,16 @@ program pinc_prog
       tolPoisson = 1.e-8
     end if
 
+    if(model == "compressible") then
+      call add_JP_to_u(var, "forward")
+    end if
+
     call Corrector(var, flux, dMom, 1.0, errFlagBicg, nIterBicg, 1, "expl", &
         1., 1.)
+
+    if(model == "compressible") then
+      call add_JP_to_u(var, "backward")
+    end if
 
     if(errFlagBicg) stop
 
@@ -399,8 +413,8 @@ program pinc_prog
 
     ! allocate ray fields
 
-    call setup_wkb(ray, ray_var3D, var, diffusioncoeff, tracerfluxvar, &
-        lowamp, nowamp, rhsamp)
+    call setup_wkb(ray, ray_var3D, var, diffusioncoeff, tracerfluxvar, lowamp, &
+        nowamp, rhsamp)
 
     if(include_ice2) then
       uTime = 0 !set initial time
@@ -824,8 +838,8 @@ program pinc_prog
             call merge_rayvol(ray)
 
             call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
-                diffusioncoeff, tracerfluxvar, tracerforce, &
-                lowamp, nowamp, rhsamp)
+                diffusioncoeff, tracerfluxvar, tracerforce, lowamp, nowamp, &
+                rhsamp)
 
             if(include_ice2) then
               call calc_ice(ray, var)
@@ -845,7 +859,8 @@ program pinc_prog
 
       ! TFC FJ
       ! Boussinesq: density fluctuations are only stored in var(:, :, :, 6)!
-      if(model == "pseudo_incompressible") then
+      select case(model)
+      case("pseudo_incompressible")
         if(fluctuationMode) then
           if(topography) then
             ! TFC FJ
@@ -863,7 +878,13 @@ program pinc_prog
                 / PStrat_0(kz)
           end do
         end if
-      end if
+      case("compressible")
+        do kz = - 1, nz + 2
+          var(:, :, kz, 6) = var(:, :, kz, 1) + rhoStratTFC(:, :, kz) &
+              - pStratTFC(:, :, kz) / thetaStratTFC(:, :, kz)
+        end do
+      case default
+      end select
 
       ! turbulence scheme:
       ! either prescribed damping time scale for smallest spatial scales
@@ -953,6 +974,12 @@ program pinc_prog
 
         call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, "rhop")
 
+        if(model == "compressible") then
+          call massUpdate(var, flux, 0.5 * dt, dPot, RKstage, "P", "tot", &
+              "expl", 1.)
+          call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, "P")
+        end if
+
         if(include_tracer) then
           call tracerUpdate(var, flux, tracerforce, 0.5 * dt, dTracer, RKstage)
         end if
@@ -970,6 +997,16 @@ program pinc_prog
 
       end do
 
+      if(model == "compressible") then
+        pStratTFC(:, :, :) = var(:, :, :, iVarP)
+
+        if(TurbScheme .or. rayTracer) then
+          call piUpdate(var0, pinew, 0.5 * dt, "expl_heating", flux0)
+          var(:, :, :, 5) = pinew(:, :, :)
+        end if
+        call applyUnifiedSponge(var, 0.5 * dt, "pi")
+      end if
+
       ! (2) implicit integration of the linear right-hand sides of the
       !     equations for density fluctuations and momentum over half a
       !     time step, under consideration of the divergence constraint
@@ -978,6 +1015,12 @@ program pinc_prog
       !testb
       if(master) print *, '(2) implicit integration rhs over dt/2'
       !teste
+
+      ! SK: Save JPu in var instead of u for updates
+      if(model == "compressible") then
+        call add_JP_to_u(var, "forward")
+        call bvsUpdate(bvsStratTFC, var) ! Update N^2
+      end if
 
       call setHalos(var, "var")
       if(include_tracer) call setHalos(var, "tracer")
@@ -1089,6 +1132,11 @@ program pinc_prog
 
       nTotalBicg = nTotalBicg + nIterBicg
 
+      ! SK: remove JP from JPu
+      if(model == "compressible") then
+        call add_JP_to_u(var, "backward")
+      end if
+
       call setHalos(var, "var")
       if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
@@ -1122,6 +1170,14 @@ program pinc_prog
       var(:, :, :, 6) = var0(:, :, :, 6)
       var(:, :, :, 7) = var0(:, :, :, 7)
 
+      if(model == "compressible") then
+        var(:, :, :, 5) = var0(:, :, :, 5) ! reset also pressure
+        var(:, :, :, iVarP) = var0(:, :, :, iVarP)
+        pStratTFC(:, :, :) = var0(:, :, :, iVarP)
+        call bvsUpdate(bvsStratTFC, var) ! Update N^2
+        call add_JP_to_u(var, "forward") ! integrating with JPu not u on the right-hand side, so save JPu in var
+      end if
+
       if(include_tracer) then
         var(:, :, :, iVarT) = var0(:, :, :, iVarT)
       end if
@@ -1141,9 +1197,19 @@ program pinc_prog
 
       ! update winds (uStar, vStar, wStar)
 
+      if(model == "compressible") then
+        ! Update pi' explicitly
+        call piUpdate(var, pinew, 0.5 * dt, "expl", flux) ! pinew is updated field
+      end if
+
       call momentumPredictor(var, flux, force, 0.5 * dt, dMom, RKstage, "rhs", &
           "expl", 1.)
 
+      ! SK: Save u in var
+      if(model == "compressible") then
+        call add_JP_to_u(var, "backward")
+        var(:, :, :, 5) = pinew(:, :, :) ! update pi' with pinew from the piUpdate
+      end if
       ! Shapiro filter
 
       if(shap_dts_fac > 0.) then
@@ -1173,6 +1239,12 @@ program pinc_prog
       !teste
 
       var0 = var1
+
+      if(model == "compressible") then
+        var1 = var
+        pStratTFC(:, :, :) = var0(:, :, :, iVarP) ! set pstrattfc from (2)
+      end if
+
       !FS
       PStrat = PStrat01
       PStratTilde = PStratTilde01
@@ -1191,7 +1263,6 @@ program pinc_prog
         call reconstruction(var, "rho")
         call reconstruction(var, "rhop")
         call reconstruction(var, "uvw")
-
         if(include_tracer) then
           call reconstruction(var, "tracer")
         end if
@@ -1223,6 +1294,11 @@ program pinc_prog
 
         call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "rhop")
 
+        if(model == "compressible") then
+          call massUpdate(var, flux, dt, dPot, RKstage, "P", "tot", "expl", 1.)
+          call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "P")
+        end if
+
         if(include_tracer) then
           call tracerUpdate(var, flux, tracerforce, dt, dTracer, RKstage)
         end if
@@ -1243,6 +1319,16 @@ program pinc_prog
 
       end do
 
+      if(model == "compressible") then
+        pStratTFC = var(:, :, :, iVarP)
+
+        if(TurbScheme .or. rayTracer) then
+          call piUpdate(var1, pinew, dt, "expl_heating", flux0) ! use explicitly updated pi'
+          var(:, :, :, 5) = pinew(:, :, :)
+        end if
+        call applyUnifiedSponge(var, dt, "pi")
+      end if
+
       ! (5) implicit integration of the linear right-hand sides of the
       !     equations for density fluctuations and momentum over half a
       !     time step, under consideration of the divergence constraint
@@ -1251,6 +1337,12 @@ program pinc_prog
       !testb
       if(master) print *, '(5) implicit integration rhs over dt/2'
       !teste
+
+      ! SK: Save JPu in var instead of u for updates
+      if(model == "compressible") then
+        call add_JP_to_u(var, "forward")
+        call bvsUpdate(bvsStratTFC, var) ! Update N^2
+      end if
 
       call setHalos(var, "var")
       if(include_tracer) call setHalos(var, "tracer")
@@ -1337,9 +1429,13 @@ program pinc_prog
       ! (3) uses updated pressure field and (5) adjusts pressure over half a
       ! time step!
       ! call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
-      !                & RKstage, "impl", 2.,2.)
+      !                & RKstage, "impl", 2.,2.) ! pressure update over dt
       call Corrector(var, flux, dMom, 0.5 * dt, errFlagBicg, nIterBicg, &
-          RKstage, "impl", 2., 1.) !FSApr2021 facprs -> 1.
+          RKstage, "impl", 2., 1.) ! pressure update over dt/2
+
+      if(model == "compressible") then
+        call add_JP_to_u(var, "backward")
+      end if
 
       if(errFlagBicg) then
         call output_data(iOut, var, iTime, time, cpuTime)
@@ -1441,8 +1537,8 @@ program pinc_prog
 
         if(rayTracer) then
           call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
-              diffusioncoeff, tracerfluxvar, tracerforce, &
-              lowamp, nowamp, rhsamp)
+              diffusioncoeff, tracerfluxvar, tracerforce, lowamp, nowamp, &
+              rhsamp)
           call transport_rayvol(var, ray, dt, RKstage, time)
 
           if(include_ice2) then
@@ -1878,7 +1974,7 @@ program pinc_prog
   call terminate_fluxes
   call terminate_poisson
   call terminate(var, var0, var1, flux, force, source, dRho, dRhop, dMom, &
-      dTheta, dIce, dTracer, tracerforce)
+      dTheta, dIce, dTracer, tracerforce, dPot)
   call terminate_atmosphere
   call terminate_output
 

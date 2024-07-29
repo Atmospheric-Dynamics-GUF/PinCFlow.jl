@@ -99,8 +99,7 @@ module wkb_module
   !-----------------------------------------------------------------------
 
   subroutine calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
-      diffusioncoeff, tracerfluxvar, tracerforce, &
-      lowamp, nowamp, rhsamp)
+      diffusioncoeff, tracerfluxvar, tracerforce, lowamp, nowamp, rhsamp)
 
     ! supplemements cell-centered volume forces by WKB force
     ! as well as the heating by entropy-flux convergence
@@ -133,8 +132,8 @@ module wkb_module
     ! turbulent eddy diffusivity for tracer mixing parameterization
     real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(in) :: diffusioncoeff
 
-    type(waveAmp), dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), &
-        intent(inout) :: lowamp, nowamp, rhsamp
+    type(waveAmp), dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(inout) :: &
+        lowamp, nowamp, rhsamp
     ! additional tracer forcing due to next-order forcing terms
     ! tracerfluxvarold: previous time step
     ! tracerfluxvar: current time step
@@ -257,23 +256,23 @@ module wkb_module
     var_wtracer = 0.0
     var_wtracerEnv = 0.0
 
-    lowamp(:, :, :)%u = 0.0 
-    lowamp(:, :, :)%v = 0.0 
-    lowamp(:, :, :)%w = 0.0 
-    lowamp(:, :, :)%b = 0.0 
-    lowamp(:, :, :)%pi = 0.0 
+    lowamp(:, :, :)%u = 0.0
+    lowamp(:, :, :)%v = 0.0
+    lowamp(:, :, :)%w = 0.0
+    lowamp(:, :, :)%b = 0.0
+    lowamp(:, :, :)%pi = 0.0
 
-    nowamp(:, :, :)%u = 0.0 
-    nowamp(:, :, :)%v = 0.0 
-    nowamp(:, :, :)%w = 0.0 
-    nowamp(:, :, :)%b = 0.0 
-    nowamp(:, :, :)%pi = 0.0 
+    nowamp(:, :, :)%u = 0.0
+    nowamp(:, :, :)%v = 0.0
+    nowamp(:, :, :)%w = 0.0
+    nowamp(:, :, :)%b = 0.0
+    nowamp(:, :, :)%pi = 0.0
 
-    rhsamp(:, :, :)%u = 0.0 
-    rhsamp(:, :, :)%v = 0.0 
-    rhsamp(:, :, :)%w = 0.0 
-    rhsamp(:, :, :)%b = 0.0 
-    rhsamp(:, :, :)%pi = 0.0 
+    rhsamp(:, :, :)%u = 0.0
+    rhsamp(:, :, :)%v = 0.0
+    rhsamp(:, :, :)%w = 0.0
+    rhsamp(:, :, :)%b = 0.0
+    rhsamp(:, :, :)%pi = 0.0
 
     var_E = 0.0
 
@@ -773,23 +772,23 @@ module wkb_module
                           ** 2. / (omir * (wnrh ** 2 + wnrm ** 2))
 
                       ! calculate |bhat^(2)| from wave-action density:
-                      lowamp(ix, jy, kz)%b = lowamp(ix, jy, kz)%b &
-                          + sqrt(wadr * 2. * NNr**4. * wnrh**2. / &
-                          (rhoStrat(kz) * (wnrh**2. + wnrm**2.)))
-                      lowamp(ix, jy, kz)%u = lowamp(ix, jy, kz)%u &
-                          + (omir ** 2. - NNr ** 2.) / (omir ** 2. - & 
-                          f_cor_nd ** 2.) / (wnrm * NNr) * cmplx(wnrl &
-                          * f_cor_nd, wnrk * omir) * lowamp(ix, jy, kz)%b
-                      lowamp(ix, jy, kz)%v = lowamp(ix, jy, kz)%v &
-                          + (omir ** 2. - NNr ** 2.) / (omir ** 2. - & 
-                          f_cor_nd ** 2.) / (wnrm * NNr) * cmplx(-wnrk &
-                          * f_cor_nd, wnrl * omir) * lowamp(ix, jy, kz)%b
-                      lowamp(ix, jy, kz)%w = lowamp(ix, jy, kz)%w &
-                          + cmplx(0.0, omir / NNr) * lowamp(ix, jy, kz)%b 
+                      lowamp(ix, jy, kz)%b = lowamp(ix, jy, kz)%b + sqrt(wadr &
+                          * 2. * NNr ** 4. * wnrh ** 2. / (rhoStrat(kz) &
+                          * (wnrh ** 2. + wnrm ** 2.)))
+                      lowamp(ix, jy, kz)%u = lowamp(ix, jy, kz)%u + (omir &
+                          ** 2. - NNr ** 2.) / (omir ** 2. - f_cor_nd ** 2.) &
+                          / (wnrm * NNr) * cmplx(wnrl * f_cor_nd, wnrk * omir) &
+                          * lowamp(ix, jy, kz)%b
+                      lowamp(ix, jy, kz)%v = lowamp(ix, jy, kz)%v + (omir &
+                          ** 2. - NNr ** 2.) / (omir ** 2. - f_cor_nd ** 2.) &
+                          / (wnrm * NNr) * cmplx(- wnrk * f_cor_nd, wnrl &
+                          * omir) * lowamp(ix, jy, kz)%b
+                      lowamp(ix, jy, kz)%w = lowamp(ix, jy, kz)%w + cmplx(0.0, &
+                          omir / NNr) * lowamp(ix, jy, kz)%b
                       lowamp(ix, jy, kz)%pi = lowamp(ix, jy, kz)%pi &
                           + cmplx(0.0, (omir ** 2. - NNr ** 2.) / NNr / wnrm) &
                           * lowamp(ix, jy, kz)%b
-                      
+
                     end if
 
                   end do
@@ -1047,7 +1046,7 @@ module wkb_module
             ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
             ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
             ray_var3D(ix, jy, kz, 9) = var_wtracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 10) = lowamp(ix, jy, kz)%b!var_wtracerEnv(ix, jy, kz)
+            ray_var3D(ix, jy, kz, 10) = lowamp(ix, jy, kz)%b !var_wtracerEnv(ix, jy, kz)
             ray_var3D(ix, jy, kz, 11) = tracerforce(ix, jy, kz, 1)
             ray_var3D(ix, jy, kz, 12) = tracerforce(ix, jy, kz, 2)
             ray_var3D(ix, jy, kz, 13) = tracerforce(ix, jy, kz, 3)
@@ -1068,7 +1067,7 @@ module wkb_module
             ! Note by Junhong Wei (20170814): There may be
             ! something wrong with the case of Boussinesq here.
             ! The case of pseudo_incompressible should be fine.
-          case("pseudo_incompressible")
+          case("pseudo_incompressible", "compressible")
             ! rhotot = 0.5 * (var(ix, jy, kz, 1) + var(ix + 1, jy, kz, 1))
             rhotot = var(ix, jy, kz, 1)
             if(topography) then
@@ -1139,7 +1138,7 @@ module wkb_module
             ! Note by Junhong Wei (20170814): There may be
             ! something wrong with the case of Boussinesq here.
             ! The case of pseudo_incompressible should be fine.
-          case("pseudo_incompressible")
+          case("pseudo_incompressible", "compressible")
             ! rhotot = 0.5 * (var(ix, jy, kz, 1) + var(ix, jy + 1, kz, 1))
             rhotot = var(ix, jy, kz, 1)
             if(topography) then
@@ -1215,7 +1214,7 @@ module wkb_module
               ! Note by Junhong Wei (20170814): There may be
               ! something wrong with the case of Boussinesq here.
               ! The case of pseudo_incompressible should be fine.
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
               if(topography) then
                 ! FJApr2023
                 rhotot = var(ix, jy, kz, 1) + rhoStratTFC(ix, jy, kz)
@@ -1340,7 +1339,7 @@ module wkb_module
             ! Note by Junhong Wei (20170814): There may be
             ! something wrong with the case of Boussinesq here.
             ! The case of pseudo_incompressible should be fine.
-          case("pseudo_incompressible")
+          case("pseudo_incompressible", "compressible")
             ! rhotot = 0.5 * (var(ix, jy, kz, 1) + var(ix + 1, jy, kz, 1))
             rhotot = var(ix, jy, kz, 1)
             if(topography) then
@@ -1371,7 +1370,7 @@ module wkb_module
             ! Note by Junhong Wei (20170814): There may be
             ! something wrong with the case of Boussinesq here.
             ! The case of pseudo_incompressible should be fine.
-          case("pseudo_incompressible")
+          case("pseudo_incompressible", "compressible")
             ! rhotot = 0.5 * (var(ix, jy, kz, 1) + var(ix, jy + 1, kz, 1))
             rhotot = var(ix, jy, kz, 1)
             if(topography) then
@@ -1420,7 +1419,7 @@ module wkb_module
               ! Note by Junhong Wei (20170814): There may be
               ! something wrong with the case of Boussinesq here.
               ! The case of pseudo_incompressible should be fine.
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
               if(topography) then
                 ! FJApr2023
                 rhotot = var(ix, jy, kz, 1) + rhoStratTFC(ix, jy, kz)
@@ -1450,7 +1449,7 @@ module wkb_module
   !---------------------------------------------------------------------
 
   subroutine setup_wkb(ray, ray_var3D, var, diffusioncoeff, tracerfluxvar, &
-    lowamp, nowamp, rhsamp)
+      lowamp, nowamp, rhsamp)
 
     !------------------------------------------------
     ! allocate ray field
@@ -1729,35 +1728,32 @@ module wkb_module
         = allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate tracerfluxvar"
 
-    allocate(lowamp(0:nx + 1, 0:ny + 1, 0:nz + 1), stat &
-        = allocstat)
+    allocate(lowamp(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate lowamp"
 
-    allocate(nowamp(0:nx + 1, 0:ny + 1, 0:nz + 1), stat &
-    = allocstat)
+    allocate(nowamp(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate nowamp"
 
-    allocate(rhsamp(0:nx + 1, 0:ny + 1, 0:nz + 1), stat &
-    = allocstat)
+    allocate(rhsamp(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate rhsamp"
 
-    lowamp(:, :, :)%u = 0.0 
-    lowamp(:, :, :)%v = 0.0 
-    lowamp(:, :, :)%w = 0.0 
-    lowamp(:, :, :)%b = 0.0 
-    lowamp(:, :, :)%pi = 0.0 
+    lowamp(:, :, :)%u = 0.0
+    lowamp(:, :, :)%v = 0.0
+    lowamp(:, :, :)%w = 0.0
+    lowamp(:, :, :)%b = 0.0
+    lowamp(:, :, :)%pi = 0.0
 
-    nowamp(:, :, :)%u = 0.0 
-    nowamp(:, :, :)%v = 0.0 
-    nowamp(:, :, :)%w = 0.0 
-    nowamp(:, :, :)%b = 0.0 
-    nowamp(:, :, :)%pi = 0.0 
+    nowamp(:, :, :)%u = 0.0
+    nowamp(:, :, :)%v = 0.0
+    nowamp(:, :, :)%w = 0.0
+    nowamp(:, :, :)%b = 0.0
+    nowamp(:, :, :)%pi = 0.0
 
-    rhsamp(:, :, :)%u = 0.0 
-    rhsamp(:, :, :)%v = 0.0 
-    rhsamp(:, :, :)%w = 0.0 
-    rhsamp(:, :, :)%b = 0.0 
-    rhsamp(:, :, :)%pi = 0.0 
+    rhsamp(:, :, :)%u = 0.0
+    rhsamp(:, :, :)%v = 0.0
+    rhsamp(:, :, :)%w = 0.0
+    rhsamp(:, :, :)%b = 0.0
+    rhsamp(:, :, :)%pi = 0.0
 
     ! needed for initialization of ray volumes:
     if(case_wkb == 3) then
@@ -2183,24 +2179,21 @@ module wkb_module
               end if
 
               ! calculate leading-order wave amplitudes
-              lowamp(ix, jy, kz)%b = cmplx(sqrt(fld_amp(ix, jy, kz, 1) &
-                  * 2. * NN_nd ** 3. * wnrh_init ** 2. & 
-                  / (rhoStrat(kz) * (wnrh_init ** 2. + wnrm_init ** 2.))), 0.0)
-              lowamp(ix, jy, kz)%u = (omi_notop(ix, jy, kz) ** 2. & 
-                  - NN_nd ** 2.) / (omi_notop(ix, jy, kz) ** 2. &
-                  - f_cor_nd ** 2.) / (wnrm_init * NN_nd) * &
-                  cmplx(wnrl_init * f_cor_nd, wnrk_init * &
-                  omi_notop(ix, jy, kz)) * lowamp(ix, jy, kz)%b 
-              lowamp(ix, jy, kz)%v = (omi_notop(ix, jy, kz) ** 2. & 
-                  - NN_nd ** 2.) / (omi_notop(ix, jy, kz) ** 2. &
-                  - f_cor_nd ** 2.) / (wnrm_init * NN_nd) * &
-                  cmplx(- wnrk_init * f_cor_nd, wnrl_init * &
-                  omi_notop(ix, jy, kz)) * lowamp(ix, jy, kz)%b    
-              lowamp(ix, jy, kz)%w = cmplx(0.0, omi_notop(ix, jy, kz) &
-                  / NN_nd) * lowamp(ix, jy, kz)%b 
-              lowamp(ix, jy, kz)%pi= cmplx(0.0, (omi_notop(ix, jy, & 
-                  kz) ** 2. - NN_nd ** 2.) / NN_nd / wnrm_init) * &
-                  lowamp(ix, jy, kz)%b
+              lowamp(ix, jy, kz)%b = cmplx(sqrt(fld_amp(ix, jy, kz, 1) * 2. &
+                  * NN_nd ** 3. * wnrh_init ** 2. / (rhoStrat(kz) * (wnrh_init &
+                  ** 2. + wnrm_init ** 2.))), 0.0)
+              lowamp(ix, jy, kz)%u = (omi_notop(ix, jy, kz) ** 2. - NN_nd &
+                  ** 2.) / (omi_notop(ix, jy, kz) ** 2. - f_cor_nd ** 2.) &
+                  / (wnrm_init * NN_nd) * cmplx(wnrl_init * f_cor_nd, &
+                  wnrk_init * omi_notop(ix, jy, kz)) * lowamp(ix, jy, kz)%b
+              lowamp(ix, jy, kz)%v = (omi_notop(ix, jy, kz) ** 2. - NN_nd &
+                  ** 2.) / (omi_notop(ix, jy, kz) ** 2. - f_cor_nd ** 2.) &
+                  / (wnrm_init * NN_nd) * cmplx(- wnrk_init * f_cor_nd, &
+                  wnrl_init * omi_notop(ix, jy, kz)) * lowamp(ix, jy, kz)%b
+              lowamp(ix, jy, kz)%w = cmplx(0.0, omi_notop(ix, jy, kz) / NN_nd) &
+                  * lowamp(ix, jy, kz)%b
+              lowamp(ix, jy, kz)%pi = cmplx(0.0, (omi_notop(ix, jy, kz) ** 2. &
+                  - NN_nd ** 2.) / NN_nd / wnrm_init) * lowamp(ix, jy, kz)%b
 
             end do
           end do
