@@ -139,6 +139,18 @@ module boundary_module
         end if
       end if
 
+      if(model == "compressible") then
+        ! set boundary for P mass weighted pot. temp.
+        do i = 1, nbx
+          var(nx + i, :, :, iVarP) = var(i, :, :, iVarP)
+          var(- i + 1, :, :, iVarP) = var(nx - i + 1, :, :, iVarP)
+        end do
+
+        if(verbose .and. master) then
+          print *, "horizontalBoundary: x-horizontal BC for P set."
+        end if
+      end if
+
       if(updateIce) then
         ! ice variables -> iVar = nVar-3, nVar
         do iVar = nVar - 3, nVar
@@ -396,6 +408,18 @@ module boundary_module
 
         if(verbose .and. master) then
           print *, "horizontalBoundary: y-horizontal BC for rho set."
+        end if
+      end if
+
+      if(model == "compressible") then
+        ! set boundary for P mass weighted pot. temp.
+        do j = 1, nby
+          var(:, ny + j, :, iVarP) = var(:, j, :, iVarP)
+          var(:, - j + 1, :, iVarP) = var(:, ny - j + 1, :, iVarP)
+        end do
+
+        if(verbose .and. master) then
+          print *, "horizontalBoundary: y-horizontal BC for P set."
         end if
       end if
 
@@ -984,6 +1008,14 @@ module boundary_module
             end do
           end if
         end if
+      end if
+
+      if(model == "compressible") then
+        ! set boundary for P mass weighted pot. temp.
+        do k = 1, nbz
+          var(:, :, - k + 1, iVarP) = var(:, :, k, iVarP)
+          var(:, :, nz + k, iVarP) = var(:, :, nz - k + 1, iVarP)
+        end do
       end if
 
       if(updateIce) then

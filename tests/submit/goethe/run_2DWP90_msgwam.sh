@@ -1,13 +1,15 @@
 #!/bin/bash
-#SBATCH --partition=general2
-#SBATCH --job-name=2DWP90
+#SBATCH --partition=general1
+#SBATCH --job-name=2DWP90_msgwam
 #SBATCH --ntasks=16
-#SBATCH --mem-per-cpu=2600
-#SBATCH --time=02:00:00
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=2000
+#SBATCH --mail-type=FAIL
+#SBATCH --time=01:00:00
 
 set -x
 
-# no. of processors ntasks must be nprocx * nprocy
+# Set number of processors (product must be equal to number of tasks).
 ntasks=16
 nprocx=16
 nprocy=1

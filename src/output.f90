@@ -4,7 +4,7 @@ module output_module
   use atmosphere_module
   use sizeof_module
   use ice2_sub_module, ONLY:output_ice
-  use opt_field_mod
+  ! use opt_field_mod
   implicit none
 
   private
@@ -180,7 +180,7 @@ module output_module
 
                 select case(model)
 
-                case("pseudo_incompressible")
+                case("pseudo_incompressible", "compressible")
                   if(fluctuationMode) then
                     if(topography) then
                       ! TFC FJ
@@ -229,6 +229,10 @@ module output_module
                 field_prc(i, j) = var(i, j, k, iVar) * uRef * lRef
 
               case default
+
+                if(model == "compressible" .and. iVar == iVarP) then
+                  field_prc(i, j) = pStratTFC(i, j, k) * rhoRef * thetaRef
+                end if
 
                 if(include_ice) then
 
@@ -495,7 +499,7 @@ module output_module
                 ! potential temperature not used
                 ! (only density  needed)
                 select case(model)
-                case("pseudo_incompressible")
+                case("pseudo_incompressible", "compressible")
                   if(topography) then
                     ! TFC FJ
                     var(i, j, k, iVar) = (pStratTFC(i, j, k) / field_prc(i, &
@@ -527,16 +531,16 @@ module output_module
 
               case default
 
-                if(include_ice .or. include_ice2) then 
+                if(include_ice .or. include_ice2) then
 
                   stop "read_data: include_ice(2) not possible for restart"
 
                 end if
 
-                if(include_tracer) then 
+                if(include_tracer) then
 
                   var(i, j, k, iVarT) = field_prc(i, j) + initialtracer(i, j, k)
-                
+
                 end if
 
                 ! !--------------------------------------
@@ -560,9 +564,9 @@ module output_module
       end if
     end do ! iVar
 
-    if (include_tracer) then 
+    if(include_tracer) then
       do k = 1, nz
-        do j = 1, ny 
+        do j = 1, ny
           do i = 1, nx
             if(fluctuationMode) then
               if(topography) then
@@ -573,9 +577,9 @@ module output_module
             else
               rhotracer = var(i, j, k, 1)
             end if
-            var(i, j, k, iVarT) = var(i, j, k, iVarT) * rhotracer 
+            var(i, j, k, iVarT) = var(i, j, k, iVarT) * rhotracer
           end do
-        end do  
+        end do
       end do
     end if
 

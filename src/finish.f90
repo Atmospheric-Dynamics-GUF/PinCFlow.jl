@@ -11,7 +11,7 @@ module finish_module
   contains
 
   subroutine terminate(var, var0, var1, flux, force, source, dRho, dRhop, &
-      dMom, dTheta, dIce, dTracer, tracerforce)
+      dMom, dTheta, dIce, dTracer, tracerforce, dPot)
     !-------------------
     ! deallocate fields
     !-------------------
@@ -20,7 +20,7 @@ module finish_module
     real, dimension(:, :, :, :), allocatable :: var, var0, var1, force, &
         source, dMom, dIce, tracerforce
     real, dimension(:, :, :, :, :), allocatable :: flux
-    real, dimension(:, :, :), allocatable :: dRho, dRhop, dTheta, dTracer
+    real, dimension(:, :, :), allocatable :: dRho, dRhop, dTheta, dTracer, dPot
 
     ! argument list
     integer :: allocstat
@@ -67,6 +67,11 @@ module finish_module
 
     deallocate(dMom, stat = allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate dMom"
+
+    if(model == "compressible") then
+      deallocate(dPot, stat = allocstat)
+      if(allocstat /= 0) stop "finish.f90: could not deallocate dPot"
+    end if
 
     if(include_ice) then
       deallocate(dIce, stat = allocstat)

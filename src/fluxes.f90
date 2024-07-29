@@ -43,6 +43,7 @@ module flux_module
   real, dimension(:, :, :), allocatable :: uBar
   real, dimension(:, :, :), allocatable :: vBar
   real, dimension(:, :, :), allocatable :: wBar
+  real, dimension(:, :, :), allocatable :: PBar
   real, dimension(:, :, :), allocatable :: thetaBar
   real, dimension(:, :, :), allocatable :: nAerBar
   real, dimension(:, :, :), allocatable :: nIceBar
@@ -55,6 +56,9 @@ module flux_module
   ! Needed for semi-implicit time scheme in TFC.
   real, dimension(:, :, :), allocatable :: uOldTFC, vOldTFC, wOldTFC
 
+  ! SK: Needed for compressible explicit Euler
+  real, dimension(:, :, :), allocatable :: pinew
+
   ! if reconstType = MUSCL then uTilde, vTilde, and wTilde are the
   ! reconstructed specific momenta
 
@@ -64,6 +68,7 @@ module flux_module
   real, dimension(:, :, :, :, :), allocatable :: uTilde
   real, dimension(:, :, :, :, :), allocatable :: vTilde
   real, dimension(:, :, :, :, :), allocatable :: wTilde
+  real, dimension(:, :, :, :, :), allocatable :: PTilde
   real, dimension(:, :, :, :, :), allocatable :: thetaTilde
   real, dimension(:, :, :, :, :), allocatable :: nAerTilde
   real, dimension(:, :, :, :, :), allocatable :: nIceTilde
@@ -76,7 +81,7 @@ module flux_module
   ! 1) BC correction
   ! 2) explicit boundary setting
   ! 3) update module
-  public :: rhoTilde, rhopTilde, thetaTilde, rhoTilde_mom
+  public :: rhoTilde, rhopTilde, thetaTilde, rhoTilde_mom, PTilde
   public :: uTilde, vTilde, wTilde
   public :: rhoOld, rhopOld
   public :: nIceTilde, qIceTilde, qvTilde, nAerTilde
@@ -85,6 +90,9 @@ module flux_module
   ! TFC FJ
   ! Needed for semi-implicit time scheme in TFC.
   public :: uOldTFC, vOldTFC, wOldTFC
+
+  ! SK Needed for compressible explicit Euler
+  public :: pinew
 
   ! phiTilde(i,j,k,dir,Left/Right) with
   ! dir = 1,2,3 for x,y and z reconstruction directions
@@ -122,7 +130,7 @@ module flux_module
     !--------------------------------------------------
     ! reconstructs "variable" with
     ! SALD, ALDM, constant, MUSCL
-    ! reconstructed variables: \rho/P, rhop/P, \vec v
+    ! reconstructed variables: \rho/P, \rho'/P, \rho\vec{v}/P
     !-------------------------------------------------
 
     ! in/out variables
@@ -418,6 +426,10 @@ module flux_module
           thetaBar(:, :, :) = var(:, :, :, 6)
           call reconstruct_MUSCL(thetaBar, thetaTilde, nxx, nyy, nzz, &
               limiterType1)
+
+        case("P") ! reconstruct 1 = P/P
+          PBar(:, :, :) = 1
+          call reconstruct_MUSCL(PBar, PTilde, nxx, nyy, nzz, limiterType1)
 
         case("ice")
 
@@ -1880,6 +1892,133 @@ module flux_module
       end do
     end if
 
+    ! -------------------------------------------
+    ! fluxes mass-weighted potential temperature
+    !--------------------------------------------
+    if(model == "compressible") then
+      ! Zonal fluxes in x: f
+
+      do k = 1, nz
+        do j = 1, ny
+          do i = 0, nx
+            select case(fluxType)
+
+            case("upwind")
+              rhoR = 1.0
+              rhoL = 1.0
+
+              if(topography) then
+                ! TFC FJ
+                pEdgeR = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i + 1, &
+                    j, k) * pStratTFC(i + 1, j, k))
+                if(fluxmode == "nln") then
+                  uSurf = pEdgeR * var(i, j, k, 2)
+                else if(fluxmode == "lin") then
+                  uSurf = pEdgeR * vara(i, j, k, 2)
+                else
+                  stop "ERROR: wrong fluxmode"
+                end if
+              end if
+
+              fRho = flux_muscl(uSurf, rhoL, rhoR)
+
+            case default
+              stop "PFlux: unknown case fluxType"
+            end select
+
+            flux(i, j, k, 1, iVarP) = fRho
+          end do
+        end do
+      end do
+
+      ! Meridional rhop fluxes in y: g
+
+      do k = 1, nz
+        do j = 0, ny
+          do i = 1, nx
+            select case(fluxType)
+
+            case("upwind")
+              rhoF = 1.0
+              rhoB = 1.0
+
+              if(topography) then
+                ! TFC FJ
+                pEdgeF = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
+                    + 1, k) * pStratTFC(i, j + 1, k))
+                if(fluxmode == "nln") then
+                  vSurf = pEdgeF * var(i, j, k, 3)
+                else if(fluxmode == "lin") then
+                  vSurf = pEdgeF * vara(i, j, k, 3)
+                else
+                  stop "ERROR: wrong fluxmode"
+                end if
+              else
+                if(fluxmode == "nln") then
+                  vSurf = var(i, j, k, 3) * Pstrat(k) !UA
+                else if(fluxmode == "lin") then
+                  vSurf = vara(i, j, k, 3) * Pstrata(k) !UA
+                else
+                  stop 'ERROR: worng fluxmode'
+                end if
+              end if
+
+              gRho = flux_muscl(vSurf, rhoB, rhoF)
+
+            case default
+              stop "PFlux: unknown case fluxType"
+            end select
+
+            flux(i, j, k, 2, iVarP) = gRho
+          end do
+        end do
+      end do
+
+      ! Vertical rhop fluxes in z: h
+
+      do k = 0, nz
+        do j = 1, ny
+          do i = 1, nx
+
+            select case(fluxType)
+
+            case("upwind")
+              rhoU = 1.0
+              rhoD = 1.0
+
+              if(topography) then
+                ! TFC FJ
+                pEdgeU = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, &
+                    k + 1) * pStratTFC(i, j, k + 1))
+                if(fluxmode == "nln") then
+                  wSurf = pEdgeU * var(i, j, k, 4)
+                else if(fluxmode == "lin") then
+                  wSurf = pEdgeU * vara(i, j, k, 4)
+                else
+                  stop "ERROR: wrong fluxmode"
+                end if
+              else
+                if(fluxmode == "nln") then
+                  wSurf = var(i, j, k, 4) * PstratTilde(k) !UA
+                else if(fluxmode == "lin") then
+                  wSurf = vara(i, j, k, 4) * PstratTildea(k) !UA
+                else
+                  stop 'ERROR: worng fluxmode'
+                end if
+              end if
+
+              hRho = flux_muscl(wSurf, rhoD, rhoU)
+
+            case default
+              stop "rhoFlux: unknown case fluxType"
+            end select
+
+            flux(i, j, k, 3, iVarP) = hRho
+          end do
+        end do
+      end do
+    end if
+
     !--------------------------------------------------------
     !  contributions from molecular and turbulent diffusion
     !  to the potential-temperature fluxes
@@ -1888,12 +2027,6 @@ module flux_module
 
     if(mu_conduct == 0.0 .and. .not. TurbScheme) return
 
-    ! TFC FJ
-    ! No contributions from molecular and turbulent diffusion for TFC.
-    ! if(topography) then
-    !   return
-    ! end if
-
     ! flux in x direction
 
     if(topography) then
@@ -1901,7 +2034,7 @@ module flux_module
         do j = 1, ny
           do i = 0, nx
             select case(model)
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
               coef_t = mu_conduct * 0.5 * (rhoStratTFC(i, j, 1) &
                   / rhoStratTFC(i, j, k) + rhoStratTFC(i + 1, j, 1) &
                   / rhoStratTFC(i + 1, j, k))
@@ -1982,7 +2115,7 @@ module flux_module
         do j = 0, ny
           do i = 1, nx
             select case(model)
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
               coef_t = mu_conduct * 0.5 * (rhoStratTFC(i, j, 1) &
                   / rhoStratTFC(i, j, k) + rhoStratTFC(i, j + 1, 1) &
                   / rhoStratTFC(i, j + 1, k))
@@ -2063,7 +2196,7 @@ module flux_module
         do j = 1, ny
           do i = 1, nx
             select case(model)
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
               coef_t = mu_conduct * 0.5 * (rhoStratTFC(i, j, 1) &
                   / rhoStratTFC(i, j, k) + rhoStratTFC(i, j, 1) &
                   / rhoStratTFC(i, j, k + 1))
@@ -2664,7 +2797,7 @@ module flux_module
           ! turbulence scheme allowing for anisotropic grids
 
           select case(model)
-          case("pseudo_incompressible")
+          case("pseudo_incompressible", "compressible")
             coef_t = mu_conduct * rhoStrat(1) / rhoStrat(k)
           case("Boussinesq")
             coef_t = mu_conduct
@@ -2701,7 +2834,7 @@ module flux_module
           ! turbulence scheme allowing for anisotropic grids
 
           select case(model)
-          case("pseudo_incompressible")
+          case("pseudo_incompressible", "compressible")
             coef_t = mu_conduct * rhoStrat(1) / rhoStrat(k)
           case("Boussinesq")
             coef_t = mu_conduct
@@ -2738,7 +2871,7 @@ module flux_module
           ! turbulence scheme allowing for anisotropic grids
 
           select case(model)
-          case("pseudo_incompressible")
+          case("pseudo_incompressible", "compressible")
             coef_t = mu_conduct * rhoStrat(1) / rhoStrat(k)
           case("Boussinesq")
             coef_t = mu_conduct
@@ -3511,7 +3644,7 @@ module flux_module
 
               ! TFC FJ
               ! No changes for Boussinesq model required.
-            case("pseudo_incompressible", "Boussinesq")
+            case("pseudo_incompressible", "Boussinesq", "compressible")
 
               if(auxil_equ) then
                 dRho = var(i, j, k, 6)
@@ -3565,7 +3698,7 @@ module flux_module
             case("Boussinesq")
               rho = rho00
 
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
               if(fluctuationMode) then
                 if(topography) then
                   ! TFC FJ
@@ -3699,7 +3832,7 @@ module flux_module
             case("Boussinesq")
               rho = rho00
 
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
 
               if(fluctuationMode) then
                 if(topography) then
@@ -5619,7 +5752,7 @@ module flux_module
 
       !------------------------------------------------------------------
 
-    case("pseudo_incompressible")
+    case("pseudo_incompressible", "compressible")
 
       !------------------------------------
       !      calc div(u) for viscosity
@@ -6519,6 +6652,21 @@ module flux_module
         0:1), stat = allocstat)
     if(allocstat /= 0) stop "fluxes.f90: could not allocate thetaTilde"
 
+    if(model == "compressible") then
+      allocate(PBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not allocate PBar"
+
+      allocate(PTilde(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 1:3, &
+          0:1), stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not allocate PTilde"
+
+      allocate(pinew(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not allocate pinew"
+
+    end if
+
     !SD added if
     if(include_ice .or. include_ice2) then
       !  nIceTilde
@@ -6660,6 +6808,19 @@ module flux_module
 
     deallocate(thetaTilde, stat = allocstat)
     if(allocstat /= 0) stop "fluxes.f90: could not deallocate thetaTilde"
+
+    ! SK compressible model
+    if(model == "compressible") then
+      deallocate(PBar, stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not deallocate PBar"
+
+      deallocate(PTilde, stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not deallocate PTilde"
+
+      deallocate(pinew, stat = allocstat)
+      if(allocstat /= 0) stop "fluxes.f90: could not deallocate pinew"
+
+    end if
 
     !SD
     if(include_ice .or. include_ice2) then
