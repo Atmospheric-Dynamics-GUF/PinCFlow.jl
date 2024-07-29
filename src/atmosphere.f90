@@ -20,6 +20,9 @@ module atmosphere_module
   ! FJFeb2023
   public :: update_topography
 
+  ! SK compressible
+  public :: add_JP_to_u
+
   real, dimension(:), allocatable :: PStrat, rhoStrat, thetaStrat, bvsStrat
   real, dimension(:), allocatable :: PStrat_0, rhoStrat_0
   real, dimension(:), allocatable :: rhoStrat_d, rhoStrat_s
@@ -341,8 +344,8 @@ module atmosphere_module
     ! Allocate 3D background fields.
     if(topography) then
       if(.not. allocated(pStratTFC)) then
-        allocate(pStratTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- 1):(nz &
-            + 2)), stat = allocstat)
+        allocate(pStratTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
+            + nbz)), stat = allocstat)
         if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStratTFC"
       end if
 
@@ -628,7 +631,7 @@ module atmosphere_module
             else if(mountain_case == 2) then ! 3d cosine mountains
               topography_surface(i, j) = 0.5 * mountainHeight * (1.0 &
                   + cos(k_mountain / sqrt(2.0) * (x(i + i00) - x_center + y(j &
-                  + j00 - y_center))))
+                  + j00) - y_center)))
             else if(mountain_case == 3) then ! bell mountain
               topography_surface(i, j) = mountainHeight / (1.0 + ((x(i + i00) &
                   - x_center) ** 2.0) / (mountainWidth ** 2.0))
@@ -1029,7 +1032,7 @@ module atmosphere_module
       !             Atmospheres for pseudo-incompressible
       !--------------------------------------------------------------------
 
-    case("pseudo_incompressible", "WKB")
+    case("pseudo_incompressible", "WKB", "compressible")
 
       select case(background)
 
@@ -2572,6 +2575,97 @@ module atmosphere_module
     end if
 
   end subroutine update_topography
+
+  !---------------------------------------------------------------------------
+
+  subroutine add_JP_to_u(var, option)
+    !--------------------------------
+    ! in the compressible model the Euler steps are solved by updating Pu
+    ! instead of u, so we write Pu in var
+    !-------------------------------
+
+    character(len = *), intent(in) :: option
+    ! in/out variables
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(inout) :: var
+    ! local variables
+    integer :: i, j, k
+
+    select case(option)
+
+    case("forward")
+      do k = - nbz, nz + nbz - 1
+        do j = - nby, ny + nby - 1
+          do i = - nbx, nx + nbx - 1
+            var(i, j, k, 4) = var(i, j, k, 4) * 0.5 * (jac(i, j, k) * var(i, &
+                j, k, iVarP) + jac(i, j, k + 1) * var(i, j, k + 1, iVarP))
+
+            var(i, j, k, 3) = var(i, j, k, 3) * 0.5 * (jac(i, j, k) * var(i, &
+                j, k, iVarP) + jac(i, j + 1, k) * var(i, j + 1, k, iVarP))
+
+            var(i, j, k, 2) = var(i, j, k, 2) * 0.5 * (jac(i, j, k) * var(i, &
+                j, k, iVarP) + jac(i + 1, j, k) * var(i + 1, j, k, iVarP))
+          end do
+          var(nx + nbx, j, k, 4) = 2 * var(nx + nbx - 2, j, k, 4) - var(nx &
+              + nbx - 1, j, k, 4)
+          var(nx + nbx, j, k, 3) = 2 * var(nx + nbx - 2, j, k, 3) - var(nx &
+              + nbx - 1, j, k, 3)
+          var(nx + nbx, j, k, 2) = 2 * var(nx + nbx - 2, j, k, 2) - var(nx &
+              + nbx - 1, j, k, 2)
+        end do
+        var(:, ny + nby, k, 4) = 2 * var(:, ny + nby - 2, k, 4) - var(:, ny &
+            + nby - 1, k, 4)
+        var(:, j, ny + nby, 3) = 2 * var(:, ny + nby - 2, k, 3) - var(:, ny &
+            + nby - 1, k, 3)
+        var(:, ny + nby, k, 2) = 2 * var(:, ny + nby - 2, k, 2) - var(:, ny &
+            + nby - 1, k, 2)
+      end do
+      var(:, :, nz + nbz, 4) = 2 * var(:, :, nz + nbz - 2, 4) - var(:, :, nz &
+          + nbz - 1, 4)
+      var(:, :, nz + nbz, 3) = 2 * var(:, :, nz + nbz - 2, 3) - var(:, :, nz &
+          + nbz - 1, 3)
+      var(:, :, nz + nbz, 2) = 2 * var(:, :, nz + nbz - 2, 2) - var(:, :, nz &
+          + nbz - 1, 2)
+
+    case("backward")
+      do k = - nbz, nz + nbz - 1
+        do j = - nby, ny + nby - 1
+          do i = - nbx, nx + nbx - 1
+            var(i, j, k, 4) = var(i, j, k, 4) / (0.5 * (jac(i, j, k) * var(i, &
+                j, k, iVarP) + jac(i, j, k + 1) * var(i, j, k + 1, iVarP)))
+
+            var(i, j, k, 3) = var(i, j, k, 3) / (0.5 * (jac(i, j, k) * var(i, &
+                j, k, iVarP) + jac(i, j + 1, k) * var(i, j + 1, k, iVarP)))
+
+            var(i, j, k, 2) = var(i, j, k, 2) / (0.5 * (jac(i, j, k) * var(i, &
+                j, k, iVarP) + jac(i + 1, j, k) * var(i + 1, j, k, iVarP)))
+          end do
+          var(nx + nbx, j, k, 4) = 2 * var(nx + nbx - 2, j, k, 4) - var(nx &
+              + nbx - 1, j, k, 4)
+          var(nx + nbx, j, k, 3) = 2 * var(nx + nbx - 2, j, k, 3) - var(nx &
+              + nbx - 1, j, k, 3)
+          var(nx + nbx, j, k, 2) = 2 * var(nx + nbx - 2, j, k, 2) - var(nx &
+              + nbx - 1, j, k, 2)
+        end do
+        var(:, ny + nby, k, 4) = 2 * var(:, ny + nby - 2, k, 4) - var(:, ny &
+            + nby - 1, k, 4)
+        var(:, j, ny + nby, 3) = 2 * var(:, ny + nby - 2, k, 3) - var(:, ny &
+            + nby - 1, k, 3)
+        var(:, ny + nby, k, 2) = 2 * var(:, ny + nby - 2, k, 2) - var(:, ny &
+            + nby - 1, k, 2)
+      end do
+      var(:, :, nz + nbz, 4) = 2 * var(:, :, nz + nbz - 2, 4) - var(:, :, nz &
+          + nbz - 1, 4)
+      var(:, :, nz + nbz, 3) = 2 * var(:, :, nz + nbz - 2, 3) - var(:, :, nz &
+          + nbz - 1, 3)
+      var(:, :, nz + nbz, 2) = 2 * var(:, :, nz + nbz - 2, 2) - var(:, :, nz &
+          + nbz - 1, 2)
+
+    case default
+      stop "add_JP_to_u unknown option."
+    end select
+
+  end subroutine
 
   !---------------------------------------------------------------------------
 

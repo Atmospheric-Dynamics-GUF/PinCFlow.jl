@@ -38,6 +38,10 @@ module update_module
 
   public :: BGstate_update
 
+  public :: piUpdate ! Update of pi' in compressible model
+  public :: bvsUpdate ! Update of N^2 in compressible model
+  public :: P_update ! update of P in compressible model
+
   ! TFC FJ
   public :: momentumPredictorTestTFC, massUpdateTestTFC
 
@@ -790,6 +794,8 @@ module update_module
     real :: uOld, uBG, uNew
     real :: vOld, vBG, vNew
     real :: wOld, wBG, wNew
+    real :: P_old, P_bg, P_new
+    real :: pi_old, pi_bg, pi_new, dPdPi
 
     ! variables for ice
     real :: nAer_bg, nIce_bg, qIce_bg, qv_bg
@@ -818,6 +824,46 @@ module update_module
               beta = 1.0 / (1.0 + alpha * dt)
               rho_new = (1.0 - beta) * rho_bg + beta * rho_old
               var(i, j, k, 1) = rho_new
+            end do
+          end do
+        end do
+      end if
+
+    case("P")
+
+      ! No sponge is applied to rho in Boussinesq model.
+      if(model /= "Boussinesq") then
+        do k = 1, nz
+          do j = 1, ny
+            do i = 1, nx
+              P_bg = rhoStratTFC(i, j, k) * pStratTFC(i, j, k) / (var(i, j, k, &
+                  1) + rhoStratTFC(i, j, k))
+              alpha = alphaUnifiedSponge(i, j, k)
+              P_old = var(i, j, k, iVarP)
+              beta = 1.0 / (1.0 + alpha * dt)
+              P_new = (1.0 - beta) * P_bg + beta * P_old
+              var(i, j, k, iVarP) = P_new
+            end do
+          end do
+        end do
+      end if
+
+    case("pi")
+
+      ! No sponge is applied to rho in Boussinesq model.
+      if(model /= "Boussinesq") then
+        do k = 1, nz
+          do j = 1, ny
+            do i = 1, nx
+              dPdPi = 1 / (gamma - 1) * (Rsp / pref) ** (1 - gamma) * var(i, &
+                  j, k, iVarP) ** (2 - gamma)
+              pi_bg = rhoStratTFC(i, j, k) * pStratTFC(i, j, k) / (var(i, j, &
+                  k, 1) + rhoStratTFC(i, j, k)) / dPdPi
+              alpha = alphaUnifiedSponge(i, j, k)
+              pi_old = var(i, j, k, 5)
+              pi_new = pi_old - alpha * dt * (pStratTFC(i, j, k) / dPdPi &
+                  - pi_bg)
+              var(i, j, k, 5) = pi_new
             end do
           end do
         end do
@@ -1317,17 +1363,18 @@ module update_module
               volForce = 0.5 * (force(i, j, k, 1) + force(i + 1, j, k, 1))
 
               if(TestCase == "baroclinic_LC") then
-                if(model == "pseudo_incompressible") then
+                select case(model)
+                case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
 
                   if(fluctuationMode) then
                     rhoM_1 = rhoM_1 + rhoStrat(k)
                   end if
-                else if(model == "Boussinesq") then
+                case("Boussinesq")
                   rhoM_1 = rho00
-                else
+                case default
                   stop "momentumPredictor: unkown model."
-                end if
+                end select
 
                 volforce = volforce - rhoM_1 * RoInv(j) * 0.25 * (var_env(i, j &
                     - 1, k, 3) + var_env(i + 1, j - 1, k, 3) + var_env(i, j, &
@@ -1338,17 +1385,18 @@ module update_module
               if(topography) then
                 ! Rayleigh damping for topography (immersed boundary)
 
-                if(model == "pseudo_incompressible") then
+                select case(model)
+                case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
 
                   if(fluctuationMode) then
                     rhoM_1 = rhoM_1 + rhoStrat(k)
                   end if
-                else if(model == "Boussinesq") then
+                case("Boussinesq")
                   rhoM_1 = rho00
-                else
+                case default
                   stop "momentumPredictor: unkown model."
-                end if
+                end select
 
                 !UAC if(topography_mask(i00+i,j00+j,k)&
                 !   .or.&
@@ -1382,17 +1430,18 @@ module update_module
               if(background == "HeldSuarez") then
                 ! Rayleigh damping
 
-                if(model == "pseudo_incompressible") then
+                select case(model)
+                case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
 
                   if(fluctuationMode) then
                     rhoM_1 = rhoM_1 + rhoStrat(k)
                   end if
-                else if(model == "Boussinesq") then
+                case("Boussinesq")
                   rhoM_1 = rho00
-                else
+                case default
                   stop "momentumPredictor: unkown model."
-                end if
+                end select
 
                 volForce = volForce - kv_hs(j, k) * rhoM_1 * (var(i, j, k, 2) &
                     - var_env(i, j, k, 2))
@@ -1416,7 +1465,7 @@ module update_module
             ! interpolated density
             select case(model)
 
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
 
               rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
               rhoM = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1))
@@ -1787,7 +1836,8 @@ module update_module
               volForce = 0.5 * (force(i, j, k, 2) + force(i, j + 1, k, 2))
 
               if(TestCase == "baroclinic_LC") then
-                if(model == "pseudo_incompressible") then
+                select case(model)
+                case("pseudo_incompressible", "compressible")
                   rhoM = rhoOld(i, j, k)
                   rhoM_1 = rhoOld(i, j + 1, k)
 
@@ -1795,12 +1845,12 @@ module update_module
                     rhoM = rhoM + rhoStrat(k)
                     rhoM_1 = rhoM_1 + rhoStrat(k)
                   end if
-                else if(model == "Boussinesq") then
+                case("Boussinesq")
                   rhoM = rho00
                   rhoM_1 = rho00
-                else
+                case default
                   stop "momentumPredictor: unkown model."
-                end if
+                end select
 
                 volforce = volforce + RoInv(j) * (0.25 * (rhoM * (var_env(i &
                     - 1, j, k, 2) + var_env(i, j, k, 2)) + rhoM_1 * (var_env(i &
@@ -1812,17 +1862,18 @@ module update_module
               if(topography) then
                 ! Rayleigh damping for topography (immersed boundary)
 
-                if(model == "pseudo_incompressible") then
+                select case(model)
+                case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j + 1, k))
 
                   if(fluctuationMode) then
                     rhoM_1 = rhoM_1 + rhoStrat(k)
                   end if
-                else if(model == "Boussinesq") then
+                case("Boussinesq")
                   rhoM_1 = rho00
-                else
+                case default
                   stop "momentumPredictor: unkown model."
-                end if
+                end select
 
                 !UAC if(topography_mask(i00+i,j00+j,k)&
                 !   .or.&
@@ -1856,17 +1907,18 @@ module update_module
               if(background == "HeldSuarez") then
                 ! Rayleigh damping
 
-                if(model == "pseudo_incompressible") then
+                select case(model)
+                case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j + 1, k))
 
                   if(fluctuationMode) then
                     rhoM_1 = rhoM_1 + rhoStrat(k)
                   end if
-                else if(model == "Boussinesq") then
+                case("Boussinesq")
                   rhoM_1 = rho00
-                else
+                case default
                   stop "momentumPredictor: unkown model."
-                end if
+                end select
 
                 volForce = volForce - 0.5 * (kv_hs(j, k) + kv_hs(j + 1, k)) &
                     * rhoM_1 * (var(i, j, k, 3) - var_env(i, j, k, 3))
@@ -1891,7 +1943,7 @@ module update_module
             ! interpolated density
             select case(model)
 
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
 
               rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j + 1, k))
               rhoM = 0.5 * (var(i, j, k, 1) + var(i, j + 1, k, 1))
@@ -2275,17 +2327,18 @@ module update_module
               volForce = 0.5 * (force(i, j, k, 3) + force(i, j, k + 1, 3))
 
               if(TestCase == "baroclinic_LC") then
-                if(model == "pseudo_incompressible") then
+                select case(model)
+                case("pseudo_incompressible", "compressible")
                   drho_e = 0.5 * (var_env(i, j, k, 1) + var_env(i, j, k + 1, 1))
 
                   if(.not. fluctuationMode) then
                     drho_e = drho_e - rhoStratTilde(k)
                   end if
-                else if(model == "Boussinesq") then
+                case("Boussinesq")
                   stop 'ERROR: baroclinic LC not ready yet for  Boussinesq'
-                else
+                case default
                   stop "momentumPredictor: unkown model."
-                end if
+                end select
 
                 volForce = volForce + FrInv2 * drho_e
               end if
@@ -2293,17 +2346,18 @@ module update_module
               if(topography) then
                 ! Rayleigh damping for topography (immersed boundary)
 
-                if(model == "pseudo_incompressible") then
+                select case(model)
+                case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j, k + 1))
 
                   if(fluctuationMode) then
                     rhoM_1 = rhoM_1 + rhoStratTilde(k)
                   end if
-                else if(model == "Boussinesq") then
+                case("Boussinesq")
                   rhoM_1 = rho00
-                else
+                case default
                   stop "momentumPredictor: unkown model."
-                end if
+                end select
 
                 !UAC if(topography_mask(i00+i,j00+j,k)&
                 !   .or.&
@@ -2335,17 +2389,18 @@ module update_module
             if(TestCase == "baroclinic_LC") then
               if(background == "HeldSuarez") then
                 ! Rayleigh damping
-                if(model == "pseudo_incompressible") then
+                select case(model)
+                case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j, k + 1))
 
                   if(fluctuationMode) then
                     rhoM_1 = rhoM_1 + rhoStratTilde(k)
                   end if
-                else if(model == "Boussinesq") then
+                case("Boussinesq")
                   rhoM_1 = rho00
-                else
+                case default
                   stop "momentumPredictor: unkown model."
-                end if
+                end select
 
                 volForce = volforce - 0.5 * (kw_hs(k) + kw_hs(k + 1)) * rhoM_1 &
                     * var(i, j, k, 4)
@@ -2369,7 +2424,7 @@ module update_module
             ! interpolated densities
             select case(model)
 
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
 
               rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j, k + 1)) !rho(m-1)
               rhoM = 0.5 * (var(i, j, k, 1) + var(i, j, k + 1, 1)) !rho(m)
@@ -2812,6 +2867,9 @@ module update_module
     real :: volfcx, volfcy, volfcz
     real :: bvsstw
 
+    ! SK compressible: JP on interfaces right, left, forward, backward, upward, downward at k and k+1
+    real :: JPR, JPL, JPF, JPB, JPU, JPD, JPUR, JPUL, JPUF, JPUB
+
     !UAB
     real :: rho_e, rhou_e, rhov_e, rhow_e, pstw_e
     real :: rho10_e, rho01_e
@@ -3013,7 +3071,8 @@ module update_module
               volForce = 0.5 * (force(i, j, k, 1) + force(i + 1, j, k, 1))
 
               if(TestCase == "baroclinic_LC") then
-                if(model == "pseudo_incompressible") then
+                select case(model)
+                case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
 
                   if(fluctuationMode) then
@@ -3025,11 +3084,11 @@ module update_module
                       rhoM_1 = rhoM_1 + rhoStrat(k)
                     end if
                   end if
-                else if(model == "Boussinesq") then
+                case("Boussinesq")
                   rhoM_1 = rho00
-                else
+                case default
                   stop "momentumPredictor: unkown model."
-                end if
+                end select
 
                 volforce = volforce - rhoM_1 * RoInv(j) * 0.25 * (var_env(i, j &
                     - 1, k, 3) + var_env(i + 1, j - 1, k, 3) + var_env(i, j, &
@@ -3081,7 +3140,8 @@ module update_module
               if(background == "HeldSuarez") then
                 ! Rayleigh damping
 
-                if(model == "pseudo_incompressible") then
+                select case(model)
+                case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
 
                   if(fluctuationMode) then
@@ -3093,11 +3153,11 @@ module update_module
                       rhoM_1 = rhoM_1 + rhoStrat(k)
                     end if
                   end if
-                else if(model == "Boussinesq") then
+                case("Boussinesq")
                   rhoM_1 = rho00
-                else
+                case default
                   stop "momentumPredictor: unkown model."
-                end if
+                end select
 
                 volForce = volForce - kv_hs(j, k) * rhoM_1 * (var(i, j, k, 2) &
                     - var_env(i, j, k, 2))
@@ -3138,7 +3198,7 @@ module update_module
             ! interpolated density
             select case(model)
 
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
 
               rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
               rhoM = 0.5 * (var(i, j, k, 1) + var(i + 1, j, k, 1))
@@ -3355,7 +3415,13 @@ module update_module
               if(topography) then
                 ! TFC FJ
                 ! Coriolis force is integrated on LHS.
-                uAst = uhorx + dt * (- piGrad + volfcx / rhou)
+                if(model == "compressible") then ! Muliply with JP
+                  JPR = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i + 1, &
+                      j, k) * var(i + 1, j, k, iVarP))
+                  uAst = uhorx + dt * (- piGrad + volfcx / rhou) * JPR
+                else
+                  uAst = uhorx + dt * (- piGrad + volfcx / rhou)
+                end if
               else
                 vhory = 0.25 * (var(i, j - 1, k, 3) + var(i, j, k, 3) + var(i &
                     + 1, j - 1, k, 3) + var(i + 1, j, k, 3))
@@ -3679,7 +3745,14 @@ module update_module
               if(topography) then
                 ! TFC FJ
                 ! Coriolis force is integrated on LHS.
-                uAst = 1.0 / facu * (uhorx + dt * (- piGradX + volfcx / rhou))
+                if(model == "compressible") then ! Muliply with JP
+                  JPR = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i + 1, &
+                      j, k) * var(i + 1, j, k, iVarP))
+                  uAst = 1.0 / facu * (uhorx + dt * (- piGradX + volfcx &
+                      / rhou) * JPR)
+                else
+                  uAst = 1.0 / facu * (uhorx + dt * (- piGradX + volfcx / rhou))
+                end if
               else
                 if(testCase == "SkamarockKlemp94") then
                   uAst = 1.0 / (facu * facv + (f_cor_nd(j) * dt) ** 2) * (facv &
@@ -3825,7 +3898,8 @@ module update_module
               volForce = 0.5 * (force(i, j, k, 2) + force(i, j + 1, k, 2))
 
               if(TestCase == "baroclinic_LC") then
-                if(model == "pseudo_incompressible") then
+                select case(model)
+                case("pseudo_incompressible", "compressible")
                   rhoM = rhoOld(i, j, k)
                   rhoM_1 = rhoOld(i, j + 1, k)
 
@@ -3841,12 +3915,12 @@ module update_module
                       rhoM_1 = rhoM_1 + rhoStrat(k)
                     end if
                   end if
-                else if(model == "Boussinesq") then
+                case("Boussinesq")
                   rhoM = rho00
                   rhoM_1 = rho00
-                else
+                case default
                   stop "momentumPredictor: unkown model."
-                end if
+                end select
 
                 volforce = volforce + RoInv(j) * 0.25 * (rhoM * (var_env(i &
                     - 1, j, k, 2) + var_env(i, j, k, 2)) + rhoM_1 * (var_env(i &
@@ -3898,7 +3972,8 @@ module update_module
               if(background == "HeldSuarez") then
                 ! Rayleigh damping
 
-                if(model == "pseudo_incompressible") then
+                select case(model)
+                case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j + 1, k))
 
                   if(fluctuationMode) then
@@ -3910,11 +3985,11 @@ module update_module
                       rhoM_1 = rhoM_1 + rhoStrat(k)
                     end if
                   end if
-                else if(model == "Boussinesq") then
+                case("Boussinesq")
                   rhoM_1 = rho00
-                else
+                case default
                   stop "momentumPredictor: unkown model."
-                end if
+                end select
 
                 volForce = volForce - 0.5 * (kv_hs(j, k) + kv_hs(j + 1, k)) &
                     * rhoM_1 * (var(i, j, k, 3) - var_env(i, j, k, 3))
@@ -3958,7 +4033,7 @@ module update_module
             ! interpolated density
             select case(model)
 
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
 
               rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j + 1, k))
               rhoM = 0.5 * (var(i, j, k, 1) + var(i, j + 1, k, 1))
@@ -4185,7 +4260,13 @@ module update_module
               if(topography) then
                 ! TFC FJ
                 ! Coriolis force is integrated on LHS.
-                vAst = vhory + dt * (- piGrad + volfcy / rhov)
+                if(model == "compressible") then ! Muliply with JP
+                  JPF = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, j &
+                      + 1, k) * var(i, j + 1, k, iVarP))
+                  vAst = vhory + dt * (- piGrad + volfcy / rhov) * JPF
+                else
+                  vAst = vhory + dt * (- piGrad + volfcy / rhov)
+                end if
               else
                 if(testCase == "SkamarockKlemp94") then
                   vAst = vhory + dt * (- f_cor_v * (uhorx &
@@ -4507,7 +4588,14 @@ module update_module
               if(topography) then
                 ! TFC FJ
                 ! Coriolis force is integrated on LHS.
-                vAst = 1.0 / facv * (vhory + dt * (- piGradY + volfcy / rhov))
+                if(model == "compressible") then ! Muliply with JP
+                  JPF = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, j &
+                      + 1, k) * var(i, j + 1, k, iVarP))
+                  vAst = 1.0 / facv * (vhory + dt * (- piGradY + volfcy &
+                      / rhov) * JPF)
+                else
+                  vAst = 1.0 / facv * (vhory + dt * (- piGradY + volfcy / rhov))
+                end if
               else
                 if(testCase == "SkamarockKlemp94") then
                   vAst = 1.0 / (facu * facv + (0.5 * (f_cor_nd(j) + f_cor_nd(j &
@@ -4722,17 +4810,18 @@ module update_module
               volForce = 0.5 * (force(i, j, k, 3) + force(i, j, k + 1, 3))
 
               if(TestCase == "baroclinic_LC") then
-                if(model == "pseudo_incompressible") then
+                select case(model)
+                case("pseudo_incompressible", "compressible")
                   drho_e = 0.5 * (var_env(i, j, k, 1) + var_env(i, j, k + 1, 1))
 
                   if(.not. fluctuationMode) then
                     drho_e = drho_e - rhoStratTilde(k)
                   end if
-                else if(model == "Boussinesq") then
+                case("Boussinesq")
                   stop 'ERROR: baroclinic LC not ready yet for  Boussinesq'
-                else
+                case default
                   stop "momentumPredictor: unkown model."
-                end if
+                end select
 
                 if(topography) then
                   ! TFC FJ
@@ -4785,7 +4874,8 @@ module update_module
             if(TestCase == "baroclinic_LC") then
               if(background == "HeldSuarez") then
                 ! Rayleigh damping
-                if(model == "pseudo_incompressible") then
+                select case(model)
+                case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j, k + 1))
 
                   if(fluctuationMode) then
@@ -4797,11 +4887,11 @@ module update_module
                       rhoM_1 = rhoM_1 + rhoStratTilde(k)
                     end if
                   end if
-                else if(model == "Boussinesq") then
+                case("Boussinesq")
                   rhoM_1 = rho00
-                else
+                case default
                   stop "momentumPredictor: unkown model."
-                end if
+                end select
 
                 volForce = volforce - 0.5 * (kw_hs(k) + kw_hs(k + 1)) * rhoM_1 &
                     * var(i, j, k, 4)
@@ -4854,7 +4944,7 @@ module update_module
             ! interpolated densities
             select case(model)
 
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
 
               rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j, k + 1)) !rho(m-1)
               rhoM = 0.5 * (var(i, j, k, 1) + var(i, j, k + 1, 1)) !rho(m)
@@ -5094,7 +5184,13 @@ module update_module
                 end if
               end if
 
-              wAst = wvert + dt * (buoy - piGrad + volfcz / rhow)
+              if(model == "compressible") then ! Muliply with JP
+                JPU = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, j, k &
+                    + 1) * var(i, j, k + 1, iVarP))
+                wAst = wvert + dt * (buoy - piGrad + volfcz / rhow) * JPU
+              else
+                wAst = wvert + dt * (buoy - piGrad + volfcz / rhow)
+              end if
 
               ! if (topography) then
               !    ! Rayleigh damping for topography (immersed boundary)
@@ -5148,7 +5244,11 @@ module update_module
         ! horizontal mean and the horizontal-mean vertical wind
         ! resulting from it
 
-        if(heatingONK14 .or. TurbScheme .or. rayTracer) then
+        if(model == "compressible") then
+          heat = 0.
+          S_bar = 0.
+          w_0 = 0.
+        elseif(heatingONK14 .or. TurbScheme .or. rayTracer) then
           !call heat_w0(var,flux,dt,heat,S_bar,w_0)
           call calculate_heating(var, flux, heat)
         else
@@ -5399,16 +5499,56 @@ module update_module
 
               if(topography) then
                 ! TFC FJ
-                uC = 0.5 * (var(i, j, k, 2) + var(i - 1, j, k, 2))
-                uU = 0.5 * (var(i, j, k + 1, 2) + var(i - 1, j, k + 1, 2))
-                vC = 0.5 * (var(i, j, k, 3) + var(i, j - 1, k, 3))
-                vU = 0.5 * (var(i, j, k + 1, 3) + var(i, j - 1, k + 1, 3))
-                wAst = 1.0 / (facw + rhoStratEdgeU / rhow * bvsstw * dt &
-                    ** 2.0) * (wvert - dt * piGrad + dt * buoy + dt * volfcz &
-                    / rhow + rhoStratEdgeU / rhow * bvsstw * dt ** 2.0 * (0.5 &
-                    * (met(i, j, k, 1, 3) * uC + met(i, j, k + 1, 1, 3) * uU) &
-                    + 0.5 * (met(i, j, k, 2, 3) * vC + met(i, j, k + 1, 2, 3) &
-                    * vU)))
+                if(model == "compressible") then ! Interpolate (U/JP)
+                  ! Calculate JP on cell-interfaces.
+                  JPR = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i + 1, &
+                      j, k) * var(i + 1, j, k, iVarP)) ! right
+                  JPL = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i - 1, &
+                      j, k) * var(i - 1, j, k, iVarP)) ! left
+                  JPF = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, j &
+                      + 1, k) * var(i, j + 1, k, iVarP)) ! forward
+                  JPB = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, j &
+                      - 1, k) * var(i, j - 1, k, iVarP)) ! forward
+                  JPUR = 0.5 * (jac(i, j, k + 1) * var(i, j, k + 1, iVarP) &
+                      + jac(i + 1, j, k + 1) * var(i + 1, j, k + 1, iVarP)) ! right at (k+1)
+                  JPUL = 0.5 * (jac(i, j, k + 1) * var(i, j, k + 1, iVarP) &
+                      + jac(i - 1, j, k + 1) * var(i - 1, j, k + 1, iVarP)) ! left at (k+1)
+                  JPUF = 0.5 * (jac(i, j, k + 1) * var(i, j, k + 1, iVarP) &
+                      + jac(i, j + 1, k + 1) * var(i, j + 1, k + 1, iVarP)) ! forward at (k+1)
+                  JPUB = 0.5 * (jac(i, j, k + 1) * var(i, j, k + 1, iVarP) &
+                      + jac(i, j - 1, k + 1) * var(i, j - 1, k + 1, iVarP)) ! forward at (k+1)
+
+                  ! Calculate U/JP at k and k+1
+                  uC = 0.5 * (var(i, j, k, 2) / JPR + var(i - 1, j, k, 2) / JPL)
+                  uU = 0.5 * (var(i, j, k + 1, 2) / JPUR + var(i - 1, j, k &
+                      + 1, 2) / JPUL)
+                  vC = 0.5 * (var(i, j, k, 3) / JPF + var(i, j - 1, k, 3) / JPB)
+                  vU = 0.5 * (var(i, j, k + 1, 3) / JPUF + var(i, j - 1, k &
+                      + 1, 3) / JPUB)
+                else ! Interpolate u
+                  uC = 0.5 * (var(i, j, k, 2) + var(i - 1, j, k, 2))
+                  uU = 0.5 * (var(i, j, k + 1, 2) + var(i - 1, j, k + 1, 2))
+                  vC = 0.5 * (var(i, j, k, 3) + var(i, j - 1, k, 3))
+                  vU = 0.5 * (var(i, j, k + 1, 3) + var(i, j - 1, k + 1, 3))
+                end if
+
+                if(model == "compressible") then ! Muliply with JP
+                  JPU = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, j, &
+                      k + 1) * var(i, j, k + 1, iVarP))
+                  wAst = 1.0 / (facw + bvsstw * dt ** 2.0) * (wvert - dt &
+                      * piGrad * JPU + dt * buoy * JPU + dt * volfcz / rhow &
+                      * JPU + JPU * bvsstw * dt ** 2.0 * (0.5 * (met(i, j, k, &
+                      1, 3) * uC + met(i, j, k + 1, 1, 3) * uU) + 0.5 &
+                      * (met(i, j, k, 2, 3) * vC + met(i, j, k + 1, 2, 3) &
+                      * vU)))
+                else
+                  wAst = 1.0 / (facw + rhoStratEdgeU / rhow * bvsstw * dt &
+                      ** 2.0) * (wvert - dt * piGrad + dt * buoy + dt * volfcz &
+                      / rhow + rhoStratEdgeU / rhow * bvsstw * dt ** 2.0 &
+                      * (0.5 * (met(i, j, k, 1, 3) * uC + met(i, j, k + 1, 1, &
+                      3) * uU) + 0.5 * (met(i, j, k, 2, 3) * vC + met(i, j, k &
+                      + 1, 2, 3) * vU)))
+                end if
               else
                 if(TestCase == "baroclinic_LC") then
                   wAst = 1.0 / (facw + rhoStratTilde(k) / rhow * pstw / pstw_0 &
@@ -5624,6 +5764,9 @@ module update_module
 
     real :: buoy0, buoy, rho, rhow, rhowm, rhop, wvrt, facw, facr, pstw, &
         pstwm, piU, piD, piGrad
+
+    ! SK compressible: JP on interfaces right, left, forward, backward, upward, downward
+    real :: JPR, JPL, JPF, JPB, JPU, JPD
 
     ! TFC FJ
     real :: pEdgeU, pEdgeD
@@ -5871,6 +6014,13 @@ module update_module
 
         !rhopw_bar(1:nz-1) = sum_global(1:nz-1)
 
+        ! heating due to relaxation, entropy diffusion and GWs
+        if(model == "compressible" .and. (TurbScheme .or. rayTracer)) then
+          call calculate_heating(var, flux, heat)
+        else
+          heat = 0.0
+        end if
+
         do k = 1, nz
           do j = 1, ny
             do i = 1, nx
@@ -5892,7 +6042,11 @@ module update_module
               end if
 
               ! F(phi)
-              F = - fluxDiff
+              if(model == "compressible") then
+                F = - fluxDiff + heat(i, j, k) / thetaStratTFC(i, j, k)
+              else
+                F = - fluxDiff
+              end if
 
               !UAB
               ! density relaxation
@@ -5930,7 +6084,11 @@ module update_module
         ! horizontal mean and the horizontal-mean vertical wind
         ! resulting from it
 
-        if(heatingONK14 .or. TurbScheme .or. rayTracer) then
+        if(model == "compressible") then
+          heat = 0.
+          S_bar = 0.
+          w_0 = 0.
+        elseif(heatingONK14 .or. TurbScheme .or. rayTracer) then
           !call heat_w0(var,flux,dt,heat,S_bar,w_0)
           call calculate_heating(var, flux, heat)
         else
@@ -5982,7 +6140,17 @@ module update_module
                   ! TFC FJ
                   ! Momentum is predicted before buoyancy in implicit
                   ! steps.
-                  wvrt = 0.5 * (wOldTFC(i, j, k) + wOldTFC(i, j, k - 1))
+                  if(model == "compressible") then
+                    ! Calculate w/(JP).
+                    JPU = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, &
+                        j, k + 1) * var(i, j, k + 1, iVarP)) !upward
+                    JPD = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, &
+                        j, k - 1) * var(i, j, k - 1, iVarP)) ! downward
+                    wvrt = 0.5 * (wOldTFC(i, j, k) / JPU + wOldTFC(i, j, k &
+                        - 1) / JPD)
+                  else
+                    wvrt = 0.5 * (wOldTFC(i, j, k) + wOldTFC(i, j, k - 1))
+                  end if
                 else
                   wvrt = 0.5 * (var(i, j, k, 4) + var(i, j, k - 1, 4))
                 end if
@@ -6282,14 +6450,34 @@ module update_module
                     ! TFC FJ
                     ! Predict buoyancy.
                     buoy = - g_ndim * var(i, j, k, 6) / rho
-                    buoy = 1.0 / (facw + rhoStratTFC(i, j, k) / rho &
-                        * bvsStratTFC(i, j, k) * dt ** 2.0) * (- &
-                        rhoStratTFC(i, j, k) / rho * bvsStratTFC(i, j, k) * dt &
-                        * jac(i, j, k) * (wvrt - dt * piGrad) + facw * buoy &
-                        + rhoStratTFC(i, j, k) / rho * bvsStratTFC(i, j, k) &
-                        * dt * jac(i, j, k) * facw * 0.5 * (met(i, j, k, 1, 3) &
-                        * (var(i, j, k, 2) + var(i - 1, j, k, 2)) + met(i, j, &
-                        k, 2, 3) * (var(i, j, k, 3) + var(i, j - 1, k, 3))))
+                    if(model == "compressible") then ! Differences in b' equation
+                      JPR = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i &
+                          + 1, j, k) * var(i + 1, j, k, iVarP)) ! right
+                      JPL = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i &
+                          - 1, j, k) * var(i - 1, j, k, iVarP)) ! left
+                      JPF = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, &
+                          j + 1, k) * var(i, j + 1, k, iVarP)) ! forward
+                      JPB = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, &
+                          j - 1, k) * var(i, j - 1, k, iVarP)) ! backward
+                      buoy = 1.0 / (facw + bvsStratTFC(i, j, k) * dt ** 2.0) &
+                          * (- bvsStratTFC(i, j, k) * dt * jac(i, j, k) &
+                          * (wvrt - dt * piGrad) + facw * buoy &
+                          + bvsStratTFC(i, j, k) * dt * jac(i, j, k) * facw &
+                          * 0.5 * (met(i, j, k, 1, 3) * (var(i, j, k, 2) / JPR &
+                          + var(i - 1, j, k, 2) / JPL) + met(i, j, k, 2, 3) &
+                          * (var(i, j, k, 3) / JPF + var(i, j - 1, k, 3) &
+                          / JPB)))
+                    else
+                      buoy = 1.0 / (facw + rhoStratTFC(i, j, k) / rho &
+                          * bvsStratTFC(i, j, k) * dt ** 2.0) * (- &
+                          rhoStratTFC(i, j, k) / rho * bvsStratTFC(i, j, k) &
+                          * dt * jac(i, j, k) * (wvrt - dt * piGrad) + facw &
+                          * buoy + rhoStratTFC(i, j, k) / rho * bvsStratTFC(i, &
+                          j, k) * dt * jac(i, j, k) * facw * 0.5 * (met(i, j, &
+                          k, 1, 3) * (var(i, j, k, 2) + var(i - 1, j, k, 2)) &
+                          + met(i, j, k, 2, 3) * (var(i, j, k, 3) + var(i, j &
+                          - 1, k, 3))))
+                    end if
                   else
                     buoy = 1.0 / (facw + rhoStrat(k) / rho * PStrat(k) &
                         / PStrat_0(k) * bvsStrat(k) * dt ** 2) * (- &
@@ -6335,8 +6523,17 @@ module update_module
 
                 if(topography) then
                   ! TFC FJ
-                  wvrt = 0.5 * (vertWindTFC(i, j, k, var) + vertWindTFC(i, j, &
-                      k - 1, var))
+                  if(model == "compressible") then
+                    JPU = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, &
+                        j, k + 1) * var(i, j, k + 1, iVarP))
+                    JPD = 0.5 * (jac(i, j, k) * var(i, j, k, iVarP) + jac(i, &
+                        j, k - 1) * var(i, j, k - 1, iVarP))
+                    wvrt = 0.5 * (vertWindTFC(i, j, k, var) / JPU &
+                        + vertWindTFC(i, j, k - 1, var) / JPD)
+                  else
+                    wvrt = 0.5 * (vertWindTFC(i, j, k, var) + vertWindTFC(i, &
+                        j, k - 1, var))
+                  end if
                 else
                   !wvrt &
                   != 0.5 &
@@ -6350,8 +6547,12 @@ module update_module
                 if(topography) then
                   ! TFC FJ
                   buoy = - g_ndim * rhop / rho
-                  buoy = buoy - dt * rhoStratTFC(i, j, k) / rho &
-                      * bvsStratTFC(i, j, k) * wvrt
+                  if(model == "compressible") then
+                    buoy = buoy - dt * bvsStratTFC(i, j, k) * wvrt
+                  else
+                    buoy = buoy - dt * rhoStratTFC(i, j, k) / rho &
+                        * bvsStratTFC(i, j, k) * wvrt
+                  end if
                 else
                   buoy = - g_ndim * rhop / rho - dt * (rhoStrat(k) / rho &
                       * PStrat(k) / PStrat_0(k) * bvsStrat(k) * wvrt + g_ndim &
@@ -6370,6 +6571,52 @@ module update_module
         end if
       else
         stop 'upd_mod unknown'
+      end if
+    else if(upd_var == "P") then
+      ! SK: update of mass-weighted potential temp. for compressible model
+      if(upd_mod /= "tot") then
+        stop 'upd_mod unknown'
+      else
+        if(int_mod /= "expl") then
+          stop 'ERROR: wrong int_mod for upd_mod = lhs'
+        end if
+
+        if(TurbScheme .or. rayTracer) then
+          call calculate_heating(var, flux, heat)
+        else
+          heat = 0.0
+        end if
+
+        do k = 1, nz
+          do j = 1, ny
+            do i = 1, nx
+              ! using JPu as the carrier flux
+              fL = flux(i - 1, j, k, 1, iVarP) ! mass flux accros left cell edge
+              fR = flux(i, j, k, 1, iVarP) ! right
+              gB = flux(i, j - 1, k, 2, iVarP) ! backward
+              gF = flux(i, j, k, 2, iVarP) ! forward
+              hD = flux(i, j, k - 1, 3, iVarP) ! downward
+              hU = flux(i, j, k, 3, iVarP) ! upward
+
+              ! convective part
+              fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
+
+              ! TFC FJ
+              if(topography) then
+                fluxDiff = fluxDiff / jac(i, j, k)
+              end if
+
+              ! F(phi)
+              F = - fluxDiff - heat(i, j, k)
+
+              ! update: q(m-1) -> q(m)
+              q(i, j, k) = dt * F + alpha(m) * q(i, j, k)
+
+              ! update density
+              var(i, j, k, iVarP) = var(i, j, k, iVarP) + beta(m) * q(i, j, k)
+            end do
+          end do
+        end do
       end if
     else
       stop 'upd_var unknown'
@@ -6928,7 +7175,7 @@ module update_module
 
       select case(model)
 
-      case("Boussinesq", "pseudo_incompressible")
+      case("Boussinesq", "pseudo_incompressible", "compressible")
 
         !----------------------------
         !   Full model time step
@@ -6960,7 +7207,7 @@ module update_module
 
               select case(model)
 
-              case("pseudo_incompressible")
+              case("pseudo_incompressible", "compressible")
                 if(fluctuationMode) then
                   if(topography) then
                     bMaxNew = abs(var(i, j, k, 1)) / (rhoStratTFC(i, j, k) &
@@ -9839,6 +10086,169 @@ module update_module
     end if
 
   end subroutine momentumPredictorTestTFC
+
+  !---------------------------------------------------------------------
+  subroutine piUpdate(var, pinew, dt, int_mod, flux)
+    !-----------------------------------------
+    ! in the compressible model pi' is updated
+    ! in the explicit and implicit Euler step
+    !-----------------------------------------
+
+    ! in/out variables
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
+        intent(inout) :: pinew
+    real, intent(in) :: dt
+    character(len = *), intent(in) :: int_mod
+    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
+
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz) :: heat
+
+    ! local variables
+    integer :: i, j, k
+    real :: fL, fR, gB, gF, hD, hU
+    real :: fluxDiff
+    real :: dPdPi
+
+    select case(int_mod)
+
+    case("expl")
+      do k = 1, nz + 1
+        do j = 1, ny + 1
+          do i = 1, nx + 1
+            ! using JPu as the carrier flux
+            fR = var(i, j, k, 2) ! mass flux accros right cell edge
+            fL = var(i - 1, j, k, 2) ! left
+            gF = var(i, j, k, 3) ! forward
+            gB = var(i, j - 1, k, 3) ! backward
+            hU = var(i, j, k, 4) ! upward
+            hD = var(i, j, k - 1, 4) ! downward
+            ! richtige Indizes ???
+
+            ! convective part
+            fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
+
+            fluxDiff = fluxDiff / jac(i, j, k)
+
+            ! (\partial P / \partial \pi) from latest update of P
+            dPdPi = 1 / (gamma - 1) * (Rsp / pref) ** (1 - gamma) * var(i, j, &
+                k, iVarP) ** (2 - gamma)
+
+            ! update density
+            pinew(i, j, k) = var(i, j, k, 5) - dt * fluxDiff / dPdPi
+          end do
+        end do
+      end do
+
+    case("expl_heating")
+
+      call calculate_heating(var, flux, heat)
+      do k = - nbz, nz + nbz
+        do j = - nby, ny + + nby
+          do i = - nbx, nx + nbx
+            pinew(i, j, k) = var(i, j, k, 5) - dt * heat(i, j, k)
+          end do
+        end do
+      end do
+
+    case default
+      stop "piUpdate: Unknown case int_mod."
+
+    end select
+
+  end subroutine piUpdate
+  !---------------------------------------------------------------------
+
+  ! SK
+  subroutine bvsUpdate(bvs, var)
+    !--------------------------------------
+    ! updates N^2 in the compressible model
+    ! because it is timedependent
+    !--------------------------------------
+    ! in/out variables
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
+        intent(in) :: var
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, (- 1):(nz + 2)), &
+        intent(inout) :: bvs
+
+    ! local variables
+    integer :: i, j, k
+
+    if(testCase == "SkamarockKlemp94") then
+      return
+    end if
+
+    ! N^2 = gP / ( \rho \Bar{\theta}^2 J) * d J\Bar{\theta} / (dz)
+    if(topography) then
+      ! bvs = 0.0
+      do i = - nbx, nx + nbx
+        do j = - nby, ny + nby
+          ! Lower boundary.
+          bvs(i, j, - 1) = g_ndim * var(i, j, 0, iVarP) / (var(i, j, 0, 1) &
+              + rhoStratTFC(i, j, 0)) / (thetaStratTFC(i, j, 0) ** 2) / jac(i, &
+              j, 0) * (thetaStratTFC(i, j, 1) - thetaStratTFC(i, j, 0)) / dz
+          bvs(i, j, 0) = bvs(i, j, - 1)
+          ! Between boundaries.
+          do k = 1, nz
+            bvs(i, j, k) = g_ndim * var(i, j, k, iVarP) / (var(i, j, k, 1) &
+                + rhoStratTFC(i, j, k)) / (thetaStratTFC(i, j, k) ** 2) &
+                / jac(i, j, k) * 0.5 * (thetaStratTFC(i, j, k + 1) &
+                - thetaStratTFC(i, j, k - 1)) / dz
+          end do
+          ! Upper boundary.
+          bvs(i, j, nz + 1) = g_ndim * var(i, j, nz + 1, iVarP) / (var(i, j, &
+              nz + 1, 1) + rhoStratTFC(i, j, nz + 1)) / (thetaStratTFC(i, j, &
+              nz + 1) ** 2) / jac(i, j, nz + 1) * (thetaStratTFC(i, j, nz + 1) &
+              - thetaStratTFC(i, j, nz)) / dz
+          bvs(i, j, nz + 2) = bvs(i, j, nz + 1)
+        end do
+      end do
+    end if
+  end subroutine bvsUpdate
+
+  !---------------------------------------------------------------------
+
+  subroutine P_update(var, var0, dt)
+    !------------------------------------------
+    ! Update of P in first implicit timestep
+    ! to obatin P^(n+1/2)
+    !------------------------------------------
+    real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
+        + nbz), nVar), intent(inout) :: var
+    real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
+        + nbz), nVar), intent(in) :: var0
+    real, intent(in) :: dt
+
+    ! local variables
+    integer :: i, j, k
+    real :: fL, fR, gB, gF, hD, hU
+    real :: fluxDiff
+
+    do k = 1, nz
+      do j = 1, ny
+        do i = 1, nx
+          ! using JPu as the carrier flux
+          fL = var(i - 1, j, k, 2) ! mass flux accros left cell edge
+          fR = var(i, j, k, 2) ! right
+          gB = var(i, j - 1, k, 3) ! backward
+          gF = var(i, j, k, 3) ! forward
+          hD = var(i, j, k - 1, 4) ! downward
+          hU = var(i, j, k, 4) ! upward
+
+          ! convective part
+          fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
+
+          ! Divergenz
+          fluxDiff = - fluxDiff / jac(i, j, k)
+
+          ! update density
+          var(i, j, k, iVarP) = var0(i, j, k, iVarP) + dt * fluxDiff
+        end do
+      end do
+    end do
+
+  end subroutine P_update
 
   !---------------------------------------------------------------------
 

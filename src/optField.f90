@@ -8,27 +8,29 @@ module opt_field_mod
   subroutine set_opt_field
 
     use type_module, ONLY:include_tracer, include_ice2, master, nVar, nBscVar, &
-        iVarIce, nVarIce, inN, inQ, inQv, iVarT, iVarO, include_testoutput
+        iVarIce, nVarIce, inN, inQ, inQv, iVarT, iVarO, include_testoutput, &
+        model, iVarP
 
     integer :: numOfld, indM1, numOfldVar, allocstat !auxillary variables
 
     nBscVar = nVar !
-    indM1 = nBscVar
+
+    if(model == "compressible") then
+      nVar = nVar + 1
+      iVarP = nVar
+    end if
 
     if(include_tracer) then
       nVar = nVar + 1
-      iVarT = indM1 + 1
-      indM1 = indM1 + 1
+      iVarT = nVar
     end if
 
     if(include_ice2) then
       nVarIce = 3
       nVar = nVar + nVarIce
-
-      inN = indM1 + 1
-      inQ = indM1 + 2
-      inQv = indM1 + 3
-      indM1 = indM1 + nVarIce
+      inN = nVar - 2
+      inQ = nVar - 1
+      inQv = nVar
 
       allocate(iVarIce(nVarIce), stat = allocstat)
       if(allocstat /= 0) stop "set_dim_opt_field.f90: Could not allocate &
@@ -39,8 +41,7 @@ module opt_field_mod
 
     if(include_testoutput) then
       nVar = nVar + 3
-      iVarO = indM1 + 1
-      indM1 = indM1 + 3
+      iVarO = nVar - 2
     end if
 
   end subroutine set_opt_field
@@ -49,8 +50,14 @@ module opt_field_mod
 
     use type_module, ONLY:master, include_tracer, include_ice2, iceList2, &
         tracerList, nVar, nBscVar, varOut, varIn, iVarIce, nVarIce, inN, inQ, &
-        inQv, iVarT, varOut, include_testoutput, iVarO, varOut, varIn
+        inQv, iVarT, varOut, include_testoutput, iVarO, model, iVarP, varOut, &
+        varIn
     integer i, j, del
+
+    if(model == "compressible") then
+      varOut(iVarP) = 0
+      varIn(iVarP) = 0
+    end if
 
     if(include_ice2) then
       ! read ice physics parametrization
