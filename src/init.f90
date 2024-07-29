@@ -42,7 +42,8 @@ module init_module
   !UAB
   !subrouine setup (var,var0,var1,flux,force,source,dRho,dRhop,dMom,dTheta)
   subroutine setup(var, var0, var1, varG, flux, flux0, force, source, dRho, &
-      dRhop, dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer, tracerforce)
+      dRhop, dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer, &
+      tracerforce, dPot)
 
     !UAE
     !-----------------------------------------
@@ -60,6 +61,7 @@ module init_module
     real, dimension(:, :, :), allocatable :: dTheta ! RK-Update for theta
     real, dimension(:, :, :, :), allocatable :: dIce ! RK-Update for nIce,qIce,qAer,qv
     real, dimension(:, :, :), allocatable :: dTracer ! RK-Update for rhoTracer
+    real, dimension(:, :, :), allocatable :: dPot ! RK-Update for P
 
     !UAB
     real, dimension(:), allocatable :: dPStrat, drhoStrat ! RK-Update for P
@@ -137,14 +139,18 @@ module init_module
     !-------------------------------------
 
     read(unit = 10, nml = variables)
+    ! read model equation specifications
+    read(unit = 10, nml = modelList)
 
     if(include_ice .and. include_tracer) then
       stop "init.f90: cannot include ice and tracer. Check the namelist."
     end if
 
-    if(include_ice) nVar = nVar + 4
+    if(nVar /= 8) stop "Only nVar = 8 is a valid choice at the moment!"
 
     call set_opt_field
+
+    if(include_ice) nVar = nVar + 4
 
     ! allocate var = (rho,u,v,w,pEx)
     allocate(var(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), stat &
@@ -190,6 +196,13 @@ module init_module
     allocate(dTheta(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
         = allocstat)
     if(allocstat /= 0) stop "init.f90: Could not allocate dTheta."
+
+    ! allocate dPot
+    if(model == "compressible") then
+      allocate(dPot(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+          = allocstat)
+      if(allocstat /= 0) stop "init.f90: Could not allocate dPot."
+    end if
 
     ! allocate dIce
     if(include_ice) then
@@ -292,7 +305,7 @@ module init_module
     !-------------------------------------
 
     ! read model equation specifications
-    read(unit = 10, nml = modelList)
+    !read(unit = 10, nml = modelList)
 
     ! read solver specifications
     read(unit = 10, nml = solverList)
@@ -562,6 +575,38 @@ module init_module
             solid_wall!"
       end if
 
+    case("compressible")
+
+      updateMass = .true.
+      predictMomentum = .true.
+      correctMomentum = .true.
+      updateTheta = .false.
+
+      if(master) then ! modified by Junhong Wei (20170216)
+        write(90, "(a25)", advance = "no") "updateMass != "
+        write(90, *) updateMass
+        write(90, "(a25)", advance = "no") "predictMomentum != "
+        write(90, *) predictMomentum
+        write(90, "(a25)", advance = "no") "correctMomentum != "
+        write(90, *) correctMomentum
+        write(90, "(a25)", advance = "no") "updateTheta != "
+        write(90, *) updateTheta
+        write(90, *) ""
+      end if ! modified by Junhong Wei (20170216)
+
+      !overwrite unsuitable input settings
+      if(zBoundary == "periodic") then
+        print *, "WARNING: zBoundary periodic not possible.  Reset to &
+            solid_wall!"
+        zBoundary = "solid_wall"
+        write(90, "(a)") "WARNING: zBoundary periodic not possible.  Reset to &
+            solid_wall!"
+      end if
+
+      ! Allow compressible model only in TFC with semi-implicit time stepping
+      if(.not. topography .or. timeScheme /= "semiimplicit") stop "TFC and &
+          semi-implicit time stepping needed in compressible model!"
+
     case default
       print *, "model = ", model
       stop "initialize: Unknown model"
@@ -758,7 +803,7 @@ module init_module
       ! vertical(2) = +cos(vert_theta*pi/180.)*sin(vert_alpha*pi/180.)
       ! vertical(3) = +sin(vert_theta*pi/180.)
 
-    case("pseudo_incompressible")
+    case("pseudo_incompressible", "compressible")
 
       if(master) then ! modified by Junhong Wei (20161121)
         print *, "WARNING: only wave packet test case is  changed to density &
@@ -1046,7 +1091,7 @@ module init_module
 
             ! write to field
             select case(model)
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
 
               ! add random noise
               rho = rho + randNoise(i, j, k)
@@ -1148,7 +1193,7 @@ module init_module
       end do
 
       select case(model)
-      case("pseudo_incompressible")
+      case("pseudo_incompressible", "compressible")
 
         var(:, :, 0, 4) = 0.0 ! reset velocity at wall to zero
         var(:, :, nz, 4) = 0.0 ! reset velocity at wall to zero
@@ -1244,7 +1289,7 @@ module init_module
         do j = 0, (ny + 1)
           do i = 0, (nx + 1)
             select case(model)
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
               ! initialization density = background density
               ! subtract background for fluctuation mode
 
@@ -1385,7 +1430,7 @@ module init_module
         do j = 0, (ny + 1)
           do i = 0, (nx + 1)
             select case(model)
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
               ! initialization density = background density
               ! subtract background for fluctuation mode
 
@@ -1498,7 +1543,7 @@ module init_module
 
             select case(model)
 
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
 
               ! calc pseudo-incompressible density rho*
               if(referenceQuantities == "SI") then
@@ -1618,7 +1663,7 @@ module init_module
 
               select case(model)
 
-              case("pseudo_incompressible")
+              case("pseudo_incompressible", "compressible")
 
                 var(i, j, k, 1) = rho
 
@@ -1886,7 +1931,7 @@ module init_module
 
             select case(model)
 
-            case("pseudo_incompressible")
+            case("pseudo_incompressible", "compressible")
 
               var(i, j, k, 1) = rho
 
@@ -1997,7 +2042,7 @@ module init_module
 
               select case(model)
 
-              case("pseudo_incompressible")
+              case("pseudo_incompressible", "compressible")
 
                 if(fluctuationMode) then
                   ! calc pseudo-incompressible density rho*
@@ -2134,7 +2179,7 @@ module init_module
 
               select case(model)
 
-              case("pseudo_incompressible")
+              case("pseudo_incompressible", "compressible")
 
                 var(i, j, k, 1) = rho
 
@@ -2157,7 +2202,7 @@ module init_module
 
               select case(model)
 
-              case("pseudo_incompressible")
+              case("pseudo_incompressible", "compressible")
 
                 if(fluctuationMode) then
                   var(i, j, k, 1) = 0.0
@@ -2265,7 +2310,7 @@ module init_module
 
               select case(model)
 
-              case("pseudo_incompressible")
+              case("pseudo_incompressible", "compressible")
 
                 var(i, j, k, 1) = rho
 
@@ -2286,7 +2331,7 @@ module init_module
             else ! outside bubble
               select case(model)
 
-              case("pseudo_incompressible")
+              case("pseudo_incompressible", "compressible")
 
                 if(fluctuationMode) then
                   var(i, j, k, 1) = 0.0
@@ -5098,9 +5143,9 @@ module init_module
             ** 3 * uRef, " m/s"
         write(*, fmt = "(a25,f10.1,a7)") "cg_z  = ", NN * mm * kk / kTot ** 3 &
             * uRef, " m/s"
-        write(*, fmt = "(a25,f10.1,a7)") "cg_z2  = ", & 
-          - (NN**2. - (f_Coriolis_dim / lRef)**2.) * mm * (kk**2. + ll**2.) / kTot2 ** 2. / omi &
-            * uRef, " m/s"
+        write(*, fmt = "(a25,f10.1,a7)") "cg_z2  = ", - (NN ** 2. &
+            - (f_Coriolis_dim / lRef) ** 2.) * mm * (kk ** 2. + ll ** 2.) &
+            / kTot2 ** 2. / omi * uRef, " m/s"
         write(*, fmt = "(a25,f10.1,a7)") "u_jet  = ", u0_jet_dim, " m/s"
         print *, ""
       end if ! modified by Junhong Wei (20170216)
@@ -5899,7 +5944,7 @@ module init_module
         do i = 1, nx
           select case(model)
 
-          case("pseudo_incompressible")
+          case("pseudo_incompressible", "compressible")
 
             if(referenceQuantities == "SI") then
               theta_dim = th_bgr(i, j, k)
