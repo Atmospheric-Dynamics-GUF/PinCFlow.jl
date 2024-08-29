@@ -5,21 +5,20 @@ module ice2_sub_module
   subroutine output_ice(i, j, k, iVar, var, field_prc)
 
     use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice2, &
-        nVarIce, inN, inQ, inQv, master, model, fluctuationMode, topography, &
-        thetaRefRatio, timeScheme, L_ice, R_v, S_c, Dep, pSatIceRef, epsil0, &
-        epsil0hat, L_hat, master, include_testoutput
+        &nVarIce, inN, inQ, inQv, master, model, fluctuationMode, topography, &
+        &thetaRefRatio, timeScheme, L_ice, R_v, S_c, Dep, pSatIceRef, epsil0, &
+        &epsil0hat, L_hat, master, include_testoutput, var_type
 
     use mpi_module
     use atmosphere_module, ONLY:PStrat01, PStratTilde01, PStrat, rhoStrat, &
-        piStrat, kappaInv, PStratTFC, piStratTfc, rhoStratTFC, gamma_1, p0, &
-        mRef, uRef, kappa, Rsp, thetaRef, tRef, g, pRef
+        &piStrat, kappaInv, PStratTFC, piStratTfc, rhoStratTFC, gamma_1, p0, &
+        &mRef, uRef, kappa, Rsp, thetaRef, tRef, g, pRef
     use boundary_module !, ONLY : setHalos, setBoundary, reconstruction
     !use flux_module
 
     implicit none
 
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(in) :: var
+    type(var_type), intent(in) :: var
 
     ! local and global output field and record nbs.
     real * 4, dimension(nx, ny), intent(out) :: field_prc
@@ -30,13 +29,13 @@ module ice2_sub_module
     !some diagnostics
     if(master .and. i == 1 .and. j == 1 .and. k == 1 .and. iVar == inN) then
       print *, ""
-      print *, "----------------------------------------------"
+      print "(a)", repeat("-", 80)
       print *, " subroutine output_ice:  "
-      print *, "----------------------------------------------"
+      print "(a)", repeat("-", 80)
       print *, ""
-      print *, "max value N in master =", maxval(real(var(:, :, :, inN)))
-      print *, "max value Q in master =", maxval(real(var(:, :, :, inQ)))
-      print *, "max value Qv in master =", maxval(real(var(:, :, :, inQv)))
+      print *, "max value N in master =", maxval(real(var%ICE2(:, :, :, inN)))
+      print *, "max value Q in master =", maxval(real(var%ICE2(:, :, :, inQ)))
+      print *, "max value Qv in master =", maxval(real(var%ICE2(:, :, :, inQv)))
       print *, ""
     end if
 
@@ -46,7 +45,7 @@ module ice2_sub_module
 
         if(topography) then
 
-          rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+          rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
 
           theta = PstratTFC(i, j, k) / rho
 
@@ -55,17 +54,17 @@ module ice2_sub_module
           !   stop
           !else
           !problems in \pi if heating switched on
-          exn_p = var(i, j, k, 5) + (PstratTFC(i, j, k) / p0) ** gamma_1
+          exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
           !end if
 
         else
 
-          rho = var(i, j, k, 1) + rhoStrat(k)
+          rho = var%rho(i, j, k) + rhoStrat(k)
 
           theta = Pstrat(k) / rho
 
           !problems in \pi if heating of background
-          exn_p = var(i, j, k, 5) + (PStrat(k) / p0) ** gamma_1
+          exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
 
         end if ! topography
 
@@ -82,7 +81,7 @@ module ice2_sub_module
 
       psi = exp(L_hat * (1. - 1. / (temp * thetaRefRatio))) !Psat_ice(temp)
 
-      Qv = var(i, j, k, inQv) ! Q_v = \rho q_v
+      Qv = var%ICE2(i, j, k, inQv) ! Q_v = \rho q_v
 
       SIce = temp * Qv / psi / epsil0hat !SatRatio(Qv, temp, psi)
 
@@ -95,7 +94,7 @@ module ice2_sub_module
 
     if(iVar .eq. inN) then
 
-      field_prc(i, j) = real(var(i, j, k, iVar) / rho / mRef, kind = 4) ! N_v = \rho n
+      field_prc(i, j) = real(var%ICE2(i, j, k, iVar) / rho / mRef, kind = 4) ! N_v = \rho n
 
     elseif(iVar .eq. inQ) then
 
@@ -103,7 +102,7 @@ module ice2_sub_module
 
     elseif(iVar .eq. inQv) then
 
-      field_prc(i, j) = real(var(i, j, k, iVar) / rho, kind = 4) !Q_v = \rho q_v
+      field_prc(i, j) = real(var%ICE2(i, j, k, iVar) / rho, kind = 4) !Q_v = \rho q_v
 
       !if (include_testoutput) then
       !  field_prc(i, j) = real(var(i, j, k, iVar), kind = 4)
@@ -123,4 +122,3 @@ module ice2_sub_module
   end subroutine output_ice
 
 end module ice2_sub_module
-

@@ -42,22 +42,22 @@ print(" ".join(("Time:", str(data.tt[it]), "s")))
 
 # Set fields of interest.
 if choice == "xy":
-  psi = data.psi[it, :, iz]
-  psiref = reference.psi[it, :, iz]
+  theta = data.psi["theta"][it, iz]
+  thetaref = reference.psi["theta"][it, iz]
   xx = 0.001 * data.xx[iz]
   yy = 0.001 * data.yy[iz]
   xlabel = r"$x \, \mathrm{\left[km\right]}$"
   ylabel = r"$y \, \mathrm{\left[km\right]}$"
 elif choice == "xz":
-  psi = data.psi[it, :, :, iy]
-  psiref = reference.psi[it, :, :, iy]
+  theta = data.psi["theta"][it, :, iy]
+  thetaref = reference.psi["theta"][it, :, iy]
   xx = 0.001 * data.xx[:, iy]
   yy = 0.001 * data.zz[:, iy]
   xlabel = r"$x \, \mathrm{\left[km\right]}$"
   ylabel = r"$z \, \mathrm{\left[km\right]}$"
 elif choice == "yz":
-  psi = data.psi[it, ..., ix]
-  psiref = reference.psi[it, ..., ix]
+  theta = data.psi["theta"][it, ..., ix]
+  thetaref = reference.psi["theta"][it, ..., ix]
   xx = 0.001 * data.yy[..., ix]
   yy = 0.001 * data.zz[..., ix]
   xlabel = r"$y \, \mathrm{\left[km\right]}$"
@@ -66,19 +66,19 @@ elif choice == "yz":
 # Select area.
 xx = xx[:, int(0.5 * data.nx):int(0.875 * data.nx)]
 yy = yy[:, int(0.5 * data.nx):int(0.875 * data.nx)]
-psi = psi[..., int(0.5 * data.nx):int(0.875 * data.nx)]
-psiref = psiref[..., int(0.5 * data.nx):int(0.875 * data.nx)]
+theta = theta[..., int(0.5 * data.nx):int(0.875 * data.nx)]
+thetaref = thetaref[..., int(0.5 * data.nx):int(0.875 * data.nx)]
 
 # Compute difference.
-deltapsi = psi - psiref
+deltatheta = theta - thetaref
 
 # Subtract offset.
-psi[5] = psi[5] - 300.0
+theta -= 300.0
 
 # Make plot.
-maximum = numpy.max(numpy.abs(psi[5]))
+maximum = numpy.max(numpy.abs(theta))
 figure, axes = pyplot.subplots()
-plot = axes.pcolormesh(xx, yy, psi[5], vmin = - maximum, vmax = maximum, \
+plot = axes.pcolormesh(xx, yy, theta, vmin = - maximum, vmax = maximum, \
     shading = "gouraud", cmap = "seismic")
 axes.set_xlabel(xlabel)
 axes.set_ylabel(ylabel)
@@ -88,9 +88,9 @@ figure.savefig("".join((data_path, "/results/coldBubble.png")), dpi = 500)
 
 # Make difference plot.
 if data_path != reference_path:
-  maximum = numpy.max(numpy.abs(deltapsi[5]))
+  maximum = numpy.max(numpy.abs(deltatheta))
   figure, axes = pyplot.subplots()
-  plot = axes.pcolormesh(xx, yy, deltapsi[5], vmin = - maximum, vmax \
+  plot = axes.pcolormesh(xx, yy, deltatheta, vmin = - maximum, vmax \
       = maximum, shading = "gouraud", cmap = "seismic")
   axes.set_xlabel(xlabel)
   axes.set_ylabel(ylabel)

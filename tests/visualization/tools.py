@@ -1,5 +1,6 @@
 """This Python module provides tools for working with PincFlow."""
 
+import re
 import numpy
 import numpy.linalg as linalg
 import scipy.interpolate as interpolate
@@ -12,7 +13,7 @@ class ModelOutput:
     """Import and format data."""
 
     # Read input file.
-    with open("".join((path, "input.f90"))) as file:
+    with open("".join((path, "/namelists.txt"))) as file:
       lines = file.readlines()
 
     # Remove white spaces, empty lines, comments and namelist titles.
@@ -20,53 +21,61 @@ class ModelOutput:
         len(entry.strip()) > 1 and entry.strip()[0] not in ("!", "&")]
 
     # Get keys and values.
-    keys = [entry.split("=", 1)[0].strip() for entry in lines]
+    keys = [entry.split("=", 1)[0].strip().lower() for entry in lines]
     values = [entry.split("=", 1)[1].strip() for entry in lines]
 
-    # Remove trailing commas.
-    values = [entry.rstrip(",") if "," in entry else entry for entry in values]
+    values = [entry.rstrip(",") if ","  in entry else entry for entry in values]
 
     # Adjust boolean entries.
-    values = [entry.replace(".true.", "True") if ".true." in entry else entry \
-        for entry in values]
-    values = [entry.replace(".false.", "False") if ".false." in entry else \
-        entry for entry in values]
+    values = [re.sub(r"\bT\b|\.true\.", "True", entry, flags = re.IGNORECASE) \
+        if re.search(r"\bT\b|\.true\.", entry, flags = re.IGNORECASE) \
+        else entry for entry in values]
+    values = [re.sub(r"\bF\b|\.false\.", "False", entry, \
+        flags = re.IGNORECASE) if re.search(r"\bF\b|\.false\.", entry, \
+        flags = re.IGNORECASE) else entry for entry in values]
+
+    # Adjust array entries.
+    values = ["".join(("[", entry, "]")) if "," in entry or "*" in entry \
+        else entry for entry in values]
+    values = [re.sub(r"(\D)(\d+\*)([\d.eE+-]+)([^\d.eE+-]?)", r"\1\2[\3]\4", \
+        entry) if re.search(r"(\D)(\d+\*)([\d.eE+-]+)([^\d.eE+-]*)", entry) \
+        else entry for entry in values]
 
     # Evaluate entries.
     values = [eval(entry) if "=" not in entry else entry for entry in values]
+
+    # Strip strings.
+    values = [entry.strip() if isinstance(entry, str) else entry for entry \
+        in values]
+
+    # Flatten nested lists.
+    values = [[[subentry] if not isinstance(subentry, list) else subentry \
+        for subentry in entry] if isinstance(entry, list) else entry for entry \
+        in values]
+    values = [[subsubentry for subentry in entry for subsubentry in subentry] \
+        if isinstance(entry, list) else entry for entry in values]
+
+    # Concatenate array elements.
+    values = [[values[nn] for nn in range(len(keys)) if keys[nn].split("(")[0] \
+        == keys[mm].split("(")[0]] if "(" in keys[mm] else values[mm] for mm \
+        in range(len(keys))]
+    keys = [entry.split("(")[0] for entry in keys]
 
     # Save to dictionary.
     parameters = {keys[nn]: values[nn] for nn in range(len(keys))}
     self.parameters = parameters
 
     # Set attributes.
-    self.nx = parameters["sizeX"]
-    self.ny = parameters["sizeY"]
-    self.nz = parameters["sizeZ"]
+    self.nx = parameters["sizex"]
+    self.ny = parameters["sizey"]
+    self.nz = parameters["sizez"]
     self.lx = parameters["lx_dim"][1] - parameters["lx_dim"][0]
     self.ly = parameters["ly_dim"][1] - parameters["ly_dim"][0]
     self.lz = parameters["lz_dim"][1] - parameters["lz_dim"][0]
     self.topography = parameters["topography"]
-    self.topography_time = parameters["topographyTime"]
-    self.output_type = parameters["outputType"]
-    self.npsi = numpy.sum(parameters["varOut"])
-
-    # Adjust number of variables.
-    varout = list(parameters["varOut"]) + max(0, 20 - self.npsi) * [0]
-    ivar = 7
-    if "model" in parameters and parameters["model"] == "compressible":
-      ivar += 1
-      varout[ivar] = 0
-    if "include_tracer" in parameters and parameters["include_tracer"]:
-      ivar += 1
-      varout[ivar] = 1
-    if "include_ice2" in parameters and parameters["include_ice2"]:
-      ivar += 3
-      varout[(ivar - 2):(ivar + 1)] = [1, 1, 1]
-    if "include_testoutput" in parameters and parameters["include_testoutput"]:
-      ivar += 3
-      varout[(ivar - 2):(ivar + 1)] = [1, 1, 1]
-    self.npsi = numpy.sum(varout)
+    self.topography_time = parameters["topographytime"]
+    self.output_type = parameters["outputtype"]
+    self.npsi = len(parameters["varout"])
 
     # Define grid spacing.
     self.dx = self.lx / self.nx
@@ -81,33 +90,24 @@ class ModelOutput:
         indexing = "ij")
 
     # Import data.
-    psi = numpy.fromfile("".join((path, "pf_all.dat")), dtype = "float32")
+    psi = numpy.fromfile("".join((path, "/pf_all.dat")), dtype = "float32")
     self.nt = int(len(psi) / self.nx / self.ny / self.nz / self.npsi)
-    self.psi = numpy.reshape(psi, (self.nt, self.npsi, self.nz, self.ny, \
-        self.nx))
-
-    # Interpolate velocities to cell centers.
-    if self.nx > 1:
-      self.psi[:, 1, ..., 1:] = 0.5 * (self.psi[:, 1, ..., 1:] + self.psi[:, \
-          1, ..., :(- 1)])
-    if self.ny > 1:
-      self.psi[:, 2, :, 1:] = 0.5 * (self.psi[:, 2, :, 1:] + self.psi[:, 2, :, \
-          :(- 1)])
-    if self.nz > 1:
-      self.psi[:, 3, 1:] = 0.5 * (self.psi[:, 3, 1:] + self.psi[:, 3, :(- 1)])
+    psi = psi.reshape(self.nt, self.npsi, self.nz, self.ny, self.nx)
+    self.psi = {entry: psi[:, index] for (index, entry) \
+        in enumerate(parameters["varout"])}
 
     # Compute output times.
     self.tt = numpy.arange(self.nt, dtype = "float32")
     if self.output_type == "time":
-      self.tt *= parameters["outputTimeDiff"]
-    elif self.output_type == "timeStep":
-      self.tt[1:] = numpy.loadtxt("".join((path, "dt.dat")), \
-          dtype = "float32")[:, 1].cumsum()[(parameters["nOutput"] \
-          - 1)::parameters["nOutput"]]
+      self.tt *= parameters["outputtimediff"]
+    elif self.output_type == "timestep":
+      self.tt[1:] = numpy.loadtxt("".join((path, "/dt.dat")), \
+          dtype = "float32")[:, 1].cumsum()[(parameters["noutput"] \
+          - 1)::parameters["noutput"]]
 
     # Define topography.
     if self.topography:
-      hh = numpy.fromfile("".join((path, "topography.dat")), dtype = "float32")
+      hh = numpy.fromfile("".join((path, "/topography.dat")), dtype = "float32")
       self.hh = numpy.reshape(hh, (self.ny, self.nx)) * numpy.ones((self.nt, \
           self.ny, self.nx))
       if self.topography_time > 0.0:
@@ -116,12 +116,12 @@ class ModelOutput:
 
     # Import background fields.
     if self.parameters["model"] != "Boussinesq":
-      pbar = numpy.fromfile("".join((path, "pStrat.dat")), dtype = "float32")
-      thetabar = numpy.fromfile("".join((path, "thetaStrat.dat")), dtype \
+      pbar = numpy.fromfile("".join((path, "/pStrat.dat")), dtype = "float32")
+      thetabar = numpy.fromfile("".join((path, "/thetaStrat.dat")), dtype \
           = "float32")
-      rhobar = numpy.fromfile("".join((path, "rhoStrat.dat")), dtype \
+      rhobar = numpy.fromfile("".join((path, "/rhoStrat.dat")), dtype \
           = "float32")
-      n2bar = numpy.fromfile("".join((path, "bvsStrat.dat")), dtype \
+      n2bar = numpy.fromfile("".join((path, "/bvsStrat.dat")), dtype \
           = "float32")
       if self.topography:
         self.pbar = pbar.reshape((self.nt, self.nz, self.ny, self.nx))
@@ -135,10 +135,14 @@ class ModelOutput:
         self.n2bar = n2bar.reshape((self.nt, self.nz))
 
     # Import WKB data.
-    if self.parameters["rayTracer"]:
-      wkb = numpy.fromfile("".join((path, "pf_wkb_mean.dat")), dtype \
+    if self.parameters["raytracer"]:
+      wkb = numpy.fromfile("".join((path, "/pf_wkb_mean.dat")), dtype \
           = "float32")
       self.wkb = numpy.reshape(wkb, (self.nt, 13, self.nz, self.ny, self.nx))
+      rays = numpy.fromfile("".join((path, "/pf_wkb_rays.dat")), dtype \
+          = "float32")
+      self.rays = numpy.reshape(rays, (self.nt, 14, parameters["nrayoutput"], \
+          self.nz, self.ny, self.nx))
 
   def transform(self, interpolation = False):
     """Transform and interpolate data."""
@@ -177,18 +181,20 @@ class ModelOutput:
       self.zc = (jj[:, None] * self.zz + self.hh[:, None]).copy()
 
       # Compute Cartesian vertical wind.
-      self.psi[:, 3] = (jj[:, None] * self.psi[:, 3] - jj[:, None] * gg[0] \
-          * self.psi[:, 1] - jj[:, None] * gg[1] * self.psi[:, 2])
+      self.psi["w"] *= jj[:, None]
+      if self.nx > 1:
+        self.psi["w"] -= jj[:, None] * gg[0] * self.psi["u"]
+      if self.ny > 1:
+        self.psi["w"] -= jj[:, None] * gg[1] * self.psi["v"]
 
       # Interpolate to Cartesian grid (NumPy is way faster than SciPy).
       if interpolation:
         for it in range(self.nt):
           for iy in range(self.ny):
             for ix in range(self.nx):
-              for ipsi in range(self.npsi):
-                psi = numpy.interp(self.zz[:, iy, ix], self.zc[it, :, iy, ix], \
-                    self.psi[it, ipsi, :, iy, ix])
-                self.psi[it, ipsi, :, iy, ix] = psi
+              for key in self.psi:
+                self.psi[key][it, :, iy, ix] = numpy.interp(self.zz[:, iy, \
+                    ix], self.zc[it, :, iy, ix], self.psi[key][it, :, iy, ix])
         if self.parameters["model"] != "Boussinesq":
           for it in range(self.nt):
             for iy in range(self.ny):
@@ -205,7 +211,7 @@ class ModelOutput:
                 n2bar = numpy.interp(self.zz[:, iy, ix], self.zc[it, :, iy, \
                     ix], self.n2bar[it, :, iy, ix])
                 self.n2bar[it, :, iy, ix] = n2bar
-        if self.parameters["rayTracer"]:
+        if self.parameters["raytracer"]:
           for it in range(self.nt):
             for iwkb in range(self.wkb.shape[1]):
               for iy in range(self.ny):

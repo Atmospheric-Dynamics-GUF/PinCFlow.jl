@@ -300,10 +300,10 @@ module xweno_module
         sSum = sSum + gamma(2, 1, lambda2) * beta(i, k)
         r = 0
         omega(r, i, k, lambda2) = third * gamma(k, r, lambda2) * beta(i + 1, &
-            k) / sSum
+            &k) / sSum
         r = 1
         omega(r, i, k, lambda2) = third * gamma(k, r, lambda2) * beta(i, k) &
-            / sSum
+            &/ sSum
       end do i_loop2
     end do
 
@@ -326,7 +326,7 @@ module xweno_module
         sSum = sSum + gamma(3, 2, lambda2) * beta(i, k)
         do r = 0, k - 1
           omega(r, i, k, lambda2) = third * gamma(k, r, lambda2) * beta(i + 2 &
-              - r, k) / sSum
+              &- r, k) / sSum
         end do
       end do i_loop3
     end do
@@ -376,7 +376,7 @@ module xweno_module
     ! beta(k,r,xi) = beta(k,r-1,xi-1)
 
     print *, "xweno.f90/reconstruct1D_old: phiBarX(n/2,n/2+1) = ", n / 2, n &
-        / 2 + 1, phiBar(n / 2), phiBar(n / 2 + 1)
+        &/ 2 + 1, phiBar(n / 2), phiBar(n / 2 + 1)
 
     ! compute only interpolants at xi or at the edges xi +/- dx/2
     if(centered) then
@@ -428,7 +428,7 @@ module xweno_module
               sSum = sSum + beta(k, s) * gamma(k, s, lambda2)
             end do
             omega(k, r, lambda2) = 1.0 / 3.0 * beta(k, r) / sSum * gamma(k, r, &
-                lambda2)
+                &lambda2)
 
           end do
         end do

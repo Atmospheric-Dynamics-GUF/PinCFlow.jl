@@ -44,8 +44,7 @@ OFILES =	types.o \
 	sizeof.o \
 	tracer.o \
 	ice2.o \
-	ice2_sub.o \
-	optField.o
+	ice2_sub.o
 
 # Add build directory as prefix to path of *.o files.
 OBJ=$(addprefix $(BUILD)/, $(OFILES))
@@ -130,7 +129,6 @@ $(BUILD)/init.o: $(BUILD)/sizeof.o
 $(BUILD)/init.o: $(BUILD)/tracer.o
 $(BUILD)/init.o: $(BUILD)/ice2.o
 $(BUILD)/init.o: $(BUILD)/ice2_sub.o
-$(BUILD)/init.o: $(BUILD)/optField.o
 
 # muscl.f90
 $(BUILD)/muscl.o: $(BUILD)/types.o
@@ -147,7 +145,6 @@ $(BUILD)/update.o: $(BUILD)/boundary.o
 $(BUILD)/output.o: $(BUILD)/types.o
 $(BUILD)/output.o: $(BUILD)/sizeof.o
 $(BUILD)/output.o: $(BUILD)/ice2_sub.o
-$(BUILD)/output.o: $(BUILD)/optField.o
 
 # finish.f90
 $(BUILD)/finish.o: $(BUILD)/types.o
