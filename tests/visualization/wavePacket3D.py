@@ -42,33 +42,33 @@ it = 1
 print(" ".join(("Time:", str(data.tt[it]), "s")))
 
 # Compute difference.
-deltapsi = data.psi - reference.psi
+deltapsi = {key: data.psi[key] - reference.psi[key] for key in data.psi}
 
 # Make plot.
 if plot_all:
-  umax = numpy.max(numpy.absolute(data.psi[it, 1, :, 0]))
-  vmax = numpy.max(numpy.absolute(data.psi[it, 2, :, 0]))
-  wmax = numpy.max(numpy.absolute(data.psi[it, 3, :, 0]))
-  rhopmax = numpy.max(numpy.absolute(data.psi[it, 0, :, 0]))
-  pipmax = numpy.max(numpy.absolute(data.psi[it, 4, :, 0]))
+  umax = numpy.max(numpy.absolute(data.psi["u"][it, :, 0]))
+  vmax = numpy.max(numpy.absolute(data.psi["v"][it, :, 0]))
+  wmax = numpy.max(numpy.absolute(data.psi["w"][it, :, 0]))
+  rhopmax = numpy.max(numpy.absolute(data.psi["rho"][it, :, 0]))
+  pipmax = numpy.max(numpy.absolute(data.psi["pi"][it, :, 0]))
   figure, axes = pyplot.subplots(2, 3, figsize = (8.0, 6.0))
   zonal_wind = axes[0, 0].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-      data.psi[it, 1, :, 0], vmin = - umax, vmax = umax, shading = "gouraud", \
-      cmap = "seismic")
+      data.psi["u"][it, :, 0], vmin = - umax, vmax = umax, \
+      shading = "gouraud", cmap = "seismic")
   meridional_wind = axes[0, 1].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-      data.psi[it, 2, :, 0], vmin = - vmax, vmax = vmax, shading = "gouraud", \
-      cmap = "seismic")
+      data.psi["v"][it, :, 0], vmin = - vmax, vmax = vmax, \
+      shading = "gouraud", cmap = "seismic")
   vertical_wind = axes[0, 2].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-      data.psi[it, 3, :, 0], vmin = - wmax, vmax = wmax, shading = "gouraud", \
-      cmap = "seismic")
-  density = axes[1, 0].pcolormesh(data.xx[:, 0], data.zz[:, 0], data.psi[it, \
-      0, :, 0], vmin = - rhopmax, vmax = rhopmax, shading = "gouraud", cmap \
-      = "seismic")
+      data.psi["w"][it, :, 0], vmin = - wmax, vmax = wmax, \
+      shading = "gouraud", cmap = "seismic")
+  density = axes[1, 0].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
+      data.psi["rho"][it, :, 0], vmin = - rhopmax, vmax = rhopmax, \
+      shading = "gouraud", cmap = "seismic")
   exner_pressure = axes[1, 1].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-      data.psi[it, 4, :, 0], vmin = - pipmax, vmax = pipmax, shading \
-      = "gouraud", cmap = "seismic")
+      data.psi["pi"][it, :, 0], vmin = - pipmax, vmax = pipmax, \
+      shading = "gouraud", cmap = "seismic")
   potential_temperature = axes[1, 2].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-      data.psi[it, 5, :, 0], shading = "gouraud", cmap = "plasma")
+      data.psi["theta"][it, :, 0], shading = "gouraud", cmap = "plasma")
   axes[0, 0].set_title("Zonal wind")
   axes[0, 1].set_title("Meridional wind")
   axes[0, 2].set_title("Vertical wind")
@@ -85,10 +85,11 @@ if plot_all:
     axes.flat[nn].set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
     axes.flat[nn].set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
 else:
-  rhopmax = numpy.max(numpy.absolute(data.psi[it, 0, :, 0]))
+  rhopmax = numpy.max(numpy.absolute(data.psi["rho"][it, :, 0]))
   figure, axes = pyplot.subplots()
-  plot = axes.pcolormesh(data.xx[:, 0], data.zz[:, 0], data.psi[it, 0, :, 0], \
-      vmin = - rhopmax, vmax = rhopmax, shading = "gouraud", cmap = "seismic")
+  plot = axes.pcolormesh(data.xx[:, 0], data.zz[:, 0], \
+      data.psi["rho"][it, :, 0], vmin = - rhopmax, vmax = rhopmax, \
+      shading = "gouraud", cmap = "seismic")
   axes.set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
   axes.set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
   figure.colorbar(plot, label = r"$\rho' \," \
@@ -99,30 +100,30 @@ figure.savefig("".join((data_path, "/results/wavePacket3D.png")), dpi = 500)
 # Make difference plot.
 if data_path != reference_path:
   if plot_all:
-    umax = numpy.max(numpy.absolute(deltapsi[it, 1, :, 0]))
-    vmax = numpy.max(numpy.absolute(deltapsi[it, 2, :, 0]))
-    wmax = numpy.max(numpy.absolute(deltapsi[it, 3, :, 0]))
-    rhopmax = numpy.max(numpy.absolute(deltapsi[it, 0, :, 0]))
-    pipmax = numpy.max(numpy.absolute(deltapsi[it, 4, :, 0]))
-    thetamax = numpy.max(numpy.absolute(deltapsi[it, 5, :, 0]))
+    umax = numpy.max(numpy.absolute(deltapsi["u"][it, :, 0]))
+    vmax = numpy.max(numpy.absolute(deltapsi["v"][it, :, 0]))
+    wmax = numpy.max(numpy.absolute(deltapsi["w"][it, :, 0]))
+    rhopmax = numpy.max(numpy.absolute(deltapsi["rho"][it, :, 0]))
+    pipmax = numpy.max(numpy.absolute(deltapsi["pi"][it, :, 0]))
+    thetamax = numpy.max(numpy.absolute(deltapsi["theta"][it, :, 0]))
     figure, axes = pyplot.subplots(2, 3, figsize = (8.0, 6.0))
     zonal_wind = axes[0, 0].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-        deltapsi[it, 1, :, 0], vmin = - umax, vmax = umax, shading \
+        deltapsi["u"][it, :, 0], vmin = - umax, vmax = umax, shading \
         = "gouraud", cmap = "seismic")
     meridional_wind = axes[0, 1].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-        deltapsi[it, 2, :, 0], vmin = - vmax, vmax = vmax, shading \
+        deltapsi["v"][it, :, 0], vmin = - vmax, vmax = vmax, shading \
         = "gouraud", cmap = "seismic")
     vertical_wind = axes[0, 2].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-        deltapsi[it, 3, :, 0], vmin = - wmax, vmax = wmax, shading \
+        deltapsi["w"][it, :, 0], vmin = - wmax, vmax = wmax, shading \
         = "gouraud", cmap = "seismic")
-    density = axes[1, 0].pcolormesh(data.xx[:, 0], data.zz[:, 0], deltapsi[it, \
-        0, :, 0], vmin = - rhopmax, vmax = rhopmax, shading = "gouraud", cmap \
-        = "seismic")
+    density = axes[1, 0].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
+        deltapsi["rho"][it, :, 0], vmin = - rhopmax, vmax = rhopmax, shading = "gouraud", \
+        cmap = "seismic")
     exner_pressure = axes[1, 1].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-        deltapsi[it, 4, :, 0], vmin = - pipmax, vmax = pipmax, shading \
+        deltapsi["pi"][it, :, 0], vmin = - pipmax, vmax = pipmax, shading \
         = "gouraud", cmap = "seismic")
     potential_temperature = axes[1, 2].pcolormesh(data.xx[:, 0], data.zz[:, \
-        0], deltapsi[it, 5, :, 0], vmin = - thetamax, vmax = thetamax, shading \
+        0], deltapsi["theta"][it, :, 0], vmin = - thetamax, vmax = thetamax, shading \
         = "gouraud", cmap = "seismic")
     axes[0, 0].set_title("Zonal wind")
     axes[0, 1].set_title("Meridional wind")
@@ -140,9 +141,9 @@ if data_path != reference_path:
       axes.flat[nn].set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
       axes.flat[nn].set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
   else:
-    rhopmax = numpy.max(numpy.absolute(deltapsi[it, 0, :, 0]))
+    rhopmax = numpy.max(numpy.absolute(deltapsi["rho"][it, :, 0]))
     figure, axes = pyplot.subplots()
-    plot = axes.pcolormesh(data.xx[:, 0], data.zz[:, 0], deltapsi[it, 0, :, \
+    plot = axes.pcolormesh(data.xx[:, 0], data.zz[:, 0], deltapsi["rho"][it, :, \
         0], vmin = - rhopmax, vmax = rhopmax, shading = "gouraud", cmap \
         = "seismic")
     axes.set_xlabel(r"$x \, \mathrm{\left[km\right]}$")

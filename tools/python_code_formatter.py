@@ -72,6 +72,9 @@ for file in os.listdir(input_directory):
   with open("/".join((input_directory, file)), "r") as input:
     code = input.read()
 
+  # Replace tabs with whitespaces.
+  code = code.expandtabs()
+
   # Remove trailing whitespaces.
   code = "\n".join((entry.rstrip(" ") for entry in code.split("\n")))
 
