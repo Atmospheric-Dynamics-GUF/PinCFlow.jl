@@ -107,6 +107,9 @@ for file in os.listdir(input_directory):
   with open("/".join((input_directory, file)), "r") as input:
     code = input.read()
 
+  # Replace tabs with whitespaces.
+  code = code.expandtabs()
+
   # Remove leading and trailing whitespaces.
   code = "\n".join((entry.strip(" ") for entry in code.split("\n")))
 
@@ -269,16 +272,16 @@ for file in os.listdir(input_directory):
       if first_linebreak:
         if operator_linebreak_point.match(left):
           left = operator_linebreak_point.sub("".join((r"\1\2&\n", \
-              linebreak_indent_string, r"\1\3")), left)
+              linebreak_indent_string, r"\1&\3")), left)
         else:
           left = whitespace_linebreak_point.sub("".join((r"\1\2&\n", \
-              linebreak_indent_string, r"\1\3")), left)
+              linebreak_indent_string, r"\1&\3")), left)
         first_linebreak = False
       else:
         if operator_linebreak_point.match(left):
-          left = operator_linebreak_point.sub(r"\1\2&\n\1\3", left)
+          left = operator_linebreak_point.sub(r"\1\2&\n\1&\3", left)
         else:
-          left = whitespace_linebreak_point.sub(r"\1\2&\n\1\3", left)
+          left = whitespace_linebreak_point.sub(r"\1\2&\n\1&\3", left)
       if copy == left:
         break
       if rest:

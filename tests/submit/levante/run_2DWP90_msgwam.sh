@@ -2,7 +2,7 @@
 #SBATCH --partition=compute
 #SBATCH --job-name=2DWP90_msgwam
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=16
+#SBATCH --ntasks-per-node=8
 #SBATCH --time=01:00:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
@@ -12,8 +12,8 @@
 set -x
 
 # Set number of processors (product must be equal to number of tasks).
-ntasks=16
-nprocx=16
+ntasks=8
+nprocx=8
 nprocy=1
 
 # Limit stacksize (adjust to your programs need and core file size).

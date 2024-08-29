@@ -89,7 +89,7 @@ module debug_module
         symmetric = .true.
       else
         print *, "i_left, i_right,j, k, dphi: ", nx / 2 - m + 1, nx / 2 + m, &
-            dphi
+            &dphi
         symmetric = .false.
       end if
 
@@ -130,8 +130,8 @@ module debug_module
 
     print *, "debug.f90/checkSymmTilde1D: checking phiTilde for symmetry"
     print *, "debug.f90/checkSymmTilde1D: monitoring phiTilde at nx/2 left and &
-        nx/2+1 right:", nx / 2, nx / 2 + 1, phiTilde(nx / 2, - 1), phiTilde(nx &
-        / 2 + 1, 1)
+        &nx/2+1 right:", nx / 2, nx / 2 + 1, phiTilde(nx / 2, - 1), &
+        &phiTilde(nx / 2 + 1, 1)
 
     ! check symmetric
     do m = 1, nx / 2
@@ -145,7 +145,7 @@ module debug_module
           symmetric = .true.
         else
           print *, "i_left, i_right,j, k, dphi: ", nx / 2 - m + 1, nx / 2 + m, &
-              dphiTilde
+              &dphiTilde
           symmetric = .false.
         end if
 
@@ -160,7 +160,7 @@ module debug_module
       print *, "debug.f90/checkSymmTilde1D: phiTilde is symmetric"
     else
       print *, "debug.f90/checkSymmTilde1D: phiTilde is not symmetric"; print &
-          *, ""
+          &*, ""
       return
     end if
 
@@ -176,7 +176,7 @@ module debug_module
 
     ! in/out variables
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 1:3, 0:1), &
-        intent(inout) :: phiTilde
+        &intent(inout) :: phiTilde
 
     ! local vars
     integer :: m
@@ -186,7 +186,7 @@ module debug_module
 
     ! warning
     print *, "debug.f90/initSymmTilde: phiTilde is reset randomly! collocated &
-        = ", collocated
+        &= ", collocated
 
     ! reset var
     phiTilde = 0.0
@@ -222,8 +222,7 @@ module debug_module
     !------------------------------------------------------------
 
     ! in/out variables
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(inout) :: var
+    type(var_type), intent(inout) :: var
 
     ! local vars
     integer :: m
@@ -232,21 +231,25 @@ module debug_module
     print *, "debug.f90/initSymmetry: var is reset randomly!!!"
 
     ! reset var
-    var = 0.0
+    call reset_var_type(var)
 
     ! create random field
     ! call random_seed ! create new numbers...
-    call random_number(var)
+    call random_number(var%rho)
+    call random_number(var%u)
+    call random_number(var%v)
+    call random_number(var%w)
+    call random_number(var%pi)
 
     ! make symmetric
     do m = 1, nx / 2 + nbx
-      var(nx / 2 + m, :, :, 1) = var(nx / 2 - m + 1, :, :, 1) ! rho
-      var(nx / 2 + m, :, :, 3) = var(nx / 2 - m + 1, :, :, 3) ! v
-      var(nx / 2 + m, :, :, 4) = var(nx / 2 - m + 1, :, :, 4) ! w
-      var(nx / 2 + m, :, :, 5) = var(nx / 2 - m + 1, :, :, 5) ! pi'
+      var%rho(nx / 2 + m, :, :) = var%rho(nx / 2 - m + 1, :, :) ! rho
+      var%v(nx / 2 + m, :, :) = var%v(nx / 2 - m + 1, :, :) ! v
+      var%w(nx / 2 + m, :, :) = var%w(nx / 2 - m + 1, :, :) ! w
+      var%pi(nx / 2 + m, :, :) = var%pi(nx / 2 - m + 1, :, :) ! pi'
 
       ! u: staggered and antisymmetric
-      var(nx / 2 + m, :, :, 2) = - var(nx / 2 - m, :, :, 2) ! u
+      var%u(nx / 2 + m, :, :) = - var%u(nx / 2 - m, :, :) ! u
     end do
 
     !    print*,"debug.f90/initSymmetry: Fehler einbauen in w"
@@ -262,7 +265,7 @@ module debug_module
     !--------------------------------------------------------------
 
     ! in/out variables
-    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(out) :: flux
+    type(flux_type), intent(inout) :: flux
     ! flux(i,j,k,dir,iFlux)
     ! dir = 1..3 > f,g,h-flux in x,y,z-direction
     ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
@@ -274,22 +277,25 @@ module debug_module
     print *, "debug.f90/initSymmFlux: flux is reset randomly!!!"
 
     ! reset var
-    flux = 0.0
+    call reset_flux_type(flux)
 
     ! create random field
     ! call random_seed ! create new numbers...
-    call random_number(flux)
+    call random_number(flux%rho)
+    call random_number(flux%u)
+    call random_number(flux%v)
+    call random_number(flux%w)
 
     ! make anti-symmetric
     do m = 1, nx / 2
-      flux(nx / 2 + m, :, :, 1, 1) = - flux(nx / 2 - m, :, :, 1, 1) ! frho
-      flux(nx / 2 + m, :, :, 1, 3) = - flux(nx / 2 - m, :, :, 1, 3) ! fv
-      flux(nx / 2 + m, :, :, 1, 4) = - flux(nx / 2 - m, :, :, 1, 4) ! fw
+      flux%rho(nx / 2 + m, :, :, 1) = - flux%rho(nx / 2 - m, :, :, 1) ! frho
+      flux%v(nx / 2 + m, :, :, 1) = - flux%v(nx / 2 - m, :, :, 1) ! fv
+      flux%w(nx / 2 + m, :, :, 1) = - flux%w(nx / 2 - m, :, :, 1) ! fw
     end do
 
     ! staggered u + symmetric because of rho*u^2
     do m = 0, nx / 2
-      flux(nx / 2 + m, :, :, 1, 2) = flux(nx / 2 - m - 1, :, :, 1, 2) ! fu
+      flux%u(nx / 2 + m, :, :, 1) = flux%u(nx / 2 - m - 1, :, :, 1) ! fu
     end do
 
     !    print*,"debug.f90/initSymmetry: Fehler einbauen in w"
@@ -306,7 +312,7 @@ module debug_module
 
     ! in/out variables
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 1:3, 0:1), &
-        intent(in) :: phiTilde
+        &intent(in) :: phiTilde
     integer, intent(in) :: pos
 
     ! local vars
@@ -319,7 +325,7 @@ module debug_module
 
     ! warning
     print *, "debug.f90/checkSymmTilde: checking phiTilde for symmetry at &
-        pos", pos
+        &pos", pos
     print *, "collocated = ", collocated
 
     if(collocated) then
@@ -336,7 +342,7 @@ module debug_module
                 symmetric = .true.
               else
                 print *, "i_left, i_right,j,k, dphi, phiL, phiR: ", nx / 2 - m &
-                    + 1, nx / 2 + m, j, k, dphi, phiL, phiR
+                    &+ 1, nx / 2 + m, j, k, dphi, phiL, phiR
                 symmetric = .false.
               end if
 
@@ -380,7 +386,7 @@ module debug_module
     !-----------------------------------------
 
     ! in/out variables
-    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(in) :: flux
+    type(flux_type), intent(in) :: flux
     ! flux(i,j,k,dir,iFlux)
     ! dir = 1..3 > f,g,h-flux in x,y,z-direction
     ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
@@ -404,24 +410,24 @@ module debug_module
       do j = - 1, ny
 
         do m = 1, nx / 2
-          dfrho = flux(nx / 2 + m, j, k, 1, 1) + flux(nx / 2 - m, j, k, 1, 1) ! frho
+          dfrho = flux%rho(nx / 2 + m, j, k, 1) + flux%rho(nx / 2 - m, j, k, 1) ! frho
           if(dfrho .ne. 0.0) then
             print *, "i_left, i_right,j,k, dfrho: ", nx / 2 - m, nx / 2 + m, &
-                j, k, dfrho
+                &j, k, dfrho
             symmetric = .false.
           end if
 
-          dfv = flux(nx / 2 + m, j, k, 1, 3) + flux(nx / 2 - m, j, k, 1, 3) ! fv
+          dfv = flux%v(nx / 2 + m, j, k, 1) + flux%v(nx / 2 - m, j, k, 1) ! fv
           if(dfv .ne. 0.0) then
             print *, "i_left, i_right,j,k, dfv: ", nx / 2 - m, nx / 2 + m, j, &
-                k, dfv
+                &k, dfv
             symmetric = .false.
           end if
 
-          dfw = flux(nx / 2 + m, j, k, 1, 4) + flux(nx / 2 - m, j, k, 1, 4) ! fw
+          dfw = flux%w(nx / 2 + m, j, k, 1) + flux%w(nx / 2 - m, j, k, 1) ! fw
           if(dfw .ne. 0.0) then
             print *, "i_left, i_right,j,k, dfw: ", nx / 2 - m, nx / 2 + m, j, &
-                k, dfw
+                &k, dfw
             symmetric = .false.
           end if
 
@@ -429,10 +435,10 @@ module debug_module
 
         ! staggered u: f is symmetric because rho*u^2 is symmetric
         do m = 0, nx / 2
-          dfu = flux(nx / 2 + m, j, k, 1, 2) - flux(nx / 2 - m - 1, j, k, 1, 2) ! fu
+          dfu = flux%u(nx / 2 + m, j, k, 1) - flux%u(nx / 2 - m - 1, j, k, 1) ! fu
           if(dfu .ne. 0.0) then
             print *, "i_left, i_right,j,k, dfu: ", nx / 2 - m - 1, nx / 2 + m, &
-                j, k, dfu
+                &j, k, dfu
             symmetric = .false.
           end if
         end do
@@ -458,8 +464,7 @@ module debug_module
     !-----------------------------------------
 
     ! in/out variables
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(in) :: var
+    type(var_type), intent(in) :: var
     integer, intent(in) :: pos
 
     ! local vars
@@ -480,62 +485,62 @@ module debug_module
         do m = 1, nx / 2 + nbx
 
           ! rho
-          rhoR = var(nx / 2 + m, j, k, 1)
-          rhoL = var(nx / 2 - m + 1, j, k, 1)
+          rhoR = var%rho(nx / 2 + m, j, k)
+          rhoL = var%rho(nx / 2 - m + 1, j, k)
           drho = rhoR - rhoL
           if(identic(rhoR, rhoL)) then
             symmetric = .true.
           else
             symmetric = .false.
             print *, "i_left, i_right,j,k, drho: ", nx / 2 - m + 1, nx / 2 &
-                + m, j, k, drho
+                &+ m, j, k, drho
           end if
 
           ! v
-          vR = var(nx / 2 + m, j, k, 3)
-          vL = var(nx / 2 - m + 1, j, k, 3)
+          vR = var%v(nx / 2 + m, j, k)
+          vL = var%v(nx / 2 - m + 1, j, k)
           dv = vR - vL
           if(identic(vR, vL)) then
             symmetric = .true.
           else
             print *, "i_left, i_right,j,k, dv: ", nx / 2 - m + 1, nx / 2 + m, &
-                j, k, dv
+                &j, k, dv
             symmetric = .false.
           end if
 
           ! w
-          wR = var(nx / 2 + m, j, k, 4)
-          wL = var(nx / 2 - m + 1, j, k, 4)
+          wR = var%w(nx / 2 + m, j, k)
+          wL = var%w(nx / 2 - m + 1, j, k)
           dw = wR - wL
           if(identic(wR, wL)) then
             symmetric = .true.
           else
             print *, "i_left, i_right,j,k, dw: ", nx / 2 - m + 1, nx / 2 + m, &
-                j, k, dw
+                &j, k, dw
             symmetric = .false.
           end if
 
           ! pi'
-          pR = var(nx / 2 + m, j, k, 5)
-          pL = var(nx / 2 - m + 1, j, k, 5)
+          pR = var%pi(nx / 2 + m, j, k)
+          pL = var%pi(nx / 2 - m + 1, j, k)
           dp = pR - pL
           if(identic(pL, pR)) then
             symmetric = .true.
           else
             print *, "i_left, i_right,j,k, dp: ", nx / 2 - m + 1, nx / 2 + m, &
-                j, k, dp
+                &j, k, dp
             symmetric = .false.
           end if
 
           ! u: staggered and anti-symmetric
-          uR = var(nx / 2 + m, j, k, 2)
-          uL = var(nx / 2 - m, j, k, 2)
+          uR = var%u(nx / 2 + m, j, k)
+          uL = var%u(nx / 2 - m, j, k)
           du = uR + uL ! note: uR = -uL for anti-symmetric vars
           if(identic(uR, - uL)) then
             symmetric = .true.
           else
             print *, "i_left, i_right,j,k, du: ", nx / 2 - m, nx / 2 + m, j, &
-                k, du
+                &k, du
             symmetric = .false.
           end if
 

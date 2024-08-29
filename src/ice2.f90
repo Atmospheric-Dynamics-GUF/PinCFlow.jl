@@ -6,13 +6,12 @@ module ice2_module
 
     use type_module
     use atmosphere_module, ONLY:heightTFC, tRef, rhoRef, lRef, thetaRef, pRef, &
-        PStrat, rhoStrat, piStrat, kappaInv, PStratTFC, piStratTfc, &
-        rhoStratTFC, gamma_1, p0, g, Rsp
+        &PStrat, rhoStrat, piStrat, kappaInv, PStratTFC, piStratTfc, &
+        &rhoStratTFC, gamma_1, p0, g, Rsp
 
     implicit none
 
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(inout) :: var
+    type(var_type), intent(inout) :: var
 
     integer, parameter :: ic_ice = 5
 
@@ -57,17 +56,14 @@ module ice2_module
     J_nuc = J_nuc * tRef * mRef
 
     Dep = Dep * thetaRef * tRef * meanMassIce ** (1. / 3.) * PsatIceRef / pRef &
-        / mRef
+        &/ mRef
 
     !call compare_reduced_model
     !if ( master ) stop
 
     ! init to zero
-    do ii = 1, nVarIce
-      iVar = iVarIce(ii)
-
-      var(:, :, :, iVar) = 0.
-
+    do iVar = 1, nVarIce
+      var%ICE2(:, :, :, iVar) = 0.
     end do
 
     select case(ic_ice)
@@ -91,7 +87,7 @@ module ice2_module
 
             if(topography) then
 
-              rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
 
               theta = PstratTFC(i, j, k) / rho
 
@@ -101,18 +97,18 @@ module ice2_module
               !   print*, 'ice2Sources works only with explicit integration'
               !   stop
               !else
-              exn_p = var(i, j, k, 5) + (PstratTFC(i, j, k) / p0) ** gamma_1
+              exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
               !end if
 
             else
 
-              rho = var(i, j, k, 1) + rhoStrat(k)
+              rho = var%rho(i, j, k) + rhoStrat(k)
 
               !problems in \pi
               !if heating switched on
               theta = Pstrat(k) / rho
 
-              exn_p = var(i, j, k, 5) + (PStrat(k) / p0) ** gamma_1
+              exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
 
             end if ! topography
 
@@ -136,9 +132,9 @@ module ice2_module
             !double kink profile
             !S0 = 1+0.5*tanh(5*(z(k)-8/lRef)/2)+ (1-0.5*tanh(5*(z(k)-10/lRef)/5)) -1.4
 
-            var(:, :, k, inN) = rho * n0 * mRef !\hat N = \hat \rho \hat n
-            var(:, :, k, inQv) = rho * qv0
-            var(:, :, k, inQ) = rho * q0
+            var%ICE2(:, :, k, inN) = rho * n0 * mRef !\hat N = \hat \rho \hat n
+            var%ICE2(:, :, k, inQv) = rho * qv0
+            var%ICE2(:, :, k, inQ) = rho * q0
 
           end do
         end do
@@ -159,9 +155,9 @@ module ice2_module
           do j = 1, ny
             do i = 1, nx
 
-              rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
               ! N = \rho n
-              var(:, :, k, inN) = dz_tr * heightTFC(i, j, k) * rho
+              var%ICE2(:, :, k, inN) = dz_tr * heightTFC(i, j, k) * rho
 
             end do
           end do
@@ -173,8 +169,8 @@ module ice2_module
 
           ! N = \rho n
           !var(:,:,k, inN) = (k-1)*0.1
-          var(:, :, k, inN) = dz_tr * (z(k) - z(1)) * (var(:, :, k, 1) &
-              + rhoStrat(k))
+          var%ICE2(:, :, k, inN) = dz_tr * (z(k) - z(1)) * (var%rho(:, :, k) &
+              &+ rhoStrat(k))
 
         end do
 
@@ -202,7 +198,7 @@ module ice2_module
 
             if(topography) then
 
-              rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
 
               theta = PstratTFC(i, j, k) / rho
 
@@ -212,18 +208,18 @@ module ice2_module
               !   print*, 'ice2Sources works only with explicit integration'
               !   stop
               !else
-              exn_p = var(i, j, k, 5) + (PstratTFC(i, j, k) / p0) ** gamma_1
+              exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
               !end if
 
             else
 
-              rho = var(i, j, k, 1) + rhoStrat(k)
+              rho = var%rho(i, j, k) + rhoStrat(k)
 
               !problems in \pi
               !if heating switched on
               theta = Pstrat(k) / rho
 
-              exn_p = var(i, j, k, 5) + (PStrat(k) / p0) ** gamma_1
+              exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
 
             end if ! topography
 
@@ -244,9 +240,9 @@ module ice2_module
             qv0 = epsil0hat * S0 * psi / pres ! [kg/kg]
             q0 = meanMassIce * n0
 
-            var(i, j, k, inN) = rho * n0 * mRef !\hat N = \hat \rho \hat n
-            var(i, j, k, inQv) = rho * qv0
-            var(i, j, k, inQ) = rho * q0
+            var%ICE2(i, j, k, inN) = rho * n0 * mRef !\hat N = \hat \rho \hat n
+            var%ICE2(i, j, k, inQv) = rho * qv0
+            var%ICE2(i, j, k, inQ) = rho * q0
 
           end do !i
         end do !j
@@ -276,7 +272,7 @@ module ice2_module
 
             if(topography) then
 
-              rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
 
               theta = PstratTFC(i, j, k) / rho
 
@@ -286,18 +282,18 @@ module ice2_module
               !   print*, 'ice2Sources works only with explicit integration'
               !   stop
               !else
-              exn_p = var(i, j, k, 5) + (PstratTFC(i, j, k) / p0) ** gamma_1
+              exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
               !end if
 
             else
 
-              rho = var(i, j, k, 1) + rhoStrat(k)
+              rho = var%rho(i, j, k) + rhoStrat(k)
 
               !problems in \pi
               !if heating switched on
               theta = Pstrat(k) / rho
 
-              exn_p = var(i, j, k, 5) + (PStrat(k) / p0) ** gamma_1
+              exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
 
             end if ! topography
 
@@ -318,20 +314,20 @@ module ice2_module
             qv0 = epsil0hat * S0 * psi / pres ! [kg/kg]
             q0 = meanMassIce * n0
 
-            var(i, j, k, inN) = rho * n0 * mRef !\hat N = \hat \rho \hat n
-            var(i, j, k, inQv) = rho * qv0
-            var(i, j, k, inQ) = rho * q0
+            var%ICE2(i, j, k, inN) = rho * n0 * mRef !\hat N = \hat \rho \hat n
+            var%ICE2(i, j, k, inQv) = rho * qv0
+            var%ICE2(i, j, k, inQ) = rho * q0
 
             if(include_testoutput) then
 
-              var(i, j, k, iVarO) = S0
-              var(i, j, k, iVarO + 1) = pres * pRef
-              var(i, j, k, iVarO + 2) = pres / psi * pRef / PsatIceRef
+              var%OPT(i, j, k, 1) = S0
+              var%OPT(i, j, k, 2) = pres * pRef
+              var%OPT(i, j, k, 3) = pres / psi * pRef / PsatIceRef
 
               if(raytracer) then
-                var(i, j, k, iVarO) = S0
-                var(i, j, k, iVarO + 1) = 0.
-                var(i, j, k, iVarO + 2) = 0.
+                var%OPT(i, j, k, 1) = S0
+                var%OPT(i, j, k, 2) = 0.
+                var%OPT(i, j, k, 3) = 0.
               end if
 
             end if
@@ -363,7 +359,7 @@ module ice2_module
 
             if(topography) then
 
-              rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
 
               theta = PstratTFC(i, j, k) / rho
 
@@ -373,12 +369,12 @@ module ice2_module
               !   print*, 'ice2Sources works only with explicit integration'
               !   stop
               !else
-              exn_p = var(i, j, k, 5) + (PstratTFC(i, j, k) / p0) ** gamma_1
+              exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
               !end if
 
             else
 
-              rho = var(i, j, k, 1) + rhoStrat(k)
+              rho = var%rho(i, j, k) + rhoStrat(k)
 
               !problems in \pi
               !if heating switched on
@@ -386,7 +382,7 @@ module ice2_module
 
               thetaMean = Pstrat(k) / rhoStrat(k)
 
-              exn_p = var(i, j, k, 5) + (PStrat(k) / p0) ** gamma_1
+              exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
 
               exn_pMean = (PStrat(k) / p0) ** gamma_1
 
@@ -419,21 +415,21 @@ module ice2_module
 
             q0 = meanMassIce * n0
 
-            var(i, j, k, inN) = rho * n0 * mRef !\hat N = \hat \rho \hat n
-            var(i, j, k, inQv) = rho * qv0
-            var(i, j, k, inQ) = rho * q0
+            var%ICE2(i, j, k, inN) = rho * n0 * mRef !\hat N = \hat \rho \hat n
+            var%ICE2(i, j, k, inQv) = rho * qv0
+            var%ICE2(i, j, k, inQ) = rho * q0
 
             if(include_testoutput) then
 
-              var(i, j, k, iVarO) = S0
-              var(i, j, k, iVarO + 1) = pres / psi - presMean / psiMean ! store IC \tilde p_i(0)
+              var%OPT(i, j, k, 1) = S0
+              var%OPT(i, j, k, 2) = pres / psi - presMean / psiMean ! store IC \tilde p_i(0)
               !var(i, j, k, iVarO+1) = pres*pRef
-              var(i, j, k, iVarO + 2) = pres / psi * pRef / PsatIceRef
+              var%OPT(i, j, k, 3) = pres / psi * pRef / PsatIceRef
 
               if(raytracer) then
-                var(i, j, k, iVarO) = S0
-                var(i, j, k, iVarO + 1) = 0.
-                var(i, j, k, iVarO + 2) = 0.
+                var%OPT(i, j, k, 1) = S0
+                var%OPT(i, j, k, 2) = 0.
+                var%OPT(i, j, k, 3) = 0.
               end if
 
             end if
@@ -451,24 +447,22 @@ module ice2_module
   subroutine ice2Sources(var, source)
 
     use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice2, &
-        nVarIce, inN, inQ, inQv, master, model, fluctuationMode, topography, &
-        thetaRefRatio, timeScheme, rayTracer, L_ice, R_v, var_ww, iVarO, &
-        no_ice_source, ofield, pSatIceRef
+        &nVarIce, inN, inQ, inQv, master, model, fluctuationMode, topography, &
+        &thetaRefRatio, timeScheme, rayTracer, L_ice, R_v, var_ww, iVarO, &
+        &no_ice_source, ofield, pSatIceRef, var_type
     use mpi_module
     use atmosphere_module, ONLY:PStrat01, PStratTilde01, PStrat, rhoStrat, &
-        piStrat, kappaInv, PStratTFC, piStratTfc, rhoStratTFC, gamma_1, p0, g, &
-        Rsp, pRef
+        &piStrat, kappaInv, PStratTFC, piStratTfc, rhoStratTFC, gamma_1, p0, &
+        &g, Rsp, pRef
     use boundary_module !, ONLY : setHalos, setBoundary, reconstruction
     use flux_module
     !   use update_module, ONLY : dIce, ice2Update
 
     implicit none
 
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(inout) :: var
+    type(var_type), intent(inout) :: var
     !    real, dimension(-1:nx,-1:ny,-1:nz, nVarIce), intent(out) :: source
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(out) :: source
+    type(var_type), intent(inout) :: source
     real :: rho, pres, temp, theta, psi, Qv, SIce, NIce, exn_p
     real :: amp_pi, w_gw, PiMean, PiPrime, delta_t !RayTracer coupling
     integer :: i, j, k
@@ -484,7 +478,7 @@ module ice2_module
 
               if(topography) then
 
-                rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+                rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
 
                 theta = PstratTFC(i, j, k) / rho
 
@@ -493,17 +487,17 @@ module ice2_module
                 !   stop
                 !else
                 !problems in \pi if heating switched on
-                exn_p = var(i, j, k, 5) + (PstratTFC(i, j, k) / p0) ** gamma_1
+                exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
                 !end if
 
               else
 
-                rho = var(i, j, k, 1) + rhoStrat(k)
+                rho = var%rho(i, j, k) + rhoStrat(k)
 
                 theta = Pstrat(k) / rho
 
                 !problems in \pi if heating of background
-                exn_p = var(i, j, k, 5) + (PStrat(k) / p0) ** gamma_1
+                exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
 
               end if ! topography
 
@@ -520,31 +514,32 @@ module ice2_module
 
             psi = Psat_ice(temp)
 
-            Qv = var(i, j, k, inQv) ! Q_v = \rho q_v
+            Qv = var%ICE2(i, j, k, inQv) ! Q_v = \rho q_v
 
-            NIce = var(i, j, k, inN) ! N_v = \rho n
+            NIce = var%ICE2(i, j, k, inN) ! N_v = \rho n
 
             !CHANGES
             !SIce = SatRatio(Qv, temp, psi)
-            pi0 = var(i, j, k, iVarO + 1)
+            pi0 = var%OPT(i, j, k, 2)
             SIce = SatRatio_rm_ini_pi(Qv, temp, psi, rho, pi0)
 
             !output variables
-            var(i, j, k, iVarO) = SIce
+            var%OPT(i, j, k, 1) = SIce
             !var(i, j, k, iVarO+1) = pres*pRef
-            var(i, j, k, iVarO + 2) = pres / psi * pRef / PsatIceRef
+            var%OPT(i, j, k, 3) = pres / psi * pRef / PsatIceRef
           else
 
             print *, ' ice2Sources works only with model  &
-                == pseudo_incompressible '
+                &== pseudo_incompressible '
             stop
 
           end if ! pseudo_inc
 
           if(.not. no_ice_source) then
-            source(i, j, k, inN) = nucleation_n(SIce, rho)
-            source(i, j, k, inQv) = deposition_qv(SIce, NIce, temp, pres, psi)
-            source(i, j, k, inQ) = - source(i, j, k, inQv)
+            source%ICE2(i, j, k, inN) = nucleation_n(SIce, rho)
+            source%ICE2(i, j, k, inQv) = deposition_qv(SIce, NIce, temp, pres, &
+                &psi)
+            source%ICE2(i, j, k, inQ) = - source%ICE2(i, j, k, inQv)
           end if
 
         end do ! i
@@ -556,28 +551,26 @@ module ice2_module
   subroutine ice2Sources_raytr(var, source, uTime, pTime)
 
     use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice2, &
-        nVarIce, inN, inQ, inQv, master, model, fluctuationMode, topography, &
-        thetaRefRatio, timeScheme, rayTracer, L_ice, R_v, var_ww, iVarO, &
-        no_ice_source, ofield, PsatIceRef, Li_hat, alr_ndim
+        &nVarIce, inN, inQ, inQv, master, model, fluctuationMode, topography, &
+        &thetaRefRatio, timeScheme, rayTracer, L_ice, R_v, var_ww, iVarO, &
+        &no_ice_source, ofield, PsatIceRef, Li_hat, alr_ndim, var_type
 
     use type_module, ONLY:PI ! TEST
     use atmosphere_module, ONLY:tRef !TEST
 
     use mpi_module
     use atmosphere_module, ONLY:PStrat01, PStratTilde01, PStrat, rhoStrat, &
-        piStrat, kappaInv, PStratTFC, piStratTfc, rhoStratTFC, gamma_1, p0, g, &
-        Rsp, uRef, pRef
+        &piStrat, kappaInv, PStratTFC, piStratTfc, rhoStratTFC, gamma_1, p0, &
+        &g, Rsp, uRef, pRef
     use boundary_module !, ONLY : setHalos, setBoundary, reconstruction
     use flux_module
     !   use update_module, ONLY : dIce, ice2Update
 
     implicit none
 
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(inout) :: var
+    type(var_type), intent(inout) :: var
     !    real, dimension(-1:nx,-1:ny,-1:nz, nVarIce), intent(out) :: source
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(out) :: source
+    type(var_type), intent(inout) :: source
     real :: rho, pres, temp, theta, psi, Qv, SIce, NIce, exn_p
     real :: amp_pi, w_gw, PiMean, PiPrime, delta_t !RayTracer coupling
     real :: uTime, pTime
@@ -594,7 +587,7 @@ module ice2_module
 
               if(topography) then
 
-                rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+                rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
 
                 theta = PstratTFC(i, j, k) / rho
 
@@ -603,17 +596,17 @@ module ice2_module
                 !   stop
                 !else
                 !problems in \pi if heating switched on
-                exn_p = var(i, j, k, 5) + (PstratTFC(i, j, k) / p0) ** gamma_1
+                exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
                 !end if
 
               else
 
-                rho = var(i, j, k, 1) + rhoStrat(k)
+                rho = var%rho(i, j, k) + rhoStrat(k)
 
                 theta = Pstrat(k) / rho
 
                 !problems in \pi if heating of background
-                exn_p = var(i, j, k, 5) + (PStrat(k) / p0) ** gamma_1
+                exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
 
               end if ! topography
 
@@ -630,9 +623,9 @@ module ice2_module
 
             psi = Psat_ice(temp)
 
-            Qv = var(i, j, k, inQv) ! Q_v = \rho q_v
+            Qv = var%ICE2(i, j, k, inQv) ! Q_v = \rho q_v
 
-            NIce = var(i, j, k, inN) ! N_v = \rho n
+            NIce = var%ICE2(i, j, k, inN) ! N_v = \rho n
 
             SIce = SatRatio(Qv, temp, psi)
 
@@ -676,11 +669,11 @@ module ice2_module
               dphi = ofield(i, j, k, 3)
 
               amp_pi = (Li_hat / temp - kappaInv) * alr_ndim * PiMean / temp &
-                  * ofield(i, j, k, 6) / omg
+                  &* ofield(i, j, k, 6) / omg
 
               if(amp_pi .gt. 0.) then
                 PiPrime = ofield(i, j, k, 1) + amp_pi * (cos(dphi - omg &
-                    * uTime) - cos(dphi - omg * pTime))
+                    &* uTime) - cos(dphi - omg * pTime))
               else
                 PiPrime = 0.
               end if
@@ -695,32 +688,33 @@ module ice2_module
             end if
 
             !output variables
-            var(i, j, k, iVarO) = SIce
+            var%OPT(i, j, k, 1) = SIce
             !STD vert. vel.
             !var(i, j, k, iVarO+1) = ofield(i, j, k, 5)*uRef !\tilde w
 
             !max GW vert. vel.
             if(amp_pi .gt. 0.) then
-              var(i, j, k, iVarO + 1) = ofield(i, j, k, 6) * uRef * sin(dphi &
-                  - omg * uTime) ! w_max
+              var%OPT(i, j, k, 2) = ofield(i, j, k, 6) * uRef * sin(dphi - omg &
+                  &* uTime) ! w_max
             else
-              var(i, j, k, iVarO + 1) = 0.
+              var%OPT(i, j, k, 2) = 0.
             end if
-            var(i, j, k, iVarO + 2) = ofield(i, j, k, 1) * pRef / PsatIceRef !p/p_si
+            var%OPT(i, j, k, 3) = ofield(i, j, k, 1) * pRef / PsatIceRef !p/p_si
             !var(i, j, k, iVarO+2) = ofield(i, j, k, 1)
           else
 
             print *, ' ice2Sources works only with model  &
-                == pseudo_incompressible '
+                &== pseudo_incompressible '
             stop
 
           end if ! pseudo_inc
 
           if(.not. no_ice_source) then
             ! CHANGES
-            source(i, j, k, inN) = nucleation_n(SIce, rho)
-            source(i, j, k, inQv) = deposition_qv(SIce, NIce, temp, pres, psi)
-            source(i, j, k, inQ) = - source(i, j, k, inQv)
+            source%ICE2(i, j, k, inN) = nucleation_n(SIce, rho)
+            source%ICE2(i, j, k, inQv) = deposition_qv(SIce, NIce, temp, pres, &
+                &psi)
+            source%ICE2(i, j, k, inQ) = - source%ICE2(i, j, k, inQv)
           end if
 
         end do ! i
@@ -821,8 +815,8 @@ module ice2_module
 
     use type_module
     use atmosphere_module, ONLY:heightTFC, tRef, rhoRef, lRef, thetaRef, pRef, &
-        PStrat01, PStratTilde01, PStrat, rhoStrat, piStrat, kappaInv, &
-        PStratTFC, piStratTfc, rhoStratTFC, gamma_1
+        &PStrat01, PStratTilde01, PStrat, rhoStrat, piStrat, kappaInv, &
+        &PStratTFC, piStratTfc, rhoStratTFC, gamma_1
 
     implicit none
     real :: temp, pres, psi, rho, n, S, q, dn, ds, dq
@@ -861,30 +855,29 @@ module ice2_module
     !print*, 'tendency q', dq
 
     print *, 'REF: , 1.1336318519308867e-10, -0.00011651612903225811, &
-        2.330322580645162e-07'
+        &2.330322580645162e-07'
 
   end subroutine compare_reduced_model
 
   subroutine redim_fields(var, var0)
 
     use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice2, &
-        nVarIce, inN, inQ, inQv, master, model, fluctuationMode, topography, &
-        thetaRefRatio, timeScheme, L_ice, R_v, S_c, Dep, pSatIceRef, epsil0
+        &nVarIce, inN, inQ, inQv, master, model, fluctuationMode, topography, &
+        &thetaRefRatio, timeScheme, L_ice, R_v, S_c, Dep, pSatIceRef, epsil0, &
+        &var_type
     use mpi_module
     use atmosphere_module, ONLY:PStrat01, PStratTilde01, PStrat, rhoStrat, &
-        piStrat, kappaInv, PStratTFC, piStratTfc, rhoStratTFC, gamma_1, p0, &
-        mRef, uRef, kappa, Rsp, thetaRef, tRef, g, pRef
+        &piStrat, kappaInv, PStratTFC, piStratTfc, rhoStratTFC, gamma_1, p0, &
+        &mRef, uRef, kappa, Rsp, thetaRef, tRef, g, pRef
     use boundary_module !, ONLY : setHalos, setBoundary, reconstruction
     use flux_module
     !   use update_module, ONLY : dIce, ice2Update
 
     implicit none
 
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(in) :: var
+    type(var_type), intent(in) :: var
     !    real, dimension(-1:nx,-1:ny,-1:nz, nVarIce), intent(out) :: source
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(out) :: var0
+    type(var_type), intent(inout) :: var0
     real :: rho, pres, temp, theta, psi, Qv, SIce, NIce, exn_p, A
     integer :: i, j, k
 
@@ -898,7 +891,7 @@ module ice2_module
 
               if(topography) then
 
-                rho = var(i, j, k, 1) + rhoStratTFC(i, j, k)
+                rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
 
                 theta = PstratTFC(i, j, k) / rho
 
@@ -907,16 +900,16 @@ module ice2_module
                 !   stop
                 !else
                 !problems in \pi if heating switched on
-                exn_p = var(i, j, k, 5) + (PstratTFC(i, j, k) / p0) ** gamma_1 !end if
+                exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1 !end if
 
               else
 
-                rho = var(i, j, k, 1) + rhoStrat(k)
+                rho = var%rho(i, j, k) + rhoStrat(k)
 
                 theta = Pstrat(k) / rho
 
                 !problems in \pi if heating of background
-                exn_p = var(i, j, k, 5) + (PStrat(k) / p0) ** gamma_1
+                exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
 
               end if ! topography
 
@@ -933,34 +926,34 @@ module ice2_module
 
             psi = Psat_ice(temp)
 
-            Qv = var(i, j, k, inQv) ! Q_v = \rho q_v
+            Qv = var%ICE2(i, j, k, inQv) ! Q_v = \rho q_v
 
-            NIce = var(i, j, k, inN) ! N_v = \rho n
+            NIce = var%ICE2(i, j, k, inN) ! N_v = \rho n
 
             SIce = SatRatio(Qv, temp, psi)
 
           else
 
             print *, ' ice2Sources works only with model  &
-                == pseudo_incompressible '
+                &== pseudo_incompressible '
             stop
 
           end if ! pseudo_inc
 
-          var0(i, j, k, inN) = NIce / rho / mRef
+          var0%ICE2(i, j, k, inN) = NIce / rho / mRef
 
           !var0(i,j,k, inQ) = SIce
 
-          var0(i, j, k, inQv) = Qv / rho
+          var0%ICE2(i, j, k, inQv) = Qv / rho
 
           !var0(i,j,k, inQ) = var(i, j, k, 4)*uRef !store w at 10
 
           !asymptotic solution
-          A = var(i, j, k, 4) * uRef * L_ice * g * kappa / Rsp / thetaRef ** 2 &
-              / R_v
+          A = var%w(i, j, k) * uRef * L_ice * g * kappa / Rsp / thetaRef ** 2 &
+              &/ R_v
           !var0(i,j,k, inQ) = 2*A*S_c / (S_c - 1.) / (Dep * temp * psi / pres /tRef) / mRef
-          var0(i, j, k, inQ) = 2 * A * S_c / ((S_c - 1.) * Dep * temp * pRef &
-              / pSatIceRef / epsil0 / tRef) / mRef
+          var0%ICE2(i, j, k, inQ) = 2 * A * S_c / ((S_c - 1.) * Dep * temp &
+              &* pRef / pSatIceRef / epsil0 / tRef) / mRef
 
         end do
       end do
@@ -969,12 +962,12 @@ module ice2_module
   end subroutine redim_fields
 
   subroutine integrate_ice2(var, var0, flux, fluxmode, source, dt, q, RKstage, &
-      PS0, PSTilde0, update_type, uTime, qTime)
+      &PS0, PSTilde0, update_type, uTime, qTime)
 
     !new routine to handle both advection and ice physics
 
     use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice2, &
-        master, nVarIce, heatingONK14, raytracer
+        &master, nVarIce, heatingONK14, raytracer, var_type, flux_type
     use mpi_module
 
     !use atmosphere_module, ONLY : PStrat01, PStratTilde01
@@ -984,15 +977,13 @@ module ice2_module
 
     implicit none
 
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(inout) :: var, source
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(in) :: var0
-    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar) :: flux
+    type(var_type), intent(inout) :: var, source
+    type(var_type), intent(in) :: var0
+    type(flux_type) :: flux
     real, dimension(- 1:nz + 2), intent(in) :: PS0, PSTilde0
     character(len = *), intent(in) :: fluxmode
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
-        intent(inout) :: q ! RK update for ice fields
+        &intent(inout) :: q ! RK update for ice fields
     real :: dt
     integer :: RKstage
     character(len = 3), intent(in) :: update_type

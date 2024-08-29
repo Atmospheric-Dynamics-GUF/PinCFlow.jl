@@ -53,15 +53,15 @@ data.tt = numpy.round(data.tt / 60.0 / 60.0, 1)
 print(" ".join(("Time:", str(data.tt[- 1]), "h")))
 
 # Set vertical velocities.
-ww = data.psi[:, 3, :, 0]
-wref = reference.psi[:, 3, :, 0]
+ww = data.psi["w"][:, :, 0]
+wref = reference.psi["w"][:, :, 0]
 
 # Compute difference.
 deltaw = ww - wref
 
 # Compute maximum and contour levels.
 peak = numpy.max(numpy.abs(ww[- 1]))
-levels = numpy.arange(- peak, peak, 0.25)
+levels = numpy.arange(- peak, peak, 0.2)
 
 # Make plot.
 figure, axes = pyplot.subplots()
