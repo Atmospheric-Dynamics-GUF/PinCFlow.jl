@@ -19,10 +19,9 @@ module tracer_module
     ! initialtracer(:, :, :) or
     ! initialtracerrho(:, :, :) (multiplied by rho)
 
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(inout) :: var
+    type(var_type), intent(inout) :: var
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz) :: rho, &
-        tracerprime
+        &tracerprime
 
     integer :: ii, jj, kk
 
@@ -33,7 +32,7 @@ module tracer_module
 
       ! wavepacket initial tracer chi = alphaTracer*z + tracerprime
       if(testCase == 'wavePacket') then
-        tracerprime = var(:, :, :, iVarT)
+        tracerprime = var%chi(:, :, :)
       end if
 
       ! determine total density
@@ -42,12 +41,13 @@ module tracer_module
           do ii = 1, nx
             if(fluctuationMode) then
               if(topography) then
-                rho(ii, jj, kk) = (var(ii, jj, kk, 1) + rhoStratTFC(ii, jj, kk))
+                rho(ii, jj, kk) = (var%rho(ii, jj, kk) + rhoStratTFC(ii, jj, &
+                    &kk))
               else
-                rho(ii, jj, kk) = var(ii, jj, kk, 1) + rhoStrat(kk)
+                rho(ii, jj, kk) = var%rho(ii, jj, kk) + rhoStrat(kk)
               end if
             else
-              rho(ii, jj, kk) = var(ii, jj, kk, 1)
+              rho(ii, jj, kk) = var%rho(ii, jj, kk)
             end if
           end do
         end do
@@ -58,29 +58,29 @@ module tracer_module
           do jj = 1, ny
             do ii = 1, nx
               if(testCase == 'wavePacket') then
-                var(ii, jj, kk, iVarT) = rho(ii, jj, kk) * (tracerprime(ii, &
-                    jj, kk) + alphaTracer * heightTFC(ii, jj, kk))
+                var%chi(ii, jj, kk) = rho(ii, jj, kk) * (tracerprime(ii, jj, &
+                    &kk) + alphaTracer * heightTFC(ii, jj, kk))
               else
-                var(ii, jj, kk, iVarT) = rho(ii, jj, kk) * alphaTracer &
-                    * heightTFC(ii, jj, kk)
+                var%chi(ii, jj, kk) = rho(ii, jj, kk) * alphaTracer &
+                    &* heightTFC(ii, jj, kk)
               end if
               initialtracer(ii, jj, kk) = alphaTracer * heightTFC(ii, jj, kk)
               initialtracerrho(ii, jj, kk) = alphaTracer * heightTFC(ii, jj, &
-                  kk) * rho(ii, jj, kk)
+                  &kk) * rho(ii, jj, kk)
             end do
           end do
         end do
       else
         do kk = 1, nz
           if(testCase == 'wavePacket') then
-            var(:, :, kk, iVarT) = rho(:, :, kk) * (tracerprime(:, :, kk) &
-                + alphaTracer * (z(kk) - z(1)))
+            var%chi(:, :, kk) = rho(:, :, kk) * (tracerprime(:, :, kk) &
+                &+ alphaTracer * (z(kk) - z(1)))
           else
-            var(:, :, kk, iVarT) = rho(:, :, kk) * alphaTracer * (z(kk) - z(1))
+            var%chi(:, :, kk) = rho(:, :, kk) * alphaTracer * (z(kk) - z(1))
           end if
           initialtracer(:, :, kk) = alphaTracer * (z(kk) - z(1))
           initialtracerrho(:, :, kk) = alphaTracer * (z(kk) - z(1)) * rho(:, &
-              :, kk)
+              &:, kk)
         end do
       end if
 

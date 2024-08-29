@@ -44,20 +44,8 @@ module mpi_module
     !-------------------------------
 
     ! in/out variables
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(inout) :: var
+    type(var_type), intent(inout) :: var
     character(len = *), intent(in) :: option
-
-    ! auxiliary fields for rho, u, v, w, pi, and rhop (or theta)
-    real, dimension(nbx, - nby:ny + nby, - nbz:nz + nbz) :: xSliceLeft_send, &
-        xSliceRight_send
-    real, dimension(nbx, - nby:ny + nby, - nbz:nz + nbz) :: xSliceLeft_recv, &
-        xSliceRight_recv
-
-    real, dimension(- nbx:nx + nbx, nby, - nbz:nz + nbz) :: ySliceBack_send, &
-        ySliceForw_send
-    real, dimension(- nbx:nx + nbx, nby, - nbz:nz + nbz) :: ySliceBack_recv, &
-        ySliceForw_recv
 
     ! aux fields for "varTilde"
     real, dimension(ny, nz) :: x1SliceLeft_send, x1SliceRight_send
@@ -71,622 +59,57 @@ module mpi_module
     integer :: sendcount, recvcount
 
     ! locals
-    integer :: i, j, k, iVar, ii, nTilde, nT
+    integer :: i, j, k, iVar, iTilde, nTilde
     integer :: i0, j0, k0
-    integer :: nloops
-
-    !-----------------------------
-    !     Find neighbour procs
-    !-----------------------------
-
-    if(idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
-    if(jdim > 1) call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
 
     select case(option)
 
     case("var")
 
-      !------------------------------
-      !          x-direction
-      !------------------------------
+      ! Set halos of basic variables.
+      call setHalosOfField(var%rho)
+      call setHalosOfField(var%u)
+      call setHalosOfField(var%v)
+      call setHalosOfField(var%w)
+      call setHalosOfField(var%pi)
+      call setHalosOfField(var%rhop)
 
-      ! for compressible model loop also for iVarP
+      ! Set halos of mass-weighted potential temperature.
       if(model == "compressible") then
-        nloops = iVarP
-      else
-        nloops = 6
+        call setHalosOfField(var%P)
       end if
 
-      if(idim > 1) then
-        do iVar = 1, nloops
-          if(all(iVar /= [1, 2, 3, 4, 5, 6, iVarP])) cycle
-
-          ! slice size
-          sendcount = nbx * (ny + 2 * nby + 1) * (nz + 2 * nbz + 1)
-          recvcount = sendcount
-
-          ! read slice into contiguous array
-          do i = 1, nbx
-            xSliceLeft_send(i, :, :) = var(i, :, :, iVar)
-            xSliceRight_send(i, :, :) = var(nx - nbx + i, :, :, iVar)
-          end do
-
-          ! left -> right
-          source = left
-          dest = right
-          tag = 100
-
-          i0 = 1; j0 = - nby; k0 = - nbz
-
-          call mpi_sendrecv(xSliceRight_send(i0, j0, k0), sendcount, &
-              mpi_double_precision, dest, tag, xSliceLeft_recv(i0, j0, k0), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_left, ierror)
-
-          ! right -> left
-          source = right
-          dest = left
-          tag = 100
-
-          call mpi_sendrecv(xSliceLeft_send(i0, j0, k0), sendcount, &
-              mpi_double_precision, dest, tag, xSliceRight_recv(i0, j0, k0), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_right, ierror)
-
-          ! write auxiliary slice to var field
-          do i = 1, nbx
-
-            ! right halos
-            var(nx + i, :, :, iVar) = xSliceRight_recv(i, :, :)
-
-            ! left halos
-            var(- nbx + i, :, :, iVar) = xSliceLeft_recv(i, :, :)
-
-          end do
-        end do
-      end if
-
-      if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
-          copied."
-
-      !------------------------------------------------
-      !   ice variable transport: iVar = nVar-3, nVar
-      !------------------------------------------------
-
+      ! Set halos of ice variables.
       if(include_ice .and. updateIce) then
-
-        do iVar = nVar - 3, nVar
-
-          ! slice size
-          sendcount = nbx * (ny + 2 * nby + 1) * nz
-          recvcount = sendcount
-
-          ! read slice into contiguous array
-          do i = 1, nbx
-            xSliceLeft_send(i, - nby:ny + nby, 1:nz) = var(i, - nby:ny + nby, &
-                1:nz, iVar)
-            xSliceRight_send(i, - nby:ny + nby, 1:nz) = var(nx - nbx + i, &
-                - nby:ny + nby, 1:nz, iVar)
-          end do
-
-          if(idim > 1) then
-
-            ! left -> right
-            source = left
-            dest = right
-            tag = 100
-
-            i0 = 1; j0 = - nby; k0 = 1
-
-            call mpi_sendrecv(xSliceRight_send(i0, j0, k0), sendcount, &
-                mpi_double_precision, dest, tag, xSliceLeft_recv(i0, j0, k0), &
-                recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-                sts_left, ierror)
-
-            ! right -> left
-            source = right
-            dest = left
-            tag = 100
-
-            call mpi_sendrecv(xSliceLeft_send(i0, j0, k0), sendcount, &
-                mpi_double_precision, dest, tag, xSliceRight_recv(i0, j0, k0), &
-                recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-                sts_right, ierror)
-
-            ! write auxiliary slice to var field
-            do i = 1, nbx
-
-              ! right halos
-              var(nx + i, - nby:ny + nby, 1:nz, iVar) = xSliceRight_recv(i, &
-                  - nby:ny + nby, 1:nz)
-
-              ! left halos
-              var(- nbx + i, - nby:ny + nby, 1:nz, iVar) = xSliceLeft_recv(i, &
-                  - nby:ny + nby, 1:nz)
-
-            end do
-
-          end if
-
-          if(verbose .and. master) print *, "horizontalHalos:  x-horizontal &
-              halos copied."
-
-        end do
-
-      end if
-
-      !------------------------------
-      !          y-direction
-      !------------------------------
-
-      if(jdim > 1) then
-        do iVar = 1, nloops
-          if(all(iVar /= [1, 2, 3, 4, 5, 6, iVarP])) cycle
-
-          ! slice size
-          sendcount = nby * (nx + 2 * nbx + 1) * (nz + 2 * nbz + 1)
-          recvcount = sendcount
-
-          ! read slice into contiguous array
-          do j = 1, nby
-            ySliceBack_send(:, j, :) = var(:, j, :, iVar)
-            ySliceForw_send(:, j, :) = var(:, ny - nby + j, :, iVar)
-          end do
-
-          ! back -> forw
-          source = back
-          dest = forw
-          tag = 100
-
-          i0 = - nbx; j0 = 1; k0 = - nbz
-
-          call mpi_sendrecv(ySliceForw_send(i0, j0, k0), sendcount, &
-              mpi_double_precision, dest, tag, ySliceBack_recv(i0, j0, k0), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_back, ierror)
-
-          ! forw -> back
-          source = forw
-          dest = back
-          tag = 100
-
-          call mpi_sendrecv(ySliceBack_send(i0, j0, k0), sendcount, &
-              mpi_double_precision, dest, tag, ySliceForw_recv(i0, j0, k0), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_forw, ierror)
-
-          ! write auxiliary slice to var field
-          do j = 1, nby
-
-            ! right halos
-            var(:, ny + j, :, iVar) = ySliceForw_recv(:, j, :)
-
-            ! left halos
-            var(:, - nby + j, :, iVar) = ySliceBack_recv(:, j, :)
-
-          end do
+        do iVar = 1, 4
+          call setHalosOfField(var%ICE(:, :, :, iVar))
         end do
       end if
-
-      if(verbose .and. master) print *, "horizontalHalos:  x-horizontal halos &
-          copied."
-
-      !------------------------------------------------
-      !   ice variable transport: iVar = nVar-3, nVar
-      !------------------------------------------------
-
-      if(include_ice .and. updateIce) then
-
-        do iVar = nVar - 3, nVar
-          ! slice size
-          sendcount = nby * (nx + 2 * nbx + 1) * nz
-          recvcount = sendcount
-
-          ! read slice into contiguous array
-          do j = 1, nby
-            ySliceBack_send(- nbx:nx + nbx, j, 1:nz) = var(- nbx:nx + nbx, j, &
-                1:nz, iVar)
-            ySliceForw_send(- nbx:nx + nbx, j, 1:nz) = var(- nbx:nx + nbx, ny &
-                - nby + j, 1:nz, iVar)
-          end do
-
-          if(jdim > 1) then
-
-            ! back -> forw
-            source = back
-            dest = forw
-            tag = 100
-
-            i0 = - nbx; j0 = 1; k0 = 1
-
-            call mpi_sendrecv(ySliceForw_send(i0, j0, k0), sendcount, &
-                mpi_double_precision, dest, tag, ySliceBack_recv(i0, j0, k0), &
-                recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-                sts_back, ierror)
-
-            ! forw -> back
-            source = forw
-            dest = back
-            tag = 100
-
-            call mpi_sendrecv(ySliceBack_send(i0, j0, k0), sendcount, &
-                mpi_double_precision, dest, tag, ySliceForw_recv(i0, j0, k0), &
-                recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-                sts_forw, ierror)
-
-            ! write auxiliary slice to var field
-            do j = 1, nby
-
-              ! right halos
-              var(- nbx:nx + nbx, ny + j, 1:nz, iVar) = ySliceForw_recv(- &
-                  nbx:nx + nbx, j, 1:nz)
-
-              ! left halos
-              var(- nbx:nx + nbx, - nby + j, 1:nz, iVar) = ySliceBack_recv(- &
-                  nbx:nx + nbx, j, 1:nz)
-
-            end do
-
-          end if
-
-          if(verbose .and. master) print *, "horizontalHalos:  x-horizontal &
-              halos copied."
-
-        end do
-
-      end if
-
-      !---------------------------------------------------------------------------
 
     case("ice")
 
-      do iVar = nVar - 3, nVar
-
-        !------------------------------
-        !          x-direction
-        !------------------------------
-
-        ! slice size
-        sendcount = nbx * (ny + 2 * nby + 1) * nz
-        recvcount = sendcount
-
-        ! read slice into contiguous array
-        do i = 1, nbx
-          xSliceLeft_send(i, - nby:ny + nby, 1:nz) = var(i, - nby:ny + nby, &
-              1:nz, iVar)
-          xSliceRight_send(i, - nby:ny + nby, 1:nz) = var(nx - nbx + i, &
-              - nby:ny + nby, 1:nz, iVar)
-        end do
-
-        if(idim > 1) then
-
-          ! left -> right
-          source = left
-          dest = right
-          tag = 100
-
-          i0 = 1; j0 = - nby; k0 = 1
-
-          call mpi_sendrecv(xSliceRight_send(i0, j0, k0), sendcount, &
-              mpi_double_precision, dest, tag, xSliceLeft_recv(i0, j0, k0), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_left, ierror)
-
-          ! right -> left
-          source = right
-          dest = left
-          tag = 100
-
-          call mpi_sendrecv(xSliceLeft_send(i0, j0, k0), sendcount, &
-              mpi_double_precision, dest, tag, xSliceRight_recv(i0, j0, k0), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_right, ierror)
-
-          ! write auxiliary slice to var field
-          do i = 1, nbx
-
-            ! right halos
-            var(nx + i, - nby:ny + nby, 1:nz, iVar) = xSliceRight_recv(i, &
-                - nby:ny + nby, 1:nz)
-
-            ! left halos
-            var(- nbx + i, - nby:ny + nby, 1:nz, iVar) = xSliceLeft_recv(i, &
-                - nby:ny + nby, 1:nz)
-
-          end do
-        end if
-
-        !------------------------------
-        !          y-direction
-        !------------------------------
-
-        ! slice size
-        sendcount = nby * (nx + 2 * nbx + 1) * nz
-        recvcount = sendcount
-
-        ! read slice into contiguous array
-        do j = 1, nby
-          ySliceBack_send(- nbx:nx + nbx, j, 1:nz) = var(- nbx:nx + nbx, j, &
-              1:nz, iVar)
-          ySliceForw_send(- nbx:nx + nbx, j, 1:nz) = var(- nbx:nx + nbx, ny &
-              - nby + j, 1:nz, iVar)
-        end do
-
-        if(jdim > 1) then
-
-          ! back -> forw
-          source = back
-          dest = forw
-          tag = 100
-
-          i0 = - nbx; j0 = 1; k0 = 1
-
-          call mpi_sendrecv(ySliceForw_send(i0, j0, k0), sendcount, &
-              mpi_double_precision, dest, tag, ySliceBack_recv(i0, j0, k0), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_back, ierror)
-
-          ! forw -> back
-          source = forw
-          dest = back
-          tag = 100
-
-          call mpi_sendrecv(ySliceBack_send(i0, j0, k0), sendcount, &
-              mpi_double_precision, dest, tag, ySliceForw_recv(i0, j0, k0), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_forw, ierror)
-
-          ! write auxiliary slice to var field
-          do j = 1, nby
-
-            ! right halos
-            var(- nbx:nx + nbx, ny + j, 1:nz, iVar) = ySliceForw_recv(- nbx:nx &
-                + nbx, j, 1:nz)
-
-            ! left halos
-            var(- nbx:nx + nbx, - nby + j, 1:nz, iVar) = ySliceBack_recv(- &
-                nbx:nx + nbx, j, 1:nz)
-          end do
-        end if
-
-      end do !iVar
-
-      !---------------------------------------------------------------------------
+      do iVar = 1, 4
+        call setHalosOfField(var%ICE(:, :, :, iVar))
+      end do
 
     case("ice2")
 
-      do ii = 1, nVarIce
-        iVar = iVarIce(ii)
-
-        !------------------------------
-        !          x-direction
-        !------------------------------
-
-        ! slice size
-        sendcount = nbx * (ny + 2 * nby + 1) * nz
-        recvcount = sendcount
-
-        ! read slice into contiguous array
-        do i = 1, nbx
-          xSliceLeft_send(i, - nby:ny + nby, 1:nz) = var(i, - nby:ny + nby, &
-              1:nz, iVar)
-          xSliceRight_send(i, - nby:ny + nby, 1:nz) = var(nx - nbx + i, &
-              - nby:ny + nby, 1:nz, iVar)
-        end do
-
-        if(idim > 1) then
-
-          ! left -> right
-          source = left
-          dest = right
-          tag = 100
-
-          i0 = 1; j0 = - nby; k0 = 1
-
-          call mpi_sendrecv(xSliceRight_send(i0, j0, k0), sendcount, &
-              mpi_double_precision, dest, tag, xSliceLeft_recv(i0, j0, k0), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_left, ierror)
-
-          ! right -> left
-          source = right
-          dest = left
-          tag = 100
-
-          call mpi_sendrecv(xSliceLeft_send(i0, j0, k0), sendcount, &
-              mpi_double_precision, dest, tag, xSliceRight_recv(i0, j0, k0), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_right, ierror)
-
-          ! write auxiliary slice to var field
-          do i = 1, nbx
-
-            ! right halos
-            var(nx + i, - nby:ny + nby, 1:nz, iVar) = xSliceRight_recv(i, &
-                - nby:ny + nby, 1:nz)
-
-            ! left halos
-            var(- nbx + i, - nby:ny + nby, 1:nz, iVar) = xSliceLeft_recv(i, &
-                - nby:ny + nby, 1:nz)
-
-          end do
-        end if
-
-        !------------------------------
-        !          y-direction
-        !------------------------------
-
-        ! slice size
-        sendcount = nby * (nx + 2 * nbx + 1) * nz
-        recvcount = sendcount
-
-        ! read slice into contiguous array
-        do j = 1, nby
-          ySliceBack_send(- nbx:nx + nbx, j, 1:nz) = var(- nbx:nx + nbx, j, &
-              1:nz, iVar)
-          ySliceForw_send(- nbx:nx + nbx, j, 1:nz) = var(- nbx:nx + nbx, ny &
-              - nby + j, 1:nz, iVar)
-        end do
-
-        if(jdim > 1) then
-
-          ! back -> forw
-          source = back
-          dest = forw
-          tag = 100
-
-          i0 = - nbx; j0 = 1; k0 = 1
-
-          call mpi_sendrecv(ySliceForw_send(i0, j0, k0), sendcount, &
-              mpi_double_precision, dest, tag, ySliceBack_recv(i0, j0, k0), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_back, ierror)
-
-          ! forw -> back
-          source = forw
-          dest = back
-          tag = 100
-
-          call mpi_sendrecv(ySliceBack_send(i0, j0, k0), sendcount, &
-              mpi_double_precision, dest, tag, ySliceForw_recv(i0, j0, k0), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_forw, ierror)
-
-          ! write auxiliary slice to var field
-          do j = 1, nby
-
-            ! right halos
-            var(- nbx:nx + nbx, ny + j, 1:nz, iVar) = ySliceForw_recv(- nbx:nx &
-                + nbx, j, 1:nz)
-
-            ! left halos
-            var(- nbx:nx + nbx, - nby + j, 1:nz, iVar) = ySliceBack_recv(- &
-                nbx:nx + nbx, j, 1:nz)
-          end do
-        end if
-
-      end do !iVar
-
-      !---------------------------------------------------------------------------
+      do iVar = 1, nVarIce
+        call setHalosOfField(var%ICE2(:, :, :, iVar))
+      end do
 
     case("tracer")
 
-      iVar = iVarT
-
-      !------------------------------
-      !          x-direction
-      !------------------------------
-
-      ! slice size
-      sendcount = nbx * (ny + 2 * nby + 1) * nz
-      recvcount = sendcount
-
-      ! read slice into contiguous array
-      do i = 1, nbx
-        xSliceLeft_send(i, - nby:ny + nby, 1:nz) = var(i, - nby:ny + nby, &
-            1:nz, iVar)
-        xSliceRight_send(i, - nby:ny + nby, 1:nz) = var(nx - nbx + i, - nby:ny &
-            + nby, 1:nz, iVar)
-      end do
-
-      if(idim > 1) then
-
-        ! left -> right
-        source = left
-        dest = right
-        tag = 100
-
-        i0 = 1; j0 = - nby; k0 = 1
-
-        call mpi_sendrecv(xSliceRight_send(i0, j0, k0), sendcount, &
-            mpi_double_precision, dest, tag, xSliceLeft_recv(i0, j0, k0), &
-            recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-            sts_left, ierror)
-
-        ! right -> left
-        source = right
-        dest = left
-        tag = 100
-
-        call mpi_sendrecv(xSliceLeft_send(i0, j0, k0), sendcount, &
-            mpi_double_precision, dest, tag, xSliceRight_recv(i0, j0, k0), &
-            recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-            sts_right, ierror)
-
-        ! write auxiliary slice to var field
-        do i = 1, nbx
-
-          ! right halos
-          var(nx + i, - nby:ny + nby, 1:nz, iVar) = xSliceRight_recv(i, &
-              - nby:ny + nby, 1:nz)
-
-          ! left halos
-          var(- nbx + i, - nby:ny + nby, 1:nz, iVar) = xSliceLeft_recv(i, &
-              - nby:ny + nby, 1:nz)
-
-        end do
-      end if
-
-      !------------------------------
-      !          y-direction
-      !------------------------------
-
-      ! slice size
-      sendcount = nby * (nx + 2 * nbx + 1) * nz
-      recvcount = sendcount
-
-      ! read slice into contiguous array
-      do j = 1, nby
-        ySliceBack_send(- nbx:nx + nbx, j, 1:nz) = var(- nbx:nx + nbx, j, &
-            1:nz, iVar)
-        ySliceForw_send(- nbx:nx + nbx, j, 1:nz) = var(- nbx:nx + nbx, ny &
-            - nby + j, 1:nz, iVar)
-      end do
-
-      if(jdim > 1) then
-
-        ! back -> forw
-        source = back
-        dest = forw
-        tag = 100
-
-        i0 = - nbx; j0 = 1; k0 = 1
-
-        call mpi_sendrecv(ySliceForw_send(i0, j0, k0), sendcount, &
-            mpi_double_precision, dest, tag, ySliceBack_recv(i0, j0, k0), &
-            recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-            sts_back, ierror)
-
-        ! forw -> back
-        source = forw
-        dest = back
-        tag = 100
-
-        call mpi_sendrecv(ySliceBack_send(i0, j0, k0), sendcount, &
-            mpi_double_precision, dest, tag, ySliceForw_recv(i0, j0, k0), &
-            recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-            sts_forw, ierror)
-
-        ! write auxiliary slice to var field
-        do j = 1, nby
-
-          ! right halos
-          var(- nbx:nx + nbx, ny + j, 1:nz, iVar) = ySliceForw_recv(- nbx:nx &
-              + nbx, j, 1:nz)
-
-          ! left halos
-          var(- nbx:nx + nbx, - nby + j, 1:nz, iVar) = ySliceBack_recv(- &
-              nbx:nx + nbx, j, 1:nz)
-        end do
-      end if
-
-      !---------------------------------------------------------------------------
+      call setHalosOfField(var%chi)
 
     case("varTilde")
 
       !-----------------------------------
       !             varTilde
       !-----------------------------------
+
+      if(idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
+      if(jdim > 1) call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
 
       !      achatz: this part seems to prohibit using less than two ghost cells.
       !      Can it be removed?
@@ -698,7 +121,7 @@ module mpi_module
       !  nTilde = 2
       !end if
 
-      do nT = 1, nTilde
+      do iTilde = 1, nTilde
         !------------------------------
         !          x-direction
         !------------------------------
@@ -712,10 +135,10 @@ module mpi_module
         recvcount = sendcount
 
         ! read slice into contiguous array
-        if(nT == 1) then
+        if(iTilde == 1) then
           x1SliceLeft_send(1:ny, 1:nz) = rhoTilde(2, 1:ny, 1:nz, 1, 0)
           x1SliceRight_send(1:ny, 1:nz) = rhoTilde(nx - 1, 1:ny, 1:nz, 1, 1)
-        else if(nT == 2) then
+        else if(iTilde == 2) then
           x1SliceLeft_send(1:ny, 1:nz) = PTilde(2, 1:ny, 1:nz, 1, 0)
           x1SliceRight_send(1:ny, 1:nz) = PTilde(nx - 1, 1:ny, 1:nz, 1, 1)
         end if
@@ -728,27 +151,27 @@ module mpi_module
           tag = 100
 
           call mpi_sendrecv(x1SliceRight_send(1, 1), sendcount, &
-              mpi_double_precision, dest, tag, x1SliceLeft_recv(1, 1), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_left, ierror)
+              &mpi_double_precision, dest, tag, x1SliceLeft_recv(1, 1), &
+              &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+              &sts_left, ierror)
 
           ! right -> left
           source = right
           dest = left
           tag = 100
           call mpi_sendrecv(x1SliceLeft_send(1, 1), sendcount, &
-              mpi_double_precision, dest, tag, x1SliceRight_recv(1, 1), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_right, ierror)
+              &mpi_double_precision, dest, tag, x1SliceRight_recv(1, 1), &
+              &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+              &sts_right, ierror)
 
           ! write auxiliary slice to var field
-          if(nT == 1) then ! rhoTilde
+          if(iTilde == 1) then ! rhoTilde
             ! right halos
             rhoTilde(nx + 2, 1:ny, 1:nz, 1, 0) = x1SliceRight_recv(1:ny, 1:nz)
 
             ! left halos
             rhoTilde(- 1, 1:ny, 1:nz, 1, 1) = x1SliceLeft_recv(1:ny, 1:nz)
-          else if(nT == 2) then ! PTilde
+          else if(iTilde == 2) then ! PTilde
             ! right halos
             PTilde(nx + 2, 1:ny, 1:nz, 1, 0) = x1SliceRight_recv(1:ny, 1:nz)
 
@@ -759,7 +182,7 @@ module mpi_module
         end if
 
         if(verbose .and. master) print *, "horizontalHalos:  x-horizontal &
-            halos copied."
+            &halos copied."
 
         !end if
 
@@ -776,10 +199,10 @@ module mpi_module
         recvcount = sendcount
 
         ! read slice into contiguous array
-        if(nT == 1) then
+        if(iTilde == 1) then
           y1SliceBack_send(1:nx, 1:nz) = rhoTilde(1:nx, 2, 1:nz, 2, 0)
           y1SliceForw_send(1:nx, 1:nz) = rhoTilde(1:nx, ny - 1, 1:nz, 2, 1)
-        else if(nT == 2) then
+        else if(iTilde == 2) then
           y1SliceBack_send(1:nx, 1:nz) = PTilde(1:nx, 2, 1:nz, 2, 0)
           y1SliceForw_send(1:nx, 1:nz) = PTilde(1:nx, ny - 1, 1:nz, 2, 1)
         end if
@@ -792,28 +215,28 @@ module mpi_module
           tag = 100
 
           call mpi_sendrecv(y1SliceForw_send(1, 1), sendcount, &
-              mpi_double_precision, dest, tag, y1SliceBack_recv(1, 1), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_back, ierror)
+              &mpi_double_precision, dest, tag, y1SliceBack_recv(1, 1), &
+              &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+              &sts_back, ierror)
 
           ! forw -> back
           source = forw
           dest = back
           tag = 100
           call mpi_sendrecv(y1SliceBack_send(1, 1), sendcount, &
-              mpi_double_precision, dest, tag, y1SliceForw_recv(1, 1), &
-              recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              sts_right, ierror)
+              &mpi_double_precision, dest, tag, y1SliceForw_recv(1, 1), &
+              &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+              &sts_right, ierror)
 
           ! write auxiliary slice to var field
 
-          if(nT == 1) then ! rhoTilde
+          if(iTilde == 1) then ! rhoTilde
             ! right halos
             rhoTilde(1:nx, ny + 2, 1:nz, 2, 0) = y1SliceForw_recv(1:nx, 1:nz)
 
             ! left halos
             rhoTilde(1:nx, - 1, 1:nz, 2, 1) = y1SliceBack_recv(1:nx, 1:nz)
-          else if(nT == 2) then ! PTilde
+          else if(iTilde == 2) then ! PTilde
             ! right halos
             PTilde(1:nx, ny + 2, 1:nz, 2, 0) = y1SliceForw_recv(1:nx, 1:nz)
 
@@ -824,7 +247,7 @@ module mpi_module
         end if
 
         if(verbose .and. master) print *, "horizontalHalos:  y-horizontal &
-            halos copied."
+            &halos copied."
 
         !end if ! updateMass
       end do
@@ -874,9 +297,10 @@ module mpi_module
     ! open the namelist by master
     if(master) then
       open(unit = 10, file = file_namelist, action = "read", form &
-          = "formatted", status = "old", position = "rewind")
+          &= "formatted", status = "old")
 
-      ! read grid info
+      ! Read domain namelist.
+      rewind(unit = 10)
       read(unit = 10, nml = domain)
       close(10)
 
@@ -890,11 +314,11 @@ module mpi_module
     call mpi_bcast(nby, 1, mpi_integer, root, mpi_comm_world, ierror)
     call mpi_bcast(nbz, 1, mpi_integer, root, mpi_comm_world, ierror)
     call mpi_bcast(lx_dim, 2, mpi_double_precision, root, mpi_comm_world, &
-        ierror)
+        &ierror)
     call mpi_bcast(ly_dim, 2, mpi_double_precision, root, mpi_comm_world, &
-        ierror)
+        &ierror)
     call mpi_bcast(lz_dim, 2, mpi_double_precision, root, mpi_comm_world, &
-        ierror)
+        &ierror)
     call mpi_bcast(nprocx, 1, mpi_integer, root, mpi_comm_world, ierror)
     call mpi_bcast(nprocy, 1, mpi_integer, root, mpi_comm_world, ierror)
 
@@ -910,14 +334,9 @@ module mpi_module
     jdim = nprocy
     if(idim * jdim /= nbProc) then
       if(master) print *, 'Virtual topology wrong idim*jdim should be equal to &
-          nbProc!'
+          &nbProc!'
       error_flag = .true.
       return
-    end if
-    if(master) then
-      !       print"(a,i3,a,i3,a)","Virtual topology: (idim, jdim) = (",idim, " ,",jdim,")"
-      print "(a,i4,a,i4,a)", "Virtual topology: (idim, jdim) = (", idim, " ,", &
-          jdim, ")"
     end if
 
     dims(1) = idim
@@ -1012,7 +431,7 @@ module mpi_module
     if(sizeX < idim) then
       if(master) then
         print *, 'Stopping! Do not use more than', sizeX, 'cpus to compute &
-            this application'
+            &this application'
       end if
       error_flag = .true.
       return
@@ -1020,17 +439,25 @@ module mpi_module
     if(sizeY < jdim) then
       if(master) then
         print *, 'Stopping! Do not use more than', sizeY, 'cpus to compute &
-            this application'
+            &this application'
       end if
       error_flag = .true.
       return
     end if
 
+    ! Number of halo cells should not be larger than number of physical cells.
+    if(idim > 1 .and. nbx > nx) then
+      if(master) stop "Error in init_mpi: idim > 1 and nbx > nx!"
+    end if
+    if(jdim > 1 .and. nby > ny) then
+      if(master) stop "Error in init_mpi: jdim > 1 and nby > ny!"
+    end if
+
     ! display the decomposition
     if(verboseMPI) then
       print "(a,a,i3,a,i3,a,i3,a,i3,a,i3,a)", "(rank,icoord,jcoord) &
-          -> (nx,ny)", "(", rank, ",", icoord, ", ", jcoord, ") -> (", nx, ", &
-          ", ny, ")"
+          &-> (nx,ny)", "(", rank, ",", icoord, ", ", jcoord, ") -> (", nx, ", &
+          &", ny, ")"
     end if
 
   end subroutine init_mpi
@@ -1064,16 +491,16 @@ module mpi_module
     do k = 1, aSize(3)
       do j = 1, aSize(2)
         dot_product3D_loc = dot_product3D_loc + dot_product(a(:, j, k), b(:, &
-            j, k))
+            &j, k))
       end do
     end do
 
     !MPI sum over all procs
     call mpi_reduce(dot_product3D_loc, dot_product3D_glob, 1, &
-        mpi_double_precision, mpi_sum, root, comm, ierror)
+        &mpi_double_precision, mpi_sum, root, comm, ierror)
 
     call mpi_bcast(dot_product3D_glob, 1, mpi_double_precision, root, comm, &
-        ierror)
+        &ierror)
 
   end function dot_product3D_glob
 

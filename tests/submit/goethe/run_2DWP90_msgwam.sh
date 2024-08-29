@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --partition=general1
 #SBATCH --job-name=2DWP90_msgwam
-#SBATCH --ntasks=16
+#SBATCH --ntasks=8
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2000
 #SBATCH --mail-type=FAIL
@@ -10,8 +10,8 @@
 set -x
 
 # Set number of processors (product must be equal to number of tasks).
-ntasks=16
-nprocx=16
+ntasks=8
+nprocx=8
 nprocy=1
 
 userName=$(whoami)

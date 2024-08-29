@@ -46,12 +46,12 @@ print(" ".join(("Time:", str(data.tt[it]), "s")))
 for data_set in (reference, data):
 
   # Set fields of interest.
-  rho = data_set.psi[it, 0, iz, int(0.5 * data_set.ny):data_set.ny]
-  uu = data_set.psi[it, 1, iz, int(0.5 * data_set.ny):data_set.ny]
-  vv = data_set.psi[it, 2, iz, int(0.5 * data_set.ny):data_set.ny]
-  ww = data_set.psi[it, 3, iz, int(0.5 * data_set.ny):data_set.ny]
-  pi = data_set.psi[it, 4, iz, int(0.5 * data_set.ny):data_set.ny]
-  theta = data_set.psi[it, 5, 0, int(0.5 * data_set.ny):data_set.ny]
+  rho = data_set.psi["rho"][it, iz, int(0.5 * data_set.ny):data_set.ny]
+  uu = data_set.psi["u"][it, iz, int(0.5 * data_set.ny):data_set.ny]
+  vv = data_set.psi["v"][it, iz, int(0.5 * data_set.ny):data_set.ny]
+  ww = data_set.psi["w"][it, iz, int(0.5 * data_set.ny):data_set.ny]
+  pi = data_set.psi["pi"][it, iz, int(0.5 * data_set.ny):data_set.ny]
+  theta = data_set.psi["theta"][it, 0, int(0.5 * data_set.ny):data_set.ny]
 
   # Compute divergence.
   divergence = numpy.zeros_like(uu)

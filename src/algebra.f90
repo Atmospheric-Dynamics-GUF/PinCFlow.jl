@@ -34,7 +34,7 @@ module algebra_module
   contains
 
   subroutine bicgstab_csr(A_csr, colInd, rowPtr, diagPtr, b, x, tol, res, &
-      max_iter_bicgstab)
+      &max_iter_bicgstab)
     ! -----------------------------------------
     !  BiCGStab, cf. Meister pp. 172
     !  using compressed sparse matrix (CSR)
@@ -61,19 +61,19 @@ module algebra_module
 
     ! allocate local fields
     allocate(p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(r0(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(rOld(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(r(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(s(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(t(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(v(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
 
     ! Init
     r0 = b ! - matmul_csr(A_csr,colInd,rowPtr,diagPtr,x,'low+up')
@@ -84,7 +84,7 @@ module algebra_module
     ! check initial residual
     res = norm(r)
     if(giveInfo) write(*, fmt = "(a25,es25.14)") " Initial residual: res0 = ", &
-        res
+        &res
     if(giveInfo) write(*, fmt = "(a25,es25.14)") " tol = ", tol
     if(res <= tol) then
       if(giveInfo) print *, " ==> no iteration needed."
@@ -109,7 +109,7 @@ module algebra_module
         if(giveInfo) then
           write(*, fmt = "(a25,i25)") " Nb.of iterations: j = ", j
           write(*, fmt = "(a25,es25.14)") " Final residual: res = ", res
-          print *, "--------------------------------------------------"
+          print "(a)", repeat("-", 80)
           print *, ""
         end if
         return
@@ -120,31 +120,32 @@ module algebra_module
     end do iteration
 
     write(*, fmt = "(a25,i25)") " BiCGStab_csr: max iterations!!!", &
-        max_iter_bicgstab
-    print *, "--------------------------------------------------"; print *, ""
+        &max_iter_bicgstab
+    print "(a)", repeat("-", 80)
+    print *, ""
 
     ! deallocate local fields
     deallocate(p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(r0, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(rOld, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(r, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(s, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(t, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(v, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
 
   end subroutine bicgstab_csr
 
   !--------------------------------------------------------------------------
 
   subroutine pre_bicgstab_csr(A_csr, LU_csr, colInd, rowPtr, diagPtr, b, x, &
-      tol, res, max_iter_bicgstab)
+      &tol, res, max_iter_bicgstab)
     !----------------------------------
     !  ILU-preconditioned BICGSTAB
     !  cf. PincFloit-Doku
@@ -166,7 +167,7 @@ module algebra_module
     ! local variables
     integer :: j, n, allocstat
     real, dimension(:), allocatable :: p_p, r, r0_p, r_p, s, s_p, t, t_p, x_p, &
-        v, v_p, aux
+        &v, v_p, aux
     real :: alpha_p, beta_p, omega_p, rho_p, rho_p_old
     real :: normB
 
@@ -176,29 +177,29 @@ module algebra_module
 
     ! allocate local fields
     allocate(p_p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(r(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(r0_p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(r_p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(s(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(s_p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(t(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(t_p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(x_p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(v(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(v_p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(aux(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
 
     ! Init
     ! r -> r(0) = r0:
@@ -213,7 +214,7 @@ module algebra_module
     if(normB <= tol) then
       normB = 1.0
       if(giveInfo) print *, "algebra.f90/pre_bicgstab_csr:  norm(b) < tol &
-          --> normB := 1.0"
+          &--> normB := 1.0"
     end if
 
     ! check initial residual
@@ -221,7 +222,7 @@ module algebra_module
       res = norm(r)
       if(giveInfo) print *, "res = ", res
       if(giveInfo) print *, "algebra.f90/pre_bicgstab_csr:  No iteration &
-          needed."
+          &needed."
       return
     end if
 
@@ -258,7 +259,7 @@ module algebra_module
       if(res / normB <= tol) then
         if(giveInfo) then
           print *, "algebra.f90/precond_bicgstab:  Number of iterations &
-              needed: ", j
+              &needed: ", j
           print *, "relResPrecond = ", norm(r_p) / normB
           print *, "relRes = ", res / normB
           print *, ""
@@ -273,7 +274,7 @@ module algebra_module
 
     ! max iterations
     print *, "algebra.f90/precond_bicgstab: max iterations reached: ", &
-        max_iter_bicgstab
+        &max_iter_bicgstab
     print *, "relResPrecond = ", norm(r_p) / normB
     print *, "relRes = ", res / normB
     print *, ""
@@ -281,29 +282,29 @@ module algebra_module
 
     ! deallocate local fields
     deallocate(p_p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(r, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(r0_p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(r_p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(s, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(s_p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(t, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(t_p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(x_p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(v, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(v_p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(aux, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
 
   end subroutine pre_bicgstab_csr
 
@@ -557,7 +558,7 @@ module algebra_module
 
     case default
       stop "algebra.f90/matmul_csr:  form should be 'up', 'low', or 'low+up'. &
-          Stop"
+          &Stop"
 
     end select
     matmul_csr = y
@@ -584,9 +585,9 @@ module algebra_module
     ! get system size and allocate
     n = size(diagPtr)
     allocate(x(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/mldivide_csr:alloc failed"
+        &"algebra.f90/mldivide_csr:alloc failed"
     allocate(mldivide_csr(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/mldivide_csr:alloc failed"
+        &"algebra.f90/mldivide_csr:alloc failed"
 
     select case(form)
 
@@ -643,9 +644,9 @@ module algebra_module
     n = size(A, 1)
 
     allocate(x(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/mldivide:alloc failed"
+        &"algebra.f90/mldivide:alloc failed"
     allocate(mldivide(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/mldivide:alloc failed"
+        &"algebra.f90/mldivide:alloc failed"
 
     select case(form)
 
@@ -669,7 +670,7 @@ module algebra_module
     mldivide = x
 
     deallocate(x, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/mldivide:dealloc failed"
+        &"algebra.f90/mldivide:dealloc failed"
 
   end function mldivide
 
@@ -866,7 +867,7 @@ module algebra_module
     ! local variables
     integer :: j, n, allocstat
     real, dimension(:), allocatable :: p_p, r, r0_p, r_p, s, s_p, t, t_p, x_p, &
-        v, v_p
+        &v, v_p
     real :: alpha_p, beta_p, omega_p, rho_p, rho_p_old
     real :: normB
 
@@ -874,27 +875,27 @@ module algebra_module
 
     ! allocate local fields
     allocate(p_p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(r(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(r0_p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(r_p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(s(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(s_p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(t(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(t_p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(x_p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(v(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(v_p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
 
     ! Init
     r = b - matmul(A, x) ! r -> r(0) = r0
@@ -941,7 +942,7 @@ module algebra_module
       if(res / normB <= tol) then
         if(giveInfo) then
           print *, "algebra.f90/precond_bicgstab:  Number of iterations &
-              needed: ", j
+              &needed: ", j
           print *, "relResPrecond = ", norm(r_p) / normB
           print *, "relRes = ", res / normB
           print *, ""
@@ -955,32 +956,32 @@ module algebra_module
 
     ! max iterations
     print *, "algebra.f90/precond_bicgstab: max iterations reached: ", &
-        max_iter_bicgstab
+        &max_iter_bicgstab
     x = mldivide(U, x_p, 'up')
 
     ! deallocate local fields
     deallocate(p_p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(r, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(r0_p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(r_p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(s, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(s_p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(t, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(t_p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(x_p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(v, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(v_p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
 
   end subroutine precond_bicgstab
 
@@ -1009,19 +1010,19 @@ module algebra_module
 
     ! allocate local fields
     allocate(p(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(r0(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(rOld(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(r(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(s(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(t(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
     allocate(v(n), stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:alloc failed"
+        &"algebra.f90/bicgstab:alloc failed"
 
     ! Init
     r0 = b - matmul(A, x)
@@ -1053,7 +1054,7 @@ module algebra_module
       res = norm(r)
       if(res / normB <= tol) then
         if(giveInfo) print *, "algebra.f90/bicgstab:  Number of iterations &
-            needed: ", j
+            &needed: ", j
         if(giveInfo) print *, "relResidual = ", res / normB
         return
       end if
@@ -1066,19 +1067,19 @@ module algebra_module
 
     ! deallocate local fields
     deallocate(p, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(r0, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(rOld, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(r, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(s, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(t, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
     deallocate(v, stat = allocstat); if(allocstat /= 0) stop &
-        "algebra.f90/bicgstab:dealloc failed"
+        &"algebra.f90/bicgstab:dealloc failed"
 
   end subroutine bicgstab_full
 
