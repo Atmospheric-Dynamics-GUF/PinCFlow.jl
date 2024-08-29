@@ -47,9 +47,7 @@ program pinc_prog
   real :: dt_local
 
   ! fields
-  real, dimension(:, :, :, :), allocatable :: var, var0, var1, varG
-  real, dimension(:, :, :, :), allocatable :: source
-  ! var(i,j,k,iVar) iVar = 1..5 > rho,u,v,w,pExner
+  type(var_type) :: var, var0, var1, varG, source
   ! varG contains balance parts of current time step !FS October 2020
 
   real, dimension(:, :, :), allocatable :: dRho, dRhop ! RK-Update for rho
@@ -62,10 +60,7 @@ program pinc_prog
   real, dimension(:), allocatable :: dPStrat, drhoStrat !RK update for P
   real, dimension(:), allocatable :: w_0
 
-  real, dimension(:, :, :, :, :), allocatable :: flux, flux0
-  ! flux(i,j,k,dir,iFlux)
-  ! dir = 1..3 > f,g,h-flux in x,y,z-direction
-  ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
+  type(flux_type) :: flux, flux0
 
   !--------------------
   !   WKB variables
@@ -102,10 +97,10 @@ program pinc_prog
   logical :: errFlagBiCG, errFlagTStep
   integer :: nIterBicg, nTotalBicg
   real :: nAverageBicg
-  character(len = 8) :: datum
-  character(len = 10) :: niceDatum
-  character(len = 10) :: zeit
-  character(len = 9) :: niceZeit
+  character(len = 8) :: systemDate
+  character(len = 10) :: fancySystemDate
+  character(len = 10) :: systemTime
+  character(len = 5) :: fancySystemTime
   real :: a2
 
   real :: tolpoisson_s
@@ -155,22 +150,26 @@ program pinc_prog
   end if
 
   if(master) then
-    call date_and_time(date = datum, time = zeit)
+    call date_and_time(date = systemDate, time = systemTime)
 
-    niceDatum = datum(7:8) // "." // datum(5:6) // "." // datum(1:4)
-    niceZeit = zeit(1:2) // ":" // zeit(3:4) // " Uhr"
+    fancySystemDate = systemDate(1:4) // "-" // systemDate(5:6) // "-" &
+        &// systemDate(7:8)
+    fancySystemTime = systemTime(1:2) // ":" // systemTime(3:4)
 
-    print *, ""
-    print *, ""
-    print *, ""
-    print *, "=============================================================="
-    print *, " PincFloit (c) 2010 F. Rieper  "
-    print *, " modified by many others (2018)  "
-    print *, ""
-    write(*, fmt = "(a25,a10)") " Today : ", niceDatum
-    write(*, fmt = "(a25,a9)") " Time  : ", niceZeit
+    print "(a)", ""
+    print "(a)", repeat("-", 80)
+    print "(36x, a)", "PincFlow"
+    print "(12x, a)", "developed by Rieper et al (2013) and Schmid et al (2021)"
+    print "(28x, a)", "modified by many others"
+    print "(a)", repeat("-", 80)
+    print "(a)", ""
+    print "(a)", "Date: " // fancySystemDate
+    print "(a)", "Time: " // fancySystemTime
+    print "(a)", ""
+    print "(a)", "Virtual topology: [idim, jdim] = [" // trim_integer(idim) &
+        &// ", " // trim_integer(jdim) // "]"
+    print "(a)", ""
 
-    ! init clock
     call system_clock(count_rate = rate)
     call system_clock(count = startTimeCount)
   end if
@@ -185,7 +184,7 @@ program pinc_prog
   ! 1) allocate variables
   ! 2) read input.f90
   call setup(var, var0, var1, varG, flux, flux0, force, source, dRho, dRhop, &
-      dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer, tracerforce, dPot)
+      &dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer, tracerforce, dPot)
 
   call init_atmosphere ! set atmospheric background state
   call init_output
@@ -194,7 +193,7 @@ program pinc_prog
 
   ! put PstratTFC into var
   if(model == "compressible") then
-    var(:, :, :, iVarP) = pStratTFC(:, :, :)
+    var%P(:, :, :) = pStratTFC(:, :, :)
   end if
 
   if(include_tracer) call setup_tracer(var)
@@ -217,15 +216,15 @@ program pinc_prog
       do j = 1, ny
         do i = 1, nx
           if(fluctuationMode) then
-            sum_local(k) = sum_local(k) + var(i, j, k, 1) + rhoStrat(k)
+            sum_local(k) = sum_local(k) + var%rho(i, j, k) + rhoStrat(k)
           else
-            sum_local(k) = sum_local(k) + var(i, j, k, 1)
+            sum_local(k) = sum_local(k) + var%rho(i, j, k)
           end if
         end do
       end do
     end do
     call mpi_allreduce(sum_local(1), sum_global(1), nz, mpi_double_precision, &
-        mpi_sum, comm, ierror)
+        &mpi_sum, comm, ierror)
     sum_global = sum_global / (sizeX * sizeY)
 
     rhoStrat_s = 0.
@@ -242,7 +241,7 @@ program pinc_prog
 
   end if
 
-  var(:, :, :, 8) = 0.0 ! Heating due to GWs in the rotating atmosphere
+  if(rayTracer) var%GWH = 0.0 ! Heating due to GWs in the rotating atmosphere
 
   if(poissonSolverType == 'bicgstab') then
     call SetUpBiCGStab ! Set BiCGStab arrays
@@ -260,10 +259,10 @@ program pinc_prog
 
   if(zero_initial_state) then
     if(fluctuationMode) then
-      var = 0.
+      call reset_var_type(var)
     else
       print *, 'ERROR: zero_initial_state = .true. requires  fluctuationMode &
-          = .true.'
+          &= .true.'
       stop
     end if
   end if
@@ -276,8 +275,17 @@ program pinc_prog
       kr_sp_w_tfc(:, :, k) = k
     end do
     pStrat_0 = pStrat
-    call random_number(var)
-    call random_number(flux)
+    call random_number(var%rho)
+    call random_number(var%u)
+    call random_number(var%v)
+    call random_number(var%w)
+    call random_number(var%pi)
+    call random_number(var%rhop)
+    call random_number(flux%rho)
+    call random_number(flux%u)
+    call random_number(flux%v)
+    call random_number(flux%w)
+    call random_number(flux%rhop)
     call random_number(force)
     if(timeScheme == "semiimplicit") then
       ! Linear operator test
@@ -353,7 +361,7 @@ program pinc_prog
 
     ! 1) allocate variables
     ! 2) read the namelist
-    flux = 0.
+    call reset_flux_type(flux)
     dMom = 0.
 
     tolpoisson_s = tolPoisson
@@ -368,7 +376,7 @@ program pinc_prog
     end if
 
     call Corrector(var, flux, dMom, 1.0, errFlagBicg, nIterBicg, 1, "expl", &
-        1., 1.)
+        &1., 1.)
 
     if(model == "compressible") then
       call add_JP_to_u(var, "backward")
@@ -391,8 +399,6 @@ program pinc_prog
   if(restart) then
     !restart from previous output
 
-    offset = 0.
-
     call read_profile(iIn, PStrat, "Pstrat_in.dat")
     call read_data(iIn, var, time)
 
@@ -414,7 +420,7 @@ program pinc_prog
     ! allocate ray fields
 
     call setup_wkb(ray, ray_var3D, var, diffusioncoeff, tracerfluxvar, lowamp, &
-        nowamp, rhsamp)
+        &nowamp, rhsamp)
 
     if(include_ice2) then
       uTime = 0 !set initial time
@@ -474,16 +480,14 @@ program pinc_prog
 
     if(master) then
       print *, ""
-      print *, ""
-      print *, ""
-      print *, "--------------------------------------------------------"
+      print "(a)", repeat("-", 80)
       write(*, fmt = "(a25,i15)") " Time step = ", iTime
       write(*, fmt = "(a25,f15.1,a8)") " Time = ", time * tRef, "seconds"
-      print *, "--------------------------------------------------------"
+      print "(a)", repeat("-", 80)
     end if
 
     if(TestCase == "hotBubble_heat" .or. TestCase == "hotBubble_heatedLayer") &
-        then
+        &then
       if(time * tRef > 250.) then
         heatingONK14 = .false.
       end if
@@ -504,7 +508,7 @@ program pinc_prog
       if(master) then
         print *, " TimeStep routine: "
         write(*, fmt = "(a25,es15.4,a8)") "dt < dtMin!!! dtMin = ", dtMin_dim, &
-            "seconds"
+            &"seconds"
         write(*, fmt = "(a25,es15.4,a8)") "dt * tRef = ", dt * tRef, "seconds"
         write(*, fmt = "(a25,i2.2)") "cycle paramLoop. iPara = ", iParam
 
@@ -542,9 +546,9 @@ program pinc_prog
         output = .true.
         if(master) then
           write(*, fmt = "(a25,es15.4,a8)") "dt for output = ", dt * tRef, &
-              "seconds"
+              &"seconds"
           if(TestCase == "atmosphereatrest") then
-            wmax = maxVal(abs(var(1:nx, 1:ny, 1:nz, 4)))
+            wmax = maxVal(abs(var%w(1:nx, 1:ny, 1:nz)))
 
             write(124, fmt = "(es15.4,es15.4)") time * tRef, wmax * uRef
           end if
@@ -615,103 +619,131 @@ program pinc_prog
               end if
 
               if(spongeType == "exponential") then
-                alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                    + spongeAlphaZ * exp((height - lz(1)) / dzSponge)
+                if(sizeZ > 1) then
+                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                      &+ spongeAlphaZ * exp((height - lz(1)) / dzSponge)
+                end if
                 if(lateralSponge) then
-                  if(x(i00 + i) <= 0.5 * (lx(0) + lx(1))) then
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + spongeAlphaX * exp((lx(0) - x(i00 + i)) / dxSponge)
-                  else
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + spongeAlphaX * exp((x(i00 + i) - lx(1)) / dxSponge)
+                  if(sizeX > 1) then
+                    if(x(i00 + i) <= 0.5 * (lx(0) + lx(1))) then
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + spongeAlphaX * exp((lx(0) - x(i00 + i)) &
+                          &/ dxSponge)
+                    else
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + spongeAlphaX * exp((x(i00 + i) - lx(1)) &
+                          &/ dxSponge)
+                    end if
                   end if
-                  if(y(j00 + j) <= 0.5 * (ly(0) + ly(1))) then
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + spongeAlphaY * exp((ly(0) - y(j00 + j)) / dySponge)
-                  else
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + spongeAlphaY * exp((y(j00 + j) - ly(1)) / dySponge)
+                  if(sizeY > 1) then
+                    if(y(j00 + j) <= 0.5 * (ly(0) + ly(1))) then
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + spongeAlphaY * exp((ly(0) - y(j00 + j)) &
+                          &/ dySponge)
+                    else
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + spongeAlphaY * exp((y(j00 + j) - ly(1)) &
+                          &/ dySponge)
+                    end if
                   end if
                 end if
 
               else if(spongeType == "cosmo") then
-                if(height >= zSponge) then
-                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                      + 0.5 / cosmoSteps / dt * (1.0 - cos(pi * (height &
-                      - zSponge) / dzSponge))
+                if(sizeZ > 1) then
+                  if(height >= zSponge) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        &+ 0.5 / cosmoSteps / dt * (1.0 - cos(pi * (height &
+                        &- zSponge) / dzSponge))
+                  end if
                 end if
                 if(lateralSponge) then
-                  if(x(i00 + i) <= xSponge0) then
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + 0.5 / cosmoSteps / dt * (1.0 - cos(pi * (xSponge0 &
-                        - x(i00 + i)) / dxSponge))
-                  else if(x(i00 + i) >= xSponge1) then
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + 0.5 / cosmoSteps / dt * (1.0 - cos(pi * (x(i00 + i) &
-                        - xSponge1) / dxSponge))
+                  if(sizeX > 1) then
+                    if(x(i00 + i) <= xSponge0) then
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                          &* (xSponge0 - x(i00 + i)) / dxSponge))
+                    else if(x(i00 + i) >= xSponge1) then
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + 0.5 / cosmoSteps / dt * (1.0 - cos(pi * (x(i00 &
+                          &+ i) - xSponge1) / dxSponge))
+                    end if
                   end if
-                  if(y(j00 + j) <= ySponge0) then
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + 0.5 / cosmoSteps / dt * (1.0 - cos(pi * (ySponge0 &
-                        - y(j00 + j)) / dySponge))
-                  else if(y(j00 + j) >= ySponge1) then
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + 0.5 / cosmoSteps / dt * (1.0 - cos(pi * (y(j00 + j) &
-                        - ySponge1) / dySponge))
+                  if(sizeY > 1) then
+                    if(y(j00 + j) <= ySponge0) then
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
+                          &* (ySponge0 - y(j00 + j)) / dySponge))
+                    else if(y(j00 + j) >= ySponge1) then
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + 0.5 / cosmoSteps / dt * (1.0 - cos(pi * (y(j00 &
+                          &+ j) - ySponge1) / dySponge))
+                    end if
                   end if
                 end if
 
               else if(spongeType == "polynomial") then
-                if(height >= zSponge) then
-                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                      + spongeAlphaZ * ((height - zSponge) / dzSponge) &
-                      ** spongeOrder
+                if(sizeZ > 1) then
+                  if(height >= zSponge) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        &+ spongeAlphaZ * ((height - zSponge) / dzSponge) &
+                        &** spongeOrder
+                  end if
                 end if
                 if(lateralSponge) then
-                  if(x(i00 + i) <= xSponge0) then
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + spongeAlphaX * ((xSponge0 - x(i00 + i)) / dxSponge) &
-                        ** spongeOrder
-                  else if(x(i00 + i) >= xSponge1) then
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + spongeAlphaX * ((x(i00 + i) - xSponge1) / dxSponge) &
-                        ** spongeOrder
+                  if(sizeX > 1) then
+                    if(x(i00 + i) <= xSponge0) then
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
+                          &/ dxSponge) ** spongeOrder
+                    else if(x(i00 + i) >= xSponge1) then
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + spongeAlphaX * ((x(i00 + i) - xSponge1) &
+                          &/ dxSponge) ** spongeOrder
+                    end if
                   end if
-                  if(y(j00 + j) <= ySponge0) then
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + spongeAlphaY * ((ySponge0 - y(j00 + j)) / dySponge) &
-                        ** spongeOrder
-                  else if(y(j00 + j) >= ySponge1) then
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + spongeAlphaY * ((y(j00 + j) - ySponge1) / dySponge) &
-                        ** spongeOrder
+                  if(sizeY > 1) then
+                    if(y(j00 + j) <= ySponge0) then
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
+                          &/ dySponge) ** spongeOrder
+                    else if(y(j00 + j) >= ySponge1) then
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + spongeAlphaY * ((y(j00 + j) - ySponge1) &
+                          &/ dySponge) ** spongeOrder
+                    end if
                   end if
                 end if
 
               else if(spongeType == "sinusoidal") then
-                if(height >= zSponge) then
-                  alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                      + spongeAlphaZ * sin(0.5 * pi * (height - zSponge) &
-                      / dzSponge) ** 2.0
+                if(sizeZ > 1) then
+                  if(height >= zSponge) then
+                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
+                        &+ spongeAlphaZ * sin(0.5 * pi * (height - zSponge) &
+                        &/ dzSponge) ** 2.0
+                  end if
                 end if
                 if(lateralSponge) then
-                  if(x(i00 + i) <= xSponge0) then
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + spongeAlphaX * sin(0.5 * pi * (xSponge0 - x(i00 &
-                        + i)) / dxSponge) ** 2.0
-                  else if(x(i00 + i) >= xSponge1) then
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + spongeAlphaX * sin(0.5 * pi * (x(i00 + i) &
-                        - xSponge1) / dxSponge) ** 2.0
+                  if(sizeX > 1) then
+                    if(x(i00 + i) <= xSponge0) then
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + spongeAlphaX * sin(0.5 * pi * (xSponge0 &
+                          &- x(i00 + i)) / dxSponge) ** 2.0
+                    else if(x(i00 + i) >= xSponge1) then
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + spongeAlphaX * sin(0.5 * pi * (x(i00 + i) &
+                          &- xSponge1) / dxSponge) ** 2.0
+                    end if
                   end if
-                  if(y(j00 + j) <= ySponge0) then
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + spongeAlphaY * sin(0.5 * pi * (ySponge0 - y(j00 &
-                        + j)) / dySponge) ** 2.0
-                  else if(y(j00 + j) >= ySponge1) then
-                    alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, k) &
-                        + spongeAlphaY * sin(0.5 * pi * (y(j00 + j) &
-                        - ySponge1) / dySponge) ** 2.0
+                  if(sizeY > 1) then
+                    if(y(j00 + j) <= ySponge0) then
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + spongeAlphaY * sin(0.5 * pi * (ySponge0 &
+                          &- y(j00 + j)) / dySponge) ** 2.0
+                    else if(y(j00 + j) >= ySponge1) then
+                      alphaUnifiedSponge(i, j, k) = alphaUnifiedSponge(i, j, &
+                          &k) + spongeAlphaY * sin(0.5 * pi * (y(j00 + j) &
+                          &- ySponge1) / dySponge) ** 2.0
+                    end if
                   end if
                 end if
               end if
@@ -736,7 +768,7 @@ program pinc_prog
               do i = 1, nx
                 if(heightTFC(i, j, k) >= zSponge) then
                   kr_sp_tfc(i, j, k) = alpspg * sin(0.5 * pi * (heightTFC(i, &
-                      j, k) - zSponge) / (lz(1) - zSponge)) ** 2.0
+                      &j, k) - zSponge) / (lz(1) - zSponge)) ** 2.0
                   kr_sp_w_tfc(i, j, k) = kr_sp_tfc(i, j, k) / jac(i, j, k)
                 end if
               end do
@@ -756,7 +788,7 @@ program pinc_prog
 
           do k = kSponge, nz
             kr_sp(:, k) = alpbls(:) + (alpspg - alpbls(:)) * sin(0.5 * pi &
-                * (z(k) - zSponge) / (z(nz) - zSponge)) ** 2
+                &* (z(k) - zSponge) / (z(nz) - zSponge)) ** 2
             kr_sp_w(:, k) = kr_sp(:, k)
           end do
 
@@ -804,7 +836,7 @@ program pinc_prog
 
       if(updateTheta) then
         print *, 'ERROR: semiimplicit time stepping does not allow  &
-            updateTheta = .true.'
+            &updateTheta = .true.'
         stop
       end if
 
@@ -823,13 +855,7 @@ program pinc_prog
 
       if(rayTracer) then
         do RKstage = 1, nStages
-          ! call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
-          !     diffusioncoeff, tracerfluxvar, tracerforce)
           call transport_rayvol(var, ray, dt, RKstage, time)
-
-          ! if(include_ice2) then
-          !   call calc_ice(ray, var)
-          ! end if
 
           if(RKstage == nStages) then
             call boundary_rayvol(ray)
@@ -838,8 +864,8 @@ program pinc_prog
             call merge_rayvol(ray)
 
             call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
-                diffusioncoeff, tracerfluxvar, tracerforce, lowamp, nowamp, &
-                rhsamp)
+                &diffusioncoeff, tracerfluxvar, tracerforce, lowamp, nowamp, &
+                &rhsamp)
 
             if(include_ice2) then
               call calc_ice(ray, var)
@@ -851,7 +877,7 @@ program pinc_prog
       ! wind relaxation at horizontal boundaries
 
       if((testCase == "mountainwave") .or. (raytracer .and. case_wkb == 3) &
-          .or. (topography .and. topographyTime > 0.0)) then
+          &.or. (topography .and. topographyTime > 0.0)) then
         call volumeForce(var, time, force)
       end if
 
@@ -865,23 +891,23 @@ program pinc_prog
           if(topography) then
             ! TFC FJ
             ! Stationary background in TFC.
-            var(:, :, :, 6) = var(:, :, :, 1)
+            var%rhop(:, :, :) = var%rho(:, :, :)
           else
             do kz = - 1, nz + 2
-              var(:, :, kz, 6) = var(:, :, kz, 1) + rhoStrat(kz) &
-                  - rhoStrat_0(kz) * PStrat(kz) / PStrat_0(kz)
+              var%rhop(:, :, kz) = var%rho(:, :, kz) + rhoStrat(kz) &
+                  &- rhoStrat_0(kz) * PStrat(kz) / PStrat_0(kz)
             end do
           end if
         else
           do kz = - 1, nz + 2
-            var(:, :, kz, 6) = var(:, :, kz, 1) - rhoStrat_0(kz) * PStrat(kz) &
-                / PStrat_0(kz)
+            var%rhop(:, :, kz) = var%rho(:, :, kz) - rhoStrat_0(kz) &
+                &* PStrat(kz) / PStrat_0(kz)
           end do
         end if
       case("compressible")
         do kz = - 1, nz + 2
-          var(:, :, kz, 6) = var(:, :, kz, 1) + rhoStratTFC(:, :, kz) &
-              - pStratTFC(:, :, kz) / thetaStratTFC(:, :, kz)
+          var%rhop(:, :, kz) = var%rho(:, :, kz) + rhoStratTFC(:, :, kz) &
+              &- pStratTFC(:, :, kz) / thetaStratTFC(:, :, kz)
         end do
       case default
       end select
@@ -900,7 +926,7 @@ program pinc_prog
           ! scale for the 2dx-wave is shorter than a time step
           ! var(:, :, :, 7) = min(var(:, :, :, 7), 1.e0 / (dt * pi ** 2))
         else
-          var(:, :, :, 7) = tRef / turb_dts
+          var%DSC(:, :, :) = tRef / turb_dts
         end if
       end if
 
@@ -962,21 +988,21 @@ program pinc_prog
 
         ! RK step for density and density fluctuations
 
-        rhoOld = var(:, :, :, 1) ! rhoOld for momentum predictor
+        rhoOld = var%rho(:, :, :) ! rhoOld for momentum predictor
 
         call massUpdate(var, flux, 0.5 * dt, dRho, RKstage, "rho", "tot", &
-            "expl", 1.)
+            &"expl", 1.)
 
         call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, "rho")
 
         call massUpdate(var, flux, 0.5 * dt, dRhop, RKstage, "rhop", "lhs", &
-            "expl", 1.)
+            &"expl", 1.)
 
         call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, "rhop")
 
         if(model == "compressible") then
           call massUpdate(var, flux, 0.5 * dt, dPot, RKstage, "P", "tot", &
-              "expl", 1.)
+              &"expl", 1.)
           call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, "P")
         end if
 
@@ -991,18 +1017,18 @@ program pinc_prog
         call setBoundary(var, flux, "var")
 
         call momentumPredictor(var, flux, force, 0.5 * dt, dMom, RKstage, &
-            "lhs", "expl", 1.)
+            &"lhs", "expl", 1.)
 
         call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, "uvw")
 
       end do
 
       if(model == "compressible") then
-        pStratTFC(:, :, :) = var(:, :, :, iVarP)
+        pStratTFC(:, :, :) = var%P(:, :, :)
 
         if(TurbScheme .or. rayTracer) then
           call piUpdate(var0, pinew, 0.5 * dt, "expl_heating", flux0)
-          var(:, :, :, 5) = pinew(:, :, :)
+          var%pi(:, :, :) = pinew(:, :, :)
         end if
         call applyUnifiedSponge(var, 0.5 * dt, "pi")
       end if
@@ -1032,7 +1058,7 @@ program pinc_prog
       if(heatingONK14 .or. TurbScheme .or. rayTracer) then
         if(model == 'Boussinesq') then
           print *, "main:ONeill+Klein2014 heating only for  &
-              pseudo-incompressible dyn."
+              &pseudo-incompressible dyn."
           stop
         end if
 
@@ -1040,7 +1066,7 @@ program pinc_prog
         dPStrat = 0.
         drhoStrat = 0.
         call BGstate_update(var, flux, 0.5 * dt, RKstage, dPStrat, drhoStrat, &
-            "impl", heating_switch)
+            &"impl", heating_switch)
       end if
 
       if(topography) then
@@ -1048,12 +1074,12 @@ program pinc_prog
         ! uStar and vStar are needed for update of density fluctuations,
         ! therefore w is stored instead of rhop
 
-        wOldTFC = var(:, :, :, 4)
+        wOldTFC = var%w(:, :, :)
 
         ! update winds (uStar, vStar, wStar)
 
         call momentumPredictor(var, flux, force, 0.5 * dt, dMom, RKstage, &
-            "rhs", "impl", 1.)
+            &"rhs", "impl", 1.)
 
         call setHalos(var, "var")
         if(include_tracer) call setHalos(var, "tracer")
@@ -1062,23 +1088,23 @@ program pinc_prog
         ! update density fluctuations (rhopStar)
 
         call massUpdate(var, flux, 0.5 * dt, dRhop, RKstage, "rhop", "rhs", &
-            "impl", 1.)
+            &"impl", 1.)
 
         call setHalos(var, "var")
         if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
       else
-        rhopOld = var(:, :, :, 6) ! rhopOld for momentum predictor
+        rhopOld = var%rhop(:, :, :) ! rhopOld for momentum predictor
 
         ! update density fluctuations (rhopStar)
 
         call massUpdate(var, flux, 0.5 * dt, dRhop, RKstage, "rhop", "rhs", &
-            "impl", 1.)
+            &"impl", 1.)
 
         ! update winds (uStar, vStar, wStar)
 
         call momentumPredictor(var, flux, force, 0.5 * dt, dMom, RKstage, &
-            "rhs", "impl", 1.)
+            &"rhs", "impl", 1.)
 
         call setHalos(var, "var")
         if(include_tracer) call setHalos(var, "tracer")
@@ -1101,7 +1127,7 @@ program pinc_prog
       !            -> new rhop, u, v, w
 
       call Corrector(var, flux, dMom, 0.5 * dt, errFlagBicg, nIterBicg, &
-          RKstage, "impl", 1., 1.)
+          &RKstage, "impl", 1., 1.)
 
       if(errFlagBicg) then
         call output_data(iOut, var, iTime, time, cpuTime)
@@ -1163,23 +1189,23 @@ program pinc_prog
       ! (3) uses updated pressure field and (5) adjusts pressure over half a
       ! time step!
       ! var = var0
-      var(:, :, :, 1) = var0(:, :, :, 1) !FSApr2021
-      var(:, :, :, 2) = var0(:, :, :, 2)
-      var(:, :, :, 3) = var0(:, :, :, 3)
-      var(:, :, :, 4) = var0(:, :, :, 4)
-      var(:, :, :, 6) = var0(:, :, :, 6)
-      var(:, :, :, 7) = var0(:, :, :, 7)
+      var%rho(:, :, :) = var0%rho(:, :, :) !FSApr2021
+      var%u(:, :, :) = var0%u(:, :, :)
+      var%v(:, :, :) = var0%v(:, :, :)
+      var%w(:, :, :) = var0%w(:, :, :)
+      var%rhop(:, :, :) = var0%rhop(:, :, :)
+      if(turbScheme) var%DSC(:, :, :) = var0%DSC(:, :, :)
 
       if(model == "compressible") then
-        var(:, :, :, 5) = var0(:, :, :, 5) ! reset also pressure
-        var(:, :, :, iVarP) = var0(:, :, :, iVarP)
-        pStratTFC(:, :, :) = var0(:, :, :, iVarP)
+        var%pi(:, :, :) = var0%pi(:, :, :) ! reset also pressure
+        var%P(:, :, :) = var0%P(:, :, :)
+        pStratTFC(:, :, :) = var0%P(:, :, :)
         call bvsUpdate(bvsStratTFC, var) ! Update N^2
         call add_JP_to_u(var, "forward") ! integrating with JPu not u on the right-hand side, so save JPu in var
       end if
 
       if(include_tracer) then
-        var(:, :, :, iVarT) = var0(:, :, :, iVarT)
+        var%chi(:, :, :) = var0%chi(:, :, :)
       end if
 
       PStrat = PStrat00
@@ -1189,11 +1215,11 @@ program pinc_prog
       if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
 
-      rhopOld = var(:, :, :, 6) ! rhopOld for momentum predictor
+      rhopOld = var%rhop(:, :, :) ! rhopOld for momentum predictor
 
       ! update density fluctuations (rhopStar)
       call massUpdate(var, flux, 0.5 * dt, dRhop, RKstage, "rhop", "rhs", &
-          "expl", 1.)
+          &"expl", 1.)
 
       ! update winds (uStar, vStar, wStar)
 
@@ -1203,12 +1229,12 @@ program pinc_prog
       end if
 
       call momentumPredictor(var, flux, force, 0.5 * dt, dMom, RKstage, "rhs", &
-          "expl", 1.)
+          &"expl", 1.)
 
       ! SK: Save u in var
       if(model == "compressible") then
         call add_JP_to_u(var, "backward")
-        var(:, :, :, 5) = pinew(:, :, :) ! update pi' with pinew from the piUpdate
+        var%pi(:, :, :) = pinew(:, :, :) ! update pi' with pinew from the piUpdate
       end if
       ! Shapiro filter
 
@@ -1242,7 +1268,7 @@ program pinc_prog
 
       if(model == "compressible") then
         var1 = var
-        pStratTFC(:, :, :) = var0(:, :, :, iVarP) ! set pstrattfc from (2)
+        pStratTFC(:, :, :) = var0%P(:, :, :) ! set pstrattfc from (2)
       end if
 
       !FS
@@ -1283,14 +1309,14 @@ program pinc_prog
 
         ! RK step for density and density fluctuations
 
-        rhoOld = var(:, :, :, 1) ! rhoOld for momentum predictor
+        rhoOld = var%rho(:, :, :) ! rhoOld for momentum predictor
 
         call massUpdate(var, flux, dt, dRho, RKstage, "rho", "tot", "expl", 1.)
 
         call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "rho")
 
         call massUpdate(var, flux, dt, dRhop, RKstage, "rhop", "lhs", "expl", &
-            1.)
+            &1.)
 
         call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "rhop")
 
@@ -1309,7 +1335,7 @@ program pinc_prog
         call setBoundary(var, flux, "var")
 
         call momentumPredictor(var, flux, force, dt, dMom, RKstage, "lhs", &
-            "expl", 1.)
+            &"expl", 1.)
 
         call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "uvw")
 
@@ -1320,11 +1346,11 @@ program pinc_prog
       end do
 
       if(model == "compressible") then
-        pStratTFC = var(:, :, :, iVarP)
+        pStratTFC = var%P(:, :, :)
 
         if(TurbScheme .or. rayTracer) then
           call piUpdate(var1, pinew, dt, "expl_heating", flux0) ! use explicitly updated pi'
-          var(:, :, :, 5) = pinew(:, :, :)
+          var%pi(:, :, :) = pinew(:, :, :)
         end if
         call applyUnifiedSponge(var, dt, "pi")
       end if
@@ -1354,7 +1380,7 @@ program pinc_prog
       if(heatingONK14 .or. TurbScheme .or. rayTracer) then
         if(model == 'Boussinesq') then
           print *, "main:ONeill+Klein2014 heating only for  &
-              pseudo-incompressible dyn."
+              &pseudo-incompressible dyn."
           stop
         end if
 
@@ -1363,7 +1389,7 @@ program pinc_prog
         drhoStrat = 0.
         heating_switch = 1
         call BGstate_update(var, flux, dt, RKstage, dPStrat, drhoStrat, &
-            "impl", heating_switch) !FS 0.5*dt -> dt
+            &"impl", heating_switch) !FS 0.5*dt -> dt
       end if
 
       if(topography) then
@@ -1371,12 +1397,12 @@ program pinc_prog
         ! uStar and vStar are needed for update of density fluctuations,
         ! therefore w is stored instead of rhop
 
-        wOldTFC = var(:, :, :, 4)
+        wOldTFC = var%w(:, :, :)
 
         ! update winds (uStar, vStar, wStar)
 
         call momentumPredictor(var, flux, force, 0.5 * dt, dMom, RKstage, &
-            "rhs", "impl", 2.)
+            &"rhs", "impl", 2.)
 
         call setHalos(var, "var")
         if(include_tracer) call setHalos(var, "tracer")
@@ -1385,25 +1411,25 @@ program pinc_prog
         ! update density fluctuations (rhopStar)
 
         call massUpdate(var, flux, 0.5 * dt, dRhop, RKstage, "rhop", "rhs", &
-            "impl", 2.)
+            &"impl", 2.)
 
         call setHalos(var, "var")
         if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
       else
-        rhopOld = var(:, :, :, 6) ! rhopOld for momentum predictor
+        rhopOld = var%rhop(:, :, :) ! rhopOld for momentum predictor
 
         ! update density fluctuations (rhopStar)
 
         call massUpdate(var, flux, 0.5 * dt, dRhop, RKstage, "rhop", "rhs", &
-            "impl", 2.)
+            &"impl", 2.)
 
         call setHalos(var, "var")
         if(include_tracer) call setHalos(var, "tracer")
         call setBoundary(var, flux, "var")
 
         call momentumPredictor(var, flux, force, 0.5 * dt, dMom, RKstage, &
-            "rhs", "impl", 2.)
+            &"rhs", "impl", 2.)
       end if
 
       ! Shapiro filter
@@ -1431,7 +1457,7 @@ program pinc_prog
       ! call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
       !                & RKstage, "impl", 2.,2.) ! pressure update over dt
       call Corrector(var, flux, dMom, 0.5 * dt, errFlagBicg, nIterBicg, &
-          RKstage, "impl", 2., 1.) ! pressure update over dt/2
+          &RKstage, "impl", 2., 1.) ! pressure update over dt/2
 
       if(model == "compressible") then
         call add_JP_to_u(var, "backward")
@@ -1481,7 +1507,7 @@ program pinc_prog
             !call CoefDySma_update(var,dt)
             ! var(:, :, :, 7) = min(var(:, :, :, 7), 1.e0 / (dt * pi ** 2))
           else
-            var(:, :, :, 7) = tRef / turb_dts
+            var%DSC(:, :, :) = tRef / turb_dts
           end if
         end if
 
@@ -1497,7 +1523,7 @@ program pinc_prog
           ! TFC FJ
           if(model /= "pseudo_incompressible" .and. model /= "Boussinesq") then
             stop "Auxiliary equation only ready for pseudo-incompressible and &
-                Boussinesq"
+                &Boussinesq"
           end if
 
           alprlx = 0.
@@ -1510,17 +1536,17 @@ program pinc_prog
               if(topography) then
                 ! TFC FJ
                 ! Stationary background in TFC.
-                var(:, :, :, 6) = var(:, :, :, 1)
+                var%rhop(:, :, :) = var%rho(:, :, :)
               else
                 do kz = - 1, nz + 2
-                  var(:, :, kz, 6) = var(:, :, kz, 1) + rhoStrat(kz) &
-                      - rhoStrat_0(kz) * PStrat(kz) / PStrat_0(kz)
+                  var%rhop(:, :, kz) = var%rho(:, :, kz) + rhoStrat(kz) &
+                      &- rhoStrat_0(kz) * PStrat(kz) / PStrat_0(kz)
                 end do
               end if
             else
               do kz = - 1, nz + 2
-                var(:, :, kz, 6) = var(:, :, kz, 1) - rhoStrat_0(kz) &
-                    * PStrat(kz) / PStrat_0(kz)
+                var%rhop(:, :, kz) = var%rho(:, :, kz) - rhoStrat_0(kz) &
+                    &* PStrat(kz) / PStrat_0(kz)
               end do
             end if
           end if
@@ -1536,20 +1562,19 @@ program pinc_prog
         ! Lag Ray tracer (position-wavenumber space method)
 
         if(rayTracer) then
-          call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
-              diffusioncoeff, tracerfluxvar, tracerforce, lowamp, nowamp, &
-              rhsamp)
           call transport_rayvol(var, ray, dt, RKstage, time)
+
+          call boundary_rayvol(ray)
+          call split_rayvol(ray)
+          call shift_rayvol(ray)
+          call merge_rayvol(ray)
+
+          call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
+              &diffusioncoeff, tracerfluxvar, tracerforce, lowamp, nowamp, &
+              &rhsamp)
 
           if(include_ice2) then
             call calc_ice(ray, var)
-          end if
-
-          if(RKstage == nStages) then
-            call boundary_rayvol(ray)
-            call split_rayvol(ray)
-            call shift_rayvol(ray)
-            call merge_rayvol(ray)
           end if
         end if
 
@@ -1560,7 +1585,7 @@ program pinc_prog
         call setBoundary(var, flux, "var")
 
         if(updateMass .or. (testcase == "nIce_w_test")) call &
-            reconstruction(var, "rho")
+            &reconstruction(var, "rho")
         if(updateMass) call reconstruction(var, "rho")
         if(updateMass .and. auxil_equ) then
           call reconstruction(var, "rhop")
@@ -1568,10 +1593,10 @@ program pinc_prog
 
         if(updateTheta) call reconstruction(var, "theta")
         if(predictMomentum .or. (testcase == "nIce_w_test")) call &
-            reconstruction(var, "uvw")
+            &reconstruction(var, "uvw")
         if((include_ice) .and. (updateIce)) call reconstruction(var, "ice")
         if((include_tracer) .and. (updateTracer)) call reconstruction(var, &
-            "tracer")
+            &"tracer")
 
         call setHalos(var, "varTilde")
         call setBoundary(var, flux, "varTilde")
@@ -1582,7 +1607,7 @@ program pinc_prog
           call massFlux(var, var, flux, "nln", PStrat, PStratTilde)
           if(correctDivError) then
             print *, 'ERROR: correction divergence error not  implemented &
-                properly'
+                &properly'
             stop
           end if
         end if
@@ -1621,7 +1646,7 @@ program pinc_prog
             do j = 1, ice_time_steps ! microphysical time steps
               ! check if time-dependent ice physics is turned on
               if(iceTestcase_specifics(time + (j - 1) * dt_ice / tRef, var)) &
-                  then
+                  &then
                 dIce = 0.0 ! init q
                 do Ice_RKstage = 1, 3 ! Runge-Kutta loop
                   call setBoundary(var, flux, "ice")
@@ -1633,11 +1658,11 @@ program pinc_prog
                   call iceFlux(var, flux)
                   call setBoundary(var, flux, "iceFlux")
                   call iceUpdate(var, var0, flux, source, dt_ice / tRef, dIce, &
-                      Ice_RKstage)
+                      &Ice_RKstage)
                   ! call set_spongeLayer(var, stepFrac(RKstage) * dt_ice / tRef, &
                   !     "ice")
                   call applyUnifiedSponge(var, stepFrac(RKstage) * dt_ice &
-                      / tRef, "ice")
+                      &/ tRef, "ice")
                 end do
               end if
             end do
@@ -1653,7 +1678,7 @@ program pinc_prog
 
           if(model == 'Boussinesq') then
             print *, "main:ONeill+Klein2014 heating only for  &
-                pseudo-incompressible dyn."
+                &pseudo-incompressible dyn."
             stop
           end if
 
@@ -1661,7 +1686,7 @@ program pinc_prog
           if(RKstage == 1) drhoStrat = 0.
 
           call BGstate_update(var, flux, dt, RKstage, dPStrat, drhoStrat, &
-              "expl", heating_switch)
+              &"expl", heating_switch)
 
         end if
 
@@ -1670,12 +1695,12 @@ program pinc_prog
 
           if(RKstage == 1) dRho = 0. ! init q
 
-          rhoOld = var(:, :, :, 1) ! rhoOld for momentum predictor
+          rhoOld = var%rho(:, :, :) ! rhoOld for momentum predictor
           !UAC
           !call massUpdate(var, flux, dt, dRho, RKstage, &
           !              & "rho", "tot", "expl")
           call massUpdate(var, flux, dt, dRho, RKstage, "rho", "tot", "expl", &
-              1.)
+              &1.)
           !UAE
           if(testCase /= 'baroclinic_LC') then
             ! call set_spongeLayer(var, stepFrac(RKstage) * dt, "rho")
@@ -1686,12 +1711,12 @@ program pinc_prog
           if(auxil_equ) then
             if(RKstage == 1) dRhop = 0. ! init q
 
-            rhopOld = var(:, :, :, 6) ! rhopOld for momentum predictor
+            rhopOld = var%rhop(:, :, :) ! rhopOld for momentum predictor
             !UAC
             !call massUpdate(var, flux, dt, dRhop, RKstage, &
             !              & "rhop", "tot", "expl")
             call massUpdate(var, flux, dt, dRhop, RKstage, "rhop", "tot", &
-                "expl", 1.)
+                &"expl", 1.)
             !UAE
             if(testCase /= 'baroclinic_LC') then
               ! call set_spongeLayer(var, stepFrac(RKstage) * dt, "rhop")
@@ -1702,7 +1727,7 @@ program pinc_prog
 
         else
           if(iTime == 1 .and. RKstage == 1 .and. master) print *, "main: &
-              MassUpdate off!"
+              &MassUpdate off!"
         end if
 
         if(updateTracer) then
@@ -1721,7 +1746,7 @@ program pinc_prog
           call thetaUpdate(var, var0, flux, source, dt, dTheta, RKstage)
         else
           if(iTime == 1 .and. RKstage == 1 .and. master) print *, "main: &
-              ThetaUpdate off!"
+              &ThetaUpdate off!"
         end if
 
         if(predictMomentum) then
@@ -1736,7 +1761,7 @@ program pinc_prog
           !call momentumPredictor(var, flux, force, dt, dMom, RKstage, &
           !                     & "tot", "expl")
           call momentumPredictor(var, flux, force, dt, dMom, RKstage, "tot", &
-              "expl", 1.)
+              &"expl", 1.)
           !UAE
           if(testCase /= 'baroclinic_LC') then
             ! call set_spongeLayer(var, stepFrac(RKstage) * dt, "uvw")
@@ -1744,7 +1769,7 @@ program pinc_prog
           end if
         else
           if(iTime == 1 .and. RKstage == 1 .and. master) print *, "main: &
-              MomentumUpdate off!"
+              &MomentumUpdate off!"
         end if
 
         if(shap_dts_fac > 0.) then
@@ -1782,7 +1807,7 @@ program pinc_prog
           end select
 
           call Corrector(var, flux, dMom, dt_Poisson, errFlagBicg, nIterBicg, &
-              RKstage, "expl", 1., 1.)
+              &RKstage, "expl", 1., 1.)
 
           if(errFlagBicg) then
             call output_data(iOut, var, iTime, time, cpuTime)
@@ -1827,7 +1852,7 @@ program pinc_prog
           end if
         else
           if(iTime == 1 .and. RKstage == 1) print *, "main: MomentumCorrector &
-              off!"
+              &off!"
         end if
 
         !SD
@@ -1847,12 +1872,12 @@ program pinc_prog
       do ii = 1, n_step_ice
         do RKstage = 1, nStages
           call integrate_ice2(var, var0, flux, "nln", source, dtt_ice2, dIce, &
-              RKstage, PStrat, PStratTilde, 'BOT', uTime, qTime)
+              &RKstage, PStrat, PStratTilde, 'BOT', uTime, qTime)
         end do ! RKstage
       end do !ii
       if(master) then
-        print *, 'maxval', maxval(var(:, :, :, inN)), maxval(var(:, :, :, &
-            inQ)), maxval(var(:, :, :, inQv))
+        print *, 'maxval', maxval(var%ICE2(:, :, :, inN)), maxval(var%ICE2(:, &
+            &:, :, inQ)), maxval(var%ICE2(:, :, :, inQv))
       end if
     end if !include_ice2
 
@@ -1925,12 +1950,12 @@ program pinc_prog
           cpuTime = (timeCount - startTimeCount) / real(rate)
 
           print *, ""
-          print *, "=================================================="
+          print "(a)", repeat("-", 80)
           print *, " Pinc: Resume"
           print *, ""
           write(*, fmt = "(a31,es15.1)") "average Poisson iterations = ", &
-              nAverageBicg
-          print *, "=================================================="
+              &nAverageBicg
+          print "(a)", repeat("-", 80)
           print *, ""
         end if
 
@@ -1953,15 +1978,14 @@ program pinc_prog
       cpuTime = (timeCount - startTimeCount) / real(rate)
 
       print *, ""
-      print *, "========================================================"
+      print "(a)", repeat("-", 80)
       print *, " Pinc: Resume"
       print *, ""
       write(*, fmt = "(a31,f15.1)") "average Poisson iterations = ", &
-          nAverageBicg
+          &nAverageBicg
       if(preconditioner /= "no") write(*, fmt = "(a25,es15.1)") "ADI: dtau &
-          = ", dtau
-
-      print *, "========================================================"
+          &= ", dtau
+      print "(a)", repeat("-", 80)
       print *, ""
     end if
 
@@ -1973,8 +1997,8 @@ program pinc_prog
 
   call terminate_fluxes
   call terminate_poisson
-  call terminate(var, var0, var1, flux, force, source, dRho, dRhop, dMom, &
-      dTheta, dIce, dTracer, tracerforce, dPot)
+  call terminate(var, var0, var1, varG, source, flux, flux0, force, dRho, &
+      &dRhop, dMom, dTheta, dIce, dTracer, tracerforce, dPot)
   call terminate_atmosphere
   call terminate_output
 
@@ -2003,10 +2027,10 @@ program pinc_prog
   end if
 
   666 if(master) then
-    print *, ""
-    print *, "---------------------------------------"
-    print *, "          pincFloit finished          "
-    print *, "---------------------------------------"
+    write(*, "(a)") ""
+    write(*, "(a)") repeat("-", 80)
+    write(*, "(a)") repeat(" ", 32) // "PincFlow finished" // repeat(" ", 33)
+    write(*, "(a)") repeat("-", 80)
   end if
 
   call mpi_finalize(ierror)

@@ -16,13 +16,16 @@ program teclayout_program
   ! get grid and other info from the namelist
   ! open the namelist file
   open(unit = 10, file = file_namelist, action = "read", form = "formatted", &
-      status = "old", position = "rewind")
+      &status = "old")
 
   ! read grid info
+  rewind(unit = 10)
   read(unit = 10, nml = grid)
 
   ! read output info
+  rewind(unit = 10)
   read(unit = 10, nml = outputList)
+  rewind(unit = 10)
   read(unit = 10, nml = testCaseList)
 
   close(unit = 10)
@@ -59,10 +62,10 @@ program teclayout_program
     !     open files
     !---------------------
     open(unit = 50, file = layoutTemplate, action = "read", form &
-        = "formatted", status = "old")
+        &= "formatted", status = "old")
 
     open(unit = 60, file = layoutFile, action = "write", form = "formatted", &
-        status = "replace")
+        &status = "replace")
 
     !------------------------------
     !     advance input file
@@ -85,8 +88,8 @@ program teclayout_program
 
     ! grid
     write(unit = form, fmt = "(a,i1,a,i1,a,i1,a)") "(i", int(log10(real(nx))) &
-        + 1, ",a,i", int(log10(real(ny))) + 1, ",a,i", int(log10(real(nz))) &
-        + 1, ")" ! format for nx x ny x nz
+        &+ 1, ",a,i", int(log10(real(ny))) + 1, ",a,i", int(log10(real(nz))) &
+        &+ 1, ")" ! format for nx x ny x nz
 
     ! generate text string for grid size
     write(unit = gridName, fmt = form) nx, "x", ny, "x", nz
@@ -96,7 +99,7 @@ program teclayout_program
     do i = firstFile, lastFile, skipFile
       write(unit = auxChar, fmt = "(i6.6,a4)") i, ".plt"
       line = trim(line) // " """ // trim(dataFile) // "-" // trim(auxChar) &
-          // """ "
+          &// """ "
     end do
     line = trim(line) // " "" "
 
@@ -142,22 +145,22 @@ program teclayout_program
     ! primary variables
     !-------------------
     do i = 1, 5
-      if(varOut(i) == 1) then
+      if(varOut(i) /= "") then
         nOutVar = nOutVar + 1
         if(i == 1) then
           if(rhoOffset) then
             variablesChar = trim(variablesChar) // " ""<greek>r</greek>' &
-                [kg/m<sup>3</sup>]""  "
+                &[kg/m<sup>3</sup>]""  "
           else
             variablesChar = trim(variablesChar) // " ""<greek>r</greek> &
-                [kg/m<sup>3</sup>]""  "
+                &[kg/m<sup>3</sup>]""  "
           end if
         end if
         if(i == 2) variablesChar = trim(variablesChar) // " ""u [m/s]""  "
         if(i == 3) variablesChar = trim(variablesChar) // " ""v [m/s]""  "
         if(i == 4) variablesChar = trim(variablesChar) // " ""w [m/s]""  "
         if(i == 5) variablesChar = trim(variablesChar) // " &
-            ""<greek>p</greek>' ""  "
+            &""<greek>p</greek>' ""  "
       end if
     end do
 
@@ -171,19 +174,19 @@ program teclayout_program
         if(i == 2) then
           if(thetaOffset) then
             variablesChar = trim(variablesChar) // " ""<greek>q</greek>' &
-                [K]""  "
+                &[K]""  "
           else
             variablesChar = trim(variablesChar) // " ""<greek>q</greek> [K]""  "
           end if
         end if
         if(i == 3) variablesChar = trim(variablesChar) // " ""p<sub>bg</sub> &
-            [kPa] ""  "
+            &[kPa] ""  "
         if(i == 4) variablesChar = trim(variablesChar) // " &
-            ""<greek>r</greek><sub>bg</sub> [kg/m<sup>3</sup>] ""  "
+            &""<greek>r</greek><sub>bg</sub> [kg/m<sup>3</sup>] ""  "
         if(i == 5) variablesChar = trim(variablesChar) // " ""div(Pu) &
-            [Pa/s]""  "
+            &[Pa/s]""  "
         if(i == 6) variablesChar = trim(variablesChar) // " &
-            ""b<sub>z</sub>/N<sup>2</sup> ""  "
+            &""b<sub>z</sub>/N<sup>2</sup> ""  "
       end if
     end do
 
@@ -194,10 +197,10 @@ program teclayout_program
       if(wkbVarOut(i) == 1) then
         nOutVar = nOutVar + 1
         if(i == 1) variablesChar = trim(variablesChar) // " ""A &
-            [Js/m<sup>3</sup>]""  "
+            &[Js/m<sup>3</sup>]""  "
 
         if(i == 2) variablesChar = trim(variablesChar) // " &
-            ""u<sub>0</sub><sup>(1)</sup>' [m/s]""  "
+            &""u<sub>0</sub><sup>(1)</sup>' [m/s]""  "
       end if
     end do
     !----------------------
@@ -236,7 +239,7 @@ program teclayout_program
 
       ! open template
       open(unit = 50, file = layoutTemplate, action = "read", form &
-          = "formatted", status = "old", position = "rewind")
+          &= "formatted", status = "old", position = "rewind")
 
       ! advance to linemap line
       do j = 1, iLineMap

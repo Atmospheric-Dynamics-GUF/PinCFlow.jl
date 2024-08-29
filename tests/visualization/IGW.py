@@ -42,34 +42,34 @@ print(" ".join(("Time:", str(data.tt[it]), "s")))
 
 # Set fields of interest.
 if choice == "xy":
-  psi = data.psi[it, :, iz]
-  psiref = reference.psi[it, :, iz]
+  theta = data.psi["theta"][it, iz]
+  thetaref = reference.psi["theta"][it, iz]
   xx = 0.001 * data.xx[iz]
   yy = 0.001 * data.yy[iz]
   xlabel = r"$x \, \mathrm{\left[km\right]}$"
   ylabel = r"$y \, \mathrm{\left[km\right]}$"
 elif choice == "xz":
-  psi = data.psi[it, :, :, iy]
-  psiref = reference.psi[it, :, :, iy]
+  theta = data.psi["theta"][it, :, iy]
+  thetaref = reference.psi["theta"][it, :, iy]
   xx = 0.001 * data.xx[:, iy]
   yy = 0.001 * data.zz[:, iy]
   xlabel = r"$x \, \mathrm{\left[km\right]}$"
   ylabel = r"$z \, \mathrm{\left[km\right]}$"
 elif choice == "yz":
-  psi = data.psi[it, ..., ix]
-  psiref = reference.psi[it, ..., ix]
+  theta = data.psi["theta"][it, ..., ix]
+  thetaref = reference.psi["theta"][it, ..., ix]
   xx = 0.001 * data.yy[..., ix]
   yy = 0.001 * data.zz[..., ix]
   xlabel = r"$y \, \mathrm{\left[km\right]}$"
   ylabel = r"$z \, \mathrm{\left[km\right]}$"
 
 # Compute difference.
-deltapsi = psi - psiref
+deltatheta = theta - thetaref
 
 # Make plot.
-maximum = numpy.max(numpy.abs(psi[5]))
+maximum = numpy.max(numpy.abs(theta))
 figure, axes = pyplot.subplots()
-plot = axes.pcolormesh(xx, yy, psi[5], vmin = - maximum, vmax = maximum, \
+plot = axes.pcolormesh(xx, yy, theta, vmin = - maximum, vmax = maximum, \
     shading = "gouraud", cmap = "seismic")
 axes.set_xlabel(xlabel)
 axes.set_ylabel(ylabel)
@@ -79,9 +79,9 @@ figure.savefig("".join((data_path, "/results/IGW.png")), dpi = 500)
 
 # Make difference plot.
 if data_path != reference_path:
-  maximum = numpy.max(numpy.abs(deltapsi[5]))
+  maximum = numpy.max(numpy.abs(deltatheta))
   figure, axes = pyplot.subplots()
-  plot = axes.pcolormesh(xx, yy, deltapsi[5], vmin = - maximum, vmax \
+  plot = axes.pcolormesh(xx, yy, deltatheta, vmin = - maximum, vmax \
       = maximum, shading = "gouraud", cmap = "seismic")
   axes.set_xlabel(xlabel)
   axes.set_ylabel(ylabel)
