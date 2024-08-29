@@ -46,8 +46,8 @@ iy = int(0.5 * data.ny)
 print(" ".join(("Time:", str(data.tt[it]), "s")))
 
 # Set potential temperatures.
-theta = data.psi[:, 5]
-thetaref = reference.psi[:, 5]
+theta = data.psi["theta"]
+thetaref = reference.psi["theta"]
 
 # Compute difference.
 deltatheta = theta - thetaref

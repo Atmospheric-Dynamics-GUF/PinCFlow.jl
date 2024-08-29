@@ -8,8 +8,8 @@ module opt_field_mod
   subroutine set_opt_field
 
     use type_module, ONLY:include_tracer, include_ice2, master, nVar, nBscVar, &
-        iVarIce, nVarIce, inN, inQ, inQv, iVarT, iVarO, include_testoutput, &
-        model, iVarP
+        &iVarIce, nVarIce, inN, inQ, inQv, iVarT, iVarO, include_testoutput, &
+        &model, iVarP
 
     integer :: numOfld, indM1, numOfldVar, allocstat !auxillary variables
 
@@ -34,7 +34,7 @@ module opt_field_mod
 
       allocate(iVarIce(nVarIce), stat = allocstat)
       if(allocstat /= 0) stop "set_dim_opt_field.f90: Could not allocate &
-          iVarIce."
+          &iVarIce."
 
       iVarIce = (/inN, inQ, inQv/)
     end if
@@ -49,9 +49,9 @@ module opt_field_mod
   subroutine read_nml_opt_field
 
     use type_module, ONLY:master, include_tracer, include_ice2, iceList2, &
-        tracerList, nVar, nBscVar, varOut, varIn, iVarIce, nVarIce, inN, inQ, &
-        inQv, iVarT, varOut, include_testoutput, iVarO, model, iVarP, varOut, &
-        varIn
+        &tracerList, nVar, nBscVar, varOut, varIn, iVarIce, nVarIce, inN, inQ, &
+        &inQv, iVarT, varOut, include_testoutput, iVarO, model, iVarP, varOut, &
+        &varIn
     integer i, j, del
 
     if(model == "compressible") then
@@ -61,6 +61,7 @@ module opt_field_mod
 
     if(include_ice2) then
       ! read ice physics parametrization
+      rewind(unit = 10)
       read(unit = 10, nml = iceList2)
 
       do j = 1, nVarIce
@@ -71,6 +72,7 @@ module opt_field_mod
     end if
 
     if(include_tracer) then
+      rewind(unit = 10)
       read(unit = 10, nml = tracerList)
       varOut(iVarT) = 1
       varIn(iVarT) = 1
@@ -86,8 +88,8 @@ module opt_field_mod
   subroutine write_index_opt_field
 
     use type_module, ONLY:master, include_tracer, include_ice2, master, nVar, &
-        nBscVar, iVarIce, nVarIce, inN, inQ, inQv, iVarT, varOut, &
-        include_testoutput, iVarO, varOut, varIn
+        &nBscVar, iVarIce, nVarIce, inN, inQ, inQv, iVarT, varOut, &
+        &include_testoutput, iVarO, varOut, varIn
     integer i, j, del
 
     if(master) then

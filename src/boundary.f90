@@ -32,9 +32,8 @@ module boundary_module
     !-------------------------------------------
 
     ! in/out variables
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(inout) :: var
-    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(inout) :: flux
+    type(var_type), intent(inout) :: var
+    type(flux_type), intent(inout) :: flux
     character(len = *), intent(in) :: option
 
     !------------------------------
@@ -98,9 +97,8 @@ module boundary_module
     !-------------------------------------------
 
     ! in/out variables
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(inout) :: var
-    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(inout) :: flux
+    type(var_type), intent(inout) :: var
+    type(flux_type), intent(inout) :: flux
     character(len = *), intent(in) :: option
 
     ! local variables
@@ -118,8 +116,8 @@ module boundary_module
       if(updateMass) then
         ! density -> iVar = 1
         do i = 1, nbx
-          var(nx + i, :, :, 1) = var(i, :, :, 1)
-          var(- i + 1, :, :, 1) = var(nx - i + 1, :, :, 1)
+          var%rho(nx + i, :, :) = var%rho(i, :, :)
+          var%rho(- i + 1, :, :) = var%rho(nx - i + 1, :, :)
         end do
 
         if(verbose .and. master) then
@@ -130,8 +128,8 @@ module boundary_module
       if(timeScheme == "semiimplicit" .or. auxil_equ) then
         ! density fluctuations -> iVar = 6
         do i = 1, nbx
-          var(nx + i, :, :, 6) = var(i, :, :, 6)
-          var(- i + 1, :, :, 6) = var(nx - i + 1, :, :, 6)
+          var%rhop(nx + i, :, :) = var%rhop(i, :, :)
+          var%rhop(- i + 1, :, :) = var%rhop(nx - i + 1, :, :)
         end do
 
         if(verbose .and. master) then
@@ -142,8 +140,8 @@ module boundary_module
       if(model == "compressible") then
         ! set boundary for P mass weighted pot. temp.
         do i = 1, nbx
-          var(nx + i, :, :, iVarP) = var(i, :, :, iVarP)
-          var(- i + 1, :, :, iVarP) = var(nx - i + 1, :, :, iVarP)
+          var%P(nx + i, :, :) = var%P(i, :, :)
+          var%P(- i + 1, :, :) = var%P(nx - i + 1, :, :)
         end do
 
         if(verbose .and. master) then
@@ -152,24 +150,23 @@ module boundary_module
       end if
 
       if(updateIce) then
-        ! ice variables -> iVar = nVar-3, nVar
-        do iVar = nVar - 3, nVar
+        do iVar = 1, 4
           do i = 1, nbx
-            var(nx + i, :, :, iVar) = var(i, :, :, iVar)
-            var(- i + 1, :, :, iVar) = var(nx - i + 1, :, :, iVar)
+            var%ICE(nx + i, :, :, iVar) = var%ICE(i, :, :, iVar)
+            var%ICE(- i + 1, :, :, iVar) = var%ICE(nx - i + 1, :, :, iVar)
           end do
         end do
 
         if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal &
-            BC for ice variables set."
+            &BC for ice variables set."
 
       end if
 
       ! set boundaries if including tracer
       if(updateTracer) then
         do i = 1, nbx
-          var(nx + i, :, :, iVarT) = var(i, :, :, iVarT)
-          var(- i + 1, :, :, iVarT) = var(nx - i + 1, :, :, iVarT)
+          var%chi(nx + i, :, :) = var%chi(i, :, :)
+          var%chi(- i + 1, :, :) = var%chi(nx - i + 1, :, :)
         end do
 
         if(verbose .and. master) then
@@ -182,77 +179,75 @@ module boundary_module
 
         if(timeScheme == "semiimplicit") then
           print *, 'ERROR: updateTheta = .true. not allowed for  timeScheme &
-              == "semiimplicit"'
+              &== "semiimplicit"'
           stop
         end if
 
         do i = 1, nbx
-          var(nx + i, :, :, 6) = var(i, :, :, 6)
-          var(- i + 1, :, :, 6) = var(nx - i + 1, :, :, 6)
+          var%rhop(nx + i, :, :) = var%rhop(i, :, :)
+          var%rhop(- i + 1, :, :) = var%rhop(nx - i + 1, :, :)
         end do
 
         if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal &
-            BC for theta set."
+            &BC for theta set."
       end if
 
       if(predictMomentum) then
         ! velocity u (staggered along x) -> iVar = 2
 
-        var(0, :, :, 2) = var(nx, :, :, 2)
+        var%u(0, :, :) = var%u(nx, :, :)
 
         do i = 1, nbx
           ! velocity u (staggered along x) -> iVar = 2
-          var(nx + i, :, :, 2) = var(i, :, :, 2)
-          var(- i, :, :, 2) = var(nx - i, :, :, 2)
+          var%u(nx + i, :, :) = var%u(i, :, :)
+          var%u(- i, :, :) = var%u(nx - i, :, :)
           ! velocity v -> iVar = 3                    ! ghost cells
-          var(nx + i, :, :, 3) = var(i, :, :, 3) ! right
-          var(- i + 1, :, :, 3) = var(nx - i + 1, :, :, 3) ! left
+          var%v(nx + i, :, :) = var%v(i, :, :) ! right
+          var%v(- i + 1, :, :) = var%v(nx - i + 1, :, :) ! left
           ! velocity w -> iVar = 4
-          var(nx + i, :, :, 4) = var(i, :, :, 4)
-          var(- i + 1, :, :, 4) = var(nx - i + 1, :, :, 4)
+          var%w(nx + i, :, :) = var%w(i, :, :)
+          var%w(- i + 1, :, :) = var%w(nx - i + 1, :, :)
         end do
 
         if(verbose .and. master) then
           print *, "boundary.f90/horizontalBoundary:  x-horizontal BC for u, &
-              v, w set."
+              &v, w set."
         end if
       end if
 
       if(correctMomentum) then
         ! pressure Variable -> iVar = 5
-        var(nx + 1, :, :, 5) = var(1, :, :, 5) ! right ghost cell
-        var(0, :, :, 5) = var(nx, :, :, 5) ! left ghost cells
+        var%pi(nx + 1, :, :) = var%pi(1, :, :) ! right ghost cell
+        var%pi(0, :, :) = var%pi(nx, :, :) ! left ghost cells
 
         if(verbose .and. master) then
           print *, "boundary.f90/horizontalBoundary:  x-horizontal BC for p &
-              set."
+              &set."
         end if
       end if
 
     case("ice")
-      ! ice variables -> iVar = nVar-3, nVar
-      do iVar = nVar - 3, nVar
+      do iVar = 1, 4
         do i = 1, nbx
-          var(nx + i, :, :, iVar) = var(i, :, :, iVar)
-          var(- i + 1, :, :, iVar) = var(nx - i + 1, :, :, iVar)
+          var%ICE(nx + i, :, :, iVar) = var%ICE(i, :, :, iVar)
+          var%ICE(- i + 1, :, :, iVar) = var%ICE(nx - i + 1, :, :, iVar)
         end do
       end do
 
       if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal BC &
-          for ice variables set."
+          &for ice variables set."
 
     case("ice2")
       ! ice2 variables
-      do ii = 1, nVarIce
-        iVar = iVarIce(ii)
+      do iVar = 1, nVarIce
         do i = 1, nbx
-          var(nx + i, :, :, iVar) = var(i, :, :, iVar)
-          var(- i + 1, :, :, iVar) = var(nx - i + 1, :, :, iVar)
+          var%ICE2(nx + i, :, :, iVar) = var%ICE2(i, :, :, iVar)
+          var%ICE2(- i + 1, :, :, iVar) = var%ICE2(nx - i + 1, :, :, iVar)
         end do
       end do
 
       if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal BC &
-          for ice2 variables set."
+          &for ice2 variables set."
 
     case("iceTilde")
       ! reconstructed density needed in ghost cell i = nx+2
@@ -268,7 +263,7 @@ module boundary_module
       qvTilde(- 1, :, :, 1, 1) = qvTilde(nx - 1, :, :, 1, 1)
 
       if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal BC &
-          for iceTilde variables set."
+          &for iceTilde variables set."
 
     case("iceFlux")
       ! nothing
@@ -321,7 +316,7 @@ module boundary_module
         qvTilde(- 1, :, :, 1, 1) = qvTilde(nx - 1, :, :, 1, 1)
 
         if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal &
-            BC for iceTilde variables set."
+            &BC for iceTilde variables set."
 
       end if
 
@@ -370,9 +365,8 @@ module boundary_module
     !-------------------------------------------
 
     ! in/out variables
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(inout) :: var
-    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(inout) :: flux
+    type(var_type), intent(inout) :: var
+    type(flux_type), intent(inout) :: flux
     character(len = *), intent(in) :: option
 
     ! local variables
@@ -390,8 +384,8 @@ module boundary_module
       if(updateMass) then
         ! density -> iVar = 1
         do j = 1, nby
-          var(:, ny + j, :, 1) = var(:, j, :, 1)
-          var(:, - j + 1, :, 1) = var(:, ny - j + 1, :, 1)
+          var%rho(:, ny + j, :) = var%rho(:, j, :)
+          var%rho(:, - j + 1, :) = var%rho(:, ny - j + 1, :)
         end do
 
         if(verbose .and. master) then
@@ -402,8 +396,8 @@ module boundary_module
       if(timeScheme == "semiimplicit" .or. auxil_equ) then
         ! density fluctuations -> iVar = 6
         do j = 1, nby
-          var(:, ny + j, :, 6) = var(:, j, :, 6)
-          var(:, - j + 1, :, 6) = var(:, ny - j + 1, :, 6)
+          var%rhop(:, ny + j, :) = var%rhop(:, j, :)
+          var%rhop(:, - j + 1, :) = var%rhop(:, ny - j + 1, :)
         end do
 
         if(verbose .and. master) then
@@ -414,8 +408,8 @@ module boundary_module
       if(model == "compressible") then
         ! set boundary for P mass weighted pot. temp.
         do j = 1, nby
-          var(:, ny + j, :, iVarP) = var(:, j, :, iVarP)
-          var(:, - j + 1, :, iVarP) = var(:, ny - j + 1, :, iVarP)
+          var%P(:, ny + j, :) = var%P(:, j, :)
+          var%P(:, - j + 1, :) = var%P(:, ny - j + 1, :)
         end do
 
         if(verbose .and. master) then
@@ -424,24 +418,23 @@ module boundary_module
       end if
 
       if(updateIce) then
-        ! ice variables -> iVar = nVar-3, nVar
-        do iVar = nVar - 3, nVar
+        do iVar = 1, 4
           do j = 1, nby
-            var(:, ny + j, :, iVar) = var(:, j, :, iVar)
-            var(:, - j + 1, :, iVar) = var(:, ny - j + 1, :, iVar)
+            var%ICE(:, ny + j, :, iVar) = var%ICE(:, j, :, iVar)
+            var%ICE(:, - j + 1, :, iVar) = var%ICE(:, ny - j + 1, :, iVar)
           end do
         end do
 
         if(verbose .and. master) print *, "horizontalBoundary:  y-horizontal &
-            BC for ice variables set."
+            &BC for ice variables set."
 
       end if
 
       ! set boundaries if including tracer
       if(updateTracer) then
         do j = 1, nby
-          var(:, ny + j, :, iVarT) = var(:, j, :, iVarT)
-          var(:, - j + 1, :, iVarT) = var(:, ny - j + 1, :, iVarT)
+          var%chi(:, ny + j, :) = var%chi(:, j, :)
+          var%chi(:, - j + 1, :) = var%chi(:, ny - j + 1, :)
         end do
 
         if(verbose .and. master) then
@@ -454,13 +447,13 @@ module boundary_module
 
         if(timeScheme == "semiimplicit") then
           print *, 'ERROR: updateTheta = .true. not allowed for  timeScheme &
-              == "semiimplicit"'
+              &== "semiimplicit"'
           stop
         end if
 
         do j = 1, nby
-          var(:, ny + j, :, 6) = var(:, j, :, 6)
-          var(:, - j + 1, :, 6) = var(:, ny - j + 1, :, 6)
+          var%rhop(:, ny + j, :) = var%rhop(:, j, :)
+          var%rhop(:, - j + 1, :) = var%rhop(:, ny - j + 1, :)
         end do
 
         if(verbose .and. master) then
@@ -471,61 +464,59 @@ module boundary_module
       if(predictMomentum) then
         ! velocity v (staggared along y) -> iVar = 3
 
-        var(:, 0, :, 3) = var(:, ny, :, 3)
+        var%v(:, 0, :) = var%v(:, ny, :)
 
         do j = 1, nby
           ! velocity u -> iVar = 2
-          var(:, ny + j, :, 2) = var(:, j, :, 2)
-          var(:, - j + 1, :, 2) = var(:, ny - j + 1, :, 2)
+          var%u(:, ny + j, :) = var%u(:, j, :)
+          var%u(:, - j + 1, :) = var%u(:, ny - j + 1, :)
           ! velocity v (staggared along y) -> iVar = 3
-          var(:, ny + j, :, 3) = var(:, j, :, 3)
-          var(:, - j, :, 3) = var(:, ny - j, :, 3)
+          var%v(:, ny + j, :) = var%v(:, j, :)
+          var%v(:, - j, :) = var%v(:, ny - j, :)
           ! velocity w -> iVar = 4
-          var(:, ny + j, :, 4) = var(:, j, :, 4)
-          var(:, - j + 1, :, 4) = var(:, ny - j + 1, :, 4)
+          var%w(:, ny + j, :) = var%w(:, j, :)
+          var%w(:, - j + 1, :) = var%w(:, ny - j + 1, :)
         end do
 
         if(verbose .and. master) then
           print *, "boundary.f90/horizontalBoundary:  y-horizontal BC for u, &
-              v, w set."
+              &v, w set."
         end if
       end if
 
       if(correctMomentum) then
         ! pressure variable -> iVar = 5
-        var(:, ny + 1, :, 5) = var(:, 1, :, 5) ! forward ghost cell
-        var(:, 0, :, 5) = var(:, ny, :, 5) ! backward
+        var%pi(:, ny + 1, :) = var%pi(:, 1, :) ! forward ghost cell
+        var%pi(:, 0, :) = var%pi(:, ny, :) ! backward
 
         if(verbose .and. master) then
           print *, "boundary.f90/horizontalBoundary:  y-horizontal BC for p &
-              set."
+              &set."
         end if
       end if
 
     case("ice")
-      ! ice variables -> iVar = nVar-3, nVar
-      do iVar = nVar - 3, nVar
+      do iVar = 1, 4
         do j = 1, nby
-          var(:, ny + j, :, iVar) = var(:, j, :, iVar)
-          var(:, - j + 1, :, iVar) = var(:, ny - j + 1, :, iVar)
+          var%ICE(:, ny + j, :, iVar) = var%ICE(:, j, :, iVar)
+          var%ICE(:, - j + 1, :, iVar) = var%ICE(:, ny - j + 1, :, iVar)
         end do
       end do
 
       if(verbose .and. master) print *, "horizontalBoundary:  y-horizontal BC &
-          for ice variables set."
+          &for ice variables set."
 
     case("ice2")
-      ! ice variables
-      do ii = 1, nVarIce
-        iVar = iVarIce(ii)
+      ! ice2 variables
+      do iVar = 1, nVarIce
         do j = 1, nby
-          var(:, ny + j, :, iVar) = var(:, j, :, iVar)
-          var(:, - j + 1, :, iVar) = var(:, ny - j + 1, :, iVar)
+          var%ICE2(:, ny + j, :, iVar) = var%ICE2(:, j, :, iVar)
+          var%ICE2(:, - j + 1, :, iVar) = var%ICE2(:, ny - j + 1, :, iVar)
         end do
       end do
 
       if(verbose .and. master) print *, "horizontalBoundary:  y-horizontal BC &
-          for ice variables set."
+          &for ice variables set."
 
     case("iceTilde")
       ! see above, similar to rho
@@ -541,7 +532,7 @@ module boundary_module
       qvTilde(:, - 1, :, 2, 1) = qvTilde(:, ny - 1, :, 2, 1)
 
       if(verbose .and. master) print *, "horizontalBoundary:  y-horizontal BC &
-          for iceTilde variables set."
+          &for iceTilde variables set."
 
     case("iceFlux")
       ! nothing
@@ -595,7 +586,7 @@ module boundary_module
         qvTilde(:, - 1, :, 2, 1) = qvTilde(:, ny - 1, :, 2, 1)
 
         if(verbose .and. master) print *, "horizontalBoundary:  y-horizontal &
-            BC for iceTilde variables set."
+            &BC for iceTilde variables set."
 
       end if
 
@@ -643,9 +634,8 @@ module boundary_module
     !-------------------------------------------
 
     ! in/out variables
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(inout) :: var
-    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(inout) :: flux
+    type(var_type), intent(inout) :: var
+    type(flux_type), intent(inout) :: flux
     character(len = *), intent(in) :: option
 
     ! local variables
@@ -663,8 +653,8 @@ module boundary_module
       if(updateMass) then
         ! density -> iVar = 1
         do k = 1, nbz
-          var(:, :, nz + k, 1) = var(:, :, k, 1)
-          var(:, :, - k + 1, 1) = var(:, :, nz - k + 1, 1)
+          var%rho(:, :, nz + k) = var%rho(:, :, k)
+          var%rho(:, :, - k + 1) = var%rho(:, :, nz - k + 1)
         end do
 
         if(verbose .and. master) then
@@ -675,8 +665,8 @@ module boundary_module
       if(timeScheme == "semiimplicit" .or. auxil_equ) then
         ! density fluctuations -> iVar = 6
         do k = 1, nbz
-          var(:, :, nz + k, 6) = var(:, :, k, 6)
-          var(:, :, - k + 1, 6) = var(:, :, nz - k + 1, 6)
+          var%rhop(:, :, nz + k) = var%rhop(:, :, k)
+          var%rhop(:, :, - k + 1) = var%rhop(:, :, nz - k + 1)
         end do
 
         if(verbose .and. master) then
@@ -685,24 +675,23 @@ module boundary_module
       end if
 
       if(updateIce) then
-        ! ice variables -> iVar = nVar-3, nVar
-        do iVar = nVar - 3, nVar
+        do iVar = 1, 4
           do k = 1, nbz
-            var(:, :, nz + k, iVar) = var(:, :, k, iVar)
-            var(:, :, - k + 1, iVar) = var(:, :, nz - k + 1, iVar)
+            var%ICE(:, :, nz + k, iVar) = var%ICE(:, :, k, iVar)
+            var%ICE(:, :, - k + 1, iVar) = var%ICE(:, :, nz - k + 1, iVar)
           end do
         end do
 
         if(verbose .and. master) print *, "setBoundary_z_periodic:  z-periodic &
-            BC for ice variables set."
+            &BC for ice variables set."
 
       end if
 
       ! set boundaries if including tracer
       if(updateTracer) then
         do k = 1, nbz
-          var(:, :, nz + k, iVarT) = - var(:, :, k, iVarT)
-          var(:, :, - k + 1, iVarT) = - var(:, :, nz - k + 1, iVarT)
+          var%chi(:, :, nz + k) = - var%chi(:, :, k)
+          var%chi(:, :, - k + 1) = - var%chi(:, :, nz - k + 1)
         end do
 
         if(verbose .and. master) then
@@ -715,13 +704,13 @@ module boundary_module
 
         if(timeScheme == "semiimplicit") then
           print *, 'ERROR: updateTheta = .true. not allowed for  timeScheme &
-              == "semiimplicit"'
+              &== "semiimplicit"'
           stop
         end if
 
         do k = 1, nbz
-          var(:, :, nz + k, 6) = var(:, :, k, 6)
-          var(:, :, - k + 1, 6) = var(:, :, nz - k + 1, 6)
+          var%rhop(:, :, nz + k) = var%rhop(:, :, k)
+          var%rhop(:, :, - k + 1) = var%rhop(:, :, nz - k + 1)
         end do
 
         if(verbose .and. master) then
@@ -732,18 +721,18 @@ module boundary_module
       if(predictMomentum) then
         ! velocity w (staggared along z) -> iVar = 4
 
-        var(:, :, 0, 4) = var(:, :, nz, 4)
+        var%w(:, :, 0) = var%w(:, :, nz)
 
         do k = 1, nbz
           ! velocity u -> iVar = 2
-          var(:, :, nz + k, 2) = var(:, :, k, 2)
-          var(:, :, - k + 1, 2) = var(:, :, nz - k + 1, 2)
+          var%u(:, :, nz + k) = var%u(:, :, k)
+          var%u(:, :, - k + 1) = var%u(:, :, nz - k + 1)
           ! velocity v -> iVar = 3
-          var(:, :, nz + k, 3) = var(:, :, k, 3)
-          var(:, :, - k + 1, 3) = var(:, :, nz - k + 1, 3)
+          var%v(:, :, nz + k) = var%v(:, :, k)
+          var%v(:, :, - k + 1) = var%v(:, :, nz - k + 1)
           ! velocity w (staggared along z) -> iVar = 4
-          var(:, :, nz + k, 4) = var(:, :, k, 4)
-          var(:, :, - k, 4) = var(:, :, nz - k, 4)
+          var%w(:, :, nz + k) = var%w(:, :, k)
+          var%w(:, :, - k) = var%w(:, :, nz - k)
         end do
 
         if(verbose .and. master) then
@@ -753,8 +742,8 @@ module boundary_module
 
       if(correctMomentum) then
         ! pressure variable -> iVar = 5
-        var(:, :, nz + 1, 5) = var(:, :, 1, 5) ! forward ghost cell
-        var(:, :, 0, 5) = var(:, :, nz, 5) ! backward
+        var%pi(:, :, nz + 1) = var%pi(:, :, 1) ! forward ghost cell
+        var%pi(:, :, 0) = var%pi(:, :, nz) ! backward
 
         if(verbose .and. master) then
           print *, "setBoundary_z_periodic:  z-periodic BC for p set."
@@ -762,29 +751,27 @@ module boundary_module
       end if
 
     case("ice")
-      ! ice variables -> iVar = nVar-3, nVar
-      do iVar = nVar - 3, nVar
+      do iVar = 1, 4
         do k = 1, nbz
-          var(:, :, nz + k, iVar) = var(:, :, k, iVar)
-          var(:, :, - k + 1, iVar) = var(:, :, nz - k + 1, iVar)
+          var%ICE(:, :, nz + k, iVar) = var%ICE(:, :, k, iVar)
+          var%ICE(:, :, - k + 1, iVar) = var%ICE(:, :, nz - k + 1, iVar)
         end do
       end do
 
       if(verbose .and. master) print *, "setBoundary_z_periodic:  z-periodic &
-          BC for ice variables set."
+          &BC for ice variables set."
 
     case("ice2")
-      ! ice variables
-      do ii = 1, nVarIce
-        iVar = iVarIce(ii)
+      ! ice2 variables
+      do iVar = 1, nVarIce
         do k = 1, nbz
-          var(:, :, nz + k, iVar) = var(:, :, k, iVar)
-          var(:, :, - k + 1, iVar) = var(:, :, nz - k + 1, iVar)
+          var%ICE2(:, :, nz + k, iVar) = var%ICE2(:, :, k, iVar)
+          var%ICE2(:, :, - k + 1, iVar) = var%ICE2(:, :, nz - k + 1, iVar)
         end do
       end do
 
       if(verbose .and. master) print *, "setBoundary_z_periodic:  z-periodic &
-          BC for ice variables set."
+          &BC for ice variables set."
 
     case("iceTilde")
       ! see above, similar to rho
@@ -800,7 +787,7 @@ module boundary_module
       qvTilde(:, :, - 1, 3, 1) = qvTilde(:, :, nz - 1, 3, 1)
 
       if(verbose .and. master) print *, "setBoundary_z_periodic:   z-periodic &
-          BC for iceTilde variables set."
+          &BC for iceTilde variables set."
 
     case("iceFlux")
       ! nothing
@@ -853,7 +840,7 @@ module boundary_module
         qvTilde(:, :, - 1, 3, 1) = qvTilde(:, :, nz - 1, 3, 1)
 
         if(verbose .and. master) print *, "setBoundary_z_periodic:   &
-            z-periodic BC for iceTilde variables set."
+            &z-periodic BC for iceTilde variables set."
 
       end if
 
@@ -891,9 +878,8 @@ module boundary_module
     !-------------------------------------------
 
     ! in/out variables
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVar), &
-        intent(inout) :: var
-    real, dimension(- 1:nx, - 1:ny, - 1:nz, 3, nVar), intent(inout) :: flux
+    type(var_type), intent(inout) :: var
+    type(flux_type), intent(inout) :: flux
     character(len = *), intent(in) :: option
 
     ! local variables
@@ -919,11 +905,11 @@ module boundary_module
 
     ! TFC FJ
     real :: met13EdgeRU, met23EdgeRU, met33EdgeRU, chris11EdgeRU, &
-        chris13EdgeRU, chris12EdgeRU, chris23EdgeRU, uEdgeRUU, uEdgeRU, &
-        uEdgeLU, uEdgeRU1, uEdgeRU2, wEdgeRU, wEdgeRD, vEdgeRU
+        &chris13EdgeRU, chris12EdgeRU, chris23EdgeRU, uEdgeRUU, uEdgeRU, &
+        &uEdgeLU, uEdgeRU1, uEdgeRU2, wEdgeRU, wEdgeRD, vEdgeRU
     real :: met13EdgeFU, met23EdgeFU, met33EdgeFU, chris12EdgeFU, &
-        chris13EdgeFU, chris22EdgeFU, chris23EdgeFU, vEdgeFUU, vEdgeFU, &
-        vEdgeBU, vEdgeFU1, vEdgeFU2, wEdgeFU, wEdgeFD, uEdgeFU
+        &chris13EdgeFU, chris22EdgeFU, chris23EdgeFU, vEdgeFUU, vEdgeFU, &
+        &vEdgeBU, vEdgeFU1, vEdgeFU2, wEdgeFU, wEdgeFD, uEdgeFU
 
     select case(option)
 
@@ -943,36 +929,37 @@ module boundary_module
           if(fluctuationMode) then
             if(topography) then
               ! TFC FJ
-              var(1:nx, 1:ny, 0, 1) = - var(1:nx, 1:ny, 1, 1) + dens_env_pp(:, &
-                  :, 1) - rhoStratTFC(1:nx, 1:ny, 1) + dens_env_pp(:, :, 0) &
-                  - rhoStratTFC(1:nx, 1:ny, 0)
+              var%rho(1:nx, 1:ny, 0) = - var%rho(1:nx, 1:ny, 1) &
+                  &+ dens_env_pp(:, :, 1) - rhoStratTFC(1:nx, 1:ny, 1) &
+                  &+ dens_env_pp(:, :, 0) - rhoStratTFC(1:nx, 1:ny, 0)
 
-              var(1:nx, 1:ny, nz + 1, 1) = - var(1:nx, 1:ny, nz, 1) &
-                  + dens_env_pp(:, :, nz) - rhoStratTFC(1:nx, 1:ny, nz) &
-                  + dens_env_pp(:, :, nz + 1) - rhoStratTFC(1:nx, 1:ny, nz + 1)
+              var%rho(1:nx, 1:ny, nz + 1) = - var%rho(1:nx, 1:ny, nz) &
+                  &+ dens_env_pp(:, :, nz) - rhoStratTFC(1:nx, 1:ny, nz) &
+                  &+ dens_env_pp(:, :, nz + 1) - rhoStratTFC(1:nx, 1:ny, nz + 1)
             else
-              var(1:nx, 1:ny, 0, 1) = - var(1:nx, 1:ny, 1, 1) + dens_env_pp(:, &
-                  :, 1) - rhoStrat(1) + dens_env_pp(:, :, 0) - rhoStrat(0)
+              var%rho(1:nx, 1:ny, 0) = - var%rho(1:nx, 1:ny, 1) &
+                  &+ dens_env_pp(:, :, 1) - rhoStrat(1) + dens_env_pp(:, :, 0) &
+                  &- rhoStrat(0)
 
-              var(1:nx, 1:ny, nz + 1, 1) = - var(1:nx, 1:ny, nz, 1) &
-                  + dens_env_pp(:, :, nz) - rhoStrat(nz) + dens_env_pp(:, :, &
-                  nz + 1) - rhoStrat(nz + 1)
+              var%rho(1:nx, 1:ny, nz + 1) = - var%rho(1:nx, 1:ny, nz) &
+                  &+ dens_env_pp(:, :, nz) - rhoStrat(nz) + dens_env_pp(:, :, &
+                  &nz + 1) - rhoStrat(nz + 1)
             end if
           else
-            var(1:nx, 1:ny, 0, 1) = - var(1:nx, 1:ny, 1, 1) + dens_env_pp(:, &
-                :, 1) + dens_env_pp(:, :, 0)
+            var%rho(1:nx, 1:ny, 0) = - var%rho(1:nx, 1:ny, 1) + dens_env_pp(:, &
+                &:, 1) + dens_env_pp(:, :, 0)
 
-            var(1:nx, 1:ny, nz + 1, 1) = - var(1:nx, 1:ny, nz, 1) &
-                + dens_env_pp(:, :, nz) + dens_env_pp(:, :, nz + 1)
+            var%rho(1:nx, 1:ny, nz + 1) = - var%rho(1:nx, 1:ny, nz) &
+                &+ dens_env_pp(:, :, nz) + dens_env_pp(:, :, nz + 1)
           end if
         else if(testCase == "smoothVortex") then
-          var(1:nx, 1:ny, 0, 1) = var(1:nx, 1:ny, 1, 1)
-          var(1:nx, 1:ny, nz + 1, 1) = var(1:nx, 1:ny, nz, 1)
+          var%rho(1:nx, 1:ny, 0) = var%rho(1:nx, 1:ny, 1)
+          var%rho(1:nx, 1:ny, nz + 1) = var%rho(1:nx, 1:ny, nz)
         else
           do k = 1, nbz
 
-            var(:, :, - k + 1, 1) = - var(:, :, k, 1)
-            var(:, :, nz + k, 1) = - var(:, :, nz - k + 1, 1)
+            var%rho(:, :, - k + 1) = - var%rho(:, :, k)
+            var%rho(:, :, nz + k) = - var%rho(:, :, nz - k + 1)
 
           end do
         end if
@@ -983,28 +970,29 @@ module boundary_module
           if(testCase == "baroclinic_LC") then
             if(topography) then
               ! TFC FJ
-              var(1:nx, 1:ny, 0, 6) = - var(1:nx, 1:ny, 1, 6) + dens_env_pp(:, &
-                  :, 1) - rhoStratTFC(1:nx, 1:ny, 1) + dens_env_pp(:, :, 0) &
-                  - rhoStratTFC(1:nx, 1:ny, 0)
+              var%rhop(1:nx, 1:ny, 0) = - var%rhop(1:nx, 1:ny, 1) &
+                  &+ dens_env_pp(:, :, 1) - rhoStratTFC(1:nx, 1:ny, 1) &
+                  &+ dens_env_pp(:, :, 0) - rhoStratTFC(1:nx, 1:ny, 0)
 
-              var(1:nx, 1:ny, nz + 1, 6) = - var(1:nx, 1:ny, nz, 6) &
-                  + dens_env_pp(:, :, nz) - rhoStratTFC(1:nx, 1:ny, nz) &
-                  + dens_env_pp(:, :, nz + 1) - rhoStratTFC(1:nx, 1:ny, nz + 1)
+              var%rhop(1:nx, 1:ny, nz + 1) = - var%rhop(1:nx, 1:ny, nz) &
+                  &+ dens_env_pp(:, :, nz) - rhoStratTFC(1:nx, 1:ny, nz) &
+                  &+ dens_env_pp(:, :, nz + 1) - rhoStratTFC(1:nx, 1:ny, nz + 1)
             else
-              var(1:nx, 1:ny, 0, 6) = - var(1:nx, 1:ny, 1, 6) + dens_env_pp(:, &
-                  :, 1) - rhoStrat(1) + dens_env_pp(:, :, 0) - rhoStrat(0)
+              var%rhop(1:nx, 1:ny, 0) = - var%rhop(1:nx, 1:ny, 1) &
+                  &+ dens_env_pp(:, :, 1) - rhoStrat(1) + dens_env_pp(:, :, 0) &
+                  &- rhoStrat(0)
 
-              var(1:nx, 1:ny, nz + 1, 6) = - var(1:nx, 1:ny, nz, 6) &
-                  + dens_env_pp(:, :, nz) - rhoStrat(nz) + dens_env_pp(:, :, &
-                  nz + 1) - rhoStrat(nz + 1)
+              var%rhop(1:nx, 1:ny, nz + 1) = - var%rhop(1:nx, 1:ny, nz) &
+                  &+ dens_env_pp(:, :, nz) - rhoStrat(nz) + dens_env_pp(:, :, &
+                  &nz + 1) - rhoStrat(nz + 1)
             end if
           else if(testCase == "smoothVortex") then
-            var(1:nx, 1:ny, 0, 6) = var(1:nx, 1:ny, 1, 6)
-            var(1:nx, 1:ny, nz + 1, 6) = var(1:nx, 1:ny, nz, 6)
+            var%rhop(1:nx, 1:ny, 0) = var%rhop(1:nx, 1:ny, 1)
+            var%rhop(1:nx, 1:ny, nz + 1) = var%rhop(1:nx, 1:ny, nz)
           else
             do k = 1, nbz
-              var(:, :, - k + 1, 6) = - var(:, :, k, 6)
-              var(:, :, nz + k, 6) = - var(:, :, nz - k + 1, 6)
+              var%rhop(:, :, - k + 1) = - var%rhop(:, :, k)
+              var%rhop(:, :, nz + k) = - var%rhop(:, :, nz - k + 1)
             end do
           end if
         end if
@@ -1013,26 +1001,25 @@ module boundary_module
       if(model == "compressible") then
         ! set boundary for P mass weighted pot. temp.
         do k = 1, nbz
-          var(:, :, - k + 1, iVarP) = var(:, :, k, iVarP)
-          var(:, :, nz + k, iVarP) = var(:, :, nz - k + 1, iVarP)
+          var%P(:, :, - k + 1) = var%P(:, :, k)
+          var%P(:, :, nz + k) = var%P(:, :, nz - k + 1)
         end do
       end if
 
       if(updateIce) then
         ! reflect at boundary without change of sign
-        ! ice variables -> iVar = nVar-3, nVar
-        do iVar = nVar - 3, nVar
+        do iVar = 1, 4
           do k = 1, nbz
-            var(:, :, - k + 1, iVar) = var(:, :, k, iVar)
-            var(:, :, nz + k, iVar) = var(:, :, nz - k + 1, iVar)
+            var%ICE(:, :, - k + 1, iVar) = var%ICE(:, :, k, iVar)
+            var%ICE(:, :, nz + k, iVar) = var%ICE(:, :, nz - k + 1, iVar)
           end do
         end do
       end if
 
       if(updateTracer) then
         do k = 1, nbz
-          var(:, :, - k + 1, iVarT) = - var(:, :, k, iVarT)
-          var(:, :, nz + k, iVarT) = - var(:, :, nz - k + 1, iVarT)
+          var%chi(:, :, - k + 1) = - var%chi(:, :, k)
+          var%chi(:, :, nz + k) = - var%chi(:, :, nz - k + 1)
         end do
       end if
 
@@ -1042,19 +1029,19 @@ module boundary_module
 
         if(timeScheme == "semiimplicit") then
           print *, 'ERROR: updateTheta = .true. not allowed for  timeScheme &
-              == "semiimplicit"'
+              &== "semiimplicit"'
           stop
         end if
 
         if(testCase == 'baroclinic_LC') then
           print *, 'ERROR: updateTheta = .true. not allowed for  testCase &
-              == "baroclinic_LC"'
+              &== "baroclinic_LC"'
           stop
         end if
 
         do k = 1, nbz
-          var(:, :, - k + 1, 6) = var(:, :, k, 6)
-          var(:, :, nz + k, 6) = var(:, :, nz - k + 1, 6)
+          var%rhop(:, :, - k + 1) = var%rhop(:, :, k)
+          var%rhop(:, :, nz + k) = var%rhop(:, :, nz - k + 1)
         end do
       end if
 
@@ -1062,12 +1049,12 @@ module boundary_module
         ! w -> set to zero at bound,
         !      reflect at bound with change of sign
 
-        var(:, :, 0, 4) = 0.0
-        var(:, :, nz, 4) = 0.0
+        var%w(:, :, 0) = 0.0
+        var%w(:, :, nz) = 0.0
 
         do k = 1, nbz
-          var(:, :, - k, 4) = - var(:, :, k, 4)
-          var(:, :, nz + k, 4) = - var(:, :, nz - k, 4)
+          var%w(:, :, - k) = - var%w(:, :, k)
+          var%w(:, :, nz + k) = - var%w(:, :, nz - k)
         end do
 
         ! transverse velocities u,v:
@@ -1093,20 +1080,20 @@ module boundary_module
         if(testCase == "baroclinic_LC") then
           do k = 1, nbz
             ! u
-            var(:, :, - k + 1, 2) = - var(:, :, k, 2) + var_env(:, :, k, 2) &
-                + var_env(:, :, - k + 1, 2)
-            var(:, :, nz + k, 2) = - var(:, :, nz - k + 1, 2) + var_env(:, :, &
-                nz - k + 1, 2) + var_env(:, :, nz + k, 2)
+            var%u(:, :, - k + 1) = - var%u(:, :, k) + var_env%u(:, :, k) &
+                &+ var_env%u(:, :, - k + 1)
+            var%u(:, :, nz + k) = - var%u(:, :, nz - k + 1) + var_env%u(:, :, &
+                &nz - k + 1) + var_env%u(:, :, nz + k)
 
             ! v
-            var(:, :, - k + 1, 3) = - var(:, :, k, 3)
-            var(:, :, nz + k, 3) = - var(:, :, nz - k + 1, 3)
+            var%v(:, :, - k + 1) = - var%v(:, :, k)
+            var%v(:, :, nz + k) = - var%v(:, :, nz - k + 1)
           end do
         else if(testCase == "smoothVortex") then
-          var(1:nx, 1:ny, 0, 2) = var(1:nx, 1:ny, 1, 2)
-          var(1:nx, 1:ny, nz + 1, 2) = var(1:nx, 1:ny, nz, 2)
-          var(1:nx, 1:ny, 0, 3) = var(1:nx, 1:ny, 1, 3)
-          var(1:nx, 1:ny, nz + 1, 3) = var(1:nx, 1:ny, nz, 3)
+          var%u(1:nx, 1:ny, 0) = var%u(1:nx, 1:ny, 1)
+          var%u(1:nx, 1:ny, nz + 1) = var%u(1:nx, 1:ny, nz)
+          var%v(1:nx, 1:ny, 0) = var%v(1:nx, 1:ny, 1)
+          var%v(1:nx, 1:ny, nz + 1) = var%v(1:nx, 1:ny, nz)
         else
           if(topography .and. freeSlipTFC) then
             ! TFC FJ
@@ -1115,187 +1102,185 @@ module boundary_module
               do j = 1, ny
                 ! BC for u at z = 0.
                 met13EdgeRU = 0.25 * (met(i, j, 0, 1, 3) + met(i + 1, j, 0, 1, &
-                    3) + met(i, j, 1, 1, 3) + met(i + 1, j, 1, 1, 3))
+                    &3) + met(i, j, 1, 1, 3) + met(i + 1, j, 1, 1, 3))
                 met23EdgeRU = 0.25 * (met(i, j, 0, 2, 3) + met(i + 1, j, 0, 2, &
-                    3) + met(i, j, 1, 2, 3) + met(i + 1, j, 1, 2, 3))
+                    &3) + met(i, j, 1, 2, 3) + met(i + 1, j, 1, 2, 3))
                 met33EdgeRU = 0.25 * (met(i, j, 0, 3, 3) + met(i + 1, j, 0, 3, &
-                    3) + met(i, j, 1, 3, 3) + met(i + 1, j, 1, 3, 3))
+                    &3) + met(i, j, 1, 3, 3) + met(i + 1, j, 1, 3, 3))
                 chris11EdgeRU = 0.25 * (chris(i, j, 0, 1, 1) + chris(i + 1, j, &
-                    0, 1, 1) + chris(i, j, 1, 1, 1) + chris(i + 1, j, 1, 1, 1))
+                    &0, 1, 1) + chris(i, j, 1, 1, 1) + chris(i + 1, j, 1, 1, 1))
                 chris13EdgeRU = 0.25 * (met(i, j, 0, 1, 3) * chris(i, j, 0, 1, &
-                    3) + met(i + 1, j, 0, 1, 3) * chris(i + 1, j, 0, 1, 3) &
-                    + met(i, j, 1, 1, 3) * chris(i, j, 1, 1, 3) + met(i + 1, &
-                    j, 1, 1, 3) * chris(i + 1, j, 1, 1, 3))
+                    &3) + met(i + 1, j, 0, 1, 3) * chris(i + 1, j, 0, 1, 3) &
+                    &+ met(i, j, 1, 1, 3) * chris(i, j, 1, 1, 3) + met(i + 1, &
+                    &j, 1, 1, 3) * chris(i + 1, j, 1, 1, 3))
                 chris12EdgeRU = 0.25 * (chris(i, j, 0, 1, 2) + chris(i + 1, j, &
-                    0, 1, 2) + chris(i, j, 1, 1, 2) + chris(i + 1, j, 1, 1, 2))
+                    &0, 1, 2) + chris(i, j, 1, 1, 2) + chris(i + 1, j, 1, 1, 2))
                 chris23EdgeRU = 0.25 * (met(i, j, 0, 1, 3) * chris(i, j, 0, 2, &
-                    3) + met(i + 1, j, 0, 1, 3) * chris(i + 1, j, 0, 2, 3) &
-                    + met(i, j, 1, 1, 3) * chris(i, j, 1, 2, 3) + met(i + 1, &
-                    j, 1, 1, 3) * chris(i + 1, j, 1, 2, 3))
-                uEdgeRUU = 1.5 * var(i + 1, j, 1, 2) - 0.5 * var(i + 1, j, 2, 2)
-                uEdgeRU = 1.5 * var(i, j, 1, 2) - 0.5 * var(i, j, 2, 2)
-                uEdgeLU = 1.5 * var(i - 1, j, 1, 2) - 0.5 * var(i - 1, j, 2, 2)
-                uEdgeRU1 = 1.5 * var(i, j + 1, 1, 2) - 0.5 * var(i, j + 1, 2, 2)
-                uEdgeRU2 = 1.5 * var(i, j - 1, 1, 2) - 0.5 * var(i, j - 1, 2, 2)
-                vEdgeRU = 1.5 * 0.25 * (var(i, j, 1, 3) + var(i, j - 1, 1, 3) &
-                    + var(i + 1, j, 1, 3) + var(i + 1, j - 1, 1, 3)) - 0.5 &
-                    * 0.25 * (var(i, j, 2, 3) + var(i, j - 1, 2, 3) + var(i &
-                    + 1, j, 2, 3) + var(i + 1, j - 1, 2, 3))
+                    &3) + met(i + 1, j, 0, 1, 3) * chris(i + 1, j, 0, 2, 3) &
+                    &+ met(i, j, 1, 1, 3) * chris(i, j, 1, 2, 3) + met(i + 1, &
+                    &j, 1, 1, 3) * chris(i + 1, j, 1, 2, 3))
+                uEdgeRUU = 1.5 * var%u(i + 1, j, 1) - 0.5 * var%u(i + 1, j, 2)
+                uEdgeRU = 1.5 * var%u(i, j, 1) - 0.5 * var%u(i, j, 2)
+                uEdgeLU = 1.5 * var%u(i - 1, j, 1) - 0.5 * var%u(i - 1, j, 2)
+                uEdgeRU1 = 1.5 * var%u(i, j + 1, 1) - 0.5 * var%u(i, j + 1, 2)
+                uEdgeRU2 = 1.5 * var%u(i, j - 1, 1) - 0.5 * var%u(i, j - 1, 2)
+                vEdgeRU = 1.5 * 0.25 * (var%v(i, j, 1) + var%v(i, j - 1, 1) &
+                    &+ var%v(i + 1, j, 1) + var%v(i + 1, j - 1, 1)) - 0.5 &
+                    &* 0.25 * (var%v(i, j, 2) + var%v(i, j - 1, 2) + var%v(i &
+                    &+ 1, j, 2) + var%v(i + 1, j - 1, 2))
                 do k = 1, nbz
-                  wEdgeRU = 0.5 * (var(i, j, k, 4) + var(i + 1, j, k, 4))
-                  wEdgeRD = 0.5 * (var(i, j, - k, 4) + var(i + 1, j, - k, 4))
-                  var(i, j, - k + 1, 2) = (2.0 * k - 1.0) * dz / met33EdgeRU &
-                      * (met13EdgeRU * 0.5 * (uEdgeRUU - uEdgeLU) / dx &
-                      + met23EdgeRU * 0.5 * (uEdgeRU1 - uEdgeRU2) / dy &
-                      + met33EdgeRU * var(i, j, k, 2) / ((2.0 * k - 1.0) * dz) &
-                      - met13EdgeRU * (wEdgeRU - wEdgeRD) / (2.0 * k * dz) &
-                      - (chris11EdgeRU + chris13EdgeRU) * uEdgeRU &
-                      - (chris12EdgeRU + chris23EdgeRU) * vEdgeRU)
+                  wEdgeRU = 0.5 * (var%w(i, j, k) + var%w(i + 1, j, k))
+                  wEdgeRD = 0.5 * (var%w(i, j, - k) + var%w(i + 1, j, - k))
+                  var%u(i, j, - k + 1) = (2.0 * k - 1.0) * dz / met33EdgeRU &
+                      &* (met13EdgeRU * 0.5 * (uEdgeRUU - uEdgeLU) / dx &
+                      &+ met23EdgeRU * 0.5 * (uEdgeRU1 - uEdgeRU2) / dy &
+                      &+ met33EdgeRU * var%u(i, j, k) / ((2.0 * k - 1.0) * dz) &
+                      &- met13EdgeRU * (wEdgeRU - wEdgeRD) / (2.0 * k * dz) &
+                      &- (chris11EdgeRU + chris13EdgeRU) * uEdgeRU &
+                      &- (chris12EdgeRU + chris23EdgeRU) * vEdgeRU)
                 end do
                 ! BC for u at z = H.
                 met13EdgeRU = 0.25 * (met(i, j, nz, 1, 3) + met(i + 1, j, nz, &
-                    1, 3) + met(i, j, nz + 1, 1, 3) + met(i + 1, j, nz + 1, 1, &
-                    3))
+                    &1, 3) + met(i, j, nz + 1, 1, 3) + met(i + 1, j, nz + 1, &
+                    &1, 3))
                 met23EdgeRU = 0.25 * (met(i, j, nz, 2, 3) + met(i + 1, j, nz, &
-                    2, 3) + met(i, j, nz + 1, 2, 3) + met(i + 1, j, nz + 1, 2, &
-                    3))
+                    &2, 3) + met(i, j, nz + 1, 2, 3) + met(i + 1, j, nz + 1, &
+                    &2, 3))
                 met33EdgeRU = 0.25 * (met(i, j, nz, 3, 3) + met(i + 1, j, nz, &
-                    3, 3) + met(i, j, nz + 1, 3, 3) + met(i + 1, j, nz + 1, 3, &
-                    3))
+                    &3, 3) + met(i, j, nz + 1, 3, 3) + met(i + 1, j, nz + 1, &
+                    &3, 3))
                 chris11EdgeRU = 0.25 * (chris(i, j, nz, 1, 1) + chris(i + 1, &
-                    j, nz, 1, 1) + chris(i, j, nz + 1, 1, 1) + chris(i + 1, j, &
-                    nz + 1, 1, 1))
+                    &j, nz, 1, 1) + chris(i, j, nz + 1, 1, 1) + chris(i + 1, &
+                    &j, nz + 1, 1, 1))
                 chris13EdgeRU = 0.25 * (met(i, j, nz, 1, 3) * chris(i, j, nz, &
-                    1, 3) + met(i + 1, j, nz, 1, 3) * chris(i + 1, j, nz, 1, &
-                    3) + met(i, j, nz + 1, 1, 3) * chris(i, j, nz + 1, 1, 3) &
-                    + met(i + 1, j, nz + 1, 1, 3) * chris(i + 1, j, nz + 1, 1, &
-                    3))
+                    &1, 3) + met(i + 1, j, nz, 1, 3) * chris(i + 1, j, nz, 1, &
+                    &3) + met(i, j, nz + 1, 1, 3) * chris(i, j, nz + 1, 1, 3) &
+                    &+ met(i + 1, j, nz + 1, 1, 3) * chris(i + 1, j, nz + 1, &
+                    &1, 3))
                 chris12EdgeRU = 0.25 * (chris(i, j, nz, 1, 2) + chris(i + 1, &
-                    j, nz, 1, 2) + chris(i, j, nz + 1, 1, 2) + chris(i + 1, j, &
-                    nz + 1, 1, 2))
+                    &j, nz, 1, 2) + chris(i, j, nz + 1, 1, 2) + chris(i + 1, &
+                    &j, nz + 1, 1, 2))
                 chris23EdgeRU = 0.25 * (met(i, j, nz, 1, 3) * chris(i, j, nz, &
-                    2, 3) + met(i + 1, j, nz, 1, 3) * chris(i + 1, j, nz, 2, &
-                    3) + met(i, j, nz + 1, 1, 3) * chris(i, j, nz + 1, 2, 3) &
-                    + met(i + 1, j, nz + 1, 1, 3) * chris(i + 1, j, nz + 1, 2, &
-                    3))
-                uEdgeRUU = 1.5 * var(i + 1, j, nz, 2) - 0.5 * var(i + 1, j, nz &
-                    - 1, 2)
-                uEdgeRU = 1.5 * var(i, j, nz, 2) - 0.5 * var(i, j, nz - 1, 2)
-                uEdgeLU = 1.5 * var(i - 1, j, nz, 2) - 0.5 * var(i - 1, j, nz &
-                    - 1, 2)
-                uEdgeRU1 = 1.5 * var(i, j + 1, nz, 2) - 0.5 * var(i, j + 1, nz &
-                    - 1, 2)
-                uEdgeRU2 = 1.5 * var(i, j - 1, nz, 2) - 0.5 * var(i, j - 1, nz &
-                    - 1, 2)
-                vEdgeRU = 1.5 * 0.25 * (var(i, j, nz, 3) + var(i, j - 1, nz, &
-                    3) + var(i + 1, j, nz, 3) + var(i + 1, j - 1, nz, 3)) &
-                    - 0.5 * 0.25 * (var(i, j, nz - 1, 3) + var(i, j - 1, nz &
-                    - 1, 3) + var(i + 1, j, nz - 1, 3) + var(i + 1, j - 1, nz &
-                    - 1, 3))
+                    &2, 3) + met(i + 1, j, nz, 1, 3) * chris(i + 1, j, nz, 2, &
+                    &3) + met(i, j, nz + 1, 1, 3) * chris(i, j, nz + 1, 2, 3) &
+                    &+ met(i + 1, j, nz + 1, 1, 3) * chris(i + 1, j, nz + 1, &
+                    &2, 3))
+                uEdgeRUU = 1.5 * var%u(i + 1, j, nz) - 0.5 * var%u(i + 1, j, &
+                    &nz - 1)
+                uEdgeRU = 1.5 * var%u(i, j, nz) - 0.5 * var%u(i, j, nz - 1)
+                uEdgeLU = 1.5 * var%u(i - 1, j, nz) - 0.5 * var%u(i - 1, j, nz &
+                    &- 1)
+                uEdgeRU1 = 1.5 * var%u(i, j + 1, nz) - 0.5 * var%u(i, j + 1, &
+                    &nz - 1)
+                uEdgeRU2 = 1.5 * var%u(i, j - 1, nz) - 0.5 * var%u(i, j - 1, &
+                    &nz - 1)
+                vEdgeRU = 1.5 * 0.25 * (var%v(i, j, nz) + var%v(i, j - 1, nz) &
+                    &+ var%v(i + 1, j, nz) + var%v(i + 1, j - 1, nz)) - 0.5 &
+                    &* 0.25 * (var%v(i, j, nz - 1) + var%v(i, j - 1, nz - 1) &
+                    &+ var%v(i + 1, j, nz - 1) + var%v(i + 1, j - 1, nz - 1))
                 do k = 1, nbz
-                  wEdgeRU = 0.5 * (var(i, j, nz + k, 4) + var(i + 1, j, nz &
-                      + k, 4))
-                  wEdgeRD = 0.5 * (var(i, j, nz - k, 4) + var(i + 1, j, nz &
-                      - k, 4))
-                  var(i, j, nz + k, 2) = - (2.0 * k - 1.0) * dz / met33EdgeRU &
-                      * (met13EdgeRU * 0.5 * (uEdgeRUU - uEdgeLU) / dx &
-                      + met23EdgeRU * 0.5 * (uEdgeRU1 - uEdgeRU2) / dy &
-                      - met33EdgeRU * var(i, j, nz - k + 1, 2) / ((2.0 * k &
-                      - 1.0) * dz) - met13EdgeRU * (wEdgeRU - wEdgeRD) / (2.0 &
-                      * k * dz) - (chris11EdgeRU + chris13EdgeRU) * uEdgeRU &
-                      - (chris12EdgeRU + chris23EdgeRU) * vEdgeRU)
+                  wEdgeRU = 0.5 * (var%w(i, j, nz + k) + var%w(i + 1, j, nz &
+                      &+ k))
+                  wEdgeRD = 0.5 * (var%w(i, j, nz - k) + var%w(i + 1, j, nz &
+                      &- k))
+                  var%u(i, j, nz + k) = - (2.0 * k - 1.0) * dz / met33EdgeRU &
+                      &* (met13EdgeRU * 0.5 * (uEdgeRUU - uEdgeLU) / dx &
+                      &+ met23EdgeRU * 0.5 * (uEdgeRU1 - uEdgeRU2) / dy &
+                      &- met33EdgeRU * var%u(i, j, nz - k + 1) / ((2.0 * k &
+                      &- 1.0) * dz) - met13EdgeRU * (wEdgeRU - wEdgeRD) / (2.0 &
+                      &* k * dz) - (chris11EdgeRU + chris13EdgeRU) * uEdgeRU &
+                      &- (chris12EdgeRU + chris23EdgeRU) * vEdgeRU)
                 end do
                 ! BC for v at z = 0.
                 met13EdgeFU = 0.25 * (met(i, j, 0, 1, 3) + met(i, j + 1, 0, 1, &
-                    3) + met(i, j, 1, 1, 3) + met(i, j + 1, 1, 1, 3))
+                    &3) + met(i, j, 1, 1, 3) + met(i, j + 1, 1, 1, 3))
                 met23EdgeFU = 0.25 * (met(i, j, 0, 2, 3) + met(i, j + 1, 0, 2, &
-                    3) + met(i, j, 1, 2, 3) + met(i, j + 1, 1, 2, 3))
+                    &3) + met(i, j, 1, 2, 3) + met(i, j + 1, 1, 2, 3))
                 met33EdgeFU = 0.25 * (met(i, j, 0, 3, 3) + met(i, j + 1, 0, 3, &
-                    3) + met(i, j, 1, 3, 3) + met(i, j + 1, 1, 3, 3))
+                    &3) + met(i, j, 1, 3, 3) + met(i, j + 1, 1, 3, 3))
                 chris12EdgeFU = 0.25 * (chris(i, j, 0, 1, 2) + chris(i, j + 1, &
-                    0, 1, 2) + chris(i, j, 1, 1, 2) + chris(i, j + 1, 1, 1, 2))
+                    &0, 1, 2) + chris(i, j, 1, 1, 2) + chris(i, j + 1, 1, 1, 2))
                 chris13EdgeFU = 0.25 * (met(i, j, 0, 2, 3) * chris(i, j, 0, 1, &
-                    3) + met(i, j + 1, 0, 2, 3) * chris(i, j + 1, 0, 1, 3) &
-                    + met(i, j, 1, 2, 3) * chris(i, j, 1, 1, 3) + met(i, j &
-                    + 1, 1, 2, 3) * chris(i, j + 1, 1, 1, 3))
+                    &3) + met(i, j + 1, 0, 2, 3) * chris(i, j + 1, 0, 1, 3) &
+                    &+ met(i, j, 1, 2, 3) * chris(i, j, 1, 1, 3) + met(i, j &
+                    &+ 1, 1, 2, 3) * chris(i, j + 1, 1, 1, 3))
                 chris22EdgeFU = 0.25 * (chris(i, j, 0, 2, 2) + chris(i, j + 1, &
-                    0, 2, 2) + chris(i, j, 1, 2, 2) + chris(i, j + 1, 1, 2, 2))
+                    &0, 2, 2) + chris(i, j, 1, 2, 2) + chris(i, j + 1, 1, 2, 2))
                 chris23EdgeFU = 0.25 * (met(i, j, 0, 2, 3) * chris(i, j, 0, 2, &
-                    3) + met(i, j + 1, 0, 2, 3) * chris(i, j + 1, 0, 2, 3) &
-                    + met(i, j, 1, 2, 3) * chris(i, j, 1, 2, 3) + met(i, j &
-                    + 1, 1, 2, 3) * chris(i, j + 1, 1, 2, 3))
-                vEdgeFUU = 1.5 * var(i, j + 1, 1, 3) - 0.5 * var(i, j + 1, 2, 3)
-                vEdgeFU = 1.5 * var(i, j, 1, 3) - 0.5 * var(i, j, 2, 3)
-                vEdgeBU = 1.5 * var(i, j - 1, 1, 3) - 0.5 * var(i, j - 1, 2, 3)
-                vEdgeFU1 = 1.5 * var(i + 1, j, 1, 3) - 0.5 * var(i + 1, j, 2, 3)
-                vEdgeFU2 = 1.5 * var(i - 1, j, 1, 3) - 0.5 * var(i - 1, j, 2, 3)
-                uEdgeFU = 1.5 * 0.25 * (var(i, j, 1, 2) + var(i - 1, j, 1, 2) &
-                    + var(i, j + 1, 1, 2) + var(i - 1, j + 1, 1, 2)) - 0.5 &
-                    * 0.25 * (var(i, j, 2, 2) + var(i - 1, j, 2, 2) + var(i, j &
-                    + 1, 2, 2) + var(i - 1, j + 1, 2, 2))
+                    &3) + met(i, j + 1, 0, 2, 3) * chris(i, j + 1, 0, 2, 3) &
+                    &+ met(i, j, 1, 2, 3) * chris(i, j, 1, 2, 3) + met(i, j &
+                    &+ 1, 1, 2, 3) * chris(i, j + 1, 1, 2, 3))
+                vEdgeFUU = 1.5 * var%v(i, j + 1, 1) - 0.5 * var%v(i, j + 1, 2)
+                vEdgeFU = 1.5 * var%v(i, j, 1) - 0.5 * var%v(i, j, 2)
+                vEdgeBU = 1.5 * var%v(i, j - 1, 1) - 0.5 * var%v(i, j - 1, 2)
+                vEdgeFU1 = 1.5 * var%v(i + 1, j, 1) - 0.5 * var%v(i + 1, j, 2)
+                vEdgeFU2 = 1.5 * var%v(i - 1, j, 1) - 0.5 * var%v(i - 1, j, 2)
+                uEdgeFU = 1.5 * 0.25 * (var%u(i, j, 1) + var%u(i - 1, j, 1) &
+                    &+ var%u(i, j + 1, 1) + var%u(i - 1, j + 1, 1)) - 0.5 &
+                    &* 0.25 * (var%u(i, j, 2) + var%u(i - 1, j, 2) + var%u(i, &
+                    &j + 1, 2) + var%u(i - 1, j + 1, 2))
                 do k = 1, nbz
-                  wEdgeFU = 0.5 * (var(i, j, k, 4) + var(i, j + 1, k, 4))
-                  wEdgeFD = 0.5 * (var(i, j, - k, 4) + var(i, j + 1, - k, 4))
-                  var(i, j, - k + 1, 3) = (2.0 * k - 1.0) * dz / met33EdgeFU &
-                      * (met13EdgeFU * 0.5 * (vEdgeFU1 - vEdgeFU2) / dx &
-                      + met23EdgeFU * 0.5 * (vEdgeFUU - vEdgeBU) / dy &
-                      + met33EdgeFU * var(i, j, k, 3) / ((2.0 * k - 1.0) * dz) &
-                      - met23EdgeFU * (wEdgeFU - wEdgeFD) / (2.0 * k * dz) &
-                      - (chris12EdgeFU + chris13EdgeFU) * uEdgeFU &
-                      - (chris22EdgeFU + chris23EdgeFU) * vEdgeFU)
+                  wEdgeFU = 0.5 * (var%w(i, j, k) + var%w(i, j + 1, k))
+                  wEdgeFD = 0.5 * (var%w(i, j, - k) + var%w(i, j + 1, - k))
+                  var%v(i, j, - k + 1) = (2.0 * k - 1.0) * dz / met33EdgeFU &
+                      &* (met13EdgeFU * 0.5 * (vEdgeFU1 - vEdgeFU2) / dx &
+                      &+ met23EdgeFU * 0.5 * (vEdgeFUU - vEdgeBU) / dy &
+                      &+ met33EdgeFU * var%v(i, j, k) / ((2.0 * k - 1.0) * dz) &
+                      &- met23EdgeFU * (wEdgeFU - wEdgeFD) / (2.0 * k * dz) &
+                      &- (chris12EdgeFU + chris13EdgeFU) * uEdgeFU &
+                      &- (chris22EdgeFU + chris23EdgeFU) * vEdgeFU)
                 end do
                 ! BC for u at z = H.
                 met13EdgeFU = 0.25 * (met(i, j, nz, 1, 3) + met(i, j + 1, nz, &
-                    1, 3) + met(i, j, nz + 1, 1, 3) + met(i, j + 1, nz + 1, 1, &
-                    3))
+                    &1, 3) + met(i, j, nz + 1, 1, 3) + met(i, j + 1, nz + 1, &
+                    &1, 3))
                 met23EdgeFU = 0.25 * (met(i, j, nz, 2, 3) + met(i, j + 1, nz, &
-                    2, 3) + met(i, j, nz + 1, 2, 3) + met(i, j + 1, nz + 1, 2, &
-                    3))
+                    &2, 3) + met(i, j, nz + 1, 2, 3) + met(i, j + 1, nz + 1, &
+                    &2, 3))
                 met33EdgeFU = 0.25 * (met(i, j, nz, 3, 3) + met(i, j + 1, nz, &
-                    3, 3) + met(i, j, nz + 1, 3, 3) + met(i, j + 1, nz + 1, 3, &
-                    3))
+                    &3, 3) + met(i, j, nz + 1, 3, 3) + met(i, j + 1, nz + 1, &
+                    &3, 3))
                 chris12EdgeFU = 0.25 * (chris(i, j, nz, 1, 2) + chris(i, j &
-                    + 1, nz, 1, 2) + chris(i, j, nz + 1, 1, 2) + chris(i, j &
-                    + 1, nz + 1, 1, 2))
+                    &+ 1, nz, 1, 2) + chris(i, j, nz + 1, 1, 2) + chris(i, j &
+                    &+ 1, nz + 1, 1, 2))
                 chris13EdgeFU = 0.25 * (met(i, j, nz, 2, 3) * chris(i, j, nz, &
-                    1, 3) + met(i, j + 1, nz, 2, 3) * chris(i, j + 1, nz, 1, &
-                    3) + met(i, j, nz + 1, 2, 3) * chris(i, j, nz + 1, 1, 3) &
-                    + met(i, j + 1, nz + 1, 2, 3) * chris(i, j + 1, nz + 1, 1, &
-                    3))
+                    &1, 3) + met(i, j + 1, nz, 2, 3) * chris(i, j + 1, nz, 1, &
+                    &3) + met(i, j, nz + 1, 2, 3) * chris(i, j, nz + 1, 1, 3) &
+                    &+ met(i, j + 1, nz + 1, 2, 3) * chris(i, j + 1, nz + 1, &
+                    &1, 3))
                 chris22EdgeFU = 0.25 * (chris(i, j, nz, 2, 2) + chris(i, j &
-                    + 1, nz, 2, 2) + chris(i, j, nz + 1, 2, 2) + chris(i, j &
-                    + 1, nz + 1, 2, 2))
+                    &+ 1, nz, 2, 2) + chris(i, j, nz + 1, 2, 2) + chris(i, j &
+                    &+ 1, nz + 1, 2, 2))
                 chris23EdgeFU = 0.25 * (met(i, j, nz, 2, 3) * chris(i, j, nz, &
-                    2, 3) + met(i, j + 1, nz, 2, 3) * chris(i, j + 1, nz, 2, &
-                    3) + met(i, j, nz + 1, 2, 3) * chris(i, j, nz + 1, 2, 3) &
-                    + met(i, j + 1, nz + 1, 2, 3) * chris(i, j + 1, nz + 1, 2, &
-                    3))
-                vEdgeFUU = 1.5 * var(i, j + 1, nz, 3) - 0.5 * var(i, j + 1, nz &
-                    - 1, 3)
-                vEdgeFU = 1.5 * var(i, j, nz, 3) - 0.5 * var(i, j, nz - 1, 3)
-                vEdgeBU = 1.5 * var(i, j - 1, nz, 3) - 0.5 * var(i, j - 1, nz &
-                    - 1, 3)
-                vEdgeFU1 = 1.5 * var(i + 1, j, nz, 3) - 0.5 * var(i + 1, j, nz &
-                    - 1, 3)
-                vEdgeFU2 = 1.5 * var(i - 1, j, nz, 3) - 0.5 * var(i - 1, j, nz &
-                    - 1, 3)
-                uEdgeFU = 1.5 * 0.25 * (var(i, j, nz, 2) + var(i - 1, j, nz, &
-                    2) + var(i, j + 1, nz, 2) + var(i - 1, j + 1, nz, 2)) &
-                    - 0.5 * 0.25 * (var(i, j, nz - 1, 2) + var(i - 1, j, nz &
-                    - 1, 2) + var(i, j + 1, nz - 1, 2) + var(i - 1, j + 1, nz &
-                    - 1, 2))
+                    &2, 3) + met(i, j + 1, nz, 2, 3) * chris(i, j + 1, nz, 2, &
+                    &3) + met(i, j, nz + 1, 2, 3) * chris(i, j, nz + 1, 2, 3) &
+                    &+ met(i, j + 1, nz + 1, 2, 3) * chris(i, j + 1, nz + 1, &
+                    &2, 3))
+                vEdgeFUU = 1.5 * var%v(i, j + 1, nz) - 0.5 * var%v(i, j + 1, &
+                    &nz - 1)
+                vEdgeFU = 1.5 * var%v(i, j, nz) - 0.5 * var%v(i, j, nz - 1)
+                vEdgeBU = 1.5 * var%v(i, j - 1, nz) - 0.5 * var%v(i, j - 1, nz &
+                    &- 1)
+                vEdgeFU1 = 1.5 * var%v(i + 1, j, nz) - 0.5 * var%v(i + 1, j, &
+                    &nz - 1)
+                vEdgeFU2 = 1.5 * var%v(i - 1, j, nz) - 0.5 * var%v(i - 1, j, &
+                    &nz - 1)
+                uEdgeFU = 1.5 * 0.25 * (var%u(i, j, nz) + var%u(i - 1, j, nz) &
+                    &+ var%u(i, j + 1, nz) + var%u(i - 1, j + 1, nz)) - 0.5 &
+                    &* 0.25 * (var%u(i, j, nz - 1) + var%u(i - 1, j, nz - 1) &
+                    &+ var%u(i, j + 1, nz - 1) + var%u(i - 1, j + 1, nz - 1))
                 do k = 1, nbz
-                  wEdgeFU = 0.5 * (var(i, j, nz + k, 4) + var(i, j + 1, nz &
-                      + k, 4))
-                  wEdgeFD = 0.5 * (var(i, j, nz - k, 4) + var(i, j + 1, nz &
-                      - k, 4))
-                  var(i, j, nz + k, 3) = - (2.0 * k - 1.0) * dz / met33EdgeFU &
-                      * (met13EdgeFU * 0.5 * (vEdgeFU1 - vEdgeFU2) / dx &
-                      + met23EdgeFU * 0.5 * (vEdgeFUU - vEdgeBU) / dy &
-                      - met33EdgeFU * var(i, j, nz - k + 1, 3) / ((2.0 * k &
-                      - 1.0) * dz) - met23EdgeFU * (wEdgeFU - wEdgeFD) / (2.0 &
-                      * k * dz) - (chris12EdgeFU + chris13EdgeFU) * uEdgeFU &
-                      - (chris22EdgeFU + chris23EdgeFU) * vEdgeFU)
+                  wEdgeFU = 0.5 * (var%w(i, j, nz + k) + var%w(i, j + 1, nz &
+                      &+ k))
+                  wEdgeFD = 0.5 * (var%w(i, j, nz - k) + var%w(i, j + 1, nz &
+                      &- k))
+                  var%v(i, j, nz + k) = - (2.0 * k - 1.0) * dz / met33EdgeFU &
+                      &* (met13EdgeFU * 0.5 * (vEdgeFU1 - vEdgeFU2) / dx &
+                      &+ met23EdgeFU * 0.5 * (vEdgeFUU - vEdgeBU) / dy &
+                      &- met33EdgeFU * var%v(i, j, nz - k + 1) / ((2.0 * k &
+                      &- 1.0) * dz) - met23EdgeFU * (wEdgeFU - wEdgeFD) / (2.0 &
+                      &* k * dz) - (chris12EdgeFU + chris13EdgeFU) * uEdgeFU &
+                      &- (chris22EdgeFU + chris23EdgeFU) * vEdgeFU)
                 end do
               end do
             end do
@@ -1304,10 +1289,10 @@ module boundary_module
             ! No-slip has been changed to free-slip!
             ! Free-slip condition.
             do k = 1, nbz
-              var(:, :, - k + 1, 2) = var(:, :, k, 2)
-              var(:, :, nz + k, 2) = var(:, :, nz - k + 1, 2)
-              var(:, :, - k + 1, 3) = var(:, :, k, 3)
-              var(:, :, nz + k, 3) = var(:, :, nz - k + 1, 3)
+              var%u(:, :, - k + 1) = var%u(:, :, k)
+              var%u(:, :, nz + k) = var%u(:, :, nz - k + 1)
+              var%v(:, :, - k + 1) = var%v(:, :, k)
+              var%v(:, :, nz + k) = var%v(:, :, nz - k + 1)
             end do
             ! No-slip condition.
             ! do k = 1, nbz
@@ -1327,21 +1312,21 @@ module boundary_module
 
         if(testCase == "baroclinic_LC") then
           ! z = 0
-          var(1:nx, 1:ny, 0, 5) = var(1:nx, 1:ny, 1, 5) - p_env_pp(:, :, 1) &
-              + p_env_pp(:, :, 0)
+          var%pi(1:nx, 1:ny, 0) = var%pi(1:nx, 1:ny, 1) - p_env_pp(:, :, 1) &
+              &+ p_env_pp(:, :, 0)
 
           ! z = zMax
-          var(1:nx, 1:ny, nz + 1, 5) = var(1:nx, 1:ny, nz, 5) - p_env_pp(:, :, &
-              nz) + p_env_pp(:, :, nz + 1)
+          var%pi(1:nx, 1:ny, nz + 1) = var%pi(1:nx, 1:ny, nz) - p_env_pp(:, :, &
+              &nz) + p_env_pp(:, :, nz + 1)
         else if(testCase == "smoothVortex") then
-          var(1:nx, 1:ny, 0, 5) = var(1:nx, 1:ny, 1, 5)
-          var(1:nx, 1:ny, nz + 1, 5) = var(1:nx, 1:ny, nz, 5)
+          var%pi(1:nx, 1:ny, 0) = var%pi(1:nx, 1:ny, 1)
+          var%pi(1:nx, 1:ny, nz + 1) = var%pi(1:nx, 1:ny, nz)
         else
           ! z = 0
-          var(:, :, 0, 5) = var(:, :, 1, 5)
+          var%pi(:, :, 0) = var%pi(:, :, 1)
 
           ! z = zMax
-          var(:, :, nz + 1, 5) = var(:, :, nz, 5)
+          var%pi(:, :, nz + 1) = var%pi(:, :, nz)
         end if
       end if
 
@@ -1352,22 +1337,20 @@ module boundary_module
 
     case("ice")
       ! reflect at boundary without change of sign
-      ! ice variables -> iVar = nVar-3, nVar
-      do iVar = nVar - 3, nVar
+      do iVar = 1, 4
         do k = 1, nbz
-          var(:, :, - k + 1, iVar) = var(:, :, k, iVar)
-          var(:, :, nz + k, iVar) = var(:, :, nz - k + 1, iVar)
+          var%ICE(:, :, - k + 1, iVar) = var%ICE(:, :, k, iVar)
+          var%ICE(:, :, nz + k, iVar) = var%ICE(:, :, nz - k + 1, iVar)
         end do
       end do
 
     case("ice2")
       ! reflect at boundary with change of sign
       ! at boundary var = 0
-      do ii = 1, nVarIce
-        iVar = iVarIce(ii)
+      do iVar = 1, nVarIce
         do k = 1, nbz
-          var(:, :, - k + 1, iVar) = - var(:, :, k, iVar)
-          var(:, :, nz + k, iVar) = - var(:, :, nz - k + 1, iVar)
+          var%ICE2(:, :, - k + 1, iVar) = - var%ICE2(:, :, k, iVar)
+          var%ICE2(:, :, nz + k, iVar) = - var%ICE2(:, :, nz - k + 1, iVar)
         end do
       end do
 
@@ -1460,12 +1443,12 @@ module boundary_module
         ! taken into account!
 
         ! density
-        flux(:, :, 0, 3, 1) = 0.0
-        flux(:, :, nz, 3, 1) = 0.0
+        flux%rho(:, :, 0, 3) = 0.0
+        flux%rho(:, :, nz, 3) = 0.0
 
         ! diffusive potential-temperature fluxes
-        flux(:, :, 0, 3, 5) = 0.0
-        flux(:, :, nz, 3, 5) = 0.0
+        flux%theta(:, :, 0, 3) = 0.0
+        flux%theta(:, :, nz, 3) = 0.0
 
         if(verbose .and. master) then
           print *, "boundary.f90/verticalBoundary: vertical BC for rho set"
@@ -1481,15 +1464,15 @@ module boundary_module
 
       if(timeScheme == "semiimplicit" .or. auxil_equ) then
         ! density fluctuations
-        flux(:, :, 0, 3, 6) = 0.0
-        flux(:, :, nz, 3, 6) = 0.0
+        flux%rhop(:, :, 0, 3) = 0.0
+        flux%rhop(:, :, nz, 3) = 0.0
       end if
 
       ! set vertical tracer fluxes at wall to 0
       ! if including tracer
       if(updateTracer) then
-        flux(:, :, 0, 3, iVarT) = 0.0
-        flux(:, :, nz, 3, iVarT) = 0.0
+        flux%chi(:, :, 0, 3) = 0.0
+        flux%chi(:, :, nz, 3) = 0.0
       end if
 
       ! ice variables iVar=nVar-3,nVar
@@ -1554,14 +1537,14 @@ module boundary_module
       if(updateTheta) then
         if(timeScheme == "semiimplicit") then
           print *, 'ERROR: updateTheta = .true. not allowed for  timeScheme &
-              == "semiimplicit"'
+              &== "semiimplicit"'
           stop
         end if
 
         ! set fluxes accros solid wall boundary -> 0
 
-        flux(:, :, 0, 3, 6) = 0.0
-        flux(:, :, nz, 3, 6) = 0.0
+        flux%rhop(:, :, 0, 3) = 0.0
+        flux%rhop(:, :, nz, 3) = 0.0
 
         if(verbose .and. master) then
           print *, "verticalBoundary: vertical BC for theta set"
@@ -1572,20 +1555,20 @@ module boundary_module
 
       if(predictMomentum) then
         ! momentum rho*u
-        flux(:, :, 0, 3, 2) = 0.0
-        flux(:, :, nz, 3, 2) = 0.0
+        flux%u(:, :, 0, 3) = 0.0
+        flux%u(:, :, nz, 3) = 0.0
 
         ! momentum rho*v
-        flux(:, :, 0, 3, 3) = 0.0
-        flux(:, :, nz, 3, 3) = 0.0
+        flux%v(:, :, 0, 3) = 0.0
+        flux%v(:, :, nz, 3) = 0.0
 
         ! momentum rho*w
-        flux(:, :, - 1, 3, 4) = 0.0
-        flux(:, :, nz, 3, 4) = 0.0
+        flux%w(:, :, - 1, 3) = 0.0
+        flux%w(:, :, nz, 3) = 0.0
 
         if(verbose .and. master) then
           print *, "boundary.f90/verticalBoundary: vertical flux-BC for u,v,w &
-              set"
+              &set"
         end if
 
         ! replace flux by CDS fluxes at upper / lower region

@@ -63,7 +63,6 @@ add_executable(pinc
         ../src/ice2.f90
         ../src/ice2_sub.f90
         ../src/tracer.f90
-        ../src/optField.f90
         ../src/pinc.f90
         )
 

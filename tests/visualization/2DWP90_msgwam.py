@@ -34,10 +34,10 @@ zz = data.zz[:, 0, :] * 0.001
 
 # Large-scale tracer distribution change (tLS)
 # and zonal, meridional, and vertical wind (uLS, vLS, wLS)
-tLS = np.mean(data.psi[- 1, - 1, :, :, :], axis = 1)
-uLS = np.mean(data.psi[- 1, 1, :, :, :], axis = 1)
-vLS = np.mean(data.psi[- 1, 2, :, :, :], axis = 1)
-wLS = np.mean(data.psi[- 1, 3, :, :, :], axis = 1)
+tLS = np.mean(data.psi["chi"][- 1], axis = 1)
+uLS = np.mean(data.psi["u"][- 1], axis = 1)
+vLS = np.mean(data.psi["v"][- 1], axis = 1)
+wLS = np.mean(data.psi["w"][- 1], axis = 1)
 
 print(" ".join(("Time:", str(np.round(data.tt[- 1] / 3600, 1)), "h")))
 
@@ -87,10 +87,10 @@ if data_path != reference_path:
 
 	 # Large-scale tracer distribution change (tLS)
 	 # and zonal, meridional, and vertical wind (uLS, vLS, wLS)
-	tLSref = np.mean(reference.psi[- 1, - 1, :, :, :], axis = 1)
-	uLSref = np.mean(reference.psi[- 1, 1, :, :, :], axis = 1)
-	vLSref = np.mean(reference.psi[- 1, 2, :, :, :], axis = 1)
-	wLSref = np.mean(reference.psi[- 1, 3, :, :, :], axis = 1)
+	tLSref = np.mean(reference.psi["chi"][- 1], axis = 1)
+	uLSref = np.mean(reference.psi["u"][- 1], axis = 1)
+	vLSref = np.mean(reference.psi["v"][- 1], axis = 1)
+	wLSref = np.mean(reference.psi["w"][- 1], axis = 1)
 
 	fig, axes = plt.subplots(nrows = 2, ncols = 2, figsize = (8, 6))
 
