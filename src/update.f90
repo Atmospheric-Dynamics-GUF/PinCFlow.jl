@@ -5,11 +5,10 @@ module update_module
   use atmosphere_module
   use flux_module
   use algebra_module
-  use ice_module
   use poisson_module
   use boundary_module
   use mpi_module
-  use output_module
+  use mpi
 
   implicit none
 
@@ -22,7 +21,6 @@ module update_module
   !------------------------
   public :: momentumPredictor
   public :: massUpdate
-  public :: iceUpdate
   public :: thetaUpdate
   public :: tracerUpdate
   public :: timestep
@@ -30,7 +28,7 @@ module update_module
   public :: set_spongeLayer
   public :: CoefDySma_update
   public :: Var3DSmthDySma
-  public :: ice2Update, ice2Update_apb, timeUpdate
+  public :: iceUpdate, iceUpdate_apb, timeUpdate
   public :: setHaloAndBoundary
 
   public :: smooth_shapiro
@@ -124,11 +122,9 @@ module update_module
       ! save total density and subtract the reference-atmosphere density
       ! from this again after the update of the latter
 
-      if(fluctuationMode) then
-        do k = 1, nz
-          var%rho(:, :, k) = var%rho(:, :, k) + rhoStrat(k)
-        end do
-      end if
+      do k = 1, nz
+        var%rho(:, :, k) = var%rho(:, :, k) + rhoStrat(k)
+      end do
 
       if((timeScheme == "semiimplicit") .or. auxil_equ) then
         do k = 1, nz
@@ -154,11 +150,9 @@ module update_module
       end do
 
       ! adjust density fluctuations to new reference atmosphere
-      if(fluctuationMode) then
-        do k = 1, nz
-          var%rho(:, :, k) = var%rho(:, :, k) - rhoStrat(k)
-        end do
-      end if
+      do k = 1, nz
+        var%rho(:, :, k) = var%rho(:, :, k) - rhoStrat(k)
+      end do
 
       if((timeScheme == "semiimplicit") .or. auxil_equ) then
         do k = 1, nz
@@ -212,25 +206,14 @@ module update_module
             do i = 1, nx
               if((TestCase == "baroclinic_LC") .or. (TestCase &
                   &== "baroclinic_ID")) then
-                !UAB 200413
-                !rho_bg = dens_env_pp(i, j, k)
-                if(fluctuationMode) then
-                  if(topography) then
-                    ! TFC FJ
-                    rho_bg = dens_env_pp(i, j, k) - rhoStratTFC(i, j, k)
-                  else
-                    rho_bg = dens_env_pp(i, j, k) - rhoStrat(k)
-                  end if
+                if(topography) then
+                  ! TFC FJ
+                  rho_bg = dens_env_pp(i, j, k) - rhoStratTFC(i, j, k)
                 else
-                  rho_bg = dens_env_pp(i, j, k)
+                  rho_bg = dens_env_pp(i, j, k) - rhoStrat(k)
                 end if
-                !UAE 200413
               else
-                if(fluctuationMode) then
-                  rho_bg = 0.0 ! push back to zero perturbation
-                else
-                  rho_bg = rhoStrat(k)
-                end if
+                rho_bg = 0.0 ! push back to zero perturbation
               end if
 
               alpha = 0.0
@@ -374,116 +357,6 @@ module update_module
         end do
       end do
 
-    case("ice")
-
-      nAer_bg = 0.0 !init_nAer * rhoRef * lRef**3
-      nIce_bg = 0.0
-      qIce_bg = 0.0
-      qv_bg = 0.0
-
-      ! do k = kSponge, nz
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
-            select case(iceTestcase)
-            case("homogeneous_qv")
-              qv_bg = 0.0 !init_qv
-            case("homogeneous_SIce")
-              !call find_temperature(T,i,j,k,var)
-              !p = press0_dim * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )**kappaInv
-              qv_bg = 0.0 !epsilon0 * init_SIce * p_saturation(T) / p
-            end select
-
-            alpha = 0.0
-            if(lateralSponge) then
-              ! Zonal sponge.
-              if(x(i00 + i) <= xSponge0) then
-                alpha = alpha + spongeAlphaX * ((xSponge0 - x(i00 + i)) &
-                    &/ dxSponge) ** spongeOrder
-              else if(x(i00 + i) >= xSponge1) then
-                alpha = alpha + spongeAlphaX * ((x(i00 + i) - xSponge1) &
-                    &/ dxSponge) ** spongeOrder
-              end if
-              ! Meridional sponge.
-              if(y(j00 + j) <= ySponge0) then
-                alpha = alpha + spongeAlphaY * ((ySponge0 - y(j00 + j)) &
-                    &/ dySponge) ** spongeOrder
-              else if(y(j00 + j) >= ySponge1) then
-                alpha = alpha + spongeAlphaY * ((y(i00 + i) - ySponge1) &
-                    &/ dySponge) ** spongeOrder
-              end if
-            end if
-            if(topography) then
-              ! Vertical sponge.
-              if(spongeType == "exponential") then
-                alpha = alpha + spongeAlphaZ * exp((heightTFC(i, j, k) &
-                    &- lz(1)) / zSponge)
-              end if
-              if(heightTFC(i, j, k) >= zSponge) then
-                if(spongeType == "cosmo") then
-                  alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
-                      &* (heightTFC(i, j, k) - zSponge) / spongeDz))
-                else if(spongeType == "polynomial") then
-                  alpha = alpha + spongeAlphaZ * ((heightTFC(i, j, k) &
-                      &- zSponge) / spongeDz) ** spongeOrder
-                else if(spongeType == "constant") then
-                  alpha = alpha + spongeAlphaZ
-                end if
-              end if
-            else
-              ! Vertical sponge.
-              if(spongeType == "exponential") then
-                alpha = alpha + spongeAlphaZ * exp((z(k) - lz(1)) / zSponge)
-              end if
-              if(z(k) >= zSponge) then
-                if(spongeType == "cosmo") then
-                  alpha = alpha + 0.5 / cosmoSteps / dt * (1.0 - cos(pi &
-                      &* (z(k) - zSponge) / spongeDz))
-                else if(spongeType == "polynomial") then
-                  alpha = alpha + spongeAlphaZ * ((z(k) - zSponge) / spongeDz) &
-                      &** spongeOrder
-                else if(spongeType == "constant") then
-                  alpha = alpha + spongeAlphaZ
-                end if
-              end if
-            end if
-            beta = 1.0 / (1.0 + alpha * dt)
-            var%ICE(i, j, k, 1) = (1. - beta) * nAer_bg + beta * var%ICE(i, j, &
-                &k, 1)
-            var%ICE(i, j, k, 2) = (1. - beta) * nIce_bg + beta * var%ICE(i, j, &
-                &k, 2)
-            var%ICE(i, j, k, 3) = (1. - beta) * qIce_bg + beta * var%ICE(i, j, &
-                &k, 3)
-            var%ICE(i, j, k, 4) = (1. - beta) * qv_bg + beta * var%ICE(i, j, &
-                &k, 4)
-            do iVar = 1, 4
-              if(var%ICE(i, j, k, iVar) .lt. 0.0) var%ICE(i, j, k, iVar) = 0.0
-            end do
-          end do
-        end do
-      end do
-
-      ! second sponge for ice particles at lower boundary
-      ! didn't prove useful
-      !
-      !if (iceTestcase == "qv_relaxation") then
-      !  do k = 0, ceiling(mountainHeight_dim/(dz*lRef))+5
-      !    do j = 1,ny
-      !      do i = 1,nx
-      !        qv_bg = 0.0
-      !        alpha = 100*spongeAlphaZ*(1-z(k)/(mountainHeight_dim/lRef+5*dz))
-      !        beta = 1./(1.+alpha*0.5*dt)**2
-      !        var(i,j,k,nVar-3) = (1.-beta)*nAer_bg + beta*var(i,j,k,nVar-3)
-      !        var(i,j,k,nVar-2) = (1.-beta)*nIce_bg + beta*var(i,j,k,nVar-2)
-      !        var(i,j,k,nVar-1) = (1.-beta)*qIce_bg + beta*var(i,j,k,nVar-1)
-      !        var(i,j,k,nVar)   = (1.-beta) * qv_bg + beta*var(i,j,k,nVar)
-      !        do iVar=0,3
-      !           if (var(i,j,k,nVar-iVar) .lt. 0.0) var(i,j,k,nVar-iVar) = 0.0
-      !        end do
-      !      end do
-      !    end do
-      !  end do
-      !end if
 
     case("uvw")
       ! relax u to:
@@ -810,11 +683,7 @@ module update_module
       ! No sponge is applied to rho in Boussinesq model.
       if(model /= "Boussinesq") then
         do k = 1, nz
-          if(fluctuationMode) then
-            rho_bg = 0.0
-          else
-            rho_bg = rhoStrat(k)
-          end if
+          rho_bg = 0.0
           do j = 1, ny
             do i = 1, nx
               alpha = alphaUnifiedSponge(i, j, k)
@@ -878,33 +747,6 @@ module update_module
             beta = 1.0 / (1.0 + alpha * dt)
             rho_new = (1.0 - beta) * rho_bg + beta * rho_old
             var%rhop(i, j, k) = rho_new
-          end do
-        end do
-      end do
-
-    case("ice")
-
-      nAer_bg = 0.0
-      nIce_bg = 0.0
-      qIce_bg = 0.0
-      qv_bg = 0.0
-
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
-            alpha = alphaUnifiedSponge(i, j, k)
-            beta = 1.0 / (1.0 + alpha * dt)
-            var%ICE(i, j, k, 1) = (1. - beta) * nAer_bg + beta * var%ICE(i, j, &
-                &k, 1)
-            var%ICE(i, j, k, 2) = (1. - beta) * nIce_bg + beta * var%ICE(i, j, &
-                &k, 2)
-            var%ICE(i, j, k, 3) = (1. - beta) * qIce_bg + beta * var%ICE(i, j, &
-                &k, 3)
-            var%ICE(i, j, k, 4) = (1. - beta) * qv_bg + beta * var%ICE(i, j, &
-                &k, 4)
-            do iVar = 1, 4
-              if(var%ICE(i, j, k, iVar) .lt. 0.0) var%ICE(i, j, k, iVar) = 0.0
-            end do
           end do
         end do
       end do
@@ -1366,9 +1208,7 @@ module update_module
                 case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
 
-                  if(fluctuationMode) then
-                    rhoM_1 = rhoM_1 + rhoStrat(k)
-                  end if
+                  rhoM_1 = rhoM_1 + rhoStrat(k)
                 case("Boussinesq")
                   rhoM_1 = rho00
                 case default
@@ -1388,9 +1228,7 @@ module update_module
                 case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
 
-                  if(fluctuationMode) then
-                    rhoM_1 = rhoM_1 + rhoStrat(k)
-                  end if
+                  rhoM_1 = rhoM_1 + rhoStrat(k)
                 case("Boussinesq")
                   rhoM_1 = rho00
                 case default
@@ -1433,9 +1271,7 @@ module update_module
                 case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
 
-                  if(fluctuationMode) then
-                    rhoM_1 = rhoM_1 + rhoStrat(k)
-                  end if
+                  rhoM_1 = rhoM_1 + rhoStrat(k)
                 case("Boussinesq")
                   rhoM_1 = rho00
                 case default
@@ -1469,10 +1305,8 @@ module update_module
               rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
               rhoM = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k))
 
-              if(fluctuationMode) then
-                rhoM_1 = rhoM_1 + rhoStrat(k)
-                rhoM = rhoM + rhoStrat(k)
-              end if
+              rhoM_1 = rhoM_1 + rhoStrat(k)
+              rhoM = rhoM + rhoStrat(k)
 
             case("Boussinesq")
               rhoM_1 = rho00
@@ -1506,15 +1340,11 @@ module update_module
           do j = 1, ny
             do i = i0, i1
               rhou = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k))
-              if(fluctuationMode) then
-                rhou = rhou + rhoStrat(k)
-              end if
+              rhou = rhou + rhoStrat(k)
 
               if(TestCase == "baroclinic_LC") then
                 rhou_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i + 1, j, k))
-                if(fluctuationMode) then
-                  rhou_e = rhou_e + rhoStrat_0(k)
-                end if
+                rhou_e = rhou_e + rhoStrat_0(k)
               end if
 
               !--- pressure gradient term -> piGrad
@@ -1619,13 +1449,11 @@ module update_module
               rhov1m = 0.5 * (var%rho(i + 1, j, k) + var%rho(i + 1, j - 1, k))
               rhov10 = 0.5 * (var%rho(i + 1, j + 1, k) + var%rho(i + 1, j, k))
 
-              if(fluctuationMode) then
-                rhou = rhou + rhoStrat(k)
-                rhov0m = rhov0m + rhoStrat(k)
-                rhov00 = rhov00 + rhoStrat(k)
-                rhov1m = rhov1m + rhoStrat(k)
-                rhov10 = rhov10 + rhoStrat(k)
-              end if
+              rhou = rhou + rhoStrat(k)
+              rhov0m = rhov0m + rhoStrat(k)
+              rhov00 = rhov00 + rhoStrat(k)
+              rhov1m = rhov1m + rhoStrat(k)
+              rhov10 = rhov10 + rhoStrat(k)
 
               if(TestCase == "baroclinic_LC") then
                 rhou_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i + 1, j, k))
@@ -1639,13 +1467,11 @@ module update_module
                 rhov10_e = 0.5 * (var_env%rho(i + 1, j + 1, k) + var_env%rho(i &
                     &+ 1, j, k))
 
-                if(fluctuationMode) then
-                  rhou_e = rhou_e + rhoStrat_0(k)
-                  rhov0m_e = rhov0m_e + rhoStrat_0(k)
-                  rhov00_e = rhov00_e + rhoStrat_0(k)
-                  rhov1m_e = rhov1m_e + rhoStrat_0(k)
-                  rhov10_e = rhov10_e + rhoStrat_0(k)
-                end if
+                rhou_e = rhou_e + rhoStrat_0(k)
+                rhov0m_e = rhov0m_e + rhoStrat_0(k)
+                rhov00_e = rhov00_e + rhoStrat_0(k)
+                rhov1m_e = rhov1m_e + rhoStrat_0(k)
+                rhov10_e = rhov10_e + rhoStrat_0(k)
               end if
 
               !--- pressure gradient terms -> piGradx, piGrady
@@ -1842,10 +1668,8 @@ module update_module
                   rhoM = rhoOld(i, j, k)
                   rhoM_1 = rhoOld(i, j + 1, k)
 
-                  if(fluctuationMode) then
-                    rhoM = rhoM + rhoStrat(k)
-                    rhoM_1 = rhoM_1 + rhoStrat(k)
-                  end if
+                  rhoM = rhoM + rhoStrat(k)
+                  rhoM_1 = rhoM_1 + rhoStrat(k)
                 case("Boussinesq")
                   rhoM = rho00
                   rhoM_1 = rho00
@@ -1867,9 +1691,7 @@ module update_module
                 case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j + 1, k))
 
-                  if(fluctuationMode) then
-                    rhoM_1 = rhoM_1 + rhoStrat(k)
-                  end if
+                  rhoM_1 = rhoM_1 + rhoStrat(k)
                 case("Boussinesq")
                   rhoM_1 = rho00
                 case default
@@ -1912,9 +1734,7 @@ module update_module
                 case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j + 1, k))
 
-                  if(fluctuationMode) then
-                    rhoM_1 = rhoM_1 + rhoStrat(k)
-                  end if
+                  rhoM_1 = rhoM_1 + rhoStrat(k)
                 case("Boussinesq")
                   rhoM_1 = rho00
                 case default
@@ -1949,10 +1769,8 @@ module update_module
               rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j + 1, k))
               rhoM = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k))
 
-              if(fluctuationMode) then
-                rhoM_1 = rhoM_1 + rhoStrat(k)
-                rhoM = rhoM + rhoStrat(k)
-              end if
+              rhoM_1 = rhoM_1 + rhoStrat(k)
+              rhoM = rhoM + rhoStrat(k)
 
             case("Boussinesq")
               rhoM_1 = rho00
@@ -1985,16 +1803,12 @@ module update_module
           do j = j0, j1
             do i = 1, nx
               rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k))
-              if(fluctuationMode) then
-                rhov = rhov + rhoStrat(k)
-              end if
+              rhov = rhov + rhoStrat(k)
 
               if(TestCase == "baroclinic_LC") then
                 rhov_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j + 1, k))
 
-                if(fluctuationMode) then
-                  rhov_e = rhov_e + rhoStrat_0(k)
-                end if
+                rhov_e = rhov_e + rhoStrat_0(k)
               end if
 
               !--- pressure gradient term -> piGrad
@@ -2103,13 +1917,11 @@ module update_module
 
               rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k))
 
-              if(fluctuationMode) then
-                rhov = rhov + rhoStrat(k)
-                rhoum0 = rhoum0 + rhoStrat(k)
-                rhou00 = rhou00 + rhoStrat(k)
-                rhoum1 = rhoum1 + rhoStrat(k)
-                rhou01 = rhou01 + rhoStrat(k)
-              end if
+              rhov = rhov + rhoStrat(k)
+              rhoum0 = rhoum0 + rhoStrat(k)
+              rhou00 = rhou00 + rhoStrat(k)
+              rhoum1 = rhoum1 + rhoStrat(k)
+              rhou01 = rhou01 + rhoStrat(k)
 
               if(TestCase == "baroclinic_LC") then
                 rhoum0_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i - 1, j, &
@@ -2123,13 +1935,11 @@ module update_module
 
                 rhov_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j + 1, k))
 
-                if(fluctuationMode) then
-                  rhov_e = rhov_e + rhoStrat_0(k)
-                  rhoum0_e = rhoum0_e + rhoStrat_0(k)
-                  rhou00_e = rhou00_e + rhoStrat_0(k)
-                  rhoum1_e = rhoum1_e + rhoStrat_0(k)
-                  rhou01_e = rhou01_e + rhoStrat_0(k)
-                end if
+                rhov_e = rhov_e + rhoStrat_0(k)
+                rhoum0_e = rhoum0_e + rhoStrat_0(k)
+                rhou00_e = rhou00_e + rhoStrat_0(k)
+                rhoum1_e = rhoum1_e + rhoStrat_0(k)
+                rhou01_e = rhou01_e + rhoStrat_0(k)
               end if
 
               !--- pressure gradient terms -> piGradx, piGrady
@@ -2336,9 +2146,6 @@ module update_module
                   drho_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j, k &
                       &+ 1))
 
-                  if(.not. fluctuationMode) then
-                    drho_e = drho_e - rhoStratTilde(k)
-                  end if
                 case("Boussinesq")
                   stop 'ERROR: baroclinic LC not ready yet for  Boussinesq'
                 case default
@@ -2355,9 +2162,7 @@ module update_module
                 case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j, k + 1))
 
-                  if(fluctuationMode) then
-                    rhoM_1 = rhoM_1 + rhoStratTilde(k)
-                  end if
+                  rhoM_1 = rhoM_1 + rhoStratTilde(k)
                 case("Boussinesq")
                   rhoM_1 = rho00
                 case default
@@ -2398,9 +2203,7 @@ module update_module
                 case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j, k + 1))
 
-                  if(fluctuationMode) then
-                    rhoM_1 = rhoM_1 + rhoStratTilde(k)
-                  end if
+                  rhoM_1 = rhoM_1 + rhoStratTilde(k)
                 case("Boussinesq")
                   rhoM_1 = rho00
                 case default
@@ -2434,10 +2237,8 @@ module update_module
               rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j, k + 1)) !rho(m-1)
               rhoM = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) !rho(m)
 
-              if(fluctuationMode) then
-                rhoM_1 = rhoM_1 + rhoStratTilde(k)
-                rhoM = rhoM + rhoStratTilde(k)
-              end if
+              rhoM_1 = rhoM_1 + rhoStratTilde(k)
+              rhoM = rhoM + rhoStratTilde(k)
 
             case("Boussinesq")
               rhoM_1 = rho00
@@ -2480,12 +2281,10 @@ module update_module
 
               rhow = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1))
 
-              if(fluctuationMode) then
-                rho000 = rho000 + rhoStrat(k)
-                rho001 = rho001 + rhoStrat(k + 1)
+              rho000 = rho000 + rhoStrat(k)
+              rho001 = rho001 + rhoStrat(k + 1)
 
-                rhow = rhow + rhoStratTilde(k)
-              end if
+              rhow = rhow + rhoStratTilde(k)
 
               if(TestCase == "baroclinic_LC") then
                 rho000_e = var_env%rho(i, j, k)
@@ -2493,12 +2292,10 @@ module update_module
 
                 rhow_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j, k + 1))
 
-                if(fluctuationMode) then
-                  rho000_e = rho000_e + rhoStrat_0(k)
-                  rho001_e = rho001_e + rhoStrat_0(k + 1)
+                rho000_e = rho000_e + rhoStrat_0(k)
+                rho001_e = rho001_e + rhoStrat_0(k + 1)
 
-                  rhow_e = rhow_e + 0.5 * (rhoStrat_0(k) + rhoStrat_0(k + 1))
-                end if
+                rhow_e = rhow_e + 0.5 * (rhoStrat_0(k) + rhoStrat_0(k + 1))
               end if
 
               !--- pressure gradient term -> piGrad
@@ -2608,12 +2405,10 @@ module update_module
 
               rhow = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1))
 
-              if(fluctuationMode) then
-                rho000 = rho000 + rhoStrat(k)
-                rho001 = rho001 + rhoStrat(k + 1)
+              rho000 = rho000 + rhoStrat(k)
+              rho001 = rho001 + rhoStrat(k + 1)
 
-                rhow = rhow + rhoStratTilde(k)
-              end if
+              rhow = rhow + rhoStratTilde(k)
 
               if(TestCase == "baroclinic_LC") then
                 rho000_e = var_env%rho(i, j, k)
@@ -2621,12 +2416,10 @@ module update_module
 
                 rhow_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j, k + 1))
 
-                if(fluctuationMode) then
-                  rho000_e = rho000_e + rhoStrat_0(k)
-                  rho001_e = rho001_e + rhoStrat_0(k + 1)
+                rho000_e = rho000_e + rhoStrat_0(k)
+                rho001_e = rho001_e + rhoStrat_0(k + 1)
 
-                  rhow_e = rhow_e + 0.5 * (rhoStrat_0(k) + rhoStrat_0(k + 1))
-                end if
+                rhow_e = rhow_e + 0.5 * (rhoStrat_0(k) + rhoStrat_0(k + 1))
               end if
 
               !--- pressure gradient term -> piGrad
@@ -3079,14 +2872,12 @@ module update_module
                 case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
 
-                  if(fluctuationMode) then
-                    if(topography) then
-                      ! TFC FJ
-                      rhoM_1 = rhoM_1 + 0.5 * (rhoStratTFC(i, j, k) &
-                          &+ rhoStratTFC(i + 1, j, k))
-                    else
-                      rhoM_1 = rhoM_1 + rhoStrat(k)
-                    end if
+                  if(topography) then
+                    ! TFC FJ
+                    rhoM_1 = rhoM_1 + 0.5 * (rhoStratTFC(i, j, k) &
+                        &+ rhoStratTFC(i + 1, j, k))
+                  else
+                    rhoM_1 = rhoM_1 + rhoStrat(k)
                   end if
                 case("Boussinesq")
                   rhoM_1 = rho00
@@ -3100,44 +2891,6 @@ module update_module
 
               end if
 
-              ! if (topography) then
-              !    ! Rayleigh damping for topography (immersed boundary)
-              !
-              !    if (model == "pseudo_incompressible") then
-              !        rhoM_1 = 0.5 * (rhoOld(i,j,k) + rhoOld(i+1,j,k))
-              !
-              !        if( fluctuationMode ) then
-              !           rhoM_1 = rhoM_1 + rhoStrat(k)
-              !        end if
-              !       else if (model == "Boussinesq") then
-              !        rhoM_1 = rho00
-              !       else
-              !        stop"momentumPredictor: unkown model."
-              !    end if
-              !
-              !    if (k < kbl_topo(i,j,1)) then
-              !       volForce = volForce - alprlx * rhoM_1*var(i,j,k,2)
-              !      else if (k == kbl_topo(i,j,1)) then
-              !       call wind_ip(var, &
-              !                  & x_ip(i,j,1),y_ip(i,j,1),z_ip(i,j,1),&
-              !                  & 'u',u_ip,v_ip,w_ip)
-              !
-              !        u_ip_n &
-              !        = (u_ip*dhdx(i,j,1) + v_ip*dhdy(i,j,1) - w_ip)&
-              !          *dhdx(i,j,1) &
-              !          /(1 + dhdx(i,j,1)**2 + dhdy(i,j,1)**2)
-              !
-              !        u_ip_t = u_ip - u_ip_n
-              !
-              !        u_rp_t = velocity_reconst_t(i,j,1)*u_ip_t
-              !        u_rp_n = velocity_reconst_n(i,j,1)*u_ip_n
-              !        u_rp = u_rp_t + u_rp_n
-              !
-              !        volForce &
-              !        = volForce -  alprlx * rhoM_1*(var(i,j,k,2)-u_rp)
-              !    end if
-              ! end if
-
             end if
 
             if(TestCase == "baroclinic_LC") then
@@ -3148,14 +2901,12 @@ module update_module
                 case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
 
-                  if(fluctuationMode) then
-                    if(topography) then
-                      ! TFC FJ
-                      rhoM_1 = rhoM_1 + 0.5 * (rhoStratTFC(i, j, k) &
-                          &+ rhoStratTFC(i + 1, j, k))
-                    else
-                      rhoM_1 = rhoM_1 + rhoStrat(k)
-                    end if
+                  if(topography) then
+                    ! TFC FJ
+                    rhoM_1 = rhoM_1 + 0.5 * (rhoStratTFC(i, j, k) &
+                        &+ rhoStratTFC(i + 1, j, k))
+                  else
+                    rhoM_1 = rhoM_1 + rhoStrat(k)
                   end if
                 case("Boussinesq")
                   rhoM_1 = rho00
@@ -3207,20 +2958,16 @@ module update_module
               rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
               rhoM = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k))
 
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  ! Adjust for 3D fields.
-                  rhoStratEdgeR = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i &
-                      &+ 1, j, k))
-                  rhoM_1 = rhoM_1 + rhoStratEdgeR
-                  rhoM = rhoM + rhoStratEdgeR
-                else
-                  rhoM_1 = rhoM_1 + rhoStrat(k)
-                  rhoM = rhoM + rhoStrat(k)
-                end if
+              if(topography) then
+                ! Adjust for 3D fields.
+                rhoStratEdgeR = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i &
+                    &+ 1, j, k))
+                rhoM_1 = rhoM_1 + rhoStratEdgeR
+                rhoM = rhoM + rhoStratEdgeR
+              else
+                rhoM_1 = rhoM_1 + rhoStrat(k)
+                rhoM = rhoM + rhoStrat(k)
               end if
-
             case("Boussinesq")
               rhoM_1 = rho00
               rhoM = rho00
@@ -3253,27 +3000,23 @@ module update_module
           do j = 1, ny
             do i = i0, i1
               rhou = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k))
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  rhoStratEdgeR = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i &
-                      &+ 1, j, k))
-                  rhou = rhou + rhoStratEdgeR
-                else
-                  rhou = rhou + rhoStrat(k)
-                end if
+              if(topography) then
+                ! TFC FJ
+                rhoStratEdgeR = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i &
+                    &+ 1, j, k))
+                rhou = rhou + rhoStratEdgeR
+              else
+                rhou = rhou + rhoStrat(k)
               end if
 
               if(TestCase == "baroclinic_LC") then
                 rhou_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i + 1, j, k))
-                if(fluctuationMode) then
-                  if(topography) then
-                    ! TFC FJ
-                    rhou_e = rhou_e + 0.5 * (rhoStratTFC(i, j, k) &
-                        &+ rhoStratTFC(i + 1, j, k))
-                  else
-                    rhou_e = rhou_e + rhoStrat_0(k)
-                  end if
+                if(topography) then
+                  ! TFC FJ
+                  rhou_e = rhou_e + 0.5 * (rhoStratTFC(i, j, k) &
+                      &+ rhoStratTFC(i + 1, j, k))
+                else
+                  rhou_e = rhou_e + rhoStrat_0(k)
                 end if
               end if
 
@@ -3500,19 +3243,16 @@ module update_module
               rhov1m = 0.5 * (var%rho(i + 1, j, k) + var%rho(i + 1, j - 1, k))
               rhov10 = 0.5 * (var%rho(i + 1, j + 1, k) + var%rho(i + 1, j, k))
 
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  rhoStratEdgeR = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i &
-                      &+ 1, j, k))
-                  rhou = rhou + rhoStratEdgeR
-                else
-                  rhou = rhou + rhoStrat(k)
-                  rhov0m = rhov0m + rhoStrat(k)
-                  rhov00 = rhov00 + rhoStrat(k)
-                  rhov1m = rhov1m + rhoStrat(k)
-                  rhov10 = rhov10 + rhoStrat(k)
-                end if
+              if(topography) then
+                rhoStratEdgeR = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i &
+                    &+ 1, j, k))
+                rhou = rhou + rhoStratEdgeR
+              else
+                rhou = rhou + rhoStrat(k)
+                rhov0m = rhov0m + rhoStrat(k)
+                rhov00 = rhov00 + rhoStrat(k)
+                rhov1m = rhov1m + rhoStrat(k)
+                rhov10 = rhov10 + rhoStrat(k)
               end if
 
               if(TestCase == "baroclinic_LC") then
@@ -3527,18 +3267,15 @@ module update_module
                 rhov10_e = 0.5 * (var_env%rho(i + 1, j + 1, k) + var_env%rho(i &
                     &+ 1, j, k))
 
-                if(fluctuationMode) then
-                  if(topography) then
-                    ! TFC FJ
-                    rhou_e = rhou_e + 0.5 * (rhoStratTFC(i, j, k) &
-                        &+ rhoStratTFC(i + 1, j, k))
-                  else
-                    rhou_e = rhou_e + rhoStrat_0(k)
-                    rhov0m_e = rhov0m_e + rhoStrat_0(k)
-                    rhov00_e = rhov00_e + rhoStrat_0(k)
-                    rhov1m_e = rhov1m_e + rhoStrat_0(k)
-                    rhov10_e = rhov10_e + rhoStrat_0(k)
-                  end if
+                if(topography) then
+                  rhou_e = rhou_e + 0.5 * (rhoStratTFC(i, j, k) &
+                      &+ rhoStratTFC(i + 1, j, k))
+                else
+                  rhou_e = rhou_e + rhoStrat_0(k)
+                  rhov0m_e = rhov0m_e + rhoStrat_0(k)
+                  rhov00_e = rhov00_e + rhoStrat_0(k)
+                  rhov1m_e = rhov1m_e + rhoStrat_0(k)
+                  rhov10_e = rhov10_e + rhoStrat_0(k)
                 end if
               end if
 
@@ -3910,17 +3647,14 @@ module update_module
                   rhoM = rhoOld(i, j, k)
                   rhoM_1 = rhoOld(i, j + 1, k)
 
-                  if(fluctuationMode) then
-                    if(topography) then
-                      ! TFC FJ
-                      rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) &
-                          &+ rhoStratTFC(i, j + 1, k))
-                      rhoM = rhoM + rhoStratEdgeF
-                      rhoM_1 = rhoM_1 + rhoStratEdgeF
-                    else
-                      rhoM = rhoM + rhoStrat(k)
-                      rhoM_1 = rhoM_1 + rhoStrat(k)
-                    end if
+                  if(topography) then
+                    rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) &
+                        &+ rhoStratTFC(i, j + 1, k))
+                    rhoM = rhoM + rhoStratEdgeF
+                    rhoM_1 = rhoM_1 + rhoStratEdgeF
+                  else
+                    rhoM = rhoM + rhoStrat(k)
+                    rhoM_1 = rhoM_1 + rhoStrat(k)
                   end if
                 case("Boussinesq")
                   rhoM = rho00
@@ -3935,44 +3669,6 @@ module update_module
 
               end if
 
-              !    if (topography) then
-              !       ! Rayleigh damping for topography (immersed boundary)
-              !
-              !       if (model == "pseudo_incompressible") then
-              !           rhoM_1 = 0.5 * (rhoOld(i,j,k) + rhoOld(i,j+1,k))
-              !
-              !           if( fluctuationMode ) then
-              !              rhoM_1 = rhoM_1 + rhoStrat(k)
-              !           end if
-              !          else if (model == "Boussinesq") then
-              !           rhoM_1 = rho00
-              !          else
-              !           stop"momentumPredictor: unkown model."
-              !       end if
-              !
-              !       if(k < kbl_topo(i,j,2)) then
-              !          volForce = volForce - alprlx * rhoM_1*var(i,j,k,3)
-              !         else if(k == kbl_topo(i,j,2)) then
-              !          call wind_ip(var, &
-              !                     & x_ip(i,j,2),y_ip(i,j,2),z_ip(i,j,2),&
-              !                     &'v',u_ip,v_ip,w_ip)
-              !
-              !           v_ip_n &
-              !           = (u_ip*dhdx(i,j,2) + v_ip*dhdy(i,j,2) - w_ip)&
-              !             *dhdy(i,j,2) &
-              !             /(1 + dhdx(i,j,2)**2 + dhdy(i,j,2)**2)
-              !
-              !           v_ip_t = v_ip-v_ip_n
-              !
-              !           v_rp_t = velocity_reconst_t(i,j,2)*v_ip_t
-              !           v_rp_n = velocity_reconst_n(i,j,2)*v_ip_n
-              !           v_rp = v_rp_t + v_rp_n
-              !
-              !           volForce &
-              !           = volForce - alprlx * rhoM_1*(var(i,j,k,3)-v_rp)
-              !       end if
-              !    end if
-
             end if
 
             if(TestCase == "baroclinic_LC") then
@@ -3983,14 +3679,11 @@ module update_module
                 case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j + 1, k))
 
-                  if(fluctuationMode) then
-                    if(topography) then
-                      ! TFC FJ
-                      rhoM_1 = rhoM_1 + 0.5 * (rhoStratTFC(i, j, k) &
-                          &+ rhoStratTFC(i, j + 1, k))
-                    else
-                      rhoM_1 = rhoM_1 + rhoStrat(k)
-                    end if
+                  if(topography) then
+                    rhoM_1 = rhoM_1 + 0.5 * (rhoStratTFC(i, j, k) &
+                        &+ rhoStratTFC(i, j + 1, k))
+                  else
+                    rhoM_1 = rhoM_1 + rhoStrat(k)
                   end if
                 case("Boussinesq")
                   rhoM_1 = rho00
@@ -4045,18 +3738,15 @@ module update_module
               rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j + 1, k))
               rhoM = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k))
 
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  ! Adjust for 3D fields.
-                  rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
-                      &j + 1, k))
-                  rhoM_1 = rhoM_1 + rhoStratEdgeF
-                  rhoM = rhoM + rhoStratEdgeF
-                else
-                  rhoM_1 = rhoM_1 + rhoStrat(k)
-                  rhoM = rhoM + rhoStrat(k)
-                end if
+              if(topography) then
+                ! Adjust for 3D fields.
+                rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
+                    &j + 1, k))
+                rhoM_1 = rhoM_1 + rhoStratEdgeF
+                rhoM = rhoM + rhoStratEdgeF
+              else
+                rhoM_1 = rhoM_1 + rhoStrat(k)
+                rhoM = rhoM + rhoStrat(k)
               end if
 
             case("Boussinesq")
@@ -4090,28 +3780,24 @@ module update_module
           do j = j0, j1
             do i = 1, nx
               rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k))
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
-                      &j + 1, k))
-                  rhov = rhov + rhoStratEdgeF
-                else
-                  rhov = rhov + rhoStrat(k)
-                end if
+              if(topography) then
+                ! TFC FJ
+                rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
+                    &j + 1, k))
+                rhov = rhov + rhoStratEdgeF
+              else
+                rhov = rhov + rhoStrat(k)
               end if
 
               if(TestCase == "baroclinic_LC") then
                 rhov_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j + 1, k))
 
-                if(fluctuationMode) then
-                  if(topography) then
-                    ! TFC FJ
-                    rhov_e = rhov_e + 0.5 * (rhoStratTFC(i, j, k) &
-                        &+ rhoStratTFC(i, j + 1, k))
-                  else
-                    rhov_e = rhov_e + rhoStrat_0(k)
-                  end if
+                if(topography) then
+                  ! TFC FJ
+                  rhov_e = rhov_e + 0.5 * (rhoStratTFC(i, j, k) &
+                      &+ rhoStratTFC(i, j + 1, k))
+                else
+                  rhov_e = rhov_e + rhoStrat_0(k)
                 end if
               end if
 
@@ -4343,19 +4029,17 @@ module update_module
 
               rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k))
 
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
-                      &j + 1, k))
-                  rhov = rhov + rhoStratEdgeF
-                else
-                  rhov = rhov + rhoStrat(k)
-                  rhoum0 = rhoum0 + rhoStrat(k)
-                  rhou00 = rhou00 + rhoStrat(k)
-                  rhoum1 = rhoum1 + rhoStrat(k)
-                  rhou01 = rhou01 + rhoStrat(k)
-                end if
+              if(topography) then
+                ! TFC FJ
+                rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
+                    &j + 1, k))
+                rhov = rhov + rhoStratEdgeF
+              else
+                rhov = rhov + rhoStrat(k)
+                rhoum0 = rhoum0 + rhoStrat(k)
+                rhou00 = rhou00 + rhoStrat(k)
+                rhoum1 = rhoum1 + rhoStrat(k)
+                rhou01 = rhou01 + rhoStrat(k)
               end if
 
               if(TestCase == "baroclinic_LC") then
@@ -4370,18 +4054,16 @@ module update_module
 
                 rhov_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j + 1, k))
 
-                if(fluctuationMode) then
-                  if(topography) then
-                    ! TFC FJ
-                    rhov_e = rhov_e + 0.5 * (rhoStratTFC(i, j, k) &
-                        &+ rhoStratTFC(i, j + 1, k))
-                  else
-                    rhov_e = rhov_e + rhoStrat_0(k)
-                    rhoum0_e = rhoum0_e + rhoStrat_0(k)
-                    rhou00_e = rhou00_e + rhoStrat_0(k)
-                    rhoum1_e = rhoum1_e + rhoStrat_0(k)
-                    rhou01_e = rhou01_e + rhoStrat_0(k)
-                  end if
+                if(topography) then
+                  ! TFC FJ
+                  rhov_e = rhov_e + 0.5 * (rhoStratTFC(i, j, k) &
+                      &+ rhoStratTFC(i, j + 1, k))
+                else
+                  rhov_e = rhov_e + rhoStrat_0(k)
+                  rhoum0_e = rhoum0_e + rhoStrat_0(k)
+                  rhou00_e = rhou00_e + rhoStrat_0(k)
+                  rhoum1_e = rhoum1_e + rhoStrat_0(k)
+                  rhou01_e = rhou01_e + rhoStrat_0(k)
                 end if
               end if
 
@@ -4825,9 +4507,6 @@ module update_module
                   drho_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j, k &
                       &+ 1))
 
-                  if(.not. fluctuationMode) then
-                    drho_e = drho_e - rhoStratTilde(k)
-                  end if
                 case("Boussinesq")
                   stop 'ERROR: baroclinic LC not ready yet for  Boussinesq'
                 case default
@@ -4843,43 +4522,6 @@ module update_module
                 end if
               end if
 
-              !    if (topography) then
-              !       ! Rayleigh damping for topography (immersed boundary)
-              !
-              !       if (model == "pseudo_incompressible") then
-              !           rhoM_1 = 0.5 * (rhoOld(i,j,k) + rhoOld(i,j,k+1))
-              !
-              !           if( fluctuationMode ) then
-              !              rhoM_1 = rhoM_1 + rhoStratTilde(k)
-              !           end if
-              !          else if (model == "Boussinesq") then
-              !           rhoM_1 = rho00
-              !          else
-              !           stop"momentumPredictor: unkown model."
-              !       end if
-              !
-              !       if(k < kbl_topo(i,j,3)) then
-              !          volForce = volForce - alprlx * rhoM_1*var(i,j,k,4)
-              !         else if(k == kbl_topo(i,j,3)) then
-              !          call wind_ip(var, &
-              !                     & x_ip(i,j,3),y_ip(i,j,3),z_ip(i,j,3),&
-              !                     & 'w',u_ip,v_ip,w_ip)
-              !
-              !           w_ip_n &
-              !           = (- u_ip*dhdx(i,j,3) - v_ip*dhdy(i,j,3) + w_ip)&
-              !             /(1 + dhdx(i,j,3)**2 + dhdy(i,j,3)**2)
-              !
-              !           w_ip_t = w_ip-w_ip_n
-              !
-              !           w_rp_t = velocity_reconst_t(i,j,3)*w_ip_t
-              !           w_rp_n = velocity_reconst_n(i,j,3)*w_ip_n
-              !           w_rp = w_rp_t+w_rp_n
-              !
-              !           volForce &
-              !           = volForce - alprlx * rhoM_1*(var(i,j,k,4)-w_rp)
-              !       end if
-              !    end if
-
             end if
 
             if(TestCase == "baroclinic_LC") then
@@ -4889,14 +4531,12 @@ module update_module
                 case("pseudo_incompressible", "compressible")
                   rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j, k + 1))
 
-                  if(fluctuationMode) then
-                    if(topography) then
-                      ! TFC FJ
-                      rhoM_1 = rhoM_1 + 0.5 * (rhoStratTFC(i, j, k) &
-                          &+ rhoStratTFC(i, j, k + 1))
-                    else
-                      rhoM_1 = rhoM_1 + rhoStratTilde(k)
-                    end if
+                  if(topography) then
+                    ! TFC FJ
+                    rhoM_1 = rhoM_1 + 0.5 * (rhoStratTFC(i, j, k) &
+                        &+ rhoStratTFC(i, j, k + 1))
+                  else
+                    rhoM_1 = rhoM_1 + rhoStratTilde(k)
                   end if
                 case("Boussinesq")
                   rhoM_1 = rho00
@@ -4960,18 +4600,15 @@ module update_module
               rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j, k + 1)) !rho(m-1)
               rhoM = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) !rho(m)
 
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  ! Adjust for 3D fields.
-                  rhoStratEdgeU = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
-                      &j, k + 1))
-                  rhoM_1 = rhoM_1 + rhoStratEdgeU
-                  rhoM = rhoM + rhoStratEdgeU
-                else
-                  rhoM_1 = rhoM_1 + rhoStratTilde(k)
-                  rhoM = rhoM + rhoStratTilde(k)
-                end if
+              if(topography) then
+                ! Adjust for 3D fields.
+                rhoStratEdgeU = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
+                    &j, k + 1))
+                rhoM_1 = rhoM_1 + rhoStratEdgeU
+                rhoM = rhoM + rhoStratEdgeU
+              else
+                rhoM_1 = rhoM_1 + rhoStratTilde(k)
+                rhoM = rhoM + rhoStratTilde(k)
               end if
 
             case("Boussinesq")
@@ -5015,20 +4652,17 @@ module update_module
 
               rhow = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1))
 
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  rhoStratEdgeU = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
-                      &j, k + 1))
-                  rho000 = rho000 + rhoStratTFC(i, j, k)
-                  rho001 = rho001 + rhoStratTFC(i, j, k + 1)
-                  rhow = rhow + rhoStratEdgeU
-                else
-                  rho000 = rho000 + rhoStrat(k)
-                  rho001 = rho001 + rhoStrat(k + 1)
+              if(topography) then
+                rhoStratEdgeU = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
+                    &j, k + 1))
+                rho000 = rho000 + rhoStratTFC(i, j, k)
+                rho001 = rho001 + rhoStratTFC(i, j, k + 1)
+                rhow = rhow + rhoStratEdgeU
+              else
+                rho000 = rho000 + rhoStrat(k)
+                rho001 = rho001 + rhoStrat(k + 1)
 
-                  rhow = rhow + rhoStratTilde(k)
-                end if
+                rhow = rhow + rhoStratTilde(k)
               end if
 
               if(TestCase == "baroclinic_LC") then
@@ -5037,19 +4671,16 @@ module update_module
 
                 rhow_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j, k + 1))
 
-                if(fluctuationMode) then
-                  if(topography) then
-                    ! TFC FJ
-                    rho000_e = rho000_e + rhoStratTFC(i, j, k)
-                    rho001_e = rho001_e + rhoStratTFC(i, j, k + 1)
-                    rhow_e = rhow_e + 0.5 * (rhoStratTFC(i, j, k) &
-                        &+ rhoStratTFC(i, j, k + 1))
-                  else
-                    rho000_e = rho000_e + rhoStrat_0(k)
-                    rho001_e = rho001_e + rhoStrat_0(k + 1)
+                if(topography) then
+                  rho000_e = rho000_e + rhoStratTFC(i, j, k)
+                  rho001_e = rho001_e + rhoStratTFC(i, j, k + 1)
+                  rhow_e = rhow_e + 0.5 * (rhoStratTFC(i, j, k) &
+                      &+ rhoStratTFC(i, j, k + 1))
+                else
+                  rho000_e = rho000_e + rhoStrat_0(k)
+                  rho001_e = rho001_e + rhoStrat_0(k + 1)
 
-                    rhow_e = rhow_e + 0.5 * (rhoStrat_0(k) + rhoStrat_0(k + 1))
-                  end if
+                  rhow_e = rhow_e + 0.5 * (rhoStrat_0(k) + rhoStrat_0(k + 1))
                 end if
               end if
 
@@ -5287,20 +4918,18 @@ module update_module
 
               rhow = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1))
 
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  rhoStratEdgeU = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
-                      &j, k + 1))
-                  rho000 = rho000 + rhoStratTFC(i, j, k)
-                  rho001 = rho001 + rhoStratTFC(i, j, k + 1)
-                  rhow = rhow + rhoStratEdgeU
-                else
-                  rho000 = rho000 + rhoStrat(k)
-                  rho001 = rho001 + rhoStrat(k + 1)
+              if(topography) then
+                ! TFC FJ
+                rhoStratEdgeU = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
+                    &j, k + 1))
+                rho000 = rho000 + rhoStratTFC(i, j, k)
+                rho001 = rho001 + rhoStratTFC(i, j, k + 1)
+                rhow = rhow + rhoStratEdgeU
+              else
+                rho000 = rho000 + rhoStrat(k)
+                rho001 = rho001 + rhoStrat(k + 1)
 
-                  rhow = rhow + rhoStratTilde(k)
-                end if
+                rhow = rhow + rhoStratTilde(k)
               end if
 
               if(TestCase == "baroclinic_LC") then
@@ -5309,19 +4938,17 @@ module update_module
 
                 rhow_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j, k + 1))
 
-                if(fluctuationMode) then
-                  if(topography) then
-                    ! TFC FJ
-                    rho000_e = rho000_e + rhoStratTFC(i, j, k)
-                    rho001_e = rho001_e + rhoStratTFC(i, j, k + 1)
-                    rhow_e = rhow_e + 0.5 * (rhoStratTFC(i, j, k) &
-                        &+ rhoStratTFC(i, j, k + 1))
-                  else
-                    rho000_e = rho000_e + rhoStrat_0(k)
-                    rho001_e = rho001_e + rhoStrat_0(k + 1)
+                if(topography) then
+                  ! TFC FJ
+                  rho000_e = rho000_e + rhoStratTFC(i, j, k)
+                  rho001_e = rho001_e + rhoStratTFC(i, j, k + 1)
+                  rhow_e = rhow_e + 0.5 * (rhoStratTFC(i, j, k) &
+                      &+ rhoStratTFC(i, j, k + 1))
+                else
+                  rho000_e = rho000_e + rhoStrat_0(k)
+                  rho001_e = rho001_e + rhoStrat_0(k + 1)
 
-                    rhow_e = rhow_e + 0.5 * (rhoStrat_0(k) + rhoStrat_0(k + 1))
-                  end if
+                  rhow_e = rhow_e + 0.5 * (rhoStrat_0(k) + rhoStrat_0(k + 1))
                 end if
               end if
 
@@ -5854,7 +5481,6 @@ module update_module
             ! F(phi)
             F = - fluxDiff
 
-            !UAB
             ! density relaxation
             if(dens_relax) then
               if(background /= "HeldSuarez") then
@@ -5862,17 +5488,12 @@ module update_module
                     &= HeldSuarez'
               end if
 
-              if(fluctuationMode) then
-                rho = var%rho(i, j, k) + rhoStrat(k)
-              else
-                rho = var%rho(i, j, k)
-              end if
+              rho = var%rho(i, j, k) + rhoStrat(k)
 
               rho_e = Pstrat(k) / the_env_pp(i, j, k)
 
               F = F - kt_hs(j, k) * (rho - rho_e)
             end if
-            !UAE
 
             ! update: q(m-1) -> q(m)
             q(i, j, k) = dt * F + alpha(m) * q(i, j, k)
@@ -5944,34 +5565,22 @@ module update_module
 
               rhop = var%rhop(i, j, k)
 
-              rho = var%rho(i, j, k)
-              if(fluctuationMode) then
-                rho = rho + rhoStrat(k)
-              end if
+              rho = var%rho(i, j, k) + rhoStrat(k)
 
               if(topography) then
                 ! TFC FJ
                 wvrt = 0.5 * (vertWindTFC(i, j, k, var) + vertWindTFC(i, j, k &
                     &- 1, var))
               else
-                !wvrt &
-                != 0.5 * (var(i,j,k,4)-w_0(k) + var(i,j,k-1,4)-w_0(k-1))
                 wvrt = 0.5 * (var%w(i, j, k) + var%w(i, j, k - 1))
               end if
 
-              !heat_flc= heat(i,j,k) - S_bar(k)
               heat_flc = heat(i, j, k)
 
               if(topography) then
-                ! TFC FJ
                 F = - fluxDiff + rhoStratTFC(i, j, k) / g_ndim &
                     &* bvsStratTFC(i, j, k) * wvrt
               else
-                ! F(phi)
-                !F &
-                != - fluxDiff + rhoStrat(k)/g_ndim * bvsStrat(k)*wvrt &
-                !  + rhoStrat(k)/Pstrat(k) * heat_flc&
-                !  - alprlx * (rhop - rho + rhoStrat(k))
                 F = - fluxDiff + PStrat(k) / PStrat_0(k) * rhoStrat(k) &
                     &/ g_ndim * bvsStrat(k) * wvrt + rhoStrat(k) / Pstrat_0(k) &
                     &* heat_flc
@@ -5984,13 +5593,8 @@ module update_module
                       &= HeldSuarez'
                 end if
 
-                if(fluctuationMode) then
-                  rho = var%rho(i, j, k) + rhoStrat(k)
-                else
-                  rho = var%rho(i, j, k)
-                end if
+                rho = var%rho(i, j, k) + rhoStrat(k)
 
-                !rho_e = Pstrat(k)/the_env_pp(i,j,k)
                 rho_e = Pstrat_0(k) / the_env_pp(i, j, k)
 
                 F = F - kt_hs(j, k) * (rho - rho_e)
@@ -6064,7 +5668,6 @@ module update_module
                 F = - fluxDiff
               end if
 
-              !UAB
               ! density relaxation
               if(dens_relax) then
                 if(background /= "HeldSuarez") then
@@ -6072,18 +5675,12 @@ module update_module
                       &= HeldSuarez'
                 end if
 
-                if(fluctuationMode) then
-                  rho = var%rho(i, j, k) + rhoStrat(k)
-                else
-                  rho = var%rho(i, j, k)
-                end if
+                rho = var%rho(i, j, k) + rhoStrat(k)
 
-                !rho_e = Pstrat(k)/the_env_pp(i,j,k)
                 rho_e = Pstrat_0(k) / the_env_pp(i, j, k)
 
                 F = F - kt_hs(j, k) * (rho - rho_e)
               end if
-              !UAE
 
               ! update: q(m-1) -> q(m)
               q(i, j, k) = dt * F + alpha(m) * q(i, j, k)
@@ -6137,19 +5734,17 @@ module update_module
                 rhow = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1))
                 rhowm = 0.5 * (var%rho(i, j, k - 1) + var%rho(i, j, k))
 
-                if(fluctuationMode) then
-                  if(topography) then
-                    ! TFC FJ
-                    rho = rho + rhoStratTFC(i, j, k)
-                    rhow = rhow + 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
-                        &j, k + 1))
-                    rhowm = rhowm + 0.5 * (rhoStratTFC(i, j, k) &
-                        &+ rhoStratTFC(i, j, k - 1))
-                  else
-                    rho = rho + rhoStrat(k)
-                    rhow = rhow + rhoStratTilde(k)
-                    rhowm = rhowm + rhoStratTilde(k - 1)
-                  end if
+                if(topography) then
+                  ! TFC FJ
+                  rho = rho + rhoStratTFC(i, j, k)
+                  rhow = rhow + 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
+                      &j, k + 1))
+                  rhowm = rhowm + 0.5 * (rhoStratTFC(i, j, k) &
+                      &+ rhoStratTFC(i, j, k - 1))
+                else
+                  rho = rho + rhoStrat(k)
+                  rhow = rhow + rhoStratTilde(k)
+                  rhowm = rhowm + rhoStratTilde(k - 1)
                 end if
 
                 if(topography) then
@@ -6372,12 +5967,10 @@ module update_module
                     rhowm_e = 0.5 * (var_env%rho(i, j, k - 1) + var_env%rho(i, &
                         &j, k))
 
-                    if(fluctuationMode) then
-                      rhow_e = rhow_e + 0.5 * (rhoStrat_0(k) + rhoStrat_0(k &
-                          &+ 1))
-                      rhowm_e = rhowm_e + 0.5 * (rhoStrat_0(k - 1) &
-                          &+ rhoStrat_0(k))
-                    end if
+                    rhow_e = rhow_e + 0.5 * (rhoStrat_0(k) + rhoStrat_0(k &
+                        &+ 1))
+                    rhowm_e = rhowm_e + 0.5 * (rhoStrat_0(k - 1) &
+                        &+ rhoStrat_0(k))
 
                     piGrad = piGrad + kappaInv * MaInv2 * 0.5 * ((pstw / rhow &
                         &- pstw_e / rhow_e) * (var_env%pi(i, j, k + 1) &
@@ -6426,17 +6019,14 @@ module update_module
                 if(TestCase == "baroclinic_LC") then
                   rho_e = var_env%rho(i, j, k)
 
-                  if(fluctuationMode) then
-                    if(topography) then
-                      ! TFC FJ
-                      rho_e = rho_e + rhoStratTFC(i, j, k)
-                    else
-                      rho_e = rho_e + rhoStrat_0(k)
-                    end if
+                  if(topography) then
+                    ! TFC FJ
+                    rho_e = rho_e + rhoStratTFC(i, j, k)
+                  else
+                    rho_e = rho_e + rhoStrat_0(k)
                   end if
 
                   if(topography) then
-                    ! TFC FJ
                     ! Predict buoyancy.
                     buoy = - g_ndim * (var%rhop(i, j, k) / rho &
                         &- var_env%rhop(i, j, k) / rho_e)
@@ -6530,13 +6120,11 @@ module update_module
                 rhop = var%rhop(i, j, k)
 
                 rho = var%rho(i, j, k)
-                if(fluctuationMode) then
-                  if(topography) then
-                    ! TFC FJ
-                    rho = rho + rhoStratTFC(i, j, k)
-                  else
-                    rho = rho + rhoStrat(k)
-                  end if
+                if(topography) then
+                  ! TFC FJ
+                  rho = rho + rhoStratTFC(i, j, k)
+                else
+                  rho = rho + rhoStrat(k)
                 end if
 
                 if(topography) then
@@ -6650,7 +6238,8 @@ module update_module
 
     type(flux_type), intent(in) :: flux
 
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(in) :: tracerforce
+    type(tracerForceType), dimension(- nbx:nx + nbx, - nby:ny + nby, &
+      - nbz:nz + nbz), intent(in) :: tracerforce
 
     real, intent(in) :: dt
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
@@ -6686,14 +6275,10 @@ module update_module
           hD = flux%chi(i, j, k - 1, 3) ! downward
           hU = flux%chi(i, j, k, 3) ! upward
 
-          if(fluctuationMode) then
-            if(topography) then
-              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
-            else
-              rho = var%rho(i, j, k) + rhoStrat(k)
-            end if
+          if(topography) then
+            rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
           else
-            rho = var%rho(i, j, k)
+            rho = var%rho(i, j, k) + rhoStrat(k)
           end if
 
           ! convective part, advection due to wind
@@ -6711,21 +6296,21 @@ module update_module
             forcetracer = 0.0
 
             ! include leading order gw tracer flux convergence
-            if(include_gw_tracer_forcing) then
-              forcetracer = forcetracer + tracerforce(i, j, k, 1)
+            if(include_trfrc_lo) then
+              forcetracer = forcetracer + tracerforce(i, j, k)%loforce%total
             end if
 
             ! include next-order gw tracer flux convergence
-            if(include_env_tracer_forcing) then
-              forcetracer = forcetracer + tracerforce(i, j, k, 2)
+            if(include_trfrc_no) then
+              forcetracer = forcetracer + rho * tracerforce(i, j, k)%noforce%total
             end if
 
             ! include diffusive mixing of tracer
-            if(include_tracer_mixing) then
-              forcetracer = forcetracer - tracerforce(i, j, k, 3)
+            if(include_trfrc_mix) then
+              forcetracer = forcetracer - tracerforce(i, j, k)%mixingGW%total
             end if
 
-            F = F - rho * forcetracer
+            F = F - forcetracer ! rho * 
           end if
 
           if(dens_relax) then
@@ -6745,131 +6330,6 @@ module update_module
   end subroutine tracerUpdate
 
   !-----------------------------------------------------------------------
-
-  subroutine iceUpdate(var, var0, flux, source, dt, q, m)
-    !-----------------------------
-    ! adds ice flux to cell ice
-    !-----------------------------
-    ! mainly analogous to massUpdate
-
-    ! in/out variables
-    type(var_type), intent(inout) :: var, var0
-    type(flux_type), intent(in) :: flux
-    ! flux(i,j,k,dir,iFlux)
-    ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
-    ! iFlux = 8..11 > Rho_nAer, Rho_nIce, Rho_qIce, Rho_qv
-
-    type(var_type), intent(in) :: source
-
-    real, intent(in) :: dt
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 4), &
-        &intent(inout) :: q
-
-    integer, intent(in) :: m
-
-    ! local integer
-    integer :: i, j, k, iVar
-
-    ! local variables
-    real, dimension(4) :: fL, fR ! flux Left/Right
-    real, dimension(4) :: gB, gF ! flux Backward/Forward
-    real, dimension(4) :: hD, hU ! flux Downward/Upward
-    real, dimension(4) :: fluxDiff ! convective part
-    real, dimension(4) :: F ! F(phi)
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz) :: rho
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 4) :: &
-        &rho_source_term
-    real :: T, p, SIce
-
-    var0 = var
-
-    ! init q
-    if(m == 1) q = 0.
-
-    if(fluctuationMode) then
-      do k = - 1, nz + 1
-        rho(:, :, k) = var%rho(:, :, k) + rhoStrat(k)
-      end do
-    else
-      rho = var%rho(:, :, :)
-    end if
-
-    if(correctDivError) then
-      do k = 1, 4
-        rho_source_term(:, :, :, k) = var%ICE(:, :, :, k) * source%rho(:, :, :)
-      end do
-    else
-      rho_source_term(:, :, :, :) = 0.0
-    end if
-
-    do k = 1, nz
-      do j = 1, ny
-        do i = 1, nx
-
-          !UAC if (topography_mask(i+is+nbx-1,j+js+nby-1,k)==.false.) then
-          ! topography not used as a condition anymore. This should all
-          ! be done by the winds responding to the immersed boundary
-          if(k > 0) then
-            !UAE
-
-            fL = flux%ICE(i - 1, j, k, 1, 1:4) ! mass flux across left cell edge
-            fR = flux%ICE(i, j, k, 1, 1:4) ! right
-            gB = flux%ICE(i, j - 1, k, 2, 1:4) ! backward
-            gF = flux%ICE(i, j, k, 2, 1:4) ! forward
-            hD = flux%ICE(i, j, k - 1, 3, 1:4) ! downward
-            hU = flux%ICE(i, j, k, 3, 1:4) ! upward
-
-            ! convective part
-            fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
-
-            ! diffusive part
-            ! diff = ....
-
-            ! F(phi)
-            F = - fluxDiff
-
-            F(:) = F(:) + rho_source_term(i, j, k, :) + rho(i, j, k) &
-                &* source%ICE(i, j, k, 1:4)
-
-            select case(timeSchemeType)
-
-            case("lowStorage")
-
-              ! update: q(m-1) -> q(m)
-              q(i, j, k, :) = dt * F(:) + alpha(m) * q(i, j, k, :)
-
-              ! update variables
-              var%ICE(i, j, k, 1:4) = var%ICE(i, j, k, 1:4) + beta(m) * q(i, &
-                  &j, k, 1:4) / rho(i, j, k)
-
-            case("classical")
-
-              var%ICE(i, j, k, 1:4) = rk(1, m) * var0%ICE(i, j, k, 1:4) &
-                  &+ rk(2, m) * var%ICE(i, j, k, 1:4) + rk(3, m) * dt * F(1:4) &
-                  &/ rho(i, j, k)
-
-            case default
-              stop "iceUpdate: unknown case timeSchemeType"
-            end select
-
-            do iVar = 1, 4
-              ! avoid negative values for all ice variables
-              if((var%ICE(i, j, k, iVar) .lt. 0.0)) then
-                var%ICE(i, j, k, iVar) = 0.0
-              end if
-            end do
-
-          end if
-        end do
-      end do
-    end do
-
-    if(verbose .and. master) print *, "update.f90/iceUpdate: ice(m=", m, ") &
-        &calculated."
-
-  end subroutine iceUpdate
-
-  !-------------------------------------------------------------------------
   subroutine timeUpdate(time, dt, q, m)
 
     implicit none
@@ -6892,7 +6352,7 @@ module update_module
 
   !-------------------------------------------------------------------------
 
-  subroutine ice2Update_apb(var, flux, source, dt, q, m, update_type)
+  subroutine iceUpdate_apb(var, flux, source, dt, q, m, update_type)
     !-----------------------------
     ! adds ice flux to cell ice field
     !-----------------------------
@@ -6942,12 +6402,12 @@ module update_module
 
             if(update_type .eq. 'ADV' .or. update_type .eq. 'BOT') then
 
-              fL = flux%ICE2(i - 1, j, k, 1, iVar) ! mass flux accros left cell edge
-              fR = flux%ICE2(i, j, k, 1, iVar) ! right
-              gB = flux%ICE2(i, j - 1, k, 2, iVar) ! backward
-              gF = flux%ICE2(i, j, k, 2, iVar) ! forward
-              hD = flux%ICE2(i, j, k - 1, 3, iVar) ! downward
-              hU = flux%ICE2(i, j, k, 3, iVar) ! upward
+              fL = flux%ICE(i - 1, j, k, 1, iVar) ! mass flux accros left cell edge
+              fR = flux%ICE(i, j, k, 1, iVar) ! right
+              gB = flux%ICE(i, j - 1, k, 2, iVar) ! backward
+              gF = flux%ICE(i, j, k, 2, iVar) ! forward
+              hD = flux%ICE(i, j, k - 1, 3, iVar) ! downward
+              hU = flux%ICE(i, j, k, 3, iVar) ! upward
 
               ! convective part
               fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
@@ -6962,13 +6422,13 @@ module update_module
 
             if(update_type .eq. 'BOT') then
               ! F(phi)
-              F = - fluxDiff + source%ICE2(i, j, k, iVar)
+              F = - fluxDiff + source%ICE(i, j, k, iVar)
             elseif(update_type .eq. 'ADV') then
               F = - fluxDiff
             elseif(update_type .eq. 'PHY') then
-              F = source%ICE2(i, j, k, iVar)
+              F = source%ICE(i, j, k, iVar)
             else
-              print *, 'wrong update_type in ice2Update_apb'
+              print *, 'wrong update_type in iceUpdate_apb'
               stop
 
             end if
@@ -6977,7 +6437,7 @@ module update_module
             q(i, j, k, iVar) = dt * F + alpha(m) * q(i, j, k, iVar)
 
             ! update fields
-            var%ICE2(i, j, k, iVar) = var%ICE2(i, j, k, iVar) + beta(m) * q(i, &
+            var%ICE(i, j, k, iVar) = var%ICE(i, j, k, iVar) + beta(m) * q(i, &
                 &j, k, iVar)
 
           end do !i
@@ -6986,11 +6446,11 @@ module update_module
 
     end do !ii
 
-  end subroutine ice2Update_apb
+  end subroutine iceUpdate_apb
 
   !-----------------------------------------------------------------------
 
-  subroutine ice2Update(var, flux, dt, q, m, int_mod, facray)
+  subroutine iceUpdate(var, flux, dt, q, m, int_mod, facray)
     !-----------------------------
     ! adds ice flux to cell ice field
     !-----------------------------
@@ -7082,12 +6542,12 @@ module update_module
         do j = 1, ny
           do i = 1, nx
 
-            fL = flux%ICE2(i - 1, j, k, 1, iVar) ! mass flux accros left cell edge
-            fR = flux%ICE2(i, j, k, 1, iVar) ! right
-            gB = flux%ICE2(i, j - 1, k, 2, iVar) ! backward
-            gF = flux%ICE2(i, j, k, 2, iVar) ! forward
-            hD = flux%ICE2(i, j, k - 1, 3, iVar) ! downward
-            hU = flux%ICE2(i, j, k, 3, iVar) ! upward
+            fL = flux%ICE(i - 1, j, k, 1, iVar) ! mass flux accros left cell edge
+            fR = flux%ICE(i, j, k, 1, iVar) ! right
+            gB = flux%ICE(i, j - 1, k, 2, iVar) ! backward
+            gF = flux%ICE(i, j, k, 2, iVar) ! forward
+            hD = flux%ICE(i, j, k - 1, 3, iVar) ! downward
+            hU = flux%ICE(i, j, k, 3, iVar) ! upward
 
             ! convective part
             fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
@@ -7105,7 +6565,7 @@ module update_module
             q(i, j, k, iVar) = dt * F + alpha(m) * q(i, j, k, iVar)
 
             ! update fields
-            var%ICE2(i, j, k, iVar) = var%ICE2(i, j, k, iVar) + beta(m) * q(i, &
+            var%ICE(i, j, k, iVar) = var%ICE(i, j, k, iVar) + beta(m) * q(i, &
                 &j, k, iVar)
 
           end do !i
@@ -7114,7 +6574,7 @@ module update_module
 
     end do !ii
 
-  end subroutine ice2Update
+  end subroutine iceUpdate
 
   !-------------------------------------------------------------------------
 
@@ -7216,17 +6676,12 @@ module update_module
               select case(model)
 
               case("pseudo_incompressible", "compressible")
-                if(fluctuationMode) then
-                  if(topography) then
-                    bMaxNew = abs(var%rho(i, j, k)) / (rhoStratTFC(i, j, k) &
-                        &+ var%rho(i, j, k)) * vertical
-                  else
-                    bMaxNew = abs(var%rho(i, j, k)) / (rhoStrat(k) &
-                        &+ var%rho(i, j, k)) * vertical
-                  end if
+                if(topography) then
+                  bMaxNew = abs(var%rho(i, j, k)) / (rhoStratTFC(i, j, k) &
+                      &+ var%rho(i, j, k)) * vertical
                 else
-                  bMaxNew = abs(rhoStrat(k) - var%rho(i, j, k)) / var%rho(i, &
-                      &j, k) * vertical
+                  bMaxNew = abs(var%rho(i, j, k)) / (rhoStrat(k) &
+                      &+ var%rho(i, j, k)) * vertical
                 end if
 
               case("Boussinesq")
@@ -8998,17 +8453,13 @@ module update_module
         do k = 1, nz
           do j = 1, ny
             do i = 1, nx
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
-                      &+ rhoStratTFC(i, j, k)
-                else
-                  var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
-                      &+ rhoStrat(k)
-                end if
+              if(topography) then
+                ! TFC FJ
+                var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
+                    &+ rhoStratTFC(i, j, k)
               else
-                var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k)
+                var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
+                    &+ rhoStrat(k)
               end if
             end do
           end do
@@ -9147,17 +8598,13 @@ module update_module
         do k = 1, nz
           do j = 1, ny
             do i = 1, nx
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
-                      &+ rhoStratTFC(i, j, k)
-                else
-                  var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
-                      &+ rhoStrat(k)
-                end if
+              if(topography) then
+                ! TFC FJ
+                var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
+                    &+ rhoStratTFC(i, j, k)
               else
-                var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k)
+                var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
+                    &+ rhoStrat(k)
               end if
             end do
           end do
@@ -9369,17 +8816,13 @@ module update_module
         do k = 1, nz
           do j = 1, ny
             do i = 1, nx
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
-                      &+ rhoStratTFC(i, j, k)
-                else
-                  var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
-                      &+ rhoStrat(k)
-                end if
+              if(topography) then
+                ! TFC FJ
+                var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
+                    &+ rhoStratTFC(i, j, k)
               else
-                var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k)
+                var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
+                    &+ rhoStrat(k)
               end if
             end do
           end do
@@ -9508,17 +8951,13 @@ module update_module
         do k = 1, nz
           do j = 1, ny
             do i = 1, nx
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
-                      &+ rhoStratTFC(i, j, k)
-                else
-                  var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
-                      &+ rhoStrat(k)
-                end if
+              if(topography) then
+                ! TFC FJ
+                var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
+                    &+ rhoStratTFC(i, j, k)
               else
-                var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k)
+                var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
+                    &+ rhoStrat(k)
               end if
             end do
           end do
@@ -9642,17 +9081,13 @@ module update_module
       do k = 1, nz
         do j = 1, ny
           do i = 1, nx
-            if(fluctuationMode) then
-              if(topography) then
-                ! TFC FJ
-                var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
-                    &+ rhoStratTFC(i, j, k)
-              else
-                var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
-                    &+ rhoStrat(k)
-              end if
+            if(topography) then
+              ! TFC FJ
+              var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
+                  &+ rhoStratTFC(i, j, k)
             else
-              var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k)
+              var_l%rho(i, j, k) = var%rho(i, j, k) - dens_env_pp(i, j, k) &
+                  &+ rhoStrat(k)
             end if
           end do
         end do
@@ -9838,11 +9273,7 @@ module update_module
         do j = 1, ny
           do i = 1, nx
 
-            if(fluctuationMode) then
-              sum_local2(k) = sum_local2(k) + var%rho(i, j, k) + rhoStrat(k)
-            else
-              sum_local2(k) = sum_local2(k) + var%rho(i, j, k)
-            end if
+            sum_local2(k) = sum_local2(k) + var%rho(i, j, k) + rhoStrat(k)
 
             if(k == 1) then
               sum_local(k) = sum_local(k) + 0.5 * flux%rho(i, j, k, 3)
@@ -9941,32 +9372,6 @@ module update_module
           &/ dz
     end do
 
-    !! save total density and subtract the reference-atmosphere density
-    !! from this again after the update of the latter
-
-    !if (fluctuationMode) then
-    !   do k = 1,nz
-    !      var(:,:,k,1) = var(:,:,k,1) + rhoStrat(k)
-    !   end do
-    !end if
-
-    !sum_local = 0.
-    !sum_global = 0.
-
-    !do k = 1,nz
-    !   do j = 1,ny
-    !      do i = 1,nx
-    !         sum_local(k)  = sum_local(k)  + var(i,j,k,1)
-    !      end do
-    !   end do
-    !end do
-    !call mpi_allreduce(sum_local(1),sum_global(1),&
-    !     nz,&
-    !     mpi_double_precision,mpi_sum,comm,ierror)
-    !sum_global = sum_global/(sizeX*sizeY)
-    !
-    !rhoStrat(1:nz) = rhoStrat_d(1:nz) + sum_global(1:nz)
-
     do k = 1, nz
       if(int_mod == "expl") then
         !init q
@@ -9998,40 +9403,9 @@ module update_module
         stop
       end if
 
-      !update piStrat
-      !thetaStrat(k) = PStrat(k)/rhoStrat(k) !FSMar2021
       piStrat(k) = PStrat(k) ** (kappa / (1.0 - kappa))
     end do
 
-    !! adjust stratification so that no unstable layers exist
-
-    !do k = 2,nz
-    !   if (rhoStrat(k) > rhoStrat(k-1) * pStrat(k)/pStrat(k-1)) then
-    !      rhoStrat(k) = rhoStrat(k-1) * pStrat(k)/pStrat(k-1)
-    !      thetaStrat(k) = thetaStrat(k-1)
-    !   end if
-    !end do
-
-    !sum_local = 0.
-    !sum_global = 0.
-
-    !do k = 1,nz
-    !   do j = 1,ny
-    !      do i = 1,nx
-    !         sum_local(k)  = sum_local(k)  + var(i,j,k,1)
-    !      end do
-    !   end do
-    !end do
-    !call mpi_allreduce(sum_local(1),sum_global(1),&
-    !     nz,&
-    !     mpi_double_precision,mpi_sum,comm,ierror)
-    !sum_global = sum_global/(sizeX*sizeY)
-
-    !rhoStrat_d = 0.
-
-    !do k=1,nz
-    !   rhoStrat_d(k) = rhoStrat(k) - sum_global(k)
-    !end do
 
     pStrat(0) = pStrat(1)
     pStrat(- 1) = pStrat(0)
@@ -10040,21 +9414,9 @@ module update_module
 
     do k = 1, nz
       PstratTilde(k) = 0.5 * (PStrat(k) + PStrat(k + 1))
-      !rhoStratTilde(k) = 0.5 * (rhoStrat(k) + rhoStrat(k+1))
-      !thetaStratTilde(k) =  PStratTilde(k)/rhoStratTilde(k)
     end do
 
-    !! adjust density fluctuations to new reference atmosphere
-    !do k = 1,nz
-    !   if (fluctuationMode) then
-    !      var(:,:,k,1) = var(:,:,k,1) - rhoStrat(k)
-    !   end if
-
-    !   if ((timeScheme == "semiimplicit") .or. auxil_equ) then
-    !      var(:,:,k,6) = var(:,:,k,6) - rhoStrat(k)
-    !   end if
-    !end do
-
+    
     ! the following could most probably be deleted
     ! update of non-dimensional squared Brunt-Vaisala frequency
     ! (this could perhaps be done a bit nicer)
@@ -10082,25 +9444,16 @@ module update_module
     bvsStrat(nz + 1) = bvsStrat(nz)
     bvsStrat(nz + 2) = bvsStrat(nz)
 
-    ! N2 = max(N2, bvsStrat(nz+1))
-
     if(N2 < 0.) then
       stop 'ERROR: N2 < 0'
     else
       NN = sqrt(N2)
     end if
 
-    !testb
-    ! do k = -1,nz+1
-    !    if (master .and. N2 == bvsStrat(k)) print*,'N2 = max at k =',k
-    ! end do
-    !teste
-
   end subroutine BGstate_update
 
   !---------------------------------------------------------------------
 
-  ! TFC FJ
   subroutine momentumPredictorTestTFC(var, flux, force, dMom, int_mod)
 
     type(var_type), intent(inout) :: var

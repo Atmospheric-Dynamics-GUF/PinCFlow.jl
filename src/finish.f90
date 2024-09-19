@@ -19,7 +19,8 @@ module finish_module
     ! in/out variables
     type(var_type) :: var, var0, var1, varG, source
     type(flux_type) :: flux, flux0
-    real, dimension(:, :, :, :), allocatable :: force, dMom, dIce, tracerforce
+    real, dimension(:, :, :, :), allocatable :: force, dMom, dIce
+    type(tracerForceType), dimension(:, :, :), allocatable :: tracerforce
     real, dimension(:, :, :), allocatable :: dRho, dRhop, dTheta, dTracer, dPot
 
     ! argument list
@@ -70,11 +71,6 @@ module finish_module
     if(model == "compressible") then
       deallocate(dPot, stat = allocstat)
       if(allocstat /= 0) stop "finish.f90: could not deallocate dPot"
-    end if
-
-    if(include_ice) then
-      deallocate(dIce, stat = allocstat)
-      if(allocstat /= 0) stop "finish.f90: could not deallocate dIce"
     end if
 
     if(include_tracer) then

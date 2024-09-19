@@ -2,6 +2,7 @@ module atmosphere_module
 
   use type_module
   use sizeof_module
+  use mpi
 
   implicit none
 
@@ -13,14 +14,13 @@ module atmosphere_module
   public :: init_atmosphere
   public :: terminate_atmosphere
 
-  ! TFC FJ
+  ! TFC
   public :: setHalosOfField2D
   public :: jac, met, chris, heightTFC, vertWindTFC, trafoTFC, stressTensTFC
 
-  ! FJFeb2023
   public :: update_topography
 
-  ! SK compressible
+  ! compressible
   public :: add_JP_to_u
 
   real, dimension(:), allocatable :: PStrat, rhoStrat, thetaStrat, bvsStrat
@@ -62,7 +62,6 @@ module atmosphere_module
   real :: Ma, MaInv2, Ma2 ! Mach number and 1/Ma^2, Ma^2
   real :: Fr, FrInv2, Fr2 ! Froude number Fr and 1/Fr^2, Fr^2
   real :: sig ! Ma^2/Fr^2
-  !FS real :: Ro, RoInv              ! Rossby number and its inverse
 
   ! pressure scale height
   real :: hp
@@ -79,7 +78,6 @@ module atmosphere_module
   real :: NN ! scaled of Brunt-Vaisala frequency
   real :: coeff ! long coefficient
 
-  !UAB
   ! Held-Suarez atmosphere
   real :: tp_strato ! stratosphere temperature
   real :: tp_srf_trp ! tropical surface temperature
@@ -87,7 +85,6 @@ module atmosphere_module
   ! between poles and tropics
   real :: ptdiffvert_tropo ! vertical potential-temperature
   ! difference in troposphere
-  !UAE
 
   ! isothermal
   real :: T0 ! scaled background temperature
@@ -97,12 +94,9 @@ module atmosphere_module
 
   real :: zk ! zk = z(k)
 
-  ! achatzb
   real :: mountainHeight, mountainWidth, k_mountain
   real :: x_center, y_center
-  ! achatze
 
-  ! TFC FJ
   ! 3D background fields.
   real, dimension(:, :, :), allocatable :: pStratTFC, thetaStratTFC, &
       &rhoStratTFC, bvsStratTFC, piStratTFC
@@ -124,7 +118,6 @@ module atmosphere_module
     integer :: i, j, k
     real :: pBar, thetaBar
     real :: p1, p2, power ! exponents
-    real :: gammaInv
     real :: eps
     real :: zmax
     real :: zk_half
@@ -137,16 +130,12 @@ module atmosphere_module
     real :: T_tr ! temperature at tropopause
     real :: delZ ! distance to tropopause
 
-    !gagarinab
     ! for baroclinic case
     real :: T_c_b1, pow_t, pow_s, p_t_b ! tropopause quantities
     real :: T_bar, T_c_b, p_bar ! calculated quantities
-    real :: tp_sponge, tp_sp1, tp_sp2 !FS
-    !gagarinae
+    real :: tp_sponge, tp_sp1, tp_sp2
 
-    !UAB
     real :: pistar, thetastar
-    !UAC
 
     ! debugging
     integer, parameter :: errorlevel = 10 ! 0 -> no output
@@ -167,7 +156,6 @@ module atmosphere_module
       if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStrat"
     end if
 
-    !UAB 200413
     ! allocate pStrat_0
     if(.not. allocated(pStrat_0)) then
       allocate(pStrat_0(- 1:nz + 2), stat = allocstat)
@@ -175,7 +163,6 @@ module atmosphere_module
         stop "atmosphere.f90: could not allocate pStrat_0"
       end if
     end if
-    !UAE 200413
 
     ! allocate pistrat
     if(.not. allocated(pistrat)) then
@@ -212,7 +199,6 @@ module atmosphere_module
       end if
     end if
 
-    !UAB 200413
     ! allocate rhoStrat_0
     if(.not. allocated(rhoStrat_0)) then
       allocate(rhoStrat_0(- 1:nz + 2), stat = allocstat)
@@ -220,7 +206,6 @@ module atmosphere_module
         stop "atmosphere.f90: could not allocate rhoStrat_0"
       end if
     end if
-    !UAE 200413
 
     ! allocate rhoStratTilde
     if(.not. allocated(rhoStratTilde)) then
@@ -236,7 +221,6 @@ module atmosphere_module
 
     ! allocate squared Brunt-Vaisala frequency bvsStrat
     if(.not. allocated(bvsStrat)) then
-      !UAC allocate( bvsStrat(-1:nz+1),stat=allocstat)
       allocate(bvsStrat(- 1:nz + 2), stat = allocstat)
       if(allocstat /= 0) stop "atmosphere.f90: could not allocate bvsStrat"
     end if
@@ -317,31 +301,29 @@ module atmosphere_module
 
     ! allocate squared Brunt-Vaisala frequency bvsStrat
     if(.not. allocated(bvsStrat00)) then
-      !UAC allocate( bvsStrat00(-1:nz+1),stat=allocstat)
       allocate(bvsStrat00(- 1:nz + 2), stat = allocstat)
       if(allocstat /= 0) stop "atmosphere.f90: could not allocate bvsStrat"
     end if
 
     ! allocate squared Brunt-Vaisala frequency bvsStrat
     if(.not. allocated(bvsStrat01)) then
-      !UAC allocate( bvsStrat01(-1:nz+1),stat=allocstat)
       allocate(bvsStrat01(- 1:nz + 2), stat = allocstat)
       if(allocstat /= 0) stop "atmosphere.f90: could not allocate bvsStrat"
     end if
 
-    ! allocate Ro !FS
+    ! allocate Ro
     if(.not. allocated(Ro)) then
       allocate(Ro(0:ny + 1), stat = allocstat)
       if(allocstat /= 0) stop "atmosphere.f90: could not allocate Ro"
     end if
 
-    ! allocate RoInv !FS
+    ! allocate RoInv
     if(.not. allocated(RoInv)) then
       allocate(RoInv(0:ny + 1), stat = allocstat)
       if(allocstat /= 0) stop "atmosphere.f90: could not allocate RoInv"
     end if
 
-    ! TFC FJ
+    ! TFC
     ! Allocate 3D background fields.
     if(topography) then
       if(.not. allocated(pStratTFC)) then
@@ -427,10 +409,6 @@ module atmosphere_module
       Fr = uRef / sqrt(g * lRef) !
 
     case("Klein")
-      ! if (testCase == "smoothVortex")then
-      !    rhoRef = 0.5!1.184             ! in kg/m^3
-      !    pRef = 101625.!101325.0            ! in Pa = kg/m/s^2
-      ! else
       rhoRef = 1.184 ! in kg/m^3
       pRef = 101325.0 ! in Pa = kg/m/s^2
       !end if
@@ -491,12 +469,6 @@ module atmosphere_module
     FrInv2 = 1.0 / Fr ** 2
     sig = Ma ** 2 / Fr ** 2
 
-    ! Rossby number
-    !   achatzb correction for zero Coriolis
-    !   Ro = uRef/f_Coriolis_dim/lRef
-    !   RoInv = 1.0/Ro
-    ! FS: see now further below
-
     ! Reynolds number
     if(.not. specifyReynolds) ReInv = mu_viscous_dim / uRef / lRef
 
@@ -534,15 +506,15 @@ module atmosphere_module
     dz = (lz(1) - lz(0)) / real(sizeZ)
 
     ! init cell coordinates
-    do i = - nbx, sizeX + nbx ! modified by Junhong Wei (20161104)
+    do i = - nbx, sizeX + nbx
       x(i) = lx(0) + real(i - 1) * dx + dx / 2.0
     end do
 
-    do j = - nby, sizeY + nby ! modified by Junhong Wei (20161104)
+    do j = - nby, sizeY + nby 
       y(j) = ly(0) + real(j - 1) * dy + dy / 2.0
     end do
 
-    do k = - nbz, sizeZ + nbz ! modified by Junhong Wei (20161104)
+    do k = - nbz, sizeZ + nbz 
       z(k) = lz(0) + real(k - 1) * dz + dz / 2.0
     end do
 
@@ -551,7 +523,7 @@ module atmosphere_module
       ymax = ly_dim(1) / lRef
       do j = 0, ny + 1
         yloc = y(j + j00)
-        f_Coriolis_y(j) = f_Coriolis_dim !FSJuly2020*sin(4*atan(1.0)*yloc/ymax)
+        f_Coriolis_y(j) = f_Coriolis_dim
         if(f_Coriolis_y(j) /= 0.0) then
           Ro(j) = uRef / f_Coriolis_y(j) / lRef
           RoInv(j) = 1.0 / Ro(j)
@@ -753,7 +725,6 @@ module atmosphere_module
         end if
       end if
 
-      ! FJFeb2023
       if(topographyTime > 0.0) then
         allocate(final_topography_surface(- nbx:nx + nbx, - nby:ny + nby), &
             &stat = allocstat)
@@ -764,288 +735,8 @@ module atmosphere_module
         topography_surface = 0.0
       end if
 
-      ! kbl_topo(:,:,:) = nz + 2*nbz
-      !
-      ! do k = 1, nz
-      !    do j = -nby, ny+nby-1
-      !       do i = -nbx, nx+nbx-1
-      !          ! vertical index of first u-point above the surface
-      !          topos_u &
-      !          = 0.5*(topography_surface(i,j) + topography_surface(i+1,j))
-      !          if(z(k-1) <= topos_u .and. z(k) > topos_u) then
-      !             kbl_topo(i,j,1) = k
-      !          end if
-      !
-      !          ! vertical index of first v-point above the surface
-      !          topos_v &
-      !          = 0.5*(topography_surface(i,j) + topography_surface(i,j+1))
-      !          if(z(k-1) <= topos_v .and. z(k) > topos_v) then
-      !             kbl_topo(i,j,2) = k
-      !          end if
-      !
-      !          ! vertical index of first w-point above the surface
-      !          topos_w = topography_surface(i,j)
-      !          if(z(k-1)+dz/2. <= topos_w .and. z(k)+dz/2. > topos_w) then
-      !             kbl_topo(i,j,3) = k
-      !          end if
-      !       end do
-      !    end do
-      ! end do
-
-      ! do j = -nby, ny+nby-1
-      !    do i = -nbx, nx+nbx-1
-      !       if (kbl_topo(i,j,1) < 1 .or. kbl_topo(i,j,1) > nz) then
-      !       print*,'kbl_topo(',i,',',j,',1) =',kbl_topo(i,j,1), &
-      !            & ' out of range'
-      !       stop
-      !       end if
-      !
-      !       if (kbl_topo(i,j,2) < 1 .or. kbl_topo(i,j,2) > nz) then
-      !       print*,'kbl_topo(',i,',',j,',2) =',kbl_topo(i,j,2), &
-      !            & ' out of range'
-      !       stop
-      !       end if
-      !
-      !       if (kbl_topo(i,j,3) < 1 .or. kbl_topo(i,j,3) > nz) then
-      !       print*,'kbl_topo(',i,',',j,',3) =',kbl_topo(i,j,3), &
-      !            & ' out of range'
-      !       stop
-      !       end if
-      !    end do
-      ! end do
-
-      ! do j = 1, ny
-      !    do i = 1, nx
-      !       !--------------------------------------------------
-      !       ! fields for reconstructing u just above the surface
-      !       !--------------------------------------------------
-      !
-      !       k = kbl_topo(i,j,1)
-      !
-      !       ! gradient of topography below u-reconstruction point
-      !
-      !       dhdx(i,j,1) &
-      !       = (topography_surface(i+1,j) - topography_surface(i,j))/dx
-      !       dhdy(i,j,1) &
-      !       = (  topography_surface(i,j+1) + topography_surface(i+1,j+1)&
-      !          - topography_surface(i,j-1) - topography_surface(i+1,j-1)) &
-      !         /(4.*dy)
-      !
-      !       ! height of topography below u-reconstruction point
-      !
-      !       topos_u &
-      !       = 0.5*(topography_surface(i,j) + topography_surface(i+1,j))
-      !
-      !       ! coordinates of surface point connected by its surface normal
-      !       ! with the u-reconstruction point
-      !
-      !       z_sp_u &
-      !       = z(k) + (topos_u - z(k))/(1. + dhdx(i,j,1)**2 + dhdy(i,j,1)**2)
-      !       x_sp_u = x(i00+i) + dx/2. - dhdx(i,j,1)*(z_sp_u - z(k))
-      !       y_sp_u = y(j00+j) - dhdy(i,j,1)*(z_sp_u - z(k))
-      !
-      !       ! coordinates of free-atmosphere interpolation point connected
-      !       ! by the surface normal to the u-reconstruction point
-      !
-      !       z_ip(i,j,1) = z(k+1)
-      !
-      !       if (abs(dhdx(i,j,1)*dz) > dx) then
-      !          print*,'abs(dhdx(',i,',',j,',1)*dz) > dx'
-      !          print*,'vertical grid to be refined!'
-      !          stop
-      !         else
-      !          x_ip(i,j,1) = x(i00+i) + dx/2. - dhdx(i,j,1)*dz
-      !       end if
-      !
-      !       if (abs(dhdy(i,j,1)*dz) > dy) then
-      !          print*,'abs(dhdy(',i,',',j,',1)*dz) > dy'
-      !          print*,'vertical grid to be refined!'
-      !          stop
-      !         else
-      !          y_ip(i,j,1) = y(j00+j) - dhdy(i,j,1)*dz
-      !       end if
-      !
-      !       ! distance of surface point to u-reconstruction and
-      !       ! interpolation point
-      !
-      !       dRP_u = sqrt(  (x_sp_u - x(i00+i) - dx/2.)**2 &
-      !                    + (y_sp_u - y(j00+j))**2 &
-      !                    + (z_sp_u - z(k))**2)
-      !
-      !       dIP_u = sqrt(  (x_ip(i,j,1) - x_sp_u)**2 &
-      !                    + (y_ip(i,j,1) - y_sp_u)**2 &
-      !                    + (z_ip(i,j,1) - z_sp_u)**2)
-      !
-      !       ! factors for determining the normal and tangential velocity at
-      !       ! the u-reconstruction point from the corresponding velocities
-      !       ! at the interpolation point
-      !
-      !       if (z_0 > 0.) then
-      !          if (dRP_u < z_0) then
-      !             velocity_reconst_t(i,j,1) = 0.0
-      !            else
-      !             velocity_reconst_t(i,j,1) = log(dRP_u/z_0)/log(dIP_u/z_0)
-      !          endif
-      !         else
-      !          velocity_reconst_t(i,j,1) = 1.0
-      !       end if
-      !
-      !       velocity_reconst_n(i,j,1)=dRP_u/dIP_u
-      !
-      !       !--------------------------------------------------
-      !       ! fields for reconstructing v just above the surface
-      !       !--------------------------------------------------
-      !
-      !       k = kbl_topo(i,j,2)
-      !
-      !       ! gradient of topography below v-reconstruction point
-      !
-      !       dhdx(i,j,2) &
-      !       = (  topography_surface(i+1,j) + topography_surface(i+1,j+1) &
-      !          - topography_surface(i-1,j) - topography_surface(i-1,j+1)) &
-      !          /(4.*dx)
-      !       dhdy(i,j,2) &
-      !       = (topography_surface(i,j+1) - topography_surface(i,j))/dy
-      !
-      !       ! height of topography below v-reconstruction point
-      !
-      !       topos_v &
-      !       = 0.5*(topography_surface(i,j) + topography_surface(i,j+1))
-      !
-      !       ! coordinates of surface point connected by its surface normal
-      !       ! with the v-reconstruction point
-      !
-      !       z_sp_v &
-      !       = z(k) + (topos_v - z(k))/(1. + dhdx(i,j,2)**2 + dhdy(i,j,2)**2)
-      !       x_sp_v = x(i00+i) - dhdx(i,j,2)*(z_sp_v - z(k))
-      !       y_sp_v = y(j00+j) + dy/2. - dhdy(i,j,2)*(z_sp_v - z(k))
-      !
-      !       ! coordinates of free-atmosphere interpolation point connected
-      !       ! by the surface normal to the v-reconstruction point
-      !
-      !       z_ip(i,j,2) = z(k+1)
-      !
-      !       if (abs(dhdx(i,j,2)*dz) > dx) then
-      !          print*,'abs(dhdx(',i,',',j,',2)*dz) > dx'
-      !          print*,'vertical grid to be refined!'
-      !          stop
-      !         else
-      !          x_ip(i,j,2) = x(i00+i) - dhdx(i,j,2)*dz
-      !       end if
-      !
-      !       if (abs(dhdy(i,j,2)*dz) > dy) then
-      !          print*,'abs(dhdy(',i,',',j,',2)*dz) > dy'
-      !          print*,'vertical grid to be refined!'
-      !          stop
-      !         else
-      !          y_ip(i,j,2) = y(j00+j) + dy/2. - dhdy(i,j,2)*dz
-      !       end if
-      !
-      !       ! distance of surface point to v-reconstruction and
-      !       ! interpolation point
-      !
-      !       dRP_v = sqrt(  (x_sp_v - x(i00+i))**2 &
-      !                    + (y_sp_v - y(j00+j) - dy/2.)**2 &
-      !                    + (z_sp_v - z(k))**2)
-      !
-      !       dIP_v = sqrt(  (x_ip(i,j,2) - x_sp_v)**2 &
-      !                    + (y_ip(i,j,2) - y_sp_v)**2 &
-      !                    + (z_ip(i,j,2) - z_sp_v)**2)
-      !
-      !       ! factors for determining the normal and tangential velocity at
-      !       ! the v-reconstruction point from the corresponding velocities
-      !       ! at the interpolation point
-      !
-      !       if (z_0 > 0.) then
-      !          if (dRP_v < z_0) then
-      !             velocity_reconst_t(i,j,2) = 0.0
-      !            else
-      !             velocity_reconst_t(i,j,2) = log(dRP_v/z_0)/log(dIP_v/z_0)
-      !          endif
-      !         else
-      !          velocity_reconst_t(i,j,2) = 1.0
-      !       end if
-      !
-      !       velocity_reconst_n(i,j,2)=dRP_v/dIP_v
-      !
-      !       !--------------------------------------------------
-      !       ! fields for reconstructing w just above the surface
-      !       !--------------------------------------------------
-      !
-      !       k = kbl_topo(i,j,3)
-      !
-      !       ! gradient of topography below w-reconstruction point
-      !
-      !       dhdx(i,j,3) &
-      !       = (topography_surface(i+1,j) - topography_surface(i-1,j))/(2.*dx)
-      !       dhdy(i,j,3) &
-      !       = (topography_surface(i,j+1) - topography_surface(i,j-1))/(2.*dy)
-      !
-      !       ! height of topography below w-reconstruction point
-      !
-      !       topos_w = topography_surface(i,j)
-      !
-      !       ! coordinates of surface point connected by its surface normal
-      !       ! to the w-reconstruction point
-      !
-      !       z_sp_w &
-      !       =   z(k) + dz/2. &
-      !         + (topos_w - z(k) - dz/2.) &
-      !           /(1. + dhdx(i,j,3)**2 + dhdy(i,j,3)**2)
-      !       x_sp_w = x(i00+i) - dhdx(i,j,3)*(z_sp_w - z(k) - dz/2.)
-      !       y_sp_w = y(j00+j) - dhdy(i,j,3)*(z_sp_w - z(k) - dz/2.)
-      !
-      !       ! coordinates of free-atmosphere interpolation point connected
-      !       ! by the surface normal to the w-reconstruction point
-      !
-      !       z_ip(i,j,3) = z(k+1) + dz/2.
-      !
-      !       if (abs(dhdx(i,j,3)*dz) > dx) then
-      !          print*,'abs(dhdx(',i,',',j,',3)*dz) > dx'
-      !          print*,'vertical grid to be refined!'
-      !          stop
-      !         else
-      !          x_ip(i,j,3) = x(i00+i) - dhdx(i,j,3)*dz
-      !       end if
-      !
-      !       if (abs(dhdy(i,j,3)*dz) > dy) then
-      !          print*,'abs(dhdy(',i,',',j,',3)*dz) > dy'
-      !          print*,'vertical grid to be refined!'
-      !          stop
-      !         else
-      !          y_ip(i,j,3) = y(j00+j) - dhdy(i,j,3)*dz
-      !       end if
-      !
-      !       ! distance of surface point to w-reconstruction and
-      !       ! interpolation point
-      !
-      !       dRP_w = sqrt(  (x_sp_w - x(i00+i))**2 + (y_sp_w - y(j00+j))**2 &
-      !                    + (z_sp_w - z(k) - dz/2.)**2)
-      !
-      !       dIP_w = sqrt(  (x_ip(i,j,3) - x_sp_w)**2 &
-      !                    + (y_ip(i,j,3) - y_sp_w)**2 &
-      !                    + (z_ip(i,j,3) - z_sp_w)**2)
-      !
-      !       ! factors for determining the normal and tangential velocity at
-      !       ! the w-reconstruction point from the corresponding velocities
-      !       ! at the interpolation point
-      !
-      !       if (z_0 > 0.) then
-      !          if (dRP_w < z_0) then
-      !             velocity_reconst_t(i,j,3) = 0.0
-      !            else
-      !             velocity_reconst_t(i,j,3) = log(dRP_w/z_0)/log(dIP_w/z_0)
-      !          endif
-      !         else
-      !          velocity_reconst_t(i,j,3) = 1.0
-      !       end if
-      !
-      !       velocity_reconst_n(i,j,3)=dRP_w/dIP_w
-      !    end do
-      ! end do
     end if !topography
 
-    !UAE
 
     !---------------------------------------------
     !   Set up Sponge layer
@@ -1118,7 +809,6 @@ module atmosphere_module
         thetaStratTilde = theta00
         rhoStratTilde = rho00
 
-        ! TFC FJ
         ! Define 3D background fields.
         if(topography) then
           ! Define pStratTFC.
@@ -1137,9 +827,7 @@ module atmosphere_module
 
         ! not implemented versions
         if(referenceQuantities == "SI") stop "atmosphere.f90: &
-            &referenceQuantities = SI not impl.."
-        if(.not. fluctuationMode) stop "atmosphere.f90: only fluctuationMode &
-            &= TRUE impl.."
+            &referenceQuantities = SI not implemented"
 
         ! quantities at tropopause
         z_tr = z_tr_dim / lRef
@@ -1204,7 +892,6 @@ module atmosphere_module
           end if
         end do ! k loop
 
-        ! TFC FJ
         ! Define 3D background fields.
         if(topography) then
           do i = - nbx, nx + nbx
@@ -1251,9 +938,7 @@ module atmosphere_module
           !------------------------------------
           !   original equations in SI units
           !------------------------------------
-
-          if(fluctuationMode) stop "init_atmosphere: fluctuationMode not impl. &
-              &for SI!"
+          stop "referenceQuantities = SI not possible currently."
           T0 = Temp0_dim / thetaRef ! T0 in K
           N2 = kappa * g ** 2 / Rsp / T0 ! isothermal Brunt-Vaisala fr.^2
           NN = sqrt(N2) !
@@ -1296,12 +981,6 @@ module atmosphere_module
             end if
           end do
 
-          ! Removed inconsistency (FJJan2023).
-          ! !xxx need rhoStratTilde(-1) in fluxes.f90, line 1927 \pm
-          ! rhoStratTilde(- 1) = rhoStratTilde(0)
-          ! rhoStratTilde(nz + 1) = rhoStratTilde(nz)
-
-          ! TFC FJ
           ! Define 3D background fields.
           if(topography) then
             do i = - nbx, nx + nbx
@@ -1332,21 +1011,13 @@ module atmosphere_module
 
       case('isentropic')
 
-        if(include_ice .and. (iceTestcase == "1D_ISSR")) then
-          theta0_dim = T_nuc + 5.0
-          press0_dim = p_nuc * (theta0_dim / T_nuc) ** kappaInv
-          ! scaled reference pressure at z = 0
-          p0 = press0_dim / pRef
-        end if
 
         if(referenceQuantities == "SI") then
           !------------------------------------
           !   original equations in SI units
           !------------------------------------
 
-          if(fluctuationMode) then
-            stop "init_atmosphere: fluctuationMode not implmented for SI!"
-          end if
+          stop "init_atmosphere: fluctuationMode not implmented for SI!"
 
           NN = 0.0
           N2 = 0.0
@@ -1417,7 +1088,6 @@ module atmosphere_module
             end if
           end do
 
-          ! TFC FJ
           ! Define 3D background fields.
           if(topography) then
             do i = - nbx, nx + nbx
@@ -1451,22 +1121,11 @@ module atmosphere_module
 
       case('const-N')
 
-        if(include_ice .and. (iceTestcase == "1D_ISSR")) then
-          theta0_dim = T_nuc + 5.0
-          term = kappa * g ** 2 / (Rsp * N_BruntVaisala_dim ** 2)
-          press0_dim = p_nuc / (1. + term / theta0_dim * ((theta0_dim - term) &
-              &/ (T_nuc - term) - 1.)) ** kappaInv
-          ! scaled reference pressure at z = 0
-          p0 = press0_dim / pRef
-        end if
-
         if(referenceQuantities == "SI") then
           !------------------------------------
           !   original equations in SI units
           !------------------------------------
-          if(fluctuationMode) then
-            stop "init_atmosphere: fluctuationMode not implmented for SI!"
-          end if
+          stop "init_atmosphere: fluctuationMode not implmented for SI!"
 
           theta0 = theta0_dim / thetaRef ! theta0 at z=0 in K
           NN = N_BruntVaisala_dim * tRef
@@ -1515,9 +1174,6 @@ module atmosphere_module
 
             rhoStrat(k) = pStrat(k) / thetaStrat(k)
 
-            !testb
-            !print*,'Pstrat(',k,') =',Pstrat(k)
-            !teste
           end do
 
           ! rhoStrat at half levels
@@ -1548,7 +1204,6 @@ module atmosphere_module
             end if
           end do
 
-          ! TFC FJ
           ! Define 3D background fields.
           if(topography) then
             do i = - nbx, nx + nbx
@@ -1678,7 +1333,6 @@ module atmosphere_module
           end if
         enddo
 
-        ! TFC FJ
         ! Define 3D background fields.
         if(topography) then
           do i = - nbx, nx + nbx
@@ -1718,7 +1372,6 @@ module atmosphere_module
           end do
         end if
 
-        !UAB
         !-----------------------------------------------------------
         ! Setting for an atmmosphere according to Held & Suarez (1994)
         !-----------------------------------------------------------
@@ -1746,10 +1399,6 @@ module atmosphere_module
         ! equilibrium
 
         T_bar = max(tp_strato, tp_srf_trp - 0.5 * tpdiffhor_tropo)
-
-        !testb
-        !print*,tp_strato, tp_srf_trp - 0.5*tpdiffhor_tropo, T_bar
-        !teste
 
         pistrat(0) = 1.0 + 0.5 * dz * kappa / T_bar
         pistrat(1) = 1.0 - 0.5 * dz * kappa / T_bar
@@ -1811,51 +1460,13 @@ module atmosphere_module
 
           rhoStrat(k) = pStrat(k) / thetaStrat(k)
 
-          ! tp_sponge = T_bar
-
         end do
 
-        !UAB
         thetaStrat(- 1) = thetaStrat(0)
         pStrat(- 1) = pStrat(0)
         rhoStrat(- 1) = rhoStrat(0)
         pistrat(- 1) = pistrat(0)
-        !UAE
-
-        !      ! close jets below sponge layer !FS
-        !  do k = nz+1-ceiling((0.4)*real(nz)), nz+2 !FS
-        !      pistar = pistrat(k-2) - 2.0*dz * kappa/thetaStrat(k-1)
-        ! &
-        !              T_bar &
-        !              =  tp_sponge + pistar*(0.5*tpdiffhor_tropo &
-        !                        + 1.*ptdiffvert_tropo/kappa * log(pistar))!FS 0.5->1
-
-        !              thetastar = T_bar/pistar
-
-        !              pistrat(k) &
-        !              =   pistrat(k-1) &
-        !                - 0.5*dz * (kappa/thetastar + kappa/thetaStrat(k-1))
-
-        !              T_bar &
-        !              = tp_sponge + pistrat(k)*(0.5*tpdiffhor_tropo &
-        !                        + 1.*ptdiffvert_tropo/kappa * log(pistrat(k)))!FS 0.5->1
-
-        !              thetaStrat(k) = T_bar/pistrat(k)
-
-        !              pStrat(k) = pistrat(k)**((1.0 - kappa)/kappa)
-
-        !              rhoStrat(k) = pStrat(k)/thetaStrat(k)
-
-        !           end do
-
-        ! do k = (nz - ceiling(0.25*real(nz)))+1,nz+2 !FS
-        !    thetaStrat(k) = thetaStrat(nz - ceiling(0.25*real(nz)))
-        !    pStrat(k) = pStrat(nz - ceiling(0.25*real(nz)))
-        !    piStrat(k) = piStrat(nz - ceiling(0.25*real(nz)))
-        !    rhoStrat(k) = rhoStrat(nz - ceiling(0.25*real(nz)))
-
-        ! end do
-
+        
         ! quantities at half levels
 
         ! with the exception of the uppermost ghost layer the
@@ -1883,7 +1494,6 @@ module atmosphere_module
           end if
         enddo
 
-        ! TFC FJ
         ! Define 3D background fields.
         ! This implementation does not work yet.
         if(topography) then
@@ -1969,23 +1579,18 @@ module atmosphere_module
       bvsStrat(0) = g_ndim / thetaStrat(0) * (thetaStrat(1) - thetaStrat(0)) &
           &/ dz
 
-      !UAB
       N2 = max(bvsStrat(- 1), bvsStrat(0))
-      !UAE
 
       do k = 1, nz
         bvsStrat(k) = g_ndim / thetaStrat(k) * (thetaStrat(k + 1) &
             &- thetaStrat(k - 1)) / (2.0 * dz)
 
-        !UAB
         N2 = max(N2, bvsStrat(k))
-        !UAE
       end do
 
       bvsStrat(nz + 1) = g_ndim / thetaStrat(nz + 1) * (thetaStrat(nz + 1) &
           &- thetaStrat(nz)) / dz
 
-      !UAB
       bvsStrat(nz + 2) = bvsStrat(nz + 1)
 
       N2 = max(N2, bvsStrat(nz + 1))
@@ -1995,13 +1600,11 @@ module atmosphere_module
       else
         NN = sqrt(N2)
       end if
-      !UAE
 
       if(TestCase == "smoothVortex") then
         bvsstrat(:) = 0.
       end if
 
-      ! TFC FJ
       ! Define bvsStratTFC.
       if(topography) then
         bvsStratTFC = 0.0
@@ -2080,7 +1683,6 @@ module atmosphere_module
 
       bvsStrat = N2
 
-      ! TFC FJ
       ! Background fields.
       if(topography) then
         pStratTFC = p00
@@ -2111,10 +1713,8 @@ module atmosphere_module
     deallocate(Pstrat, stat = allocstat)
     if(allocstat /= 0) stop "atmosphere.f90: could not deallocate pStrat"
 
-    !UAB
     deallocate(pistrat, stat = allocstat)
     if(allocstat /= 0) stop "atmosphere.f90: could not deallocate pistrat"
-    !UAE
 
     deallocate(PstratTilde, stat = allocstat)
     if(allocstat /= 0) stop "atmosphere.f90: could not deallocate pStratTilde"
@@ -2137,7 +1737,6 @@ module atmosphere_module
     deallocate(RoInv, stat = allocstat) !FS
     if(allocstat /= 0) stop "atmosphere.f90: could not dealloc RoInv"
 
-    ! TFC FJ
     ! Deallocate 3D background fields.
     if(topography) then
       deallocate(pStratTFC, stat = allocstat)
@@ -2162,7 +1761,6 @@ module atmosphere_module
 
   subroutine setHalosOfField2D(field)
 
-    ! TFC FJ
     ! Subroutine needed for halos of topography.
 
     !-------------------------------
@@ -2720,10 +2318,8 @@ module atmosphere_module
 
   !---------------------------------------------------------------------------
 
-  ! TFC FJ
-  ! Jacobian.
-
   function jac(i, j, k)
+  ! Jacobian.
 
     real :: jac
     integer :: i, j, k
@@ -2732,10 +2328,9 @@ module atmosphere_module
 
   end function jac
 
-  ! TFC FJ
-  ! Metric tensor.
 
   function met(i, j, k, mu, nu)
+  ! Metric tensor.
 
     real :: met
     integer :: i, j, k, mu, nu
@@ -2759,10 +2354,9 @@ module atmosphere_module
 
   end function met
 
-  ! TFC FJ
-  ! Christophel tensor.
 
   function chris(i, j, k, mu, nu)
+  ! Christophel tensor.
 
     real :: chris
     integer :: i, j, k, mu, nu
@@ -2790,10 +2384,9 @@ module atmosphere_module
 
   end function chris
 
-  ! TFC FJ
-  ! Transformation of vertical coordinate.
 
   function heightTFC(i, j, k)
+  ! Transformation of vertical coordinate.
 
     real :: heightTFC
     integer :: i, j, k
@@ -2814,10 +2407,9 @@ module atmosphere_module
 
   end function levelTFC
 
-  ! TFC FJ
-  ! Transformation of the vertical wind.
 
   function vertWindTFC(i, j, k, var)
+  ! Transformation of the vertical wind.
 
     type(var_type) :: var
     integer :: i, j, k
@@ -3016,10 +2608,9 @@ module atmosphere_module
 
   end function trafoTFC
 
-  ! TFC FJ
-  ! Cartesian stress tensor.
 
   function stressTensTFC(i, j, k, mu, nu, var)
+  ! Cartesian stress tensor.
 
     type(var_type) :: var
     integer :: i, j, k, mu, nu
