@@ -4,6 +4,7 @@ module boundary_module
   use flux_module ! BC for rhoTilde, uTilde,...
   use atmosphere_module
   use mpi_module
+  use mpi
 
   implicit none
 
@@ -149,19 +150,6 @@ module boundary_module
         end if
       end if
 
-      if(updateIce) then
-        do iVar = 1, 4
-          do i = 1, nbx
-            var%ICE(nx + i, :, :, iVar) = var%ICE(i, :, :, iVar)
-            var%ICE(- i + 1, :, :, iVar) = var%ICE(nx - i + 1, :, :, iVar)
-          end do
-        end do
-
-        if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal &
-            &BC for ice variables set."
-
-      end if
-
       ! set boundaries if including tracer
       if(updateTracer) then
         do i = 1, nbx
@@ -227,7 +215,8 @@ module boundary_module
       end if
 
     case("ice")
-      do iVar = 1, 4
+      ! ice variables
+      do iVar = 1, nVarIce
         do i = 1, nbx
           var%ICE(nx + i, :, :, iVar) = var%ICE(i, :, :, iVar)
           var%ICE(- i + 1, :, :, iVar) = var%ICE(nx - i + 1, :, :, iVar)
@@ -236,18 +225,6 @@ module boundary_module
 
       if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal BC &
           &for ice variables set."
-
-    case("ice2")
-      ! ice2 variables
-      do iVar = 1, nVarIce
-        do i = 1, nbx
-          var%ICE2(nx + i, :, :, iVar) = var%ICE2(i, :, :, iVar)
-          var%ICE2(- i + 1, :, :, iVar) = var%ICE2(nx - i + 1, :, :, iVar)
-        end do
-      end do
-
-      if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal BC &
-          &for ice2 variables set."
 
     case("iceTilde")
       ! reconstructed density needed in ghost cell i = nx+2
@@ -417,19 +394,7 @@ module boundary_module
         end if
       end if
 
-      if(updateIce) then
-        do iVar = 1, 4
-          do j = 1, nby
-            var%ICE(:, ny + j, :, iVar) = var%ICE(:, j, :, iVar)
-            var%ICE(:, - j + 1, :, iVar) = var%ICE(:, ny - j + 1, :, iVar)
-          end do
-        end do
-
-        if(verbose .and. master) print *, "horizontalBoundary:  y-horizontal &
-            &BC for ice variables set."
-
-      end if
-
+    
       ! set boundaries if including tracer
       if(updateTracer) then
         do j = 1, nby
@@ -495,23 +460,13 @@ module boundary_module
         end if
       end if
 
+
     case("ice")
-      do iVar = 1, 4
+      ! ice variables
+      do iVar = 1, nVarIce
         do j = 1, nby
           var%ICE(:, ny + j, :, iVar) = var%ICE(:, j, :, iVar)
           var%ICE(:, - j + 1, :, iVar) = var%ICE(:, ny - j + 1, :, iVar)
-        end do
-      end do
-
-      if(verbose .and. master) print *, "horizontalBoundary:  y-horizontal BC &
-          &for ice variables set."
-
-    case("ice2")
-      ! ice2 variables
-      do iVar = 1, nVarIce
-        do j = 1, nby
-          var%ICE2(:, ny + j, :, iVar) = var%ICE2(:, j, :, iVar)
-          var%ICE2(:, - j + 1, :, iVar) = var%ICE2(:, ny - j + 1, :, iVar)
         end do
       end do
 
@@ -674,18 +629,6 @@ module boundary_module
         end if
       end if
 
-      if(updateIce) then
-        do iVar = 1, 4
-          do k = 1, nbz
-            var%ICE(:, :, nz + k, iVar) = var%ICE(:, :, k, iVar)
-            var%ICE(:, :, - k + 1, iVar) = var%ICE(:, :, nz - k + 1, iVar)
-          end do
-        end do
-
-        if(verbose .and. master) print *, "setBoundary_z_periodic:  z-periodic &
-            &BC for ice variables set."
-
-      end if
 
       ! set boundaries if including tracer
       if(updateTracer) then
@@ -750,23 +693,13 @@ module boundary_module
         end if
       end if
 
+
     case("ice")
-      do iVar = 1, 4
+      ! ice variables
+      do iVar = 1, nVarIce
         do k = 1, nbz
           var%ICE(:, :, nz + k, iVar) = var%ICE(:, :, k, iVar)
           var%ICE(:, :, - k + 1, iVar) = var%ICE(:, :, nz - k + 1, iVar)
-        end do
-      end do
-
-      if(verbose .and. master) print *, "setBoundary_z_periodic:  z-periodic &
-          &BC for ice variables set."
-
-    case("ice2")
-      ! ice2 variables
-      do iVar = 1, nVarIce
-        do k = 1, nbz
-          var%ICE2(:, :, nz + k, iVar) = var%ICE2(:, :, k, iVar)
-          var%ICE2(:, :, - k + 1, iVar) = var%ICE2(:, :, nz - k + 1, iVar)
         end do
       end do
 
@@ -926,31 +859,23 @@ module boundary_module
         ! deviations from the environmental state are reflected
 
         if(testCase == "baroclinic_LC") then
-          if(fluctuationMode) then
-            if(topography) then
-              ! TFC FJ
-              var%rho(1:nx, 1:ny, 0) = - var%rho(1:nx, 1:ny, 1) &
-                  &+ dens_env_pp(:, :, 1) - rhoStratTFC(1:nx, 1:ny, 1) &
-                  &+ dens_env_pp(:, :, 0) - rhoStratTFC(1:nx, 1:ny, 0)
-
-              var%rho(1:nx, 1:ny, nz + 1) = - var%rho(1:nx, 1:ny, nz) &
-                  &+ dens_env_pp(:, :, nz) - rhoStratTFC(1:nx, 1:ny, nz) &
-                  &+ dens_env_pp(:, :, nz + 1) - rhoStratTFC(1:nx, 1:ny, nz + 1)
-            else
-              var%rho(1:nx, 1:ny, 0) = - var%rho(1:nx, 1:ny, 1) &
-                  &+ dens_env_pp(:, :, 1) - rhoStrat(1) + dens_env_pp(:, :, 0) &
-                  &- rhoStrat(0)
-
-              var%rho(1:nx, 1:ny, nz + 1) = - var%rho(1:nx, 1:ny, nz) &
-                  &+ dens_env_pp(:, :, nz) - rhoStrat(nz) + dens_env_pp(:, :, &
-                  &nz + 1) - rhoStrat(nz + 1)
-            end if
-          else
-            var%rho(1:nx, 1:ny, 0) = - var%rho(1:nx, 1:ny, 1) + dens_env_pp(:, &
-                &:, 1) + dens_env_pp(:, :, 0)
+          if(topography) then
+            ! TFC FJ
+            var%rho(1:nx, 1:ny, 0) = - var%rho(1:nx, 1:ny, 1) &
+                &+ dens_env_pp(:, :, 1) - rhoStratTFC(1:nx, 1:ny, 1) &
+                &+ dens_env_pp(:, :, 0) - rhoStratTFC(1:nx, 1:ny, 0)
 
             var%rho(1:nx, 1:ny, nz + 1) = - var%rho(1:nx, 1:ny, nz) &
-                &+ dens_env_pp(:, :, nz) + dens_env_pp(:, :, nz + 1)
+                &+ dens_env_pp(:, :, nz) - rhoStratTFC(1:nx, 1:ny, nz) &
+                &+ dens_env_pp(:, :, nz + 1) - rhoStratTFC(1:nx, 1:ny, nz + 1)
+          else
+            var%rho(1:nx, 1:ny, 0) = - var%rho(1:nx, 1:ny, 1) &
+                &+ dens_env_pp(:, :, 1) - rhoStrat(1) + dens_env_pp(:, :, 0) &
+                &- rhoStrat(0)
+
+            var%rho(1:nx, 1:ny, nz + 1) = - var%rho(1:nx, 1:ny, nz) &
+                &+ dens_env_pp(:, :, nz) - rhoStrat(nz) + dens_env_pp(:, :, &
+                &nz + 1) - rhoStrat(nz + 1)
           end if
         else if(testCase == "smoothVortex") then
           var%rho(1:nx, 1:ny, 0) = var%rho(1:nx, 1:ny, 1)
@@ -1003,16 +928,6 @@ module boundary_module
         do k = 1, nbz
           var%P(:, :, - k + 1) = var%P(:, :, k)
           var%P(:, :, nz + k) = var%P(:, :, nz - k + 1)
-        end do
-      end if
-
-      if(updateIce) then
-        ! reflect at boundary without change of sign
-        do iVar = 1, 4
-          do k = 1, nbz
-            var%ICE(:, :, - k + 1, iVar) = var%ICE(:, :, k, iVar)
-            var%ICE(:, :, nz + k, iVar) = var%ICE(:, :, nz - k + 1, iVar)
-          end do
         end do
       end if
 
@@ -1324,7 +1239,7 @@ module boundary_module
         else
           ! z = 0
           var%pi(:, :, 0) = var%pi(:, :, 1)
-
+          
           ! z = zMax
           var%pi(:, :, nz + 1) = var%pi(:, :, nz)
         end if
@@ -1335,22 +1250,14 @@ module boundary_module
 
       if(testCase == "baroclinic_LC") call setHalos(var, "var")
 
-    case("ice")
-      ! reflect at boundary without change of sign
-      do iVar = 1, 4
-        do k = 1, nbz
-          var%ICE(:, :, - k + 1, iVar) = var%ICE(:, :, k, iVar)
-          var%ICE(:, :, nz + k, iVar) = var%ICE(:, :, nz - k + 1, iVar)
-        end do
-      end do
 
-    case("ice2")
+    case("ice")
       ! reflect at boundary with change of sign
       ! at boundary var = 0
       do iVar = 1, nVarIce
         do k = 1, nbz
-          var%ICE2(:, :, - k + 1, iVar) = - var%ICE2(:, :, k, iVar)
-          var%ICE2(:, :, nz + k, iVar) = - var%ICE2(:, :, nz - k + 1, iVar)
+          var%ICE(:, :, - k + 1, iVar) = - var%ICE(:, :, k, iVar)
+          var%ICE(:, :, nz + k, iVar) = - var%ICE(:, :, nz - k + 1, iVar)
         end do
       end do
 
@@ -1358,66 +1265,6 @@ module boundary_module
       !nothing
 
     case("iceFlux")
-      ! set vertical fluxes at wall to 0
-      ! analog to mass flux modification above
-
-      ! ice variables iVar=nVar-3,nVar
-      !       do iVar = nVar-3, nVar
-      !         flux(:,:,0,3,iVar) = 0.0
-      !         flux(:,:,nz,3,iVar) = 0.0
-      !       end do
-
-      !       if (verbose .and. master) print*,"boundary.f90/verticalBoundary: &
-      !            &vertical BC for ice variables set"
-
-      ! replace flux by CDS fluxes at upper / lower region
-      !       if( iceFluxCorr ) then
-
-      ! vertical ice fluxes in the bottom region
-      !         do k = 1, nbCellCorr
-      !           do j = 1,ny
-      !             do i = 1,nx
-      !               do iVar = nVar-3, nVar
-      !                 if( fluctuationMode ) then
-      !                   rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
-      !                   rhoD = var(i,j,k,1)   + rhoStrat(k)
-      !                 else
-      !                   rhoU = var(i,j,k+1,1)
-      !                   rhoD = var(i,j,k,1)
-      !                 end if
-      !                 rhoU = rhoU*var(i,j,k+1,iVar) ! reuse of above variables
-      !                 ! names do not necessarily refer to rho
-      !                 rhoD = rhoD*var(i,j,k,iVar)
-      !                 wSurf = var(i,j,k,4)
-      !                 hRho = wSurf * 0.5*(rhoD + rhoU)
-      !                 flux(i,j,k,3,iVar) = hRho
-      !               end do
-      !             end do
-      !           end do
-      !         end do
-
-      ! vertical ice fluxes at the top region
-      !         do k = nz-1,nz-nbCellCorr,-1
-      !           do j = 1,ny
-      !             do i = 1,nx
-      !               do iVar = nVar-3, nVar
-      !                 if( fluctuationMode ) then
-      !                   rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
-      !                   rhoD = var(i,j,k,1)   + rhoStrat(k)
-      !                 else
-      !                   rhoU = var(i,j,k+1,1)
-      !                   rhoD = var(i,j,k,1)
-      !                 end if
-      !                 rhoU = rhoU*var(i,j,k+1,iVar)
-      !                 rhoD = rhoD*var(i,j,k,iVar)
-      !                 wSurf = var(i,j,k,4)
-      !                 hRho = wSurf * 0.5*(rhoD + rhoU)
-      !                 flux(i,j,k,3,iVar) = hRho
-      !               end do
-      !             end do
-      !           end do
-      !         end do
-      !      end if ! iceFluxCorr
 
       !---------------------------------------------------------------
 
@@ -1475,64 +1322,6 @@ module boundary_module
         flux%chi(:, :, nz, 3) = 0.0
       end if
 
-      ! ice variables iVar=nVar-3,nVar
-      !   do iVar = nVar-3, nVar
-      !     flux(:,:,0,3,iVar) = 0.0
-      !     flux(:,:,nz,3,iVar) = 0.0
-      !   end do
-
-      !   if (verbose .and. master) print*,"boundary.f90/verticalBoundary: &
-      !        &vertical BC for ice variables set"
-      !
-      ! replace flux by CDS fluxes at upper / lower region
-      !   if( iceFluxCorr ) then
-
-      ! vertical ice fluxes in the bottom region
-      !      do k = 1, nbCellCorr
-      !        do j = 1,ny
-      !          do i = 1,nx
-      !            do iVar = nVar-3, nVar
-      !              if( fluctuationMode ) then
-      !                rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
-      !                rhoD = var(i,j,k,1)   + rhoStrat(k)
-      !              else
-      !                rhoU = var(i,j,k+1,1)
-      !                rhoD = var(i,j,k,1)
-      !              end if
-      !              rhoU = rhoU*var(i,j,k+1,iVar) ! reuse of above variables
-      !              ! names do not necessarily refer to rho
-      !              rhoD = rhoD*var(i,j,k,iVar)
-      !              wSurf = var(i,j,k,4)
-      !              hRho = wSurf * 0.5*(rhoD + rhoU)
-      !              flux(i,j,k,3,iVar) = hRho
-      !            end do
-      !          end do
-      !        end do
-      !      end do
-
-      ! vertical ice fluxes at the top region
-      !      do k = nz-1,nz-nbCellCorr,-1
-      !        do j = 1,ny
-      !          do i = 1,nx
-      !            do iVar = nVar-3, nVar
-      !              if( fluctuationMode ) then
-      !                rhoU = var(i,j,k+1,1) + rhoStrat(k+1)
-      !                rhoD = var(i,j,k,1)   + rhoStrat(k)
-      !              else
-      !                rhoU = var(i,j,k+1,1)
-      !                rhoD = var(i,j,k,1)
-      !              end if
-      !              rhoU = rhoU*var(i,j,k+1,iVar)
-      !              rhoD = rhoD*var(i,j,k,iVar)
-      !             wSurf = var(i,j,k,4)
-      !              hRho = wSurf * 0.5*(rhoD + rhoU)
-      !              flux(i,j,k,3,iVar) = hRho
-      !            end do
-      !          end do
-      !        end do
-      !      end do
-      !   end if ! iceFluxCorr
-      !end if ! updateIce
 
       if(updateTheta) then
         if(timeScheme == "semiimplicit") then

@@ -13,7 +13,6 @@ program pinc_prog
   use init_module
   use debug_module
   use wkb_module
-  use output_module
   use xweno_module
   use atmosphere_module
   use boundary_module
@@ -22,10 +21,11 @@ program pinc_prog
   use poisson_module
   use finish_module
   use ice_module
-  use ice2_module
   use sizeof_module
   use bicgstab_tools_module
   use tracer_module
+  use mpi
+  use output_netCDF_module
 
   ! test
   use algebra_module
@@ -56,6 +56,7 @@ program pinc_prog
   real, dimension(:, :, :, :), allocatable :: dIce ! RK-Update for nAer,nIce,qIce,qv
   real, dimension(:, :, :), allocatable :: dTracer
   real, dimension(:, :, :), allocatable :: dPot !RK-Update for P
+  real, dimension(:, :, :), allocatable :: dPhase
 
   real, dimension(:), allocatable :: dPStrat, drhoStrat !RK update for P
   real, dimension(:), allocatable :: w_0
@@ -68,13 +69,11 @@ program pinc_prog
   type(rayType), dimension(:, :, :, :), allocatable :: ray
   real, dimension(:, :, :, :), allocatable :: ray_var3D
   real, dimension(:, :, :), allocatable :: diffusioncoeff
-  real, dimension(:, :, :, :), allocatable :: tracerfluxvar
-  type(waveAmp), dimension(:, :, :), allocatable :: lowamp, nowamp, rhsamp
+  type(waveAmpType), dimension(:, :, :), allocatable :: waveAmplitudes
 
   ! topography via force field
   real, dimension(:, :, :, :), allocatable :: force ! volume forces
-  real, dimension(:, :, :, :), allocatable :: tracerforce ! tracer forcing
-  ! force(i,j,k,forceVector)
+  type(tracerForceType), dimension(:, :, :), allocatable :: tracerforce ! tracer forcing
 
   ! output per timeStep
   logical :: output
@@ -126,7 +125,7 @@ program pinc_prog
 
   !SD
   integer :: n_step_ice, ii
-  real :: dtt_ice2
+  real :: dtt_ice
   real :: uTime, qTime
 
   !-------------------------------------------------
@@ -187,7 +186,6 @@ program pinc_prog
       &dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer, tracerforce, dPot)
 
   call init_atmosphere ! set atmospheric background state
-  call init_output
 
   call initialise(var, flux) ! set initial conditions
 
@@ -198,7 +196,6 @@ program pinc_prog
 
   if(include_tracer) call setup_tracer(var)
 
-  ! TFC FJ
   if(.not. topography .and. model /= "Boussinesq") then
 
     ! determine difference between reference-atmosphere density and
@@ -215,11 +212,7 @@ program pinc_prog
     do k = 1, nz
       do j = 1, ny
         do i = 1, nx
-          if(fluctuationMode) then
-            sum_local(k) = sum_local(k) + var%rho(i, j, k) + rhoStrat(k)
-          else
-            sum_local(k) = sum_local(k) + var%rho(i, j, k)
-          end if
+          sum_local(k) = sum_local(k) + var%rho(i, j, k) + rhoStrat(k)
         end do
       end do
     end do
@@ -231,12 +224,6 @@ program pinc_prog
 
     do k = 1, nz
       rhoStrat_s(k) = rhoStrat(k) - sum_global(k)
-      ! FJApr2023
-      ! if(master) then
-      !   print *, 'rhoStrat(', k, ') =', rhoStrat(k)
-      !   print *, 'sum_global(', k, ') =', sum_global(k)
-      !   print *, 'rhoStrat_d(', k, ') =', rhoStrat_s(k)
-      ! end if
     end do
 
   end if
@@ -258,13 +245,7 @@ program pinc_prog
   ice_time_steps = 1
 
   if(zero_initial_state) then
-    if(fluctuationMode) then
-      call reset_var_type(var)
-    else
-      print *, 'ERROR: zero_initial_state = .true. requires  fluctuationMode &
-          &= .true.'
-      stop
-    end if
+    call reset_var_type(var)
   end if
 
   ! TFC FJ
@@ -396,20 +377,47 @@ program pinc_prog
   !-------------------------------------------------
   !              Read initial data
   !-------------------------------------------------
-  if(restart) then
-    !restart from previous output
+  if(restart) then 
 
-    call read_profile(iIn, PStrat, "Pstrat_in.dat")
-    call read_data(iIn, var, time)
+    if (master) then
+      print *, "reading restart files"
+    end if
+
+    if (rayTracer) then 
+      iIn = -1
+      call read_netCDF(iIn, var, ray, time)
+    else
+      call read_netCDF(iIn, var, time = time)
+    end if
+
+    if (include_tracer) then 
+      if (topography) then
+        do ix = 1, nx 
+          do jy = 1, ny 
+            do kz = 1, nz 
+              var%chi(ix, jy, kz) = var%chi(ix, jy, kz) * &
+                (var%rho(ix, jy, kz) + rhoStratTFC(ix, jy, kz))
+            end do
+          end do
+        end do
+      else
+        do kz = 1, nz
+          var%chi(:, :, kz) = var%chi(:, :, kz) * &
+            (var%rho(:, :, kz) + rhoStrat(kz))
+        end do
+      end if
+    end if
 
     piStrat(:) = PStrat(:) ** (kappa / (1. - kappa))
 
     if(maxTime < time * tRef) stop "restart error: maxTime < current time"
 
     call setHalos(var, "var")
-    if(include_tracer) call setHalos(var, "tracer")
+    if (include_tracer) call setHalos(var, "tracer")
     call setBoundary(var, flux, "var")
+
   end if
+
 
   !---------------------------------------------
   !               Init ray tracer
@@ -419,10 +427,10 @@ program pinc_prog
 
     ! allocate ray fields
 
-    call setup_wkb(ray, ray_var3D, var, diffusioncoeff, tracerfluxvar, lowamp, &
-        &nowamp, rhsamp)
+    call setup_wkb(ray, ray_var3D, var, diffusioncoeff, waveAmplitudes, &
+      dPhase)
 
-    if(include_ice2) then
+    if(include_ice) then
       uTime = 0 !set initial time
       !Init ofield to zero except omega, phi (2,3)
       ofield(:, :, :, 1) = 0. !p_i(0)
@@ -434,18 +442,14 @@ program pinc_prog
   !------------------------------------------
   !              Initial output
   !------------------------------------------
-  call output_data(iOut, var, iTime, time, cpuTime)
-  if(TestCase == 'baroclinic_LC') then
-    call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
-  end if
-
-  ! FJFeb2023
-  if(model /= "Boussinesq") then
-    call output_background(iOut)
-  end if
-
-  if(rayTracer) then
-    call output_wkb(iOut, ray, ray_var3D)
+  ! create netCDF file pincflow_data.nc
+  call create_netCDF
+  ! write grid fields and background fields into netCDF file
+  ! write initial variables to netCDF file
+  if (rayTracer) then 
+    call write_netCDF(iOut, time, iTime, var, waveAmplitudes = waveAmplitudes)
+  else
+    call write_netCDF(iOut, time, iTime, var)
   end if
 
   output = .false.
@@ -456,14 +460,6 @@ program pinc_prog
   if(spongeLayer) then
     allocate(alpbls(0:ny + 1), stat = allocstat)
     if(allocstat /= 0) stop "pinc.f90: could not allocate alpbls"
-  end if
-
-  if(master) then
-    open(123, file = 'dt.dat')
-    if(TestCase == "atmosphereatrest") then
-      open(124, file = 'w_max.dat')
-      !open(125, file = 'theta_max.dat')
-    end if
   end if
 
   !-----------------------------------------------------
@@ -498,10 +494,6 @@ program pinc_prog
     !----------------------------------
 
     call timestep(var, dt, errFlagTstep)
-    if(master) then
-      write(123, *) iTime, dt * tRef
-
-    end if
 
     ! abort if time step too small
     if(dt * tRef < dtMin_dim) then
@@ -517,19 +509,20 @@ program pinc_prog
       end if
 
       ! final output
-      call output_data(iOut, var, iTime, time, cpuTime)
-      if(TestCase == 'baroclinic_LC') then
-        call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
+      if (rayTracer) then
+        if (include_tracer) then
+          call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
+          tracerforce=tracerforce, waveAmplitudes=waveAmplitudes, &
+          ray = ray)
+        else
+          call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
+          waveAmplitudes=waveAmplitudes, ray = ray)
+        end if
+      else
+        call write_netCDF(iOut, time, iTime, var)
       end if
 
-      ! FJFeb2023
-      if(model /= "Boussinesq") then
-        call output_background(iOut)
-      end if
-
-      if(rayTracer) then
-        call output_wkb(iOut, ray, ray_var3D)
-      end if
+      call close_netCDF
 
       call mpi_barrier(comm, ierror)
       call mpi_finalize(ierror)
@@ -546,12 +539,7 @@ program pinc_prog
         output = .true.
         if(master) then
           write(*, fmt = "(a25,es15.4,a8)") "dt for output = ", dt * tRef, &
-              &"seconds"
-          if(TestCase == "atmosphereatrest") then
-            wmax = maxVal(abs(var%w(1:nx, 1:ny, 1:nz)))
-
-            write(124, fmt = "(es15.4,es15.4)") time * tRef, wmax * uRef
-          end if
+              "seconds"
         end if
       end if
     end if
@@ -792,19 +780,6 @@ program pinc_prog
             kr_sp_w(:, k) = kr_sp(:, k)
           end do
 
-          ! do j = 1, ny
-          !    yloc = y(j+j00)
-          !    if (yloc <= 0.) then
-          !       kr_sp_w(j,:) = kr_sp_w(j,:)+ alpspg* &! abs(sin(pi*yloc/ymax)) ! &
-          !             (1. &
-          !             + (0.-1.) &
-          !               *( 1.0 &
-          !                 -0.5 &
-          !                  *( tanh(((-1.)*yloc/ymax-0.25)/sigma_tau) &
-          !                    -tanh(((-1.)*yloc/ymax-0.75)/sigma_tau))) )
-          !    end if
-          ! end do
-
           kr_sp(:, nz + 1) = kr_sp(:, nz)
           kr_sp_w(ny + 1, :) = kr_sp_w(ny, :)
           kr_sp_w(0, :) = kr_sp_w(1, :)
@@ -846,28 +821,26 @@ program pinc_prog
 
       force = 0.0
 
-      ! initialize zero tracer force
-      if(include_tracer) then
-        tracerforce = 0.0
-      end if
-
       ! Lagrangian WKB model (position-wavenumber space method)
 
       if(rayTracer) then
         do RKstage = 1, nStages
           call transport_rayvol(var, ray, dt, RKstage, time)
-
+                    
           if(RKstage == nStages) then
             call boundary_rayvol(ray)
             call split_rayvol(ray)
             call shift_rayvol(ray)
             call merge_rayvol(ray)
 
-            call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
-                &diffusioncoeff, tracerfluxvar, tracerforce, lowamp, nowamp, &
-                &rhsamp)
+            call calc_meanFlow_effect(ray, var, force, ray_var3D)
 
-            if(include_ice2) then
+            if (include_tracer) then 
+              call calc_tracerforce(ray, var, ray_var3D, tracerforce, &
+              waveAmplitudes, dt)
+            end if
+
+            if(include_ice) then
               call calc_ice(ray, var)
             end if
           end if
@@ -887,21 +860,14 @@ program pinc_prog
       ! Boussinesq: density fluctuations are only stored in var(:, :, :, 6)!
       select case(model)
       case("pseudo_incompressible")
-        if(fluctuationMode) then
-          if(topography) then
-            ! TFC FJ
-            ! Stationary background in TFC.
-            var%rhop(:, :, :) = var%rho(:, :, :)
-          else
-            do kz = - 1, nz + 2
-              var%rhop(:, :, kz) = var%rho(:, :, kz) + rhoStrat(kz) &
-                  &- rhoStrat_0(kz) * PStrat(kz) / PStrat_0(kz)
-            end do
-          end if
+        if(topography) then
+          ! TFC FJ
+          ! Stationary background in TFC.
+          var%rhop(:, :, :) = var%rho(:, :, :)
         else
           do kz = - 1, nz + 2
-            var%rhop(:, :, kz) = var%rho(:, :, kz) - rhoStrat_0(kz) &
-                &* PStrat(kz) / PStrat_0(kz)
+            var%rhop(:, :, kz) = var%rho(:, :, kz) + rhoStrat(kz) &
+                &- rhoStrat_0(kz) * PStrat(kz) / PStrat_0(kz)
           end do
         end if
       case("compressible")
@@ -951,10 +917,8 @@ program pinc_prog
       !     with the advection velocity kept constant
       !     \psi^# = \psi^n + A^{dt/2} (\psi^n, v^n)
 
-      !testb
       if(master) print *, 'beginning a semi-implicit time step'
       if(master) print *, '(1) explicit integration lhs over dt/2'
-      !teste
 
       do RKstage = 1, nStages
         ! Reconstruction
@@ -1038,9 +1002,7 @@ program pinc_prog
       !     time step, under consideration of the divergence constraint
       !     \psi^{n+1/2} = \psi^# + dt/2 Q(\psi^{n+1/2})
 
-      !testb
       if(master) print *, '(2) implicit integration rhs over dt/2'
-      !teste
 
       ! SK: Save JPu in var instead of u for updates
       if(model == "compressible") then
@@ -1070,7 +1032,6 @@ program pinc_prog
       end if
 
       if(topography) then
-        ! TFC FJ
         ! uStar and vStar are needed for update of density fluctuations,
         ! therefore w is stored instead of rhop
 
@@ -1111,8 +1072,7 @@ program pinc_prog
         call setBoundary(var, flux, "var")
       end if
 
-      ! ! Shapiro filter
-
+      ! Shapiro filter
       if(shap_dts_fac > 0.) then
         ! smoothing of the fields in order to limit grid-point noise
 
@@ -1125,36 +1085,30 @@ program pinc_prog
 
       ! corrector: rhopStar, uStar, vStar, wStar
       !            -> new rhop, u, v, w
-
       call Corrector(var, flux, dMom, 0.5 * dt, errFlagBicg, nIterBicg, &
           &RKstage, "impl", 1., 1.)
 
       if(errFlagBicg) then
-        call output_data(iOut, var, iTime, time, cpuTime)
-        if(TestCase == 'baroclinic_LC') then
-          call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
+        if (rayTracer) then
+          if (include_tracer) then
+            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
+            tracerforce=tracerforce, waveAmplitudes=waveAmplitudes, &
+            ray = ray)
+          else
+            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
+            waveAmplitudes=waveAmplitudes, ray = ray)
+          end if
+        else
+          call write_netCDF(iOut, time, iTime, var)
         end if
+      
+        call close_netCDF
 
-        if(model /= "Boussinesq") then
-          call output_background(iOut)
+        if (master) then
+          print *, 'output last state into record', iOut
         end if
-
-        print *, 'output last state into record', iOut
-
         stop
       end if
-
-      ! Shapiro filter
-
-      ! if (shap_dts_fac > 0.) then
-      !    ! smoothing of the fields in order to limit grid-point noise
-
-      !    shap_dts = shap_dts_fac * dt
-
-      !    fc_shap = min( 1.0, 0.5*dt/shap_dts)
-
-      !    call smooth_hor_shapiro(fc_shap,n_shap,flux,var,0.5*dt)
-      ! end if
 
       nTotalBicg = nTotalBicg + nIterBicg
 
@@ -1181,15 +1135,12 @@ program pinc_prog
       !
       !     could also be replaced by an implicit time step
 
-      !testb
       if(master) print *, '(3) explicit integration rhs over dt/2'
-      !teste
 
-      ! TFC FJ
       ! (3) uses updated pressure field and (5) adjusts pressure over half a
       ! time step!
       ! var = var0
-      var%rho(:, :, :) = var0%rho(:, :, :) !FSApr2021
+      var%rho(:, :, :) = var0%rho(:, :, :) 
       var%u(:, :, :) = var0%u(:, :, :)
       var%v(:, :, :) = var0%v(:, :, :)
       var%w(:, :, :) = var0%w(:, :, :)
@@ -1260,9 +1211,7 @@ program pinc_prog
       !     with the advection velocity kept constant
       !     \psi^{\ast\ast} = \psi^\ast + A^dt (\psi^\ast, v^{n+1/2})
 
-      !testb
       if(master) print *, '(4) explicit integration lhs over dt'
-      !teste
 
       var0 = var1
 
@@ -1340,7 +1289,7 @@ program pinc_prog
         call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "uvw")
 
         !SD
-        !if(include_ice2) call integrate_ice_advection(var, var0, flux, "lin", &
+        !if(include_ice) call integrate_ice_advection(var, var0, flux, "lin", &
         !    source, dt, dIce, RKstage, PStrat01, PStratTilde01)
 
       end do
@@ -1360,9 +1309,7 @@ program pinc_prog
       !     time step, under consideration of the divergence constraint
       !     \psi^{n+1} = \psi^{\ast\ast} + dt/2 Q(\psi^{n+1})
 
-      !testb
       if(master) print *, '(5) implicit integration rhs over dt/2'
-      !teste
 
       ! SK: Save JPu in var instead of u for updates
       if(model == "compressible") then
@@ -1451,7 +1398,6 @@ program pinc_prog
       if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
 
-      ! TFC FJ
       ! (3) uses updated pressure field and (5) adjusts pressure over half a
       ! time step!
       ! call Corrector ( var, flux, dMom, 0.5*dt, errFlagBicg, nIterBicg, &
@@ -1464,31 +1410,35 @@ program pinc_prog
       end if
 
       if(errFlagBicg) then
-        call output_data(iOut, var, iTime, time, cpuTime)
-        if(TestCase == 'baroclinic_LC') then
-          call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
+        if (rayTracer) then
+          if (include_tracer) then
+            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
+            tracerforce=tracerforce, waveAmplitudes=waveAmplitudes, &
+            ray = ray)
+          else
+            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
+            waveAmplitudes=waveAmplitudes, ray = ray)
+          end if
+        else
+          call write_netCDF(iOut, time, iTime, var)
         end if
-        ! FJFeb2023
-        if(model /= "Boussinesq") then
-          call output_background(iOut)
+      
+        call close_netCDF
+
+        if (master) then
+          print *, 'output last state into record', iOut
         end if
-
-        print *, 'output last state into record', iOut
-
         stop
       end if
 
-      !UAB for safety
+      ! for safety
       call setHalos(var, "var")
       if(include_tracer) call setHalos(var, "tracer")
       call setBoundary(var, flux, "var")
-      !UAE
 
       nTotalBicg = nTotalBicg + nIterBicg
 
-      !testb
       if(master) print *, 'semi-implicit time step done'
-      !teste
 
     else ! (timeScheme /= "semiimplicit") explicit time stepping
 
@@ -1504,8 +1454,6 @@ program pinc_prog
         if(TurbScheme) then
           if(DySmaScheme) then
             call CoefDySma_update(var)
-            !call CoefDySma_update(var,dt)
-            ! var(:, :, :, 7) = min(var(:, :, :, 7), 1.e0 / (dt * pi ** 2))
           else
             var%DSC(:, :, :) = tRef / turb_dts
           end if
@@ -1519,8 +1467,6 @@ program pinc_prog
 
         ! initialize density fluctuations for the integration
         if(auxil_equ .or. heatingONK14 .or. TurbScheme .or. rayTracer) then
-          !UAE 200413
-          ! TFC FJ
           if(model /= "pseudo_incompressible" .and. model /= "Boussinesq") then
             stop "Auxiliary equation only ready for pseudo-incompressible and &
                 &Boussinesq"
@@ -1528,30 +1474,19 @@ program pinc_prog
 
           alprlx = 0.
 
-          ! TFC FJ
-          ! Boussinesq: density fluctuations are only stored in
-          ! var(:, :, :, 6)!
           if(model == "pseudo_incompressible") then
-            if(fluctuationMode) then !ONK14 changes March2021
-              if(topography) then
-                ! TFC FJ
-                ! Stationary background in TFC.
-                var%rhop(:, :, :) = var%rho(:, :, :)
-              else
-                do kz = - 1, nz + 2
-                  var%rhop(:, :, kz) = var%rho(:, :, kz) + rhoStrat(kz) &
-                      &- rhoStrat_0(kz) * PStrat(kz) / PStrat_0(kz)
-                end do
-              end if
+            if(topography) then
+              ! Stationary background in TFC.
+              var%rhop(:, :, :) = var%rho(:, :, :)
             else
               do kz = - 1, nz + 2
-                var%rhop(:, :, kz) = var%rho(:, :, kz) - rhoStrat_0(kz) &
-                    &* PStrat(kz) / PStrat_0(kz)
+                var%rhop(:, :, kz) = var%rho(:, :, kz) + rhoStrat(kz) &
+                    &- rhoStrat_0(kz) * PStrat(kz) / PStrat_0(kz)
               end do
             end if
           end if
 
-          var0 = var !UA 200413
+          var0 = var
 
         end if
 
@@ -1564,17 +1499,23 @@ program pinc_prog
         if(rayTracer) then
           call transport_rayvol(var, ray, dt, RKstage, time)
 
-          call boundary_rayvol(ray)
-          call split_rayvol(ray)
-          call shift_rayvol(ray)
-          call merge_rayvol(ray)
 
-          call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
-              &diffusioncoeff, tracerfluxvar, tracerforce, lowamp, nowamp, &
-              &rhsamp)
+           if(RKstage == nStages) then
+            call boundary_rayvol(ray)
+            call split_rayvol(ray)
+            call shift_rayvol(ray)
+            call merge_rayvol(ray)
 
-          if(include_ice2) then
-            call calc_ice(ray, var)
+            call calc_meanFlow_effect(ray, var, force, ray_var3D)
+
+            if (include_tracer) then 
+              call calc_tracerforce(ray, var, ray_var3D, tracerforce, &
+                waveAmplitudes, dt)
+            end if
+
+            if(include_ice) then
+              call calc_ice(ray, var)
+            end if
           end if
         end if
 
@@ -1594,7 +1535,6 @@ program pinc_prog
         if(updateTheta) call reconstruction(var, "theta")
         if(predictMomentum .or. (testcase == "nIce_w_test")) call &
             &reconstruction(var, "uvw")
-        if((include_ice) .and. (updateIce)) call reconstruction(var, "ice")
         if((include_tracer) .and. (updateTracer)) call reconstruction(var, &
             &"tracer")
 
@@ -1628,49 +1568,6 @@ program pinc_prog
 
         call setBoundary(var, flux, "flux")
 
-        ! Evolve in time
-
-        if(include_ice .and. updateIce) then
-          !--------------------------------------
-          !               ice_new
-          !--------------------------------------
-
-          ! find number of ice time steps per dynamic time step
-          ice_time_steps = int(dt * tRef / dt_ice)
-          if(ice_time_steps .lt. 1) then
-            ice_time_steps = 1
-          end if
-          dt_ice = dt * tRef / ice_time_steps
-
-          if(RKstage == 1) then
-            do j = 1, ice_time_steps ! microphysical time steps
-              ! check if time-dependent ice physics is turned on
-              if(iceTestcase_specifics(time + (j - 1) * dt_ice / tRef, var)) &
-                  &then
-                dIce = 0.0 ! init q
-                do Ice_RKstage = 1, 3 ! Runge-Kutta loop
-                  call setBoundary(var, flux, "ice")
-                  call setHalos(var, "ice")
-                  call reconstruction(var, "ice")
-                  !call setHalos(var,"iceTilde")
-                  call setBoundary(var, flux, "iceTilde")
-                  call iceSource(var, source)
-                  call iceFlux(var, flux)
-                  call setBoundary(var, flux, "iceFlux")
-                  call iceUpdate(var, var0, flux, source, dt_ice / tRef, dIce, &
-                      &Ice_RKstage)
-                  ! call set_spongeLayer(var, stepFrac(RKstage) * dt_ice / tRef, &
-                  !     "ice")
-                  call applyUnifiedSponge(var, stepFrac(RKstage) * dt_ice &
-                      &/ tRef, "ice")
-                end do
-              end if
-            end do
-          end if
-
-        else if(iTime == 1 .and. RKstage == 1 .and. master) then
-          print *, "main: IceUpdate off!"
-        end if
 
         ! implementation of heating ONeill and Klein 2014
 
@@ -1696,33 +1593,21 @@ program pinc_prog
           if(RKstage == 1) dRho = 0. ! init q
 
           rhoOld = var%rho(:, :, :) ! rhoOld for momentum predictor
-          !UAC
-          !call massUpdate(var, flux, dt, dRho, RKstage, &
-          !              & "rho", "tot", "expl")
           call massUpdate(var, flux, dt, dRho, RKstage, "rho", "tot", "expl", &
               &1.)
-          !UAE
           if(testCase /= 'baroclinic_LC') then
-            ! call set_spongeLayer(var, stepFrac(RKstage) * dt, "rho")
             call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "rho")
           end if
-          !UAE 200413
 
           if(auxil_equ) then
             if(RKstage == 1) dRhop = 0. ! init q
 
             rhopOld = var%rhop(:, :, :) ! rhopOld for momentum predictor
-            !UAC
-            !call massUpdate(var, flux, dt, dRhop, RKstage, &
-            !              & "rhop", "tot", "expl")
             call massUpdate(var, flux, dt, dRhop, RKstage, "rhop", "tot", &
                 &"expl", 1.)
-            !UAE
             if(testCase /= 'baroclinic_LC') then
-              ! call set_spongeLayer(var, stepFrac(RKstage) * dt, "rhop")
               call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "rhop")
             end if
-            !UAE 200413
           end if
 
         else
@@ -1757,14 +1642,9 @@ program pinc_prog
 
           if(RKstage == 1) dMom = 0. ! init q
 
-          !UAC
-          !call momentumPredictor(var, flux, force, dt, dMom, RKstage, &
-          !                     & "tot", "expl")
           call momentumPredictor(var, flux, force, dt, dMom, RKstage, "tot", &
               &"expl", 1.)
-          !UAE
           if(testCase /= 'baroclinic_LC') then
-            ! call set_spongeLayer(var, stepFrac(RKstage) * dt, "uvw")
             call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "uvw")
           end if
         else
@@ -1784,7 +1664,7 @@ program pinc_prog
             stop "thetaUpdate: unknown case timeSchemeType"
           end select
 
-          shap_dts = shap_dts_fac / tRef !FS shap_dts_fac * dt
+          shap_dts = shap_dts_fac / tRef
 
           fc_shap = min(1.0, dt_Poisson / shap_dts)
 
@@ -1810,17 +1690,24 @@ program pinc_prog
               &RKstage, "expl", 1., 1.)
 
           if(errFlagBicg) then
-            call output_data(iOut, var, iTime, time, cpuTime)
-            if(TestCase == 'baroclinic_LC') then
-              call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
+            if (rayTracer) then
+              if (include_tracer) then
+                call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
+                tracerforce=tracerforce, waveAmplitudes=waveAmplitudes, &
+                ray = ray)
+              else
+                call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
+                waveAmplitudes=waveAmplitudes, ray = ray)
+              end if  
+            else
+              call write_netCDF(iOut, time, iTime, var)
             end if
+          
+            call close_netCDF
 
-            if(model /= "Boussinesq") then
-              call output_background(iOut)
+            if (master) then
+              print *, 'output last state into record', iOut
             end if
-
-            print *, 'output last state into record', iOut
-
             stop
           end if
 
@@ -1835,18 +1722,20 @@ program pinc_prog
             call system_clock(count = timeCount)
             cpuTime = (timeCount - startTimeCount) / real(rate)
 
-            call output_data(iOut, var, iTime, time, cpuTime)
-            if(TestCase == 'baroclinic_LC') then
-              call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
+            if (rayTracer) then
+              if (include_tracer) then
+                call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
+                tracerforce=tracerforce, waveAmplitudes=waveAmplitudes, &
+                ray = ray)
+              else
+                call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
+                waveAmplitudes=waveAmplitudes, ray = ray)
+              end if
+            else
+              call write_netCDF(iOut, time, iTime, var)
             end if
-
-            if(model /= "Boussinesq") then
-              call output_background(iOut)
-            end if
-
-            if(rayTracer) then
-              call output_wkb(iOut, ray, ray_var3D)
-            end if
+          
+            call close_netCDF
 
             go to 10 ! dealloc fields
           end if
@@ -1855,31 +1744,27 @@ program pinc_prog
               &off!"
         end if
 
-        !SD
-        !if(include_ice2) call integrate_ice_advection(var, var0, flux, "nln", &
-        !    source, dt, dIce, RKstage, PStrat, PStratTilde)
 
       end do Runge_Kutta_Loop
     end if ! timeScheme
 
-    !SD
     ! integrate ice physics/advection with fixed dry dynamics
-    if(include_ice2) then
+    if(include_ice) then
 
-      n_step_ice = ceiling(dt * tRef / dt_ice2)
-      dtt_ice2 = dt / n_step_ice
+      n_step_ice = ceiling(dt * tRef / dt_ice)
+      dtt_ice = dt / n_step_ice
 
       do ii = 1, n_step_ice
         do RKstage = 1, nStages
-          call integrate_ice2(var, var0, flux, "nln", source, dtt_ice2, dIce, &
+          call integrate_ice(var, var0, flux, "nln", source, dtt_ice, dIce, &
               &RKstage, PStrat, PStratTilde, 'BOT', uTime, qTime)
         end do ! RKstage
       end do !ii
       if(master) then
-        print *, 'maxval', maxval(var%ICE2(:, :, :, inN)), maxval(var%ICE2(:, &
-            &:, :, inQ)), maxval(var%ICE2(:, :, :, inQv))
+        print *, 'maxval', maxval(var%ICE(:, :, :, inN)), maxval(var%ICE(:, &
+            &:, :, inQ)), maxval(var%ICE(:, :, :, inQv))
       end if
-    end if !include_ice2
+    end if !include_ice
 
     !--------------------------------------------------------------
     !                           Output
@@ -1892,42 +1777,43 @@ program pinc_prog
           cpuTime = (timeCount - startTimeCount) / real(rate)
         end if
 
-        call output_data(iOut, var, iTime, time, cpuTime)
-        if(TestCase == 'baroclinic_LC') then
-          call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
+        if (rayTracer) then
+          if (include_tracer) then
+            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
+            tracerforce=tracerforce, waveAmplitudes=waveAmplitudes, &
+            ray = ray)
+          else
+            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
+            waveAmplitudes=waveAmplitudes, ray = ray)
+          end if
+        else
+          call write_netCDF(iOut, time, iTime, var)
         end if
-
-        if(model /= "Boussinesq") then
-          call output_background(iOut)
-        end if
-
-        if(rayTracer) then
-          call output_wkb(iOut, ray, ray_var3D)
-        end if
-
+      
         output = .false.
         nextOutputTime = nextOutputTime + outputTimeDiff
         if(nextOutputTime >= maxTime) nextOutputTime = maxTime
       end if
     case('timeStep')
       if(modulo(iTime, nOutput) == 0) then
-        if(master) then ! modified by Junhong Wei for MPI
+        if(master) then 
           call system_clock(count = timeCount)
           cpuTime = (timeCount - startTimeCount) / real(rate)
-        end if ! modified by Junhong Wei for MPI
-
-        call output_data(iOut, var, iTime, time, cpuTime)
-        if(TestCase == 'baroclinic_LC') then
-          call output_fluxes(iOut, var, flux, iTime, time, cpuTime)
+        end if 
+        
+        if (rayTracer) then
+          if (include_tracer) then
+            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
+            tracerforce=tracerforce, waveAmplitudes=waveAmplitudes, &
+            ray = ray)
+          else
+            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
+            waveAmplitudes=waveAmplitudes, ray = ray)
+          end if
+        else
+          call write_netCDF(iOut, time, iTime, var)
         end if
 
-        if(model /= "Boussinesq") then
-          call output_background(iOut)
-        end if
-
-        if(rayTracer) then
-          call output_wkb(iOut, ray, ray_var3D)
-        end if
       end if
     case default
       stop "main: unknown outputType"
@@ -1968,8 +1854,9 @@ program pinc_prog
   !-------------------------------------------
   !      Final output for timeStep
   !-------------------------------------------
+  call close_netCDF
 
-  10 if(master) then ! modified by Junhong Wei for MPI (20161103)
+  10 if(master) then 
     if(outputType == "timeStep") then
       nAverageBicg = real(nTotalBicg) / real(iTime - 1) / nStages
 
@@ -2000,7 +1887,6 @@ program pinc_prog
   call terminate(var, var0, var1, varG, source, flux, flux0, force, dRho, &
       &dRhop, dMom, dTheta, dIce, dTracer, tracerforce, dPot)
   call terminate_atmosphere
-  call terminate_output
 
   if(poissonSolverType == 'bicgstab') then
 
@@ -2010,20 +1896,10 @@ program pinc_prog
       !call CleanUpBiCGSTab ! Clean Up BiCGSTAB arrays
     else
       call CleanUpBiCGSTab ! Clean Up BiCGSTAB arrays
-      ! else if (poissonSolverType == 'hypre') then
-      !   call CleanUpHypre ! Clean Up Hypre objects
     end if
 
   else
     stop 'ERROR: BICGSTAB expected as Poisson solver'
-  end if
-
-  if(master) then
-    close(123)
-    if(TestCase == "atmosphereatrest") then
-      close(124)
-      !close(125)
-    end if
   end if
 
   666 if(master) then
