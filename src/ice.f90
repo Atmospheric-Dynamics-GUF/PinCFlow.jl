@@ -1,812 +1,1012 @@
 module ice_module
 
-  use type_module
-  use atmosphere_module
-
-  implicit none
-
-  private
-
-  public :: setup_ice, iceTestcase_specifics
-  public :: NUCn, DEPq
-  public :: SIce_crit, p_saturation, SIce_threshold, awi
-  public :: find_temperature, pIce
-  public :: latent_heat_ice
-  public :: terminal_v_nIce, terminal_v_qIce
-
-  real, parameter :: Mole_mass_water = 18.01528e-3, Mole_mass_dryAir = &
-      &28.9644e-3
-  real, parameter :: epsilon0 = Mole_mass_water / Mole_mass_dryAir
-  real, parameter :: Rv = Rsp / epsilon0 ! specific gas constant for water vapor
-  real, parameter :: cpv = 3.5 * Rv ! c_p for water vapor
-  real, parameter :: rhob = 0.81e3 ! mean snowflake density in kg / m**3
-  real :: ice_crystal_volume
-  integer :: ISSR_center
-  real :: t_ramp_qv, t_relax_qv, t_start ! for qv_relaxation iceTestcase
-
-  !coefficients for linear fit of nucleation rate
-  real, parameter :: afit0 = - 62.192670609121556
-  real, parameter :: afit1 = 254.77490427507394
-  real, parameter :: j0 = 16.0
-
-  !correction term from Koop & Murray 2016
-  real, parameter :: delta = 1.522
-
-  public :: epsilon0, Rv, t_ramp_qv, t_relax_qv, t_start, ISSR_center
+  use mpi
 
   contains
 
   subroutine setup_ice(var)
+
+    use type_module
+    use atmosphere_module, ONLY:heightTFC, tRef, rhoRef, lRef, thetaRef, pRef, &
+        &PStrat, rhoStrat, piStrat, kappaInv, PStratTFC, piStratTfc, &
+        &rhoStratTFC, gamma_1, p0, g, Rsp
+
+    implicit none
+
     type(var_type), intent(inout) :: var
-    real :: SIce, T, p, m_ice, rho
-    integer :: i, j, k, ISSR_width, ISSR_radius
 
-    ! ice crystal volume and correction factor from log-normal distribution
-    ice_crystal_volume = exp(9. * log(sigma_r) ** 2 / 2.) * 4. / 3 * pi &
-        &* radius_solution ** 3.
+    integer, parameter :: ic_ice = 5
 
-    ! iceTestcases
-    select case(iceTestcase)
+    real :: dz_tr
+    real :: rho, exn_p, pres, temp, theta, psi
 
-    case("homogeneous_qv")
-      var%ICE(:, :, :, 1) = init_nAer * rhoRef * lRef ** 3
-      do i = 0, nx
-        do j = 0, ny
-          do k = 1, nz
-            if(fluctuationMode) then
-              rho = var%rho(i, j, k) + rhoStrat(k)
+    integer :: iVar, ii, k, hzn, dzn, i, j
+    real :: n0, q0, qv0, S0
+    integer :: irec
+
+    !case 3
+    real :: z0_issr, sig_issr, S_issr
+
+    !case 5
+    real :: presMean, exn_pMean, tempMean, thetaMean, psiMean
+
+    !set variables
+    J_nuc = 4.9E4 !nucleation rate
+    B_nuc = 337. !nucleation exponent
+    Dep = 4.3E-8 !C_0 coeff paper
+    epsil0hat = epsil0 * PsatIceRef / pRef
+
+    !nondimensionalize variables/ fields
+
+    thetaRefRatio = thetaRef / thetaRef_trp
+
+    L_hat = L_ice / R_v / thetaRef_trp
+
+    Li_hat = L_ice / R_v / thetaRef
+
+    if(referenceQuantities .eq. "Klein") then
+      !non-dimensional adiabatic lapse rate: Gamma = g/c_p
+      alr_ndim = g / (7. * Rsp / 2.) * lRef / thetaRef
+    else
+      print *, 'uRef not eq. aRef'
+      print *, 'check non-dimensionalization alr_ndim and others'
+      stop
+    end if
+
+    mRef = rhoRef * lRef ** 3 !reverence mass
+
+    J_nuc = J_nuc * tRef * mRef
+
+    Dep = Dep * thetaRef * tRef * meanMassIce ** (1. / 3.) * PsatIceRef / pRef &
+        &/ mRef
+
+    !call compare_reduced_model
+    !if ( master ) stop
+
+    ! init to zero
+    do iVar = 1, nVarIce
+      var%ICE(:, :, :, iVar) = 0.
+    end do
+
+    select case(ic_ice)
+
+    case(1)
+
+      !!$       if(master) then
+      !!$          open(44,file='test_output.dat',form="unformatted",access='direct',&
+      !!$               & recl=nx*ny)
+      !!$       end if
+
+      ! non-dimensional variables
+      ! top-hat/kink distribution
+      hzn = nz / 2
+      dzn = nz / 8
+      do k = 1, nz
+        !if ( k .ge. hzn .and. k .le. hzn+dzn ) then
+
+        do j = 1, ny
+          do i = 1, nx
+
+            if(topography) then
+
+              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
+
+              theta = PstratTFC(i, j, k) / rho
+
+              !problems in \pi
+              !if heating switched on
+              !if ( timeScheme == "semiimplicit" ) then
+              !   print*, 'iceSources works only with explicit integration'
+              !   stop
+              !else
+              exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
+              !end if
+
             else
-              rho = var%rho(i, j, k)
-            end if
-            var%ICE(i, j, k, 1) = init_nAer / rho * lRef ** 3
+
+              rho = var%rho(i, j, k) + rhoStrat(k)
+
+              !problems in \pi
+              !if heating switched on
+              theta = Pstrat(k) / rho
+
+              exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
+
+            end if ! topography
+
+            pres = p0 * exn_p ** kappaInv !kappaInv = c_p/R
+
+            temp = theta * exn_p
+
+            psi = Psat_ice(temp)
+
+            ! IC asymptotic model
+            !n = 0.1 * 2.E6
+            !S = 1.4
+            !q = meanMassIce * n
+
+            !dimensional IC for n, q_v, q
+            n0 = 0.1 * 2.E6 ![kg**-1]
+            S0 = 1.4 !1.48
+            qv0 = epsil0hat * S0 * psi / pres ! [kg/kg]
+            q0 = meanMassIce * n0
+
+            !double kink profile
+            !S0 = 1+0.5*tanh(5*(z(k)-8/lRef)/2)+ (1-0.5*tanh(5*(z(k)-10/lRef)/5)) -1.4
+
+            var%ICE(:, :, k, inN) = rho * n0 * mRef !\hat N = \hat \rho \hat n
+            var%ICE(:, :, k, inQv) = rho * qv0
+            var%ICE(:, :, k, inQ) = rho * q0
+
           end do
         end do
-      end do
-      var%ICE(:, :, :, 4) = init_qv
-      var%ICE(:, :, :, 2:3) = 0.0
 
-    case("homogeneous_SIce")
-      var%ICE(:, :, :, 2:3) = 0.0
-      do i = 0, nx
-        do j = 0, ny
-          do k = 1, nz
-            if(fluctuationMode) then
-              rho = var%rho(i, j, k) + rhoStrat(k)
-            else
-              rho = var%rho(i, j, k)
-            end if
-            var%ICE(i, j, k, 1) = init_nAer / rho * lRef ** 3
-            call find_temperature(T, i, j, k, var)
-            p = press0_dim * ((PStrat(k) / p0) ** gamma_1 + var%pi(i, j, k)) &
-                &** kappaInv
-            var%ICE(i, j, k, 4) = epsilon0 * init_SIce * SIce_crit(T) &
-                &* pIce(T) / p
+        !end if !k in range
+
+      end do !k
+
+    case(2)
+      !linear profile
+      dz_tr = 0.1 * dz ! increment tracer
+
+      if(topography) then
+        if(master) then
+          print *, 'NEW TRACER PROF'
+        end if
+        do k = 1, nz
+          do j = 1, ny
+            do i = 1, nx
+
+              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
+              ! N = \rho n
+              var%ICE(:, :, k, inN) = dz_tr * heightTFC(i, j, k) * rho
+
+            end do
           end do
         end do
-      end do
 
-    case("qv_relaxation")
-      init_qv = 0.0
-      ISSR_center = int(ISSR_top * mountainHeight_dim / (dz * lRef))
-      t_start = t_relax
-      t_ramp_qv = t_ramp / 10.0
-      t_relax_qv = t_relax / 10.0
-      do i = 0, nx
-        do j = 0, ny
-          do k = 0, nz
-            if(fluctuationMode) then
-              rho = var%rho(i, j, k) + rhoStrat(k)
-            else
-              rho = var%rho(i, j, k)
-            end if
-            var%ICE(i, j, k, 1) = init_nAer / rho * lRef ** 3
-          end do
+      else
+
+        do k = 1, nz
+
+          ! N = \rho n
+          !var(:,:,k, inN) = (k-1)*0.1
+          var%ICE(:, :, k, inN) = dz_tr * (z(k) - z(1)) * (var%rho(:, :, k) &
+              &+ rhoStrat(k))
+
         end do
-      end do
 
-    case("stratification")
-      init_SIce = SIce_crit(Temp0_dim)
-      ISSR_center = ceiling(kSponge / 2.)
-      var%ICE(:, :, :, 2:3) = 0
-      p = press0_dim * ((PStrat(ISSR_center) / p0) ** gamma_1 + var%pi(1, 1, &
-          &ISSR_center)) ** kappaInv
-      init_qv = epsilon0 * init_SIce * pIce(Temp0_dim) / p
-
-      do i = 0, nx
-        do j = 0, ny
-          do k = 0, nz
-            if(fluctuationMode) then
-              rho = var%rho(i, j, k) + rhoStrat(k)
-            else
-              rho = var%rho(i, j, k)
-            end if
-            var%ICE(i, j, k, 1) = init_nAer / rho * lRef ** 3
-            var%ICE(i, j, k, 4) = init_qv * (1 + 0.5 * tanh(2.5 * (k &
-                &- ISSR_center) / ISSR_center))
-          end do
-        end do
-      end do
-
-    case("exp_ice")
-      if(init_SIce > 1.3) init_SIce = 1.0
-      var%ICE(:, :, :, 1) = 0.0
-      ISSR_center = ceiling(ISSR_top * kSponge)
-      do i = 0, nx
-        do j = 0, ny
-          do k = 0, nz
-            if(fluctuationMode) then
-              rho = var%rho(i, j, k) + rhoStrat(k)
-            else
-              rho = var%rho(i, j, k)
-            end if
-            var%ICE(i, j, k, 2) = 1.e6 * exp(0.000314 * dz * (k &
-                &- ISSR_center)) / rho * lRef ** 3
-            var%ICE(i, j, k, 3) = init_m_ice * var%ICE(i, j, k, 2) / (rhoRef &
-                &* lRef ** 3)
-            !call find_temperature(T,i,j,k,var)
-            T = Temp0_dim
-            p = press0_dim * ((PStrat(k) / p0) ** gamma_1) ** kappaInv !+var(i,j,k,5) )**kappaInv
-            var%ICE(i, j, k, 4) = epsilon0 * init_SIce * pIce(T) / p
-          end do
-        end do
-      end do
-
-    case("ice_cloud")
-      if(init_SIce > 1.3) init_SIce = 1.0
-      var%ICE(:, :, :, 1) = 0.0
-      ISSR_center = ceiling(ISSR_top * kSponge)
-      do i = 0, nx
-        do j = 0, ny
-          do k = 0, nz
-            if(fluctuationMode) then
-              rho = var%rho(i, j, k) + rhoStrat(k)
-            else
-              rho = var%rho(i, j, k)
-            end if
-            var%ICE(i, j, k, 2) = 1.e6 * exp(- (k - ISSR_center) ** 2 &
-                &/ 20000.0) / rho * lRef ** 3
-            var%ICE(i, j, k, 3) = init_m_ice * var%ICE(i, j, k, 2) / (rhoRef &
-                &* lRef ** 3)
-            !call find_temperature(T,i,j,k,var)
-            T = Temp0_dim
-            p = press0_dim * ((PStrat(k) / p0) ** gamma_1) ** kappaInv !+var(i,j,k,5) )**kappaInv
-            var%ICE(i, j, k, 4) = epsilon0 * init_SIce * pIce(T) / p
-          end do
-        end do
-      end do
-
-    case("1D_ISSR")
-      init_SIce = SIce_crit(T_nuc)
-      ISSR_center = ceiling(kSponge / 4.)
-      ISSR_width = ceiling(5 / (dz * lRef)) !ceiling(kSponge*0.02)
-      ISSR_radius = ceiling(30 / (dz * lRef))
-      if((background == 'const-N') .and. (testcase == "nIce_w_test")) then
-        ISSR_center = ceiling(1. / (dz * lRef) * g / N_BruntVaisala_dim ** 2 &
-            &* log((T_nuc - kappa * g ** 2 / (Rsp * N_BruntVaisala_dim ** 2)) &
-            &/ (theta0_dim - kappa * g ** 2 / (Rsp * N_BruntVaisala_dim ** 2))))
-        print *, "!!!!!!!!!!! ISSR_center = ", ISSR_center
       end if
-      if((background == 'isentropic') .and. (testcase == "nIce_w_test")) then
-        ISSR_center = ceiling(1. / (dz * lRef) * Rsp * theta0_dim / (kappa &
-            &* g) * (1. - T_nuc / theta0_dim))
-        print *, "!!!!!!!!!!! ISSR_center = ", ISSR_center
-      end if
 
-      var%ICE(:, :, :, 2:3) = 0.
-      p = press0_dim * ((PStrat(ISSR_center) / p0) ** gamma_1 + var%pi(1, 1, &
-          &ISSR_center)) ** kappaInv
-      init_qv = epsilon0 * init_SIce * pIce(T_nuc) / p
-      ISSR_center = ISSR_center - (ISSR_radius + 2 * ISSR_width) !ceiling(backgroundFlow(3) / dz)
-      do i = 0, nx
-        do j = 0, ny
+    case(3)
 
-          do k = 1, ISSR_center - ISSR_radius
-            if(fluctuationMode) then
-              rho = var%rho(i, j, k) + rhoStrat(k)
+      !ISSRegion
+
+      !center ISSR
+      z0_issr = 8.e3 ! [m]
+      !vertical width ISSR (standard deviation of gaussian dist.)
+      sig_issr = 1.e3 ! [m]
+      !max value S in ISSR
+      S_issr = 1.45
+
+      !nondim.
+      z0_issr = z0_issr / lRef
+      sig_issr = sig_issr / lRef
+
+      do k = 1, nz
+
+        do j = 1, ny
+          do i = 1, nx
+
+            if(topography) then
+
+              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
+
+              theta = PstratTFC(i, j, k) / rho
+
+              !problems in \pi
+              !if heating switched on
+              !if ( timeScheme == "semiimplicit" ) then
+              !   print*, 'iceSources works only with explicit integration'
+              !   stop
+              !else
+              exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
+              !end if
+
             else
-              rho = var%rho(i, j, k)
-            end if
-            var%ICE(i, j, k, 1) = init_nAer / rho * lRef ** 3
-            ! Gaussian profile:
-            var%ICE(i, j, k, 4) = init_qv * exp(- 1. * (k - ISSR_center + 1) &
-                &** 2. / (2. * ISSR_width ** 2))
-          end do
 
-          do k = ISSR_center - ISSR_radius + 1, ISSR_center + ISSR_radius - 1
-            if(fluctuationMode) then
               rho = var%rho(i, j, k) + rhoStrat(k)
-            else
-              rho = var%rho(i, j, k)
-            end if
-            var%ICE(i, j, k, 1) = init_nAer / rho * lRef ** 3
-            var%ICE(i, j, k, 4) = init_qv
-          end do
 
-          do k = ISSR_center + ISSR_radius, nz
-            if(fluctuationMode) then
+              !problems in \pi
+              !if heating switched on
+              theta = Pstrat(k) / rho
+
+              exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
+
+            end if ! topography
+
+            pres = p0 * exn_p ** kappaInv !kappaInv = c_p/R
+
+            temp = theta * exn_p
+
+            psi = Psat_ice(temp)
+
+            ! IC asymptotic model
+            !n = 0.1 * 2.E6
+            !S = 1.4
+            !q = meanMassIce * n
+
+            !dimensional IC for n, q_v, q
+            n0 = 0. !0.1 * 2.E6 ![kg**-1]
+            S0 = S_issr * exp(- (z(k) - z0_issr) ** 2 / 2. / sig_issr ** 2)
+            qv0 = epsil0hat * S0 * psi / pres ! [kg/kg]
+            q0 = meanMassIce * n0
+
+            var%ICE(i, j, k, inN) = rho * n0 * mRef !\hat N = \hat \rho \hat n
+            var%ICE(i, j, k, inQv) = rho * qv0
+            var%ICE(i, j, k, inQ) = rho * q0
+
+          end do !i
+        end do !j
+
+      end do !k
+      !end case 3
+
+    case(4)
+
+      !ISSRegion
+
+      !center ISSR
+      z0_issr = 8.e3 ! [m]
+      !vertical width ISSR (standard deviation of gaussian dist.)
+      sig_issr = 4.e3 ! [m]
+      !max value S in ISSR
+      S_issr = 1.45
+
+      !nondim.
+      z0_issr = z0_issr / lRef
+      sig_issr = sig_issr / lRef
+
+      do k = 1, nz
+
+        do j = 1, ny
+          do i = 1, nx
+
+            if(topography) then
+
+              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
+
+              theta = PstratTFC(i, j, k) / rho
+
+              !problems in \pi
+              !if heating switched on
+              !if ( timeScheme == "semiimplicit" ) then
+              !   print*, 'iceSources works only with explicit integration'
+              !   stop
+              !else
+              exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
+              !end if
+
+            else
+
               rho = var%rho(i, j, k) + rhoStrat(k)
-            else
-              rho = var%rho(i, j, k)
+
+              !problems in \pi
+              !if heating switched on
+              theta = Pstrat(k) / rho
+
+              exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
+
+            end if ! topography
+
+            pres = p0 * exn_p ** kappaInv !kappaInv = c_p/R
+
+            temp = theta * exn_p
+
+            psi = Psat_ice(temp)
+
+            ! IC asymptotic model
+            !n = 0.1 * 2.E6
+            !S = 1.4
+            !q = meanMassIce * n
+
+            !dimensional IC for n, q_v, q
+            n0 = 0. !0.1 * 2.E6 ![kg**-1]
+            S0 = S_issr * exp(- (z(k) - z0_issr) ** 2 / 2. / sig_issr ** 2)
+            qv0 = epsil0hat * S0 * psi / pres ! [kg/kg]
+            q0 = meanMassIce * n0
+
+            var%ICE(i, j, k, inN) = rho * n0 * mRef !\hat N = \hat \rho \hat n
+            var%ICE(i, j, k, inQv) = rho * qv0
+            var%ICE(i, j, k, inQ) = rho * q0
+
+            if(include_testoutput) then
+
+              var%OPT(i, j, k, 1) = S0
+              var%OPT(i, j, k, 2) = pres * pRef
+              var%OPT(i, j, k, 3) = pres / psi * pRef / PsatIceRef
+
+              if(raytracer) then
+                var%OPT(i, j, k, 1) = S0
+                var%OPT(i, j, k, 2) = 0.
+                var%OPT(i, j, k, 3) = 0.
+              end if
+
             end if
-            var%ICE(i, j, k, 1) = init_nAer / rho * lRef ** 3
-            ! Gaussian profile:
-            var%ICE(i, j, k, 4) = init_qv * exp(- 1. * (k - ISSR_center - 1) &
-                &** 2. / (2. * ISSR_width ** 2))
-          end do
 
-        end do
-      end do
+          end do !i
+        end do !j
 
-    case default
-      stop "iceTestcase: unknown case name"
+      end do !k
+
+    case(5)
+
+      !ISSRegion
+
+      !center ISSR
+      z0_issr = 8.e3 ! [m]
+      !vertical width ISSR (standard deviation of gaussian dist.)
+      sig_issr = 4.e3 ! [m]
+      !max value S in ISSR
+      S_issr = 1.45
+
+      !nondim.
+      z0_issr = z0_issr / lRef
+      sig_issr = sig_issr / lRef
+
+      do k = 1, nz
+
+        do j = 1, ny
+          do i = 1, nx
+
+            if(topography) then
+
+              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
+
+              theta = PstratTFC(i, j, k) / rho
+
+              !problems in \pi
+              !if heating switched on
+              !if ( timeScheme == "semiimplicit" ) then
+              !   print*, 'iceSources works only with explicit integration'
+              !   stop
+              !else
+              exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
+              !end if
+
+            else
+
+              rho = var%rho(i, j, k) + rhoStrat(k)
+
+              !problems in \pi
+              !if heating switched on
+              theta = Pstrat(k) / rho
+
+              thetaMean = Pstrat(k) / rhoStrat(k)
+
+              exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
+
+              exn_pMean = (PStrat(k) / p0) ** gamma_1
+
+            end if ! topography
+
+            pres = p0 * exn_p ** kappaInv !kappaInv = c_p/R
+
+            presMean = p0 * exn_pMean ** kappaInv !kappaInv = c_p/R
+
+            temp = theta * exn_p
+
+            tempMean = thetaMean * exn_pMean
+
+            psi = Psat_ice(temp)
+
+            psiMean = Psat_ice(tempMean)
+
+            ! IC asymptotic model
+            !n = 0.1 * 2.E6
+            !S = 1.4
+            !q = meanMassIce * n
+
+            !dimensional IC for n, q_v, q
+            n0 = 0. !0.1 * 2.E6 ![kg**-1]
+            S0 = S_issr * exp(- (z(k) - z0_issr) ** 2 / 2. / sig_issr ** 2)
+
+            !qv0 = epsil0hat * S0 * psi / pres ! [kg/kg]
+            !CHANGES
+            qv0 = epsil0hat * S0 * psiMean / presMean ! [kg/kg]
+
+            q0 = meanMassIce * n0
+
+            var%ICE(i, j, k, inN) = rho * n0 * mRef !\hat N = \hat \rho \hat n
+            var%ICE(i, j, k, inQv) = rho * qv0
+            var%ICE(i, j, k, inQ) = rho * q0
+
+            if(include_testoutput) then
+
+              var%OPT(i, j, k, 1) = S0
+              var%OPT(i, j, k, 2) = pres / psi - presMean / psiMean ! store IC \tilde p_i(0)
+              !var(i, j, k, iVarO+1) = pres*pRef
+              var%OPT(i, j, k, 3) = pres / psi * pRef / PsatIceRef
+
+              if(raytracer) then
+                var%OPT(i, j, k, 1) = S0
+                var%OPT(i, j, k, 2) = 0.
+                var%OPT(i, j, k, 3) = 0.
+              end if
+
+            end if
+
+          end do !i
+        end do !j
+
+      end do !k
+      !end case(5)
 
     end select
 
   end subroutine setup_ice
 
-  !------------------------------------------------------------------------------------
+  subroutine iceSources(var, source)
 
-  logical function iceTestcase_specifics(time, var)
-    ! in/out variables
-    real, intent(in) :: time
+    use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice, &
+        &nVarIce, inN, inQ, inQv, master, model, topography, &
+        &thetaRefRatio, timeScheme, rayTracer, L_ice, R_v, var_ww, iVarO, &
+        &no_ice_source, ofield, pSatIceRef, var_type
+    use mpi_module
+    use atmosphere_module, ONLY:PStrat01, PStratTilde01, PStrat, rhoStrat, &
+        &piStrat, kappaInv, PStratTFC, piStratTfc, rhoStratTFC, gamma_1, p0, &
+        &g, Rsp, pRef
+    use boundary_module !, ONLY : setHalos, setBoundary, reconstruction
+    use flux_module
+    !   use update_module, ONLY : dIce, iceUpdate
+
+    implicit none
+
     type(var_type), intent(inout) :: var
+    !    real, dimension(-1:nx,-1:ny,-1:nz, nVarIce), intent(out) :: source
+    type(var_type), intent(inout) :: source
+    real :: rho, pres, temp, theta, psi, Qv, SIce, NIce, exn_p
+    real :: amp_pi, w_gw, PiMean, PiPrime, delta_t !RayTracer coupling
+    integer :: i, j, k
+    real :: pi0
 
-    ! local integers
-    integer :: i, k, i0
+    do k = 1, nz
+      do j = 1, ny
+        do i = 1, nx
 
-    ! additional variables
-    real :: T, p, frac
+          if(model == "pseudo_incompressible") then
 
-    i0 = is + nbx - 1
+            if(topography) then
 
-    select case(iceTestcase)
+              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
 
-      ! iceTestcase: qvrelaxation
-    case("qv_relaxation")
+              theta = PstratTFC(i, j, k) / rho
 
-      if(time > t_start + t_relax_qv) then
-        iceTestcase_specifics = .true.
-      else
-        if(time > t_start + t_relax_qv - t_ramp_qv) then
-          do k = 0, nz
-            if(k < ISSR_center - 8) then
-              frac = 0.3
-            else if(k > ISSR_center) then
-              frac = 0.05
+              !if ( timeScheme == "semiimplicit" ) then
+              !   print*, 'iceSources works only with explicit integration'
+              !   stop
+              !else
+              !problems in \pi if heating switched on
+              exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
+              !end if
+
             else
-              frac = 0.98
-            end if
-            do i = 0, nx
-              if(x(i0 + i) < lx(0) + 0.1 * (lx(1) - lx(0))) then
-                p = press0_dim * ((PStrat(k) / p0) ** gamma_1 + var%pi(i, 1, &
-                    &k)) ** kappaInv
-                call find_temperature(T, i, 1, k, var)
-                init_SIce = SIce_crit(T)
-                init_qv = epsilon0 * frac * init_SIce * pIce(T) / p
-                var%ICE(i, 1, k, 4) = init_qv * cos(pi * (time - t_start) / (2 &
-                    &* t_ramp_qv))
-                !var(i,1,k,nVar-3) = init_nAer * cos(pi*(time-t_start)/(2*t_ramp_qv))
-              end if
-              if(x(i0 + i) > lx(1) - 0.1 * (lx(1) - lx(0))) then
-                p = press0_dim * ((PStrat(k) / p0) ** gamma_1 + var%pi(i, 1, &
-                    &k)) ** kappaInv
-                call find_temperature(T, i, 1, k, var)
-                init_SIce = SIce_crit(T)
-                init_qv = epsilon0 * frac * init_SIce * pIce(T) / p
-                var%ICE(i, 1, k, 4) = init_qv * cos(pi * (time - t_start) / (2 &
-                    &* t_ramp_qv))
-                !var(i,1,k,nVar-3) = init_nAer * cos(pi*(time-t_start)/(2*t_ramp_qv))
-              end if
-            end do
-          end do
-          iceTestcase_specifics = .true.
-        else
-          if(time > t_start + t_ramp_qv) then
-            do k = 0, nz
-              if(k < ISSR_center - 8) then
-                frac = 0.3
-              else if(k > ISSR_center) then
-                frac = 0.05
+
+              rho = var%rho(i, j, k) + rhoStrat(k)
+
+              theta = Pstrat(k) / rho
+
+              !problems in \pi if heating of background
+              exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
+
+            end if ! topography
+
+            pres = p0 * exn_p ** kappaInv !kappaInv = c_p/R
+
+            temp = theta * exn_p
+
+            psi = Psat_ice(temp)
+
+            Qv = var%ICE(i, j, k, inQv) ! Q_v = \rho q_v
+
+            NIce = var%ICE(i, j, k, inN) ! N_v = \rho n
+
+            !CHANGES
+            !SIce = SatRatio(Qv, temp, psi)
+            pi0 = var%OPT(i, j, k, 2)
+            SIce = SatRatio_rm_ini_pi(Qv, temp, psi, rho, pi0)
+
+            !output variables
+            var%OPT(i, j, k, 1) = SIce
+            !var(i, j, k, iVarO+1) = pres*pRef
+            var%OPT(i, j, k, 3) = pres / psi * pRef / PsatIceRef
+          else
+
+            print *, ' iceSources works only with model  &
+                &== pseudo_incompressible '
+            stop
+
+          end if ! pseudo_inc
+
+          if(.not. no_ice_source) then
+            source%ICE(i, j, k, inN) = nucleation_n(SIce, rho)
+            source%ICE(i, j, k, inQv) = deposition_qv(SIce, NIce, temp, pres, &
+                &psi)
+            source%ICE(i, j, k, inQ) = - source%ICE(i, j, k, inQv)
+          end if
+
+        end do ! i
+      end do ! j
+    end do ! k
+
+  end subroutine iceSources
+
+  subroutine iceSources_raytr(var, source, uTime, pTime)
+
+    use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice, &
+        &nVarIce, inN, inQ, inQv, master, model, topography, &
+        &thetaRefRatio, timeScheme, rayTracer, L_ice, R_v, var_ww, iVarO, &
+        &no_ice_source, ofield, PsatIceRef, Li_hat, alr_ndim, var_type
+
+    use type_module, ONLY:PI ! TEST
+    use atmosphere_module, ONLY:tRef !TEST
+
+    use mpi_module
+    use atmosphere_module, ONLY:PStrat01, PStratTilde01, PStrat, rhoStrat, &
+        &piStrat, kappaInv, PStratTFC, piStratTfc, rhoStratTFC, gamma_1, p0, &
+        &g, Rsp, uRef, pRef
+    use boundary_module !, ONLY : setHalos, setBoundary, reconstruction
+    use flux_module
+    !   use update_module, ONLY : dIce, iceUpdate
+
+    implicit none
+
+    type(var_type), intent(inout) :: var
+    !    real, dimension(-1:nx,-1:ny,-1:nz, nVarIce), intent(out) :: source
+    type(var_type), intent(inout) :: source
+    real :: rho, pres, temp, theta, psi, Qv, SIce, NIce, exn_p
+    real :: amp_pi, w_gw, PiMean, PiPrime, delta_t !RayTracer coupling
+    real :: uTime, pTime
+    integer :: i, j, k
+    real :: dphi, omg
+
+    do k = 1, nz
+      do j = 1, ny
+        do i = 1, nx
+
+          if(model == "pseudo_incompressible") then
+
+            if(topography) then
+
+              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
+
+              theta = PstratTFC(i, j, k) / rho
+
+              !if ( timeScheme == "semiimplicit" ) then
+              !   print*, 'iceSources works only with explicit integration'
+              !   stop
+              !else
+              !problems in \pi if heating switched on
+              exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
+              !end if
+
+            else
+
+              rho = var%rho(i, j, k) + rhoStrat(k)
+
+              theta = Pstrat(k) / rho
+
+              !problems in \pi if heating of background
+              exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
+
+            end if ! topography
+
+            pres = p0 * exn_p ** kappaInv !kappaInv = c_p/R
+
+            temp = theta * exn_p
+
+            psi = Psat_ice(temp)
+
+            Qv = var%ICE(i, j, k, inQv) ! Q_v = \rho q_v
+
+            NIce = var%ICE(i, j, k, inN) ! N_v = \rho n
+
+            SIce = SatRatio(Qv, temp, psi)
+
+            !var(i, j, k, iVarO) = SIce
+
+            ! modify saturation ratio S
+            ! to account for GW tendency in p/p_si
+            !
+            ! NB: we assume constant GW vertical velocity during
+            ! each pincflow time step, this is paticular critical
+            ! for high-frequency GWs and large integration time steps
+
+            !Pi = p/p_si
+            !Pi = <Pi> + Pi'
+            !<Pi> large scale field, Pi' GW fluctuations
+
+            ! var_ww : get from MSGWam
+            ! amp_pi =
+            delta_t = uTime - pTime
+            if(rayTracer) then
+
+              PiMean = pres / psi
+
+              !amp_pi = g * pres / temp /psi / (7.*Rsp/2.) * &
+              ! (L_ice / R_v / temp - kappaInv)
+              !PiPrime(t_0+dt) = PiPrime(t_0) + amp_pi * var(i, j, k, iVarO+1) * delta_t
+              ! work with STD of w
+              !PiPrime = ofield(i, j, k, 1) + amp_pi * ofield(i, j, k, 5) * delta_t
+
+              ! work with monochromatic wave w = A_w cos(delta_phi + wt )
+              ! \dot p_i = B cos(delta_phi-wt )
+              ! p_i(t) = p_i(t0) + B/\omega [ sin(delta_phi + wt ) ]^t_t0
+              !
+              !compute phase
+              !delta_phi = kx + ly + mz + phi_0
+              !this should work only for initial time t=0
+              !(and if ray volumes do not leave cells and omega=const)
+
+              !nondimensional version
+              omg = ofield(i, j, k, 2)
+              dphi = ofield(i, j, k, 3)
+
+              amp_pi = (Li_hat / temp - kappaInv) * alr_ndim * PiMean / temp &
+                  &* ofield(i, j, k, 6) / omg
+
+              if(amp_pi .gt. 0.) then
+                PiPrime = ofield(i, j, k, 1) + amp_pi * (cos(dphi - omg &
+                    &* uTime) - cos(dphi - omg * pTime))
               else
-                frac = 0.98
+                PiPrime = 0.
               end if
-              do i = 0, nx
-                if(x(i0 + i) < lx(0) + 0.1 * (lx(1) - lx(0))) then
-                  p = press0_dim * ((PStrat(k) / p0) ** gamma_1 + var%pi(i, 1, &
-                      &k)) ** kappaInv
-                  call find_temperature(T, i, 1, k, var)
-                  init_SIce = SIce_crit(T)
-                  init_qv = epsilon0 * frac * init_SIce * pIce(T) / p
-                  var%ICE(i, 1, k, 4) = init_qv
-                  !var(i,1,k,nVar-3) = init_nAer
-                end if
-                if(x(i0 + i) > lx(1) - 0.1 * (lx(1) - lx(0))) then
-                  p = press0_dim * ((PStrat(k) / p0) ** gamma_1 + var%pi(i, 1, &
-                      &k)) ** kappaInv
-                  call find_temperature(T, i, 1, k, var)
-                  init_SIce = SIce_crit(T)
-                  init_qv = epsilon0 * frac * init_SIce * pIce(T) / p
-                  var%ICE(i, 1, k, 4) = init_qv
-                  !var(i,1,k,nVar-3) = init_nAer
-                end if
-              end do
-            end do
-            iceTestcase_specifics = .true.
-          else
-            if(time > t_start) then
-              if(init_qv == 0.0) then
-                print *, "#### water vapor injection start ####"
-              end if
-              do k = 0, nz
-                if(k < ISSR_center - 8) then
-                  frac = 0.3
-                else if(k > ISSR_center) then
-                  frac = 0.05
-                else
-                  frac = 0.98
-                end if
-                do i = 0, nx
-                  if(x(i0 + i) < lx(0) + 0.1 * (lx(1) - lx(0))) then
-                    p = press0_dim * ((PStrat(k) / p0) ** gamma_1 + var%pi(i, &
-                        &1, k)) ** kappaInv
-                    call find_temperature(T, i, 1, k, var)
-                    init_SIce = SIce_crit(T)
-                    init_qv = epsilon0 * frac * init_SIce * pIce(T) / p
-                    var%ICE(i, 1, k, 4) = init_qv * sin(pi * (time - t_start) &
-                        &/ (2 * t_ramp_qv))
-                    !var(i,1,k,nVar-3) = init_nAer * sin(pi*(time-t_start)/(2*t_ramp_qv))
-                  end if
-                  if(x(i0 + i) > lx(1) - 0.1 * (lx(1) - lx(0))) then
-                    p = press0_dim * ((PStrat(k) / p0) ** gamma_1 + var%pi(i, &
-                        &1, k)) ** kappaInv
-                    call find_temperature(T, i, 1, k, var)
-                    init_SIce = SIce_crit(T)
-                    init_qv = epsilon0 * frac * init_SIce * pIce(T) / p
-                    var%ICE(i, 1, k, 4) = init_qv * sin(pi * (time - t_start) &
-                        &/ (2 * t_ramp_qv))
-                    !var(i,1,k,nVar-3) = init_nAer * sin(pi*(time-t_start)/(2*t_ramp_qv))
-                  end if
-                end do
-              end do
-              iceTestcase_specifics = .true.
-            else
-              iceTestcase_specifics = .false.
+
+              !save PiPrime(t_0+dt)
+              ofield(i, j, k, 1) = PiPrime
+
+              !CHNAGES
+              !SIce = PiPrime / PiMean
+              SIce = SIce * (1 + PiPrime / PiMean)
+
             end if
-          end if
-        end if
-      end if
 
-    case default
-      iceTestcase_specifics = .true.
+            !output variables
+            var%OPT(i, j, k, 1) = SIce
+            !STD vert. vel.
+            !var(i, j, k, iVarO+1) = ofield(i, j, k, 5)*uRef !\tilde w
 
-    end select
-
-  end function iceTestcase_specifics
-
-  !------------------------------------------------------------------------------------
-  ! returns terminal terminal_velocity_correction
-  real function terminal_velocity_correction(T, p)
-    ! in/out variables
-    real, intent(in) :: T, p
-
-    terminal_velocity_correction = (p / 30000.) ** (- 0.178) * (T / 233.) ** &
-        &(- 0.394)
-
-  end function terminal_velocity_correction
-
-  !------------------------------------------------------------------------------------
-  ! returns terminal sedimentation velocity of nIce in m/s
-  real function terminal_v_nIce(m_ice, T, p)
-    ! in/out variables
-    real, intent(in) :: m_ice, T, p
-
-    ! parameters from fit
-    real, parameter :: r0 = 3.
-    real, parameter :: a = 63292.37, b = 0.5727273
-    real, parameter :: c = 1.1
-    real, parameter :: m0 = 2.35e-8
-    real, parameter :: an = a * r0 ** (0.5 * b * (b - 1.))
-    real, parameter :: ex1 = b * c
-    real, parameter :: ex2 = 1. / c
-    real :: corr
-
-    corr = terminal_velocity_correction(T, p)
-
-    if(sedimentation_on) then
-      terminal_v_nIce = corr * an * m_ice ** b * (m0 ** ex1 / (m_ice ** ex1 &
-          &+ m0 ** ex1)) ** ex2
-    else
-      terminal_v_nIce = 0.0
-    end if
-
-  end function terminal_v_nIce
-
-  !----------------------------------------------
-
-  ! returns terminal sedimentation velocity of qIce in m/s
-  real function terminal_v_qIce(m_ice, T, p)
-    ! in/out variables
-    real, intent(in) :: m_ice, T, p
-
-    ! parameters from fit
-    real, parameter :: r0 = 3.
-    real, parameter :: a = 63292.37, b = 0.5727273
-    real, parameter :: c = 1.1
-    real, parameter :: m0 = 8.e-9
-    real, parameter :: aq = a * r0 ** (0.5 * b * (b + 1.))
-    real, parameter :: ex1 = b * c
-    real, parameter :: ex2 = 1. / c
-    real :: corr
-
-    corr = terminal_velocity_correction(T, p)
-
-    if(sedimentation_on) then
-      terminal_v_qIce = corr * aq * m_ice ** b * (m0 ** ex1 / (m_ice ** ex1 &
-          &+ m0 ** ex1)) ** ex2
-    else
-      terminal_v_qIce = 0.0
-    end if
-
-  end function terminal_v_qIce
-
-  !----------------------------------------------
-
-  real function latent_heat_ice(T)
-    ! in/out variables
-    real, intent(in) :: T
-
-    latent_heat_ice = (46782.5 + 35.8925 * T - 0.07414 * T ** 2 + 541.5 * &
-        &exp(- 1. * (T / 123.75) ** 2)) / Mole_mass_water
-
-  end function latent_heat_ice
-
-  !----------------------------------------------
-
-  real function approximation_model(SIce, T)
-    ! in/out variables
-    real, intent(in) :: T, SIce
-
-    !    coefficients for Koop-Polynom P3
-    !    correction +6. is due to the conversion to SI units
-    real, parameter :: pk0 = - 906.7 + 6.
-    real, parameter :: pk1 = 8502.0
-    real, parameter :: pk2 = - 26924.0
-    real, parameter :: pk3 = 29180.0
-
-    real :: delta_aw, awi0
-
-    awi0 = awi(T)
-
-    select case(NUC_approx_type)
-
-    case("linFit")
-      delta_aw = (SIce - 1.0) * awi0
-      approximation_model = afit0 - delta + afit1 * delta_aw
-
-    case("Koop")
-      delta_aw = (SIce - 1.0) * awi0
-      approximation_model = pk0 + pk1 * delta_aw + pk2 * delta_aw ** 2 + pk3 &
-          &* delta_aw ** 3 - delta
-
-    case("threshold")
-      approximation_model = afit1 * (SIce - SIce_threshold(T, awi0)) * awi0 + j0
-
-    case default
-      stop "NUC_approx_type: unknown case model."
-
-    end select
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    if(approximation_model .ge. 100.0) then
-
-      print *, "WARNING: approximation_model = ", approximation_model, ", the &
-          &value has been adjusted to 100"
-      approximation_model = 100.0
-    end if
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  end function approximation_model
-
-  !----------------------------------------------
-
-  real function NUCn(i, j, k, var, SIce, T, p, m_ice)
-    ! in/out variables
-    real, intent(in) :: SIce, T, p, m_ice
-    integer, intent(in) :: i, j, k
-    integer :: iVar
-    type(var_type), intent(in) :: var
-    real :: rho
-
-    if(nucleation_on) then
-      if(SIce .ge. SIce_crit(T)) then
-        NUCn = tRef * var%ICE(i, j, k, 1) * ice_crystal_volume * 10.0 &
-            &** approximation_model(SIce, T)
-        ! if (.true.): print out values of important variables for EVERY nucleation event
-        if(.false.) then
-          print *, " "
-          print *, "#########################"
-          print *, "Nucleation event! k = ", k, ", i = ", i + is + nbx - 1
-          print *, "nIce = ", var%ICE(i, j, k, 2) / (rhoRef * lRef ** 3)
-          print *, "qice = ", var%ICE(i, j, k, 3)
-          if(fluctuationMode) then
-            rho = var%rho(i, j, k) + rhoStrat(k)
+            !max GW vert. vel.
+            if(amp_pi .gt. 0.) then
+              var%OPT(i, j, k, 2) = ofield(i, j, k, 6) * uRef * sin(dphi - omg &
+                  &* uTime) ! w_max
+            else
+              var%OPT(i, j, k, 2) = 0.
+            end if
+            var%OPT(i, j, k, 3) = ofield(i, j, k, 1) * pRef / PsatIceRef !p/p_si
+            !var(i, j, k, iVarO+2) = ofield(i, j, k, 1)
           else
-            rho = var%rho(i, j, k)
+
+            print *, ' iceSources works only with model  &
+                &== pseudo_incompressible '
+            stop
+
+          end if ! pseudo_inc
+
+          if(.not. no_ice_source) then
+            ! CHANGES
+            source%ICE(i, j, k, inN) = nucleation_n(SIce, rho)
+            source%ICE(i, j, k, inQv) = deposition_qv(SIce, NIce, temp, pres, &
+                &psi)
+            source%ICE(i, j, k, inQ) = - source%ICE(i, j, k, inQv)
           end if
-          print *, "rho = ", rho * rhoRef
-          print *, "nAer = ", var%ICE(i, j, k, 1) * rho / lRef ** 3
-          print *, "T = ", T
-          print *, "p = ", p
-          print *, "qv = ", var%ICE(i, j, k, 4)
-          print *, "SIce = ", SIce
-          print *, "SIce_crit = ", SIce_crit(T)
-          print *, "NUC = ", NUCn / (rhoRef * lRef ** 3 * tRef)
-        end if
-      else
-        NUCn = 0.0
-      end if
-    else
-      NUCn = 0.0
-    end if
 
-  end function NUCn
+        end do ! i
+      end do ! j
+    end do ! k
 
-  !----------------------------------------------
+  end subroutine iceSources_raytr
 
-  real function DEPq(i, j, k, var, SIce, T, p, m_ice)
-    ! in/out variables
-    real, intent(in) :: SIce, T, p, m_ice
-    integer, intent(in) :: i, j, k
+  function deposition_qv(S, N, T, p, p_si)
+    ! compute deposition rate
+    ! - D p_si/ p (S-1) T N
+
+    use type_module, ONLY:Dep
+
+    implicit none
+
+    real, intent(in) :: S, T, N, p, p_si
+    real :: deposition_qv
+
+    deposition_qv = - Dep * (S - 1.) * T * N * p_si / p
+
+  end function deposition_qv
+
+  function source_S(S, N, T, p, p_si, rho)
+    ! compute rhs of eq. for S in asymptotic model
+    ! - D p_si/ p (S-1) T N + A S cos (w t)
+
+    use type_module, ONLY:Dep, pSatIceRef, epsil0
+    use atmosphere_module, ONLY:heightTFC, tRef, rhoRef, lRef, thetaRef, pRef
+
+    implicit none
+
+    real, intent(in) :: S, T, N, p, p_si, rho
+    real :: source_S
+
+    source_S = - Dep * (S - 1.) * T * N * pRef / pSatIceRef / epsil0 / rho
+
+  end function source_S
+
+  function nucleation_n(S, rho)
+    ! compute nucleation rate
+    ! \rho * J * exp[B(S-S_c)]
+
+    use type_module, ONLY:J_nuc, B_nuc, S_c
+
+    implicit none
+
+    real, intent(in) :: S, rho
+    real :: nucleation_n
+
+    nucleation_n = rho * J_nuc * exp(B_nuc * (S - S_c))
+
+  end function nucleation_n
+
+  function SatRatio(Qv, T, p_si)
+    ! compute saturation ratio
+    ! S= p * q_v / p_si / epsil0 = R T \rho q_v / p_si / epsil0 =  R T Qv / p_si / epsil0
+    use type_module, ONLY:epsil0hat
+    implicit none
+
+    real, intent(in) :: Qv, T, p_si
+    real :: SatRatio
+
+    SatRatio = Qv * T / p_si / epsil0hat
+
+  end function SatRatio
+
+  function SatRatio_rm_ini_pi(Qv, T, p_si, rho, pi0)
+    ! compute saturation ratio, remove wave contribution \tilde p_i(t_0)=p/p_si(t_0)
+    ! S= p * q_v / p_si / epsil0 = R T \rho q_v / p_si / epsil0 =  R T Qv / p_si / epsil0
+    use type_module, ONLY:epsil0hat
+    implicit none
+
+    real, intent(in) :: Qv, T, p_si, rho, pi0
+    real :: SatRatio_rm_ini_pi
+
+    SatRatio_rm_ini_pi = Qv * (T / p_si - pi0 / rho) / epsil0hat
+
+  end function SatRatio_Rm_Ini_Pi
+
+  function Psat_ice(T)
+    ! compute saturation pressure over ice
+    ! NB: temperature nondimensionalized with thetaRef_tropopause
+    ! bc. Psat_ice_ref = Psat_ice_ref (thetaRef_tropopause)
+    use type_module, ONLY:L_hat, thetaRefRatio
+
+    implicit none
+
+    real, intent(in) :: T
+    real :: Psat_ice
+
+    Psat_ice = exp(L_hat * (1. - 1. / (T * thetaRefRatio)))
+
+  end function Psat_Ice
+
+  subroutine compare_reduced_model
+    !compare tendency with reduced model from pyton script
+
+    use type_module
+    use atmosphere_module, ONLY:heightTFC, tRef, rhoRef, lRef, thetaRef, pRef, &
+        &PStrat01, PStratTilde01, PStrat, rhoStrat, piStrat, kappaInv, &
+        &PStratTFC, piStratTfc, rhoStratTFC, gamma_1
+
+    implicit none
+    real :: temp, pres, psi, rho, n, S, q, dn, ds, dq
+
+    !set values form paper
+    temp = 210 / thetaRef
+    pres = 30000 / pRef
+    psi = Psat_ice(temp) !non. dimen. sat. pressure over ice
+    print *, 'PSatRef', psi, PSatIceRef, pRef, epsil0
+    rho = 0.5 / rhoRef
+
+    !initial conditions from Model in XX/kg
+    n = 0.1 * 2.E6
+    S = 1.4
+    q = meanMassIce * n
+
+    !transorm to \hat N , S, \hat Q
+    !\hat N = \hat \rho * \hat n
+    n = rho * (n * mRef)
+    !\hat Q = \hat \rho * \hat q
+    q = rho * q
+
+    dn = nucleation_n(S, rho)
+    ds = source_S(S, n, temp, pres, psi, rho)
+
+    !compute mass specific tendencies
+    dn = dn / rho
+    !dq = dq/rho
+
+    !dimensionalize tendencies
+    dn = dn / mRef / tRef
+    ds = ds / tRef
+
+    print *, 'tendency n', dn
+    print *, 'tendency S', ds
+    !print*, 'tendency q', dq
+
+    print *, 'REF: , 1.1336318519308867e-10, -0.00011651612903225811, &
+        &2.330322580645162e-07'
+
+  end subroutine compare_reduced_model
+
+  subroutine redim_fields(var, var0)
+
+    use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice, &
+        &nVarIce, inN, inQ, inQv, master, model, topography, &
+        &thetaRefRatio, timeScheme, L_ice, R_v, S_c, Dep, pSatIceRef, epsil0, &
+        &var_type
+    use mpi_module
+    use atmosphere_module, ONLY:PStrat01, PStratTilde01, PStrat, rhoStrat, &
+        &piStrat, kappaInv, PStratTFC, piStratTfc, rhoStratTFC, gamma_1, p0, &
+        &mRef, uRef, kappa, Rsp, thetaRef, tRef, g, pRef
+    use boundary_module !, ONLY : setHalos, setBoundary, reconstruction
+    use flux_module
+    !   use update_module, ONLY : dIce, iceUpdate
+
+    implicit none
+
     type(var_type), intent(in) :: var
+    !    real, dimension(-1:nx,-1:ny,-1:nz, nVarIce), intent(out) :: source
+    type(var_type), intent(inout) :: var0
+    real :: rho, pres, temp, theta, psi, Qv, SIce, NIce, exn_p, A
+    integer :: i, j, k
 
-    ! parameter for calculation
-    real :: lambda, kT, dv, cm, mu, dvstar, how, Schmidt_term
-    real :: corr, lat_heat, fkin, a, b, r, schmidt23, gv, bd, bk
-    real, parameter :: cunn = 0.7, alpham = 0.5, alphat = 1.
-    real, parameter :: c1 = 0.8198373822 ! = 1.42*r0**(-0.5)
-    real, parameter :: c2 = 1.5
-    real, parameter :: fac_1 = 0.014038499
-    real, parameter :: fac_2 = 0.293369825
-    ! where fac_i = a_i * r0 ** ( 0.5 * b_i * (b_i - 1.) )
-    ! here: a_1 = 0.015755, a_2 = 0.33565, r0 = 3.0 and
-    real, parameter :: b_1 = 0.3, b_2 = 0.43
-    ! TODO: where do these numbers come from?
-    real, parameter :: av = 1.1e6
-    real, parameter :: bv = 0.51
-    real, parameter :: cv = 0.57
-    real, parameter :: m0 = 4.4e-9
-    real, parameter :: gv0 = 0.148564433505542
-    real :: rho
+    do k = 1, nz
+      do j = 1, ny
+        do i = 1, nx
 
-    if(super_simplified) then
-      ! use simplified fits instead of the proper equations
-      if(fluctuationMode) then
-        rho = var%rho(i, j, k) + rhoStrat(k)
+          if(model == "pseudo_incompressible") then
+
+            if(topography) then
+
+              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
+
+              theta = PstratTFC(i, j, k) / rho
+
+              !if ( timeScheme == "semiimplicit" ) then
+              !   print*, 'iceSources works only with explicit integration'
+              !   stop
+              !else
+              !problems in \pi if heating switched on
+              exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1 !end if
+
+            else
+
+              rho = var%rho(i, j, k) + rhoStrat(k)
+
+              theta = Pstrat(k) / rho
+
+              !problems in \pi if heating of background
+              exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
+
+            end if ! topography
+
+            pres = p0 * exn_p ** kappaInv !kappaInv = c_p/R
+
+            temp = theta * exn_p
+
+            psi = Psat_ice(temp)
+
+            Qv = var%ICE(i, j, k, inQv) ! Q_v = \rho q_v
+
+            NIce = var%ICE(i, j, k, inN) ! N_v = \rho n
+
+            SIce = SatRatio(Qv, temp, psi)
+
+          else
+
+            print *, ' iceSources works only with model  &
+                &== pseudo_incompressible '
+            stop
+
+          end if ! pseudo_inc
+
+          var0%ICE(i, j, k, inN) = NIce / rho / mRef
+
+          !var0(i,j,k, inQ) = SIce
+
+          var0%ICE(i, j, k, inQv) = Qv / rho
+
+          !var0(i,j,k, inQ) = var(i, j, k, 4)*uRef !store w at 10
+
+          !asymptotic solution
+          A = var%w(i, j, k) * uRef * L_ice * g * kappa / Rsp / thetaRef ** 2 &
+              &/ R_v
+          !var0(i,j,k, inQ) = 2*A*S_c / (S_c - 1.) / (Dep * temp * psi / pres /tRef) / mRef
+          var0%ICE(i, j, k, inQ) = 2 * A * S_c / ((S_c - 1.) * Dep * temp &
+              &* pRef / pSatIceRef / epsil0 / tRef) / mRef
+
+        end do
+      end do
+    end do
+
+  end subroutine redim_fields
+
+  subroutine integrate_ice(var, var0, flux, fluxmode, source, dt, q, RKstage, &
+      &PS0, PSTilde0, update_type, uTime, qTime)
+
+    !new routine to handle both advection and ice physics
+
+    use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice, &
+        &master, nVarIce, heatingONK14, raytracer, var_type, flux_type
+    use mpi_module
+
+    !use atmosphere_module, ONLY : PStrat01, PStratTilde01
+    use boundary_module, ONLY:setBoundary
+    use flux_module, ONLY:iceFlux, reconstruction
+    use update_module, ONLY:iceUpdate_apb, timeUpdate
+
+    implicit none
+
+    type(var_type), intent(inout) :: var, source
+    type(var_type), intent(in) :: var0
+    type(flux_type) :: flux
+    real, dimension(- 1:nz + 2), intent(in) :: PS0, PSTilde0
+    character(len = *), intent(in) :: fluxmode
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
+        &intent(inout) :: q ! RK update for ice fields
+    real :: dt
+    integer :: RKstage
+    character(len = 3), intent(in) :: update_type
+    real :: uTime, qTime, pTime
+
+    if(update_type == 'ADV' .or. update_type == 'BOT') then
+
+      call setHalos(var, "ice")
+      call setBoundary(var, flux, "ice")
+
+      call reconstruction(var, "ice")
+
+      !** ?? call setHalos( var, "iceTilde" )
+      call setBoundary(var, flux, "iceTilde")
+
+      ! Fluxes and Sources
+      call iceFlux(var0, var, flux, fluxmode, PS0, PSTilde0)
+
+    end if
+
+    if(update_type == 'PHY' .or. update_type == 'BOT') then
+
+      if(heatingONK14) then
+        print *, 'icesources does not work with heating'
+        stop
       else
-        rho = var%rho(i, j, k)
+        if(raytracer) then
+          pTime = uTime !save previous time
+          call timeUpdate(uTime, dt, qTime, RKstage)
+          call iceSources_raytr(var, source, uTime, pTime)
+        else
+          call iceSources(var, source)
+        end if ! raytracer
       end if
-      rho = rho * rhoRef
-      DEPq = 3.56 * 10 ** (- 14) / (rhoRef * lRef ** 3) * tRef * (var%ICE(i, &
-          &j, k, 4) * rho / (1.9 * 10 ** (- 5)) - pIce(T)) * var%ICE(i, j, k, 2)
+
+    end if
+
+    if(update_type == 'BOT') then
+      call iceUpdate_apb(var, flux, source, dt, q, RKstage, 'BOT')
+    elseif(update_type == 'ADV') then
+      call iceUpdate_apb(var, flux, source, dt, q, RKstage, 'ADV')
+    elseif(update_type == 'PHY') then
+      call iceUpdate_apb(var, flux, source, dt, q, RKstage, 'PHY')
     else
-      ! use the proper equations
-
-      rho = p / (Rsp * T)
-
-      ! #### find lambda #### !
-      lambda = 6.6e-8 * T / 293.15 * 101325. / p
-
-      ! #### find kT #### !
-      if(kT_linFit) then
-        kT = 0.00122990325719493 + 8.43749062552794e-05 * T
-      else
-        kT = 0.002646 * T ** 1.5 / (T + 245. * 10 ** (- 12. / T))
-      end if
-
-      ! #### find dv #### !
-      if(dv_exp2) then
-        dv = 2.142e-05 * (T / 273.15) ** 2. * 101325. / p
-      else
-        dv = 2.11e-5 * (T / 273.15) ** 1.94 * 101325. / p
-      end if
-
-      ! #### find cm #### !
-      if(cm_dryAir) then
-        cm = sqrt(8. * RSp * T / pi)
-      else
-        cm = sqrt(8. * Rv * T / pi)
-      end if
-
-      ! #### find mu #### !
-      if(mu_linFit) then
-        mu = 2.14079e-6 + 5.57139e-8 * T
-      else
-        mu = (1.458e-6 * T ** 1.5) / (T + 110.4)
-      end if
-
-      ! #### find dvstar #### !
-      a = lambda * cunn
-      b = 4. * dv / (alpham * cm)
-      r = (3. * c1 * m_ice / (4. * pi * rhob)) ** (1. / 3.)
-      fkin = (r ** 2 + a * r) / (r ** 2 + b * r + a * b)
-      dvstar = dv * fkin
-
-      ! #### find correction for small crystals #### !
-      r = (3. * m_ice / (4. * pi * rhob)) ** (1. / 3.)
-      bd = 4. * dv / (alpham * sqrt(8. * Rv * T / pi))
-      bk = 4. * kt / (alphat * sqrt(8. * Rsp * T / pi) * rho * 3.5 * Rsp)
-      corr = (r * r + bk * r + a * bk) / (r * r + bd * r + a * bd)
-
-      ! #### find how #### !
-      lat_heat = latent_heat_ice(T) / (Rv * T)
-      how = 1. / ((lat_heat - 1.) * lat_heat * corr * dv / kT + Rv * T &
-          &/ pIce(T))
-
-      ! #### find Schmidt_term #### !
-      corr = terminal_velocity_correction(T, p)
-      schmidt23 = (mu / (rho * dv)) ** (2. / 3.)
-      gv = gv0 * schmidt23 * corr * rho / mu
-      Schmidt_term = 1. + gv * av * (m_ice * c2) ** (bv + cv) * m0 ** cv &
-          &/ (m_ice ** cv + m0 ** cv)
-
-      DEPq = var%ICE(i, j, k, 2) * 4 * pi * how * (fac_1 * m_ice ** b_1 &
-          &+ fac_2 * m_ice ** b_2) * dvstar * Schmidt_term * (SIce - 1.0) &
-          &/ (rhoRef * lRef ** 3) * tRef
-
+      print *, 'unknown update_type in integrate_ice'
+      stop
     end if
 
-    if((DEPq .lt. 0.0) .and. (var%ICE(i, j, k, 4) .le. 1.e-10)) then
-      DEPq = 0.0
-      ! if there is not enough water vapor available in the
-      ! surrounding, ice particles should not grow
-    end if
-
-  end function DEPq
-
-  !----------------------------------------------
-
-  ! from Murphy and Koop, 2005
-  real function pIce(T) ! ice pressure
-    ! in/out variables
-    real, intent(in) :: T
-
-    if(super_simplified) then
-      pIce = - 26.26 + 26.98 * T / 210.0
-    else
-      pIce = exp(9.550426 - 5723.265 / T + 3.53068 * log(T) - 0.00728332 * T)
-    end if
-
-  end function pIce
-
-  !----------------------------------------------
-
-  ! from Murphy and Koop, 2005
-  real function p_saturation(T) ! water vapor saturation pressure
-    ! in/out variables
-    real, intent(in) :: T
-
-    p_saturation = exp(54.842763 - 6763.22 / T - 4.210 * log(T) + 0.000367 * T &
-        &+ tanh(0.0415 * (T - 218.8)) * (53.878 - 1331.22 / T - 9.44523 &
-        &* log(T) + 0.014025 * T))
-
-  end function p_saturation
-
-  !----------------------------------------------
-
-  real function SIce_crit(T)
-    ! in/out variables
-    real, intent(in) :: T
-    real :: x0, awi0
-    ! parameter
-    !  real :: s0,s1
-
-    ! alternative linear fit:
-    ! s1 = -3.4057422903191969E-3
-    ! s0 = 2.2525409204521596
-    ! SIce_crit = s0 + s1*T
-    ! didn't prove useful so far
-
-    x0 = 0 ! possible manual offset
-    awi0 = awi(T)
-    SIce_crit = (x0 - j0) / (afit1 * awi0) + SIce_threshold(T, awi0)
-  end function SIce_crit
-
-  !----------------------------------------------
-
-  real function SIce_threshold(T, awi0)
-    ! in/out variables
-    real, intent(in) :: T, awi0
-
-    !coefficients for treshold fit
-    real, parameter :: s10 = 2.27697
-    real, parameter :: s11 = - 0.00347231
-    real, parameter :: s20 = 1.67469
-    real, parameter :: s21 = 0.00228125
-    real, parameter :: s22 = - 1.36989e-05
-
-    select case(SIce_threshold_type)
-    case("linFit")
-      SIce_threshold = s10 + s11 * T
-
-    case("quadFit")
-      SIce_threshold = s20 + s21 * T + s22 * T ** 2
-
-    case("exact")
-      SIce_threshold = (j0 - afit0 + delta) / (afit1 * awi0) + 1.
-
-    case default
-      stop "SIce_threshold_type: unknown case model."
-
-    end select
-
-  end function SIce_threshold
-
-  !----------------------------------------------
-
-  ! water activity
-  real function awi(T)
-    ! in/out variables
-    real, intent(in) :: T
-
-    ! fit coefficients
-    real, parameter :: awi00 = 0.574312
-    real, parameter :: awi10 = - 0.197855
-    real, parameter :: awi11 = 0.00367699
-    real, parameter :: awi20 = 1.4962
-    real, parameter :: awi21 = - 0.0125061
-    real, parameter :: awi22 = 3.85311e-05
-
-    select case(awi_type)
-
-    case("const")
-      awi = awi00
-
-    case("linFit")
-      awi = awi10 + awi11 * T
-
-    case("quadFit")
-      awi = awi20 + awi21 * T + awi22 * T ** 2
-
-    case("exact")
-      awi = pIce(T) / p_saturation(T)
-
-    case default
-      stop "awi_type: unknown case model."
-
-    end select
-
-  end function awi
-
-  !----------------------------------------------
-
-  ! calculate the current absolute temperature in Kelvin
-  subroutine find_temperature(T, i, j, k, var)
-    ! in/out variables
-    real, intent(inout) :: T
-    integer, intent(in) :: i, j, k
-    type(var_type), intent(in) :: var
-    real :: rho
-
-    if(fluctuationMode) then
-      rho = var%rho(i, j, k) + rhoStrat(k)
-    else
-      rho = var%rho(i, j, k)
-    end if
-
-    select case(model)
-      ! TFC FJ
-      ! No changes for Boussinesq model required.
-    case("pseudo_incompressible", "Boussinesq")
-      T = (Pstrat(k) / rho) * thetaRef * ((PStrat(k) / p0) ** gamma_1 &
-          &+ var%pi(i, j, k))
-
-      ! case("Boussinesq")
-      !   T = ( thetaStrat(k) + var(i,j,k,6) ) * thetaRef &
-      !      & * ( (PStrat(k)/p0)**gamma_1  +var(i,j,k,5) )
-
-    case default
-      stop "find_temperature: undefined model."
-
-    end select
-
-  end subroutine find_temperature
+  end subroutine integrate_ice
 
 end module ice_module

@@ -5,8 +5,8 @@ module flux_module
   use muscl_module
   use atmosphere_module
   use algebra_module
-  use ice_module
   use sizeof_module
+  use mpi
 
   implicit none
 
@@ -19,16 +19,14 @@ module flux_module
   public :: massFlux
   public :: thetaFlux
   public :: momentumFlux
-  public :: iceFlux
   public :: volumeForce
   public :: init_fluxes
   public :: terminate_fluxes
   public :: thetaSource
   public :: massSource
   public :: momentumSource
-  public :: iceSource
   public :: tracerFlux
-  public :: ice2Flux
+  public :: iceFlux
 
   ! TFC FJ
   public :: setHalosOfField
@@ -143,11 +141,10 @@ module flux_module
     ! locals
     integer :: dir, lr
 
-    ! TFC FJ
+    ! TFC
     real :: rhoEdgeR, rhoEdgeF, rhoEdgeU
     real :: pEdgeR, pEdgeF, pEdgeU
 
-    ! SD
     integer :: ii, iVar
 
     select case(reconstType)
@@ -159,47 +156,6 @@ module flux_module
     case('constant2')
 
       stop 'constant2 reconstruction disabled'
-
-      !       select case( variable )
-      !
-      !       case( "rho" )
-      !
-      !          do dir = 1,3
-      !             do lr = 0,1
-      !                rhoTilde(:,:,:,dir,lr) = var(:,:,:,1)
-      !             end do
-      !          end do
-      !
-      !       case( "rhop" )
-      !
-      !          do dir = 1,3
-      !             do lr = 0,1
-      !                rhopTilde(:,:,:,dir,lr) = var(:,:,:,6)
-      !             end do
-      !          end do
-      !
-      !       case( "uvw" )
-      !
-      !          do dir = 1,3
-      !             do lr = 0,1
-      !                uTilde(:,:,:,dir,lr) = var(:,:,:,2)
-      !                vTilde(:,:,:,dir,lr) = var(:,:,:,3)
-      !                wTilde(:,:,:,dir,lr) = var(:,:,:,4)
-      !             end do
-      !          end do
-      !
-      !
-      !       case( "theta" )
-      !
-      !          do dir = 1,3
-      !             do lr = 0,1
-      !                thetaTilde(:,:,:,dir,lr) = var(:,:,:,6)
-      !             end do
-      !          end do
-      !
-      !       case default
-      !          stop "reconstruction: unknown case model."
-      !       end select
 
       !-----------------------
       !   MUSCL reconstrcution
@@ -220,13 +176,9 @@ module flux_module
 
         case("rho")
 
-          !rhoBar(:,:,:) = var(:,:,:,1)
-          !call reconstruct_MUSCL(rhoBar,rhoTilde,nxx,nyy,nzz,limiterType1)
-
           ! GBcorr: to be consistent with current rouine: momentumFlux
           rhoBar = 0.0
           if(topography) then
-            ! TFC FJ
             ! Adjust reconstruction for 3D fields.
             do ix = - nbx, nx + nbx
               do jy = - nby, ny + nby
@@ -253,14 +205,9 @@ module flux_module
 
         case("rhop")
 
-          !rhopBar(:,:,:) = var(:,:,:,6)
-          !call reconstruct_MUSCL(rhopBar,rhopTilde,nxx,nyy,nzz,&
-          !                     & limiterType1)
-
           ! GBcorr: to be consistent with current rouine: momentumFlux
           rhopBar = 0.0
           if(topography) then
-            ! TFC FJ
             ! Adjust reconstruction for 3D fields.
             do ix = - nbx, nx + nbx
               do jy = - nby, ny + nby
@@ -289,131 +236,85 @@ module flux_module
         case("uvw")
 
           ! calculate specific momenta to be reconstructed
-          if(fluctuationMode) then
-            if(topography) then
-              ! TFC FJ
-              ! Adjust reconstruction for 3D fields.
-              do ix = - nbx, nx + nbx - 1
-                do jy = - nby, ny + nby
-                  do kz = 0, nz + 1
-                    rhoEdgeR = 0.5 * (var%rho(ix, jy, kz) + var%rho(ix + 1, &
-                        &jy, kz) + rhoStratTFC(ix, jy, kz) + rhoStratTFC(ix &
-                        &+ 1, jy, kz))
-                    pEdgeR = 0.5 * (pStratTFC(ix, jy, kz) + pStratTFC(ix + 1, &
-                        &jy, kz))
-                    uBar(ix, jy, kz) = var%u(ix, jy, kz) * rhoEdgeR / pEdgeR
-                  end do
+          if(topography) then
+            ! Adjust reconstruction for 3D fields.
+            do ix = - nbx, nx + nbx - 1
+              do jy = - nby, ny + nby
+                do kz = 0, nz + 1
+                  rhoEdgeR = 0.5 * (var%rho(ix, jy, kz) + var%rho(ix + 1, &
+                      &jy, kz) + rhoStratTFC(ix, jy, kz) + rhoStratTFC(ix &
+                      &+ 1, jy, kz))
+                  pEdgeR = 0.5 * (pStratTFC(ix, jy, kz) + pStratTFC(ix + 1, &
+                      &jy, kz))
+                  uBar(ix, jy, kz) = var%u(ix, jy, kz) * rhoEdgeR / pEdgeR
                 end do
               end do
-            else
-              do kz = 0, nz + 1
-                do ix = - nbx, nx + nbx - 1
-                  uBar(ix, :, kz) = var%u(ix, :, kz) * (0.5 * (var%rho(ix, :, &
-                      &kz) + var%rho(ix + 1, :, kz)) + rhoStrat(kz)) &
-                      &/ Pstrat(kz)
-                  ! GBcorr: to be consistent with current rouine: momentumFlux
-                  ! * (  0.5*(var(ix,:,kz,1) + var(ix+1,:,kz,1)) &
-                  ! + rhoStrat(kz))
-                end do
-              end do
-            end if
+            end do
           else
             do kz = 0, nz + 1
               do ix = - nbx, nx + nbx - 1
-                uBar(ix, :, kz) = var%u(ix, :, kz) * 0.5 * (var%rho(ix, :, kz) &
-                    &+ var%rho(ix + 1, :, kz)) / Pstrat(kz)
+                uBar(ix, :, kz) = var%u(ix, :, kz) * (0.5 * (var%rho(ix, :, &
+                    &kz) + var%rho(ix + 1, :, kz)) + rhoStrat(kz)) &
+                    &/ Pstrat(kz)
                 ! GBcorr: to be consistent with current rouine: momentumFlux
-                ! * 0.5*(var(ix,:,kz,1) + var(ix+1,:,kz,1))
               end do
             end do
           end if
 
-          if(fluctuationMode) then
-            if(topography) then
-              ! TFC FJ
-              ! Adjust reconstruction for 3D fields.
-              do ix = - nbx, nx + nbx
-                do jy = - nby, ny + nby - 1
-                  do kz = 0, nz + 1
-                    rhoEdgeF = 0.5 * (var%rho(ix, jy, kz) + var%rho(ix, jy &
-                        &+ 1, kz) + rhoStratTFC(ix, jy, kz) + rhoStratTFC(ix, &
-                        &jy + 1, kz))
-                    pEdgeF = 0.5 * (pStratTFC(ix, jy, kz) + pStratTFC(ix, jy &
-                        &+ 1, kz))
-                    vBar(ix, jy, kz) = var%v(ix, jy, kz) * rhoEdgeF / pEdgeF
-                  end do
+          if(topography) then
+            ! Adjust reconstruction for 3D fields.
+            do ix = - nbx, nx + nbx
+              do jy = - nby, ny + nby - 1
+                do kz = 0, nz + 1
+                  rhoEdgeF = 0.5 * (var%rho(ix, jy, kz) + var%rho(ix, jy &
+                      &+ 1, kz) + rhoStratTFC(ix, jy, kz) + rhoStratTFC(ix, &
+                      &jy + 1, kz))
+                  pEdgeF = 0.5 * (pStratTFC(ix, jy, kz) + pStratTFC(ix, jy &
+                      &+ 1, kz))
+                  vBar(ix, jy, kz) = var%v(ix, jy, kz) * rhoEdgeF / pEdgeF
                 end do
               end do
-            else
-              do kz = 0, nz + 1
-                do jy = - nby, ny + nby - 1
-                  vBar(:, jy, kz) = var%v(:, jy, kz) * (0.5 * (var%rho(:, jy, &
-                      &kz) + var%rho(:, jy + 1, kz)) + rhoStrat(kz)) &
-                      &/ Pstrat(kz)
-                  ! GBcorr: to be consistent with current rouine: momentumFlux
-                  ! * (  0.5*(var(:,jy,kz,1) + var(:,jy+1,kz,1)) &
-                  ! + rhoStrat(kz))
-                end do
-              end do
-            end if
+            end do
           else
             do kz = 0, nz + 1
               do jy = - nby, ny + nby - 1
-                vBar(:, jy, kz) = var%v(:, jy, kz) * 0.5 * (var%rho(:, jy, kz) &
-                    &+ var%rho(:, jy + 1, kz)) / Pstrat(kz)
+                vBar(:, jy, kz) = var%v(:, jy, kz) * (0.5 * (var%rho(:, jy, &
+                    &kz) + var%rho(:, jy + 1, kz)) + rhoStrat(kz)) &
+                    &/ Pstrat(kz)
                 ! GBcorr: to be consistent with current rouine: momentumFlux
-                ! * 0.5*(var(:,jy,kz,1) + var(:,jy+1,kz,1))
               end do
             end do
           end if
 
-          if(fluctuationMode) then
-            if(topography) then
-              ! TFC FJ
-              ! Reconstruct Cartesian vertical momentum.
-              wBar(:, :, 0:(nz + 1)) = var%w(:, :, 0:(nz + 1))
-              do ix = 1, nx
-                do jy = 1, ny
-                  do kz = 0, nz + 1
-                    wBar(ix, jy, kz) = vertWindTFC(ix, jy, kz, var)
-                  end do
+          if(topography) then
+            ! Reconstruct Cartesian vertical momentum.
+            wBar(:, :, 0:(nz + 1)) = var%w(:, :, 0:(nz + 1))
+            do ix = 1, nx
+              do jy = 1, ny
+                do kz = 0, nz + 1
+                  wBar(ix, jy, kz) = vertWindTFC(ix, jy, kz, var)
                 end do
               end do
-              call setHalosOfField(wBar)
-              do ix = - nbx, nx + nbx
-                do jy = - nby, ny + nby
-                  do kz = 0, nz + 1
-                    rhoEdgeU = 0.5 * (var%rho(ix, jy, kz) + var%rho(ix, jy, kz &
-                        &+ 1) + rhoStratTFC(ix, jy, kz) + rhoStratTFC(ix, jy, &
-                        &kz + 1))
-                    pEdgeU = 0.5 * (pStratTFC(ix, jy, kz) + pStratTFC(ix, jy, &
-                        &kz + 1))
-                    wBar(ix, jy, kz) = wBar(ix, jy, kz) * rhoEdgeU / pEdgeU
-                  end do
+            end do
+            call setHalosOfField(wBar)
+            do ix = - nbx, nx + nbx
+              do jy = - nby, ny + nby
+                do kz = 0, nz + 1
+                  rhoEdgeU = 0.5 * (var%rho(ix, jy, kz) + var%rho(ix, jy, kz &
+                      &+ 1) + rhoStratTFC(ix, jy, kz) + rhoStratTFC(ix, jy, &
+                      &kz + 1))
+                  pEdgeU = 0.5 * (pStratTFC(ix, jy, kz) + pStratTFC(ix, jy, &
+                      &kz + 1))
+                  wBar(ix, jy, kz) = wBar(ix, jy, kz) * rhoEdgeU / pEdgeU
                 end do
               end do
-            else
-              do kz = 0, nz + 1
-                wBar(:, :, kz) = var%w(:, :, kz) * (0.5 * (var%rho(:, :, kz) &
-                    &+ var%rho(:, :, kz + 1)) + rhoStratTilde(kz)) &
-                    &/ PstratTilde(kz)
-                ! GBcorr: to be consistent with current rouine: momentumFlux
-                ! * (  0.5*(var(:,:,kz,1) + var(:,:,kz+1,1)) &
-                ! + rhoStratTilde(kz))
-                ! FS:
-                ! * (  0.5*((var(:,:,kz,1)+rhoStrat(kz))/PStrat(kz) &
-                ! + (var(:,:,kz+1,1)+rhoStrat(kz+1))/PStrat(kz+1)))
-              end do
-            end if
+            end do
           else
             do kz = 0, nz + 1
-              wBar(:, :, kz) = var%w(:, :, kz) * 0.5 * (var%rho(:, :, kz) &
-                  &+ var%rho(:, :, kz + 1)) / PstratTilde(kz)
+              wBar(:, :, kz) = var%w(:, :, kz) * (0.5 * (var%rho(:, :, kz) &
+                  &+ var%rho(:, :, kz + 1)) + rhoStratTilde(kz)) &
+                  &/ PstratTilde(kz)
               ! GBcorr: to be consistent with current rouine: momentumFlux
-              ! * 0.5*(var(:,:,kz,1) + var(:,:,kz+1,1))
-              ! FS:
-              ! * (  0.5*((var(:,:,kz,1))/PStrat(kz) &
-              ! + (var(:,:,kz+1,1))/PStrat(kz+1)))
             end do
           end if
 
@@ -432,30 +333,13 @@ module flux_module
           PBar(:, :, :) = 1
           call reconstruct_MUSCL(PBar, PTilde, nxx, nyy, nzz, limiterType1)
 
+
         case("ice")
-
-          if(include_ice) then
-
-            nAerBar(:, :, :) = var%ICE(:, :, :, 1)
-            nIceBar(:, :, :) = var%ICE(:, :, :, 2)
-            qIceBar(:, :, :) = var%ICE(:, :, :, 3)
-            qvBar(:, :, :) = var%ICE(:, :, :, 4)
-
-            call reconstruct_MUSCL(nIceBar, nIceTilde, nxx, nyy, nzz, &
-                &limiterType1)
-            call reconstruct_MUSCL(qIceBar, qIceTilde, nxx, nyy, nzz, &
-                &limiterType1)
-            call reconstruct_MUSCL(qvBar, qvTilde, nxx, nyy, nzz, limiterType1)
-
-          end if
-
-        case("ice2")
 
           do iVar = 1, nVarIce
 
             iceBar = 0.0
             if(topography) then
-              ! TFC FJ
               ! Adjust reconstruction for 3D fields.
               do ix = - nbx, nx + nbx
                 do jy = - nby, ny + nby
@@ -464,7 +348,7 @@ module flux_module
                       print *, "ERROR in rec. rho: pStratTFC = 0 at k = ", kz
                       stop
                     end if
-                    iceBar(ix, jy, kz) = var%ICE2(ix, jy, kz, iVar) &
+                    iceBar(ix, jy, kz) = var%ICE(ix, jy, kz, iVar) &
                         &/ pStratTFC(ix, jy, kz)
                   end do
                 end do
@@ -475,7 +359,7 @@ module flux_module
                   print *, 'ERROR in rec. rho: Pstrat(kz) = 0 at kz =', kz
                   stop
                 end if
-                iceBar(:, :, kz) = (var%ICE2(:, :, kz, iVar)) / Pstrat(kz)
+                iceBar(:, :, kz) = (var%ICE(:, :, kz, iVar)) / Pstrat(kz)
               end do
             end if
 
@@ -495,7 +379,7 @@ module flux_module
                   &limiterType1)
 
             end if
-          end do !ii
+          end do
 
         case("tracer")
           ! calucate tracerBar
@@ -539,7 +423,6 @@ module flux_module
 
         case("rho")
 
-          !UAB
           rhoBar = 0.0
           do kz = 0, nz + 1
             if(Pstrat(kz) == 0.0) then
@@ -549,11 +432,9 @@ module flux_module
             rhoBar(:, :, kz) = (var%rho(:, :, kz)) / Pstrat(kz)
           end do
           call reconstruct_MUSCL(rhoBar, rhoTilde, nxx, nyy, nzz, limiterType1)
-          !UAE
 
         case("rhop")
 
-          !UAB
           rhopBar = 0.0
           do kz = 0, nz + 1
             if(Pstrat(kz) == 0.0) then
@@ -564,11 +445,9 @@ module flux_module
           end do
           call reconstruct_MUSCL(rhopBar, rhopTilde, nxx, nyy, nzz, &
               &limiterType1)
-          !UAE
 
         case("uvw")
 
-          !UAB
           ! reconstruct specific momenta \rho \vec{v}/P
           ! for this \rho/P and \vec v are reconstructed each and then the
           ! product of the two is taken
@@ -577,37 +456,16 @@ module flux_module
 
           rhoBar = 0.0
 
-          if(fluctuationMode) then
-            do kz = 0, nz + 1
-              if(Pstrat(kz) == 0.0) then
-                print *, 'ERROR in rec. u: Pstrat(kz) = 0 at kz =', kz
-                stop
-              end if
-              do ix = - nbx, nx + nbx - 1
-                rhoBar(ix, :, kz) = (0.5 * (var%rho(ix, :, kz) + var%rho(ix &
-                    &+ 1, :, kz)) + rhoStrat(kz)) / Pstrat(kz)
-                !FS:
-                ! = 0.5*&
-                !   ((var(ix,:,kz,1)+rhoStrat(kz))/Pstrat(kz) + &
-                !   (var(ix+1,:,kz,1)+rhoStrat(kz))/Pstrat(kz))
-              end do
+          do kz = 0, nz + 1
+            if(Pstrat(kz) == 0.0) then
+              print *, 'ERROR in rec. u: Pstrat(kz) = 0 at kz =', kz
+              stop
+            end if
+            do ix = - nbx, nx + nbx - 1
+              rhoBar(ix, :, kz) = (0.5 * (var%rho(ix, :, kz) + var%rho(ix &
+                  &+ 1, :, kz)) + rhoStrat(kz)) / Pstrat(kz)
             end do
-          else
-            do kz = 0, nz + 1
-              if(Pstrat(kz) == 0.0) then
-                print *, 'ERROR in rec. u: Pstrat(kz) = 0 at kz =', kz
-                stop
-              end if
-              do ix = - nbx, nx + nbx - 1
-                rhoBar(ix, :, kz) = 0.5 * (var%rho(ix, :, kz) + var%rho(ix &
-                    &+ 1, :, kz)) / Pstrat(kz)
-                !FS:
-                != 0.5*&
-                !  ((var(ix,:,kz,1))/Pstrat(kz) + &
-                !  (var(ix+1,:,kz,1))/Pstrat(kz))
-              end do
-            end do
-          end if
+          end do
 
           call reconstruct_MUSCL(rhoBar, rhoTilde_mom, nxx, nyy, nzz, &
               &limiterType1)
@@ -628,37 +486,16 @@ module flux_module
 
           rhoBar = 0.0
 
-          if(fluctuationMode) then
-            do kz = 0, nz + 1
-              if(Pstrat(kz) == 0.0) then
-                print *, 'ERROR in rec. v: Pstrat(kz) = 0 at kz =', kz
-                stop
-              end if
-              do jy = - nby, ny + nby - 1
-                rhoBar(:, jy, kz) = (0.5 * (var%rho(:, jy, kz) + var%rho(:, jy &
-                    &+ 1, kz)) + rhoStrat(kz)) / Pstrat(kz)
-                !FS:
-                != 0.5*&
-                !  ((var(:,jy,kz,1)+rhoStrat(kz))/Pstrat(kz) + &
-                !  (var(:,jy+1,kz,1)+rhoStrat(kz))/Pstrat(kz))
-              end do
+          do kz = 0, nz + 1
+            if(Pstrat(kz) == 0.0) then
+              print *, 'ERROR in rec. v: Pstrat(kz) = 0 at kz =', kz
+              stop
+            end if
+            do jy = - nby, ny + nby - 1
+              rhoBar(:, jy, kz) = (0.5 * (var%rho(:, jy, kz) + var%rho(:, jy &
+                  &+ 1, kz)) + rhoStrat(kz)) / Pstrat(kz)
             end do
-          else
-            do kz = 0, nz + 1
-              if(Pstrat(kz) == 0.0) then
-                print *, 'ERROR in rec. v: Pstrat(kz) = 0 at kz =', kz
-                stop
-              end if
-              do jy = - nby, ny + nby - 1
-                rhoBar(:, jy, kz) = 0.5 * (var%rho(:, jy, kz) + var%rho(:, jy &
-                    &+ 1, kz)) / Pstrat(kz)
-                !FS:
-                ! = 0.5*&
-                !   ((var(:,jy,kz,1))/Pstrat(kz) + &
-                !   (var(:,jy+1,kz,1))/Pstrat(kz))
-              end do
-            end do
-          end if
+          end do
 
           call reconstruct_MUSCL(rhoBar, rhoTilde_mom, nxx, nyy, nzz, &
               &limiterType1)
@@ -679,33 +516,14 @@ module flux_module
 
           rhoBar = 0.0
 
-          if(fluctuationMode) then
-            do kz = 0, nz + 1
-              if(Pstrat(kz) == 0.0) then
-                print *, 'ERROR in rec. w: Pstrat(kz) = 0 at kz =', kz
-                stop
-              end if
-              rhoBar(:, :, kz) = (0.5 * (var%rho(:, :, kz) + var%rho(:, :, kz &
-                  &+ 1)) + rhoStratTilde(kz)) / PstratTilde(kz)
-              !FS:
-              !   = 0.5*&
-              !     ((var(:,:,kz,1)+rhoStrat(kz))/Pstrat(kz) + &
-              !     (var(:,:,kz+1,1)+rhoStrat(kz+1))/Pstrat(kz+1))
-            end do
-          else
-            do kz = 0, nz + 1
-              if(Pstrat(kz) == 0.0) then
-                print *, 'ERROR in rec. w: Pstrat(kz) = 0 at kz =', kz
-                stop
-              end if
-              rhoBar(:, :, kz) = 0.5 * (var%rho(:, :, kz) + var%rho(:, :, kz &
-                  &+ 1)) / PstratTilde(kz)
-              !FS:
-              !   = 0.5*&
-              !     ((var(:,:,kz,1))/Pstrat(kz) + &
-              !     (var(:,:,kz+1,1))/Pstrat(kz+1))
-            end do
-          end if
+          do kz = 0, nz + 1
+            if(Pstrat(kz) == 0.0) then
+              print *, 'ERROR in rec. w: Pstrat(kz) = 0 at kz =', kz
+              stop
+            end if
+            rhoBar(:, :, kz) = (0.5 * (var%rho(:, :, kz) + var%rho(:, :, kz &
+                &+ 1)) + rhoStratTilde(kz)) / PstratTilde(kz)
+          end do
 
           call reconstruct_MUSCL(rhoBar, rhoTilde_mom, nxx, nyy, nzz, &
               &limiterType1)
@@ -719,7 +537,6 @@ module flux_module
           call reconstruct_MUSCL(wBar, wTilde, nxx, nyy, nzz, limiterType1)
 
           wTilde = wTilde * rhoTilde_mom
-          !UAE
 
         case("theta")
 
@@ -727,26 +544,10 @@ module flux_module
           call reconstruct_MUSCL(thetaBar, thetaTilde, nxx, nyy, nzz, &
               &limiterType1)
 
+        
         case("ice")
 
-          if(include_ice) then
-
-            nAerBar(:, :, :) = var%ICE(:, :, :, 1)
-            nIceBar(:, :, :) = var%ICE(:, :, :, 2)
-            qIceBar(:, :, :) = var%ICE(:, :, :, 3)
-            qvBar(:, :, :) = var%ICE(:, :, :, 4)
-
-            call reconstruct_MUSCL(nIceBar, nIceTilde, nxx, nyy, nzz, &
-                &limiterType1)
-            call reconstruct_MUSCL(qIceBar, qIceTilde, nxx, nyy, nzz, &
-                &limiterType1)
-            call reconstruct_MUSCL(qvBar, qvTilde, nxx, nyy, nzz, limiterType1)
-
-          end if
-
-        case("ice2")
-
-          print *, 'reconstruction: muscl2 does not work with ice2'
+          print *, 'reconstruction: muscl2 does not work with ice'
 
         case default
           stop "reconstruction: unknown case variable."
@@ -797,21 +598,7 @@ module flux_module
         thetaBar(:, :, :) = var%rhop(:, :, :)
         call reconstruct_SALD(thetaBar, thetaTilde)
 
-      case("ice")
-
-        if(include_ice) then
-
-          nAerBar(:, :, :) = var%ICE(:, :, :, 1)
-          nIceBar(:, :, :) = var%ICE(:, :, :, 2)
-          qIceBar(:, :, :) = var%ICE(:, :, :, 3)
-          qvBar(:, :, :) = var%ICE(:, :, :, 4)
-
-          call reconstruct_SALD(nAerBar, nAerTilde)
-          call reconstruct_SALD(nIceBar, nIceTilde)
-          call reconstruct_SALD(qIceBar, qIceTilde)
-          call reconstruct_SALD(qvBar, qvTilde)
-
-        end if
+      
 
       case("tracer")
 
@@ -860,22 +647,7 @@ module flux_module
         thetaBar(:, :, :) = var%rhop(:, :, :)
         call reconstruct_ALDM(thetaBar, thetaTilde)
 
-      case("ice")
-
-        if(include_ice) then
-
-          nAerBar(:, :, :) = var%ICE(:, :, :, 1)
-          nIceBar(:, :, :) = var%ICE(:, :, :, 2)
-          qIceBar(:, :, :) = var%ICE(:, :, :, 3)
-          qvBar(:, :, :) = var%ICE(:, :, :, 4)
-
-          call reconstruct_ALDM(nAerBar, nAerTilde)
-          call reconstruct_ALDM(nIceBar, nIceTilde)
-          call reconstruct_ALDM(qIceBar, qIceTilde)
-          call reconstruct_ALDM(qvBar, qvTilde)
-
-        end if
-
+      
       case("tracer")
 
         if(include_tracer) then
@@ -1240,19 +1012,6 @@ module flux_module
             divPu = Pstrat(k) * ((uR - uL) / dx + (vF - vB) / dy) + (PstratU &
                 &* wU - PstratD * wD) / dz
 
-            !!$                uSurfR = var(i,j,k,2)
-            !!$                uSurfL = var(i-1,j,k,2)
-            !!$
-            !!$                vSurfF = var(i,j,k,3)
-            !!$                vSurfB = var(i,j-1,k,3)
-            !!$
-            !!$                wSurfU = var(i,j,k,4)
-            !!$                wSurfD = var(i,j,k-1,4)
-            !!$
-            !!$                div = (uSurfR - uSurfL)/dx &
-            !!$                     & + (vSurfF - vSurfB) / dy &
-            !!$                     & + (wSurfU - wSurfD) / dz
-
             source%rho(i, j, k) = divPu / thetaStrat(k)
 
           case default
@@ -1350,13 +1109,8 @@ module flux_module
 
           case("central")
 
-            if(fluctuationMode) then
-              rhoL = var%rho(i, j, k) + rhoStrat(k)
-              rhoR = var%rho(i + 1, j, k) + rhoStrat(k)
-            else
-              rhoL = var%rho(i, j, k)
-              rhoR = var%rho(i + 1, j, k)
-            end if
+            rhoL = var%rho(i, j, k) + rhoStrat(k)
+            rhoR = var%rho(i + 1, j, k) + rhoStrat(k)
 
             if(fluxmode == "nln") then
               uSurf = var%u(i, j, k)
@@ -1370,28 +1124,19 @@ module flux_module
 
           case("upwind")
 
-            if(fluctuationMode) then
-              if(topography) then
-                ! TFC FJ
-                ! Adjust for 3D fields.
-                rhoStratEdgeR = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i &
-                    &+ 1, j, k))
-                pEdgeR = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i + 1, j, k))
-                rhoR = rhoTilde(i + 1, j, k, 1, 0) + rhoStratEdgeR / pEdgeR
-                rhoL = rhoTilde(i, j, k, 1, 1) + rhoStratEdgeR / pEdgeR
-              else
-                !UAB reference density to be divided by P as well!
-                rhoR = rhoTilde(i + 1, j, k, 1, 0) + rhoStrat(k) / Pstrat(k)
-                rhoL = rhoTilde(i, j, k, 1, 1) + rhoStrat(k) / Pstrat(k)
-                !UAE
-              end if
+            if(topography) then
+              ! Adjust for 3D fields.
+              rhoStratEdgeR = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i &
+                  &+ 1, j, k))
+              pEdgeR = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i + 1, j, k))
+              rhoR = rhoTilde(i + 1, j, k, 1, 0) + rhoStratEdgeR / pEdgeR
+              rhoL = rhoTilde(i, j, k, 1, 1) + rhoStratEdgeR / pEdgeR
             else
-              rhoR = rhoTilde(i + 1, j, k, 1, 0)
-              rhoL = rhoTilde(i, j, k, 1, 1)
+              rhoR = rhoTilde(i + 1, j, k, 1, 0) + rhoStrat(k) / Pstrat(k)
+              rhoL = rhoTilde(i, j, k, 1, 1) + rhoStrat(k) / Pstrat(k)
             end if
 
             if(topography) then
-              ! TFC FJ
               pEdgeR = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i + 1, &
                   &j, k) * pStratTFC(i + 1, j, k))
               if(fluxmode == "nln") then
@@ -1427,12 +1172,8 @@ module flux_module
               stop 'ERROR: worng fluxmode'
             end if
 
-            if(fluctuationMode) then
-              fRho = flux_aldm(rhoL + rhoStrat(k), rhoR + rhoStrat(k), uSurf, &
-                  &rhoL, rhoR, uL, uR, sigmaC)
-            else
-              fRho = flux_aldm(rhoL, rhoR, uSurf, rhoL, rhoR, uL, uR, sigmaC)
-            end if
+            fRho = flux_aldm(rhoL + rhoStrat(k), rhoR + rhoStrat(k), uSurf, &
+                &rhoL, rhoR, uL, uR, sigmaC)
 
           case default
             stop "rhoFlux: unknown case fluxType"
@@ -1453,13 +1194,8 @@ module flux_module
           select case(fluxType)
 
           case("central")
-            if(fluctuationMode) then
-              rhoF = var%rho(i, j + 1, k) + rhoStrat(k)
-              rhoB = var%rho(i, j, k) + rhoStrat(k)
-            else
-              rhoF = var%rho(i, j + 1, k)
-              rhoB = var%rho(i, j, k)
-            end if
+            rhoF = var%rho(i, j + 1, k) + rhoStrat(k)
+            rhoB = var%rho(i, j, k) + rhoStrat(k)
 
             if(fluxmode == "nln") then
               vSurf = var%v(i, j, k)
@@ -1472,28 +1208,19 @@ module flux_module
             gRho = vSurf * 0.5 * (rhoB + rhoF)
 
           case("upwind")
-            if(fluctuationMode) then
-              if(topography) then
-                ! TFC FJ
-                ! Adjust for 3D fields.
-                rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, j &
-                    &+ 1, k))
-                pEdgeF = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i, j + 1, k))
-                rhoF = rhoTilde(i, j + 1, k, 2, 0) + rhoStratEdgeF / pEdgeF
-                rhoB = rhoTilde(i, j, k, 2, 1) + rhoStratEdgeF / pEdgeF
-              else
-                !UAB reference density to be divided by P as well!
-                rhoF = rhoTilde(i, j + 1, k, 2, 0) + rhoStrat(k) / Pstrat(k)
-                rhoB = rhoTilde(i, j, k, 2, 1) + rhoStrat(k) / Pstrat(k)
-                !UAE
-              end if
+            if(topography) then
+              ! Adjust for 3D fields.
+              rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, j &
+                  &+ 1, k))
+              pEdgeF = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i, j + 1, k))
+              rhoF = rhoTilde(i, j + 1, k, 2, 0) + rhoStratEdgeF / pEdgeF
+              rhoB = rhoTilde(i, j, k, 2, 1) + rhoStratEdgeF / pEdgeF
             else
-              rhoF = rhoTilde(i, j + 1, k, 2, 0)
-              rhoB = rhoTilde(i, j, k, 2, 1)
+              rhoF = rhoTilde(i, j + 1, k, 2, 0) + rhoStrat(k) / Pstrat(k)
+              rhoB = rhoTilde(i, j, k, 2, 1) + rhoStrat(k) / Pstrat(k)
             end if
 
             if(topography) then
-              ! TFC FJ
               pEdgeF = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
                   &+ 1, k) * pStratTFC(i, j + 1, k))
               if(fluxmode == "nln") then
@@ -1529,12 +1256,8 @@ module flux_module
               stop 'ERROR: worng fluxmode'
             end if
 
-            if(fluctuationMode) then
-              gRho = flux_aldm(rhoB + rhoStrat(k), rhoF + rhoStrat(k), vSurf, &
-                  &rhoB, rhoF, vB, vF, sigmaC)
-            else
-              gRho = flux_aldm(rhoB, rhoF, vSurf, rhoB, rhoF, vB, vF, sigmaC)
-            end if
+            gRho = flux_aldm(rhoB + rhoStrat(k), rhoF + rhoStrat(k), vSurf, &
+                &rhoB, rhoF, vB, vF, sigmaC)
 
           case default
             stop "rhoFlux: unknown case fluxType"
@@ -1556,14 +1279,9 @@ module flux_module
           select case(fluxType)
 
           case("central")
-            if(fluctuationMode) then
-              rhoU = var%rho(i, j, k + 1) + rhoStratTilde(k)
-              ! background rho at half level
-              rhoD = var%rho(i, j, k) + rhoStratTilde(k)
-            else
-              rhoU = var%rho(i, j, k + 1)
-              rhoD = var%rho(i, j, k)
-            end if
+            rhoU = var%rho(i, j, k + 1) + rhoStratTilde(k)
+            ! background rho at half level
+            rhoD = var%rho(i, j, k) + rhoStratTilde(k)
 
             if(fluxmode == "nln") then
               wSurf = var%w(i, j, k)
@@ -1577,31 +1295,22 @@ module flux_module
 
           case("upwind")
 
-            if(fluctuationMode) then
-              if(topography) then
-                ! TFC FJ
-                ! Adjust for 3D fields.
-                rhoStratEdgeU = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
-                    &j, k + 1))
-                pEdgeU = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i, j, k + 1))
-                rhoU = rhoTilde(i, j, k + 1, 3, 0) + rhoStratEdgeU / pEdgeU
-                rhoD = rhoTilde(i, j, k, 3, 1) + rhoStratEdgeU / pEdgeU
-              else
-                ! background at half level
-                !UAB reference density to be divided by P as well!
-                rhoU = rhoTilde(i, j, k + 1, 3, 0) + rhoStratTilde(k) &
-                    &/ PstratTilde(k)
-                rhoD = rhoTilde(i, j, k, 3, 1) + rhoStratTilde(k) &
-                    &/ PstratTilde(k)
-                !UAE
-              end if
+            if(topography) then
+              ! Adjust for 3D fields.
+              rhoStratEdgeU = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
+                  &j, k + 1))
+              pEdgeU = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i, j, k + 1))
+              rhoU = rhoTilde(i, j, k + 1, 3, 0) + rhoStratEdgeU / pEdgeU
+              rhoD = rhoTilde(i, j, k, 3, 1) + rhoStratEdgeU / pEdgeU
             else
-              rhoU = rhoTilde(i, j, k + 1, 3, 0)
-              rhoD = rhoTilde(i, j, k, 3, 1)
+              ! background at half level
+              rhoU = rhoTilde(i, j, k + 1, 3, 0) + rhoStratTilde(k) &
+                  &/ PstratTilde(k)
+              rhoD = rhoTilde(i, j, k, 3, 1) + rhoStratTilde(k) &
+                  &/ PstratTilde(k)
             end if
 
             if(topography) then
-              ! TFC FJ
               pEdgeU = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, k &
                   &+ 1) * pStratTFC(i, j, k + 1))
               if(fluxmode == "nln") then
@@ -1613,9 +1322,9 @@ module flux_module
               end if
             else
               if(fluxmode == "nln") then
-                wSurf = var%w(i, j, k) * PstratTilde(k) !UA
+                wSurf = var%w(i, j, k) * PstratTilde(k) 
               else if(fluxmode == "lin") then
-                wSurf = vara%w(i, j, k) * PstratTildea(k) !UA
+                wSurf = vara%w(i, j, k) * PstratTildea(k) 
               else
                 stop 'ERROR: worng fluxmode'
               end if
@@ -1637,12 +1346,8 @@ module flux_module
               stop 'ERROR: worng fluxmode'
             end if
 
-            if(fluctuationMode) then
-              hRho = flux_aldm(rhoD + rhoStratTilde(k), rhoU &
-                  &+ rhoStratTilde(k), wSurf, rhoD, rhoU, wU, wD, sigmaC)
-            else
-              hRho = flux_aldm(rhoD, rhoU, wSurf, rhoD, rhoU, wU, wD, sigmaC)
-            end if
+            hRho = flux_aldm(rhoD + rhoStratTilde(k), rhoU &
+                &+ rhoStratTilde(k), wSurf, rhoD, rhoU, wU, wD, sigmaC)
 
           case default
             stop "rhoFlux: unknown case fluxType"
@@ -1684,7 +1389,6 @@ module flux_module
               rhoL = rhopTilde(i, j, k, 1, 1)
 
               if(topography) then
-                ! TFC FJ
                 pEdgeR = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i + 1, &
                     &j, k) * pStratTFC(i + 1, j, k))
                 if(fluxmode == "nln") then
@@ -1757,7 +1461,6 @@ module flux_module
               rhoB = rhopTilde(i, j, k, 2, 1)
 
               if(topography) then
-                ! TFC FJ
                 pEdgeF = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
                     &+ 1, k) * pStratTFC(i, j + 1, k))
                 if(fluxmode == "nln") then
@@ -1769,9 +1472,9 @@ module flux_module
                 end if
               else
                 if(fluxmode == "nln") then
-                  vSurf = var%v(i, j, k) * Pstrat(k) !UA
+                  vSurf = var%v(i, j, k) * Pstrat(k) 
                 else if(fluxmode == "lin") then
-                  vSurf = vara%v(i, j, k) * Pstrata(k) !UA
+                  vSurf = vara%v(i, j, k) * Pstrata(k)
                 else
                   stop 'ERROR: worng fluxmode'
                 end if
@@ -1843,9 +1546,9 @@ module flux_module
                 end if
               else
                 if(fluxmode == "nln") then
-                  wSurf = var%w(i, j, k) * PstratTilde(k) !UA
+                  wSurf = var%w(i, j, k) * PstratTilde(k)
                 else if(fluxmode == "lin") then
-                  wSurf = vara%w(i, j, k) * PstratTildea(k) !UA
+                  wSurf = vara%w(i, j, k) * PstratTildea(k)
                 else
                   stop 'ERROR: worng fluxmode'
                 end if
@@ -1895,7 +1598,6 @@ module flux_module
               rhoL = 1.0
 
               if(topography) then
-                ! TFC FJ
                 pEdgeR = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i + 1, &
                     &j, k) * pStratTFC(i + 1, j, k))
                 if(fluxmode == "nln") then
@@ -1930,7 +1632,6 @@ module flux_module
               rhoB = 1.0
 
               if(topography) then
-                ! TFC FJ
                 pEdgeF = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
                     &+ 1, k) * pStratTFC(i, j + 1, k))
                 if(fluxmode == "nln") then
@@ -1974,7 +1675,6 @@ module flux_module
               rhoD = 1.0
 
               if(topography) then
-                ! TFC FJ
                 pEdgeU = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, &
                     &k + 1) * pStratTFC(i, j, k + 1))
                 if(fluxmode == "nln") then
@@ -2078,13 +1778,8 @@ module flux_module
                   &k)) * delta_hs / Pr_turb
             end if
 
-            if(fluctuationMode) then
-              rhoL = var%rho(i, j, k) + rhoStrat(k)
-              rhoR = var%rho(i + 1, j, k) + rhoStrat(k)
-            else
-              rhoL = var%rho(i, j, k)
-              rhoR = var%rho(i + 1, j, k)
-            end if
+            rhoL = var%rho(i, j, k) + rhoStrat(k)
+            rhoR = var%rho(i + 1, j, k) + rhoStrat(k)
 
             dtht_dxi = (Pstrat(k) / rhoR - Pstrat(k) / rhoL) / dx
 
@@ -2156,16 +1851,11 @@ module flux_module
 
             if(TurbScheme) then
               coef_t = coef_t + 0.5 * (var%DSC(i, j, k) + var%DSC(i, j + 1, &
-                  &k)) * delta_hs / Pr_turb !UA
+                  &k)) * delta_hs / Pr_turb 
             end if
 
-            if(fluctuationMode) then
-              rhoF = var%rho(i, j + 1, k) + rhoStrat(k)
-              rhoB = var%rho(i, j, k) + rhoStrat(k)
-            else
-              rhoF = var%rho(i, j + 1, k)
-              rhoB = var%rho(i, j, k)
-            end if
+            rhoF = var%rho(i, j + 1, k) + rhoStrat(k)
+            rhoB = var%rho(i, j, k) + rhoStrat(k)
 
             dtht_dxi = (Pstrat(k) / rhoF - Pstrat(k) / rhoB) / dy
 
@@ -2246,16 +1936,11 @@ module flux_module
 
             if(TurbScheme) then
               coef_t = coef_t + 0.5 * (var%DSC(i, j, k) + var%DSC(i, j, k &
-                  &+ 1)) * delta_vs / Pr_turb !UA
+                  &+ 1)) * delta_vs / Pr_turb
             end if
 
-            if(fluctuationMode) then
-              rhoU = var%rho(i, j, k + 1) + rhoStrat(k + 1)
-              rhoD = var%rho(i, j, k) + rhoStrat(k)
-            else
-              rhoU = var%rho(i, j, k + 1)
-              rhoD = var%rho(i, j, k)
-            end if
+            rhoU = var%rho(i, j, k + 1) + rhoStrat(k + 1)
+            rhoD = var%rho(i, j, k) + rhoStrat(k)
 
             dtht_dxi = (Pstrat(k + 1) / rhoU - Pstrat(k) / rhoD) / dz
 
@@ -2347,13 +2032,8 @@ module flux_module
 
           case("central")
 
-            if(fluctuationMode) then
-              rhoL = var%rho(i, j, k) + rhoStrat(k)
-              rhoR = var%rho(i + 1, j, k) + rhoStrat(k)
-            else
-              rhoL = var%rho(i, j, k)
-              rhoR = var%rho(i + 1, j, k)
-            end if
+            rhoL = var%rho(i, j, k) + rhoStrat(k)
+            rhoR = var%rho(i + 1, j, k) + rhoStrat(k)
 
             if(fluxmode == "nln") then
               uSurf = var%u(i, j, k)
@@ -2367,13 +2047,8 @@ module flux_module
 
           case("upwind")
 
-            if(fluctuationMode) then
-              rhoR = rhoTilde(i + 1, j, k, 1, 0) + rhoStrat(k)
-              rhoL = rhoTilde(i, j, k, 1, 1) + rhoStrat(k)
-            else
-              rhoR = rhoTilde(i + 1, j, k, 1, 0)
-              rhoL = rhoTilde(i, j, k, 1, 1)
-            end if
+            rhoR = rhoTilde(i + 1, j, k, 1, 0) + rhoStrat(k)
+            rhoL = rhoTilde(i, j, k, 1, 1) + rhoStrat(k)
 
             if(fluxmode == "nln") then
               uSurf = var%u(i, j, k)
@@ -2399,12 +2074,8 @@ module flux_module
               stop 'ERROR: worng fluxmode'
             end if
 
-            if(fluctuationMode) then
-              fRho = flux_aldm(rhoL + rhoStrat(k), rhoR + rhoStrat(k), uSurf, &
-                  &rhoL, rhoR, uL, uR, sigmaC)
-            else
-              fRho = flux_aldm(rhoL, rhoR, uSurf, rhoL, rhoR, uL, uR, sigmaC)
-            end if
+            fRho = flux_aldm(rhoL + rhoStrat(k), rhoR + rhoStrat(k), uSurf, &
+                &rhoL, rhoR, uL, uR, sigmaC)
 
           case default
             stop "rhoFlux: unknown case fluxType"
@@ -2425,13 +2096,8 @@ module flux_module
           select case(fluxType)
 
           case("central")
-            if(fluctuationMode) then
-              rhoF = var%rho(i, j + 1, k) + rhoStrat(k)
-              rhoB = var%rho(i, j, k) + rhoStrat(k)
-            else
-              rhoF = var%rho(i, j + 1, k)
-              rhoB = var%rho(i, j, k)
-            end if
+            rhoF = var%rho(i, j + 1, k) + rhoStrat(k)
+            rhoB = var%rho(i, j, k) + rhoStrat(k)
 
             if(fluxmode == "nln") then
               vSurf = var%v(i, j, k)
@@ -2444,13 +2110,8 @@ module flux_module
             gRho = vSurf * 0.5 * (rhoB + rhoF)
 
           case("upwind")
-            if(fluctuationMode) then
-              rhoF = rhoTilde(i, j + 1, k, 2, 0) + rhoStrat(k)
-              rhoB = rhoTilde(i, j, k, 2, 1) + rhoStrat(k)
-            else
-              rhoF = rhoTilde(i, j + 1, k, 2, 0)
-              rhoB = rhoTilde(i, j, k, 2, 1)
-            end if
+            rhoF = rhoTilde(i, j + 1, k, 2, 0) + rhoStrat(k)
+            rhoB = rhoTilde(i, j, k, 2, 1) + rhoStrat(k)
 
             if(fluxmode == "nln") then
               vSurf = var%v(i, j, k)
@@ -2476,12 +2137,8 @@ module flux_module
               stop 'ERROR: worng fluxmode'
             end if
 
-            if(fluctuationMode) then
-              gRho = flux_aldm(rhoB + rhoStrat(k), rhoF + rhoStrat(k), vSurf, &
-                  &rhoB, rhoF, vB, vF, sigmaC)
-            else
-              gRho = flux_aldm(rhoB, rhoF, vSurf, rhoB, rhoF, vB, vF, sigmaC)
-            end if
+            gRho = flux_aldm(rhoB + rhoStrat(k), rhoF + rhoStrat(k), vSurf, &
+                &rhoB, rhoF, vB, vF, sigmaC)
 
           case default
             stop "rhoFlux: unknown case fluxType"
@@ -2503,14 +2160,9 @@ module flux_module
           select case(fluxType)
 
           case("central")
-            if(fluctuationMode) then
-              rhoU = var%rho(i, j, k + 1) + rhoStratTilde(k)
-              ! background rho at half level
-              rhoD = var%rho(i, j, k) + rhoStratTilde(k)
-            else
-              rhoU = var%rho(i, j, k + 1)
-              rhoD = var%rho(i, j, k)
-            end if
+            rhoU = var%rho(i, j, k + 1) + rhoStratTilde(k)
+            ! background rho at half level
+            rhoD = var%rho(i, j, k) + rhoStratTilde(k)
 
             if(fluxmode == "nln") then
               wSurf = var%w(i, j, k)
@@ -2524,14 +2176,9 @@ module flux_module
 
           case("upwind")
 
-            if(fluctuationMode) then
-              ! background at half level
-              rhoU = rhoTilde(i, j, k + 1, 3, 0) + rhoStratTilde(k)
-              rhoD = rhoTilde(i, j, k, 3, 1) + rhoStratTilde(k)
-            else
-              rhoU = rhoTilde(i, j, k + 1, 3, 0)
-              rhoD = rhoTilde(i, j, k, 3, 1)
-            end if
+            ! background at half level
+            rhoU = rhoTilde(i, j, k + 1, 3, 0) + rhoStratTilde(k)
+            rhoD = rhoTilde(i, j, k, 3, 1) + rhoStratTilde(k)
 
             if(fluxmode == "nln") then
               wSurf = var%w(i, j, k)
@@ -2557,12 +2204,8 @@ module flux_module
               stop 'ERROR: worng fluxmode'
             end if
 
-            if(fluctuationMode) then
-              hRho = flux_aldm(rhoD + rhoStratTilde(k), rhoU &
-                  &+ rhoStratTilde(k), wSurf, rhoD, rhoU, wU, wD, sigmaC)
-            else
-              hRho = flux_aldm(rhoD, rhoU, wSurf, rhoD, rhoU, wU, wD, sigmaC)
-            end if
+            hRho = flux_aldm(rhoD + rhoStratTilde(k), rhoU &
+                &+ rhoStratTilde(k), wSurf, rhoD, rhoU, wU, wD, sigmaC)
 
           case default
             stop "rhoFlux: unknown case fluxType"
@@ -2793,13 +2436,8 @@ module flux_module
                 &* delta_hs / Pr_turb
           end if
 
-          if(fluctuationMode) then
-            rhoL = var%rho(i, j, k) + rhoStrat(k)
-            rhoR = var%rho(i + 1, j, k) + rhoStrat(k)
-          else
-            rhoL = var%rho(i, j, k)
-            rhoR = var%rho(i + 1, j, k)
-          end if
+          rhoL = var%rho(i, j, k) + rhoStrat(k)
+          rhoR = var%rho(i + 1, j, k) + rhoStrat(k)
 
           dtht_dxi = (Pstrat(k) / rhoR - Pstrat(k) / rhoL) / dx
 
@@ -2830,13 +2468,8 @@ module flux_module
                 &* delta_hs / Pr_turb
           end if
 
-          if(fluctuationMode) then
-            rhoF = var%rho(i, j + 1, k) + rhoStrat(k)
-            rhoB = var%rho(i, j, k) + rhoStrat(k)
-          else
-            rhoF = var%rho(i, j + 1, k)
-            rhoB = var%rho(i, j, k)
-          end if
+          rhoF = var%rho(i, j + 1, k) + rhoStrat(k)
+          rhoB = var%rho(i, j, k) + rhoStrat(k)
 
           dtht_dxi = (Pstrat(k) / rhoF - Pstrat(k) / rhoB) / dy
 
@@ -2867,13 +2500,8 @@ module flux_module
                 &* delta_vs / Pr_turb
           end if
 
-          if(fluctuationMode) then
-            rhoU = var%rho(i, j, k + 1) + rhoStrat(k + 1)
-            rhoD = var%rho(i, j, k) + rhoStrat(k)
-          else
-            rhoU = var%rho(i, j, k + 1)
-            rhoD = var%rho(i, j, k)
-          end if
+          rhoU = var%rho(i, j, k + 1) + rhoStrat(k + 1)
+          rhoD = var%rho(i, j, k) + rhoStrat(k)
 
           dtht_dxi = (Pstrat(k + 1) / rhoU - Pstrat(k) / rhoD) / dz
 
@@ -2889,9 +2517,9 @@ module flux_module
   !---------------------------------------------------------------------------
   subroutine tracerFlux(vara, var, flux, fluxmode, Pstrata, PStratTildea)
     ! calculate tracer fluxes
-    ! zonal:      u*rho*chi = flux(:, :, :, 1, iVarT)
-    ! meridional: v*rho*chi = flux(:, :, :, 2, iVarT)
-    ! vertical:   w*rho*chi = flux(:, :, :, 3, iVarT)
+    ! zonal:      u*rho*chi = flux%chi(:, :, :, 1)
+    ! meridional: v*rho*chi = flux%chi(:, :, :, 2)
+    ! vertical:   w*rho*chi = flux%chi(:, :, :, 3)
     implicit none
 
     type(var_type), intent(in) :: vara, var
@@ -3099,476 +2727,6 @@ module flux_module
 
   end subroutine tracerFlux
 
-  !---------------------------------------------------------------------------
-
-  subroutine iceFlux(var, flux)
-    ! in/out variables
-    type(var_type), intent(in) :: var
-
-    type(flux_type), intent(inout) :: flux
-    ! flux(i,j,k,dir,iFlux)
-    ! dir = 1..3 > f,g,h-flux in x,y,z-direction
-
-    integer :: nqS, k, j, i, iVar
-
-    real :: UpFlux, DownFlux, TotFlux, wU, wD
-    real :: delta_w, wSurf, coef_t, d_dxi, m_ice, T, p
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz) :: rho
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 1:3, 0:1) &
-        &:: rhoTil
-
-    real, parameter :: Pr_t_DySma = 0.5
-
-    ! All ice particles obey the general mass flux in x and y direction
-
-    coef_t = mu_conduct
-
-    if(fluctuationMode) then
-      do k = - 1, nz + 1
-        rho(:, :, k) = var%rho(:, :, k) + rhoStrat(k)
-        rhoTil(:, :, k, :, :) = rhoTilde(:, :, k, :, :) + rhoStrat(k)
-      end do
-    else
-      rho = var%rho(:, :, :)
-      rhoTil(:, :, :, :, :) = rhoTilde(:, :, :, :, :)
-    end if
-
-    do k = 0, nz
-      do j = 0, ny
-        do i = 0, nx
-
-          ! find the current temperature in Kelvin inside the grid cell
-          call find_temperature(T, i, j, k, var)
-
-          ! find the current pressure in Pascal inside the grid cell
-          p = press0_dim * ((PStrat(k) / p0) ** gamma_1 + var%pi(i, j, k)) &
-              &** kappaInv
-
-          ! find the current average ice particle mass, if there is no abundant ice
-          ! use the initial ice particle mass
-          if(var%ICE(i, j, k, 2) == 0.0) then
-            m_ice = init_m_ice
-          else
-            m_ice = var%ICE(i, j, k, 3) / var%ICE(i, j, k, 2) * rhoRef * lRef &
-                &** 3
-            !print*,"ATTENTION:", m_ice
-          end if
-
-          if(model == "pseudo_incompressible") then
-            coef_t = mu_conduct * rhoStrat(1) / rhoStrat(k)
-          end if
-
-          if(DySmaScheme) then
-            coef_t = coef_t + 0.5 * (var%DSC(i, j, k) + var%DSC(i + 1, j, k)) &
-                &/ Pr_t_DySma
-          end if
-
-          !-----------------------------------------
-          !--- horizontal direction ---!
-          !-----------------------------------------
-          select case(fluxType)
-
-          case("central")
-            do iVar = 1, 4
-              UpFlux = rho(i + 1, j, k) * var%ICE(i + 1, j, k, iVar)
-              DownFLux = rho(i, j, k) * var%ICE(i, j, k, iVar)
-              wSurf = var%u(i, j, k)
-              TotFlux = wSurf * 0.5 * (DownFlux + UpFlux)
-              d_dxi = (UpFlux - DownFlux) / dx
-              flux%ICE(i, j, k, 1, iVar) = TotFlux - coef_t * d_dxi
-            end do
-
-          case("upwind")
-            do iVar = 1, 4
-              UpFlux = rho(i + 1, j, k) * var%ICE(i + 1, j, k, iVar)
-              DownFLux = rho(i, j, k) * var%ICE(i, j, k, iVar)
-              d_dxi = (UpFlux - DownFlux) / dx
-              select case(iVar)
-              case(4)
-                wSurf = var%u(i, j, k)
-                UpFlux = rhoTil(i + 1, j, k, 1, 0) * qvTilde(i + 1, j, k, 1, 0)
-                DownFlux = rhoTil(i, j, k, 1, 1) * qvTilde(i, j, k, 1, 1)
-              case(3)
-                wSurf = var%u(i, j, k)
-                UpFlux = rhoTil(i + 1, j, k, 1, 0) * qIceTilde(i + 1, j, k, 1, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 1, 1) * qIceTilde(i, j, k, 1, 1)
-              case(2)
-                wSurf = var%u(i, j, k)
-                UpFlux = rhoTil(i + 1, j, k, 1, 0) * nIceTilde(i + 1, j, k, 1, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 1, 1) * nIceTilde(i, j, k, 1, 1)
-              case(1)
-                wSurf = var%u(i, j, k)
-                UpFlux = rhoTil(i + 1, j, k, 1, 0) * nAerTilde(i + 1, j, k, 1, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 1, 1) * nAerTilde(i, j, k, 1, 1)
-              case default
-                stop "Bug in iceHorizontalFlux"
-              end select
-              TotFlux = flux_muscl(wSurf, DownFlux, UpFlux)
-              flux%ICE(i, j, k, 1, iVar) = TotFlux - coef_t * d_dxi
-            end do
-
-          case("ILES")
-            do iVar = 1, 4
-              UpFlux = rho(i + 1, j, k) * var%ICE(i + 1, j, k, iVar)
-              DownFLux = rho(i, j, k) * var%ICE(i, j, k, iVar)
-              d_dxi = (UpFlux - DownFlux) / dx
-              select case(iVar)
-              case(4)
-                wD = wTilde(i, j, k, 1, 0)
-                wU = wTilde(i, j, k, 1, 1)
-                wSurf = var%u(i, j, k)
-                UpFlux = rhoTil(i + 1, j, k, 1, 0) * qvTilde(i + 1, j, k, 1, 0)
-                DownFlux = rhoTil(i, j, k, 1, 1) * qvTilde(i, j, k, 1, 1)
-              case(3)
-                wD = wTilde(i, j, k, 1, 0)
-                wU = wTilde(i, j, k, 1, 1)
-                wSurf = var%u(i, j, k)
-                UpFlux = rhoTil(i + 1, j, k, 1, 0) * qIceTilde(i + 1, j, k, 1, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 1, 1) * qIceTilde(i, j, k, 1, 1)
-              case(2)
-                wD = wTilde(i, j, k, 1, 0)
-                wU = wTilde(i, j, k, 1, 1)
-                wSurf = var%u(i, j, k)
-                UpFlux = rhoTil(i + 1, j, k, 1, 0) * nIceTilde(i + 1, j, k, 1, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 1, 1) * nIceTilde(i, j, k, 1, 1)
-              case(1)
-                wD = wTilde(i, j, k, 1, 0)
-                wU = wTilde(i, j, k, 1, 1)
-                wSurf = var%u(i, j, k)
-                UpFlux = rhoTil(i + 1, j, k, 1, 0) * nAerTilde(i + 1, j, k, 1, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 1, 1) * nAerTilde(i, j, k, 1, 1)
-              case default
-                stop "Bug in iceHorizontalFlux"
-              end select
-              TotFlux = flux_aldm(DownFlux, UpFlux, wSurf, DownFlux, UpFlux, &
-                  &wU, wD, sigmaC)
-              flux%ICE(i, j, k, 1, iVar) = TotFlux - coef_t * d_dxi
-            end do
-
-          case default
-            stop "iceSedimentationFlux: unknown case fluxType"
-
-          end select
-
-          !-----------------------------------------
-          !--- meridional direction ---!
-          !-----------------------------------------
-          select case(fluxType)
-
-          case("central")
-            do iVar = 1, 4
-              UpFlux = rho(i, j + 1, k) * var%ICE(i, j + 1, k, iVar)
-              DownFLux = rho(i, j, k) * var%ICE(i, j, k, iVar)
-              wSurf = var%v(i, j, k)
-              TotFlux = wSurf * 0.5 * (DownFlux + UpFlux)
-              d_dxi = (UpFlux - DownFlux) / dy
-              flux%ICE(i, j, k, 2, iVar) = TotFlux - coef_t * d_dxi
-            end do
-
-          case("upwind")
-            do iVar = 1, 4
-              UpFlux = rho(i, j + 1, k) * var%ICE(i, j + 1, k, iVar)
-              DownFLux = rho(i, j, k) * var%ICE(i, j, k, iVar)
-              d_dxi = (UpFlux - DownFlux) / dy
-              select case(iVar)
-              case(4)
-                wSurf = var%v(i, j, k)
-                UpFlux = rhoTil(i, j + 1, k, 2, 0) * qvTilde(i, j + 1, k, 2, 0)
-                DownFlux = rhoTil(i, j, k, 2, 1) * qvTilde(i, j, k, 2, 1)
-              case(3)
-                wSurf = var%v(i, j, k)
-                UpFlux = rhoTil(i, j + 1, k, 2, 0) * qIceTilde(i, j + 1, k, 2, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 2, 1) * qIceTilde(i, j, k, 2, 1)
-              case(2)
-                wSurf = var%v(i, j, k)
-                UpFlux = rhoTil(i, j + 1, k, 2, 0) * nIceTilde(i, j + 1, k, 2, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 2, 1) * nIceTilde(i, j, k, 2, 1)
-              case(1)
-                wSurf = var%v(i, j, k)
-                UpFlux = rhoTil(i, j + 1, k, 2, 0) * nAerTilde(i, j + 1, k, 2, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 2, 1) * nAerTilde(i, j, k, 2, 1)
-              case default
-                stop "Bug in iceMeridionalFlux"
-              end select
-              TotFlux = flux_muscl(wSurf, DownFlux, UpFlux)
-              flux%ICE(i, j, k, 2, iVar) = TotFlux - coef_t * d_dxi
-            end do
-
-          case("ILES")
-            do iVar = 1, 4
-              UpFlux = rho(i, j + 1, k) * var%ICE(i, j + 1, k, iVar)
-              DownFLux = rho(i, j, k) * var%ICE(i, j, k, iVar)
-              d_dxi = (UpFlux - DownFlux) / dy
-              select case(iVar)
-              case(4)
-                wD = wTilde(i, j, k, 2, 0)
-                wU = wTilde(i, j, k, 2, 1)
-                wSurf = var%v(i, j, k)
-                UpFlux = rhoTil(i, j + 1, k, 2, 0) * qvTilde(i, j + 1, k, 2, 0)
-                DownFlux = rhoTil(i, j, k, 2, 1) * qvTilde(i, j, k, 2, 1)
-              case(3)
-                wD = wTilde(i, j, k, 2, 0)
-                wU = wTilde(i, j, k, 2, 1)
-                wSurf = var%v(i, j, k)
-                UpFlux = rhoTil(i, j + 1, k, 2, 0) * qIceTilde(i, j + 1, k, 2, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 2, 1) * qIceTilde(i, j, k, 2, 1)
-              case(2)
-                wD = wTilde(i, j, k, 2, 0)
-                wU = wTilde(i, j, k, 2, 1)
-                wSurf = var%v(i, j, k)
-                UpFlux = rhoTil(i, j + 1, k, 2, 0) * nIceTilde(i, j + 1, k, 2, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 2, 1) * nIceTilde(i, j, k, 2, 1)
-              case(1)
-                wD = wTilde(i, j, k, 2, 0)
-                wU = wTilde(i, j, k, 2, 1)
-                wSurf = var%v(i, j, k)
-                UpFlux = rhoTil(i, j + 1, k, 2, 0) * nAerTilde(i, j + 1, k, 2, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 2, 1) * nAerTilde(i, j, k, 2, 1)
-              case default
-                stop "Bug in iceMeridionalFlux"
-              end select
-              TotFlux = flux_aldm(DownFlux, UpFlux, wSurf, DownFlux, UpFlux, &
-                  &wU, wD, sigmaC)
-              flux%ICE(i, j, k, 2, iVar) = TotFlux - coef_t * d_dxi
-            end do
-
-          case default
-            stop "iceSedimentationFlux: unknown case fluxType"
-
-          end select
-
-          !-----------------------------------------
-          !--- vertical direction ---!
-          !-----------------------------------------
-          ! inspired by massFlux in vertical direction, but here the
-          ! vertical wind is superposed with the terminal velocity for ice crystals
-          select case(fluxType)
-
-          case("central")
-            do iVar = 1, 4
-              UpFlux = rho(i, j, k + 1) * var%ICE(i, j, k + 1, iVar)
-              DownFLux = rho(i, j, k) * var%ICE(i, j, k, iVar)
-              ! to stop ice particles from falling to the ground:
-              ! (causes ice piling up near boundary)
-              !if (topography_mask(i+is+nbx-1,j+js+nby-1,k)) then
-              !  wSurf = 0.0
-              !else
-              select case(iVar)
-              case(3)
-                wSurf = var%w(i, j, k) - terminal_v_qIce(m_ice, T, p) / uRef
-              case(2)
-                wSurf = var%w(i, j, k) - terminal_v_nIce(m_ice, T, p) / uRef
-              case default
-                wSurf = var%w(i, j, k)
-              end select
-              !end if
-              TotFlux = wSurf * 0.5 * (DownFlux + UpFlux)
-              d_dxi = (UpFlux - DownFlux) / dz
-              flux%ICE(i, j, k, 3, iVar) = TotFlux - coef_t * d_dxi
-            end do
-
-          case("upwind")
-            do iVar = 1, 4
-              UpFlux = rho(i, j, k + 1) * var%ICE(i, j, k + 1, iVar)
-              DownFLux = rho(i, j, k) * var%ICE(i, j, k, iVar)
-              d_dxi = (UpFlux - DownFlux) / dz
-
-              select case(iVar)
-              case(4)
-                wSurf = var%w(i, j, k)
-                UpFlux = rhoTil(i, j, k + 1, 3, 0) * qvTilde(i, j, k + 1, 3, 0)
-                DownFlux = rhoTil(i, j, k, 3, 1) * qvTilde(i, j, k, 3, 1)
-              case(3)
-                !if (topography_mask(i+is+nbx-1,j+js+nby-1,k)) then
-                ! wSurf = 0.0
-                !else
-                wSurf = var%w(i, j, k) - terminal_v_qIce(m_ice, T, p) / uRef
-                !end if
-                UpFlux = rhoTil(i, j, k + 1, 3, 0) * qIceTilde(i, j, k + 1, 3, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 3, 1) * qIceTilde(i, j, k, 3, 1)
-              case(2)
-                !if (topography_mask(i+is+nbx-1,j+js+nby-1,k)) then
-                ! wSurf = 0.0
-                !else
-                wSurf = var%w(i, j, k) - terminal_v_nIce(m_ice, T, p) / uRef
-                !end if
-                UpFlux = rhoTil(i, j, k + 1, 3, 0) * nIceTilde(i, j, k + 1, 3, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 3, 1) * nIceTilde(i, j, k, 3, 1)
-              case(1)
-                wSurf = var%w(i, j, k)
-                UpFlux = rhoTil(i, j, k + 1, 3, 0) * nAerTilde(i, j, k + 1, 3, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 3, 1) * nAerTilde(i, j, k, 3, 1)
-              case default
-                stop "Bug in iceSedimentationFlux"
-              end select
-              TotFlux = flux_muscl(wSurf, DownFlux, UpFlux)
-              flux%ICE(i, j, k, 3, iVar) = TotFlux - coef_t * d_dxi
-            end do
-
-          case("ILES")
-            do iVar = 1, 4
-              UpFlux = rho(i, j, k + 1) * var%ICE(i, j, k + 1, iVar)
-              DownFLux = rho(i, j, k) * var%ICE(i, j, k, iVar)
-              d_dxi = (UpFlux - DownFlux) / dz
-              select case(iVar)
-              case(4)
-                wD = wTilde(i, j, k, 3, 0)
-                wU = wTilde(i, j, k, 3, 1)
-                wSurf = var%w(i, j, k)
-                UpFlux = rhoTil(i, j, k + 1, 3, 0) * qvTilde(i, j, k + 1, 3, 0)
-                DownFlux = rhoTil(i, j, k, 3, 1) * qvTilde(i, j, k, 3, 1)
-              case(3)
-                !if (topography_mask(i+is+nbx-1,j+js+nby-1,k)) then
-                ! delta_w = 0.0
-                !else
-                delta_w = - terminal_v_qIce(m_ice, T, p) / uRef
-                !end if
-                wD = wTilde(i, j, k, 3, 0) + delta_w
-                wU = wTilde(i, j, k, 3, 1) + delta_w
-                wSurf = var%w(i, j, k) + delta_w
-                UpFlux = rhoTil(i, j, k + 1, 3, 0) * qIceTilde(i, j, k + 1, 3, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 3, 1) * qIceTilde(i, j, k, 3, 1)
-              case(2)
-                !if (topography_mask(i+is+nbx-1,j+js+nby-1,k)) then
-                !  delta_w = 0.0
-                !else
-                delta_w = - terminal_v_nIce(m_ice, T, p) / uRef
-                !end if
-                wD = wTilde(i, j, k, 3, 0) + delta_w
-                wU = wTilde(i, j, k, 3, 1) + delta_w
-                wSurf = var%w(i, j, k) + delta_w
-                UpFlux = rhoTil(i, j, k + 1, 3, 0) * nIceTilde(i, j, k + 1, 3, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 3, 1) * nIceTilde(i, j, k, 3, 1)
-              case(1)
-                wD = wTilde(i, j, k, 3, 0)
-                wU = wTilde(i, j, k, 3, 1)
-                wSurf = var%w(i, j, k)
-                UpFlux = rhoTil(i, j, k + 1, 3, 0) * nAerTilde(i, j, k + 1, 3, &
-                    &0)
-                DownFlux = rhoTil(i, j, k, 3, 1) * nAerTilde(i, j, k, 3, 1)
-              case default
-                stop "Bug in iceSedimentationFlux"
-              end select
-              TotFlux = flux_aldm(DownFlux, UpFlux, wSurf, DownFlux, UpFlux, &
-                  &wU, wD, sigmaC)
-              flux%ICE(i, j, k, 3, iVar) = TotFlux - coef_t * d_dxi
-            end do
-
-          case default
-            stop "iceSedimentationFlux: unknown case fluxType"
-
-          end select
-
-        end do
-      end do
-    end do
-
-  end subroutine iceFlux
-
-  ! --------------------------------------------------------------------
-
-  subroutine iceSource(var, source)
-    ! in/out variables
-    type(var_type), intent(in) :: var
-
-    type(var_type), intent(inout) :: source
-
-    real :: SIce
-
-    integer :: k, j, i
-
-    real :: T ! current temperature in Kelvin
-    real :: p ! current pressure in Pascal
-    real :: m_ice ! mean ice crystal mass in kg
-    real :: nucleation, deposition, evaporation
-
-    do k = 1, nz
-      do j = 1, ny
-        do i = 1, nx
-          ! find the current temperature in Kelvin inside the grid cell
-          call find_temperature(T, i, j, k, var)
-
-          ! find the current pressure in Pascal inside the grid cell
-          p = press0_dim * ((PStrat(k) / p0) ** gamma_1 + var%pi(i, j, k)) &
-              &** kappaInv
-
-          ! find the current saturation with respect to ice inside the grid cell
-          SIce = var%ICE(i, j, k, 4) * p / (epsilon0 * pIce(T))
-          ! print a warning in case SIce takes unreasonable values
-          if((SIce < 0) .or. (SIce > 2)) then
-            print *, "#+#+#+#+#+#+#+#+#"
-            print *, "SIce=", SIce, ", k = ", k, "i = ", i + is + nbx - 1
-            print *, "qv = ", var%ICE(i, j, k, 4)
-            print *, "T = ", T
-            print *, "#+#+#+#+#+#+#+#+#"
-          end if
-
-          ! find the current average ice particle mass, if there is no abundant ice
-          ! use the initial ice particle mass
-          if(var%ICE(i, j, k, 2) .le. 0.0) then
-            m_ice = init_m_ice
-          else
-            m_ice = abs(var%ICE(i, j, k, 3) / var%ICE(i, j, k, 2) * rhoRef &
-                &* lRef ** 3)
-          end if
-
-          nucleation = NUCn(i, j, k, var, SIce, T, p, m_ice) ! nucleation of ice crystals by aerosols
-          deposition = DEPq(i, j, k, var, SIce, T, p, m_ice) ! depositional growth of ice crystals
-          !print*, "nucleation = ", nucleation
-          !print*, "deposition = ", deposition
-
-          if(evaporation_on) then
-            if(deposition .lt. 0.0) then
-              evaporation = min(- 1 / m_ice * rhoRef * lRef ** 3 * deposition, &
-                  &var%ICE(i, j, k, 2) / dt_ice * tRef)
-              deposition = - m_ice / rhoRef / lRef ** 3 * evaporation
-            else
-              evaporation = 0.0
-            end if
-          else
-            evaporation = 0.0
-            if(deposition .lt. 0.0) then
-              deposition = 0.0
-            end if
-          end if
-
-          ! nAerosol equation
-          source%ICE(i, j, k, 1) = - nucleation + evaporation
-
-          ! nIce equation
-          source%ICE(i, j, k, 2) = nucleation - evaporation
-
-          ! qIce equation
-          source%ICE(i, j, k, 3) = init_m_ice / (rhoRef * lRef ** 3) &
-              &* nucleation + deposition
-
-          ! qv equation
-          source%ICE(i, j, k, 4) = - init_m_ice / (rhoRef * lRef ** 3) &
-              &* nucleation - deposition
-
-        end do
-      end do
-    end do
-
-  end subroutine iceSource
-
   !-----------------------------------------------------------------------!
 
   subroutine volumeForce(var, time, force)
@@ -3616,22 +2774,13 @@ module flux_module
             select case(model)
 
               ! case( "Boussinesq" )
-
-              ! theta = var(i,j,k,6)
-              ! gForce = FrInv2*rho00/theta00 * theta * vertical
-
-              ! TFC FJ
               ! No changes for Boussinesq model required.
             case("pseudo_incompressible", "Boussinesq", "compressible")
 
               if(auxil_equ) then
                 dRho = var%rhop(i, j, k)
               else
-                if(fluctuationMode) then
-                  dRho = var%rho(i, j, k)
-                else
-                  dRho = var%rho(i, j, k) - rhoStrat(k)
-                end if
+                dRho = var%rho(i, j, k)
               end if
 
               gForce = - FrInv2 * dRho * vertical
@@ -3640,7 +2789,6 @@ module flux_module
               stop "volumeForce: unknown case model."
             end select
 
-            ! TFC FJ
             ! Adjust gravitational force.
             if(topography) then
               gForce = gForce / jac(i, j, k)
@@ -3657,8 +2805,6 @@ module flux_module
       !--------------------------------------------
       ! Coriolis force defined in scalar volume cells
       ! -> needs interpolation
-
-      !FS  if( RoInv > 0.0 ) then
 
       do k = 0, nz + 1
         do j = 0, ny + 1
@@ -3677,16 +2823,11 @@ module flux_module
               rho = rho00
 
             case("pseudo_incompressible", "compressible")
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  ! Adjust for 3D fields.
-                  rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
-                else
-                  rho = var%rho(i, j, k) + rhoStrat(k)
-                end if
+              if(topography) then
+                ! Adjust for 3D fields.
+                rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
               else
-                rho = var%rho(i, j, k)
+                rho = var%rho(i, j, k) + rhoStrat(k)
               end if
 
             case default
@@ -3707,7 +2848,6 @@ module flux_module
             force(i, j, k, 1:3) = force(i, j, k, 1:3) - (rho * RoInv(j) * &
                 &(/f1, f2, f3/))
 
-            ! TFC FJ
             ! Add vertical Coriolis force component in TFC.
             if(topography) then
               force(i, j, k, 1:3) = force(i, j, k, 1:3) + rho * RoInv(j) &
@@ -3719,7 +2859,6 @@ module flux_module
         end do
       end do
 
-      !FS end if ! RoInv > 0.0
     end if ! not semiimplicit
 
     !--------------------------------------------
@@ -3771,16 +2910,6 @@ module flux_module
 
     if((testCase == "mountainwave") .or. (raytracer .and. case_wkb == 3)) then
 
-      ! if(time < t_ramp) then
-      !   ft_relax = (1.0 - cos(time * pi / (t_ramp * 2.0))) / t_relax
-      ! else if(time < t_relax - t_ramp) then
-      !   ft_relax = 1.0 / t_relax
-      ! else if(time < t_relax) then
-      !   ft_relax = (1.0 - cos((t_relax - time) * pi / (t_ramp * 2.0))) / t_relax
-      ! else
-      !   ft_relax = 0.0
-      ! end if
-
       if(xextent_relax > 0.0) then
         do i = 0, nx + 1
           if(x(i0 + i) < lx(0) + 0.5 * xextent_relax) then
@@ -3824,15 +2953,10 @@ module flux_module
 
             case("pseudo_incompressible", "compressible")
 
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
-                else
-                  rho = var%rho(i, j, k) + rhoStrat(k)
-                end if
+              if(topography) then
+                rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
               else
-                rho = var%rho(i, j, k)
+                rho = var%rho(i, j, k) + rhoStrat(k)
               end if
 
             case default
@@ -3889,9 +3013,6 @@ module flux_module
     real, intent(in) :: uSurf ! cell face value
     real, intent(in) :: phiUp, phiDown ! upwind, downwind values
     real :: flux_muscl
-
-    !    flux_muscl = uSurf*0.5*(phiUp+phiDown) &
-    !         &     + abs(uSurf)*0.5*(phiUp-phiDown)
 
     if(uSurf > 0.0) then
       flux_muscl = uSurf * phiUp
@@ -4056,7 +3177,7 @@ module flux_module
               stop "momentumFlux: unknown fluxType."
             end select
 
-            if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+            rhoEdge = rhoEdge + rhoStrat(k)
 
           end select ! model
 
@@ -4192,7 +3313,7 @@ module flux_module
               stop "momentumFlux: unknown fluxType."
             end select
 
-            if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+            rhoEdge = rhoEdge + rhoStrat(k)
 
           end select ! model
 
@@ -4335,7 +3456,7 @@ module flux_module
             ! comment: for CDS rhoEdge should add rhoStrat
             ! for each var(...1) individually for 100% correctness
 
-            if(fluctuationMode) rhoEdge = rhoEdge + rhoStratTilde(k)
+            rhoEdge = rhoEdge + rhoStratTilde(k)
 
           end select ! model
 
@@ -4477,7 +3598,7 @@ module flux_module
               stop "momentumFlux: unknown fluxType."
             end select
 
-            if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+            rhoEdge = rhoEdge + rhoStrat(k)
 
           end select ! model
 
@@ -4617,7 +3738,7 @@ module flux_module
               stop "momentumFlux: unknown fluxType."
             end select
 
-            if(fluctuationMode) rhoEdge = rhoEdge + rhoStrat(k)
+            rhoEdge = rhoEdge + rhoStrat(k)
 
           end select ! model
 
@@ -4755,7 +3876,7 @@ module flux_module
             ! comment: for CDS rhoEdge should add rhoStrat for each
             ! var(...1) individually for 100% consist. with conti eq.
 
-            if(fluctuationMode) rhoEdge = rhoEdge + rhoStratTilde(k)
+            rhoEdge = rhoEdge + rhoStratTilde(k)
 
           end select ! model
 
@@ -4880,30 +4001,19 @@ module flux_module
 
             case("central")
 
-              if(fluctuationMode) then
-                rhoEdge = 0.25 * (var%rho(i, j, k) + var%rho(i + 1, j, k) &
-                    &+ var%rho(i, j, k + 1) + var%rho(i + 1, j, k + 1)) + 0.5 &
-                    &* (rhoStrat(k) + rhoStrat(k + 1))
-              else
-                rhoEdge = 0.25 * (var%rho(i, j, k) + var%rho(i + 1, j, k) &
-                    &+ var%rho(i, j, k + 1) + var%rho(i + 1, j, k + 1))
-              end if
+              rhoEdge = 0.25 * (var%rho(i, j, k) + var%rho(i + 1, j, k) &
+                  &+ var%rho(i, j, k + 1) + var%rho(i + 1, j, k + 1)) + 0.5 &
+                  &* (rhoStrat(k) + rhoStrat(k + 1))
 
             case("upwind", "ILES")
               ! density interpolation consistent with conti eq
               ! not used in MUSCL case
 
               if(reconstType /= "MUSCL") then
-                if(fluctuationMode) then
-                  rhoEdge = 0.25 * (rhoTilde(i, j, k, 1, 1) + rhoTilde(i + 1, &
-                      &j, k, 1, 0) + rhoTilde(i, j, k + 1, 1, 1) + rhoTilde(i &
-                      &+ 1, j, k + 1, 1, 0)) + 0.5 * (rhoStrat(k) + rhoStrat(k &
-                      &+ 1))
-                else
-                  rhoEdge = 0.25 * (rhoTilde(i, j, k, 1, 1) + rhoTilde(i + 1, &
-                      &j, k, 1, 0) + rhoTilde(i, j, k + 1, 1, 1) + rhoTilde(i &
-                      &+ 1, j, k + 1, 1, 0))
-                end if
+                rhoEdge = 0.25 * (rhoTilde(i, j, k, 1, 1) + rhoTilde(i + 1, &
+                    &j, k, 1, 0) + rhoTilde(i, j, k + 1, 1, 1) + rhoTilde(i &
+                    &+ 1, j, k + 1, 1, 0)) + 0.5 * (rhoStrat(k) + rhoStrat(k &
+                    &+ 1))
               end if
 
             case default
@@ -5031,30 +4141,19 @@ module flux_module
 
             case("central")
 
-              if(fluctuationMode) then
-                rhoEdge = 0.25 * (var%rho(i, j, k) + var%rho(i, j + 1, k) &
-                    &+ var%rho(i, j, k + 1) + var%rho(i, j + 1, k + 1)) + 0.5 &
-                    &* (rhoStrat(k) + rhoStrat(k + 1))
-              else
-                rhoEdge = 0.25 * (var%rho(i, j, k) + var%rho(i, j + 1, k) &
-                    &+ var%rho(i, j, k + 1) + var%rho(i, j + 1, k + 1))
-              end if
+              rhoEdge = 0.25 * (var%rho(i, j, k) + var%rho(i, j + 1, k) &
+                  &+ var%rho(i, j, k + 1) + var%rho(i, j + 1, k + 1)) + 0.5 &
+                  &* (rhoStrat(k) + rhoStrat(k + 1))
 
             case("upwind", "ILES")
               ! density interpolation consistent with conti eq
               ! not used in MUSCL case
 
               if(reconstType /= "MUSCL") then
-                if(fluctuationMode) then
-                  rhoEdge = 0.25 * (rhoTilde(i, j, k, 2, 1) + rhoTilde(i, j &
-                      &+ 1, k, 2, 0) + rhoTilde(i, j, k + 1, 2, 1) &
-                      &+ rhoTilde(i, j + 1, k + 1, 2, 0)) + 0.5 * (rhoStrat(k) &
-                      &+ rhoStrat(k + 1))
-                else
-                  rhoEdge = 0.25 * (rhoTilde(i, j, k, 2, 1) + rhoTilde(i, j &
-                      &+ 1, k, 2, 0) + rhoTilde(i, j, k + 1, 2, 1) &
-                      &+ rhoTilde(i, j + 1, k + 1, 2, 0))
-                end if
+                rhoEdge = 0.25 * (rhoTilde(i, j, k, 2, 1) + rhoTilde(i, j &
+                    &+ 1, k, 2, 0) + rhoTilde(i, j, k + 1, 2, 1) &
+                    &+ rhoTilde(i, j + 1, k + 1, 2, 0)) + 0.5 * (rhoStrat(k) &
+                    &+ rhoStrat(k + 1))
               end if
             case default
               stop "momentumFlux: unknown fluxType."
@@ -5181,31 +4280,19 @@ module flux_module
 
             case("central")
 
-              if(fluctuationMode) then
-                rhoEdge = 0.25 * (var%rho(i, j, k) + rhoStrat(k) + var%rho(i, &
-                    &j, k + 1) + rhoStrat(k + 1) + var%rho(i, j, k + 1) &
-                    &+ rhoStrat(k + 1) + var%rho(i, j, k + 2) + rhoStrat(k + 2))
-
-              else
-                rhoEdge = 0.25 * (var%rho(i, j, k) + var%rho(i, j, k + 1) &
-                    &+ var%rho(i, j, k + 1) + var%rho(i, j, k + 2))
-              end if
+              rhoEdge = 0.25 * (var%rho(i, j, k) + rhoStrat(k) + var%rho(i, &
+                  &j, k + 1) + rhoStrat(k + 1) + var%rho(i, j, k + 1) &
+                  &+ rhoStrat(k + 1) + var%rho(i, j, k + 2) + rhoStrat(k + 2))
 
             case("upwind", "ILES")
               ! density interpolation consistent with conti eq
               ! not used in MUSCL case
 
               if(reconstType /= "MUSCL") then
-                if(fluctuationMode) then
-                  rhoEdge = 0.25 * (rhoTilde(i, j, k, 3, 1) + rhoTilde(i, j, k &
-                      &+ 1, 3, 0) + rhoTilde(i, j, k + 1, 3, 1) + rhoTilde(i, &
-                      &j, k + 2, 3, 0)) + 0.5 * (rhoStratTilde(k) &
-                      &+ rhoStratTilde(k + 1))
-                else
-                  rhoEdge = 0.25 * (rhoTilde(i, j, k, 3, 1) + rhoTilde(i, j, k &
-                      &+ 1, 3, 0) + rhoTilde(i, j, k + 1, 3, 1) + rhoTilde(i, &
-                      &j, k + 2, 3, 0))
-                end if
+                rhoEdge = 0.25 * (rhoTilde(i, j, k, 3, 1) + rhoTilde(i, j, k &
+                    &+ 1, 3, 0) + rhoTilde(i, j, k + 1, 3, 1) + rhoTilde(i, &
+                    &j, k + 2, 3, 0)) + 0.5 * (rhoStratTilde(k) &
+                    &+ rhoStratTilde(k + 1))
               end if
 
             case default
@@ -5788,20 +4875,14 @@ module flux_module
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
-              if(fluctuationMode) then
-                if(topography) then
-                  coef_v = coef_v + (var%rho(i + 1, j, k) + rhoStratTFC(i + 1, &
-                      &j, k)) * delta_hs * var%DSC(i + 1, j, k)
-                else
-                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_hs &
-                  !     * var(i, j, k, 7)
-                  coef_v = coef_v + (var%rho(i + 1, j, k) + rhoStrat(k)) &
-                      &* delta_hs * var%DSC(i + 1, j, k)
-                end if
+              if(topography) then
+                coef_v = coef_v + (var%rho(i + 1, j, k) + rhoStratTFC(i + 1, &
+                    &j, k)) * delta_hs * var%DSC(i + 1, j, k)
               else
-                ! coef_v = coef_v + var(i, j, k, 1) * delta_hs * var(i, j, k, 7)
-                coef_v = coef_v + var%rho(i + 1, j, k) * delta_hs * var%DSC(i &
-                    &+ 1, j, k)
+                ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_hs &
+                !     * var(i, j, k, 7)
+                coef_v = coef_v + (var%rho(i + 1, j, k) + rhoStrat(k)) &
+                    &* delta_hs * var%DSC(i + 1, j, k)
               end if
             end if
 
@@ -5837,30 +4918,22 @@ module flux_module
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
-              if(fluctuationMode) then
-                if(topography) then
-                  coef_v = coef_v + 0.25 * delta_hs * ((var%rho(i, j, k) &
-                      &+ rhoStratTFC(i, j, k)) * var%DSC(i, j, k) + (var%rho(i &
-                      &+ 1, j, k) + rhoStratTFC(i + 1, j, k)) * var%DSC(i + 1, &
-                      &j, k) + (var%rho(i, j + 1, k) + rhoStratTFC(i, j + 1, &
-                      &k)) * var%DSC(i, j + 1, k) + (var%rho(i + 1, j + 1, k) &
-                      &+ rhoStratTFC(i + 1, j + 1, k)) * var%DSC(i + 1, j + 1, &
-                      &k))
-                else
-                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_hs &
-                  !     * var(i, j, k, 7)
-                  coef_v = coef_v + (0.25 * (var%rho(i, j, k) + var%rho(i + 1, &
-                      &j, k) + var%rho(i, j + 1, k) + var%rho(i + 1, j + 1, &
-                      &k)) + rhoStrat(k)) * delta_hs * 0.25 * (var%DSC(i, j, &
-                      &k) + var%DSC(i + 1, j, k) + var%DSC(i, j + 1, k) &
-                      &+ var%DSC(i + 1, j + 1, k))
-                end if
+              if(topography) then
+                coef_v = coef_v + 0.25 * delta_hs * ((var%rho(i, j, k) &
+                    &+ rhoStratTFC(i, j, k)) * var%DSC(i, j, k) + (var%rho(i &
+                    &+ 1, j, k) + rhoStratTFC(i + 1, j, k)) * var%DSC(i + 1, &
+                    &j, k) + (var%rho(i, j + 1, k) + rhoStratTFC(i, j + 1, &
+                    &k)) * var%DSC(i, j + 1, k) + (var%rho(i + 1, j + 1, k) &
+                    &+ rhoStratTFC(i + 1, j + 1, k)) * var%DSC(i + 1, j + 1, &
+                    &k))
               else
-                ! coef_v = coef_v + var(i, j, k, 1) * delta_hs * var(i, j, k, 7)
-                coef_v = coef_v + 0.25 * (var%rho(i, j, k) + var%rho(i + 1, j, &
-                    &k) + var%rho(i, j + 1, k) + var%rho(i + 1, j + 1, k)) &
-                    &* delta_hs * 0.25 * (var%DSC(i, j, k) + var%DSC(i + 1, j, &
-                    &k) + var%DSC(i, j + 1, k) + var%DSC(i + 1, j + 1, k))
+                ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_hs &
+                !     * var(i, j, k, 7)
+                coef_v = coef_v + (0.25 * (var%rho(i, j, k) + var%rho(i + 1, &
+                    &j, k) + var%rho(i, j + 1, k) + var%rho(i + 1, j + 1, &
+                    &k)) + rhoStrat(k)) * delta_hs * 0.25 * (var%DSC(i, j, &
+                    &k) + var%DSC(i + 1, j, k) + var%DSC(i, j + 1, k) &
+                    &+ var%DSC(i + 1, j + 1, k))
               end if
             end if
 
@@ -5898,32 +4971,22 @@ module flux_module
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
-              if(fluctuationMode) then
-                if(topography) then
-                  coef_v = coef_v + 0.25 * delta_vs * ((var%rho(i, j, k) &
-                      &+ rhoStratTFC(i, j, k)) * jac(i, j, k) ** 2.0 &
-                      &* var%DSC(i, j, k) + (var%rho(i + 1, j, k) &
-                      &+ rhoStratTFC(i + 1, j, k)) * jac(i + 1, j, k) ** 2.0 &
-                      &* var%DSC(i + 1, j, k) + (var%rho(i, j, k + 1) &
-                      &+ rhoStratTFC(i, j, k + 1)) * jac(i, j, k + 1) ** 2.0 &
-                      &* var%DSC(i, j, k + 1) + (var%rho(i + 1, j, k + 1) &
-                      &+ rhoStratTFC(i + 1, j, k + 1)) * jac(i + 1, j, k + 1) &
-                      &** 2.0 * var%DSC(i + 1, j, k + 1))
-                else
-                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_vs &
-                  !     * var(i, j, k, 7)
-                  coef_v = coef_v + (0.25 * (var%rho(i, j, k) + var%rho(i + 1, &
-                      &j, k) + var%rho(i, j, k + 1) + var%rho(i + 1, j, k &
-                      &+ 1)) + rhoStratTilde(k)) * delta_vs * 0.25 &
-                      &* (var%DSC(i, j, k) + var%DSC(i + 1, j, k) + var%DSC(i, &
-                      &j, k + 1) + var%DSC(i + 1, j, k + 1))
-                end if
+              if(topography) then
+                coef_v = coef_v + 0.25 * delta_vs * ((var%rho(i, j, k) &
+                    &+ rhoStratTFC(i, j, k)) * jac(i, j, k) ** 2.0 &
+                    &* var%DSC(i, j, k) + (var%rho(i + 1, j, k) &
+                    &+ rhoStratTFC(i + 1, j, k)) * jac(i + 1, j, k) ** 2.0 &
+                    &* var%DSC(i + 1, j, k) + (var%rho(i, j, k + 1) &
+                    &+ rhoStratTFC(i, j, k + 1)) * jac(i, j, k + 1) ** 2.0 &
+                    &* var%DSC(i, j, k + 1) + (var%rho(i + 1, j, k + 1) &
+                    &+ rhoStratTFC(i + 1, j, k + 1)) * jac(i + 1, j, k + 1) &
+                    &** 2.0 * var%DSC(i + 1, j, k + 1))
               else
-                ! coef_v = coef_v + var(i, j, k, 1) * delta_vs * var(i, j, k, 7)
-                coef_v = coef_v + 0.25 * (var%rho(i, j, k) + var%rho(i + 1, j, &
-                    &k) + var%rho(i, j, k + 1) + var%rho(i + 1, j, k + 1)) &
-                    &* delta_vs * 0.25 * (var%DSC(i, j, k) + var%DSC(i + 1, j, &
-                    &k) + var%DSC(i, j, k + 1) + var%DSC(i + 1, j, k + 1))
+                coef_v = coef_v + (0.25 * (var%rho(i, j, k) + var%rho(i + 1, &
+                    &j, k) + var%rho(i, j, k + 1) + var%rho(i + 1, j, k &
+                    &+ 1)) + rhoStratTilde(k)) * delta_vs * 0.25 &
+                    &* (var%DSC(i, j, k) + var%DSC(i + 1, j, k) + var%DSC(i, &
+                    &j, k + 1) + var%DSC(i + 1, j, k + 1))
               end if
             end if
 
@@ -5981,30 +5044,20 @@ module flux_module
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
-              if(fluctuationMode) then
-                if(topography) then
-                  coef_v = coef_v + 0.25 * delta_hs * ((var%rho(i, j, k) &
-                      &+ rhoStratTFC(i, j, k)) * var%DSC(i, j, k) + (var%rho(i &
-                      &+ 1, j, k) + rhoStratTFC(i + 1, j, k)) * var%DSC(i + 1, &
-                      &j, k) + (var%rho(i, j + 1, k) + rhoStratTFC(i, j + 1, &
-                      &k)) * var%DSC(i, j + 1, k) + (var%rho(i + 1, j + 1, k) &
-                      &+ rhoStratTFC(i + 1, j + 1, k)) * var%DSC(i + 1, j + 1, &
-                      &k))
-                else
-                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_hs &
-                  !     * var(i, j, k, 7)
-                  coef_v = coef_v + (0.25 * (var%rho(i, j, k) + var%rho(i + 1, &
-                      &j, k) + var%rho(i, j + 1, k) + var%rho(i + 1, j + 1, &
-                      &k)) + rhoStrat(k)) * delta_hs * 0.25 * (var%DSC(i, j, &
-                      &k) + var%DSC(i + 1, j, k) + var%DSC(i, j + 1, k) &
-                      &+ var%DSC(i + 1, j + 1, k))
-                end if
+              if(topography) then
+                coef_v = coef_v + 0.25 * delta_hs * ((var%rho(i, j, k) &
+                    &+ rhoStratTFC(i, j, k)) * var%DSC(i, j, k) + (var%rho(i &
+                    &+ 1, j, k) + rhoStratTFC(i + 1, j, k)) * var%DSC(i + 1, &
+                    &j, k) + (var%rho(i, j + 1, k) + rhoStratTFC(i, j + 1, &
+                    &k)) * var%DSC(i, j + 1, k) + (var%rho(i + 1, j + 1, k) &
+                    &+ rhoStratTFC(i + 1, j + 1, k)) * var%DSC(i + 1, j + 1, &
+                    &k))
               else
-                ! coef_v = coef_v + var(i, j, k, 1) * delta_hs * var(i, j, k, 7)
-                coef_v = coef_v + 0.25 * (var%rho(i, j, k) + var%rho(i + 1, j, &
-                    &k) + var%rho(i, j + 1, k) + var%rho(i + 1, j + 1, k)) &
-                    &* delta_hs * 0.25 * (var%DSC(i, j, k) + var%DSC(i + 1, j, &
-                    &k) + var%DSC(i, j + 1, k) + var%DSC(i + 1, j + 1, k))
+                coef_v = coef_v + (0.25 * (var%rho(i, j, k) + var%rho(i + 1, &
+                    &j, k) + var%rho(i, j + 1, k) + var%rho(i + 1, j + 1, &
+                    &k)) + rhoStrat(k)) * delta_hs * 0.25 * (var%DSC(i, j, &
+                    &k) + var%DSC(i + 1, j, k) + var%DSC(i, j + 1, k) &
+                    &+ var%DSC(i + 1, j + 1, k))
               end if
             end if
 
@@ -6042,20 +5095,12 @@ module flux_module
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
-              if(fluctuationMode) then
-                if(topography) then
-                  coef_v = coef_v + (var%rho(i, j + 1, k) + rhoStratTFC(i, j &
-                      &+ 1, k)) * delta_hs * var%DSC(i, j + 1, k)
-                else
-                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_hs &
-                  !     * var(i, j, k, 7)
-                  coef_v = coef_v + (var%rho(i, j + 1, k) + rhoStrat(k)) &
-                      &* delta_hs * var%DSC(i, j + 1, k)
-                end if
+              if(topography) then
+                coef_v = coef_v + (var%rho(i, j + 1, k) + rhoStratTFC(i, j &
+                    &+ 1, k)) * delta_hs * var%DSC(i, j + 1, k)
               else
-                ! coef_v = coef_v + var(i, j, k, 1) * delta_hs * var(i, j, k, 7)
-                coef_v = coef_v + var%rho(i, j + 1, k) * delta_hs * var%DSC(i, &
-                    &j + 1, k)
+                coef_v = coef_v + (var%rho(i, j + 1, k) + rhoStrat(k)) &
+                    &* delta_hs * var%DSC(i, j + 1, k)
               end if
             end if
 
@@ -6090,32 +5135,22 @@ module flux_module
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
-              if(fluctuationMode) then
-                if(topography) then
-                  coef_v = coef_v + 0.25 * delta_vs * ((var%rho(i, j, k) &
-                      &+ rhoStratTFC(i, j, k)) * jac(i, j, k) ** 2.0 &
-                      &* var%DSC(i, j, k) + (var%rho(i, j + 1, k) &
-                      &+ rhoStratTFC(i, j + 1, k)) * jac(i, j + 1, k) ** 2.0 &
-                      &* var%DSC(i, j + 1, k) + (var%rho(i, j, k + 1) &
-                      &+ rhoStratTFC(i, j, k + 1)) * jac(i, j, k + 1) ** 2.0 &
-                      &* var%DSC(i, j, k + 1) + (var%rho(i, j + 1, k + 1) &
-                      &+ rhoStratTFC(i, j + 1, k + 1)) * jac(i, j + 1, k + 1) &
-                      &** 2.0 * var%DSC(i, j + 1, k + 1))
-                else
-                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_vs &
-                  !     * var(i, j, k, 7)
-                  coef_v = coef_v + (0.25 * (var%rho(i, j, k) + var%rho(i, j &
-                      &+ 1, k) + var%rho(i, j, k + 1) + var%rho(i, j + 1, k &
-                      &+ 1)) + rhoStratTilde(k)) * delta_vs * 0.25 &
-                      &* (var%DSC(i, j, k) + var%DSC(i + 1, j, k) + var%DSC(i, &
-                      &j, k + 1) + var%DSC(i + 1, j, k + 1))
-                end if
+              if(topography) then
+                coef_v = coef_v + 0.25 * delta_vs * ((var%rho(i, j, k) &
+                    &+ rhoStratTFC(i, j, k)) * jac(i, j, k) ** 2.0 &
+                    &* var%DSC(i, j, k) + (var%rho(i, j + 1, k) &
+                    &+ rhoStratTFC(i, j + 1, k)) * jac(i, j + 1, k) ** 2.0 &
+                    &* var%DSC(i, j + 1, k) + (var%rho(i, j, k + 1) &
+                    &+ rhoStratTFC(i, j, k + 1)) * jac(i, j, k + 1) ** 2.0 &
+                    &* var%DSC(i, j, k + 1) + (var%rho(i, j + 1, k + 1) &
+                    &+ rhoStratTFC(i, j + 1, k + 1)) * jac(i, j + 1, k + 1) &
+                    &** 2.0 * var%DSC(i, j + 1, k + 1))
               else
-                ! coef_v = coef_v + var(i, j, k, 1) * delta_vs * var(i, j, k, 7)
-                coef_v = coef_v + 0.25 * (var%rho(i, j, k) + var%rho(i, j + 1, &
-                    &k) + var%rho(i, j, k + 1) + var%rho(i, j + 1, k + 1)) &
-                    &* delta_vs * 0.25 * (var%DSC(i, j, k) + var%DSC(i, j + 1, &
-                    &k) + var%DSC(i, j, k + 1) + var%DSC(i, j + 1, k + 1))
+                coef_v = coef_v + (0.25 * (var%rho(i, j, k) + var%rho(i, j &
+                    &+ 1, k) + var%rho(i, j, k + 1) + var%rho(i, j + 1, k &
+                    &+ 1)) + rhoStratTilde(k)) * delta_vs * 0.25 &
+                    &* (var%DSC(i, j, k) + var%DSC(i + 1, j, k) + var%DSC(i, &
+                    &j, k + 1) + var%DSC(i + 1, j, k + 1))
               end if
             end if
 
@@ -6171,32 +5206,22 @@ module flux_module
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
-              if(fluctuationMode) then
-                if(topography) then
-                  coef_v = coef_v + 0.25 * delta_vs * ((var%rho(i, j, k) &
-                      &+ rhoStratTFC(i, j, k)) * jac(i, j, k) ** 2.0 &
-                      &* var%DSC(i, j, k) + (var%rho(i + 1, j, k) &
-                      &+ rhoStratTFC(i + 1, j, k)) * jac(i + 1, j, k) ** 2.0 &
-                      &* var%DSC(i + 1, j, k) + (var%rho(i, j, k + 1) &
-                      &+ rhoStratTFC(i, j, k + 1)) * jac(i, j, k + 1) ** 2.0 &
-                      &* var%DSC(i, j, k + 1) + (var%rho(i + 1, j, k + 1) &
-                      &+ rhoStratTFC(i + 1, j, k + 1)) * jac(i + 1, j, k + 1) &
-                      &** 2.0 * var%DSC(i + 1, j, k + 1))
-                else
-                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_vs &
-                  !     * var(i, j, k, 7)
-                  coef_v = coef_v + (0.25 * (var%rho(i, j, k) + var%rho(i + 1, &
-                      &j, k) + var%rho(i, j, k + 1) + var%rho(i + 1, j, k &
-                      &+ 1)) + rhoStratTilde(k)) * delta_vs * 0.25 &
-                      &* (var%DSC(i, j, k) + var%DSC(i + 1, j, k) + var%DSC(i, &
-                      &j, k + 1) + var%DSC(i + 1, j, k + 1))
-                end if
+              if(topography) then
+                coef_v = coef_v + 0.25 * delta_vs * ((var%rho(i, j, k) &
+                    &+ rhoStratTFC(i, j, k)) * jac(i, j, k) ** 2.0 &
+                    &* var%DSC(i, j, k) + (var%rho(i + 1, j, k) &
+                    &+ rhoStratTFC(i + 1, j, k)) * jac(i + 1, j, k) ** 2.0 &
+                    &* var%DSC(i + 1, j, k) + (var%rho(i, j, k + 1) &
+                    &+ rhoStratTFC(i, j, k + 1)) * jac(i, j, k + 1) ** 2.0 &
+                    &* var%DSC(i, j, k + 1) + (var%rho(i + 1, j, k + 1) &
+                    &+ rhoStratTFC(i + 1, j, k + 1)) * jac(i + 1, j, k + 1) &
+                    &** 2.0 * var%DSC(i + 1, j, k + 1))
               else
-                ! coef_v = coef_v + var(i, j, k, 1) * delta_vs * var(i, j, k, 7)
-                coef_v = coef_v + 0.25 * (var%rho(i, j, k) + var%rho(i + 1, j, &
-                    &k) + var%rho(i, j, k + 1) + var%rho(i + 1, j, k + 1)) &
-                    &* delta_vs * 0.25 * (var%DSC(i, j, k) + var%DSC(i + 1, j, &
-                    &k) + var%DSC(i, j, k + 1) + var%DSC(i + 1, j, k + 1))
+                coef_v = coef_v + (0.25 * (var%rho(i, j, k) + var%rho(i + 1, &
+                    &j, k) + var%rho(i, j, k + 1) + var%rho(i + 1, j, k &
+                    &+ 1)) + rhoStratTilde(k)) * delta_vs * 0.25 &
+                    &* (var%DSC(i, j, k) + var%DSC(i + 1, j, k) + var%DSC(i, &
+                    &j, k + 1) + var%DSC(i + 1, j, k + 1))
               end if
             end if
 
@@ -6234,32 +5259,22 @@ module flux_module
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
-              if(fluctuationMode) then
-                if(topography) then
-                  coef_v = coef_v + 0.25 * delta_vs * ((var%rho(i, j, k) &
-                      &+ rhoStratTFC(i, j, k)) * jac(i, j, k) ** 2.0 &
-                      &* var%DSC(i, j, k) + (var%rho(i, j + 1, k) &
-                      &+ rhoStratTFC(i, j + 1, k)) * jac(i, j + 1, k) ** 2.0 &
-                      &* var%DSC(i, j + 1, k) + (var%rho(i, j, k + 1) &
-                      &+ rhoStratTFC(i, j, k + 1)) * jac(i, j, k + 1) ** 2.0 &
-                      &* var%DSC(i, j, k + 1) + (var%rho(i, j + 1, k + 1) &
-                      &+ rhoStratTFC(i, j + 1, k + 1)) * jac(i, j + 1, k + 1) &
-                      &** 2.0 * var%DSC(i, j + 1, k + 1))
-                else
-                  ! coef_v = coef_v + (var(i, j, k, 1) + rhoStrat(k)) * delta_vs &
-                  !     * var(i, j, k, 7)
-                  coef_v = coef_v + (0.25 * (var%rho(i, j, k) + var%rho(i, j &
-                      &+ 1, k) + var%rho(i, j, k + 1) + var%rho(i, j + 1, k &
-                      &+ 1)) + rhoStratTilde(k)) * delta_vs * 0.25 &
-                      &* (var%DSC(i, j, k) + var%DSC(i, j + 1, k) + var%DSC(i, &
-                      &j, k + 1) + var%DSC(i, j + 1, k + 1))
-                end if
+              if(topography) then
+                coef_v = coef_v + 0.25 * delta_vs * ((var%rho(i, j, k) &
+                    &+ rhoStratTFC(i, j, k)) * jac(i, j, k) ** 2.0 &
+                    &* var%DSC(i, j, k) + (var%rho(i, j + 1, k) &
+                    &+ rhoStratTFC(i, j + 1, k)) * jac(i, j + 1, k) ** 2.0 &
+                    &* var%DSC(i, j + 1, k) + (var%rho(i, j, k + 1) &
+                    &+ rhoStratTFC(i, j, k + 1)) * jac(i, j, k + 1) ** 2.0 &
+                    &* var%DSC(i, j, k + 1) + (var%rho(i, j + 1, k + 1) &
+                    &+ rhoStratTFC(i, j + 1, k + 1)) * jac(i, j + 1, k + 1) &
+                    &** 2.0 * var%DSC(i, j + 1, k + 1))
               else
-                ! coef_v = coef_v + var(i, j, k, 1) * delta_vs * var(i, j, k, 7)
-                coef_v = coef_v + 0.25 * (var%rho(i, j, k) + var%rho(i, j + 1, &
-                    &k) + var%rho(i, j, k + 1) + var%rho(i, j + 1, k + 1)) &
-                    &* delta_vs * 0.25 * (var%DSC(i, j, k) + var%DSC(i, j + 1, &
-                    &k) + var%DSC(i, j, k + 1) + var%DSC(i, j + 1, k + 1))
+                coef_v = coef_v + (0.25 * (var%rho(i, j, k) + var%rho(i, j &
+                    &+ 1, k) + var%rho(i, j, k + 1) + var%rho(i, j + 1, k &
+                    &+ 1)) + rhoStratTilde(k)) * delta_vs * 0.25 &
+                    &* (var%DSC(i, j, k) + var%DSC(i, j + 1, k) + var%DSC(i, &
+                    &j, k + 1) + var%DSC(i, j + 1, k + 1))
               end if
             end if
 
@@ -6297,26 +5312,13 @@ module flux_module
             if(TurbScheme) then
               ! turbulence scheme allowing for anisotropic grids
 
-              if(fluctuationMode) then
-                if(topography) then
-                  coef_v = coef_v + (var%rho(i, j, k + 1) + rhoStratTFC(i, j, &
-                      &k + 1)) * delta_vs * jac(i, j, k + 1) ** 2.0 &
-                      &* var%DSC(i, j, k + 1)
-                else
-                  ! if(k == - 1) then
-                  !   rhos = rhoStrat(0)
-                  ! else
-                  !   rhos = rhoStrat(k)
-                  ! end if
-                  ! coef_v = coef_v + (var(i, j, k, 1) + rhos) * delta_vs &
-                  !     * var(i, j, k, 7)
-                  coef_v = coef_v + (var%rho(i, j, k + 1) + rhoStrat(k + 1)) &
-                      &* delta_vs * var%DSC(i, j, k + 1)
-                end if
+              if(topography) then
+                coef_v = coef_v + (var%rho(i, j, k + 1) + rhoStratTFC(i, j, &
+                    &k + 1)) * delta_vs * jac(i, j, k + 1) ** 2.0 &
+                    &* var%DSC(i, j, k + 1)
               else
-                ! coef_v = coef_v + var(i, j, k, 1) * delta_vs * var(i, j, k, 7)
-                coef_v = coef_v + var%rho(i, j, k + 1) * delta_vs * var%DSC(i, &
-                    &j, k + 1)
+                coef_v = coef_v + (var%rho(i, j, k + 1) + rhoStrat(k + 1)) &
+                    &* delta_vs * var%DSC(i, j, k + 1)
               end if
             end if
 
@@ -6660,7 +5662,7 @@ module flux_module
     end if
 
     !SD added if
-    if(include_ice .or. include_ice2) then
+    if(include_ice) then
       !  nIceTilde
       allocate(nIceTilde(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 1:3, &
           &0:1), stat = allocstat)
@@ -6683,29 +5685,8 @@ module flux_module
     end if
 
     !SD
+    
     if(include_ice) then
-      ! nIceBar
-      allocate(nIceBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
-          &= allocstat)
-      if(allocstat /= 0) stop "fluxes.f90: could not allocate nIceBar"
-
-      ! qIceBar
-      allocate(qIceBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
-          &= allocstat)
-      if(allocstat /= 0) stop "fluxes.f90: could not allocate qIceBar"
-
-      ! qvBar
-      allocate(qvBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
-          &= allocstat)
-      if(allocstat /= 0) stop "fluxes.f90: could not allocate qvBar"
-
-      ! nAerBar
-      allocate(nAerBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
-          &= allocstat)
-      if(allocstat /= 0) stop "fluxes.f90: could not allocate nAerBar"
-    end if
-
-    if(include_ice2) then
 
       allocate(IceBar(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
           &= allocstat)
@@ -6815,7 +5796,7 @@ module flux_module
     end if
 
     !SD
-    if(include_ice .or. include_ice2) then
+    if(include_ice) then
 
       deallocate(nIceTilde, stat = allocstat)
       if(allocstat /= 0) stop "fluxes.f90: could not deallocate nIceTilde"
@@ -6831,24 +5812,8 @@ module flux_module
 
     end if
 
-    !SD
+
     if(include_ice) then
-
-      deallocate(nIceBar, stat = allocstat)
-      if(allocstat /= 0) stop "fluxes.f90: could not deallocate nIceBar"
-
-      deallocate(qIceBar, stat = allocstat)
-      if(allocstat /= 0) stop "fluxes.f90: could not deallocate qIceBar"
-
-      deallocate(qvBar, stat = allocstat)
-      if(allocstat /= 0) stop "fluxes.f90: could not deallocate qvBar"
-
-      deallocate(nAerBar, stat = allocstat)
-      if(allocstat /= 0) stop "fluxes.f90: could not deallocate nAerBar"
-
-    endif
-
-    if(include_ice2) then
 
       deallocate(IceBar, stat = allocstat)
       if(allocstat /= 0) stop "fluxes.f90: could not deallocate IceBar"
@@ -7241,7 +6206,7 @@ module flux_module
 
   end subroutine massFluxTestTFC
 
-  subroutine ice2Flux(vara, var, flux, fluxmode, Pstrata, PStratTildea)
+  subroutine iceFlux(vara, var, flux, fluxmode, Pstrata, PStratTildea)
     !---------------------------------------------------------------------
     ! computes the tracer flux at all cell edges using reconstructed values
     ! fluxmode = lin => linear flux, advecting velocities prescribed in
@@ -7330,16 +6295,8 @@ module flux_module
 
             case("central")
 
-              !!$                if( fluctuationMode ) then
-              !!$                   rhoL = var(i,j,k,1) + rhoStrat(k)
-              !!$                   rhoR = var(i+1,j,k,1) + rhoStrat(k)
-              !!$                else
-              !!$                   rhoL = var(i,j,k,1)
-              !!$                   rhoR = var(i+1,j,k,1)
-              !!$                end if
-
-              iceR = var%ICE2(i + 1, j, k, iVar)
-              iceL = var%ICE2(i, j, k, iVar)
+              iceR = var%ICE(i + 1, j, k, iVar)
+              iceL = var%ICE(i, j, k, iVar)
 
               if(fluxmode == "nln") then
                 uSurf = var%u(i, j, k)
@@ -7352,29 +6309,6 @@ module flux_module
               fIce = uSurf * 0.5 * (iceL + iceR)
 
             case("upwind")
-
-              !!$                if( fluctuationMode ) then
-              !!$                    if(topography) then
-              !!$                        ! TFC FJ
-              !!$                        ! Adjust for 3D fields.
-              !!$                        rhoStratEdgeR = 0.5 * (rhoStratTFC(i, j, k) &
-              !!$                                        + rhoStratTFC(i + 1, j, k))
-              !!$                        pEdgeR = 0.5 * (pStratTFC(i, j, k) &
-              !!$                                 + pStratTFC(i + 1, j, k))
-              !!$                        rhoR = rhoTilde(i + 1, j, k, 1, 0) &
-              !!$                               + rhoStratEdgeR / pEdgeR
-              !!$                        rhoL = rhoTilde(i, j, k, 1, 1) &
-              !!$                               + rhoStratEdgeR / pEdgeR
-              !!$                    else
-              !!$                        !UAB reference density to be divided by P as well!
-              !!$                        rhoR = rhoTilde(i+1,j,k,1,0)+ rhoStrat(k)/Pstrat(k)
-              !!$                        rhoL = rhoTilde(i,j,k,1,1)+ rhoStrat(k)/Pstrat(k)
-              !!$                        !UAE
-              !!$                    end if
-              !!$                else
-              !!$                   rhoR = rhoTilde(i+1,j,k,1,0)
-              !!$                    rhoL = rhoTilde(i,j,k,1,1)
-              !!$                end if
 
               if(iVar .eq. inN) then
 
@@ -7417,14 +6351,14 @@ module flux_module
               fIce = flux_muscl(uSurf, iceL, iceR)
 
             case("ILES")
-              print *, 'ice2Flux does not work with ILES'
+              print *, 'iceFlux does not work with ILES'
               stop
 
             case default
-              stop "ice2Flux: unknown case fluxType"
+              stop "iceFlux: unknown case fluxType"
             end select
 
-            flux%ICE2(i, j, k, 1, iVar) = fIce
+            flux%ICE(i, j, k, 1, iVar) = fIce
 
           end do
         end do
@@ -7441,16 +6375,9 @@ module flux_module
             select case(fluxType)
 
             case("central")
-              !!$                   if( fluctuationMode ) then
-              !!$                      rhoF = var(i,j+1,k,1) + rhoStrat(k)
-              !!$                      rhoB = var(i,j,k,1)   + rhoStrat(k)
-              !!$                   else
-              !!$                      rhoF = var(i,j+1,k,1)
-              !!$                      rhoB = var(i,j,k,1)
-              !!$                   end if
 
-              iceR = var%ICE2(i, j + 1, k, iVar)
-              iceL = var%ICE2(i, j, k, iVar)
+              iceR = var%ICE(i, j + 1, k, iVar)
+              iceL = var%ICE(i, j, k, iVar)
 
               if(fluxmode == "nln") then
                 vSurf = var%v(i, j, k)
@@ -7463,29 +6390,6 @@ module flux_module
               gIce = vSurf * 0.5 * (iceL + iceR)
 
             case("upwind")
-              !!$                   if( fluctuationMode ) then
-              !!$                      if(topography) then
-              !!$                         ! TFC FJ
-              !!$                         ! Adjust for 3D fields.
-              !!$                         rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) &
-              !!$                              + rhoStratTFC(i, j + 1, k))
-              !!$                         pEdgeF = 0.5 * (pStratTFC(i, j, k) &
-              !!$                              + pStratTFC(i, j + 1, k))
-              !!$                         rhoF = rhoTilde(i, j + 1, k, 2, 0) &
-              !!$                              + rhoStratEdgeF / pEdgeF
-              !!$                         rhoB = rhoTilde(i, j, k, 2, 1) &
-              !!$                              + rhoStratEdgeF / pEdgeF
-              !!$                      else
-              !!$                         !UAB reference density to be divided by P as well!
-              !!$                         rhoF = rhoTilde(i,j+1,k,2,0) + rhoStrat(k)/Pstrat(k)
-              !!$                         rhoB = rhoTilde(i,j,k,2,1)   + rhoStrat(k)/Pstrat(k)
-              !!$                         !UAE
-              !!$                      end if
-              !!$                   else
-              !!$                      rhoF = rhoTilde(i,j+1,k,2,0)
-              !!$                      rhoB = rhoTilde(i,j,k,2,1)
-              !!$                   end if
-
               if(iVar .eq. inN) then
 
                 iceR = nIceTilde(i, j + 1, k, 2, 0)
@@ -7528,14 +6432,14 @@ module flux_module
 
             case("ILES")
 
-              print *, 'ice2Flux does not work with ILES'
+              print *, 'iceFlux does not work with ILES'
               stop
 
             case default
-              stop "ice2Flux: unknown case fluxType"
+              stop "iceFlux: unknown case fluxType"
             end select
 
-            flux%ICE2(i, j, k, 2, iVar) = gIce
+            flux%ICE(i, j, k, 2, iVar) = gIce
           end do
         end do
       end do
@@ -7552,17 +6456,8 @@ module flux_module
 
             case("central")
 
-              !!$                if( fluctuationMode ) then
-              !!$                   rhoU = var(i,j,k+1,1) + rhoStratTilde(k)
-              !!$                   ! background rho at half level
-              !!$                   rhoD = var(i,j,k,1)   + rhoStratTilde(k)
-              !!$                else
-              !!$                   rhoU = var(i,j,k+1,1)
-              !!$                   rhoD = var(i,j,k,1)
-              !!$                end if
-
-              iceR = var%ICE2(i, j, k + 1, iVar)
-              iceL = var%ICE2(i, j, k, iVar)
+              iceR = var%ICE(i, j, k + 1, iVar)
+              iceL = var%ICE(i, j, k, iVar)
 
               if(fluxmode == "nln") then
                 wSurf = var%w(i, j, k)
@@ -7575,33 +6470,6 @@ module flux_module
               hIce = wSurf * 0.5 * (iceL + iceR)
 
             case("upwind")
-
-              !!$                if( fluctuationMode ) then
-              !!$                    if(topography) then
-              !!$                        ! TFC FJ
-              !!$                        ! Adjust for 3D fields.
-              !!$                        rhoStratEdgeU = 0.5 * (rhoStratTFC(i, j, k) &
-              !!$                                        + rhoStratTFC(i, j, k + 1))
-              !!$                        pEdgeU = 0.5 * (pStratTFC(i, j, k) &
-              !!$                                 + pStratTFC(i, j, k + 1))
-              !!$                        rhoU = rhoTilde(i, j, k + 1, 3, 0) &
-              !!$                               + rhoStratEdgeU / pEdgeU
-              !!$                        rhoD = rhoTilde(i, j, k, 3, 1) &
-              !!$                               + rhoStratEdgeU / pEdgeU
-              !!$                    else
-              !!$                        ! background at half level
-              !!$                        !UAB reference density to be divided by P as well!
-              !!$                        rhoU = rhoTilde(i,j,k+1,3,0) &
-              !!$                               + rhoStratTilde(k)/PstratTilde(k)
-              !!$                        rhoD = rhoTilde(i,j,k  ,3,1)&
-              !!$                               + rhoStratTilde(k)/PstratTilde(k)
-              !!$                        !UAE
-              !!$                    end if
-              !!$                else
-              !!$                    rhoU = rhoTilde(i,j,k+1,3,0)
-              !!$                    rhoD = rhoTilde(i,j,k,3,1)
-              !!$                end if
-              !!$
               if(iVar .eq. inN) then
 
                 iceR = nIceTilde(i, j, k + 1, 3, 0)
@@ -7643,14 +6511,14 @@ module flux_module
               hIce = flux_muscl(wSurf, iceL, iceR)
 
             case("ILES")
-              print *, 'ice2Flux does not work with ILES'
+              print *, 'iceFlux does not work with ILES'
               stop
 
             case default
               stop "rhoFlux: unknown case fluxType"
             end select
 
-            flux%ICE2(i, j, k, 3, iVar) = hIce
+            flux%ICE(i, j, k, 3, iVar) = hIce
 
           end do
         end do
@@ -7658,6 +6526,6 @@ module flux_module
 
     end do ! ii
 
-  end subroutine ice2Flux
+  end subroutine iceFlux
 
 end module flux_module

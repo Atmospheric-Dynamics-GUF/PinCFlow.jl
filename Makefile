@@ -11,9 +11,10 @@ ifeq ($(COMPILER), ifort)
   FCFLAGS=-O3 -real-size 64 -traceback -unroll=4 -ip
   MODULEFLAG=-module $(BUILD)
 else # GNU
-  # FCFLAGS=-O0 -g -fallow-argument-mismatch -fcheck=all -Wall -Wno-unused-variable -fdefault-real-8 -fbacktrace -funroll-loops -Wno-unused-dummy-argument -Wno-conversion-extra
-  FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch -w -fmax-errors=1
+  #FCFLAGS=-O0 -g -fallow-argument-mismatch -fcheck=all -Wall -Wno-unused-variable -fdefault-real-8 -fbacktrace -funroll-loops -Wno-unused-dummy-argument -Wno-conversion-extra
+  FCFLAGS=-O3 -fdefault-real-8 -fbacktrace -funroll-loops -fallow-argument-mismatch -w
   MODULEFLAG= -J$(BUILD)
+  NCFLAG=`nf-config --fflags --flibs`
 endif
 
 # Define directories for sources and binaries.
@@ -37,25 +38,24 @@ OFILES =	types.o \
 	bicgstab_tools.o \
 	poisson.o \
 	update.o \
-	output.o \
 	finish.o \
 	pinc.o \
-	ice.o \
 	sizeof.o \
 	tracer.o \
-	ice2.o \
-	ice2_sub.o
+	ice.o \
+	ice_sub.o \
+	output_netcdf.o
 
 # Add build directory as prefix to path of *.o files.
 OBJ=$(addprefix $(BUILD)/, $(OFILES))
 
 # Set general rules.
 $(BUILD)/%.o: $(SOURCE)/%.f90
-	$(FC) $(FCFLAGS) $(MODULEFLAG) -c $< -o $@
+	$(FC) $(FCFLAGS) $(MODULEFLAG) -c $< -o $@  $(NCFLAG)
 
 # Set the main target.
 pinc:$(OBJ)
-	$(FC) $(FCFLAGS) -o $(BIN)/pinc $(OBJ)
+	$(FC) $(FCFLAGS) -o $(BIN)/pinc $(OBJ) $(NCFLAG)
 
 # List dependencies.
 
@@ -67,7 +67,6 @@ $(BUILD)/pinc.o: $(BUILD)/timeScheme.o
 $(BUILD)/pinc.o: $(BUILD)/init.o
 $(BUILD)/pinc.o: $(BUILD)/debug.o
 $(BUILD)/pinc.o: $(BUILD)/wkb.o
-$(BUILD)/pinc.o: $(BUILD)/output.o
 $(BUILD)/pinc.o: $(BUILD)/xweno.o
 $(BUILD)/pinc.o: $(BUILD)/atmosphere.o
 $(BUILD)/pinc.o: $(BUILD)/boundary.o
@@ -76,7 +75,8 @@ $(BUILD)/pinc.o: $(BUILD)/update.o
 $(BUILD)/pinc.o: $(BUILD)/poisson.o
 $(BUILD)/pinc.o: $(BUILD)/finish.o
 $(BUILD)/pinc.o: $(BUILD)/tracer.o
-$(BUILD)/pinc.o: $(BUILD)/ice2.o
+$(BUILD)/pinc.o: $(BUILD)/ice.o
+$(BUILD)/pinc.o: $(BUILD)/output_netcdf.o
 
 # fluxes.f90
 $(BUILD)/fluxes.o: $(BUILD)/types.o
@@ -84,7 +84,6 @@ $(BUILD)/fluxes.o: $(BUILD)/xweno.o
 $(BUILD)/fluxes.o: $(BUILD)/muscl.o
 $(BUILD)/fluxes.o: $(BUILD)/atmosphere.o
 $(BUILD)/fluxes.o: $(BUILD)/algebra.o
-$(BUILD)/fluxes.o: $(BUILD)/ice.o
 $(BUILD)/fluxes.o: $(BUILD)/sizeof.o
 
 # xweno.f90
@@ -99,7 +98,6 @@ $(BUILD)/debug.o: $(BUILD)/atmosphere.o
 $(BUILD)/poisson.o: $(BUILD)/types.o
 $(BUILD)/poisson.o: $(BUILD)/mpi.o
 $(BUILD)/poisson.o: $(BUILD)/bicgstab_tools.o
-$(BUILD)/poisson.o: $(BUILD)/output.o
 $(BUILD)/poisson.o: $(BUILD)/sizeof.o
 
 # wkb.f90
@@ -121,14 +119,14 @@ $(BUILD)/atmosphere.o: $(BUILD)/sizeof.o
 
 # init.f90
 $(BUILD)/init.o: $(BUILD)/types.o
-$(BUILD)/init.o: $(BUILD)/ice.o
 $(BUILD)/init.o: $(BUILD)/atmosphere.o
 $(BUILD)/init.o: $(BUILD)/mpi.o
 $(BUILD)/init.o: $(BUILD)/boundary.o
 $(BUILD)/init.o: $(BUILD)/sizeof.o
 $(BUILD)/init.o: $(BUILD)/tracer.o
-$(BUILD)/init.o: $(BUILD)/ice2.o
-$(BUILD)/init.o: $(BUILD)/ice2_sub.o
+$(BUILD)/init.o: $(BUILD)/ice.o
+$(BUILD)/init.o: $(BUILD)/ice_sub.o
+$(BUILD)/init.o: $(BUILD)/output_netcdf.o
 
 # muscl.f90
 $(BUILD)/muscl.o: $(BUILD)/types.o
@@ -141,10 +139,10 @@ $(BUILD)/update.o: $(BUILD)/types.o
 $(BUILD)/update.o: $(BUILD)/poisson.o
 $(BUILD)/update.o: $(BUILD)/boundary.o
 
-# output.f90
-$(BUILD)/output.o: $(BUILD)/types.o
-$(BUILD)/output.o: $(BUILD)/sizeof.o
-$(BUILD)/output.o: $(BUILD)/ice2_sub.o
+# output_netcdf.f90
+$(BUILD)/output_netcdf.o: $(BUILD)/types.o
+$(BUILD)/output_netcdf.o: $(BUILD)/sizeof.o
+$(BUILD)/output_netcdf.o: $(BUILD)/atmosphere.o
 
 # finish.f90
 $(BUILD)/finish.o: $(BUILD)/types.o
@@ -152,11 +150,7 @@ $(BUILD)/finish.o: $(BUILD)/types.o
 # ice.f90
 $(BUILD)/ice.o: $(BUILD)/types.o
 $(BUILD)/ice.o: $(BUILD)/atmosphere.o
-
-# ice2.f90
-$(BUILD)/ice2.o: $(BUILD)/types.o
-$(BUILD)/ice2.o: $(BUILD)/atmosphere.o
-$(BUILD)/ice2.o: $(BUILD)/update.o
+$(BUILD)/ice.o: $(BUILD)/update.o
 
 # cleaning
 TEMP = $(BUILD)/*.o $(BUILD)/*.mod $(BIN)/pinc

@@ -1,155 +1,74 @@
 import subprocess
-import numpy
-import matplotlib.pyplot as pyplot
-import tools
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.ndimage import gaussian_filter
+import netCDF4 as nc
 import style
+
+# Set script parameter.
+make_animation = False
 
 # Get host and user name.
 host_name = subprocess.getoutput("hostname")
 user_name = subprocess.getoutput("whoami")
 
 if "levante" in host_name:
-  # Levante cluster
-  data_path = "/scratch/b/" + user_name + "/PF/runs"
-  reference_path = "/scratch/b/" + user_name + "/PF/pinc/reference"
+	 # Levante cluster
+	data_path = "/scratch/b/" + user_name + "/PF/runs"
+	reference_path = "/scratch/b/" + user_name + "/PF/pinc/reference"
 
 elif "login" in host_name:
-  # Goethe cluster
-  data_path = "/scratch/atmodynamics/" + user_name + "/PF/runs"
-  reference_path = "/scratch/atmodynamics/" + user_name + "/PF/pinc/reference"
+	 # Goethe cluster
+	data_path = "/scratch/atmodynamics/" + user_name + "/PF/runs"
+	reference_path = "/scratch/atmodynamics/" + user_name + "/PF/pinc/reference"
 
 else:
-  # Local machine
-  data_path = ".."
-  reference_path = data_path
+	 # Local machine
+    data_path = ".."
+    reference_path = ".."
 
 print("data_path =", data_path)
 print("reference_path =", reference_path)
 
 # Import data.
-data = tools.ModelOutput(data_path + "/wavePacket3D/")
-reference = tools.ModelOutput(reference_path + "/wavePacket3D/")
+data = nc.Dataset(data_path + '/pincflow_data.nc')
+reference = nc.Dataset(reference_path + '/pincflow_data.nc')
 
-# Adust coordinate unit.
-data.xx = 0.001 * data.xx
-data.zz = 0.001 * data.zz
 
-# Set plot parameters.
-plot_all = False
-it = 1
+it = -1 
 
 # Print time.
-print(" ".join(("Time:", str(data.tt[it]), "s")))
+print(" ".join(("Time:", str(data.variables['time'][it]), "s")))
 
-# Compute difference.
-deltapsi = {key: data.psi[key] - reference.psi[key] for key in data.psi}
+# Set variables
+x = data.variables['x'][:] * 0.001
+z = data.variables['z'][:] * 0.001
+xx, zz = np.meshgrid(x, z)
+rhop = data.groups['atmvar'].variables['rhop'][-1, :, 0, :]
+rhopref = reference.groups['atmvar'].variables['rhop'][-1, :, 0, :]
 
-# Make plot.
-if plot_all:
-  umax = numpy.max(numpy.absolute(data.psi["u"][it, :, 0]))
-  vmax = numpy.max(numpy.absolute(data.psi["v"][it, :, 0]))
-  wmax = numpy.max(numpy.absolute(data.psi["w"][it, :, 0]))
-  rhopmax = numpy.max(numpy.absolute(data.psi["rho"][it, :, 0]))
-  pipmax = numpy.max(numpy.absolute(data.psi["pi"][it, :, 0]))
-  figure, axes = pyplot.subplots(2, 3, figsize = (8.0, 6.0))
-  zonal_wind = axes[0, 0].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-      data.psi["u"][it, :, 0], vmin = - umax, vmax = umax, \
-      shading = "gouraud", cmap = "seismic")
-  meridional_wind = axes[0, 1].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-      data.psi["v"][it, :, 0], vmin = - vmax, vmax = vmax, \
-      shading = "gouraud", cmap = "seismic")
-  vertical_wind = axes[0, 2].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-      data.psi["w"][it, :, 0], vmin = - wmax, vmax = wmax, \
-      shading = "gouraud", cmap = "seismic")
-  density = axes[1, 0].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-      data.psi["rho"][it, :, 0], vmin = - rhopmax, vmax = rhopmax, \
-      shading = "gouraud", cmap = "seismic")
-  exner_pressure = axes[1, 1].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-      data.psi["pi"][it, :, 0], vmin = - pipmax, vmax = pipmax, \
-      shading = "gouraud", cmap = "seismic")
-  potential_temperature = axes[1, 2].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-      data.psi["theta"][it, :, 0], shading = "gouraud", cmap = "plasma")
-  axes[0, 0].set_title("Zonal wind")
-  axes[0, 1].set_title("Meridional wind")
-  axes[0, 2].set_title("Vertical wind")
-  axes[1, 0].set_title("Density")
-  axes[1, 1].set_title("Exner pressure")
-  axes[1, 2].set_title("Potential temperature")
-  figure.colorbar(zonal_wind, ax = axes[0, 0])
-  figure.colorbar(meridional_wind, ax = axes[0, 1])
-  figure.colorbar(vertical_wind, ax = axes[0, 2])
-  figure.colorbar(density, ax = axes[1, 0])
-  figure.colorbar(exner_pressure, ax = axes[1, 1])
-  figure.colorbar(potential_temperature, ax = axes[1, 2])
-  for nn in range(6):
-    axes.flat[nn].set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
-    axes.flat[nn].set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
-else:
-  rhopmax = numpy.max(numpy.absolute(data.psi["rho"][it, :, 0]))
-  figure, axes = pyplot.subplots()
-  plot = axes.pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-      data.psi["rho"][it, :, 0], vmin = - rhopmax, vmax = rhopmax, \
-      shading = "gouraud", cmap = "seismic")
-  axes.set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
-  axes.set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
-  figure.colorbar(plot, label = r"$\rho' \," \
+deltarho = rhop - rhopref 
+
+rhopmax = np.max(np.abs(rhop))
+deltamax = np.max(np.abs(deltarho))
+
+fig, axes = plt.subplots()
+plot = axes.pcolormesh(xx, zz, rhop, vmin = -rhopmax, vmax = rhopmax, 
+					   shading = 'gouraud', cmap = 'seismic')
+axes.set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
+axes.set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
+fig.colorbar(plot, label = r"$\rho' \," \
       r"\mathrm{\left[kg \, m^{- 3}\right]}$")
-figure.savefig("".join((data_path, "/results/wavePacket3D.pdf")))
-figure.savefig("".join((data_path, "/results/wavePacket3D.png")), dpi = 500)
+fig.savefig("".join((data_path, "/results/wavePacket3D.pdf")))
+fig.savefig("".join((data_path, "/results/wavePacket3D.png")), dpi = 500)
 
-# Make difference plot.
 if data_path != reference_path:
-  if plot_all:
-    umax = numpy.max(numpy.absolute(deltapsi["u"][it, :, 0]))
-    vmax = numpy.max(numpy.absolute(deltapsi["v"][it, :, 0]))
-    wmax = numpy.max(numpy.absolute(deltapsi["w"][it, :, 0]))
-    rhopmax = numpy.max(numpy.absolute(deltapsi["rho"][it, :, 0]))
-    pipmax = numpy.max(numpy.absolute(deltapsi["pi"][it, :, 0]))
-    thetamax = numpy.max(numpy.absolute(deltapsi["theta"][it, :, 0]))
-    figure, axes = pyplot.subplots(2, 3, figsize = (8.0, 6.0))
-    zonal_wind = axes[0, 0].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-        deltapsi["u"][it, :, 0], vmin = - umax, vmax = umax, shading \
-        = "gouraud", cmap = "seismic")
-    meridional_wind = axes[0, 1].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-        deltapsi["v"][it, :, 0], vmin = - vmax, vmax = vmax, shading \
-        = "gouraud", cmap = "seismic")
-    vertical_wind = axes[0, 2].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-        deltapsi["w"][it, :, 0], vmin = - wmax, vmax = wmax, shading \
-        = "gouraud", cmap = "seismic")
-    density = axes[1, 0].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-        deltapsi["rho"][it, :, 0], vmin = - rhopmax, vmax = rhopmax, shading = "gouraud", \
-        cmap = "seismic")
-    exner_pressure = axes[1, 1].pcolormesh(data.xx[:, 0], data.zz[:, 0], \
-        deltapsi["pi"][it, :, 0], vmin = - pipmax, vmax = pipmax, shading \
-        = "gouraud", cmap = "seismic")
-    potential_temperature = axes[1, 2].pcolormesh(data.xx[:, 0], data.zz[:, \
-        0], deltapsi["theta"][it, :, 0], vmin = - thetamax, vmax = thetamax, shading \
-        = "gouraud", cmap = "seismic")
-    axes[0, 0].set_title("Zonal wind")
-    axes[0, 1].set_title("Meridional wind")
-    axes[0, 2].set_title("Vertical wind")
-    axes[1, 0].set_title("Density")
-    axes[1, 1].set_title("Exner pressure")
-    axes[1, 2].set_title("Potential temperature")
-    figure.colorbar(zonal_wind, ax = axes[0, 0])
-    figure.colorbar(meridional_wind, ax = axes[0, 1])
-    figure.colorbar(vertical_wind, ax = axes[0, 2])
-    figure.colorbar(density, ax = axes[1, 0])
-    figure.colorbar(exner_pressure, ax = axes[1, 1])
-    figure.colorbar(potential_temperature, ax = axes[1, 2])
-    for nn in range(6):
-      axes.flat[nn].set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
-      axes.flat[nn].set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
-  else:
-    rhopmax = numpy.max(numpy.absolute(deltapsi["rho"][it, :, 0]))
-    figure, axes = pyplot.subplots()
-    plot = axes.pcolormesh(data.xx[:, 0], data.zz[:, 0], deltapsi["rho"][it, :, \
-        0], vmin = - rhopmax, vmax = rhopmax, shading = "gouraud", cmap \
-        = "seismic")
-    axes.set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
-    axes.set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
-    figure.colorbar(plot, label = r"$\Delta \rho' \," \
-        r"\mathrm{\left[kg \, m^{- 3}\right]}$")
-  figure.savefig("".join((data_path, "/results/wavePacket3D_difference.pdf")))
-  figure.savefig("".join((data_path, "/results/wavePacket3D_difference.png")), \
-      dpi = 500)
+	fig, axes = plt.subplots()
+	plot = axes.pcolormesh(xx, zz, deltarho, vmin = -deltamax, vmax = deltamax, 
+						shading = 'gouraud', cmap = 'seismic')
+	axes.set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
+	axes.set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
+	fig.colorbar(plot, label = r"$\rho' \," \
+		r"\mathrm{\left[kg \, m^{- 3}\right]}$")
+	fig.savefig("".join((data_path, "/results/wavePacket3D_difference.pdf")))
+	fig.savefig("".join((data_path, "/results/wavePacket3D_difference.png")), dpi = 500)

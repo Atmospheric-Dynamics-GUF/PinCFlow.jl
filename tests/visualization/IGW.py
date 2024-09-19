@@ -1,91 +1,72 @@
 import subprocess
-import numpy
-import matplotlib.pyplot as pyplot
-import tools
+import numpy as np
+import matplotlib.pyplot as plt
+import netCDF4 as nc
 import style
+
+# Set script parameter.
+make_animation = False
 
 # Get host and user name.
 host_name = subprocess.getoutput("hostname")
 user_name = subprocess.getoutput("whoami")
 
 if "levante" in host_name:
-  # Levante cluster
+   # Levante cluster
   data_path = "/scratch/b/" + user_name + "/PF/runs"
   reference_path = "/scratch/b/" + user_name + "/PF/pinc/reference"
 
 elif "login" in host_name:
-  # Goethe cluster
+   # Goethe cluster
   data_path = "/scratch/atmodynamics/" + user_name + "/PF/runs"
   reference_path = "/scratch/atmodynamics/" + user_name + "/PF/pinc/reference"
 
 else:
-  # Local machine
-  data_path = ".."
-  reference_path = data_path
+   # Local machine
+    data_path = ".."
+    reference_path = ".."
 
 print("data_path =", data_path)
 print("reference_path =", reference_path)
 
 # Import data.
-data = tools.ModelOutput(data_path + "/IGW/")
-reference = tools.ModelOutput(reference_path + "/IGW/")
+data = nc.Dataset(data_path + '/pincflow_data.nc')
+reference = nc.Dataset(reference_path + '/pincflow_data.nc')
 
 # Set plot parameters.
-choice = "xz"
-it = 1
-ix = 32
-iy = 0
-iz = 14
+it = - 1
 
 # Print time.
-print(" ".join(("Time:", str(data.tt[it]), "s")))
+print(" ".join(("Time:", str(data.variables['time'][it]), "s")))
 
 # Set fields of interest.
-if choice == "xy":
-  theta = data.psi["theta"][it, iz]
-  thetaref = reference.psi["theta"][it, iz]
-  xx = 0.001 * data.xx[iz]
-  yy = 0.001 * data.yy[iz]
-  xlabel = r"$x \, \mathrm{\left[km\right]}$"
-  ylabel = r"$y \, \mathrm{\left[km\right]}$"
-elif choice == "xz":
-  theta = data.psi["theta"][it, :, iy]
-  thetaref = reference.psi["theta"][it, :, iy]
-  xx = 0.001 * data.xx[:, iy]
-  yy = 0.001 * data.zz[:, iy]
-  xlabel = r"$x \, \mathrm{\left[km\right]}$"
-  ylabel = r"$z \, \mathrm{\left[km\right]}$"
-elif choice == "yz":
-  theta = data.psi["theta"][it, ..., ix]
-  thetaref = reference.psi["theta"][it, ..., ix]
-  xx = 0.001 * data.yy[..., ix]
-  yy = 0.001 * data.zz[..., ix]
-  xlabel = r"$y \, \mathrm{\left[km\right]}$"
-  ylabel = r"$z \, \mathrm{\left[km\right]}$"
-
-# Compute difference.
+xx = data.variables['x'][:] * 0.001
+zz = data.variables['z'][:] * 0.001
+theta = data.groups['atmvar'].variables['thetap'][it, :, 0, :]
+thetaref = reference.groups['atmvar'].variables['thetap'][it, :, 0, :]
 deltatheta = theta - thetaref
+xlabel = r"$x \, \mathrm{\left[km\right]}$"
+ylabel = r"$z \, \mathrm{\left[km\right]}$"
 
 # Make plot.
-maximum = numpy.max(numpy.abs(theta))
-figure, axes = pyplot.subplots()
-plot = axes.pcolormesh(xx, yy, theta, vmin = - maximum, vmax = maximum, \
-    shading = "gouraud", cmap = "seismic")
+maximum = np.max(np.abs(theta))
+fig, axes = plt.subplots()
+plot = axes.pcolormesh(xx, zz, theta, vmin = - maximum, vmax = maximum, \
+    shading = 'gouraud', cmap = 'seismic')
 axes.set_xlabel(xlabel)
 axes.set_ylabel(ylabel)
-figure.colorbar(plot, label = r"$\theta' \, \mathrm{\left[K\right]}$")
-figure.savefig("".join((data_path, "/results/IGW.pdf")))
-figure.savefig("".join((data_path, "/results/IGW.png")), dpi = 500)
+fig.colorbar(plot, label = r"$\theta' \, \mathrm{\left[K\right]}$")
+fig.savefig("".join((data_path, "/results/IGW.pdf")))
+fig.savefig("".join((data_path, "/results/IGW.png")), dpi = 500)
 
 # Make difference plot.
 if data_path != reference_path:
-  maximum = numpy.max(numpy.abs(deltatheta))
-  figure, axes = pyplot.subplots()
-  plot = axes.pcolormesh(xx, yy, deltatheta, vmin = - maximum, vmax \
-      = maximum, shading = "gouraud", cmap = "seismic")
+  maximum = np.max(np.abs(deltatheta))
+  fig, axes = plt.subplots()
+  plot = axes.pcolormesh(xx, zz, deltatheta, vmin = - maximum, vmax = maximum, \
+      shading = 'gouraud', cmap = 'seismic')
   axes.set_xlabel(xlabel)
   axes.set_ylabel(ylabel)
-  figure.colorbar(plot, label = r"$\Delta \theta' \," \
-      r"\mathrm{\left[K\right]}$")
-  figure.savefig("".join((data_path, "/results/IGW_difference.pdf")))
-  figure.savefig("".join((data_path, "/results/IGW_difference.png")), dpi = 500)
+  fig.colorbar(plot, label = r"$\theta' \, \mathrm{\left[K\right]}$")
+  fig.savefig("".join((data_path, "/results/IGW_difference.pdf")))
+  fig.savefig("".join((data_path, "/results/IGW_difference.png")), dpi = 500)
