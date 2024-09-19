@@ -12,6 +12,7 @@ module mpi_module
 
   use type_module
   use flux_module
+  use mpi
 
   implicit none
 
@@ -79,23 +80,10 @@ module mpi_module
         call setHalosOfField(var%P)
       end if
 
-      ! Set halos of ice variables.
-      if(include_ice .and. updateIce) then
-        do iVar = 1, 4
-          call setHalosOfField(var%ICE(:, :, :, iVar))
-        end do
-      end if
-
     case("ice")
 
-      do iVar = 1, 4
-        call setHalosOfField(var%ICE(:, :, :, iVar))
-      end do
-
-    case("ice2")
-
       do iVar = 1, nVarIce
-        call setHalosOfField(var%ICE2(:, :, :, iVar))
+        call setHalosOfField(var%ICE(:, :, :, iVar))
       end do
 
     case("tracer")
@@ -272,7 +260,7 @@ module mpi_module
     ! in/out vars
     logical, intent(out) :: error_flag
 
-    include 'mpif.h'
+    !include 'mpif.h'
 
     error_flag = .false.
     verboseMPI = .false.

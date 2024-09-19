@@ -39,8 +39,12 @@ endif()
 find_package(MPI)
 include_directories(${MPI_Fortran_INCLUDE_PATH})
 
+# Add netCDF
+find_package(netCDF-Fortran HINTS /home/atmodynamics/knop/netcdf_folder/netcdf-fortran-4.6.1/)
+include_directories(${NETCDF_F90_INCLUDE_DIRS})
+
 # Compile executable.
-add_executable(pinc
+add_library(pincModule
         ../src/types.f90
         ../src/sizeof.f90
         ../src/mpi.f90
@@ -57,17 +61,19 @@ add_executable(pinc
         ../src/bicgstab_tools.f90
         ../src/poisson.f90
         ../src/update.f90
-        ../src/output.f90
+        ../src/output_netcdf.f90
         ../src/finish.f90
         ../src/ice.f90
         ../src/ice2.f90
         ../src/ice2_sub.f90
         ../src/tracer.f90
-        ../src/pinc.f90
         )
 
-# Link MPI and Hypre from system libraries.
-target_link_libraries(pinc ${MPI_Fortran_LIBRARIES})
+target_link_libraries(pincModule ${NETCDF_FORTRAN_LIBRARIES})
+
+add_executable(pinc ../src/pinc.f90)
+
+target_link_libraries(pinc pincModule ${NETCDF_FORTRAN_LIBRARIES} ${MPI_Fortran_LIBRARIES})
 
 # Inform about debug options.
 message("[INFO] Compiler ID is " ${CMAKE_Fortran_COMPILER_ID})

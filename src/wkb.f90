@@ -8,7 +8,8 @@ module wkb_module
   use timeScheme_module
   use atmosphere_module
   use muscl_module
-  use ice2_module, ONLY:Psat_ice
+  use ice_module, ONLY:Psat_ice
+  use mpi
 
   implicit none
 
@@ -24,6 +25,7 @@ module wkb_module
   public :: merge_rayvol
   public :: boundary_rayvol
   public :: calc_meanFlow_effect
+  public :: calc_tracerforce
 
   public :: saturation_3D
 
@@ -48,13 +50,20 @@ module wkb_module
   public :: setboundary_frc_y_periodic_wkb
   public :: setboundary_frc_z_periodic_wkb
   public :: setboundary_frc_z_solidwall_wkb
+  public :: setBoundary_waveAmp
 
-  ! FJFeb2023
+  public :: setboundary_wkb_cmplx
+  public :: setboundary_hor_wkb_cmplx
+  public :: setboundary_vrt_wkb_cmplx
+  public :: setboundary_x_periodic_wkb_cmplx
+  public :: setboundary_y_periodic_wkb_cmplx
+  public :: setboundary_z_periodic_wkb_cmplx
+  public :: setboundary_z_solidwall_wkb_cmplx
+
   public :: orographic_source
   public :: setup_topography_wkb
   public :: update_topography_wkb
 
-  !SD
   public :: calc_ice
 
   !------------------------------
@@ -83,25 +92,589 @@ module wkb_module
 
   logical, parameter :: debugging = .false.
 
-  ! FJApr2023
   real, dimension(:, :, :), allocatable :: k_spectrum, l_spectrum, &
       &topography_spectrum, final_topography_spectrum
 
-  ! FJMar2023
-  ! real, dimension(:, :), allocatable :: reduction
-
-  ! FJAug2023
-  ! real, dimension(:, :), allocatable :: hidden_weights, output_weights
-
-  ! FJApr2023
   real, dimension(:, :, :), allocatable :: zTFC, zTildeTFC
 
   contains
 
   !-----------------------------------------------------------------------
+  subroutine calc_tracerforce(ray, var, ray_var3D, tracerforce, &
+    waveAmplitudes, dt)
 
-  subroutine calc_meanFlow_effect(ray, var, force, ray_var3D, dt, &
-      &diffusioncoeff, tracerfluxvar, tracerforce, lowamp, nowamp, rhsamp)
+    ! calculate the GW tracer fluxes
+
+    implicit none
+
+    ! in/out variables
+    type(var_type), intent(in) :: var
+
+    type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
+        intent(in) :: ray
+
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:13), intent(in) :: &
+      ray_var3D
+
+    real, intent(in) :: dt
+
+    type(tracerForceType), dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
+      intent(inout) :: tracerforce
+
+    ! leading-order and next-order wave amplitudes lowamp and nowamp, resp.
+    ! rhs to calculate nowamp in rhsamp 
+    type(waveAmpType), dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
+      intent(inout) :: waveAmplitudes
+    
+    ! leading-order fluxes
+    complex, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1) :: louchi, lovchi, lowchi
+    real :: rho 
+
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1) :: Kd
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1) :: chiLS
+
+    complex, dimension(5) :: rhsvector 
+    complex, dimension(5) :: novector 
+
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz) :: waveactiondensity
+
+    ! tracer fluxes
+    real, allocatable :: var_utracer(:, :, :) ! zonal
+    real, allocatable :: var_vtracer(:, :, :) ! meridional
+    real, allocatable :: var_wtracer(:, :, :) ! vertical
+
+
+    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1) :: tmparray
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz) :: tmparrayL
+    complex, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1) :: tmparray_cmplx
+
+    integer :: ix, jy, kz, im
+    real :: dxi, dyi, dzi
+    integer :: ixmin, ixmax
+    integer :: jymin, jymax
+    integer :: kzmin, kzmax
+    integer :: ixr, jyr, kzr
+    integer :: ix0, jy0
+
+    real :: rhotot
+
+    real :: wnrk
+    real :: wnrl
+    real :: wnrm
+    real :: wnrh
+    real :: dwnrk, dwnrl, dwnrm
+    real :: f_cor_nd
+
+    real :: cgirx, cgiry, cgirz
+    real :: omir
+
+    real :: xr, yr, zr
+    real :: dxr, dyr, dzr
+
+    real :: fcpspx, fcpspy, fcpspz
+    real :: wadr
+    real :: omegaMax, kMax, lMax, mMax
+    real :: phi
+
+    real :: NNR
+
+    real :: tracerfluxcoeff, dchidx, dchidy, dchidz, rhotracerp, rhotracerm, &
+        dutracer, dvtracer, rhotracern
+
+    real :: ff, kk, ll, mm, omega, kh 
+    real, dimension(3) :: cgroup ! x-, y-, z-component of group velocity
+    complex :: uhattilde, vhattilde, whattilde, pihattilde
+
+    ! allocate tracer fluxes
+    allocate(var_utracer(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
+    allocate(var_vtracer(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
+    allocate(var_wtracer(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
+
+    var_utracer = 0. 
+    var_vtracer = 0.
+    var_wtracer = 0.
+
+    if (topography) then 
+      stop "wkb with TCF and tracer not implemented yet"
+    end if
+
+    ! declare wavepacket variables (monochromatic WP)
+    ff = f_Coriolis_dim * tRef ! non dimensional Coriolis param.
+    f_cor_nd = f_Coriolis_dim * tRef 
+    if (wlrx_init == 0.) then 
+      kk = 0. 
+    else
+      kk = 2. * pi / (wlrx_init / lRef)
+    end if
+    if (wlry_init == 0.) then
+      ll = 0.
+    else
+      ll = 2. * pi / (wlry_init / lRef)
+    end if
+    mm = 2. * pi / (wlrz_init / lRef)
+    kh = sqrt(kk ** 2. + ll ** 2.)
+    omega =  branchr * sqrt((NN**2. * kh ** 2. + &
+    ff**2. * mm**2.) / (kh **2. + mm**2.))
+    cgroup(1) = NN ** 2. * kk * mm ** 2. / omega &
+      / (kh ** 2. + mm ** 2.) ** 2.
+    cgroup(2) = NN ** 2. * ll * mm ** 2. / omega &
+    / (kh ** 2. + mm ** 2.) ** 2.
+    cgroup(3) = - NN ** 2. * kh ** 2. * mm / omega &
+    / (kh ** 2. + mm ** 2.) ** 2.
+
+    ! currently only for no rotation
+    uhattilde = cmplx(0., (omega ** 2. - NN ** 2.) &
+      / (mm * NN ** 2. * omega ** 2.) * kk * omega)
+    vhattilde = cmplx(0., (omega ** 2. - NN ** 2.) &
+      / (mm * NN ** 2. * omega ** 2.) * ll * omega)
+    whattilde = cmplx(0., omega / NN ** 2.)
+    pihattilde = cmplx(0., (omega ** 2. - NN ** 2.) &
+      / (mm * NN ** 2.))
+
+    waveactiondensity = 0.
+
+    chiLS = var%chi(0:nx+1, 0:ny+1, 0:nz+1)
+
+    omegaMax = 0.
+    kMax = 0.
+    lMax = 0.
+    mMax = 0.
+
+    do kzrv = 0, nz + 1
+      do jyrv = 0, ny + 1
+        ! loop including ghost cells in order to get all fluxes
+        ! affecting a cell
+        ! (assuming that ray volumes are not wider in y than dy)
+
+        do ixrv = 0, nx + 1
+          ! loop including ghost cells in order to get all fluxes
+          ! affecting a cell
+          ! (assuming that ray volumes are not wider in x than dx)
+
+          if(nRay(ixrv, jyrv, kzrv) < 1) cycle
+
+          do iRay = 1, nRay(ixrv, jyrv, kzrv)
+            ! skip counting ray volumes with zero wave-action density
+
+            if(ray(iRay, ixrv, jyrv, kzrv)%dens == 0.0) cycle
+
+            xr = ray(iRay, ixrv, jyrv, kzrv)%x
+            yr = ray(iRay, ixrv, jyrv, kzrv)%y
+            zr = ray(iRay, ixrv, jyrv, kzrv)%z
+
+            dxr = ray(iRay, ixrv, jyrv, kzrv)%dxray
+            dyr = ray(iRay, ixrv, jyrv, kzrv)%dyray
+            dzr = ray(iRay, ixrv, jyrv, kzrv)%dzray
+
+            ! vertical boundary conditions:
+            ! zBoundary = 'periodic': implement periodicity
+            ! zBoundary = 'solid_wall': skip counting ray volumes
+            !                           that have completely left the
+            !                           model domain
+
+            ! FJApr2023
+            if((.not. topography .and. zr < lz(0)) .or. (topography .and. zr &
+                < topography_surface(ixrv, jyrv))) then
+              select case(zBoundary)
+              case("periodic")
+                zr = lz(1) + mod(zr - lz(0), lz(1) - lz(0))
+              case("solid_wall")
+                if((.not. topography .and. zr + 0.5 * dzr < lz(0)) .or. &
+                    (topography .and. zr + 0.5 * dzr &
+                    < topography_surface(ixrv, jyrv))) cycle
+              case default
+                stop "calc_meanflow_effect: unknown case zBoundary"
+              end select
+            elseif(zr > lz(1)) then
+              select case(zBoundary)
+              case("periodic")
+                zr = lz(0) + mod(zr - lz(1), lz(1) - lz(0))
+              case("solid_wall")
+                if(zr - 0.5 * dzr > lz(1)) cycle
+              case default
+                stop "calc_meanflow_effect: unknown case zBoundary"
+              end select
+            end if
+
+            ! implement horizontal boundary conditions for ray-volume
+            ! positions
+
+            if(sizeX > 1) then
+              if(xBoundary /= "periodic") then
+                print *, 'ERROR in calc_meanflow_effect:  boundary conditions &
+                    in x must be periodic'
+                stop
+              end if
+
+              ! for leftmost cpu make sure that xr in
+              ! ghost cell to the left is between x(0) - dx
+              ! and x(0)
+
+              if(ixrv == 0 .and. is + nbx == 1) then
+                if(xr > lx(1) - dx .and. xr < lx(1)) then
+                  xr = xr - lx(1) + lx(0)
+                elseif(xr > lx(0) - dx .and. xr < lx(0)) then
+                  xr = xr
+                else
+                  print *, 'ERROR in calc_meanflow_effect:'
+                  print *, 'xr =', xr
+                  print *, 'but r.v. is in ghost cell to the  left of the &
+                      leftmost cpu so that  one should have either'
+                  print *, lx(1) - dx, '= lx(1) - dx < xr < lx(1) =', lx(1), ' &
+                      or'
+                  print *, lx(0) - dx, '= lx(0) - dx < xr < lx(0) =', lx(0)
+                  stop
+                end if
+              end if
+
+              ! for rightmost cpu make sure that xr in
+              ! ghost cell to the right is between x(0) + L_x
+              ! and x(0) + L_x + dx
+
+              if(ixrv == nx + 1 .and. is + nbx + nx == sizeX) then
+                if(xr > lx(0) .and. xr < lx(0) + dx) then
+                  xr = xr + lx(1) - lx(0)
+                elseif(xr > lx(1) .and. xr < lx(1) + dx) then
+                  xr = xr
+                else
+                  print *, 'ERROR in calc_meanflow_effect:'
+                  print *, 'xr =', xr
+                  print *, 'but r.v. is in ghost cell to the  right of the &
+                      rightmost cpu so that  one should have either'
+                  print *, lx(0), '= lx(0) < xr < lx(0) + dx =', lx(0) + dx, ' &
+                      or'
+                  print *, lx(1), '= lx(1) < xr < lx(1) + dx =', lx(1) + dx
+                  stop
+                end if
+              end if
+            end if
+
+            if(sizeY > 1) then
+              if(yBoundary /= "periodic") then
+                print *, 'ERROR in calc_meanflow_effect:  boundary conditions &
+                    in y must be periodic'
+                stop
+              end if
+
+              ! for first cpu in y direct. make sure that yr in
+              ! ghost cell in front is between y(0) - dy
+              ! and y(0)
+
+              if(jyrv == 0 .and. js + nby == 1) then
+                if(yr > ly(1) - dy .and. yr < ly(1)) then
+                  yr = yr - ly(1) + ly(0)
+                elseif(yr > ly(0) - dy .and. yr < ly(0)) then
+                  yr = yr
+                else
+                  print *, 'ERROR in calc_meanflow_effect:'
+                  print *, 'yr =', yr
+                  print *, 'but r.v. is in ghost cell in front of the first &
+                      cpu in y dir. so that  one should have either'
+                  print *, ly(1) - dy, '= ly(1) - dy < yr < ly(1) =', ly(1), ' &
+                      or'
+                  print *, ly(0) - dy, '= ly(0) - dy < yr < ly(0) =', ly(0)
+                  stop
+                end if
+              end if
+
+              ! for last cpu in y direction make sure that yr
+              ! in ghost cell behind is between
+              ! y(0) + L_y and y(0) + L_y + dy
+
+              if(jyrv == ny + 1 .and. js + nby + ny == sizeY) then
+                if(yr > ly(0) .and. yr < ly(0) + dy) then
+                  yr = yr + ly(1) - ly(0)
+                elseif(yr > ly(1) .and. yr < ly(1) + dy) then
+                  yr = yr
+                else
+                  print *, 'ERROR in calc_meanflow_effect:'
+                  print *, 'yr =', yr
+                  print *, 'but r.v. is in ghost cell behind the last cpu in y &
+                      dir. so that  one should have either'
+                  print *, ly(0), '= ly(0) < yr < ly(0) + dy =', ly(0) + dy, ' &
+                      or'
+                  print *, ly(1), '= ly(1) < yr < ly(1) + dy =', ly(1) + dy
+                  stop
+                end if
+              end if
+            end if
+
+            wnrk = ray(iRay, ixrv, jyrv, kzrv)%k
+            wnrl = ray(iRay, ixrv, jyrv, kzrv)%l
+            wnrm = ray(iRay, ixrv, jyrv, kzrv)%m
+
+            dwnrk = ray(iRay, ixrv, jyrv, kzrv)%dkray
+            dwnrl = ray(iRay, ixrv, jyrv, kzrv)%dlray
+            dwnrm = ray(iRay, ixrv, jyrv, kzrv)%dmray
+
+            wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
+
+            if((.not. topography .and. zr < lz(0) - dz) .or. (topography .and. &
+                zr < topography_surface(ixrv, jyrv) - jac(ixrv, jyrv, 0) &
+                * dz)) then
+              print *, 'ERROR IN calc_meanflow_effect: RAY VOLUME', iRay, 'in &
+                  cell', ixrv, jyrv, kzrv, 'TOO LOW'
+              stop
+            end if
+
+            call stratification(zr, 1, NNr)
+
+            omir = branchr * sqrt(NNr * wnrh ** 2 + ff ** 2 * wnrm ** 2) &
+                / sqrt(wnrh ** 2 + wnrm ** 2)
+
+            if (abs(omir) > abs(omegaMax)) then 
+              omegaMax = omir
+              kMax = wnrk 
+              lMax = wnrl 
+              mMax = wnrm 
+            end if
+
+            cgirx = wnrk * (NNr - omir ** 2) / (omir * (wnrh ** 2 + wnrm ** 2))
+            cgiry = wnrl * (NNr - omir ** 2) / (omir * (wnrh ** 2 + wnrm ** 2))
+
+            cgirz = - wnrm * (omir ** 2 - ff ** 2) / (omir * (wnrh ** 2 &
+                + wnrm ** 2))
+
+            ! indices of range of cells touched by a ray volume
+
+            if(sizeX > 1) then
+              ! last x-index leftmost of cpu
+              ix0 = is + nbx - 1
+
+              ixmin = floor((xr - dxr * 0.5 - lx(0)) / dx) + 1 - ix0
+              ixmax = floor((xr + dxr * 0.5 - lx(0)) / dx) + 1 - ix0
+
+              if(ixmin > nx + 1) then
+                print *, 'ixmin =', ixmin, '> nx+1 = ', nx + 1
+                print *, 'ixrv = ', ixrv
+                print *, 'xr =', xr
+                print *, 'dxr =', dxr
+                print *, 'dx =', dx
+                print *, 'lx(0) =', lx(0)
+                print *, 'lx(1) =', lx(1)
+                print *, 'ix0 =', ix0
+                print *, 'floor((xr - dxr*0.5 - lx(0)) / dx) + 1 =', floor((xr &
+                    - dxr * 0.5 - lx(0)) / dx) + 1
+                stop
+              else
+                ! no fluxes calculated for the ghost cells
+                ! (that are taken care of by the boundary-condition
+                ! routines)
+
+                ixmin = max(ixmin, 1)
+              end if
+
+              if(ixmax < 0) then
+                print *, 'ixmax =', ixmax, '< 0'
+                stop
+              else
+                ! no fluxes calculated for the ghost cells
+                ! (that are taken care of by the boundary-condition
+                ! routines)
+
+                ixmax = min(ixmax, nx)
+              end if
+            else
+              ixmin = 1
+              ixmax = 1
+            end if
+
+            if(sizeY > 1) then
+              ! last y-index in front of cpu
+              jy0 = js + nby - 1
+
+              jymin = floor((yr - dyr * 0.5 - ly(0)) / dy) + 1 - jy0
+              jymax = floor((yr + dyr * 0.5 - ly(0)) / dy) + 1 - jy0
+
+              if(jymin > ny + 1) then
+                print *, 'jymin =', jymin, '> ny+1 = ', ny + 1
+                stop
+              else
+                ! no fluxes calculated for the ghost cells
+                ! (that are taken care of by the boundary-condition
+                ! routines)
+
+                jymin = max(jymin, 1)
+              end if
+
+              if(jymax < 0) then
+                print *, 'jymax =', jymax, '< 0'
+                stop
+              else
+                ! no fluxes calculated for the ghost cells
+                ! (that are taken care of by the boundary-condition
+                ! routines)
+
+                jymax = min(jymax, ny)
+              end if
+            else
+              jymin = 1
+              jymax = 1
+            end if
+
+            kzmin = max(1, floor((zr - dzr * 0.5 - lz(0)) / dz) + 1)
+            kzmax = min(nz, floor((zr + dzr * 0.5 - lz(0)) / dz) + 1)
+
+            ! calculate momentum-flux / energy / elastic-term
+            ! contribution from each ray volume
+
+            do kz = kzmin, kzmax
+              dzi = (min((zr + dzr * 0.5), lz(0) + kz * dz) - max((zr - dzr &
+                  * 0.5), lz(0) + (kz - 1) * dz))
+
+              fcpspz = dwnrm * dzi / dz
+
+              do jy = jymin, jymax
+                if(sizeY > 1) then
+                  dyi = (min((yr + dyr * 0.5), ly(0) + (jy + jy0) * dy) &
+                      - max((yr - dyr * 0.5), ly(0) + (jy + jy0 - 1) * dy))
+
+                  fcpspy = dwnrl * dyi / dy
+                else
+                  fcpspy = 1.0
+                end if
+
+                do ix = ixmin, ixmax
+                  if(sizeX > 1) then
+                    dxi = (min((xr + dxr * 0.5), lx(0) + (ix + ix0) * dx) &
+                        - max((xr - dxr * 0.5), lx(0) + (ix + ix0 - 1) * dx))
+
+                    fcpspx = dwnrk * dxi / dx
+                  else
+                    fcpspx = 1.0
+                  end if
+
+                  wadr = fcpspx * fcpspy * fcpspz * ray(iRay, ixrv, jyrv, &
+                      kzrv)%dens
+
+                  waveactiondensity(ix, jy, kz) = &
+                    waveactiondensity(ix, jy, kz) + wadr
+
+                  if(include_tracer) then
+                    ! leading order gravity wave tracer fluxes
+                    ! calculation of equations 2.91 - 2.93 in IK masters thesis
+                   
+                    if(f_cor_nd /= 0.0) then
+
+                      var_utracer(ix, jy, kz) = var_utracer(ix, jy, kz) &
+                         + leading_order_tracer_flux(f_cor_nd, omir, wnrk, &
+                         wnrl, wnrm, wadr, 'x', ix, jy, kz, var)
+                      var_vtracer(ix, jy, kz) = var_vtracer(ix, jy, kz) &
+                         + leading_order_tracer_flux(f_cor_nd, omir, wnrk, &
+                         wnrl, wnrm, wadr, 'y', ix, jy, kz, var)
+                      var_vtracer(ix, jy, kz) = var_vtracer(ix, jy, kz) &
+                         + leading_order_tracer_flux(f_cor_nd, omir, wnrk, &
+                         wnrl, wnrm, wadr, 'z', ix, jy, kz, var)
+
+                   end if ! f_cor_nd /= 0.0
+
+
+                  end if
+
+                end do
+              end do
+            end do
+          end do
+        end do
+      end do
+    end do
+
+    call setboundary_wkb(var_utracer)
+    call setboundary_wkb(var_vtracer)
+    call setboundary_wkb(var_wtracer)
+
+    if(lsmth_wkb) then
+      if(sizeY == 1) then
+        if(sizeX > 1) then
+          if(sm_filter == 1) then
+            call smooth_wkb_box(var_utracer, nsmth_wkb, 101)
+            call smooth_wkb_box(var_vtracer, nsmth_wkb, 101)
+            call smooth_wkb_box(var_wtracer, nsmth_wkb, 101)
+          elseif(sm_filter == 2) then
+            call smooth_wkb_shapiro(var_utracer, nsmth_wkb, 101)
+            call smooth_wkb_shapiro(var_vtracer, nsmth_wkb, 101)
+            call smooth_wkb_shapiro(var_wtracer, nsmth_wkb, 101)
+          else
+            stop 'WRONG sm_filter'
+          end if
+        else
+          stop 'SMOOTHING JUST IN Z NOT YET IMPLEMENTED'
+        endif
+      elseif(sizeX == 1) then
+        if(sm_filter == 1) then
+          call smooth_wkb_box(var_utracer, nsmth_wkb, 11)
+          call smooth_wkb_box(var_vtracer, nsmth_wkb, 11)
+          call smooth_wkb_box(var_wtracer, nsmth_wkb, 11)
+        elseif(sm_filter == 2) then
+          call smooth_wkb_shapiro(var_utracer, nsmth_wkb, 11)
+          call smooth_wkb_shapiro(var_vtracer, nsmth_wkb, 11)
+          call smooth_wkb_shapiro(var_wtracer, nsmth_wkb, 11)
+        else
+          stop 'WRONG sm_filter'
+        end if
+      elseif(sizeX > 1) then
+        if(sm_filter == 1) then
+          call smooth_wkb_box(var_utracer, nsmth_wkb, 111)
+          call smooth_wkb_box(var_vtracer, nsmth_wkb, 111)
+          call smooth_wkb_box(var_wtracer, nsmth_wkb, 111)
+        elseif(sm_filter == 2) then
+          call smooth_wkb_shapiro(var_utracer, nsmth_wkb, 111)
+          call smooth_wkb_shapiro(var_vtracer, nsmth_wkb, 111)
+          call smooth_wkb_shapiro(var_wtracer, nsmth_wkb, 111)
+        else
+          stop 'WRONG sm_filter'
+        end if
+      endif
+    endif
+
+    do kz = 1, nz
+      do jy = 1, ny
+        do ix = 1, nx
+          if(sizeX > 1) then
+
+            ! d<u'chi'>/dx (for tracer flux convergence)
+            dutracer = (var_utracer(ix + 1, jy, kz) &
+              - var_utracer(ix - 1, jy, kz)) / (2.0 * dx)
+          else
+            dutracer = 0.0
+          end if
+
+          if(sizeY > 1) then
+            ! d<v'chi'>/dy (for tracer flux convergence)
+            dvtracer = (var_vtracer(ix, jy + 1, kz) &
+                - var_vtracer(ix, jy - 1, kz)) / (2.0 * dy)
+          else
+          end if
+
+          ! tracer flux convergence (leading order gw tracer fluxes)
+          tracerforce(ix, jy, kz)%loforce%total = dutracer &
+              + dvtracer + (var_wtracer(ix, jy, kz + 1) &
+              - var_wtracer(ix, jy, kz - 1)) / (2.0 * dz)
+
+          ! save diffusive mixing
+          tracerforce(ix, jy, kz)%mixingGW%total = 0. 
+        end do
+      end do
+    end do
+
+    tracerforce%loforce%uflx = var_utracer
+    tracerforce%loforce%vflx = var_vtracer 
+    tracerforce%loforce%wflx = var_wtracer
+
+    tmparray = tracerforce(0:nx + 1, 0:ny + 1, 0:nz + 1)%loforce%total
+    call setboundary_frc_wkb(tmparray)
+    tracerforce(0:nx + 1, 0:ny + 1, 0:nz + 1)%loforce%total = tmparray
+    tmparray = tracerforce(0:nx + 1, 0:ny + 1, 0:nz + 1)%noforce%total
+    call setboundary_frc_wkb(tmparray)
+    tracerforce(0:nx + 1, 0:ny + 1, 0:nz + 1)%noforce%total = tmparray
+    tmparray = tracerforce(0:nx + 1, 0:ny + 1, 0:nz + 1)%mixingGW%total
+    call setboundary_frc_wkb(tmparray)
+    tracerforce(0:nx + 1, 0:ny + 1, 0:nz + 1)%mixingGW%total = tmparray
+
+  end subroutine calc_tracerforce
+  !-----------------------------------------------------------------------
+
+  subroutine calc_meanFlow_effect(ray, var, force, ray_var3D)
 
     ! supplemements cell-centered volume forces by WKB force
     ! as well as the heating by entropy-flux convergence
@@ -114,35 +687,14 @@ module wkb_module
     ! volume forcing
     real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(inout) :: force
 
-    ! tracer forcing terms
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(inout) :: &
-        &tracerforce
-
     ! IKJuly2023 changed from 1:6 to 1:11 for tracer fluxes
     real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:13), intent(inout) :: &
         &ray_var3D
 
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), &
-        &intent(inout) :: ray
+        intent(in) :: ray
 
     ! real, intent(in) :: time
-
-    ! time-step size, necessary for calculation of tracer forcing term
-    real, intent(in) :: dt
-
-    ! turbulent eddy diffusivity for tracer mixing parameterization
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(in) :: diffusioncoeff
-
-    type(waveAmp), dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(inout) :: &
-        &lowamp, nowamp, rhsamp
-    ! additional tracer forcing due to next-order forcing terms
-    ! tracerfluxvarold: previous time step
-    ! tracerfluxvar: current time step
-    ! tracer flux calculated from time derivative of tracerfluxvar
-    ! tracer flux \propto (tracerfluxvar-tracerfluxvarold)/dt
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:nwm), intent(inout) :: &
-        &tracerfluxvar
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:nwm) :: tracerfluxvarold
 
     ! local variables
     real :: F
@@ -159,13 +711,6 @@ module wkb_module
 
     real, allocatable :: var_ut(:, :, :)
     real, allocatable :: var_vt(:, :, :)
-
-    ! tracer fluxes
-    real, allocatable :: var_utracer(:, :, :) ! zonal
-    real, allocatable :: var_vtracer(:, :, :) ! meridional
-    real, allocatable :: var_wtracer(:, :, :) ! vertical
-    ! vertical tracer flux due to change of envelope
-    real, allocatable :: var_wtracerEnv(:, :, :)
 
     real, allocatable :: var_E(:, :, :)
 
@@ -203,13 +748,6 @@ module wkb_module
 
     real :: NNR
 
-    ! IKJuly2023 tracer flux stuff
-    real :: tracerfluxcoeff, dchidx, dchidy, dchidz, rhotracerp, rhotracerm, &
-        &dutracer, dvtracer, rhotracern
-    ! IKDec2023 tracer diffusion stuff
-    real :: laplacetracer
-    !real, allocatable :: diffusioncoeff(:, :, :)
-
     allocate(var_uu(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_uv(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_uw(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
@@ -222,12 +760,6 @@ module wkb_module
 
     allocate(var_ut(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_vt(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
-
-    ! allocate tracer fluxes
-    allocate(var_utracer(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
-    allocate(var_vtracer(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
-    allocate(var_wtracer(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
-    allocate(var_wtracerEnv(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
 
     allocate(var_E(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
 
@@ -251,30 +783,6 @@ module wkb_module
     var_ut = 0.0
     var_vt = 0.0
 
-    ! set tracer fluxes to 0
-    var_utracer = 0.0
-    var_vtracer = 0.0
-    var_wtracer = 0.0
-    var_wtracerEnv = 0.0
-
-    lowamp(:, :, :)%u = 0.0
-    lowamp(:, :, :)%v = 0.0
-    lowamp(:, :, :)%w = 0.0
-    lowamp(:, :, :)%b = 0.0
-    lowamp(:, :, :)%pi = 0.0
-
-    nowamp(:, :, :)%u = 0.0
-    nowamp(:, :, :)%v = 0.0
-    nowamp(:, :, :)%w = 0.0
-    nowamp(:, :, :)%b = 0.0
-    nowamp(:, :, :)%pi = 0.0
-
-    rhsamp(:, :, :)%u = 0.0
-    rhsamp(:, :, :)%v = 0.0
-    rhsamp(:, :, :)%w = 0.0
-    rhsamp(:, :, :)%b = 0.0
-    rhsamp(:, :, :)%pi = 0.0
-
     var_E = 0.0
 
     var_drudt = 0.0
@@ -284,13 +792,6 @@ module wkb_module
     ray_var3D = 0.0
 
     f_cor_nd = f_Coriolis_dim * tRef ! non dimensional Coriolis param.
-
-    ! update tracerfluxvarold, set tracerfluxvar to 0
-    ! new tracerfluxvar calculated later on
-    if(include_tracer) then
-      tracerfluxvarold = tracerfluxvar
-      tracerfluxvar = 0.0
-    end if
 
     do kzrv = 0, nz + 1
       do jyrv = 0, ny + 1
@@ -560,10 +1061,6 @@ module wkb_module
             ! FJMay2023
             if(topography) then
 
-              if(include_tracer) then
-                stop "Tracer, topography, and ray tracer not possible."
-              end if
-
               do ix = ixmin, ixmax
                 if(sizeX > 1) then
                   dxi = (min((xr + dxr * 0.5), lx(0) + (ix + ix0) * dx) &
@@ -738,58 +1235,6 @@ module wkb_module
 
                     var_E(ix, jy, kz) = var_E(ix, jy, kz) + wadr * omir
 
-                    if(include_tracer) then
-                      ! leading order gravity wave tracer fluxes
-                      ! calculation of equations 2.91 - 2.93 in IK masters thesis
-                      if(f_cor_nd /= 0.0) then
-
-                        tracerfluxcoeff = - f_cor_nd / omir * wnrm / (wnrh &
-                            &** 2 + wnrm ** 2) * wadr / rhoStrat(kz)
-
-                        ! determine derivative of large-scale tracer at location
-                        ! of ray volume
-                        call tracerderivative(x(ix), 1, y(jy), z(kz), var, &
-                            &dchidx)
-                        call tracerderivative(y(jy), 2, x(ix), z(kz), var, &
-                            &dchidy)
-                        call tracerderivative(z(kz), 3, x(ix), y(jy), var, &
-                            &dchidz)
-
-                        var_utracer(ix, jy, kz) = var_utracer(ix, jy, kz) &
-                            &+ tracerfluxcoeff * (wnrm * dchidy - wnrl * dchidz)
-                        var_vtracer(ix, jy, kz) = var_vtracer(ix, jy, kz) &
-                            &+ tracerfluxcoeff * (wnrk * dchidz - wnrm * dchidx)
-                        var_wtracer(ix, jy, kz) = var_wtracer(ix, jy, kz) &
-                            &+ tracerfluxcoeff * (wnrl * dchidx - wnrk * dchidy)
-                      end if
-
-                      ! update tracerfluxvar to calculate
-                      ! next-order gravity wave tracer fluxes
-                      ! actual fluxes calculated later on
-                      tracerfluxvar(ix, jy, kz, :) = tracerfluxvar(ix, jy, kz, &
-                          &:) + alphaTracer ** 2. * wadr / rhoStrat(kz) * wnrh &
-                          &** 2. / (omir * (wnrh ** 2 + wnrm ** 2))
-
-                      ! calculate |bhat^(2)| from wave-action density:
-                      lowamp(ix, jy, kz)%b = lowamp(ix, jy, kz)%b + sqrt(wadr &
-                          &* 2. * NNr ** 4. * wnrh ** 2. / (rhoStrat(kz) &
-                          &* (wnrh ** 2. + wnrm ** 2.)))
-                      lowamp(ix, jy, kz)%u = lowamp(ix, jy, kz)%u + (omir &
-                          &** 2. - NNr ** 2.) / (omir ** 2. - f_cor_nd ** 2.) &
-                          &/ (wnrm * NNr) * cmplx(wnrl * f_cor_nd, wnrk &
-                          &* omir) * lowamp(ix, jy, kz)%b
-                      lowamp(ix, jy, kz)%v = lowamp(ix, jy, kz)%v + (omir &
-                          &** 2. - NNr ** 2.) / (omir ** 2. - f_cor_nd ** 2.) &
-                          &/ (wnrm * NNr) * cmplx(- wnrk * f_cor_nd, wnrl &
-                          &* omir) * lowamp(ix, jy, kz)%b
-                      lowamp(ix, jy, kz)%w = lowamp(ix, jy, kz)%w + cmplx(0.0, &
-                          &omir / NNr) * lowamp(ix, jy, kz)%b
-                      lowamp(ix, jy, kz)%pi = lowamp(ix, jy, kz)%pi &
-                          &+ cmplx(0.0, (omir ** 2. - NNr ** 2.) / NNr / wnrm) &
-                          &* lowamp(ix, jy, kz)%b
-
-                    end if
-
                   end do
                 end do
               end do
@@ -798,28 +1243,6 @@ module wkb_module
         end do
       end do
     end do
-
-    ! calculate next-order gravity wave tracer fluxes
-    ! if(include_tracer) then
-    !   do kz = 1, nz
-    !     do jy = 1, ny
-    !       do ix = 1, nx
-    !         do im = 1, nwm
-    !           ! next-order forcing only where no diffusion due to gw breaking
-    !           ! otherwise too large tracer fluxes
-    !           if(diffusioncoeff(ix, jy, kz) == 0.0) then
-    !             ! calculate tracer fluxes
-    !             var_wtracerEnv(ix, jy, kz) = - (tracerfluxvar(ix, jy, kz, im) &
-    !                 - tracerfluxvarold(ix, jy, kz, im)) / dt / (2. &
-    !                 * alphaTracer)
-    !           else
-    !             var_wtracerEnv(ix, jy, kz) = 0.0
-    !           end if
-    !         end do
-    !       end do
-    !     end do
-    !   end do
-    ! end if
 
     ! for output of u'w', E_w, u, v, w:
     do kz = 1, nz
@@ -884,176 +1307,6 @@ module wkb_module
 
     call setboundary_wkb(var_E)
 
-    ! set boundary conditions for tracer fluxes
-    ! and calculate diffusive mixing of tracer
-    ! and tracer flux convergence
-    if(include_tracer) then
-      call setboundary_wkb(var_utracer)
-      call setboundary_wkb(var_vtracer)
-      call setboundary_wkb(var_wtracer)
-      call setboundary_wkb(var_wtracerEnv)
-
-      if(lsmth_wkb) then
-        if(sizeY == 1) then
-          if(sizeX > 1) then
-            if(sm_filter == 1) then
-              call smooth_wkb_box(var_utracer, nsmth_wkb, 101)
-              call smooth_wkb_box(var_vtracer, nsmth_wkb, 101)
-              call smooth_wkb_box(var_wtracer, nsmth_wkb, 101)
-              call smooth_wkb_box(var_wtracerEnv, nsmth_wkb, 101)
-            elseif(sm_filter == 2) then
-              call smooth_wkb_shapiro(var_utracer, nsmth_wkb, 101)
-              call smooth_wkb_shapiro(var_vtracer, nsmth_wkb, 101)
-              call smooth_wkb_shapiro(var_wtracer, nsmth_wkb, 101)
-              call smooth_wkb_shapiro(var_wtracerEnv, nsmth_wkb, 101)
-            else
-              stop 'WRONG sm_filter'
-            end if
-          else
-            stop 'SMOOTHING JUST IN Z NOT YET IMPLEMENTED'
-          endif
-        elseif(sizeX == 1) then
-          if(sm_filter == 1) then
-            call smooth_wkb_box(var_utracer, nsmth_wkb, 11)
-            call smooth_wkb_box(var_vtracer, nsmth_wkb, 11)
-            call smooth_wkb_box(var_wtracer, nsmth_wkb, 11)
-            call smooth_wkb_box(var_wtracerEnv, nsmth_wkb, 11)
-          elseif(sm_filter == 2) then
-            call smooth_wkb_shapiro(var_utracer, nsmth_wkb, 11)
-            call smooth_wkb_shapiro(var_vtracer, nsmth_wkb, 11)
-            call smooth_wkb_shapiro(var_wtracer, nsmth_wkb, 11)
-            call smooth_wkb_shapiro(var_wtracerEnv, nsmth_wkb, 11)
-          else
-            stop 'WRONG sm_filter'
-          end if
-        elseif(sizeX > 1) then
-          if(sm_filter == 1) then
-            call smooth_wkb_box(var_utracer, nsmth_wkb, 111)
-            call smooth_wkb_box(var_vtracer, nsmth_wkb, 111)
-            call smooth_wkb_box(var_wtracer, nsmth_wkb, 111)
-            call smooth_wkb_box(var_wtracerEnv, nsmth_wkb, 111)
-          elseif(sm_filter == 2) then
-            call smooth_wkb_shapiro(var_utracer, nsmth_wkb, 111)
-            call smooth_wkb_shapiro(var_vtracer, nsmth_wkb, 111)
-            call smooth_wkb_shapiro(var_wtracer, nsmth_wkb, 111)
-            call smooth_wkb_shapiro(var_wtracerEnv, nsmth_wkb, 111)
-          else
-            stop 'WRONG sm_filter'
-          end if
-        endif
-      endif
-
-      ! calculate diffusive mixing
-      laplacetracer = 0.0
-      do kz = 1, nz
-        do jy = 1, ny
-          do ix = 1, nx
-            if(sizeX > 1) then
-
-              ! d<u'chi'>/dx (for tracer flux convergence)
-              dutracer = (var_utracer(ix + 1, jy, kz) - var_utracer(ix - 1, &
-                  &jy, kz)) / (2.0 * dx)
-
-              ! x-contribution to div(K grad<chi>) (diffusive mixing)
-              if(fluctuationMode) then
-                rhotracerp = var%rho(ix + 1, jy, kz) + rhoStrat(kz)
-                rhotracern = var%rho(ix, jy, kz) + rhoStrat(kz)
-                rhotracerm = var%rho(ix - 1, jy, kz) + rhoStrat(kz)
-              else
-                rhotracerp = var%rho(ix + 1, jy, kz)
-                rhotracern = var%rho(ix, jy, kz)
-                rhotracerm = var%rho(ix - 1, jy, kz)
-              end if
-              laplacetracer = ((diffusioncoeff(ix + 1, jy, kz) &
-                  &+ diffusioncoeff(ix, jy, kz)) * (var%chi(ix + 1, jy, kz) &
-                  &/ rhotracerp - var%chi(ix, jy, kz) / rhotracern) &
-                  &- (diffusioncoeff(ix, jy, kz) + diffusioncoeff(ix - 1, jy, &
-                  &kz)) * (var%chi(ix, jy, kz) / rhotracern - var%chi(ix - 1, &
-                  &jy, kz) / rhotracerm)) / (2. * dx ** 2.)
-            else
-              dutracer = 0.0
-              laplacetracer = 0.0
-            end if
-
-            if(sizeY > 1) then
-              ! d<v'chi'>/dy (for tracer flux convergence)
-              dvtracer = (var_vtracer(ix, jy + 1, kz) - var_vtracer(ix, jy &
-                  &- 1, kz)) / (2.0 * dy)
-
-              ! y-contribution to div(K grad<chi>) (diffusive mixing)
-              if(fluctuationMode) then
-                rhotracerp = var%rho(ix, jy + 1, kz) + rhoStrat(kz)
-                rhotracern = var%rho(ix, jy, kz) + rhoStrat(kz)
-                rhotracerm = var%rho(ix, jy - 1, kz) + rhoStrat(kz)
-              else
-                rhotracerp = var%rho(ix, jy + 1, kz)
-                rhotracern = var%rho(ix, jy, kz)
-                rhotracerm = var%rho(ix, jy - 1, kz)
-              end if
-
-              laplacetracer = laplacetracer + ((diffusioncoeff(ix, jy + 1, kz) &
-                  &+ diffusioncoeff(ix, jy, kz)) * (var%chi(ix, jy + 1, kz) &
-                  &/ rhotracerp - var%chi(ix, jy, kz) / rhotracern) &
-                  &- (diffusioncoeff(ix, jy, kz) + diffusioncoeff(ix, jy - 1, &
-                  &kz)) * (var%chi(ix, jy, kz) / rhotracern - var%chi(ix, jy &
-                  &- 1, kz) / rhotracerm)) / (2. * dy ** 2.)
-            else
-              dvtracer = 0.0
-              laplacetracer = laplacetracer
-            end if
-
-            ! tracer flux convergence (leading order gw tracer fluxes)
-            tracerforce(ix, jy, kz, 1) = tracerforce(ix, jy, kz, 1) + dutracer &
-                &+ dvtracer + (var_wtracer(ix, jy, kz + 1) - var_wtracer(ix, &
-                &jy, kz - 1)) / (2.0 * dz)
-
-            ! z-contribution to div(K grad<chi>) (diffusive mixing)
-            if(fluctuationMode) then
-              rhotracerp = var%rho(ix, jy, kz + 1) + rhoStrat(kz + 1)
-              rhotracern = var%rho(ix, jy, kz) + rhoStrat(kz)
-              rhotracerm = var%rho(ix, jy, kz - 1) + rhoStrat(kz - 1)
-            else
-              rhotracerp = var%rho(ix, jy, kz + 1)
-              rhotracern = var%rho(ix, jy, kz)
-              rhotracerm = var%rho(ix, jy, kz - 1)
-            end if
-
-            laplacetracer = laplacetracer + ((diffusioncoeff(ix, jy, kz + 1) &
-                &+ diffusioncoeff(ix, jy, kz)) * (var%chi(ix, jy, kz + 1) &
-                &/ rhotracerp - var%chi(ix, jy, kz) / rhotracern) &
-                &- (diffusioncoeff(ix, jy, kz) + diffusioncoeff(ix, jy, kz &
-                &- 1)) * (var%chi(ix, jy, kz) / rhotracern - var%chi(ix, jy, &
-                &kz - 1) / rhotracerm)) / (2. * dz ** 2.)
-
-            ! save diffusive mixing
-            tracerforce(ix, jy, kz, 3) = laplacetracer
-
-            ! next-order gw tracer fluxes
-            ! tracerforce(ix, jy, kz, 2) = (var_wtracerEnv(ix, jy, kz + 1) &
-            !     - var_wtracerEnv(ix, jy, kz - 1)) / (2.0 * dz)
-          end do
-        end do
-      end do
-
-      call setboundary_frc_wkb(tracerforce(:, :, :, 1))
-      call setboundary_frc_wkb(tracerforce(:, :, :, 2))
-      call setboundary_frc_wkb(tracerforce(:, :, :, 3))
-
-      do kz = 1, nz
-        do jy = 1, ny
-          do ix = 1, nx
-            ray_var3D(ix, jy, kz, 7) = var_utracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 8) = var_vtracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 9) = var_wtracer(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 10) = lowamp(ix, jy, kz)%b !var_wtracerEnv(ix, jy, kz)
-            ray_var3D(ix, jy, kz, 11) = tracerforce(ix, jy, kz, 1)
-            ray_var3D(ix, jy, kz, 12) = tracerforce(ix, jy, kz, 2)
-            ray_var3D(ix, jy, kz, 13) = tracerforce(ix, jy, kz, 3)
-          end do
-        end do
-      end do
-    end if
-
     ! wave impact on horizontal momentum
 
     do kz = 1, nz
@@ -1067,15 +1320,11 @@ module wkb_module
             ! something wrong with the case of Boussinesq here.
             ! The case of pseudo_incompressible should be fine.
           case("pseudo_incompressible", "compressible")
-            ! rhotot = 0.5 * (var(ix, jy, kz, 1) + var(ix + 1, jy, kz, 1))
             rhotot = var%rho(ix, jy, kz)
             if(topography) then
-              ! FJJul2023
-              ! rhotot = rhotot + 0.5 * (rhoStratTFC(ix, jy, kz) &
-              !     + rhoStratTFC(ix + 1, jy, kz))
               rhotot = rhotot + rhoStratTFC(ix, jy, kz)
             else
-              if(fluctuationMode) rhotot = rhotot + rhoStrat(kz)
+              rhotot = rhotot + rhoStrat(kz)
             end if
           case default
             stop "volumeForce: unknown case model."
@@ -1146,7 +1395,7 @@ module wkb_module
               !     + rhoStratTFC(ix, jy + 1, kz))
               rhotot = rhotot + rhoStratTFC(ix, jy, kz)
             else
-              if(fluctuationMode) rhotot = rhotot + rhoStrat(kz)
+              rhotot = rhotot + rhoStrat(kz)
             end if
           case default
             stop "volumeForce: unknown case model."
@@ -1217,10 +1466,8 @@ module wkb_module
               if(topography) then
                 ! FJApr2023
                 rhotot = var%rho(ix, jy, kz) + rhoStratTFC(ix, jy, kz)
-              else if(fluctuationMode) then
+              else 
                 rhotot = var%rho(ix, jy, kz) + rhoStrat(kz)
-              else
-                rhotot = var%rho(ix, jy, kz)
               end if
             case default
               stop "volumeForce: unknown case model."
@@ -1347,7 +1594,7 @@ module wkb_module
               !     + rhoStratTFC(ix + 1, jy, kz))
               rhotot = rhotot + rhoStratTFC(ix, jy, kz)
             else
-              if(fluctuationMode) rhotot = rhotot + rhoStrat(kz)
+              rhotot = rhotot + rhoStrat(kz)
             end if
           case default
             stop "volumeForce: unknown case model."
@@ -1373,12 +1620,9 @@ module wkb_module
             ! rhotot = 0.5 * (var(ix, jy, kz, 1) + var(ix, jy + 1, kz, 1))
             rhotot = var%rho(ix, jy, kz)
             if(topography) then
-              ! FJApr2023
-              ! rhotot = rhotot + 0.5 * (rhoStratTFC(ix, jy, kz) &
-              !     + rhoStratTFC(ix, jy + 1, kz))
               rhotot = rhotot + rhoStratTFC(ix, jy, kz)
             else
-              if(fluctuationMode) rhotot = rhotot + rhoStrat(kz)
+              rhotot = rhotot + rhoStrat(kz)
             end if
           case default
             stop "volumeForce: unknown case model."
@@ -1423,11 +1667,7 @@ module wkb_module
                 ! FJApr2023
                 rhotot = var%rho(ix, jy, kz) + rhoStratTFC(ix, jy, kz)
               else
-                if(fluctuationMode) then
-                  rhotot = var%rho(ix, jy, kz) + rhoStrat(kz)
-                else
-                  rhotot = var%rho(ix, jy, kz)
-                end if
+                rhotot = var%rho(ix, jy, kz) + rhoStrat(kz)
               end if
             case default
               stop "volumeForce: unknown case model."
@@ -1447,8 +1687,8 @@ module wkb_module
 
   !---------------------------------------------------------------------
 
-  subroutine setup_wkb(ray, ray_var3D, var, diffusioncoeff, tracerfluxvar, &
-      &lowamp, nowamp, rhsamp)
+  subroutine setup_wkb(ray, ray_var3D, var, diffusioncoeff, &
+      waveAmplitudes, dPhase)
 
     !------------------------------------------------
     ! allocate ray field
@@ -1466,14 +1706,10 @@ module wkb_module
 
     ! turbulent eddy diffusivity. Needed for the mixing of tracer
     real, dimension(:, :, :), allocatable, intent(out) :: diffusioncoeff
+    real, dimension(:, :, :), allocatable, intent(out) :: dPhase
 
-    ! variable to calculate the next-order gw tracer fluxes
-    ! initial tracerfluxvar calculated in setup_wkb
-    real, dimension(:, :, :, :), allocatable, intent(out) :: tracerfluxvar
-
-    type(waveAmp), dimension(:, :, :), allocatable, intent(out) :: lowamp
-    type(waveAmp), dimension(:, :, :), allocatable, intent(out) :: nowamp
-    type(waveAmp), dimension(:, :, :), allocatable, intent(out) :: rhsamp
+    type(waveAmpType), dimension(:, :, :), allocatable, intent(out) :: &
+      waveAmplitudes
 
     ! local variables
     integer :: allocstat
@@ -1729,38 +1965,11 @@ module wkb_module
     allocate(diffusioncoeff(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate diffusioncoeff"
 
-    allocate(tracerfluxvar(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:nwm), stat &
-        &= allocstat)
-    if(allocstat /= 0) stop "setup_wkb: could not allocate tracerfluxvar"
+    allocate(dPhase(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
+    if(allocstat /= 0) stop "setup_wkb: could not allocate dPhase"
 
-    allocate(lowamp(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
-    if(allocstat /= 0) stop "setup_wkb: could not allocate lowamp"
-
-    allocate(nowamp(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
-    if(allocstat /= 0) stop "setup_wkb: could not allocate nowamp"
-
-    allocate(rhsamp(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
-    if(allocstat /= 0) stop "setup_wkb: could not allocate rhsamp"
-
-    diffusioncoeff = 0.0
-
-    lowamp(:, :, :)%u = 0.0
-    lowamp(:, :, :)%v = 0.0
-    lowamp(:, :, :)%w = 0.0
-    lowamp(:, :, :)%b = 0.0
-    lowamp(:, :, :)%pi = 0.0
-
-    nowamp(:, :, :)%u = 0.0
-    nowamp(:, :, :)%v = 0.0
-    nowamp(:, :, :)%w = 0.0
-    nowamp(:, :, :)%b = 0.0
-    nowamp(:, :, :)%pi = 0.0
-
-    rhsamp(:, :, :)%u = 0.0
-    rhsamp(:, :, :)%v = 0.0
-    rhsamp(:, :, :)%w = 0.0
-    rhsamp(:, :, :)%b = 0.0
-    rhsamp(:, :, :)%pi = 0.0
+    allocate(waveAmplitudes(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), stat = allocstat)
+    if(allocstat /= 0) stop "setup_wkb: could not allocate waveAmplitudes"
 
     ! needed for initialization of ray volumes:
     if(case_wkb == 3) then
@@ -2080,15 +2289,36 @@ module wkb_module
                 else
                   fld_amp(ix, jy, kz, :) = 0.0
                 end if
-              end if
-            end do
-          end do
-        end do
+              elseif(case_wkb == 4) then 
+                fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
+                  (zTFC(ix, jy, kz) - zr0) ** 2. / sigwpz ** 2.)
+
+                if(sigwpx > 0.0) then 
+                  if(abs(x(ix + ix0) - xr0) < sigwpx) then 
+                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
+                      * (x(ix + ix0) - xr0) / (2. * sigwpx)) ** 2. 
+                  else
+                    fld_amp(ix, jy, kz, :) = 0.0
+                  end if
+                end if
+
+                if(sigwpy > 0.0) then 
+                  if(abs(y(jy + jy0) - yr0) < sigwpy) then 
+                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
+                      * (y(jy + jy0) - yr0) / (2. * sigwpy)) ** 2. 
+                  else
+                    fld_amp(ix, jy, kz, :) = 0.0 
+                  end if
+                end if
+
+              end if ! case_wkb
+            end do ! ix
+          end do ! jy
+        end do ! kz
       else
         do kz = 1, sizeZ
           ! local squared Brunt-Vaisala frequency
           call stratification(z(kz), 1, NN_nd)
-
           ! wave-action density
           do jy = 1, ny
             do ix = 1, nx
@@ -2181,38 +2411,14 @@ module wkb_module
                     fld_amp(ix, jy, kz, :) = 0.0
                   end if
                 end if
-              end if
+              end if ! case_wkb
 
-              ! caluculate initial tracerfluxvar, needed for the
-              ! next-order gw tracer fluxes (see calc_meanFlow_effect)
-              if(include_tracer) then
-                tracerfluxvar(ix, jy, kz, :) = alphaTracer ** 2. * fld_amp(ix, &
-                    &jy, kz, :) / rhoStrat(kz) * wnrh_init ** 2. &
-                    &/ omi_notop(ix, jy, kz) / (wnrh_init ** 2 + wnrm_init ** 2)
-              end if
+            end do ! ix
+          end do ! jy
+        end do ! kz
 
-              ! calculate leading-order wave amplitudes
-              lowamp(ix, jy, kz)%b = cmplx(sqrt(fld_amp(ix, jy, kz, 1) * 2. &
-                  &* NN_nd ** 3. * wnrh_init ** 2. / (rhoStrat(kz) &
-                  &* (wnrh_init ** 2. + wnrm_init ** 2.))), 0.0)
-              lowamp(ix, jy, kz)%u = (omi_notop(ix, jy, kz) ** 2. - NN_nd &
-                  &** 2.) / (omi_notop(ix, jy, kz) ** 2. - f_cor_nd ** 2.) &
-                  &/ (wnrm_init * NN_nd) * cmplx(wnrl_init * f_cor_nd, &
-                  &wnrk_init * omi_notop(ix, jy, kz)) * lowamp(ix, jy, kz)%b
-              lowamp(ix, jy, kz)%v = (omi_notop(ix, jy, kz) ** 2. - NN_nd &
-                  &** 2.) / (omi_notop(ix, jy, kz) ** 2. - f_cor_nd ** 2.) &
-                  &/ (wnrm_init * NN_nd) * cmplx(- wnrk_init * f_cor_nd, &
-                  &wnrl_init * omi_notop(ix, jy, kz)) * lowamp(ix, jy, kz)%b
-              lowamp(ix, jy, kz)%w = cmplx(0.0, omi_notop(ix, jy, kz) / NN_nd) &
-                  &* lowamp(ix, jy, kz)%b
-              lowamp(ix, jy, kz)%pi = cmplx(0.0, (omi_notop(ix, jy, kz) ** 2. &
-                  &- NN_nd ** 2.) / NN_nd / wnrm_init) * lowamp(ix, jy, kz)%b
-
-            end do
-          end do
-        end do
-      end if
-    end if
+      end if ! topography
+    end if ! case_wkb == 3
 
     ! initialize with wave-induced zonal wind
     ! currently only available for 1D
@@ -2228,6 +2434,73 @@ module wkb_module
               &im) / rhoStrat(kz)
         end do
       end do
+    end if
+
+    if ((case_wkb .ne. 3) .and. include_tracer .and. (f_cor_nd == 0.)) then 
+      waveAmplitudes%phase = 0.
+      do kz = 1, nz 
+        do jy = 1, ny 
+          do ix = 1, nx 
+            ! calculating bhat^(2) from the wave-action density
+            waveAmplitudes(ix, jy, kz)%lowamp%b = &
+              cmplx( &
+                sqrt(2. * NN_nd ** 4. &
+                /  rhoStrat(kz) * wnrh_init ** 2. * &
+                fld_amp(ix, jy, kz, 1) / (omi_notop(ix, jy, kz) * &
+                (wnrh_init ** 2. + wnrm_init ** 2.))), 0.)
+            ! calculating remaining leading-order wave amplitudes using the 
+            ! polarization relations
+            waveAmplitudes(ix, jy, kz)%lowamp%u = &
+              cmplx(0., 1.) * waveAmplitudes(ix, jy, kz)%lowamp%b * &
+              wnrk_init * (omi_notop(ix, jy, kz) ** 2. - NN_nd ** 2.) &
+              / omi_notop(ix, jy, kz) / wnrm_init / NN_nd ** 2.
+            waveAmplitudes(ix, jy, kz)%lowamp%v = &
+              cmplx(0., 1.) * waveAmplitudes(ix, jy, kz)%lowamp%b * &
+              wnrl_init * (omi_notop(ix, jy, kz) ** 2. - NN_nd ** 2.) &
+              / omi_notop(ix, jy, kz) / wnrm_init / NN_nd ** 2.
+              
+
+            waveAmplitudes(ix, jy, kz)%lowamp%w = &
+              cmplx(0., 1.) * waveAmplitudes(ix, jy, kz)%lowamp%b * &
+              omi_notop(ix, jy, kz) / NN_nd ** 2.
+            waveAmplitudes(ix, jy, kz)%lowamp%pi = &
+              cmplx(0., 1.) * waveAmplitudes(ix, jy, kz)%lowamp%b * &
+              (omi_notop(ix, jy, kz) ** 2. - NN_nd ** 2.) / NN_nd ** 2. &
+              / wnrm_init 
+            
+            waveAmplitudes(ix, jy, kz)%lowamp%chi = 0.
+            if (sizeX > 1) then 
+              waveAmplitudes(ix, jy, kz)%lowamp%chi = &
+                waveAmplitudes(ix, jy, kz)%lowamp%u * &
+                (initialtracer(ix + 1, jy, kz) &
+                  - initialtracer(ix - 1, jy, kz)) / (2. * dx)
+            end if
+            if (sizeY > 1) then 
+              waveAmplitudes(ix, jy, kz)%lowamp%chi = &
+                waveAmplitudes(ix, jy, kz)%lowamp%chi + &
+                waveAmplitudes(ix, jy, kz)%lowamp%v * &
+                (initialtracer(ix, jy + 1, kz) &
+                  - initialtracer(ix, jy - 1, kz)) / (2. * dy)
+            end if
+            waveAmplitudes(ix, jy, kz)%lowamp%chi = &
+              waveAmplitudes(ix, jy, kz)%lowamp%chi + &
+              waveAmplitudes(ix, jy, kz)%lowamp%w * &
+              (initialtracer(ix, jy, kz + 1) &
+                - initialtracer(ix, jy, kz - 1)) / (2. * dz)
+            waveAmplitudes(ix, jy, kz)%lowamp%chi = &
+              - waveAmplitudes(ix, jy, kz)%lowamp%chi * cmplx(0., 1.) &
+              / omi_notop(ix, jy, kz)
+          end do
+        end do
+      end do
+      call setBoundary_waveAmp(waveAmplitudes)
+    else
+      waveAmplitudes%lowamp%u = 0.
+      waveAmplitudes%lowamp%v = 0.
+      waveAmplitudes%lowamp%w = 0.
+      waveAmplitudes%lowamp%b = 0.
+      waveAmplitudes%lowamp%pi = 0.
+      waveAmplitudes%lowamp%chi = 0.
     end if
 
     cgx_max = 0.0
@@ -2484,7 +2757,7 @@ module wkb_module
                           end if
 
                           ! SD
-                          if(include_ice2) then
+                          if(include_ice) then
                             dphi = wnrk * xr + wnrl * yr + wnrm * zr
                             ray(iRay, ix, jy, kz)%dphi = dphi
                           end if
@@ -2527,7 +2800,7 @@ module wkb_module
 
     !SD
     !double check if output rays needed
-    if(include_ice2) then
+    if(include_ice) then
 
       allocate(nor_mst(nprocx * nprocy), stat = allocstat)
       if(allocstat /= 0) stop "wkb.f90/setup_wkb: could not allocate nor_mst. &
@@ -2553,8 +2826,8 @@ module wkb_module
       vct_mst = 0.
       NoR_out = 1.
 
-      if(case_wkb == 3) stop 'RayTracer+Ice2+Topography not supported'
-      if(topography) stop 'RayTracer+Ice2+Topography not supported'
+      if(case_wkb == 3) stop 'RayTracer+Ice+Topography not supported'
+      if(topography) stop 'RayTracer+Ice+Topography not supported'
 
     end if
     !-------------------------------
@@ -2797,19 +3070,11 @@ module wkb_module
       zu = z(kzu) + 0.5 * dz
       zd = z(kzd) + 0.5 * dz
 
-      if(fluctuationMode) then
-        rhodp = var%rho(ixx, jyy, kzd + 1) + rhoStrat(kzd + 1)
-        rhodm = var%rho(ixx, jyy, kzd) + rhoStrat(kzd)
+      rhodp = var%rho(ixx, jyy, kzd + 1) + rhoStrat(kzd + 1)
+      rhodm = var%rho(ixx, jyy, kzd) + rhoStrat(kzd)
 
-        rhoup = var%rho(ixx, jyy, kzu + 1) + rhoStrat(kzu + 1)
-        rhoum = var%rho(ixx, jyy, kzu) + rhoStrat(kzu)
-      else
-        rhodp = var%rho(ixx, jyy, kzd + 1)
-        rhodm = var%rho(ixx, jyy, kzd)
-
-        rhoup = var%rho(ixx, jyy, kzu + 1)
-        rhoum = var%rho(ixx, jyy, kzu)
-      end if
+      rhoup = var%rho(ixx, jyy, kzu + 1) + rhoStrat(kzu + 1)
+      rhoum = var%rho(ixx, jyy, kzu) + rhoStrat(kzu)
 
       tracd = (var%chi(ixx, jyy, kzd + 1) / rhodp - var%chi(ixx, jyy, kzd) &
           &/ rhodm) / dz
@@ -2880,19 +3145,11 @@ module wkb_module
         yf = y(jyf) + 0.5 * dy
         yb = y(jyb) + 0.5 * dy
 
-        if(fluctuationMode) then
-          rhobp = var%rho(ixx, jyb + 1, kzz) + rhoStrat(kzz)
-          rhobm = var%rho(ixx, jyb, kzz) + rhoStrat(kzz)
+        rhobp = var%rho(ixx, jyb + 1, kzz) + rhoStrat(kzz)
+        rhobm = var%rho(ixx, jyb, kzz) + rhoStrat(kzz)
 
-          rhofp = var%rho(ixx, jyf + 1, kzz) + rhoStrat(kzz)
-          rhofm = var%rho(ixx, jyf, kzz) + rhoStrat(kzz)
-        else
-          rhobp = var%rho(ixx, jyb + 1, kzz)
-          rhobm = var%rho(ixx, jyb, kzz)
-
-          rhofp = var%rho(ixx, jyf + 1, kzz)
-          rhofm = var%rho(ixx, jyf, kzz)
-        end if
+        rhofp = var%rho(ixx, jyf + 1, kzz) + rhoStrat(kzz)
+        rhofm = var%rho(ixx, jyf, kzz) + rhoStrat(kzz)
 
         tracb = (var%chi(ixx, jyb + 1, kzz) / rhobp - var%chi(ixx, jyb, kzz) &
             &/ rhobm) / dy
@@ -2964,19 +3221,11 @@ module wkb_module
         xr = x(ixr) + 0.5 * dx
         xl = x(ixl) + 0.5 * dx
 
-        if(fluctuationMode) then
-          rholp = var%rho(ixl + 1, jyy, kzz) + rhoStrat(kzz)
-          rholm = var%rho(ixl, jyy, kzz) + rhoStrat(kzz)
+        rholp = var%rho(ixl + 1, jyy, kzz) + rhoStrat(kzz)
+        rholm = var%rho(ixl, jyy, kzz) + rhoStrat(kzz)
 
-          rhorp = var%rho(ixr + 1, jyy, kzz) + rhoStrat(kzz)
-          rhorm = var%rho(ixr, jyy, kzz) + rhoStrat(kzz)
-        else
-          rholp = var%rho(ixl + 1, jyy, kzz)
-          rholm = var%rho(ixl, jyy, kzz)
-
-          rhorp = var%rho(ixr + 1, jyy, kzz)
-          rhorm = var%rho(ixr, jyy, kzz)
-        end if
+        rhorp = var%rho(ixr + 1, jyy, kzz) + rhoStrat(kzz)
+        rhorm = var%rho(ixr, jyy, kzz) + rhoStrat(kzz)
 
         tracl = (var%chi(ixl + 1, jyy, kzz) / rholp - var%chi(ixl, jyy, kzz) &
             &/ rholm) / dx
@@ -3005,191 +3254,6 @@ module wkb_module
 
   end subroutine tracerderivative
   !------------------------------------------------------------------------
-
-  subroutine tracerderivative2(position, direction, indexa, indexb, var, &
-      &dchidxyz)
-
-    real, intent(in) :: position ! at which the derivative of chi should be calculated
-    integer, intent(in) :: direction ! 1: x, 2: y, 3: z
-    integer, intent(in) :: indexa, indexb ! indices for the remaining two directions
-    type(var_type), intent(in) :: var
-    real, intent(out) :: dchidxyz
-
-    integer :: kzu, kzd, jyf, jyb, ixr, ixl
-
-    real :: xlc, ylc, zlc
-    real :: zu, zd, yf, yb, xr, xl
-    real :: tracu, tracd, tracl, tracr, tracf, tracb
-    real :: rhodp, rhodm, rhoup, rhoum
-    real :: rhofp, rhofm, rhobp, rhobm
-    real :: rholp, rholm, rhorp, rhorm
-    integer :: ixx, jyy, kzz
-
-    real :: factor
-
-    if(direction == 3) then
-      ixx = indexa
-      jyy = indexb
-      zlc = position
-
-      kzd = max(- 1, floor((zlc - lz(0)) / dz))
-      kzu = kzd + 1
-
-      if(kzu + 1 > nz + 1) then
-        kzu = nz
-        kzd = nz - 1
-      end if
-
-      zu = z(kzu) + 0.5 * dz
-      zd = z(kzd) + 0.5 * dz
-
-      if(fluctuationMode) then
-        rhodp = var%rho(ixx, jyy, kzd + 1) + rhoStrat(kzd + 1)
-        rhodm = var%rho(ixx, jyy, kzd) + rhoStrat(kzd)
-
-        rhoup = var%rho(ixx, jyy, kzu + 1) + rhoStrat(kzu + 1)
-        rhoum = var%rho(ixx, jyy, kzu) + rhoStrat(kzu)
-      else
-        rhodp = var%rho(ixx, jyy, kzd + 1)
-        rhodm = var%rho(ixx, jyy, kzd)
-
-        rhoup = var%rho(ixx, jyy, kzu + 1)
-        rhoum = var%rho(ixx, jyy, kzu)
-      end if
-
-      tracd = (var%chi(ixx, jyy, kzd + 1) / rhodp - var%chi(ixx, jyy, kzd) &
-          &/ rhodm) / dz
-      tracu = (var%chi(ixx, jyy, kzu + 1) / rhoup - var%chi(ixx, jyy, kzu) &
-          &/ rhoum) / dz
-
-      if(zu < zd) then
-        print *, 'ERROR IN TRACERDERIVATIVE: zu =', zu, '< zd =', zd
-        stop
-      elseif(zu == zd) then
-        factor = 0.0
-      elseif(zlc > zu) then
-        factor = 0.0
-      elseif(zlc > zd) then
-        factor = (zu - zlc) / dz
-      else
-        factor = 1.0
-      end if
-
-      dchidxyz = factor * tracd + (1.0 - factor) * tracu
-
-    elseif(direction == 2) then
-      if(sizeY == 1) then
-        dchidxyz = 0.0
-      else
-        ixx = indexa
-        ylc = position
-        kzz = indexb
-
-        jyb = max(- 1, floor((ylc - ly(0)) / dy))
-        jyf = jyb + 1
-
-        if(jyf + 1 > ny + 1) then
-          jyf = ny
-          jyb = ny - 1
-        end if
-
-        yf = y(jyf) + 0.5 * dy
-        yb = y(jyb) + 0.5 * dy
-
-        if(fluctuationMode) then
-          rhobp = var%rho(ixx, jyb + 1, kzz) + rhoStrat(kzz)
-          rhobm = var%rho(ixx, jyb, kzz) + rhoStrat(kzz)
-
-          rhofp = var%rho(ixx, jyf + 1, kzz) + rhoStrat(kzz)
-          rhofm = var%rho(ixx, jyf, kzz) + rhoStrat(kzz)
-        else
-          rhobp = var%rho(ixx, jyb + 1, kzz)
-          rhobm = var%rho(ixx, jyb, kzz)
-
-          rhofp = var%rho(ixx, jyf + 1, kzz)
-          rhofm = var%rho(ixx, jyf, kzz)
-        end if
-
-        tracb = (var%chi(ixx, jyb + 1, kzz) / rhobp - var%chi(ixx, jyb, kzz) &
-            &/ rhobm) / dy
-        tracf = (var%chi(ixx, jyf + 1, kzz) / rhofp - var%chi(ixx, jyf, kzz) &
-            &/ rhofm) / dy
-
-        if(yf < yb) then
-          print *, 'ERROR IN TRACERDERIVATIVE: yf =', yf, '< yb =', yb
-          stop
-        elseif(yf == yb) then
-          factor = 0.0
-        elseif(ylc > yf) then
-          factor = 0.0
-        elseif(ylc > yb) then
-          factor = (yf - ylc) / dy
-        else
-          factor = 1.0
-        end if
-
-        dchidxyz = factor * tracb + (1.0 - factor) * tracf
-      end if
-
-    elseif(direction == 1) then
-      if(sizeX == 1) then
-        dchidxyz = 0.0
-      else
-        xlc = position
-        jyy = indexa
-        kzz = indexb
-
-        ixl = max(- 1, floor((xlc - lx(0)) / dx))
-        ixr = ixl + 1
-
-        if(ixr + 1 > nx + 1) then
-          ixr = nx
-          ixl = nx - 1
-        end if
-
-        xr = x(ixr) + 0.5 * dx
-        xl = x(ixl) + 0.5 * dx
-
-        if(fluctuationMode) then
-          rholp = var%rho(ixl + 1, jyy, kzz) + rhoStrat(kzz)
-          rholm = var%rho(ixl, jyy, kzz) + rhoStrat(kzz)
-
-          rhorp = var%rho(ixr + 1, jyy, kzz) + rhoStrat(kzz)
-          rhorm = var%rho(ixr, jyy, kzz) + rhoStrat(kzz)
-        else
-          rholp = var%rho(ixl + 1, jyy, kzz)
-          rholm = var%rho(ixl, jyy, kzz)
-
-          rhorp = var%rho(ixr + 1, jyy, kzz)
-          rhorm = var%rho(ixr, jyy, kzz)
-        end if
-
-        tracl = (var%chi(ixl + 1, jyy, kzz) / rholp - var%chi(ixl, jyy, kzz) &
-            &/ rholm) / dx
-        tracr = (var%chi(ixr + 1, jyy, kzz) / rhorp - var%chi(ixr, jyy, kzz) &
-            &/ rhorm) / dx
-
-        if(xr < xl) then
-          print *, 'ERROR IN TRACERDERIVATIVE: xr =', xr, '< xl =', xl
-          stop
-        elseif(xr == xl) then
-          factor = 0.0
-        elseif(xlc > xr) then
-          factor = 0.0
-        elseif(xlc > xl) then
-          factor = (xr - xlc) / dx
-        else
-          factor = 1.0
-        end if
-
-        dchidxyz = factor * tracl + (1.0 - factor) * tracr
-      end if
-    else
-      print *, "ERROR IN TRACERDERIVATIVE: direction must be 1, 2, or 3."
-      stop
-    end if
-
-  end subroutine tracerderivative2
 
   subroutine meanflow(xlc_in, ylc_in, zlc_in, var, flwtpe, flw)
 
@@ -12501,7 +12565,7 @@ module wkb_module
 
   end subroutine orographic_source
 
-  ! ----------------------------------------------------------------------
+  !----------------------------------------------------------------------------
 
   subroutine setup_topography_wkb
 
@@ -13046,7 +13110,6 @@ module wkb_module
           !SD
           ! compute coarse grid fields (non-dimensional)
 
-          !allways fluctuation mode
           ! NO topography
           rho = var%rho(ixrv, jyrv, kzrv) + rhoStrat(kzrv)
 
@@ -13479,5 +13542,415 @@ module wkb_module
     ofield(1:nx, 1:ny, 1:nz, 5) = sqrt(ofield(1:nx, 1:ny, 1:nz, 4)) / 2.
 
   end subroutine calc_ice
+
+! -----------------------------------------------------------------------------
+  function leading_order_tracer_flux(f0nondim, omega, wnkk, wnll, &
+    wnmm, wadens, direction, ix, jy, kz, var) result(LOtracerflx)
+
+    real :: f0nondim, omega, wnkk, wnll, wnmm, wadens
+    integer :: ix, jy, kz
+    character(len = 1) :: direction
+    type(var_type), intent(in) :: var
+
+    real :: LOtracerflx
+
+    real :: tracerflxcoeff, dchidx, dchidy, dchidz
+
+    tracerflxcoeff = - f0nondim / omega * wnmm / (wnkk ** 2. + wnll ** 2. &
+       + wnmm ** 2.) * wadens
+
+    call tracerderivative(x(ix), 1, y(jy), z(kz), var, &
+       dchidx)
+    call tracerderivative(y(jy), 2, x(ix), z(kz), var, &
+       dchidy)
+    call tracerderivative(z(kz), 3, x(ix), y(jy), var, &
+       dchidz)
+
+    if (direction == 'x') then
+       LOtracerflx = tracerflxcoeff * (wnmm * dchidy - wnll * dchidz)
+    elseif (direction == 'y') then
+       LOtracerflx = tracerflxcoeff * (wnkk * dchidz - wnmm * dchidx)
+    elseif (direction == 'z') then
+       LOtracerflx = tracerflxcoeff * (wnll * dchidx - wnkk * dchidy)
+    else
+       stop "wkb.f90: function leading_order_tracer_flx incorrect direction"
+    end if
+
+
+ end function leading_order_tracer_flux
+
+  ! ---------------------------------------------------------------------
+
+  subroutine setboundary_waveAmp(waveampfield)
+
+    type(waveAmpType), dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
+      intent(inout) :: waveampfield
+
+    integer :: k
+
+    complex, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: &
+      arrayrepl
+
+    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: &
+    arrayreplre
+
+    arrayreplre = waveampfield(:, :, :)%phase
+    call setboundary_hor_wkb(arrayreplre)
+    waveampfield(:, :, :)%phase = arrayreplre
+
+    do k = 1, min(nz, nbz)
+      waveampfield(:, :, nz + k)%phase = &
+         waveampfield(:, :, nz - k + 1)%phase
+      waveampfield(:, :, - k + 1)%phase = &
+         waveampfield(:, :, 1)%phase
+    end do
+
+    arrayrepl = waveampfield(:, :, :)%lowamp%u
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%lowamp%u = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%lowamp%v
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%lowamp%v = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%lowamp%w
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%lowamp%w = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%lowamp%b
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%lowamp%b = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%lowamp%pi
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%lowamp%pi = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%lowamp%chi
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%lowamp%chi = arrayrepl 
+
+
+    arrayrepl = waveampfield(:, :, :)%lowamp_prevts%u
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%lowamp_prevts%u = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%lowamp_prevts%v
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%lowamp_prevts%v = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%lowamp_prevts%w
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%lowamp_prevts%w = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%lowamp_prevts%b
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%lowamp_prevts%b = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%lowamp_prevts%pi
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%lowamp_prevts%pi = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%lowamp_prevts%chi
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%lowamp_prevts%chi = arrayrepl
+
+    
+    arrayrepl = waveampfield(:, :, :)%rhsamp%u
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%rhsamp%u = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%rhsamp%v
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%rhsamp%v = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%rhsamp%w
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%rhsamp%w = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%rhsamp%b
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%rhsamp%b = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%rhsamp%pi
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%rhsamp%pi = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%rhsamp%chi
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%rhsamp%chi = arrayrepl 
+
+
+    arrayrepl = waveampfield(:, :, :)%nowamp%u
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%nowamp%u = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%nowamp%v
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%nowamp%v = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%nowamp%w
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%nowamp%w = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%nowamp%b
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%nowamp%b = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%nowamp%pi
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%nowamp%pi = arrayrepl 
+    arrayrepl = waveampfield(:, :, :)%nowamp%chi
+    call setboundary_wkb_cmplx(arrayrepl)
+    waveampfield(:, :, :)%nowamp%chi = arrayrepl 
+
+    return
+    
+  end subroutine setboundary_waveAmp
+
+  ! ---------------------------------------------------------------------
+
+  subroutine setboundary_wkb_cmplx(flxwkb)
+
+    ! -------------------------------------------------------------------
+    ! boundary conditions for WKB fluxes
+    ! so far only periodic boundary conditions allowed in horizontal
+    ! -------------------------------------------------------------------
+
+    complex, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz), &
+        intent(inout) :: flxwkb
+
+    call setboundary_hor_wkb_cmplx(flxwkb)
+    call setboundary_vrt_wkb_cmplx(flxwkb)
+
+    return
+
+  end subroutine setboundary_wkb_cmplx
+
+  ! ---------------------------------------------------------------------
+
+  subroutine setboundary_hor_wkb_cmplx(flxwkb)
+
+    ! -------------------------------------------------------------------
+    ! horizontal boundary conditions for WKB fluxes
+    ! so far only periodic boundary conditions allowed
+    ! -------------------------------------------------------------------
+
+    complex, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
+        intent(inout) :: flxwkb
+
+    select case(xBoundary)
+    case("periodic")
+      call setboundary_x_periodic_wkb_cmplx(flxwkb)
+    case default
+      stop "setboundary_hor_wkb: unknown case xBoundary"
+    end select
+
+    select case(yBoundary)
+    case("periodic")
+      call setboundary_y_periodic_wkb_cmplx(flxwkb)
+    case default
+      stop "setboundary_hor_wkb: unknown case xBoundary"
+    end select
+
+    return
+
+  end subroutine setboundary_hor_wkb_cmplx
+
+  ! ----------------------------------------------------------------------
+
+  subroutine setboundary_x_periodic_wkb_cmplx(flxwkb)
+
+    ! -------------------------------------------------------------------
+    ! periodic boundary conditions in x for WKB fluxes
+    ! -------------------------------------------------------------------
+
+    complex, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
+        intent(inout) :: flxwkb
+
+    ! MPI variables
+    integer :: dest, source, tag
+    integer :: sendcount, recvcount
+
+    ! locals
+    integer :: ix
+
+    ! auxiliary fields
+    complex, dimension(nbx, - nby:ny + nby, - nbz:nz + nbz) :: xSliceLeft_send, &
+        xSliceRight_send
+    complex, dimension(nbx, - nby:ny + nby, - nbz:nz + nbz) :: xSliceLeft_recv, &
+        xSliceRight_recv
+
+    if(idim > 1) then
+      ! more than 1 cpu in x direction
+
+      call mpi_cart_shift(comm, 0, 1, left, right, ierror)
+
+      ! slice size
+      sendcount = nbx * (ny + 2 * nby + 1) * (nz + 2 * nbz + 1)
+      recvcount = sendcount
+
+      ! read slice into contiguous array
+      do ix = 1, nbx
+        xSliceLeft_send(ix, :, :) = flxwkb(ix, :, :)
+        xSliceRight_send(ix, :, :) = flxwkb(nx - nbx + ix, :, :)
+      end do
+
+      ! left -> right
+      source = left
+      dest = right
+      tag = 100
+
+      call mpi_sendrecv(xSliceRight_send(1, - nby, - nbz), sendcount, &
+          mpi_double_precision, dest, tag, xSliceLeft_recv(1, - nby, - nbz), &
+          recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+          sts_left, ierror)
+
+      ! right -> left
+      source = right
+      dest = left
+      tag = 100
+
+      call mpi_sendrecv(xSliceLeft_send(1, - nby, - nbz), sendcount, &
+          mpi_double_precision, dest, tag, xSliceRight_recv(1, - nby, - nbz), &
+          recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+          sts_right, ierror)
+
+      ! write auxiliary slice to flux field
+      do ix = 1, nbx
+        ! right halos
+        flxwkb(nx + ix, :, :) = xSliceRight_recv(ix, :, :)
+
+        ! left halos
+        flxwkb(- nbx + ix, :, :) = xSliceLeft_recv(ix, :, :)
+      end do
+    else
+      ! only 1 cpu in x direction
+
+      do ix = 1, min(nx, nbx)
+        flxwkb(nx + ix, :, :) = flxwkb(ix, :, :)
+        flxwkb(- ix + 1, :, :) = flxwkb(nx - ix + 1, :, :)
+      end do
+    end if
+
+  end subroutine setboundary_x_periodic_wkb_cmplx
+
+  ! ----------------------------------------------------------------------
+
+  subroutine setboundary_y_periodic_wkb_cmplx(flxwkb)
+
+    ! -------------------------------------------------------------------
+    ! periodic boundary conditions in y for WKB fluxes
+    ! -------------------------------------------------------------------
+
+    complex, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
+        intent(inout) :: flxwkb
+
+    ! MPI variables
+    integer :: dest, source, tag
+    integer :: sendcount, recvcount
+
+    ! locals
+    integer :: jy
+
+    ! auxiliary fields
+    complex, dimension(- nbx:nx + nbx, nby, - nbz:nz + nbz) :: ySliceBack_send, &
+        ySliceForw_send
+    complex, dimension(- nbx:nx + nbx, nby, - nbz:nz + nbz) :: ySliceBack_recv, &
+        ySliceForw_recv
+
+    if(jdim > 1) then
+      ! more than 1 cpu in y direction
+
+      call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
+
+      ! slice size
+      sendcount = nby * (nx + 2 * nbx + 1) * (nz + 2 * nbz + 1)
+      recvcount = sendcount
+
+      ! read slice into contiguous array
+      do jy = 1, nby
+        ySliceBack_send(:, jy, :) = flxwkb(:, jy, :)
+        ySliceForw_send(:, jy, :) = flxwkb(:, ny - nby + jy, :)
+      end do
+
+      ! back -> forw
+      source = back
+      dest = forw
+      tag = 100
+
+      call mpi_sendrecv(ySliceForw_send(- nbx, 1, - nbz), sendcount, &
+          mpi_double_precision, dest, tag, ySliceBack_recv(- nbx, 1, - nbz), &
+          recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+          sts_back, ierror)
+
+      ! forw -> back
+      source = forw
+      dest = back
+      tag = 100
+
+      call mpi_sendrecv(ySliceBack_send(- nbx, 1, - nbz), sendcount, &
+          mpi_double_precision, dest, tag, ySliceForw_recv(- nbx, 1, - nbz), &
+          recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+          sts_forw, ierror)
+
+      ! write auxiliary slice to var field
+      do jy = 1, nby
+        ! right halos
+        flxwkb(:, ny + jy, :) = ySliceForw_recv(:, jy, :)
+
+        ! left halos
+        flxwkb(:, - nby + jy, :) = ySliceBack_recv(:, jy, :)
+      end do
+    else
+      ! only 1 cpu in y direction
+
+      do jy = 1, min(ny, nby)
+        flxwkb(:, ny + jy, :) = flxwkb(:, jy, :)
+        flxwkb(:, - jy + 1, :) = flxwkb(:, ny - jy + 1, :)
+      end do
+    end if
+
+  end subroutine setboundary_y_periodic_wkb_cmplx
+
+  ! ---------------------------------------------------------------------
+
+  subroutine setboundary_vrt_wkb_cmplx(flxwkb)
+
+    ! -------------------------------------------------------------------
+    ! vertical boundary conditions for WKB fluxes
+    ! -------------------------------------------------------------------
+
+    complex, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
+        intent(inout) :: flxwkb
+
+    select case(zBoundary)
+    case("periodic")
+      call setboundary_z_periodic_wkb_cmplx(flxwkb)
+    case("solid_wall")
+      call setboundary_z_solidwall_wkb_cmplx(flxwkb)
+    case default
+      stop "setboundary_hor_wkb: unknown case xBoundary"
+    end select
+
+    return
+
+  end subroutine setboundary_vrt_wkb_cmplx
+
+  ! ----------------------------------------------------------------------
+
+  subroutine setboundary_z_periodic_wkb_cmplx(flxwkb)
+
+    ! -------------------------------------------------------------------
+    ! periodic boundary conditions in z for WKB fluxes
+    ! -------------------------------------------------------------------
+
+    complex, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
+        intent(inout) :: flxwkb
+
+    integer :: k
+
+    do k = 1, min(nz, nbz)
+      flxwkb(:, :, nz + k) = flxwkb(:, :, k)
+      flxwkb(:, :, - k + 1) = flxwkb(:, :, nz - k + 1)
+    end do
+
+  end subroutine setboundary_z_periodic_wkb_cmplx
+
+  ! ----------------------------------------------------------------------
+
+  subroutine setboundary_z_solidwall_wkb_cmplx(flxwkb)
+
+    complex, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
+        intent(inout) :: flxwkb
+
+    integer :: k
+
+    do k = 1, min(nz, nbz)
+      flxwkb(:, :, nz + k) = - flxwkb(:, :, nz - k + 1)
+      flxwkb(:, :, - k + 1) = - flxwkb(:, :, k)
+    end do
+
+  end subroutine setboundary_z_solidwall_wkb_cmplx
 
 end module wkb_module
