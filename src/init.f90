@@ -3,10 +3,11 @@ module init_module
   use type_module
   use atmosphere_module
   use ice_module
-  use ice2_module
   use mpi_module
   use boundary_module
   use sizeof_module
+  use mpi
+  use output_netCDF_module
 
   implicit none
 
@@ -19,13 +20,10 @@ module init_module
 
   contains
 
-  !UAB
-  !subrouine setup (var,var0,var1,flux,force,source,dRho,dRhop,dMom,dTheta)
   subroutine setup(var, var0, var1, varG, flux, flux0, force, source, dRho, &
       &dRhop, dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer, &
       &tracerforce, dPot)
 
-    !UAE
     !-----------------------------------------
     ! allocate var and flux / read the namelist
     !-----------------------------------------
@@ -34,18 +32,15 @@ module init_module
     type(var_type), intent(out) :: var, var0, var1, varG, source
     type(flux_type), intent(out) :: flux, flux0
     real, dimension(:, :, :, :), allocatable, intent(out) :: force
-    real, dimension(:, :, :, :), allocatable, intent(out) :: tracerforce ! tracer forcing in WKB
+    type(tracerForceType), dimension(:, :, :), allocatable, intent(out) :: tracerforce ! tracer forcing in WKB
     real, dimension(:, :, :), allocatable :: dRho, dRhop ! RK-Update for rho
     real, dimension(:, :, :, :), allocatable :: dMom ! ...rhoU,rhoV,rhoW
     real, dimension(:, :, :), allocatable :: dTheta ! RK-Update for theta
     real, dimension(:, :, :, :), allocatable :: dIce ! RK-Update for nIce,qIce,qAer,qv
     real, dimension(:, :, :), allocatable :: dTracer ! RK-Update for rhoTracer
     real, dimension(:, :, :), allocatable :: dPot ! RK-Update for P
-
-    !UAB
     real, dimension(:), allocatable :: dPStrat, drhoStrat ! RK-Update for P
     real, dimension(:), allocatable :: w_0 !! w_0 from ONK14
-    !UAE
 
     integer :: allocstat
     integer ::i, j, k, iVar
@@ -169,75 +164,13 @@ module init_module
     read(unit = 10, nml = tracerList, end = 21)
     21 continue
 
-    ! Read ice namelist.
-    rewind(unit = 10)
-    read(unit = 10, nml = iceList, end = 22)
-    22 continue
-
     ! Read second ice namelist.
     rewind(unit = 10)
-    read(unit = 10, nml = iceList2, end = 23)
+    read(unit = 10, nml = iceList, end = 23)
     23 continue
 
     ! Close input file.
     close(unit = 10)
-
-    !--------------------------------------------------!
-    !                Adjust I/O fields                 !
-    !--------------------------------------------------!
-
-    if(.not. turbScheme) then
-      do iVar = 1, nVar
-        if(varOut(iVar) == "DSC") varOut(iVar) = ""
-        if(varIn(iVar) == "DSC") varIn(iVar) = ""
-      end do
-    end if
-
-    if(.not. rayTracer) then
-      do iVar = 1, nVar
-        if(varOut(iVar) == "GWH") varOut(iVar) = ""
-        if(varIn(iVar) == "GWH") varIn(iVar) = ""
-      end do
-    end if
-
-    if(model /= "compressible") then
-      do iVar = 1, nVar
-        if(varOut(iVar) == "P") varOut(iVar) = ""
-        if(varIn(iVar) == "P") varIn(iVar) = ""
-      end do
-    end if
-
-    if(.not. include_tracer) then
-      do iVar = 1, nVar
-        if(varOut(iVar) == "chi") varOut(iVar) = ""
-        if(varIn(iVar) == "chi") varIn(iVar) = ""
-      end do
-    end if
-
-    if(.not. include_ice) then
-      do iVar = 1, nVar
-        if(any(varOut(iVar) == ["ICE-1", "ICE-2", "ICE-3", "ICE-4"])) &
-            &varOut(iVar) = ""
-        if(any(varIn(iVar) == ["ICE-1", "ICE-2", "ICE-3", "ICE-4"])) &
-            &varIn(iVar) = ""
-      end do
-    end if
-
-    if(.not. include_ice2) then
-      do iVar = 1, nVar
-        if(any(varOut(iVar) == ["ICE2-N ", "ICE2-Q ", "ICE2-QV"])) &
-            &varOut(iVar) = ""
-        if(any(varIn(iVar) == ["ICE2-N ", "ICE2-Q ", "ICE2-QV"])) varIn(iVar) &
-            &= ""
-      end do
-    end if
-
-    if(.not. include_testoutput) then
-      do iVar = 1, nVar
-        if(any(varOut(iVar) == ["OPT-1", "OPT-2", "OPT-3"])) varOut(iVar) = ""
-        if(any(varIn(iVar) == ["OPT-1", "OPT-2", "OPT-3"])) varIn(iVar) = ""
-      end do
-    end if
 
     !---------------------------------------------------
     ! allocate x,y,z - cell centered coordinate fields
@@ -256,18 +189,10 @@ module init_module
     ! allocate surface and fields for immersed boundary
     !---------------------------------------------------
 
-    !UAD allocate(&
-    !topography_mask(-nbx+1:sizeX+nbx,-nby+1:sizeY+nby,-nbz+1:sizeZ+nbz), &
-    !stat=allocstat&
-    !)
-    !if(allocstat /= 0) stop "init.f90: could not allocate topgoraphy_mask"
-
-    !UAC: changed topography_surface from global to local field
     allocate(topography_surface(- nbx:nx + nbx, - nby:ny + nby), stat &
         &= allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate topography_surface"
 
-    !UAB
     allocate(kbl_topo(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate kbl_topo"
     allocate(dhdx(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
@@ -290,17 +215,12 @@ module init_module
     if(allocstat /= 0) then
       stop "init.f90: could not allocate velocity_reconst_n"
     end if
-    !UAE
 
     !-------------------------------------
     !      allocate variable fields
     !-------------------------------------
 
-    if(include_ice .and. include_tracer) then
-      stop "init.f90: cannot include ice and tracer. Check the namelist."
-    end if
-
-    if(include_ice2) then
+    if(include_ice) then
       nVarIce = 3
       inN = 1
       inQ = 2
@@ -354,18 +274,11 @@ module init_module
       if(allocstat /= 0) stop "init.f90: Could not allocate dPot."
     end if
 
-    ! allocate dIce
     if(include_ice) then
-      allocate(dIce(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 4), stat &
-          &= allocstat)
-      if(allocstat /= 0) stop "init.f90: Could not allocate dIce."
-    end if
-
-    if(include_ice2) then
       allocate(dIce(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), stat &
           &= allocstat)
       if(allocstat /= 0) stop "init.f90: Could not allocate dIce."
-    end if !include_ice2
+    end if !include_ice
 
     if(include_tracer) then
       allocate(dTracer(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
@@ -373,7 +286,6 @@ module init_module
       if(allocstat /= 0) stop "init.f90: Could not allocate dTracer."
     end if
 
-    !SD
     if(include_testoutput) then
 
       allocate(ofield(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 6), stat &
@@ -385,7 +297,6 @@ module init_module
 
     end if
 
-    !UAB
     ! allocate dPStrat
     allocate(dPStrat(- nbz:nz + nbz), stat = allocstat)
     if(allocstat /= 0) stop "init.f90: Could not allocate dPStrat."
@@ -397,7 +308,6 @@ module init_module
     ! allocate w_0
     allocate(w_0(- nbz:nz + nbz), stat = allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate w_0"
-    !UAE
 
     call allocate_flux_type(flux)
     call reset_flux_type(flux)
@@ -410,18 +320,8 @@ module init_module
     if(allocstat /= 0) stop "init.f90: could not allocate force"
 
     ! allocate tracerforce
-    allocate(tracerforce(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), stat = allocstat)
+    allocate(tracerforce(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat = allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate tracerforce"
-
-    ! allocate environm. pot. temp. perturbations
-    !allocate(the_env(-nbx+1:sizeX+nbx,-nby+1:sizeY+nby,-nbz+1:sizeZ+nbz), stat=allocstat)
-    !if(allocstat /= 0) stop "init.f90: could not allocate the_env"
-
-    !allocate(dens_env(-nbx+1:sizeX+nbx,-nby+1:sizeY+nby,-nbz+1:sizeZ+nbz), stat=allocstat)
-    !if(allocstat /= 0) stop "init.f90: could not allocate dens_env"
-
-    !allocate(u_env(-nbx+1:sizeX+nbx,-nby+1:sizeY+nby,-nbz+1:sizeZ+nbz), stat=allocstat)
-    !if(allocstat /= 0) stop "init.f90: could not allocate u_env"
 
     allocate(p_env_pp(1:nx, 1:ny, 0:nz + 1), stat = allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate p_env_pp"
@@ -441,14 +341,6 @@ module init_module
     allocate(u_const(0:nx, 1:ny), stat = allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate u_const"
 
-    !UAb
-    !if (TestCase == "baroclinic_LC") then
-    !   allocate(var_env(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz,nVar), &
-    !           & stat=allocstat)
-    !   if(allocstat /= 0) stop "init.f90: could not allocate var_env"
-    !end if
-    !UAE
-
     ! GBcorr: decide if heating is applied or not + error messages
     if(heatingONK14 .and. (background == 'realistic' .or. background &
         &== 'isothermal' .or. background == 'isentropic' .or. background &
@@ -462,7 +354,6 @@ module init_module
       heating = (heatingONK14 .and. (TurbScheme .or. rayTracer))
     endif
 
-    !UAB
     if(TestCase == "baroclinic_LC") then
       call allocate_var_type(var_env)
       call reset_var_type(var_env)
@@ -484,14 +375,11 @@ module init_module
       end if
     end if
 
-    !if (spongeLayer) then
     allocate(kr_sp(0:ny + 1, 0:nz + 1), stat = allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate kr_sp"
 
     allocate(kr_sp_w(0:ny + 1, 0:nz + 1), stat = allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate kr_sp_w"
-    !end if
-    !UAE
 
     if(topography) then
       allocate(kr_sp_tfc(0:(nx + 1), 0:(ny + 1), 0:(nz + 1)), stat = allocstat)
@@ -509,18 +397,16 @@ module init_module
       if(allocstat /= 0) stop "init.f90: could not allocate alphaUnifiedSponge"
     end if
 
-    ! TFC FJ
     ! Safety switch for general setup.
     if(topography) then
-      if(model == "WKB" .or. .not. fluctuationMode .or. poissonSolverType &
+      if(model == "WKB" .or. poissonSolverType &
           &/= "bicgstab" .or. reconstType /= "MUSCL" .or. musclType &
           &/= "muscl1" .or. fluxType /= "upwind" .or. heatingONK14 .or. &
-          &pressureScaling .or. dens_relax .or. include_ice) then
+          &pressureScaling .or. dens_relax) then
         stop "Terrain-following coordinates not implemented for chosen setup!"
       end if
     end if
 
-    ! TFC FJ
     ! Safety switch for test cases.
     if(topography) then
       if(.not. any(testCase == (/character(50)::"sinus", "uniform_theta", &
@@ -532,7 +418,6 @@ module init_module
       end if
     end if
 
-    ! TFC FJ
     ! Safety switch for non-TFC setup.
     if(.not. topography) then
       if(testTFC) stop "Set testTFC = .false."
@@ -565,20 +450,18 @@ module init_module
 
     case("Boussinesq")
 
-      ! TFC FJ
-      ! Boussinesq model with fluctuationMode and bicgstab
+      ! Boussinesq model with bicgstab
       ! Bouyancy is predicted via the auxiliary equation. Density
-      ! fluctuations are therefore stored in var(i, j, k, 6), whereas
-      ! var(i, j, k, 1) must remain zero!
+      ! fluctuations are therefore stored in var%rhop(i, j, k), whereas
+      ! var%rho(i, j, k) must remain zero!
       updateMass = .true. ! necessary because of auxiliary equation
       predictMomentum = .true.
       correctMomentum = .true.
       updateTheta = .false.
-      if(include_ice .or. include_ice2) then
+      if(include_ice) then
         updateIce = .true.
       end if
       auxil_equ = .true.
-      fluctuationMode = .true.
       poissonSolverType = "bicgstab"
       reconstType = "MUSCL"
       musclType = "muscl1"
@@ -590,30 +473,13 @@ module init_module
 
       updateTracer = .true.
 
-      ! updateMass = .false.
-      ! predictMomentum = .true.
-      ! correctMomentum = .true.
-      ! updateTheta = .true.
-      ! updateIce = .true.
-      !
-      ! ! overwrite unsuitable input settings
-      ! topography = .false.
-      ! spongeLayer = .false.
-      ! pressureScaling = .false.
-      !
-      ! ! do not work with fluctuations
-      ! fluctuationMode = .false.
-      !
-      ! ! never offset theta
-      ! thetaOffset = .false.
-
     case("pseudo_incompressible")
 
       updateMass = .true.
       predictMomentum = .true.
       correctMomentum = .true.
       updateTheta = .false.
-      if(include_ice .or. include_ice2) then
+      if(include_ice) then
         updateIce = .true.
       end if
       if(include_tracer) then
@@ -712,10 +578,8 @@ module init_module
     real :: lambdaZ ! vert. wave lengths
 
     complex, dimension(:, :, :, :, :), allocatable :: Psi
-    ! reconstruct waveaction density for wavepacket testcase
-    !    real :: kk2, mm2, kTot2, maxPsi
-    !    real :: Ro_GWP, RoInv_GWP !FS
 
+    !SD
     integer :: allocstat
 
     real :: u1, w1, b1, p1
@@ -733,8 +597,6 @@ module init_module
     real :: xx
 
     ! random noise on background
-    !SD
-    !real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1) :: randNoise
     real, allocatable, dimension(:, :, :) :: randNoise
     real, parameter :: randAmp = 0.0
 
@@ -799,18 +661,8 @@ module init_module
 
     real :: indwindcoeff
 
-    !UAB
     integer :: kshalf
     real :: fchtms, zhtmsd, zhtmsu
-
-    !character(len=30) :: corset
-    !UAE
-
-    !UAB
-    ! corset = periodic => periodic Coriolis parameter
-    ! corset = constant => constant Coriolis parameter
-    !corset = 'constant'
-    !UAE
 
     ! open the namelist file
     open(unit = 10, file = file_namelist, action = "read", form = "formatted", &
@@ -824,19 +676,10 @@ module init_module
 
     case("Boussinesq")
 
-      ! TFC FJ
-      ! var(:, :, :, 1) must remain zero! Background fields are constant!
+      ! must remain zero! Background fields are constant!
       var%rho(:, :, :) = 0.0
 
-      ! TFC FJ
       vertical = (/0.0, 0.0, 1.0/)
-
-      ! var(:,:,:,1) = rho00          ! always constant background density
-      !
-      ! ! calc vertical
-      ! vertical(1) = -cos(vert_theta*pi/180.)*cos(vert_alpha*pi/180.)
-      ! vertical(2) = +cos(vert_theta*pi/180.)*sin(vert_alpha*pi/180.)
-      ! vertical(3) = +sin(vert_theta*pi/180.)
 
     case("pseudo_incompressible", "compressible")
 
@@ -857,8 +700,7 @@ module init_module
     j0 = js + nby - 1
 
     ! on default there is no initial ice, humidity or aerosols in the atmosphere
-    if(include_ice) var%ICE(:, :, :, 1:4) = 0.0
-    if(include_ice2) var%ICE2(:, :, :, 1:nVarIce) = 0.0
+    if(include_ice) var%ICE(:, :, :, 1:nVarIce) = 0.0
     ! just for safety reasons
     if(include_tracer) var%chi(:, :, :) = 0.0
     !---------------------------------------------------------------
@@ -875,7 +717,6 @@ module init_module
       ! Density fluctuations are stored in var(i, j, k, 6),
       ! var(i, j, k, 1) must remain zero!
       var%rho(i, j, k) = 0.0
-      ! var(:,:,:,1) = 1.0
       var%u(:, :, :) = 0.0
       var%v(:, :, :) = 0.0
       var%w(:, :, :) = 0.0
@@ -883,10 +724,8 @@ module init_module
       do i = - 2, nx + 3
         xx = lx(0) + (real(i - 1) + 0.5) * dx
         theta = sin(pi * xx * lRef)
-        ! TFC FJ
         ! Density fluctuations are stored in var(i, j, k, 6)!
         var%rhop(i, 1, 1) = - theta * rho00 / theta00
-        ! var(i,1,1,6) = theta
       end do
 
     case("uniform_theta")
@@ -904,9 +743,6 @@ module init_module
       ! Density fluctuations are stored in var(i, j, k, 6)!
       var%rhop(:, :, :) = 0.0
       ! var(:,:,:,6) = 0.0 / thetaRef
-
-      ! initialize the ice variables according to iceTestcase
-      if(include_ice) call setup_ice(var)
 
     case("monochromeWave")
 
@@ -1133,25 +969,20 @@ module init_module
               rho = rho + randNoise(i, j, k)
 
               ! subtract background for fluctuation mode
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  rho = rho - rhoStratTFC(i, j, k)
-                else
-                  rho = rho - rhoStrat(k)
-                end if
+              if(topography) then
+                ! TFC FJ
+                rho = rho - rhoStratTFC(i, j, k)
+              else
+                rho = rho - rhoStrat(k)
               end if
-              ! if( fluctuationMode ) rho = rho - rhoStrat(k)
 
               ! write to field
               var%rho(i, j, k) = rho
 
             case("Boussinesq")
 
-              ! TFC FJ
-              ! Density fluctuations are stored in var(i, j, k, 6),
-              ! var(i, j, k, 1) must remain zero! Boussinesq model only
-              ! works for fluctuationMode!
+              ! Density fluctuations are stored in var%rhop(i, j, k),
+              ! var%rho(i, j, k) must remain zero!
               if(topography) then
                 var%rhop(i, j, k) = rho - rhoStratTFC(i, j, k)
               else
@@ -1170,27 +1001,23 @@ module init_module
             var%pi(i, j, k) = p
 
             if(include_tracer) then
-              ! include_prime: chi = <chi> + chi'
+              ! chi = <chi> + chi'
               ! where chi' = alphaTracer/N^2 * b'
               ! from inserting WKB ansatz into linearized
               ! equation for chi' and using polarization
               ! relation
-              if(include_prime) then
-                if(topography) then
-                  stop 'init.f90: wavepacket tracer prime and topography not &
-                      &implemented'
-                else
-                  ! only set up for <chi>=alphaTracer*z
-                  ! large-scale tracer distribution
-                  if(tracerSetup == "increase_in_z_tracer") then
-                    var%chi(i, j, k) = alphaTracer / N2 * b
-                  else
-                    stop 'init.f90: unknown initial tracer with wavepacket &
-                        &tracer prime'
-                  end if
-                end if
+              if(topography) then
+                stop 'init.f90: wavepacket tracer prime and topography not &
+                    &implemented'
               else
-                var%chi(i, j, k) = 0.0
+                ! only set up for <chi>=alphaTracer*z
+                ! large-scale tracer distribution
+                if(tracerSetup == "alpha_z") then
+                  var%chi(i, j, k) = alphaTracer / N2 * b
+                else
+                  stop 'init.f90: unknown initial tracer with wavepacket &
+                      &tracer prime'
+                end if
               end if
             end if
 
@@ -1245,12 +1072,8 @@ module init_module
       case default
         stop "initialize: unknown case model"
       end select
-
-      ! initialize the ice variables according to iceTestcase
-      if(include_ice) call setup_ice(var)
-
       !SD
-      if(include_ice2) call setup_ice2(var)
+      if(include_ice) call setup_ice(var)
 
       !---------------------------------------------------------------
 
@@ -1298,19 +1121,6 @@ module init_module
             end do
           end do
         end do
-
-        ! ! Define initial background wind parallel to the topography (based on
-        ! ! linearized no-normal-flow boundary condition).
-        ! do i = 1, nx
-        !   do j = 1, ny
-        !     do k = 1, nz
-        !       var(i, j, k, 2) = - var(i, j, k, 2) / (0.5 * (jac(i, j, k) &
-        !           * met(i, j, k, 1, 3) + jac(i + 1, j, k) &
-        !           * met(i + 1, j, k, 1, 3))) * (topography_surface(i + 1, j) &
-        !           - topography_surface(i, j)) / dx
-        !     end do
-        !   end do
-        ! end do
       end if
 
       ! density, potential temperature, and pressure
@@ -1323,14 +1133,8 @@ module init_module
               ! initialization density = background density
               ! subtract background for fluctuation mode
 
-              if(fluctuationMode) then
-                rho = 0.0
-              else
-                rho = rhoStrat(k)
-              end if
-
               ! write to field
-              var%rho(i, j, k) = rho
+              var%rho(i, j, k) = 0.0
 
             case("Boussinesq")
               ! initialization zero buoyancy fluctuations
@@ -1348,11 +1152,9 @@ module init_module
         end do
       end do
 
-      ! initialize the ice variables according to iceTestcase
-      if(include_ice) call setup_ice(var)
 
       !SD
-      if(include_ice2) call setup_ice2(var)
+      if(include_ice) call setup_ice(var)
 
       !-----------------------------------------------------------------
 
@@ -1460,14 +1262,8 @@ module init_module
               ! initialization density = background density
               ! subtract background for fluctuation mode
 
-              if(fluctuationMode) then
-                rho = 0.0
-              else
-                rho = rhoStrat(k)
-              end if
-
               ! write to field
-              var%rho(i, j, k) = rho
+              var%rho(i, j, k) = 0.0
 
             case("Boussinesq")
               ! initialization zero buoyancy fluctuations
@@ -1486,7 +1282,7 @@ module init_module
       end do
 
       !SD
-      if(include_ice2) call setup_ice2(var)
+      if(include_ice) call setup_ice(var)
 
       !---------------------------------------------------
       !                Hot and cold bubbles
@@ -1585,15 +1381,12 @@ module init_module
               end if
 
               ! subtract background for fluctuation mode
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  rho = rho - rhoStratTFC(i, j, k)
-                else
-                  rho = rho - rhoStrat(k)
-                end if
+              if(topography) then
+                ! TFC FJ
+                rho = rho - rhoStratTFC(i, j, k)
+              else
+                rho = rho - rhoStrat(k)
               end if
-              ! if( fluctuationMode ) rho = rho - rhoStrat(k)
 
               var%rho(i, j, k) = rho
 
@@ -1601,15 +1394,13 @@ module init_module
 
               ! set pot Temp deviation
               ! TFC FJ
-              ! Density fluctuations are stored in var(i, j, k, 6)!
-              ! Boussinesq model only works for fluctuationMode!
+              ! Density fluctuations are stored in var%rhop(i, j, k)!
               if(topography) then
                 rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
               else
                 rho = pStrat(k) / theta - rhoStrat(k)
               end if
               var%rhop(i, j, k) = rho
-              ! var(i,j,k,6) = dTheta
 
             case default
               stop "initialize: unknown model."
@@ -1668,26 +1459,17 @@ module init_module
                 theta = thetaStrat(k) + dTheta_dim / thetaRef
               end if
 
-              if(fluctuationMode) then
                 ! calc pseudo-incompressible density rho*
-                if(referenceQuantities == "SI") then
-                  rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
-                else
-                  if(topography) then
-                    ! TFC FJ
-                    rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
-                  else
-                    rho = Pstrat(k) / theta - rhoStrat(k)
-                  end if
-                end if
+              if(referenceQuantities == "SI") then
+                rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
               else
-                ! calc pseudo-incompressible density rho*
-                if(referenceQuantities == "SI") then
-                  rho = p0 ** kappa / Rsp * Pstrat(k) / theta
+                if(topography) then
+                  ! TFC FJ
+                  rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
                 else
-                  rho = Pstrat(k) / theta
+                  rho = Pstrat(k) / theta - rhoStrat(k)
                 end if
-              end if ! fluctuation mode
+              end if
 
               select case(model)
 
@@ -1698,24 +1480,18 @@ module init_module
               case("Boussinesq")
 
                 ! TFC FJ
-                ! Density fluctuations are stored in var(i, j, k, 6),
-                ! var(i, j, k, 1) must remain zero!
+                ! Density fluctuations are stored in var%rhop(i, j, k),
+                ! var%rho(i, j, k) must remain zero!
                 var%rho(i, j, k) = 0.0
                 var%rhop(i, j, k) = rho
 
-                ! var(i,j,k,1) = rhoStrat(k)
-                ! var(i,j,k,6) = dTheta_dim / thetaRef
 
               case default
                 stop "initialize: unknown model."
               end select
             else ! outside bubble
               ! keep background density
-              if(fluctuationMode) then
-                var%rho(i, j, k) = 0.
-              else
-                var%rho(i, j, k) = rhoStrat(k)
-              end if
+              var%rho(i, j, k) = 0.
             end if
 
           end do
@@ -1844,16 +1620,12 @@ module init_module
 
             end if
 
-            if(fluctuationMode) then
-              if(topography) then
-                ! TFC FJ
-                var%rho(i, j, k) = var%rho(i, j, k) / rhoRef - rhoStratTFC(i, &
-                    &j, k)
-              else
-                var%rho(i, j, k) = var%rho(i, j, k) / rhoRef - rhoStrat(k)
-              end if
+            if(topography) then
+              ! TFC FJ
+              var%rho(i, j, k) = var%rho(i, j, k) / rhoRef - rhoStratTFC(i, &
+                  &j, k)
             else
-              var%rho(i, j, k) = var%rho(i, j, k)
+              var%rho(i, j, k) = var%rho(i, j, k) / rhoRef - rhoStrat(k)
             end if
             var%u(i, j, k) = var%u(i, j, k) / uRef
             var%v(i, j, k) = var%v(i, j, k) / uRef
@@ -1938,26 +1710,17 @@ module init_module
               theta = thetaStrat(k) + dTheta_dim / thetaRef
             end if
 
-            if(fluctuationMode) then
-              ! calc pseudo-incompressible density rho*
-              if(referenceQuantities == "SI") then
-                rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
-              else
-                if(topography) then
-                  ! TFC FJ
-                  rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
-                else
-                  rho = Pstrat(k) / theta - rhoStrat(k)
-                end if
-              end if
+            ! calc pseudo-incompressible density rho*
+            if(referenceQuantities == "SI") then
+              rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
             else
-              ! calc pseudo-incompressible density rho*
-              if(referenceQuantities == "SI") then
-                rho = p0 ** kappa / Rsp * Pstrat(k) / theta
+              if(topography) then
+                ! TFC FJ
+                rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
               else
-                rho = Pstrat(k) / theta
+                rho = Pstrat(k) / theta - rhoStrat(k)
               end if
-            end if ! fluctuation mode
+            end if
 
             select case(model)
 
@@ -1967,15 +1730,10 @@ module init_module
 
             case("Boussinesq")
 
-              ! TFC FJ
-              ! Density fluctuations are stored in var(i, j, k, 6),
-              ! var(i, j, k, 1) must remain zero! Boussinesq model
-              ! only works for fluctuationMode!
+              ! Density fluctuations are stored in var%rhop(i, j, k),
+              ! var%rho(i, j, k) must remain zero! Boussinesq model
               var%rho(i, j, k) = 0.0
               var%rhop(i, j, k) = rho
-
-              ! var(i,j,k,1) = rhoStrat(k)
-              ! var(i,j,k,6) = dTheta_dim / thetaRef
 
             case default
               stop "initialize: unknown model."
@@ -2075,24 +1833,15 @@ module init_module
 
               case("pseudo_incompressible", "compressible")
 
-                if(fluctuationMode) then
-                  ! calc pseudo-incompressible density rho*
-                  if(referenceQuantities == "SI") then
-                    rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
-                  else
-                    if(topography) then
-                      ! TFC FJ
-                      rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
-                    else
-                      rho = Pstrat(k) / theta - rhoStrat(k)
-                    end if
-                  end if
+                ! calc pseudo-incompressible density rho*
+                if(referenceQuantities == "SI") then
+                  rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
                 else
-                  ! calc pseudo-incompressible density rho*
-                  if(referenceQuantities == "SI") then
-                    rho = p0 ** kappa / Rsp * Pstrat(k) / theta
+                  if(topography) then
+                    ! TFC FJ
+                    rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
                   else
-                    rho = Pstrat(k) / theta
+                    rho = Pstrat(k) / theta - rhoStrat(k)
                   end if
                 end if
 
@@ -2101,18 +1850,14 @@ module init_module
               case("Boussinesq")
 
                 ! TFC FJ
-                ! Density fluctuations are stored in var(i, j, k, 6),
-                ! var(i, j, k, 1) must remain zero! Boussinesq model
-                ! only works for fluctuationMode!
+                ! Density fluctuations are stored in var%rhop(i, j, k),
+                ! var%rho(i, j, k) must remain zero!
                 if(topography) then
                   rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
                 else
                   rho = pStrat(k) / theta - rhoStrat(k)
                 end if
                 var%rhop(i, j, k) = rho
-
-                ! ! set pot Temp deviation
-                ! var(i,j,k,6) = dTheta
 
               case default
                 stop "initialize: unknown model."
@@ -2123,12 +1868,7 @@ module init_module
               !  outside bubble keep background density
               !------------------------------------------
 
-              if(fluctuationMode) then
-                var%rho(i, j, k) = 0.0
-              else
-                var%rho(i, j, k) = rhoStrat(k)
-              end if
-
+              var%rho(i, j, k) = 0.0
             end if
 
           end do
@@ -2188,26 +1928,16 @@ module init_module
                 theta = thetaStrat(k) + dTheta_dim / thetaRef
               end if
 
-              if(fluctuationMode) then
-                ! calc pseudo-incompressible density rho*
-                if(referenceQuantities == "SI") then
-                  rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
-                else
-                  if(topography) then
-                    ! TFC FJ
-                    rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
-                  else
-                    rho = Pstrat(k) / theta - rhoStrat(k)
-                  end if
-                end if
+              ! calc pseudo-incompressible density rho*
+              if(referenceQuantities == "SI") then
+                rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
               else
-                ! calc pseudo-incompressible density rho*
-                if(referenceQuantities == "SI") then
-                  rho = p0 ** kappa / Rsp * Pstrat(k) / theta
+                if(topography) then
+                  rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
                 else
-                  rho = Pstrat(k) / theta
+                  rho = Pstrat(k) / theta - rhoStrat(k)
                 end if
-              end if ! fluctuation mode
+              end if
 
               select case(model)
 
@@ -2217,14 +1947,10 @@ module init_module
 
               case("Boussinesq")
 
-                ! TFC FJ
-                ! Density fluctuations are stored in var(i, j, k, 6),
-                ! var(i, j, k, 1) must remain zero!
+                ! Density fluctuations are stored in var%rhop(i, j, k),
+                ! var%rho(i, j, k) must remain zero!
                 var%rho(i, j, k) = 0.0
                 var%rhop(i, j, k) = rho
-
-                ! var(i,j,k,1) = rhoStrat(k)
-                ! var(i,j,k,6) = dTheta_dim / thetaRef
 
               case default
                 stop "initialize: unknown model."
@@ -2236,11 +1962,7 @@ module init_module
 
               case("pseudo_incompressible", "compressible")
 
-                if(fluctuationMode) then
-                  var%rho(i, j, k) = 0.0
-                else
-                  var%rho(i, j, k) = rhoStrat(k)
-                end if
+                var%rho(i, j, k) = 0.0
 
               case("Boussinesq")
 
@@ -2249,9 +1971,6 @@ module init_module
                 ! var(i, j, k, 1) must remain zero!
                 var%rho(i, j, k) = 0.0
                 var%rhop(i, j, k) = 0.0
-
-                ! var(i,j,k,1) = rhoStrat(k)
-                ! var(i,j,k,6) = 0.0
 
               case default
                 stop "initialize: unknown model."
@@ -2319,26 +2038,16 @@ module init_module
                 theta = thetaStrat(k) + dTheta_dim / thetaRef
               end if
 
-              if(fluctuationMode) then
-                ! calc pseudo-incompressible density rho*
-                if(referenceQuantities == "SI") then
-                  rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
-                else
-                  if(topography) then
-                    ! TFC FJ
-                    rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
-                  else
-                    rho = Pstrat(k) / theta - rhoStrat(k)
-                  end if
-                end if
+              ! calc pseudo-incompressible density rho*
+              if(referenceQuantities == "SI") then
+                rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
               else
-                ! calc pseudo-incompressible density rho*
-                if(referenceQuantities == "SI") then
-                  rho = p0 ** kappa / Rsp * Pstrat(k) / theta
+                if(topography) then
+                  rho = pStratTFC(i, j, k) / theta - rhoStratTFC(i, j, k)
                 else
-                  rho = Pstrat(k) / theta
+                  rho = Pstrat(k) / theta - rhoStrat(k)
                 end if
-              end if ! fluctuation mode
+              end if
 
               select case(model)
 
@@ -2348,14 +2057,10 @@ module init_module
 
               case("Boussinesq")
 
-                ! TFC FJ
                 ! Density fluctuations are stored in var(i, j, k, 6),
                 ! var(i, j, k, 1) must remain zero!
                 var%rho(i, j, k) = 0.0
                 var%rhop(i, j, k) = rho
-
-                ! var(i,j,k,1) = rhoStrat(k)
-                ! var(i,j,k,6) = dTheta_dim / thetaRef
 
               case default
                 stop "initialize: unknown model."
@@ -2365,22 +2070,14 @@ module init_module
 
               case("pseudo_incompressible", "compressible")
 
-                if(fluctuationMode) then
-                  var%rho(i, j, k) = 0.0
-                else
-                  var%rho(i, j, k) = rhoStrat(k)
-                end if
+                var%rho(i, j, k) = 0.0
 
               case("Boussinesq")
 
-                ! TFC FJ
-                ! Density fluctuations are stored in var(i, j, k, 6),
-                ! var(i, j, k, 1) must remain zero!
+                ! Density fluctuations are stored in var%rhop(i, j, k),
+                ! var%rho(i, j, k) must remain zero!
                 var%rho(i, j, k) = 0.0
                 var%rhop(i, j, k) = 0.0
-
-                ! var(i,j,k,1) = rhoStrat(k)
-                ! var(i,j,k,6) = 0.0
 
               case default
                 stop "initialize: unknown model."
@@ -2399,12 +2096,10 @@ module init_module
 
     case('baroclinic_LC')
 
-      !UAB
       if((background /= "const-N") .and. (background /= "HeldSuarez")) then
         stop 'ERROR: baroclinic_LC needs for background either const-N  or &
             &HeldSuarez'
       end if
-      !UAE
 
       ! read test case input data
       rewind(unit = 10)
@@ -2433,9 +2128,7 @@ module init_module
 
       jwdth = jwdth_dim / lRef ! jet width
 
-      !UAB
       if(background == "const-N") then
-        !UAE
         z_trpp0 = z_trpp0_dim / lRef ! mean tropopause height
 
         z_baro = z_baro_dim / lRef ! alt. above which the atmosph. is
@@ -2447,7 +2140,7 @@ module init_module
 
         ntrp = ntrp_dim * tRef ! Brunt-Vaisala frequency troposphere
         nstr = nstr_dim * tRef ! Brunt-Vaisala frequency stratosphere
-        !UAB
+
       else if(background == "HeldSuarez") then
         yjets = 0.75 * ymin + 0.25 * ymax
         yjetn = 0.25 * ymin + 0.75 * ymax
@@ -2457,7 +2150,7 @@ module init_module
         stop 'ERROR: baroclinic_LC needs for background either const-N  or &
             &HeldSuarez'
       end if
-      !UAE
+
 
       if(master .and. jwdth > 0.5 * (ymax - ymin)) then
         stop 'ERROR: jet width too large'
@@ -2471,9 +2164,7 @@ module init_module
       ! replace i -> i + i0 in x and y fields
       j00 = js + nby - 1
 
-      !UAB
       if(background == "const-N") then
-        !UAE
         ! potential-temperature field
 
         do j = 1, ny
@@ -2657,11 +2348,7 @@ module init_module
 
               dens_env_pp(:, j, k) = Pstrat(k) / the_env_pp(:, j, k)
 
-              if(fluctuationMode) then
-                var%rho(1:nx, j, k) = dens_env_pp(1:nx, j, k) - rhoStrat(k)
-              else
-                var%rho(1:nx, j, k) = dens_env_pp(1:nx, j, k)
-              end if
+              var%rho(1:nx, j, k) = dens_env_pp(1:nx, j, k) - rhoStrat(k)
             end do
           end if
         end do
@@ -2671,24 +2358,16 @@ module init_module
 
         do j = 1, ny
           do i = 1, nx
-            if(fluctuationMode) then
-              rhop0 = var%rho(i, j, 0)
-              rhop1 = var%rho(i, j, 1)
+            rhop0 = var%rho(i, j, 0)
+            rhop1 = var%rho(i, j, 1)
 
-              if(topography) then
-                ! TFC FJ
-                rho0 = var%rho(i, j, 0) + rhoStratTFC(i, j, 0)
-                rho1 = var%rho(i, j, 1) + rhoStratTFC(i, j, 1)
-              else
-                rho0 = var%rho(i, j, 0) + rhoStrat(0)
-                rho1 = var%rho(i, j, 1) + rhoStrat(1)
-              end if
+            if(topography) then
+              ! TFC FJ
+              rho0 = var%rho(i, j, 0) + rhoStratTFC(i, j, 0)
+              rho1 = var%rho(i, j, 1) + rhoStratTFC(i, j, 1)
             else
-              rhop0 = var%rho(i, j, 0) - rhoStrat(0)
-              rhop1 = var%rho(i, j, 1) - rhoStrat(1)
-
-              rho0 = var%rho(i, j, 0)
-              rho1 = var%rho(i, j, 1)
+              rho0 = var%rho(i, j, 0) + rhoStrat(0)
+              rho1 = var%rho(i, j, 1) + rhoStrat(1)
             end if
 
             buoy0 = - g_ndim * rhop0 / rho0
@@ -2715,24 +2394,16 @@ module init_module
         do k = 0, nz
           do j = 1, ny
             do i = 1, nx
-              if(fluctuationMode) then
-                rhop0 = var%rho(i, j, k)
-                rhop1 = var%rho(i, j, k + 1)
+              rhop0 = var%rho(i, j, k)
+              rhop1 = var%rho(i, j, k + 1)
 
-                if(topography) then
-                  ! TFC FJ
-                  rho0 = var%rho(i, j, k) + rhoStratTFC(i, j, k)
-                  rho1 = var%rho(i, j, k + 1) + rhoStratTFC(i, j, k + 1)
-                else
-                  rho0 = var%rho(i, j, k) + rhoStrat(k)
-                  rho1 = var%rho(i, j, k + 1) + rhoStrat(k + 1)
-                end if
+              if(topography) then
+                ! TFC FJ
+                rho0 = var%rho(i, j, k) + rhoStratTFC(i, j, k)
+                rho1 = var%rho(i, j, k + 1) + rhoStratTFC(i, j, k + 1)
               else
-                rhop0 = var%rho(i, j, k) - rhoStrat(k)
-                rhop1 = var%rho(i, j, k + 1) - rhoStrat(k + 1)
-
-                rho0 = var%rho(i, j, k)
-                rho1 = var%rho(i, j, k + 1)
+                rho0 = var%rho(i, j, k) + rhoStrat(k)
+                rho1 = var%rho(i, j, k + 1) + rhoStrat(k + 1)
               end if
 
               buoy0 = - g_ndim * rhop0 / rho0
@@ -2740,10 +2411,8 @@ module init_module
 
               rho = 0.5 * (rho0 + rho1)
 
-              ! FJApr2024
               ! It seems like there is one factor 1/2 too much here...
               if(topography) then
-                ! TFC FJ
                 var%pi(i, j, k + 1) = var%pi(i, j, k) + 0.5 * 0.5 * (jac(i, j, &
                     &k) + jac(i, j, k + 1)) * dz * Ma2 * kappa * rho / (0.5 &
                     &* (pStratTFC(i, j, k) + pStratTFC(i, j, k + 1))) * 0.5 &
@@ -2761,8 +2430,6 @@ module init_module
 
         do j = 1, ny
           yloc = y(j + j00)
-
-          !UAC: possibility of periodic Coriolis parameter
 
           if(corset == 'periodic') then
 
@@ -2811,16 +2478,14 @@ module init_module
               stop 'ERROR: y > ymax'
             end if
 
-            !UAB no latitude dependence of the stratification
+            ! no latitude dependence of the stratification
             c2_strtd(j) = 1.
-            !UAE
 
           else
 
             stop 'ERROR: wrong corset'
 
           end if
-          !UAE
         end do
 
         ! y- and z-dependent thermal relaxation rate
@@ -2883,66 +2548,17 @@ module init_module
             facsig = max(0.0, (sig_pr - sigb_hs) / (1.0 - sigb_hs))
 
             !Held + Suarez 1994: BL drag:
-            !UAC kv_hs(:,k) = kf_hs*facsig
             kr_sp(:, k) = kf_hs * facsig
             kv_hs(:, k) = 0.
             kr_sp_w(:, k) = 0.
-            !UAE
-
-            !Shepherd 1996: Rayleigh BL drag
-            !if (z(k) <= 5.e3/lRef) then
-            !   kv_hs(:,k) = (1.+cos(pi*z(k)/(5.e3/lRef)))*tRef/(6.*86400.)
-            !end if
 
             do j = 1, ny
               ! Held Suarez 1994:
               kt_hs(j, k) = ka_hs + (ks_hs - ka_hs) * c4_strtd(j) * facsig
 
-              !!Hien et al. (2018):
-              ! yloc = y(j+j00)
-              ! if (yloc > 0.5*(ymax+ymin)) then
-              !   ! meridionally dependent tau_sc
-
-              !   kt_hs(j,k) &
-              !   =  1./( ta_hs_dim/tref &
-              !     + (ts_hs_dim/tref - ta_hs_dim/tref)*facsig &
-              !       *( 1.0 &
-              !         -0.5&
-              !          *( tanh((yloc/ymax-0.25)/sigma_tau) &
-              !            -tanh((yloc/ymax-0.75)/sigma_tau)))  )
-              !  else
-              !   kt_hs(j,k)  &
-              !    =   1./(ta_hs_dim/tref &
-              !     + (ts_hs_dim/tref - ta_hs_dim/tref)*facsig &
-              !       *( 1.0 &
-              !         -0.5 &
-              !          *( tanh(((-1.)*yloc/ymax-0.25)/sigma_tau) &
-              !            -tanh(((-1.)*yloc/ymax-0.75)/sigma_tau))) )
-              ! end if
             end do
           end do
         end if
-
-        !!UAB
-        !! increased heating in mesosphere
-        !fchtms = 2. ! maximum increase at top of mesosphere
-
-        !zhtmsd = 5.e4/lRef ! bottom mesosphere
-        !zhtmsu = 9.e4/lRef ! top mesosphere
-
-        !do k=0,nz+1
-        !   if (z(k) >= zhtmsd .and. z(k) < zhtmsu) then
-        !      kt_hs(:,k) &
-        !      = kt_hs(:,k) &
-        !        * (  1. &
-        !           + (fchtms - 1.) &
-        !             * sin(0.5*pi &
-        !                   * (z(k) - zhtmsd)/(zhtmsu - zhtmsd))**2)
-        !     else if (z(k) > zhtmsu) then
-        !      kt_hs(:,k) = kt_hs(:,k) * fchtms
-        !   end if
-        !end do
-        !!UAE
 
         do j = 1, ny
           ! (total) Exner pressure just above and below the surface so
@@ -3026,7 +2642,6 @@ module init_module
             end do
           end do
 
-          !UAB
           ! reduction of the jets to zero
           ! (within the lower half of the sponge)
           ! by reduction of the pressure fluctuations
@@ -3076,7 +2691,6 @@ module init_module
               end do
             end if
           end if
-          !UAE
 
           ! density
           if(topography) then
@@ -3090,16 +2704,12 @@ module init_module
             do k = 0, nz + 1
               dens_env_pp(:, j, k) = Pstrat(k) / the_env_pp(:, j, k)
 
-              if(fluctuationMode) then
-                var%rho(1:nx, j, k) = dens_env_pp(1:nx, j, k) - rhoStrat(k)
-              else
-                var%rho(1:nx, j, k) = dens_env_pp(1:nx, j, k)
-              end if
+              var%rho(1:nx, j, k) = dens_env_pp(1:nx, j, k) - rhoStrat(k)
             end do
           end if
         end do
 
-        !UAB in case of periodic Coriolis parameter choose horizontally
+        ! in case of periodic Coriolis parameter choose horizontally
         ! homogeneous atmosphere at rest as equilibrium
 
         if(corset == 'periodic') then
@@ -3118,17 +2728,12 @@ module init_module
             do k = 0, nz + 1
               dens_env_pp(:, :, k) = rhoStrat(k)
 
-              if(fluctuationMode) then
-                var%rho(:, :, k) = 0.
-              else
-                var%rho(:, :, k) = rhoStrat(k)
-              end if
+              var%rho(:, :, k) = 0.
 
               var%pi(:, :, k) = pistrat(k)
             end do
           end if
         end if
-        !UAE
 
         ! subtract reference-atmosphere Exner pressure from the total
 
@@ -3158,7 +2763,7 @@ module init_module
       ! determine horizontal wind from density and Exner-pressure
       ! fluctuations
 
-      !UAC in case of periodic Coriolis parameter initilization zero wind
+      ! in case of periodic Coriolis parameter initilization zero wind
       ! (that is then also an equlibrium wind)
 
       if(corset == 'periodic') then
@@ -3184,36 +2789,33 @@ module init_module
 
               rho = var%rho(i, j, k)
 
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  rho_int_0m = rho_int_0m + 0.5 * (rhoStratTFC(i, j, k) &
-                      &+ rhoStratTFC(i, j - 1, k))
-                  rho_int_00 = rho_int_00 + 0.5 * (rhoStratTFC(i, j, k) &
-                      &+ rhoStratTFC(i, j + 1, k))
-                  rho_int_pm = rho_int_pm + 0.5 * (rhoStratTFC(i + 1, j, k) &
-                      &+ rhoStratTFC(i + 1, j - 1, k))
-                  rho_int_p0 = rho_int_p0 + 0.5 * (rhoStratTFC(i + 1, j, k) &
-                      &+ rhoStratTFC(i + 1, j + 1, k))
-                  rho = rho + rhoStratTFC(i, j, k)
-                else
-                  rho_int_0m = rho_int_0m + rhoStrat(k)
-                  rho_int_00 = rho_int_00 + rhoStrat(k)
-                  rho_int_pm = rho_int_pm + rhoStrat(k)
-                  rho_int_p0 = rho_int_p0 + rhoStrat(k)
+              if(topography) then
+                ! TFC FJ
+                rho_int_0m = rho_int_0m + 0.5 * (rhoStratTFC(i, j, k) &
+                    &+ rhoStratTFC(i, j - 1, k))
+                rho_int_00 = rho_int_00 + 0.5 * (rhoStratTFC(i, j, k) &
+                    &+ rhoStratTFC(i, j + 1, k))
+                rho_int_pm = rho_int_pm + 0.5 * (rhoStratTFC(i + 1, j, k) &
+                    &+ rhoStratTFC(i + 1, j - 1, k))
+                rho_int_p0 = rho_int_p0 + 0.5 * (rhoStratTFC(i + 1, j, k) &
+                    &+ rhoStratTFC(i + 1, j + 1, k))
+                rho = rho + rhoStratTFC(i, j, k)
+              else
+                rho_int_0m = rho_int_0m + rhoStrat(k)
+                rho_int_00 = rho_int_00 + rhoStrat(k)
+                rho_int_pm = rho_int_pm + rhoStrat(k)
+                rho_int_p0 = rho_int_p0 + rhoStrat(k)
 
-                  rho = rho + rhoStrat(k)
-                end if
+                rho = rho + rhoStrat(k)
               end if
 
               yloc = y(j + j00)
-              !UAC latitude-dependent Coriolis parameter re-established
+              ! latitude-dependent Coriolis parameter re-established
               f_Coriolis_y(j) = f_Coriolis_dim
-              !f_Coriolis_y(j) = f_Coriolis_dim*sin(pi*yloc/ymax)
-              !UAE
+
               if(f_Coriolis_y(j) /= 0.0) then
                 if(topography) then
-                  ! TFC FJ
+
                   ! Compute values at cell edges.
                   pEdgeF = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
                       &+ pStratTFC(i, j + 1, k) / jac(i, j + 1, k))
@@ -3289,28 +2891,21 @@ module init_module
         stop 'ERROR: wrong corset'
 
       end if
-      !UAE
 
       ! density fluctuations
 
       if(timeScheme == "semiimplicit" .or. auxil_equ) then
-        if(fluctuationMode) then
-          do k = - nbz, nz + nbz
-            var%rhop(:, :, k) = var%rho(:, :, k)
-          end do
-        else
-          do k = - nbz, nz + nbz
-            var%rhop(:, :, k) = var%rho(:, :, k) - rhoStrat(k)
-          end do
-        end if
+        do k = - nbz, nz + nbz
+          var%rhop(:, :, k) = var%rho(:, :, k)
+        end do
       end if
 
-      ! store environmental state also in var_env
 
       call setHalos(var, "var")
       call setBoundary(var, flux, "var")
 
-      var_env = var !0. !FSApr2021 !var
+      var_env = var ! store environmental state also in var_env
+      
 
       !-----------------------------------------------------------
       ! add local potential-temperature perturbation
@@ -3355,15 +2950,11 @@ module init_module
                 thtptb = 0.0
               end if
 
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
-                else
-                  rho = var%rho(i, j, k) + rhoStrat(k)
-                end if
+              if(topography) then
+                ! TFC FJ
+                rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
               else
-                rho = var%rho(i, j, k)
+                rho = var%rho(i, j, k) + rhoStrat(k)
               end if
 
               if(topography) then
@@ -3373,16 +2964,12 @@ module init_module
                 theta = Pstrat(k) / rho + thtptb
               end if
 
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  var%rho(i, j, k) = pStratTFC(i, j, k) / theta &
-                      &- rhoStratTFC(i, j, k)
-                else
-                  var%rho(i, j, k) = Pstrat(k) / theta - rhoStrat(k)
-                end if
+              if(topography) then
+                ! TFC FJ
+                var%rho(i, j, k) = pStratTFC(i, j, k) / theta &
+                    &- rhoStratTFC(i, j, k)
               else
-                var%rho(i, j, k) = Pstrat(k) / theta
+                var%rho(i, j, k) = Pstrat(k) / theta - rhoStrat(k)
               end if
 
             end do
@@ -3415,15 +3002,11 @@ module init_module
                 thtptb = 0.0
               end if
 
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
-                else
-                  rho = var%rho(i, j, k) + rhoStrat(k) !Pstrat(k)
-                end if
+              if(topography) then
+                ! TFC FJ
+                rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
               else
-                rho = var%rho(i, j, k)
+                rho = var%rho(i, j, k) + rhoStrat(k) !Pstrat(k)
               end if
 
               if(topography) then
@@ -3433,16 +3016,12 @@ module init_module
                 theta = Pstrat(k) / rho - thtptb
               end if
 
-              if(fluctuationMode) then
-                if(topography) then
-                  ! TFC FJ
-                  var%rho(i, j, k) = pStratTFC(i, j, k) / theta &
-                      &- rhoStratTFC(i, j, k)
-                else
-                  var%rho(i, j, k) = Pstrat(k) / theta - rhoStrat(k) !Pstrat(k)
-                end if
+              if(topography) then
+                ! TFC FJ
+                var%rho(i, j, k) = pStratTFC(i, j, k) / theta &
+                    &- rhoStratTFC(i, j, k)
               else
-                var%rho(i, j, k) = Pstrat(k) / theta
+                var%rho(i, j, k) = Pstrat(k) / theta - rhoStrat(k)
               end if
             end do
           end do
@@ -3468,23 +3047,14 @@ module init_module
               !UAC noise to b emultiplied to full density in case of
               ! periodic Coriolis parameter
               if(corset == 'periodic') then
-                if(fluctuationMode) then
-                  if(topography) then
-                    ! TFC FJ
-                    var%rho(i, j, k) = rhoStratTFC(i, j, k) * noise(i, j, k)
-                  else
-                    var%rho(i, j, k) = rhostrat(k) * noise(i, j, k)
-                  end if
+                if(topography) then
+                  ! TFC FJ
+                  var%rho(i, j, k) = rhoStratTFC(i, j, k) * noise(i, j, k)
                 else
-                  var%rho(i, j, k) = rhoStrat(k) * (1.0 + noise(i, j, k))
+                  var%rho(i, j, k) = rhostrat(k) * noise(i, j, k)
                 end if
               else if(corset == 'constant') then
-                if(fluctuationMode) then
-                  var%rho(i, j, k) = var%rho(i, j, k) * (1.0 + noise(i, j, k))
-                else
-                  var%rho(i, j, k) = rhoStrat(k) + (var%rho(i, j, k) &
-                      &- rhoStrat(k)) * (1.0 + noise(i, j, k))
-                end if
+                var%rho(i, j, k) = var%rho(i, j, k) * (1.0 + noise(i, j, k))
               else
                 stop 'ERROR: wrong corset'
               end if
@@ -3515,10 +3085,10 @@ module init_module
 
       dens_env_pp(:, :, :) = 0.0
 
-      ! achatzc: would be much nicer if everything was coded in
+      ! // TODO would be much nicer if everything was coded in
       ! non-dimensional units
 
-      ! achatzc: it is unfortunate that the below is so far most of the
+      ! // TODO it is unfortunate that the below is so far most of the
       ! time applied with isothermal atmosphere
       ! would be better to have a constant lapse rate of 6K/km, e.g.,
       ! for the troposphere and isothermal above the tropopause
@@ -3583,10 +3153,8 @@ module init_module
       end if
 
       if(init_2Dto3D) then
-        call init_data2D3D(lastrecordnum, var)
-
-        ! achatzc: here is an isue, since the semi-implicit time-stepping
-        ! scheme stores the density fluctuations in var(... , 6)
+        
+        call read_netCDF(-1, var)
 
         ! store env pot temp: local
         the_env_pp(1:nx, 1:ny, 1:nz) = var%rhop(1:nx, 1:ny, 1:nz)
@@ -3842,9 +3410,6 @@ module init_module
                       &k - 1)) + PstratTilde(k) * (var%pi(i, j, k + 1) &
                       &- var%pi(i, j, k)))
 
-                  if(.not. fluctuationMode) then
-                    var%rho(i, j, k) = var%rho(i, j, k) + rhoStrat(k)
-                  end if
                 end do
               end do
             end do
@@ -3875,26 +3440,24 @@ module init_module
 
                   rho = var%rho(i, j, k)
 
-                  if(fluctuationMode) then
-                    if(topography) then
-                      ! TFC FJ
-                      rho_int_m0 = rho_int_m0 + 0.5 * (rhoStratTFC(i, j, k) &
-                          &+ rhoStratTFC(i - 1, j, k)) * rhoRef
-                      rho_int_00 = rho_int_00 + 0.5 * (rhoStratTFC(i, j, k) &
-                          &+ rhoStratTFC(i + 1, j, k)) * rhoRef
-                      rho_int_mp = rho_int_mp + 0.5 * (rhoStratTFC(i, j + 1, &
-                          &k) + rhoStratTFC(i - 1, j + 1, k)) * rhoRef
-                      rho_int_0p = rho_int_0p + 0.5 * (rhoStratTFC(i, j + 1, &
-                          &k) + rhoStratTFC(i + 1, j + 1, k)) * rhoRef
-                      rho = rho + rhoStratTFC(i, j, k) * rhoRef
-                    else
-                      rho_int_m0 = rho_int_m0 + rhoStrat(k) * rhoRef
-                      rho_int_00 = rho_int_00 + rhoStrat(k) * rhoRef
-                      rho_int_mp = rho_int_mp + rhoStrat(k) * rhoRef
-                      rho_int_0p = rho_int_0p + rhoStrat(k) * rhoRef
+                  if(topography) then
+                    ! TFC FJ
+                    rho_int_m0 = rho_int_m0 + 0.5 * (rhoStratTFC(i, j, k) &
+                        &+ rhoStratTFC(i - 1, j, k)) * rhoRef
+                    rho_int_00 = rho_int_00 + 0.5 * (rhoStratTFC(i, j, k) &
+                        &+ rhoStratTFC(i + 1, j, k)) * rhoRef
+                    rho_int_mp = rho_int_mp + 0.5 * (rhoStratTFC(i, j + 1, &
+                        &k) + rhoStratTFC(i - 1, j + 1, k)) * rhoRef
+                    rho_int_0p = rho_int_0p + 0.5 * (rhoStratTFC(i, j + 1, &
+                        &k) + rhoStratTFC(i + 1, j + 1, k)) * rhoRef
+                    rho = rho + rhoStratTFC(i, j, k) * rhoRef
+                  else
+                    rho_int_m0 = rho_int_m0 + rhoStrat(k) * rhoRef
+                    rho_int_00 = rho_int_00 + rhoStrat(k) * rhoRef
+                    rho_int_mp = rho_int_mp + rhoStrat(k) * rhoRef
+                    rho_int_0p = rho_int_0p + rhoStrat(k) * rhoRef
 
-                      rho = rho + rhoStrat(k) * rhoRef
-                    end if
+                    rho = rho + rhoStrat(k) * rhoRef
                   end if
 
                   if(topography) then
@@ -3985,13 +3548,6 @@ module init_module
               end do
             end do
 
-            !testb
-            !var(:,:,:,2) = - var(:,:,:,3)
-            !var(:,:,:,3) = 0.
-
-            !u_env_pp = - v_env_pp
-            !v_env_pp = 0.
-            !teste
           else
             do k = 1, nz
               do j = 1, ny
@@ -4009,26 +3565,24 @@ module init_module
 
                   rho = var%rho(i, j, k) * rhoRef
 
-                  if(fluctuationMode) then
-                    if(topography) then
-                      ! TFC FJ
-                      rho_int_0m = rho_int_0m + 0.5 * (rhoStratTFC(i, j, k) &
-                          &+ rhoStratTFC(i, j - 1, k)) * rhoRef
-                      rho_int_00 = rho_int_00 + 0.5 * (rhoStratTFC(i, j, k) &
-                          &+ rhoStratTFC(i, j + 1, k)) * rhoRef
-                      rho_int_pm = rho_int_pm + 0.5 * (rhoStratTFC(i + 1, j, &
-                          &k) + rhoStratTFC(i + 1, j - 1, k)) * rhoRef
-                      rho_int_p0 = rho_int_p0 + 0.5 * (rhoStratTFC(i + 1, j, &
-                          &k) + rhoStratTFC(i + 1, j + 1, k)) * rhoRef
-                      rho = rho + rhoStratTFC(i, j, k) * rhoRef
-                    else
-                      rho_int_0m = rho_int_0m + rhoStrat(k) * rhoRef
-                      rho_int_00 = rho_int_00 + rhoStrat(k) * rhoRef
-                      rho_int_pm = rho_int_pm + rhoStrat(k) * rhoRef
-                      rho_int_p0 = rho_int_p0 + rhoStrat(k) * rhoRef
+                  if(topography) then
+                    ! TFC FJ
+                    rho_int_0m = rho_int_0m + 0.5 * (rhoStratTFC(i, j, k) &
+                        &+ rhoStratTFC(i, j - 1, k)) * rhoRef
+                    rho_int_00 = rho_int_00 + 0.5 * (rhoStratTFC(i, j, k) &
+                        &+ rhoStratTFC(i, j + 1, k)) * rhoRef
+                    rho_int_pm = rho_int_pm + 0.5 * (rhoStratTFC(i + 1, j, &
+                        &k) + rhoStratTFC(i + 1, j - 1, k)) * rhoRef
+                    rho_int_p0 = rho_int_p0 + 0.5 * (rhoStratTFC(i + 1, j, &
+                        &k) + rhoStratTFC(i + 1, j + 1, k)) * rhoRef
+                    rho = rho + rhoStratTFC(i, j, k) * rhoRef
+                  else
+                    rho_int_0m = rho_int_0m + rhoStrat(k) * rhoRef
+                    rho_int_00 = rho_int_00 + rhoStrat(k) * rhoRef
+                    rho_int_pm = rho_int_pm + rhoStrat(k) * rhoRef
+                    rho_int_p0 = rho_int_p0 + rhoStrat(k) * rhoRef
 
-                      rho = rho + rhoStrat(k) * rhoRef
-                    end if
+                    rho = rho + rhoStrat(k) * rhoRef
                   end if
 
                   if(topography) then
@@ -4119,16 +3673,9 @@ module init_module
               end do
             end do
 
-            !testb
-            !var(:,:,:,3) = var(:,:,:,2)
-            !var(:,:,:,2) = 0.
-
-            !v_env_pp = u_env_pp
-            !u_env_pp = 0.
-            !teste
           end if
 
-          ! achatzc: this loop probably not needed?
+          ! // TODO this loop probably not needed?
           do j = 1, ny
             u_const(0:nx, j) = var%u(0:nx, j, nz)
           end do
@@ -4136,20 +3683,12 @@ module init_module
           do k = 1, nz
             do j = 1, ny
               do i = 1, nx
-                if(fluctuationMode) then
-                  var%rho(i, j, k) = 0. ! density
-                else
-                  var%rho(i, j, k) = rhoStrat(k) ! density
-                end if
+                var%rho(i, j, k) = 0. ! density
 
                 var%u(i, j, k) = 0.0 ! u
                 var%v(i, j, k) = 0.0 ! v
                 var%w(i, j, k) = 0.0 ! w
                 var%pi(i, j, k) = 0.0 ! deviation of Exner pressure
-
-                ! achatzc: this is potentially an issue since
-                ! var (... , 6) is used in semi-implicit time
-                ! stepping for the density fluctuations
 
                 if(timeScheme /= "semiimplicit" .and. .not. auxil_equ) then
                   var%rhop(i, j, k) = thetaStrat(k) ! pot temp
@@ -4285,12 +3824,7 @@ module init_module
         do k = 1, nz
           do j = 1, ny
             do i = 1, nx
-              if(fluctuationMode) then
-                var%rho(i, j, k) = var%rho(i, j, k) * (1.0 + noise(i, j, k))
-              else
-                var%rho(i, j, k) = rhoStrat(k) + (var%rho(i, j, k) &
-                    &- rhoStrat(k)) * (1.0 + noise(i, j, k))
-              end if
+              var%rho(i, j, k) = var%rho(i, j, k) * (1.0 + noise(i, j, k))
             end do
           end do
         end do
@@ -4550,42 +4084,6 @@ module init_module
         end do
       end do
 
-      ! --------------------------------------------------------------------------
-
-    case("nIce_w_test") ! for pseudo_incompressible case
-      ! This testcase emulates Peter Spichtinger's box model.
-
-      updateMass = .false.
-      predictMomentum = .false.
-      correctMomentum = .false.
-
-      init_SIce = SIce_crit(T_nuc)
-
-      ! initial atmospheric background flow
-      var%u(:, :, :) = backgroundFlow_dim(1) / uRef
-      var%v(:, :, :) = backgroundFlow_dim(2) / uRef
-      var%w(:, :, :) = backgroundFlow_dim(3) / uRef
-
-      ! constant pressure variable pi'
-      var%pi(:, :, :) = 0.0
-
-      ! background pot temp
-      do k = 0, nz
-        var%rhop(:, :, k) = thetaStrat(k)
-        if(fluctuationMode) then
-          var%rho(:, :, k) = 0.0
-        else
-          var%rho(:, :, k) = rhoStrat(k)
-        end if
-      end do
-
-      ! initialize the ice variables according to iceTestcase
-      if(include_ice) then
-        call setup_ice(var)
-      else
-        stop "Error: ice variables must be included for nIce_w_test"
-      end if
-
       !---------------------------------------------------------------------------
 
     case("projectionTest")
@@ -4777,24 +4275,6 @@ module init_module
 
     end select
 
-    !UAB
-    !-------------------------------------
-    ! in case of topography, set all velocities at land points to zero
-    !------------------------------------
-    ! if(topography) then
-    !    do ivr = 2, 4
-    !       do k = 0, nz+1
-    !          do j = 0, ny+1
-    !             do i = 0, nx+1
-    !                if (k < kbl_topo(i,j,ivr-1)) var(i,j,k,ivr) = 0.
-    !             end do
-    !          end do
-    !       end do
-    !    end do
-    ! end if
-    !-------------------------------------
-    !UAE
-
     ! close input file pinc.f
     close(unit = 10)
 
@@ -4902,10 +4382,8 @@ module init_module
             &* spongeHeight * lRef / 1000.0, " km"
         write(*, fmt = "(a25,es8.1,a)") "relaxation  = ", spongeAlphaZ_dim, " &
             &1/s"
-        !UAB
         write(*, fmt = "(a25,es8.1,a)") "relaxation  = ", spongeAlphaZ_fac, " &
             &1/dt"
-        !UAC
       else
         write(*, fmt = "(a25,a)") "sponge layer = ", "off"
       end if
@@ -4933,29 +4411,17 @@ module init_module
       if(include_tracer) then
         write(*, fmt = "(a25,a)") "tracer = ", "on"
 
-        if(tracerdifference) then
-          write(*, fmt = "(a25,a)") "tracerdifference = ", "on"
-        else
-          write(*, fmt = "(a25,a)") "tracerdifference = ", "off"
-        end if
-
         if(raytracer) then
-          if(include_gw_tracer_forcing) then
-            write(*, fmt = "(a25,a)") "include_gw_tracer_forcing = ", "on"
+          if(include_trfrc_lo) then
+            write(*, fmt = "(a25,a)") "include_trfrc_lo = ", "on"
           else
-            write(*, fmt = "(a25,a)") "include_gw_tracer_forcing = ", "off"
+            write(*, fmt = "(a25,a)") "include_trfrc_lo = ", "off"
           end if
 
-          if(include_tracer_mixing) then
-            write(*, fmt = "(a25,a)") "include_tracer_mixing = ", "on"
+          if(include_trfrc_mix) then
+            write(*, fmt = "(a25,a)") "include_trfrc_mix = ", "on"
           else
-            write(*, fmt = "(a25,a)") "include_tracer_mixing = ", "off"
-          end if
-        else
-          if(include_prime) then
-            write(*, fmt = "(a25,a)") "include_prime = ", "on"
-          else
-            write(*, fmt = "(a25,a)") "include_prime = ", "off"
+            write(*, fmt = "(a25,a)") "include_trfrc_mix = ", "off"
           end if
         end if
       else
@@ -5186,10 +4652,10 @@ module init_module
         write(*, fmt = "(a25,f10.1,a7)") "cg_x  = ", - NN * mm ** 2 / kTot &
             &** 3 * uRef, " m/s"
         write(*, fmt = "(a25,f10.1,a7)") "cg_z  = ", NN * mm * kk / kTot ** 3 &
-            &* uRef, " m/s"
+            * uRef, " m/s"
         write(*, fmt = "(a25,f10.1,a7)") "cg_z2  = ", - (NN ** 2. &
-            &- (f_Coriolis_dim / lRef) ** 2.) * mm * (kk ** 2. + ll ** 2.) &
-            &/ kTot2 ** 2. / omi * uRef, " m/s"
+            - (f_Coriolis_dim / lRef) ** 2.) * mm * (kk ** 2. + ll ** 2.) &
+            / kTot2 ** 2. / omi * uRef, " m/s"
         write(*, fmt = "(a25,f10.1,a7)") "u_jet  = ", u0_jet_dim, " m/s"
         print *, ""
       end if ! modified by Junhong Wei (20170216)
@@ -5556,210 +5022,7 @@ module init_module
 
   end function cphase
 
-  !------------------------------------------------------------------
-  subroutine init_data2D3D(iIn, var)
-    !-------------------------------
-    !  reads data from file pf_all_in.dat
-    !-------------------------------
-
-    ! input counter
-    integer, intent(in) :: iIn
-
-    ! argument fields
-    type(var_type), intent(inout) :: var
-
-    ! local and global output field and record nbs.
-    real * 4, dimension(nx, ny) :: field_prc
-    integer irc_prc, irc_out
-    real * 4, dimension(1, sizeY) :: field_in
-
-    ! local variables
-    integer :: i, j, k, iVar
-
-    ! needed for output to screen
-    character(len = 20) :: fmt, form
-
-    integer :: i_prc, i_mst, i_out, j_prc, j_mst, j_out
-
-    if(master) then
-      print *, ""
-      print *, " Input from File ", fileinitstate2D
-      print *, ""
-      write(*, fmt = "(a25,i15)") " reading record no. ", iIn
-    end if
-
-    ! open input file
-    if(master) then
-      open(40, file = fileinitstate2D, form = "unformatted", access &
-          &= 'direct', recl = 1 * SizeY * sizeofreal4)
-      !      print*,"pf_all_in.dat opened"
-    end if
-
-    call reset_var_type(var)
-
-    !---------------------------------------
-    !       layerwise input and non-dimensionalizing
-    !---------------------------------------
-
-    irc_prc = 0
-    do iVar = 1, nVar
-      if(varIn(iVar) /= "") irc_prc = irc_prc + 1
-    end do
-    irc_prc = irc_prc * iIn * nz
-
-    do iVar = 1, nVar
-      if(varIn(iVar) /= "") then
-        do k = 1, nz
-          ! read data layerwise
-
-          irc_prc = irc_prc + 1
-
-          if(master) then
-            read(40, rec = irc_prc) field_in
-
-            do j = 1, ny
-              j_mst = j
-
-              do j_prc = 1, nprocy
-                j_out = ny * (j_prc - 1) + j
-
-                do i_prc = 1, nprocx
-                  do i = 1, nx
-                    i_out = 1 !nx*(i_prc-1)+i
-
-                    i_mst = nprocy * nx * (i_prc - 1) + (j_prc - 1) * nx + i
-
-                    field_mst(i_mst, j_mst) = field_in(i_out, j_out)
-                  end do
-                end do
-              end do
-            end do
-          end if
-
-          call mpi_barrier(comm, ierror)
-
-          do j = 1, ny
-            ! data distributed over all processors
-            call mpi_scatter(field_mst(1, j), nx, mpi_real, field_prc(1, j), &
-                &nx, mpi_real, 0, comm, ierror)
-            do i = 1, nx
-              ! Add offset.
-              field_prc(i, j) = field_prc(i, j) + offset(iVar)
-
-              select case(varIn(iVar))
-
-              case("rho") ! density
-                if(fluctuationMode) then
-                  if(rhoOffset) then
-                    var%rho(i, j, k) = field_prc(i, j) / rhoRef
-                  else
-                    if(topography) then
-                      ! TFC FJ
-                      var%rho(i, j, k) = field_prc(i, j) / rhoRef &
-                          &- rhoStratTFC(i, j, k)
-                    else
-                      var%rho(i, j, k) = field_prc(i, j) / rhoRef - rhoStrat(k)
-                    end if
-                  end if
-                else
-                  if(rhoOffset) then
-                    var%rho(i, j, k) = field_prc(i, j) / rhoRef + rhoStrat(k)
-                  else
-                    var%rho(i, j, k) = field_prc(i, j) / rhoRef
-                  end if
-                end if
-
-                ! interpolate velocities to cell faces
-
-              case("u") ! u velocity
-                var%u(i, j, k) = field_prc(i, j) / uRef
-
-              case("v") ! v velocity
-                var%v(i, j, k) = field_prc(i, j) / uRef
-
-              case("w") ! w velocity
-                var%w(i, j, k) = field_prc(i, j) / uRef
-
-              case("pi") ! Exner function pi'
-                !(deviation from background)
-                var%pi(i, j, k) = field_prc(i, j)
-
-              case("theta")
-                select case(model)
-                case("pseudo_incompressible", "compressible")
-                  continue
-                case("Boussinesq")
-                  var%rhop(i, j, k) = - field_prc(i, j) / thetaRef * rho00 &
-                      &/ theta00
-                case default
-                  stop "Unknown model in init_data2D3D!"
-                end select
-
-              case("DSC") ! dynamic Smagorinsky coefficient
-                !(deviation from background)
-
-                var%DSC(i, j, k) = field_prc(i, j) / (uRef * lRef)
-
-              case default
-                stop "tec360: unkown iVar"
-              end select ! iVar
-            end do ! i
-          end do ! j
-        end do ! k
-      end if
-    end do ! iVar
-
-    !------------------------------------
-    !              close file
-    !------------------------------------
-    if(master) close(unit = 40)
-
-  end subroutine init_data2D3D
-  !------------------------------------------------------------------
-  !UAD
-  ! subroutine therm_rel_param
-  !    ! local variables
-  !    integer :: k
-  !    integer :: allocstat
-  !    real :: tau_sc, spongeAlphaZ_inv
-  !    real, dimension(1:nz)  :: tau_z
-  !    !-------------------------------
-  !    !  creates height-dependent thermal relaxation function
-  !    !-------------------------------
-  !    ! allocate relaxation parameter: hight-dependent
-  !    !allocate(tau_z(1:nz),stat=allocstat)
-  !    !if(allocstat /= 0) stop "init.f90: could not allocate tau_z"
-
-  !      ! nondimensionalize heating relaxation parameter
-  !      tau_sc = tau_relax/tref
-  !      ! nondimensionalize sponge relaxation parameter
-  !      spongeAlphaZ_inv = 1./(spongeAlphaZ_dim * tRef)
-
-  !      do k = 1,nz
-  !        if (spongeLayer) then
-  !            if (k.ge.kSponge) then
-  !            print *, 'k=', k, ' z(k)=', z(k), ' z_dim(k)=', lref*z(k)
-  !                  select case(Sponge_Rel_Type)
-  !                    case("constant")
-  !                        tau_z(k) = tau_sc
-  !                    case("linear")
-  !                        tau_z(k) = ((z(k) - z(kSponge))*spongeAlphaZ_inv + (z(nz) - z(k))*tau_sc)/(z(nz) - z(kSponge))
-  !                    case default
-  !                        stop"init: relaxation is not defined."
-  !                end select
-  !            else
-  !                tau_z(k) = tau_sc
-  !            end if
-  !        else
-  !            tau_z(k) = tau_sc
-  !        end if
-  !        if (tau_z(k).le.1.e-10) then
-  !            stop"init: small thermal relaxation parameter."
-  !        end if
-  !      end do
-
-  !  end subroutine therm_rel_param
-  !-------------------------------------------------------------------------
+  ! ----------------------------------------------------------------------
   subroutine noise_array(amplitude, ntovar, noise)
 
     ! local variables
