@@ -1,5 +1,6 @@
 module type_module
-
+   
+   use mpi
   !-----------------------------------------------------------------
   !    Definition of data types and variables accessible
   !    throughout the code! Use care when working on these
@@ -10,6 +11,8 @@ module type_module
   !-----------------------------------------------------------------
 
   implicit none
+  
+  !-----------------------------------------------------------
 
   public
 
@@ -32,7 +35,7 @@ module type_module
   logical :: verboseMPI
 
   ! MPI include (parameters needed below)
-  include 'mpif.h'
+  !include 'mpif.h'
 
   ! MPI variables
   integer :: ierror
@@ -81,11 +84,9 @@ module type_module
   !-----------------------------------------------------------------
   !                          Variables
   !-----------------------------------------------------------------
-  integer :: nOptVar, iVarT, nBscVar, iVarP
-  logical :: include_ice ! controls use of additional ice variables nAer,nIce,qIce and qv
-  logical :: include_ice2 = .false., include_testoutput = .false.
+  logical :: include_ice = .false., include_testoutput = .false.
   logical :: include_tracer = .false.
-  namelist / variables / include_ice, include_ice2, include_tracer, &
+  namelist / variables / include_ice, include_tracer, &
       &include_testoutput
 
   type var_type
@@ -99,8 +100,7 @@ module type_module
     real, dimension(:, :, :), allocatable :: GWH ! GW heating
     real, dimension(:, :, :), allocatable :: P ! Mass-weighted pot. temp.
     real, dimension(:, :, :), allocatable :: chi ! Tracer
-    real, dimension(:, :, :, :), allocatable :: ICE ! Ice variables
-    real, dimension(:, :, :, :), allocatable :: ICE2 ! Alternative ice variables
+    real, dimension(:, :, :, :), allocatable :: ICE ! Alternative ice variables
     real, dimension(:, :, :, :), allocatable :: OPT ! Optional variables
   end type var_type
 
@@ -113,8 +113,7 @@ module type_module
     real, dimension(:, :, :, :), allocatable :: rhop ! Dens-fluct. fluxes
     real, dimension(:, :, :, :), allocatable :: P ! M.-w.-pot.-temp. fluxes
     real, dimension(:, :, :, :), allocatable :: chi ! Tracer fluxes
-    real, dimension(:, :, :, :, :), allocatable :: ICE ! Ice fluxes
-    real, dimension(:, :, :, :, :), allocatable :: ICE2 ! Alternative ice fluxes
+    real, dimension(:, :, :, :, :), allocatable :: ICE ! Alternative ice fluxes
   end type flux_type
 
   !-----------------------------------------------------------------
@@ -123,23 +122,20 @@ module type_module
   integer :: iOut ! output counter ; gagarina: moved from pinc
 
   character(len = 256) :: file_namelist
-  logical, dimension(3) :: dimOut ! (/1,0,1/) = 2D (x,z), (/1,1,1) = 3D
-
   integer, parameter :: nVar = 20 ! Maximum number of I/O variables
-  character(len = 10), dimension(1:nVar) :: varOut, varIn ! I/O variables
+  !character(len = 10), dimension(1:nVar) :: varOut, varIn ! I/O variables
   real, dimension(1:nVar) :: offset ! Offsets for I/O variables
+
+  character(len = 10), dimension(1:20) :: restartIN
+  character(len = 10), dimension(1:20) :: atmvarOut
+  character(len = 10), dimension(1:20) :: rayvarOut
+  character(len = 10), dimension(1:20) :: icevarOut
+  logical :: saverayvols
+
+  character(len = 40) :: runName
 
   ! record to be read from restart file (starting from 0!)
   integer :: iIn
-  ! achatze
-
-  integer, dimension(6) :: optVarOut ! 1 = output, 0 = no output
-  integer, dimension(13) :: wkbVarOut !           --"--
-  ! increase dimension of optVarOut for new optional variables
-
-  ! subtract background yes/no
-  logical :: thetaOffset
-  logical :: rhoOffset
 
   character(len = 20) :: outputType ! "time" or "timeStep"
   integer :: nOutput ! output every nOutput's time step
@@ -153,10 +149,11 @@ module type_module
 
   logical :: fancy_namelists
 
-  namelist / outputList / dimOut, varOut, varIn, offset, iIn, optVarOut, &
-      &wkbVarOut, outputType, nOutput, maxIter, outputTimeDiff, maxTime, &
-      &restart, thetaOffset, rhoOffset, detailedinfo, RHS_diagnostics, &
-      &fancy_namelists
+  namelist / outputList / offset, iIn, &
+      &outputType, nOutput, maxIter, outputTimeDiff, maxTime, &
+      &restart, detailedinfo, RHS_diagnostics, &
+      &fancy_namelists, atmvarOut, &
+      rayvarOut, icevarOut, runName, saverayvols, restartIN
   !achatzb
   !achatze
 
@@ -386,7 +383,6 @@ module type_module
   ! perturbation (K)
   logical :: add_ptptb ! switch local potential-temperature perturbation
 
-  !UAB
   real :: ta_hs_dim ! thermal-relaxation time scale outside tropical
   ! boundary layer (s, used by HeldSuarez)
   real :: ts_hs_dim ! thermal-relaxation time scale in tropical
@@ -394,7 +390,6 @@ module type_module
   real :: tf_hs_dim ! boundary-layer Rayleigh-damping time scale
   ! (s, used by HeldSuarez)
   real :: sigb_hs ! sigma of boundary-layer top (used by HeldSuarez)
-  !UAB
 
   ! relaxation in massUpdate for the density
   real :: tau_relax, tau_relax_low, sigma_tau
@@ -410,10 +405,8 @@ module type_module
   real, dimension(:, :), allocatable :: kt_hs, kv_hs
   real, dimension(:), allocatable :: kw_hs
 
-  !UAB
   ! relaxation rates for Held & Suarez (1994)
   real, dimension(:, :), allocatable :: kr_sp, kr_sp_w
-  !UAE
 
   real, dimension(:, :, :), allocatable :: kt_hs_tfc
   real, dimension(:, :, :), allocatable :: kr_sp_tfc, kr_sp_w_tfc
@@ -434,10 +427,6 @@ module type_module
       &ptptb_amp_dim, add_noise, proc_noise, tau_relax, tau_relax_low, &
       &sigma_tau, tau_jet, Sponge_Rel_Bal_Type, ta_hs_dim, ts_hs_dim, &
       &tf_hs_dim, sigb_hs
-  !UAC & z_trpp0_dim, z_baro_dim, thet0_dim, &
-  !UAE
-  !UAB
-  !UAE
 
   !-----------------------------------------------------------------
   !                          Baroclinic life cycle: idealized
@@ -480,7 +469,6 @@ module type_module
   real :: dtMax_dim
   real :: turb_dts
   integer :: n_shap ! (half) order of the Shapiro filter
-  !UAC
   !real :: shap_dts_dim                     ! horizontal-Shapiro-filter
   !                                         ! damping time scale (s)
   !                                         ! < 0 means no filter
@@ -488,7 +476,6 @@ module type_module
   ! damping time scale
   ! (in units of the time step)
   ! < 0 means no filter
-  !UAE
 
   character(len = 20) :: tStepChoice ! "cfl", "fix"
   character(len = 20) :: timeScheme ! LS_Will_RK3 / Euler
@@ -497,7 +484,6 @@ module type_module
   character(len = 20) :: reconstType ! ALDM / constant / SALD / MUSCL
   character(len = 20) :: musclType ! muscl1 / muscl2
   character(len = 20) :: limiterType1 ! minmod / ...
-  logical :: fluctuationMode ! split rho = rhoStrat + rho'
   logical :: auxil_equ ! auxiliary equation for the
   ! density fluctuations to be
   ! used in the explicit
@@ -524,7 +510,7 @@ module type_module
 
   namelist / solverList / cfl, cfl_wave, dtMax_dim, tStepChoice, timeScheme, &
       &auxil_equ, fluxType, reconstType, musclType, limiterType1, &
-      &fluctuationMode, TurbScheme, turb_dts, DySmaScheme, dtWave_on, &
+      &TurbScheme, turb_dts, DySmaScheme, dtWave_on, &
       &heatingONK14, dens_relax, shap_dts_fac, n_shap
   !UAC & dens_relax, shap_dts_dim, n_shap
 
@@ -540,9 +526,7 @@ module type_module
   !-----------------------------------------------------------------
 
   real :: tolPoisson
-  ! achatzb
   real :: tolCond, tolref, abs_tol, scaled_atol, alpha_tol, b_norm
-  ! achatze
   integer :: maxIterPoisson
   character(len = 20) :: poissonSolverType
   character(len = 10) :: preconditioner
@@ -572,20 +556,6 @@ module type_module
   real, dimension(:, :, :), allocatable :: aru_b, ard_b, alu_b, ald_b, afu_b, &
       &afd_b, abu_b, abd_b, auu_b, add_b, aruu_b, ardd_b, aluu_b, aldd_b, &
       &afuu_b, afdd_b, abuu_b, abdd_b
-
-  ! real, dimension (:), allocatable :: bvalue_vector_hypre, xvalue_vector_hypre
-
-  !achatzb
-  !integer, dimension(:), allocatable :: stencil_indices_hypre
-  ! integer, dimension (:), allocatable :: stencil_indices_e
-  ! integer, dimension (:), allocatable :: stencil_indices_i
-  !achatze
-
-  !achatzb
-  !integer, parameter :: nentries_hypre = 7
-  ! integer, parameter :: ne_hypre_e = 7
-  ! integer, parameter :: ne_hypre_i = 11
-  !achatze
 
   !-----------------------------------------------------------------
   !                           Constants
@@ -627,7 +597,6 @@ module type_module
   real :: z_tr_dim ! height of tropopause
   real :: theta_tr_dim ! const pot. temp. of troposphere
   real :: gamma_t, gamma_s ! lapse rates in trop and strat
-  !UAB
   real :: tp_strato_dim ! stratosphere temperature (K)
   ! (used by HeldSuarez)
   real :: tp_srf_trp_dim ! tropical surface temperature (K)
@@ -639,15 +608,12 @@ module type_module
   real :: ptdiffvert_tropo_dim ! vertical potential-temperature
   ! difference in troposphere (K)
   ! (used by HeldSuarez)
-  !UAE
 
   namelist / atmosphereList / referenceQuantities, specifyReynolds, ReInv, &
       &mu_viscous_dim, mu_conduct_dim, background, N_BruntVaisala_dim, &
       &theta0_dim, Temp0_dim, press0_dim, backgroundFlow_dim, f_Coriolis_dim, &
       &corset, z_tr_dim, theta_tr_dim, gamma_t, gamma_s, tp_strato_dim, &
       &tp_srf_trp_dim, tpdiffhor_tropo_dim, ptdiffvert_tropo_dim
-  !UAB
-  !UAE
 
   real, dimension(3) :: backgroundFlow
   real :: theta00, rho00, P00 ! background values for Boussinesq
@@ -660,15 +626,11 @@ module type_module
 
   logical :: topography ! via k = 1
 
-  !UAD logical, dimension(:,:,:), allocatable :: topography_mask
-
   ! topography_surface x-y-dependent mountain surface
   real, dimension(:, :), allocatable :: topography_surface
 
-  ! FJFeb2023
   real, dimension(:, :), allocatable :: final_topography_surface
 
-  !UAB
   ! vertical index of (velocity) reconstruction points just above the
   ! mountain surface
   integer, dimension(:, :, :), allocatable :: kbl_topo
@@ -684,14 +646,11 @@ module type_module
   real, dimension(:, :, :), allocatable :: velocity_reconst_n
   !roughness length
   real :: z_0
-  !UAE
 
-  ! TFC FJ
   integer :: ipolTFC
   logical :: freeSlipTFC
   logical :: testTFC
 
-  ! FJFeb2023
   real :: topographyTime
 
   real :: mountainHeight_dim
@@ -699,12 +658,9 @@ module type_module
   integer :: mountain_case
   real :: range_factor
 
-  ! TFC FJ
   namelist / topographyList / topography, ipolTFC, freeSlipTFC, testTFC, &
       &topographyTime, mountainHeight_dim, mountainWidth_dim, mountain_case, &
       &range_factor
-  !UAB
-  !UAE
 
   !-----------------------------------------------------------------
   !                         Boundary
@@ -736,21 +692,12 @@ module type_module
   ! Damping time of COSMO sponge (in time steps)
   integer :: cosmoSteps
 
-  ! gaga: backup, delete later
   real, dimension(:, :), allocatable :: u_const ! constant wind for baroclinic life cycle experiments
-  ! gaga
-  ! boundary types
-  !  real :: xBoundary
-  !  character(len=15) :: xxBoundary
-  !  character(len=15) :: yBoundary
-  !  character(len=15) :: zBoundary
 
   namelist / boundaryList / rhoFluxCorr, iceFluxCorr, uFluxCorr, vFluxCorr, &
       &wFluxCorr, thetaFluxCorr, nbCellCorr, spongeLayer, sponge_uv, &
       &spongeHeight, spongeAlphaZ_dim, spongeAlphaZ_fac, unifiedSponge, &
       &lateralSponge, spongeType, spongeOrder, cosmoSteps
-  !UAC & spongeLayer, spongeHeight, &
-  !UAC & spongeAlphaZ_dim
 
   ! boundary types
   character(len = 15) :: xBoundary
@@ -788,7 +735,6 @@ module type_module
 
     real :: dens ! wave-action density
 
-    !SD
     ! initial phase ray volume
     real :: dphi ! initial phase
 
@@ -815,65 +761,57 @@ module type_module
   !                           Tracer
   !----------------------------------------------------------------
   character(len = 20) :: tracerSetup
-  logical :: include_gw_tracer_forcing, include_tracer_mixing, &
-      &include_env_tracer_forcing, tracerdifference, include_prime
+  logical :: include_trfrc_lo, include_trfrc_mix, &
+      &include_trfrc_no
 
-  namelist / tracerList / tracerSetup, include_gw_tracer_forcing, &
-      &include_tracer_mixing, tracerdifference, include_prime, &
-      &include_env_tracer_forcing
+  namelist / tracerList / tracerSetup, include_trfrc_lo, &
+      &include_trfrc_mix, &
+      &include_trfrc_no
 
-  type waveAmp
-    ! components of the vectors given in (10.358)-(10.360) in
-    ! Achatz, Atmospheric Dynamics (2022)
-    ! (10.358): nowamp (next-order wave amplitudes)
-    ! (10.359): rhsamp (right-hand side of next-order wave amp. equations)
-    ! (10.360): lowamp (leading-order wave amplitudes)
+  	type :: waveAmpCompType
+  		 ! components of the vectors given in (10.358)-(10.360) in
+  		 ! Achatz, Atmospheric Dynamics (2022)
+  		 ! (10.358): nowamp (next-order wave amplitudes)
+  		 ! (10.359): rhsamp (right-hand side of next-order wave amp. equations)
+  		 ! (10.360): lowamp (leading-order wave amplitudes)
 
-    complex :: u ! leading-order zonal wind amplitude uhat^(0) in lowamp
-    ! next-order zonal wind amp. uhat^(1) in nowamp
-    ! rhs of equation for uhat^(1) given in (10.352)
-    complex :: v ! wave as for u, but meridional wind
-    complex :: w ! vertical wind component
-    ! rhs equation given in (10.350)
-    complex :: b ! buoyancy component as given in the book, so
-    ! divided by N !!
-    ! rhs equation given in (10.337)
-    complex :: pi ! Exner-pressure component as given in book,
-    ! so multiplied by c_p/R * thetaStrat
-    ! rhs equation given in (10.327)
-  end type waveAmp
+  		complex :: u ! leading-order zonal wind amplitude uhat^(0) in lowamp
+  								 ! next-order zonal wind amp. uhat^(1) in nowamp
+  								 ! rhs of equation for uhat^(1) given in (10.352)
+  		complex :: v ! wave as for u, but meridional wind
+  		complex :: w ! vertical wind component
+  								 ! rhs equation given in (10.350)
+  		complex :: b	 ! buoyancy component as given in the book, but
+  									 ! not divided by N !!
+  									 ! rhs equation given in (10.337)
+  		complex :: pi	 ! Exner-pressure component as given in book, but
+  									 ! multiplied by c_p/R * theta0 !!
+  									 ! rhs equation given in (10.327)
+        complex :: chi ! tracer mixing ratio component 
+    
+    end type waveAmpCompType
+    type :: waveAmpType 
+
+        type(waveAmpCompType) :: lowamp, rhsamp, nowamp, lowamp_prevts
+
+        real :: phase
+
+        real :: phaserhs
+
+    end type waveAmpType 
+    type :: tracerFluxType
+
+        real :: uflx, vflx, wflx, total
+
+    end type tracerFluxType
+    type :: tracerForceType 
+
+        type(tracerFluxType) :: loforce, noforce, mixingGW
+    
+    end type tracerForceType  
   !-----------------------------------------------------------------
   !                           Ice physics
   !-----------------------------------------------------------------
-
-  character(len = 20) :: iceTestcase ! choose initial ice variable setup
-  ! possible: "homogeneous_qv", "homogeneous_SIce"
-  real :: init_SIce ! initial vapor saturation with respect to ice
-  real :: init_nAer, init_qv ! initial values for aerosols and humidity
-  real :: init_m_ice ! initially assumed average ice crystal mass
-  real :: radius_solution, sigma_r ! needed for log-normal correlation
-  real :: T_nuc ! initial nucleation temperature for 1D_ISSR simple flow case
-  real :: p_nuc ! initial nucleation pressure for 1D_ISSR simple flow case
-  ! this overwrites press0_dim
-  real :: dt_ice ! length of the microphysical time step
-  character(len = 10) :: NUC_approx_type ! nucleation approximation type
-  ! possible: "Koop", "linFit", "threshold"
-  real :: ISSR_top ! top of ISSR relative to mountain height in qv_relaxation testcase
-  logical :: super_simplified ! use a super_simplified DEP and SED scheme
-  logical :: kT_linFit, dv_exp2, cm_dryAir, mu_linFit ! switch approximations on/off
-  logical :: sedimentation_on ! turn sedimentation terms on or off
-  logical :: nucleation_on ! turn nucleation on or off
-  logical :: evaporation_on ! turn evaporation on or off
-  character(len = 10) :: awi_type ! possible: "const", "linFit", "quadFit", "exact"
-  character(len = 10) :: SIce_threshold_type ! possible: "linFit", "quadFit", "exact"
-
-  namelist / iceList / iceTestcase, init_SIce, init_nAer, init_qv, init_m_ice, &
-      &radius_solution, sigma_r, T_nuc, p_nuc, dt_ice, NUC_approx_type, &
-      &ISSR_top, super_simplified, kT_linFit, dv_exp2, cm_dryAir, mu_linFit, &
-      &sedimentation_on, nucleation_on, evaporation_on, awi_type, &
-      &SIce_threshold_type
-
-  !SD: Ice physics 2
   type opt_rayType
     real :: Fsat !full saturation ration within ray volume
     real :: Msat !mean saturation ration within ray volume
@@ -899,7 +837,7 @@ module type_module
   real, parameter :: L_ice = 2.8E6 ! constant latent heat  ice [J/kg]
   real, parameter :: R_v = 461. ! specific gas constant for water vapor [J/kg/K]
 
-  real :: dt_ice2 = 0.1 ! length of the microphysical time step [s]
+  real :: dt_ice = 0.1 ! length of the microphysical time step [s]
 
   real :: thetaRefRatio !thetaRef/thetaRef_tropo_pause
   real :: L_hat, Li_hat, epsil0hat
@@ -909,7 +847,7 @@ module type_module
   logical :: no_ice_source ! set to true if only ice advection and no ice source
   ! are considered
   logical, parameter :: compare_raytracer = .True. ! modify Wavepacket simulation to facilitate comparison with raytracer
-  namelist / iceList2 / inN, inQ, inQv, nVarIce, dt_ice2, no_ice_source
+  namelist / iceList / inN, inQ, inQv, nVarIce, dt_ice, no_ice_source
 
   real, allocatable :: var_ww(:, :, :) ! flux <w'w'> from RayTracer
 
@@ -936,26 +874,23 @@ module type_module
 
     ! Variables
     include_ice = .false.
-    include_ice2 = .false.
     include_tracer = .false.
     include_testoutput = .false.
 
     ! Input/Output
-    dimOut = .false.
-    varOut = ""; varOut(1:5) = ["rho", " u ", " v ", " w ", "pi "]
-    varIn = ""; varIn(1:5) = ["rho", " u ", " v ", " w ", "pi "]
+    atmvarOut = ""; atmvarOut(1:6) = ["background", "rho       ", " u        ", " v        ", " w        ", "pi        "]
+    rayvarOut = ""
+    restartIN = ""; restartIN(1:4) = ["rho", " us", " vs", " ws"]
     offset = 0.0
-    iIn = 1
-    optVarOut = 0
-    wkbVarOut = 0
+    runName = "runName"
+    saverayvols = .false.
+    iIn = -1
     outputType = "time"
     nOutput = 1
     maxIter = 1
     outputTimeDiff = 3600.0
     maxTime = 3600.0
     restart = .false.
-    thetaOffset = .false.
-    rhoOffset = .false.
     detailedinfo = .false.
     RHS_diagnostics = .false.
     fancy_namelists = .true.
@@ -1123,7 +1058,6 @@ module type_module
     reconstType = "MUSCL"
     musclType = "muscl1"
     limiterType1 = "MCVariant"
-    fluctuationMode = .true.
     TurbScheme = .false.
     turb_dts = 5.0e3
     DySmaScheme = .false.
@@ -1206,41 +1140,17 @@ module type_module
     rayTracer = .false.
 
     ! Tracer
-    tracerSetup = "thin_layer"
-    include_gw_tracer_forcing = .true.
-    include_tracer_mixing = .true.
-    tracerdifference = .true.
-    include_prime = .true.
-    include_env_tracer_forcing = .true.
+    tracerSetup = "alpha_z"
+    include_trfrc_lo = .true.
+    include_trfrc_mix = .true.
+    include_trfrc_no = .true.
 
     ! Ice
-    iceTestcase = "ice_cloud"
-    init_SIce = 1.0e5
-    init_nAer = 1.0e8
-    init_qv = 1.0e-4
-    init_m_ice = 1.0e-16
-    radius_solution = 1.0e-8
-    sigma_r = 1.0
-    T_nuc = 200.0
-    p_nuc = 2.0e4
-    dt_ice = 1.0e-3
-    NUC_approx_type = "linFit"
-    ISSR_top = 0.0
-    super_simplified = .false.
-    kT_linFit = .false.
-    dv_exp2 = .false.
-    cm_dryAir = .false.
-    mu_linFit = .false.
-    sedimentation_on = .false.
-    nucleation_on = .false.
-    evaporation_on = .false.
-    awi_type = "const"
-    SIce_threshold_type = "linFit"
     inN = 0
     inQ = 0
     inQv = 0
     nVarIce = 0
-    dt_ice2 = 0.0
+    dt_ice = 0.0
     no_ice_source = .false.
 
   end subroutine default_values
@@ -1251,7 +1161,7 @@ module type_module
 
     implicit none
 
-    integer, parameter :: parameter_space = 26, value_space = 23, &
+    integer, parameter :: parameter_space = 24, value_space = 23, &
         &comment_space = 72 - parameter_space - value_space
     character(len = 50) :: character_format, integer_format, logical_format, &
         &comment_format
@@ -1306,8 +1216,6 @@ module type_module
       write(unit = 90, nml = tracerList)
       write(90, *) ""
       write(unit = 90, nml = iceList)
-      write(90, *) ""
-      write(unit = 90, nml = iceList2)
       close(90)
       return
     end if
@@ -1366,9 +1274,7 @@ module type_module
 
       ! Write variables namelist.
       write(90, "(a)") "&variables"
-      call write_logical("include_ice", include_ice, "Ice microphysics &
-          &parameterization")
-      call write_logical("include_ice2", include_ice2, "...")
+      call write_logical("include_ice", include_ice, "Ice microphysics parameterization")
       call write_logical("include_tracer", include_tracer, "Tracer equation")
       call write_logical("include_testoutput", include_testoutput, "...")
       write(90, "(a)") "&end"
@@ -1376,42 +1282,13 @@ module type_module
 
       ! Write output namelist.
       write(90, "(a)") "&outputList"
-      do iVar = 1, 3
-        write(counter, "(i2)") iVar
-        call write_logical("dimOut(" // trim(adjustl(counter)) // ")", &
-            &dimOut(iVar), "...")
-      end do
-      do iVar = 1, nVar
-        if(varOut(iVar) /= "") then
-          write(counter, "(i2)") iVar
-          call write_character("varOut(" // trim(adjustl(counter)) // ")", &
-              &varOut(iVar), "...")
+      call write_character("runName", runName, "run name for netCDF file")
+      do iVar = 1, size(atmvarOut)
+        if (atmvarOut(iVar) /= "") then
+            write(counter, "(i2)") iVar 
+            call write_character("atmvarOut(" // trim(adjustl(counter)) // ")", &
+                &atmvarOut(iVar), "Atmospheric output variable")
         end if
-      end do
-      do iVar = 1, nVar
-        if(varIn(iVar) /= "") then
-          write(counter, "(i2)") iVar
-          call write_character("varIn(" // trim(adjustl(counter)) // ")", &
-              &varIn(iVar), "...")
-        end if
-      end do
-      do iVar = 1, nVar
-        if(varOut(iVar) /= "" .or. varIn(iVar) /= "") then
-          write(counter, "(i2)") iVar
-          call write_float("offset(" // trim(adjustl(counter)) // ")", &
-              &offset(iVar), "...")
-        end if
-      end do
-      call write_integer("iIn", iIn, "...")
-      do iVar = 1, 6
-        write(counter, "(i2)") iVar
-        call write_integer("optVarOut(" // trim(adjustl(counter)) // ")", &
-            &optVarOut(iVar), "...")
-      end do
-      do iVar = 1, 13
-        write(counter, "(i2)") iVar
-        call write_integer("wkbVarOut(" // trim(adjustl(counter)) // ")", &
-            &wkbVarOut(iVar), "...")
       end do
       call write_character("outputType", outputType, "'timeStep' or 'time'")
       call write_integer("nOutput", nOutput, "Output every nOutput time steps &
@@ -1422,11 +1299,26 @@ module type_module
           &outputTimeDiff seconds for outputType = 'time'")
       call write_float("maxTime", maxTime, "Stop after maxTime seconds for &
           &outputType = 'time'")
+      if (rayTracer) then
+        do iVar = 1, size(rayvarOut)
+            if (rayvarOut(iVar) /= "") then
+                write(counter, "(i2)") iVar 
+                call write_character("rayvarOut(" // trim(adjustl(counter)) // ")", &
+                    &rayvarOut(iVar), "Raytracer output variable")
+            end if
+        end do
+        call write_logical("saverayvols", saverayvols, "Save ray volumes at last time step")
+      end if
+      call write_integer("iIn", iIn, "restart at time-step iIn")
       call write_logical("restart", restart, "Restart the model from state in &
           &previous simulation")
-      call write_logical("thetaOffset", thetaOffset, "Subtract background &
-          &potential temperature")
-      call write_logical("rhoOffset", rhoOffset, "Subtract background density")
+      do iVar = 1, size(restartIN)
+        if (restartIN(iVar) /= "") then
+            write(counter, "(i2)") iVar 
+            call write_character("restartIN(" // trim(adjustl(counter)) // ")", &
+                &restartIN(iVar), "Restart input variable")
+        end if
+      end do
       call write_logical("detailedinfo", detailedinfo, "Provide info on the &
           &final state of Poisson solver")
       call write_logical("RHS_diagnostics", RHS_diagnostics, "Provide info &
@@ -1708,8 +1600,6 @@ module type_module
       call write_character("musclType", musclType, "'muscl1' or 'muscl2'")
       call write_character("limiterType1", limiterType1, "'minmod', &
           &'MCVariant' or 'Cada'")
-      call write_logical("fluctuationMode", fluctuationMode, "Subtract &
-          &background density")
       call write_logical("TurbScheme", TurbScheme, "Turbulence scheme")
       call write_float("turb_dts", turb_dts, "Turbulent damping time")
       call write_logical("DySmaScheme", DySmaScheme, "Dynamic Smagorinsky &
@@ -1862,51 +1752,22 @@ module type_module
 
       ! Write tracer namelist.
       write(90, "(a)") "&tracerList"
-      call write_character("tracerSetup", tracerSetup, "...")
-      call write_logical("include_gw_tracer_forcing", &
-          &include_gw_tracer_forcing, "...")
-      call write_logical("include_tracer_mixing", include_tracer_mixing, "...")
-      call write_logical("tracerdifference", tracerdifference, "...")
-      call write_logical("include_prime", include_prime, "...")
-      call write_logical("include_env_tracer_forcing", &
-          &include_env_tracer_forcing, "...")
+      call write_character("tracerSetup", tracerSetup, "initial tracer distribution")
+      call write_logical("include_trfrc_lo", &
+          &include_trfrc_lo, "leading-order GW tracer forcing")
+      call write_logical("include_trfrc_no", &
+          &include_trfrc_no, "next-order GW tracer forcing")
+      call write_logical("include_trfrc_mix", include_trfrc_mix, "diffusive tracer mixing")
       write(90, "(a)") "&end"
       write(90, "(a)") ""
 
       ! Write ice namelist.
       write(90, "(a)") "&iceList"
-      call write_character("iceTestcase", iceTestcase, "...")
-      call write_float("init_SIce", init_SIce, "...")
-      call write_float("init_nAer", init_nAer, "...")
-      call write_float("init_qv", init_qv, "...")
-      call write_float("init_m_ice", init_m_ice, "...")
-      call write_float("radius_solution", radius_solution, "...")
-      call write_float("sigma_r", sigma_r, "...")
-      call write_float("T_nuc", T_nuc, "...")
-      call write_float("p_nuc", p_nuc, "...")
-      call write_float("dt_ice", dt_ice, "...")
-      call write_character("NUC_approx_type", NUC_approx_type, "...")
-      call write_float("ISSR_top", ISSR_top, "...")
-      call write_logical("super_simplified", super_simplified, "...")
-      call write_logical("kT_linFit", kT_linFit, "...")
-      call write_logical("dv_exp2", dv_exp2, "...")
-      call write_logical("cm_dryAir", cm_dryAir, "...")
-      call write_logical("mu_linFit", mu_linFit, "...")
-      call write_logical("sedimentation_on", sedimentation_on, "...")
-      call write_logical("nucleation_on", nucleation_on, "...")
-      call write_logical("evaporation_on", evaporation_on, "...")
-      call write_character("awi_type", awi_type, "...")
-      call write_character("SIce_threshold_type", SIce_threshold_type, "...")
-      write(90, "(a)") "&end"
-      write(90, "(a)") ""
-
-      ! Write second ice namelist.
-      write(90, "(a)") "&iceList2"
       call write_integer("inN", inN, "...")
       call write_integer("inQ", inQ, "...")
       call write_integer("inQv", inQv, "...")
       call write_integer("nVarIce", nVarIce, "...")
-      call write_float("dt_ice2", dt_ice2, "...")
+      call write_float("dt_ice", dt_ice, "...")
       call write_logical("no_ice_source", no_ice_source, "...")
       write(90, "(a)") "&end"
 
@@ -2308,18 +2169,11 @@ module type_module
       if(allocstat /= 0) stop "Allocation of var_type component chi failed!"
     end if
 
-    ! Allocate ice variables.
-    if(include_ice) then
-      allocate(var%ICE(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 1:4), &
-          &stat = allocstat)
-      if(allocstat /= 0) stop "Allocation of var_type component ICE failed!"
-    end if
-
     ! Allocate alternative ice variables.
-    if(include_ice2) then
-      allocate(var%ICE2(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, &
+    if(include_ice) then
+      allocate(var%ICE(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, &
           &1:nVarIce), stat = allocstat)
-      if(allocstat /= 0) stop "Allocation of var_type component ICE2 failed!"
+      if(allocstat /= 0) stop "Allocation of var_type component ICE failed!"
     end if
 
     ! Allocate optional variables.
@@ -2364,17 +2218,11 @@ module type_module
       if(allocstat /= 0) stop "Allocation of flux_type component chi failed!"
     end if
 
-    ! Allocate ice fluxes.
-    if(include_ice) then
-      allocate(flux%ICE(- 1:nx, - 1:ny, - 1:nz, 1:3, 1:4), stat = allocstat)
-      if(allocstat /= 0) stop "Allocation of flux_type component ICE failed!"
-    end if
-
     ! Allocate alternative ice fluxes.
-    if(include_ice2) then
-      allocate(flux%ICE2(- 1:nx, - 1:ny, - 1:nz, 1:3, 1:nVarIce), stat &
+    if(include_ice) then
+      allocate(flux%ICE(- 1:nx, - 1:ny, - 1:nz, 1:3, 1:nVarIce), stat &
           &= allocstat)
-      if(allocstat /= 0) stop "Allocation of flux_type component ICE2 failed!"
+      if(allocstat /= 0) stop "Allocation of flux_type component ICE failed!"
     end if
 
   end subroutine allocate_flux_type
@@ -2413,14 +2261,9 @@ module type_module
       var%chi = 0.0
     end if
 
-    ! Reset ice variables.
+    ! Reset alternative ice variables.
     if(include_ice) then
       var%ICE = 0.0
-    end if
-
-    ! Reset alternative ice variables.
-    if(include_ice2) then
-      var%ICE2 = 0.0
     end if
 
     ! Reset optional variables.
@@ -2454,14 +2297,9 @@ module type_module
       flux%chi = 0.0
     end if
 
-    ! Reset ice fluxes.
+    ! Reset alternative ice fluxes.
     if(include_ice) then
       flux%ICE = 0.0
-    end if
-
-    ! Reset alternative ice fluxes.
-    if(include_ice2) then
-      flux%ICE2 = 0.0
     end if
 
   end subroutine reset_flux_type
@@ -2511,16 +2349,10 @@ module type_module
       if(allocstat /= 0) stop "Deallocation of var_type component chi failed!"
     end if
 
-    ! Deallocate ice variables.
+    ! Deallocate alternative ice variables.
     if(include_ice) then
       deallocate(var%ICE, stat = allocstat)
       if(allocstat /= 0) stop "Deallocation of var_type component ICE failed!"
-    end if
-
-    ! Deallocate alternative ice variables.
-    if(include_ice2) then
-      deallocate(var%ICE2, stat = allocstat)
-      if(allocstat /= 0) stop "Deallocation of var_type component ICE2 failed!"
     end if
 
     ! Deallocate optional variables.
@@ -2564,16 +2396,10 @@ module type_module
       if(allocstat /= 0) stop "Deallocation of flux_type component chi failed!"
     end if
 
-    ! Deallocate ice fluxes.
+    ! Deallocate alternative ice fluxes.
     if(include_ice) then
       deallocate(flux%ICE, stat = allocstat)
       if(allocstat /= 0) stop "Deallocation of flux_type component ICE failed!"
-    end if
-
-    ! Deallocate alternative ice fluxes.
-    if(include_ice2) then
-      deallocate(flux%ICE2, stat = allocstat)
-      if(allocstat /= 0) stop "Deallocation of flux_type component ICE2 failed!"
     end if
 
   end subroutine deallocate_flux_type

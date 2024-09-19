@@ -27,7 +27,7 @@ module tracer_module
 
     select case(tracerSetup)
 
-    case("increase_in_z_tracer")
+    case("alpha_z")
       ! chi = alphaTracer * z
 
       ! wavepacket initial tracer chi = alphaTracer*z + tracerprime
@@ -36,27 +36,23 @@ module tracer_module
       end if
 
       ! determine total density
-      do kk = 1, nz
-        do jj = 1, ny
-          do ii = 1, nx
-            if(fluctuationMode) then
-              if(topography) then
-                rho(ii, jj, kk) = (var%rho(ii, jj, kk) + rhoStratTFC(ii, jj, &
-                    &kk))
-              else
-                rho(ii, jj, kk) = var%rho(ii, jj, kk) + rhoStrat(kk)
-              end if
+      do kk = 0, nz + 1
+        do jj = 0, ny + 1
+          do ii = 0, nx + 1
+            if(topography) then
+              rho(ii, jj, kk) = (var%rho(ii, jj, kk) + rhoStratTFC(ii, jj, &
+                  &kk))
             else
-              rho(ii, jj, kk) = var%rho(ii, jj, kk)
+              rho(ii, jj, kk) = var%rho(ii, jj, kk) + rhoStrat(kk)
             end if
           end do
         end do
       end do
 
       if(topography) then
-        do kk = 1, nz
-          do jj = 1, ny
-            do ii = 1, nx
+        do kk = 0, nz + 1
+          do jj = 0, ny + 1
+            do ii = 0, nx + 1
               if(testCase == 'wavePacket') then
                 var%chi(ii, jj, kk) = rho(ii, jj, kk) * (tracerprime(ii, jj, &
                     &kk) + alphaTracer * heightTFC(ii, jj, kk))
@@ -71,7 +67,7 @@ module tracer_module
           end do
         end do
       else
-        do kk = 1, nz
+        do kk = 0, nz + 1
           if(testCase == 'wavePacket') then
             var%chi(:, :, kk) = rho(:, :, kk) * (tracerprime(:, :, kk) &
                 &+ alphaTracer * (z(kk) - z(1)))
