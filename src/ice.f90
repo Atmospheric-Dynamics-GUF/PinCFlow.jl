@@ -449,9 +449,9 @@ module ice_module
   subroutine iceSources(var, source)
 
     use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice, &
-        &nVarIce, inN, inQ, inQv, master, model, topography, &
-        &thetaRefRatio, timeScheme, rayTracer, L_ice, R_v, var_ww, iVarO, &
-        &no_ice_source, ofield, pSatIceRef, var_type
+        &nVarIce, inN, inQ, inQv, master, model, topography, thetaRefRatio, &
+        &timeScheme, rayTracer, L_ice, R_v, var_ww, iVarO, no_ice_source, &
+        &ofield, pSatIceRef, var_type
     use mpi_module
     use atmosphere_module, ONLY:PStrat01, PStratTilde01, PStrat, rhoStrat, &
         &piStrat, kappaInv, PStratTFC, piStratTfc, rhoStratTFC, gamma_1, p0, &
@@ -544,9 +544,9 @@ module ice_module
   subroutine iceSources_raytr(var, source, uTime, pTime)
 
     use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice, &
-        &nVarIce, inN, inQ, inQv, master, model, topography, &
-        &thetaRefRatio, timeScheme, rayTracer, L_ice, R_v, var_ww, iVarO, &
-        &no_ice_source, ofield, PsatIceRef, Li_hat, alr_ndim, var_type
+        &nVarIce, inN, inQ, inQv, master, model, topography, thetaRefRatio, &
+        &timeScheme, rayTracer, L_ice, R_v, var_ww, iVarO, no_ice_source, &
+        &ofield, PsatIceRef, Li_hat, alr_ndim, var_type
 
     use type_module, ONLY:PI ! TEST
     use atmosphere_module, ONLY:tRef !TEST
@@ -846,9 +846,8 @@ module ice_module
   subroutine redim_fields(var, var0)
 
     use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice, &
-        &nVarIce, inN, inQ, inQv, master, model, topography, &
-        &thetaRefRatio, timeScheme, L_ice, R_v, S_c, Dep, pSatIceRef, epsil0, &
-        &var_type
+        &nVarIce, inN, inQ, inQv, master, model, topography, thetaRefRatio, &
+        &timeScheme, L_ice, R_v, S_c, Dep, pSatIceRef, epsil0, var_type
     use mpi_module
     use atmosphere_module, ONLY:PStrat01, PStratTilde01, PStrat, rhoStrat, &
         &piStrat, kappaInv, PStratTFC, piStratTfc, rhoStratTFC, gamma_1, p0, &

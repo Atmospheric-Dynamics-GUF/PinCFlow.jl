@@ -40,8 +40,7 @@ module tracer_module
         do jj = 0, ny + 1
           do ii = 0, nx + 1
             if(topography) then
-              rho(ii, jj, kk) = (var%rho(ii, jj, kk) + rhoStratTFC(ii, jj, &
-                  &kk))
+              rho(ii, jj, kk) = (var%rho(ii, jj, kk) + rhoStratTFC(ii, jj, kk))
             else
               rho(ii, jj, kk) = var%rho(ii, jj, kk) + rhoStrat(kk)
             end if
@@ -87,4 +86,3 @@ module tracer_module
   end subroutine setup_tracer
 
 end module tracer_module
-

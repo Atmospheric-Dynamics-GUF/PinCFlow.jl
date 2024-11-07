@@ -4,7 +4,6 @@ module update_module
   use timeScheme_module
   use atmosphere_module
   use flux_module
-  use algebra_module
   use poisson_module
   use boundary_module
   use mpi_module
@@ -38,7 +37,6 @@ module update_module
 
   public :: piUpdate ! Update of pi' in compressible model
   public :: bvsUpdate ! Update of N^2 in compressible model
-  public :: P_update ! update of P in compressible model
 
   ! TFC FJ
   public :: momentumPredictorTestTFC, massUpdateTestTFC
@@ -356,7 +354,6 @@ module update_module
           end do
         end do
       end do
-
 
     case("uvw")
       ! relax u to:
@@ -755,19 +752,23 @@ module update_module
 
       ! Sponge for zonal wind
 
-      ! Local horizontal sum
-      do k = 1, nz
-        sum_local(k) = sum(var%u(1:nx, 1:ny, k))
-      end do
+      ! Determine relaxation wind.
+      if(relax_to_mean) then
+        ! Compute local horizontal sum.
+        do k = 1, nz
+          sum_local(k) = sum(var%u(1:nx, 1:ny, k))
+        end do
 
-      ! Global sum and average
-      call mpi_allreduce(sum_local(1), sum_global(1), nz, &
-          &mpi_double_precision, mpi_sum, comm, ierror)
-      sum_global = sum_global / (sizeX * sizeY)
+        ! Compute global sum and average.
+        call mpi_allreduce(sum_local(1), sum_global(1), nz, &
+            &mpi_double_precision, mpi_sum, comm, ierror)
+        sum_global = sum_global / (sizeX * sizeY)
+      else
+        uBG = backgroundFlow_dim(1) / uRef
+      end if
 
-      ! uBG = backgroundFlow_dim(1) / uRef
       do k = 1, nz
-        uBG = sum_global(k)
+        if(relax_to_mean) uBG = sum_global(k)
         do j = 1, ny
           do i = 1, nx
             alpha = 0.5 * (alphaUnifiedSponge(i, j, k) + alphaUnifiedSponge(i &
@@ -782,19 +783,23 @@ module update_module
 
       ! Sponge for meridional wind
 
-      ! Local horizontal sum
-      do k = 1, nz
-        sum_local(k) = sum(var%v(1:nx, 1:ny, k))
-      end do
+      ! Determine relaxation wind.
+      if(relax_to_mean) then
+        ! Compute local horizontal sum.
+        do k = 1, nz
+          sum_local(k) = sum(var%v(1:nx, 1:ny, k))
+        end do
 
-      ! Global sum and average
-      call mpi_allreduce(sum_local(1), sum_global(1), nz, &
-          &mpi_double_precision, mpi_sum, comm, ierror)
-      sum_global = sum_global / (sizeX * sizeY)
+        ! Compute global sum and average.
+        call mpi_allreduce(sum_local(1), sum_global(1), nz, &
+            &mpi_double_precision, mpi_sum, comm, ierror)
+        sum_global = sum_global / (sizeX * sizeY)
+      else
+        vBG = backgroundFlow_dim(2) / uRef
+      end if
 
-      ! vBG = backgroundFlow_dim(2) / uRef
       do k = 1, nz
-        vBG = sum_global(k)
+        if(relax_to_mean) vBG = sum_global(k)
         do j = 1, ny
           do i = 1, nx
             alpha = 0.5 * (alphaUnifiedSponge(i, j, k) + alphaUnifiedSponge(i, &
@@ -809,19 +814,23 @@ module update_module
 
       ! Sponge for vertical wind
 
-      ! Local horizontal sum
-      do k = 1, nz
-        sum_local(k) = sum(var%w(1:nx, 1:ny, k))
-      end do
+      ! Determine relaxation wind.
+      if(relax_to_mean) then
+        ! Compute local horizontal sum.
+        do k = 1, nz
+          sum_local(k) = sum(var%w(1:nx, 1:ny, k))
+        end do
 
-      ! Global sum and average
-      call mpi_allreduce(sum_local(1), sum_global(1), nz, &
-          &mpi_double_precision, mpi_sum, comm, ierror)
-      sum_global = sum_global / (sizeX * sizeY)
+        ! Compute global sum and average.
+        call mpi_allreduce(sum_local(1), sum_global(1), nz, &
+            &mpi_double_precision, mpi_sum, comm, ierror)
+        sum_global = sum_global / (sizeX * sizeY)
+      else
+        wBG = backgroundFlow_dim(3) / uRef
+      end if
 
-      ! wBG = backgroundFlow_dim(3) / uRef
       do k = 1, nz
-        wBG = sum_global(k)
+        if(relax_to_mean) wBG = sum_global(k)
         do j = 1, ny
           do i = 1, nx
             if(topography) then
@@ -966,1586 +975,6 @@ module update_module
 
   !---------------------------------------------------------------------
 
-  subroutine momentumPredictor_nc(var, flux, force, dt, q, m, mmp_mod, &
-      &int_mod, facray)
-    !-------------------------------------
-    !  calculates the velocities u^*
-    !
-    !  Corilolis effect handled explicitly
-    !-------------------------------------
-
-    ! in/out variables
-    type(var_type), intent(inout) :: var
-
-    type(flux_type), intent(in) :: flux
-    ! flux(i,j,k,dir,iFlux)
-    ! dir = 1..3 > f,g,h-flux in x,y,z-direction
-    ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
-
-    ! mmp_mod decides, which part of the momentum equation is to be used:
-    ! tot => total momentum equation
-    ! lhs => only advection and molecular and turbulent viscous fluxes on
-    !        the left-hand side of the equation
-    ! rhs => only pressure-gradient, Coriolis and gravitational force on
-    !        the right-hand side of the equation
-
-    ! int_mod discriminates between implicit and explicit time stepping:
-    ! expl => explicit time stepping
-    !         (always the case for integration of the lhs)
-    !         RK sub step for integration of the lhs
-    !         Euler step for the rhs of the momentum equations
-    ! impl => implicit-time-step part without pressure-gradient term
-    !         (only for rhs of the momentum equations)
-
-    ! facray multiplies the Rayleigh-damping terms so that they are only
-    ! handled in the implicit time stepping (sponge and immersed boundary)
-    character(len = *), intent(in) :: mmp_mod, int_mod
-
-    ! volume forces
-    ! mmp_mod = tot =>
-    ! 1) gravitational / buoyancy force (cell-centered)
-    ! 2) Coriolis force (cell-centered)
-    ! 3) WKB wave driving (cell-centered)
-    ! mmp_mod = rhs =>
-    ! 1) WKB wave driving (cell-centered)
-    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(in) :: force
-
-    real, intent(in) :: dt, facray
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), &
-        &intent(inout) :: q
-    integer, intent(in) :: m
-
-    logical :: spongeLayer_s, topography_s
-
-    ! local variables
-    real :: fL, fR, gB, gF, hD, hU
-    ! flux Left/Right, Backward/Forward, Downward/Upward
-
-    ! usave to keep the new u until v has been updated as well
-    ! (for mmp_mod = rhs)
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz) :: usave
-
-    ! other stuff
-    real :: rhoM_1, rhoM ! rho(m-1), rho(m)
-    real :: drho_e
-    real :: uM_1, vM_1, wM_1 ! u(m-1), v(m-1) and w(m-1)
-    real :: momM_1, momM ! momentum at t(m-1) and t(m)
-    real :: piR, piL, piF, piB, piU, piD
-    real :: fluxDiff ! conv. and viscous flux contr.
-    real :: piGrad ! pressure gradient
-    real :: piGradx, piGrady ! horizontal pressure-gradient
-    ! components
-    real :: F ! update part for Runge-Kutta step
-    real :: uAst, vAst, wAst ! predicted velocities u*, v* and w*
-    real :: uhorx, vhory, wvert
-
-    integer :: i, j, k
-    integer :: i0, i1, j0, j1, k0, k1
-
-    ! gravity
-    real :: thetaEdge
-    real :: volForce
-
-    ! local interpolation values
-    real :: pBarEdge ! stratified background pressure interpolated
-    real :: thetaBar ! stratified pot. temp. interpolated
-    real :: rhoEdge ! interpolated density to velocity edge
-
-    ! classical RK3
-    real :: rhoM_0, uM_0, vM_0, wM_0, momM_0
-
-    ! non-dimensional Corilois parameter (= inverse Rossby number)
-    !FS real :: f_cor_nd
-    real, dimension(0:ny + 1) :: f_cor_nd
-
-    !real :: rho, rhop, rhou, rhov, rhow, facu, facv, facw, facr, pstw, buoy
-    real :: rho, rhop, rhou, rhov, rhow, facu, facv, facw, facr, pstw, pstw_0, &
-        &buoy
-    real :: rho10, rho01
-    real :: rhov0m, rhov00, rhov1m, rhov10
-    real :: rhou00, rhoum0, rhou01, rhoum1
-    real :: rho000, rho001
-    real :: volfcx, volfcy
-    real :: bvsstw
-
-    real :: rho_e, rhou_e, rhov_e, rhow_e, pstw_e
-    real :: rho10_e, rho01_e
-    real :: rhov0m_e, rhov00_e, rhov1m_e, rhov10_e
-    real :: rhou00_e, rhoum0_e, rhou01_e, rhoum1_e
-    real :: rho000_e, rho001_e
-    real :: piR_e, piL_e, piF_e, piB_e, piU_e, piD_e
-
-    real :: f_cor_v
-
-    real :: u_ip, v_ip, w_ip, u_ip_n, v_ip_n, w_ip_n, u_ip_t, v_ip_t, w_ip_t, &
-        &u_rp, v_rp, w_rp, u_rp_n, v_rp_n, w_rp_n, u_rp_t, v_rp_t, w_rp_t
-
-    integer :: i00, j00
-
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz) :: heat
-
-    real :: rhop_0, rhop_1
-    real :: rho_p0, rho_p1
-
-    real, dimension(- nbz:nz + nbz) :: w_0
-    real, dimension(- nbz:nz + nbz) :: S_bar
-    real :: heat_flc, heat0, heat1
-
-    real :: ymax, yloc, ymin
-
-    if(corset == 'periodic') then
-      ymax = ly_dim(1) / lRef
-      ymin = ly_dim(0) / lRef
-
-      j0 = js + nby - 1
-
-      do j = 0, ny + 1
-        yloc = y(j + j0)
-
-        f_cor_nd(j) = - 4. * pi / 8.64e4 * tRef * cos(2. * pi * (yloc - ymin) &
-            &/ (ymax - ymin))
-      end do
-    else if(corset == 'constant') then
-      f_cor_nd(0:ny + 1) = f_Coriolis_dim * tRef
-    else
-      stop 'ERROR: wrong corset'
-    end if
-
-    if(topography) then
-      i00 = is + nbx - 1
-      j00 = js + nby - 1
-    end if
-
-    !if (int_mod == "impl") then
-    !   ! environmental heating
-    !   call calculate_heating(var,flux,heat)
-
-    !   ! heating by GW entropy-flux convergence
-    !   if (raytracer) heat(:,:,:) = heat(:,:,:) + var(:,:,:,8)
-    !end if
-
-    if(correctDivError) then
-      print *, 'ERROR: correction divergence error not allowed'
-      stop
-    end if
-
-    ! init q
-    if(m == 1) q = 0.
-
-    if(mmp_mod == 'rhs') then
-      if(int_mod == 'expl') then
-        spongeLayer_s = spongeLayer
-        topography_s = topography
-
-        spongeLayer = .false.
-        topography = .false.
-      else if(int_mod == 'impl') then
-        kr_sp = kr_sp * facray
-        kr_sp_w = kr_sp_w * facray
-        alprlx = alprlx * facray
-      end if
-    end if
-
-    ! -------------------------------------
-    !            predict u -> u*
-    ! -------------------------------------
-
-    select case(xBoundary)
-
-    case("solid_wall")
-      i0 = 1
-      i1 = nx - 1
-    case("periodic")
-      i0 = 0
-      i1 = nx
-    case default
-      stop "momentumPredictor: unknown case xBoundary."
-    end select
-
-    if(mmp_mod == "tot" .or. mmp_mod == "lhs") then
-      if(int_mod /= "expl") then
-        stop 'ERROR: wrong int_mod for mmp_mod = tot or mmp_mod = lhs'
-      end if
-
-      do k = 1, nz
-        do j = 1, ny
-          do i = i0, i1
-
-            !--- convective fluxes -> conv
-            fR = flux%u(i, j, k, 1)
-            fL = flux%u(i - 1, j, k, 1)
-            gF = flux%u(i, j, k, 2)
-            gB = flux%u(i, j - 1, k, 2)
-            hU = flux%u(i, j, k, 3)
-            hD = flux%u(i, j, k - 1, 3)
-            fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz ! diverg.
-
-            volForce = 0.
-
-            if(mmp_mod == "tot") then
-              !--- pressure gradient term -> piGrad
-              if(TestCase == "baroclinic_LC") then
-                piR = var%pi(i + 1, j, k) - var_env%pi(i + 1, j, k)
-                piL = var%pi(i, j, k) - var_env%pi(i, j, k)
-              else
-                piR = var%pi(i + 1, j, k)
-                piL = var%pi(i, j, k)
-              end if
-
-              piGrad = kappaInv * MaInv2 * Pstrat(k) * (piR - piL) / dx
-
-              if(TestCase == "baroclinic_LC") then !FS
-                piGrad = piGrad + kappaInv * MaInv2 * (PStrat(k) &
-                    &- pStrat_0(k)) * (var_env%pi(i + 1, j, k) - var_env%pi(i, &
-                    &j, k)) / dx
-              end if
-
-              !---- volume forces
-              volForce = 0.5 * (force(i, j, k, 1) + force(i + 1, j, k, 1))
-
-              if(TestCase == "baroclinic_LC") then
-                select case(model)
-                case("pseudo_incompressible", "compressible")
-                  rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
-
-                  rhoM_1 = rhoM_1 + rhoStrat(k)
-                case("Boussinesq")
-                  rhoM_1 = rho00
-                case default
-                  stop "momentumPredictor: unkown model."
-                end select
-
-                volforce = volforce - rhoM_1 * RoInv(j) * 0.25 * (var_env%v(i, &
-                    &j - 1, k) + var_env%v(i + 1, j - 1, k) + var_env%v(i, j, &
-                    &k) + var_env%v(i + 1, j, k))
-
-              end if
-
-              if(topography) then
-                ! Rayleigh damping for topography (immersed boundary)
-
-                select case(model)
-                case("pseudo_incompressible", "compressible")
-                  rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
-
-                  rhoM_1 = rhoM_1 + rhoStrat(k)
-                case("Boussinesq")
-                  rhoM_1 = rho00
-                case default
-                  stop "momentumPredictor: unkown model."
-                end select
-
-                !UAC if(topography_mask(i00+i,j00+j,k)&
-                !   .or.&
-                !   topography_mask(i00+i+1,j00+j,k)) then
-                !   volForce = volForce - alprlx * rhoM_1*var(i,j,k,2)
-                !end if
-                if(k < kbl_topo(i, j, 1)) then
-                  volForce = volForce - alprlx * rhoM_1 * var%u(i, j, k)
-                else if(k == kbl_topo(i, j, 1)) then
-                  call wind_ip(var, x_ip(i, j, 1), y_ip(i, j, 1), z_ip(i, j, &
-                      &1), 'u', u_ip, v_ip, w_ip)
-
-                  u_ip_n = (u_ip * dhdx(i, j, 1) + v_ip * dhdy(i, j, 1) &
-                      &- w_ip) * dhdx(i, j, 1) / (1 + dhdx(i, j, 1) ** 2 &
-                      &+ dhdy(i, j, 1) ** 2)
-
-                  u_ip_t = u_ip - u_ip_n
-
-                  u_rp_t = velocity_reconst_t(i, j, 1) * u_ip_t
-                  u_rp_n = velocity_reconst_n(i, j, 1) * u_ip_n
-                  u_rp = u_rp_t + u_rp_n
-
-                  volForce = volForce - alprlx * rhoM_1 * (var%u(i, j, k) &
-                      &- u_rp)
-                end if
-                !UAE
-              end if
-            end if
-
-            if(TestCase == "baroclinic_LC") then
-              if(background == "HeldSuarez") then
-                ! Rayleigh damping
-
-                select case(model)
-                case("pseudo_incompressible", "compressible")
-                  rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
-
-                  rhoM_1 = rhoM_1 + rhoStrat(k)
-                case("Boussinesq")
-                  rhoM_1 = rho00
-                case default
-                  stop "momentumPredictor: unkown model."
-                end select
-
-                volForce = volForce - kv_hs(j, k) * rhoM_1 * (var%u(i, j, k) &
-                    &- var_env%u(i, j, k))
-              end if
-            end if
-
-            !--------------------
-            !   d/dt ... = F(phi) (RHS of ODE)
-            !--------------------
-            ! fluxDiff -> convective and viscous fluxes
-            ! piGrad   -> pressure gradient along x scaled with 1/Ma^2
-            ! volForce -> Gravity, Coriolis
-            if(mmp_mod == "tot") then
-              F = - fluxDiff - piGrad + volForce
-            else if(mmp_mod == "lhs") then
-              F = - fluxDiff + volForce !200413
-            else
-              stop 'ERROR: wrong mmp_mod'
-            end if
-
-            ! interpolated density
-            select case(model)
-
-            case("pseudo_incompressible", "compressible")
-
-              rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i + 1, j, k))
-              rhoM = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k))
-
-              rhoM_1 = rhoM_1 + rhoStrat(k)
-              rhoM = rhoM + rhoStrat(k)
-
-            case("Boussinesq")
-              rhoM_1 = rho00
-              rhoM = rho00
-            case default
-              stop "momentumPredictor: unkown case model."
-            end select
-
-            ! velocity and momentum at t(m-1)
-            uM_1 = var%u(i, j, k)
-            momM_1 = rhoM_1 * uM_1
-
-            ! q(m-1) -> q(m)
-
-            q(i, j, k, 1) = dt * F + alpha(m) * q(i, j, k, 1)
-
-            ! rhoU(m-1) -> rhoU(m)
-            momM = momM_1 + beta(m) * q(i, j, k, 1)
-
-            ! calc u(m,*)
-            uAst = momM / rhoM
-
-            ! uAst -> var
-            var%u(i, j, k) = uAst
-          end do
-        end do
-      end do
-    else if(mmp_mod == "rhs") then
-      if(int_mod == "expl") then
-        do k = 1, nz
-          do j = 1, ny
-            do i = i0, i1
-              rhou = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k))
-              rhou = rhou + rhoStrat(k)
-
-              if(TestCase == "baroclinic_LC") then
-                rhou_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i + 1, j, k))
-                rhou_e = rhou_e + rhoStrat_0(k)
-              end if
-
-              !--- pressure gradient term -> piGrad
-              if(TestCase == "baroclinic_LC") then
-                piR = var%pi(i + 1, j, k) - var_env%pi(i + 1, j, k)
-                piL = var%pi(i, j, k) - var_env%pi(i, j, k)
-
-                piR_e = var_env%pi(i + 1, j, k)
-                piL_e = var_env%pi(i, j, k)
-              else
-                piR = var%pi(i + 1, j, k)
-                piL = var%pi(i, j, k)
-              end if
-
-              piGrad = kappaInv * MaInv2 * Pstrat(k) / rhou * (piR - piL) / dx
-
-              if(TestCase == "baroclinic_LC") then !FS
-                piGrad = piGrad + kappaInv * MaInv2 * (Pstrat(k) / rhou &
-                    &- Pstrat_0(k) / rhou_e) * (piR_e - piL_e) / dx
-              end if
-
-              ! gravity-wave forcing
-              if(raytracer .or. (testCase == "mountainwave")) then
-                volfcx = 0.5 * (force(i, j, k, 1) + force(i + 1, j, k, 1))
-              else
-                volfcx = 0.0
-              end if
-
-              ! ustar
-              if(TestCase == "baroclinic_LC") then
-                uhorx = var%u(i, j, k) - var_env%u(i, j, k)
-              else
-                uhorx = var%u(i, j, k)
-              end if
-
-              vhory = 0.25 * (var%v(i, j - 1, k) + var%v(i, j, k) + var%v(i &
-                  &+ 1, j - 1, k) + var%v(i + 1, j, k))
-
-              uAst = uhorx + dt * (f_cor_nd(j) * vhory - piGrad + volfcx / rhou)
-
-              if(topography) then
-                ! Rayleigh damping for topography (immersed boundary)
-
-                !UAC if(topography_mask(i00+i,j00+j,k)&
-                !   .or.&
-                !   topography_mask(i00+i+1,j00+j,k)) then
-                !   uAst = uAst - dt* alprlx*uhorx
-                !end if
-                if(TestCase == "baroclinic_LC") then
-                  stop 'combination of topography with baroclinic  LC not &
-                      &possible yet'
-                end if
-
-                if(k < kbl_topo(i, j, 1)) then
-                  uAst = uAst - dt * alprlx * uhorx
-                else if(k == kbl_topo(i, j, 1)) then
-                  call wind_ip(var, x_ip(i, j, 1), y_ip(i, j, 1), z_ip(i, j, &
-                      &1), 'u', u_ip, v_ip, w_ip)
-
-                  u_ip_n = (u_ip * dhdx(i, j, 1) + v_ip * dhdy(i, j, 1) &
-                      &- w_ip) * dhdx(i, j, 1) / (1 + dhdx(i, j, 1) ** 2 &
-                      &+ dhdy(i, j, 1) ** 2)
-
-                  u_ip_t = u_ip - u_ip_n
-
-                  u_rp_t = velocity_reconst_t(i, j, 1) * u_ip_t
-                  u_rp_n = velocity_reconst_n(i, j, 1) * u_ip_n
-                  u_rp = u_rp_t + u_rp_n
-
-                  uAst = uAst - dt * alprlx * (var%u(i, j, k) - u_rp)
-                end if
-                !UAE
-              end if
-
-              if(TestCase == "baroclinic_LC") then
-                if(background == "HeldSuarez") then
-                  ! Rayleigh damping
-                  uAst = uAst - dt * kv_hs(j, k) * uhorx
-                end if
-              end if
-
-              if(spongeLayer .and. sponge_uv) then
-                uAst = uAst - dt * kr_sp(j, k) * uhorx
-              end if
-
-              usave(i, j, k) = uAst
-
-              if(TestCase == "baroclinic_LC") then
-                usave(i, j, k) = usave(i, j, k) + var_env%u(i, j, k)
-              end if
-            end do
-          end do
-        end do
-      else if(int_mod == "impl") then
-        do k = 1, nz
-          do j = 1, ny
-            do i = i0, i1
-              rhou = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k))
-
-              rhov0m = 0.5 * (var%rho(i, j, k) + var%rho(i, j - 1, k))
-              rhov00 = 0.5 * (var%rho(i, j + 1, k) + var%rho(i, j, k))
-              rhov1m = 0.5 * (var%rho(i + 1, j, k) + var%rho(i + 1, j - 1, k))
-              rhov10 = 0.5 * (var%rho(i + 1, j + 1, k) + var%rho(i + 1, j, k))
-
-              rhou = rhou + rhoStrat(k)
-              rhov0m = rhov0m + rhoStrat(k)
-              rhov00 = rhov00 + rhoStrat(k)
-              rhov1m = rhov1m + rhoStrat(k)
-              rhov10 = rhov10 + rhoStrat(k)
-
-              if(TestCase == "baroclinic_LC") then
-                rhou_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i + 1, j, k))
-
-                rhov0m_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j - 1, &
-                    &k))
-                rhov00_e = 0.5 * (var_env%rho(i, j + 1, k) + var_env%rho(i, j, &
-                    &k))
-                rhov1m_e = 0.5 * (var_env%rho(i + 1, j, k) + var_env%rho(i &
-                    &+ 1, j - 1, k))
-                rhov10_e = 0.5 * (var_env%rho(i + 1, j + 1, k) + var_env%rho(i &
-                    &+ 1, j, k))
-
-                rhou_e = rhou_e + rhoStrat_0(k)
-                rhov0m_e = rhov0m_e + rhoStrat_0(k)
-                rhov00_e = rhov00_e + rhoStrat_0(k)
-                rhov1m_e = rhov1m_e + rhoStrat_0(k)
-                rhov10_e = rhov10_e + rhoStrat_0(k)
-              end if
-
-              !--- pressure gradient terms -> piGradx, piGrady
-              if(TestCase == "baroclinic_LC") then
-                piR = var%pi(i + 1, j, k) - var_env%pi(i + 1, j, k)
-                piL = var%pi(i, j, k) - var_env%pi(i, j, k)
-
-                piR_e = var_env%pi(i + 1, j, k)
-                piL_e = var_env%pi(i, j, k)
-              else
-                piR = var%pi(i + 1, j, k)
-                piL = var%pi(i, j, k)
-              end if
-
-              piGradx = kappaInv * MaInv2 * Pstrat(k) / rhou * (piR - piL) / dx !FS
-
-              if(TestCase == "baroclinic_LC") then !FS
-                piGradx = piGradx + kappaInv * MaInv2 * (PStrat(k) / rhou &
-                    &- pStrat_0(k) / rhou_e) * (piR_e - piL_e) / dx
-              end if
-
-              if(TestCase == "baroclinic_LC") then
-                piGrady = kappaInv * MaInv2 * 0.25 * (Pstrat(k) / rhov0m &
-                    &* (var%pi(i, j, k) - var%pi(i, j - 1, k) - var_env%pi(i, &
-                    &j, k) + var_env%pi(i, j - 1, k)) / dy + Pstrat(k) &
-                    &/ rhov00 * (var%pi(i, j + 1, k) - var%pi(i, j, k) &
-                    &- var_env%pi(i, j + 1, k) + var_env%pi(i, j, k)) / dy &
-                    &+ Pstrat(k) / rhov1m * (var%pi(i + 1, j, k) - var%pi(i &
-                    &+ 1, j - 1, k) - var_env%pi(i + 1, j, k) + var_env%pi(i &
-                    &+ 1, j - 1, k)) / dy + Pstrat(k) / rhov10 * (var%pi(i &
-                    &+ 1, j + 1, k) - var%pi(i + 1, j, k) - var_env%pi(i + 1, &
-                    &j + 1, k) + var_env%pi(i + 1, j, k)) / dy)
-
-                piGrady = piGrady + kappaInv * MaInv2 * 0.25 * ((Pstrat(k) &
-                    &/ rhov0m - Pstrat_0(k) / rhov0m_e) * (var_env%pi(i, j, k) &
-                    &- var_env%pi(i, j - 1, k)) / dy + (Pstrat(k) / rhov00 &
-                    &- Pstrat_0(k) / rhov00_e) * (var_env%pi(i, j + 1, k) &
-                    &- var_env%pi(i, j, k)) / dy + (Pstrat(k) / rhov1m &
-                    &- Pstrat_0(k) / rhov1m_e) * (var_env%pi(i + 1, j, k) &
-                    &- var_env%pi(i + 1, j - 1, k)) / dy + (Pstrat(k) / rhov10 &
-                    &- Pstrat_0(k) / rhov10_e) * (var_env%pi(i + 1, j + 1, k) &
-                    &- var_env%pi(i + 1, j, k)) / dy)
-              else
-                piGrady = kappaInv * MaInv2 * 0.25 * (Pstrat(k) / rhov0m &
-                    &* (var%pi(i, j, k) - var%pi(i, j - 1, k)) / dy &
-                    &+ Pstrat(k) / rhov00 * (var%pi(i, j + 1, k) - var%pi(i, &
-                    &j, k)) / dy + Pstrat(k) / rhov1m * (var%pi(i + 1, j, k) &
-                    &- var%pi(i + 1, j - 1, k)) / dy + Pstrat(k) / rhov10 &
-                    &* (var%pi(i + 1, j + 1, k) - var%pi(i + 1, j, k)) / dy)
-              end if
-
-              ! gravity-wave forcing
-              if(raytracer .or. (testCase == "mountainwave")) then
-                volfcx = 0.5 * (force(i, j, k, 1) + force(i + 1, j, k, 1))
-                volfcy = 0.5 * (force(i, j, k, 2) + force(i, j + 1, k, 2))
-              else
-                volfcx = 0.0
-                volfcy = 0.0
-              end if
-
-              ! ustar
-              if(TestCase == "baroclinic_LC") then
-                uhorx = var%u(i, j, k) - var_env%u(i, j, k)
-              else
-                uhorx = var%u(i, j, k)
-              end if
-
-              vhory = 0.25 * (var%v(i, j - 1, k) + var%v(i, j, k) + var%v(i &
-                  &+ 1, j - 1, k) + var%v(i + 1, j, k))
-
-              facu = 1.0
-
-              if(topography) then
-                ! Rayleigh damping for topography (immersed boundary)
-
-                !UAC if(topography_mask(i00+i,j00+j,k)&
-                !   .or.&
-                !   topography_mask(i00+i+1,j00+j,k)) then
-                !   facu = facu + dt*alprlx
-                !end if
-                if(k < kbl_topo(i, j, 1)) then
-                  facu = facu + dt * alprlx
-                else if(k == kbl_topo(i, j, 1)) then
-                  stop 'implementation topography into semi-implicit time step &
-                      &still to be done'
-                end if
-                !UAE
-              end if
-
-              if(TestCase == "baroclinic_LC") then
-                if(background == "HeldSuarez") then
-                  ! Rayleigh damping
-                  facu = facu + dt * kv_hs(j, k)
-                end if
-              end if
-
-              if(spongeLayer .and. sponge_uv) then
-                facu = facu + dt * kr_sp(j, k)
-              end if
-
-              facv = facu
-
-              !UAC
-              !uAst &
-              !=   1.0/(facu*facv + (f_cor_nd(j)*dt)**2) &
-              !    * (  facv * (uhorx + dt*(volfcx/rhou - piGradx)) &
-              !  + f_cor_nd(j)*dt &
-              !    * (vhory + dt*(volfcy/rhou - piGrady)))
-              if(testCase == "SkamarockKlemp94") then
-                uAst = 1.0 / facu * (uhorx + dt * (f_cor_nd(j) * vhory &
-                    &+ volfcx / rhou - piGradx) + dt ** 2 * f_cor_nd(j) ** 2 &
-                    &* backgroundFlow_dim(1) / uRef)
-              else
-                uAst = 1.0 / facu * (uhorx + dt * (f_cor_nd(j) * vhory &
-                    &+ volfcx / rhou - piGradx))
-              end if
-              !UAE
-
-              usave(i, j, k) = uAst
-
-              if(TestCase == "baroclinic_LC") then
-                usave(i, j, k) = usave(i, j, k) + var_env%u(i, j, k)
-              end if
-            end do
-          end do
-        end do
-      else
-        stop 'ERROR: unknown int_mod'
-      end if
-    else
-      stop 'ERROR: unknown mmp_mod'
-    end if
-
-    ! -------------------------------------
-    !            predict v -> v*
-    ! -------------------------------------
-
-    select case(yBoundary)
-
-    case("solid_wall")
-      j0 = 1
-      j1 = ny - 1
-    case("periodic")
-      j0 = 0
-      j1 = ny
-    case default
-      stop "momentumPredictor: unknown case yBoundary."
-    end select
-
-    if(mmp_mod == "tot" .or. mmp_mod == "lhs") then
-      if(int_mod /= "expl") then
-        stop 'ERROR: wrong int_mod for mmp_mod = tot or mmp_mod = lhs'
-      end if
-
-      do k = 1, nz
-        do j = j0, j1
-          do i = 1, nx
-
-            !--- convective part -> conv
-            fR = flux%v(i, j, k, 1)
-            fL = flux%v(i - 1, j, k, 1)
-            gF = flux%v(i, j, k, 2)
-            gB = flux%v(i, j - 1, k, 2)
-            hU = flux%v(i, j, k, 3)
-            hD = flux%v(i, j, k - 1, 3)
-            fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
-
-            volForce = 0.
-
-            if(mmp_mod == "tot") then
-              !--- pressure gradient term -> piGrad
-              if(TestCase == "baroclinic_LC") then
-                piF = var%pi(i, j + 1, k) - var_env%pi(i, j + 1, k)
-                piB = var%pi(i, j, k) - var_env%pi(i, j, k)
-              else
-                piF = var%pi(i, j + 1, k)
-                piB = var%pi(i, j, k)
-              end if
-
-              piGrad = kappaInv * MaInv2 * pStrat(k) * (piF - piB) / dy
-
-              if(TestCase == "baroclinic_LC") then !FS
-                piGrad = piGrad + kappaInv * MaInv2 * (PStrat(k) &
-                    &- pStrat_0(k)) * (var_env%pi(i, j + 1, k) - var_env%pi(i, &
-                    &j, k)) / dy
-              end if
-
-              !---- volume forces
-              volForce = 0.5 * (force(i, j, k, 2) + force(i, j + 1, k, 2))
-
-              if(TestCase == "baroclinic_LC") then
-                select case(model)
-                case("pseudo_incompressible", "compressible")
-                  rhoM = rhoOld(i, j, k)
-                  rhoM_1 = rhoOld(i, j + 1, k)
-
-                  rhoM = rhoM + rhoStrat(k)
-                  rhoM_1 = rhoM_1 + rhoStrat(k)
-                case("Boussinesq")
-                  rhoM = rho00
-                  rhoM_1 = rho00
-                case default
-                  stop "momentumPredictor: unkown model."
-                end select
-
-                volforce = volforce + RoInv(j) * (0.25 * (rhoM * (var_env%u(i &
-                    &- 1, j, k) + var_env%u(i, j, k)) + rhoM_1 * (var_env%u(i &
-                    &- 1, j + 1, k) + var_env%u(i, j + 1, k))))
-                !  + 0.5*(RoInv(j)+RoInv(j+1)) &
-
-              end if
-
-              if(topography) then
-                ! Rayleigh damping for topography (immersed boundary)
-
-                select case(model)
-                case("pseudo_incompressible", "compressible")
-                  rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j + 1, k))
-
-                  rhoM_1 = rhoM_1 + rhoStrat(k)
-                case("Boussinesq")
-                  rhoM_1 = rho00
-                case default
-                  stop "momentumPredictor: unkown model."
-                end select
-
-                !UAC if(topography_mask(i00+i,j00+j,k)&
-                !   .or.&
-                !   topography_mask(i00+i,j00+j+1,k)) then
-                !   volForce = volForce - alprlx * rhoM_1*var(i,j,k,3)
-                !end if
-                if(k < kbl_topo(i, j, 2)) then
-                  volForce = volForce - alprlx * rhoM_1 * var%v(i, j, k)
-                else if(k == kbl_topo(i, j, 2)) then
-                  call wind_ip(var, x_ip(i, j, 2), y_ip(i, j, 2), z_ip(i, j, &
-                      &2), 'v', u_ip, v_ip, w_ip)
-
-                  v_ip_n = (u_ip * dhdx(i, j, 2) + v_ip * dhdy(i, j, 2) &
-                      &- w_ip) * dhdy(i, j, 2) / (1 + dhdx(i, j, 2) ** 2 &
-                      &+ dhdy(i, j, 2) ** 2)
-
-                  v_ip_t = v_ip - v_ip_n
-
-                  v_rp_t = velocity_reconst_t(i, j, 2) * v_ip_t
-                  v_rp_n = velocity_reconst_n(i, j, 2) * v_ip_n
-                  v_rp = v_rp_t + v_rp_n
-
-                  volForce = volForce - alprlx * rhoM_1 * (var%v(i, j, k) &
-                      &- v_rp)
-                end if
-                !UAE
-              end if
-            end if
-
-            if(TestCase == "baroclinic_LC") then
-              if(background == "HeldSuarez") then
-                ! Rayleigh damping
-
-                select case(model)
-                case("pseudo_incompressible", "compressible")
-                  rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j + 1, k))
-
-                  rhoM_1 = rhoM_1 + rhoStrat(k)
-                case("Boussinesq")
-                  rhoM_1 = rho00
-                case default
-                  stop "momentumPredictor: unkown model."
-                end select
-
-                volForce = volForce - 0.5 * (kv_hs(j, k) + kv_hs(j + 1, k)) &
-                    &* rhoM_1 * (var%v(i, j, k) - var_env%v(i, j, k))
-
-              end if
-            end if
-
-            !--------------------
-            !   F(phi) = RHS
-            !--------------------
-            ! fluxDiff -> convective and viscous fluxes
-            ! piGrad   -> pressure gradient along x
-            ! volForce -> Gravity, Coriolis
-            if(mmp_mod == "tot") then
-              F = - fluxDiff - piGrad + volForce
-            else if(mmp_mod == "lhs") then
-              F = - fluxDiff + volForce
-            else
-              stop 'ERROR: wrong mmp_mod'
-            end if
-
-            ! interpolated density
-            select case(model)
-
-            case("pseudo_incompressible", "compressible")
-
-              rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j + 1, k))
-              rhoM = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k))
-
-              rhoM_1 = rhoM_1 + rhoStrat(k)
-              rhoM = rhoM + rhoStrat(k)
-
-            case("Boussinesq")
-              rhoM_1 = rho00
-              rhoM = rho00
-            case default
-              stop "momentumPredictor: unkown case model."
-            end select
-
-            ! velocity and momentum at t(m-1)
-            vM_1 = var%v(i, j, k)
-            momM_1 = rhoM_1 * vM_1
-
-            ! q(m-1) -> q(m)
-            q(i, j, k, 2) = dt * F + alpha(m) * q(i, j, k, 2)
-
-            ! rhoV(m-1) -> rhoV(m)
-            momM = momM_1 + beta(m) * q(i, j, k, 2)
-
-            ! calc v(m,*)
-            vAst = momM / rhoM
-
-            ! vAst -> var
-            var%v(i, j, k) = vAst
-          end do
-        end do
-      end do
-    else if(mmp_mod == "rhs") then
-      if(int_mod == "expl") then
-        do k = 1, nz
-          do j = j0, j1
-            do i = 1, nx
-              rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k))
-              rhov = rhov + rhoStrat(k)
-
-              if(TestCase == "baroclinic_LC") then
-                rhov_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j + 1, k))
-
-                rhov_e = rhov_e + rhoStrat_0(k)
-              end if
-
-              !--- pressure gradient term -> piGrad
-              if(TestCase == "baroclinic_LC") then
-                piF = var%pi(i, j + 1, k) - var_env%pi(i, j + 1, k)
-                piB = var%pi(i, j, k) - var_env%pi(i, j, k)
-
-                if(TestCase == "baroclinic_LC") then !FS
-                  piF_e = var_env%pi(i, j + 1, k)
-                  piB_e = var_env%pi(i, j, k)
-                end if
-              else
-                piF = var%pi(i, j + 1, k)
-                piB = var%pi(i, j, k)
-              end if
-
-              piGrad = kappaInv * MaInv2 * Pstrat(k) / rhov * (piF - piB) / dy
-
-              if(TestCase == "baroclinic_LC") then !FS
-                piGrad = piGrad + kappaInv * MaInv2 * (Pstrat(k) / rhov &
-                    &- Pstrat_0(k) / rhov_e) * (piF_e - piB_e) / dy
-              end if
-
-              ! gravity-wave forcing
-              if(raytracer .or. (testCase == "mountainwave")) then
-                volfcy = 0.5 * (force(i, j, k, 2) + force(i, j + 1, k, 2))
-              else
-                volfcy = 0.0
-              end if
-
-              ! vstar
-              if(TestCase == "baroclinic_LC") then
-                uhorx = 0.25 * (var%u(i - 1, j, k) + var%u(i - 1, j + 1, k) &
-                    &- var_env%u(i - 1, j, k) - var_env%u(i - 1, j + 1, k) &
-                    &+ var%u(i, j, k) + var%u(i, j + 1, k) - var_env%u(i, j, &
-                    &k) - var_env%u(i, j + 1, k))
-              else
-                uhorx = 0.25 * (var%u(i - 1, j, k) + var%u(i - 1, j + 1, k) &
-                    &+ var%u(i, j, k) + var%u(i, j + 1, k))
-              end if
-
-              vhory = var%v(i, j, k)
-
-              f_cor_v = 0.5 * (f_cor_nd(j) + f_cor_nd(j + 1))
-
-              if(testCase == "SkamarockKlemp94") then
-                vAst = vhory + dt * (- f_cor_v * (uhorx &
-                    &- backgroundFlow_dim(1) / uRef) - piGrad + volfcy / rhov)
-              else
-                vAst = vhory + dt * (- f_cor_v * uhorx - piGrad + volfcy / rhov)
-              end if
-
-              if(topography) then
-                ! Rayleigh damping for topography (immersed boundary)
-
-                !UAC if(topography_mask(i00+i,j00+j,k)&
-                !   .or.&
-                !   topography_mask(i00+i,j00+j+1,k)) then
-                !   vAst = vAst - dt* alprlx*vhory
-                !end if
-                if(k < kbl_topo(i, j, 2)) then
-                  vAst = vAst - dt * alprlx * vhory
-                else if(k == kbl_topo(i, j, 2)) then
-                  call wind_ip(var, x_ip(i, j, 2), y_ip(i, j, 2), z_ip(i, j, &
-                      &2), 'v', u_ip, v_ip, w_ip)
-
-                  v_ip_n = (u_ip * dhdx(i, j, 2) + v_ip * dhdy(i, j, 2) &
-                      &- w_ip) * dhdy(i, j, 2) / (1 + dhdx(i, j, 2) ** 2 &
-                      &+ dhdy(i, j, 2) ** 2)
-
-                  v_ip_t = v_ip - v_ip_n
-
-                  v_rp_t = velocity_reconst_t(i, j, 2) * v_ip_t
-                  v_rp_n = velocity_reconst_n(i, j, 2) * v_ip_n
-                  v_rp = v_rp_t + v_rp_n
-
-                  vAst = vAst - dt * alprlx * (var%v(i, j, k) - v_rp)
-                end if
-                !UAE
-              end if
-
-              if(TestCase == "baroclinic_LC") then
-                if(background == "HeldSuarez") then
-                  ! Rayleigh damping
-                  vAst = vAst - dt * 0.5 * (kv_hs(j, k) + kv_hs(j + 1, k)) &
-                      &* vhory
-                end if
-              end if
-
-              if(spongeLayer .and. sponge_uv) then
-                vAst = vAst - dt * 0.5 * (kr_sp(j, k) + kr_sp(j + 1, k)) * vhory
-              end if
-
-              var%v(i, j, k) = vAst
-            end do
-          end do
-        end do
-      else if(int_mod == "impl") then
-        do k = 1, nz
-          do j = j0, j1
-            do i = 1, nx
-              rhoum0 = 0.5 * (var%rho(i, j, k) + var%rho(i - 1, j, k))
-              rhou00 = 0.5 * (var%rho(i + 1, j, k) + var%rho(i, j, k))
-              rhoum1 = 0.5 * (var%rho(i, j + 1, k) + var%rho(i - 1, j + 1, k))
-              rhou01 = 0.5 * (var%rho(i + 1, j + 1, k) + var%rho(i, j + 1, k))
-
-              rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k))
-
-              rhov = rhov + rhoStrat(k)
-              rhoum0 = rhoum0 + rhoStrat(k)
-              rhou00 = rhou00 + rhoStrat(k)
-              rhoum1 = rhoum1 + rhoStrat(k)
-              rhou01 = rhou01 + rhoStrat(k)
-
-              if(TestCase == "baroclinic_LC") then
-                rhoum0_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i - 1, j, &
-                    &k))
-                rhou00_e = 0.5 * (var_env%rho(i + 1, j, k) + var_env%rho(i, j, &
-                    &k))
-                rhoum1_e = 0.5 * (var_env%rho(i, j + 1, k) + var_env%rho(i &
-                    &- 1, j + 1, k))
-                rhou01_e = 0.5 * (var_env%rho(i + 1, j + 1, k) &
-                    &+ var_env%rho(i, j + 1, k))
-
-                rhov_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j + 1, k))
-
-                rhov_e = rhov_e + rhoStrat_0(k)
-                rhoum0_e = rhoum0_e + rhoStrat_0(k)
-                rhou00_e = rhou00_e + rhoStrat_0(k)
-                rhoum1_e = rhoum1_e + rhoStrat_0(k)
-                rhou01_e = rhou01_e + rhoStrat_0(k)
-              end if
-
-              !--- pressure gradient terms -> piGradx, piGrady
-              if(TestCase == "baroclinic_LC") then
-                piGradx = kappaInv * MaInv2 * 0.25 * (Pstrat(k) / rhou00 &
-                    &* (var%pi(i + 1, j, k) - var%pi(i, j, k) - var_env%pi(i &
-                    &+ 1, j, k) + var_env%pi(i, j, k)) / dx + Pstrat(k) &
-                    &/ rhoum0 * (var%pi(i, j, k) - var%pi(i - 1, j, k) &
-                    &- var_env%pi(i, j, k) + var_env%pi(i - 1, j, k)) / dx &
-                    &+ Pstrat(k) / rhou01 * (var%pi(i + 1, j + 1, k) &
-                    &- var%pi(i, j + 1, k) - var_env%pi(i + 1, j + 1, k) &
-                    &+ var_env%pi(i, j + 1, k)) / dx + Pstrat(k) / rhoum1 &
-                    &* (var%pi(i, j + 1, k) - var%pi(i - 1, j + 1, k) &
-                    &- var_env%pi(i, j + 1, k) + var_env%pi(i - 1, j + 1, k)) &
-                    &/ dx)
-
-                piGradx = piGradx + kappaInv * MaInv2 * 0.25 * ((Pstrat(k) &
-                    &/ rhou00 - Pstrat_0(k) / rhou00_e) * (var_env%pi(i + 1, &
-                    &j, k) - var_env%pi(i, j, k)) / dx + (Pstrat(k) / rhoum0 &
-                    &- Pstrat_0(k) / rhoum0_e) * (var_env%pi(i, j, k) &
-                    &- var_env%pi(i - 1, j, k)) / dx + (Pstrat(k) / rhou01 &
-                    &- Pstrat_0(k) / rhou01_e) * (var_env%pi(i + 1, j + 1, k) &
-                    &- var_env%pi(i, j + 1, k)) / dx + (Pstrat(k) / rhoum1 &
-                    &- Pstrat_0(k) / rhoum1_e) * (var_env%pi(i, j + 1, k) &
-                    &- var_env%pi(i - 1, j + 1, k)) / dx)
-              else
-                piGradx = kappaInv * MaInv2 * 0.25 * (Pstrat(k) / rhou00 &
-                    &* (var%pi(i + 1, j, k) - var%pi(i, j, k)) / dx &
-                    &+ Pstrat(k) / rhoum0 * (var%pi(i, j, k) - var%pi(i - 1, &
-                    &j, k)) / dx + Pstrat(k) / rhou01 * (var%pi(i + 1, j + 1, &
-                    &k) - var%pi(i, j + 1, k)) / dx + Pstrat(k) / rhoum1 &
-                    &* (var%pi(i, j + 1, k) - var%pi(i - 1, j + 1, k)) / dx)
-              end if
-
-              if(TestCase == "baroclinic_LC") then
-                piF = var%pi(i, j + 1, k) - var_env%pi(i, j + 1, k)
-                piB = var%pi(i, j, k) - var_env%pi(i, j, k)
-
-                piF_e = var_env%pi(i, j + 1, k)
-                piB_e = var_env%pi(i, j, k)
-              else
-                piF = var%pi(i, j + 1, k)
-                piB = var%pi(i, j, k)
-              end if
-
-              piGrady = kappaInv * MaInv2 * Pstrat(k) / rhov * (piF - piB) / dy
-
-              if(TestCase == "baroclinic_LC") then !FS
-                piGrady = piGrady + kappaInv * MaInv2 * (Pstrat(k) / rhov &
-                    &- Pstrat_0(k) / rhov_e) * (piF_e - piB_e) / dy
-              end if
-
-              ! gravity-wave forcing
-              if(raytracer .or. (testCase == "mountainwave")) then
-                volfcx = 0.5 * (force(i, j, k, 1) + force(i + 1, j, k, 1))
-                volfcy = 0.5 * (force(i, j, k, 2) + force(i, j + 1, k, 2))
-              else
-                volfcx = 0.0
-                volfcy = 0.0
-              end if
-
-              ! vstar
-              if(TestCase == "baroclinic_LC") then
-                uhorx = 0.25 * (var%u(i - 1, j, k) + var%u(i - 1, j + 1, k) &
-                    &- var_env%u(i - 1, j, k) - var_env%u(i - 1, j + 1, k) &
-                    &+ var%u(i, j, k) + var%u(i, j + 1, k) - var_env%u(i, j, &
-                    &k) - var_env%u(i, j + 1, k))
-              else
-                uhorx = 0.25 * (var%u(i - 1, j, k) + var%u(i - 1, j + 1, k) &
-                    &+ var%u(i, j, k) + var%u(i, j + 1, k))
-              end if
-
-              vhory = var%v(i, j, k)
-
-              facv = 1.0
-
-              if(topography) then
-                ! Rayleigh damping for topography (immersed boundary)
-
-                !UAC if(topography_mask(i00+i,j00+j,k)&
-                !   .or.&
-                !   topography_mask(i00+i,j00+j+1,k)) then
-                !   facv = facv + dt*alprlx
-                !end if
-                if(k < kbl_topo(i, j, 2)) then
-                  facv = facv + dt * alprlx
-                else if(k == kbl_topo(i, j, 2)) then
-                  stop 'implementation topography into semi-implicit time step &
-                      &still to be done'
-                end if
-                !UAE
-              end if
-
-              if(TestCase == "baroclinic_LC") then
-                if(background == "HeldSuarez") then
-                  ! Rayleigh damping
-                  facv = facv + dt * 0.5 * (kv_hs(j, k) + kv_hs(j + 1, k))
-                end if
-              end if
-
-              if(spongeLayer .and. sponge_uv) then
-                facv = facv + dt * 0.5 * (kr_sp(j, k) + kr_sp(j + 1, k))
-              end if
-
-              facu = facv
-
-              !UAC
-              !vAst &
-              != 1.0 &
-              !  /(  facu*facv &
-              !    + (0.5*(f_cor_nd(j) + f_cor_nd(j+1))*dt)**2) &
-              !  * (- 0.5*(f_cor_nd(j) + f_cor_nd(j+1))*dt &
-              !       * (uhorx + dt * (volfcx/rhov - piGradx)) &
-              !     + facu * (vhory + dt * (volfcy/rhov - piGrady)))
-              f_cor_v = 0.5 * (f_cor_nd(j) + f_cor_nd(j + 1))
-
-              if(testCase == "SkamarockKlemp94") then
-                vAst = 1.0 / facv * (vhory + dt * (- f_cor_v * (uhorx &
-                    &- backgroundFlow_dim(1) / uRef) + volfcy / rhov - piGrady))
-              else
-                vAst = 1.0 / facv * (vhory + dt * (- f_cor_v * uhorx + volfcy &
-                    &/ rhov - piGrady))
-              end if
-              !UAE
-
-              var%v(i, j, k) = vAst
-            end do
-          end do
-        end do
-      else
-        stop 'ERROR: unknown int_mod'
-      end if
-
-      ! now the new u can be put into the proper array
-      var%u(:, :, :) = usave(:, :, :)
-    else
-      stop 'ERROR: unknown mmp_mod'
-    end if
-
-    !testb
-    !write(42) var
-    !stop
-    !teste
-
-    ! -------------------------------------
-    !            predict w -> w*
-    ! -------------------------------------
-
-    select case(zBoundary)
-
-    case("solid_wall")
-      k0 = 1
-      k1 = nz - 1
-    case("periodic")
-      k0 = 0
-      k1 = nz
-    case default
-      stop "momentumPredictor: unknown case zBoundary."
-    end select
-
-    if(mmp_mod == "tot" .or. mmp_mod == "lhs") then
-      if(int_mod /= "expl") then
-        stop 'ERROR: wrong int_mod for mmp_mod = tot or mmp_mod = lhs'
-      end if
-
-      do k = k0, k1
-        do j = 1, ny
-          do i = 1, nx
-
-            !--- convective part -> conv
-            fR = flux%w(i, j, k, 1)
-            fL = flux%w(i - 1, j, k, 1)
-            gF = flux%w(i, j, k, 2)
-            gB = flux%w(i, j - 1, k, 2)
-            hU = flux%w(i, j, k, 3)
-            hD = flux%w(i, j, k - 1, 3)
-            fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
-
-            if(mmp_mod == "tot") then
-              !--- pressure gradient term -> piGrad
-              if(TestCase == "baroclinic_LC") then
-                piU = var%pi(i, j, k + 1) - var_env%pi(i, j, k + 1)
-                piD = var%pi(i, j, k) - var_env%pi(i, j, k)
-              else
-                piU = var%pi(i, j, k + 1)
-                piD = var%pi(i, j, k)
-              end if
-
-              piGrad = 0.5 * kappaInv * MaInv2 * (Pstrat(k) + Pstrat(k + 1)) &
-                  &* (piU - piD) / dz
-
-              if(TestCase == "baroclinic_LC") then !FS
-                piGrad = piGrad + 0.5 * kappaInv * MaInv2 * (Pstrat(k) &
-                    &+ Pstrat(k + 1) - pStrat_0(k) - pStrat_0(k + 1)) &
-                    &* (var_env%pi(i, j, k + 1) - var_env%pi(i, j, k)) / dz
-              end if
-
-              !---- volume forces
-              volForce = 0.5 * (force(i, j, k, 3) + force(i, j, k + 1, 3))
-
-              if(TestCase == "baroclinic_LC") then
-                select case(model)
-                case("pseudo_incompressible", "compressible")
-                  drho_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j, k &
-                      &+ 1))
-
-                case("Boussinesq")
-                  stop 'ERROR: baroclinic LC not ready yet for  Boussinesq'
-                case default
-                  stop "momentumPredictor: unkown model."
-                end select
-
-                volForce = volForce + FrInv2 * drho_e
-              end if
-
-              if(topography) then
-                ! Rayleigh damping for topography (immersed boundary)
-
-                select case(model)
-                case("pseudo_incompressible", "compressible")
-                  rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j, k + 1))
-
-                  rhoM_1 = rhoM_1 + rhoStratTilde(k)
-                case("Boussinesq")
-                  rhoM_1 = rho00
-                case default
-                  stop "momentumPredictor: unkown model."
-                end select
-
-                !UAC if(topography_mask(i00+i,j00+j,k)&
-                !   .or.&
-                !   topography_mask(i00+i,j00+j,k+1)) then
-                !   volForce = volForce - alprlx * rhoM_1*var(i,j,k,4)
-                !end if
-                if(k < kbl_topo(i, j, 3)) then
-                  volForce = volForce - alprlx * rhoM_1 * var%w(i, j, k)
-                else if(k == kbl_topo(i, j, 3)) then
-                  call wind_ip(var, x_ip(i, j, 3), y_ip(i, j, 3), z_ip(i, j, &
-                      &3), 'w', u_ip, v_ip, w_ip)
-
-                  w_ip_n = (- u_ip * dhdx(i, j, 3) - v_ip * dhdy(i, j, 3) &
-                      &+ w_ip) / (1 + dhdx(i, j, 3) ** 2 + dhdy(i, j, 3) ** 2)
-
-                  w_ip_t = w_ip - w_ip_n
-
-                  w_rp_t = velocity_reconst_t(i, j, 3) * w_ip_t
-                  w_rp_n = velocity_reconst_n(i, j, 3) * w_ip_n
-                  w_rp = w_rp_t + w_rp_n
-
-                  volForce = volForce - alprlx * rhoM_1 * (var%w(i, j, k) &
-                      &- w_rp)
-                end if
-                !UAE
-              end if
-            end if
-
-            if(TestCase == "baroclinic_LC") then
-              if(background == "HeldSuarez") then
-                ! Rayleigh damping
-                select case(model)
-                case("pseudo_incompressible", "compressible")
-                  rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j, k + 1))
-
-                  rhoM_1 = rhoM_1 + rhoStratTilde(k)
-                case("Boussinesq")
-                  rhoM_1 = rho00
-                case default
-                  stop "momentumPredictor: unkown model."
-                end select
-
-                volForce = volforce - 0.5 * (kw_hs(k) + kw_hs(k + 1)) * rhoM_1 &
-                    &* var%w(i, j, k)
-              end if
-            end if
-
-            !--------------------
-            !   F(phi) = RHS
-            !--------------------
-            ! fluxDiff -> convective and viscous fluxes
-            ! piGrad   -> pressure gradient along x
-            ! volForce -> Gravity, Coriolis
-            if(mmp_mod == "tot") then
-              F = - fluxDiff - piGrad + volForce
-            else if(mmp_mod == "lhs") then
-              F = - fluxDiff
-            else
-              stop 'ERROR: wrong mmp_mod'
-            end if
-
-            ! interpolated densities
-            select case(model)
-
-            case("pseudo_incompressible", "compressible")
-
-              rhoM_1 = 0.5 * (rhoOld(i, j, k) + rhoOld(i, j, k + 1)) !rho(m-1)
-              rhoM = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) !rho(m)
-
-              rhoM_1 = rhoM_1 + rhoStratTilde(k)
-              rhoM = rhoM + rhoStratTilde(k)
-
-            case("Boussinesq")
-              rhoM_1 = rho00
-              rhoM = rho00
-            case default
-              stop "momentumPredictor: unkown case model."
-            end select
-
-            ! velocity and momentum at t(m-1)
-            wM_1 = var%w(i, j, k)
-            momM_1 = rhoM_1 * wM_1
-
-            ! q(m-1) -> q(m)
-            q(i, j, k, 3) = dt * F + alpha(m) * q(i, j, k, 3)
-
-            ! rhoW(m-1) -> rhoW(m)
-            momM = momM_1 + beta(m) * q(i, j, k, 3)
-
-            ! calc w(m,*)
-            wAst = momM / rhoM
-
-            ! wAst -> var
-            var%w(i, j, k) = wAst
-          end do
-        end do
-      end do
-    else if(mmp_mod == "rhs") then
-      if(int_mod == "expl") then
-        do k = k0, k1
-          pstw = 0.5 * (Pstrat(k) + Pstrat(k + 1))
-
-          if(TestCase == "baroclinic_LC") then
-            pstw_e = 0.5 * (Pstrat_0(k) + Pstrat_0(k + 1))
-          end if
-
-          do j = 1, ny
-            do i = 1, nx
-              rho000 = var%rho(i, j, k)
-              rho001 = var%rho(i, j, k + 1)
-
-              rhow = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1))
-
-              rho000 = rho000 + rhoStrat(k)
-              rho001 = rho001 + rhoStrat(k + 1)
-
-              rhow = rhow + rhoStratTilde(k)
-
-              if(TestCase == "baroclinic_LC") then
-                rho000_e = var_env%rho(i, j, k)
-                rho001_e = var_env%rho(i, j, k + 1)
-
-                rhow_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j, k + 1))
-
-                rho000_e = rho000_e + rhoStrat_0(k)
-                rho001_e = rho001_e + rhoStrat_0(k + 1)
-
-                rhow_e = rhow_e + 0.5 * (rhoStrat_0(k) + rhoStrat_0(k + 1))
-              end if
-
-              !--- pressure gradient term -> piGrad
-              if(TestCase == "baroclinic_LC") then
-                piU = var%pi(i, j, k + 1) - var_env%pi(i, j, k + 1)
-                piD = var%pi(i, j, k) - var_env%pi(i, j, k)
-
-                piU_e = var_env%pi(i, j, k + 1)
-                piD_e = var_env%pi(i, j, k)
-              else
-                piU = var%pi(i, j, k + 1)
-                piD = var%pi(i, j, k)
-              end if
-
-              piGrad = kappaInv * MaInv2 * pstw / rhow * (piU - piD) / dz
-
-              if(TestCase == "baroclinic_LC") then !FS
-                piGrad = piGrad + kappaInv * MaInv2 * (pstw / rhow - pstw_e &
-                    &/ rhow_e) * (piU_e - piD_e) / dz
-              end if
-
-              ! wstar
-              wvert = var%w(i, j, k)
-
-              if(TestCase == "baroclinic_LC") then
-                buoy = - g_ndim * 0.5 * (rhopOld(i, j, k) / rho000 &
-                    &- var_env%rhop(i, j, k) / rho000_e + rhopOld(i, j, k + 1) &
-                    &/ rho001 - var_env%rhop(i, j, k + 1) / rho001_e)
-              else
-                buoy = - g_ndim * 0.5 * (rhopOld(i, j, k) / rho000 &
-                    &+ rhopOld(i, j, k + 1) / rho001)
-              end if
-
-              wAst = wvert + dt * (buoy - piGrad)
-
-              if(topography) then
-                ! Rayleigh damping for topography (immersed boundary)
-
-                !UAC if(topography_mask(i00+i,j00+j,k)&
-                !   .or.&
-                !   topography_mask(i00+i,j00+j,k+1)) then
-                !   wAst = wAst - dt* alprlx*wvert
-                !end if
-                if(k < kbl_topo(i, j, 3)) then
-                  wAst = wAst - dt * alprlx * wvert
-                else if(k == kbl_topo(i, j, 3)) then
-                  call wind_ip(var, x_ip(i, j, 3), y_ip(i, j, 3), z_ip(i, j, &
-                      &3), 'w', u_ip, v_ip, w_ip)
-
-                  w_ip_n = (- u_ip * dhdx(i, j, 3) - v_ip * dhdy(i, j, 3) &
-                      &+ w_ip) / (1 + dhdx(i, j, 3) ** 2 + dhdy(i, j, 3) ** 2)
-
-                  w_ip_t = w_ip - w_ip_n
-
-                  w_rp_t = velocity_reconst_t(i, j, 3) * w_ip_t
-                  w_rp_n = velocity_reconst_n(i, j, 3) * w_ip_n
-                  w_rp = w_rp_t + w_rp_n
-
-                  wAst = wAst - dt * alprlx * (var%w(i, j, k) - w_rp)
-                end if
-                !UAE
-              end if
-
-              if(TestCase == "baroclinic_LC") then
-                if(background == "HeldSuarez") then
-                  ! Rayleigh damping
-
-                  wAst = wAst - dt * 0.5 * (kw_hs(k) + kw_hs(k + 1)) * wvert
-                end if
-              end if
-
-              if(spongeLayer) then
-                wAst = wAst - dt * 0.5 * (kr_sp_w(j, k) + kr_sp_w(j, k + 1)) &
-                    &* wvert
-              end if
-
-              var%w(i, j, k) = wAst
-            end do
-          end do
-        end do
-      else if(int_mod == "impl") then
-        ! heating due to relaxation, entropy diffusion and GWs, its
-        ! horizontal mean and the horizontal-mean vertical wind
-        ! resulting from it
-
-        if(heatingONK14 .or. TurbScheme .or. rayTracer) then
-          !call heat_w0(var,flux,dt,heat,S_bar,w_0)
-          call calculate_heating(var, flux, heat)
-        else
-          heat = 0.
-          S_bar = 0.
-          w_0 = 0.
-        end if
-
-        do k = k0, k1
-          pstw = 0.5 * (Pstrat(k) + Pstrat(k + 1))
-          pstw_0 = 0.5 * (Pstrat_0(k) + Pstrat_0(k + 1))
-
-          if(TestCase == "baroclinic_LC") then
-            pstw_e = 0.5 * (Pstrat_0(k) + Pstrat_0(k + 1))
-          end if
-
-          do j = 1, ny
-            do i = 1, nx
-              rho000 = var%rho(i, j, k)
-              rho001 = var%rho(i, j, k + 1)
-
-              rhow = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1))
-
-              rho000 = rho000 + rhoStrat(k)
-              rho001 = rho001 + rhoStrat(k + 1)
-
-              rhow = rhow + rhoStratTilde(k)
-
-              if(TestCase == "baroclinic_LC") then
-                rho000_e = var_env%rho(i, j, k)
-                rho001_e = var_env%rho(i, j, k + 1)
-
-                rhow_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j, k + 1))
-
-                rho000_e = rho000_e + rhoStrat_0(k)
-                rho001_e = rho001_e + rhoStrat_0(k + 1)
-
-                rhow_e = rhow_e + 0.5 * (rhoStrat_0(k) + rhoStrat_0(k + 1))
-              end if
-
-              !--- pressure gradient term -> piGrad
-              if(TestCase == "baroclinic_LC") then
-                piU = var%pi(i, j, k + 1) - var_env%pi(i, j, k + 1)
-                piD = var%pi(i, j, k) - var_env%pi(i, j, k)
-
-                piU_e = var_env%pi(i, j, k + 1)
-                piD_e = var_env%pi(i, j, k)
-              else
-                piU = var%pi(i, j, k + 1)
-                piD = var%pi(i, j, k)
-              end if
-
-              piGrad = kappaInv * MaInv2 * pstw / rhow * (piU - piD) / dz
-
-              if(TestCase == "baroclinic_LC") then !FS
-                piGrad = piGrad + kappaInv * MaInv2 * (pstw / rhow - pstw_e &
-                    &/ rhow_e) * (piU_e - piD_e) / dz
-              end if
-
-              ! wstar
-              wvert = var%w(i, j, k)
-
-              ! squared Brunt-Vaisala frequency averaged to half
-              ! levels
-              ! (could be done a bit nicer by determining this without
-              ! averaging directly from the reference-atmosphere
-              ! density)
-              bvsstw = 0.5 * (bvsStrat(k) + bvsStrat(k + 1))
-
-              facw = 1.0
-
-              if(topography) then
-                ! Rayleigh damping for topography (immersed boundary)
-
-                !UAC if(topography_mask(i00+i,j00+j,k)&
-                !   .or.&
-                !   topography_mask(i00+i,j00+j,k+1)) then
-                !   facw = facw + alprlx*dt
-                !end if
-                if(k < kbl_topo(i, j, 3)) then
-                  facw = facw + alprlx * dt
-                else if(k == kbl_topo(i, j, 3)) then
-                  stop 'implementation topography into semi-implicit time step &
-                      &still to be done'
-                end if
-              end if
-
-              if(TestCase == "baroclinic_LC") then
-                if(background == "HeldSuarez") then
-                  ! Rayleigh damping
-
-                  facw = facw + dt * 0.5 * (kw_hs(k) + kw_hs(k + 1))
-                end if
-              end if
-
-              if(spongeLayer) then
-                facw = facw + dt * 0.5 * (kr_sp_w(j, k) + kr_sp_w(j, k + 1))
-              end if
-
-              !heat0 &
-              != heat(i,j,k) - S_bar(k) &
-              !  - Pstrat(k)/g_ndim * bvsStrat(k) &
-              !    * 0.5*(w_0(k) + w_0(k-1))
-              heat0 = heat(i, j, k)
-
-              !heat1 &
-              != heat(i,j,k+1) - S_bar(k+1) &
-              !  - Pstrat(k+1)/g_ndim * bvsStrat(k+1) &
-              !    * 0.5*(w_0(k+1) + w_0(k))
-              heat1 = heat(i, j, k + 1)
-
-              if(TestCase == "baroclinic_LC") then
-                wAst = 1.0 / (facw + rhoStratTilde(k) / rhow * pstw / pstw_0 &
-                    &* bvsstw * dt ** 2) * (wvert - dt * piGrad - dt * g_ndim &
-                    &* 0.5 * (rhopOld(i, j, k) / rho000 - var_env%rhop(i, j, &
-                    &k) / rho000_e + rhopOld(i, j, k + 1) / rho001 &
-                    &- var_env%rhop(i, j, k + 1) / rho001_e + dt &
-                    &* (rhoStrat(k) / Pstrat_0(k) * heat0 / rho000 &
-                    &+ rhoStrat(k + 1) / Pstrat_0(k + 1) * heat1 / rho001)))
-                !/(  facw &
-                !  + rhoStratTilde(k)/rhow * bvsstw * dt**2) &
-                !* (  rhoStrat(k)/Pstrat(k) &
-                !+ rhoStrat(k+1)/Pstrat(k+1) &
-              else
-                wAst = 1.0 / (facw + rhoStratTilde(k) / rhow * pstw / pstw_0 &
-                    &* bvsstw * dt ** 2) * (wvert - dt * piGrad - dt * g_ndim &
-                    &* 0.5 * (rhopOld(i, j, k) / rho000 + rhopOld(i, j, k + 1) &
-                    &/ rho001 + dt * (rhoStrat(k) / Pstrat_0(k) * heat0 &
-                    &/ rho000 + rhoStrat(k + 1) / Pstrat_0(k + 1) * heat1 &
-                    &/ rho001)))
-                !/(  facw &
-                !  + rhoStratTilde(k)/rhow * bvsstw * dt**2) &
-                !* (  rhoStrat(k)/Pstrat(k) &
-                !+ rhoStrat(k+1)/Pstrat(k+1) &
-              end if
-
-              var%w(i, j, k) = wAst
-            end do
-          end do
-        end do
-      else
-        stop 'ERROR: unknown int_mod'
-      end if
-    else
-      stop 'ERROR: unknown mmp_mod'
-    end if
-
-    if(mmp_mod == 'rhs') then
-      if(int_mod == 'expl') then
-        spongeLayer = spongeLayer_s
-        topography = topography_s
-      else if(int_mod == 'impl') then
-        kr_sp = kr_sp / facray
-        kr_sp_w = kr_sp_w / facray
-        alprlx = alprlx / facray
-      end if
-    end if
-
-  end subroutine momentumPredictor_nc
-  !end subroutine momentumPredictor
-
-  !---------------------------------------------------------------------
-
-  !subroutine momentumPredictor_wc (var,flux,force,dt,q,m,mmp_mod,int_mod, &
   subroutine momentumPredictor(var, flux, force, dt, q, m, mmp_mod, int_mod, &
       &facray)
     !----------------------------------
@@ -2981,10 +1410,10 @@ module update_module
 
             ! q(m-1) -> q(m)
 
-            q(i, j, k, 1) = dt * F + alpha(m) * q(i, j, k, 1)
+            q(i, j, k, 1) = dt * F + alphaRK(m) * q(i, j, k, 1)
 
             ! rhoU(m-1) -> rhoU(m)
-            momM = momM_1 + beta(m) * q(i, j, k, 1)
+            momM = momM_1 + betaRK(m) * q(i, j, k, 1)
 
             ! calc u(m,*)
             uAst = momM / rhoM
@@ -3404,34 +1833,37 @@ module update_module
                 end if
               end if
 
-              if(TestCase == "baroclinic_LC") then
-                piGrady = kappaInv * MaInv2 * 0.25 * (Pstrat(k) / rhov0m &
-                    &* (var%pi(i, j, k) - var%pi(i, j - 1, k) - var_env%pi(i, &
-                    &j, k) + var_env%pi(i, j - 1, k)) / dy + Pstrat(k) &
-                    &/ rhov00 * (var%pi(i, j + 1, k) - var%pi(i, j, k) &
-                    &- var_env%pi(i, j + 1, k) + var_env%pi(i, j, k)) / dy &
-                    &+ Pstrat(k) / rhov1m * (var%pi(i + 1, j, k) - var%pi(i &
-                    &+ 1, j - 1, k) - var_env%pi(i + 1, j, k) + var_env%pi(i &
-                    &+ 1, j - 1, k)) / dy + Pstrat(k) / rhov10 * (var%pi(i &
-                    &+ 1, j + 1, k) - var%pi(i + 1, j, k) - var_env%pi(i + 1, &
-                    &j + 1, k) + var_env%pi(i + 1, j, k)) / dy)
+              if(.not. topography) then
+                if(TestCase == "baroclinic_LC") then
+                  piGrady = kappaInv * MaInv2 * 0.25 * (Pstrat(k) / rhov0m &
+                      &* (var%pi(i, j, k) - var%pi(i, j - 1, k) &
+                      &- var_env%pi(i, j, k) + var_env%pi(i, j - 1, k)) / dy &
+                      &+ Pstrat(k) / rhov00 * (var%pi(i, j + 1, k) - var%pi(i, &
+                      &j, k) - var_env%pi(i, j + 1, k) + var_env%pi(i, j, k)) &
+                      &/ dy + Pstrat(k) / rhov1m * (var%pi(i + 1, j, k) &
+                      &- var%pi(i + 1, j - 1, k) - var_env%pi(i + 1, j, k) &
+                      &+ var_env%pi(i + 1, j - 1, k)) / dy + Pstrat(k) &
+                      &/ rhov10 * (var%pi(i + 1, j + 1, k) - var%pi(i + 1, j, &
+                      &k) - var_env%pi(i + 1, j + 1, k) + var_env%pi(i + 1, j, &
+                      &k)) / dy)
 
-                piGrady = piGrady + kappaInv * MaInv2 * 0.25 * ((Pstrat(k) &
-                    &/ rhov0m - Pstrat_0(k) / rhov0m_e) * (var_env%pi(i, j, k) &
-                    &- var_env%pi(i, j - 1, k)) / dy + (Pstrat(k) / rhov00 &
-                    &- Pstrat_0(k) / rhov00_e) * (var_env%pi(i, j + 1, k) &
-                    &- var_env%pi(i, j, k)) / dy + (Pstrat(k) / rhov1m &
-                    &- Pstrat_0(k) / rhov1m_e) * (var_env%pi(i + 1, j, k) &
-                    &- var_env%pi(i + 1, j - 1, k)) / dy + (Pstrat(k) / rhov10 &
-                    &- Pstrat_0(k) / rhov10_e) * (var_env%pi(i + 1, j + 1, k) &
-                    &- var_env%pi(i + 1, j, k)) / dy)
-              else
-                piGrady = kappaInv * MaInv2 * 0.25 * (Pstrat(k) / rhov0m &
-                    &* (var%pi(i, j, k) - var%pi(i, j - 1, k)) / dy &
-                    &+ Pstrat(k) / rhov00 * (var%pi(i, j + 1, k) - var%pi(i, &
-                    &j, k)) / dy + Pstrat(k) / rhov1m * (var%pi(i + 1, j, k) &
-                    &- var%pi(i + 1, j - 1, k)) / dy + Pstrat(k) / rhov10 &
-                    &* (var%pi(i + 1, j + 1, k) - var%pi(i + 1, j, k)) / dy)
+                  piGrady = piGrady + kappaInv * MaInv2 * 0.25 * ((Pstrat(k) &
+                      &/ rhov0m - Pstrat_0(k) / rhov0m_e) * (var_env%pi(i, j, &
+                      &k) - var_env%pi(i, j - 1, k)) / dy + (Pstrat(k) &
+                      &/ rhov00 - Pstrat_0(k) / rhov00_e) * (var_env%pi(i, j &
+                      &+ 1, k) - var_env%pi(i, j, k)) / dy + (Pstrat(k) &
+                      &/ rhov1m - Pstrat_0(k) / rhov1m_e) * (var_env%pi(i + 1, &
+                      &j, k) - var_env%pi(i + 1, j - 1, k)) / dy + (Pstrat(k) &
+                      &/ rhov10 - Pstrat_0(k) / rhov10_e) * (var_env%pi(i + 1, &
+                      &j + 1, k) - var_env%pi(i + 1, j, k)) / dy)
+                else
+                  piGrady = kappaInv * MaInv2 * 0.25 * (Pstrat(k) / rhov0m &
+                      &* (var%pi(i, j, k) - var%pi(i, j - 1, k)) / dy &
+                      &+ Pstrat(k) / rhov00 * (var%pi(i, j + 1, k) - var%pi(i, &
+                      &j, k)) / dy + Pstrat(k) / rhov1m * (var%pi(i + 1, j, k) &
+                      &- var%pi(i + 1, j - 1, k)) / dy + Pstrat(k) / rhov10 &
+                      &* (var%pi(i + 1, j + 1, k) - var%pi(i + 1, j, k)) / dy)
+                end if
               end if
 
               ! gravity-wave forcing
@@ -3740,8 +2172,8 @@ module update_module
 
               if(topography) then
                 ! Adjust for 3D fields.
-                rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
-                    &j + 1, k))
+                rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, j &
+                    &+ 1, k))
                 rhoM_1 = rhoM_1 + rhoStratEdgeF
                 rhoM = rhoM + rhoStratEdgeF
               else
@@ -3761,10 +2193,10 @@ module update_module
             momM_1 = rhoM_1 * vM_1
 
             ! q(m-1) -> q(m)
-            q(i, j, k, 2) = dt * F + alpha(m) * q(i, j, k, 2)
+            q(i, j, k, 2) = dt * F + alphaRK(m) * q(i, j, k, 2)
 
             ! rhoV(m-1) -> rhoV(m)
-            momM = momM_1 + beta(m) * q(i, j, k, 2)
+            momM = momM_1 + betaRK(m) * q(i, j, k, 2)
 
             ! calc v(m,*)
             vAst = momM / rhoM
@@ -3782,8 +2214,8 @@ module update_module
               rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k))
               if(topography) then
                 ! TFC FJ
-                rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
-                    &j + 1, k))
+                rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, j &
+                    &+ 1, k))
                 rhov = rhov + rhoStratEdgeF
               else
                 rhov = rhov + rhoStrat(k)
@@ -4031,8 +2463,8 @@ module update_module
 
               if(topography) then
                 ! TFC FJ
-                rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
-                    &j + 1, k))
+                rhoStratEdgeF = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, j &
+                    &+ 1, k))
                 rhov = rhov + rhoStratEdgeF
               else
                 rhov = rhov + rhoStrat(k)
@@ -4068,35 +2500,38 @@ module update_module
               end if
 
               !--- pressure gradient terms -> piGradx, piGrady
-              if(TestCase == "baroclinic_LC") then
-                piGradx = kappaInv * MaInv2 * 0.25 * (Pstrat(k) / rhou00 &
-                    &* (var%pi(i + 1, j, k) - var%pi(i, j, k) - var_env%pi(i &
-                    &+ 1, j, k) + var_env%pi(i, j, k)) / dx + Pstrat(k) &
-                    &/ rhoum0 * (var%pi(i, j, k) - var%pi(i - 1, j, k) &
-                    &- var_env%pi(i, j, k) + var_env%pi(i - 1, j, k)) / dx &
-                    &+ Pstrat(k) / rhou01 * (var%pi(i + 1, j + 1, k) &
-                    &- var%pi(i, j + 1, k) - var_env%pi(i + 1, j + 1, k) &
-                    &+ var_env%pi(i, j + 1, k)) / dx + Pstrat(k) / rhoum1 &
-                    &* (var%pi(i, j + 1, k) - var%pi(i - 1, j + 1, k) &
-                    &- var_env%pi(i, j + 1, k) + var_env%pi(i - 1, j + 1, k)) &
-                    &/ dx)
+              if(.not. topography) then
+                if(TestCase == "baroclinic_LC") then
+                  piGradx = kappaInv * MaInv2 * 0.25 * (Pstrat(k) / rhou00 &
+                      &* (var%pi(i + 1, j, k) - var%pi(i, j, k) - var_env%pi(i &
+                      &+ 1, j, k) + var_env%pi(i, j, k)) / dx + Pstrat(k) &
+                      &/ rhoum0 * (var%pi(i, j, k) - var%pi(i - 1, j, k) &
+                      &- var_env%pi(i, j, k) + var_env%pi(i - 1, j, k)) / dx &
+                      &+ Pstrat(k) / rhou01 * (var%pi(i + 1, j + 1, k) &
+                      &- var%pi(i, j + 1, k) - var_env%pi(i + 1, j + 1, k) &
+                      &+ var_env%pi(i, j + 1, k)) / dx + Pstrat(k) / rhoum1 &
+                      &* (var%pi(i, j + 1, k) - var%pi(i - 1, j + 1, k) &
+                      &- var_env%pi(i, j + 1, k) + var_env%pi(i - 1, j + 1, &
+                      &k)) / dx)
 
-                piGradx = piGradx + kappaInv * MaInv2 * 0.25 * ((Pstrat(k) &
-                    &/ rhou00 - Pstrat_0(k) / rhou00_e) * (var_env%pi(i + 1, &
-                    &j, k) - var_env%pi(i, j, k)) / dx + (Pstrat(k) / rhoum0 &
-                    &- Pstrat_0(k) / rhoum0_e) * (var_env%pi(i, j, k) &
-                    &- var_env%pi(i - 1, j, k)) / dx + (Pstrat(k) / rhou01 &
-                    &- Pstrat_0(k) / rhou01_e) * (var_env%pi(i + 1, j + 1, k) &
-                    &- var_env%pi(i, j + 1, k)) / dx + (Pstrat(k) / rhoum1 &
-                    &- Pstrat_0(k) / rhoum1_e) * (var_env%pi(i, j + 1, k) &
-                    &- var_env%pi(i - 1, j + 1, k)) / dx)
-              else
-                piGradx = kappaInv * MaInv2 * 0.25 * (Pstrat(k) / rhou00 &
-                    &* (var%pi(i + 1, j, k) - var%pi(i, j, k)) / dx &
-                    &+ Pstrat(k) / rhoum0 * (var%pi(i, j, k) - var%pi(i - 1, &
-                    &j, k)) / dx + Pstrat(k) / rhou01 * (var%pi(i + 1, j + 1, &
-                    &k) - var%pi(i, j + 1, k)) / dx + Pstrat(k) / rhoum1 &
-                    &* (var%pi(i, j + 1, k) - var%pi(i - 1, j + 1, k)) / dx)
+                  piGradx = piGradx + kappaInv * MaInv2 * 0.25 * ((Pstrat(k) &
+                      &/ rhou00 - Pstrat_0(k) / rhou00_e) * (var_env%pi(i + 1, &
+                      &j, k) - var_env%pi(i, j, k)) / dx + (Pstrat(k) / rhoum0 &
+                      &- Pstrat_0(k) / rhoum0_e) * (var_env%pi(i, j, k) &
+                      &- var_env%pi(i - 1, j, k)) / dx + (Pstrat(k) / rhou01 &
+                      &- Pstrat_0(k) / rhou01_e) * (var_env%pi(i + 1, j + 1, &
+                      &k) - var_env%pi(i, j + 1, k)) / dx + (Pstrat(k) &
+                      &/ rhoum1 - Pstrat_0(k) / rhoum1_e) * (var_env%pi(i, j &
+                      &+ 1, k) - var_env%pi(i - 1, j + 1, k)) / dx)
+                else
+                  piGradx = kappaInv * MaInv2 * 0.25 * (Pstrat(k) / rhou00 &
+                      &* (var%pi(i + 1, j, k) - var%pi(i, j, k)) / dx &
+                      &+ Pstrat(k) / rhoum0 * (var%pi(i, j, k) - var%pi(i - 1, &
+                      &j, k)) / dx + Pstrat(k) / rhou01 * (var%pi(i + 1, j &
+                      &+ 1, k) - var%pi(i, j + 1, k)) / dx + Pstrat(k) &
+                      &/ rhoum1 * (var%pi(i, j + 1, k) - var%pi(i - 1, j + 1, &
+                      &k)) / dx)
+                end if
               end if
 
               if(TestCase == "baroclinic_LC") then
@@ -4623,10 +3058,10 @@ module update_module
             momM_1 = rhoM_1 * wM_1
 
             ! q(m-1) -> q(m)
-            q(i, j, k, 3) = dt * F + alpha(m) * q(i, j, k, 3)
+            q(i, j, k, 3) = dt * F + alphaRK(m) * q(i, j, k, 3)
 
             ! rhoW(m-1) -> rhoW(m)
-            momM = momM_1 + beta(m) * q(i, j, k, 3)
+            momM = momM_1 + betaRK(m) * q(i, j, k, 3)
 
             ! calc w(m,*)
             wAst = momM / rhoM
@@ -5326,10 +3761,10 @@ module update_module
           case("lowStorage")
 
             ! update: q(m-1) -> q(m)
-            q(i, j, k) = dt * F + alpha(m) * q(i, j, k)
+            q(i, j, k) = dt * F + alphaRK(m) * q(i, j, k)
 
             ! update potential temperature
-            var%rhop(i, j, k) = var%rhop(i, j, k) + beta(m) * q(i, j, k)
+            var%rhop(i, j, k) = var%rhop(i, j, k) + betaRK(m) * q(i, j, k)
 
           case("classical")
 
@@ -5496,10 +3931,10 @@ module update_module
             end if
 
             ! update: q(m-1) -> q(m)
-            q(i, j, k) = dt * F + alpha(m) * q(i, j, k)
+            q(i, j, k) = dt * F + alphaRK(m) * q(i, j, k)
 
             ! update density
-            var%rho(i, j, k) = var%rho(i, j, k) + beta(m) * q(i, j, k)
+            var%rho(i, j, k) = var%rho(i, j, k) + betaRK(m) * q(i, j, k)
           end do
         end do
       end do
@@ -5601,10 +4036,10 @@ module update_module
               end if
 
               ! update: q(m-1) -> q(m)
-              q(i, j, k) = dt * F + alpha(m) * q(i, j, k)
+              q(i, j, k) = dt * F + alphaRK(m) * q(i, j, k)
 
               ! update density
-              var%rhop(i, j, k) = var%rhop(i, j, k) + beta(m) * q(i, j, k)
+              var%rhop(i, j, k) = var%rhop(i, j, k) + betaRK(m) * q(i, j, k)
             end do
           end do
         end do
@@ -5683,10 +4118,10 @@ module update_module
               end if
 
               ! update: q(m-1) -> q(m)
-              q(i, j, k) = dt * F + alpha(m) * q(i, j, k)
+              q(i, j, k) = dt * F + alphaRK(m) * q(i, j, k)
 
               ! update density
-              var%rhop(i, j, k) = var%rhop(i, j, k) + beta(m) * q(i, j, k)
+              var%rhop(i, j, k) = var%rhop(i, j, k) + betaRK(m) * q(i, j, k)
             end do
           end do
         end do
@@ -5739,8 +4174,8 @@ module update_module
                   rho = rho + rhoStratTFC(i, j, k)
                   rhow = rhow + 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
                       &j, k + 1))
-                  rhowm = rhowm + 0.5 * (rhoStratTFC(i, j, k) &
-                      &+ rhoStratTFC(i, j, k - 1))
+                  rhowm = rhowm + 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
+                      &j, k - 1))
                 else
                   rho = rho + rhoStrat(k)
                   rhow = rhow + rhoStratTilde(k)
@@ -5967,8 +4402,7 @@ module update_module
                     rhowm_e = 0.5 * (var_env%rho(i, j, k - 1) + var_env%rho(i, &
                         &j, k))
 
-                    rhow_e = rhow_e + 0.5 * (rhoStrat_0(k) + rhoStrat_0(k &
-                        &+ 1))
+                    rhow_e = rhow_e + 0.5 * (rhoStrat_0(k) + rhoStrat_0(k + 1))
                     rhowm_e = rhowm_e + 0.5 * (rhoStrat_0(k - 1) &
                         &+ rhoStrat_0(k))
 
@@ -6216,10 +4650,10 @@ module update_module
               F = - fluxDiff - heat(i, j, k)
 
               ! update: q(m-1) -> q(m)
-              q(i, j, k) = dt * F + alpha(m) * q(i, j, k)
+              q(i, j, k) = dt * F + alphaRK(m) * q(i, j, k)
 
               ! update density
-              var%P(i, j, k) = var%P(i, j, k) + beta(m) * q(i, j, k)
+              var%P(i, j, k) = var%P(i, j, k) + betaRK(m) * q(i, j, k)
             end do
           end do
         end do
@@ -6238,8 +4672,8 @@ module update_module
 
     type(flux_type), intent(in) :: flux
 
-    type(tracerForceType), dimension(- nbx:nx + nbx, - nby:ny + nby, &
-      - nbz:nz + nbz), intent(in) :: tracerforce
+    type(tracerForceType), dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz &
+        &+ nbz), intent(in) :: tracerforce
 
     real, intent(in) :: dt
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
@@ -6302,7 +4736,8 @@ module update_module
 
             ! include next-order gw tracer flux convergence
             if(include_trfrc_no) then
-              forcetracer = forcetracer + rho * tracerforce(i, j, k)%noforce%total
+              forcetracer = forcetracer + rho * tracerforce(i, j, &
+                  &k)%noforce%total
             end if
 
             ! include diffusive mixing of tracer
@@ -6310,7 +4745,7 @@ module update_module
               forcetracer = forcetracer - tracerforce(i, j, k)%mixingGW%total
             end if
 
-            F = F - forcetracer ! rho * 
+            F = F - forcetracer ! rho *
           end if
 
           if(dens_relax) then
@@ -6318,10 +4753,10 @@ module update_module
           end if
 
           ! update: q(m-1) -> q(m)
-          q(i, j, k) = dt * F + alpha(m) * q(i, j, k)
+          q(i, j, k) = dt * F + alphaRK(m) * q(i, j, k)
 
           ! update density
-          var%chi(i, j, k) = var%chi(i, j, k) + beta(m) * q(i, j, k)
+          var%chi(i, j, k) = var%chi(i, j, k) + betaRK(m) * q(i, j, k)
 
         end do
       end do
@@ -6330,6 +4765,7 @@ module update_module
   end subroutine tracerUpdate
 
   !-----------------------------------------------------------------------
+
   subroutine timeUpdate(time, dt, q, m)
 
     implicit none
@@ -6340,13 +4776,13 @@ module update_module
     integer, intent(in) :: m
 
     ! init q
-    !if(m == 1) q = 0. !alpha(1) allways 0 ?!
+    !if(m == 1) q = 0. !alphaRK(1) allways 0 ?!
 
     ! update: q(m-1) -> q(m)
-    q = dt + alpha(m) * q
+    q = dt + alphaRK(m) * q
 
     ! update time
-    time = time + beta(m) * q
+    time = time + betaRK(m) * q
 
   end subroutine timeUpdate
 
@@ -6434,10 +4870,10 @@ module update_module
             end if
 
             ! update: q(m-1) -> q(m)
-            q(i, j, k, iVar) = dt * F + alpha(m) * q(i, j, k, iVar)
+            q(i, j, k, iVar) = dt * F + alphaRK(m) * q(i, j, k, iVar)
 
             ! update fields
-            var%ICE(i, j, k, iVar) = var%ICE(i, j, k, iVar) + beta(m) * q(i, &
+            var%ICE(i, j, k, iVar) = var%ICE(i, j, k, iVar) + betaRK(m) * q(i, &
                 &j, k, iVar)
 
           end do !i
@@ -6562,10 +4998,10 @@ module update_module
             F = - fluxDiff
 
             ! update: q(m-1) -> q(m)
-            q(i, j, k, iVar) = dt * F + alpha(m) * q(i, j, k, iVar)
+            q(i, j, k, iVar) = dt * F + alphaRK(m) * q(i, j, k, iVar)
 
             ! update fields
-            var%ICE(i, j, k, iVar) = var%ICE(i, j, k, iVar) + beta(m) * q(i, &
+            var%ICE(i, j, k, iVar) = var%ICE(i, j, k, iVar) + betaRK(m) * q(i, &
                 &j, k, iVar)
 
           end do !i
@@ -6680,8 +5116,8 @@ module update_module
                   bMaxNew = abs(var%rho(i, j, k)) / (rhoStratTFC(i, j, k) &
                       &+ var%rho(i, j, k)) * vertical
                 else
-                  bMaxNew = abs(var%rho(i, j, k)) / (rhoStrat(k) &
-                      &+ var%rho(i, j, k)) * vertical
+                  bMaxNew = abs(var%rho(i, j, k)) / (rhoStrat(k) + var%rho(i, &
+                      &j, k)) * vertical
                 end if
 
               case("Boussinesq")
@@ -7887,501 +6323,6 @@ module update_module
 
   !------------------------------------------------------------------------
 
-  subroutine smooth_shapiro_0(var)
-
-    !--------------------------------------------------------------------
-    !    local smoothing of density, winds, pressure,
-    !    and density fluctuations
-    !    use Shapiro weighting up to nsmth = 4
-    !-------------------------------------------------------------------
-
-    ! in/out variables
-    type(var_type), intent(inout) :: var
-
-    ! allocatable fields
-    real, dimension(:, :, :), allocatable :: field, field_0, field_1
-
-    integer :: allocstat
-    integer :: i, j, k
-    integer :: nsmth
-    integer :: iVar, ivmax
-
-    allocate(field(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
-        &= allocstat)
-    if(allocstat /= 0) stop "smooth_shapiro:alloc failed"
-
-    allocate(field_0(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
-        &= allocstat)
-    if(allocstat /= 0) stop "smooth_shapiro:alloc failed"
-
-    allocate(field_1(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
-        &= allocstat)
-    if(allocstat /= 0) stop "smooth_shapiro:alloc failed"
-
-    if(timeScheme == "semiimplicit") then
-      ! in explicit integration smoothing of density, winds,
-      ! and density fluctuations
-      ! pressure fluctuations are not smoothened
-      ivmax = 6
-    else
-      ! in explicit integration smoothing of density, and winds
-      ivmax = 4
-    end if
-
-    do iVar = 1, ivmax
-      if(iVar == 5) goto 100
-
-      select case(iVar)
-      case(1)
-        field(:, :, :) = var%rho(:, :, :)
-      case(2)
-        field(:, :, :) = var%u(:, :, :)
-      case(3)
-        field(:, :, :) = var%v(:, :, :)
-      case(4)
-        field(:, :, :) = var%w(:, :, :)
-      case(6)
-        field(:, :, :) = var%rhop(:, :, :)
-      case default
-      end select
-
-      ! set the values for field_0
-
-      field_0 = field
-
-      ! start to do the smoothing
-
-      if(sizeX > 1 .and. sizeY > 1 .and. sizeZ > 1) then
-        ! 3D smoothing
-
-        if(nbx == 1 .and. nby == 1 .and. nbz == 1) then
-          nsmth = 1
-        else if(nbx == 2 .and. nby == 2 .and. nbz == 2) then
-          nsmth = 2
-        else if(nbx == 3 .and. nby == 3 .and. nbz == 3) then
-          nsmth = 3
-        else if(nbx == 4 .and. nby == 4 .and. nbz == 4) then
-          nsmth = 4
-        else
-          stop 'ERROR: wrong nbx, nby, nbz in smoothing'
-        end if
-
-        if(nsmth == 1) then
-          ! smooth in x
-
-          do k = - nbz, nz + nbz
-            do j = - nby, ny + nby
-              do i = 1, nx
-                field_0(i, j, k) = (field(i - 1, j, k) + field(i + 1, j, k) &
-                    &+ 2.0 * field(i, j, k)) / 4.0
-              end do
-            end do
-          end do
-
-          ! smooth in y
-
-          do k = - nbz, nz + nbz
-            do j = 1, ny
-              do i = 1, nx
-                field_1(i, j, k) = (field_0(i, j - 1, k) + field_0(i, j + 1, &
-                    &k) + 2.0 * field_0(i, j, k)) / 4.0
-              end do
-            end do
-          end do
-
-          ! smooth in z
-
-          do k = 1, nz
-            do j = 1, ny
-              do i = 1, nx
-                field(i, j, k) = (field_1(i, j, k - 1) + field_1(i, j, k + 1) &
-                    &+ 2.0 * field_1(i, j, k)) / 4.0
-              end do
-            end do
-          end do
-        elseif(nsmth == 2) then
-          ! smooth in x
-
-          do k = - nbz, nz + nbz
-            do j = - nby, ny + nby
-              do i = 1, nx
-                field_0(i, j, k) = (- field(i - 2, j, k) - field(i + 2, j, k) &
-                    &+ 4.0 * (field(i - 1, j, k) + field(i + 1, j, k)) + 10.0 &
-                    &* field(i, j, k)) / 16.0
-              end do
-            end do
-          end do
-
-          ! smooth in y
-
-          do k = - nbz, nz + nbz
-            do j = 1, ny
-              do i = 1, nx
-                field_1(i, j, k) = (- field_0(i, j - 2, k) - field_0(i, j + 2, &
-                    &k) + 4.0 * (field_0(i, j - 1, k) + field_0(i, j + 1, k)) &
-                    &+ 10.0 * field_0(i, j, k)) / 16.0
-              end do
-            end do
-          end do
-
-          ! smooth in z
-
-          do k = 1, nz
-            do j = 1, ny
-              do i = 1, nx
-                field(i, j, k) = (- field_1(i, j, k - 2) - field_1(i, j, k &
-                    &+ 2) + 4.0 * (field_1(i, j, k - 1) + field_1(i, j, k &
-                    &+ 1)) + 10.0 * field_1(i, j, k)) / 16.0
-              end do
-            end do
-          end do
-        elseif(nsmth == 3) then
-          ! smooth in x
-
-          do k = - nbz, nz + nbz
-            do j = - nby, ny + nby
-              do i = 1, nx
-                field_0(i, j, k) = (field(i - 3, j, k) + field(i + 3, j, k) &
-                    &- 6.0 * (field(i - 2, j, k) + field(i + 2, j, k)) + 15.0 &
-                    &* (field(i - 1, j, k) + field(i + 1, j, k)) + 44.0 &
-                    &* field(i, j, k)) / 64.0
-              end do
-            end do
-          end do
-
-          ! smooth in y
-
-          do k = - nbz, nz + nbz
-            do j = 1, ny
-              do i = 1, nx
-                field_1(i, j, k) = (field_0(i, j - 3, k) + field_0(i, j + 3, &
-                    &k) - 6.0 * (field_0(i, j - 2, k) + field_0(i, j + 2, k)) &
-                    &+ 15.0 * (field_0(i, j - 1, k) + field_0(i, j + 1, k)) &
-                    &+ 44.0 * field_0(i, j, k)) / 64.0
-              end do
-            end do
-          end do
-
-          ! smooth in z
-
-          do k = 1, nz
-            do j = 1, ny
-              do i = 1, nx
-                field(i, j, k) = (field_1(i, j, k - 3) + field_1(i, j, k + 3) &
-                    &- 6.0 * (field_1(i, j, k - 2) + field_1(i, j, k + 2)) &
-                    &+ 15.0 * (field_1(i, j, k - 1) + field_1(i, j, k + 1)) &
-                    &+ 44.0 * field_1(i, j, k)) / 64.0
-              end do
-            end do
-          end do
-        elseif(nsmth == 4) then
-          ! smooth in x
-
-          do k = - nbz, nz + nbz
-            do j = - nby, ny + nby
-              do i = 1, nx
-                field_0(i, j, k) = (- field(i - 4, j, k) - field(i + 4, j, k) &
-                    &+ 8.0 * (field(i - 3, j, k) + field(i + 3, j, k)) - 28.0 &
-                    &* (field(i - 2, j, k) + field(i + 2, j, k)) + 56.0 &
-                    &* (field(i - 1, j, k) + field(i + 1, j, k)) + 186.0 &
-                    &* field(i, j, k)) / 256.0
-              end do
-            end do
-          end do
-
-          ! smooth in y
-
-          do k = - nbz, nz + nbz
-            do j = 1, ny
-              do i = 1, nx
-                field_1(i, j, k) = (- field_0(i, j - 4, k) - field_0(i, j + 4, &
-                    &k) + 8.0 * (field_0(i, j - 3, k) + field_0(i, j + 3, k)) &
-                    &- 28.0 * (field_0(i, j - 2, k) + field_0(i, j + 2, k)) &
-                    &+ 56.0 * (field_0(i, j - 1, k) + field_0(i, j + 1, k)) &
-                    &+ 186.0 * field_0(i, j, k)) / 256.0
-              end do
-            end do
-          end do
-
-          ! smooth in z
-
-          do k = 1, nz
-            do j = 1, ny
-              do i = 1, nx
-                field(i, j, k) = (field_1(i, j, k - 4) + field_1(i, j, k + 4) &
-                    &+ 8.0 * (field_1(i, j, k - 3) + field_1(i, j, k + 3)) &
-                    &- 28.0 * (field_1(i, j, k - 2) + field_1(i, j, k + 2)) &
-                    &+ 56.0 * (field_1(i, j, k - 1) + field_1(i, j, k + 1)) &
-                    &+ 186.0 * field_1(i, j, k)) / 256.0
-              end do
-            end do
-          end do
-        end if
-      else if(sizeX > 1 .and. sizeY == 1 .and. sizeZ > 1) then
-        ! 2D smoothing in x and z
-
-        if(nbx == 1 .and. nbz == 1) then
-          nsmth = 1
-        else if(nbx == 2 .and. nbz == 2) then
-          nsmth = 2
-        else if(nbx == 3 .and. nbz == 3) then
-          nsmth = 3
-        else if(nbx == 4 .and. nbz == 4) then
-          nsmth = 4
-        else
-          stop 'ERROR: wrong nbx, nby, nbz in smoothing'
-        end if
-
-        if(nsmth == 1) then
-          ! smooth in x
-
-          do k = - nbz, nz + nbz
-            do j = 1, ny
-              do i = 1, nx
-                field_1(i, j, k) = (field_0(i - 1, j, k) + field_0(i + 1, j, &
-                    &k) + 2.0 * field_0(i, j, k)) / 4.0
-              end do
-            end do
-          end do
-
-          ! smooth in z
-
-          do k = 1, nz
-            do j = 1, ny
-              do i = 1, nx
-                field(i, j, k) = (field_1(i, j, k - 1) + field_1(i, j, k + 1) &
-                    &+ 2.0 * field_1(i, j, k)) / 4.0
-              end do
-            end do
-          end do
-        elseif(nsmth == 2) then
-          ! smooth in x
-
-          do k = - nbz, nz + nbz
-            do j = 1, ny
-              do i = 1, nx
-                field_1(i, j, k) = (- field_0(i - 2, j, k) - field_0(i + 2, j, &
-                    &k) + 4.0 * (field_0(i - 1, j, k) + field_0(i + 1, j, k)) &
-                    &+ 10.0 * field_0(i, j, k)) / 16.0
-              end do
-            end do
-          end do
-
-          ! smooth in z
-
-          do k = 1, nz
-            do j = 1, ny
-              do i = 1, nx
-                field(i, j, k) = (- field_1(i, j, k - 2) - field_1(i, j, k &
-                    &+ 2) + 4.0 * (field_1(i, j, k - 1) + field_1(i, j, k &
-                    &+ 1)) + 10.0 * field_1(i, j, k)) / 16.0
-              end do
-            end do
-          end do
-        elseif(nsmth == 3) then
-          ! smooth in x
-
-          do k = - nbz, nz + nbz
-            do j = 1, ny
-              do i = 1, nx
-                field_1(i, j, k) = (field_0(i - 3, j, k) + field_0(i + 3, j, &
-                    &k) - 6.0 * (field_0(i - 2, j, k) + field_0(i + 2, j, k)) &
-                    &+ 15.0 * (field_0(i - 1, j, k) + field_0(i + 1, j, k)) &
-                    &+ 44.0 * field_0(i, j, k)) / 64.0
-              end do
-            end do
-          end do
-
-          ! smooth in z
-
-          do k = 1, nz
-            do j = 1, ny
-              do i = 1, nx
-                field(i, j, k) = (field_1(i, j, k - 3) + field_1(i, j, k + 3) &
-                    &- 6.0 * (field_1(i, j, k - 2) + field_1(i, j, k + 2)) &
-                    &+ 15.0 * (field_1(i, j, k - 1) + field_1(i, j, k + 1)) &
-                    &+ 44.0 * field_1(i, j, k)) / 64.0
-              end do
-            end do
-          end do
-        elseif(nsmth == 4) then
-          ! smooth in x
-
-          do k = - nbz, nz + nbz
-            do j = 1, ny
-              do i = 1, nx
-                field_1(i, j, k) = (- field_0(i - 4, j, k) - field_0(i + 4, j, &
-                    &k) + 8.0 * (field_0(i - 3, j, k) + field_0(i + 3, j, k)) &
-                    &- 28.0 * (field_0(i - 2, j, k) + field_0(i + 2, j, k)) &
-                    &+ 56.0 * (field_0(i - 1, j, k) + field_0(i + 1, j, k)) &
-                    &+ 186.0 * field_0(i, j, k)) / 256.0
-              end do
-            end do
-          end do
-
-          ! smooth in z
-
-          do k = 1, nz
-            do j = 1, ny
-              do i = 1, nx
-                field(i, j, k) = (field_1(i, j, k - 4) + field_1(i, j, k + 4) &
-                    &+ 8.0 * (field_1(i, j, k - 3) + field_1(i, j, k + 3)) &
-                    &- 28.0 * (field_1(i, j, k - 2) + field_1(i, j, k + 2)) &
-                    &+ 56.0 * (field_1(i, j, k - 1) + field_1(i, j, k + 1)) &
-                    &+ 186.0 * field_1(i, j, k)) / 256.0
-              end do
-            end do
-          end do
-        end if
-      else if(sizeX == 1 .and. sizeY > 1 .and. sizeZ > 1) then
-        if(nby == 1 .and. nbz == 1) then
-          nsmth = 1
-        else if(nby == 2 .and. nbz == 2) then
-          nsmth = 2
-        else if(nby == 3 .and. nbz == 3) then
-          nsmth = 3
-        else if(nby == 4 .and. nbz == 4) then
-          nsmth = 4
-        else
-          stop 'ERROR: wrong nbx, nby, nbz in smoothing'
-        end if
-
-        if(nsmth == 1) then
-          ! smooth in y
-
-          do k = - nbz, nz + nbz
-            do j = 1, ny
-              do i = 1, nx
-                field_1(i, j, k) = (field_0(i, j - 1, k) + field_0(i, j + 1, &
-                    &k) + 2.0 * field_0(i, j, k)) / 4.0
-              end do
-            end do
-          end do
-
-          ! smooth in z
-
-          do k = 1, nz
-            do j = 1, ny
-              do i = 1, nx
-                field(i, j, k) = (field_1(i, j, k - 1) + field_1(i, j, k + 1) &
-                    &+ 2.0 * field_1(i, j, k)) / 4.0
-              end do
-            end do
-          end do
-        elseif(nsmth == 2) then
-          ! smooth in y
-
-          do k = - nbz, nz + nbz
-            do j = 1, ny
-              do i = 1, nx
-                field_1(i, j, k) = (- field_0(i, j - 2, k) - field_0(i, j + 2, &
-                    &k) + 4.0 * (field_0(i, j - 1, k) + field_0(i, j + 1, k)) &
-                    &+ 10.0 * field_0(i, j, k)) / 16.0
-              end do
-            end do
-          end do
-
-          ! smooth in z
-
-          do k = 1, nz
-            do j = 1, ny
-              do i = 1, nx
-                field(i, j, k) = (- field_1(i, j, k - 2) - field_1(i, j, k &
-                    &+ 2) + 4.0 * (field_1(i, j, k - 1) + field_1(i, j, k &
-                    &+ 1)) + 10.0 * field_1(i, j, k)) / 16.0
-              end do
-            end do
-          end do
-        elseif(nsmth == 3) then
-          ! smooth in y
-
-          do k = - nbz, nz + nbz
-            do j = 1, ny
-              do i = 1, nx
-                field_1(i, j, k) = (field_0(i, j - 3, k) + field_0(i, j + 3, &
-                    &k) - 6.0 * (field_0(i, j - 2, k) + field_0(i, j + 2, k)) &
-                    &+ 15.0 * (field_0(i, j - 1, k) + field_0(i, j + 1, k)) &
-                    &+ 44.0 * field_0(i, j, k)) / 64.0
-              end do
-            end do
-          end do
-
-          ! smooth in z
-
-          do k = 1, nz
-            do j = 1, ny
-              do i = 1, nx
-                field(i, j, k) = (field_1(i, j, k - 3) + field_1(i, j, k + 3) &
-                    &- 6.0 * (field_1(i, j, k - 2) + field_1(i, j, k + 2)) &
-                    &+ 15.0 * (field_1(i, j, k - 1) + field_1(i, j, k + 1)) &
-                    &+ 44.0 * field_1(i, j, k)) / 64.0
-              end do
-            end do
-          end do
-        elseif(nsmth == 4) then
-          ! smooth in y
-
-          do k = - nbz, nz + nbz
-            do j = 1, ny
-              do i = 1, nx
-                field_1(i, j, k) = (- field_0(i, j - 4, k) - field_0(i, j + 4, &
-                    &k) + 8.0 * (field_0(i, j - 3, k) + field_0(i, j + 3, k)) &
-                    &- 28.0 * (field_0(i, j - 2, k) + field_0(i, j + 2, k)) &
-                    &+ 56.0 * (field_0(i, j - 1, k) + field_0(i, j + 1, k)) &
-                    &+ 186.0 * field_0(i, j, k)) / 256.0
-              end do
-            end do
-          end do
-
-          ! smooth in z
-
-          do k = 1, nz
-            do j = 1, ny
-              do i = 1, nx
-                field(i, j, k) = (field_1(i, j, k - 4) + field_1(i, j, k + 4) &
-                    &+ 8.0 * (field_1(i, j, k - 3) + field_1(i, j, k + 3)) &
-                    &- 28.0 * (field_1(i, j, k - 2) + field_1(i, j, k + 2)) &
-                    &+ 56.0 * (field_1(i, j, k - 1) + field_1(i, j, k + 1)) &
-                    &+ 186.0 * field_1(i, j, k)) / 256.0
-              end do
-            end do
-          end do
-        end if
-      else
-        stop "ERROR: smoothing not ready for 2D in x and y or 1D"
-      end if
-
-      select case(iVar)
-      case(1)
-        var%rho(:, :, :) = field(:, :, :)
-      case(2)
-        var%u(:, :, :) = field(:, :, :)
-      case(3)
-        var%v(:, :, :) = field(:, :, :)
-      case(4)
-        var%w(:, :, :) = field(:, :, :)
-      case(6)
-        var%rhop(:, :, :) = field(:, :, :)
-      case default
-      end select
-
-      100 continue
-    end do
-
-    ! deallocate local fields
-    deallocate(field, stat = allocstat); if(allocstat /= 0) stop &
-        &"smooth_shapiro:dealloc failed"
-    deallocate(field_0, stat = allocstat); if(allocstat /= 0) stop &
-        &"smooth_shapiro:dealloc failed"
-    deallocate(field_1, stat = allocstat); if(allocstat /= 0) stop &
-        &"smooth_shapiro:dealloc failed"
-
-    return
-
-  end subroutine smooth_shapiro_0
-
-  !UAB
-  !------------------------------------------------------------------------
   subroutine smooth_hor_shapiro(fc_shap, n_shap, flux, var, dt)
 
     !--------------------------------------------------------------------
@@ -9382,11 +7323,11 @@ module update_module
 
         ! update: q(m-1) -> q(m)
 
-        q_P(k) = alpha(m) * q_P(k) - dt * divPw(k) - dt * S_bar(k)
+        q_P(k) = alphaRK(m) * q_P(k) - dt * divPw(k) - dt * S_bar(k)
 
         ! update PStrat
 
-        Pstrat(k) = Pstrat(k) + beta(m) * q_P(k) !PIold
+        Pstrat(k) = Pstrat(k) + betaRK(m) * q_P(k) !PIold
       else if(int_mod == "impl") then
         if(heating_switch == 0) then
           PStrat(k) = PStrat(k) - dt * divPw(k) - dt * S_bar(k) !PIold
@@ -9406,7 +7347,6 @@ module update_module
       piStrat(k) = PStrat(k) ** (kappa / (1.0 - kappa))
     end do
 
-
     pStrat(0) = pStrat(1)
     pStrat(- 1) = pStrat(0)
     pStrat(nz + 1) = pStrat(nz)
@@ -9416,7 +7356,6 @@ module update_module
       PstratTilde(k) = 0.5 * (PStrat(k) + PStrat(k + 1))
     end do
 
-    
     ! the following could most probably be deleted
     ! update of non-dimensional squared Brunt-Vaisala frequency
     ! (this could perhaps be done a bit nicer)
@@ -9640,47 +7579,6 @@ module update_module
       end do
     end if
   end subroutine bvsUpdate
-
-  !---------------------------------------------------------------------
-
-  subroutine P_update(var, var0, dt)
-    !------------------------------------------
-    ! Update of P in first implicit timestep
-    ! to obatin P^(n+1/2)
-    !------------------------------------------
-    type(var_type), intent(inout) :: var
-    type(var_type), intent(in) :: var0
-    real, intent(in) :: dt
-
-    ! local variables
-    integer :: i, j, k
-    real :: fL, fR, gB, gF, hD, hU
-    real :: fluxDiff
-
-    do k = 1, nz
-      do j = 1, ny
-        do i = 1, nx
-          ! using JPu as the carrier flux
-          fL = var%u(i - 1, j, k) ! mass flux accros left cell edge
-          fR = var%u(i, j, k) ! right
-          gB = var%v(i, j - 1, k) ! backward
-          gF = var%v(i, j, k) ! forward
-          hD = var%w(i, j, k - 1) ! downward
-          hU = var%w(i, j, k) ! upward
-
-          ! convective part
-          fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
-
-          ! Divergenz
-          fluxDiff = - fluxDiff / jac(i, j, k)
-
-          ! update density
-          var%P(i, j, k) = var0%P(i, j, k) + dt * fluxDiff
-        end do
-      end do
-    end do
-
-  end subroutine P_update
 
   !---------------------------------------------------------------------
 

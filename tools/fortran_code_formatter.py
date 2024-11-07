@@ -108,7 +108,7 @@ for file in os.listdir(input_directory):
     code = input.read()
 
   # Replace tabs with whitespaces.
-  code = code.expandtabs()
+  code = code.expandtabs(subunit_indent)
 
   # Remove leading and trailing whitespaces.
   code = "\n".join((entry.strip(" ") for entry in code.split("\n")))
