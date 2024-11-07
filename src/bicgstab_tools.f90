@@ -4,7 +4,6 @@ module bicgstab_tools_module
   use mpi_module ! modified by Junhong Wei (20161106)
   use timeScheme_module
   use atmosphere_module
-  use algebra_module
   use mpi
 
   implicit none
@@ -256,6 +255,5 @@ module bicgstab_tools_module
     return
 
   end subroutine CleanUpBICGStab
-
 
 end module bicgstab_tools_module

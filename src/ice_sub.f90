@@ -5,9 +5,9 @@ module ice_sub_module
   subroutine output_ice(i, j, k, iVar, var, field_prc)
 
     use type_module, ONLY:nx, ny, nz, nVar, nbx, nby, nbz, include_ice, &
-        &nVarIce, inN, inQ, inQv, master, model, topography, &
-        &thetaRefRatio, timeScheme, L_ice, R_v, S_c, Dep, pSatIceRef, epsil0, &
-        &epsil0hat, L_hat, master, include_testoutput, var_type
+        &nVarIce, inN, inQ, inQv, master, model, topography, thetaRefRatio, &
+        &timeScheme, L_ice, R_v, S_c, Dep, pSatIceRef, epsil0, epsil0hat, &
+        &L_hat, master, include_testoutput, var_type
 
     use mpi_module
     use atmosphere_module, ONLY:PStrat01, PStratTilde01, PStrat, rhoStrat, &
@@ -65,7 +65,6 @@ module ice_sub_module
         exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
 
       end if ! topography
-
 
       pres = p0 * exn_p ** kappaInv !kappaInv = c_p/R
 

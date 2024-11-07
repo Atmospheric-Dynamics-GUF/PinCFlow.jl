@@ -394,7 +394,6 @@ module boundary_module
         end if
       end if
 
-    
       ! set boundaries if including tracer
       if(updateTracer) then
         do j = 1, nby
@@ -459,7 +458,6 @@ module boundary_module
               &set."
         end if
       end if
-
 
     case("ice")
       ! ice variables
@@ -629,7 +627,6 @@ module boundary_module
         end if
       end if
 
-
       ! set boundaries if including tracer
       if(updateTracer) then
         do k = 1, nbz
@@ -692,7 +689,6 @@ module boundary_module
           print *, "setBoundary_z_periodic:  z-periodic BC for p set."
         end if
       end if
-
 
     case("ice")
       ! ice variables
@@ -861,21 +857,20 @@ module boundary_module
         if(testCase == "baroclinic_LC") then
           if(topography) then
             ! TFC FJ
-            var%rho(1:nx, 1:ny, 0) = - var%rho(1:nx, 1:ny, 1) &
-                &+ dens_env_pp(:, :, 1) - rhoStratTFC(1:nx, 1:ny, 1) &
-                &+ dens_env_pp(:, :, 0) - rhoStratTFC(1:nx, 1:ny, 0)
+            var%rho(1:nx, 1:ny, 0) = - var%rho(1:nx, 1:ny, 1) + dens_env_pp(:, &
+                &:, 1) - rhoStratTFC(1:nx, 1:ny, 1) + dens_env_pp(:, :, 0) &
+                &- rhoStratTFC(1:nx, 1:ny, 0)
 
             var%rho(1:nx, 1:ny, nz + 1) = - var%rho(1:nx, 1:ny, nz) &
                 &+ dens_env_pp(:, :, nz) - rhoStratTFC(1:nx, 1:ny, nz) &
                 &+ dens_env_pp(:, :, nz + 1) - rhoStratTFC(1:nx, 1:ny, nz + 1)
           else
-            var%rho(1:nx, 1:ny, 0) = - var%rho(1:nx, 1:ny, 1) &
-                &+ dens_env_pp(:, :, 1) - rhoStrat(1) + dens_env_pp(:, :, 0) &
-                &- rhoStrat(0)
+            var%rho(1:nx, 1:ny, 0) = - var%rho(1:nx, 1:ny, 1) + dens_env_pp(:, &
+                &:, 1) - rhoStrat(1) + dens_env_pp(:, :, 0) - rhoStrat(0)
 
             var%rho(1:nx, 1:ny, nz + 1) = - var%rho(1:nx, 1:ny, nz) &
-                &+ dens_env_pp(:, :, nz) - rhoStrat(nz) + dens_env_pp(:, :, &
-                &nz + 1) - rhoStrat(nz + 1)
+                &+ dens_env_pp(:, :, nz) - rhoStrat(nz) + dens_env_pp(:, :, nz &
+                &+ 1) - rhoStrat(nz + 1)
           end if
         else if(testCase == "smoothVortex") then
           var%rho(1:nx, 1:ny, 0) = var%rho(1:nx, 1:ny, 1)
@@ -1239,7 +1234,7 @@ module boundary_module
         else
           ! z = 0
           var%pi(:, :, 0) = var%pi(:, :, 1)
-          
+
           ! z = zMax
           var%pi(:, :, nz + 1) = var%pi(:, :, nz)
         end if
@@ -1249,7 +1244,6 @@ module boundary_module
       ! the overlap betwen vertical and horizontal halos right
 
       if(testCase == "baroclinic_LC") call setHalos(var, "var")
-
 
     case("ice")
       ! reflect at boundary with change of sign
@@ -1321,7 +1315,6 @@ module boundary_module
         flux%chi(:, :, 0, 3) = 0.0
         flux%chi(:, :, nz, 3) = 0.0
       end if
-
 
       if(updateTheta) then
         if(timeScheme == "semiimplicit") then

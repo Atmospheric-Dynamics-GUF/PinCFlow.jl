@@ -16,8 +16,8 @@ module timeScheme_module
   !------------------------------
 
   integer :: RKstage
-  real, dimension(3), public :: alpha
-  real, dimension(3), public :: beta
+  real, dimension(3), public :: alphaRK
+  real, dimension(3), public :: betaRK
   real, dimension(3), public :: stepFrac
   real, dimension(3, 3), public :: rk
 
@@ -42,8 +42,8 @@ module timeScheme_module
       if(verbose) then
         print *, "update.f90/init_update: timeScheme = semiimplicit"
       end if
-      alpha = (/0.0, - 5. / 9., - 153. / 128./)
-      beta = (/1. / 3., 15. / 16., 8. / 15./)
+      alphaRK = (/0.0, - 5. / 9., - 153. / 128./)
+      betaRK = (/1. / 3., 15. / 16., 8. / 15./)
       stepFrac = (/1. / 3., 5. / 12., 1. / 4./)
       ! set phi = t, F(phi) = 1 in time scheme to calc stepFrac
       nStages = 3
@@ -51,8 +51,8 @@ module timeScheme_module
 
     case("LS_Will_RK3") ! ref. Durran
       if(verbose) print *, "update.f90/init_update: timeScheme = LS_Will_RK3"
-      alpha = (/0.0, - 5. / 9., - 153. / 128./)
-      beta = (/1. / 3., 15. / 16., 8. / 15./)
+      alphaRK = (/0.0, - 5. / 9., - 153. / 128./)
+      betaRK = (/1. / 3., 15. / 16., 8. / 15./)
       stepFrac = (/1. / 3., 5. / 12., 1. / 4./)
       ! set phi = t, F(phi) = 1 in time scheme to calc stepFrac
       nStages = 3
@@ -60,8 +60,8 @@ module timeScheme_module
 
     case("Euler")
       if(verbose) print *, "update.f90/init_update: timeScheme = Euler"
-      alpha = (/0.0, 0.0, 0.0/)
-      beta = (/1.0, 0.0, 0.0/)
+      alphaRK = (/0.0, 0.0, 0.0/)
+      betaRK = (/1.0, 0.0, 0.0/)
       stepFrac = (/1.0, 0.0, 0.0/)
       nStages = 1
       timeSchemeType = "lowStorage"
@@ -75,22 +75,22 @@ module timeScheme_module
       z5 = 69. * c2 ** 3 - 62. * c2 ** 2 + 28. * c2 - 8.
       z6 = 34. * c2 ** 4 - 46. * c2 ** 3 + 34. * c2 ** 2 - 13. * c2 + 2.
 
-      alpha(1) = 0.0
-      alpha(2) = (- z1 * (6. * c2 ** 2 - 4. * c2 + 1.) + 3. * z3) / ((2. * c2 &
-          &+ 1.) * z1 - 3. * (c2 + 2.) * (2. * c2 - 1.) ** 2)
-      alpha(3) = (- z4 * z1 + 108. * (2. * c2 - 1.) * c2 ** 5 - 3. * (2. * c2 &
-          &- 1.) * z5) / (24. * z1 * c2 * (c2 - 1.) ** 4 + 72. * c2 * z6 + 72. &
-          &* c2 ** 6 * (2. * c2 - 13.))
+      alphaRK(1) = 0.0
+      alphaRK(2) = (- z1 * (6. * c2 ** 2 - 4. * c2 + 1.) + 3. * z3) / ((2. &
+          &* c2 + 1.) * z1 - 3. * (c2 + 2.) * (2. * c2 - 1.) ** 2)
+      alphaRK(3) = (- z4 * z1 + 108. * (2. * c2 - 1.) * c2 ** 5 - 3. * (2. &
+          &* c2 - 1.) * z5) / (24. * z1 * c2 * (c2 - 1.) ** 4 + 72. * c2 * z6 &
+          &+ 72. * c2 ** 6 * (2. * c2 - 13.))
 
-      beta(1) = c2
-      beta(2) = (12. * c2 * (c2 - 1.) * (3. * z2 - z1) - (3. * z2 - z1) ** 2) &
-          &/ (144. * c2 * (3. * c2 - 2.) * (c2 - 1.) ** 2)
-      beta(3) = (- 24. * (3. * c2 - 2.) * (c2 - 1.) ** 2) / ((3. * z2 - z1) &
+      betaRK(1) = c2
+      betaRK(2) = (12. * c2 * (c2 - 1.) * (3. * z2 - z1) - (3. * z2 - z1) &
+          &** 2) / (144. * c2 * (3. * c2 - 2.) * (c2 - 1.) ** 2)
+      betaRK(3) = (- 24. * (3. * c2 - 2.) * (c2 - 1.) ** 2) / ((3. * z2 - z1) &
           &** 2 - 12. * c2 * (c2 - 1.) * (3. * z2 - z1))
 
-      stepFrac(1) = beta(1)
-      stepFrac(2) = beta(2) * (alpha(2) + 1.)
-      stepFrac(3) = beta(3) * (alpha(3) * (alpha(2) + 1.) + 1.)
+      stepFrac(1) = betaRK(1)
+      stepFrac(2) = betaRK(2) * (alphaRK(2) + 1.)
+      stepFrac(3) = betaRK(3) * (alphaRK(3) * (alphaRK(2) + 1.) + 1.)
 
       nStages = 3
       timeSchemeType = "lowStorage"
