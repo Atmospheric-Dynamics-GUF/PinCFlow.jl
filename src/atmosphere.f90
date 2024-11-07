@@ -510,11 +510,11 @@ module atmosphere_module
       x(i) = lx(0) + real(i - 1) * dx + dx / 2.0
     end do
 
-    do j = - nby, sizeY + nby 
+    do j = - nby, sizeY + nby
       y(j) = ly(0) + real(j - 1) * dy + dy / 2.0
     end do
 
-    do k = - nbz, sizeZ + nbz 
+    do k = - nbz, sizeZ + nbz
       z(k) = lz(0) + real(k - 1) * dz + dz / 2.0
     end do
 
@@ -552,191 +552,8 @@ module atmosphere_module
     !----------------------------------
     !            setup topography
     !----------------------------------
-    ! TFC FJ
-    ! Topography setup.
-    if(topography) then
-      if(lz(0) /= 0.0) stop "lz(0) must be zero for TFC!"
 
-      x_center = 0.5 * (lx(1) + lx(0))
-      y_center = 0.5 * (ly(1) + ly(0))
-
-      i00 = is + nbx - 1
-      j00 = js + nby - 1
-
-      topography_surface = 0.0
-
-      if(raytracer .and. case_wkb == 3) then
-        if(mountain_case_wkb == 0) then
-          call read_topography
-        else if(mountain_case_wkb == 9) then
-          do j = - nby, ny + nby
-            do i = - nbx, nx + nbx
-              if(abs(x(i + i00) - x_center) <= mountainWidth_wkb_dim / lRef &
-                  &* range_factor_wkb) then
-                topography_surface(i, j) = 0.25 * mountainHeight_wkb_dim &
-                    &/ lRef * (1.0 + cos(pi / (mountainWidth_wkb_dim / lRef &
-                    &* range_factor_wkb) * (x(i + i00) - x_center)))
-              end if
-            end do
-          end do
-        else if(mountain_case_wkb == 10) then
-          do j = - nby, ny + nby
-            do i = - nbx, nx + nbx
-              if((x(i + i00) - x_center) ** 2.0 + (y(j + j00) - y_center) &
-                  &** 2.0 <= (mountainWidth_wkb_dim / lRef * range_factor_wkb) &
-                  &** 2.0) then
-                topography_surface(i, j) = 0.25 * mountainHeight_wkb_dim &
-                    &/ lRef * (1.0 + cos(pi / (mountainWidth_wkb_dim / lRef &
-                    &* range_factor_wkb) * sqrt((x(i + i00) - x_center) ** 2.0 &
-                    &+ (y(j + j00) - y_center) ** 2.0)))
-              end if
-            end do
-          end do
-        else if(mountain_case_wkb == 11) then
-          do j = - nby, ny + nby
-            do i = - nbx, nx + nbx
-              topography_surface(i, j) = 0.5 * mountainHeight_wkb_dim / lRef &
-                  &* exp(- (x(i + i00) - x_center) ** 2.0 &
-                  &/ (mountainWidth_wkb_dim * range_factor_wkb / lRef) ** 2.0)
-            end do
-          end do
-        else if(mountain_case_wkb == 12) then
-          do j = - nby, ny + nby
-            do i = - nbx, nx + nbx
-              topography_surface(i, j) = 0.5 * mountainHeight_wkb_dim / lRef &
-                  &* exp(- ((x(i + i00) - x_center) ** 2.0 + (y(j + j00) &
-                  &- y_center) ** 2.0) / (mountainWidth_wkb_dim &
-                  &* range_factor_wkb / lRef) ** 2.0)
-            end do
-          end do
-        else
-          topography_surface = 0.5 * mountainHeight_wkb_dim / lRef
-        end if
-
-        call setHalosOfField2D(topography_surface)
-
-        if(mountain_case_wkb /= 0) then
-          call output_topography
-        end if
-      else
-        mountainHeight = mountainHeight_dim / lRef
-        mountainWidth = mountainWidth_dim / lRef
-
-        k_mountain = pi / mountainWidth
-
-        do j = - nby, ny + nby
-          do i = - nbx, nx + nbx
-            if(mountain_case == 0) then ! custom topography
-              exit
-            else if(mountain_case == 1) then ! cosine mountains
-              topography_surface(i, j) = 0.5 * mountainHeight * (1.0 &
-                  &+ cos(k_mountain * (x(i + i00) - x_center)))
-            else if(mountain_case == 2) then ! 3d cosine mountains
-              topography_surface(i, j) = 0.5 * mountainHeight * (1.0 &
-                  &+ cos(k_mountain * sqrt((x(i + i00) - x_center) ** 2.0 &
-                  &+ (y(j + j00) - y_center) ** 2.0)))
-            else if(mountain_case == 3) then ! bell mountain
-              topography_surface(i, j) = mountainHeight / (1.0 + (x(i + i00) &
-                  &- x_center) ** 2.0 / mountainWidth ** 2.0)
-            else if(mountain_case == 4) then ! 3d bell mountain
-              topography_surface(i, j) = mountainHeight / (1.0 + ((x(i + i00) &
-                  &- x_center) ** 2.0 + (y(j + j00) - y_center) ** 2.0) &
-                  &/ mountainWidth ** 2.0)
-            else if(mountain_case == 5) then ! cosine mountain range
-              if(abs(x(i + i00) - x_center) <= mountainWidth * range_factor) &
-                  &then
-                topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + 0.5 &
-                    &* (1.0 + cos(k_mountain / range_factor * (x(i + i00) &
-                    &- x_center))) * cos(k_mountain * (x(i + i00) - x_center)))
-              else
-                topography_surface(i, j) = 0.5 * mountainHeight
-              end if
-            else if(mountain_case == 6) then ! 3d cosine mountain range
-              if((x(i + i00) - x_center) ** 2.0 + (y(j + j00) - y_center) &
-                  &** 2.0 <= (mountainWidth * range_factor) ** 2.0) then
-                topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + 0.5 &
-                    &* (1.0 + cos(k_mountain / range_factor * sqrt((x(i + i00) &
-                    &- x_center) ** 2.0 + (y(j + j00) - y_center) ** 2.0))) &
-                    &* cos(k_mountain * sqrt((x(i + i00) - x_center) ** 2.0 &
-                    &+ (y(j + j00) - y_center) ** 2.0)))
-              else
-                topography_surface(i, j) = 0.5 * mountainHeight
-              end if
-            else if(mountain_case == 7) then ! gaussian mountain range
-              topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + exp(- &
-                  &(x(i + i00) - x_center) ** 2.0 / (mountainWidth &
-                  &* range_factor) ** 2.0) * cos(k_mountain * (x(i + i00) &
-                  &- x_center)))
-            else if(mountain_case == 8) then ! 3d gaussian mountain range
-              topography_surface(i, j) = 0.5 * mountainHeight * (1.0 + exp(- &
-                  &((x(i + i00) - x_center) ** 2.0 + (y(j + j00) - y_center) &
-                  &** 2.0) / (mountainWidth * range_factor) ** 2.0) &
-                  &* cos(k_mountain * sqrt((x(i + i00) - x_center) ** 2.0 &
-                  &+ (y(j + j00) - y_center) ** 2.0)))
-            else if(mountain_case == 9) then ! alt. cosine mountain range
-              if(abs(x(i + i00) - x_center) <= mountainWidth * range_factor) &
-                  &then
-                topography_surface(i, j) = 0.25 * mountainHeight * (1.0 &
-                    &+ cos(k_mountain / range_factor * (x(i + i00) &
-                    &- x_center))) * (1.0 + cos(k_mountain * (x(i + i00) &
-                    &- x_center)))
-              end if
-            else if(mountain_case == 10) then ! alt. 3d cosine mountain range
-              if((x(i + i00) - x_center) ** 2.0 + (y(j + j00) - y_center) &
-                  &** 2.0 <= (mountainWidth * range_factor) ** 2.0) then
-                topography_surface(i, j) = 0.25 * mountainHeight * (1.0 &
-                    &+ cos(k_mountain / range_factor * sqrt((x(i + i00) &
-                    &- x_center) ** 2.0 + (y(j + j00) - y_center) ** 2.0))) &
-                    &* (1.0 + cos(k_mountain * sqrt((x(i + i00) - x_center) &
-                    &** 2.0 + (y(j + j00) - y_center) ** 2.0)))
-              end if
-            else if(mountain_case == 11) then ! alt. gaussian mountain range
-              topography_surface(i, j) = 0.5 * mountainHeight * exp(- (x(i &
-                  &+ i00) - x_center) ** 2.0 / (mountainWidth * range_factor) &
-                  &** 2.0) * (1.0 + cos(k_mountain * (x(i + i00) - x_center)))
-            else if(mountain_case == 12) then ! alt. 3d gaussian mountain range
-              topography_surface(i, j) = 0.5 * mountainHeight * exp(- ((x(i &
-                  &+ i00) - x_center) ** 2.0 + (y(j + j00) - y_center) ** 2.0) &
-                  &/ (mountainWidth * range_factor) ** 2.0) * (1.0 &
-                  &+ cos(k_mountain * sqrt((x(i + i00) - x_center) ** 2.0 &
-                  &+ (y(j + j00) - y_center) ** 2.0)))
-            else
-              if(master) stop "Mountain case not defined!"
-            end if
-            if(topography_surface(i, j) .lt. lz(0)) then
-              print *, "Topography has negative values."
-              print *, "lz_dim(0) should be set accordingly."
-              stop
-            end if
-          end do
-        end do
-
-        ! Read topography data.
-        if(mountain_case == 0) then
-          call read_topography
-        end if
-
-        ! Ensure periodicity of topography.
-        call setHalosOfField2D(topography_surface)
-
-        ! Output topography data.
-        if(mountain_case /= 0) then
-          call output_topography
-        end if
-      end if
-
-      if(topographyTime > 0.0) then
-        allocate(final_topography_surface(- nbx:nx + nbx, - nby:ny + nby), &
-            &stat = allocstat)
-        if(allocstat /= 0) stop "init.f90: could not allocate &
-            &final_topography_surface"
-
-        final_topography_surface = topography_surface
-        topography_surface = 0.0
-      end if
-
-    end if !topography
-
+    call setup_topography
 
     !---------------------------------------------
     !   Set up Sponge layer
@@ -1010,7 +827,6 @@ module atmosphere_module
         !-------------------------------------------------------------------
 
       case('isentropic')
-
 
         if(referenceQuantities == "SI") then
           !------------------------------------
@@ -1466,7 +1282,7 @@ module atmosphere_module
         pStrat(- 1) = pStrat(0)
         rhoStrat(- 1) = rhoStrat(0)
         pistrat(- 1) = pistrat(0)
-        
+
         ! quantities at half levels
 
         ! with the exception of the uppermost ghost layer the
@@ -1905,104 +1721,277 @@ module atmosphere_module
 
   !---------------------------------------------------------------------------
 
-  subroutine output_topography
+  subroutine setup_topography
 
-    real * 4, dimension(sizeX, sizeY) :: topography_out
-    real * 4, dimension(sizeX * nprocy, ny) :: topography_mst
-    real * 4, dimension(nx, ny) :: topography_prc
-    integer :: i_out, i_mst, i_prc, j_out, j_mst, j_prc
-    integer :: i, j, k
+    real :: mountainHeight, mountainWidth, mountainWavenumber
+    real :: x_center, y_center
+    real :: kk, ll
+    integer :: ix0, jy0
+    integer :: ix, jy
+    integer :: iwm
 
-    ! Open file.
-    if(master) then
-      open(42, file = "topography.dat", form = "unformatted", access &
-          &= "direct", recl = sizeX * sizeY * sizeofreal4)
-    end if
+    if(lz(0) /= 0.0) stop "Error in setup_topography: lz(0) must be zero for &
+        &TFC!"
 
-    do j = 1, ny
-      ! Dimensionalize.
-      do i = 1, nx
-        topography_prc(i, j) = topography_surface(i, j) * lRef
-      end do
-      ! Distribute data over all processors.
-      call mpi_gather(topography_prc(1, j), nx, mpi_real, topography_mst(1, &
-          &j), nx, mpi_real, 0, comm, ierror)
-    end do
+    if(zBoundary == "periodic" .and. mountainHeight_dim /= 0.0) stop "Error in &
+        &setup_topography: mountainHeight_dim must be zero for zBoundary &
+        &= 'periodic'"
 
-    call mpi_barrier(comm, ierror)
+    mountainHeight = mountainHeight_dim / lRef
+    mountainWidth = mountainWidth_dim / lRef
+    mountainWavenumber = pi / mountainWidth
 
-    ! Output layerwise.
-    if(master) then
-      do j = 1, ny
-        j_mst = j
-        do j_prc = 1, nprocy
-          j_out = ny * (j_prc - 1) + j
-          do i_prc = 1, nprocx
-            do i = 1, nx
-              i_out = nx * (i_prc - 1) + i
-              i_mst = nprocy * nx * (i_prc - 1) + (j_prc - 1) * nx + i
-              topography_out(i_out, j_out) = topography_mst(i_mst, j_mst)
-            end do
+    x_center = 0.5 * (lx(1) + lx(0))
+    y_center = 0.5 * (ly(1) + ly(0))
+
+    ix0 = is + nbx - 1
+    jy0 = js + nby - 1
+
+    if(rayTracer .and. case_wkb == 3) then
+      if(nwm < 1 .or. (mountain_case == 13 .and. nwm < spectral_modes)) stop &
+          &"Error in setup_topography: nwm is too small!"
+
+      if(mountain_case /= 0) then
+        k_spectrum = 0.0
+        l_spectrum = 0.0
+        topography_spectrum = 0.0
+        topography_surface = 0.0
+
+        do jy = 1, ny
+          do ix = 1, nx
+            select case(mountain_case)
+            case(1)
+              ! 2D cosine mountains
+              k_spectrum(ix, jy, 1) = mountainWavenumber
+              topography_spectrum(ix, jy, 1) = 0.5 * mountainHeight
+              topography_surface(ix, jy) = 0.5 * mountainHeight
+
+            case(5)
+              ! 2D cosine envelope and even background
+              if(abs(x(ix + ix0) - x_center) <= mountainWidth * range_factor) &
+                  &then
+                k_spectrum(ix, jy, 1) = mountainWavenumber
+                topography_spectrum(ix, jy, 1) = 0.25 * mountainHeight * (1.0 &
+                    &+ cos(mountainWavenumber / range_factor * (x(ix + ix0) &
+                    &- x_center)))
+              end if
+              topography_surface(ix, jy) = 0.5 * mountainHeight
+
+            case(7)
+              ! 2D Gaussian envelope and even background
+              k_spectrum(ix, jy, 1) = mountainWavenumber
+              topography_spectrum(ix, jy, 1) = 0.5 * mountainHeight * exp(- &
+                  &(x(ix + ix0) - x_center) ** 2.0 / (mountainWidth &
+                  &* range_factor) ** 2.0)
+              topography_surface(ix, jy) = 0.5 * mountainHeight
+
+            case(9)
+              ! 2D cosine envelope and cosine background
+              if(abs(x(ix + ix0) - x_center) <= mountainWidth * range_factor) &
+                  &then
+                k_spectrum(ix, jy, 1) = mountainWavenumber
+                topography_spectrum(ix, jy, 1) = 0.25 * mountainHeight * (1.0 &
+                    &+ cos(mountainWavenumber / range_factor * (x(ix + ix0) &
+                    &- x_center)))
+                topography_surface(ix, jy) = 0.25 * mountainHeight * (1.0 &
+                    &+ cos(mountainWavenumber / range_factor * (x(ix + ix0) &
+                    &- x_center)))
+              end if
+
+            case(11)
+              ! 2D Gaussian envelope and Gaussian background
+              k_spectrum(ix, jy, 1) = mountainWavenumber
+              topography_spectrum(ix, jy, 1) = 0.5 * mountainHeight * exp(- &
+                  &(x(ix + ix0) - x_center) ** 2.0 / (mountainWidth &
+                  &* range_factor) ** 2.0)
+              topography_surface(ix, jy) = 0.5 * mountainHeight * exp(- (x(ix &
+                  &+ ix0) - x_center) ** 2.0 / (mountainWidth * range_factor) &
+                  &** 2.0)
+
+            case(13)
+              ! 3D WKB topography
+              if((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
+                  &** 2.0 <= (mountainWidth * range_factor) ** 2.0) then
+                do iwm = 0, spectral_modes - 1
+                  k_spectrum(ix, jy, iwm + 1) = mountainWavenumber * cos(pi &
+                      &/ spectral_modes * iwm)
+                  l_spectrum(ix, jy, iwm + 1) = mountainWavenumber * sin(pi &
+                      &/ spectral_modes * iwm)
+                  topography_spectrum(ix, jy, iwm + 1) = 0.25 * mountainHeight &
+                      &* (1.0 + cos(mountainWavenumber / range_factor &
+                      &* sqrt((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) &
+                      &- y_center) ** 2.0))) / spectral_modes
+                end do
+                topography_surface(ix, jy) = 0.25 * mountainHeight * (1.0 &
+                    &+ cos(mountainWavenumber / range_factor * sqrt((x(ix &
+                    &+ ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
+                    &** 2.0)))
+              end if
+
+            case default
+              stop "Error in setup_topography: Unknown mountain case!"
+            end select
           end do
         end do
-      end do
-      write(42, rec = 1) topography_out
-    end if
+      else
+        k_spectrum = k_spectrum * lRef
+        l_spectrum = l_spectrum * lRef
+        topography_spectrum = topography_spectrum / lRef
+        topography_surface = topography_surface / lRef
+      end if
 
-    ! Close file.
-    if(master) close(unit = 42)
+      call setHalosOfField2D(topography_surface)
 
-  end subroutine output_topography
+      if(topographyTime > 0.0) then
+        final_topography_spectrum = topography_spectrum
+        topography_spectrum = 0.0
+        final_topography_surface = topography_surface
+        topography_surface = 0.0
+      end if
+    else if(topography) then
+      if(mountain_case /= 0) then
+        topography_surface = 0.0
+        do jy = 1, ny
+          do ix = 1, nx
+            select case(mountain_case)
+            case(1)
+              ! 2D cosine mountains
+              topography_surface(ix, jy) = 0.5 * mountainHeight * (1.0 &
+                  &+ cos(mountainWavenumber * (x(ix + ix0) - x_center)))
 
-  !---------------------------------------------------------------------------
+            case(2)
+              ! 3D cosine mountains
+              topography_surface(ix, jy) = 0.5 * mountainHeight * (1.0 &
+                  &+ cos(mountainWavenumber * sqrt((x(ix + ix0) - x_center) &
+                  &** 2.0 + (y(jy + jy0) - y_center) ** 2.0)))
 
-  subroutine read_topography
+            case(3)
+              ! 2D isolated mountain
+              topography_surface(ix, jy) = mountainHeight / (1.0 + (x(ix &
+                  &+ ix0) - x_center) ** 2.0 / mountainWidth ** 2.0)
 
-    real * 4, dimension(sizeX, sizeY) :: topography_out
-    real * 4, dimension(sizeX * nprocy, ny) :: topography_mst
-    real * 4, dimension(nx, ny) :: topography_prc
-    integer :: i_out, i_mst, i_prc, j_out, j_mst, j_prc
-    integer :: i, j, k
+            case(4)
+              ! 3D isolated mountain
+              topography_surface(ix, jy) = mountainHeight / (1.0 + ((x(ix &
+                  &+ ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
+                  &** 2.0) / mountainWidth ** 2.0)
 
-    ! Open file.
-    if(master) then
-      open(42, file = "topography.dat", form = "unformatted", access &
-          &= "direct", recl = sizeX * sizeY * sizeofreal4)
-    end if
+            case(5)
+              ! 2D cosine envelope and even background
+              if(abs(x(ix + ix0) - x_center) <= mountainWidth * range_factor) &
+                  &then
+                topography_surface(ix, jy) = 0.5 * mountainHeight * (1.0 + 0.5 &
+                    &* (1.0 + cos(mountainWavenumber / range_factor * (x(ix &
+                    &+ ix0) - x_center))) * cos(mountainWavenumber * (x(ix &
+                    &+ ix0) - x_center)))
+              else
+                topography_surface(ix, jy) = 0.5 * mountainHeight
+              end if
 
-    ! Read data.
-    if(master) then
-      read(42, rec = 1) topography_out
-      do j = 1, ny
-        j_mst = j
-        do j_prc = 1, nprocy
-          j_out = ny * (j_prc - 1) + j
-          do i_prc = 1, nprocx
-            do i = 1, nx
-              i_out = nx * (i_prc - 1) + i
-              i_mst = nprocy * nx * (i_prc - 1) + (j_prc - 1) * nx + i
-              topography_mst(i_mst, j_mst) = topography_out(i_out, j_out)
-            end do
+            case(6)
+              ! 3D cosine envelope and even background
+              if((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
+                  &** 2.0 <= (mountainWidth * range_factor) ** 2.0) then
+                topography_surface(ix, jy) = 0.5 * mountainHeight * (1.0 + 0.5 &
+                    &* (1.0 + cos(mountainWavenumber / range_factor &
+                    &* sqrt((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) &
+                    &- y_center) ** 2.0))) * cos(mountainWavenumber &
+                    &* sqrt((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) &
+                    &- y_center) ** 2.0)))
+              else
+                topography_surface(ix, jy) = 0.5 * mountainHeight
+              end if
+
+            case(7)
+              ! 2D Gaussian envelope and even background
+              topography_surface(ix, jy) = 0.5 * mountainHeight * (1.0 + exp(- &
+                  &(x(ix + ix0) - x_center) ** 2.0 / (mountainWidth &
+                  &* range_factor) ** 2.0) * cos(mountainWavenumber * (x(ix &
+                  &+ ix0) - x_center)))
+
+            case(8)
+              ! 3D Gaussian envelope and even background
+              topography_surface(ix, jy) = 0.5 * mountainHeight * (1.0 + exp(- &
+                  &((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
+                  &** 2.0) / (mountainWidth * range_factor) ** 2.0) &
+                  &* cos(mountainWavenumber * sqrt((x(ix + ix0) - x_center) &
+                  &** 2.0 + (y(jy + jy0) - y_center) ** 2.0)))
+
+            case(9)
+              ! 2D cosine envelope and cosine background
+              if(abs(x(ix + ix0) - x_center) <= mountainWidth * range_factor) &
+                  &then
+                topography_surface(ix, jy) = 0.25 * mountainHeight * (1.0 &
+                    &+ cos(mountainWavenumber / range_factor * (x(ix + ix0) &
+                    &- x_center))) * (1.0 + cos(mountainWavenumber * (x(ix &
+                    &+ ix0) - x_center)))
+              end if
+
+            case(10)
+              ! 3D cosine envelope and cosine background
+              if((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
+                  &** 2.0 <= (mountainWidth * range_factor) ** 2.0) then
+                topography_surface(ix, jy) = 0.25 * mountainHeight * (1.0 &
+                    &+ cos(mountainWavenumber / range_factor * sqrt((x(ix &
+                    &+ ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
+                    &** 2.0))) * (1.0 + cos(mountainWavenumber * sqrt((x(ix &
+                    &+ ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
+                    &** 2.0)))
+              end if
+
+            case(11)
+              ! 2D Gaussian envelope and Gaussian background
+              topography_surface(ix, jy) = 0.5 * mountainHeight * exp(- (x(ix &
+                  &+ ix0) - x_center) ** 2.0 / (mountainWidth * range_factor) &
+                  &** 2.0) * (1.0 + cos(mountainWavenumber * (x(ix + ix0) &
+                  &- x_center)))
+
+            case(12)
+              ! 3D Gaussian envelope and Gaussian background
+              topography_surface(ix, jy) = 0.5 * mountainHeight * exp(- ((x(ix &
+                  &+ ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
+                  &** 2.0) / (mountainWidth * range_factor) ** 2.0) * (1.0 &
+                  &+ cos(mountainWavenumber * sqrt((x(ix + ix0) - x_center) &
+                  &** 2.0 + (y(jy + jy0) - y_center) ** 2.0)))
+
+            case(13)
+              ! 3D WKB topography
+              if((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
+                  &** 2.0 <= (mountainWidth * range_factor) ** 2.0) then
+                topography_surface(ix, jy) = 0.25 * mountainHeight * (1.0 &
+                    &+ cos(mountainWavenumber / range_factor * sqrt((x(ix &
+                    &+ ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
+                    &** 2.0)))
+                do iwm = 0, spectral_modes - 1
+                  kk = mountainWavenumber * cos(pi / spectral_modes * iwm)
+                  ll = mountainWavenumber * sin(pi / spectral_modes * iwm)
+                  topography_surface(ix, jy) = topography_surface(ix, jy) &
+                      &+ 0.25 * mountainHeight * (1.0 + cos(mountainWavenumber &
+                      &/ range_factor * sqrt((x(ix + ix0) - x_center) ** 2.0 &
+                      &+ (y(jy + jy0) - y_center) ** 2.0))) * cos(kk * (x(ix &
+                      &+ ix0) - x_center) + ll * (y(jy + jy0) - y_center)) &
+                      &/ spectral_modes
+                end do
+              end if
+
+            case default
+              stop "Error in setup_topography: Unknown mountain case!"
+            end select
           end do
         end do
-      end do
+      else
+        topography_surface = topography_surface / lRef
+      end if
+
+      call setHalosOfField2D(topography_surface)
+
+      if(topographyTime > 0.0) then
+        final_topography_surface = topography_surface
+        topography_surface = 0.0
+      end if
     end if
 
-    call mpi_barrier(comm, ierror)
-
-    do j = 1, ny
-      ! Distribute data over all processors.
-      call mpi_scatter(topography_mst(1, j), nx, mpi_real, topography_prc(1, &
-          &j), nx, mpi_real, 0, comm, ierror)
-      do i = 1, nx
-        ! Non-dimensionalize.
-        topography_surface(i, j) = topography_prc(i, j) / lRef
-      end do
-    end do
-
-    if(master) close(unit = 42)
-
-  end subroutine read_topography
+  end subroutine setup_topography
 
   !---------------------------------------------------------------------------
 
@@ -2023,6 +2012,17 @@ module atmosphere_module
     integer :: i, j, k
 
     if(topographyTime <= 0.0) return
+
+    if(rayTracer .and. case_wkb == 3) then
+      if(any(topography_spectrum /= final_topography_spectrum)) then
+        if(time < topographyTime / tRef) then
+          topography_spectrum = time / topographyTime * tRef &
+              &* final_topography_spectrum
+        else
+          topography_spectrum = final_topography_spectrum
+        end if
+      end if
+    end if
 
     if(any(topography_surface /= final_topography_surface)) then
 
@@ -2216,12 +2216,6 @@ module atmosphere_module
       if(testCase == "smoothVortex") then
         bvsStratTFC = 0.0
       end if
-
-    else
-
-      ! Topography is fully grown.
-      topographyTime = 0.0
-
     end if
 
   end subroutine update_topography
@@ -2319,7 +2313,7 @@ module atmosphere_module
   !---------------------------------------------------------------------------
 
   function jac(i, j, k)
-  ! Jacobian.
+    ! Jacobian.
 
     real :: jac
     integer :: i, j, k
@@ -2328,9 +2322,8 @@ module atmosphere_module
 
   end function jac
 
-
   function met(i, j, k, mu, nu)
-  ! Metric tensor.
+    ! Metric tensor.
 
     real :: met
     integer :: i, j, k, mu, nu
@@ -2354,9 +2347,8 @@ module atmosphere_module
 
   end function met
 
-
   function chris(i, j, k, mu, nu)
-  ! Christophel tensor.
+    ! Christophel tensor.
 
     real :: chris
     integer :: i, j, k, mu, nu
@@ -2384,9 +2376,8 @@ module atmosphere_module
 
   end function chris
 
-
   function heightTFC(i, j, k)
-  ! Transformation of vertical coordinate.
+    ! Transformation of vertical coordinate.
 
     real :: heightTFC
     integer :: i, j, k
@@ -2407,9 +2398,8 @@ module atmosphere_module
 
   end function levelTFC
 
-
   function vertWindTFC(i, j, k, var)
-  ! Transformation of the vertical wind.
+    ! Transformation of the vertical wind.
 
     type(var_type) :: var
     integer :: i, j, k
@@ -2608,9 +2598,8 @@ module atmosphere_module
 
   end function trafoTFC
 
-
   function stressTensTFC(i, j, k, mu, nu, var)
-  ! Cartesian stress tensor.
+    ! Cartesian stress tensor.
 
     type(var_type) :: var
     integer :: i, j, k, mu, nu

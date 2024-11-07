@@ -11,7 +11,6 @@ program pinc_prog
   use mpi_module
   use timeScheme_module
   use init_module
-  use debug_module
   use wkb_module
   use xweno_module
   use atmosphere_module
@@ -26,9 +25,6 @@ program pinc_prog
   use tracer_module
   use mpi
   use output_netCDF_module
-
-  ! test
-  use algebra_module
 
   !----------------------------------------------------
   implicit none
@@ -82,6 +78,8 @@ program pinc_prog
   ! general
   integer :: i, j, k, l
   integer :: ix, jy, kz
+  integer :: iRay
+  integer :: nrlc
 
   ! restart
   logical :: scale
@@ -184,6 +182,12 @@ program pinc_prog
   ! 2) read input.f90
   call setup(var, var0, var1, varG, flux, flux0, force, source, dRho, dRhop, &
       &dMom, dTheta, dPStrat, drhoStrat, w_0, dIce, dTracer, tracerforce, dPot)
+
+  ! Read topography.
+  if((topography .or. (rayTracer .and. case_wkb == 3)) .and. mountain_case &
+      &== 0) then
+    call read_topography_netCDF(iIn)
+  end if
 
   call init_atmosphere ! set atmospheric background state
 
@@ -371,53 +375,9 @@ program pinc_prog
   !-------------------------------------------------------------------
   ! store initial reference atmosphere
   !-------------------------------------------------------------------
+
   rhoStrat_0 = rhoStrat
   pStrat_0 = pStrat
-
-  !-------------------------------------------------
-  !              Read initial data
-  !-------------------------------------------------
-  if(restart) then 
-
-    if (master) then
-      print *, "reading restart files"
-    end if
-
-    if (rayTracer) then 
-      iIn = -1
-      call read_netCDF(iIn, var, ray, time)
-    else
-      call read_netCDF(iIn, var, time = time)
-    end if
-
-    if (include_tracer) then 
-      if (topography) then
-        do ix = 1, nx 
-          do jy = 1, ny 
-            do kz = 1, nz 
-              var%chi(ix, jy, kz) = var%chi(ix, jy, kz) * &
-                (var%rho(ix, jy, kz) + rhoStratTFC(ix, jy, kz))
-            end do
-          end do
-        end do
-      else
-        do kz = 1, nz
-          var%chi(:, :, kz) = var%chi(:, :, kz) * &
-            (var%rho(:, :, kz) + rhoStrat(kz))
-        end do
-      end if
-    end if
-
-    piStrat(:) = PStrat(:) ** (kappa / (1. - kappa))
-
-    if(maxTime < time * tRef) stop "restart error: maxTime < current time"
-
-    call setHalos(var, "var")
-    if (include_tracer) call setHalos(var, "tracer")
-    call setBoundary(var, flux, "var")
-
-  end if
-
 
   !---------------------------------------------
   !               Init ray tracer
@@ -425,10 +385,8 @@ program pinc_prog
 
   if(rayTracer) then
 
-    ! allocate ray fields
-
-    call setup_wkb(ray, ray_var3D, var, diffusioncoeff, waveAmplitudes, &
-      dPhase)
+    ! allocate and initialize ray fields
+    call setup_wkb(ray, ray_var3D, var, diffusioncoeff, waveAmplitudes, dPhase)
 
     if(include_ice) then
       uTime = 0 !set initial time
@@ -439,23 +397,93 @@ program pinc_prog
     end if
   end if
 
+  !-------------------------------------------------
+  !              Read initial data
+  !-------------------------------------------------
+
+  if(restart) then
+
+    if(master) then
+      print *, "reading restart files"
+    end if
+
+    if(rayTracer) then
+      call read_netCDF(iIn, var, ray, time)
+    else
+      call read_netCDF(iIn, var, time = time)
+    end if
+
+    if(maxTime < time * tRef) stop "restart error: maxTime < current time"
+
+    if(rayTracer) then
+      do kz = 0, nz + 1
+        do jy = 1, ny
+          do ix = 1, nx
+            nrlc = 0
+            do iRay = 1, nray_max
+              if(ray(iRay, ix, jy, kz)%dens == 0.0) cycle
+
+              ray(iRay, ix, jy, kz)%area_xk = ray(iRay, ix, jy, kz)%dxray &
+                  &* ray(iRay, ix, jy, kz)%dkray
+              ray(iRay, ix, jy, kz)%area_yl = ray(iRay, ix, jy, kz)%dyray &
+                  &* ray(iRay, ix, jy, kz)%dlray
+              ray(iRay, ix, jy, kz)%area_zm = ray(iRay, ix, jy, kz)%dzray &
+                  &* ray(iRay, ix, jy, kz)%dmray
+
+              nrlc = nrlc + 1
+              ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+            end do
+            nRay(ix, jy, kz) = nrlc
+          end do
+        end do
+      end do
+    end if
+
+    if(include_tracer) then
+      if(topography) then
+        do ix = 1, nx
+          do jy = 1, ny
+            do kz = 1, nz
+              var%chi(ix, jy, kz) = var%chi(ix, jy, kz) * (var%rho(ix, jy, kz) &
+                  &+ rhoStratTFC(ix, jy, kz))
+            end do
+          end do
+        end do
+      else
+        do kz = 1, nz
+          var%chi(:, :, kz) = var%chi(:, :, kz) * (var%rho(:, :, kz) &
+              &+ rhoStrat(kz))
+        end do
+      end if
+    end if
+
+    call setHalos(var, "var")
+    if(include_tracer) call setHalos(var, "tracer")
+    call setBoundary(var, flux, "var")
+
+    if(model == "compressible") then
+      pStratTFC = var%P
+      call bvsUpdate(bvsStratTFC, var)
+    end if
+  end if
+
   !------------------------------------------
   !              Initial output
   !------------------------------------------
-  ! create netCDF file pincflow_data.nc
+
+  ! create netCDF file pincflow_data_out.nc
   call create_netCDF
-  ! write grid fields and background fields into netCDF file
-  ! write initial variables to netCDF file
-  if (rayTracer) then 
-    call write_netCDF(iOut, time, iTime, var, waveAmplitudes = waveAmplitudes)
+
+  ! write initial state to netCDF file
+  if(rayTracer) then
+    call write_netCDF(iOut, iTime, time, cpuTime, var, waveAmplitudes &
+        &= waveAmplitudes)
   else
-    call write_netCDF(iOut, time, iTime, var)
+    call write_netCDF(iOut, iTime, time, cpuTime, var)
   end if
 
   output = .false.
-  ! set time for first output
   nextOutputTime = time * tRef + outputTimeDiff
-  ! and consider restart time
 
   if(spongeLayer) then
     allocate(alpbls(0:ny + 1), stat = allocstat)
@@ -509,17 +537,17 @@ program pinc_prog
       end if
 
       ! final output
-      if (rayTracer) then
-        if (include_tracer) then
-          call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
-          tracerforce=tracerforce, waveAmplitudes=waveAmplitudes, &
-          ray = ray)
+      if(rayTracer) then
+        if(include_tracer) then
+          call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+              &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
+              &= waveAmplitudes, ray = ray)
         else
-          call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
-          waveAmplitudes=waveAmplitudes, ray = ray)
+          call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+              &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
         end if
       else
-        call write_netCDF(iOut, time, iTime, var)
+        call write_netCDF(iOut, iTime, time, cpuTime, var)
       end if
 
       call close_netCDF
@@ -539,14 +567,14 @@ program pinc_prog
         output = .true.
         if(master) then
           write(*, fmt = "(a25,es15.4,a8)") "dt for output = ", dt * tRef, &
-              "seconds"
+              &"seconds"
         end if
       end if
     end if
 
     time = time + dt
 
-    ! FJFeb2023
+    ! Update the topography.
     if(topography .and. topographyTime > 0.0) then
       call update_topography(time)
     end if
@@ -591,8 +619,19 @@ program pinc_prog
         if(lateralSponge) then
           i00 = is + nbx - 1
           j00 = js + nby - 1
-          spongeAlphaX = spongeAlphaZ
-          spongeAlphaY = spongeAlphaZ
+          if(sizeX > 1 .and. sizeY > 1) then
+            spongeAlphaZ = spongeAlphaZ / 3.0
+            spongeAlphaX = spongeAlphaZ
+            spongeAlphaY = spongeAlphaZ
+          else if(sizeX > 1) then
+            spongeAlphaZ = spongeAlphaZ / 2.0
+            spongeAlphaX = spongeAlphaZ
+            spongeAlphaY = 0.0
+          else if(sizeY > 1) then
+            spongeAlphaZ = spongeAlphaZ / 2.0
+            spongeAlphaX = 0.0
+            spongeAlphaY = spongeAlphaZ
+          end if
         end if
 
         alphaUnifiedSponge = 0.0
@@ -826,18 +865,18 @@ program pinc_prog
       if(rayTracer) then
         do RKstage = 1, nStages
           call transport_rayvol(var, ray, dt, RKstage, time)
-                    
+
           if(RKstage == nStages) then
-            call boundary_rayvol(ray)
             call split_rayvol(ray)
             call shift_rayvol(ray)
             call merge_rayvol(ray)
+            call boundary_rayvol(ray)
 
             call calc_meanFlow_effect(ray, var, force, ray_var3D)
 
-            if (include_tracer) then 
+            if(include_tracer) then
               call calc_tracerforce(ray, var, ray_var3D, tracerforce, &
-              waveAmplitudes, dt)
+                  &waveAmplitudes, dt)
             end if
 
             if(include_ice) then
@@ -1089,22 +1128,22 @@ program pinc_prog
           &RKstage, "impl", 1., 1.)
 
       if(errFlagBicg) then
-        if (rayTracer) then
-          if (include_tracer) then
-            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
-            tracerforce=tracerforce, waveAmplitudes=waveAmplitudes, &
-            ray = ray)
+        if(rayTracer) then
+          if(include_tracer) then
+            call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
+                &= waveAmplitudes, ray = ray)
           else
-            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
-            waveAmplitudes=waveAmplitudes, ray = ray)
+            call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
           end if
         else
-          call write_netCDF(iOut, time, iTime, var)
+          call write_netCDF(iOut, iTime, time, cpuTime, var)
         end if
-      
+
         call close_netCDF
 
-        if (master) then
+        if(master) then
           print *, 'output last state into record', iOut
         end if
         stop
@@ -1140,7 +1179,7 @@ program pinc_prog
       ! (3) uses updated pressure field and (5) adjusts pressure over half a
       ! time step!
       ! var = var0
-      var%rho(:, :, :) = var0%rho(:, :, :) 
+      var%rho(:, :, :) = var0%rho(:, :, :)
       var%u(:, :, :) = var0%u(:, :, :)
       var%v(:, :, :) = var0%v(:, :, :)
       var%w(:, :, :) = var0%w(:, :, :)
@@ -1410,22 +1449,22 @@ program pinc_prog
       end if
 
       if(errFlagBicg) then
-        if (rayTracer) then
-          if (include_tracer) then
-            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
-            tracerforce=tracerforce, waveAmplitudes=waveAmplitudes, &
-            ray = ray)
+        if(rayTracer) then
+          if(include_tracer) then
+            call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
+                &= waveAmplitudes, ray = ray)
           else
-            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
-            waveAmplitudes=waveAmplitudes, ray = ray)
+            call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
           end if
         else
-          call write_netCDF(iOut, time, iTime, var)
+          call write_netCDF(iOut, iTime, time, cpuTime, var)
         end if
-      
+
         call close_netCDF
 
-        if (master) then
+        if(master) then
           print *, 'output last state into record', iOut
         end if
         stop
@@ -1499,18 +1538,17 @@ program pinc_prog
         if(rayTracer) then
           call transport_rayvol(var, ray, dt, RKstage, time)
 
-
-           if(RKstage == nStages) then
-            call boundary_rayvol(ray)
+          if(RKstage == nStages) then
             call split_rayvol(ray)
             call shift_rayvol(ray)
             call merge_rayvol(ray)
+            call boundary_rayvol(ray)
 
             call calc_meanFlow_effect(ray, var, force, ray_var3D)
 
-            if (include_tracer) then 
+            if(include_tracer) then
               call calc_tracerforce(ray, var, ray_var3D, tracerforce, &
-                waveAmplitudes, dt)
+                  &waveAmplitudes, dt)
             end if
 
             if(include_ice) then
@@ -1567,7 +1605,6 @@ program pinc_prog
         end if
 
         call setBoundary(var, flux, "flux")
-
 
         ! implementation of heating ONeill and Klein 2014
 
@@ -1657,7 +1694,7 @@ program pinc_prog
 
           select case(timeSchemeType)
           case("lowStorage")
-            dt_Poisson = beta(RKstage) * dt
+            dt_Poisson = betaRK(RKstage) * dt
           case("classical")
             dt_Poisson = rk(3, RKstage) * dt
           case default
@@ -1679,7 +1716,7 @@ program pinc_prog
 
           select case(timeSchemeType)
           case("lowStorage")
-            dt_Poisson = beta(RKstage) * dt
+            dt_Poisson = betaRK(RKstage) * dt
           case("classical")
             dt_Poisson = rk(3, RKstage) * dt
           case default
@@ -1690,22 +1727,22 @@ program pinc_prog
               &RKstage, "expl", 1., 1.)
 
           if(errFlagBicg) then
-            if (rayTracer) then
-              if (include_tracer) then
-                call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
-                tracerforce=tracerforce, waveAmplitudes=waveAmplitudes, &
-                ray = ray)
+            if(rayTracer) then
+              if(include_tracer) then
+                call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                    &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
+                    &= waveAmplitudes, ray = ray)
               else
-                call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
-                waveAmplitudes=waveAmplitudes, ray = ray)
-              end if  
+                call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                    &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
+              end if
             else
-              call write_netCDF(iOut, time, iTime, var)
+              call write_netCDF(iOut, iTime, time, cpuTime, var)
             end if
-          
+
             call close_netCDF
 
-            if (master) then
+            if(master) then
               print *, 'output last state into record', iOut
             end if
             stop
@@ -1722,19 +1759,19 @@ program pinc_prog
             call system_clock(count = timeCount)
             cpuTime = (timeCount - startTimeCount) / real(rate)
 
-            if (rayTracer) then
-              if (include_tracer) then
-                call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
-                tracerforce=tracerforce, waveAmplitudes=waveAmplitudes, &
-                ray = ray)
+            if(rayTracer) then
+              if(include_tracer) then
+                call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                    &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
+                    &= waveAmplitudes, ray = ray)
               else
-                call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
-                waveAmplitudes=waveAmplitudes, ray = ray)
+                call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                    &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
               end if
             else
-              call write_netCDF(iOut, time, iTime, var)
+              call write_netCDF(iOut, iTime, time, cpuTime, var)
             end if
-          
+
             call close_netCDF
 
             go to 10 ! dealloc fields
@@ -1743,7 +1780,6 @@ program pinc_prog
           if(iTime == 1 .and. RKstage == 1) print *, "main: MomentumCorrector &
               &off!"
         end if
-
 
       end do Runge_Kutta_Loop
     end if ! timeScheme
@@ -1761,8 +1797,8 @@ program pinc_prog
         end do ! RKstage
       end do !ii
       if(master) then
-        print *, 'maxval', maxval(var%ICE(:, :, :, inN)), maxval(var%ICE(:, &
-            &:, :, inQ)), maxval(var%ICE(:, :, :, inQv))
+        print *, 'maxval', maxval(var%ICE(:, :, :, inN)), maxval(var%ICE(:, :, &
+            &:, inQ)), maxval(var%ICE(:, :, :, inQv))
       end if
     end if !include_ice
 
@@ -1777,41 +1813,41 @@ program pinc_prog
           cpuTime = (timeCount - startTimeCount) / real(rate)
         end if
 
-        if (rayTracer) then
-          if (include_tracer) then
-            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
-            tracerforce=tracerforce, waveAmplitudes=waveAmplitudes, &
-            ray = ray)
+        if(rayTracer) then
+          if(include_tracer) then
+            call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
+                &= waveAmplitudes, ray = ray)
           else
-            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
-            waveAmplitudes=waveAmplitudes, ray = ray)
+            call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
           end if
         else
-          call write_netCDF(iOut, time, iTime, var)
+          call write_netCDF(iOut, iTime, time, cpuTime, var)
         end if
-      
+
         output = .false.
         nextOutputTime = nextOutputTime + outputTimeDiff
         if(nextOutputTime >= maxTime) nextOutputTime = maxTime
       end if
     case('timeStep')
       if(modulo(iTime, nOutput) == 0) then
-        if(master) then 
+        if(master) then
           call system_clock(count = timeCount)
           cpuTime = (timeCount - startTimeCount) / real(rate)
-        end if 
-        
-        if (rayTracer) then
-          if (include_tracer) then
-            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
-            tracerforce=tracerforce, waveAmplitudes=waveAmplitudes, &
-            ray = ray)
+        end if
+
+        if(rayTracer) then
+          if(include_tracer) then
+            call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
+                &= waveAmplitudes, ray = ray)
           else
-            call write_netCDF(iOut, time, iTime, var, ray_var3D=ray_var3D, &
-            waveAmplitudes=waveAmplitudes, ray = ray)
+            call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
           end if
         else
-          call write_netCDF(iOut, time, iTime, var)
+          call write_netCDF(iOut, iTime, time, cpuTime, var)
         end if
 
       end if
@@ -1856,7 +1892,7 @@ program pinc_prog
   !-------------------------------------------
   call close_netCDF
 
-  10 if(master) then 
+  10 if(master) then
     if(outputType == "timeStep") then
       nAverageBicg = real(nTotalBicg) / real(iTime - 1) / nStages
 
