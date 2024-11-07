@@ -32,7 +32,8 @@ module init_module
     type(var_type), intent(out) :: var, var0, var1, varG, source
     type(flux_type), intent(out) :: flux, flux0
     real, dimension(:, :, :, :), allocatable, intent(out) :: force
-    type(tracerForceType), dimension(:, :, :), allocatable, intent(out) :: tracerforce ! tracer forcing in WKB
+    type(tracerForceType), dimension(:, :, :), allocatable, intent(out) :: &
+        &tracerforce ! tracer forcing in WKB
     real, dimension(:, :, :), allocatable :: dRho, dRhop ! RK-Update for rho
     real, dimension(:, :, :, :), allocatable :: dMom ! ...rhoU,rhoV,rhoW
     real, dimension(:, :, :), allocatable :: dTheta ! RK-Update for theta
@@ -164,10 +165,10 @@ module init_module
     read(unit = 10, nml = tracerList, end = 21)
     21 continue
 
-    ! Read second ice namelist.
+    ! Read ice namelist.
     rewind(unit = 10)
-    read(unit = 10, nml = iceList, end = 23)
-    23 continue
+    read(unit = 10, nml = iceList, end = 22)
+    22 continue
 
     ! Close input file.
     close(unit = 10)
@@ -189,9 +190,36 @@ module init_module
     ! allocate surface and fields for immersed boundary
     !---------------------------------------------------
 
-    allocate(topography_surface(- nbx:nx + nbx, - nby:ny + nby), stat &
-        &= allocstat)
-    if(allocstat /= 0) stop "init.f90: could not allocate topography_surface"
+    if(rayTracer .and. case_wkb == 3 .and. .not. topography) stop "Error: &
+        &topography must be .true. for rayTracer == .true. and case_wkb == 3!"
+
+    ! Allocate resolved topography.
+    if(topography) then
+      allocate(topography_surface(- nbx:nx + nbx, - nby:ny + nby), stat &
+          &= allocstat)
+      if(allocstat /= 0) stop "setup: could not allocate topography_surface"
+      if(topographyTime > 0.0) then
+        allocate(final_topography_surface(- nbx:nx + nbx, - nby:ny + nby), &
+            &stat = allocstat)
+        if(allocstat /= 0) stop "setup: could not allocate &
+            &final_topography_surface"
+      end if
+    end if
+
+    ! Allocate unresolved topography.
+    if(rayTracer .and. case_wkb == 3) then
+      allocate(k_spectrum(1:nx, 1:ny, 1:nwm), stat = allocstat)
+      if(allocstat /= 0) stop "setup: could not allocate k_spectrum"
+      allocate(l_spectrum(1:nx, 1:ny, 1:nwm), stat = allocstat)
+      if(allocstat /= 0) stop "setup: could not allocate l_spectrum"
+      allocate(topography_spectrum(1:nx, 1:ny, 1:nwm), stat = allocstat)
+      if(allocstat /= 0) stop "setup: could not allocate topography_spectrum"
+      if(topographyTime > 0.0) then
+        allocate(final_topography_spectrum(1:nx, 1:ny, 1:nwm), stat = allocstat)
+        if(allocstat /= 0) stop "setup: could not allocate &
+            &final_topography_spectrum"
+      end if
+    end if
 
     allocate(kbl_topo(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate kbl_topo"
@@ -320,7 +348,8 @@ module init_module
     if(allocstat /= 0) stop "init.f90: could not allocate force"
 
     ! allocate tracerforce
-    allocate(tracerforce(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat = allocstat)
+    allocate(tracerforce(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+        &= allocstat)
     if(allocstat /= 0) stop "init.f90: could not allocate tracerforce"
 
     allocate(p_env_pp(1:nx, 1:ny, 0:nz + 1), stat = allocstat)
@@ -399,10 +428,9 @@ module init_module
 
     ! Safety switch for general setup.
     if(topography) then
-      if(model == "WKB" .or. poissonSolverType &
-          &/= "bicgstab" .or. reconstType /= "MUSCL" .or. musclType &
-          &/= "muscl1" .or. fluxType /= "upwind" .or. heatingONK14 .or. &
-          &pressureScaling .or. dens_relax) then
+      if(model == "WKB" .or. poissonSolverType /= "bicgstab" .or. reconstType &
+          &/= "MUSCL" .or. musclType /= "muscl1" .or. fluxType /= "upwind" &
+          &.or. heatingONK14 .or. pressureScaling .or. dens_relax) then
         stop "Terrain-following coordinates not implemented for chosen setup!"
       end if
     end if
@@ -579,7 +607,6 @@ module init_module
 
     complex, dimension(:, :, :, :, :), allocatable :: Psi
 
-    !SD
     integer :: allocstat
 
     real :: u1, w1, b1, p1
@@ -676,7 +703,7 @@ module init_module
 
     case("Boussinesq")
 
-      ! must remain zero! Background fields are constant!
+      ! var%rho must remain zero! Background fields are constant!
       var%rho(:, :, :) = 0.0
 
       vertical = (/0.0, 0.0, 1.0/)
@@ -1152,7 +1179,6 @@ module init_module
         end do
       end do
 
-
       !SD
       if(include_ice) call setup_ice(var)
 
@@ -1168,34 +1194,38 @@ module init_module
       rewind(unit = 10)
       read(unit = 10, nml = LagrangeRayTracing)
 
+      ! Stop for unsuitable configuration.
+      if(sizeX > 1 .and. fac_dk_init == 0.0) stop "Error in initialise: &
+          &fac_dk_init = 0 and sizeX > 1!"
+      if(sizeY > 1 .and. fac_dl_init == 0.0) stop "Error in initialise: &
+          &fac_dl_init = 0 and sizeY > 1!"
+      if(sizeZ == 1 .or. fac_dm_init == 0.0) stop "Error in initialise: &
+          &fac_dm_init = 0 or sizeZ = 1!"
+      if(wlrx_init == 0.0 .and. wlry_init == 0.0) stop "Error in initialise: &
+          &wlrx_init = 0 and wlry_init = 0!"
+
+      ! Compute initial ray-volume extent in k.
       if(sizeX == 1) then
-        print *, 'sizeX = 1, hence fac_dk_init = 0'
-        fac_dk_init = 0.0
-      end if
-
-      if(sizeY == 1) then
-        print *, 'sizeY = 1, hence fac_dl_init = 0'
-        fac_dl_init = 0.0
-      end if
-
-      if(fac_dk_init == 0.0) then
         dk_init = 0.0
-      else if(wlrx_init /= 0.0) then
+      else if(wlry_init == 0.0) then
         dk_init = fac_dk_init * 2.0 * pi / wlrx_init
-      else if(wlry_init /= 0.0) then
+      else if(wlrx_init == 0.0) then
         dk_init = fac_dk_init * 2.0 * pi / wlry_init
       else
-        stop 'ERROR: BOTH WLRX_INIT and WLRY_INIT = 0.0'
+        dk_init = fac_dk_init * 2.0 * pi * sqrt(1.0 / wlrx_init ** 2.0 + 1.0 &
+            &/ wlry_init ** 2.0)
       end if
 
-      if(fac_dl_init == 0.0) then
+      ! Compute initial ray-volume extent in l.
+      if(sizeY == 1) then
         dl_init = 0.0
-      else if(wlry_init /= 0.0) then
+      else if(wlrx_init == 0.0) then
         dl_init = fac_dl_init * 2.0 * pi / wlry_init
-      else if(wlrx_init /= 0.0) then
+      else if(wlry_init == 0.0) then
         dl_init = fac_dl_init * 2.0 * pi / wlrx_init
       else
-        stop 'ERROR: BOTH WLRX_INIT and WLRY_INIT = 0.0'
+        dl_init = fac_dl_init * 2.0 * pi * sqrt(1.0 / wlrx_init ** 2.0 + 1.0 &
+            &/ wlry_init ** 2.0)
       end if
 
       zmin_wkb = zmin_wkb_dim / lRef
@@ -1205,6 +1235,9 @@ module init_module
       if(case_wkb == 3) then
         rewind(unit = 10)
         read(unit = 10, nml = mountainwavelist)
+
+        if(zBoundary /= "solid_wall") stop "Error in initialise: zBoundary &
+            &must be 'solid_wall' for case_wkb = 3!"
 
         ! nondimensionalization
 
@@ -1459,7 +1492,7 @@ module init_module
                 theta = thetaStrat(k) + dTheta_dim / thetaRef
               end if
 
-                ! calc pseudo-incompressible density rho*
+              ! calc pseudo-incompressible density rho*
               if(referenceQuantities == "SI") then
                 rho = p0 ** kappa / Rsp * Pstrat(k) / theta - rhoStrat(k)
               else
@@ -1484,7 +1517,6 @@ module init_module
                 ! var%rho(i, j, k) must remain zero!
                 var%rho(i, j, k) = 0.0
                 var%rhop(i, j, k) = rho
-
 
               case default
                 stop "initialize: unknown model."
@@ -1622,8 +1654,8 @@ module init_module
 
             if(topography) then
               ! TFC FJ
-              var%rho(i, j, k) = var%rho(i, j, k) / rhoRef - rhoStratTFC(i, &
-                  &j, k)
+              var%rho(i, j, k) = var%rho(i, j, k) / rhoRef - rhoStratTFC(i, j, &
+                  &k)
             else
               var%rho(i, j, k) = var%rho(i, j, k) / rhoRef - rhoStrat(k)
             end if
@@ -2150,7 +2182,6 @@ module init_module
         stop 'ERROR: baroclinic_LC needs for background either const-N  or &
             &HeldSuarez'
       end if
-
 
       if(master .and. jwdth > 0.5 * (ymax - ymin)) then
         stop 'ERROR: jet width too large'
@@ -2900,12 +2931,10 @@ module init_module
         end do
       end if
 
-
       call setHalos(var, "var")
       call setBoundary(var, flux, "var")
 
       var_env = var ! store environmental state also in var_env
-      
 
       !-----------------------------------------------------------
       ! add local potential-temperature perturbation
@@ -2966,8 +2995,8 @@ module init_module
 
               if(topography) then
                 ! TFC FJ
-                var%rho(i, j, k) = pStratTFC(i, j, k) / theta &
-                    &- rhoStratTFC(i, j, k)
+                var%rho(i, j, k) = pStratTFC(i, j, k) / theta - rhoStratTFC(i, &
+                    &j, k)
               else
                 var%rho(i, j, k) = Pstrat(k) / theta - rhoStrat(k)
               end if
@@ -3018,8 +3047,8 @@ module init_module
 
               if(topography) then
                 ! TFC FJ
-                var%rho(i, j, k) = pStratTFC(i, j, k) / theta &
-                    &- rhoStratTFC(i, j, k)
+                var%rho(i, j, k) = pStratTFC(i, j, k) / theta - rhoStratTFC(i, &
+                    &j, k)
               else
                 var%rho(i, j, k) = Pstrat(k) / theta - rhoStrat(k)
               end if
@@ -3153,8 +3182,8 @@ module init_module
       end if
 
       if(init_2Dto3D) then
-        
-        call read_netCDF(-1, var)
+
+        call read_netCDF(- 1, var)
 
         ! store env pot temp: local
         the_env_pp(1:nx, 1:ny, 1:nz) = var%rhop(1:nx, 1:ny, 1:nz)
@@ -3446,10 +3475,10 @@ module init_module
                         &+ rhoStratTFC(i - 1, j, k)) * rhoRef
                     rho_int_00 = rho_int_00 + 0.5 * (rhoStratTFC(i, j, k) &
                         &+ rhoStratTFC(i + 1, j, k)) * rhoRef
-                    rho_int_mp = rho_int_mp + 0.5 * (rhoStratTFC(i, j + 1, &
-                        &k) + rhoStratTFC(i - 1, j + 1, k)) * rhoRef
-                    rho_int_0p = rho_int_0p + 0.5 * (rhoStratTFC(i, j + 1, &
-                        &k) + rhoStratTFC(i + 1, j + 1, k)) * rhoRef
+                    rho_int_mp = rho_int_mp + 0.5 * (rhoStratTFC(i, j + 1, k) &
+                        &+ rhoStratTFC(i - 1, j + 1, k)) * rhoRef
+                    rho_int_0p = rho_int_0p + 0.5 * (rhoStratTFC(i, j + 1, k) &
+                        &+ rhoStratTFC(i + 1, j + 1, k)) * rhoRef
                     rho = rho + rhoStratTFC(i, j, k) * rhoRef
                   else
                     rho_int_m0 = rho_int_m0 + rhoStrat(k) * rhoRef
@@ -3571,10 +3600,10 @@ module init_module
                         &+ rhoStratTFC(i, j - 1, k)) * rhoRef
                     rho_int_00 = rho_int_00 + 0.5 * (rhoStratTFC(i, j, k) &
                         &+ rhoStratTFC(i, j + 1, k)) * rhoRef
-                    rho_int_pm = rho_int_pm + 0.5 * (rhoStratTFC(i + 1, j, &
-                        &k) + rhoStratTFC(i + 1, j - 1, k)) * rhoRef
-                    rho_int_p0 = rho_int_p0 + 0.5 * (rhoStratTFC(i + 1, j, &
-                        &k) + rhoStratTFC(i + 1, j + 1, k)) * rhoRef
+                    rho_int_pm = rho_int_pm + 0.5 * (rhoStratTFC(i + 1, j, k) &
+                        &+ rhoStratTFC(i + 1, j - 1, k)) * rhoRef
+                    rho_int_p0 = rho_int_p0 + 0.5 * (rhoStratTFC(i + 1, j, k) &
+                        &+ rhoStratTFC(i + 1, j + 1, k)) * rhoRef
                     rho = rho + rhoStratTFC(i, j, k) * rhoRef
                   else
                     rho_int_0m = rho_int_0m + rhoStrat(k) * rhoRef
@@ -4652,10 +4681,10 @@ module init_module
         write(*, fmt = "(a25,f10.1,a7)") "cg_x  = ", - NN * mm ** 2 / kTot &
             &** 3 * uRef, " m/s"
         write(*, fmt = "(a25,f10.1,a7)") "cg_z  = ", NN * mm * kk / kTot ** 3 &
-            * uRef, " m/s"
+            &* uRef, " m/s"
         write(*, fmt = "(a25,f10.1,a7)") "cg_z2  = ", - (NN ** 2. &
-            - (f_Coriolis_dim / lRef) ** 2.) * mm * (kk ** 2. + ll ** 2.) &
-            / kTot2 ** 2. / omi * uRef, " m/s"
+            &- (f_Coriolis_dim / lRef) ** 2.) * mm * (kk ** 2. + ll ** 2.) &
+            &/ kTot2 ** 2. / omi * uRef, " m/s"
         write(*, fmt = "(a25,f10.1,a7)") "u_jet  = ", u0_jet_dim, " m/s"
         print *, ""
       end if ! modified by Junhong Wei (20170216)
@@ -5073,125 +5102,6 @@ module init_module
 
   end subroutine noise_array
 
-  !-------------------------------------------------------------------------
-  subroutine clean_noise(noise)
-    ! local variables
-    integer :: i, j, k
-    integer :: allocstat, root
-    real :: valRef, amplitude, perturbVal, sum_loc, sum_glob
-    character(len = 20) :: ntovar
-    real :: rand ! random number
-    real :: Lx, Ly, Lz
-    real, dimension(1:nx, 1:ny, 1:nz) :: noise
-
-    sum_loc = 0.
-    sum_glob = 0.
-
-    do k = 1, nz
-      do j = 1, ny
-        do i = 1, nx
-          sum_loc = sum_loc + noise(i, j, k)
-        enddo
-      enddo
-    enddo
-
-    call mpi_allreduce(sum_loc, sum_glob, 1, mpi_double_precision, mpi_sum, &
-        &comm, ierror)
-
-    !if(master) then
-    !    print*,"sum_glob = ", sum_glob
-    !end if
-
-    sum_loc = 0.
-
-    do k = 1, nz
-      do j = 1, ny
-        do i = 1, nx
-          noise(i, j, k) = noise(i, j, k) - sum_glob / (sizeX * sizeY * sizeZ) ! add noise to 3D-pot. temperature field
-          sum_loc = sum_loc + noise(i, j, k)
-        enddo
-      enddo
-    enddo
-
-    sum_glob = 0.
-    call mpi_allreduce(sum_loc, sum_glob, 1, mpi_double_precision, mpi_sum, &
-        &comm, ierror)
-
-    !if(master) then
-    !    print*,"sum_glob after norm = ", sum_glob
-    !end if
-
-  end subroutine clean_noise
-
-  !-------------------------------------------------------------------------
-  subroutine find_magnitude_y(slice, calc_magn, ntovar)
-    ! local variables
-    integer :: xslice, zslice
-    real :: calc_magn, max_loc, min_loc, max_glob, min_glob, valRef
-    !real, dimension(1:nx, 1:ny, 1:nz)  :: field
-    real, dimension(1:ny) :: slice
-    character(len = 20) :: ntovar
-
-    !slice(1:ny) = field(xslice, 1:ny, zslice)
-
-    max_loc = maxval(slice)
-    min_loc = minval(slice)
-
-    call mpi_allreduce(max_loc, max_glob, 1, mpi_double_precision, mpi_max, &
-        &comm, ierror)
-    call mpi_allreduce(min_loc, min_glob, 1, mpi_double_precision, mpi_min, &
-        &comm, ierror)
-
-    calc_magn = max_glob - min_glob
-
-    select case(ntovar)
-    case("rho")
-      valRef = rhoref
-    case("vel")
-      valRef = uref
-    case("th")
-      valRef = thetaRef
-    case default
-      stop "noise_array: Unknown variable"
-    end select
-
-    if(master) then
-      print *, "Noise is added to variable ", ntovar
-      if(referenceQuantities == "SI") then
-        print *, "Noise magnitude = ", calc_magn
-      else
-        print *, "Noise magnitude = ", calc_magn * valRef
-      end if
-    end if
-  end subroutine find_magnitude_y
-  !-------------------------------------------------------------------------
-  subroutine averagevel(var)
-    ! local variables
-    integer :: i, j, k
-    type(var_type), intent(inout) :: var
-
-    !-----------------------------
-    !  Interpolate to cell faces
-    !-----------------------------
-    print *, "nx = ", nx
-    print *, "var0=", var%u(0, 1, 1)
-    ! average zonal velocities to cell face...
-    do i = 0, nx
-      var%u(i, :, :) = 0.5 * (var%u(i, :, :) + var%u(i + 1, :, :))
-    end do
-
-    ! average meridional velocities to cell face...
-    do j = 0, ny
-      var%v(:, j, :) = 0.5 * (var%v(:, j, :) + var%v(:, j + 1, :))
-    end do
-
-    ! average vertical velocities to cell face...
-    do k = 0, nz
-      var%w(:, :, k) = 0.5 * (var%w(:, :, k) + var%w(:, :, k + 1))
-    end do
-
-    u_env_pp(:, :, :) = var%u(1:nx, 1:ny, 1:nz)
-  end subroutine averagevel
   !-------------------------------------------------------------------------
 
   subroutine output_background(th_bgr, max_nz, filename_bgr, ref)

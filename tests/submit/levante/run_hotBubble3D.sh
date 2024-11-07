@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --partition=compute
 #SBATCH --job-name=hotBubble3D
-#SBATCH --nodes=1
+#SBATCH --nodes=2
 #SBATCH --ntasks-per-node=128
-#SBATCH --time=01:00:00
+#SBATCH --time=0-00:05:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
 #SBATCH --output=hotBubble3D.o%j
@@ -12,8 +12,8 @@
 set -x
 
 # Set number of processors (product must be equal to number of tasks).
-ntasks=128
-nprocx=16
+ntasks=256
+nprocx=32
 nprocy=8
 
 # Limit stacksize (adjust to your programs need and core file size).
@@ -69,8 +69,11 @@ if [ ${dirSaveCode} != ${dirScratch} ]; then
    cp -p ${dirScratch}/input.f90 ${dirSaveCode}/.
 fi
 
+# Copy the binary.
+cp ${exe} .
+
 # Run the model.
 srun -l --cpu_bind=verbose --hint=nomultithread \
-  --distribution=block:cyclic ${exe} 1>run.log 2>&1
+  --distribution=block:cyclic ./pinc 1>run.log 2>&1
 
 exit 0

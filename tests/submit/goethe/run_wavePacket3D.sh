@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2000
 #SBATCH --mail-type=FAIL
-#SBATCH --time=01:00:00
+#SBATCH --time=0-00:05:00
 
 set -x
 
@@ -52,7 +52,10 @@ if [ ${dirSaveCode} != ${dirScratch} ]; then
    cp -p ${dirScratch}/input.f90 ${dirSaveCode}/.
 fi
 
+# Copy the binary.
+cp ${exe} .
+
 # Run the model.
-mpirun -np ${ntasks} ${exe} 1>run.log 2>&1
+mpirun -np ${ntasks} ./pinc 1>run.log 2>&1
 
 exit 0
