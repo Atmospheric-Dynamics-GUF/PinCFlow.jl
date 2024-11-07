@@ -5,7 +5,6 @@ module xweno_module
   ! of the array for interpolation
 
   use type_module
-  use debug_module
 
   implicit none
 
@@ -16,7 +15,6 @@ module xweno_module
   public :: reconstruct_SALD
   public :: reconstruct3D
   public :: reconstruct1D
-  public :: reconstruct1D_old
   public :: init_xweno
 
   ! ------------- module variables  ---------------------
@@ -348,108 +346,6 @@ module xweno_module
     end do
 
   end subroutine reconstruct1D
-
-  !---------------------------------------------------------------------------
-
-  subroutine reconstruct1D_old(phiBar, n, phiTilde, centered)
-    !------------------------------------------------
-    ! old version of "reconstruct1D": closer to the
-    ! literature but not optimized
-    !------------------------------------------------
-
-    ! in/out variables
-    integer, intent(in) :: n
-    logical, intent(in) :: centered
-    real, dimension(n), intent(in) :: phiBar
-    real, dimension(n, - 1:1), intent(out) :: phiTilde
-
-    ! main
-    real, dimension(1:3, 0:2, - 1:1) :: phiHat
-    real, parameter :: epsBeta = 1.0e-16
-    real, dimension(1:3, 0:2) :: beta
-    real, dimension(1:3, 0:2, - 1:1) :: omega
-    real :: lSum, sSum
-    integer :: i, k, r, l, s, lambda2
-    integer :: l0, l1
-
-    ! improve computational efficiency
-    ! beta(k,r,xi) = beta(k,r-1,xi-1)
-
-    print *, "xweno.f90/reconstruct1D_old: phiBarX(n/2,n/2+1) = ", n / 2, n &
-        &/ 2 + 1, phiBar(n / 2), phiBar(n / 2 + 1)
-
-    ! compute only interpolants at xi or at the edges xi +/- dx/2
-    if(centered) then
-      l0 = 0
-      l1 = 0
-    else
-      l0 = - 1
-      l1 = 1
-    end if
-
-    ! init
-    phiTilde = 10.0
-
-    ! -------- constant, linear, quadratic interpolation terms -------------
-
-    i_loop: do i = 3, n - 2 ! interpolation phiBar at position lambda2
-      ! apart from 2 ghost cells
-      do k = 1, 3
-        do r = 0, k - 1
-          do lambda2 = l0, l1, 2
-            lSum = 0.0
-            do l = 0, k - 1
-              lSum = lSum + alpha(k, r, l, lambda2) * phiBar(i - r + l)
-            end do
-            phiHat(k, r, lambda2) = lSum
-          end do
-        end do
-      end do
-
-      ! beta - the smoothness measure
-
-      do k = 1, 3
-        do r = 0, k - 1
-          lSum = epsBeta
-          do l = - r, k - r - 2
-            lSum = lSum + (phiBar(i + l + 1) - phiBar(i + l)) ** 2
-          end do
-          beta(k, r) = 1.0 / lSum ** 2
-        end do
-      end do
-
-      ! omega - the weight for ALDM
-
-      do k = 1, 3
-        do r = 0, k - 1
-          do lambda2 = l0, l1, 2
-            sSum = 0.0
-            do s = 0, k - 1
-              sSum = sSum + beta(k, s) * gamma(k, s, lambda2)
-            end do
-            omega(k, r, lambda2) = 1.0 / 3.0 * beta(k, r) / sSum * gamma(k, r, &
-                &lambda2)
-
-          end do
-        end do
-      end do
-
-      ! ---------- interpolation to left, middle, right of cell i ---------
-
-      do lambda2 = l0, l1, 2
-        lSum = 0.0
-        do k = 1, 3 ! k = 1,K with K = 3 for ALDM/SALD: quadratic interpolation
-          ! is highest order implemented
-          do r = 0, k - 1 ! r = 0 (right stencil)
-            lSum = lSum + phiHat(k, r, lambda2) * omega(k, r, lambda2)
-          end do
-        end do
-        phiTilde(i, lambda2) = lSum
-      end do
-
-    end do i_loop
-
-  end subroutine reconstruct1D_old
 
   !--------------------------------------------------------------------------
 
