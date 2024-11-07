@@ -2,72 +2,62 @@ import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 import numpy.fft as fft
-import netCDF4 as nc
+import tools
 import style
-
-# Set script parameter.
-make_animation = False
 
 # Get host and user name.
 host_name = subprocess.getoutput("hostname")
 user_name = subprocess.getoutput("whoami")
 
 if "levante" in host_name:
-   # Levante cluster
+  # Levante cluster
   data_path = "/scratch/b/" + user_name + "/PF/runs"
   reference_path = "/scratch/b/" + user_name + "/PF/pinc/reference"
 
 elif "login" in host_name:
-   # Goethe cluster
+  # Goethe cluster
   data_path = "/scratch/atmodynamics/" + user_name + "/PF/runs"
   reference_path = "/scratch/atmodynamics/" + user_name + "/PF/pinc/reference"
 
 else:
-   # Local machine
-    data_path = ".."
-    reference_path = ".."
+  # Local machine
+  data_path = "../"
+  reference_path = "../"
 
 print("data_path =", data_path)
 print("reference_path =", reference_path)
 
 # Import data.
-data = nc.Dataset(data_path + '/pincflow_data.nc')
-reference = nc.Dataset(reference_path + '/pincflow_data.nc')
+data = tools.ModelOutput(data_path + 'barLC/')
+reference = tools.ModelOutput(reference_path + 'barLC/')
 
-x = data.variables['x'][:]
-y = data.variables['y'][:] + 0.84e7
-
-# Set fields of indices.
-iz = int(0.1 * len(data.dimensions['z']))
+# Set slices.
 it = - 1
+iz = 2
+iy = slice(42, None)
 
-# Print time.
-print(" ".join(("Time:", str(data.variables['time'][it]), "s")))
+print(" ".join(("Time:", str(data.variables['t'][it]), "s")))
+
+# Set grid.
+xx = data.variables['x'][:] * 0.001
+yy = data.variables['y'][iy] * 0.001
+dx = np.abs(xx[1] - xx[0]) * 1000.0
+dy = np.abs(yy[1] - yy[0]) * 1000.0
 
 # Loop over data and reference.
 for data_set in (reference, data):
 
-    # Set fields of interest.
-  nx = len(data_set.dimensions['x'])
-  ny = len(data_set.dimensions['y'])
+  # Set fields of interest.
+  uu = data_set.groups['atmvar'].variables['u'][it, iz, iy]
+  vv = data_set.groups['atmvar'].variables['v'][it, iz, iy]
+  thetap = data_set.groups['atmvar'].variables['thetap'][it, iz, iy]
 
-  dx = np.abs(x[1] - x[0])
-  dy = np.abs(y[1] - y[0])
-
-  rho = data_set.groups['atmvar'].variables['rho'][it, iz, int(0.5 * ny):ny, :]
-  uu = data_set.groups['atmvar'].variables['u'][it, iz, int(0.5 * ny):ny, :]
-  vv = data_set.groups['atmvar'].variables['v'][it, iz, int(0.5 * ny):ny, :]
-  ww = data_set.groups['atmvar'].variables['w'][it, iz, int(0.5 * ny):ny, :]
-  pi = data_set.groups['atmvar'].variables['pi'][it, iz, int(0.5 * ny):ny, :]
-  theta = data_set.groups['atmvar'].variables['theta'][it, 0, int(0.5 \
-      * ny):ny, :]
-
-    # Compute divergence.
+  # Compute divergence.
   divergence = np.zeros_like(uu)
   divergence[1:, 1:] = (uu[1:, 1:] - uu[1:, :(- 1)]) / dx + (vv[1:, 1:] - \
       vv[:(- 1), 1:]) / dy
 
-    # Apply Fourier filter.
+  # Apply Fourier filter.
   urossby = np.zeros_like(uu)
   ugravity = np.zeros_like(uu)
   sigma = divergence
@@ -80,50 +70,37 @@ for data_set in (reference, data):
   urossby = fft.ifft2(urossbytilde).real
   ugravity = sigma - urossby
 
-    # Compute difference of relevant fields.
+  # Compute difference of relevant fields.
   if data_set == reference:
     deltaugravity = ugravity.copy()
-    deltau = uu.copy()
-    deltav = vv.copy()
-    deltatheta = theta.copy()
+    deltatheta = thetap.copy()
   elif data_set == data:
     deltaugravity = ugravity - deltaugravity
-    deltau = uu - deltau
-    deltav = vv - deltav
-    deltatheta = theta - deltatheta
+    deltatheta = thetap - deltatheta
 
-xx = x * 0.001
-yy = y[int(0.5 * ny):ny] * 0.001
-xx, yy = np.meshgrid(xx, yy)
-
-# Make plot.
-peak = np.max(np.abs(ugravity))
-thetamax = np.max(np.abs(theta))
+# Create plot.
+(levels, colormap) = style.symmetric_contours(ugravity.min(), ugravity.max())
 fig, axes = plt.subplots()
-plot = axes.pcolormesh(xx, yy, ugravity, vmax = peak, vmin = - peak, shading \
-    = 'gouraud', cmap = 'seismic')
-axes.quiver(xx[::3, ::3], yy[::3, ::3], uu[::3, ::3], vv[::3, ::3], width \
-    = 0.01, scale = 500)
-axes.contour(xx, yy, theta, linewidths = 1.0, colors = 'black')
+plot = axes.contourf(xx, yy, ugravity, levels, cmap = colormap)
+axes.contour(xx, yy, thetap, linewidths = 1.0, colors = "black")
 axes.set_xlabel(r"$x \, \left[\mathrm{km}\right]$")
 axes.set_ylabel(r"$y \, \left[\mathrm{km}\right]$")
-fig.colorbar(plot, label = r"$\boldsymbol{\nabla}_z \cdot" r"\boldsymbol{u} \, \left[\mathrm{s^{- 1}}\right]$")
+fig.colorbar(plot, label = r"$\boldsymbol{\nabla}_z \cdot" r"\boldsymbol{u}" \
+    r"\, \left[\mathrm{s^{- 1}}\right]$")
 fig.savefig("".join((data_path, "/results/barLC.pdf")))
 fig.savefig("".join((data_path, "/results/barLC.png")), dpi = 500)
 
+# Create difference plot.
 if data_path != reference_path:
-  peak = np.max(np.abs(deltaugravity))
-  thetamax = np.max(np.abs(deltatheta))
+  (levels, colormap) = style.symmetric_contours(deltaugravity.min(), \
+      deltaugravity.max())
   fig, axes = plt.subplots()
-  plot = axes.pcolormesh(xx, yy, deltaugravity, vmax = peak, vmin = - peak, \
-      shading = 'gouraud', cmap = 'seismic')
-  axes.quiver(xx[::3, ::3], yy[::3, ::3], deltau[::3, ::3], deltav[::3, ::3], \
-      width = 0.01, scale = 500)
-  axes.contour(xx, yy, deltatheta, linewidths = 1.0, colors = 'black')
+  plot = axes.contourf(xx, yy, deltaugravity, levels, cmap = colormap)
+  axes.contour(xx, yy, deltatheta, linewidths = 1.0, colors = "black")
   axes.set_xlabel(r"$x \, \left[\mathrm{km}\right]$")
   axes.set_ylabel(r"$y \, \left[\mathrm{km}\right]$")
-  fig.colorbar(plot, label = r"$\Delta \boldsymbol{\nabla}_z \cdot" r"\boldsy" \
-      r"mbol{u} \, \left[\mathrm{s^{- 1}}\right]$")
+  fig.colorbar(plot, label = r"$\Delta \boldsymbol{\nabla}_z \cdot" \
+      r"\boldsymbol{u} \, \left[\mathrm{s^{- 1}}\right]$")
   fig.savefig("".join((data_path, "/results/barLC_difference.pdf")))
   fig.savefig("".join((data_path, "/results/barLC_difference.png")), \
       dpi = 500)

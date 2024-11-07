@@ -21,23 +21,8 @@ module mpi_module
   public :: init_mpi
   public :: setHalos
   public :: dot_product3D_glob
-  public :: abort_message
 
   contains
-
-  subroutine abort_message(message)
-    character(len = *), intent(in) :: message
-
-    if(master) then
-      print *, message
-    end if
-
-    call mpi_finalize(ierror)
-    stop
-
-  end subroutine abort_message
-
-  !----------------------------------------------------------------------------------
 
   subroutine setHalos(var, option)
     !-------------------------------
@@ -321,8 +306,13 @@ module mpi_module
     idim = nprocx
     jdim = nprocy
     if(idim * jdim /= nbProc) then
-      if(master) print *, 'Virtual topology wrong idim*jdim should be equal to &
-          &nbProc!'
+      if(master) then
+        print "(a)", "Virtual topology wrong, idim * jdim should be equal to &
+            &nbProc!"
+        print "(a)", "[idim, jdim] = [" // trim_integer(idim) // ", " &
+            &// trim_integer(jdim), "]"
+        print "(a)", "nbProc = " // trim_integer(nbProc)
+      end if
       error_flag = .true.
       return
     end if

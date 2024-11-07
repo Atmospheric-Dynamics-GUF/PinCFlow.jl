@@ -3,7 +3,7 @@
 #SBATCH --job-name=2DWP90_msgwam
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=8
-#SBATCH --time=01:00:00
+#SBATCH --time=0-00:05:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
 #SBATCH --output=2DWP90_msgwam.o%j
@@ -69,8 +69,11 @@ if [ ${dirSaveCode} != ${dirScratch} ]; then
    cp -p ${dirScratch}/input.f90 ${dirSaveCode}/.
 fi
 
+# Copy the binary.
+cp ${exe} .
+
 # Run the model.
 srun -l --cpu_bind=verbose --hint=nomultithread \
-  --distribution=block:cyclic ${exe} 1>run.log 2>&1
+  --distribution=block:cyclic ./pinc 1>run.log 2>&1
 
 exit 0

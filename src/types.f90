@@ -1,6 +1,6 @@
 module type_module
-   
-   use mpi
+
+  use mpi
   !-----------------------------------------------------------------
   !    Definition of data types and variables accessible
   !    throughout the code! Use care when working on these
@@ -11,8 +11,6 @@ module type_module
   !-----------------------------------------------------------------
 
   implicit none
-  
-  !-----------------------------------------------------------
 
   public
 
@@ -86,8 +84,7 @@ module type_module
   !-----------------------------------------------------------------
   logical :: include_ice = .false., include_testoutput = .false.
   logical :: include_tracer = .false.
-  namelist / variables / include_ice, include_tracer, &
-      &include_testoutput
+  namelist / variables / include_ice, include_tracer, include_testoutput
 
   type var_type
     real, dimension(:, :, :), allocatable :: rho ! Density
@@ -123,37 +120,33 @@ module type_module
 
   character(len = 256) :: file_namelist
   integer, parameter :: nVar = 20 ! Maximum number of I/O variables
-  !character(len = 10), dimension(1:nVar) :: varOut, varIn ! I/O variables
-  real, dimension(1:nVar) :: offset ! Offsets for I/O variables
 
-  character(len = 10), dimension(1:20) :: restartIN
   character(len = 10), dimension(1:20) :: atmvarOut
   character(len = 10), dimension(1:20) :: rayvarOut
   character(len = 10), dimension(1:20) :: icevarOut
+
   logical :: saverayvols
+  logical :: prepare_restart
+  logical :: restart
+
+  integer :: iIn
 
   character(len = 40) :: runName
-
-  ! record to be read from restart file (starting from 0!)
-  integer :: iIn
 
   character(len = 20) :: outputType ! "time" or "timeStep"
   integer :: nOutput ! output every nOutput's time step
   integer :: maxIter ! max nb. of time steps
   real :: outputTimeDiff ! output every ... seconds
   real :: maxTime ! max time in seconds
-  logical :: restart
 
   logical :: detailedinfo
   logical :: RHS_diagnostics
 
   logical :: fancy_namelists
 
-  namelist / outputList / offset, iIn, &
-      &outputType, nOutput, maxIter, outputTimeDiff, maxTime, &
-      &restart, detailedinfo, RHS_diagnostics, &
-      &fancy_namelists, atmvarOut, &
-      rayvarOut, icevarOut, runName, saverayvols, restartIN
+  namelist / outputList / atmvarOut, rayvarOut, icevarOut, saverayvols, &
+      &prepare_restart, restart, iIn, runName, outputType, nOutput, maxIter, &
+      &outputTimeDiff, maxTime, detailedinfo, RHS_diagnostics, fancy_namelists
   !achatzb
   !achatze
 
@@ -270,19 +263,12 @@ module type_module
   integer :: branchr
   logical :: lindUinit
 
-  real :: topographyTime_wkb ! FJFeb2023
-  real :: mountainHeight_wkb_dim ! Jan Weinkaemmerer, 27.11.18
-  real :: mountainWidth_wkb_dim ! FJJan2023
-  integer :: mountain_case_wkb
-  real :: range_factor_wkb ! FJFeb2023
-
   ! Long number scaling of displacement (FJJan2023)
   logical :: blocking
 
   ! Number of wave modes (FJApr2023)
   integer :: nwm
 
-  integer :: launch_level
   character(len = 10) :: launch_algorithm
 
   real :: zmin_wkb_dim, zmin_wkb
@@ -302,10 +288,8 @@ module type_module
       &fac_dm_init, nrk_init, nrl_init, nrm_init, nsmth_wkb, lsmth_wkb, &
       &sm_filter, lsaturation, alpha_sat, steady_state, case_wkb, amp_wkb, &
       &wlrx_init, wlry_init, wlrz_init, xr0_dim, yr0_dim, zr0_dim, sigwpx_dim, &
-      &sigwpy_dim, sigwpz_dim, branchr, lindUinit, topographyTime_wkb, &
-      &mountainHeight_wkb_dim, mountainWidth_wkb_dim, mountain_case_wkb, &
-      &range_factor_wkb, blocking, nwm, launch_level, launch_algorithm, &
-      &zmin_wkb_dim, nray_fac, cons_merge, nRayOutput ! JaWi: new nml!
+      &sigwpy_dim, sigwpz_dim, branchr, lindUinit, blocking, nwm, &
+      &launch_algorithm, zmin_wkb_dim, nray_fac, cons_merge, nRayOutput ! JaWi: new nml!
   ! Jan Weinkaemmerer, 27.11.18
 
   !------------------------------------------
@@ -509,9 +493,9 @@ module type_module
   ! density relaxation
 
   namelist / solverList / cfl, cfl_wave, dtMax_dim, tStepChoice, timeScheme, &
-      &auxil_equ, fluxType, reconstType, musclType, limiterType1, &
-      &TurbScheme, turb_dts, DySmaScheme, dtWave_on, &
-      &heatingONK14, dens_relax, shap_dts_fac, n_shap
+      &auxil_equ, fluxType, reconstType, musclType, limiterType1, TurbScheme, &
+      &turb_dts, DySmaScheme, dtWave_on, heatingONK14, dens_relax, &
+      &shap_dts_fac, n_shap
   !UAC & dens_relax, shap_dts_dim, n_shap
 
   integer :: nStages
@@ -626,10 +610,13 @@ module type_module
 
   logical :: topography ! via k = 1
 
-  ! topography_surface x-y-dependent mountain surface
-  real, dimension(:, :), allocatable :: topography_surface
+  ! Resolved topography
+  real, dimension(:, :), allocatable :: topography_surface, &
+      &final_topography_surface
 
-  real, dimension(:, :), allocatable :: final_topography_surface
+  ! Unresolved topography
+  real, dimension(:, :, :), allocatable :: k_spectrum, l_spectrum, &
+      &topography_spectrum, final_topography_spectrum
 
   ! vertical index of (velocity) reconstruction points just above the
   ! mountain surface
@@ -657,10 +644,13 @@ module type_module
   real :: mountainWidth_dim
   integer :: mountain_case
   real :: range_factor
+  integer :: spectral_modes
 
   namelist / topographyList / topography, ipolTFC, freeSlipTFC, testTFC, &
       &topographyTime, mountainHeight_dim, mountainWidth_dim, mountain_case, &
-      &range_factor
+      &range_factor, spectral_modes
+  !UAB
+  !UAE
 
   !-----------------------------------------------------------------
   !                         Boundary
@@ -692,12 +682,15 @@ module type_module
   ! Damping time of COSMO sponge (in time steps)
   integer :: cosmoSteps
 
+  logical :: relax_to_mean
+
+  ! gaga: backup, delete later
   real, dimension(:, :), allocatable :: u_const ! constant wind for baroclinic life cycle experiments
 
   namelist / boundaryList / rhoFluxCorr, iceFluxCorr, uFluxCorr, vFluxCorr, &
       &wFluxCorr, thetaFluxCorr, nbCellCorr, spongeLayer, sponge_uv, &
       &spongeHeight, spongeAlphaZ_dim, spongeAlphaZ_fac, unifiedSponge, &
-      &lateralSponge, spongeType, spongeOrder, cosmoSteps
+      &lateralSponge, spongeType, spongeOrder, cosmoSteps, relax_to_mean
 
   ! boundary types
   character(len = 15) :: xBoundary
@@ -761,54 +754,52 @@ module type_module
   !                           Tracer
   !----------------------------------------------------------------
   character(len = 20) :: tracerSetup
-  logical :: include_trfrc_lo, include_trfrc_mix, &
+  logical :: include_trfrc_lo, include_trfrc_mix, include_trfrc_no
+
+  namelist / tracerList / tracerSetup, include_trfrc_lo, include_trfrc_mix, &
       &include_trfrc_no
 
-  namelist / tracerList / tracerSetup, include_trfrc_lo, &
-      &include_trfrc_mix, &
-      &include_trfrc_no
+  type :: waveAmpCompType
+    ! components of the vectors given in (10.358)-(10.360) in
+    ! Achatz, Atmospheric Dynamics (2022)
+    ! (10.358): nowamp (next-order wave amplitudes)
+    ! (10.359): rhsamp (right-hand side of next-order wave amp. equations)
+    ! (10.360): lowamp (leading-order wave amplitudes)
 
-  	type :: waveAmpCompType
-  		 ! components of the vectors given in (10.358)-(10.360) in
-  		 ! Achatz, Atmospheric Dynamics (2022)
-  		 ! (10.358): nowamp (next-order wave amplitudes)
-  		 ! (10.359): rhsamp (right-hand side of next-order wave amp. equations)
-  		 ! (10.360): lowamp (leading-order wave amplitudes)
+    complex :: u ! leading-order zonal wind amplitude uhat^(0) in lowamp
+    ! next-order zonal wind amp. uhat^(1) in nowamp
+    ! rhs of equation for uhat^(1) given in (10.352)
+    complex :: v ! wave as for u, but meridional wind
+    complex :: w ! vertical wind component
+    ! rhs equation given in (10.350)
+    complex :: b ! buoyancy component as given in the book, but
+    ! not divided by N !!
+    ! rhs equation given in (10.337)
+    complex :: pi ! Exner-pressure component as given in book, but
+    ! multiplied by c_p/R * theta0 !!
+    ! rhs equation given in (10.327)
+    complex :: chi ! tracer mixing ratio component
 
-  		complex :: u ! leading-order zonal wind amplitude uhat^(0) in lowamp
-  								 ! next-order zonal wind amp. uhat^(1) in nowamp
-  								 ! rhs of equation for uhat^(1) given in (10.352)
-  		complex :: v ! wave as for u, but meridional wind
-  		complex :: w ! vertical wind component
-  								 ! rhs equation given in (10.350)
-  		complex :: b	 ! buoyancy component as given in the book, but
-  									 ! not divided by N !!
-  									 ! rhs equation given in (10.337)
-  		complex :: pi	 ! Exner-pressure component as given in book, but
-  									 ! multiplied by c_p/R * theta0 !!
-  									 ! rhs equation given in (10.327)
-        complex :: chi ! tracer mixing ratio component 
-    
-    end type waveAmpCompType
-    type :: waveAmpType 
+  end type waveAmpCompType
+  type :: waveAmpType
 
-        type(waveAmpCompType) :: lowamp, rhsamp, nowamp, lowamp_prevts
+    type(waveAmpCompType) :: lowamp, rhsamp, nowamp, lowamp_prevts
 
-        real :: phase
+    real :: phase
 
-        real :: phaserhs
+    real :: phaserhs
 
-    end type waveAmpType 
-    type :: tracerFluxType
+  end type waveAmpType
+  type :: tracerFluxType
 
-        real :: uflx, vflx, wflx, total
+    real :: uflx, vflx, wflx, total
 
-    end type tracerFluxType
-    type :: tracerForceType 
+  end type tracerFluxType
+  type :: tracerForceType
 
-        type(tracerFluxType) :: loforce, noforce, mixingGW
-    
-    end type tracerForceType  
+    type(tracerFluxType) :: loforce, noforce, mixingGW
+
+  end type tracerForceType
   !-----------------------------------------------------------------
   !                           Ice physics
   !-----------------------------------------------------------------
@@ -878,19 +869,19 @@ module type_module
     include_testoutput = .false.
 
     ! Input/Output
-    atmvarOut = ""; atmvarOut(1:6) = ["background", "rho       ", " u        ", " v        ", " w        ", "pi        "]
+    atmvarOut = ""
     rayvarOut = ""
-    restartIN = ""; restartIN(1:4) = ["rho", " us", " vs", " ws"]
-    offset = 0.0
-    runName = "runName"
+    icevarOut = ""
     saverayvols = .false.
-    iIn = -1
+    prepare_restart = .false.
+    restart = .false.
+    iIn = - 1
+    runName = "runName"
     outputType = "time"
     nOutput = 1
     maxIter = 1
     outputTimeDiff = 3600.0
     maxTime = 3600.0
-    restart = .false.
     detailedinfo = .false.
     RHS_diagnostics = .false.
     fancy_namelists = .true.
@@ -953,14 +944,8 @@ module type_module
     sigwpz_dim = 0.5 * (lz_dim(1) - lz_dim(0))
     branchr = 1
     lindUinit = .false.
-    topographyTime_wkb = 0.0
-    mountainHeight_wkb_dim = 0.1 * (lz_dim(1) - lz_dim(0))
-    mountainWidth_wkb_dim = 0.1 * (lx_dim(1) - lx_dim(0))
-    mountain_case_wkb = 1
-    range_factor_wkb = 1.0
     blocking = .false.
     nwm = 1
-    launch_level = 0
     launch_algorithm = "clip"
     zmin_wkb_dim = 0.0
     nray_fac = 20
@@ -1115,6 +1100,7 @@ module type_module
     mountainWidth_dim = 0.1 * (lx_dim(1) - lx_dim(0))
     mountain_case = 1
     range_factor = 1.0
+    spectral_modes = 1
 
     ! Boundaries
     rhoFluxCorr = .false.
@@ -1132,6 +1118,7 @@ module type_module
     spongeType = "polynomial"
     spongeOrder = 1
     cosmoSteps = 1
+    relax_to_mean = .true.
     xBoundary = "periodic"
     yBoundary = "periodic"
     zBoundary = "solid_wall"
@@ -1166,55 +1153,86 @@ module type_module
     character(len = 50) :: character_format, integer_format, logical_format, &
         &comment_format
     character(len = 2) :: counter
-    integer :: iVar
+    integer :: iVar, jVar
 
+    ! Adjust atmVarOut.
+    jVar = 0
+    do iVar = 1, size(atmVarOut)
+      if(atmVarOut(iVar) == "" .or. (iVar > 1 .and. any(atmVarOut(:iVar - 1) &
+          &== atmVarOut(iVar)))) cycle
+      jVar = jVar + 1
+      atmVarOut(jVar) = atmVarOut(iVar)
+    end do
+    atmVarOut(jVar + 1:) = ""
+
+    ! Adjust rayVarOut.
+    jVar = 0
+    do iVar = 1, size(rayVarOut)
+      if(rayVarOut(iVar) == "" .or. (iVar > 1 .and. any(rayVarOut(:iVar - 1) &
+          &== rayVarOut(iVar)))) cycle
+      jVar = jVar + 1
+      rayVarOut(jVar) = rayVarOut(iVar)
+    end do
+    rayVarOut(jVar + 1:) = ""
+
+    ! Adjust iceVarOut.
+    jVar = 0
+    do iVar = 1, size(iceVarOut)
+      if(iceVarOut(iVar) == "" .or. (iVar > 1 .and. any(iceVarOut(:iVar - 1) &
+          &== iceVarOut(iVar)))) cycle
+      jVar = jVar + 1
+      iceVarOut(jVar) = iceVarOut(iVar)
+    end do
+    iceVarOut(jVar + 1:) = ""
+
+    ! Write namelists in standard format.
     if(master .and. .not. fancy_namelists) then
       open(unit = 90, file = "namelists.txt", action = "write", form &
           &= "formatted", status = "replace")
       write(unit = 90, nml = domain)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = variables)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = outputList)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = debuggingList)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = testCaseList)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = monochromeWave)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = wavePacket)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = LagrangeRayTracing)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = bubble)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = robert_bubble)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = mountainwavelist)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = baroclinic_LC)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = baroclinic_ID)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = modelList)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = solverList)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = poissonSolverList)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = atmosphereList)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = topographyList)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = boundaryList)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = boundaryList2)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = wkbList)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = tracerList)
-      write(90, *) ""
+      write(90, "(a)") ""
       write(unit = 90, nml = iceList)
       close(90)
       return
@@ -1274,7 +1292,8 @@ module type_module
 
       ! Write variables namelist.
       write(90, "(a)") "&variables"
-      call write_logical("include_ice", include_ice, "Ice microphysics parameterization")
+      call write_logical("include_ice", include_ice, "Ice microphysics &
+          &parameterization")
       call write_logical("include_tracer", include_tracer, "Tracer equation")
       call write_logical("include_testoutput", include_testoutput, "...")
       write(90, "(a)") "&end"
@@ -1282,14 +1301,34 @@ module type_module
 
       ! Write output namelist.
       write(90, "(a)") "&outputList"
-      call write_character("runName", runName, "run name for netCDF file")
       do iVar = 1, size(atmvarOut)
-        if (atmvarOut(iVar) /= "") then
-            write(counter, "(i2)") iVar 
-            call write_character("atmvarOut(" // trim(adjustl(counter)) // ")", &
-                &atmvarOut(iVar), "Atmospheric output variable")
+        if(iVar == 1 .or. atmvarOut(iVar) /= "") then
+          write(counter, "(i2)") iVar
+          call write_character("atmvarOut(" // trim(adjustl(counter)) // ")", &
+              &atmvarOut(iVar), "Atmospheric output variable")
         end if
       end do
+      do iVar = 1, size(rayvarOut)
+        if(iVar == 1 .or. rayvarOut(iVar) /= "") then
+          write(counter, "(i2)") iVar
+          call write_character("rayvarOut(" // trim(adjustl(counter)) // ")", &
+              &rayvarOut(iVar), "Raytracer output variable")
+        end if
+      end do
+      do iVar = 1, size(icevarOut)
+        if(iVar == 1 .or. icevarOut(iVar) /= "") then
+          write(counter, "(i2)") iVar
+          call write_character("icevarOut(" // trim(adjustl(counter)) // ")", &
+              &icevarOut(iVar), "Ice output variable")
+        end if
+      end do
+      call write_logical("saverayvols", saverayvols, "Save ray volumes")
+      call write_logical("prepare_restart", prepare_restart, "Save everything &
+          &needed for a restart")
+      call write_logical("restart", restart, "Restart the model from state in &
+          &previous simulation")
+      call write_integer("iIn", iIn, "Restart at time step iIn")
+      call write_character("runName", runName, "Run name for netCDF file")
       call write_character("outputType", outputType, "'timeStep' or 'time'")
       call write_integer("nOutput", nOutput, "Output every nOutput time steps &
           &for outputType = 'timeStep'")
@@ -1299,26 +1338,6 @@ module type_module
           &outputTimeDiff seconds for outputType = 'time'")
       call write_float("maxTime", maxTime, "Stop after maxTime seconds for &
           &outputType = 'time'")
-      if (rayTracer) then
-        do iVar = 1, size(rayvarOut)
-            if (rayvarOut(iVar) /= "") then
-                write(counter, "(i2)") iVar 
-                call write_character("rayvarOut(" // trim(adjustl(counter)) // ")", &
-                    &rayvarOut(iVar), "Raytracer output variable")
-            end if
-        end do
-        call write_logical("saverayvols", saverayvols, "Save ray volumes at last time step")
-      end if
-      call write_integer("iIn", iIn, "restart at time-step iIn")
-      call write_logical("restart", restart, "Restart the model from state in &
-          &previous simulation")
-      do iVar = 1, size(restartIN)
-        if (restartIN(iVar) /= "") then
-            write(counter, "(i2)") iVar 
-            call write_character("restartIN(" // trim(adjustl(counter)) // ")", &
-                &restartIN(iVar), "Restart input variable")
-        end if
-      end do
       call write_logical("detailedinfo", detailedinfo, "Provide info on the &
           &final state of Poisson solver")
       call write_logical("RHS_diagnostics", RHS_diagnostics, "Provide info &
@@ -1326,7 +1345,7 @@ module type_module
       call write_logical("fancy_namelists", fancy_namelists, "Write all &
           &namelists with comments")
       write(90, "(a)") "&end"
-      write(90, *) ""
+      write(90, "(a)") ""
 
       ! Write debugging namelist.
       write(90, "(a)") "&debuggingList"
@@ -1395,8 +1414,8 @@ module type_module
       call write_integer("nrxl", nrxl, "Initial ray volumes within dx")
       call write_integer("nryl", nryl, "Initial ray volumes within dy")
       call write_integer("nrzl", nrzl, "Initial ray volumes within dz")
-      call write_float("fac_dk_init", fac_dk_init, "Initial fraction dk/k")
-      call write_float("fac_dl_init", fac_dl_init, "Initial fraction dl/l")
+      call write_float("fac_dk_init", fac_dk_init, "Initial fraction dk/kh")
+      call write_float("fac_dl_init", fac_dl_init, "Initial fraction dl/kh")
       call write_float("fac_dm_init", fac_dm_init, "Initial fraction dm/m")
       call write_integer("nrk_init", nrk_init, "Initial ray volumes within dk")
       call write_integer("nrl_init", nrl_init, "Initial ray volumes within dl")
@@ -1428,20 +1447,8 @@ module type_module
           &for infinite width)")
       call write_integer("branchr", branchr, "Frequency branch")
       call write_logical("lindUinit", lindUinit, "Induced wind at initial time")
-      call write_float("topographyTime_wkb", topographyTime_wkb, "WKB &
-          &topography growth time")
-      call write_float("mountainHeight_wkb_dim", mountainHeight_wkb_dim, "WKB &
-          &mountain height")
-      call write_float("mountainWidth_wkb_dim", mountainWidth_wkb_dim, "WKB &
-          &mountain half width")
-      call write_integer("mountain_case_wkb", mountain_case_wkb, "WKB &
-          &topography shape")
-      call write_float("range_factor_wkb", range_factor_wkb, "Ratio between &
-          &large and small WKB scales")
       call write_logical("blocking", blocking, "Simple blocked-layer scheme")
       call write_integer("nwm", nwm, "Number of initial wave modes")
-      call write_integer("launch_level", launch_level, "Ray-volume launch &
-          &level")
       call write_character("launch_algorithm", launch_algorithm, "Ray-volume &
           &launch algorithm")
       call write_float("zmin_wkb_dim", zmin_wkb_dim, "Minimum altitude for &
@@ -1697,6 +1704,8 @@ module type_module
           &topography")
       call write_float("range_factor", range_factor, "Ratio between large and &
           &small scales")
+      call write_integer("spectral_modes", spectral_modes, "Number of spectral &
+          &modes")
       write(90, "(a)") "&end"
       write(90, "(a)") ""
 
@@ -1730,6 +1739,9 @@ module type_module
           &sponge")
       call write_integer("cosmoSteps", cosmoSteps, "Relative strength of COSMO &
           &sponge")
+      call write_logical("relax_to_mean", relax_to_mean, "Relax the wind to &
+          &its (terrain-following) horizontal mean (otherwise, relax to the &
+          &initial state) if unifiedSponge == .true.")
       write(90, "(a)") "&end"
       write(90, "(a)") ""
 
@@ -1752,12 +1764,14 @@ module type_module
 
       ! Write tracer namelist.
       write(90, "(a)") "&tracerList"
-      call write_character("tracerSetup", tracerSetup, "initial tracer distribution")
-      call write_logical("include_trfrc_lo", &
-          &include_trfrc_lo, "leading-order GW tracer forcing")
-      call write_logical("include_trfrc_no", &
-          &include_trfrc_no, "next-order GW tracer forcing")
-      call write_logical("include_trfrc_mix", include_trfrc_mix, "diffusive tracer mixing")
+      call write_character("tracerSetup", tracerSetup, "initial tracer &
+          &distribution")
+      call write_logical("include_trfrc_lo", include_trfrc_lo, "leading-order &
+          &GW tracer forcing")
+      call write_logical("include_trfrc_no", include_trfrc_no, "next-order GW &
+          &tracer forcing")
+      call write_logical("include_trfrc_mix", include_trfrc_mix, "diffusive &
+          &tracer mixing")
       write(90, "(a)") "&end"
       write(90, "(a)") ""
 
@@ -2261,7 +2275,7 @@ module type_module
       var%chi = 0.0
     end if
 
-    ! Reset alternative ice variables.
+    ! Reset ice variables.
     if(include_ice) then
       var%ICE = 0.0
     end if
@@ -2297,7 +2311,7 @@ module type_module
       flux%chi = 0.0
     end if
 
-    ! Reset alternative ice fluxes.
+    ! Reset ice fluxes.
     if(include_ice) then
       flux%ICE = 0.0
     end if
@@ -2349,7 +2363,7 @@ module type_module
       if(allocstat /= 0) stop "Deallocation of var_type component chi failed!"
     end if
 
-    ! Deallocate alternative ice variables.
+    ! Deallocate ice variables.
     if(include_ice) then
       deallocate(var%ICE, stat = allocstat)
       if(allocstat /= 0) stop "Deallocation of var_type component ICE failed!"
@@ -2396,7 +2410,7 @@ module type_module
       if(allocstat /= 0) stop "Deallocation of flux_type component chi failed!"
     end if
 
-    ! Deallocate alternative ice fluxes.
+    ! Deallocate ice fluxes.
     if(include_ice) then
       deallocate(flux%ICE, stat = allocstat)
       if(allocstat /= 0) stop "Deallocation of flux_type component ICE failed!"

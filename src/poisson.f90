@@ -4,7 +4,6 @@ module poisson_module
   use mpi_module ! modified by Junhong Wei (20161106)
   use timeScheme_module
   use atmosphere_module
-  use algebra_module
   use bicgstab_tools_module
   use sizeof_module
   use mpi
@@ -123,193 +122,6 @@ module poisson_module
 
   !----------------------------------------------------------------------
 
-  subroutine preCond_2(sIn, sOut, opt)
-    ! --------------------------------------
-    !   preconditioner for BiCGStab
-    !   solves vertical problem exploiting its tri-diagonal character
-    !   (Isaacson & Keller 1966, see also Durran's book appendix A.2)
-    ! --------------------------------------
-
-    ! in/out variables
-    real, dimension(1:nx, 1:ny, 1:nz), intent(out) :: sOut
-    real, dimension(1:nx, 1:ny, 1:nz), intent(in) :: sIn
-
-    ! opt = expl =>
-    ! pressure solver for explicit problem and corresponding correction
-    ! of the winds
-    ! opt = impl =>
-    ! pressure solver for implicit problem and corresponding correction
-    ! of the winds and density fluctuations
-    character(len = *), intent(in) :: opt
-
-    ! local field
-    real, dimension(1:nx, 1:ny, 1:nz) :: s_pc, q_pc
-    real, dimension(1:nx, 1:ny) :: p_pc
-
-    ! local variables
-    integer :: k
-    integer :: i, j
-    !integer :: niter, maxIterADI
-    integer :: niter
-
-    real :: deta
-
-
-    do niter = 0, maxIterADI
-      if(niter == 0) then
-        s_pc = sIn
-      else
-        call linOpr(s_pc, q_pc, opt, 'hnd')
-
-        s_pc = sIn - q_pc
-
-        q_pc = 0.
-      end if
-
-      ! upward sweep
-
-      do j = 1, ny
-        do i = 1, nx
-          au_b(i, j, nz) = 0.0
-        end do
-      end do
-
-      do j = 1, ny
-        do i = 1, nx
-          q_pc(i, j, 1) = - au_b(i, j, 1) / ac_b(i, j, 1)
-          s_pc(i, j, 1) = s_pc(i, j, 1) / ac_b(i, j, 1)
-        end do
-      end do
-
-      do k = 2, nz
-        do j = 1, ny
-          do i = 1, nx
-            p_pc(i, j) = 1.0 / (ac_b(i, j, k) + ad_b(i, j, k) * q_pc(i, j, k &
-                &- 1))
-
-            q_pc(i, j, k) = - au_b(i, j, k) * p_pc(i, j)
-
-            s_pc(i, j, k) = (s_pc(i, j, k) - ad_b(i, j, k) * s_pc(i, j, k &
-                &- 1)) * p_pc(i, j)
-          end do
-        end do
-      end do
-
-      ! backward pass
-
-      do k = nz - 1, 1, - 1
-        do j = 1, ny
-          do i = 1, nx
-            s_pc(i, j, k) = s_pc(i, j, k) + q_pc(i, j, k) * s_pc(i, j, k + 1)
-          end do
-        end do
-      end do
-    end do
-
-    ! final result
-
-    sOut = s_pc
-
-    return
-
-  end subroutine preCond_2
-
-  !----------------------------------------------------------------------
-
-  subroutine preCond_4(sIn, sOut, opt)
-    ! --------------------------------------
-    !   preconditioner for BiCGStab
-    !   solves vertical problem exploiting its tri-diagonal character
-    !   (Isaacson & Keller 1966, see also Durran's book appendix A.2)
-    ! --------------------------------------
-
-    ! in/out variables
-    real, dimension(1:nx, 1:ny, 1:nz), intent(out) :: sOut
-    real, dimension(1:nx, 1:ny, 1:nz), intent(in) :: sIn
-
-    ! opt = expl =>
-    ! pressure solver for explicit problem and corresponding correction
-    ! of the winds
-    ! opt = impl =>
-    ! pressure solver for implicit problem and corresponding correction
-    ! of the winds and density fluctuations
-    character(len = *), intent(in) :: opt
-
-    ! local field
-    real, dimension(1:nx, 1:ny, 1:nz) :: s_pc, q_pc
-    real, dimension(1:nx, 1:ny) :: p_pc
-
-    ! local variables
-    integer :: k
-    integer :: i, j
-    integer :: niter
-
-    real :: deta
-
-    ! pseudo timestep
-
-    deta = dtau / (2. * (1. / dx ** 2 + 1. / dy ** 2))
-
-    ! work with auxiliary field s_pc
-
-    s_pc = 0.
-
-    !maxIterADI = 1
-
-    do niter = 0, maxIterADI
-      call linOpr(s_pc, q_pc, opt, 'hor')
-
-      s_pc = s_pc + deta * (q_pc - sIn)
-
-      ! upward sweep
-
-      do j = 1, ny
-        do i = 1, nx
-          au_b(i, j, nz) = 0.0
-        end do
-      end do
-
-      do j = 1, ny
-        do i = 1, nx
-          q_pc(i, j, 1) = deta * au_b(i, j, 1) / (1. - deta * acv_b(i, j, 1))
-          s_pc(i, j, 1) = s_pc(i, j, 1) / (1. - deta * acv_b(i, j, 1))
-        end do
-      end do
-
-      do k = 2, nz
-        do j = 1, ny
-          do i = 1, nx
-            p_pc(i, j) = 1.0 / (1. - deta * acv_b(i, j, k) - deta * ad_b(i, j, &
-                &k) * q_pc(i, j, k - 1))
-            q_pc(i, j, k) = deta * au_b(i, j, k) * p_pc(i, j)
-
-            s_pc(i, j, k) = (s_pc(i, j, k) + deta * ad_b(i, j, k) * s_pc(i, j, &
-                &k - 1)) * p_pc(i, j)
-          end do
-        end do
-      end do
-
-      ! backward pass
-
-      do k = nz - 1, 1, - 1
-        do j = 1, ny
-          do i = 1, nx
-            s_pc(i, j, k) = s_pc(i, j, k) + q_pc(i, j, k) * s_pc(i, j, k + 1)
-          end do
-        end do
-      end do
-    end do
-
-    ! final result
-
-    sOut = s_pc
-
-    return
-
-  end subroutine preCond_4
-
-  !----------------------------------------------------------------------
-
   subroutine preCond(sIn, sOut, opt)
     ! --------------------------------------
     !   preconditioner for BiCGStab
@@ -347,7 +159,6 @@ module poisson_module
     ! work with auxiliary field s_pc
 
     s_pc = 0.
-
 
     do niter = 1, maxIterADI
       if(niter == 0) then
@@ -423,89 +234,6 @@ module poisson_module
     return
 
   end subroutine preCond
-
-  !----------------------------------------------------------------------
-
-  subroutine preCond_0(sIn, sOut, opt)
-    ! --------------------------------------
-    !   preconditioner for BiCGStab
-    !   solves vertical problem exploiting its tri-diagonal character
-    !   (Isaacson & Keller 1966, see also Durran's book appendix A.2)
-    ! --------------------------------------
-
-    ! in/out variables
-    real, dimension(1:nx, 1:ny, 1:nz), intent(out) :: sOut
-    real, dimension(1:nx, 1:ny, 1:nz), intent(in) :: sIn
-
-    ! opt = expl =>
-    ! pressure solver for explicit problem and corresponding correction
-    ! of the winds
-    ! opt = impl =>
-    ! pressure solver for implicit problem and corresponding correction
-    ! of the winds and density fluctuations
-    character(len = *), intent(in) :: opt
-
-    ! local field
-    real, dimension(1:nx, 1:ny, 1:nz) :: s_pc, q_pc
-    real, dimension(1:nx, 1:ny) :: p_pc
-
-    ! local variables
-    integer :: k
-    integer :: i, j
-    integer :: niter
-
-    ! work with auxiliary field s_pc
-
-    s_pc = 0.
-
-    s_pc = sIn 
-
-    ! upward sweep
-
-    do j = 1, ny
-      do i = 1, nx
-        au_b(i, j, nz) = 0.0
-      end do
-    end do
-
-    do j = 1, ny
-      do i = 1, nx
-        q_pc(i, j, 1) = - au_b(i, j, 1) / acv_b(i, j, 1)
-        s_pc(i, j, 1) = s_pc(i, j, 1) / acv_b(i, j, 1)
-      end do
-    end do
-
-    do k = 2, nz
-      do j = 1, ny
-        do i = 1, nx
-          p_pc(i, j) = 1.0 / (acv_b(i, j, k) + ad_b(i, j, k) * q_pc(i, j, k &
-              &- 1))
-
-          q_pc(i, j, k) = - au_b(i, j, k) * p_pc(i, j)
-
-          s_pc(i, j, k) = (s_pc(i, j, k) - ad_b(i, j, k) * s_pc(i, j, k - 1)) &
-              &* p_pc(i, j)
-        end do
-      end do
-    end do
-
-    ! backward pass
-
-    do k = nz - 1, 1, - 1
-      do j = 1, ny
-        do i = 1, nx
-          s_pc(i, j, k) = s_pc(i, j, k) + q_pc(i, j, k) * s_pc(i, j, k + 1)
-        end do
-      end do
-    end do
-
-    ! final result
-
-    sOut = s_pc
-
-    return
-
-  end subroutine preCond_0
 
   !----------------------------------------------------------------------
 
@@ -1096,7 +824,6 @@ module poisson_module
           end do i_loop
         end do j_loop
       end do k_loop
-
 
     case default
       stop "linOpr: unknown case model"
@@ -2606,7 +2333,6 @@ module poisson_module
               !               div = (uR-uL)/dx + (vF-vB)/dy + (wU-wD)/dz
               bl2loc = bu ** 2 + bv ** 2 + bw ** 2
 
-
               ! check sum for solvability criterion (shoud be zero)
               ! divSum = divSum + b(i,j,k)
               divSum_local = divSum_local + b(i, j, k)
@@ -2615,7 +2341,6 @@ module poisson_module
               divL2_local = divL2_local + b(i, j, k) ** 2
 
               divL2_norm_local = divL2_norm_local + bl2loc
-
 
               ! TFC
               if(abs(b(i, j, k)) > divMax) then
@@ -2919,7 +2644,6 @@ module poisson_module
     end if
 
   end subroutine poissonSolver
-
 
   !----------------------------------------------------------------------
 
@@ -3264,311 +2988,6 @@ module poisson_module
 
   end subroutine bicgstab
 
-  !----------------------------------------------------------------------------
-
-  subroutine bicgstab_2(b_in, dt, sol, res, nIter, errFlag, opt)
-    ! --------------------------------------
-    !    BiCGStab using linear operator
-    !    preconditioner applied via M^-1 A x = M^-1 b
-    !---------------------------------------
-
-    ! in/out variables
-    real, dimension(1:nx, 1:ny, 1:nz), intent(in) :: b_in ! RHS
-    real, intent(in) :: dt
-    real, dimension(1:nx, 1:ny, 1:nz), intent(inout) :: sol
-    real, intent(out) :: res ! residual
-    integer, intent(out) :: nIter
-    logical, intent(out) :: errFlag
-
-    ! opt = expl =>
-    ! pressure solver for explicit problem and corresponding correction
-    ! of the winds
-    ! opt = impl =>
-    ! pressure solver for implicit problem and corresponding correction
-    ! of the winds and density fluctuations
-    character(len = *), intent(in) :: opt
-
-    ! Local parameters
-    integer :: maxIt
-
-    ! local variables
-    integer :: i, j, k, allocstat
-    integer :: j_b
-    real, dimension(:, :, :), allocatable :: p, r0, rOld, r, s, t, v, matVec, &
-        &v_pc, b_int
-    real :: alpha, beta, omega
-
-    ! verbose
-    logical, parameter :: giveInfo = .true.
-
-    ! MPI stuff
-    integer :: root
-    real :: res_local
-    real :: bi_norm_local, bi_norm
-
-    real, dimension(1:nx, 1:ny, 1:nz) :: b ! RHS
-
-    if(giveInfo .and. master) then
-      print *, ""
-      print "(a)", repeat("-", 80)
-      print *, "BICGSTAB: solving linear system... "
-      print "(a)", repeat("-", 80)
-      print *, ""
-    end if
-
-    sol = 0.0
-
-    ! Set parameters
-    maxIt = maxIterPoisson
-
-    ! modified convergence criterion so that iterations stop when either
-    ! (a) tolcrit = abs  =>  |Ax - b| < eps b_*
-    !     with b_* a suitable norm deciding whether b (= the divergence
-    !     criterion for the winds from the predictor) is small or not
-    ! (b) tolcrit = rel  =>  |Ax - b| < eps |b|
-    ! here eps = tolPoisson is the user-set convergence criterion
-    ! hypre has the criterion |Ax - b| < tol * |b|, hence, with
-    ! tolref = divL2/divL2_norm = |b|/b_*
-
-    if(tolcrit == "abs") then
-      tol = tolPoisson / tolref
-    else if(tolcrit == "rel") then
-      tol = tolPoisson
-    end if
-
-    ! Allocate local fields
-    allocate(p(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
-        &"bicgstab:alloc failed"
-    allocate(r0(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
-        &"bicgstab:alloc failed"
-    allocate(rOld(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) &
-        &stop "bicgstab:alloc failed"
-    allocate(r(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
-        &"bicgstab:alloc failed"
-    allocate(s(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
-        &"bicgstab:alloc failed"
-    allocate(t(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
-        &"bicgstab:alloc failed"
-    allocate(v(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) stop &
-        &"bicgstab:alloc failed"
-    allocate(matVec(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) &
-        &stop "bicgstab:alloc failed"
-    allocate(v_pc(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) &
-        &stop "bicgstab:alloc failed"
-    allocate(b_int(1:nx, 1:ny, 1:nz), stat = allocstat); if(allocstat /= 0) &
-        &stop "bicgstab:alloc failed"
-
-    errFlag = .false.
-
-    b = b_in
-
-    ! redefine RHS and its norm for preconditioner
-    if(preconditioner == 'yes') then
-      call preCond(b, b_int, opt)
-
-      bi_norm_local = 0.0
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
-            bi_norm_local = bi_norm_local + b_int(i, j, k) ** 2
-          end do
-        end do
-      end do
-
-      !MPI find global residual
-      root = 0
-      call mpi_reduce(bi_norm_local, bi_norm, 1, mpi_double_precision, &
-          &mpi_sum, root, comm, ierror)
-
-      call mpi_bcast(bi_norm, 1, mpi_double_precision, root, comm, ierror)
-
-      bi_norm = sqrt(bi_norm / sizeX / sizeY / sizeZ)
-    else
-      b_int = b
-      bi_norm = b_norm
-    end if
-
-    call linOpr(sol, matVec, opt, 'tot')
-    if(preconditioner == 'yes') then
-      v = matVec
-      call preCond(v, matVec, opt)
-    end if
-    r0 = b_int - matVec
-    p = r0
-    r = r0
-
-    res_local = 0.0
-    do k = 1, nz
-      do j = 1, ny
-        do i = 1, nx
-          res_local = res_local + r(i, j, k) ** 2
-        end do
-      end do
-    end do
-
-    !MPI find global residual
-    root = 0
-    call mpi_reduce(res_local, res, 1, mpi_double_precision, mpi_sum, root, &
-        &comm, ierror)
-
-    call mpi_bcast(res, 1, mpi_double_precision, root, comm, ierror)
-
-    res = sqrt(res / sizeX / sizeY / sizeZ)
-
-    if(master) then
-      print *, ""
-      print *, " BiCGStab solver: "
-      if(res == 0.0) then
-        if(giveInfo) write(*, fmt = "(a25,es17.6)") " Initial residual: res &
-            &= ", res
-      else
-        if(giveInfo) write(*, fmt = "(a25,es17.6)") " Initial residual: res &
-            &= ", res / bi_norm
-      end if
-      if(giveInfo) write(*, fmt = "(a25,es17.6)") " tol = ", tol
-    end if
-
-    if(res == 0.0 .or. res / bi_norm <= tol) then
-      if(master .and. giveInfo) print *, " ==> no iteration needed."
-      nIter = 0
-      return
-    end if
-
-    ! Loop
-
-    iteration: do j_b = 1, maxIt
-
-      ! v = A*p
-      call linOpr(p, matVec, opt, 'tot')
-      if(preconditioner == 'yes') then
-        v_pc = matVec
-        call preCond(v_pc, matVec, opt)
-      end if
-      v = matVec
-
-      alpha = dot_product3D_glob(r, r0) / dot_product3D_glob(v, r0)
-      s = r - alpha * v
-
-      ! t = A*s
-      call linOpr(s, matVec, opt, 'tot')
-      if(preconditioner == 'yes') then
-        v_pc = matVec
-        call preCond(v_pc, matVec, opt)
-      end if
-      t = matVec
-
-      omega = dot_product3D_glob(t, s) / dot_product3D_glob(t, t)
-      sol = sol + alpha * p + omega * s
-
-      rOld = r
-      r = s - omega * t
-
-      !-----------------------
-      !   Abort criterion
-      !-----------------------
-
-      res_local = 0.0
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
-            res_local = res_local + r(i, j, k) ** 2
-          end do
-        end do
-      end do
-
-      !MPI find global residual
-      root = 0
-      call mpi_reduce(res_local, res, 1, mpi_double_precision, mpi_sum, root, &
-          &comm, ierror)
-
-      call mpi_bcast(res, 1, mpi_double_precision, root, comm, ierror)
-
-      res = sqrt(res / sizeX / sizeY / sizeZ)
-
-      if(res / bi_norm <= tol) then
-        if(master .and. giveInfo) then
-          write(*, fmt = "(a25,i25)") " Nb.of iterations: j = ", j_b
-          write(*, fmt = "(a25,es17.6)") " Final int. residual = ", res &
-              &/ bi_norm
-          print *, ""
-        end if
-
-        call linOpr(sol, matVec, opt, 'tot')
-        r = b - matVec
-
-        res_local = 0.0
-        do k = 1, nz
-          do j = 1, ny
-            do i = 1, nx
-              res_local = res_local + r(i, j, k) ** 2
-            end do
-          end do
-        end do
-
-        !MPI find global residual
-        root = 0
-        call mpi_reduce(res_local, res, 1, mpi_double_precision, mpi_sum, &
-            &root, comm, ierror)
-
-        call mpi_bcast(res, 1, mpi_double_precision, root, comm, ierror)
-
-        res = sqrt(res / sizeX / sizeY / sizeZ)
-
-        if(master .and. giveInfo) then
-          write(*, fmt = "(a25,es17.6)") " Final residual: res = ", res / b_norm
-          print *, ""
-        end if
-
-        nIter = j_b
-
-        return
-      end if
-
-      beta = alpha / omega * dot_product3D_glob(r, r0) &
-          &/ dot_product3D_glob(rOld, r0)
-      p = r + beta * (p - omega * v)
-
-    end do iteration
-
-    ! max iteration
-
-    if(master) then
-      write(*, fmt = "(a25,i25)") " Bicgstab: max iterations!!!", maxIt
-      write(*, fmt = "(a25,es17.6)") " Final BICGSTAB residual = ", res &
-          &/ bi_norm
-      print "(a)", repeat("-", 80)
-      print *, ""
-
-    end if
-
-    errFlag = .true.
-    nIter = j_b
-
-    ! deallocate local fields
-    deallocate(p, stat = allocstat); if(allocstat /= 0) stop "bicgstab:dealloc &
-        &p failed"
-    deallocate(r0, stat = allocstat); if(allocstat /= 0) stop &
-        &"bicgstab:dealloc r0 failed"
-    deallocate(rOld, stat = allocstat); if(allocstat /= 0) stop &
-        &"bicgstab:dealloc rOld failed"
-    deallocate(r, stat = allocstat); if(allocstat /= 0) stop "bicgstab:dealloc &
-        &r failed"
-    deallocate(s, stat = allocstat); if(allocstat /= 0) stop "bicgstab:dealloc &
-        &s failed"
-    deallocate(t, stat = allocstat); if(allocstat /= 0) stop "bicgstab:dealloc &
-        &t failed"
-    deallocate(v, stat = allocstat); if(allocstat /= 0) stop "bicgstab:dealloc &
-        &v failed"
-    deallocate(v_pc, stat = allocstat); if(allocstat /= 0) stop &
-        &"bicgstab:dealloc v_pcfailed"
-    deallocate(b_int, stat = allocstat); if(allocstat /= 0) stop &
-        &"bicgstab:dealloc v_pcfailed"
-    deallocate(matVec, stat = allocstat); if(allocstat /= 0) stop &
-        &"bicgstab:dealloc matvec failed"
-
-  end subroutine bicgstab_2
-
-
   !-----------------------------------------------------------------------
 
   subroutine pressureBoundaryCondition
@@ -3586,6 +3005,8 @@ module poisson_module
     ! MPI variables
     integer :: dest, source, tag
     integer :: sendcount, recvcount
+
+    logical, parameter :: giveInfo = .true.
 
     ! Find neighbour procs
     if(idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
@@ -3717,494 +3138,6 @@ module poisson_module
     end select
 
   end subroutine pressureBoundaryCondition
-
-  !-----------------------------------------------------------------------
-
-  subroutine correctorStep_nc(var, dMom, dt, RKstage, opt, facray)
-
-    !-------------------------------------------------
-    !         correct pressure & velocity
-    !
-    !       Coriolis term treated explicitly
-    !-------------------------------------------------
-
-    ! in/out variables
-    type(var_type), intent(inout) :: var
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 3), &
-        &intent(inout) :: dMom
-    real, intent(in) :: dt, facray
-    integer, intent(in) :: RKstage
-
-    ! facray multiplies the Rayleigh-damping terms so that they are only
-    ! handled in the implicit time stepping (sponge and immersed boundary)
-
-    ! opt = expl =>
-    ! pressure solver for explicit problem and corresponding correction
-    ! of the winds
-    ! opt = impl =>
-    ! pressure solver for implicit problem and corresponding correction
-    ! of the winds and density fluctuations
-    character(len = *), intent(in) :: opt
-
-    ! local variables
-    integer :: i, j, k
-    !real :: pEdge, rhoEdge, rhou, rhov, rho, rho10, rho01
-    real :: pEdge, pEdge_0, rhoEdge, rhou, rhov, rho, rho10, rho01
-    real :: pGradX, pGradY, pGradZ
-    real :: du, dv, dw, db
-    real :: facu, facv, facw, facr
-    real, dimension(0:ny + 1) :: f_cor_nd
-    real :: bvsstw
-
-    real :: rhov0m, rhov00, rhov1m, rhov10
-    real :: rhoum0, rhou00, rhoum1, rhou01
-    real :: rhow0, rhowm
-
-    ! divergence check
-    real :: maxDivPu, divPu
-    real :: uR, uL, vF, vB, wU, wD
-    real :: pStratU, pStratD
-
-    ! verbose
-    logical, parameter :: giveInfo = .true.
-
-    integer :: i0, j0
-
-    real :: ymin, ymax, yloc
-
-    real :: f_cor_v
-
-    if(model == "Boussinesq") then
-      print *, 'ERROR: correctorStep not ready for Boussinesq mode'
-      stop
-    end if
-
-    i0 = is + nbx - 1
-    j0 = js + nby - 1
-
-    if(corset == 'periodic') then
-      ymax = ly_dim(1) / lRef
-      ymin = ly_dim(0) / lRef
-
-      j0 = js + nby - 1
-
-      do j = 0, ny + 1
-        yloc = y(j + j0)
-
-        f_cor_nd(j) = - 4. * pi / 8.64e4 * tRef * cos(2. * pi * (yloc - ymin) &
-            &/ (ymax - ymin))
-      end do
-    else if(corset == 'constant') then
-      f_cor_nd(0:ny + 1) = f_Coriolis_dim * tRef
-    else
-      stop 'ERROR: wrong corset'
-    end if
-
-    ! --------------------------------------
-    !             calc p + dp
-    ! --------------------------------------
-
-    var%pi(0:nx + 1, 0:ny + 1, 0:nz + 1) = var%pi(0:nx + 1, 0:ny + 1, 0:nz &
-        &+ 1) + dp(0:nx + 1, 0:ny + 1, 0:nz + 1)
-
-    if(timeScheme == "semiimplicit") then
-      if(opt == "impl") then
-        kr_sp = kr_sp * facray
-        alprlx = alprlx * facray
-      end if
-    end if
-
-    ! --------------------------------------
-    !           calc du and u + du
-    ! --------------------------------------
-
-    if(timeScheme == "semiimplicit") then
-      if(opt == "impl") then
-        do k = 1, nz
-          do j = 1, ny
-            do i = 0, nx
-              facu = 1.0
-
-              if(topography) then
-                stop 'topography still to be implemented into semi-implicit &
-                    &time stepping'
-              end if
-
-              if(TestCase == "baroclinic_LC") then
-                if(background == "HeldSuarez") then
-                  ! Rayleigh damping
-                  facu = facu + dt * kv_hs(j, k)
-                end if
-              end if
-
-              if(spongeLayer .and. sponge_uv) then
-                facu = facu + dt * kr_sp(j, k)
-              end if
-
-              facv = facu
-
-              rhov0m = 0.5 * (var%rho(i, j - 1, k) + var%rho(i, j, k)) + rhoStrat(k)
-
-              rhov00 = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k)) + rhoStrat(k)
-
-              rhov1m = 0.5 * (var%rho(i + 1, j - 1, k) + var%rho(i + 1, j, k)) + rhoStrat(k)
-
-              rhov10 = 0.5 * (var%rho(i + 1, j, k) + var%rho(i + 1, j + 1, k)) + rhoStrat(k)
-
-              rhou = 0.5 * (var%rho(i + 1, j, k) + var%rho(i, j, k)) + rhoStrat(k)
-
-              pGradX = kappaInv * MaInv2 * pStrat(k) / rhou * (dp(i + 1, j, k) &
-                  &- dp(i, j, k)) / dx
-
-              pGradY = kappaInv * MaInv2 * 0.25 * (pStrat(k) / rhov0m * (dp(i, &
-                  &j, k) - dp(i, j - 1, k)) / dy + pStrat(k) / rhov00 * (dp(i, &
-                  &j + 1, k) - dp(i, j, k)) / dy + pStrat(k) / rhov1m * (dp(i &
-                  &+ 1, j, k) - dp(i + 1, j - 1, k)) / dy + pStrat(k) / rhov10 &
-                  &* (dp(i + 1, j + 1, k) - dp(i + 1, j, k)) / dy)
-
-              du = - dt / facu * pGradX
-
-              var%u(i, j, k) = var%u(i, j, k) + du
-            end do
-          end do
-        end do
-      else if(opt == "expl") then
-        do k = 1, nz
-          do j = 1, ny
-            do i = 0, nx
-              rhou = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) + rhoStrat(k)
-
-              pGradX = kappaInv * MaInv2 * pStrat(k) / rhou * (dp(i + 1, j, k) &
-                  &- dp(i, j, k)) / dx
-
-              du = - dt * pGradX
-
-              var%u(i, j, k) = var%u(i, j, k) + du
-            end do
-          end do
-        end do
-      else
-        stop 'ERROR: wrong opt in correctorStep'
-      end if
-    else
-      do k = 1, nz
-        do j = 1, ny
-          do i = 0, nx
-            rhou = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) + rhoStrat(k)
-
-            pGradX = kappaInv * MaInv2 * pStrat(k) / rhou * (dp(i + 1, j, k) &
-                &- dp(i, j, k)) / dx
-
-            du = - dt * pGradX
-
-            var%u(i, j, k) = var%u(i, j, k) + du
-
-            ! correct x-momentum tendency
-            dMom(i, j, k, 1) = dMom(i, j, k, 1) + rhou * du / beta(RKstage)
-          end do
-        end do
-      end do
-    end if
-
-    !--------------------------------------
-    !         calc dv and v + dv
-    !--------------------------------------
-
-    if(timeScheme == "semiimplicit") then
-      if(opt == "impl") then
-        do k = 1, nz
-          do j = 0, ny
-            do i = 1, nx
-              facv = 1.0
-
-              if(topography) then
-                stop 'topography still to be implemented into semi-implicit &
-                    &time stepping'
-              end if
-
-              if(TestCase == "baroclinic_LC") then
-                if(background == "HeldSuarez") then
-                  ! Rayleigh damping
-                  facv = facv + dt * 0.5 * (kv_hs(j, k) + kv_hs(j + 1, k))
-                end if
-              end if
-
-              if(spongeLayer .and. sponge_uv) then
-                facv = facv + dt * 0.5 * (kr_sp(j, k) + kr_sp(j + 1, k))
-              end if
-
-              facu = facv
-
-              rhou00 = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) + rhoStrat(k)
-
-              rhoum0 = 0.5 * (var%rho(i - 1, j, k) + var%rho(i, j, k)) + rhoStrat(k)
-
-              rhou01 = 0.5 * (var%rho(i, j + 1, k) + var%rho(i + 1, j + 1, k)) + rhoStrat(k)
-
-              rhoum1 = 0.5 * (var%rho(i - 1, j + 1, k) + var%rho(i, j + 1, k)) + rhoStrat(k)
-
-              rhov = 0.5 * (var%rho(i, j + 1, k) + var%rho(i, j, k)) + rhoStrat(k)
-
-              pGradX = kappaInv * MaInv2 * 0.25 * (pStrat(k) / rhou00 * (dp(i &
-                  &+ 1, j, k) - dp(i, j, k)) / dx + pStrat(k) / rhoum0 &
-                  &* (dp(i, j, k) - dp(i - 1, j, k)) / dx + pStrat(k) / rhou01 &
-                  &* (dp(i + 1, j + 1, k) - dp(i, j + 1, k)) / dx + pStrat(k) &
-                  &/ rhoum1 * (dp(i, j + 1, k) - dp(i - 1, j + 1, k)) / dx)
-
-              pGradY = kappaInv * MaInv2 * pStrat(k) / rhov * (dp(i, j + 1, k) &
-                  &- dp(i, j, k)) / dy
-
-              dv = - dt / facv * pGradY
-
-              var%v(i, j, k) = var%v(i, j, k) + dv
-            end do
-          end do
-        end do
-      else if(opt == "expl") then
-        do k = 1, nz
-          do j = 0, ny
-            do i = 1, nx
-              rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k)) + rhoStrat(k)
-
-              pGradY = kappaInv * MaInv2 * pStrat(k) / rhov * (dp(i, j + 1, k) &
-                  &- dp(i, j, k)) / dy
-
-              dv = - dt * pGradY
-
-              var%v(i, j, k) = var%v(i, j, k) + dv
-            end do
-          end do
-        end do
-      else
-        stop 'ERROR: wrong opt in correctorStep'
-      end if
-    else
-      do k = 1, nz
-        do j = 0, ny
-          do i = 1, nx
-            rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k)) + rhoStrat(k)
-
-            pGradY = kappaInv * MaInv2 * pStrat(k) / rhov * (dp(i, j + 1, k) &
-                &- dp(i, j, k)) / dy
-
-            dv = - dt * pGradY
-
-            var%v(i, j, k) = var%v(i, j, k) + dv
-
-            ! correct y-momentum tendency
-            dMom(i, j, k, 2) = dMom(i, j, k, 2) + rhov * dv / beta(RKstage)
-          end do
-        end do
-      end do
-    end if
-
-    !--------------------------------------
-    !         calc w and  w + dw
-    !--------------------------------------
-
-    if(timeScheme == "semiimplicit") then
-      if(opt == "impl") then
-        ! solid wall implies zero change of w at the bottom and top
-
-        do k = 1, nz - 1
-          do j = 1, ny
-            do i = 1, nx
-              facw = 1.0
-
-              if(topography) then
-                stop 'topography still to be implemented into semi-implicit &
-                    &time stepping'
-              end if
-
-              if(TestCase == "baroclinic_LC") then
-                if(background == "HeldSuarez") then
-                  ! Rayleigh damping
-
-                  facw = facw + dt * 0.5 * (kw_hs(k) + kw_hs(k + 1))
-                end if
-              end if
-
-              if(spongeLayer) then
-                facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
-              end if
-
-              pEdge = 0.5 * (pStrat(k + 1) + pStrat(k))
-              pEdge_0 = 0.5 * (pStrat_0(k + 1) + pStrat_0(k))
-
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) + rhoStratTilde(k)
-
-              bvsstw = 0.5 * (bvsStrat(k) + bvsStrat(k + 1))
-
-              pGradZ = (dp(i, j, k + 1) - dp(i, j, k)) / dz
-
-              dw = - dt * kappaInv * MaInv2 / (facw + rhoStratTilde(k) &
-                  &/ rhoEdge * pEdge / pEdge_0 * bvsstw * dt ** 2) * pEdge &
-                  &/ rhoEdge * pGradz
-
-              var%w(i, j, k) = var%w(i, j, k) + dw
-            end do
-          end do
-        end do
-
-        ! periodic in z
-        if(zBoundary == "periodic") then
-          stop 'ERROR: period. vert. bound. not ready in correctorStep'
-        end if
-      else if(opt == "expl") then
-        ! solid wall implies zero change of w at the bottom and top
-
-        do k = 1, nz - 1
-          do j = 1, ny
-            do i = 1, nx
-              pEdge = pStratTilde(k)
-
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) + rhoStratTilde(k)
-
-              pGradZ = (dp(i, j, k + 1) - dp(i, j, k)) / dz
-
-              dw = - dt * kappaInv * MaInv2 * pEdge / rhoEdge * pGradz
-
-              var%w(i, j, k) = var%w(i, j, k) + dw
-            end do
-          end do
-        end do
-
-        ! if periodic in z
-        if(zBoundary == "periodic") then
-          do k = 0, nz, nz
-            do j = 1, ny
-              do i = 1, nx
-                pEdge = pStratTilde(k)
-
-                rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) + rhoStratTilde(k)
-
-                pGradZ = (dp(i, j, k + 1) - dp(i, j, k)) / dz
-
-                dw = - dt * kappaInv * MaInv2 * pEdge / rhoEdge * pGradz
-
-                var%w(i, j, k) = var%w(i, j, k) + dw
-              end do
-            end do
-          end do
-        end if
-      else
-        stop 'ERROR: wrong opt in correctorStep'
-      end if
-    else
-      ! solid wall implies zero change of w at the bottom and top
-
-      do k = 1, nz - 1
-        do j = 1, ny
-          do i = 1, nx
-            pEdge = pStratTilde(k)
-
-            rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) + rhoStratTilde(k)
-
-            pGradZ = (dp(i, j, k + 1) - dp(i, j, k)) / dz
-
-            dw = - dt * kappaInv * MaInv2 * pEdge / rhoEdge * pGradz
-
-            var%w(i, j, k) = var%w(i, j, k) + dw
-
-            ! correct z-momentum tendency
-            dMom(i, j, k, 3) = dMom(i, j, k, 3) + rhoEdge * dw / beta(RKstage)
-          end do
-        end do
-      end do
-
-      ! if periodic in z
-      if(zBoundary == "periodic") then
-        do k = 0, nz, nz
-          do j = 1, ny
-            do i = 1, nx
-              pEdge = pStratTilde(k)
-
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) + rhoStratTilde(k)
-
-              pGradZ = (dp(i, j, k + 1) - dp(i, j, k)) / dz
-
-              dw = - dt * kappaInv * MaInv2 * pEdge / rhoEdge * pGradz
-
-              var%w(i, j, k) = var%w(i, j, k) + dw
-
-              ! correct z-momentum tendency
-              dMom(i, j, k, 3) = dMom(i, j, k, 3) + rhoEdge * dw / beta(RKstage)
-            end do
-          end do
-        end do
-      end if
-    end if
-
-    !------------------------------------------------------------------
-    !         calc rhop and rhop + drhop (only for implicit time step)
-    !------------------------------------------------------------------
-
-    if(timeScheme == "semiimplicit") then
-      if(opt == "impl") then
-        do k = 1, nz
-          do j = 1, ny
-            do i = 1, nx
-              facw = 1.0
-
-              if(topography) then
-                stop 'topography still to be implemented into semi-implicit &
-                    &time stepping'
-              end if
-
-              if(TestCase == "baroclinic_LC") then
-                if(background == "HeldSuarez") then
-                  ! Rayleigh damping
-
-                  facw = facw + dt * kw_hs(k)
-                end if
-              end if
-
-              if(spongeLayer) then
-                facw = facw + dt * kr_sp(j, k)
-              end if
-
-              rho = var%rho(i, j, k) + rhoStrat(k)
-
-              rhowm = 0.5 * (var%rho(i, j, k - 1) + var%rho(i, j, k)) + rhoStratTilde(k - 1)
-
-              rhow0 = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) + rhoStratTilde(k)
-
-              if(k == 1) then
-                pGradZ = kappaInv * MaInv2 * 0.5 * (pStratTilde(k) / rhow0 &
-                    &* (dp(i, j, k + 1) - dp(i, j, k)) / dz)
-              else if(k == nz) then
-                pGradZ = kappaInv * MaInv2 * 0.5 * (pStratTilde(k - 1) / rhowm &
-                    &* (dp(i, j, k) - dp(i, j, k - 1)) / dz)
-              else
-                pGradZ = kappaInv * MaInv2 * 0.5 * (pStratTilde(k) / rhow0 &
-                    &* (dp(i, j, k + 1) - dp(i, j, k)) / dz + pStratTilde(k &
-                    &- 1) / rhowm * (dp(i, j, k) - dp(i, j, k - 1)) / dz)
-              end if
-
-              db = rhoStrat(k) / rho * PStrat(k) / PStrat_0(k) * bvsStrat(k) &
-                  &* dt ** 2 / (facw + rhoStrat(k) / rho * PStrat(k) &
-                  &/ PStrat_0(k) * bvsStrat(k) * dt ** 2) * pGradz
-
-              var%rhop(i, j, k) = var%rhop(i, j, k) - rho / g_ndim * db
-            end do
-          end do
-        end do
-
-        ! periodic in z
-        if(zBoundary == "periodic") then
-          stop 'ERROR: period. vert. bound. not ready in correctorStep'
-        end if
-      end if
-    end if
-
-    if(timeScheme == "semiimplicit") then
-      if(opt == "impl") then
-        kr_sp = kr_sp / facray
-        alprlx = alprlx / facray
-      end if
-    end if
-
-  end subroutine correctorStep_nc
 
   !-----------------------------------------------------------------------
 
@@ -4408,15 +3341,20 @@ module poisson_module
                   du = - corX(i, j, k)
                 end if
               else
-                rhov0m = 0.5 * (var%rho(i, j - 1, k) + var%rho(i, j, k)) + rhoStrat(k)
+                rhov0m = 0.5 * (var%rho(i, j - 1, k) + var%rho(i, j, k)) &
+                    &+ rhoStrat(k)
 
-                rhov00 = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k)) + rhoStrat(k)
+                rhov00 = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k)) &
+                    &+ rhoStrat(k)
 
-                rhov1m = 0.5 * (var%rho(i + 1, j - 1, k) + var%rho(i + 1, j, k)) + rhoStrat(k)
+                rhov1m = 0.5 * (var%rho(i + 1, j - 1, k) + var%rho(i + 1, j, &
+                    &k)) + rhoStrat(k)
 
-                rhov10 = 0.5 * (var%rho(i + 1, j, k) + var%rho(i + 1, j + 1, k)) + rhoStrat(k)
+                rhov10 = 0.5 * (var%rho(i + 1, j, k) + var%rho(i + 1, j + 1, &
+                    &k)) + rhoStrat(k)
 
-                rhou = 0.5 * (var%rho(i + 1, j, k) + var%rho(i, j, k)) + rhoStrat(k)
+                rhou = 0.5 * (var%rho(i + 1, j, k) + var%rho(i, j, k)) &
+                    &+ rhoStrat(k)
 
                 pGradX = kappaInv * MaInv2 * pStrat(k) / rhou * (dp(i + 1, j, &
                     &k) - dp(i, j, k)) / dx
@@ -4489,7 +3427,8 @@ module poisson_module
                       &+ (dpUEdgeR - dpDEdgeR) * 0.5 / dz)
                 end if
               else
-                rhou = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) + rhoStrat(k)
+                rhou = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) &
+                    &+ rhoStrat(k)
 
                 pGradX = kappaInv * MaInv2 * pStrat(k) / rhou * (dp(i + 1, j, &
                     &k) - dp(i, j, k)) / dx
@@ -4563,7 +3502,8 @@ module poisson_module
                     &+ (dpUEdgeR - dpDEdgeR) * 0.5 / dz)
               end if
             else
-              rhou = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) + rhoStrat(k)
+              rhou = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) &
+                  &+ rhoStrat(k)
 
               pGradX = kappaInv * MaInv2 * pStrat(k) / rhou * (dp(i + 1, j, k) &
                   &- dp(i, j, k)) / dx
@@ -4574,7 +3514,7 @@ module poisson_module
             var%u(i, j, k) = var%u(i, j, k) + du
 
             ! correct x-momentum tendency
-            dMom(i, j, k, 1) = dMom(i, j, k, 1) + rhou * du / beta(RKstage)
+            dMom(i, j, k, 1) = dMom(i, j, k, 1) + rhou * du / betaRK(RKstage)
           end do
         end do
       end do
@@ -4667,15 +3607,20 @@ module poisson_module
                   dv = - corY(i, j, k)
                 end if
               else
-                rhou00 = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) + rhoStrat(k)
+                rhou00 = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) &
+                    &+ rhoStrat(k)
 
-                rhoum0 = 0.5 * (var%rho(i - 1, j, k) + var%rho(i, j, k)) + rhoStrat(k)
+                rhoum0 = 0.5 * (var%rho(i - 1, j, k) + var%rho(i, j, k)) &
+                    &+ rhoStrat(k)
 
-                rhou01 = 0.5 * (var%rho(i, j + 1, k) + var%rho(i + 1, j + 1, k)) + rhoStrat(k)
+                rhou01 = 0.5 * (var%rho(i, j + 1, k) + var%rho(i + 1, j + 1, &
+                    &k)) + rhoStrat(k)
 
-                rhoum1 = 0.5 * (var%rho(i - 1, j + 1, k) + var%rho(i, j + 1, k)) + rhoStrat(k)
+                rhoum1 = 0.5 * (var%rho(i - 1, j + 1, k) + var%rho(i, j + 1, &
+                    &k)) + rhoStrat(k)
 
-                rhov = 0.5 * (var%rho(i, j + 1, k) + var%rho(i, j, k)) + rhoStrat(k)
+                rhov = 0.5 * (var%rho(i, j + 1, k) + var%rho(i, j, k)) &
+                    &+ rhoStrat(k)
 
                 pGradX = kappaInv * MaInv2 * 0.25 * (pStrat(k) / rhou00 &
                     &* (dp(i + 1, j, k) - dp(i, j, k)) / dx + pStrat(k) &
@@ -4750,7 +3695,8 @@ module poisson_module
                       &+ (dpUEdgeF - dpDEdgeF) * 0.5 / dz)
                 end if
               else
-                rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k)) + rhoStrat(k)
+                rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k)) &
+                    &+ rhoStrat(k)
 
                 pGradY = kappaInv * MaInv2 * pStrat(k) / rhov * (dp(i, j + 1, &
                     &k) - dp(i, j, k)) / dy
@@ -4824,7 +3770,8 @@ module poisson_module
                     &+ (dpUEdgeF - dpDEdgeF) * 0.5 / dz)
               end if
             else
-              rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k)) + rhoStrat(k)
+              rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k)) &
+                  &+ rhoStrat(k)
 
               pGradY = kappaInv * MaInv2 * pStrat(k) / rhov * (dp(i, j + 1, k) &
                   &- dp(i, j, k)) / dy
@@ -4835,7 +3782,7 @@ module poisson_module
             var%v(i, j, k) = var%v(i, j, k) + dv
 
             ! correct y-momentum tendency
-            dMom(i, j, k, 2) = dMom(i, j, k, 2) + rhov * dv / beta(RKstage)
+            dMom(i, j, k, 2) = dMom(i, j, k, 2) + rhov * dv / betaRK(RKstage)
           end do
         end do
       end do
@@ -4954,7 +3901,8 @@ module poisson_module
                 pEdge = 0.5 * (pStrat(k + 1) + pStrat(k))
                 pEdge_0 = 0.5 * (pStrat_0(k + 1) + pStrat_0(k))
 
-                rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) + rhoStratTilde(k)
+                rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) &
+                    &+ rhoStratTilde(k)
 
                 bvsstw = 0.5 * (bvsStrat(k) + bvsStrat(k + 1))
 
@@ -5027,9 +3975,10 @@ module poisson_module
                   dw = - dt * pGradZ
                 end if
               else
-                  pEdge = pStratTilde(k)
+                pEdge = pStratTilde(k)
 
-                rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) + rhoStratTilde(k)
+                rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) &
+                    &+ rhoStratTilde(k)
 
                 pGradZ = (dp(i, j, k + 1) - dp(i, j, k)) / dz
 
@@ -5090,9 +4039,10 @@ module poisson_module
                   &/ dz) + kappaInv * MaInv2 / rhoEdge * (chris11EdgeU &
                   &+ chris22EdgeU + 2.0 * (chris13EdgeU + chris23EdgeU))
             else
-                pEdge = pStratTilde(k)
+              pEdge = pStratTilde(k)
 
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) + rhoStratTilde(k)
+              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) &
+                  &+ rhoStratTilde(k)
 
               pGradZ = kappaInv * MaInv2 * pEdge / rhoEdge * (dp(i, j, k + 1) &
                   &- dp(i, j, k)) / dz
@@ -5103,7 +4053,7 @@ module poisson_module
             var%w(i, j, k) = var%w(i, j, k) + dw
 
             ! correct z-momentum tendency
-            dMom(i, j, k, 3) = dMom(i, j, k, 3) + rhoEdge * dw / beta(RKstage)
+            dMom(i, j, k, 3) = dMom(i, j, k, 3) + rhoEdge * dw / betaRK(RKstage)
           end do
         end do
       end do
@@ -5246,9 +4196,11 @@ module poisson_module
               else
                 rho = var%rho(i, j, k) + rhoStrat(k)
 
-                rhowm = 0.5 * (var%rho(i, j, k - 1) + var%rho(i, j, k)) + rhoStratTilde(k - 1)
+                rhowm = 0.5 * (var%rho(i, j, k - 1) + var%rho(i, j, k)) &
+                    &+ rhoStratTilde(k - 1)
 
-                rhow0 = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) + rhoStratTilde(k)
+                rhow0 = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) &
+                    &+ rhoStratTilde(k)
 
                 if(k == 1 .and. zBoundary == "solid_wall") then
                   pGradZ = kappaInv * MaInv2 * 0.5 * (pStratTilde(k) / rhow0 &
@@ -5637,639 +4589,12 @@ module poisson_module
 
         do k = khmax + 1, nz
           heat(:, :, k) = 0.
-        
+
         end do
       end if
     end if
 
   end subroutine calculate_heating
-
-  !==============================================================
-
-  subroutine val_PsIn_nc(var, dt, opt, facray)
-    ! calculates the matrix values for the pressure solver
-    ! the solver solves for dt * dp, hence no dt in the matrix elements
-
-    ! Coriolis term not treated implicitly
-
-    type(var_type), intent(in) :: var
-    real, intent(in) :: dt, facray
-
-    ! facray multiplies the Rayleigh-damping terms so that they are only
-    ! handled in the implicit time stepping (sponge and immersed boundary)
-
-    ! opt = expl =>
-    ! pressure solver for explicit problem and corresponding correction
-    ! of the winds
-    ! opt = impl =>
-    ! pressure solver for implicit problem and corresponding correction
-    ! of the winds and density fluctuations
-    character(len = *), intent(in) :: opt
-
-    ! local variables
-    real :: dx2, dy2, dz2, dxy
-    !real :: pStratU, pStratD, rhoEdge
-    real :: pStratU, pStratD, pStratU_0, pStratD_0, rhoEdge
-    real :: AL, AR, AB, AF, AD, AU, ALB, ALF, ARB, ARF, AC, ACV, ACH
-    real :: facu, facv, facw, facr
-    real :: acontr
-    real :: bvsstw
-
-    ! non-dimensional Corilois parameter (= inverse Rossby number)
-    real, dimension(0:ny + 1) :: f_cor_nd
-
-    integer :: i0, j0, i, j, k
-    integer :: index_count_hypre
-
-    real :: ymin, ymax, yloc
-
-    real :: f_cor_v
-    real :: fcscal, fcscal_u, fcscal_d
-
-    if(corset == 'periodic') then
-      ymax = ly_dim(1) / lRef
-      ymin = ly_dim(0) / lRef
-
-      j0 = js + nby - 1
-
-      do j = 0, ny + 1
-        yloc = y(j + j0)
-
-        f_cor_nd(j) = - 4. * pi / 8.64e4 * tRef * cos(2. * pi * (yloc - ymin) &
-            &/ (ymax - ymin))
-      end do
-    else if(corset == 'constant') then
-      f_cor_nd(0:ny + 1) = f_Coriolis_dim * tRef
-    else
-      stop 'ERROR: wrong corset'
-    end if
-
-    ! auxiliary variables
-    dx2 = 1.0 / dx ** 2
-    dy2 = 1.0 / dy ** 2
-    dz2 = 1.0 / dz ** 2
-    dxy = 1.0 / (dx * dy)
-
-    i0 = is + nbx - 1
-    j0 = js + nby - 1
-
-  
-    !---------------------------------
-    !         Loop over field
-    !---------------------------------
-
-    if(opt == "expl") then
-      if(timeScheme == "semiimplicit") then
-        do k = 1, nz
-          fcscal = sqrt(Pstrat(k) ** 2 / rhoStrat(k))
-          fcscal_u = sqrt(Pstrat(k + 1) ** 2 / rhoStrat(k + 1))
-          fcscal_d = sqrt(Pstrat(k - 1) ** 2 / rhoStrat(k - 1))
-
-          do j = 1, ny
-            do i = 1, nx
-              ! ------------------ A(i+1,j,k) ------------------
-
-              rhoEdge = 0.5 * (var%rho(i + 1, j, k) + var%rho(i, j, k)) + rhoStrat(k)
-
-              AR = dx2 * pStrat(k) ** 2 / rhoEdge
-              if(pressureScaling) then
-                AR = AR / Pstrat(k)
-              end if
-
-              ! ------------------- A(i-1,j,k) --------------------
-
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i - 1, j, k)) + rhoStrat(k)
-
-              AL = dx2 * pStrat(k) ** 2 / rhoEdge
-              if(pressureScaling) then
-                AL = AL / Pstrat(k)
-              end if
-
-              ! -------------------- A(i,j+1,k) ----------------------
-
-              rhoEdge = 0.5 * (var%rho(i, j + 1, k) + var%rho(i, j, k)) + rhoStrat(k)
-
-              AF = dy2 * pStrat(k) ** 2 / rhoEdge
-
-              if(pressureScaling) then
-                AF = AF / Pstrat(k)
-              end if
-
-              ! --------------------- A(i,j-1,k) -------------------
-
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j - 1, k)) + rhoStrat(k)
-
-              AB = dy2 * pStrat(k) ** 2 / rhoEdge
-              if(pressureScaling) then
-                AB = AB / Pstrat(k)
-              end if
-
-              ! ---------------------- A(i,j,k+1) ------------------
-
-              if(k == nz) then
-                AU = 0.0
-              else
-                rhoEdge = 0.5 * (var%rho(i, j, k + 1) + var%rho(i, j, k)) + rhoStratTilde(k)
-
-                pStratU = 0.5 * (pStrat(k + 1) + pStrat(k))
-                AU = dz2 * pStratU ** 2 / rhoEdge
-              end if
-              if(pressureScaling) then
-                AU = AU / PstratTilde(k)
-              end if
-
-              ! ----------------------- A(i,j,k-1) -----------------
-
-              if(k == 1) then
-                AD = 0.0
-              else
-                rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k - 1)) + rhoStratTilde(k - 1)
-
-                pStratD = 0.5 * (pStrat(k) + pStrat(k - 1))
-                AD = dz2 * pStratD ** 2 / rhoEdge
-              end if
-              if(pressureScaling) then
-                AD = AD / PstratTilde(k - 1)
-              end if
-
-              ! ----------------------- A(i,j,k) -------------------
-
-              AC = - AR - AL - AF - AB - AU - AD
-
-              ACV = - AU - AD
-              ACH = - AR - AL - AF - AB
-
-              AC = AC / fcscal ** 2
-
-              ACV = ACV / fcscal ** 2
-              ACH = ACH / fcscal ** 2
-
-              AL = AL / fcscal ** 2
-              AR = AR / fcscal ** 2
-              AB = AB / fcscal ** 2
-              AF = AF / fcscal ** 2
-              AD = AD / (fcscal * fcscal_d)
-              AU = AU / (fcscal * fcscal_u)
-
-              ! ------------------ define matrix A -------------------
-
-              if(poissonSolverType == 'bicgstab') then
-                ac_b(i, j, k) = AC
-
-                acv_b(i, j, k) = ACV
-                ach_b(i, j, k) = ACH
-
-                al_b(i, j, k) = AL
-                ar_b(i, j, k) = AR
-
-                ab_b(i, j, k) = AB
-                af_b(i, j, k) = AF
-
-                ad_b(i, j, k) = AD
-                au_b(i, j, k) = AU
-
-                alb_b(i, j, k) = 0.0
-                alf_b(i, j, k) = 0.0
-                arb_b(i, j, k) = 0.0
-                arf_b(i, j, k) = 0.0
-              else
-                stop 'ERROR: val_PsIn expects bicgstab'
-              end if
-            end do ! i_loop
-          end do ! j_loop
-        end do ! k_loop
-      else
-        do k = 1, nz
-          fcscal = sqrt(Pstrat(k) ** 2 / rhoStrat(k))
-          fcscal_u = sqrt(Pstrat(k + 1) ** 2 / rhoStrat(k + 1))
-          fcscal_d = sqrt(Pstrat(k - 1) ** 2 / rhoStrat(k - 1))
-
-          do j = 1, ny
-            do i = 1, nx
-              ! ------------------ A(i+1,j,k) ------------------
-
-              rhoEdge = 0.5 * (var%rho(i + 1, j, k) + var%rho(i, j, k)) + rhoStrat(k)
-
-              AR = dx2 * pStrat(k) ** 2 / rhoEdge
-              if(pressureScaling) then
-                AR = AR / Pstrat(k)
-              end if
-
-              ! ------------------- A(i-1,j,k) --------------------
-
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i - 1, j, k)) + rhoStrat(k)
-
-              AL = dx2 * pStrat(k) ** 2 / rhoEdge
-              if(pressureScaling) then
-                AL = AL / Pstrat(k)
-              end if
-
-              ! -------------------- A(i,j+1,k) ----------------------
-
-              rhoEdge = 0.5 * (var%rho(i, j + 1, k) + var%rho(i, j, k)) + rhoStrat(k)
-
-              AF = dy2 * pStrat(k) ** 2 / rhoEdge
-              if(pressureScaling) then
-                AF = AF / Pstrat(k)
-              end if
-
-              ! --------------------- A(i,j-1,k) -------------------
-
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j - 1, k)) + rhoStrat(k)
-
-              AB = dy2 * pStrat(k) ** 2 / rhoEdge
-              if(pressureScaling) then
-                AB = AB / Pstrat(k)
-              end if
-
-              ! ---------------------- A(i,j,k+1) ------------------
-
-              if(k == nz) then
-                AU = 0.0
-              else
-                rhoEdge = 0.5 * (var%rho(i, j, k + 1) + var%rho(i, j, k)) + rhoStratTilde(k)
-
-                pStratU = 0.5 * (pStrat(k + 1) + pStrat(k))
-                AU = dz2 * pStratU ** 2 / rhoEdge
-              end if
-              if(pressureScaling) then
-                AU = AU / PstratTilde(k)
-              end if
-
-              ! ----------------------- A(i,j,k-1) -----------------
-
-              if(k == 1) then
-                AD = 0.0
-              else
-                rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k - 1)) + rhoStratTilde(k - 1)
-
-                pStratD = 0.5 * (pStrat(k) + pStrat(k - 1))
-                AD = dz2 * pStratD ** 2 / rhoEdge
-              end if
-              if(pressureScaling) then
-                AD = AD / PstratTilde(k - 1)
-              end if
-
-              ! ----------------------- A(i,j,k) -------------------
-
-              AC = - AR - AL - AF - AB - AU - AD
-
-              ACV = - AU - AD
-              ACH = - AR - AL - AF - AB
-
-              AC = AC / fcscal ** 2
-
-              ACV = ACV / fcscal ** 2
-              ACH = ACH / fcscal ** 2
-
-              AL = AL / fcscal ** 2
-              AR = AR / fcscal ** 2
-              AB = AB / fcscal ** 2
-              AF = AF / fcscal ** 2
-              AD = AD / (fcscal * fcscal_d)
-              AU = AU / (fcscal * fcscal_u)
-
-              ! ------------------ define matrix A -------------------
-
-              if(poissonSolverType == 'bicgstab') then
-                ac_b(i, j, k) = AC
-
-                acv_b(i, j, k) = ACV
-                ach_b(i, j, k) = ACH
-
-                al_b(i, j, k) = AL
-                ar_b(i, j, k) = AR
-
-                ab_b(i, j, k) = AB
-                af_b(i, j, k) = AF
-
-                ad_b(i, j, k) = AD
-                au_b(i, j, k) = AU
-              else
-                stop 'ERROR: val_PsIn expects bicgstab'
-              end if
-            end do ! i_loop
-          end do ! j_loop
-        end do ! k_loop
-      end if
-    else if(opt == "impl") then
-      if(timeScheme /= "semiimplicit") then
-        stop 'ERROR: for opt = impl must have timeScheme = semiimplicit'
-      end if
-
-      kr_sp = kr_sp * facray
-      alprlx = alprlx * facray
-
-      do k = 1, nz
-        fcscal = sqrt(Pstrat(k) ** 2 / rhoStrat(k))
-        fcscal_u = sqrt(Pstrat(k + 1) ** 2 / rhoStrat(k + 1))
-        fcscal_d = sqrt(Pstrat(k - 1) ** 2 / rhoStrat(k - 1))
-
-        do j = 1, ny
-          do i = 1, nx
-            AL = 0.0
-            AR = 0.0
-            AB = 0.0
-            AF = 0.0
-            AD = 0.0
-            AU = 0.0
-            AC = 0.0
-
-            ACV = 0.0
-            ACH = 0.0
-
-            ALB = 0.0
-            ALF = 0.0
-            ARB = 0.0
-            ARF = 0.0
-
-            ! ------------------- from P UR/dx ------------------------
-
-            facu = 1.0
-
-            if(topography) then
-              stop 'topography still to be implemented into semi-implicit time &
-                  &stepping'
-            end if
-
-            if(TestCase == "baroclinic_LC") then
-              if(background == "HeldSuarez") then
-                ! Rayleigh damping
-                facu = facu + dt * kv_hs(j, k)
-              end if
-            end if
-
-            if(spongeLayer .and. sponge_uv) then
-              facu = facu + dt * kr_sp(j, k)
-            end if
-
-            facv = facu
-
-            rhoEdge = 0.5 * (var%rho(i + 1, j, k) + var%rho(i, j, k)) + rhoStrat(k)
-
-            acontr = dx2 / facu * pStrat(k) ** 2 / rhoEdge
-
-            AR = AR + acontr
-            AC = AC - acontr
-
-            ACH = ACH - acontr 
-
-            ! ------------------- from - P UL/dx --------------------
-
-            facu = 1.0
-
-            if(topography) then
-              stop 'topography still to be implemented into semi-implicit time &
-                  &stepping'
-            end if
-
-            if(TestCase == "baroclinic_LC") then
-              if(background == "HeldSuarez") then
-                ! Rayleigh damping
-                facu = facu + dt * kv_hs(j, k)
-              end if
-            end if
-
-            if(spongeLayer .and. sponge_uv) then
-              facu = facu + dt * kr_sp(j, k)
-            end if
-
-            facv = facu
-
-
-            rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i - 1, j, k)) + rhoStrat(k)
-
-            acontr = - dx2 / facu * pStrat(k) ** 2 / rhoEdge
-
-            ACH = ACH + acontr
-
-            AC = AC + acontr
-            AL = AL - acontr
-
-            ! ------------------- from P VF/dy ------------------------
-
-            facv = 1.0
-
-            if(topography) then
-              stop 'topography still to be implemented into semi-implicit time &
-                  &stepping'
-            end if
-
-            if(TestCase == "baroclinic_LC") then
-              if(background == "HeldSuarez") then
-                ! Rayleigh damping
-                facv = facv + dt * 0.5 * (kv_hs(j, k) + kv_hs(j + 1, k))
-              end if
-            end if
-
-            if(spongeLayer .and. sponge_uv) then
-              facv = facv + dt * 0.5 * (kr_sp(j, k) + kr_sp(j + 1, k))
-            end if
-
-            ! Coriolis parameter interpolated to v point
-            f_cor_v = 0.5 * (f_cor_nd(j) + f_cor_nd(j + 1))
-
-            facu = facv
-
-            rhoEdge = 0.5 * (var%rho(i, j + 1, k) + var%rho(i, j, k)) + rhoStrat(k)
-
-            acontr = dy2 / facv * pStrat(k) ** 2 / rhoEdge
-
-            AF = AF + acontr
-            AC = AC - acontr
-
-            ACH = ACH - acontr
-
-            ! ------------------- from - P VB/dy ---------------------
-
-            facv = 1.0
-
-            if(topography) then
-              stop 'topography still to be implemented into semi-implicit time &
-                  &stepping'
-            end if
-
-            if(TestCase == "baroclinic_LC") then
-              if(background == "HeldSuarez") then
-                ! Rayleigh damping
-                facv = facv + dt * 0.5 * (kv_hs(j, k) + kv_hs(j - 1, k))
-              end if
-            end if
-
-            if(spongeLayer .and. sponge_uv) then
-              facv = facv + dt * 0.5 * (kr_sp(j, k) + kr_sp(j - 1, k))
-            end if
-
-            ! Coriolis parameter interpolated to v point
-            f_cor_v = 0.5 * (f_cor_nd(j) + f_cor_nd(j - 1))
-
-            facu = facv
-
-            ! A(i,j,k) and A(i,j-1,k)
-
-            rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j - 1, k)) + rhoStrat(k)
-
-            acontr = - dy2 / facv * pStrat(k) ** 2 / rhoEdge
-
-            ACH = ACH + acontr
-
-            AC = AC + acontr
-            AB = AB - acontr
-
-            ! ------------------- from PU WU/dz ---------------------
-
-            if(k == nz) then
-              AU = 0.0
-            else
-              facw = 1.0
-
-              if(topography) then
-                stop 'topography still to be implemented into semi-implicit &
-                    &time stepping'
-              end if
-
-              if(TestCase == "baroclinic_LC") then
-                if(background == "HeldSuarez") then
-                  ! Rayleigh damping
-
-                  facw = facw + dt * 0.5 * (kw_hs(k) + kw_hs(k + 1))
-                end if
-              end if
-
-              if(spongeLayer) then
-                facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
-              end if
-
-              bvsstw = 0.5 * (bvsStrat(k) + bvsStrat(k + 1))
-
-              ! A(i,j,k+1) and A(i,j,k)
-
-              rhoEdge = 0.5 * (var%rho(i, j, k + 1) + var%rho(i, j, k)) + rhoStratTilde(k)
-
-              pStratU = 0.5 * (pStrat(k + 1) + pStrat(k))
-              pStratU_0 = 0.5 * (pStrat_0(k + 1) + pStrat_0(k))
-
-              AU = dz2 * pStratU ** 2 / rhoEdge / (facw + rhoStratTilde(k) &
-                  &/ rhoEdge * pStratU / pStratU_0 * bvsstw * dt ** 2)
-
-              AC = AC - AU
-
-              ACV = ACV - AU
-            end if
-
-            ! ------------------- from - PD WD/dz ---------------------
-
-            if(k == 1) then
-              AD = 0.0
-            else
-              facw = 1.0
-
-              if(topography) then
-                stop 'topography still to be implemented into semi-implicit &
-                    &time stepping'
-              end if
-
-              if(TestCase == "baroclinic_LC") then
-                if(background == "HeldSuarez") then
-                  ! Rayleigh damping
-
-                  facw = facw + dt * 0.5 * (kw_hs(k) + kw_hs(k - 1))
-                end if
-              end if
-
-              if(spongeLayer) then
-                facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k - 1))
-              end if
-
-              bvsstw = 0.5 * (bvsStrat(k - 1) + bvsStrat(k))
-
-              ! A(i,j,k) and A(i,j,k-1)
-
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k - 1)) + rhoStratTilde(k - 1)
-
-              pStratD = 0.5 * (pStrat(k) + pStrat(k - 1))
-              pStratD_0 = 0.5 * (pStrat_0(k) + pStrat_0(k - 1))
-
-              AD = dz2 * pStratD ** 2 / rhoEdge / (facw + rhoStratTilde(k - 1) &
-                  &/ rhoEdge * pStratD / pStratD_0 * bvsstw * dt ** 2)
-
-              AC = AC - AD
-
-              ACV = ACV - AD
-            end if
-
-            AC = AC / fcscal ** 2
-
-            ACH = ACH / fcscal ** 2
-            ACV = ACV / fcscal ** 2
-
-            AL = AL / fcscal ** 2
-            AR = AR / fcscal ** 2
-            AB = AB / fcscal ** 2
-            AF = AF / fcscal ** 2
-            AD = AD / (fcscal * fcscal_d)
-            AU = AU / (fcscal * fcscal_u)
-            ALB = ALB / fcscal ** 2
-            ALF = ALF / fcscal ** 2
-            ARF = ARF / fcscal ** 2
-            ARB = ARB / fcscal ** 2
-
-            if(pressureScaling) then
-              AC = AC / Pstrat(k)
-
-              ACH = ACH / Pstrat(k)
-              ACV = ACV / Pstrat(k)
-
-              AL = AL / Pstrat(k)
-              AR = AR / Pstrat(k)
-              AB = AB / Pstrat(k)
-              AF = AF / Pstrat(k)
-              AD = AD / PstratTilde(k - 1)
-              AU = AU / PstratTilde(k)
-              ALB = ALB / Pstrat(k)
-              ALF = ALF / Pstrat(k)
-              ARF = ARF / Pstrat(k)
-              ARB = ARB / Pstrat(k)
-            end if
-
-            ! ------------------- define matrix A -------------------
-
-            if(poissonSolverType == 'bicgstab') then
-              ac_b(i, j, k) = AC
-
-              ach_b(i, j, k) = ACH
-              acv_b(i, j, k) = ACV
-
-              al_b(i, j, k) = AL
-              ar_b(i, j, k) = AR
-
-              ab_b(i, j, k) = AB
-              af_b(i, j, k) = AF
-
-              ad_b(i, j, k) = AD
-              au_b(i, j, k) = AU
-
-              alb_b(i, j, k) = ALB
-              alf_b(i, j, k) = ALF
-              arb_b(i, j, k) = ARB
-              arf_b(i, j, k) = ARF
-            else
-              stop 'ERROR: val_PsIn expects bicgstab'
-            end if
-          end do ! i_loop
-        end do ! j_loop
-      end do ! k_loop
-
-      kr_sp = kr_sp / facray
-      alprlx = alprlx / facray
-
-    else
-      stop 'ERROR: wrong opt'
-    end if
-
-    return
-
-  end subroutine val_PsIn_nc
 
   !==============================================================
 
@@ -6380,7 +4705,8 @@ module poisson_module
             do i = 1, nx
               ! ------------------ A(i+1,j,k) ------------------
 
-              rhoEdge = 0.5 * (var%rho(i + 1, j, k) + var%rho(i, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i + 1, j, k) + var%rho(i, j, k)) &
+                  &+ rhoStrat(k)
 
               AR = dx2 * pStrat(k) ** 2 / rhoEdge
               if(pressureScaling) then
@@ -6389,7 +4715,8 @@ module poisson_module
 
               ! ------------------- A(i-1,j,k) --------------------
 
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i - 1, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i - 1, j, k)) &
+                  &+ rhoStrat(k)
 
               AL = dx2 * pStrat(k) ** 2 / rhoEdge
               if(pressureScaling) then
@@ -6398,7 +4725,8 @@ module poisson_module
 
               ! -------------------- A(i,j+1,k) ----------------------
 
-              rhoEdge = 0.5 * (var%rho(i, j + 1, k) + var%rho(i, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j + 1, k) + var%rho(i, j, k)) &
+                  &+ rhoStrat(k)
 
               AF = dy2 * pStrat(k) ** 2 / rhoEdge
 
@@ -6408,7 +4736,8 @@ module poisson_module
 
               ! --------------------- A(i,j-1,k) -------------------
 
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j - 1, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j - 1, k)) &
+                  &+ rhoStrat(k)
 
               AB = dy2 * pStrat(k) ** 2 / rhoEdge
               if(pressureScaling) then
@@ -6421,7 +4750,8 @@ module poisson_module
               if(k == nz .and. zBoundary == "solid_wall") then
                 AU = 0.0
               else
-                rhoEdge = 0.5 * (var%rho(i, j, k + 1) + var%rho(i, j, k)) + rhoStratTilde(k)
+                rhoEdge = 0.5 * (var%rho(i, j, k + 1) + var%rho(i, j, k)) &
+                    &+ rhoStratTilde(k)
 
                 pStratU = 0.5 * (pStrat(k + 1) + pStrat(k))
                 AU = dz2 * pStratU ** 2 / rhoEdge
@@ -6436,7 +4766,8 @@ module poisson_module
               if(k == 1 .and. zBoundary == "solid_wall") then
                 AD = 0.0
               else
-                rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k - 1)) + rhoStratTilde(k - 1)
+                rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k - 1)) &
+                    &+ rhoStratTilde(k - 1)
 
                 pStratD = 0.5 * (pStrat(k) + pStrat(k - 1))
                 AD = dz2 * pStratD ** 2 / rhoEdge
@@ -7046,7 +5377,8 @@ module poisson_module
 
               ! ------------------ A(i+1,j,k) ------------------
 
-              rhoEdge = 0.5 * (var%rho(i + 1, j, k) + var%rho(i, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i + 1, j, k) + var%rho(i, j, k)) &
+                  &+ rhoStrat(k)
 
               AR = dx2 * pStrat(k) ** 2 / rhoEdge
               if(pressureScaling) then
@@ -7055,7 +5387,8 @@ module poisson_module
 
               ! ------------------- A(i-1,j,k) --------------------
 
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i - 1, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i - 1, j, k)) &
+                  &+ rhoStrat(k)
 
               AL = dx2 * pStrat(k) ** 2 / rhoEdge
               if(pressureScaling) then
@@ -7064,7 +5397,8 @@ module poisson_module
 
               ! -------------------- A(i,j+1,k) ----------------------
 
-              rhoEdge = 0.5 * (var%rho(i, j + 1, k) + var%rho(i, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j + 1, k) + var%rho(i, j, k)) &
+                  &+ rhoStrat(k)
 
               AF = dy2 * pStrat(k) ** 2 / rhoEdge
               if(pressureScaling) then
@@ -7073,7 +5407,8 @@ module poisson_module
 
               ! --------------------- A(i,j-1,k) -------------------
 
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j - 1, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j - 1, k)) &
+                  &+ rhoStrat(k)
 
               AB = dy2 * pStrat(k) ** 2 / rhoEdge
               if(pressureScaling) then
@@ -7086,7 +5421,8 @@ module poisson_module
               if(k == nz .and. zBoundary == "solid_wall") then
                 AU = 0.0
               else
-                rhoEdge = 0.5 * (var%rho(i, j, k + 1) + var%rho(i, j, k)) + rhoStratTilde(k)
+                rhoEdge = 0.5 * (var%rho(i, j, k + 1) + var%rho(i, j, k)) &
+                    &+ rhoStratTilde(k)
 
                 pStratU = 0.5 * (pStrat(k + 1) + pStrat(k))
                 AU = dz2 * pStratU ** 2 / rhoEdge
@@ -7101,7 +5437,8 @@ module poisson_module
               if(k == 1 .and. zBoundary == "solid_wall") then
                 AD = 0.0
               else
-                rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k - 1)) + rhoStratTilde(k - 1)
+                rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k - 1)) &
+                    &+ rhoStratTilde(k - 1)
 
                 pStratD = 0.5 * (pStrat(k) + pStrat(k - 1))
                 AD = dz2 * pStratD ** 2 / rhoEdge
@@ -8365,7 +6702,8 @@ module poisson_module
 
               ! A(i+1,j,k) and A(i,j,k)
 
-              rhoEdge = 0.5 * (var%rho(i + 1, j, k) + var%rho(i, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i + 1, j, k) + var%rho(i, j, k)) &
+                  &+ rhoStrat(k)
 
               acontr = dx2 * pStrat(k) ** 2 / rhoEdge * facv / (facu * facv &
                   &+ (f_cor_nd(j) * dt) ** 2)
@@ -8377,7 +6715,8 @@ module poisson_module
 
               ! A(i,j,k) and A(i,j-1,k)
 
-              rhoEdge = 0.5 * (var%rho(i, j - 1, k) + var%rho(i, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j - 1, k) + var%rho(i, j, k)) &
+                  &+ rhoStrat(k)
 
               acontr = 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_nd(j) &
                   &* dt / (facu * facv + (f_cor_nd(j) * dt) ** 2)
@@ -8398,11 +6737,12 @@ module poisson_module
               AF = AF + acontr
               AC = AC - acontr
 
-              ACH = ACH - acontr 
+              ACH = ACH - acontr
 
               ! A(i+1,j,k) and A(i+1,j-1,k)
 
-              rhoEdge = 0.5 * (var%rho(i + 1, j - 1, k) + var%rho(i + 1, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i + 1, j - 1, k) + var%rho(i + 1, j, &
+                  &k)) + rhoStrat(k)
 
               acontr = 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_nd(j) &
                   &* dt / (facu * facv + (f_cor_nd(j) * dt) ** 2)
@@ -8412,7 +6752,8 @@ module poisson_module
 
               ! A(i+1,j,k) and A(i+1,j+1,k)
 
-              rhoEdge = 0.5 * (var%rho(i + 1, j, k) + var%rho(i + 1, j + 1, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i + 1, j, k) + var%rho(i + 1, j + 1, &
+                  &k)) + rhoStrat(k)
 
               acontr = 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_nd(j) &
                   &* dt / (facu * facv + (f_cor_nd(j) * dt) ** 2)
@@ -8439,7 +6780,8 @@ module poisson_module
 
               ! A(i,j,k) and A(i-1,j,k)
 
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i - 1, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i - 1, j, k)) &
+                  &+ rhoStrat(k)
 
               acontr = - dx2 * pStrat(k) ** 2 / rhoEdge * facv / (facu * facv &
                   &+ (f_cor_nd(j) * dt) ** 2)
@@ -8451,7 +6793,8 @@ module poisson_module
 
               ! A(i-1,j,k) and A(i-1,j-1,k)
 
-              rhoEdge = 0.5 * (var%rho(i - 1, j - 1, k) + var%rho(i - 1, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i - 1, j - 1, k) + var%rho(i - 1, j, &
+                  &k)) + rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_nd(j) &
                   &* dt / (facu * facv + (f_cor_nd(j) * dt) ** 2)
@@ -8461,7 +6804,8 @@ module poisson_module
 
               ! A(i-1,j,k) and A(i-1,j+1,k)
 
-              rhoEdge = 0.5 * (var%rho(i - 1, j, k) + var%rho(i - 1, j + 1, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i - 1, j, k) + var%rho(i - 1, j + 1, &
+                  &k)) + rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_nd(j) &
                   &* dt / (facu * facv + (f_cor_nd(j) * dt) ** 2)
@@ -8471,7 +6815,8 @@ module poisson_module
 
               ! A(i,j,k) and A(i,j-1,k)
 
-              rhoEdge = 0.5 * (var%rho(i, j - 1, k) + var%rho(i, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j - 1, k) + var%rho(i, j, k)) &
+                  &+ rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_nd(j) &
                   &* dt / (facu * facv + (f_cor_nd(j) * dt) ** 2)
@@ -8483,7 +6828,8 @@ module poisson_module
 
               ! A(i,j,k) and A(i,j+1,k)
 
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k)) &
+                  &+ rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_nd(j) &
                   &* dt / (facu * facv + (f_cor_nd(j) * dt) ** 2)
@@ -8491,7 +6837,7 @@ module poisson_module
               AF = AF + acontr
               AC = AC - acontr
 
-              ACH = ACH - acontr 
+              ACH = ACH - acontr
 
               ! ------------------- from P VF/dy ------------------------
 
@@ -8515,7 +6861,8 @@ module poisson_module
 
               ! A(i+1,j,k) and A(i,j,k)
 
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) &
+                  &+ rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   &/ (facu * facv + (f_cor_v * dt) ** 2)
@@ -8527,7 +6874,8 @@ module poisson_module
 
               ! A(i,j,k) and A(i-1,j,k)
 
-              rhoEdge = 0.5 * (var%rho(i - 1, j, k) + var%rho(i, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i - 1, j, k) + var%rho(i, j, k)) &
+                  &+ rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   &/ (facu * facv + (f_cor_v * dt) ** 2)
@@ -8539,7 +6887,8 @@ module poisson_module
 
               ! A(i+1,j+1,k) and A(i,j+1,k)
 
-              rhoEdge = 0.5 * (var%rho(i, j + 1, k) + var%rho(i + 1, j + 1, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j + 1, k) + var%rho(i + 1, j + 1, &
+                  &k)) + rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   &/ (facu * facv + (f_cor_v * dt) ** 2)
@@ -8549,7 +6898,8 @@ module poisson_module
 
               ! A(i,j+1,k) and A(i-1,j+1,k)
 
-              rhoEdge = 0.5 * (var%rho(i - 1, j + 1, k) + var%rho(i, j + 1, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i - 1, j + 1, k) + var%rho(i, j + 1, &
+                  &k)) + rhoStrat(k)
 
               acontr = - 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   &/ (facu * facv + (f_cor_v * dt) ** 2)
@@ -8559,7 +6909,8 @@ module poisson_module
 
               ! A(i,j+1,k) and A(i,j,k)
 
-              rhoEdge = 0.5 * (var%rho(i, j + 1, k) + var%rho(i, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j + 1, k) + var%rho(i, j, k)) &
+                  &+ rhoStrat(k)
 
               acontr = dy2 * pStrat(k) ** 2 / rhoEdge * facu / (facu * facv &
                   &+ (f_cor_v * dt) ** 2)
@@ -8567,7 +6918,7 @@ module poisson_module
               AF = AF + acontr
               AC = AC - acontr
 
-              ACH = ACH - acontr 
+              ACH = ACH - acontr
 
               ! ------------------- from - P VB/dy ---------------------
 
@@ -8591,7 +6942,8 @@ module poisson_module
 
               ! A(i+1,j-1,k) and A(i,j-1,k)
 
-              rhoEdge = 0.5 * (var%rho(i, j - 1, k) + var%rho(i + 1, j - 1, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j - 1, k) + var%rho(i + 1, j - 1, &
+                  &k)) + rhoStrat(k)
 
               acontr = 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   &/ (facu * facv + (f_cor_v * dt) ** 2)
@@ -8601,7 +6953,8 @@ module poisson_module
 
               ! A(i,j-1,k) and A(i-1,j-1,k)
 
-              rhoEdge = 0.5 * (var%rho(i - 1, j - 1, k) + var%rho(i, j - 1, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i - 1, j - 1, k) + var%rho(i, j - 1, &
+                  &k)) + rhoStrat(k)
 
               acontr = 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   &/ (facu * facv + (f_cor_v * dt) ** 2)
@@ -8611,7 +6964,8 @@ module poisson_module
 
               ! A(i+1,j,k) and A(i,j,k)
 
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) &
+                  &+ rhoStrat(k)
 
               acontr = 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   &/ (facu * facv + (f_cor_v * dt) ** 2)
@@ -8623,7 +6977,8 @@ module poisson_module
 
               ! A(i,j,k) and A(i-1,j,k)
 
-              rhoEdge = 0.5 * (var%rho(i - 1, j, k) + var%rho(i, j, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i - 1, j, k) + var%rho(i, j, k)) &
+                  &+ rhoStrat(k)
 
               acontr = 0.25 * dxy * pStrat(k) ** 2 / rhoEdge * f_cor_v * dt &
                   &/ (facu * facv + (f_cor_v * dt) ** 2)
@@ -8635,7 +6990,8 @@ module poisson_module
 
               ! A(i,j,k) and A(i,j-1,k)
 
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j - 1, k)) + rhoStrat(k)
+              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j - 1, k)) &
+                  &+ rhoStrat(k)
 
               acontr = - dy2 * pStrat(k) ** 2 / rhoEdge * facu / (facu * facv &
                   &+ (f_cor_v * dt) ** 2)
@@ -8669,7 +7025,8 @@ module poisson_module
 
                 ! A(i,j,k+1) and A(i,j,k)
 
-                rhoEdge = 0.5 * (var%rho(i, j, k + 1) + var%rho(i, j, k)) + rhoStratTilde(k)
+                rhoEdge = 0.5 * (var%rho(i, j, k + 1) + var%rho(i, j, k)) &
+                    &+ rhoStratTilde(k)
 
                 pStratU = 0.5 * (pStrat(k + 1) + pStrat(k))
                 pStratU_0 = 0.5 * (pStrat_0(k + 1) + pStrat_0(k))
@@ -8679,7 +7036,7 @@ module poisson_module
 
                 AC = AC - AU
 
-                ACV = ACV - AU 
+                ACV = ACV - AU
               end if
 
               ! ------------------- from - PD WD/dz ---------------------
@@ -8706,7 +7063,8 @@ module poisson_module
 
                 ! A(i,j,k) and A(i,j,k-1)
 
-                rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k - 1)) + rhoStratTilde(k - 1)
+                rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k - 1)) &
+                    &+ rhoStratTilde(k - 1)
 
                 pStratD = 0.5 * (pStrat(k) + pStrat(k - 1))
                 pStratD_0 = 0.5 * (pStrat_0(k) + pStrat_0(k - 1))
@@ -8716,7 +7074,7 @@ module poisson_module
 
                 AC = AC - AD
 
-                ACV = ACV - AD 
+                ACV = ACV - AD
               end if
 
               AC = AC / fcscal ** 2
