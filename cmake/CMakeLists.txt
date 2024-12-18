@@ -47,7 +47,6 @@ add_executable(pinc
     ../src/boundary.f90
     ../src/finish.f90
     ../src/fluxes.f90
-    ../src/ice_sub.f90
     ../src/ice.f90
     ../src/init.f90
     ../src/mpi.f90
