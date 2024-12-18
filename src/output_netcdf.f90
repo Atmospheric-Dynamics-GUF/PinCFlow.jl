@@ -17,6 +17,7 @@ module output_netCDF_module
   integer :: ncid ! id of the netCDF file
   integer :: atmvarid, rayvarid, icevarid ! group ids
   integer :: rayvolid ! group id for ray volumes
+  integer :: optvarid !
 
   ! start and count values for nf90_put_var(...)
   integer :: startxNC, startyNC, countxNC, countyNC
@@ -77,6 +78,15 @@ module output_netCDF_module
   integer :: rayvolid_dxray, rayvolid_dyray, rayvolid_dzray
   integer :: rayvolid_dens
   integer :: rayvolid_dphi
+
+  ! variable ids in the group icevol
+  integer :: icevarid_n ! number concentration
+  integer :: icevarid_q ! ice mixing ratio
+  integer :: icevarid_qv ! vapor mixing ratio
+
+  ! variable ids in the group optvol
+  integer :: optvarid_s !
+  integer :: optvarid_w, optvarid_t
 
   contains
 
@@ -180,24 +190,24 @@ module output_netCDF_module
       call handle_err(nf90_def_var(ncid, 'kh', nf90_float, [dimidx, dimidy, &
           &dimidh, dimidt], ncidkh))
       call handle_err(nf90_var_par_access(ncid, ncidkh, nf90_collective))
-      call handle_err(nf90_put_att(ncid, ncidkh, 'long_name', &
-          &'zonal wavenumbers of the small-scale topography spectrum'))
+      call handle_err(nf90_put_att(ncid, ncidkh, 'long_name', 'zonal &
+          &wavenumbers of the small-scale topography spectrum'))
       call handle_err(nf90_put_att(ncid, ncidkh, 'units', '1/m'))
 
       ! meridional wavenumbers
       call handle_err(nf90_def_var(ncid, 'lh', nf90_float, [dimidx, dimidy, &
           &dimidh, dimidt], ncidlh))
       call handle_err(nf90_var_par_access(ncid, ncidlh, nf90_collective))
-      call handle_err(nf90_put_att(ncid, ncidlh, 'long_name', &
-          &'meridional wavenumbers of the small-scale topography spectrum'))
+      call handle_err(nf90_put_att(ncid, ncidlh, 'long_name', 'meridional &
+          &wavenumbers of the small-scale topography spectrum'))
       call handle_err(nf90_put_att(ncid, ncidlh, 'units', '1/m'))
 
       ! wave amplitudes
       call handle_err(nf90_def_var(ncid, 'hw', nf90_float, [dimidx, dimidy, &
           &dimidh, dimidt], ncidhw))
       call handle_err(nf90_var_par_access(ncid, ncidhw, nf90_collective))
-      call handle_err(nf90_put_att(ncid, ncidhw, 'long_name', &
-          &'amplitudes of the small-scale topography spectrum'))
+      call handle_err(nf90_put_att(ncid, ncidhw, 'long_name', 'amplitudes of &
+          &the small-scale topography spectrum'))
       call handle_err(nf90_put_att(ncid, ncidhw, 'units', 'm'))
     end if
 
@@ -214,6 +224,10 @@ module output_netCDF_module
     end if
     if(include_ice) then
       call handle_err(nf90_def_grp(ncid, 'icevar', icevarid))
+    end if
+
+    if(include_testoutput) then
+      call handle_err(nf90_def_grp(ncid, 'optvar', optvarid))
     end if
 
     !-------------------------------------
@@ -435,6 +449,79 @@ module output_netCDF_module
           &'Change in tracer mixing ratio from initial distribution'))
     end if
 
+    !-------------------------------------
+    ! define the variables in icevar group
+    !-------------------------------------
+
+    ! ice crystal number concentration
+    if(include_ice .and. (prepare_restart .or. any(icevarOut == 'n'))) then
+      call handle_err(nf90_def_var(icevarid, 'n', nf90_float, [dimidx, dimidy, &
+          &dimidz, dimidt], icevarid_n))
+      call handle_err(nf90_var_par_access(icevarid, icevarid_n, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(icevarid, icevarid_n, 'long_name', 'ice &
+          &crystal number concentration'))
+      call handle_err(nf90_put_att(icevarid, icevarid_n, 'units', '1/kg'))
+    end if
+
+    ! ice mixing ratio
+    if(include_ice .and. (prepare_restart .or. any(icevarOut == 'q'))) then
+      call handle_err(nf90_def_var(icevarid, 'q', nf90_float, [dimidx, dimidy, &
+          &dimidz, dimidt], icevarid_q))
+      call handle_err(nf90_var_par_access(icevarid, icevarid_q, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(icevarid, icevarid_q, 'long_name', 'ice &
+          &mixing ratio'))
+      call handle_err(nf90_put_att(icevarid, icevarid_q, 'units', 'none'))
+    end if
+
+    ! vapor mixing ratio
+    if(include_ice .and. (prepare_restart .or. any(icevarOut == 'qv'))) then
+      call handle_err(nf90_def_var(icevarid, 'qv', nf90_float, [dimidx, &
+          &dimidy, dimidz, dimidt], icevarid_qv))
+      call handle_err(nf90_var_par_access(icevarid, icevarid_qv, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(icevarid, icevarid_qv, 'long_name', 'vapor &
+          &mixing ratio'))
+      call handle_err(nf90_put_att(icevarid, icevarid_qv, 'units', 'none'))
+    end if
+
+    !-------------------------------------
+    ! define the variables in optvar group
+    !-------------------------------------
+
+    if(include_testoutput .and. (prepare_restart .or. any(optvarOut == 's'))) &
+        &then
+      call handle_err(nf90_def_var(optvarid, 's', nf90_float, [dimidx, dimidy, &
+          &dimidz, dimidt], optvarid_s))
+      call handle_err(nf90_var_par_access(optvarid, optvarid_s, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(optvarid, optvarid_s, 'long_name', &
+          &'saturation ratio'))
+      call handle_err(nf90_put_att(optvarid, optvarid_s, 'units', 'none'))
+    end if
+
+    if(include_testoutput .and. (prepare_restart .or. any(optvarOut == 'w'))) &
+        &then
+      call handle_err(nf90_def_var(optvarid, 'w', nf90_float, [dimidx, dimidy, &
+          &dimidz, dimidt], optvarid_w))
+      call handle_err(nf90_var_par_access(optvarid, optvarid_w, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(optvarid, optvarid_w, 'long_name', &
+          &'vertical velocity due to GW'))
+      call handle_err(nf90_put_att(optvarid, optvarid_w, 'units', 'm/s'))
+    end if
+
+    if(include_testoutput .and. (prepare_restart .or. any(optvarOut == 't'))) &
+        &then
+      call handle_err(nf90_def_var(optvarid, 't', nf90_float, [dimidx, dimidy, &
+          &dimidz, dimidt], optvarid_t))
+      call handle_err(nf90_var_par_access(optvarid, optvarid_t, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(optvarid, optvarid_t, 'long_name', 'test &
+          &variable'))
+      call handle_err(nf90_put_att(optvarid, optvarid_t, 'units', 'none'))
+    end if
     !-------------------------------------
     ! define the variables in rayvar group
     !-------------------------------------
@@ -1110,6 +1197,47 @@ module output_netCDF_module
     end if
 
     !--------------------------------
+    ! save variables in icevar group
+    !--------------------------------
+
+    if(include_ice .and. (prepare_restart .or. any(icevarOut == 'n'))) then
+      call handle_err(nf90_put_var(icevarid, icevarid_n, var%ICE(1:nx, 1:ny, &
+          &1:nz, 1) / rho / mRef, start = startNC, count = countNC), 'save n')
+    end if
+
+    if(include_ice .and. (prepare_restart .or. any(icevarOut == 'q'))) then
+      call handle_err(nf90_put_var(icevarid, icevarid_q, var%ICE(1:nx, 1:ny, &
+          &1:nz, 2) / rho, start = startNC, count = countNC), 'save q')
+    end if
+
+    if(include_ice .and. (prepare_restart .or. any(icevarOut == 'qv'))) then
+      call handle_err(nf90_put_var(icevarid, icevarid_qv, var%ICE(1:nx, 1:ny, &
+          &1:nz, 3) / rho, start = startNC, count = countNC), 'save qv')
+    end if
+
+    !--------------------------------
+    ! save variables in optvar group
+    !--------------------------------
+
+    if(include_testoutput .and. (prepare_restart .or. any(optvarOut == 's'))) &
+        &then
+      call handle_err(nf90_put_var(optvarid, optvarid_s, var%OPT(1:nx, 1:ny, &
+          &1:nz, 1), start = startNC, count = countNC), 'save opt s')
+    end if
+
+    if(include_testoutput .and. (prepare_restart .or. any(optvarOut == 'w'))) &
+        &then
+      call handle_err(nf90_put_var(optvarid, optvarid_w, var%OPT(1:nx, 1:ny, &
+          &1:nz, 2) * uRef, start = startNC, count = countNC), 'save opt w')
+    end if
+
+    if(include_testoutput .and. (prepare_restart .or. any(optvarOut == 't'))) &
+        &then
+      call handle_err(nf90_put_var(optvarid, optvarid_t, var%OPT(1:nx, 1:ny, &
+          &1:nz, 3), start = startNC, count = countNC), 'save opt t')
+    end if
+
+    !--------------------------------
     ! save variables in rayvar group
     !--------------------------------
 
@@ -1752,5 +1880,238 @@ module output_netCDF_module
       stop 2
     endif
   end subroutine handle_err
+
+  subroutine output_cloud(iOut, var, ray_cloud)
+
+    !-------------------------------
+    !  writes data to file pf_cloud.dat
+    !-------------------------------
+    use type_module, ONLY:field_mst_cld, field_out_cld
+    implicit none
+    ! output counter
+    integer, intent(in) :: iOut
+
+    ! argument fields
+    type(ice_rayType2), dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, nscx, nscy), &
+        &intent(inout) :: ray_cloud
+    type(var_type), intent(in) :: var
+
+    ! local and global output field and record nbs.
+    real * 4, dimension(nx * nscx, ny * nscy) :: field_prc_cld
+    integer irc_prc, irc_out
+
+    ! local variables
+    integer :: i, j, k, iVar
+
+    integer :: i_prc, i_mst, i_out, j_prc, j_mst, j_out
+
+    integer :: ii, jj, yj, xi
+    real :: rho
+    !------------------------------
+    !   prepare output file
+    !------------------------------
+
+    ! open output file
+
+    if(master) then
+      open(45, file = 'pf_cloud.dat', form = "unformatted", access = 'direct', &
+          &recl = SizeX * SizeY * nscx * nscy * sizeofreal4)
+    end if
+
+    !---------------------------------------
+    !       dimensionalising and layerwise output
+    !---------------------------------------
+
+    if(master) then
+      !first variable
+      irc_prc = 3 !number of variables outputed
+      irc_prc = irc_prc * (iOut - 1) * nz
+    end if
+
+    do k = 1, nz
+
+      yj = 0
+      do j = 1, ny
+        do jj = 1, nscy
+          yj = yj + 1
+
+          xi = 0
+          do i = 1, nx
+            do ii = 1, nscx
+              xi = xi + 1
+
+              if(topography) then
+
+                rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
+
+              else
+
+                rho = var%rho(i, j, k) + rhoStrat(k)
+
+              end if ! topography
+
+              field_prc_cld(xi, yj) = real(ray_cloud(i, j, k, ii, jj)%Ni / rho &
+                  &/ mRef, kind = 4)
+
+            end do !ii
+          end do !i
+
+          call mpi_gather(field_prc_cld(1, yj), nx * nscx, mpi_real, &
+              &field_mst_cld(1, yj), nx * nscx, mpi_real, 0, comm, ierror)
+        end do !jj
+      end do !j
+
+      ! layerwise output
+      irc_prc = irc_prc + 1
+      call mpi_barrier(comm, ierror)
+      if(master) then
+        do j = 1, ny * nscy
+          j_mst = j
+
+          do j_prc = 1, nprocy
+            j_out = ny * nscy * (j_prc - 1) + j
+
+            do i_prc = 1, nprocx
+              do i = 1, nx * nscx
+                i_out = nx * nscx * (i_prc - 1) + i
+
+                i_mst = nprocy * nx * nscx * (i_prc - 1) + (j_prc - 1) * nx &
+                    &* nscx + i
+
+                field_out_cld(i_out, j_out) = field_mst_cld(i_mst, j_mst)
+
+              end do !i
+            end do !i_prc
+          end do !j_prc
+        end do !j
+        write(45, rec = irc_prc) field_out_cld
+      end if ! master
+    end do !k
+
+    ! 2. variable Qi, Qv, ...
+    do k = 1, nz
+
+      yj = 0
+      do j = 1, ny
+        do jj = 1, nscy
+          yj = yj + 1
+
+          xi = 0
+          do i = 1, nx
+            do ii = 1, nscx
+              xi = xi + 1
+
+              if(topography) then
+
+                rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
+
+              else
+
+                rho = var%rho(i, j, k) + rhoStrat(k)
+
+              end if ! topography
+
+              field_prc_cld(xi, yj) = real(ray_cloud(i, j, k, ii, jj)%Qv &
+                  &/ rho, kind = 4)
+
+            end do !ii
+          end do !i
+
+          call mpi_gather(field_prc_cld(1, yj), nx * nscx, mpi_real, &
+              &field_mst_cld(1, yj), nx * nscx, mpi_real, 0, comm, ierror)
+        end do !jj
+      end do !j
+
+      ! layerwise output
+      irc_prc = irc_prc + 1
+      call mpi_barrier(comm, ierror)
+      if(master) then
+        do j = 1, ny * nscy
+          j_mst = j
+
+          do j_prc = 1, nprocy
+            j_out = ny * nscy * (j_prc - 1) + j
+
+            do i_prc = 1, nprocx
+              do i = 1, nx * nscx
+                i_out = nx * nscx * (i_prc - 1) + i
+
+                i_mst = nprocy * nx * nscx * (i_prc - 1) + (j_prc - 1) * nx &
+                    &* nscx + i
+
+                field_out_cld(i_out, j_out) = field_mst_cld(i_mst, j_mst)
+
+              end do !i
+            end do !i_prc
+          end do !j_prc
+        end do !j
+        write(45, rec = irc_prc) field_out_cld
+      end if
+    end do !k
+
+    ! 3. variable Qv, w, ...
+    do k = 1, nz
+
+      yj = 0
+      do j = 1, ny
+        do jj = 1, nscy
+          yj = yj + 1
+
+          xi = 0
+          do i = 1, nx
+            do ii = 1, nscx
+              xi = xi + 1
+
+              if(topography) then
+
+                rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
+
+              else
+
+                rho = var%rho(i, j, k) + rhoStrat(k)
+
+              end if ! topography
+
+              field_prc_cld(xi, yj) = real(ray_cloud(i, j, k, ii, jj)%wwp &
+                  &* uRef, kind = 4)
+
+            end do !ii
+          end do !i
+
+          call mpi_gather(field_prc_cld(1, yj), nx * nscx, mpi_real, &
+              &field_mst_cld(1, yj), nx * nscx, mpi_real, 0, comm, ierror)
+        end do !jj
+      end do !j
+
+      ! layerwise output
+      irc_prc = irc_prc + 1
+      call mpi_barrier(comm, ierror)
+      if(master) then
+        do j = 1, ny * nscy
+          j_mst = j
+
+          do j_prc = 1, nprocy
+            j_out = ny * nscy * (j_prc - 1) + j
+
+            do i_prc = 1, nprocx
+              do i = 1, nx * nscx
+                i_out = nx * nscx * (i_prc - 1) + i
+
+                i_mst = nprocy * nx * nscx * (i_prc - 1) + (j_prc - 1) * nx &
+                    &* nscx + i
+
+                field_out_cld(i_out, j_out) = field_mst_cld(i_mst, j_mst)
+
+              end do !i
+            end do !i_prc
+          end do !j_prc
+        end do !j
+        write(45, rec = irc_prc) field_out_cld
+      end if
+    end do !k
+
+    if(master) close(unit = 45)
+
+  end subroutine output_cloud
 
 end module output_netCDF_module
