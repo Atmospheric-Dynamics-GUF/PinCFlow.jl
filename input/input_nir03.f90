@@ -344,4 +344,7 @@
 &iceList
   dt_ice                   =                  1.0E+0 ! ...
   no_ice_source            =                       F ! ...
+  parameterized_nucleation = .true.
+  !  parameterized_nucleation = .false.
+  average_cell = .true.
 &end
