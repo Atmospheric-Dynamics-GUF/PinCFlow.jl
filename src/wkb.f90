@@ -13249,10 +13249,6 @@ module wkb_module
                     end if
                     fcpsar = abs(fcpsar) !fraction volume of RV inside some cell
 
-                    !TEST***
-                    !compare wave action
-                    var%OPT(ix, jy, kz, 3) = var%OPT(ix, jy, kz, 3) + wadr 
-                    
                     ! save fluctutations corresponding to max volume
                     if(fcpsar .gt. fcpsar_max(ix, jy, kz) .and. wadr .gt. 0) &
                         &then
@@ -13353,10 +13349,15 @@ module wkb_module
                         !fcpswn = fcpswn * dwnrk
                         !?fcpsar = fcpsar * dxi /dx
                       else
-                        fcpspx = 1.0
+                        fcpspx = 1.0 
                       end if
 
-                      wadr = fcpspx * fcpspy * fcpspz * ray(iRay, ixrv, jyrv, &
+                      wadr = fcpspx * fcpspy * fcpspz *  ray(iRay, ixrv, jyrv, &
+                          &kzrv)%dens
+
+                      !TEST***
+                      !compare wave action
+                      var%OPT(ix, jy, kz, 3) = var%OPT(ix, jy, kz, 3) +  ray(iRay, ixrv, jyrv, &
                           &kzrv)%dens
 
                       wadr_sum(ix, jy, kz) = wadr_sum(ix, jy, kz) + wadr !integrated waveaction density
