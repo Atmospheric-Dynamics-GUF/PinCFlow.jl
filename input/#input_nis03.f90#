@@ -178,7 +178,7 @@
                                                      ! scheme
   alpha_sat                =                  1.0E+0 ! Saturation threshold
   steady_state             =                       F ! Steady-state mode
-  case_wkb                 =                       5 ! 1 = Gaussian wave
+  case_wkb                 =                       3 ! 1 = Gaussian wave
                                                      ! packet, 2 = cosine wave
                                                      ! packet, 3 = mountain
                                                      ! wave

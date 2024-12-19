@@ -434,13 +434,13 @@ module ice_module
 
             if(include_testoutput) then
 
-              var%OPT(i, j, k, 1) = S0
-              var%OPT(i, j, k, 2) = qv0 / epsil0hat * pres / psi ! store IC S
+              !var%OPT(i, j, k, 1) = S0
+              !var%OPT(i, j, k, 2) = qv0 / epsil0hat * pres / psi ! store IC S
 
               if(raytracer) then
                 !var(i, j, k, iVarO) = S0
-                var%OPT(i, j, k, 2) = 0.
-                var%OPT(i, j, k, 3) = 0.
+                !var%OPT(i, j, k, 2) = 0.
+                !var%OPT(i, j, k, 3) = 0.
               end if
             end if
 

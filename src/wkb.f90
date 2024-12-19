@@ -76,7 +76,7 @@ module wkb_module
   ! FJApr2023
   integer, dimension(:), allocatable :: iwm_sfc
 
-  !real, dimension(:, :, :, :), allocatable :: dpRay
+  real, dimension(:, :, :, :), allocatable :: dpRay
 
   integer :: iRay ! index of ray v. within a
   ! cell
@@ -1698,7 +1698,7 @@ module wkb_module
   !---------------------------------------------------------------------
 
   subroutine setup_wkb(ray, ray_var3D, var, diffusioncoeff, waveAmplitudes, &
-      &dPhase, ray_varIce, ray_cloud)
+       &dPhase, ray_varIce, ray_cloud)
 
     !------------------------------------------------
     ! allocate ray field
@@ -1718,19 +1718,19 @@ module wkb_module
     real, dimension(:, :, :), allocatable, intent(out) :: diffusioncoeff
     real, dimension(:, :, :), allocatable, intent(out) :: dPhase
     type(ice_rayType), dimension(:, :, :), allocatable, intent(out) :: &
-        &ray_varIce
+         &ray_varIce
     type(ice_rayType2), dimension(:, :, :, :, :), allocatable, intent(out) :: &
-        &ray_cloud
+         &ray_cloud
 
     type(waveAmpType), dimension(:, :, :), allocatable, intent(out) :: &
-        &waveAmplitudes
+         &waveAmplitudes
 
     ! local variables
     integer :: allocstat
 
     ! FJApr2023
     real, allocatable :: omi_notop(:, :, :), omi_sfc(:, :, :), wnk_sfc(:, :, &
-        &:), wnl_sfc(:, :, :), wnm_sfc(:, :, :)
+         &:), wnl_sfc(:, :, :), wnm_sfc(:, :, :)
     real, allocatable :: fld_amp(:, :, :, :)
 
     integer :: ix, jy, kz, im
@@ -1798,6 +1798,18 @@ module wkb_module
     zrmin = zrmin_dim / lRef
     zrmax = zrmax_dim / lRef
 
+    !SDJul2024
+    if(case_wkb == 5) then
+
+       xr0_sp = xr0_dim_sp / lRef
+       yr0_sp = yr0_dim_sp / lRef
+       zr0_sp = zr0_dim_sp / lRef
+
+       sigwpx_sp = sigwpx_dim_sp / lRef
+       sigwpy_sp = sigwpy_dim_sp / lRef
+       sigwpz_sp = sigwpz_dim_sp / lRef
+
+    end if
     !-------------------------------------------
     ! compute maximum number of ray volumes  ...
     !-------------------------------------------
@@ -1805,68 +1817,68 @@ module wkb_module
     ! factor z-m space
 
     if(zrmin < lz(0) .or. zrmax > lz(1)) then
-      print *, 'zrmin too small or zrmax too large! --> exit'
-      stop
+       print *, 'zrmin too small or zrmax too large! --> exit'
+       stop
     endif
 
     if(case_wkb == 3) then
-      kzmin = 0
-      kzmax = 0
+       kzmin = 0
+       kzmax = 0
 
-      nzRay = nray_fac * nrzl * nrm_init
+       nzRay = nray_fac * nrzl * nrm_init
     else
-      if(topography) then
-        kzmin = 1
-        kzmax = sizeZ
-      else
-        kzmin = max(1, int(floor((zrmin - lz(0)) / dz)) + 1)
-        kzmax = min(sizeZ, int(floor((zrmax - lz(0)) / dz)) + 1)
-      end if
+       if(topography) then
+          kzmin = 1
+          kzmax = sizeZ
+       else
+          kzmin = max(1, int(floor((zrmin - lz(0)) / dz)) + 1)
+          kzmax = min(sizeZ, int(floor((zrmax - lz(0)) / dz)) + 1)
+       end if
 
-      nzRay = nray_fac * nrzl * nrm_init
+       nzRay = nray_fac * nrzl * nrm_init
     end if
 
     ! factor x-k space
     if(case_wkb == 3) then ! topography
-      ixmin = 1
-      ixmax = nx
+       ixmin = 1
+       ixmax = nx
     else
-      if(xrmin < lx(0) .or. xrmax > lx(1)) then
-        print *, 'xrmin too small or xrmax too large! --> exit'
-        stop
-      endif
+       if(xrmin < lx(0) .or. xrmax > lx(1)) then
+          print *, 'xrmin too small or xrmax too large! --> exit'
+          stop
+       endif
 
-      ixmin = max(1, int(floor((xrmin - lx(0)) / dx)) + 1 - ix0)
-      ixmax = min(nx, int(floor((xrmax - lx(0)) / dx)) + 1 - ix0)
+       ixmin = max(1, int(floor((xrmin - lx(0)) / dx)) + 1 - ix0)
+       ixmax = min(nx, int(floor((xrmax - lx(0)) / dx)) + 1 - ix0)
 
-      ! if the cpu domain is outside of the range where r.v. are to be
-      ! generated one gets ixmin > ixmax. In this case do not do anything
-      ! below
+       ! if the cpu domain is outside of the range where r.v. are to be
+       ! generated one gets ixmin > ixmax. In this case do not do anything
+       ! below
     end if
 
     if(sizeX == 1) then
-      nxRay = 1
+       nxRay = 1
     else
-      nxRay = nray_fac * nrxl * nrk_init
+       nxRay = nray_fac * nrxl * nrk_init
     end if
 
     ! factor y-l space
     if(case_wkb == 3) then
-      jymin = 1
-      jymax = ny
+       jymin = 1
+       jymax = ny
     else
-      jymin = max(1, int(floor((yrmin - ly(0)) / dy)) + 1)
-      jymax = min(ny, int(floor((yrmax - ly(0)) / dy)) + 1)
+       jymin = max(1, int(floor((yrmin - ly(0)) / dy)) + 1)
+       jymax = min(ny, int(floor((yrmax - ly(0)) / dy)) + 1)
 
-      ! if the cpu domain is outside of the range where r.v. are to be
-      ! generated one gets jymin > jymax. In this case do not do anything
-      ! below
+       ! if the cpu domain is outside of the range where r.v. are to be
+       ! generated one gets jymin > jymax. In this case do not do anything
+       ! below
     end if
 
     if(sizeY == 1) then
-      nyRay = 1
+       nyRay = 1
     else
-      nyRay = nray_fac * nryl * nrl_init
+       nyRay = nray_fac * nryl * nrl_init
     end if
 
     ! maximum # of r.v. allowed in a cell before r.v. are merged
@@ -1879,21 +1891,21 @@ module wkb_module
     ! etc)
 
     if(nxRay > 1) then
-      nxRay_wrk = 2 * nxRay
+       nxRay_wrk = 2 * nxRay
     else
-      nxRay_wrk = 1
+       nxRay_wrk = 1
     end if
 
     if(nyRay > 1) then
-      nyRay_wrk = 2 * nyRay
+       nyRay_wrk = 2 * nyRay
     else
-      nyRay_wrk = 1
+       nyRay_wrk = 1
     end if
 
     if(nzRay > 1) then
-      nzRay_wrk = 2 * nzRay
+       nzRay_wrk = 2 * nzRay
     else
-      nzRay_wrk = 1
+       nzRay_wrk = 1
     end if
 
     nray_wrk = nxRay_wrk * nyRay_wrk * nzRay_wrk
@@ -1918,31 +1930,31 @@ module wkb_module
     nRay = 0
 
     if(case_wkb == 3) then
-      ! pointers to surface ray volumes
+       ! pointers to surface ray volumes
 
-      allocate(ir_sfc(n_sfc, 0:nx + 1, 0:ny + 1), stat = allocstat)
-      if(allocstat /= 0) stop "setup_wkb: could not allocate ir_sfc"
+       allocate(ir_sfc(n_sfc, 0:nx + 1, 0:ny + 1), stat = allocstat)
+       if(allocstat /= 0) stop "setup_wkb: could not allocate ir_sfc"
 
-      allocate(ix2_sfc(n_sfc), stat = allocstat)
-      if(allocstat /= 0) stop "setup_wkb: could not allocate ix2_sfc"
+       allocate(ix2_sfc(n_sfc), stat = allocstat)
+       if(allocstat /= 0) stop "setup_wkb: could not allocate ix2_sfc"
 
-      allocate(jy2_sfc(n_sfc), stat = allocstat)
-      if(allocstat /= 0) stop "setup_wkb: could not allocate jy2_sfc"
+       allocate(jy2_sfc(n_sfc), stat = allocstat)
+       if(allocstat /= 0) stop "setup_wkb: could not allocate jy2_sfc"
 
-      allocate(kz2_sfc(n_sfc), stat = allocstat)
-      if(allocstat /= 0) stop "setup_wkb: could not allocate kz2_sfc"
+       allocate(kz2_sfc(n_sfc), stat = allocstat)
+       if(allocstat /= 0) stop "setup_wkb: could not allocate kz2_sfc"
 
-      allocate(ik_sfc(n_sfc), stat = allocstat)
-      if(allocstat /= 0) stop "setup_wkb: could not allocate ik_sfc"
+       allocate(ik_sfc(n_sfc), stat = allocstat)
+       if(allocstat /= 0) stop "setup_wkb: could not allocate ik_sfc"
 
-      allocate(jl_sfc(n_sfc), stat = allocstat)
-      if(allocstat /= 0) stop "setup_wkb: could not allocate jl_sfc"
+       allocate(jl_sfc(n_sfc), stat = allocstat)
+       if(allocstat /= 0) stop "setup_wkb: could not allocate jl_sfc"
 
-      allocate(km_sfc(n_sfc), stat = allocstat)
-      if(allocstat /= 0) stop "setup_wkb: could not allocate km_sfc"
+       allocate(km_sfc(n_sfc), stat = allocstat)
+       if(allocstat /= 0) stop "setup_wkb: could not allocate km_sfc"
 
-      allocate(iwm_sfc(n_sfc), stat = allocstat)
-      if(allocstat /= 0) stop "setup_wkb: could not allocate iwm_sfc"
+       allocate(iwm_sfc(n_sfc), stat = allocstat)
+       if(allocstat /= 0) stop "setup_wkb: could not allocate iwm_sfc"
     end if
 
     ! position displacement increment
@@ -1955,47 +1967,47 @@ module wkb_module
 
     ! ray-volume extent increment
     allocate(ddxRay(3, nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1), stat &
-        &= allocstat)
+         &= allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate ddxRay"
 
     if(include_ice) then
-      ! phase increment
-      !allocate(dpRay(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), stat &
-      !     &= allocstat)
-      if(allocstat /= 0) stop "setup_wkb: could not allocate dpRay"
-
-      if(raytracer) then
-        allocate(ray_varIce(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
-        if(allocstat /= 0) stop "setup_wkb: could not allocate ray_varIce"
-
-        !if ( compute_cloudcover ) then
-        !should be only allocated if cloud cover used/ requires to rewrite subroutines
-        allocate(ray_cloud(0:nx + 1, 0:ny + 1, 0:nz + 1, NSCX, NSCY), stat &
+       ! phase increment
+       allocate(dpRay(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), stat &
             &= allocstat)
-        if(allocstat /= 0) stop "setup_wkb: could not allocate ray_cloud"
+       if(allocstat /= 0) stop "setup_wkb: could not allocate dpRay"
 
-        allocate(field_mst_cld(sizeX * NSCX * nprocy, ny * NSCY), stat &
-            &= allocstat)
-        allocate(field_out_cld(sizeX * NSCX, sizeY * NSCY), stat = allocstat)
-        !end if
+       if(raytracer) then
+          allocate(ray_varIce(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
+          if(allocstat /= 0) stop "setup_wkb: could not allocate ray_varIce"
 
-        !has to be placed probably somewhere else
-        if(compute_cloudcover) then
+          !if ( compute_cloudcover ) then
+          !should be only allocated if cloud cover used/ requires to rewrite subroutines
+          allocate(ray_cloud(0:nx + 1, 0:ny + 1, 0:nz + 1, NSCX, NSCY), stat &
+               &= allocstat)
+          if(allocstat /= 0) stop "setup_wkb: could not allocate ray_cloud"
 
-          dxsc = dx / nscx
-          dysc = dy / nscy
+          allocate(field_mst_cld(sizeX * NSCX * nprocy, ny * NSCY), stat &
+               &= allocstat)
+          allocate(field_out_cld(sizeX * NSCX, sizeY * NSCY), stat = allocstat)
+          !end if
 
-          do kz = 1, nz
-            do jy = 1, ny
-              do ix = 1, nx
-                ray_cloud(ix, jy, kz, :, :)%Ni = var%ICE(ix, jy, kz, inN)
-                ray_cloud(ix, jy, kz, :, :)%Qi = var%ICE(ix, jy, kz, inQ)
-                ray_cloud(ix, jy, kz, :, :)%Qv = var%ICE(ix, jy, kz, inQv)
-              end do
-            end do
-          end do
-        end if
-      end if
+          !has to be placed probably somewhere else
+          if(compute_cloudcover) then
+
+             dxsc = dx / nscx
+             dysc = dy / nscy
+
+             do kz = 1, nz
+                do jy = 1, ny
+                   do ix = 1, nx
+                      ray_cloud(ix, jy, kz, :, :)%Ni = var%ICE(ix, jy, kz, inN)
+                      ray_cloud(ix, jy, kz, :, :)%Qi = var%ICE(ix, jy, kz, inQ)
+                      ray_cloud(ix, jy, kz, :, :)%Qv = var%ICE(ix, jy, kz, inQv)
+                   end do
+                end do
+             end do
+          end if
+       end if
     end if
 
     ! fields for data WKB output
@@ -2009,19 +2021,19 @@ module wkb_module
     if(allocstat /= 0) stop "setup_wkb: could not allocate dPhase"
 
     allocate(waveAmplitudes(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
-        &stat = allocstat)
+         &stat = allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate waveAmplitudes"
 
     ! needed for initialization of ray volumes:
     if(case_wkb == 3) then
-      ! FJApr2023
-      allocate(omi_sfc(1:nx, 1:ny, 1:nwm))
-      allocate(wnk_sfc(1:nx, 1:ny, 1:nwm))
-      allocate(wnl_sfc(1:nx, 1:ny, 1:nwm))
-      allocate(wnm_sfc(1:nx, 1:ny, 1:nwm))
+       ! FJApr2023
+       allocate(omi_sfc(1:nx, 1:ny, 1:nwm))
+       allocate(wnk_sfc(1:nx, 1:ny, 1:nwm))
+       allocate(wnl_sfc(1:nx, 1:ny, 1:nwm))
+       allocate(wnm_sfc(1:nx, 1:ny, 1:nwm))
     else
-      ! FJApr2023
-      allocate(omi_notop(1:nx, 1:ny, 1:sizeZ))
+       ! FJApr2023
+       allocate(omi_notop(1:nx, 1:ny, 1:sizeZ))
     end if
 
     ! FJApr2023
@@ -2031,40 +2043,61 @@ module wkb_module
     ! Store TFC levels for interpolations. Note that ray volumes beyond the
     ! vertical boundaries are interpolated at these boundaries.
     if(topography) then
-      allocate(zTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz + nbz)))
-      allocate(zTildeTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
-          &+ nbz)))
-      do ix = - nbx, nx + nbx
-        do jy = - nby, ny + nby
-          do kz = - nbz, nz + nbz
-            zTFC(ix, jy, kz) = heightTFC(ix, jy, kz)
-            zTildeTFC(ix, jy, kz) = heightTFC(ix, jy, kz) + 0.5 * jac(ix, jy, &
-                &kz) * dz
+       allocate(zTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz + nbz)))
+       allocate(zTildeTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
+            &+ nbz)))
+       do ix = - nbx, nx + nbx
+          do jy = - nby, ny + nby
+             do kz = - nbz, nz + nbz
+                zTFC(ix, jy, kz) = heightTFC(ix, jy, kz)
+                zTildeTFC(ix, jy, kz) = heightTFC(ix, jy, kz) + 0.5 * jac(ix, jy, &
+                     &kz) * dz
+             end do
           end do
-        end do
-      end do
+       end do
     end if
 
     if(steady_state .and. case_wkb /= 3) stop "Steady state is implemented for &
-        &case_wkb == 3 only!"
+         &case_wkb == 3 only!"
 
     ! non-dimensional wave numbers
 
     if(wlrx_init /= 0.0) then
-      wnrk_init = 2.0 * pi / wlrx_init * lRef
+       wnrk_init = 2.0 * pi / wlrx_init * lRef
     else
-      wnrk_init = 0.0
+       wnrk_init = 0.0
     end if
 
     if(wlry_init /= 0.0) then
-      wnrl_init = 2.0 * pi / wlry_init * lRef
+       wnrl_init = 2.0 * pi / wlry_init * lRef
     else
-      wnrl_init = 0.0
+       wnrl_init = 0.0
     end if
 
     wnrh_init = sqrt(wnrk_init ** 2 + wnrl_init ** 2)
 
     wnrm_init = 2.0 * pi / wlrz_init * lRef
+
+    if(case_wkb == 5) then
+
+       do iwm = 1, NWM_WP
+
+          if(wlrx_init_sp(iwm) /= 0.0) then
+             wnrk_init_sp(iwm) = 2.0 * pi / wlrx_init_sp(iwm) * lRef
+          else
+             wnrk_init_sp(iwm) = 0.0
+          end if
+
+          if(wlry_init_sp(iwm) /= 0.0) then
+             wnrl_init_sp(iwm) = 2.0 * pi / wlry_init_sp(iwm) * lRef
+          else
+             wnrl_init_sp(iwm) = 0.0
+          end if
+
+          wnrm_init_sp(iwm) = 2.0 * pi / wlrz_init_sp(iwm) * lRef
+       end do
+
+    end if
 
     ! achatzc:
     ! a slight inconsistency below is that the stratification
@@ -2073,816 +2106,895 @@ module wkb_module
     ! this is no issue in the isothermal case
 
     if(case_wkb == 3) then
-      ! intrinsic frequency and horizontal wave number mountain wave
+       ! intrinsic frequency and horizontal wave number mountain wave
 
-      kz = 0
-      if(topography) then
-        do jy = 1, ny
-          do ix = 1, nx
-            ! Local squared buoyancy frequency
-            call stratification(zTFC(ix, jy, 1), 1, NN_nd)
-            do iwm = 1, nwm
-              ! Wavenumbers
-              wnrk_init = k_spectrum(ix, jy, iwm)
-              wnrl_init = l_spectrum(ix, jy, iwm)
-              wnrh_init = sqrt(wnrk_init ** 2.0 + wnrl_init ** 2.0)
-              wnrm_init = 0.0
+       kz = 0
+       if(topography) then
+          do jy = 1, ny
+             do ix = 1, nx
+                ! Local squared buoyancy frequency
+                call stratification(zTFC(ix, jy, 1), 1, NN_nd)
+                do iwm = 1, nwm
+                   ! Wavenumbers
+                   wnrk_init = k_spectrum(ix, jy, iwm)
+                   wnrl_init = l_spectrum(ix, jy, iwm)
+                   wnrh_init = sqrt(wnrk_init ** 2.0 + wnrl_init ** 2.0)
+                   wnrm_init = 0.0
 
-              ! Intrinsic frequency
-              omi_sfc(ix, jy, iwm) = - 0.5 * (var%u(ix, jy, 1) + var%u(ix - 1, &
-                  &jy, 1)) * wnrk_init - 0.5 * (var%v(ix, jy, 1) + var%v(ix, &
-                  &jy - 1, 1)) * wnrl_init
+                   ! Intrinsic frequency
+                   omi_sfc(ix, jy, iwm) = - 0.5 * (var%u(ix, jy, 1) + var%u(ix - 1, &
+                        &jy, 1)) * wnrk_init - 0.5 * (var%v(ix, jy, 1) + var%v(ix, &
+                        &jy - 1, 1)) * wnrl_init
 
-              ! Frequency branch
-              if(omi_sfc(ix, jy, iwm) * branchr >= 0.0) then
-                wnk_sfc(ix, jy, iwm) = wnrk_init
-                wnl_sfc(ix, jy, iwm) = wnrl_init
-              else
-                omi_sfc(ix, jy, iwm) = - omi_sfc(ix, jy, iwm)
+                   ! Frequency branch
+                   if(omi_sfc(ix, jy, iwm) * branchr >= 0.0) then
+                      wnk_sfc(ix, jy, iwm) = wnrk_init
+                      wnl_sfc(ix, jy, iwm) = wnrl_init
+                   else
+                      omi_sfc(ix, jy, iwm) = - omi_sfc(ix, jy, iwm)
 
-                wnk_sfc(ix, jy, iwm) = - wnrk_init
-                wnl_sfc(ix, jy, iwm) = - wnrl_init
-              end if
+                      wnk_sfc(ix, jy, iwm) = - wnrk_init
+                      wnl_sfc(ix, jy, iwm) = - wnrl_init
+                   end if
 
-              ! Wave action density and vertical wavenumber
-              if(abs(omi_sfc(ix, jy, iwm)) <= f_cor_nd) then
-                fld_amp(ix, jy, kz, iwm) = 0.0
-                wnrm = 0.0
-              else if(abs(omi_sfc(ix, jy, iwm)) < sqrt(NN_nd)) then
-                wnrm = - branchr * sqrt(wnrh_init ** 2 * (NN_nd - omi_sfc(ix, &
-                    &jy, iwm) ** 2) / (omi_sfc(ix, jy, iwm) ** 2 - f_cor_nd &
-                    &** 2))
+                   ! Wave action density and vertical wavenumber
+                   if(abs(omi_sfc(ix, jy, iwm)) <= f_cor_nd) then
+                      fld_amp(ix, jy, kz, iwm) = 0.0
+                      wnrm = 0.0
+                   else if(abs(omi_sfc(ix, jy, iwm)) < sqrt(NN_nd)) then
+                      wnrm = - branchr * sqrt(wnrh_init ** 2 * (NN_nd - omi_sfc(ix, &
+                           &jy, iwm) ** 2) / (omi_sfc(ix, jy, iwm) ** 2 - f_cor_nd &
+                           &** 2))
 
-                ! Displacement
-                displm = abs(topography_spectrum(ix, jy, iwm))
+                      ! Displacement
+                      displm = abs(topography_spectrum(ix, jy, iwm))
 
-                ! Long number scaling
-                if(blocking) then
-                  ! Compute Long number.
-                  long = sqrt(NN_nd / (0.25 * (var%u(ix, jy, 1) + var%u(ix &
-                      &- 1, jy, 1)) ** 2.0 + 0.25 * (var%v(ix, jy, 1) &
-                      &+ var%v(ix, jy - 1, 1)) ** 2.0)) &
-                      &* sum(abs(topography_spectrum(ix, jy, :)))
-                  ! Apply scaling.
-                  displm = displm * wave_amplitude_reduction(long)
-                end if
+                      ! Long number scaling
+                      if(blocking) then
+                         ! Compute Long number.
+                         long = sqrt(NN_nd / (0.25 * (var%u(ix, jy, 1) + var%u(ix &
+                              &- 1, jy, 1)) ** 2.0 + 0.25 * (var%v(ix, jy, 1) &
+                              &+ var%v(ix, jy - 1, 1)) ** 2.0)) &
+                              &* sum(abs(topography_spectrum(ix, jy, :)))
+                         ! Apply scaling.
+                         displm = displm * wave_amplitude_reduction(long)
+                      end if
 
-                ! Surface wave-action density
-                fld_amp(ix, jy, kz, iwm) = 0.5 * rhoStratTFC(ix, jy, 1) &
-                    &* displm ** 2 * omi_sfc(ix, jy, iwm) * (wnrh_init ** 2 &
-                    &+ wnrm ** 2) / wnrh_init ** 2
-              else
-                fld_amp(ix, jy, kz, iwm) = 0.0
-                wnrm = 0.0
-              end if
-              wnm_sfc(ix, jy, iwm) = wnrm
+                      ! Surface wave-action density
+                      fld_amp(ix, jy, kz, iwm) = 0.5 * rhoStratTFC(ix, jy, 1) &
+                           &* displm ** 2 * omi_sfc(ix, jy, iwm) * (wnrh_init ** 2 &
+                           &+ wnrm ** 2) / wnrh_init ** 2
+                   else
+                      fld_amp(ix, jy, kz, iwm) = 0.0
+                      wnrm = 0.0
+                   end if
+                   wnm_sfc(ix, jy, iwm) = wnrm
 
-            end do
+                end do
+             end do
           end do
-        end do
-      else
-        call stratification(z(1), 1, NN_nd)
-        do jy = 1, ny
-          do ix = 1, nx
-            ! FJApr2023
-            ! Loop over all wave modes.
-            do iwm = 1, nwm
-              ! FJApr2023
-              wnrk_init = k_spectrum(ix, jy, iwm)
-              wnrl_init = l_spectrum(ix, jy, iwm)
-              wnrh_init = sqrt(wnrk_init ** 2.0 + wnrl_init ** 2.0)
-              wnrm_init = 0.0
-
-              ! FJApr2023
-              ! omi_sfc(ix, jy) = - var(ix, jy, 1, 2) * wnrk_init &
-              !     - var(ix, jy, 1, 3) * wnrl_init
-              omi_sfc(ix, jy, iwm) = - 0.5 * (var%u(ix, jy, 1) + var%u(ix - 1, &
-                  &jy, 1)) * wnrk_init - 0.5 * (var%v(ix, jy, 1) + var%v(ix, &
-                  &jy - 1, 1)) * wnrl_init
-
-              ! choose correct sign of horizontal wavenumbers in order to
-              ! be on the correct frequency branch
-
-              ! FJApr2023
-              ! if(omi_sfc(ix, jy) * branchr >= 0.0) then
-              !   wnk_sfc(ix, jy) = wnrk_init
-              !   wnl_sfc(ix, jy) = wnrl_init
-              ! else
-              !   omi_sfc(ix, jy) = - omi_sfc(ix, jy)
-
-              !   wnk_sfc(ix, jy) = - wnrk_init
-              !   wnl_sfc(ix, jy) = - wnrl_init
-              ! end if
-              if(omi_sfc(ix, jy, iwm) * branchr >= 0.0) then
-                wnk_sfc(ix, jy, iwm) = wnrk_init
-                wnl_sfc(ix, jy, iwm) = wnrl_init
-              else
-                omi_sfc(ix, jy, iwm) = - omi_sfc(ix, jy, iwm)
-
-                wnk_sfc(ix, jy, iwm) = - wnrk_init
-                wnl_sfc(ix, jy, iwm) = - wnrl_init
-              end if
-              ! end do
-              ! end do
-
-              ! FJMar2023
-              ! local squared Brunt-Vaisala frequency
-              ! call stratification(z(0), 1, NN_nd)
-
-              ! vertical wave number and wave-action density to be distributed
-              ! over the ray volumes
-
-              ! do jy = 1, ny
-              ! do ix = 1, nx
-              ! FJApr2023
-              ! fld_amp(ix, jy, 0) = 0.0
-              fld_amp(ix, jy, kz, iwm) = 0.0
-              wnrm = 0.0
-
-              ! FJJan2023
-              ! if ((sigwpx == 0.0 .or. abs(x(ix + ix0) - xr0) < sigwpx) .and. &
-              !     (sigwpy == 0.0 .or. abs(y(jy + jy0) - yr0) < sigwpy)) then
-              ! FJApr2023
-              ! if(abs(omi_sfc(ix, jy)) <= f_cor_nd) then
-              !   fld_amp(ix, jy, 0) = 0.0
-              !   wnrm = 0.0
-              ! elseif(abs(omi_sfc(ix, jy)) < sqrt(NN_nd)) then
-              !   wnrm = - branchr * sqrt(wnrh_init ** 2 * (NN_nd - omi_sfc(ix, jy) &
-              !       ** 2) / (omi_sfc(ix, jy) ** 2 - f_cor_nd ** 2))
-              if(abs(omi_sfc(ix, jy, iwm)) <= f_cor_nd) then
-                fld_amp(ix, jy, kz, iwm) = 0.0
-                wnrm = 0.0
-              elseif(abs(omi_sfc(ix, jy, iwm)) < sqrt(NN_nd)) then
-                wnrm = - branchr * sqrt(wnrh_init ** 2 * (NN_nd - omi_sfc(ix, &
-                    &jy, iwm) ** 2) / (omi_sfc(ix, jy, iwm) ** 2 - f_cor_nd &
-                    &** 2))
-
-                ! Displacement (factor two accounts for other frequency branch)
-                displm = abs(topography_spectrum(ix, jy, iwm))
-
-                ! FJJan2023
-                ! displacement
-                ! displm = mountainHeight_wkb_dim / lRef
-                ! if (sigwpx > 0.0) then
-                !   displm = displm * 0.5 * (1.0 + cos(pi * (x(ix + ix0) - xr0) &
-                !       / sigwpx))
-                ! end if
-
-                ! if (sigwpy > 0.0) then
-                !   displm = displm * 0.5 * (1.0 + cos(pi * (y(jy + jy0) - yr0) &
-                !       / sigwpy))
-                ! end if
-
-                ! Long number scaling
-                if(blocking) then
-                  ! Compute Long number.
-                  long = sqrt(NN_nd / (0.25 * (var%u(ix, jy, 1) + var%u(ix &
-                      &- 1, jy, 1)) ** 2.0 + 0.25 * (var%v(ix, jy, 1) &
-                      &+ var%v(ix, jy - 1, 1)) ** 2.0)) &
-                      &* sum(abs(topography_spectrum(ix, jy, :)))
-                  ! Apply scaling.
-                  displm = displm * wave_amplitude_reduction(long)
-                end if
-
-                ! surface wave-action density
+       else
+          call stratification(z(1), 1, NN_nd)
+          do jy = 1, ny
+             do ix = 1, nx
                 ! FJApr2023
-                !   fld_amp(ix, jy, 0) = 0.5 * rhoStrat(0) * displm ** 2 &
-                !       * omi_sfc(ix, jy) * (wnrh_init ** 2 + wnrm ** 2) &
-                !       / wnrh_init ** 2
-                ! else
-                !   fld_amp(ix, jy, 0) = 0.0
-                !   wnrm = 0.0
-                ! end if
-                fld_amp(ix, jy, kz, iwm) = 0.5 * rhoStrat(1) * displm ** 2 &
-                    &* omi_sfc(ix, jy, iwm) * (wnrh_init ** 2 + wnrm ** 2) &
-                    &/ wnrh_init ** 2
-              else
-                fld_amp(ix, jy, kz, iwm) = 0.0
-                wnrm = 0.0
-              end if
-              ! end if
+                ! Loop over all wave modes.
+                do iwm = 1, nwm
+                   ! FJApr2023
+                   wnrk_init = k_spectrum(ix, jy, iwm)
+                   wnrl_init = l_spectrum(ix, jy, iwm)
+                   wnrh_init = sqrt(wnrk_init ** 2.0 + wnrl_init ** 2.0)
+                   wnrm_init = 0.0
 
-              ! FJApr2023
-              ! wnm_sfc(ix, jy) = wnrm
-              wnm_sfc(ix, jy, iwm) = wnrm
-            end do
+                   ! FJApr2023
+                   ! omi_sfc(ix, jy) = - var(ix, jy, 1, 2) * wnrk_init &
+                   !     - var(ix, jy, 1, 3) * wnrl_init
+                   omi_sfc(ix, jy, iwm) = - 0.5 * (var%u(ix, jy, 1) + var%u(ix - 1, &
+                        &jy, 1)) * wnrk_init - 0.5 * (var%v(ix, jy, 1) + var%v(ix, &
+                        &jy - 1, 1)) * wnrl_init
+
+                   ! choose correct sign of horizontal wavenumbers in order to
+                   ! be on the correct frequency branch
+
+                   ! FJApr2023
+                   ! if(omi_sfc(ix, jy) * branchr >= 0.0) then
+                   !   wnk_sfc(ix, jy) = wnrk_init
+                   !   wnl_sfc(ix, jy) = wnrl_init
+                   ! else
+                   !   omi_sfc(ix, jy) = - omi_sfc(ix, jy)
+
+                   !   wnk_sfc(ix, jy) = - wnrk_init
+                   !   wnl_sfc(ix, jy) = - wnrl_init
+                   ! end if
+                   if(omi_sfc(ix, jy, iwm) * branchr >= 0.0) then
+                      wnk_sfc(ix, jy, iwm) = wnrk_init
+                      wnl_sfc(ix, jy, iwm) = wnrl_init
+                   else
+                      omi_sfc(ix, jy, iwm) = - omi_sfc(ix, jy, iwm)
+
+                      wnk_sfc(ix, jy, iwm) = - wnrk_init
+                      wnl_sfc(ix, jy, iwm) = - wnrl_init
+                   end if
+                   ! end do
+                   ! end do
+
+                   ! FJMar2023
+                   ! local squared Brunt-Vaisala frequency
+                   ! call stratification(z(0), 1, NN_nd)
+
+                   ! vertical wave number and wave-action density to be distributed
+                   ! over the ray volumes
+
+                   ! do jy = 1, ny
+                   ! do ix = 1, nx
+                   ! FJApr2023
+                   ! fld_amp(ix, jy, 0) = 0.0
+                   fld_amp(ix, jy, kz, iwm) = 0.0
+                   wnrm = 0.0
+
+                   ! FJJan2023
+                   ! if ((sigwpx == 0.0 .or. abs(x(ix + ix0) - xr0) < sigwpx) .and. &
+                   !     (sigwpy == 0.0 .or. abs(y(jy + jy0) - yr0) < sigwpy)) then
+                   ! FJApr2023
+                   ! if(abs(omi_sfc(ix, jy)) <= f_cor_nd) then
+                   !   fld_amp(ix, jy, 0) = 0.0
+                   !   wnrm = 0.0
+                   ! elseif(abs(omi_sfc(ix, jy)) < sqrt(NN_nd)) then
+                   !   wnrm = - branchr * sqrt(wnrh_init ** 2 * (NN_nd - omi_sfc(ix, jy) &
+                   !       ** 2) / (omi_sfc(ix, jy) ** 2 - f_cor_nd ** 2))
+                   if(abs(omi_sfc(ix, jy, iwm)) <= f_cor_nd) then
+                      fld_amp(ix, jy, kz, iwm) = 0.0
+                      wnrm = 0.0
+                   elseif(abs(omi_sfc(ix, jy, iwm)) < sqrt(NN_nd)) then
+                      wnrm = - branchr * sqrt(wnrh_init ** 2 * (NN_nd - omi_sfc(ix, &
+                           &jy, iwm) ** 2) / (omi_sfc(ix, jy, iwm) ** 2 - f_cor_nd &
+                           &** 2))
+
+                      ! Displacement (factor two accounts for other frequency branch)
+                      displm = abs(topography_spectrum(ix, jy, iwm))
+
+                      ! FJJan2023
+                      ! displacement
+                      ! displm = mountainHeight_wkb_dim / lRef
+                      ! if (sigwpx > 0.0) then
+                      !   displm = displm * 0.5 * (1.0 + cos(pi * (x(ix + ix0) - xr0) &
+                      !       / sigwpx))
+                      ! end if
+
+                      ! if (sigwpy > 0.0) then
+                      !   displm = displm * 0.5 * (1.0 + cos(pi * (y(jy + jy0) - yr0) &
+                      !       / sigwpy))
+                      ! end if
+
+                      ! Long number scaling
+                      if(blocking) then
+                         ! Compute Long number.
+                         long = sqrt(NN_nd / (0.25 * (var%u(ix, jy, 1) + var%u(ix &
+                              &- 1, jy, 1)) ** 2.0 + 0.25 * (var%v(ix, jy, 1) &
+                              &+ var%v(ix, jy - 1, 1)) ** 2.0)) &
+                              &* sum(abs(topography_spectrum(ix, jy, :)))
+                         ! Apply scaling.
+                         displm = displm * wave_amplitude_reduction(long)
+                      end if
+
+                      ! surface wave-action density
+                      ! FJApr2023
+                      !   fld_amp(ix, jy, 0) = 0.5 * rhoStrat(0) * displm ** 2 &
+                      !       * omi_sfc(ix, jy) * (wnrh_init ** 2 + wnrm ** 2) &
+                      !       / wnrh_init ** 2
+                      ! else
+                      !   fld_amp(ix, jy, 0) = 0.0
+                      !   wnrm = 0.0
+                      ! end if
+                      fld_amp(ix, jy, kz, iwm) = 0.5 * rhoStrat(1) * displm ** 2 &
+                           &* omi_sfc(ix, jy, iwm) * (wnrh_init ** 2 + wnrm ** 2) &
+                           &/ wnrh_init ** 2
+                   else
+                      fld_amp(ix, jy, kz, iwm) = 0.0
+                      wnrm = 0.0
+                   end if
+                   ! end if
+
+                   ! FJApr2023
+                   ! wnm_sfc(ix, jy) = wnrm
+                   wnm_sfc(ix, jy, iwm) = wnrm
+                end do
+             end do
           end do
-        end do
-      end if
-    else
-      if(topography) then
-        do kz = 1, sizeZ
-          do jy = 1, ny
-            do ix = 1, nx
-              ! local squared Brunt-Vaisala frequency
-              call stratification(zTFC(ix, jy, kz), 1, NN_nd)
+       end if
+    else ! case_wkb /= 3
+       if(topography) then
 
-              ! intrinsic frequency
-              omi_notop(ix, jy, kz) = branchr * sqrt((NN_nd * wnrh_init ** 2 &
-                  &+ f_cor_nd ** 2 * wnrm_init ** 2) / (wnrh_init ** 2 &
-                  &+ wnrm_init ** 2))
+          if(case_wkb == 5) then
+             print *, 'case_wkb == 5 + topography NOT implemented yet in setup_wkb'
+             stop
+          end if
 
-              ! wave-action density
-              fld_amp(ix, jy, kz, :) = (amp_wkb / wnrm_init) ** 2 * (wnrh_init &
-                  &** 2 + wnrm_init ** 2) / (2.0 * wnrh_init ** 2) &
-                  &* omi_notop(ix, jy, kz) * rhoStratTFC(ix, jy, kz)
+          do kz = 1, sizeZ
+             do jy = 1, ny
+                do ix = 1, nx
+                   ! local squared Brunt-Vaisala frequency
+                   call stratification(zTFC(ix, jy, kz), 1, NN_nd)
 
-              if(case_wkb == 1) then
-                fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
-                    &((zTFC(ix, jy, kz) - zr0) / sigwpz) ** 2)
+                   ! intrinsic frequency
+                   omi_notop(ix, jy, kz) = branchr * sqrt((NN_nd * wnrh_init ** 2 &
+                        &+ f_cor_nd ** 2 * wnrm_init ** 2) / (wnrh_init ** 2 &
+                        &+ wnrm_init ** 2))
 
-                if(sigwpx_dim > 0.0) then
-                  fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
-                      &((x(ix + ix0) - xr0) / sigwpx) ** 2)
-                end if
+                   ! wave-action density
+                   fld_amp(ix, jy, kz, :) = (amp_wkb / wnrm_init) ** 2 * (wnrh_init &
+                        &** 2 + wnrm_init ** 2) / (2.0 * wnrh_init ** 2) &
+                        &* omi_notop(ix, jy, kz) * rhoStratTFC(ix, jy, kz)
 
-                if(sigwpy_dim > 0.0) then
-                  fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
-                      &((y(jy + jy0) - yr0) / sigwpy) ** 2)
-                end if
-              elseif(case_wkb == 2) then
-                if(abs(zTFC(ix, jy, kz) - zr0) < sigwpz) then
-                  fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 * (1.0 &
-                      &+ cos(pi * (zTFC(ix, jy, kz) - zr0) / sigwpz))
+                   if(case_wkb == 1) then
+                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
+                           &((zTFC(ix, jy, kz) - zr0) / sigwpz) ** 2)
 
-                  if(sigwpx > 0.0) then
-                    if(abs(x(ix + ix0) - xr0) < sigwpx) then
-                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
-                          &* (1.0 + cos(pi * (x(ix + ix0) - xr0) / sigwpx))
-                    else
-                      fld_amp(ix, jy, kz, :) = 0.0
-                    end if
-                  end if
+                      if(sigwpx_dim > 0.0) then
+                         fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
+                              &((x(ix + ix0) - xr0) / sigwpx) ** 2)
+                      end if
 
-                  if(sigwpy > 0.0) then
-                    if(abs(y(jy + jy0) - yr0) < sigwpy) then
-                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
-                          &* (1.0 + cos(pi * (y(jy + jy0) - yr0) / sigwpy))
-                    else
-                      fld_amp(ix, jy, kz, :) = 0.0
-                    end if
-                  end if
-                else
-                  fld_amp(ix, jy, kz, :) = 0.0
-                end if
-              elseif(case_wkb == 4) then
-                fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
-                    &(zTFC(ix, jy, kz) - zr0) ** 2. / sigwpz ** 2.)
+                      if(sigwpy_dim > 0.0) then
+                         fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
+                              &((y(jy + jy0) - yr0) / sigwpy) ** 2)
+                      end if
+                   elseif(case_wkb == 2) then
+                      if(abs(zTFC(ix, jy, kz) - zr0) < sigwpz) then
+                         fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 * (1.0 &
+                              &+ cos(pi * (zTFC(ix, jy, kz) - zr0) / sigwpz))
 
-                if(sigwpx > 0.0) then
-                  if(abs(x(ix + ix0) - xr0) < sigwpx) then
-                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
-                        &* (x(ix + ix0) - xr0) / (2. * sigwpx)) ** 2.
-                  else
-                    fld_amp(ix, jy, kz, :) = 0.0
-                  end if
-                end if
-
-                if(sigwpy > 0.0) then
-                  if(abs(y(jy + jy0) - yr0) < sigwpy) then
-                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
-                        &* (y(jy + jy0) - yr0) / (2. * sigwpy)) ** 2.
-                  else
-                    fld_amp(ix, jy, kz, :) = 0.0
-                  end if
-                end if
-
-              end if ! case_wkb
-            end do ! ix
-          end do ! jy
-        end do ! kz
-      else
-        do kz = 1, sizeZ
-          ! local squared Brunt-Vaisala frequency
-          call stratification(z(kz), 1, NN_nd)
-          ! wave-action density
-          do jy = 1, ny
-            do ix = 1, nx
-              ! intrinsic frequency
-              omi_notop(ix, jy, kz) = branchr * sqrt((NN_nd * wnrh_init ** 2 &
-                  &+ f_cor_nd ** 2 * wnrm_init ** 2) / (wnrh_init ** 2 &
-                  &+ wnrm_init ** 2))
-
-              fld_amp(ix, jy, kz, :) = (amp_wkb / wnrm_init) ** 2 * (wnrh_init &
-                  &** 2 + wnrm_init ** 2) / (2.0 * wnrh_init ** 2) &
-                  &* omi_notop(ix, jy, kz) * rhoStrat(kz)
-
-              if(case_wkb == 1) then
-                fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
-                    &((z(kz) - zr0) / sigwpz) ** 2)
-                if(compare_raytracer) then
-                  if(sigwpx > 0.0) then
-                    if(abs(x(ix + ix0) - xr0) < sigwpx) then
-                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
-                          &* (1.0 + cos(pi * (x(ix + ix0) - xr0) / sigwpx))
-                    else
-                      fld_amp(ix, jy, kz, :) = 0.0
-                    end if
-                  end if
-
-                  if(sigwpy > 0.0) then
-                    if(abs(y(jy + jy0) - yr0) < sigwpy) then
-                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
-                          &* (1.0 + cos(pi * (y(jy + jy0) - yr0) / sigwpy))
-                    else
-                      fld_amp(ix, jy, kz, :) = 0.0
-                    end if
-                  end if
-                else
-                  if(sigwpx_dim > 0.0) then
-                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
-                        &((x(ix + ix0) - xr0) / sigwpx) ** 2)
-                  end if
-
-                  if(sigwpy_dim > 0.0) then
-                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
-                        &((y(jy + jy0) - yr0) / sigwpy) ** 2)
-                  end if
-                end if
-              elseif(case_wkb == 2) then
-                if(abs(z(kz) - zr0) < sigwpz) then
-                  fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 * (1.0 &
-                      &+ cos(pi * (z(kz) - zr0) / sigwpz))
-
-                  if(sigwpx > 0.0) then
-                    if(abs(x(ix + ix0) - xr0) < sigwpx) then
-                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
-                          &* (1.0 + cos(pi * (x(ix + ix0) - xr0) / sigwpx))
-                    else
-                      fld_amp(ix, jy, kz, :) = 0.0
-                    end if
-                  end if
-
-                  if(sigwpy > 0.0) then
-                    if(abs(y(jy + jy0) - yr0) < sigwpy) then
-                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
-                          &* (1.0 + cos(pi * (y(jy + jy0) - yr0) / sigwpy))
-                    else
-                      fld_amp(ix, jy, kz, :) = 0.0
-                    end if
-                  end if
-
-                else
-                  fld_amp(ix, jy, kz, :) = 0.0
-                end if
-
-              elseif(case_wkb == 4) then ! to match the wavepacket case gaussian
-                fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- (z(kz) &
-                    &- zr0) ** 2. / sigwpz ** 2.)
-
-                if(sigwpx > 0.0) then
-                  if(abs(x(ix + ix0) - xr0) < sigwpx) then
-                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
-                        &* (x(ix + ix0) - xr0) / (2. * sigwpx)) ** 2.
-                  else
-                    fld_amp(ix, jy, kz, :) = 0.0
-                  end if
-                end if
-
-                if(sigwpy > 0.0) then
-                  if(abs(y(jy + jy0) - yr0) < sigwpy) then
-                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
-                        &* (y(jy + jy0) - yr0) / (2. * sigwpy)) ** 2.
-                  else
-                    fld_amp(ix, jy, kz, :) = 0.0
-                  end if
-                end if
-              end if ! case_wkb
-
-            end do ! ix
-          end do ! jy
-        end do ! kz
-
-      end if ! topography
-    end if ! case_wkb == 3
-
-    ! initialize with wave-induced zonal wind
-    ! currently only available for 1D
-    if(lindUinit) then
-      if((sigwpx > 0.0) .or. (sigwpy > 0.0) .or. (wlry_init /= 0.0)) then
-        stop "setup_wkb: lindUinit only possible for 1D wavepacket envelope in &
-            &z and wavelength in y = 0."
-      end if
-
-      do kz = 1, (nz)
-        do im = 1, nwm
-          var%u(:, :, kz) = var%u(:, :, kz) + wnrk_init * fld_amp(:, :, kz, &
-              &im) / rhoStrat(kz)
-        end do
-      end do
-    end if
-
-    if((case_wkb .ne. 3) .and. include_tracer .and. (f_cor_nd == 0.)) then
-      waveAmplitudes%phase = 0.
-      do kz = 1, nz
-        do jy = 1, ny
-          do ix = 1, nx
-            ! calculating bhat^(2) from the wave-action density
-            waveAmplitudes(ix, jy, kz)%lowamp%b = cmplx(sqrt(2. * NN_nd ** 4. &
-                &/ rhoStrat(kz) * wnrh_init ** 2. * fld_amp(ix, jy, kz, 1) &
-                &/ (omi_notop(ix, jy, kz) * (wnrh_init ** 2. + wnrm_init &
-                &** 2.))), 0.)
-            ! calculating remaining leading-order wave amplitudes using the
-            ! polarization relations
-            waveAmplitudes(ix, jy, kz)%lowamp%u = cmplx(0., 1.) &
-                &* waveAmplitudes(ix, jy, kz)%lowamp%b * wnrk_init &
-                &* (omi_notop(ix, jy, kz) ** 2. - NN_nd ** 2.) / omi_notop(ix, &
-                &jy, kz) / wnrm_init / NN_nd ** 2.
-            waveAmplitudes(ix, jy, kz)%lowamp%v = cmplx(0., 1.) &
-                &* waveAmplitudes(ix, jy, kz)%lowamp%b * wnrl_init &
-                &* (omi_notop(ix, jy, kz) ** 2. - NN_nd ** 2.) / omi_notop(ix, &
-                &jy, kz) / wnrm_init / NN_nd ** 2.
-
-            waveAmplitudes(ix, jy, kz)%lowamp%w = cmplx(0., 1.) &
-                &* waveAmplitudes(ix, jy, kz)%lowamp%b * omi_notop(ix, jy, kz) &
-                &/ NN_nd ** 2.
-            waveAmplitudes(ix, jy, kz)%lowamp%pi = cmplx(0., 1.) &
-                &* waveAmplitudes(ix, jy, kz)%lowamp%b * (omi_notop(ix, jy, &
-                &kz) ** 2. - NN_nd ** 2.) / NN_nd ** 2. / wnrm_init
-
-            waveAmplitudes(ix, jy, kz)%lowamp%chi = 0.
-            if(sizeX > 1) then
-              waveAmplitudes(ix, jy, kz)%lowamp%chi = waveAmplitudes(ix, jy, &
-                  &kz)%lowamp%u * (initialtracer(ix + 1, jy, kz) &
-                  &- initialtracer(ix - 1, jy, kz)) / (2. * dx)
-            end if
-            if(sizeY > 1) then
-              waveAmplitudes(ix, jy, kz)%lowamp%chi = waveAmplitudes(ix, jy, &
-                  &kz)%lowamp%chi + waveAmplitudes(ix, jy, kz)%lowamp%v &
-                  &* (initialtracer(ix, jy + 1, kz) - initialtracer(ix, jy &
-                  &- 1, kz)) / (2. * dy)
-            end if
-            waveAmplitudes(ix, jy, kz)%lowamp%chi = waveAmplitudes(ix, jy, &
-                &kz)%lowamp%chi + waveAmplitudes(ix, jy, kz)%lowamp%w &
-                &* (initialtracer(ix, jy, kz + 1) - initialtracer(ix, jy, kz &
-                &- 1)) / (2. * dz)
-            waveAmplitudes(ix, jy, kz)%lowamp%chi = - waveAmplitudes(ix, jy, &
-                &kz)%lowamp%chi * cmplx(0., 1.) / omi_notop(ix, jy, kz)
-          end do
-        end do
-      end do
-      call setBoundary_waveAmp(waveAmplitudes)
-    else
-      waveAmplitudes%lowamp%u = 0.
-      waveAmplitudes%lowamp%v = 0.
-      waveAmplitudes%lowamp%w = 0.
-      waveAmplitudes%lowamp%b = 0.
-      waveAmplitudes%lowamp%pi = 0.
-      waveAmplitudes%lowamp%chi = 0.
-    end if
-
-    cgx_max = 0.0
-    cgy_max = 0.0
-    cgz_max = 0.0
-
-    ! in mountain-wave case initialization of only one layer of ray
-    ! volumes just below the bottom surface:
-
-    ! if(case_wkb == 3) then
-    !   kz2min = nrzl
-    ! else
-    !   kz2min = 1
-    ! end if
-
-    ! nondimensional wave-number widths to be filled by ray volumes
-
-    dk_ini_nd = dk_init * lRef
-    dl_ini_nd = dl_init * lRef
-    dm_ini_nd = dm_init * lRef
-
-    if(ixmin <= ixmax .and. jymin <= jymax) then
-      !  in x-k subspace, loop over all spatial cells with ray volumes
-      do ix = ixmin, ixmax
-        ! likewise for y-l subspace
-        do jy = jymin, jymax
-          ! likewise for z-m subspace
-          do kz = kzmin, kzmax
-            iRay = 0
-            i_sfc = 0
-
-            ! FJApr2023
-            ! if(topography .and. (zTFC(ix, jy, kz) < zrmin &
-            !     .or. zTFC(ix, jy, kz) > zrmax)) cycle
-
-            ! in x-k subspace, loop over all r.v. within one spatial cell
-            do ix2 = 1, nrxl
-              ! in x-k subspace, loop over all r.v. within the
-              ! wave-number extent to be filled with r.v.
-              do ik = 1, nrk_init
-
-                ! likewise for y-l subspace
-                do jy2 = 1, nryl
-                  do jl = 1, nrl_init
-
-                    ! likewise for z-m subspace
-                    ! do kz2 = kz2min, nrzl
-                    do kz2 = 1, nrzl
-                      do km = 1, nrm_init
-
-                        ! FJApr2023
-                        ! Loop over all wave modes.
-                        do iwm = 1, nwm
-                          if(case_wkb == 3) then
-                            ! pointers for surface ray volumes
-
-                            i_sfc = i_sfc + 1
-
-                            ix2_sfc(i_sfc) = ix2
-                            jy2_sfc(i_sfc) = jy2
-                            kz2_sfc(i_sfc) = kz2
-
-                            ik_sfc(i_sfc) = ik
-                            jl_sfc(i_sfc) = jl
-                            km_sfc(i_sfc) = km
-
-                            iwm_sfc(i_sfc) = iwm
-
-                            ! only add ray volumes with non-zero
-                            ! wave-action density
-                            ! (thus excluding intrinsic frequencies
-                            ! outside of the allowed range)
-                            ! excluded cases indicated by negative
-                            ! ray-volume index
-
-                            if(fld_amp(ix, jy, kz, iwm) == 0.0) then
-                              ir_sfc(i_sfc, ix, jy) = - 1
-                              cycle
+                         if(sigwpx > 0.0) then
+                            if(abs(x(ix + ix0) - xr0) < sigwpx) then
+                               fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
+                                    &* (1.0 + cos(pi * (x(ix + ix0) - xr0) / sigwpx))
                             else
-                              iRay = iRay + 1
-                              ir_sfc(i_sfc, ix, jy) = iRay
+                               fld_amp(ix, jy, kz, :) = 0.0
                             end if
-                          else
-                            iRay = iRay + 1
-                          endif
+                         end if
 
-                          ! ray-volume positions
+                         if(sigwpy > 0.0) then
+                            if(abs(y(jy + jy0) - yr0) < sigwpy) then
+                               fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
+                                    &* (1.0 + cos(pi * (y(jy + jy0) - yr0) / sigwpy))
+                            else
+                               fld_amp(ix, jy, kz, :) = 0.0
+                            end if
+                         end if
+                      else
+                         fld_amp(ix, jy, kz, :) = 0.0
+                      end if
+                   elseif(case_wkb == 4) then
+                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
+                           &(zTFC(ix, jy, kz) - zr0) ** 2. / sigwpz ** 2.)
 
-                          ray(iRay, ix, jy, kz)%x = (x(ix + ix0) - 0.5 * dx &
-                              &+ (ix2 - 0.5) * dx / nrxl)
+                      if(sigwpx > 0.0) then
+                         if(abs(x(ix + ix0) - xr0) < sigwpx) then
+                            fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
+                                 &* (x(ix + ix0) - xr0) / (2. * sigwpx)) ** 2.
+                         else
+                            fld_amp(ix, jy, kz, :) = 0.0
+                         end if
+                      end if
 
-                          ray(iRay, ix, jy, kz)%y = (y(jy + jy0) - 0.5 * dy &
-                              &+ (jy2 - 0.5) * dy / nryl)
+                      if(sigwpy > 0.0) then
+                         if(abs(y(jy + jy0) - yr0) < sigwpy) then
+                            fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
+                                 &* (y(jy + jy0) - yr0) / (2. * sigwpy)) ** 2.
+                         else
+                            fld_amp(ix, jy, kz, :) = 0.0
+                         end if
+                      end if
 
-                          if(topography) then
-                            ! FJApr2023
-                            ray(iRay, ix, jy, kz)%z = (zTFC(ix, jy, kz) - 0.5 &
-                                &* jac(ix, jy, kz) * dz + (kz2 - 0.5) &
-                                &* jac(ix, jy, kz) * dz / nrzl)
-                          else
-                            ray(iRay, ix, jy, kz)%z = (z(kz) - 0.5 * dz + (kz2 &
-                                &- 0.5) * dz / nrzl)
-                          end if
-
-                          xr = ray(iRay, ix, jy, kz)%x
-                          yr = ray(iRay, ix, jy, kz)%y
-                          zr = ray(iRay, ix, jy, kz)%z
-
-                          ! local squared Brunt_Vaisala frequency
-
-                          if(zr < lz(0) - dz) then
-                            print *, 'ERROR IN setup_wkb: RAY VOLUME', iRay, &
-                                &'at', ix, jy, kz, 'TOO LOW'
-                            stop
-                          end if
-
-                          call stratification(zr, 1, NNr)
-
-                          ! ray-volume spatial extensions
-
-                          ray(iRay, ix, jy, kz)%dxray = dx / nrxl
-                          ray(iRay, ix, jy, kz)%dyray = dy / nryl
-                          if(topography) then
-                            ! FJApr2023
-                            ray(iRay, ix, jy, kz)%dzray = jac(ix, jy, kz) * dz &
-                                &/ nrzl
-                          else
-                            ray(iRay, ix, jy, kz)%dzray = dz / nrzl
-                          end if
-
-                          ! ray-volume wave numbers
-
-                          if(case_wkb == 3) then
-                            wnk_0 = wnk_sfc(ix, jy, iwm)
-                            wnl_0 = wnl_sfc(ix, jy, iwm)
-                            wnm_0 = wnm_sfc(ix, jy, iwm)
-                          else
-                            wnk_0 = wnrk_init
-                            wnl_0 = wnrl_init
-                            wnm_0 = wnrm_init
-                          end if
-
-                          ! FJApr2023
-                          ! Ensure correct wavenumber extents.
-                          if(case_wkb == 3 .and. sizeX > 1) then
-                            dk_ini_nd = fac_dk_init * sqrt(wnk_0 ** 2.0 &
-                                &+ wnl_0 ** 2.0)
-                          end if
-
-                          ray(iRay, ix, jy, kz)%k = (wnk_0 - 0.5 * dk_ini_nd &
-                              &+ (real(ik) - 0.5) * dk_ini_nd / nrk_init)
-
-                          ! FJApr2023
-                          ! Ensure correct wavenumber extents.
-                          if(case_wkb == 3 .and. sizeY > 1) then
-                            dl_ini_nd = fac_dl_init * sqrt(wnk_0 ** 2.0 &
-                                &+ wnl_0 ** 2.0)
-                          end if
-
-                          ray(iRay, ix, jy, kz)%l = (wnl_0 - 0.5 * dl_ini_nd &
-                              &+ (real(jl) - 0.5) * dl_ini_nd / nrl_init)
-
-                          if(wnm_0 == 0.0) then
-                            stop "Error in setup_wkb: wnm_0 = 0!"
-                          else
-                            dm_ini_nd = fac_dm_init * abs(wnm_0)
-                          end if
-
-                          ray(iRay, ix, jy, kz)%m = (wnm_0 - 0.5 * dm_ini_nd &
-                              &+ (real(km) - 0.5) * dm_ini_nd / nrm_init)
-
-                          ! ray-volume wave-number extents
-
-                          ray(iRay, ix, jy, kz)%dkray = dk_ini_nd / nrk_init
-
-                          ray(iRay, ix, jy, kz)%dlray = dl_ini_nd / nrl_init
-
-                          ray(iRay, ix, jy, kz)%dmray = dm_ini_nd / nrm_init
-
-                          ! ray-volume phase-space volume
-
-                          ray(iRay, ix, jy, kz)%area_xk = ray(iRay, ix, jy, &
-                              &kz)%dxray * ray(iRay, ix, jy, kz)%dkray
-
-                          ray(iRay, ix, jy, kz)%area_yl = ray(iRay, ix, jy, &
-                              &kz)%dyray * ray(iRay, ix, jy, kz)%dlray
-
-                          ray(iRay, ix, jy, kz)%area_zm = ray(iRay, ix, jy, &
-                              &kz)%dzray * ray(iRay, ix, jy, kz)%dmray
-
-                          pspvol = dm_ini_nd
-
-                          if(sizeX > 1) then
-                            pspvol = pspvol * dk_ini_nd
-                          end if
-
-                          if(sizeY > 1) then
-                            pspvol = pspvol * dl_ini_nd
-                          end if
-
-                          ! phase-space wave-action density
-
-                          if(kz == sizeZ) then
-                            ray(iRay, ix, jy, kz)%dens = 0.0
-                          else
-                            ray(iRay, ix, jy, kz)%dens = fld_amp(ix, jy, kz, &
-                                &iwm) / pspvol
-                          endif
-
-                          ! intrinsic frequency
-
-                          if(case_wkb == 3) then
-                            ray(iRay, ix, jy, kz)%omega = omi_sfc(ix, jy, iwm)
-                          else
-                            ray(iRay, ix, jy, kz)%omega = omi_notop(ix, jy, kz)
-                          end if
-
-                          ! intrinsic group velocities and maximum
-                          ! group velocities
-
-                          call meanflow(xr, yr, zr, var, 1, uxr)
-                          call meanflow(xr, yr, zr, var, 2, vyr)
-                          call meanflow(xr, yr, zr, var, 3, wzr)
-
-                          wnrk = ray(iRay, ix, jy, kz)%k
-                          wnrl = ray(iRay, ix, jy, kz)%l
-                          wnrm = ray(iRay, ix, jy, kz)%m
-
-                          wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
-
-                          omir = ray(iRay, ix, jy, kz)%omega
-
-                          cgirx = wnrk * (NNr - omir ** 2) / (omir * (wnrh &
-                              &** 2 + wnrm ** 2))
-
-                          if(abs(uxr + cgirx) > abs(cgx_max)) then
-                            cgx_max = abs(uxr + cgirx)
-                          end if
-
-                          cgiry = wnrl * (NNr - omir ** 2) / (omir * (wnrh &
-                              &** 2 + wnrm ** 2))
-
-                          if(abs(vyr + cgiry) > abs(cgy_max)) then
-                            cgy_max = abs(vyr + cgiry)
-                          end if
-
-                          cgirz = - wnrm * (omir ** 2 - f_cor_nd ** 2) / (omir &
-                              &* (wnrh ** 2 + wnrm ** 2))
-
-                          if(abs(wzr + cgirz) > abs(cgz_max)) then
-                            cgz_max = abs(wzr + cgirz)
-                          end if
-
-                          ! SD
-                          if(include_ice) then
-                            dphi = wnrk * xr + wnrl * yr + wnrm * zr
-                            ray(iRay, ix, jy, kz)%dphi = dphi
-                          end if
-
-                        end do ! iwm
-                      end do ! km
-                    end do ! kz2
-                  end do ! jl
-                end do ! jy2
-
-              end do ! ik
-            end do ! ix2
-
-            if(iRay > nray_wrk) then
-              print *, 'ERROR at ix,jy,kz =', ix, jy, kz
-              print *, 'iRay =', iRay, '> nray_wrk =', nray_wrk
-              stop
-            end if
-
-            nRay(ix, jy, kz) = iRay
-
-            if(nRay(ix, jy, kz) > nray_wrk) then
-              print *, 'ERROR at ix,jy,kz =', ix, jy, kz
-              print *, 'nRay =', nRay(ix, jy, kz), '> nray_wrk =', nray_wrk
-              stop
-            end if
-
-            if(case_wkb == 3) then
-              if(i_sfc /= n_sfc) then
-                print *, 'ERROR at ix,jy,kz =', ix, jy, kz
-                print *, 'i_sfc =', i_sfc, '/= n_sfc =', n_sfc
-                stop
-              end if
-            end if
+                   end if ! case_wkb
+                end do ! ix
+             end do ! jy
           end do ! kz
-        end do ! jy
-      end do ! ix
+       else
+          do kz = 1, sizeZ
+             ! local squared Brunt-Vaisala frequency
+             call stratification(z(kz), 1, NN_nd)
+             ! wave-action density
+             do jy = 1, ny
+                do ix = 1, nx
 
-    end if
+                   if(case_wkb == 5) then
 
-    !SD
-    !double check if output rays needed
-    if(include_ice) then
+                      do iwm = 1, NWM_WP
 
-      allocate(nor_mst(nprocx * nprocy), stat = allocstat)
-      if(allocstat /= 0) stop "wkb.f90/setup_wkb: could not allocate nor_mst. &
-          &Stop."
-      allocate(vct_prc(nray_wrk * nx * ny * nz, NFR), stat = allocstat)
-      if(allocstat /= 0) stop "wkb.f90/setup_wkb: could not allocate vct_prc. &
-          &Stop."
-      allocate(vct_mst(nray_wrk * sizeX * sizeY * sizeZ, NFR), stat = allocstat)
-      if(allocstat /= 0) stop "wkb.f90/setup_wkb: could not allocate vct_mst. &
-          &Stop."
-      !allocate(vct_out(nray_wrk*sizeX*sizeY*sizeZ, NFR), stat = allocstat)
-      !if(allocstat /= 0) stop "wkb.f90/setup_wkb: could not allocate &
-      !     vec_out. Stop."
+                         branchr = branchr_sp(iwm)
+                         amp_wkb = amp_wkb_sp(iwm)
 
-      !Saturation field ect.
-      allocate(opt_ray(nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1), stat &
-          &= allocstat)
-      if(allocstat /= 0) stop "setup_wkb: could not allocate opt_ray"
+                         wnrk_init = wnrk_init_sp(iwm)
+                         wnrl_init = wnrl_init_sp(iwm)
+                         wnrm_init = wnrm_init_sp(iwm)
 
-      ! init values
-      nor_mst = 0.
-      vct_prc = 0.
-      vct_mst = 0.
-      NoR_out = 1.
+                         wnrh_init = sqrt(wnrk_init ** 2.0 + wnrl_init ** 2.0)
 
-      if(case_wkb == 3) stop 'RayTracer+Ice+Topography not supported'
-      if(topography) stop 'RayTracer+Ice+Topography not supported'
+                         sigwpz = sigwpz_sp(iwm)
+                         sigwpx = sigwpx_sp(iwm)
+                         sigwpy = sigwpy_sp(iwm)
 
-    end if
-    !-------------------------------
-    !       Feedback on Screen
-    !-------------------------------
+                         zr0 = zr0_sp(iwm)
+                         xr0 = xr0_sp(iwm)
+                         yr0 = yr0_sp(iwm)
 
-    nrsuml = sum(nRay(1:nx, 1:ny, 0:nz))
+                         ! intrinsic frequency
+                         omi_notop(ix, jy, kz) = branchr * sqrt((NN_nd * wnrh_init &
+                              ** 2 + f_cor_nd ** 2 * wnrm_init ** 2) / (wnrh_init ** 2 &
+                              + wnrm_init ** 2))
 
-    call mpi_reduce(nrsuml, nr_sum, 1, mpi_integer, mpi_sum, root, comm, ierror)
-    call mpi_bcast(nr_sum, 1, mpi_integer, root, comm, ierror)
+                         fld_amp(ix, jy, kz, iwm) = (amp_wkb / wnrm_init) ** 2 &
+                              * (wnrh_init ** 2 + wnrm_init ** 2) / (2.0 * wnrh_init &
+                              ** 2) * omi_notop(ix, jy, kz) * rhoStrat(kz)
 
-    if(master) then
-      ! Feedback to user
-      print *, ""
-      print *, " 11) Ray tracer: "
+                         if(abs(z(kz) - zr0) < sigwpz) then
+                            fld_amp(ix, jy, kz, iwm) = fld_amp(ix, jy, kz, iwm) * 0.5 &
+                                 * (1.0 + cos(pi * (z(kz) - zr0) / sigwpz))
 
-      if(rayTracer) then
-        write(*, fmt = "(a25,a)") "ray tracer = ", "on"
+                            if(sigwpx > 0.0) then
+                               if(abs(x(ix + ix0) - xr0) < sigwpx) then
+                                  fld_amp(ix, jy, kz, iwm) = fld_amp(ix, jy, kz, iwm) &
+                                       * 0.5 * (1.0 + cos(pi * (x(ix + ix0) - xr0) &
+                                       / sigwpx))
+                               else
+                                  fld_amp(ix, jy, kz, iwm) = 0.0
+                               end if
+                            end if
 
-        write(*, fmt = "(a25,i7)") "nb of rays = ", nr_sum
-        write(*, fmt = "(a25,f7.1)") "nb rays / grid cell  = ", real(nr_sum) &
-            &/ (sizeX * sizeY * (sizeZ + 1))
-        write(*, fmt = "(a31,i7)") "max allowed nb of rays / cell = ", nray_max
-      else
-        write(*, fmt = "(a25,a)") "ray tracer = ", "off"
-      end if
-    end if
+                            if(sigwpy > 0.0) then
+                               if(abs(y(jy + jy0) - yr0) < sigwpy) then
+                                  fld_amp(ix, jy, kz, iwm) = fld_amp(ix, jy, kz, iwm) &
+                                       * 0.5 * (1.0 + cos(pi * (y(jy + jy0) - yr0) &
+                                       / sigwpy))
+                               else
+                                  fld_amp(ix, jy, kz, iwm) = 0.0
+                               end if
+                            end if
 
-  end subroutine setup_wkb
+                         else
+                            fld_amp(ix, jy, kz, iwm) = 0.0
+                         end if
+
+                      end do ! iwm
+
+                   else ! case_wkb /= 5
+                      ! intrinsic frequency
+                      omi_notop(ix, jy, kz) = branchr * sqrt((NN_nd * wnrh_init ** 2 &
+                           &+ f_cor_nd ** 2 * wnrm_init ** 2) / (wnrh_init ** 2 &
+                           &+ wnrm_init ** 2))
+
+                      fld_amp(ix, jy, kz, :) = (amp_wkb / wnrm_init) ** 2 * (wnrh_init &
+                           &** 2 + wnrm_init ** 2) / (2.0 * wnrh_init ** 2) &
+                           &* omi_notop(ix, jy, kz) * rhoStrat(kz)
+
+                      !TEST****
+                      !var%OPT(ix, jy, kz, 3) = amp_wkb !(amp_wkb / wnrm_init) ** 2 &
+                           !* (wnrh_init ** 2 + wnrm_init ** 2) / (2.0 * wnrh_init &
+                           !** 2) !* omi_notop(ix, jy, kz) * rhoStrat(kz) !sum(fld_amp(ix, jy, kz, :))
+                      
+                         if(case_wkb == 1) then
+                         fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
+                              &((z(kz) - zr0) / sigwpz) ** 2)
+                         if(compare_raytracer) then
+                            if(sigwpx > 0.0) then
+                               if(abs(x(ix + ix0) - xr0) < sigwpx) then
+                                  fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
+                                       &* (1.0 + cos(pi * (x(ix + ix0) - xr0) / sigwpx))
+                               else
+                                  fld_amp(ix, jy, kz, :) = 0.0
+                               end if
+                            end if
+
+                            if(sigwpy > 0.0) then
+                               if(abs(y(jy + jy0) - yr0) < sigwpy) then
+                                  fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
+                                       &* (1.0 + cos(pi * (y(jy + jy0) - yr0) / sigwpy))
+                               else
+                                  fld_amp(ix, jy, kz, :) = 0.0
+                               end if
+                            end if
+                         else
+                            if(sigwpx_dim > 0.0) then
+                               fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
+                                    &((x(ix + ix0) - xr0) / sigwpx) ** 2)
+                            end if
+
+                            if(sigwpy_dim > 0.0) then
+                               fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
+                                    &((y(jy + jy0) - yr0) / sigwpy) ** 2)
+                            end if
+                         end if
+                      elseif(case_wkb == 2) then
+
+                         if(abs(z(kz) - zr0) < sigwpz) then
+                            fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 * (1.0 &
+                                 &+ cos(pi * (z(kz) - zr0) / sigwpz))
+
+                            if(sigwpx > 0.0) then
+                               if(abs(x(ix + ix0) - xr0) < sigwpx) then
+                                  fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
+                                       &* (1.0 + cos(pi * (x(ix + ix0) - xr0) / sigwpx))
+                               else
+                                  fld_amp(ix, jy, kz, :) = 0.0
+                               end if
+                            end if
+
+                            if(sigwpy > 0.0) then
+                               if(abs(y(jy + jy0) - yr0) < sigwpy) then
+                                  fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
+                                       &* (1.0 + cos(pi * (y(jy + jy0) - yr0) / sigwpy))
+                               else
+                                  fld_amp(ix, jy, kz, :) = 0.0
+                               end if
+                            end if
+
+                         else
+                            fld_amp(ix, jy, kz, :) = 0.0
+                         end if
+
+                      elseif(case_wkb == 4) then ! to match the wavepacket case gaussian
+                         fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- (z(kz) &
+                              &- zr0) ** 2. / sigwpz ** 2.)
+
+                         if(sigwpx > 0.0) then
+                            if(abs(x(ix + ix0) - xr0) < sigwpx) then
+                               fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
+                                    &* (x(ix + ix0) - xr0) / (2. * sigwpx)) ** 2.
+                            else
+                               fld_amp(ix, jy, kz, :) = 0.0
+                            end if
+                         end if
+
+                         if(sigwpy > 0.0) then
+                            if(abs(y(jy + jy0) - yr0) < sigwpy) then
+                               fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
+                                    &* (y(jy + jy0) - yr0) / (2. * sigwpy)) ** 2.
+                            else
+                               fld_amp(ix, jy, kz, :) = 0.0
+                            end if
+                         end if
+                      end if ! case_wkb
+
+                   end if !case_wkb /=5
+                   end do ! ix
+                end do ! jy
+             end do ! kz
+
+          end if ! topography
+       end if ! case_wkb == 3
+
+       ! initialize with wave-induced zonal wind
+       ! currently only available for 1D
+       if(lindUinit) then
+          if((sigwpx > 0.0) .or. (sigwpy > 0.0) .or. (wlry_init /= 0.0)) then
+             stop "setup_wkb: lindUinit only possible for 1D wavepacket envelope in &
+                  &z and wavelength in y = 0."
+          end if
+
+          do kz = 1, (nz)
+             do im = 1, nwm
+                var%u(:, :, kz) = var%u(:, :, kz) + wnrk_init * fld_amp(:, :, kz, &
+                     &im) / rhoStrat(kz)
+             end do
+          end do
+       end if
+
+       if((case_wkb .ne. 3) .and. include_tracer .and. (f_cor_nd == 0.)) then
+          waveAmplitudes%phase = 0.
+          do kz = 1, nz
+             do jy = 1, ny
+                do ix = 1, nx
+                   ! calculating bhat^(2) from the wave-action density
+                   waveAmplitudes(ix, jy, kz)%lowamp%b = cmplx(sqrt(2. * NN_nd ** 4. &
+                        &/ rhoStrat(kz) * wnrh_init ** 2. * fld_amp(ix, jy, kz, 1) &
+                        &/ (omi_notop(ix, jy, kz) * (wnrh_init ** 2. + wnrm_init &
+                        &** 2.))), 0.)
+                   ! calculating remaining leading-order wave amplitudes using the
+                   ! polarization relations
+                   waveAmplitudes(ix, jy, kz)%lowamp%u = cmplx(0., 1.) &
+                        &* waveAmplitudes(ix, jy, kz)%lowamp%b * wnrk_init &
+                        &* (omi_notop(ix, jy, kz) ** 2. - NN_nd ** 2.) / omi_notop(ix, &
+                        &jy, kz) / wnrm_init / NN_nd ** 2.
+                   waveAmplitudes(ix, jy, kz)%lowamp%v = cmplx(0., 1.) &
+                        &* waveAmplitudes(ix, jy, kz)%lowamp%b * wnrl_init &
+                        &* (omi_notop(ix, jy, kz) ** 2. - NN_nd ** 2.) / omi_notop(ix, &
+                        &jy, kz) / wnrm_init / NN_nd ** 2.
+
+                   waveAmplitudes(ix, jy, kz)%lowamp%w = cmplx(0., 1.) &
+                        &* waveAmplitudes(ix, jy, kz)%lowamp%b * omi_notop(ix, jy, kz) &
+                        &/ NN_nd ** 2.
+                   waveAmplitudes(ix, jy, kz)%lowamp%pi = cmplx(0., 1.) &
+                        &* waveAmplitudes(ix, jy, kz)%lowamp%b * (omi_notop(ix, jy, &
+                        &kz) ** 2. - NN_nd ** 2.) / NN_nd ** 2. / wnrm_init
+
+                   waveAmplitudes(ix, jy, kz)%lowamp%chi = 0.
+                   if(sizeX > 1) then
+                      waveAmplitudes(ix, jy, kz)%lowamp%chi = waveAmplitudes(ix, jy, &
+                           &kz)%lowamp%u * (initialtracer(ix + 1, jy, kz) &
+                           &- initialtracer(ix - 1, jy, kz)) / (2. * dx)
+                   end if
+                   if(sizeY > 1) then
+                      waveAmplitudes(ix, jy, kz)%lowamp%chi = waveAmplitudes(ix, jy, &
+                           &kz)%lowamp%chi + waveAmplitudes(ix, jy, kz)%lowamp%v &
+                           &* (initialtracer(ix, jy + 1, kz) - initialtracer(ix, jy &
+                           &- 1, kz)) / (2. * dy)
+                   end if
+                   waveAmplitudes(ix, jy, kz)%lowamp%chi = waveAmplitudes(ix, jy, &
+                        &kz)%lowamp%chi + waveAmplitudes(ix, jy, kz)%lowamp%w &
+                        &* (initialtracer(ix, jy, kz + 1) - initialtracer(ix, jy, kz &
+                        &- 1)) / (2. * dz)
+                   waveAmplitudes(ix, jy, kz)%lowamp%chi = - waveAmplitudes(ix, jy, &
+                        &kz)%lowamp%chi * cmplx(0., 1.) / omi_notop(ix, jy, kz)
+                end do
+             end do
+          end do
+          call setBoundary_waveAmp(waveAmplitudes)
+       else
+          waveAmplitudes%lowamp%u = 0.
+          waveAmplitudes%lowamp%v = 0.
+          waveAmplitudes%lowamp%w = 0.
+          waveAmplitudes%lowamp%b = 0.
+          waveAmplitudes%lowamp%pi = 0.
+          waveAmplitudes%lowamp%chi = 0.
+       end if
+
+       cgx_max = 0.0
+       cgy_max = 0.0
+       cgz_max = 0.0
+
+       ! in mountain-wave case initialization of only one layer of ray
+       ! volumes just below the bottom surface:
+
+       ! if(case_wkb == 3) then
+       !   kz2min = nrzl
+       ! else
+       !   kz2min = 1
+       ! end if
+
+       ! nondimensional wave-number widths to be filled by ray volumes
+
+       dk_ini_nd = dk_init * lRef
+       dl_ini_nd = dl_init * lRef
+       dm_ini_nd = dm_init * lRef
+
+       if(ixmin <= ixmax .and. jymin <= jymax) then
+          !  in x-k subspace, loop over all spatial cells with ray volumes
+          do ix = ixmin, ixmax
+             ! likewise for y-l subspace
+             do jy = jymin, jymax
+                ! likewise for z-m subspace
+                do kz = kzmin, kzmax
+                   iRay = 0
+                   i_sfc = 0
+
+                   ! FJApr2023
+                   ! if(topography .and. (zTFC(ix, jy, kz) < zrmin &
+                   !     .or. zTFC(ix, jy, kz) > zrmax)) cycle
+
+                   ! in x-k subspace, loop over all r.v. within one spatial cell
+                   do ix2 = 1, nrxl
+                      ! in x-k subspace, loop over all r.v. within the
+                      ! wave-number extent to be filled with r.v.
+                      do ik = 1, nrk_init
+
+                         ! likewise for y-l subspace
+                         do jy2 = 1, nryl
+                            do jl = 1, nrl_init
+
+                               ! likewise for z-m subspace
+                               ! do kz2 = kz2min, nrzl
+                               do kz2 = 1, nrzl
+                                  do km = 1, nrm_init
+
+                                     ! FJApr2023
+                                     ! Loop over all wave modes.
+                                     do iwm = 1, nwm
+                                        if(case_wkb == 3) then
+                                           ! pointers for surface ray volumes
+
+                                           i_sfc = i_sfc + 1
+
+                                           ix2_sfc(i_sfc) = ix2
+                                           jy2_sfc(i_sfc) = jy2
+                                           kz2_sfc(i_sfc) = kz2
+
+                                           ik_sfc(i_sfc) = ik
+                                           jl_sfc(i_sfc) = jl
+                                           km_sfc(i_sfc) = km
+
+                                           iwm_sfc(i_sfc) = iwm
+
+                                           ! only add ray volumes with non-zero
+                                           ! wave-action density
+                                           ! (thus excluding intrinsic frequencies
+                                           ! outside of the allowed range)
+                                           ! excluded cases indicated by negative
+                                           ! ray-volume index
+
+                                           if(fld_amp(ix, jy, kz, iwm) == 0.0) then
+                                              ir_sfc(i_sfc, ix, jy) = - 1
+                                              cycle
+                                           else
+                                              iRay = iRay + 1
+                                              ir_sfc(i_sfc, ix, jy) = iRay
+                                           end if
+                                        else
+                                           iRay = iRay + 1
+                                        endif
+
+                                        ! ray-volume positions
+
+                                        ray(iRay, ix, jy, kz)%x = (x(ix + ix0) - 0.5 * dx &
+                                             &+ (ix2 - 0.5) * dx / nrxl)
+
+                                        ray(iRay, ix, jy, kz)%y = (y(jy + jy0) - 0.5 * dy &
+                                             &+ (jy2 - 0.5) * dy / nryl)
+
+                                        if(topography) then
+                                           ! FJApr2023
+                                           ray(iRay, ix, jy, kz)%z = (zTFC(ix, jy, kz) - 0.5 &
+                                                &* jac(ix, jy, kz) * dz + (kz2 - 0.5) &
+                                                &* jac(ix, jy, kz) * dz / nrzl)
+                                        else
+                                           ray(iRay, ix, jy, kz)%z = (z(kz) - 0.5 * dz + (kz2 &
+                                                &- 0.5) * dz / nrzl)
+                                        end if
+
+                                        xr = ray(iRay, ix, jy, kz)%x
+                                        yr = ray(iRay, ix, jy, kz)%y
+                                        zr = ray(iRay, ix, jy, kz)%z
+
+                                        ! local squared Brunt_Vaisala frequency
+
+                                        if(zr < lz(0) - dz) then
+                                           print *, 'ERROR IN setup_wkb: RAY VOLUME', iRay, &
+                                                &'at', ix, jy, kz, 'TOO LOW'
+                                           stop
+                                        end if
+
+                                        call stratification(zr, 1, NNr)
+
+                                        ! ray-volume spatial extensions
+
+                                        ray(iRay, ix, jy, kz)%dxray = dx / nrxl
+                                        ray(iRay, ix, jy, kz)%dyray = dy / nryl
+                                        if(topography) then
+                                           ! FJApr2023
+                                           ray(iRay, ix, jy, kz)%dzray = jac(ix, jy, kz) * dz &
+                                                &/ nrzl
+                                        else
+                                           ray(iRay, ix, jy, kz)%dzray = dz / nrzl
+                                        end if
+
+                                        ! ray-volume wave numbers
+
+                                        if(case_wkb == 3) then
+                                           wnk_0 = wnk_sfc(ix, jy, iwm)
+                                           wnl_0 = wnl_sfc(ix, jy, iwm)
+                                           wnm_0 = wnm_sfc(ix, jy, iwm)
+                                        elseif(case_wkb == 5) then
+                                           wnk_0 = wnrk_init_sp(iwm)
+                                           wnl_0 = wnrl_init_sp(iwm)
+                                           wnm_0 = wnrm_init_sp(iwm)
+                                        else
+                                           wnk_0 = wnrk_init
+                                           wnl_0 = wnrl_init
+                                           wnm_0 = wnrm_init
+                                        end if
+
+                                        ! FJApr2023
+                                        ! Ensure correct wavenumber extents.
+                                        if(case_wkb == 3 .and. sizeX > 1) then
+                                           dk_ini_nd = fac_dk_init * sqrt(wnk_0 ** 2.0 &
+                                                &+ wnl_0 ** 2.0)
+                                        end if
+
+                                        ray(iRay, ix, jy, kz)%k = (wnk_0 - 0.5 * dk_ini_nd &
+                                             &+ (real(ik) - 0.5) * dk_ini_nd / nrk_init)
+
+                                        ! FJApr2023
+                                        ! Ensure correct wavenumber extents.
+                                        if(case_wkb == 3 .and. sizeY > 1) then
+                                           dl_ini_nd = fac_dl_init * sqrt(wnk_0 ** 2.0 &
+                                                &+ wnl_0 ** 2.0)
+                                        end if
+
+                                        ray(iRay, ix, jy, kz)%l = (wnl_0 - 0.5 * dl_ini_nd &
+                                             &+ (real(jl) - 0.5) * dl_ini_nd / nrl_init)
+
+                                        if(wnm_0 == 0.0) then
+                                           stop "Error in setup_wkb: wnm_0 = 0!"
+                                        else
+                                           dm_ini_nd = fac_dm_init * abs(wnm_0)
+                                        end if
+
+                                        ray(iRay, ix, jy, kz)%m = (wnm_0 - 0.5 * dm_ini_nd &
+                                             &+ (real(km) - 0.5) * dm_ini_nd / nrm_init)
+
+                                        ! ray-volume wave-number extents
+
+                                        ray(iRay, ix, jy, kz)%dkray = dk_ini_nd / nrk_init
+
+                                        ray(iRay, ix, jy, kz)%dlray = dl_ini_nd / nrl_init
+
+                                        ray(iRay, ix, jy, kz)%dmray = dm_ini_nd / nrm_init
+
+                                        ! ray-volume phase-space volume
+
+                                        ray(iRay, ix, jy, kz)%area_xk = ray(iRay, ix, jy, &
+                                             &kz)%dxray * ray(iRay, ix, jy, kz)%dkray
+
+                                        ray(iRay, ix, jy, kz)%area_yl = ray(iRay, ix, jy, &
+                                             &kz)%dyray * ray(iRay, ix, jy, kz)%dlray
+
+                                        ray(iRay, ix, jy, kz)%area_zm = ray(iRay, ix, jy, &
+                                             &kz)%dzray * ray(iRay, ix, jy, kz)%dmray
+
+                                        pspvol = dm_ini_nd
+
+                                        if(sizeX > 1) then
+                                           pspvol = pspvol * dk_ini_nd
+                                        end if
+
+                                        if(sizeY > 1) then
+                                           pspvol = pspvol * dl_ini_nd
+                                        end if
+
+                                        ! phase-space wave-action density
+
+                                        if(kz == sizeZ) then
+                                           ray(iRay, ix, jy, kz)%dens = 0.0
+                                        else
+                                           ray(iRay, ix, jy, kz)%dens = fld_amp(ix, jy, kz, &
+                                                &iwm) / pspvol
+                                        endif
+
+                                        ! intrinsic frequency
+
+                                        if(case_wkb == 3) then
+                                           ray(iRay, ix, jy, kz)%omega = omi_sfc(ix, jy, iwm)
+                                        else
+                                           ray(iRay, ix, jy, kz)%omega = omi_notop(ix, jy, kz)
+                                        end if
+
+                                        ! intrinsic group velocities and maximum
+                                        ! group velocities
+
+                                        call meanflow(xr, yr, zr, var, 1, uxr)
+                                        call meanflow(xr, yr, zr, var, 2, vyr)
+                                        call meanflow(xr, yr, zr, var, 3, wzr)
+
+                                        wnrk = ray(iRay, ix, jy, kz)%k
+                                        wnrl = ray(iRay, ix, jy, kz)%l
+                                        wnrm = ray(iRay, ix, jy, kz)%m
+
+                                        wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
+
+                                        omir = ray(iRay, ix, jy, kz)%omega
+
+                                        cgirx = wnrk * (NNr - omir ** 2) / (omir * (wnrh &
+                                             &** 2 + wnrm ** 2))
+
+                                        if(abs(uxr + cgirx) > abs(cgx_max)) then
+                                           cgx_max = abs(uxr + cgirx)
+                                        end if
+
+                                        cgiry = wnrl * (NNr - omir ** 2) / (omir * (wnrh &
+                                             &** 2 + wnrm ** 2))
+
+                                        if(abs(vyr + cgiry) > abs(cgy_max)) then
+                                           cgy_max = abs(vyr + cgiry)
+                                        end if
+
+                                        cgirz = - wnrm * (omir ** 2 - f_cor_nd ** 2) / (omir &
+                                             &* (wnrh ** 2 + wnrm ** 2))
+
+                                        if(abs(wzr + cgirz) > abs(cgz_max)) then
+                                           cgz_max = abs(wzr + cgirz)
+                                        end if
+
+                                        ! SD
+                                        if(include_ice) then
+                                           dphi = wnrk * xr + wnrl * yr + wnrm * zr
+                                           ray(iRay, ix, jy, kz)%dphi = dphi
+                                        end if
+
+                                     end do ! iwm
+                                  end do ! km
+                               end do ! kz2
+                            end do ! jl
+                         end do ! jy2
+
+                      end do ! ik
+                   end do ! ix2
+
+                   if(iRay > nray_wrk) then
+                      print *, 'ERROR at ix,jy,kz =', ix, jy, kz
+                      print *, 'iRay =', iRay, '> nray_wrk =', nray_wrk
+                      stop
+                   end if
+
+                   nRay(ix, jy, kz) = iRay
+
+                   if(nRay(ix, jy, kz) > nray_wrk) then
+                      print *, 'ERROR at ix,jy,kz =', ix, jy, kz
+                      print *, 'nRay =', nRay(ix, jy, kz), '> nray_wrk =', nray_wrk
+                      stop
+                   end if
+
+                   if(case_wkb == 3) then
+                      if(i_sfc /= n_sfc) then
+                         print *, 'ERROR at ix,jy,kz =', ix, jy, kz
+                         print *, 'i_sfc =', i_sfc, '/= n_sfc =', n_sfc
+                         stop
+                      end if
+                   end if
+                end do ! kz
+             end do ! jy
+          end do ! ix
+
+       end if
+
+       !SD
+       !double check if output rays needed
+       if(include_ice) then
+
+          allocate(nor_mst(nprocx * nprocy), stat = allocstat)
+          if(allocstat /= 0) stop "wkb.f90/setup_wkb: could not allocate nor_mst. &
+               &Stop."
+          allocate(vct_prc(nray_wrk * nx * ny * nz, NFR), stat = allocstat)
+          if(allocstat /= 0) stop "wkb.f90/setup_wkb: could not allocate vct_prc. &
+               &Stop."
+          allocate(vct_mst(nray_wrk * sizeX * sizeY * sizeZ, NFR), stat = allocstat)
+          if(allocstat /= 0) stop "wkb.f90/setup_wkb: could not allocate vct_mst. &
+               &Stop."
+          !allocate(vct_out(nray_wrk*sizeX*sizeY*sizeZ, NFR), stat = allocstat)
+          !if(allocstat /= 0) stop "wkb.f90/setup_wkb: could not allocate &
+          !     vec_out. Stop."
+
+          !Saturation field ect.
+          allocate(opt_ray(nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1), stat &
+               &= allocstat)
+          if(allocstat /= 0) stop "setup_wkb: could not allocate opt_ray"
+
+          ! init values
+          nor_mst = 0.
+          vct_prc = 0.
+          vct_mst = 0.
+          NoR_out = 1.
+
+          if(case_wkb == 3) stop 'RayTracer+Ice+Topography not supported'
+          if(topography) stop 'RayTracer+Ice+Topography not supported'
+
+       end if
+       !-------------------------------
+       !       Feedback on Screen
+       !-------------------------------
+
+       nrsuml = sum(nRay(1:nx, 1:ny, 0:nz))
+
+       call mpi_reduce(nrsuml, nr_sum, 1, mpi_integer, mpi_sum, root, comm, ierror)
+       call mpi_bcast(nr_sum, 1, mpi_integer, root, comm, ierror)
+
+       if(master) then
+          ! Feedback to user
+          print *, ""
+          print *, " 11) Ray tracer: "
+
+          if(rayTracer) then
+             write(*, fmt = "(a25,a)") "ray tracer = ", "on"
+
+             write(*, fmt = "(a25,i7)") "nb of rays = ", nr_sum
+             write(*, fmt = "(a25,f7.1)") "nb rays / grid cell  = ", real(nr_sum) &
+                  &/ (sizeX * sizeY * (sizeZ + 1))
+             write(*, fmt = "(a31,i7)") "max allowed nb of rays / cell = ", nray_max
+          else
+             write(*, fmt = "(a25,a)") "ray tracer = ", "off"
+          end if
+       end if
+
+     end subroutine setup_wkb
 
   !------------------------------------------------------------------------
 
@@ -6014,7 +6126,7 @@ module wkb_module
     real :: xr, yr, zr
     real :: dxr, dyr, dzr
     real :: axk, ayl, azm
-
+    real :: dphi, deltaPhi
     integer :: nrvtt0, nrvtt1, nrvloc
 
     if(steady_state) return
@@ -6064,6 +6176,14 @@ module wkb_module
 
                 ray(iRay, ix, jy, kz)%x = xr - 0.25 * dxr
                 ray(nrlc, ix, jy, kz)%x = xr + 0.25 * dxr
+
+                !SDJul2024
+                if(update_phase) then
+                   dphi = ray(iRay, ix, jy, kz)%dphi
+                   deltaPhi = 0.25 * dxr * ray(iRay, ix, jy, kz)%k
+                   ray(iRay, ix, jy, kz)%dphi = dphi - deltaPhi
+                   ray(nrlc, ix, jy, kz)%dphi = dphi + deltaPhi
+                end if
               end if
             end do
 
@@ -6105,6 +6225,14 @@ module wkb_module
 
                 ray(iRay, ix, jy, kz)%y = yr - 0.25 * dyr
                 ray(nrlc, ix, jy, kz)%y = yr + 0.25 * dyr
+
+                !SDJul2024
+                if(update_phase) then
+                  dphi = ray(iRay, ix, jy, kz)%dphi
+                  deltaPhi = 0.25 * dyr * ray(iRay, ix, jy, kz)%l
+                  ray(iRay, ix, jy, kz)%dphi = dphi - deltaPhi
+                  ray(nrlc, ix, jy, kz)%dphi = dphi + deltaPhi
+                end if
               end if
             end do
 
@@ -6145,7 +6273,14 @@ module wkb_module
 
               ray(iRay, ix, jy, kz)%z = zr - 0.25 * dzr
               ray(nrlc, ix, jy, kz)%z = zr + 0.25 * dzr
-            end if
+
+              if(update_phase) then
+                 dphi = ray(iRay, ix, jy, kz)%dphi
+                 deltaPhi = 0.25 * dzr * ray(iRay, ix, jy, kz)%m
+                 ray(iRay, ix, jy, kz)%dphi = dphi - deltaPhi
+                 ray(nrlc, ix, jy, kz)%dphi = dphi + deltaPhi
+              end if
+           end if
           end do
 
           if(nrlc > nRay(ix, jy, kz)) then
@@ -8044,6 +8179,10 @@ module wkb_module
               stop 'wrong cons_merge in merge_rayvol'
             end if
 
+            !SDJul2024
+            !set phase to zero after merging
+            if(update_phase) ray(iRay, ix, jy, kz)%dphi = 0
+            
             !testb
             !if (sizeX > 1) then
             !   fcpspx = ray(iRay,ix,jy,kz)%area_xk
@@ -8441,6 +8580,14 @@ module wkb_module
       dxRay = 0.0
       dkRay = 0.0
       ddxRay = 0.0
+   end if
+   
+    !SD
+    ! init RK phase tendency
+    if(include_ice) then
+      if(RKstage == 1) then
+        dpRay = 0.0
+      end if
     end if
 
     cgx_max = 0.0
@@ -8760,6 +8907,27 @@ module wkb_module
                   &/ ray(iRay, ix, jy, kz)%dzray
             end if
 
+            ! SD
+            !-----------------------------------
+            ! update phase
+            !-----------------------------------
+
+            if(include_ice .and. update_phase) then
+
+              call meanflow(xr, yr, zr, var, 1, uxr)
+              call meanflow(xr, yr, zr, var, 2, vyr)
+
+              !NB intrinsic group vel. orthogonal to wavenumber vector
+              dpRay(iRay, ix, jy, kz) = - dt * (omir + 2. * (uxr * wnrk + vyr &
+                  * wnrl)) + alphaRK(rkStage) * dpRay(iRay, ix, jy, kz)
+              !if((ix .eq. 1) .and. (jy .eq. 1) .and. (kz .eq. 1) .and. (iRay &
+              !    .eq. 1)) then
+              !  print *, 'dpRay', rkStage, dpRay(iRay, ix, jy, kz)
+              !end if
+              ray(iRay, ix, jy, kz)%dphi = ray(iRay, ix, jy, kz)%dphi &
+                  + betaRK(rkStage) * dpRay(iRay, ix, jy, kz)
+
+            end if
             !-----------------------------------
             ! update of the intrinsic frequency
             !-----------------------------------
@@ -13355,11 +13523,6 @@ module wkb_module
                       wadr = fcpspx * fcpspy * fcpspz *  ray(iRay, ixrv, jyrv, &
                           &kzrv)%dens
 
-                      !TEST***
-                      !compare wave action
-                      var%OPT(ix, jy, kz, 3) = var%OPT(ix, jy, kz, 3) +  ray(iRay, ixrv, jyrv, &
-                          &kzrv)%dens
-
                       wadr_sum(ix, jy, kz) = wadr_sum(ix, jy, kz) + wadr !integrated waveaction density
                       fcpsar = dzi / dz
                       if(sizeX > 1) then
@@ -13410,6 +13573,10 @@ module wkb_module
                         ray_varIce(ix, jy, kz)%epp = expPrime
                         ray_varIce(ix, jy, kz)%thp = thetaPrime
                         fcpsar_max(ix, jy, kz) = fcpsar !max fraction volume in a cell
+
+                        !TEST***
+                        !compare wave action
+                        var%OPT(ix, jy, kz, 3) =  wPrime !dphi
 
                       end if
 
