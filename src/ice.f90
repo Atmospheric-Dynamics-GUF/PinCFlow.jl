@@ -612,7 +612,7 @@ module ice_module
               if(rayTracer .and. (.not. compute_cloudcover)) then
                 var%OPT(i, j, k, 1) = SIce !full SIce in LES/ MeanSIce in RT
                 var%OPT(i, j, k, 2) = ray_varIce(i, j, k)%wwp ! vertical vel.
-                var%OPT(i, j, k, 3) = 0. ! Full S
+                !var%OPT(i, j, k, 3) = 0. ! Full S
               else
                 var%OPT(i, j, k, 1) = SIce !full SIce in LES/ MeanSIce in RT
                 var%OPT(i, j, k, 2) = 0.

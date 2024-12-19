@@ -1206,6 +1206,16 @@ module type_module
     dt_ice = 0.0
     no_ice_source = .false.
 
+    MultipleWavePackets = .false.
+    compute_cloudcover = .false.
+    average_cell = .false.
+    average_cell_3 = .false.
+    NSCX = 1
+    NSCY = 1
+    gauss_smoothing = .false.
+    reconstruct_gw_field = 1
+    test_wps = .false.
+
   end subroutine default_values
 
   subroutine write_namelists

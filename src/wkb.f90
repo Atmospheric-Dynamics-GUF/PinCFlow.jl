@@ -12773,7 +12773,8 @@ module wkb_module
     implicit none
 
     ! in/out variables
-    type(var_type), intent(in) :: var
+    !TEST***
+    type(var_type), intent(inout) :: var
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1), &
         &intent(in) :: ray
     type(ice_rayType), dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(out) :: &
@@ -12850,6 +12851,9 @@ module wkb_module
     ray_varIce%epp = 0.
     ray_varIce%thp = 0.
 
+    !TEST*** 
+    var%OPT(:, :, :, 3) = 0.
+    
     if(compute_cloudcover) then
       ray_cloud%wwp = 0.
       ray_cloud%epp = 0.
@@ -13245,6 +13249,10 @@ module wkb_module
                     end if
                     fcpsar = abs(fcpsar) !fraction volume of RV inside some cell
 
+                    !TEST***
+                    !compare wave action
+                    var%OPT(ix, jy, kz, 3) = var%OPT(ix, jy, kz, 3) + wadr 
+                    
                     ! save fluctutations corresponding to max volume
                     if(fcpsar .gt. fcpsar_max(ix, jy, kz) .and. wadr .gt. 0) &
                         &then
