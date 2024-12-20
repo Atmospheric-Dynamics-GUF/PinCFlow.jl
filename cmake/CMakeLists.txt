@@ -15,8 +15,8 @@ set(CMAKE_Fortran_COMPILER mpif90)
 # set(CMAKE_Fortran_COMPILER mpiifort)
 
 # Set debug option.
-#option(DEBUGFLAG "" OFF)
- option(DEBUGFLAG "" ON)
+option(DEBUGFLAG "" OFF)
+# option(DEBUGFLAG "" ON)
 
 # Set compiler options.
 if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
