@@ -539,15 +539,15 @@ program pinc_prog
 
       ! final output
       if(rayTracer) then
-        if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
-        if(include_tracer) then
-          call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
-              &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
-              &= waveAmplitudes, ray = ray)
-        else
-          call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
-              &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
-        end if
+         if(include_tracer) then
+            call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                 &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
+                 &= waveAmplitudes, ray = ray)
+         else
+            call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                 &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
+         end if
+         if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
       else
         call write_netCDF(iOut, iTime, time, cpuTime, var)
       end if
@@ -1872,7 +1872,6 @@ program pinc_prog
         end if
 
         if(rayTracer) then
-          if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
           if(include_tracer) then
             call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
                 &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
@@ -1880,7 +1879,8 @@ program pinc_prog
           else
             call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
                 &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
-          end if
+         end if
+         if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
         else
           call write_netCDF(iOut, iTime, time, cpuTime, var)
         end if
@@ -1897,7 +1897,7 @@ program pinc_prog
         end if
 
         if(rayTracer) then
-          if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
+
           if(include_tracer) then
             call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
                 &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
@@ -1906,7 +1906,8 @@ program pinc_prog
 
             call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
                 &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
-          end if
+         end if
+         if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
         else
           call write_netCDF(iOut, iTime, time, cpuTime, var)
         end if

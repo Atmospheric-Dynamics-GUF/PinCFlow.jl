@@ -13048,7 +13048,6 @@ module wkb_module
           do iRay = 1, nRay(ixrv, jyrv, kzrv)
 
             ! skip counting ray volumes with zero wave-action density
-
             if(ray(iRay, ixrv, jyrv, kzrv)%dens == 0.0) cycle
 
             xr = ray(iRay, ixrv, jyrv, kzrv)%x
@@ -13480,7 +13479,7 @@ module wkb_module
                 kzmin = kzrv
                 kzmax = kzrv
               end if
-
+              
               if(reconstruct_gw_field == 1) then
 
                 do kz = kzmin, kzmax
@@ -13760,6 +13759,9 @@ module wkb_module
                             expPrime = real(pi12 * exp(dphi * imag))
                             wPrime = real(w10 * exp(dphi * imag))
 
+                            print*, wPrime
+                            stop
+                            
                             !superimpose fields
                             ray_cloud(ix, jy, kz, ii, jj)%wwp = ray_cloud(ix, &
                                 &jy, kz, ii, jj)%wwp + wPrime

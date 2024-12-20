@@ -1915,9 +1915,10 @@ module output_netCDF_module
 
     if(master) then
       open(45, file = 'pf_cloud.dat', form = "unformatted", access = 'direct', &
-          &recl = SizeX * SizeY * nscx * nscy * sizeofreal4)
-    end if
-
+           &recl = SizeX * SizeY * nscx * nscy * sizeofreal4)
+   end if
+   
+     
     !---------------------------------------
     !       dimensionalising and layerwise output
     !---------------------------------------
