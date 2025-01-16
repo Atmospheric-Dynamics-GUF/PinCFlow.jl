@@ -171,7 +171,8 @@ module wkb_module
     real :: phi
 
     real :: NNR
-
+    logical :: apply
+    
     real :: tracerfluxcoeff, dchidx, dchidy, dchidz, rhotracerp, rhotracerm, &
         &dutracer, dvtracer, rhotracern
 
@@ -262,9 +263,15 @@ module wkb_module
             !                           that have completely left the
             !                           model domain
 
-            ! FJApr2023
-            if((.not. topography .and. zr < lz(0)) .or. (topography .and. zr &
-                &< topography_surface(ixrv, jyrv))) then
+            apply = .false.
+            if(.not. topography .and. zr < lz(0)) then
+              apply = .true.
+            else if(topography) then
+              if(zr < topography_surface(ixrv, jyrv)) then
+                apply = .true.
+              end if
+            end if
+            if(apply) then
               select case(zBoundary)
               case("periodic")
                 zr = lz(1) + mod(zr - lz(0), lz(1) - lz(0))
@@ -399,9 +406,16 @@ module wkb_module
 
             wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
 
-            if((.not. topography .and. zr < lz(0) - dz) .or. (topography .and. &
-                &zr < topography_surface(ixrv, jyrv) - jac(ixrv, jyrv, 0) &
-                &* dz)) then
+            apply = .false.
+            if(.not. topography .and. zr < lz(0) - dz) then
+              apply = .true.
+            else if(topography) then
+              if(zr < topography_surface(ixrv, jyrv) - jac(ixrv, jyrv, 0) &
+                  &* dz) then
+                apply = .true.
+              end if
+            end if
+            if(apply) then
               print *, 'ERROR IN calc_meanflow_effect: RAY VOLUME', iRay, 'in &
                   &cell', ixrv, jyrv, kzrv, 'TOO LOW'
               stop
