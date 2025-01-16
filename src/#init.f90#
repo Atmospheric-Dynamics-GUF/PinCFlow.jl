@@ -4653,8 +4653,6 @@ module init_module
       complex :: tmp_var_3DWP
 
       real :: Ro_GWP, RoInv_GWP !FS
-      real :: bmax
-      bmax = 0.
 
       if(f_Coriolis_dim /= 0.0) then !FS
         Ro_GWP = uRef / f_Coriolis_dim / lRef
@@ -4883,11 +4881,6 @@ module init_module
 
             b11 = cmplx(envel * bAmp, 0.0)
 
-            !CHANGES
-            if ( bmax .le. abs(envel*bAmp) ) then
-               bmax = abs(envel*bAmp)
-            end if
-         
             if(topography) then
               ! TFC FJ
               theta0 = thetaStratTFC(i, j, k)
@@ -4912,10 +4905,6 @@ module init_module
         end do
       end do
 
-      !CHANGES
-      print*, 'Bmax', bmax
-      stop
-      
       !---------------------------------------
       !        calc amplitude Psi_2^1
       !     (second harmonic, first order)
