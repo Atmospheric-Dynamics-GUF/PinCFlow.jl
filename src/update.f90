@@ -27,7 +27,7 @@ module update_module
   public :: set_spongeLayer
   public :: CoefDySma_update
   public :: Var3DSmthDySma
-  public :: iceUpdate, iceUpdate_apb, timeUpdate
+  public :: iceUpdate_apb, timeUpdate
   public :: setHaloAndBoundary
 
   public :: smooth_shapiro
@@ -4786,26 +4786,17 @@ module update_module
 
   end subroutine timeUpdate
 
-  !-------------------------------------------------------------------------
-
-  subroutine iceUpdate_apb(var, flux, source, dt, q, m, update_type)
-    !-----------------------------
-    ! adds ice flux to cell ice field
-    !-----------------------------
+  subroutine iceUpdate_apb(var, flux, source, dt, q, m, update_type, ray_cloud)
 
     ! in/out variables
     type(var_type), intent(inout) :: var
     type(flux_type), intent(in) :: flux
-    ! flux(i,j,k,dir,iFlux)
-    ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
-    ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
-
     type(var_type), intent(in) :: source
-
     real, intent(in) :: dt
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
         &intent(inout) :: q
-
+    type(ice_rayType2), dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, nscx, nscy), &
+        &intent(inout) :: ray_cloud
     integer, intent(in) :: m
     character(len = 3), intent(in) :: update_type
 
@@ -4815,204 +4806,85 @@ module update_module
     real :: gB, gF ! flux Backward/Forward
     real :: hD, hU ! flux Downward/Upward
     real :: fluxDiff ! convective part
-    real :: F ! F(phi)
-
-    !!$    ! TFC FJ
-    !!$    real :: pEdgeU, pEdgeD
-    !!$    real :: piREdgeU, piLEdgeU, piFEdgeU, piBEdgeU, &
-    !!$         piREdgeD, piLEdgeD, piFEdgeD, piBEdgeD
-    !!$    real :: chris11EdgeU, chris11EdgeD, chris22EdgeU, chris22EdgeD, &
-    !!$         chris13EdgeU, chris13EdgeD, chris23EdgeU, chris23EdgeD
-    !!$    real :: piGradZEdgeU, piGradZEdgeD
-
+    real :: F !
     integer :: ii, iVar
 
-    ! init q
-    if(m == 1) q = 0.
+    if(compute_cloudcover) then
 
-    do iVar = 1, nVarIce
+      ! init q
+      if(m == 1) then
+        ray_cloud%qNi = 0.
+        ray_cloud%qQi = 0.
+        ray_cloud%qQv = 0.
+      end if
 
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
+      ! update: q(m-1) -> q(m)
+      ray_cloud%qNi = dt * ray_cloud%tNi + alphaRK(m) * ray_cloud%qNi
+      ray_cloud%qQi = dt * ray_cloud%tQi + alphaRK(m) * ray_cloud%qQi
+      ray_cloud%qQv = dt * ray_cloud%tQv + alphaRK(m) * ray_cloud%qQv
 
-            if(update_type .eq. 'ADV' .or. update_type .eq. 'BOT') then
+      ! update fields
+      ray_cloud%Ni = ray_cloud%Ni + betaRK(m) * ray_cloud%qNi
+      ray_cloud%Qi = ray_cloud%Qi + betaRK(m) * ray_cloud%qQi
+      ray_cloud%Qv = ray_cloud%Qv + betaRK(m) * ray_cloud%qQv
 
-              fL = flux%ICE(i - 1, j, k, 1, iVar) ! mass flux accros left cell edge
-              fR = flux%ICE(i, j, k, 1, iVar) ! right
-              gB = flux%ICE(i, j - 1, k, 2, iVar) ! backward
-              gF = flux%ICE(i, j, k, 2, iVar) ! forward
-              hD = flux%ICE(i, j, k - 1, 3, iVar) ! downward
-              hU = flux%ICE(i, j, k, 3, iVar) ! upward
+    else
 
-              ! convective part
-              fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
+      ! init q
+      if(m == 1) q = 0.
 
-              ! TFC FJ
-              ! Adjust mass flux divergence.
-              if(topography) then
-                fluxDiff = fluxDiff / jac(i, j, k)
+      do iVar = 1, nVarIce
+
+        do k = 1, nz
+          do j = 1, ny
+            do i = 1, nx
+
+              if(update_type .eq. 'ADV' .or. update_type .eq. 'BOT') then
+
+                fL = flux%ICE(i - 1, j, k, 1, iVar) ! flux accros left cell edge
+                fR = flux%ICE(i, j, k, 1, iVar) ! right
+                gB = flux%ICE(i, j - 1, k, 2, iVar) ! backward
+                gF = flux%ICE(i, j, k, 2, iVar) ! forward
+                hD = flux%ICE(i, j, k - 1, 3, iVar) ! downward
+                hU = flux%ICE(i, j, k, 3, iVar) ! upward
+
+                ! convective part
+                fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
+
+                ! TFC FJ
+                ! Adjust mass flux divergence.
+                if(topography) then
+                  fluxDiff = fluxDiff / jac(i, j, k)
+                end if
+
               end if
 
-            end if
+              if(update_type .eq. 'BOT') then
+                ! F(phi)
+                F = - fluxDiff + source%ICE(i, j, k, iVar)
+              elseif(update_type .eq. 'ADV') then
+                F = - fluxDiff
+              elseif(update_type .eq. 'PHY') then
+                F = source%ICE(i, j, k, iVar)
+              else
+                print *, 'wrong update_type in iceUpdate_apb'
+                stop
+              end if
 
-            if(update_type .eq. 'BOT') then
-              ! F(phi)
-              F = - fluxDiff + source%ICE(i, j, k, iVar)
-            elseif(update_type .eq. 'ADV') then
-              F = - fluxDiff
-            elseif(update_type .eq. 'PHY') then
-              F = source%ICE(i, j, k, iVar)
-            else
-              print *, 'wrong update_type in iceUpdate_apb'
-              stop
+              ! update: q(m-1) -> q(m)
+              q(i, j, k, iVar) = dt * F + alphaRK(m) * q(i, j, k, iVar)
 
-            end if
+              ! update fields
+              var%ICE(i, j, k, iVar) = var%ICE(i, j, k, iVar) + betaRK(m) &
+                  &* q(i, j, k, iVar)
 
-            ! update: q(m-1) -> q(m)
-            q(i, j, k, iVar) = dt * F + alphaRK(m) * q(i, j, k, iVar)
+            end do !i
+          end do !j
+        end do !k
 
-            ! update fields
-            var%ICE(i, j, k, iVar) = var%ICE(i, j, k, iVar) + betaRK(m) * q(i, &
-                &j, k, iVar)
-
-          end do !i
-        end do !j
-      end do !k
-
-    end do !ii
-
+      end do !ii
+    end if !compute cloudcover
   end subroutine iceUpdate_apb
-
-  !-----------------------------------------------------------------------
-
-  subroutine iceUpdate(var, flux, dt, q, m, int_mod, facray)
-    !-----------------------------
-    ! adds ice flux to cell ice field
-    !-----------------------------
-
-    ! in/out variables
-    type(var_type), intent(inout) :: var
-
-    ! upd_var decides what is to be propagated in time:
-    ! rho => total density
-    ! rhop => density fluctuations
-
-    ! upd_mod decides which part of the equation is to be used:
-    ! tot => total equation (always the case for the total density)
-    ! lhs => only advection and molecular and turbulent diffusive fluxes
-    !        on the left-hand side of the density-fluctuation equation
-    ! rhs => only the right-hand side of the density-fluctuation equation
-
-    ! int_mod discriminates implicit and explicit time stepping:
-    ! expl => explicit time stepping
-    !         (always the case for the total density)
-    !         RK sub step for the total density
-    !         Euler step for the rhs of the density-fluctuation equation
-    ! impl => implicit-time-step part without pressure-gradient term
-    !         (only for the density fluctuations, only for rhs)
-
-    ! facray multiplies the Rayleigh-damping terms so that they are only
-    ! handled in the implicit time stepping (sponge and immersed boundary)
-    character(len = *), intent(in) :: int_mod
-
-    type(flux_type), intent(in) :: flux
-    ! flux(i,j,k,dir,iFlux)
-    ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
-    ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
-
-    !UAC real, intent(in) :: dt
-    real, intent(in) :: dt, facray
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
-        &intent(inout) :: q
-
-    integer, intent(in) :: m
-    integer :: i00, j00
-
-    ! local variables
-    integer :: i, j, k, l
-    real :: fL, fR ! flux Left/Right
-    real :: gB, gF ! flux Backward/Forward
-    real :: hD, hU ! flux Downward/Upward
-    real :: fluxDiff ! convective part
-    real :: F ! F(phi)
-
-    !    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: heat
-
-    !    real :: buoy0, buoy, rho, rhow, rhowm, rhop, wvrt, facw, facr, &
-    !         & pstw, pstwm, piU, piD, piGrad
-
-    ! TFC FJ
-    real :: pEdgeU, pEdgeD
-    real :: piREdgeU, piLEdgeU, piFEdgeU, piBEdgeU, piREdgeD, piLEdgeD, &
-        &piFEdgeD, piBEdgeD
-    real :: chris11EdgeU, chris11EdgeD, chris22EdgeU, chris22EdgeD, &
-        &chris13EdgeU, chris13EdgeD, chris23EdgeU, chris23EdgeD
-    real :: piGradZEdgeU, piGradZEdgeD
-
-    real :: rho_p
-
-    real, dimension(- nbz:nz + nbz) :: w_0
-    real, dimension(- nbz:nz + nbz) :: S_bar
-    real :: heat_flc
-
-    !UAB
-    real :: rho_e, pstw_e, pstwm_e, rhow_e, rhowm_e
-    !    !UAE
-
-    !    real, dimension(1:nz) :: sum_local, sum_global
-
-    !    real, dimension(-nbz:nz+nbz) :: rhopw_bar
-
-    real :: ymax, yloc
-    integer :: ii, iVar
-
-    ymax = ly_dim(1) / lRef
-
-    ! init q
-    if(m == 1) q = 0.
-
-    do iVar = 1, nVarIce
-
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
-
-            fL = flux%ICE(i - 1, j, k, 1, iVar) ! mass flux accros left cell edge
-            fR = flux%ICE(i, j, k, 1, iVar) ! right
-            gB = flux%ICE(i, j - 1, k, 2, iVar) ! backward
-            gF = flux%ICE(i, j, k, 2, iVar) ! forward
-            hD = flux%ICE(i, j, k - 1, 3, iVar) ! downward
-            hU = flux%ICE(i, j, k, 3, iVar) ! upward
-
-            ! convective part
-            fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
-
-            ! TFC FJ
-            ! Adjust mass flux divergence.
-            if(topography) then
-              fluxDiff = fluxDiff / jac(i, j, k)
-            end if
-
-            ! F(phi)
-            F = - fluxDiff
-
-            ! update: q(m-1) -> q(m)
-            q(i, j, k, iVar) = dt * F + alphaRK(m) * q(i, j, k, iVar)
-
-            ! update fields
-            var%ICE(i, j, k, iVar) = var%ICE(i, j, k, iVar) + betaRK(m) * q(i, &
-                &j, k, iVar)
-
-          end do !i
-        end do !j
-      end do !k
-
-    end do !ii
-
-  end subroutine iceUpdate
-
-  !-------------------------------------------------------------------------
 
   subroutine timestep(var, dt, errFlag)
     !---------------------------------------------

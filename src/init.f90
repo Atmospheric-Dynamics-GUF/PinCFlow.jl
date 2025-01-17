@@ -314,17 +314,6 @@ module init_module
       if(allocstat /= 0) stop "init.f90: Could not allocate dTracer."
     end if
 
-    if(include_testoutput) then
-
-      allocate(ofield(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 6), stat &
-          &= allocstat)
-      if(allocstat /= 0) stop "init.f90: Could not allocate ofield."
-
-      !init
-      ofield = 0.
-
-    end if
-
     ! allocate dPStrat
     allocate(dPStrat(- nbz:nz + nbz), stat = allocstat)
     if(allocstat /= 0) stop "init.f90: Could not allocate dPStrat."
@@ -609,8 +598,8 @@ module init_module
 
     integer :: allocstat
 
-    real :: u1, w1, b1, p1
-    real :: u2, w2, b2, p2
+    real :: u1, w1, b1, p1, v1
+    real :: u2, w2, b2, p2, v2
 
     logical, parameter :: initWave2 = .false.
 
@@ -687,9 +676,12 @@ module init_module
     integer :: switch, k_tropopause
 
     real :: indwindcoeff
+    integer :: iwm
 
     integer :: kshalf
     real :: fchtms, zhtmsd, zhtmsu
+    real :: bmax
+    bmax = 0.
 
     ! open the namelist file
     open(unit = 10, file = file_namelist, action = "read", form = "formatted", &
@@ -898,6 +890,31 @@ module init_module
       rewind(unit = 10)
       read(unit = 10, nml = wavePacket)
 
+      !SDJul2024
+      !MultipleWavePackets = .true.
+      !if ( master ) print*, 'set MultipleWavePackets = .true.'
+
+      if(MultipleWavePackets) then
+
+        !init
+        var%rho = 0.
+        var%u = 0.
+        var%v = 0.
+        var%w = 0.
+        var%pi = 0.
+        TWM = NWM_WP
+
+        read(unit = 10, nml = MultipleWavePackets_list)
+
+        if(inducedwind .or. initWave2) then
+          print *, 'MultipleWavePackets not implemented for &
+              &inducedwind/initWave2 == true'
+          stop
+        end if
+      else
+        TWM = 1
+      end if
+
       u0 = u0_jet_dim / uRef ! amplitude of jet
       L_jet = L_jet_dim / lRef ! half width of cos profile
       z0_jet = z0_jet_dim / lRef ! center of jet
@@ -935,137 +952,170 @@ module init_module
         end do
       end if
 
-      !--------------------
-      !     set up GWP
-      !--------------------
-      call init_GWP(Psi, kk, mm, ll, indwindcoeff)
+      do iwm = 1, TWM
 
-      do k = 0, (nz + 1)
-        do j = 0, (ny + 1)
-          do i = 0, (nx + 1)
-            if(topography) then
-              ! TFC FJ
-              phi = kk * x(i + i0) + ll * y(j + j0) + mm * heightTFC(i, j, k)
-            else
-              phi = kk * x(i + i0) + mm * z(k) + ll * y(j + j0)
-            end if
+        ! overwite input if superposition of wavepackets considered
+        if(MultipleWavePackets) then
 
-            ! wave 1
-            u1 = real(Psi(i, j, k, 1, 1) * exp(phi * imag))
-            w1 = real(Psi(i, j, k, 2, 1) * exp(phi * imag))
-            b1 = real(Psi(i, j, k, 3, 1) * exp(phi * imag))
-            p1 = real(Psi(i, j, k, 4, 1) * exp(phi * imag))
+          lambdaX_dim = lambdaX_dim_sp(iwm)
+          lambdaY_dim = lambdaY_dim_sp(iwm)
+          lambdaZ_dim = lambdaZ_dim_sp(iwm)
 
-            ! wave 2
-            if(initWave2) then
-              stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
-              u2 = real(Psi(i, j, k, 1, 2) * exp(2. * phi * imag))
-              w2 = real(Psi(i, j, k, 2, 2) * exp(2. * phi * imag))
-              b2 = real(Psi(i, j, k, 3, 2) * exp(2. * phi * imag))
-              p2 = real(Psi(i, j, k, 4, 2) * exp(2. * phi * imag))
-            end if
+          x0_dim = x0_dim_sp(iwm)
+          y0_dim = y0_dim_sp(iwm)
+          z0_dim = z0_dim_sp(iwm)
 
-            ! sum of wave 1 and 2
-            if(initWave2) then
-              stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
-              b = b1 + b2
-              u = u1 + u2
-              w = w1 + w2
-              p = p1 + p2
-            else
-              b = b1
-              u = u1
-              w = w1
-              p = p1
-            end if
+          sigma_hor_dim = sigma_hor_dim_sp(iwm)
+          sigma_hor_yyy_dim = sigma_hor_yyy_dim_sp(iwm)
+          sigma_dim = sigma_dim_sp(iwm)
 
-            ! additional vars
-            if(topography) then
-              ! TFC FJ
-              rho = 1.0 / (1.0 + Fr2 * b) * rhoStratTFC(i, j, k)
-            else
-              rho = 1. / (1. + Fr2 * b) * rhoStrat(k)
-            end if
-            theta = Fr2 * theta00 * b
+          amplitudeFactor = amplitudeFactor_sp(iwm)
+          omiSign = omiSign_sp(iwm)
+        end if
 
-            ! write to field
-            select case(model)
-            case("pseudo_incompressible", "compressible")
+        !--------------------
+        !     set up GWP
+        !--------------------
+        call init_GWP(Psi, kk, mm, ll, indwindcoeff)
 
-              ! add random noise
-              rho = rho + randNoise(i, j, k)
-
-              ! subtract background for fluctuation mode
+        do k = 0, (nz + 1)
+          do j = 0, (ny + 1)
+            do i = 0, (nx + 1)
               if(topography) then
                 ! TFC FJ
-                rho = rho - rhoStratTFC(i, j, k)
+                phi = kk * x(i + i0) + ll * y(j + j0) + mm * heightTFC(i, j, k)
               else
-                rho = rho - rhoStrat(k)
+                phi = kk * x(i + i0) + mm * z(k) + ll * y(j + j0)
               end if
 
-              ! write to field
-              var%rho(i, j, k) = rho
+              ! wave 1
+              u1 = real(Psi(i, j, k, 1, 1) * exp(phi * imag))
+              w1 = real(Psi(i, j, k, 2, 1) * exp(phi * imag))
+              b1 = real(Psi(i, j, k, 3, 1) * exp(phi * imag))
+              p1 = real(Psi(i, j, k, 4, 1) * exp(phi * imag))
+              v1 = real(Psi(i, j, k, 5, 1) * exp(phi * imag))
 
-            case("Boussinesq")
-
-              ! Density fluctuations are stored in var%rhop(i, j, k),
-              ! var%rho(i, j, k) must remain zero!
-              if(topography) then
-                var%rhop(i, j, k) = rho - rhoStratTFC(i, j, k)
-              else
-                var%rhop(i, j, k) = rho - rhoStrat(k)
+              ! wave 2
+              if(initWave2) then
+                stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
+                u2 = real(Psi(i, j, k, 1, 2) * exp(2. * phi * imag))
+                w2 = real(Psi(i, j, k, 2, 2) * exp(2. * phi * imag))
+                b2 = real(Psi(i, j, k, 3, 2) * exp(2. * phi * imag))
+                p2 = real(Psi(i, j, k, 4, 2) * exp(2. * phi * imag))
+                v2 = real(Psi(i, j, k, 5, 2) * exp(2. * phi * imag))
               end if
 
-              ! var(i,j,k,6) = theta
-
-            case default
-              stop "initialize: unknown case model"
-            end select
-
-            var%u(i, j, k) = var%u(i, j, k) + u
-            var%v(i, j, k) = real(Psi(i, j, k, 5, 1) * exp(phi * imag))
-            var%w(i, j, k) = w
-            var%pi(i, j, k) = p
-
-            if(include_tracer) then
-              ! chi = <chi> + chi'
-              ! where chi' = alphaTracer/N^2 * b'
-              ! from inserting WKB ansatz into linearized
-              ! equation for chi' and using polarization
-              ! relation
-              if(topography) then
-                stop 'init.f90: wavepacket tracer prime and topography not &
-                    &implemented'
+              ! sum of wave 1 and 2
+              if(initWave2) then
+                stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
+                b = b1 + b2
+                u = u1 + u2
+                w = w1 + w2
+                p = p1 + p2
+                v = v1 + v2
               else
-                ! only set up for <chi>=alphaTracer*z
-                ! large-scale tracer distribution
-                if(tracerSetup == "alpha_z") then
-                  var%chi(i, j, k) = alphaTracer / N2 * b
+                b = b1
+                u = u1
+                w = w1
+                p = p1
+                v = v1
+              end if
+
+              !SDDec24
+              var%rho(i, j, k) = var%rho(i, j, k) + b ! store b at 1
+              var%u(i, j, k) = var%u(i, j, k) + u
+              var%v(i, j, k) = var%v(i, j, k) + v
+              var%w(i, j, k) = var%w(i, j, k) + w
+              var%pi(i, j, k) = var%pi(i, j, k) + p
+
+              if(iwm .eq. TWM) then
+
+                !reset rho
+                b = var%rho(i, j, k)
+                var%rho(i, j, k) = 0.
+
+                ! additional vars
+                if(topography) then
+                  ! TFC FJ
+                  rho = 1.0 / (1.0 + Fr2 * b) * rhoStratTFC(i, j, k)
                 else
-                  stop 'init.f90: unknown initial tracer with wavepacket &
-                      &tracer prime'
+                  rho = 1. / (1. + Fr2 * b) * rhoStrat(k)
                 end if
-              end if
-            end if
+                theta = Fr2 * theta00 * b
 
-            if(inducedwind) then
-              !stop "Error: induced wind currently not possible. Potential error in code."
-              var%u(i, j, k) = var%u(i, j, k) + indwindcoeff * b ** 2.
-            end if
+                ! write to field
+                select case(model)
+                case("pseudo_incompressible", "compressible")
 
-            if(include_testoutput .and. testCase == 'wavePacket') then
-              ofield(i, j, k, 4) = real(Psi(i, j, k, 2, 1) * exp(phi * imag))
-            end if
+                  ! add random noise
+                  rho = rho + randNoise(i, j, k)
 
-            ! TFC FJ
-            ! Compute terrain-following vertical wind.
-            if(topography) then
-              var%w(i, j, k) = var%w(i, j, k) / jac(i, j, k) + met(i, j, k, 1, &
-                  &3) * var%u(i, j, k) + met(i, j, k, 2, 3) * var%v(i, j, k)
-            end if
-          end do
-        end do ! modified by Junhong Wei for 3DWP (20170922)
-      end do
+                  ! subtract background for fluctuation mode
+                  if(topography) then
+                    ! TFC FJ
+                    rho = rho - rhoStratTFC(i, j, k)
+                  else
+                    rho = rho - rhoStrat(k)
+                  end if
+
+                  ! write to field
+                  var%rho(i, j, k) = rho
+
+                case("Boussinesq")
+
+                  ! Density fluctuations are stored in var%rhop(i, j, k),
+                  ! var%rho(i, j, k) must remain zero!
+                  if(topography) then
+                    var%rhop(i, j, k) = rho - rhoStratTFC(i, j, k)
+                  else
+                    var%rhop(i, j, k) = rho - rhoStrat(k)
+                  end if
+
+                  ! var(i,j,k,6) = theta
+
+                case default
+                  stop "initialize: unknown case model"
+                end select ! model
+
+                if(include_tracer) then
+                  ! chi = <chi> + chi'
+                  ! where chi' = alphaTracer/N^2 * b'
+                  ! from inserting WKB ansatz into linearized
+                  ! equation for chi' and using polarization
+                  ! relation
+                  if(topography) then
+                    stop 'init.f90: wavepacket tracer prime and topography not &
+                        &implemented'
+                  else
+                    ! only set up for <chi>=alphaTracer*z
+                    ! large-scale tracer distribution
+                    if(tracerSetup == "alpha_z") then
+                      var%chi(i, j, k) = alphaTracer / N2 * b
+                    else
+                      stop 'init.f90: unknown initial tracer with wavepacket &
+                          &tracer prime'
+                    end if
+                  end if
+                end if
+
+                if(inducedwind) then
+                  !stop "Error: induced wind currently not possible. Potential error in code."
+                  var%u(i, j, k) = var%u(i, j, k) + indwindcoeff * b ** 2.
+                end if
+
+                ! TFC FJ
+                ! Compute terrain-following vertical wind.
+                if(topography) then
+                  var%w(i, j, k) = var%w(i, j, k) / jac(i, j, k) + met(i, j, &
+                      &k, 1, 3) * var%u(i, j, k) + met(i, j, k, 2, 3) &
+                      &* var%v(i, j, k)
+                end if
+
+              end if ! iwm==TWM
+            end do !i
+          end do ! l modified by Junhong Wei for 3DWP (20170922)
+        end do ! k
+      end do ! iwm
 
       ! average zonal velocities to cell face...
       do i = 0, nx
@@ -1179,7 +1229,15 @@ module init_module
         end do
       end do
 
-      !SD
+      ! raytracer + case_wkb=5
+      if(case_wkb == 5) then
+        read(unit = 10, nml = case_wkb_5_list)
+        if(nwm .ne. NWM_WP) then
+          print *, 'nwm /= NWM_WP !!'
+          print *, 'change NWM, NWM_WP'
+          stop
+        end if
+      end if
       if(include_ice) call setup_ice(var)
 
       !-----------------------------------------------------------------
