@@ -4882,11 +4882,6 @@ module init_module
             end if
 
             b11 = cmplx(envel * bAmp, 0.0)
-
-            !CHANGES
-            if ( bmax .le. abs(envel*bAmp) ) then
-               bmax = abs(envel*bAmp)
-            end if
          
             if(topography) then
               ! TFC FJ
@@ -4908,13 +4903,19 @@ module init_module
             Psi(i, j, k, :, 1) = (/u10, w10, b11, pi12, (tmp_var_3DWP &
                 &* cmplx(ll * omi, - kk * RoInv_GWP) * b11)/)
 
+
+            !CHANGES
+            if ( bmax .le. abs(w10) ) then
+               bmax = abs(w10)
+            end if
+
           end do
         end do
       end do
 
       !CHANGES
       print*, 'Bmax', bmax
-      stop
+
       
       !---------------------------------------
       !        calc amplitude Psi_2^1
