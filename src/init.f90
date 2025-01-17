@@ -598,8 +598,8 @@ module init_module
 
     integer :: allocstat
 
-    real :: u1, w1, b1, p1
-    real :: u2, w2, b2, p2
+    real :: u1, w1, b1, p1, v1
+    real :: u2, w2, b2, p2, v2
 
     logical, parameter :: initWave2 = .false.
 
@@ -680,6 +680,8 @@ module init_module
 
     integer :: kshalf
     real :: fchtms, zhtmsd, zhtmsu
+    real :: bmax
+    bmax = 0.
 
     ! open the namelist file
     open(unit = 10, file = file_namelist, action = "read", form = "formatted", &
@@ -991,6 +993,7 @@ module init_module
               w1 = real(Psi(i, j, k, 2, 1) * exp(phi * imag))
               b1 = real(Psi(i, j, k, 3, 1) * exp(phi * imag))
               p1 = real(Psi(i, j, k, 4, 1) * exp(phi * imag))
+              v1 = real(Psi(i, j, k, 5, 1) * exp(phi * imag))
 
               ! wave 2
               if(initWave2) then
@@ -999,6 +1002,7 @@ module init_module
                 w2 = real(Psi(i, j, k, 2, 2) * exp(2. * phi * imag))
                 b2 = real(Psi(i, j, k, 3, 2) * exp(2. * phi * imag))
                 p2 = real(Psi(i, j, k, 4, 2) * exp(2. * phi * imag))
+                v2 = real(Psi(i, j, k, 5, 2) * exp(2. * phi * imag))
               end if
 
               ! sum of wave 1 and 2
@@ -1008,20 +1012,22 @@ module init_module
                 u = u1 + u2
                 w = w1 + w2
                 p = p1 + p2
+                v = v1 + v2
               else
                 b = b1
                 u = u1
                 w = w1
                 p = p1
+                v = v1
               end if
-
-              !SDJul2024
+              
+              !SDDec24
               var%rho(i, j, k) = var%rho(i, j, k) + b ! store b at 1
               var%u(i, j, k) = var%u(i, j, k) + u
               var%v(i, j, k) = var%v(i, j, k) + v
               var%w(i, j, k) = var%w(i, j, k) + w
               var%pi(i, j, k) = var%pi(i, j, k) + p
-
+             
               if(iwm .eq. TWM) then
 
                 !reset rho
@@ -1071,12 +1077,6 @@ module init_module
                   stop "initialize: unknown case model"
                 end select ! model
 
-                !SDDec24
-                !var%u(i, j, k) = var%u(i, j, k) + u
-                !var%v(i, j, k) = real(Psi(i, j, k, 5, 1) * exp(phi * imag))
-                !var%w(i, j, k) = w
-                !var%pi(i, j, k) = p
-
                 if(include_tracer) then
                   ! chi = <chi> + chi'
                   ! where chi' = alphaTracer/N^2 * b'
@@ -1110,12 +1110,20 @@ module init_module
                       &k, 1, 3) * var%u(i, j, k) + met(i, j, k, 2, 3) &
                       &* var%v(i, j, k)
                 end if
+                !CHANGES
+                if ( bmax .le. abs(var%w(i, j, k)) ) then
+                   bmax = abs(var%w(i, j, k))
+                end if
 
               end if ! iwm==TWM
             end do !i
           end do ! l modified by Junhong Wei for 3DWP (20170922)
         end do ! k
-      end do ! iwm
+     end do ! iwm
+
+     !CHANGES
+     print*, 'Bmax', bmax
+     
       ! average zonal velocities to cell face...
       do i = 0, nx
         var%u(i, :, :) = 0.5 * (var%u(i, :, :) + var%u(i + 1, :, :))
@@ -4653,8 +4661,6 @@ module init_module
       complex :: tmp_var_3DWP
 
       real :: Ro_GWP, RoInv_GWP !FS
-      real :: bmax
-      bmax = 0.
 
       if(f_Coriolis_dim /= 0.0) then !FS
         Ro_GWP = uRef / f_Coriolis_dim / lRef
@@ -4903,19 +4909,9 @@ module init_module
             Psi(i, j, k, :, 1) = (/u10, w10, b11, pi12, (tmp_var_3DWP &
                 &* cmplx(ll * omi, - kk * RoInv_GWP) * b11)/)
 
-
-            !CHANGES
-            if ( bmax .le. abs(w10) ) then
-               bmax = abs(w10)
-            end if
-
           end do
         end do
       end do
-
-      !CHANGES
-      print*, 'Bmax', bmax
-
       
       !---------------------------------------
       !        calc amplitude Psi_2^1
