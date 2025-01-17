@@ -1,3 +1,0 @@
-/home/dolaptch/PF/pinc/cmake/CMakeFiles/pinc.dir
-/home/dolaptch/PF/pinc/cmake/CMakeFiles/edit_cache.dir
-/home/dolaptch/PF/pinc/cmake/CMakeFiles/rebuild_cache.dir
