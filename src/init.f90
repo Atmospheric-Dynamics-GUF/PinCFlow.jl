@@ -1111,10 +1111,6 @@ module init_module
                       &* var%v(i, j, k)
                 end if
 
-                !CHANGES
-                var%opt(i, j, k, 3) = (1. / (1. + Fr2 * Psi(i, j, k, 3, 1)) &
-                    &* rhoStrat(k) - rhoStrat(k)) * rhoRef
-
               end if ! iwm==TWM
             end do !i
           end do ! l modified by Junhong Wei for 3DWP (20170922)
