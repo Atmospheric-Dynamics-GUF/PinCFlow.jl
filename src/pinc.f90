@@ -539,15 +539,15 @@ program pinc_prog
 
       ! final output
       if(rayTracer) then
-         if(include_tracer) then
-            call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
-                 &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
-                 &= waveAmplitudes, ray = ray)
-         else
-            call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
-                 &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
-         end if
-         if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
+        if(include_tracer) then
+          call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+              &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
+              &= waveAmplitudes, ray = ray)
+        else
+          call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+              &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
+        end if
+        if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
       else
         call write_netCDF(iOut, iTime, time, cpuTime, var)
       end if
@@ -1596,18 +1596,14 @@ program pinc_prog
                   &waveAmplitudes, dt)
             end if
 
-            if(RKstage == nStages) then
-              !CHANGES
-              !*call boundary_rayvol(ray)
-
-              !call split_rayvol(ray)
-              !call shift_rayvol(ray)
-              !call merge_rayvol(ray)
-
-              !CHANGES
-              !call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff, tracerfluxvar, tracerforce)
-              !call calc_ice(ray, var)
-            end if
+            !if(RKstage == nStages) then
+            !call boundary_rayvol(ray)
+            !call split_rayvol(ray)
+            !call shift_rayvol(ray)
+            !call merge_rayvol(ray)
+            !call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff, tracerfluxvar, tracerforce)
+            !call calc_ice(ray, var)
+            !end if
 
           end if ! include_ice
         end if ! raytracer
@@ -1879,8 +1875,8 @@ program pinc_prog
           else
             call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
                 &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
-         end if
-         if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
+          end if
+          if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
         else
           call write_netCDF(iOut, iTime, time, cpuTime, var)
         end if
@@ -1906,8 +1902,8 @@ program pinc_prog
 
             call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
                 &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
-         end if
-         if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
+          end if
+          if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
         else
           call write_netCDF(iOut, iTime, time, cpuTime, var)
         end if

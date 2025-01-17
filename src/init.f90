@@ -1020,14 +1020,14 @@ module init_module
                 p = p1
                 v = v1
               end if
-              
+
               !SDDec24
               var%rho(i, j, k) = var%rho(i, j, k) + b ! store b at 1
               var%u(i, j, k) = var%u(i, j, k) + u
               var%v(i, j, k) = var%v(i, j, k) + v
               var%w(i, j, k) = var%w(i, j, k) + w
               var%pi(i, j, k) = var%pi(i, j, k) + p
-             
+
               if(iwm .eq. TWM) then
 
                 !reset rho
@@ -1110,20 +1110,17 @@ module init_module
                       &k, 1, 3) * var%u(i, j, k) + met(i, j, k, 2, 3) &
                       &* var%v(i, j, k)
                 end if
+
                 !CHANGES
-                if ( bmax .le. abs(var%w(i, j, k)) ) then
-                   bmax = abs(var%w(i, j, k))
-                end if
+                var%opt(i, j, k, 3) = (1. / (1. + Fr2 * Psi(i, j, k, 3, 1)) &
+                    &* rhoStrat(k) - rhoStrat(k)) * rhoRef
 
               end if ! iwm==TWM
             end do !i
           end do ! l modified by Junhong Wei for 3DWP (20170922)
         end do ! k
-     end do ! iwm
+      end do ! iwm
 
-     !CHANGES
-     print*, 'Bmax', bmax
-     
       ! average zonal velocities to cell face...
       do i = 0, nx
         var%u(i, :, :) = 0.5 * (var%u(i, :, :) + var%u(i + 1, :, :))
@@ -4888,7 +4885,7 @@ module init_module
             end if
 
             b11 = cmplx(envel * bAmp, 0.0)
-         
+
             if(topography) then
               ! TFC FJ
               theta0 = thetaStratTFC(i, j, k)
@@ -4912,7 +4909,7 @@ module init_module
           end do
         end do
       end do
-      
+
       !---------------------------------------
       !        calc amplitude Psi_2^1
       !     (second harmonic, first order)

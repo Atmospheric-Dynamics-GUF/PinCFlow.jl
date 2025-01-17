@@ -554,11 +554,11 @@ module ice_module
 
                     if(SIce .ge. S_c) then !only if critical S reached
                       ray_cloud(i, j, k, ii, jj)%tNi = nucleation_n(SIce, &
-                           &rhoMean)
-                      
-                      print*, SIce, pres, psi, rhoMean, k, i, j
+                          &rhoMean)
+
+                      print *, SIce, pres, psi, rhoMean, k, i, j
                       stop
-                      print*, maxval(ray_cloud%tNi), maxval(ray_cloud%Ni)
+                      print *, maxval(ray_cloud%tNi), maxval(ray_cloud%Ni)
                       stop
                     else
                       ray_cloud(i, j, k, ii, jj)%tNi = 0.
@@ -634,7 +634,7 @@ module ice_module
           end if ! pseudo_inc
 
           if(SIce .ge. S_c) then
-             
+
             print *, 'S HITS S_c'
             print *, '**********'
           end if

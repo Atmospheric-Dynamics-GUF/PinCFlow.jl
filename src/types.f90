@@ -865,7 +865,7 @@ module type_module
 
   logical :: no_ice_source ! set to true if only ice advection and no ice source
   ! are considered
-  logical, parameter :: compare_raytracer = .True. ! modify Wavepacket simulation to facilitate comparison with raytracer
+  logical :: compare_raytracer = .true. ! modify Wavepacket simulation to facilitate comparison with raytracer
 
   !include_testoutput
   integer :: iVarO, iVarS, iVarAW
@@ -886,7 +886,7 @@ module type_module
   namelist / iceList / inN, inQ, inQv, nVarIce, dt_ice, no_ice_source, &
       &parameterized_nucleation, average_cell, average_cell_3, &
       &compute_cloudcover, NSCX, NSCY, gauss_smoothing, reconstruct_gw_field, &
-      &test_wps
+      &test_wps, compare_raytracer
 
   integer, parameter :: NWM_WP = 2
   integer :: TWM
@@ -1206,6 +1206,7 @@ module type_module
     dt_ice = 0.0
     no_ice_source = .false.
 
+    compare_raytracer = .true.
     MultipleWavePackets = .false.
     compute_cloudcover = .false.
     average_cell = .false.
