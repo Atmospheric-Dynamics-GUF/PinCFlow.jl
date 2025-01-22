@@ -50,13 +50,12 @@ deltaw = ww - wref
 (levels, colormap) = style.symmetric_contours(ww.min(), ww.max())
 (fig, axes) = plt.subplots()
 plot = axes.contourf(xx, zz, ww, levels, cmap = colormap)
-axes.plot(xx[0], hh, color = 'black', linewidth = 1.0)
+axes.plot(xx[0], zz[0], color = "black", linewidth = 1.0)
 axes.set_xlim(- 10.0, 10.0)
 axes.set_ylim(0.0, 10.0)
 axes.set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
 axes.set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
 fig.colorbar(plot, label = r"$w \, \mathrm{\left[m \, s^{- 1}\right]}$")
-fig.savefig("".join((data_path, "/results/mountainwave.pdf")))
 fig.savefig("".join((data_path, "/results/mountainwave.png")), dpi = 500)
 
 # Create difference plot.
@@ -64,12 +63,12 @@ if data_path != reference_path:
   (levels, colormap) = style.symmetric_contours(deltaw.min(), deltaw.max())
   (fig, axes) = plt.subplots()
   plot = axes.contourf(xx, zz, deltaw, levels, cmap = colormap)
-  axes.plot(xx[0], hh, color = "black", linewidth = 1.0)
+  axes.plot(xx[0], zz[0], color = "black", linewidth = 1.0)
   axes.set_xlim(- 10.0, 10.0)
   axes.set_ylim(0.0, 10.0)
   axes.set_xlabel(r"$x \, \mathrm{\left[km\right]}$")
   axes.set_ylabel(r"$z \, \mathrm{\left[km\right]}$")
-  fig.colorbar(plot, label = r"$w \, \mathrm{\left[m \, s^{- 1}\right]}$")
-  fig.savefig("".join((data_path, "/results/mountainwave_difference.pdf")))
+  fig.colorbar(plot, label = r"$\Delta w \, \mathrm{\left[m \," \
+      r"s^{- 1}\right]}$")
   fig.savefig("".join((data_path, "/results/mountainwave_difference.png")), \
       dpi = 500)

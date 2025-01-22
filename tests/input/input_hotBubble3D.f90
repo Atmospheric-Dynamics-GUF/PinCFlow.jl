@@ -147,6 +147,7 @@
   lsaturation              =                       T ! Switch for saturation
                                                      ! scheme
   alpha_sat                =                  1.0E+0 ! Saturation threshold
+  single_column            =                       F ! Single-column mode
   steady_state             =                       F ! Steady-state mode
   case_wkb                 =                       3 ! 1 = Gaussian wave
                                                      ! packet, 2 = cosine wave
@@ -188,8 +189,6 @@
                                                      ! ray-volume merging ('wa'
                                                      ! = wave action, 'en' =
                                                      ! wave energy)
-  nRayOutput               =                      10 ! Number of dominant ray
-                                                     ! volumes in output
 &end
 
 &bubble
@@ -330,11 +329,6 @@
   timeScheme               =          'semiimplicit' ! 'LS_Will_RK3' or
                                                      ! 'semiimplicit'
   auxil_equ                =                       F ! Buoyancy equation
-  fluxType                 =                'upwind' ! 'ILES', 'central' or
-                                                     ! 'upwind'
-  reconstType              =                 'MUSCL' ! 'MUSCL', 'constant',
-                                                     ! 'SALD' or 'ALDM'
-  musclType                =                'muscl1' ! 'muscl1' or 'muscl2'
   limiterType1             =             'MCVariant' ! 'minmod', 'MCVariant' or
                                                      ! 'Cada'
   TurbScheme               =                       F ! Turbulence scheme
@@ -358,15 +352,12 @@
   abs_tol                  =                  0.0E+0 ! Lower bound for tolerance
   tolCond                  =                 1.0E-23 ! Preconditioner tolerance
   maxIterPoisson           =                   10000 ! Maximum iterations
-  poissonSolverType        =              'bicgstab' ! 'bicgstab', 'gcr', 'adi'
-                                                     ! or 'hypre'
   preconditioner           =                   'yes' ! 'no' or 'yes'
   dtau                     =                  4.0E+0 ! Time parameter for
                                                      ! preconditioner
   maxIterADI               =                       2 ! Preconditioner iterations
   initialCleaning          =                       T ! Enforce initial non-
                                                      ! divergence
-  pressureScaling          =                       F ! Scale by P
   correctMomentum          =                       T ! Correct momentum so that
                                                      ! divergence constraint is
                                                      ! fulfilled
@@ -426,9 +417,6 @@
                                                      ! coordinates
   ipolTFC                  =                       2 ! Interpolation in the
                                                      ! transformation of w
-  freeSlipTFC              =                       F ! Transformed free-slip
-                                                     ! condition
-  testTFC                  =                       F ! Various TFC tests
   topographyTime           =                  0.0E+0 ! Topography growth time
   mountainHeight_dim       =                  5.0E+2 ! Maximum height
   mountainWidth_dim        =                  1.0E+6 ! Half width
@@ -436,6 +424,12 @@
   range_factor             =                  1.0E+1 ! Ratio between large and
                                                      ! small scales
   spectral_modes           =                       1 ! Number of spectral modes
+  envelope_reduction       =                  0.0E+0 ! Relative reduction of
+                                                     ! the envelope (between 0
+                                                     ! and 1)
+  stretch_exponent         =                  1.0E+0 ! Exponent of vertical
+                                                     ! grid stretching (1 for
+                                                     ! no stretching)
 &end
 
 &boundaryList
@@ -478,6 +472,19 @@
                                                      ! (otherwise, relax to the
                                                      ! initial state) if
                                                      ! unifiedSponge == .true.
+  relaxation_period        =                  0.0E+0 ! Period of an oscillation
+                                                     ! superposed on the
+                                                     ! background wind if
+                                                     ! unifiedSponge == .true.
+                                                     ! and relax_to_mean ==
+                                                     ! .false. (0 for no
+                                                     ! oscillation)
+  relaxation_amplitude     =                  0.0E+0 ! Relative amplitude of an
+                                                     ! oscillation superposed
+                                                     ! on the background wind
+                                                     ! if unifiedSponge ==
+                                                     ! .true. and relax_to_mean
+                                                     ! == .false.
 &end
 
 &boundaryList2
