@@ -87,7 +87,6 @@ axes.set_xlabel(r"$x \, \left[\mathrm{km}\right]$")
 axes.set_ylabel(r"$y \, \left[\mathrm{km}\right]$")
 fig.colorbar(plot, label = r"$\boldsymbol{\nabla}_z \cdot" r"\boldsymbol{u}" \
     r"\, \left[\mathrm{s^{- 1}}\right]$")
-fig.savefig("".join((data_path, "/results/barLC.pdf")))
 fig.savefig("".join((data_path, "/results/barLC.png")), dpi = 500)
 
 # Create difference plot.
@@ -101,6 +100,5 @@ if data_path != reference_path:
   axes.set_ylabel(r"$y \, \left[\mathrm{km}\right]$")
   fig.colorbar(plot, label = r"$\Delta \boldsymbol{\nabla}_z \cdot" \
       r"\boldsymbol{u} \, \left[\mathrm{s^{- 1}}\right]$")
-  fig.savefig("".join((data_path, "/results/barLC_difference.pdf")))
   fig.savefig("".join((data_path, "/results/barLC_difference.png")), \
       dpi = 500)
