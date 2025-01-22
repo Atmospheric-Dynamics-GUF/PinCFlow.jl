@@ -23,9 +23,6 @@ module poisson_module
   public :: calculate_heating
   public :: heat_w0
 
-  ! TFC
-  public :: linearOperatorTestTFC, correctorStepTestTFC
-
   !------------------------
   !   private subroutines
   !------------------------
@@ -413,7 +410,6 @@ module poisson_module
       !       Pseudo-incompressible model
       !----------------------------------------
 
-      ! TFC
       ! No changes for Boussinesq model required.
     case("pseudo_incompressible", "Boussinesq", "compressible")
 
@@ -553,7 +549,6 @@ module poisson_module
 
             ! --------------------- A(i,j,k+1) ------------------------
 
-            ! TFC
             if(k < nz .or. zBoundary == "periodic") then
               AU = au_b(i, j, k)
               sU = s(i, j, k + 1)
@@ -565,7 +560,6 @@ module poisson_module
 
             ! --------------------- A(i,j,k-1) ------------------------
 
-            ! TFC
             if(k > 1 .or. zBoundary == "periodic") then
               AD = ad_b(i, j, k)
               sD = s(i, j, k - 1)
@@ -596,7 +590,6 @@ module poisson_module
               stop "wrong hortot in linOpr"
             end if
 
-            ! TFC
             ! Set additional matrix elements for TFC.
             if(topography) then
               ! ----------------- A(i+1,j,k+1) -----------------
@@ -787,7 +780,6 @@ module poisson_module
                   &* sBUU + ABDD * sBDD
             end if
 
-            ! TFC FJ
             if(timeScheme == "semiimplicit" .and. .not. topography) then
               if(opt == 'impl') then
                 ! -------------------- A(i,j,k) ---------------------
@@ -816,11 +808,6 @@ module poisson_module
                 stop 'ERROR: linOpr expects opt = expl or opt = impl'
               end if
             end if
-
-            ! ---------------- scale with thetaStrat ------------------
-            if(pressureScaling) then
-              Ls(i, j, k) = Ls(i, j, k) / Pstrat(k)
-            end if
           end do i_loop
         end do j_loop
       end do k_loop
@@ -830,1122 +817,6 @@ module poisson_module
     end select
 
   end subroutine linOpr
-
-  !----------------------------------------------------------------------------
-
-  subroutine linearOperatorTestTFC(var, dt, opt, facray)
-
-    ! TFC
-    ! Linear operator test for tensor elements in TFC.
-
-    type(var_type), intent(in) :: var
-    real, intent(in) :: dt, facray
-    character(len = *), intent(in) :: opt
-
-    integer :: i, j, k
-
-    real :: jacInv
-    real :: pEdgeRDiv, pEdgeLDiv, pEdgeFDiv, pEdgeBDiv, pEdgeUDiv, pEdgeDDiv
-    real :: pEdgeRGra, pEdgeLGra, pEdgeFGra, pEdgeBGra, pEdgeUGra, pEdgeDGra
-    real :: rhoEdgeR, rhoEdgeL, rhoEdgeF, rhoEdgeB, rhoEdgeU, rhoEdgeD
-
-    real, dimension(0:(nx + 1), 0:(ny + 1), 0:(nz + 1)) :: s
-    real, dimension(1:nx, 1:ny, 1:nz) :: sIn, Ls, LsTest
-
-    real :: AR, AL, AF, AB, AU, AD, AC
-    real :: ARU, ARD, ALU, ALD, AFU, AFD, ABU, ABD
-    real :: AUU, ADD, ARUU, ARDD, ALUU, ALDD, AFUU, AFDD, ABUU, ABDD
-
-    real :: sR, sL, sF, sB, sU, sD, sC
-    real :: sRU, sRD, sLU, sLD, sFU, sFD, sBU, sBD
-    real :: sUU, sDD, sRUU, sRDD, sLUU, sLDD, sFUU, sFDD, sBUU, sBDD
-
-    real, dimension(1:nx, 1:ny, 1:nz) :: ac_tfc, ar_tfc, al_tfc, af_tfc, &
-        &ab_tfc, au_tfc, ad_tfc, aru_tfc, ard_tfc, alu_tfc, ald_tfc, afu_tfc, &
-        &afd_tfc, abu_tfc, abd_tfc, auu_tfc, add_tfc, aruu_tfc, ardd_tfc, &
-        &aluu_tfc, aldd_tfc, afuu_tfc, afdd_tfc, abuu_tfc, abdd_tfc
-
-    real, dimension(1:nx, 1:ny, 1:nz) :: ach_tfc
-
-    real :: sumLoc, sumLocSquared, sumGlob, sumGlobSquared
-    real * 4 :: sumOut1, sumOut2
-    real * 4, dimension(1:nx, 1:ny, 1:nz) :: diffOut
-    integer :: recTFC
-
-    logical :: directTensorElements, directElementAssignment
-    character(len = 50) :: linearOperatorTestCase
-
-    preconditioner = "yes"
-
-    directTensorElements = .false.
-    directElementAssignment = .false.
-    linearOperatorTestCase = "noTopography"
-
-    s = var%pi(0:(nx + 1), 0:(ny + 1), 0:(nz + 1))
-    sIn = var%pi(1:nx, 1:ny, 1:nz)
-
-    if(directTensorElements) then
-
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
-
-            ! Compute inverse Jacobian.
-            jacInv = 1.0 / jac(i, j, k)
-
-            ! Compute P coefficients (divergence).
-            pEdgeRDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i + 1, &
-                &j, k) * pStratTFC(i + 1, j, k))
-            pEdgeLDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i - 1, &
-                &j, k) * pStratTFC(i - 1, j, k))
-            pEdgeFDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
-                &+ 1, k) * pStratTFC(i, j + 1, k))
-            pEdgeBDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
-                &- 1, k) * pStratTFC(i, j - 1, k))
-            pEdgeUDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, k &
-                &+ 1) * pStratTFC(i, j, k + 1))
-            pEdgeDDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, k &
-                &- 1) * pStratTFC(i, j, k - 1))
-
-            ! Compute P coefficients (pressure gradient).
-            pEdgeRGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) + pStratTFC(i &
-                &+ 1, j, k) / jac(i + 1, j, k))
-            pEdgeLGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) + pStratTFC(i &
-                &- 1, j, k) / jac(i - 1, j, k))
-            pEdgeFGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                &+ pStratTFC(i, j + 1, k) / jac(i, j + 1, k))
-            pEdgeBGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                &+ pStratTFC(i, j - 1, k) / jac(i, j - 1, k))
-            pEdgeUGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                &+ pStratTFC(i, j, k + 1) / jac(i, j, k + 1))
-            pEdgeDGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                &+ pStratTFC(i, j, k - 1) / jac(i, j, k - 1))
-
-            ! Compute rho coefficients.
-            rhoEdgeR = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k) &
-                &+ rhoStratTFC(i, j, k) + rhoStratTFC(i + 1, j, k))
-            rhoEdgeL = 0.5 * (var%rho(i, j, k) + var%rho(i - 1, j, k) &
-                &+ rhoStratTFC(i, j, k) + rhoStratTFC(i - 1, j, k))
-            rhoEdgeF = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k) &
-                &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j + 1, k))
-            rhoEdgeB = 0.5 * (var%rho(i, j, k) + var%rho(i, j - 1, k) &
-                &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j - 1, k))
-            rhoEdgeU = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1) &
-                &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j, k + 1))
-            rhoEdgeD = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k - 1) &
-                &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j, k - 1))
-
-            ! --------------------- A(i,j,k) ---------------------
-
-            if(k == 1) then
-              AC = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 &
-                  &/ dx + 0.75 * met(i, j, k, 1, 3) / dz) + pEdgeLDiv &
-                  &/ rhoEdgeL * pEdgeLGra * (1.0 / dx - 0.75 * met(i, j, k, 1, &
-                  &3) / dz)) - jacInv / dy * (pEdgeFDiv / rhoEdgeF * pEdgeFGra &
-                  &* (1.0 / dy + 0.75 * met(i, j, k, 2, 3) / dz) + pEdgeBDiv &
-                  &/ rhoEdgeB * pEdgeBGra * (1.0 / dy - 0.75 * met(i, j, k, 2, &
-                  &3) / dz)) - jacInv / dz * pEdgeUDiv / rhoEdgeU * pEdgeUGra &
-                  &* met(i, j, k, 3, 3) / dz + jacInv / dz * pEdgeUDiv &
-                  &/ rhoEdgeU * 0.5 * pStratTFC(i, j, k) / jac(i, j, k) &
-                  &* (chris(i, j, k, 1, 1) + chris(i, j, k, 2, 2) + 2.0 &
-                  &* chris(i, j, k, 1, 3) * met(i, j, k, 1, 3) + 2.0 &
-                  &* chris(i, j, k, 2, 3) * met(i, j, k, 2, 3))
-            else if(k == nz) then
-              AC = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 &
-                  &/ dx - 0.75 * met(i, j, k, 1, 3) / dz) + pEdgeLDiv &
-                  &/ rhoEdgeL * pEdgeLGra * (1.0 / dx + 0.75 * met(i, j, k, 1, &
-                  &3) / dz)) - jacInv / dy * (pEdgeFDiv / rhoEdgeF * pEdgeFGra &
-                  &* (1.0 / dy - 0.75 * met(i, j, k, 2, 3) / dz) + pEdgeBDiv &
-                  &/ rhoEdgeB * pEdgeBGra * (1.0 / dy + 0.75 * met(i, j, k, 2, &
-                  &3) / dz)) - jacInv / dz * pEdgeDDiv / rhoEdgeD * pEdgeDGra &
-                  &* met(i, j, k, 3, 3) / dz - jacInv / dz * pEdgeDDiv &
-                  &/ rhoEdgeD * 0.5 * pStratTFC(i, j, k) / jac(i, j, k) &
-                  &* (chris(i, j, k, 1, 1) + chris(i, j, k, 2, 2) + 2.0 &
-                  &* chris(i, j, k, 1, 3) * met(i, j, k, 1, 3) + 2.0 &
-                  &* chris(i, j, k, 2, 3) * met(i, j, k, 2, 3))
-            else
-              AC = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra / dx &
-                  &+ pEdgeLDiv / rhoEdgeL * pEdgeLGra / dx) - jacInv / dy &
-                  &* (pEdgeFDiv / rhoEdgeF * pEdgeFGra / dy + pEdgeBDiv &
-                  &/ rhoEdgeB * pEdgeBGra / dy) - jacInv / dz * (pEdgeUDiv &
-                  &/ rhoEdgeU * pEdgeUGra * met(i, j, k, 3, 3) / dz &
-                  &+ pEdgeDDiv / rhoEdgeD * pEdgeDGra * met(i, j, k, 3, 3) &
-                  &/ dz) + jacInv / dz * pEdgeUDiv / rhoEdgeU * 0.5 &
-                  &* pStratTFC(i, j, k) / jac(i, j, k) * (chris(i, j, k, 1, 1) &
-                  &+ chris(i, j, k, 2, 2) + 2.0 * chris(i, j, k, 1, 3) &
-                  &* met(i, j, k, 1, 3) + 2.0 * chris(i, j, k, 2, 3) * met(i, &
-                  &j, k, 2, 3)) - jacInv / dz * pEdgeDDiv / rhoEdgeD * 0.5 &
-                  &* pStratTFC(i, j, k) / jac(i, j, k) * (chris(i, j, k, 1, 1) &
-                  &+ chris(i, j, k, 2, 2) + 2.0 * chris(i, j, k, 1, 3) &
-                  &* met(i, j, k, 1, 3) + 2.0 * chris(i, j, k, 2, 3) * met(i, &
-                  &j, k, 2, 3))
-            end if
-
-            ! -------------------- A(i+1,j,k) --------------------
-
-            if(k == 1) then
-              AR = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 / dx &
-                  &- 0.75 * met(i + 1, j, k, 1, 3) / dz) + jacInv / dz &
-                  &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i + 1, j, &
-                  &k, 1, 3) / dx
-            else if(k == nz) then
-              AR = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 / dx &
-                  &+ 0.75 * met(i + 1, j, k, 1, 3) / dz) - jacInv / dz &
-                  &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i + 1, j, &
-                  &k, 1, 3) / dx
-            else
-              AR = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra / dx &
-                  &+ jacInv / dz * (pEdgeUDiv / rhoEdgeU * pEdgeUGra * met(i &
-                  &+ 1, j, k, 1, 3) * 0.25 / dx - pEdgeDDiv / rhoEdgeD &
-                  &* pEdgeDGra * met(i + 1, j, k, 1, 3) * 0.25 / dx)
-            end if
-
-            ! -------------------- A(i-1,j,k) --------------------
-
-            if(k == 1) then
-              AL = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * (1.0 / dx &
-                  &+ 0.75 * met(i - 1, j, k, 1, 3) / dz) - jacInv / dz &
-                  &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i - 1, j, &
-                  &k, 1, 3) / dx
-            else if(k == nz) then
-              AL = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * (1.0 / dx &
-                  &- 0.75 * met(i - 1, j, k, 1, 3) / dz) + jacInv / dz &
-                  &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i - 1, j, &
-                  &k, 1, 3) / dx
-            else
-              AL = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra / dx &
-                  &- jacInv / dz * (pEdgeUDiv / rhoEdgeU * pEdgeUGra * met(i &
-                  &- 1, j, k, 1, 3) * 0.25 / dx - pEdgeDDiv / rhoEdgeD &
-                  &* pEdgeDGra * met(i - 1, j, k, 1, 3) * 0.25 / dx)
-            end if
-
-            ! -------------------- A(i,j+1,k) --------------------
-
-            if(k == 1) then
-              AF = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * (1.0 / dy &
-                  &- 0.75 * met(i, j + 1, k, 2, 3) / dz) + jacInv / dz &
-                  &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i, j + 1, &
-                  &k, 2, 3) / dy
-            else if(k == nz) then
-              AF = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * (1.0 / dy &
-                  &+ 0.75 * met(i, j + 1, k, 2, 3) / dz) - jacInv / dz &
-                  &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i, j + 1, &
-                  &k, 2, 3) / dy
-            else
-              AF = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra / dy &
-                  &+ jacInv / dz * (pEdgeUDiv / rhoEdgeU * pEdgeUGra * met(i, &
-                  &j + 1, k, 2, 3) * 0.25 / dy - pEdgeDDiv / rhoEdgeD &
-                  &* pEdgeDGra * met(i, j + 1, k, 2, 3) * 0.25 / dy)
-            end if
-
-            ! -------------------- A(i,j-1,k) --------------------
-
-            if(k == 1) then
-              AB = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * (1.0 / dy &
-                  &+ 0.75 * met(i, j - 1, k, 2, 3) / dz) - jacInv / dz &
-                  &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i, j - 1, &
-                  &k, 2, 3) / dy
-            else if(k == nz) then
-              AB = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * (1.0 / dy &
-                  &- 0.75 * met(i, j - 1, k, 2, 3) / dz) + jacInv / dz &
-                  &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i, j - 1, &
-                  &k, 2, 3) / dy
-            else
-              AB = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra / dy &
-                  &- jacInv / dz * (pEdgeUDiv / rhoEdgeU * pEdgeUGra * met(i, &
-                  &j - 1, k, 2, 3) * 0.25 / dy - pEdgeDDiv / rhoEdgeD &
-                  &* pEdgeDGra * met(i, j - 1, k, 2, 3) * 0.25 / dy)
-            end if
-
-            ! -------------------- A(i,j,k+1) --------------------
-
-            if(k == 1) then
-              AU = jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i, j, &
-                  &k + 1, 1, 3) / dz - pEdgeLDiv / rhoEdgeL * pEdgeLGra &
-                  &* met(i, j, k + 1, 1, 3) / dz) + jacInv / dy * (pEdgeFDiv &
-                  &/ rhoEdgeF * pEdgeFGra * met(i, j, k + 1, 2, 3) / dz &
-                  &- pEdgeBDiv / rhoEdgeB * pEdgeBGra * met(i, j, k + 1, 2, 3) &
-                  &/ dz) + jacInv / dz * pEdgeUDiv / rhoEdgeU * pEdgeUGra &
-                  &* met(i, j, k + 1, 3, 3) / dz + jacInv / dz * pEdgeUDiv &
-                  &/ rhoEdgeU * 0.5 * pStratTFC(i, j, k + 1) / jac(i, j, k &
-                  &+ 1) * (chris(i, j, k + 1, 1, 1) + chris(i, j, k + 1, 2, 2) &
-                  &+ 2.0 * chris(i, j, k + 1, 1, 3) * met(i, j, k + 1, 1, 3) &
-                  &+ 2.0 * chris(i, j, k + 1, 2, 3) * met(i, j, k + 1, 2, 3))
-            else if(k == nz) then
-              AU = 0.0
-            else
-              AU = jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i, j, &
-                  &k + 1, 1, 3) * 0.25 / dz - pEdgeLDiv / rhoEdgeL * pEdgeLGra &
-                  &* met(i, j, k + 1, 1, 3) * 0.25 / dz) + jacInv / dy &
-                  &* (pEdgeFDiv / rhoEdgeF * pEdgeFGra * met(i, j, k + 1, 2, &
-                  &3) * 0.25 / dz - pEdgeBDiv / rhoEdgeB * pEdgeBGra * met(i, &
-                  &j, k + 1, 2, 3) * 0.25 / dz) + jacInv / dz * pEdgeUDiv &
-                  &/ rhoEdgeU * pEdgeUGra * met(i, j, k + 1, 3, 3) / dz &
-                  &+ jacInv / dz * pEdgeUDiv / rhoEdgeU * 0.5 * pStratTFC(i, &
-                  &j, k + 1) / jac(i, j, k + 1) * (chris(i, j, k + 1, 1, 1) &
-                  &+ chris(i, j, k + 1, 2, 2) + 2.0 * chris(i, j, k + 1, 1, 3) &
-                  &* met(i, j, k + 1, 1, 3) + 2.0 * chris(i, j, k + 1, 2, 3) &
-                  &* met(i, j, k + 1, 2, 3))
-            end if
-
-            ! -------------------- A(i,j,k-1) --------------------
-
-            if(k == 1) then
-              AD = 0.0
-            else if(k == nz) then
-              AD = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i, &
-                  &j, k - 1, 1, 3) / dz - pEdgeLDiv / rhoEdgeL * pEdgeLGra &
-                  &* met(i, j, k - 1, 1, 3) / dz) - jacInv / dy * (pEdgeFDiv &
-                  &/ rhoEdgeF * pEdgeFGra * met(i, j, k - 1, 2, 3) / dz &
-                  &- pEdgeBDiv / rhoEdgeB * pEdgeBGra * met(i, j, k - 1, 2, 3) &
-                  &/ dz) + jacInv / dz * pEdgeDDiv / rhoEdgeD * pEdgeDGra &
-                  &* met(i, j, k - 1, 3, 3) / dz - jacInv / dz * pEdgeDDiv &
-                  &/ rhoEdgeD * 0.5 * pStratTFC(i, j, k - 1) / jac(i, j, k &
-                  &- 1) * (chris(i, j, k - 1, 1, 1) + chris(i, j, k - 1, 2, 2) &
-                  &+ 2.0 * chris(i, j, k - 1, 1, 3) * met(i, j, k - 1, 1, 3) &
-                  &+ 2.0 * chris(i, j, k - 1, 2, 3) * met(i, j, k - 1, 2, 3))
-            else
-              AD = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i, &
-                  &j, k - 1, 1, 3) * 0.25 / dz - pEdgeLDiv / rhoEdgeL &
-                  &* pEdgeLGra * met(i, j, k - 1, 1, 3) * 0.25 / dz) - jacInv &
-                  &/ dy * (pEdgeFDiv / rhoEdgeF * pEdgeFGra * met(i, j, k - 1, &
-                  &2, 3) * 0.25 / dz - pEdgeBDiv / rhoEdgeB * pEdgeBGra &
-                  &* met(i, j, k - 1, 2, 3) * 0.25 / dz) + jacInv / dz &
-                  &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * met(i, j, k - 1, 3, 3) &
-                  &/ dz - jacInv / dz * pEdgeDDiv / rhoEdgeD * 0.5 &
-                  &* pStratTFC(i, j, k - 1) / jac(i, j, k - 1) * (chris(i, j, &
-                  &k - 1, 1, 1) + chris(i, j, k - 1, 2, 2) + 2.0 * chris(i, j, &
-                  &k - 1, 1, 3) * met(i, j, k - 1, 1, 3) + 2.0 * chris(i, j, k &
-                  &- 1, 2, 3) * met(i, j, k - 1, 2, 3))
-            end if
-
-            ! ------------------- A(i+1,j,k+1) -------------------
-
-            if(k == 1) then
-              ARU = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i &
-                  &+ 1, j, k + 1, 1, 3) / dz + jacInv / dz * pEdgeUDiv &
-                  &/ rhoEdgeU * pEdgeUGra * met(i + 1, j, k + 1, 1, 3) * 0.25 &
-                  &/ dx
-            else if(k == nz) then
-              ARU = 0.0
-            else
-              ARU = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i &
-                  &+ 1, j, k + 1, 1, 3) * 0.25 / dz + jacInv / dz * pEdgeUDiv &
-                  &/ rhoEdgeU * pEdgeUGra * met(i + 1, j, k + 1, 1, 3) * 0.25 &
-                  &/ dx
-            end if
-
-            ! ------------------- A(i+1,j,k-1) -------------------
-
-            if(k == 1) then
-              ARD = 0.0
-            else if(k == nz) then
-              ARD = - jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i &
-                  &+ 1, j, k - 1, 1, 3) / dz - jacInv / dz * pEdgeDDiv &
-                  &/ rhoEdgeD * pEdgeDGra * met(i + 1, j, k - 1, 1, 3) * 0.25 &
-                  &/ dx
-            else
-              ARD = - jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i &
-                  &+ 1, j, k - 1, 1, 3) * 0.25 / dz - jacInv / dz * pEdgeDDiv &
-                  &/ rhoEdgeD * pEdgeDGra * met(i + 1, j, k - 1, 1, 3) * 0.25 &
-                  &/ dx
-            end if
-
-            ! ------------------- A(i-1,j,k+1) -------------------
-
-            if(k == 1) then
-              ALU = - jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met(i &
-                  &- 1, j, k + 1, 1, 3) / dz - jacInv / dz * pEdgeUDiv &
-                  &/ rhoEdgeU * pEdgeUGra * met(i - 1, j, k + 1, 1, 3) * 0.25 &
-                  &/ dx
-            else if(k == nz) then
-              ALU = 0.0
-            else
-              ALU = - jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met(i &
-                  &- 1, j, k + 1, 1, 3) * 0.25 / dz - jacInv / dz * pEdgeUDiv &
-                  &/ rhoEdgeU * pEdgeUGra * met(i - 1, j, k + 1, 1, 3) * 0.25 &
-                  &/ dx
-            end if
-
-            ! ------------------- A(i-1,j,k-1) -------------------
-
-            if(k == 1) then
-              ALD = 0.0
-            else if(k == nz) then
-              ALD = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met(i &
-                  &- 1, j, k - 1, 1, 3) / dz + jacInv / dz * pEdgeDDiv &
-                  &/ rhoEdgeD * pEdgeDGra * met(i - 1, j, k - 1, 1, 3) * 0.25 &
-                  &/ dx
-            else
-              ALD = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met(i &
-                  &- 1, j, k - 1, 1, 3) * 0.25 / dz + jacInv / dz * pEdgeDDiv &
-                  &/ rhoEdgeD * pEdgeDGra * met(i - 1, j, k - 1, 1, 3) * 0.25 &
-                  &/ dx
-            end if
-
-            ! ------------------- A(i,j+1,k+1) -------------------
-
-            if(k == 1) then
-              AFU = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * met(i, j &
-                  &+ 1, k + 1, 2, 3) / dz + jacInv / dz * pEdgeUDiv / rhoEdgeU &
-                  &* pEdgeUGra * met(i, j + 1, k + 1, 2, 3) * 0.25 / dy
-            else if(k == nz) then
-              AFU = 0.0
-            else
-              AFU = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * met(i, j &
-                  &+ 1, k + 1, 2, 3) * 0.25 / dz + jacInv / dz * pEdgeUDiv &
-                  &/ rhoEdgeU * pEdgeUGra * met(i, j + 1, k + 1, 2, 3) * 0.25 &
-                  &/ dy
-            end if
-
-            ! ------------------- A(i,j+1,k-1) -------------------
-
-            if(k == 1) then
-              AFD = 0.0
-            else if(k == nz) then
-              AFD = - jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * met(i, &
-                  &j + 1, k - 1, 2, 3) / dz - jacInv / dz * pEdgeDDiv &
-                  &/ rhoEdgeD * pEdgeDGra * met(i, j + 1, k - 1, 2, 3) * 0.25 &
-                  &/ dy
-            else
-              AFD = - jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * met(i, &
-                  &j + 1, k - 1, 2, 3) * 0.25 / dz - jacInv / dz * pEdgeDDiv &
-                  &/ rhoEdgeD * pEdgeDGra * met(i, j + 1, k - 1, 2, 3) * 0.25 &
-                  &/ dy
-            end if
-
-            ! ------------------- A(i,j-1,k+1) -------------------
-
-            if(k == 1) then
-              ABU = - jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * met(i, &
-                  &j - 1, k + 1, 2, 3) / dz - jacInv / dz * pEdgeUDiv &
-                  &/ rhoEdgeU * pEdgeUGra * met(i, j - 1, k + 1, 2, 3) * 0.25 &
-                  &/ dy
-            else if(k == nz) then
-              ABU = 0.0
-            else
-              ABU = - jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * met(i, &
-                  &j - 1, k + 1, 2, 3) * 0.25 / dz - jacInv / dz * pEdgeUDiv &
-                  &/ rhoEdgeU * pEdgeUGra * met(i, j - 1, k + 1, 2, 3) * 0.25 &
-                  &/ dy
-            end if
-
-            ! ------------------- A(i,j-1,k-1) -------------------
-
-            if(k == 1) then
-              ABD = 0.0
-            else if(k == nz) then
-              ABD = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * met(i, j &
-                  &- 1, k - 1, 2, 3) / dz + jacInv / dz * pEdgeDDiv / rhoEdgeD &
-                  &* pEdgeDGra * met(i, j - 1, k - 1, 2, 3) * 0.25 / dy
-            else
-              ABD = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * met(i, j &
-                  &- 1, k - 1, 2, 3) * 0.25 / dz + jacInv / dz * pEdgeDDiv &
-                  &/ rhoEdgeD * pEdgeDGra * met(i, j - 1, k - 1, 2, 3) * 0.25 &
-                  &/ dy
-            end if
-
-            ! ------------------- A(i,j,k+2) ---------------------
-
-            if(k == 1) then
-              AUU = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
-                  &* met(i, j, k + 2, 1, 3) / dz - pEdgeLDiv / rhoEdgeL &
-                  &* pEdgeLGra * 0.25 * met(i, j, k + 2, 1, 3) / dz) - jacInv &
-                  &/ dy * (pEdgeFDiv / rhoEdgeF * pEdgeFGra * 0.25 * met(i, j, &
-                  &k + 2, 2, 3) / dz - pEdgeBDiv / rhoEdgeB * pEdgeBGra * 0.25 &
-                  &* met(i, j, k + 2, 2, 3) / dz)
-            else
-              AUU = 0.0
-            end if
-
-            ! ------------------- A(i,j,k-2) ---------------------
-
-            if(k == nz) then
-              ADD = jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
-                  &* met(i, j, k - 2, 1, 3) / dz - pEdgeLDiv / rhoEdgeL &
-                  &* pEdgeLGra * 0.25 * met(i, j, k - 2, 1, 3) / dz) + jacInv &
-                  &/ dy * (pEdgeFDiv / rhoEdgeF * pEdgeFGra * 0.25 * met(i, j, &
-                  &k - 2, 2, 3) / dz - pEdgeBDiv / rhoEdgeB * pEdgeBGra * 0.25 &
-                  &* met(i, j, k - 2, 2, 3) / dz)
-            else
-              ADD = 0.0
-            end if
-
-            ! ------------------ A(i+1,j,k+2) --------------------
-
-            if(k == 1) then
-              ARUU = - jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
-                  &* met(i + 1, j, k + 2, 1, 3) / dz
-            else
-              ARUU = 0.0
-            end if
-
-            ! ------------------ A(i+1,j,k-2) --------------------
-
-            if(k == nz) then
-              ARDD = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
-                  &* met(i + 1, j, k - 2, 1, 3) / dz
-            else
-              ARDD = 0.0
-            end if
-
-            ! ------------------ A(i-1,j,k+2) --------------------
-
-            if(k == 1) then
-              ALUU = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * 0.25 &
-                  &* met(i - 1, j, k + 2, 1, 3) / dz
-            else
-              ALUU = 0.0
-            end if
-
-            ! ------------------ A(i-1,j,k-2) --------------------
-
-            if(k == nz) then
-              ALDD = - jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * 0.25 &
-                  &* met(i - 1, j, k - 2, 1, 3) / dz
-            else
-              ALDD = 0.0
-            end if
-
-            ! ------------------ A(i,j+1,k+2) --------------------
-
-            if(k == 1) then
-              AFUU = - jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * 0.25 &
-                  &* met(i, j + 1, k + 2, 2, 3) / dz
-            else
-              AFUU = 0.0
-            end if
-
-            ! ------------------ A(i,j+1,k-2) --------------------
-
-            if(k == nz) then
-              AFDD = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * 0.25 &
-                  &* met(i, j + 1, k - 2, 2, 3) / dz
-            else
-              AFDD = 0.0
-            end if
-
-            ! ------------------ A(i,j-1,k+2) --------------------
-
-            if(k == 1) then
-              ABUU = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * 0.25 &
-                  &* met(i, j - 1, k + 2, 2, 3) / dz
-            else
-              ABUU = 0.0
-            end if
-
-            ! ------------------ A(i,j-1,k-2) --------------------
-
-            if(k == nz) then
-              ABDD = - jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * 0.25 &
-                  &* met(i, j - 1, k - 2, 2, 3) / dz
-            else
-              ABDD = 0.0
-            end if
-
-            ! Set matrix elements for bicgstab.
-            ac_b(i, j, k) = AC
-            ar_b(i, j, k) = AR
-            al_b(i, j, k) = AL
-            af_b(i, j, k) = AF
-            ab_b(i, j, k) = AB
-            au_b(i, j, k) = AU
-            ad_b(i, j, k) = AD
-            aru_b(i, j, k) = ARU
-            ard_b(i, j, k) = ARD
-            alu_b(i, j, k) = ALU
-            ald_b(i, j, k) = ALD
-            afu_b(i, j, k) = AFU
-            afd_b(i, j, k) = AFD
-            abu_b(i, j, k) = ABU
-            abd_b(i, j, k) = ABD
-            auu_b(i, j, k) = AUU
-            add_b(i, j, k) = ADD
-            aruu_b(i, j, k) = ARUU
-            ardd_b(i, j, k) = ARDD
-            aluu_b(i, j, k) = ALUU
-            aldd_b(i, j, k) = ALDD
-            afuu_b(i, j, k) = AFUU
-            afdd_b(i, j, k) = AFDD
-            abuu_b(i, j, k) = ABUU
-            abdd_b(i, j, k) = ABDD
-
-          end do
-        end do
-      end do
-
-    else
-
-      call val_PsIn(var, dt, opt, facray)
-
-    end if
-
-    if(directElementAssignment) then
-
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
-
-            ! ------------------ A(i+1,j,k) ------------------
-
-            AR = ar_b(i, j, k)
-            sR = s(i + 1, j, k)
-
-            ! ------------------- A(i-1,j,k) --------------------
-
-            AL = al_b(i, j, k)
-            sL = s(i - 1, j, k)
-
-            ! -------------------- A(i,j+1,k) ----------------------
-
-            AF = af_b(i, j, k)
-            sF = s(i, j + 1, k)
-
-            ! --------------------- A(i,j-1,k) -----------------------
-
-            AB = ab_b(i, j, k)
-            sB = s(i, j - 1, k)
-
-            ! --------------------- A(i,j,k+1) ------------------------
-
-            if(k < nz) then
-              AU = au_b(i, j, k)
-              sU = s(i, j, k + 1)
-            else ! k = nz -> upwad boundary (solid wall)
-              ! A(i,j,nz+1) = 0
-              AU = 0.0
-              sU = 0.0
-            end if
-
-            ! --------------------- A(i,j,k-1) ------------------------
-
-            if(k > 1) then
-              AD = ad_b(i, j, k)
-              sD = s(i, j, k - 1)
-            else ! k = 1 -> downward boundary (solid wall)
-              ! A(i,j,0) = 0
-              AD = 0.0
-              sD = 0.0
-            end if
-
-            ! -------------------- A(i,j,k) --------------------------
-
-            AC = ac_b(i, j, k)
-            sC = s(i, j, k)
-
-            ! -------------------- Apply operator ---------------------
-
-            LsTest(i, j, k) = AL * sL + AR * sR + AF * sF + AB * sB + AU * sU &
-                &+ AD * sD + AC * sC
-
-            ! ----------------- A(i+1,j,k+1) -----------------
-
-            if(k < nz) then
-              ARU = aru_b(i, j, k)
-              sRU = s(i + 1, j, k + 1)
-            else
-              ARU = 0.0
-              sRU = 0.0
-            end if
-
-            ! ----------------- A(i+1,j,k-1) -----------------
-
-            if(k > 1) then
-              ARD = ard_b(i, j, k)
-              sRD = s(i + 1, j, k - 1)
-            else
-              ARD = 0.0
-              sRD = 0.0
-            end if
-
-            ! ----------------- A(i-1,j,k+1) -----------------
-
-            if(k < nz) then
-              ALU = alu_b(i, j, k)
-              sLU = s(i - 1, j, k + 1)
-            else
-              ALU = 0.0
-              sLU = 0.0
-            end if
-
-            ! ----------------- A(i-1,j,k-1) -----------------
-
-            if(k > 1) then
-              ALD = ald_b(i, j, k)
-              sLD = s(i - 1, j, k - 1)
-            else
-              ALD = 0.0
-              sLD = 0.0
-            end if
-
-            ! ----------------- A(i,j+1,k+1) -----------------
-
-            if(k < nz) then
-              AFU = afu_b(i, j, k)
-              sFU = s(i, j + 1, k + 1)
-            else
-              AFU = 0.0
-              sFU = 0.0
-            end if
-
-            ! ----------------- A(i,j+1,k-1) -----------------
-
-            if(k > 1) then
-              AFD = afd_b(i, j, k)
-              sFD = s(i, j + 1, k - 1)
-            else
-              AFD = 0.0
-              sFD = 0.0
-            end if
-
-            ! ----------------- A(i,j-1,k+1) -----------------
-
-            if(k < nz) then
-              ABU = abu_b(i, j, k)
-              sBU = s(i, j - 1, k + 1)
-            else
-              ABU = 0.0
-              sBU = 0.0
-            end if
-
-            ! ----------------- A(i,j-1,k-1) -----------------
-
-            if(k > 1) then
-              ABD = abd_b(i, j, k)
-              sBD = s(i, j - 1, k - 1)
-            else
-              ABD = 0.0
-              sBD = 0.0
-            end if
-
-            ! ------------------ A(i,j,k+2) -----------------
-
-            if(k == 1) then
-              AUU = auu_b(i, j, k)
-              sUU = s(i, j, k + 2)
-            else
-              AUU = 0.0
-              sUU = 0.0
-            end if
-
-            ! ------------------ A(i,j,k-2) -----------------
-
-            if(k == nz) then
-              ADD = add_b(i, j, k)
-              sDD = s(i, j, k - 2)
-            else
-              ADD = 0.0
-              sDD = 0.0
-            end if
-
-            ! ----------------- A(i+1,j,k+2) -----------------
-
-            if(k == 1) then
-              ARUU = aruu_b(i, j, k)
-              sRUU = s(i + 1, j, k + 2)
-            else
-              ARUU = 0.0
-              sRUU = 0.0
-            end if
-
-            ! ----------------- A(i+1,j,k-2) -----------------
-
-            if(k == nz) then
-              ARDD = ardd_b(i, j, k)
-              sRDD = s(i + 1, j, k - 2)
-            else
-              ARDD = 0.0
-              sRDD = 0.0
-            end if
-
-            ! ----------------- A(i-1,j,k+2) -----------------
-
-            if(k == 1) then
-              ALUU = aluu_b(i, j, k)
-              sLUU = s(i - 1, j, k + 2)
-            else
-              ALUU = 0.0
-              sLUU = 0.0
-            end if
-
-            ! ----------------- A(i-1,j,k-2) -----------------
-
-            if(k == nz) then
-              ALDD = aldd_b(i, j, k)
-              sLDD = s(i - 1, j, k - 2)
-            else
-              ALDD = 0.0
-              sLDD = 0.0
-            end if
-
-            ! ----------------- A(i,j+1,k+2) -----------------
-
-            if(k == 1) then
-              AFUU = afuu_b(i, j, k)
-              sFUU = s(i, j + 1, k + 2)
-            else
-              AFUU = 0.0
-              sFUU = 0.0
-            end if
-
-            ! ----------------- A(i,j+1,k-2) -----------------
-
-            if(k == nz) then
-              AFDD = afdd_b(i, j, k)
-              sFDD = s(i, j + 1, k - 2)
-            else
-              AFDD = 0.0
-              sFDD = 0.0
-            end if
-
-            ! ----------------- A(i,j-1,k+2) -----------------
-
-            if(k == 1) then
-              ABUU = abuu_b(i, j, k)
-              sBUU = s(i, j - 1, k + 2)
-            else
-              ABUU = 0.0
-              sBUU = 0.0
-            end if
-
-            ! ----------------- A(i,j-1,k-2) -----------------
-
-            if(k == nz) then
-              ABDD = abdd_b(i, j, k)
-              sBDD = s(i, j - 1, k - 2)
-            else
-              ABDD = 0.0
-              sBDD = 0.0
-            end if
-
-            ! Correct operator.
-            LsTest(i, j, k) = LsTest(i, j, k) + ARU * sRU + ARD * sRD + ALU &
-                &* sLU + ALD * sLD + AFU * sFU + AFD * sFD + ABU * sBU + ABD &
-                &* sBD + AUU * sUU + ADD * sDD + ARUU * sRUU + ARDD * sRDD &
-                &+ ALUU * sLUU + ALDD * sLDD + AFUU * sFUU + AFDD * sFDD &
-                &+ ABUU * sBUU + ABDD * sBDD
-
-          end do
-        end do
-      end do
-
-    else
-
-      call linOpr(sIn, LsTest, opt, "tot")
-
-    end if
-
-    select case(linearOperatorTestCase)
-
-    case("directLinearOperator")
-
-      k_loop: do k = 1, nz
-        j_loop: do j = 1, ny
-          i_loop: do i = 1, nx
-
-            ! Compute inverse Jacobian.
-            jacInv = 1.0 / jac(i, j, k)
-
-            ! Compute P coefficients (divergence).
-            pEdgeRDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i + 1, &
-                &j, k) * pStratTFC(i + 1, j, k))
-            pEdgeLDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i - 1, &
-                &j, k) * pStratTFC(i - 1, j, k))
-            pEdgeFDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
-                &+ 1, k) * pStratTFC(i, j + 1, k))
-            pEdgeBDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
-                &- 1, k) * pStratTFC(i, j - 1, k))
-            pEdgeUDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, k &
-                &+ 1) * pStratTFC(i, j, k + 1))
-            pEdgeDDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, k &
-                &- 1) * pStratTFC(i, j, k - 1))
-
-            ! Compute P coefficients (pressure gradient).
-            pEdgeRGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) + pStratTFC(i &
-                &+ 1, j, k) / jac(i + 1, j, k))
-            pEdgeLGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) + pStratTFC(i &
-                &- 1, j, k) / jac(i - 1, j, k))
-            pEdgeFGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                &+ pStratTFC(i, j + 1, k) / jac(i, j + 1, k))
-            pEdgeBGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                &+ pStratTFC(i, j - 1, k) / jac(i, j - 1, k))
-            pEdgeUGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                &+ pStratTFC(i, j, k + 1) / jac(i, j, k + 1))
-            pEdgeDGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                &+ pStratTFC(i, j, k - 1) / jac(i, j, k - 1))
-
-            ! Compute rho coefficients.
-            rhoEdgeR = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k) &
-                &+ rhoStratTFC(i, j, k) + rhoStratTFC(i + 1, j, k))
-            rhoEdgeL = 0.5 * (var%rho(i, j, k) + var%rho(i - 1, j, k) &
-                &+ rhoStratTFC(i, j, k) + rhoStratTFC(i - 1, j, k))
-            rhoEdgeF = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k) &
-                &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j + 1, k))
-            rhoEdgeB = 0.5 * (var%rho(i, j, k) + var%rho(i, j - 1, k) &
-                &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j - 1, k))
-            rhoEdgeU = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1) &
-                &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j, k + 1))
-            rhoEdgeD = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k - 1) &
-                &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j, k - 1))
-
-            ! Direct computation.
-
-            if(k == 1) then
-
-              Ls(i, j, k) = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra &
-                  &* ((s(i + 1, j, k) - s(i, j, k)) / dx + 0.25 * (- met(i, j, &
-                  &k + 2, 1, 3) * s(i, j, k + 2) - met(i + 1, j, k + 2, 1, 3) &
-                  &* s(i + 1, j, k + 2) + 4.0 * met(i, j, k + 1, 1, 3) * s(i, &
-                  &j, k + 1) + 4.0 * met(i + 1, j, k + 1, 1, 3) * s(i + 1, j, &
-                  &k + 1) - 3.0 * met(i, j, k, 1, 3) * s(i, j, k) - 3.0 &
-                  &* met(i + 1, j, k, 1, 3) * s(i + 1, j, k)) / dz) - jacInv &
-                  &/ dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * ((s(i, j, k) &
-                  &- s(i - 1, j, k)) / dx + 0.25 * (- met(i, j, k + 2, 1, 3) &
-                  &* s(i, j, k + 2) - met(i - 1, j, k + 2, 1, 3) * s(i - 1, j, &
-                  &k + 2) + 4.0 * met(i, j, k + 1, 1, 3) * s(i, j, k + 1) &
-                  &+ 4.0 * met(i - 1, j, k + 1, 1, 3) * s(i - 1, j, k + 1) &
-                  &- 3.0 * met(i, j, k, 1, 3) * s(i, j, k) - 3.0 * met(i - 1, &
-                  &j, k, 1, 3) * s(i - 1, j, k)) / dz) + jacInv / dy &
-                  &* pEdgeFDiv / rhoEdgeF * pEdgeFGra * ((s(i, j + 1, k) &
-                  &- s(i, j, k)) / dy + 0.25 * (- met(i, j, k + 2, 2, 3) &
-                  &* s(i, j, k + 2) - met(i, j + 1, k + 2, 2, 3) * s(i, j + 1, &
-                  &k + 2) + 4.0 * met(i, j, k + 1, 2, 3) * s(i, j, k + 1) &
-                  &+ 4.0 * met(i, j + 1, k + 1, 2, 3) * s(i, j + 1, k + 1) &
-                  &- 3.0 * met(i, j, k, 2, 3) * s(i, j, k) - 3.0 * met(i, j &
-                  &+ 1, k, 2, 3) * s(i, j + 1, k)) / dz) - jacInv / dy &
-                  &* pEdgeBDiv / rhoEdgeB * pEdgeBGra * ((s(i, j, k) - s(i, j &
-                  &- 1, k)) / dy + 0.25 * (- met(i, j, k + 2, 2, 3) * s(i, j, &
-                  &k + 2) - met(i, j - 1, k + 2, 2, 3) * s(i, j - 1, k + 2) &
-                  &+ 4.0 * met(i, j, k + 1, 2, 3) * s(i, j, k + 1) + 4.0 &
-                  &* met(i, j - 1, k + 1, 2, 3) * s(i, j - 1, k + 1) - 3.0 &
-                  &* met(i, j, k, 2, 3) * s(i, j, k) - 3.0 * met(i, j - 1, k, &
-                  &2, 3) * s(i, j - 1, k)) / dz) + jacInv / dz * pEdgeUDiv &
-                  &/ rhoEdgeU * pEdgeUGra * (0.25 * (met(i + 1, j, k, 3, 1) &
-                  &* s(i + 1, j, k) + met(i + 1, j, k + 1, 3, 1) * s(i + 1, j, &
-                  &k + 1) - met(i - 1, j, k, 3, 1) * s(i - 1, j, k) - met(i &
-                  &- 1, j, k + 1, 3, 1) * s(i - 1, j, k + 1)) / dx + 0.25 &
-                  &* (met(i, j + 1, k, 3, 2) * s(i, j + 1, k) + met(i, j + 1, &
-                  &k + 1, 3, 2) * s(i, j + 1, k + 1) - met(i, j - 1, k, 3, 2) &
-                  &* s(i, j - 1, k) - met(i, j - 1, k + 1, 3, 2) * s(i, j - 1, &
-                  &k + 1)) / dy + (met(i, j, k + 1, 3, 3) * s(i, j, k + 1) &
-                  &- met(i, j, k, 3, 3) * s(i, j, k)) / dz) + jacInv / dz &
-                  &* pEdgeUDiv / rhoEdgeU * 0.5 * (pStratTFC(i, j, k) / jac(i, &
-                  &j, k) * (chris(i, j, k, 1, 1) + chris(i, j, k, 2, 2) + 2.0 &
-                  &* chris(i, j, k, 1, 3) * met(i, j, k, 1, 3) + 2.0 &
-                  &* chris(i, j, k, 2, 3) * met(i, j, k, 2, 3)) * s(i, j, k) &
-                  &+ pStratTFC(i, j, k + 1) / jac(i, j, k + 1) * (chris(i, j, &
-                  &k + 1, 1, 1) + chris(i, j, k + 1, 2, 2) + 2.0 * chris(i, j, &
-                  &k + 1, 1, 3) * met(i, j, k + 1, 1, 3) + 2.0 * chris(i, j, k &
-                  &+ 1, 2, 3) * met(i, j, k + 1, 2, 3)) * s(i, j, k + 1))
-
-            else if(k == nz) then
-
-              Ls(i, j, k) = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra &
-                  &* ((s(i + 1, j, k) - s(i, j, k)) / dx + 0.25 * (met(i, j, k &
-                  &- 2, 1, 3) * s(i, j, k - 2) + met(i + 1, j, k - 2, 1, 3) &
-                  &* s(i + 1, j, k - 2) - 4.0 * met(i, j, k - 1, 1, 3) * s(i, &
-                  &j, k - 1) - 4.0 * met(i + 1, j, k - 1, 1, 3) * s(i + 1, j, &
-                  &k - 1) + 3.0 * met(i, j, k, 1, 3) * s(i, j, k) + 3.0 &
-                  &* met(i + 1, j, k, 1, 3) * s(i + 1, j, k)) / dz) - jacInv &
-                  &/ dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * ((s(i, j, k) &
-                  &- s(i - 1, j, k)) / dx + 0.25 * (met(i, j, k - 2, 1, 3) &
-                  &* s(i, j, k - 2) + met(i - 1, j, k - 2, 1, 3) * s(i - 1, j, &
-                  &k - 2) - 4.0 * met(i, j, k - 1, 1, 3) * s(i, j, k - 1) &
-                  &- 4.0 * met(i - 1, j, k - 1, 1, 3) * s(i - 1, j, k - 1) &
-                  &+ 3.0 * met(i, j, k, 1, 3) * s(i, j, k) + 3.0 * met(i - 1, &
-                  &j, k, 1, 3) * s(i - 1, j, k)) / dz) + jacInv / dy &
-                  &* pEdgeFDiv / rhoEdgeF * pEdgeFGra * ((s(i, j + 1, k) &
-                  &- s(i, j, k)) / dy + 0.25 * (met(i, j, k - 2, 2, 3) * s(i, &
-                  &j, k - 2) + met(i, j + 1, k - 2, 2, 3) * s(i, j + 1, k - 2) &
-                  &- 4.0 * met(i, j, k - 1, 2, 3) * s(i, j, k - 1) - 4.0 &
-                  &* met(i, j + 1, k - 1, 2, 3) * s(i, j + 1, k - 1) + 3.0 &
-                  &* met(i, j, k, 2, 3) * s(i, j, k) + 3.0 * met(i, j + 1, k, &
-                  &2, 3) * s(i, j + 1, k)) / dz) - jacInv / dy * pEdgeBDiv &
-                  &/ rhoEdgeB * pEdgeBGra * ((s(i, j, k) - s(i, j - 1, k)) &
-                  &/ dy + 0.25 * (met(i, j, k - 2, 2, 3) * s(i, j, k - 2) &
-                  &+ met(i, j - 1, k - 2, 2, 3) * s(i, j - 1, k - 2) - 4.0 &
-                  &* met(i, j, k - 1, 2, 3) * s(i, j, k - 1) - 4.0 * met(i, j &
-                  &- 1, k - 1, 2, 3) * s(i, j - 1, k - 1) + 3.0 * met(i, j, k, &
-                  &2, 3) * s(i, j, k) + 3.0 * met(i, j - 1, k, 2, 3) * s(i, j &
-                  &- 1, k)) / dz) - jacInv / dz * pEdgeDDiv / rhoEdgeD &
-                  &* pEdgeDGra * (0.25 * (met(i + 1, j, k, 3, 1) * s(i + 1, j, &
-                  &k) + met(i + 1, j, k - 1, 3, 1) * s(i + 1, j, k - 1) &
-                  &- met(i - 1, j, k, 3, 1) * s(i - 1, j, k) - met(i - 1, j, k &
-                  &- 1, 3, 1) * s(i - 1, j, k - 1)) / dx + 0.25 * (met(i, j &
-                  &+ 1, k, 3, 2) * s(i, j + 1, k) + met(i, j + 1, k - 1, 3, 2) &
-                  &* s(i, j + 1, k - 1) - met(i, j - 1, k, 3, 2) * s(i, j - 1, &
-                  &k) - met(i, j - 1, k - 1, 3, 2) * s(i, j - 1, k - 1)) / dy &
-                  &+ (met(i, j, k, 3, 3) * s(i, j, k) - met(i, j, k - 1, 3, 3) &
-                  &* s(i, j, k - 1)) / dz) - jacInv / dz * pEdgeDDiv &
-                  &/ rhoEdgeD * 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                  &* (chris(i, j, k, 1, 1) + chris(i, j, k, 2, 2) + 2.0 &
-                  &* chris(i, j, k, 1, 3) * met(i, j, k, 1, 3) + 2.0 &
-                  &* chris(i, j, k, 2, 3) * met(i, j, k, 2, 3)) * s(i, j, k) &
-                  &+ pStratTFC(i, j, k - 1) / jac(i, j, k - 1) * (chris(i, j, &
-                  &k - 1, 1, 1) + chris(i, j, k - 1, 2, 2) + 2.0 * chris(i, j, &
-                  &k - 1, 1, 3) * met(i, j, k - 1, 1, 3) + 2.0 * chris(i, j, k &
-                  &- 1, 2, 3) * met(i, j, k - 1, 2, 3)) * s(i, j, k - 1))
-
-            else
-
-              Ls(i, j, k) = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra &
-                  &* ((s(i + 1, j, k) - s(i, j, k)) / dx + 0.25 * (met(i, j, k &
-                  &+ 1, 1, 3) * s(i, j, k + 1) + met(i + 1, j, k + 1, 1, 3) &
-                  &* s(i + 1, j, k + 1) - met(i, j, k - 1, 1, 3) * s(i, j, k &
-                  &- 1) - met(i + 1, j, k - 1, 1, 3) * s(i + 1, j, k - 1)) &
-                  &/ dz) - jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra &
-                  &* ((s(i, j, k) - s(i - 1, j, k)) / dx + 0.25 * (met(i, j, k &
-                  &+ 1, 1, 3) * s(i, j, k + 1) + met(i - 1, j, k + 1, 1, 3) &
-                  &* s(i - 1, j, k + 1) - met(i, j, k - 1, 1, 3) * s(i, j, k &
-                  &- 1) - met(i - 1, j, k - 1, 1, 3) * s(i - 1, j, k - 1)) &
-                  &/ dz) + jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra &
-                  &* ((s(i, j + 1, k) - s(i, j, k)) / dy + 0.25 * (met(i, j, k &
-                  &+ 1, 2, 3) * s(i, j, k + 1) + met(i, j + 1, k + 1, 2, 3) &
-                  &* s(i, j + 1, k + 1) - met(i, j, k - 1, 2, 3) * s(i, j, k &
-                  &- 1) - met(i, j + 1, k - 1, 2, 3) * s(i, j + 1, k - 1)) &
-                  &/ dz) - jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra &
-                  &* ((s(i, j, k) - s(i, j - 1, k)) / dy + 0.25 * (met(i, j, k &
-                  &+ 1, 2, 3) * s(i, j, k + 1) + met(i, j - 1, k + 1, 2, 3) &
-                  &* s(i, j - 1, k + 1) - met(i, j, k - 1, 2, 3) * s(i, j, k &
-                  &- 1) - met(i, j - 1, k - 1, 2, 3) * s(i, j - 1, k - 1)) &
-                  &/ dz) + jacInv / dz * pEdgeUDiv / rhoEdgeU * pEdgeUGra &
-                  &* (0.25 * (met(i + 1, j, k, 3, 1) * s(i + 1, j, k) + met(i &
-                  &+ 1, j, k + 1, 3, 1) * s(i + 1, j, k + 1) - met(i - 1, j, &
-                  &k, 3, 1) * s(i - 1, j, k) - met(i - 1, j, k + 1, 3, 1) &
-                  &* s(i - 1, j, k + 1)) / dx + 0.25 * (met(i, j + 1, k, 3, 2) &
-                  &* s(i, j + 1, k) + met(i, j + 1, k + 1, 3, 2) * s(i, j + 1, &
-                  &k + 1) - met(i, j - 1, k, 3, 2) * s(i, j - 1, k) - met(i, j &
-                  &- 1, k + 1, 3, 2) * s(i, j - 1, k + 1)) / dy + (met(i, j, k &
-                  &+ 1, 3, 3) * s(i, j, k + 1) - met(i, j, k, 3, 3) * s(i, j, &
-                  &k)) / dz) + jacInv / dz * pEdgeUDiv / rhoEdgeU * 0.5 &
-                  &* (pStratTFC(i, j, k) / jac(i, j, k) * (chris(i, j, k, 1, &
-                  &1) + chris(i, j, k, 2, 2) + 2.0 * chris(i, j, k, 1, 3) &
-                  &* met(i, j, k, 1, 3) + 2.0 * chris(i, j, k, 2, 3) * met(i, &
-                  &j, k, 2, 3)) * s(i, j, k) + pStratTFC(i, j, k + 1) / jac(i, &
-                  &j, k + 1) * (chris(i, j, k + 1, 1, 1) + chris(i, j, k + 1, &
-                  &2, 2) + 2.0 * chris(i, j, k + 1, 1, 3) * met(i, j, k + 1, &
-                  &1, 3) + 2.0 * chris(i, j, k + 1, 2, 3) * met(i, j, k + 1, &
-                  &2, 3)) * s(i, j, k + 1)) - jacInv / dz * pEdgeDDiv &
-                  &/ rhoEdgeD * pEdgeDGra * (0.25 * (met(i + 1, j, k, 3, 1) &
-                  &* s(i + 1, j, k) + met(i + 1, j, k - 1, 3, 1) * s(i + 1, j, &
-                  &k - 1) - met(i - 1, j, k, 3, 1) * s(i - 1, j, k) - met(i &
-                  &- 1, j, k - 1, 3, 1) * s(i - 1, j, k - 1)) / dx + 0.25 &
-                  &* (met(i, j + 1, k, 3, 2) * s(i, j + 1, k) + met(i, j + 1, &
-                  &k - 1, 3, 2) * s(i, j + 1, k - 1) - met(i, j - 1, k, 3, 2) &
-                  &* s(i, j - 1, k) - met(i, j - 1, k - 1, 3, 2) * s(i, j - 1, &
-                  &k - 1)) / dy + (met(i, j, k, 3, 3) * s(i, j, k) - met(i, j, &
-                  &k - 1, 3, 3) * s(i, j, k - 1)) / dz) - jacInv / dz &
-                  &* pEdgeDDiv / rhoEdgeD * 0.5 * (pStratTFC(i, j, k) / jac(i, &
-                  &j, k) * (chris(i, j, k, 1, 1) + chris(i, j, k, 2, 2) + 2.0 &
-                  &* chris(i, j, k, 1, 3) * met(i, j, k, 1, 3) + 2.0 &
-                  &* chris(i, j, k, 2, 3) * met(i, j, k, 2, 3)) * s(i, j, k) &
-                  &+ pStratTFC(i, j, k - 1) / jac(i, j, k - 1) * (chris(i, j, &
-                  &k - 1, 1, 1) + chris(i, j, k - 1, 2, 2) + 2.0 * chris(i, j, &
-                  &k - 1, 1, 3) * met(i, j, k - 1, 1, 3) + 2.0 * chris(i, j, k &
-                  &- 1, 2, 3) * met(i, j, k - 1, 2, 3)) * s(i, j, k - 1))
-
-            end if
-
-          end do i_loop
-        end do j_loop
-      end do k_loop
-
-    case("noTopography")
-
-      ac_tfc = ac_b
-      ar_tfc = ar_b
-      al_tfc = al_b
-      af_tfc = af_b
-      ab_tfc = ab_b
-      au_tfc = au_b
-      ad_tfc = ad_b
-      aru_tfc = aru_b
-      ard_tfc = ard_b
-      alu_tfc = alu_b
-      ald_tfc = ald_b
-      afu_tfc = afu_b
-      afd_tfc = afd_b
-      abu_tfc = abu_b
-      abd_tfc = abd_b
-      auu_tfc = auu_b
-      add_tfc = add_b
-      aruu_tfc = aruu_b
-      ardd_tfc = ardd_b
-      aluu_tfc = aluu_b
-      aldd_tfc = aldd_b
-      afuu_tfc = afuu_b
-      afdd_tfc = afdd_b
-      abuu_tfc = abuu_b
-      abdd_tfc = abdd_b
-
-      ach_tfc = ach_b
-
-      topography = .false.
-      call val_PsIn(var, dt, opt, facray)
-      call linOpr(sIn, Ls, opt, "tot")
-      topography = .true.
-
-      if(master) then
-        print *, "AC difference: ", maxval(abs(ac_tfc - ac_b))
-        print *, "AR difference: ", maxval(abs(ar_tfc - ar_b))
-        print *, "AL difference: ", maxval(abs(al_tfc - al_b))
-        print *, "AF difference: ", maxval(abs(af_tfc - af_b))
-        print *, "AB difference: ", maxval(abs(ab_tfc - ab_b))
-        print *, "AU difference: ", maxval(abs(au_tfc - au_b))
-        print *, "AD difference: ", maxval(abs(ad_tfc - ad_b))
-        print *, "AC: ", maxval(abs(ac_tfc))
-        print *, "AR: ", maxval(abs(ar_tfc))
-        print *, "AL: ", maxval(abs(al_tfc))
-        print *, "AF: ", maxval(abs(af_tfc))
-        print *, "AB: ", maxval(abs(ab_tfc))
-        print *, "AU: ", maxval(abs(au_tfc))
-        print *, "AD: ", maxval(abs(ad_tfc))
-        print *, "ARU: ", maxval(abs(aru_tfc))
-        print *, "ARD: ", maxval(abs(ard_tfc))
-        print *, "ALU: ", maxval(abs(alu_tfc))
-        print *, "ALD: ", maxval(abs(ald_tfc))
-        print *, "AFU: ", maxval(abs(afu_tfc))
-        print *, "AFD: ", maxval(abs(afd_tfc))
-        print *, "ABU: ", maxval(abs(abu_tfc))
-        print *, "ABD: ", maxval(abs(abd_tfc))
-        print *, "AUU: ", maxval(abs(auu_tfc))
-        print *, "ADD: ", maxval(abs(add_tfc))
-        print *, "ARUU: ", maxval(abs(aruu_tfc))
-        print *, "ARDD: ", maxval(abs(ardd_tfc))
-        print *, "ALUU: ", maxval(abs(aluu_tfc))
-        print *, "ALDD: ", maxval(abs(aldd_tfc))
-        print *, "AFUU: ", maxval(abs(afuu_tfc))
-        print *, "AFDD: ", maxval(abs(afdd_tfc))
-        print *, "ABUU: ", maxval(abs(abuu_tfc))
-        print *, "ABDD: ", maxval(abs(abdd_tfc))
-
-        print *, "ACH difference: ", maxval(abs(ach_tfc - ach_b))
-        print *, "ACH: ", maxval(abs(ach_tfc))
-      end if
-
-      if(master) then
-        print *, "Left-hand side difference", maxval(abs(Ls - LsTest))
-      end if
-
-    end select
-
-    do k = 1, nz
-      do j = 1, ny
-        do i = 1, nx
-          diffOut(i, j, k) = abs(Ls(i, j, k) - LsTest(i, j, k)) / &
-              &maxval((/abs(Ls(i, j, k)), abs(LsTest(i, j, k))/))
-        end do
-      end do
-    end do
-
-    if(master) then
-      open(42, file = "linear_operator_test.dat", form = "unformatted", access &
-          &= "direct", recl = sizeX * sizeY * sizeZ * sizeofreal4)
-      write(42, rec = 1) diffOut
-      close(42)
-    end if
-
-  end subroutine linearOperatorTestTFC
 
   !----------------------------------------------------------------------------
 
@@ -2086,13 +957,12 @@ module poisson_module
     case("pseudo_incompressible", "compressible")
 
       if(topography) then
-        ! TFC
         ! Calculate RHS for TFC.
         do k = 1, nz
-          ! Calculate scaling factor.
-          fcscal = sqrt(pStrat(k) ** 2.0 / rhoStrat(k))
           do j = 1, ny
             do i = 1, nx
+              ! Calculate scaling factor.
+              fcscal = sqrt(pStratTFC(i, j, k) ** 2.0 / rhoStratTFC(i, j, k))
               ! Store velocities at cell edges.
               uR = var%u(i, j, k)
               uL = var%u(i - 1, j, k)
@@ -2100,15 +970,15 @@ module poisson_module
               vB = var%v(i, j - 1, k)
               wU = var%w(i, j, k) - w_0(k)
               wD = var%w(i, j, k - 1) - w_0(k - 1)
-
-              if(model == "compressible") then ! JP already in var
+              ! Calculate P at cell edges.
+              if(model == "compressible") then
                 pEdgeR = 1.0
                 pEdgeL = 1.0
                 pEdgeF = 1.0
                 pEdgeB = 1.0
                 pEdgeU = 1.0
                 pEdgeD = 1.0
-              else ! Compute pStrat at cell edges.
+              else
                 pEdgeR = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i + 1, &
                     &j, k) * pStratTFC(i + 1, j, k))
                 pEdgeL = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i - 1, &
@@ -2117,10 +987,12 @@ module poisson_module
                     &+ 1, k) * pStratTFC(i, j + 1, k))
                 pEdgeB = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
                     &- 1, k) * pStratTFC(i, j - 1, k))
-                pEdgeU = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, &
-                    &k + 1) * pStratTFC(i, j, k + 1))
-                pEdgeD = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, &
-                    &k - 1) * pStratTFC(i, j, k - 1))
+                pEdgeU = jac(i, j, k) * jac(i, j, k + 1) * (pStratTFC(i, j, k) &
+                    &+ pStratTFC(i, j, k + 1)) / ( jac(i, j, k) + jac(i, j, k &
+                    &+ 1))
+                pEdgeD = jac(i, j, k) * jac(i, j, k - 1) * (pStratTFC(i, j, k) &
+                    &+ pStratTFC(i, j, k - 1)) / ( jac(i, j, k) + jac(i, j, k &
+                    &- 1))
               end if
               ! Compute RHS.
               bu = (pEdgeR * uR - pEdgeL * uL) / dx / jac(i, j, k) * Ma ** 2.0 &
@@ -2200,12 +1072,6 @@ module poisson_module
               if(abs(b(i, j, k)) > divMax) then
                 divMax = abs(b(i, j, k))
               end if
-
-              ! Skalierung mit thetaStrat
-              if(pressureScaling) then
-                b(i, j, k) = b(i, j, k) / PStrat(k)
-              end if
-
             end do
           end do
         end do
@@ -2285,7 +1151,6 @@ module poisson_module
     case("Boussinesq")
 
       if(topography) then
-        ! TFC
         ! Calculate RHS for TFC.
         do k = 1, nz
           do j = 1, ny
@@ -2295,8 +1160,10 @@ module poisson_module
               uL = 0.5 * (jac(i, j, k) + jac(i - 1, j, k)) * var%u(i - 1, j, k)
               vF = 0.5 * (jac(i, j, k) + jac(i, j + 1, k)) * var%v(i, j, k)
               vB = 0.5 * (jac(i, j, k) + jac(i, j - 1, k)) * var%v(i, j - 1, k)
-              wU = 0.5 * (jac(i, j, k) + jac(i, j, k + 1)) * var%w(i, j, k)
-              wD = 0.5 * (jac(i, j, k) + jac(i, j, k - 1)) * var%w(i, j, k - 1)
+              wU = 2.0 * jac(i, j, k) * jac(i, j, k + 1) / (jac(i, j, k) &
+                  &+ jac(i, j, k + 1)) * var%w(i, j, k)
+              wD = 2.0 * jac(i, j, k) * jac(i, j, k - 1) / (jac(i, j, k) &
+                  &+ jac(i, j, k - 1)) * var%w(i, j, k - 1)
               ! Compute RHS.
               bu = Ma ** 2.0 * kappa / theta00 * (uR - uL) / dx / jac(i, j, k)
               bv = Ma ** 2.0 * kappa / theta00 * (vF - vB) / dy / jac(i, j, k)
@@ -2317,7 +1184,6 @@ module poisson_module
         do k = 1, nz
           do j = 1, ny
             do i = 1, nx
-
               uR = var%u(i, j, k); uL = var%u(i - 1, j, k)
               vF = var%v(i, j, k); vB = var%v(i, j - 1, k)
               wU = var%w(i, j, k); wD = var%w(i, j, k - 1)
@@ -2326,27 +1192,20 @@ module poisson_module
               bv = Ma ** 2 * kappa / theta00 * (vF - vB) / dy
               bw = Ma ** 2 * kappa / theta00 * (wU - wD) / dz
 
-              ! TFC
               b(i, j, k) = bu + bv + bw
 
-              !               introduce a reference norm for the RHS
-              !               div = (uR-uL)/dx + (vF-vB)/dy + (wU-wD)/dz
               bl2loc = bu ** 2 + bv ** 2 + bw ** 2
 
               ! check sum for solvability criterion (shoud be zero)
-              ! divSum = divSum + b(i,j,k)
               divSum_local = divSum_local + b(i, j, k)
 
-              ! TFC
               divL2_local = divL2_local + b(i, j, k) ** 2
 
               divL2_norm_local = divL2_norm_local + bl2loc
 
-              ! TFC
               if(abs(b(i, j, k)) > divMax) then
                 divMax = abs(b(i, j, k))
               end if
-
             end do
           end do
         end do
@@ -2411,7 +1270,7 @@ module poisson_module
       ! Information on divergence
 
       print *, ""
-      print *, " Poisson Solver ", trim(poissonSolverType), ": Final state"
+      print *, " Poisson Solver: Final state"
       print *, ""
 
       select case(model)
@@ -2451,7 +1310,7 @@ module poisson_module
     else
       if(master .and. giveInfo) then
         print *, ""
-        print *, " Poisson Solver ", trim(poissonSolverType), ": Initial state"
+        print *, " Poisson Solver: Initial state"
         print *, ""
         write(*, fmt = "(a25,es17.6)") "Sum over RHS = ", divSum
         write(*, fmt = "(a25,es17.6)") "Sum over scaled RHS  = ", divSumScaled
@@ -2554,94 +1413,69 @@ module poisson_module
 
     sol = 0.0
 
-    select case(poissonSolverType)
+    select case(model)
 
-      ! bicgstab solver
-    case("bicgstab")
+    case("pseudo_incompressible", "compressible")
 
-      select case(model)
+      call val_PsIn(var, dt, opt, facray)
 
-      case("pseudo_incompressible", "compressible")
+    case("Boussinesq")
 
+      ! Update tensor elements when topography is growing.
+      if(topography .and. topographyTime > 0.0) then
         call val_PsIn(var, dt, opt, facray)
-
-      case("Boussinesq")
-
-        ! Update tensor elements when topography is growing.
-        if(topography .and. topographyTime > 0.0) then
-          call val_PsIn(var, dt, opt, facray)
-          if(opt == "expl") then
-            expEle = .true.
-            impEle = .false.
-          else if(opt == "impl") then
-            impEle = .true.
-            expEle = .false.
-          end if
-        end if
-
-        ! TFC
-        ! Tensor elements are constant. Due to the scaling, the subroutine also
-        ! works for the Boussinesq model.
-        if(opt == "expl" .and. .not. expEle) then
-          call val_PsIn(var, dt, opt, facray)
+        if(opt == "expl") then
           expEle = .true.
           impEle = .false.
-        else if(opt == "impl" .and. .not. impEle) then
-          call val_PsIn(var, dt, opt, facray)
+        else if(opt == "impl") then
           impEle = .true.
           expEle = .false.
         end if
+      end if
 
-        ! stop'ERROR: BiCGStab still to be made ready for Boussinesq'
-
-      case default
-        stop "linOpr: unknown case model"
-      end select
-
-      call bicgstab(b, dt, sol, res, nIter, errFlagBicg, opt)
-
-    case("gcr")
-
-      stop 'ERROR: no gcr provided anymore'
-
-    case("adi")
-
-      stop 'ERROR: no adi provided anymore'
-
-    case("hypre")
-
-      stop "ERROR: no hypre provided anymore"
+      ! Tensor elements are constant. Due to the scaling, the subroutine also
+      ! works for the Boussinesq model.
+      if(opt == "expl" .and. .not. expEle) then
+        call val_PsIn(var, dt, opt, facray)
+        expEle = .true.
+        impEle = .false.
+      else if(opt == "impl" .and. .not. impEle) then
+        call val_PsIn(var, dt, opt, facray)
+        impEle = .true.
+        expEle = .false.
+      end if
 
     case default
-      stop "Unknown PoissonSolver. Stop"
+      stop "linOpr: unknown case model"
     end select
+
+    call bicgstab(b, dt, sol, res, nIter, errFlagBicg, opt)
 
     if(errFlagBicg) return
 
     select case(model)
     case("pseudo_incompressible", "compressible")
-      do k = 1, nz
-        fcscal = sqrt(Pstrat(k) ** 2 / rhoStrat(k))
-        sol(:, :, k) = sol(:, :, k) / fcscal
-      end do
+      if(topography) then
+        do k = 1, nz
+          do j = 1, ny
+            do i = 1, nx
+              fcscal = sqrt(pStratTFC(i, j, k) ** 2 / rhoStratTFC(i, j, k))
+              sol(i, j, k) = sol(i, j, k) / fcscal
+            end do
+          end do
+        end do
+      else
+        do k = 1, nz
+          fcscal = sqrt(Pstrat(k) ** 2 / rhoStrat(k))
+          sol(:, :, k) = sol(:, :, k) / fcscal
+        end do
+      end if
     case default
     end select
 
     ! now get dp from dt * dp ...
-    if(topography) then
-      ! TFC
-      ! Solution must be divided by Jacobian.
-      do i = 1, nx
-        do j = 1, ny
-          do k = 1, nz
-            dp(i, j, k) = dtInv / facprs / jac(i, j, k) * sol(i, j, k)
-          end do
-        end do
-      end do
-    else
-      ! pass solution to pressure corrector
-      dp(1:nx, 1:ny, 1:nz) = dtInv / facprs * sol
-    end if
+    ! pass solution to pressure corrector
+    dp(1:nx, 1:ny, 1:nz) = dtInv / facprs * sol
 
   end subroutine poissonSolver
 
@@ -3194,8 +2028,8 @@ module poisson_module
     real :: dpEdgeR, dpUEdgeR, dpUUEdgeR, dpDEdgeR, dpDDEdgeR, dpEdgeF, &
         &dpUEdgeF, dpUUEdgeF, dpDEdgeF, dpDDEdgeF, dpREdgeU, dpLEdgeU, &
         &dpFEdgeU, dpBEdgeU, dpREdgeD, dpLEdgeD, dpFEdgeD, dpBEdgeD
-    real :: chris11EdgeU, chris22EdgeU, chris13EdgeU, chris23EdgeU, &
-        &chris11EdgeD, chris22EdgeD, chris13EdgeD, chris23EdgeD
+    real :: met13EdgeR, met23EdgeF, met13EdgeU, met23EdgeU, met33EdgeU, &
+        &met13EdgeD, met23EdgeD, met33EdgeD
     real :: pGradZEdgeU, pGradZEdgeD
     real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
         &+ nbz)) :: corX, corY
@@ -3284,51 +2118,32 @@ module poisson_module
               facv = facu
 
               if(topography) then
-                ! TFC
                 ! Compute values at cell edges.
                 rhou = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k) &
                     &+ rhoStratTFC(i, j, k) + rhoStratTFC(i + 1, j, k))
-                pEdgeR = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                    &+ pStratTFC(i + 1, j, k) / jac(i + 1, j, k))
+                pEdgeR = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i + 1, j, k))
+                met13EdgeR = 0.5 * (met(i, j, k, 1, 3) + met(i + 1, j, k, 1, 3))
                 ! Compute pressure difference gradient component.
                 if(k == 1 .and. zBoundary == "solid_wall") then
-                  dpUUEdgeR = 0.5 * (jac(i, j, k + 2) * met(i, j, k + 2, 1, 3) &
-                      &* dp(i, j, k + 2) + jac(i + 1, j, k + 2) * met(i + 1, &
-                      &j, k + 2, 1, 3) * dp(i + 1, j, k + 2))
-                  dpUEdgeR = 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 1, 3) &
-                      &* dp(i, j, k + 1) + jac(i + 1, j, k + 1) * met(i + 1, &
-                      &j, k + 1, 1, 3) * dp(i + 1, j, k + 1))
-                  dpEdgeR = 0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) * dp(i, &
-                      &j, k) + jac(i + 1, j, k) * met(i + 1, j, k, 1, 3) &
-                      &* dp(i + 1, j, k))
-                  pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((jac(i + 1, j, &
-                      &k) * dp(i + 1, j, k) - jac(i, j, k) * dp(i, j, k)) / dx &
-                      &+ (- dpUUEdgeR + 4.0 * dpUEdgeR - 3.0 * dpEdgeR) * 0.5 &
-                      &/ dz)
+                  dpUUEdgeR = 0.5 * (dp(i, j, k + 2) + dp(i + 1, j, k + 2))
+                  dpUEdgeR = 0.5 * (dp(i, j, k + 1) + dp(i + 1, j, k + 1))
+                  dpEdgeR = 0.5 * (dp(i, j, k) + dp(i + 1, j, k))
+                  pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((dp(i + 1, j, &
+                      &k) - dp(i, j, k)) / dx + met13EdgeR * (- dpUUEdgeR &
+                      &+ 4.0 * dpUEdgeR - 3.0 * dpEdgeR) * 0.5 / dz)
                 else if(k == nz .and. zBoundary == "solid_wall") then
-                  dpDDEdgeR = 0.5 * (jac(i, j, k - 2) * met(i, j, k - 2, 1, 3) &
-                      &* dp(i, j, k - 2) + jac(i + 1, j, k - 2) * met(i + 1, &
-                      &j, k - 2, 1, 3) * dp(i + 1, j, k - 2))
-                  dpDEdgeR = 0.5 * (jac(i, j, k - 1) * met(i, j, k - 1, 1, 3) &
-                      &* dp(i, j, k - 1) + jac(i + 1, j, k - 1) * met(i + 1, &
-                      &j, k - 1, 1, 3) * dp(i + 1, j, k - 1))
-                  dpEdgeR = 0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) * dp(i, &
-                      &j, k) + jac(i + 1, j, k) * met(i + 1, j, k, 1, 3) &
-                      &* dp(i + 1, j, k))
-                  pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((jac(i + 1, j, &
-                      &k) * dp(i + 1, j, k) - jac(i, j, k) * dp(i, j, k)) / dx &
-                      &+ (dpDDEdgeR - 4.0 * dpDEdgeR + 3.0 * dpEdgeR) * 0.5 &
-                      &/ dz)
+                  dpDDEdgeR = 0.5 * (dp(i, j, k - 2) + dp(i + 1, j, k - 2))
+                  dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
+                  dpEdgeR = 0.5 * (dp(i, j, k) + dp(i + 1, j, k))
+                  pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((dp(i + 1, j, &
+                      &k) - dp(i, j, k)) / dx + met13EdgeR * (dpDDEdgeR - 4.0 &
+                      &* dpDEdgeR + 3.0 * dpEdgeR) * 0.5 / dz)
                 else
-                  dpUEdgeR = 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 1, 3) &
-                      &* dp(i, j, k + 1) + jac(i + 1, j, k + 1) * met(i + 1, &
-                      &j, k + 1, 1, 3) * dp(i + 1, j, k + 1))
-                  dpDEdgeR = 0.5 * (jac(i, j, k - 1) * met(i, j, k - 1, 1, 3) &
-                      &* dp(i, j, k - 1) + jac(i + 1, j, k - 1) * met(i + 1, &
-                      &j, k - 1, 1, 3) * dp(i + 1, j, k - 1))
-                  pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((jac(i + 1, j, &
-                      &k) * dp(i + 1, j, k) - jac(i, j, k) * dp(i, j, k)) / dx &
-                      &+ (dpUEdgeR - dpDEdgeR) * 0.5 / dz)
+                  dpUEdgeR = 0.5 * (dp(i, j, k + 1) + dp(i + 1, j, k + 1))
+                  dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
+                  pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((dp(i + 1, j, &
+                      &k) - dp(i, j, k)) / dx + met13EdgeR * (dpUEdgeR &
+                      &- dpDEdgeR) * 0.5 / dz)
                 end if
                 ! Compute velocity correction.
                 corX(i, j, k) = facprs * dt / facu * pGradX
@@ -3380,51 +2195,32 @@ module poisson_module
           do j = 1, ny
             do i = 0, nx
               if(topography) then
-                ! TFC
                 ! Compute values at cell edges.
                 rhou = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k) &
                     &+ rhoStratTFC(i, j, k) + rhoStratTFC(i + 1, j, k))
-                pEdgeR = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                    &+ pStratTFC(i + 1, j, k) / jac(i + 1, j, k))
+                pEdgeR = 0.5 * (pStratTFC(i, j, k)+ pStratTFC(i + 1, j, k))
+                met13EdgeR = 0.5 * (met(i, j, k, 1, 3) + met(i + 1, j, k, 1, 3))
                 ! Compute pressure difference gradient component.
                 if(k == 1 .and. zBoundary == "solid_wall") then
-                  dpUUEdgeR = 0.5 * (jac(i, j, k + 2) * met(i, j, k + 2, 1, 3) &
-                      &* dp(i, j, k + 2) + jac(i + 1, j, k + 2) * met(i + 1, &
-                      &j, k + 2, 1, 3) * dp(i + 1, j, k + 2))
-                  dpUEdgeR = 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 1, 3) &
-                      &* dp(i, j, k + 1) + jac(i + 1, j, k + 1) * met(i + 1, &
-                      &j, k + 1, 1, 3) * dp(i + 1, j, k + 1))
-                  dpEdgeR = 0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) * dp(i, &
-                      &j, k) + jac(i + 1, j, k) * met(i + 1, j, k, 1, 3) &
-                      &* dp(i + 1, j, k))
-                  pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((jac(i + 1, j, &
-                      &k) * dp(i + 1, j, k) - jac(i, j, k) * dp(i, j, k)) / dx &
-                      &+ (- dpUUEdgeR + 4.0 * dpUEdgeR - 3.0 * dpEdgeR) * 0.5 &
-                      &/ dz)
+                  dpUUEdgeR = 0.5 * (dp(i, j, k + 2) + dp(i + 1, j, k + 2))
+                  dpUEdgeR = 0.5 * (dp(i, j, k + 1) + dp(i + 1, j, k + 1))
+                  dpEdgeR = 0.5 * (dp(i, j, k) + dp(i + 1, j, k))
+                  pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((dp(i + 1, j, &
+                      &k) - dp(i, j, k)) / dx + met13EdgeR * (- dpUUEdgeR &
+                      &+ 4.0 * dpUEdgeR - 3.0 * dpEdgeR) * 0.5 / dz)
                 else if(k == nz .and. zBoundary == "solid_wall") then
-                  dpDDEdgeR = 0.5 * (jac(i, j, k - 2) * met(i, j, k - 2, 1, 3) &
-                      &* dp(i, j, k - 2) + jac(i + 1, j, k - 2) * met(i + 1, &
-                      &j, k - 2, 1, 3) * dp(i + 1, j, k - 2))
-                  dpDEdgeR = 0.5 * (jac(i, j, k - 1) * met(i, j, k - 1, 1, 3) &
-                      &* dp(i, j, k - 1) + jac(i + 1, j, k - 1) * met(i + 1, &
-                      &j, k - 1, 1, 3) * dp(i + 1, j, k - 1))
-                  dpEdgeR = 0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) * dp(i, &
-                      &j, k) + jac(i + 1, j, k) * met(i + 1, j, k, 1, 3) &
-                      &* dp(i + 1, j, k))
-                  pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((jac(i + 1, j, &
-                      &k) * dp(i + 1, j, k) - jac(i, j, k) * dp(i, j, k)) / dx &
-                      &+ (dpDDEdgeR - 4.0 * dpDEdgeR + 3.0 * dpEdgeR) * 0.5 &
-                      &/ dz)
+                  dpDDEdgeR = 0.5 * (dp(i, j, k - 2) + dp(i + 1, j, k - 2))
+                  dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
+                  dpEdgeR = 0.5 * (dp(i, j, k) + dp(i + 1, j, k))
+                  pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((dp(i + 1, j, &
+                      &k) - dp(i, j, k)) / dx + met13EdgeR * (dpDDEdgeR - 4.0 &
+                      &* dpDEdgeR + 3.0 * dpEdgeR) * 0.5 / dz)
                 else
-                  dpUEdgeR = 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 1, 3) &
-                      &* dp(i, j, k + 1) + jac(i + 1, j, k + 1) * met(i + 1, &
-                      &j, k + 1, 1, 3) * dp(i + 1, j, k + 1))
-                  dpDEdgeR = 0.5 * (jac(i, j, k - 1) * met(i, j, k - 1, 1, 3) &
-                      &* dp(i, j, k - 1) + jac(i + 1, j, k - 1) * met(i + 1, &
-                      &j, k - 1, 1, 3) * dp(i + 1, j, k - 1))
-                  pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((jac(i + 1, j, &
-                      &k) * dp(i + 1, j, k) - jac(i, j, k) * dp(i, j, k)) / dx &
-                      &+ (dpUEdgeR - dpDEdgeR) * 0.5 / dz)
+                  dpUEdgeR = 0.5 * (dp(i, j, k + 1) + dp(i + 1, j, k + 1))
+                  dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
+                  pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((dp(i + 1, j, &
+                      &k) - dp(i, j, k)) / dx + met13EdgeR * (dpUEdgeR &
+                      &- dpDEdgeR) * 0.5 / dz)
                 end if
               else
                 rhou = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) &
@@ -3456,50 +2252,32 @@ module poisson_module
         do j = 1, ny
           do i = 0, nx
             if(topography) then
-              ! TFC
               ! Compute values at cell edges.
               rhou = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k) &
                   &+ rhoStratTFC(i, j, k) + rhoStratTFC(i + 1, j, k))
-              pEdgeR = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) + pStratTFC(i &
-                  &+ 1, j, k) / jac(i + 1, j, k))
+              pEdgeR = 0.5 * (pStratTFC(i, j, k)+ pStratTFC(i + 1, j, k))
+              met13EdgeR = 0.5 * (met(i, j, k, 1, 3) + met(i + 1, j, k, 1, 3))
               ! Compute pressure difference gradient component.
               if(k == 1 .and. zBoundary == "solid_wall") then
-                dpUUEdgeR = 0.5 * (jac(i, j, k + 2) * met(i, j, k + 2, 1, 3) &
-                    &* dp(i, j, k + 2) + jac(i + 1, j, k + 2) * met(i + 1, j, &
-                    &k + 2, 1, 3) * dp(i + 1, j, k + 2))
-                dpUEdgeR = 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 1, 3) &
-                    &* dp(i, j, k + 1) + jac(i + 1, j, k + 1) * met(i + 1, j, &
-                    &k + 1, 1, 3) * dp(i + 1, j, k + 1))
-                dpEdgeR = 0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) * dp(i, j, &
-                    &k) + jac(i + 1, j, k) * met(i + 1, j, k, 1, 3) * dp(i &
-                    &+ 1, j, k))
-                pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((jac(i + 1, j, &
-                    &k) * dp(i + 1, j, k) - jac(i, j, k) * dp(i, j, k)) / dx &
-                    &+ (- dpUUEdgeR + 4.0 * dpUEdgeR - 3.0 * dpEdgeR) * 0.5 &
-                    &/ dz)
+                dpUUEdgeR = 0.5 * (dp(i, j, k + 2) + dp(i + 1, j, k + 2))
+                dpUEdgeR = 0.5 * (dp(i, j, k + 1) + dp(i + 1, j, k + 1))
+                dpEdgeR = 0.5 * (dp(i, j, k) + dp(i + 1, j, k))
+                pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((dp(i + 1, j, &
+                    &k) - dp(i, j, k)) / dx + met13EdgeR * (- dpUUEdgeR &
+                    &+ 4.0 * dpUEdgeR - 3.0 * dpEdgeR) * 0.5 / dz)
               else if(k == nz .and. zBoundary == "solid_wall") then
-                dpDDEdgeR = 0.5 * (jac(i, j, k - 2) * met(i, j, k - 2, 1, 3) &
-                    &* dp(i, j, k - 2) + jac(i + 1, j, k - 2) * met(i + 1, j, &
-                    &k - 2, 1, 3) * dp(i + 1, j, k - 2))
-                dpDEdgeR = 0.5 * (jac(i, j, k - 1) * met(i, j, k - 1, 1, 3) &
-                    &* dp(i, j, k - 1) + jac(i + 1, j, k - 1) * met(i + 1, j, &
-                    &k - 1, 1, 3) * dp(i + 1, j, k - 1))
-                dpEdgeR = 0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) * dp(i, j, &
-                    &k) + jac(i + 1, j, k) * met(i + 1, j, k, 1, 3) * dp(i &
-                    &+ 1, j, k))
-                pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((jac(i + 1, j, &
-                    &k) * dp(i + 1, j, k) - jac(i, j, k) * dp(i, j, k)) / dx &
-                    &+ (dpDDEdgeR - 4.0 * dpDEdgeR + 3.0 * dpEdgeR) * 0.5 / dz)
+                dpDDEdgeR = 0.5 * (dp(i, j, k - 2) + dp(i + 1, j, k - 2))
+                dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
+                dpEdgeR = 0.5 * (dp(i, j, k) + dp(i + 1, j, k))
+                pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((dp(i + 1, j, &
+                    &k) - dp(i, j, k)) / dx + met13EdgeR * (dpDDEdgeR - 4.0 &
+                    &* dpDEdgeR + 3.0 * dpEdgeR) * 0.5 / dz)
               else
-                dpUEdgeR = 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 1, 3) &
-                    &* dp(i, j, k + 1) + jac(i + 1, j, k + 1) * met(i + 1, j, &
-                    &k + 1, 1, 3) * dp(i + 1, j, k + 1))
-                dpDEdgeR = 0.5 * (jac(i, j, k - 1) * met(i, j, k - 1, 1, 3) &
-                    &* dp(i, j, k - 1) + jac(i + 1, j, k - 1) * met(i + 1, j, &
-                    &k - 1, 1, 3) * dp(i + 1, j, k - 1))
-                pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((jac(i + 1, j, &
-                    &k) * dp(i + 1, j, k) - jac(i, j, k) * dp(i, j, k)) / dx &
-                    &+ (dpUEdgeR - dpDEdgeR) * 0.5 / dz)
+                dpUEdgeR = 0.5 * (dp(i, j, k + 1) + dp(i + 1, j, k + 1))
+                dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
+                pGradX = kappaInv * MaInv2 / rhou * pEdgeR * ((dp(i + 1, j, &
+                    &k) - dp(i, j, k)) / dx + met13EdgeR * (dpUEdgeR &
+                    &- dpDEdgeR) * 0.5 / dz)
               end if
             else
               rhou = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) &
@@ -3550,51 +2328,32 @@ module poisson_module
               facu = facv
 
               if(topography) then
-                ! TFC
                 ! Compute values at cell edges.
                 rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k) &
                     &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j + 1, k))
-                pEdgeF = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                    &+ pStratTFC(i, j + 1, k) / jac(i, j + 1, k))
+                pEdgeF = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i, j + 1, k))
+                met23EdgeF = 0.5 * (met(i, j, k, 2, 3) + met(i, j + 1, k, 2, 3))
                 ! Compute pressure difference gradient component.
                 if(k == 1 .and. zBoundary == "solid_wall") then
-                  dpUUEdgeF = 0.5 * (jac(i, j, k + 2) * met(i, j, k + 2, 2, 3) &
-                      &* dp(i, j, k + 2) + jac(i, j + 1, k + 2) * met(i, j &
-                      &+ 1, k + 2, 2, 3) * dp(i, j + 1, k + 2))
-                  dpUEdgeF = 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 2, 3) &
-                      &* dp(i, j, k + 1) + jac(i, j + 1, k + 1) * met(i, j &
-                      &+ 1, k + 1, 2, 3) * dp(i, j + 1, k + 1))
-                  dpEdgeF = 0.5 * (jac(i, j, k) * met(i, j, k, 2, 3) * dp(i, &
-                      &j, k) + jac(i, j + 1, k) * met(i, j + 1, k, 2, 3) &
-                      &* dp(i, j + 1, k))
-                  pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((jac(i, j + 1, &
-                      &k) * dp(i, j + 1, k) - jac(i, j, k) * dp(i, j, k)) / dy &
-                      &+ (- dpUUEdgeF + 4.0 * dpUEdgeF - 3.0 * dpEdgeF) * 0.5 &
-                      &/ dz)
+                  dpUUEdgeF = 0.5 * (dp(i, j, k + 2) + dp(i, j + 1, k + 2))
+                  dpUEdgeF = 0.5 * (dp(i, j, k + 1) + dp(i, j + 1, k + 1))
+                  dpEdgeF = 0.5 * (dp(i, j, k) + dp(i, j + 1, k))
+                  pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((dp(i, j + 1, &
+                      &k) - dp(i, j, k)) / dy + met23EdgeF * (- dpUUEdgeF &
+                      &+ 4.0 * dpUEdgeF - 3.0 * dpEdgeF) * 0.5 / dz)
                 else if(k == nz .and. zBoundary == "solid_wall") then
-                  dpDDEdgeF = 0.5 * (jac(i, j, k - 2) * met(i, j, k - 2, 2, 3) &
-                      &* dp(i, j, k - 2) + jac(i, j + 1, k - 2) * met(i, j &
-                      &+ 1, k - 2, 2, 3) * dp(i, j + 1, k - 2))
-                  dpDEdgeF = 0.5 * (jac(i, j, k - 1) * met(i, j, k - 1, 2, 3) &
-                      &* dp(i, j, k - 1) + jac(i, j + 1, k - 1) * met(i, j &
-                      &+ 1, k - 1, 2, 3) * dp(i, j + 1, k - 1))
-                  dpEdgeF = 0.5 * (jac(i, j, k) * met(i, j, k, 2, 3) * dp(i, &
-                      &j, k) + jac(i, j + 1, k) * met(i, j + 1, k, 2, 3) &
-                      &* dp(i, j + 1, k))
-                  pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((jac(i, j + 1, &
-                      &k) * dp(i, j + 1, k) - jac(i, j, k) * dp(i, j, k)) / dy &
-                      &+ (dpDDEdgeF - 4.0 * dpDEdgeF + 3.0 * dpEdgeF) * 0.5 &
-                      &/ dz)
+                  dpDDEdgeF = 0.5 * (dp(i, j, k - 2) + dp(i, j + 1, k - 2))
+                  dpDEdgeF = 0.5 * (dp(i, j, k - 1) + dp(i, j + 1, k - 1))
+                  dpEdgeF = 0.5 * (dp(i, j, k) + dp(i, j + 1, k))
+                  pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((dp(i, j + 1, &
+                      &k) - dp(i, j, k)) / dy + met23EdgeF * (dpDDEdgeF - 4.0 &
+                      &* dpDEdgeF + 3.0 * dpEdgeF) * 0.5 / dz)
                 else
-                  dpUEdgeF = 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 2, 3) &
-                      &* dp(i, j, k + 1) + jac(i, j + 1, k + 1) * met(i, j &
-                      &+ 1, k + 1, 2, 3) * dp(i, j + 1, k + 1))
-                  dpDEdgeF = 0.5 * (jac(i, j, k - 1) * met(i, j, k - 1, 2, 3) &
-                      &* dp(i, j, k - 1) + jac(i, j + 1, k - 1) * met(i, j &
-                      &+ 1, k - 1, 2, 3) * dp(i, j + 1, k - 1))
-                  pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((jac(i, j + 1, &
-                      &k) * dp(i, j + 1, k) - jac(i, j, k) * dp(i, j, k)) / dy &
-                      &+ (dpUEdgeF - dpDEdgeF) * 0.5 / dz)
+                  dpUEdgeF = 0.5 * (dp(i, j, k + 1) + dp(i, j + 1, k + 1))
+                  dpDEdgeF = 0.5 * (dp(i, j, k - 1) + dp(i, j + 1, k - 1))
+                  pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((dp(i, j + 1, &
+                      &k) - dp(i, j, k)) / dy + met23EdgeF * (dpUEdgeF &
+                      &- dpDEdgeF) * 0.5 / dz)
                 end if
                 ! Compute velocity correction.
                 corY(i, j, k) = facprs * dt / facv * pGradY
@@ -3648,51 +2407,32 @@ module poisson_module
           do j = 0, ny
             do i = 1, nx
               if(topography) then
-                ! TFC
                 ! Compute values at cell edges.
                 rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k) &
                     &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j + 1, k))
-                pEdgeF = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                    &+ pStratTFC(i, j + 1, k) / jac(i, j + 1, k))
+                pEdgeF = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i, j + 1, k))
+                met23EdgeF = 0.5 * (met(i, j, k, 2, 3) + met(i, j + 1, k, 2, 3))
                 ! Compute pressure difference gradient component.
                 if(k == 1 .and. zBoundary == "solid_wall") then
-                  dpUUEdgeF = 0.5 * (jac(i, j, k + 2) * met(i, j, k + 2, 2, 3) &
-                      &* dp(i, j, k + 2) + jac(i, j + 1, k + 2) * met(i, j &
-                      &+ 1, k + 2, 2, 3) * dp(i, j + 1, k + 2))
-                  dpUEdgeF = 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 2, 3) &
-                      &* dp(i, j, k + 1) + jac(i, j + 1, k + 1) * met(i, j &
-                      &+ 1, k + 1, 2, 3) * dp(i, j + 1, k + 1))
-                  dpEdgeF = 0.5 * (jac(i, j, k) * met(i, j, k, 2, 3) * dp(i, &
-                      &j, k) + jac(i, j + 1, k) * met(i, j + 1, k, 2, 3) &
-                      &* dp(i, j + 1, k))
-                  pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((jac(i, j + 1, &
-                      &k) * dp(i, j + 1, k) - jac(i, j, k) * dp(i, j, k)) / dy &
-                      &+ (- dpUUEdgeF + 4.0 * dpUEdgeF - 3.0 * dpEdgeF) * 0.5 &
-                      &/ dz)
+                  dpUUEdgeF = 0.5 * (dp(i, j, k + 2) + dp(i, j + 1, k + 2))
+                  dpUEdgeF = 0.5 * (dp(i, j, k + 1) + dp(i, j + 1, k + 1))
+                  dpEdgeF = 0.5 * (dp(i, j, k) + dp(i, j + 1, k))
+                  pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((dp(i, j + 1, &
+                      &k) - dp(i, j, k)) / dy + met23EdgeF * (- dpUUEdgeF &
+                      &+ 4.0 * dpUEdgeF - 3.0 * dpEdgeF) * 0.5 / dz)
                 else if(k == nz .and. zBoundary == "solid_wall") then
-                  dpDDEdgeF = 0.5 * (jac(i, j, k - 2) * met(i, j, k - 2, 2, 3) &
-                      &* dp(i, j, k - 2) + jac(i, j + 1, k - 2) * met(i, j &
-                      &+ 1, k - 2, 2, 3) * dp(i, j + 1, k - 2))
-                  dpDEdgeF = 0.5 * (jac(i, j, k - 1) * met(i, j, k - 1, 2, 3) &
-                      &* dp(i, j, k - 1) + jac(i, j + 1, k - 1) * met(i, j &
-                      &+ 1, k - 1, 2, 3) * dp(i, j + 1, k - 1))
-                  dpEdgeF = 0.5 * (jac(i, j, k) * met(i, j, k, 2, 3) * dp(i, &
-                      &j, k) + jac(i, j + 1, k) * met(i, j + 1, k, 2, 3) &
-                      &* dp(i, j + 1, k))
-                  pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((jac(i, j + 1, &
-                      &k) * dp(i, j + 1, k) - jac(i, j, k) * dp(i, j, k)) / dy &
-                      &+ (dpDDEdgeF - 4.0 * dpDEdgeF + 3.0 * dpEdgeF) * 0.5 &
-                      &/ dz)
+                  dpDDEdgeF = 0.5 * (dp(i, j, k - 2) + dp(i, j + 1, k - 2))
+                  dpDEdgeF = 0.5 * (dp(i, j, k - 1) + dp(i, j + 1, k - 1))
+                  dpEdgeF = 0.5 * (dp(i, j, k) + dp(i, j + 1, k))
+                  pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((dp(i, j + 1, &
+                      &k) - dp(i, j, k)) / dy + met23EdgeF * (dpDDEdgeF - 4.0 &
+                      &* dpDEdgeF + 3.0 * dpEdgeF) * 0.5 / dz)
                 else
-                  dpUEdgeF = 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 2, 3) &
-                      &* dp(i, j, k + 1) + jac(i, j + 1, k + 1) * met(i, j &
-                      &+ 1, k + 1, 2, 3) * dp(i, j + 1, k + 1))
-                  dpDEdgeF = 0.5 * (jac(i, j, k - 1) * met(i, j, k - 1, 2, 3) &
-                      &* dp(i, j, k - 1) + jac(i, j + 1, k - 1) * met(i, j &
-                      &+ 1, k - 1, 2, 3) * dp(i, j + 1, k - 1))
-                  pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((jac(i, j + 1, &
-                      &k) * dp(i, j + 1, k) - jac(i, j, k) * dp(i, j, k)) / dy &
-                      &+ (dpUEdgeF - dpDEdgeF) * 0.5 / dz)
+                  dpUEdgeF = 0.5 * (dp(i, j, k + 1) + dp(i, j + 1, k + 1))
+                  dpDEdgeF = 0.5 * (dp(i, j, k - 1) + dp(i, j + 1, k - 1))
+                  pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((dp(i, j + 1, &
+                      &k) - dp(i, j, k)) / dy + met23EdgeF * (dpUEdgeF &
+                      &- dpDEdgeF) * 0.5 / dz)
                 end if
               else
                 rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k)) &
@@ -3724,50 +2464,32 @@ module poisson_module
         do j = 0, ny
           do i = 1, nx
             if(topography) then
-              ! TFC
               ! Compute values at cell edges.
               rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k) &
                   &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j + 1, k))
-              pEdgeF = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) + pStratTFC(i, &
-                  &j + 1, k) / jac(i, j + 1, k))
+              pEdgeF = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i, j + 1, k))
+              met23EdgeF = 0.5 * (met(i, j, k, 2, 3) + met(i, j + 1, k, 2, 3))
               ! Compute pressure difference gradient component.
               if(k == 1 .and. zBoundary == "solid_wall") then
-                dpUUEdgeF = 0.5 * (jac(i, j, k + 2) * met(i, j, k + 2, 2, 3) &
-                    &* dp(i, j, k + 2) + jac(i, j + 1, k + 2) * met(i, j + 1, &
-                    &k + 2, 2, 3) * dp(i, j + 1, k + 2))
-                dpUEdgeF = 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 2, 3) &
-                    &* dp(i, j, k + 1) + jac(i, j + 1, k + 1) * met(i, j + 1, &
-                    &k + 1, 2, 3) * dp(i, j + 1, k + 1))
-                dpEdgeF = 0.5 * (jac(i, j, k) * met(i, j, k, 2, 3) * dp(i, j, &
-                    &k) + jac(i, j + 1, k) * met(i, j + 1, k, 2, 3) * dp(i, j &
-                    &+ 1, k))
-                pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((jac(i, j + 1, &
-                    &k) * dp(i, j + 1, k) - jac(i, j, k) * dp(i, j, k)) / dy &
-                    &+ (- dpUUEdgeF + 4.0 * dpUEdgeF - 3.0 * dpEdgeF) * 0.5 &
-                    &/ dz)
+                dpUUEdgeF = 0.5 * (dp(i, j, k + 2) + dp(i, j + 1, k + 2))
+                dpUEdgeF = 0.5 * (dp(i, j, k + 1) + dp(i, j + 1, k + 1))
+                dpEdgeF = 0.5 * (dp(i, j, k) + dp(i, j + 1, k))
+                pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((dp(i, j + 1, &
+                    &k) - dp(i, j, k)) / dy + met23EdgeF * (- dpUUEdgeF &
+                    &+ 4.0 * dpUEdgeF - 3.0 * dpEdgeF) * 0.5 / dz)
               else if(k == nz .and. zBoundary == "solid_wall") then
-                dpDDEdgeF = 0.5 * (jac(i, j, k - 2) * met(i, j, k - 2, 2, 3) &
-                    &* dp(i, j, k - 2) + jac(i, j + 1, k - 2) * met(i, j + 1, &
-                    &k - 2, 2, 3) * dp(i, j + 1, k - 2))
-                dpDEdgeF = 0.5 * (jac(i, j, k - 1) * met(i, j, k - 1, 2, 3) &
-                    &* dp(i, j, k - 1) + jac(i, j + 1, k - 1) * met(i, j + 1, &
-                    &k - 1, 2, 3) * dp(i, j + 1, k - 1))
-                dpEdgeF = 0.5 * (jac(i, j, k) * met(i, j, k, 2, 3) * dp(i, j, &
-                    &k) + jac(i, j + 1, k) * met(i, j + 1, k, 2, 3) * dp(i, j &
-                    &+ 1, k))
-                pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((jac(i, j + 1, &
-                    &k) * dp(i, j + 1, k) - jac(i, j, k) * dp(i, j, k)) / dy &
-                    &+ (dpDDEdgeF - 4.0 * dpDEdgeF + 3.0 * dpEdgeF) * 0.5 / dz)
+                dpDDEdgeF = 0.5 * (dp(i, j, k - 2) + dp(i, j + 1, k - 2))
+                dpDEdgeF = 0.5 * (dp(i, j, k - 1) + dp(i, j + 1, k - 1))
+                dpEdgeF = 0.5 * (dp(i, j, k) + dp(i, j + 1, k))
+                pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((dp(i, j + 1, &
+                    &k) - dp(i, j, k)) / dy + met23EdgeF * (dpDDEdgeF - 4.0 &
+                    &* dpDEdgeF + 3.0 * dpEdgeF) * 0.5 / dz)
               else
-                dpUEdgeF = 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 2, 3) &
-                    &* dp(i, j, k + 1) + jac(i, j + 1, k + 1) * met(i, j + 1, &
-                    &k + 1, 2, 3) * dp(i, j + 1, k + 1))
-                dpDEdgeF = 0.5 * (jac(i, j, k - 1) * met(i, j, k - 1, 2, 3) &
-                    &* dp(i, j, k - 1) + jac(i, j + 1, k - 1) * met(i, j + 1, &
-                    &k - 1, 2, 3) * dp(i, j + 1, k - 1))
-                pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((jac(i, j + 1, &
-                    &k) * dp(i, j + 1, k) - jac(i, j, k) * dp(i, j, k)) / dy &
-                    &+ (dpUEdgeF - dpDEdgeF) * 0.5 / dz)
+                dpUEdgeF = 0.5 * (dp(i, j, k + 1) + dp(i, j + 1, k + 1))
+                dpDEdgeF = 0.5 * (dp(i, j, k - 1) + dp(i, j + 1, k - 1))
+                pGradY = kappaInv * MaInv2 / rhov * pEdgeF * ((dp(i, j + 1, &
+                    &k) - dp(i, j, k)) / dy + met23EdgeF * (dpUEdgeF &
+                    &- dpDEdgeF) * 0.5 / dz)
               end if
             else
               rhov = 0.5 * (var%rho(i, j, k) + var%rho(i, j + 1, k)) &
@@ -3792,7 +2514,6 @@ module poisson_module
     !         calc w and  w + dw
     !--------------------------------------
 
-    ! TFC
     select case(zBoundary)
     case("solid_wall")
       k0 = 1
@@ -3807,7 +2528,6 @@ module poisson_module
     if(timeScheme == "semiimplicit") then
       if(opt == "impl") then
         ! solid wall implies zero change of w at the bottom and top
-        ! TFC
         do k = k0, k1
           do j = 1, ny
             do i = 1, nx
@@ -3822,80 +2542,80 @@ module poisson_module
 
               if(spongeLayer) then
                 if(topography) then
-                  facw = facw + dt * 0.5 * (kr_sp_w_tfc(i, j, k) &
-                      &+ kr_sp_w_tfc(i, j, k + 1))
+                  facw = facw + dt * (jac(i, j, k + 1) * kr_sp_w_tfc(i, j, k) &
+                      &+ jac(i, j, k) * kr_sp_w_tfc(i, j, k + 1)) / (jac(i, j, &
+                      &k) + jac(i, j, k + 1))
                 else
                   facw = facw + dt * 0.5 * (kr_sp(j, k) + kr_sp(j, k + 1))
                 end if
               end if
 
               if(topography) then
-                ! TFC
                 ! Compute values at cell edges.
-                rhoStratEdgeU = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, &
+                rhoStratEdgeU = (jac(i, j, k + 1) * rhoStratTFC(i, j, k) &
+                    &+ jac(i, j, k) * rhoStratTFC(i, j, k + 1)) / (jac(i, j, &
+                    &k) + jac(i, j, k + 1))
+                rhoEdge = (jac(i, j, k + 1) * var%rho(i, j, k) + jac(i, j, k) &
+                    &* var%rho(i, j, k + 1)) / (jac(i, j, k) + jac(i, j, k &
+                    &+ 1)) + rhoStratEdgeU
+                pEdgeU = (jac(i, j, k + 1) * pStratTFC(i, j, k) + jac(i, j, k) &
+                    &* pStratTFC(i, j, k + 1)) / (jac(i, j, k) + jac(i, j, k &
+                    &+ 1))
+                bvsstw = (jac(i, j, k + 1) * bvsStratTFC(i, j, k) + jac(i, j, &
+                    &k) * bvsStratTFC(i, j, k + 1)) / (jac(i, j, k) + jac(i, &
                     &j, k + 1))
-                rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) &
-                    &+ rhoStratEdgeU
-                pEdgeU = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                    &+ pStratTFC(i, j, k + 1) / jac(i, j, k + 1))
-                bvsstw = 0.5 * (bvsStratTFC(i, j, k) + bvsStratTFC(i, j, k + 1))
-                dpREdgeU = 0.5 * (jac(i + 1, j, k) * met(i + 1, j, k, 3, 1) &
-                    &* dp(i + 1, j, k) + jac(i + 1, j, k + 1) * met(i + 1, j, &
-                    &k + 1, 3, 1) * dp(i + 1, j, k + 1))
-                dpLEdgeU = 0.5 * (jac(i - 1, j, k) * met(i - 1, j, k, 3, 1) &
-                    &* dp(i - 1, j, k) + jac(i - 1, j, k + 1) * met(i - 1, j, &
-                    &k + 1, 3, 1) * dp(i - 1, j, k + 1))
-                dpFEdgeU = 0.5 * (jac(i, j + 1, k) * met(i, j + 1, k, 3, 2) &
-                    &* dp(i, j + 1, k) + jac(i, j + 1, k + 1) * met(i, j + 1, &
-                    &k + 1, 3, 2) * dp(i, j + 1, k + 1))
-                dpBEdgeU = 0.5 * (jac(i, j - 1, k) * met(i, j - 1, k, 3, 2) &
-                    &* dp(i, j - 1, k) + jac(i, j - 1, k + 1) * met(i, j - 1, &
-                    &k + 1, 3, 2) * dp(i, j - 1, k + 1))
-                chris11EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 1, &
-                    &1) * dp(i, j, k) + pStratTFC(i, j, k + 1) * chris(i, j, k &
-                    &+ 1, 1, 1) * dp(i, j, k + 1))
-                chris22EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 2, &
-                    &2) * dp(i, j, k) + pStratTFC(i, j, k + 1) * chris(i, j, k &
-                    &+ 1, 2, 2) * dp(i, j, k + 1))
-                chris13EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 1, &
-                    &3) * met(i, j, k, 1, 3) * dp(i, j, k) + pStratTFC(i, j, k &
-                    &+ 1) * chris(i, j, k + 1, 1, 3) * met(i, j, k + 1, 1, 3) &
-                    &* dp(i, j, k + 1))
-                chris23EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 2, &
-                    &3) * met(i, j, k, 2, 3) * dp(i, j, k) + pStratTFC(i, j, k &
-                    &+ 1) * chris(i, j, k + 1, 2, 3) * met(i, j, k + 1, 2, 3) &
-                    &* dp(i, j, k + 1))
+                met13EdgeU = (jac(i, j, k + 1) * met(i, j, k, 1, 3) + jac(i, &
+                    &j, k) * met(i, j, k + 1, 1, 3)) / (jac(i, j, k) + jac(i, &
+                    &j, k + 1))
+                met23EdgeU = (jac(i, j, k + 1) * met(i, j, k, 2, 3) + jac(i, &
+                    &j, k) * met(i, j, k + 1, 2, 3)) / (jac(i, j, k) + jac(i, &
+                    &j, k + 1))
+                met33EdgeU = (jac(i, j, k + 1) * met(i, j, k, 3, 3) + jac(i, &
+                    &j, k) * met(i, j, k + 1, 3, 3)) / (jac(i, j, k) + jac(i, &
+                    &j, k + 1))
+                dpREdgeU = (jac(i + 1, j, k + 1) * dp(i + 1, j, k) + jac(i &
+                    &+ 1, j, k) * dp(i + 1, j, k + 1)) / (jac(i + 1, j, k) &
+                    &+ jac(i + 1, j, k + 1))
+                dpLEdgeU = (jac(i - 1, j, k + 1) * dp(i - 1, j, k) + jac(i &
+                    &- 1, j, k) * dp(i - 1, j, k + 1)) / (jac(i - 1, j, k) &
+                    &+ jac(i - 1, j, k + 1))
+                dpFEdgeU = (jac(i, j + 1, k + 1) * dp(i, j + 1, k) + jac(i, j &
+                    &+ 1, k) * dp(i, j + 1, k + 1)) / (jac(i, j + 1, k) &
+                    &+ jac(i, j + 1, k + 1))
+                dpBEdgeU = (jac(i, j - 1, k + 1) * dp(i, j - 1, k) + jac(i, j &
+                    &- 1, k) * dp(i, j - 1, k + 1)) / (jac(i, j - 1, k) &
+                    &+ jac(i, j - 1, k + 1))
                 ! Compute pressure difference gradient component.
-                pGradZ = kappaInv * MaInv2 / rhoEdge * pEdgeU * ((dpREdgeU &
-                    &- dpLEdgeU) * 0.5 / dx + (dpFEdgeU - dpBEdgeU) * 0.5 / dy &
-                    &+ (jac(i, j, k + 1) * met(i, j, k + 1, 3, 3) * dp(i, j, k &
-                    &+ 1) - jac(i, j, k) * met(i, j, k, 3, 3) * dp(i, j, k)) &
-                    &/ dz) + kappaInv * MaInv2 / rhoEdge * (chris11EdgeU &
-                    &+ chris22EdgeU + 2.0 * (chris13EdgeU + chris23EdgeU))
+                pGradZ = kappaInv * MaInv2 / rhoEdge * pEdgeU * (met13EdgeU &
+                    &* (dpREdgeU - dpLEdgeU) * 0.5 / dx + met23EdgeU &
+                    &* (dpFEdgeU - dpBEdgeU) * 0.5 / dy + met33EdgeU * (dp(i, &
+                    &j, k + 1) - dp(i, j, k)) / dz)
                 ! Compute velocity correction.
                 if(model == "compressible") then
-                  JPU = 0.5 * (jac(i, j, k) * var%P(i, j, k) + jac(i, j, k &
-                      &+ 1) * var%P(i, j, k + 1))
+                  JPU = jac(i, j, k) * jac(i, j, k + 1) * (var%P(i, j, k) &
+                      &+ var%P(i, j, k + 1)) / (jac(i, j, k) + jac(i, j, k + 1))
 
                   dw = - facprs * dt / (facw + bvsstw * dt ** 2.0) * JPU &
                       &* pGradZ - 1.0 / (facw + bvsstw * dt ** 2.0) * bvsstw &
-                      &* dt ** 2.0 * JPU * (0.25 * (met(i, j, k, 1, 3) &
-                      &* (corX(i, j, k) + corX(i - 1, j, k)) + met(i, j, k &
-                      &+ 1, 1, 3) * (corX(i, j, k + 1) + corX(i - 1, j, k &
-                      &+ 1))) + 0.25 * (met(i, j, k, 2, 3) * (corY(i, j, k) &
-                      &+ corY(i, j - 1, k)) + met(i, j, k + 1, 2, 3) &
-                      &* (corY(i, j, k + 1) + corY(i, j - 1, k + 1))))
+                      &* dt ** 2.0 * JPU * 0.5 * (jac(i, j, k + 1) * (met(i, &
+                      &j, k, 1, 3) * (corX(i, j, k) + corX(i - 1, j, k)) &
+                      &+ met(i, j, k, 2, 3) * (corY(i, j, k) + corY(i, j - 1, &
+                      &k))) + jac(i, j, k) * (met(i, j, k + 1, 1, 3) &
+                      &* (corX(i, j, k + 1) + corX(i - 1, j, k + 1)) + met(i, &
+                      &j, k + 1, 2, 3) * (corY(i, j, k + 1) + corY(i, j - 1, k &
+                      &+ 1)))) / (jac(i, j, k) + jac(i, j, k + 1))
                 else
                   dw = - facprs * dt / (facw + rhoStratEdgeU / rhoEdge &
                       &* bvsstw * dt ** 2.0) * pGradZ - 1.0 / (facw &
                       &+ rhoStratEdgeU / rhoEdge * bvsstw * dt ** 2.0) &
-                      &* rhoStratEdgeU / rhoEdge * bvsstw * dt ** 2.0 * (0.25 &
-                      &* (met(i, j, k, 1, 3) * (corX(i, j, k) + corX(i - 1, j, &
-                      &k)) + met(i, j, k + 1, 1, 3) * (corX(i, j, k + 1) &
-                      &+ corX(i - 1, j, k + 1))) + 0.25 * (met(i, j, k, 2, 3) &
-                      &* (corY(i, j, k) + corY(i, j - 1, k)) + met(i, j, k &
-                      &+ 1, 2, 3) * (corY(i, j, k + 1) + corY(i, j - 1, k &
-                      &+ 1))))
+                      &* rhoStratEdgeU / rhoEdge * bvsstw * dt ** 2.0 * 0.5 &
+                      &* (jac(i, j, k + 1) * (met(i, j, k, 1, 3) * (corX(i, j, &
+                      &k) + corX(i - 1, j, k)) + met(i, j, k, 2, 3) * (corY(i, &
+                      &j, k) + corY(i, j - 1, k))) + jac(i, j, k) * (met(i, j, &
+                      &k + 1, 1, 3) * (corX(i, j, k + 1) + corX(i - 1, j, k &
+                      &+ 1)) + met(i, j, k + 1, 2, 3) * (corY(i, j, k + 1) &
+                      &+ corY(i, j - 1, k + 1)))) / (jac(i, j, k) + jac(i, j, &
+                      &k + 1))
                 end if
               else
                 pEdge = 0.5 * (pStrat(k + 1) + pStrat(k))
@@ -3921,54 +2641,53 @@ module poisson_module
       else if(opt == "expl") then
         ! solid wall implies zero change of w at the bottom and top
         if(facprs /= 1.) stop 'ERROR: wrong facprs in explicit sub-step'
-        ! TFC
         do k = k0, k1
           do j = 1, ny
             do i = 1, nx
               if(topography) then
-                ! TFC
                 ! Compute values at cell edges.
-                rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1) &
-                    &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j, k + 1))
-                pEdgeU = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                    &+ pStratTFC(i, j, k + 1) / jac(i, j, k + 1))
-                dpREdgeU = 0.5 * (jac(i + 1, j, k) * met(i + 1, j, k, 3, 1) &
-                    &* dp(i + 1, j, k) + jac(i + 1, j, k + 1) * met(i + 1, j, &
-                    &k + 1, 3, 1) * dp(i + 1, j, k + 1))
-                dpLEdgeU = 0.5 * (jac(i - 1, j, k) * met(i - 1, j, k, 3, 1) &
-                    &* dp(i - 1, j, k) + jac(i - 1, j, k + 1) * met(i - 1, j, &
-                    &k + 1, 3, 1) * dp(i - 1, j, k + 1))
-                dpFEdgeU = 0.5 * (jac(i, j + 1, k) * met(i, j + 1, k, 3, 2) &
-                    &* dp(i, j + 1, k) + jac(i, j + 1, k + 1) * met(i, j + 1, &
-                    &k + 1, 3, 2) * dp(i, j + 1, k + 1))
-                dpBEdgeU = 0.5 * (jac(i, j - 1, k) * met(i, j - 1, k, 3, 2) &
-                    &* dp(i, j - 1, k) + jac(i, j - 1, k + 1) * met(i, j - 1, &
-                    &k + 1, 3, 2) * dp(i, j - 1, k + 1))
-                chris11EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 1, &
-                    &1) * dp(i, j, k) + pStratTFC(i, j, k + 1) * chris(i, j, k &
-                    &+ 1, 1, 1) * dp(i, j, k + 1))
-                chris22EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 2, &
-                    &2) * dp(i, j, k) + pStratTFC(i, j, k + 1) * chris(i, j, k &
-                    &+ 1, 2, 2) * dp(i, j, k + 1))
-                chris13EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 1, &
-                    &3) * met(i, j, k, 1, 3) * dp(i, j, k) + pStratTFC(i, j, k &
-                    &+ 1) * chris(i, j, k + 1, 1, 3) * met(i, j, k + 1, 1, 3) &
-                    &* dp(i, j, k + 1))
-                chris23EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 2, &
-                    &3) * met(i, j, k, 2, 3) * dp(i, j, k) + pStratTFC(i, j, k &
-                    &+ 1) * chris(i, j, k + 1, 2, 3) * met(i, j, k + 1, 2, 3) &
-                    &* dp(i, j, k + 1))
+                rhoStratEdgeU = (jac(i, j, k + 1) * rhoStratTFC(i, j, k) &
+                    &+ jac(i, j, k) * rhoStratTFC(i, j, k + 1)) / (jac(i, j, &
+                    &k) + jac(i, j, k + 1))
+                rhoEdge = (jac(i, j, k + 1) * var%rho(i, j, k) + jac(i, j, k) &
+                    &* var%rho(i, j, k + 1)) / (jac(i, j, k) + jac(i, j, k &
+                    &+ 1)) + rhoStratEdgeU
+                pEdgeU = (jac(i, j, k + 1) * pStratTFC(i, j, k) + jac(i, j, k) &
+                    &* pStratTFC(i, j, k + 1)) / (jac(i, j, k) + jac(i, j, k &
+                    &+ 1))
+                bvsstw = (jac(i, j, k + 1) * bvsStratTFC(i, j, k) + jac(i, j, &
+                    &k) * bvsStratTFC(i, j, k + 1)) / (jac(i, j, k) + jac(i, &
+                    &j, k + 1))
+                met13EdgeU = (jac(i, j, k + 1) * met(i, j, k, 1, 3) + jac(i, &
+                    &j, k) * met(i, j, k + 1, 1, 3)) / (jac(i, j, k) + jac(i, &
+                    &j, k + 1))
+                met23EdgeU = (jac(i, j, k + 1) * met(i, j, k, 2, 3) + jac(i, &
+                    &j, k) * met(i, j, k + 1, 2, 3)) / (jac(i, j, k) + jac(i, &
+                    &j, k + 1))
+                met33EdgeU = (jac(i, j, k + 1) * met(i, j, k, 3, 3) + jac(i, &
+                    &j, k) * met(i, j, k + 1, 3, 3)) / (jac(i, j, k) + jac(i, &
+                    &j, k + 1))
+                dpREdgeU = (jac(i + 1, j, k + 1) * dp(i + 1, j, k) + jac(i &
+                    &+ 1, j, k) * dp(i + 1, j, k + 1)) / (jac(i + 1, j, k) &
+                    &+ jac(i + 1, j, k + 1))
+                dpLEdgeU = (jac(i - 1, j, k + 1) * dp(i - 1, j, k) + jac(i &
+                    &- 1, j, k) * dp(i - 1, j, k + 1)) / (jac(i - 1, j, k) &
+                    &+ jac(i - 1, j, k + 1))
+                dpFEdgeU = (jac(i, j + 1, k + 1) * dp(i, j + 1, k) + jac(i, j &
+                    &+ 1, k) * dp(i, j + 1, k + 1)) / (jac(i, j + 1, k) &
+                    &+ jac(i, j + 1, k + 1))
+                dpBEdgeU = (jac(i, j - 1, k + 1) * dp(i, j - 1, k) + jac(i, j &
+                    &- 1, k) * dp(i, j - 1, k + 1)) / (jac(i, j - 1, k) &
+                    &+ jac(i, j - 1, k + 1))
                 ! Compute pressure difference gradient component.
-                pGradZ = kappaInv * MaInv2 / rhoEdge * pEdgeU * ((dpREdgeU &
-                    &- dpLEdgeU) * 0.5 / dx + (dpFEdgeU - dpBEdgeU) * 0.5 / dy &
-                    &+ (jac(i, j, k + 1) * met(i, j, k + 1, 3, 3) * dp(i, j, k &
-                    &+ 1) - jac(i, j, k) * met(i, j, k, 3, 3) * dp(i, j, k)) &
-                    &/ dz) + kappaInv * MaInv2 / rhoEdge * (chris11EdgeU &
-                    &+ chris22EdgeU + 2.0 * (chris13EdgeU + chris23EdgeU))
+                pGradZ = kappaInv * MaInv2 / rhoEdge * pEdgeU * (met13EdgeU &
+                    &* (dpREdgeU - dpLEdgeU) * 0.5 / dx + met23EdgeU &
+                    &* (dpFEdgeU - dpBEdgeU) * 0.5 / dy + met33EdgeU * (dp(i, &
+                    &j, k + 1) - dp(i, j, k)) / dz)
                 ! Correct vertical velocity.
                 if(model == "compressible") then
-                  JPU = 0.5 * (jac(i, j, k) * var%P(i, j, k) + jac(i, j, k &
-                      &+ 1) * var%P(i, j, k + 1))
+                  JPU = jac(i, j, k) * jac(i, j, k + 1) * (var%P(i, j, k) &
+                      &+ var%P(i, j, k + 1)) / (jac(i, j, k) + jac(i, j, k + 1))
 
                   dw = - dt * pGradZ * JPU
                 else
@@ -4001,43 +2720,44 @@ module poisson_module
           do i = 1, nx
             if(topography) then
               ! Compute values at cell edges.
-              rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1) &
-                  &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j, k + 1))
-              pEdgeU = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) + pStratTFC(i, &
-                  &j, k + 1) / jac(i, j, k + 1))
-              dpREdgeU = 0.5 * (jac(i + 1, j, k) * met(i + 1, j, k, 3, 1) &
-                  &* dp(i + 1, j, k) + jac(i + 1, j, k + 1) * met(i + 1, j, k &
-                  &+ 1, 3, 1) * dp(i + 1, j, k + 1))
-              dpLEdgeU = 0.5 * (jac(i - 1, j, k) * met(i - 1, j, k, 3, 1) &
-                  &* dp(i - 1, j, k) + jac(i - 1, j, k + 1) * met(i - 1, j, k &
-                  &+ 1, 3, 1) * dp(i - 1, j, k + 1))
-              dpFEdgeU = 0.5 * (jac(i, j + 1, k) * met(i, j + 1, k, 3, 2) &
-                  &* dp(i, j + 1, k) + jac(i, j + 1, k + 1) * met(i, j + 1, k &
-                  &+ 1, 3, 2) * dp(i, j + 1, k + 1))
-              dpBEdgeU = 0.5 * (jac(i, j - 1, k) * met(i, j - 1, k, 3, 2) &
-                  &* dp(i, j - 1, k) + jac(i, j - 1, k + 1) * met(i, j - 1, k &
-                  &+ 1, 3, 2) * dp(i, j - 1, k + 1))
-              chris11EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 1, 1) &
-                  &* dp(i, j, k) + pStratTFC(i, j, k + 1) * chris(i, j, k + 1, &
-                  &1, 1) * dp(i, j, k + 1))
-              chris22EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 2, 2) &
-                  &* dp(i, j, k) + pStratTFC(i, j, k + 1) * chris(i, j, k + 1, &
-                  &2, 2) * dp(i, j, k + 1))
-              chris13EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 1, 3) &
-                  &* met(i, j, k, 1, 3) * dp(i, j, k) + pStratTFC(i, j, k + 1) &
-                  &* chris(i, j, k + 1, 1, 3) * met(i, j, k + 1, 1, 3) * dp(i, &
+              rhoStratEdgeU = (jac(i, j, k + 1) * rhoStratTFC(i, j, k) &
+                  &+ jac(i, j, k) * rhoStratTFC(i, j, k + 1)) / (jac(i, j, &
+                  &k) + jac(i, j, k + 1))
+              rhoEdge = (jac(i, j, k + 1) * var%rho(i, j, k) + jac(i, j, k) &
+                  &* var%rho(i, j, k + 1)) / (jac(i, j, k) + jac(i, j, k &
+                  &+ 1)) + rhoStratEdgeU
+              pEdgeU = (jac(i, j, k + 1) * pStratTFC(i, j, k) + jac(i, j, k) &
+                  &* pStratTFC(i, j, k + 1)) / (jac(i, j, k) + jac(i, j, k &
+                  &+ 1))
+              bvsstw = (jac(i, j, k + 1) * bvsStratTFC(i, j, k) + jac(i, j, &
+                  &k) * bvsStratTFC(i, j, k + 1)) / (jac(i, j, k) + jac(i, &
                   &j, k + 1))
-              chris23EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 2, 3) &
-                  &* met(i, j, k, 2, 3) * dp(i, j, k) + pStratTFC(i, j, k + 1) &
-                  &* chris(i, j, k + 1, 2, 3) * met(i, j, k + 1, 2, 3) * dp(i, &
+              met13EdgeU = (jac(i, j, k + 1) * met(i, j, k, 1, 3) + jac(i, &
+                  &j, k) * met(i, j, k + 1, 1, 3)) / (jac(i, j, k) + jac(i, &
                   &j, k + 1))
+              met23EdgeU = (jac(i, j, k + 1) * met(i, j, k, 2, 3) + jac(i, &
+                  &j, k) * met(i, j, k + 1, 2, 3)) / (jac(i, j, k) + jac(i, &
+                  &j, k + 1))
+              met33EdgeU = (jac(i, j, k + 1) * met(i, j, k, 3, 3) + jac(i, &
+                  &j, k) * met(i, j, k + 1, 3, 3)) / (jac(i, j, k) + jac(i, &
+                  &j, k + 1))
+              dpREdgeU = (jac(i + 1, j, k + 1) * dp(i + 1, j, k) + jac(i &
+                  &+ 1, j, k) * dp(i + 1, j, k + 1)) / (jac(i + 1, j, k) &
+                  &+ jac(i + 1, j, k + 1))
+              dpLEdgeU = (jac(i - 1, j, k + 1) * dp(i - 1, j, k) + jac(i &
+                  &- 1, j, k) * dp(i - 1, j, k + 1)) / (jac(i - 1, j, k) &
+                  &+ jac(i - 1, j, k + 1))
+              dpFEdgeU = (jac(i, j + 1, k + 1) * dp(i, j + 1, k) + jac(i, j &
+                  &+ 1, k) * dp(i, j + 1, k + 1)) / (jac(i, j + 1, k) &
+                  &+ jac(i, j + 1, k + 1))
+              dpBEdgeU = (jac(i, j - 1, k + 1) * dp(i, j - 1, k) + jac(i, j &
+                  &- 1, k) * dp(i, j - 1, k + 1)) / (jac(i, j - 1, k) &
+                  &+ jac(i, j - 1, k + 1))
               ! Compute pressure difference gradient component.
-              pGradZ = kappaInv * MaInv2 / rhoEdge * pEdgeU * ((dpREdgeU &
-                  &- dpLEdgeU) * 0.5 / dx + (dpFEdgeU - dpBEdgeU) * 0.5 / dy &
-                  &+ (jac(i, j, k + 1) * met(i, j, k + 1, 3, 3) * dp(i, j, k &
-                  &+ 1) - jac(i, j, k) * met(i, j, k, 3, 3) * dp(i, j, k)) &
-                  &/ dz) + kappaInv * MaInv2 / rhoEdge * (chris11EdgeU &
-                  &+ chris22EdgeU + 2.0 * (chris13EdgeU + chris23EdgeU))
+              pGradZ = kappaInv * MaInv2 / rhoEdge * pEdgeU * (met13EdgeU &
+                  &* (dpREdgeU - dpLEdgeU) * 0.5 / dx + met23EdgeU &
+                  &* (dpFEdgeU - dpBEdgeU) * 0.5 / dy + met33EdgeU * (dp(i, &
+                  &j, k + 1) - dp(i, j, k)) / dz)
             else
               pEdge = pStratTilde(k)
 
@@ -4088,85 +2808,75 @@ module poisson_module
 
               if(topography) then
                 ! Compute P coefficients.
-                pEdgeU = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                    &+ pStratTFC(i, j, k + 1) / jac(i, j, k + 1))
-                pEdgeD = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                    &+ pStratTFC(i, j, k - 1) / jac(i, j, k - 1))
+                pEdgeU = (jac(i, j, k + 1) * pStratTFC(i, j, k) + jac(i, j, k) &
+                    &* pStratTFC(i, j, k + 1)) / (jac(i, j, k) + jac(i, j, k &
+                    &+ 1))
+                pEdgeD = (jac(i, j, k - 1) * pStratTFC(i, j, k) + jac(i, j, k) &
+                    &* pStratTFC(i, j, k - 1)) / (jac(i, j, k) + jac(i, j, k &
+                    &- 1))
                 ! Compute density coefficients.
-                rhow0 = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1) &
-                    &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j, k + 1))
-                rhowm = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k - 1) &
-                    &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j, k - 1))
+                rhow0 = (jac(i, j, k + 1) * (var%rho(i, j, k) + rhoStratTFC(i, &
+                    &j, k)) + jac(i, j, k) * (var%rho(i, j, k + 1) &
+                    &+ rhoStratTFC(i, j, k + 1))) / (jac(i, j, k) + jac(i, j, &
+                    &k + 1))
+                rhowm = (jac(i, j, k - 1) * (var%rho(i, j, k) + rhoStratTFC(i, &
+                    &j, k)) + jac(i, j, k) * (var%rho(i, j, k - 1) &
+                    &+ rhoStratTFC(i, j, k - 1))) / (jac(i, j, k) + jac(i, j, &
+                    &k - 1))
                 rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
+                ! Interpolate metric tensor elements.
+                met13EdgeU = (jac(i, j, k + 1) * met(i, j, k, 1, 3) + jac(i, &
+                    &j, k) * met(i, j, k + 1, 1, 3)) / (jac(i, j, k) + jac(i, &
+                    &j, k + 1))
+                met13EdgeD = (jac(i, j, k - 1) * met(i, j, k, 1, 3) + jac(i, &
+                    &j, k) * met(i, j, k - 1, 1, 3)) / (jac(i, j, k) + jac(i, &
+                    &j, k - 1))
+                met23EdgeU = (jac(i, j, k + 1) * met(i, j, k, 2, 3) + jac(i, &
+                    &j, k) * met(i, j, k + 1, 2, 3)) / (jac(i, j, k) + jac(i, &
+                    &j, k + 1))
+                met23EdgeD = (jac(i, j, k - 1) * met(i, j, k, 2, 3) + jac(i, &
+                    &j, k) * met(i, j, k - 1, 2, 3)) / (jac(i, j, k) + jac(i, &
+                    &j, k - 1))
+                met33EdgeU = (jac(i, j, k + 1) * met(i, j, k, 3, 3) + jac(i, &
+                    &j, k) * met(i, j, k + 1, 3, 3)) / (jac(i, j, k) + jac(i, &
+                    &j, k + 1))
+                met33EdgeD = (jac(i, j, k - 1) * met(i, j, k, 3, 3) + jac(i, &
+                    &j, k) * met(i, j, k - 1, 3, 3)) / (jac(i, j, k) + jac(i, &
+                    &j, k - 1))
                 ! Interpolate pressure differences.
-                dpREdgeU = 0.5 * (jac(i + 1, j, k) * met(i + 1, j, k, 1, 3) &
-                    &* dp(i + 1, j, k) + jac(i + 1, j, k + 1) * met(i + 1, j, &
-                    &k + 1, 1, 3) * dp(i + 1, j, k + 1))
-                dpLEdgeU = 0.5 * (jac(i - 1, j, k) * met(i - 1, j, k, 1, 3) &
-                    &* dp(i - 1, j, k) + jac(i - 1, j, k + 1) * met(i - 1, j, &
-                    &k + 1, 1, 3) * dp(i - 1, j, k + 1))
-                dpREdgeD = 0.5 * (jac(i + 1, j, k) * met(i + 1, j, k, 1, 3) &
-                    &* dp(i + 1, j, k) + jac(i + 1, j, k - 1) * met(i + 1, j, &
-                    &k - 1, 1, 3) * dp(i + 1, j, k - 1))
-                dpLEdgeD = 0.5 * (jac(i - 1, j, k) * met(i - 1, j, k, 1, 3) &
-                    &* dp(i - 1, j, k) + jac(i - 1, j, k - 1) * met(i - 1, j, &
-                    &k - 1, 1, 3) * dp(i - 1, j, k - 1))
-                dpFEdgeU = 0.5 * (jac(i, j + 1, k) * met(i, j + 1, k, 2, 3) &
-                    &* dp(i, j + 1, k) + jac(i, j + 1, k + 1) * met(i, j + 1, &
-                    &k + 1, 2, 3) * dp(i, j + 1, k + 1))
-                dpBEdgeU = 0.5 * (jac(i, j - 1, k) * met(i, j - 1, k, 2, 3) &
-                    &* dp(i, j - 1, k) + jac(i, j - 1, k + 1) * met(i, j - 1, &
-                    &k + 1, 2, 3) * dp(i, j - 1, k + 1))
-                dpFEdgeD = 0.5 * (jac(i, j + 1, k) * met(i, j + 1, k, 2, 3) &
-                    &* dp(i, j + 1, k) + jac(i, j + 1, k - 1) * met(i, j + 1, &
-                    &k - 1, 2, 3) * dp(i, j + 1, k - 1))
-                dpBEdgeD = 0.5 * (jac(i, j - 1, k) * met(i, j - 1, k, 2, 3) &
-                    &* dp(i, j - 1, k) + jac(i, j - 1, k - 1) * met(i, j - 1, &
-                    &k - 1, 2, 3) * dp(i, j - 1, k - 1))
-                ! Interpolate Christoffel symbols.
-                chris11EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 1, &
-                    &1) * dp(i, j, k) + pStratTFC(i, j, k + 1) * chris(i, j, k &
-                    &+ 1, 1, 1) * dp(i, j, k + 1))
-                chris11EdgeD = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 1, &
-                    &1) * dp(i, j, k) + pStratTFC(i, j, k - 1) * chris(i, j, k &
-                    &- 1, 1, 1) * dp(i, j, k - 1))
-                chris22EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 2, &
-                    &2) * dp(i, j, k) + pStratTFC(i, j, k + 1) * chris(i, j, k &
-                    &+ 1, 2, 2) * dp(i, j, k + 1))
-                chris22EdgeD = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 2, &
-                    &2) * dp(i, j, k) + pStratTFC(i, j, k - 1) * chris(i, j, k &
-                    &- 1, 2, 2) * dp(i, j, k - 1))
-                chris13EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 1, &
-                    &3) * met(i, j, k, 1, 3) * dp(i, j, k) + pStratTFC(i, j, k &
-                    &+ 1) * chris(i, j, k + 1, 1, 3) * met(i, j, k + 1, 1, 3) &
-                    &* dp(i, j, k + 1))
-                chris13EdgeD = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 1, &
-                    &3) * met(i, j, k, 1, 3) * dp(i, j, k) + pStratTFC(i, j, k &
-                    &- 1) * chris(i, j, k - 1, 1, 3) * met(i, j, k - 1, 1, 3) &
-                    &* dp(i, j, k - 1))
-                chris23EdgeU = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 2, &
-                    &3) * met(i, j, k, 2, 3) * dp(i, j, k) + pStratTFC(i, j, k &
-                    &+ 1) * chris(i, j, k + 1, 2, 3) * met(i, j, k + 1, 2, 3) &
-                    &* dp(i, j, k + 1))
-                chris23EdgeD = 0.5 * (pStratTFC(i, j, k) * chris(i, j, k, 2, &
-                    &3) * met(i, j, k, 2, 3) * dp(i, j, k) + pStratTFC(i, j, k &
-                    &- 1) * chris(i, j, k - 1, 2, 3) * met(i, j, k - 1, 2, 3) &
-                    &* dp(i, j, k - 1))
+                dpREdgeU = (jac(i + 1, j, k + 1) * dp(i + 1, j, k) + jac(i &
+                    &+ 1, j, k) * dp(i + 1, j, k + 1)) / (jac(i + 1, j, k) &
+                    &+ jac(i + 1, j, k + 1))
+                dpLEdgeU = (jac(i - 1, j, k + 1) * dp(i - 1, j, k) + jac(i &
+                    &- 1, j, k) * dp(i - 1, j, k + 1)) / (jac(i - 1, j, k) &
+                    &+ jac(i - 1, j, k + 1))
+                dpREdgeD = (jac(i + 1, j, k - 1) * dp(i + 1, j, k) + jac(i &
+                    &+ 1, j, k) * dp(i + 1, j, k - 1)) / (jac(i + 1, j, k) &
+                    &+ jac(i + 1, j, k - 1))
+                dpLEdgeD = (jac(i - 1, j, k - 1) * dp(i - 1, j, k) + jac(i &
+                    &- 1, j, k) * dp(i - 1, j, k - 1)) / (jac(i - 1, j, k) &
+                    &+ jac(i - 1, j, k - 1))
+                dpFEdgeU = (jac(i, j + 1, k + 1) * dp(i, j + 1, k) + jac(i, j &
+                    &+ 1, k) * dp(i, j + 1, k + 1)) / (jac(i, j + 1, k) &
+                    &+ jac(i, j + 1, k + 1))
+                dpBEdgeU = (jac(i, j - 1, k + 1) * dp(i, j - 1, k) + jac(i, j &
+                    &- 1, k) * dp(i, j - 1, k + 1)) / (jac(i, j - 1, k) &
+                    &+ jac(i, j - 1, k + 1))
+                dpFEdgeD = (jac(i, j + 1, k - 1) * dp(i, j + 1, k) + jac(i, j &
+                    &+ 1, k) * dp(i, j + 1, k - 1)) / (jac(i, j + 1, k) &
+                    &+ jac(i, j + 1, k - 1))
+                dpBEdgeD = (jac(i, j - 1, k - 1) * dp(i, j - 1, k) + jac(i, j &
+                    &- 1, k) * dp(i, j - 1, k - 1)) / (jac(i, j - 1, k) &
+                    &+ jac(i, j - 1, k - 1))
                 ! Compute pressure difference gradients.
                 pGradZEdgeU = kappaInv * MaInv2 * pEdgeU / rhow0 * (0.5 &
-                    &* (dpREdgeU - dpLEdgeU) / dx + 0.5 * (dpFEdgeU &
-                    &- dpBEdgeU) / dy + (jac(i, j, k + 1) * met(i, j, k + 1, &
-                    &3, 3) * dp(i, j, k + 1) - jac(i, j, k) * met(i, j, k, 3, &
-                    &3) * dp(i, j, k)) / dz) + kappaInv * MaInv2 / rhow0 &
-                    &* (chris11EdgeU + chris22EdgeU + 2.0 * (chris13EdgeU &
-                    &+ chris23EdgeU))
+                    &* met13EdgeU * (dpREdgeU - dpLEdgeU) / dx + 0.5 &
+                    &* met23EdgeU * (dpFEdgeU - dpBEdgeU) / dy + met33EdgeU &
+                    &* (dp(i, j, k + 1) - dp(i, j, k)) / dz)
                 pGradZEdgeD = kappaInv * MaInv2 * pEdgeD / rhowm * (0.5 &
-                    &* (dpREdgeD - dpLEdgeD) / dx + 0.5 * (dpFEdgeD &
-                    &- dpBEdgeD) / dy + (jac(i, j, k) * met(i, j, k, 3, 3) &
-                    &* dp(i, j, k) - jac(i, j, k - 1) * met(i, j, k - 1, 3, 3) &
-                    &* dp(i, j, k - 1)) / dz) + kappaInv * MaInv2 / rhowm &
-                    &* (chris11EdgeD + chris22EdgeD + 2.0 * (chris13EdgeD &
-                    &+ chris23EdgeD))
+                    &* met13EdgeD * (dpREdgeD - dpLEdgeD) / dx + 0.5 &
+                    &* met23EdgeD * (dpFEdgeD - dpBEdgeD) / dy + met33EdgeD &
+                    &* (dp(i, j, k) - dp(i, j, k - 1)) / dz)
                 ! Adjust at boundaries.
                 if(k == 1 .and. zBoundary == "solid_wall") then
                   pGradZEdgeD = 0.0
@@ -4570,10 +3280,10 @@ module poisson_module
         do k = 1, nz
           do j = 1, ny
             do i = 1, nx
-              if(heightTFC(i, j, k) > zSponge + 0.5 * (lz(1) - zSponge)) then
+              if(zTFC(i, j, k) > zSponge + 0.5 * (lz(1) - zSponge)) then
                 heat(i, j, k) = 0.0
-              else if(heightTFC(i, j, k) >= zSponge) then
-                heat(i, j, k) = heat(i, j, k) * cos(0.5 * pi * (heightTFC(i, &
+              else if(zTFC(i, j, k) >= zSponge) then
+                heat(i, j, k) = heat(i, j, k) * cos(0.5 * pi * (zTFC(i, &
                     &j, k) - zSponge) / (0.5 * (lz(1) - zSponge))) ** 2.0
               end if
             end do
@@ -4639,14 +3349,21 @@ module poisson_module
     ! SK compressible
     real :: dPdPi
 
-    ! TFC FJ
+    ! TFC variables.
     real :: ARU, ARD, ALU, ALD, AFU, AFD, ABU, ABD
     real :: AUU, ADD, ARUU, ARDD, ALUU, ALDD, AFUU, AFDD, ABUU, ABDD
-    real :: fcscal_uu, fcscal_dd
+    real :: fcscal_r, fcscal_l, fcscal_f, fcscal_b, fcscal_ru, fcscal_rd, &
+        &fcscal_lu, fcscal_ld, fcscal_fu, fcscal_fd, fcscal_bu, fcscal_bd
+    real :: fcscal_uu, fcscal_dd, fcscal_ruu, fcscal_rdd, fcscal_luu, &
+        &fcscal_ldd, fcscal_fuu, fcscal_fdd, fcscal_buu, fcscal_bdd
     real :: jacInv
     real :: pEdgeRDiv, pEdgeLDiv, pEdgeFDiv, pEdgeBDiv, pEdgeUDiv, pEdgeDDiv
     real :: pEdgeRGra, pEdgeLGra, pEdgeFGra, pEdgeBGra, pEdgeUGra, pEdgeDGra
     real :: rhoEdgeR, rhoEdgeL, rhoEdgeF, rhoEdgeB, rhoEdgeU, rhoEdgeD
+    real :: met13EdgeR, met13EdgeL, met23EdgeF, met23EdgeB, met13EdgeU, &
+        &met23EdgeU, met33EdgeU, met13EdgeD, met23EdgeD, met33EdgeD, &
+        &met13UEdgeR, met13UEdgeL, met23UEdgeF, met23UEdgeB, met13DEdgeR, &
+        &met13DEdgeL, met23DEdgeF, met23DEdgeB
     real :: pUEdgeRGra, pUEdgeLGra, pUEdgeFGra, pUEdgeBGra, pDEdgeRGra, &
         &pDEdgeLGra, pDEdgeFGra, pDEdgeBGra
     real :: rhoStratEdgeR, rhoStratEdgeL, rhoStratEdgeF, rhoStratEdgeB, &
@@ -4694,7 +3411,6 @@ module poisson_module
     !---------------------------------
 
     if(opt == "expl") then
-      ! TFC FJ
       if(timeScheme == "semiimplicit" .and. .not. topography) then
         do k = 1, nz
           fcscal = sqrt(Pstrat(k) ** 2 / rhoStrat(k))
@@ -4709,9 +3425,6 @@ module poisson_module
                   &+ rhoStrat(k)
 
               AR = dx2 * pStrat(k) ** 2 / rhoEdge
-              if(pressureScaling) then
-                AR = AR / Pstrat(k)
-              end if
 
               ! ------------------- A(i-1,j,k) --------------------
 
@@ -4719,9 +3432,6 @@ module poisson_module
                   &+ rhoStrat(k)
 
               AL = dx2 * pStrat(k) ** 2 / rhoEdge
-              if(pressureScaling) then
-                AL = AL / Pstrat(k)
-              end if
 
               ! -------------------- A(i,j+1,k) ----------------------
 
@@ -4730,19 +3440,12 @@ module poisson_module
 
               AF = dy2 * pStrat(k) ** 2 / rhoEdge
 
-              if(pressureScaling) then
-                AF = AF / Pstrat(k)
-              end if
-
               ! --------------------- A(i,j-1,k) -------------------
 
               rhoEdge = 0.5 * (var%rho(i, j, k) + var%rho(i, j - 1, k)) &
                   &+ rhoStrat(k)
 
               AB = dy2 * pStrat(k) ** 2 / rhoEdge
-              if(pressureScaling) then
-                AB = AB / Pstrat(k)
-              end if
 
               ! ---------------------- A(i,j,k+1) ------------------
 
@@ -4756,9 +3459,6 @@ module poisson_module
                 pStratU = 0.5 * (pStrat(k + 1) + pStrat(k))
                 AU = dz2 * pStratU ** 2 / rhoEdge
               end if
-              if(pressureScaling) then
-                AU = AU / PstratTilde(k)
-              end if
 
               ! ----------------------- A(i,j,k-1) -----------------
 
@@ -4771,9 +3471,6 @@ module poisson_module
 
                 pStratD = 0.5 * (pStrat(k) + pStrat(k - 1))
                 AD = dz2 * pStratD ** 2 / rhoEdge
-              end if
-              if(pressureScaling) then
-                AD = AD / PstratTilde(k - 1)
               end if
 
               ! ----------------------- A(i,j,k) -------------------
@@ -4797,42 +3494,83 @@ module poisson_module
 
               ! ------------------ define matrix A -------------------
 
-              if(poissonSolverType == 'bicgstab') then
-                ac_b(i, j, k) = AC
+              ac_b(i, j, k) = AC
 
-                ach_b(i, j, k) = ACH
-                acv_b(i, j, k) = ACV
+              ach_b(i, j, k) = ACH
+              acv_b(i, j, k) = ACV
 
-                al_b(i, j, k) = AL
-                ar_b(i, j, k) = AR
+              al_b(i, j, k) = AL
+              ar_b(i, j, k) = AR
 
-                ab_b(i, j, k) = AB
-                af_b(i, j, k) = AF
+              ab_b(i, j, k) = AB
+              af_b(i, j, k) = AF
 
-                ad_b(i, j, k) = AD
-                au_b(i, j, k) = AU
+              ad_b(i, j, k) = AD
+              au_b(i, j, k) = AU
 
-                alb_b(i, j, k) = 0.0
-                alf_b(i, j, k) = 0.0
-                arb_b(i, j, k) = 0.0
-                arf_b(i, j, k) = 0.0
-              else
-                stop 'ERROR: val_PsIn expects bicgstab'
-              end if
+              alb_b(i, j, k) = 0.0
+              alf_b(i, j, k) = 0.0
+              arb_b(i, j, k) = 0.0
+              arf_b(i, j, k) = 0.0
             end do ! i_loop
           end do ! j_loop
         end do ! k_loop
       else if(topography) then
         ! Compute tensor elements for TFC.
         do k = 1, nz
-          ! Compute scaling factors.
-          fcscal = sqrt(pStrat(k) ** 2.0 / rhoStrat(k))
-          fcscal_u = sqrt(pStrat(k + 1) ** 2.0 / rhoStrat(k + 1))
-          fcscal_d = sqrt(pStrat(k - 1) ** 2.0 / rhoStrat(k - 1))
-          fcscal_uu = sqrt(pStrat(k + 2) ** 2.0 / rhoStrat(k + 2))
-          fcscal_dd = sqrt(pStrat(k - 2) ** 2.0 / rhoStrat(k - 2))
           do j = 1, ny
             do i = 1, nx
+              ! Compute scaling factors.
+              fcscal = sqrt(pStratTFC(i, j, k) ** 2.0 / rhoStratTFC(i, j, k))
+              fcscal_r = sqrt(pStratTFC(i + 1, j, k) ** 2.0 / rhoStratTFC(i &
+                  &+ 1, j, k))
+              fcscal_l = sqrt(pStratTFC(i - 1, j, k) ** 2.0 / rhoStratTFC(i &
+                  &- 1, j, k))
+              fcscal_f = sqrt(pStratTFC(i, j + 1, k) ** 2.0 / rhoStratTFC(i, &
+                  &j + 1, k))
+              fcscal_b = sqrt(pStratTFC(i, j - 1, k) ** 2.0 / rhoStratTFC(i, &
+                  &j - 1, k))
+              fcscal_u = sqrt(pStratTFC(i, j, k + 1) ** 2.0 / rhoStratTFC(i, &
+                  &j, k + 1))
+              fcscal_d = sqrt(pStratTFC(i, j, k - 1) ** 2.0 / rhoStratTFC(i, &
+                  &j, k - 1))
+              fcscal_ru = sqrt(pStratTFC(i + 1, j, k + 1) ** 2.0 &
+                  &/ rhoStratTFC(i + 1, j, k + 1))
+              fcscal_rd = sqrt(pStratTFC(i + 1, j, k - 1) ** 2.0 &
+                  &/ rhoStratTFC(i + 1, j, k - 1))
+              fcscal_lu = sqrt(pStratTFC(i - 1, j, k + 1) ** 2.0 &
+                  &/ rhoStratTFC(i - 1, j, k + 1))
+              fcscal_ld = sqrt(pStratTFC(i - 1, j, k - 1) ** 2.0 &
+                  &/ rhoStratTFC(i - 1, j, k - 1))
+              fcscal_fu = sqrt(pStratTFC(i, j + 1, k + 1) ** 2.0 &
+                  &/ rhoStratTFC(i, j + 1, k + 1))
+              fcscal_fd = sqrt(pStratTFC(i, j + 1, k - 1) ** 2.0 &
+                  &/ rhoStratTFC(i, j + 1, k - 1))
+              fcscal_bu = sqrt(pStratTFC(i, j - 1, k + 1) ** 2.0 &
+                  &/ rhoStratTFC(i, j - 1, k + 1))
+              fcscal_bd = sqrt(pStratTFC(i, j - 1, k - 1) ** 2.0 &
+                  &/ rhoStratTFC(i, j - 1, k - 1))
+              fcscal_uu = sqrt(pStratTFC(i, j, k + 2) ** 2.0 / rhoStratTFC(i, &
+                  &j, k + 2))
+              fcscal_dd = sqrt(pStratTFC(i, j, k - 2) ** 2.0 / rhoStratTFC(i, &
+                  &j, k - 2))
+              fcscal_ruu = sqrt(pStratTFC(i + 1, j, k + 2) ** 2.0 &
+                  &/ rhoStratTFC(i + 1, j, k + 2))
+              fcscal_rdd = sqrt(pStratTFC(i + 1, j, k - 2) ** 2.0 &
+                  &/ rhoStratTFC(i + 1, j, k - 2))
+              fcscal_luu = sqrt(pStratTFC(i - 1, j, k + 2) ** 2.0 &
+                  &/ rhoStratTFC(i - 1, j, k + 2))
+              fcscal_ldd = sqrt(pStratTFC(i - 1, j, k - 2) ** 2.0 &
+                  &/ rhoStratTFC(i - 1, j, k - 2))
+              fcscal_fuu = sqrt(pStratTFC(i, j + 1, k + 2) ** 2.0 &
+                  &/ rhoStratTFC(i, j + 1, k + 2))
+              fcscal_fdd = sqrt(pStratTFC(i, j + 1, k - 2) ** 2.0 &
+                  &/ rhoStratTFC(i, j + 1, k - 2))
+              fcscal_buu = sqrt(pStratTFC(i, j - 1, k + 2) ** 2.0 &
+                  &/ rhoStratTFC(i, j - 1, k + 2))
+              fcscal_bdd = sqrt(pStratTFC(i, j - 1, k - 2) ** 2.0 &
+                  &/ rhoStratTFC(i, j - 1, k - 2))
+
               ! Compute inverse Jacobian.
               jacInv = 1.0 / jac(i, j, k)
 
@@ -4845,24 +3583,24 @@ module poisson_module
                   &+ 1, k) * pStratTFC(i, j + 1, k))
               pEdgeBDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
                   &- 1, k) * pStratTFC(i, j - 1, k))
-              pEdgeUDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, &
-                  &k + 1) * pStratTFC(i, j, k + 1))
-              pEdgeDDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, &
-                  &k - 1) * pStratTFC(i, j, k - 1))
+              pEdgeUDiv = jac(i, j, k) * jac(i, j, k + 1) * (pStratTFC(i, j, &
+                  &k) + pStratTFC(i, j, k + 1)) / (jac(i, j, k) + jac(i, j, k &
+                  &+ 1))
+              pEdgeDDiv = jac(i, j, k) * jac(i, j, k - 1) * (pStratTFC(i, j, &
+                  &k) + pStratTFC(i, j, k - 1)) / (jac(i, j, k) + jac(i, j, k &
+                  &- 1))
 
               ! Compute P coefficients (pressure gradient).
-              pEdgeRGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                  &+ pStratTFC(i + 1, j, k) / jac(i + 1, j, k))
-              pEdgeLGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                  &+ pStratTFC(i - 1, j, k) / jac(i - 1, j, k))
-              pEdgeFGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                  &+ pStratTFC(i, j + 1, k) / jac(i, j + 1, k))
-              pEdgeBGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                  &+ pStratTFC(i, j - 1, k) / jac(i, j - 1, k))
-              pEdgeUGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                  &+ pStratTFC(i, j, k + 1) / jac(i, j, k + 1))
-              pEdgeDGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                  &+ pStratTFC(i, j, k - 1) / jac(i, j, k - 1))
+              pEdgeRGra = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i + 1, j, k))
+              pEdgeLGra = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i - 1, j, k))
+              pEdgeFGra = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i, j + 1, k))
+              pEdgeBGra = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i, j - 1, k))
+              pEdgeUGra = (jac(i, j, k + 1) * pStratTFC(i, j, k) &
+                  &+ jac(i, j, k) * pStratTFC(i, j, k + 1)) / (jac(i, j, k) &
+                  &+ jac(i, j, k + 1))
+              pEdgeDGra = (jac(i, j, k - 1) * pStratTFC(i, j, k) &
+                  &+ jac(i, j, k) * pStratTFC(i, j, k - 1)) / (jac(i, j, k) &
+                  &+ jac(i, j, k - 1))
 
               ! Compute density coefficients.
               rhoEdgeR = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k) &
@@ -4873,10 +3611,38 @@ module poisson_module
                   &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j + 1, k))
               rhoEdgeB = 0.5 * (var%rho(i, j, k) + var%rho(i, j - 1, k) &
                   &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j - 1, k))
-              rhoEdgeU = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1) &
-                  &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j, k + 1))
-              rhoEdgeD = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k - 1) &
-                  &+ rhoStratTFC(i, j, k) + rhoStratTFC(i, j, k - 1))
+              rhoEdgeU = (jac(i, j, k + 1) * (var%rho(i, j, k) &
+                  &+ rhoStratTFC(i, j, k)) + jac(i, j, k) * (var%rho(i, j, k &
+                  &+ 1) + rhoStratTFC(i, j, k + 1))) / (jac(i, j, k) + jac(i, &
+                  &j, k + 1))
+              rhoEdgeD = (jac(i, j, k - 1) * (var%rho(i, j, k) &
+                  &+ rhoStratTFC(i, j, k)) + jac(i, j, k) * (var%rho(i, j, k &
+                  &- 1) + rhoStratTFC(i, j, k - 1))) / (jac(i, j, k) + jac(i, &
+                  &j, k - 1))
+
+              ! Interpolate metric-tensor elements.
+              met13EdgeR = 0.5 * (met(i, j, k, 1, 3) + met(i + 1, j, k, 1, 3))
+              met13EdgeL = 0.5 * (met(i, j, k, 1, 3) + met(i - 1, j, k, 1, 3))
+              met23EdgeF = 0.5 * (met(i, j, k, 2, 3) + met(i, j + 1, k, 2, 3))
+              met23EdgeB = 0.5 * (met(i, j, k, 2, 3) + met(i, j - 1, k, 2, 3))
+              met13EdgeU = (jac(i, j, k + 1) * met(i, j, k, 1, 3) + jac(i, j, &
+                  &k) * met(i, j, k + 1, 1, 3)) / (jac(i, j, k) + jac(i, j, k &
+                  &+ 1))
+              met23EdgeU = (jac(i, j, k + 1) * met(i, j, k, 2, 3) + jac(i, j, &
+                  &k) * met(i, j, k + 1, 2, 3)) / (jac(i, j, k) + jac(i, j, k &
+                  &+ 1))
+              met33EdgeU = (jac(i, j, k + 1) * met(i, j, k, 3, 3) + jac(i, j, &
+                  &k) * met(i, j, k + 1, 3, 3)) / (jac(i, j, k) + jac(i, j, k &
+                  &+ 1))
+              met13EdgeD = (jac(i, j, k - 1) * met(i, j, k, 1, 3) + jac(i, j, &
+                  &k) * met(i, j, k - 1, 1, 3)) / (jac(i, j, k) + jac(i, j, k &
+                  &- 1))
+              met23EdgeD = (jac(i, j, k - 1) * met(i, j, k, 2, 3) + jac(i, j, &
+                  &k) * met(i, j, k - 1, 2, 3)) / (jac(i, j, k) + jac(i, j, k &
+                  &- 1))
+              met33EdgeD = (jac(i, j, k - 1) * met(i, j, k, 3, 3) + jac(i, j, &
+                  &k) * met(i, j, k - 1, 3, 3)) / (jac(i, j, k) + jac(i, j, k &
+                  &- 1))
 
               ! Compute (dP / dpi) for compressible model for AC
               if(model == "compressible") then
@@ -4888,46 +3654,30 @@ module poisson_module
 
               if(k == 1 .and. zBoundary == "solid_wall") then
                 AC = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 &
-                    &/ dx + 0.75 * met(i, j, k, 1, 3) / dz) + pEdgeLDiv &
-                    &/ rhoEdgeL * pEdgeLGra * (1.0 / dx - 0.75 * met(i, j, k, &
-                    &1, 3) / dz)) - jacInv / dy * (pEdgeFDiv / rhoEdgeF &
-                    &* pEdgeFGra * (1.0 / dy + 0.75 * met(i, j, k, 2, 3) / dz) &
+                    &/ dx + 0.75 * met13EdgeR / dz) + pEdgeLDiv &
+                    &/ rhoEdgeL * pEdgeLGra * (1.0 / dx - 0.75 * met13EdgeL &
+                    &/ dz)) - jacInv / dy * (pEdgeFDiv / rhoEdgeF &
+                    &* pEdgeFGra * (1.0 / dy + 0.75 * met23EdgeF / dz) &
                     &+ pEdgeBDiv / rhoEdgeB * pEdgeBGra * (1.0 / dy - 0.75 &
-                    &* met(i, j, k, 2, 3) / dz)) - jacInv / dz * pEdgeUDiv &
-                    &/ rhoEdgeU * pEdgeUGra * met(i, j, k, 3, 3) / dz + jacInv &
-                    &/ dz * pEdgeUDiv / rhoEdgeU * 0.5 * pStratTFC(i, j, k) &
-                    &/ jac(i, j, k) * (chris(i, j, k, 1, 1) + chris(i, j, k, &
-                    &2, 2) + 2.0 * chris(i, j, k, 1, 3) * met(i, j, k, 1, 3) &
-                    &+ 2.0 * chris(i, j, k, 2, 3) * met(i, j, k, 2, 3))
+                    &* met23EdgeB / dz)) - jacInv / dz * pEdgeUDiv &
+                    &/ rhoEdgeU * pEdgeUGra * met33EdgeU / dz
               else if(k == nz .and. zBoundary == "solid_wall") then
                 AC = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 &
-                    &/ dx - 0.75 * met(i, j, k, 1, 3) / dz) + pEdgeLDiv &
-                    &/ rhoEdgeL * pEdgeLGra * (1.0 / dx + 0.75 * met(i, j, k, &
-                    &1, 3) / dz)) - jacInv / dy * (pEdgeFDiv / rhoEdgeF &
-                    &* pEdgeFGra * (1.0 / dy - 0.75 * met(i, j, k, 2, 3) / dz) &
+                    &/ dx - 0.75 * met13EdgeR / dz) + pEdgeLDiv &
+                    &/ rhoEdgeL * pEdgeLGra * (1.0 / dx + 0.75 * met13EdgeL &
+                    &/ dz)) - jacInv / dy * (pEdgeFDiv / rhoEdgeF &
+                    &* pEdgeFGra * (1.0 / dy - 0.75 * met23EdgeF / dz) &
                     &+ pEdgeBDiv / rhoEdgeB * pEdgeBGra * (1.0 / dy + 0.75 &
-                    &* met(i, j, k, 2, 3) / dz)) - jacInv / dz * pEdgeDDiv &
-                    &/ rhoEdgeD * pEdgeDGra * met(i, j, k, 3, 3) / dz - jacInv &
-                    &/ dz * pEdgeDDiv / rhoEdgeD * 0.5 * pStratTFC(i, j, k) &
-                    &/ jac(i, j, k) * (chris(i, j, k, 1, 1) + chris(i, j, k, &
-                    &2, 2) + 2.0 * chris(i, j, k, 1, 3) * met(i, j, k, 1, 3) &
-                    &+ 2.0 * chris(i, j, k, 2, 3) * met(i, j, k, 2, 3))
+                    &* met23EdgeB / dz)) - jacInv / dz * pEdgeDDiv &
+                    &/ rhoEdgeD * pEdgeDGra * met33EdgeD / dz
               else
                 AC = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra / dx &
                     &+ pEdgeLDiv / rhoEdgeL * pEdgeLGra / dx) - jacInv / dy &
                     &* (pEdgeFDiv / rhoEdgeF * pEdgeFGra / dy + pEdgeBDiv &
                     &/ rhoEdgeB * pEdgeBGra / dy) - jacInv / dz * (pEdgeUDiv &
-                    &/ rhoEdgeU * pEdgeUGra * met(i, j, k, 3, 3) / dz &
-                    &+ pEdgeDDiv / rhoEdgeD * pEdgeDGra * met(i, j, k, 3, 3) &
-                    &/ dz) + jacInv / dz * pEdgeUDiv / rhoEdgeU * 0.5 &
-                    &* pStratTFC(i, j, k) / jac(i, j, k) * (chris(i, j, k, 1, &
-                    &1) + chris(i, j, k, 2, 2) + 2.0 * chris(i, j, k, 1, 3) &
-                    &* met(i, j, k, 1, 3) + 2.0 * chris(i, j, k, 2, 3) &
-                    &* met(i, j, k, 2, 3)) - jacInv / dz * pEdgeDDiv &
-                    &/ rhoEdgeD * 0.5 * pStratTFC(i, j, k) / jac(i, j, k) &
-                    &* (chris(i, j, k, 1, 1) + chris(i, j, k, 2, 2) + 2.0 &
-                    &* chris(i, j, k, 1, 3) * met(i, j, k, 1, 3) + 2.0 &
-                    &* chris(i, j, k, 2, 3) * met(i, j, k, 2, 3))
+                    &/ rhoEdgeU * pEdgeUGra * met33EdgeU / dz &
+                    &+ pEdgeDDiv / rhoEdgeD * pEdgeDGra * met33EdgeD &
+                    &/ dz)
               end if
 
               if(model == "compressible") then
@@ -4938,111 +3688,117 @@ module poisson_module
 
               if(k == 1 .and. zBoundary == "solid_wall") then
                 AR = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 &
-                    &/ dx - 0.75 * met(i + 1, j, k, 1, 3) / dz) + jacInv / dz &
-                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i + 1, j, &
-                    &k, 1, 3) / dx
+                    &/ dx - 0.75 * met13EdgeR / dz) + jacInv / dz &
+                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.5 * met13EdgeU &
+                    &/ dx * jac(i + 1, j, k + 1) / (jac(i + 1, j, k) + jac(i &
+                    &+ 1, j, k + 1))
               else if(k == nz .and. zBoundary == "solid_wall") then
                 AR = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * (1.0 &
-                    &/ dx + 0.75 * met(i + 1, j, k, 1, 3) / dz) - jacInv / dz &
-                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i + 1, j, &
-                    &k, 1, 3) / dx
+                    &/ dx + 0.75 * met13EdgeR / dz) - jacInv / dz &
+                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.5 * met13EdgeD &
+                    &/ dx * jac(i + 1, j, k - 1) / (jac(i + 1, j, k) + jac(i &
+                    &+ 1, j, k - 1))
               else
                 AR = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra / dx &
-                    &+ jacInv / dz * (pEdgeUDiv / rhoEdgeU * pEdgeUGra * met(i &
-                    &+ 1, j, k, 1, 3) * 0.25 / dx - pEdgeDDiv / rhoEdgeD &
-                    &* pEdgeDGra * met(i + 1, j, k, 1, 3) * 0.25 / dx)
+                    &+ jacInv / dz * (pEdgeUDiv / rhoEdgeU * pEdgeUGra &
+                    &* met13EdgeU * 0.5 / dx * jac(i + 1, j, k + 1) &
+                    &/ (jac(i + 1, j, k) + jac(i + 1, j, k + 1)) - pEdgeDDiv &
+                    &/ rhoEdgeD * pEdgeDGra * met13EdgeD * 0.5 / dx * jac(i &
+                    &+ 1, j, k - 1) / (jac(i + 1, j, k) + jac(i + 1, j, k &
+                    &- 1)))
               end if
 
               ! -------------------- A(i-1,j,k) --------------------
 
               if(k == 1 .and. zBoundary == "solid_wall") then
                 AL = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * (1.0 &
-                    &/ dx + 0.75 * met(i - 1, j, k, 1, 3) / dz) - jacInv / dz &
-                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i - 1, j, &
-                    &k, 1, 3) / dx
+                    &/ dx + 0.75 * met13EdgeL / dz) - jacInv / dz &
+                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.5 * met13EdgeU &
+                    &/ dx * jac(i - 1, j, k + 1) / (jac(i - 1, j, k) + jac(i &
+                    &- 1, j, k + 1))
               else if(k == nz .and. zBoundary == "solid_wall") then
                 AL = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * (1.0 &
-                    &/ dx - 0.75 * met(i - 1, j, k, 1, 3) / dz) + jacInv / dz &
-                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i - 1, j, &
-                    &k, 1, 3) / dx
+                    &/ dx - 0.75 * met13EdgeL / dz) + jacInv / dz &
+                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.5 * met13EdgeD &
+                    &/ dx * jac(i - 1, j, k - 1) / (jac(i - 1, j, k) + jac(i &
+                    &- 1, j, k - 1))
               else
                 AL = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra / dx &
-                    &- jacInv / dz * (pEdgeUDiv / rhoEdgeU * pEdgeUGra * met(i &
-                    &- 1, j, k, 1, 3) * 0.25 / dx - pEdgeDDiv / rhoEdgeD &
-                    &* pEdgeDGra * met(i - 1, j, k, 1, 3) * 0.25 / dx)
+                    &- jacInv / dz * (pEdgeUDiv / rhoEdgeU * pEdgeUGra &
+                    &* met13EdgeU * 0.5 / dx * jac(i - 1, j, k + 1) / (jac(i &
+                    &- 1, j, k) + jac(i - 1, j, k + 1)) - pEdgeDDiv &
+                    &/ rhoEdgeD * pEdgeDGra * met13EdgeD * 0.5 / dx * jac(i &
+                    &- 1, j, k - 1) / (jac(i - 1, j, k) + jac(i - 1, j, k &
+                    &- 1)))
               end if
 
               ! -------------------- A(i,j+1,k) --------------------
 
               if(k == 1 .and. zBoundary == "solid_wall") then
                 AF = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * (1.0 &
-                    &/ dy - 0.75 * met(i, j + 1, k, 2, 3) / dz) + jacInv / dz &
-                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i, j + 1, &
-                    &k, 2, 3) / dy
+                    &/ dy - 0.75 * met23EdgeF / dz) + jacInv / dz &
+                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.5 * met23EdgeU &
+                    &/ dy * jac(i, j + 1, k + 1) / (jac(i, j + 1, k) + jac(i, &
+                    &j + 1, k + 1))
               else if(k == nz .and. zBoundary == "solid_wall") then
                 AF = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * (1.0 &
-                    &/ dy + 0.75 * met(i, j + 1, k, 2, 3) / dz) - jacInv / dz &
-                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i, j + 1, &
-                    &k, 2, 3) / dy
+                    &/ dy + 0.75 * met23EdgeF / dz) - jacInv / dz &
+                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.5 * met23EdgeD &
+                    &/ dy * jac(i, j + 1, k - 1) / (jac(i, j + 1, k) + jac(i, &
+                    &j + 1, k - 1))
               else
                 AF = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra / dy &
                     &+ jacInv / dz * (pEdgeUDiv / rhoEdgeU * pEdgeUGra &
-                    &* met(i, j + 1, k, 2, 3) * 0.25 / dy - pEdgeDDiv &
-                    &/ rhoEdgeD * pEdgeDGra * met(i, j + 1, k, 2, 3) * 0.25 &
-                    &/ dy)
+                    &* met23EdgeU * 0.5 / dy * jac(i, j + 1, k + 1) / (jac(i, &
+                    &j + 1, k) + jac(i, j + 1, k + 1)) - pEdgeDDiv / rhoEdgeD &
+                    &* pEdgeDGra * met23EdgeD * 0.5 / dy * jac(i, j + 1, k &
+                    &- 1) / (jac(i, j + 1, k) + jac(i, j + 1, k - 1)))
               end if
 
               ! -------------------- A(i,j-1,k) --------------------
 
               if(k == 1 .and. zBoundary == "solid_wall") then
                 AB = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * (1.0 &
-                    &/ dy + 0.75 * met(i, j - 1, k, 2, 3) / dz) - jacInv / dz &
-                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.25 * met(i, j - 1, &
-                    &k, 2, 3) / dy
+                    &/ dy + 0.75 * met23EdgeB / dz) - jacInv / dz &
+                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * 0.5 * met23EdgeU &
+                    &/ dy * jac(i, j - 1, k + 1) / (jac(i, j - 1, k) + jac(i, &
+                    &j - 1, k + 1))
               else if(k == nz .and. zBoundary == "solid_wall") then
                 AB = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * (1.0 &
-                    &/ dy - 0.75 * met(i, j - 1, k, 2, 3) / dz) + jacInv / dz &
-                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.25 * met(i, j - 1, &
-                    &k, 2, 3) / dy
+                    &/ dy - 0.75 * met23EdgeB / dz) + jacInv / dz &
+                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * 0.5 * met23EdgeD &
+                    &/ dy * jac(i, j - 1, k - 1) / (jac(i, j - 1, k) + jac(i, &
+                    &j - 1, k - 1))
               else
                 AB = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra / dy &
                     &- jacInv / dz * (pEdgeUDiv / rhoEdgeU * pEdgeUGra &
-                    &* met(i, j - 1, k, 2, 3) * 0.25 / dy - pEdgeDDiv &
-                    &/ rhoEdgeD * pEdgeDGra * met(i, j - 1, k, 2, 3) * 0.25 &
-                    &/ dy)
+                    &* met23EdgeU * 0.5 / dy * jac(i, j - 1, k + 1) / (jac(i, &
+                    &j - 1, k) + jac(i, j - 1, k + 1)) - pEdgeDDiv / rhoEdgeD &
+                    &* pEdgeDGra * met23EdgeD * 0.5 / dy * jac(i, j - 1, k &
+                    &- 1) / (jac(i, j - 1, k) + jac(i, j - 1, k - 1)))
               end if
 
               ! -------------------- A(i,j,k+1) --------------------
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                AU = jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i, &
-                    &j, k + 1, 1, 3) / dz - pEdgeLDiv / rhoEdgeL * pEdgeLGra &
-                    &* met(i, j, k + 1, 1, 3) / dz) + jacInv / dy * (pEdgeFDiv &
-                    &/ rhoEdgeF * pEdgeFGra * met(i, j, k + 1, 2, 3) / dz &
-                    &- pEdgeBDiv / rhoEdgeB * pEdgeBGra * met(i, j, k + 1, 2, &
-                    &3) / dz) + jacInv / dz * pEdgeUDiv / rhoEdgeU * pEdgeUGra &
-                    &* met(i, j, k + 1, 3, 3) / dz + jacInv / dz * pEdgeUDiv &
-                    &/ rhoEdgeU * 0.5 * pStratTFC(i, j, k + 1) / jac(i, j, k &
-                    &+ 1) * (chris(i, j, k + 1, 1, 1) + chris(i, j, k + 1, 2, &
-                    &2) + 2.0 * chris(i, j, k + 1, 1, 3) * met(i, j, k + 1, 1, &
-                    &3) + 2.0 * chris(i, j, k + 1, 2, 3) * met(i, j, k + 1, 2, &
-                    &3))
+                AU = jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra &
+                    &* met13EdgeR / dz - pEdgeLDiv / rhoEdgeL * pEdgeLGra &
+                    &* met13EdgeL / dz) + jacInv / dy * (pEdgeFDiv &
+                    &/ rhoEdgeF * pEdgeFGra * met23EdgeF / dz &
+                    &- pEdgeBDiv / rhoEdgeB * pEdgeBGra * met23EdgeB / dz) &
+                    &+ jacInv / dz * pEdgeUDiv / rhoEdgeU * pEdgeUGra &
+                    &* met33EdgeU / dz
               else if(k == nz .and. zBoundary == "solid_wall") then
                 AU = 0.0
               else
-                AU = jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i, &
-                    &j, k + 1, 1, 3) * 0.25 / dz - pEdgeLDiv / rhoEdgeL &
-                    &* pEdgeLGra * met(i, j, k + 1, 1, 3) * 0.25 / dz) &
+                AU = jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra &
+                    &* met13EdgeR * 0.25 / dz - pEdgeLDiv / rhoEdgeL &
+                    &* pEdgeLGra * met13EdgeL * 0.25 / dz) &
                     &+ jacInv / dy * (pEdgeFDiv / rhoEdgeF * pEdgeFGra &
-                    &* met(i, j, k + 1, 2, 3) * 0.25 / dz - pEdgeBDiv &
-                    &/ rhoEdgeB * pEdgeBGra * met(i, j, k + 1, 2, 3) * 0.25 &
+                    &* met23EdgeF * 0.25 / dz - pEdgeBDiv &
+                    &/ rhoEdgeB * pEdgeBGra * met23EdgeB * 0.25 &
                     &/ dz) + jacInv / dz * pEdgeUDiv / rhoEdgeU * pEdgeUGra &
-                    &* met(i, j, k + 1, 3, 3) / dz + jacInv / dz * pEdgeUDiv &
-                    &/ rhoEdgeU * 0.5 * pStratTFC(i, j, k + 1) / jac(i, j, k &
-                    &+ 1) * (chris(i, j, k + 1, 1, 1) + chris(i, j, k + 1, 2, &
-                    &2) + 2.0 * chris(i, j, k + 1, 1, 3) * met(i, j, k + 1, 1, &
-                    &3) + 2.0 * chris(i, j, k + 1, 2, 3) * met(i, j, k + 1, 2, &
-                    &3))
+                    &* met33EdgeU / dz
               end if
 
               ! -------------------- A(i,j,k-1) --------------------
@@ -5051,47 +3807,38 @@ module poisson_module
                 AD = 0.0
               else if(k == nz .and. zBoundary == "solid_wall") then
                 AD = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra &
-                    &* met(i, j, k - 1, 1, 3) / dz - pEdgeLDiv / rhoEdgeL &
-                    &* pEdgeLGra * met(i, j, k - 1, 1, 3) / dz) - jacInv / dy &
-                    &* (pEdgeFDiv / rhoEdgeF * pEdgeFGra * met(i, j, k - 1, 2, &
-                    &3) / dz - pEdgeBDiv / rhoEdgeB * pEdgeBGra * met(i, j, k &
-                    &- 1, 2, 3) / dz) + jacInv / dz * pEdgeDDiv / rhoEdgeD &
-                    &* pEdgeDGra * met(i, j, k - 1, 3, 3) / dz - jacInv / dz &
-                    &* pEdgeDDiv / rhoEdgeD * 0.5 * pStratTFC(i, j, k - 1) &
-                    &/ jac(i, j, k - 1) * (chris(i, j, k - 1, 1, 1) + chris(i, &
-                    &j, k - 1, 2, 2) + 2.0 * chris(i, j, k - 1, 1, 3) * met(i, &
-                    &j, k - 1, 1, 3) + 2.0 * chris(i, j, k - 1, 2, 3) * met(i, &
-                    &j, k - 1, 2, 3))
+                    &* met13EdgeR / dz - pEdgeLDiv / rhoEdgeL &
+                    &* pEdgeLGra * met13EdgeL / dz) - jacInv / dy &
+                    &* (pEdgeFDiv / rhoEdgeF * pEdgeFGra * met23EdgeF / dz &
+                    &- pEdgeBDiv / rhoEdgeB * pEdgeBGra * met23EdgeB / dz) &
+                    &+ jacInv / dz * pEdgeDDiv / rhoEdgeD &
+                    &* pEdgeDGra * met33EdgeD / dz
               else
                 AD = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra &
-                    &* met(i, j, k - 1, 1, 3) * 0.25 / dz - pEdgeLDiv &
-                    &/ rhoEdgeL * pEdgeLGra * met(i, j, k - 1, 1, 3) * 0.25 &
+                    &* met13EdgeR * 0.25 / dz - pEdgeLDiv &
+                    &/ rhoEdgeL * pEdgeLGra * met13EdgeL * 0.25 &
                     &/ dz) - jacInv / dy * (pEdgeFDiv / rhoEdgeF * pEdgeFGra &
-                    &* met(i, j, k - 1, 2, 3) * 0.25 / dz - pEdgeBDiv &
-                    &/ rhoEdgeB * pEdgeBGra * met(i, j, k - 1, 2, 3) * 0.25 &
+                    &* met23EdgeF * 0.25 / dz - pEdgeBDiv &
+                    &/ rhoEdgeB * pEdgeBGra * met23EdgeB * 0.25 &
                     &/ dz) + jacInv / dz * pEdgeDDiv / rhoEdgeD * pEdgeDGra &
-                    &* met(i, j, k - 1, 3, 3) / dz - jacInv / dz * pEdgeDDiv &
-                    &/ rhoEdgeD * 0.5 * pStratTFC(i, j, k - 1) / jac(i, j, k &
-                    &- 1) * (chris(i, j, k - 1, 1, 1) + chris(i, j, k - 1, 2, &
-                    &2) + 2.0 * chris(i, j, k - 1, 1, 3) * met(i, j, k - 1, 1, &
-                    &3) + 2.0 * chris(i, j, k - 1, 2, 3) * met(i, j, k - 1, 2, &
-                    &3))
+                    &* met33EdgeD / dz
               end if
 
               ! ------------------- A(i+1,j,k+1) -------------------
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                ARU = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i &
-                    &+ 1, j, k + 1, 1, 3) / dz + jacInv / dz * pEdgeUDiv &
-                    &/ rhoEdgeU * pEdgeUGra * met(i + 1, j, k + 1, 1, 3) &
-                    &* 0.25 / dx
+                ARU = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra &
+                    &* met13EdgeR / dz + jacInv / dz * pEdgeUDiv &
+                    &/ rhoEdgeU * pEdgeUGra * met13EdgeU * 0.5 / dx * jac(i &
+                    &+ 1, j, k) / (jac(i + 1, j, k) + jac(i + 1, j, k + 1))
               else if(k == nz .and. zBoundary == "solid_wall") then
                 ARU = 0.0
               else
-                ARU = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i &
-                    &+ 1, j, k + 1, 1, 3) * 0.25 / dz + jacInv / dz &
-                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * met(i + 1, j, k + 1, &
-                    &1, 3) * 0.25 / dx
+                ARU = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra &
+                    &* met13EdgeR * 0.25 / dz + jacInv / dz &
+                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * met13EdgeU * 0.5 &
+                    &/ dx * jac(i + 1, j, k) / (jac(i + 1, j, k) + jac(i + 1, &
+                    &j, k + 1))
               end if
 
               ! ------------------- A(i+1,j,k-1) -------------------
@@ -5099,31 +3846,33 @@ module poisson_module
               if(k == 1 .and. zBoundary == "solid_wall") then
                 ARD = 0.0
               else if(k == nz .and. zBoundary == "solid_wall") then
-                ARD = - jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i &
-                    &+ 1, j, k - 1, 1, 3) / dz - jacInv / dz * pEdgeDDiv &
-                    &/ rhoEdgeD * pEdgeDGra * met(i + 1, j, k - 1, 1, 3) &
-                    &* 0.25 / dx
+                ARD = - jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra &
+                    &* met13EdgeR / dz - jacInv / dz * pEdgeDDiv &
+                    &/ rhoEdgeD * pEdgeDGra * met13EdgeD * 0.5 / dx * jac(i &
+                    &+ 1, j, k) / (jac(i + 1, j, k) + jac(i + 1, j, k - 1))
               else
-                ARD = - jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met(i &
-                    &+ 1, j, k - 1, 1, 3) * 0.25 / dz - jacInv / dz &
-                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * met(i + 1, j, k - 1, &
-                    &1, 3) * 0.25 / dx
+                ARD = - jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra &
+                    &* met13EdgeR * 0.25 / dz - jacInv / dz &
+                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * met13EdgeD * 0.5 &
+                    &/ dx * jac(i + 1, j, k) / (jac(i + 1, j, k) + jac(i + 1, &
+                    &j, k - 1))
               end if
 
               ! ------------------- A(i-1,j,k+1) -------------------
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                ALU = - jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met(i &
-                    &- 1, j, k + 1, 1, 3) / dz - jacInv / dz * pEdgeUDiv &
-                    &/ rhoEdgeU * pEdgeUGra * met(i - 1, j, k + 1, 1, 3) &
-                    &* 0.25 / dx
+                ALU = - jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra &
+                    &* met13EdgeL / dz - jacInv / dz * pEdgeUDiv &
+                    &/ rhoEdgeU * pEdgeUGra * met13EdgeU * 0.5 / dx * jac(i &
+                    &- 1, j, k) / (jac(i - 1, j, k) + jac(i - 1, j, k + 1))
               else if(k == nz .and. zBoundary == "solid_wall") then
                 ALU = 0.0
               else
-                ALU = - jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met(i &
-                    &- 1, j, k + 1, 1, 3) * 0.25 / dz - jacInv / dz &
-                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * met(i - 1, j, k + 1, &
-                    &1, 3) * 0.25 / dx
+                ALU = - jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra &
+                    &* met13EdgeL * 0.25 / dz - jacInv / dz &
+                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * met13EdgeU * 0.5 &
+                    &/ dx * jac(i - 1, j, k) / (jac(i - 1, j, k) + jac(i - 1, &
+                    &j, k + 1))
               end if
 
               ! ------------------- A(i-1,j,k-1) -------------------
@@ -5131,31 +3880,32 @@ module poisson_module
               if(k == 1 .and. zBoundary == "solid_wall") then
                 ALD = 0.0
               else if(k == nz .and. zBoundary == "solid_wall") then
-                ALD = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met(i &
-                    &- 1, j, k - 1, 1, 3) / dz + jacInv / dz * pEdgeDDiv &
-                    &/ rhoEdgeD * pEdgeDGra * met(i - 1, j, k - 1, 1, 3) &
-                    &* 0.25 / dx
+                ALD = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra &
+                    &* met13EdgeL / dz + jacInv / dz * pEdgeDDiv &
+                    &/ rhoEdgeD * pEdgeDGra * met13EdgeD * 0.5 / dx * jac(i &
+                    &- 1, j, k) / (jac(i - 1, j, k) + jac(i - 1, j, k - 1))
               else
-                ALD = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met(i &
-                    &- 1, j, k - 1, 1, 3) * 0.25 / dz + jacInv / dz &
-                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * met(i - 1, j, k - 1, &
-                    &1, 3) * 0.25 / dx
+                ALD = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra &
+                    &* met13EdgeL * 0.25 / dz + jacInv / dz &
+                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * met13EdgeD * 0.5 &
+                    &/ dx * jac(i - 1, j, k) / (jac(i - 1, j, k) + jac(i - 1, &
+                    &j, k - 1))
               end if
 
               ! ------------------- A(i,j+1,k+1) -------------------
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                AFU = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * met(i, &
-                    &j + 1, k + 1, 2, 3) / dz + jacInv / dz * pEdgeUDiv &
-                    &/ rhoEdgeU * pEdgeUGra * met(i, j + 1, k + 1, 2, 3) &
-                    &* 0.25 / dy
+                AFU = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra &
+                    &* met23EdgeF / dz + jacInv / dz * pEdgeUDiv &
+                    &/ rhoEdgeU * pEdgeUGra * met23EdgeU * 0.5 / dy * jac(i, j &
+                    &+ 1, k) / (jac(i, j + 1, k) + jac(i, j + 1, k + 1))
               else if(k == nz .and. zBoundary == "solid_wall") then
                 AFU = 0.0
               else
-                AFU = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * met(i, &
-                    &j + 1, k + 1, 2, 3) * 0.25 / dz + jacInv / dz * pEdgeUDiv &
-                    &/ rhoEdgeU * pEdgeUGra * met(i, j + 1, k + 1, 2, 3) &
-                    &* 0.25 / dy
+                AFU = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra &
+                    &* met23EdgeF * 0.25 / dz + jacInv / dz * pEdgeUDiv &
+                    &/ rhoEdgeU * pEdgeUGra * met23EdgeU * 0.5 / dy * jac(i, j &
+                    &+ 1, k) / (jac(i, j + 1, k) + jac(i, j + 1, k + 1))
               end if
 
               ! ------------------- A(i,j+1,k-1) -------------------
@@ -5164,30 +3914,34 @@ module poisson_module
                 AFD = 0.0
               else if(k == nz .and. zBoundary == "solid_wall") then
                 AFD = - jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra &
-                    &* met(i, j + 1, k - 1, 2, 3) / dz - jacInv / dz &
-                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * met(i, j + 1, k - 1, &
-                    &2, 3) * 0.25 / dy
+                    &* met23EdgeF / dz - jacInv / dz &
+                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * met23EdgeD * 0.5 &
+                    &/ dy * jac(i, j + 1, k) / (jac(i, j + 1, k) + jac(i, j &
+                    &+ 1, k - 1))
               else
                 AFD = - jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra &
-                    &* met(i, j + 1, k - 1, 2, 3) * 0.25 / dz - jacInv / dz &
-                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * met(i, j + 1, k - 1, &
-                    &2, 3) * 0.25 / dy
+                    &* met23EdgeF * 0.25 / dz - jacInv / dz &
+                    &* pEdgeDDiv / rhoEdgeD * pEdgeDGra * met23EdgeD * 0.5 &
+                    &/ dy * jac(i, j + 1, k) / (jac(i, j + 1, k) + jac(i, j &
+                    &+ 1, k - 1))
               end if
 
               ! ------------------- A(i,j-1,k+1) -------------------
 
               if(k == 1 .and. zBoundary == "solid_wall") then
                 ABU = - jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra &
-                    &* met(i, j - 1, k + 1, 2, 3) / dz - jacInv / dz &
-                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * met(i, j - 1, k + 1, &
-                    &2, 3) * 0.25 / dy
+                    &* met23EdgeB / dz - jacInv / dz &
+                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * met23EdgeU * 0.5 &
+                    &/ dy * jac(i, j - 1, k) / (jac(i, j - 1, k) + jac(i, j &
+                    &- 1, k + 1))
               else if(k == nz .and. zBoundary == "solid_wall") then
                 ABU = 0.0
               else
                 ABU = - jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra &
-                    &* met(i, j - 1, k + 1, 2, 3) * 0.25 / dz - jacInv / dz &
-                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * met(i, j - 1, k + 1, &
-                    &2, 3) * 0.25 / dy
+                    &* met23EdgeB * 0.25 / dz - jacInv / dz &
+                    &* pEdgeUDiv / rhoEdgeU * pEdgeUGra * met23EdgeU * 0.5 &
+                    &/ dy * jac(i, j - 1, k) / (jac(i, j - 1, k) + jac(i, j &
+                    &- 1, k + 1))
               end if
 
               ! ------------------- A(i,j-1,k-1) -------------------
@@ -5195,26 +3949,26 @@ module poisson_module
               if(k == 1 .and. zBoundary == "solid_wall") then
                 ABD = 0.0
               else if(k == nz .and. zBoundary == "solid_wall") then
-                ABD = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * met(i, &
-                    &j - 1, k - 1, 2, 3) / dz + jacInv / dz * pEdgeDDiv &
-                    &/ rhoEdgeD * pEdgeDGra * met(i, j - 1, k - 1, 2, 3) &
-                    &* 0.25 / dy
+                ABD = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra &
+                    &* met23EdgeB / dz + jacInv / dz * pEdgeDDiv &
+                    &/ rhoEdgeD * pEdgeDGra * met23EdgeD * 0.5 / dy * jac(i, j &
+                    &- 1, k) / (jac(i, j - 1, k) + jac(i, j - 1, k - 1))
               else
-                ABD = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * met(i, &
-                    &j - 1, k - 1, 2, 3) * 0.25 / dz + jacInv / dz * pEdgeDDiv &
-                    &/ rhoEdgeD * pEdgeDGra * met(i, j - 1, k - 1, 2, 3) &
-                    &* 0.25 / dy
+                ABD = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra &
+                    &* met23EdgeB * 0.25 / dz + jacInv / dz * pEdgeDDiv &
+                    &/ rhoEdgeD * pEdgeDGra * met23EdgeD * 0.5 / dy * jac(i, j &
+                    &- 1, k) / (jac(i, j - 1, k) + jac(i, j - 1, k - 1))
               end if
 
               ! ------------------- A(i,j,k+2) ---------------------
 
               if(k == 1 .and. zBoundary == "solid_wall") then
                 AUU = - jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
-                    &* met(i, j, k + 2, 1, 3) / dz - pEdgeLDiv / rhoEdgeL &
-                    &* pEdgeLGra * 0.25 * met(i, j, k + 2, 1, 3) / dz) &
+                    &* met13EdgeR / dz - pEdgeLDiv / rhoEdgeL &
+                    &* pEdgeLGra * 0.25 * met13EdgeL / dz) &
                     &- jacInv / dy * (pEdgeFDiv / rhoEdgeF * pEdgeFGra * 0.25 &
-                    &* met(i, j, k + 2, 2, 3) / dz - pEdgeBDiv / rhoEdgeB &
-                    &* pEdgeBGra * 0.25 * met(i, j, k + 2, 2, 3) / dz)
+                    &* met23EdgeF / dz - pEdgeBDiv / rhoEdgeB &
+                    &* pEdgeBGra * 0.25 * met23EdgeB / dz)
               else
                 AUU = 0.0
               end if
@@ -5223,11 +3977,11 @@ module poisson_module
 
               if(k == nz .and. zBoundary == "solid_wall") then
                 ADD = jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
-                    &* met(i, j, k - 2, 1, 3) / dz - pEdgeLDiv / rhoEdgeL &
-                    &* pEdgeLGra * 0.25 * met(i, j, k - 2, 1, 3) / dz) &
+                    &* met13EdgeR / dz - pEdgeLDiv / rhoEdgeL &
+                    &* pEdgeLGra * 0.25 * met13EdgeL / dz) &
                     &+ jacInv / dy * (pEdgeFDiv / rhoEdgeF * pEdgeFGra * 0.25 &
-                    &* met(i, j, k - 2, 2, 3) / dz - pEdgeBDiv / rhoEdgeB &
-                    &* pEdgeBGra * 0.25 * met(i, j, k - 2, 2, 3) / dz)
+                    &* met23EdgeF / dz - pEdgeBDiv / rhoEdgeB &
+                    &* pEdgeBGra * 0.25 * met23EdgeB / dz)
               else
                 ADD = 0.0
               end if
@@ -5236,7 +3990,7 @@ module poisson_module
 
               if(k == 1 .and. zBoundary == "solid_wall") then
                 ARUU = - jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
-                    &* met(i + 1, j, k + 2, 1, 3) / dz
+                    &* met13EdgeR / dz
               else
                 ARUU = 0.0
               end if
@@ -5245,7 +3999,7 @@ module poisson_module
 
               if(k == nz .and. zBoundary == "solid_wall") then
                 ARDD = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 &
-                    &* met(i + 1, j, k - 2, 1, 3) / dz
+                    &* met13EdgeR / dz
               else
                 ARDD = 0.0
               end if
@@ -5254,7 +4008,7 @@ module poisson_module
 
               if(k == 1 .and. zBoundary == "solid_wall") then
                 ALUU = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * 0.25 &
-                    &* met(i - 1, j, k + 2, 1, 3) / dz
+                    &* met13EdgeL / dz
               else
                 ALUU = 0.0
               end if
@@ -5263,7 +4017,7 @@ module poisson_module
 
               if(k == nz .and. zBoundary == "solid_wall") then
                 ALDD = - jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * 0.25 &
-                    &* met(i - 1, j, k - 2, 1, 3) / dz
+                    &* met13EdgeL / dz
               else
                 ALDD = 0.0
               end if
@@ -5272,7 +4026,7 @@ module poisson_module
 
               if(k == 1 .and. zBoundary == "solid_wall") then
                 AFUU = - jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * 0.25 &
-                    &* met(i, j + 1, k + 2, 2, 3) / dz
+                    &* met23EdgeF / dz
               else
                 AFUU = 0.0
               end if
@@ -5281,7 +4035,7 @@ module poisson_module
 
               if(k == nz .and. zBoundary == "solid_wall") then
                 AFDD = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * 0.25 &
-                    &* met(i, j + 1, k - 2, 2, 3) / dz
+                    &* met23EdgeF / dz
               else
                 AFDD = 0.0
               end if
@@ -5290,7 +4044,7 @@ module poisson_module
 
               if(k == 1 .and. zBoundary == "solid_wall") then
                 ABUU = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * 0.25 &
-                    &* met(i, j - 1, k + 2, 2, 3) / dz
+                    &* met23EdgeB / dz
               else
                 ABUU = 0.0
               end if
@@ -5299,37 +4053,37 @@ module poisson_module
 
               if(k == nz .and. zBoundary == "solid_wall") then
                 ABDD = - jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * 0.25 &
-                    &* met(i, j - 1, k - 2, 2, 3) / dz
+                    &* met23EdgeB / dz
               else
                 ABDD = 0.0
               end if
 
               ! Scale the tensor elements.
               AC = AC / (fcscal ** 2.0)
-              AR = AR / (fcscal ** 2.0)
-              AL = AL / (fcscal ** 2.0)
-              AF = AF / (fcscal ** 2.0)
-              AB = AB / (fcscal ** 2.0)
+              AR = AR / fcscal / fcscal_r
+              AL = AL / fcscal / fcscal_l
+              AF = AF / fcscal / fcscal_f
+              AB = AB / fcscal / fcscal_b
               AU = AU / fcscal / fcscal_u
               AD = AD / fcscal / fcscal_d
-              ARU = ARU / fcscal / fcscal_u
-              ARD = ARD / fcscal / fcscal_d
-              ALU = ALU / fcscal / fcscal_u
-              ALD = ALD / fcscal / fcscal_d
-              AFU = AFU / fcscal / fcscal_u
-              AFD = AFD / fcscal / fcscal_d
-              ABU = ABU / fcscal / fcscal_u
-              ABD = ABD / fcscal / fcscal_d
+              ARU = ARU / fcscal / fcscal_ru
+              ARD = ARD / fcscal / fcscal_rd
+              ALU = ALU / fcscal / fcscal_lu
+              ALD = ALD / fcscal / fcscal_ld
+              AFU = AFU / fcscal / fcscal_fu
+              AFD = AFD / fcscal / fcscal_fd
+              ABU = ABU / fcscal / fcscal_bu
+              ABD = ABD / fcscal / fcscal_bd
               AUU = AUU / fcscal / fcscal_uu
               ADD = ADD / fcscal / fcscal_dd
-              ARUU = ARUU / fcscal / fcscal_uu
-              ARDD = ARDD / fcscal / fcscal_dd
-              ALUU = ALUU / fcscal / fcscal_uu
-              ALDD = ALDD / fcscal / fcscal_dd
-              AFUU = AFUU / fcscal / fcscal_uu
-              AFDD = AFDD / fcscal / fcscal_dd
-              ABUU = ABUU / fcscal / fcscal_uu
-              ABDD = ABDD / fcscal / fcscal_dd
+              ARUU = ARUU / fcscal / fcscal_ruu
+              ARDD = ARDD / fcscal / fcscal_rdd
+              ALUU = ALUU / fcscal / fcscal_luu
+              ALDD = ALDD / fcscal / fcscal_ldd
+              AFUU = AFUU / fcscal / fcscal_fuu
+              AFDD = AFDD / fcscal / fcscal_fdd
+              ABUU = ABUU / fcscal / fcscal_buu
+              ABDD = ABDD / fcscal / fcscal_bdd
 
               ! Set tensor elements for bicgstab.
               ac_b(i, j, k) = AC
@@ -5381,9 +4135,6 @@ module poisson_module
                   &+ rhoStrat(k)
 
               AR = dx2 * pStrat(k) ** 2 / rhoEdge
-              if(pressureScaling) then
-                AR = AR / Pstrat(k)
-              end if
 
               ! ------------------- A(i-1,j,k) --------------------
 
@@ -5391,9 +4142,6 @@ module poisson_module
                   &+ rhoStrat(k)
 
               AL = dx2 * pStrat(k) ** 2 / rhoEdge
-              if(pressureScaling) then
-                AL = AL / Pstrat(k)
-              end if
 
               ! -------------------- A(i,j+1,k) ----------------------
 
@@ -5401,9 +4149,6 @@ module poisson_module
                   &+ rhoStrat(k)
 
               AF = dy2 * pStrat(k) ** 2 / rhoEdge
-              if(pressureScaling) then
-                AF = AF / Pstrat(k)
-              end if
 
               ! --------------------- A(i,j-1,k) -------------------
 
@@ -5411,9 +4156,6 @@ module poisson_module
                   &+ rhoStrat(k)
 
               AB = dy2 * pStrat(k) ** 2 / rhoEdge
-              if(pressureScaling) then
-                AB = AB / Pstrat(k)
-              end if
 
               ! ---------------------- A(i,j,k+1) ------------------
 
@@ -5427,9 +4169,6 @@ module poisson_module
                 pStratU = 0.5 * (pStrat(k + 1) + pStrat(k))
                 AU = dz2 * pStratU ** 2 / rhoEdge
               end if
-              if(pressureScaling) then
-                AU = AU / PstratTilde(k)
-              end if
 
               ! ----------------------- A(i,j,k-1) -----------------
 
@@ -5442,13 +4181,6 @@ module poisson_module
 
                 pStratD = 0.5 * (pStrat(k) + pStrat(k - 1))
                 AD = dz2 * pStratD ** 2 / rhoEdge
-              end if
-              if(pressureScaling) then
-                AD = AD / PstratTilde(k - 1)
-              end if
-
-              if(pressureScaling) then
-                ! stop'ERROR: no pressure scaling allowed'
               end if
 
               ! ----------------------- A(i,j,k) -------------------
@@ -5472,24 +4204,19 @@ module poisson_module
               AD = AD / (fcscal * fcscal_d)
               AU = AU / (fcscal * fcscal_u)
 
-              if(poissonSolverType == 'bicgstab') then
-                ac_b(i, j, k) = AC
+              ac_b(i, j, k) = AC
 
-                ach_b(i, j, k) = ACH
-                acv_b(i, j, k) = ACV
+              ach_b(i, j, k) = ACH
+              acv_b(i, j, k) = ACV
 
-                al_b(i, j, k) = AL
-                ar_b(i, j, k) = AR
+              al_b(i, j, k) = AL
+              ar_b(i, j, k) = AR
 
-                ab_b(i, j, k) = AB
-                af_b(i, j, k) = AF
+              ab_b(i, j, k) = AB
+              af_b(i, j, k) = AF
 
-                ad_b(i, j, k) = AD
-                au_b(i, j, k) = AU
-              else
-                stop 'ERROR: val_PsIn expects bicgstab'
-              end if
-
+              ad_b(i, j, k) = AD
+              au_b(i, j, k) = AU
             end do ! i_loop
           end do ! j_loop
         end do ! k_loop
@@ -5503,18 +4230,62 @@ module poisson_module
       alprlx = alprlx * facray
 
       if(topography) then
+        ! Compute tensor elements for TFC.
         kr_sp_tfc = kr_sp_tfc * facray
         kr_sp_w_tfc = kr_sp_w_tfc * facray
         do k = 1, nz
-          ! Compute scaling factors
-          fcscal = sqrt(pStrat(k) ** 2.0 / rhoStrat(k))
-          fcscal_u = sqrt(pStrat(k + 1) ** 2.0 / rhoStrat(k + 1))
-          fcscal_d = sqrt(pStrat(k - 1) ** 2.0 / rhoStrat(k - 1))
-          fcscal_uu = sqrt(pStrat(k + 2) ** 2.0 / rhoStrat(k + 2))
-          fcscal_dd = sqrt(pStrat(k - 2) ** 2.0 / rhoStrat(k - 2))
           do j = 1, ny
             do i = 1, nx
-              ! Compute tensor elements for TFC.
+            ! Compute scaling factors.
+              fcscal = sqrt(pStratTFC(i, j, k) ** 2.0 / rhoStratTFC(i, j, k))
+              fcscal_r = sqrt(pStratTFC(i + 1, j, k) ** 2.0 / rhoStratTFC(i &
+                  &+ 1, j, k))
+              fcscal_l = sqrt(pStratTFC(i - 1, j, k) ** 2.0 / rhoStratTFC(i &
+                  &- 1, j, k))
+              fcscal_f = sqrt(pStratTFC(i, j + 1, k) ** 2.0 / rhoStratTFC(i, &
+                  &j + 1, k))
+              fcscal_b = sqrt(pStratTFC(i, j - 1, k) ** 2.0 / rhoStratTFC(i, &
+                  &j - 1, k))
+              fcscal_u = sqrt(pStratTFC(i, j, k + 1) ** 2.0 / rhoStratTFC(i, &
+                  &j, k + 1))
+              fcscal_d = sqrt(pStratTFC(i, j, k - 1) ** 2.0 / rhoStratTFC(i, &
+                  &j, k - 1))
+              fcscal_ru = sqrt(pStratTFC(i + 1, j, k + 1) ** 2.0 &
+                  &/ rhoStratTFC(i + 1, j, k + 1))
+              fcscal_rd = sqrt(pStratTFC(i + 1, j, k - 1) ** 2.0 &
+                  &/ rhoStratTFC(i + 1, j, k - 1))
+              fcscal_lu = sqrt(pStratTFC(i - 1, j, k + 1) ** 2.0 &
+                  &/ rhoStratTFC(i - 1, j, k + 1))
+              fcscal_ld = sqrt(pStratTFC(i - 1, j, k - 1) ** 2.0 &
+                  &/ rhoStratTFC(i - 1, j, k - 1))
+              fcscal_fu = sqrt(pStratTFC(i, j + 1, k + 1) ** 2.0 &
+                  &/ rhoStratTFC(i, j + 1, k + 1))
+              fcscal_fd = sqrt(pStratTFC(i, j + 1, k - 1) ** 2.0 &
+                  &/ rhoStratTFC(i, j + 1, k - 1))
+              fcscal_bu = sqrt(pStratTFC(i, j - 1, k + 1) ** 2.0 &
+                  &/ rhoStratTFC(i, j - 1, k + 1))
+              fcscal_bd = sqrt(pStratTFC(i, j - 1, k - 1) ** 2.0 &
+                  &/ rhoStratTFC(i, j - 1, k - 1))
+              fcscal_uu = sqrt(pStratTFC(i, j, k + 2) ** 2.0 / rhoStratTFC(i, &
+                  &j, k + 2))
+              fcscal_dd = sqrt(pStratTFC(i, j, k - 2) ** 2.0 / rhoStratTFC(i, &
+                  &j, k - 2))
+              fcscal_ruu = sqrt(pStratTFC(i + 1, j, k + 2) ** 2.0 &
+                  &/ rhoStratTFC(i + 1, j, k + 2))
+              fcscal_rdd = sqrt(pStratTFC(i + 1, j, k - 2) ** 2.0 &
+                  &/ rhoStratTFC(i + 1, j, k - 2))
+              fcscal_luu = sqrt(pStratTFC(i - 1, j, k + 2) ** 2.0 &
+                  &/ rhoStratTFC(i - 1, j, k + 2))
+              fcscal_ldd = sqrt(pStratTFC(i - 1, j, k - 2) ** 2.0 &
+                  &/ rhoStratTFC(i - 1, j, k - 2))
+              fcscal_fuu = sqrt(pStratTFC(i, j + 1, k + 2) ** 2.0 &
+                  &/ rhoStratTFC(i, j + 1, k + 2))
+              fcscal_fdd = sqrt(pStratTFC(i, j + 1, k - 2) ** 2.0 &
+                  &/ rhoStratTFC(i, j + 1, k - 2))
+              fcscal_buu = sqrt(pStratTFC(i, j - 1, k + 2) ** 2.0 &
+                  &/ rhoStratTFC(i, j - 1, k + 2))
+              fcscal_bdd = sqrt(pStratTFC(i, j - 1, k - 2) ** 2.0 &
+                  &/ rhoStratTFC(i, j - 1, k - 2))
 
               ! Compute inverse Jacobian.
               jacInv = 1.0 / jac(i, j, k)
@@ -5528,40 +4299,40 @@ module poisson_module
                   &+ 1, k) * pStratTFC(i, j + 1, k))
               pEdgeBDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j &
                   &- 1, k) * pStratTFC(i, j - 1, k))
-              pEdgeUDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, &
-                  &k + 1) * pStratTFC(i, j, k + 1))
-              pEdgeDDiv = 0.5 * (jac(i, j, k) * pStratTFC(i, j, k) + jac(i, j, &
-                  &k - 1) * pStratTFC(i, j, k - 1))
+              pEdgeUDiv = jac(i, j, k) * jac(i, j, k + 1) * (pStratTFC(i, j, &
+                  &k) + pStratTFC(i, j, k + 1)) / (jac(i, j, k) + jac(i, j, k &
+                  &+ 1))
+              pEdgeDDiv = jac(i, j, k) * jac(i, j, k - 1) * (pStratTFC(i, j, &
+                  &k) + pStratTFC(i, j, k - 1)) / (jac(i, j, k) + jac(i, j, k &
+                  &- 1))
 
               ! Compute P coefficients (pressure gradient).
-              pEdgeRGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                  &+ pStratTFC(i + 1, j, k) / jac(i + 1, j, k))
-              pEdgeLGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                  &+ pStratTFC(i - 1, j, k) / jac(i - 1, j, k))
-              pEdgeFGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                  &+ pStratTFC(i, j + 1, k) / jac(i, j + 1, k))
-              pEdgeBGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                  &+ pStratTFC(i, j - 1, k) / jac(i, j - 1, k))
-              pEdgeUGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                  &+ pStratTFC(i, j, k + 1) / jac(i, j, k + 1))
-              pEdgeDGra = 0.5 * (pStratTFC(i, j, k) / jac(i, j, k) &
-                  &+ pStratTFC(i, j, k - 1) / jac(i, j, k - 1))
-              pUEdgeRGra = 0.5 * (pStratTFC(i, j, k + 1) / jac(i, j, k + 1) &
-                  &+ pStratTFC(i + 1, j, k + 1) / jac(i + 1, j, k + 1))
-              pUEdgeLGra = 0.5 * (pStratTFC(i, j, k + 1) / jac(i, j, k + 1) &
-                  &+ pStratTFC(i - 1, j, k + 1) / jac(i - 1, j, k + 1))
-              pUEdgeFGra = 0.5 * (pStratTFC(i, j, k + 1) / jac(i, j, k + 1) &
-                  &+ pStratTFC(i, j + 1, k + 1) / jac(i, j + 1, k + 1))
-              pUEdgeBGra = 0.5 * (pStratTFC(i, j, k + 1) / jac(i, j, k + 1) &
-                  &+ pStratTFC(i, j - 1, k + 1) / jac(i, j - 1, k + 1))
-              pDEdgeRGra = 0.5 * (pStratTFC(i, j, k - 1) / jac(i, j, k - 1) &
-                  &+ pStratTFC(i + 1, j, k - 1) / jac(i + 1, j, k - 1))
-              pDEdgeLGra = 0.5 * (pStratTFC(i, j, k - 1) / jac(i, j, k - 1) &
-                  &+ pStratTFC(i - 1, j, k - 1) / jac(i - 1, j, k - 1))
-              pDEdgeFGra = 0.5 * (pStratTFC(i, j, k - 1) / jac(i, j, k - 1) &
-                  &+ pStratTFC(i, j + 1, k - 1) / jac(i, j + 1, k - 1))
-              pDEdgeBGra = 0.5 * (pStratTFC(i, j, k - 1) / jac(i, j, k - 1) &
-                  &+ pStratTFC(i, j - 1, k - 1) / jac(i, j - 1, k - 1))
+              pEdgeRGra = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i + 1, j, k))
+              pEdgeLGra = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i - 1, j, k))
+              pEdgeFGra = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i, j + 1, k))
+              pEdgeBGra = 0.5 * (pStratTFC(i, j, k) + pStratTFC(i, j - 1, k))
+              pEdgeUGra = (jac(i, j, k + 1) * pStratTFC(i, j, k) + jac(i, j, &
+                  &k) * pStratTFC(i, j, k + 1)) / (jac(i, j, k) + jac(i, j, k &
+                  &+ 1))
+              pEdgeDGra = (jac(i, j, k - 1) * pStratTFC(i, j, k) + jac(i, j, &
+                  &k) * pStratTFC(i, j, k - 1)) / (jac(i, j, k) + jac(i, j, k &
+                  &- 1))
+              pUEdgeRGra = 0.5 * (pStratTFC(i, j, k + 1) + pStratTFC(i + 1, j, &
+                  &k + 1))
+              pUEdgeLGra = 0.5 * (pStratTFC(i, j, k + 1) + pStratTFC(i - 1, j, &
+                  &k + 1))
+              pUEdgeFGra = 0.5 * (pStratTFC(i, j, k + 1) + pStratTFC(i, j + 1, &
+                  &k + 1))
+              pUEdgeBGra = 0.5 * (pStratTFC(i, j, k + 1) + pStratTFC(i, j - 1, &
+                  &k + 1))
+              pDEdgeRGra = 0.5 * (pStratTFC(i, j, k - 1) + pStratTFC(i + 1, j, &
+                  &k - 1))
+              pDEdgeLGra = 0.5 * (pStratTFC(i, j, k - 1) + pStratTFC(i - 1, j, &
+                  &k - 1))
+              pDEdgeFGra = 0.5 * (pStratTFC(i, j, k - 1) + pStratTFC(i, j + 1, &
+                  &k - 1))
+              pDEdgeBGra = 0.5 * (pStratTFC(i, j, k - 1) + pStratTFC(i, j - 1, &
+                  &k - 1))
 
               ! Compute density coefficients.
               rhoStratEdgeR = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i + 1, &
@@ -5572,10 +4343,12 @@ module poisson_module
                   &+ 1, k))
               rhoStratEdgeB = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, j &
                   &- 1, k))
-              rhoStratEdgeU = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, j, &
-                  &k + 1))
-              rhoStratEdgeD = 0.5 * (rhoStratTFC(i, j, k) + rhoStratTFC(i, j, &
-                  &k - 1))
+              rhoStratEdgeU = (jac(i, j, k + 1) * rhoStratTFC(i, j, k) &
+                  &+ jac(i, j, k) * rhoStratTFC(i, j, k + 1)) / (jac(i, j, k) &
+                  &+ jac(i, j, k + 1))
+              rhoStratEdgeD = (jac(i, j, k - 1) * rhoStratTFC(i, j, k) &
+                  &+ jac(i, j, k) * rhoStratTFC(i, j, k - 1)) / (jac(i, j, k) &
+                  &+ jac(i, j, k - 1))
               rhoEdgeR = 0.5 * (var%rho(i, j, k) + var%rho(i + 1, j, k)) &
                   &+ rhoStratEdgeR
               rhoEdgeL = 0.5 * (var%rho(i, j, k) + var%rho(i - 1, j, k)) &
@@ -5584,9 +4357,11 @@ module poisson_module
                   &+ rhoStratEdgeF
               rhoEdgeB = 0.5 * (var%rho(i, j, k) + var%rho(i, j - 1, k)) &
                   &+ rhoStratEdgeB
-              rhoEdgeU = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k + 1)) &
+              rhoEdgeU = (jac(i, j, k + 1) * var%rho(i, j, k) + jac(i, j, k) &
+                  &* var%rho(i, j, k + 1)) / (jac(i, j, k) + jac(i, j, k + 1)) &
                   &+ rhoStratEdgeU
-              rhoEdgeD = 0.5 * (var%rho(i, j, k) + var%rho(i, j, k - 1)) &
+              rhoEdgeD = (jac(i, j, k - 1) * var%rho(i, j, k) + jac(i, j, k) &
+                  &* var%rho(i, j, k - 1)) / (jac(i, j, k) + jac(i, j, k - 1)) &
                   &+ rhoStratEdgeD
 
               ! In the compressible model, N2 depends on the full density,
@@ -5626,10 +4401,52 @@ module poisson_module
                   &- 1))
 
               ! Compute squared buoyancy frequency at edges.
-              bvsStratEdgeU = 0.5 * (bvsStratTFC(i, j, k) + bvsStratTFC(i, j, &
-                  &k + 1))
-              bvsStratEdgeD = 0.5 * (bvsStratTFC(i, j, k) + bvsStratTFC(i, j, &
-                  &k - 1))
+              bvsStratEdgeU = (jac(i, j, k + 1) * bvsStratTFC(i, j, k) &
+                  &+ jac(i, j, k) * bvsStratTFC(i, j, k + 1)) / (jac(i, j, k) &
+                  &+ jac(i, j, k + 1))
+              bvsStratEdgeD = (jac(i, j, k - 1) * bvsStratTFC(i, j, k) &
+                  &+ jac(i, j, k) * bvsStratTFC(i, j, k - 1)) / (jac(i, j, k) &
+                  &+ jac(i, j, k - 1))
+
+              ! Interpolate metric-tensor elements.
+              met13EdgeR = 0.5 * (met(i, j, k, 1, 3) + met(i + 1, j, k, 1, 3))
+              met13EdgeL = 0.5 * (met(i, j, k, 1, 3) + met(i - 1, j, k, 1, 3))
+              met23EdgeF = 0.5 * (met(i, j, k, 2, 3) + met(i, j + 1, k, 2, 3))
+              met23EdgeB = 0.5 * (met(i, j, k, 2, 3) + met(i, j - 1, k, 2, 3))
+              met13EdgeU = (jac(i, j, k + 1) * met(i, j, k, 1, 3) + jac(i, j, &
+                  &k) * met(i, j, k + 1, 1, 3)) / (jac(i, j, k) + jac(i, j, k &
+                  &+ 1))
+              met23EdgeU = (jac(i, j, k + 1) * met(i, j, k, 2, 3) + jac(i, j, &
+                  &k) * met(i, j, k + 1, 2, 3)) / (jac(i, j, k) + jac(i, j, k &
+                  &+ 1))
+              met33EdgeU = (jac(i, j, k + 1) * met(i, j, k, 3, 3) + jac(i, j, &
+                  &k) * met(i, j, k + 1, 3, 3)) / (jac(i, j, k) + jac(i, j, k &
+                  &+ 1))
+              met13EdgeD = (jac(i, j, k - 1) * met(i, j, k, 1, 3) + jac(i, j, &
+                  &k) * met(i, j, k - 1, 1, 3)) / (jac(i, j, k) + jac(i, j, k &
+                  &- 1))
+              met23EdgeD = (jac(i, j, k - 1) * met(i, j, k, 2, 3) + jac(i, j, &
+                  &k) * met(i, j, k - 1, 2, 3)) / (jac(i, j, k) + jac(i, j, k &
+                  &- 1))
+              met33EdgeD = (jac(i, j, k - 1) * met(i, j, k, 3, 3) + jac(i, j, &
+                  &k) * met(i, j, k - 1, 3, 3)) / (jac(i, j, k) + jac(i, j, k &
+                  &- 1))
+              met13UEdgeR = 0.5 * (met(i, j, k + 1, 1, 3) + met(i + 1, j, k &
+                  &+ 1, 1, 3))
+              met13UEdgeL = 0.5 * (met(i, j, k + 1, 1, 3) + met(i - 1, j, k &
+                  &+ 1, 1, 3))
+              met23UEdgeF = 0.5 * (met(i, j, k + 1, 2, 3) + met(i, j + 1, k &
+                  &+ 1, 2, 3))
+              met23UEdgeB = 0.5 * (met(i, j, k + 1, 2, 3) + met(i, j - 1, k &
+                  &+ 1, 2, 3))
+              met13DEdgeR = 0.5 * (met(i, j, k - 1, 1, 3) + met(i + 1, j, k &
+                  &- 1, 1, 3))
+              met13DEdgeL = 0.5 * (met(i, j, k - 1, 1, 3) + met(i - 1, j, k &
+                  &- 1, 1, 3))
+              met23DEdgeF = 0.5 * (met(i, j, k - 1, 2, 3) + met(i, j + 1, k &
+                  &- 1, 2, 3))
+              met23DEdgeB = 0.5 * (met(i, j, k - 1, 2, 3) + met(i, j - 1, k &
+                  &- 1, 2, 3))
 
               ! Compute (dP / dpi) for compressible model for AC
               if(model == "compressible") then
@@ -5679,10 +4496,12 @@ module poisson_module
                   facDEdgeB = facDEdgeB + dt * 0.5 * (kr_sp_tfc(i, j, k - 1) &
                       &+ kr_sp_tfc(i, j - 1, k - 1))
                 end if
-                facEdgeU = facEdgeU + dt * 0.5 * (kr_sp_w_tfc(i, j, k) &
-                    &+ kr_sp_w_tfc(i, j, k + 1))
-                facEdgeD = facEdgeD + dt * 0.5 * (kr_sp_w_tfc(i, j, k) &
-                    &+ kr_sp_w_tfc(i, j, k - 1))
+                facEdgeU = facEdgeU + dt * (jac(i, j, k + 1) * kr_sp_w_tfc(i, &
+                    &j, k) + jac(i, j, k) * kr_sp_w_tfc(i, j, k + 1)) &
+                    &/ (jac(i, j, k) + jac(i, j, k + 1))
+                facEdgeD = facEdgeD + dt * (jac(i, j, k - 1) * kr_sp_w_tfc(i, &
+                    &j, k) + jac(i, j, k) * kr_sp_w_tfc(i, j, k - 1)) &
+                    &/ (jac(i, j, k) + jac(i, j, k - 1))
               end if
 
               ! Compute implicit coefficients.
@@ -5710,22 +4529,26 @@ module poisson_module
                 gEdgeR = jacInv / dx * pEdgeRDiv * impHorEdgeR * facEdgeR &
                     &/ rhoEdgeR + jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     &* rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 1, 3) * impHorEdgeR * facEdgeR &
+                    &* 0.5 * met(i, j, k, 1, 3) * jac(i, j, k + 1) / (jac(i, &
+                    &j, k) + jac(i, j, k + 1)) * impHorEdgeR * facEdgeR &
                     &/ rhoEdgeR
               else if(k == nz .and. zBoundary == "solid_wall") then
                 gEdgeR = jacInv / dx * pEdgeRDiv * impHorEdgeR * facEdgeR &
                     &/ rhoEdgeR - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     &* rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 1, 3) * impHorEdgeR * facEdgeR &
+                    &* 0.5 * met(i, j, k, 1, 3) * jac(i, j, k - 1) / (jac(i, &
+                    &j, k) + jac(i, j, k - 1)) * impHorEdgeR * facEdgeR &
                     &/ rhoEdgeR
               else
                 gEdgeR = jacInv / dx * pEdgeRDiv * impHorEdgeR * facEdgeR &
                     &/ rhoEdgeR + jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     &* rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 1, 3) * impHorEdgeR * facEdgeR &
+                    &* 0.5 * met(i, j, k, 1, 3) * jac(i, j, k + 1) / (jac(i, &
+                    &j, k) + jac(i, j, k + 1)) * impHorEdgeR * facEdgeR &
                     &/ rhoEdgeR - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     &* rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 1, 3) * impHorEdgeR * facEdgeR &
+                    &* 0.5 * met(i, j, k, 1, 3) * jac(i, j, k - 1) / (jac(i, &
+                    &j, k) + jac(i, j, k - 1)) * impHorEdgeR * facEdgeR &
                     &/ rhoEdgeR
               end if
 
@@ -5734,22 +4557,26 @@ module poisson_module
                 gEdgeL = - jacInv / dx * pEdgeLDiv * impHorEdgeL * facEdgeL &
                     &/ rhoEdgeL + jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     &* rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 1, 3) * impHorEdgeL * facEdgeL &
+                    &* 0.5 * met(i, j, k, 1, 3) * jac(i, j, k + 1) / (jac(i, &
+                    &j, k) + jac(i, j, k + 1)) * impHorEdgeL * facEdgeL &
                     &/ rhoEdgeL
               else if(k == nz .and. zBoundary == "solid_wall") then
                 gEdgeL = - jacInv / dx * pEdgeLDiv * impHorEdgeL * facEdgeL &
                     &/ rhoEdgeL - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     &* rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 1, 3) * impHorEdgeL * facEdgeL &
+                    &* 0.5 * met(i, j, k, 1, 3) * jac(i, j, k - 1) / (jac(i, &
+                    &j, k) + jac(i, j, k - 1)) * impHorEdgeL * facEdgeL &
                     &/ rhoEdgeL
               else
                 gEdgeL = - jacInv / dx * pEdgeLDiv * impHorEdgeL * facEdgeL &
                     &/ rhoEdgeL + jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     &* rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 1, 3) * impHorEdgeL * facEdgeL &
+                    &* 0.5 * met(i, j, k, 1, 3) * jac(i, j, k + 1) / (jac(i, &
+                    &j, k) + jac(i, j, k + 1)) * impHorEdgeL * facEdgeL &
                     &/ rhoEdgeL - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     &* rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 1, 3) * impHorEdgeL * facEdgeL &
+                    &* 0.5 * met(i, j, k, 1, 3) * jac(i, j, k - 1) / (jac(i, &
+                    &j, k) + jac(i, j, k - 1)) * impHorEdgeL * facEdgeL &
                     &/ rhoEdgeL
               end if
 
@@ -5758,22 +4585,26 @@ module poisson_module
                 gEdgeF = jacInv / dy * pEdgeFDiv * impHorEdgeF * facEdgeF &
                     &/ rhoEdgeF + jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     &* rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 2, 3) * impHorEdgeF * facEdgeF &
+                    &* 0.5 * met(i, j, k, 2, 3) * jac(i, j, k + 1) / (jac(i, &
+                    &j, k) + jac(i, j, k + 1)) * impHorEdgeF * facEdgeF &
                     &/ rhoEdgeF
               else if(k == nz .and. zBoundary == "solid_wall") then
                 gEdgeF = jacInv / dy * pEdgeFDiv * impHorEdgeF * facEdgeF &
                     &/ rhoEdgeF - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     &* rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 2, 3) * impHorEdgeF * facEdgeF &
+                    &* 0.5 * met(i, j, k, 2, 3) * jac(i, j, k - 1) / (jac(i, &
+                    &j, k) + jac(i, j, k - 1)) * impHorEdgeF * facEdgeF &
                     &/ rhoEdgeF
               else
                 gEdgeF = jacInv / dy * pEdgeFDiv * impHorEdgeF * facEdgeF &
                     &/ rhoEdgeF + jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     &* rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 2, 3) * impHorEdgeF * facEdgeF &
+                    &* 0.5 * met(i, j, k, 2, 3) * jac(i, j, k + 1) / (jac(i, &
+                    &j, k) + jac(i, j, k + 1)) * impHorEdgeF * facEdgeF &
                     &/ rhoEdgeF - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     &* rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 2, 3) * impHorEdgeF * facEdgeF &
+                    &* 0.5 * met(i, j, k, 2, 3) * jac(i, j, k - 1) / (jac(i, &
+                    &j, k) + jac(i, j, k - 1)) * impHorEdgeF * facEdgeF &
                     &/ rhoEdgeF
               end if
 
@@ -5782,22 +4613,26 @@ module poisson_module
                 gEdgeB = - jacInv / dy * pEdgeBDiv * impHorEdgeB * facEdgeB &
                     &/ rhoEdgeB + jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     &* rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 2, 3) * impHorEdgeB * facEdgeB &
+                    &* 0.5 * met(i, j, k, 2, 3) * jac(i, j, k + 1) / (jac(i, &
+                    &j, k) + jac(i, j, k + 1)) * impHorEdgeB * facEdgeB &
                     &/ rhoEdgeB
               else if(k == nz .and. zBoundary == "solid_wall") then
                 gEdgeB = - jacInv / dy * pEdgeBDiv * impHorEdgeB * facEdgeB &
                     &/ rhoEdgeB - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     &* rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 2, 3) * impHorEdgeB * facEdgeB &
+                    &* 0.5 * met(i, j, k, 2, 3) * jac(i, j, k - 1) / (jac(i, &
+                    &j, k) + jac(i, j, k - 1)) * impHorEdgeB * facEdgeB &
                     &/ rhoEdgeB
               else
                 gEdgeB = - jacInv / dy * pEdgeBDiv * impHorEdgeB * facEdgeB &
                     &/ rhoEdgeB + jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     &* rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 2, 3) * impHorEdgeB * facEdgeB &
+                    &* 0.5 * met(i, j, k, 2, 3) * jac(i, j, k + 1) / (jac(i, &
+                    &j, k) + jac(i, j, k + 1)) * impHorEdgeB * facEdgeB &
                     &/ rhoEdgeB - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     &* rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k, 2, 3) * impHorEdgeB * facEdgeB &
+                    &* 0.5 * met(i, j, k, 2, 3) * jac(i, j, k - 1) / (jac(i, &
+                    &j, k) + jac(i, j, k - 1)) * impHorEdgeB * facEdgeB &
                     &/ rhoEdgeB
               end if
 
@@ -5821,7 +4656,8 @@ module poisson_module
               else
                 gUEdgeR = jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     &* rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k + 1, 1, 3) * impHorUEdgeR &
+                    &* 0.5 * met(i, j, k + 1, 1, 3) * jac(i, j, k) / (jac(i, &
+                    &j, k) + jac(i, j, k + 1)) * impHorUEdgeR &
                     &* facUEdgeR / rhoUEdgeR
               end if
 
@@ -5831,7 +4667,8 @@ module poisson_module
               else
                 gUEdgeL = jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     &* rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k + 1, 1, 3) * impHorUEdgeL &
+                    &* 0.5 * met(i, j, k + 1, 1, 3) * jac(i, j, k) / (jac(i, &
+                    &j, k) + jac(i, j, k + 1)) * impHorUEdgeL &
                     &* facUEdgeL / rhoUEdgeL
               end if
 
@@ -5841,7 +4678,8 @@ module poisson_module
               else
                 gUEdgeF = jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     &* rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k + 1, 2, 3) * impHorUEdgeF &
+                    &* 0.5 * met(i, j, k + 1, 2, 3) * jac(i, j, k) / (jac(i, &
+                    &j, k) + jac(i, j, k + 1)) * impHorUEdgeF &
                     &* facUEdgeF / rhoUEdgeF
               end if
 
@@ -5851,7 +4689,8 @@ module poisson_module
               else
                 gUEdgeB = jacInv / dz * pEdgeUDiv * impVerEdgeU &
                     &* rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k + 1, 2, 3) * impHorUEdgeB &
+                    &* 0.5 * met(i, j, k + 1, 2, 3) * jac(i, j, k) / (jac(i, &
+                    &j, k) + jac(i, j, k + 1)) * impHorUEdgeB &
                     &* facUEdgeB / rhoUEdgeB
               end if
 
@@ -5861,7 +4700,8 @@ module poisson_module
               else
                 gDEdgeR = - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     &* rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k - 1, 1, 3) * impHorDEdgeR &
+                    &* 0.5 * met(i, j, k - 1, 1, 3) * jac(i, j, k) / (jac(i, &
+                    &j, k) + jac(i, j, k - 1)) * impHorDEdgeR &
                     &* facDEdgeR / rhoDEdgeR
               end if
 
@@ -5871,7 +4711,8 @@ module poisson_module
               else
                 gDEdgeL = - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     &* rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k - 1, 1, 3) * impHorDEdgeL &
+                    &* 0.5 * met(i, j, k - 1, 1, 3) * jac(i, j, k) / (jac(i, &
+                    &j, k) + jac(i, j, k - 1)) * impHorDEdgeL &
                     &* facDEdgeL / rhoDEdgeL
               end if
 
@@ -5881,7 +4722,8 @@ module poisson_module
               else
                 gDEdgeF = - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     &* rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k - 1, 2, 3) * impHorDEdgeF &
+                    &* 0.5 * met(i, j, k - 1, 2, 3) * jac(i, j, k) / (jac(i, &
+                    &j, k) + jac(i, j, k - 1)) * impHorDEdgeF &
                     &* facDEdgeF / rhoDEdgeF
               end if
 
@@ -5891,7 +4733,8 @@ module poisson_module
               else
                 gDEdgeB = - jacInv / dz * pEdgeDDiv * impVerEdgeD &
                     &* rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt ** 2.0 &
-                    &* 0.25 * met(i, j, k - 1, 2, 3) * impHorDEdgeB &
+                    &* 0.5 * met(i, j, k - 1, 2, 3) * jac(i, j, k) / (jac(i, &
+                    &j, k) + jac(i, j, k - 1)) * impHorDEdgeB &
                     &* facDEdgeB / rhoDEdgeB
               end if
 
@@ -5900,94 +4743,66 @@ module poisson_module
               ! ------------------- A(i,j,k) --------------------!
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                AC = - gEdgeR * pEdgeRGra * (1.0 / dx + 0.75 * met(i, j, k, 1, &
-                    &3) / dz) + gEdgeL * pEdgeLGra * (1.0 / dx - 0.75 * met(i, &
-                    &j, k, 1, 3) / dz) - gEdgeF * pEdgeFGra * (1.0 / dy + 0.75 &
-                    &* met(i, j, k, 2, 3) / dz) + gEdgeB * pEdgeBGra * (1.0 &
-                    &/ dy - 0.75 * met(i, j, k, 2, 3) / dz) + gEdgeU * (- &
-                    &pEdgeUGra * met(i, j, k, 3, 3) / dz + 0.5 * pStratTFC(i, &
-                    &j, k) * jacInv * (chris(i, j, k, 1, 1) + chris(i, j, k, &
-                    &2, 2) + 2.0 * chris(i, j, k, 1, 3) * met(i, j, k, 1, 3) &
-                    &+ 2.0 * chris(i, j, k, 2, 3) * met(i, j, k, 2, 3))) &
-                    &- gUEdgeR * pUEdgeRGra * 0.25 * met(i, j, k, 1, 3) / dz &
-                    &- gUEdgeL * pUEdgeLGra * 0.25 * met(i, j, k, 1, 3) / dz &
-                    &- gUEdgeF * pUEdgeFGra * 0.25 * met(i, j, k, 2, 3) / dz &
-                    &- gUEdgeB * pUEdgeBGra * 0.25 * met(i, j, k, 2, 3) / dz
+                AC = - gEdgeR * pEdgeRGra * (1.0 / dx + 0.75 * met13EdgeR &
+                    &/ dz) + gEdgeL * pEdgeLGra * (1.0 / dx - 0.75 &
+                    &* met13EdgeL / dz) - gEdgeF * pEdgeFGra * (1.0 / dy &
+                    &+ 0.75 * met23EdgeF / dz) + gEdgeB * pEdgeBGra * (1.0 &
+                    &/ dy - 0.75 * met23EdgeB / dz) - gEdgeU * pEdgeUGra &
+                    &* met33EdgeU / dz &
+                    &- gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz &
+                    &- gUEdgeL * pUEdgeLGra * 0.25 * met13UEdgeL / dz &
+                    &- gUEdgeF * pUEdgeFGra * 0.25 * met23UEdgeF / dz &
+                    &- gUEdgeB * pUEdgeBGra * 0.25 * met23UEdgeB / dz
               else if(k == 2 .and. zBoundary == "solid_wall") then
                 AC = - gEdgeR * pEdgeRGra / dx + gEdgeL * pEdgeLGra / dx &
                     &- gEdgeF * pEdgeFGra / dy + gEdgeB * pEdgeBGra / dy &
-                    &+ gEdgeU * (- pEdgeUGra * met(i, j, k, 3, 3) / dz + 0.5 &
-                    &* pStratTFC(i, j, k) * jacInv * (chris(i, j, k, 1, 1) &
-                    &+ chris(i, j, k, 2, 2) + 2.0 * chris(i, j, k, 1, 3) &
-                    &* met(i, j, k, 1, 3) + 2.0 * chris(i, j, k, 2, 3) &
-                    &* met(i, j, k, 2, 3))) + gEdgeD * (pEdgeDGra * met(i, j, &
-                    &k, 3, 3) / dz + 0.5 * pStratTFC(i, j, k) * jacInv &
-                    &* (chris(i, j, k, 1, 1) + chris(i, j, k, 2, 2) + 2.0 &
-                    &* chris(i, j, k, 1, 3) * met(i, j, k, 1, 3) + 2.0 &
-                    &* chris(i, j, k, 2, 3) * met(i, j, k, 2, 3))) - gUEdgeR &
-                    &* pUEdgeRGra * 0.25 * met(i, j, k, 1, 3) / dz - gUEdgeL &
-                    &* pUEdgeLGra * 0.25 * met(i, j, k, 1, 3) / dz - gUEdgeF &
-                    &* pUEdgeFGra * 0.25 * met(i, j, k, 2, 3) / dz - gUEdgeB &
-                    &* pUEdgeBGra * 0.25 * met(i, j, k, 2, 3) / dz + gDEdgeR &
-                    &* pDEdgeRGra * met(i, j, k, 1, 3) / dz + gDEdgeL &
-                    &* pDEdgeLGra * met(i, j, k, 1, 3) / dz + gDEdgeF &
-                    &* pDEdgeFGra * met(i, j, k, 2, 3) / dz + gDEdgeB &
-                    &* pDEdgeBGra * met(i, j, k, 2, 3) / dz
+                    &- gEdgeU * pEdgeUGra * met33EdgeU / dz + gEdgeD &
+                    &* pEdgeDGra * met33EdgeD / dz - gUEdgeR &
+                    &* pUEdgeRGra * 0.25 * met13UEdgeR / dz - gUEdgeL &
+                    &* pUEdgeLGra * 0.25 * met13UEdgeL / dz - gUEdgeF &
+                    &* pUEdgeFGra * 0.25 * met23UEdgeF / dz - gUEdgeB &
+                    &* pUEdgeBGra * 0.25 * met23UEdgeB / dz + gDEdgeR &
+                    &* pDEdgeRGra * met13DEdgeR / dz + gDEdgeL &
+                    &* pDEdgeLGra * met13DEdgeL / dz + gDEdgeF &
+                    &* pDEdgeFGra * met23DEdgeF / dz + gDEdgeB &
+                    &* pDEdgeBGra * met23DEdgeB / dz
               else if(k == nz - 1 .and. zBoundary == "solid_wall") then
                 AC = - gEdgeR * pEdgeRGra / dx + gEdgeL * pEdgeLGra / dx &
                     &- gEdgeF * pEdgeFGra / dy + gEdgeB * pEdgeBGra / dy &
-                    &+ gEdgeU * (- pEdgeUGra * met(i, j, k, 3, 3) / dz + 0.5 &
-                    &* pStratTFC(i, j, k) * jacInv * (chris(i, j, k, 1, 1) &
-                    &+ chris(i, j, k, 2, 2) + 2.0 * chris(i, j, k, 1, 3) &
-                    &* met(i, j, k, 1, 3) + 2.0 * chris(i, j, k, 2, 3) &
-                    &* met(i, j, k, 2, 3))) + gEdgeD * (pEdgeDGra * met(i, j, &
-                    &k, 3, 3) / dz + 0.5 * pStratTFC(i, j, k) * jacInv &
-                    &* (chris(i, j, k, 1, 1) + chris(i, j, k, 2, 2) + 2.0 &
-                    &* chris(i, j, k, 1, 3) * met(i, j, k, 1, 3) + 2.0 &
-                    &* chris(i, j, k, 2, 3) * met(i, j, k, 2, 3))) - gUEdgeR &
-                    &* pUEdgeRGra * met(i, j, k, 1, 3) / dz - gUEdgeL &
-                    &* pUEdgeLGra * met(i, j, k, 1, 3) / dz - gUEdgeF &
-                    &* pUEdgeFGra * met(i, j, k, 2, 3) / dz - gUEdgeB &
-                    &* pUEdgeBGra * met(i, j, k, 2, 3) / dz + gDEdgeR &
-                    &* pDEdgeRGra * 0.25 * met(i, j, k, 1, 3) / dz + gDEdgeL &
-                    &* pDEdgeLGra * 0.25 * met(i, j, k, 1, 3) / dz + gDEdgeF &
-                    &* pDEdgeFGra * 0.25 * met(i, j, k, 2, 3) / dz + gDEdgeB &
-                    &* pDEdgeBGra * 0.25 * met(i, j, k, 2, 3) / dz
+                    &- gEdgeU * pEdgeUGra * met33EdgeU / dz + gEdgeD &
+                    &* pEdgeDGra * met33EdgeD / dz - gUEdgeR &
+                    &* pUEdgeRGra * met13UEdgeR / dz - gUEdgeL &
+                    &* pUEdgeLGra * met13UEdgeL / dz - gUEdgeF &
+                    &* pUEdgeFGra * met23UEdgeF / dz - gUEdgeB &
+                    &* pUEdgeBGra * met23UEdgeB / dz + gDEdgeR &
+                    &* pDEdgeRGra * 0.25 * met13DEdgeR / dz + gDEdgeL &
+                    &* pDEdgeLGra * 0.25 * met13DEdgeL / dz + gDEdgeF &
+                    &* pDEdgeFGra * 0.25 * met23DEdgeF / dz + gDEdgeB &
+                    &* pDEdgeBGra * 0.25 * met23DEdgeB / dz
               else if(k == nz .and. zBoundary == "solid_wall") then
-                AC = - gEdgeR * pEdgeRGra * (1.0 / dx - 0.75 * met(i, j, k, 1, &
-                    &3) / dz) + gEdgeL * pEdgeLGra * (1.0 / dx + 0.75 * met(i, &
-                    &j, k, 1, 3) / dz) - gEdgeF * pEdgeFGra * (1.0 / dy - 0.75 &
-                    &* met(i, j, k, 2, 3) / dz) + gEdgeB * pEdgeBGra * (1.0 &
-                    &/ dy + 0.75 * met(i, j, k, 2, 3) / dz) + gEdgeD &
-                    &* (pEdgeDGra * met(i, j, k, 3, 3) / dz + 0.5 &
-                    &* pStratTFC(i, j, k) * jacInv * (chris(i, j, k, 1, 1) &
-                    &+ chris(i, j, k, 2, 2) + 2.0 * chris(i, j, k, 1, 3) &
-                    &* met(i, j, k, 1, 3) + 2.0 * chris(i, j, k, 2, 3) &
-                    &* met(i, j, k, 2, 3))) + gDEdgeR * pDEdgeRGra * 0.25 &
-                    &* met(i, j, k, 1, 3) / dz + gDEdgeL * pDEdgeLGra * 0.25 &
-                    &* met(i, j, k, 1, 3) / dz + gDEdgeF * pDEdgeFGra * 0.25 &
-                    &* met(i, j, k, 2, 3) / dz + gDEdgeB * pDEdgeBGra * 0.25 &
-                    &* met(i, j, k, 2, 3) / dz
+                AC = - gEdgeR * pEdgeRGra * (1.0 / dx - 0.75 * met13EdgeR &
+                    &/ dz) + gEdgeL * pEdgeLGra * (1.0 / dx + 0.75 &
+                    &* met13EdgeL / dz) - gEdgeF * pEdgeFGra * (1.0 / dy &
+                    &- 0.75 * met23EdgeF / dz) + gEdgeB * pEdgeBGra * (1.0 &
+                    &/ dy + 0.75 * met23EdgeB / dz) + gEdgeD &
+                    &* pEdgeDGra * met33EdgeD / dz + gDEdgeR &
+                    &* pDEdgeRGra * 0.25 * met13DEdgeR / dz + gDEdgeL &
+                    &* pDEdgeLGra * 0.25 * met13DEdgeL / dz + gDEdgeF &
+                    &* pDEdgeFGra * 0.25 * met23DEdgeF / dz + gDEdgeB &
+                    &* pDEdgeBGra * 0.25 * met23DEdgeB / dz
               else
                 AC = - gEdgeR * pEdgeRGra / dx + gEdgeL * pEdgeLGra / dx &
                     &- gEdgeF * pEdgeFGra / dy + gEdgeB * pEdgeBGra / dy &
-                    &+ gEdgeU * (- pEdgeUGra * met(i, j, k, 3, 3) / dz + 0.5 &
-                    &* pStratTFC(i, j, k) * jacInv * (chris(i, j, k, 1, 1) &
-                    &+ chris(i, j, k, 2, 2) + 2.0 * chris(i, j, k, 1, 3) &
-                    &* met(i, j, k, 1, 3) + 2.0 * chris(i, j, k, 2, 3) &
-                    &* met(i, j, k, 2, 3))) + gEdgeD * (pEdgeDGra * met(i, j, &
-                    &k, 3, 3) / dz + 0.5 * pStratTFC(i, j, k) * jacInv &
-                    &* (chris(i, j, k, 1, 1) + chris(i, j, k, 2, 2) + 2.0 &
-                    &* chris(i, j, k, 1, 3) * met(i, j, k, 1, 3) + 2.0 &
-                    &* chris(i, j, k, 2, 3) * met(i, j, k, 2, 3))) - gUEdgeR &
-                    &* pUEdgeRGra * 0.25 * met(i, j, k, 1, 3) / dz - gUEdgeL &
-                    &* pUEdgeLGra * 0.25 * met(i, j, k, 1, 3) / dz - gUEdgeF &
-                    &* pUEdgeFGra * 0.25 * met(i, j, k, 2, 3) / dz - gUEdgeB &
-                    &* pUEdgeBGra * 0.25 * met(i, j, k, 2, 3) / dz + gDEdgeR &
-                    &* pDEdgeRGra * 0.25 * met(i, j, k, 1, 3) / dz + gDEdgeL &
-                    &* pDEdgeLGra * 0.25 * met(i, j, k, 1, 3) / dz + gDEdgeF &
-                    &* pDEdgeFGra * 0.25 * met(i, j, k, 2, 3) / dz + gDEdgeB &
-                    &* pDEdgeBGra * 0.25 * met(i, j, k, 2, 3) / dz
+                    &- gEdgeU * pEdgeUGra * met33EdgeU / dz + gEdgeD &
+                    &* pEdgeDGra * met33EdgeD / dz - gUEdgeR &
+                    &* pUEdgeRGra * 0.25 * met13UEdgeR / dz - gUEdgeL &
+                    &* pUEdgeLGra * 0.25 * met13UEdgeL / dz - gUEdgeF &
+                    &* pUEdgeFGra * 0.25 * met23UEdgeF / dz - gUEdgeB &
+                    &* pUEdgeBGra * 0.25 * met23UEdgeB / dz + gDEdgeR &
+                    &* pDEdgeRGra * 0.25 * met13DEdgeR / dz + gDEdgeL &
+                    &* pDEdgeLGra * 0.25 * met13DEdgeL / dz + gDEdgeF &
+                    &* pDEdgeFGra * 0.25 * met23DEdgeF / dz + gDEdgeB &
+                    &* pDEdgeBGra * 0.25 * met23DEdgeB / dz
               end if
 
               if(model == "compressible") then
@@ -5997,190 +4812,199 @@ module poisson_module
               ! ------------------ A(i+1,j,k) -------------------!
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                AR = gEdgeR * pEdgeRGra * (1.0 / dx - 0.75 * met(i + 1, j, k, &
-                    &1, 3) / dz) + gEdgeU * pEdgeUGra * 0.25 * met(i + 1, j, &
-                    &k, 1, 3) / dx - gUEdgeR * pUEdgeRGra * 0.25 * met(i + 1, &
-                    &j, k, 1, 3) / dz
+                AR = gEdgeR * pEdgeRGra * (1.0 / dx - 0.75 * met13EdgeR / dz) &
+                    &+ gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx * jac(i + 1, &
+                    &j, k + 1) / (jac(i + 1, j, k) + jac(i + 1, j, k + 1)) &
+                    &- gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz
               else if(k == 2 .and. zBoundary == "solid_wall") then
-                AR = gEdgeR * pEdgeRGra / dx + gEdgeU * pEdgeUGra * 0.25 &
-                    &* met(i + 1, j, k, 1, 3) / dx + gEdgeD * pEdgeDGra * 0.25 &
-                    &* met(i + 1, j, k, 1, 3) / dx - gUEdgeR * pUEdgeRGra &
-                    &* 0.25 * met(i + 1, j, k, 1, 3) / dz + gDEdgeR &
-                    &* pDEdgeRGra * met(i + 1, j, k, 1, 3) / dz
+                AR = gEdgeR * pEdgeRGra / dx + gEdgeU * pEdgeUGra * 0.5 &
+                    &* met13EdgeU / dx * jac(i + 1, j, k + 1) / (jac(i + 1, j, &
+                    &k) + jac(i + 1, j, k + 1)) + gEdgeD * pEdgeDGra * 0.5 &
+                    &* met13EdgeD / dx * jac(i + 1, j, k - 1) / (jac(i + 1, j, &
+                    &k) + jac(i + 1, j, k - 1)) - gUEdgeR * pUEdgeRGra &
+                    &* 0.25 * met13UEdgeR / dz + gDEdgeR &
+                    &* pDEdgeRGra * met13DEdgeR / dz
               else if(k == nz - 1 .and. zBoundary == "solid_wall") then
-                AR = gEdgeR * pEdgeRGra / dx + gEdgeU * pEdgeUGra * 0.25 &
-                    &* met(i + 1, j, k, 1, 3) / dx + gEdgeD * pEdgeDGra * 0.25 &
-                    &* met(i + 1, j, k, 1, 3) / dx - gUEdgeR * pUEdgeRGra &
-                    &* met(i + 1, j, k, 1, 3) / dz + gDEdgeR * pDEdgeRGra &
-                    &* 0.25 * met(i + 1, j, k, 1, 3) / dz
+                AR = gEdgeR * pEdgeRGra / dx + gEdgeU * pEdgeUGra * 0.5 &
+                    &* met13EdgeU / dx * jac(i + 1, j, k + 1) / (jac(i + 1, j, &
+                    &k) + jac(i + 1, j, k + 1)) + gEdgeD * pEdgeDGra * 0.5 &
+                    &* met13EdgeD / dx * jac(i + 1, j, k - 1) / (jac(i + 1, j, &
+                    &k) + jac(i + 1, j, k - 1)) - gUEdgeR * pUEdgeRGra &
+                    &* met13UEdgeR / dz + gDEdgeR * pDEdgeRGra &
+                    &* 0.25 * met13DEdgeR / dz
               else if(k == nz .and. zBoundary == "solid_wall") then
-                AR = gEdgeR * pEdgeRGra * (1.0 / dx + 0.75 * met(i + 1, j, k, &
-                    &1, 3) / dz) + gEdgeD * pEdgeDGra * 0.25 * met(i + 1, j, &
-                    &k, 1, 3) / dx + gDEdgeR * pDEdgeRGra * 0.25 * met(i + 1, &
-                    &j, k, 1, 3) / dz
+                AR = gEdgeR * pEdgeRGra * (1.0 / dx + 0.75 * met13EdgeR / dz) &
+                    &+ gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx * jac(i + 1, &
+                    &j, k - 1) / (jac(i + 1, j, k) + jac(i + 1, j, k - 1)) &
+                    &+ gDEdgeR * pDEdgeRGra * 0.25 * met13DEdgeR / dz
               else
-                AR = gEdgeR * pEdgeRGra / dx + gEdgeU * pEdgeUGra * 0.25 &
-                    &* met(i + 1, j, k, 1, 3) / dx + gEdgeD * pEdgeDGra * 0.25 &
-                    &* met(i + 1, j, k, 1, 3) / dx - gUEdgeR * pUEdgeRGra &
-                    &* 0.25 * met(i + 1, j, k, 1, 3) / dz + gDEdgeR &
-                    &* pDEdgeRGra * 0.25 * met(i + 1, j, k, 1, 3) / dz
+                AR = gEdgeR * pEdgeRGra / dx + gEdgeU * pEdgeUGra * 0.5 &
+                    &* met13EdgeU / dx * jac(i + 1, j, k + 1) / (jac(i + 1, j, &
+                    &k) + jac(i + 1, j, k + 1)) + gEdgeD * pEdgeDGra * 0.5 &
+                    &* met13EdgeD / dx * jac(i + 1, j, k - 1) / (jac(i + 1, j, &
+                    &k) + jac(i + 1, j, k - 1)) - gUEdgeR * pUEdgeRGra &
+                    &* 0.25 * met13UEdgeR / dz + gDEdgeR &
+                    &* pDEdgeRGra * 0.25 * met13DEdgeR / dz
               end if
 
               ! ------------------ A(i-1,j,k) -------------------!
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                AL = - gEdgeL * pEdgeLGra * (1.0 / dx + 0.75 * met(i - 1, j, &
-                    &k, 1, 3) / dz) - gEdgeU * pEdgeUGra * 0.25 * met(i - 1, &
-                    &j, k, 1, 3) / dx - gUEdgeL * pUEdgeLGra * 0.25 * met(i &
-                    &- 1, j, k, 1, 3) / dz
+                AL = - gEdgeL * pEdgeLGra * (1.0 / dx + 0.75 * met13EdgeL &
+                    &/ dz) - gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx &
+                    &* jac(i - 1, j, k + 1) / (jac(i - 1, j, k) + jac(i - 1, &
+                    &j, k + 1)) - gUEdgeL * pUEdgeLGra * 0.25 * met13UEdgeL / dz
               else if(k == 2 .and. zBoundary == "solid_wall") then
-                AL = - gEdgeL * pEdgeLGra / dx - gEdgeU * pEdgeUGra * 0.25 &
-                    &* met(i - 1, j, k, 1, 3) / dx - gEdgeD * pEdgeDGra * 0.25 &
-                    &* met(i - 1, j, k, 1, 3) / dx - gUEdgeL * pUEdgeLGra &
-                    &* 0.25 * met(i - 1, j, k, 1, 3) / dz + gDEdgeL &
-                    &* pDEdgeLGra * met(i - 1, j, k, 1, 3) / dz
+                AL = - gEdgeL * pEdgeLGra / dx - gEdgeU * pEdgeUGra * 0.5 &
+                    &* met13EdgeU / dx * jac(i - 1, j, k + 1) / (jac(i - 1, j, &
+                    &k) + jac(i - 1, j, k + 1)) - gEdgeD * pEdgeDGra * 0.5 &
+                    &* met13EdgeD / dx * jac(i - 1, j, k - 1) / (jac(i - 1, j, &
+                    &k) + jac(i - 1, j, k - 1)) - gUEdgeL * pUEdgeLGra &
+                    &* 0.25 * met13UEdgeL / dz + gDEdgeL &
+                    &* pDEdgeLGra * met13DEdgeL / dz
               else if(k == nz - 1 .and. zBoundary == "solid_wall") then
-                AL = - gEdgeL * pEdgeLGra / dx - gEdgeU * pEdgeUGra * 0.25 &
-                    &* met(i - 1, j, k, 1, 3) / dx - gEdgeD * pEdgeDGra * 0.25 &
-                    &* met(i - 1, j, k, 1, 3) / dx - gUEdgeL * pUEdgeLGra &
-                    &* met(i - 1, j, k, 1, 3) / dz + gDEdgeL * pDEdgeLGra &
-                    &* 0.25 * met(i - 1, j, k, 1, 3) / dz
+                AL = - gEdgeL * pEdgeLGra / dx - gEdgeU * pEdgeUGra * 0.5 &
+                    &* met13EdgeU / dx * jac(i - 1, j, k + 1) / (jac(i - 1, j, &
+                    &k) + jac(i - 1, j, k + 1)) - gEdgeD * pEdgeDGra * 0.5 &
+                    &* met13EdgeD / dx * jac(i - 1, j, k - 1) / (jac(i - 1, j, &
+                    &k) + jac(i - 1, j, k - 1)) - gUEdgeL * pUEdgeLGra &
+                    &* met13UEdgeL / dz + gDEdgeL * pDEdgeLGra &
+                    &* 0.25 * met13DEdgeL / dz
               else if(k == nz .and. zBoundary == "solid_wall") then
-                AL = - gEdgeL * pEdgeLGra * (1.0 / dx - 0.75 * met(i - 1, j, &
-                    &k, 1, 3) / dz) - gEdgeD * pEdgeDGra * 0.25 * met(i - 1, &
-                    &j, k, 1, 3) / dx + gDEdgeL * pDEdgeLGra * 0.25 * met(i &
-                    &- 1, j, k, 1, 3) / dz
+                AL = - gEdgeL * pEdgeLGra * (1.0 / dx - 0.75 * met13EdgeL &
+                    &/ dz) - gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx &
+                    &* jac(i - 1, j, k - 1) / (jac(i - 1, j, k) + jac(i - 1, &
+                    &j, k - 1)) + gDEdgeL * pDEdgeLGra * 0.25 * met13DEdgeL / dz
               else
-                AL = - gEdgeL * pEdgeLGra / dx - gEdgeU * pEdgeUGra * 0.25 &
-                    &* met(i - 1, j, k, 1, 3) / dx - gEdgeD * pEdgeDGra * 0.25 &
-                    &* met(i - 1, j, k, 1, 3) / dx - gUEdgeL * pUEdgeLGra &
-                    &* 0.25 * met(i - 1, j, k, 1, 3) / dz + gDEdgeL &
-                    &* pDEdgeLGra * 0.25 * met(i - 1, j, k, 1, 3) / dz
+                AL = - gEdgeL * pEdgeLGra / dx - gEdgeU * pEdgeUGra * 0.5 &
+                    &* met13EdgeU / dx * jac(i - 1, j, k + 1) / (jac(i - 1, j, &
+                    &k) + jac(i - 1, j, k + 1)) - gEdgeD * pEdgeDGra * 0.5 &
+                    &* met13EdgeD / dx * jac(i - 1, j, k - 1) / (jac(i - 1, j, &
+                    &k) + jac(i - 1, j, k - 1)) - gUEdgeL * pUEdgeLGra &
+                    &* 0.25 * met13UEdgeL / dz + gDEdgeL &
+                    &* pDEdgeLGra * 0.25 * met13DEdgeL / dz
               end if
 
               ! ------------------ A(i,j+1,k) -------------------!
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                AF = gEdgeF * pEdgeFGra * (1.0 / dy - 0.75 * met(i, j + 1, k, &
-                    &2, 3) / dz) + gEdgeU * pEdgeUGra * 0.25 * met(i, j + 1, &
-                    &k, 2, 3) / dy - gUEdgeF * pUEdgeFGra * 0.25 * met(i, j &
-                    &+ 1, k, 2, 3) / dz
+                AF = gEdgeF * pEdgeFGra * (1.0 / dy - 0.75 * met23EdgeF / dz) &
+                    &+ gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy * jac(i, j &
+                    &+ 1, k + 1) / (jac(i, j + 1, k) + jac(i, j + 1, k + 1)) &
+                    &- gUEdgeF * pUEdgeFGra * 0.25 * met23UEdgeF / dz
               else if(k == 2 .and. zBoundary == "solid_wall") then
-                AF = gEdgeF * pEdgeFGra / dy + gEdgeU * pEdgeUGra * 0.25 &
-                    &* met(i, j + 1, k, 2, 3) / dy + gEdgeD * pEdgeDGra * 0.25 &
-                    &* met(i, j + 1, k, 2, 3) / dy - gUEdgeF * pUEdgeFGra &
-                    &* 0.25 * met(i, j + 1, k, 2, 3) / dz + gDEdgeF &
-                    &* pDEdgeFGra * met(i, j + 1, k, 2, 3) / dz
+                AF = gEdgeF * pEdgeFGra / dy + gEdgeU * pEdgeUGra * 0.5 &
+                    &* met23EdgeU / dy * jac(i, j + 1, k + 1) / (jac(i, j + 1, &
+                    &k) + jac(i, j + 1, k + 1)) + gEdgeD * pEdgeDGra * 0.5 &
+                    &* met23EdgeD / dy * jac(i, j + 1, k - 1) / (jac(i, j + 1, &
+                    &k) + jac(i, j + 1, k - 1)) - gUEdgeF * pUEdgeFGra &
+                    &* 0.25 * met23UEdgeF / dz + gDEdgeF &
+                    &* pDEdgeFGra * met23DEdgeF / dz
               else if(k == nz - 1 .and. zBoundary == "solid_wall") then
-                AF = gEdgeF * pEdgeFGra / dy + gEdgeU * pEdgeUGra * 0.25 &
-                    &* met(i, j + 1, k, 2, 3) / dy + gEdgeD * pEdgeDGra * 0.25 &
-                    &* met(i, j + 1, k, 2, 3) / dy - gUEdgeF * pUEdgeFGra &
-                    &* met(i, j + 1, k, 2, 3) / dz + gDEdgeF * pDEdgeFGra &
-                    &* 0.25 * met(i, j + 1, k, 2, 3) / dz
+                AF = gEdgeF * pEdgeFGra / dy + gEdgeU * pEdgeUGra * 0.5 &
+                    &* met23EdgeU / dy * jac(i, j + 1, k + 1) / (jac(i, j + 1, &
+                    &k) + jac(i, j + 1, k + 1)) + gEdgeD * pEdgeDGra * 0.5 &
+                    &* met23EdgeD / dy * jac(i, j + 1, k - 1) / (jac(i, j + 1, &
+                    &k) + jac(i, j + 1, k - 1)) - gUEdgeF * pUEdgeFGra &
+                    &* met23UEdgeF / dz + gDEdgeF * pDEdgeFGra &
+                    &* 0.25 * met23DEdgeF / dz
               else if(k == nz .and. zBoundary == "solid_wall") then
-                AF = gEdgeF * pEdgeFGra * (1.0 / dy + 0.75 * met(i, j + 1, k, &
-                    &2, 3) / dz) + gEdgeD * pEdgeDGra * 0.25 * met(i, j + 1, &
-                    &k, 2, 3) / dy + gDEdgeF * pDEdgeFGra * 0.25 * met(i, j &
-                    &+ 1, k, 2, 3) / dz
+                AF = gEdgeF * pEdgeFGra * (1.0 / dy + 0.75 * met23EdgeF / dz) &
+                    &+ gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy * jac(i, j &
+                    &+ 1, k - 1) / (jac(i, j + 1, k) + jac(i, j + 1, k - 1)) &
+                    &+ gDEdgeF * pDEdgeFGra * 0.25 * met23DEdgeF / dz
               else
-                AF = gEdgeF * pEdgeFGra / dy + gEdgeU * pEdgeUGra * 0.25 &
-                    &* met(i, j + 1, k, 2, 3) / dy + gEdgeD * pEdgeDGra * 0.25 &
-                    &* met(i, j + 1, k, 2, 3) / dy - gUEdgeF * pUEdgeFGra &
-                    &* 0.25 * met(i, j + 1, k, 2, 3) / dz + gDEdgeF &
-                    &* pDEdgeFGra * 0.25 * met(i, j + 1, k, 2, 3) / dz
+                AF = gEdgeF * pEdgeFGra / dy + gEdgeU * pEdgeUGra * 0.5 &
+                    &* met23EdgeU / dy * jac(i, j + 1, k + 1) / (jac(i, j + 1, &
+                    &k) + jac(i, j + 1, k + 1)) + gEdgeD * pEdgeDGra * 0.5 &
+                    &* met23EdgeD / dy * jac(i, j + 1, k - 1) / (jac(i, j + 1, &
+                    &k) + jac(i, j + 1, k - 1)) - gUEdgeF * pUEdgeFGra &
+                    &* 0.25 * met23UEdgeF / dz + gDEdgeF &
+                    &* pDEdgeFGra * 0.25 * met23DEdgeF / dz
               end if
 
               ! ------------------ A(i,j-1,k) -------------------!
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                AB = - gEdgeB * pEdgeBGra * (1.0 / dy + 0.75 * met(i, j - 1, &
-                    &k, 2, 3) / dz) - gEdgeU * pEdgeUGra * 0.25 * met(i, j &
-                    &- 1, k, 2, 3) / dy - gUEdgeB * pUEdgeBGra * 0.25 * met(i, &
-                    &j - 1, k, 2, 3) / dz
+                AB = - gEdgeB * pEdgeBGra * (1.0 / dy + 0.75 * met23EdgeB &
+                    &/ dz) - gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy &
+                    &* jac(i, j - 1, k + 1) / (jac(i, j - 1, k) + jac(i, j &
+                    &- 1, k + 1)) - gUEdgeB * pUEdgeBGra * 0.25 * met23UEdgeB &
+                    &/ dz
               else if(k == 2 .and. zBoundary == "solid_wall") then
-                AB = - gEdgeB * pEdgeBGra / dy - gEdgeU * pEdgeUGra * 0.25 &
-                    &* met(i, j - 1, k, 2, 3) / dy - gEdgeD * pEdgeDGra * 0.25 &
-                    &* met(i, j - 1, k, 2, 3) / dy - gUEdgeB * pUEdgeBGra &
-                    &* 0.25 * met(i, j - 1, k, 2, 3) / dz + gDEdgeB &
-                    &* pDEdgeBGra * met(i, j - 1, k, 2, 3) / dz
+                AB = - gEdgeB * pEdgeBGra / dy - gEdgeU * pEdgeUGra * 0.5 &
+                    &* met23EdgeU / dy * jac(i, j - 1, k + 1) / (jac(i, j - 1, &
+                    &k) + jac(i, j - 1, k + 1)) - gEdgeD * pEdgeDGra * 0.5 &
+                    &* met23EdgeD / dy * jac(i, j - 1, k - 1) / (jac(i, j - 1, &
+                    &k) + jac(i, j - 1, k - 1)) - gUEdgeB * pUEdgeBGra &
+                    &* 0.25 * met23UEdgeB / dz + gDEdgeB &
+                    &* pDEdgeBGra * met23DEdgeB / dz
               else if(k == nz - 1 .and. zBoundary == "solid_wall") then
-                AB = - gEdgeB * pEdgeBGra / dy - gEdgeU * pEdgeUGra * 0.25 &
-                    &* met(i, j - 1, k, 2, 3) / dy - gEdgeD * pEdgeDGra * 0.25 &
-                    &* met(i, j - 1, k, 2, 3) / dy - gUEdgeB * pUEdgeBGra &
-                    &* met(i, j - 1, k, 2, 3) / dz + gDEdgeB * pDEdgeBGra &
-                    &* 0.25 * met(i, j - 1, k, 2, 3) / dz
+                AB = - gEdgeB * pEdgeBGra / dy - gEdgeU * pEdgeUGra * 0.5 &
+                    &* met23EdgeU / dy * jac(i, j - 1, k + 1) / (jac(i, j - 1, &
+                    &k) + jac(i, j - 1, k + 1)) - gEdgeD * pEdgeDGra * 0.5 &
+                    &* met23EdgeD / dy * jac(i, j - 1, k - 1) / (jac(i, j - 1, &
+                    &k) + jac(i, j - 1, k - 1)) - gUEdgeB * pUEdgeBGra &
+                    &* met23UEdgeB / dz + gDEdgeB * pDEdgeBGra &
+                    &* 0.25 * met23DEdgeB / dz
               else if(k == nz .and. zBoundary == "solid_wall") then
-                AB = - gEdgeB * pEdgeBGra * (1.0 / dy - 0.75 * met(i, j - 1, &
-                    &k, 2, 3) / dz) - gEdgeD * pEdgeDGra * 0.25 * met(i, j &
-                    &- 1, k, 2, 3) / dy + gDEdgeB * pDEdgeBGra * 0.25 * met(i, &
-                    &j - 1, k, 2, 3) / dz
+                AB = - gEdgeB * pEdgeBGra * (1.0 / dy - 0.75 * met23EdgeB &
+                    &/ dz) - gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy &
+                    &* jac(i, j - 1, k - 1) / (jac(i, j - 1, k) + jac(i, j &
+                    &- 1, k - 1)) + gDEdgeB * pDEdgeBGra * 0.25 &
+                    &* met23DEdgeB / dz
               else
-                AB = - gEdgeB * pEdgeBGra / dy - gEdgeU * pEdgeUGra * 0.25 &
-                    &* met(i, j - 1, k, 2, 3) / dy - gEdgeD * pEdgeDGra * 0.25 &
-                    &* met(i, j - 1, k, 2, 3) / dy - gUEdgeB * pUEdgeBGra &
-                    &* 0.25 * met(i, j - 1, k, 2, 3) / dz + gDEdgeB &
-                    &* pDEdgeBGra * 0.25 * met(i, j - 1, k, 2, 3) / dz
+                AB = - gEdgeB * pEdgeBGra / dy - gEdgeU * pEdgeUGra * 0.5 &
+                    &* met23EdgeU / dy * jac(i, j - 1, k + 1) / (jac(i, j - 1, &
+                    &k) + jac(i, j - 1, k + 1)) - gEdgeD * pEdgeDGra * 0.5 &
+                    &* met23EdgeD / dy * jac(i, j - 1, k - 1) / (jac(i, j - 1, &
+                    &k) + jac(i, j - 1, k - 1)) - gUEdgeB * pUEdgeBGra &
+                    &* 0.25 * met23UEdgeB / dz + gDEdgeB &
+                    &* pDEdgeBGra * 0.25 * met23DEdgeB / dz
               end if
 
               ! ------------------ A(i,j,k+1) -------------------!
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                AU = gEdgeR * pEdgeRGra * met(i, j, k + 1, 1, 3) / dz + gEdgeL &
-                    &* pEdgeLGra * met(i, j, k + 1, 1, 3) / dz + gEdgeF &
-                    &* pEdgeFGra * met(i, j, k + 1, 2, 3) / dz + gEdgeB &
-                    &* pEdgeBGra * met(i, j, k + 1, 2, 3) / dz + gEdgeU &
-                    &* (pEdgeUGra * met(i, j, k + 1, 3, 3) / dz + 0.5 &
-                    &* pStratTFC(i, j, k + 1) / jac(i, j, k + 1) * (chris(i, &
-                    &j, k + 1, 1, 1) + chris(i, j, k + 1, 2, 2) + 2.0 &
-                    &* chris(i, j, k + 1, 1, 3) * met(i, j, k + 1, 1, 3) + 2.0 &
-                    &* chris(i, j, k + 1, 2, 3) * met(i, j, k + 1, 2, 3))) &
+                AU = gEdgeR * pEdgeRGra * met13EdgeR / dz + gEdgeL &
+                    &* pEdgeLGra * met13EdgeL / dz + gEdgeF &
+                    &* pEdgeFGra * met23EdgeF / dz + gEdgeB &
+                    &* pEdgeBGra * met23EdgeB / dz + gEdgeU &
+                    &* pEdgeUGra * met33EdgeU / dz &
                     &- gUEdgeR * pUEdgeRGra / dx + gUEdgeL * pUEdgeLGra / dx &
                     &- gUEdgeF * pUEdgeFGra / dy + gUEdgeB * pUEdgeBGra / dy
               else if(k == 2 .and. zBoundary == "solid_wall") then
-                AU = gEdgeR * pEdgeRGra * 0.25 * met(i, j, k + 1, 1, 3) / dz &
-                    &+ gEdgeL * pEdgeLGra * 0.25 * met(i, j, k + 1, 1, 3) / dz &
-                    &+ gEdgeF * pEdgeFGra * 0.25 * met(i, j, k + 1, 2, 3) / dz &
-                    &+ gEdgeB * pEdgeBGra * 0.25 * met(i, j, k + 1, 2, 3) / dz &
-                    &+ gEdgeU * (pEdgeUGra * met(i, j, k + 1, 3, 3) / dz + 0.5 &
-                    &* pStratTFC(i, j, k + 1) / jac(i, j, k + 1) * (chris(i, &
-                    &j, k + 1, 1, 1) + chris(i, j, k + 1, 2, 2) + 2.0 &
-                    &* chris(i, j, k + 1, 1, 3) * met(i, j, k + 1, 1, 3) + 2.0 &
-                    &* chris(i, j, k + 1, 2, 3) * met(i, j, k + 1, 2, 3))) &
+                AU = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz &
+                    &+ gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz &
+                    &+ gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz &
+                    &+ gEdgeB * pEdgeBGra * 0.25 * met23EdgeB / dz &
+                    &+ gEdgeU * pEdgeUGra * met33EdgeU / dz &
                     &- gUEdgeR * pUEdgeRGra / dx + gUEdgeL * pUEdgeLGra / dx &
                     &- gUEdgeF * pUEdgeFGra / dy + gUEdgeB * pUEdgeBGra / dy &
-                    &- gDEdgeR * pDEdgeRGra * 0.25 * met(i, j, k + 1, 1, 3) &
-                    &/ dz - gDEdgeL * pDEdgeLGra * 0.25 * met(i, j, k + 1, 1, &
-                    &3) / dz - gDEdgeF * pDEdgeFGra * 0.25 * met(i, j, k + 1, &
-                    &2, 3) / dz - gDEdgeB * pDEdgeBGra * 0.25 * met(i, j, k &
-                    &+ 1, 2, 3)
+                    &- gDEdgeR * pDEdgeRGra * 0.25 * met13DEdgeR &
+                    &/ dz - gDEdgeL * pDEdgeLGra * 0.25 * met13DEdgeL / dz &
+                    &- gDEdgeF * pDEdgeFGra * 0.25 * met23DEdgeF / dz &
+                    &- gDEdgeB * pDEdgeBGra * 0.25 * met23DEdgeB / dz
               else if(k == nz - 1 .and. zBoundary == "solid_wall") then
-                AU = gEdgeR * pEdgeRGra * 0.25 * met(i, j, k + 1, 1, 3) / dz &
-                    &+ gEdgeL * pEdgeLGra * 0.25 * met(i, j, k + 1, 1, 3) / dz &
-                    &+ gEdgeF * pEdgeFGra * 0.25 * met(i, j, k + 1, 2, 3) / dz &
-                    &+ gEdgeB * pEdgeBGra * 0.25 * met(i, j, k + 1, 2, 3) / dz &
-                    &+ gEdgeU * (pEdgeUGra * met(i, j, k + 1, 3, 3) / dz + 0.5 &
-                    &* pStratTFC(i, j, k + 1) / jac(i, j, k + 1) * (chris(i, &
-                    &j, k + 1, 1, 1) + chris(i, j, k + 1, 2, 2) + 2.0 &
-                    &* chris(i, j, k + 1, 1, 3) * met(i, j, k + 1, 1, 3) + 2.0 &
-                    &* chris(i, j, k + 1, 2, 3) * met(i, j, k + 1, 2, 3))) &
-                    &- gUEdgeR * pUEdgeRGra * (1.0 / dx - 0.75 * met(i, j, k &
-                    &+ 1, 1, 3) / dz) + gUEdgeL * pUEdgeLGra * (1.0 / dx &
-                    &+ 0.75 * met(i, j, k + 1, 1, 3) / dz) - gUEdgeF &
-                    &* pUEdgeFGra * (1.0 / dy - 0.75 * met(i, j, k + 1, 2, 3) &
-                    &/ dz) + gUEdgeB * pUEdgeBGra * (1.0 / dy + 0.75 * met(i, &
-                    &j, k + 1, 2, 3) / dz)
+                AU = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz &
+                    &+ gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz &
+                    &+ gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz &
+                    &+ gEdgeB * pEdgeBGra * 0.25 * met23EdgeB / dz &
+                    &+ gEdgeU * pEdgeUGra * met33EdgeU / dz &
+                    &- gUEdgeR * pUEdgeRGra * (1.0 / dx - 0.75 * met13UEdgeR &
+                    &/ dz) + gUEdgeL * pUEdgeLGra * (1.0 / dx &
+                    &+ 0.75 * met13UEdgeL / dz) - gUEdgeF &
+                    &* pUEdgeFGra * (1.0 / dy - 0.75 * met23UEdgeF &
+                    &/ dz) + gUEdgeB * pUEdgeBGra * (1.0 / dy + 0.75 &
+                    &* met23UEdgeB / dz)
               else if(k == nz .and. zBoundary == "solid_wall") then
                 AU = 0.0
               else
-                AU = gEdgeR * pEdgeRGra * 0.25 * met(i, j, k + 1, 1, 3) / dz &
-                    &+ gEdgeL * pEdgeLGra * 0.25 * met(i, j, k + 1, 1, 3) / dz &
-                    &+ gEdgeF * pEdgeFGra * 0.25 * met(i, j, k + 1, 2, 3) / dz &
-                    &+ gEdgeB * pEdgeBGra * 0.25 * met(i, j, k + 1, 2, 3) / dz &
-                    &+ gEdgeU * (pEdgeUGra * met(i, j, k + 1, 3, 3) / dz + 0.5 &
-                    &* pStratTFC(i, j, k + 1) / jac(i, j, k + 1) * (chris(i, &
-                    &j, k + 1, 1, 1) + chris(i, j, k + 1, 2, 2) + 2.0 &
-                    &* chris(i, j, k + 1, 1, 3) * met(i, j, k + 1, 1, 3) + 2.0 &
-                    &* chris(i, j, k + 1, 2, 3) * met(i, j, k + 1, 2, 3))) &
+                AU = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz &
+                    &+ gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz &
+                    &+ gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz &
+                    &+ gEdgeB * pEdgeBGra * 0.25 * met23EdgeB / dz &
+                    &+ gEdgeU * pEdgeUGra * met33EdgeU / dz &
                     &- gUEdgeR * pUEdgeRGra / dx + gUEdgeL * pUEdgeLGra / dx &
                     &- gUEdgeF * pUEdgeFGra / dy + gUEdgeB * pUEdgeBGra / dy
               end if
@@ -6190,62 +5014,45 @@ module poisson_module
               if(k == 1 .and. zBoundary == "solid_wall") then
                 AD = 0.0
               else if(k == 2 .and. zBoundary == "solid_wall") then
-                AD = - gEdgeR * pEdgeRGra * 0.25 * met(i, j, k - 1, 1, 3) / dz &
-                    &- gEdgeL * pEdgeLGra * 0.25 * met(i, j, k - 1, 1, 3) / dz &
-                    &- gEdgeF * pEdgeFGra * 0.25 * met(i, j, k - 1, 2, 3) / dz &
-                    &- gEdgeB * pEdgeBGra * 0.25 * met(i, j, k - 1, 2, 3) / dz &
-                    &+ gEdgeD * (- pEdgeDGra * met(i, j, k - 1, 3, 3) / dz &
-                    &+ 0.5 * pStratTFC(i, j, k - 1) / jac(i, j, k - 1) &
-                    &* (chris(i, j, k - 1, 1, 1) + chris(i, j, k - 1, 2, 2) &
-                    &+ 2.0 * chris(i, j, k - 1, 1, 3) * met(i, j, k - 1, 1, 3) &
-                    &+ 2.0 * chris(i, j, k - 1, 2, 3) * met(i, j, k - 1, 2, &
-                    &3))) - gDEdgeR * pDEdgeRGra * (1.0 / dx + 0.75 * met(i, &
-                    &j, k - 1, 1, 3) / dz) + gDEdgeL * pDEdgeLGra * (1.0 / dx &
-                    &- 0.75 * met(i, j, k - 1, 1, 3) / dz) - gDEdgeF &
-                    &* pDEdgeFGra * (1.0 / dy + 0.75 * met(i, j, k - 1, 2, 3) &
-                    &/ dz) + gDEdgeB * pDEdgeBGra * (1.0 / dy - 0.75 * met(i, &
-                    &j, k - 1, 2, 3) / dz)
+                AD = - gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz &
+                    &- gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz &
+                    &- gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz &
+                    &- gEdgeB * pEdgeBGra * 0.25 * met23EdgeB / dz &
+                    &- gEdgeD * pEdgeDGra * met33EdgeD / dz &
+                    &- gDEdgeR * pDEdgeRGra * (1.0 / dx + 0.75 * met13DEdgeR &
+                    &/ dz) + gDEdgeL * pDEdgeLGra * (1.0 / dx &
+                    &- 0.75 * met13DEdgeL / dz) - gDEdgeF &
+                    &* pDEdgeFGra * (1.0 / dy + 0.75 * met23DEdgeF &
+                    &/ dz) + gDEdgeB * pDEdgeBGra * (1.0 / dy - 0.75 &
+                    &* met23DEdgeB / dz)
               else if(k == nz - 1 .and. zBoundary == "solid_wall") then
-                AD = - gEdgeR * pEdgeRGra * 0.25 * met(i, j, k - 1, 1, 3) / dz &
-                    &- gEdgeL * pEdgeLGra * 0.25 * met(i, j, k - 1, 1, 3) / dz &
-                    &- gEdgeF * pEdgeFGra * 0.25 * met(i, j, k - 1, 2, 3) / dz &
-                    &- gEdgeB * pEdgeBGra * 0.25 * met(i, j, k - 1, 2, 3) / dz &
-                    &+ gEdgeD * (- pEdgeDGra * met(i, j, k - 1, 3, 3) / dz &
-                    &+ 0.5 * pStratTFC(i, j, k - 1) / jac(i, j, k - 1) &
-                    &* (chris(i, j, k - 1, 1, 1) + chris(i, j, k - 1, 2, 2) &
-                    &+ 2.0 * chris(i, j, k - 1, 1, 3) * met(i, j, k - 1, 1, 3) &
-                    &+ 2.0 * chris(i, j, k - 1, 2, 3) * met(i, j, k - 1, 2, &
-                    &3))) - gDEdgeR * pDEdgeRGra / dx + gDEdgeL * pDEdgeLGra &
+                AD = - gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz &
+                    &- gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz &
+                    &- gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz &
+                    &- gEdgeB * pEdgeBGra * 0.25 * met23EdgeB / dz &
+                    &- gEdgeD * pEdgeDGra * met33EdgeD / dz &
+                    &- gDEdgeR * pDEdgeRGra / dx + gDEdgeL * pDEdgeLGra &
                     &/ dx - gDEdgeF * pDEdgeFGra / dy + gDEdgeB * pDEdgeBGra &
-                    &/ dy + gUEdgeR * pUEdgeRGra * 0.25 * met(i, j, k - 1, 1, &
-                    &3) / dz + gUEdgeL * pUEdgeLGra * 0.25 * met(i, j, k - 1, &
-                    &1, 3) / dz + gUEdgeF * pUEdgeFGra * 0.25 * met(i, j, k &
-                    &- 1, 2, 3) / dz + gUEdgeB * pUEdgeBGra * 0.25 * met(i, j, &
-                    &k - 1, 2, 3) / dz
+                    &/ dy + gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz &
+                    &+ gUEdgeL * pUEdgeLGra * 0.25 * met13UEdgeL / dz &
+                    &+ gUEdgeF * pUEdgeFGra * 0.25 * met23UEdgeF / dz &
+                    &+ gUEdgeB * pUEdgeBGra * 0.25 * met23UEdgeB / dz
               else if(k == nz .and. zBoundary == "solid_wall") then
-                AD = - gEdgeR * pEdgeRGra * met(i, j, k - 1, 1, 3) / dz &
-                    &- gEdgeL * pEdgeLGra * met(i, j, k - 1, 1, 3) / dz &
-                    &- gEdgeF * pEdgeFGra * met(i, j, k - 1, 2, 3) / dz &
-                    &- gEdgeB * pEdgeBGra * met(i, j, k - 1, 2, 3) / dz &
-                    &+ gEdgeD * (- pEdgeDGra * met(i, j, k - 1, 3, 3) / dz &
-                    &+ 0.5 * pStratTFC(i, j, k - 1) / jac(i, j, k - 1) &
-                    &* (chris(i, j, k - 1, 1, 1) + chris(i, j, k - 1, 2, 2) &
-                    &+ 2.0 * chris(i, j, k - 1, 1, 3) * met(i, j, k - 1, 1, 3) &
-                    &+ 2.0 * chris(i, j, k - 1, 2, 3) * met(i, j, k - 1, 2, &
-                    &3))) - gDEdgeR * pDEdgeRGra / dx + gDEdgeL * pDEdgeLGra &
+                AD = - gEdgeR * pEdgeRGra * met13EdgeR / dz &
+                    &- gEdgeL * pEdgeLGra * met13EdgeL / dz &
+                    &- gEdgeF * pEdgeFGra * met23EdgeF / dz &
+                    &- gEdgeB * pEdgeBGra * met23EdgeB / dz &
+                    &- gEdgeD * pEdgeDGra * met33EdgeD / dz &
+                    &- gDEdgeR * pDEdgeRGra / dx + gDEdgeL * pDEdgeLGra &
                     &/ dx - gDEdgeF * pDEdgeFGra / dy + gDEdgeB * pDEdgeBGra &
                     &/ dy
               else
-                AD = - gEdgeR * pEdgeRGra * 0.25 * met(i, j, k - 1, 1, 3) / dz &
-                    &- gEdgeL * pEdgeLGra * 0.25 * met(i, j, k - 1, 1, 3) / dz &
-                    &- gEdgeF * pEdgeFGra * 0.25 * met(i, j, k - 1, 2, 3) / dz &
-                    &- gEdgeB * pEdgeBGra * 0.25 * met(i, j, k - 1, 2, 3) / dz &
-                    &+ gEdgeD * (- pEdgeDGra * met(i, j, k - 1, 3, 3) / dz &
-                    &+ 0.5 * pStratTFC(i, j, k - 1) / jac(i, j, k - 1) &
-                    &* (chris(i, j, k - 1, 1, 1) + chris(i, j, k - 1, 2, 2) &
-                    &+ 2.0 * chris(i, j, k - 1, 1, 3) * met(i, j, k - 1, 1, 3) &
-                    &+ 2.0 * chris(i, j, k - 1, 2, 3) * met(i, j, k - 1, 2, &
-                    &3))) - gDEdgeR * pDEdgeRGra / dx + gDEdgeL * pDEdgeLGra &
+                AD = - gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz &
+                    &- gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz &
+                    &- gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz &
+                    &- gEdgeB * pEdgeBGra * 0.25 * met23EdgeB / dz &
+                    &- gEdgeD * pEdgeDGra * met33EdgeD / dz &
+                    &- gDEdgeR * pDEdgeRGra / dx + gDEdgeL * pDEdgeLGra &
                     &/ dx - gDEdgeF * pDEdgeFGra / dy + gDEdgeB * pDEdgeBGra &
                     &/ dy
               end if
@@ -6253,25 +5060,29 @@ module poisson_module
               ! ----------------- A(i+1,j,k+1) ------------------!
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                ARU = gEdgeR * pEdgeRGra * met(i + 1, j, k + 1, 1, 3) / dz &
-                    &+ gEdgeU * pEdgeUGra * 0.25 * met(i + 1, j, k + 1, 1, 3) &
-                    &/ dx + gUEdgeR * pUEdgeRGra / dx
+                ARU = gEdgeR * pEdgeRGra * met13EdgeR / dz &
+                    &+ gEdgeU * pEdgeUGra * 0.5 * met13EdgeU &
+                    &/ dx * jac(i + 1, j, k) / (jac(i + 1, j, k) + jac(i + 1, &
+                    &j, k + 1)) + gUEdgeR * pUEdgeRGra / dx
               else if(k == 2 .and. zBoundary == "solid_wall") then
-                ARU = gEdgeR * pEdgeRGra * 0.25 * met(i + 1, j, k + 1, 1, 3) &
-                    &/ dz + gEdgeU * pEdgeUGra * 0.25 * met(i + 1, j, k + 1, &
-                    &1, 3) / dx + gUEdgeR * pUEdgeRGra / dx - gDEdgeR &
-                    &* pDEdgeRGra * 0.25 * met(i + 1, j, k + 1, 1, 3) / dz
+                ARU = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR &
+                    &/ dz + gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx &
+                    &* jac(i + 1, j, k) / (jac(i + 1, j, k) + jac(i + 1, j, k &
+                    &+ 1)) + gUEdgeR * pUEdgeRGra / dx - gDEdgeR &
+                    &* pDEdgeRGra * 0.25 * met13DEdgeR / dz
               else if(k == nz - 1 .and. zBoundary == "solid_wall") then
-                ARU = gEdgeR * pEdgeRGra * 0.25 * met(i + 1, j, k + 1, 1, 3) &
-                    &/ dz + gEdgeU * pEdgeUGra * 0.25 * met(i + 1, j, k + 1, &
-                    &1, 3) / dx + gUEdgeR * pUEdgeRGra * (1.0 / dx + 0.75 &
-                    &* met(i + 1, j, k + 1, 1, 3) / dz)
+                ARU = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR &
+                    &/ dz + gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx * jac(i &
+                    &+ 1, j, k) / (jac(i + 1, j, k) + jac(i + 1, j, k + 1)) &
+                    &+ gUEdgeR * pUEdgeRGra * (1.0 / dx + 0.75 &
+                    &* met13UEdgeR / dz)
               else if(k == nz .and. zBoundary == "solid_wall") then
                 ARU = 0.0
               else
-                ARU = gEdgeR * pEdgeRGra * 0.25 * met(i + 1, j, k + 1, 1, 3) &
-                    &/ dz + gEdgeU * pEdgeUGra * 0.25 * met(i + 1, j, k + 1, &
-                    &1, 3) / dx + gUEdgeR * pUEdgeRGra / dx
+                ARU = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR &
+                    &/ dz + gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx &
+                    &* jac(i + 1, j, k) / (jac(i + 1, j, k) + jac(i + 1, j, k &
+                    &+ 1)) + gUEdgeR * pUEdgeRGra / dx
               end if
 
               ! ----------------- A(i+1,j,k-1) ------------------!
@@ -6279,47 +5090,55 @@ module poisson_module
               if(k == 1 .and. zBoundary == "solid_wall") then
                 ARD = 0.0
               else if(k == 2 .and. zBoundary == "solid_wall") then
-                ARD = - gEdgeR * pEdgeRGra * 0.25 * met(i + 1, j, k - 1, 1, 3) &
-                    &/ dz + gEdgeD * pEdgeDGra * 0.25 * met(i + 1, j, k - 1, &
-                    &1, 3) / dx + gDEdgeR * pDEdgeRGra * (1.0 / dx - 0.75 &
-                    &* met(i + 1, j, k - 1, 1, 3) / dz)
+                ARD = - gEdgeR * pEdgeRGra * 0.25 * met13EdgeR &
+                    &/ dz + gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx &
+                    &* jac(i + 1, j, k) / (jac(i + 1, j, k) + jac(i + 1, j, k &
+                    &- 1)) + gDEdgeR * pDEdgeRGra * (1.0 / dx - 0.75 &
+                    &* met13DEdgeR / dz)
               else if(k == nz - 1 .and. zBoundary == "solid_wall") then
-                ARD = - gEdgeR * pEdgeRGra * 0.25 * met(i + 1, j, k - 1, 1, 3) &
-                    &/ dz + gEdgeD * pEdgeDGra * 0.25 * met(i + 1, j, k - 1, &
-                    &1, 3) / dx + gDEdgeR * pDEdgeRGra / dx + gUEdgeR &
-                    &* pUEdgeRGra * 0.25 * met(i + 1, j, k - 1, 1, 3) / dz
+                ARD = - gEdgeR * pEdgeRGra * 0.25 * met13EdgeR &
+                    &/ dz + gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx * jac(i &
+                    &+ 1, j, k) / (jac(i + 1, j, k) + jac(i + 1, j, k - 1)) &
+                    &+ gDEdgeR * pDEdgeRGra / dx + gUEdgeR &
+                    &* pUEdgeRGra * 0.25 * met13UEdgeR / dz
               else if(k == nz .and. zBoundary == "solid_wall") then
-                ARD = - gEdgeR * pEdgeRGra * met(i + 1, j, k - 1, 1, 3) / dz &
-                    &+ gEdgeD * pEdgeDGra * 0.25 * met(i + 1, j, k - 1, 1, 3) &
-                    &/ dx + gDEdgeR * pDEdgeRGra / dx
+                ARD = - gEdgeR * pEdgeRGra * met13EdgeR / dz &
+                    &+ gEdgeD * pEdgeDGra * 0.5 * met13EdgeD &
+                    &/ dx * jac(i + 1, j, k) / (jac(i + 1, j, k) + jac(i + 1, &
+                    &j, k - 1)) + gDEdgeR * pDEdgeRGra / dx
               else
-                ARD = - gEdgeR * pEdgeRGra * 0.25 * met(i + 1, j, k - 1, 1, 3) &
-                    &/ dz + gEdgeD * pEdgeDGra * 0.25 * met(i + 1, j, k - 1, &
-                    &1, 3) / dx + gDEdgeR * pDEdgeRGra / dx
+                ARD = - gEdgeR * pEdgeRGra * 0.25 * met13EdgeR &
+                    &/ dz + gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx &
+                    &* jac(i + 1, j, k) / (jac(i + 1, j, k) + jac(i + 1, j, k &
+                    &- 1)) + gDEdgeR * pDEdgeRGra / dx
               end if
 
               ! ----------------- A(i-1,j,k+1) ------------------!
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                ALU = gEdgeL * pEdgeLGra * met(i - 1, j, k + 1, 1, 3) / dz &
-                    &- gEdgeU * pEdgeUGra * 0.25 * met(i - 1, j, k + 1, 1, 3) &
-                    &/ dx - gUEdgeL * pUEdgeLGra / dx
+                ALU = gEdgeL * pEdgeLGra * met13EdgeL / dz &
+                    &- gEdgeU * pEdgeUGra * 0.5 * met13EdgeU &
+                    &/ dx * jac(i - 1, j, k) / (jac(i - 1, j, k) + jac(i - 1, &
+                    &j, k + 1)) - gUEdgeL * pUEdgeLGra / dx
               else if(k == 2 .and. zBoundary == "solid_wall") then
-                ALU = gEdgeL * pEdgeLGra * 0.25 * met(i - 1, j, k + 1, 1, 3) &
-                    &/ dz - gEdgeU * pEdgeUGra * 0.25 * met(i - 1, j, k + 1, &
-                    &1, 3) / dx - gUEdgeL * pUEdgeLGra / dx - gDEdgeL &
-                    &* pDEdgeLGra * 0.25 * met(i - 1, j, k + 1, 1, 3) / dz
+                ALU = gEdgeL * pEdgeLGra * 0.25 * met13EdgeL &
+                    &/ dz - gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx &
+                    &* jac(i - 1, j, k) / (jac(i - 1, j, k) + jac(i - 1, j, k &
+                    &+ 1)) - gUEdgeL * pUEdgeLGra / dx - gDEdgeL &
+                    &* pDEdgeLGra * 0.25 * met13DEdgeL / dz
               else if(k == nz - 1 .and. zBoundary == "solid_wall") then
-                ALU = gEdgeL * pEdgeLGra * 0.25 * met(i - 1, j, k + 1, 1, 3) &
-                    &/ dz - gEdgeU * pEdgeUGra * 0.25 * met(i - 1, j, k + 1, &
-                    &1, 3) / dx - gUEdgeL * pUEdgeLGra * (1.0 / dx - 0.75 &
-                    &* met(i - 1, j, k + 1, 1, 3) / dz)
+                ALU = gEdgeL * pEdgeLGra * 0.25 * met13EdgeL &
+                    &/ dz - gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx * jac(i &
+                    &- 1, j, k) / (jac(i - 1, j, k) + jac(i - 1, j, k + 1)) &
+                    &- gUEdgeL * pUEdgeLGra * (1.0 / dx - 0.75 &
+                    &* met13UEdgeL / dz)
               else if(k == nz .and. zBoundary == "solid_wall") then
                 ALU = 0.0
               else
-                ALU = gEdgeL * pEdgeLGra * 0.25 * met(i - 1, j, k + 1, 1, 3) &
-                    &/ dz - gEdgeU * pEdgeUGra * 0.25 * met(i - 1, j, k + 1, &
-                    &1, 3) / dx - gUEdgeL * pUEdgeLGra / dx
+                ALU = gEdgeL * pEdgeLGra * 0.25 * met13EdgeL &
+                    &/ dz - gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx &
+                    &* jac(i - 1, j, k) / (jac(i - 1, j, k) + jac(i - 1, j, k &
+                    &+ 1)) - gUEdgeL * pUEdgeLGra / dx
               end if
 
               ! ----------------- A(i-1,j,k-1) ------------------!
@@ -6327,47 +5146,55 @@ module poisson_module
               if(k == 1 .and. zBoundary == "solid_wall") then
                 ALD = 0.0
               else if(k == 2 .and. zBoundary == "solid_wall") then
-                ALD = - gEdgeL * pEdgeLGra * 0.25 * met(i - 1, j, k - 1, 1, 3) &
-                    &/ dz - gEdgeD * pEdgeDGra * 0.25 * met(i - 1, j, k - 1, &
-                    &1, 3) / dx - gDEdgeL * pDEdgeLGra * (1.0 / dx + 0.75 &
-                    &* met(i - 1, j, k - 1, 1, 3) / dz)
+                ALD = - gEdgeL * pEdgeLGra * 0.25 * met13EdgeL &
+                    &/ dz - gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx &
+                    &* jac(i - 1, j, k) / (jac(i - 1, j, k) + jac(i - 1, j, k &
+                    &- 1)) - gDEdgeL * pDEdgeLGra * (1.0 / dx + 0.75 &
+                    &* met13DEdgeL / dz)
               else if(k == nz - 1 .and. zBoundary == "solid_wall") then
-                ALD = - gEdgeL * pEdgeLGra * 0.25 * met(i - 1, j, k - 1, 1, 3) &
-                    &/ dz - gEdgeD * pEdgeDGra * 0.25 * met(i - 1, j, k - 1, &
-                    &1, 3) / dx - gDEdgeL * pDEdgeLGra / dx + gUEdgeL &
-                    &* pUEdgeLGra * 0.25 * met(i - 1, j, k - 1, 1, 3) / dz
+                ALD = - gEdgeL * pEdgeLGra * 0.25 * met13EdgeL &
+                    &/ dz - gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx * jac(i &
+                    &- 1, j, k) / (jac(i - 1, j, k) + jac(i - 1, j, k - 1)) &
+                    &- gDEdgeL * pDEdgeLGra / dx + gUEdgeL &
+                    &* pUEdgeLGra * 0.25 * met13UEdgeL / dz
               else if(k == nz .and. zBoundary == "solid_wall") then
-                ALD = - gEdgeL * pEdgeLGra * met(i - 1, j, k - 1, 1, 3) / dz &
-                    &- gEdgeD * pEdgeDGra * 0.25 * met(i - 1, j, k - 1, 1, 3) &
-                    &/ dx - gDEdgeL * pDEdgeLGra / dx
+                ALD = - gEdgeL * pEdgeLGra * met13EdgeL / dz &
+                    &- gEdgeD * pEdgeDGra * 0.5 * met13EdgeD &
+                    &/ dx * jac(i - 1, j, k) / (jac(i - 1, j, k) + jac(i - 1, &
+                    &j, k - 1)) - gDEdgeL * pDEdgeLGra / dx
               else
-                ALD = - gEdgeL * pEdgeLGra * 0.25 * met(i - 1, j, k - 1, 1, 3) &
-                    &/ dz - gEdgeD * pEdgeDGra * 0.25 * met(i - 1, j, k - 1, &
-                    &1, 3) / dx - gDEdgeL * pDEdgeLGra / dx
+                ALD = - gEdgeL * pEdgeLGra * 0.25 * met13EdgeL &
+                    &/ dz - gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx &
+                    &* jac(i - 1, j, k) / (jac(i - 1, j, k) + jac(i - 1, j, k &
+                    &- 1)) - gDEdgeL * pDEdgeLGra / dx
               end if
 
               ! ----------------- A(i,j+1,k+1) ------------------!
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                AFU = gEdgeF * pEdgeFGra * met(i, j + 1, k + 1, 2, 3) / dz &
-                    &+ gEdgeU * pEdgeUGra * 0.25 * met(i, j + 1, k + 1, 2, 3) &
-                    &/ dy + gUEdgeF * pUEdgeFGra / dy
+                AFU = gEdgeF * pEdgeFGra * met23EdgeF / dz &
+                    &+ gEdgeU * pEdgeUGra * 0.5 * met23EdgeU &
+                    &/ dy * jac(i, j + 1, k) / (jac(i, j + 1, k) + jac(i, j &
+                    &+ 1, k + 1)) + gUEdgeF * pUEdgeFGra / dy
               else if(k == 2 .and. zBoundary == "solid_wall") then
-                AFU = gEdgeF * pEdgeFGra * 0.25 * met(i, j + 1, k + 1, 2, 3) &
-                    &/ dz + gEdgeU * pEdgeUGra * 0.25 * met(i, j + 1, k + 1, &
-                    &2, 3) / dy + gUEdgeF * pUEdgeFGra / dy - gDEdgeF &
-                    &* pDEdgeFGra * 0.25 * met(i, j + 1, k + 1, 2, 3) / dz
+                AFU = gEdgeF * pEdgeFGra * 0.25 * met23EdgeF &
+                    &/ dz + gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy &
+                    &* jac(i, j + 1, k) / (jac(i, j + 1, k) + jac(i, j + 1, k &
+                    &+ 1)) + gUEdgeF * pUEdgeFGra / dy - gDEdgeF &
+                    &* pDEdgeFGra * 0.25 * met23DEdgeF / dz
               else if(k == nz - 1 .and. zBoundary == "solid_wall") then
-                AFU = gEdgeF * pEdgeFGra * 0.25 * met(i, j + 1, k + 1, 2, 3) &
-                    &/ dz + gEdgeU * pEdgeUGra * 0.25 * met(i, j + 1, k + 1, &
-                    &2, 3) / dy + gUEdgeF * pUEdgeFGra * (1.0 / dy + 0.75 &
-                    &* met(i, j + 1, k + 1, 2, 3) / dz)
+                AFU = gEdgeF * pEdgeFGra * 0.25 * met23EdgeF &
+                    &/ dz + gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy &
+                    &* jac(i, j + 1, k) / (jac(i, j + 1, k) + jac(i, j + 1, k &
+                    &+ 1)) + gUEdgeF * pUEdgeFGra * (1.0 / dy + 0.75 &
+                    &* met23UEdgeF / dz)
               else if(k == nz .and. zBoundary == "solid_wall") then
                 AFU = 0.0
               else
-                AFU = gEdgeF * pEdgeFGra * 0.25 * met(i, j + 1, k + 1, 2, 3) &
-                    &/ dz + gEdgeU * pEdgeUGra * 0.25 * met(i, j + 1, k + 1, &
-                    &2, 3) / dy + gUEdgeF * pUEdgeFGra / dy
+                AFU = gEdgeF * pEdgeFGra * 0.25 * met23EdgeF &
+                    &/ dz + gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy &
+                    &* jac(i, j + 1, k) / (jac(i, j + 1, k) + jac(i, j + 1, k &
+                    &+ 1)) + gUEdgeF * pUEdgeFGra / dy
               end if
 
               ! ----------------- A(i,j+1,k-1) ------------------!
@@ -6375,47 +5202,55 @@ module poisson_module
               if(k == 1 .and. zBoundary == "solid_wall") then
                 AFD = 0.0
               else if(k == 2 .and. zBoundary == "solid_wall") then
-                AFD = - gEdgeF * pEdgeFGra * 0.25 * met(i, j + 1, k - 1, 2, 3) &
-                    &/ dz + gEdgeD * pEdgeDGra * 0.25 * met(i, j + 1, k - 1, &
-                    &2, 3) / dy + gDEdgeF * pDEdgeFGra * (1.0 / dy - 0.75 &
-                    &* met(i, j + 1, k - 1, 2, 3) / dz)
+                AFD = - gEdgeF * pEdgeFGra * 0.25 * met23EdgeF &
+                    &/ dz + gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy &
+                    &* jac(i, j + 1, k) / (jac(i, j + 1, k) + jac(i, j + 1, k &
+                    &- 1)) + gDEdgeF * pDEdgeFGra * (1.0 / dy - 0.75 &
+                    &* met23DEdgeF / dz)
               else if(k == nz - 1 .and. zBoundary == "solid_wall") then
-                AFD = - gEdgeF * pEdgeFGra * 0.25 * met(i, j + 1, k - 1, 2, 3) &
-                    &/ dz + gEdgeD * pEdgeDGra * 0.25 * met(i, j + 1, k - 1, &
-                    &2, 3) / dy + gDEdgeF * pDEdgeFGra / dy + gUEdgeF &
-                    &* pUEdgeFGra * 0.25 * met(i, j + 1, k - 1, 2, 3) / dz
+                AFD = - gEdgeF * pEdgeFGra * 0.25 * met23EdgeF &
+                    &/ dz + gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy &
+                    &* jac(i, j + 1, k) / (jac(i, j + 1, k) + jac(i, j + 1, k &
+                    &- 1)) + gDEdgeF * pDEdgeFGra / dy + gUEdgeF &
+                    &* pUEdgeFGra * 0.25 * met23UEdgeF / dz
               else if(k == nz .and. zBoundary == "solid_wall") then
-                AFD = - gEdgeF * pEdgeFGra * met(i, j + 1, k - 1, 2, 3) / dz &
-                    &+ gEdgeD * pEdgeDGra * 0.25 * met(i, j + 1, k - 1, 2, 3) &
-                    &/ dy + gDEdgeF * pDEdgeFGra / dy
+                AFD = - gEdgeF * pEdgeFGra * met23EdgeF / dz &
+                    &+ gEdgeD * pEdgeDGra * 0.5 * met23EdgeD &
+                    &/ dy * jac(i, j + 1, k) / (jac(i, j + 1, k) + jac(i, j &
+                    &+ 1, k - 1)) + gDEdgeF * pDEdgeFGra / dy
               else
-                AFD = - gEdgeF * pEdgeFGra * 0.25 * met(i, j + 1, k - 1, 2, 3) &
-                    &/ dz + gEdgeD * pEdgeDGra * 0.25 * met(i, j + 1, k - 1, &
-                    &2, 3) / dy + gDEdgeF * pDEdgeFGra / dy
+                AFD = - gEdgeF * pEdgeFGra * 0.25 * met23EdgeF &
+                    &/ dz + gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy &
+                    &* jac(i, j + 1, k) / (jac(i, j + 1, k) + jac(i, j + 1, k &
+                    &- 1)) + gDEdgeF * pDEdgeFGra / dy
               end if
 
               ! ----------------- A(i,j-1,k+1) ------------------!
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                ABU = gEdgeB * pEdgeBGra * met(i, j - 1, k + 1, 2, 3) / dz &
-                    &- gEdgeU * pEdgeUGra * 0.25 * met(i, j - 1, k + 1, 2, 3) &
-                    &/ dy - gUEdgeB * pUEdgeBGra / dy
+                ABU = gEdgeB * pEdgeBGra * met23EdgeB / dz &
+                    &- gEdgeU * pEdgeUGra * 0.5 * met23EdgeU &
+                    &/ dy * jac(i, j - 1, k) / (jac(i, j - 1, k) + jac(i, j &
+                    &- 1, k + 1)) - gUEdgeB * pUEdgeBGra / dy
               else if(k == 2 .and. zBoundary == "solid_wall") then
-                ABU = gEdgeB * pEdgeBGra * 0.25 * met(i, j - 1, k + 1, 2, 3) &
-                    &/ dz - gEdgeU * pEdgeUGra * 0.25 * met(i, j - 1, k + 1, &
-                    &2, 3) / dy - gUEdgeB * pUEdgeBGra / dy - gDEdgeB &
-                    &* pDEdgeBGra * 0.25 * met(i, j - 1, k + 1, 2, 3) / dz
+                ABU = gEdgeB * pEdgeBGra * 0.25 * met23EdgeB &
+                    &/ dz - gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy &
+                    &* jac(i, j - 1, k) / (jac(i, j - 1, k) + jac(i, j - 1, k &
+                    &+ 1)) - gUEdgeB * pUEdgeBGra / dy - gDEdgeB &
+                    &* pDEdgeBGra * 0.25 * met23DEdgeB / dz
               else if(k == nz - 1 .and. zBoundary == "solid_wall") then
-                ABU = gEdgeB * pEdgeBGra * 0.25 * met(i, j - 1, k + 1, 2, 3) &
-                    &/ dz - gEdgeU * pEdgeUGra * 0.25 * met(i, j - 1, k + 1, &
-                    &2, 3) / dy - gUEdgeB * pUEdgeBGra * (1.0 / dy - 0.75 &
-                    &* met(i, j - 1, k + 1, 2, 3) / dz)
+                ABU = gEdgeB * pEdgeBGra * 0.25 * met23EdgeB &
+                    &/ dz - gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy &
+                    &* jac(i, j - 1, k) / (jac(i, j - 1, k) + jac(i, j - 1, k &
+                    &+ 1)) - gUEdgeB * pUEdgeBGra * (1.0 / dy - 0.75 &
+                    &* met23UEdgeB / dz)
               else if(k == nz .and. zBoundary == "solid_wall") then
                 ABU = 0.0
               else
-                ABU = gEdgeB * pEdgeBGra * 0.25 * met(i, j - 1, k + 1, 2, 3) &
-                    &/ dz - gEdgeU * pEdgeUGra * 0.25 * met(i, j - 1, k + 1, &
-                    &2, 3) / dy - gUEdgeB * pUEdgeBGra / dy
+                ABU = gEdgeB * pEdgeBGra * 0.25 * met23EdgeB &
+                    &/ dz - gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy &
+                    &* jac(i, j - 1, k) / (jac(i, j - 1, k) + jac(i, j - 1, k &
+                    &+ 1)) - gUEdgeB * pUEdgeBGra / dy
               end if
 
               ! ----------------- A(i,j-1,k-1) ------------------!
@@ -6423,46 +5258,48 @@ module poisson_module
               if(k == 1 .and. zBoundary == "solid_wall") then
                 ABD = 0.0
               else if(k == 2 .and. zBoundary == "solid_wall") then
-                ABD = - gEdgeB * pEdgeBGra * 0.25 * met(i, j - 1, k - 1, 2, 3) &
-                    &/ dz - gEdgeD * pEdgeDGra * 0.25 * met(i, j - 1, k - 1, &
-                    &2, 3) / dy - gDEdgeB * pDEdgeBGra * (1.0 / dy + 0.75 &
-                    &* met(i, j - 1, k - 1, 2, 3) / dz)
+                ABD = - gEdgeB * pEdgeBGra * 0.25 * met23EdgeB &
+                    &/ dz - gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy &
+                    &* jac(i, j - 1, k) / (jac(i, j - 1, k) + jac(i, j - 1, k &
+                    &- 1)) - gDEdgeB * pDEdgeBGra * (1.0 / dy + 0.75 &
+                    &* met23DEdgeB / dz)
               else if(k == nz - 1 .and. zBoundary == "solid_wall") then
-                ABD = - gEdgeB * pEdgeBGra * 0.25 * met(i, j - 1, k - 1, 2, 3) &
-                    &/ dz - gEdgeD * pEdgeDGra * 0.25 * met(i, j - 1, k - 1, &
-                    &2, 3) / dy - gDEdgeB * pDEdgeBGra / dy + gUEdgeB &
-                    &* pUEdgeBGra * 0.25 * met(i, j - 1, k - 1, 2, 3) / dz
+                ABD = - gEdgeB * pEdgeBGra * 0.25 * met23EdgeB &
+                    &/ dz - gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy &
+                    &* jac(i, j - 1, k) / (jac(i, j - 1, k) + jac(i, j - 1, k &
+                    &- 1)) - gDEdgeB * pDEdgeBGra / dy + gUEdgeB &
+                    &* pUEdgeBGra * 0.25 * met23UEdgeB / dz
               else if(k == nz .and. zBoundary == "solid_wall") then
-                ABD = - gEdgeB * pEdgeBGra * met(i, j - 1, k - 1, 2, 3) / dz &
-                    &- gEdgeD * pEdgeDGra * 0.25 * met(i, j - 1, k - 1, 2, 3) &
-                    &/ dy - gDEdgeB * pDEdgeBGra / dy
+                ABD = - gEdgeB * pEdgeBGra * met23EdgeB / dz &
+                    &- gEdgeD * pEdgeDGra * 0.5 * met23EdgeD &
+                    &/ dy * jac(i, j - 1, k) / (jac(i, j - 1, k) + jac(i, j &
+                    &- 1, k - 1)) - gDEdgeB * pDEdgeBGra / dy
               else
-                ABD = - gEdgeB * pEdgeBGra * 0.25 * met(i, j - 1, k - 1, 2, 3) &
-                    &/ dz - gEdgeD * pEdgeDGra * 0.25 * met(i, j - 1, k - 1, &
-                    &2, 3) / dy - gDEdgeB * pDEdgeBGra / dy
+                ABD = - gEdgeB * pEdgeBGra * 0.25 * met23EdgeB &
+                    &/ dz - gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy &
+                    &* jac(i, j - 1, k) / (jac(i, j - 1, k) + jac(i, j - 1, k &
+                    &- 1)) - gDEdgeB * pDEdgeBGra / dy
               end if
 
               ! ------------------ A(i,j,k+2) -------------------!
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                AUU = - gEdgeR * pEdgeRGra * 0.25 * met(i, j, k + 2, 1, 3) &
-                    &/ dz - gEdgeL * pEdgeLGra * 0.25 * met(i, j, k + 2, 1, 3) &
-                    &/ dz - gEdgeF * pEdgeFGra * 0.25 * met(i, j, k + 2, 2, 3) &
-                    &/ dz - gEdgeB * pEdgeBGra * 0.25 * met(i, j, k + 2, 2, 3) &
-                    &/ dz + gUEdgeR * pUEdgeRGra * 0.25 * met(i, j, k + 2, 1, &
-                    &3) / dz + gUEdgeL * pUEdgeLGra * 0.25 * met(i, j, k + 2, &
-                    &1, 3) / dz + gUEdgeF * pUEdgeFGra * 0.25 * met(i, j, k &
-                    &+ 2, 2, 3) / dz + gUEdgeB * pUEdgeBGra * 0.25 * met(i, j, &
-                    &k + 2, 2, 3) / dz
+                AUU = - gEdgeR * pEdgeRGra * 0.25 * met13EdgeR &
+                    &/ dz - gEdgeL * pEdgeLGra * 0.25 * met13EdgeL &
+                    &/ dz - gEdgeF * pEdgeFGra * 0.25 * met23EdgeF &
+                    &/ dz - gEdgeB * pEdgeBGra * 0.25 * met23EdgeB &
+                    &/ dz + gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz &
+                    &+ gUEdgeL * pUEdgeLGra * 0.25 * met13UEdgeL / dz &
+                    &+ gUEdgeF * pUEdgeFGra * 0.25 * met23UEdgeF / dz &
+                    &+ gUEdgeB * pUEdgeBGra * 0.25 * met23UEdgeB / dz
               else if((k == nz - 1 .or. k == nz) .and. zBoundary &
                   &== "solid_wall") then
                 AUU = 0.0
               else
-                AUU = gUEdgeR * pUEdgeRGra * 0.25 * met(i, j, k + 2, 1, 3) &
-                    &/ dz + gUEdgeL * pUEdgeLGra * 0.25 * met(i, j, k + 2, 1, &
-                    &3) / dz + gUEdgeF * pUEdgeFGra * 0.25 * met(i, j, k + 2, &
-                    &2, 3) / dz + gUEdgeB * pUEdgeBGra * 0.25 * met(i, j, k &
-                    &+ 2, 2, 3) / dz
+                AUU = gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR &
+                    &/ dz + gUEdgeL * pUEdgeLGra * 0.25 * met13UEdgeL / dz &
+                    &+ gUEdgeF * pUEdgeFGra * 0.25 * met23UEdgeF / dz &
+                    &+ gUEdgeB * pUEdgeBGra * 0.25 * met23UEdgeB / dz
               end if
 
               ! ------------------ A(i,j,k-2) -------------------!
@@ -6470,35 +5307,31 @@ module poisson_module
               if((k == 1 .or. k == 2) .and. zBoundary == "solid_wall") then
                 ADD = 0.0
               else if(k == nz .and. zBoundary == "solid_wall") then
-                ADD = gEdgeR * pEdgeRGra * 0.25 * met(i, j, k - 2, 1, 3) / dz &
-                    &+ gEdgeL * pEdgeLGra * 0.25 * met(i, j, k - 2, 1, 3) / dz &
-                    &+ gEdgeF * pEdgeFGra * 0.25 * met(i, j, k - 2, 2, 3) / dz &
-                    &+ gEdgeB * pEdgeBGra * 0.25 * met(i, j, k - 2, 2, 3) / dz &
-                    &- gDEdgeR * pDEdgeRGra * 0.25 * met(i, j, k - 2, 1, 3) &
-                    &/ dz - gDEdgeL * pDEdgeLGra * 0.25 * met(i, j, k - 2, 1, &
-                    &3) / dz - gDEdgeF * pDEdgeFGra * 0.25 * met(i, j, k - 2, &
-                    &2, 3) / dz - gDEdgeB * pDEdgeBGra * 0.25 * met(i, j, k &
-                    &- 2, 2, 3) / dz
+                ADD = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz &
+                    &+ gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz &
+                    &+ gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz &
+                    &+ gEdgeB * pEdgeBGra * 0.25 * met23EdgeB / dz &
+                    &- gDEdgeR * pDEdgeRGra * 0.25 * met13DEdgeR &
+                    &/ dz - gDEdgeL * pDEdgeLGra * 0.25 * met13DEdgeL / dz &
+                    &- gDEdgeF * pDEdgeFGra * 0.25 * met23DEdgeF / dz &
+                    &- gDEdgeB * pDEdgeBGra * 0.25 * met23DEdgeB / dz
               else
-                ADD = - gDEdgeR * pDEdgeRGra * 0.25 * met(i, j, k - 2, 1, 3) &
-                    &/ dz - gDEdgeL * pDEdgeLGra * 0.25 * met(i, j, k - 2, 1, &
-                    &3) / dz - gDEdgeF * pDEdgeFGra * 0.25 * met(i, j, k - 2, &
-                    &2, 3) / dz - gDEdgeB * pDEdgeBGra * 0.25 * met(i, j, k &
-                    &- 2, 2, 3) / dz
+                ADD = - gDEdgeR * pDEdgeRGra * 0.25 * met13DEdgeR &
+                    &/ dz - gDEdgeL * pDEdgeLGra * 0.25 * met13DEdgeL / dz &
+                    &- gDEdgeF * pDEdgeFGra * 0.25 * met23DEdgeF / dz &
+                    &- gDEdgeB * pDEdgeBGra * 0.25 * met23DEdgeB / dz
               end if
 
               ! ----------------- A(i+1,j,k+2) ------------------!
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                ARUU = - gEdgeR * pEdgeRGra * 0.25 * met(i + 1, j, k + 2, 1, &
-                    &3) / dz + gUEdgeR * pUEdgeRGra * 0.25 * met(i + 1, j, k &
-                    &+ 2, 1, 3) / dz
+                ARUU = - gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz &
+                    &+ gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz
               else if((k == nz - 1 .or. k == nz) .and. zBoundary &
                   &== "solid_wall") then
                 ARUU = 0.0
               else
-                ARUU = gUEdgeR * pUEdgeRGra * 0.25 * met(i + 1, j, k + 2, 1, &
-                    &3) / dz
+                ARUU = gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz
               end if
 
               ! ----------------- A(i+1,j,k-2) ------------------!
@@ -6506,26 +5339,22 @@ module poisson_module
               if((k == 1 .or. k == 2) .and. zBoundary == "solid_wall") then
                 ARDD = 0.0
               else if(k == nz .and. zBoundary == "solid_wall") then
-                ARDD = gEdgeR * pEdgeRGra * 0.25 * met(i + 1, j, k - 2, 1, 3) &
-                    &/ dz - gDEdgeR * pDEdgeRGra * 0.25 * met(i + 1, j, k - 2, &
-                    &1, 3) / dz
+                ARDD = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR &
+                    &/ dz - gDEdgeR * pDEdgeRGra * 0.25 * met13DEdgeR / dz
               else
-                ARDD = - gDEdgeR * pDEdgeRGra * 0.25 * met(i + 1, j, k - 2, 1, &
-                    &3) / dz
+                ARDD = - gDEdgeR * pDEdgeRGra * 0.25 * met13DEdgeR / dz
               end if
 
               ! ----------------- A(i-1,j,k+2) ------------------!
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                ALUU = - gEdgeL * pEdgeLGra * 0.25 * met(i - 1, j, k + 2, 1, &
-                    &3) / dz + gUEdgeL * pUEdgeLGra * 0.25 * met(i - 1, j, k &
-                    &+ 2, 1, 3) / dz
+                ALUU = - gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz &
+                    &+ gUEdgeL * pUEdgeLGra * 0.25 * met13UEdgeL / dz
               else if((k == nz - 1 .or. k == nz) .and. zBoundary &
                   &== "solid_wall") then
                 ALUU = 0.0
               else
-                ALUU = gUEdgeL * pUEdgeLGra * 0.25 * met(i - 1, j, k + 2, 1, &
-                    &3) / dz
+                ALUU = gUEdgeL * pUEdgeLGra * 0.25 * met13UEdgeL / dz
               end if
 
               ! ----------------- A(i-1,j,k-2) ------------------!
@@ -6533,26 +5362,22 @@ module poisson_module
               if((k == 1 .or. k == 2) .and. zBoundary == "solid_wall") then
                 ALDD = 0.0
               else if(k == nz .and. zBoundary == "solid_wall") then
-                ALDD = gEdgeL * pEdgeLGra * 0.25 * met(i - 1, j, k - 2, 1, 3) &
-                    &/ dz - gDEdgeL * pDEdgeLGra * 0.25 * met(i - 1, j, k - 2, &
-                    &1, 3) / dz
+                ALDD = gEdgeL * pEdgeLGra * 0.25 * met13EdgeL &
+                    &/ dz - gDEdgeL * pDEdgeLGra * 0.25 * met13DEdgeL / dz
               else
-                ALDD = - gDEdgeL * pDEdgeLGra * 0.25 * met(i - 1, j, k - 2, 1, &
-                    &3) / dz
+                ALDD = - gDEdgeL * pDEdgeLGra * 0.25 * met13DEdgeL / dz
               end if
 
               ! ----------------- A(i,j+1,k+2) ------------------!
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                AFUU = - gEdgeF * pEdgeFGra * 0.25 * met(i, j + 1, k + 2, 2, &
-                    &3) / dz + gUEdgeF * pUEdgeFGra * 0.25 * met(i, j + 1, k &
-                    &+ 2, 2, 3) / dz
+                AFUU = - gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz &
+                    &+ gUEdgeF * pUEdgeFGra * 0.25 * met23UEdgeF / dz
               else if((k == nz - 1 .or. k == nz) .and. zBoundary &
                   &== "solid_wall") then
                 AFUU = 0.0
               else
-                AFUU = gUEdgeF * pUEdgeFGra * 0.25 * met(i, j + 1, k + 2, 2, &
-                    &3) / dz
+                AFUU = gUEdgeF * pUEdgeFGra * 0.25 * met23UEdgeF / dz
               end if
 
               ! ----------------- A(i,j+1,k-2) ------------------!
@@ -6560,26 +5385,22 @@ module poisson_module
               if((k == 1 .or. k == 2) .and. zBoundary == "solid_wall") then
                 AFDD = 0.0
               else if(k == nz .and. zBoundary == "solid_wall") then
-                AFDD = gEdgeF * pEdgeFGra * 0.25 * met(i, j + 1, k - 2, 2, 3) &
-                    &/ dz - gDEdgeF * pDEdgeFGra * 0.25 * met(i, j + 1, k - 2, &
-                    &2, 3) / dz
+                AFDD = gEdgeF * pEdgeFGra * 0.25 * met23EdgeF &
+                    &/ dz - gDEdgeF * pDEdgeFGra * 0.25 * met23DEdgeF / dz
               else
-                AFDD = - gDEdgeF * pDEdgeFGra * 0.25 * met(i, j + 1, k - 2, 2, &
-                    &3) / dz
+                AFDD = - gDEdgeF * pDEdgeFGra * 0.25 * met23DEdgeF / dz
               end if
 
               ! ----------------- A(i,j-1,k+2) ------------------!
 
               if(k == 1 .and. zBoundary == "solid_wall") then
-                ABUU = - gEdgeB * pEdgeBGra * 0.25 * met(i, j - 1, k + 2, 2, &
-                    &3) / dz + gUEdgeB * pUEdgeBGra * 0.25 * met(i, j - 1, k &
-                    &+ 2, 2, 3) / dz
+                ABUU = - gEdgeB * pEdgeBGra * 0.25 * met23EdgeB / dz &
+                    &+ gUEdgeB * pUEdgeBGra * 0.25 * met23UEdgeB / dz
               else if((k == nz - 1 .or. k == nz) .and. zBoundary &
                   &== "solid_wall") then
                 ABUU = 0.0
               else
-                ABUU = gUEdgeB * pUEdgeBGra * 0.25 * met(i, j - 1, k + 2, 2, &
-                    &3) / dz
+                ABUU = gUEdgeB * pUEdgeBGra * 0.25 * met23UEdgeB / dz
               end if
 
               ! ----------------- A(i,j-1,k-2) ------------------!
@@ -6587,40 +5408,38 @@ module poisson_module
               if((k == 1 .or. k == 2) .and. zBoundary == "solid_wall") then
                 ABDD = 0.0
               else if(k == nz .and. zBoundary == "solid_wall") then
-                ABDD = gEdgeB * pEdgeBGra * 0.25 * met(i, j - 1, k - 2, 2, 3) &
-                    &/ dz - gDEdgeB * pDEdgeBGra * 0.25 * met(i, j - 1, k - 2, &
-                    &2, 3) / dz
+                ABDD = gEdgeB * pEdgeBGra * 0.25 * met23EdgeB &
+                    &/ dz - gDEdgeB * pDEdgeBGra * 0.25 * met23DEdgeB / dz
               else
-                ABDD = - gDEdgeB * pDEdgeBGra * 0.25 * met(i, j - 1, k - 2, 2, &
-                    &3) / dz
+                ABDD = - gDEdgeB * pDEdgeBGra * 0.25 * met23DEdgeB / dz
               end if
 
-              ! Scale the matrix elements.
+              ! Scale the tensor elements.
               AC = AC / (fcscal ** 2.0)
-              AR = AR / (fcscal ** 2.0)
-              AL = AL / (fcscal ** 2.0)
-              AF = AF / (fcscal ** 2.0)
-              AB = AB / (fcscal ** 2.0)
+              AR = AR / fcscal / fcscal_r
+              AL = AL / fcscal / fcscal_l
+              AF = AF / fcscal / fcscal_f
+              AB = AB / fcscal / fcscal_b
               AU = AU / fcscal / fcscal_u
               AD = AD / fcscal / fcscal_d
-              ARU = ARU / fcscal / fcscal_u
-              ARD = ARD / fcscal / fcscal_d
-              ALU = ALU / fcscal / fcscal_u
-              ALD = ALD / fcscal / fcscal_d
-              AFU = AFU / fcscal / fcscal_u
-              AFD = AFD / fcscal / fcscal_d
-              ABU = ABU / fcscal / fcscal_u
-              ABD = ABD / fcscal / fcscal_d
+              ARU = ARU / fcscal / fcscal_ru
+              ARD = ARD / fcscal / fcscal_rd
+              ALU = ALU / fcscal / fcscal_lu
+              ALD = ALD / fcscal / fcscal_ld
+              AFU = AFU / fcscal / fcscal_fu
+              AFD = AFD / fcscal / fcscal_fd
+              ABU = ABU / fcscal / fcscal_bu
+              ABD = ABD / fcscal / fcscal_bd
               AUU = AUU / fcscal / fcscal_uu
               ADD = ADD / fcscal / fcscal_dd
-              ARUU = ARUU / fcscal / fcscal_uu
-              ARDD = ARDD / fcscal / fcscal_dd
-              ALUU = ALUU / fcscal / fcscal_uu
-              ALDD = ALDD / fcscal / fcscal_dd
-              AFUU = AFUU / fcscal / fcscal_uu
-              AFDD = AFDD / fcscal / fcscal_dd
-              ABUU = ABUU / fcscal / fcscal_uu
-              ABDD = ABDD / fcscal / fcscal_dd
+              ARUU = ARUU / fcscal / fcscal_ruu
+              ARDD = ARDD / fcscal / fcscal_rdd
+              ALUU = ALUU / fcscal / fcscal_luu
+              ALDD = ALDD / fcscal / fcscal_ldd
+              AFUU = AFUU / fcscal / fcscal_fuu
+              AFDD = AFDD / fcscal / fcscal_fdd
+              ABUU = ABUU / fcscal / fcscal_buu
+              ABDD = ABDD / fcscal / fcscal_bdd
 
               ! Set matrix elements for bicgstab.
               ac_b(i, j, k) = AC
@@ -7093,48 +5912,26 @@ module poisson_module
               ARF = ARF / fcscal ** 2
               ARB = ARB / fcscal ** 2
 
-              if(pressureScaling) then
-                AC = AC / Pstrat(k)
-
-                ACH = ACH / Pstrat(k)
-                ACV = ACV / Pstrat(k)
-
-                AL = AL / Pstrat(k)
-                AR = AR / Pstrat(k)
-                AB = AB / Pstrat(k)
-                AF = AF / Pstrat(k)
-                AD = AD / PstratTilde(k - 1)
-                AU = AU / PstratTilde(k)
-                ALB = ALB / Pstrat(k)
-                ALF = ALF / Pstrat(k)
-                ARF = ARF / Pstrat(k)
-                ARB = ARB / Pstrat(k)
-              end if
-
               ! ------------------- define matrix A -------------------
 
-              if(poissonSolverType == 'bicgstab') then
-                ac_b(i, j, k) = AC
+              ac_b(i, j, k) = AC
 
-                ach_b(i, j, k) = ACH
-                acv_b(i, j, k) = ACV
+              ach_b(i, j, k) = ACH
+              acv_b(i, j, k) = ACV
 
-                al_b(i, j, k) = AL
-                ar_b(i, j, k) = AR
+              al_b(i, j, k) = AL
+              ar_b(i, j, k) = AR
 
-                ab_b(i, j, k) = AB
-                af_b(i, j, k) = AF
+              ab_b(i, j, k) = AB
+              af_b(i, j, k) = AF
 
-                ad_b(i, j, k) = AD
-                au_b(i, j, k) = AU
+              ad_b(i, j, k) = AD
+              au_b(i, j, k) = AU
 
-                alb_b(i, j, k) = ALB
-                alf_b(i, j, k) = ALF
-                arb_b(i, j, k) = ARB
-                arf_b(i, j, k) = ARF
-              else
-                stop 'ERROR: val_PsIn expects bicgstab'
-              end if
+              alb_b(i, j, k) = ALB
+              alf_b(i, j, k) = ALF
+              arb_b(i, j, k) = ARB
+              arf_b(i, j, k) = ARF
             end do ! i_loop
           end do ! j_loop
         end do ! k_loop
@@ -7299,63 +6096,5 @@ module poisson_module
     end if
 
   end subroutine heat_w0
-
-  !------------------------------------------------------------------
-  subroutine correctorStepTestTFC(var, dMom, int_mod)
-
-    type(var_type), intent(inout) :: var
-    real, dimension((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
-        &+ nbz), 3), intent(inout) :: dMom
-    character(len = *), intent(in) :: int_mod
-
-    type(var_type) :: var_tfc
-
-    call random_number(dp)
-
-    var_tfc = var
-
-    if(int_mod == "expl") then
-      call correctorStep(var_tfc, dMom, 1.0, 1, "expl", 1.0, 1.0)
-      topography = .false.
-      call correctorStep(var, dMom, 1.0, 1, "expl", 1.0, 1.0)
-      topography = .true.
-      print *, "Zonal-wind corrector-step difference: ", maxval(abs(var_tfc%u &
-          &- var%u))
-      print *, "Meridional-wind corrector-step difference: ", &
-          &maxval(abs(var_tfc%v - var%v))
-      print *, "Vertical-wind corrector-step difference: ", &
-          &maxval(abs(var_tfc%w - var%w))
-      print *, "Density-fluctuation corrector-step difference: ", &
-          &maxval(abs(var_tfc%rhop - var%rhop))
-    else if(int_mod == "impl") then
-      call correctorStep(var_tfc, dMom, 1.0, 1, "impl", 1.0, 1.0)
-      topography = .false.
-      call correctorStep(var, dMom, 1.0, 1, "impl", 1.0, 1.0)
-      topography = .true.
-      print *, "Zonal-wind corrector-step difference (impl): ", &
-          &maxval(abs(var_tfc%u - var%u))
-      print *, "Meridional-wind corrector-step difference (impl): ", &
-          &maxval(abs(var_tfc%v - var%v))
-      print *, "Vertical-wind corrector-step difference (impl): ", &
-          &maxval(abs(var_tfc%w - var%w))
-      print *, "Density-fluctuation corrector-step difference (impl): ", &
-          &maxval(abs(var_tfc%rhop - var%rhop))
-
-      var_tfc = var
-      call correctorStep(var_tfc, dMom, 1.0, 1, "expl", 1.0, 1.0)
-      topography = .false.
-      call correctorStep(var, dMom, 1.0, 1, "expl", 1.0, 1.0)
-      topography = .true.
-      print *, "Zonal-wind corrector-step difference (expl): ", &
-          &maxval(abs(var_tfc%u - var%u))
-      print *, "Meridional-wind corrector-step difference (expl): ", &
-          &maxval(abs(var_tfc%v - var%v))
-      print *, "Vertical-wind corrector-step difference (expl): ", &
-          &maxval(abs(var_tfc%w - var%w))
-      print *, "Density-fluctuation corrector-step difference (expl): ", &
-          &maxval(abs(var_tfc%rhop - var%rhop))
-    end if
-
-  end subroutine correctorStepTestTFC
 
 end module poisson_module

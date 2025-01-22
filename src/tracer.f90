@@ -54,13 +54,13 @@ module tracer_module
             do ii = 0, nx + 1
               if(testCase == 'wavePacket') then
                 var%chi(ii, jj, kk) = rho(ii, jj, kk) * (tracerprime(ii, jj, &
-                    &kk) + alphaTracer * heightTFC(ii, jj, kk))
+                    &kk) + alphaTracer * zTFC(ii, jj, kk))
               else
                 var%chi(ii, jj, kk) = rho(ii, jj, kk) * alphaTracer &
-                    &* heightTFC(ii, jj, kk)
+                    &* zTFC(ii, jj, kk)
               end if
-              initialtracer(ii, jj, kk) = alphaTracer * heightTFC(ii, jj, kk)
-              initialtracerrho(ii, jj, kk) = alphaTracer * heightTFC(ii, jj, &
+              initialtracer(ii, jj, kk) = alphaTracer * zTFC(ii, jj, kk)
+              initialtracerrho(ii, jj, kk) = alphaTracer * zTFC(ii, jj, &
                   &kk) * rho(ii, jj, kk)
             end do
           end do

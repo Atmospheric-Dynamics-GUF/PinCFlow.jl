@@ -84,7 +84,7 @@ class ModelOutput:
     dys = lys / nys
     (ys, xs) = numpy.meshgrid(self.variables["y"], self.variables["x"], \
         indexing = "ij")
-    hs = self.variables["h"][- 1]
+    hs = self.variables["hm"][- 1]
 
     # Define target grid.
     lxt = lxs

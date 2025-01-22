@@ -50,8 +50,7 @@ OFILES = atmosphere.o \
 		tracer.o \
 		types.o \
 		update.o \
-		wkb.o \
-		xweno.o
+		wkb.o
 
 # Add build directory as prefix to path of object files.
 OBJ = $(addprefix $(BUILD)/, $(OFILES))
@@ -93,7 +92,6 @@ $(BUILD)/fluxes.o: $(BUILD)/atmosphere.o
 $(BUILD)/fluxes.o: $(BUILD)/muscl.o
 $(BUILD)/fluxes.o: $(BUILD)/sizeof.o
 $(BUILD)/fluxes.o: $(BUILD)/types.o
-$(BUILD)/fluxes.o: $(BUILD)/xweno.o
 
 # List dependencies of ice_sub.f90.
 $(BUILD)/ice_sub.o: $(BUILD)/atmosphere.o
@@ -148,7 +146,6 @@ $(BUILD)/pinc.o: $(BUILD)/tracer.o
 $(BUILD)/pinc.o: $(BUILD)/types.o
 $(BUILD)/pinc.o: $(BUILD)/update.o
 $(BUILD)/pinc.o: $(BUILD)/wkb.o
-$(BUILD)/pinc.o: $(BUILD)/xweno.o
 
 # List dependencies of poisson.f90.
 $(BUILD)/poisson.o: $(BUILD)/atmosphere.o
@@ -180,6 +177,3 @@ $(BUILD)/wkb.o: $(BUILD)/ice.o
 $(BUILD)/wkb.o: $(BUILD)/muscl.o
 $(BUILD)/wkb.o: $(BUILD)/timeScheme.o
 $(BUILD)/wkb.o: $(BUILD)/types.o
-
-# List dependencies of xweno.f90.
-$(BUILD)/xweno.o: $(BUILD)/types.o
