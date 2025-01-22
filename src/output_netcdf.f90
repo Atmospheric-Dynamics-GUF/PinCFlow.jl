@@ -772,7 +772,6 @@ module output_netCDF_module
 
     integer, intent(in) :: iOutput
 
-    real, dimension(1:nx, 1:ny, 1:nz) :: zOut
     integer :: ix, jy, kz
 
     if(sizeX == 1) then
@@ -819,14 +818,7 @@ module output_netCDF_module
 
     ! z-axis
     if(topography) then
-      do ix = 1, nx
-        do jy = 1, ny
-          do kz = 1, nz
-            zOut(ix, jy, kz) = heightTFC(ix, jy, kz)
-          end do
-        end do
-      end do
-      call handle_err(nf90_put_var(ncid, ncidz, zOut(1:nx, 1:ny, 1:sizeZ) &
+      call handle_err(nf90_put_var(ncid, ncidz, zTFC(1:nx, 1:ny, 1:sizeZ) &
           &* lRef, start = startNC, count = countNC))
     else
       if(iOutput == 0) then

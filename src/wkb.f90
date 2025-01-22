@@ -88,11 +88,10 @@ module wkb_module
 
   logical, parameter :: debugging = .false.
 
-  real, dimension(:, :, :), allocatable :: zTFC, zTildeTFC
-
   contains
 
   !-----------------------------------------------------------------------
+
   subroutine calc_tracerforce(ray, var, ray_var3D, tracerforce, &
       &waveAmplitudes, dt)
 
@@ -254,139 +253,6 @@ module wkb_module
             dyr = ray(iRay, ixrv, jyrv, kzrv)%dyray
             dzr = ray(iRay, ixrv, jyrv, kzrv)%dzray
 
-            ! vertical boundary conditions:
-            ! zBoundary = 'periodic': implement periodicity
-            ! zBoundary = 'solid_wall': skip counting ray volumes
-            !                           that have completely left the
-            !                           model domain
-
-            ! FJApr2023
-            if((.not. topography .and. zr < lz(0)) .or. (topography .and. zr &
-                &< topography_surface(ixrv, jyrv))) then
-              select case(zBoundary)
-              case("periodic")
-                zr = lz(1) + mod(zr - lz(0), lz(1) - lz(0))
-              case("solid_wall")
-                if((.not. topography .and. zr + 0.5 * dzr < lz(0)) .or. &
-                    &(topography .and. zr + 0.5 * dzr &
-                    &< topography_surface(ixrv, jyrv))) cycle
-              case default
-                stop "calc_meanflow_effect: unknown case zBoundary"
-              end select
-            elseif(zr > lz(1)) then
-              select case(zBoundary)
-              case("periodic")
-                zr = lz(0) + mod(zr - lz(1), lz(1) - lz(0))
-              case("solid_wall")
-                if(zr - 0.5 * dzr > lz(1)) cycle
-              case default
-                stop "calc_meanflow_effect: unknown case zBoundary"
-              end select
-            end if
-
-            ! implement horizontal boundary conditions for ray-volume
-            ! positions
-
-            if(sizeX > 1) then
-              if(xBoundary /= "periodic") then
-                print *, 'ERROR in calc_meanflow_effect:  boundary conditions &
-                    &in x must be periodic'
-                stop
-              end if
-
-              ! for leftmost cpu make sure that xr in
-              ! ghost cell to the left is between x(0) - dx
-              ! and x(0)
-
-              if(ixrv == 0 .and. is + nbx == 1) then
-                if(xr > lx(1) - dx .and. xr < lx(1)) then
-                  xr = xr - lx(1) + lx(0)
-                elseif(xr > lx(0) - dx .and. xr < lx(0)) then
-                  xr = xr
-                else
-                  print *, 'ERROR in calc_meanflow_effect:'
-                  print *, 'xr =', xr
-                  print *, 'but r.v. is in ghost cell to the  left of the &
-                      &leftmost cpu so that  one should have either'
-                  print *, lx(1) - dx, '= lx(1) - dx < xr < lx(1) =', lx(1), ' &
-                      &or'
-                  print *, lx(0) - dx, '= lx(0) - dx < xr < lx(0) =', lx(0)
-                  stop
-                end if
-              end if
-
-              ! for rightmost cpu make sure that xr in
-              ! ghost cell to the right is between x(0) + L_x
-              ! and x(0) + L_x + dx
-
-              if(ixrv == nx + 1 .and. is + nbx + nx == sizeX) then
-                if(xr > lx(0) .and. xr < lx(0) + dx) then
-                  xr = xr + lx(1) - lx(0)
-                elseif(xr > lx(1) .and. xr < lx(1) + dx) then
-                  xr = xr
-                else
-                  print *, 'ERROR in calc_meanflow_effect:'
-                  print *, 'xr =', xr
-                  print *, 'but r.v. is in ghost cell to the  right of the &
-                      &rightmost cpu so that  one should have either'
-                  print *, lx(0), '= lx(0) < xr < lx(0) + dx =', lx(0) + dx, ' &
-                      &or'
-                  print *, lx(1), '= lx(1) < xr < lx(1) + dx =', lx(1) + dx
-                  stop
-                end if
-              end if
-            end if
-
-            if(sizeY > 1) then
-              if(yBoundary /= "periodic") then
-                print *, 'ERROR in calc_meanflow_effect:  boundary conditions &
-                    &in y must be periodic'
-                stop
-              end if
-
-              ! for first cpu in y direct. make sure that yr in
-              ! ghost cell in front is between y(0) - dy
-              ! and y(0)
-
-              if(jyrv == 0 .and. js + nby == 1) then
-                if(yr > ly(1) - dy .and. yr < ly(1)) then
-                  yr = yr - ly(1) + ly(0)
-                elseif(yr > ly(0) - dy .and. yr < ly(0)) then
-                  yr = yr
-                else
-                  print *, 'ERROR in calc_meanflow_effect:'
-                  print *, 'yr =', yr
-                  print *, 'but r.v. is in ghost cell in front of the first &
-                      &cpu in y dir. so that  one should have either'
-                  print *, ly(1) - dy, '= ly(1) - dy < yr < ly(1) =', ly(1), ' &
-                      &or'
-                  print *, ly(0) - dy, '= ly(0) - dy < yr < ly(0) =', ly(0)
-                  stop
-                end if
-              end if
-
-              ! for last cpu in y direction make sure that yr
-              ! in ghost cell behind is between
-              ! y(0) + L_y and y(0) + L_y + dy
-
-              if(jyrv == ny + 1 .and. js + nby + ny == sizeY) then
-                if(yr > ly(0) .and. yr < ly(0) + dy) then
-                  yr = yr + ly(1) - ly(0)
-                elseif(yr > ly(1) .and. yr < ly(1) + dy) then
-                  yr = yr
-                else
-                  print *, 'ERROR in calc_meanflow_effect:'
-                  print *, 'yr =', yr
-                  print *, 'but r.v. is in ghost cell behind the last cpu in y &
-                      &dir. so that  one should have either'
-                  print *, ly(0), '= ly(0) < yr < ly(0) + dy =', ly(0) + dy, ' &
-                      &or'
-                  print *, ly(1), '= ly(1) < yr < ly(1) + dy =', ly(1) + dy
-                  stop
-                end if
-              end if
-            end if
-
             wnrk = ray(iRay, ixrv, jyrv, kzrv)%k
             wnrl = ray(iRay, ixrv, jyrv, kzrv)%l
             wnrm = ray(iRay, ixrv, jyrv, kzrv)%m
@@ -396,14 +262,6 @@ module wkb_module
             dwnrm = ray(iRay, ixrv, jyrv, kzrv)%dmray
 
             wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
-
-            if((.not. topography .and. zr < lz(0) - dz) .or. (topography .and. &
-                &zr < topography_surface(ixrv, jyrv) - jac(ixrv, jyrv, 0) &
-                &* dz)) then
-              print *, 'ERROR IN calc_meanflow_effect: RAY VOLUME', iRay, 'in &
-                  &cell', ixrv, jyrv, kzrv, 'TOO LOW'
-              stop
-            end if
 
             call stratification(zr, 1, NNr)
 
@@ -755,9 +613,6 @@ module wkb_module
     allocate(var_drvdt(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_drtdt(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
 
-    ! ! Only allow mean flow impact after ray volumes have distributed (FJJul2023)
-    ! if(case_wkb == 3 .and. time < topographyTime_wkb / tRef) return
-
     var_uu = 0.0
     var_uv = 0.0
     var_uw = 0.0
@@ -807,139 +662,6 @@ module wkb_module
             dyr = ray(iRay, ixrv, jyrv, kzrv)%dyray
             dzr = ray(iRay, ixrv, jyrv, kzrv)%dzray
 
-            ! vertical boundary conditions:
-            ! zBoundary = 'periodic': implement periodicity
-            ! zBoundary = 'solid_wall': skip counting ray volumes
-            !                           that have completely left the
-            !                           model domain
-
-            ! FJApr2023
-            if((.not. topography .and. zr < lz(0)) .or. (topography .and. zr &
-                &< topography_surface(ixrv, jyrv))) then
-              select case(zBoundary)
-              case("periodic")
-                zr = lz(1) + mod(zr - lz(0), lz(1) - lz(0))
-              case("solid_wall")
-                if((.not. topography .and. zr + 0.5 * dzr < lz(0)) .or. &
-                    &(topography .and. zr + 0.5 * dzr &
-                    &< topography_surface(ixrv, jyrv))) cycle
-              case default
-                stop "calc_meanflow_effect: unknown case zBoundary"
-              end select
-            elseif(zr > lz(1)) then
-              select case(zBoundary)
-              case("periodic")
-                zr = lz(0) + mod(zr - lz(1), lz(1) - lz(0))
-              case("solid_wall")
-                if(zr - 0.5 * dzr > lz(1)) cycle
-              case default
-                stop "calc_meanflow_effect: unknown case zBoundary"
-              end select
-            end if
-
-            ! implement horizontal boundary conditions for ray-volume
-            ! positions
-
-            if(sizeX > 1) then
-              if(xBoundary /= "periodic") then
-                print *, 'ERROR in calc_meanflow_effect:  boundary conditions &
-                    &in x must be periodic'
-                stop
-              end if
-
-              ! for leftmost cpu make sure that xr in
-              ! ghost cell to the left is between x(0) - dx
-              ! and x(0)
-
-              if(ixrv == 0 .and. is + nbx == 1) then
-                if(xr > lx(1) - dx .and. xr < lx(1)) then
-                  xr = xr - lx(1) + lx(0)
-                elseif(xr > lx(0) - dx .and. xr < lx(0)) then
-                  xr = xr
-                else
-                  print *, 'ERROR in calc_meanflow_effect:'
-                  print *, 'xr =', xr
-                  print *, 'but r.v. is in ghost cell to the  left of the &
-                      &leftmost cpu so that  one should have either'
-                  print *, lx(1) - dx, '= lx(1) - dx < xr < lx(1) =', lx(1), ' &
-                      &or'
-                  print *, lx(0) - dx, '= lx(0) - dx < xr < lx(0) =', lx(0)
-                  stop
-                end if
-              end if
-
-              ! for rightmost cpu make sure that xr in
-              ! ghost cell to the right is between x(0) + L_x
-              ! and x(0) + L_x + dx
-
-              if(ixrv == nx + 1 .and. is + nbx + nx == sizeX) then
-                if(xr > lx(0) .and. xr < lx(0) + dx) then
-                  xr = xr + lx(1) - lx(0)
-                elseif(xr > lx(1) .and. xr < lx(1) + dx) then
-                  xr = xr
-                else
-                  print *, 'ERROR in calc_meanflow_effect:'
-                  print *, 'xr =', xr
-                  print *, 'but r.v. is in ghost cell to the  right of the &
-                      &rightmost cpu so that  one should have either'
-                  print *, lx(0), '= lx(0) < xr < lx(0) + dx =', lx(0) + dx, ' &
-                      &or'
-                  print *, lx(1), '= lx(1) < xr < lx(1) + dx =', lx(1) + dx
-                  stop
-                end if
-              end if
-            end if
-
-            if(sizeY > 1) then
-              if(yBoundary /= "periodic") then
-                print *, 'ERROR in calc_meanflow_effect:  boundary conditions &
-                    &in y must be periodic'
-                stop
-              end if
-
-              ! for first cpu in y direct. make sure that yr in
-              ! ghost cell in front is between y(0) - dy
-              ! and y(0)
-
-              if(jyrv == 0 .and. js + nby == 1) then
-                if(yr > ly(1) - dy .and. yr < ly(1)) then
-                  yr = yr - ly(1) + ly(0)
-                elseif(yr > ly(0) - dy .and. yr < ly(0)) then
-                  yr = yr
-                else
-                  print *, 'ERROR in calc_meanflow_effect:'
-                  print *, 'yr =', yr
-                  print *, 'but r.v. is in ghost cell in front of the first &
-                      &cpu in y dir. so that  one should have either'
-                  print *, ly(1) - dy, '= ly(1) - dy < yr < ly(1) =', ly(1), ' &
-                      &or'
-                  print *, ly(0) - dy, '= ly(0) - dy < yr < ly(0) =', ly(0)
-                  stop
-                end if
-              end if
-
-              ! for last cpu in y direction make sure that yr
-              ! in ghost cell behind is between
-              ! y(0) + L_y and y(0) + L_y + dy
-
-              if(jyrv == ny + 1 .and. js + nby + ny == sizeY) then
-                if(yr > ly(0) .and. yr < ly(0) + dy) then
-                  yr = yr + ly(1) - ly(0)
-                elseif(yr > ly(1) .and. yr < ly(1) + dy) then
-                  yr = yr
-                else
-                  print *, 'ERROR in calc_meanflow_effect:'
-                  print *, 'yr =', yr
-                  print *, 'but r.v. is in ghost cell behind the last cpu in y &
-                      &dir. so that  one should have either'
-                  print *, ly(0), '= ly(0) < yr < ly(0) + dy =', ly(0) + dy, ' &
-                      &or'
-                  print *, ly(1), '= ly(1) < yr < ly(1) + dy =', ly(1) + dy
-                  stop
-                end if
-              end if
-            end if
-
             wnrk = ray(iRay, ixrv, jyrv, kzrv)%k
             wnrl = ray(iRay, ixrv, jyrv, kzrv)%l
             wnrm = ray(iRay, ixrv, jyrv, kzrv)%m
@@ -949,14 +671,6 @@ module wkb_module
             dwnrm = ray(iRay, ixrv, jyrv, kzrv)%dmray
 
             wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
-
-            if((.not. topography .and. zr < lz(0) - dz) .or. (topography .and. &
-                &zr < topography_surface(ixrv, jyrv) - jac(ixrv, jyrv, 0) &
-                &* dz)) then
-              print *, 'ERROR IN calc_meanflow_effect: RAY VOLUME', iRay, 'in &
-                  &cell', ixrv, jyrv, kzrv, 'TOO LOW'
-              stop
-            end if
 
             call stratification(zr, 1, NNr)
 
@@ -1046,7 +760,6 @@ module wkb_module
               jymax = 1
             end if
 
-            ! FJMay2023
             if(topography) then
 
               do ix = ixmin, ixmax
@@ -1069,10 +782,8 @@ module wkb_module
                     fcpspy = 1.0
                   end if
 
-                  kzmin = max(1, floor((levelTFC(ix, jy, zr - dzr * 0.5) &
-                      &- lz(0)) / dz) + 1)
-                  kzmax = min(nz, floor((levelTFC(ix, jy, zr + dzr * 0.5) &
-                      &- lz(0)) / dz) + 1)
+                  kzmin = kzTildeTFC(ix, jy, zr - dzr * 0.5)
+                  kzmax = kzTildeTFC(ix, jy, zr + dzr * 0.5)
 
                   do kz = kzmin, kzmax
                     dzi = (min((zr + dzr * 0.5), zTildeTFC(ix, jy, kz)) &
@@ -1184,7 +895,7 @@ module wkb_module
                           &* wnrl
                     end if
 
-                    if(steady_state) then
+                    if(steady_state .or. single_column) then
                       var_uw(ix, jy, kz) = var_uw(ix, jy, kz) + wadr * wnrk &
                           &* cgirz
                     else
@@ -1203,7 +914,7 @@ module wkb_module
                       end if
                     end if
 
-                    if(steady_state) then
+                    if(steady_state .or. single_column) then
                       var_vw(ix, jy, kz) = var_vw(ix, jy, kz) + wadr * wnrl &
                           &* cgirz
                     else
@@ -1265,7 +976,7 @@ module wkb_module
       end if
     end if
 
-    if(steady_state) then
+    if(steady_state .or. single_column) then
       var_uu = 0.0
       var_uv = 0.0
       var_vv = 0.0
@@ -1321,29 +1032,24 @@ module wkb_module
           ! forcing in x direction
 
           if(topography) then
-            ! FJJul2023
             var_drudt(ix, jy, kz) = - rhotot / rhoStratTFC(ix, jy, kz) &
                 &/ jac(ix, jy, kz) * (var_uw(ix, jy, kz + 1) - var_uw(ix, jy, &
                 &kz - 1)) / (2.0 * dz)
 
             if(sizeX > 1) then
               var_drudt(ix, jy, kz) = var_drudt(ix, jy, kz) - rhotot &
-                  &/ rhoStratTFC(ix, jy, kz) / jac(ix, jy, kz) * ((jac(ix + 1, &
-                  &jy, kz) * var_uu(ix + 1, jy, kz) - jac(ix - 1, jy, kz) &
-                  &* var_uu(ix - 1, jy, kz)) / (2.0 * dx) + (jac(ix, jy, kz &
-                  &+ 1) * met(ix, jy, kz + 1, 1, 3) * var_uu(ix, jy, kz + 1) &
-                  &- jac(ix, jy, kz - 1) * met(ix, jy, kz - 1, 1, 3) &
-                  &* var_uu(ix, jy, kz - 1)) / (2.0 * dz))
+                  &/ rhoStratTFC(ix, jy, kz) * ((var_uu(ix + 1, jy, kz) &
+                  &- var_uu(ix - 1, jy, kz)) / (2.0 * dx) + met(ix, jy, kz, 1, &
+                  &3) * (var_uu(ix, jy, kz + 1) - var_uu(ix, jy, kz - 1)) &
+                  &/ (2.0 * dz))
             end if
 
             if(sizeY > 1) then
               var_drudt(ix, jy, kz) = var_drudt(ix, jy, kz) - rhotot &
-                  &/ rhoStratTFC(ix, jy, kz) / jac(ix, jy, kz) * ((jac(ix, jy &
-                  &+ 1, kz) * var_uv(ix, jy + 1, kz) - jac(ix, jy - 1, kz) &
-                  &* var_uv(ix, jy - 1, kz)) / (2.0 * dy) + (jac(ix, jy, kz &
-                  &+ 1) * met(ix, jy, kz + 1, 2, 3) * var_uv(ix, jy, kz + 1) &
-                  &- jac(ix, jy, kz - 1) * met(ix, jy, kz - 1, 2, 3) &
-                  &* var_uv(ix, jy, kz - 1)) / (2.0 * dz))
+                  &/ rhoStratTFC(ix, jy, kz) * ((var_uv(ix, jy + 1, kz) &
+                  &- var_uv(ix, jy - 1, kz)) / (2.0 * dy) + met(ix, jy, kz, 2, &
+                  &3) * (var_uv(ix, jy, kz + 1) - var_uv(ix, jy, kz - 1)) &
+                  &/ (2.0 * dz))
             end if
           else
             var_drudt(ix, jy, kz) = - rhotot / rhoStrat(kz) * (var_uw(ix, jy, &
@@ -1375,12 +1081,8 @@ module wkb_module
             ! something wrong with the case of Boussinesq here.
             ! The case of pseudo_incompressible should be fine.
           case("pseudo_incompressible", "compressible")
-            ! rhotot = 0.5 * (var(ix, jy, kz, 1) + var(ix, jy + 1, kz, 1))
             rhotot = var%rho(ix, jy, kz)
             if(topography) then
-              ! FJJul2023
-              ! rhotot = rhotot + 0.5 * (rhoStratTFC(ix, jy, kz) &
-              !     + rhoStratTFC(ix, jy + 1, kz))
               rhotot = rhotot + rhoStratTFC(ix, jy, kz)
             else
               rhotot = rhotot + rhoStrat(kz)
@@ -1390,29 +1092,24 @@ module wkb_module
           end select
 
           if(topography) then
-            ! FJJul2023
             var_drvdt(ix, jy, kz) = - rhotot / rhoStratTFC(ix, jy, kz) &
                 &/ jac(ix, jy, kz) * (var_vw(ix, jy, kz + 1) - var_vw(ix, jy, &
                 &kz - 1)) / (2.0 * dz)
 
             if(sizeX > 1) then
               var_drvdt(ix, jy, kz) = var_drvdt(ix, jy, kz) - rhotot &
-                  &/ rhoStratTFC(ix, jy, kz) / jac(ix, jy, kz) * ((jac(ix + 1, &
-                  &jy, kz) * var_uv(ix + 1, jy, kz) - jac(ix - 1, jy, kz) &
-                  &* var_uv(ix - 1, jy, kz)) / (2.0 * dx) + (jac(ix, jy, kz &
-                  &+ 1) * met(ix, jy, kz + 1, 1, 3) * var_uv(ix, jy, kz + 1) &
-                  &- jac(ix, jy, kz - 1) * met(ix, jy, kz - 1, 1, 3) &
-                  &* var_uv(ix, jy, kz - 1)) / (2.0 * dz))
+                  &/ rhoStratTFC(ix, jy, kz) * ((var_uv(ix + 1, jy, kz) &
+                  &- var_uv(ix - 1, jy, kz)) / (2.0 * dx) + met(ix, jy, kz, 1, &
+                  &3) * (var_uv(ix, jy, kz + 1) - var_uv(ix, jy, kz - 1)) &
+                  &/ (2.0 * dz))
             end if
 
             if(sizeY > 1) then
               var_drvdt(ix, jy, kz) = var_drvdt(ix, jy, kz) - rhotot &
-                  &/ rhoStratTFC(ix, jy, kz) / jac(ix, jy, kz) * ((jac(ix, jy &
-                  &+ 1, kz) * var_vv(ix, jy + 1, kz) - jac(ix, jy - 1, kz) &
-                  &* var_vv(ix, jy - 1, kz)) / (2.0 * dy) + (jac(ix, jy, kz &
-                  &+ 1) * met(ix, jy, kz + 1, 2, 3) * var_vv(ix, jy, kz + 1) &
-                  &- jac(ix, jy, kz - 1) * met(ix, jy, kz - 1, 2, 3) &
-                  &* var_vv(ix, jy, kz - 1)) / (2.0 * dz))
+                  &/ rhoStratTFC(ix, jy, kz) * ((var_vv(ix, jy + 1, kz) &
+                  &- var_vv(ix, jy - 1, kz)) / (2.0 * dy) + met(ix, jy, kz, 2, &
+                  &3) * (var_vv(ix, jy, kz + 1) - var_vv(ix, jy, kz - 1)) &
+                  &/ (2.0 * dz))
             end if
           else
             var_drvdt(ix, jy, kz) = - rhotot / rhoStrat(kz) * (var_vw(ix, jy, &
@@ -1452,7 +1149,6 @@ module wkb_module
               ! The case of pseudo_incompressible should be fine.
             case("pseudo_incompressible", "compressible")
               if(topography) then
-                ! FJApr2023
                 rhotot = var%rho(ix, jy, kz) + rhoStratTFC(ix, jy, kz)
               else
                 rhotot = var%rho(ix, jy, kz) + rhoStrat(kz)
@@ -1462,24 +1158,18 @@ module wkb_module
             end select
 
             if(topography) then
-              ! FJJul2023
               if(sizeX > 1) then
-                var_drtdt(ix, jy, kz) = rhotot / jac(ix, jy, kz) * ((jac(ix &
-                    &+ 1, jy, kz) * var_ut(ix + 1, jy, kz) - jac(ix - 1, jy, &
-                    &kz) * var_ut(ix - 1, jy, kz)) / (2.0 * dx) + (jac(ix, jy, &
-                    &kz + 1) * met(ix, jy, kz + 1, 1, 3) * var_ut(ix, jy, kz &
-                    &+ 1) - jac(ix, jy, kz - 1) * met(ix, jy, kz - 1, 1, 3) &
-                    &* var_ut(ix, jy, kz - 1)) / (2.0 * dz))
+                var_drtdt(ix, jy, kz) = rhotot * ((var_ut(ix + 1, jy, kz) &
+                    &- var_ut(ix - 1, jy, kz)) / (2.0 * dx) + met(ix, jy, kz, &
+                    &1, 3) * (var_ut(ix, jy, kz + 1) - var_ut(ix, jy, kz &
+                    &- 1)) / (2.0 * dz))
               end if
 
               if(sizeY > 1) then
                 var_drtdt(ix, jy, kz) = var_drtdt(ix, jy, kz) + rhotot &
-                    &/ jac(ix, jy, kz) * ((jac(ix, jy + 1, kz) * var_vt(ix, jy &
-                    &+ 1, kz) - jac(ix, jy - 1, kz) * var_vt(ix, jy - 1, kz)) &
-                    &/ (2.0 * dy) + (jac(ix, jy, kz + 1) * met(ix, jy, kz + 1, &
-                    &2, 3) * var_vt(ix, jy, kz + 1) - jac(ix, jy, kz - 1) &
-                    &* met(ix, jy, kz - 1, 2, 3) * var_vt(ix, jy, kz - 1)) &
-                    &/ (2.0 * dz))
+                    &* ((var_vt(ix, jy + 1, kz) - var_vt(ix, jy - 1, kz)) &
+                    &/ (2.0 * dy) + met(ix, jy, kz, 2, 3) * (var_vt(ix, jy, kz &
+                    &+ 1) - var_vt(ix, jy, kz - 1)) / (2.0 * dz))
               end if
             else
               if(sizeX > 1) then
@@ -1554,15 +1244,10 @@ module wkb_module
 
     do kz = 1, nz
       ! only allow wave impact on mean flow above lz(0) + zmin_wkb
-      ! FJApr2023
-      ! if(z(kz) < lz(0) + zmin_wkb) cycle
       if(.not. topography .and. z(kz) < lz(0) + zmin_wkb) cycle
 
       do jy = 1, ny
         do ix = 1, nx
-          ! FJApr2023
-          !*if(topography .and. zTFC(ix, jy, kz) < lz(0) + zmin_wkb) cycle
-          ! SD
           if(topography) then
             if(zTFC(ix, jy, kz) < lz(0) + zmin_wkb) cycle
           end if
@@ -1574,12 +1259,8 @@ module wkb_module
             ! something wrong with the case of Boussinesq here.
             ! The case of pseudo_incompressible should be fine.
           case("pseudo_incompressible", "compressible")
-            ! rhotot = 0.5 * (var(ix, jy, kz, 1) + var(ix + 1, jy, kz, 1))
             rhotot = var%rho(ix, jy, kz)
             if(topography) then
-              ! FJJul2023
-              ! rhotot = rhotot + 0.5 * (rhoStratTFC(ix, jy, kz) &
-              !     + rhoStratTFC(ix + 1, jy, kz))
               rhotot = rhotot + rhoStratTFC(ix, jy, kz)
             else
               rhotot = rhotot + rhoStrat(kz)
@@ -1605,7 +1286,6 @@ module wkb_module
             ! something wrong with the case of Boussinesq here.
             ! The case of pseudo_incompressible should be fine.
           case("pseudo_incompressible", "compressible")
-            ! rhotot = 0.5 * (var(ix, jy, kz, 1) + var(ix, jy + 1, kz, 1))
             rhotot = var%rho(ix, jy, kz)
             if(topography) then
               rhotot = rhotot + rhoStratTFC(ix, jy, kz)
@@ -1652,7 +1332,6 @@ module wkb_module
               ! The case of pseudo_incompressible should be fine.
             case("pseudo_incompressible", "compressible")
               if(topography) then
-                ! FJApr2023
                 rhotot = var%rho(ix, jy, kz) + rhoStratTFC(ix, jy, kz)
               else
                 rhotot = var%rho(ix, jy, kz) + rhoStrat(kz)
@@ -1702,7 +1381,6 @@ module wkb_module
     ! local variables
     integer :: allocstat
 
-    ! FJApr2023
     real, allocatable :: omi_notop(:, :, :), omi_sfc(:, :, :), wnk_sfc(:, :, &
         &:), wnl_sfc(:, :, :), wnm_sfc(:, :, :)
     real, allocatable :: fld_amp(:, :, :, :)
@@ -1739,13 +1417,13 @@ module wkb_module
 
     integer :: nrsuml, nr_sum
 
-    ! Long number (FJJan2023)
+    ! Long number
     real :: long
 
-    ! Wave mode (FJApr2023)
+    ! Wave-mode index
     integer :: iwm
 
-    !SD
+    ! Initial phase
     real :: dphi
 
     ix0 = is + nbx - 1
@@ -1844,7 +1522,6 @@ module wkb_module
     end if
 
     ! maximum # of r.v. allowed in a cell before r.v. are merged
-    ! FJApr2023
     nray_max = nxRay * nyRay * nzRay * nwm
 
     ! work-space size per wavenumber direction chosen to be double the
@@ -1872,10 +1549,7 @@ module wkb_module
 
     nray_wrk = nxRay_wrk * nyRay_wrk * nzRay_wrk
 
-    ! Limit ray volume output.
-    if(nRayOutput > nray_wrk) stop "Error: nRayOutput > nray_wrk"
-
-    ! FJApr2023
+    ! Number of surface ray volumes
     n_sfc = nwm
     if(nxRay > 1) n_sfc = n_sfc * nxRay / nray_fac
     if(nyRay > 1) n_sfc = n_sfc * nyRay / nray_fac
@@ -1888,6 +1562,11 @@ module wkb_module
     ! # of ray volumes per cell
     allocate(nRay(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate nRay"
+
+    if(topography) then
+      allocate(cgz_max_tfc(1:nx, 1:ny, 0:nz), stat = allocstat)
+      if(allocstat /= 0) stop "setup_wkb: could not allocate cgz_max_tfc"
+    end if
 
     nRay = 0
 
@@ -1948,36 +1627,15 @@ module wkb_module
 
     ! needed for initialization of ray volumes:
     if(case_wkb == 3) then
-      ! FJApr2023
       allocate(omi_sfc(1:nx, 1:ny, 1:nwm))
       allocate(wnk_sfc(1:nx, 1:ny, 1:nwm))
       allocate(wnl_sfc(1:nx, 1:ny, 1:nwm))
       allocate(wnm_sfc(1:nx, 1:ny, 1:nwm))
     else
-      ! FJApr2023
       allocate(omi_notop(1:nx, 1:ny, 1:sizeZ))
     end if
 
-    ! FJApr2023
     allocate(fld_amp(1:nx, 1:ny, 0:sizeZ, 1:nwm)) ! 3D wave action field
-
-    ! FJApr2023
-    ! Store TFC levels for interpolations. Note that ray volumes beyond the
-    ! vertical boundaries are interpolated at these boundaries.
-    if(topography) then
-      allocate(zTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz + nbz)))
-      allocate(zTildeTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
-          &+ nbz)))
-      do ix = - nbx, nx + nbx
-        do jy = - nby, ny + nby
-          do kz = - nbz, nz + nbz
-            zTFC(ix, jy, kz) = heightTFC(ix, jy, kz)
-            zTildeTFC(ix, jy, kz) = heightTFC(ix, jy, kz) + 0.5 * jac(ix, jy, &
-                &kz) * dz
-          end do
-        end do
-      end do
-    end if
 
     if(steady_state .and. case_wkb /= 3) stop "Steady state is implemented for &
         &case_wkb == 3 only!"
@@ -2070,7 +1728,6 @@ module wkb_module
                 wnrm = 0.0
               end if
               wnm_sfc(ix, jy, iwm) = wnrm
-
             end do
           end do
         end do
@@ -2078,35 +1735,19 @@ module wkb_module
         call stratification(z(1), 1, NN_nd)
         do jy = 1, ny
           do ix = 1, nx
-            ! FJApr2023
-            ! Loop over all wave modes.
             do iwm = 1, nwm
-              ! FJApr2023
+              ! Wavenumbers
               wnrk_init = k_spectrum(ix, jy, iwm)
               wnrl_init = l_spectrum(ix, jy, iwm)
               wnrh_init = sqrt(wnrk_init ** 2.0 + wnrl_init ** 2.0)
               wnrm_init = 0.0
 
-              ! FJApr2023
-              ! omi_sfc(ix, jy) = - var(ix, jy, 1, 2) * wnrk_init &
-              !     - var(ix, jy, 1, 3) * wnrl_init
+              ! Intrinsic frequency
               omi_sfc(ix, jy, iwm) = - 0.5 * (var%u(ix, jy, 1) + var%u(ix - 1, &
                   &jy, 1)) * wnrk_init - 0.5 * (var%v(ix, jy, 1) + var%v(ix, &
                   &jy - 1, 1)) * wnrl_init
 
-              ! choose correct sign of horizontal wavenumbers in order to
-              ! be on the correct frequency branch
-
-              ! FJApr2023
-              ! if(omi_sfc(ix, jy) * branchr >= 0.0) then
-              !   wnk_sfc(ix, jy) = wnrk_init
-              !   wnl_sfc(ix, jy) = wnrl_init
-              ! else
-              !   omi_sfc(ix, jy) = - omi_sfc(ix, jy)
-
-              !   wnk_sfc(ix, jy) = - wnrk_init
-              !   wnl_sfc(ix, jy) = - wnrl_init
-              ! end if
+              ! Frequency branch
               if(omi_sfc(ix, jy, iwm) * branchr >= 0.0) then
                 wnk_sfc(ix, jy, iwm) = wnrk_init
                 wnl_sfc(ix, jy, iwm) = wnrl_init
@@ -2116,33 +1757,11 @@ module wkb_module
                 wnk_sfc(ix, jy, iwm) = - wnrk_init
                 wnl_sfc(ix, jy, iwm) = - wnrl_init
               end if
-              ! end do
-              ! end do
 
-              ! FJMar2023
-              ! local squared Brunt-Vaisala frequency
-              ! call stratification(z(0), 1, NN_nd)
-
-              ! vertical wave number and wave-action density to be distributed
-              ! over the ray volumes
-
-              ! do jy = 1, ny
-              ! do ix = 1, nx
-              ! FJApr2023
-              ! fld_amp(ix, jy, 0) = 0.0
               fld_amp(ix, jy, kz, iwm) = 0.0
               wnrm = 0.0
 
-              ! FJJan2023
-              ! if ((sigwpx == 0.0 .or. abs(x(ix + ix0) - xr0) < sigwpx) .and. &
-              !     (sigwpy == 0.0 .or. abs(y(jy + jy0) - yr0) < sigwpy)) then
-              ! FJApr2023
-              ! if(abs(omi_sfc(ix, jy)) <= f_cor_nd) then
-              !   fld_amp(ix, jy, 0) = 0.0
-              !   wnrm = 0.0
-              ! elseif(abs(omi_sfc(ix, jy)) < sqrt(NN_nd)) then
-              !   wnrm = - branchr * sqrt(wnrh_init ** 2 * (NN_nd - omi_sfc(ix, jy) &
-              !       ** 2) / (omi_sfc(ix, jy) ** 2 - f_cor_nd ** 2))
+              ! Wave action density and vertical wavenumber
               if(abs(omi_sfc(ix, jy, iwm)) <= f_cor_nd) then
                 fld_amp(ix, jy, kz, iwm) = 0.0
                 wnrm = 0.0
@@ -2151,21 +1770,8 @@ module wkb_module
                     &jy, iwm) ** 2) / (omi_sfc(ix, jy, iwm) ** 2 - f_cor_nd &
                     &** 2))
 
-                ! Displacement (factor two accounts for other frequency branch)
+                ! Displacement
                 displm = abs(topography_spectrum(ix, jy, iwm))
-
-                ! FJJan2023
-                ! displacement
-                ! displm = mountainHeight_wkb_dim / lRef
-                ! if (sigwpx > 0.0) then
-                !   displm = displm * 0.5 * (1.0 + cos(pi * (x(ix + ix0) - xr0) &
-                !       / sigwpx))
-                ! end if
-
-                ! if (sigwpy > 0.0) then
-                !   displm = displm * 0.5 * (1.0 + cos(pi * (y(jy + jy0) - yr0) &
-                !       / sigwpy))
-                ! end if
 
                 ! Long number scaling
                 if(blocking) then
@@ -2178,15 +1784,7 @@ module wkb_module
                   displm = displm * wave_amplitude_reduction(long)
                 end if
 
-                ! surface wave-action density
-                ! FJApr2023
-                !   fld_amp(ix, jy, 0) = 0.5 * rhoStrat(0) * displm ** 2 &
-                !       * omi_sfc(ix, jy) * (wnrh_init ** 2 + wnrm ** 2) &
-                !       / wnrh_init ** 2
-                ! else
-                !   fld_amp(ix, jy, 0) = 0.0
-                !   wnrm = 0.0
-                ! end if
+                ! Surface wave-action density
                 fld_amp(ix, jy, kz, iwm) = 0.5 * rhoStrat(1) * displm ** 2 &
                     &* omi_sfc(ix, jy, iwm) * (wnrh_init ** 2 + wnrm ** 2) &
                     &/ wnrh_init ** 2
@@ -2194,10 +1792,6 @@ module wkb_module
                 fld_amp(ix, jy, kz, iwm) = 0.0
                 wnrm = 0.0
               end if
-              ! end if
-
-              ! FJApr2023
-              ! wnm_sfc(ix, jy) = wnrm
               wnm_sfc(ix, jy, iwm) = wnrm
             end do
           end do
@@ -2469,17 +2063,11 @@ module wkb_module
     cgy_max = 0.0
     cgz_max = 0.0
 
-    ! in mountain-wave case initialization of only one layer of ray
-    ! volumes just below the bottom surface:
-
-    ! if(case_wkb == 3) then
-    !   kz2min = nrzl
-    ! else
-    !   kz2min = 1
-    ! end if
+    if(topography) then
+      cgz_max_tfc = 0.0
+    end if
 
     ! nondimensional wave-number widths to be filled by ray volumes
-
     dk_ini_nd = dk_init * lRef
     dl_ini_nd = dl_init * lRef
     dm_ini_nd = dm_init * lRef
@@ -2493,10 +2081,6 @@ module wkb_module
           do kz = kzmin, kzmax
             iRay = 0
             i_sfc = 0
-
-            ! FJApr2023
-            ! if(topography .and. (zTFC(ix, jy, kz) < zrmin &
-            !     .or. zTFC(ix, jy, kz) > zrmax)) cycle
 
             ! in x-k subspace, loop over all r.v. within one spatial cell
             do ix2 = 1, nrxl
@@ -2513,7 +2097,6 @@ module wkb_module
                     do kz2 = 1, nrzl
                       do km = 1, nrm_init
 
-                        ! FJApr2023
                         ! Loop over all wave modes.
                         do iwm = 1, nwm
                           if(case_wkb == 3) then
@@ -2558,7 +2141,6 @@ module wkb_module
                               &+ (jy2 - 0.5) * dy / nryl)
 
                           if(topography) then
-                            ! FJApr2023
                             ray(iRay, ix, jy, kz)%z = (zTFC(ix, jy, kz) - 0.5 &
                                 &* jac(ix, jy, kz) * dz + (kz2 - 0.5) &
                                 &* jac(ix, jy, kz) * dz / nrzl)
@@ -2586,7 +2168,6 @@ module wkb_module
                           ray(iRay, ix, jy, kz)%dxray = dx / nrxl
                           ray(iRay, ix, jy, kz)%dyray = dy / nryl
                           if(topography) then
-                            ! FJApr2023
                             ray(iRay, ix, jy, kz)%dzray = jac(ix, jy, kz) * dz &
                                 &/ nrzl
                           else
@@ -2605,7 +2186,6 @@ module wkb_module
                             wnm_0 = wnrm_init
                           end if
 
-                          ! FJApr2023
                           ! Ensure correct wavenumber extents.
                           if(case_wkb == 3 .and. sizeX > 1) then
                             dk_ini_nd = fac_dk_init * sqrt(wnk_0 ** 2.0 &
@@ -2615,7 +2195,6 @@ module wkb_module
                           ray(iRay, ix, jy, kz)%k = (wnk_0 - 0.5 * dk_ini_nd &
                               &+ (real(ik) - 0.5) * dk_ini_nd / nrk_init)
 
-                          ! FJApr2023
                           ! Ensure correct wavenumber extents.
                           if(case_wkb == 3 .and. sizeY > 1) then
                             dl_ini_nd = fac_dl_init * sqrt(wnk_0 ** 2.0 &
@@ -2714,6 +2293,11 @@ module wkb_module
 
                           if(abs(wzr + cgirz) > abs(cgz_max)) then
                             cgz_max = abs(wzr + cgirz)
+                          end if
+
+                          if(topography) then
+                            cgz_max_tfc(ix, jy, kz) = max(cgz_max_tfc(ix, jy, &
+                                &kz), abs(wzr + cgirz))
                           end if
 
                           ! SD
@@ -2857,8 +2441,8 @@ module wkb_module
     if(strtpe == 1) then
       if(topography) then
         ! Locate the two closest levels.
-        kzd = max(- 1, floor((levelTFC(0, 0, zlc) - 0.5 * dz - lz(0)) / dz) + 1)
-        kzu = kzd + 1
+        kzu = kzTFC(0, 0, zlc)
+        kzd = kzu - 1
 
         if(kzu > nz + 1) then
           kzu = nz + 1
@@ -2889,8 +2473,8 @@ module wkb_module
     elseif(strtpe == 2) then
       if(topography) then
         ! Locate the two closest levels.
-        kzd = max(- 1, floor((levelTFC(0, 0, zlc) - lz(0)) / dz))
-        kzu = kzd + 1
+        kzu = kzTildeTFC(0, 0, zlc)
+        kzd = kzu - 1
 
         if(kzu + 1 > nz + 1) then
           kzu = nz
@@ -2900,10 +2484,12 @@ module wkb_module
         ! Assign the values.
         zd = zTildeTFC(0, 0, kzd)
         zu = zTildeTFC(0, 0, kzu)
-        strd = (bvsStratTFC(0, 0, kzd + 1) - bvsStratTFC(0, 0, kzd)) * 2.0 &
-            &/ (jac(0, 0, kzd) + jac(0, 0, kzd + 1)) / dz
-        stru = (bvsStratTFC(0, 0, kzu + 1) - bvsStratTFC(0, 0, kzu)) * 2.0 &
-            &/ (jac(0, 0, kzu) + jac(0, 0, kzu + 1)) / dz
+        strd = (bvsStratTFC(0, 0, kzd + 1) - bvsStratTFC(0, 0, kzd)) / (2.0 &
+            & * jac(0, 0, kzd) * jac(0, 0, kzd + 1) / (jac(0, 0, kzd) + jac(0, &
+            &0, kzd + 1))) / dz
+        stru = (bvsStratTFC(0, 0, kzu + 1) - bvsStratTFC(0, 0, kzu)) / (2.0 &
+            & * jac(0, 0, kzu) * jac(0, 0, kzu + 1) / (jac(0, 0, kzu) + jac(0, &
+            &0, kzu + 1))) / dz
       else
         kzd = max(- 1, floor((zlc - lz(0)) / dz))
 
@@ -3213,6 +2799,7 @@ module wkb_module
     end if
 
   end subroutine tracerderivative
+
   !------------------------------------------------------------------------
 
   subroutine meanflow(xlc_in, ylc_in, zlc_in, var, flwtpe, flw)
@@ -3241,7 +2828,6 @@ module wkb_module
 
     integer :: kzu, kzd, jyf, jyb, ixr, ixl
 
-    ! FJApr2023
     integer :: kzlbd, kzlbu, kzlfd, kzlfu, kzrbd, kzrbu, kzrfd, kzrfu
     real :: zlbd, zlbu, zlfd, zlfu, zrbd, zrbu, zrfd, zrfu
     real :: zbd, zbu, zfd, zfu
@@ -3254,6 +2840,8 @@ module wkb_module
 
     real :: factor
 
+    real :: zsfc
+
     integer :: ix0, jy0
 
     ix0 = is + nbx - 1
@@ -3263,26 +2851,20 @@ module wkb_module
     ylc = ylc_in
     zlc = zlc_in
 
-    ! vertical boundary conditions:
-    ! zBoundary = 'periodic': implement periodicity
-    ! zBoundary = 'solid_wall': noting done
+    if(zBoundary == "periodic") then
+      if(topography) then
+        ixrv = nint((xlc - lx(0)) / dx + 0.5) - ix0
+        jyrv = nint((ylc - ly(0)) / dy + 0.5) - jy0
+        zsfc = zTildeTFC(ixrv, jyrv, 0)
+      else
+        zsfc = lz(0)
+      end if
 
-    if(zlc < lz(0)) then
-      select case(zBoundary)
-      case("periodic")
-        zlc = lz(1) + mod(zlc - lz(0), lz(1) - lz(0))
-      case("solid_wall")
-      case default
-        stop "calc_meanflow_effect: unknown case zBoundary"
-      end select
-    elseif(zlc > lz(1)) then
-      select case(zBoundary)
-      case("periodic")
-        zlc = lz(0) + mod(zlc - lz(1), lz(1) - lz(0))
-      case("solid_wall")
-      case default
-        stop "calc_meanflow_effect: unknown case zBoundary"
-      end select
+      if(zlc < zsfc) then
+        zlc = lz(1) + mod(zlc - zsfc, lz(1) - zsfc)
+      else if(zlc > lz(1)) then
+        zlc = zsfc + mod(zlc - lz(1), lz(1) - zsfc)
+      end if
     end if
 
     if(flwtpe == 1) then
@@ -3331,7 +2913,6 @@ module wkb_module
       ! in the model domain)
 
       if(topography) then
-        ! FJApr2023
         ! Locate the closest points in zonal direction.
         if(sizeX == 1) then
           ixl = 1
@@ -3372,10 +2953,8 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzlbu = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzlbu = kzTFC(ixl, jyb, zlc)
+        kzlbd = kzlbu - 1
         if(kzlbd > nz) then
           kzlbu = nz
           kzlbd = nz
@@ -3383,10 +2962,8 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzlfu = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzlfu = kzTFC(ixl, jyf, zlc)
+        kzlfd = kzlfu - 1
         if(kzlfd > nz) then
           kzlfu = nz
           kzlfd = nz
@@ -3394,10 +2971,8 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzrbu = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzrbu = kzTFC(ixr, jyb, zlc)
+        kzrbd = kzrbu - 1
         if(kzrbd > nz) then
           kzrbu = nz
           kzrbd = nz
@@ -3405,10 +2980,8 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzrfu = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzrfu = kzTFC(ixr, jyf, zlc)
+        kzrfd = kzrfu - 1
         if(kzrfd > nz) then
           kzrfu = nz
           kzrfd = nz
@@ -3530,7 +3103,6 @@ module wkb_module
       ! in the model domain)
 
       if(topography) then
-        ! FJApr2023
         ! Locate the closest points in zonal direction.
         if(sizeX == 1) then
           ixl = 1
@@ -3571,10 +3143,8 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzlbu = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzlbu = kzTFC(ixl, jyb, zlc)
+        kzlbd = kzlbu - 1
         if(kzlbd > nz) then
           kzlbu = nz
           kzlbd = nz
@@ -3582,10 +3152,8 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzlfu = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzlfu = kzTFC(ixl, jyf, zlc)
+        kzlfd = kzlfu - 1
         if(kzlfd > nz) then
           kzlfu = nz
           kzlfd = nz
@@ -3593,10 +3161,8 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzrbu = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzrbu = kzTFC(ixr, jyb, zlc)
+        kzrbd = kzrbu - 1
         if(kzrbd > nz) then
           kzrbu = nz
           kzrbd = nz
@@ -3604,10 +3170,8 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzrfu = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzrfu = kzTFC(ixr, jyf, zlc)
+        kzrfd = kzrfu - 1
         if(kzrfd > nz) then
           kzrfu = nz
           kzrfd = nz
@@ -3728,7 +3292,6 @@ module wkb_module
       ! z(k+1/2) = lz(0) + k*dz:
 
       if(topography) then
-        ! FJApr2023
         ! Locate the closest points in zonal direction.
         if(sizeX == 1) then
           ixl = 1
@@ -3769,8 +3332,8 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(- nbz, floor((levelTFC(ixl, jyb, zlc) - lz(0)) / dz))
-        kzlbu = kzlbd + 1
+        kzlbu = kzTildeTFC(ixl, jyb, zlc)
+        kzlbd = kzlbu - 1
         if(kzlbd > nz) then
           kzlbu = nz
           kzlbd = nz
@@ -3778,8 +3341,8 @@ module wkb_module
         zlbd = zTildeTFC(ixl, jyb, kzlbd)
         zlbu = zTildeTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(- nbz, floor((levelTFC(ixl, jyf, zlc) - lz(0)) / dz))
-        kzlfu = kzlfd + 1
+        kzlfu = kzTildeTFC(ixl, jyf, zlc)
+        kzlfd = kzlfu - 1
         if(kzlfd > nz) then
           kzlfu = nz
           kzlfd = nz
@@ -3787,8 +3350,8 @@ module wkb_module
         zlfd = zTildeTFC(ixl, jyf, kzlfd)
         zlfu = zTildeTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(- nbz, floor((levelTFC(ixr, jyb, zlc) - lz(0)) / dz))
-        kzrbu = kzrbd + 1
+        kzrbu = kzTildeTFC(ixr, jyb, zlc)
+        kzrbd = kzrbu - 1
         if(kzrbd > nz) then
           kzrbu = nz
           kzrbd = nz
@@ -3796,8 +3359,8 @@ module wkb_module
         zrbd = zTildeTFC(ixr, jyb, kzrbd)
         zrbu = zTildeTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(- nbz, floor((levelTFC(ixr, jyf, zlc) - lz(0)) / dz))
-        kzrfu = kzrfd + 1
+        kzrfu = kzTildeTFC(ixr, jyf, zlc)
+        kzrfd = kzrfu - 1
         if(kzrfd > nz) then
           kzrfu = nz
           kzrfd = nz
@@ -3807,10 +3370,10 @@ module wkb_module
 
         ! Assign the values.
 
-        if(zlbu < topography_surface(ixl, jyb)) then
+        if(zlbu < zTildeTFC(ixl, jyb, 0)) then
           flwlbd = 0.0
           flwlbu = 0.0
-        else if(zlbd < topography_surface(ixl, jyb)) then
+        else if(zlbd < zTildeTFC(ixl, jyb, 0)) then
           flwlbd = 0.0
           flwlbu = vertWindTFC(ixl, jyb, kzlbu, var)
         else
@@ -3818,10 +3381,10 @@ module wkb_module
           flwlbu = vertWindTFC(ixl, jyb, kzlbu, var)
         end if
 
-        if(zlfu < topography_surface(ixl, jyf)) then
+        if(zlfu < zTildeTFC(ixl, jyf, 0)) then
           flwlfd = 0.0
           flwlfu = 0.0
-        else if(zlfd < topography_surface(ixl, jyf)) then
+        else if(zlfd < zTildeTFC(ixl, jyf, 0)) then
           flwlfd = 0.0
           flwlfu = vertWindTFC(ixl, jyf, kzlfu, var)
         else
@@ -3829,10 +3392,10 @@ module wkb_module
           flwlfu = vertWindTFC(ixl, jyf, kzlfu, var)
         end if
 
-        if(zrbu < topography_surface(ixr, jyb)) then
+        if(zrbu < zTildeTFC(ixr, jyb, 0)) then
           flwrbd = 0.0
           flwrbu = 0.0
-        else if(zrbd < topography_surface(ixr, jyb)) then
+        else if(zrbd < zTildeTFC(ixr, jyb, 0)) then
           flwrbd = 0.0
           flwrbu = vertWindTFC(ixr, jyb, kzrbu, var)
         else
@@ -3840,10 +3403,10 @@ module wkb_module
           flwrbu = vertWindTFC(ixr, jyb, kzrbu, var)
         end if
 
-        if(zrfu < topography_surface(ixr, jyf)) then
+        if(zrfu < zTildeTFC(ixr, jyf, 0)) then
           flwrfd = 0.0
           flwrfu = 0.0
-        else if(zrfd < topography_surface(ixr, jyf)) then
+        else if(zrfd < zTildeTFC(ixr, jyf, 0)) then
           flwrfd = 0.0
           flwrfu = vertWindTFC(ixr, jyf, kzrfu, var)
         else
@@ -3974,7 +3537,6 @@ module wkb_module
       ! du/dx (i,j,k)) = (u(i+1/2,j,k) - u(i-1/2,j,k))/dx, hence
 
       if(topography) then
-        ! FJApr2023
         ! Locate the closest points in zonal direction.
         if(sizeX == 1) then
           flw = 0.0
@@ -4015,10 +3577,8 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzlbu = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzlbu = kzTFC(ixl, jyb, zlc)
+        kzlbd = kzlbu - 1
         if(kzlbd > nz) then
           kzlbu = nz
           kzlbd = nz
@@ -4026,10 +3586,8 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzlfu = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzlfu = kzTFC(ixl, jyf, zlc)
+        kzlfd = kzlfu - 1
         if(kzlfd > nz) then
           kzlfu = nz
           kzlfd = nz
@@ -4037,10 +3595,8 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzrbu = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzrbu = kzTFC(ixr, jyb, zlc)
+        kzrbd = kzrbu - 1
         if(kzrbd > nz) then
           kzrbu = nz
           kzrbd = nz
@@ -4048,10 +3604,8 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzrfu = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzrfu = kzTFC(ixr, jyf, zlc)
+        kzrfd = kzrfu - 1
         if(kzrfd > nz) then
           kzrfu = nz
           kzrfd = nz
@@ -4061,73 +3615,41 @@ module wkb_module
 
         ! Assign the values.
 
-        flwlbd = (0.5 * ((jac(ixl, jyb, kzlbd) + jac(ixl + 1, jyb, kzlbd)) &
-            &* var%u(ixl, jyb, kzlbd) - (jac(ixl, jyb, kzlbd) + jac(ixl - 1, &
-            &jyb, kzlbd)) * var%u(ixl - 1, jyb, kzlbd)) / dx + 0.25 &
-            &* (jac(ixl, jyb, kzlbd + 1) * met(ixl, jyb, kzlbd + 1, 1, 3) &
-            &* (var%u(ixl, jyb, kzlbd + 1) + var%u(ixl - 1, jyb, kzlbd + 1)) &
-            &- jac(ixl, jyb, kzlbd - 1) * met(ixl, jyb, kzlbd - 1, 1, 3) &
-            &* (var%u(ixl, jyb, kzlbd - 1) + var%u(ixl - 1, jyb, kzlbd - 1))) &
-            &/ dz) / jac(ixl, jyb, kzlbd)
-        flwlbu = (0.5 * ((jac(ixl, jyb, kzlbu) + jac(ixl + 1, jyb, kzlbu)) &
-            &* var%u(ixl, jyb, kzlbu) - (jac(ixl, jyb, kzlbu) + jac(ixl - 1, &
-            &jyb, kzlbu)) * var%u(ixl - 1, jyb, kzlbu)) / dx + 0.25 &
-            &* (jac(ixl, jyb, kzlbu + 1) * met(ixl, jyb, kzlbu + 1, 1, 3) &
-            &* (var%u(ixl, jyb, kzlbu + 1) + var%u(ixl - 1, jyb, kzlbu + 1)) &
-            &- jac(ixl, jyb, kzlbu - 1) * met(ixl, jyb, kzlbu - 1, 1, 3) &
-            &* (var%u(ixl, jyb, kzlbu - 1) + var%u(ixl - 1, jyb, kzlbu - 1))) &
-            &/ dz) / jac(ixl, jyb, kzlbu)
+        flwlbd = (var%u(ixl, jyb, kzlbd) - var%u(ixl - 1, jyb, kzlbd)) / dx &
+            &+ met(ixl, jyb, kzlbd, 1, 3) * 0.25 * (var%u(ixl, jyb, kzlbd + 1) &
+            &+ var%u(ixl - 1, jyb, kzlbd + 1) - var%u(ixl, jyb, kzlbd - 1) &
+            &- var%u(ixl - 1, jyb, kzlbd - 1)) / dz
+        flwlbu = (var%u(ixl, jyb, kzlbu) - var%u(ixl - 1, jyb, kzlbu)) / dx &
+            &+ met(ixl, jyb, kzlbu, 1, 3) * 0.25 * (var%u(ixl, jyb, kzlbu + 1) &
+            &+ var%u(ixl - 1, jyb, kzlbu + 1) - var%u(ixl, jyb, kzlbu - 1) &
+            &- var%u(ixl - 1, jyb, kzlbu - 1)) / dz
 
-        flwlfd = (0.5 * ((jac(ixl, jyf, kzlfd) + jac(ixl + 1, jyf, kzlfd)) &
-            &* var%u(ixl, jyf, kzlfd) - (jac(ixl, jyf, kzlfd) + jac(ixl - 1, &
-            &jyf, kzlfd)) * var%u(ixl - 1, jyf, kzlfd)) / dx + 0.25 &
-            &* (jac(ixl, jyf, kzlfd + 1) * met(ixl, jyf, kzlfd + 1, 1, 3) &
-            &* (var%u(ixl, jyf, kzlfd + 1) + var%u(ixl - 1, jyf, kzlfd + 1)) &
-            &- jac(ixl, jyf, kzlfd - 1) * met(ixl, jyf, kzlfd - 1, 1, 3) &
-            &* (var%u(ixl, jyf, kzlfd - 1) + var%u(ixl - 1, jyf, kzlfd - 1))) &
-            &/ dz) / jac(ixl, jyf, kzlfd)
-        flwlfu = (0.5 * ((jac(ixl, jyf, kzlfu) + jac(ixl + 1, jyf, kzlfu)) &
-            &* var%u(ixl, jyf, kzlfu) - (jac(ixl, jyf, kzlfu) + jac(ixl - 1, &
-            &jyf, kzlfu)) * var%u(ixl - 1, jyf, kzlfu)) / dx + 0.25 &
-            &* (jac(ixl, jyf, kzlfu + 1) * met(ixl, jyf, kzlfu + 1, 1, 3) &
-            &* (var%u(ixl, jyf, kzlfu + 1) + var%u(ixl - 1, jyf, kzlfu + 1)) &
-            &- jac(ixl, jyf, kzlfu - 1) * met(ixl, jyf, kzlfu - 1, 1, 3) &
-            &* (var%u(ixl, jyf, kzlfu - 1) + var%u(ixl - 1, jyf, kzlfu - 1))) &
-            &/ dz) / jac(ixl, jyf, kzlfu)
+        flwlfd = (var%u(ixl, jyf, kzlfd) - var%u(ixl - 1, jyf, kzlfd)) / dx &
+            &+ met(ixl, jyf, kzlfd, 1, 3) * 0.25 * (var%u(ixl, jyf, kzlfd + 1) &
+            &+ var%u(ixl - 1, jyf, kzlfd + 1) - var%u(ixl, jyf, kzlfd - 1) &
+            &- var%u(ixl - 1, jyf, kzlfd - 1)) / dz
+        flwlfu = (var%u(ixl, jyf, kzlfu) - var%u(ixl - 1, jyf, kzlfu)) / dx &
+            &+ met(ixl, jyf, kzlfu, 1, 3) * 0.25 * (var%u(ixl, jyf, kzlfu + 1) &
+            &+ var%u(ixl - 1, jyf, kzlfu + 1) - var%u(ixl, jyf, kzlfu - 1) &
+            &- var%u(ixl - 1, jyf, kzlfu - 1)) / dz
 
-        flwrbd = (0.5 * ((jac(ixr, jyb, kzrbd) + jac(ixr + 1, jyb, kzrbd)) &
-            &* var%u(ixr, jyb, kzrbd) - (jac(ixr, jyb, kzrbd) + jac(ixr - 1, &
-            &jyb, kzrbd)) * var%u(ixr - 1, jyb, kzrbd)) / dx + 0.25 &
-            &* (jac(ixr, jyb, kzrbd + 1) * met(ixr, jyb, kzrbd + 1, 1, 3) &
-            &* (var%u(ixr, jyb, kzrbd + 1) + var%u(ixr - 1, jyb, kzrbd + 1)) &
-            &- jac(ixr, jyb, kzrbd - 1) * met(ixr, jyb, kzrbd - 1, 1, 3) &
-            &* (var%u(ixr, jyb, kzrbd - 1) + var%u(ixr - 1, jyb, kzrbd - 1))) &
-            &/ dz) / jac(ixr, jyb, kzrbd)
-        flwrbu = (0.5 * ((jac(ixr, jyb, kzrbu) + jac(ixr + 1, jyb, kzrbu)) &
-            &* var%u(ixr, jyb, kzrbu) - (jac(ixr, jyb, kzrbu) + jac(ixr - 1, &
-            &jyb, kzrbu)) * var%u(ixr - 1, jyb, kzrbu)) / dx + 0.25 &
-            &* (jac(ixr, jyb, kzrbu + 1) * met(ixr, jyb, kzrbu + 1, 1, 3) &
-            &* (var%u(ixr, jyb, kzrbu + 1) + var%u(ixr - 1, jyb, kzrbu + 1)) &
-            &- jac(ixr, jyb, kzrbu - 1) * met(ixr, jyb, kzrbu - 1, 1, 3) &
-            &* (var%u(ixr, jyb, kzrbu - 1) + var%u(ixr - 1, jyb, kzrbu - 1))) &
-            &/ dz) / jac(ixr, jyb, kzrbu)
+        flwrbd = (var%u(ixr, jyb, kzrbd) - var%u(ixr - 1, jyb, kzrbd)) / dx &
+            &+ met(ixr, jyb, kzrbd, 1, 3) * 0.25 * (var%u(ixr, jyb, kzrbd + 1) &
+            &+ var%u(ixr - 1, jyb, kzrbd + 1) - var%u(ixr, jyb, kzrbd - 1) &
+            &- var%u(ixr - 1, jyb, kzrbd - 1)) / dz
+        flwrbu = (var%u(ixr, jyb, kzrbu) - var%u(ixr - 1, jyb, kzrbu)) / dx &
+            &+ met(ixr, jyb, kzrbu, 1, 3) * 0.25 * (var%u(ixr, jyb, kzrbu + 1) &
+            &+ var%u(ixr - 1, jyb, kzrbu + 1) - var%u(ixr, jyb, kzrbu - 1) &
+            &- var%u(ixr - 1, jyb, kzrbu - 1)) / dz
 
-        flwrfd = (0.5 * ((jac(ixr, jyf, kzrfd) + jac(ixr + 1, jyf, kzrfd)) &
-            &* var%u(ixr, jyf, kzrfd) - (jac(ixr, jyf, kzrfd) + jac(ixr - 1, &
-            &jyf, kzrfd)) * var%u(ixr - 1, jyf, kzrfd)) / dx + 0.25 &
-            &* (jac(ixr, jyf, kzrfd + 1) * met(ixr, jyf, kzrfd + 1, 1, 3) &
-            &* (var%u(ixr, jyf, kzrfd + 1) + var%u(ixr - 1, jyf, kzrfd + 1)) &
-            &- jac(ixr, jyf, kzrfd - 1) * met(ixr, jyf, kzrfd - 1, 1, 3) &
-            &* (var%u(ixr, jyf, kzrfd - 1) + var%u(ixr - 1, jyf, kzrfd - 1))) &
-            &/ dz) / jac(ixr, jyf, kzrfd)
-        flwrfu = (0.5 * ((jac(ixr, jyf, kzrfu) + jac(ixr + 1, jyf, kzrfu)) &
-            &* var%u(ixr, jyf, kzrfu) - (jac(ixr, jyf, kzrfu) + jac(ixr - 1, &
-            &jyf, kzrfu)) * var%u(ixr - 1, jyf, kzrfu)) / dx + 0.25 &
-            &* (jac(ixr, jyf, kzrfu + 1) * met(ixr, jyf, kzrfu + 1, 1, 3) &
-            &* (var%u(ixr, jyf, kzrfu + 1) + var%u(ixr - 1, jyf, kzrfu + 1)) &
-            &- jac(ixr, jyf, kzrfu - 1) * met(ixr, jyf, kzrfu - 1, 1, 3) &
-            &* (var%u(ixr, jyf, kzrfu - 1) + var%u(ixr - 1, jyf, kzrfu - 1))) &
-            &/ dz) / jac(ixr, jyf, kzrfu)
+        flwrfd = (var%u(ixr, jyf, kzrfd) - var%u(ixr - 1, jyf, kzrfd)) / dx &
+            &+ met(ixr, jyf, kzrfd, 1, 3) * 0.25 * (var%u(ixr, jyf, kzrfd + 1) &
+            &+ var%u(ixr - 1, jyf, kzrfd + 1) - var%u(ixr, jyf, kzrfd - 1) &
+            &- var%u(ixr - 1, jyf, kzrfd - 1)) / dz
+        flwrfu = (var%u(ixr, jyf, kzrfu) - var%u(ixr - 1, jyf, kzrfu)) / dx &
+            &+ met(ixr, jyf, kzrfu, 1, 3) * 0.25 * (var%u(ixr, jyf, kzrfu + 1) &
+            &+ var%u(ixr - 1, jyf, kzrfu + 1) - var%u(ixr, jyf, kzrfu - 1) &
+            &- var%u(ixr - 1, jyf, kzrfu - 1)) / dz
       else
         if(sizeX == 1) then
           ! no derivative if there is no x dependence
@@ -4231,7 +3753,6 @@ module wkb_module
       ! du/dy (i+1/2,j+1/2,k)) = (u(i+1/2,j+1,k) - u(i+1/2,j,k))/dy, hence
 
       if(topography) then
-        ! FJApr2023
         ! Locate the closest points in zonal direction.
         if(sizeX == 1) then
           ixl = 1
@@ -4273,10 +3794,8 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzlbu = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzlbu = kzTFC(ixl, jyb, zlc)
+        kzlbd = kzlbu - 1
         if(kzlbd > nz) then
           kzlbu = nz
           kzlbd = nz
@@ -4284,10 +3803,8 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzlfu = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzlfu = kzTFC(ixl, jyf, zlc)
+        kzlfd = kzlfu - 1
         if(kzlfd > nz) then
           kzlfu = nz
           kzlfd = nz
@@ -4295,10 +3812,8 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzrbu = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzrbu = kzTFC(ixr, jyb, zlc)
+        kzrbd = kzrbu - 1
         if(kzrbd > nz) then
           kzrbu = nz
           kzrbd = nz
@@ -4306,10 +3821,8 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzrfu = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzrfu = kzTFC(ixr, jyf, zlc)
+        kzrfd = kzrfu - 1
         if(kzrfd > nz) then
           kzrfu = nz
           kzrfd = nz
@@ -4319,137 +3832,57 @@ module wkb_module
 
         ! Assign the values.
 
-        flwlbd = (0.5 * ((jac(ixl, jyb + 1, kzlbd) + jac(ixl + 1, jyb + 1, &
-            &kzlbd)) * var%u(ixl, jyb + 1, kzlbd) - (jac(ixl, jyb, kzlbd) &
-            &+ jac(ixl + 1, jyb, kzlbd)) * var%u(ixl, jyb, kzlbd)) / dy &
-            &+ 0.0625 * ((jac(ixl, jyb, kzlbd + 1) * met(ixl, jyb, kzlbd + 1, &
-            &2, 3) + jac(ixl + 1, jyb, kzlbd + 1) * met(ixl + 1, jyb, kzlbd &
-            &+ 1, 2, 3) + jac(ixl, jyb + 1, kzlbd + 1) * met(ixl, jyb + 1, &
-            &kzlbd + 1, 2, 3) + jac(ixl + 1, jyb + 1, kzlbd + 1) * met(ixl &
-            &+ 1, jyb + 1, kzlbd + 1, 2, 3)) * (var%u(ixl, jyb, kzlbd + 1) &
-            &+ var%u(ixl, jyb + 1, kzlbd + 1)) - (jac(ixl, jyb, kzlbd - 1) &
-            &* met(ixl, jyb, kzlbd - 1, 2, 3) + jac(ixl + 1, jyb, kzlbd - 1) &
-            &* met(ixl + 1, jyb, kzlbd - 1, 2, 3) + jac(ixl, jyb + 1, kzlbd &
-            &- 1) * met(ixl, jyb + 1, kzlbd - 1, 2, 3) + jac(ixl + 1, jyb + 1, &
-            &kzlbd - 1) * met(ixl + 1, jyb + 1, kzlbd - 1, 2, 3)) &
-            &* (var%u(ixl, jyb, kzlbd - 1) + var%u(ixl, jyb + 1, kzlbd - 1))) &
-            &/ dz) * 4.0 / (jac(ixl, jyb, kzlbd) + jac(ixl + 1, jyb, kzlbd) &
-            &+ jac(ixl, jyb + 1, kzlbd) + jac(ixl + 1, jyb + 1, kzlbd))
-        flwlbu = (0.5 * ((jac(ixl, jyb + 1, kzlbu) + jac(ixl + 1, jyb + 1, &
-            &kzlbu)) * var%u(ixl, jyb + 1, kzlbu) - (jac(ixl, jyb, kzlbu) &
-            &+ jac(ixl + 1, jyb, kzlbu)) * var%u(ixl, jyb, kzlbu)) / dy &
-            &+ 0.0625 * ((jac(ixl, jyb, kzlbu + 1) * met(ixl, jyb, kzlbu + 1, &
-            &2, 3) + jac(ixl + 1, jyb, kzlbu + 1) * met(ixl + 1, jyb, kzlbu &
-            &+ 1, 2, 3) + jac(ixl, jyb + 1, kzlbu + 1) * met(ixl, jyb + 1, &
-            &kzlbu + 1, 2, 3) + jac(ixl + 1, jyb + 1, kzlbu + 1) * met(ixl &
-            &+ 1, jyb + 1, kzlbu + 1, 2, 3)) * (var%u(ixl, jyb, kzlbu + 1) &
-            &+ var%u(ixl, jyb + 1, kzlbu + 1)) - (jac(ixl, jyb, kzlbu - 1) &
-            &* met(ixl, jyb, kzlbu - 1, 2, 3) + jac(ixl + 1, jyb, kzlbu - 1) &
-            &* met(ixl + 1, jyb, kzlbu - 1, 2, 3) + jac(ixl, jyb + 1, kzlbu &
-            &- 1) * met(ixl, jyb + 1, kzlbu - 1, 2, 3) + jac(ixl + 1, jyb + 1, &
-            &kzlbu - 1) * met(ixl + 1, jyb + 1, kzlbu - 1, 2, 3)) &
-            &* (var%u(ixl, jyb, kzlbu - 1) + var%u(ixl, jyb + 1, kzlbu - 1))) &
-            &/ dz) * 4.0 / (jac(ixl, jyb, kzlbu) + jac(ixl + 1, jyb, kzlbu) &
-            &+ jac(ixl, jyb + 1, kzlbu) + jac(ixl + 1, jyb + 1, kzlbu))
+        flwlbd = (var%u(ixl, jyb + 1, kzlbd) - var%u(ixl, jyb, kzlbd)) &
+            &/ dy + 0.25 * (met(ixl, jyb, kzlbd, 2, 3) + met(ixl + 1, jyb, &
+            &kzlbd, 2, 3) + met(ixl, jyb + 1, kzlbd, 2, 3) + met(ixl + 1, jyb &
+            &+ 1, kzlbd, 2, 3)) * 0.25 * (var%u(ixl, jyb, kzlbd + 1) &
+            &+ var%u(ixl, jyb + 1, kzlbd + 1) - var%u(ixl, jyb, kzlbd - 1) &
+            &- var%u(ixl, jyb + 1, kzlbd - 1)) / dz
+        flwlbu = (var%u(ixl, jyb + 1, kzlbu) - var%u(ixl, jyb, kzlbu)) &
+            &/ dy + 0.25 * (met(ixl, jyb, kzlbu, 2, 3) + met(ixl + 1, jyb, &
+            &kzlbu, 2, 3) + met(ixl, jyb + 1, kzlbu, 2, 3) + met(ixl + 1, jyb &
+            &+ 1, kzlbu, 2, 3)) * 0.25 * (var%u(ixl, jyb, kzlbu + 1) &
+            &+ var%u(ixl, jyb + 1, kzlbu + 1) - var%u(ixl, jyb, kzlbu - 1) &
+            &- var%u(ixl, jyb + 1, kzlbu - 1)) / dz
 
-        flwlfd = (0.5 * ((jac(ixl, jyf + 1, kzlfd) + jac(ixl + 1, jyf + 1, &
-            &kzlfd)) * var%u(ixl, jyf + 1, kzlfd) - (jac(ixl, jyf, kzlfd) &
-            &+ jac(ixl + 1, jyf, kzlfd)) * var%u(ixl, jyf, kzlfd)) / dy &
-            &+ 0.0625 * ((jac(ixl, jyf, kzlfd + 1) * met(ixl, jyf, kzlfd + 1, &
-            &2, 3) + jac(ixl + 1, jyf, kzlfd + 1) * met(ixl + 1, jyf, kzlfd &
-            &+ 1, 2, 3) + jac(ixl, jyf + 1, kzlfd + 1) * met(ixl, jyf + 1, &
-            &kzlfd + 1, 2, 3) + jac(ixl + 1, jyf + 1, kzlfd + 1) * met(ixl &
-            &+ 1, jyf + 1, kzlfd + 1, 2, 3)) * (var%u(ixl, jyf, kzlfd + 1) &
-            &+ var%u(ixl, jyf + 1, kzlfd + 1)) - (jac(ixl, jyf, kzlfd - 1) &
-            &* met(ixl, jyf, kzlfd - 1, 2, 3) + jac(ixl + 1, jyf, kzlfd - 1) &
-            &* met(ixl + 1, jyf, kzlfd - 1, 2, 3) + jac(ixl, jyf + 1, kzlfd &
-            &- 1) * met(ixl, jyf + 1, kzlfd - 1, 2, 3) + jac(ixl + 1, jyf + 1, &
-            &kzlfd - 1) * met(ixl + 1, jyf + 1, kzlfd - 1, 2, 3)) &
-            &* (var%u(ixl, jyf, kzlfd - 1) + var%u(ixl, jyf + 1, kzlfd - 1))) &
-            &/ dz) * 4.0 / (jac(ixl, jyf, kzlfd) + jac(ixl + 1, jyf, kzlfd) &
-            &+ jac(ixl, jyf + 1, kzlfd) + jac(ixl + 1, jyf + 1, kzlfd))
-        flwlfu = (0.5 * ((jac(ixl, jyf + 1, kzlfu) + jac(ixl + 1, jyf + 1, &
-            &kzlfu)) * var%u(ixl, jyf + 1, kzlfu) - (jac(ixl, jyf, kzlfu) &
-            &+ jac(ixl + 1, jyf, kzlfu)) * var%u(ixl, jyf, kzlfu)) / dy &
-            &+ 0.0625 * ((jac(ixl, jyf, kzlfu + 1) * met(ixl, jyf, kzlfu + 1, &
-            &2, 3) + jac(ixl + 1, jyf, kzlfu + 1) * met(ixl + 1, jyf, kzlfu &
-            &+ 1, 2, 3) + jac(ixl, jyf + 1, kzlfu + 1) * met(ixl, jyf + 1, &
-            &kzlfu + 1, 2, 3) + jac(ixl + 1, jyf + 1, kzlfu + 1) * met(ixl &
-            &+ 1, jyf + 1, kzlfu + 1, 2, 3)) * (var%u(ixl, jyf, kzlfu + 1) &
-            &+ var%u(ixl, jyf + 1, kzlfu + 1)) - (jac(ixl, jyf, kzlfu - 1) &
-            &* met(ixl, jyf, kzlfu - 1, 2, 3) + jac(ixl + 1, jyf, kzlfu - 1) &
-            &* met(ixl + 1, jyf, kzlfu - 1, 2, 3) + jac(ixl, jyf + 1, kzlfu &
-            &- 1) * met(ixl, jyf + 1, kzlfu - 1, 2, 3) + jac(ixl + 1, jyf + 1, &
-            &kzlfu - 1) * met(ixl + 1, jyf + 1, kzlfu - 1, 2, 3)) &
-            &* (var%u(ixl, jyf, kzlfu - 1) + var%u(ixl, jyf + 1, kzlfu - 1))) &
-            &/ dz) * 4.0 / (jac(ixl, jyf, kzlfu) + jac(ixl + 1, jyf, kzlfu) &
-            &+ jac(ixl, jyf + 1, kzlfu) + jac(ixl + 1, jyf + 1, kzlfu))
+        flwlfd = (var%u(ixl, jyf + 1, kzlfd) - var%u(ixl, jyf, kzlfd)) &
+            &/ dy + 0.25 * (met(ixl, jyf, kzlfd, 2, 3) + met(ixl + 1, jyf, &
+            &kzlfd, 2, 3) + met(ixl, jyf + 1, kzlfd, 2, 3) + met(ixl + 1, jyf &
+            &+ 1, kzlfd, 2, 3)) * 0.25 * (var%u(ixl, jyf, kzlfd + 1) &
+            &+ var%u(ixl, jyf + 1, kzlfd + 1) - var%u(ixl, jyf, kzlfd - 1) &
+            &- var%u(ixl, jyf + 1, kzlfd - 1)) / dz
+        flwlfu = (var%u(ixl, jyf + 1, kzlfu) - var%u(ixl, jyf, kzlfu)) &
+            &/ dy + 0.25 * (met(ixl, jyf, kzlfu, 2, 3) + met(ixl + 1, jyf, &
+            &kzlfu, 2, 3) + met(ixl, jyf + 1, kzlfu, 2, 3) + met(ixl + 1, jyf &
+            &+ 1, kzlfu, 2, 3)) * 0.25 * (var%u(ixl, jyf, kzlfu + 1) &
+            &+ var%u(ixl, jyf + 1, kzlfu + 1) - var%u(ixl, jyf, kzlfu - 1) &
+            &- var%u(ixl, jyf + 1, kzlfu - 1)) / dz
 
-        flwrbd = (0.5 * ((jac(ixr, jyb + 1, kzrbd) + jac(ixr + 1, jyb + 1, &
-            &kzrbd)) * var%u(ixr, jyb + 1, kzrbd) - (jac(ixr, jyb, kzrbd) &
-            &+ jac(ixr + 1, jyb, kzrbd)) * var%u(ixr, jyb, kzrbd)) / dy &
-            &+ 0.0625 * ((jac(ixr, jyb, kzrbd + 1) * met(ixr, jyb, kzrbd + 1, &
-            &2, 3) + jac(ixr + 1, jyb, kzrbd + 1) * met(ixr + 1, jyb, kzrbd &
-            &+ 1, 2, 3) + jac(ixr, jyb + 1, kzrbd + 1) * met(ixr, jyb + 1, &
-            &kzrbd + 1, 2, 3) + jac(ixr + 1, jyb + 1, kzrbd + 1) * met(ixr &
-            &+ 1, jyb + 1, kzrbd + 1, 2, 3)) * (var%u(ixr, jyb, kzrbd + 1) &
-            &+ var%u(ixr, jyb + 1, kzrbd + 1)) - (jac(ixr, jyb, kzrbd - 1) &
-            &* met(ixr, jyb, kzrbd - 1, 2, 3) + jac(ixr + 1, jyb, kzrbd - 1) &
-            &* met(ixr + 1, jyb, kzrbd - 1, 2, 3) + jac(ixr, jyb + 1, kzrbd &
-            &- 1) * met(ixr, jyb + 1, kzrbd - 1, 2, 3) + jac(ixr + 1, jyb + 1, &
-            &kzrbd - 1) * met(ixr + 1, jyb + 1, kzrbd - 1, 2, 3)) &
-            &* (var%u(ixr, jyb, kzrbd - 1) + var%u(ixr, jyb + 1, kzrbd - 1))) &
-            &/ dz) * 4.0 / (jac(ixr, jyb, kzrbd) + jac(ixr + 1, jyb, kzrbd) &
-            &+ jac(ixr, jyb + 1, kzrbd) + jac(ixr + 1, jyb + 1, kzrbd))
-        flwrbu = (0.5 * ((jac(ixr, jyb + 1, kzrbu) + jac(ixr + 1, jyb + 1, &
-            &kzrbu)) * var%u(ixr, jyb + 1, kzrbu) - (jac(ixr, jyb, kzrbu) &
-            &+ jac(ixr + 1, jyb, kzrbu)) * var%u(ixr, jyb, kzrbu)) / dy &
-            &+ 0.0625 * ((jac(ixr, jyb, kzrbu + 1) * met(ixr, jyb, kzrbu + 1, &
-            &2, 3) + jac(ixr + 1, jyb, kzrbu + 1) * met(ixr + 1, jyb, kzrbu &
-            &+ 1, 2, 3) + jac(ixr, jyb + 1, kzrbu + 1) * met(ixr, jyb + 1, &
-            &kzrbu + 1, 2, 3) + jac(ixr + 1, jyb + 1, kzrbu + 1) * met(ixr &
-            &+ 1, jyb + 1, kzrbu + 1, 2, 3)) * (var%u(ixr, jyb, kzrbu + 1) &
-            &+ var%u(ixr, jyb + 1, kzrbu + 1)) - (jac(ixr, jyb, kzrbu - 1) &
-            &* met(ixr, jyb, kzrbu - 1, 2, 3) + jac(ixr + 1, jyb, kzrbu - 1) &
-            &* met(ixr + 1, jyb, kzrbu - 1, 2, 3) + jac(ixr, jyb + 1, kzrbu &
-            &- 1) * met(ixr, jyb + 1, kzrbu - 1, 2, 3) + jac(ixr + 1, jyb + 1, &
-            &kzrbu - 1) * met(ixr + 1, jyb + 1, kzrbu - 1, 2, 3)) &
-            &* (var%u(ixr, jyb, kzrbu - 1) + var%u(ixr, jyb + 1, kzrbu - 1))) &
-            &/ dz) * 4.0 / (jac(ixr, jyb, kzrbu) + jac(ixr + 1, jyb, kzrbu) &
-            &+ jac(ixr, jyb + 1, kzrbu) + jac(ixr + 1, jyb + 1, kzrbu))
+        flwrbd = (var%u(ixr, jyb + 1, kzrbd) - var%u(ixr, jyb, kzrbd)) &
+            &/ dy + 0.25 * (met(ixr, jyb, kzrbd, 2, 3) + met(ixr + 1, jyb, &
+            &kzrbd, 2, 3) + met(ixr, jyb + 1, kzrbd, 2, 3) + met(ixr + 1, jyb &
+            &+ 1, kzrbd, 2, 3)) * 0.25 * (var%u(ixr, jyb, kzrbd + 1) &
+            &+ var%u(ixr, jyb + 1, kzrbd + 1) - var%u(ixr, jyb, kzrbd - 1) &
+            &- var%u(ixr, jyb + 1, kzrbd - 1)) / dz
+        flwrbu = (var%u(ixr, jyb + 1, kzrbu) - var%u(ixr, jyb, kzrbu)) &
+            &/ dy + 0.25 * (met(ixr, jyb, kzrbu, 2, 3) + met(ixr + 1, jyb, &
+            &kzrbu, 2, 3) + met(ixr, jyb + 1, kzrbu, 2, 3) + met(ixr + 1, jyb &
+            &+ 1, kzrbu, 2, 3)) * 0.25 * (var%u(ixr, jyb, kzrbu + 1) &
+            &+ var%u(ixr, jyb + 1, kzrbu + 1) - var%u(ixr, jyb, kzrbu - 1) &
+            &- var%u(ixr, jyb + 1, kzrbu - 1)) / dz
 
-        flwrfd = (0.5 * ((jac(ixr, jyf + 1, kzrfd) + jac(ixr + 1, jyf + 1, &
-            &kzrfd)) * var%u(ixr, jyf + 1, kzrfd) - (jac(ixr, jyf, kzrfd) &
-            &+ jac(ixr + 1, jyf, kzrfd)) * var%u(ixr, jyf, kzrfd)) / dy &
-            &+ 0.0625 * ((jac(ixr, jyf, kzrfd + 1) * met(ixr, jyf, kzrfd + 1, &
-            &2, 3) + jac(ixr + 1, jyf, kzrfd + 1) * met(ixr + 1, jyf, kzrfd &
-            &+ 1, 2, 3) + jac(ixr, jyf + 1, kzrfd + 1) * met(ixr, jyf + 1, &
-            &kzrfd + 1, 2, 3) + jac(ixr + 1, jyf + 1, kzrfd + 1) * met(ixr &
-            &+ 1, jyf + 1, kzrfd + 1, 2, 3)) * (var%u(ixr, jyf, kzrfd + 1) &
-            &+ var%u(ixr, jyf + 1, kzrfd + 1)) - (jac(ixr, jyf, kzrfd - 1) &
-            &* met(ixr, jyf, kzrfd - 1, 2, 3) + jac(ixr + 1, jyf, kzrfd - 1) &
-            &* met(ixr + 1, jyf, kzrfd - 1, 2, 3) + jac(ixr, jyf + 1, kzrfd &
-            &- 1) * met(ixr, jyf + 1, kzrfd - 1, 2, 3) + jac(ixr + 1, jyf + 1, &
-            &kzrfd - 1) * met(ixr + 1, jyf + 1, kzrfd - 1, 2, 3)) &
-            &* (var%u(ixr, jyf, kzrfd - 1) + var%u(ixr, jyf + 1, kzrfd - 1))) &
-            &/ dz) * 4.0 / (jac(ixr, jyf, kzrfd) + jac(ixr + 1, jyf, kzrfd) &
-            &+ jac(ixr, jyf + 1, kzrfd) + jac(ixr + 1, jyf + 1, kzrfd))
-        flwrfu = (0.5 * ((jac(ixr, jyf + 1, kzrfu) + jac(ixr + 1, jyf + 1, &
-            &kzrfu)) * var%u(ixr, jyf + 1, kzrfu) - (jac(ixr, jyf, kzrfu) &
-            &+ jac(ixr + 1, jyf, kzrfu)) * var%u(ixr, jyf, kzrfu)) / dy &
-            &+ 0.0625 * ((jac(ixr, jyf, kzrfu + 1) * met(ixr, jyf, kzrfu + 1, &
-            &2, 3) + jac(ixr + 1, jyf, kzrfu + 1) * met(ixr + 1, jyf, kzrfu &
-            &+ 1, 2, 3) + jac(ixr, jyf + 1, kzrfu + 1) * met(ixr, jyf + 1, &
-            &kzrfu + 1, 2, 3) + jac(ixr + 1, jyf + 1, kzrfu + 1) * met(ixr &
-            &+ 1, jyf + 1, kzrfu + 1, 2, 3)) * (var%u(ixr, jyf, kzrfu + 1) &
-            &+ var%u(ixr, jyf + 1, kzrfu + 1)) - (jac(ixr, jyf, kzrfu - 1) &
-            &* met(ixr, jyf, kzrfu - 1, 2, 3) + jac(ixr + 1, jyf, kzrfu - 1) &
-            &* met(ixr + 1, jyf, kzrfu - 1, 2, 3) + jac(ixr, jyf + 1, kzrfu &
-            &- 1) * met(ixr, jyf + 1, kzrfu - 1, 2, 3) + jac(ixr + 1, jyf + 1, &
-            &kzrfu - 1) * met(ixr + 1, jyf + 1, kzrfu - 1, 2, 3)) &
-            &* (var%u(ixr, jyf, kzrfu - 1) + var%u(ixr, jyf + 1, kzrfu - 1))) &
-            &/ dz) * 4.0 / (jac(ixr, jyf, kzrfu) + jac(ixr + 1, jyf, kzrfu) &
-            &+ jac(ixr, jyf + 1, kzrfu) + jac(ixr + 1, jyf + 1, kzrfu))
+        flwrfd = (var%u(ixr, jyf + 1, kzrfd) - var%u(ixr, jyf, kzrfd)) &
+            &/ dy + 0.25 * (met(ixr, jyf, kzrfd, 2, 3) + met(ixr + 1, jyf, &
+            &kzrfd, 2, 3) + met(ixr, jyf + 1, kzrfd, 2, 3) + met(ixr + 1, jyf &
+            &+ 1, kzrfd, 2, 3)) * 0.25 * (var%u(ixr, jyf, kzrfd + 1) &
+            &+ var%u(ixr, jyf + 1, kzrfd + 1) - var%u(ixr, jyf, kzrfd - 1) &
+            &- var%u(ixr, jyf + 1, kzrfd - 1)) / dz
+        flwrfu = (var%u(ixr, jyf + 1, kzrfu) - var%u(ixr, jyf, kzrfu)) &
+            &/ dy + 0.25 * (met(ixr, jyf, kzrfu, 2, 3) + met(ixr + 1, jyf, &
+            &kzrfu, 2, 3) + met(ixr, jyf + 1, kzrfu, 2, 3) + met(ixr + 1, jyf &
+            &+ 1, kzrfu, 2, 3)) * 0.25 * (var%u(ixr, jyf, kzrfu + 1) &
+            &+ var%u(ixr, jyf + 1, kzrfu + 1) - var%u(ixr, jyf, kzrfu - 1) &
+            &- var%u(ixr, jyf + 1, kzrfu - 1)) / dz
       else
         if(sizeY == 1) then
           !no derivative if there is no y dependence
@@ -4556,7 +3989,6 @@ module wkb_module
       ! du/dz (i+1/2,j,k+1/2)) = (u(i+1/2,j,k+1) - u(i+1/2,j,k))/dz, hence
 
       if(topography) then
-        ! FJApr2023
         ! Locate the closest points in zonal direction.
         if(sizeX == 1) then
           ixl = 1
@@ -4597,8 +4029,8 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(- nbz, floor((levelTFC(ixl, jyb, zlc) - lz(0)) / dz))
-        kzlbu = kzlbd + 1
+        kzlbu = kzTildeTFC(ixl, jyb, zlc)
+        kzlbd = kzlbu - 1
         if(kzlbd > nz) then
           kzlbu = nz + 1
           kzlbd = nz + 1
@@ -4606,8 +4038,8 @@ module wkb_module
         zlbd = zTildeTFC(ixl, jyb, kzlbd)
         zlbu = zTildeTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(- nbz, floor((levelTFC(ixl, jyf, zlc) - lz(0)) / dz))
-        kzlfu = kzlfd + 1
+        kzlfu = kzTildeTFC(ixl, jyf, zlc)
+        kzlfd = kzlfu - 1
         if(kzlfd > nz) then
           kzlfu = nz + 1
           kzlfd = nz + 1
@@ -4615,8 +4047,8 @@ module wkb_module
         zlfd = zTildeTFC(ixl, jyf, kzlfd)
         zlfu = zTildeTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(- nbz, floor((levelTFC(ixr, jyb, zlc) - lz(0)) / dz))
-        kzrbu = kzrbd + 1
+        kzrbu = kzTildeTFC(ixr, jyb, zlc)
+        kzrbd = kzrbu - 1
         if(kzrbd > nz) then
           kzrbu = nz + 1
           kzrbd = nz + 1
@@ -4624,8 +4056,8 @@ module wkb_module
         zrbd = zTildeTFC(ixr, jyb, kzrbd)
         zrbu = zTildeTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(- nbz, floor((levelTFC(ixr, jyf, zlc) - lz(0)) / dz))
-        kzrfu = kzrfd + 1
+        kzrfu = kzTildeTFC(ixr, jyf, zlc)
+        kzrfd = kzrfu - 1
         if(kzrfd > nz) then
           kzrfu = nz + 1
           kzrfd = nz + 1
@@ -4635,26 +4067,34 @@ module wkb_module
 
         ! Assign the values.
 
-        if(zlbu < topography_surface(ixl, jyb)) then
+        if(zlbu < zTildeTFC(ixl, jyb, 0)) then
           flwlbd = 0.0
           flwlbu = 0.0
-        else if(zlbd < topography_surface(ixl, jyb)) then
+        else if(zlbd < zTildeTFC(ixl, jyb, 0)) then
           flwlbd = 0.0
           flwlbu = (var%u(ixl, jyb, kzlbu + 1) - var%u(ixl, jyb, kzlbu)) / dz &
-              &* 4.0 / (jac(ixl, jyb, kzlbu) + jac(ixl + 1, jyb, kzlbu) &
-              &+ jac(ixl, jyb, kzlbu + 1) + jac(ixl + 1, jyb, kzlbu + 1))
+              &/ (jac(ixl, jyb, kzlbu) * jac(ixl, jyb, kzlbu + 1) / (jac(ixl, &
+              &jyb, kzlbu) + jac(ixl, jyb, kzlbu + 1)) + jac(ixl + 1, jyb, &
+              &kzlbu) * jac(ixl + 1, jyb, kzlbu + 1) / (jac(ixl + 1, jyb, &
+              &kzlbu) + jac(ixl + 1, jyb, kzlbu + 1)))
         else
           if(zlbu < lz(1)) then
             flwlbd = (var%u(ixl, jyb, kzlbd + 1) - var%u(ixl, jyb, kzlbd)) &
-                &/ dz * 4.0 / (jac(ixl, jyb, kzlbd) + jac(ixl + 1, jyb, kzlbd) &
-                &+ jac(ixl, jyb, kzlbd + 1) + jac(ixl + 1, jyb, kzlbd + 1))
+                &/ dz / (jac(ixl, jyb, kzlbd) * jac(ixl, jyb, kzlbd + 1) &
+                &/ (jac(ixl, jyb, kzlbd) + jac(ixl, jyb, kzlbd + 1)) + jac(ixl &
+                &+ 1, jyb, kzlbd) * jac(ixl + 1, jyb, kzlbd + 1) / (jac(ixl &
+                &+ 1, jyb, kzlbd) + jac(ixl + 1, jyb, kzlbd + 1)))
             flwlbu = (var%u(ixl, jyb, kzlbu + 1) - var%u(ixl, jyb, kzlbu)) &
-                &/ dz * 4.0 / (jac(ixl, jyb, kzlbu) + jac(ixl + 1, jyb, kzlbu) &
-                &+ jac(ixl, jyb, kzlbu + 1) + jac(ixl + 1, jyb, kzlbu + 1))
+                &/ dz / (jac(ixl, jyb, kzlbu) * jac(ixl, jyb, kzlbu + 1) &
+                &/ (jac(ixl, jyb, kzlbu) + jac(ixl, jyb, kzlbu + 1)) + jac(ixl &
+                &+ 1, jyb, kzlbu) * jac(ixl + 1, jyb, kzlbu + 1) / (jac(ixl &
+                &+ 1, jyb, kzlbu) + jac(ixl + 1, jyb, kzlbu + 1)))
           else if(zlbd < lz(1)) then
             flwlbd = (var%u(ixl, jyb, kzlbd + 1) - var%u(ixl, jyb, kzlbd)) &
-                &/ dz * 4.0 / (jac(ixl, jyb, kzlbd) + jac(ixl + 1, jyb, kzlbd) &
-                &+ jac(ixl, jyb, kzlbd + 1) + jac(ixl + 1, jyb, kzlbd + 1))
+                &/ dz / (jac(ixl, jyb, kzlbd) * jac(ixl, jyb, kzlbd + 1) &
+                &/ (jac(ixl, jyb, kzlbd) + jac(ixl, jyb, kzlbd + 1)) + jac(ixl &
+                &+ 1, jyb, kzlbd) * jac(ixl + 1, jyb, kzlbd + 1) / (jac(ixl &
+                &+ 1, jyb, kzlbd) + jac(ixl + 1, jyb, kzlbd + 1)))
             flwlbu = 0.0
           else
             flwlbd = 0.0
@@ -4662,53 +4102,69 @@ module wkb_module
           end if
         end if
 
-        if(zlfu < topography_surface(ixl, jyf)) then
+        if(zlfu < zTildeTFC(ixl, jyf, 0)) then
           flwlfd = 0.0
           flwlfu = 0.0
-        else if(zlfd < topography_surface(ixl, jyf)) then
+        else if(zlfd < zTildeTFC(ixl, jyf, 0)) then
           flwlfd = 0.0
           flwlfu = (var%u(ixl, jyf, kzlfu + 1) - var%u(ixl, jyf, kzlfu)) / dz &
-              &* 4.0 / (jac(ixl, jyf, kzlfu) + jac(ixl + 1, jyf, kzlfu) &
-              &+ jac(ixl, jyf, kzlfu + 1) + jac(ixl + 1, jyf, kzlfu + 1))
+              &/ (jac(ixl, jyf, kzlfu) * jac(ixl, jyf, kzlfu + 1) / (jac(ixl, &
+              &jyf, kzlfu) + jac(ixl, jyf, kzlfu + 1)) + jac(ixl + 1, jyf, &
+              &kzlfu) * jac(ixl + 1, jyf, kzlfu + 1) / (jac(ixl + 1, jyf, &
+              &kzlfu) + jac(ixl + 1, jyf, kzlfu + 1)))
         else
           if(zlfu < lz(1)) then
             flwlfd = (var%u(ixl, jyf, kzlfd + 1) - var%u(ixl, jyf, kzlfd)) &
-                &/ dz * 4.0 / (jac(ixl, jyf, kzlfd) + jac(ixl + 1, jyf, kzlfd) &
-                &+ jac(ixl, jyf, kzlfd + 1) + jac(ixl + 1, jyf, kzlfd + 1))
+                &/ dz / (jac(ixl, jyf, kzlfd) * jac(ixl, jyf, kzlfd + 1) &
+                &/ (jac(ixl, jyf, kzlfd) + jac(ixl, jyf, kzlfd + 1)) + jac(ixl &
+                &+ 1, jyf, kzlfd) * jac(ixl + 1, jyf, kzlfd + 1) / (jac(ixl &
+                &+ 1, jyf, kzlfd) + jac(ixl + 1, jyf, kzlfd + 1)))
             flwlfu = (var%u(ixl, jyf, kzlfu + 1) - var%u(ixl, jyf, kzlfu)) &
-                &/ dz * 4.0 / (jac(ixl, jyf, kzlfu) + jac(ixl + 1, jyf, kzlfu) &
-                &+ jac(ixl, jyf, kzlfu + 1) + jac(ixl + 1, jyf, kzlfu + 1))
+                &/ dz / (jac(ixl, jyf, kzlfu) * jac(ixl, jyf, kzlfu + 1) &
+                &/ (jac(ixl, jyf, kzlfu) + jac(ixl, jyf, kzlfu + 1)) + jac(ixl &
+                &+ 1, jyf, kzlfu) * jac(ixl + 1, jyf, kzlfu + 1) / (jac(ixl &
+                &+ 1, jyf, kzlfu) + jac(ixl + 1, jyf, kzlfu + 1)))
           else if(zlfd < lz(1)) then
             flwlfd = (var%u(ixl, jyf, kzlfd + 1) - var%u(ixl, jyf, kzlfd)) &
-                &/ dz * 4.0 / (jac(ixl, jyf, kzlfd) + jac(ixl + 1, jyf, kzlfd) &
-                &+ jac(ixl, jyf, kzlfd + 1) + jac(ixl + 1, jyf, kzlfd + 1))
+                &/ dz / (jac(ixl, jyf, kzlfd) * jac(ixl, jyf, kzlfd + 1) &
+                &/ (jac(ixl, jyf, kzlfd) + jac(ixl, jyf, kzlfd + 1)) + jac(ixl &
+                &+ 1, jyf, kzlfd) * jac(ixl + 1, jyf, kzlfd + 1) / (jac(ixl &
+                &+ 1, jyf, kzlfd) + jac(ixl + 1, jyf, kzlfd + 1)))
             flwlfu = 0.0
           else
-            flwlbd = 0.0
-            flwlbu = 0.0
+            flwlfd = 0.0
+            flwlfu = 0.0
           end if
         end if
 
-        if(zrbu < topography_surface(ixr, jyb)) then
+        if(zrbu < zTildeTFC(ixr, jyb, 0)) then
           flwrbd = 0.0
           flwrbu = 0.0
-        else if(zrbd < topography_surface(ixr, jyb)) then
+        else if(zrbd < zTildeTFC(ixr, jyb, 0)) then
           flwrbd = 0.0
           flwrbu = (var%u(ixr, jyb, kzrbu + 1) - var%u(ixr, jyb, kzrbu)) / dz &
-              &* 4.0 / (jac(ixr, jyb, kzrbu) + jac(ixr + 1, jyb, kzrbu) &
-              &+ jac(ixr, jyb, kzrbu + 1) + jac(ixr + 1, jyb, kzrbu + 1))
+              &/ (jac(ixr, jyb, kzrbu) * jac(ixr, jyb, kzrbu + 1) / (jac(ixr, &
+              &jyb, kzrbu) + jac(ixr, jyb, kzrbu + 1)) + jac(ixr + 1, jyb, &
+              &kzrbu) * jac(ixr + 1, jyb, kzrbu + 1) / (jac(ixr + 1, jyb, &
+              &kzrbu) + jac(ixr + 1, jyb, kzrbu + 1)))
         else
           if(zrbu < lz(1)) then
             flwrbd = (var%u(ixr, jyb, kzrbd + 1) - var%u(ixr, jyb, kzrbd)) &
-                &/ dz * 4.0 / (jac(ixr, jyb, kzrbd) + jac(ixr + 1, jyb, kzrbd) &
-                &+ jac(ixr, jyb, kzrbd + 1) + jac(ixr + 1, jyb, kzrbd + 1))
+                &/ dz / (jac(ixr, jyb, kzrbd) * jac(ixr, jyb, kzrbd + 1) &
+                &/ (jac(ixr, jyb, kzrbd) + jac(ixr, jyb, kzrbd + 1)) + jac(ixr &
+                &+ 1, jyb, kzrbd) * jac(ixr + 1, jyb, kzrbd + 1) / (jac(ixr &
+                &+ 1, jyb, kzrbd) + jac(ixr + 1, jyb, kzrbd + 1)))
             flwrbu = (var%u(ixr, jyb, kzrbu + 1) - var%u(ixr, jyb, kzrbu)) &
-                &/ dz * 4.0 / (jac(ixr, jyb, kzrbu) + jac(ixr + 1, jyb, kzrbu) &
-                &+ jac(ixr, jyb, kzrbu + 1) + jac(ixr + 1, jyb, kzrbu + 1))
+                &/ dz / (jac(ixr, jyb, kzrbu) * jac(ixr, jyb, kzrbu + 1) &
+                &/ (jac(ixr, jyb, kzrbu) + jac(ixr, jyb, kzrbu + 1)) + jac(ixr &
+                &+ 1, jyb, kzrbu) * jac(ixr + 1, jyb, kzrbu + 1) / (jac(ixr &
+                &+ 1, jyb, kzrbu) + jac(ixr + 1, jyb, kzrbu + 1)))
           else if(zrbd < lz(1)) then
             flwrbd = (var%u(ixr, jyb, kzrbd + 1) - var%u(ixr, jyb, kzrbd)) &
-                &/ dz * 4.0 / (jac(ixr, jyb, kzrbd) + jac(ixr + 1, jyb, kzrbd) &
-                &+ jac(ixr, jyb, kzrbd + 1) + jac(ixr + 1, jyb, kzrbd + 1))
+                &/ dz / (jac(ixr, jyb, kzrbd) * jac(ixr, jyb, kzrbd + 1) &
+                &/ (jac(ixr, jyb, kzrbd) + jac(ixr, jyb, kzrbd + 1)) + jac(ixr &
+                &+ 1, jyb, kzrbd) * jac(ixr + 1, jyb, kzrbd + 1) / (jac(ixr &
+                &+ 1, jyb, kzrbd) + jac(ixr + 1, jyb, kzrbd + 1)))
             flwrbu = 0.0
           else
             flwrbd = 0.0
@@ -4716,26 +4172,34 @@ module wkb_module
           end if
         end if
 
-        if(zrfu < topography_surface(ixr, jyf)) then
+        if(zrfu < zTildeTFC(ixr, jyf, 0)) then
           flwrfd = 0.0
           flwrfu = 0.0
-        else if(zrfd < topography_surface(ixr, jyf)) then
+        else if(zrfd < zTildeTFC(ixr, jyf, 0)) then
           flwrfd = 0.0
-          flwrfu = (var%u(ixr, jyf, kzrfu + 1) - var%u(ixr, jyf, kzrfu)) / dz &
-              &* 4.0 / (jac(ixr, jyf, kzrfu) + jac(ixr + 1, jyf, kzrfu) &
-              &+ jac(ixr, jyf, kzrfu + 1) + jac(ixr + 1, jyf, kzrfu + 1))
+          flwrbu = (var%u(ixr, jyf, kzrbu + 1) - var%u(ixr, jyf, kzrbu)) / dz &
+              &/ (jac(ixr, jyf, kzrbu) * jac(ixr, jyf, kzrbu + 1) / (jac(ixr, &
+              &jyf, kzrbu) + jac(ixr, jyf, kzrbu + 1)) + jac(ixr + 1, jyf, &
+              &kzrbu) * jac(ixr + 1, jyf, kzrbu + 1) / (jac(ixr + 1, jyf, &
+              &kzrbu) + jac(ixr + 1, jyf, kzrbu + 1)))
         else
           if(zrfu < lz(1)) then
             flwrfd = (var%u(ixr, jyf, kzrfd + 1) - var%u(ixr, jyf, kzrfd)) &
-                &/ dz * 4.0 / (jac(ixr, jyf, kzrfd) + jac(ixr + 1, jyf, kzrfd) &
-                &+ jac(ixr, jyf, kzrfd + 1) + jac(ixr + 1, jyf, kzrfd + 1))
+                &/ dz / (jac(ixr, jyf, kzrfd) * jac(ixr, jyf, kzrfd + 1) &
+                &/ (jac(ixr, jyf, kzrfd) + jac(ixr, jyf, kzrfd + 1)) + jac(ixr &
+                &+ 1, jyf, kzrfd) * jac(ixr + 1, jyf, kzrfd + 1) / (jac(ixr &
+                &+ 1, jyf, kzrfd) + jac(ixr + 1, jyf, kzrfd + 1)))
             flwrfu = (var%u(ixr, jyf, kzrfu + 1) - var%u(ixr, jyf, kzrfu)) &
-                &/ dz * 4.0 / (jac(ixr, jyf, kzrfu) + jac(ixr + 1, jyf, kzrfu) &
-                &+ jac(ixr, jyf, kzrfu + 1) + jac(ixr + 1, jyf, kzrfu + 1))
+                &/ dz / (jac(ixr, jyf, kzrfu) * jac(ixr, jyf, kzrfu + 1) &
+                &/ (jac(ixr, jyf, kzrfu) + jac(ixr, jyf, kzrfu + 1)) + jac(ixr &
+                &+ 1, jyf, kzrfu) * jac(ixr + 1, jyf, kzrfu + 1) / (jac(ixr &
+                &+ 1, jyf, kzrfu) + jac(ixr + 1, jyf, kzrfu + 1)))
           else if(zrfd < lz(1)) then
             flwrfd = (var%u(ixr, jyf, kzrfd + 1) - var%u(ixr, jyf, kzrfd)) &
-                &/ dz * 4.0 / (jac(ixr, jyf, kzrfd) + jac(ixr + 1, jyf, kzrfd) &
-                &+ jac(ixr, jyf, kzrfd + 1) + jac(ixr + 1, jyf, kzrfd + 1))
+                &/ dz / (jac(ixr, jyf, kzrfd) * jac(ixr, jyf, kzrfd + 1) &
+                &/ (jac(ixr, jyf, kzrfd) + jac(ixr, jyf, kzrfd + 1)) + jac(ixr &
+                &+ 1, jyf, kzrfd) * jac(ixr + 1, jyf, kzrfd + 1) / (jac(ixr &
+                &+ 1, jyf, kzrfd) + jac(ixr + 1, jyf, kzrfd + 1)))
             flwrfu = 0.0
           else
             flwrfd = 0.0
@@ -4898,7 +4362,6 @@ module wkb_module
       ! dv/dx(i+1/2,j+1/2,k)) = (v(i+1,j+1/2,k) - v(i,j+1/2,k))/dx, hence
 
       if(topography) then
-        ! FJApr2023
         ! Locate the closest points in zonal direction.
         if(sizeX == 1) then
           flw = 0.0
@@ -4941,10 +4404,8 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzlbu = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzlbu = kzTFC(ixl, jyb, zlc)
+        kzlbd = kzlbu - 1
         if(kzlbd > nz) then
           kzlbu = nz
           kzlbd = nz
@@ -4952,10 +4413,8 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzlfu = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzlfu = kzTFC(ixl, jyf, zlc)
+        kzlfd = kzlfu - 1
         if(kzlfd > nz) then
           kzlfu = nz
           kzlfd = nz
@@ -4963,10 +4422,8 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzrbu = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzrbu = kzTFC(ixr, jyb, zlc)
+        kzrbd = kzrbu - 1
         if(kzrbd > nz) then
           kzrbu = nz
           kzrbd = nz
@@ -4974,10 +4431,8 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzrfu = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzrfu = kzTFC(ixr, jyf, zlc)
+        kzrfd = kzrfu - 1
         if(kzrfd > nz) then
           kzrfu = nz
           kzrfd = nz
@@ -4987,137 +4442,57 @@ module wkb_module
 
         ! Assign the values.
 
-        flwlbd = (0.5 * ((jac(ixl + 1, jyb, kzlbd) + jac(ixl + 1, jyb + 1, &
-            &kzlbd)) * var%v(ixl + 1, jyb, kzlbd) - (jac(ixl, jyb, kzlbd) &
-            &+ jac(ixl, jyb + 1, kzlbd)) * var%v(ixl, jyb, kzlbd)) / dx &
-            &+ 0.0625 * ((jac(ixl, jyb, kzlbd + 1) * met(ixl, jyb, kzlbd + 1, &
-            &1, 3) + jac(ixl + 1, jyb, kzlbd + 1) * met(ixl + 1, jyb, kzlbd &
-            &+ 1, 1, 3) + jac(ixl, jyb + 1, kzlbd + 1) * met(ixl, jyb + 1, &
-            &kzlbd + 1, 1, 3) + jac(ixl + 1, jyb + 1, kzlbd + 1) * met(ixl &
-            &+ 1, jyb + 1, kzlbd + 1, 1, 3)) * (var%v(ixl, jyb, kzlbd + 1) &
-            &+ var%v(ixl + 1, jyb, kzlbd + 1)) - (jac(ixl, jyb, kzlbd - 1) &
-            &* met(ixl, jyb, kzlbd - 1, 1, 3) + jac(ixl + 1, jyb, kzlbd - 1) &
-            &* met(ixl + 1, jyb, kzlbd - 1, 1, 3) + jac(ixl, jyb + 1, kzlbd &
-            &- 1) * met(ixl, jyb + 1, kzlbd - 1, 1, 3) + jac(ixl + 1, jyb + 1, &
-            &kzlbd - 1) * met(ixl + 1, jyb + 1, kzlbd - 1, 1, 3)) &
-            &* (var%v(ixl, jyb, kzlbd - 1) + var%v(ixl + 1, jyb, kzlbd - 1))) &
-            &/ dz) * 4.0 / (jac(ixl, jyb, kzlbd) + jac(ixl + 1, jyb, kzlbd) &
-            &+ jac(ixl, jyb + 1, kzlbd) + jac(ixl + 1, jyb + 1, kzlbd))
-        flwlbu = (0.5 * ((jac(ixl + 1, jyb, kzlbu) + jac(ixl + 1, jyb + 1, &
-            &kzlbu)) * var%v(ixl + 1, jyb, kzlbu) - (jac(ixl, jyb, kzlbu) &
-            &+ jac(ixl, jyb + 1, kzlbu)) * var%v(ixl, jyb, kzlbu)) / dx &
-            &+ 0.0625 * ((jac(ixl, jyb, kzlbu + 1) * met(ixl, jyb, kzlbu + 1, &
-            &1, 3) + jac(ixl + 1, jyb, kzlbu + 1) * met(ixl + 1, jyb, kzlbu &
-            &+ 1, 1, 3) + jac(ixl, jyb + 1, kzlbu + 1) * met(ixl, jyb + 1, &
-            &kzlbu + 1, 1, 3) + jac(ixl + 1, jyb + 1, kzlbu + 1) * met(ixl &
-            &+ 1, jyb + 1, kzlbu + 1, 1, 3)) * (var%v(ixl, jyb, kzlbu + 1) &
-            &+ var%v(ixl + 1, jyb, kzlbu + 1)) - (jac(ixl, jyb, kzlbu - 1) &
-            &* met(ixl, jyb, kzlbu - 1, 1, 3) + jac(ixl + 1, jyb, kzlbu - 1) &
-            &* met(ixl + 1, jyb, kzlbu - 1, 1, 3) + jac(ixl, jyb + 1, kzlbu &
-            &- 1) * met(ixl, jyb + 1, kzlbu - 1, 1, 3) + jac(ixl + 1, jyb + 1, &
-            &kzlbu - 1) * met(ixl + 1, jyb + 1, kzlbu - 1, 1, 3)) &
-            &* (var%v(ixl, jyb, kzlbu - 1) + var%v(ixl + 1, jyb, kzlbu - 1))) &
-            &/ dz) * 4.0 / (jac(ixl, jyb, kzlbu) + jac(ixl + 1, jyb, kzlbu) &
-            &+ jac(ixl, jyb + 1, kzlbu) + jac(ixl + 1, jyb + 1, kzlbu))
+        flwlbd = (var%v(ixl + 1, jyb, kzlbd) - var%v(ixl, jyb, kzlbd)) / dx &
+            &+ 0.25 * (met(ixl, jyb, kzlbd, 1, 3) + met(ixl + 1, jyb, kzlbd, &
+            &1, 3) + met(ixl, jyb + 1, kzlbd, 1, 3) + met(ixl + 1, jyb + 1, &
+            &kzlbd, 1, 3)) * 0.25 * (var%v(ixl, jyb, kzlbd + 1) + var%v(ixl &
+            &+ 1, jyb, kzlbd + 1) - var%v(ixl, jyb, kzlbd - 1) - var%v(ixl &
+            &+ 1, jyb, kzlbd - 1)) / dz
+        flwlbu = (var%v(ixl + 1, jyb, kzlbu) - var%v(ixl, jyb, kzlbu)) / dx &
+            &+ 0.25 * (met(ixl, jyb, kzlbu, 1, 3) + met(ixl + 1, jyb, kzlbu, &
+            &1, 3) + met(ixl, jyb + 1, kzlbu, 1, 3) + met(ixl + 1, jyb + 1, &
+            &kzlbu, 1, 3)) * 0.25 * (var%v(ixl, jyb, kzlbu + 1) + var%v(ixl &
+            &+ 1, jyb, kzlbu + 1) - var%v(ixl, jyb, kzlbu - 1) - var%v(ixl &
+            &+ 1, jyb, kzlbu - 1)) / dz
 
-        flwlfd = (0.5 * ((jac(ixl + 1, jyf, kzlfd) + jac(ixl + 1, jyf + 1, &
-            &kzlfd)) * var%v(ixl + 1, jyf, kzlfd) - (jac(ixl, jyf, kzlfd) &
-            &+ jac(ixl, jyf + 1, kzlfd)) * var%v(ixl, jyf, kzlfd)) / dx &
-            &+ 0.0625 * ((jac(ixl, jyf, kzlfd + 1) * met(ixl, jyf, kzlfd + 1, &
-            &1, 3) + jac(ixl + 1, jyf, kzlfd + 1) * met(ixl + 1, jyf, kzlfd &
-            &+ 1, 1, 3) + jac(ixl, jyf + 1, kzlfd + 1) * met(ixl, jyf + 1, &
-            &kzlfd + 1, 1, 3) + jac(ixl + 1, jyf + 1, kzlfd + 1) * met(ixl &
-            &+ 1, jyf + 1, kzlfd + 1, 1, 3)) * (var%v(ixl, jyf, kzlfd + 1) &
-            &+ var%v(ixl + 1, jyf, kzlfd + 1)) - (jac(ixl, jyf, kzlfd - 1) &
-            &* met(ixl, jyf, kzlfd - 1, 1, 3) + jac(ixl + 1, jyf, kzlfd - 1) &
-            &* met(ixl + 1, jyf, kzlfd - 1, 1, 3) + jac(ixl, jyf + 1, kzlfd &
-            &- 1) * met(ixl, jyf + 1, kzlfd - 1, 1, 3) + jac(ixl + 1, jyf + 1, &
-            &kzlfd - 1) * met(ixl + 1, jyf + 1, kzlfd - 1, 1, 3)) &
-            &* (var%v(ixl, jyf, kzlfd - 1) + var%v(ixl + 1, jyf, kzlfd - 1))) &
-            &/ dz) * 4.0 / (jac(ixl, jyf, kzlfd) + jac(ixl + 1, jyf, kzlfd) &
-            &+ jac(ixl, jyf + 1, kzlfd) + jac(ixl + 1, jyf + 1, kzlfd))
-        flwlfu = (0.5 * ((jac(ixl + 1, jyf, kzlfu) + jac(ixl + 1, jyf + 1, &
-            &kzlfu)) * var%v(ixl + 1, jyf, kzlfu) - (jac(ixl, jyf, kzlfu) &
-            &+ jac(ixl, jyf + 1, kzlfu)) * var%v(ixl, jyf, kzlfu)) / dx &
-            &+ 0.0625 * ((jac(ixl, jyf, kzlfu + 1) * met(ixl, jyf, kzlfu + 1, &
-            &1, 3) + jac(ixl + 1, jyf, kzlfu + 1) * met(ixl + 1, jyf, kzlfu &
-            &+ 1, 1, 3) + jac(ixl, jyf + 1, kzlfu + 1) * met(ixl, jyf + 1, &
-            &kzlfu + 1, 1, 3) + jac(ixl + 1, jyf + 1, kzlfu + 1) * met(ixl &
-            &+ 1, jyf + 1, kzlfu + 1, 1, 3)) * (var%v(ixl, jyf, kzlfu + 1) &
-            &+ var%v(ixl + 1, jyf, kzlfu + 1)) - (jac(ixl, jyf, kzlfu - 1) &
-            &* met(ixl, jyf, kzlfu - 1, 1, 3) + jac(ixl + 1, jyf, kzlfu - 1) &
-            &* met(ixl + 1, jyf, kzlfu - 1, 1, 3) + jac(ixl, jyf + 1, kzlfu &
-            &- 1) * met(ixl, jyf + 1, kzlfu - 1, 1, 3) + jac(ixl + 1, jyf + 1, &
-            &kzlfu - 1) * met(ixl + 1, jyf + 1, kzlfu - 1, 1, 3)) &
-            &* (var%v(ixl, jyf, kzlfu - 1) + var%v(ixl + 1, jyf, kzlfu - 1))) &
-            &/ dz) * 4.0 / (jac(ixl, jyf, kzlfu) + jac(ixl + 1, jyf, kzlfu) &
-            &+ jac(ixl, jyf + 1, kzlfu) + jac(ixl + 1, jyf + 1, kzlfu))
+        flwlfd = (var%v(ixl + 1, jyf, kzlfd) - var%v(ixl, jyf, kzlfd)) / dx &
+            &+ 0.25 * (met(ixl, jyf, kzlfd, 1, 3) + met(ixl + 1, jyf, kzlfd, &
+            &1, 3) + met(ixl, jyf + 1, kzlfd, 1, 3) + met(ixl + 1, jyf + 1, &
+            &kzlfd, 1, 3)) * 0.25 * (var%v(ixl, jyf, kzlfd + 1) + var%v(ixl &
+            &+ 1, jyf, kzlfd + 1) - var%v(ixl, jyf, kzlfd - 1) - var%v(ixl &
+            &+ 1, jyf, kzlfd - 1)) / dz
+        flwlfu = (var%v(ixl + 1, jyf, kzlfu) - var%v(ixl, jyf, kzlfu)) / dx &
+            &+ 0.25 * (met(ixl, jyf, kzlfu, 1, 3) + met(ixl + 1, jyf, kzlfu, &
+            &1, 3) + met(ixl, jyf + 1, kzlfu, 1, 3) + met(ixl + 1, jyf + 1, &
+            &kzlfu, 1, 3)) * 0.25 * (var%v(ixl, jyf, kzlfu + 1) + var%v(ixl &
+            &+ 1, jyf, kzlfu + 1) - var%v(ixl, jyf, kzlfu - 1) - var%v(ixl &
+            &+ 1, jyf, kzlfu - 1)) / dz
 
-        flwrbd = (0.5 * ((jac(ixr + 1, jyb, kzrbd) + jac(ixr + 1, jyb + 1, &
-            &kzrbd)) * var%v(ixr + 1, jyb, kzrbd) - (jac(ixr, jyb, kzrbd) &
-            &+ jac(ixr, jyb + 1, kzrbd)) * var%v(ixr, jyb, kzrbd)) / dx &
-            &+ 0.0625 * ((jac(ixr, jyb, kzrbd + 1) * met(ixr, jyb, kzrbd + 1, &
-            &1, 3) + jac(ixr + 1, jyb, kzrbd + 1) * met(ixr + 1, jyb, kzrbd &
-            &+ 1, 1, 3) + jac(ixr, jyb + 1, kzrbd + 1) * met(ixr, jyb + 1, &
-            &kzrbd + 1, 1, 3) + jac(ixr + 1, jyb + 1, kzrbd + 1) * met(ixr &
-            &+ 1, jyb + 1, kzrbd + 1, 1, 3)) * (var%v(ixr, jyb, kzrbd + 1) &
-            &+ var%v(ixr + 1, jyb, kzrbd + 1)) - (jac(ixr, jyb, kzrbd - 1) &
-            &* met(ixr, jyb, kzrbd - 1, 1, 3) + jac(ixr + 1, jyb, kzrbd - 1) &
-            &* met(ixr + 1, jyb, kzrbd - 1, 1, 3) + jac(ixr, jyb + 1, kzrbd &
-            &- 1) * met(ixr, jyb + 1, kzrbd - 1, 1, 3) + jac(ixr + 1, jyb + 1, &
-            &kzrbd - 1) * met(ixr + 1, jyb + 1, kzrbd - 1, 1, 3)) &
-            &* (var%v(ixr, jyb, kzrbd - 1) + var%v(ixr + 1, jyb, kzrbd - 1))) &
-            &/ dz) * 4.0 / (jac(ixr, jyb, kzrbd) + jac(ixr + 1, jyb, kzrbd) &
-            &+ jac(ixr, jyb + 1, kzrbd) + jac(ixr + 1, jyb + 1, kzrbd))
-        flwrbu = (0.5 * ((jac(ixr + 1, jyb, kzrbu) + jac(ixr + 1, jyb + 1, &
-            &kzrbu)) * var%v(ixr + 1, jyb, kzrbu) - (jac(ixr, jyb, kzrbu) &
-            &+ jac(ixr, jyb + 1, kzrbu)) * var%v(ixr, jyb, kzrbu)) / dx &
-            &+ 0.0625 * ((jac(ixr, jyb, kzrbu + 1) * met(ixr, jyb, kzrbu + 1, &
-            &1, 3) + jac(ixr + 1, jyb, kzrbu + 1) * met(ixr + 1, jyb, kzrbu &
-            &+ 1, 1, 3) + jac(ixr, jyb + 1, kzrbu + 1) * met(ixr, jyb + 1, &
-            &kzrbu + 1, 1, 3) + jac(ixr + 1, jyb + 1, kzrbu + 1) * met(ixr &
-            &+ 1, jyb + 1, kzrbu + 1, 1, 3)) * (var%v(ixr, jyb, kzrbu + 1) &
-            &+ var%v(ixr + 1, jyb, kzrbu + 1)) - (jac(ixr, jyb, kzrbu - 1) &
-            &* met(ixr, jyb, kzrbu - 1, 1, 3) + jac(ixr + 1, jyb, kzrbu - 1) &
-            &* met(ixr + 1, jyb, kzrbu - 1, 1, 3) + jac(ixr, jyb + 1, kzrbu &
-            &- 1) * met(ixr, jyb + 1, kzrbu - 1, 1, 3) + jac(ixr + 1, jyb + 1, &
-            &kzrbu - 1) * met(ixr + 1, jyb + 1, kzrbu - 1, 1, 3)) &
-            &* (var%v(ixr, jyb, kzrbu - 1) + var%v(ixr + 1, jyb, kzrbu - 1))) &
-            &/ dz) * 4.0 / (jac(ixr, jyb, kzrbu) + jac(ixr + 1, jyb, kzrbu) &
-            &+ jac(ixr, jyb + 1, kzrbu) + jac(ixr + 1, jyb + 1, kzrbu))
+        flwrbd = (var%v(ixr + 1, jyb, kzrbd) - var%v(ixr, jyb, kzrbd)) / dx &
+            &+ 0.25 * (met(ixr, jyb, kzrbd, 1, 3) + met(ixr + 1, jyb, kzrbd, &
+            &1, 3) + met(ixr, jyb + 1, kzrbd, 1, 3) + met(ixr + 1, jyb + 1, &
+            &kzrbd, 1, 3)) * 0.25 * (var%v(ixr, jyb, kzrbd + 1) + var%v(ixr &
+            &+ 1, jyb, kzrbd + 1) - var%v(ixr, jyb, kzrbd - 1) - var%v(ixr &
+            &+ 1, jyb, kzrbd - 1)) / dz
+        flwrbu = (var%v(ixr + 1, jyb, kzrbu) - var%v(ixr, jyb, kzrbu)) / dx &
+            &+ 0.25 * (met(ixr, jyb, kzrbu, 1, 3) + met(ixr + 1, jyb, kzrbu, &
+            &1, 3) + met(ixr, jyb + 1, kzrbu, 1, 3) + met(ixr + 1, jyb + 1, &
+            &kzrbu, 1, 3)) * 0.25 * (var%v(ixr, jyb, kzrbu + 1) + var%v(ixr &
+            &+ 1, jyb, kzrbu + 1) - var%v(ixr, jyb, kzrbu - 1) - var%v(ixr &
+            &+ 1, jyb, kzrbu - 1)) / dz
 
-        flwrfd = (0.5 * ((jac(ixr + 1, jyf, kzrfd) + jac(ixr + 1, jyf + 1, &
-            &kzrfd)) * var%v(ixr + 1, jyf, kzrfd) - (jac(ixr, jyf, kzrfd) &
-            &+ jac(ixr, jyf + 1, kzrfd)) * var%v(ixr, jyf, kzrfd)) / dx &
-            &+ 0.0625 * ((jac(ixr, jyf, kzrfd + 1) * met(ixr, jyf, kzrfd + 1, &
-            &1, 3) + jac(ixr + 1, jyf, kzrfd + 1) * met(ixr + 1, jyf, kzrfd &
-            &+ 1, 1, 3) + jac(ixr, jyf + 1, kzrfd + 1) * met(ixr, jyf + 1, &
-            &kzrfd + 1, 1, 3) + jac(ixr + 1, jyf + 1, kzrfd + 1) * met(ixr &
-            &+ 1, jyf + 1, kzrfd + 1, 1, 3)) * (var%v(ixr, jyf, kzrfd + 1) &
-            &+ var%v(ixr + 1, jyf, kzrfd + 1)) - (jac(ixr, jyf, kzrfd - 1) &
-            &* met(ixr, jyf, kzrfd - 1, 1, 3) + jac(ixr + 1, jyf, kzrfd - 1) &
-            &* met(ixr + 1, jyf, kzrfd - 1, 1, 3) + jac(ixr, jyf + 1, kzrfd &
-            &- 1) * met(ixr, jyf + 1, kzrfd - 1, 1, 3) + jac(ixr + 1, jyf + 1, &
-            &kzrfd - 1) * met(ixr + 1, jyf + 1, kzrfd - 1, 1, 3)) &
-            &* (var%v(ixr, jyf, kzrfd - 1) + var%v(ixr + 1, jyf, kzrfd - 1))) &
-            &/ dz) * 4.0 / (jac(ixr, jyf, kzrfd) + jac(ixr + 1, jyf, kzrfd) &
-            &+ jac(ixr, jyf + 1, kzrfd) + jac(ixr + 1, jyf + 1, kzrfd))
-        flwrfu = (0.5 * ((jac(ixr + 1, jyf, kzrfu) + jac(ixr + 1, jyf + 1, &
-            &kzrfu)) * var%v(ixr + 1, jyf, kzrfu) - (jac(ixr, jyf, kzrfu) &
-            &+ jac(ixr, jyf + 1, kzrfu)) * var%v(ixr, jyf, kzrfu)) / dx &
-            &+ 0.0625 * ((jac(ixr, jyf, kzrfu + 1) * met(ixr, jyf, kzrfu + 1, &
-            &1, 3) + jac(ixr + 1, jyf, kzrfu + 1) * met(ixr + 1, jyf, kzrfu &
-            &+ 1, 1, 3) + jac(ixr, jyf + 1, kzrfu + 1) * met(ixr, jyf + 1, &
-            &kzrfu + 1, 1, 3) + jac(ixr + 1, jyf + 1, kzrfu + 1) * met(ixr &
-            &+ 1, jyf + 1, kzrfu + 1, 1, 3)) * (var%v(ixr, jyf, kzrfu + 1) &
-            &+ var%v(ixr + 1, jyf, kzrfu + 1)) - (jac(ixr, jyf, kzrfu - 1) &
-            &* met(ixr, jyf, kzrfu - 1, 1, 3) + jac(ixr + 1, jyf, kzrfu - 1) &
-            &* met(ixr + 1, jyf, kzrfu - 1, 1, 3) + jac(ixr, jyf + 1, kzrfu &
-            &- 1) * met(ixr, jyf + 1, kzrfu - 1, 1, 3) + jac(ixr + 1, jyf + 1, &
-            &kzrfu - 1) * met(ixr + 1, jyf + 1, kzrfu - 1, 1, 3)) &
-            &* (var%v(ixr, jyf, kzrfu - 1) + var%v(ixr + 1, jyf, kzrfu - 1))) &
-            &/ dz) * 4.0 / (jac(ixr, jyf, kzrfu) + jac(ixr + 1, jyf, kzrfu) &
-            &+ jac(ixr, jyf + 1, kzrfu) + jac(ixr + 1, jyf + 1, kzrfu))
+        flwrfd = (var%v(ixr + 1, jyf, kzrfd) - var%v(ixr, jyf, kzrfd)) / dx &
+            &+ 0.25 * (met(ixr, jyf, kzrfd, 1, 3) + met(ixr + 1, jyf, kzrfd, &
+            &1, 3) + met(ixr, jyf + 1, kzrfd, 1, 3) + met(ixr + 1, jyf + 1, &
+            &kzrfd, 1, 3)) * 0.25 * (var%v(ixr, jyf, kzrfd + 1) + var%v(ixr &
+            &+ 1, jyf, kzrfd + 1) - var%v(ixr, jyf, kzrfd - 1) - var%v(ixr &
+            &+ 1, jyf, kzrfd - 1)) / dz
+        flwrfu = (var%v(ixr + 1, jyf, kzrfu) - var%v(ixr, jyf, kzrfu)) / dx &
+            &+ 0.25 * (met(ixr, jyf, kzrfu, 1, 3) + met(ixr + 1, jyf, kzrfu, &
+            &1, 3) + met(ixr, jyf + 1, kzrfu, 1, 3) + met(ixr + 1, jyf + 1, &
+            &kzrfu, 1, 3)) * 0.25 * (var%v(ixr, jyf, kzrfu + 1) + var%v(ixr &
+            &+ 1, jyf, kzrfu + 1) - var%v(ixr, jyf, kzrfu - 1) - var%v(ixr &
+            &+ 1, jyf, kzrfu - 1)) / dz
       else
         if(sizeX == 1) then
           ! no derivative if there is no x dependence
@@ -5223,7 +4598,6 @@ module wkb_module
       ! dv/dy (i,j,k)) = (v(i,j+1/2,k) - v(i,j-1/2,k))/dy, hence
 
       if(topography) then
-        ! FJApr2023
         ! Locate the closest points in zonal direction.
         if(sizeX == 1) then
           ixl = 1
@@ -5264,10 +4638,8 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzlbu = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzlbu = kzTFC(ixl, jyb, zlc)
+        kzlbd = kzlbu - 1
         if(kzlbd > nz) then
           kzlbu = nz
           kzlbd = nz
@@ -5275,10 +4647,8 @@ module wkb_module
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzlfu = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzlfu = kzTFC(ixl, jyf, zlc)
+        kzlfd = kzlfu - 1
         if(kzlfd > nz) then
           kzlfu = nz
           kzlfd = nz
@@ -5286,10 +4656,8 @@ module wkb_module
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzrbu = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzrbu = kzTFC(ixr, jyb, zlc)
+        kzrbd = kzrbu - 1
         if(kzrbd > nz) then
           kzrbu = nz
           kzrbd = nz
@@ -5297,10 +4665,8 @@ module wkb_module
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 1)
-        kzrfu = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) &
-            &/ dz) + 2)
+        kzrfu = kzTFC(ixr, jyf, zlc)
+        kzrfd = kzrfu - 1
         if(kzrfd > nz) then
           kzrfu = nz
           kzrfd = nz
@@ -5310,73 +4676,41 @@ module wkb_module
 
         ! Assign the values.
 
-        flwlbd = (0.5 * ((jac(ixl, jyb, kzlbd) + jac(ixl, jyb + 1, kzlbd)) &
-            &* var%v(ixl, jyb, kzlbd) - (jac(ixl, jyb, kzlbd) + jac(ixl, jyb &
-            &- 1, kzlbd)) * var%v(ixl, jyb - 1, kzlbd)) / dy + 0.25 &
-            &* (jac(ixl, jyb, kzlbd + 1) * met(ixl, jyb, kzlbd + 1, 2, 3) &
-            &* (var%v(ixl, jyb, kzlbd + 1) + var%v(ixl, jyb - 1, kzlbd + 1)) &
-            &- jac(ixl, jyb, kzlbd - 1) * met(ixl, jyb, kzlbd - 1, 2, 3) &
-            &* (var%v(ixl, jyb, kzlbd - 1) + var%v(ixl, jyb - 1, kzlbd - 1))) &
-            &/ dz) / jac(ixl, jyb, kzlbd)
-        flwlbu = (0.5 * ((jac(ixl, jyb, kzlbu) + jac(ixl, jyb + 1, kzlbu)) &
-            &* var%v(ixl, jyb, kzlbu) - (jac(ixl, jyb, kzlbu) + jac(ixl, jyb &
-            &- 1, kzlbu)) * var%v(ixl, jyb - 1, kzlbu)) / dy + 0.25 &
-            &* (jac(ixl, jyb, kzlbu + 1) * met(ixl, jyb, kzlbu + 1, 2, 3) &
-            &* (var%v(ixl, jyb, kzlbu + 1) + var%v(ixl, jyb - 1, kzlbu + 1)) &
-            &- jac(ixl, jyb, kzlbu - 1) * met(ixl, jyb, kzlbu - 1, 2, 3) &
-            &* (var%v(ixl, jyb, kzlbu - 1) + var%v(ixl, jyb - 1, kzlbu - 1))) &
-            &/ dz) / jac(ixl, jyb, kzlbu)
+        flwlbd = (var%v(ixl, jyb, kzlbd) - var%v(ixl, jyb - 1, kzlbd)) / dy &
+            &+ met(ixl, jyb, kzlbd, 2, 3) * 0.25 * (var%v(ixl, jyb, kzlbd + 1) &
+            &+ var%v(ixl, jyb - 1, kzlbd + 1)- var%v(ixl, jyb, kzlbd - 1) &
+            &- var%v(ixl, jyb - 1, kzlbd - 1)) / dz
+        flwlbu = (var%v(ixl, jyb, kzlbu) - var%v(ixl, jyb - 1, kzlbu)) / dy &
+            &+ met(ixl, jyb, kzlbu, 2, 3) * 0.25 * (var%v(ixl, jyb, kzlbu + 1) &
+            &+ var%v(ixl, jyb - 1, kzlbu + 1)- var%v(ixl, jyb, kzlbu - 1) &
+            &- var%v(ixl, jyb - 1, kzlbu - 1)) / dz
 
-        flwlfd = (0.5 * ((jac(ixl, jyf, kzlfd) + jac(ixl, jyf + 1, kzlfd)) &
-            &* var%v(ixl, jyf, kzlfd) - (jac(ixl, jyf, kzlfd) + jac(ixl, jyf &
-            &- 1, kzlfd)) * var%v(ixl, jyf - 1, kzlfd)) / dy + 0.25 &
-            &* (jac(ixl, jyf, kzlfd + 1) * met(ixl, jyf, kzlfd + 1, 2, 3) &
-            &* (var%v(ixl, jyf, kzlfd + 1) + var%v(ixl, jyf - 1, kzlfd + 1)) &
-            &- jac(ixl, jyf, kzlfd - 1) * met(ixl, jyf, kzlfd - 1, 2, 3) &
-            &* (var%v(ixl, jyf, kzlfd - 1) + var%v(ixl, jyf - 1, kzlfd - 1))) &
-            &/ dz) / jac(ixl, jyf, kzlfd)
-        flwlfu = (0.5 * ((jac(ixl, jyf, kzlfu) + jac(ixl, jyf + 1, kzlfu)) &
-            &* var%v(ixl, jyf, kzlfu) - (jac(ixl, jyf, kzlfu) + jac(ixl, jyf &
-            &- 1, kzlfu)) * var%v(ixl, jyf - 1, kzlfu)) / dy + 0.25 &
-            &* (jac(ixl, jyf, kzlfu + 1) * met(ixl, jyf, kzlfu + 1, 2, 3) &
-            &* (var%v(ixl, jyf, kzlfu + 1) + var%v(ixl, jyf - 1, kzlfu + 1)) &
-            &- jac(ixl, jyf, kzlfu - 1) * met(ixl, jyf, kzlfu - 1, 2, 3) &
-            &* (var%v(ixl, jyf, kzlfu - 1) + var%v(ixl, jyf - 1, kzlfu - 1))) &
-            &/ dz) / jac(ixl, jyf, kzlfu)
+        flwlfd = (var%v(ixl, jyf, kzlfd) - var%v(ixl, jyf - 1, kzlfd)) / dy &
+            &+ met(ixl, jyf, kzlfd, 2, 3) * 0.25 * (var%v(ixl, jyf, kzlfd + 1) &
+            &+ var%v(ixl, jyf - 1, kzlfd + 1)- var%v(ixl, jyf, kzlfd - 1) &
+            &- var%v(ixl, jyf - 1, kzlfd - 1)) / dz
+        flwlfu = (var%v(ixl, jyf, kzlfu) - var%v(ixl, jyf - 1, kzlfu)) / dy &
+            &+ met(ixl, jyf, kzlfu, 2, 3) * 0.25 * (var%v(ixl, jyf, kzlfu + 1) &
+            &+ var%v(ixl, jyf - 1, kzlfu + 1)- var%v(ixl, jyf, kzlfu - 1) &
+            &- var%v(ixl, jyf - 1, kzlfu - 1)) / dz
 
-        flwrbd = (0.5 * ((jac(ixr, jyb, kzrbd) + jac(ixr, jyb + 1, kzrbd)) &
-            &* var%v(ixr, jyb, kzrbd) - (jac(ixr, jyb, kzrbd) + jac(ixr, jyb &
-            &- 1, kzrbd)) * var%v(ixr, jyb - 1, kzrbd)) / dy + 0.25 &
-            &* (jac(ixr, jyb, kzrbd + 1) * met(ixr, jyb, kzrbd + 1, 2, 3) &
-            &* (var%v(ixr, jyb, kzrbd + 1) + var%v(ixr, jyb - 1, kzrbd + 1)) &
-            &- jac(ixr, jyb, kzrbd - 1) * met(ixr, jyb, kzrbd - 1, 2, 3) &
-            &* (var%v(ixr, jyb, kzrbd - 1) + var%v(ixr, jyb - 1, kzrbd - 1))) &
-            &/ dz) / jac(ixr, jyb, kzrbd)
-        flwrbu = (0.5 * ((jac(ixr, jyb, kzrbu) + jac(ixr, jyb + 1, kzrbu)) &
-            &* var%v(ixr, jyb, kzrbu) - (jac(ixr, jyb, kzrbu) + jac(ixr, jyb &
-            &- 1, kzrbu)) * var%v(ixr, jyb - 1, kzrbu)) / dy + 0.25 &
-            &* (jac(ixr, jyb, kzrbu + 1) * met(ixr, jyb, kzrbu + 1, 2, 3) &
-            &* (var%v(ixr, jyb, kzrbu + 1) + var%v(ixr, jyb - 1, kzrbu + 1)) &
-            &- jac(ixr, jyb, kzrbu - 1) * met(ixr, jyb, kzrbu - 1, 2, 3) &
-            &* (var%v(ixr, jyb, kzrbu - 1) + var%v(ixr, jyb - 1, kzrbu - 1))) &
-            &/ dz) / jac(ixr, jyb, kzrbu)
+        flwrbd = (var%v(ixr, jyb, kzrbd) - var%v(ixr, jyb - 1, kzrbd)) / dy &
+            &+ met(ixr, jyb, kzrbd, 2, 3) * 0.25 * (var%v(ixr, jyb, kzrbd + 1) &
+            &+ var%v(ixr, jyb - 1, kzrbd + 1)- var%v(ixr, jyb, kzrbd - 1) &
+            &- var%v(ixr, jyb - 1, kzrbd - 1)) / dz
+        flwrbu = (var%v(ixr, jyb, kzrbu) - var%v(ixr, jyb - 1, kzrbu)) / dy &
+            &+ met(ixr, jyb, kzrbu, 2, 3) * 0.25 * (var%v(ixr, jyb, kzrbu + 1) &
+            &+ var%v(ixr, jyb - 1, kzrbu + 1)- var%v(ixr, jyb, kzrbu - 1) &
+            &- var%v(ixr, jyb - 1, kzrbu - 1)) / dz
 
-        flwrfd = (0.5 * ((jac(ixr, jyf, kzrfd) + jac(ixr, jyf + 1, kzrfd)) &
-            &* var%v(ixr, jyf, kzrfd) - (jac(ixr, jyf, kzrfd) + jac(ixr, jyf &
-            &- 1, kzrfd)) * var%v(ixr, jyf - 1, kzrfd)) / dy + 0.25 &
-            &* (jac(ixr, jyf, kzrfd + 1) * met(ixr, jyf, kzrfd + 1, 2, 3) &
-            &* (var%v(ixr, jyf, kzrfd + 1) + var%v(ixr, jyf - 1, kzrfd + 1)) &
-            &- jac(ixr, jyf, kzrfd - 1) * met(ixr, jyf, kzrfd - 1, 2, 3) &
-            &* (var%v(ixr, jyf, kzrfd - 1) + var%v(ixr, jyf - 1, kzrfd - 1))) &
-            &/ dz) / jac(ixr, jyf, kzrfd)
-        flwrfu = (0.5 * ((jac(ixr, jyf, kzrfu) + jac(ixr, jyf + 1, kzrfu)) &
-            &* var%v(ixr, jyf, kzrfu) - (jac(ixr, jyf, kzrfu) + jac(ixr, jyf &
-            &- 1, kzrfu)) * var%v(ixr, jyf - 1, kzrfu)) / dy + 0.25 &
-            &* (jac(ixr, jyf, kzrfu + 1) * met(ixr, jyf, kzrfu + 1, 2, 3) &
-            &* (var%v(ixr, jyf, kzrfu + 1) + var%v(ixr, jyf - 1, kzrfu + 1)) &
-            &- jac(ixr, jyf, kzrfu - 1) * met(ixr, jyf, kzrfu - 1, 2, 3) &
-            &* (var%v(ixr, jyf, kzrfu - 1) + var%v(ixr, jyf - 1, kzrfu - 1))) &
-            &/ dz) / jac(ixr, jyf, kzrfu)
+        flwrfd = (var%v(ixr, jyf, kzrfd) - var%v(ixr, jyf - 1, kzrfd)) / dy &
+            &+ met(ixr, jyf, kzrfd, 2, 3) * 0.25 * (var%v(ixr, jyf, kzrfd + 1) &
+            &+ var%v(ixr, jyf - 1, kzrfd + 1)- var%v(ixr, jyf, kzrfd - 1) &
+            &- var%v(ixr, jyf - 1, kzrfd - 1)) / dz
+        flwrfu = (var%v(ixr, jyf, kzrfu) - var%v(ixr, jyf - 1, kzrfu)) / dy &
+            &+ met(ixr, jyf, kzrfu, 2, 3) * 0.25 * (var%v(ixr, jyf, kzrfu + 1) &
+            &+ var%v(ixr, jyf - 1, kzrfu + 1)- var%v(ixr, jyf, kzrfu - 1) &
+            &- var%v(ixr, jyf - 1, kzrfu - 1)) / dz
       else
         if(sizeY == 1) then
           ! no derivative if there is no y dependence
@@ -5480,7 +4814,6 @@ module wkb_module
       ! dv/dz (i,j+1/2,k+1/2)) = (v(i,j+1/2,k+1) - v(i,j+1/2,k))/dz, hence
 
       if(topography) then
-        ! FJApr2023
         ! Locate the closest points in zonal direction.
         if(sizeX == 1) then
           ixl = 1
@@ -5521,8 +4854,8 @@ module wkb_module
 
         ! Locate the closest points in vertical direction.
 
-        kzlbd = max(- nbz, floor((levelTFC(ixl, jyb, zlc) - lz(0)) / dz))
-        kzlbu = kzlbd + 1
+        kzlbu = kzTildeTFC(ixl, jyb, zlc)
+        kzlbd = kzlbu - 1
         if(kzlbd > nz) then
           kzlbu = nz + 1
           kzlbd = nz + 1
@@ -5530,8 +4863,8 @@ module wkb_module
         zlbd = zTildeTFC(ixl, jyb, kzlbd)
         zlbu = zTildeTFC(ixl, jyb, kzlbu)
 
-        kzlfd = max(- nbz, floor((levelTFC(ixl, jyf, zlc) - lz(0)) / dz))
-        kzlfu = kzlfd + 1
+        kzlfu = kzTildeTFC(ixl, jyf, zlc)
+        kzlfd = kzlfu - 1
         if(kzlfd > nz) then
           kzlfu = nz + 1
           kzlfd = nz + 1
@@ -5539,8 +4872,8 @@ module wkb_module
         zlfd = zTildeTFC(ixl, jyf, kzlfd)
         zlfu = zTildeTFC(ixl, jyf, kzlfu)
 
-        kzrbd = max(- nbz, floor((levelTFC(ixr, jyb, zlc) - lz(0)) / dz))
-        kzrbu = kzrbd + 1
+        kzrbu = kzTildeTFC(ixr, jyb, zlc)
+        kzrbd = kzrbu - 1
         if(kzrbd > nz) then
           kzrbu = nz + 1
           kzrbd = nz + 1
@@ -5548,8 +4881,8 @@ module wkb_module
         zrbd = zTildeTFC(ixr, jyb, kzrbd)
         zrbu = zTildeTFC(ixr, jyb, kzrbu)
 
-        kzrfd = max(- nbz, floor((levelTFC(ixr, jyf, zlc) - lz(0)) / dz))
-        kzrfu = kzrfd + 1
+        kzrfu = kzTildeTFC(ixr, jyf, zlc)
+        kzrfd = kzrfu - 1
         if(kzrfd > nz) then
           kzrfu = nz + 1
           kzrfd = nz + 1
@@ -5559,26 +4892,34 @@ module wkb_module
 
         ! Assign the values.
 
-        if(zlbu < topography_surface(ixl, jyb)) then
+        if(zlbu < zTildeTFC(ixl, jyb, 0)) then
           flwlbd = 0.0
           flwlbu = 0.0
-        else if(zlbd < topography_surface(ixl, jyb)) then
+        else if(zlbd < zTildeTFC(ixl, jyb, 0)) then
           flwlbd = 0.0
           flwlbu = (var%v(ixl, jyb, kzlbu + 1) - var%v(ixl, jyb, kzlbu)) / dz &
-              &* 4.0 / (jac(ixl, jyb, kzlbu) + jac(ixl, jyb + 1, kzlbu) &
-              &+ jac(ixl, jyb, kzlbu + 1) + jac(ixl, jyb + 1, kzlbu + 1))
+              &/ (jac(ixl, jyb, kzlbu) * jac(ixl, jyb, kzlbu + 1) / (jac(ixl, &
+              &jyb, kzlbu) + jac(ixl, jyb, kzlbu + 1)) + jac(ixl, jyb + 1, &
+              &kzlbu) * jac(ixl, jyb + 1, kzlbu + 1) / (jac(ixl, jyb + 1, &
+              &kzlbu) + jac(ixl, jyb + 1, kzlbu + 1)))
         else
           if(zlbu < lz(1)) then
             flwlbd = (var%v(ixl, jyb, kzlbd + 1) - var%v(ixl, jyb, kzlbd)) &
-                &/ dz * 4.0 / (jac(ixl, jyb, kzlbd) + jac(ixl, jyb + 1, kzlbd) &
-                &+ jac(ixl, jyb, kzlbd + 1) + jac(ixl, jyb + 1, kzlbd + 1))
+                &/ dz / (jac(ixl, jyb, kzlbd) * jac(ixl, jyb, kzlbd + 1) &
+                &/ (jac(ixl, jyb, kzlbd) + jac(ixl, jyb, kzlbd + 1)) &
+                &+ jac(ixl, jyb + 1, kzlbd) * jac(ixl, jyb + 1, kzlbd + 1) &
+                &/ (jac(ixl, jyb + 1, kzlbd) + jac(ixl, jyb + 1, kzlbd + 1)))
             flwlbu = (var%v(ixl, jyb, kzlbu + 1) - var%v(ixl, jyb, kzlbu)) &
-                &/ dz * 4.0 / (jac(ixl, jyb, kzlbu) + jac(ixl, jyb + 1, kzlbu) &
-                &+ jac(ixl, jyb, kzlbu + 1) + jac(ixl, jyb + 1, kzlbu + 1))
+                &/ dz / (jac(ixl, jyb, kzlbu) * jac(ixl, jyb, kzlbu + 1) &
+                &/ (jac(ixl, jyb, kzlbu) + jac(ixl, jyb, kzlbu + 1)) &
+                &+ jac(ixl, jyb + 1, kzlbu) * jac(ixl, jyb + 1, kzlbu + 1) &
+                &/ (jac(ixl, jyb + 1, kzlbu) + jac(ixl, jyb + 1, kzlbu + 1)))
           else if(zlbd < lz(1)) then
             flwlbd = (var%v(ixl, jyb, kzlbd + 1) - var%v(ixl, jyb, kzlbd)) &
-                &/ dz * 4.0 / (jac(ixl, jyb, kzlbd) + jac(ixl, jyb + 1, kzlbd) &
-                &+ jac(ixl, jyb, kzlbd + 1) + jac(ixl, jyb + 1, kzlbd + 1))
+                &/ dz / (jac(ixl, jyb, kzlbd) * jac(ixl, jyb, kzlbd + 1) &
+                &/ (jac(ixl, jyb, kzlbd) + jac(ixl, jyb, kzlbd + 1)) &
+                &+ jac(ixl, jyb + 1, kzlbd) * jac(ixl, jyb + 1, kzlbd + 1) &
+                &/ (jac(ixl, jyb + 1, kzlbd) + jac(ixl, jyb + 1, kzlbd + 1)))
             flwlbu = 0.0
           else
             flwlbd = 0.0
@@ -5586,26 +4927,34 @@ module wkb_module
           end if
         end if
 
-        if(zlfu < topography_surface(ixl, jyf)) then
+        if(zlfu < zTildeTFC(ixl, jyf, 0)) then
           flwlfd = 0.0
           flwlfu = 0.0
-        else if(zlfd < topography_surface(ixl, jyf)) then
+        else if(zlfd < zTildeTFC(ixl, jyf, 0)) then
           flwlfd = 0.0
           flwlfu = (var%v(ixl, jyf, kzlfu + 1) - var%v(ixl, jyf, kzlfu)) / dz &
-              &* 4.0 / (jac(ixl, jyf, kzlfu) + jac(ixl, jyf + 1, kzlfu) &
-              &+ jac(ixl, jyf, kzlfu + 1) + jac(ixl, jyf + 1, kzlfu + 1))
+              &/ (jac(ixl, jyf, kzlfu) * jac(ixl, jyf, kzlfu + 1) / (jac(ixl, &
+              &jyf, kzlfu) + jac(ixl, jyf, kzlfu + 1)) + jac(ixl, jyf + 1, &
+              &kzlfu) * jac(ixl, jyf + 1, kzlfu + 1) / (jac(ixl, jyf + 1, &
+              &kzlfu) + jac(ixl, jyf + 1, kzlfu + 1)))
         else
           if(zlfu < lz(1)) then
             flwlfd = (var%v(ixl, jyf, kzlfd + 1) - var%v(ixl, jyf, kzlfd)) &
-                &/ dz * 4.0 / (jac(ixl, jyf, kzlfd) + jac(ixl, jyf + 1, kzlfd) &
-                &+ jac(ixl, jyf, kzlfd + 1) + jac(ixl, jyf + 1, kzlfd + 1))
+                &/ dz / (jac(ixl, jyf, kzlfd) * jac(ixl, jyf, kzlfd + 1) &
+                &/ (jac(ixl, jyf, kzlfd) + jac(ixl, jyf, kzlfd + 1)) &
+                &+ jac(ixl, jyf + 1, kzlfd) * jac(ixl, jyf + 1, kzlfd + 1) &
+                &/ (jac(ixl, jyf + 1, kzlfd) + jac(ixl, jyf + 1, kzlfd + 1)))
             flwlfu = (var%v(ixl, jyf, kzlfu + 1) - var%v(ixl, jyf, kzlfu)) &
-                &/ dz * 4.0 / (jac(ixl, jyf, kzlfu) + jac(ixl, jyf + 1, kzlfu) &
-                &+ jac(ixl, jyf, kzlfu + 1) + jac(ixl, jyf + 1, kzlfu + 1))
+                &/ dz / (jac(ixl, jyf, kzlfu) * jac(ixl, jyf, kzlfu + 1) &
+                &/ (jac(ixl, jyf, kzlfu) + jac(ixl, jyf, kzlfu + 1)) &
+                &+ jac(ixl, jyf + 1, kzlfu) * jac(ixl, jyf + 1, kzlfu + 1) &
+                &/ (jac(ixl, jyf + 1, kzlfu) + jac(ixl, jyf + 1, kzlfu + 1)))
           else if(zlfd < lz(1)) then
             flwlfd = (var%v(ixl, jyf, kzlfd + 1) - var%v(ixl, jyf, kzlfd)) &
-                &/ dz * 4.0 / (jac(ixl, jyf, kzlfd) + jac(ixl, jyf + 1, kzlfd) &
-                &+ jac(ixl, jyf, kzlfd + 1) + jac(ixl, jyf + 1, kzlfd + 1))
+                &/ dz / (jac(ixl, jyf, kzlfd) * jac(ixl, jyf, kzlfd + 1) &
+                &/ (jac(ixl, jyf, kzlfd) + jac(ixl, jyf, kzlfd + 1)) &
+                &+ jac(ixl, jyf + 1, kzlfd) * jac(ixl, jyf + 1, kzlfd + 1) &
+                &/ (jac(ixl, jyf + 1, kzlfd) + jac(ixl, jyf + 1, kzlfd + 1)))
             flwlfu = 0.0
           else
             flwlfd = 0.0
@@ -5613,26 +4962,34 @@ module wkb_module
           end if
         end if
 
-        if(zrbu < topography_surface(ixr, jyb)) then
+        if(zrbu < zTildeTFC(ixr, jyb, 0)) then
           flwrbd = 0.0
           flwrbu = 0.0
-        else if(zrbd < topography_surface(ixr, jyb)) then
+        else if(zrbd < zTildeTFC(ixr, jyb, 0)) then
           flwrbd = 0.0
           flwrbu = (var%v(ixr, jyb, kzrbu + 1) - var%v(ixr, jyb, kzrbu)) / dz &
-              &* 4.0 / (jac(ixr, jyb, kzrbu) + jac(ixr, jyb + 1, kzrbu) &
-              &+ jac(ixr, jyb, kzrbu + 1) + jac(ixr, jyb + 1, kzrbu + 1))
+              &/ (jac(ixr, jyb, kzrbu) * jac(ixr, jyb, kzrbu + 1) / (jac(ixr, &
+              &jyb, kzrbu) + jac(ixr, jyb, kzrbu + 1)) + jac(ixr, jyb + 1, &
+              &kzrbu) * jac(ixr, jyb + 1, kzrbu + 1) / (jac(ixr, jyb + 1, &
+              &kzrbu) + jac(ixr, jyb + 1, kzrbu + 1)))
         else
           if(zrbu < lz(1)) then
             flwrbd = (var%v(ixr, jyb, kzrbd + 1) - var%v(ixr, jyb, kzrbd)) &
-                &/ dz * 4.0 / (jac(ixr, jyb, kzrbd) + jac(ixr, jyb + 1, kzrbd) &
-                &+ jac(ixr, jyb, kzrbd + 1) + jac(ixr, jyb + 1, kzrbd + 1))
+                &/ dz / (jac(ixr, jyb, kzrbd) * jac(ixr, jyb, kzrbd + 1) &
+                &/ (jac(ixr, jyb, kzrbd) + jac(ixr, jyb, kzrbd + 1)) &
+                &+ jac(ixr, jyb + 1, kzrbd) * jac(ixr, jyb + 1, kzrbd + 1) &
+                &/ (jac(ixr, jyb + 1, kzrbd) + jac(ixr, jyb + 1, kzrbd + 1)))
             flwrbu = (var%v(ixr, jyb, kzrbu + 1) - var%v(ixr, jyb, kzrbu)) &
-                &/ dz * 4.0 / (jac(ixr, jyb, kzrbu) + jac(ixr, jyb + 1, kzrbu) &
-                &+ jac(ixr, jyb, kzrbu + 1) + jac(ixr, jyb + 1, kzrbu + 1))
+                &/ dz / (jac(ixr, jyb, kzrbu) * jac(ixr, jyb, kzrbu + 1) &
+                &/ (jac(ixr, jyb, kzrbu) + jac(ixr, jyb, kzrbu + 1)) &
+                &+ jac(ixr, jyb + 1, kzrbu) * jac(ixr, jyb + 1, kzrbu + 1) &
+                &/ (jac(ixr, jyb + 1, kzrbu) + jac(ixr, jyb + 1, kzrbu + 1)))
           else if(zrbd < lz(1)) then
             flwrbd = (var%v(ixr, jyb, kzrbd + 1) - var%v(ixr, jyb, kzrbd)) &
-                &/ dz * 4.0 / (jac(ixr, jyb, kzrbd) + jac(ixr, jyb + 1, kzrbd) &
-                &+ jac(ixr, jyb, kzrbd + 1) + jac(ixr, jyb + 1, kzrbd + 1))
+                &/ dz / (jac(ixr, jyb, kzrbd) * jac(ixr, jyb, kzrbd + 1) &
+                &/ (jac(ixr, jyb, kzrbd) + jac(ixr, jyb, kzrbd + 1)) &
+                &+ jac(ixr, jyb + 1, kzrbd) * jac(ixr, jyb + 1, kzrbd + 1) &
+                &/ (jac(ixr, jyb + 1, kzrbd) + jac(ixr, jyb + 1, kzrbd + 1)))
             flwrbu = 0.0
           else
             flwrbd = 0.0
@@ -5640,26 +4997,34 @@ module wkb_module
           end if
         end if
 
-        if(zrfu < topography_surface(ixr, jyf)) then
+        if(zrfu < zTildeTFC(ixr, jyf, 0)) then
           flwrfd = 0.0
           flwrfu = 0.0
-        else if(zrfd < topography_surface(ixr, jyf)) then
+        else if(zrfd < zTildeTFC(ixr, jyf, 0)) then
           flwrfd = 0.0
           flwrfu = (var%v(ixr, jyf, kzrfu + 1) - var%v(ixr, jyf, kzrfu)) / dz &
-              &* 4.0 / (jac(ixr, jyf, kzrfu) + jac(ixr, jyf + 1, kzrfu) &
-              &+ jac(ixr, jyf, kzrfu + 1) + jac(ixr, jyf + 1, kzrfu + 1))
+              &/ (jac(ixr, jyf, kzrfu) * jac(ixr, jyf, kzrfu + 1) / (jac(ixr, &
+              &jyf, kzrfu) + jac(ixr, jyf, kzrfu + 1)) + jac(ixr, jyf + 1, &
+              &kzrfu) * jac(ixr, jyf + 1, kzrfu + 1) / (jac(ixr, jyf + 1, &
+              &kzrfu) + jac(ixr, jyf + 1, kzrfu + 1)))
         else
           if(zrfu < lz(1)) then
             flwrfd = (var%v(ixr, jyf, kzrfd + 1) - var%v(ixr, jyf, kzrfd)) &
-                &/ dz * 4.0 / (jac(ixr, jyf, kzrfd) + jac(ixr, jyf + 1, kzrfd) &
-                &+ jac(ixr, jyf, kzrfd + 1) + jac(ixr, jyf + 1, kzrfd + 1))
+                &/ dz / (jac(ixr, jyf, kzrfd) * jac(ixr, jyf, kzrfd + 1) &
+                &/ (jac(ixr, jyf, kzrfd) + jac(ixr, jyf, kzrfd + 1)) &
+                &+ jac(ixr, jyf + 1, kzrfd) * jac(ixr, jyf + 1, kzrfd + 1) &
+                &/ (jac(ixr, jyf + 1, kzrfd) + jac(ixr, jyf + 1, kzrfd + 1)))
             flwrfu = (var%v(ixr, jyf, kzrfu + 1) - var%v(ixr, jyf, kzrfu)) &
-                &/ dz * 4.0 / (jac(ixr, jyf, kzrfu) + jac(ixr, jyf + 1, kzrfu) &
-                &+ jac(ixr, jyf, kzrfu + 1) + jac(ixr, jyf + 1, kzrfu + 1))
+                &/ dz / (jac(ixr, jyf, kzrfu) * jac(ixr, jyf, kzrfu + 1) &
+                &/ (jac(ixr, jyf, kzrfu) + jac(ixr, jyf, kzrfu + 1)) &
+                &+ jac(ixr, jyf + 1, kzrfu) * jac(ixr, jyf + 1, kzrfu + 1) &
+                &/ (jac(ixr, jyf + 1, kzrfu) + jac(ixr, jyf + 1, kzrfu + 1)))
           else if(zrfd < lz(1)) then
             flwrfd = (var%v(ixr, jyf, kzrfd + 1) - var%v(ixr, jyf, kzrfd)) &
-                &/ dz * 4.0 / (jac(ixr, jyf, kzrfd) + jac(ixr, jyf + 1, kzrfd) &
-                &+ jac(ixr, jyf, kzrfd + 1) + jac(ixr, jyf + 1, kzrfd + 1))
+                &/ dz / (jac(ixr, jyf, kzrfd) * jac(ixr, jyf, kzrfd + 1) &
+                &/ (jac(ixr, jyf, kzrfd) + jac(ixr, jyf, kzrfd + 1)) &
+                &+ jac(ixr, jyf + 1, kzrfd) * jac(ixr, jyf + 1, kzrfd + 1) &
+                &/ (jac(ixr, jyf + 1, kzrfd) + jac(ixr, jyf + 1, kzrfd + 1)))
             flwrfu = 0.0
           else
             flwrfd = 0.0
@@ -5831,7 +5196,6 @@ module wkb_module
       flwfd = flwlfd
       flwfu = flwlfu
 
-      ! FJMay2023
       if(topography) then
         zbd = zlbd
         zbu = zlbu
@@ -5859,7 +5223,6 @@ module wkb_module
       flwfd = factor * flwlfd + (1.0 - factor) * flwrfd
       flwfu = factor * flwlfu + (1.0 - factor) * flwrfu
 
-      ! FJMay2023
       if(topography) then
         zbd = factor * zlbd + (1.0 - factor) * zrbd
         zbu = factor * zlbu + (1.0 - factor) * zrbu
@@ -5875,7 +5238,6 @@ module wkb_module
       flwd = flwbd
       flwu = flwbu
 
-      ! FJMay2023
       if(topography) then
         zd = zbd
         zu = zbu
@@ -5897,7 +5259,6 @@ module wkb_module
       flwd = factor * flwbd + (1.0 - factor) * flwfd
       flwu = factor * flwbu + (1.0 - factor) * flwfu
 
-      ! FJMay2023
       if(topography) then
         zd = factor * zbd + (1.0 - factor) * zfd
         zu = factor * zbu + (1.0 - factor) * zfu
@@ -5914,8 +5275,6 @@ module wkb_module
     elseif(zlc > zu) then
       factor = 0.0
     elseif(zlc > zd) then
-      ! FJApr2023
-      ! factor = (zu - zlc) / dz
       factor = (zu - zlc) / (zu - zd)
     else
       factor = 1.0
@@ -5944,6 +5303,8 @@ module wkb_module
 
     integer :: nrlc
     integer :: ix, jy, kz
+    integer :: ixrv, jyrv, kzrvd, kzrvu
+    integer :: ix0, jy0
 
     real :: xr, yr, zr
     real :: dxr, dyr, dzr
@@ -5951,7 +5312,14 @@ module wkb_module
 
     integer :: nrvtt0, nrvtt1, nrvloc
 
+    integer :: jRay
+    integer :: factor
+    real :: dzmin
+
     if(steady_state) return
+
+    ix0 = is + nbx - 1
+    jy0 = js + nby - 1
 
     ! total number of ray volumes before splitting
 
@@ -6053,32 +5421,41 @@ module wkb_module
             end if
           end if
 
-          !splitting in x direction
+          !splitting in z direction
 
           do iRay = 1, nRay(ix, jy, kz)
             zr = ray(iRay, ix, jy, kz)%z
             dzr = ray(iRay, ix, jy, kz)%dzray
+            azm = ray(iRay, ix, jy, kz)%area_zm
 
-            if(dzr > dz) then
-              nrlc = nrlc + 1
+            if(topography) then
+              xr = ray(iRay, ix, jy, kz)%x
+              yr = ray(iRay, ix, jy, kz)%y
 
-              if(nrlc > nray_wrk) then
-                print *, 'r.v. getting too many by splitting in z  direction'
-                stop
-              end if
+              ixrv = nint((xr - lx(0)) / dx + 0.5) - ix0
+              jyrv = nint((yr - ly(0)) / dy + 0.5) - jy0
+              kzrvd = kzTildeTFC(ixrv, jyrv, zr - 0.5 * dzr)
+              kzrvu = kzTildeTFC(ixrv, jyrv, zr + 0.5 * dzr)
 
-              zr = ray(iRay, ix, jy, kz)%z
+              dzmin = dz
+              do kzrv = kzrvd, kzrvu
+                dzmin = min(dzmin, jac(ixrv, jyrv, kzrv) * dz)
+              end do
+            else
+              dzmin = dz
+            end if
 
-              azm = ray(iRay, ix, jy, kz)%area_zm
-
-              ray(iRay, ix, jy, kz)%dzray = 0.5 * dzr
-
-              ray(iRay, ix, jy, kz)%area_zm = 0.5 * azm
-
-              ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
-
-              ray(iRay, ix, jy, kz)%z = zr - 0.25 * dzr
-              ray(nrlc, ix, jy, kz)%z = zr + 0.25 * dzr
+            if(dzr > dzmin) then
+              factor = ceiling(dzr / dzmin)
+              ray(iRay, ix, jy, kz)%z = zr + 0.5 * (1 / factor - 1) * dzr
+              ray(iRay, ix, jy, kz)%dzray = dzr / factor
+              ray(iRay, ix, jy, kz)%area_zm = azm / factor
+              do jRay = nrlc + 1, nrlc + factor - 1
+                ray(jRay, ix, jy, kz) = ray(iRay, ix, jy, kz)
+                ray(jRay, ix, jy, kz)%z = ray(jRay, ix, jy, kz)%z + (jRay &
+                    &- nrlc) * dzr / factor
+              end do
+            nrlc = nrlc + factor - 1
             end if
           end do
 
@@ -6589,219 +5966,55 @@ module wkb_module
     !------------------------
 
     if(sizeZ > 1) then
-      nshd = 0
-      nshu = 0
-
-      irsd = 0
-      irsu = 0
-
-      ! boundary conditions in z
-
       call setboundary_rayvol_z(ray)
+      do kzrv = 1, nz
+        do jyrv = 0, ny + 1
+          do ixrv = 0, nx + 1
+            do iRay = 1, nRay(ixrv, jyrv, kzrv)
+              if(ray(iRay, ixrv, jyrv, kzrv)%dens /= 0.0) then
+                zr = ray(iRay, ixrv, jyrv, kzrv)%z
 
-      ! move ray volumes to appropriate cell
-
-      do kz = 1, nz
-        do jy = 0, ny + 1
-          do ix = 0, nx + 1
-            nrlc = nRay(ix, jy, kz)
-
-            nsd = 0
-            nsu = 0
-
-            ! ray volumes from cell below
-
-            if(nRay(ix, jy, kz - 1) > 0) then
-              do iRay = 1, nRay(ix, jy, kz - 1)
-                zr = ray(iRay, ix, jy, kz - 1)%z
-
-                if(.not. topography .and. zr > z(kz - 1) + 0.5 * dz) then
-                  outside = .true.
-                else if(topography) then
-                  if(zr > zTFC(ix, jy, kz - 1) + 0.5 * jac(ix, jy, kz - 1) &
-                      &* dz) then
-                    outside = .true.
-                  else
-                    outside = .false.
-                  end if
+                if(topography) then
+                  kz = kzTildeTFC(ixrv, jyrv, zr)
                 else
-                  outside = .false.
+                  kz = nint((zr - lz(0)) / dz + 0.5)
                 end if
-                if(outside) then
-                  nrlc = nrlc + 1
 
-                  nsd = nsd + 1
+                if(kz > nz) kz = nz
+                if(kz < 1) kz = 1
 
-                  ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz - 1)
-
-                  irsd(nsd, ix, jy, kz) = iRay
+                if(kz /= kzrv) then
+                  nRay(ixrv, jyrv, kz) = nRay(ixrv, jyrv, kz) + 1
+                  jRay = nRay(ixrv, jyrv, kz)
+                  if(jRay > nray_wrk) stop "Error in shift_rayvol: nRay &
+                      &> nray_wrk!"
+                  ray(jRay, ixrv, jyrv, kz) = ray(iRay, ixrv, jyrv, kzrv)
+                  ray(iRay, ixrv, jyrv, kzrv)%dens = 0.0
                 end if
-              end do
-
-              nshd(ix, jy, kz) = nsd
-            end if
-
-            ! ray volumes from cell above
-
-            if(nRay(ix, jy, kz + 1) > 0) then
-              do iRay = 1, nRay(ix, jy, kz + 1)
-                zr = ray(iRay, ix, jy, kz + 1)%z
-
-                if(.not. topography .and. zr < z(kz + 1) - 0.5 * dz) then
-                  outside = .true.
-                else if(topography) then
-                  if(zr < zTFC(ix, jy, kz + 1) - 0.5 * jac(ix, jy, kz + 1) &
-                      &* dz) then
-                    outside = .true.
-                  else
-                    outside = .false.
-                  end if
-                else
-                  outside = .false.
-                end if
-                if(outside) then
-                  nrlc = nrlc + 1
-
-                  nsu = nsu + 1
-
-                  ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz + 1)
-
-                  irsu(nsu, ix, jy, kz) = iRay
-                end if
-              end do
-
-              nshu(ix, jy, kz) = nsu
-            end if
-
-            if(nrlc > nray_wrk) then
-              print *, 'at ix,jy,kz =', ix, jy, kz, 'nrlc > nray_wrk'
-              stop
-            else
-              nRay(ix, jy, kz) = nrlc
-            end if
+              end if
+            end do
           end do
         end do
       end do
-
-      ! periodic boundary conditions in z for the index and number arrays
-      ! filled above
-
-      if(zBoundary == "periodic") then
-        nshd(:, :, 0) = nshd(:, :, nz)
-        nshd(:, :, nz + 1) = nshd(:, :, 1)
-        nshu(:, :, 0) = nshu(:, :, nz)
-        nshu(:, :, nz + 1) = nshu(:, :, 1)
-      end if
-
-      ! remove ray volumes from cells they have left
-
+      call setboundary_rayvol_z(ray)
       do kz = 1, nz
         do jy = 0, ny + 1
           do ix = 0, nx + 1
-            ! ordered list of ray indices for r.v. that have left the
-            ! cell
-
-            nsh = 0
-
-            ! r.v. that have been shifted upward
-
-            if(nshd(ix, jy, kz + 1) > 0) then
-              do ish = 1, nshd(ix, jy, kz + 1)
-                iRay = irsd(ish, ix, jy, kz + 1)
-                irsh(ish) = iRay
-              end do
-
-              nsh = nshd(ix, jy, kz + 1)
-            end if
-
-            ! r.v. that have been shifted downward
-
-            if(nshu(ix, jy, kz - 1) > 0) then
-              do ish = 1, nshu(ix, jy, kz - 1)
-                iRay = irsu(ish, ix, jy, kz - 1)
-
-                if(nsh == 0) then
-                  irsh(1) = iRay
-                elseif(iRay < irsh(1)) then
-                  do jsh = nsh, 1, - 1
-                    irsh(jsh + 1) = irsh(jsh)
-                  end do
-
-                  irsh(1) = iRay
-                elseif(iRay > irsh(nsh)) then
-                  irsh(nsh + 1) = iRay
-                else
-                  !testb
-                  if(nsh < 2) then
-                    print *, 'ERROR: nsh < 2 in z-shifting where  this must &
-                        &not be the case'
-                    stop
-                  end if
-                  !teste
-
-                  lplace = .false.
-
-                  do jsh = 1, nsh - 1
-                    if(lplace) cycle
-
-                    if(iRay < irsh(jsh + 1)) then
-                      do ksh = nsh, jsh + 1, - 1
-                        irsh(ksh + 1) = irsh(ksh)
-                      end do
-
-                      irsh(jsh + 1) = iRay
-
-                      lplace = .true.
-                    end if
-                  end do
-                end if
-
-                nsh = nsh + 1
-              end do
-            end if
-
-            if(nsh /= nshd(ix, jy, kz + 1) + nshu(ix, jy, kz - 1)) then
-              print *, 'at ix,jy,kz =', ix, jy, kz, 'nsh /= nshd + nshu'
-              stop
-            end if
-
-            ! remove shifted ray volumes
-
-            if(nsh > 0) then
-              nrlc = nRay(ix, jy, kz)
-
-              do ish = nsh, 1, - 1
-                iRay = irsh(ish)
-
-                if(iRay < nrlc) then
-                  do jRay = iRay + 1, nrlc
-                    ray(jRay - 1, ix, jy, kz) = ray(jRay, ix, jy, kz)
-                  end do
-                end if
-
-                nrlc = nrlc - 1
-              end do
-
-              if(nrlc /= nRay(ix, jy, kz) - nshd(ix, jy, kz + 1) - nshu(ix, &
-                  &jy, kz - 1)) then
-                print *, 'at ix,jy,kz =', ix, jy, kz, 'nrlc &
-                    &/= nRay(ix,jy,kz)   - nshd(ix,jy,kz+1) - nshu(ix,jy,kz-1)'
-                stop
-              else
-                nRay(ix, jy, kz) = nrlc
-              end if
-            end if
-          end do ! ix
-        end do ! jy
-      end do ! kz
-
-      ! boundary conditions in z
-
-      call setboundary_rayvol_z(ray)
+            if(nRay(ix, jy, kz) <= 0) cycle
+            nrlc = 0
+            do iRay = 1, nRay(ix, jy, kz)
+              if(ray(iRay, ix, jy, kz)%dens == 0.0) cycle
+              nrlc = nrlc + 1
+              ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+            end do
+            nRay(ix, jy, kz) = nrlc
+          end do
+        end do
+      end do
     end if
 
     ! testb
-    do kz = 0, nz + 1
+    do kz = 1, nz
       do jy = 0, ny + 1
         do ix = 0, nx + 1
           if(nRay(ix, jy, kz) > 0) then
@@ -6866,20 +6079,18 @@ module wkb_module
 
               if(topography) then
                 ! FJApr2023
-                if(zr < zTFC(ix, jy, kz) - 0.5 * jac(ix, jy, kz) * dz) then
+                if(zr < zTildeTFC(ix, jy, kz - 1)) then
                   print *, "ERROR in shift_rayvol:"
-                  print *, "zr =", zr, "< zTFC(ix, jy, kz) - 0.5 * jac(ix, jy, &
-                      &kz) * dz =", zTFC(ix, jy, kz) - 0.5 * jac(ix, jy, kz) &
-                      &* dz
+                  print *, "zr =", zr, "< zTildeTFC(ix, jy, kz - 1) =", &
+                      &zTildeTFC(ix, jy, kz - 1)
                   print *, "iRay, ix, jy, kz =", iRay, ix, jy, kz
                   stop
                 end if
 
-                if(zr > zTFC(ix, jy, kz) + 0.5 * jac(ix, jy, kz) * dz) then
+                if(zr > zTildeTFC(ix, jy, kz)) then
                   print *, "ERROR in shift_rayvol:"
-                  print *, "zr =", zr, "> zTFC(ix, jy, kz) + 0.5 * jac(ix, jy, &
-                      &kz) * dz =", zTFC(ix, jy, kz) + 0.5 * jac(ix, jy, kz) &
-                      &* dz
+                  print *, "zr =", zr, "> zTildeTFC(ix, jy, kz) =", &
+                      &zTildeTFC(ix, jy, kz)
                   print *, "iRay, ix, jy, kz =", iRay, ix, jy, kz
                   stop
                 end if
@@ -7616,7 +6827,7 @@ module wkb_module
               ! indices nxRay/2 + 1 ... nxRay - 1 for positive k
 
               if(wnrk < 0.0) then
-                if(abs(log(- wnrk / wnrk_max_n) / dwnrk_mg_n) < 1.d-3) then
+                if(abs(log(- wnrk / wnrk_max_n) / dwnrk_mg_n) < 1.d0) then
                   ir_k = nxRay / 2 - 1
                 else
                   ir_k = int(log(- wnrk / wnrk_min_n) / dwnrk_mg_n) + 1
@@ -7624,7 +6835,7 @@ module wkb_module
               elseif(wnrk == 0.0) then
                 ir_k = nxRay / 2
               else
-                if(abs(log(wnrk / wnrk_max_p) / dwnrk_mg_p) < 1.d-3) then
+                if(abs(log(wnrk / wnrk_max_p) / dwnrk_mg_p) < 1.d0) then
                   ir_k = nxRay - 1
                 else
                   ir_k = int(log(wnrk / wnrk_min_p) / dwnrk_mg_p) + nxRay / 2 &
@@ -7659,7 +6870,7 @@ module wkb_module
               fcpspy = ayl
 
               if(wnrl < 0.0) then
-                if(abs(log(- wnrl / wnrl_max_n) / dwnrl_mg_n) < 1.d-3) then
+                if(abs(log(- wnrl / wnrl_max_n) / dwnrl_mg_n) < 1.d0) then
                   ir_l = nyRay / 2 - 1
                 else
                   ir_l = int(log(- wnrl / wnrl_min_n) / dwnrl_mg_n) + 1
@@ -7667,7 +6878,7 @@ module wkb_module
               elseif(wnrl == 0.0) then
                 ir_l = nyRay / 2
               else
-                if(abs(log(wnrl / wnrl_max_p) / dwnrl_mg_p) < 1.d-3) then
+                if(abs(log(wnrl / wnrl_max_p) / dwnrl_mg_p) < 1.d0) then
                   ir_l = nyRay - 1
                 else
                   ir_l = int(log(wnrl / wnrl_min_p) / dwnrl_mg_p) + nyRay / 2 &
@@ -7701,7 +6912,7 @@ module wkb_module
             fcpspz = azm
 
             if(wnrm < 0.0) then
-              if(abs(log(- wnrm / wnrm_max_n) / dwnrm_mg_n) < 1.d-3) then
+              if(abs(log(- wnrm / wnrm_max_n) / dwnrm_mg_n) < 1.d0) then
                 ir_m = nzRay / 2 - 1
               else
                 ir_m = int(log(- wnrm / wnrm_min_n) / dwnrm_mg_n) + 1
@@ -7709,7 +6920,7 @@ module wkb_module
             elseif(wnrm == 0.0) then
               ir_m = nzRay / 2
             else
-              if(abs(log(wnrm / wnrm_max_p) / dwnrm_mg_p) < 1.d-3) then
+              if(abs(log(wnrm / wnrm_max_p) / dwnrm_mg_p) < 1.d0) then
                 ir_m = nzRay - 1
               else
                 ir_m = int(log(wnrm / wnrm_min_p) / dwnrm_mg_p) + nzRay / 2 + 1
@@ -8167,19 +7378,6 @@ module wkb_module
 
     f_cor_nd = f_Coriolis_dim * tRef
 
-    ! Update height.
-    if(topography .and. topographyTime > 0.0) then
-      do ix = - nbx, nx + nbx
-        do jy = - nby, ny + nby
-          do kz = - nbz, nz + nbz
-            zTFC(ix, jy, kz) = heightTFC(ix, jy, kz)
-            zTildeTFC(ix, jy, kz) = heightTFC(ix, jy, kz) + 0.5 * jac(ix, jy, &
-                &kz) * dz
-          end do
-        end do
-      end do
-    end if
-
     if(case_wkb == 3 .and. steady_state) then
       call orographic_source(var, ray, time, stepFrac(RKStage) * dt)
     end if
@@ -8208,8 +7406,9 @@ module wkb_module
 
               ! Set vertical position (and extent).
               if(topography) then
-                ray(iRay, ix, jy, kz)%z = ray(iRay, ix, jy, kz - 1)%z + 0.5 &
-                    &* (jac(ix, jy, kz - 1) + jac(ix, jy, kz)) * dz
+                ray(iRay, ix, jy, kz)%z = zTildeTFC(ix, jy, kz - 1) &
+                    &+ (ray(iRay, ix, jy, kz - 1)%z - zTildeTFC(ix, jy, kz &
+                    &- 2)) / jac(ix, jy, kz - 1) * jac(ix, jy, kz)
                 ray(iRay, ix, jy, kz)%dzray = ray(iRay, ix, jy, kz - 1)%dzray &
                     &* jac(ix, jy, kz) / jac(ix, jy, kz - 1)
               else
@@ -8233,6 +7432,7 @@ module wkb_module
                 cgirz0 = wnrm * (f_cor_nd ** 2 - NN_nd) * wnrh ** 2 / omir &
                     &/ (wnrh ** 2 + wnrm ** 2) ** 2
               else
+                ray(iRay, ix, jy, kz0)%dens = 0.0
                 ray(iRay, ix, jy, kz)%dens = 0.0
                 cycle
               end if
@@ -8250,6 +7450,7 @@ module wkb_module
                 cgirz = wnrm * (f_cor_nd ** 2 - NN_nd) * wnrh ** 2 / omir &
                     &/ (wnrh ** 2 + wnrm ** 2) ** 2
               else
+                ray(iRay, ix, jy, kz0)%dens = 0.0
                 ray(iRay, ix, jy, kz)%dens = 0.0
                 cycle
               end if
@@ -8264,19 +7465,16 @@ module wkb_module
                 yr = ray(iRay, ix, jy, kz)%y
                 zr = ray(iRay, ix, jy, kz)%z
                 alphaSponge = 2.0 * interpolate_sponge(xr, yr, zr)
-                if(topography) then
-                  ray(iRay, ix, jy, kz)%dens = 1.0 / (1.0 + alphaSponge &
-                      &/ cgirz * 0.5 * (jac(ix, jy, kz - 1) + jac(ix, jy, kz)) &
-                      &* dz) * cgirz0 * ray(iRay, ix, jy, kz0)%dens / cgirz
-                else
-                  ray(iRay, ix, jy, kz)%dens = 1.0 / (1.0 + alphaSponge &
-                      &/ cgirz * dz) * cgirz0 * ray(iRay, ix, jy, kz0)%dens &
-                      &/ cgirz
-                end if
+                ray(iRay, ix, jy, kz)%dens = 1.0 / (1.0 + alphaSponge &
+                      &/ cgirz * (ray(iRay, ix, jy, kz)%z - ray(iRay, ix, jy, &
+                      &kz0)%z)) * cgirz0 * ray(iRay, ix, jy, kz0)%dens / cgirz
               else
                 ray(iRay, ix, jy, kz)%dens = cgirz0 * ray(iRay, ix, jy, &
                     &kz0)%dens / cgirz
               end if
+
+              ! Cycle if saturation scheme is turned off.
+              if(.not. lsaturation) cycle
 
               ! Get ray volume extents.
               dxr = ray(iRay, ix, jy, kz)%dxray
@@ -8336,6 +7534,7 @@ module wkb_module
             end if
             ! Reduce wave action density.
             do iRay = 1, nRay(ix, jy, kz)
+              if(.not. lsaturation) cycle
               if(ray(iRay, ix, jy, kz)%dens == 0.0) cycle
               wnrk = ray(iRay, ix, jy, kz)%k
               wnrl = ray(iRay, ix, jy, kz)%l
@@ -8348,14 +7547,14 @@ module wkb_module
                 cgirz = wnrm * (f_cor_nd ** 2 - NN_nd) * wnrh ** 2 / omir &
                     &/ (wnrh ** 2 + wnrm ** 2) ** 2
               else
+                ray(iRay, ix, jy, kz0)%dens = 0.0
                 ray(iRay, ix, jy, kz)%dens = 0.0
                 cycle
               end if
               if(topography) then
                 ray(iRay, ix, jy, kz)%dens = ray(iRay, ix, jy, kz)%dens &
-                    &* max(0.0, 1.0 - 0.5 * (jac(ix, jy, kz - 1) + jac(ix, jy, &
-                    &kz)) * dz / cgirz * 2.0 * diffusion * (wnrh ** 2 + wnrm &
-                    &** 2))
+                    &* max(0.0, 1.0 - jac(ix, jy, kz) * dz / cgirz * 2.0 &
+                    &* diffusion * (wnrh ** 2 + wnrm ** 2))
               else
                 ray(iRay, ix, jy, kz)%dens = ray(iRay, ix, jy, kz)%dens &
                     &* max(0.0, 1.0 - dz / cgirz * 2.0 * diffusion * (wnrh &
@@ -8380,6 +7579,10 @@ module wkb_module
     cgx_max = 0.0
     cgy_max = 0.0
     cgz_max = 0.0
+
+    if(topography) then
+      cgz_max_tfc = 0.0
+    end if
 
     if(case_wkb == 3) then
       kz0 = 0
@@ -8419,8 +7622,7 @@ module wkb_module
             !skip ray volumes that have left the domain
             if(case_wkb /= 3) then
               if(topography) then
-                ! FJApr2023
-                if(zr1 < topography_surface(ix, jy) - jac(ix, jy, 0) * dz) then
+                if(zr1 < zTildeTFC(ix, jy, - 1)) then
                   nskip = nskip + 1
                   cycle
                 end if
@@ -8496,7 +7698,7 @@ module wkb_module
 
             ! RK update
 
-            if(sizeX > 1 .and. kz > 0) then
+            if(sizeX > 1 .and. kz > 0 .and. .not. single_column) then
               call meanflow(xr1, yr, zr, var, 1, uxr1)
               call meanflow(xr2, yr, zr, var, 1, uxr2)
 
@@ -8523,7 +7725,7 @@ module wkb_module
 
             ! RK update
 
-            if(sizeY > 1 .and. kz > 0) then
+            if(sizeY > 1 .and. kz > 0 .and. .not. single_column) then
               call meanflow(xr, yr1, zr, var, 2, vyr1)
               call meanflow(xr, yr2, zr, var, 2, vyr2)
 
@@ -8574,6 +7776,11 @@ module wkb_module
 
             ! update maximum group velocity in z direction
             cgz_max = max(cgz_max, abs(cgrz))
+
+            if(topography) then
+              cgz_max_tfc(ix, jy, kz) = max(cgz_max_tfc(ix, jy, &
+                  &kz), abs(cgrz))
+            end if
 
             !-------------------------------
             !    change of wavenumber
@@ -8634,7 +7841,7 @@ module wkb_module
 
               ! dk
 
-              if(sizeX > 1 .and. kz > 0) then
+              if(sizeX > 1 .and. kz > 0 .and. .not. single_column) then
                 ddxdt = cgrx2 - cgrx1
 
                 ddxRay(1, iRay, ix, jy, kz) = dt * ddxdt + alphaRK(rkStage) &
@@ -8655,7 +7862,7 @@ module wkb_module
 
               ! dl
 
-              if(sizeY > 1 .and. kz > 0) then
+              if(sizeY > 1 .and. kz > 0 .and. .not. single_column) then
                 ddydt = cgry2 - cgry1
 
                 ddxRay(2, iRay, ix, jy, kz) = dt * ddydt + alphaRK(rkStage) &
@@ -8722,7 +7929,6 @@ module wkb_module
       end do ! jy
     end do ! kz
 
-    ! FJJun2023
     ! Sponge layer
     if(spongeLayer .and. unifiedSponge) then
       do kz = 1, nz
@@ -8861,88 +8067,22 @@ module wkb_module
             dyr = ray(iRay, ixrv, jyrv, kzrv)%dyray
             dzr = ray(iRay, ixrv, jyrv, kzrv)%dzray
 
-            ! implement horizontal boundary conditions for ray-volume
-            ! positions
-
             if(sizeX > 1) then
-              if(xr < lx(0)) then
-                select case(xBoundary)
-                case("periodic")
-                  xr = lx(1) + mod(xr - lx(0), lx(1) - lx(0))
-                case default
-                  stop "saturation_3D: unknown case xBoundary"
-                end select
-              elseif(xr > lx(1)) then
-                select case(xBoundary)
-                case("periodic")
-                  xr = lx(0) + mod(xr - lx(1), lx(1) - lx(0))
-                case default
-                  stop "saturation_3D: unknown case xBoundary"
-                end select
-              end if
-
               ix = floor((xr - lx(0)) / dx) + 1 - ix0
             else
               ix = 1
             end if
 
             if(sizeY > 1) then
-              if(yr < ly(0)) then
-                select case(yBoundary)
-                case("periodic")
-                  yr = ly(1) + mod(yr - ly(0), ly(1) - ly(0))
-                case default
-                  stop "saturation_3D: unknown case yBoundary"
-                end select
-              elseif(yr > ly(1)) then
-                select case(yBoundary)
-                case("periodic")
-                  yr = ly(0) + mod(yr - ly(1), ly(1) - ly(0))
-                case default
-                  stop "saturation_3D: unknown case yBoundary"
-                end select
-              end if
-
               jy = floor((yr - ly(0)) / dy) + 1 - jy0
             else
               jy = 1
             end if
 
-            ! vertical boundary conditions:
-            ! zBoundary = 'periodic': implement periodicity
-            ! zBoundary = 'solid_wall': skip counting ray volumes
-            !                           that have completely left the
-            !                           model domain
-
-            if((.not. topography .and. zr < lz(0)) .or. (topography .and. zr &
-                &< topography_surface(ix, jy))) then
-              select case(zBoundary)
-              case("periodic")
-                zr = lz(1) + mod(zr - lz(0), lz(1) - lz(0))
-              case("solid_wall")
-                cycle
-              case default
-                stop "saturation_3D: unknown case zBoundary"
-              end select
-            elseif(zr > lz(1)) then
-              select case(zBoundary)
-              case("periodic")
-                zr = lz(0) + mod(zr - lz(1), lz(1) - lz(0))
-              case("solid_wall")
-                cycle
-              case default
-                stop "saturation_3D: unknown case zBoundary"
-              end select
-            end if
-
-            ! Skip rays propagating out of the domain.
-            ! Why half-levels?
             if(topography) then
-              kz = floor((levelTFC(ix, jy, zr) - lz(0)) / dz) + 1
-              if(kz < 1 .or. kz > sizeZ) cycle
+              kz = kzTildeTFC(ix, jy, zr)
             else
               kz = floor((zr - lz(0)) / dz) + 1
-              if(kz < 1 .or. kz > sizeZ) cycle
             end if
 
             ! Compute stratification.
@@ -9066,88 +8206,22 @@ module wkb_module
             dyr = ray(iRay, ixrv, jyrv, kzrv)%dyray
             dzr = ray(iRay, ixrv, jyrv, kzrv)%dzray
 
-            ! implement horizontal boundary conditions for ray-volume
-            ! positions
-
             if(sizeX > 1) then
-              if(xr < lx(0)) then
-                select case(xBoundary)
-                case("periodic")
-                  xr = lx(1) + mod(xr - lx(0), lx(1) - lx(0))
-                case default
-                  stop "saturation_3D: unknown case xBoundary"
-                end select
-              elseif(xr > lx(1)) then
-                select case(xBoundary)
-                case("periodic")
-                  xr = lx(0) + mod(xr - lx(1), lx(1) - lx(0))
-                case default
-                  stop "saturation_3D: unknown case xBoundary"
-                end select
-              end if
-
               ix = floor((xr - lx(0)) / dx) + 1 - ix0
             else
               ix = 1
             end if
 
             if(sizeY > 1) then
-              if(yr < ly(0)) then
-                select case(yBoundary)
-                case("periodic")
-                  yr = ly(1) + mod(yr - ly(0), ly(1) - ly(0))
-                case default
-                  stop "saturation_3D: unknown case yBoundary"
-                end select
-              elseif(yr > ly(1)) then
-                select case(yBoundary)
-                case("periodic")
-                  yr = ly(0) + mod(yr - ly(1), ly(1) - ly(0))
-                case default
-                  stop "saturation_3D: unknown case yBoundary"
-                end select
-              end if
-
               jy = floor((yr - ly(0)) / dy) + 1 - jy0
             else
               jy = 1
             end if
 
-            ! vertical boundary conditions:
-            ! zBoundary = 'periodic': implement periodicity
-            ! zBoundary = 'solid_wall': skip counting ray volumes
-            !                           that have completely left the
-            !                           model domain
-
-            if((.not. topography .and. zr < lz(0)) .or. (topography .and. zr &
-                &< topography_surface(ix, jy))) then
-              select case(zBoundary)
-              case("periodic")
-                zr = lz(1) + mod(zr - lz(0), lz(1) - lz(0))
-              case("solid_wall")
-                cycle
-              case default
-                stop "saturation_3D: unknown case zBoundary"
-              end select
-            elseif(zr > lz(1)) then
-              select case(zBoundary)
-              case("periodic")
-                zr = lz(0) + mod(zr - lz(1), lz(1) - lz(0))
-              case("solid_wall")
-                cycle
-              case default
-                stop "saturation_3D: unknown case zBoundary"
-              end select
-            end if
-
-            ! Skip rays propagating out of the domain.
-            ! Why half-levels?
             if(topography) then
-              kz = floor((levelTFC(ix, jy, zr) - lz(0)) / dz) + 1
-              if(kz < 1 .or. kz > sizeZ) cycle
+              kz = kzTildeTFC(ix, jy, zr)
             else
               kz = floor((zr - lz(0)) / dz) + 1
-              if(kz < 1 .or. kz > sizeZ) cycle
             end if
 
             wnrk = ray(iRay, ixrv, jyrv, kzrv)%k
@@ -9192,88 +8266,22 @@ module wkb_module
             dyr = ray(iRay, ixrv, jyrv, kzrv)%dyray
             dzr = ray(iRay, ixrv, jyrv, kzrv)%dzray
 
-            ! implement horizontal boundary conditions for ray-volume
-            ! positions
-
             if(sizeX > 1) then
-              if(xr < lx(0)) then
-                select case(xBoundary)
-                case("periodic")
-                  xr = lx(1) + mod(xr - lx(0), lx(1) - lx(0))
-                case default
-                  stop "saturation_3D: unknown case xBoundary"
-                end select
-              elseif(xr > lx(1)) then
-                select case(xBoundary)
-                case("periodic")
-                  xr = lx(0) + mod(xr - lx(1), lx(1) - lx(0))
-                case default
-                  stop "saturation_3D: unknown case xBoundary"
-                end select
-              end if
-
               ix = floor((xr - lx(0)) / dx) + 1 - ix0
             else
               ix = 1
             end if
 
             if(sizeY > 1) then
-              if(yr < ly(0)) then
-                select case(yBoundary)
-                case("periodic")
-                  yr = ly(1) + mod(yr - ly(0), ly(1) - ly(0))
-                case default
-                  stop "saturation_3D: unknown case yBoundary"
-                end select
-              elseif(yr > ly(1)) then
-                select case(yBoundary)
-                case("periodic")
-                  yr = ly(0) + mod(yr - ly(1), ly(1) - ly(0))
-                case default
-                  stop "saturation_3D: unknown case yBoundary"
-                end select
-              end if
-
               jy = floor((yr - ly(0)) / dy) + 1 - jy0
             else
               jy = 1
             end if
 
-            ! vertical boundary conditions:
-            ! zBoundary = 'periodic': implement periodicity
-            ! zBoundary = 'solid_wall': skip counting ray volumes
-            !                           that have completely left the
-            !                           model domain
-
-            if((.not. topography .and. zr < lz(0)) .or. (topography .and. zr &
-                &< topography_surface(ix, jy))) then
-              select case(zBoundary)
-              case("periodic")
-                zr = lz(1) + mod(zr - lz(0), lz(1) - lz(0))
-              case("solid_wall")
-                cycle
-              case default
-                stop "saturation_3D: unknown case zBoundary"
-              end select
-            elseif(zr > lz(1)) then
-              select case(zBoundary)
-              case("periodic")
-                zr = lz(0) + mod(zr - lz(1), lz(1) - lz(0))
-              case("solid_wall")
-                cycle
-              case default
-                stop "saturation_3D: unknown case zBoundary"
-              end select
-            end if
-
-            ! Skip rays propagating out of the domain.
-            ! Why half-levels?
             if(topography) then
-              kz = floor((levelTFC(ix, jy, zr) - lz(0)) / dz) + 1
-              if(kz < 1 .or. kz > sizeZ) cycle
+              kz = kzTildeTFC(ix, jy, zr)
             else
               kz = floor((zr - lz(0)) / dz) + 1
-              if(kz < 1 .or. kz > sizeZ) cycle
             end if
 
             ! Compute stratification.
@@ -9986,7 +8994,7 @@ module wkb_module
     case("periodic")
       call setboundary_y_periodic_wkb(flxwkb)
     case default
-      stop "setboundary_hor_wkb: unknown case xBoundary"
+      stop "setboundary_hor_wkb: unknown case yBoundary"
     end select
 
     return
@@ -10166,7 +9174,7 @@ module wkb_module
     case("solid_wall")
       call setboundary_z_solidwall_wkb(flxwkb)
     case default
-      stop "setboundary_hor_wkb: unknown case xBoundary"
+      stop "setboundary_vrt_wkb: unknown case zBoundary"
     end select
 
     return
@@ -10257,7 +9265,7 @@ module wkb_module
     case("periodic")
       call setboundary_frc_y_periodic_wkb(frcwkb)
     case default
-      stop "setboundary_frc_hor_wkb: unknown case xBoundary"
+      stop "setboundary_frc_hor_wkb: unknown case yBoundary"
     end select
 
     return
@@ -11835,7 +10843,7 @@ module wkb_module
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1), &
         &intent(inout) :: ray
 
-    real :: xr, yr, zr, zrt
+    real :: xr, yr, zr, zsfc, zrt
     real :: dzr
     real :: wnrm
 
@@ -11849,6 +10857,35 @@ module wkb_module
 
     select case(zBoundary)
     case("periodic")
+
+      do kz = 1, nz
+        do jy = 0, ny + 1
+          do ix = 0, nx + 1
+            if(nRay(ix, jy, kz) <= 0) cycle
+            do iRay = 1, nRay(ix, jy, kz)
+              zr = ray(iRay, ix, jy, kz)%z
+
+              if(topography) then
+                xr = ray(iRay, ix, jy, kz)%x
+                yr = ray(iRay, ix, jy, kz)%y
+                ixrv = nint((xr - lx(0)) / dx + 0.5) - ix0
+                jyrv = nint((yr - ly(0)) / dy + 0.5) - jy0
+                zsfc = zTildeTFC(ixrv, jyrv, 0)
+              else
+                zsfc = lz(0)
+              end if
+
+              if(zr < zsfc) then
+                zr = lz(1) + mod(zr - zsfc, lz(1) - zsfc)
+              else if(zr > lz(1)) then
+                zr = zsfc + mod(zr - lz(1), lz(1) - zsfc)
+              end if
+
+              ray(iRay, ix, jy, kz)%z = zr
+            end do
+          end do
+        end do
+      end do
 
       nRay(:, :, 0) = nRay(:, :, nz)
       nRay(:, :, nz + 1) = nRay(:, :, 1)
@@ -11927,42 +10964,7 @@ module wkb_module
 
     case("solid_wall")
 
-      ! Reflect ray volumes at the lower boundary.
-
-      do kz = 1, 2
-        do jy = 0, ny + 1
-          do ix = 0, nx + 1
-            if(nRay(ix, jy, kz) <= 0) cycle
-            do iRay = 1, nRay(ix, jy, kz)
-
-              zr = ray(iRay, ix, jy, kz)%z
-              dzr = ray(iRay, ix, jy, kz)%dzray
-              wnrm = ray(iRay, ix, jy, kz)%m
-
-              if(topography) then
-                xr = ray(iRay, ix, jy, kz)%x
-                yr = ray(iRay, ix, jy, kz)%y
-                ixrv = nint((xr - lx(0)) / dx + 0.5) - ix0
-                jyrv = nint((yr - ly(0)) / dy + 0.5) - jy0
-                if(zr - 0.5 * dzr < topography_surface(ixrv, jyrv)) then
-                  ray(iRay, ix, jy, kz)%z = 2.0 * topography_surface(ixrv, &
-                      &jyrv) - zr + dzr
-                  ray(iRay, ix, jy, kz)%m = - wnrm
-                end if
-              else
-                if(zr - 0.5 * dzr < lz(0)) then
-                  ray(iRay, ix, jy, kz)%z = 2.0 * lz(0) - zr + dzr
-                  ray(iRay, ix, jy, kz)%m = - wnrm
-                end if
-              end if
-            end do
-          end do
-        end do
-      end do
-
-      ! Cut ray volumes at the upper boundary.
-
-      do kz = nz - 1, nz
+      do kz = 1, nz
         do jy = 0, ny + 1
           do ix = 0, nx + 1
             if(nRay(ix, jy, kz) <= 0) cycle
@@ -11971,15 +10973,34 @@ module wkb_module
 
               zr = ray(iRay, ix, jy, kz)%z
               dzr = ray(iRay, ix, jy, kz)%dzray
+              wnrm = ray(iRay, ix, jy, kz)%m
 
+              ! Cut ray volumes at the upper boundary.
               if(zr - 0.5 * dzr > lz(1)) cycle
-
               if(zr + 0.5 * dzr > lz(1)) then
                 ray(iRay, ix, jy, kz)%dzray = lz(1) - zr + 0.5 * dzr
                 ray(iRay, ix, jy, kz)%z = lz(1) - 0.5 * ray(iRay, ix, jy, &
                     &kz)%dzray
                 ray(iRay, ix, jy, kz)%area_zm = ray(iRay, ix, jy, kz)%dzray &
                     &* ray(iRay, ix, jy, kz)%dmray
+              end if
+
+              ! Reflect ray volumes at the lower boundary.
+              if(topography) then
+                xr = ray(iRay, ix, jy, kz)%x
+                yr = ray(iRay, ix, jy, kz)%y
+                ixrv = nint((xr - lx(0)) / dx + 0.5) - ix0
+                jyrv = nint((yr - ly(0)) / dy + 0.5) - jy0
+                if(zr - 0.5 * dzr < zTildeTFC(ixrv, jyrv, 0)) then
+                  ray(iRay, ix, jy, kz)%z = 2.0 * zTildeTFC(ixrv, &
+                      &jyrv, 0) - zr + dzr
+                  ray(iRay, ix, jy, kz)%m = - wnrm
+                end if
+              else
+                if(zr - 0.5 * dzr < lz(0)) then
+                  ray(iRay, ix, jy, kz)%z = 2.0 * lz(0) - zr + dzr
+                  ray(iRay, ix, jy, kz)%m = - wnrm
+                end if
               end if
 
               nrlc = nrlc + 1
@@ -12508,10 +11529,8 @@ module wkb_module
     ! Determine closest points in vertical direction and set interpolation
     ! values.
     if(topography) then
-      kzlbd = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) / dz) &
-          &+ 1)
-      kzlbu = max(1, floor((levelTFC(ixl, jyb, zlc) - 0.5 * dz - lz(0)) / dz) &
-          &+ 2)
+      kzlbu = kzTFC(ixl, jyb, zlc)
+      kzlbd = kzlbu - 1
       if(kzlbd > nz) then
         kzlbd = nz
         kzlbu = nz
@@ -12520,10 +11539,8 @@ module wkb_module
       zlbu = zTFC(ixl, jyb, kzlbu)
       alphalbd = alphaUnifiedSponge(ixl, jyb, kzlbd)
       alphalbu = alphaUnifiedSponge(ixl, jyb, kzlbu)
-      kzlfd = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) / dz) &
-          &+ 1)
-      kzlfu = max(1, floor((levelTFC(ixl, jyf, zlc) - 0.5 * dz - lz(0)) / dz) &
-          &+ 2)
+      kzlfu = kzTFC(ixl, jyf, zlc)
+      kzlfd = kzlfu - 1
       if(kzlfd > nz) then
         kzlfd = nz
         kzlfu = nz
@@ -12532,10 +11549,8 @@ module wkb_module
       zlfu = zTFC(ixl, jyf, kzlfu)
       alphalfd = alphaUnifiedSponge(ixl, jyf, kzlfd)
       alphalfu = alphaUnifiedSponge(ixl, jyf, kzlfu)
-      kzrbd = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) / dz) &
-          &+ 1)
-      kzrbu = max(1, floor((levelTFC(ixr, jyb, zlc) - 0.5 * dz - lz(0)) / dz) &
-          &+ 2)
+      kzrbu = kzTFC(ixr, jyb, zlc)
+      kzrbd = kzrbu - 1
       if(kzrbd > nz) then
         kzrbd = nz
         kzrbu = nz
@@ -12544,10 +11559,8 @@ module wkb_module
       zrbu = zTFC(ixr, jyb, kzrbu)
       alpharbd = alphaUnifiedSponge(ixr, jyb, kzrbd)
       alpharbu = alphaUnifiedSponge(ixr, jyb, kzrbu)
-      kzrfd = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) / dz) &
-          &+ 1)
-      kzrfu = max(1, floor((levelTFC(ixr, jyf, zlc) - 0.5 * dz - lz(0)) / dz) &
-          &+ 2)
+      kzrfu = kzTFC(ixr, jyf, zlc)
+      kzrfd = kzrfu - 1
       if(kzrfd > nz) then
         kzrfd = nz
         kzrfu = nz
@@ -12659,6 +11672,38 @@ module wkb_module
     alpha = factor * alphad + (1.0 - factor) * alphau
 
   end function interpolate_sponge
+
+  ! ----------------------------------------------------------------------
+
+  function kzTFC(ix, jy, zz) result(kz)
+
+    ! Determines the next level above a given altitude (within limits).
+
+    integer :: ix, jy, kz
+    real :: zz
+
+    kz = minloc(abs(zTFC(ix, jy, :) - zz), dim = 1) - nbz - 1
+    if(zTFC(ix, jy, kz) < zz) kz = kz + 1
+    if(kz < - nbz + 1) kz = - nbz + 1
+    if(kz > nz + nbz) kz = nz + nbz
+
+  end function kzTFC
+
+  ! ----------------------------------------------------------------------
+
+  function kzTildeTFC(ix, jy, zz) result(kz)
+
+    ! Determines the next half-level above a given altitude (within limits).
+
+    integer :: ix, jy, kz
+    real :: zz
+
+    kz = minloc(abs(zTildeTFC(ix, jy, :) - zz), dim = 1) - nbz - 1
+    if(zTildeTFC(ix, jy, kz) < zz) kz = kz + 1
+    if(kz < - nbz + 1) kz = - nbz + 1
+    if(kz > nz + nbz) kz = nz + nbz
+
+  end function kzTildeTFC
 
   ! ----------------------------------------------------------------------
 
@@ -12806,171 +11851,6 @@ module wkb_module
             dxr = ray(iRay, ixrv, jyrv, kzrv)%dxray
             dyr = ray(iRay, ixrv, jyrv, kzrv)%dyray
             dzr = ray(iRay, ixrv, jyrv, kzrv)%dzray
-
-            ! vertical boundary conditions:
-            ! zBoundary = 'periodic': implement periodicity
-            ! zBoundary = 'solid_wall': skip counting ray volumes
-            !                           that have completely left the
-            !                           model domain
-
-            if(zr < lz(0)) then
-              select case(zBoundary)
-              case("periodic")
-                zr = lz(1) + mod(zr - lz(0), lz(1) - lz(0))
-              case("solid_wall")
-                if(zr + 0.5 * dzr < lz(0)) cycle
-              case default
-                stop "calc_meanflow_effect: unknown case zBoundary"
-              end select
-            elseif(zr > lz(1)) then
-              select case(zBoundary)
-              case("periodic")
-                zr = lz(0) + mod(zr - lz(1), lz(1) - lz(0))
-              case("solid_wall")
-                if(zr - 0.5 * dzr > lz(1)) cycle
-              case default
-                stop "calc_meanflow_effect: unknown case zBoundary"
-              end select
-            end if
-
-            ! implement horizontal boundary conditions for ray-volume
-            ! positions
-
-            if(sizeX > 1) then
-              if(xBoundary /= "periodic") then
-                print *, 'ERROR in calc_meanflow_effect:  boundary conditions &
-                    &in x must be periodic'
-                stop
-              end if
-
-              ! for leftmost cpu make sure that xr in
-              ! ghost cell to the left is between x(0) - dx
-              ! and x(0)
-
-              if(ixrv == 0 .and. is + nbx == 1) then
-                if(xr > lx(1) - dx .and. xr < lx(1)) then
-                  xr = xr - lx(1) + lx(0)
-                elseif(xr > lx(0) - dx .and. xr < lx(0)) then
-                  xr = xr
-                else
-                  print *, 'ERROR in calc_meanflow_effect:'
-                  print *, 'xr =', xr
-                  print *, 'but r.v. is in ghost cell to the  left of the &
-                      &leftmost cpu so that  one should have either'
-                  print *, lx(1) - dx, '= lx(1) - dx < xr < lx(1) =', lx(1), ' &
-                      &or'
-                  print *, lx(0) - dx, '= lx(0) - dx < xr < lx(0) =', lx(0)
-                  stop
-                end if
-              end if
-
-              ! for rightmost cpu make sure that xr in
-              ! ghost cell to the right is between x(0) + L_x
-              ! and x(0) + L_x + dx
-
-              if(ixrv == nx + 1 .and. is + nbx + nx == sizeX) then
-                if(xr > lx(0) .and. xr < lx(0) + dx) then
-                  xr = xr + lx(1) - lx(0)
-                elseif(xr > lx(1) .and. xr < lx(1) + dx) then
-                  xr = xr
-                else
-                  print *, 'ERROR in calc_meanflow_effect:'
-                  print *, 'xr =', xr
-                  print *, 'but r.v. is in ghost cell to the  right of the &
-                      &rightmost cpu so that  one should have either'
-                  print *, lx(0), '= lx(0) < xr < lx(0) + dx =', lx(0) + dx, ' &
-                      &or'
-                  print *, lx(1), '= lx(1) < xr < lx(1) + dx =', lx(1) + dx
-                  stop
-                end if
-              end if
-
-              !if(xr < lx(0)) then
-              !   select case (xBoundary)
-              !      case ("periodic")
-              !         xr = lx(1) + mod(xr - lx(0),lx(1) - lx(0))
-              !      case default
-              !         stop"calc_meanflow_effect: unknown case &
-              !              & xBoundary"
-              !   end select
-              !  elseif (xr > lx(1)) then
-              !   select case (xBoundary)
-              !      case ("periodic")
-              !         xr = lx(0) + mod(xr - lx(1),lx(1) - lx(0))
-              !      case default
-              !         stop"calc_meanflow_effect: unknown case &
-              !              & xBoundary"
-              !   end select
-              !end if
-            end if
-
-            if(sizeY > 1) then
-              if(yBoundary /= "periodic") then
-                print *, 'ERROR in calc_meanflow_effect:  boundary conditions &
-                    &in y must be periodic'
-                stop
-              end if
-
-              ! for first cpu in y direct. make sure that yr in
-              ! ghost cell in front is between y(0) - dy
-              ! and y(0)
-
-              if(jyrv == 0 .and. js + nby == 1) then
-                if(yr > ly(1) - dy .and. yr < ly(1)) then
-                  yr = yr - ly(1) + ly(0)
-                elseif(yr > ly(0) - dy .and. yr < ly(0)) then
-                  yr = yr
-                else
-                  print *, 'ERROR in calc_meanflow_effect:'
-                  print *, 'yr =', yr
-                  print *, 'but r.v. is in ghost cell in front of the first &
-                      &cpu in y dir. so that  one should have either'
-                  print *, ly(1) - dy, '= ly(1) - dy < yr < ly(1) =', ly(1), ' &
-                      &or'
-                  print *, ly(0) - dy, '= ly(0) - dy < yr < ly(0) =', ly(0)
-                  stop
-                end if
-              end if
-
-              ! for last cpu in y direction make sure that yr
-              ! in ghost cell behind is between
-              ! y(0) + L_y and y(0) + L_y + dy
-
-              if(jyrv == ny + 1 .and. js + nby + ny == sizeY) then
-                if(yr > ly(0) .and. yr < ly(0) + dy) then
-                  yr = yr + ly(1) - ly(0)
-                elseif(yr > ly(1) .and. yr < ly(1) + dy) then
-                  yr = yr
-                else
-                  print *, 'ERROR in calc_meanflow_effect:'
-                  print *, 'yr =', yr
-                  print *, 'but r.v. is in ghost cell behind the last cpu in y &
-                      &dir. so that  one should have either'
-                  print *, ly(0), '= ly(0) < yr < ly(0) + dy =', ly(0) + dy, ' &
-                      &or'
-                  print *, ly(1), '= ly(1) < yr < ly(1) + dy =', ly(1) + dy
-                  stop
-                end if
-              end if
-
-              !if(yr < ly(0)) then
-              !   select case (yBoundary)
-              !      case ("periodic")
-              !         yr = ly(1) + mod(yr - ly(0),ly(1) - ly(0))
-              !      case default
-              !         stop"calc_meanflow_effect: unknown case &
-              !              & yBoundary"
-              !   end select
-              !  elseif (yr > ly(1)) then
-              !   select case (yBoundary)
-              !      case ("periodic")
-              !         yr = ly(0) + mod(yr - ly(1),ly(1) - ly(0))
-              !      case default
-              !         stop"calc_meanflow_effect: unknown case &
-              !              & yBoundary"
-              !   end select
-              !end if
-            end if
 
             wnrk = ray(iRay, ixrv, jyrv, kzrv)%k
             wnrl = ray(iRay, ixrv, jyrv, kzrv)%l
@@ -13210,7 +12090,8 @@ module wkb_module
 
   end subroutine calc_ice
 
-  ! -----------------------------------------------------------------------------
+  ! ----------------------------------------------------------------------
+
   function leading_order_tracer_flux(f0nondim, omega, wnkk, wnll, wnmm, &
       &wadens, direction, ix, jy, kz, var) result(LOtracerflx)
 
@@ -13388,7 +12269,7 @@ module wkb_module
     case("periodic")
       call setboundary_y_periodic_wkb_cmplx(flxwkb)
     case default
-      stop "setboundary_hor_wkb: unknown case xBoundary"
+      stop "setboundary_hor_wkb: unknown case yBoundary"
     end select
 
     return
@@ -13568,7 +12449,7 @@ module wkb_module
     case("solid_wall")
       call setboundary_z_solidwall_wkb_cmplx(flxwkb)
     case default
-      stop "setboundary_hor_wkb: unknown case xBoundary"
+      stop "setboundary_vrt_wkb_cmplx: unknown case zBoundary"
     end select
 
     return
