@@ -87,7 +87,6 @@ axes[1, 1].set_title('Large-scale tracer distribution')
 pplot11 = axes[1, 1].contourf(xx, zz, tLS, levels, cmap = colormap)
 fig.colorbar(pplot11, ax = axes[1, 1])
 
-fig.savefig("".join((data_path, "/results/2DWP90_msgwam.pdf")))
 fig.savefig("".join((data_path, "/results/2DWP90_msgwam.png")), dpi = 500)
 
 # Create difference plot.
@@ -121,6 +120,5 @@ if data_path != reference_path:
   pplot11 = axes[1, 1].contourf(xx, zz, deltat, levels, cmap = colormap)
   fig.colorbar(pplot11, ax = axes[1, 1])
 
-  fig.savefig("".join((data_path, "/results/2DWP90_msgwam_difference.pdf")))
   fig.savefig("".join((data_path, "/results/2DWP90_msgwam_difference.png")), \
       dpi = 500)

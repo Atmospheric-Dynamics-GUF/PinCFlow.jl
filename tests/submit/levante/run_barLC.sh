@@ -3,7 +3,7 @@
 #SBATCH --job-name=barLC
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=98
-#SBATCH --time=0-00:05:00
+#SBATCH --time=0-00:10:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
 #SBATCH --output=barLC.o%j

@@ -7,7 +7,7 @@ module ice_module
   subroutine setup_ice(var)
 
     use type_module
-    use atmosphere_module, ONLY:heightTFC, tRef, rhoRef, lRef, thetaRef, pRef, &
+    use atmosphere_module, ONLY: tRef, rhoRef, lRef, thetaRef, pRef, &
         &PStrat, rhoStrat, piStrat, kappaInv, PStratTFC, piStratTfc, &
         &rhoStratTFC, gamma_1, p0, g, Rsp
 
@@ -159,7 +159,7 @@ module ice_module
 
               rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
               ! N = \rho n
-              var%ICE(:, :, k, inN) = dz_tr * heightTFC(i, j, k) * rho
+              var%ICE(:, :, k, inN) = dz_tr * zTFC(i, j, k) * rho
 
             end do
           end do
@@ -238,7 +238,12 @@ module ice_module
 
             !dimensional IC for n, q_v, q
             n0 = 0. !0.1 * 2.E6 ![kg**-1]
-            S0 = S_issr * exp(- (z(k) - z0_issr) ** 2 / 2. / sig_issr ** 2)
+            if(topography) then
+              S0 = S_issr * exp(- (zTFC(i, j, k) - z0_issr) ** 2 / 2. &
+                  &/ sig_issr ** 2)
+            else
+              S0 = S_issr * exp(- (z(k) - z0_issr) ** 2 / 2. / sig_issr ** 2)
+            end if
             qv0 = epsil0hat * S0 * psi / pres ! [kg/kg]
             q0 = meanMassIce * n0
 
@@ -312,7 +317,12 @@ module ice_module
 
             !dimensional IC for n, q_v, q
             n0 = 0. !0.1 * 2.E6 ![kg**-1]
-            S0 = S_issr * exp(- (z(k) - z0_issr) ** 2 / 2. / sig_issr ** 2)
+            if(topography) then
+              S0 = S_issr * exp(- (zTFC(i, j, k) - z0_issr) ** 2 / 2. &
+                  &/ sig_issr ** 2)
+            else
+              S0 = S_issr * exp(- (z(k) - z0_issr) ** 2 / 2. / sig_issr ** 2)
+            end if
             qv0 = epsil0hat * S0 * psi / pres ! [kg/kg]
             q0 = meanMassIce * n0
 
@@ -409,7 +419,12 @@ module ice_module
 
             !dimensional IC for n, q_v, q
             n0 = 0. !0.1 * 2.E6 ![kg**-1]
-            S0 = S_issr * exp(- (z(k) - z0_issr) ** 2 / 2. / sig_issr ** 2)
+            if(topography) then
+              S0 = S_issr * exp(- (zTFC(i, j, k) - z0_issr) ** 2 / 2. &
+                  &/ sig_issr ** 2)
+            else
+              S0 = S_issr * exp(- (z(k) - z0_issr) ** 2 / 2. / sig_issr ** 2)
+            end if
 
             !qv0 = epsil0hat * S0 * psi / pres ! [kg/kg]
             !CHANGES
@@ -727,7 +742,7 @@ module ice_module
     ! - D p_si/ p (S-1) T N + A S cos (w t)
 
     use type_module, ONLY:Dep, pSatIceRef, epsil0
-    use atmosphere_module, ONLY:heightTFC, tRef, rhoRef, lRef, thetaRef, pRef
+    use atmosphere_module, ONLY:tRef, rhoRef, lRef, thetaRef, pRef
 
     implicit none
 
@@ -798,7 +813,7 @@ module ice_module
     !compare tendency with reduced model from pyton script
 
     use type_module
-    use atmosphere_module, ONLY:heightTFC, tRef, rhoRef, lRef, thetaRef, pRef, &
+    use atmosphere_module, ONLY:tRef, rhoRef, lRef, thetaRef, pRef, &
         &PStrat01, PStratTilde01, PStrat, rhoStrat, piStrat, kappaInv, &
         &PStratTFC, piStratTfc, rhoStratTFC, gamma_1
 
