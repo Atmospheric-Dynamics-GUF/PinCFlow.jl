@@ -52,7 +52,6 @@ plot = axes.contourf(xx, zz, thetap, levels, cmap = colormap)
 axes.set_xlabel(r"$x \, \mathrm{[km]}$")
 axes.set_ylabel(r"$z \, \mathrm{[km]}$")
 figure.colorbar(plot, label = r"$\theta' \, \mathrm{[K]}$")
-figure.savefig("".join((data_path, "/results/coldBubble.pdf")))
 figure.savefig("".join((data_path, "/results/coldBubble.png")), dpi = 500)
 
 # Create difference plot.
@@ -65,6 +64,5 @@ if data_path != reference_path:
   axes.set_ylabel(r"$z \, \mathrm{[km]}$")
   figure.colorbar(plot, label = r"$\Delta \theta' \," \
       r"\mathrm{\left[K\right]}$")
-  figure.savefig("".join((data_path, "/results/coldBubble_difference.pdf")))
   figure.savefig("".join((data_path, "/results/coldBubble_difference.png")), \
       dpi = 500)

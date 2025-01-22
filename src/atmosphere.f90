@@ -16,7 +16,7 @@ module atmosphere_module
 
   ! TFC
   public :: setHalosOfField2D
-  public :: jac, met, chris, heightTFC, vertWindTFC, trafoTFC, stressTensTFC
+  public :: jac, met, vertWindTFC, trafoTFC, stressTensTFC
 
   public :: update_topography
 
@@ -589,7 +589,7 @@ module atmosphere_module
       !             Atmospheres for pseudo-incompressible
       !--------------------------------------------------------------------
 
-    case("pseudo_incompressible", "WKB", "compressible")
+    case("pseudo_incompressible", "compressible")
 
       select case(background)
 
@@ -714,10 +714,10 @@ module atmosphere_module
           do i = - nbx, nx + nbx
             do j = - nby, ny + nby
               do k = - 1, nz + 2
-                if(heightTFC(i, j, k) <= z_tr) then
+                if(zTFC(i, j, k) <= z_tr) then
                   ! Isentropic troposphere.
                   power = 1.0 / (gamma - 1.0)
-                  term = kappa * sig / theta_tr * heightTFC(i, j, k)
+                  term = kappa * sig / theta_tr * zTFC(i, j, k)
                   if(term > 1.0) then
                     stop "init_atmosphere: negative term. Stop"
                   end if
@@ -732,10 +732,10 @@ module atmosphere_module
                   ! Isothermal stratosphere.
                   ! Define pStratTFC.
                   pStratTFC(i, j, k) = p0 ** kappa * press_tr ** (1.0 / gamma) &
-                      &* exp(- sig / gamma / T_tr * (heightTFC(i, j, k) - z_tr))
+                      &* exp(- sig / gamma / T_tr * (zTFC(i, j, k) - z_tr))
                   ! Define thetaStratTFC.
                   thetaStratTFC(i, j, k) = theta_tr * exp(kappa * sig / T_tr &
-                      &* (heightTFC(i, j, k) - z_tr))
+                      &* (zTFC(i, j, k) - z_tr))
                   ! Define rhoStratTFC.
                   rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
                       &j, k)
@@ -804,11 +804,11 @@ module atmosphere_module
               do j = - nby, ny + nby
                 do k = - 1, nz + 2
                   ! Define pStratTFC.
-                  pStratTFC(i, j, k) = p0 * exp(- sig * heightTFC(i, j, k) &
+                  pStratTFC(i, j, k) = p0 * exp(- sig * zTFC(i, j, k) &
                       &/ gamma / T0)
                   ! Define thetaStratTFC.
                   thetaStratTFC(i, j, k) = T0 * exp(kappa * sig / T0 &
-                      &* heightTFC(i, j, k))
+                      &* zTFC(i, j, k))
                   ! Define rhoStratTFC.
                   rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
                       &j, k)
@@ -910,7 +910,7 @@ module atmosphere_module
               do j = - nby, ny + nby
                 do k = - 1, nz + 2
                   power = 1.0 / (gamma - 1.0)
-                  term = kappa * sig / theta0 * heightTFC(i, j, k)
+                  term = kappa * sig / theta0 * zTFC(i, j, k)
                   if(term > 1.0) then
                     stop "init_atmosphere: negative term. Stop"
                   end if
@@ -1026,13 +1026,13 @@ module atmosphere_module
               do j = - nby, ny + nby
                 do k = - 1, nz + 2
                   power = 1.0 / (gamma - 1.0)
-                  term = exp(- Fr2 * N2 * heightTFC(i, j, k))
+                  term = exp(- Fr2 * N2 * zTFC(i, j, k))
                   ! Define pStratTFC.
                   pStratTFC(i, j, k) = p0 * (1.0 + FrInv2 * kappa * sig / N2 &
                       &/ theta0 * (term - 1.0)) ** power
                   ! Define thetaStratTFC.
                   thetaStratTFC(i, j, k) = theta0 * exp(Fr ** 2.0 * N2 &
-                      &* heightTFC(i, j, k))
+                      &* zTFC(i, j, k))
                   ! Define rhoStratTFC.
                   rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
                       &j, k)
@@ -1154,7 +1154,7 @@ module atmosphere_module
           do i = - nbx, nx + nbx
             do j = - nby, ny + nby
               do k = - 1, nz + 2
-                zk = heightTFC(i, j, k) * lRef
+                zk = zTFC(i, j, k) * lRef
 
                 if(zk < z_tr_dim) then
                   T_bar = Temp0_dim - gamma_t * zk
@@ -1320,7 +1320,7 @@ module atmosphere_module
               do k = 0, 1
                 T_bar = max(tp_strato, tp_srf_trp - 0.5 * tpdiffhor_tropo)
                 ! Define Exner pressure.
-                piStratTFC(i, j, k) = 1.0 - heightTFC(i, j, k) * kappa / T_bar
+                piStratTFC(i, j, k) = 1.0 - zTFC(i, j, k) * kappa / T_bar
                 if(k == 1 .and. piStratTFC(i, j, k) <= 0.0) then
                   stop "ERROR: non-positive piStratTFC at k = 1"
                 end if
@@ -1351,9 +1351,9 @@ module atmosphere_module
                     &* log(piStar)))
                 thetaStar = T_bar / piStar
                 ! Trapezoidal step.
-                piStratTFC(i, j, k) = piStratTFC(i, j, k - 1) - 0.5 * dz * 0.5 &
-                    &* (jac(i, j, k) + jac(i, j, k - 1)) * (kappa / thetaStar &
-                    &+ kappa / thetaStratTFC(i, j, k - 1))
+                piStratTFC(i, j, k) = piStratTFC(i, j, k - 1) - dz * jac(i, j, &
+                    &k) * jac(i, j, k - 1) / (jac(i, j, k) + jac(i, j, k - 1)) &
+                    &* (kappa / thetaStar + kappa / thetaStratTFC(i, j, k - 1))
                 if(piStratTFC(i, j, k) <= 0.0) then
                   print *, "ERROR: non-positive piStratTFC at k =", k
                   stop
@@ -1727,15 +1727,21 @@ module atmosphere_module
     real :: x_center, y_center
     real :: kk, ll
     integer :: ix0, jy0
-    integer :: ix, jy
+    integer :: ix, jy, kz
     integer :: iwm
+
+    if(.not. topography) return
 
     if(lz(0) /= 0.0) stop "Error in setup_topography: lz(0) must be zero for &
         &TFC!"
 
-    if(zBoundary == "periodic" .and. mountainHeight_dim /= 0.0) stop "Error in &
-        &setup_topography: mountainHeight_dim must be zero for zBoundary &
-        &= 'periodic'"
+    if(zBoundary == "periodic") then
+      if(mountainHeight_dim /= 0.0) stop "Error in &
+          &setup_topography: mountainHeight_dim must be zero for zBoundary &
+          &= 'periodic'"
+      if(stretch_exponent /= 1.0) stop "Error in setup_topography: &
+          &stretch_exponent must be one for zBoundary = 'periodic'"
+    end if
 
     mountainHeight = mountainHeight_dim / lRef
     mountainWidth = mountainWidth_dim / lRef
@@ -1820,12 +1826,13 @@ module atmosphere_module
                   topography_spectrum(ix, jy, iwm + 1) = 0.25 * mountainHeight &
                       &* (1.0 + cos(mountainWavenumber / range_factor &
                       &* sqrt((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) &
-                      &- y_center) ** 2.0))) / spectral_modes
+                      &- y_center) ** 2.0))) / spectral_modes * (1.0 &
+                      &- envelope_reduction)
                 end do
                 topography_surface(ix, jy) = 0.25 * mountainHeight * (1.0 &
                     &+ cos(mountainWavenumber / range_factor * sqrt((x(ix &
                     &+ ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
-                    &** 2.0)))
+                    &** 2.0))) * (1.0 + envelope_reduction)
               end if
 
             case default
@@ -1961,7 +1968,7 @@ module atmosphere_module
                 topography_surface(ix, jy) = 0.25 * mountainHeight * (1.0 &
                     &+ cos(mountainWavenumber / range_factor * sqrt((x(ix &
                     &+ ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
-                    &** 2.0)))
+                    &** 2.0))) * (1.0 + envelope_reduction)
                 do iwm = 0, spectral_modes - 1
                   kk = mountainWavenumber * cos(pi / spectral_modes * iwm)
                   ll = mountainWavenumber * sin(pi / spectral_modes * iwm)
@@ -1970,7 +1977,7 @@ module atmosphere_module
                       &/ range_factor * sqrt((x(ix + ix0) - x_center) ** 2.0 &
                       &+ (y(jy + jy0) - y_center) ** 2.0))) * cos(kk * (x(ix &
                       &+ ix0) - x_center) + ll * (y(jy + jy0) - y_center)) &
-                      &/ spectral_modes
+                      &/ spectral_modes * (1.0 - envelope_reduction)
                 end do
               end if
 
@@ -1991,13 +1998,31 @@ module atmosphere_module
       end if
     end if
 
+    ! Compute the stretched vertical grid.
+    do kz = - nbz, nz + nbz
+      zTildeS(kz) = map(z(kz) + 0.5 * dz)
+    end do
+    do kz = - nbz + 1, nz + nbz
+      zS(kz) = 0.5 * (zTildeS(kz) + zTildeS(kz - 1))
+    end do
+    zS(- nbz) = zTildeS(- nbz) - 0.5 * (zTildeS(nbz + 1) - zTildeS(nbz))
+
+    ! Compute the physical layers.
+    do kz = - nbz, nz + nbz
+      zTildeTFC(:, :, kz) = (lz(1) - topography_surface) / lz(1) * zTildeS(kz) &
+          &+ topography_surface
+      zTFC(:, :, kz) = (lz(1) - topography_surface) / lz(1) * zS(kz) &
+          &+ topography_surface
+    end do
+
   end subroutine setup_topography
 
   !---------------------------------------------------------------------------
 
-  subroutine update_topography(time)
+  subroutine update_topography(time, dt)
 
     real, intent(in) :: time
+    real, intent(in) :: dt
 
     real :: z_tr
     real :: theta_tr
@@ -2008,6 +2033,8 @@ module atmosphere_module
 
     real :: pow_t, pow_s, p_t_b
     real :: T_bar, T_c_b, p_bar
+
+    real :: pistar, thetastar
 
     integer :: i, j, k
 
@@ -2026,6 +2053,17 @@ module atmosphere_module
 
     if(any(topography_surface /= final_topography_surface)) then
 
+      ! Save old metric-tensor elements and inverse Jacobian.
+      do k = 0, nz + 1
+        do j = 0, ny + 1
+          do i = 0, nx + 1
+            dMet13Dt(i, j, k) = met(i, j, k, 1, 3)
+            dMet23Dt(i, j, k) = met(i, j, k, 2, 3)
+            dJacInvDt(i, j, k) = 1.0 / jac(i, j, k)
+          end do
+        end do
+      end do
+
       ! Update topography.
       if(time < topographyTime / tRef) then
         topography_surface = time / topographyTime * tRef &
@@ -2033,6 +2071,26 @@ module atmosphere_module
       else
         topography_surface = final_topography_surface
       end if
+
+      ! Update the physical layers.
+      do k = - nbz, nz + nbz
+        zTildeTFC(:, :, k) = (lz(1) - topography_surface) / lz(1) * zTildeS(k) &
+            &+ topography_surface
+        zTFC(:, :, k) = (lz(1) - topography_surface) / lz(1) * zS(k) &
+            &+ topography_surface
+      end do
+
+      ! Compute temporal derivatives of metric-tensor elements and inverse
+      ! Jacobian.
+      do k = 0, nz + 1
+        do j = 0, ny + 1
+          do i = 0, nx + 1
+            dMet13Dt(i, j, k) = (met(i, j, k, 1, 3) - dMet13Dt(i, j, k)) / dt
+            dMet23Dt(i, j, k) = (met(i, j, k, 2, 3) - dMet23Dt(i, j, k)) / dt
+            dJacInvDt(i, j, k) = (1.0 / jac(i, j, k) - dJacInvDt(i, j, k)) / dt
+          end do
+        end do
+      end do
 
       ! Return if model is Boussinesq.
       if(model == "Boussinesq") return
@@ -2050,10 +2108,10 @@ module atmosphere_module
         do i = - nbx, nx + nbx
           do j = - nby, ny + nby
             do k = - 1, nz + 2
-              if(heightTFC(i, j, k) <= z_tr) then
+              if(zTFC(i, j, k) <= z_tr) then
                 ! Isentropic troposphere.
                 power = 1.0 / (gamma - 1.0)
-                term = kappa * sig / theta_tr * heightTFC(i, j, k)
+                term = kappa * sig / theta_tr * zTFC(i, j, k)
                 if(term > 1.0) then
                   stop "init_atmosphere: negative term. Stop"
                 end if
@@ -2068,10 +2126,10 @@ module atmosphere_module
                 ! Isothermal stratosphere.
                 ! Define pStratTFC.
                 pStratTFC(i, j, k) = p0 ** kappa * press_tr ** (1.0 / gamma) &
-                    &* exp(- sig / gamma / T_tr * (heightTFC(i, j, k) - z_tr))
+                    &* exp(- sig / gamma / T_tr * (zTFC(i, j, k) - z_tr))
                 ! Define thetaStratTFC.
                 thetaStratTFC(i, j, k) = theta_tr * exp(kappa * sig / T_tr &
-                    &* (heightTFC(i, j, k) - z_tr))
+                    &* (zTFC(i, j, k) - z_tr))
                 ! Define rhoStratTFC.
                 rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
                     &j, k)
@@ -2088,11 +2146,11 @@ module atmosphere_module
           do j = - nby, ny + nby
             do k = - 1, nz + 2
               ! Define pStratTFC.
-              pStratTFC(i, j, k) = p0 * exp(- sig * heightTFC(i, j, k) / gamma &
+              pStratTFC(i, j, k) = p0 * exp(- sig * zTFC(i, j, k) / gamma &
                   &/ T0)
               ! Define thetaStratTFC.
               thetaStratTFC(i, j, k) = T0 * exp(kappa * sig / T0 &
-                  &* heightTFC(i, j, k))
+                  &* zTFC(i, j, k))
               ! Define rhoStratTFC.
               rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, j, k)
             end do
@@ -2107,7 +2165,7 @@ module atmosphere_module
           do j = - nby, ny + nby
             do k = - 1, nz + 2
               power = 1.0 / (gamma - 1.0)
-              term = kappa * sig / theta0 * heightTFC(i, j, k)
+              term = kappa * sig / theta0 * zTFC(i, j, k)
               if(term > 1.0) then
                 stop "init_atmosphere: negative term. Stop"
               end if
@@ -2131,13 +2189,13 @@ module atmosphere_module
           do j = - nby, ny + nby
             do k = - 1, nz + 2
               power = 1.0 / (gamma - 1.0)
-              term = exp(- Fr2 * N2 * heightTFC(i, j, k))
+              term = exp(- Fr2 * N2 * zTFC(i, j, k))
               ! Define pStratTFC.
               pStratTFC(i, j, k) = p0 * (1.0 + FrInv2 * kappa * sig / N2 &
                   &/ theta0 * (term - 1.0)) ** power
               ! Define thetaStratTFC.
               thetaStratTFC(i, j, k) = theta0 * exp(Fr ** 2.0 * N2 &
-                  &* heightTFC(i, j, k))
+                  &* zTFC(i, j, k))
               ! Define rhoStratTFC.
               rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, j, k)
             end do
@@ -2160,7 +2218,7 @@ module atmosphere_module
         do i = - nbx, nx + nbx
           do j = - nby, ny + nby
             do k = - 1, nz + 2
-              zk = heightTFC(i, j, k) * lRef
+              zk = zTFC(i, j, k) * lRef
 
               if(zk < z_tr_dim) then
                 T_bar = Temp0_dim - gamma_t * zk
@@ -2188,6 +2246,78 @@ module atmosphere_module
               ! Define pStratTFC.
               pStratTFC(i, j, k) = rhoStratTFC(i, j, k) * thetaStratTFC(i, j, k)
             end do
+          end do
+        end do
+
+      case("HeldSuarez")
+
+        tp_strato = tp_strato_dim / thetaRef
+        tp_srf_trp = tp_srf_trp_dim / thetaRef
+        tpdiffhor_tropo = tpdiffhor_tropo_dim / thetaRef
+        ptdiffvert_tropo = ptdiffvert_tropo_dim / thetaRef
+
+        do i = - nbx, nx + nbx
+          do j = - nby, ny + nby
+            ! Define Exner pressure and 3D background fields at
+            ! the surface.
+            do k = 0, 1
+              T_bar = max(tp_strato, tp_srf_trp - 0.5 * tpdiffhor_tropo)
+              ! Define Exner pressure.
+              piStratTFC(i, j, k) = 1.0 - zTFC(i, j, k) * kappa / T_bar
+              if(k == 1 .and. piStratTFC(i, j, k) <= 0.0) then
+                stop "ERROR: non-positive piStratTFC at k = 1"
+              end if
+              T_bar = max(tp_strato, piStratTFC(i, j, k) * (tp_srf_trp - 0.5 &
+                  &* tpdiffhor_tropo - 0.5 * ptdiffvert_tropo / kappa &
+                  &* log(piStratTFC(i, j, k))))
+              ! Define pStratTFC.
+              pStratTFC(i, j, k) = piStratTFC(i, j, k) ** ((1.0 - kappa) &
+                  &/ kappa)
+              ! Define thetaStratTFC.
+              thetaStratTFC(i, j, k) = T_bar / piStratTFC(i, j, k)
+              ! Define rhoStratTFC.
+              rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
+                  &j, k)
+            end do
+
+            ! Integrate upwards.
+            do k = 2, nz + 2
+              ! Leapfrog step.
+              piStar = piStratTFC(i, j, k - 2) - 2.0 * dz * jac(i, j, k - 1) &
+                  &* kappa / thetaStratTFC(i, j, k - 1)
+              if(piStar <= 0.0) then
+                print *, "ERROR: non-positive piStar at k =", k
+                stop
+              end if
+              T_bar = max(tp_strato, piStar * (tp_srf_trp - 0.5 &
+                  &* tpdiffhor_tropo - 0.5 * ptdiffvert_tropo / kappa &
+                  &* log(piStar)))
+              thetaStar = T_bar / piStar
+              ! Trapezoidal step.
+              piStratTFC(i, j, k) = piStratTFC(i, j, k - 1) - dz * jac(i, j, &
+                  &k) * jac(i, j, k - 1) / (jac(i, j, k) + jac(i, j, k - 1)) &
+                  &* (kappa / thetaStar + kappa / thetaStratTFC(i, j, k - 1))
+              if(piStratTFC(i, j, k) <= 0.0) then
+                print *, "ERROR: non-positive piStratTFC at k =", k
+                stop
+              end if
+              T_bar = max(tp_strato, piStratTFC(i, j, k) * (tp_srf_trp - 0.5 &
+                  &* tpdiffhor_tropo - 0.5 * ptdiffvert_tropo / kappa &
+                  &* log(piStratTFC(i, j, k))))
+              ! Define pStratTFC.
+              pStratTFC(i, j, k) = piStratTFC(i, j, k) ** ((1.0 - kappa) &
+                  &/ kappa)
+              ! Define thetaStratTFC.
+              thetaStratTFC(i, j, k) = T_bar / piStratTFC(i, j, k)
+              ! Define rhoStratTFC.
+              rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
+                  &j, k)
+            end do
+            ! Adjust at the lower boundary.
+            piStratTFC(i, j, - 1) = piStratTFC(i, j, 0)
+            pStratTFC(i, j, - 1) = pStratTFC(i, j, 0)
+            thetaStratTFC(i, j, - 1) = thetaStratTFC(i, j, 0)
+            rhoStratTFC(i, j, - 1) = rhoStratTFC(i, j, 0)
           end do
         end do
 
@@ -2237,11 +2367,12 @@ module atmosphere_module
     select case(option)
 
     case("forward")
-      do k = - nbz, nz + nbz - 1
-        do j = - nby, ny + nby - 1
-          do i = - nbx, nx + nbx - 1
-            var%w(i, j, k) = var%w(i, j, k) * 0.5 * (jac(i, j, k) * var%P(i, &
-                &j, k) + jac(i, j, k + 1) * var%P(i, j, k + 1))
+      do k = 1, nz
+        do j = 1, ny
+          do i = 1, nx
+            var%w(i, j, k) = var%w(i, j, k) * jac(i, j, k) * jac(i, j, k + 1) &
+                &* (var%P(i, j, k) + var%P(i, j, k + 1)) / (jac(i, j, k) &
+                &+ jac(i, j, k + 1))
 
             var%v(i, j, k) = var%v(i, j, k) * 0.5 * (jac(i, j, k) * var%P(i, &
                 &j, k) + jac(i, j + 1, k) * var%P(i, j + 1, k))
@@ -2249,33 +2380,16 @@ module atmosphere_module
             var%u(i, j, k) = var%u(i, j, k) * 0.5 * (jac(i, j, k) * var%P(i, &
                 &j, k) + jac(i + 1, j, k) * var%P(i + 1, j, k))
           end do
-          var%w(nx + nbx, j, k) = 2 * var%w(nx + nbx - 2, j, k) - var%w(nx &
-              &+ nbx - 1, j, k)
-          var%v(nx + nbx, j, k) = 2 * var%v(nx + nbx - 2, j, k) - var%v(nx &
-              &+ nbx - 1, j, k)
-          var%u(nx + nbx, j, k) = 2 * var%u(nx + nbx - 2, j, k) - var%u(nx &
-              &+ nbx - 1, j, k)
         end do
-        var%w(:, ny + nby, k) = 2 * var%w(:, ny + nby - 2, k) - var%w(:, ny &
-            &+ nby - 1, k)
-        var%v(:, j, ny + nby) = 2 * var%v(:, ny + nby - 2, k) - var%v(:, ny &
-            &+ nby - 1, k)
-        var%u(:, ny + nby, k) = 2 * var%u(:, ny + nby - 2, k) - var%u(:, ny &
-            &+ nby - 1, k)
       end do
-      var%w(:, :, nz + nbz) = 2 * var%w(:, :, nz + nbz - 2) - var%w(:, :, nz &
-          &+ nbz - 1)
-      var%v(:, :, nz + nbz) = 2 * var%v(:, :, nz + nbz - 2) - var%v(:, :, nz &
-          &+ nbz - 1)
-      var%u(:, :, nz + nbz) = 2 * var%u(:, :, nz + nbz - 2) - var%u(:, :, nz &
-          &+ nbz - 1)
 
     case("backward")
-      do k = - nbz, nz + nbz - 1
-        do j = - nby, ny + nby - 1
-          do i = - nbx, nx + nbx - 1
-            var%w(i, j, k) = var%w(i, j, k) / (0.5 * (jac(i, j, k) * var%P(i, &
-                &j, k) + jac(i, j, k + 1) * var%P(i, j, k + 1)))
+      do k = 1, nz
+        do j = 1, ny
+          do i = 1, nx
+            var%w(i, j, k) = var%w(i, j, k) / jac(i, j, k) / jac(i, j, k + 1) &
+                &/ (var%P(i, j, k) + var%P(i, j, k + 1)) * (jac(i, j, k) &
+                &+ jac(i, j, k + 1))
 
             var%v(i, j, k) = var%v(i, j, k) / (0.5 * (jac(i, j, k) * var%P(i, &
                 &j, k) + jac(i, j + 1, k) * var%P(i, j + 1, k)))
@@ -2283,26 +2397,8 @@ module atmosphere_module
             var%u(i, j, k) = var%u(i, j, k) / (0.5 * (jac(i, j, k) * var%P(i, &
                 &j, k) + jac(i + 1, j, k) * var%P(i + 1, j, k)))
           end do
-          var%w(nx + nbx, j, k) = 2 * var%w(nx + nbx - 2, j, k) - var%w(nx &
-              &+ nbx - 1, j, k)
-          var%v(nx + nbx, j, k) = 2 * var%v(nx + nbx - 2, j, k) - var%v(nx &
-              &+ nbx - 1, j, k)
-          var%u(nx + nbx, j, k) = 2 * var%u(nx + nbx - 2, j, k) - var%u(nx &
-              &+ nbx - 1, j, k)
         end do
-        var%w(:, ny + nby, k) = 2 * var%w(:, ny + nby - 2, k) - var%w(:, ny &
-            &+ nby - 1, k)
-        var%v(:, j, ny + nby) = 2 * var%v(:, ny + nby - 2, k) - var%v(:, ny &
-            &+ nby - 1, k)
-        var%u(:, ny + nby, k) = 2 * var%u(:, ny + nby - 2, k) - var%u(:, ny &
-            &+ nby - 1, k)
       end do
-      var%w(:, :, nz + nbz) = 2 * var%w(:, :, nz + nbz - 2) - var%w(:, :, nz &
-          &+ nbz - 1)
-      var%v(:, :, nz + nbz) = 2 * var%v(:, :, nz + nbz - 2) - var%v(:, :, nz &
-          &+ nbz - 1)
-      var%u(:, :, nz + nbz) = 2 * var%u(:, :, nz + nbz - 2) - var%u(:, :, nz &
-          &+ nbz - 1)
 
     case default
       stop "add_JP_to_u unknown option."
@@ -2312,13 +2408,31 @@ module atmosphere_module
 
   !---------------------------------------------------------------------------
 
+  function map(level)
+    ! Vertical grid stretching.
+
+    real :: map
+    real :: level
+
+    if(level < 0) then
+      map = - lz(1) * (- level / lz(1)) ** stretch_exponent
+    else if(level > lz(1)) then
+      map = 2 * lz(1) - lz(1) * ((2 * lz(1) - level) / lz(1)) &
+          &** stretch_exponent
+    else
+      map = lz(1) * (level / lz(1)) ** stretch_exponent
+    end if
+
+  end function map
+
   function jac(i, j, k)
     ! Jacobian.
 
     real :: jac
     integer :: i, j, k
 
-    jac = ((lz(1) - lz(0)) - topography_surface(i, j)) / (lz(1) - lz(0))
+    jac = (lz(1) - topography_surface(i, j)) / lz(1) * (zTildeS(k) - zTildeS(k &
+        &- 1)) / dz
 
   end function jac
 
@@ -2330,73 +2444,22 @@ module atmosphere_module
 
     if((mu == 1 .and. nu == 3) .or. (mu == 3 .and. nu == 1)) then
       met = (topography_surface(i + 1, j) - topography_surface(i - 1, j)) &
-          &/ (2.0 * dx) * (z(k) - (lz(1) - lz(0))) / ((lz(1) - lz(0)) &
-          &- topography_surface(i, j))
+          &/ (2.0 * dx) * (zS(k) - lz(1)) / (lz(1) - topography_surface(i, &
+          &j)) * dz / (zTildeS(k) - zTildeS(k - 1))
     else if((mu == 2 .and. nu == 3) .or. (mu == 3 .and. nu == 2)) then
       met = (topography_surface(i, j + 1) - topography_surface(i, j - 1)) &
-          &/ (2.0 * dy) * (z(k) - (lz(1) - lz(0))) / ((lz(1) - lz(0)) &
-          &- topography_surface(i, j))
+          &/ (2.0 * dy) * (zS(k) - lz(1)) / (lz(1) - topography_surface(i, &
+          &j)) * dz / (zTildeS(k) - zTildeS(k - 1))
     else if(mu == 3 .and. nu == 3) then
-      met = ((lz(1) - lz(0)) / ((lz(1) - lz(0)) - topography_surface(i, j))) &
-          &** 2.0 + ((z(k) - (lz(1) - lz(0))) / ((lz(1) - lz(0)) &
-          &- topography_surface(i, j))) ** 2.0 * (((topography_surface(i + 1, &
-          &j) - topography_surface(i - 1, j)) / (2.0 * dx)) ** 2.0 &
-          &+ ((topography_surface(i, j + 1) - topography_surface(i, j - 1)) &
-          &/ (2.0 * dy)) ** 2.0)
+      met = ((lz(1) / (lz(1) - topography_surface(i, j))) ** 2.0 + ((zS(k) &
+          &- lz(1)) / (lz(1) - topography_surface(i, j))) ** 2.0 &
+          &* (((topography_surface(i + 1, j) - topography_surface(i - 1, j)) &
+          &/ (2.0 * dx)) ** 2.0 + ((topography_surface(i, j + 1) &
+          &- topography_surface(i, j - 1)) / (2.0 * dy)) ** 2.0)) * (dz &
+          &/ (zTildeS(k) - zTildeS(k - 1))) ** 2.0
     end if
 
   end function met
-
-  function chris(i, j, k, mu, nu)
-    ! Christophel tensor.
-
-    real :: chris
-    integer :: i, j, k, mu, nu
-
-    if(mu == 1 .and. nu == 1) then
-      chris = - (topography_surface(i - 1, j) - 2.0 * topography_surface(i, j) &
-          &+ topography_surface(i + 1, j)) / (dx ** 2.0) * (z(k) - (lz(1) &
-          &- lz(0))) / ((lz(1) - lz(0)) - topography_surface(i, j))
-    else if((mu == 1 .and. nu == 2) .or. (mu == 2 .and. nu == 1)) then
-      chris = - (topography_surface(i + 1, j + 1) - topography_surface(i - 1, &
-          &j + 1) - topography_surface(i + 1, j - 1) + topography_surface(i &
-          &- 1, j - 1)) / (4.0 * dx * dy) * (z(k) - (lz(1) - lz(0))) / ((lz(1) &
-          &- lz(0)) - topography_surface(i, j))
-    else if(mu == 2 .and. nu == 2) then
-      chris = - (topography_surface(i, j - 1) - 2.0 * topography_surface(i, j) &
-          &+ topography_surface(i, j + 1)) / (dy ** 2.0) * (z(k) - (lz(1) &
-          &- lz(0))) / ((lz(1) - lz(0)) - topography_surface(i, j))
-    else if((mu == 1 .and. nu == 3) .or. (mu == 3 .and. nu == 1)) then
-      chris = - (topography_surface(i + 1, j) - topography_surface(i - 1, j)) &
-          &/ (2.0 * dx) / ((lz(1) - lz(0)) - topography_surface(i, j))
-    else if((mu == 2 .and. nu == 3) .or. (mu == 3 .and. nu == 2)) then
-      chris = - (topography_surface(i, j + 1) - topography_surface(i, j - 1)) &
-          &/ (2.0 * dy) / ((lz(1) - lz(0)) - topography_surface(i, j))
-    end if
-
-  end function chris
-
-  function heightTFC(i, j, k)
-    ! Transformation of vertical coordinate.
-
-    real :: heightTFC
-    integer :: i, j, k
-
-    heightTFC = z(k) * ((lz(1) - lz(0)) - topography_surface(i, j)) / (lz(1) &
-        &- lz(0)) + topography_surface(i, j)
-
-  end function heightTFC
-
-  function levelTFC(i, j, height)
-
-    real :: levelTFC
-    integer :: i, j
-    real :: height
-
-    levelTFC = (lz(1) - lz(0)) * (height - topography_surface(i, j)) / ((lz(1) &
-        &- lz(0)) - topography_surface(i, j))
-
-  end function levelTFC
 
   function vertWindTFC(i, j, k, var)
     ! Transformation of the vertical wind.
@@ -2445,47 +2508,52 @@ module atmosphere_module
 
       ! Multiplication on rho grid
 
-      jacEdgeU = 0.5 * (jac(i, j, k) + jac(i, j, k + 1))
+      jacEdgeU = 2.0 * jac(i, j, k) * jac(i, j, k + 1) / (jac(i, j, k) &
+          &+ jac(i, j, k + 1))
       uC = 0.5 * (uEdgeR + uEdgeL)
       uU = 0.5 * (uUEdgeR + uUEdgeL)
       vC = 0.5 * (vEdgeF + vEdgeB)
       vU = 0.5 * (vUEdgeF + vUEdgeB)
       if(wind == "car") then
-        trafoTFC = - 0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) * uC + jac(i, j, &
-            &k + 1) * met(i, j, k + 1, 1, 3) * uU) - 0.5 * (jac(i, j, k) &
-            &* met(i, j, k, 2, 3) * vC + jac(i, j, k + 1) * met(i, j, k + 1, &
-            &2, 3) * vU) + jacEdgeU * wEdgeU
+        trafoTFC = - jac(i, j, k) * jac(i, j, k + 1) * (met(i, j, k, 1, 3) &
+            &* uC + met(i, j, k + 1, 1, 3) * uU + met(i, j, k, 2, 3) * vC &
+            &+ met(i, j, k + 1, 2, 3) * vU) / (jac(i, j, k) + jac(i, j, k &
+            &+ 1)) + jacEdgeU * wEdgeU
       else if(wind == "tfc") then
-        trafoTFC = (0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) * uC + jac(i, j, &
-            &k + 1) * met(i, j, k + 1, 1, 3) * uU) + 0.5 * (jac(i, j, k) &
-            &* met(i, j, k, 2, 3) * vC + jac(i, j, k + 1) * met(i, j, k + 1, &
-            &2, 3) * vU) + wEdgeU) / jacEdgeU
+        trafoTFC = (jac(i, j, k) * jac(i, j, k + 1) * (met(i, j, k, 1, 3) &
+            &* uC + met(i, j, k + 1, 1, 3) * uU + met(i, j, k, 2, 3) * vC &
+            &+ met(i, j, k + 1, 2, 3) * vU) / (jac(i, j, k) + jac(i, j, k &
+            &+ 1)) + wEdgeU) / jacEdgeU
       end if
 
     case(2)
 
       ! Multiplication on rho grid (inverted)
 
-      jacEdgeU = 0.5 * (jac(i, j, k) + jac(i, j, k + 1))
+      jacEdgeU = 2.0 * jac(i, j, k) * jac(i, j, k + 1) / (jac(i, j, k) &
+          &+ jac(i, j, k + 1))
       uC = 0.5 * (uEdgeR + uEdgeL)
       uU = 0.5 * (uUEdgeR + uUEdgeL)
       vC = 0.5 * (vEdgeF + vEdgeB)
       vU = 0.5 * (vUEdgeF + vUEdgeB)
       if(wind == "car") then
-        trafoTFC = jacEdgeU * (- 0.5 * (met(i, j, k, 1, 3) * uC + met(i, j, k &
-            &+ 1, 1, 3) * uU) - 0.5 * (met(i, j, k, 2, 3) * vC + met(i, j, k &
-            &+ 1, 2, 3) * vU) + wEdgeU)
+        trafoTFC = jacEdgeU * (- (jac(i, j, k + 1) * (met(i, j, k, 1, 3) * uC &
+            &+ met(i, j, k, 2, 3) * vC) + jac(i, j, k) * (met(i, j, k + 1, 1, &
+            &3) * uU + met(i, j, k + 1, 2, 3) * vU)) / (jac(i, j, k) + jac(i, &
+            &j, k + 1)) + wEdgeU)
       else if(wind == "tfc") then
-        trafoTFC = 0.5 * (met(i, j, k, 1, 3) * uC + met(i, j, k + 1, 1, 3) &
-            &* uU) + 0.5 * (met(i, j, k, 2, 3) * vC + met(i, j, k + 1, 2, 3) &
-            &* vU) + wEdgeU / jacEdgeU
+        trafoTFC = (jac(i, j, k + 1) * (met(i, j, k, 1, 3) * uC + met(i, j, k, &
+            &2, 3) * vC) + jac(i, j, k) * (met(i, j, k + 1, 1, 3) * uU &
+            &+ met(i, j, k + 1, 2, 3) * vU)) / (jac(i, j, k) + jac(i, j, k &
+            &+ 1)) + wEdgeU / jacEdgeU
       end if
 
     case(3)
 
       ! Multiplication on u grid
 
-      jacEdgeU = 0.5 * (jac(i, j, k) + jac(i, j, k + 1))
+      jacEdgeU = 2.0 * jac(i, j, k) * jac(i, j, k + 1) / (jac(i, j, k) &
+          &+ jac(i, j, k + 1))
       metEdgeR = 0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) + jac(i + 1, j, k) &
           &* met(i + 1, j, k, 1, 3))
       metUEdgeR = 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 1, 3) + jac(i &
@@ -2503,22 +2571,25 @@ module atmosphere_module
       metUEdgeB = 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 2, 3) + jac(i, j &
           &- 1, k + 1) * met(i, j - 1, k + 1, 2, 3))
       if(wind == "car") then
-        trafoTFC = - 0.25 * (metEdgeR * uEdgeR + metUEdgeR * uUEdgeR &
-            &+ metEdgeL * uEdgeL + metUEdgeL * uUEdgeL) - 0.25 * (metEdgeF &
-            &* vEdgeF + metUEdgeF * vUEdgeF + metEdgeB * vEdgeB + metUEdgeB &
-            &* vUEdgeB) + jacEdgeU * wEdgeU
+        trafoTFC = - 0.5 * (jac(i, j, k + 1) * (metEdgeR * uEdgeR + metEdgeL &
+            &* uEdgeL + metEdgeF * vEdgeF + metEdgeB * vEdgeB) + jac(i, j, k) &
+            &* (metUEdgeR * uUEdgeR + metUEdgeL * uUEdgeL + metUEdgeF &
+            &* vUEdgeF + metUEdgeB * vUEdgeB)) / (jac(i, j, k) + jac(i, j, k &
+            &+ 1)) + jacEdgeU * wEdgeU
       else if(wind == "tfc") then
-        trafoTFC = (0.25 * (metEdgeR * uEdgeR + metUEdgeR * uUEdgeR + metEdgeL &
-            &* uEdgeL + metUEdgeL * uUEdgeL) + 0.25 * (metEdgeF * vEdgeF &
-            &+ metUEdgeF * vUEdgeF + metEdgeB * vEdgeB + metUEdgeB * vUEdgeB) &
-            &+ wEdgeU) / jacEdgeU
+        trafoTFC = (0.5 * (jac(i, j, k + 1) * (metEdgeR * uEdgeR + metEdgeL &
+            &* uEdgeL + metEdgeF * vEdgeF + metEdgeB * vEdgeB) + jac(i, j, k) &
+            &* (metUEdgeR * uUEdgeR + metUEdgeL * uUEdgeL + metUEdgeF &
+            &* vUEdgeF + metUEdgeB * vUEdgeB)) / (jac(i, j, k) + jac(i, j, k &
+            &+ 1)) + wEdgeU) / jacEdgeU
       end if
 
     case(4)
 
       ! Multiplication on u grid (inverted)
 
-      jacEdgeU = 0.5 * (jac(i, j, k) + jac(i, j, k + 1))
+      jacEdgeU = 2.0 * jac(i, j, k) * jac(i, j, k + 1) / (jac(i, j, k) &
+          &+ jac(i, j, k + 1))
       metEdgeR = 0.5 * (met(i, j, k, 1, 3) + met(i + 1, j, k, 1, 3))
       metUEdgeR = 0.5 * (met(i, j, k + 1, 1, 3) + met(i + 1, j, k + 1, 1, 3))
       metEdgeL = 0.5 * (met(i, j, k, 1, 3) + met(i - 1, j, k, 1, 3))
@@ -2528,70 +2599,114 @@ module atmosphere_module
       metEdgeB = 0.5 * (met(i, j, k, 2, 3) + met(i, j - 1, k, 2, 3))
       metUEdgeB = 0.5 * (met(i, j, k + 1, 2, 3) + met(i, j - 1, k + 1, 2, 3))
       if(wind == "car") then
-        trafoTFC = jacEdgeU * (- 0.25 * (metEdgeR * uEdgeR + metUEdgeR &
-            &* uUEdgeR + metEdgeL * uEdgeL + metUEdgeL * uUEdgeL) - 0.25 &
-            &* (metEdgeF * vEdgeF + metUEdgeF * vUEdgeF + metEdgeB * vEdgeB &
-            &+ metUEdgeB * vUEdgeB) + wEdgeU)
+        trafoTFC = jacEdgeU * (- 0.5 * (jac(i, j, k + 1) * (metEdgeR * uEdgeR &
+            &+ metEdgeL * uEdgeL + metEdgeF * vEdgeF + metEdgeB * vEdgeB) &
+            &+ jac(i, j, k) * (metUEdgeR * uUEdgeR + metUEdgeL * uUEdgeL &
+            &+ metUEdgeF * vUEdgeF + metUEdgeB * vUEdgeB)) / (jac(i, j, k) &
+            &+ jac(i, j, k + 1)) + wEdgeU)
       else if(wind == "tfc") then
-        trafoTFC = 0.25 * (metEdgeR * uEdgeR + metUEdgeR * uUEdgeR + metEdgeL &
-            &* uEdgeL + metUEdgeL * uUEdgeL) + 0.25 * (metEdgeF * vEdgeF &
-            &+ metUEdgeF * vUEdgeF + metEdgeB * vEdgeB + metUEdgeB * vUEdgeB) &
-            &+ wEdgeU / jacEdgeU
+        trafoTFC = 0.5 * (jac(i, j, k + 1) * (metEdgeR * uEdgeR + metEdgeL &
+            &* uEdgeL + metEdgeF * vEdgeF + metEdgeB * vEdgeB) + jac(i, j, k) &
+            &* (metUEdgeR * uUEdgeR + metUEdgeL * uUEdgeL + metUEdgeF &
+            &* vUEdgeF + metUEdgeB * vUEdgeB)) / (jac(i, j, k) + jac(i, j, k &
+            &+ 1)) + wEdgeU / jacEdgeU
       end if
 
     case(5)
 
       ! Multiplication on uw grid
 
-      jacEdgeU = 0.5 * (jac(i, j, k) + jac(i, j, k + 1))
-      metEdgeRU = 0.25 * (jac(i, j, k) * met(i, j, k, 1, 3) + jac(i + 1, j, k) &
-          &* met(i + 1, j, k, 1, 3) + jac(i, j, k + 1) * met(i, j, k + 1, 1, &
-          &3) + jac(i + 1, j, k + 1) * met(i + 1, j, k + 1, 1, 3))
-      metEdgeLU = 0.25 * (jac(i, j, k) * met(i, j, k, 1, 3) + jac(i - 1, j, k) &
-          &* met(i - 1, j, k, 1, 3) + jac(i, j, k + 1) * met(i, j, k + 1, 1, &
-          &3) + jac(i - 1, j, k + 1) * met(i - 1, j, k + 1, 1, 3))
-      metEdgeFU = 0.25 * (jac(i, j, k) * met(i, j, k, 2, 3) + jac(i, j + 1, k) &
-          &* met(i, j + 1, k, 2, 3) + jac(i, j, k + 1) * met(i, j, k + 1, 2, &
-          &3) + jac(i, j + 1, k + 1) * met(i, j + 1, k + 1, 2, 3))
-      metEdgeBU = 0.25 * (jac(i, j, k) * met(i, j, k, 2, 3) + jac(i, j - 1, k) &
-          &* met(i, j - 1, k, 2, 3) + jac(i, j, k + 1) * met(i, j, k + 1, 2, &
-          &3) + jac(i, j - 1, k + 1) * met(i, j - 1, k + 1, 2, 3))
-      uEdgeRU = 0.5 * (uEdgeR + uUEdgeR)
-      uEdgeLU = 0.5 * (uEdgeL + uUEdgeL)
-      vEdgeFU = 0.5 * (vEdgeF + vUEdgeF)
-      vEdgeBU = 0.5 * (vEdgeB + vUEdgeB)
+      jacEdgeU = 2.0 * jac(i, j, k) * jac(i, j, k + 1) / (jac(i, j, k) &
+          &+ jac(i, j, k + 1))
+      metEdgeRU = 0.5 * ((jac(i, j, k + 1) + jac(i + 1, j, k + 1)) * (jac(i, &
+          &j, k) * met(i, j, k, 1, 3) + jac(i + 1, j, k) * met(i + 1, j, k, 1, &
+          &3)) + (jac(i, j, k) + jac(i + 1, j, k)) * (jac(i, j, k + 1) &
+          &* met(i, j, k + 1, 1, 3) + jac(i + 1, j, k + 1) * met(i + 1, j, k + &
+          &1, 1, 3))) / (jac(i, j, k) + jac(i + 1, j, k) + jac(i, j, k + 1) &
+          &+ jac(i + 1, j, k + 1))
+      metEdgeLU = 0.5 * ((jac(i, j, k + 1) + jac(i - 1, j, k + 1)) * (jac(i, &
+          &j, k) * met(i, j, k, 1, 3) + jac(i - 1, j, k) * met(i - 1, j, k, 1, &
+          &3)) + (jac(i, j, k) + jac(i - 1, j, k)) * (jac(i, j, k + 1) &
+          &* met(i, j, k + 1, 1, 3) + jac(i - 1, j, k + 1) * met(i - 1, j, k + &
+          &1, 1, 3))) / (jac(i, j, k) + jac(i - 1, j, k) + jac(i, j, k + 1) &
+          &+ jac(i - 1, j, k + 1))
+      metEdgeFU = 0.5 * ((jac(i, j, k + 1) + jac(i, j + 1, k + 1)) * (jac(i, &
+          &j, k) * met(i, j, k, 2, 3) + jac(i, j + 1, k) * met(i, j + 1, k, 2, &
+          &3)) + (jac(i, j, k) + jac(i, j + 1, k)) * (jac(i, j, k + 1) &
+          &* met(i, j, k + 1, 2, 3) + jac(i, j + 1, k + 1) * met(i, j + 1, k + &
+          &1, 2, 3))) / (jac(i, j, k) + jac(i, j + 1, k) + jac(i, j, k + 1) &
+          &+ jac(i, j + 1, k + 1))
+      metEdgeBU = 0.5 * ((jac(i, j, k + 1) + jac(i, j - 1, k + 1)) * (jac(i, &
+          &j, k) * met(i, j, k, 2, 3) + jac(i, j - 1, k) * met(i, j - 1, k, 2, &
+          &3)) + (jac(i, j, k) + jac(i, j - 1, k)) * (jac(i, j, k + 1) &
+          &* met(i, j, k + 1, 2, 3) + jac(i, j - 1, k + 1) * met(i, j - 1, k + &
+          &1, 2, 3))) / (jac(i, j, k) + jac(i, j - 1, k) + jac(i, j, k + 1) &
+          &+ jac(i, j - 1, k + 1))
+      uEdgeRU = ((jac(i, j, k + 1) + jac(i + 1, j, k + 1)) * uEdgeR + (jac(i, &
+          &j, k) + jac(i + 1, j, k)) * uUEdgeR) / (jac(i, j, k) + jac(i + 1, &
+          &j, k) + jac(i, j, k + 1) + jac(i + 1, j, k + 1))
+      uEdgeLU = ((jac(i, j, k + 1) + jac(i - 1, j, k + 1)) * uEdgeL + (jac(i, &
+          &j, k) + jac(i - 1, j, k)) * uUEdgeL) / (jac(i, j, k) + jac(i - 1, &
+          &j, k) + jac(i, j, k + 1) + jac(i - 1, j, k + 1))
+      vEdgeFU = ((jac(i, j, k + 1) + jac(i, j + 1, k + 1)) * vEdgeF + (jac(i, &
+          &j, k) + jac(i, j + 1, k)) * vUEdgeF) / (jac(i, j, k) + jac(i, j &
+          &+ 1, k) + jac(i, j, k + 1) + jac(i, j + 1, k + 1))
+      vEdgeBU = ((jac(i, j, k + 1) + jac(i, j - 1, k + 1)) * vEdgeB + (jac(i, &
+          &j, k) + jac(i, j - 1, k)) * vUEdgeB) / (jac(i, j, k) + jac(i, j &
+          &- 1, k) + jac(i, j, k + 1) + jac(i, j - 1, k + 1))
       if(wind == "car") then
-        trafoTFC = - 0.5 * (metEdgeRU * uEdgeRU - metEdgeLU * uEdgeLU) - 0.5 &
-            &* (metEdgeFU * vEdgeFU - metEdgeBU * vEdgeBU) + jacEdgeU * wEdgeU
+        trafoTFC = - 0.5 * (metEdgeRU * uEdgeRU + metEdgeLU * uEdgeLU) - 0.5 &
+            &* (metEdgeFU * vEdgeFU + metEdgeBU * vEdgeBU) + jacEdgeU * wEdgeU
       else if(wind == "tfc") then
-        trafoTFC = (0.5 * (metEdgeRU * uEdgeRU - metEdgeLU * uEdgeLU) + 0.5 &
-            &* (metEdgeFU * vEdgeFU - metEdgeBU * vEdgeBU) + wEdgeU) / jacEdgeU
+        trafoTFC = (0.5 * (metEdgeRU * uEdgeRU + metEdgeLU * uEdgeLU) + 0.5 &
+            &* (metEdgeFU * vEdgeFU + metEdgeBU * vEdgeBU) + wEdgeU) / jacEdgeU
       end if
 
     case(6)
 
       ! Multiplication on uw grid (inverted)
 
-      jacEdgeU = 0.5 * (jac(i, j, k) + jac(i, j, k + 1))
-      metEdgeRU = 0.25 * (met(i, j, k, 1, 3) + met(i + 1, j, k, 1, 3) + met(i, &
-          &j, k + 1, 1, 3) + met(i + 1, j, k + 1, 1, 3))
-      metEdgeLU = 0.25 * (met(i, j, k, 1, 3) + met(i - 1, j, k, 1, 3) + met(i, &
-          &j, k + 1, 1, 3) + met(i - 1, j, k + 1, 1, 3))
-      metEdgeFU = 0.25 * (met(i, j, k, 2, 3) + met(i, j + 1, k, 2, 3) + met(i, &
-          &j, k + 1, 2, 3) + met(i, j + 1, k + 1, 2, 3))
-      metEdgeBU = 0.25 * (met(i, j, k, 2, 3) + met(i, j - 1, k, 2, 3) + met(i, &
-          &j, k + 1, 2, 3) + met(i, j - 1, k + 1, 2, 3))
-      uEdgeRU = 0.5 * (uEdgeR + uUEdgeR)
-      uEdgeLU = 0.5 * (uEdgeL + uUEdgeL)
-      vEdgeFU = 0.5 * (vEdgeF + vUEdgeF)
-      vEdgeBU = 0.5 * (vEdgeB + vUEdgeB)
+      jacEdgeU = 2.0 * jac(i, j, k) * jac(i, j, k + 1) / (jac(i, j, k) &
+          &+ jac(i, j, k + 1))
+      metEdgeRU = 0.5 * ((jac(i, j, k + 1) + jac(i + 1, j, k + 1)) * (met(i, &
+          &j, k, 1, 3) + met(i + 1, j, k, 1, 3)) + (jac(i, j, k) + jac(i + 1, &
+          &j, k)) * (met(i, j, k + 1, 1, 3) + met(i + 1, j, k + 1, 1, 3))) &
+          &/ (jac(i, j, k) + jac(i + 1, j, k) + jac(i, j, k + 1) + jac(i + 1, &
+          &j, k + 1))
+      metEdgeLU = 0.5 * ((jac(i, j, k + 1) + jac(i - 1, j, k + 1)) * (met(i, &
+          &j, k, 1, 3) + met(i - 1, j, k, 1, 3)) + (jac(i, j, k) + jac(i - 1, &
+          &j, k)) * (met(i, j, k + 1, 1, 3) + met(i - 1, j, k + 1, 1, 3))) &
+          &/ (jac(i, j, k) + jac(i - 1, j, k) + jac(i, j, k + 1) + jac(i - 1, &
+          &j, k + 1))
+      metEdgeFU = 0.5 * ((jac(i, j, k + 1) + jac(i, j + 1, k + 1)) * (met(i, &
+          &j, k, 2, 3) + met(i, j + 1, k, 2, 3)) + (jac(i, j, k) + jac(i, j &
+          &+ 1, k)) * (met(i, j, k + 1, 2, 3) + met(i, j + 1, k + 1, 2, 3))) &
+          &/ (jac(i, j, k) + jac(i, j + 1, k) + jac(i, j, k + 1) + jac(i, j &
+          &+ 1, k + 1))
+      metEdgeBU = 0.5 * ((jac(i, j, k + 1) + jac(i, j - 1, k + 1)) * (met(i, &
+          &j, k, 2, 3) + met(i, j - 1, k, 2, 3)) + (jac(i, j, k) + jac(i, j &
+          &- 1, k)) * (met(i, j, k + 1, 2, 3) + met(i, j - 1, k + 1, 2, 3))) &
+          &/ (jac(i, j, k) + jac(i, j - 1, k) + jac(i, j, k + 1) + jac(i, j &
+          &- 1, k + 1))
+      uEdgeRU = ((jac(i, j, k + 1) + jac(i + 1, j, k + 1)) * uEdgeR + (jac(i, &
+          &j, k) + jac(i + 1, j, k)) * uUEdgeR) / (jac(i, j, k) + jac(i + 1, &
+          &j, k) + jac(i, j, k + 1) + jac(i + 1, j, k + 1))
+      uEdgeLU = ((jac(i, j, k + 1) + jac(i - 1, j, k + 1)) * uEdgeL + (jac(i, &
+          &j, k) + jac(i - 1, j, k)) * uUEdgeL) / (jac(i, j, k) + jac(i - 1, &
+          &j, k) + jac(i, j, k + 1) + jac(i - 1, j, k + 1))
+      vEdgeFU = ((jac(i, j, k + 1) + jac(i, j + 1, k + 1)) * vEdgeF + (jac(i, &
+          &j, k) + jac(i, j + 1, k)) * vUEdgeF) / (jac(i, j, k) + jac(i, j &
+          &+ 1, k) + jac(i, j, k + 1) + jac(i, j + 1, k + 1))
+      vEdgeBU = ((jac(i, j, k + 1) + jac(i, j - 1, k + 1)) * vEdgeB + (jac(i, &
+          &j, k) + jac(i, j - 1, k)) * vUEdgeB) / (jac(i, j, k) + jac(i, j &
+          &- 1, k) + jac(i, j, k + 1) + jac(i, j - 1, k + 1))
       if(wind == "car") then
-        trafoTFC = jacEdgeU * (- 0.5 * (metEdgeRU * uEdgeRU - metEdgeLU &
-            &* uEdgeLU) - 0.5 * (metEdgeFU * vEdgeFU - metEdgeBU * vEdgeBU) &
+        trafoTFC = jacEdgeU * (- 0.5 * (metEdgeRU * uEdgeRU + metEdgeLU &
+            &* uEdgeLU) - 0.5 * (metEdgeFU * vEdgeFU + metEdgeBU * vEdgeBU) &
             &+ wEdgeU)
       else if(wind == "tfc") then
-        trafoTFC = 0.5 * (metEdgeRU * uEdgeRU - metEdgeLU * uEdgeLU) + 0.5 &
-            &* (metEdgeFU * vEdgeFU - metEdgeBU * vEdgeBU) + wEdgeU / jacEdgeU
+        trafoTFC = 0.5 * (metEdgeRU * uEdgeRU + metEdgeLU * uEdgeLU) + 0.5 &
+            &* (metEdgeFU * vEdgeFU + metEdgeBU * vEdgeBU) + wEdgeU / jacEdgeU
       end if
 
     end select
@@ -2606,23 +2721,16 @@ module atmosphere_module
 
     real :: stressTensTFC
     real :: jacEdgeR, jacEdgeL, jacEdgeF, jacEdgeB, jacEdgeU, jacEdgeD
-    real :: met13EdgeU, met13EdgeD, met23EdgeU, met23EdgeD
     real :: uF, uB, uU, uD, vR, vL, vU, vD, wR, wL, wF, wB
 
     jacEdgeR = 0.5 * (jac(i, j, k) + jac(i + 1, j, k))
     jacEdgeL = 0.5 * (jac(i, j, k) + jac(i - 1, j, k))
     jacEdgeF = 0.5 * (jac(i, j, k) + jac(i, j + 1, k))
     jacEdgeB = 0.5 * (jac(i, j, k) + jac(i, j - 1, k))
-    jacEdgeU = 0.5 * (jac(i, j, k) + jac(i, j, k + 1))
-    jacEdgeD = 0.5 * (jac(i, j, k) + jac(i, j, k - 1))
-    met13EdgeU = 0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) + jac(i, j, k + 1) &
-        &* met(i, j, k + 1, 1, 3))
-    met13EdgeD = 0.5 * (jac(i, j, k) * met(i, j, k, 1, 3) + jac(i, j, k - 1) &
-        &* met(i, j, k - 1, 1, 3))
-    met23EdgeU = 0.5 * (jac(i, j, k) * met(i, j, k, 2, 3) + jac(i, j, k + 1) &
-        &* met(i, j, k + 1, 2, 3))
-    met23EdgeD = 0.5 * (jac(i, j, k) * met(i, j, k, 2, 3) + jac(i, j, k - 1) &
-        &* met(i, j, k - 1, 2, 3))
+    jacEdgeU = 2.0 * jac(i, j, k) * jac(i, j, k + 1) / (jac(i, j, k) + jac(i, &
+        &j, k + 1))
+    jacEdgeD = 2.0 * jac(i, j, k) * jac(i, j, k - 1) / (jac(i, j, k) + jac(i, &
+        &j, k - 1))
     uF = 0.5 * (var%u(i, j + 1, k) + var%u(i - 1, j + 1, k))
     uB = 0.5 * (var%u(i, j - 1, k) + var%u(i - 1, j - 1, k))
     uU = 0.5 * (var%u(i, j, k + 1) + var%u(i - 1, j, k + 1))
@@ -2641,44 +2749,37 @@ module atmosphere_module
         &var))
 
     if(mu == 1 .and. nu == 1) then
-      stressTensTFC = (2.0 * (jacEdgeR * var%u(i, j, k) - jacEdgeL * var%u(i &
-          &- 1, j, k)) / dx + (jac(i, j, k + 1) * met(i, j, k + 1, 1, 3) * uU &
-          &- jac(i, j, k - 1) * met(i, j, k - 1, 1, 3) * uD) / dz - 2.0 / 3.0 &
-          &* ((jacEdgeR * var%u(i, j, k) - jacEdgeL * var%u(i - 1, j, k)) / dx &
-          &+ (jacEdgeF * var%v(i, j, k) - jacEdgeB * var%v(i, j - 1, k)) / dy &
-          &+ (jacEdgeU * var%w(i, j, k) - jacEdgeD * var%w(i, j, k - 1)) &
-          &/ dz)) / jac(i, j, k)
+      stressTensTFC = 2.0 * (var%u(i, j, k) - var%u(i - 1, j, k)) / dx &
+          &+ met(i, j, k, 1, 3) * (uU - uD) / dz - 2.0 / 3.0 * ((jacEdgeR &
+          &* var%u(i, j, k) - jacEdgeL * var%u(i - 1, j, k)) / dx + (jacEdgeF &
+          &* var%v(i, j, k) - jacEdgeB * var%v(i, j - 1, k)) / dy + (jacEdgeU &
+          &* var%w(i, j, k) - jacEdgeD * var%w(i, j, k - 1)) / dz) / jac(i, j, &
+          &k)
     else if((mu == 1 .and. nu == 2) .or. (mu == 2 .and. nu == 1)) then
-      stressTensTFC = (0.5 * (jac(i, j + 1, k) * uF - jac(i, j - 1, k) * uB) &
-          &/ dy + 0.5 * (jac(i, j, k + 1) * met(i, j, k + 1, 2, 3) * uU &
-          &- jac(i, j, k - 1) * met(i, j, k - 1, 2, 3) * uD) / dz + 0.5 &
-          &* (jac(i + 1, j, k) * vR - jac(i - 1, j, k) * vL) / dx + 0.5 &
-          &* (jac(i, j, k + 1) * met(i, j, k + 1, 1, 3) * vU - jac(i, j, k &
-          &- 1) * met(i, j, k - 1, 1, 3) * vD) / dz) / jac(i, j, k)
+      stressTensTFC = 0.5 * (uF - uB) / dy + 0.5 * met(i, j, k, 2, 3) * (uU &
+          &- uD) / dz + 0.5 * (vR - vL) / dx + 0.5 * met(i, j, k, 1, 3) * (vU &
+          &- vD) / dz
     else if((mu == 1 .and. nu == 3) .or. (mu == 3 .and. nu == 1)) then
-      stressTensTFC = (0.5 * (uU - uD) / dz + 0.5 * (jac(i + 1, j, k) * wR &
-          &- jac(i - 1, j, k) * wL) / dx + (met13EdgeU * vertWindTFC(i, j, k, &
-          &var) - met13EdgeD * vertWindTFC(i, j, k - 1, var)) / dz) / jac(i, &
-          &j, k)
+      stressTensTFC = 0.5 * (uU - uD) / dz / jac(i, j, k) + 0.5 * (wR - wL) &
+          &/ dx + met(i, j, k, 1, 3) * (vertWindTFC(i, j, k, var) &
+          &- vertWindTFC(i, j, k - 1, var)) / dz
     else if(mu == 2 .and. nu == 2) then
-      stressTensTFC = (2.0 * (jacEdgeF * var%v(i, j, k) - jacEdgeB * var%v(i, &
-          &j - 1, k)) / dy + (jac(i, j, k + 1) * met(i, j, k + 1, 2, 3) * vU &
-          &- jac(i, j, k - 1) * met(i, j, k - 1, 2, 3) * vD) / dz - 2.0 / 3.0 &
-          &* ((jacEdgeR * var%u(i, j, k) - jacEdgeL * var%u(i - 1, j, k)) / dx &
-          &+ (jacEdgeF * var%v(i, j, k) - jacEdgeB * var%v(i, j - 1, k)) / dy &
-          &+ (jacEdgeU * var%w(i, j, k) - jacEdgeD * var%w(i, j, k - 1)) &
-          &/ dz)) / jac(i, j, k)
+      stressTensTFC = 2.0 * (var%v(i, j, k) - var%v(i, j - 1, k)) / dy &
+          &+ met(i, j, k, 2, 3) * (vU - vD) / dz - 2.0 / 3.0 * ((jacEdgeR &
+          &* var%u(i, j, k) - jacEdgeL * var%u(i - 1, j, k)) / dx + (jacEdgeF &
+          &* var%v(i, j, k) - jacEdgeB * var%v(i, j - 1, k)) / dy + (jacEdgeU &
+          &* var%w(i, j, k) - jacEdgeD * var%w(i, j, k - 1)) / dz) / jac(i, j, &
+          &k)
     else if((mu == 2 .and. nu == 3) .or. (mu == 3 .and. nu == 2)) then
-      stressTensTFC = (0.5 * (vU - vD) / dz + 0.5 * (jac(i, j + 1, k) * wF &
-          &- jac(i, j - 1, k) * wB) / dy + (met23EdgeU * vertWindTFC(i, j, k, &
-          &var) - met23EdgeD * vertWindTFC(i, j, k - 1, var)) / dz) / jac(i, &
-          &j, k)
+      stressTensTFC = 0.5 * (vU - vD) / dz / jac(i, j, k) + 0.5 * (wF - wB) &
+          &/ dy + met(i, j, k, 2, 3) * (vertWindTFC(i, j, k, var) &
+          &- vertWindTFC(i, j, k - 1, var)) / dz
     else if(mu == 3 .and. nu == 3) then
-      stressTensTFC = (2.0 * (vertWindTFC(i, j, k, var) - vertWindTFC(i, j, k &
-          &- 1, var)) / dz - 2.0 / 3.0 * ((jacEdgeR * var%u(i, j, k) &
-          &- jacEdgeL * var%u(i - 1, j, k)) / dx + (jacEdgeF * var%v(i, j, k) &
-          &- jacEdgeB * var%v(i, j - 1, k)) / dy + (jacEdgeU * var%w(i, j, k) &
-          &- jacEdgeD * var%w(i, j, k - 1)) / dz)) / jac(i, j, k)
+      stressTensTFC = 2.0 * (vertWindTFC(i, j, k, var) - vertWindTFC(i, j, k &
+          &- 1, var)) / dz / jac(i, j, k) - 2.0 / 3.0 * ((jacEdgeR * var%u(i, &
+          &j, k) - jacEdgeL * var%u(i - 1, j, k)) / dx + (jacEdgeF * var%v(i, &
+          &j, k) - jacEdgeB * var%v(i, j - 1, k)) / dy + (jacEdgeU * var%w(i, &
+          &j, k) - jacEdgeD * var%w(i, j, k - 1)) / dz) / jac(i, j, k)
     end if
 
   end function stressTensTFC

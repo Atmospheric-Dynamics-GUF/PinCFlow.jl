@@ -162,24 +162,6 @@ module boundary_module
         end if
       end if
 
-      if(updateTheta) then
-        ! pot. temp.  -> iVar = 6
-
-        if(timeScheme == "semiimplicit") then
-          print *, 'ERROR: updateTheta = .true. not allowed for  timeScheme &
-              &== "semiimplicit"'
-          stop
-        end if
-
-        do i = 1, nbx
-          var%rhop(nx + i, :, :) = var%rhop(i, :, :)
-          var%rhop(- i + 1, :, :) = var%rhop(nx - i + 1, :, :)
-        end do
-
-        if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal &
-            &BC for theta set."
-      end if
-
       if(predictMomentum) then
         ! velocity u (staggered along x) -> iVar = 2
 
@@ -307,18 +289,6 @@ module boundary_module
         end if
       end if
 
-      if(updateTheta) then
-        ! reconstructed density needed in ghost cell i = nx+2
-        thetaTilde(nx + 2, :, :, 1, 0) = thetaTilde(2, :, :, 1, 0)
-
-        ! ...in ghost cell i = -1
-        thetaTilde(- 1, :, :, 1, 1) = thetaTilde(nx - 1, :, :, 1, 1)
-
-        if(verbose .and. master) then
-          print *, "horizontalBoundary:  x-horizontal BC for thetaTilde set."
-        end if
-      end if
-
     case("flux")
       !-----------------------------------
       !              flux
@@ -403,25 +373,6 @@ module boundary_module
 
         if(verbose .and. master) then
           print *, "horizontalBoundary: y-horizontal BC for tracer set."
-        end if
-      end if
-
-      if(updateTheta) then
-        ! potential temperature -> iVar = 6
-
-        if(timeScheme == "semiimplicit") then
-          print *, 'ERROR: updateTheta = .true. not allowed for  timeScheme &
-              &== "semiimplicit"'
-          stop
-        end if
-
-        do j = 1, nby
-          var%rhop(:, ny + j, :) = var%rhop(:, j, :)
-          var%rhop(:, - j + 1, :) = var%rhop(:, ny - j + 1, :)
-        end do
-
-        if(verbose .and. master) then
-          print *, "horizontalBoundary: y-horizontal BC for theta set."
         end if
       end if
 
@@ -553,18 +504,6 @@ module boundary_module
         end if
       end if
 
-      if(updateTheta) then
-        ! reconstructed density needed in ghost cell j = ny+2
-        thetaTilde(:, ny + 2, :, 2, 0) = thetaTilde(:, 2, :, 2, 0)
-
-        ! ...in ghost cell j = -1
-        thetaTilde(:, - 1, :, 2, 1) = thetaTilde(:, ny - 1, :, 2, 1)
-
-        if(verbose .and. master) then
-          print *, "horizontalBoundary:  y-horizontal BC for thetaTilde set."
-        end if
-      end if
-
     case("flux")
       !-----------------------------------
       !              flux
@@ -636,25 +575,6 @@ module boundary_module
 
         if(verbose .and. master) then
           print *, "setBoundary_z_periodic: z-periodic BC for tracer set."
-        end if
-      end if
-
-      if(updateTheta) then
-        ! density -> iVar = 6
-
-        if(timeScheme == "semiimplicit") then
-          print *, 'ERROR: updateTheta = .true. not allowed for  timeScheme &
-              &== "semiimplicit"'
-          stop
-        end if
-
-        do k = 1, nbz
-          var%rhop(:, :, nz + k) = var%rhop(:, :, k)
-          var%rhop(:, :, - k + 1) = var%rhop(:, :, nz - k + 1)
-        end do
-
-        if(verbose .and. master) then
-          print *, "setBoundary_z_periodic:  z-perdiodic BC for theta set."
         end if
       end if
 
@@ -773,18 +693,6 @@ module boundary_module
 
       end if
 
-      if(updateTheta) then
-        ! reconstructed density needed in ghost cell k = nz+2
-        thetaTilde(:, :, nz + 2, 3, 0) = thetaTilde(:, :, 2, 3, 0)
-
-        ! ...in ghost cell k = -1
-        thetaTilde(:, :, - 1, 3, 1) = thetaTilde(:, :, nz - 1, 3, 1)
-
-        if(verbose .and. master) then
-          print *, "setBoundary_z_periodic:  z-periodic BC for thetaTilde set."
-        end if
-      end if
-
     case("flux")
       !-----------------------------------
       !              flux
@@ -831,14 +739,6 @@ module boundary_module
     ! uvw flux correction
     real :: thetaEdge
     real :: hThetaU, hThetaV, hThetaW
-
-    ! TFC FJ
-    real :: met13EdgeRU, met23EdgeRU, met33EdgeRU, chris11EdgeRU, &
-        &chris13EdgeRU, chris12EdgeRU, chris23EdgeRU, uEdgeRUU, uEdgeRU, &
-        &uEdgeLU, uEdgeRU1, uEdgeRU2, wEdgeRU, wEdgeRD, vEdgeRU
-    real :: met13EdgeFU, met23EdgeFU, met33EdgeFU, chris12EdgeFU, &
-        &chris13EdgeFU, chris22EdgeFU, chris23EdgeFU, vEdgeFUU, vEdgeFU, &
-        &vEdgeBU, vEdgeFU1, vEdgeFU2, wEdgeFU, wEdgeFD, uEdgeFU
 
     select case(option)
 
@@ -933,28 +833,6 @@ module boundary_module
         end do
       end if
 
-      if(updateTheta) then
-        ! reflect at boundary withOUT change of sign
-        ! theta -> iVar = 6
-
-        if(timeScheme == "semiimplicit") then
-          print *, 'ERROR: updateTheta = .true. not allowed for  timeScheme &
-              &== "semiimplicit"'
-          stop
-        end if
-
-        if(testCase == 'baroclinic_LC') then
-          print *, 'ERROR: updateTheta = .true. not allowed for  testCase &
-              &== "baroclinic_LC"'
-          stop
-        end if
-
-        do k = 1, nbz
-          var%rhop(:, :, - k + 1) = var%rhop(:, :, k)
-          var%rhop(:, :, nz + k) = var%rhop(:, :, nz - k + 1)
-        end do
-      end if
-
       if(predictMomentum) then
         ! w -> set to zero at bound,
         !      reflect at bound with change of sign
@@ -1005,213 +883,22 @@ module boundary_module
           var%v(1:nx, 1:ny, 0) = var%v(1:nx, 1:ny, 1)
           var%v(1:nx, 1:ny, nz + 1) = var%v(1:nx, 1:ny, nz)
         else
-          if(topography .and. freeSlipTFC) then
-            ! TFC FJ
-            ! Free-slip boundary condition for TFC.
-            do i = 1, nx
-              do j = 1, ny
-                ! BC for u at z = 0.
-                met13EdgeRU = 0.25 * (met(i, j, 0, 1, 3) + met(i + 1, j, 0, 1, &
-                    &3) + met(i, j, 1, 1, 3) + met(i + 1, j, 1, 1, 3))
-                met23EdgeRU = 0.25 * (met(i, j, 0, 2, 3) + met(i + 1, j, 0, 2, &
-                    &3) + met(i, j, 1, 2, 3) + met(i + 1, j, 1, 2, 3))
-                met33EdgeRU = 0.25 * (met(i, j, 0, 3, 3) + met(i + 1, j, 0, 3, &
-                    &3) + met(i, j, 1, 3, 3) + met(i + 1, j, 1, 3, 3))
-                chris11EdgeRU = 0.25 * (chris(i, j, 0, 1, 1) + chris(i + 1, j, &
-                    &0, 1, 1) + chris(i, j, 1, 1, 1) + chris(i + 1, j, 1, 1, 1))
-                chris13EdgeRU = 0.25 * (met(i, j, 0, 1, 3) * chris(i, j, 0, 1, &
-                    &3) + met(i + 1, j, 0, 1, 3) * chris(i + 1, j, 0, 1, 3) &
-                    &+ met(i, j, 1, 1, 3) * chris(i, j, 1, 1, 3) + met(i + 1, &
-                    &j, 1, 1, 3) * chris(i + 1, j, 1, 1, 3))
-                chris12EdgeRU = 0.25 * (chris(i, j, 0, 1, 2) + chris(i + 1, j, &
-                    &0, 1, 2) + chris(i, j, 1, 1, 2) + chris(i + 1, j, 1, 1, 2))
-                chris23EdgeRU = 0.25 * (met(i, j, 0, 1, 3) * chris(i, j, 0, 2, &
-                    &3) + met(i + 1, j, 0, 1, 3) * chris(i + 1, j, 0, 2, 3) &
-                    &+ met(i, j, 1, 1, 3) * chris(i, j, 1, 2, 3) + met(i + 1, &
-                    &j, 1, 1, 3) * chris(i + 1, j, 1, 2, 3))
-                uEdgeRUU = 1.5 * var%u(i + 1, j, 1) - 0.5 * var%u(i + 1, j, 2)
-                uEdgeRU = 1.5 * var%u(i, j, 1) - 0.5 * var%u(i, j, 2)
-                uEdgeLU = 1.5 * var%u(i - 1, j, 1) - 0.5 * var%u(i - 1, j, 2)
-                uEdgeRU1 = 1.5 * var%u(i, j + 1, 1) - 0.5 * var%u(i, j + 1, 2)
-                uEdgeRU2 = 1.5 * var%u(i, j - 1, 1) - 0.5 * var%u(i, j - 1, 2)
-                vEdgeRU = 1.5 * 0.25 * (var%v(i, j, 1) + var%v(i, j - 1, 1) &
-                    &+ var%v(i + 1, j, 1) + var%v(i + 1, j - 1, 1)) - 0.5 &
-                    &* 0.25 * (var%v(i, j, 2) + var%v(i, j - 1, 2) + var%v(i &
-                    &+ 1, j, 2) + var%v(i + 1, j - 1, 2))
-                do k = 1, nbz
-                  wEdgeRU = 0.5 * (var%w(i, j, k) + var%w(i + 1, j, k))
-                  wEdgeRD = 0.5 * (var%w(i, j, - k) + var%w(i + 1, j, - k))
-                  var%u(i, j, - k + 1) = (2.0 * k - 1.0) * dz / met33EdgeRU &
-                      &* (met13EdgeRU * 0.5 * (uEdgeRUU - uEdgeLU) / dx &
-                      &+ met23EdgeRU * 0.5 * (uEdgeRU1 - uEdgeRU2) / dy &
-                      &+ met33EdgeRU * var%u(i, j, k) / ((2.0 * k - 1.0) * dz) &
-                      &- met13EdgeRU * (wEdgeRU - wEdgeRD) / (2.0 * k * dz) &
-                      &- (chris11EdgeRU + chris13EdgeRU) * uEdgeRU &
-                      &- (chris12EdgeRU + chris23EdgeRU) * vEdgeRU)
-                end do
-                ! BC for u at z = H.
-                met13EdgeRU = 0.25 * (met(i, j, nz, 1, 3) + met(i + 1, j, nz, &
-                    &1, 3) + met(i, j, nz + 1, 1, 3) + met(i + 1, j, nz + 1, &
-                    &1, 3))
-                met23EdgeRU = 0.25 * (met(i, j, nz, 2, 3) + met(i + 1, j, nz, &
-                    &2, 3) + met(i, j, nz + 1, 2, 3) + met(i + 1, j, nz + 1, &
-                    &2, 3))
-                met33EdgeRU = 0.25 * (met(i, j, nz, 3, 3) + met(i + 1, j, nz, &
-                    &3, 3) + met(i, j, nz + 1, 3, 3) + met(i + 1, j, nz + 1, &
-                    &3, 3))
-                chris11EdgeRU = 0.25 * (chris(i, j, nz, 1, 1) + chris(i + 1, &
-                    &j, nz, 1, 1) + chris(i, j, nz + 1, 1, 1) + chris(i + 1, &
-                    &j, nz + 1, 1, 1))
-                chris13EdgeRU = 0.25 * (met(i, j, nz, 1, 3) * chris(i, j, nz, &
-                    &1, 3) + met(i + 1, j, nz, 1, 3) * chris(i + 1, j, nz, 1, &
-                    &3) + met(i, j, nz + 1, 1, 3) * chris(i, j, nz + 1, 1, 3) &
-                    &+ met(i + 1, j, nz + 1, 1, 3) * chris(i + 1, j, nz + 1, &
-                    &1, 3))
-                chris12EdgeRU = 0.25 * (chris(i, j, nz, 1, 2) + chris(i + 1, &
-                    &j, nz, 1, 2) + chris(i, j, nz + 1, 1, 2) + chris(i + 1, &
-                    &j, nz + 1, 1, 2))
-                chris23EdgeRU = 0.25 * (met(i, j, nz, 1, 3) * chris(i, j, nz, &
-                    &2, 3) + met(i + 1, j, nz, 1, 3) * chris(i + 1, j, nz, 2, &
-                    &3) + met(i, j, nz + 1, 1, 3) * chris(i, j, nz + 1, 2, 3) &
-                    &+ met(i + 1, j, nz + 1, 1, 3) * chris(i + 1, j, nz + 1, &
-                    &2, 3))
-                uEdgeRUU = 1.5 * var%u(i + 1, j, nz) - 0.5 * var%u(i + 1, j, &
-                    &nz - 1)
-                uEdgeRU = 1.5 * var%u(i, j, nz) - 0.5 * var%u(i, j, nz - 1)
-                uEdgeLU = 1.5 * var%u(i - 1, j, nz) - 0.5 * var%u(i - 1, j, nz &
-                    &- 1)
-                uEdgeRU1 = 1.5 * var%u(i, j + 1, nz) - 0.5 * var%u(i, j + 1, &
-                    &nz - 1)
-                uEdgeRU2 = 1.5 * var%u(i, j - 1, nz) - 0.5 * var%u(i, j - 1, &
-                    &nz - 1)
-                vEdgeRU = 1.5 * 0.25 * (var%v(i, j, nz) + var%v(i, j - 1, nz) &
-                    &+ var%v(i + 1, j, nz) + var%v(i + 1, j - 1, nz)) - 0.5 &
-                    &* 0.25 * (var%v(i, j, nz - 1) + var%v(i, j - 1, nz - 1) &
-                    &+ var%v(i + 1, j, nz - 1) + var%v(i + 1, j - 1, nz - 1))
-                do k = 1, nbz
-                  wEdgeRU = 0.5 * (var%w(i, j, nz + k) + var%w(i + 1, j, nz &
-                      &+ k))
-                  wEdgeRD = 0.5 * (var%w(i, j, nz - k) + var%w(i + 1, j, nz &
-                      &- k))
-                  var%u(i, j, nz + k) = - (2.0 * k - 1.0) * dz / met33EdgeRU &
-                      &* (met13EdgeRU * 0.5 * (uEdgeRUU - uEdgeLU) / dx &
-                      &+ met23EdgeRU * 0.5 * (uEdgeRU1 - uEdgeRU2) / dy &
-                      &- met33EdgeRU * var%u(i, j, nz - k + 1) / ((2.0 * k &
-                      &- 1.0) * dz) - met13EdgeRU * (wEdgeRU - wEdgeRD) / (2.0 &
-                      &* k * dz) - (chris11EdgeRU + chris13EdgeRU) * uEdgeRU &
-                      &- (chris12EdgeRU + chris23EdgeRU) * vEdgeRU)
-                end do
-                ! BC for v at z = 0.
-                met13EdgeFU = 0.25 * (met(i, j, 0, 1, 3) + met(i, j + 1, 0, 1, &
-                    &3) + met(i, j, 1, 1, 3) + met(i, j + 1, 1, 1, 3))
-                met23EdgeFU = 0.25 * (met(i, j, 0, 2, 3) + met(i, j + 1, 0, 2, &
-                    &3) + met(i, j, 1, 2, 3) + met(i, j + 1, 1, 2, 3))
-                met33EdgeFU = 0.25 * (met(i, j, 0, 3, 3) + met(i, j + 1, 0, 3, &
-                    &3) + met(i, j, 1, 3, 3) + met(i, j + 1, 1, 3, 3))
-                chris12EdgeFU = 0.25 * (chris(i, j, 0, 1, 2) + chris(i, j + 1, &
-                    &0, 1, 2) + chris(i, j, 1, 1, 2) + chris(i, j + 1, 1, 1, 2))
-                chris13EdgeFU = 0.25 * (met(i, j, 0, 2, 3) * chris(i, j, 0, 1, &
-                    &3) + met(i, j + 1, 0, 2, 3) * chris(i, j + 1, 0, 1, 3) &
-                    &+ met(i, j, 1, 2, 3) * chris(i, j, 1, 1, 3) + met(i, j &
-                    &+ 1, 1, 2, 3) * chris(i, j + 1, 1, 1, 3))
-                chris22EdgeFU = 0.25 * (chris(i, j, 0, 2, 2) + chris(i, j + 1, &
-                    &0, 2, 2) + chris(i, j, 1, 2, 2) + chris(i, j + 1, 1, 2, 2))
-                chris23EdgeFU = 0.25 * (met(i, j, 0, 2, 3) * chris(i, j, 0, 2, &
-                    &3) + met(i, j + 1, 0, 2, 3) * chris(i, j + 1, 0, 2, 3) &
-                    &+ met(i, j, 1, 2, 3) * chris(i, j, 1, 2, 3) + met(i, j &
-                    &+ 1, 1, 2, 3) * chris(i, j + 1, 1, 2, 3))
-                vEdgeFUU = 1.5 * var%v(i, j + 1, 1) - 0.5 * var%v(i, j + 1, 2)
-                vEdgeFU = 1.5 * var%v(i, j, 1) - 0.5 * var%v(i, j, 2)
-                vEdgeBU = 1.5 * var%v(i, j - 1, 1) - 0.5 * var%v(i, j - 1, 2)
-                vEdgeFU1 = 1.5 * var%v(i + 1, j, 1) - 0.5 * var%v(i + 1, j, 2)
-                vEdgeFU2 = 1.5 * var%v(i - 1, j, 1) - 0.5 * var%v(i - 1, j, 2)
-                uEdgeFU = 1.5 * 0.25 * (var%u(i, j, 1) + var%u(i - 1, j, 1) &
-                    &+ var%u(i, j + 1, 1) + var%u(i - 1, j + 1, 1)) - 0.5 &
-                    &* 0.25 * (var%u(i, j, 2) + var%u(i - 1, j, 2) + var%u(i, &
-                    &j + 1, 2) + var%u(i - 1, j + 1, 2))
-                do k = 1, nbz
-                  wEdgeFU = 0.5 * (var%w(i, j, k) + var%w(i, j + 1, k))
-                  wEdgeFD = 0.5 * (var%w(i, j, - k) + var%w(i, j + 1, - k))
-                  var%v(i, j, - k + 1) = (2.0 * k - 1.0) * dz / met33EdgeFU &
-                      &* (met13EdgeFU * 0.5 * (vEdgeFU1 - vEdgeFU2) / dx &
-                      &+ met23EdgeFU * 0.5 * (vEdgeFUU - vEdgeBU) / dy &
-                      &+ met33EdgeFU * var%v(i, j, k) / ((2.0 * k - 1.0) * dz) &
-                      &- met23EdgeFU * (wEdgeFU - wEdgeFD) / (2.0 * k * dz) &
-                      &- (chris12EdgeFU + chris13EdgeFU) * uEdgeFU &
-                      &- (chris22EdgeFU + chris23EdgeFU) * vEdgeFU)
-                end do
-                ! BC for u at z = H.
-                met13EdgeFU = 0.25 * (met(i, j, nz, 1, 3) + met(i, j + 1, nz, &
-                    &1, 3) + met(i, j, nz + 1, 1, 3) + met(i, j + 1, nz + 1, &
-                    &1, 3))
-                met23EdgeFU = 0.25 * (met(i, j, nz, 2, 3) + met(i, j + 1, nz, &
-                    &2, 3) + met(i, j, nz + 1, 2, 3) + met(i, j + 1, nz + 1, &
-                    &2, 3))
-                met33EdgeFU = 0.25 * (met(i, j, nz, 3, 3) + met(i, j + 1, nz, &
-                    &3, 3) + met(i, j, nz + 1, 3, 3) + met(i, j + 1, nz + 1, &
-                    &3, 3))
-                chris12EdgeFU = 0.25 * (chris(i, j, nz, 1, 2) + chris(i, j &
-                    &+ 1, nz, 1, 2) + chris(i, j, nz + 1, 1, 2) + chris(i, j &
-                    &+ 1, nz + 1, 1, 2))
-                chris13EdgeFU = 0.25 * (met(i, j, nz, 2, 3) * chris(i, j, nz, &
-                    &1, 3) + met(i, j + 1, nz, 2, 3) * chris(i, j + 1, nz, 1, &
-                    &3) + met(i, j, nz + 1, 2, 3) * chris(i, j, nz + 1, 1, 3) &
-                    &+ met(i, j + 1, nz + 1, 2, 3) * chris(i, j + 1, nz + 1, &
-                    &1, 3))
-                chris22EdgeFU = 0.25 * (chris(i, j, nz, 2, 2) + chris(i, j &
-                    &+ 1, nz, 2, 2) + chris(i, j, nz + 1, 2, 2) + chris(i, j &
-                    &+ 1, nz + 1, 2, 2))
-                chris23EdgeFU = 0.25 * (met(i, j, nz, 2, 3) * chris(i, j, nz, &
-                    &2, 3) + met(i, j + 1, nz, 2, 3) * chris(i, j + 1, nz, 2, &
-                    &3) + met(i, j, nz + 1, 2, 3) * chris(i, j, nz + 1, 2, 3) &
-                    &+ met(i, j + 1, nz + 1, 2, 3) * chris(i, j + 1, nz + 1, &
-                    &2, 3))
-                vEdgeFUU = 1.5 * var%v(i, j + 1, nz) - 0.5 * var%v(i, j + 1, &
-                    &nz - 1)
-                vEdgeFU = 1.5 * var%v(i, j, nz) - 0.5 * var%v(i, j, nz - 1)
-                vEdgeBU = 1.5 * var%v(i, j - 1, nz) - 0.5 * var%v(i, j - 1, nz &
-                    &- 1)
-                vEdgeFU1 = 1.5 * var%v(i + 1, j, nz) - 0.5 * var%v(i + 1, j, &
-                    &nz - 1)
-                vEdgeFU2 = 1.5 * var%v(i - 1, j, nz) - 0.5 * var%v(i - 1, j, &
-                    &nz - 1)
-                uEdgeFU = 1.5 * 0.25 * (var%u(i, j, nz) + var%u(i - 1, j, nz) &
-                    &+ var%u(i, j + 1, nz) + var%u(i - 1, j + 1, nz)) - 0.5 &
-                    &* 0.25 * (var%u(i, j, nz - 1) + var%u(i - 1, j, nz - 1) &
-                    &+ var%u(i, j + 1, nz - 1) + var%u(i - 1, j + 1, nz - 1))
-                do k = 1, nbz
-                  wEdgeFU = 0.5 * (var%w(i, j, nz + k) + var%w(i, j + 1, nz &
-                      &+ k))
-                  wEdgeFD = 0.5 * (var%w(i, j, nz - k) + var%w(i, j + 1, nz &
-                      &- k))
-                  var%v(i, j, nz + k) = - (2.0 * k - 1.0) * dz / met33EdgeFU &
-                      &* (met13EdgeFU * 0.5 * (vEdgeFU1 - vEdgeFU2) / dx &
-                      &+ met23EdgeFU * 0.5 * (vEdgeFUU - vEdgeBU) / dy &
-                      &- met33EdgeFU * var%v(i, j, nz - k + 1) / ((2.0 * k &
-                      &- 1.0) * dz) - met23EdgeFU * (wEdgeFU - wEdgeFD) / (2.0 &
-                      &* k * dz) - (chris12EdgeFU + chris13EdgeFU) * uEdgeFU &
-                      &- (chris22EdgeFU + chris23EdgeFU) * vEdgeFU)
-                end do
-              end do
-            end do
-          else
-            ! TFC FJ
-            ! No-slip has been changed to free-slip!
-            ! Free-slip condition.
-            do k = 1, nbz
-              var%u(:, :, - k + 1) = var%u(:, :, k)
-              var%u(:, :, nz + k) = var%u(:, :, nz - k + 1)
-              var%v(:, :, - k + 1) = var%v(:, :, k)
-              var%v(:, :, nz + k) = var%v(:, :, nz - k + 1)
-            end do
-            ! No-slip condition.
-            ! do k = 1, nbz
-            !     var(:, :, - k + 1, 2) = - var(:, :, k, 2)
-            !     var(:, :, nz + k, 2) = - var(:, :, nz - k + 1, 2)
-            !     var(:, :, - k + 1, 3) = - var(:, :, k, 3)
-            !     var(:, :, nz + k, 3) = - var(:, :, nz - k + 1, 3)
-            ! end do
-          end if
+          ! TFC FJ
+          ! No-slip has been changed to free-slip!
+          ! Free-slip condition.
+          do k = 1, nbz
+            var%u(:, :, - k + 1) = var%u(:, :, k)
+            var%u(:, :, nz + k) = var%u(:, :, nz - k + 1)
+            var%v(:, :, - k + 1) = var%v(:, :, k)
+            var%v(:, :, nz + k) = var%v(:, :, nz - k + 1)
+          end do
+          ! No-slip condition.
+          ! do k = 1, nbz
+          !     var(:, :, - k + 1, 2) = - var(:, :, k, 2)
+          !     var(:, :, nz + k, 2) = - var(:, :, nz - k + 1, 2)
+          !     var(:, :, - k + 1, 3) = - var(:, :, k, 3)
+          !     var(:, :, nz + k, 3) = - var(:, :, nz - k + 1, 3)
+          ! end do
         end if
       end if
 
@@ -1315,25 +1002,6 @@ module boundary_module
         flux%chi(:, :, 0, 3) = 0.0
         flux%chi(:, :, nz, 3) = 0.0
       end if
-
-      if(updateTheta) then
-        if(timeScheme == "semiimplicit") then
-          print *, 'ERROR: updateTheta = .true. not allowed for  timeScheme &
-              &== "semiimplicit"'
-          stop
-        end if
-
-        ! set fluxes accros solid wall boundary -> 0
-
-        flux%rhop(:, :, 0, 3) = 0.0
-        flux%rhop(:, :, nz, 3) = 0.0
-
-        if(verbose .and. master) then
-          print *, "verticalBoundary: vertical BC for theta set"
-        end if
-
-        if(thetaFluxCorr) stop 'ERROR: thetaFluxCorr = .false. expected'
-      end if ! updateTheta
 
       if(predictMomentum) then
         ! momentum rho*u
