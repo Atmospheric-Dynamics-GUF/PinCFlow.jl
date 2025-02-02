@@ -246,6 +246,7 @@ module type_module
   logical :: lsaturation ! JaWi 16.12.16 (sat)
   real :: alpha_sat ! JaWi 16.12.16 (sat)
 
+  logical :: single_column
   logical :: steady_state
 
   integer :: case_wkb !1/2: Gaussian/Cosine wave packet; 3: mountain
@@ -285,15 +286,13 @@ module type_module
   !  "en" = wave energy)
   ! under ray-volume merging
 
-  integer :: nRayOutput
-
   namelist / LagrangeRayTracing / xrmin_dim, xrmax_dim, yrmin_dim, yrmax_dim, &
       &zrmin_dim, zrmax_dim, nrxl, nryl, nrzl, fac_dk_init, fac_dl_init, &
       &fac_dm_init, nrk_init, nrl_init, nrm_init, nsmth_wkb, lsmth_wkb, &
-      &sm_filter, lsaturation, alpha_sat, steady_state, case_wkb, amp_wkb, &
-      &wlrx_init, wlry_init, wlrz_init, xr0_dim, yr0_dim, zr0_dim, sigwpx_dim, &
-      &sigwpy_dim, sigwpz_dim, branchr, lindUinit, blocking, nwm, &
-      &launch_algorithm, zmin_wkb_dim, nray_fac, cons_merge, nRayOutput ! JaWi: new nml!
+      &sm_filter, lsaturation, alpha_sat, single_column, steady_state, &
+      &case_wkb, amp_wkb, wlrx_init, wlry_init, wlrz_init, xr0_dim, yr0_dim, &
+      &zr0_dim, sigwpx_dim, sigwpy_dim, sigwpz_dim, branchr, lindUinit, &
+      &blocking, nwm, launch_algorithm, zmin_wkb_dim, nray_fac, cons_merge ! JaWi: new nml!
   ! Jan Weinkaemmerer, 27.11.18
 
   !------------------------------------------
@@ -468,9 +467,6 @@ module type_module
   character(len = 20) :: tStepChoice ! "cfl", "fix"
   character(len = 20) :: timeScheme ! LS_Will_RK3 / Euler
   character(len = 20) :: timeSchemeType ! lowStorage / classical
-  character(len = 20) :: fluxType ! ILES / central / upwind
-  character(len = 20) :: reconstType ! ALDM / constant / SALD / MUSCL
-  character(len = 20) :: musclType ! muscl1 / muscl2
   character(len = 20) :: limiterType1 ! minmod / ...
   logical :: auxil_equ ! auxiliary equation for the
   ! density fluctuations to be
@@ -497,15 +493,13 @@ module type_module
   ! density relaxation
 
   namelist / solverList / cfl, cfl_wave, dtMax_dim, tStepChoice, timeScheme, &
-      &auxil_equ, fluxType, reconstType, musclType, limiterType1, TurbScheme, &
-      &turb_dts, DySmaScheme, dtWave_on, heatingONK14, dens_relax, &
-      &shap_dts_fac, n_shap
+      &auxil_equ, limiterType1, TurbScheme, turb_dts, DySmaScheme, dtWave_on, &
+      &heatingONK14, dens_relax, shap_dts_fac, n_shap
   !UAC & dens_relax, shap_dts_dim, n_shap
 
   integer :: nStages
   logical :: updateMass ! transport of mass=var(1)  on/off
   logical :: predictMomentum ! transport of momentum=var(2-4) on/off
-  logical :: updateTheta ! transport of theta=var(6) on/off
   logical :: updateIce ! transport of ice=var(nVar-2:nVar) on/off
   logical :: updateTracer ! transport of tracer=var(iVarT) on/off
 
@@ -516,18 +510,16 @@ module type_module
   real :: tolPoisson
   real :: tolCond, tolref, abs_tol, scaled_atol, alpha_tol, b_norm
   integer :: maxIterPoisson
-  character(len = 20) :: poissonSolverType
   character(len = 10) :: preconditioner
   character(len = 10) :: tolcrit
   real :: dtau
   integer :: maxIterADI
   logical :: initialCleaning
-  logical :: pressureScaling
   logical :: correctMomentum ! false -> momentumCorrector off
   logical :: correctDivError ! true -> subtract rho*div(u)
   namelist / poissonSolverList / tolPoisson, abs_tol, tolCond, maxIterPoisson, &
-      &poissonSolverType, preconditioner, dtau, maxIterADI, initialCleaning, &
-      &pressureScaling, correctMomentum, correctDivError, tolcrit
+      &preconditioner, dtau, maxIterADI, initialCleaning, correctMomentum, &
+      &correctDivError, tolcrit
   integer :: nnz ! number of nonzeros
 
   ! hypre and bicgstab objects
@@ -622,6 +614,15 @@ module type_module
   real, dimension(:, :, :), allocatable :: k_spectrum, l_spectrum, &
       &topography_spectrum, final_topography_spectrum
 
+  ! Layers
+  real, dimension(:, :, :), allocatable :: zTFC, zTildeTFC
+
+  ! Stretched vertical grid
+  real, dimension(:), allocatable :: zS, zTildeS
+
+  ! Temporal derivatives of metric-tensor elements and inverse Jacobian.
+  real, dimension(:, :, :), allocatable :: dMet13Dt, dMet23Dt, dJacInvDt
+
   ! vertical index of (velocity) reconstruction points just above the
   ! mountain surface
   integer, dimension(:, :, :), allocatable :: kbl_topo
@@ -639,8 +640,6 @@ module type_module
   real :: z_0
 
   integer :: ipolTFC
-  logical :: freeSlipTFC
-  logical :: testTFC
 
   real :: topographyTime
 
@@ -649,10 +648,12 @@ module type_module
   integer :: mountain_case
   real :: range_factor
   integer :: spectral_modes
+  real :: envelope_reduction
+  real :: stretch_exponent
 
-  namelist / topographyList / topography, ipolTFC, freeSlipTFC, testTFC, &
-      &topographyTime, mountainHeight_dim, mountainWidth_dim, mountain_case, &
-      &range_factor, spectral_modes
+  namelist / topographyList / topography, ipolTFC, topographyTime, &
+      &mountainHeight_dim, mountainWidth_dim, mountain_case, range_factor, &
+      &spectral_modes, envelope_reduction, stretch_exponent
   !UAB
   !UAE
 
@@ -688,13 +689,17 @@ module type_module
 
   logical :: relax_to_mean
 
+  real :: relaxation_period
+  real :: relaxation_amplitude
+
   ! gaga: backup, delete later
   real, dimension(:, :), allocatable :: u_const ! constant wind for baroclinic life cycle experiments
 
   namelist / boundaryList / rhoFluxCorr, iceFluxCorr, uFluxCorr, vFluxCorr, &
       &wFluxCorr, thetaFluxCorr, nbCellCorr, spongeLayer, sponge_uv, &
       &spongeHeight, spongeAlphaZ_dim, spongeAlphaZ_fac, unifiedSponge, &
-      &lateralSponge, spongeType, spongeOrder, cosmoSteps, relax_to_mean
+      &lateralSponge, spongeType, spongeOrder, cosmoSteps, relax_to_mean, &
+      &relaxation_period, relaxation_amplitude
 
   ! boundary types
   character(len = 15) :: xBoundary
@@ -751,6 +756,8 @@ module type_module
 
   ! maximum group velocities
   real :: cgx_max, cgy_max, cgz_max
+
+  real, dimension(:, :, :), allocatable :: cgz_max_tfc
 
   namelist / wkbList / rayTracer
 
@@ -872,21 +879,17 @@ module type_module
   logical :: update_phase = .true. !update phase in tracer
   logical :: average_cell = .false. ! average vertical velocity RT
   logical :: average_cell_3 = .false. !compute averaged vertical velocity, use three cells
-  integer :: reconstruct_gw_field = 1 ! 1 average over waveaction density
+  integer :: reconstruct_gw_field ! 1 average over waveaction density
   ! 2 superimpose waves from different RV
 
   logical :: gauss_smoothing = .false. !apply gaussian kernel smoothing
-  logical :: test_wps = .false. !compare old RT superposition of WavePackets
-  !run rir72 from GWI_ice_grusi_WS_24-25
-
-  !  logical, parameter :: parameterized_nucleation = .true. !switch on parameterization of nucleatio
   logical :: parameterized_nucleation = .false. !switch on parameterization of nucleatio
   real * 4, dimension(:, :), allocatable :: field_out_cld, field_mst_cld
 
   namelist / iceList / inN, inQ, inQv, nVarIce, dt_ice, no_ice_source, &
       &parameterized_nucleation, average_cell, average_cell_3, &
       &compute_cloudcover, NSCX, NSCY, gauss_smoothing, reconstruct_gw_field, &
-      &test_wps, compare_raytracer
+      &compare_raytracer
 
   integer, parameter :: NWM_WP = 2
   integer :: TWM
@@ -996,6 +999,7 @@ module type_module
     sm_filter = 2
     lsaturation = .true.
     alpha_sat = 1.0
+    single_column = .false.
     steady_state = .false.
     case_wkb = 3
     amp_wkb = 1.0
@@ -1016,7 +1020,6 @@ module type_module
     zmin_wkb_dim = 0.0
     nray_fac = 20
     cons_merge = "en"
-    nRayOutput = 10
 
     ! Bubbles
     dTheta0_dim = 1.0
@@ -1105,9 +1108,6 @@ module type_module
     tStepChoice = "cfl"
     timeScheme = "LS_Will_RK3"
     auxil_equ = .false.
-    fluxType = "upwind"
-    reconstType = "MUSCL"
-    musclType = "muscl1"
     limiterType1 = "MCVariant"
     TurbScheme = .false.
     turb_dts = 5.0e3
@@ -1123,12 +1123,10 @@ module type_module
     abs_tol = 0.0
     tolCond = 1.0e-23
     maxIterPoisson = 1000
-    poissonSolverType = "bicgstab"
     preconditioner = "yes"
     dtau = 4.0e-4
     maxIterADI = 2
     initialCleaning = .true.
-    pressureScaling = .false.
     correctMomentum = .true.
     correctDivError = .false.
     tolcrit = "abs"
@@ -1159,14 +1157,14 @@ module type_module
     ! Topography
     topography = .false.
     ipolTFC = 2
-    freeSlipTFC = .false.
-    testTFC = .false.
     topographyTime = 0.0
     mountainHeight_dim = 0.1 * (lz_dim(1) - lz_dim(0))
     mountainWidth_dim = 0.1 * (lx_dim(1) - lx_dim(0))
     mountain_case = 1
     range_factor = 1.0
     spectral_modes = 1
+    envelope_reduction = 0.0
+    stretch_exponent = 1.0
 
     ! Boundaries
     rhoFluxCorr = .false.
@@ -1185,6 +1183,8 @@ module type_module
     spongeOrder = 1
     cosmoSteps = 1
     relax_to_mean = .true.
+    relaxation_period = 0.0
+    relaxation_amplitude = 0.0
     xBoundary = "periodic"
     yBoundary = "periodic"
     zBoundary = "solid_wall"
@@ -1215,7 +1215,7 @@ module type_module
     NSCY = 1
     gauss_smoothing = .false.
     reconstruct_gw_field = 1
-    test_wps = .false.
+    parameterized_nucleation = .false.
 
   end subroutine default_values
 
@@ -1516,6 +1516,7 @@ module type_module
       call write_logical("lsaturation", lsaturation, "Switch for saturation &
           &scheme")
       call write_float("alpha_sat", alpha_sat, "Saturation threshold")
+      call write_logical("single_column", single_column, "Single-column mode")
       call write_logical("steady_state", steady_state, "Steady-state mode")
       call write_integer("case_wkb", case_wkb, "1 = Gaussian wave packet, 2 &
           &= cosine wave packet, 3 = mountain wave")
@@ -1544,8 +1545,6 @@ module type_module
           &per spectral dimension")
       call write_character("cons_merge", cons_merge, "Conserved quantity in &
           &ray-volume merging ('wa' = wave action, 'en' = wave energy)")
-      call write_integer("nRayOutput", nRayOutput, "Number of dominant ray &
-          &volumes in output")
       write(90, "(a)") "&end"
       write(90, "(a)") ""
 
@@ -1687,11 +1686,6 @@ module type_module
       call write_character("timeScheme", timeScheme, "'LS_Will_RK3' or &
           &'semiimplicit'")
       call write_logical("auxil_equ", auxil_equ, "Buoyancy equation")
-      call write_character("fluxType", fluxType, "'ILES', 'central' or &
-          &'upwind'")
-      call write_character("reconstType", reconstType, "'MUSCL', 'constant', &
-          &'SALD' or 'ALDM'")
-      call write_character("musclType", musclType, "'muscl1' or 'muscl2'")
       call write_character("limiterType1", limiterType1, "'minmod', &
           &'MCVariant' or 'Cada'")
       call write_logical("TurbScheme", TurbScheme, "Turbulence scheme")
@@ -1716,14 +1710,11 @@ module type_module
       call write_float("abs_tol", abs_tol, "Lower bound for tolerance")
       call write_float("tolCond", tolCond, "Preconditioner tolerance")
       call write_integer("maxIterPoisson", maxIterPoisson, "Maximum iterations")
-      call write_character("poissonSolverType", poissonSolverType, &
-          &"'bicgstab', 'gcr', 'adi' or 'hypre'")
       call write_character("preconditioner", preconditioner, "'no' or 'yes'")
       call write_float("dtau", dtau, "Time parameter for preconditioner")
       call write_integer("maxIterADI", maxIterADI, "Preconditioner iterations")
       call write_logical("initialCleaning", initialCleaning, "Enforce initial &
           &non-divergence")
-      call write_logical("pressureScaling", pressureScaling, "Scale by P")
       call write_logical("correctMomentum", correctMomentum, "Correct momentum &
           &so that divergence constraint is fulfilled")
       call write_logical("correctDivError", correctDivError, "Subtract &
@@ -1779,9 +1770,6 @@ module type_module
           &coordinates")
       call write_integer("ipolTFC", ipolTFC, "Interpolation in the &
           &transformation of w")
-      call write_logical("freeSlipTFC", freeSlipTFC, "Transformed free-slip &
-          &condition")
-      call write_logical("testTFC", testTFC, "Various TFC tests")
       call write_float("topographyTime", topographyTime, "Topography growth &
           &time")
       call write_float("mountainHeight_dim", mountainHeight_dim, "Maximum &
@@ -1793,6 +1781,10 @@ module type_module
           &small scales")
       call write_integer("spectral_modes", spectral_modes, "Number of spectral &
           &modes")
+      call write_float("envelope_reduction", envelope_reduction, "Relative &
+          &reduction of the envelope (between 0 and 1)")
+      call write_float("stretch_exponent", stretch_exponent, "Exponent of &
+          &vertical grid stretching (1 for no stretching)")
       write(90, "(a)") "&end"
       write(90, "(a)") ""
 
@@ -1829,6 +1821,12 @@ module type_module
       call write_logical("relax_to_mean", relax_to_mean, "Relax the wind to &
           &its (terrain-following) horizontal mean (otherwise, relax to the &
           &initial state) if unifiedSponge == .true.")
+      call write_float("relaxation_period", relaxation_period, "Period of an &
+          &oscillation superposed on the background wind if unifiedSponge &
+          &== .true. and relax_to_mean == .false. (0 for no oscillation)")
+      call write_float("relaxation_amplitude", relaxation_amplitude, "Relative &
+          &amplitude of an oscillation superposed on the background wind if &
+          &unifiedSponge == .true. and relax_to_mean == .false.")
       write(90, "(a)") "&end"
       write(90, "(a)") ""
 
@@ -1864,12 +1862,21 @@ module type_module
 
       ! Write ice namelist.
       write(90, "(a)") "&iceList"
-      call write_integer("inN", inN, "...")
-      call write_integer("inQ", inQ, "...")
-      call write_integer("inQv", inQv, "...")
-      call write_integer("nVarIce", nVarIce, "...")
-      call write_float("dt_ice", dt_ice, "...")
-      call write_logical("no_ice_source", no_ice_source, "...")
+      call write_integer("inN", inN, "Ice number concentration")
+      call write_integer("inQ", inQ, "Ice mixing ratio")
+      call write_integer("inQv", inQv, "Vapor mixing ratio")
+      call write_integer("nVarIce", nVarIce, "Number ice variables")
+      call write_float("dt_ice", dt_ice, "Time step ice microphysics")
+      call write_logical("no_ice_source", no_ice_source, "Switch off ice &
+          &microphysics, only advect")
+      call write_logical("parameterized_nucleation", parameterized_nucleation, &
+          &"Param. or resolved nucleation source term")
+      !reconstruct_gw_field = 2,
+      !average_cell = .true.
+      call write_logical("compute_cloudcover", compute_cloudcover, 'Compute &
+          &ice physics on a sub-grid within PinCFlow grid')
+      call write_integer("nscx", nscx, "sub-grid points in x per cell")
+      call write_integer("nscx", nscy, "sub-grid points in y per cell")
       write(90, "(a)") "&end"
 
       ! Close info file.

@@ -12,7 +12,6 @@ program pinc_prog
   use timeScheme_module
   use init_module
   use wkb_module
-  use xweno_module
   use atmosphere_module
   use boundary_module
   use flux_module
@@ -235,13 +234,8 @@ program pinc_prog
 
   if(rayTracer) var%GWH = 0.0 ! Heating due to GWs in the rotating atmosphere
 
-  if(poissonSolverType == 'bicgstab') then
-    call SetUpBiCGStab ! Set BiCGStab arrays
-  else
-    stop 'ERROR: only BiCGStab ready to be used'
-  end if
+  call SetUpBiCGStab ! Set BiCGStab arrays
 
-  call init_xweno ! set ILES parameters
   call init_fluxes ! allocate tilde variables
   call init_update
   call init_timeScheme ! define Runge-Kutta parameters
@@ -251,89 +245,6 @@ program pinc_prog
 
   if(zero_initial_state) then
     call reset_var_type(var)
-  end if
-
-  ! TFC FJ
-  ! TFC tests.
-  if(topography .and. testTFC) then
-    do k = 1, nz
-      kr_sp_tfc(:, :, k) = k
-      kr_sp_w_tfc(:, :, k) = k
-    end do
-    pStrat_0 = pStrat
-    call random_number(var%rho)
-    call random_number(var%u)
-    call random_number(var%v)
-    call random_number(var%w)
-    call random_number(var%pi)
-    call random_number(var%rhop)
-    call random_number(flux%rho)
-    call random_number(flux%u)
-    call random_number(flux%v)
-    call random_number(flux%w)
-    call random_number(flux%rhop)
-    call random_number(force)
-    if(timeScheme == "semiimplicit") then
-      ! Linear operator test
-      call setHalos(var, "var")
-      call setBoundary(var, flux, "var")
-      call linearOperatorTestTFC(var, 1.0, "impl", 1.0)
-      ! Corrector step test
-      call setHalos(var, "var")
-      call setBoundary(var, flux, "var")
-      call correctorStepTestTFC(var, dMom, "impl")
-      ! Momentum predictor test
-      call setHalos(var, "var")
-      call setBoundary(var, flux, "var")
-      call setBoundary(var, flux, "flux")
-      call momentumPredictorTestTFC(var, flux, force, dMom, "impl")
-      ! Mass update test
-      call setHalos(var, "var")
-      call setBoundary(var, flux, "var")
-      call setBoundary(var, flux, "flux")
-      call massUpdateTestTFC(var, flux, dRho, "impl")
-    else
-      ! Linear operator test
-      call setHalos(var, "var")
-      call setBoundary(var, flux, "var")
-      call linearOperatorTestTFC(var, 1.0, "expl", 1.0)
-      ! Corrector step test
-      call setHalos(var, "var")
-      call setBoundary(var, flux, "var")
-      call correctorStepTestTFC(var, dMom, "expl")
-      ! Momentum predictor test
-      call setHalos(var, "var")
-      call setBoundary(var, flux, "var")
-      call setBoundary(var, flux, "flux")
-      call momentumPredictorTestTFC(var, flux, force, dMom, "expl")
-      ! Mass update test
-      call setHalos(var, "var")
-      call setBoundary(var, flux, "var")
-      call setBoundary(var, flux, "flux")
-      call massUpdateTestTFC(var, flux, dRho, "expl")
-    end if
-    ! Reconstruction test
-    call setHalos(var, "var")
-    call setBoundary(var, flux, "var")
-    call reconstructionTestTFC(var)
-    ! Momentum flux test
-    call setHalos(var, "var")
-    call setBoundary(var, flux, "var")
-    call reconstruction(var, "uvw")
-    call setHalos(var, "varTilde")
-    call setBoundary(var, flux, "varTilde")
-    call momentumFlux(var, var, flux, "nln", PStrat, PStratTilde)
-    call setBoundary(var, flux, "flux")
-    call setHalos(var, "var")
-    call setBoundary(var, flux, "var")
-    call momentumFluxTestTFC(var, flux, RKStage)
-    ! Mass flux test
-    call setHalos(var, "varTilde")
-    call setBoundary(var, flux, "varTilde")
-    call massFluxTestTFC(var, flux)
-    if(master) then
-      stop "TFC tests completed!"
-    end if
   end if
 
   !---------------------------------------------
@@ -359,6 +270,8 @@ program pinc_prog
 
     if(model == "compressible") then
       call add_JP_to_u(var, "forward")
+      call setHalos(var, "var")
+      call setBoundary(var, flux, "var")
     end if
 
     call Corrector(var, flux, dMom, 1.0, errFlagBicg, nIterBicg, 1, "expl", &
@@ -366,6 +279,8 @@ program pinc_prog
 
     if(model == "compressible") then
       call add_JP_to_u(var, "backward")
+      call setHalos(var, "var")
+      call setBoundary(var, flux, "var")
     end if
 
     if(errFlagBicg) stop
@@ -394,6 +309,12 @@ program pinc_prog
       !* uTime = 0 !set initial time
       call calc_ice(ray, var, ray_varIce, ray_cloud)
     end if
+  else
+    ! allocate ray_varice/ray_cloud for running with debug option
+    allocate(ray_varIce(0:1, 0:1, 0:1), stat = allocstat)
+    if(allocstat /= 0) stop "setup_wkb: could not allocate ray_varIce"
+    allocate(ray_cloud(0:1, 0:1, 0:1, NSCX, NSCY), stat = allocstat)
+    if(allocstat /= 0) stop "setup_wkb: could not allocate ray_cloud"
 
   end if
 
@@ -478,7 +399,8 @@ program pinc_prog
   if(rayTracer) then
     call write_netCDF(iOut, iTime, time, cpuTime, var, waveAmplitudes &
         &= waveAmplitudes)
-    if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
+    if(include_ice .and. compute_cloudcover) call output_cloud(iOut, var, &
+        &ray_cloud)
   else
     call write_netCDF(iOut, iTime, time, cpuTime, var)
   end if
@@ -547,7 +469,8 @@ program pinc_prog
           call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
               &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
         end if
-        if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
+        if(include_ice .and. compute_cloudcover) call output_cloud(iOut, var, &
+            &ray_cloud)
       else
         call write_netCDF(iOut, iTime, time, cpuTime, var)
       end if
@@ -578,7 +501,7 @@ program pinc_prog
 
     ! Update the topography.
     if(topography .and. topographyTime > 0.0) then
-      call update_topography(time)
+      call update_topography(time, dt)
     end if
 
     ! Check for static instability.
@@ -589,7 +512,7 @@ program pinc_prog
     !         if(pStratTFC(i, j, k) / (var(i, j, k, 1) + rhoStratTFC(i, j, k)) &
     !             < pStratTFC(i, j, k - 1) / (var(i, j, k - 1, 1) &
     !             + rhoStratTFC(i, j, k - 1))) then
-    !           print *, "Static instability at z =", heightTFC(i, j, k), "m"
+    !           print *, "Static instability at z =", zTFC(i, j, k), "m"
     !         end if
     !       end do
     !     end do
@@ -659,7 +582,7 @@ program pinc_prog
           do j = 0, ny + 1
             do i = 0, nx + 1
               if(topography) then
-                height = heightTFC(i, j, k)
+                height = zTFC(i, j, k)
               else
                 height = z(k)
               end if
@@ -812,9 +735,9 @@ program pinc_prog
           do k = 1, nz
             do j = 1, ny
               do i = 1, nx
-                if(heightTFC(i, j, k) >= zSponge) then
-                  kr_sp_tfc(i, j, k) = alpspg * sin(0.5 * pi * (heightTFC(i, &
-                      &j, k) - zSponge) / (lz(1) - zSponge)) ** 2.0
+                if(zTFC(i, j, k) >= zSponge) then
+                  kr_sp_tfc(i, j, k) = alpspg * sin(0.5 * pi * (zTFC(i, j, k) &
+                      &- zSponge) / (lz(1) - zSponge)) ** 2.0
                   kr_sp_w_tfc(i, j, k) = kr_sp_tfc(i, j, k) / jac(i, j, k)
                 end if
               end do
@@ -867,12 +790,6 @@ program pinc_prog
         stop
       end if
 
-      if(updateTheta) then
-        print *, 'ERROR: semiimplicit time stepping does not allow  &
-            &updateTheta = .true.'
-        stop
-      end if
-
       ! initialize zero volume force
       ! (to be filled by ray tracer and wind relaxation at the
       ! horizontal boundaries)
@@ -915,12 +832,10 @@ program pinc_prog
 
       ! set density fluctuation (synchronization step)
 
-      ! TFC FJ
-      ! Boussinesq: density fluctuations are only stored in var(:, :, :, 6)!
+      ! Boussinesq: density fluctuations are only stored in var%rhop!
       select case(model)
       case("pseudo_incompressible")
         if(topography) then
-          ! TFC FJ
           ! Stationary background in TFC.
           var%rhop(:, :, :) = var%rho(:, :, :)
         else
@@ -1016,17 +931,17 @@ program pinc_prog
         call massUpdate(var, flux, 0.5 * dt, dRho, RKstage, "rho", "tot", &
             &"expl", 1.)
 
-        call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, "rho")
+        call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, time, "rho")
 
         call massUpdate(var, flux, 0.5 * dt, dRhop, RKstage, "rhop", "lhs", &
             &"expl", 1.)
 
-        call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, "rhop")
+        call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, time, "rhop")
 
         if(model == "compressible") then
           call massUpdate(var, flux, 0.5 * dt, dPot, RKstage, "P", "tot", &
               &"expl", 1.)
-          call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, "P")
+          call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, time, "P")
         end if
 
         if(include_tracer) then
@@ -1042,7 +957,7 @@ program pinc_prog
         call momentumPredictor(var, flux, force, 0.5 * dt, dMom, RKstage, &
             &"lhs", "expl", 1.)
 
-        call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, "uvw")
+        call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, time, "uvw")
 
       end do
 
@@ -1053,7 +968,7 @@ program pinc_prog
           call piUpdate(var0, pinew, 0.5 * dt, "expl_heating", flux0)
           var%pi(:, :, :) = pinew(:, :, :)
         end if
-        call applyUnifiedSponge(var, 0.5 * dt, "pi")
+        call applyUnifiedSponge(var, 0.5 * dt, time, "pi")
       end if
 
       ! (2) implicit integration of the linear right-hand sides of the
@@ -1245,6 +1160,8 @@ program pinc_prog
       if(model == "compressible") then
         call add_JP_to_u(var, "backward")
         var%pi(:, :, :) = pinew(:, :, :) ! update pi' with pinew from the piUpdate
+        call setHalos(var, "var")
+        call setBoundary(var, flux, "var")
       end if
       ! Shapiro filter
 
@@ -1321,21 +1238,25 @@ program pinc_prog
 
         call massUpdate(var, flux, dt, dRho, RKstage, "rho", "tot", "expl", 1.)
 
-        call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "rho")
+        call applyUnifiedSponge(var, stepFrac(RKstage) * dt, time, "rho")
 
         call massUpdate(var, flux, dt, dRhop, RKstage, "rhop", "lhs", "expl", &
             &1.)
 
-        call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "rhop")
+        call applyUnifiedSponge(var, stepFrac(RKstage) * dt, time, "rhop")
 
         if(model == "compressible") then
           call massUpdate(var, flux, dt, dPot, RKstage, "P", "tot", "expl", 1.)
-          call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "P")
+          call applyUnifiedSponge(var, stepFrac(RKstage) * dt, time, "P")
         end if
 
         if(include_tracer) then
           call tracerUpdate(var, flux, tracerforce, dt, dTracer, RKstage)
         end if
+
+        !SD
+        !if(include_ice) call integrate_ice_advection(var, var0, flux, "lin", &
+        !    source, dt, dIce, RKstage, PStrat01, PStratTilde01)
 
         ! RK step for momentum
         call setHalos(var, "var")
@@ -1345,11 +1266,7 @@ program pinc_prog
         call momentumPredictor(var, flux, force, dt, dMom, RKstage, "lhs", &
             &"expl", 1.)
 
-        call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "uvw")
-
-        !SD
-        !if(include_ice) call integrate_ice_advection(var, var0, flux, "lin", &
-        !    source, dt, dIce, RKstage, PStrat01, PStratTilde01)
+        call applyUnifiedSponge(var, stepFrac(RKstage) * dt, time, "uvw")
 
       end do
 
@@ -1360,7 +1277,7 @@ program pinc_prog
           call piUpdate(var1, pinew, dt, "expl_heating", flux0) ! use explicitly updated pi'
           var%pi(:, :, :) = pinew(:, :, :)
         end if
-        call applyUnifiedSponge(var, dt, "pi")
+        call applyUnifiedSponge(var, dt, time, "pi")
       end if
 
       ! (5) implicit integration of the linear right-hand sides of the
@@ -1466,6 +1383,8 @@ program pinc_prog
 
       if(model == "compressible") then
         call add_JP_to_u(var, "backward")
+        call setHalos(var, "var")
+        call setBoundary(var, flux, "var")
       end if
 
       if(errFlagBicg) then
@@ -1557,55 +1476,25 @@ program pinc_prog
 
         if(rayTracer) then
 
-          if(.not. include_ice) then
-            call transport_rayvol(var, ray, dt, RKstage, time)
+          call transport_rayvol(var, ray, dt, RKstage, time)
 
-            if(RKstage == nStages) then
-              call split_rayvol(ray)
-              call shift_rayvol(ray)
-              call merge_rayvol(ray)
-              call boundary_rayvol(ray)
-              call calc_meanFlow_effect(ray, var, force, ray_var3D)
-
-              if(include_tracer) then
-                call calc_tracerforce(ray, var, ray_var3D, tracerforce, &
-                    &waveAmplitudes, dt)
-              end if
-            end if ! RKstage=nstage
-
-          elseif(include_ice) then
-
-            call transport_rayvol(var, ray, dt, RKstage, time)
-            call boundary_rayvol(ray)
-            if(.not. test_wps) then
-              call split_rayvol(ray)
-            end if
+          if(RKstage == nStages) then
+            call split_rayvol(ray)
             call shift_rayvol(ray)
-
-            if(.not. test_wps) then
-              call merge_rayvol(ray)
-              call calc_meanFlow_effect(ray, var, force, ray_var3D)
-              call calc_ice(ray, var, ray_varIce, ray_cloud)
-            else
-              call calc_ice(ray, var, ray_varIce, ray_cloud)
-              call calc_meanFlow_effect(ray, var, force, ray_var3D)
-            end if
+            call merge_rayvol(ray)
+            call boundary_rayvol(ray)
+            call calc_meanFlow_effect(ray, var, force, ray_var3D)
 
             if(include_tracer) then
               call calc_tracerforce(ray, var, ray_var3D, tracerforce, &
                   &waveAmplitudes, dt)
             end if
 
-            !if(RKstage == nStages) then
-            !call boundary_rayvol(ray)
-            !call split_rayvol(ray)
-            !call shift_rayvol(ray)
-            !call merge_rayvol(ray)
-            !call calc_meanFlow_effect(ray, var, force, ray_var3D, dt, diffusioncoeff, tracerfluxvar, tracerforce)
-            !call calc_ice(ray, var)
-            !end if
+            if(include_ice) then
+              call calc_ice(ray, var, ray_varIce, ray_cloud)
+            endif
 
-          end if ! include_ice
+          end if ! RKstage=nstage
         end if ! raytracer
 
         ! Reconstruction
@@ -1621,7 +1510,6 @@ program pinc_prog
           call reconstruction(var, "rhop")
         end if
 
-        if(updateTheta) call reconstruction(var, "theta")
         if(predictMomentum .or. (testcase == "nIce_w_test")) call &
             &reconstruction(var, "uvw")
         if((include_tracer) .and. (updateTracer)) call reconstruction(var, &
@@ -1643,11 +1531,6 @@ program pinc_prog
 
         if(updateTracer) then
           call tracerFlux(var, var, flux, "nln", PStrat, PStratTilde)
-        end if
-
-        if(updateTheta) then
-          call thetaFlux(var, flux)
-          call thetaSource(var, source)
         end if
 
         if(predictMomentum) then
@@ -1684,7 +1567,7 @@ program pinc_prog
           call massUpdate(var, flux, dt, dRho, RKstage, "rho", "tot", "expl", &
               &1.)
           if(testCase /= 'baroclinic_LC') then
-            call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "rho")
+            call applyUnifiedSponge(var, stepFrac(RKstage) * dt, time, "rho")
           end if
 
           if(auxil_equ) then
@@ -1694,7 +1577,7 @@ program pinc_prog
             call massUpdate(var, flux, dt, dRhop, RKstage, "rhop", "tot", &
                 &"expl", 1.)
             if(testCase /= 'baroclinic_LC') then
-              call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "rhop")
+              call applyUnifiedSponge(var, stepFrac(RKstage) * dt, time, "rhop")
             end if
           end if
 
@@ -1708,19 +1591,8 @@ program pinc_prog
           call tracerUpdate(var, flux, tracerforce, dt, dTracer, RKstage)
         end if
 
-        if(updateTheta) then
-          ! theta_new
-
-          call setHalos(var, "var")
-          call setBoundary(var, flux, "var")
-
-          if(RKstage == 1) dTheta = 0. ! init q
-
-          call thetaUpdate(var, var0, flux, source, dt, dTheta, RKstage)
-        else
-          if(iTime == 1 .and. RKstage == 1 .and. master) print *, "main: &
-              &ThetaUpdate off!"
-        end if
+        !if(include_ice) call integrate_ice_advection(var, var0, flux, "lin", &
+        !    source, dt, dIce, RKstage, PStrat01, PStratTilde01)
 
         if(predictMomentum) then
           ! predictor: uStar
@@ -1733,7 +1605,7 @@ program pinc_prog
           call momentumPredictor(var, flux, force, dt, dMom, RKstage, "tot", &
               &"expl", 1.)
           if(testCase /= 'baroclinic_LC') then
-            call applyUnifiedSponge(var, stepFrac(RKstage) * dt, "uvw")
+            call applyUnifiedSponge(var, stepFrac(RKstage) * dt, time, "uvw")
           end if
         else
           if(iTime == 1 .and. RKstage == 1 .and. master) print *, "main: &
@@ -1749,7 +1621,7 @@ program pinc_prog
           case("classical")
             dt_Poisson = rk(3, RKstage) * dt
           case default
-            stop "thetaUpdate: unknown case timeSchemeType"
+            stop "Error in pinc_prog: Unknown case timeSchemeType!"
           end select
 
           shap_dts = shap_dts_fac / tRef
@@ -1771,7 +1643,7 @@ program pinc_prog
           case("classical")
             dt_Poisson = rk(3, RKstage) * dt
           case default
-            stop "thetaUpdate: unknown case timeSchemeType"
+            stop "Error in pinc_prog: Unknown case timeSchemeType!"
           end select
 
           call Corrector(var, flux, dMom, dt_Poisson, errFlagBicg, nIterBicg, &
@@ -1835,7 +1707,7 @@ program pinc_prog
       end do Runge_Kutta_Loop
     end if ! timeScheme
 
-    ! integrate ice physics/advection with fixed dry dynamics
+    !explicit integration of ice physics/advection with fixed dry dynamics
     if(include_ice) then
 
       n_step_ice = ceiling(dt * tRef / dt_ice)
@@ -1843,16 +1715,18 @@ program pinc_prog
 
       do ii = 1, n_step_ice
         do RKstage = 1, nStages
+          !INTEGRATION OF ICE PHYSICS ONLY WITHOUT ADVECTION
+          !ADVECTION SHOULD BE INTEGRATED IN THE EXPL. /IMPLICIT PART
           call integrate_ice(var, var0, flux, "nln", source, dtt_ice, dIce, &
               &RKstage, PStrat, PStratTilde, 'PHY', uTime, qTime, ray_varIce, &
               &ray_cloud)
-          !              RKstage, PStrat, PStratTilde, 'BOT', uTime, qTime)
-          !INTEGRATE ONLY ICE PHYSICS WITHOUT ADVECTION for TESTING
         end do ! RKstage
       end do !ii
+
       if(master) then
-        print *, 'maxval', maxval(var%ICE(:, :, :, inN)), maxval(var%ICE(:, :, &
-            &:, inQ)), maxval(var%ICE(:, :, :, inQv))
+        print *, 'maxval N, Q, Qv', real(maxval(var%ICE(:, :, :, inN)), 4), &
+            &real(maxval(var%ICE(:, :, :, inQ)), 4), real(maxval(var%ICE(:, :, &
+            &:, inQv)), 4)
       end if
     end if !include_ice
 
@@ -1876,7 +1750,8 @@ program pinc_prog
             call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
                 &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
           end if
-          if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
+          if(include_ice .and. compute_cloudcover) call output_cloud(iOut, &
+              &var, ray_cloud)
         else
           call write_netCDF(iOut, iTime, time, cpuTime, var)
         end if
@@ -1903,7 +1778,8 @@ program pinc_prog
             call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
                 &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
           end if
-          if(compute_cloudcover) call output_cloud(iOut, var, ray_cloud)
+          if(include_ice .and. compute_cloudcover) call output_cloud(iOut, &
+              &var, ray_cloud)
         else
           call write_netCDF(iOut, iTime, time, cpuTime, var)
         end if
@@ -1982,18 +1858,12 @@ program pinc_prog
       &dRhop, dMom, dTheta, dIce, dTracer, tracerforce, dPot)
   call terminate_atmosphere
 
-  if(poissonSolverType == 'bicgstab') then
-
-    !CHANGES : cleaning master leads to MPI error ?
-    if(master) then
-      ! do nothing
-      !call CleanUpBiCGSTab ! Clean Up BiCGSTAB arrays
-    else
-      call CleanUpBiCGSTab ! Clean Up BiCGSTAB arrays
-    end if
-
+  !CHANGES : cleaning master leads to MPI error ?
+  if(master) then
+    ! do nothing
+    !call CleanUpBiCGSTab ! Clean Up BiCGSTAB arrays
   else
-    stop 'ERROR: BICGSTAB expected as Poisson solver'
+    call CleanUpBiCGSTab ! Clean Up BiCGSTAB arrays
   end if
 
   666 if(master) then

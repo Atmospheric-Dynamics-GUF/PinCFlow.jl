@@ -5,7 +5,7 @@ import cmasher
 import numpy
 import re
 
-def symmetric_contours(minimum, maximum, number = 25, colormap = "default"):
+def symmetric_contours(minimum, maximum, number = 10, colormap = "seismic"):
   """Compute symmetric contour levels and crop the colormap accordingly."""
 
   # Compute contour levels.
@@ -71,7 +71,7 @@ pyplot.style.use([entry for entry in pyplot.style.available if \
 pyplot.rcParams["figure.constrained_layout.use"] = True
 pyplot.rcParams["figure.figsize"] = (4.0, 3.0)
 pyplot.rcParams["font.family"] = "serif"
-pyplot.rcParams["image.cmap"] = "default"
+pyplot.rcParams["image.cmap"] = "seismic"
 pyplot.rcParams["legend.frameon"] = False
 pyplot.rcParams["text.latex.preamble"] = preamble
 pyplot.rcParams["text.usetex"] = True

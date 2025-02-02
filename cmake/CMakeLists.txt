@@ -59,8 +59,7 @@ add_executable(pinc
     ../src/tracer.f90
     ../src/types.f90
     ../src/update.f90
-    ../src/wkb.f90
-    ../src/xweno.f90)
+    ../src/wkb.f90)
 
 # Print information.
 message("[INFO] Compiler ID is " ${CMAKE_Fortran_COMPILER_ID})

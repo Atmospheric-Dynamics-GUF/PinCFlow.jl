@@ -3,7 +3,7 @@
 #SBATCH --job-name=IGW
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --time=0-00:05:00
+#SBATCH --time=0-00:10:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
 #SBATCH --output=IGW.o%j

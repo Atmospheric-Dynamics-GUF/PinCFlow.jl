@@ -7,15 +7,15 @@ module ice_module
   subroutine setup_ice(var)
 
     use type_module
-    use atmosphere_module, ONLY:heightTFC, tRef, rhoRef, lRef, thetaRef, pRef, &
-        &PStrat, rhoStrat, piStrat, kappaInv, PStratTFC, piStratTfc, &
-        &rhoStratTFC, gamma_1, p0, g, Rsp
+    use atmosphere_module, ONLY:tRef, rhoRef, lRef, thetaRef, pRef, PStrat, &
+        &rhoStrat, piStrat, kappaInv, PStratTFC, piStratTfc, rhoStratTFC, &
+        &gamma_1, p0, g, Rsp
 
     implicit none
 
     type(var_type), intent(inout) :: var
 
-    integer, parameter :: ic_ice = 5
+    integer, parameter :: ic_ice = 1
 
     real :: dz_tr
     real :: rho, exn_p, pres, temp, theta, psi
@@ -74,275 +74,6 @@ module ice_module
 
     case(1)
 
-      !!$       if(master) then
-      !!$          open(44,file='test_output.dat',form="unformatted",access='direct',&
-      !!$               & recl=nx*ny)
-      !!$       end if
-
-      ! non-dimensional variables
-      ! top-hat/kink distribution
-      hzn = nz / 2
-      dzn = nz / 8
-      do k = 1, nz
-        !if ( k .ge. hzn .and. k .le. hzn+dzn ) then
-
-        do j = 1, ny
-          do i = 1, nx
-
-            if(topography) then
-
-              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
-
-              theta = PstratTFC(i, j, k) / rho
-
-              !problems in \pi
-              !if heating switched on
-              !if ( timeScheme == "semiimplicit" ) then
-              !   print*, 'iceSources works only with explicit integration'
-              !   stop
-              !else
-              exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
-              !end if
-
-            else
-
-              rho = var%rho(i, j, k) + rhoStrat(k)
-
-              !problems in \pi
-              !if heating switched on
-              theta = Pstrat(k) / rho
-
-              exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
-
-            end if ! topography
-
-            pres = p0 * exn_p ** kappaInv !kappaInv = c_p/R
-
-            temp = theta * exn_p
-
-            psi = Psat_ice(temp)
-
-            ! IC asymptotic model
-            !n = 0.1 * 2.E6
-            !S = 1.4
-            !q = meanMassIce * n
-
-            !dimensional IC for n, q_v, q
-            n0 = 0.1 * 2.E6 ![kg**-1]
-            S0 = 1.4 !1.48
-            qv0 = epsil0hat * S0 * psi / pres ! [kg/kg]
-            q0 = meanMassIce * n0
-
-            !double kink profile
-            !S0 = 1+0.5*tanh(5*(z(k)-8/lRef)/2)+ (1-0.5*tanh(5*(z(k)-10/lRef)/5)) -1.4
-
-            var%ICE(:, :, k, inN) = rho * n0 * mRef !\hat N = \hat \rho \hat n
-            var%ICE(:, :, k, inQv) = rho * qv0
-            var%ICE(:, :, k, inQ) = rho * q0
-
-          end do
-        end do
-
-        !end if !k in range
-
-      end do !k
-
-    case(2)
-      !linear profile
-      dz_tr = 0.1 * dz ! increment tracer
-
-      if(topography) then
-        if(master) then
-          print *, 'NEW TRACER PROF'
-        end if
-        do k = 1, nz
-          do j = 1, ny
-            do i = 1, nx
-
-              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
-              ! N = \rho n
-              var%ICE(:, :, k, inN) = dz_tr * heightTFC(i, j, k) * rho
-
-            end do
-          end do
-        end do
-
-      else
-
-        do k = 1, nz
-
-          ! N = \rho n
-          !var(:,:,k, inN) = (k-1)*0.1
-          var%ICE(:, :, k, inN) = dz_tr * (z(k) - z(1)) * (var%rho(:, :, k) &
-              &+ rhoStrat(k))
-
-        end do
-
-      end if
-
-    case(3)
-
-      !ISSRegion
-
-      !center ISSR
-      z0_issr = 8.e3 ! [m]
-      !vertical width ISSR (standard deviation of gaussian dist.)
-      sig_issr = 1.e3 ! [m]
-      !max value S in ISSR
-      S_issr = 1.45
-
-      !nondim.
-      z0_issr = z0_issr / lRef
-      sig_issr = sig_issr / lRef
-
-      do k = 1, nz
-
-        do j = 1, ny
-          do i = 1, nx
-
-            if(topography) then
-
-              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
-
-              theta = PstratTFC(i, j, k) / rho
-
-              !problems in \pi
-              !if heating switched on
-              !if ( timeScheme == "semiimplicit" ) then
-              !   print*, 'iceSources works only with explicit integration'
-              !   stop
-              !else
-              exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
-              !end if
-
-            else
-
-              rho = var%rho(i, j, k) + rhoStrat(k)
-
-              !problems in \pi
-              !if heating switched on
-              theta = Pstrat(k) / rho
-
-              exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
-
-            end if ! topography
-
-            pres = p0 * exn_p ** kappaInv !kappaInv = c_p/R
-
-            temp = theta * exn_p
-
-            psi = Psat_ice(temp)
-
-            ! IC asymptotic model
-            !n = 0.1 * 2.E6
-            !S = 1.4
-            !q = meanMassIce * n
-
-            !dimensional IC for n, q_v, q
-            n0 = 0. !0.1 * 2.E6 ![kg**-1]
-            S0 = S_issr * exp(- (z(k) - z0_issr) ** 2 / 2. / sig_issr ** 2)
-            qv0 = epsil0hat * S0 * psi / pres ! [kg/kg]
-            q0 = meanMassIce * n0
-
-            var%ICE(i, j, k, inN) = rho * n0 * mRef !\hat N = \hat \rho \hat n
-            var%ICE(i, j, k, inQv) = rho * qv0
-            var%ICE(i, j, k, inQ) = rho * q0
-
-          end do !i
-        end do !j
-
-      end do !k
-      !end case 3
-
-    case(4)
-
-      !ISSRegion
-
-      !center ISSR
-      z0_issr = 8.e3 ! [m]
-      !vertical width ISSR (standard deviation of gaussian dist.)
-      sig_issr = 4.e3 ! [m]
-      !max value S in ISSR
-      S_issr = 1.45
-
-      !nondim.
-      z0_issr = z0_issr / lRef
-      sig_issr = sig_issr / lRef
-
-      do k = 1, nz
-
-        do j = 1, ny
-          do i = 1, nx
-
-            if(topography) then
-
-              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
-
-              theta = PstratTFC(i, j, k) / rho
-
-              !problems in \pi
-              !if heating switched on
-              !if ( timeScheme == "semiimplicit" ) then
-              !   print*, 'iceSources works only with explicit integration'
-              !   stop
-              !else
-              exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
-              !end if
-
-            else
-
-              rho = var%rho(i, j, k) + rhoStrat(k)
-
-              !problems in \pi
-              !if heating switched on
-              theta = Pstrat(k) / rho
-
-              exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
-
-            end if ! topography
-
-            pres = p0 * exn_p ** kappaInv !kappaInv = c_p/R
-
-            temp = theta * exn_p
-
-            psi = Psat_ice(temp)
-
-            ! IC asymptotic model
-            !n = 0.1 * 2.E6
-            !S = 1.4
-            !q = meanMassIce * n
-
-            !dimensional IC for n, q_v, q
-            n0 = 0. !0.1 * 2.E6 ![kg**-1]
-            S0 = S_issr * exp(- (z(k) - z0_issr) ** 2 / 2. / sig_issr ** 2)
-            qv0 = epsil0hat * S0 * psi / pres ! [kg/kg]
-            q0 = meanMassIce * n0
-
-            var%ICE(i, j, k, inN) = rho * n0 * mRef !\hat N = \hat \rho \hat n
-            var%ICE(i, j, k, inQv) = rho * qv0
-            var%ICE(i, j, k, inQ) = rho * q0
-
-            if(include_testoutput) then
-
-              var%OPT(i, j, k, 1) = S0
-              var%OPT(i, j, k, 2) = pres * pRef
-              var%OPT(i, j, k, 3) = pres / psi * pRef / PsatIceRef
-
-              if(raytracer) then
-                var%OPT(i, j, k, 1) = S0
-                var%OPT(i, j, k, 2) = 0.
-                var%OPT(i, j, k, 3) = 0.
-              end if
-
-            end if
-
-          end do !i
-        end do !j
-
-      end do !k
-
-    case(5)
-
       !ISSRegion
 
       !center ISSR
@@ -359,98 +90,102 @@ module ice_module
       ! define flat topography
       if(topography) then
         topography_surface = 0.
+        print *, 'TOPOGRAPHY SURFACE SET TO ZERO in ice.f90 !'
+        stop
       end if
 
-      do k = 1, nz
+      !end case(1)
 
-        do j = 1, ny
-          do i = 1, nx
-
-            if(topography) then
-
-              rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
-
-              theta = PstratTFC(i, j, k) / rho
-
-              rhoMean = rhoStratTFC(i, j, k)
-
-              thetaMean = PstratTFC(i, j, k) / rhoMean
-
-              exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
-
-              exn_pMean = (PstratTFC(i, j, k) / p0) ** gamma_1
-
-            else
-
-              rho = var%rho(i, j, k) + rhoStrat(k)
-              rhoMean = rhoStrat(k)
-
-              theta = Pstrat(k) / rho
-
-              thetaMean = Pstrat(k) / rhoStrat(k)
-
-              exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
-
-              exn_pMean = (PStrat(k) / p0) ** gamma_1
-
-            end if ! topography
-
-            pres = p0 * exn_p ** kappaInv !kappaInv = c_p/R
-
-            presMean = p0 * exn_pMean ** kappaInv !kappaInv = c_p/R
-
-            temp = theta * exn_p
-
-            tempMean = thetaMean * exn_pMean
-
-            psi = Psat_ice(temp)
-
-            psiMean = Psat_ice(tempMean)
-
-            !dimensional IC for n, q_v, q
-            n0 = 0. !0.1 * 2.E6 ![kg**-1]
-
-            !use S0 to define q_v
-            !to be consistent with RayTracer simulation
-            !NB: S0 is not initial S_i
-            !S0  = q_v(0)* \mean p/ \mean p_si
-            !S_i = q_v(0)* p/p_si
-            if(topography) then
-              S0 = S_issr * exp(- (heightTFC(i, j, k) - z0_issr) ** 2 / 2. &
-                  &/ sig_issr ** 2)
-            else
-              S0 = S_issr * exp(- (z(k) - z0_issr) ** 2 / 2. / sig_issr ** 2)
-            end if
-
-            !qv0 = epsil0hat * S0 * psi / pres ! [kg/kg]
-            !CHANGES
-            qv0 = epsil0hat * S0 * psiMean / presMean ! [kg/kg]
-
-            q0 = meanMassIce * n0
-
-            var%ICE(i, j, k, inN) = rhoMean * n0 * mRef !\hat N = \hat \rho \hat n
-            var%ICE(i, j, k, inQv) = rhoMean * qv0
-            var%ICE(i, j, k, inQ) = rhoMean * q0
-
-            if(include_testoutput) then
-
-              !var%OPT(i, j, k, 1) = S0
-              !var%OPT(i, j, k, 2) = qv0 / epsil0hat * pres / psi ! store IC S
-
-              if(raytracer) then
-                !var(i, j, k, iVarO) = S0
-                !var%OPT(i, j, k, 2) = 0.
-                !var%OPT(i, j, k, 3) = 0.
-              end if
-            end if
-
-          end do !i
-        end do !j
-
-      end do !k
-      !end case(5)
-
+    case default
+      print *, 'invalid ic_ice selected'
+      stop
     end select
+
+    do k = 1, nz
+
+      do j = 1, ny
+        do i = 1, nx
+
+          if(topography) then
+
+            rho = var%rho(i, j, k) + rhoStratTFC(i, j, k)
+
+            theta = PstratTFC(i, j, k) / rho
+
+            rhoMean = rhoStratTFC(i, j, k)
+
+            thetaMean = PstratTFC(i, j, k) / rhoMean
+
+            exn_p = var%pi(i, j, k) + (PstratTFC(i, j, k) / p0) ** gamma_1
+
+            exn_pMean = (PstratTFC(i, j, k) / p0) ** gamma_1
+
+          else
+
+            rho = var%rho(i, j, k) + rhoStrat(k)
+            rhoMean = rhoStrat(k)
+
+            theta = Pstrat(k) / rho
+
+            thetaMean = Pstrat(k) / rhoStrat(k)
+
+            exn_p = var%pi(i, j, k) + (PStrat(k) / p0) ** gamma_1
+
+            exn_pMean = (PStrat(k) / p0) ** gamma_1
+
+          end if ! topography
+
+          pres = p0 * exn_p ** kappaInv !kappaInv = c_p/R
+
+          presMean = p0 * exn_pMean ** kappaInv !kappaInv = c_p/R
+
+          temp = theta * exn_p
+
+          tempMean = thetaMean * exn_pMean
+
+          psi = Psat_ice(temp)
+
+          psiMean = Psat_ice(tempMean)
+
+          !dimensional IC for n, q_v, q
+          n0 = 0. !0.1 * 2.E6 ![kg**-1]
+
+          !use S0 to define q_v
+          !to be consistent with RayTracer simulation
+          !NB: S0 is not initial S_i
+          !S0  = q_v(0)* \mean p/ \mean p_si
+          !S_i = q_v(0)* p/p_si
+          if(topography) then
+            S0 = S_issr * exp(- (zTFC(i, j, k) - z0_issr) ** 2 / 2. / sig_issr &
+                &** 2)
+          else
+            S0 = S_issr * exp(- (z(k) - z0_issr) ** 2 / 2. / sig_issr ** 2)
+          end if
+
+          qv0 = epsil0hat * S0 * psiMean / presMean ! [kg/kg]
+
+          q0 = meanMassIce * n0
+
+          var%ICE(i, j, k, inN) = rhoMean * n0 * mRef !\hat N = \hat \rho \hat n
+          var%ICE(i, j, k, inQv) = rhoMean * qv0
+          var%ICE(i, j, k, inQ) = rhoMean * q0
+
+          if(include_testoutput) then
+
+            !var%OPT(i, j, k, 1) = S0
+            !var%OPT(i, j, k, 2) = qv0 / epsil0hat * pres / psi ! store IC S
+
+            if(raytracer) then
+              !var(i, j, k, iVarO) = S0
+              !var%OPT(i, j, k, 2) = 0.
+              !var%OPT(i, j, k, 3) = 0.
+            end if
+          end if
+
+        end do !i
+      end do !j
+
+    end do !k
 
   end subroutine setup_ice
 
@@ -555,14 +290,10 @@ module ice_module
                     if(SIce .ge. S_c) then !only if critical S reached
                       ray_cloud(i, j, k, ii, jj)%tNi = nucleation_n(SIce, &
                           &rhoMean)
-
-                      print *, SIce, pres, psi, rhoMean, k, i, j
-                      stop
-                      print *, maxval(ray_cloud%tNi), maxval(ray_cloud%Ni)
-                      stop
                     else
                       ray_cloud(i, j, k, ii, jj)%tNi = 0.
                     end if
+
                     !CHANGES
                     SIce = S_c
 
@@ -617,7 +348,6 @@ module ice_module
               if(rayTracer .and. (.not. compute_cloudcover)) then
                 var%OPT(i, j, k, 1) = SIce !full SIce in LES/ MeanSIce in RT
                 var%OPT(i, j, k, 2) = ray_varIce(i, j, k)%wwp ! vertical vel.
-                !var%OPT(i, j, k, 3) = 0. ! Full S
               else
                 var%OPT(i, j, k, 1) = SIce !full SIce in LES/ MeanSIce in RT
                 var%OPT(i, j, k, 2) = 0.
@@ -632,12 +362,6 @@ module ice_module
             stop
 
           end if ! pseudo_inc
-
-          if(SIce .ge. S_c) then
-
-            print *, 'S HITS S_c'
-            print *, '**********'
-          end if
 
           if(.not. no_ice_source) then
             if(parameterized_nucleation .and. raytracer .and. (.not. &
@@ -698,17 +422,6 @@ module ice_module
       end do ! j
     end do ! k
 
-    !**************************
-    !TEST set tendency to zero
-    !**************************
-    !!$    source%ICE = 0
-    !!$
-    !!$    do i = -nbx, nx
-    !!$       var%ICE(i, :, :, :) = sin(2*PI*(i + (is + nbx - 1) -1)/SizeX)
-    !!$    end do
-    !!$
-    !**************************
-
   end subroutine iceSources_raytr
 
   function NIce_param_nuc(N, S, dotS, T, p, p_si)
@@ -751,7 +464,7 @@ module ice_module
     ! - D p_si/ p (S-1) T N + A S cos (w t)
 
     use type_module, ONLY:Dep, pSatIceRef, epsil0
-    use atmosphere_module, ONLY:heightTFC, tRef, rhoRef, lRef, thetaRef, pRef
+    use atmosphere_module, ONLY:tRef, rhoRef, lRef, thetaRef, pRef
 
     implicit none
 

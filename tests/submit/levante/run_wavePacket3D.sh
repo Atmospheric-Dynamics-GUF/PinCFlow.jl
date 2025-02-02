@@ -3,7 +3,7 @@
 #SBATCH --job-name=wavePacket3D
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=128
-#SBATCH --time=0-00:05:00
+#SBATCH --time=0-00:10:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
 #SBATCH --output=wavePacket3D.o%j
