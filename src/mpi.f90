@@ -61,20 +61,7 @@ module mpi_module
       call setHalosOfField(var%rhop)
 
       ! Set halos of mass-weighted potential temperature.
-      if(model == "compressible") then
-        call setHalosOfField(var%P)
-      end if
-
-    case("ice")
-
-      do iVar = 1, nVarIce
-        call setHalosOfField(var%ICE(:, :, :, iVar))
-      end do
-
-    case("tracer")
-
-      call setHalosOfField(var%chi)
-
+      
     case("varTilde")
 
       !-----------------------------------
@@ -441,45 +428,5 @@ module mpi_module
   end subroutine init_mpi
 
   !------------------------------------------------------------------
-
-  function dot_product3D_glob(a, b)
-    !---------------------------
-    ! dot product for 3D arrays
-    !---------------------------
-
-    ! in/out variables
-    real :: dot_product3D_glob
-    real, dimension(:, :, :), intent(in) :: a, b
-
-    ! locals
-    integer, dimension(3) :: aSize, bSize
-    integer :: i, j, k
-
-    ! MPI stuff
-    real :: dot_product3D_loc
-
-    aSize = shape(a)
-    bSize = shape(b)
-
-    do i = 1, 3
-      if(aSize(i) .ne. bSize(i)) stop "dot_product3D failure."
-    end do
-
-    dot_product3D_loc = 0.0
-    do k = 1, aSize(3)
-      do j = 1, aSize(2)
-        dot_product3D_loc = dot_product3D_loc + dot_product(a(:, j, k), b(:, &
-            &j, k))
-      end do
-    end do
-
-    !MPI sum over all procs
-    call mpi_reduce(dot_product3D_loc, dot_product3D_glob, 1, &
-        &mpi_double_precision, mpi_sum, root, comm, ierror)
-
-    call mpi_bcast(dot_product3D_glob, 1, mpi_double_precision, root, comm, &
-        &ierror)
-
-  end function dot_product3D_glob
 
 end module mpi_module
