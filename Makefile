@@ -37,8 +37,6 @@ OFILES = atmosphere.o \
 		boundary.o \
 		finish.o \
 		fluxes.o \
-		ice_sub.o \
-		ice.o \
 		init.o \
 		mpi.o \
 		muscl.o \
@@ -47,10 +45,8 @@ OFILES = atmosphere.o \
 		poisson.o \
 		sizeof.o \
 		timeScheme.o \
-		tracer.o \
 		types.o \
-		update.o \
-		wkb.o
+		update.o 
 
 # Add build directory as prefix to path of object files.
 OBJ = $(addprefix $(BUILD)/, $(OFILES))
@@ -93,25 +89,9 @@ $(BUILD)/fluxes.o: $(BUILD)/muscl.o
 $(BUILD)/fluxes.o: $(BUILD)/sizeof.o
 $(BUILD)/fluxes.o: $(BUILD)/types.o
 
-# List dependencies of ice_sub.f90.
-$(BUILD)/ice_sub.o: $(BUILD)/atmosphere.o
-$(BUILD)/ice_sub.o: $(BUILD)/boundary.o
-$(BUILD)/ice_sub.o: $(BUILD)/mpi.o
-$(BUILD)/ice_sub.o: $(BUILD)/types.o
-
-# List dependencies of ice.f90.
-$(BUILD)/ice.o: $(BUILD)/atmosphere.o
-$(BUILD)/ice.o: $(BUILD)/boundary.o
-$(BUILD)/ice.o: $(BUILD)/fluxes.o
-$(BUILD)/ice.o: $(BUILD)/mpi.o
-$(BUILD)/ice.o: $(BUILD)/update.o
-$(BUILD)/ice.o: $(BUILD)/types.o
-
 # List dependencies of init.f90.
 $(BUILD)/init.o: $(BUILD)/atmosphere.o
 $(BUILD)/init.o: $(BUILD)/boundary.o
-$(BUILD)/init.o: $(BUILD)/ice_sub.o
-$(BUILD)/init.o: $(BUILD)/ice.o
 $(BUILD)/init.o: $(BUILD)/mpi.o
 $(BUILD)/init.o: $(BUILD)/output_netcdf.o
 $(BUILD)/init.o: $(BUILD)/sizeof.o
@@ -135,17 +115,14 @@ $(BUILD)/pinc.o: $(BUILD)/bicgstab_tools.o
 $(BUILD)/pinc.o: $(BUILD)/boundary.o
 $(BUILD)/pinc.o: $(BUILD)/finish.o
 $(BUILD)/pinc.o: $(BUILD)/fluxes.o
-$(BUILD)/pinc.o: $(BUILD)/ice.o
 $(BUILD)/pinc.o: $(BUILD)/init.o
 $(BUILD)/pinc.o: $(BUILD)/mpi.o
 $(BUILD)/pinc.o: $(BUILD)/output_netcdf.o
 $(BUILD)/pinc.o: $(BUILD)/poisson.o
 $(BUILD)/pinc.o: $(BUILD)/sizeof.o
 $(BUILD)/pinc.o: $(BUILD)/timeScheme.o
-$(BUILD)/pinc.o: $(BUILD)/tracer.o
 $(BUILD)/pinc.o: $(BUILD)/types.o
 $(BUILD)/pinc.o: $(BUILD)/update.o
-$(BUILD)/pinc.o: $(BUILD)/wkb.o
 
 # List dependencies of poisson.f90.
 $(BUILD)/poisson.o: $(BUILD)/atmosphere.o
@@ -170,10 +147,3 @@ $(BUILD)/update.o: $(BUILD)/mpi.o
 $(BUILD)/update.o: $(BUILD)/poisson.o
 $(BUILD)/update.o: $(BUILD)/timeScheme.o
 $(BUILD)/update.o: $(BUILD)/types.o
-
-# List dependencies of wkb.f90.
-$(BUILD)/wkb.o: $(BUILD)/atmosphere.o
-$(BUILD)/wkb.o: $(BUILD)/ice.o
-$(BUILD)/wkb.o: $(BUILD)/muscl.o
-$(BUILD)/wkb.o: $(BUILD)/timeScheme.o
-$(BUILD)/wkb.o: $(BUILD)/types.o
