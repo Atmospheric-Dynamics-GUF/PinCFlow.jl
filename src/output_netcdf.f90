@@ -2,7 +2,6 @@ module output_netCDF_module
 
   use type_module
   use atmosphere_module
-  use sizeof_module
   use netcdf
   use mpi
 

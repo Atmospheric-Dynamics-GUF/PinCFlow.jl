@@ -18,7 +18,6 @@ program pinc_prog
   use update_module
   use poisson_module
   use finish_module
-  use sizeof_module
   use bicgstab_tools_module
   use mpi
   use output_netCDF_module
@@ -80,8 +79,6 @@ program pinc_prog
   ! init counter and time
   iOut = 0
   iTime = 0; time = 0.0; cpuTime = 0.0
-
-  call getsize
 
   call init_mpi(error_flag)
 

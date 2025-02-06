@@ -43,7 +43,6 @@ OFILES = atmosphere.o \
 		output_netcdf.o \
 		pinc.o \
 		poisson.o \
-		sizeof.o \
 		timeScheme.o \
 		types.o \
 		update.o
@@ -65,7 +64,6 @@ clean:
 	rm -f $(TEMP)
 
 # List dependencies of atmosphere.f90.
-$(BUILD)/atmosphere.o: $(BUILD)/sizeof.o
 $(BUILD)/atmosphere.o: $(BUILD)/types.o
 
 # List dependencies of bicgstab_tools.f90.
@@ -86,7 +84,6 @@ $(BUILD)/finish.o: $(BUILD)/types.o
 # List dependencies of fluxes.f90.
 $(BUILD)/fluxes.o: $(BUILD)/atmosphere.o
 $(BUILD)/fluxes.o: $(BUILD)/muscl.o
-$(BUILD)/fluxes.o: $(BUILD)/sizeof.o
 $(BUILD)/fluxes.o: $(BUILD)/types.o
 
 # List dependencies of init.f90.
@@ -94,7 +91,6 @@ $(BUILD)/init.o: $(BUILD)/atmosphere.o
 $(BUILD)/init.o: $(BUILD)/boundary.o
 $(BUILD)/init.o: $(BUILD)/mpi.o
 $(BUILD)/init.o: $(BUILD)/output_netcdf.o
-$(BUILD)/init.o: $(BUILD)/sizeof.o
 $(BUILD)/init.o: $(BUILD)/types.o
 
 # List dependencies of mpi.f90.
@@ -106,7 +102,6 @@ $(BUILD)/muscl.o: $(BUILD)/types.o
 
 # List dependencies of output_netcdf.f90.
 $(BUILD)/output_netcdf.o: $(BUILD)/atmosphere.o
-$(BUILD)/output_netcdf.o: $(BUILD)/sizeof.o
 $(BUILD)/output_netcdf.o: $(BUILD)/types.o
 
 # List dependencies of pinc.f90.
@@ -119,7 +114,6 @@ $(BUILD)/pinc.o: $(BUILD)/init.o
 $(BUILD)/pinc.o: $(BUILD)/mpi.o
 $(BUILD)/pinc.o: $(BUILD)/output_netcdf.o
 $(BUILD)/pinc.o: $(BUILD)/poisson.o
-$(BUILD)/pinc.o: $(BUILD)/sizeof.o
 $(BUILD)/pinc.o: $(BUILD)/timeScheme.o
 $(BUILD)/pinc.o: $(BUILD)/types.o
 $(BUILD)/pinc.o: $(BUILD)/update.o
@@ -128,7 +122,6 @@ $(BUILD)/pinc.o: $(BUILD)/update.o
 $(BUILD)/poisson.o: $(BUILD)/atmosphere.o
 $(BUILD)/poisson.o: $(BUILD)/bicgstab_tools.o
 $(BUILD)/poisson.o: $(BUILD)/mpi.o
-$(BUILD)/poisson.o: $(BUILD)/sizeof.o
 $(BUILD)/poisson.o: $(BUILD)/timeScheme.o
 $(BUILD)/poisson.o: $(BUILD)/types.o
 

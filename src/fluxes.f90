@@ -3,7 +3,6 @@ module flux_module
   use type_module
   use muscl_module
   use atmosphere_module
-  use sizeof_module
   use mpi
 
   implicit none
