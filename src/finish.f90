@@ -10,20 +10,18 @@ module finish_module
 
   contains
 
-  subroutine terminate(var, var0, var1, varG, source, flux, flux0, force, &
-      &dRho, dRhop, dMom, dTheta, dIce, dTracer, tracerforce, dPot)
+  subroutine terminate(var, var0, var1, flux, flux0, dRho, dRhop, dMom)
+
     !-------------------
     ! deallocate fields
     !-------------------
 
     ! in/out variables
-    type(var_type) :: var, var0, var1, varG, source
+    type(var_type) :: var, var0, var1
     type(flux_type) :: flux, flux0
-    real, dimension(:, :, :, :), allocatable :: force, dMom, dIce
-    type(tracerForceType), dimension(:, :, :), allocatable :: tracerforce
-    real, dimension(:, :, :), allocatable :: dRho, dRhop, dTheta, dTracer, dPot
+    real, dimension(:, :, :, :), allocatable :: dMom
+    real, dimension(:, :, :), allocatable :: dRho, dRhop
 
-    ! argument list
     integer :: allocstat
 
     !--------------- deallocate grid -----------------------
@@ -45,16 +43,9 @@ module finish_module
 
     call deallocate_var_type(var1)
 
-    call deallocate_var_type(varG)
-
-    call deallocate_var_type(source)
-
     call deallocate_flux_type(flux)
 
     call deallocate_flux_type(flux0)
-
-    deallocate(force, stat = allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate force"
 
     deallocate(dRho, stat = allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate dRho"
@@ -62,24 +53,8 @@ module finish_module
     deallocate(dRhop, stat = allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate dRhop"
 
-    deallocate(dTheta, stat = allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate dTheta"
-
     deallocate(dMom, stat = allocstat)
     if(allocstat /= 0) stop "finish.f90: could not deallocate dMom"
-
-    if(model == "compressible") then
-      deallocate(dPot, stat = allocstat)
-      if(allocstat /= 0) stop "finish.f90: could not deallocate dPot"
-    end if
-
-    if(include_tracer) then
-      deallocate(dTracer, stat = allocstat)
-      if(allocstat /= 0) stop "finish.f90: could not deallocate dTracer"
-    end if
-
-    deallocate(tracerforce, stat = allocstat)
-    if(allocstat /= 0) stop "finish.f90: could not deallocate tracerforce"
 
   end subroutine terminate
 

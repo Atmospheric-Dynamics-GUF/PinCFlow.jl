@@ -19,11 +19,8 @@ module output_netCDF_module
 
   ! start and count values for nf90_put_var(...)
   integer :: startxNC, startyNC, countxNC, countyNC
-  integer :: starthNC, starttNC, counthNC, counttNC
+  integer :: starttNC, counttNC
   integer, dimension(4) :: startNC, countNC
-
-  ! dimensions of the grid
-  integer :: dim
 
   ! ids of the dimensions
   integer :: dimidx, dimidy, dimidz, dimidt ! x, y, z, t
@@ -41,7 +38,7 @@ module output_netCDF_module
   integer :: atmvarid_wsTFC ! terrain-following ws
   integer :: atmvarid_b ! buoyancy
   integer :: atmvarid_rhobar, atmvarid_p, atmvarid_n2, atmvarid_thetabar
-  ! rhoStrat, pStrat, bvsStrat, thetaStrat
+  ! rhoStratTFC, pStratTFC, bvsStratTFC, thetaStratTFC
   integer :: atmvarid_rhop ! density fluctuations rho'
   integer :: atmvarid_thetap ! potential temperature fluctuations theta'
   integer :: atmvarid_pip ! Exner-pressure fluctuations pi'
@@ -58,10 +55,6 @@ module output_netCDF_module
     character(5) :: zoneNC
 
     call date_and_time(date = dateNC, time = timeNC, zone = zoneNC)
-
-    dim = 1
-    if(sizeX > 1) dim = dim + 1
-    if(sizeY > 1) dim = dim + 1
 
     mode_flagNC = IOR(nf90_netcdf4, nf90_mpiio)
     mode_flagNC = IOR(mode_flagNC, nf90_noclobber)
@@ -81,10 +74,6 @@ module output_netCDF_module
     call handle_err(nf90_put_att(ncid, nf90_global, 'Time', timeNC(1:2) // ':' &
         &// timeNC(3:4) // ':' // timeNC(5:6)))
     call handle_err(nf90_put_att(ncid, nf90_global, 'Zone', zoneNC(1:3)))
-    if(topography) then
-      call handle_err(nf90_put_att(ncid, nf90_global, 'Comment', 'The grid is &
-          &terrain-following'))
-    end if
 
     ! define the x-, y-, z-, and t-dimensions
     call handle_err(nf90_def_dim(ncid, 'x', sizeX, dimidx))
@@ -107,12 +96,8 @@ module output_netCDF_module
     call handle_err(nf90_put_att(ncid, ncidy, 'units', 'm'))
 
     ! z axis
-    if(topography) then
-      call handle_err(nf90_def_var(ncid, 'z', nf90_float, [dimidx, dimidy, &
-          &dimidz, dimidt], ncidz))
-    else
-      call handle_err(nf90_def_var(ncid, 'z', nf90_float, [dimidz], ncidz))
-    end if
+    call handle_err(nf90_def_var(ncid, 'z', nf90_float, [dimidx, dimidy, &
+        &dimidz, dimidt], ncidz))
     call handle_err(nf90_var_par_access(ncid, ncidz, nf90_collective))
     call handle_err(nf90_put_att(ncid, ncidz, 'units', 'm'))
 
@@ -122,15 +107,13 @@ module output_netCDF_module
     call handle_err(nf90_put_att(ncid, ncidt, 'units', 's'))
 
     ! large-scale topography
-    if(topography) then
-      call handle_err(nf90_def_var(ncid, 'hm', nf90_float, [dimidx, dimidy, &
-          &dimidt], ncidhm))
-      call handle_err(nf90_var_par_access(ncid, ncidhm, nf90_collective))
-      call handle_err(nf90_put_att(ncid, ncidhm, 'units', 'm'))
-    end if
+    call handle_err(nf90_def_var(ncid, 'hm', nf90_float, [dimidx, dimidy, &
+        &dimidt], ncidhm))
+    call handle_err(nf90_var_par_access(ncid, ncidhm, nf90_collective))
+    call handle_err(nf90_put_att(ncid, ncidhm, 'units', 'm'))
 
     !---------------------------------------------------
-    ! create the groups (atmvar, rayvar, icevar, rayvol)
+    ! create the groups (atmvar)
     !---------------------------------------------------
 
     call handle_err(nf90_def_grp(ncid, 'atmvar', atmvarid))
@@ -140,10 +123,8 @@ module output_netCDF_module
     !-------------------------------------
 
     ! potential-temperature background
-    if(topography) then
-      call handle_err(nf90_def_var(atmvarid, 'thetabar', nf90_float, [dimidx, &
-          &dimidy, dimidz, dimidt], atmvarid_thetabar))
-    end if
+    call handle_err(nf90_def_var(atmvarid, 'thetabar', nf90_float, [dimidx, &
+        &dimidy, dimidz, dimidt], atmvarid_thetabar))
     call handle_err(nf90_var_par_access(atmvarid, atmvarid_thetabar, &
         &nf90_collective))
     call handle_err(nf90_put_att(atmvarid, atmvarid_thetabar, 'long_name', &
@@ -151,30 +132,24 @@ module output_netCDF_module
     call handle_err(nf90_put_att(atmvarid, atmvarid_thetabar, 'units', 'K'))
 
     ! squared buoyancy frequency
-    if(topography) then
-      call handle_err(nf90_def_var(atmvarid, 'N2', nf90_float, [dimidx, &
-          &dimidy, dimidz, dimidt], atmvarid_n2))
-    end if
+    call handle_err(nf90_def_var(atmvarid, 'N2', nf90_float, [dimidx, dimidy, &
+        &dimidz, dimidt], atmvarid_n2))
     call handle_err(nf90_var_par_access(atmvarid, atmvarid_n2, nf90_collective))
     call handle_err(nf90_put_att(atmvarid, atmvarid_n2, 'long_name', 'squared &
         &buoyancy frequency'))
     call handle_err(nf90_put_att(atmvarid, atmvarid_n2, 'units', '1/s**2'))
 
     ! mass-weighted potential temperature
-    if(topography) then
-      call handle_err(nf90_def_var(atmvarid, 'P', nf90_float, [dimidx, dimidy, &
-          &dimidz, dimidt], atmvarid_p))
-    end if
+    call handle_err(nf90_def_var(atmvarid, 'P', nf90_float, [dimidx, dimidy, &
+        &dimidz, dimidt], atmvarid_p))
     call handle_err(nf90_var_par_access(atmvarid, atmvarid_p, nf90_collective))
     call handle_err(nf90_put_att(atmvarid, atmvarid_p, 'long_name', &
         &'mass-weighted potential temperature'))
     call handle_err(nf90_put_att(atmvarid, atmvarid_p, 'units', 'K*kg/m**3'))
 
     ! density background
-    if(topography) then
-      call handle_err(nf90_def_var(atmvarid, 'rhobar', nf90_float, [dimidx, &
-          &dimidy, dimidz, dimidt], atmvarid_rhobar))
-    end if
+    call handle_err(nf90_def_var(atmvarid, 'rhobar', nf90_float, [dimidx, &
+        &dimidy, dimidz, dimidt], atmvarid_rhobar))
     call handle_err(nf90_var_par_access(atmvarid, atmvarid_rhobar, &
         &nf90_collective))
     call handle_err(nf90_put_att(atmvarid, atmvarid_rhobar, 'long_name', &
@@ -242,8 +217,7 @@ module output_netCDF_module
           &'vertical wind'))
       call handle_err(nf90_put_att(atmvarid, atmvarid_w, 'units', 'm/s'))
     end if
-    if((.not. topography .and. prepare_restart) .or. any(atmvarOut == 'ws')) &
-        &then
+    if(any(atmvarOut == 'ws')) then
       call handle_err(nf90_def_var(atmvarid, 'ws', nf90_float, [dimidx, &
           &dimidy, dimidz, dimidt], atmvarid_ws))
       call handle_err(nf90_var_par_access(atmvarid, atmvarid_ws, &
@@ -254,25 +228,23 @@ module output_netCDF_module
     end if
 
     ! terrain-following vertical wind
-    if(topography) then
-      if(any(atmvarOut == 'wTFC')) then
-        call handle_err(nf90_def_var(atmvarid, 'wTFC', nf90_float, [dimidx, &
-            &dimidy, dimidz, dimidt], atmvarid_wTFC))
-        call handle_err(nf90_var_par_access(atmvarid, atmvarid_wTFC, &
-            &nf90_collective))
-        call handle_err(nf90_put_att(atmvarid, atmvarid_wTFC, 'long_name', &
-            &'terrain-following vertical wind'))
-        call handle_err(nf90_put_att(atmvarid, atmvarid_wTFC, 'units', 'm/s'))
-      end if
-      if(prepare_restart .or. any(atmvarOut == 'wsTFC')) then
-        call handle_err(nf90_def_var(atmvarid, 'wsTFC', nf90_float, [dimidx, &
-            &dimidy, dimidz, dimidt], atmvarid_wsTFC))
-        call handle_err(nf90_var_par_access(atmvarid, atmvarid_wsTFC, &
-            &nf90_collective))
-        call handle_err(nf90_put_att(atmvarid, atmvarid_wsTFC, 'long_name', &
-            &'terrain-following vertical wind staggered'))
-        call handle_err(nf90_put_att(atmvarid, atmvarid_wsTFC, 'units', 'm/s'))
-      end if
+    if(any(atmvarOut == 'wTFC')) then
+      call handle_err(nf90_def_var(atmvarid, 'wTFC', nf90_float, [dimidx, &
+          &dimidy, dimidz, dimidt], atmvarid_wTFC))
+      call handle_err(nf90_var_par_access(atmvarid, atmvarid_wTFC, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(atmvarid, atmvarid_wTFC, 'long_name', &
+          &'terrain-following vertical wind'))
+      call handle_err(nf90_put_att(atmvarid, atmvarid_wTFC, 'units', 'm/s'))
+    end if
+    if(prepare_restart .or. any(atmvarOut == 'wsTFC')) then
+      call handle_err(nf90_def_var(atmvarid, 'wsTFC', nf90_float, [dimidx, &
+          &dimidy, dimidz, dimidt], atmvarid_wsTFC))
+      call handle_err(nf90_var_par_access(atmvarid, atmvarid_wsTFC, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(atmvarid, atmvarid_wsTFC, 'long_name', &
+          &'terrain-following vertical wind staggered'))
+      call handle_err(nf90_put_att(atmvarid, atmvarid_wsTFC, 'units', 'm/s'))
     end if
 
     ! buoyancy
@@ -315,7 +287,7 @@ module output_netCDF_module
   subroutine write_netCDF_background(iOutput)
 
     ! write the x-, y-, and z-axis to the netCDF file
-    ! write background fields pStrat, thetaStrat, rhoStrat, bvsStrat
+    ! write background fields pStratTFC, thetaStratTFC, rhoStratTFC, bvsStratTFC
     ! to the netCDF file
 
     implicit none
@@ -367,50 +339,34 @@ module output_netCDF_module
     end if
 
     ! z-axis
-    if(topography) then
-      call handle_err(nf90_put_var(ncid, ncidz, zTFC(1:nx, 1:ny, 1:sizeZ) &
-          &* lRef, start = startNC, count = countNC))
-    else
-      if(iOutput == 0) then
-        call handle_err(nf90_put_var(ncid, ncidz, z(1:sizeZ) * lRef, start &
-            &= [1], count = [sizeZ]))
-      end if
-    end if
+    call handle_err(nf90_put_var(ncid, ncidz, zTFC(1:nx, 1:ny, 1:sizeZ) &
+        &* lRef, start = startNC, count = countNC))
 
     ! mass-weighted potential temperature
-    if(topography) then
-      call handle_err(nf90_put_var(atmvarid, atmvarid_p, pStratTFC(1:nx, 1:ny, &
-          &1:sizeZ) * rhoRef * thetaRef, start = startNC, count = countNC), &
-          &'save P')
-    end if
+    call handle_err(nf90_put_var(atmvarid, atmvarid_p, pStratTFC(1:nx, 1:ny, &
+        &1:sizeZ) * rhoRef * thetaRef, start = startNC, count = countNC), &
+        &'save P')
 
     ! potential-temperature background
-    if(topography) then
-      call handle_err(nf90_put_var(atmvarid, atmvarid_thetabar, &
-          &thetaStratTFC(1:nx, 1:ny, 1:sizeZ) * thetaRef, start = startNC, &
-          &count = countNC), 'save thetabar')
-    end if
+    call handle_err(nf90_put_var(atmvarid, atmvarid_thetabar, &
+        &thetaStratTFC(1:nx, 1:ny, 1:sizeZ) * thetaRef, start = startNC, count &
+        &= countNC), 'save thetabar')
 
     ! density background
-    if(topography) then
-      call handle_err(nf90_put_var(atmvarid, atmvarid_rhobar, &
-          &rhoStratTFC(1:nx, 1:ny, 1:sizeZ) * rhoRef, start = startNC, count &
-          &= countNC), 'save rhobar')
-    end if
+    call handle_err(nf90_put_var(atmvarid, atmvarid_rhobar, rhoStratTFC(1:nx, &
+        &1:ny, 1:sizeZ) * rhoRef, start = startNC, count = countNC), 'save &
+        &rhobar')
 
     ! squared buoyancy frequency
-    if(topography) then
-      call handle_err(nf90_put_var(atmvarid, atmvarid_n2, bvsStratTFC(1:nx, &
-          &1:ny, 1:sizeZ) / tRef ** 2.0, start = startNC, count = countNC), &
-          &'save N2')
-    end if
+    call handle_err(nf90_put_var(atmvarid, atmvarid_n2, bvsStratTFC(1:nx, &
+        &1:ny, 1:sizeZ) / tRef ** 2.0, start = startNC, count = countNC), &
+        &'save N2')
 
   end subroutine write_netCDF_background
 
   !-------------------------------------------------------------------------
 
-  subroutine write_netCDF(iOutput, iTime, time, cpuTime, var, ray_var3D, &
-      &tracerforce, waveAmplitudes, ray)
+  subroutine write_netCDF(iOutput, iTime, time, cpuTime, var)
 
     implicit none
 
@@ -430,9 +386,6 @@ module output_netCDF_module
     real, dimension(1:nx, 1:ny, 1:nz) :: buoyancy
     real, dimension(1:nx, 1:ny, 1:nz) :: thetap
     real, dimension(1:nx, 1:ny, 0:nz) :: wOut
-
-    ! for saving derived type variables and avoiding temporary arrays
-    real, dimension(1:nx, 1:ny, 1:nz) :: tmparray
 
     integer :: ix, jy, kz
 
@@ -482,22 +435,18 @@ module output_netCDF_module
 
     rhop = var%rho(1:nx, 1:ny, 1:nz)
 
-    if(topography) then
-      rho = rhop + rhoStratTFC(1:nx, 1:ny, 1:nz)
-      buoyancy = g * (pStratTFC(1:nx, 1:ny, 1:nz) / rho - thetaStratTFC(1:nx, &
-          &1:ny, 1:nz)) / thetaStratTFC(1:nx, 1:ny, 1:nz)
-      thetap = buoyancy / g * thetaStratTFC(1:nx, 1:ny, 1:nz)
-    end if
+    rho = rhop + rhoStratTFC(1:nx, 1:ny, 1:nz)
+    buoyancy = g * (pStratTFC(1:nx, 1:ny, 1:nz) / rho - thetaStratTFC(1:nx, &
+        &1:ny, 1:nz)) / thetaStratTFC(1:nx, 1:ny, 1:nz)
+    thetap = buoyancy / g * thetaStratTFC(1:nx, 1:ny, 1:nz)
 
-    if(topography) then
-      do ix = 1, nx
-        do jy = 1, ny
-          do kz = 0, nz
-            wOut(ix, jy, kz) = vertWindTFC(ix, jy, kz, var)
-          end do
+    do ix = 1, nx
+      do jy = 1, ny
+        do kz = 0, nz
+          wOut(ix, jy, kz) = vertWindTFC(ix, jy, kz, var)
         end do
       end do
-    end if
+    end do
 
     ! save time
     call handle_err(nf90_put_var(ncid, ncidt, time_dim, start = [iOutput + 1]))
@@ -535,26 +484,23 @@ module output_netCDF_module
     end if
 
     ! vertical wind
-    if(topography) then
-      if(any(atmvarOut == 'w')) then
-        call handle_err(nf90_put_var(atmvarid, atmvarid_w, (wOut(1:nx, 1:ny, &
-            &0:nz - 1) + wOut(1:nx, 1:ny, 1:nz)) * uRef / 2., start = startNC, &
-            &count = countNC), 'save w')
-      end if
-      if(any(atmvarOut == 'ws')) then
-        call handle_err(nf90_put_var(atmvarid, atmvarid_ws, wOut(1:nx, 1:ny, &
-            &1:nz) * uRef, start = startNC, count = countNC), 'save ws')
-      end if
-      if(any(atmvarOut == 'wTFC')) then
-        call handle_err(nf90_put_var(atmvarid, atmvarid_wTFC, (var%w(1:nx, &
-            &1:ny, 0:nz - 1) + var%w(1:nx, 1:ny, 1:nz)) * uRef / 2., start &
-            &= startNC, count = countNC), 'save wTFC')
-      end if
-      if(prepare_restart .or. any(atmvarOut == 'wsTFC')) then
-        call handle_err(nf90_put_var(atmvarid, atmvarid_wsTFC, var%w(1:nx, &
-            &1:ny, 1:nz) * uRef, start = startNC, count = countNC), 'save &
-            &wsTFC')
-      end if
+    if(any(atmvarOut == 'w')) then
+      call handle_err(nf90_put_var(atmvarid, atmvarid_w, (wOut(1:nx, 1:ny, &
+          &0:nz - 1) + wOut(1:nx, 1:ny, 1:nz)) * uRef / 2., start = startNC, &
+          &count = countNC), 'save w')
+    end if
+    if(any(atmvarOut == 'ws')) then
+      call handle_err(nf90_put_var(atmvarid, atmvarid_ws, wOut(1:nx, 1:ny, &
+          &1:nz) * uRef, start = startNC, count = countNC), 'save ws')
+    end if
+    if(any(atmvarOut == 'wTFC')) then
+      call handle_err(nf90_put_var(atmvarid, atmvarid_wTFC, (var%w(1:nx, 1:ny, &
+          &0:nz - 1) + var%w(1:nx, 1:ny, 1:nz)) * uRef / 2., start = startNC, &
+          &count = countNC), 'save wTFC')
+    end if
+    if(prepare_restart .or. any(atmvarOut == 'wsTFC')) then
+      call handle_err(nf90_put_var(atmvarid, atmvarid_wsTFC, var%w(1:nx, 1:ny, &
+          &1:nz) * uRef, start = startNC, count = countNC), 'save wsTFC')
     end if
 
     ! buoyancy
@@ -576,9 +522,7 @@ module output_netCDF_module
           &1:nz), start = startNC, count = countNC), 'save pi')
     end if
 
-    if(topography) then
-      call write_topography_netCDF(iOutput)
-    end if
+    call write_topography_netCDF(iOutput)
 
     iOutput = iOutput + 1
 
@@ -608,20 +552,13 @@ module output_netCDF_module
       countyNC = ny
     end if
 
-    starthNC = 1
-    counthNC = nwm
-
     starttNC = iOutput + 1
     counttNC = 1
 
     ! Write large-scale topography.
-    if(topography) then
-      call handle_err(nf90_put_var(ncid, ncidhm, topography_surface(1:nx, &
-          &1:ny) * lRef, start = [startxNC, startyNC, starttNC], count &
-          &= [countxNC, countyNC, counttNC]))
-    end if
-
-    
+    call handle_err(nf90_put_var(ncid, ncidhm, topography_surface(1:nx, 1:ny) &
+        &* lRef, start = [startxNC, startyNC, starttNC], count = [countxNC, &
+        &countyNC, counttNC]))
 
   end subroutine write_topography_netCDF
 
@@ -647,15 +584,9 @@ module output_netCDF_module
 
     real, dimension(1:nx, 1:ny, 1:nz) :: rhop
 
-    real, dimension(nray_max, 1:nx, 1:ny, 0:nz + 1) :: tmparray
-
     real, intent(out), optional :: time
 
     integer :: Ntimesteps
-
-    dim = 1
-    if(sizeX > 1) dim = dim + 1
-    if(sizeY > 1) dim = dim + 1
 
     ! Open file.
     call handle_err(nf90_open(filenameIn, ior(nf90_nowrite, nf90_mpiio), ncid, &
@@ -728,13 +659,11 @@ module output_netCDF_module
     var%v(1:nx, 1:ny, 1:nz) = var%v(1:nx, 1:ny, 1:nz) / uRef
 
     ! Read vertical wind.
-    if(topography) then
-      call handle_err(nf90_inq_varid(atmvarid, 'wsTFC', atmvarid_wsTFC))
-      call handle_err(nf90_var_par_access(atmvarid, atmvarid_wsTFC, &
-          &nf90_collective))
-      call handle_err(nf90_get_var(atmvarid, atmvarid_wsTFC, var%w(1:nx, 1:ny, &
-          &1:nz), start = startNC, count = countNC))
-    end if
+    call handle_err(nf90_inq_varid(atmvarid, 'wsTFC', atmvarid_wsTFC))
+    call handle_err(nf90_var_par_access(atmvarid, atmvarid_wsTFC, &
+        &nf90_collective))
+    call handle_err(nf90_get_var(atmvarid, atmvarid_wsTFC, var%w(1:nx, 1:ny, &
+        &1:nz), start = startNC, count = countNC))
     var%w(1:nx, 1:ny, 1:nz) = var%w(1:nx, 1:ny, 1:nz) / uRef
 
     ! Read Exner-pressure fluctuations.
@@ -743,14 +672,6 @@ module output_netCDF_module
         &nf90_collective))
     call handle_err(nf90_get_var(atmvarid, atmvarid_pip, var%pi(1:nx, 1:ny, &
         &1:nz), start = startNC, count = countNC))
-
-    ! Read mass-weighted potential temperature.
-    call handle_err(nf90_inq_varid(atmvarid, 'P', atmvarid_p))
-    call handle_err(nf90_var_par_access(atmvarid, atmvarid_p, nf90_collective))
-    call handle_err(nf90_get_var(atmvarid, atmvarid_p, pStrat(1:nz), start &
-          &= startNC(3:4), count = countNC(3:4)))
-      pStrat(1:nz) = pStrat(1:nz) / rhoRef / thetaRef
-
 
     if(master) then
       print *, "reading file complete."
@@ -793,9 +714,6 @@ module output_netCDF_module
       countyNC = ny
     end if
 
-    starthNC = 1
-    counthNC = nwm
-
     if(timeStart >= 0) then
       starttNC = timeStart + 1
       counttNC = 1
@@ -806,13 +724,11 @@ module output_netCDF_module
 
     ! Read large-scale topography (non-dimensionalization is done in
     ! setup_topography).
-    if(topography) then
-      call handle_err(nf90_inq_varid(ncid, 'hm', ncidhm))
-      call handle_err(nf90_var_par_access(ncid, ncidhm, nf90_collective))
-      call handle_err(nf90_get_var(ncid, ncidhm, topography_surface(1:nx, &
-          &1:ny), start = [startxNC, startyNC, starttNC], count = [countxNC, &
-          &countyNC, counttNC]))
-    end if
+    call handle_err(nf90_inq_varid(ncid, 'hm', ncidhm))
+    call handle_err(nf90_var_par_access(ncid, ncidhm, nf90_collective))
+    call handle_err(nf90_get_var(ncid, ncidhm, topography_surface(1:nx, 1:ny), &
+        &start = [startxNC, startyNC, starttNC], count = [countxNC, countyNC, &
+        &counttNC]))
 
     call handle_err(nf90_close(ncid))
 
