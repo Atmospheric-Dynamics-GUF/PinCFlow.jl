@@ -5,7 +5,6 @@ module poisson_module
   use timeScheme_module
   use atmosphere_module
   use bicgstab_tools_module
-  use sizeof_module
   use mpi
 
   implicit none

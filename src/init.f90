@@ -4,7 +4,6 @@ module init_module
   use atmosphere_module
   use mpi_module
   use boundary_module
-  use sizeof_module
   use mpi
   use output_netCDF_module
 
