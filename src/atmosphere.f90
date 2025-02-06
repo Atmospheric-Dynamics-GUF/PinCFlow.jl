@@ -1,7 +1,6 @@
 module atmosphere_module
 
   use type_module
-  use sizeof_module
   use mpi
 
   implicit none
