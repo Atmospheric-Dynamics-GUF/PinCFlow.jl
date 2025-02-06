@@ -11,17 +11,10 @@ module muscl_module
   implicit none
 
   private
-  ! all module variables are internal to the module
-  ! if not delared otherwise with the public attribute
 
   public :: reconstruct_MUSCL
-  public :: muscl_reconstruct1D_minmod
   public :: muscl_reconstruct1D_mcvariant
-  public :: muscl_reconstruct1D_cada
-  !  public :: muscl_reconstruct2D
   public :: muscl_reconstruct3D
-  !  public :: limit
-  public :: minmod
 
   contains
 
@@ -41,10 +34,6 @@ module muscl_module
     ! 1:3 -> spation dimension to be reconstrueced, 1=x, 2=y, 3=z
     ! 0:1 -> 0 = left/right or backward/forward or down/up
     character(len = *), intent(in) :: limiter
-
-    ! local fields
-
-    ! local vars
 
     ! -------- reconstruction to all directions +/- 1/2 ----------
 
@@ -82,9 +71,6 @@ module muscl_module
     ! local vars
     integer :: i, j, k
 
-    ! debuggung
-    logical, parameter :: debugging = .true.
-
     select case(limiterType)
 
     case('MCVariant')
@@ -92,9 +78,6 @@ module muscl_module
       ! reconstruction in x-direction
       do k = 2, sizeZ - 1
         do j = 2, sizeY - 1
-          !testb
-          !if(master) print*,j,k
-          !teste
           phiX = u(:, j, k)
           call muscl_reconstruct1D_mcvariant(phiX, sizeX, phiTildeX)
           uTilde(:, j, k, 1, :) = phiTildeX
@@ -125,7 +108,7 @@ module muscl_module
 
   end subroutine muscl_reconstruct3D
 
-  ! --------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
 
   subroutine muscl_reconstruct1D_mcvariant(phi, phiSize, phiTilde)
 
@@ -152,56 +135,33 @@ module muscl_module
     phiTilde = 1000.0
 
     do i = 2, phiSize - 1
-
       deltaL = phi(i) - phi(i - 1)
       deltaR = phi(i + 1) - phi(i)
 
       if(deltaR == 0.) then
-
         phiTilde(i, 1) = phi(i)
         phiTilde(i, 0) = phi(i)
-
       else
         if(deltaL == 0.) then
-
           theta = deltaL / deltaR
           s = (2.0 + theta) / 3.0
           sigmaL = max(0.0, min(2 * theta, s, 2.0))
-          if(TestCase == 'baroclinic_LC') then
-            sigmaL = 1. !FSApr2021
-          end if
 
           phiTilde(i, 1) = phi(i) + 0.5 * sigmaL * deltaR
           phiTilde(i, 0) = phi(i)
-
         else
-
           theta = deltaL / deltaR
 
           s = (2.0 + theta) / 3.0
-          !testb
-          !if (master) print*,2 * theta, s
-          !teste
           sigmaL = max(0.0, min(2 * theta, s, 2.0))
 
           s = (2.0 + 1.0 / theta) / 3.0
           sigmaR = max(0.0, min(2 / theta, s, 2.0))
-          if(TestCase == 'baroclinic_LC') then
-            sigmaL = 1. !FSApr2021
-            sigmaR = 1. !FSApr2021
-          end if
 
           phiTilde(i, 1) = phi(i) + 0.5 * sigmaL * deltaR
           phiTilde(i, 0) = phi(i) - 0.5 * sigmaR * deltaL
-
         end if
-
       end if
-
-      ! there is an alternative formulation without calculation of 1/theta
-      ! ONLY valid for symmetric limiter functions...
-      ! ref. ALGORITMY 2009, Cada paper
-
     end do
 
   end subroutine muscl_reconstruct1D_mcvariant

@@ -1,22 +1,12 @@
 module mpi_module
 
-  ! Original:
-  ! F. Rieper 2011: MPI for square domains in x-y
-  !
-  ! Modifications:
-  ! G. Bölöni 27.10.2016
-  !  - MPI for any rectangle domain in x-y
-  !    (see also boundary.f90)
-  !  - add Theta to setHalos
-  !  - cleaning of setHalos (case "pressure")
-
   use type_module
   use flux_module
   use mpi
 
   implicit none
 
-  private ! private module
+  private
 
   public :: init_mpi
   public :: setHalos
@@ -25,6 +15,7 @@ module mpi_module
   contains
 
   subroutine setHalos(var, option)
+
     !-------------------------------
     !  set values in halo cells
     !-------------------------------
@@ -45,7 +36,7 @@ module mpi_module
     integer :: sendcount, recvcount
 
     ! locals
-    integer :: i, j, k, iVar, iTilde, nTilde
+    integer :: i, j, k
     integer :: i0, j0, k0
 
     select case(option)
@@ -61,7 +52,7 @@ module mpi_module
       call setHalosOfField(var%rhop)
 
       ! Set halos of mass-weighted potential temperature.
-      
+
     case("varTilde")
 
       !-----------------------------------
@@ -71,146 +62,86 @@ module mpi_module
       if(idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
       if(jdim > 1) call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
 
-      !      achatz: this part seems to prohibit using less than two ghost cells.
-      !      Can it be removed?
+      !------------------------------
+      !          x-direction
+      !------------------------------
 
-      ! if only for rhoTilde
-      nTilde = 1
-      ! if for another VarTilde set nTilde = 2
-      !if ( model == "compressible" ) then
-      !  nTilde = 2
-      !end if
+      ! slice size
+      sendcount = ny * nz
+      recvcount = sendcount
 
-      do iTilde = 1, nTilde
-        !------------------------------
-        !          x-direction
-        !------------------------------
-        ! reconstructed density needed in ghost cell i = nx+2
-        ! ...in ghost cell i = -1
+      ! read slice into contiguous array
+      x1SliceLeft_send(1:ny, 1:nz) = rhoTilde(2, 1:ny, 1:nz, 1, 0)
+      x1SliceRight_send(1:ny, 1:nz) = rhoTilde(nx - 1, 1:ny, 1:nz, 1, 1)
 
-        !if( updateMass ) then
+      if(idim > 1) then
 
-        ! slice size
-        sendcount = ny * nz
-        recvcount = sendcount
+        ! left -> right
+        source = left
+        dest = right
+        tag = 100
 
-        ! read slice into contiguous array
-        if(iTilde == 1) then
-          x1SliceLeft_send(1:ny, 1:nz) = rhoTilde(2, 1:ny, 1:nz, 1, 0)
-          x1SliceRight_send(1:ny, 1:nz) = rhoTilde(nx - 1, 1:ny, 1:nz, 1, 1)
-        else if(iTilde == 2) then
-          x1SliceLeft_send(1:ny, 1:nz) = PTilde(2, 1:ny, 1:nz, 1, 0)
-          x1SliceRight_send(1:ny, 1:nz) = PTilde(nx - 1, 1:ny, 1:nz, 1, 1)
-        end if
+        call mpi_sendrecv(x1SliceRight_send(1, 1), sendcount, &
+            &mpi_double_precision, dest, tag, x1SliceLeft_recv(1, 1), &
+            &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+            &sts_left, ierror)
 
-        if(idim > 1) then
+        ! right -> left
+        source = right
+        dest = left
+        tag = 100
+        call mpi_sendrecv(x1SliceLeft_send(1, 1), sendcount, &
+            &mpi_double_precision, dest, tag, x1SliceRight_recv(1, 1), &
+            &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+            &sts_right, ierror)
 
-          ! left -> right
-          source = left
-          dest = right
-          tag = 100
+        ! right halos
+        rhoTilde(nx + 2, 1:ny, 1:nz, 1, 0) = x1SliceRight_recv(1:ny, 1:nz)
 
-          call mpi_sendrecv(x1SliceRight_send(1, 1), sendcount, &
-              &mpi_double_precision, dest, tag, x1SliceLeft_recv(1, 1), &
-              &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              &sts_left, ierror)
+        ! left halos
+        rhoTilde(- 1, 1:ny, 1:nz, 1, 1) = x1SliceLeft_recv(1:ny, 1:nz)
 
-          ! right -> left
-          source = right
-          dest = left
-          tag = 100
-          call mpi_sendrecv(x1SliceLeft_send(1, 1), sendcount, &
-              &mpi_double_precision, dest, tag, x1SliceRight_recv(1, 1), &
-              &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              &sts_right, ierror)
+      end if
 
-          ! write auxiliary slice to var field
-          if(iTilde == 1) then ! rhoTilde
-            ! right halos
-            rhoTilde(nx + 2, 1:ny, 1:nz, 1, 0) = x1SliceRight_recv(1:ny, 1:nz)
+      !------------------------------
+      !          y-direction
+      !------------------------------
 
-            ! left halos
-            rhoTilde(- 1, 1:ny, 1:nz, 1, 1) = x1SliceLeft_recv(1:ny, 1:nz)
-          else if(iTilde == 2) then ! PTilde
-            ! right halos
-            PTilde(nx + 2, 1:ny, 1:nz, 1, 0) = x1SliceRight_recv(1:ny, 1:nz)
+      ! slice size
+      sendcount = nx * nz
+      recvcount = sendcount
 
-            ! left halos
-            PTilde(- 1, 1:ny, 1:nz, 1, 1) = x1SliceLeft_recv(1:ny, 1:nz)
-          end if
+      ! read slice into contiguous array
+      y1SliceBack_send(1:nx, 1:nz) = rhoTilde(1:nx, 2, 1:nz, 2, 0)
+      y1SliceForw_send(1:nx, 1:nz) = rhoTilde(1:nx, ny - 1, 1:nz, 2, 1)
 
-        end if
+      if(jdim > 1) then
 
-        if(verbose .and. master) print *, "horizontalHalos:  x-horizontal &
-            &halos copied."
+        ! back -> forw
+        source = back
+        dest = forw
+        tag = 100
 
-        !end if
+        call mpi_sendrecv(y1SliceForw_send(1, 1), sendcount, &
+            &mpi_double_precision, dest, tag, y1SliceBack_recv(1, 1), &
+            &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+            &sts_back, ierror)
 
-        !------------------------------
-        !          y-direction
-        !------------------------------
-        ! reconstructed density needed in ghost cell j = ny+2
-        ! ...in ghost cell j = -1
+        ! forw -> back
+        source = forw
+        dest = back
+        tag = 100
+        call mpi_sendrecv(y1SliceBack_send(1, 1), sendcount, &
+            &mpi_double_precision, dest, tag, y1SliceForw_recv(1, 1), &
+            &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
+            &sts_right, ierror)
 
-        !if( updateMass ) then
+        ! right halos
+        rhoTilde(1:nx, ny + 2, 1:nz, 2, 0) = y1SliceForw_recv(1:nx, 1:nz)
 
-        ! slice size
-        sendcount = nx * nz
-        recvcount = sendcount
-
-        ! read slice into contiguous array
-        if(iTilde == 1) then
-          y1SliceBack_send(1:nx, 1:nz) = rhoTilde(1:nx, 2, 1:nz, 2, 0)
-          y1SliceForw_send(1:nx, 1:nz) = rhoTilde(1:nx, ny - 1, 1:nz, 2, 1)
-        else if(iTilde == 2) then
-          y1SliceBack_send(1:nx, 1:nz) = PTilde(1:nx, 2, 1:nz, 2, 0)
-          y1SliceForw_send(1:nx, 1:nz) = PTilde(1:nx, ny - 1, 1:nz, 2, 1)
-        end if
-
-        if(jdim > 1) then
-
-          ! back -> forw
-          source = back
-          dest = forw
-          tag = 100
-
-          call mpi_sendrecv(y1SliceForw_send(1, 1), sendcount, &
-              &mpi_double_precision, dest, tag, y1SliceBack_recv(1, 1), &
-              &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              &sts_back, ierror)
-
-          ! forw -> back
-          source = forw
-          dest = back
-          tag = 100
-          call mpi_sendrecv(y1SliceBack_send(1, 1), sendcount, &
-              &mpi_double_precision, dest, tag, y1SliceForw_recv(1, 1), &
-              &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-              &sts_right, ierror)
-
-          ! write auxiliary slice to var field
-
-          if(iTilde == 1) then ! rhoTilde
-            ! right halos
-            rhoTilde(1:nx, ny + 2, 1:nz, 2, 0) = y1SliceForw_recv(1:nx, 1:nz)
-
-            ! left halos
-            rhoTilde(1:nx, - 1, 1:nz, 2, 1) = y1SliceBack_recv(1:nx, 1:nz)
-          else if(iTilde == 2) then ! PTilde
-            ! right halos
-            PTilde(1:nx, ny + 2, 1:nz, 2, 0) = y1SliceForw_recv(1:nx, 1:nz)
-
-            ! left halos
-            PTilde(1:nx, - 1, 1:nz, 2, 1) = y1SliceBack_recv(1:nx, 1:nz)
-          end if
-
-        end if
-
-        if(verbose .and. master) print *, "horizontalHalos:  y-horizontal &
-            &halos copied."
-
-        !end if ! updateMass
-      end do
+        ! left halos
+        rhoTilde(1:nx, - 1, 1:nz, 2, 1) = y1SliceBack_recv(1:nx, 1:nz)
+      end if
 
     case default
 
@@ -221,7 +152,7 @@ module mpi_module
         stop
       end if
 
-    end select ! option "var", "varTilde", ...
+    end select
 
   end subroutine setHalos
 
@@ -232,10 +163,7 @@ module mpi_module
     ! in/out vars
     logical, intent(out) :: error_flag
 
-    !include 'mpif.h'
-
     error_flag = .false.
-    verboseMPI = .false.
 
     !-----------------------
     !    basic MPI info
@@ -263,7 +191,6 @@ module mpi_module
       rewind(unit = 10)
       read(unit = 10, nml = domain)
       close(10)
-
     end if
 
     ! broadcast the namelist values
@@ -319,37 +246,6 @@ module mpi_module
     !     even-sized domain composition
     !--------------------------------------
 
-    ! whole y indecees   |------------- isize = 1+imax-istart ------------|
-    !    start/end index  ^-istart                                  imax-^
-    !
-    ! 1. interval        |--- iouter1---|
-    !                    |--|--------|--|
-    !                     b1  iinner1 b1
-    !    start/end index  ^-is      ie-^
-    ! 2. interval                 |--|--------|--|
-    ! 3. interval                          |--|--------|--|
-    ! 4. interval                                   |--|-------|--|
-    !                                                   iinner0
-    ! 5. interval = idim's interval                         |--|-------|--|
-
-    ! In each iteration on each interval, the inner area is computed
-    ! by using the values of the last iteration in the whole outer area.
-
-    ! icoord = number of the interval - 1
-    !
-    ! To fit exactly into isize, we use in1 intervals of with iinner1
-    ! and (idim-in1) intervals of with (iinner1 - 1)
-
-    ! isize <= 2*b1 + idim * iinner1
-
-    ! ==>   iinner1 >= (isize - 2*b1) / idim
-    ! ==>   smallest valid integer value:
-
-    ! Replacements: HLRS code -> pincFloit
-    ! iouter = nxx
-    ! iinner = nx
-    ! b1 = nbx
-
     ! composition along x coordinate
     if(idim == 1) then
       nx = sizeX
@@ -369,7 +265,7 @@ module mpi_module
     nxx = nx + 2 * nbx + 1
     ie = is + nxx - 1
 
-    ! same for y coordinate:
+    ! same for y coordinate
     if(jdim == 1) then
       ny = sizeY
       js = jstart
@@ -418,15 +314,49 @@ module mpi_module
       if(master) stop "Error in init_mpi: jdim > 1 and nby > ny!"
     end if
 
-    ! display the decomposition
-    if(verboseMPI) then
-      print "(a,a,i3,a,i3,a,i3,a,i3,a,i3,a)", "(rank,icoord,jcoord) &
-          &-> (nx,ny)", "(", rank, ",", icoord, ", ", jcoord, ") -> (", nx, ", &
-          &", ny, ")"
-    end if
-
   end subroutine init_mpi
 
   !------------------------------------------------------------------
+
+  function dot_product3D_glob(a, b)
+
+    !---------------------------
+    ! Dot product for 3D arrays
+    !---------------------------
+
+    ! in/out variables
+    real :: dot_product3D_glob
+    real, dimension(:, :, :), intent(in) :: a, b
+
+    ! locals
+    integer, dimension(3) :: aSize, bSize
+    integer :: i, j, k
+
+    ! MPI stuff
+    real :: dot_product3D_loc
+
+    aSize = shape(a)
+    bSize = shape(b)
+
+    do i = 1, 3
+      if(aSize(i) .ne. bSize(i)) stop "dot_product3D failure."
+    end do
+
+    dot_product3D_loc = 0.0
+    do k = 1, aSize(3)
+      do j = 1, aSize(2)
+        dot_product3D_loc = dot_product3D_loc + dot_product(a(:, j, k), b(:, &
+            &j, k))
+      end do
+    end do
+
+    ! MPI sum over all procs
+    call mpi_reduce(dot_product3D_loc, dot_product3D_glob, 1, &
+        &mpi_double_precision, mpi_sum, root, comm, ierror)
+
+    call mpi_bcast(dot_product3D_glob, 1, mpi_double_precision, root, comm, &
+        &ierror)
+
+  end function dot_product3D_glob
 
 end module mpi_module
