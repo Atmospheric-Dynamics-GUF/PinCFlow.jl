@@ -1,7 +1,7 @@
 module bicgstab_tools_module
 
   use type_module
-  use mpi_module ! modified by Junhong Wei (20161106)
+  use mpi_module
   use timeScheme_module
   use atmosphere_module
   use mpi
@@ -9,26 +9,19 @@ module bicgstab_tools_module
   implicit none
 
   private
-  ! all module objects (variables, functions, subroutines)
-  ! are internal to the module by default
 
   !------------------------
   !   public subroutines
   !------------------------
-  ! public :: SetUpHypre
+
   public :: SetUpBiCGStab
   public :: CleanUpBiCGStab
-  ! public :: CleanUpHypre
-  ! public :: test_hypre
 
   !------------------------
   !   private subroutines
   !------------------------
-  !private ::
 
   contains
-
-  !----------------------------------------------------------------------
 
   subroutine SetUpBICGStab
     ! --------------------------------------
@@ -40,13 +33,11 @@ module bicgstab_tools_module
     allocate(ac_b(1:nx, 1:ny, 1:nz), stat = allocstat)
     if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-    !UAB
     allocate(acv_b(1:nx, 1:ny, 1:nz), stat = allocstat)
     if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
     allocate(ach_b(1:nx, 1:ny, 1:nz), stat = allocstat)
     if(allocstat /= 0) stop "BiCGStab:alloc failed"
-    !UAE
 
     allocate(al_b(1:nx, 1:ny, 1:nz), stat = allocstat)
     if(allocstat /= 0) stop "BiCGStab:alloc failed"
@@ -66,77 +57,59 @@ module bicgstab_tools_module
     allocate(au_b(1:nx, 1:ny, 1:nz), stat = allocstat)
     if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-    if(timeScheme == "semiimplicit") then
-      allocate(alb_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(aru_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(alf_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(ard_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(arb_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(alu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(arf_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
-    end if
+    allocate(ald_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-    ! TFC FJ
-    ! Allocate additional matrix elements for TFC.
-    if(topography) then
-      allocate(aru_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(afu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(ard_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(afd_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(alu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(abu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(ald_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(abd_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(afu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(auu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(afd_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(add_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(abu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(aruu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(abd_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(ardd_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(auu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(aluu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(add_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(aldd_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(aruu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(afuu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(ardd_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(afdd_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(aluu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
+    allocate(abuu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
-      allocate(aldd_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
-
-      allocate(afuu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
-
-      allocate(afdd_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
-
-      allocate(abuu_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
-
-      allocate(abdd_b(1:nx, 1:ny, 1:nz), stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:alloc failed"
-    end if
+    allocate(abdd_b(1:nx, 1:ny, 1:nz), stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:alloc failed"
 
     return
 
@@ -154,13 +127,11 @@ module bicgstab_tools_module
     deallocate(ac_b, stat = allocstat)
     if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-    !UAB
     deallocate(acv_b, stat = allocstat)
     if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
     deallocate(ach_b, stat = allocstat)
     if(allocstat /= 0) stop "BiCGStab:dealloc failed"
-    !UAE
 
     deallocate(al_b, stat = allocstat)
     if(allocstat /= 0) stop "BiCGStab:dealloc failed"
@@ -180,77 +151,59 @@ module bicgstab_tools_module
     deallocate(au_b, stat = allocstat)
     if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-    if(timeScheme == "semiimplicit") then
-      deallocate(alb_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(aru_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(alf_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(ard_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(arb_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(alu_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(arf_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
-    end if
+    deallocate(ald_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-    ! TFC FJ
-    ! Deallocate additional matrix elements for TFC.
-    if(topography) then
-      deallocate(aru_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(afu_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(ard_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(afd_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(alu_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(abu_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(ald_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(abd_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(afu_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(auu_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(afd_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(add_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(abu_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(aruu_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(abd_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(ardd_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(auu_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(aluu_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(add_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(aldd_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(aruu_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(afuu_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(ardd_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(afdd_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(aluu_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
+    deallocate(abuu_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
-      deallocate(aldd_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
-
-      deallocate(afuu_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
-
-      deallocate(afdd_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
-
-      deallocate(abuu_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
-
-      deallocate(abdd_b, stat = allocstat)
-      if(allocstat /= 0) stop "BiCGStab:dealloc failed"
-    end if
+    deallocate(abdd_b, stat = allocstat)
+    if(allocstat /= 0) stop "BiCGStab:dealloc failed"
 
     return
 

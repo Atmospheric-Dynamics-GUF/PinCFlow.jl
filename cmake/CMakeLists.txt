@@ -47,8 +47,6 @@ add_executable(pinc
     ../src/boundary.f90
     ../src/finish.f90
     ../src/fluxes.f90
-    ../src/ice_sub.f90
-    ../src/ice.f90
     ../src/init.f90
     ../src/mpi.f90
     ../src/muscl.f90
@@ -57,10 +55,8 @@ add_executable(pinc
     ../src/poisson.f90
     ../src/sizeof.f90
     ../src/timeScheme.f90
-    ../src/tracer.f90
     ../src/types.f90
-    ../src/update.f90
-    ../src/wkb.f90)
+    ../src/update.f90)
 
 # Print information.
 message("[INFO] Compiler ID is " ${CMAKE_Fortran_COMPILER_ID})

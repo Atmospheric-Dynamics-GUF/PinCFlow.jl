@@ -46,7 +46,7 @@ OFILES = atmosphere.o \
 		sizeof.o \
 		timeScheme.o \
 		types.o \
-		update.o 
+		update.o
 
 # Add build directory as prefix to path of object files.
 OBJ = $(addprefix $(BUILD)/, $(OFILES))

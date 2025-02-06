@@ -1,6 +1,10 @@
 module sizeof_module
-  ! module is provided as a replacement for sizeof() and aquires the sizes of int, single and double types
+
+  ! This module is provided as a replacement for sizeof() and aquires the sizes
+  ! of int, single and double types.
+
   implicit none
+
   public
 
   ! test variables to get sizes in terms of blocks
@@ -11,11 +15,12 @@ module sizeof_module
   complex * 8 :: complex8test = cmplx(1.0, 1.0)
   integer :: inttest = 1
 
+  ! sizes in terms of blocks
   integer :: sizeofdouble, sizeofreal, sizeofreal4, sizeofcomplex, &
       &sizeofcomplex8, sizeofint
 
   contains
-  ! subroutine to get the size of a double in terms of block size
+
   subroutine getsize
     inquire(iolength = sizeofdouble) doubletest
     inquire(iolength = sizeofreal) realtest
@@ -24,4 +29,5 @@ module sizeof_module
     inquire(iolength = sizeofcomplex8) complex8test
     inquire(iolength = sizeofint) inttest
   end subroutine getsize
+
 end module sizeof_module
