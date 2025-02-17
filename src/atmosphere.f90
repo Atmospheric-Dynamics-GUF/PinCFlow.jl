@@ -15,7 +15,7 @@ module atmosphere_module
   public :: terminate_atmosphere
 
   public :: setHalosOfField2D
-  public :: jac, met, vertWindTFC, trafoTFC, stressTensTFC
+  public :: vertWindTFC, trafoTFC, stressTensTFC
 
   ! reference quantites
   real :: rhoRef ! reference density
@@ -53,6 +53,10 @@ module atmosphere_module
   ! general
   real :: p0 ! scaled reference pressure at z=0
 
+  ! Jacobian and metric tensor
+  real, dimension(:, :, :), allocatable :: jac
+  real, dimension(:, :, :, :, :), allocatable :: met
+
   ! 3D background fields.
   real, dimension(:, :, :), allocatable :: pStratTFC, thetaStratTFC, &
       &rhoStratTFC, bvsStratTFC
@@ -71,11 +75,24 @@ module atmosphere_module
     integer :: i, j, k
     real :: power ! exponents
 
+    ! Allocate Jacobian and metric tensor.
+    if(.not. allocated(jac)) then
+      allocate(jac((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
+          &+ nbz)), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not allocate jac"
+    end if
+
+    if(.not. allocated(met)) then
+      allocate(met((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
+          &+ nbz), 1:3, 1:3), stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not allocate met"
+    end if
+
     ! TFC
     ! Allocate 3D background fields.
     if(.not. allocated(pStratTFC)) then
-      allocate(pStratTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
-          &+ nbz)), stat = allocstat)
+      allocate(pStratTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- 1):(nz &
+          &+ 2)), stat = allocstat)
       if(allocstat /= 0) stop "atmosphere.f90: could not allocate pStratTFC"
     end if
 
@@ -285,6 +302,12 @@ module atmosphere_module
 
     ! local variables
     integer :: allocstat
+
+    deallocate(jac, stat = allocstat)
+    if(allocstat /= 0) stop "atmosphere.f90: could not dealloc jac"
+
+    deallocate(met, stat = allocstat)
+    if(allocstat /= 0) stop "atmosphere.f90: could not dealloc met"
 
     deallocate(pStratTFC, stat = allocstat)
     if(allocstat /= 0) stop "atmosphere.f90: could not dealloc pStratTFC"
@@ -619,6 +642,73 @@ module atmosphere_module
           &+ topography_surface
     end do
 
+    ! Compute the Jacobian.
+    do kz = - nbz + 1, nz + nbz
+      jac(:, :, kz) = (lz(1) - topography_surface) / lz(1) * (zTildeS(kz) &
+          &- zTildeS(kz - 1)) / dz
+    end do
+    jac(:, :, - nbz) = jac(:, :, nbz + 1)
+
+    ! Compute the metric tensor.
+    met(:, :, :, 1, 1) = 1.0
+    met(:, :, :, 1, 2) = 0.0
+    do kz = - nbz + 1, nz + nbz
+      do jy = 1, ny
+        do ix = 1, nx
+          met(ix, jy, kz, 1, 3) = (topography_surface(ix + 1, jy) &
+              &- topography_surface(ix - 1, jy)) / (2.0 * dx) * (zS(kz) &
+              &- lz(1)) / (lz(1) - topography_surface(ix, jy)) * dz &
+              &/ (zTildeS(kz) - zTildeS(kz - 1))
+        end do
+      end do
+      call setHalosOfField2D(met(:, :, kz, 1, 3))
+    end do
+    met(:, :, - nbz, 1, 3) = met(:, :, nbz + 1, 1, 3) * (zS(- nbz) - lz(1)) &
+        &/ (zS(nbz + 1) - lz(1))
+    met(:, :, :, 2, 1) = 0.0
+    met(:, :, :, 2, 2) = 1.0
+    do kz = - nbz + 1, nz + nbz
+      do jy = 1, ny
+        do ix = 1, nx
+          met(ix, jy, kz, 2, 3) = (topography_surface(ix, jy + 1) &
+              &- topography_surface(ix, jy - 1)) / (2.0 * dy) * (zS(kz) &
+              &- lz(1)) / (lz(1) - topography_surface(ix, jy)) * dz &
+              &/ (zTildeS(kz) - zTildeS(kz - 1))
+        end do
+      end do
+      call setHalosOfField2D(met(:, :, kz, 2, 3))
+    end do
+    met(:, :, - nbz, 2, 3) = met(:, :, nbz + 1, 2, 3) * (zS(- nbz) - lz(1)) &
+        &/ (zS(nbz + 1) - lz(1))
+    met(:, :, :, 3, 1) = met(:, :, :, 1, 3)
+    met(:, :, :, 3, 2) = met(:, :, :, 2, 3)
+    do kz = - nbz + 1, nz + nbz
+      do jy = 1, ny
+        do ix = 1, nx
+          met(ix, jy, kz, 3, 3) = ((lz(1) / (lz(1) - topography_surface(ix, &
+              &jy))) ** 2.0 + ((zS(kz) - lz(1)) / (lz(1) &
+              &- topography_surface(ix, jy))) ** 2.0 &
+              &* (((topography_surface(ix + 1, jy) - topography_surface(ix &
+              &- 1, jy)) / (2.0 * dx)) ** 2.0 + ((topography_surface(ix, jy &
+              &+ 1) - topography_surface(ix, jy - 1)) / (2.0 * dy)) ** 2.0)) &
+              &* (dz / (zTildeS(kz) - zTildeS(kz - 1))) ** 2.0
+        end do
+      end do
+      call setHalosOfField2D(met(:, :, kz, 3, 3))
+    end do
+    do jy = 1, ny
+      do ix = 1, nx
+        met(ix, jy, - nbz, 3, 3) = ((lz(1) / (lz(1) - topography_surface(ix, &
+              &jy))) ** 2.0 + ((zS(- nbz) - lz(1)) / (lz(1) &
+              &- topography_surface(ix, jy))) ** 2.0 &
+              &* (((topography_surface(ix + 1, jy) - topography_surface(ix &
+              &- 1, jy)) / (2.0 * dx)) ** 2.0 + ((topography_surface(ix, jy &
+              &+ 1) - topography_surface(ix, jy - 1)) / (2.0 * dy)) ** 2.0)) &
+              &* (dz / (zTildeS(nbz + 1) - zTildeS(nbz))) ** 2.0
+      end do
+    end do
+    call setHalosOfField2D(met(:, :, - nbz, 3, 3))
+
   end subroutine setup_topography
 
   !---------------------------------------------------------------------------
@@ -639,42 +729,6 @@ module atmosphere_module
     end if
 
   end function map
-
-  function jac(i, j, k)
-    ! Jacobian.
-
-    real :: jac
-    integer :: i, j, k
-
-    jac = (lz(1) - topography_surface(i, j)) / lz(1) * (zTildeS(k) - zTildeS(k &
-        &- 1)) / dz
-
-  end function jac
-
-  function met(i, j, k, mu, nu)
-    ! Metric tensor.
-
-    real :: met
-    integer :: i, j, k, mu, nu
-
-    if((mu == 1 .and. nu == 3) .or. (mu == 3 .and. nu == 1)) then
-      met = (topography_surface(i + 1, j) - topography_surface(i - 1, j)) &
-          &/ (2.0 * dx) * (zS(k) - lz(1)) / (lz(1) - topography_surface(i, j)) &
-          &* dz / (zTildeS(k) - zTildeS(k - 1))
-    else if((mu == 2 .and. nu == 3) .or. (mu == 3 .and. nu == 2)) then
-      met = (topography_surface(i, j + 1) - topography_surface(i, j - 1)) &
-          &/ (2.0 * dy) * (zS(k) - lz(1)) / (lz(1) - topography_surface(i, j)) &
-          &* dz / (zTildeS(k) - zTildeS(k - 1))
-    else if(mu == 3 .and. nu == 3) then
-      met = ((lz(1) / (lz(1) - topography_surface(i, j))) ** 2.0 + ((zS(k) &
-          &- lz(1)) / (lz(1) - topography_surface(i, j))) ** 2.0 &
-          &* (((topography_surface(i + 1, j) - topography_surface(i - 1, j)) &
-          &/ (2.0 * dx)) ** 2.0 + ((topography_surface(i, j + 1) &
-          &- topography_surface(i, j - 1)) / (2.0 * dy)) ** 2.0)) * (dz &
-          &/ (zTildeS(k) - zTildeS(k - 1))) ** 2.0
-    end if
-
-  end function met
 
   function vertWindTFC(i, j, k, var)
     ! Transformation of the vertical wind.
