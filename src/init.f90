@@ -173,8 +173,8 @@ module init_module
     end if
 
     ! Safety switch for halos in TFC
-    if(.not. (nbx >= 3 .and. nby >= 3 .and. nbz >= 3)) then
-      stop "Three halos / ghost cells are needed in TFC!"
+    if(nbx < 2 .or. nby < 2 .or. nbz < 2) then
+      stop "Two halos / ghost cells are needed in each direction!"
     end if
 
     !---------------------------------------
