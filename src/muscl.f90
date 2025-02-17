@@ -1,8 +1,7 @@
 module muscl_module
   !-----------------------------------------------------
   ! MUSCL reconstruction routines
-  ! This module is independent of the rest of the code
-  ! 1) it always assumes 1 additional cells on both ends
+  ! This module always assumes 1 additional cells on both ends
   ! of the array for interpolation
   !-----------------------------------------------------
 
