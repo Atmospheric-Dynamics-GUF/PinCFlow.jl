@@ -1,7 +1,6 @@
 module boundary_module
 
   use type_module
-  use flux_module
   use atmosphere_module
   use mpi_module
   use mpi
@@ -137,27 +136,6 @@ module boundary_module
 
       end if
 
-    case("varTilde")
-
-      ! the following three boundary-condition calls can probably be
-      ! removed
-      ! probably only necessary for ALDM (that is not used any more
-      ! anyway)
-
-      if(updateMass) then
-        ! reconstructed density needed in ghost cell i = nx+2
-        rhoTilde(nx + 2, :, :, 1, 0) = rhoTilde(2, :, :, 1, 0)
-
-        ! ...in ghost cell i = -1
-        rhoTilde(- 1, :, :, 1, 1) = rhoTilde(nx - 1, :, :, 1, 1)
-
-        ! reconstructed density fluctuation needed in ghost cell i = nx+2
-        rhopTilde(nx + 2, :, :, 1, 0) = rhopTilde(2, :, :, 1, 0)
-
-        ! ...in ghost cell i = -1
-        rhopTilde(- 1, :, :, 1, 1) = rhopTilde(nx - 1, :, :, 1, 1)
-      end if
-
     case("flux")
 
       return
@@ -218,24 +196,6 @@ module boundary_module
         var%pi(:, ny + 1, :) = var%pi(:, 1, :)
         var%pi(:, 0, :) = var%pi(:, ny, :)
 
-      end if
-
-    case("varTilde")
-
-      ! the following three boundary-condition calls can probably be
-      ! removed
-
-      if(updateMass) then
-        ! reconstructed density needed in ghost cell j = ny+2
-        rhoTilde(:, ny + 2, :, 2, 0) = rhoTilde(:, 2, :, 2, 0)
-        ! ...in ghost cell j = -1
-        rhoTilde(:, - 1, :, 2, 1) = rhoTilde(:, ny - 1, :, 2, 1)
-
-        ! reconstructed density fluctuations needed in ghost cell
-        ! j = ny+2
-        rhopTilde(:, ny + 2, :, 2, 0) = rhopTilde(:, 2, :, 2, 0)
-        ! ...in ghost cell j = -1
-        rhopTilde(:, - 1, :, 2, 1) = rhopTilde(:, ny - 1, :, 2, 1)
       end if
 
     case("flux")
@@ -307,10 +267,6 @@ module boundary_module
         var%pi(:, :, 0) = var%pi(:, :, 1)
         var%pi(:, :, nz + 1) = var%pi(:, :, nz)
       end if
-
-    case("varTilde ")
-
-      return
 
     case("flux")
 
