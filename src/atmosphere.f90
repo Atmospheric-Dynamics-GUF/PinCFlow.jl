@@ -1,6 +1,7 @@
 module atmosphere_module
 
   use type_module
+  use mpi_module
   use mpi
 
   implicit none
@@ -14,7 +15,6 @@ module atmosphere_module
   public :: init_atmosphere
   public :: terminate_atmosphere
 
-  public :: setHalosOfField2D
   public :: vertWindTFC, trafoTFC, stressTensTFC
 
   ! reference quantites
@@ -322,152 +322,6 @@ module atmosphere_module
     if(allocstat /= 0) stop "atmosphere.f90: could not dealloc bvsStratTFC"
 
   end subroutine terminate_atmosphere
-
-  !---------------------------------------------------------------------------
-
-  subroutine setHalosOfField2D(field)
-
-    ! Subroutine needed for halos of topography.
-
-    !-------------------------------
-    !  set values in halo cells
-    !-------------------------------
-
-    ! in/out variables
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby), intent(inout) :: field
-
-    ! auxiliary fields
-    real, dimension(nbx, - nby:ny + nby) :: xSliceLeft_send, xSliceRight_send
-    real, dimension(nbx, - nby:ny + nby) :: xSliceLeft_recv, xSliceRight_recv
-    real, dimension(- nbx:nx + nbx, nby) :: ySliceBack_send, ySliceForw_send
-    real, dimension(- nbx:nx + nbx, nby) :: ySliceBack_recv, ySliceForw_recv
-
-    ! MPI variables
-    integer :: dest, source, tag
-    integer :: sendcount, recvcount
-
-    ! locals
-    integer :: i, j, k
-    integer :: i0, j0, k0
-
-    !-----------------------------
-    !     find neighbour procs
-    !-----------------------------
-
-    if(idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
-    if(jdim > 1) call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
-
-    !------------------------------
-    !          x-direction
-    !------------------------------
-
-    if(idim > 1) then
-
-      ! slice size
-      sendcount = nbx * (ny + 2 * nby + 1)
-      recvcount = sendcount
-
-      ! read slice into contiguous array
-      do i = 1, nbx
-        xSliceLeft_send(i, :) = field(i, :)
-        xSliceRight_send(i, :) = field(nx - nbx + i, :)
-      end do
-
-      ! left -> right
-      source = left
-      dest = right
-      tag = 100
-
-      i0 = 1; j0 = - nby
-
-      call mpi_sendrecv(xSliceRight_send(i0, j0), sendcount, &
-          &mpi_double_precision, dest, tag, xSliceLeft_recv(i0, j0), &
-          &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-          &sts_left, ierror)
-
-      ! right -> left
-      source = right
-      dest = left
-      tag = 100
-
-      call mpi_sendrecv(xSliceLeft_send(i0, j0), sendcount, &
-          &mpi_double_precision, dest, tag, xSliceRight_recv(i0, j0), &
-          &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-          &sts_right, ierror)
-
-      ! write auxiliary slice to var field
-      do i = 1, nbx
-        ! right halos
-        field(nx + i, :) = xSliceRight_recv(i, :)
-        ! left halos
-        field(- nbx + i, :) = xSliceLeft_recv(i, :)
-      end do
-
-    else
-
-      do i = 1, nbx
-        field(nx + i, :) = field(i, :)
-        field(- i + 1, :) = field(nx - i + 1, :)
-      end do
-
-    end if
-
-    !------------------------------
-    !          y-direction
-    !------------------------------
-
-    if(jdim > 1) then
-
-      ! slice size
-      sendcount = nby * (nx + 2 * nbx + 1)
-      recvcount = sendcount
-
-      ! read slice into contiguous array
-      do j = 1, nby
-        ySliceBack_send(:, j) = field(:, j)
-        ySliceForw_send(:, j) = field(:, ny - nby + j)
-      end do
-
-      ! back -> forw
-      source = back
-      dest = forw
-      tag = 100
-
-      i0 = - nbx; j0 = 1
-
-      call mpi_sendrecv(ySliceForw_send(i0, j0), sendcount, &
-          &mpi_double_precision, dest, tag, ySliceBack_recv(i0, j0), &
-          &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-          &sts_back, ierror)
-
-      ! forw -> back
-      source = forw
-      dest = back
-      tag = 100
-
-      call mpi_sendrecv(ySliceBack_send(i0, j0), sendcount, &
-          &mpi_double_precision, dest, tag, ySliceForw_recv(i0, j0), &
-          &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-          &sts_forw, ierror)
-
-      ! write auxiliary slice to var field
-      do j = 1, nby
-        ! right halos
-        field(:, ny + j) = ySliceForw_recv(:, j)
-        ! left halos
-        field(:, - nby + j) = ySliceBack_recv(:, j)
-      end do
-
-    else
-
-      do j = 1, nby
-        field(:, ny + j) = field(:, j)
-        field(:, - j + 1) = field(:, ny - j + 1)
-      end do
-
-    end if
-
-  end subroutine setHalosOfField2D
 
   !---------------------------------------------------------------------------
 

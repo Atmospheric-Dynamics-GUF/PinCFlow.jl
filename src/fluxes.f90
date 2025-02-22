@@ -3,6 +3,7 @@ module flux_module
   use type_module
   use muscl_module
   use atmosphere_module
+  use mpi_module
   use mpi
 
   implicit none
@@ -15,7 +16,6 @@ module flux_module
   public :: momentumFlux
   public :: init_fluxes
   public :: terminate_fluxes
-  public :: setHalosOfField
 
   ! Internal module variables
   real, dimension(:, :, :), allocatable :: rhoBar, rhopBar, rhoOld, rhopOld
@@ -59,6 +59,7 @@ module flux_module
 
     ! Indices
     integer :: ix, jy, kz
+    integer :: dir, edge
 
     ! TFC variables
     real :: rhoEdgeR, rhoEdgeF, rhoEdgeU
@@ -86,6 +87,20 @@ module flux_module
 
       call reconstruct_MUSCL(rhoBar, rhoTilde, nxx, nyy, nzz, limiterType1)
 
+      ! Set halos and enforce periodic boundary conditions.
+      do dir = 1, 3
+        do edge = 0, 1
+          call setHalosOfField(rhoTilde(:, :, :, dir, edge))
+          if(zBoundary == "periodic") then
+            do kz = 1, nbz
+              rhoTilde(:, :, nz + kz, dir, edge) = rhoTilde(:, :, kz, dir, edge)
+              rhoTilde(:, :, - kz + 1, dir, edge) = rhoTilde(:, :, nz - kz &
+                  &+ 1, dir, edge)
+            end do
+          end if
+        end do
+      end do
+
     case("rhop")
 
       ! Compute \rho'/P for reconstruction.
@@ -105,6 +120,21 @@ module flux_module
       end do
 
       call reconstruct_MUSCL(rhopBar, rhopTilde, nxx, nyy, nzz, limiterType1)
+
+      ! Set halos and enforce periodic boundary conditions.
+      do dir = 1, 3
+        do edge = 0, 1
+          call setHalosOfField(rhopTilde(:, :, :, dir, edge))
+          if(zBoundary == "periodic") then
+            do kz = 1, nbz
+              rhopTilde(:, :, nz + kz, dir, edge) = rhopTilde(:, :, kz, dir, &
+                  &edge)
+              rhopTilde(:, :, - kz + 1, dir, edge) = rhopTilde(:, :, nz - kz &
+                  &+ 1, dir, edge)
+            end do
+          end if
+        end do
+      end do
 
     case("uvw")
 
@@ -161,6 +191,28 @@ module flux_module
       call reconstruct_MUSCL(uBar, uTilde, nxx, nyy, nzz, limiterType1)
       call reconstruct_MUSCL(vBar, vTilde, nxx, nyy, nzz, limiterType1)
       call reconstruct_MUSCL(wBar, wTilde, nxx, nyy, nzz, limiterType1)
+
+      ! Set halos and enforce periodic boundary conditions.
+      do dir = 1, 3
+        do edge = 0, 1
+          call setHalosOfField(uTilde(:, :, :, dir, edge))
+          call setHalosOfField(vTilde(:, :, :, dir, edge))
+          call setHalosOfField(wTilde(:, :, :, dir, edge))
+          if(zBoundary == "periodic") then
+            do kz = 1, nbz
+              uTilde(:, :, nz + kz, dir, edge) = uTilde(:, :, kz, dir, edge)
+              uTilde(:, :, - kz + 1, dir, edge) = uTilde(:, :, nz - kz + 1, &
+                  &dir, edge)
+              vTilde(:, :, nz + kz, dir, edge) = vTilde(:, :, kz, dir, edge)
+              vTilde(:, :, - kz + 1, dir, edge) = vTilde(:, :, nz - kz + 1, &
+                  &dir, edge)
+              wTilde(:, :, nz + kz, dir, edge) = wTilde(:, :, kz, dir, edge)
+              wTilde(:, :, - kz + 1, dir, edge) = wTilde(:, :, nz - kz + 1, &
+                  &dir, edge)
+            end do
+          end if
+        end do
+      end do
 
     case default
       stop "Error in reconstruction: unknown case variable."
@@ -998,155 +1050,5 @@ module flux_module
     if(allocstat /= 0) stop "terminate_fluxes: dealloc of wOldTFC failed"
 
   end subroutine terminate_fluxes
-
-  ! ----------------------------------------------------
-
-  subroutine setHalosOfField(field)
-
-    !-------------------------------
-    !  set values in halo cells
-    !-------------------------------
-
-    ! in/out variables
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
-        &intent(inout) :: field
-
-    ! auxiliary fields
-    real, dimension(nbx, - nby:ny + nby, - nbz:nz + nbz) :: xSliceLeft_send, &
-        &xSliceRight_send
-    real, dimension(nbx, - nby:ny + nby, - nbz:nz + nbz) :: xSliceLeft_recv, &
-        &xSliceRight_recv
-
-    real, dimension(- nbx:nx + nbx, nby, - nbz:nz + nbz) :: ySliceBack_send, &
-        &ySliceForw_send
-    real, dimension(- nbx:nx + nbx, nby, - nbz:nz + nbz) :: ySliceBack_recv, &
-        &ySliceForw_recv
-
-    ! MPI variables
-    integer :: dest, source, tag
-    integer :: sendcount, recvcount
-
-    ! locals
-    integer :: i, j, k
-    integer :: i0, j0, k0
-
-    !-----------------------------
-    !     find neighbour procs
-    !-----------------------------
-
-    if(idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
-    if(jdim > 1) call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
-
-    !------------------------------
-    !          x-direction
-    !------------------------------
-
-    if(idim > 1) then
-
-      ! slice size
-      sendcount = nbx * (ny + 2 * nby + 1) * (nz + 2 * nbz + 1)
-      recvcount = sendcount
-
-      ! read slice into contiguous array
-      do i = 1, nbx
-        xSliceLeft_send(i, :, :) = field(i, :, :)
-        xSliceRight_send(i, :, :) = field(nx - nbx + i, :, :)
-      end do
-
-      ! left -> right
-      source = left
-      dest = right
-      tag = 100
-
-      i0 = 1; j0 = - nby; k0 = - nbz
-
-      call mpi_sendrecv(xSliceRight_send(i0, j0, k0), sendcount, &
-          &mpi_double_precision, dest, tag, xSliceLeft_recv(i0, j0, k0), &
-          &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-          &sts_left, ierror)
-
-      ! right -> left
-      source = right
-      dest = left
-      tag = 100
-
-      call mpi_sendrecv(xSliceLeft_send(i0, j0, k0), sendcount, &
-          &mpi_double_precision, dest, tag, xSliceRight_recv(i0, j0, k0), &
-          &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-          &sts_right, ierror)
-
-      ! write auxiliary slice to var field
-      do i = 1, nbx
-        ! right halos
-        field(nx + i, :, :) = xSliceRight_recv(i, :, :)
-        ! left halos
-        field(- nbx + i, :, :) = xSliceLeft_recv(i, :, :)
-      end do
-
-    else
-
-      do i = 1, nbx
-        field(nx + i, :, :) = field(i, :, :)
-        field(- i + 1, :, :) = field(nx - i + 1, :, :)
-      end do
-
-    end if
-
-    !------------------------------
-    !          y-direction
-    !------------------------------
-
-    if(jdim > 1) then
-
-      ! slice size
-      sendcount = nby * (nx + 2 * nbx + 1) * (nz + 2 * nbz + 1)
-      recvcount = sendcount
-
-      ! read slice into contiguous array
-      do j = 1, nby
-        ySliceBack_send(:, j, :) = field(:, j, :)
-        ySliceForw_send(:, j, :) = field(:, ny - nby + j, :)
-      end do
-
-      ! back -> forw
-      source = back
-      dest = forw
-      tag = 100
-
-      i0 = - nbx; j0 = 1; k0 = - nbz
-
-      call mpi_sendrecv(ySliceForw_send(i0, j0, k0), sendcount, &
-          &mpi_double_precision, dest, tag, ySliceBack_recv(i0, j0, k0), &
-          &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-          &sts_back, ierror)
-
-      ! forw -> back
-      source = forw
-      dest = back
-      tag = 100
-
-      call mpi_sendrecv(ySliceBack_send(i0, j0, k0), sendcount, &
-          &mpi_double_precision, dest, tag, ySliceForw_recv(i0, j0, k0), &
-          &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-          &sts_forw, ierror)
-
-      ! write auxiliary slice to var field
-      do j = 1, nby
-        ! right halos
-        field(:, ny + j, :) = ySliceForw_recv(:, j, :)
-        ! left halos
-        field(:, - nby + j, :) = ySliceBack_recv(:, j, :)
-      end do
-
-    else
-
-      do j = 1, nby
-        field(:, ny + j, :) = field(:, j, :)
-        field(:, - j + 1, :) = field(:, ny - j + 1, :)
-      end do
-
-    end if
-
-  end subroutine setHalosOfField
 
 end module flux_module
