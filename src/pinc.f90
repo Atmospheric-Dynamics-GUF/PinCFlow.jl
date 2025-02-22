@@ -481,9 +481,6 @@ program pinc_prog
       call reconstruction(var, "rhop")
       call reconstruction(var, "uvw")
 
-      call setHalos(var, "varTilde")
-      call setBoundary(var, flux, "varTilde")
-
       ! Fluxes
       call massFlux(var0, var, flux)
       call momentumFlux(var0, var, flux)
@@ -626,9 +623,6 @@ program pinc_prog
       call reconstruction(var, "rho")
       call reconstruction(var, "rhop")
       call reconstruction(var, "uvw")
-
-      call setHalos(var, "varTilde")
-      call setBoundary(var, flux, "varTilde")
 
       ! Fluxes
       call massFlux(var0, var, flux)
