@@ -6,9 +6,9 @@
   sizeX                    =                     300 ! Cells in x
   sizeY                    =                       1 ! Cells in y
   sizeZ                    =                     100 ! Cells in z
-  nbx                      =                       2 ! Halo/ghost cells in x
-  nby                      =                       2 ! Halo/ghost cells in y
-  nbz                      =                       2 ! Ghost cells in z
+  nbx                      =                       3 ! Halo/ghost cells in x
+  nby                      =                       3 ! Halo/ghost cells in y
+  nbz                      =                       3 ! Ghost cells in z
   lx_dim(0)                =                  0.0E+0 ! Minimum of x
   lx_dim(1)                =                  6.0E+4 ! Maximum of x
   ly_dim(0)                =                  0.0E+0 ! Minimum of y
