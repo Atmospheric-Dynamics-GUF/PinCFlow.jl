@@ -497,11 +497,11 @@ module mpi_module
     end if
 
     ! Number of halo cells should not be larger than number of physical cells.
-    if(idim > 1 .and. nbx + 1 > nx) then
-      if(master) stop "Error in init_mpi: idim > 1 and nbx + 1 > nx!"
+    if(idim > 1 .and. nbx > nx) then
+      if(master) stop "Error in init_mpi: idim > 1 and nbx > nx!"
     end if
-    if(jdim > 1 .and. nby + 1 > ny) then
-      if(master) stop "Error in init_mpi: jdim > 1 and nby + 1 > ny!"
+    if(jdim > 1 .and. nby > ny) then
+      if(master) stop "Error in init_mpi: jdim > 1 and nby > ny!"
     end if
 
   end subroutine init_mpi
