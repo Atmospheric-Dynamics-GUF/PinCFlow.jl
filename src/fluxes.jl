@@ -52,13 +52,13 @@ function reconstruct_rhop!(semi)
 end
 
 function reconstruct_u!(semi)
-
     # Compute rho*u/P for reconstruction
     (; var, grid, cache) = semi
 	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; uTilde) = cache
+    (; uTilde, rhoStrat, pStrat) = cache
 
     rho = @view var.rho 
+    rhoFull = rho + rhoStrat
     u = @view var.u
     sizeX, sizeY, sizeZ = size(u)
 
@@ -69,47 +69,86 @@ function reconstruct_u!(semi)
     for ix in -nbx : nx + nbx - 1
         for jy in - nby : ny + nby
             for kz in 0 : nz + 1
-                rhoEdgeR = 0.5 * (rho[ix, jy, kz] + rho[ix + 1, jy, kz])
-                # pEdgeR = 0.5 * (pStrat[ix, kz] + pStrat[ix + 1, kz])
-                uBar[ix, kz] = uu[ix, kz] * rhoEdgeR / 1. # pEdgeR
+                rhoEdgeR = 0.5 * (rhoFull[ix, jy, kz] + rhoFull[ix + 1, jy, kz])
+                pEdgeR = 0.5 * (pStrat[ix, jy, kz] + pStrat[ix + 1, jy, kz])
+                uBar[ix, jy, kz] = u[ix, jy, kz] * rhoEdgeR /  pEdgeR
             end
         end 
     end
-    muscl_reconstruct2D!(uBar, nx, nz, uTilde)
+    muscl_reconstruct2D!(uBar, nxx, nyy, nzz, uTilde)
 end
 
-function reconstruct_w!(var, wTilde, grid)
+function reconstruct_v!(semi)
 
-	(; nx, nz, nbx, nbz) = grid
+    # Compute rho*v/P for reconstruction
+    (; var, grid, cache) = semi
+	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
+    (; vTilde, rhoStrat, pStrat) = cache
 
-    # wTilde is global in PinCFlow
-    rhop = @view var[1, :, :] # density fluctuation
-    rho = rhop # + rhoStrat # rhoStrat = background density
-    ww = @view var[3, :, :] # vertical velocity
-    sizeX, sizeZ = size(ww)
-    wBar_ = zeros(sizeX, sizeZ)
-	wBar = OffsetArray(wBar_, OffsetArrays.Origin(-nbx, -nbz))
-    #wBar[:, :] = ww[:, :]
+    rho = @view var.rho 
+    rhoFull = rho + rhoStrat
+    v = @view var.v
+    sizeX, sizeY, sizeZ = size(v)
 
-    # for ix in 1:nx 
-    #     for kz in 0:nz+1
-    #         wBar[ix, kz] = vertWindTFC(var, ix, kz)
-    #     end 
-    # end
-    # TODO: PinCFlow sets halos of wBar
-    for ix in -nbx:nx+nbx
-        for kz in 0:nz+1
-            rhoEdgeU = (jac(ix, kz+1) * rho[ix, kz] + 
-            jac(ix, kz) * rho[ix, kz+1]) / (jac(ix, kz) + jac(ix, kz+1))
-            #pEdgeU = (jac[ix, kz+1] * pStrat[ix, kz] + 
-            #jac[ix, kz] * pStrat[ix, kz+1]) / (jac[ix, kz] + jac[ix, kz+1])
-            wBar[ix, kz] = ww[ix, kz] * rhoEdgeU / 1. # pEdgeU
+    vBar_ = zeros(sizeX, sizeY, sizeZ)
+	vBar = OffsetArray(vBar_, OffsetArrays.Origin(-nbx, -nby, -nbz))
+
+    # rho*v/P for reconstruction
+    for ix in -nbx : nx + nbx
+        for jy in - nby : ny + nby - 1
+            for kz in 0 : nz + 1
+                rhoEdgeF = 0.5 * (rhoFull[ix, jy, kz] + rhoFull[ix, jy + 1, kz])
+                pEdgeF = 0.5 * (pStrat[ix, jy, kz] + pStrat[ix, jy + 1, kz])
+                vBar[ix, jy, kz] = v[ix, jy, kz] * rhoEdgeU / pEdgeU
+            end
+        end 
+    end
+    muscl_reconstruct2D!(vBar, nxx, nyy, nzz, vTilde)
+end
+
+
+
+function reconstruct_w!(semi)
+
+    # Compute rho*v/P for reconstruction
+    (; var, grid, cache) = semi
+	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
+    (; wTilde, rhoStrat, pStrat) = cache
+
+    rho = @view var.rho 
+    rhoFull = rho + rhoStrat
+    w = @view var.w
+    sizeX, sizeY, sizeZ = size(w)
+
+    wBar_ = zeros(sizeX, sizeY, sizeZ)
+	wBar = OffsetArray(wBar_, OffsetArrays.Origin(-nbx, -nby, -nbz))
+
+    wBar[:, :, 0 : nz + 1] = w[:, :, 0 : nz + 1]
+    for ix in 1 : nx 
+        for jy in 1 : ny 
+            for kz in 1 : nz 
+                # TODO: vertWindTFC function
+                wBar[ix, jy, kz] = vertWindTFC(ix, jy, kz)
+            end
         end
     end
-    # muscl_reconstruct2D!(wBar, nx, nz, wTilde)
+    # TODO: call boundaries of wBar
+    for ix in - nbx : nx + nbx
+        for jy in - nby : ny + nby
+            for kz in 0 : nz + 1
+                rhoEdgeU = (jac(ix, jy, kz + 1) * rhoFull[ix, jy, kz] 
+                    + jac(ix, jy, kz) * rhoFull[ix, jy, kz + 1]) / 
+                    (jac(ix, jy, kz) + jac(ix, jy, kz + 1))
+                pEdgeU = (jac(ix, jy, kz + 1) * pStrat[ix, jy, kz] 
+                    + jac(ix, jy, kz) * pStrat[ix, jy, kz + 1]) /
+                    (jac(ix, jy, kz) + jac(ix, jy, kz + 1))
+                wBar[ix, jy, kz] = wBar[ix, jy, kz] * rhoEdgeU / pEdgeU
+        end
+    end
+    muscl_reconstruct2D!(wBar, nxx, nyy, nzz, wTilde)
 end
 
-function muscl_reconstruct2D!(var, sizeX, sizeZ, varTilde)
+function muscl_reconstruct3D!(var, sizeX, sizeY, sizeZ, varTilde)
 
     for k in 0:sizeZ
 		orientation = 1
