@@ -46,56 +46,6 @@ function make_grid(; nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zm
     return grid
 end
 
-nx = ny = nz = 100
-nbx = nby = nbz = 3
-
-# Constants
-gamma = 1.4
-gamma_1 = gamma - 1.0
-kappa = (gamma - 1.0) / gamma
-kappaInv = 1.0 / kappa
-gammaInv = 1.0 / gamma
-
-# Reference quantities
-Rsp = 287.0
-g = 9.81
-rhoRef = 1.184
-pRef = 101325.0
-aRef = sqrt(pRef / rhoRef)
-uRef = aRef
-global lRef = pRef / rhoRef / g
-tRef = lRef / aRef
-thetaRef = aRef ^ 2. / Rsp
-Ma = uRef / aRef
-Fr = uRef / sqrt(g * lRef)
-kappa = (gamma - 1.) / gamma
-sig = Ma ^ 2 / Fr ^ 2
-
-FRef = rhoRef * uRef^2 / lRef
-
-press0_dim = 1.0e5
-
-# isothermal atmosphere
-
-Temp0_dim = 300.0
-T0 = Temp0_dim / thetaRef
-N2 = Ma ^ 2 / Fr ^ 4 * kappa / T0
-NN = sqrt(N2)
-
-mu_viscous_dim = 0.0
-ReInv = mu_viscous_dim / (uRef * lRef)
-
-# Reynolds number
-ReInv = 0.0
-if false # TODO - Figure it out!
-ReInv = mu_viscous_dim / (uRef * lRef)
-end
-
-Re = if ReInv < 1.0e-20
-1.0e20
-else
-1.0 / ReInv
-end
 
 struct Jacobian{Grid}
     grid::Grid
@@ -108,44 +58,14 @@ function (jac::Jacobian)(i, j, k)
     return (lz[1] - topography_surface[i, j]) / lz[1] * (zTildeS[k] - zTildeS[k - 1]) / dz
 end
 
-xmin = ymin = zmin = 0.0
-xmax = ymax = zmax = 1.0
-stretch_exponent = 2
-grid = make_grid(nx=nx, ny=ny, nz=nz, nbx=nbx, nby=nby, nbz=nbz, xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, zmin = zmin, zmax = zmax, lRef = lRef, stretch_exponent=stretch_exponent)
-
-equations = (; gamma, gamma_1, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re)
-
-
-
-u = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz), -nbx:nx+nbx, -nby:ny+nby, -nbz:nz+nbz)
-v, w, rho, exner, rhop = (copy(u), copy(u), copy(u), copy(u), copy(u))
-
-var = (; u, v, w, rho, exner, rhop)
-
-ndim = 3
-flux_u = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz, ndim), -nbx:nx+nbx, -nby:ny+nby, -nbz:nz+nbz, 1:ndim)
-
-flux_u = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz, ndim), -nbx:nx+nbx, -nby:ny+nby, -nbz:nz+nbz, 1:ndim)
-
-flux_v, flux_w, flux_rho, flux_exner, flux_rhop = (copy(flux_u), copy(flux_u), copy(flux_u), copy(flux_u), copy(flux_u))
-
-flux = (; u = flux_u, v = flux_v, w = flux_w, rho = flux_rho, exner = flux_exner, rhop = flux_rhop)
-
-rhoTilde = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz, ndim, 2), -nbx:nx+nbx, -nby:ny+nby, -nbz:nz+nbz, 1:ndim, 1:2)
-
-uTilde, vTilde, wTilde, rhopTilde = (copy(rhoTilde), copy(rhoTilde), copy(rhoTilde), copy(rhoTilde))
-
-cache = (; var, flux, uTilde, vTilde, wTilde, rhoTilde, rhopTilde)
-
-semi = (; grid, equations, cache)
 
 function initialize_atmosphere!(semi)
 
-    (; grid, equations) = semi
+    (; grid, equations, cache) = semi
     (; nx, ny, nz,
              nbx, nby, nbz, topography_surface, zTildeTFC, zTFC, zTildeS, zS,
              lx, ly, lz, dx, dy, dz, x, y, z) = grid
-
+    (; pStrat, rhoStrat, thetaStrat, bvsStrat) = cache
     (; gamma, gamma_1, kappa, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re) = equations
 
     setup_topography!(topography_surface, zTFC, nx, ny, nz, lz)
@@ -157,17 +77,7 @@ function initialize_atmosphere!(semi)
     # nondimensional gravitational constant
     g_ndim = g / (uRef ^ 2 / lRef)
     p0 = press0_dim / pRef
-    pStrat = OffsetArray(zeros(Float64, nx + 2nbx + 1, ny + 2nby + 1, nz + 4),
-                        -nbx:nx+nbx, -nby:ny+nby, -1:nz+2)
 
-    thetaStrat = OffsetArray(zeros(Float64, nx + 2nbx + 1, ny + 2nby + 1, nz + 4),
-                            -nbx:nx+nbx, -nby:ny+nby, -1:nz+2)
-
-    rhoStrat = OffsetArray(zeros(Float64, nx + 2nbx + 1, ny + 2nby + 1, nz + 4),
-                        -nbx:nx+nbx, -nby:ny+nby, -1:nz+2)
-
-    bvsStrat = OffsetArray(zeros(Float64, nx + 2nbx + 1, ny + 2nby + 1, nz + 4),
-                        -nbx:nx+nbx, -nby:ny+nby, -1:nz+2)
 
 
 
@@ -207,8 +117,9 @@ function setup_topography!(topography_surface, zTFC, nx, ny, nz, lz)
     if lz[0] != 0.0
         @assert false "Error in setup_topography: lz(0) must be zero for & &TFC!"
     end
-
-    mountainHeight_dim = mountainWidth_dim = 1.0 # TODO - PLEASE!!
+    
+    mountainHeight_dim = 400.
+    mountainWidth_dim = 1000.
     mountainHeight = mountainHeight_dim / lRef
     mountainWidth = mountainWidth_dim / lRef
     mountainWavenumber = pi / mountainWidth
@@ -376,4 +287,3 @@ function stressTensTFC(i, j, k, mu, nu, var)
     return stressTensTFC
 end
 
-initialize_atmosphere!(semi)
