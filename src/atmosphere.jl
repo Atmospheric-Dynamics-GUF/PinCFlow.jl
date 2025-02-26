@@ -1,7 +1,7 @@
 using SimpleUnPack
 using OffsetArrays
 
-function make_grid(; nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zmax, lRef)
+function make_grid(; nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zmax, lRef, stretch_exponent)
     topography_surface = OffsetArray(zeros(nx + 1 + 2*nbx, ny + 1 + 2*nby), -nbx:nx+nbx, -nby:ny+nby)
     zTildeTFC = OffsetArray(zeros(nx + 1 + 2*nbx, ny + 1 + 2*nby, nz + 1 + 2*nbz), -nbx:nx+nbx, -nby:ny+nby, -nbz:nz+nbz)
     zTFC = OffsetArray(zeros(nx + 1 + 2*nbx, ny + 1 + 2*nby, nz + 1 + 2*nbz), -nbx:nx+nbx, -nby:ny+nby, -nbz:nz+nbz)
@@ -42,7 +42,7 @@ function make_grid(; nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zm
 
     grid = (; nx, ny, nz,
              nbx, nby, nbz, topography_surface, zTildeTFC, zTFC, zTildeS, zS,
-             lx, ly, lz, dx, dy, dz, x, y, z)
+             lx, ly, lz, dx, dy, dz, x, y, z, stretch_exponent)
     return grid
 end
 
@@ -101,13 +101,43 @@ struct Jacobian{Grid}
     grid::Grid
 end
 
+function (jac::Jacobian)(i, j, k)
+    # Jacobian.
+    (; grid) = jac
+    (; topography_surface, zTildeS, dz, lz) = grid
+    return (lz[1] - topography_surface[i, j]) / lz[1] * (zTildeS[k] - zTildeS[k - 1]) / dz
+end
+
 xmin = ymin = zmin = 0.0
 xmax = ymax = zmax = 1.0
-grid = make_grid(nx=nx, ny=ny, nz=nz, nbx=nbx, nby=nby, nbz=nbz, xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, zmin = zmin, zmax = zmax, lRef = lRef)
+stretch_exponent = 2
+grid = make_grid(nx=nx, ny=ny, nz=nz, nbx=nbx, nby=nby, nbz=nbz, xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, zmin = zmin, zmax = zmax, lRef = lRef, stretch_exponent=stretch_exponent)
 
 equations = (; gamma, gamma_1, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re)
 
-semi = (; grid, equations)
+
+
+u = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz), -nbx:nx+nbx, -nby:ny+nby, -nbz:nz+nbz)
+v, w, rho, exner, rhop = (copy(u), copy(u), copy(u), copy(u), copy(u))
+
+var = (; u, v, w, rho, exner, rhop)
+
+ndim = 3
+flux_u = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz, ndim), -nbx:nx+nbx, -nby:ny+nby, -nbz:nz+nbz, 1:ndim)
+
+flux_u = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz, ndim), -nbx:nx+nbx, -nby:ny+nby, -nbz:nz+nbz, 1:ndim)
+
+flux_v, flux_w, flux_rho, flux_exner, flux_rhop = (copy(flux_u), copy(flux_u), copy(flux_u), copy(flux_u), copy(flux_u))
+
+flux = (; u = flux_u, v = flux_v, w = flux_w, rho = flux_rho, exner = flux_exner, rhop = flux_rhop)
+
+rhoTilde = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz, ndim, 2), -nbx:nx+nbx, -nby:ny+nby, -nbz:nz+nbz, 1:ndim, 1:2)
+
+uTilde, vTilde, wTilde, rhopTilde = (copy(rhoTilde), copy(rhoTilde), copy(rhoTilde), copy(rhoTilde))
+
+cache = (; var, flux, uTilde, vTilde, wTilde, rhoTilde, rhopTilde)
+
+semi = (; grid, equations, cache)
 
 function initialize_atmosphere!(semi)
 
@@ -217,7 +247,6 @@ function setup_topography!(topography_surface, zTFC, nx, ny, nz, lz)
 end
 
 function map(level, lz)
-    stretch_exponent = 2
     # Vertical grid stretching.
     if level < 0
         return -lz[1] * (-level / lz[1])^stretch_exponent
