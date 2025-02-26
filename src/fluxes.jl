@@ -1,47 +1,78 @@
 #--------- RECONSTRUCTION ---------#
-function reconstruct_rho!(var, rhoTilde, grid)
+function reconstruct_rho!(semi)
 
-	(; nx, nz, nbx, nbz) = grid
+    (; var, grid, cache) = semi
+	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
+    (; rhoTilde) = cache
 
     # rhoTilde is global in PinCFlow
     #rhop = @view var[1, :, :] # density fluctuation
     #rho = rhop + rhoStrat # rhoStrat = background density
 
-	rho = @view var[1, :, :]
-    sizeX, sizeZ = size(rho)
+	rho = @view var.rho
+    sizeX, sizeY, sizeZ = size(rho)
 
-    rhoBar_ = zeros(sizeX, sizeZ)
-	rhoBar = OffsetArray(rhoBar_, OffsetArrays.Origin(-nbx, -nbz))
+    rhoBar_ = zeros(sizeX, sizeY, sizeZ)
+	rhoBar = OffsetArray(rhoBar_, OffsetArrays.Origin(-nbx, -nby, -nbz))
 
-    for ix in -nbx:nx+nbx
-        for kz in 0:nz+1
-            # pStrat is a global variable in PinCFlow
-			# TODO: divide by pStrat
-            rhoBar[ix, kz] = rho[ix, kz] / 1. # pStrat[ix, kz]
+    for ix in -nbx : nx+nbx
+        for jy in - nby : ny + nby
+            for kz in 0 : nz + 1
+                # TODO: error message for pStrat
+                rhoBar[ix, jy, kz] = rho[ix, jy, kz] / pStrat[ix, jy, kz]
+            end
         end
     end
-    muscl_reconstruct2D!(rhoBar, nx, nz, rhoTilde)
+    muscl_reconstruct2D!(rhoBar, nxx, nyy, nzz, rhoTilde)
+    # TODO: keep limiterType1 ? 
 end
 
-function reconstruct_u!(var, uTilde, grid)
+function reconstruct_rhop!(semi)
 
-	(; nx, nz, nbx, nbz) = grid
+    (; var, grid, cache) = semi
+	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
+    (; rhopTilde) = cache
 
-    # uTilde is global in PinCFlow
-    rho = @view var[1, :, :] # density fluctuation
-    uu = @view var[2, :, :] # zonal velocity
-    sizeX, sizeZ = size(uu)
+    rhop = @view var.rhop
+    sizeX, sizeY, sizeZ = size(rhop)
 
-    uBar_ = zeros(sizeX, sizeZ)
-	uBar = OffsetArray(uBar_, OffsetArrays.Origin(-nbx, -nbz))
+    rhopBar_ = zeros(sizeX, sizeY, sizeZ)
+    rhopBar = OffsetArray(rhopBar_, OffsetArrays.Origin(-nbx, -nby, -nbz))
+
+    for ix in -nbx : nx+nbx
+        for jy in - nby : ny + nby
+            for kz in 0 : nz + 1
+                # TODO: error message for pStrat
+                rhopBar[ix, jy, kz] = rhop[ix, jy, kz] / pStrat[ix, jy, kz]
+            end
+        end
+    end
+    muscl_reconstruct2D!(rhopBar, nxx, nyy, nzz, rhopTilde)
+    # TODO: keep limiterType1 ?
+end
+
+function reconstruct_u!(semi)
+
+    # Compute rho*u/P for reconstruction
+    (; var, grid, cache) = semi
+	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
+    (; uTilde) = cache
+
+    rho = @view var.rho 
+    u = @view var.u
+    sizeX, sizeY, sizeZ = size(u)
+
+    uBar_ = zeros(sizeX, sizeY, sizeZ)
+	uBar = OffsetArray(uBar_, OffsetArrays.Origin(-nbx, -nby, -nbz))
 
     # rho*u/P for reconstruction
-    for ix in -nbx:nx+nbx-1
-        for kz in 0:nz+1
-            # pStrat is a global variable in PinCFlow
-            rhoEdgeR = 0.5 * (rho[ix, kz] + rho[ix + 1, kz])
-            # pEdgeR = 0.5 * (pStrat[ix, kz] + pStrat[ix + 1, kz])
-            uBar[ix, kz] = uu[ix, kz] * rhoEdgeR / 1. # pEdgeR
+    for ix in -nbx : nx + nbx - 1
+        for jy in - nby : ny + nby
+            for kz in 0 : nz + 1
+                rhoEdgeR = 0.5 * (rho[ix, jy, kz] + rho[ix + 1, jy, kz])
+                # pEdgeR = 0.5 * (pStrat[ix, kz] + pStrat[ix + 1, kz])
+                uBar[ix, kz] = uu[ix, kz] * rhoEdgeR / 1. # pEdgeR
+            end
         end 
     end
     muscl_reconstruct2D!(uBar, nx, nz, uTilde)
