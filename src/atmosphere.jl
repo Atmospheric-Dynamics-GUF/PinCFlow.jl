@@ -68,7 +68,7 @@ function initialize_atmosphere!(semi)
     (; pStrat, rhoStrat, thetaStrat, bvsStrat) = cache
     (; gamma, gamma_1, kappa, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re) = equations
 
-    setup_topography!(topography_surface, zTFC, nx, ny, nz, lz)
+    setup_topography!(semi)
 
     # scaled background flow
     backgroundFlow_dim = 10.0
@@ -77,8 +77,6 @@ function initialize_atmosphere!(semi)
     # nondimensional gravitational constant
     g_ndim = g / (uRef ^ 2 / lRef)
     p0 = press0_dim / pRef
-
-
 
 
     for ix in -nbx:nx + nbx, jy in -nby:ny + nby
@@ -104,7 +102,7 @@ function initialize_atmosphere!(semi)
 
 end
 
-function setup_topography!(topography_surface, zTFC, nx, ny, nz, lz)
+function setup_topography!(semi)
 
     # (; xc, zc, xf, zf, nx, nz) = grid
 
@@ -160,6 +158,7 @@ end
 
 function map(level, lz)
     # Vertical grid stretching.
+    stretch_exponent = 1. # TODO
     if level < 0
         return -lz[1] * (-level / lz[1])^stretch_exponent
     elseif level > lz[1]

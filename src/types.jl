@@ -7,6 +7,7 @@ abstract type AbstractBoundaryCondition end
 struct FiniteVolumeSolver <: AbstractSpatialSolver end
 
 struct PeriodicBC <: AbstractBoundaryCondition end
+struct SolidWallBC <: AbstractBoundaryCondition end
 
 struct BoundaryConditions{LeftBC,RightBC,BottomBC,TopBC}
     left::LeftBC
