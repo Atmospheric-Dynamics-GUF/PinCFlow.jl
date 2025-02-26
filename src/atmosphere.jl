@@ -16,9 +16,9 @@ function make_grid(; nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zm
     ly = ly_dim ./ lRef
     lz = lz_dim ./ lRef
 
-    dx = (lx[1] - lx[0])
-    dy = (ly[1] - ly[0])
-    dz = (lz[1] - lz[0])
+    dx = (lx[1] - lx[0]) / nx
+    dy = (ly[1] - ly[0]) / ny
+    dz = (lz[1] - lz[0]) / nz
 
 
     sizeX = nx
@@ -117,7 +117,7 @@ function setup_topography!(topography_surface, zTFC, nx, ny, nz, lz)
     if lz[0] != 0.0
         @assert false "Error in setup_topography: lz(0) must be zero for & &TFC!"
     end
-    
+
     mountainHeight_dim = 400.
     mountainWidth_dim = 1000.
     mountainHeight = mountainHeight_dim / lRef
@@ -132,7 +132,8 @@ function setup_topography!(topography_surface, zTFC, nx, ny, nz, lz)
       topography_surface .= 0.0
       for jy = 1:ny
         for ix = 1:nx
-          topography_surface[ix, jy] = mountainHeight / (1.0 + (x[ix] - x_center) ^ 2.0 / mountainWidth ^ 2.0)
+            topography_surface[ix, jy] = mountainHeight / (1.0 + (x[ix] - x_center) ^ 2.0 
+                / mountainWidth ^ 2.0)
         end
       end
     else
