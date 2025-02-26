@@ -97,6 +97,10 @@ else
 1.0 / ReInv
 end
 
+struct Jacobian{Grid}
+    grid::Grid
+end
+
 xmin = ymin = zmin = 0.0
 xmax = ymax = zmax = 1.0
 grid = make_grid(nx=nx, ny=ny, nz=nz, nbx=nbx, nby=nby, nbz=nbz, xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, zmin = zmin, zmax = zmax, lRef = lRef)
