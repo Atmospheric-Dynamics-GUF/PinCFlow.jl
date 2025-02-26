@@ -23,7 +23,7 @@ function reconstruct_rho!(semi)
             end
         end
     end
-    muscl_reconstruct2D!(rhoBar, nxx, nyy, nzz, rhoTilde)
+    muscl_reconstruct3D!(rhoBar, nxx, nyy, nzz, rhoTilde)
     # TODO: keep limiterType1 ? 
 end
 
@@ -47,7 +47,7 @@ function reconstruct_rhop!(semi)
             end
         end
     end
-    muscl_reconstruct2D!(rhopBar, nxx, nyy, nzz, rhopTilde)
+    muscl_reconstruct3D!(rhopBar, nxx, nyy, nzz, rhopTilde)
     # TODO: keep limiterType1 ?
 end
 
@@ -75,7 +75,7 @@ function reconstruct_u!(semi)
             end
         end 
     end
-    muscl_reconstruct2D!(uBar, nxx, nyy, nzz, uTilde)
+    muscl_reconstruct3D!(uBar, nxx, nyy, nzz, uTilde)
 end
 
 function reconstruct_v!(semi)
@@ -103,10 +103,8 @@ function reconstruct_v!(semi)
             end
         end 
     end
-    muscl_reconstruct2D!(vBar, nxx, nyy, nzz, vTilde)
+    muscl_reconstruct3D!(vBar, nxx, nyy, nzz, vTilde)
 end
-
-
 
 function reconstruct_w!(semi)
 
@@ -145,25 +143,34 @@ function reconstruct_w!(semi)
                 wBar[ix, jy, kz] = wBar[ix, jy, kz] * rhoEdgeU / pEdgeU
         end
     end
-    muscl_reconstruct2D!(wBar, nxx, nyy, nzz, wTilde)
+    muscl_reconstruct3D!(wBar, nxx, nyy, nzz, wTilde)
 end
 
 function muscl_reconstruct3D!(var, sizeX, sizeY, sizeZ, varTilde)
 
-    for k in 0:sizeZ
-		orientation = 1
-        phiX = var[:, k]
-        varTildeX = @view varTilde[:, k, orientation, :] # i, k, orientation, L/R Tilde
-        muscle_reconstruct1D_mcvariant!(phiX, sizeX, varTildeX)
+    for kz in 2 : sizeZ - 1
+        for jy in 2 : sizeY - 1
+            phiX = var.u[:, jy, kz]
+            varTildeX = @view varTilde[:, jy, kz, 1, :]
+            muscle_reconstruct1D_mcvariant!(phiX, sizeX, varTildeX)
+        end
     end
 
-    for i in 0:sizeX
-        phiZ = var[i, :]
-		orientation = 3
-        varTildeZ = @view varTilde[i, :, orientation, :] # i, k, orientation, L/R Tilde
-        muscle_reconstruct1D_mcvariant!(phiZ, sizeZ, varTildeZ)
+    for kz in 2 : sizeZ - 1
+        for ix in 2 : sizeX - 1
+            phiY = var.v[ix, :, kz]
+            varTildeY = @view varTilde[ix, :, kz, 2, :]
+            muscle_reconstruct1D_mcvariant!(phiY, sizeY, varTildeY)
+        end
     end
 
+    for jy in 2 : sizeY - 1
+        for ix in 2 : sizeX - 1
+            phiZ = var.w[ix, jy, :]
+            varTildeZ = @view varTilde[ix, jy, :, 3, :]
+            muscle_reconstruct1D_mcvariant!(phiZ, sizeZ, varTildeZ)
+        end
+    end
 end
 
 function muscle_reconstruct1D_mcvariant!(phi, phiSize, phiTilde)
@@ -198,41 +205,37 @@ function muscle_reconstruct1D_mcvariant!(phi, phiSize, phiTilde)
 end
 
 # ------------------------ FLUX CALCULATION ------------------------
-function compute_fluxes_PinCFlow!(cache, grid)
-	
-	rhoFlux!(cache, grid)
-	momemtumFlux!(cache, grid)
+function compute_fluxes_PinCFlow!(semi)
 
+    reconstruct_rho!(semi)
+    reconstruct_rhop!(semi)
+    reconstruct_u!(semi)
+    reconstruct_v!(semi)
+    reconstruct_w!(semi)
+	
+	rhoFlux!(semi)
+	momemtumFlux!(semi)
 end
 
-function rhoFlux!(cache, grid)
+# TODO: reconstruct_rho! could probably be called in rhoFlux!
 
-    (; nx, nz) = grid
-    (; u, rhoTilde, flux) = cache
+function rhoFlux!(semi)
 
-    rhoFlux = @view flux[1, :, :, :] # mass flux
-    uu = @view u[2, :, :] # zonal velocity
-    ww = @view u[3, :, :] # vertical velocity
+    (; var, grid, cache) = semi
+	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
+    (; rhoTilde, rhoStrat) = cache
 
+    rhoFlux = @view flux.rho # mass flux
+    u = @view var.u # zonal velocity
+    v = @view var.v # meridional velocity
+    w = @view var.w # vertical velocity
+
+    # TODO: these could be moved to new functions
     # zonal rho flux 
-    orientation = 1
-    for kz in 1:nz
-        for ix = 0:nx
-            # rhoStratEdgeR = 0.5 * (rhoStrat[ix, kz] + rhoStrat[ix + 1, kz])
-            # pEdgeR = 0.5 * (pStrat[ix, kz] + pStrat[ix + 1, kz])
-            rhoR = rhoTilde[ix + 1, kz, orientation, 1] 
-                # + rhoStratEdgeR / pEdgeR
-            rhoL = rhoTilde[ix, kz, orientation, 2] 
-                # + rhoStratEdgeR / pEdgeR
-
-            # pEdgeR = 0.5 * (jac(ix, kz) * pStrat[ix, kz] 
-            #     + jac(ix + 1, kz) * pStrat[ix + 1, kz])
-            pEdgeR = 1.
-            uSurf = pEdgeR * uu[ix, kz]
-
-            fRho = flux_muscl(uSurf, rhoL, rhoR)
-
-            rhoFlux[ix, kz, orientation] = fRho
+    for kz in 1 : nz 
+        for jy in 1 : ny 
+            for ix in 0 : nx 
+            end
         end
     end
 
