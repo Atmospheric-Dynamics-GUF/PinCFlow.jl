@@ -119,6 +119,10 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
     cache = (; var, flux, uTilde, vTilde, wTilde, rhoTilde, rhopTilde, pStrat, thetaStrat, rhoStrat, 
         bvsStrat)
 
-    return (; grid, equations, cache)
+    boundary_x = boundary_y = PeriodicBC()
+    boundary_z = SolidWallBC()
+    boundary_conditions = (; boundary_x, boundary_y, boundary_z)
+
+    return (; grid, equations, cache, boundary_conditions)
 end
 
