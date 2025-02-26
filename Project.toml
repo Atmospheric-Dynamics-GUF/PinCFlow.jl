@@ -6,4 +6,5 @@ version = "0.1.0"
 [deps]
 ConjugateGradientsGPU = "0cf172c8-095c-46f4-9dd2-d60831738d9b"
 OffsetArrays = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
+SimpleUnPack = "ce78b400-467f-4804-87d8-8f486da07d0a"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"

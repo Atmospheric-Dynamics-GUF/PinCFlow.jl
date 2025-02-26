@@ -344,4 +344,3 @@ function stressTensTFC(i, j, k, mu, nu, var)
 end
 
 initialize_atmosphere!(semi)
-
