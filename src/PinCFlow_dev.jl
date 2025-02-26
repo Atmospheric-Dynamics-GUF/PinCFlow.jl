@@ -1,5 +1,10 @@
 module PinCFlow_dev
 
-greet() = print("Hello World!")
+include("types.jl")
+include("matrix_solvers.jl")
+
+include("semi_discretization.jl")
+
+export SemiDiscretization
 
 end # module PinCFlow_dev
