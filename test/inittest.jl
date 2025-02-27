@@ -11,3 +11,18 @@ setBoundary!(semi)
 semi.cache.var0.u .= semi.cache.var.u # TODO this is actually done in the time loop
 
 compute_fluxes!(semi)
+
+dt = 1.0
+ode = time_discretization(semi, dt)
+
+massUpdate!(semi, ode, "lhs", 2)
+massUpdate!(semi, ode, "rhs", 1)
+
+momentumPredictor_u!(semi, ode, "lhs", 1)
+momentumPredictor_u!(semi, ode, "rhs", 1)
+
+momentumPredictor_v!(semi, ode, "lhs", 1)
+momentumPredictor_v!(semi, ode, "rhs", 1)
+
+momentumPredictor_w!(semi, ode, "lhs", 1)
+momentumPredictor_w!(semi, ode, "rhs", 1)
