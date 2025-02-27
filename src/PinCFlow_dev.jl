@@ -14,7 +14,7 @@ include("update.jl")
 export initialize_values, initialize_atmosphere!, initialize_variables!, setBoundary!,
     reconstruction!, compute_fluxes!
 
-export time_discretization, massUpdate!    
+export time_discretization, massUpdate_rho!, massUpdate_rhop!    
 
 export SemiDiscretization
 

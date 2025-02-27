@@ -12,7 +12,7 @@ function compute_fluxDiff(flux, i, j, k, grid)
     return fluxDiff
 end
 
-function massUpdate!(semi, ode, upd_mod, m)
+function massUpdate_rho!(semi, ode, upd_mod, m)
 
     (; grid, cache, equations) = semi
     (; var, flux, rhoStrat, bvsStrat, jac) = cache
@@ -23,11 +23,8 @@ function massUpdate!(semi, ode, upd_mod, m)
     # I think m is the temporal level or stage
     if m == 1
         dRho .= 0.0
-        dRhop .= 0.0
     end
 
-    ## Density has only one choice
-    ## LHS Fluctuations
     for k = 1:nz
         for j = 1:ny
             for i = 1:nx
@@ -45,9 +42,21 @@ function massUpdate!(semi, ode, upd_mod, m)
         end
     end
 
-    ## Fluctuations have RHS and LHS
-    ## RHS
-    ## TO FIX!!!
+end
+
+function massUpdate_rhop!(semi, ode, upd_mod, m)
+
+    (; grid, cache, equations) = semi
+    (; var, flux, rhoStrat, bvsStrat, jac) = cache
+    (; nx, ny, nz, lz) = grid
+    (; dt, alphaRK, betaRK, dRho, dRhop) = ode
+    (; g_ndim) = equations
+
+    # I think m is the temporal level or stage
+    if m == 1
+        dRhop .= 0.0
+    end
+
     if upd_mod == "lhs"
 
         for k = 1:nz
@@ -109,6 +118,11 @@ function momentumPredictor_u!(semi, ode, mmp_mod, m)
     (; nx, ny, nz, lz, dx, dy, dz) = grid
     (; dt, alphaRK, betaRK, dMom, usave, rhoOld) = ode
     (; kappaInv, MaInv2) = equations
+
+    if m == 1
+        dMom[:,:,:,1] .= 0
+    end
+
     i0 = 0
     i1 = nx
     if mmp_mod == "lhs"
@@ -127,11 +141,11 @@ function momentumPredictor_u!(semi, ode, mmp_mod, m)
                    # vC = 0.5 * (var.v[i, j, k] + var.v[i, j-1, k])
                    # vR = 0.5 * (var.v[i+1, j, k] + var.v[i+1, j-1, k])
                     #volForce =
-                  #      volForce +
-                  #      0.5 *
-                  #      f_cor_nd[j] *
-                  #      (
-                  #          (rhoOld[i, j, k] + rhoStrat[i, j, k]) *
+                   #      volForce +
+                   #      0.5 *
+                   #      f_cor_nd[j] *
+                   #      (
+                   #          (rhoOld[i, j, k] + rhoStrat[i, j, k]) *
                   #          (rhoOld[i+1, j, k] + rhoStrat[i+1, j, k])
                   #      ) *
                   #      vR
