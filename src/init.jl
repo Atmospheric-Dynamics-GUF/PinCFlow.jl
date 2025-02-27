@@ -33,6 +33,12 @@ end
 
 function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zmax)
 
+    maxIter = 1
+    maxTime = 3.6e3
+    tStepChoice = "cfl"
+    dtMax_dim = 1.0
+    cfl = 0.5e-1
+
     # Constants
     gamma = 1.4
     gamma_1 = gamma - 1.0
@@ -60,6 +66,8 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
 
     press0_dim = 1.0e5
 
+    dt = dtMax_dim / tRef
+
     # isothermal atmosphere
 
     Temp0_dim = 300.0
@@ -83,16 +91,65 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
     end
 
     stretch_exponent = 1
-    
-    g_ndim = g/(uRef^2/lRef)
+
+    g_ndim = g / (uRef^2 / lRef)
 
     f_Coriolis_dim = 0.0
-    
-    grid = make_grid(nx=nx, ny=ny, nz=nz, nbx=nbx, nby=nby, nbz=nbz, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax, lRef=lRef, stretch_exponent=stretch_exponent)
+
+    grid = make_grid(
+        nx = nx,
+        ny = ny,
+        nz = nz,
+        nbx = nbx,
+        nby = nby,
+        nbz = nbz,
+        xmin = xmin,
+        xmax = xmax,
+        ymin = ymin,
+        ymax = ymax,
+        zmin = zmin,
+        zmax = zmax,
+        lRef = lRef,
+        stretch_exponent = stretch_exponent,
+    )
 
     jac = Jacobian(grid)
 
-    equations = (; gamma, gamma_1, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re, g_ndim, MaInv2)
+    equations = (;
+        gamma,
+        gamma_1,
+        kappaInv,
+        gammaInv,
+        Rsp,
+        g,
+        rhoRef,
+        pRef,
+        aRef,
+        uRef,
+        lRef,
+        tRef,
+        thetaRef,
+        Ma,
+        Fr,
+        kappa,
+        sig,
+        press0_dim,
+        Temp0_dim,
+        T0,
+        N2,
+        NN,
+        mu_viscous_dim,
+        ReInv,
+        Re,
+        g_ndim,
+        MaInv2,
+        maxIter,
+        maxTime,
+        tStepChoice,
+        dtMax_dim,
+        cfl,
+        dt,
+    )
 
     # TODO: why not make Strat variables same size as var variables ??
     pStrat = OffsetArray(zeros(Float64, nx + 2nbx + 1, ny + 2nby + 1, nz + 4),

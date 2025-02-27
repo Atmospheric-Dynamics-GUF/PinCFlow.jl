@@ -4,62 +4,74 @@ function time_loop!(semi)
 
     reconstruction!(semi)
 
-    calculate_fluxes!(semi)
-
-    rk3!(semi)
+    compute_fluxes!(semi)
 
 end
 
 function timestep!(semi)
 
-    (; tStepChoice) = semi 
+    (; equations) = semi
+    (; tStepChoice) = equations
 
-    calculate_timestep!(semi, tStepChoice)
+    if (tStepChoice == "fix")
+        calculate_timestep_fix!(semi)
+    elseif (tStepChoice == "cfl")
+        calculate_timestep_cfl!(semi)
+    end
+
 
 end
 
-function calculate_timestep!(semi)
+function calculate_timestep_fix!(semi)
 
-    (; dt, tRef, dtMax_dim) = semi 
+    (; dt, tRef, dtMax_dim) = semi.equations
 
     dt = dtMax_dim / tRef
 
 end
 
-function calculate_timestep!(semi)
+function calculate_timestep_cfl!(semi)
 
-    (; dt, tRef, dtMax_dim, cache, Re, grid) = semi 
-    (; var) = cache
+    (; cache, equations, grid) = semi
+    (; dt, tRef, dtMax_dim, Re, cfl, lRef, uRef) = equations
+    (; var, jac) = cache
     (; nx, ny, nz, dx, dy, dz) = grid
 
     small = 1.e-20
 
-    u =  var.u 
-    v =  var.v 
-    w =  var.w
+    u = var.u
+    v = var.v
+    w = var.w
 
-    uMax = maximum(abs(u)) + small 
-    vMax = maximum(abs(v)) + small
-    wMax = maximum(abs(w)) + small
+    uMax = maximum(abs.(u)) + small
+    vMax = maximum(abs.(v)) + small
+    wMax = maximum(abs.(w)) + small
 
     dtConv = cfl * min(dx / uMax, dy / vMax, dz / wMax)
 
-    for kz in 1 : nz 
-        for jy in 1 : ny 
-            for ix in 1 : nx 
-                dtConv = min(dtConv, cfl * jac(ix, jy, kz) * dz / 
-                    (abs(0.5 * (vertWindTFC(ix, jy, kz) + vertWindTFC(ix, jy, kz - 1)))
-                    + small))
+    for kz = 1:nz
+        for jy = 1:ny
+            for ix = 1:nx
+                dtConv = min(
+                    dtConv,
+                    cfl * jac(ix, jy, kz) * dz / (
+                        abs(
+                            0.5 * (
+                                vertWind(ix, jy, kz, semi) + vertWind(ix, jy, kz - 1, semi)
+                            ),
+                        ) + small
+                    ),
+                )
             end
         end
     end
 
-    dtVisc = 0.5 * min(dx ^ 2, dy ^ 2, dz ^ 2) / Re
+    dtVisc = 0.5 * min(dx^2, dy^2, dz^2) * Re
 
-    for kz in 1 : nz 
-        for jy in 1 : ny 
-            for ix in 1 : nx 
-                dtVisc = min(dtVisc, 0.5 * jac(ix, jy, kz) ^ 2 * Re)
+    for kz = 1:nz
+        for jy = 1:ny
+            for ix = 1:nx
+                dtVisc = min(dtVisc, 0.5 * jac(ix, jy, kz)^2 * Re)
             end
         end
     end
@@ -67,7 +79,8 @@ function calculate_timestep!(semi)
     dtMax = dtMax_dim / tRef
 
     dt = min(dtVisc, dtConv, dtMax)
-    
+
 end
+
 
 
