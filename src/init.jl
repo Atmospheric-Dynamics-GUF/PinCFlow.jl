@@ -86,6 +86,7 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
 
     equations = (; gamma, gamma_1, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re)
 
+    # TODO: why not make Strat variables same size as var variables ??
     pStrat = OffsetArray(zeros(Float64, nx + 2nbx + 1, ny + 2nby + 1, nz + 4),
                         -nbx:nx+nbx, -nby:ny+nby, -1:nz+2)
 
@@ -103,6 +104,8 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
 
     var = (; u, v, w, rho, exner, rhop)
 
+    var0 = (; u, v, w, rho, exner, rhop)
+
     ndim = 3
     flux_u = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz, ndim), -nbx:nx+nbx, -nby:ny+nby, -nbz:nz+nbz, 1:ndim)
 
@@ -116,7 +119,7 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
 
     uTilde, vTilde, wTilde, rhopTilde = (copy(rhoTilde), copy(rhoTilde), copy(rhoTilde), copy(rhoTilde))
 
-    cache = (; var, flux, uTilde, vTilde, wTilde, rhoTilde, rhopTilde, pStrat, thetaStrat, rhoStrat, 
+    cache = (; var, var0, flux, uTilde, vTilde, wTilde, rhoTilde, rhopTilde, pStrat, thetaStrat, rhoStrat, 
         bvsStrat)
 
     boundary_x = boundary_y = PeriodicBC()

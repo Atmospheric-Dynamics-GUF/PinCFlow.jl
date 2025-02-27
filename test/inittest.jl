@@ -7,3 +7,7 @@ initialize_atmosphere!(semi)
 initialize_variables!(semi);
 
 setBoundary!(semi)
+
+semi.cache.var0.u .= semi.cache.var.u # TODO this is actually done in the time loop
+
+compute_fluxes!(semi)
