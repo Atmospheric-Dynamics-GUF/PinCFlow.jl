@@ -11,8 +11,9 @@ include("boundary.jl")
 include("fluxes.jl")
 include("update.jl")
 include("time_step.jl")
+include("time_loop.jl")
 export initialize_values, initialize_atmosphere!, initialize_variables!, setBoundary!,
-    reconstruction!, compute_fluxes!
+    reconstruction!, compute_fluxes!, vertWind, time_loop!
 
 export time_discretization, massUpdate_rho!, massUpdate_rhop!    
 

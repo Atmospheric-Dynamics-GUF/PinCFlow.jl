@@ -49,8 +49,6 @@ function calculate_timestep_cfl!(semi)
 
     dtConv = cfl * min(dx / uMax, dy / vMax, dz / wMax)
 
-    println("dtConv", dtConv * tRef)
-
     for kz = 1:nz
         for jy = 1:ny
             for ix = 1:nx

@@ -36,7 +36,7 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
     maxIter = 1
     maxTime = 3.6e3
     tStepChoice = "cfl"
-    dtMax_dim = 10000.0
+    dtMax_dim = 1.0
     cfl = 0.5e-1
 
     # Constants
