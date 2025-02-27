@@ -84,6 +84,8 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
     stretch_exponent = 1
     grid = make_grid(nx=nx, ny=ny, nz=nz, nbx=nbx, nby=nby, nbz=nbz, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax, lRef=lRef, stretch_exponent=stretch_exponent)
 
+    jac = Jacobian(grid)
+
     equations = (; gamma, gamma_1, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re)
 
     # TODO: why not make Strat variables same size as var variables ??
@@ -119,13 +121,15 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
 
     uTilde, vTilde, wTilde, rhopTilde = (copy(rhoTilde), copy(rhoTilde), copy(rhoTilde), copy(rhoTilde))
 
-    cache = (; var, var0, flux, uTilde, vTilde, wTilde, rhoTilde, rhopTilde, pStrat, thetaStrat, rhoStrat, 
-        bvsStrat)
+    cache = (; var, var0, flux, uTilde, vTilde, wTilde, rhoTilde, rhopTilde, pStrat, thetaStrat, rhoStrat,
+        bvsStrat, jac)
 
     boundary_x = boundary_y = PeriodicBC()
     boundary_z = SolidWallBC()
     boundary_conditions = (; boundary_x, boundary_y, boundary_z)
 
-    return (; grid, equations, cache, boundary_conditions)
+    met = MetricTensor(cache, grid, equations)
+
+    return (; grid, equations, cache, boundary_conditions, met)
 end
 
