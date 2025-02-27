@@ -24,6 +24,11 @@ function make_grid(; nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zm
     sizeX = nx
     sizeY = ny
     sizeZ = nz
+
+    nxx = nx + 2 * nbx + 1
+    nyy = ny + 2 * nby + 1
+    nzz = nz + 2 * nbz + 1
+
     x = OffsetArray(zeros(sizeX + 1 + 2nbx), -nbx:sizeX+nbx)
     y = OffsetArray(zeros(sizeY + 1 + 2nby), -nby:sizeY+nby)
     z = OffsetArray(zeros(sizeZ + 1 + 2nbz), -nbz:sizeZ+nbz)
@@ -40,9 +45,9 @@ function make_grid(; nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zm
         z[k] = lz[0] + (k - 1) * dz + dz / 2.0
     end
 
-    grid = (; nx, ny, nz,
-             nbx, nby, nbz, topography_surface, zTildeTFC, zTFC, zTildeS, zS,
-             lx, ly, lz, dx, dy, dz, x, y, z, stretch_exponent)
+    grid = (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, 
+              topography_surface, zTildeTFC, zTFC, zTildeS, zS,
+              lx, ly, lz, dx, dy, dz, x, y, z, stretch_exponent)
     return grid
 end
 
@@ -169,6 +174,8 @@ function map(level, lz)
 end
 
 function jac(i, j, k, lz, grid)
+
+    #TODO get lz from grid.lz
     # Jacobian.
     (; topography_surface, zTildeS, dz) = grid
     return (lz[1] - topography_surface[i, j]) / lz[1] * (zTildeS[k] - zTildeS[k - 1]) / dz
@@ -196,7 +203,7 @@ function met(i, j, k, mu, nu)
     end
 end
 
-function vertWind(i, j, k, var)
+function vertWind(i, j, k, var, grid)
     # Transformation of the vertical wind.
 
     uEdgeR = var.u[i, j, k]
@@ -210,38 +217,47 @@ function vertWind(i, j, k, var)
     wEdgeU = var.w[i, j, k]
 
     return trafo(i, j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF,
-                 vUEdgeF, vEdgeB, vUEdgeB, wEdgeU, "car")
+                 vUEdgeF, vEdgeB, vUEdgeB, wEdgeU, "car", grid)
 end
 
-function trafo(i, j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB, vUEdgeB, wEdgeU, wind)
+function trafo(i, j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, 
+                vUEdgeF, vEdgeB, vUEdgeB, wEdgeU, wind, grid)
     # Assuming jac and met are defined elsewhere
     # Define variables as in the original code
-    jacEdgeU = 2.0 * jac(i, j, k) * jac(i, j, k + 1) / (jac(i, j, k) + jac(i, j, k + 1))
+
+    (; lz) = grid
+
+    jacEdgeU = 2.0 * jac(i, j, k, lz, grid) * jac(i, j, k + 1, lz, grid) 
+        /(jac(i, j, k, lz, grid) + jac(i, j, k + 1, lz, grid))
     uC = 0.5 * (uEdgeR + uEdgeL)
     uU = 0.5 * (uUEdgeR + uUEdgeL)
     vC = 0.5 * (vEdgeF + vEdgeB)
     vU = 0.5 * (vUEdgeF + vUEdgeB)
 
     if wind == "car"
-        trafo = jacEdgeU * (-(jac(i, j, k + 1) * (met(i, j, k, 1, 3) * uC + met(i, j, k, 2, 3) * vC) +
-            jac(i, j, k) * (met(i, j, k + 1, 1, 3) * uU + met(i, j, k + 1, 2, 3) * vU)) / (jac(i, j, k) + jac(i, j, k + 1)) + wEdgeU)
+        trafo = jacEdgeU * (-(jac(i, j, k + 1, lz, grid) * (met(i, j, k, 1, 3) * uC + met(i, j, k, 2, 3) * vC) +
+            jac(i, j, k, lz, grid) * (met(i, j, k + 1, 1, 3) * uU + met(i, j, k + 1, 2, 3) * vU)) 
+            / (jac(i, j, k, lz, grid) + jac(i, j, k + 1, lz, grid)) + wEdgeU)
     elseif wind == "tfc"
-        trafo = (jac(i, j, k + 1) * (met(i, j, k, 1, 3) * uC + met(i, j, k, 2, 3) * vC) +
-            jac(i, j, k) * (met(i, j, k + 1, 1, 3) * uU + met(i, j, k + 1, 2, 3) * vU)) / (jac(i, j, k) + jac(i, j, k + 1)) + wEdgeU / jacEdgeU
+        trafo = (jac(i, j, k + 1, lz, grid) * (met(i, j, k, 1, 3) * uC + met(i, j, k, 2, 3) * vC) +
+            jac(i, j, k, lz, grid) * (met(i, j, k + 1, 1, 3) * uU + met(i, j, k + 1, 2, 3) * vU))/ 
+            (jac(i, j, k, lz, grid) + jac(i, j, k + 1, lz, grid)) + wEdgeU / jacEdgeU
     end
     return trafo
 end
 
 function stressTensTFC(i, j, k, mu, nu, var)
-    # Assuming jac, met, and vertWindTFC are functions defined elsewhere
+    # Assuming jac, met, and vertWind are functions defined elsewhere
 
     # Define variables as in the original code
-    jacEdgeR = 0.5 * (jac(i, j, k) + jac(i + 1, j, k))
-    jacEdgeL = 0.5 * (jac(i, j, k) + jac(i - 1, j, k))
-    jacEdgeF = 0.5 * (jac(i, j, k) + jac(i, j + 1, k))
-    jacEdgeB = 0.5 * (jac(i, j, k) + jac(i, j - 1, k))
-    jacEdgeU = 2.0 * jac(i, j, k) * jac(i, j, k + 1) / (jac(i, j, k) + jac(i, j, k + 1))
-    jacEdgeD = 2.0 * jac(i, j, k) * jac(i, j, k - 1) / (jac(i, j, k) + jac(i, j, k - 1))
+    jacEdgeR = 0.5 * (jac(i, j, k, lz, grid) + jac(i + 1, j, k, lz, grid))
+    jacEdgeL = 0.5 * (jac(i, j, k, lz, grid) + jac(i - 1, j, k, lz, grid))
+    jacEdgeF = 0.5 * (jac(i, j, k, lz, grid) + jac(i, j + 1, k, lz, grid))
+    jacEdgeB = 0.5 * (jac(i, j, k, lz, grid) + jac(i, j - 1, k, lz, grid))
+    jacEdgeU = 2.0 * jac(i, j, k, lz, grid) * jac(i, j, k + 1, lz, grid) /
+        (jac(i, j, k, lz, grid) + jac(i, j, k + 1, lz, grid))
+    jacEdgeD = 2.0 * jac(i, j, k, lz, grid) * jac(i, j, k - 1, lz, grid) /
+        (jac(i, j, k, lz, grid) + jac(i, j, k - 1, lz, grid))
 
     # Accessing array elements in var
     uF = 0.5 * (var.u[i, j + 1, k] + var.u[i - 1, j + 1, k])
@@ -254,34 +270,36 @@ function stressTensTFC(i, j, k, mu, nu, var)
     vU = 0.5 * (var.v[i, j, k + 1] + var.v[i, j - 1, k + 1])
     vD = 0.5 * (var.v[i, j, k - 1] + var.v[i, j - 1, k - 1])
 
-    wR = 0.5 * (vertWindTFC(i + 1, j, k, var) + vertWindTFC(i + 1, j, k - 1, var))
-    wL = 0.5 * (vertWindTFC(i - 1, j, k, var) + vertWindTFC(i - 1, j, k - 1, var))
-    wF = 0.5 * (vertWindTFC(i, j + 1, k, var) + vertWindTFC(i, j + 1, k - 1, var))
-    wB = 0.5 * (vertWindTFC(i, j - 1, k, var) + vertWindTFC(i, j - 1, k - 1, var))
+    wR = 0.5 * (vertWind(i + 1, j, k, var, grid) + vertWind(i + 1, j, k - 1, var, grid))
+    wL = 0.5 * (vertWind(i - 1, j, k, var, grid) + vertWind(i - 1, j, k - 1, var, grid))
+    wF = 0.5 * (vertWind(i, j + 1, k, var, grid) + vertWind(i, j + 1, k - 1, var, grid))
+    wB = 0.5 * (vertWind(i, j - 1, k, var, grid) + vertWind(i, j - 1, k - 1, var, grid))
 
     # Conditional logic for stress tensor calculation
     if mu == 1 && nu == 1
         stressTensTFC = 2.0 * (var.u[i, j, k] - var.u[i - 1, j, k]) / dx +
             met(i, j, k, 1, 3) * (uU - uD) / dz - 2.0 / 3.0 * ((jacEdgeR * var.u[i, j, k] - jacEdgeL * var.u[i - 1, j, k]) / dx +
             (jacEdgeF * var.v[i, j, k] - jacEdgeB * var.v[i, j - 1, k]) / dy +
-            (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k - 1]) / dz) / jac(i, j, k)
+            (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k - 1]) / dz) / jac(i, j, k, lz, grid)
     elseif (mu == 1 && nu == 2) || (mu == 2 && nu == 1)
         stressTensTFC = 0.5 * (uF - uB) / dy + 0.5 * met(i, j, k, 2, 3) * (uU - uD) / dz + 0.5 * (vR - vL) / dx +
             0.5 * met(i, j, k, 1, 3) * (vU - vD) / dz
     elseif (mu == 1 && nu == 3) || (mu == 3 && nu == 1)
-        stressTensTFC = 0.5 * (uU - uD) / dz / jac(i, j, k) + 0.5 * (wR - wL) / dx + met(i, j, k, 1, 3) * (vertWindTFC(i, j, k, var) - vertWindTFC(i, j, k - 1, var)) / dz
+        stressTensTFC = 0.5 * (uU - uD) / dz / jac(i, j, k, lz, grid) + 0.5 * (wR - wL) / dx + met(i, j, k, 1, 3) 
+        *(vertWind(i, j, k, var, grid) - vertWind(i, j, k - 1, var, grid)) / dz
     elseif mu == 2 && nu == 2
         stressTensTFC = 2.0 * (var.v[i, j, k] - var.v[i, j - 1, k]) / dy +
             met(i, j, k, 2, 3) * (vU - vD) / dz - 2.0 / 3.0 * ((jacEdgeR * var.u[i, j, k] - jacEdgeL * var.u[i - 1, j, k]) / dx +
             (jacEdgeF * var.v[i, j, k] - jacEdgeB * var.v[i, j - 1, k]) / dy +
-            (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k - 1]) / dz) / jac(i, j, k)
+            (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k - 1]) / dz) / jac(i, j, k, lz, grid)
     elseif (mu == 2 && nu == 3) || (mu == 3 && nu == 2)
-        stressTensTFC = 0.5 * (vU - vD) / dz / jac(i, j, k) + 0.5 * (wF - wB) / dy + met(i, j, k, 2, 3) * (vertWindTFC(i, j, k, var) - vertWindTFC(i, j, k - 1, var)) / dz
+        stressTensTFC = 0.5 * (vU - vD) / dz / jac(i, j, k, lz, grid) + 0.5 * (wF - wB) / dy + met(i, j, k, 2, 3) 
+        *(vertWind(i, j, k, var, grid) - vertWind(i, j, k - 1, var, grid)) / dz
     elseif mu == 3 && nu == 3
-        stressTensTFC = 2.0 * (vertWindTFC(i, j, k, var) - vertWindTFC(i, j, k - 1, var)) / dz / jac(i, j, k) -
+        stressTensTFC = 2.0 * (vertWind(i, j, k, var, grid) - vertWind(i, j, k - 1, var, grid)) / dz / jac(i, j, k, lz, grid) -
             2.0 / 3.0 * ((jacEdgeR * var.u[i, j, k] - jacEdgeL * var.u[i - 1, j, k]) / dx +
             (jacEdgeF * var.v[i, j, k] - jacEdgeB * var.v[i, j - 1, k]) / dy +
-            (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k - 1]) / dz) / jac(i, j, k)
+            (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k - 1]) / dz) / jac(i, j, k, lz, grid)
     end
 
     return stressTensTFC

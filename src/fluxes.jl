@@ -1,18 +1,24 @@
 #--------- RECONSTRUCTION ---------#
 
 # TODO: check start and end of loops
+function reconstruction!(semi)
+
+    reconstruct_rho!(semi)
+    reconstruct_rhop!(semi)
+    reconstruct_u!(semi)
+    reconstruct_v!(semi)
+    reconstruct_w!(semi)
+
+end
+
 
 function reconstruct_rho!(semi)
 
-    (; var, grid, cache) = semi
+    (; cache, grid) = semi
 	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; rhoTilde) = cache
+    (; var, rhoTilde, pStrat) = cache
 
-    # rhoTilde is global in PinCFlow
-    #rhop = @view var[1, :, :] # density fluctuation
-    #rho = rhop + rhoStrat # rhoStrat = background density
-
-	rho = @view var.rho
+	rho = var.rho
     sizeX, sizeY, sizeZ = size(rho)
 
     rhoBar_ = zeros(sizeX, sizeY, sizeZ)
@@ -26,17 +32,18 @@ function reconstruct_rho!(semi)
             end
         end
     end
-    muscl_reconstruct3D!(rhoBar, nxx, nyy, nzz, rhoTilde)
+    muscl_reconstruct3D!(rhoBar, nx, ny, nz, rhoTilde)
     # TODO: keep limiterType1 ? 
+    # muscl_reconstruct3D!(rhoBar, nxx, nyy, nzz, rhoTilde, limiterType)
 end
 
 function reconstruct_rhop!(semi)
 
-    (; var, grid, cache) = semi
+    (; grid, cache) = semi
 	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; rhopTilde) = cache
+    (; var, rhopTilde, pStrat) = cache
 
-    rhop = @view var.rhop
+    rhop = var.rhop
     sizeX, sizeY, sizeZ = size(rhop)
 
     rhopBar_ = zeros(sizeX, sizeY, sizeZ)
@@ -50,19 +57,18 @@ function reconstruct_rhop!(semi)
             end
         end
     end
-    muscl_reconstruct3D!(rhopBar, nxx, nyy, nzz, rhopTilde)
+    muscl_reconstruct3D!(rhopBar, nx, ny, nz, rhopTilde)
     # TODO: keep limiterType1 ?
 end
 
 function reconstruct_u!(semi)
     # Compute rho*u/P for reconstruction
-    (; var, grid, cache) = semi
+    (; grid, cache) = semi
 	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; uTilde, rhoStrat, pStrat) = cache
+    (; var, uTilde, rhoStrat, pStrat) = cache
 
-    rho = @view var.rho 
-    rhoFull = rho + rhoStrat
-    u = @view var.u
+    rho = var.rho 
+    u = var.u
     sizeX, sizeY, sizeZ = size(u)
 
     uBar_ = zeros(sizeX, sizeY, sizeZ)
@@ -72,25 +78,25 @@ function reconstruct_u!(semi)
     for ix in -nbx : nx + nbx - 1
         for jy in - nby : ny + nby
             for kz in 0 : nz + 1
-                rhoEdgeR = 0.5 * (rhoFull[ix, jy, kz] + rhoFull[ix + 1, jy, kz])
-                pEdgeR = 0.5 * (pStrat[ix, jy, kz] + pStrat[ix + 1, jy, kz])
-                uBar[ix, jy, kz] = u[ix, jy, kz] * rhoEdgeR /  pEdgeR
+                rhoEdge = 0.5 * (rho[ix, jy, kz] + rho[ix + 1, jy, kz] + 
+                    rhoStrat[ix, jy, kz] + rhoStrat[ix + 1, jy, kz])
+                pEdge = 0.5 * (pStrat[ix, jy, kz] + pStrat[ix + 1, jy, kz])
+                uBar[ix, jy, kz] = u[ix, jy, kz] * rhoEdge /  pEdge
             end
         end 
     end
-    muscl_reconstruct3D!(uBar, nxx, nyy, nzz, uTilde)
+    muscl_reconstruct3D!(uBar, nx, ny, nz, uTilde)
 end
 
 function reconstruct_v!(semi)
 
     # Compute rho*v/P for reconstruction
-    (; var, grid, cache) = semi
+    (; grid, cache) = semi
 	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; vTilde, rhoStrat, pStrat) = cache
+    (; var, vTilde, rhoStrat, pStrat) = cache
 
-    rho = @view var.rho 
-    rhoFull = rho + rhoStrat
-    v = @view var.v
+    rho = var.rho 
+    v = var.v
     sizeX, sizeY, sizeZ = size(v)
 
     vBar_ = zeros(sizeX, sizeY, sizeZ)
@@ -100,77 +106,81 @@ function reconstruct_v!(semi)
     for ix in -nbx : nx + nbx
         for jy in - nby : ny + nby - 1
             for kz in 0 : nz + 1
-                rhoEdgeF = 0.5 * (rhoFull[ix, jy, kz] + rhoFull[ix, jy + 1, kz])
-                pEdgeF = 0.5 * (pStrat[ix, jy, kz] + pStrat[ix, jy + 1, kz])
-                vBar[ix, jy, kz] = v[ix, jy, kz] * rhoEdgeU / pEdgeU
+                rhoEdge = 0.5 * (rho[ix, jy, kz] + rhoStrat[ix, jy, kz] 
+                + rho[ix, jy + 1, kz] + rhoStrat[ix, jy + 1, kz])
+                pEdge = 0.5 * (pStrat[ix, jy, kz] + pStrat[ix, jy + 1, kz])
+                vBar[ix, jy, kz] = v[ix, jy, kz] * rhoEdge / pEdge
             end
         end 
     end
-    muscl_reconstruct3D!(vBar, nxx, nyy, nzz, vTilde)
+    muscl_reconstruct3D!(vBar, nx, ny, nz, vTilde)
 end
 
 function reconstruct_w!(semi)
 
     # Compute rho*v/P for reconstruction
-    (; var, grid, cache) = semi
-	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; wTilde, rhoStrat, pStrat) = cache
+    (; grid, cache) = semi
+	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, lz) = grid
+    (; var, wTilde, rhoStrat, pStrat) = cache
 
-    rho = @view var.rho 
-    rhoFull = rho + rhoStrat
-    w = @view var.w
+    rho = var.rho 
+    w = var.w
     sizeX, sizeY, sizeZ = size(w)
 
     wBar_ = zeros(sizeX, sizeY, sizeZ)
 	wBar = OffsetArray(wBar_, OffsetArrays.Origin(-nbx, -nby, -nbz))
 
     wBar[:, :, 0 : nz + 1] = w[:, :, 0 : nz + 1]
-    for ix in 1 : nx 
-        for jy in 1 : ny 
-            for kz in 1 : nz 
-                # TODO: vertWindTFC function
-                wBar[ix, jy, kz] = vertWindTFC(ix, jy, kz)
-            end
-        end
-    end
+    # TODO: vertWind doesn't seem to work!!!
+    # for ix in 1 : nx 
+    #     for jy in 1 : ny 
+    #         for kz in 1 : nz 
+    #             wBar[ix, jy, kz] = vertWind(ix, jy, kz, var, grid)
+    #         end
+    #     end
+    # end
     # TODO: call boundaries of wBar
     for ix in - nbx : nx + nbx
         for jy in - nby : ny + nby
             for kz in 0 : nz + 1
-                rhoEdgeU = (jac(ix, jy, kz + 1) * rhoFull[ix, jy, kz] 
-                    + jac(ix, jy, kz) * rhoFull[ix, jy, kz + 1]) / 
-                    (jac(ix, jy, kz) + jac(ix, jy, kz + 1))
-                pEdgeU = (jac(ix, jy, kz + 1) * pStrat[ix, jy, kz] 
-                    + jac(ix, jy, kz) * pStrat[ix, jy, kz + 1]) /
-                    (jac(ix, jy, kz) + jac(ix, jy, kz + 1))
-                wBar[ix, jy, kz] = wBar[ix, jy, kz] * rhoEdgeU / pEdgeU
+                rhoEdge = (jac(ix, jy, kz + 1, lz, grid) 
+                    * (rho[ix, jy, kz] + rhoStrat[ix, jy, kz]) 
+                    + jac(ix, jy, kz, lz, grid) 
+                    * (rho[ix, jy, kz + 1] + rhoStrat[ix, jy, kz + 1])) / 
+                    (jac(ix, jy, kz, lz, grid) + jac(ix, jy, kz + 1, lz, grid))
+                pEdge = (jac(ix, jy, kz + 1, lz, grid) * pStrat[ix, jy, kz] 
+                    + jac(ix, jy, kz, lz, grid) * pStrat[ix, jy, kz + 1]) /
+                    (jac(ix, jy, kz, lz, grid) + jac(ix, jy, kz + 1, lz, grid))
+                wBar[ix, jy, kz] = wBar[ix, jy, kz] * rhoEdge / pEdge
             end
         end
     end
-    muscl_reconstruct3D!(wBar, nxx, nyy, nzz, wTilde)
+    muscl_reconstruct3D!(wBar, nx, ny, nz, wTilde)
 end
 
-function muscl_reconstruct3D!(var, sizeX, sizeY, sizeZ, varTilde)
+function muscl_reconstruct3D!(varBar, sizeX, sizeY, sizeZ, varTilde)
 
-    for kz in 2 : sizeZ - 1
-        for jy in 2 : sizeY - 1
-            phiX = var.u[:, jy, kz]
+    # TODO: changed indexing. Check if output is correct!
+
+    for kz in 0 : sizeZ + 1
+        for jy in 0 : sizeY + 1
+            phiX = @view varBar[:, jy, kz]
             varTildeX = @view varTilde[:, jy, kz, 1, :]
             muscle_reconstruct1D_mcvariant!(phiX, sizeX, varTildeX)
         end
     end
 
-    for kz in 2 : sizeZ - 1
-        for ix in 2 : sizeX - 1
-            phiY = var.v[ix, :, kz]
+    for kz in 0 : sizeZ + 1
+        for ix in 0 : sizeX + 1
+            phiY = @view varBar[ix, :, kz]
             varTildeY = @view varTilde[ix, :, kz, 2, :]
             muscle_reconstruct1D_mcvariant!(phiY, sizeY, varTildeY)
         end
     end
 
-    for jy in 2 : sizeY - 1
-        for ix in 2 : sizeX - 1
-            phiZ = var.w[ix, jy, :]
+    for jy in 0 : sizeY + 1
+        for ix in 0 : sizeX + 1
+            phiZ = @view varBar[ix, jy, :]
             varTildeZ = @view varTilde[ix, jy, :, 3, :]
             muscle_reconstruct1D_mcvariant!(phiZ, sizeZ, varTildeZ)
         end
@@ -179,7 +189,7 @@ end
 
 function muscle_reconstruct1D_mcvariant!(phi, phiSize, phiTilde)
 
-    for i = 0:phiSize
+    for i in 0 : phiSize + 1
         deltaL = phi[i] - phi[i - 1]
         deltaR = phi[i + 1] - phi[i]
 
@@ -209,7 +219,7 @@ function muscle_reconstruct1D_mcvariant!(phi, phiSize, phiTilde)
 end
 
 # ------------------------ FLUX CALCULATION ------------------------
-function compute_fluxes_PinCFlow!(semi)
+function compute_fluxes!(semi)
 
     reconstruct_rho!(semi)
     reconstruct_rhop!(semi)
@@ -218,21 +228,21 @@ function compute_fluxes_PinCFlow!(semi)
     reconstruct_w!(semi)
 	
 	rhoFlux!(semi)
-	momemtumFlux!(semi)
+	#momemtumFlux!(semi)
 end
 
 # TODO: reconstruct_rho! could probably be called in rhoFlux!
 
 function rhoFlux!(semi)
 
-    (; var, var0, grid, cache) = semi
-	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; rhoTilde, rhoStrat) = cache
+    (; grid, cache) = semi
+	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, lz) = grid
+    (; var, var0, rhoTilde, rhoStrat, pStrat, flux) = cache
 
-    rhoFlux = @view flux.rho # mass flux
-    u = @view var0.u # zonal velocity
-    v = @view var0.v # meridional velocity
-    w = @view var0.w # vertical velocity
+    rhoFlux = flux.rho # mass flux
+    u = var0.u # zonal velocity
+    v = var0.v # meridional velocity
+    w = var0.w # vertical velocity
 
     # TODO: these could be moved to new functions
     # zonal rho flux 
@@ -244,8 +254,8 @@ function rhoFlux!(semi)
                 rhoR = rhoTilde[ix + 1, jy, kz, 1, 1] + rhoStratEdgeR / pEdgeR
                 rhoL = rhoTilde[ix, jy, kz, 1, 2] + rhoStratEdgeR / pEdgeR
 
-                pEdgeR = 0.5 * (jac(ix, jy, kz) * pStrat[ix, jy, kz] + 
-                    jac(ix + 1, jy, kz) * pStrat[ix + 1, jy, kz])
+                pEdgeR = 0.5 * (jac(ix, jy, kz, lz, grid) * pStrat[ix, jy, kz] + 
+                    jac(ix + 1, jy, kz, lz, grid) * pStrat[ix + 1, jy, kz])
                 uSurf = pEdgeR * u[ix, jy, kz]
                 # TODO: make sure this is the correct u (see vara in fluxes.f90)
                 
@@ -265,8 +275,8 @@ function rhoFlux!(semi)
                 rhoF = rhoTilde[ix, jy + 1, kz, 2, 1] + rhoStratEdgeF / pEdgeF
                 rhoB = rhoTilde[ix, jy, kz, 2, 2] + rhoStratEdgeF / pEdgeF
 
-                pEdgeF = 0.5 * (jac(ix, jy, kz) * pStrat[ix, jy, kz] + 
-                    jac(ix, jy + 1, kz) * pStrat[ix, jy + 1, kz])
+                pEdgeF = 0.5 * (jac(ix, jy, kz, lz, grid) * pStrat[ix, jy, kz] + 
+                    jac(ix, jy + 1, kz, lz, grid) * pStrat[ix, jy + 1, kz])
                 vSurf = pEdgeF * v[ix, jy, kz]
 
                 gRho = flux_muscl(vSurf, rhoB, rhoF)
@@ -280,18 +290,18 @@ function rhoFlux!(semi)
     for kz in 0 : nz 
         for jy in 1 : ny 
             for ix in 1 : nx 
-                rhoStratEdgeU = (jac(ix, jy, kz + 1) * rhoStrat[ix, jy, kz] + 
-                    jac(ix, jy, kz) * rhoStrat[ix, jy, kz + 1]) / 
-                    (jac(ix, jy, kz) + jac(ix, jy, kz + 1))
-                pEdgeU = (jac(ix, jy, kz + 1) * pStrat[ix, jy, kz] +
-                    jac(ix, jy, kz) * pStrat[ix, jy, kz + 1]) / 
-                    (jac(ix, jy, kz) + jac(ix, jy, kz + 1))
+                rhoStratEdgeU = (jac(ix, jy, kz + 1, lz, grid) * rhoStrat[ix, jy, kz] + 
+                    jac(ix, jy, kz, lz, grid) * rhoStrat[ix, jy, kz + 1]) / 
+                    (jac(ix, jy, kz, lz, grid) + jac(ix, jy, kz + 1, lz, grid))
+                pEdgeU = (jac(ix, jy, kz + 1, lz, grid) * pStrat[ix, jy, kz] +
+                    jac(ix, jy, kz, lz, grid) * pStrat[ix, jy, kz + 1]) / 
+                    (jac(ix, jy, kz, lz, grid) + jac(ix, jy, kz + 1, lz, grid))
                 rhoU = rhoTilde[ix, jy, kz + 1, 3, 1] + rhoStratEdgeU / pEdgeU
                 rhoD = rhoTilde[ix, jy, kz, 3, 2] + rhoStratEdgeU / pEdgeU
 
-                pEdgeU = jac(ix, jy, kz) * jac(ix, jy, kz + 1) * 
+                pEdgeU = jac(ix, jy, kz, lz, grid) * jac(ix, jy, kz + 1, lz, grid) * 
                     (pStrat[ix, jy, kz] + pStrat[ix, jy, kz + 1]) /
-                    (jac(ix, jy, kz) + jac(ix, jy, kz + 1))
+                    (jac(ix, jy, kz, lz, grid) + jac(ix, jy, kz + 1, lz, grid))
                 wSurf = pEdgeU * w[ix, jy, kz]
 
                 hRho = flux_muscl(wSurf, rhoD, rhoU)
@@ -337,14 +347,14 @@ end
 
 function rhouuFlux!(semi) # (rho*u)*u
 
-    (; var, var0, grid, cache) = semi
+    (; grid, cache) = semi
 	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; uTilde, rhoStrat) = cache
+    (; var, var0, uTilde, pStrat, flux) = cache
 
-    uFlux = @view flux.u # mass flux
-    u = @view var0.u # zonal velocity
-    v = @view var0.v # meridional velocity
-    w = @view var0.w # vertical velocity
+    uFlux = flux.u # mass flux
+    u = var0.u # zonal velocity
+    v = var0.v # meridional velocity
+    w = var0.w # vertical velocity
 
     # Flux fRhoU
     for kz in 1 : nz 
@@ -353,10 +363,10 @@ function rhouuFlux!(semi) # (rho*u)*u
                 uR = uTilde[ix + 1, jy, kz, 1, 1]
                 uL = uTilde[ix, jy, kz, 1, 2]
 
-                pEdge = 0.5 * (jac(ix, jy, kz) * pStrat[ix, jy, kz] 
-                    + jac(ix + 1, jy, kz) * pStrat[ix + 1, jy, kz])
-                pREdge = 0.5 * (jac(ix + 1, jy, kz) * pStrat[ix + 1, jy, kz]
-                    + jac(ix + 2, jy, kz) * pStrat[ix + 2, jy, kz])
+                pEdge = 0.5 * (jac(ix, jy, kz, lz, grid) * pStrat[ix, jy, kz] 
+                    + jac(ix + 1, jy, kz, lz, grid) * pStrat[ix + 1, jy, kz])
+                pREdge = 0.5 * (jac(ix + 1, jy, kz, lz, grid) * pStrat[ix + 1, jy, kz]
+                    + jac(ix + 2, jy, kz, lz, grid) * pStrat[ix + 2, jy, kz])
                 uSurf = 0.5 * (pEdge * u[ix, jy, kz] + pREdge * u[ix + 1, jy, kz])
 
                 fRhoU = flux_muscl(uSurf, uL, uR)
@@ -369,14 +379,14 @@ end
 
 function rhouvFlux!(semi) # (rho*u)*v
 
-    (; var, var0, grid, cache) = semi
+    (; grid, cache) = semi
 	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; uTilde, rhoStrat) = cache
+    (; var, var0, uTilde, pStrat, flux) = cache
 
-    uFlux = @view flux.u # mass flux
-    u = @view var0.u # zonal velocity
-    v = @view var0.v # meridional velocity
-    w = @view var0.w # vertical velocity
+    uFlux = flux.u # mass flux
+    u = var0.u # zonal velocity
+    v = var0.v # meridional velocity
+    w = var0.w # vertical velocity
 
     # Flux gRhoU
     for kz in 1 : nz 
@@ -385,10 +395,10 @@ function rhouvFlux!(semi) # (rho*u)*v
                 uF = uTilde[ix, jy + 1, kz, 2, 1]
                 uB = uTilde[ix, jy, kz, 2, 2]
 
-                pEdge = 0.5 * (jac(ix, jy, kz) * pStrat[ix, jy, kz] + 
-                    jac(ix, jy + 1, kz) * pStrat[ix, jy + 1, kz])
-                pREdge = 0.5 * (jac(ix + 1, jy, kz) * pStrat[ix + 1, jy, kz]
-                    + jac(ix + 1, jy + 1, kz) * pStrat[ix + 1, jy + 1, kz])
+                pEdge = 0.5 * (jac(ix, jy, kz, lz, grid) * pStrat[ix, jy, kz] + 
+                    jac(ix, jy + 1, kz, lz, grid) * pStrat[ix, jy + 1, kz])
+                pREdge = 0.5 * (jac(ix + 1, jy, kz, lz, grid) * pStrat[ix + 1, jy, kz]
+                    + jac(ix + 1, jy + 1, kz, lz, grid) * pStrat[ix + 1, jy + 1, kz])
                 vSurf = 0.5 * (pEdge * v[ix, jy, kz] + pREdge * v[ix + 1, jy, kz])
 
                 gRhoU = flux_muscl(vSurf, uB, uF)
@@ -401,14 +411,14 @@ end
 
 function rhouwFlux!(semi) # (rho*u)*w
 
-    (; var, var0, grid, cache) = semi
+    (; grid, cache) = semi
 	(; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; uTilde, rhoStrat) = cache
+    (; var, var0, uTilde, pStrat, flux) = cache
 
-    uFlux = @view flux.u # mass flux
-    u = @view var0.u # zonal velocity
-    v = @view var0.v # meridional velocity
-    w = @view var0.w # vertical velocity
+    uFlux = flux.u # mass flux
+    u = var0.u # zonal velocity
+    v = var0.v # meridional velocity
+    w = var0.w # vertical velocity
 
     # Flux hRhoU
     for kz in 0 : nz 
@@ -417,12 +427,12 @@ function rhouwFlux!(semi) # (rho*u)*w
                 uU = uTilde[ix, jy, kz + 1, 3, 1]
                 uD = uTilde[ix, jy, kz, 3, 2]
 
-                pEdge = jac(ix, jy, kz) * jac(ix, jy, kz + 1) * 
+                pEdge = jac(ix, jy, kz, lz, grid) * jac(ix, jy, kz + 1, lz, grid) * 
                     (pStrat[ix, jy, kz] + pStrat[ix, jy, kz + 1]) / 
-                    (jac(ix, jy, kz) + jac(ix, jy, kz + 1))
-                pREdge = jac(ix + 1, jy, kz) * jac(ix + 1, jy, kz + 1) * 
+                    (jac(ix, jy, kz, lz, grid) + jac(ix, jy, kz + 1, lz, grid))
+                pREdge = jac(ix + 1, jy, kz, lz, grid) * jac(ix + 1, jy, kz + 1, lz, grid) * 
                     (pStat[ix + 1, jy, kz] + pStrat[ix + 1, jy, kz + 1]) / 
-                    (jac(ix + 1, jy, kz) + jac(ix + 1, jy, kz + 1))
+                    (jac(ix + 1, jy, kz, lz, grid) + jac(ix + 1, jy, kz + 1, lz, grid))
                 wSurf = 0.5 * (pEdge * w[ix, jy, kz] + pREdge * w[ix + 1, jy, kz])
 
                 hRhoU = flux_muscl(wSurf, uD, uU)
@@ -435,14 +445,14 @@ end
 
 function rhovuFlux!(semi)
 
-    (; var, var0, grid, cache) = semi
+    (; grid, cache) = semi
     (; nx, ny, nz) = grid
-    (; vTilde, pStrat) = cache
+    (; var, var0, vTilde, pStrat, flux) = cache
 
-    vFlux = @view flux.v # mass flux
-    u = @view var0.u # zonal velocity
-    v = @view var0.v # meridional velocity
-    w = @view var0.w # vertical velocity
+    vFlux = flux.v # mass flux
+    u = var0.u # zonal velocity
+    v = var0.v # meridional velocity
+    w = var0.w # vertical velocity
 
     # Flux fRhoV
     for kz in 1 : nz 
@@ -451,10 +461,10 @@ function rhovuFlux!(semi)
                 vR = vTilde[ix + 1, jy, kz, 1, 1]
                 vL = vTilde[ix, jy, kz, 1, 2]
 
-                pEdge = 0.5 * (jac(ix, jy, kz) * pStrat[ix, jy, kz] + 
-                    jac(ix + 1, jy, kz) * pStrat[ix + 1, jy, kz])
-                pREdge = 0.5 * (jac(ix, jy + 1, kz) * pStrat[ix, jy + 1, kz] + 
-                    jac(ix + 1, jy + 1, kz) * pStrat[ix + 1, jy + 1, kz])
+                pEdge = 0.5 * (jac(ix, jy, kz, lz, grid) * pStrat[ix, jy, kz] + 
+                    jac(ix + 1, jy, kz, lz, grid) * pStrat[ix + 1, jy, kz])
+                pREdge = 0.5 * (jac(ix, jy + 1, kz, lz, grid) * pStrat[ix, jy + 1, kz] + 
+                    jac(ix + 1, jy + 1, kz, lz, grid) * pStrat[ix + 1, jy + 1, kz])
                 uSurf = 0.5 * (pEdge * u[ix, jy, kz] + pREdge * u[ix, jy + 1, kz])
 
                 fRhoV = flux_muscl(uSurf, vL, vR)
@@ -467,14 +477,14 @@ end
 
 function rhovvFlux!(semi) # (rho*v)*v 
     
-    (; var, var0, grid, cache) = semi
+    (; grid, cache) = semi
     (; nx, ny, nz) = grid
-    (; vTilde, pStrat) = cache
+    (; var, var0, vTilde, pStrat, flux) = cache
 
-    vFlux = @view flux.v # mass flux
-    u = @view var0.u # zonal velocity
-    v = @view var0.v # meridional velocity
-    w = @view var0.w # vertical velocity
+    vFlux = flux.v # mass flux
+    u = var0.u # zonal velocity
+    v = var0.v # meridional velocity
+    w = var0.w # vertical velocity
 
     # Flux gRhoV
     for kz in 1 : nz 
@@ -483,10 +493,10 @@ function rhovvFlux!(semi) # (rho*v)*v
                 vF = vTilde[ix, jy + 1, kz, 2, 1]
                 vB = vTilde[ix, jy, kz, 2, 2]
 
-                pEdge = 0.5 * (jac(ix, jy, kz) * pStrat[ix, jy, kz] + 
-                    jac(ix, jy + 1, kz) * pStrat[ix, jy + 1, kz])
-                pREdge = 0.5 * (jac(ix, jy + 1, kz) * pStrat[ix, jy + 1, kz] + 
-                    jac(ix, jy + 2, kz) * pStrat[ix, jy + 2, kz])
+                pEdge = 0.5 * (jac(ix, jy, kz, lz, grid) * pStrat[ix, jy, kz] + 
+                    jac(ix, jy + 1, kz, lz, grid) * pStrat[ix, jy + 1, kz])
+                pREdge = 0.5 * (jac(ix, jy + 1, kz, lz, grid) * pStrat[ix, jy + 1, kz] + 
+                    jac(ix, jy + 2, kz, lz, grid) * pStrat[ix, jy + 2, kz])
                 vSurf = 0.5 * (pEdge * v[ix, jy, kz] + pREdge * v[ix, jy + 1, kz])
 
                 gRhoV = flux_muscl(vSurf, vB, vF)
@@ -499,14 +509,14 @@ end
 
 function rhovwFlux!(semi)
 
-    (; var, var0, grid, cache) = semi
+    (; grid, cache) = semi
     (; nx, ny, nz) = grid
-    (; vTilde, pStrat) = cache
+    (; var, var0, vTilde, pStrat, flux) = cache
 
-    vFlux = @view flux.v # mass flux
-    u = @view var0.u # zonal velocity
-    v = @view var0.v # meridional velocity
-    w = @view var0.w # vertical velocity
+    vFlux = flux.v # mass flux
+    u = var0.u # zonal velocity
+    v = var0.v # meridional velocity
+    w = var0.w # vertical velocity
 
     # Flux hRhoV
     for kz in 0 : nz 
@@ -515,12 +525,12 @@ function rhovwFlux!(semi)
                 vU = vTilde[ix, jy, kz + 1, 3, 1]
                 vD = vTilde[ix, jy, kz, 3, 2]
 
-                pEdge = jac(ix, jy, kz) * jac(ix, jy, kz + 1) * 
+                pEdge = jac(ix, jy, kz, lz, grid) * jac(ix, jy, kz + 1, lz, grid) * 
                     (pStrat[ix, jy, kz] + pStrat[ix, jy, kz + 1]) / 
-                    (jac(ix, jy, kz) + jac(ix, jy, kz + 1))
-                pREdge = jac(ix, jy + 1, kz) * jac(ix, jy + 1, kz + 1) * 
+                    (jac(ix, jy, kz, lz, grid) + jac(ix, jy, kz + 1, lz, grid))
+                pREdge = jac(ix, jy + 1, kz, lz, grid) * jac(ix, jy + 1, kz + 1, lz, grid) * 
                     (pStat[ix, jy + 1, kz] + pStrat[ix, jy + 1, kz + 1]) / 
-                    (jac(ix, jy + 1, kz) + jac(ix, jy + 1, kz + 1))
+                    (jac(ix, jy + 1, kz, lz, grid) + jac(ix, jy + 1, kz + 1, lz, grid))
                 wSurf = 0.5 * (pEdge * w[ix, jy, kz] + pREdge * w[ix + 1, jy, kz])
 
                 hRhoV = flux_muscl(wSurf, vD, vU)
@@ -533,14 +543,14 @@ end
 
 function rhowuFlux!(semi) # (rho*w)*u
 
-    (; var, var0, grid, cache) = semi
+    (; grid, cache) = semi
     (; nx, ny, nz) = grid
-    (; wTilde, pStrat) = cache
+    (; var, var0, wTilde, pStrat, flux) = cache
 
-    wFlux = @view flux.w # mass flux
-    u = @view var0.u # zonal velocity
-    v = @view var0.v # meridional velocity
-    w = @view var0.w # vertical velocity
+    wFlux = flux.w # mass flux
+    u = var0.u # zonal velocity
+    v = var0.v # meridional velocity
+    w = var0.w # vertical velocity
 
     # Flux fRhoW
     for kz in 1 : nz 
@@ -549,10 +559,10 @@ function rhowuFlux!(semi) # (rho*w)*u
                 wR = wTilde[ix + 1, jy, kz, 1, 1]
                 wL = wTilde[ix, jy, kz, 1, 2]
 
-                pEdge = 0.5 * (jac(ix, jy, kz) * pStrat[ix, jy, kz] + 
-                    jac(ix + 1, jy, kz) * pStrat[ix + 1, jy, kz])
-                pREdge = 0.5 * (jac(ix + 1, jy, kz) * pStrat[ix + 1, jy, kz] + 
-                    jac(ix + 2, jy, kz) * pStrat[ix + 2, jy, kz])
+                pEdge = 0.5 * (jac(ix, jy, kz, lz, grid) * pStrat[ix, jy, kz] + 
+                    jac(ix + 1, jy, kz, lz, grid) * pStrat[ix + 1, jy, kz])
+                pREdge = 0.5 * (jac(ix + 1, jy, kz, lz, grid) * pStrat[ix + 1, jy, kz] + 
+                    jac(ix + 2, jy, kz, lz, grid) * pStrat[ix + 2, jy, kz])
                 uSurf = 0.5 * (pEdge * u[ix, jy, kz] + pREdge * u[ix + 1, jy, kz])
 
                 fRhoW = flux_muscl(uSurf, wL, wR)
@@ -565,14 +575,14 @@ end
 
 function rhowvFlux!(semi)
     
-    (; var, var0, grid, cache) = semi
+    (; grid, cache) = semi
     (; nx, ny, nz) = grid
-    (; wTilde, pStrat) = cache
+    (; var, var0, wTilde, pStrat, flux) = cache
 
-    wFlux = @view flux.w # mass flux
-    u = @view var0.u # zonal velocity
-    v = @view var0.v # meridional velocity
-    w = @view var0.w # vertical velocity
+    wFlux = flux.w # mass flux
+    u = var0.u # zonal velocity
+    v = var0.v # meridional velocity
+    w = var0.w # vertical velocity
 
     # Flux gRhoW
     for kz in 0 : nz 
@@ -581,14 +591,18 @@ function rhowvFlux!(semi)
                 wF = wTilde[ix, jy + 1, kz, 2, 1]
                 wB = wTilde[ix, jy, kz, 2, 2]
 
-                pEdge = 0.5 * (jac(ix, jy, kz) * pStrat[ix, jy, kz] + 
-                    jac(ix, jy + 1, kz) * pStrat[ix, jy + 1, kz])
-                pREdge = 0.5 * (jac(ix, jy, kz + 1) * pStrat[ix, jy, kz + 1] + 
-                    jac(ix, jy + 1, kz + 1) * pStrat[ix, jy + 1, kz + 1])
-                vSurf = ((jac(ix, jy, kz + 1) + jac(ix, jy + 1, kz + 1)) * pEdge 
-                    * v[ix, jy, kz] + (jac(ix, jy, kz) + jac(ix, jy + 1, kz)) * 
-                    pREdge * v[ix, jy, kz + 1]) / (jac(ix, jy, kz) + jac(ix, jy + 1, kz)
-                    + jac(ix, jy, kz + 1) + jac(ix, jy + 1, kz + 1))
+                pEdge = 0.5 * (jac(ix, jy, kz, lz, grid) * pStrat[ix, jy, kz] + 
+                    jac(ix, jy + 1, kz, lz, grid) * pStrat[ix, jy + 1, kz])
+                pREdge = 0.5 * (jac(ix, jy, kz + 1, lz, grid) * pStrat[ix, jy, kz + 1] + 
+                    jac(ix, jy + 1, kz + 1, lz, grid) * pStrat[ix, jy + 1, kz + 1])
+                vSurf = ((jac(ix, jy, kz + 1, lz, grid) + 
+                    jac(ix, jy + 1, kz + 1, lz, grid)) * pEdge 
+                    * v[ix, jy, kz] + (jac(ix, jy, kz, lz, grid) 
+                    + jac(ix, jy + 1, kz, lz, grid)) * 
+                    pREdge * v[ix, jy, kz + 1]) / (jac(ix, jy, kz, lz, grid) 
+                    + jac(ix, jy + 1, kz, lz, grid)
+                    + jac(ix, jy, kz + 1, lz, grid) 
+                    + jac(ix, jy + 1, kz + 1, lz, grid))
 
                 gRhoW = flux_muscl(vSurf, wB, wF)
 
@@ -600,14 +614,14 @@ end
 
 function rhowwFlux!(semi)
 
-    (; var, var0, grid, cache) = semi
+    (; grid, cache) = semi
     (; nx, ny, nz) = grid
-    (; wTilde, pStrat) = cache
+    (; var, var0, wTilde, pStrat, flux) = cache
 
-    wFlux = @view flux.w # mass flux
-    u = @view var0.u # zonal velocity
-    v = @view var0.v # meridional velocity
-    w = @view var0.w # vertical velocity
+    wFlux = flux.w # mass flux
+    u = var0.u # zonal velocity
+    v = var0.v # meridional velocity
+    w = var0.w # vertical velocity
 
     # Flux hRhoW
     for kz in -1 : nz 
@@ -616,12 +630,12 @@ function rhowwFlux!(semi)
                 wU = wTilde[ix, jy, kz + 1, 3, 1]
                 wD = wTilde[ix, jy, kz, 3, 2]
 
-                pEdge = jac(ix, jy, kz) * jac(ix, jy, kz + 1) * 
+                pEdge = jac(ix, jy, kz, lz, grid) * jac(ix, jy, kz + 1, lz, grid) * 
                     (pStrat[ix, jy, kz] + pStrat[ix, jy, kz + 1]) / 
-                    (jac(ix, jy, kz) + jac(ix, jy, kz + 1))
-                pREdge = jac(ix, jy, kz + 1) * jac(ix, jy, kz + 2) * 
+                    (jac(ix, jy, kz, lz, grid) + jac(ix, jy, kz + 1, lz, grid))
+                pREdge = jac(ix, jy, kz + 1, lz, grid) * jac(ix, jy, kz + 2, lz, grid) * 
                     (pStat[ix, jy, kz + 1] + pStrat[ix, jy, kz + 2]) / 
-                    (jac(ix, jy, kz + 1) + jac(ix, jy, kz + 2))
+                    (jac(ix, jy, kz + 1, lz, grid) + jac(ix, jy, kz + 2, lz, grid))
                 wSurf = 0.5 * (pEdge * w[ix, jy, kz] + pREdge * w[ix + 1, jy, kz])
 
                 hRhoW = flux_muscl(wSurf, wD, wU)
