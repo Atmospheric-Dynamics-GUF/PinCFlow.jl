@@ -44,6 +44,84 @@ function massUpdate_rho!(semi, ode, upd_mod, m)
 
 end
 
+
+function massUpdate_rhop_impl!(semi, ode, upd_mod, m)
+
+    (; grid, cache, equations) = semi
+    (; var, flux, rhoStrat, bvsStrat, jac) = cache
+    (; nx, ny, nz, lz) = grid
+    (; dt, alphaRK, betaRK, dRho, dRhop) = ode
+    (; g_ndim) = equations
+
+    # I think m is the temporal level or stage
+    if m == 1
+        dRhop .= 0.0
+    end
+    
+    zBoundary = "solid_wall"
+
+    kr_sp_tfc *= facray
+    kr_sp_w_tfc *= facray
+    
+    for k in 1:nz, j in 1:ny, i in 1:nx
+        rho = var.rho[i, j, k]
+        
+        rhow = (jac(i, j, k + 1) * var.rho[i, j, k] + jac(i, j, k) * var.rho[i, j, k + 1]) / (jac(i, j, k) + jac(i, j, k + 1))
+        rhowm = (jac(i, j, k - 1) * var.rho[i, j, k] + jac(i, j, k) * var.rho[i, j, k - 1]) / (jac(i, j, k) + jac(i, j, k - 1))
+        
+        rho += rhoStratTFC[i, j, k]
+        rhow += (jac(i, j, k + 1) * rhoStratTFC[i, j, k] + jac(i, j, k) * rhoStratTFC[i, j, k + 1]) / (jac(i, j, k) + jac(i, j, k + 1))
+        rhowm += (jac(i, j, k - 1) * rhoStratTFC[i, j, k] + jac(i, j, k) * rhoStratTFC[i, j, k - 1]) / (jac(i, j, k) + jac(i, j, k - 1))
+        
+        wvrt = 0.5 * (wOldTFC[i, j, k] + wOldTFC[i, j, k - 1])
+        
+        pEdgeU = (jac(i, j, k + 1) * pStratTFC[i, j, k] + jac(i, j, k) * pStratTFC[i, j, k + 1]) / (jac(i, j, k) + jac(i, j, k + 1))
+        pEdgeD = (jac(i, j, k - 1) * pStratTFC[i, j, k] + jac(i, j, k) * pStratTFC[i, j, k - 1]) / (jac(i, j, k) + jac(i, j, k - 1))
+        
+        met13EdgeU = (jac(i, j, k + 1) * met(i, j, k, 1, 3) + jac(i, j, k) * met(i, j, k + 1, 1, 3)) / (jac(i, j, k) + jac(i, j, k + 1))
+        met23EdgeU = (jac(i, j, k + 1) * met(i, j, k, 2, 3) + jac(i, j, k) * met(i, j, k + 1, 2, 3)) / (jac(i, j, k) + jac(i, j, k + 1))
+        met33EdgeU = (jac(i, j, k + 1) * met(i, j, k, 3, 3) + jac(i, j, k) * met(i, j, k + 1, 3, 3)) / (jac(i, j, k) + jac(i, j, k + 1))
+        met13EdgeD = (jac(i, j, k - 1) * met(i, j, k, 1, 3) + jac(i, j, k) * met(i, j, k - 1, 1, 3)) / (jac(i, j, k) + jac(i, j, k - 1))
+        met23EdgeD = (jac(i, j, k - 1) * met(i, j, k, 2, 3) + jac(i, j, k) * met(i, j, k - 1, 2, 3)) / (jac(i, j, k) + jac(i, j, k - 1))
+        met33EdgeD = (jac(i, j, k - 1) * met(i, j, k, 3, 3) + jac(i, j, k) * met(i, j, k - 1, 3, 3)) / (jac(i, j, k) + jac(i, j, k - 1))
+        
+        piGradZEdgeU = kappaInv * MaInv2 * pEdgeU / rhow * (0.5 * met13EdgeU * (var.pi[i + 1, j, k] - var.pi[i - 1, j, k]) / dx +
+            0.5 * met23EdgeU * (var.pi[i, j + 1, k] - var.pi[i, j - 1, k]) / dy + met33EdgeU * (var.pi[i, j, k + 1] - var.pi[i, j, k]) / dz)
+        
+        piGradZEdgeD = kappaInv * MaInv2 * pEdgeD / rhowm * (0.5 * met13EdgeD * (var.pi[i + 1, j, k] - var.pi[i - 1, j, k]) / dx +
+            0.5 * met23EdgeD * (var.pi[i, j + 1, k] - var.pi[i, j - 1, k]) / dy + met33EdgeD * (var.pi[i, j, k] - var.pi[i, j, k - 1]) / dz)
+        
+        if k == 1 && zBoundary == "solid_wall"
+            piGradZEdgeD = 0.0
+        elseif k == nz && zBoundary == "solid_wall"
+            piGradZEdgeU = 0.0
+        end
+        
+        piGrad = 0.5 * (piGradZEdgeU + piGradZEdgeD)
+        
+        facw = 1.0
+        if spongeLayer
+            facw += dt * kr_sp_w_tfc[i, j, k]
+        end
+        
+        buoy = -g_ndim * var.rhop[i, j, k] / rho
+        buoy = 1.0 / (facw + rhoStratTFC[i, j, k] / rho * bvsStratTFC[i, j, k] * dt^2) *
+            (-rhoStratTFC[i, j, k] / rho * bvsStratTFC[i, j, k] * dt * jac(i, j, k) * (wvrt - dt * piGrad) +
+            facw * buoy + rhoStratTFC[i, j, k] / rho * bvsStratTFC[i, j, k] * dt * jac(i, j, k) * facw *
+            0.5 * (met(i, j, k, 1, 3) * (var.u[i, j, k] + var.u[i - 1, j, k]) +
+                   met(i, j, k, 2, 3) * (var.v[i, j, k] + var.v[i, j - 1, k])))
+        
+        var.rhop[i, j, k] = -buoy * rho / g_ndim
+    end
+    
+    kr_sp_tfc /= facray
+    kr_sp_w_tfc /= facray
+
+end
+
+
+
+
 function massUpdate_rhop!(semi, ode, upd_mod, m)
 
     (; grid, cache, equations) = semi
@@ -106,7 +184,6 @@ function momentumPredictor!(semi, ode, mmp_mod, m)
     momentumPredictor_w!(semi, ode, mmp_mod, m)
 
     # if lhs or rhs reuse "saved" variables
-
 end
 
 function momentumPredictor_u!(semi, ode, mmp_mod, m)
