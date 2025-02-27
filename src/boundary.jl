@@ -6,6 +6,24 @@ function setBoundary!(semi)
 
 end
 
+function setBoundary_flux!(semi)
+(; cache, grid) = semi
+(; nz) = grid
+(; flux) = cache
+        flux.rho[:, :, 0, 3] .= 0.0
+        flux.rho[:, :, nz, 3] .= 0.0
+        flux.rhop[:, :, nz, 3] .= 0.0
+        flux.rhop[:, :, nz, 3] .= 0.0
+    
+        flux.u[:, :, 0, 3] .= 0.0
+        flux.u[:, :, nz, 3] .= 0.0
+        flux.v[:, :, 0, 3] .= 0.0
+        flux.v[:, :, nz, 3] .= 0.0
+        flux.w[:, :, -1, 3] .= 0.0
+        flux.w[:, :, nz, 3] .= 0.0
+
+end
+
 function setBoundary_x!(semi, boundary::PeriodicBC)
 
     (; cache, grid) = semi
@@ -130,20 +148,6 @@ function setBoundary_z!(semi, boundary::SolidWallBC)
     end
 
     set_non_reflective_value_cell_z!(exner, 1, nz)
-
-
-    ## Fluxes
-    flux.rho[:, :, 0, 3] .= 0.0
-    flux.rho[:, :, nz, 3] .= 0.0
-    flux.rhop[:, :, nz, 3] .= 0.0
-    flux.rhop[:, :, nz, 3] .= 0.0
-
-    flux.u[:, :, 0, 3] .= 0.0
-    flux.u[:, :, nz, 3] .= 0.0
-    flux.v[:, :, 0, 3] .= 0.0
-    flux.v[:, :, nz, 3] .= 0.0
-    flux.w[:, :, -1, 3] .= 0.0
-    flux.w[:, :, nz, 3] .= 0.0
 
 end
 

@@ -164,5 +164,6 @@ function time_discretization(semi, dt)
     wOld = copy(var.w)
     rhoOld = copy(var.u)
     rhopOld = copy(var.u)
-    return (; alphaRK, betaRK, dRho, dRhop, dMom, usave, vsave, wsave, uOld, vOld, wOld, rhoOld, rhopOld, dt)
+    flux0 = copy(flux.u)
+    return (; alphaRK, betaRK, dRho, dRhop, dMom, usave, vsave, wsave, uOld, vOld, wOld, rhoOld, rhopOld, dt, flux0)
 end

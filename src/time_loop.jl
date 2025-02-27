@@ -18,7 +18,7 @@ function timestep!(semi)
 
 end
 
-function calculate_timestep!(semi, tStepChoice::fix)
+function calculate_timestep!(semi)
 
     (; dt, tRef, dtMax_dim) = semi 
 
@@ -26,7 +26,7 @@ function calculate_timestep!(semi, tStepChoice::fix)
 
 end
 
-function calculate_timestep!(semi, tStepChoice::cfl)
+function calculate_timestep!(semi)
 
     (; dt, tRef, dtMax_dim, cache, Re, grid) = semi 
     (; var) = cache
@@ -34,9 +34,9 @@ function calculate_timestep!(semi, tStepChoice::cfl)
 
     small = 1.e-20
 
-    u = @view var.u 
-    v = @view var.v 
-    w = @view var.w
+    u =  var.u 
+    v =  var.v 
+    w =  var.w
 
     uMax = maximum(abs(u)) + small 
     vMax = maximum(abs(v)) + small
@@ -69,3 +69,5 @@ function calculate_timestep!(semi, tStepChoice::cfl)
     dt = min(dtVisc, dtConv, dtMax)
     
 end
+
+
