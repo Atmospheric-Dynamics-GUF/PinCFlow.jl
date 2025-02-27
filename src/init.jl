@@ -51,6 +51,7 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
     tRef = lRef / aRef
     thetaRef = aRef^2.0 / Rsp
     Ma = uRef / aRef
+    MaInv2 = 1.0 / Ma^2
     Fr = uRef / sqrt(g * lRef)
     kappa = (gamma - 1.0) / gamma
     sig = Ma^2 / Fr^2
@@ -82,11 +83,16 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
     end
 
     stretch_exponent = 1
+    
+    g_ndim = g/(uRef^2/lRef)
+
+    f_Coriolis_dim = 0.0
+    
     grid = make_grid(nx=nx, ny=ny, nz=nz, nbx=nbx, nby=nby, nbz=nbz, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax, lRef=lRef, stretch_exponent=stretch_exponent)
 
     jac = Jacobian(grid)
 
-    equations = (; gamma, gamma_1, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re)
+    equations = (; gamma, gamma_1, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re, g_ndim, MaInv2)
 
     # TODO: why not make Strat variables same size as var variables ??
     pStrat = OffsetArray(zeros(Float64, nx + 2nbx + 1, ny + 2nby + 1, nz + 4),
@@ -121,9 +127,13 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
 
     uTilde, vTilde, wTilde, rhopTilde = (copy(rhoTilde), copy(rhoTilde), copy(rhoTilde), copy(rhoTilde))
 
-    cache = (; var, var0, flux, uTilde, vTilde, wTilde, rhoTilde, rhopTilde, pStrat, thetaStrat, rhoStrat,
-        bvsStrat, jac)
+    fluxDiffU = OffsetArray(zeros(2, 2), 0:1, 0:1)
+    fluxDiffV = OffsetArray(zeros(2, 2), 0:1, 0:1)
 
+    cache = (; var, var0, flux, uTilde, vTilde, wTilde, rhoTilde, rhopTilde, pStrat, thetaStrat, rhoStrat, 
+        bvsStrat, jac, fluxDiffU, fluxDiffV)
+  #  f_cor_nd =  OffsetArray(zeros(Float64, 1:ny), -1:ny-1)
+    f_cor_nd = 0.0
     boundary_x = boundary_y = PeriodicBC()
     boundary_z = SolidWallBC()
     boundary_conditions = (; boundary_x, boundary_y, boundary_z)
@@ -133,3 +143,26 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
     return (; grid, equations, cache, boundary_conditions, met)
 end
 
+
+function time_discretization(semi, dt)
+    
+    (; cache ) = semi
+    (; var, flux) = cache
+
+    betaRK = (1.0 / 3.0, 15.0 / 16.0, 8.0 / 15.0)
+
+    alphaRK =  (0.0, -5.0 / 9.0, -153.0 / 128.0)
+
+    dRho = copy(var.u) 
+    dRhop = copy(var.u)
+    dMom = copy(flux.u)
+    usave = copy(var.u)
+    vsave = copy(var.v)
+    wsave = copy(var.w)
+    uOld = copy(var.u)
+    vOld = copy(var.v)
+    wOld = copy(var.w)
+    rhoOld = copy(var.u)
+    rhopOld = copy(var.u)
+    return (; alphaRK, betaRK, dRho, dRhop, dMom, usave, vsave, wsave, uOld, vOld, wOld, rhoOld, rhopOld, dt)
+end
