@@ -19,7 +19,7 @@ function initialize_variables!(semi)
     w .= w0 / uRef
 
     rho .= 0.0
-    exner .= 0.0
+    exner .= 0.0    
 
 end
 

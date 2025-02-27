@@ -224,7 +224,7 @@ function vertWind(i, j, k, semi)
     vEdgeB = var.v[i, j - 1, k]
     vUEdgeB = var.v[i, j - 1, k + 1]
     wEdgeU = var.w[i, j, k]
-
+    
     return trafo(i, j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB, vUEdgeB, wEdgeU, "car", semi)
 end
 
