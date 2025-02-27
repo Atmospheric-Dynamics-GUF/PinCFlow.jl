@@ -20,7 +20,6 @@ function make_grid(; nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zm
     dy = (ly[1] - ly[0]) / ny
     dz = (lz[1] - lz[0]) / nz
 
-
     sizeX = nx
     sizeY = ny
     sizeZ = nz
@@ -45,7 +44,7 @@ function make_grid(; nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zm
         z[k] = lz[0] + (k - 1) * dz + dz / 2.0
     end
 
-    grid = (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, 
+    grid = (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz,
               topography_surface, zTildeTFC, zTFC, zTildeS, zS,
               lx, ly, lz, dx, dy, dz, x, y, z, stretch_exponent)
     return grid
@@ -56,6 +55,37 @@ struct Jacobian{Grid}
     grid::Grid
 end
 
+struct MetricTensor{Grid, Cache, Equations}
+    cache::Cache
+    grid::Grid
+    equations::Equations
+end
+
+function (met::MetricTensor)(i, j, k, mu, nu)
+    (; cache, grid, equations) = met
+    (; topography_surface, zTildeS, dx, dy, dz, lz, zTildeS, zS) = grid
+    # Metric tensor.
+
+    if (mu == 1 && nu == 3) || (mu == 3 && nu == 1)
+        return (topography_surface[i + 1, j] - topography_surface[i - 1, j]) /
+               (2.0 * dx) * (zS[k] - lz[1]) / (lz[1] - topography_surface[i, j]) *
+               dz / (zTildeS[k] - zTildeS[k - 1])
+    elseif (mu == 2 && nu == 3) || (mu == 3 && nu == 2)
+        return (topography_surface[i, j + 1] - topography_surface[i, j - 1]) /
+               (2.0 * dy) * (zS[k] - lz[1]) / (lz[1] - topography_surface[i, j]) *
+               dz / (zTildeS[k] - zTildeS[k - 1])
+    elseif mu == 3 && nu == 3
+        return ((lz[1] / (lz[1] - topography_surface[i, j]))^2.0 +
+                ((zS[k] - lz[1]) / (lz[1] - topography_surface[i, j]))^2.0 *
+                (((topography_surface[i + 1, j] - topography_surface[i - 1, j]) / (2.0 * dx))^2.0 +
+                 ((topography_surface[i, j + 1] - topography_surface[i, j - 1]) / (2.0 * dy))^2.0)) *
+               (dz / (zTildeS[k] - zTildeS[k - 1]))^2.0
+    else
+        @assert false "UNDEFINED CASE!!!"
+    end
+end
+
+
 function (jac::Jacobian)(i, j, k)
     # Jacobian.
     (; grid) = jac
@@ -63,14 +93,13 @@ function (jac::Jacobian)(i, j, k)
     return (lz[1] - topography_surface[i, j]) / lz[1] * (zTildeS[k] - zTildeS[k - 1]) / dz
 end
 
-
 function initialize_atmosphere!(semi)
 
     (; grid, equations, cache) = semi
     (; nx, ny, nz,
              nbx, nby, nbz, topography_surface, zTildeTFC, zTFC, zTildeS, zS,
              lx, ly, lz, dx, dy, dz, x, y, z) = grid
-    (; pStrat, rhoStrat, thetaStrat, bvsStrat) = cache
+    (; pStrat, rhoStrat, thetaStrat, bvsStrat, jac) = cache
     (; gamma, gamma_1, kappa, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re) = equations
 
     setup_topography!(semi)
@@ -94,13 +123,13 @@ function initialize_atmosphere!(semi)
     end
 
     for ix in -nbx:nx + nbx, jy in -nby:ny + nby
-        bvsStrat[ix, jy, -1] = g_ndim / thetaStrat[ix, jy, 0] / jac(ix, jy, 0, lz, grid) *
+        bvsStrat[ix, jy, -1] = g_ndim / thetaStrat[ix, jy, 0] / jac(ix, jy, 0) *
             (thetaStrat[ix, jy, 1] - thetaStrat[ix, jy, 0]) / dz
         for kz in 1:nz
-            bvsStrat[ix, jy, kz] = g_ndim / thetaStrat[ix, jy, kz] / jac(ix, jy, kz, lz, grid) *
+            bvsStrat[ix, jy, kz] = g_ndim / thetaStrat[ix, jy, kz] / jac(ix, jy, kz) *
                 0.5 * (thetaStrat[ix, jy, kz + 1] - thetaStrat[ix, jy, kz - 1]) / dz
         end
-        bvsStrat[ix, jy, nz + 1] = g_ndim / thetaStrat[ix, jy, nz + 1] / jac(ix, jy, nz + 1, lz, grid) *
+        bvsStrat[ix, jy, nz + 1] = g_ndim / thetaStrat[ix, jy, nz + 1] / jac(ix, jy, nz + 1) *
             (thetaStrat[ix, jy, nz + 1] - thetaStrat[ix, jy, nz]) / dz
         bvsStrat[ix, jy, nz + 2] = bvsStrat[ix, jy, nz + 1]
     end
@@ -135,7 +164,7 @@ function setup_topography!(semi)
       topography_surface .= 0.0
       for jy = 1:ny
         for ix = 1:nx
-            topography_surface[ix, jy] = mountainHeight / (1.0 + (x[ix] - x_center) ^ 2.0 
+            topography_surface[ix, jy] = mountainHeight / (1.0 + (x[ix] - x_center) ^ 2.0
                 / mountainWidth ^ 2.0)
         end
       end
@@ -173,37 +202,17 @@ function map(level, lz)
     end
 end
 
-function jac(i, j, k, lz, grid)
+# function jac(i, j, k, lz, grid)
 
-    #TODO get lz from grid.lz
-    # Jacobian.
-    (; topography_surface, zTildeS, dz) = grid
-    return (lz[1] - topography_surface[i, j]) / lz[1] * (zTildeS[k] - zTildeS[k - 1]) / dz
-end
+#     #TODO get lz from grid.lz
+#     # Jacobian.
+#     (; topography_surface, zTildeS, dz) = grid
+#     return (lz[1] - topography_surface[i, j]) / lz[1] * (zTildeS[k] - zTildeS[k - 1]) / dz
+# end
 
-function met(i, j, k, mu, nu)
-    # Metric tensor.
-
-    if (mu == 1 && nu == 3) || (mu == 3 && nu == 1)
-        return (topography_surface[i + 1, j] - topography_surface[i - 1, j]) /
-               (2.0 * dx) * (zS[k] - lz[1]) / (lz[1] - topography_surface[i, j]) *
-               dz / (zTildeS[k] - zTildeS[k - 1])
-    elseif (mu == 2 && nu == 3) || (mu == 3 && nu == 2)
-        return (topography_surface[i, j + 1] - topography_surface[i, j - 1]) /
-               (2.0 * dy) * (zS[k] - lz[1]) / (lz[1] - topography_surface[i, j]) *
-               dz / (zTildeS[k] - zTildeS[k - 1])
-    elseif mu == 3 && nu == 3
-        return ((lz[1] / (lz[1] - topography_surface[i, j]))^2.0 +
-                ((zS[k] - lz[1]) / (lz[1] - topography_surface[i, j]))^2.0 *
-                (((topography_surface[i + 1, j] - topography_surface[i - 1, j]) / (2.0 * dx))^2.0 +
-                 ((topography_surface[i, j + 1] - topography_surface[i, j - 1]) / (2.0 * dy))^2.0)) *
-               (dz / (zTildeS[k] - zTildeS[k - 1]))^2.0
-    else
-        @assert false "UNDEFINED CASE!!!"
-    end
-end
-
-function vertWind(i, j, k, var, grid)
+function vertWind(i, j, k, semi)
+    (; cache) = semi
+    (; var) = cache
     # Transformation of the vertical wind.
 
     uEdgeR = var.u[i, j, k]
@@ -216,48 +225,42 @@ function vertWind(i, j, k, var, grid)
     vUEdgeB = var.v[i, j - 1, k + 1]
     wEdgeU = var.w[i, j, k]
 
-    return trafo(i, j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF,
-                 vUEdgeF, vEdgeB, vUEdgeB, wEdgeU, "car", grid)
+    return trafo(i, j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB, vUEdgeB, wEdgeU, "car", semi)
 end
 
-function trafo(i, j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, 
-                vUEdgeF, vEdgeB, vUEdgeB, wEdgeU, wind, grid)
+function trafo(i, j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB, vUEdgeB, wEdgeU, wind, semi)
     # Assuming jac and met are defined elsewhere
     # Define variables as in the original code
 
-    (; lz) = grid
+    (; cache, met) = semi
+    (; jac) = cache
 
-    jacEdgeU = 2.0 * jac(i, j, k, lz, grid) * jac(i, j, k + 1, lz, grid) 
-        /(jac(i, j, k, lz, grid) + jac(i, j, k + 1, lz, grid))
+    jacEdgeU = 2.0 * jac(i, j, k) * jac(i, j, k + 1) / (jac(i, j, k) + jac(i, j, k + 1))
     uC = 0.5 * (uEdgeR + uEdgeL)
     uU = 0.5 * (uUEdgeR + uUEdgeL)
     vC = 0.5 * (vEdgeF + vEdgeB)
     vU = 0.5 * (vUEdgeF + vUEdgeB)
 
     if wind == "car"
-        trafo = jacEdgeU * (-(jac(i, j, k + 1, lz, grid) * (met(i, j, k, 1, 3) * uC + met(i, j, k, 2, 3) * vC) +
-            jac(i, j, k, lz, grid) * (met(i, j, k + 1, 1, 3) * uU + met(i, j, k + 1, 2, 3) * vU)) 
-            / (jac(i, j, k, lz, grid) + jac(i, j, k + 1, lz, grid)) + wEdgeU)
+      trafoTFC = jacEdgeU * (- (jac(i, j, k + 1) * (met(i, j, k, 1, 3) * uC  + met(i, j, k, 2, 3) * vC) + jac(i, j, k) * (met(i, j, k + 1, 1, 3)  * uU + met(i, j, k + 1, 2, 3) * vU)) / (jac(i, j, k) + jac(i, j, k  + 1)) + wEdgeU)
     elseif wind == "tfc"
-        trafo = (jac(i, j, k + 1, lz, grid) * (met(i, j, k, 1, 3) * uC + met(i, j, k, 2, 3) * vC) +
-            jac(i, j, k, lz, grid) * (met(i, j, k + 1, 1, 3) * uU + met(i, j, k + 1, 2, 3) * vU))/ 
-            (jac(i, j, k, lz, grid) + jac(i, j, k + 1, lz, grid)) + wEdgeU / jacEdgeU
+      trafoTFC = (jac(i, j, k + 1) * (met(i, j, k, 1, 3) * uC + met(i, j, k, 2, 3) * vC) + jac(i, j, k) * (met(i, j, k + 1, 1, 3) * uU + met(i,j, k + 1, 2, 3) * vU)) / (jac(i, j, k) + jac(i, j, k + 1)) + wEdgeU / jacEdgeU
     end
-    return trafo
+    return trafoTFC
 end
 
-function stressTensTFC(i, j, k, mu, nu, var)
+function stressTensTFC(i, j, k, mu, nu, semi)
+    (; var, cache) = semi
+    (; jac) = cache
     # Assuming jac, met, and vertWind are functions defined elsewhere
 
     # Define variables as in the original code
-    jacEdgeR = 0.5 * (jac(i, j, k, lz, grid) + jac(i + 1, j, k, lz, grid))
-    jacEdgeL = 0.5 * (jac(i, j, k, lz, grid) + jac(i - 1, j, k, lz, grid))
-    jacEdgeF = 0.5 * (jac(i, j, k, lz, grid) + jac(i, j + 1, k, lz, grid))
-    jacEdgeB = 0.5 * (jac(i, j, k, lz, grid) + jac(i, j - 1, k, lz, grid))
-    jacEdgeU = 2.0 * jac(i, j, k, lz, grid) * jac(i, j, k + 1, lz, grid) /
-        (jac(i, j, k, lz, grid) + jac(i, j, k + 1, lz, grid))
-    jacEdgeD = 2.0 * jac(i, j, k, lz, grid) * jac(i, j, k - 1, lz, grid) /
-        (jac(i, j, k, lz, grid) + jac(i, j, k - 1, lz, grid))
+    jacEdgeR = 0.5 * (jac(i, j, k) + jac(i + 1, j, k))
+    jacEdgeL = 0.5 * (jac(i, j, k) + jac(i - 1, j, k))
+    jacEdgeF = 0.5 * (jac(i, j, k) + jac(i, j + 1, k))
+    jacEdgeB = 0.5 * (jac(i, j, k) + jac(i, j - 1, k))
+    jacEdgeU = 2.0 * jac(i, j, k) * jac(i, j, k + 1) / (jac(i, j, k) + jac(i, j, k + 1))
+    jacEdgeD = 2.0 * jac(i, j, k) * jac(i, j, k - 1) / (jac(i, j, k) + jac(i, j, k - 1))
 
     # Accessing array elements in var
     uF = 0.5 * (var.u[i, j + 1, k] + var.u[i - 1, j + 1, k])
@@ -270,38 +273,37 @@ function stressTensTFC(i, j, k, mu, nu, var)
     vU = 0.5 * (var.v[i, j, k + 1] + var.v[i, j - 1, k + 1])
     vD = 0.5 * (var.v[i, j, k - 1] + var.v[i, j - 1, k - 1])
 
-    wR = 0.5 * (vertWind(i + 1, j, k, var, grid) + vertWind(i + 1, j, k - 1, var, grid))
-    wL = 0.5 * (vertWind(i - 1, j, k, var, grid) + vertWind(i - 1, j, k - 1, var, grid))
-    wF = 0.5 * (vertWind(i, j + 1, k, var, grid) + vertWind(i, j + 1, k - 1, var, grid))
-    wB = 0.5 * (vertWind(i, j - 1, k, var, grid) + vertWind(i, j - 1, k - 1, var, grid))
+    wR = 0.5 * (vertWind(i + 1, j, k, semi) + vertWind(i + 1, j, k - 1, semi))
+    wL = 0.5 * (vertWind(i - 1, j, k, semi) + vertWind(i - 1, j, k - 1, semi))
+    wF = 0.5 * (vertWind(i, j + 1, k, semi) + vertWind(i, j + 1, k - 1, semi))
+    wB = 0.5 * (vertWind(i, j - 1, k, semi) + vertWind(i, j - 1, k - 1, semi))
 
     # Conditional logic for stress tensor calculation
     if mu == 1 && nu == 1
         stressTensTFC = 2.0 * (var.u[i, j, k] - var.u[i - 1, j, k]) / dx +
             met(i, j, k, 1, 3) * (uU - uD) / dz - 2.0 / 3.0 * ((jacEdgeR * var.u[i, j, k] - jacEdgeL * var.u[i - 1, j, k]) / dx +
             (jacEdgeF * var.v[i, j, k] - jacEdgeB * var.v[i, j - 1, k]) / dy +
-            (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k - 1]) / dz) / jac(i, j, k, lz, grid)
+            (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k - 1]) / dz) / jac(i, j, k)
     elseif (mu == 1 && nu == 2) || (mu == 2 && nu == 1)
         stressTensTFC = 0.5 * (uF - uB) / dy + 0.5 * met(i, j, k, 2, 3) * (uU - uD) / dz + 0.5 * (vR - vL) / dx +
             0.5 * met(i, j, k, 1, 3) * (vU - vD) / dz
     elseif (mu == 1 && nu == 3) || (mu == 3 && nu == 1)
-        stressTensTFC = 0.5 * (uU - uD) / dz / jac(i, j, k, lz, grid) + 0.5 * (wR - wL) / dx + met(i, j, k, 1, 3) 
-        *(vertWind(i, j, k, var, grid) - vertWind(i, j, k - 1, var, grid)) / dz
+        stressTensTFC = 0.5 * (uU - uD) / dz / jac(i, j, k) + 0.5 * (wR - wL) / dx + met(i, j, k, 1, 3) * (vertWind(i, j, k, semi) - vertWind(i, j, k - 1, semi)) / dz
     elseif mu == 2 && nu == 2
         stressTensTFC = 2.0 * (var.v[i, j, k] - var.v[i, j - 1, k]) / dy +
             met(i, j, k, 2, 3) * (vU - vD) / dz - 2.0 / 3.0 * ((jacEdgeR * var.u[i, j, k] - jacEdgeL * var.u[i - 1, j, k]) / dx +
             (jacEdgeF * var.v[i, j, k] - jacEdgeB * var.v[i, j - 1, k]) / dy +
-            (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k - 1]) / dz) / jac(i, j, k, lz, grid)
+            (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k - 1]) / dz) / jac(i, j, k)
     elseif (mu == 2 && nu == 3) || (mu == 3 && nu == 2)
-        stressTensTFC = 0.5 * (vU - vD) / dz / jac(i, j, k, lz, grid) + 0.5 * (wF - wB) / dy + met(i, j, k, 2, 3) 
-        *(vertWind(i, j, k, var, grid) - vertWind(i, j, k - 1, var, grid)) / dz
+        stressTensTFC = (0.5 * (vU - vD) / dz / jac(i, j, k)
+                        + 0.5 * (wF - wB) / dy + met(i, j, k, 2, 3)
+                              * (vertWind(i, j, k, semi) - vertWind(i, j, k - 1, semi)) / dz)
     elseif mu == 3 && nu == 3
-        stressTensTFC = 2.0 * (vertWind(i, j, k, var, grid) - vertWind(i, j, k - 1, var, grid)) / dz / jac(i, j, k, lz, grid) -
+        stressTensTFC = 2.0 * (vertWind(i, j, k, semi) - vertWind(i, j, k - 1, semi)) / dz / jac(i, j, k) -
             2.0 / 3.0 * ((jacEdgeR * var.u[i, j, k] - jacEdgeL * var.u[i - 1, j, k]) / dx +
             (jacEdgeF * var.v[i, j, k] - jacEdgeB * var.v[i, j - 1, k]) / dy +
-            (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k - 1]) / dz) / jac(i, j, k, lz, grid)
+            (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k - 1]) / dz) / jac(i, j, k)
     end
 
     return stressTensTFC
 end
-
