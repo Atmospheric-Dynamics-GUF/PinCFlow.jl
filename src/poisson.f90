@@ -1408,6 +1408,8 @@ module poisson_module
                   &* 0.5 / dz)
             end if
 
+            du = - dt * pGradX
+
             var%u(i, j, k) = var%u(i, j, k) + du
           end do
         end do
