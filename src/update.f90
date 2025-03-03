@@ -851,6 +851,8 @@ module update_module
                 &fluxDiffV(0, 1), fluxDiffV(1, 0), fluxDiffV(1, 1), fluxDiff, &
                 &"tfc")
 
+            volForce = 0.
+
             ! Explicit integration of Coriolis force in TFC.
             if(mmp_mod == "lhs") then
               vC = 0.5 * (vOldTFC(i, j, k) + vOldTFC(i, j - 1, k))
