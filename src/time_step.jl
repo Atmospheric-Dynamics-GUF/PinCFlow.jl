@@ -1,5 +1,4 @@
 function pincflow(semi, dt)
-
     initialize_atmosphere!(semi)
 
     dt = dt / semi.equations.tRef
@@ -18,14 +17,13 @@ function pincflow(semi, dt)
     initialize_sponge!(semi)
 
     time = 0.0
-    for it = 1:100
+    for it in 1:100
         setBoundary!(semi)
 
         semi.cache.var.rhop .= semi.cache.var.rho
         copytuple_to_tuple!(semi.cache.var0, semi.cache.var)
 
-        for RKStage = 1:3
-
+        for RKStage in 1:3
             setBoundary!(semi)
             reconstruction!(semi)
 
@@ -48,7 +46,6 @@ function pincflow(semi, dt)
 
             momentumPredictor!(semi, ode, 0.5 * dt, "lhs", "expl", RKStage, 1)
             applyUnifiedSponge_uvw!(semi, 0.5 * ode.stepFrac[RKStage] * dt)
-
         end
         RKStage = 4
         setBoundary!(semi)
@@ -86,7 +83,7 @@ function pincflow(semi, dt)
         # TODO: ...
         ## set the boundary to var0
 
-        for RKStage = 1:3
+        for RKStage in 1:3
             setBoundary!(semi)
 
             reconstruction!(semi)
@@ -109,7 +106,6 @@ function pincflow(semi, dt)
 
             momentumPredictor!(semi, ode, dt, "lhs", "expl", RKStage, 1)
             applyUnifiedSponge_uvw!(semi, ode.stepFrac[RKStage] * dt)
-
         end
         RKStage = 4
         setBoundary!(semi)
@@ -134,30 +130,24 @@ function pincflow(semi, dt)
     end
 end
 
-
 function copytuple_to_tuple!(var, var1)
-
     var.u .= var1.u
     var.v .= var1.v
     var.w .= var1.w
     var.exner .= var1.exner
     var.rho .= var1.rho
     var.rhop .= var1.rhop
-
 end
 
 function copytuple_to_tuple_flux!(var, var1)
-
     var.u .= var1.u
     var.v .= var1.v
     var.w .= var1.w
     var.rho .= var1.rho
     var.rhop .= var1.rhop
-
 end
 
 function debugging!(semi)
-
     @show semi.cache.var.rho[5, 1, 5]
     @show semi.cache.var.rhop[5, 1, 5]
     @show semi.cache.var.u[5, 1, 5]
