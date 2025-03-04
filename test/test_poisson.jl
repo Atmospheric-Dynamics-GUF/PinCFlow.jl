@@ -12,7 +12,6 @@ get_ijk(I::CartesianIndex{3}) = I[1], I[2], I[3]
 get_ijk(I::CartesianIndex{2}) = I[1], I[2]
 get_ijk(I::CartesianIndex{1}) = I[1]
 
-
 macro get_var_name(var)
     return QuoteNode(var)  # Returns the variable name as a Symbol
 end
@@ -38,9 +37,7 @@ function test_file(file, data; tol_l1 = 1e-12, tol_linf = 1e-10)
     @test error_linf < tol_linf
 end
 
-
 ## Tests begin
-
 
 @testset "val_PsIn expl" begin
     semi = initialize_values(300, 1, 100, 3, 3, 3, 0, 60000, 0, 40000, 0, 20000)
@@ -58,66 +55,17 @@ end
     # Call function to be tested
     PinCFlow_dev.val_PsIn(semi, 1.0, "expl", 1.0)
 
-
     # Arrange values to be tested
-    (;
-        ac_b,
-        acv_b,
-        ach_b,
-        al_b,
-        ar_b,
-        ab_b,
-        af_b,
-        ad_b,
-        au_b,
-        aru_b,
-        ard_b,
-        alu_b,
-        ald_b,
-        afu_b,
-        afd_b,
-        abu_b,
-        abd_b,
-        auu_b,
-        add_b,
-        aruu_b,
-        ardd_b,
-        aluu_b,
-        aldd_b,
-        afuu_b,
-        afdd_b,
-        abuu_b,
-        abdd_b,
-    ) = cache
+    (; ac_b, acv_b, ach_b, al_b, ar_b, ab_b, af_b, ad_b, au_b, aru_b, ard_b,
+    alu_b, ald_b, afu_b, afd_b, abu_b, abd_b, auu_b, add_b, aruu_b, ardd_b,
+    aluu_b, aldd_b, afuu_b, afdd_b, abuu_b, abdd_b,) = cache
 
     test_cache = (;
-        ac_b,
-        acv_b,
-        ach_b,
-        al_b,
-        ar_b,
-        ab_b,
-        af_b,
-        ad_b,
-        au_b,
-        aru_b,
-        ard_b,
-        alu_b,
-        ald_b,
-        afu_b,
-        afd_b,
-        abu_b,
-        abd_b,
-        auu_b,
-        add_b,
-        aruu_b,
-        ardd_b,
-        aluu_b,
-        aldd_b,
-        afuu_b,
-        afdd_b,
-        abuu_b,
-    )
+                  ac_b,
+                  acv_b, ach_b, al_b, ar_b, ab_b, af_b, ad_b, au_b, aru_b,
+                  ard_b, alu_b, ald_b, afu_b, afd_b, abu_b, abd_b, auu_b,
+                  add_b, aruu_b, ardd_b, aluu_b, aldd_b, afuu_b, afdd_b,
+                  abuu_b,)
 
     for field in fieldnames(typeof(test_cache))
         val = getfield(test_cache, field)
@@ -130,83 +78,25 @@ end
 @testset "preCond expl" begin
     semi = initialize_values(300, 1, 100, 3, 3, 3, 0, 60000, 0, 40000, 0, 20000)
     (; cache, grid) = semi
-    (;
-        p_bicg,
-        p_pc,
-        v_pc,
-        au_b,
-        ad_b,
-        ac_b,
-        al_b,
-        ar_b,
-        af_b,
-        ab_b,
-        ach_b,
-        acv_b,
-        aru_b,
-        ard_b,
-        alu_b,
-        ald_b,
-        afu_b,
-        afd_b,
-        abu_b,
-        abd_b,
-        auu_b,
-        add_b,
-        aruu_b,
-        ardd_b,
-        aluu_b,
-        aldd_b,
-        afuu_b,
-        afdd_b,
-        abuu_b,
-        abdd_b,
-        q_pc,
-        p_pc,
-    ) = cache
+    (; p_bicg, p_pc, v_pc, au_b, ad_b, ac_b, al_b, ar_b, af_b, ab_b, ach_b,
+    acv_b, aru_b, ard_b, alu_b, ald_b, afu_b, afd_b, abu_b, abd_b, auu_b,
+    add_b, aruu_b, ardd_b, aluu_b, aldd_b, afuu_b, afdd_b, abuu_b, abdd_b,
+    q_pc, p_pc,) = cache
 
     normalizer = 0.01 # To get smaller values where arithmetic is more accurate
     set_lin_array_normalizer!(arr) = set_lin_array!(arr, normalizer = normalizer)
-    set_lin_array_normalizer!.((
-        p_bicg,
-        p_pc,
-        v_pc,
-        au_b,
-        ad_b,
-        ac_b,
-        al_b,
-        ar_b,
-        af_b,
-        ab_b,
-        ach_b,
-        acv_b,
-        aru_b,
-        ard_b,
-        alu_b,
-        ald_b,
-        afu_b,
-        afd_b,
-        abu_b,
-        abd_b,
-        auu_b,
-        add_b,
-        aruu_b,
-        ardd_b,
-        aluu_b,
-        aldd_b,
-        afuu_b,
-        afdd_b,
-        abuu_b,
-        abdd_b,
-        q_pc,
-        p_pc,
-    ))
+    set_lin_array_normalizer!.((p_bicg, p_pc, v_pc, au_b, ad_b, ac_b, al_b, ar_b, af_b,
+                                ab_b, ach_b,
+                                acv_b, aru_b, ard_b, alu_b, ald_b, afu_b, afd_b, abu_b,
+                                abd_b, auu_b,
+                                add_b, aruu_b, ardd_b, aluu_b, aldd_b, afuu_b, afdd_b,
+                                abuu_b, abdd_b, q_pc,
+                                p_pc))
 
     PinCFlow_dev.preCond(p_bicg, v_pc, "expl", semi)
     ref_filename = "$(pincflow_test_dir())/poisson_fortran_data/preCond/sOut.txt.gz"
     test_file(ref_filename, v_pc, tol_l1 = 1e-16, tol_linf = 1e-16)
 end
-
 
 @testset "calc_RHS" begin
     semi = initialize_values(300, 1, 100, 3, 3, 3, 0, 60000, 0, 40000, 0, 20000)

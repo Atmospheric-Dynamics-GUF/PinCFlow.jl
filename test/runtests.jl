@@ -8,8 +8,8 @@ using Trixi: CompressibleEulerEquations1D
     surface_flux = nothing
     initial_condition = nothing
 
-    semi_discretization =
-        SemiDiscretization(grid, equations, surface_flux, initial_condition)
+    semi_discretization = SemiDiscretization(grid, equations, surface_flux,
+                                             initial_condition)
 
     @test semi_discretization.grid == grid
 end

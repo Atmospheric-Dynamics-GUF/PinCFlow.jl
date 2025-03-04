@@ -2,7 +2,7 @@ abstract type AbstractSpongeLayer end
 abstract type UnifiedSponge <: AbstractSpongeLayer end
 
 struct ExponentialSponge <: UnifiedSponge end
-struct SinusodialSpongeSetup{RealT<:Real} <: UnifiedSponge
+struct SinusodialSpongeSetup{RealT <: Real} <: UnifiedSponge
     ## TODO: add types
     lateral::Any
     height::Any
@@ -14,7 +14,7 @@ struct SinusodialSpongeSetup{RealT<:Real} <: UnifiedSponge
 end
 
 function SinusodialSponge(grid)
-    alpha = OffsetArray(zeros(Float64, 0:grid.nx+1, 0:grid.ny+1, 0:grid.nz+1))
+    alpha = OffsetArray(zeros(Float64, 0:(grid.nx + 1), 0:(grid.ny + 1), 0:(grid.nz + 1)))
     SinusodialSpongeSetup(true, 0.5, 0.01, alpha, 1.0, 0.0, 0.0)
 end
 
@@ -25,7 +25,6 @@ struct NonUnifiedSponge <: AbstractSpongeLayer end
 initialize_sponge!(semi) = initialize_sponge_ini!(semi, semi.sponge)
 
 function initialize_sponge_ini!(semi, sponge::SinusodialSpongeSetup)
-
     (; grid, equations, sponge, cache) = semi
     (; nx, ny, nz, x, y, zTFC, lx, ly, lz) = grid
     (; tRef) = equations
@@ -38,7 +37,6 @@ function initialize_sponge_ini!(semi, sponge::SinusodialSpongeSetup)
 
     dz = sponge.height * (lz[1] - lz[0])
     z = lz[1] - dz
-
 
     if sponge.lateral == true
         dx = 0.5 * sponge.height * (lx[1] - lx[0])
@@ -63,15 +61,15 @@ function initialize_sponge_ini!(semi, sponge::SinusodialSpongeSetup)
         end
     end
 
-    for k = 1:nz
-        for j = 0:ny+1
-            for i = 0:nx+1
+    for k in 1:nz
+        for j in 0:(ny + 1)
+            for i in 0:(nx + 1)
                 height = zTFC[i, j, k]
 
                 if nz > 1
                     if height >= z # this is zSponge
-                        sponge.alpha[i, j, k] +=
-                            alphaZ * sin(0.5 * pi * (height - z) / dz)^2
+                        sponge.alpha[i, j, k] += alphaZ *
+                                                 sin(0.5 * pi * (height - z) / dz)^2
                     end
                 end
 
@@ -79,11 +77,11 @@ function initialize_sponge_ini!(semi, sponge::SinusodialSpongeSetup)
                 if sponge.lateral == true
                     if nx > 1
                         if x[i] <= x0
-                            sponge.alpha[i, j, k] +=
-                                alphaX * sin(0.5 * pi * (x0 - x[i]) / dx)^2
+                            sponge.alpha[i, j, k] += alphaX *
+                                                     sin(0.5 * pi * (x0 - x[i]) / dx)^2
                         elseif x[i] >= x1
-                            sponge.alpha[i, j, k] +=
-                                alphaX * sin(0.5 * pi * (x[i] - x1) / dx)^2
+                            sponge.alpha[i, j, k] += alphaX *
+                                                     sin(0.5 * pi * (x[i] - x1) / dx)^2
                         end
                     end
                 end
@@ -97,6 +95,6 @@ function initialize_sponge_ini!(semi, sponge::SinusodialSpongeSetup)
             end
         end
         sponge.alpha[:, :, 0] = sponge.alpha[:, :, 1]
-        sponge.alpha[:, :, nz+1] = sponge.alpha[:, :, nz]
+        sponge.alpha[:, :, nz + 1] = sponge.alpha[:, :, nz]
     end
 end
