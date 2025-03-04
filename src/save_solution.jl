@@ -1,11 +1,9 @@
-function save_solution_file_2d(
-    grid_array,
-    vars,
-    varnames;
-    dt = 0.0,
-    t = 0.0,
-    equation_name = "Unspecified Equations",
-)
+function save_solution_file_2d(grid_array,
+                               vars,
+                               varnames;
+                               dt = 0.0,
+                               t = 0.0,
+                               equation_name = "Unspecified Equations",)
     nx, nz = size(grid_array)
 
     h5open(filename, "w") do file
@@ -23,7 +21,7 @@ function save_solution_file_2d(
 
         # Store each variable of the solution data
         var_names = ("Density", "Velocity x", "Velocity y", "Pressure")
-        for v = 1:n_vars
+        for v in 1:n_vars
             # Convert to 1D array
             file["variables_$v"] = vec(data[v, .., :])
 
