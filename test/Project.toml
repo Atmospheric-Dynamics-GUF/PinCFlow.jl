@@ -1,4 +1,5 @@
 [deps]
+GZip = "92fee26a-97fe-5a0c-ad85-20a5f3185b63"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Trixi = "a7f1ee26-1774-49b1-8366-f1abc58fbfcb"
 TrixiBase = "9a0f1c46-06d5-4909-a5a3-ce25d3fa3284"
