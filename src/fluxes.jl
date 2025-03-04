@@ -165,28 +165,10 @@ function reconstruct_w!(semi)
                         jac(ix, jy, kz) * pStrat[ix, jy, kz+1]
                     ) / (jac(ix, jy, kz) + jac(ix, jy, kz + 1))
                 wBar[ix, jy, kz] = wBar[ix, jy, kz] * rhoEdge / pEdge
-                if ix == 13 && jy == 2 && kz == 10
-                    #   @show rhoEdge
-                    #    @show pEdge
-                    #    @show pStrat[ix,jy,kz]
-                    #    @show rhoStrat[ix,jy,kz]   
-                    #    @show wBar[ix, jy, kz]
-                    #    @show wBar[ix-1,jy,kz]
-                    #   @show wBar[ix+1,jy, kz]
-                end
             end
         end
     end
     muscl_reconstruct3D!(wBar, nxx, nyy, nzz, wTilde; debug = 1)
-
-    for ix = -nbx:nx+nbx
-        for jy = -nby:ny+nby
-            for kz = 0:nz+1
-                #             @show ix, jy, kz
-                #             @show wTilde[ix,jy,kz,1,0]
-            end
-        end
-    end
 
 end
 
@@ -206,10 +188,6 @@ function muscl_reconstruct3D!(varBar, sizeX, sizeY, sizeZ, varTilde; debug = 0)
         for jy = 2:sizeY-1
 
             phiX[:] .= varBar.parent[:, jy, kz]
-            #   if debug == 1 && jy == 2 && kz == 10
-            #   @show phiX[:]
-            #   end
-            #@show "siamo in x"
             muscle_reconstruct1D_mcvariant!(phiX, sizeX, phiTildeX)
             varTilde.parent[:, jy, kz, 1, :] .= phiTildeX.parent
         end
@@ -259,10 +237,6 @@ function muscle_reconstruct1D_mcvariant!(phi, phiSize, phiTilde)
                 phiTilde[i, 1] = phi[i] + 0.5 * sigmaL * deltaR
                 phiTilde[i, 0] = phi[i] - 0.5 * sigmaR * deltaL
             end
-        end
-        if i == 13
-            # @show phiTilde[i,:]
-            # @show phi[i]
         end
 
     end
@@ -315,11 +289,6 @@ function rhoFlux!(semi)
                 fRho = flux_muscl(uSurf, rhoL, rhoR)
 
                 rhoFlux[ix, jy, kz, 1] = fRho
-                #@show u[ix,jy,kz]
-                # @show rhoStratEdgeR
-                # @show pEdgeR
-                # @show uSurf
-                # @show fRho
             end
         end
     end
@@ -698,8 +667,7 @@ function rhovwFlux!(semi)
             for ix = 1:nx
                 vU = vTilde[ix, jy, kz+1, 3, 0]
                 vD = vTilde[ix, jy, kz, 3, 1]
-                #  @show vTilde[ix, jy, kz + 1, 3, 0]
-                #  @show vTilde[ix,jy,kz,3,1]
+
                 pEdge =
                     jac(ix, jy, kz) *
                     jac(ix, jy, kz + 1) *
@@ -711,11 +679,9 @@ function rhovwFlux!(semi)
                     (pStrat[ix, jy+1, kz] + pStrat[ix, jy+1, kz+1]) /
                     (jac(ix, jy + 1, kz) + jac(ix, jy + 1, kz + 1))
                 wSurf = 0.5 * (pEdge * w[ix, jy, kz] + pREdge * w[ix, jy+1, kz])
-                # @show wSurf
                 hRhoV = flux_muscl(wSurf, vD, vU)
 
                 vFlux[ix, jy, kz, 3] = hRhoV
-                #@show vFlux[ix,jy,kz, 3]
             end
         end
     end

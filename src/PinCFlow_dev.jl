@@ -12,8 +12,8 @@ include("atmosphere.jl")
 include("boundary.jl")
 include("fluxes.jl")
 include("time_step.jl")
-include("poisson_.jl")
-include("update_new.jl")
+include("poisson.jl")
+include("update.jl")
 
 export initialize_values,
     initialize_atmosphere!,
