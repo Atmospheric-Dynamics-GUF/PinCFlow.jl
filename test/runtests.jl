@@ -13,3 +13,5 @@ using Trixi: CompressibleEulerEquations1D
 
     @test semi_discretization.grid == grid
 end
+
+include("test_poisson.jl")
