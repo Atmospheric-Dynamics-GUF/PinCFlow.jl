@@ -1,7 +1,8 @@
 using SimpleUnPack
 using OffsetArrays
 
-function make_grid(; nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zmax, lRef, stretch_exponent,)
+function make_grid(; nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zmax, lRef,
+                   stretch_exponent,)
     topography_surface = OffsetArray(zeros(nx + 1 + 2 * nbx, ny + 1 + 2 * nby),
                                      (-nbx):(nx + nbx), (-nby):(ny + nby))
     zTildeTFC = OffsetArray(zeros(nx + 1 + 2 * nbx, ny + 1 + 2 * nby, nz + 1 + 2 * nbz),
@@ -52,7 +53,8 @@ function make_grid(; nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zm
     end
 
     grid = (;
-            nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, topography_surface, zTildeTFC, zTFC, zTildeS, zS, lx, ly, lz, dx, dy, dz, x, y, z, stretch_exponent,)
+            nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, topography_surface, zTildeTFC, zTFC,
+            zTildeS, zS, lx, ly, lz, dx, dy, dz, x, y, z, stretch_exponent,)
     return grid
 end
 
@@ -156,7 +158,7 @@ function setup_topography!(semi)
     (; grid, equations) = semi
     (;
     nx, ny, nz, nbx, nby, nbz, topography_surface, zTildeTFC, zTFC, zTildeS, zS, lx, ly, lz, dx, dy, dz, x, y, z,) = grid
- (; gamma, gamma_1, kappa, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re,) = equations
+    (; gamma, gamma_1, kappa, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re,) = equations
 
     if lz[0] != 0.0
         @assert false "Error in setup_topography: lz(0) must be zero for & &TFC!"
@@ -239,11 +241,13 @@ function vertWind(i, j, k, semi)
     wEdgeU = var.w[i, j, k]
 
     return trafo(i,
-                 j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB, vUEdgeB, wEdgeU, "car", semi)
+                 j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB, vUEdgeB,
+                 wEdgeU, "car", semi)
 end
 
 function trafo(i,
-               j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB, vUEdgeB, wEdgeU, wind, semi)
+               j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB, vUEdgeB,
+               wEdgeU, wind, semi)
     # Assuming jac and met are defined elsewhere
     # Define variables as in the original code
 
