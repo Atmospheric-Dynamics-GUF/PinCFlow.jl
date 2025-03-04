@@ -3,4 +3,3 @@
 initialize!(semi)
 
 time_loop!(semi)
-
