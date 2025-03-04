@@ -7,20 +7,21 @@ function setBoundary!(semi)
 end
 
 function setBoundary_flux!(semi)
-(; cache, grid) = semi
-(; nz) = grid
-(; flux) = cache
-        flux.rho[:, :, 0, 3] .= 0.0
-        flux.rho[:, :, nz, 3] .= 0.0
-        flux.rhop[:, :, nz, 3] .= 0.0
-        flux.rhop[:, :, nz, 3] .= 0.0
-    
-        flux.u[:, :, 0, 3] .= 0.0
-        flux.u[:, :, nz, 3] .= 0.0
-        flux.v[:, :, 0, 3] .= 0.0
-        flux.v[:, :, nz, 3] .= 0.0
-        flux.w[:, :, -1, 3] .= 0.0
-        flux.w[:, :, nz, 3] .= 0.0
+    (; cache, grid) = semi
+    (; nz) = grid
+    (; flux) = cache
+
+    flux.rho[:, :, 0, 3] .= 0.0
+    flux.rho[:, :, nz, 3] .= 0.0
+    flux.rhop[:, :, 0, 3] .= 0.0
+    flux.rhop[:, :, nz, 3] .= 0.0
+
+    flux.u[:, :, 0, 3] .= 0.0
+    flux.u[:, :, nz, 3] .= 0.0
+    flux.v[:, :, 0, 3] .= 0.0
+    flux.v[:, :, nz, 3] .= 0.0
+    flux.w[:, :, -1, 3] .= 0.0
+    flux.w[:, :, nz, 3] .= 0.0
 
 end
 
@@ -43,7 +44,7 @@ function setBoundary_x!(semi, boundary::PeriodicBC)
         set_periodic_value_cell_x!(w, i, nx)
     end
 
-    set_periodic_value_edge_x!(exner, 0, nx)
+    set_periodic_value_cell_x!(exner, 1, nx)
     ## Missing RhoTilde, but it should be removed according to PincFlow.f90
 end
 
@@ -77,7 +78,7 @@ function setBoundary_y!(semi, boundary::PeriodicBC)
         set_periodic_value_cell_y!(w, j, ny)
     end
 
-    set_periodic_value_edge_y!(exner, 0, ny)
+    set_periodic_value_cell_y!(exner, 1, ny)
 
 end
 
@@ -110,7 +111,7 @@ function setBoundary_z!(semi, boundary::PeriodicBC)
         set_periodic_value_edge_z!(w, k, nz)
     end
 
-    set_periodic_value_edge_z!(exner, 0, nz)
+    set_periodic_value_cell_z!(exner, 1, nz)
 
 end
 
@@ -129,7 +130,6 @@ function setBoundary_z!(semi, boundary::SolidWallBC)
 
     (; cache, grid) = semi
     (; rho, rhop, u, v, w, exner) = cache.var
-    flux = cache.flux
     (; nz, nbz) = grid
 
     ## This should be removed!!

@@ -81,6 +81,3 @@ function calculate_timestep_cfl!(semi)
     dt = min(dtVisc, dtConv, dtMax)
 
 end
-
-
-

@@ -5,6 +5,7 @@ version = "0.1.0"
 
 [deps]
 ConjugateGradientsGPU = "0cf172c8-095c-46f4-9dd2-d60831738d9b"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 OffsetArrays = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 SimpleUnPack = "ce78b400-467f-4804-87d8-8f486da07d0a"
