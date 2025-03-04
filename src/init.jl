@@ -29,7 +29,9 @@ function initialize!(semi)
     initialize_variables!(semi)
 end
 
-function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zmax; model = "pseudo_incompressible", maxIter = 5000, tolcrit = "abs", tolPoisson = 1e-8, tolref = 1.0,)
+function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zmax;
+                           model = "pseudo_incompressible", maxIter = 5000, tolcrit = "abs",
+                           tolPoisson = 1e-8, tolref = 1.0,)
     maxIter = 5000
     maxTime = 3.6e3
     tStepChoice = "cfl"
