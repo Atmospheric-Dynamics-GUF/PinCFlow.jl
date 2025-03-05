@@ -1,6 +1,6 @@
 using ConjugateGradientsGPU
 
-struct CGSolver{RealT<:Real} <: AbstractMatrixSolver
+struct CGSolver{RealT <: Real} <: AbstractMatrixSolver
     maxiter::Int
     tol::RealT
 end

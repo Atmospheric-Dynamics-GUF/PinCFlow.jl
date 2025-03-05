@@ -1,15 +1,14 @@
 using GLMakie
 
 function plot_var(semi)
-
     (; grid, cache) = semi
     (; var) = cache
     (; dx, dz, nx, nz, ny, zTFC) = grid
 
     wTFC = copy(var.w)
-    for i = 1:nx
-        for j = 1:ny
-            for k = 0:nz
+    for i in 1:nx
+        for j in 1:ny
+            for k in 0:nz
                 wTFC[i, j, k] = PinCFlow_dev.vertWind(i, j, k, semi)
             end
         end
@@ -36,5 +35,4 @@ function plot_var(semi)
     ax = Axis(fig1[1, 1], title = "")
     hm = contourf!(ax, xTFC, zTFC[:, 1, :], semi.cache.var.w[:, 1, :])
     display(fig1)
-
 end
