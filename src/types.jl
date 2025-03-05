@@ -9,7 +9,7 @@ struct FiniteVolumeSolver <: AbstractSpatialSolver end
 struct PeriodicBC <: AbstractBoundaryCondition end
 struct SolidWallBC <: AbstractBoundaryCondition end
 
-struct BoundaryConditions{LeftBC,RightBC,BottomBC,TopBC}
+struct BoundaryConditions{LeftBC, RightBC, BottomBC, TopBC}
     left::LeftBC
     right::RightBC
     bottom::BottomBC
@@ -24,6 +24,7 @@ struct BoundaryConditions{LeftBC,RightBC,BottomBC,TopBC}
                     bottom isa PeriodicBC &&
                     top isa PeriodicBC
         end
-        new{typeof(left),typeof(right),typeof(bottom),typeof(top)}(left, right, bottom, top)
+        new{typeof(left), typeof(right), typeof(bottom), typeof(top)}(left, right, bottom,
+                                                                      top)
     end
 end
