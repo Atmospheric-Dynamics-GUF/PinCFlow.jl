@@ -60,6 +60,7 @@ function applyUnifiedSponge_u!(semi, dt)
     (; uRef) = equations
 
     u = var.u
+    # TODO: 
     backgroundFlow_dim = 10
     for kz in 1:nz
         uBG = relax_to_mean * sum(u[1:nx, 1:ny, kz]) / (nx * ny) +
@@ -69,7 +70,7 @@ function applyUnifiedSponge_u!(semi, dt)
             for ix in 1:nx
                 alphaSponge = alphaSponge_x(ix, jy, kz, alpha)
                 beta = betaSponge(alphaSponge, dt)
-                unifiedSponge_new!(beta, u[ix, jy, kz], uBG)
+                unifiedSponge_new!(beta, u, uBG, ix, jy, kz)
             end
         end
     end
@@ -83,6 +84,7 @@ function applyUnifiedSponge_v!(semi, dt)
     (; uRef) = equations
 
     v = var.v
+    # TODO: 
     backgroundFlow_dim = 0.0
     for kz in 1:nz
         vBG = relax_to_mean * sum(v[1:nx, 1:ny, kz]) / (nx * ny) +
@@ -92,7 +94,7 @@ function applyUnifiedSponge_v!(semi, dt)
             for ix in 1:nx
                 alphaSponge = alphaSponge_y(ix, jy, kz, alpha)
                 beta = betaSponge(alphaSponge, dt)
-                unifiedSponge_new!(beta, v[ix, jy, kz], vBG)
+                unifiedSponge_new!(beta, v, vBG, ix, jy, kz)
             end
         end
     end
@@ -116,7 +118,7 @@ function applyUnifiedSponge_w!(semi, dt)
             for ix in 1:nx
                 alphaSponge = alphaSponge_z(ix, jy, kz, alpha, jac)
                 beta = betaSponge(alphaSponge, dt)
-                unifiedSponge_new!(beta, w[ix, jy, kz], wBG)
+                unifiedSponge_new!(beta, w, wBG, ix, jy, kz)
             end
         end
     end
@@ -146,8 +148,8 @@ function betaSponge(alphaSponge, dt)
     return 1.0 / (1.0 + alphaSponge * dt)
 end
 
-function unifiedSponge_new!(beta, uvw, uvwBG)
-    uvw = (1.0 - beta) * uvwBG + beta * uvw
+function unifiedSponge_new!(beta, uvw, uvwBG, indices...)
+    uvw[indices...] = (1.0 - beta) * uvwBG + beta * uvw[indices...]
 end
 
 function relaxationSponge(semi)
