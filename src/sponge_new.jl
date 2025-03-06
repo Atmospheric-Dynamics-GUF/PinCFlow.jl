@@ -6,6 +6,8 @@ function applyUnifiedSponge!(semi, dt)
 end
 
 function applyUnifiedSponge_rho!(semi, dt)
+    @trixi_timeit timer() "Sponge layer rho" begin
+    #! format: noindent
     (; cache, grid, sponge) = semi
     (; var) = cache
     (; alpha) = sponge
@@ -22,9 +24,12 @@ function applyUnifiedSponge_rho!(semi, dt)
             end
         end
     end
+    end # timer
 end
 
 function applyUnifiedSponge_rhop!(semi, dt)
+    @trixi_timeit timer() "Sponge layer rhop" begin
+    #! format: noindent
     # TODO this is exactly the same as for rho, just with rhop
     (; cache, grid, sponge) = semi
     (; var) = cache
@@ -42,14 +47,18 @@ function applyUnifiedSponge_rhop!(semi, dt)
             end
         end
     end
+    end # timer
 end
 
 function applyUnifiedSponge_uvw!(semi, dt)
-    # TODO: these are all very similar, only difference 
+    @trixi_timeit timer() "sponge_uvw" begin
+    #! format: noindent
+    # TODO: these are all very similar, only difference
     # is in alpha!
     applyUnifiedSponge_u!(semi, dt)
     applyUnifiedSponge_v!(semi, dt)
     applyUnifiedSponge_w!(semi, dt)
+    end # timer
 end
 
 function applyUnifiedSponge_u!(semi, dt)
@@ -60,7 +69,7 @@ function applyUnifiedSponge_u!(semi, dt)
     (; uRef) = equations
 
     u = var.u
-    # TODO: 
+    # TODO:
     backgroundFlow_dim = 10
     for kz in 1:nz
         uBG = relax_to_mean * sum(u[1:nx, 1:ny, kz]) / (nx * ny) +
@@ -84,7 +93,7 @@ function applyUnifiedSponge_v!(semi, dt)
     (; uRef) = equations
 
     v = var.v
-    # TODO: 
+    # TODO:
     backgroundFlow_dim = 0.0
     for kz in 1:nz
         vBG = relax_to_mean * sum(v[1:nx, 1:ny, kz]) / (nx * ny) +

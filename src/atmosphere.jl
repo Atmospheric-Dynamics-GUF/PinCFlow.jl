@@ -108,6 +108,8 @@ function Base.getindex(met::MetricTensor, i, j, k, u, v)
     return met(i, j, k, u, v)
 end
 function initialize_atmosphere!(semi)
+    @trixi_timeit timer() "Initialize atmosphere" begin
+    #! format: noindent
     (; grid, equations, cache) = semi
     (;
     nx,
@@ -136,7 +138,8 @@ function initialize_atmosphere!(semi)
         for kz in 1:nz
             bvsStrat[ix, jy, kz] = g_ndim / thetaStrat[ix, jy, kz] / jac(ix, jy, kz) *
                                    0.5 *
-                                   (thetaStrat[ix, jy, kz + 1] - thetaStrat[ix, jy, kz - 1]) /
+                                   (thetaStrat[ix, jy, kz + 1] -
+                                    thetaStrat[ix, jy, kz - 1]) /
                                    dz
         end
         bvsStrat[ix, jy, nz + 1] = g_ndim / thetaStrat[ix, jy, nz + 1] /
@@ -145,9 +148,12 @@ function initialize_atmosphere!(semi)
                                    dz
         bvsStrat[ix, jy, nz + 2] = bvsStrat[ix, jy, nz + 1]
     end
+    end # timer
 end
 
 function setup_topography!(semi)
+    @trixi_timeit timer() "Setup topography" begin
+    #! format: noindent
 
     # (; xc, zc, xf, zf, nx, nz) = grid
 
@@ -175,7 +181,8 @@ function setup_topography!(semi)
         for jy in 1:ny
             for ix in 1:nx
                 topography_surface[ix, jy] = mountainHeight / (1.0 +
-                                              (x[ix] - x_center)^2.0 / mountainWidth^2.0)
+                                              (x[ix] - x_center)^2.0 /
+                                              mountainWidth^2.0)
             end
         end
     else
@@ -199,6 +206,7 @@ function setup_topography!(semi)
         zTFC[:, :, kz] .= (lz[1] .- topography_surface) / lz[1] * zS[kz] .+
                           topography_surface
     end
+    end # timer
 end
 
 function map(level, lz)
