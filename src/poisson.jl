@@ -662,7 +662,6 @@ function calc_RHS(b, semi, dt)
     divL2_norm = 0.0
     divL2_norm_local = 0.0
 
-    @show model, "pseudo_incompressible"
     if model == "pseudo_incompressible"
 
         # Calculate RHS for TFC.

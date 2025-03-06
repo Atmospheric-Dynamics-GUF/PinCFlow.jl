@@ -1,20 +1,4 @@
 using PinCFlow_dev
-using GZip
-
-function set_lin_array!(arr::AbstractArray; normalizer::Real = 1.0)
-    for I in CartesianIndices(arr)
-        I_tuple = get_ijk(I) # I_tuple = (i, j, k)
-        arr[I_tuple...] = (sum(I_tuple) + 10) * normalizer # arr[i, j, k] = (i + j + k)^2 + 10
-    end
-end
-
-get_ijk(I::CartesianIndex{3}) = I[1], I[2], I[3]
-get_ijk(I::CartesianIndex{2}) = I[1], I[2]
-get_ijk(I::CartesianIndex{1}) = I[1]
-
-macro get_var_name(var)
-    return QuoteNode(var)  # Returns the variable name as a Symbol
-end
 
 function test_file(file, data; tol_l1 = 1e-12, tol_linf = 1e-10)
     error_l1 = 0.0
@@ -163,8 +147,6 @@ end
     PinCFlow_dev.correctorStep(semi, dt, "impl", facray, facprs)
 
     set_lin_array_normalizer!.((kr_sp_tfc, kr_sp_w_tfc))
-    @show get_norms(kr_sp_tfc)
-    @show get_norms(kr_sp_w_tfc)
     test_arr(var.exner, 53588.734655217166, 1599.148067686045, 64.2429658417442, tol = 1e-9)
     test_arr(kr_sp_tfc, 368.64, 11.368166079012056, 0.54, tol = 1e-9)
     test_arr(kr_sp_w_tfc, 368.64, 11.368166079012056, 0.54, tol = 1e-9)
@@ -177,8 +159,6 @@ end
 
     PinCFlow_dev.bicgstab(rhs, dt, semi, cache.sol_bicg, nIter, errFlagBicg, "expl")
 
-    @show get_norms(cache.sol_bicg)
-    @show get_norms(cache.p_bicg)
     test_arr(cache.sol_bicg, 1142.0651583477945, 66.0122418332421, 4.178712816389702,
              tol = 1e-9)
     test_arr(cache.p_bicg, 5.676571678854043e-6, 3.743420434190437e-7,
