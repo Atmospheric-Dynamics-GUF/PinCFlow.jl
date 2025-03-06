@@ -2,11 +2,14 @@
 
 # TODO: check start and end of loops
 function reconstruction!(semi)
+    @trixi_timeit timer() "Reconstruction" begin
+    #! format: noindent
     reconstruct_rho!(semi)
     reconstruct_rhop!(semi)
     reconstruct_u!(semi)
     reconstruct_v!(semi)
     reconstruct_w!(semi)
+    end # timer
 end
 
 function reconstruct_rho!(semi)
@@ -225,10 +228,13 @@ end
 
 # ------------------------ FLUX CALCULATION ------------------------
 function compute_fluxes!(semi)
+    @trixi_timeit timer() "Compute fluxes" begin
+    #! format: noindent
     reconstruction!(semi)
     rhoFlux!(semi)
     rhopFlux!(semi)
     momemtumFlux!(semi)
+    end # timer
 end
 
 # TODO: reconstruct_rho! could probably be called in rhoFlux!

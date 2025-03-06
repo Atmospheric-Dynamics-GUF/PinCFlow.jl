@@ -25,6 +25,8 @@ struct NonUnifiedSponge <: AbstractSpongeLayer end
 initialize_sponge!(semi) = initialize_sponge_ini!(semi, semi.sponge)
 
 function initialize_sponge_ini!(semi, sponge::SinusodialSpongeSetup)
+    @trixi_timeit timer() "Initialize sponge" begin
+    #! format: noindent
     (; grid, equations, sponge, cache) = semi
     (; nx, ny, nz, x, y, zTFC, lx, ly, lz) = grid
     (; tRef) = equations
@@ -87,14 +89,18 @@ function initialize_sponge_ini!(semi, sponge::SinusodialSpongeSetup)
                 end
                 if ny > 1
                     if y[j] <= y0
-                        sponge.alpha[i, j, k] += alphaY * sin(0.5 * pi * (y0 - y[j]) / dy)^2
+                        sponge.alpha[i, j, k] += alphaY *
+                                                 sin(0.5 * pi * (y0 - y[j]) / dy)^2
                     elseif y[i] >= y1
-                        sponge.alpha[i, j, k] += alphaY * sin(0.5 * pi * (y[j] - y1) / dy)^2
+                        sponge.alpha[i, j, k] += alphaY *
+                                                 sin(0.5 * pi * (y[j] - y1) / dy)^2
                     end
                 end
             end
         end
+        # TODO - Use broadcasting and @views
         sponge.alpha[:, :, 0] = sponge.alpha[:, :, 1]
         sponge.alpha[:, :, nz + 1] = sponge.alpha[:, :, nz]
     end
+    end # timer
 end

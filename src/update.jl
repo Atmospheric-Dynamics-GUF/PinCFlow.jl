@@ -1,4 +1,6 @@
 function massUpdate!(semi, ode, dt, upd_var, upd_mod, int_mod, m, facray)
+    @trixi_timeit timer() "Mass update" begin
+    #! format: noindent
     (; grid, cache, equations, met, spongeLayer) = semi
     (; var, flux, rhoStrat, pStrat, bvsStrat, jac, kr_sp_tfc, kr_sp_w_tfc) = cache
     (; nx, ny, nz, dx, dy, dz) = grid
@@ -171,7 +173,8 @@ function massUpdate!(semi, ode, dt, upd_var, upd_mod, int_mod, m, facray)
                             jac[i, j, k] *
                             facw *
                             0.5 *
-                            (met[i, j, k, 1, 3] * (var.u[i, j, k] + var.u[i - 1, j, k]) +
+                            (met[i, j, k, 1, 3] *
+                             (var.u[i, j, k] + var.u[i - 1, j, k]) +
                              met[i, j, k, 2, 3] * (var.v[i, j, k] + var.v[i, j - 1, k])))
 
                     var.rhop[i, j, k] = -buoy * rho / g_ndim
@@ -196,9 +199,12 @@ function massUpdate!(semi, ode, dt, upd_var, upd_mod, int_mod, m, facray)
     else
         error("upd_var unknown")
     end
+    end # Timer
 end
 
 function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
+    @trixi_timeit timer() "Momentum predictor" begin
+    #! format: noindent
     (; grid, cache, met, equations, spongeLayer) = semi
     (;
     var,
@@ -294,7 +300,8 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
 
                         # Compute rhou
                         rhou = 0.5 * (var.rho[i, j, k] + var.rho[i + 1, j, k])
-                        rhoStratEdgeR = 0.5 * (rhoStrat[i, j, k] + rhoStrat[i + 1, j, k])
+                        rhoStratEdgeR = 0.5 *
+                                        (rhoStrat[i, j, k] + rhoStrat[i + 1, j, k])
                         rhou += rhoStratEdgeR
 
                         # Compute pi values
@@ -310,9 +317,12 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
                             piUUEdgeR = 0.5 * (var.exner[i, j, k + 2] +
                                          var.exner[i + 1, j, k + 2])
                             piUEdgeR = 0.5 *
-                                       (var.exner[i, j, k + 1] + var.exner[i + 1, j, k + 1])
-                            piEdgeR = 0.5 * (var.exner[i, j, k] + var.exner[i + 1, j, k])
-                            piGrad = kappaInv * MaInv2 * pEdgeR / rhou * ((piR - piL) / dx +
+                                       (var.exner[i, j, k + 1] +
+                                        var.exner[i + 1, j, k + 1])
+                            piEdgeR = 0.5 *
+                                      (var.exner[i, j, k] + var.exner[i + 1, j, k])
+                            piGrad = kappaInv * MaInv2 * pEdgeR / rhou *
+                                     ((piR - piL) / dx +
                                       met13EdgeR *
                                       (-piUUEdgeR + 4.0 * piUEdgeR - 3.0 * piEdgeR) *
                                       0.5 / dz)
@@ -321,19 +331,25 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
                             piDDEdgeR = 0.5 * (var.exner[i, j, k - 2] +
                                          var.exner[i + 1, j, k - 2])
                             piDEdgeR = 0.5 *
-                                       (var.exner[i, j, k - 1] + var.exner[i + 1, j, k - 1])
-                            piEdgeR = 0.5 * (var.exner[i, j, k] + var.exner[i + 1, j, k])
-                            piGrad = kappaInv * MaInv2 * pEdgeR / rhou * ((piR - piL) / dx +
+                                       (var.exner[i, j, k - 1] +
+                                        var.exner[i + 1, j, k - 1])
+                            piEdgeR = 0.5 *
+                                      (var.exner[i, j, k] + var.exner[i + 1, j, k])
+                            piGrad = kappaInv * MaInv2 * pEdgeR / rhou *
+                                     ((piR - piL) / dx +
                                       met13EdgeR *
                                       (piDDEdgeR - 4.0 * piDEdgeR + 3.0 * piEdgeR) *
                                       0.5 / dz)
 
                         else
                             piUEdgeR = 0.5 *
-                                       (var.exner[i, j, k + 1] + var.exner[i + 1, j, k + 1])
+                                       (var.exner[i, j, k + 1] +
+                                        var.exner[i + 1, j, k + 1])
                             piDEdgeR = 0.5 *
-                                       (var.exner[i, j, k - 1] + var.exner[i + 1, j, k - 1])
-                            piGrad = kappaInv * MaInv2 * pEdgeR / rhou * ((piR - piL) / dx +
+                                       (var.exner[i, j, k - 1] +
+                                        var.exner[i + 1, j, k - 1])
+                            piGrad = kappaInv * MaInv2 * pEdgeR / rhou *
+                                     ((piR - piL) / dx +
                                       met13EdgeR * (piUEdgeR - piDEdgeR) * 0.5 / dz)
                         end
 
@@ -366,7 +382,8 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
                         rhov1m = 0.5 * (var.rho[i + 1, j, k] + var.rho[i + 1, j - 1, k])
                         rhov10 = 0.5 * (var.rho[i + 1, j + 1, k] + var.rho[i + 1, j, k])
 
-                        rhoStratEdgeR = 0.5 * (rhoStrat[i, j, k] + rhoStrat[i + 1, j, k])
+                        rhoStratEdgeR = 0.5 *
+                                        (rhoStrat[i, j, k] + rhoStrat[i + 1, j, k])
                         rhou += rhoStratEdgeR
 
                         piR = var.exner[i + 1, j, k]
@@ -379,8 +396,10 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
                             piUUEdgeR = 0.5 * (var.exner[i, j, k + 2] +
                                          var.exner[i + 1, j, k + 2])
                             piUEdgeR = 0.5 *
-                                       (var.exner[i, j, k + 1] + var.exner[i + 1, j, k + 1])
-                            piEdgeR = 0.5 * (var.exner[i, j, k] + var.exner[i + 1, j, k])
+                                       (var.exner[i, j, k + 1] +
+                                        var.exner[i + 1, j, k + 1])
+                            piEdgeR = 0.5 *
+                                      (var.exner[i, j, k] + var.exner[i + 1, j, k])
                             piGradX = kappaInv * MaInv2 * pEdgeR / rhou *
                                       ((piR - piL) / dx +
                                        met13EdgeR *
@@ -390,8 +409,10 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
                             piDDEdgeR = 0.5 * (var.exner[i, j, k - 2] +
                                          var.exner[i + 1, j, k - 2])
                             piDEdgeR = 0.5 *
-                                       (var.exner[i, j, k - 1] + var.exner[i + 1, j, k - 1])
-                            piEdgeR = 0.5 * (var.exner[i, j, k] + var.exner[i + 1, j, k])
+                                       (var.exner[i, j, k - 1] +
+                                        var.exner[i + 1, j, k - 1])
+                            piEdgeR = 0.5 *
+                                      (var.exner[i, j, k] + var.exner[i + 1, j, k])
                             piGradX = kappaInv * MaInv2 * pEdgeR / rhou *
                                       ((piR - piL) / dx +
                                        met13EdgeR *
@@ -399,9 +420,11 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
                                        0.5 / dz)
                         else
                             piUEdgeR = 0.5 *
-                                       (var.exner[i, j, k + 1] + var.exner[i + 1, j, k + 1])
+                                       (var.exner[i, j, k + 1] +
+                                        var.exner[i + 1, j, k + 1])
                             piDEdgeR = 0.5 *
-                                       (var.exner[i, j, k - 1] + var.exner[i + 1, j, k - 1])
+                                       (var.exner[i, j, k - 1] +
+                                        var.exner[i + 1, j, k - 1])
                             piGradX = kappaInv * MaInv2 * pEdgeR / rhou *
                                       ((piR - piL) / dx +
                                        met13EdgeR * (piUEdgeR - piDEdgeR) * 0.5 / dz)
@@ -499,24 +522,30 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
                 met23EdgeF = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
 
                 if k == 1 && zBoundary == "solid_wall"
-                    piUUEdgeF = 0.5 * (var.exner[i, j, k + 2] + var.exner[i, j + 1, k + 2])
-                    piUEdgeF = 0.5 * (var.exner[i, j, k + 1] + var.exner[i, j + 1, k + 1])
+                    piUUEdgeF = 0.5 *
+                                (var.exner[i, j, k + 2] + var.exner[i, j + 1, k + 2])
+                    piUEdgeF = 0.5 *
+                               (var.exner[i, j, k + 1] + var.exner[i, j + 1, k + 1])
                     piEdgeF = 0.5 * (var.exner[i, j, k] + var.exner[i, j + 1, k])
                     piGrad = kappaInv * MaInv2 * pEdgeF / rhov * ((piF - piB) / dy +
                               met23EdgeF *
                               (-piUUEdgeF + 4.0 * piUEdgeF - 3.0 * piEdgeF) *
                               0.5 / dz)
                 elseif k == nz && zBoundary == "solid_wall"
-                    piDDEdgeF = 0.5 * (var.exner[i, j, k - 2] + var.exner[i, j + 1, k - 2])
-                    piDEdgeF = 0.5 * (var.exner[i, j, k - 1] + var.exner[i, j + 1, k - 1])
+                    piDDEdgeF = 0.5 *
+                                (var.exner[i, j, k - 2] + var.exner[i, j + 1, k - 2])
+                    piDEdgeF = 0.5 *
+                               (var.exner[i, j, k - 1] + var.exner[i, j + 1, k - 1])
                     piEdgeF = 0.5 * (var.exner[i, j, k] + var.exner[i, j + 1, k])
                     piGrad = kappaInv * MaInv2 * pEdgeF / rhov * ((piF - piB) / dy +
                               met23EdgeF *
                               (piDDEdgeF - 4.0 * piDEdgeF + 3.0 * piEdgeF) *
                               0.5 / dz)
                 else
-                    piUEdgeF = 0.5 * (var.exner[i, j, k + 1] + var.exner[i, j + 1, k + 1])
-                    piDEdgeF = 0.5 * (var.exner[i, j, k - 1] + var.exner[i, j + 1, k - 1])
+                    piUEdgeF = 0.5 *
+                               (var.exner[i, j, k + 1] + var.exner[i, j + 1, k + 1])
+                    piDEdgeF = 0.5 *
+                               (var.exner[i, j, k - 1] + var.exner[i, j + 1, k - 1])
                     piGrad = kappaInv * MaInv2 * pEdgeF / rhov *
                              ((piF - piB) / dy +
                               met23EdgeF * (piUEdgeF - piDEdgeF) * 0.5 / dz)
@@ -548,24 +577,30 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
                 met23EdgeF = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
 
                 if k == 1 && zBoundary == "solid_wall"
-                    piUUEdgeF = 0.5 * (var.exner[i, j, k + 2] + var.exner[i, j + 1, k + 2])
-                    piUEdgeF = 0.5 * (var.exner[i, j, k + 1] + var.exner[i, j + 1, k + 1])
+                    piUUEdgeF = 0.5 *
+                                (var.exner[i, j, k + 2] + var.exner[i, j + 1, k + 2])
+                    piUEdgeF = 0.5 *
+                               (var.exner[i, j, k + 1] + var.exner[i, j + 1, k + 1])
                     piEdgeF = 0.5 * (var.exner[i, j, k] + var.exner[i, j + 1, k])
                     piGradY = kappaInv * MaInv2 * pEdgeF / rhov * ((piF - piB) / dy +
                                met23EdgeF *
                                (-piUUEdgeF + 4.0 * piUEdgeF - 3.0 * piEdgeF) *
                                0.5 / dz)
                 elseif k == nz && zBoundary == "solid_wall"
-                    piDDEdgeF = 0.5 * (var.exner[i, j, k - 2] + var.exner[i, j + 1, k - 2])
-                    piDEdgeF = 0.5 * (var.exner[i, j, k - 1] + var.exner[i, j + 1, k - 1])
+                    piDDEdgeF = 0.5 *
+                                (var.exner[i, j, k - 2] + var.exner[i, j + 1, k - 2])
+                    piDEdgeF = 0.5 *
+                               (var.exner[i, j, k - 1] + var.exner[i, j + 1, k - 1])
                     piEdgeF = 0.5 * (var.exner[i, j, k] + var.exner[i, j + 1, k])
                     piGradY = kappaInv * MaInv2 * pEdgeF / rhov * ((piF - piB) / dy +
                                met23EdgeF *
                                (piDDEdgeF - 4.0 * piDEdgeF + 3.0 * piEdgeF) *
                                0.5 / dz)
                 else
-                    piUEdgeF = 0.5 * (var.exner[i, j, k + 1] + var.exner[i, j + 1, k + 1])
-                    piDEdgeF = 0.5 * (var.exner[i, j, k - 1] + var.exner[i, j + 1, k - 1])
+                    piUEdgeF = 0.5 *
+                               (var.exner[i, j, k + 1] + var.exner[i, j + 1, k + 1])
+                    piDEdgeF = 0.5 *
+                               (var.exner[i, j, k - 1] + var.exner[i, j + 1, k - 1])
                     piGradY = kappaInv * MaInv2 * pEdgeF / rhov *
                               ((piF - piB) / dy +
                                met23EdgeF * (piUEdgeF - piDEdgeF) * 0.5 / dz)
@@ -629,7 +664,8 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
                     hU = flux.u[i - ll, j, k + mm, 3]
                     hD = flux.u[i - ll, j, k - 1 + mm, 3]
                     fluxDiffU[ll, mm] = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
-                    jacEdgeR = 0.5 * (jac[i - ll, j, k + mm] + jac[i + 1 - ll, j, k + mm])
+                    jacEdgeR = 0.5 *
+                               (jac[i - ll, j, k + mm] + jac[i + 1 - ll, j, k + mm])
                     fluxDiffU[ll, mm] = fluxDiffU[ll, mm] / jacEdgeR
                 end
             end
@@ -644,7 +680,8 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
                     hU = flux.v[i, j - ll, k + mm, 3]
                     hD = flux.v[i, j - ll, k - 1 + mm, 3]
                     fluxDiffV[ll, mm] = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
-                    jacEdgeF = 0.5 * (jac[i, j - ll, k + mm] + jac[i, j + 1 - ll, k + mm])
+                    jacEdgeF = 0.5 *
+                               (jac[i, j - ll, k + mm] + jac[i, j + 1 - ll, k + mm])
                     fluxDiffV[ll, mm] = fluxDiffV[ll, mm] / jacEdgeF
                 end
             end
@@ -769,7 +806,8 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
                 piGrad = kappaInv * MaInv2 * pEdgeU / rhow *
                          (met13EdgeU * (piREdgeU - piLEdgeU) * 0.5 / dx +
                           met23EdgeU * (piFEdgeU - piBEdgeU) * 0.5 / dy +
-                          met33EdgeU * (var.exner[i, j, k + 1] - var.exner[i, j, k]) / dz)
+                          met33EdgeU * (var.exner[i, j, k + 1] - var.exner[i, j, k]) /
+                          dz)
 
                 volfcz = 0.0
 
@@ -838,7 +876,8 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
                 piGrad = kappaInv * MaInv2 * pEdgeU / rhow *
                          (met13EdgeU * (piREdgeU - piLEdgeU) * 0.5 / dx +
                           met23EdgeU * (piFEdgeU - piBEdgeU) * 0.5 / dy +
-                          met33EdgeU * (var.exner[i, j, k + 1] - var.exner[i, j, k]) / dz)
+                          met33EdgeU * (var.exner[i, j, k + 1] - var.exner[i, j, k]) /
+                          dz)
 
                 volfcz = 0.0
 
@@ -862,7 +901,8 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
                 # Buoyancy is predicted after momentum in implicit steps.
                 buoy = -g_ndim *
                        (jac[i, j, k + 1] * var.rhop[i, j, k] / rho000 / jac[i, j, k] +
-                        jac[i, j, k] * var.rhop[i, j, k + 1] / rho001 / jac[i, j, k + 1]) /
+                        jac[i, j, k] * var.rhop[i, j, k + 1] / rho001 /
+                        jac[i, j, k + 1]) /
                        (jac[i, j, k] + jac[i, j, k + 1])
 
                 uC = 0.5 * (var.u[i, j, k] + var.u[i - 1, j, k])
@@ -896,4 +936,5 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
             kr_sp_w_tfc .= kr_sp_w_tfc ./ facray
         end
     end
+    end # timer
 end #END

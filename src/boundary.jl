@@ -1,7 +1,10 @@
 function setBoundary!(semi)
+    @trixi_timeit timer() "Set boundary" begin
+    #! format: noindent
     setBoundary_x!(semi, semi.boundary_conditions.boundary_x)
     setBoundary_y!(semi, semi.boundary_conditions.boundary_y)
     setBoundary_z!(semi, semi.boundary_conditions.boundary_z)
+    end
 end
 
 function setBoundary_flux!(semi)
