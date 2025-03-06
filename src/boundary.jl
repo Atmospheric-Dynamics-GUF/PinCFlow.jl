@@ -41,6 +41,7 @@ function setBoundary_x!(semi, boundary::PeriodicBC)
         set_periodic_value_cell_x!(w, i, nx)
     end
 
+    # TODO: why are we not looping over x indices as for rho and rhop?
     set_periodic_value_cell_x!(exner, 1, nx)
     ## Missing RhoTilde, but it should be removed according to PincFlow.f90
 end
@@ -91,6 +92,8 @@ function setBoundary_z!(semi, boundary::PeriodicBC)
     (; rho, rhop, u, v, w, exner) = cache.var
     (; nz, nbz) = grid
 
+    # TODO: This should be improved...
+
     for k in 1:nbz
         set_periodic_value_cell_z!(rho, k, nz)
         set_periodic_value_cell_z!(rhop, k, nz)
@@ -114,7 +117,7 @@ end
 
 function set_periodic_value_edge_z!(var, k, nz)
     var[:, :, nz + k] .= var[:, :, k]
-    var[:, -k, :] .= var[:, :, nz - k]
+    var[:, :, -k] .= var[:, :, nz - k]
 end
 
 function setBoundary_z!(semi, boundary::SolidWallBC)
