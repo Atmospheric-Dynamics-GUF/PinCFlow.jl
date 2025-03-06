@@ -3,7 +3,6 @@ using PinCFlow_dev
 using Trixi: CompressibleEulerEquations1D
 using LinearAlgebra
 using GZip
-
 # used to generate the testing data for easy copy paste
 function get_norms(arr)
     l1_norm = norm(arr, 1)
@@ -25,6 +24,7 @@ function set_lin_array!(arr::AbstractArray; normalizer::Real = 1.0)
     end
 end
 
+get_ijk(I::CartesianIndex{4}) = I[1], I[2], I[3], I[4]
 get_ijk(I::CartesianIndex{3}) = I[1], I[2], I[3]
 get_ijk(I::CartesianIndex{2}) = I[1], I[2]
 get_ijk(I::CartesianIndex{1}) = I[1]
@@ -48,3 +48,4 @@ end
 include("test_poisson.jl")
 include("test_elixirs.jl")
 include("test_fluxes.jl")
+include("test_update.jl")
