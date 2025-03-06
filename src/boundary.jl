@@ -32,6 +32,7 @@ function setBoundary_x!(semi, boundary::PeriodicBC)
         set_periodic_value_cell_x!(rhop, i, nx)
     end
 
+    # TODO - Replace with @views to remove allocations
     u[0, :, :] .= u[nx, :, :]
 
     for i in 1:nbx

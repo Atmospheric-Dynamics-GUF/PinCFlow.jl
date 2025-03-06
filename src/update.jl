@@ -1,5 +1,5 @@
 function massUpdate!(semi, ode, dt, upd_var, upd_mod, int_mod, m, facray)
-    (; grid, cache, equations, met) = semi
+    (; grid, cache, equations, met, spongeLayer) = semi
     (; var, flux, rhoStrat, pStrat, bvsStrat, jac, kr_sp_tfc, kr_sp_w_tfc) = cache
     (; nx, ny, nz, dx, dy, dz) = grid
     (; alphaRK, betaRK, dRho, dRhop, wOld) = ode
@@ -199,7 +199,7 @@ function massUpdate!(semi, ode, dt, upd_var, upd_mod, int_mod, m, facray)
 end
 
 function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
-    (; grid, cache, met, equations) = semi
+    (; grid, cache, met, equations, spongeLayer) = semi
     (;
     var,
     flux,
@@ -433,7 +433,7 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
         end
     end
 
-    ##### 
+    #####
     # V correction
     j0 = 0
     j1 = ny
@@ -523,7 +523,7 @@ function momentumPredictor!(semi, ode, dt, mmp_mod, int_mod, m, facray)
                 end
 
                 vAst = var.v[i, j, k] + dt * (-piGrad)
-                ## TODO: 
+                ## TODO:
                 #  if spongeLayer && sponge_uv
                 #     vAst -= dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j + 1, k]) * var.v[i, j, k]
                 # end

@@ -119,3 +119,22 @@ end
     ref_filename = "$(pincflow_test_dir())/poisson_fortran_data/calc_RHS/rhs.txt.gz"
     test_file(ref_filename, rhs, tol_l1 = 2e-13, tol_linf = 2e-13)
 end
+
+@testset "Poisson solver" begin
+    semi = initialize_values(300, 1, 100, 3, 3, 3, 0, 60000, 0, 40000, 0, 20000)
+
+    (; equations, cache, grid, met) = semi
+    (; nx, ny, nz, dx, dy, dz) = grid
+    (; pStrat, rhoStrat, jac, var, kr_sp_tfc, kr_sp_w_tfc, bvsStrat) = cache
+
+    # Set "random values"
+
+    normalizer = 0.01 # To get smaller values where arithmetic is more accurate
+
+    set_lin_array_normalizer!(arr) = set_lin_array!(arr, normalizer = normalizer)
+
+    set_lin_array_normalizer!.((pStrat, rhoStrat, kr_sp_tfc, kr_sp_w_tfc, bvsStrat,
+                                cache.var.rho))
+
+    set_lin_array_normalizer!.((grid.topography_surface, grid.zTildeS, grid.zS))
+end

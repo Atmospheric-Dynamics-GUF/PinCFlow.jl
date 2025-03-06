@@ -15,3 +15,4 @@ using Trixi: CompressibleEulerEquations1D
 end
 
 include("test_poisson.jl")
+include("test_elixirs.jl")

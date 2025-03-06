@@ -1,6 +1,6 @@
 using GLMakie
 
-function plot_var(semi)
+function plot_var(semi; filename = "solution.png")
     (; grid, cache) = semi
     (; var) = cache
     (; dx, dz, nx, nz, ny) = grid
@@ -23,5 +23,8 @@ function plot_var(semi)
     Colorbar(fig1[1, 2], hm)
     display(fig1)
 
+    save(filename, fig1)
+
     @show maximum(abs.(wTFC .* semi.equations.uRef))
 end
+plot_var(semi, filename = "solution_new.png")

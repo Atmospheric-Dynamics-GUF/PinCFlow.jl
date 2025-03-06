@@ -1,6 +1,6 @@
 function initialize_variables!(semi)
     (; equations, cache) = semi
-    (; uRef) = equations
+    (; uRef, backgroundFlow_dim) = equations
     (; var, rhoStrat, pStrat, thetaStrat, bvsStrat) = cache
 
     u = var.u
@@ -10,9 +10,11 @@ function initialize_variables!(semi)
     exner = var.exner
     rhop = var.rhop
 
-    u0 = 10.0 # this should be a namelist parameter
-    v0 = 0.0
-    w0 = 0.0
+    # u0 = 10.0 # this should be a namelist parameter
+    # v0 = 0.0
+    # w0 = 0.0
+
+    u0, v0, w0 = backgroundFlow_dim # TODO - @Irmgard/Felix/Jonas: Is this correct?
 
     u .= u0 / uRef
     v .= v0 / uRef
@@ -30,14 +32,18 @@ function initialize!(semi)
 end
 
 function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zmax;
-                           model = "pseudo_incompressible", maxIter = 5000, tolcrit = "abs",
-                           tolPoisson = 1e-8, tolref = 1.0,)
-    maxIter = 5000
-    maxTime = 3.6e3
-    tStepChoice = "cfl"
-    dtMax_dim = 1.0
-    cfl = 0.5e-1
-
+                           model = "pseudo_incompressible", maxIterPoisson = 5000,
+                           tolcrit = "abs",
+                           tolPoisson = 1e-8, tolref = 1.0, maxTime = 3.6e3,
+                           tStepChoice = "cfl",
+                           dtMax_dim = 1.0, cfl = 0.5e-1, Temp0_dim = 300.0,
+                           specifyReynolds = false, mu_viscous_dim = 0.0,
+                           background = "isothermal",
+                           press0_dim = 1.0e5, backgroundFlow_dim = (10.0, 0.0, 0.0),
+                           f_Coriolis_dim = 0.0, corset = "constant", ReInv = 0.0,
+                           stretch_exponent = 1.0, spongeLayer = true, sponge_uv = false,
+                           preconditioner = "yes")
+    maxIter = maxIterPoisson # TODO - Rename this to maxIterPoisson
     # Constants
     gamma = 1.4
     gamma_1 = gamma - 1.0
@@ -63,23 +69,16 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
 
     FRef = rhoRef * uRef^2 / lRef
 
-    press0_dim = 1.0e5
-
     dt = dtMax_dim / tRef
 
     # isothermal atmosphere
 
-    Temp0_dim = 300.0
     T0 = Temp0_dim / thetaRef
     N2 = Ma^2 / Fr^4 * kappa / T0
     NN = sqrt(N2)
 
-    mu_viscous_dim = 0.0
-    ReInv = mu_viscous_dim / (uRef * lRef)
-
     # Reynolds number
-    ReInv = 0.0
-    if false # TODO - Figure it out!
+    if specifyReynolds
         ReInv = mu_viscous_dim / (uRef * lRef)
     end
 
@@ -89,11 +88,7 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
         1.0 / ReInv
     end
 
-    stretch_exponent = 1
-
     g_ndim = g / (uRef^2 / lRef)
-
-    f_Coriolis_dim = 0.0
 
     grid = make_grid(nx = nx,
                      ny = ny,
@@ -101,17 +96,15 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
                      nbx = nbx,
                      nby = nby,
                      nbz = nbz,
-                     xmin = xmin,
-                     xmax = xmax,
-                     ymin = ymin,
-                     ymax = ymax,
-                     zmin = zmin,
-                     zmax = zmax,
+                     lx_dim = [xmin, xmax],
+                     ly_dim = [ymin, ymax],
+                     lz_dim = [zmin, zmax],
                      lRef = lRef,
                      stretch_exponent = stretch_exponent)
 
     jac = Jacobian(grid)
 
+    # TODO - Break this into small substructs
     equations = (;
                  gamma,
                  gamma_1,
@@ -146,7 +139,11 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
                  dtMax_dim,
                  cfl,
                  dt,
-                 model,)
+                 model,
+                 backgroundFlow_dim,
+                 f_Coriolis_dim,
+                 corset,
+                 background)
 
     # TODO: why not make Strat variables same size as var variables ??
     pStrat = OffsetArray(zeros(Float64, nx + 2nbx + 1, ny + 2nby + 1, nz + 4),
@@ -363,21 +360,15 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
              v_pc_bicg,
              corX,
              corY,)
-    #  f_cor_nd =  OffsetArray(zeros(Float64, 1:ny), -1:ny-1)
-    f_cor_nd = 0.0
     boundary_x = boundary_y = PeriodicBC()
     boundary_z = SolidWallBC()
     boundary_conditions = (; boundary_x, boundary_y, boundary_z)
 
-    parameters = (; maxIter, tolcrit, tolPoisson, tolref)
+    parameters = (; maxIter, tolcrit, tolPoisson, tolref, preconditioner)
 
     met = MetricTensor(cache, grid, equations)
 
     sponge = SinusodialSponge(grid)
-
-    sponge_layer = true
-
-    sponge_uv = false
 
     return (;
             grid,
@@ -387,7 +378,7 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
             parameters,
             met,
             sponge,
-            sponge_layer,
+            spongeLayer,
             sponge_uv,)
 end
 
