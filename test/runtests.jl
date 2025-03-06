@@ -3,6 +3,7 @@ using PinCFlow_dev
 using Trixi: CompressibleEulerEquations1D
 using LinearAlgebra
 using GZip
+
 # used to generate the testing data for easy copy paste
 function get_norms(arr)
     l1_norm = norm(arr, 1)
@@ -50,3 +51,4 @@ include("test_elixirs.jl")
 include("test_fluxes.jl")
 include("test_update.jl")
 include("test_atmosphere.jl")
+include("test_sponge.jl")
