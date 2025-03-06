@@ -8,6 +8,7 @@ function pincflow(semi, dt)
 
     setBoundary!(semi)
 
+    # TODO - These should be in parameters?
     errFlagBicg = false
     nIter = 0
     facprs = 1
