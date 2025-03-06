@@ -1,4 +1,5 @@
 module PinCFlow_dev
+using TrixiBase # get the `timer` object
 
 include("types.jl")
 include("matrix_solvers.jl")

@@ -1,4 +1,6 @@
 function initialize_variables!(semi)
+    @trixi_timeit timer() "Initialize variables" begin
+    #! format: noindent
     (; equations, cache) = semi
     (; uRef, backgroundFlow_dim) = equations
     (; var, rhoStrat, pStrat, thetaStrat, bvsStrat) = cache
@@ -23,6 +25,7 @@ function initialize_variables!(semi)
     rho .= 0.0
     rhop .= 0.0
     exner .= 0.0
+    end # timer
 end
 
 function initialize!(semi)
@@ -383,6 +386,8 @@ function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zm
 end
 
 function time_discretization(semi, dt)
+    @trixi_timeit timer() "Setup ODE" begin
+    #! format: noindent
     (; cache) = semi
     (; var, flux) = cache
 
@@ -406,6 +411,7 @@ function time_discretization(semi, dt)
     flux0 = deepcopy(flux)
     var0 = deepcopy(var)
     var1 = deepcopy(var)
+    end # timer
     return (;
             alphaRK,
             betaRK,

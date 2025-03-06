@@ -1,4 +1,10 @@
+using TrixiBase # get the `timer` object
+using TimerOutputs
+
 function pincflow(semi, dt)
+    reset_timer!(timer())
+    @trixi_timeit timer() "Pincflow" begin
+    #! format: noindent
     initialize_atmosphere!(semi)
 
     dt = dt / semi.equations.tRef
@@ -21,8 +27,9 @@ function pincflow(semi, dt)
     for it in 1:100
         setBoundary!(semi)
 
-        semi.cache.var.rhop .= semi.cache.var.rho
-        copytuple_to_tuple!(semi.cache.var0, semi.cache.var)
+        @trixi_timeit timer() "Misc" semi.cache.var.rhop.=semi.cache.var.rho
+        @trixi_timeit timer() "Misc" copytuple_to_tuple!(semi.cache.var0,
+                                                         semi.cache.var)
 
         for RKStage in 1:3
             setBoundary!(semi)
@@ -31,14 +38,13 @@ function pincflow(semi, dt)
             compute_fluxes!(semi)
             setBoundary_flux!(semi)
 
-            if RKStage == 1
+            @trixi_timeit timer() "Misc" if RKStage == 1
                 copytuple_to_tuple_flux!(ode.flux0, semi.cache.flux)
             end
 
-            ode.rhoOld .= semi.cache.var.rho
+            @trixi_timeit timer() "Misc" ode.rhoOld.=semi.cache.var.rho
 
             massUpdate!(semi, ode, 0.5 * ode.dt, "rho", "tot", "expl", RKStage, 1)
-
             applyUnifiedSponge_rho!(semi, 0.5 * ode.stepFrac[RKStage] * dt)
             massUpdate!(semi, ode, 0.5 * ode.dt, "rhop", "lhs", "expl", RKStage, 1)
             applyUnifiedSponge_rhop!(semi, 0.5 * ode.stepFrac[RKStage] * dt)
@@ -46,13 +52,15 @@ function pincflow(semi, dt)
             setBoundary!(semi)
 
             momentumPredictor!(semi, ode, 0.5 * dt, "lhs", "expl", RKStage, 1)
+
             applyUnifiedSponge_uvw!(semi, 0.5 * ode.stepFrac[RKStage] * dt)
         end
         RKStage = 4
         setBoundary!(semi)
-        copytuple_to_tuple_flux!(semi.cache.flux, ode.flux0)
+        @trixi_timeit timer() "Misc" copytuple_to_tuple_flux!(semi.cache.flux,
+                                                              ode.flux0)
 
-        ode.wOld .= semi.cache.var.w
+        @trixi_timeit timer() "Misc" ode.wOld.=semi.cache.var.w
 
         momentumPredictor!(semi, ode, 0.5 * dt, "rhs", "impl", RKStage, 1)
 
@@ -66,12 +74,14 @@ function pincflow(semi, dt)
 
         setBoundary!(semi)
 
-        copytuple_to_tuple!(ode.var1, semi.cache.var)
-        copytuple_to_tuple_flux!(semi.cache.var, semi.cache.var0)
+        @trixi_timeit timer() "Misc" begin
+            copytuple_to_tuple!(ode.var1, semi.cache.var)
+            copytuple_to_tuple_flux!(semi.cache.var, semi.cache.var0)
+        end
 
         setBoundary!(semi)
 
-        ode.rhopOld .= semi.cache.var.rhop
+        @trixi_timeit timer() "Misc" ode.rhopOld.=semi.cache.var.rhop
 
         massUpdate!(semi, ode, 0.5 * ode.dt, "rhop", "rhs", "expl", RKStage, 1)
 
@@ -93,26 +103,30 @@ function pincflow(semi, dt)
 
             compute_fluxes!(semi)
 
-            setBoundary_flux!(semi)
+            @trixi_timeit timer() "Boundary flux" setBoundary_flux!(semi)
 
-            ode.rhoOld .= semi.cache.var.rho
+            @trixi_timeit timer() "Misc" ode.rhoOld.=semi.cache.var.rho
 
             massUpdate!(semi, ode, ode.dt, "rho", "tot", "expl", RKStage, 1)
+
             applyUnifiedSponge_rho!(semi, ode.stepFrac[RKStage] * dt)
 
             massUpdate!(semi, ode, ode.dt, "rhop", "lhs", "expl", RKStage, 1)
+
             applyUnifiedSponge_rhop!(semi, ode.stepFrac[RKStage] * dt)
 
             setBoundary!(semi)
 
             momentumPredictor!(semi, ode, dt, "lhs", "expl", RKStage, 1)
+
             applyUnifiedSponge_uvw!(semi, ode.stepFrac[RKStage] * dt)
         end
         RKStage = 4
         setBoundary!(semi)
-        copytuple_to_tuple_flux!(semi.cache.flux, ode.flux0)
+        @trixi_timeit timer() "Misc" copytuple_to_tuple_flux!(semi.cache.flux,
+                                                              ode.flux0)
 
-        ode.wOld .= semi.cache.var.w
+        @trixi_timeit timer() "Misc" ode.wOld.=semi.cache.var.w
 
         momentumPredictor!(semi, ode, 0.5 * dt, "rhs", "impl", RKStage, 2)
 
@@ -129,6 +143,8 @@ function pincflow(semi, dt)
         time = time + ode.dt
         @show time, it
     end
+    end # Timer
+    display(timer())
 end
 
 function copytuple_to_tuple!(var, var1)

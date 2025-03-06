@@ -7,6 +7,8 @@ using LinearAlgebra
 @inline (arr::OffsetArrays.OffsetArray)(indices...) = arr[indices...]
 
 function Corrector(semi, dt, errFlagBicg, nIter, opt, facray, facprs)
+    @trixi_timeit timer() "Corrector" begin
+    #! format: noindent
     (; cache, grid) = semi
     (; var, flux, jac, rhs_bicg) = cache
     (; nx, ny, nz) = grid
@@ -59,6 +61,7 @@ function Corrector(semi, dt, errFlagBicg, nIter, opt, facray, facprs)
 
     # correct p, rhopStar, and uStar with dp
     correctorStep(semi, dt, opt, facray, facprs)
+    end # timer
 end
 
 function preCond(sIn, sOut, opt, semi)
