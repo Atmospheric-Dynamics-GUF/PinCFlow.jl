@@ -56,7 +56,7 @@
     set_lin_array_normalizer!(w)
     set_lin_array_normalizer!(ode.usave)
     PinCFlow_dev.momentumPredictor!(semi, ode, 0.5 * 1.0, "lhs", "expl", 2, 1)
-    +
+
     test_arr(u, 238.74929329766223, 5.881635566827642, 0.4273353001174364, tol = 1e-14)
     test_arr(v, 323.59998405004694, 8.07055523588239, 0.44816863345076985, tol = 1e-14)
     test_arr(w, 232.5328808987527, 5.824225035198435, 0.451871006844049, tol = 1e-14)
@@ -80,10 +80,7 @@
     set_lin_array_normalizer!(ode.usave)
     set_lin_array_normalizer!(ode.dMom)
     PinCFlow_dev.momentumPredictor!(semi, ode, 0.5 * 1.0, "rhs", "impl", 2, 1)
-    @show get_norms(u)
-    @show get_norms(v)
-    @show get_norms(w)
-    @show get_norms(ode.usave)
+
     test_arr(u, 152.29547184017403, 2.309105007878862, 0.06, tol = 1e-14)
     test_arr(v, 153.36175533913394, 2.3226440800408104, 0.06, tol = 1e-14)
     test_arr(w, 203.72238988780234, 4.232319767715575, 0.2338514844262595, tol = 1e-14)

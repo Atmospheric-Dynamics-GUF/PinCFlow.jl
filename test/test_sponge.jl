@@ -20,7 +20,7 @@
     (; rho, rhop, u, v, w) = cache.var
 
     PinCFlow_dev.initialize_sponge!(semi)
-    @show get_norms(semi.sponge.alpha)
+
     test_arr(semi.sponge.alpha, 100.65646473821992, 4.061806768248702, 0.2929262565775407,
              tol = 1e-14)
 
