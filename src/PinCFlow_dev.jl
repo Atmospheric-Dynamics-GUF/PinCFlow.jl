@@ -15,7 +15,10 @@ include("time_step.jl")
 include("poisson.jl")
 include("update.jl")
 
+include("namelist_interface.jl")
+
 pincflow_test_dir() = joinpath(dirname(pathof(PinCFlow_dev)), "..", "test")
+pincflow_examples_dir() = joinpath(dirname(pathof(PinCFlow_dev)), "..", "examples")
 
 export initialize_values,
        initialize_atmosphere!,
@@ -30,7 +33,11 @@ export time_discretization, massUpdate_rho!, massUpdate_rhop!
 
 export SemiDiscretization, pincflow, Corrector
 
-export pincflow_test_dir
+export setup_semidiscretization, setup_atmosphere_list, setup_grid_list, setup_output_list,
+       setup_debugging_list, setup_test_case_list, setup_model, setup_solver_list,
+       setup_poisson_solver_list, setup_topography_list, setup_boundary_list
+
+export pincflow_test_dir, pincflow_examples_dir
 
 # debugging
 export Corrector

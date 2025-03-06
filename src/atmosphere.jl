@@ -1,8 +1,8 @@
 using SimpleUnPack
 using OffsetArrays
 
-function make_grid(; nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zmax, lRef,
-                   stretch_exponent,)
+function make_grid(; nx, ny, nz, nbx, nby, nbz, lx_dim, ly_dim, lz_dim, lRef,
+                   stretch_exponent = 1.0)
     topography_surface = OffsetArray(zeros(nx + 1 + 2 * nbx, ny + 1 + 2 * nby),
                                      (-nbx):(nx + nbx), (-nby):(ny + nby))
     zTildeTFC = OffsetArray(zeros(nx + 1 + 2 * nbx, ny + 1 + 2 * nby, nz + 1 + 2 * nbz),
@@ -16,11 +16,11 @@ function make_grid(; nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zm
     zTildeS = OffsetArray(zeros(nz + 1 + 2 * nbz), (-nbz):(nz + nbz))
     zS = OffsetArray(zeros(nz + 1 + 2 * nbz), (-nbz):(nz + nbz))
 
-    lx_dim = OffsetArray([xmin, xmax], 0:1)
-    ly_dim = OffsetArray([ymin, ymax], 0:1)
-    lz_dim = OffsetArray([zmin, zmax], 0:1)
+    lx_dim = OffsetArray(lx_dim, 0:1)
+    ly_dim = OffsetArray(ly_dim, 0:1)
+    lz_dim = OffsetArray(lz_dim, 0:1)
 
-    lx = lx_dim ./ lRef
+    lx = lx_dim ./ lRef # TODO - Keep lx_dim in `grid` and lx_ref in semi.physics
     ly = ly_dim ./ lRef
     lz = lz_dim ./ lRef
 
@@ -118,10 +118,6 @@ function initialize_atmosphere!(semi)
 
     setup_topography!(semi)
 
-    # scaled background flow
-    backgroundFlow_dim = 10.0
-    backgroundFlow = backgroundFlow_dim / uRef
-
     # nondimensional gravitational constant
     g_ndim = g / (uRef^2 / lRef)
     p0 = press0_dim / pRef
@@ -217,14 +213,6 @@ function map(level, lz)
     end
 end
 
-# function jac(i, j, k, lz, grid)
-
-#     #TODO get lz from grid.lz
-#     # Jacobian.
-#     (; topography_surface, zTildeS, dz) = grid
-#     return (lz[1] - topography_surface[i, j]) / lz[1] * (zTildeS[k] - zTildeS[k - 1]) / dz
-# end
-
 function vertWind(i, j, k, semi)
     (; cache) = semi
     (; var) = cache
@@ -240,13 +228,12 @@ function vertWind(i, j, k, semi)
     vUEdgeB = var.v[i, j - 1, k + 1]
     wEdgeU = var.w[i, j, k]
 
-    return trafo(i,
-                 j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB, vUEdgeB,
+    return trafo(i, j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB,
+                 vUEdgeB,
                  wEdgeU, "car", semi)
 end
 
-function trafo(i,
-               j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB, vUEdgeB,
+function trafo(i, j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB, vUEdgeB,
                wEdgeU, wind, semi)
     # Assuming jac and met are defined elsewhere
     # Define variables as in the original code

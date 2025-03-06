@@ -1,7 +1,4 @@
-global preconditioner = "yes"
-global spongeLayer = false
-global sponge_uv = false
-global zBoundary = "solid_wall"
+global zBoundary = "solid_wall" # TODO - Fix this
 
 # VERY HACKY THING - TO BE FIXED BY DEVELOPING MY OWN Array type
 using OffsetArrays
@@ -65,9 +62,10 @@ function Corrector(semi, dt, errFlagBicg, nIter, opt, facray, facprs)
 end
 
 function preCond(sIn, sOut, opt, semi)
-    (; cache, grid) = semi
+    (; cache, grid, parameters) = semi
     (; nx, ny, nz, dx, dy) = grid
     (; au_b, ac_b, ad_b, s_pc, q_pc, p_pc) = cache
+    (; preconditioner) = parameters
 
     # --------------------------------------
     #   preconditioner for BiCGStab
@@ -188,34 +186,9 @@ function linOpr(sIn, Ls, opt, hortot, semi)
     (; model) = equations
     (; nx, ny, nz) = grid
 
-    (;
-    ac_b,
-    acv_b,
-    ach_b,
-    al_b,
-    ar_b,
-    ab_b,
-    af_b,
-    ad_b,
-    au_b,
-    aru_b,
-    ard_b,
-    alu_b,
-    ald_b,
-    afu_b,
-    afd_b,
-    abu_b,
-    abd_b,
-    auu_b,
-    add_b,
-    aruu_b,
-    ardd_b,
-    aluu_b,
-    aldd_b,
-    afuu_b,
-    afdd_b,
-    abuu_b,
-    abdd_b,) = cache
+    (; ac_b, acv_b, ach_b, al_b, ar_b, ab_b, af_b, ad_b, au_b, aru_b, ard_b, alu_b) = cache
+    (; ald_b, afu_b, afd_b, abu_b, abd_b, auu_b, add_b, aruu_b, ardd_b, aluu_b) = cache
+    (; aldd_b, afuu_b, afdd_b, abuu_b, abdd_b) = cache
 
     s = cache.s_aux_field_lin_opr
 
@@ -880,7 +853,7 @@ end
 function bicgstab(b_in, dt, semi, sol, nIter, errFlag, opt)
     (; cache, grid, equations, parameters) = semi
     (; matVec, v_pc, r_vm) = cache
-    (; maxIter, tolcrit, tolPoisson, tolref) = parameters
+    (; maxIter, tolcrit, tolPoisson, tolref, preconditioner) = parameters
     maxIterPoisson = maxIter
     (; nx, ny, nz) = grid
 
@@ -1280,7 +1253,7 @@ function pressureBoundaryCondition(semi)
 end
 
 function correctorStep(semi, dt, opt, facray, facprs)
-    (; cache, grid, met, equations) = semi
+    (; cache, grid, met, equations, spongeLayer, sponge_uv) = semi
     (; var, dp, rhoStrat, pStrat, jac, bvsStrat, kr_sp_tfc, kr_sp_w_tfc, corX, corY) = cache
     (; nx, ny, nz, dx, dy, dz) = grid
     (; kappaInv, MaInv2, g_ndim) = equations
@@ -1844,39 +1817,15 @@ function correctorStep(semi, dt, opt, facray, facprs)
 end
 
 function val_PsIn(semi, dt, opt, facray)
-    (; equations, cache, grid, met) = semi
+    (; equations, cache, grid, met, parameters, spongeLayer, sponge_uv) = semi
     (; nx, ny, nz, dx, dy, dz) = grid
     (; pStrat, rhoStrat, jac, var, kr_sp_tfc, kr_sp_w_tfc, bvsStrat) = cache
+    (; preconditioner) = parameters
 
     # Poisson solver cache
-    (;
-    ac_b,
-    acv_b,
-    ach_b,
-    al_b,
-    ar_b,
-    ab_b,
-    af_b,
-    ad_b,
-    au_b,
-    aru_b,
-    ard_b,
-    alu_b,
-    ald_b,
-    afu_b,
-    afd_b,
-    abu_b,
-    abd_b,
-    auu_b,
-    add_b,
-    aruu_b,
-    ardd_b,
-    aluu_b,
-    aldd_b,
-    afuu_b,
-    afdd_b,
-    abuu_b,
-    abdd_b,) = cache
+    (; ac_b, acv_b, ach_b, al_b, ar_b, ab_b, af_b, ad_b, au_b, aru_b, ard_b, alu_b) = cache
+    (; ald_b, afu_b, afd_b, abu_b, abd_b, auu_b, add_b, aruu_b, ardd_b, aluu_b) = cache
+    (; aldd_b, afuu_b, afdd_b, abuu_b, abdd_b) = cache
     # Calculates the matrix values for the pressure solver
     # The solver solves for dt * dp, hence no dt in the matrix elements
 
