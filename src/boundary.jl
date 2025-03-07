@@ -35,8 +35,7 @@ function setBoundary_x!(semi, boundary::PeriodicBC)
         set_periodic_value_cell_x!(rhop, i, nx)
     end
 
-    # TODO - Replace with @views to remove allocations
-    u[0, :, :] .= u[nx, :, :]
+    @views u[0, :, :] .= u[nx, :, :]
 
     for i in 1:nbx
         set_periodic_value_edge_x!(u, i, nx)
@@ -50,13 +49,13 @@ function setBoundary_x!(semi, boundary::PeriodicBC)
 end
 
 function set_periodic_value_cell_x!(var, i, nx)
-    var[nx + i, :, :] .= var[i, :, :]
-    var[-i + 1, :, :] .= var[nx - i + 1, :, :]
+    @views var[nx + i, :, :] .= var[i, :, :]
+    @views var[-i + 1, :, :] .= var[nx - i + 1, :, :]
 end
 
 function set_periodic_value_edge_x!(var, i, nx)
-    var[nx + i, :, :] .= var[i, :, :]
-    var[-i, :, :] .= var[nx - i, :, :]
+    @views var[nx + i, :, :] .= var[i, :, :]
+    @views var[-i, :, :] .= var[nx - i, :, :]
 end
 
 function setBoundary_y!(semi, boundary::PeriodicBC)
@@ -69,7 +68,7 @@ function setBoundary_y!(semi, boundary::PeriodicBC)
         set_periodic_value_cell_y!(rhop, j, ny)
     end
 
-    v[:, 0, :] .= v[:, ny, :]
+    @views v[:, 0, :] .= v[:, ny, :]
 
     for j in 1:nby
         set_periodic_value_cell_y!(u, j, ny)
@@ -81,13 +80,13 @@ function setBoundary_y!(semi, boundary::PeriodicBC)
 end
 
 function set_periodic_value_cell_y!(var, j, ny)
-    var[:, ny + j, :] .= var[:, j, :]
-    var[:, -j + 1, :] .= var[:, ny - j + 1, :]
+    @views var[:, ny + j, :] .= var[:, j, :]
+    @views var[:, -j + 1, :] .= var[:, ny - j + 1, :]
 end
 
 function set_periodic_value_edge_y!(var, j, ny)
-    var[:, ny + j, :] .= var[:, j, :]
-    var[:, -j, :] .= var[:, ny - j, :]
+    @views var[:, ny + j, :] .= var[:, j, :]
+    @views var[:, -j, :] .= var[:, ny - j, :]
 end
 
 function setBoundary_z!(semi, boundary::PeriodicBC)
@@ -102,7 +101,7 @@ function setBoundary_z!(semi, boundary::PeriodicBC)
         set_periodic_value_cell_z!(rhop, k, nz)
     end
 
-    w[:, :, 0] .= v[:, :, nz]
+    @views w[:, :, 0] .= w[:, :, nz]
 
     for k in 1:nbz
         set_periodic_value_cell_z!(u, k, nz)
@@ -114,13 +113,13 @@ function setBoundary_z!(semi, boundary::PeriodicBC)
 end
 
 function set_periodic_value_cell_z!(var, k, nz)
-    var[:, :, nz + k] .= var[:, :, k]
-    var[:, :, -k + 1] .= var[:, :, nz - k + 1]
+    @views var[:, :, nz + k] .= var[:, :, k]
+    @views var[:, :, -k + 1] .= var[:, :, nz - k + 1]
 end
 
 function set_periodic_value_edge_z!(var, k, nz)
-    var[:, :, nz + k] .= var[:, :, k]
-    var[:, :, -k] .= var[:, :, nz - k]
+    @views var[:, :, nz + k] .= var[:, :, k]
+    @views var[:, :, -k] .= var[:, :, nz - k]
 end
 
 function setBoundary_z!(semi, boundary::SolidWallBC)
@@ -147,21 +146,25 @@ function setBoundary_z!(semi, boundary::SolidWallBC)
 end
 
 function set_reflective_value_cell_z!(var, k, nz)
-    var[:, :, nz + k] .= -var[:, :, nz - k + 1]
-    var[:, :, -k + 1] .= -var[:, :, k]
+    for i in axes(var, 1), j in axes(var, 2)
+        var[i, j, nz + k] = -var[i, j, nz - k + 1]
+        var[i, j, -k + 1] = -var[i, j, k]
+    end
 end
 
 function set_reflective_value_edge_z!(var, k, nz)
-    var[:, :, nz + k] .= -var[:, :, nz - k]
-    var[:, :, -k] .= -var[:, :, k]
+    for i in axes(var, 1), j in axes(var, 2)
+        var[i, j, nz + k] = -var[i, j, nz - k]
+        var[i, j, -k] = -var[i, j, k]
+    end
 end
 
 function set_non_reflective_value_cell_z!(var, k, nz)
-    var[:, :, nz + k] .= var[:, :, nz - k + 1]
-    var[:, :, -k + 1] .= var[:, :, k]
+    @views var[:, :, nz + k] .= var[:, :, nz - k + 1]
+    @views var[:, :, -k + 1] .= var[:, :, k]
 end
 
 function set_non_reflective_value_edge_z!(var, k, nz)
-    var[:, :, nz + k] .= var[:, :, nz - k]
-    var[:, :, -k] .= var[:, :, k]
+    @views var[:, :, nz + k] .= var[:, :, nz - k]
+    @views var[:, :, -k] .= var[:, :, k]
 end
