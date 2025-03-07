@@ -1,5 +1,5 @@
-using TrixiBase # get the `timer` object
 using TimerOutputs
+using TrixiBase
 
 function pincflow(semi, dt)
     reset_timer!(timer())
@@ -79,8 +79,6 @@ function pincflow(semi, dt)
             copytuple_to_tuple_flux!(semi.cache.var, semi.cache.var0)
         end
 
-        setBoundary!(semi)
-
         @trixi_timeit timer() "Misc" ode.rhopOld.=semi.cache.var.rhop
 
         massUpdate!(semi, ode, 0.5 * ode.dt, "rhop", "rhs", "expl", RKStage, 1)
@@ -143,7 +141,7 @@ function pincflow(semi, dt)
         time = time + ode.dt
         @show time, it
     end
-    end # Timer
+    end # timer
     display(timer())
 end
 
