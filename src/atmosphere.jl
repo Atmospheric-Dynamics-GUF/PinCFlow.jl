@@ -20,6 +20,7 @@ struct Atmosphere{
     p0::F
 
     # Sponge layer.
+    # TODO: Sponge type
     alphaunifiedsponge::A3OF
     kr_sp_tfc::A3OF
     kr_sp_w_tfc::A3OF
@@ -34,61 +35,59 @@ struct Atmosphere{
     dzsponge::F
 end
 
-function make_grid(; nx, ny, nz, nbx, nby, nbz, lx_dim, ly_dim, lz_dim, lRef,
-    stretch_exponent=1.0)
-    topography_surface = OffsetArray(zeros(nx + 1 + 2 * nbx, ny + 1 + 2 * nby),
-        (-nbx):(nx+nbx), (-nby):(ny+nby))
-    zTildeTFC = OffsetArray(zeros(nx + 1 + 2 * nbx, ny + 1 + 2 * nby, nz + 1 + 2 * nbz),
-        (-nbx):(nx+nbx),
-        (-nby):(ny+nby),
-        (-nbz):(nz+nbz))
-    zTFC = OffsetArray(zeros(nx + 1 + 2 * nbx, ny + 1 + 2 * nby, nz + 1 + 2 * nbz),
-        (-nbx):(nx+nbx),
-        (-nby):(ny+nby),
-        (-nbz):(nz+nbz))
-    zTildeS = OffsetArray(zeros(nz + 1 + 2 * nbz), (-nbz):(nz+nbz))
-    zS = OffsetArray(zeros(nz + 1 + 2 * nbz), (-nbz):(nz+nbz))
+function Atmosphere(pars::Parameters, cons::Constants)
+    floattype = typeof(pars.discretization.cfl)
+    xsize = pars.domain.sizex + 2 * pars.domain.nbx + 1
+    ysize = pars.domain.sizey + 2 * pars.domain.nby + 1
+    zsize = pars.domain.sizez + 4
+    pstrat = OffsetArray(zeros(floattype, xsize, ysize, zsize),
+        (-pars.domain.nbx):(pars.domain.sizex+pars.domain.nbx),
+        (-pars.domain.nby):(pars.domain.sizey+pars.domain.nby),
+        -1:(pars.domain.sizez+2))
 
-    lx_dim = OffsetArray(lx_dim, 0:1)
-    ly_dim = OffsetArray(ly_dim, 0:1)
-    lz_dim = OffsetArray(lz_dim, 0:1)
+    thetastrat = copy(pstrat)
+    rhostrat = copy(pstrat)
+    bvsstrat = copy(pstrat)
 
-    lx = lx_dim ./ lRef # TODO - Keep lx_dim in `grid` and lx_ref in semi.physics
-    ly = ly_dim ./ lRef
-    lz = lz_dim ./ lRef
+    # TODO: move this to constants?
+    t0 = pars.atmosphere.temp0_dim / cons.thetaref
+    p0 = pars.atmosphere.press0_dim / cons.pref
+    n2 = cons.ma^2 / cons.fr^4 * cons.kappa / t0
+    nn = sqrt(n2)
+    # TODO: make sponge type
+    alphaunifiedsponge = copy(thetastrat)
+    kr_sp_tfc = copy(alphaunifiedsponge)
+    kr_sp_w_tfc = copy(alphaunifiedsponge)
+    xsponge0, xsponge1 = 1.0, 1.0
+    ysponge0, ysponge1 = 1.0, 1.0
+    zsponge = 1.0
+    ksponge = 1
+    dxsponge, dysponge, dzsponge = 1.0, 1.0, 1.0
+    return Atmosphere(
+        # Reference atmosphere.
+        pstrat,
+        thetastrat,
+        rhostrat,
+        bvsstrat,
+        # Scaled reference values.
+        n2,
+        nn,
+        t0,
+        p0,
+        alphaunifiedsponge,
+        kr_sp_tfc,
+        kr_sp_w_tfc,
+        xsponge0,
+        xsponge1,
+        ysponge0,
+        ysponge1,
+        zsponge,
+        ksponge,
+        dxsponge,
+        dysponge,
+        dzsponge
+    )
 
-    dx = (lx[1] - lx[0]) / nx
-    dy = (ly[1] - ly[0]) / ny
-    dz = (lz[1] - lz[0]) / nz
-
-    sizeX = nx
-    sizeY = ny
-    sizeZ = nz
-
-    nxx = nx + 2 * nbx + 1
-    nyy = ny + 2 * nby + 1
-    nzz = nz + 2 * nbz + 1
-
-    x = OffsetArray(zeros(sizeX + 1 + 2nbx), (-nbx):(sizeX+nbx))
-    y = OffsetArray(zeros(sizeY + 1 + 2nby), (-nby):(sizeY+nby))
-    z = OffsetArray(zeros(sizeZ + 1 + 2nbz), (-nbz):(sizeZ+nbz))
-
-    for i in (-nbx):(sizeX+nbx)
-        x[i] = lx[0] + (i - 1) * dx + dx / 2.0
-    end
-
-    for j in (-nby):(sizeY+nby)
-        y[j] = ly[0] + (j - 1) * dy + dy / 2.0
-    end
-
-    for k in (-nbz):(sizeZ+nbz)
-        z[k] = lz[0] + (k - 1) * dz + dz / 2.0
-    end
-
-    grid = (;
-        nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, topography_surface, zTildeTFC, zTFC,
-        zTildeS, zS, lx, ly, lz, dx, dy, dz, x, y, z, stretch_exponent,)
-    return grid
 end
 
 struct Jacobian{Grid}
@@ -140,107 +139,7 @@ end
 function Base.getindex(met::MetricTensor, i, j, k, u, v)
     return met(i, j, k, u, v)
 end
-function initialize_atmosphere!(semi)
-    @trixi_timeit timer() "Initialize atmosphere" begin
-    #! format: noindent
-    (; grid, equations, cache) = semi
-    (;
-        nx,
-        ny, nz, nbx, nby, nbz, topography_surface, zTildeTFC, zTFC, zTildeS, zS, lx,
-        ly, lz, dx, dy, dz, x, y, z,) = grid
-    (; pStrat, rhoStrat, thetaStrat, bvsStrat, jac) = cache
-    (; gamma, gamma_1, kappa, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re,) = equations
 
-    setup_topography!(semi)
-
-    # nondimensional gravitational constant
-    g_ndim = g / (uRef^2 / lRef)
-    p0 = press0_dim / pRef
-
-    for ix in (-nbx):(nx+nbx), jy in (-nby):(ny+nby)
-        for kz in -1:(nz+2)
-            pStrat[ix, jy, kz] = p0 * exp(-sig * zTFC[ix, jy, kz] / gamma / T0)
-            thetaStrat[ix, jy, kz] = T0 * exp(kappa * sig / T0 * zTFC[ix, jy, kz])
-            rhoStrat[ix, jy, kz] = pStrat[ix, jy, kz] / thetaStrat[ix, jy, kz]
-        end
-    end
-
-    for ix in (-nbx):(nx+nbx), jy in (-nby):(ny+nby)
-        bvsStrat[ix, jy, -1] = g_ndim / thetaStrat[ix, jy, 0] / jac(ix, jy, 0) *
-                               (thetaStrat[ix, jy, 1] - thetaStrat[ix, jy, 0]) / dz
-        for kz in 1:nz
-            bvsStrat[ix, jy, kz] = g_ndim / thetaStrat[ix, jy, kz] / jac(ix, jy, kz) *
-                                   0.5 *
-                                   (thetaStrat[ix, jy, kz+1] -
-                                    thetaStrat[ix, jy, kz-1]) /
-                                   dz
-        end
-        bvsStrat[ix, jy, nz+1] = g_ndim / thetaStrat[ix, jy, nz+1] /
-                                 jac(ix, jy, nz + 1) *
-                                 (thetaStrat[ix, jy, nz+1] - thetaStrat[ix, jy, nz]) /
-                                 dz
-        bvsStrat[ix, jy, nz+2] = bvsStrat[ix, jy, nz+1]
-    end
-    end # timer
-end
-
-function setup_topography!(semi)
-    @trixi_timeit timer() "Setup topography" begin
-    #! format: noindent
-
-    # (; xc, zc, xf, zf, nx, nz) = grid
-
-    (; grid, equations) = semi
-    (;
-        nx, ny, nz, nbx, nby, nbz, topography_surface, zTildeTFC, zTFC, zTildeS, zS, lx, ly, lz, dx, dy, dz, x, y, z,) = grid
-    (; gamma, gamma_1, kappa, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re,) = equations
-
-    if lz[0] != 0.0
-        @assert false "Error in setup_topography: lz(0) must be zero for & &TFC!"
-    end
-
-    mountainHeight_dim = 400.0
-    mountainWidth_dim = 1000.0
-    mountainHeight = mountainHeight_dim / lRef
-    mountainWidth = mountainWidth_dim / lRef
-    mountainWavenumber = pi / mountainWidth
-
-    x_center = 0.5 * (lx[1] + lx[0])
-    y_center = 0.5 * (ly[1] + ly[0])
-    mountain_case = 2
-
-    if mountain_case != 0
-        topography_surface .= 0.0
-        for jy in 1:ny
-            for ix in 1:nx
-                topography_surface[ix, jy] = mountainHeight / (1.0 +
-                                                               (x[ix] - x_center)^2.0 /
-                                                               mountainWidth^2.0)
-            end
-        end
-    else
-        topography_surface = topography_surface / lRef
-    end
-
-    # TODO - check Halos
-    # setHalosOfField2D(topography_surface)
-    set_topography_boundary!(semi, topography_surface)
-    # Compute the stretched vertical grid.
-    for kz in (-nbz):(nz+nbz)
-        zTildeS[kz] = map(z[kz] + 0.5 * dz, lz)
-    end
-    for kz in (-nbz+1):(nz+nbz)
-        zS[kz] = 0.5 * (zTildeS[kz] + zTildeS[kz-1])
-    end
-    zS[-nbz] = zTildeS[-nbz] - 0.5 * (zTildeS[nbz+1] - zTildeS[nbz])
-
-    # Compute the physical layers.
-    for kz in (-nbz):(nz+nbz)
-        zTFC[:, :, kz] .= (lz[1] .- topography_surface) / lz[1] * zS[kz] .+
-                          topography_surface
-    end
-    end # timer
-end
 
 function map(level, lz)
     # Vertical grid stretching.
@@ -378,15 +277,14 @@ function stressTensTFC(i, j, k, mu, nu, semi)
     return stressTensTFC
 end
 
-function set_topography_boundary!(semi, field)
-    (; grid) = semi
-    (; nx, ny, nbx, nby) = grid
+function set_topography_boundary!(model, field)
+    (; nx, ny) = model.domain
+    (; nbx, nby) = model.parameters.domain
 
     for i in 1:nbx
         field[nx+i, :] = field[i, :]
         field[-i+1, :] = field[nx-i+1, :]
     end
-
     for j in 1:nby
         field[:, ny+j] = field[:, j]
         field[:, -j+1] = field[:, ny-j+1]

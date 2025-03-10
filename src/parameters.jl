@@ -94,22 +94,24 @@ end
 
 struct PoissonSolverParameters{F<:AbstractFloat,I<:Integer,S<:AbstractString}
     tolpoisson::F
-    maxiterpoisson::I
+    maxiter::I
     preconditioner::S
     dtau::F
     maxiteradi::I
     initialcleaning::Bool
     correctmomentum::Bool
     tolcrit::S
+    tolref::F
 end
 
 function PoissonSolverParameters(;
     tolpoisson=1.0E-8, maxiterpoisson=5000,
     preconditioner="yes", dtau=4.0E0, maxiteradi=2,
     initalcleaning=true, correctmomentum=true,
-    tolcrit="abs")
+    tolcrit="abs", tolref=1.0)
+
     PoissonSolverParameters(tolpoisson, maxiterpoisson, preconditioner, dtau, maxiteradi,
-        initalcleaning, correctmomentum, tolcrit)
+        initalcleaning, correctmomentum, tolcrit, tolref)
 end
 
 struct AtmosphereParameters{F<:AbstractFloat,S<:AbstractString,VOF<:Vector{F}}
