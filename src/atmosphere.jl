@@ -1,20 +1,53 @@
 using SimpleUnPack
 using OffsetArrays
 
+struct Atmosphere{
+    I<:Integer,
+    F<:AbstractFloat,
+    A3OF<:OffsetArray{<:AbstractFloat,3}
+}
+
+    # Reference atmosphere.
+    pstrattfc::A3OF
+    thetastrattfc::A3OF
+    rhostrattfc::A3OF
+    bvsstrattfc::A3OF
+
+    # Scaled reference values.
+    n2::F
+    nn::F
+    t0::F
+    p0::F
+
+    # Sponge layer.
+    alphaunifiedsponge::A3OF
+    kr_sp_tfc::A3OF
+    kr_sp_w_tfc::A3OF
+    xsponge0::F
+    xsponge1::F
+    ysponge0::F
+    ysponge1::F
+    zsponge::F
+    ksponge::I
+    dxsponge::F
+    dysponge::F
+    dzsponge::F
+end
+
 function make_grid(; nx, ny, nz, nbx, nby, nbz, lx_dim, ly_dim, lz_dim, lRef,
-                   stretch_exponent = 1.0)
+    stretch_exponent=1.0)
     topography_surface = OffsetArray(zeros(nx + 1 + 2 * nbx, ny + 1 + 2 * nby),
-                                     (-nbx):(nx + nbx), (-nby):(ny + nby))
+        (-nbx):(nx+nbx), (-nby):(ny+nby))
     zTildeTFC = OffsetArray(zeros(nx + 1 + 2 * nbx, ny + 1 + 2 * nby, nz + 1 + 2 * nbz),
-                            (-nbx):(nx + nbx),
-                            (-nby):(ny + nby),
-                            (-nbz):(nz + nbz))
+        (-nbx):(nx+nbx),
+        (-nby):(ny+nby),
+        (-nbz):(nz+nbz))
     zTFC = OffsetArray(zeros(nx + 1 + 2 * nbx, ny + 1 + 2 * nby, nz + 1 + 2 * nbz),
-                       (-nbx):(nx + nbx),
-                       (-nby):(ny + nby),
-                       (-nbz):(nz + nbz))
-    zTildeS = OffsetArray(zeros(nz + 1 + 2 * nbz), (-nbz):(nz + nbz))
-    zS = OffsetArray(zeros(nz + 1 + 2 * nbz), (-nbz):(nz + nbz))
+        (-nbx):(nx+nbx),
+        (-nby):(ny+nby),
+        (-nbz):(nz+nbz))
+    zTildeS = OffsetArray(zeros(nz + 1 + 2 * nbz), (-nbz):(nz+nbz))
+    zS = OffsetArray(zeros(nz + 1 + 2 * nbz), (-nbz):(nz+nbz))
 
     lx_dim = OffsetArray(lx_dim, 0:1)
     ly_dim = OffsetArray(ly_dim, 0:1)
@@ -36,25 +69,25 @@ function make_grid(; nx, ny, nz, nbx, nby, nbz, lx_dim, ly_dim, lz_dim, lRef,
     nyy = ny + 2 * nby + 1
     nzz = nz + 2 * nbz + 1
 
-    x = OffsetArray(zeros(sizeX + 1 + 2nbx), (-nbx):(sizeX + nbx))
-    y = OffsetArray(zeros(sizeY + 1 + 2nby), (-nby):(sizeY + nby))
-    z = OffsetArray(zeros(sizeZ + 1 + 2nbz), (-nbz):(sizeZ + nbz))
+    x = OffsetArray(zeros(sizeX + 1 + 2nbx), (-nbx):(sizeX+nbx))
+    y = OffsetArray(zeros(sizeY + 1 + 2nby), (-nby):(sizeY+nby))
+    z = OffsetArray(zeros(sizeZ + 1 + 2nbz), (-nbz):(sizeZ+nbz))
 
-    for i in (-nbx):(sizeX + nbx)
+    for i in (-nbx):(sizeX+nbx)
         x[i] = lx[0] + (i - 1) * dx + dx / 2.0
     end
 
-    for j in (-nby):(sizeY + nby)
+    for j in (-nby):(sizeY+nby)
         y[j] = ly[0] + (j - 1) * dy + dy / 2.0
     end
 
-    for k in (-nbz):(sizeZ + nbz)
+    for k in (-nbz):(sizeZ+nbz)
         z[k] = lz[0] + (k - 1) * dz + dz / 2.0
     end
 
     grid = (;
-            nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, topography_surface, zTildeTFC, zTFC,
-            zTildeS, zS, lx, ly, lz, dx, dy, dz, x, y, z, stretch_exponent,)
+        nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, topography_surface, zTildeTFC, zTFC,
+        zTildeS, zS, lx, ly, lz, dx, dy, dz, x, y, z, stretch_exponent,)
     return grid
 end
 
@@ -62,7 +95,7 @@ struct Jacobian{Grid}
     grid::Grid
 end
 
-struct MetricTensor{Grid, Cache, Equations}
+struct MetricTensor{Grid,Cache,Equations}
     cache::Cache
     grid::Grid
     equations::Equations
@@ -74,20 +107,20 @@ function (met::MetricTensor)(i, j, k, mu, nu)
     # Metric tensor.
 
     if (mu == 1 && nu == 3) || (mu == 3 && nu == 1)
-        return (topography_surface[i + 1, j] - topography_surface[i - 1, j]) / (2.0 * dx) *
+        return (topography_surface[i+1, j] - topography_surface[i-1, j]) / (2.0 * dx) *
                (zS[k] - lz[1]) / (lz[1] - topography_surface[i, j]) * dz /
-               (zTildeS[k] - zTildeS[k - 1])
+               (zTildeS[k] - zTildeS[k-1])
     elseif (mu == 2 && nu == 3) || (mu == 3 && nu == 2)
-        return (topography_surface[i, j + 1] - topography_surface[i, j - 1]) / (2.0 * dy) *
+        return (topography_surface[i, j+1] - topography_surface[i, j-1]) / (2.0 * dy) *
                (zS[k] - lz[1]) / (lz[1] - topography_surface[i, j]) * dz /
-               (zTildeS[k] - zTildeS[k - 1])
+               (zTildeS[k] - zTildeS[k-1])
     elseif mu == 3 && nu == 3
         return ((lz[1] / (lz[1] - topography_surface[i, j]))^2.0 +
                 ((zS[k] - lz[1]) / (lz[1] - topography_surface[i, j]))^2.0 *
-                (((topography_surface[i + 1, j] - topography_surface[i - 1, j]) /
+                (((topography_surface[i+1, j] - topography_surface[i-1, j]) /
                   (2.0 * dx))^2.0 +
-                 ((topography_surface[i, j + 1] - topography_surface[i, j - 1]) /
-                  (2.0 * dy))^2.0)) * (dz / (zTildeS[k] - zTildeS[k - 1]))^2.0
+                 ((topography_surface[i, j+1] - topography_surface[i, j-1]) /
+                  (2.0 * dy))^2.0)) * (dz / (zTildeS[k] - zTildeS[k-1]))^2.0
     else
         @assert false "UNDEFINED CASE!!!"
     end
@@ -97,7 +130,7 @@ function (jac::Jacobian)(i, j, k)
     # Jacobian.
     (; grid) = jac
     (; topography_surface, zTildeS, dz, lz) = grid
-    return (lz[1] - topography_surface[i, j]) / lz[1] * (zTildeS[k] - zTildeS[k - 1]) / dz
+    return (lz[1] - topography_surface[i, j]) / lz[1] * (zTildeS[k] - zTildeS[k-1]) / dz
 end
 
 function Base.getindex(jac::Jacobian, i, j, k)
@@ -112,9 +145,9 @@ function initialize_atmosphere!(semi)
     #! format: noindent
     (; grid, equations, cache) = semi
     (;
-    nx,
-    ny, nz, nbx, nby, nbz, topography_surface, zTildeTFC, zTFC, zTildeS, zS, lx,
-    ly, lz, dx, dy, dz, x, y, z,) = grid
+        nx,
+        ny, nz, nbx, nby, nbz, topography_surface, zTildeTFC, zTFC, zTildeS, zS, lx,
+        ly, lz, dx, dy, dz, x, y, z,) = grid
     (; pStrat, rhoStrat, thetaStrat, bvsStrat, jac) = cache
     (; gamma, gamma_1, kappa, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re,) = equations
 
@@ -124,29 +157,29 @@ function initialize_atmosphere!(semi)
     g_ndim = g / (uRef^2 / lRef)
     p0 = press0_dim / pRef
 
-    for ix in (-nbx):(nx + nbx), jy in (-nby):(ny + nby)
-        for kz in -1:(nz + 2)
+    for ix in (-nbx):(nx+nbx), jy in (-nby):(ny+nby)
+        for kz in -1:(nz+2)
             pStrat[ix, jy, kz] = p0 * exp(-sig * zTFC[ix, jy, kz] / gamma / T0)
             thetaStrat[ix, jy, kz] = T0 * exp(kappa * sig / T0 * zTFC[ix, jy, kz])
             rhoStrat[ix, jy, kz] = pStrat[ix, jy, kz] / thetaStrat[ix, jy, kz]
         end
     end
 
-    for ix in (-nbx):(nx + nbx), jy in (-nby):(ny + nby)
+    for ix in (-nbx):(nx+nbx), jy in (-nby):(ny+nby)
         bvsStrat[ix, jy, -1] = g_ndim / thetaStrat[ix, jy, 0] / jac(ix, jy, 0) *
                                (thetaStrat[ix, jy, 1] - thetaStrat[ix, jy, 0]) / dz
         for kz in 1:nz
             bvsStrat[ix, jy, kz] = g_ndim / thetaStrat[ix, jy, kz] / jac(ix, jy, kz) *
                                    0.5 *
-                                   (thetaStrat[ix, jy, kz + 1] -
-                                    thetaStrat[ix, jy, kz - 1]) /
+                                   (thetaStrat[ix, jy, kz+1] -
+                                    thetaStrat[ix, jy, kz-1]) /
                                    dz
         end
-        bvsStrat[ix, jy, nz + 1] = g_ndim / thetaStrat[ix, jy, nz + 1] /
-                                   jac(ix, jy, nz + 1) *
-                                   (thetaStrat[ix, jy, nz + 1] - thetaStrat[ix, jy, nz]) /
-                                   dz
-        bvsStrat[ix, jy, nz + 2] = bvsStrat[ix, jy, nz + 1]
+        bvsStrat[ix, jy, nz+1] = g_ndim / thetaStrat[ix, jy, nz+1] /
+                                 jac(ix, jy, nz + 1) *
+                                 (thetaStrat[ix, jy, nz+1] - thetaStrat[ix, jy, nz]) /
+                                 dz
+        bvsStrat[ix, jy, nz+2] = bvsStrat[ix, jy, nz+1]
     end
     end # timer
 end
@@ -159,7 +192,7 @@ function setup_topography!(semi)
 
     (; grid, equations) = semi
     (;
-    nx, ny, nz, nbx, nby, nbz, topography_surface, zTildeTFC, zTFC, zTildeS, zS, lx, ly, lz, dx, dy, dz, x, y, z,) = grid
+        nx, ny, nz, nbx, nby, nbz, topography_surface, zTildeTFC, zTFC, zTildeS, zS, lx, ly, lz, dx, dy, dz, x, y, z,) = grid
     (; gamma, gamma_1, kappa, kappaInv, gammaInv, Rsp, g, rhoRef, pRef, aRef, uRef, lRef, tRef, thetaRef, Ma, Fr, kappa, sig, press0_dim, Temp0_dim, T0, N2, NN, mu_viscous_dim, ReInv, Re,) = equations
 
     if lz[0] != 0.0
@@ -181,8 +214,8 @@ function setup_topography!(semi)
         for jy in 1:ny
             for ix in 1:nx
                 topography_surface[ix, jy] = mountainHeight / (1.0 +
-                                              (x[ix] - x_center)^2.0 /
-                                              mountainWidth^2.0)
+                                                               (x[ix] - x_center)^2.0 /
+                                                               mountainWidth^2.0)
             end
         end
     else
@@ -193,16 +226,16 @@ function setup_topography!(semi)
     # setHalosOfField2D(topography_surface)
     set_topography_boundary!(semi, topography_surface)
     # Compute the stretched vertical grid.
-    for kz in (-nbz):(nz + nbz)
+    for kz in (-nbz):(nz+nbz)
         zTildeS[kz] = map(z[kz] + 0.5 * dz, lz)
     end
-    for kz in (-nbz + 1):(nz + nbz)
-        zS[kz] = 0.5 * (zTildeS[kz] + zTildeS[kz - 1])
+    for kz in (-nbz+1):(nz+nbz)
+        zS[kz] = 0.5 * (zTildeS[kz] + zTildeS[kz-1])
     end
-    zS[-nbz] = zTildeS[-nbz] - 0.5 * (zTildeS[nbz + 1] - zTildeS[nbz])
+    zS[-nbz] = zTildeS[-nbz] - 0.5 * (zTildeS[nbz+1] - zTildeS[nbz])
 
     # Compute the physical layers.
-    for kz in (-nbz):(nz + nbz)
+    for kz in (-nbz):(nz+nbz)
         zTFC[:, :, kz] .= (lz[1] .- topography_surface) / lz[1] * zS[kz] .+
                           topography_surface
     end
@@ -227,22 +260,22 @@ function vertWind(i, j, k, semi)
     # Transformation of the vertical wind.
 
     uEdgeR = var.u[i, j, k]
-    uUEdgeR = var.u[i, j, k + 1]
-    uEdgeL = var.u[i - 1, j, k]
-    uUEdgeL = var.u[i - 1, j, k + 1]
+    uUEdgeR = var.u[i, j, k+1]
+    uEdgeL = var.u[i-1, j, k]
+    uUEdgeL = var.u[i-1, j, k+1]
     vEdgeF = var.v[i, j, k]
-    vUEdgeF = var.v[i, j, k + 1]
-    vEdgeB = var.v[i, j - 1, k]
-    vUEdgeB = var.v[i, j - 1, k + 1]
+    vUEdgeF = var.v[i, j, k+1]
+    vEdgeB = var.v[i, j-1, k]
+    vUEdgeB = var.v[i, j-1, k+1]
     wEdgeU = var.w[i, j, k]
 
     return trafo(i, j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB,
-                 vUEdgeB,
-                 wEdgeU, "car", semi)
+        vUEdgeB,
+        wEdgeU, "car", semi)
 end
 
 function trafo(i, j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB, vUEdgeB,
-               wEdgeU, wind, semi)
+    wEdgeU, wind, semi)
     # Assuming jac and met are defined elsewhere
     # Define variables as in the original code
 
@@ -257,10 +290,10 @@ function trafo(i, j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdge
 
     if wind == "car"
         trafoTFC = jacEdgeU * (-(jac(i, j, k + 1) *
-                      (met(i, j, k, 1, 3) * uC + met(i, j, k, 2, 3) * vC) +
-                      jac(i, j, k) *
-                      (met(i, j, k + 1, 1, 3) * uU + met(i, j, k + 1, 2, 3) * vU)) /
-                    (jac(i, j, k) + jac(i, j, k + 1)) + wEdgeU)
+                                 (met(i, j, k, 1, 3) * uC + met(i, j, k, 2, 3) * vC) +
+                                 jac(i, j, k) *
+                                 (met(i, j, k + 1, 1, 3) * uU + met(i, j, k + 1, 2, 3) * vU)) /
+                               (jac(i, j, k) + jac(i, j, k + 1)) + wEdgeU)
     elseif wind == "tfc"
         trafoTFC = (jac(i, j, k + 1) * (met(i, j, k, 1, 3) * uC + met(i, j, k, 2, 3) * vC) +
                     jac(i, j, k) *
@@ -284,15 +317,15 @@ function stressTensTFC(i, j, k, mu, nu, semi)
     jacEdgeD = 2.0 * jac(i, j, k) * jac(i, j, k - 1) / (jac(i, j, k) + jac(i, j, k - 1))
 
     # Accessing array elements in var
-    uF = 0.5 * (var.u[i, j + 1, k] + var.u[i - 1, j + 1, k])
-    uB = 0.5 * (var.u[i, j - 1, k] + var.u[i - 1, j - 1, k])
-    uU = 0.5 * (var.u[i, j, k + 1] + var.u[i - 1, j, k + 1])
-    uD = 0.5 * (var.u[i, j, k - 1] + var.u[i - 1, j, k - 1])
+    uF = 0.5 * (var.u[i, j+1, k] + var.u[i-1, j+1, k])
+    uB = 0.5 * (var.u[i, j-1, k] + var.u[i-1, j-1, k])
+    uU = 0.5 * (var.u[i, j, k+1] + var.u[i-1, j, k+1])
+    uD = 0.5 * (var.u[i, j, k-1] + var.u[i-1, j, k-1])
 
-    vR = 0.5 * (var.v[i + 1, j, k] + var.v[i + 1, j - 1, k])
-    vL = 0.5 * (var.v[i - 1, j, k] + var.v[i - 1, j - 1, k])
-    vU = 0.5 * (var.v[i, j, k + 1] + var.v[i, j - 1, k + 1])
-    vD = 0.5 * (var.v[i, j, k - 1] + var.v[i, j - 1, k - 1])
+    vR = 0.5 * (var.v[i+1, j, k] + var.v[i+1, j-1, k])
+    vL = 0.5 * (var.v[i-1, j, k] + var.v[i-1, j-1, k])
+    vU = 0.5 * (var.v[i, j, k+1] + var.v[i, j-1, k+1])
+    vD = 0.5 * (var.v[i, j, k-1] + var.v[i, j-1, k-1])
 
     wR = 0.5 * (vertWind(i + 1, j, k, semi) + vertWind(i + 1, j, k - 1, semi))
     wL = 0.5 * (vertWind(i - 1, j, k, semi) + vertWind(i - 1, j, k - 1, semi))
@@ -301,12 +334,12 @@ function stressTensTFC(i, j, k, mu, nu, semi)
 
     # Conditional logic for stress tensor calculation
     if mu == 1 && nu == 1
-        stressTensTFC = 2.0 * (var.u[i, j, k] - var.u[i - 1, j, k]) / dx +
+        stressTensTFC = 2.0 * (var.u[i, j, k] - var.u[i-1, j, k]) / dx +
                         met(i, j, k, 1, 3) * (uU - uD) / dz -
                         2.0 / 3.0 *
-                        ((jacEdgeR * var.u[i, j, k] - jacEdgeL * var.u[i - 1, j, k]) / dx +
-                         (jacEdgeF * var.v[i, j, k] - jacEdgeB * var.v[i, j - 1, k]) / dy +
-                         (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k - 1]) / dz) /
+                        ((jacEdgeR * var.u[i, j, k] - jacEdgeL * var.u[i-1, j, k]) / dx +
+                         (jacEdgeF * var.v[i, j, k] - jacEdgeB * var.v[i, j-1, k]) / dy +
+                         (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k-1]) / dz) /
                         jac(i, j, k)
     elseif (mu == 1 && nu == 2) || (mu == 2 && nu == 1)
         stressTensTFC = 0.5 * (uF - uB) / dy +
@@ -320,12 +353,12 @@ function stressTensTFC(i, j, k, mu, nu, semi)
                         (vertWind(i, j, k, semi) - vertWind(i, j, k - 1, semi)) /
                         dz
     elseif mu == 2 && nu == 2
-        stressTensTFC = 2.0 * (var.v[i, j, k] - var.v[i, j - 1, k]) / dy +
+        stressTensTFC = 2.0 * (var.v[i, j, k] - var.v[i, j-1, k]) / dy +
                         met(i, j, k, 2, 3) * (vU - vD) / dz -
                         2.0 / 3.0 *
-                        ((jacEdgeR * var.u[i, j, k] - jacEdgeL * var.u[i - 1, j, k]) / dx +
-                         (jacEdgeF * var.v[i, j, k] - jacEdgeB * var.v[i, j - 1, k]) / dy +
-                         (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k - 1]) / dz) /
+                        ((jacEdgeR * var.u[i, j, k] - jacEdgeL * var.u[i-1, j, k]) / dx +
+                         (jacEdgeF * var.v[i, j, k] - jacEdgeB * var.v[i, j-1, k]) / dy +
+                         (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k-1]) / dz) /
                         jac(i, j, k)
     elseif (mu == 2 && nu == 3) || (mu == 3 && nu == 2)
         stressTensTFC = (0.5 * (vU - vD) / dz / jac(i, j, k) +
@@ -336,9 +369,9 @@ function stressTensTFC(i, j, k, mu, nu, semi)
         stressTensTFC = 2.0 * (vertWind(i, j, k, semi) - vertWind(i, j, k - 1, semi)) / dz /
                         jac(i, j, k) -
                         2.0 / 3.0 *
-                        ((jacEdgeR * var.u[i, j, k] - jacEdgeL * var.u[i - 1, j, k]) / dx +
-                         (jacEdgeF * var.v[i, j, k] - jacEdgeB * var.v[i, j - 1, k]) / dy +
-                         (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k - 1]) / dz) /
+                        ((jacEdgeR * var.u[i, j, k] - jacEdgeL * var.u[i-1, j, k]) / dx +
+                         (jacEdgeF * var.v[i, j, k] - jacEdgeB * var.v[i, j-1, k]) / dy +
+                         (jacEdgeU * var.w[i, j, k] - jacEdgeD * var.w[i, j, k-1]) / dz) /
                         jac(i, j, k)
     end
 
@@ -350,12 +383,12 @@ function set_topography_boundary!(semi, field)
     (; nx, ny, nbx, nby) = grid
 
     for i in 1:nbx
-        field[nx + i, :] = field[i, :]
-        field[-i + 1, :] = field[nx - i + 1, :]
+        field[nx+i, :] = field[i, :]
+        field[-i+1, :] = field[nx-i+1, :]
     end
 
     for j in 1:nby
-        field[:, ny + j] = field[:, j]
-        field[:, -j + 1] = field[:, ny - j + 1]
+        field[:, ny+j] = field[:, j]
+        field[:, -j+1] = field[:, ny-j+1]
     end
 end
