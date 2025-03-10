@@ -3,19 +3,23 @@ using TrixiBase # get the `timer` object
 
 include("parameters.jl")
 include("types.jl")
-include("model.jl")
 include("matrix_solvers.jl")
+include("domain.jl")
+include("constants.jl")
+include("grid.jl")
+include("variables.jl")
+include("atmosphere.jl")
+include("fluxes.jl")
+include("poisson.jl")
+include("model.jl")
 
+include("boundary.jl")
 include("semi_discretization.jl")
 
 include("init.jl")
 include("sponge.jl")
 include("sponge_new.jl")
-include("atmosphere.jl")
-include("boundary.jl")
-include("fluxes.jl")
 include("time_step.jl")
-include("poisson.jl")
 include("update.jl")
 
 include("namelist_interface.jl")
@@ -26,6 +30,7 @@ pincflow_examples_dir() = joinpath(dirname(pathof(PinCFlow_dev)), "..", "example
 export initialize_values,
     initialize_atmosphere!,
     initialize_variables!,
+    initialize!,
     setBoundary!,
     reconstruction!,
     compute_fluxes!,
@@ -44,7 +49,7 @@ export DomainParameters, OutputParameters, BoundaryParameters, TopographyParamet
     AtmosphereParameters, PoissonSolverParameters, DiscretizationParameters,
     TestCaseParameters, DebugParameters, ModelParameters, Parameters
 
-export Grid, Constants, Atmosphere
+export Grid, Constants, Atmosphere, Domain, PoissonOperator, Variables, Fluxes, Model
 
 # debugging
 export Corrector

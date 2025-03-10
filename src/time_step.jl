@@ -1,18 +1,17 @@
 using TimerOutputs
 using TrixiBase
 
-function pincflow(semi, dt)
+function pincflow(model, dt)
     reset_timer!(timer())
     @trixi_timeit timer() "Pincflow" begin
     #! format: noindent
-    initialize_atmosphere!(semi)
+    initialize!(model)
 
-    dt = dt / semi.equations.tRef
+    dt = dt / model.constants.tref
 
-    ode = time_discretization(semi, dt)
-    initialize_variables!(semi)
+    ode = model.time
 
-    setBoundary!(semi)
+    setBoundary!(model)
 
     # TODO - These should be in parameters?
     errFlagBicg = false
@@ -20,16 +19,17 @@ function pincflow(semi, dt)
     facprs = 1
     facray = 1
 
-    Corrector(semi, 1.0, errFlagBicg, nIter, "expl", facray, facprs)
+    Corrector(model, 1.0, errFlagBicg, nIter, "expl", facray, facprs)
+    return
     initialize_sponge!(semi)
 
     time = 0.0
     for it in 1:100
         setBoundary!(semi)
 
-        @trixi_timeit timer() "Misc" semi.cache.var.rhop.=semi.cache.var.rho
+        @trixi_timeit timer() "Misc" semi.cache.var.rhop .= semi.cache.var.rho
         @trixi_timeit timer() "Misc" copytuple_to_tuple!(semi.cache.var0,
-                                                         semi.cache.var)
+            semi.cache.var)
 
         for RKStage in 1:3
             setBoundary!(semi)
@@ -42,7 +42,7 @@ function pincflow(semi, dt)
                 copytuple_to_tuple_flux!(ode.flux0, semi.cache.flux)
             end
 
-            @trixi_timeit timer() "Misc" ode.rhoOld.=semi.cache.var.rho
+            @trixi_timeit timer() "Misc" ode.rhoOld .= semi.cache.var.rho
 
             massUpdate!(semi, ode, 0.5 * ode.dt, "rho", "tot", "expl", RKStage, 1)
             applyUnifiedSponge_rho!(semi, 0.5 * ode.stepFrac[RKStage] * dt)
@@ -58,9 +58,9 @@ function pincflow(semi, dt)
         RKStage = 4
         setBoundary!(semi)
         @trixi_timeit timer() "Misc" copytuple_to_tuple_flux!(semi.cache.flux,
-                                                              ode.flux0)
+            ode.flux0)
 
-        @trixi_timeit timer() "Misc" ode.wOld.=semi.cache.var.w
+        @trixi_timeit timer() "Misc" ode.wOld .= semi.cache.var.w
 
         momentumPredictor!(semi, ode, 0.5 * dt, "rhs", "impl", RKStage, 1)
 
@@ -79,7 +79,7 @@ function pincflow(semi, dt)
             copytuple_to_tuple_flux!(semi.cache.var, semi.cache.var0)
         end
 
-        @trixi_timeit timer() "Misc" ode.rhopOld.=semi.cache.var.rhop
+        @trixi_timeit timer() "Misc" ode.rhopOld .= semi.cache.var.rhop
 
         massUpdate!(semi, ode, 0.5 * ode.dt, "rhop", "rhs", "expl", RKStage, 1)
 
@@ -103,7 +103,7 @@ function pincflow(semi, dt)
 
             @trixi_timeit timer() "Boundary flux" setBoundary_flux!(semi)
 
-            @trixi_timeit timer() "Misc" ode.rhoOld.=semi.cache.var.rho
+            @trixi_timeit timer() "Misc" ode.rhoOld .= semi.cache.var.rho
 
             massUpdate!(semi, ode, ode.dt, "rho", "tot", "expl", RKStage, 1)
 
@@ -122,9 +122,9 @@ function pincflow(semi, dt)
         RKStage = 4
         setBoundary!(semi)
         @trixi_timeit timer() "Misc" copytuple_to_tuple_flux!(semi.cache.flux,
-                                                              ode.flux0)
+            ode.flux0)
 
-        @trixi_timeit timer() "Misc" ode.wOld.=semi.cache.var.w
+        @trixi_timeit timer() "Misc" ode.wOld .= semi.cache.var.w
 
         momentumPredictor!(semi, ode, 0.5 * dt, "rhs", "impl", RKStage, 2)
 
