@@ -1,9 +1,9 @@
-function setBoundary!(semi)
+function setBoundary!(model::Model)
     @trixi_timeit timer() "Set boundary" begin
     #! format: noindent
-    setBoundary_x!(semi, semi.boundary_conditions.boundary_x)
-    setBoundary_y!(semi, semi.boundary_conditions.boundary_y)
-    setBoundary_z!(semi, semi.boundary_conditions.boundary_z)
+    setBoundary_x!(model, model.grid.xboundary)
+    setBoundary_y!(model, model.grid.yboundary)
+    setBoundary_z!(model, model.grid.zboundary)
     end
 end
 
@@ -25,10 +25,10 @@ function setBoundary_flux!(semi)
     flux.w[:, :, nz, 3] .= 0.0
 end
 
-function setBoundary_x!(semi, boundary::PeriodicBC)
-    (; cache, grid) = semi
-    (; rho, rhop, u, v, w, exner) = cache.var
-    (; nx, nbx) = grid
+function setBoundary_x!(model, boundary::PeriodicBC)
+    # TODO: exner == pip?
+    (; rho, rhop, u, v, w, pip) = model.variables.prognostic_fields
+    (; nx, nbx) = model.domain
 
     for i in 1:nbx
         set_periodic_value_cell_x!(rho, i, nx)
@@ -44,24 +44,23 @@ function setBoundary_x!(semi, boundary::PeriodicBC)
     end
 
     # TODO: why are we not looping over x indices as for rho and rhop?
-    set_periodic_value_cell_x!(exner, 1, nx)
+    set_periodic_value_cell_x!(pip, 1, nx)
     ## Missing RhoTilde, but it should be removed according to PincFlow.f90
 end
 
 function set_periodic_value_cell_x!(var, i, nx)
-    @views var[nx + i, :, :] .= var[i, :, :]
-    @views var[-i + 1, :, :] .= var[nx - i + 1, :, :]
+    @views var[nx+i, :, :] .= var[i, :, :]
+    @views var[-i+1, :, :] .= var[nx-i+1, :, :]
 end
 
 function set_periodic_value_edge_x!(var, i, nx)
-    @views var[nx + i, :, :] .= var[i, :, :]
-    @views var[-i, :, :] .= var[nx - i, :, :]
+    @views var[nx+i, :, :] .= var[i, :, :]
+    @views var[-i, :, :] .= var[nx-i, :, :]
 end
 
-function setBoundary_y!(semi, boundary::PeriodicBC)
-    (; cache, grid) = semi
-    (; rho, rhop, u, v, w, exner) = cache.var
-    (; ny, nby) = grid
+function setBoundary_y!(model, boundary::PeriodicBC)
+    (; rho, rhop, u, v, w, pip) = model.variables.prognostic_fields
+    (; ny, nby) = model.domain
 
     for j in 1:nby
         set_periodic_value_cell_y!(rho, j, ny)
@@ -76,23 +75,22 @@ function setBoundary_y!(semi, boundary::PeriodicBC)
         set_periodic_value_cell_y!(w, j, ny)
     end
 
-    set_periodic_value_cell_y!(exner, 1, ny)
+    set_periodic_value_cell_y!(pip, 1, ny)
 end
 
 function set_periodic_value_cell_y!(var, j, ny)
-    @views var[:, ny + j, :] .= var[:, j, :]
-    @views var[:, -j + 1, :] .= var[:, ny - j + 1, :]
+    @views var[:, ny+j, :] .= var[:, j, :]
+    @views var[:, -j+1, :] .= var[:, ny-j+1, :]
 end
 
 function set_periodic_value_edge_y!(var, j, ny)
-    @views var[:, ny + j, :] .= var[:, j, :]
-    @views var[:, -j, :] .= var[:, ny - j, :]
+    @views var[:, ny+j, :] .= var[:, j, :]
+    @views var[:, -j, :] .= var[:, ny-j, :]
 end
 
-function setBoundary_z!(semi, boundary::PeriodicBC)
-    (; cache, grid) = semi
-    (; rho, rhop, u, v, w, exner) = cache.var
-    (; nz, nbz) = grid
+function setBoundary_z!(model, boundary::PeriodicBC)
+    (; rho, rhop, u, v, w, pip) = model.variables.prognostic_fields
+    (; nz, nbz) = model.domain
 
     # TODO: This should be improved...
 
@@ -109,17 +107,17 @@ function setBoundary_z!(semi, boundary::PeriodicBC)
         set_periodic_value_edge_z!(w, k, nz)
     end
 
-    set_periodic_value_cell_z!(exner, 1, nz)
+    set_periodic_value_cell_z!(pip, 1, nz)
 end
 
 function set_periodic_value_cell_z!(var, k, nz)
-    @views var[:, :, nz + k] .= var[:, :, k]
-    @views var[:, :, -k + 1] .= var[:, :, nz - k + 1]
+    @views var[:, :, nz+k] .= var[:, :, k]
+    @views var[:, :, -k+1] .= var[:, :, nz-k+1]
 end
 
 function set_periodic_value_edge_z!(var, k, nz)
-    @views var[:, :, nz + k] .= var[:, :, k]
-    @views var[:, :, -k] .= var[:, :, nz - k]
+    @views var[:, :, nz+k] .= var[:, :, k]
+    @views var[:, :, -k] .= var[:, :, nz-k]
 end
 
 function setBoundary_z!(semi, boundary::SolidWallBC)
@@ -147,24 +145,24 @@ end
 
 function set_reflective_value_cell_z!(var, k, nz)
     for i in axes(var, 1), j in axes(var, 2)
-        var[i, j, nz + k] = -var[i, j, nz - k + 1]
-        var[i, j, -k + 1] = -var[i, j, k]
+        var[i, j, nz+k] = -var[i, j, nz-k+1]
+        var[i, j, -k+1] = -var[i, j, k]
     end
 end
 
 function set_reflective_value_edge_z!(var, k, nz)
     for i in axes(var, 1), j in axes(var, 2)
-        var[i, j, nz + k] = -var[i, j, nz - k]
+        var[i, j, nz+k] = -var[i, j, nz-k]
         var[i, j, -k] = -var[i, j, k]
     end
 end
 
 function set_non_reflective_value_cell_z!(var, k, nz)
-    @views var[:, :, nz + k] .= var[:, :, nz - k + 1]
-    @views var[:, :, -k + 1] .= var[:, :, k]
+    @views var[:, :, nz+k] .= var[:, :, nz-k+1]
+    @views var[:, :, -k+1] .= var[:, :, k]
 end
 
 function set_non_reflective_value_edge_z!(var, k, nz)
-    @views var[:, :, nz + k] .= var[:, :, nz - k]
+    @views var[:, :, nz+k] .= var[:, :, nz-k]
     @views var[:, :, -k] .= var[:, :, k]
 end

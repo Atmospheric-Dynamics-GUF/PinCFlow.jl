@@ -1,18 +1,49 @@
 global zBoundary = "solid_wall" # TODO - Fix this
 
 # VERY HACKY THING - TO BE FIXED BY DEVELOPING MY OWN Array type
+# JR: Why not use arr[]?
 using OffsetArrays
 using LinearAlgebra
 @inline (arr::Base.Array)(indices...) = arr[indices...]
 @inline (arr::OffsetArrays.OffsetArray)(indices...) = arr[indices...]
 
-function Corrector(semi, dt, errFlagBicg, nIter, opt, facray, facprs)
+
+"""
+Linear operator for the Poisson equation.
+"""
+struct PoissonOperator
+    # TODO generic over field type
+    op_fields::NamedTuple
+    cache::NamedTuple
+end
+
+function PoissonOperator(pars::Parameters)
+    nx, ny, nz = pars.domain.sizex, pars.domain.sizey, pars.domain.sizez
+    # TODO: good name for these
+    el_names = (:ac_b, :acv_b, :ach_b, :al_b, :ar_b, :ab_b, :af_b,
+        :ad_b, :au_b, :aru_b, :ard_b, :alu_b, :ald_b, :afu_b,
+        :afd_b, :abu_b, :abd_b, :auu_b, :add_b, :aruu_b, :ardd_b,
+        :aluu_b, :aldd_b, :afuu_b, :afdd_b, :abuu_b, :abdd_b,
+    )
+    elements = NamedTuple{el_names}(Array{Float64,3}(undef, nx, ny, nz) for _ in el_names)
+    cache_vars = (:p, :r0, :rOld, :r, :s, :b, :t, :v, :rhs_bigc, :sol, :v_pc, :matVec, :s_pc, :q_pc, :p_pc)
+    cache = NamedTuple{cache_vars}(Array{Float64,3}(undef, nx, ny, nz) for _ in cache_vars)
+    r_vm = zeros(nx, ny)
+    s_aux_field_lin_opr_ = zeros(nx + 2, ny + 2, nz + 2)
+    s_aux_field_lin_opr = OffsetArray(s_aux_field_lin_opr_, 0:(nx+1), 0:(ny+1),
+        0:(nz+1))
+    cache = merge(cache, [:r_vm => r_vm, :s_aux_field_lin_opr => s_aux_field_lin_opr])
+    return PoissonOperator(elements, cache)
+end
+
+function Corrector(model, dt, errFlagBicg, nIter, opt, facray, facprs)
     @trixi_timeit timer() "Corrector" begin
     #! format: noindent
-    (; cache, grid) = semi
-    (; var, flux, jac, rhs_bicg) = cache
-    (; nx, ny, nz) = grid
-
+    (; variables, grid) = model
+    (; nx, ny, nz) = model.domain
+    jac = grid.jac
+    flux = model.fluxes
+    var = model.variables
     # -------------------------------------------------
     #              Correct uStar, bStar, and p
     # -------------------------------------------------
@@ -45,30 +76,30 @@ function Corrector(semi, dt, errFlagBicg, nIter, opt, facray, facprs)
     # real, dimension[1:nx, 1:ny, 1:nz]::rhs # RHS
 
     # calculate RHS
-    calc_RHS(rhs_bicg, semi, dt)
+    calc_RHS(model.operator.cache.rhs_bigc, model, dt)
 
     # @assert false rhs
 
     # calculate dp
-    poissonSolver(rhs_bicg, semi, dt, errFlagBicg, nIter, opt, facray, facprs)
+    poissonSolver(model.operator.cache.rhs_bigc, model, dt, errFlagBicg, nIter, opt, facray, facprs)
 
     if (errFlagBicg)
         return
     end
 
     # set horizontal and vertical BC for dp
-    pressureBoundaryCondition(semi)
+    pressureBoundaryCondition(model)
 
     # correct p, rhopStar, and uStar with dp
-    correctorStep(semi, dt, opt, facray, facprs)
+    correctorStep(model, dt, opt, facray, facprs)
     end # timer
 end
 
-function preCond(sIn, sOut, opt, semi)
-    (; cache, grid, parameters) = semi
-    (; nx, ny, nz, dx, dy) = grid
-    (; au_b, ac_b, ad_b, s_pc, q_pc, p_pc) = cache
-    (; preconditioner) = parameters
+function preCond(sIn, sOut, opt, model)
+    (; nx, ny, nz) = model.domain
+    (; dx, dy) = model.grid
+    (; au_b, ac_b, ad_b) = model.operator.op_fields
+    (; s_pc, q_pc, p_pc) = model.operator.cache
 
     # --------------------------------------
     #   preconditioner for BiCGStab
@@ -114,7 +145,7 @@ function preCond(sIn, sOut, opt, semi)
             s_pc .= sIn
         else
             # Treat all diagonal elements implicitly.
-            linOpr(s_pc, q_pc, opt, "hnd", semi)
+            linOpr(s_pc, q_pc, opt, "hnd", model)
 
             @. s_pc = s_pc + deta * (q_pc - sIn)
         end
@@ -154,7 +185,7 @@ function preCond(sIn, sOut, opt, semi)
                     else
                         # Treat all diagonal elements implicitly.
                         p_pc[i, j] = 1.0 / (1.0 - deta * ac_b[i, j, k] -
-                                      deta * ad_b[i, j, k] * q_pc(i, j, k - 1))
+                                            deta * ad_b[i, j, k] * q_pc(i, j, k - 1))
 
                         q_pc[i, j, k] = deta * au_b[i, j, k] * p_pc[i, j]
 
@@ -168,7 +199,7 @@ function preCond(sIn, sOut, opt, semi)
 
         # backward pass
 
-        for k in (nz - 1):-1:1
+        for k in (nz-1):-1:1
             for j in 1:ny
                 for i in 1:nx
                     s_pc[i, j, k] = s_pc[i, j, k] + q_pc[i, j, k] * s_pc(i, j, k + 1)
@@ -184,16 +215,14 @@ function preCond(sIn, sOut, opt, semi)
     return
 end
 
-function linOpr(sIn, Ls, opt, hortot, semi)
-    (; grid, equations, cache) = semi
-    (; model) = equations
-    (; nx, ny, nz) = grid
+function linOpr(sIn, Ls, opt, hortot, model)
+    (; nx, ny, nz) = model.domain
 
-    (; ac_b, acv_b, ach_b, al_b, ar_b, ab_b, af_b, ad_b, au_b, aru_b, ard_b, alu_b) = cache
-    (; ald_b, afu_b, afd_b, abu_b, abd_b, auu_b, add_b, aruu_b, ardd_b, aluu_b) = cache
-    (; aldd_b, afuu_b, afdd_b, abuu_b, abdd_b) = cache
+    (; ac_b, acv_b, ach_b, al_b, ar_b, ab_b, af_b, ad_b, au_b, aru_b, ard_b, alu_b) = model.operator.op_fields
+    (; ald_b, afu_b, afd_b, abu_b, abd_b, auu_b, add_b, aruu_b, ardd_b, aluu_b) = model.operator.op_fields
+    (; aldd_b, afuu_b, afdd_b, abuu_b, abdd_b) = model.operator.op_fields
 
-    s = cache.s_aux_field_lin_opr
+    s = model.operator.cache.s_aux_field_lin_opr
 
     # --------------------------------------
     #   Linear Operator in Poisson problem
@@ -253,7 +282,7 @@ function linOpr(sIn, Ls, opt, hortot, semi)
     # if (idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
     # if (jdim > 1) call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
 
-    if model == "pseudo_incompressible"
+    if model.parameters.model.model == "pseudo_incompressible"
 
         #----------------------------
         #   set Halo cells: xSlice
@@ -289,7 +318,7 @@ function linOpr(sIn, Ls, opt, hortot, semi)
         #     s[0, :, :] = xSliceLeft_recv[:, :]
         #   else
         @. s[0, :, :] = s[nx, :, :]
-        @. s[nx + 1, :, :] = s[1, :, :]
+        @. s[nx+1, :, :] = s[1, :, :]
         #   end
 
         #------------------------------
@@ -326,7 +355,7 @@ function linOpr(sIn, Ls, opt, hortot, semi)
         #     s[:, 0, :] = ySliceBack_recv[:, :]
         #   else
         @. s[:, 0, :] = s[:, ny, :]
-        @. s[:, ny + 1, :] = s[:, 1, :]
+        @. s[:, ny+1, :] = s[:, 1, :]
         #   end
 
         #---------------------------------
@@ -340,7 +369,7 @@ function linOpr(sIn, Ls, opt, hortot, semi)
                     # ------------------ A(i+1,j,k) ------------------
 
                     AR = ar_b[i, j, k]
-                    sR = s[i + 1, j, k]
+                    sR = s[i+1, j, k]
 
                     # ------------------- A(i-1,j,k) --------------------
 
@@ -613,14 +642,10 @@ function linOpr(sIn, Ls, opt, hortot, semi)
     end
 end
 
-function calc_RHS(b, semi, dt)
-    (; cache, grid, equations) = semi
-    (; var, flux, pStrat, rhoStrat, jac) = cache
-    (; nx, ny, nz, dx, dy, dz) = grid
-    (; model, Ma, kappa) = equations
+function calc_RHS(b, model, dt)
 
     # TODO - These are not used
-    sum_local, sum_global = cache.sum_local_bicg, cache.sum_global_bicg
+    # sum_local, sum_global = cache.sum_local_bicg, cache.sum_global_bicg
     #----------------------------------------
     #   calculates the RHS of the
     #   Poisson problem
@@ -665,14 +690,21 @@ function calc_RHS(b, semi, dt)
     divL2_norm = 0.0
     divL2_norm_local = 0.0
 
-    if model == "pseudo_incompressible"
+    var = model.variables.prognostic_fields
+    (; grid) = model
+    (; nx, ny, nz) = model.domain
+    (; jac, dx, dy, dz) = model.grid
+    (; pstrattfc, rhostrattfc) = model.atmosphere
 
+    c = model.constants
+
+    if model.parameters.model.model == "pseudo_incompressible"
         # Calculate RHS for TFC.
         for k in 1:nz
             for j in 1:ny
                 for i in 1:nx
                     # Calculate scaling factor.
-                    fcscal = sqrt(pStrat[i, j, k]^2.0 / rhoStrat[i, j, k])
+                    fcscal = sqrt(pstrattfc[i, j, k]^2.0 / rhostrattfc[i, j, k])
                     # Store velocities at cell edges.
                     uR = var.u[i, j, k]
                     uL = var.u(i - 1, j, k)
@@ -681,26 +713,26 @@ function calc_RHS(b, semi, dt)
                     wU = var.w[i, j, k]
                     wD = var.w(i, j, k - 1)
                     # Calculate P at cell edges.
-                    pEdgeR = 0.5 * (jac[i, j, k] * pStrat[i, j, k] +
-                              jac[i + 1, j, k] * pStrat[i + 1, j, k])
-                    pEdgeL = 0.5 * (jac[i, j, k] * pStrat[i, j, k] +
-                              jac(i - 1, j, k) * pStrat(i - 1, j, k))
-                    pEdgeF = 0.5 * (jac[i, j, k] * pStrat[i, j, k] +
-                              jac(i, j + 1, k) * pStrat(i, j + 1, k))
-                    pEdgeB = 0.5 * (jac[i, j, k] * pStrat[i, j, k] +
-                              jac(i, j - 1, k) * pStrat(i, j - 1, k))
+                    pEdgeR = 0.5 * (jac[i, j, k] * pstrattfc[i, j, k] +
+                                    jac[i+1, j, k] * pstrattfc[i+1, j, k])
+                    pEdgeL = 0.5 * (jac[i, j, k] * pstrattfc[i, j, k] +
+                                    jac(i - 1, j, k) * pstrattfc(i - 1, j, k))
+                    pEdgeF = 0.5 * (jac[i, j, k] * pstrattfc[i, j, k] +
+                                    jac(i, j + 1, k) * pstrattfc(i, j + 1, k))
+                    pEdgeB = 0.5 * (jac[i, j, k] * pstrattfc[i, j, k] +
+                                    jac(i, j - 1, k) * pstrattfc(i, j - 1, k))
                     pEdgeU = jac[i, j, k] *
                              jac(i, j, k + 1) *
-                             (pStrat[i, j, k] + pStrat(i, j, k + 1)) /
+                             (pstrattfc[i, j, k] + pstrattfc(i, j, k + 1)) /
                              (jac[i, j, k] + jac(i, j, k + 1))
                     pEdgeD = jac[i, j, k] *
                              jac(i, j, k - 1) *
-                             (pStrat[i, j, k] + pStrat(i, j, k - 1)) /
+                             (pstrattfc[i, j, k] + pstrattfc(i, j, k - 1)) /
                              (jac[i, j, k] + jac(i, j, k - 1))
                     # Compute RHS.
-                    bu = (pEdgeR * uR - pEdgeL * uL) / dx / jac[i, j, k] * Ma^2.0 * kappa
-                    bv = (pEdgeF * vF - pEdgeB * vB) / dy / jac[i, j, k] * Ma^2.0 * kappa
-                    bw = (pEdgeU * wU - pEdgeD * wD) / dz / jac[i, j, k] * Ma^2.0 * kappa
+                    bu = (pEdgeR * uR - pEdgeL * uL) / dx / jac[i, j, k] * c.ma^2.0 * c.kappa
+                    bv = (pEdgeF * vF - pEdgeB * vB) / dy / jac[i, j, k] * c.ma^2.0 * c.kappa
+                    bw = (pEdgeU * wU - pEdgeD * wD) / dz / jac[i, j, k] * c.ma^2.0 * c.kappa
                     divSum_local = divSum_local + bu + bv + bw
                     bu = bu / fcscal
                     bv = bv / fcscal
@@ -762,15 +794,10 @@ function calc_RHS(b, semi, dt)
     end
 end
 
-function poissonSolver(b, semi, dt, errFlagBicg, nIter, opt, facray, facprs)
-    (; cache, grid, equations) = semi
-    (; var) = cache
-    (; rhoStrat, pStrat, dp) = cache
-    (; nx, ny, nz) = grid
-    (; model) = equations
-
-    sol = cache.sol_bicg
-
+function poissonSolver(b, model, dt, errFlagBicg, nIter, opt, facray, facprs)
+    (; nx, ny, nz) = model.domain
+    # TODO: save on PoissonSolver
+    sol = zeros(nx, ny, nz)
     # -------------------------------------------------
     # solves the Poisson problem with
     # application of linear operator L
@@ -822,25 +849,24 @@ function poissonSolver(b, semi, dt, errFlagBicg, nIter, opt, facray, facprs)
     #     solve for dt * dp ...
     #--------------------------------
 
-    sol .= 0.0
-
-    if model == "pseudo_incompressible"
-        val_PsIn(semi, dt, opt, facray)
+    if model.parameters.model.model == "pseudo_incompressible"
+        val_PsIn(model, dt, opt, facray)
     else
         @assert false "linOpr: unknown case model"
     end
 
-    bicgstab(b, dt, semi, sol, nIter, errFlagBicg, opt)
+    bicgstab(b, dt, model, sol, nIter, errFlagBicg, opt)
 
     if (errFlagBicg)
         return
     end
 
-    if model == "pseudo_incompressible"
+    if model.parameters.model.model == "pseudo_incompressible"
+        (; pstrattfc, rhostrattfc) = model.atmosphere
         for k in 1:nz
             for j in 1:ny
                 for i in 1:nx
-                    fcscal = sqrt(pStrat[i, j, k]^2 / rhoStrat[i, j, k])
+                    fcscal = sqrt(pstrattfc[i, j, k]^2 / rhostrattfc[i, j, k])
                     sol[i, j, k] = sol[i, j, k] / fcscal
                 end
             end
@@ -849,15 +875,14 @@ function poissonSolver(b, semi, dt, errFlagBicg, nIter, opt, facray, facprs)
 
     # now get dp from dt * dp ...
     # pass solution to pressure corrector
-    @. dp[1:nx, 1:ny, 1:nz] .= dtInv / facprs * sol
+    @. model.atmosphere.dp[1:nx, 1:ny, 1:nz] .= dtInv / facprs * sol
 end
 
-function bicgstab(b_in, dt, semi, sol, nIter, errFlag, opt)
-    (; cache, grid, equations, parameters) = semi
-    (; matVec, v_pc, r_vm) = cache
-    (; maxIter, tolcrit, tolPoisson, tolref, preconditioner) = parameters
-    maxIterPoisson = maxIter
-    (; nx, ny, nz) = grid
+function bicgstab(b_in, dt, model, sol, nIter, errFlag, opt)
+    (; grid, parameters) = model
+    (; matVec, v_pc, r_vm) = model.operator.cache
+    (; tolcrit, tolpoisson, tolref, preconditioner) = parameters.poisson
+    (; nx, ny, nz) = model.domain
 
     # --------------------------------------
     #    BiCGStab using linear operator
@@ -914,7 +939,6 @@ function bicgstab(b_in, dt, semi, sol, nIter, errFlag, opt)
     sol .= 0.0 # It was = 0.0 in fortran
 
     # Set parameters
-    maxIt = maxIterPoisson
 
     # modified convergence criterion so that iterations stop when either
     # (a) tolcrit = abs  =>  |Ax - b| < eps b_*
@@ -925,21 +949,22 @@ function bicgstab(b_in, dt, semi, sol, nIter, errFlag, opt)
     # hypre has the criterion |Ax - b| < tol * |b|, hence, with
     # tolref = divL2/divL2_norm = |b|/b_*
 
-    p = cache.p_bicg
-    r0 = cache.r0_bicg
-    rOld = cache.rOld_bicg
-    r = cache.r_bicg
-    s = cache.s_bicg
-    b = cache.b_bicg
-    t = cache.t_bicg
-    v = cache.v_bicg
-    matVec = cache.matVec_bicg
-    v_pc = cache.v_pc_bicg
+    cache = model.operator.cache
+    p = cache.p
+    r0 = cache.r0
+    rOld = cache.rOld
+    r = cache.r
+    s = cache.s
+    b = cache.b
+    t = cache.t
+    v = cache.v
+    matVec = cache.matVec
+    v_pc = cache.v_pc
 
     if (tolcrit == "abs")
-        tol = tolPoisson / tolref
+        tol = tolpoisson / tolref
     elseif (tolcrit == "rel")
-        tol = tolPoisson
+        tol = tolpoisson
     end
 
     # error flag
@@ -947,7 +972,7 @@ function bicgstab(b_in, dt, semi, sol, nIter, errFlag, opt)
 
     b .= b_in
 
-    linOpr(sol, matVec, opt, "tot", semi)
+    linOpr(sol, matVec, opt, "tot", model)
     # @assert false matVec[150, 1, 1],sol[150,1,1],b[150,1,1]
     r0 .= b - matVec
     p .= r0
@@ -1010,12 +1035,12 @@ function bicgstab(b_in, dt, semi, sol, nIter, errFlag, opt)
 
     # Loop
 
-    for j_b in 1:maxIt
+    for j_b in 1:model.parameters.poisson.maxiter
 
         # @assert false p[150, 1, 1]
         # v = A*p
         if (preconditioner == "yes")
-            preCond(p, v_pc, opt, semi)
+            preCond(p, v_pc, opt, model)
         else
             v_pc .= p
         end
@@ -1196,7 +1221,7 @@ function pressureBoundaryCondition(semi)
     # else
 
     @. dp[0, :, :] = dp[nx, :, :]
-    @. dp[nx + 1, :, :] = dp[1, :, :]
+    @. dp[nx+1, :, :] = dp[1, :, :]
 
     # end
 
@@ -1238,7 +1263,7 @@ function pressureBoundaryCondition(semi)
     # else
 
     @. dp[:, 0, :] = dp[:, ny, :]
-    @. dp[:, ny + 1, :] = dp[:, 1, :]
+    @. dp[:, ny+1, :] = dp[:, 1, :]
 
     # end
 
@@ -1248,7 +1273,7 @@ function pressureBoundaryCondition(semi)
 
     if zBoundary == "solid_wall"
         @. dp[:, :, 0] = dp[:, :, 1]
-        @. dp[:, :, nz + 1] = dp[:, :, nz]
+        @. dp[:, :, nz+1] = dp[:, :, nz]
     else
         @assert false "pressureBoundaryCondition: unknown case zBoundary."
     end
@@ -1256,7 +1281,7 @@ end
 
 function correctorStep(semi, dt, opt, facray, facprs)
     (; cache, grid, met, equations, spongeLayer, sponge_uv) = semi
-    (; var, dp, rhoStrat, pStrat, jac, bvsStrat, kr_sp_tfc, kr_sp_w_tfc, corX, corY) = cache
+    (; var, dp, rhostrattfc, pstrattfc, jac, bvsStrat, kr_sp_tfc, kr_sp_w_tfc, corX, corY) = cache
     (; nx, ny, nz, dx, dy, dz) = grid
     (; kappaInv, MaInv2, g_ndim) = equations
 
@@ -1297,7 +1322,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
 
     # real :: rhow0, rhowm
 
-    # real :: rhoStratEdgeU
+    # real :: rhostrattfcEdgeU
     # real :: pEdgeR, pEdgeF, pEdgeU, pEdgeD
     # real :: dpEdgeR, dpUEdgeR, dpUUEdgeR, dpDEdgeR, dpDDEdgeR, dpEdgeF, dpUEdgeF, dpUUEdgeF, dpDEdgeF, dpDDEdgeF, dpREdgeU, dpLEdgeU, dpFEdgeU, dpBEdgeU, dpREdgeD, dpLEdgeD, dpFEdgeD, dpBEdgeD
     # real :: met13EdgeR, met23EdgeF, met13EdgeU, met23EdgeU, met33EdgeU, met13EdgeD, met23EdgeD, met33EdgeD
@@ -1310,10 +1335,10 @@ function correctorStep(semi, dt, opt, facray, facprs)
     #             calc p + dp
     # --------------------------------------
 
-    @. var.exner[0:(nx + 1), 0:(ny + 1), 0:(nz + 1)] = var.exner[0:(nx + 1), 0:(ny + 1),
-                                                                 0:(nz + 1)] +
-                                                       dp[0:(nx + 1), 0:(ny + 1),
-                                                          0:(nz + 1)]
+    @. var.exner[0:(nx+1), 0:(ny+1), 0:(nz+1)] = var.exner[0:(nx+1), 0:(ny+1),
+        0:(nz+1)] +
+                                                 dp[0:(nx+1), 0:(ny+1),
+        0:(nz+1)]
 
     if (opt == "impl")
         @. kr_sp_tfc = kr_sp_tfc * facray
@@ -1332,36 +1357,36 @@ function correctorStep(semi, dt, opt, facray, facprs)
 
                     if (spongeLayer && sponge_uv)
                         facu = facu +
-                               dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k])
+                               dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc[i+1, j, k])
                     end
 
                     facv = facu
 
                     # Compute values at cell edges.
                     rhou = 0.5 * (var.rho[i, j, k] +
-                            var.rho[i + 1, j, k] +
-                            rhoStrat[i, j, k] +
-                            rhoStrat[i + 1, j, k])
-                    pEdgeR = 0.5 * (pStrat[i, j, k] + pStrat[i + 1, j, k])
+                                  var.rho[i+1, j, k] +
+                                  rhostrattfc[i, j, k] +
+                                  rhostrattfc[i+1, j, k])
+                    pEdgeR = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i+1, j, k])
                     met13EdgeR = 0.5 * (met(i, j, k, 1, 3) + met(i + 1, j, k, 1, 3))
                     # Compute pressure difference gradient component.
                     if (k == 1 && zBoundary == "solid_wall")
                         dpUUEdgeR = 0.5 * (dp(i, j, k + 2) + dp(i + 1, j, k + 2))
                         dpUEdgeR = 0.5 * (dp(i, j, k + 1) + dp(i + 1, j, k + 1))
-                        dpEdgeR = 0.5 * (dp[i, j, k] + dp[i + 1, j, k])
+                        dpEdgeR = 0.5 * (dp[i, j, k] + dp[i+1, j, k])
                         pGradX = kappaInv * MaInv2 / rhou *
                                  pEdgeR *
-                                 ((dp[i + 1, j, k] - dp[i, j, k]) / dx +
+                                 ((dp[i+1, j, k] - dp[i, j, k]) / dx +
                                   met13EdgeR *
                                   (-dpUUEdgeR + 4.0 * dpUEdgeR - 3.0 * dpEdgeR) *
                                   0.5 / dz)
                     elseif (k == nz && zBoundary == "solid_wall")
                         dpDDEdgeR = 0.5 * (dp(i, j, k - 2) + dp(i + 1, j, k - 2))
                         dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
-                        dpEdgeR = 0.5 * (dp[i, j, k] + dp[i + 1, j, k])
+                        dpEdgeR = 0.5 * (dp[i, j, k] + dp[i+1, j, k])
                         pGradX = kappaInv * MaInv2 / rhou *
                                  pEdgeR *
-                                 ((dp[i + 1, j, k] - dp[i, j, k]) / dx +
+                                 ((dp[i+1, j, k] - dp[i, j, k]) / dx +
                                   met13EdgeR *
                                   (dpDDEdgeR - 4.0 * dpDEdgeR + 3.0 * dpEdgeR) *
                                   0.5 / dz)
@@ -1370,7 +1395,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                         dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
                         pGradX = kappaInv * MaInv2 / rhou *
                                  pEdgeR *
-                                 ((dp[i + 1, j, k] - dp[i, j, k]) / dx +
+                                 ((dp[i+1, j, k] - dp[i, j, k]) / dx +
                                   met13EdgeR * (dpUEdgeR - dpDEdgeR) * 0.5 / dz)
                     end
                     # Compute velocity correction.
@@ -1390,30 +1415,30 @@ function correctorStep(semi, dt, opt, facray, facprs)
                 for i in 0:nx
                     # Compute values at cell edges.
                     rhou = 0.5 * (var.rho[i, j, k] +
-                            var.rho[i + 1, j, k] +
-                            rhoStrat[i, j, k] +
-                            rhoStrat[i + 1, j, k])
-                    pEdgeR = 0.5 * (pStrat[i, j, k] + pStrat[i + 1, j, k])
+                                  var.rho[i+1, j, k] +
+                                  rhostrattfc[i, j, k] +
+                                  rhostrattfc[i+1, j, k])
+                    pEdgeR = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i+1, j, k])
                     met13EdgeR = 0.5 * (met(i, j, k, 1, 3) + met(i + 1, j, k, 1, 3))
                     # Compute pressure difference gradient component.
                     # zBoundary = "solid_wall" # TODO - SERIOUS ISSUE. TREAT URGENTLY!
                     if (k == 1 && zBoundary == "solid_wall")
                         dpUUEdgeR = 0.5 * (dp(i, j, k + 2) + dp(i + 1, j, k + 2))
                         dpUEdgeR = 0.5 * (dp(i, j, k + 1) + dp(i + 1, j, k + 1))
-                        dpEdgeR = 0.5 * (dp[i, j, k] + dp[i + 1, j, k])
+                        dpEdgeR = 0.5 * (dp[i, j, k] + dp[i+1, j, k])
                         pGradX = kappaInv * MaInv2 / rhou *
                                  pEdgeR *
-                                 ((dp[i + 1, j, k] - dp[i, j, k]) / dx +
+                                 ((dp[i+1, j, k] - dp[i, j, k]) / dx +
                                   met13EdgeR *
                                   (-dpUUEdgeR + 4.0 * dpUEdgeR - 3.0 * dpEdgeR) *
                                   0.5 / dz)
                     elseif (k == nz && zBoundary == "solid_wall")
                         dpDDEdgeR = 0.5 * (dp(i, j, k - 2) + dp(i + 1, j, k - 2))
                         dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
-                        dpEdgeR = 0.5 * (dp[i, j, k] + dp[i + 1, j, k])
+                        dpEdgeR = 0.5 * (dp[i, j, k] + dp[i+1, j, k])
                         pGradX = kappaInv * MaInv2 / rhou *
                                  pEdgeR *
-                                 ((dp[i + 1, j, k] - dp[i, j, k]) / dx +
+                                 ((dp[i+1, j, k] - dp[i, j, k]) / dx +
                                   met13EdgeR *
                                   (dpDDEdgeR - 4.0 * dpDEdgeR + 3.0 * dpEdgeR) *
                                   0.5 / dz)
@@ -1422,7 +1447,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                         dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
                         pGradX = kappaInv * MaInv2 / rhou *
                                  pEdgeR *
-                                 ((dp[i + 1, j, k] - dp[i, j, k]) / dx +
+                                 ((dp[i+1, j, k] - dp[i, j, k]) / dx +
                                   met13EdgeR * (dpUEdgeR - dpDEdgeR) * 0.5 / dz)
                     end
 
@@ -1455,10 +1480,10 @@ function correctorStep(semi, dt, opt, facray, facprs)
 
                     # Compute values at cell edges.
                     rhov = 0.5 * (var.rho[i, j, k] +
-                            var.rho(i, j + 1, k) +
-                            rhoStrat[i, j, k] +
-                            rhoStrat(i, j + 1, k))
-                    pEdgeF = 0.5 * (pStrat[i, j, k] + pStrat(i, j + 1, k))
+                                  var.rho(i, j + 1, k) +
+                                  rhostrattfc[i, j, k] +
+                                  rhostrattfc(i, j + 1, k))
+                    pEdgeF = 0.5 * (pstrattfc[i, j, k] + pstrattfc(i, j + 1, k))
                     met23EdgeF = 0.5 * (met(i, j, k, 2, 3) + met(i, j + 1, k, 2, 3))
                     # Compute pressure difference gradient component.
                     if (k == 1 && zBoundary == "solid_wall")
@@ -1506,10 +1531,10 @@ function correctorStep(semi, dt, opt, facray, facprs)
                 for i in 1:nx
                     # Compute values at cell edges.
                     rhov = 0.5 * (var.rho[i, j, k] +
-                            var.rho(i, j + 1, k) +
-                            rhoStrat[i, j, k] +
-                            rhoStrat(i, j + 1, k))
-                    pEdgeF = 0.5 * (pStrat[i, j, k] + pStrat(i, j + 1, k))
+                                  var.rho(i, j + 1, k) +
+                                  rhostrattfc[i, j, k] +
+                                  rhostrattfc(i, j + 1, k))
+                    pEdgeF = 0.5 * (pstrattfc[i, j, k] + pstrattfc(i, j + 1, k))
                     met23EdgeF = 0.5 * (met(i, j, k, 2, 3) + met(i, j + 1, k, 2, 3))
                     # Compute pressure difference gradient component.
                     # zBoundary = "solid_wall" # TODO - SERIOUS ISSUE. TREAT URGENTLY!
@@ -1573,19 +1598,19 @@ function correctorStep(semi, dt, opt, facray, facprs)
                     if (spongeLayer)
                         facw = facw +
                                dt * (jac(i, j, k + 1) * kr_sp_w_tfc[i, j, k] +
-                                jac[i, j, k] * kr_sp_w_tfc(i, j, k + 1)) /
+                                     jac[i, j, k] * kr_sp_w_tfc(i, j, k + 1)) /
                                (jac[i, j, k] + jac(i, j, k + 1))
                     end
 
                     # Compute values at cell edges.
-                    rhoStratEdgeU = (jac(i, j, k + 1) * rhoStrat[i, j, k] +
-                                     jac[i, j, k] * rhoStrat(i, j, k + 1)) /
-                                    (jac[i, j, k] + jac(i, j, k + 1))
+                    rhostrattfcEdgeU = (jac(i, j, k + 1) * rhostrattfc[i, j, k] +
+                                        jac[i, j, k] * rhostrattfc(i, j, k + 1)) /
+                                       (jac[i, j, k] + jac(i, j, k + 1))
                     rhoEdge = (jac(i, j, k + 1) * var.rho[i, j, k] +
                                jac[i, j, k] * var.rho(i, j, k + 1)) /
-                              (jac[i, j, k] + jac(i, j, k + 1)) + rhoStratEdgeU
-                    pEdgeU = (jac(i, j, k + 1) * pStrat[i, j, k] +
-                              jac[i, j, k] * pStrat(i, j, k + 1)) /
+                              (jac[i, j, k] + jac(i, j, k + 1)) + rhostrattfcEdgeU
+                    pEdgeU = (jac(i, j, k + 1) * pstrattfc[i, j, k] +
+                              jac[i, j, k] * pstrattfc(i, j, k + 1)) /
                              (jac[i, j, k] + jac(i, j, k + 1))
                     bvsstw = (jac(i, j, k + 1) * bvsStrat[i, j, k] +
                               jac[i, j, k] * bvsStrat(i, j, k + 1)) /
@@ -1599,9 +1624,9 @@ function correctorStep(semi, dt, opt, facray, facprs)
                     met33EdgeU = (jac(i, j, k + 1) * met(i, j, k, 3, 3) +
                                   jac[i, j, k] * met(i, j, k + 1, 3, 3)) /
                                  (jac[i, j, k] + jac(i, j, k + 1))
-                    dpREdgeU = (jac(i + 1, j, k + 1) * dp[i + 1, j, k] +
-                                jac[i + 1, j, k] * dp(i + 1, j, k + 1)) /
-                               (jac[i + 1, j, k] + jac(i + 1, j, k + 1))
+                    dpREdgeU = (jac(i + 1, j, k + 1) * dp[i+1, j, k] +
+                                jac[i+1, j, k] * dp(i + 1, j, k + 1)) /
+                               (jac[i+1, j, k] + jac(i + 1, j, k + 1))
                     dpLEdgeU = (jac(i - 1, j, k + 1) * dp(i - 1, j, k) +
                                 jac(i - 1, j, k) * dp(i - 1, j, k + 1)) /
                                (jac(i - 1, j, k) + jac(i - 1, j, k + 1))
@@ -1618,10 +1643,10 @@ function correctorStep(semi, dt, opt, facray, facprs)
                               met23EdgeU * (dpFEdgeU - dpBEdgeU) * 0.5 / dy +
                               met33EdgeU * (dp(i, j, k + 1) - dp[i, j, k]) / dz)
                     # Compute velocity correction.
-                    dw = -facprs * dt / (facw + rhoStratEdgeU / rhoEdge * bvsstw * dt^2.0) *
+                    dw = -facprs * dt / (facw + rhostrattfcEdgeU / rhoEdge * bvsstw * dt^2.0) *
                          pGradZ -
-                         1.0 / (facw + rhoStratEdgeU / rhoEdge * bvsstw * dt^2.0) *
-                         rhoStratEdgeU / rhoEdge *
+                         1.0 / (facw + rhostrattfcEdgeU / rhoEdge * bvsstw * dt^2.0) *
+                         rhostrattfcEdgeU / rhoEdge *
                          bvsstw *
                          dt^2.0 *
                          0.5 *
@@ -1629,9 +1654,9 @@ function correctorStep(semi, dt, opt, facray, facprs)
                           (met(i, j, k, 1, 3) * (corX[i, j, k] + corX(i - 1, j, k)) +
                            met(i, j, k, 2, 3) * (corY[i, j, k] + corY(i, j - 1, k))) +
                           jac[i, j, k] * (met(i, j, k + 1, 1, 3) *
-                           (corX(i, j, k + 1) + corX(i - 1, j, k + 1)) +
-                           met(i, j, k + 1, 2, 3) *
-                           (corY(i, j, k + 1) + corY(i, j - 1, k + 1)))) /
+                                          (corX(i, j, k + 1) + corX(i - 1, j, k + 1)) +
+                                          met(i, j, k + 1, 2, 3) *
+                                          (corY(i, j, k + 1) + corY(i, j - 1, k + 1)))) /
                          (jac[i, j, k] + jac(i, j, k + 1))
 
                     var.w[i, j, k] = var.w[i, j, k] + dw
@@ -1647,14 +1672,14 @@ function correctorStep(semi, dt, opt, facray, facprs)
             for j in 1:ny
                 for i in 1:nx
                     # Compute values at cell edges.
-                    rhoStratEdgeU = (jac(i, j, k + 1) * rhoStrat[i, j, k] +
-                                     jac[i, j, k] * rhoStrat(i, j, k + 1)) /
-                                    (jac[i, j, k] + jac(i, j, k + 1))
+                    rhostrattfcEdgeU = (jac(i, j, k + 1) * rhostrattfc[i, j, k] +
+                                        jac[i, j, k] * rhostrattfc(i, j, k + 1)) /
+                                       (jac[i, j, k] + jac(i, j, k + 1))
                     rhoEdge = (jac(i, j, k + 1) * var.rho[i, j, k] +
                                jac[i, j, k] * var.rho(i, j, k + 1)) /
-                              (jac[i, j, k] + jac(i, j, k + 1)) + rhoStratEdgeU
-                    pEdgeU = (jac(i, j, k + 1) * pStrat[i, j, k] +
-                              jac[i, j, k] * pStrat(i, j, k + 1)) /
+                              (jac[i, j, k] + jac(i, j, k + 1)) + rhostrattfcEdgeU
+                    pEdgeU = (jac(i, j, k + 1) * pstrattfc[i, j, k] +
+                              jac[i, j, k] * pstrattfc(i, j, k + 1)) /
                              (jac[i, j, k] + jac(i, j, k + 1))
                     bvsstw = (jac(i, j, k + 1) * bvsStrat[i, j, k] +
                               jac[i, j, k] * bvsStrat(i, j, k + 1)) /
@@ -1668,9 +1693,9 @@ function correctorStep(semi, dt, opt, facray, facprs)
                     met33EdgeU = (jac(i, j, k + 1) * met(i, j, k, 3, 3) +
                                   jac[i, j, k] * met(i, j, k + 1, 3, 3)) /
                                  (jac[i, j, k] + jac(i, j, k + 1))
-                    dpREdgeU = (jac(i + 1, j, k + 1) * dp[i + 1, j, k] +
-                                jac[i + 1, j, k] * dp(i + 1, j, k + 1)) /
-                               (jac[i + 1, j, k] + jac(i + 1, j, k + 1))
+                    dpREdgeU = (jac(i + 1, j, k + 1) * dp[i+1, j, k] +
+                                jac[i+1, j, k] * dp(i + 1, j, k + 1)) /
+                               (jac[i+1, j, k] + jac(i + 1, j, k + 1))
                     dpLEdgeU = (jac(i - 1, j, k + 1) * dp(i - 1, j, k) +
                                 jac(i - 1, j, k) * dp(i - 1, j, k + 1)) /
                                (jac(i - 1, j, k) + jac(i - 1, j, k + 1))
@@ -1713,20 +1738,20 @@ function correctorStep(semi, dt, opt, facray, facprs)
                     end
 
                     # Compute P coefficients.
-                    pEdgeU = (jac(i, j, k + 1) * pStrat[i, j, k] +
-                              jac[i, j, k] * pStrat(i, j, k + 1)) /
+                    pEdgeU = (jac(i, j, k + 1) * pstrattfc[i, j, k] +
+                              jac[i, j, k] * pstrattfc(i, j, k + 1)) /
                              (jac[i, j, k] + jac(i, j, k + 1))
-                    pEdgeD = (jac(i, j, k - 1) * pStrat[i, j, k] +
-                              jac[i, j, k] * pStrat(i, j, k - 1)) /
+                    pEdgeD = (jac(i, j, k - 1) * pstrattfc[i, j, k] +
+                              jac[i, j, k] * pstrattfc(i, j, k - 1)) /
                              (jac[i, j, k] + jac(i, j, k - 1))
                     # Compute density coefficients.
-                    rhow0 = (jac(i, j, k + 1) * (var.rho[i, j, k] + rhoStrat[i, j, k]) +
-                             jac[i, j, k] * (var.rho(i, j, k + 1) + rhoStrat(i, j, k + 1))) /
+                    rhow0 = (jac(i, j, k + 1) * (var.rho[i, j, k] + rhostrattfc[i, j, k]) +
+                             jac[i, j, k] * (var.rho(i, j, k + 1) + rhostrattfc(i, j, k + 1))) /
                             (jac[i, j, k] + jac(i, j, k + 1))
-                    rhowm = (jac(i, j, k - 1) * (var.rho[i, j, k] + rhoStrat[i, j, k]) +
-                             jac[i, j, k] * (var.rho(i, j, k - 1) + rhoStrat(i, j, k - 1))) /
+                    rhowm = (jac(i, j, k - 1) * (var.rho[i, j, k] + rhostrattfc[i, j, k]) +
+                             jac[i, j, k] * (var.rho(i, j, k - 1) + rhostrattfc(i, j, k - 1))) /
                             (jac[i, j, k] + jac(i, j, k - 1))
-                    rho = var.rho[i, j, k] + rhoStrat[i, j, k]
+                    rho = var.rho[i, j, k] + rhostrattfc[i, j, k]
                     # Interpolate metric tensor elements.
                     met13EdgeU = (jac(i, j, k + 1) * met(i, j, k, 1, 3) +
                                   jac[i, j, k] * met(i, j, k + 1, 1, 3)) /
@@ -1747,15 +1772,15 @@ function correctorStep(semi, dt, opt, facray, facprs)
                                   jac[i, j, k] * met(i, j, k - 1, 3, 3)) /
                                  (jac[i, j, k] + jac(i, j, k - 1))
                     # Interpolate pressure differences.
-                    dpREdgeU = (jac(i + 1, j, k + 1) * dp[i + 1, j, k] +
-                                jac[i + 1, j, k] * dp(i + 1, j, k + 1)) /
-                               (jac[i + 1, j, k] + jac(i + 1, j, k + 1))
+                    dpREdgeU = (jac(i + 1, j, k + 1) * dp[i+1, j, k] +
+                                jac[i+1, j, k] * dp(i + 1, j, k + 1)) /
+                               (jac[i+1, j, k] + jac(i + 1, j, k + 1))
                     dpLEdgeU = (jac(i - 1, j, k + 1) * dp(i - 1, j, k) +
                                 jac(i - 1, j, k) * dp(i - 1, j, k + 1)) /
                                (jac(i - 1, j, k) + jac(i - 1, j, k + 1))
-                    dpREdgeD = (jac(i + 1, j, k - 1) * dp[i + 1, j, k] +
-                                jac[i + 1, j, k] * dp(i + 1, j, k - 1)) /
-                               (jac[i + 1, j, k] + jac(i + 1, j, k - 1))
+                    dpREdgeD = (jac(i + 1, j, k - 1) * dp[i+1, j, k] +
+                                jac[i+1, j, k] * dp(i + 1, j, k - 1)) /
+                               (jac[i+1, j, k] + jac(i + 1, j, k - 1))
                     dpLEdgeD = (jac(i - 1, j, k - 1) * dp(i - 1, j, k) +
                                 jac(i - 1, j, k) * dp(i - 1, j, k - 1)) /
                                (jac(i - 1, j, k) + jac(i - 1, j, k - 1))
@@ -1790,14 +1815,14 @@ function correctorStep(semi, dt, opt, facray, facprs)
                     pGradZ = 0.5 * (pGradZEdgeU + pGradZEdgeD)
                     # Compute buoyancy correction.
                     db = -1.0 /
-                         (facw + rhoStrat[i, j, k] / rho * bvsStrat[i, j, k] * dt^2.0) *
-                         (-rhoStrat[i, j, k] / rho *
+                         (facw + rhostrattfc[i, j, k] / rho * bvsStrat[i, j, k] * dt^2.0) *
+                         (-rhostrattfc[i, j, k] / rho *
                           bvsStrat[i, j, k] *
                           facprs *
                           dt^2.0 *
                           jac[i, j, k] *
                           pGradZ +
-                          rhoStrat[i, j, k] / rho *
+                          rhostrattfc[i, j, k] / rho *
                           bvsStrat[i, j, k] *
                           dt *
                           jac[i, j, k] *
@@ -1818,16 +1843,17 @@ function correctorStep(semi, dt, opt, facray, facprs)
     end
 end
 
-function val_PsIn(semi, dt, opt, facray)
-    (; equations, cache, grid, met, parameters, spongeLayer, sponge_uv) = semi
-    (; nx, ny, nz, dx, dy, dz) = grid
-    (; pStrat, rhoStrat, jac, var, kr_sp_tfc, kr_sp_w_tfc, bvsStrat) = cache
-    (; preconditioner) = parameters
+function val_PsIn(model, dt, opt, facray)
+    (; nx, ny, nz) = model.domain
+    (; dx, dy, dz, jac, met) = model.grid
+    (; pstrattfc, rhostrattfc) = model.atmosphere
+    var = model.variables.prognostic_fields
+
 
     # Poisson solver cache
-    (; ac_b, acv_b, ach_b, al_b, ar_b, ab_b, af_b, ad_b, au_b, aru_b, ard_b, alu_b) = cache
-    (; ald_b, afu_b, afd_b, abu_b, abd_b, auu_b, add_b, aruu_b, ardd_b, aluu_b) = cache
-    (; aldd_b, afuu_b, afdd_b, abuu_b, abdd_b) = cache
+    (; ac_b, acv_b, ach_b, al_b, ar_b, ab_b, af_b, ad_b, au_b, aru_b, ard_b, alu_b) = model.operator.op_fields
+    (; ald_b, afu_b, afd_b, abu_b, abd_b, auu_b, add_b, aruu_b, ardd_b, aluu_b) = model.operator.op_fields
+    (; aldd_b, afuu_b, afdd_b, abuu_b, abdd_b) = model.operator.op_fields
     # Calculates the matrix values for the pressure solver
     # The solver solves for dt * dp, hence no dt in the matrix elements
 
@@ -1847,105 +1873,105 @@ function val_PsIn(semi, dt, opt, facray)
             for j in 1:ny
                 for i in 1:nx
                     # Compute scaling factors.
-                    fcscal = sqrt(pStrat[i, j, k]^2.0 / rhoStrat[i, j, k])
-                    fcscal_r = sqrt(pStrat[i + 1, j, k]^2.0 / rhoStrat[i + 1, j, k])
-                    fcscal_l = sqrt(pStrat(i - 1, j, k)^2.0 / rhoStrat(i - 1, j, k))
-                    fcscal_f = sqrt(pStrat(i, j + 1, k)^2.0 / rhoStrat(i, j + 1, k))
-                    fcscal_b = sqrt(pStrat(i, j - 1, k)^2.0 / rhoStrat(i, j - 1, k))
-                    fcscal_u = sqrt(pStrat(i, j, k + 1)^2.0 / rhoStrat(i, j, k + 1))
-                    fcscal_d = sqrt(pStrat(i, j, k - 1)^2.0 / rhoStrat(i, j, k - 1))
-                    fcscal_ru = sqrt(pStrat(i + 1, j, k + 1)^2.0 /
-                                     rhoStrat(i + 1, j, k + 1))
-                    fcscal_rd = sqrt(pStrat(i + 1, j, k - 1)^2.0 /
-                                     rhoStrat(i + 1, j, k - 1))
-                    fcscal_lu = sqrt(pStrat(i - 1, j, k + 1)^2.0 /
-                                     rhoStrat(i - 1, j, k + 1))
-                    fcscal_ld = sqrt(pStrat(i - 1, j, k - 1)^2.0 /
-                                     rhoStrat(i - 1, j, k - 1))
-                    fcscal_fu = sqrt(pStrat(i, j + 1, k + 1)^2.0 /
-                                     rhoStrat(i, j + 1, k + 1))
-                    fcscal_fd = sqrt(pStrat(i, j + 1, k - 1)^2.0 /
-                                     rhoStrat(i, j + 1, k - 1))
-                    fcscal_bu = sqrt(pStrat(i, j - 1, k + 1)^2.0 /
-                                     rhoStrat(i, j - 1, k + 1))
-                    fcscal_bd = sqrt(pStrat(i, j - 1, k - 1)^2.0 /
-                                     rhoStrat(i, j - 1, k - 1))
-                    fcscal_uu = sqrt(pStrat(i, j, k + 2)^2.0 / rhoStrat(i, j, k + 2))
-                    fcscal_dd = sqrt(pStrat(i, j, k - 2)^2.0 / rhoStrat(i, j, k - 2))
-                    fcscal_ruu = sqrt(pStrat(i + 1, j, k + 2)^2.0 /
-                                      rhoStrat(i + 1, j, k + 2))
-                    fcscal_rdd = sqrt(pStrat(i + 1, j, k - 2)^2.0 /
-                                      rhoStrat(i + 1, j, k - 2))
-                    fcscal_luu = sqrt(pStrat(i - 1, j, k + 2)^2.0 /
-                                      rhoStrat(i - 1, j, k + 2))
-                    fcscal_ldd = sqrt(pStrat(i - 1, j, k - 2)^2.0 /
-                                      rhoStrat(i - 1, j, k - 2))
-                    fcscal_fuu = sqrt(pStrat(i, j + 1, k + 2)^2.0 /
-                                      rhoStrat(i, j + 1, k + 2))
-                    fcscal_fdd = sqrt(pStrat(i, j + 1, k - 2)^2.0 /
-                                      rhoStrat(i, j + 1, k - 2))
-                    fcscal_buu = sqrt(pStrat(i, j - 1, k + 2)^2.0 /
-                                      rhoStrat(i, j - 1, k + 2))
-                    fcscal_bdd = sqrt(pStrat(i, j - 1, k - 2)^2.0 /
-                                      rhoStrat(i, j - 1, k - 2))
+                    fcscal = sqrt(pstrattfc[i, j, k]^2.0 / rhostrattfc[i, j, k])
+                    fcscal_r = sqrt(pstrattfc[i+1, j, k]^2.0 / rhostrattfc[i+1, j, k])
+                    fcscal_l = sqrt(pstrattfc(i - 1, j, k)^2.0 / rhostrattfc(i - 1, j, k))
+                    fcscal_f = sqrt(pstrattfc(i, j + 1, k)^2.0 / rhostrattfc(i, j + 1, k))
+                    fcscal_b = sqrt(pstrattfc(i, j - 1, k)^2.0 / rhostrattfc(i, j - 1, k))
+                    fcscal_u = sqrt(pstrattfc(i, j, k + 1)^2.0 / rhostrattfc(i, j, k + 1))
+                    fcscal_d = sqrt(pstrattfc(i, j, k - 1)^2.0 / rhostrattfc(i, j, k - 1))
+                    fcscal_ru = sqrt(pstrattfc(i + 1, j, k + 1)^2.0 /
+                                     rhostrattfc(i + 1, j, k + 1))
+                    fcscal_rd = sqrt(pstrattfc(i + 1, j, k - 1)^2.0 /
+                                     rhostrattfc(i + 1, j, k - 1))
+                    fcscal_lu = sqrt(pstrattfc(i - 1, j, k + 1)^2.0 /
+                                     rhostrattfc(i - 1, j, k + 1))
+                    fcscal_ld = sqrt(pstrattfc(i - 1, j, k - 1)^2.0 /
+                                     rhostrattfc(i - 1, j, k - 1))
+                    fcscal_fu = sqrt(pstrattfc(i, j + 1, k + 1)^2.0 /
+                                     rhostrattfc(i, j + 1, k + 1))
+                    fcscal_fd = sqrt(pstrattfc(i, j + 1, k - 1)^2.0 /
+                                     rhostrattfc(i, j + 1, k - 1))
+                    fcscal_bu = sqrt(pstrattfc(i, j - 1, k + 1)^2.0 /
+                                     rhostrattfc(i, j - 1, k + 1))
+                    fcscal_bd = sqrt(pstrattfc(i, j - 1, k - 1)^2.0 /
+                                     rhostrattfc(i, j - 1, k - 1))
+                    fcscal_uu = sqrt(pstrattfc(i, j, k + 2)^2.0 / rhostrattfc(i, j, k + 2))
+                    fcscal_dd = sqrt(pstrattfc(i, j, k - 2)^2.0 / rhostrattfc(i, j, k - 2))
+                    fcscal_ruu = sqrt(pstrattfc(i + 1, j, k + 2)^2.0 /
+                                      rhostrattfc(i + 1, j, k + 2))
+                    fcscal_rdd = sqrt(pstrattfc(i + 1, j, k - 2)^2.0 /
+                                      rhostrattfc(i + 1, j, k - 2))
+                    fcscal_luu = sqrt(pstrattfc(i - 1, j, k + 2)^2.0 /
+                                      rhostrattfc(i - 1, j, k + 2))
+                    fcscal_ldd = sqrt(pstrattfc(i - 1, j, k - 2)^2.0 /
+                                      rhostrattfc(i - 1, j, k - 2))
+                    fcscal_fuu = sqrt(pstrattfc(i, j + 1, k + 2)^2.0 /
+                                      rhostrattfc(i, j + 1, k + 2))
+                    fcscal_fdd = sqrt(pstrattfc(i, j + 1, k - 2)^2.0 /
+                                      rhostrattfc(i, j + 1, k - 2))
+                    fcscal_buu = sqrt(pstrattfc(i, j - 1, k + 2)^2.0 /
+                                      rhostrattfc(i, j - 1, k + 2))
+                    fcscal_bdd = sqrt(pstrattfc(i, j - 1, k - 2)^2.0 /
+                                      rhostrattfc(i, j - 1, k - 2))
 
                     # Compute inverse Jacobian.
                     jacInv = 1.0 / jac[i, j, k]
 
                     # Compute P coefficients (divergence).
-                    pEdgeRDiv = 0.5 * (jac[i, j, k] * pStrat[i, j, k] +
-                                 jac[i + 1, j, k] * pStrat[i + 1, j, k])
-                    pEdgeLDiv = 0.5 * (jac[i, j, k] * pStrat[i, j, k] +
-                                 jac(i - 1, j, k) * pStrat(i - 1, j, k))
-                    pEdgeFDiv = 0.5 * (jac[i, j, k] * pStrat[i, j, k] +
-                                 jac(i, j + 1, k) * pStrat(i, j + 1, k))
-                    pEdgeBDiv = 0.5 * (jac[i, j, k] * pStrat[i, j, k] +
-                                 jac(i, j - 1, k) * pStrat(i, j - 1, k))
+                    pEdgeRDiv = 0.5 * (jac[i, j, k] * pstrattfc[i, j, k] +
+                                       jac[i+1, j, k] * pstrattfc[i+1, j, k])
+                    pEdgeLDiv = 0.5 * (jac[i, j, k] * pstrattfc[i, j, k] +
+                                       jac(i - 1, j, k) * pstrattfc(i - 1, j, k))
+                    pEdgeFDiv = 0.5 * (jac[i, j, k] * pstrattfc[i, j, k] +
+                                       jac(i, j + 1, k) * pstrattfc(i, j + 1, k))
+                    pEdgeBDiv = 0.5 * (jac[i, j, k] * pstrattfc[i, j, k] +
+                                       jac(i, j - 1, k) * pstrattfc(i, j - 1, k))
                     pEdgeUDiv = jac[i, j, k] *
                                 jac(i, j, k + 1) *
-                                (pStrat[i, j, k] + pStrat(i, j, k + 1)) /
+                                (pstrattfc[i, j, k] + pstrattfc(i, j, k + 1)) /
                                 (jac[i, j, k] + jac(i, j, k + 1))
                     pEdgeDDiv = jac[i, j, k] *
                                 jac(i, j, k - 1) *
-                                (pStrat[i, j, k] + pStrat(i, j, k - 1)) /
+                                (pstrattfc[i, j, k] + pstrattfc(i, j, k - 1)) /
                                 (jac[i, j, k] + jac(i, j, k - 1))
 
                     # Compute P coefficients (pressure gradient).
-                    pEdgeRGra = 0.5 * (pStrat[i, j, k] + pStrat[i + 1, j, k])
-                    pEdgeLGra = 0.5 * (pStrat[i, j, k] + pStrat(i - 1, j, k))
-                    pEdgeFGra = 0.5 * (pStrat[i, j, k] + pStrat(i, j + 1, k))
-                    pEdgeBGra = 0.5 * (pStrat[i, j, k] + pStrat(i, j - 1, k))
-                    pEdgeUGra = (jac(i, j, k + 1) * pStrat[i, j, k] +
-                                 jac[i, j, k] * pStrat(i, j, k + 1)) /
+                    pEdgeRGra = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i+1, j, k])
+                    pEdgeLGra = 0.5 * (pstrattfc[i, j, k] + pstrattfc(i - 1, j, k))
+                    pEdgeFGra = 0.5 * (pstrattfc[i, j, k] + pstrattfc(i, j + 1, k))
+                    pEdgeBGra = 0.5 * (pstrattfc[i, j, k] + pstrattfc(i, j - 1, k))
+                    pEdgeUGra = (jac(i, j, k + 1) * pstrattfc[i, j, k] +
+                                 jac[i, j, k] * pstrattfc(i, j, k + 1)) /
                                 (jac[i, j, k] + jac(i, j, k + 1))
-                    pEdgeDGra = (jac(i, j, k - 1) * pStrat[i, j, k] +
-                                 jac[i, j, k] * pStrat(i, j, k - 1)) /
+                    pEdgeDGra = (jac(i, j, k - 1) * pstrattfc[i, j, k] +
+                                 jac[i, j, k] * pstrattfc(i, j, k - 1)) /
                                 (jac[i, j, k] + jac(i, j, k - 1))
 
                     # Compute density coefficients.
                     rhoEdgeR = 0.5 * (var.rho[i, j, k] +
-                                var.rho[i + 1, j, k] +
-                                rhoStrat[i, j, k] +
-                                rhoStrat[i + 1, j, k])
+                                      var.rho[i+1, j, k] +
+                                      rhostrattfc[i, j, k] +
+                                      rhostrattfc[i+1, j, k])
                     rhoEdgeL = 0.5 * (var.rho[i, j, k] +
-                                var.rho(i - 1, j, k) +
-                                rhoStrat[i, j, k] +
-                                rhoStrat(i - 1, j, k))
+                                      var.rho(i - 1, j, k) +
+                                      rhostrattfc[i, j, k] +
+                                      rhostrattfc(i - 1, j, k))
                     rhoEdgeF = 0.5 * (var.rho[i, j, k] +
-                                var.rho(i, j + 1, k) +
-                                rhoStrat[i, j, k] +
-                                rhoStrat(i, j + 1, k))
+                                      var.rho(i, j + 1, k) +
+                                      rhostrattfc[i, j, k] +
+                                      rhostrattfc(i, j + 1, k))
                     rhoEdgeB = 0.5 * (var.rho[i, j, k] +
-                                var.rho(i, j - 1, k) +
-                                rhoStrat[i, j, k] +
-                                rhoStrat(i, j - 1, k))
-                    rhoEdgeU = (jac(i, j, k + 1) * (var.rho[i, j, k] + rhoStrat[i, j, k]) +
+                                      var.rho(i, j - 1, k) +
+                                      rhostrattfc[i, j, k] +
+                                      rhostrattfc(i, j - 1, k))
+                    rhoEdgeU = (jac(i, j, k + 1) * (var.rho[i, j, k] + rhostrattfc[i, j, k]) +
                                 jac[i, j, k] *
-                                (var.rho(i, j, k + 1) + rhoStrat(i, j, k + 1))) /
+                                (var.rho(i, j, k + 1) + rhostrattfc(i, j, k + 1))) /
                                (jac[i, j, k] + jac(i, j, k + 1))
-                    rhoEdgeD = (jac(i, j, k - 1) * (var.rho[i, j, k] + rhoStrat[i, j, k]) +
+                    rhoEdgeD = (jac(i, j, k - 1) * (var.rho[i, j, k] + rhostrattfc[i, j, k]) +
                                 jac[i, j, k] *
-                                (var.rho(i, j, k - 1) + rhoStrat(i, j, k - 1))) /
+                                (var.rho(i, j, k - 1) + rhostrattfc(i, j, k - 1))) /
                                (jac[i, j, k] + jac(i, j, k - 1))
 
                     # Interpolate metric-tensor elements.
@@ -1976,39 +2002,39 @@ function val_PsIn(semi, dt, opt, facray)
                     # zBoundary = "solid_wall" # TODO - FIX THIS TEMPORARY HACK
                     if (k == 1 && zBoundary == "solid_wall")
                         AC = -jacInv / dx * (pEdgeRDiv / rhoEdgeR *
-                              pEdgeRGra *
-                              (1.0 / dx + 0.75 * met13EdgeR / dz) +
-                              pEdgeLDiv / rhoEdgeL *
-                              pEdgeLGra *
-                              (1.0 / dx - 0.75 * met13EdgeL / dz)) -
+                                             pEdgeRGra *
+                                             (1.0 / dx + 0.75 * met13EdgeR / dz) +
+                                             pEdgeLDiv / rhoEdgeL *
+                                             pEdgeLGra *
+                                             (1.0 / dx - 0.75 * met13EdgeL / dz)) -
                              jacInv / dy * (pEdgeFDiv / rhoEdgeF *
-                              pEdgeFGra *
-                              (1.0 / dy + 0.75 * met23EdgeF / dz) +
-                              pEdgeBDiv / rhoEdgeB *
-                              pEdgeBGra *
-                              (1.0 / dy - 0.75 * met23EdgeB / dz)) -
+                                            pEdgeFGra *
+                                            (1.0 / dy + 0.75 * met23EdgeF / dz) +
+                                            pEdgeBDiv / rhoEdgeB *
+                                            pEdgeBGra *
+                                            (1.0 / dy - 0.75 * met23EdgeB / dz)) -
                              jacInv / dz * pEdgeUDiv / rhoEdgeU * pEdgeUGra * met33EdgeU /
                              dz
                     elseif (k == nz && zBoundary == "solid_wall")
                         AC = -jacInv / dx * (pEdgeRDiv / rhoEdgeR *
-                              pEdgeRGra *
-                              (1.0 / dx - 0.75 * met13EdgeR / dz) +
-                              pEdgeLDiv / rhoEdgeL *
-                              pEdgeLGra *
-                              (1.0 / dx + 0.75 * met13EdgeL / dz)) -
+                                             pEdgeRGra *
+                                             (1.0 / dx - 0.75 * met13EdgeR / dz) +
+                                             pEdgeLDiv / rhoEdgeL *
+                                             pEdgeLGra *
+                                             (1.0 / dx + 0.75 * met13EdgeL / dz)) -
                              jacInv / dy * (pEdgeFDiv / rhoEdgeF *
-                              pEdgeFGra *
-                              (1.0 / dy - 0.75 * met23EdgeF / dz) +
-                              pEdgeBDiv / rhoEdgeB *
-                              pEdgeBGra *
-                              (1.0 / dy + 0.75 * met23EdgeB / dz)) -
+                                            pEdgeFGra *
+                                            (1.0 / dy - 0.75 * met23EdgeF / dz) +
+                                            pEdgeBDiv / rhoEdgeB *
+                                            pEdgeBGra *
+                                            (1.0 / dy + 0.75 * met23EdgeB / dz)) -
                              jacInv / dz * pEdgeDDiv / rhoEdgeD * pEdgeDGra * met33EdgeD /
                              dz
                     else
                         AC = -jacInv / dx * (pEdgeRDiv / rhoEdgeR * pEdgeRGra / dx +
-                              pEdgeLDiv / rhoEdgeL * pEdgeLGra / dx) -
+                                             pEdgeLDiv / rhoEdgeL * pEdgeLGra / dx) -
                              jacInv / dy * (pEdgeFDiv / rhoEdgeF * pEdgeFGra / dy +
-                              pEdgeBDiv / rhoEdgeB * pEdgeBGra / dy) -
+                                            pEdgeBDiv / rhoEdgeB * pEdgeBGra / dy) -
                              jacInv / dz *
                              (pEdgeUDiv / rhoEdgeU * pEdgeUGra * met33EdgeU / dz +
                               pEdgeDDiv / rhoEdgeD * pEdgeDGra * met33EdgeD / dz)
@@ -2024,7 +2050,7 @@ function val_PsIn(semi, dt, opt, facray)
                              pEdgeUGra *
                              0.5 *
                              met13EdgeU / dx * jac(i + 1, j, k + 1) /
-                             (jac[i + 1, j, k] + jac(i + 1, j, k + 1))
+                             (jac[i+1, j, k] + jac(i + 1, j, k + 1))
                     elseif (k == nz && zBoundary == "solid_wall")
                         AR = jacInv / dx * pEdgeRDiv / rhoEdgeR *
                              pEdgeRGra *
@@ -2033,16 +2059,16 @@ function val_PsIn(semi, dt, opt, facray)
                              pEdgeDGra *
                              0.5 *
                              met13EdgeD / dx * jac(i + 1, j, k - 1) /
-                             (jac[i + 1, j, k] + jac(i + 1, j, k - 1))
+                             (jac[i+1, j, k] + jac(i + 1, j, k - 1))
                     else
                         AR = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra / dx +
                              jacInv / dz *
                              (pEdgeUDiv / rhoEdgeU * pEdgeUGra * met13EdgeU * 0.5 / dx *
                               jac(i + 1, j, k + 1) /
-                              (jac[i + 1, j, k] + jac(i + 1, j, k + 1)) -
+                              (jac[i+1, j, k] + jac(i + 1, j, k + 1)) -
                               pEdgeDDiv / rhoEdgeD * pEdgeDGra * met13EdgeD * 0.5 / dx *
                               jac(i + 1, j, k - 1) /
-                              (jac[i + 1, j, k] + jac(i + 1, j, k - 1)))
+                              (jac[i+1, j, k] + jac(i + 1, j, k - 1)))
                     end
 
                     # -------------------- A(i-1,j,k) --------------------
@@ -2194,8 +2220,8 @@ function val_PsIn(semi, dt, opt, facray)
                               jacInv / dz * pEdgeUDiv / rhoEdgeU *
                               pEdgeUGra *
                               met13EdgeU *
-                              0.5 / dx * jac[i + 1, j, k] /
-                              (jac[i + 1, j, k] + jac(i + 1, j, k + 1))
+                              0.5 / dx * jac[i+1, j, k] /
+                              (jac[i+1, j, k] + jac(i + 1, j, k + 1))
                     elseif (k == nz && zBoundary == "solid_wall")
                         ARU = 0.0
                     else
@@ -2206,8 +2232,8 @@ function val_PsIn(semi, dt, opt, facray)
                               jacInv / dz * pEdgeUDiv / rhoEdgeU *
                               pEdgeUGra *
                               met13EdgeU *
-                              0.5 / dx * jac[i + 1, j, k] /
-                              (jac[i + 1, j, k] + jac(i + 1, j, k + 1))
+                              0.5 / dx * jac[i+1, j, k] /
+                              (jac[i+1, j, k] + jac(i + 1, j, k + 1))
                     end
 
                     # ------------------- A(i+1,j,k-1) -------------------
@@ -2220,8 +2246,8 @@ function val_PsIn(semi, dt, opt, facray)
                               jacInv / dz * pEdgeDDiv / rhoEdgeD *
                               pEdgeDGra *
                               met13EdgeD *
-                              0.5 / dx * jac[i + 1, j, k] /
-                              (jac[i + 1, j, k] + jac(i + 1, j, k - 1))
+                              0.5 / dx * jac[i+1, j, k] /
+                              (jac[i+1, j, k] + jac(i + 1, j, k - 1))
                     else
                         ARD = -jacInv / dx * pEdgeRDiv / rhoEdgeR *
                               pEdgeRGra *
@@ -2230,8 +2256,8 @@ function val_PsIn(semi, dt, opt, facray)
                               jacInv / dz * pEdgeDDiv / rhoEdgeD *
                               pEdgeDGra *
                               met13EdgeD *
-                              0.5 / dx * jac[i + 1, j, k] /
-                              (jac[i + 1, j, k] + jac(i + 1, j, k - 1))
+                              0.5 / dx * jac[i+1, j, k] /
+                              (jac[i+1, j, k] + jac(i + 1, j, k - 1))
                     end
 
                     # ------------------- A(i-1,j,k+1) -------------------
@@ -2548,7 +2574,8 @@ function val_PsIn(semi, dt, opt, facray)
 
                     # Store horizontal and vertical components of AC (for
                     # preconditioner).
-                    if (preconditioner == "yes")
+                    # # TODO: types
+                    if (model.parameters.poisson.preconditioner == "yes")
                         ach_b[i, j, k] = -AR - AL - AF - AB
                         acv_b[i, j, k] = -AU - AD
                     end
@@ -2564,147 +2591,147 @@ function val_PsIn(semi, dt, opt, facray)
             for j in 1:ny
                 for i in 1:nx
                     # Compute scaling factors.
-                    fcscal = sqrt(pStrat[i, j, k]^2.0 / rhoStrat[i, j, k])
-                    fcscal_r = sqrt(pStrat[i + 1, j, k]^2.0 / rhoStrat[i + 1, j, k])
-                    fcscal_l = sqrt(pStrat(i - 1, j, k)^2.0 / rhoStrat(i - 1, j, k))
-                    fcscal_f = sqrt(pStrat(i, j + 1, k)^2.0 / rhoStrat(i, j + 1, k))
-                    fcscal_b = sqrt(pStrat(i, j - 1, k)^2.0 / rhoStrat(i, j - 1, k))
-                    fcscal_u = sqrt(pStrat(i, j, k + 1)^2.0 / rhoStrat(i, j, k + 1))
-                    fcscal_d = sqrt(pStrat(i, j, k - 1)^2.0 / rhoStrat(i, j, k - 1))
-                    fcscal_ru = sqrt(pStrat(i + 1, j, k + 1)^2.0 /
-                                     rhoStrat(i + 1, j, k + 1))
-                    fcscal_rd = sqrt(pStrat(i + 1, j, k - 1)^2.0 /
-                                     rhoStrat(i + 1, j, k - 1))
-                    fcscal_lu = sqrt(pStrat(i - 1, j, k + 1)^2.0 /
-                                     rhoStrat(i - 1, j, k + 1))
-                    fcscal_ld = sqrt(pStrat(i - 1, j, k - 1)^2.0 /
-                                     rhoStrat(i - 1, j, k - 1))
-                    fcscal_fu = sqrt(pStrat(i, j + 1, k + 1)^2.0 /
-                                     rhoStrat(i, j + 1, k + 1))
-                    fcscal_fd = sqrt(pStrat(i, j + 1, k - 1)^2.0 /
-                                     rhoStrat(i, j + 1, k - 1))
-                    fcscal_bu = sqrt(pStrat(i, j - 1, k + 1)^2.0 /
-                                     rhoStrat(i, j - 1, k + 1))
-                    fcscal_bd = sqrt(pStrat(i, j - 1, k - 1)^2.0 /
-                                     rhoStrat(i, j - 1, k - 1))
-                    fcscal_uu = sqrt(pStrat(i, j, k + 2)^2.0 / rhoStrat(i, j, k + 2))
-                    fcscal_dd = sqrt(pStrat(i, j, k - 2)^2.0 / rhoStrat(i, j, k - 2))
-                    fcscal_ruu = sqrt(pStrat(i + 1, j, k + 2)^2.0 /
-                                      rhoStrat(i + 1, j, k + 2))
-                    fcscal_rdd = sqrt(pStrat(i + 1, j, k - 2)^2.0 /
-                                      rhoStrat(i + 1, j, k - 2))
-                    fcscal_luu = sqrt(pStrat(i - 1, j, k + 2)^2.0 /
-                                      rhoStrat(i - 1, j, k + 2))
-                    fcscal_ldd = sqrt(pStrat(i - 1, j, k - 2)^2.0 /
-                                      rhoStrat(i - 1, j, k - 2))
-                    fcscal_fuu = sqrt(pStrat(i, j + 1, k + 2)^2.0 /
-                                      rhoStrat(i, j + 1, k + 2))
-                    fcscal_fdd = sqrt(pStrat(i, j + 1, k - 2)^2.0 /
-                                      rhoStrat(i, j + 1, k - 2))
-                    fcscal_buu = sqrt(pStrat(i, j - 1, k + 2)^2.0 /
-                                      rhoStrat(i, j - 1, k + 2))
-                    fcscal_bdd = sqrt(pStrat(i, j - 1, k - 2)^2.0 /
-                                      rhoStrat(i, j - 1, k - 2))
+                    fcscal = sqrt(pstrattfc[i, j, k]^2.0 / rhostrattfc[i, j, k])
+                    fcscal_r = sqrt(pstrattfc[i+1, j, k]^2.0 / rhostrattfc[i+1, j, k])
+                    fcscal_l = sqrt(pstrattfc(i - 1, j, k)^2.0 / rhostrattfc(i - 1, j, k))
+                    fcscal_f = sqrt(pstrattfc(i, j + 1, k)^2.0 / rhostrattfc(i, j + 1, k))
+                    fcscal_b = sqrt(pstrattfc(i, j - 1, k)^2.0 / rhostrattfc(i, j - 1, k))
+                    fcscal_u = sqrt(pstrattfc(i, j, k + 1)^2.0 / rhostrattfc(i, j, k + 1))
+                    fcscal_d = sqrt(pstrattfc(i, j, k - 1)^2.0 / rhostrattfc(i, j, k - 1))
+                    fcscal_ru = sqrt(pstrattfc(i + 1, j, k + 1)^2.0 /
+                                     rhostrattfc(i + 1, j, k + 1))
+                    fcscal_rd = sqrt(pstrattfc(i + 1, j, k - 1)^2.0 /
+                                     rhostrattfc(i + 1, j, k - 1))
+                    fcscal_lu = sqrt(pstrattfc(i - 1, j, k + 1)^2.0 /
+                                     rhostrattfc(i - 1, j, k + 1))
+                    fcscal_ld = sqrt(pstrattfc(i - 1, j, k - 1)^2.0 /
+                                     rhostrattfc(i - 1, j, k - 1))
+                    fcscal_fu = sqrt(pstrattfc(i, j + 1, k + 1)^2.0 /
+                                     rhostrattfc(i, j + 1, k + 1))
+                    fcscal_fd = sqrt(pstrattfc(i, j + 1, k - 1)^2.0 /
+                                     rhostrattfc(i, j + 1, k - 1))
+                    fcscal_bu = sqrt(pstrattfc(i, j - 1, k + 1)^2.0 /
+                                     rhostrattfc(i, j - 1, k + 1))
+                    fcscal_bd = sqrt(pstrattfc(i, j - 1, k - 1)^2.0 /
+                                     rhostrattfc(i, j - 1, k - 1))
+                    fcscal_uu = sqrt(pstrattfc(i, j, k + 2)^2.0 / rhostrattfc(i, j, k + 2))
+                    fcscal_dd = sqrt(pstrattfc(i, j, k - 2)^2.0 / rhostrattfc(i, j, k - 2))
+                    fcscal_ruu = sqrt(pstrattfc(i + 1, j, k + 2)^2.0 /
+                                      rhostrattfc(i + 1, j, k + 2))
+                    fcscal_rdd = sqrt(pstrattfc(i + 1, j, k - 2)^2.0 /
+                                      rhostrattfc(i + 1, j, k - 2))
+                    fcscal_luu = sqrt(pstrattfc(i - 1, j, k + 2)^2.0 /
+                                      rhostrattfc(i - 1, j, k + 2))
+                    fcscal_ldd = sqrt(pstrattfc(i - 1, j, k - 2)^2.0 /
+                                      rhostrattfc(i - 1, j, k - 2))
+                    fcscal_fuu = sqrt(pstrattfc(i, j + 1, k + 2)^2.0 /
+                                      rhostrattfc(i, j + 1, k + 2))
+                    fcscal_fdd = sqrt(pstrattfc(i, j + 1, k - 2)^2.0 /
+                                      rhostrattfc(i, j + 1, k - 2))
+                    fcscal_buu = sqrt(pstrattfc(i, j - 1, k + 2)^2.0 /
+                                      rhostrattfc(i, j - 1, k + 2))
+                    fcscal_bdd = sqrt(pstrattfc(i, j - 1, k - 2)^2.0 /
+                                      rhostrattfc(i, j - 1, k - 2))
 
                     # Compute inverse Jacobian.
                     jacInv = 1.0 / jac[i, j, k]
 
                     # Compute P coefficients (divergence).
-                    pEdgeRDiv = 0.5 * (jac[i, j, k] * pStrat[i, j, k] +
-                                 jac[i + 1, j, k] * pStrat[i + 1, j, k])
-                    pEdgeLDiv = 0.5 * (jac[i, j, k] * pStrat[i, j, k] +
-                                 jac(i - 1, j, k) * pStrat(i - 1, j, k))
-                    pEdgeFDiv = 0.5 * (jac[i, j, k] * pStrat[i, j, k] +
-                                 jac(i, j + 1, k) * pStrat(i, j + 1, k))
-                    pEdgeBDiv = 0.5 * (jac[i, j, k] * pStrat[i, j, k] +
-                                 jac(i, j - 1, k) * pStrat(i, j - 1, k))
+                    pEdgeRDiv = 0.5 * (jac[i, j, k] * pstrattfc[i, j, k] +
+                                       jac[i+1, j, k] * pstrattfc[i+1, j, k])
+                    pEdgeLDiv = 0.5 * (jac[i, j, k] * pstrattfc[i, j, k] +
+                                       jac(i - 1, j, k) * pstrattfc(i - 1, j, k))
+                    pEdgeFDiv = 0.5 * (jac[i, j, k] * pstrattfc[i, j, k] +
+                                       jac(i, j + 1, k) * pstrattfc(i, j + 1, k))
+                    pEdgeBDiv = 0.5 * (jac[i, j, k] * pstrattfc[i, j, k] +
+                                       jac(i, j - 1, k) * pstrattfc(i, j - 1, k))
                     pEdgeUDiv = jac[i, j, k] *
                                 jac(i, j, k + 1) *
-                                (pStrat[i, j, k] + pStrat(i, j, k + 1)) /
+                                (pstrattfc[i, j, k] + pstrattfc(i, j, k + 1)) /
                                 (jac[i, j, k] + jac(i, j, k + 1))
                     pEdgeDDiv = jac[i, j, k] *
                                 jac(i, j, k - 1) *
-                                (pStrat[i, j, k] + pStrat(i, j, k - 1)) /
+                                (pstrattfc[i, j, k] + pstrattfc(i, j, k - 1)) /
                                 (jac[i, j, k] + jac(i, j, k - 1))
 
                     # Compute P coefficients (pressure gradient).
-                    pEdgeRGra = 0.5 * (pStrat[i, j, k] + pStrat[i + 1, j, k])
-                    pEdgeLGra = 0.5 * (pStrat[i, j, k] + pStrat(i - 1, j, k))
-                    pEdgeFGra = 0.5 * (pStrat[i, j, k] + pStrat(i, j + 1, k))
-                    pEdgeBGra = 0.5 * (pStrat[i, j, k] + pStrat(i, j - 1, k))
-                    pEdgeUGra = (jac(i, j, k + 1) * pStrat[i, j, k] +
-                                 jac[i, j, k] * pStrat(i, j, k + 1)) /
+                    pEdgeRGra = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i+1, j, k])
+                    pEdgeLGra = 0.5 * (pstrattfc[i, j, k] + pstrattfc(i - 1, j, k))
+                    pEdgeFGra = 0.5 * (pstrattfc[i, j, k] + pstrattfc(i, j + 1, k))
+                    pEdgeBGra = 0.5 * (pstrattfc[i, j, k] + pstrattfc(i, j - 1, k))
+                    pEdgeUGra = (jac(i, j, k + 1) * pstrattfc[i, j, k] +
+                                 jac[i, j, k] * pstrattfc(i, j, k + 1)) /
                                 (jac[i, j, k] + jac(i, j, k + 1))
-                    pEdgeDGra = (jac(i, j, k - 1) * pStrat[i, j, k] +
-                                 jac[i, j, k] * pStrat(i, j, k - 1)) /
+                    pEdgeDGra = (jac(i, j, k - 1) * pstrattfc[i, j, k] +
+                                 jac[i, j, k] * pstrattfc(i, j, k - 1)) /
                                 (jac[i, j, k] + jac(i, j, k - 1))
-                    pUEdgeRGra = 0.5 * (pStrat(i, j, k + 1) + pStrat(i + 1, j, k + 1))
-                    pUEdgeLGra = 0.5 * (pStrat(i, j, k + 1) + pStrat(i - 1, j, k + 1))
-                    pUEdgeFGra = 0.5 * (pStrat(i, j, k + 1) + pStrat(i, j + 1, k + 1))
-                    pUEdgeBGra = 0.5 * (pStrat(i, j, k + 1) + pStrat(i, j - 1, k + 1))
-                    pDEdgeRGra = 0.5 * (pStrat(i, j, k - 1) + pStrat(i + 1, j, k - 1))
-                    pDEdgeLGra = 0.5 * (pStrat(i, j, k - 1) + pStrat(i - 1, j, k - 1))
-                    pDEdgeFGra = 0.5 * (pStrat(i, j, k - 1) + pStrat(i, j + 1, k - 1))
-                    pDEdgeBGra = 0.5 * (pStrat(i, j, k - 1) + pStrat(i, j - 1, k - 1))
+                    pUEdgeRGra = 0.5 * (pstrattfc(i, j, k + 1) + pstrattfc(i + 1, j, k + 1))
+                    pUEdgeLGra = 0.5 * (pstrattfc(i, j, k + 1) + pstrattfc(i - 1, j, k + 1))
+                    pUEdgeFGra = 0.5 * (pstrattfc(i, j, k + 1) + pstrattfc(i, j + 1, k + 1))
+                    pUEdgeBGra = 0.5 * (pstrattfc(i, j, k + 1) + pstrattfc(i, j - 1, k + 1))
+                    pDEdgeRGra = 0.5 * (pstrattfc(i, j, k - 1) + pstrattfc(i + 1, j, k - 1))
+                    pDEdgeLGra = 0.5 * (pstrattfc(i, j, k - 1) + pstrattfc(i - 1, j, k - 1))
+                    pDEdgeFGra = 0.5 * (pstrattfc(i, j, k - 1) + pstrattfc(i, j + 1, k - 1))
+                    pDEdgeBGra = 0.5 * (pstrattfc(i, j, k - 1) + pstrattfc(i, j - 1, k - 1))
 
                     # Compute density coefficients.
-                    rhoStratEdgeR = 0.5 * (rhoStrat[i, j, k] + rhoStrat[i + 1, j, k])
-                    rhoStratEdgeL = 0.5 * (rhoStrat[i, j, k] + rhoStrat(i - 1, j, k))
-                    rhoStratEdgeF = 0.5 * (rhoStrat[i, j, k] + rhoStrat(i, j + 1, k))
-                    rhoStratEdgeB = 0.5 * (rhoStrat[i, j, k] + rhoStrat(i, j - 1, k))
-                    rhoStratEdgeU = (jac(i, j, k + 1) * rhoStrat[i, j, k] +
-                                     jac[i, j, k] * rhoStrat(i, j, k + 1)) /
-                                    (jac[i, j, k] + jac(i, j, k + 1))
-                    rhoStratEdgeD = (jac(i, j, k - 1) * rhoStrat[i, j, k] +
-                                     jac[i, j, k] * rhoStrat(i, j, k - 1)) /
-                                    (jac[i, j, k] + jac(i, j, k - 1))
-                    rhoEdgeR = 0.5 * (var.rho[i, j, k] + var.rho[i + 1, j, k]) +
-                               rhoStratEdgeR
+                    rhostrattfcEdgeR = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i+1, j, k])
+                    rhostrattfcEdgeL = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc(i - 1, j, k))
+                    rhostrattfcEdgeF = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc(i, j + 1, k))
+                    rhostrattfcEdgeB = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc(i, j - 1, k))
+                    rhostrattfcEdgeU = (jac(i, j, k + 1) * rhostrattfc[i, j, k] +
+                                        jac[i, j, k] * rhostrattfc(i, j, k + 1)) /
+                                       (jac[i, j, k] + jac(i, j, k + 1))
+                    rhostrattfcEdgeD = (jac(i, j, k - 1) * rhostrattfc[i, j, k] +
+                                        jac[i, j, k] * rhostrattfc(i, j, k - 1)) /
+                                       (jac[i, j, k] + jac(i, j, k - 1))
+                    rhoEdgeR = 0.5 * (var.rho[i, j, k] + var.rho[i+1, j, k]) +
+                               rhostrattfcEdgeR
                     rhoEdgeL = 0.5 * (var.rho[i, j, k] + var.rho(i - 1, j, k)) +
-                               rhoStratEdgeL
+                               rhostrattfcEdgeL
                     rhoEdgeF = 0.5 * (var.rho[i, j, k] + var.rho(i, j + 1, k)) +
-                               rhoStratEdgeF
+                               rhostrattfcEdgeF
                     rhoEdgeB = 0.5 * (var.rho[i, j, k] + var.rho(i, j - 1, k)) +
-                               rhoStratEdgeB
+                               rhostrattfcEdgeB
                     rhoEdgeU = (jac(i, j, k + 1) * var.rho[i, j, k] +
                                 jac[i, j, k] * var.rho(i, j, k + 1)) /
-                               (jac[i, j, k] + jac(i, j, k + 1)) + rhoStratEdgeU
+                               (jac[i, j, k] + jac(i, j, k + 1)) + rhostrattfcEdgeU
                     rhoEdgeD = (jac(i, j, k - 1) * var.rho[i, j, k] +
                                 jac[i, j, k] * var.rho(i, j, k - 1)) /
-                               (jac[i, j, k] + jac(i, j, k - 1)) + rhoStratEdgeD
+                               (jac[i, j, k] + jac(i, j, k - 1)) + rhostrattfcEdgeD
 
                     rhoUEdgeR = 0.5 * (var.rho(i, j, k + 1) +
-                                 var.rho(i + 1, j, k + 1) +
-                                 rhoStrat(i, j, k + 1) +
-                                 rhoStrat(i + 1, j, k + 1))
+                                       var.rho(i + 1, j, k + 1) +
+                                       rhostrattfc(i, j, k + 1) +
+                                       rhostrattfc(i + 1, j, k + 1))
                     rhoUEdgeL = 0.5 * (var.rho(i, j, k + 1) +
-                                 var.rho(i - 1, j, k + 1) +
-                                 rhoStrat(i, j, k + 1) +
-                                 rhoStrat(i - 1, j, k + 1))
+                                       var.rho(i - 1, j, k + 1) +
+                                       rhostrattfc(i, j, k + 1) +
+                                       rhostrattfc(i - 1, j, k + 1))
                     rhoUEdgeF = 0.5 * (var.rho(i, j, k + 1) +
-                                 var.rho(i, j + 1, k + 1) +
-                                 rhoStrat(i, j, k + 1) +
-                                 rhoStrat(i, j + 1, k + 1))
+                                       var.rho(i, j + 1, k + 1) +
+                                       rhostrattfc(i, j, k + 1) +
+                                       rhostrattfc(i, j + 1, k + 1))
                     rhoUEdgeB = 0.5 * (var.rho(i, j, k + 1) +
-                                 var.rho(i, j - 1, k + 1) +
-                                 rhoStrat(i, j, k + 1) +
-                                 rhoStrat(i, j - 1, k + 1))
+                                       var.rho(i, j - 1, k + 1) +
+                                       rhostrattfc(i, j, k + 1) +
+                                       rhostrattfc(i, j - 1, k + 1))
                     rhoDEdgeR = 0.5 * (var.rho(i, j, k - 1) +
-                                 var.rho(i + 1, j, k - 1) +
-                                 rhoStrat(i, j, k - 1) +
-                                 rhoStrat(i + 1, j, k - 1))
+                                       var.rho(i + 1, j, k - 1) +
+                                       rhostrattfc(i, j, k - 1) +
+                                       rhostrattfc(i + 1, j, k - 1))
                     rhoDEdgeL = 0.5 * (var.rho(i, j, k - 1) +
-                                 var.rho(i - 1, j, k - 1) +
-                                 rhoStrat(i, j, k - 1) +
-                                 rhoStrat(i - 1, j, k - 1))
+                                       var.rho(i - 1, j, k - 1) +
+                                       rhostrattfc(i, j, k - 1) +
+                                       rhostrattfc(i - 1, j, k - 1))
                     rhoDEdgeF = 0.5 * (var.rho(i, j, k - 1) +
-                                 var.rho(i, j + 1, k - 1) +
-                                 rhoStrat(i, j, k - 1) +
-                                 rhoStrat(i, j + 1, k - 1))
+                                       var.rho(i, j + 1, k - 1) +
+                                       rhostrattfc(i, j, k - 1) +
+                                       rhostrattfc(i, j + 1, k - 1))
                     rhoDEdgeB = 0.5 * (var.rho(i, j, k - 1) +
-                                 var.rho(i, j - 1, k - 1) +
-                                 rhoStrat(i, j, k - 1) +
-                                 rhoStrat(i, j - 1, k - 1))
+                                       var.rho(i, j - 1, k - 1) +
+                                       rhostrattfc(i, j, k - 1) +
+                                       rhostrattfc(i, j - 1, k - 1))
 
                     # Compute squared buoyancy frequency at edges.
                     bvsStratEdgeU = (jac(i, j, k + 1) * bvsStrat[i, j, k] +
@@ -2773,7 +2800,7 @@ function val_PsIn(semi, dt, opt, facray)
                         if (sponge_uv)
                             facEdgeR = facEdgeR +
                                        dt * 0.5 *
-                                       (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k])
+                                       (kr_sp_tfc[i, j, k] + kr_sp_tfc[i+1, j, k])
                             facEdgeL = facEdgeL +
                                        dt * 0.5 *
                                        (kr_sp_tfc[i, j, k] + kr_sp_tfc(i - 1, j, k))
@@ -2826,11 +2853,11 @@ function val_PsIn(semi, dt, opt, facray)
                         end
                         facEdgeU = facEdgeU +
                                    dt * (jac(i, j, k + 1) * kr_sp_w_tfc[i, j, k] +
-                                    jac[i, j, k] * kr_sp_w_tfc(i, j, k + 1)) /
+                                         jac[i, j, k] * kr_sp_w_tfc(i, j, k + 1)) /
                                    (jac[i, j, k] + jac(i, j, k + 1))
                         facEdgeD = facEdgeD +
                                    dt * (jac(i, j, k - 1) * kr_sp_w_tfc[i, j, k] +
-                                    jac[i, j, k] * kr_sp_w_tfc(i, j, k - 1)) /
+                                         jac[i, j, k] * kr_sp_w_tfc(i, j, k - 1)) /
                                    (jac[i, j, k] + jac(i, j, k - 1))
                     end
 
@@ -2848,9 +2875,9 @@ function val_PsIn(semi, dt, opt, facray)
                     impHorDEdgeF = 1.0 / (facDEdgeF^2.0)
                     impHorDEdgeB = 1.0 / (facDEdgeB^2.0)
                     impVerEdgeU = 1.0 / (facEdgeU +
-                                   rhoStratEdgeU / rhoEdgeU * bvsStratEdgeU * dt^2.0)
+                                         rhostrattfcEdgeU / rhoEdgeU * bvsStratEdgeU * dt^2.0)
                     impVerEdgeD = 1.0 / (facEdgeD +
-                                   rhoStratEdgeD / rhoEdgeD * bvsStratEdgeD * dt^2.0)
+                                         rhostrattfcEdgeD / rhoEdgeD * bvsStratEdgeD * dt^2.0)
 
                     # Compute gradient coefficients
 
@@ -2858,7 +2885,7 @@ function val_PsIn(semi, dt, opt, facray)
                     if (k == 1 && zBoundary == "solid_wall")
                         gEdgeR = jacInv / dx * pEdgeRDiv * impHorEdgeR * facEdgeR /
                                  rhoEdgeR +
-                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhoStratEdgeU /
+                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
                                  rhoEdgeU *
                                  bvsStratEdgeU *
                                  dt^2.0 *
@@ -2870,7 +2897,7 @@ function val_PsIn(semi, dt, opt, facray)
                     elseif (k == nz && zBoundary == "solid_wall")
                         gEdgeR = jacInv / dx * pEdgeRDiv * impHorEdgeR * facEdgeR /
                                  rhoEdgeR -
-                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhoStratEdgeD /
+                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
                                  rhoEdgeD *
                                  bvsStratEdgeD *
                                  dt^2.0 *
@@ -2882,7 +2909,7 @@ function val_PsIn(semi, dt, opt, facray)
                     else
                         gEdgeR = jacInv / dx * pEdgeRDiv * impHorEdgeR * facEdgeR /
                                  rhoEdgeR +
-                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhoStratEdgeU /
+                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
                                  rhoEdgeU *
                                  bvsStratEdgeU *
                                  dt^2.0 *
@@ -2891,7 +2918,7 @@ function val_PsIn(semi, dt, opt, facray)
                                  jac(i, j, k + 1) / (jac[i, j, k] + jac(i, j, k + 1)) *
                                  impHorEdgeR *
                                  facEdgeR / rhoEdgeR -
-                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhoStratEdgeD /
+                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
                                  rhoEdgeD *
                                  bvsStratEdgeD *
                                  dt^2.0 *
@@ -2906,7 +2933,7 @@ function val_PsIn(semi, dt, opt, facray)
                     if (k == 1 && zBoundary == "solid_wall")
                         gEdgeL = -jacInv / dx * pEdgeLDiv * impHorEdgeL * facEdgeL /
                                  rhoEdgeL +
-                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhoStratEdgeU /
+                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
                                  rhoEdgeU *
                                  bvsStratEdgeU *
                                  dt^2.0 *
@@ -2918,7 +2945,7 @@ function val_PsIn(semi, dt, opt, facray)
                     elseif (k == nz && zBoundary == "solid_wall")
                         gEdgeL = -jacInv / dx * pEdgeLDiv * impHorEdgeL * facEdgeL /
                                  rhoEdgeL -
-                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhoStratEdgeD /
+                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
                                  rhoEdgeD *
                                  bvsStratEdgeD *
                                  dt^2.0 *
@@ -2930,7 +2957,7 @@ function val_PsIn(semi, dt, opt, facray)
                     else
                         gEdgeL = -jacInv / dx * pEdgeLDiv * impHorEdgeL * facEdgeL /
                                  rhoEdgeL +
-                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhoStratEdgeU /
+                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
                                  rhoEdgeU *
                                  bvsStratEdgeU *
                                  dt^2.0 *
@@ -2939,7 +2966,7 @@ function val_PsIn(semi, dt, opt, facray)
                                  jac(i, j, k + 1) / (jac[i, j, k] + jac(i, j, k + 1)) *
                                  impHorEdgeL *
                                  facEdgeL / rhoEdgeL -
-                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhoStratEdgeD /
+                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
                                  rhoEdgeD *
                                  bvsStratEdgeD *
                                  dt^2.0 *
@@ -2954,7 +2981,7 @@ function val_PsIn(semi, dt, opt, facray)
                     if (k == 1 && zBoundary == "solid_wall")
                         gEdgeF = jacInv / dy * pEdgeFDiv * impHorEdgeF * facEdgeF /
                                  rhoEdgeF +
-                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhoStratEdgeU /
+                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
                                  rhoEdgeU *
                                  bvsStratEdgeU *
                                  dt^2.0 *
@@ -2966,7 +2993,7 @@ function val_PsIn(semi, dt, opt, facray)
                     elseif (k == nz && zBoundary == "solid_wall")
                         gEdgeF = jacInv / dy * pEdgeFDiv * impHorEdgeF * facEdgeF /
                                  rhoEdgeF -
-                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhoStratEdgeD /
+                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
                                  rhoEdgeD *
                                  bvsStratEdgeD *
                                  dt^2.0 *
@@ -2978,7 +3005,7 @@ function val_PsIn(semi, dt, opt, facray)
                     else
                         gEdgeF = jacInv / dy * pEdgeFDiv * impHorEdgeF * facEdgeF /
                                  rhoEdgeF +
-                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhoStratEdgeU /
+                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
                                  rhoEdgeU *
                                  bvsStratEdgeU *
                                  dt^2.0 *
@@ -2987,7 +3014,7 @@ function val_PsIn(semi, dt, opt, facray)
                                  jac(i, j, k + 1) / (jac[i, j, k] + jac(i, j, k + 1)) *
                                  impHorEdgeF *
                                  facEdgeF / rhoEdgeF -
-                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhoStratEdgeD /
+                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
                                  rhoEdgeD *
                                  bvsStratEdgeD *
                                  dt^2.0 *
@@ -3002,7 +3029,7 @@ function val_PsIn(semi, dt, opt, facray)
                     if (k == 1 && zBoundary == "solid_wall")
                         gEdgeB = -jacInv / dy * pEdgeBDiv * impHorEdgeB * facEdgeB /
                                  rhoEdgeB +
-                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhoStratEdgeU /
+                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
                                  rhoEdgeU *
                                  bvsStratEdgeU *
                                  dt^2.0 *
@@ -3014,7 +3041,7 @@ function val_PsIn(semi, dt, opt, facray)
                     elseif (k == nz && zBoundary == "solid_wall")
                         gEdgeB = -jacInv / dy * pEdgeBDiv * impHorEdgeB * facEdgeB /
                                  rhoEdgeB -
-                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhoStratEdgeD /
+                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
                                  rhoEdgeD *
                                  bvsStratEdgeD *
                                  dt^2.0 *
@@ -3026,7 +3053,7 @@ function val_PsIn(semi, dt, opt, facray)
                     else
                         gEdgeB = -jacInv / dy * pEdgeBDiv * impHorEdgeB * facEdgeB /
                                  rhoEdgeB +
-                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhoStratEdgeU /
+                                 jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
                                  rhoEdgeU *
                                  bvsStratEdgeU *
                                  dt^2.0 *
@@ -3035,7 +3062,7 @@ function val_PsIn(semi, dt, opt, facray)
                                  jac(i, j, k + 1) / (jac[i, j, k] + jac(i, j, k + 1)) *
                                  impHorEdgeB *
                                  facEdgeB / rhoEdgeB -
-                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhoStratEdgeD /
+                                 jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
                                  rhoEdgeD *
                                  bvsStratEdgeD *
                                  dt^2.0 *
@@ -3064,7 +3091,7 @@ function val_PsIn(semi, dt, opt, facray)
                     if (k == nz && zBoundary == "solid_wall")
                         gUEdgeR = 0.0
                     else
-                        gUEdgeR = jacInv / dz * pEdgeUDiv * impVerEdgeU * rhoStratEdgeU /
+                        gUEdgeR = jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
                                   rhoEdgeU *
                                   bvsStratEdgeU *
                                   dt^2.0 *
@@ -3079,7 +3106,7 @@ function val_PsIn(semi, dt, opt, facray)
                     if (k == nz && zBoundary == "solid_wall")
                         gUEdgeL = 0.0
                     else
-                        gUEdgeL = jacInv / dz * pEdgeUDiv * impVerEdgeU * rhoStratEdgeU /
+                        gUEdgeL = jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
                                   rhoEdgeU *
                                   bvsStratEdgeU *
                                   dt^2.0 *
@@ -3094,7 +3121,7 @@ function val_PsIn(semi, dt, opt, facray)
                     if (k == nz && zBoundary == "solid_wall")
                         gUEdgeF = 0.0
                     else
-                        gUEdgeF = jacInv / dz * pEdgeUDiv * impVerEdgeU * rhoStratEdgeU /
+                        gUEdgeF = jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
                                   rhoEdgeU *
                                   bvsStratEdgeU *
                                   dt^2.0 *
@@ -3109,7 +3136,7 @@ function val_PsIn(semi, dt, opt, facray)
                     if (k == nz && zBoundary == "solid_wall")
                         gUEdgeB = 0.0
                     else
-                        gUEdgeB = jacInv / dz * pEdgeUDiv * impVerEdgeU * rhoStratEdgeU /
+                        gUEdgeB = jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
                                   rhoEdgeU *
                                   bvsStratEdgeU *
                                   dt^2.0 *
@@ -3124,7 +3151,7 @@ function val_PsIn(semi, dt, opt, facray)
                     if (k == 1 && zBoundary == "solid_wall")
                         gDEdgeR = 0.0
                     else
-                        gDEdgeR = -jacInv / dz * pEdgeDDiv * impVerEdgeD * rhoStratEdgeD /
+                        gDEdgeR = -jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
                                   rhoEdgeD *
                                   bvsStratEdgeD *
                                   dt^2.0 *
@@ -3139,7 +3166,7 @@ function val_PsIn(semi, dt, opt, facray)
                     if (k == 1 && zBoundary == "solid_wall")
                         gDEdgeL = 0.0
                     else
-                        gDEdgeL = -jacInv / dz * pEdgeDDiv * impVerEdgeD * rhoStratEdgeD /
+                        gDEdgeL = -jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
                                   rhoEdgeD *
                                   bvsStratEdgeD *
                                   dt^2.0 *
@@ -3154,7 +3181,7 @@ function val_PsIn(semi, dt, opt, facray)
                     if (k == 1 && zBoundary == "solid_wall")
                         gDEdgeF = 0.0
                     else
-                        gDEdgeF = -jacInv / dz * pEdgeDDiv * impVerEdgeD * rhoStratEdgeD /
+                        gDEdgeF = -jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
                                   rhoEdgeD *
                                   bvsStratEdgeD *
                                   dt^2.0 *
@@ -3169,7 +3196,7 @@ function val_PsIn(semi, dt, opt, facray)
                     if (k == 1 && zBoundary == "solid_wall")
                         gDEdgeB = 0.0
                     else
-                        gDEdgeB = -jacInv / dz * pEdgeDDiv * impVerEdgeD * rhoStratEdgeD /
+                        gDEdgeB = -jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
                                   rhoEdgeD *
                                   bvsStratEdgeD *
                                   dt^2.0 *
@@ -3251,42 +3278,42 @@ function val_PsIn(semi, dt, opt, facray)
                         AR = gEdgeR * pEdgeRGra * (1.0 / dx - 0.75 * met13EdgeR / dz) +
                              gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                              jac(i + 1, j, k + 1) /
-                             (jac[i + 1, j, k] + jac(i + 1, j, k + 1)) -
+                             (jac[i+1, j, k] + jac(i + 1, j, k + 1)) -
                              gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz
                     elseif (k == 2 && zBoundary == "solid_wall")
                         AR = gEdgeR * pEdgeRGra / dx +
                              gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                              jac(i + 1, j, k + 1) /
-                             (jac[i + 1, j, k] + jac(i + 1, j, k + 1)) +
+                             (jac[i+1, j, k] + jac(i + 1, j, k + 1)) +
                              gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
                              jac(i + 1, j, k - 1) /
-                             (jac[i + 1, j, k] + jac(i + 1, j, k - 1)) -
+                             (jac[i+1, j, k] + jac(i + 1, j, k - 1)) -
                              gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz +
                              gDEdgeR * pDEdgeRGra * met13DEdgeR / dz
                     elseif (k == nz - 1 && zBoundary == "solid_wall")
                         AR = gEdgeR * pEdgeRGra / dx +
                              gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                              jac(i + 1, j, k + 1) /
-                             (jac[i + 1, j, k] + jac(i + 1, j, k + 1)) +
+                             (jac[i+1, j, k] + jac(i + 1, j, k + 1)) +
                              gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
                              jac(i + 1, j, k - 1) /
-                             (jac[i + 1, j, k] + jac(i + 1, j, k - 1)) -
+                             (jac[i+1, j, k] + jac(i + 1, j, k - 1)) -
                              gUEdgeR * pUEdgeRGra * met13UEdgeR / dz +
                              gDEdgeR * pDEdgeRGra * 0.25 * met13DEdgeR / dz
                     elseif (k == nz && zBoundary == "solid_wall")
                         AR = gEdgeR * pEdgeRGra * (1.0 / dx + 0.75 * met13EdgeR / dz) +
                              gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
                              jac(i + 1, j, k - 1) /
-                             (jac[i + 1, j, k] + jac(i + 1, j, k - 1)) +
+                             (jac[i+1, j, k] + jac(i + 1, j, k - 1)) +
                              gDEdgeR * pDEdgeRGra * 0.25 * met13DEdgeR / dz
                     else
                         AR = gEdgeR * pEdgeRGra / dx +
                              gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                              jac(i + 1, j, k + 1) /
-                             (jac[i + 1, j, k] + jac(i + 1, j, k + 1)) +
+                             (jac[i+1, j, k] + jac(i + 1, j, k + 1)) +
                              gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
                              jac(i + 1, j, k - 1) /
-                             (jac[i + 1, j, k] + jac(i + 1, j, k - 1)) -
+                             (jac[i+1, j, k] + jac(i + 1, j, k - 1)) -
                              gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz +
                              gDEdgeR * pDEdgeRGra * 0.25 * met13DEdgeR / dz
                     end
@@ -3523,29 +3550,29 @@ function val_PsIn(semi, dt, opt, facray)
                     if (k == 1 && zBoundary == "solid_wall")
                         ARU = gEdgeR * pEdgeRGra * met13EdgeR / dz +
                               gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
-                              jac[i + 1, j, k] /
-                              (jac[i + 1, j, k] + jac(i + 1, j, k + 1)) +
+                              jac[i+1, j, k] /
+                              (jac[i+1, j, k] + jac(i + 1, j, k + 1)) +
                               gUEdgeR * pUEdgeRGra / dx
                     elseif (k == 2 && zBoundary == "solid_wall")
                         ARU = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
                               gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
-                              jac[i + 1, j, k] /
-                              (jac[i + 1, j, k] + jac(i + 1, j, k + 1)) +
+                              jac[i+1, j, k] /
+                              (jac[i+1, j, k] + jac(i + 1, j, k + 1)) +
                               gUEdgeR * pUEdgeRGra / dx -
                               gDEdgeR * pDEdgeRGra * 0.25 * met13DEdgeR / dz
                     elseif (k == nz - 1 && zBoundary == "solid_wall")
                         ARU = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
                               gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
-                              jac[i + 1, j, k] /
-                              (jac[i + 1, j, k] + jac(i + 1, j, k + 1)) +
+                              jac[i+1, j, k] /
+                              (jac[i+1, j, k] + jac(i + 1, j, k + 1)) +
                               gUEdgeR * pUEdgeRGra * (1.0 / dx + 0.75 * met13UEdgeR / dz)
                     elseif (k == nz && zBoundary == "solid_wall")
                         ARU = 0.0
                     else
                         ARU = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
                               gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
-                              jac[i + 1, j, k] /
-                              (jac[i + 1, j, k] + jac(i + 1, j, k + 1)) +
+                              jac[i+1, j, k] /
+                              (jac[i+1, j, k] + jac(i + 1, j, k + 1)) +
                               gUEdgeR * pUEdgeRGra / dx
                     end
 
@@ -3556,27 +3583,27 @@ function val_PsIn(semi, dt, opt, facray)
                     elseif (k == 2 && zBoundary == "solid_wall")
                         ARD = -gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
                               gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
-                              jac[i + 1, j, k] /
-                              (jac[i + 1, j, k] + jac(i + 1, j, k - 1)) +
+                              jac[i+1, j, k] /
+                              (jac[i+1, j, k] + jac(i + 1, j, k - 1)) +
                               gDEdgeR * pDEdgeRGra * (1.0 / dx - 0.75 * met13DEdgeR / dz)
                     elseif (k == nz - 1 && zBoundary == "solid_wall")
                         ARD = -gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
                               gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
-                              jac[i + 1, j, k] /
-                              (jac[i + 1, j, k] + jac(i + 1, j, k - 1)) +
+                              jac[i+1, j, k] /
+                              (jac[i+1, j, k] + jac(i + 1, j, k - 1)) +
                               gDEdgeR * pDEdgeRGra / dx +
                               gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz
                     elseif (k == nz && zBoundary == "solid_wall")
                         ARD = -gEdgeR * pEdgeRGra * met13EdgeR / dz +
                               gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
-                              jac[i + 1, j, k] /
-                              (jac[i + 1, j, k] + jac(i + 1, j, k - 1)) +
+                              jac[i+1, j, k] /
+                              (jac[i+1, j, k] + jac(i + 1, j, k - 1)) +
                               gDEdgeR * pDEdgeRGra / dx
                     else
                         ARD = -gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
                               gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
-                              jac[i + 1, j, k] /
-                              (jac[i + 1, j, k] + jac(i + 1, j, k - 1)) +
+                              jac[i+1, j, k] /
+                              (jac[i+1, j, k] + jac(i + 1, j, k - 1)) +
                               gDEdgeR * pDEdgeRGra / dx
                     end
 

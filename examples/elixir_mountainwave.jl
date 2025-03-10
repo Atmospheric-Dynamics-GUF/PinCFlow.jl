@@ -56,14 +56,8 @@ pars = Parameters(domain_list, output_list, debugging_list,
     test_case_list, model_list, discretization_list,
     poisson_solver_list, atmosphere_list, topography_list, boundary_list)
 
-c = Constants(pars)
+m = Model(pars)
 
-
-# semi = setup_semidiscretization(;
-#     atmosphere_list, grid_list, output_list, debugging_list,
-#     test_case_list, model_list, solver_list,
-#     poisson_solver_list, topography_list, boundary_list);
-
-# dt = 30.0
-
-# pincflow(semi, dt);
+initialize!(m)
+dt = 30.0
+pincflow(m, dt)
