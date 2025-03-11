@@ -43,7 +43,7 @@ function Domain(params::Parameters)
     jdim = params.domain.nprocy
     (; nbx, nby, nbz) = params.domain
     js, is = 1, 1
-    nx, ny, nz = 1, 1, 1
+    nx, ny, nz = params.domain.sizex, params.domain.sizey, params.domain.sizez
     nxx = nx + 2 * nbx
     nyy = ny + 2 * nby
     nzz = nz + 2 * nbz

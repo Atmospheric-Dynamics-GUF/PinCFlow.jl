@@ -19,20 +19,21 @@ end
 
 function PoissonOperator(pars::Parameters)
     nx, ny, nz = pars.domain.sizex, pars.domain.sizey, pars.domain.sizez
-    # TODO: good name for these
+    # TODO: good name for these, clean up
     el_names = (:ac_b, :acv_b, :ach_b, :al_b, :ar_b, :ab_b, :af_b,
         :ad_b, :au_b, :aru_b, :ard_b, :alu_b, :ald_b, :afu_b,
         :afd_b, :abu_b, :abd_b, :auu_b, :add_b, :aruu_b, :ardd_b,
         :aluu_b, :aldd_b, :afuu_b, :afdd_b, :abuu_b, :abdd_b,
     )
     elements = NamedTuple{el_names}(Array{Float64,3}(undef, nx, ny, nz) for _ in el_names)
-    cache_vars = (:p, :r0, :rOld, :r, :s, :b, :t, :v, :rhs_bigc, :sol, :v_pc, :matVec, :s_pc, :q_pc, :p_pc)
+    cache_vars = (:p, :r0, :rOld, :r, :s, :b, :t, :v, :rhs_bigc, :sol, :v_pc, :matVec, :s_pc, :q_pc)
     cache = NamedTuple{cache_vars}(Array{Float64,3}(undef, nx, ny, nz) for _ in cache_vars)
     r_vm = zeros(nx, ny)
+
     s_aux_field_lin_opr_ = zeros(nx + 2, ny + 2, nz + 2)
     s_aux_field_lin_opr = OffsetArray(s_aux_field_lin_opr_, 0:(nx+1), 0:(ny+1),
         0:(nz+1))
-    cache = merge(cache, [:r_vm => r_vm, :s_aux_field_lin_opr => s_aux_field_lin_opr])
+    cache = merge(cache, [:p_pc => copy(r_vm), :r_vm => r_vm, :s_aux_field_lin_opr => s_aux_field_lin_opr])
     return PoissonOperator(elements, cache)
 end
 
@@ -222,7 +223,6 @@ function linOpr(sIn, Ls, opt, hortot, model)
     (; ald_b, afu_b, afd_b, abu_b, abd_b, auu_b, add_b, aruu_b, ardd_b, aluu_b) = model.operator.op_fields
     (; aldd_b, afuu_b, afdd_b, abuu_b, abdd_b) = model.operator.op_fields
 
-    s = model.operator.cache.s_aux_field_lin_opr
 
     # --------------------------------------
     #   Linear Operator in Poisson problem
@@ -276,6 +276,7 @@ function linOpr(sIn, Ls, opt, hortot, model)
     # work with auxiliary field s
     # s[1:nx, 1:ny, 1:nz] = sIn
     # sIn = zeros(nx, ny, nz)
+    s = model.operator.cache.s_aux_field_lin_opr
     s[1:nx, 1:ny, 1:nz] .= sIn
 
     # Find neighbour procs
@@ -1044,7 +1045,7 @@ function bicgstab(b_in, dt, model, sol, nIter, errFlag, opt)
         else
             v_pc .= p
         end
-        linOpr(v_pc, matVec, opt, "tot", semi)
+        linOpr(v_pc, matVec, opt, "tot", model)
 
         v .= matVec
 
@@ -1055,11 +1056,11 @@ function bicgstab(b_in, dt, model, sol, nIter, errFlag, opt)
 
         # t = A*s
         if (preconditioner == "yes")
-            preCond(s, v_pc, opt, semi)
+            preCond(s, v_pc, opt, model)
         else
             v_pc .= s
         end
-        linOpr(v_pc, matVec, opt, "tot", semi)
+        linOpr(v_pc, matVec, opt, "tot", model)
         t .= matVec
 
         omega = dot(t, s) / dot(t, t)
