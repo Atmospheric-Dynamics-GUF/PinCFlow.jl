@@ -702,9 +702,6 @@ function calc_RHS(b, model, dt)
     (; pstrattfc, rhostrattfc) = model.atmosphere
 
     c = model.constants
-
-    @show b[1]
-
     if model.parameters.model.model == "pseudo_incompressible"
         # Calculate RHS for TFC.
         for k in 1:nz
@@ -719,8 +716,6 @@ function calc_RHS(b, model, dt)
                     vB = var.v(i, j - 1, k)
                     wU = var.w[i, j, k]
                     wD = var.w(i, j, k - 1)
-                    @show uR, uL, vF, vB, wU, wD
-                    @assert false
                     # Calculate P at cell edges.
                     pEdgeR = 0.5 * (jac[i, j, k] * pstrattfc[i, j, k] +
                                     jac[i+1, j, k] * pstrattfc[i+1, j, k])
@@ -742,7 +737,9 @@ function calc_RHS(b, model, dt)
                     bu = (pEdgeR * uR - pEdgeL * uL) / dx / jac[i, j, k] * c.ma^2.0 * c.kappa
                     bv = (pEdgeF * vF - pEdgeB * vB) / dy / jac[i, j, k] * c.ma^2.0 * c.kappa
                     bw = (pEdgeU * wU - pEdgeD * wD) / dz / jac[i, j, k] * c.ma^2.0 * c.kappa
-                    @show uR, vF, wU
+                    # @show uR, vF, wU
+                    # @show pEdgeR, pEdgeL, pEdgeF, dx, dy, dz, jac[i, j, k]
+                    # @show bu, bv, bw
                     divSum_local = divSum_local + bu + bv + bw
                     bu = bu / fcscal
                     bv = bv / fcscal
@@ -759,8 +756,6 @@ function calc_RHS(b, model, dt)
             end
         end
 
-        @show b[1]
-        @assert false
         #   !MPI: sum divSum_local over all procs
         #   root = 0
         #   call mpi_reduce(divSum_local, divSum, 1, mpi_double_precision, mpi_sum, root, comm, ierror)
@@ -972,18 +967,6 @@ function bicgstab(b_in, dt, model, sol, nIter, errFlag, opt)
     v = cache.v
     matVec = cache.matVec
     v_pc = cache.v_pc
-
-    @show p[1]
-    @show r0[1]
-    @show rOld[1]
-    @show r[1]
-    @show s[1]
-    @show b[1]
-    @show t[1]
-    @show v[1]
-    @show matVec[1]
-    @show v_pc[1]
-
     if (tolcrit == "abs")
         tol = tolpoisson / tolref
     elseif (tolcrit == "rel")
@@ -995,13 +978,7 @@ function bicgstab(b_in, dt, model, sol, nIter, errFlag, opt)
 
     b .= b_in
 
-    @show b_in[1]
-    @show b[1]
-    @assert false
-
-    println("starting linOpr")
     linOpr(sol, matVec, opt, "tot", model)
-    println("done with linOpr")
     # @assert false matVec[150, 1, 1],sol[150,1,1],b[150,1,1]
     r0 .= b - matVec
     p .= r0
@@ -1076,9 +1053,6 @@ function bicgstab(b_in, dt, model, sol, nIter, errFlag, opt)
         linOpr(v_pc, matVec, opt, "tot", model)
 
         v .= matVec
-        println("$j_b")
-        @show matVec[1]
-        @show v[1]
 
         # @assert false r[150, 1, 1], r0[150, 1, 1], v[150, 1, 1], p[150, 1, 1], dot(r,r0), dot(v,r0)
         # @show size(r)

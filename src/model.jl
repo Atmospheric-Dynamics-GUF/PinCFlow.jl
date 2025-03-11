@@ -38,11 +38,25 @@ function Model(p::Parameters)
 end
 
 
-function initialize!(model::Model)
-    initialize_atmosphere!(model)
 
+function initialize_variables!(model)
+    @trixi_timeit timer() "Initialize variables" begin
+    #! format: noindent
+    # u0 = 10.0 # this should be a namelist parameter
+    # v0 = 0.0
+    # w0 = 0.0
+
+    u0, v0, w0 = model.parameters.atmosphere.backgroundflow_dim # TODO - @Irmgard/Felix/Jonas: Is this correct?
+
+    model.variables.prognostic_fields.u .= u0 / model.constants.uref
+    model.variables.prognostic_fields.v .= v0 / model.constants.uref
+    model.variables.prognostic_fields.w .= w0 / model.constants.uref
+
+    model.variables.prognostic_fields.rho .= 0.0
+    model.variables.prognostic_fields.rhop .= 0.0
+    model.variables.prognostic_fields.pip .= 0.0
+    end # timer
 end
-
 function setup_topography!(model::Model)
     @trixi_timeit timer() "Setup topography" begin
     #! format: noindent
@@ -118,6 +132,9 @@ function initialize_atmosphere!(model::Model)
             rhostrattfc[ix, jy, kz] = pstrattfc[ix, jy, kz] / thetastrattfc[ix, jy, kz]
         end
     end
+    @show nbx, nx, nby, nby, nz
+    @show p0, c.sig, ztfc[1], c.gamma, t0
+    @show pstrattfc[1], thetastrattfc[1], rhostrattfc[1]
 
     for ix in (-nbx):(nx+nbx), jy in (-nby):(ny+nby)
         bvsstrattfc[ix, jy, -1] = c.g_ndim / thetastrattfc[ix, jy, 0] / jac(ix, jy, 0) *
@@ -136,4 +153,10 @@ function initialize_atmosphere!(model::Model)
         bvsstrattfc[ix, jy, nz+2] = bvsstrattfc[ix, jy, nz+1]
     end
     end # timer
+end
+
+function initialize!(model::Model)
+    initialize_atmosphere!(model)
+    initialize_variables!(model)
+
 end
