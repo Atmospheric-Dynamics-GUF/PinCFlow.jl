@@ -2,9 +2,9 @@ using SimpleUnPack
 using OffsetArrays
 
 struct Atmosphere{
-    I<:Integer,
     F<:AbstractFloat,
-    A3OF<:OffsetArray{<:AbstractFloat,3}
+    A3OF<:OffsetArray{<:AbstractFloat,3,},
+    S<:UnifiedSponge
 }
 
     # Reference atmosphere.
@@ -18,21 +18,7 @@ struct Atmosphere{
     nn::F
     t0::F
     p0::F
-
-    # Sponge layer.
-    # TODO: Sponge type
-    alphaunifiedsponge::A3OF
-    kr_sp_tfc::A3OF
-    kr_sp_w_tfc::A3OF
-    xsponge0::F
-    xsponge1::F
-    ysponge0::F
-    ysponge1::F
-    zsponge::F
-    ksponge::I
-    dxsponge::F
-    dysponge::F
-    dzsponge::F
+    sponge::S
 end
 
 function Atmosphere(pars::Parameters, cons::Constants)
@@ -55,14 +41,7 @@ function Atmosphere(pars::Parameters, cons::Constants)
     n2 = cons.ma^2 / cons.fr^4 * cons.kappa / t0
     nn = sqrt(n2)
     # TODO: make sponge type
-    alphaunifiedsponge = copy(thetastrat)
-    kr_sp_tfc = copy(alphaunifiedsponge)
-    kr_sp_w_tfc = copy(alphaunifiedsponge)
-    xsponge0, xsponge1 = 1.0, 1.0
-    ysponge0, ysponge1 = 1.0, 1.0
-    zsponge = 1.0
-    ksponge = 1
-    dxsponge, dysponge, dzsponge = 1.0, 1.0, 1.0
+    sponge = setup_sponge(pars.boundaries.spongetype, pars)
     return Atmosphere(
         # Reference atmosphere.
         pstrat,
@@ -74,18 +53,7 @@ function Atmosphere(pars::Parameters, cons::Constants)
         nn,
         t0,
         p0,
-        alphaunifiedsponge,
-        kr_sp_tfc,
-        kr_sp_w_tfc,
-        xsponge0,
-        xsponge1,
-        ysponge0,
-        ysponge1,
-        zsponge,
-        ksponge,
-        dxsponge,
-        dysponge,
-        dzsponge
+        sponge
     )
 
 end
@@ -158,33 +126,31 @@ function map(level, lz)
     end
 end
 
-function vertWind(i, j, k, semi)
-    (; cache) = semi
-    (; var) = cache
+function vertWind(i, j, k, model)
     # Transformation of the vertical wind.
+    (; u, v, w) = model.variables.prognostic_fields
 
-    uEdgeR = var.u[i, j, k]
-    uUEdgeR = var.u[i, j, k+1]
-    uEdgeL = var.u[i-1, j, k]
-    uUEdgeL = var.u[i-1, j, k+1]
-    vEdgeF = var.v[i, j, k]
-    vUEdgeF = var.v[i, j, k+1]
-    vEdgeB = var.v[i, j-1, k]
-    vUEdgeB = var.v[i, j-1, k+1]
-    wEdgeU = var.w[i, j, k]
+    uEdgeR = u[i, j, k]
+    uUEdgeR = u[i, j, k+1]
+    uEdgeL = u[i-1, j, k]
+    uUEdgeL = u[i-1, j, k+1]
+    vEdgeF = v[i, j, k]
+    vUEdgeF = v[i, j, k+1]
+    vEdgeB = v[i, j-1, k]
+    vUEdgeB = v[i, j-1, k+1]
+    wEdgeU = w[i, j, k]
 
     return trafo(i, j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB,
         vUEdgeB,
-        wEdgeU, "car", semi)
+        wEdgeU, "car", model)
 end
 
 function trafo(i, j, k, uEdgeR, uUEdgeR, uEdgeL, uUEdgeL, vEdgeF, vUEdgeF, vEdgeB, vUEdgeB,
-    wEdgeU, wind, semi)
+    wEdgeU, wind, model)
     # Assuming jac and met are defined elsewhere
     # Define variables as in the original code
 
-    (; cache, met) = semi
-    (; jac) = cache
+    (; jac, met) = model.grid
 
     jacEdgeU = 2.0 * jac(i, j, k) * jac(i, j, k + 1) / (jac(i, j, k) + jac(i, j, k + 1))
     uC = 0.5 * (uEdgeR + uEdgeL)

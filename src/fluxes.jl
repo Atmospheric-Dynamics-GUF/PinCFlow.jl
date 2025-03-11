@@ -6,6 +6,8 @@ struct Fluxes{A4OF<:OffsetArray{<:AbstractFloat,4}}
     rhop::A4OF
 end
 
+Base.copy(f::Fluxes) = Fluxes(copy(f.rho), copy(f.u), copy(f.v), copy(f.w), copy(f.rhop))
+
 function Fluxes(domain::DomainParameters)
     nx, ny, nz = domain.sizex, domain.sizey, domain.sizez
     nbx, nby, nbz = domain.nbx, domain.nby, domain.nbz
@@ -23,23 +25,22 @@ end
 #--------- RECONSTRUCTION ---------#
 
 # TODO: check start and end of loops
-function reconstruction!(semi)
+function reconstruction!(model)
     @trixi_timeit timer() "Reconstruction" begin
     #! format: noindent
-    reconstruct_rho!(semi)
-    reconstruct_rhop!(semi)
-    reconstruct_u!(semi)
-    reconstruct_v!(semi)
-    reconstruct_w!(semi)
+    reconstruct_rho!(model)
+    reconstruct_rhop!(model)
+    reconstruct_u!(model)
+    reconstruct_v!(model)
+    reconstruct_w!(model)
     end # timer
 end
 
-function reconstruct_rho!(semi)
-    (; cache, grid) = semi
-    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; var, rhoTilde, pStrat) = cache
+function reconstruct_rho!(model)
+    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = model.domain
 
-    rho = var.rho
+    rho = model.variables.prognostic_fields.rho
+    pstrat = model.atmosphere.pstrattfc
     sizeX, sizeY, sizeZ = size(rho)
 
     rhoBar_ = zeros(sizeX, sizeY, sizeZ)
@@ -49,19 +50,17 @@ function reconstruct_rho!(semi)
         for jy in (-nby):(ny+nby)
             for kz in 0:(nz+1)
                 # TODO: error message for pStrat
-                rhoBar[ix, jy, kz] = rho[ix, jy, kz] / pStrat[ix, jy, kz]
+                rhoBar[ix, jy, kz] = rho[ix, jy, kz] / pstrat[ix, jy, kz]
             end
         end
     end
-    muscl_reconstruct3D!(rhoBar, nxx, nyy, nzz, rhoTilde)
+    muscl_reconstruct3D!(rhoBar, nxx, nyy, nzz, model.variables.reconstructed.rho)
 end
 
-function reconstruct_rhop!(semi)
-    (; grid, cache) = semi
-    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; var, rhopTilde, pStrat) = cache
-
-    rhop = var.rhop
+function reconstruct_rhop!(model)
+    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = model.domain
+    rhop = model.variables.prognostic_fields.rhop
+    pstrat = model.atmosphere.pstrattfc
     sizeX, sizeY, sizeZ = size(rhop)
 
     rhopBar_ = zeros(sizeX, sizeY, sizeZ)
@@ -70,22 +69,20 @@ function reconstruct_rhop!(semi)
     for ix in (-nbx):(nx+nbx)
         for jy in (-nby):(ny+nby)
             for kz in 0:(nz+1)
-                rhopBar[ix, jy, kz] = rhop[ix, jy, kz] / pStrat[ix, jy, kz]
+                rhopBar[ix, jy, kz] = rhop[ix, jy, kz] / pstrat[ix, jy, kz]
             end
         end
     end
-    muscl_reconstruct3D!(rhopBar, nxx, nyy, nzz, rhopTilde)
+    muscl_reconstruct3D!(rhopBar, nxx, nyy, nzz, model.variables.reconstructed.rhop)
     # TODO: keep limiterType1 ?
 end
 
-function reconstruct_u!(semi)
+function reconstruct_u!(model)
     # Compute rho*u/P for reconstruction
-    (; grid, cache) = semi
-    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; var, uTilde, rhoStrat, pStrat) = cache
-
-    rho = var.rho
-    u = var.u
+    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = model.domain
+    (; u, rho) = model.variables.prognostic_fields
+    pstrat = model.atmosphere.pstrattfc
+    rhostrat = model.atmosphere.rhostrattfc
     sizeX, sizeY, sizeZ = size(u)
 
     uBar_ = zeros(sizeX, sizeY, sizeZ)
@@ -97,27 +94,26 @@ function reconstruct_u!(semi)
             for kz in 0:(nz+1)
                 rhoEdge = 0.5 * (rho[ix, jy, kz] +
                                  rho[ix+1, jy, kz] +
-                                 rhoStrat[ix, jy, kz] +
-                                 rhoStrat[ix+1, jy, kz])
-                pEdge = 0.5 * (pStrat[ix, jy, kz] + pStrat[ix+1, jy, kz])
+                                 rhostrat[ix, jy, kz] +
+                                 rhostrat[ix+1, jy, kz])
+                pEdge = 0.5 * (pstrat[ix, jy, kz] + pstrat[ix+1, jy, kz])
                 uBar[ix, jy, kz] = u[ix, jy, kz] * rhoEdge / pEdge
             end
         end
     end
 
-    muscl_reconstruct3D!(uBar, nxx, nyy, nzz, uTilde)
+    muscl_reconstruct3D!(uBar, nxx, nyy, nzz, model.variables.reconstructed.u)
 end
 
-function reconstruct_v!(semi)
+function reconstruct_v!(model)
 
     # Compute rho*v/P for reconstruction
-    (; grid, cache) = semi
-    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; var, vTilde, rhoStrat, pStrat) = cache
+    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = model.domain
+    (; u, v, rho) = model.variables.prognostic_fields
+    pstrat = model.atmosphere.pstrattfc
+    rhostrat = model.atmosphere.rhostrattfc
 
-    rho = var.rho
-    v = var.v
-    sizeX, sizeY, sizeZ = size(v)
+    sizeX, sizeY, sizeZ = size(u)
 
     vBar_ = zeros(sizeX, sizeY, sizeZ)
     vBar = OffsetArray(vBar_, OffsetArrays.Origin(-nbx, -nby, -nbz))
@@ -127,27 +123,26 @@ function reconstruct_v!(semi)
         for jy in (-nby):(ny+nby-1)
             for kz in 0:(nz+1)
                 rhoEdge = 0.5 * (rho[ix, jy, kz] +
-                                 rhoStrat[ix, jy, kz] +
+                                 rhostrat[ix, jy, kz] +
                                  rho[ix, jy+1, kz] +
-                                 rhoStrat[ix, jy+1, kz])
-                pEdge = 0.5 * (pStrat[ix, jy, kz] + pStrat[ix, jy+1, kz])
+                                 rhostrat[ix, jy+1, kz])
+                pEdge = 0.5 * (pstrat[ix, jy, kz] + pstrat[ix, jy+1, kz])
                 vBar[ix, jy, kz] = v[ix, jy, kz] * rhoEdge / pEdge
             end
         end
     end
 
-    muscl_reconstruct3D!(vBar, nxx, nyy, nzz, vTilde)
+    muscl_reconstruct3D!(vBar, nxx, nyy, nzz, model.variables.reconstructed.v)
 end
 
-function reconstruct_w!(semi)
+function reconstruct_w!(model)
 
     # Compute rho*v/P for reconstruction
-    (; grid, cache) = semi
-    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, lz) = grid
-    (; var, wTilde, rhoStrat, pStrat, jac) = cache
-
-    rho = var.rho
-    w = var.w
+    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = model.domain
+    (; u, v, w, rho) = model.variables.prognostic_fields
+    jac = model.grid.jac
+    pstrat = model.atmosphere.pstrattfc
+    rhostrat = model.atmosphere.rhostrattfc
     sizeX, sizeY, sizeZ = size(w)
 
     wBar_ = zeros(sizeX, sizeY, sizeZ)
@@ -158,27 +153,27 @@ function reconstruct_w!(semi)
     for ix in 1:nx
         for jy in 1:ny
             for kz in 0:(nz+1)
-                wBar[ix, jy, kz] = vertWind(ix, jy, kz, semi)
+                wBar[ix, jy, kz] = vertWind(ix, jy, kz, model)
             end
         end
     end
 
-    setHalosOfField!(wBar, semi)
+    setHalosOfField!(wBar, model)
     for ix in (-nbx):(nx+nbx)
         for jy in (-nby):(ny+nby)
             for kz in 0:(nz+1)
-                rhoEdge = (jac(ix, jy, kz + 1) * (rho[ix, jy, kz] + rhoStrat[ix, jy, kz]) +
+                rhoEdge = (jac(ix, jy, kz + 1) * (rho[ix, jy, kz] + rhostrat[ix, jy, kz]) +
                            jac(ix, jy, kz) *
-                           (rho[ix, jy, kz+1] + rhoStrat[ix, jy, kz+1])) /
+                           (rho[ix, jy, kz+1] + rhostrat[ix, jy, kz+1])) /
                           (jac(ix, jy, kz) + jac(ix, jy, kz + 1))
-                pEdge = (jac(ix, jy, kz + 1) * pStrat[ix, jy, kz] +
-                         jac(ix, jy, kz) * pStrat[ix, jy, kz+1]) /
+                pEdge = (jac(ix, jy, kz + 1) * pstrat[ix, jy, kz] +
+                         jac(ix, jy, kz) * pstrat[ix, jy, kz+1]) /
                         (jac(ix, jy, kz) + jac(ix, jy, kz + 1))
                 wBar[ix, jy, kz] = wBar[ix, jy, kz] * rhoEdge / pEdge
             end
         end
     end
-    muscl_reconstruct3D!(wBar, nxx, nyy, nzz, wTilde; debug=1)
+    muscl_reconstruct3D!(wBar, nxx, nyy, nzz, model.variables.reconstructed.w; debug=1)
 end
 
 function muscl_reconstruct3D!(varBar, sizeX, sizeY, sizeZ, varTilde; debug=0)
@@ -261,15 +256,15 @@ end
 
 # TODO: reconstruct_rho! could probably be called in rhoFlux!
 
-function rhoFlux!(semi)
-    (; grid, cache) = semi
-    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, lz) = grid
-    (; var, var0, rhoTilde, rhoStrat, pStrat, flux, jac) = cache
+function rhoFlux!(model)
+    (; nx, ny, nz) = model.domain
 
-    rhoFlux = flux.rho # mass flux
-    u = var0.u # zonal velocity
-    v = var0.v # meridional velocity
-    w = var0.w # vertical velocity
+    rhoFlux = model.fluxes.rho # mass flux
+    (; u, v, w) = model.variables.prognostic_fields_0
+    pStrat = model.atmosphere.pstrattfc
+    rhoStrat = model.atmosphere.rhostrattfc
+    rhoTilde = model.variables.reconstructed.rho
+    jac = model.grid.jac
 
     # TODO: these could be moved to new functions
     # zonal rho flux
@@ -340,15 +335,14 @@ function rhoFlux!(semi)
     end
 end
 
-function rhopFlux!(semi)
-    (; grid, cache) = semi
-    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, lz) = grid
-    (; var, var0, rhopTilde, pStrat, flux, jac) = cache
+function rhopFlux!(model)
+    (; nx, ny, nz) = model.domain
 
-    rhopFlux = flux.rhop # mass flux
-    u = var0.u # zonal velocity
-    v = var0.v # meridional velocity
-    w = var0.w # vertical velocity
+    rhopFlux = model.fluxes.rhop # mass flux
+    (; u, v, w) = model.variables.prognostic_fields_0
+    pStrat = model.atmosphere.pstrattfc
+    rhopTilde = model.variables.reconstructed.rhop
+    jac = model.grid.jac
 
     for kz in 1:nz
         for jy in 1:ny
@@ -430,15 +424,14 @@ function rhowFlux!(semi)
     rhowwFlux!(semi) # calculate (rho*w)*w
 end
 
-function rhouuFlux!(semi) # (rho*u)*u
-    (; grid, cache) = semi
-    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; var, var0, uTilde, pStrat, flux, jac) = cache
+function rhouuFlux!(model) # (rho*u)*u
+    uFlux = model.fluxes.u # mass flux
+    (; nx, ny, nz) = model.domain
 
-    uFlux = flux.u # mass flux
-    u = var0.u # zonal velocity
-    v = var0.v # meridional velocity
-    w = var0.w # vertical velocity
+    (; u, v, w) = model.variables.prognostic_fields_0
+    pStrat = model.atmosphere.pstrattfc
+    uTilde = model.variables.reconstructed.u
+    jac = model.grid.jac
 
     # Flux fRhoU
     for kz in 1:nz
@@ -461,16 +454,15 @@ function rhouuFlux!(semi) # (rho*u)*u
     end
 end
 
-function rhouvFlux!(semi) # (rho*u)*v
-    (; grid, cache) = semi
-    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; var, var0, uTilde, pStrat, flux, jac) = cache
+function rhouvFlux!(model) # (rho*u)*v
 
-    uFlux = flux.u # mass flux
-    u = var0.u # zonal velocity
-    v = var0.v # meridional velocity
-    w = var0.w # vertical velocity
+    uFlux = model.fluxes.u # mass flux
+    (; nx, ny, nz) = model.domain
 
+    (; u, v, w) = model.variables.prognostic_fields_0
+    pStrat = model.atmosphere.pstrattfc
+    uTilde = model.variables.reconstructed.u
+    jac = model.grid.jac
     # Flux gRhoU
     for kz in 1:nz
         for jy in 0:ny
@@ -492,15 +484,15 @@ function rhouvFlux!(semi) # (rho*u)*v
     end
 end
 
-function rhouwFlux!(semi) # (rho*u)*w
-    (; grid, cache) = semi
-    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz) = grid
-    (; var, var0, uTilde, pStrat, flux, jac) = cache
+function rhouwFlux!(model) # (rho*u)*w
 
-    uFlux = flux.u # mass flux
-    u = var0.u # zonal velocity
-    v = var0.v # meridional velocity
-    w = var0.w # vertical velocity
+    uFlux = model.fluxes.u # mass flux
+    (; nx, ny, nz) = model.domain
+
+    (; u, v, w) = model.variables.prognostic_fields_0
+    pStrat = model.atmosphere.pstrattfc
+    uTilde = model.variables.reconstructed.u
+    jac = model.grid.jac
 
     # Flux hRhoU
     for kz in 0:nz
@@ -527,15 +519,14 @@ function rhouwFlux!(semi) # (rho*u)*w
     end
 end
 
-function rhovuFlux!(semi)
-    (; grid, cache) = semi
-    (; nx, ny, nz) = grid
-    (; var, var0, vTilde, pStrat, flux, jac) = cache
+function rhovuFlux!(model)
+    (; nx, ny, nz) = model.domain
 
-    vFlux = flux.v # mass flux
-    u = var0.u # zonal velocity
-    v = var0.v # meridional velocity
-    w = var0.w # vertical velocity
+    (; u, v, w) = model.variables.prognostic_fields_0
+    pStrat = model.atmosphere.pstrattfc
+    vTilde = model.variables.reconstructed.v
+    vFlux = model.fluxes.v # mass flux
+    jac = model.grid.jac
 
     # Flux fRhoV
     for kz in 1:nz
@@ -558,16 +549,14 @@ function rhovuFlux!(semi)
     end
 end
 
-function rhovvFlux!(semi) # (rho*v)*v
-    (; grid, cache) = semi
-    (; nx, ny, nz) = grid
-    (; var, var0, vTilde, pStrat, flux, jac) = cache
+function rhovvFlux!(model) # (rho*v)*v
+    (; nx, ny, nz) = model.domain
 
-    vFlux = flux.v # mass flux
-    u = var0.u # zonal velocity
-    v = var0.v # meridional velocity
-    w = var0.w # vertical velocity
-
+    (; u, v, w) = model.variables.prognostic_fields_0
+    pStrat = model.atmosphere.pstrattfc
+    vTilde = model.variables.reconstructed.v
+    vFlux = model.fluxes.v # mass flux
+    jac = model.grid.jac
     # Flux gRhoV
     for kz in 1:nz
         for jy in -1:ny
@@ -589,16 +578,13 @@ function rhovvFlux!(semi) # (rho*v)*v
     end
 end
 
-function rhovwFlux!(semi)
-    (; grid, cache) = semi
-    (; nx, ny, nz) = grid
-    (; var, var0, vTilde, pStrat, flux, jac) = cache
-
-    vFlux = flux.v # mass flux
-    u = var0.u # zonal velocity
-    v = var0.v # meridional velocity
-    w = var0.w # vertical velocity
-
+function rhovwFlux!(model)
+    (; nx, ny, nz) = model.domain
+    (; u, v, w) = model.variables.prognostic_fields_0
+    pStrat = model.atmosphere.pstrattfc
+    vTilde = model.variables.reconstructed.v
+    vFlux = model.fluxes.v # mass flux
+    jac = model.grid.jac
     # Flux hRhoV
     for kz in 0:nz
         for jy in 0:ny
@@ -623,15 +609,13 @@ function rhovwFlux!(semi)
     end
 end
 
-function rhowuFlux!(semi) # (rho*w)*u
-    (; grid, cache) = semi
-    (; nx, ny, nz) = grid
-    (; var, var0, wTilde, pStrat, flux, jac) = cache
-
-    wFlux = flux.w # mass flux
-    u = var0.u # zonal velocity
-    v = var0.v # meridional velocity
-    w = var0.w # vertical velocity
+function rhowuFlux!(model) # (rho*w)*u
+    (; nx, ny, nz) = model.domain
+    (; u, v, w) = model.variables.prognostic_fields_0
+    pStrat = model.atmosphere.pstrattfc
+    wTilde = model.variables.reconstructed.w
+    wFlux = model.fluxes.w # mass flux
+    jac = model.grid.jac
 
     # Flux fRhoW
     for kz in 0:nz
@@ -660,15 +644,13 @@ function rhowuFlux!(semi) # (rho*w)*u
     end
 end
 
-function rhowvFlux!(semi)
-    (; grid, cache) = semi
-    (; nx, ny, nz) = grid
-    (; var, var0, wTilde, pStrat, flux, jac) = cache
-
-    wFlux = flux.w # mass flux
-    u = var0.u # zonal velocity
-    v = var0.v # meridional velocity
-    w = var0.w # vertical velocity
+function rhowvFlux!(model)
+    (; nx, ny, nz) = model.domain
+    (; u, v, w) = model.variables.prognostic_fields_0
+    pStrat = model.atmosphere.pstrattfc
+    wTilde = model.variables.reconstructed.w
+    wFlux = model.fluxes.w # mass flux
+    jac = model.grid.jac
 
     # Flux gRhoW
     for kz in 0:nz
@@ -698,15 +680,13 @@ function rhowvFlux!(semi)
     end
 end
 
-function rhowwFlux!(semi)
-    (; grid, cache) = semi
-    (; nx, ny, nz) = grid
-    (; var, var0, wTilde, pStrat, flux, jac) = cache
-
-    wFlux = flux.w # mass flux
-    u = var0.u # zonal velocity
-    v = var0.v # meridional velocity
-    w = var0.w # vertical velocity
+function rhowwFlux!(model)
+    (; nx, ny, nz) = model.domain
+    (; u, v, w) = model.variables.prognostic_fields_0
+    pStrat = model.atmosphere.pstrattfc
+    wTilde = model.variables.reconstructed.w
+    wFlux = model.fluxes.w # mass flux
+    jac = model.grid.jac
 
     # Flux hRhoW
     for kz in -1:nz
@@ -741,9 +721,8 @@ function flux_muscl(wind, phiUp, phiDown)
     end
 end
 
-function setHalosOfField!(field, semi)
-    (; grid) = semi
-    (; nbx, nx, ny, nby) = grid
+function setHalosOfField!(field, model)
+    (; nbx, nx, ny, nby) = model.domain
 
     for i in 1:nbx
         field[nx+i, :, :] .= field[i, :, :]
