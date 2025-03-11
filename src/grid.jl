@@ -1,29 +1,34 @@
 using OffsetArrays
 
-struct Grid
+struct Grid{F<:AbstractFloat,
+    VOF<:OffsetVector{F},
+    MOF<:OffsetMatrix{F},
+    A3OF<:OffsetArray{F,3},
+}
+    # A5OF<:OffsetArray{F,5}}
     # Scaled domain.
-    lx
-    ly
-    lz
+    lx::VOF
+    ly::VOF
+    lz::VOF
     # Grid spacings.
-    dx
-    dy
-    dz
+    dx::F
+    dy::F
+    dz::F
     # Coordinates.
-    x
-    y
-    z
+    x::VOF
+    y::VOF
+    z::VOF
     # Stretched vertical grid.
-    zs
-    ztildes
+    zs::VOF
+    ztildes::VOF
     # Topography.
-    topography_surface
+    topography_surface::MOF
     # Jacobian and metric tensor.
-    jac
-    met
+    jac::Jacobian
+    met::MetricTensor
     # Vertical layers.
-    ztfc
-    ztildetfc
+    ztfc::A3OF
+    ztildetfc::A3OF
     # Boundaries
     xboundary
     yboundary
@@ -57,7 +62,6 @@ function Grid(p::Parameters, lRef) # todo: get rid of lref
     dx = (lx[1] - lx[0]) / nx
     dy = (ly[1] - ly[0]) / ny
     dz = (lz[1] - lz[0]) / nz
-    @show dz
 
     sizeX = nx
     sizeY = ny

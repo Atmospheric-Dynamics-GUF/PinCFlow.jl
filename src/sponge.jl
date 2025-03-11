@@ -2,7 +2,7 @@ abstract type AbstractSpongeLayer end
 abstract type UnifiedSponge <: AbstractSpongeLayer end
 
 struct ExponentialSponge <: UnifiedSponge end
-struct SinusodialSpongeSetup{RealT <: Real} <: UnifiedSponge
+struct SinusodialSponge{RealT<:Real} <: UnifiedSponge
     ## TODO: add types
     lateral::Any
     height::Any
@@ -11,31 +11,40 @@ struct SinusodialSpongeSetup{RealT <: Real} <: UnifiedSponge
     relax_to_mean::RealT
     relaxation_period::RealT
     relaxation_amplitude::RealT
+    kr_sp_tfc::AbstractArray
+    kr_sp_w_tfc::AbstractArray
 end
 
-function SinusodialSponge(grid)
-    alpha = OffsetArray(zeros(Float64, 0:(grid.nx + 1), 0:(grid.ny + 1), 0:(grid.nz + 1)))
-    SinusodialSpongeSetup(true, 0.5, 0.01, alpha, 1.0, 0.0, 0.0)
+function SinusodialSponge(pars::Parameters)
+    nx, ny, nz = pars.domain.sizex, pars.domain.sizey, pars.domain.sizez
+    alpha = OffsetArray(zeros(Float64, 0:(nx+1), 0:(ny+1), 0:(nz+1)))
+    kr_sp_tfc = OffsetArray(zeros(nx + 2, ny + 2, nz + 2), 0:(nx+1), 0:(ny+1), 0:(nz+1))
+    kr_sp_w_tfc = copy(kr_sp_tfc)
+    SinusodialSponge(true, 0.5, 0.01, alpha, 1.0, 0.0, 0.0, kr_sp_tfc, kr_sp_w_tfc)
 end
 
 struct CosmoSponge <: UnifiedSponge end
 struct PolynomialSponge <: UnifiedSponge end
 struct NonUnifiedSponge <: AbstractSpongeLayer end
 
-initialize_sponge!(semi) = initialize_sponge_ini!(semi, semi.sponge)
+initialize_sponge!(model) = initialize_sponge_ini!(model, model.atmosphere.sponge)
 
-function initialize_sponge_ini!(semi, sponge::SinusodialSpongeSetup)
+function setup_sponge(sponge_type::String, pars::Parameters)
+    if sponge_type == "sinusodial"
+        return SinusodialSponge(pars)
+    else
+        error("invalid sponge type $sponge_type")
+    end
+end
+
+function initialize_sponge_ini!(model, sponge::SinusodialSponge)
     @trixi_timeit timer() "Initialize sponge" begin
     #! format: noindent
-    (; grid, equations, sponge, cache) = semi
-    (; nx, ny, nz, x, y, zTFC, lx, ly, lz) = grid
-    (; tRef) = equations
-    (; kr_sp_tfc, kr_sp_w_tfc) = cache
-
-    kr_sp_tfc .= 0.0
-    kr_sp_w_tfc .= 0.0
-
-    alphaZ = sponge.alphaZ_dim * tRef
+    (; nx, ny, nz) = model.domain
+    (; x, y, ztfc, lx, ly, lz) = model.grid
+    (; tref) = model.constants
+    sponge = model.atmosphere.sponge
+    alphaZ = sponge.alphaZ_dim * tref
 
     dz = sponge.height * (lz[1] - lz[0])
     z = lz[1] - dz
@@ -64,9 +73,9 @@ function initialize_sponge_ini!(semi, sponge::SinusodialSpongeSetup)
     end
 
     for k in 1:nz
-        for j in 0:(ny + 1)
-            for i in 0:(nx + 1)
-                height = zTFC[i, j, k]
+        for j in 0:(ny+1)
+            for i in 0:(nx+1)
+                height = ztfc[i, j, k]
 
                 if nz > 1
                     if height >= z # this is zSponge
@@ -100,7 +109,7 @@ function initialize_sponge_ini!(semi, sponge::SinusodialSpongeSetup)
         end
         # TODO - Use broadcasting and @views
         sponge.alpha[:, :, 0] = sponge.alpha[:, :, 1]
-        sponge.alpha[:, :, nz + 1] = sponge.alpha[:, :, nz]
+        sponge.alpha[:, :, nz+1] = sponge.alpha[:, :, nz]
     end
     end # timer
 end

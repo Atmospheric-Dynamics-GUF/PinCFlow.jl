@@ -15,6 +15,9 @@ struct Variables{
     # Prognostic variables.
     # as named tuple and with symbols :rho, :rhop, :u, :v, :w, :pip and fields
     prognostic_fields::NamedTuple
+    # TODO: get rid of these... or find better names if we really need those
+    prognostic_fields_0::NamedTuple
+    prognostic_fields_1::NamedTuple
     # Tendencies.
     # same as for prognostic variables
     tendencies::NamedTuple
@@ -28,12 +31,14 @@ end
 
 function Variables(pars::Parameters)
     prognostic = prognostic_fields(pars.domain)
+    prognostic_0 = prognostic_fields(pars.domain)
+    prognostic_1 = prognostic_fields(pars.domain)
     tendency = tendency_fields(pars.domain)
     reconstruced = reconstructed_fields(pars.domain)
     history = history_fields(prognostic)
     dpip = copy(prognostic.u)
     # TODO: default values for boolean flags?
-    Variables(false, false, false, prognostic, tendency, dpip, history, reconstruced)
+    Variables(false, false, false, prognostic, prognostic_0, prognostic_1, tendency, dpip, history, reconstruced)
 end
 
 function history_fields(prognostic_fields)

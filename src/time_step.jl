@@ -20,125 +20,125 @@ function pincflow(model, dt)
     facray = 1
 
     Corrector(model, 1.0, errFlagBicg, nIter, "expl", facray, facprs)
-    return
-    initialize_sponge!(semi)
+    display(timer())
+    initialize_sponge!(model)
+
 
     time = 0.0
     for it in 1:100
-        setBoundary!(semi)
-
-        @trixi_timeit timer() "Misc" semi.cache.var.rhop .= semi.cache.var.rho
-        @trixi_timeit timer() "Misc" copytuple_to_tuple!(semi.cache.var0,
-            semi.cache.var)
-
+        setBoundary!(model)
+        @trixi_timeit timer() "Misc" model.variables.prognostic_fields.rhop .= model.variables.prognostic_fields.rho
+        @trixi_timeit timer() "Misc" copytuple_to_tuple!(model.variables.prognostic_fields_0,
+            model.variables.prognostic_fields)
+        flux0 = copy(model.fluxes)
         for RKStage in 1:3
-            setBoundary!(semi)
-            reconstruction!(semi)
+            setBoundary!(model)
+            reconstruction!(model)
 
-            compute_fluxes!(semi)
-            setBoundary_flux!(semi)
+            compute_fluxes!(model)
+            setBoundary_flux!(model)
 
             @trixi_timeit timer() "Misc" if RKStage == 1
-                copytuple_to_tuple_flux!(ode.flux0, semi.cache.flux)
+                flux0 = copy(model.fluxes)
+                # copytuple_to_tuple_flux!(ode.flux0, semi.cache.flux)
             end
 
-            @trixi_timeit timer() "Misc" ode.rhoOld .= semi.cache.var.rho
+            @trixi_timeit timer() "Misc" model.variables.history.rho .= model.variables.prognostic_fields.rho
 
-            massUpdate!(semi, ode, 0.5 * ode.dt, "rho", "tot", "expl", RKStage, 1)
-            applyUnifiedSponge_rho!(semi, 0.5 * ode.stepFrac[RKStage] * dt)
-            massUpdate!(semi, ode, 0.5 * ode.dt, "rhop", "lhs", "expl", RKStage, 1)
-            applyUnifiedSponge_rhop!(semi, 0.5 * ode.stepFrac[RKStage] * dt)
+            massUpdate!(model, ode, 0.5 * dt, "rho", "tot", "expl", RKStage, 1)
+            applyUnifiedSponge_rho!(model, 0.5 * ode.stepfrac[RKStage] * dt)
+            massUpdate!(model, ode, 0.5 * dt, "rhop", "lhs", "expl", RKStage, 1)
+            applyUnifiedSponge_rhop!(model, 0.5 * ode.stepfrac[RKStage] * dt)
+            setBoundary!(model)
 
-            setBoundary!(semi)
-
-            momentumPredictor!(semi, ode, 0.5 * dt, "lhs", "expl", RKStage, 1)
-
-            applyUnifiedSponge_uvw!(semi, 0.5 * ode.stepFrac[RKStage] * dt)
+            momentumPredictor!(model, ode, 0.5 * dt, "lhs", "expl", RKStage, 1)
+            applyUnifiedSponge_uvw!(model, 0.5 * ode.stepfrac[RKStage] * dt)
         end
         RKStage = 4
-        setBoundary!(semi)
-        @trixi_timeit timer() "Misc" copytuple_to_tuple_flux!(semi.cache.flux,
-            ode.flux0)
+        setBoundary!(model)
+        @trixi_timeit timer() "Misc" model.fluxes = copy(flux0)
+        # @trixi_timeit timer() "Misc" copytuple_to_tuple_flux!(semi.cache.flux,
+        #     ode.flux0)
 
-        @trixi_timeit timer() "Misc" ode.wOld .= semi.cache.var.w
+        @trixi_timeit timer() "Misc" model.variables.history.w .= model.variables.prognostic_fields.w
 
-        momentumPredictor!(semi, ode, 0.5 * dt, "rhs", "impl", RKStage, 1)
+        momentumPredictor!(model, ode, 0.5 * dt, "rhs", "impl", RKStage, 1)
 
-        setBoundary!(semi)
+        setBoundary!(model)
 
-        massUpdate!(semi, ode, 0.5 * ode.dt, "rhop", "rhs", "impl", RKStage, 1)
+        massUpdate!(model, ode, 0.5 * dt, "rhop", "rhs", "impl", RKStage, 1)
 
-        setBoundary!(semi)
+        setBoundary!(model)
 
-        Corrector(semi, 0.5 * dt, errFlagBicg, nIter, "impl", 1, 1)
+        Corrector(model, 0.5 * dt, errFlagBicg, nIter, "impl", 1, 1)
 
-        setBoundary!(semi)
+        setBoundary!(model)
 
         @trixi_timeit timer() "Misc" begin
-            copytuple_to_tuple!(ode.var1, semi.cache.var)
-            copytuple_to_tuple_flux!(semi.cache.var, semi.cache.var0)
+            copytuple_to_tuple!(model.variables.prognostic_fields_1, model.variables.prognostic_fields)
+            copytuple_to_tuple!(model.variables.prognostic_fields, model.variables.prognostic_fields_0)
         end
 
-        @trixi_timeit timer() "Misc" ode.rhopOld .= semi.cache.var.rhop
+        @trixi_timeit timer() "Misc" model.variables.history.rhop .= model.variables.prognostic_fields.rhop
 
-        massUpdate!(semi, ode, 0.5 * ode.dt, "rhop", "rhs", "expl", RKStage, 1)
+        massUpdate!(model, ode, 0.5 * dt, "rhop", "rhs", "expl", RKStage, 1)
 
-        momentumPredictor!(semi, ode, 0.5 * dt, "rhs", "expl", RKStage, 1)
+        momentumPredictor!(model, ode, 0.5 * dt, "rhs", "expl", RKStage, 1)
 
-        setBoundary!(semi)
+        setBoundary!(model)
 
-        copytuple_to_tuple!(semi.cache.var0, ode.var1)
+        copytuple_to_tuple!(model.variables.prognostic_fields_0, model.variables.prognostic_fields_1)
 
         # TODO: ...
         ## set the boundary to var0
 
         for RKStage in 1:3
-            setBoundary!(semi)
+            setBoundary!(model)
 
-            reconstruction!(semi)
+            reconstruction!(model)
 
             #missing set boundary tilde var
 
-            compute_fluxes!(semi)
+            compute_fluxes!(model)
 
-            @trixi_timeit timer() "Boundary flux" setBoundary_flux!(semi)
+            @trixi_timeit timer() "Boundary flux" setBoundary_flux!(model)
 
-            @trixi_timeit timer() "Misc" ode.rhoOld .= semi.cache.var.rho
+            @trixi_timeit timer() "Misc" model.variables.history.rho .= model.variables.prognostic_fields.rho
 
-            massUpdate!(semi, ode, ode.dt, "rho", "tot", "expl", RKStage, 1)
+            massUpdate!(model, ode, dt, "rho", "tot", "expl", RKStage, 1)
 
-            applyUnifiedSponge_rho!(semi, ode.stepFrac[RKStage] * dt)
+            applyUnifiedSponge_rho!(model, ode.stepfrac[RKStage] * dt)
 
-            massUpdate!(semi, ode, ode.dt, "rhop", "lhs", "expl", RKStage, 1)
+            massUpdate!(model, ode, dt, "rhop", "lhs", "expl", RKStage, 1)
 
-            applyUnifiedSponge_rhop!(semi, ode.stepFrac[RKStage] * dt)
+            applyUnifiedSponge_rhop!(model, ode.stepfrac[RKStage] * dt)
 
-            setBoundary!(semi)
+            # TODO ode.dt == dt?
+            setBoundary!(model)
 
-            momentumPredictor!(semi, ode, dt, "lhs", "expl", RKStage, 1)
+            momentumPredictor!(model, ode, dt, "lhs", "expl", RKStage, 1)
 
-            applyUnifiedSponge_uvw!(semi, ode.stepFrac[RKStage] * dt)
+            applyUnifiedSponge_uvw!(model, ode.stepfrac[RKStage] * dt)
         end
         RKStage = 4
-        setBoundary!(semi)
-        @trixi_timeit timer() "Misc" copytuple_to_tuple_flux!(semi.cache.flux,
-            ode.flux0)
+        setBoundary!(model)
+        @trixi_timeit timer() "Misc" model.fluxes = copy(flux0)
 
-        @trixi_timeit timer() "Misc" ode.wOld .= semi.cache.var.w
+        @trixi_timeit timer() "Misc" model.variables.history.w .= model.variables.prognostic_fields.w
 
-        momentumPredictor!(semi, ode, 0.5 * dt, "rhs", "impl", RKStage, 2)
+        momentumPredictor!(model, ode, 0.5 * dt, "rhs", "impl", RKStage, 2)
 
-        setBoundary!(semi)
+        setBoundary!(model)
 
-        massUpdate!(semi, ode, 0.5 * ode.dt, "rhop", "rhs", "impl", RKStage, 2)
+        massUpdate!(model, ode, 0.5 * dt, "rhop", "rhs", "impl", RKStage, 2)
 
-        setBoundary!(semi)
+        setBoundary!(model)
 
-        Corrector(semi, 0.5 * dt, errFlagBicg, nIter, "impl", 2, 1)
+        Corrector(model, 0.5 * dt, errFlagBicg, nIter, "impl", 2, 1)
 
-        setBoundary!(semi)
+        setBoundary!(model)
 
-        time = time + ode.dt
+        time = time + dt
         @show time, it
     end
     end # timer
@@ -149,7 +149,7 @@ function copytuple_to_tuple!(var, var1)
     var.u .= var1.u
     var.v .= var1.v
     var.w .= var1.w
-    var.exner .= var1.exner
+    var.pip .= var1.pip
     var.rho .= var1.rho
     var.rhop .= var1.rhop
 end

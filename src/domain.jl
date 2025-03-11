@@ -44,9 +44,9 @@ function Domain(params::Parameters)
     (; nbx, nby, nbz) = params.domain
     js, is = 1, 1
     nx, ny, nz = params.domain.sizex, params.domain.sizey, params.domain.sizez
-    nxx = nx + 2 * nbx
-    nyy = ny + 2 * nby
-    nzz = nz + 2 * nbz
+    nxx = nx + 2 * nbx + 1 # TODO: +1 or not?
+    nyy = ny + 2 * nby + 1
+    nzz = nz + 2 * nbz + 1
 
     return Domain(comm, master, rank, root, idim, jdim, js, is,
         nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz)

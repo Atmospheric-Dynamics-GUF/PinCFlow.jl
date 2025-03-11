@@ -882,7 +882,7 @@ function poissonSolver(b, model, dt, errFlagBicg, nIter, opt, facray, facprs)
 
     # now get dp from dt * dp ...
     # pass solution to pressure corrector
-    @. model.atmosphere.dp[1:nx, 1:ny, 1:nz] .= dtInv / facprs * sol
+    @. model.variables.dpip[1:nx, 1:ny, 1:nz] .= dtInv / facprs * sol
 end
 
 function bicgstab(b_in, dt, model, sol, nIter, errFlag, opt)
@@ -1041,7 +1041,6 @@ function bicgstab(b_in, dt, model, sol, nIter, errFlag, opt)
 
     # Loop
 
-    println("starting loop over $(model.parameters.poisson.maxiter)")
     for j_b in 1:model.parameters.poisson.maxiter
         # @assert false p[150, 1, 1]
         # v = A*p
@@ -1128,7 +1127,7 @@ function bicgstab(b_in, dt, model, sol, nIter, errFlag, opt)
 
             if (preconditioner == "yes")
                 s .= sol
-                preCond(s, sol, opt, semi)
+                preCond(s, sol, opt, model)
             end
 
             return
@@ -1151,10 +1150,9 @@ function bicgstab(b_in, dt, model, sol, nIter, errFlag, opt)
 
 end
 
-function pressureBoundaryCondition(semi)
-    (; grid, cache) = semi
-    (; nx, ny, nz) = grid
-    (; dp) = cache
+function pressureBoundaryCondition(model)
+    (; nx, ny, nz) = model.domain
+    dp = model.variables.dpip
     #--------------------------------------------------
     # set pressure correction dp in ghost cells for BC
     #--------------------------------------------------
@@ -1285,11 +1283,21 @@ function pressureBoundaryCondition(semi)
     end
 end
 
-function correctorStep(semi, dt, opt, facray, facprs)
-    (; cache, grid, met, equations, spongeLayer, sponge_uv) = semi
-    (; var, dp, rhostrattfc, pstrattfc, jac, bvsStrat, kr_sp_tfc, kr_sp_w_tfc, corX, corY) = cache
-    (; nx, ny, nz, dx, dy, dz) = grid
-    (; kappaInv, MaInv2, g_ndim) = equations
+function correctorStep(model, dt, opt, facray, facprs)
+    dp = model.variables.dpip
+    var = model.variables.prognostic_fields
+    (; met, jac) = model.grid
+    c = model.constants
+    (; rhostrattfc, pstrattfc, bvsstrattfc) = model.atmosphere
+    (; kr_sp_tfc, kr_sp_w_tfc) = model.atmosphere.sponge
+    (; nx, ny, nz, nbx, nby) = model.domain
+    (; dx, dy, dz) = model.grid
+    # TODO...
+    corX = OffsetArray(zeros(Float64, nx + 2nbx + 1, ny + 2nby + 1, nz + 4),
+        (-nbx):(nx+nbx),
+        (-nby):(ny+nby),
+        -1:(nz+2))
+    corY = copy(corX)
 
     #------------------------------------------------
     #         correct pressure & velocity
@@ -1341,9 +1349,9 @@ function correctorStep(semi, dt, opt, facray, facprs)
     #             calc p + dp
     # --------------------------------------
 
-    @. var.exner[0:(nx+1), 0:(ny+1), 0:(nz+1)] = var.exner[0:(nx+1), 0:(ny+1),
+    @. var.pip[0:(nx+1), 0:(ny+1), 0:(nz+1)] = var.pip[0:(nx+1), 0:(ny+1),
         0:(nz+1)] +
-                                                 dp[0:(nx+1), 0:(ny+1),
+                                               dp[0:(nx+1), 0:(ny+1),
         0:(nz+1)]
 
     if (opt == "impl")
@@ -1361,7 +1369,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                 for i in 0:nx
                     facu = 1.0
 
-                    if (spongeLayer && sponge_uv)
+                    if (model.parameters.boundaries.spongelayer && model.parameters.boundaries.sponge_uv)
                         facu = facu +
                                dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc[i+1, j, k])
                     end
@@ -1380,7 +1388,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                         dpUUEdgeR = 0.5 * (dp(i, j, k + 2) + dp(i + 1, j, k + 2))
                         dpUEdgeR = 0.5 * (dp(i, j, k + 1) + dp(i + 1, j, k + 1))
                         dpEdgeR = 0.5 * (dp[i, j, k] + dp[i+1, j, k])
-                        pGradX = kappaInv * MaInv2 / rhou *
+                        pGradX = c.kappainv * c.mainv2 / rhou *
                                  pEdgeR *
                                  ((dp[i+1, j, k] - dp[i, j, k]) / dx +
                                   met13EdgeR *
@@ -1390,7 +1398,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                         dpDDEdgeR = 0.5 * (dp(i, j, k - 2) + dp(i + 1, j, k - 2))
                         dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
                         dpEdgeR = 0.5 * (dp[i, j, k] + dp[i+1, j, k])
-                        pGradX = kappaInv * MaInv2 / rhou *
+                        pGradX = c.kappainv * c.mainv2 / rhou *
                                  pEdgeR *
                                  ((dp[i+1, j, k] - dp[i, j, k]) / dx +
                                   met13EdgeR *
@@ -1399,7 +1407,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                     else
                         dpUEdgeR = 0.5 * (dp(i, j, k + 1) + dp(i + 1, j, k + 1))
                         dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
-                        pGradX = kappaInv * MaInv2 / rhou *
+                        pGradX = c.kappainv * c.mainv2 / rhou *
                                  pEdgeR *
                                  ((dp[i+1, j, k] - dp[i, j, k]) / dx +
                                   met13EdgeR * (dpUEdgeR - dpDEdgeR) * 0.5 / dz)
@@ -1408,7 +1416,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                     corX[i, j, k] = facprs * dt / facu * pGradX
                     du = -corX[i, j, k]
 
-                    var.u[i, j, k] = var.u[i, j, k] + du
+                    model.variables.prognostic_fields.u[i, j, k] = model.variables.prognostic_fields.u[i, j, k] + du
                 end
             end
         end
@@ -1432,7 +1440,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                         dpUUEdgeR = 0.5 * (dp(i, j, k + 2) + dp(i + 1, j, k + 2))
                         dpUEdgeR = 0.5 * (dp(i, j, k + 1) + dp(i + 1, j, k + 1))
                         dpEdgeR = 0.5 * (dp[i, j, k] + dp[i+1, j, k])
-                        pGradX = kappaInv * MaInv2 / rhou *
+                        pGradX = c.kappainv * c.mainv2 / rhou *
                                  pEdgeR *
                                  ((dp[i+1, j, k] - dp[i, j, k]) / dx +
                                   met13EdgeR *
@@ -1442,7 +1450,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                         dpDDEdgeR = 0.5 * (dp(i, j, k - 2) + dp(i + 1, j, k - 2))
                         dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
                         dpEdgeR = 0.5 * (dp[i, j, k] + dp[i+1, j, k])
-                        pGradX = kappaInv * MaInv2 / rhou *
+                        pGradX = c.kappainv * c.mainv2 / rhou *
                                  pEdgeR *
                                  ((dp[i+1, j, k] - dp[i, j, k]) / dx +
                                   met13EdgeR *
@@ -1451,7 +1459,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                     else
                         dpUEdgeR = 0.5 * (dp(i, j, k + 1) + dp(i + 1, j, k + 1))
                         dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
-                        pGradX = kappaInv * MaInv2 / rhou *
+                        pGradX = c.kappainv * c.mainv2 / rhou *
                                  pEdgeR *
                                  ((dp[i+1, j, k] - dp[i, j, k]) / dx +
                                   met13EdgeR * (dpUEdgeR - dpDEdgeR) * 0.5 / dz)
@@ -1477,7 +1485,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                 for i in 1:nx
                     facv = 1.0
 
-                    if (spongeLayer && sponge_uv)
+                    if (model.parameters.boundaries.spongelayer && model.parameters.boundaries.sponge_uv)
                         facv = facv +
                                dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc(i, j + 1, k))
                     end
@@ -1496,7 +1504,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                         dpUUEdgeF = 0.5 * (dp(i, j, k + 2) + dp(i, j + 1, k + 2))
                         dpUEdgeF = 0.5 * (dp(i, j, k + 1) + dp(i, j + 1, k + 1))
                         dpEdgeF = 0.5 * (dp[i, j, k] + dp(i, j + 1, k))
-                        pGradY = kappaInv * MaInv2 / rhov *
+                        pGradY = c.kappainv * c.mainv2 / rhov *
                                  pEdgeF *
                                  ((dp(i, j + 1, k) - dp[i, j, k]) / dy +
                                   met23EdgeF *
@@ -1506,7 +1514,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                         dpDDEdgeF = 0.5 * (dp(i, j, k - 2) + dp(i, j + 1, k - 2))
                         dpDEdgeF = 0.5 * (dp(i, j, k - 1) + dp(i, j + 1, k - 1))
                         dpEdgeF = 0.5 * (dp[i, j, k] + dp(i, j + 1, k))
-                        pGradY = kappaInv * MaInv2 / rhov *
+                        pGradY = c.kappainv * c.mainv2 / rhov *
                                  pEdgeF *
                                  ((dp(i, j + 1, k) - dp[i, j, k]) / dy +
                                   met23EdgeF *
@@ -1515,7 +1523,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                     else
                         dpUEdgeF = 0.5 * (dp(i, j, k + 1) + dp(i, j + 1, k + 1))
                         dpDEdgeF = 0.5 * (dp(i, j, k - 1) + dp(i, j + 1, k - 1))
-                        pGradY = kappaInv * MaInv2 / rhov *
+                        pGradY = c.kappainv * c.mainv2 / rhov *
                                  pEdgeF *
                                  ((dp(i, j + 1, k) - dp[i, j, k]) / dy +
                                   met23EdgeF * (dpUEdgeF - dpDEdgeF) * 0.5 / dz)
@@ -1548,7 +1556,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                         dpUUEdgeF = 0.5 * (dp(i, j, k + 2) + dp(i, j + 1, k + 2))
                         dpUEdgeF = 0.5 * (dp(i, j, k + 1) + dp(i, j + 1, k + 1))
                         dpEdgeF = 0.5 * (dp[i, j, k] + dp(i, j + 1, k))
-                        pGradY = kappaInv * MaInv2 / rhov *
+                        pGradY = c.kappainv * c.mainv2 / rhov *
                                  pEdgeF *
                                  ((dp(i, j + 1, k) - dp[i, j, k]) / dy +
                                   met23EdgeF *
@@ -1558,7 +1566,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                         dpDDEdgeF = 0.5 * (dp(i, j, k - 2) + dp(i, j + 1, k - 2))
                         dpDEdgeF = 0.5 * (dp(i, j, k - 1) + dp(i, j + 1, k - 1))
                         dpEdgeF = 0.5 * (dp[i, j, k] + dp(i, j + 1, k))
-                        pGradY = kappaInv * MaInv2 / rhov *
+                        pGradY = c.kappainv * c.mainv2 / rhov *
                                  pEdgeF *
                                  ((dp(i, j + 1, k) - dp[i, j, k]) / dy +
                                   met23EdgeF *
@@ -1567,7 +1575,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                     else
                         dpUEdgeF = 0.5 * (dp(i, j, k + 1) + dp(i, j + 1, k + 1))
                         dpDEdgeF = 0.5 * (dp(i, j, k - 1) + dp(i, j + 1, k - 1))
-                        pGradY = kappaInv * MaInv2 / rhov *
+                        pGradY = c.kappainv * c.mainv2 / rhov *
                                  pEdgeF *
                                  ((dp(i, j + 1, k) - dp[i, j, k]) / dy +
                                   met23EdgeF * (dpUEdgeF - dpDEdgeF) * 0.5 / dz)
@@ -1601,7 +1609,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                 for i in 1:nx
                     facw = 1.0
 
-                    if (spongeLayer)
+                    if (model.parameters.boundaries.spongelayer)
                         facw = facw +
                                dt * (jac(i, j, k + 1) * kr_sp_w_tfc[i, j, k] +
                                      jac[i, j, k] * kr_sp_w_tfc(i, j, k + 1)) /
@@ -1618,8 +1626,8 @@ function correctorStep(semi, dt, opt, facray, facprs)
                     pEdgeU = (jac(i, j, k + 1) * pstrattfc[i, j, k] +
                               jac[i, j, k] * pstrattfc(i, j, k + 1)) /
                              (jac[i, j, k] + jac(i, j, k + 1))
-                    bvsstw = (jac(i, j, k + 1) * bvsStrat[i, j, k] +
-                              jac[i, j, k] * bvsStrat(i, j, k + 1)) /
+                    bvsstw = (jac(i, j, k + 1) * bvsstrattfc[i, j, k] +
+                              jac[i, j, k] * bvsstrattfc(i, j, k + 1)) /
                              (jac[i, j, k] + jac(i, j, k + 1))
                     met13EdgeU = (jac(i, j, k + 1) * met(i, j, k, 1, 3) +
                                   jac[i, j, k] * met(i, j, k + 1, 1, 3)) /
@@ -1643,7 +1651,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                                 jac(i, j - 1, k) * dp(i, j - 1, k + 1)) /
                                (jac(i, j - 1, k) + jac(i, j - 1, k + 1))
                     # Compute pressure difference gradient component.
-                    pGradZ = kappaInv * MaInv2 / rhoEdge *
+                    pGradZ = c.kappainv * c.mainv2 / rhoEdge *
                              pEdgeU *
                              (met13EdgeU * (dpREdgeU - dpLEdgeU) * 0.5 / dx +
                               met23EdgeU * (dpFEdgeU - dpBEdgeU) * 0.5 / dy +
@@ -1687,8 +1695,8 @@ function correctorStep(semi, dt, opt, facray, facprs)
                     pEdgeU = (jac(i, j, k + 1) * pstrattfc[i, j, k] +
                               jac[i, j, k] * pstrattfc(i, j, k + 1)) /
                              (jac[i, j, k] + jac(i, j, k + 1))
-                    bvsstw = (jac(i, j, k + 1) * bvsStrat[i, j, k] +
-                              jac[i, j, k] * bvsStrat(i, j, k + 1)) /
+                    bvsstw = (jac(i, j, k + 1) * bvsstrattfc[i, j, k] +
+                              jac[i, j, k] * bvsstrattfc(i, j, k + 1)) /
                              (jac[i, j, k] + jac(i, j, k + 1))
                     met13EdgeU = (jac(i, j, k + 1) * met(i, j, k, 1, 3) +
                                   jac[i, j, k] * met(i, j, k + 1, 1, 3)) /
@@ -1712,7 +1720,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                                 jac(i, j - 1, k) * dp(i, j - 1, k + 1)) /
                                (jac(i, j - 1, k) + jac(i, j - 1, k + 1))
                     # Compute pressure difference gradient component.
-                    pGradZ = kappaInv * MaInv2 / rhoEdge *
+                    pGradZ = c.kappainv * c.mainv2 / rhoEdge *
                              pEdgeU *
                              (met13EdgeU * (dpREdgeU - dpLEdgeU) * 0.5 / dx +
                               met23EdgeU * (dpFEdgeU - dpBEdgeU) * 0.5 / dy +
@@ -1739,7 +1747,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                 for i in 1:nx
                     facw = 1.0
 
-                    if (spongeLayer)
+                    if (model.parameters.boundaries.spongelayer)
                         facw = facw + dt * kr_sp_w_tfc[i, j, k]
                     end
 
@@ -1803,11 +1811,11 @@ function correctorStep(semi, dt, opt, facray, facprs)
                                 jac(i, j - 1, k) * dp(i, j - 1, k - 1)) /
                                (jac(i, j - 1, k) + jac(i, j - 1, k - 1))
                     # Compute pressure difference gradients.
-                    pGradZEdgeU = kappaInv * MaInv2 * pEdgeU / rhow0 *
+                    pGradZEdgeU = c.kappainv * c.mainv2 * pEdgeU / rhow0 *
                                   (0.5 * met13EdgeU * (dpREdgeU - dpLEdgeU) / dx +
                                    0.5 * met23EdgeU * (dpFEdgeU - dpBEdgeU) / dy +
                                    met33EdgeU * (dp(i, j, k + 1) - dp[i, j, k]) / dz)
-                    pGradZEdgeD = kappaInv * MaInv2 * pEdgeD / rhowm *
+                    pGradZEdgeD = c.kappainv * c.mainv2 * pEdgeD / rhowm *
                                   (0.5 * met13EdgeD * (dpREdgeD - dpLEdgeD) / dx +
                                    0.5 * met23EdgeD * (dpFEdgeD - dpBEdgeD) / dy +
                                    met33EdgeD * (dp[i, j, k] - dp(i, j, k - 1)) / dz)
@@ -1821,15 +1829,15 @@ function correctorStep(semi, dt, opt, facray, facprs)
                     pGradZ = 0.5 * (pGradZEdgeU + pGradZEdgeD)
                     # Compute buoyancy correction.
                     db = -1.0 /
-                         (facw + rhostrattfc[i, j, k] / rho * bvsStrat[i, j, k] * dt^2.0) *
+                         (facw + rhostrattfc[i, j, k] / rho * model.atmosphere.bvsstrattfc[i, j, k] * dt^2.0) *
                          (-rhostrattfc[i, j, k] / rho *
-                          bvsStrat[i, j, k] *
+                          model.atmosphere.bvsstrattfc[i, j, k] *
                           facprs *
                           dt^2.0 *
                           jac[i, j, k] *
                           pGradZ +
                           rhostrattfc[i, j, k] / rho *
-                          bvsStrat[i, j, k] *
+                          model.atmosphere.bvsstrattfc[i, j, k] *
                           dt *
                           jac[i, j, k] *
                           facw *
@@ -1837,7 +1845,7 @@ function correctorStep(semi, dt, opt, facray, facprs)
                           (met(i, j, k, 1, 3) * (corX[i, j, k] + corX(i - 1, j, k)) +
                            met(i, j, k, 2, 3) * (corY[i, j, k] + corY(i, j - 1, k))))
 
-                    var.rhop[i, j, k] = var.rhop[i, j, k] - rho / g_ndim * db
+                    var.rhop[i, j, k] = var.rhop[i, j, k] - rho / c.g_ndim * db
                 end
             end
         end
@@ -1852,7 +1860,7 @@ end
 function val_PsIn(model, dt, opt, facray)
     (; nx, ny, nz) = model.domain
     (; dx, dy, dz, jac, met) = model.grid
-    (; pstrattfc, rhostrattfc) = model.atmosphere
+    (; pstrattfc, rhostrattfc, bvsstrattfc) = model.atmosphere
     var = model.variables.prognostic_fields
 
 
@@ -2591,6 +2599,8 @@ function val_PsIn(model, dt, opt, facray)
     elseif (opt == "impl")
 
         # Compute tensor elements for TFC.
+        kr_sp_tfc = model.atmosphere.sponge.kr_sp_tfc
+        kr_sp_w_tfc = model.atmosphere.sponge.kr_sp_w_tfc
         @. kr_sp_tfc = kr_sp_tfc * facray
         @. kr_sp_w_tfc = kr_sp_w_tfc * facray
         for k in 1:nz
@@ -2740,11 +2750,11 @@ function val_PsIn(model, dt, opt, facray)
                                        rhostrattfc(i, j - 1, k - 1))
 
                     # Compute squared buoyancy frequency at edges.
-                    bvsStratEdgeU = (jac(i, j, k + 1) * bvsStrat[i, j, k] +
-                                     jac[i, j, k] * bvsStrat(i, j, k + 1)) /
+                    bvsStratEdgeU = (jac(i, j, k + 1) * bvsstrattfc[i, j, k] +
+                                     jac[i, j, k] * bvsstrattfc(i, j, k + 1)) /
                                     (jac[i, j, k] + jac(i, j, k + 1))
-                    bvsStratEdgeD = (jac(i, j, k - 1) * bvsStrat[i, j, k] +
-                                     jac[i, j, k] * bvsStrat(i, j, k - 1)) /
+                    bvsStratEdgeD = (jac(i, j, k - 1) * bvsstrattfc[i, j, k] +
+                                     jac[i, j, k] * bvsstrattfc(i, j, k - 1)) /
                                     (jac[i, j, k] + jac(i, j, k - 1))
 
                     # Interpolate metric-tensor elements.
@@ -2802,8 +2812,8 @@ function val_PsIn(model, dt, opt, facray)
                     facDEdgeB = 1.0
                     facEdgeU = 1.0
                     facEdgeD = 1.0
-                    if (spongeLayer)
-                        if (sponge_uv)
+                    if (model.parameters.boundaries.spongelayer)
+                        if (model.parameters.boundaries.sponge_uv)
                             facEdgeR = facEdgeR +
                                        dt * 0.5 *
                                        (kr_sp_tfc[i, j, k] + kr_sp_tfc[i+1, j, k])
@@ -3983,7 +3993,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # Store horizontal and vertical components of AC (for
                     # preconditioner).
-                    if (preconditioner == "yes")
+                    if (model.parameters.poisson.preconditioner == "yes")
                         ach_b[i, j, k] = -AR - AL - AF - AB
                         acv_b[i, j, k] = -AU - AD
                     end

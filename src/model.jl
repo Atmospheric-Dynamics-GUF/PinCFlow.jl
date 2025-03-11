@@ -13,7 +13,8 @@ function Time()
     return Time(nstages, alphaRK, betaRK, stepfrac)
 end
 
-struct Model
+# TODO: Model is only mutable to allow copying of fluxes
+mutable struct Model
     parameters::Parameters
     constants::Constants
     time::Time
@@ -36,7 +37,6 @@ function Model(p::Parameters)
     v = Variables(p)
     return Model(p, c, t, d, g, a, o, v, fl)
 end
-
 
 
 function initialize_variables!(model)
@@ -125,16 +125,19 @@ function initialize_atmosphere!(model::Model)
     setup_topography!(model)
 
     c = model.constants
-    for ix in (-nbx):(nx+nbx), jy in (-nby):(ny+nby)
-        for kz in -1:(nz+2)
+    @show size(pstrattfc)
+    for kz in -1:(nz+2)
+        for ix in (-nbx):(nx+nbx), jy in (-nby):(ny+nby)
+            a = @allocated begin
+                x = ztfc[ix, jy, kz]
+                pstrattfc[ix, jy, kz] = p0 * x
+            end
+            @show a
             pstrattfc[ix, jy, kz] = p0 * exp(-c.sig * ztfc[ix, jy, kz] / c.gamma / t0)
             thetastrattfc[ix, jy, kz] = t0 * exp(c.kappa * c.sig / t0 * ztfc[ix, jy, kz])
             rhostrattfc[ix, jy, kz] = pstrattfc[ix, jy, kz] / thetastrattfc[ix, jy, kz]
         end
     end
-    @show nbx, nx, nby, nby, nz
-    @show p0, c.sig, ztfc[1], c.gamma, t0
-    @show pstrattfc[1], thetastrattfc[1], rhostrattfc[1]
 
     for ix in (-nbx):(nx+nbx), jy in (-nby):(ny+nby)
         bvsstrattfc[ix, jy, -1] = c.g_ndim / thetastrattfc[ix, jy, 0] / jac(ix, jy, 0) *
