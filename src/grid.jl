@@ -1,33 +1,29 @@
 using OffsetArrays
 
-struct Grid{F<:AbstractFloat,
-    VOF<:OffsetVector{F},
-    MOF<:OffsetMatrix{F},
-    A3OF<:OffsetArray{F,3},
-    A5OF<:OffsetArray{F,5}}
+struct Grid
     # Scaled domain.
-    lx::VOF
-    ly::VOF
-    lz::VOF
+    lx
+    ly
+    lz
     # Grid spacings.
-    dx::F
-    dy::F
-    dz::F
+    dx
+    dy
+    dz
     # Coordinates.
-    x::VOF
-    y::VOF
-    z::VOF
+    x
+    y
+    z
     # Stretched vertical grid.
-    zs::VOF
-    ztildes::VOF
+    zs
+    ztildes
     # Topography.
-    topography_surface::MOF
+    topography_surface
     # Jacobian and metric tensor.
-    jac::A3OF
-    met::A5OF
+    jac
+    met
     # Vertical layers.
-    ztfc::A3OF
-    ztildetfc::A3OF
+    ztfc
+    ztildetfc
     # Boundaries
     xboundary
     yboundary
@@ -61,6 +57,7 @@ function Grid(p::Parameters, lRef) # todo: get rid of lref
     dx = (lx[1] - lx[0]) / nx
     dy = (ly[1] - ly[0]) / ny
     dz = (lz[1] - lz[0]) / nz
+    @show dz
 
     sizeX = nx
     sizeY = ny
@@ -81,23 +78,10 @@ function Grid(p::Parameters, lRef) # todo: get rid of lref
     for k in (-nbz):(sizeZ+nbz)
         z[k] = lz[0] + (k - 1) * dz + dz / 2.0
     end
-    dx = p.domain.sizex / p.domain.nbx
-    dy = p.domain.sizey / p.domain.nby
-    dz = p.domain.sizez / p.domain.nbz
-
 
     # Build arrays.
-    jac = OffsetArray(zeros(nx + 1 + 2 * nbx, ny + 1 + 2 * nby, nz + 1 + 2 * nbz),
-        (-nbx):(nx+nbx),
-        (-nby):(ny+nby),
-        (-nbz):(nz+nbz))
-
-    met = OffsetArray(zeros(nx + 1 + 2 * nbx, ny + 1 + 2 * nby, nz + 1 + 2 * nbz, 3, 3),
-        (-nbx):(nx+nbx),
-        (-nby):(ny+nby),
-        (-nbz):(nz+nbz),
-        1:3,
-        1:3)
+    jac = Jacobian(topography_surface, zTildeS, dz, lz)
+    met = MetricTensor(topography_surface, zTildeS, dx, dy, dz, lz, zS)
 
     xboundary = PeriodicBC()
     yboundary = PeriodicBC()
