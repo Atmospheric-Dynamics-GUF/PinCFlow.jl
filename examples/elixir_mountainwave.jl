@@ -1,6 +1,6 @@
 using PinCFlow_dev
 
-domain_list = DomainParameters(sizex=2)
+domain_list = DomainParameters()
 output_list = OutputParameters()
 debugging_list = DebugParameters()
 test_case_list = TestCaseParameters()
