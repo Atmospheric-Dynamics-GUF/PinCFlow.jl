@@ -25,9 +25,11 @@ function PoissonOperator(pars::Parameters)
         :afd_b, :abu_b, :abd_b, :auu_b, :add_b, :aruu_b, :ardd_b,
         :aluu_b, :aldd_b, :afuu_b, :afdd_b, :abuu_b, :abdd_b,
     )
-    elements = NamedTuple{el_names}(Array{Float64,3}(undef, nx, ny, nz) for _ in el_names)
+    # elements = NamedTuple{el_names}(Array{Float64,3}(undef, nx, ny, nz) for _ in el_names)
+    elements = NamedTuple{el_names}(zeros(nx, ny, nz) for _ in el_names)
     cache_vars = (:p, :r0, :rOld, :r, :s, :b, :t, :v, :rhs_bigc, :sol, :v_pc, :matVec, :s_pc, :q_pc)
-    cache = NamedTuple{cache_vars}(Array{Float64,3}(undef, nx, ny, nz) for _ in cache_vars)
+    # cache = NamedTuple{cache_vars}(Array{Float64,3}(undef, nx, ny, nz) for _ in cache_vars)
+    cache = NamedTuple{cache_vars}(zeros(nx, ny, nz) for _ in cache_vars)
     r_vm = zeros(nx, ny)
 
     s_aux_field_lin_opr_ = zeros(nx + 2, ny + 2, nz + 2)
@@ -77,7 +79,9 @@ function Corrector(model, dt, errFlagBicg, nIter, opt, facray, facprs)
     # real, dimension[1:nx, 1:ny, 1:nz]::rhs # RHS
 
     # calculate RHS
+    @show model.operator.cache.rhs_bigc[1]
     calc_RHS(model.operator.cache.rhs_bigc, model, dt)
+    @show model.operator.cache.rhs_bigc[1]
 
     # @assert false rhs
 
@@ -699,6 +703,8 @@ function calc_RHS(b, model, dt)
 
     c = model.constants
 
+    @show b[1]
+
     if model.parameters.model.model == "pseudo_incompressible"
         # Calculate RHS for TFC.
         for k in 1:nz
@@ -713,6 +719,8 @@ function calc_RHS(b, model, dt)
                     vB = var.v(i, j - 1, k)
                     wU = var.w[i, j, k]
                     wD = var.w(i, j, k - 1)
+                    @show uR, uL, vF, vB, wU, wD
+                    @assert false
                     # Calculate P at cell edges.
                     pEdgeR = 0.5 * (jac[i, j, k] * pstrattfc[i, j, k] +
                                     jac[i+1, j, k] * pstrattfc[i+1, j, k])
@@ -734,6 +742,7 @@ function calc_RHS(b, model, dt)
                     bu = (pEdgeR * uR - pEdgeL * uL) / dx / jac[i, j, k] * c.ma^2.0 * c.kappa
                     bv = (pEdgeF * vF - pEdgeB * vB) / dy / jac[i, j, k] * c.ma^2.0 * c.kappa
                     bw = (pEdgeU * wU - pEdgeD * wD) / dz / jac[i, j, k] * c.ma^2.0 * c.kappa
+                    @show uR, vF, wU
                     divSum_local = divSum_local + bu + bv + bw
                     bu = bu / fcscal
                     bv = bv / fcscal
@@ -750,6 +759,8 @@ function calc_RHS(b, model, dt)
             end
         end
 
+        @show b[1]
+        @assert false
         #   !MPI: sum divSum_local over all procs
         #   root = 0
         #   call mpi_reduce(divSum_local, divSum, 1, mpi_double_precision, mpi_sum, root, comm, ierror)
@@ -962,6 +973,17 @@ function bicgstab(b_in, dt, model, sol, nIter, errFlag, opt)
     matVec = cache.matVec
     v_pc = cache.v_pc
 
+    @show p[1]
+    @show r0[1]
+    @show rOld[1]
+    @show r[1]
+    @show s[1]
+    @show b[1]
+    @show t[1]
+    @show v[1]
+    @show matVec[1]
+    @show v_pc[1]
+
     if (tolcrit == "abs")
         tol = tolpoisson / tolref
     elseif (tolcrit == "rel")
@@ -973,7 +995,13 @@ function bicgstab(b_in, dt, model, sol, nIter, errFlag, opt)
 
     b .= b_in
 
+    @show b_in[1]
+    @show b[1]
+    @assert false
+
+    println("starting linOpr")
     linOpr(sol, matVec, opt, "tot", model)
+    println("done with linOpr")
     # @assert false matVec[150, 1, 1],sol[150,1,1],b[150,1,1]
     r0 .= b - matVec
     p .= r0
@@ -1036,8 +1064,8 @@ function bicgstab(b_in, dt, model, sol, nIter, errFlag, opt)
 
     # Loop
 
+    println("starting loop over $(model.parameters.poisson.maxiter)")
     for j_b in 1:model.parameters.poisson.maxiter
-
         # @assert false p[150, 1, 1]
         # v = A*p
         if (preconditioner == "yes")
@@ -1048,6 +1076,9 @@ function bicgstab(b_in, dt, model, sol, nIter, errFlag, opt)
         linOpr(v_pc, matVec, opt, "tot", model)
 
         v .= matVec
+        println("$j_b")
+        @show matVec[1]
+        @show v[1]
 
         # @assert false r[150, 1, 1], r0[150, 1, 1], v[150, 1, 1], p[150, 1, 1], dot(r,r0), dot(v,r0)
         # @show size(r)
