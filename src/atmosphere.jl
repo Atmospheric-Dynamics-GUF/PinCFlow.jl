@@ -90,21 +90,27 @@ function Atmosphere(pars::Parameters, cons::Constants)
 
 end
 
-struct Jacobian{Grid}
-    grid::Grid
+# TODO: jacobian and metric tensor do not have state. can be functions acting on grid
+struct Jacobian
+    topography_surface
+    zTildeS
+    dz
+    lz
 end
 
-struct MetricTensor{Grid,Cache,Equations}
-    cache::Cache
-    grid::Grid
-    equations::Equations
+struct MetricTensor
+    topography_surface
+    zTildeS
+    dx
+    dy
+    dz
+    lz
+    zS
 end
 
 function (met::MetricTensor)(i, j, k, mu, nu)
-    (; cache, grid, equations) = met
-    (; topography_surface, zTildeS, dx, dy, dz, lz, zTildeS, zS) = grid
     # Metric tensor.
-
+    (; topography_surface, zS, zTildeS, dx, dy, dz, lz) = met
     if (mu == 1 && nu == 3) || (mu == 3 && nu == 1)
         return (topography_surface[i+1, j] - topography_surface[i-1, j]) / (2.0 * dx) *
                (zS[k] - lz[1]) / (lz[1] - topography_surface[i, j]) * dz /
@@ -127,8 +133,7 @@ end
 
 function (jac::Jacobian)(i, j, k)
     # Jacobian.
-    (; grid) = jac
-    (; topography_surface, zTildeS, dz, lz) = grid
+    (; topography_surface, zTildeS, dz, lz) = jac
     return (lz[1] - topography_surface[i, j]) / lz[1] * (zTildeS[k] - zTildeS[k-1]) / dz
 end
 

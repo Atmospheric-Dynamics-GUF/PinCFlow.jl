@@ -1,37 +1,4 @@
-function initialize_variables!(semi)
-    @trixi_timeit timer() "Initialize variables" begin
-    #! format: noindent
-    (; equations, cache) = semi
-    (; uRef, backgroundFlow_dim) = equations
-    (; var, rhoStrat, pStrat, thetaStrat, bvsStrat) = cache
 
-    u = var.u
-    v = var.v
-    w = var.w
-    rho = var.rho
-    exner = var.exner
-    rhop = var.rhop
-
-    # u0 = 10.0 # this should be a namelist parameter
-    # v0 = 0.0
-    # w0 = 0.0
-
-    u0, v0, w0 = backgroundFlow_dim # TODO - @Irmgard/Felix/Jonas: Is this correct?
-
-    u .= u0 / uRef
-    v .= v0 / uRef
-    w .= w0 / uRef
-
-    rho .= 0.0
-    rhop .= 0.0
-    exner .= 0.0
-    end # timer
-end
-
-function initialize!(model)
-    initialize_atmosphere!(model)
-    initialize_variables!(model)
-end
 
 function initialize_values(nx, ny, nz, nbx, nby, nbz, xmin, xmax, ymin, ymax, zmin, zmax;
     model="pseudo_incompressible", maxIterPoisson=5000,
