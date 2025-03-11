@@ -65,6 +65,7 @@ function prognostic_fields(domain::DomainParameters)
         (-nbz):(nz+nbz))
     # TODO: pip == exner?
     v, w, rho, pip, rhop = (copy(u), copy(u), copy(u), copy(u), copy(u))
+    @show u[1], v[1], w[1]
 
     return NamedTuple{(:u, :v, :w, :rho, :pip, :rhop)}((u, v, w, rho, pip, rhop))
 end
