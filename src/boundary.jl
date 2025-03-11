@@ -7,10 +7,9 @@ function setBoundary!(model::Model)
     end
 end
 
-function setBoundary_flux!(semi)
-    (; cache, grid) = semi
-    (; nz) = grid
-    (; flux) = cache
+function setBoundary_flux!(model)
+    nz = model.domain.nz
+    flux = model.fluxes
 
     flux.rho[:, :, 0, 3] .= 0.0
     flux.rho[:, :, nz, 3] .= 0.0

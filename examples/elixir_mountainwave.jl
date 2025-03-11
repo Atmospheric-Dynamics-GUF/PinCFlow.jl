@@ -1,6 +1,6 @@
 using PinCFlow_dev
 
-domain_list = DomainParameters()
+domain_list = DomainParameters(sizex=10)
 output_list = OutputParameters()
 debugging_list = DebugParameters()
 test_case_list = TestCaseParameters()
@@ -42,7 +42,7 @@ boundary_list = BoundaryParameters(
     spongealphaz_fac=1.0e+0, # sponge layer factor
     unifiedsponge=true,  # unified sponge for both time schemes
     lateralsponge=true,  # lateral sponge
-    spongetype="sinusoidal", # sponge layer profile
+    spongetype="sinusodial", # sponge layer profile
     spongeorder=1,     # order of polynomial sponge
     cosmosteps=1,     # relative strength of cosmo sponge
     relax_to_mean=true,  # relax the wind to its horizontal mean
@@ -58,6 +58,5 @@ pars = Parameters(domain_list, output_list, debugging_list,
 
 m = Model(pars)
 
-initialize!(m)
 dt = 30.0
 pincflow(m, dt)

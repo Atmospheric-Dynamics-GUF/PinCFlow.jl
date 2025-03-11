@@ -2,6 +2,8 @@ module PinCFlow_dev
 using TrixiBase # get the `timer` object
 
 include("parameters.jl")
+include("sponge.jl")
+include("sponge_new.jl")
 include("types.jl")
 include("matrix_solvers.jl")
 include("domain.jl")
@@ -17,8 +19,6 @@ include("boundary.jl")
 include("semi_discretization.jl")
 
 include("init.jl")
-include("sponge.jl")
-include("sponge_new.jl")
 include("time_step.jl")
 include("update.jl")
 
