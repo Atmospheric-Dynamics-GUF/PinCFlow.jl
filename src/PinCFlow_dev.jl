@@ -1,55 +1,61 @@
 module PinCFlow_dev
 using TrixiBase # get the `timer` object
 
-include("parameters.jl")
-include("sponge.jl")
-include("sponge_new.jl")
-include("types.jl")
-include("matrix_solvers.jl")
-include("domain.jl")
-include("constants.jl")
-include("atmosphere.jl")
-include("grid.jl")
-include("variables.jl")
-include("fluxes.jl")
-include("poisson.jl")
+# Atmosphere
+include("atmosphere/atmosphere.jl")
+include("atmosphere/constants.jl")
+include("atmosphere/grid.jl")
+include("atmosphere/sponge.jl")
+
+# Boundaries
+include("boundaries/boundary.jl")
+include("boundaries/domain.jl")
+
+# Fluxes
+include("fluxes/calc_flux.jl")
+include("fluxes/reconstruction.jl")
+
+# IO
+include("io/save_solution.jl")
+
+# Model
 include("model.jl")
 
-include("boundary.jl")
-include("semi_discretization.jl")
+# Namelists
+include("namelists/atmosphere_namelist.jl")
+include("namelists/boundary_namelist.jl")
+include("namelists/discretization_namelist.jl")
+include("namelists/domain_namelist.jl")
+include("namelists/grid_namelist.jl")
+include("namelists/namelists.jl")
+include("namelists/output_namelist.jl")
+include("namelists/poisson_namelist.jl")
+include("namelists/settings_namelist.jl")
+include("namelists/sponge_namelist.jl")
 
-include("init.jl")
-include("time_step.jl")
-include("update.jl")
+# Poisson
+include("poisson/poisson.jl")
 
-include("namelist_interface.jl")
+# Update
+include("update/time.jl")
+include("update/time_loop.jl")
+include("update/time_step.jl")
+include("update/update.jl")
+
+# Variables
+include("variables/variables.jl")
 
 pincflow_test_dir() = joinpath(dirname(pathof(PinCFlow_dev)), "..", "test")
 pincflow_examples_dir() = joinpath(dirname(pathof(PinCFlow_dev)), "..", "examples")
 
-export initialize_values,
-    initialize_atmosphere!,
-    initialize_variables!,
-    initialize!,
-    setBoundary!,
-    reconstruction!,
-    compute_fluxes!,
-    vertWind,
-    time_loop!
 
-export time_discretization, massUpdate_rho!, massUpdate_rhop!, default_parameters
+export pincflow, Corrector
 
-export SemiDiscretization, pincflow, Corrector
-
-export setup_semidiscretization
 
 export pincflow_test_dir, pincflow_examples_dir
 
-export DomainParameters, OutputParameters, BoundaryParameters, TopographyParameters,
-    AtmosphereParameters, PoissonSolverParameters, DiscretizationParameters,
-    TestCaseParameters, DebugParameters, ModelParameters, Parameters
 
-export Grid, Constants, Atmosphere, Domain, PoissonOperator, Variables, Fluxes, Model
+export Grid, Constants, Atmosphere, Domain, Variables, Fluxes, State
 
 # debugging
 export Corrector

@@ -1,9 +1,36 @@
-global zBoundary = "solid_wall" # TODO - Fix this
-
-# VERY HACKY THING - TO BE FIXED BY DEVELOPING MY OWN Array type
-# JR: Why not use arr[]?
 using OffsetArrays
 using LinearAlgebra
+
+struct Operator{A<:Array{<:AbstractFloat,3}}
+    ac_b::A
+    acv_b::A
+    ach_b::A
+    al_b::A
+    ar_b::A
+    ab_b::A
+    af_b::A
+    ad_b::A
+    au_b::A
+    ald_b::A
+    alu_b::A
+    ard_b::A
+    aru_b::A
+    abd_b::A
+    abu_b::A
+    afd_b::A
+    afu_b::A
+    add_b::A
+    auu_b::A
+    aldd_b::A
+    aluu_b::A
+    ardd_b::A
+    aruu_b::A
+    abdd_b::A
+    abuu_b::A
+    afdd_b::A
+    afuu_b::A
+end
+
 @inline (arr::Base.Array)(indices...) = arr[indices...]
 @inline (arr::OffsetArrays.OffsetArray)(indices...) = arr[indices...]
 
@@ -11,33 +38,74 @@ using LinearAlgebra
 """
 Linear operator for the Poisson equation.
 """
-struct PoissonOperator
-    # TODO generic over field type
-    op_fields::NamedTuple
-    cache::NamedTuple
+function Operator(domain::Domain)
+
+  # Get parameters.
+  (; nx, ny, nz) = domain
+
+  # Initialize the elements of the operator.
+  (
+    ac_b,
+    acv_b,
+    ach_b,
+    al_b,
+    ar_b,
+    ab_b,
+    af_b,
+    ad_b,
+    au_b,
+    ald_b,
+    alu_b,
+    ard_b,
+    aru_b,
+    abd_b,
+    abu_b,
+    afd_b,
+    afu_b,
+    add_b,
+    auu_b,
+    aldd_b,
+    aluu_b,
+    ardd_b,
+    aruu_b,
+    abdd_b,
+    abuu_b,
+    afdd_b,
+    afuu_b,
+  ) = (zeros((nx, ny, nz)) for i in 1:28)
+
+  # Return an Operator instance.
+  return Operator(
+    ac_b,
+    acv_b,
+    ach_b,
+    al_b,
+    ar_b,
+    ab_b,
+    af_b,
+    ad_b,
+    au_b,
+    ald_b,
+    alu_b,
+    ard_b,
+    aru_b,
+    abd_b,
+    abu_b,
+    afd_b,
+    afu_b,
+    add_b,
+    auu_b,
+    aldd_b,
+    aluu_b,
+    ardd_b,
+    aruu_b,
+    abdd_b,
+    abuu_b,
+    afdd_b,
+    afuu_b,
+  )
 end
 
-function PoissonOperator(pars::Parameters)
-    nx, ny, nz = pars.domain.sizex, pars.domain.sizey, pars.domain.sizez
-    # TODO: good name for these, clean up
-    el_names = (:ac_b, :acv_b, :ach_b, :al_b, :ar_b, :ab_b, :af_b,
-        :ad_b, :au_b, :aru_b, :ard_b, :alu_b, :ald_b, :afu_b,
-        :afd_b, :abu_b, :abd_b, :auu_b, :add_b, :aruu_b, :ardd_b,
-        :aluu_b, :aldd_b, :afuu_b, :afdd_b, :abuu_b, :abdd_b,
-    )
-    # elements = NamedTuple{el_names}(Array{Float64,3}(undef, nx, ny, nz) for _ in el_names)
-    elements = NamedTuple{el_names}(zeros(nx, ny, nz) for _ in el_names)
-    cache_vars = (:p, :r0, :rOld, :r, :s, :b, :t, :v, :rhs_bigc, :sol, :v_pc, :matVec, :s_pc, :q_pc)
-    # cache = NamedTuple{cache_vars}(Array{Float64,3}(undef, nx, ny, nz) for _ in cache_vars)
-    cache = NamedTuple{cache_vars}(zeros(nx, ny, nz) for _ in cache_vars)
-    r_vm = zeros(nx, ny)
-
-    s_aux_field_lin_opr_ = zeros(nx + 2, ny + 2, nz + 2)
-    s_aux_field_lin_opr = OffsetArray(s_aux_field_lin_opr_, 0:(nx+1), 0:(ny+1),
-        0:(nz+1))
-    cache = merge(cache, [:p_pc => copy(r_vm), :r_vm => r_vm, :s_aux_field_lin_opr => s_aux_field_lin_opr])
-    return PoissonOperator(elements, cache)
-end
 
 function Corrector(model, dt, errFlagBicg, nIter, opt, facray, facprs)
     @trixi_timeit timer() "Corrector" begin

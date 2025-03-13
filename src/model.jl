@@ -1,32 +1,25 @@
-struct Time{I <: Integer, VOF <: Vector{<:AbstractFloat}}
-    nstages::I
-    alphark::VOF
-    betark::VOF
-    stepfrac::VOF
+struct State{
+    A<:Namelists,
+    B<:Constants,
+    C<:Time,
+    D<:Domain,
+    E<:Grid,
+    F<:Atmosphere,
+    G<:Operator,
+    H<:Variables,
+}
+    namelists::A
+    constants::B
+    time::C
+    domain::D
+    grid::E
+    atmosphere::F
+    operator::G
+    variables::H
 end
 
-function Time()
-    nstages = 3
-    betaRK = [1.0 / 3.0, 15.0 / 16.0, 8.0 / 15.0]
-    alphaRK = [0.0, -5.0 / 9.0, -153.0 / 128.0]
-    stepfrac = [1 / 3, 5 / 12, 1 / 4]
-    return Time(nstages, alphaRK, betaRK, stepfrac)
-end
 
-# TODO: Model is only mutable to allow copying of fluxes
-mutable struct Model
-    parameters::Parameters
-    constants::Constants
-    time::Time
-    domain::Domain
-    grid::Grid
-    atmosphere::Atmosphere
-    operator::PoissonOperator
-    variables::Variables
-    fluxes::Fluxes
-end
-
-function Model(p::Parameters)
+function State(p::Parameters)
     c = Constants(p)
     g = Grid(p, c.lref)
     d = Domain(p)
@@ -38,6 +31,33 @@ function Model(p::Parameters)
     return Model(p, c, t, d, g, a, o, v, fl)
 end
 
+function State(namelists::Namelists)
+
+  # Get parameters.
+  (; model) = namelists.setting
+  (; background) = namelists.atmosphere
+
+  # Initialize everything.
+  constants = Constants(namelists)
+  time = Time()
+  domain = Domain(namelists)
+  grid = Grid(namelists, constants, domain)
+  atmosphere = Atmosphere(namelists, constants, domain, grid, model, background)
+  operator = Operator(domain)
+  variables = Variables(namelists, constants, domain)
+
+  # Return a State instance.
+  return State(
+    namelists,
+    constants,
+    time,
+    domain,
+    grid,
+    atmosphere,
+    operator,
+    variables,
+  )
+end
 function initialize_variables!(model)
     @trixi_timeit timer() "Initialize variables" begin
     #! format: noindent
