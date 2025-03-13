@@ -1,13 +1,9 @@
 function setBoundary!(model::Model)
     @trixi_timeit timer() "Set boundary" begin
     #! format: noindent
-    debug_norm(model, "before x")
     setBoundary_x!(model, model.grid.xboundary)
-    debug_norm(model, "after x")
     setBoundary_y!(model, model.grid.yboundary)
-    debug_norm(model, "after y")
     setBoundary_z!(model, model.grid.zboundary)
-    debug_norm(model, "after z")
     end
 end
 
@@ -29,7 +25,6 @@ function setBoundary_flux!(model)
 end
 
 function setBoundary_x!(model, boundary::PeriodicBC)
-    # TODO: exner == pip?
     (; rho, rhop, u, v, w, pip) = model.variables.prognostic_fields
     (; nx, nbx) = model.domain
 

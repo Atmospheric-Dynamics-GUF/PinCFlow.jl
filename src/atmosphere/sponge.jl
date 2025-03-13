@@ -1,43 +1,89 @@
 abstract type AbstractSpongeLayer end
 abstract type UnifiedSponge <: AbstractSpongeLayer end
-
 struct ExponentialSponge <: UnifiedSponge end
-struct SinusodialSponge{RealT<:Real} <: UnifiedSponge
-    ## TODO: add types
-    lateral::Any
-    height::Any
-    alphaZ_dim::Any
-    alpha::AbstractArray
-    relax_to_mean::RealT
-    relaxation_period::RealT
-    relaxation_amplitude::RealT
-    kr_sp_tfc::AbstractArray
-    kr_sp_w_tfc::AbstractArray
+struct COSMOSponge <: AbstractSponge end
+struct PolynomialSponge <: AbstractSponge end
+struct SinusoidalSponge <: AbstractSponge end
+
+struct Sponge{
+    A<:OffsetArray{<:AbstractFloat,3},
+    B<:AbstractFloat,
+    C<:Integer,
+}
+
+    # Damping coefficients.
+    alphaunifiedsponge::A
+    kr_sp_tfc::A
+    kr_sp_w_tfc::A
+
+    # Vertical sponge extent.
+    zsponge::B
+    dzsponge::B
+    ksponge::C
+
+    # Lateral sponge extent.
+    xsponge0::B
+    xsponge1::B
+    ysponge0::B
+    ysponge1::B
+    dxsponge::B
+    dysponge::B
 end
 
-function SinusodialSponge(pars::Parameters)
-    nx, ny, nz = pars.domain.sizex, pars.domain.sizey, pars.domain.sizez
-    alpha = OffsetArray(zeros(Float64, 0:(nx+1), 0:(ny+1), 0:(nz+1)))
-    kr_sp_tfc = OffsetArray(zeros(nx + 2, ny + 2, nz + 2), 0:(nx+1), 0:(ny+1), 0:(nz+1))
-    kr_sp_w_tfc = copy(kr_sp_tfc)
-    SinusodialSponge(true, 0.5, 0.01, alpha, 1.0, 0.0, 0.0, kr_sp_tfc, kr_sp_w_tfc)
+function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
+
+  # Get parameters.
+  (; spongelayer, spongetype, spongeheight) = namelists.sponge
+  (; nz) = domain
+  (; lx, ly, lz) = grid
+
+  # Initialize the sponge layer coefficients.
+  (kr_sp_tfc, kr_sp_w_tfc, alphaunifiedsponge) = (
+    OffsetArray(
+      zeros((d.nx + 2, d.ny + 2, d.nz + 2)),
+      0:(d.nx + 1),
+      0:(d.ny + 1),
+      0:(d.nz + 1),
+    ) for i in 1:3
+  )
+
+  # Set up the sponge layer.
+  if unifiedsponge && spongetype == ExponentialSponge()
+    ksponge = 1
+  else
+    ksponge = d.nz - ceil(Integer, spongeheight * d.nz)
+  end
+  dzsponge = spongeheight * (lz[1] - lz[0])
+  zsponge = lz[1] - dzsponge
+  dxsponge = 0.5 * spongeheight * (lx[1] - lx[0])
+  dysponge = 0.5 * spongeheight * (ly[1] - ly[0])
+  xsponge0 = lx[0] + dxsponge
+  ysponge0 = ly[0] + dysponge
+  xsponge1 = lx[1] - dxsponge
+  ysponge1 = ly[1] - dysponge
+
+  # Return a Sponge instance.
+  return Sponge(
+    alphaunifiedsponge,
+    kr_sp_tfc,
+    kr_sp_w_tfc,
+    xsponge0,
+    xsponge1,
+    ysponge0,
+    ysponge1,
+    zsponge,
+    ksponge,
+    dxsponge,
+    dysponge,
+    dzsponge,
+  )
 end
 
-struct CosmoSponge <: UnifiedSponge end
-struct PolynomialSponge <: UnifiedSponge end
-struct NonUnifiedSponge <: AbstractSpongeLayer end
 
-initialize_sponge!(model) = initialize_sponge_ini!(model, model.atmosphere.sponge)
+initialize_sponge!(model) = initialize_sponge!(model, model.atmosphere.sponge)
 
-function setup_sponge(sponge_type::String, pars::Parameters)
-    if sponge_type == "sinusodial"
-        return SinusodialSponge(pars)
-    else
-        error("invalid sponge type $sponge_type")
-    end
-end
 
-function initialize_sponge_ini!(model, sponge::SinusodialSponge)
+function initialize_sponge!(state, sponge)
     @trixi_timeit timer() "Initialize sponge" begin
     #! format: noindent
     (; nx, ny, nz) = model.domain
@@ -84,7 +130,6 @@ function initialize_sponge_ini!(model, sponge::SinusodialSponge)
                     end
                 end
 
-                # todo: express this via the type system
                 if sponge.lateral == true
                     if nx > 1
                         if x[i] <= x0

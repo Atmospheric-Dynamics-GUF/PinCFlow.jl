@@ -1,159 +1,501 @@
 using OffsetArrays
+struct Grid{
+    A<:OffsetVector{<:AbstractFloat},
+    B<:AbstractFloat,
+    C<:OffsetMatrix{<:AbstractFloat},
+    D<:OffsetArray{<:AbstractFloat,3},
+    E<:OffsetArray{<:AbstractFloat,5},
+}
 
-struct Jacobian
-    topography_surface::Any
-    zTildeS::Any
-    dz::Any
-    lz::Any
-end
-
-struct MetricTensor
-    topography_surface::Any
-    zTildeS::Any
-    dx::Any
-    dy::Any
-    dz::Any
-    lz::Any
-    zS::Any
-end
-
-struct Grid{F <: AbstractFloat,
-            VOF <: OffsetVector{F},
-            MOF <: OffsetMatrix{F},
-            A3OF <: OffsetArray{F, 3}}
-    # A5OF<:OffsetArray{F,5}}
     # Scaled domain.
-    lx::VOF
-    ly::VOF
-    lz::VOF
+    lx::A
+    ly::A
+    lz::A
+
     # Grid spacings.
-    dx::F
-    dy::F
-    dz::F
+    dx::B
+    dy::B
+    dz::B
+
     # Coordinates.
-    x::VOF
-    y::VOF
-    z::VOF
+    x::A
+    y::A
+    z::A
+
     # Stretched vertical grid.
-    zs::VOF
-    ztildes::VOF
+    zs::A
+    ztildes::A
+
     # Topography.
-    topography_surface::MOF
+    topography_surface::C
+
     # Jacobian and metric tensor.
-    jac::Jacobian
-    met::MetricTensor
+    jac::D
+    met::E
+
     # Vertical layers.
-    ztfc::A3OF
-    ztildetfc::A3OF
-    # Boundaries
-    xboundary::Any
-    yboundary::Any
-    zboundary::Any
+    ztfc::D
+    ztildetfc::D
 end
 
-function Grid(p::Parameters, lRef) # todo: get rid of lref
-    nx, ny, nz = p.domain.sizex, p.domain.sizey, p.domain.sizez
-    nbx, nby, nbz = p.domain.nbx, p.domain.nby, p.domain.nbz
-    topography_surface = OffsetArray(zeros(nx + 1 + 2 * nbx, ny + 1 + 2 * nby),
-                                     (-nbx):(nx + nbx), (-nby):(ny + nby))
-    zTildeTFC = OffsetArray(zeros(nx + 1 + 2 * nbx, ny + 1 + 2 * nby, nz + 1 + 2 * nbz),
-                            (-nbx):(nx + nbx),
-                            (-nby):(ny + nby),
-                            (-nbz):(nz + nbz))
-    zTFC = OffsetArray(zeros(nx + 1 + 2 * nbx, ny + 1 + 2 * nby, nz + 1 + 2 * nbz),
-                       (-nbx):(nx + nbx),
-                       (-nby):(ny + nby),
-                       (-nbz):(nz + nbz))
-    zTildeS = OffsetArray(zeros(nz + 1 + 2 * nbz), (-nbz):(nz + nbz))
-    zS = OffsetArray(zeros(nz + 1 + 2 * nbz), (-nbz):(nz + nbz))
+function Grid(namelists::Namelists, constants::Constants, domain::Domain)
 
-    lx_dim = OffsetArray(p.domain.lx_dim, 0:1)
-    ly_dim = OffsetArray(p.domain.ly_dim, 0:1)
-    lz_dim = OffsetArray(p.domain.lz_dim, 0:1)
+  # Get parameters.
+  (; sizex, sizey, sizez, lx_dim, ly_dim, lz_dim, nbx, nby, nbz) =
+    namelists.domain
+  (;
+    mountainheight_dim,
+    mountainwidth_dim,
+    mountain_case,
+    range_factor,
+    spectral_modes,
+    envelope_reduction,
+    stretch_exponent,
+  ) = namelists.grid
+  (; is, js, nx, ny, nz) = domain
+  (; lref) = constants
 
-    lx = lx_dim ./ lRef # TODO - Keep lx_dim in `grid` and lx_ref in semi.physics
-    ly = ly_dim ./ lRef
-    lz = lz_dim ./ lRef
+  # Non-dimensionalize domain boundaries.
+  lx = OffsetVector(lx_dim, 0:1) ./ lref
+  ly = OffsetVector(ly_dim, 0:1) ./ lref
+  lz = OffsetVector(lz_dim, 0:1) ./ lref
 
-    dx = (lx[1] - lx[0]) / nx
-    dy = (ly[1] - ly[0]) / ny
-    dz = (lz[1] - lz[0]) / nz
+  # Compute grid spacings.
+  dx = (lx[1] - lx[0]) / sizex
+  dy = (ly[1] - ly[0]) / sizey
+  dz = (lz[1] - lz[0]) / sizez
 
-    sizeX = nx
-    sizeY = ny
-    sizeZ = nz
+  # Compute x-coordinate.
+  x = OffsetVector(zeros(sizex + 1 + 2 * nbx), (-nbx):(sizex + nbx))
+  for ix in (-nbx):(sizex + nbx)
+    x[ix] = lx[0] + (ix - 1) * dx + dx / 2
+  end
 
-    x = OffsetArray(zeros(sizeX + 1 + 2nbx), (-nbx):(sizeX + nbx))
-    y = OffsetArray(zeros(sizeY + 1 + 2nby), (-nby):(sizeY + nby))
-    z = OffsetArray(zeros(sizeZ + 1 + 2nbz), (-nbz):(sizeZ + nbz))
+  # Compute y-coordinate.
+  y = OffsetVector(zeros(sizey + 1 + 2 * nby), (-nby):(sizey + nby))
+  for jy in (-nby):(sizey + nby)
+    y[jy] = ly[0] + (jy - 1) * dy + dy / 2
+  end
 
-    for i in (-nbx):(sizeX + nbx)
-        x[i] = lx[0] + (i - 1) * dx + dx / 2.0
-    end
+  # Compute z-coordinate.
+  z = OffsetVector(zeros(sizez + 1 + 2 * nbz), (-nbz):(sizez + nbz))
+  for kz in (-nbz):(sizez + nbz)
+    z[kz] = lz[0] + (kz - 1) * dz + dz / 2
+  end
 
-    for j in (-nby):(sizeY + nby)
-        y[j] = ly[0] + (j - 1) * dy + dy / 2.0
-    end
+  # Initialize the stretched vertical grid.
+  (ztildes, zs) =
+    (OffsetVector(zeros(nz + 2 * nbz + 1), (-nbz):(nz + nbz)) for i in 1:2)
 
-    for k in (-nbz):(sizeZ + nbz)
-        z[k] = lz[0] + (k - 1) * dz + dz / 2.0
-    end
-
-    # Build arrays.
-    jac = Jacobian(topography_surface, zTildeS, dz, lz)
-    met = MetricTensor(topography_surface, zTildeS, dx, dy, dz, lz, zS)
-
-    xboundary = BoundaryCondition(p.boundaries.xboundary)
-    yboundary = BoundaryCondition(p.boundaries.yboundary)
-    zboundary = BoundaryCondition(p.boundaries.zboundary)
-    # Return constructed Grid
-    return Grid(lx, ly, lz, dx, dy, dz, x, y, z, zS, zTildeS, topography_surface, jac, met,
-                zTFC, zTildeTFC, xboundary, yboundary, zboundary)
-end
-
-function BoundaryCondition(s::AbstractString)
-    if s == "periodic"
-        return PeriodicBC()
-    elseif s == "solid_wall"
-        return SolidWallBC()
+  # Compute the stretched vertical grid.
+  for kz in (-nbz):(nz + nbz)
+    level = z[kz] + 0.5 * dz
+    if level < 0
+      ztildes[kz] = -lz[1] * (-level / lz[1])^stretch_exponent
+    elseif level > lz[1]
+      ztildes[kz] =
+        2 * lz[1] - lz[1] * ((2 * lz[1] - level) / lz[1])^stretch_exponent
     else
-        error("unsupported boundary condition $s")
+      ztildes[kz] = lz[1] * (level / lz[1])^stretch_exponent
     end
-end
+  end
+  for kz in (-nbz + 1):(nz + nbz)
+    zs[kz] = 0.5 * (ztildes[kz] + ztildes[kz - 1])
+  end
+  zs[-nbz] = ztildes[-nbz] - 0.5 * (ztildes[nbz + 1] - ztildes[nbz])
 
-function (met::MetricTensor)(i, j, k, mu, nu)
-    # Metric tensor.
-    (; topography_surface, zS, zTildeS, dx, dy, dz, lz) = met
-    if (mu == 1 && nu == 3) || (mu == 3 && nu == 1)
-        return (topography_surface[i + 1, j] - topography_surface[i - 1, j]) / (2.0 * dx) *
-               (zS[k] - lz[1]) / (lz[1] - topography_surface[i, j]) * dz /
-               (zTildeS[k] - zTildeS[k - 1])
-    elseif (mu == 2 && nu == 3) || (mu == 3 && nu == 2)
-        return (topography_surface[i, j + 1] - topography_surface[i, j - 1]) / (2.0 * dy) *
-               (zS[k] - lz[1]) / (lz[1] - topography_surface[i, j]) * dz /
-               (zTildeS[k] - zTildeS[k - 1])
-    elseif mu == 3 && nu == 3
-        return ((lz[1] / (lz[1] - topography_surface[i, j]))^2.0 +
-                ((zS[k] - lz[1]) / (lz[1] - topography_surface[i, j]))^2.0 *
-                (((topography_surface[i + 1, j] - topography_surface[i - 1, j]) /
-                  (2.0 * dx))^2.0 +
-                 ((topography_surface[i, j + 1] - topography_surface[i, j - 1]) /
-                  (2.0 * dy))^2.0)) * (dz / (zTildeS[k] - zTildeS[k - 1]))^2.0
-    else
-        @assert false "UNDEFINED CASE!!!"
+  if lz[0] != 0.0
+    println("Error in setup_topography: lz[0] must be zero for TFC!")
+    exit()
+  end
+
+  mountainheight = mountainheight_dim / lref
+  mountainwidth = mountainwidth_dim / lref
+  mountainwavenumber = pi / mountainwidth
+
+  x_center = 0.5 * (lx[1] + lx[0])
+  y_center = 0.5 * (ly[1] + ly[0])
+
+  ix0 = is + nbx - 1
+  jy0 = js + nby - 1
+
+  topography_surface = OffsetMatrix(
+    zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1)),
+    (-nbx):(nx + nbx),
+    (-nby):(ny + nby),
+  )
+
+
+  if mountain_case != 0
+    for jy in 1:(ny)
+      for ix in 1:(nx)
+        if mountain_case == 1
+          # 2D cosine mountains
+          topography_surface[ix, jy] =
+            0.5 *
+            mountainheight *
+            (1.0 + cos(mountainwavenumber * (x[ix + ix0] - x_center)))
+
+        elseif mountain_case == 2
+          # 3D cosine mountains
+          topography_surface[ix, jy] =
+            0.5 *
+            mountainheight *
+            (
+              1.0 + cos(
+                mountainwavenumber * sqrt(
+                  (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0,
+                ),
+              )
+            )
+
+        elseif mountain_case == 3
+          # 2D isolated mountain
+          topography_surface[ix, jy] =
+            mountainheight /
+            (1.0 + (x[ix + ix0] - x_center)^2.0 / mountainwidth^2.0)
+
+        elseif mountain_case == 4
+          # 3D isolated mountain
+          topography_surface[ix, jy] =
+            mountainheight / (
+              1.0 +
+              ((x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0) /
+              mountainwidth^2.0
+            )
+
+        elseif mountain_case == 5
+          # 2D cosine envelope and even background
+          if abs(x[ix + ix0] - x_center) <= mountainwidth * range_factor
+            topography_surface[ix, jy] =
+              0.5 *
+              mountainheight *
+              (
+                1.0 +
+                0.5 *
+                (
+                  1.0 + cos(
+                    mountainwavenumber / range_factor *
+                    (x[ix + ix0] - x_center),
+                  )
+                ) *
+                cos(mountainwavenumber * (x[ix + ix0] - x_center))
+              )
+          else
+            topography_surface[ix, jy] = 0.5 * mountainheight
+          end
+
+        elseif mountain_case == 6
+          # 3D cosine envelope and even background
+          if (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0 <=
+             (mountainwidth * range_factor)^2.0
+            topography_surface[ix, jy] =
+              0.5 *
+              mountainheight *
+              (
+                1.0 +
+                0.5 *
+                (
+                  1.0 + cos(
+                    mountainwavenumber / range_factor * sqrt(
+                      (x[ix + ix0] - x_center)^2.0 +
+                      (y[jy + jy0] - y_center)^2.0,
+                    ),
+                  )
+                ) *
+                cos(
+                  mountainwavenumber * sqrt(
+                    (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0,
+                  ),
+                )
+              )
+          else
+            topography_surface[ix, jy] = 0.5 * mountainheight
+          end
+
+        elseif mountain_case == 7
+          # 2D Gaussian envelope and even background
+          topography_surface[ix, jy] =
+            0.5 *
+            mountainheight *
+            (
+              1.0 +
+              exp(
+                -(x[ix + ix0] - x_center)^2.0 /
+                (mountainwidth * range_factor)^2.0,
+              ) * cos(mountainwavenumber * (x[ix + ix0] - x_center))
+            )
+
+        elseif mountain_case == 8
+          # 3D Gaussian envelope and even background
+          topography_surface[ix, jy] =
+            0.5 *
+            mountainheight *
+            (
+              1.0 +
+              exp(
+                -((x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0) /
+                (mountainwidth * range_factor)^2.0,
+              ) * cos(
+                mountainwavenumber * sqrt(
+                  (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0,
+                ),
+              )
+            )
+
+        elseif mountain_case == 9
+          # 2D cosine envelope and cosine background
+          if abs(x[ix + ix0] - x_center) <= mountainwidth * range_factor
+            topography_surface[ix, jy] =
+              0.25 *
+              mountainheight *
+              (
+                1.0 + cos(
+                  mountainwavenumber / range_factor * (x[ix + ix0] - x_center),
+                )
+              ) *
+              (1.0 + cos(mountainwavenumber * (x[ix + ix0] - x_center)))
+          end
+
+        elseif mountain_case == 10
+          # 3D cosine envelope and cosine background
+          if (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0 <=
+             (mountainwidth * range_factor)^2.0
+            topography_surface[ix, jy] =
+              0.25 *
+              mountainheight *
+              (
+                1.0 + cos(
+                  mountainwavenumber / range_factor * sqrt(
+                    (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0,
+                  ),
+                )
+              ) *
+              (
+                1.0 + cos(
+                  mountainwavenumber * sqrt(
+                    (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0,
+                  ),
+                )
+              )
+          end
+
+        elseif mountain_case == 11
+          # 2D Gaussian envelope and Gaussian background
+          topography_surface[ix, jy] =
+            0.5 *
+            mountainheight *
+            exp(
+              -(x[ix + ix0] - x_center)^2.0 /
+              (mountainwidth * range_factor)^2.0,
+            ) *
+            (1.0 + cos(mountainwavenumber * (x[ix + ix0] - x_center)))
+
+        elseif mountain_case == 12
+          # 3D Gaussian envelope and Gaussian background
+          topography_surface[ix, jy] =
+            0.5 *
+            mountainheight *
+            exp(
+              -((x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0) /
+              (mountainwidth * range_factor)^2.0,
+            ) *
+            (
+              1.0 + cos(
+                mountainwavenumber * sqrt(
+                  (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0,
+                ),
+              )
+            )
+
+        elseif mountain_case == 13
+          # 3D WKB topography
+          if (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0 <=
+             (mountainwidth * range_factor)^2.0
+            topography_surface[ix, jy] =
+              0.25 *
+              mountainheight *
+              (
+                1.0 + cos(
+                  mountainwavenumber / range_factor * sqrt(
+                    (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0,
+                  ),
+                )
+              ) *
+              (1.0 + envelope_reduction)
+            for iwm in 0:(spectral_modes - 1)
+              kk = mountainwavenumber * cos(pi / spectral_modes * iwm)
+              ll = mountainwavenumber * sin(pi / spectral_modes * iwm)
+              topography_surface[ix, jy] =
+                topography_surface[ix, jy] +
+                0.25 *
+                mountainheight *
+                (
+                  1.0 + cos(
+                    mountainwavenumber / range_factor * sqrt(
+                      (x[ix + ix0] - x_center)^2.0 +
+                      (y[jy + jy0] - y_center)^2.0,
+                    ),
+                  )
+                ) *
+                cos(
+                  kk * (x[ix + ix0] - x_center) + ll * (y[jy + jy0] - y_center),
+                ) / spectral_modes * (1.0 - envelope_reduction)
+            end
+          end
+        else
+          println("Error in setup_topography: Unknown mountain case!")
+          exit()
+        end
+      end
     end
-end
+  else
+    println("Error in setup_topography: Mountain case 0 is not ready yet!")
+  end
 
-function (jac::Jacobian)(i, j, k)
-    # Jacobian.
-    (; topography_surface, zTildeS, dz, lz) = jac
-    return (lz[1] - topography_surface[i, j]) / lz[1] * (zTildeS[k] - zTildeS[k - 1]) / dz
-end
+  # Set halos of topography surface.
+  set_halos_of_field!(topography_surface, namelists, domain)
 
-function Base.getindex(jac::Jacobian, i, j, k)
-    return jac(i, j, k)
-end
+  # Initialize Jacobian and metric tensor.
+  jac = OffsetArray(
+    zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1)),
+    (-nbx):(nx + nbx),
+    (-nby):(ny + nby),
+    (-nbz):(nz + nbz),
+  )
+  met = OffsetArray(
+    zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1, 3, 3)),
+    (-nbx):(nx + nbx),
+    (-nby):(ny + nby),
+    (-nbz):(nz + nbz),
+    1:3,
+    1:3,
+  )
 
-function Base.getindex(met::MetricTensor, i, j, k, u, v)
-    return met(i, j, k, u, v)
+  # Compute the Jacobian.
+  for kz in (-nbz + 1):(nz + nbz)
+    jac[:, :, kz] =
+      (lz[1] .- topography_surface) ./ lz[1] .*
+      (ztildes[kz] .- ztildes[kz - 1]) ./ dz
+  end
+  jac[:, :, -nbz] = jac[:, :, nbz + 1]
+
+  # Compute the metric tensor.
+  met[:, :, :, 1, 1] .= 1.0
+  met[:, :, :, 1, 2] .= 0.0
+  for kz in (-nbz + 1):(nz + nbz)
+    for jy in 1:(ny)
+      for ix in 1:(nx)
+        met[ix, jy, kz, 1, 3] =
+          (topography_surface[ix + 1, jy] - topography_surface[ix - 1, jy]) /
+          (2.0 * dx) * (zs[kz] - lz[1]) / (lz[1] - topography_surface[ix, jy]) *
+          dz / (ztildes[kz] - ztildes[kz - 1])
+      end
+    end
+  end
+  set_halos_of_field!(met[:, :, :, 1, 3], namelists, domain)
+  met[:, :, -nbz, 1, 3] =
+    met[:, :, nbz + 1, 1, 3] .* (zs[-nbz] .- lz[1]) ./ (zs[nbz + 1] .- lz[1])
+  met[:, :, :, 2, 1] .= 0.0
+  met[:, :, :, 2, 2] .= 1.0
+  for kz in (-nbz + 1):(nz + nbz)
+    for jy in 1:(ny)
+      for ix in 1:(nx)
+        met[ix, jy, kz, 2, 3] =
+          (topography_surface[ix, jy + 1] - topography_surface[ix, jy - 1]) /
+          (2.0 * dy) * (zs[kz] - lz[1]) / (lz[1] - topography_surface[ix, jy]) *
+          dz / (ztildes[kz] - ztildes[kz - 1])
+      end
+    end
+  end
+  set_halos_of_field!(met[:, :, :, 2, 3], namelists, domain)
+  met[:, :, -nbz, 2, 3] =
+    met[:, :, nbz + 1, 2, 3] .* (zs[-nbz] .- lz[1]) ./ (zs[nbz + 1] .- lz[1])
+  met[:, :, :, 3, 1] = met[:, :, :, 1, 3]
+  met[:, :, :, 3, 2] = met[:, :, :, 2, 3]
+  for kz in (-nbz + 1):(nz + nbz)
+    for jy in 1:(ny)
+      for ix in 1:(nx)
+        met[ix, jy, kz, 3, 3] =
+          (
+            (lz[1] / (lz[1] - topography_surface[ix, jy]))^2.0 +
+            ((zs[kz] - lz[1]) / (lz[1] - topography_surface[ix, jy]))^2.0 * (
+              (
+                (
+                  topography_surface[ix + 1, jy] -
+                  topography_surface[ix - 1, jy]
+                ) / (2.0 * dx)
+              )^2.0 +
+              (
+                (
+                  topography_surface[ix, jy + 1] -
+                  topography_surface[ix, jy - 1]
+                ) / (2.0 * dy)
+              )^2.0
+            )
+          ) * (dz / (ztildes[kz] - ztildes[kz - 1]))^2.0
+      end
+    end
+  end
+  set_halos_of_field!(met[:, :, :, 3, 3], namelists, domain)
+  for jy in 1:(ny)
+    for ix in 1:(nx)
+      met[ix, jy, -nbz, 3, 3] =
+        (
+          (lz[1] / (lz[1] - topography_surface[ix, jy]))^2.0 +
+          ((zs[-nbz] - lz[1]) / (lz[1] - topography_surface[ix, jy]))^2.0 * (
+            (
+              (
+                topography_surface[ix + 1, jy] - topography_surface[ix - 1, jy]
+              ) / (2.0 * dx)
+            )^2.0 +
+            (
+              (
+                topography_surface[ix, jy + 1] - topography_surface[ix, jy - 1]
+              ) / (2.0 * dy)
+            )^2.0
+          )
+        ) * (dz / (ztildes[nbz + 1] - ztildes[nbz]))^2.0
+    end
+  end
+  set_halos_of_field!(met[:, :, -nbz, 3, 3], namelists, domain)
+
+  # Initialize the physical layers.
+  (ztildetfc, ztfc) = (
+    OffsetArray(
+      zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1)),
+      (-nbx):(nx + nbx),
+      (-nby):(ny + nby),
+      (-nbz):(nz + nbz),
+    ) for i in 1:2
+  )
+
+  # Compute the physical layers.
+  for kz in (-nbz):(nz + nbz)
+    ztildetfc[:, :, kz] =
+      (lz[1] .- topography_surface) ./ lz[1] .* ztildes[kz] .+
+      topography_surface
+    ztfc[:, :, kz] =
+      (lz[1] .- topography_surface) ./ lz[1] .* zs[kz] .+ topography_surface
+  end
+
+  # Return a Grid instance.
+  return Grid(
+    lx,
+    ly,
+    lz,
+    dx,
+    dy,
+    dz,
+    x,
+    y,
+    z,
+    zs,
+    ztildes,
+    topography_surface,
+    jac,
+    met,
+    ztfc,
+    ztildetfc,
+  )
 end
