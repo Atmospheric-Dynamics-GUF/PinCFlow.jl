@@ -28,11 +28,17 @@ end
 function reconstruction!(model)
     @trixi_timeit timer() "Reconstruction" begin
     #! format: noindent
+    debug_norm(model, "before rho")
     reconstruct_rho!(model)
+    debug_norm(model, "rho")
     reconstruct_rhop!(model)
+    debug_norm(model, "rhop")
     reconstruct_u!(model)
+    debug_norm(model, "u")
     reconstruct_v!(model)
+    debug_norm(model, "v")
     reconstruct_w!(model)
+    debug_norm(model, "w")
     end # timer
 end
 
@@ -244,13 +250,13 @@ function muscle_reconstruct1D_mcvariant!(phi, phiSize, phiTilde)
 end
 
 # ------------------------ FLUX CALCULATION ------------------------
-function compute_fluxes!(semi)
+function compute_fluxes!(model)
     @trixi_timeit timer() "Compute fluxes" begin
     #! format: noindent
-    reconstruction!(semi)
-    rhoFlux!(semi)
-    rhopFlux!(semi)
-    momemtumFlux!(semi)
+    reconstruction!(model)
+    rhoFlux!(model)
+    rhopFlux!(model)
+    momemtumFlux!(model)
     end # timer
 end
 
