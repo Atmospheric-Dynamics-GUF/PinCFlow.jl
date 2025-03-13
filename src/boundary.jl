@@ -1,9 +1,13 @@
 function setBoundary!(model::Model)
     @trixi_timeit timer() "Set boundary" begin
     #! format: noindent
+    debug_norm(model, "before x")
     setBoundary_x!(model, model.grid.xboundary)
+    debug_norm(model, "after x")
     setBoundary_y!(model, model.grid.yboundary)
+    debug_norm(model, "after y")
     setBoundary_z!(model, model.grid.zboundary)
+    debug_norm(model, "after z")
     end
 end
 
@@ -88,6 +92,7 @@ function set_periodic_value_edge_y!(var, j, ny)
 end
 
 function setBoundary_z!(model, boundary::PeriodicBC)
+    println("in periodic")
     (; rho, rhop, u, v, w, pip) = model.variables.prognostic_fields
     (; nz, nbz) = model.domain
 
@@ -119,10 +124,10 @@ function set_periodic_value_edge_z!(var, k, nz)
     @views var[:, :, -k] .= var[:, :, nz-k]
 end
 
-function setBoundary_z!(semi, boundary::SolidWallBC)
-    (; cache, grid) = semi
-    (; rho, rhop, u, v, w, exner) = cache.var
-    (; nz, nbz) = grid
+function setBoundary_z!(model, boundary::SolidWallBC)
+    println("in solid")
+    (; rho, rhop, u, v, w, pip) = model.variables.prognostic_fields
+    (; nz, nbz) = model.domain
 
     ## This should be removed!!
     for k in 1:nbz
@@ -139,7 +144,7 @@ function setBoundary_z!(semi, boundary::SolidWallBC)
         set_non_reflective_value_cell_z!(v, k, nz)
     end
 
-    set_non_reflective_value_cell_z!(exner, 1, nz)
+    set_non_reflective_value_cell_z!(pip, 1, nz)
 end
 
 function set_reflective_value_cell_z!(var, k, nz)

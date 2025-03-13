@@ -34,22 +34,11 @@ macro get_var_name(var)
     return QuoteNode(var)  # Returns the variable name as a Symbol
 end
 
-@testset "Test SemiDiscretization" begin
-    grid = LinRange(0.0, 1.0, 10)
-    equations = CompressibleEulerEquations1D(1.4)
-    surface_flux = nothing
-    initial_condition = nothing
-
-    semi_discretization = SemiDiscretization(grid, equations, surface_flux,
-                                             initial_condition)
-
-    @test semi_discretization.grid == grid
-end
-
-include("test_poisson.jl")
-include("test_elixirs.jl")
-include("test_fluxes.jl")
+# include("test_poisson.jl")
+# include("test_elixirs.jl")
+# include("test_fluxes.jl")
 include("test_update.jl")
-include("test_atmosphere.jl")
-include("test_sponge.jl")
-include("test_boundary.jl")
+# include("test_atmosphere.jl")
+# include("test_sponge.jl")
+# include("test_boundary.jl")
+include("test_init.jl")

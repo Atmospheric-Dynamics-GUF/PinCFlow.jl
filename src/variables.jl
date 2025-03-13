@@ -2,10 +2,8 @@ using OffsetArrays
 """
 Atmospheric variables.
 """
-struct Variables{
-    B<:Bool,
-    A3OF<:OffsetArray{<:AbstractFloat,3},
-}
+struct Variables{B <: Bool,
+                 A3OF <: OffsetArray{<:AbstractFloat, 3}}
 
     # Bools for prognostic equations and Poisson problem.
     updatemass::B
@@ -27,6 +25,7 @@ struct Variables{
     history::NamedTuple
     # # Reconstructed variables.
     reconstructed::NamedTuple
+    usave::A3OF
 end
 
 function Variables(pars::Parameters)
@@ -37,8 +36,10 @@ function Variables(pars::Parameters)
     reconstruced = reconstructed_fields(pars.domain)
     history = history_fields(prognostic)
     dpip = copy(prognostic.u)
+    usave = copy(prognostic.u)
     # TODO: default values for boolean flags?
-    Variables(false, false, false, prognostic, prognostic_0, prognostic_1, tendency, dpip, history, reconstruced)
+    Variables(false, false, false, prognostic, prognostic_0, prognostic_1, tendency, dpip,
+              history, reconstruced, usave)
 end
 
 function history_fields(prognostic_fields)
@@ -51,23 +52,23 @@ function reconstructed_fields(domain::DomainParameters)
     ndim = 3
     # TODO: factor this in own function
     f = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz, ndim,
-            2),
-        (-nbx):(nx+nbx),
-        (-nby):(ny+nby),
-        (-nbz):(nz+nbz),
-        1:ndim,
-        0:1)
+                          2),
+                    (-nbx):(nx + nbx),
+                    (-nby):(ny + nby),
+                    (-nbz):(nz + nbz),
+                    1:ndim,
+                    0:1)
     return NamedTuple{(:rho, :rhop, :u, :v, :w)}((f,
-        copy(f), copy(f), copy(f), copy(f)))
+                                                  copy(f), copy(f), copy(f), copy(f)))
 end
 
 function prognostic_fields(domain::DomainParameters)
     nx, ny, nz = domain.sizex, domain.sizey, domain.sizez
     nbx, nby, nbz = domain.nbx, domain.nby, domain.nbz
     u = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz),
-        (-nbx):(nx+nbx),
-        (-nby):(ny+nby),
-        (-nbz):(nz+nbz))
+                    (-nbx):(nx + nbx),
+                    (-nby):(ny + nby),
+                    (-nbz):(nz + nbz))
     # TODO: pip == exner?
     v, w, rho, pip, rhop = (copy(u), copy(u), copy(u), copy(u), copy(u))
 
@@ -79,14 +80,14 @@ function tendency_fields(domain::DomainParameters)
     nbx, nby, nbz = domain.nbx, domain.nby, domain.nbz
     ndim = 3
     drho = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz),
-        (-nbx):(nx+nbx),
-        (-nby):(ny+nby),
-        (-nbz):(nz+nbz))
+                       (-nbx):(nx + nbx),
+                       (-nby):(ny + nby),
+                       (-nbz):(nz + nbz))
     drhop = copy(drho)
     dmom = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz, ndim),
-        (-nbx):(nx+nbx),
-        (-nby):(ny+nby),
-        (-nbz):(nz+nbz),
-        1:ndim)
+                       (-nbx):(nx + nbx),
+                       (-nby):(ny + nby),
+                       (-nbz):(nz + nbz),
+                       1:ndim)
     return NamedTuple{(:drho, :drhop, :dmom)}((drho, drhop, dmom))
 end
