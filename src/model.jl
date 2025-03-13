@@ -1,4 +1,4 @@
-struct Time{I<:Integer,VOF<:Vector{<:AbstractFloat}}
+struct Time{I <: Integer, VOF <: Vector{<:AbstractFloat}}
     nstages::I
     alphark::VOF
     betark::VOF
@@ -38,7 +38,6 @@ function Model(p::Parameters)
     return Model(p, c, t, d, g, a, o, v, fl)
 end
 
-
 function initialize_variables!(model)
     @trixi_timeit timer() "Initialize variables" begin
     #! format: noindent
@@ -51,6 +50,10 @@ function initialize_variables!(model)
     model.variables.prognostic_fields.u .= u0 / model.constants.uref
     model.variables.prognostic_fields.v .= v0 / model.constants.uref
     model.variables.prognostic_fields.w .= w0 / model.constants.uref
+
+    model.variables.history.u .= model.variables.prognostic_fields.u
+    model.variables.history.v .= model.variables.prognostic_fields.v
+    model.variables.history.w .= model.variables.prognostic_fields.w
 
     model.variables.prognostic_fields.rho .= 0.0
     model.variables.prognostic_fields.rhop .= 0.0
@@ -67,7 +70,7 @@ function setup_topography!(model::Model)
     (; nx, ny, nz) = domain
     (; nbz) = model.parameters.domain
     (;
-        topography_surface, ztfc, ztildes, zs, lx, ly, lz, dx, dy, dz, x, y, z,) = grid
+    topography_surface, ztfc, ztildes, zs, lx, ly, lz, dx, dy, dz, x, y, z,) = grid
     c = model.constants
     if lz[0] != 0.0
         @assert false "Error in setup_topography: lz(0) must be zero for & &TFC!"
@@ -85,8 +88,8 @@ function setup_topography!(model::Model)
         for jy in 1:ny
             for ix in 1:nx
                 topography_surface[ix, jy] = mountainHeight / (1.0 +
-                                                               (x[ix] - x_center)^2.0 /
-                                                               mountainWidth^2.0)
+                                              (x[ix] - x_center)^2.0 /
+                                              mountainWidth^2.0)
             end
         end
     else
@@ -97,16 +100,16 @@ function setup_topography!(model::Model)
     # setHalosOfField2D(topography_surface)
     set_topography_boundary!(model, topography_surface)
     # Compute the stretched vertical grid.
-    for kz in (-nbz):(nz+nbz)
+    for kz in (-nbz):(nz + nbz)
         ztildes[kz] = map(z[kz] + 0.5 * dz, lz)
     end
-    for kz in (-nbz+1):(nz+nbz)
-        zs[kz] = 0.5 * (ztildes[kz] + ztildes[kz-1])
+    for kz in (-nbz + 1):(nz + nbz)
+        zs[kz] = 0.5 * (ztildes[kz] + ztildes[kz - 1])
     end
-    zs[-nbz] = ztildes[-nbz] - 0.5 * (ztildes[nbz+1] - ztildes[nbz])
+    zs[-nbz] = ztildes[-nbz] - 0.5 * (ztildes[nbz + 1] - ztildes[nbz])
 
     # Compute the physical layers.
-    for kz in (-nbz):(nz+nbz)
+    for kz in (-nbz):(nz + nbz)
         ztfc[:, :, kz] .= (lz[1] .- topography_surface) / lz[1] * zs[kz] .+
                           topography_surface
     end
@@ -125,35 +128,35 @@ function initialize_atmosphere!(model::Model)
     setup_topography!(model)
 
     c = model.constants
-    @show size(pstrattfc)
-    for kz in -1:(nz+2)
-        for ix in (-nbx):(nx+nbx), jy in (-nby):(ny+nby)
-            a = @allocated begin
-                x = ztfc[ix, jy, kz]
-                pstrattfc[ix, jy, kz] = p0 * x
-            end
-            @show a
+    for kz in -1:(nz + 2)
+        for ix in (-nbx):(nx + nbx), jy in (-nby):(ny + nby)
+            x = ztfc[ix, jy, kz]
+            pstrattfc[ix, jy, kz] = p0 * x
             pstrattfc[ix, jy, kz] = p0 * exp(-c.sig * ztfc[ix, jy, kz] / c.gamma / t0)
-            thetastrattfc[ix, jy, kz] = t0 * exp(c.kappa * c.sig / t0 * ztfc[ix, jy, kz])
+            thetastrattfc[ix, jy, kz] = t0 *
+                                        exp(c.kappa * c.sig / t0 * ztfc[ix, jy, kz])
             rhostrattfc[ix, jy, kz] = pstrattfc[ix, jy, kz] / thetastrattfc[ix, jy, kz]
         end
     end
 
-    for ix in (-nbx):(nx+nbx), jy in (-nby):(ny+nby)
+    for ix in (-nbx):(nx + nbx), jy in (-nby):(ny + nby)
         bvsstrattfc[ix, jy, -1] = c.g_ndim / thetastrattfc[ix, jy, 0] / jac(ix, jy, 0) *
-                                  (thetastrattfc[ix, jy, 1] - thetastrattfc[ix, jy, 0]) / dz
+                                  (thetastrattfc[ix, jy, 1] - thetastrattfc[ix, jy, 0]) /
+                                  dz
         for kz in 1:nz
-            bvsstrattfc[ix, jy, kz] = c.g_ndim / thetastrattfc[ix, jy, kz] / jac(ix, jy, kz) *
+            bvsstrattfc[ix, jy, kz] = c.g_ndim / thetastrattfc[ix, jy, kz] /
+                                      jac(ix, jy, kz) *
                                       0.5 *
-                                      (thetastrattfc[ix, jy, kz+1] -
-                                       thetastrattfc[ix, jy, kz-1]) /
+                                      (thetastrattfc[ix, jy, kz + 1] -
+                                       thetastrattfc[ix, jy, kz - 1]) /
                                       dz
         end
-        bvsstrattfc[ix, jy, nz+1] = c.g_ndim / thetastrattfc[ix, jy, nz+1] /
-                                    jac(ix, jy, nz + 1) *
-                                    (thetastrattfc[ix, jy, nz+1] - thetastrattfc[ix, jy, nz]) /
-                                    dz
-        bvsstrattfc[ix, jy, nz+2] = bvsstrattfc[ix, jy, nz+1]
+        bvsstrattfc[ix, jy, nz + 1] = c.g_ndim / thetastrattfc[ix, jy, nz + 1] /
+                                      jac(ix, jy, nz + 1) *
+                                      (thetastrattfc[ix, jy, nz + 1] -
+                                       thetastrattfc[ix, jy, nz]) /
+                                      dz
+        bvsstrattfc[ix, jy, nz + 2] = bvsstrattfc[ix, jy, nz + 1]
     end
     end # timer
 end
@@ -161,5 +164,4 @@ end
 function initialize!(model::Model)
     initialize_atmosphere!(model)
     initialize_variables!(model)
-
 end

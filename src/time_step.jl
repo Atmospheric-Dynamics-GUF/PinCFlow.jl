@@ -1,4 +1,5 @@
 using TimerOutputs
+using LinearAlgebra
 using TrixiBase
 
 function pincflow(model, dt)
@@ -20,12 +21,13 @@ function pincflow(model, dt)
     facray = 1
 
     Corrector(model, 1.0, errFlagBicg, nIter, "expl", facray, facprs)
-    display(timer())
     initialize_sponge!(model)
+    debug_norm(model, "sponge")
 
 
     time = 0.0
     for it in 1:100
+        debug_norm(model, "before boudnary")
         setBoundary!(model)
         @trixi_timeit timer() "Misc" model.variables.prognostic_fields.rhop .= model.variables.prognostic_fields.rho
         @trixi_timeit timer() "Misc" copytuple_to_tuple!(model.variables.prognostic_fields_0,
@@ -33,9 +35,11 @@ function pincflow(model, dt)
         flux0 = copy(model.fluxes)
         for RKStage in 1:3
             setBoundary!(model)
+
             reconstruction!(model)
 
             compute_fluxes!(model)
+
             setBoundary_flux!(model)
 
             @trixi_timeit timer() "Misc" if RKStage == 1
@@ -44,7 +48,6 @@ function pincflow(model, dt)
             end
 
             @trixi_timeit timer() "Misc" model.variables.history.rho .= model.variables.prognostic_fields.rho
-
             massUpdate!(model, ode, 0.5 * dt, "rho", "tot", "expl", RKStage, 1)
             applyUnifiedSponge_rho!(model, 0.5 * ode.stepfrac[RKStage] * dt)
             massUpdate!(model, ode, 0.5 * dt, "rhop", "lhs", "expl", RKStage, 1)
@@ -52,9 +55,13 @@ function pincflow(model, dt)
             setBoundary!(model)
 
             momentumPredictor!(model, ode, 0.5 * dt, "lhs", "expl", RKStage, 1)
+
             applyUnifiedSponge_uvw!(model, 0.5 * ode.stepfrac[RKStage] * dt)
         end
         RKStage = 4
+
+        debug_norm(model, "after first rk")
+        @assert false
         setBoundary!(model)
         @trixi_timeit timer() "Misc" model.fluxes = copy(flux0)
         # @trixi_timeit timer() "Misc" copytuple_to_tuple_flux!(semi.cache.flux,
@@ -91,7 +98,6 @@ function pincflow(model, dt)
 
         # TODO: ...
         ## set the boundary to var0
-
         for RKStage in 1:3
             setBoundary!(model)
 
@@ -162,14 +168,26 @@ function copytuple_to_tuple_flux!(var, var1)
     var.rhop .= var1.rhop
 end
 
-function debugging!(semi)
-    @show semi.cache.var.rho[5, 1, 5]
-    @show semi.cache.var.rhop[5, 1, 5]
-    @show semi.cache.var.u[5, 1, 5]
-    @show semi.cache.var.v[5, 1, 5]
-    @show semi.cache.var.w[5, 1, 5]
-    @show semi.cache.var.exner[5, 1, 5]
-    @show semi.cache.var.exner[5, 2, 1]
-    @show semi.cache.var.u[5, 1, 1]
-    @show semi.cache.var.u[5, 2, 1]
+function debugging!(model)
+    @show model.variables.prognostic_fields.rho[5, 1, 5]
+    @show model.variables.prognostic_fields.rhop[5, 1, 5]
+    @show model.variables.prognostic_fields.u[5, 1, 5]
+    @show model.variables.prognostic_fields.v[5, 1, 5]
+    @show model.variables.prognostic_fields.w[5, 1, 5]
+    @show model.variables.prognostic_fields.pip[5, 1, 5]
+    @show model.variables.prognostic_fields.pip[5, 2, 1]
+    @show model.variables.prognostic_fields.u[5, 1, 1]
+    @show model.variables.prognostic_fields.u[5, 2, 1]
+end
+
+
+function debug_norm(model, sec)
+    println(sec)
+    @show norm(model.variables.prognostic_fields.rho)
+    @show norm(model.variables.prognostic_fields.u)
+    @show norm(model.variables.prognostic_fields.v)
+    @show norm(model.variables.prognostic_fields.w)
+    @show norm(model.variables.prognostic_fields.rhop)
+    @show norm(model.variables.prognostic_fields.pip)
+    println("")
 end

@@ -216,3 +216,18 @@ struct Parameters
     topography::TopographyParameters
     boundaries::BoundaryParameters
 end
+
+function default_parameters()
+    return Parameters(
+        DomainParameters(),
+        OutputParameters(),
+        DebugParameters(),
+        TestCaseParameters(),
+        ModelParameters(),
+        DiscretizationParameters(),
+        PoissonSolverParameters(),
+        AtmosphereParameters(),
+        TopographyParameters(),
+        BoundaryParameters()
+    )
+end

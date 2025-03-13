@@ -79,10 +79,7 @@ function Corrector(model, dt, errFlagBicg, nIter, opt, facray, facprs)
     # real, dimension[1:nx, 1:ny, 1:nz]::rhs # RHS
 
     # calculate RHS
-    @show model.operator.cache.rhs_bigc[1]
     calc_RHS(model.operator.cache.rhs_bigc, model, dt)
-    @show model.operator.cache.rhs_bigc[1]
-
     # @assert false rhs
 
     # calculate dp

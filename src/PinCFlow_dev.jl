@@ -37,7 +37,7 @@ export initialize_values,
     vertWind,
     time_loop!
 
-export time_discretization, massUpdate_rho!, massUpdate_rhop!
+export time_discretization, massUpdate_rho!, massUpdate_rhop!, default_parameters
 
 export SemiDiscretization, pincflow, Corrector
 
