@@ -1,10 +1,3 @@
-function time_loop!(semi)
-    timestep!(semi)
-
-    reconstruction!(semi)
-
-    compute_fluxes!(semi)
-end
 
 function timestep!(semi)
     (; equations) = semi

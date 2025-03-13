@@ -2,92 +2,226 @@ using OffsetArrays
 """
 Atmospheric variables.
 """
-struct Variables{B <: Bool,
-                 A3OF <: OffsetArray{<:AbstractFloat, 3}}
-
-    # Bools for prognostic equations and Poisson problem.
-    updatemass::B
-    predictmomentum::B
-    correctmomentum::B
-
-    # Prognostic variables.
-    # as named tuple and with symbols :rho, :rhop, :u, :v, :w, :pip and fields
-    prognostic_fields::NamedTuple
-    # TODO: get rid of these... or find better names if we really need those
-    prognostic_fields_0::NamedTuple
-    prognostic_fields_1::NamedTuple
-    # Tendencies.
-    # same as for prognostic variables
-    tendencies::NamedTuple
-    # # Pressure correction.
-    dpip::A3OF
-    # # Saved variables.
-    history::NamedTuple
-    # # Reconstructed variables.
-    reconstructed::NamedTuple
-    usave::A3OF
+struct Predictands{A<:OffsetArray{<:AbstractFloat,3}}
+    rho::A
+    rhop::A
+    u::A
+    v::A
+    w::A
+    pip::A
 end
 
-function Variables(pars::Parameters)
-    prognostic = prognostic_fields(pars.domain)
-    prognostic_0 = prognostic_fields(pars.domain)
-    prognostic_1 = prognostic_fields(pars.domain)
-    tendency = tendency_fields(pars.domain)
-    reconstruced = reconstructed_fields(pars.domain)
-    history = history_fields(prognostic)
-    dpip = copy(prognostic.u)
-    usave = copy(prognostic.u)
-    # TODO: default values for boolean flags?
-    Variables(false, false, false, prognostic, prognostic_0, prognostic_1, tendency, dpip,
-              history, reconstruced, usave)
+struct Tendencies{A<:OffsetArray{<:AbstractFloat,3}}
+    drho::A
+    drhop::A
+    du::A
+    dv::A
+    dw::A
+    dpip::A
 end
 
-function history_fields(prognostic_fields)
-    return NamedTuple{keys(prognostic_fields)}((copy(f) for f in prognostic_fields))
+struct Backups{A<:OffsetArray{<:AbstractFloat,3}}
+    rhoold::A
+    rhopold::A
+    uold::A
+    vold::A
+    wold::A
 end
 
-function reconstructed_fields(domain::DomainParameters)
-    nx, ny, nz = domain.sizex, domain.sizey, domain.sizez
-    nbx, nby, nbz = domain.nbx, domain.nby, domain.nbz
-    ndim = 3
-    # TODO: factor this in own function
-    f = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz, ndim,
-                          2),
-                    (-nbx):(nx + nbx),
-                    (-nby):(ny + nby),
-                    (-nbz):(nz + nbz),
-                    1:ndim,
-                    0:1)
-    return NamedTuple{(:rho, :rhop, :u, :v, :w)}((f,
-                                                  copy(f), copy(f), copy(f), copy(f)))
+struct Auxiliaries{A<:OffsetArray{<:AbstractFloat,3}}
+    rhobar::A
+    rhopbar::A
+    ubar::A
+    vbar::A
+    wbar::A
 end
 
-function prognostic_fields(domain::DomainParameters)
-    nx, ny, nz = domain.sizex, domain.sizey, domain.sizez
-    nbx, nby, nbz = domain.nbx, domain.nby, domain.nbz
-    u = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz),
-                    (-nbx):(nx + nbx),
-                    (-nby):(ny + nby),
-                    (-nbz):(nz + nbz))
-    # TODO: pip == exner?
-    v, w, rho, pip, rhop = (copy(u), copy(u), copy(u), copy(u), copy(u))
-
-    return NamedTuple{(:u, :v, :w, :rho, :pip, :rhop)}((u, v, w, rho, pip, rhop))
+struct Reconstructions{A<:OffsetArray{<:AbstractFloat,5}}
+    rhotilde::A
+    rhoptilde::A
+    utilde::A
+    vtilde::A
+    wtilde::A
 end
 
-function tendency_fields(domain::DomainParameters)
-    nx, ny, nz = domain.sizex, domain.sizey, domain.sizez
-    nbx, nby, nbz = domain.nbx, domain.nby, domain.nbz
-    ndim = 3
-    drho = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz),
-                       (-nbx):(nx + nbx),
-                       (-nby):(ny + nby),
-                       (-nbz):(nz + nbz))
-    drhop = copy(drho)
-    dmom = OffsetArray(zeros(Float64, nx + 1 + 2nbx, ny + 1 + 2nby, nz + 1 + 2nbz, ndim),
-                       (-nbx):(nx + nbx),
-                       (-nby):(ny + nby),
-                       (-nbz):(nz + nbz),
-                       1:ndim)
-    return NamedTuple{(:drho, :drhop, :dmom)}((drho, drhop, dmom))
+struct Fluxes{A<:OffsetArray{<:AbstractFloat,4}}
+    phirho::A
+    phirhop::A
+    phiu::A
+    phiv::A
+    phiw::A
+end
+
+struct Variables{
+    A<:Predictands,
+    B<:Tendencies,
+    C<:Backups,
+    D<:Auxiliaries,
+    E<:Reconstructions,
+    F<:Fluxes,
+}
+    predictands::A
+    tendencies::B
+    backups::C
+    auxiliaries::D
+    reconstructions::E
+    fluxes::F
+end
+
+function Predictands(
+  namelists::Namelists,
+  constants::Constants,
+  domain::Domain,
+  model::PseudoIncompressible,
+  testcase::MountainWave,
+)
+
+  # Get parameters.
+  (; nbx, nby, nbz) = namelists.domain
+  (; uref) = constants
+  (; nx, ny, nz) = domain
+
+  # Initialize the predictands.
+  (rho, rhop, u, v, w, pip) = (
+    OffsetArray(
+      zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1)),
+      (-nbx):(nx + nbx),
+      (-nby):(ny + nby),
+      (-nbz):(nz + nbz),
+    ) for i in 1:6
+  )
+
+  # Initial winds.
+  u .= backgroundflow_dim[1] / uref
+  v .= backgroundflow_dim[2] / uref
+  w .= backgroundflow_dim[3] / uref
+
+  # Return a Predictands instance.
+  return Predictands(rho, rhop, u, v, w, pip)
+end
+
+function Tendencies(namelists::Namelists, domain::Domain)
+
+  # Get parameters.
+  (; nbx, nby, nbz) = namelists.domain
+  (; nx, ny, nz) = domain
+
+  # Initialize the tendencies.
+  (drho, drhop, du, dv, dw, dpip) = (
+    OffsetArray(
+      zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1)),
+      (-nbx):(nx + nbx),
+      (-nby):(ny + nby),
+      (-nbz):(nz + nbz),
+    ) for i in 1:6
+  )
+
+  # Return a Variables instance.
+  return Tendencies(drho, drhop, du, dv, dw, dpip)
+end
+
+function Backups(namelists::Namelists, domain::Domain)
+
+  # Get parameters.
+  (; nbx, nby, nbz) = namelists.domain
+  (; nx, ny, nz) = domain
+
+  # Initialize the backups.
+  (rhoold, rhopold, uold, vold, wold) = (
+    OffsetArray(
+      zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1)),
+      (-nbx):(nx + nbx),
+      (-nby):(ny + nby),
+      (-nbz):(nz + nbz),
+    ) for i in 1:5
+  )
+
+  # Return a Backups instance.
+  return Backups(rhoold, rhopold, uold, vold, wold)
+end
+
+function Auxiliaries(namelists::Namelists, domain::Domain)
+
+  # Get parameters.
+  (; nbx, nby, nbz) = namelists.domain
+  (; nx, ny, nz) = domain
+
+  # Initialize the auxiliaries.
+  (rhobar, rhopbar, ubar, vbar, wbar) = (
+    OffsetArray(
+      zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1)),
+      (-nbx):(nx + nbx),
+      (-nby):(ny + nby),
+      (-nbz):(nz + nbz),
+    ) for i in 1:5
+  )
+
+  # Return an Auxiliaries instance.
+  return Auxiliaries(rhobar, rhopbar, ubar, vbar, wbar)
+end
+
+function Reconstructions(namelists::Namelists, domain::Domain)
+
+  # Get parameters.
+  (; nbx, nby, nbz) = namelists.domain
+  (; nx, ny, nz) = domain
+
+  # Initialize the reconstructed variables.
+  (rhotilde, rhoptilde, utilde, vtilde, wtilde) = (
+    OffsetArray(
+      zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1, 3, 2)),
+      (-nbx):(nx + nbx),
+      (-nby):(ny + nby),
+      (-nbz):(nz + nbz),
+      1:3,
+      0:1,
+    ) for i in 1:5
+  )
+
+  # Return a Reconstructions instance.
+  return Reconstructions(rhotilde, rhoptilde, utilde, vtilde, wtilde)
+end
+
+function Fluxes(domain::Domain)
+
+  # Get parameters.
+  (; nx, ny, nz) = domain
+
+  # Initialize the fluxes.
+  (phirho, phirhop, phiu, phiv, phiw) = (
+    OffsetArray(
+      zeros((nx + 2, ny + 2, nz + 2, 3)),
+      (-1):(nx),
+      (-1):(ny),
+      (-1):(nz),
+      1:3,
+    ) for i in 1:5
+  )
+
+  # Return a Fluxes instance.
+  return Fluxes(phirho, phirhop, phiu, phiv, phiw)
+end
+
+function Variables(namelists::Namelists, constants::Constants, domain::Domain)
+
+  # Get parameters.
+  (; model, testcase) = namelists.setting
+
+  # Initialize all fields.
+  predictands = Predictands(namelists, constants, domain, model, testcase)
+  tendencies = Tendencies(namelists, domain)
+  backups = Backups(namelists, domain)
+  auxiliaries = Auxiliaries(namelists, domain)
+  reconstructions = Reconstructions(namelists, domain)
+  fluxes = Fluxes(namelists, domain)
+
+  # Return a Variables instance.
+  return Variables(
+    predictands,
+    tendencies,
+    backups,
+    auxiliaries,
+    reconstructions,
+    fluxes,
+  )
 end

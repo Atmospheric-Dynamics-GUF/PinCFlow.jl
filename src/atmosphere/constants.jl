@@ -1,114 +1,120 @@
 
-struct Constants{F<:AbstractFloat}
+struct Constants{A<:AbstractFloat}
+
     # Natural constants.
-    gamma::F
-    gammainv::F
-    kappa::F
-    kappainv::F
-    rsp::F
-    g::F
+    gamma::A
+    gammainv::A
+    kappa::A
+    kappainv::A
+    rsp::A
+    g::A
 
     # Reference quantities.
-    rhoref::F
-    pref::F
-    aref::F
-    uref::F
-    lref::F
-    tref::F
-    thetaref::F
-    fref::F
+    rhoref::A
+    pref::A
+    aref::A
+    uref::A
+    lref::A
+    tref::A
+    thetaref::A
+    fref::A
 
     # Non-dimensionalized gravitational acceleration.
-    g_ndim::F
+    g_ndim::A
 
     # Flow parameters.
-    re::F
-    ma::F
-    mainv2::F
-    ma2::F
-    fr::F
-    frinv2::F
-    fr2::F
-    sig::F
+    re::A
+    ma::A
+    mainv2::A
+    ma2::A
+    fr::A
+    frinv2::A
+    fr2::A
+    sig::A
 
     # Small float.
-    small::F
+    small::A
 end
 
-function Constants(p::Parameters)
-    # Constants
-    gamma = 1.4
-    gamma_1 = gamma - 1.0
-    kappa = (gamma - 1.0) / gamma
-    # TODO: do we really want to keep all these constants? can be calculated on the fly
-    kappainv = 1.0 / kappa
-    gammainv = 1.0 / gamma
+function Constants(namelists::Namelists)
 
-    # Reference quantities
-    rsp = 287.0
-    g = 9.81
-    rhoref = 1.184
-    pref = 101325.0
-    aref = sqrt(pref / rhoref)
-    uref = aref
-    lref = pref / rhoref / g
-    tref = lref / aref
-    thetaref = aref^2.0 / rsp
-    ma = uref / aref # == 1?
-    mainv2 = 1.0 / ma^2
-    fr = uref / sqrt(g * lref)
-    sig = ma^2 / fr^2
+  # Get parameters.
+  (; specifyreynolds, reinv, mu_viscous_dim) = namelists.atmosphere
 
-    fref = rhoref * uref^2 / lref
-    dt = p.discretization.dtmax_dim / tref
+  # Set natural constants.
+  gamma = 1.4
+  gammainv = 1.0 / gamma
+  kappa = (gamma - 1.0) / gamma
+  kappainv = 1.0 / kappa
+  rsp = 287.0
+  g = 9.81
 
-    # isothermal atmosphere
+  # Set reference quantites.
+  rhoref = 1.184 # in kg/m^3
+  pref = 101325.0 # in Pa = kg/m/s^2
+  aref = sqrt(pref / rhoref) # in m/s
+  uref = aref # in m/s
+  lref = pref / rhoref / g # in m
+  tref = lref / aref # in s
+  thetaref = aref^2 / rsp # in K
+  fref = rhoref * uref^2 / lref # in N/m^3
 
+  # Compute non-dimensionalized gravitational acceleration.
+  g_ndim = g / (uref^2 / lref)
 
-    # Reynolds number
-    if p.atmosphere.specifyreynolds
-        reinv = p.atmosphere.mu_viscous_dim / (uref * lref)
+  # Set the Reynolds number.
+  if specifyreynolds
+    if reinv < 1.0e-20
+      re = 1.0e20
     else
-        reinv = 0
+      re = 1.0 / reinv
     end
-
-    re = if reinv < 1.0e-20
-        1.0e20
+  else
+    if mu_viscous_dim / uref / lref < 1.0e-20
+      re = 1.0e20
     else
-        1.0 / reinv
+      re = uref * lref / mu_viscous_dim
     end
-    g_ndim = g / (uref^2 / lref)
+  end
 
-    # TODO:
-    ma2 = 0.0
-    frinv2 = 0.0
-    fr2 = 0.0
-    small = nextfloat(0.0)
-    return Constants(
-        gamma,
-        gammainv,
-        kappa,
-        kappainv,
-        rsp,
-        g,
-        rhoref,
-        pref,
-        aref,
-        uref,
-        lref,
-        tref,
-        thetaref,
-        fref,
-        g_ndim,
-        re,
-        ma,
-        mainv2,
-        ma2,
-        fr,
-        frinv2,
-        fr2,
-        sig,
-        small
-    )
+  # Set other flow parameters.
+  ma = uref / aref # Ma = 1
+  mainv2 = 1.0 / ma^2
+  ma2 = ma^2
+  fr = uref / sqrt(g * lref) # Fr = 1
+  frinv2 = 1.0 / fr^2
+  fr2 = fr^2
+  sig = ma^2 / fr^2
 
+  # Set small float.
+  # small = 1.0e-20
+  small = nextfloat(0.0)
+
+  # Return a Constants instance.
+  return Constants(
+    gamma,
+    gammainv,
+    kappa,
+    kappainv,
+    rsp,
+    g,
+    rhoref,
+    pref,
+    aref,
+    uref,
+    lref,
+    tref,
+    thetaref,
+    fref,
+    g_ndim,
+    re,
+    ma,
+    mainv2,
+    ma2,
+    fr,
+    frinv2,
+    fr2,
+    sig,
+    small,
+  )
 end
