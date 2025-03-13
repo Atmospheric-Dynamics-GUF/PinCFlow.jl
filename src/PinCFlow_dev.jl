@@ -1,6 +1,18 @@
 module PinCFlow_dev
 using TrixiBase # get the `timer` object
 
+# Namelists
+include("namelists/atmosphere_namelist.jl")
+include("namelists/boundary_namelist.jl")
+include("namelists/discretization_namelist.jl")
+include("namelists/domain_namelist.jl")
+include("namelists/grid_namelist.jl")
+include("namelists/namelists.jl")
+include("namelists/output_namelist.jl")
+include("namelists/poisson_namelist.jl")
+include("namelists/settings_namelist.jl")
+include("namelists/sponge_namelist.jl")
+#
 # Atmosphere
 include("atmosphere/atmosphere.jl")
 include("atmosphere/constants.jl")
@@ -18,21 +30,6 @@ include("fluxes/reconstruction.jl")
 # IO
 include("io/save_solution.jl")
 
-# Model
-include("model.jl")
-
-# Namelists
-include("namelists/atmosphere_namelist.jl")
-include("namelists/boundary_namelist.jl")
-include("namelists/discretization_namelist.jl")
-include("namelists/domain_namelist.jl")
-include("namelists/grid_namelist.jl")
-include("namelists/namelists.jl")
-include("namelists/output_namelist.jl")
-include("namelists/poisson_namelist.jl")
-include("namelists/settings_namelist.jl")
-include("namelists/sponge_namelist.jl")
-
 # Poisson
 include("poisson/poisson.jl")
 
@@ -44,6 +41,9 @@ include("update/update.jl")
 
 # Variables
 include("variables/variables.jl")
+
+# Model
+include("model.jl")
 
 pincflow_test_dir() = joinpath(dirname(pathof(PinCFlow_dev)), "..", "test")
 pincflow_examples_dir() = joinpath(dirname(pathof(PinCFlow_dev)), "..", "examples")
