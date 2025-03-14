@@ -1,5 +1,5 @@
 using Test
-using PinCFlow_dev
+using PinCFlow
 using Trixi: CompressibleEulerEquations1D
 using LinearAlgebra
 using GZip

@@ -124,6 +124,6 @@
     test_arr(zTFC, 2919.0839060619323, 132.19881726855255, 8.02420725388601, tol = 1e-14)
     test_arr(zS, 36.6820903034789, 14.857944720776754, 8.02420725388601, tol = 1e-14)
 
-    sum_vert_wind = sum(PinCFlow_dev.vertWind(1, 1, k, semi) for k in -2:3)
+    sum_vert_wind = sum(PinCFlow.vertWind(1, 1, k, semi) for k in -2:3)
     @test sum_vert_wind ≈ 0.00102295002764069
 end

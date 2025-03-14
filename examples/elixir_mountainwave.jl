@@ -1,4 +1,4 @@
-using PinCFlow_dev
+using PinCFlow
 
 domain_list = DomainParameters(sizex=5, sizez=5)
 output_list = OutputParameters()
