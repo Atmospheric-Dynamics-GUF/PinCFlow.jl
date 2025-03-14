@@ -1,7 +1,3 @@
-using TimerOutputs
-using LinearAlgebra
-using TrixiBase
-
 function pincflow(model, dt)
     reset_timer!(timer())
     @trixi_timeit timer() "Pincflow" begin
