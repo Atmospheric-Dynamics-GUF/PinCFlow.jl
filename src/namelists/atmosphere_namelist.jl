@@ -1,4 +1,3 @@
-
 abstract type AbstractBackground end
 struct Isothermal <: AbstractBackground end
 

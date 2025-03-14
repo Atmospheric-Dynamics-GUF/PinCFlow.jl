@@ -1,4 +1,3 @@
-
 abstract type AbstractBoundary end
 struct PeriodicBoundary <: AbstractBoundary end
 struct SolidWallBoundary <: AbstractBoundary end
