@@ -48,7 +48,9 @@ include("update/time_step.jl")
 include("update/update.jl")
 
 # Variables
+include("variables/stress_tensor.jl")
 include("variables/variables.jl")
+include("variables/vertical_wind.jl")
 
 # Model
 include("model.jl")
