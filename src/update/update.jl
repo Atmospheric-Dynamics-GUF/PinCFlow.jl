@@ -258,7 +258,7 @@ function momentumPredictor!(model, ode, dt, mmp_mod, int_mod, m, facray)
     i0 = 0
     i1 = nx
 
-    zBoundary = "solid_wall"
+    zboundaries = "solid_wall"
 
     if mmp_mod == "lhs"
         for k in 1:nz
@@ -414,7 +414,7 @@ function momentumPredictor!(model, ode, dt, mmp_mod, int_mod, m, facray)
                         pEdgeR = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i + 1, j, k])
                         met13EdgeR = 0.5 * (met[i, j, k, 1, 3] + met[i + 1, j, k, 1, 3])
 
-                        if k == 1 && zBoundary == "solid_wall"
+                        if k == 1 && zboundaries == "solid_wall"
                             piUUEdgeR = 0.5 * (var.pip[i, j, k + 2] +
                                          var.pip[i + 1, j, k + 2])
                             piUEdgeR = 0.5 *
@@ -427,7 +427,7 @@ function momentumPredictor!(model, ode, dt, mmp_mod, int_mod, m, facray)
                                        met13EdgeR *
                                        (-piUUEdgeR + 4.0 * piUEdgeR - 3.0 * piEdgeR) *
                                        0.5 / dz)
-                        elseif k == nz && zBoundary == "solid_wall"
+                        elseif k == nz && zboundaries == "solid_wall"
                             piDDEdgeR = 0.5 * (var.pip[i, j, k - 2] +
                                          var.pip[i + 1, j, k - 2])
                             piDEdgeR = 0.5 *
@@ -543,7 +543,7 @@ function momentumPredictor!(model, ode, dt, mmp_mod, int_mod, m, facray)
                 pEdgeF = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j + 1, k])
                 met23EdgeF = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
 
-                if k == 1 && zBoundary == "solid_wall"
+                if k == 1 && zboundaries == "solid_wall"
                     piUUEdgeF = 0.5 *
                                 (var.pip[i, j, k + 2] + var.pip[i, j + 1, k + 2])
                     piUEdgeF = 0.5 *
@@ -553,7 +553,7 @@ function momentumPredictor!(model, ode, dt, mmp_mod, int_mod, m, facray)
                               met23EdgeF *
                               (-piUUEdgeF + 4.0 * piUEdgeF - 3.0 * piEdgeF) *
                               0.5 / dz)
-                elseif k == nz && zBoundary == "solid_wall"
+                elseif k == nz && zboundaries == "solid_wall"
                     piDDEdgeF = 0.5 *
                                 (var.pip[i, j, k - 2] + var.pip[i, j + 1, k - 2])
                     piDEdgeF = 0.5 *
@@ -598,7 +598,7 @@ function momentumPredictor!(model, ode, dt, mmp_mod, int_mod, m, facray)
                 pEdgeF = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j + 1, k])
                 met23EdgeF = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
 
-                if k == 1 && zBoundary == "solid_wall"
+                if k == 1 && zboundaries == "solid_wall"
                     piUUEdgeF = 0.5 *
                                 (var.pip[i, j, k + 2] + var.pip[i, j + 1, k + 2])
                     piUEdgeF = 0.5 *
@@ -608,7 +608,7 @@ function momentumPredictor!(model, ode, dt, mmp_mod, int_mod, m, facray)
                                met23EdgeF *
                                (-piUUEdgeF + 4.0 * piUEdgeF - 3.0 * piEdgeF) *
                                0.5 / dz)
-                elseif k == nz && zBoundary == "solid_wall"
+                elseif k == nz && zboundaries == "solid_wall"
                     piDDEdgeF = 0.5 *
                                 (var.pip[i, j, k - 2] + var.pip[i, j + 1, k - 2])
                     piDEdgeF = 0.5 *
