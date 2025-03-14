@@ -1,25 +1,25 @@
 
-struct Domain{A<:MPI.Comm,B<:Bool,C<:Integer}
+struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
 
-    # MPI variables.
-    comm::A
-    master::B
-    rank::C
-    root::C
+  # MPI variables.
+  comm::A
+  master::B
+  rank::C
+  root::C
 
-    # Start indices of the local grid.
-    is::C
-    js::C
+  # Start indices of the local grid.
+  is::C
+  js::C
 
-    # Local grid size.
-    nx::C
-    ny::C
-    nz::C
+  # Local grid size.
+  nx::C
+  ny::C
+  nz::C
 
-    # Local grid size with hao/ghost cells
-    nxx::C
-    nyy::C
-    nzz::C
+  # Local grid size with hao/ghost cells
+  nxx::C
+  nyy::C
+  nzz::C
 end
 
 function Domain(namelists::Namelists)
