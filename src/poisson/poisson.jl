@@ -1337,11 +1337,11 @@ function pressureBoundaryCondition(model)
     #   z-Boundary
     #----------------
 
-    if zBoundary == "solid_wall"
+    if zboundaries == "solid_wall"
         @. dp[:, :, 0] = dp[:, :, 1]
         @. dp[:, :, nz+1] = dp[:, :, nz]
     else
-        @assert false "pressureBoundaryCondition: unknown case zBoundary."
+        @assert false "pressureBoundaryCondition: unknown case zboundaries."
     end
 end
 
@@ -1446,7 +1446,7 @@ function correctorStep(model, dt, opt, facray, facprs)
                     pEdgeR = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i+1, j, k])
                     met13EdgeR = 0.5 * (met(i, j, k, 1, 3) + met(i + 1, j, k, 1, 3))
                     # Compute pressure difference gradient component.
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         dpUUEdgeR = 0.5 * (dp(i, j, k + 2) + dp(i + 1, j, k + 2))
                         dpUEdgeR = 0.5 * (dp(i, j, k + 1) + dp(i + 1, j, k + 1))
                         dpEdgeR = 0.5 * (dp[i, j, k] + dp[i+1, j, k])
@@ -1456,7 +1456,7 @@ function correctorStep(model, dt, opt, facray, facprs)
                                   met13EdgeR *
                                   (-dpUUEdgeR + 4.0 * dpUEdgeR - 3.0 * dpEdgeR) *
                                   0.5 / dz)
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         dpDDEdgeR = 0.5 * (dp(i, j, k - 2) + dp(i + 1, j, k - 2))
                         dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
                         dpEdgeR = 0.5 * (dp[i, j, k] + dp[i+1, j, k])
@@ -1497,8 +1497,8 @@ function correctorStep(model, dt, opt, facray, facprs)
                     pEdgeR = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i+1, j, k])
                     met13EdgeR = 0.5 * (met(i, j, k, 1, 3) + met(i + 1, j, k, 1, 3))
                     # Compute pressure difference gradient component.
-                    # zBoundary = "solid_wall" # TODO - SERIOUS ISSUE. TREAT URGENTLY!
-                    if (k == 1 && zBoundary == "solid_wall")
+                    # zboundaries = "solid_wall" # TODO - SERIOUS ISSUE. TREAT URGENTLY!
+                    if (k == 1 && zboundaries == "solid_wall")
                         dpUUEdgeR = 0.5 * (dp(i, j, k + 2) + dp(i + 1, j, k + 2))
                         dpUEdgeR = 0.5 * (dp(i, j, k + 1) + dp(i + 1, j, k + 1))
                         dpEdgeR = 0.5 * (dp[i, j, k] + dp[i+1, j, k])
@@ -1508,7 +1508,7 @@ function correctorStep(model, dt, opt, facray, facprs)
                                   met13EdgeR *
                                   (-dpUUEdgeR + 4.0 * dpUEdgeR - 3.0 * dpEdgeR) *
                                   0.5 / dz)
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         dpDDEdgeR = 0.5 * (dp(i, j, k - 2) + dp(i + 1, j, k - 2))
                         dpDEdgeR = 0.5 * (dp(i, j, k - 1) + dp(i + 1, j, k - 1))
                         dpEdgeR = 0.5 * (dp[i, j, k] + dp[i+1, j, k])
@@ -1562,7 +1562,7 @@ function correctorStep(model, dt, opt, facray, facprs)
                     pEdgeF = 0.5 * (pstrattfc[i, j, k] + pstrattfc(i, j + 1, k))
                     met23EdgeF = 0.5 * (met(i, j, k, 2, 3) + met(i, j + 1, k, 2, 3))
                     # Compute pressure difference gradient component.
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         dpUUEdgeF = 0.5 * (dp(i, j, k + 2) + dp(i, j + 1, k + 2))
                         dpUEdgeF = 0.5 * (dp(i, j, k + 1) + dp(i, j + 1, k + 1))
                         dpEdgeF = 0.5 * (dp[i, j, k] + dp(i, j + 1, k))
@@ -1572,7 +1572,7 @@ function correctorStep(model, dt, opt, facray, facprs)
                                   met23EdgeF *
                                   (-dpUUEdgeF + 4.0 * dpUEdgeF - 3.0 * dpEdgeF) *
                                   0.5 / dz)
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         dpDDEdgeF = 0.5 * (dp(i, j, k - 2) + dp(i, j + 1, k - 2))
                         dpDEdgeF = 0.5 * (dp(i, j, k - 1) + dp(i, j + 1, k - 1))
                         dpEdgeF = 0.5 * (dp[i, j, k] + dp(i, j + 1, k))
@@ -1613,8 +1613,8 @@ function correctorStep(model, dt, opt, facray, facprs)
                     pEdgeF = 0.5 * (pstrattfc[i, j, k] + pstrattfc(i, j + 1, k))
                     met23EdgeF = 0.5 * (met(i, j, k, 2, 3) + met(i, j + 1, k, 2, 3))
                     # Compute pressure difference gradient component.
-                    # zBoundary = "solid_wall" # TODO - SERIOUS ISSUE. TREAT URGENTLY!
-                    if (k == 1 && zBoundary == "solid_wall")
+                    # zboundaries = "solid_wall" # TODO - SERIOUS ISSUE. TREAT URGENTLY!
+                    if (k == 1 && zboundaries == "solid_wall")
                         dpUUEdgeF = 0.5 * (dp(i, j, k + 2) + dp(i, j + 1, k + 2))
                         dpUEdgeF = 0.5 * (dp(i, j, k + 1) + dp(i, j + 1, k + 1))
                         dpEdgeF = 0.5 * (dp[i, j, k] + dp(i, j + 1, k))
@@ -1624,7 +1624,7 @@ function correctorStep(model, dt, opt, facray, facprs)
                                   met23EdgeF *
                                   (-dpUUEdgeF + 4.0 * dpUEdgeF - 3.0 * dpEdgeF) *
                                   0.5 / dz)
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         dpDDEdgeF = 0.5 * (dp(i, j, k - 2) + dp(i, j + 1, k - 2))
                         dpDEdgeF = 0.5 * (dp(i, j, k - 1) + dp(i, j + 1, k - 1))
                         dpEdgeF = 0.5 * (dp[i, j, k] + dp(i, j + 1, k))
@@ -1657,12 +1657,12 @@ function correctorStep(model, dt, opt, facray, facprs)
     #         calc w and  w + dw
     #-------------------------------------
 
-    # zBoundary = "solid_wall" # TODO - SERIOUS ISSUE. TREAT URGENTLY!
-    if zBoundary == "solid_wall"
+    # zboundaries = "solid_wall" # TODO - SERIOUS ISSUE. TREAT URGENTLY!
+    if zboundaries == "solid_wall"
         k0 = 1
         k1 = nz - 1
     else
-        @assert false "correctorStep: unknown case zBoundary."
+        @assert false "correctorStep: unknown case zboundaries."
     end
 
     if (opt == "impl")
@@ -1882,9 +1882,9 @@ function correctorStep(model, dt, opt, facray, facprs)
                                    0.5 * met23EdgeD * (dpFEdgeD - dpBEdgeD) / dy +
                                    met33EdgeD * (dp[i, j, k] - dp(i, j, k - 1)) / dz)
                     # Adjust at boundaries.
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         pGradZEdgeD = 0.0
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         pGradZEdgeU = 0.0
                     end
                     # Interpolate.
@@ -2075,8 +2075,8 @@ function val_PsIn(model, dt, opt, facray)
                                  (jac[i, j, k] + jac(i, j, k - 1))
 
                     # --------------------- A(i,j,k) ---------------------
-                    # zBoundary = "solid_wall" # TODO - FIX THIS TEMPORARY HACK
-                    if (k == 1 && zBoundary == "solid_wall")
+                    # zboundaries = "solid_wall" # TODO - FIX THIS TEMPORARY HACK
+                    if (k == 1 && zboundaries == "solid_wall")
                         AC = -jacInv / dx * (pEdgeRDiv / rhoEdgeR *
                                              pEdgeRGra *
                                              (1.0 / dx + 0.75 * met13EdgeR / dz) +
@@ -2091,7 +2091,7 @@ function val_PsIn(model, dt, opt, facray)
                                             (1.0 / dy - 0.75 * met23EdgeB / dz)) -
                              jacInv / dz * pEdgeUDiv / rhoEdgeU * pEdgeUGra * met33EdgeU /
                              dz
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AC = -jacInv / dx * (pEdgeRDiv / rhoEdgeR *
                                              pEdgeRGra *
                                              (1.0 / dx - 0.75 * met13EdgeR / dz) +
@@ -2118,7 +2118,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # -------------------- A(i+1,j,k) --------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AR = jacInv / dx * pEdgeRDiv / rhoEdgeR *
                              pEdgeRGra *
                              (1.0 / dx - 0.75 * met13EdgeR / dz) +
@@ -2127,7 +2127,7 @@ function val_PsIn(model, dt, opt, facray)
                              0.5 *
                              met13EdgeU / dx * jac(i + 1, j, k + 1) /
                              (jac[i+1, j, k] + jac(i + 1, j, k + 1))
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AR = jacInv / dx * pEdgeRDiv / rhoEdgeR *
                              pEdgeRGra *
                              (1.0 / dx + 0.75 * met13EdgeR / dz) -
@@ -2149,7 +2149,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # -------------------- A(i-1,j,k) --------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AL = jacInv / dx * pEdgeLDiv / rhoEdgeL *
                              pEdgeLGra *
                              (1.0 / dx + 0.75 * met13EdgeL / dz) -
@@ -2158,7 +2158,7 @@ function val_PsIn(model, dt, opt, facray)
                              0.5 *
                              met13EdgeU / dx * jac(i - 1, j, k + 1) /
                              (jac(i - 1, j, k) + jac(i - 1, j, k + 1))
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AL = jacInv / dx * pEdgeLDiv / rhoEdgeL *
                              pEdgeLGra *
                              (1.0 / dx - 0.75 * met13EdgeL / dz) +
@@ -2180,7 +2180,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # -------------------- A(i,j+1,k) --------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AF = jacInv / dy * pEdgeFDiv / rhoEdgeF *
                              pEdgeFGra *
                              (1.0 / dy - 0.75 * met23EdgeF / dz) +
@@ -2189,7 +2189,7 @@ function val_PsIn(model, dt, opt, facray)
                              0.5 *
                              met23EdgeU / dy * jac(i, j + 1, k + 1) /
                              (jac(i, j + 1, k) + jac(i, j + 1, k + 1))
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AF = jacInv / dy * pEdgeFDiv / rhoEdgeF *
                              pEdgeFGra *
                              (1.0 / dy + 0.75 * met23EdgeF / dz) -
@@ -2211,7 +2211,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # -------------------- A(i,j-1,k) --------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AB = jacInv / dy * pEdgeBDiv / rhoEdgeB *
                              pEdgeBGra *
                              (1.0 / dy + 0.75 * met23EdgeB / dz) -
@@ -2220,7 +2220,7 @@ function val_PsIn(model, dt, opt, facray)
                              0.5 *
                              met23EdgeU / dy * jac(i, j - 1, k + 1) /
                              (jac(i, j - 1, k) + jac(i, j - 1, k + 1))
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AB = jacInv / dy * pEdgeBDiv / rhoEdgeB *
                              pEdgeBGra *
                              (1.0 / dy - 0.75 * met23EdgeB / dz) +
@@ -2242,7 +2242,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # -------------------- A(i,j,k+1) --------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AU = jacInv / dx *
                              (pEdgeRDiv / rhoEdgeR * pEdgeRGra * met13EdgeR / dz -
                               pEdgeLDiv / rhoEdgeL * pEdgeLGra * met13EdgeL / dz) +
@@ -2251,7 +2251,7 @@ function val_PsIn(model, dt, opt, facray)
                               pEdgeBDiv / rhoEdgeB * pEdgeBGra * met23EdgeB / dz) +
                              jacInv / dz * pEdgeUDiv / rhoEdgeU * pEdgeUGra * met33EdgeU /
                              dz
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AU = 0.0
                     else
                         AU = jacInv / dx *
@@ -2266,9 +2266,9 @@ function val_PsIn(model, dt, opt, facray)
 
                     # -------------------- A(i,j,k-1) --------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AD = 0.0
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AD = -jacInv / dx *
                              (pEdgeRDiv / rhoEdgeR * pEdgeRGra * met13EdgeR / dz -
                               pEdgeLDiv / rhoEdgeL * pEdgeLGra * met13EdgeL / dz) -
@@ -2290,7 +2290,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------- A(i+1,j,k+1) -------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ARU = jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met13EdgeR /
                               dz +
                               jacInv / dz * pEdgeUDiv / rhoEdgeU *
@@ -2298,7 +2298,7 @@ function val_PsIn(model, dt, opt, facray)
                               met13EdgeU *
                               0.5 / dx * jac[i+1, j, k] /
                               (jac[i+1, j, k] + jac(i + 1, j, k + 1))
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ARU = 0.0
                     else
                         ARU = jacInv / dx * pEdgeRDiv / rhoEdgeR *
@@ -2314,9 +2314,9 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------- A(i+1,j,k-1) -------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ARD = 0.0
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ARD = -jacInv / dx * pEdgeRDiv / rhoEdgeR * pEdgeRGra * met13EdgeR /
                               dz -
                               jacInv / dz * pEdgeDDiv / rhoEdgeD *
@@ -2338,7 +2338,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------- A(i-1,j,k+1) -------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ALU = -jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met13EdgeL /
                               dz -
                               jacInv / dz * pEdgeUDiv / rhoEdgeU *
@@ -2346,7 +2346,7 @@ function val_PsIn(model, dt, opt, facray)
                               met13EdgeU *
                               0.5 / dx * jac(i - 1, j, k) /
                               (jac(i - 1, j, k) + jac(i - 1, j, k + 1))
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ALU = 0.0
                     else
                         ALU = -jacInv / dx * pEdgeLDiv / rhoEdgeL *
@@ -2362,9 +2362,9 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------- A(i-1,j,k-1) -------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ALD = 0.0
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ALD = jacInv / dx * pEdgeLDiv / rhoEdgeL * pEdgeLGra * met13EdgeL /
                               dz +
                               jacInv / dz * pEdgeDDiv / rhoEdgeD *
@@ -2386,7 +2386,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------- A(i,j+1,k+1) -------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AFU = jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * met23EdgeF /
                               dz +
                               jacInv / dz * pEdgeUDiv / rhoEdgeU *
@@ -2394,7 +2394,7 @@ function val_PsIn(model, dt, opt, facray)
                               met23EdgeU *
                               0.5 / dy * jac(i, j + 1, k) /
                               (jac(i, j + 1, k) + jac(i, j + 1, k + 1))
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AFU = 0.0
                     else
                         AFU = jacInv / dy * pEdgeFDiv / rhoEdgeF *
@@ -2410,9 +2410,9 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------- A(i,j+1,k-1) -------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AFD = 0.0
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AFD = -jacInv / dy * pEdgeFDiv / rhoEdgeF * pEdgeFGra * met23EdgeF /
                               dz -
                               jacInv / dz * pEdgeDDiv / rhoEdgeD *
@@ -2434,7 +2434,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------- A(i,j-1,k+1) -------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ABU = -jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * met23EdgeB /
                               dz -
                               jacInv / dz * pEdgeUDiv / rhoEdgeU *
@@ -2442,7 +2442,7 @@ function val_PsIn(model, dt, opt, facray)
                               met23EdgeU *
                               0.5 / dy * jac(i, j - 1, k) /
                               (jac(i, j - 1, k) + jac(i, j - 1, k + 1))
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ABU = 0.0
                     else
                         ABU = -jacInv / dy * pEdgeBDiv / rhoEdgeB *
@@ -2458,9 +2458,9 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------- A(i,j-1,k-1) -------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ABD = 0.0
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ABD = jacInv / dy * pEdgeBDiv / rhoEdgeB * pEdgeBGra * met23EdgeB /
                               dz +
                               jacInv / dz * pEdgeDDiv / rhoEdgeD *
@@ -2482,7 +2482,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------- A(i,j,k+2) ---------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AUU = -jacInv / dx *
                               (pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz -
                                pEdgeLDiv / rhoEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz) -
@@ -2495,7 +2495,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------- A(i,j,k-2) ---------------------
 
-                    if (k == nz && zBoundary == "solid_wall")
+                    if (k == nz && zboundaries == "solid_wall")
                         ADD = jacInv / dx *
                               (pEdgeRDiv / rhoEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz -
                                pEdgeLDiv / rhoEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz) +
@@ -2508,7 +2508,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i+1,j,k+2) --------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ARUU = -jacInv / dx * pEdgeRDiv / rhoEdgeR *
                                pEdgeRGra *
                                0.25 *
@@ -2519,7 +2519,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i+1,j,k-2) --------------------
 
-                    if (k == nz && zBoundary == "solid_wall")
+                    if (k == nz && zboundaries == "solid_wall")
                         ARDD = jacInv / dx * pEdgeRDiv / rhoEdgeR *
                                pEdgeRGra *
                                0.25 *
@@ -2530,7 +2530,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i-1,j,k+2) --------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ALUU = jacInv / dx * pEdgeLDiv / rhoEdgeL *
                                pEdgeLGra *
                                0.25 *
@@ -2541,7 +2541,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i-1,j,k-2) --------------------
 
-                    if (k == nz && zBoundary == "solid_wall")
+                    if (k == nz && zboundaries == "solid_wall")
                         ALDD = -jacInv / dx * pEdgeLDiv / rhoEdgeL *
                                pEdgeLGra *
                                0.25 *
@@ -2552,7 +2552,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i,j+1,k+2) --------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AFUU = -jacInv / dy * pEdgeFDiv / rhoEdgeF *
                                pEdgeFGra *
                                0.25 *
@@ -2563,7 +2563,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i,j+1,k-2) --------------------
 
-                    if (k == nz && zBoundary == "solid_wall")
+                    if (k == nz && zboundaries == "solid_wall")
                         AFDD = jacInv / dy * pEdgeFDiv / rhoEdgeF *
                                pEdgeFGra *
                                0.25 *
@@ -2574,7 +2574,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i,j-1,k+2) --------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ABUU = jacInv / dy * pEdgeBDiv / rhoEdgeB *
                                pEdgeBGra *
                                0.25 *
@@ -2585,7 +2585,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i,j-1,k-2) --------------------
 
-                    if (k == nz && zBoundary == "solid_wall")
+                    if (k == nz && zboundaries == "solid_wall")
                         ABDD = -jacInv / dy * pEdgeBDiv / rhoEdgeB *
                                pEdgeBGra *
                                0.25 *
@@ -2960,7 +2960,7 @@ function val_PsIn(model, dt, opt, facray)
                     # Compute gradient coefficients
 
                     # G(i + 1 / 2)
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         gEdgeR = jacInv / dx * pEdgeRDiv * impHorEdgeR * facEdgeR /
                                  rhoEdgeR +
                                  jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
@@ -2972,7 +2972,7 @@ function val_PsIn(model, dt, opt, facray)
                                  jac(i, j, k + 1) / (jac[i, j, k] + jac(i, j, k + 1)) *
                                  impHorEdgeR *
                                  facEdgeR / rhoEdgeR
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         gEdgeR = jacInv / dx * pEdgeRDiv * impHorEdgeR * facEdgeR /
                                  rhoEdgeR -
                                  jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
@@ -3008,7 +3008,7 @@ function val_PsIn(model, dt, opt, facray)
                     end
 
                     # G(i - 1 / 2)
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         gEdgeL = -jacInv / dx * pEdgeLDiv * impHorEdgeL * facEdgeL /
                                  rhoEdgeL +
                                  jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
@@ -3020,7 +3020,7 @@ function val_PsIn(model, dt, opt, facray)
                                  jac(i, j, k + 1) / (jac[i, j, k] + jac(i, j, k + 1)) *
                                  impHorEdgeL *
                                  facEdgeL / rhoEdgeL
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         gEdgeL = -jacInv / dx * pEdgeLDiv * impHorEdgeL * facEdgeL /
                                  rhoEdgeL -
                                  jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
@@ -3056,7 +3056,7 @@ function val_PsIn(model, dt, opt, facray)
                     end
 
                     # G(j + 1 / 2)
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         gEdgeF = jacInv / dy * pEdgeFDiv * impHorEdgeF * facEdgeF /
                                  rhoEdgeF +
                                  jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
@@ -3068,7 +3068,7 @@ function val_PsIn(model, dt, opt, facray)
                                  jac(i, j, k + 1) / (jac[i, j, k] + jac(i, j, k + 1)) *
                                  impHorEdgeF *
                                  facEdgeF / rhoEdgeF
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         gEdgeF = jacInv / dy * pEdgeFDiv * impHorEdgeF * facEdgeF /
                                  rhoEdgeF -
                                  jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
@@ -3104,7 +3104,7 @@ function val_PsIn(model, dt, opt, facray)
                     end
 
                     # G(j - 1 / 2)
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         gEdgeB = -jacInv / dy * pEdgeBDiv * impHorEdgeB * facEdgeB /
                                  rhoEdgeB +
                                  jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
@@ -3116,7 +3116,7 @@ function val_PsIn(model, dt, opt, facray)
                                  jac(i, j, k + 1) / (jac[i, j, k] + jac(i, j, k + 1)) *
                                  impHorEdgeB *
                                  facEdgeB / rhoEdgeB
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         gEdgeB = -jacInv / dy * pEdgeBDiv * impHorEdgeB * facEdgeB /
                                  rhoEdgeB -
                                  jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
@@ -3152,21 +3152,21 @@ function val_PsIn(model, dt, opt, facray)
                     end
 
                     # G(k + 1 / 2)
-                    if (k == nz && zBoundary == "solid_wall")
+                    if (k == nz && zboundaries == "solid_wall")
                         gEdgeU = 0.0
                     else
                         gEdgeU = jacInv / dz * pEdgeUDiv * impVerEdgeU / rhoEdgeU
                     end
 
                     # G(k - 1 / 2)
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         gEdgeD = 0.0
                     else
                         gEdgeD = -jacInv / dz * pEdgeDDiv * impVerEdgeD / rhoEdgeD
                     end
 
                     # G(i + 1 / 2, k + 1)
-                    if (k == nz && zBoundary == "solid_wall")
+                    if (k == nz && zboundaries == "solid_wall")
                         gUEdgeR = 0.0
                     else
                         gUEdgeR = jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
@@ -3181,7 +3181,7 @@ function val_PsIn(model, dt, opt, facray)
                     end
 
                     # G(i - 1 / 2, k + 1)
-                    if (k == nz && zBoundary == "solid_wall")
+                    if (k == nz && zboundaries == "solid_wall")
                         gUEdgeL = 0.0
                     else
                         gUEdgeL = jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
@@ -3196,7 +3196,7 @@ function val_PsIn(model, dt, opt, facray)
                     end
 
                     # G(j + 1 / 2, k + 1)
-                    if (k == nz && zBoundary == "solid_wall")
+                    if (k == nz && zboundaries == "solid_wall")
                         gUEdgeF = 0.0
                     else
                         gUEdgeF = jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
@@ -3211,7 +3211,7 @@ function val_PsIn(model, dt, opt, facray)
                     end
 
                     # G(j - 1 / 2, k + 1)
-                    if (k == nz && zBoundary == "solid_wall")
+                    if (k == nz && zboundaries == "solid_wall")
                         gUEdgeB = 0.0
                     else
                         gUEdgeB = jacInv / dz * pEdgeUDiv * impVerEdgeU * rhostrattfcEdgeU /
@@ -3226,7 +3226,7 @@ function val_PsIn(model, dt, opt, facray)
                     end
 
                     # G(i + 1 / 2, k - 1)
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         gDEdgeR = 0.0
                     else
                         gDEdgeR = -jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
@@ -3241,7 +3241,7 @@ function val_PsIn(model, dt, opt, facray)
                     end
 
                     # G(i - 1 / 2, k - 1)
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         gDEdgeL = 0.0
                     else
                         gDEdgeL = -jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
@@ -3256,7 +3256,7 @@ function val_PsIn(model, dt, opt, facray)
                     end
 
                     # G(j + 1 / 2, k - 1)
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         gDEdgeF = 0.0
                     else
                         gDEdgeF = -jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
@@ -3271,7 +3271,7 @@ function val_PsIn(model, dt, opt, facray)
                     end
 
                     # G(j - 1 / 2, k - 1)
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         gDEdgeB = 0.0
                     else
                         gDEdgeB = -jacInv / dz * pEdgeDDiv * impVerEdgeD * rhostrattfcEdgeD /
@@ -3289,7 +3289,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------- A(i,j,k) --------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AC = -gEdgeR * pEdgeRGra * (1.0 / dx + 0.75 * met13EdgeR / dz) +
                              gEdgeL * pEdgeLGra * (1.0 / dx - 0.75 * met13EdgeL / dz) -
                              gEdgeF * pEdgeFGra * (1.0 / dy + 0.75 * met23EdgeF / dz) +
@@ -3299,7 +3299,7 @@ function val_PsIn(model, dt, opt, facray)
                              gUEdgeL * pUEdgeLGra * 0.25 * met13UEdgeL / dz -
                              gUEdgeF * pUEdgeFGra * 0.25 * met23UEdgeF / dz -
                              gUEdgeB * pUEdgeBGra * 0.25 * met23UEdgeB / dz
-                    elseif (k == 2 && zBoundary == "solid_wall")
+                    elseif (k == 2 && zboundaries == "solid_wall")
                         AC = -gEdgeR * pEdgeRGra / dx + gEdgeL * pEdgeLGra / dx -
                              gEdgeF * pEdgeFGra / dy + gEdgeB * pEdgeBGra / dy -
                              gEdgeU * pEdgeUGra * met33EdgeU / dz +
@@ -3312,7 +3312,7 @@ function val_PsIn(model, dt, opt, facray)
                              gDEdgeL * pDEdgeLGra * met13DEdgeL / dz +
                              gDEdgeF * pDEdgeFGra * met23DEdgeF / dz +
                              gDEdgeB * pDEdgeBGra * met23DEdgeB / dz
-                    elseif (k == nz - 1 && zBoundary == "solid_wall")
+                    elseif (k == nz - 1 && zboundaries == "solid_wall")
                         AC = -gEdgeR * pEdgeRGra / dx + gEdgeL * pEdgeLGra / dx -
                              gEdgeF * pEdgeFGra / dy + gEdgeB * pEdgeBGra / dy -
                              gEdgeU * pEdgeUGra * met33EdgeU / dz +
@@ -3325,7 +3325,7 @@ function val_PsIn(model, dt, opt, facray)
                              gDEdgeL * pDEdgeLGra * 0.25 * met13DEdgeL / dz +
                              gDEdgeF * pDEdgeFGra * 0.25 * met23DEdgeF / dz +
                              gDEdgeB * pDEdgeBGra * 0.25 * met23DEdgeB / dz
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AC = -gEdgeR * pEdgeRGra * (1.0 / dx - 0.75 * met13EdgeR / dz) +
                              gEdgeL * pEdgeLGra * (1.0 / dx + 0.75 * met13EdgeL / dz) -
                              gEdgeF * pEdgeFGra * (1.0 / dy - 0.75 * met23EdgeF / dz) +
@@ -3352,13 +3352,13 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i+1,j,k) -------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AR = gEdgeR * pEdgeRGra * (1.0 / dx - 0.75 * met13EdgeR / dz) +
                              gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                              jac(i + 1, j, k + 1) /
                              (jac[i+1, j, k] + jac(i + 1, j, k + 1)) -
                              gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz
-                    elseif (k == 2 && zBoundary == "solid_wall")
+                    elseif (k == 2 && zboundaries == "solid_wall")
                         AR = gEdgeR * pEdgeRGra / dx +
                              gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                              jac(i + 1, j, k + 1) /
@@ -3368,7 +3368,7 @@ function val_PsIn(model, dt, opt, facray)
                              (jac[i+1, j, k] + jac(i + 1, j, k - 1)) -
                              gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz +
                              gDEdgeR * pDEdgeRGra * met13DEdgeR / dz
-                    elseif (k == nz - 1 && zBoundary == "solid_wall")
+                    elseif (k == nz - 1 && zboundaries == "solid_wall")
                         AR = gEdgeR * pEdgeRGra / dx +
                              gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                              jac(i + 1, j, k + 1) /
@@ -3378,7 +3378,7 @@ function val_PsIn(model, dt, opt, facray)
                              (jac[i+1, j, k] + jac(i + 1, j, k - 1)) -
                              gUEdgeR * pUEdgeRGra * met13UEdgeR / dz +
                              gDEdgeR * pDEdgeRGra * 0.25 * met13DEdgeR / dz
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AR = gEdgeR * pEdgeRGra * (1.0 / dx + 0.75 * met13EdgeR / dz) +
                              gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
                              jac(i + 1, j, k - 1) /
@@ -3398,13 +3398,13 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i-1,j,k) -------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AL = -gEdgeL * pEdgeLGra * (1.0 / dx + 0.75 * met13EdgeL / dz) -
                              gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                              jac(i - 1, j, k + 1) /
                              (jac(i - 1, j, k) + jac(i - 1, j, k + 1)) -
                              gUEdgeL * pUEdgeLGra * 0.25 * met13UEdgeL / dz
-                    elseif (k == 2 && zBoundary == "solid_wall")
+                    elseif (k == 2 && zboundaries == "solid_wall")
                         AL = -gEdgeL * pEdgeLGra / dx -
                              gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                              jac(i - 1, j, k + 1) /
@@ -3414,7 +3414,7 @@ function val_PsIn(model, dt, opt, facray)
                              (jac(i - 1, j, k) + jac(i - 1, j, k - 1)) -
                              gUEdgeL * pUEdgeLGra * 0.25 * met13UEdgeL / dz +
                              gDEdgeL * pDEdgeLGra * met13DEdgeL / dz
-                    elseif (k == nz - 1 && zBoundary == "solid_wall")
+                    elseif (k == nz - 1 && zboundaries == "solid_wall")
                         AL = -gEdgeL * pEdgeLGra / dx -
                              gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                              jac(i - 1, j, k + 1) /
@@ -3424,7 +3424,7 @@ function val_PsIn(model, dt, opt, facray)
                              (jac(i - 1, j, k) + jac(i - 1, j, k - 1)) -
                              gUEdgeL * pUEdgeLGra * met13UEdgeL / dz +
                              gDEdgeL * pDEdgeLGra * 0.25 * met13DEdgeL / dz
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AL = -gEdgeL * pEdgeLGra * (1.0 / dx - 0.75 * met13EdgeL / dz) -
                              gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
                              jac(i - 1, j, k - 1) /
@@ -3444,13 +3444,13 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i,j+1,k) -------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AF = gEdgeF * pEdgeFGra * (1.0 / dy - 0.75 * met23EdgeF / dz) +
                              gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy *
                              jac(i, j + 1, k + 1) /
                              (jac(i, j + 1, k) + jac(i, j + 1, k + 1)) -
                              gUEdgeF * pUEdgeFGra * 0.25 * met23UEdgeF / dz
-                    elseif (k == 2 && zBoundary == "solid_wall")
+                    elseif (k == 2 && zboundaries == "solid_wall")
                         AF = gEdgeF * pEdgeFGra / dy +
                              gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy *
                              jac(i, j + 1, k + 1) /
@@ -3460,7 +3460,7 @@ function val_PsIn(model, dt, opt, facray)
                              (jac(i, j + 1, k) + jac(i, j + 1, k - 1)) -
                              gUEdgeF * pUEdgeFGra * 0.25 * met23UEdgeF / dz +
                              gDEdgeF * pDEdgeFGra * met23DEdgeF / dz
-                    elseif (k == nz - 1 && zBoundary == "solid_wall")
+                    elseif (k == nz - 1 && zboundaries == "solid_wall")
                         AF = gEdgeF * pEdgeFGra / dy +
                              gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy *
                              jac(i, j + 1, k + 1) /
@@ -3470,7 +3470,7 @@ function val_PsIn(model, dt, opt, facray)
                              (jac(i, j + 1, k) + jac(i, j + 1, k - 1)) -
                              gUEdgeF * pUEdgeFGra * met23UEdgeF / dz +
                              gDEdgeF * pDEdgeFGra * 0.25 * met23DEdgeF / dz
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AF = gEdgeF * pEdgeFGra * (1.0 / dy + 0.75 * met23EdgeF / dz) +
                              gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy *
                              jac(i, j + 1, k - 1) /
@@ -3490,13 +3490,13 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i,j-1,k) -------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AB = -gEdgeB * pEdgeBGra * (1.0 / dy + 0.75 * met23EdgeB / dz) -
                              gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy *
                              jac(i, j - 1, k + 1) /
                              (jac(i, j - 1, k) + jac(i, j - 1, k + 1)) -
                              gUEdgeB * pUEdgeBGra * 0.25 * met23UEdgeB / dz
-                    elseif (k == 2 && zBoundary == "solid_wall")
+                    elseif (k == 2 && zboundaries == "solid_wall")
                         AB = -gEdgeB * pEdgeBGra / dy -
                              gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy *
                              jac(i, j - 1, k + 1) /
@@ -3506,7 +3506,7 @@ function val_PsIn(model, dt, opt, facray)
                              (jac(i, j - 1, k) + jac(i, j - 1, k - 1)) -
                              gUEdgeB * pUEdgeBGra * 0.25 * met23UEdgeB / dz +
                              gDEdgeB * pDEdgeBGra * met23DEdgeB / dz
-                    elseif (k == nz - 1 && zBoundary == "solid_wall")
+                    elseif (k == nz - 1 && zboundaries == "solid_wall")
                         AB = -gEdgeB * pEdgeBGra / dy -
                              gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy *
                              jac(i, j - 1, k + 1) /
@@ -3516,7 +3516,7 @@ function val_PsIn(model, dt, opt, facray)
                              (jac(i, j - 1, k) + jac(i, j - 1, k - 1)) -
                              gUEdgeB * pUEdgeBGra * met23UEdgeB / dz +
                              gDEdgeB * pDEdgeBGra * 0.25 * met23DEdgeB / dz
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AB = -gEdgeB * pEdgeBGra * (1.0 / dy - 0.75 * met23EdgeB / dz) -
                              gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy *
                              jac(i, j - 1, k - 1) /
@@ -3536,7 +3536,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i,j,k+1) -------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AU = gEdgeR * pEdgeRGra * met13EdgeR / dz +
                              gEdgeL * pEdgeLGra * met13EdgeL / dz +
                              gEdgeF * pEdgeFGra * met23EdgeF / dz +
@@ -3544,7 +3544,7 @@ function val_PsIn(model, dt, opt, facray)
                              gEdgeU * pEdgeUGra * met33EdgeU / dz -
                              gUEdgeR * pUEdgeRGra / dx + gUEdgeL * pUEdgeLGra / dx -
                              gUEdgeF * pUEdgeFGra / dy + gUEdgeB * pUEdgeBGra / dy
-                    elseif (k == 2 && zBoundary == "solid_wall")
+                    elseif (k == 2 && zboundaries == "solid_wall")
                         AU = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
                              gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz +
                              gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz +
@@ -3556,7 +3556,7 @@ function val_PsIn(model, dt, opt, facray)
                              gDEdgeL * pDEdgeLGra * 0.25 * met13DEdgeL / dz -
                              gDEdgeF * pDEdgeFGra * 0.25 * met23DEdgeF / dz -
                              gDEdgeB * pDEdgeBGra * 0.25 * met23DEdgeB / dz
-                    elseif (k == nz - 1 && zBoundary == "solid_wall")
+                    elseif (k == nz - 1 && zboundaries == "solid_wall")
                         AU = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
                              gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz +
                              gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz +
@@ -3566,7 +3566,7 @@ function val_PsIn(model, dt, opt, facray)
                              gUEdgeL * pUEdgeLGra * (1.0 / dx + 0.75 * met13UEdgeL / dz) -
                              gUEdgeF * pUEdgeFGra * (1.0 / dy - 0.75 * met23UEdgeF / dz) +
                              gUEdgeB * pUEdgeBGra * (1.0 / dy + 0.75 * met23UEdgeB / dz)
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AU = 0.0
                     else
                         AU = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
@@ -3580,9 +3580,9 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i,j,k-1) -------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AD = 0.0
-                    elseif (k == 2 && zBoundary == "solid_wall")
+                    elseif (k == 2 && zboundaries == "solid_wall")
                         AD = -gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz -
                              gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz -
                              gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz -
@@ -3592,7 +3592,7 @@ function val_PsIn(model, dt, opt, facray)
                              gDEdgeL * pDEdgeLGra * (1.0 / dx - 0.75 * met13DEdgeL / dz) -
                              gDEdgeF * pDEdgeFGra * (1.0 / dy + 0.75 * met23DEdgeF / dz) +
                              gDEdgeB * pDEdgeBGra * (1.0 / dy - 0.75 * met23DEdgeB / dz)
-                    elseif (k == nz - 1 && zBoundary == "solid_wall")
+                    elseif (k == nz - 1 && zboundaries == "solid_wall")
                         AD = -gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz -
                              gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz -
                              gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz -
@@ -3605,7 +3605,7 @@ function val_PsIn(model, dt, opt, facray)
                              gUEdgeL * pUEdgeLGra * 0.25 * met13UEdgeL / dz +
                              gUEdgeF * pUEdgeFGra * 0.25 * met23UEdgeF / dz +
                              gUEdgeB * pUEdgeBGra * 0.25 * met23UEdgeB / dz
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AD = -gEdgeR * pEdgeRGra * met13EdgeR / dz -
                              gEdgeL * pEdgeLGra * met13EdgeL / dz -
                              gEdgeF * pEdgeFGra * met23EdgeF / dz -
@@ -3625,26 +3625,26 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i+1,j,k+1) ------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ARU = gEdgeR * pEdgeRGra * met13EdgeR / dz +
                               gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                               jac[i+1, j, k] /
                               (jac[i+1, j, k] + jac(i + 1, j, k + 1)) +
                               gUEdgeR * pUEdgeRGra / dx
-                    elseif (k == 2 && zBoundary == "solid_wall")
+                    elseif (k == 2 && zboundaries == "solid_wall")
                         ARU = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
                               gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                               jac[i+1, j, k] /
                               (jac[i+1, j, k] + jac(i + 1, j, k + 1)) +
                               gUEdgeR * pUEdgeRGra / dx -
                               gDEdgeR * pDEdgeRGra * 0.25 * met13DEdgeR / dz
-                    elseif (k == nz - 1 && zBoundary == "solid_wall")
+                    elseif (k == nz - 1 && zboundaries == "solid_wall")
                         ARU = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
                               gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                               jac[i+1, j, k] /
                               (jac[i+1, j, k] + jac(i + 1, j, k + 1)) +
                               gUEdgeR * pUEdgeRGra * (1.0 / dx + 0.75 * met13UEdgeR / dz)
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ARU = 0.0
                     else
                         ARU = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
@@ -3656,22 +3656,22 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i+1,j,k-1) ------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ARD = 0.0
-                    elseif (k == 2 && zBoundary == "solid_wall")
+                    elseif (k == 2 && zboundaries == "solid_wall")
                         ARD = -gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
                               gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
                               jac[i+1, j, k] /
                               (jac[i+1, j, k] + jac(i + 1, j, k - 1)) +
                               gDEdgeR * pDEdgeRGra * (1.0 / dx - 0.75 * met13DEdgeR / dz)
-                    elseif (k == nz - 1 && zBoundary == "solid_wall")
+                    elseif (k == nz - 1 && zboundaries == "solid_wall")
                         ARD = -gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
                               gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
                               jac[i+1, j, k] /
                               (jac[i+1, j, k] + jac(i + 1, j, k - 1)) +
                               gDEdgeR * pDEdgeRGra / dx +
                               gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ARD = -gEdgeR * pEdgeRGra * met13EdgeR / dz +
                               gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
                               jac[i+1, j, k] /
@@ -3687,26 +3687,26 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i-1,j,k+1) ------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ALU = gEdgeL * pEdgeLGra * met13EdgeL / dz -
                               gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                               jac(i - 1, j, k) /
                               (jac(i - 1, j, k) + jac(i - 1, j, k + 1)) -
                               gUEdgeL * pUEdgeLGra / dx
-                    elseif (k == 2 && zBoundary == "solid_wall")
+                    elseif (k == 2 && zboundaries == "solid_wall")
                         ALU = gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz -
                               gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                               jac(i - 1, j, k) /
                               (jac(i - 1, j, k) + jac(i - 1, j, k + 1)) -
                               gUEdgeL * pUEdgeLGra / dx -
                               gDEdgeL * pDEdgeLGra * 0.25 * met13DEdgeL / dz
-                    elseif (k == nz - 1 && zBoundary == "solid_wall")
+                    elseif (k == nz - 1 && zboundaries == "solid_wall")
                         ALU = gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz -
                               gEdgeU * pEdgeUGra * 0.5 * met13EdgeU / dx *
                               jac(i - 1, j, k) /
                               (jac(i - 1, j, k) + jac(i - 1, j, k + 1)) -
                               gUEdgeL * pUEdgeLGra * (1.0 / dx - 0.75 * met13UEdgeL / dz)
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ALU = 0.0
                     else
                         ALU = gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz -
@@ -3718,22 +3718,22 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i-1,j,k-1) ------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ALD = 0.0
-                    elseif (k == 2 && zBoundary == "solid_wall")
+                    elseif (k == 2 && zboundaries == "solid_wall")
                         ALD = -gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz -
                               gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
                               jac(i - 1, j, k) /
                               (jac(i - 1, j, k) + jac(i - 1, j, k - 1)) -
                               gDEdgeL * pDEdgeLGra * (1.0 / dx + 0.75 * met13DEdgeL / dz)
-                    elseif (k == nz - 1 && zBoundary == "solid_wall")
+                    elseif (k == nz - 1 && zboundaries == "solid_wall")
                         ALD = -gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz -
                               gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
                               jac(i - 1, j, k) /
                               (jac(i - 1, j, k) + jac(i - 1, j, k - 1)) -
                               gDEdgeL * pDEdgeLGra / dx +
                               gUEdgeL * pUEdgeLGra * 0.25 * met13UEdgeL / dz
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ALD = -gEdgeL * pEdgeLGra * met13EdgeL / dz -
                               gEdgeD * pEdgeDGra * 0.5 * met13EdgeD / dx *
                               jac(i - 1, j, k) /
@@ -3749,26 +3749,26 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i,j+1,k+1) ------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AFU = gEdgeF * pEdgeFGra * met23EdgeF / dz +
                               gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy *
                               jac(i, j + 1, k) /
                               (jac(i, j + 1, k) + jac(i, j + 1, k + 1)) +
                               gUEdgeF * pUEdgeFGra / dy
-                    elseif (k == 2 && zBoundary == "solid_wall")
+                    elseif (k == 2 && zboundaries == "solid_wall")
                         AFU = gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz +
                               gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy *
                               jac(i, j + 1, k) /
                               (jac(i, j + 1, k) + jac(i, j + 1, k + 1)) +
                               gUEdgeF * pUEdgeFGra / dy -
                               gDEdgeF * pDEdgeFGra * 0.25 * met23DEdgeF / dz
-                    elseif (k == nz - 1 && zBoundary == "solid_wall")
+                    elseif (k == nz - 1 && zboundaries == "solid_wall")
                         AFU = gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz +
                               gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy *
                               jac(i, j + 1, k) /
                               (jac(i, j + 1, k) + jac(i, j + 1, k + 1)) +
                               gUEdgeF * pUEdgeFGra * (1.0 / dy + 0.75 * met23UEdgeF / dz)
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AFU = 0.0
                     else
                         AFU = gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz +
@@ -3780,22 +3780,22 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i,j+1,k-1) ------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AFD = 0.0
-                    elseif (k == 2 && zBoundary == "solid_wall")
+                    elseif (k == 2 && zboundaries == "solid_wall")
                         AFD = -gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz +
                               gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy *
                               jac(i, j + 1, k) /
                               (jac(i, j + 1, k) + jac(i, j + 1, k - 1)) +
                               gDEdgeF * pDEdgeFGra * (1.0 / dy - 0.75 * met23DEdgeF / dz)
-                    elseif (k == nz - 1 && zBoundary == "solid_wall")
+                    elseif (k == nz - 1 && zboundaries == "solid_wall")
                         AFD = -gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz +
                               gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy *
                               jac(i, j + 1, k) /
                               (jac(i, j + 1, k) + jac(i, j + 1, k - 1)) +
                               gDEdgeF * pDEdgeFGra / dy +
                               gUEdgeF * pUEdgeFGra * 0.25 * met23UEdgeF / dz
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AFD = -gEdgeF * pEdgeFGra * met23EdgeF / dz +
                               gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy *
                               jac(i, j + 1, k) /
@@ -3811,26 +3811,26 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i,j-1,k+1) ------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ABU = gEdgeB * pEdgeBGra * met23EdgeB / dz -
                               gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy *
                               jac(i, j - 1, k) /
                               (jac(i, j - 1, k) + jac(i, j - 1, k + 1)) -
                               gUEdgeB * pUEdgeBGra / dy
-                    elseif (k == 2 && zBoundary == "solid_wall")
+                    elseif (k == 2 && zboundaries == "solid_wall")
                         ABU = gEdgeB * pEdgeBGra * 0.25 * met23EdgeB / dz -
                               gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy *
                               jac(i, j - 1, k) /
                               (jac(i, j - 1, k) + jac(i, j - 1, k + 1)) -
                               gUEdgeB * pUEdgeBGra / dy -
                               gDEdgeB * pDEdgeBGra * 0.25 * met23DEdgeB / dz
-                    elseif (k == nz - 1 && zBoundary == "solid_wall")
+                    elseif (k == nz - 1 && zboundaries == "solid_wall")
                         ABU = gEdgeB * pEdgeBGra * 0.25 * met23EdgeB / dz -
                               gEdgeU * pEdgeUGra * 0.5 * met23EdgeU / dy *
                               jac(i, j - 1, k) /
                               (jac(i, j - 1, k) + jac(i, j - 1, k + 1)) -
                               gUEdgeB * pUEdgeBGra * (1.0 / dy - 0.75 * met23UEdgeB / dz)
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ABU = 0.0
                     else
                         ABU = gEdgeB * pEdgeBGra * 0.25 * met23EdgeB / dz -
@@ -3842,22 +3842,22 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i,j-1,k-1) ------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ABD = 0.0
-                    elseif (k == 2 && zBoundary == "solid_wall")
+                    elseif (k == 2 && zboundaries == "solid_wall")
                         ABD = -gEdgeB * pEdgeBGra * 0.25 * met23EdgeB / dz -
                               gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy *
                               jac(i, j - 1, k) /
                               (jac(i, j - 1, k) + jac(i, j - 1, k - 1)) -
                               gDEdgeB * pDEdgeBGra * (1.0 / dy + 0.75 * met23DEdgeB / dz)
-                    elseif (k == nz - 1 && zBoundary == "solid_wall")
+                    elseif (k == nz - 1 && zboundaries == "solid_wall")
                         ABD = -gEdgeB * pEdgeBGra * 0.25 * met23EdgeB / dz -
                               gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy *
                               jac(i, j - 1, k) /
                               (jac(i, j - 1, k) + jac(i, j - 1, k - 1)) -
                               gDEdgeB * pDEdgeBGra / dy +
                               gUEdgeB * pUEdgeBGra * 0.25 * met23UEdgeB / dz
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ABD = -gEdgeB * pEdgeBGra * met23EdgeB / dz -
                               gEdgeD * pEdgeDGra * 0.5 * met23EdgeD / dy *
                               jac(i, j - 1, k) /
@@ -3873,7 +3873,7 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i,j,k+2) -------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AUU = -gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz -
                               gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz -
                               gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz -
@@ -3882,7 +3882,7 @@ function val_PsIn(model, dt, opt, facray)
                               gUEdgeL * pUEdgeLGra * 0.25 * met13UEdgeL / dz +
                               gUEdgeF * pUEdgeFGra * 0.25 * met23UEdgeF / dz +
                               gUEdgeB * pUEdgeBGra * 0.25 * met23UEdgeB / dz
-                    elseif ((k == nz - 1 || k == nz) && zBoundary == "solid_wall")
+                    elseif ((k == nz - 1 || k == nz) && zboundaries == "solid_wall")
                         AUU = 0.0
                     else
                         AUU = gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz +
@@ -3893,9 +3893,9 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ------------------ A(i,j,k-2) -------------------
 
-                    if ((k == 1 || k == 2) && zBoundary == "solid_wall")
+                    if ((k == 1 || k == 2) && zboundaries == "solid_wall")
                         ADD = 0.0
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ADD = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
                               gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz +
                               gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz +
@@ -3913,10 +3913,10 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i+1,j,k+2) ------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ARUU = -gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz +
                                gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz
-                    elseif ((k == nz - 1 || k == nz) && zBoundary == "solid_wall")
+                    elseif ((k == nz - 1 || k == nz) && zboundaries == "solid_wall")
                         ARUU = 0.0
                     else
                         ARUU = gUEdgeR * pUEdgeRGra * 0.25 * met13UEdgeR / dz
@@ -3924,9 +3924,9 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i+1,j,k-2) ------------------
 
-                    if ((k == 1 || k == 2) && zBoundary == "solid_wall")
+                    if ((k == 1 || k == 2) && zboundaries == "solid_wall")
                         ARDD = 0.0
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ARDD = gEdgeR * pEdgeRGra * 0.25 * met13EdgeR / dz -
                                gDEdgeR * pDEdgeRGra * 0.25 * met13DEdgeR / dz
                     else
@@ -3935,10 +3935,10 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i-1,j,k+2) ------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ALUU = -gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz +
                                gUEdgeL * pUEdgeLGra * 0.25 * met13UEdgeL / dz
-                    elseif ((k == nz - 1 || k == nz) && zBoundary == "solid_wall")
+                    elseif ((k == nz - 1 || k == nz) && zboundaries == "solid_wall")
                         ALUU = 0.0
                     else
                         ALUU = gUEdgeL * pUEdgeLGra * 0.25 * met13UEdgeL / dz
@@ -3946,9 +3946,9 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i-1,j,k-2) ------------------
 
-                    if ((k == 1 || k == 2) && zBoundary == "solid_wall")
+                    if ((k == 1 || k == 2) && zboundaries == "solid_wall")
                         ALDD = 0.0
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ALDD = gEdgeL * pEdgeLGra * 0.25 * met13EdgeL / dz -
                                gDEdgeL * pDEdgeLGra * 0.25 * met13DEdgeL / dz
                     else
@@ -3957,10 +3957,10 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i,j+1,k+2) ------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         AFUU = -gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz +
                                gUEdgeF * pUEdgeFGra * 0.25 * met23UEdgeF / dz
-                    elseif ((k == nz - 1 || k == nz) && zBoundary == "solid_wall")
+                    elseif ((k == nz - 1 || k == nz) && zboundaries == "solid_wall")
                         AFUU = 0.0
                     else
                         AFUU = gUEdgeF * pUEdgeFGra * 0.25 * met23UEdgeF / dz
@@ -3968,9 +3968,9 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i,j+1,k-2) ------------------
 
-                    if ((k == 1 || k == 2) && zBoundary == "solid_wall")
+                    if ((k == 1 || k == 2) && zboundaries == "solid_wall")
                         AFDD = 0.0
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         AFDD = gEdgeF * pEdgeFGra * 0.25 * met23EdgeF / dz -
                                gDEdgeF * pDEdgeFGra * 0.25 * met23DEdgeF / dz
                     else
@@ -3979,10 +3979,10 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i,j-1,k+2) ------------------
 
-                    if (k == 1 && zBoundary == "solid_wall")
+                    if (k == 1 && zboundaries == "solid_wall")
                         ABUU = -gEdgeB * pEdgeBGra * 0.25 * met23EdgeB / dz +
                                gUEdgeB * pUEdgeBGra * 0.25 * met23UEdgeB / dz
-                    elseif ((k == nz - 1 || k == nz) && zBoundary == "solid_wall")
+                    elseif ((k == nz - 1 || k == nz) && zboundaries == "solid_wall")
                         ABUU = 0.0
                     else
                         ABUU = gUEdgeB * pUEdgeBGra * 0.25 * met23UEdgeB / dz
@@ -3990,9 +3990,9 @@ function val_PsIn(model, dt, opt, facray)
 
                     # ----------------- A(i,j-1,k-2) ------------------
 
-                    if ((k == 1 || k == 2) && zBoundary == "solid_wall")
+                    if ((k == 1 || k == 2) && zboundaries == "solid_wall")
                         ABDD = 0.0
-                    elseif (k == nz && zBoundary == "solid_wall")
+                    elseif (k == nz && zboundaries == "solid_wall")
                         ABDD = gEdgeB * pEdgeBGra * 0.25 * met23EdgeB / dz -
                                gDEdgeB * pDEdgeBGra * 0.25 * met23DEdgeB / dz
                     else
