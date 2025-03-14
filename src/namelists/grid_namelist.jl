@@ -1,4 +1,3 @@
-
 struct GridNamelist{A<:AbstractFloat,B<:Integer}
     mountainheight_dim::A
     mountainwidth_dim::A

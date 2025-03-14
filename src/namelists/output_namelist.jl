@@ -1,5 +1,5 @@
 abstract type AbstractOutput end
-struct RHOP <: AbstractOutput end
+struct RhoP <: AbstractOutput end
 struct U <: AbstractOutput end
 struct US <: AbstractOutput end
 struct V <: AbstractOutput end
@@ -8,8 +8,8 @@ struct W <: AbstractOutput end
 struct WS <: AbstractOutput end
 struct WTFC <: AbstractOutput end
 struct WSTFC <: AbstractOutput end
-struct THETAP <: AbstractOutput end
-struct PIP <: AbstractOutput end
+struct ThetaP <: AbstractOutput end
+struct PiP <: AbstractOutput end
 
 struct OutputNamelist{
     A<:Vector{<:AbstractOutput},
