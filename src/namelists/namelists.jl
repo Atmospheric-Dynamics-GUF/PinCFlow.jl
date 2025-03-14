@@ -7,7 +7,7 @@ struct Namelists{
     F<:AtmosphereNamelist,
     G<:GridNamelist,
     H<:SpongeNamelist,
-    I<:BoundaryNamelist,
+    I<:BoundariesNamelist,
 }
     domain::A
     output::B
@@ -29,7 +29,7 @@ function Namelists(;
   atmosphere = AtmosphereNamelist(),
   grid = GridNamelist(),
   sponge = SpongeNamelist(),
-  boundaries = BoundaryNamelist(),
+  boundaries = BoundariesNamelist(),
 )
   return Namelists(
     domain,
