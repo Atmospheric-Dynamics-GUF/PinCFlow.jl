@@ -1,39 +1,39 @@
 
-struct Constants{A<:AbstractFloat}
+struct Constants{A <: AbstractFloat}
 
-    # Natural constants.
-    gamma::A
-    gammainv::A
-    kappa::A
-    kappainv::A
-    rsp::A
-    g::A
+  # Natural constants.
+  gamma::A
+  gammainv::A
+  kappa::A
+  kappainv::A
+  rsp::A
+  g::A
 
-    # Reference quantities.
-    rhoref::A
-    pref::A
-    aref::A
-    uref::A
-    lref::A
-    tref::A
-    thetaref::A
-    fref::A
+  # Reference quantities.
+  rhoref::A
+  pref::A
+  aref::A
+  uref::A
+  lref::A
+  tref::A
+  thetaref::A
+  fref::A
 
-    # Non-dimensionalized gravitational acceleration.
-    g_ndim::A
+  # Non-dimensionalized gravitational acceleration.
+  g_ndim::A
 
-    # Flow parameters.
-    re::A
-    ma::A
-    mainv2::A
-    ma2::A
-    fr::A
-    frinv2::A
-    fr2::A
-    sig::A
+  # Flow parameters.
+  re::A
+  ma::A
+  mainv2::A
+  ma2::A
+  fr::A
+  frinv2::A
+  fr2::A
+  sig::A
 
-    # Small float.
-    small::A
+  # Small float.
+  small::A
 end
 
 function Constants(namelists::Namelists)

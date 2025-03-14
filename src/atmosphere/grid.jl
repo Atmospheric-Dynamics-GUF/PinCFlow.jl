@@ -1,40 +1,40 @@
 struct Grid{
-    A<:OffsetVector{<:AbstractFloat},
-    B<:AbstractFloat,
-    C<:OffsetMatrix{<:AbstractFloat},
-    D<:OffsetArray{<:AbstractFloat,3},
-    E<:OffsetArray{<:AbstractFloat,5},
+  A <: OffsetVector{<:AbstractFloat},
+  B <: AbstractFloat,
+  C <: OffsetMatrix{<:AbstractFloat},
+  D <: OffsetArray{<:AbstractFloat, 3},
+  E <: OffsetArray{<:AbstractFloat, 5},
 }
 
-    # Scaled domain.
-    lx::A
-    ly::A
-    lz::A
+  # Scaled domain.
+  lx::A
+  ly::A
+  lz::A
 
-    # Grid spacings.
-    dx::B
-    dy::B
-    dz::B
+  # Grid spacings.
+  dx::B
+  dy::B
+  dz::B
 
-    # Coordinates.
-    x::A
-    y::A
-    z::A
+  # Coordinates.
+  x::A
+  y::A
+  z::A
 
-    # Stretched vertical grid.
-    zs::A
-    ztildes::A
+  # Stretched vertical grid.
+  zs::A
+  ztildes::A
 
-    # Topography.
-    topography_surface::C
+  # Topography.
+  topography_surface::C
 
-    # Jacobian and metric tensor.
-    jac::D
-    met::E
+  # Jacobian and metric tensor.
+  jac::D
+  met::E
 
-    # Vertical layers.
-    ztfc::D
-    ztildetfc::D
+  # Vertical layers.
+  ztfc::D
+  ztildetfc::D
 end
 
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)
@@ -123,7 +123,6 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
     (-nbx):(nx + nbx),
     (-nby):(ny + nby),
   )
-
 
   if mountain_case != 0
     for jy in 1:(ny)
