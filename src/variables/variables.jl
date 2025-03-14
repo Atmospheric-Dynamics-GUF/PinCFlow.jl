@@ -1,6 +1,3 @@
-"""
-Atmospheric variables.
-"""
 struct Predictands{A<:OffsetArray{<:AbstractFloat,3}}
     rho::A
     rhop::A
