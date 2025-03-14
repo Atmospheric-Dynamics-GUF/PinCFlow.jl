@@ -1,6 +1,3 @@
-using SimpleUnPack
-using OffsetArrays
-
 struct Atmosphere{A<:OffsetArray{<:AbstractFloat,3},B<:AbstractFloat}
 
     # Reference atmosphere.

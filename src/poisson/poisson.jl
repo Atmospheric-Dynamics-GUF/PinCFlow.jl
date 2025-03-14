@@ -1,6 +1,3 @@
-using OffsetArrays
-using LinearAlgebra
-
 struct Operator{A<:Array{<:AbstractFloat,3}}
     ac_b::A
     acv_b::A

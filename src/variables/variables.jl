@@ -1,4 +1,3 @@
-using OffsetArrays
 """
 Atmospheric variables.
 """

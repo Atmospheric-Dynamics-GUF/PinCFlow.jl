@@ -1,4 +1,12 @@
 module PinCFlow_dev
+
+using OffsetArrays
+using LinearAlgebra
+using NetCDF
+using MPI
+
+using SimpleUnPack
+using TimerOutputs
 using TrixiBase # get the `timer` object
 
 # Namelists
