@@ -352,7 +352,8 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
   end
 
   # Set halos of topography surface.
-  set_halos_of_field!(topography_surface, namelists, domain)
+  set_zonal_boundaries_of_field!(topography_surface, namelists, domain)
+  set_meridional_boundaries_of_field!(topography_surface, namelists, domain)
 
   # Initialize Jacobian and metric tensor.
   jac = OffsetArray(
@@ -391,7 +392,8 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
       end
     end
   end
-  set_halos_of_field!(met[:, :, :, 1, 3], namelists, domain)
+  set_zonal_boundaries_of_field!(met[:, :, :, 1, 3], namelists, domain)
+  set_meridional_boundaries_of_field!(met[:, :, :, 1, 3], namelists, domain)
   met[:, :, -nbz, 1, 3] =
     met[:, :, nbz + 1, 1, 3] .* (zs[-nbz] .- lz[1]) ./ (zs[nbz + 1] .- lz[1])
   met[:, :, :, 2, 1] .= 0.0
@@ -406,7 +408,8 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
       end
     end
   end
-  set_halos_of_field!(met[:, :, :, 2, 3], namelists, domain)
+  set_zonal_boundaries_of_field!(met[:, :, :, 2, 3], namelists, domain)
+  set_meridional_boundaries_of_field!(met[:, :, :, 2, 3], namelists, domain)
   met[:, :, -nbz, 2, 3] =
     met[:, :, nbz + 1, 2, 3] .* (zs[-nbz] .- lz[1]) ./ (zs[nbz + 1] .- lz[1])
   met[:, :, :, 3, 1] = met[:, :, :, 1, 3]
@@ -435,7 +438,8 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
       end
     end
   end
-  set_halos_of_field!(met[:, :, :, 3, 3], namelists, domain)
+  set_zonal_boundaries_of_field!(met[:, :, :, 3, 3], namelists, domain)
+  set_meridional_boundaries_of_field!(met[:, :, :, 3, 3], namelists, domain)
   for jy in 1:(ny)
     for ix in 1:(nx)
       met[ix, jy, -nbz, 3, 3] =
@@ -456,7 +460,8 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
         ) * (dz / (ztildes[nbz + 1] - ztildes[nbz]))^2.0
     end
   end
-  set_halos_of_field!(met[:, :, -nbz, 3, 3], namelists, domain)
+  set_zonal_boundaries_of_field!(met[:, :, -nbz, 3, 3], namelists, domain)
+  set_meridional_boundaries_of_field!(met[:, :, -nbz, 3, 3], namelists, domain)
 
   # Initialize the physical layers.
   (ztildetfc, ztfc) = (
