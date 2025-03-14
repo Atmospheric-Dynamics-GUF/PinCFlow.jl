@@ -19,23 +19,23 @@
 
     (; rho, rhop, u, v, w) = cache.var
 
-    PinCFlow_dev.initialize_sponge!(semi)
+    PinCFlow.initialize_sponge!(semi)
 
     test_arr(semi.sponge.alpha, 100.65646473821992, 4.061806768248702, 0.2929262565775407,
              tol = 1e-14)
 
-    PinCFlow_dev.applyUnifiedSponge_rho!(semi, dt)
+    PinCFlow.applyUnifiedSponge_rho!(semi, dt)
     test_arr(rho, 148.7124917010242, 2.276604880034531, 0.06, tol = 1e-14)
 
-    PinCFlow_dev.applyUnifiedSponge_rhop!(semi, dt)
+    PinCFlow.applyUnifiedSponge_rhop!(semi, dt)
     test_arr(rhop, 148.7124917010242, 2.276604880034531, 0.06, tol = 1e-14)
 
-    PinCFlow_dev.applyUnifiedSponge_u!(semi, dt)
+    PinCFlow.applyUnifiedSponge_u!(semi, dt)
     test_arr(u, 153.42208281542247, 2.319471693928768, 0.06, tol = 1e-14)
 
-    PinCFlow_dev.applyUnifiedSponge_v!(semi, dt)
+    PinCFlow.applyUnifiedSponge_v!(semi, dt)
     test_arr(v, 153.47600000000006, 2.320194859318576, 0.06, tol = 1e-14)
 
-    PinCFlow_dev.applyUnifiedSponge_w!(semi, dt)
+    PinCFlow.applyUnifiedSponge_w!(semi, dt)
     test_arr(w, 153.47600000000006, 2.3201176568978767, 0.06, tol = 1e-14)
 end

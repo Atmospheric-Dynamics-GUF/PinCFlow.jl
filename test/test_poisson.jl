@@ -1,4 +1,4 @@
-using PinCFlow_dev
+using PinCFlow
 
 function test_file(file, data; tol_l1 = 1e-12, tol_linf = 1e-10)
     error_l1 = 0.0
@@ -37,7 +37,7 @@ end
     set_lin_array!.((grid.topography_surface, grid.zTildeS, grid.zS))
 
     # Call function to be tested
-    PinCFlow_dev.val_PsIn(semi, 1.0, "expl", 1.0)
+    PinCFlow.val_PsIn(semi, 1.0, "expl", 1.0)
 
     # Arrange values to be tested
     (; ac_b, acv_b, ach_b, al_b, ar_b, ab_b, af_b, ad_b, au_b, aru_b, ard_b,
@@ -77,7 +77,7 @@ end
                                 abuu_b, abdd_b, q_pc,
                                 p_pc))
 
-    PinCFlow_dev.preCond(p_bicg, v_pc, "expl", semi)
+    PinCFlow.preCond(p_bicg, v_pc, "expl", semi)
     ref_filename = "$(pincflow_test_dir())/poisson_fortran_data/preCond/sOut.txt.gz"
     test_file(ref_filename, v_pc, tol_l1 = 1e-16, tol_linf = 1e-16)
 end
@@ -99,7 +99,7 @@ end
     set_lin_array_normalizer!(var.v)
     set_lin_array_normalizer!(var.w)
 
-    PinCFlow_dev.calc_RHS(rhs, semi, 1.0)
+    PinCFlow.calc_RHS(rhs, semi, 1.0)
     ref_filename = "$(pincflow_test_dir())/poisson_fortran_data/calc_RHS/rhs.txt.gz"
     test_file(ref_filename, rhs, tol_l1 = 2e-13, tol_linf = 2e-13)
 end
@@ -121,30 +121,30 @@ end
     set_lin_array_normalizer!(var.v)
     set_lin_array_normalizer!(var.w)
 
-    PinCFlow_dev.calc_RHS(rhs, semi, 1.0)
+    PinCFlow.calc_RHS(rhs, semi, 1.0)
     dt = 0.3
     errFlagBicg = false
     nIter = 0
     facprs = 1.0
     facray = 1.0
-    PinCFlow_dev.poissonSolver(rhs, semi, dt, errFlagBicg, nIter, "expl", facray, facprs)
+    PinCFlow.poissonSolver(rhs, semi, dt, errFlagBicg, nIter, "expl", facray, facprs)
 
     test_arr(cache.dp, 6954.114011644017, 406.0728580408809, 32.1315910002854, tol = 1e-9)
 
-    PinCFlow_dev.poissonSolver(rhs, semi, dt, errFlagBicg, nIter, "impl", facray, facprs)
+    PinCFlow.poissonSolver(rhs, semi, dt, errFlagBicg, nIter, "impl", facray, facprs)
 
     test_arr(cache.dp, 6949.851010678487, 405.8250898219831, 32.1214829208721, tol = 1e-9)
 
-    PinCFlow_dev.pressureBoundaryCondition(semi)
+    PinCFlow.pressureBoundaryCondition(semi)
 
     test_arr(cache.dp, 26794.367327608583, 799.5740338430224, 32.1214829208721, tol = 1e-9)
 
-    PinCFlow_dev.correctorStep(semi, dt, "expl", facray, facprs)
+    PinCFlow.correctorStep(semi, dt, "expl", facray, facprs)
 
     test_arr(var.exner, 26794.367327608583, 799.5740338430224, 32.1214829208721, tol = 1e-9)
     test_arr(var.u, 2996.1961128135836, 250.73352464698718, 64.47576033368075, tol = 1e-9)
 
-    PinCFlow_dev.correctorStep(semi, dt, "impl", facray, facprs)
+    PinCFlow.correctorStep(semi, dt, "impl", facray, facprs)
 
     set_lin_array_normalizer!.((kr_sp_tfc, kr_sp_w_tfc))
     test_arr(var.exner, 53588.734655217166, 1599.148067686045, 64.2429658417442, tol = 1e-9)
@@ -157,7 +157,7 @@ end
              tol = 1e-9)
     test_arr(var.exner, 53588.734655217166, 1599.148067686045, 64.2429658417442, tol = 1e-9)
 
-    PinCFlow_dev.bicgstab(rhs, dt, semi, cache.sol_bicg, nIter, errFlagBicg, "expl")
+    PinCFlow.bicgstab(rhs, dt, semi, cache.sol_bicg, nIter, errFlagBicg, "expl")
 
     test_arr(cache.sol_bicg, 1142.0651583477945, 66.0122418332421, 4.178712816389702,
              tol = 1e-9)
@@ -165,7 +165,7 @@ end
              3.6087341096433547e-8,
              tol = 1e-9)
 
-    PinCFlow_dev.bicgstab(rhs, dt, semi, cache.sol_bicg, nIter, errFlagBicg, "impl")
+    PinCFlow.bicgstab(rhs, dt, semi, cache.sol_bicg, nIter, errFlagBicg, "impl")
 
     test_arr(cache.sol_bicg, 1142.0651583477945, 66.0122418332421, 4.178712816389702,
              tol = 1e-9)

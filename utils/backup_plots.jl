@@ -9,7 +9,7 @@ function plot_var(semi)
     for i in 1:nx
         for j in 1:ny
             for k in 0:nz
-                wTFC[i, j, k] = PinCFlow_dev.vertWind(i, j, k, semi)
+                wTFC[i, j, k] = PinCFlow.vertWind(i, j, k, semi)
             end
         end
     end

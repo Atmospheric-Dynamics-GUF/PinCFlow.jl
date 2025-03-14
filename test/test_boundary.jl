@@ -26,7 +26,7 @@
 
     (; rho, rhop, u, v, w, exner) = cache.var
 
-    PinCFlow_dev.setBoundary_x!(semi, PinCFlow_dev.PeriodicBC())
+    PinCFlow.setBoundary_x!(semi, PinCFlow.PeriodicBC())
 
     test_arr(u, 157.55600000000004, 2.3564405360628085, 0.057, tol = 1e-14)
     test_arr(v, 153.47600000000006, 2.3083353309257246, 0.057, tol = 1e-14)
@@ -41,7 +41,7 @@
     set_lin_array_normalizer!(var.v)
     set_lin_array_normalizer!(var.w)
     set_lin_array_normalizer!(var.exner)
-    PinCFlow_dev.setBoundary_y!(semi, PinCFlow_dev.PeriodicBC())
+    PinCFlow.setBoundary_y!(semi, PinCFlow.PeriodicBC())
 
     test_arr(u, 153.47600000000006, 2.3203965178391304, 0.057, tol = 1e-14)
     test_arr(v, 155.99200000000005, 2.3516309234231376, 0.057, tol = 1e-14)
@@ -56,7 +56,7 @@
     set_lin_array_normalizer!(var.v)
     set_lin_array_normalizer!(var.w)
     set_lin_array_normalizer!(var.exner)
-    PinCFlow_dev.setBoundary_z!(semi, PinCFlow_dev.PeriodicBC())
+    PinCFlow.setBoundary_z!(semi, PinCFlow.PeriodicBC())
 
     test_arr(u, 153.47600000000006, 2.3126979915241814, 0.057, tol = 1e-14)
     test_arr(v, 153.47600000000006, 2.3126979915241814, 0.057, tol = 1e-14)
@@ -71,7 +71,7 @@
     set_lin_array_normalizer!(var.v)
     set_lin_array_normalizer!(var.w)
     set_lin_array_normalizer!(var.exner)
-    PinCFlow_dev.setBoundary_z!(semi, PinCFlow_dev.SolidWallBC())
+    PinCFlow.setBoundary_z!(semi, PinCFlow.SolidWallBC())
 
     test_arr(u, 153.47600000000006, 2.31269799152418, 0.057, tol = 1e-14)
     test_arr(v, 153.47600000000006, 2.31269799152418, 0.057, tol = 1e-14)
@@ -81,5 +81,5 @@
     test_arr(exner, 153.47600000000006, 2.3229145485789977, 0.06, tol = 1e-14)
 
     set_lin_array_normalizer!(cache.flux.w)
-    PinCFlow_dev.setBoundary_flux!(semi)
+    PinCFlow.setBoundary_flux!(semi)
 end

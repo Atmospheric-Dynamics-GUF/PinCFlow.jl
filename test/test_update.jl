@@ -49,24 +49,24 @@ using Setfield
 
     (; rho, rhop, u, v, w) = var
 
-    PinCFlow_dev.massUpdate!(model, ode, 0.5 * 1.0, "rho", "tot", "expl", 2, 1)
+    PinCFlow.massUpdate!(model, ode, 0.5 * 1.0, "rho", "tot", "expl", 2, 1)
     test_arr(rho, 147.2038515629778, 2.2610408292790254, 0.06, tol = 1e-14)
 
     set_lin_array_normalizer!(model.variables.tendencies.drho)
 
     set_lin_array_normalizer!(rho)
-    PinCFlow_dev.massUpdate!(model, ode, 0.5 * 1.0, "rhop", "rhs", "impl", 2, 1)
+    PinCFlow.massUpdate!(model, ode, 0.5 * 1.0, "rhop", "rhs", "impl", 2, 1)
     test_arr(rhop, 153.18651104551827, 2.319981249089708, 0.06, tol = 1e-14)
 
     set_lin_array_normalizer!(model.variables.tendencies.drhop)
 
     set_lin_array_normalizer!(rhop)
-    PinCFlow_dev.massUpdate!(model, ode, 0.5 * 1.0, "rhop", "lhs", "expl", 2, 1)
+    PinCFlow.massUpdate!(model, ode, 0.5 * 1.0, "rhop", "lhs", "expl", 2, 1)
     test_arr(rhop, 147.2038515629778, 2.2610408292790254, 0.06, tol = 1e-14)
     set_lin_array_normalizer!(model.variables.tendencies.drhop)
 
     set_lin_array_normalizer!(rhop)
-    PinCFlow_dev.massUpdate!(model, ode, 0.5 * 1.0, "rhop", "rhs", "expl", 2, 1)
+    PinCFlow.massUpdate!(model, ode, 0.5 * 1.0, "rhop", "rhs", "expl", 2, 1)
     test_arr(rhop, 153.52198373074026, 2.3249185833765122, 0.06, tol = 1e-14)
     set_lin_array_normalizer!(rhop)
     set_lin_array_normalizer!(model.variables.tendencies.drhop)
@@ -76,7 +76,7 @@ using Setfield
     set_lin_array_normalizer!(w)
     set_lin_array_normalizer!(model.variables.usave)
 
-    PinCFlow_dev.momentumPredictor!(model, ode, 0.5 * 1.0, "lhs", "expl", 2, 1)
+    PinCFlow.momentumPredictor!(model, ode, 0.5 * 1.0, "lhs", "expl", 2, 1)
 
     test_arr(u, 238.74929329766223, 5.881635566827642, 0.4273353001174364, tol = 1e-14)
     test_arr(v, 323.59998405004694, 8.07055523588239, 0.44816863345076985, tol = 1e-14)
@@ -90,7 +90,7 @@ using Setfield
     set_lin_array_normalizer!(model.variables.usave)
     set_lin_array_normalizer!(model.variables.tendencies.dmom)
 
-    PinCFlow_dev.momentumPredictor!(model, ode, 0.5 * 1.0, "rhs", "expl", 2, 1)
+    PinCFlow.momentumPredictor!(model, ode, 0.5 * 1.0, "rhs", "expl", 2, 1)
 
     test_arr(u, 152.29547184017403, 2.309105007878862, 0.06, tol = 1e-14)
     test_arr(v, 153.36175533913394, 2.3226440800408104, 0.06, tol = 1e-14)
@@ -103,7 +103,7 @@ using Setfield
     set_lin_array_normalizer!(w)
     set_lin_array_normalizer!(model.variables.usave)
     set_lin_array_normalizer!(model.variables.tendencies.dmom)
-    PinCFlow_dev.momentumPredictor!(model, ode, 0.5 * 1.0, "rhs", "impl", 2, 1)
+    PinCFlow.momentumPredictor!(model, ode, 0.5 * 1.0, "rhs", "impl", 2, 1)
 
     test_arr(u, 152.29547184017403, 2.309105007878862, 0.06, tol = 1e-14)
     test_arr(v, 153.36175533913394, 2.3226440800408104, 0.06, tol = 1e-14)
