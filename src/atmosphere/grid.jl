@@ -1,4 +1,3 @@
-using OffsetArrays
 struct Grid{
     A<:OffsetVector{<:AbstractFloat},
     B<:AbstractFloat,
