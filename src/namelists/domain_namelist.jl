@@ -1,4 +1,3 @@
-
 struct DomainNamelist{A<:Integer,B<:Vector{<:AbstractFloat}}
     sizex::A
     sizey::A

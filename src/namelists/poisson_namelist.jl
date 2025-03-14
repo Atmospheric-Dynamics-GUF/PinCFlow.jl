@@ -1,4 +1,3 @@
-
 struct PoissonNamelist{
     A<:AbstractFloat,
     B<:Integer,
