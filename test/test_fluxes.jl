@@ -17,7 +17,7 @@
     set_lin_array_normalizer!(var.v)
     set_lin_array_normalizer!(var.w)
 
-    PinCFlow_dev.reconstruction!(semi)
+    PinCFlow.reconstruction!(semi)
     (; rhoTilde, rhopTilde, uTilde, vTilde, wTilde) = cache
 
     test_arr(rhoTilde, 15120.0, 122.96340919151518, 1.0, tol = 1e-14)
@@ -31,7 +31,7 @@
     set_lin_array_normalizer!(var0.u)
     set_lin_array_normalizer!(var0.v)
     set_lin_array_normalizer!(var0.w)
-    PinCFlow_dev.compute_fluxes!(semi)
+    PinCFlow.compute_fluxes!(semi)
     (; flux) = cache
 
     test_arr(flux.rho, 234.48977709288997, 7.465169904723465, 0.4313585705042774,

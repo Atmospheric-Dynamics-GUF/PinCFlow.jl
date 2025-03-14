@@ -1,4 +1,4 @@
-module PinCFlow_dev
+module PinCFlow
 
 using OffsetArrays
 using LinearAlgebra
@@ -53,8 +53,8 @@ include("variables/variables.jl")
 # Model
 include("model.jl")
 
-pincflow_test_dir() = joinpath(dirname(pathof(PinCFlow_dev)), "..", "test")
-pincflow_examples_dir() = joinpath(dirname(pathof(PinCFlow_dev)), "..", "examples")
+pincflow_test_dir() = joinpath(dirname(pathof(PinCFlow)), "..", "test")
+pincflow_examples_dir() = joinpath(dirname(pathof(PinCFlow)), "..", "examples")
 
 
 export pincflow, Corrector
@@ -68,4 +68,4 @@ export Grid, Constants, Atmosphere, Domain, Variables, Fluxes, State
 # debugging
 export Corrector
 
-end # module PinCFlow_dev
+end

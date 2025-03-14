@@ -1,6 +1,6 @@
 using LinearAlgebra
 using TrixiBase
-using PinCFlow_dev
+using PinCFlow
 using Test
 
 @testset "elixir_mountainwave" begin
