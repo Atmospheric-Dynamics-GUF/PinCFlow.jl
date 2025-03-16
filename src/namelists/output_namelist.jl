@@ -1,18 +1,5 @@
-abstract type AbstractOutput end
-struct RhoP <: AbstractOutput end
-struct U <: AbstractOutput end
-struct US <: AbstractOutput end
-struct V <: AbstractOutput end
-struct VS <: AbstractOutput end
-struct W <: AbstractOutput end
-struct WS <: AbstractOutput end
-struct WTFC <: AbstractOutput end
-struct WSTFC <: AbstractOutput end
-struct ThetaP <: AbstractOutput end
-struct PiP <: AbstractOutput end
-
 struct OutputNamelist{
-    A<:Vector{<:AbstractOutput},
+    A<:Vector{<:AbstractVariable},
     B<:Bool,
     C<:Integer,
     D<:String,
@@ -32,7 +19,7 @@ struct OutputNamelist{
 end
 
 function OutputNamelist(;
-  atmvarout = Vector{AbstractOutput}(undef, 0),
+  atmvarout = Vector{AbstractVariable}(undef, 0),
   prepare_restart = false,
   restart = false,
   iin = -1,

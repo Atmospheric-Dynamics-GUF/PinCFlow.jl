@@ -1,4 +1,3 @@
-
 struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
 
   # MPI variables.

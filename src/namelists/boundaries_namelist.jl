@@ -1,7 +1,3 @@
-abstract type AbstractBoundaries end
-struct PeriodicBoundaries <: AbstractBoundaries end
-struct SolidWallBoundaries <: AbstractBoundaries end
-
 struct BoundariesNamelist{
     A<:AbstractBoundaries,
     B<:AbstractBoundaries,
