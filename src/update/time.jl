@@ -1,4 +1,3 @@
-
 struct Time{A<:Integer,B<:Vector{<:AbstractFloat}}
     nstages::A
     alphark::B

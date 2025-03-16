@@ -1,4 +1,3 @@
-
 struct Constants{A <: AbstractFloat}
 
   # Natural constants.

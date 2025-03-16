@@ -1,8 +1,3 @@
-abstract type AbstractSpongeVariable end
-struct SpongeDensity <: AbstractSpongeVariable end
-struct SpongeDensityFluctuations <: AbstractSpongeVariable end
-struct SpongeWind <: AbstractSpongeVariable end
-
 function compute_sponge!(state::State, dt::AbstractFloat)
   (; nx, ny, nz) = state.domain
   (; ztfc, lz) = state.grid
@@ -367,7 +362,7 @@ function apply_unified_sponge!(
   state::State,
   dt::AbstractFloat,
   time::AbstractFloat,
-  variable::SpongeDensity,
+  variable::Rho,
   model::PseudoIncompressible,
 )
   (; spongelayer, unifiedsponge) = state.namelists.sponge
@@ -399,7 +394,7 @@ function apply_unified_sponge!(
   state::State,
   dt::AbstractFloat,
   time::AbstractFloat,
-  variable::SpongeDensityFluctuations,
+  variable::RhoP,
   model::AbstractModel,
 )
   (; spongelayer, unifiedsponge) = state.namelists.sponge
@@ -431,7 +426,7 @@ function apply_unified_sponge!(
   state::State,
   dt::AbstractFloat,
   time::AbstractFloat,
-  variable::SpongeWind,
+  variable::U,
   model::AbstractModel,
 )
   (; sizex, sizey) = state.namelists.domain
@@ -446,12 +441,13 @@ function apply_unified_sponge!(
   (; uref, tref) = state.constants
   (; comm, nx, ny, nz) = state.domain
   (; alphaunifiedsponge) = state.sponge
-  (; u, v, w) = state.variables.predictands
-  (; jac) = state.grid
+  (; u) = state.variables.predictands
+
+  if !spongelayer || !unifiedsponge
+    return
+  end
 
   (sum_local, sum_global) = (zeros(nz) for i in 1:2)
-
-  # Apply the sponge to the zonal wind.
 
   # Determine relaxation wind.
   if relax_to_mean
@@ -489,7 +485,35 @@ function apply_unified_sponge!(
     end
   end
 
-  # Apply the sponge to the meridional wind.
+  return
+end
+
+  function apply_unified_sponge!(
+  state::State,
+  dt::AbstractFloat,
+  time::AbstractFloat,
+  variable::V,
+  model::AbstractModel,
+)
+  (; sizex, sizey) = state.namelists.domain
+  (; backgroundflow_dim) = state.namelists.atmosphere
+  (;
+    spongelayer,
+    unifiedsponge,
+    relax_to_mean,
+    relaxation_period,
+    relaxation_amplitude,
+  ) = state.namelists.sponge
+  (; uref, tref) = state.constants
+  (; comm, nx, ny, nz) = state.domain
+  (; alphaunifiedsponge) = state.sponge
+  (; v) = state.variables.predictands
+
+  if !spongelayer || !unifiedsponge
+    return
+  end
+
+  (sum_local, sum_global) = (zeros(nz) for i in 1:2)
 
   # Determine relaxation wind.
   if relax_to_mean
@@ -527,7 +551,36 @@ function apply_unified_sponge!(
     end
   end
 
-  # Apply the sponge to the vertical wind.
+  return
+end
+
+function apply_unified_sponge!(
+  state::State,
+  dt::AbstractFloat,
+  time::AbstractFloat,
+  variable::W,
+  model::AbstractModel,
+)
+  (; sizex, sizey) = state.namelists.domain
+  (; backgroundflow_dim) = state.namelists.atmosphere
+  (;
+    spongelayer,
+    unifiedsponge,
+    relax_to_mean,
+    relaxation_period,
+    relaxation_amplitude,
+  ) = state.namelists.sponge
+  (; uref, tref) = state.constants
+  (; comm, nx, ny, nz) = state.domain
+  (; alphaunifiedsponge) = state.sponge
+  (; w) = state.variables.predictands
+  (; jac) = state.grid
+
+  if !spongelayer || !unifiedsponge
+    return
+  end
+
+  (sum_local, sum_global) = (zeros(nz) for i in 1:2)
 
   # Determine relaxation wind.
   if relax_to_mean
