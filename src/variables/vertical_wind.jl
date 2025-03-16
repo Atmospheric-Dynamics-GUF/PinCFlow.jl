@@ -1,7 +1,3 @@
-abstract type AbstractCoordinate end
-struct Cartesian() <: AbstractCoordinate end
-struct TFC() <: AbstractCoordinate end
-
 function transform(
   i::Integer,
   j::Integer,
