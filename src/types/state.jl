@@ -5,7 +5,7 @@ struct State{
   D <: Domain,
   E <: Grid,
   F <: Atmosphere,
-  G <: Operator,
+  G <: Poisson,
   H <: Variables,
 }
   namelists::A
@@ -14,7 +14,7 @@ struct State{
   domain::D
   grid::E
   atmosphere::F
-  operator::G
+  poisson::G
   variables::H
 end
 
@@ -30,7 +30,7 @@ function State(namelists::Namelists)
   domain = Domain(namelists)
   grid = Grid(namelists, constants, domain)
   atmosphere = Atmosphere(namelists, constants, domain, grid, model, background)
-  operator = Operator(domain)
+  poisson = Poisson(namelists, domain)
   variables = Variables(namelists, constants, domain)
 
   # Return a State instance.
@@ -41,7 +41,7 @@ function State(namelists::Namelists)
     domain,
     grid,
     atmosphere,
-    operator,
+    poisson,
     variables,
   )
 end
