@@ -41,7 +41,7 @@ function apply_bicgstab!(
   # Set error flag.
   errflag = false
 
-  b .= b_in
+  b = b_in
 
   apply_operator!(sol, matvec, Total(), namelists, domain, poisson)
   r0 .= b .- matvec
@@ -163,7 +163,7 @@ function apply_bicgstab!(
     res_vm = sqrt(res_vm / sizex / sizey)
 
     if max(res / b_norm, res_vm / b_vm_norm) <= tol
-      if d.master
+      if master
         println("Nb.of iterations: j = ", j_b)
         println("Final residual: res = ", res / b_norm)
         println("Final residual v.m. = ", res_vm / b_vm_norm)

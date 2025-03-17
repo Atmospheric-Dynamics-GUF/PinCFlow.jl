@@ -24,7 +24,7 @@ end
 function Domain(namelists::Namelists)
 
   # Get domain parameters.
-  (; sizex, sizey, nbx, nby, nprocx, nprocy) = namelists.domain
+  (; sizex, sizey, sizez, nbx, nby, nbz, nprocx, nprocy) = namelists.domain
 
   # Initialize MPI.
   MPI.Init()

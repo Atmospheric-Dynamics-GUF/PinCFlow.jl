@@ -25,7 +25,7 @@ function Variables(namelists::Namelists, constants::Constants, domain::Domain)
   backups = Backups(namelists, domain)
   auxiliaries = Auxiliaries(namelists, domain)
   reconstructions = Reconstructions(namelists, domain)
-  fluxes = Fluxes(namelists, domain)
+  fluxes = Fluxes(domain)
 
   # Return a Variables instance.
   return Variables(

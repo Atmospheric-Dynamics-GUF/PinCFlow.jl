@@ -17,24 +17,24 @@ function apply_3d_muscl!(
   for kz in 2:(sizez - 1)
     for jy in 2:(sizey - 1)
       phix[:] .= phi.parent[:, jy, kz]
-      muscle_reconstruct1D_mcvariant!(phix, phitildex, sizex)
-      phitilde.parent[:, jy, kz, 1, :] .= phitildex.parent
+      apply_1d_muscl!(phix, phitildex, sizex)
+      phitilde.parent[:, jy, kz, 1, :] .= phitildex
     end
   end
 
   for kz in 2:(sizez - 1)
     for ix in 2:(sizex - 1)
       phiy .= phi.parent[ix, :, kz]
-      muscle_reconstruct1D_mcvariant!(phiY, phitildey, sizey)
-      phitilde.parent[ix, :, kz, 2, :] .= phitildey.parent
+      apply_1d_muscl!(phiy, phitildey, sizey)
+      phitilde.parent[ix, :, kz, 2, :] .= phitildey
     end
   end
 
   for jy in 2:(sizey - 1)
     for ix in 2:(sizex - 1)
       phiz .= phi.parent[ix, jy, :]
-      muscle_reconstruct1D_mcvariant!(phiz, phitildez, sizez)
-      phitilde.parent[ix, jy, :, 3, :] .= phitildez.parent
+      apply_1d_muscl!(phiz, phitildez, sizez)
+      phitilde.parent[ix, jy, :, 3, :] .= phitildez
     end
   end
 

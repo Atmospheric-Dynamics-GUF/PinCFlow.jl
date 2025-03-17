@@ -9,9 +9,9 @@ function set_zonal_boundaries_of_field!(
   if nprocx > 1
     set_zonal_halos_of_field!(field, namelists, domain)
   else
-    for j in 1:nby
+    for i in 1:nbx
       field[nx + i, :] = field[i, :]
-      field[-i + 1, :] = field[nx - j + 1, :]
+      field[-i + 1, :] = field[nx - i + 1, :]
     end
   end
 
@@ -29,9 +29,9 @@ function set_zonal_boundaries_of_field!(
   if nprocx > 1
     set_zonal_halos_of_field!(field, namelists, domain)
   else
-    for j in 1:nby
+    for i in 1:nbx
       field[nx + i, :, :] = field[i, :, :]
-      field[-i + 1, :, :] = field[nx - j + 1, :, :]
+      field[-i + 1, :, :] = field[nx - i + 1, :, :]
     end
   end
 
@@ -49,9 +49,9 @@ function set_zonal_boundaries_of_field!(
   if nprocx > 1
     set_zonal_halos_of_field!(field, namelists, domain)
   else
-    for j in 1:nby
-      field[nx + i, :, :, :] = field[i, :, :, :]
-      field[-i + 1, :, :, :] = field[nx - j + 1, :, :, :]
+    for i in 1:nbx
+      field[nx + i, :, :, :, :] = field[i, :, :, :, :]
+      field[-i + 1, :, :, :, :] = field[nx - i + 1, :, :, :, :]
     end
   end
 

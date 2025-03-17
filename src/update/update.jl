@@ -266,7 +266,7 @@ function update!(
     # Adjust at boundaries.
     if k == 1 && zboundaries == SolidWallBoundaries()
       pigradzedged = 0.0
-    elseif k == d.nz && zboundaries == SolidWallBoundaries()
+    elseif k == nz && zboundaries == SolidWallBoundaries()
       pigradzedgeu = 0.0
     end
 
@@ -312,7 +312,7 @@ function update!(
   return
 end
 
-function udpate!(
+function update!(
   state::State,
   dt::AbstractFloat,
   m::Integer,
@@ -409,7 +409,7 @@ function udpate!(
   return
 end
 
-function udpate!(
+function update!(
   state::State,
   dt::AbstractFloat,
   m::Integer,
@@ -423,7 +423,7 @@ function udpate!(
   (; nx, ny, nz) = state.domain
   (; dx, dz, jac, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
-  (; rho, u, pip) = state.predictands
+  (; rho, u, pip) = state.variables.predictands
 
   if xboundaries == PeriodicBoundaries()
     i0 = 0
@@ -484,7 +484,7 @@ function udpate!(
   return
 end
 
-function udpate!(
+function update!(
   state::State,
   dt::AbstractFloat,
   m::Integer,
@@ -500,7 +500,7 @@ function udpate!(
   (; dx, dz, jac, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; kr_sp_tfc) = state.sponge
-  (; rho, u, pip) = state.predictands
+  (; rho, u, pip) = state.variables.predictands
 
   if xboundaries == PeriodicBoundaries()
     i0 = 0
@@ -574,7 +574,7 @@ function udpate!(
   return
 end
 
-function udpate!(
+function update!(
   state::State,
   dt::AbstractFloat,
   m::Integer,
@@ -592,7 +592,7 @@ function udpate!(
   (; rhostrattfc) = state.atmosphere
   (; dv) = state.variables.tendencies
   (; phiv) = state.variables.fluxes
-  (; rhoold, vold) = state.variables.backups
+  (; rhoold, uold, vold) = state.variables.backups
   (; rho, u, v) = state.variables.predictands
 
   # Initialize non-dimensional Coriolis parameter.
@@ -666,7 +666,7 @@ function udpate!(
   return
 end
 
-function udpate!(
+function update!(
   state::State,
   dt::AbstractFloat,
   m::Integer,
@@ -680,8 +680,7 @@ function udpate!(
   (; nx, ny, nz) = state.domain
   (; dy, dz, jac, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
-  (; rho, v, pip) = state.predictands
-  (; vnew) = stat.backups
+  (; rho, v, pip) = state.variables.predictands
 
   if yboundaries == PeriodicBoundaries()
     j0 = 0
@@ -742,7 +741,7 @@ function udpate!(
   return
 end
 
-function udpate!(
+function update!(
   state::State,
   dt::AbstractFloat,
   m::Integer,
@@ -758,8 +757,7 @@ function udpate!(
   (; dy, dz, jac, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; kr_sp_tfc) = state.sponge
-  (; rho, v, pip) = state.predictands
-  (; vnew) = stat.backups
+  (; rho, v, pip) = state.variables.predictands
 
   if yboundaries == PeriodicBoundaries()
     j0 = 0
@@ -848,7 +846,7 @@ function update!(
   (; alphark, betark) = state.time
   (; nx, ny, nz) = state.domain
   (; grid) = state
-  (; dx, dy, dz, jac) = grid
+  (; dx, dy, dz, jac, met) = grid
   (; rhostrattfc) = state.atmosphere
   (; dw) = state.variables.tendencies
   (; phiu, phiv, phiw) = state.variables.fluxes
@@ -862,7 +860,7 @@ function update!(
   f_cor_nd = OffsetArray(zeros((ny + 2)), 0:(ny + 1))
 
   if corset == ConstantCoriolis()
-    f_cor_nd[0:(d.ny + 1)] .= f_coriolis_dim .* tref
+    f_cor_nd[0:(ny + 1)] .= f_coriolis_dim .* tref
   else
     error("Error in update!: Unknown corset!")
   end
@@ -1003,7 +1001,7 @@ function update!(
   return
 end
 
-function udpate!(
+function update!(
   state::State,
   dt::AbstractFloat,
   m::Integer,
@@ -1017,7 +1015,7 @@ function udpate!(
   (; nx, ny, nz) = state.domain
   (; dx, dy, dz, jac, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
-  (; rho, w, pip) = state.predictands
+  (; rho, w, pip) = state.variables.predictands
 
   if zboundaries == SolidWallBoundaries()
     k0 = 1
@@ -1115,21 +1113,23 @@ function udpate!(
   return
 end
 
-function udpate!(
+function update!(
   state::State,
   dt::AbstractFloat,
   m::Integer,
   variable::W,
   side::RHS,
-  integration::EXPL,
+  integration::IMPL,
   facray::AbstractFloat,
 )
+  (; spongelayer) = state.namelists.sponge
   (; zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2, g_ndim) = state.constants
   (; nx, ny, nz) = state.domain
   (; dx, dy, dz, jac, met) = state.grid
-  (; rhostrattfc, pstrattfc) = state.atmosphere
-  (; rho, w, pip) = state.predictands
+  (; rhostrattfc, pstrattfc, bvsstrattfc) = state.atmosphere
+  (; kr_sp_w_tfc) = state.sponge
+  (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
   if zboundaries == SolidWallBoundaries()
     k0 = 1
@@ -1221,8 +1221,7 @@ function udpate!(
     facw = 1.0
 
     if spongelayer
-      facw =
-        facw +
+      facw +=
         dt * (
           jac[i, j, k + 1] * kr_sp_w_tfc[i, j, k] +
           jac[i, j, k] * kr_sp_w_tfc[i, j, k + 1]

@@ -22,7 +22,7 @@ function set_meridional_boundaries!(
   boundaries::PeriodicBoundaries,
 )
   (; namelists, domain) = state
-  (rhotilde, rhoptilde, utilde, vtilde, wtilde) =
+  (; rhotilde, rhoptilde, utilde, vtilde, wtilde) =
     state.variables.reconstructions
 
   set_meridional_boundaries_of_field!(rhotilde, namelists, domain)

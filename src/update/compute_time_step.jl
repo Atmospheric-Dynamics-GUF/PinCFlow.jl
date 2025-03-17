@@ -1,9 +1,9 @@
-function compute_time_step!(state::State)
+function compute_time_step(state::State)
   (; grid) = state
   (; cfl, dtmin_dim, dtmax_dim, adaptive_time_step) =
     state.namelists.discretization
   (; tref, small, re) = state.constants
-  (; master, comm, root, dx, dy, dz) = state.domain
+  (; master, comm, root, nx, ny, nz) = state.domain
   (; dx, dy, dz, jac) = grid
   (; predictands) = state.variables
   (; u, v, w) = predictands
@@ -28,15 +28,15 @@ function compute_time_step!(state::State)
     #     CFL condition
     #----------------------
 
-    umax = maximum(abs.(u[1:(nx), 1:(ny), 1:(nz)])) + small
-    vmax = maximum(abs.(v[1:(nx), 1:(ny), 1:(nz)])) + small
-    wmax = maximum(abs.(w[1:(nx), 1:(ny), 1:(nz)])) + small
+    umax = maximum(abs.(u[1:nx, 1:ny, 1:nz])) + small
+    vmax = maximum(abs.(v[1:nx, 1:ny, 1:nz])) + small
+    wmax = maximum(abs.(w[1:nx, 1:ny, 1:nz])) + small
 
     dtconv_loc = cfl * min(dx / umax, dy / vmax, dz / wmax)
 
-    for k in 1:(nz)
-      for j in 1:(ny)
-        for i in 1:(nx)
+    for k in 1:nz
+      for j in 1:ny
+        for i in 1:nx
           dtconv_loc = min(
             dtconv_loc,
             cfl * jac[i, j, k] * dz / (

@@ -16,6 +16,7 @@ function Predictands(
 )
 
   # Get parameters.
+  (; backgroundflow_dim) = namelists.atmosphere
   (; nbx, nby, nbz) = namelists.domain
   (; uref) = constants
   (; nx, ny, nz) = domain

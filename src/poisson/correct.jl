@@ -36,10 +36,6 @@ function correct!(state::State, dt::AbstractFloat, variable::U)
   (; dpip) = state.variables.tendencies
   (; rho, u) = state.variables.predictands
 
-  if facprs != 1.0
-    error("Error in correct!: Wrong facprs in explicit sub-step!")
-  end
-
   for k in 1:nz
     for j in 1:ny
       for i in 0:nx
@@ -200,10 +196,6 @@ function correct!(state::State, dt::AbstractFloat, variable::V)
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; dpip) = state.variables.tendencies
   (; rho, v) = state.variables.predictands
-
-  if facprs != 1.0
-    error("Error in correct!: Wrong facprs in explicit sub-step!")
-  end
 
   for k in 1:nz
     for j in 0:ny
@@ -366,10 +358,6 @@ function correct!(state::State, dt::AbstractFloat, variable::W)
   (; dpip) = state.variables.tendencies
   (; rho, w) = state.variables.predictands
 
-  if facprs != 1.0
-    error("Error in correct!: Wrong facprs in explicit sub-step!")
-  end
-
   if zboundaries == SolidWallBoundaries()
     k0 = 1
     k1 = nz - 1
@@ -467,12 +455,19 @@ function correct!(
   (; zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2) = state.constants
   (; nx, ny, nz) = state.domain
-  (; dy, dz, met) = state.grid
-  (; rhostrattfc, pstrattfc) = state.atmosphere
+  (; dx, dy, dz, jac, met) = state.grid
+  (; rhostrattfc, pstrattfc, bvsstrattfc) = state.atmosphere
   (; kr_sp_w_tfc) = state.sponge
   (; corx, cory) = state.poisson.correction
   (; dpip) = state.variables.tendencies
   (; rho, w) = state.variables.predictands
+
+  if zboundaries == SolidWallBoundaries()
+    k0 = 1
+    k1 = nz - 1
+  else
+    error("Error in correct!: Unknown zboundaries!")
+  end
 
   for k in k0:k1
     for j in 1:ny
@@ -593,8 +588,8 @@ function correct!(
   (; zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2, g_ndim) = state.constants
   (; nx, ny, nz) = state.domain
-  (; dy, dz, met) = state.grid
-  (; rhostrattfc, pstrattfc) = state.atmosphere
+  (; dx, dy, dz, jac, met) = state.grid
+  (; rhostrattfc, pstrattfc, bvsstrattfc) = state.atmosphere
   (; kr_sp_w_tfc) = state.sponge
   (; corx, cory) = state.poisson.correction
   (; dpip) = state.variables.tendencies
@@ -725,7 +720,7 @@ function correct!(
         # Adjust at boundaries.
         if k == 1 && zboundaries == SolidWallBoundaries()
           pgradzedged = 0.0
-        elseif k == d.nz && zboundaries == SolidWallBoundaries()
+        elseif k == nz && zboundaries == SolidWallBoundaries()
           pgradzedgeu = 0.0
         end
 
