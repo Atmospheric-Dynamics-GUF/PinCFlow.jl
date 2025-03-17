@@ -1,4 +1,4 @@
-struct Operator{A <: Array{<:AbstractFloat, 3}}
+struct Tensor{A <: Array{<:AbstractFloat, 3}}
   ac_b::A
   acv_b::A
   ach_b::A
@@ -28,7 +28,7 @@ struct Operator{A <: Array{<:AbstractFloat, 3}}
   afuu_b::A
 end
 
-function Operator(domain::Domain)
+function Tensor(domain::Domain)
 
   # Get parameters.
   (; nx, ny, nz) = domain
@@ -62,10 +62,10 @@ function Operator(domain::Domain)
     abuu_b,
     afdd_b,
     afuu_b,
-  ) = (zeros((nx, ny, nz)) for i in 1:28)
+  ) = (zeros((nx, ny, nz)) for i in 1:27)
 
-  # Return an Operator instance.
-  return Operator(
+  # Return an Tensor instance.
+  return Tensor(
     ac_b,
     acv_b,
     ach_b,
