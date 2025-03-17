@@ -1,6 +1,6 @@
 struct Correction{A <: OffsetArray{<:AbstractFloat, 3}}
   corx::A
-  cory::B
+  cory::A
 end
 
 function Correction(namelists::Namelists, domain::Domain)
