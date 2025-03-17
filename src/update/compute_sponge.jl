@@ -1,6 +1,6 @@
 function compute_sponge!(state::State, dt::AbstractFloat)
   (; nx, ny, nz) = state.domain
-  (; ztfc, lz) = state.grid
+  (; ztfc, lz, jac) = state.grid
   (; kr_sp_tfc, kr_sp_w_tfc, zsponge) = state.sponge
   (; unifiedsponge, spongetype, spongealphaz_fac) = state.namelists.sponge
 
@@ -23,9 +23,9 @@ function compute_sponge!(state::State, dt::AbstractFloat)
     end
 
     kr_sp_tfc[:, :, 0] = kr_sp_tfc[:, :, 1]
-    kr_sp_tfc[:, :, d.nz + 1] = kr_sp_tfc[:, :, d.nz]
+    kr_sp_tfc[:, :, nz + 1] = kr_sp_tfc[:, :, nz]
     kr_sp_w_tfc[:, :, 0] = kr_sp_w_tfc[:, :, 1]
-    kr_sp_w_tfc[:, :, d.nz + 1] = kr_sp_w_tfc[:, :, d.nz]
+    kr_sp_w_tfc[:, :, nz + 1] = kr_sp_w_tfc[:, :, nz]
   end
 
   return
@@ -104,7 +104,7 @@ function compute_sponge!(
   end
 
   alphaunifiedsponge[:, :, 0] = alphaunifiedsponge[:, :, 1]
-  alphaunifiedsponge[:, :, d.nz + 1] = alphaunifiedsponge[:, :, d.nz]
+  alphaunifiedsponge[:, :, nz + 1] = alphaunifiedsponge[:, :, nz]
 
   return
 end
@@ -189,7 +189,7 @@ function compute_sponge!(
   end
 
   alphaunifiedsponge[:, :, 0] = alphaunifiedsponge[:, :, 1]
-  alphaunifiedsponge[:, :, d.nz + 1] = alphaunifiedsponge[:, :, d.nz]
+  alphaunifiedsponge[:, :, nz + 1] = alphaunifiedsponge[:, :, nz]
 
   return
 end
@@ -269,7 +269,7 @@ function compute_sponge!(
   end
 
   alphaunifiedsponge[:, :, 0] = alphaunifiedsponge[:, :, 1]
-  alphaunifiedsponge[:, :, d.nz + 1] = alphaunifiedsponge[:, :, d.nz]
+  alphaunifiedsponge[:, :, nz + 1] = alphaunifiedsponge[:, :, nz]
 
   return
 end
@@ -353,7 +353,7 @@ function compute_sponge!(
   end
 
   alphaunifiedsponge[:, :, 0] = alphaunifiedsponge[:, :, 1]
-  alphaunifiedsponge[:, :, d.nz + 1] = alphaunifiedsponge[:, :, d.nz]
+  alphaunifiedsponge[:, :, nz + 1] = alphaunifiedsponge[:, :, nz]
 
   return
 end

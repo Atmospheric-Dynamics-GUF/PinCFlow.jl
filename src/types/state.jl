@@ -5,8 +5,9 @@ struct State{
   D <: Domain,
   E <: Grid,
   F <: Atmosphere,
-  G <: Poisson,
-  H <: Variables,
+  G <: Sponge,
+  H <: Poisson,
+  I <: Variables,
 }
   namelists::A
   time::B
@@ -14,8 +15,9 @@ struct State{
   domain::D
   grid::E
   atmosphere::F
-  poisson::G
-  variables::H
+  sponge::G
+  poisson::H
+  variables::I
 end
 
 function State(namelists::Namelists)
@@ -30,6 +32,7 @@ function State(namelists::Namelists)
   domain = Domain(namelists)
   grid = Grid(namelists, constants, domain)
   atmosphere = Atmosphere(namelists, constants, domain, grid, model, background)
+  sponge = Sponge(namelists, domain, grid)
   poisson = Poisson(namelists, domain)
   variables = Variables(namelists, constants, domain)
 
@@ -41,6 +44,7 @@ function State(namelists::Namelists)
     domain,
     grid,
     atmosphere,
+    sponge,
     poisson,
     variables,
   )

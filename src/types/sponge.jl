@@ -26,17 +26,17 @@ end
 function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
 
   # Get parameters.
-  (; spongelayer, spongetype, spongeheight) = namelists.sponge
-  (; nz) = domain
+  (; spongelayer, unifiedsponge, spongetype, spongeheight) = namelists.sponge
+  (; nx, ny, nz) = domain
   (; lx, ly, lz) = grid
 
   # Initialize the sponge layer coefficients.
   (kr_sp_tfc, kr_sp_w_tfc, alphaunifiedsponge) = (
     OffsetArray(
-      zeros((d.nx + 2, d.ny + 2, d.nz + 2)),
-      0:(d.nx + 1),
-      0:(d.ny + 1),
-      0:(d.nz + 1),
+      zeros((nx + 2, ny + 2, nz + 2)),
+      0:(nx + 1),
+      0:(ny + 1),
+      0:(nz + 1),
     ) for i in 1:3
   )
 
@@ -44,7 +44,7 @@ function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
   if unifiedsponge && spongetype == ExponentialSponge()
     ksponge = 1
   else
-    ksponge = d.nz - ceil(Integer, spongeheight * d.nz)
+    ksponge = nz - ceil(Integer, spongeheight * nz)
   end
   dzsponge = spongeheight * (lz[1] - lz[0])
   zsponge = lz[1] - dzsponge
@@ -60,14 +60,14 @@ function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
     alphaunifiedsponge,
     kr_sp_tfc,
     kr_sp_w_tfc,
+    dzsponge,
+    zsponge,
+    ksponge,
     xsponge0,
     xsponge1,
     ysponge0,
     ysponge1,
-    zsponge,
-    ksponge,
     dxsponge,
     dysponge,
-    dzsponge,
   )
 end

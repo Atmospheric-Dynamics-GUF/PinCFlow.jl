@@ -8,7 +8,7 @@ function reconstruct!(state::State)
 end
 
 function reconstruct!(state::State, variable::Rho)
-  (; sizex, sizey, sizez, nbx, nby, nbz) = state.namelists.domain
+  (; nbx, nby, nbz) = state.namelists.domain
   (; limitertype) = state.namelists.discretization
   (; nx, ny, nz) = state.domain
   (; rho) = state.variables.predictands
@@ -23,13 +23,20 @@ function reconstruct!(state::State, variable::Rho)
       end
     end
   end
-  apply_3d_muscl!(rhobar, rhotilde, sizex, sizey, sizez, limitertype)
+  apply_3d_muscl!(
+    rhobar,
+    rhotilde,
+    nx + 2 * nbx + 1,
+    ny + 2 * nby + 1,
+    nz + 2 * nbz + 1,
+    limitertype,
+  )
 
   return
 end
 
 function reconstruct!(state::State, variable::RhoP)
-  (; sizex, sizey, sizez, nbx, nby, nbz) = state.namelists.domain
+  (; nbx, nby, nbz) = state.namelists.domain
   (; limitertype) = state.namelists.discretization
   (; nx, ny, nz) = state.domain
   (; rhop) = state.variables.predictands
@@ -44,13 +51,20 @@ function reconstruct!(state::State, variable::RhoP)
       end
     end
   end
-  apply_3d_muscl!(rhopbar, rhoptilde, sizex, sizey, sizez, limitertype)
+  apply_3d_muscl!(
+    rhopbar,
+    rhoptilde,
+    nx + 2 * nbx + 1,
+    ny + 2 * nby + 1,
+    nz + 2 * nbz + 1,
+    limitertype,
+  )
 
   return
 end
 
 function reconstruct!(state::State, variable::U)
-  (; sizex, sizey, sizez, nbx, nby, nbz) = state.namelists.domain
+  (; nbx, nby, nbz) = state.namelists.domain
   (; limitertype) = state.namelists.discretization
   (; nx, ny, nz) = state.domain
   (; rho, u) = state.variables.predictands
@@ -74,13 +88,20 @@ function reconstruct!(state::State, variable::U)
     end
   end
 
-  apply_3d_muscl!(ubar, utilde, sizex, sizey, sizez, limitertype)
+  apply_3d_muscl!(
+    ubar,
+    utilde,
+    nx + 2 * nbx + 1,
+    ny + 2 * nby + 1,
+    nz + 2 * nbz + 1,
+    limitertype,
+  )
 
   return
 end
 
 function reconstruct!(state::State, variable::V)
-  (; sizex, sizey, sizez, nbx, nby, nbz) = state.namelists.domain
+  (; nbx, nby, nbz) = state.namelists.domain
   (; limitertype) = state.namelists.discretization
   (; nx, ny, nz) = state.domain
   (; rho, v) = state.variables.predictands
@@ -88,8 +109,8 @@ function reconstruct!(state::State, variable::V)
   (; vtilde) = state.variables.reconstructions
   (; rhostrattfc, pstrattfc) = state.atmosphere
 
-  for ix in (-nbx):(nx + nbx - 1)
-    for jy in (-nby):(ny + nby)
+  for ix in (-nbx):(nx + nbx)
+    for jy in (-nby):(ny + nby - 1)
       for kz in 0:(nz + 1)
         rhoedge =
           0.5 * (
@@ -104,16 +125,24 @@ function reconstruct!(state::State, variable::V)
     end
   end
 
-  apply_3d_muscl!(vbar, vtilde, sizex, sizey, sizez, limitertype)
+  apply_3d_muscl!(
+    vbar,
+    vtilde,
+    nx + 2 * nbx + 1,
+    ny + 2 * nby + 1,
+    nz + 2 * nbz + 1,
+    limitertype,
+  )
 
   return
 end
 
 function reconstruct!(state::State, variable::W)
-  (; namelists, domain) = state
-  (; sizex, sizey, sizez, nbx, nby, nbz, nprocx, nprocy) = namelists.domain
+  (; namelists, domain, grid) = state
+  (; nbx, nby, nbz, nprocx, nprocy) = namelists.domain
   (; limitertype) = state.namelists.discretization
   (; nx, ny, nz) = domain
+  (; jac) = grid
   (; predictands) = state.variables
   (; rho, w) = predictands
   (; wbar) = state.variables.auxiliaries
@@ -149,7 +178,14 @@ function reconstruct!(state::State, variable::W)
     end
   end
 
-  apply_3d_muscl!(wbar, wtilde, sizex, sizey, sizez, limitertype)
+  apply_3d_muscl!(
+    wbar,
+    wtilde,
+    nx + 2 * nbx + 1,
+    ny + 2 * nby + 1,
+    nz + 2 * nbz + 1,
+    limitertype,
+  )
 
   return
 end

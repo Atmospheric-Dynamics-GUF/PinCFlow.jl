@@ -92,8 +92,8 @@ function integrate(namelists::Namelists)
   # # Write the initial state.
   # write_output!(state, time, iout)
 
-  # output = false
-  # nextoutputtime = time * tref + outputtimediff
+  output = false
+  nextoutputtime = time * tref + outputtimediff
 
   #-----------------------------------------------------
   #                        Time loop
@@ -200,7 +200,13 @@ function integrate(namelists::Namelists)
       )
 
       update!(state, 0.5 * dt, rkstage, RhoP(), LHS(), EXPL(), 1.0)
-      apply_unified_sponge!(state, stepfrac[rkstage] * 0.5 * dt, time, RhoP())
+      apply_unified_sponge!(
+        state,
+        stepfrac[rkstage] * 0.5 * dt,
+        time,
+        RhoP(),
+        model,
+      )
 
       # RK step for momentum
 
@@ -209,9 +215,27 @@ function integrate(namelists::Namelists)
       update!(state, 0.5 * dt, rkstage, U(), LHS(), EXPL(), 1.0)
       update!(state, 0.5 * dt, rkstage, V(), LHS(), EXPL(), 1.0)
       update!(state, 0.5 * dt, rkstage, W(), LHS(), EXPL(), 1.0)
-      apply_unified_sponge!(state, stepfrac[rkstage] * 0.5 * dt, time, U())
-      apply_unified_sponge!(state, stepfrac[rkstage] * 0.5 * dt, time, V())
-      apply_unified_sponge!(state, stepfrac[rkstage] * 0.5 * dt, time, W())
+      apply_unified_sponge!(
+        state,
+        stepfrac[rkstage] * 0.5 * dt,
+        time,
+        U(),
+        model,
+      )
+      apply_unified_sponge!(
+        state,
+        stepfrac[rkstage] * 0.5 * dt,
+        time,
+        V(),
+        model,
+      )
+      apply_unified_sponge!(
+        state,
+        stepfrac[rkstage] * 0.5 * dt,
+        time,
+        W(),
+        model,
+      )
     end
 
     # (2) implicit integration of the linear right-hand sides of the
@@ -328,10 +352,10 @@ function integrate(namelists::Namelists)
       state.variables.backups.rhoold .= state.variables.predictands.rho
 
       update!(state, dt, rkstage, Rho(), LHS(), EXPL(), 1.0)
-      apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, Rho())
+      apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, Rho(), model)
 
       update!(state, dt, rkstage, RhoP(), LHS(), EXPL(), 1.0)
-      apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, RhoP())
+      apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, RhoP(), model)
 
       # RK step for momentum
       set_boundaries!(state, BoundaryPredictands())
@@ -339,9 +363,9 @@ function integrate(namelists::Namelists)
       update!(state, dt, rkstage, U(), LHS(), EXPL(), 1.0)
       update!(state, dt, rkstage, V(), LHS(), EXPL(), 1.0)
       update!(state, dt, rkstage, W(), LHS(), EXPL(), 1.0)
-      apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, U())
-      apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, V())
-      apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, W())
+      apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, U(), model)
+      apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, V(), model)
+      apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, W(), model)
     end
 
     # (5) implicit integration of the linear right-hand sides of the

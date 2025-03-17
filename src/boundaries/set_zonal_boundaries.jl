@@ -22,7 +22,7 @@ function set_zonal_boundaries!(
   boundaries::PeriodicBoundaries,
 )
   (; namelists, domain) = state
-  (rhotilde, rhoptilde, utilde, vtilde, wtilde) =
+  (; rhotilde, rhoptilde, utilde, vtilde, wtilde) =
     state.variables.reconstructions
 
   set_zonal_boundaries_of_field!(rhotilde, namelists, domain)
