@@ -5,7 +5,7 @@ function solve_poisson!(
   dt::AbstractFloat,
   errflagbicg::Bool,
   niter::Integer,
-  opt::AbstractSide,
+  opt::AbstractIntegration,
   model::PseudoIncompressible,
   facray::AbstractFloat,
   facprs::AbstractFloat,

@@ -775,6 +775,7 @@ function compute_operator!(
   facray::AbstractFloat,
 )
   (; preconditioner) = state.namelists.poisson
+  (; spongelayer, sponge_uv) = state.namelists.sponge
   (; zboundaries) = state.namelists.boundaries
   (; nx, ny, nz) = state.domain
   (; dx, dy, dz, jac, met) = state.grid
@@ -1079,8 +1080,8 @@ function compute_operator!(
         facdedgeb = 1.0
         facedgeu = 1.0
         facedged = 1.0
-        if p.spongelayer
-          if p.sponge_uv
+        if spongelayer
+          if sponge_uv
             facedger =
               facedger +
               dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k]) * facray

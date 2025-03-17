@@ -25,6 +25,7 @@ include("types/constants.jl")
 include("types/domain.jl")
 include("types/grid.jl")
 include("types/atmosphere.jl")
+include("types/sponge.jl")
 include("types/poisson/tensor.jl")
 include("types/poisson/operator.jl")
 include("types/poisson/preconditioner.jl")
@@ -69,6 +70,7 @@ include("update/compute_vertical_wind.jl")
 include("update/transform.jl")
 include("update/update.jl")
 
+# Include Poisson functions.
 include("poisson/apply_operator.jl")
 include("poisson/apply_preconditioner.jl")
 include("poisson/apply_bicgstab.jl")
@@ -79,6 +81,9 @@ include("poisson/compute_operator.jl")
 include("poisson/solve_poisson.jl")
 include("poisson/correct.jl")
 include("poisson/apply_corrector.jl")
+
+# Include integration functions.
+include("integration/integrate.jl")
 
 # pincflow_test_dir() = joinpath(dirname(pathof(PinCFlow)), "..", "test")
 # pincflow_examples_dir() = joinpath(dirname(pathof(PinCFlow)), "..", "examples")

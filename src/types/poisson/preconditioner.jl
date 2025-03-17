@@ -7,7 +7,7 @@ end
 function Preconditioner(domain)
 
   # Get all necessary fields.
-  (; nx, ny, nz)
+  (; nx, ny, nz) = domain
 
   # Initialize the preconditioner fields.
   (s, q, p) = (zeros((nx, ny, nz)) for i in 1:3)
