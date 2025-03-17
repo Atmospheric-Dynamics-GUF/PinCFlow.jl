@@ -5,67 +5,71 @@ using LinearAlgebra
 using NetCDF
 using MPI
 
-using SimpleUnPack
-using TimerOutputs
-using TrixiBase
+# using SimpleUnPack
+# using TimerOutputs
+# using TrixiBas
 
-# Namelists
-include("namelists/atmosphere_namelist.jl")
-include("namelists/boundaries_namelist.jl")
-include("namelists/discretization_namelist.jl")
-include("namelists/domain_namelist.jl")
-include("namelists/grid_namelist.jl")
-include("namelists/namelists.jl")
-include("namelists/output_namelist.jl")
-include("namelists/poisson_namelist.jl")
-include("namelists/settings_namelist.jl")
-include("namelists/sponge_namelist.jl")
+# Include types.
+include("types/namelists/domain_namelist.jl")
+include("types/namelists/output_namelist.jl")
+include("types/namelists/setting_namelist.jl")
+include("types/namelists/discretization_namelist.jl")
+include("types/namelists/poisson_namelist.jl")
+include("types/namelists/atmosphere_namelist.jl")
+include("types/namelists/grid_namelist.jl")
+include("types/namelists/sponge_namelist.jl")
+include("types/namelists/boundaries_namelist.jl")
+include("types/namelists/namelists.jl")
+include("types/time.jl")
+include("types/constants.jl")
+include("types/domain.jl")
+include("types/grid.jl")
+include("types/atmosphere.jl")
+include("types/operator.jl")
+include("types/variables/predictands.jl")
+include("types/variables/tendencies.jl")
+include("types/variables/backups.jl")
+include("types/variables/auxiliaries.jl")
+include("types/variables/reconstructions.jl")
+include("types/variables/fluxes.jl")
+include("types/variables/variables.jl")
+include("types/state.jl")
 
-# Atmosphere
-include("atmosphere/atmosphere.jl")
-include("atmosphere/constants.jl")
-include("atmosphere/grid.jl")
-include("atmosphere/sponge.jl")
+# Include boundary functions.
+include("boundaries/set_boundaries.jl")
+include("boundaries/set_meridional_boundaries_of_field.jl")
+include("boundaries/set_meridional_boundaries.jl")
+include("boundaries/set_vertical_boundaries.jl")
+include("boundaries/set_zonal_boundaries_of_field.jl")
+include("boundaries/set_zonal_boundaries.jl")
 
-# Boundaries
-include("boundaries/boundaries.jl")
-include("boundaries/meridional_boundaries.jl")
-include("boundaries/vertical_boundaries.jl")
-include("boundaries/zonal_boundaries.jl")
+# Include flux functionss.
+include("fluxes/apply_1d_muscl.jl")
+include("fluxes/apply_3d_muscl.jl")
+include("fluxes/compute_flux.jl")
+include("fluxes/compute_fluxes.jl")
+include("fluxes/reconstruct.jl")
 
-# Fluxes
-include("fluxes/mass_fluxes.jl")
-include("fluxes/momentum_fluxes.jl")
-include("fluxes/reconstruction.jl")
+# Include MPI functions.
+include("mpi/compute_global_dot_product.jl")
+include("mpi/set_meridional_halos_of_field.jl")
+include("mpi/set_zonal_halos_of_field.jl")
 
-# Integration
-include("integration/integration.jl")
-include("integration/state.jl")
-
-# Output
-include("output/output.jl")
-
-# Poisson
-include("poisson/poisson.jl")
-
-# Update
-include("update/sponge.jl")
-include("update/time.jl")
-include("update/time_loop.jl")
-include("update/time_step.jl")
+# Include update functions.
+include("update/apply_unified_sponge.jl")
+include("update/compute_sponge.jl")
+include("update/compute_stress_tensor.jl")
+include("update/compute_time_step.jl")
+include("update/compute_vertical_wind.jl")
+include("update/transform.jl")
 include("update/update.jl")
 
-# Variables
-include("variables/stress_tensor.jl")
-include("variables/variables.jl")
-include("variables/vertical_wind.jl")
+# pincflow_test_dir() = joinpath(dirname(pathof(PinCFlow)), "..", "test")
+# pincflow_examples_dir() = joinpath(dirname(pathof(PinCFlow)), "..", "examples")
 
-pincflow_test_dir() = joinpath(dirname(pathof(PinCFlow)), "..", "test")
-pincflow_examples_dir() = joinpath(dirname(pathof(PinCFlow)), "..", "examples")
-
-export pincflow, Corrector
-export pincflow_test_dir, pincflow_examples_dir
-export Grid, Constants, Atmosphere, Domain, Variables, Fluxes, State
-export Corrector
+# export pincflow, Corrector
+# export pincflow_test_dir, pincflow_examples_dir
+# export Grid, Constants, Atmosphere, Domain, Variables, Fluxes, State
+# export Corrector
 
 end
