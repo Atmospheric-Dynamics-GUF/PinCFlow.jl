@@ -51,8 +51,7 @@ function compute_time_step(state::State)
         end
       end
     end
-    dtconv = MPI.Reduce(dtconv_loc, min, comm; root = root)
-    MPI.bcast(dtconv, comm; root = root)
+    dtconv = MPI.Allreduce(dtconv_loc, min, comm)
 
     #---------------------------
     #   von Neumann condition
@@ -68,8 +67,7 @@ function compute_time_step(state::State)
         end
       end
     end
-    dtvisc = MPI.Reduce(dtvisc_loc, min, comm; root = root)
-    MPI.bcast(dtvisc, comm; root = root)
+    dtvisc = MPI.Allreduce(dtvisc_loc, min, comm)
 
     #----------------------------
     #    Maximal time step

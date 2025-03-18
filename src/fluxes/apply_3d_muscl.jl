@@ -16,7 +16,7 @@ function apply_3d_muscl!(
 
   for kz in 2:(sizez - 1)
     for jy in 2:(sizey - 1)
-      phix[:] .= phi.parent[:, jy, kz]
+      phix .= phi.parent[:, jy, kz]
       apply_1d_muscl!(phix, phitildex, sizex)
       phitilde.parent[:, jy, kz, 1, :] .= phitildex
     end
