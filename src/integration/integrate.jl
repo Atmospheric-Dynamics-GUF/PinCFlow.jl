@@ -380,7 +380,7 @@ function integrate(namelists::Namelists)
     set_boundaries!(state, BoundaryPredictands())
 
     # use initial flux for update of reference atmosphere and w0
-    state.variables.fluxes.phirho = f0.phirho
+    state.variables.fluxes.phirho .= f0.phirho
     state.variables.fluxes.phirhop .= f0.phirhop
     state.variables.fluxes.phiu .= f0.phiu
     state.variables.fluxes.phiv .= f0.phiv
