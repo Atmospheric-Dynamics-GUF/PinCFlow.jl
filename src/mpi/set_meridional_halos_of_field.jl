@@ -30,14 +30,28 @@ function set_meridional_halos_of_field!(
   dest = forw
   tag = 100
 
-  MPI.Sendrecv!(ysliceforw_send, ysliceback_recv, comm; dest = dest, sendtag = tag, source = source)
+  MPI.Sendrecv!(
+    ysliceforw_send,
+    ysliceback_recv,
+    comm;
+    dest = dest,
+    sendtag = tag,
+    source = source,
+  )
 
   # forw -> back
   source = forw
   dest = back
   tag = 100
 
-  Mpi.Sendrecv!(ysliceback_send, ysliceforw_recv, comm; dest = dest, sendtag = tag, source = source)
+  Mpi.Sendrecv!(
+    ysliceback_send,
+    ysliceforw_recv,
+    comm;
+    dest = dest,
+    sendtag = tag,
+    source = source,
+  )
 
   # write auxiliary slice to var field
   for j in 1:nby
@@ -84,14 +98,28 @@ function set_meridional_halos_of_field!(
   dest = forw
   tag = 100
 
-  MPI.Sendrecv!(ysliceforw_send, ysliceback_recv, comm; dest = dest, sendtag = tag, source = source)
+  MPI.Sendrecv!(
+    ysliceforw_send,
+    ysliceback_recv,
+    comm;
+    dest = dest,
+    sendtag = tag,
+    source = source,
+  )
 
   # forw -> back
   source = forw
   dest = back
   tag = 100
 
-  Mpi.Sendrecv!(ysliceback_send, ysliceforw_recv, comm; dest = dest, sendtag = tag, source = source)
+  Mpi.Sendrecv!(
+    ysliceback_send,
+    ysliceforw_recv,
+    comm;
+    dest = dest,
+    sendtag = tag,
+    source = source,
+  )
 
   # write auxiliary slice to var field
   for j in 1:nby
@@ -134,14 +162,28 @@ function set_meridional_halos_of_field!(
   dest = forw
   tag = 100
 
-  MPI.Sendrecv!(ysliceforw_send, ysliceback_recv, comm; dest = dest, sendtag = tag, source = source)
+  MPI.Sendrecv!(
+    ysliceforw_send,
+    ysliceback_recv,
+    comm;
+    dest = dest,
+    sendtag = tag,
+    source = source,
+  )
 
   # forw -> back
   source = forw
   dest = back
   tag = 100
 
-  Mpi.Sendrecv!(ysliceback_send, ysliceforw_recv, comm; dest = dest, sendtag = tag, source = source)
+  Mpi.Sendrecv!(
+    ysliceback_send,
+    ysliceforw_recv,
+    comm;
+    dest = dest,
+    sendtag = tag,
+    source = source,
+  )
 
   # write auxiliary slice to var field
   for j in 1:nby
