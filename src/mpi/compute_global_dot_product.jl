@@ -28,10 +28,7 @@ function compute_global_dot_product(
   end
 
   # Sum over all processes.
-  global_dot_product = MPI.Reduce(local_dot_product, sum, comm; root = root)
-
-  # Broadcast the result.
-  MPI.bcast(global_dot_product, comm; root = root)
+  global_dot_product = MPI.Allreduce(local_dot_product, +, comm)
 
   # Return the result.
   return global_dot_product

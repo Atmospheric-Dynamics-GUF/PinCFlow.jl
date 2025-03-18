@@ -86,16 +86,13 @@ function compute_rhs!(
   end
 
   # MPI: sum divSum_local over all procs
-  divsum = MPI.Reduce(divsum_local, sum, comm; root = root)
-  MPI.bcast(divsum, comm; root = root)
+  divsum = MPI.Allreduce(divsum_local, +, comm)
 
   # MPI: sum divL2_local over all procs
-  divl2 = MPI.Reduce(divl2_local, sum, comm; root = root)
-  MPI.bcast(divl2, comm; root = root)
+  divl2 = MPI.Allreduce(divl2_local, +, comm)
 
   # MPI: sum divL2_norm_local over all procs
-  divl2_norm = MPI.Reduce(divl2_norm_local, sum, comm; root = root)
-  MPI.bcast(divl2_norm, comm; root = root)
+  divl2_norm = MPI.Allreduce(divl2_norm_local, +, comm)
 
   # scale div
   divl2_local = sqrt(divl2_local / nx / ny / nz)
