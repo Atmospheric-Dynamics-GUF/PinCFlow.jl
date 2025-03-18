@@ -1015,6 +1015,7 @@ function update!(
   (; nx, ny, nz) = state.domain
   (; dx, dy, dz, jac, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
+  (; rhopold) = state.variables.backups
   (; rho, w, pip) = state.variables.predictands
 
   if zboundaries == SolidWallBoundaries()
