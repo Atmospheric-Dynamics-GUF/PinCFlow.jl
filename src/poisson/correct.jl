@@ -627,7 +627,6 @@ function correct!(
             jac[i, j, k - 1] * (rho[i, j, k] + rhostrattfc[i, j, k]) +
             jac[i, j, k] * (rho[i, j, k - 1] + rhostrattfc[i, j, k - 1])
           ) / (jac[i, j, k] + jac[i, j, k - 1])
-        rho = rho[i, j, k] + rhostrattfc[i, j, k]
 
         # Interpolate metric tensor elements.
         met13edgeu =
@@ -729,16 +728,19 @@ function correct!(
 
         # Compute buoyancy correction.
         db =
-          -1.0 /
-          (facw + rhostrattfc[i, j, k] / rho * bvsstrattfc[i, j, k] * dt^2.0) *
-          (
-            -rhostrattfc[i, j, k] / rho *
+          -1.0 / (
+            facw +
+            rhostrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k]) *
+            bvsstrattfc[i, j, k] *
+            dt^2.0
+          ) * (
+            -rhostrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k]) *
             bvsstrattfc[i, j, k] *
             facprs *
             dt^2.0 *
             jac[i, j, k] *
             pgradz +
-            rhostrattfc[i, j, k] / rho *
+            rhostrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k]) *
             bvsstrattfc[i, j, k] *
             dt *
             jac[i, j, k] *
@@ -750,7 +752,8 @@ function correct!(
             )
           )
 
-        rhop[i, j, k] = rhop[i, j, k] - rho / g_ndim * db
+        rhop[i, j, k] =
+          rhop[i, j, k] - (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim * db
       end
     end
   end
