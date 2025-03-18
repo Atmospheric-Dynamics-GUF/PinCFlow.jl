@@ -58,8 +58,7 @@ function apply_bicgstab!(
   end
 
   # MPI: Find global residual.
-  res = MPI.Reduce(res_local, sum, comm; root = root)
-  MPI.bcast(res, comm; root = root)
+  res = MPI.Allreduce(res_local, +, comm)
 
   res = sqrt(res / sizex / sizey / sizez)
 
@@ -78,8 +77,7 @@ function apply_bicgstab!(
     end
   end
 
-  res_vm = MPI.Reduce(res_local, sum, comm; root = root)
-  MPI.bcast(res_vm, comm; root = root)
+  res_vm = MPI.Allreduce(res_local, +, comm)
 
   res_vm = sqrt(res_vm / sizex / sizey)
 
@@ -139,8 +137,7 @@ function apply_bicgstab!(
     end
 
     # MPI: Find global residual.
-    res = MPI.Reduce(res_local, comm; root = root)
-    MPI.bcast(res, comm; root = root)
+    res = MPI.Allreduce(res_local, +, comm)
 
     res = sqrt(res / sizex / sizey / sizez)
 
@@ -157,8 +154,7 @@ function apply_bicgstab!(
       end
     end
 
-    res_vm = MPI.Reduce(res_local, sum, comm; root = root)
-    MPI.bcast(res_vm, comm; root = root)
+    res_vm = MPI.Allreduce(res_local, +, comm)
 
     res_vm = sqrt(res_vm / sizex / sizey)
 

@@ -71,7 +71,7 @@ function Domain(namelists::Namelists)
     nx = sizex
     is = istart
   else
-    nx1 = (sizex - 1) / nprocx + 1
+    nx1 = div(sizex - 1, nprocx) + 1
     in1 = sizex - nprocx * (nx1 - 1)
     if icoord > in1
       nx = nx1
@@ -89,7 +89,7 @@ function Domain(namelists::Namelists)
     ny = sizey
     js = jstart
   else
-    ny1 = (sizey - 1) / nprocy + 1
+    ny1 = div(sizey - 1, nprocy) + 1
     jn1 = sizey - nprocy * (ny1 - 1)
     if jcoord > jn1
       ny = ny1

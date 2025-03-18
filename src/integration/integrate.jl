@@ -37,18 +37,20 @@ function integrate(namelists::Namelists)
   (; master) = state.domain
 
   # Print information.
-  println("")
-  println(repeat("-", 80))
-  println(repeat(" ", 36), "PinCFlow")
-  println(
-    repeat(" ", 12),
-    "developed by Rieper et al (2013) and Schmid et al (2021)",
-  )
-  println(repeat(" ", 28), "modified by many others")
-  println(repeat("-", 80))
-  println("")
-  println("Virtual topology: [nprocx, nprocy] = [", nprocx, ", ", nprocy, "]")
-  println("")
+  if master
+    println("")
+    println(repeat("-", 80))
+    println(repeat(" ", 36), "PinCFlow")
+    println(
+      repeat(" ", 12),
+      "developed by Rieper et al (2013) and Schmid et al (2021)",
+    )
+    println(repeat(" ", 28), "modified by many others")
+    println(repeat("-", 80))
+    println("")
+    println("Virtual topology: [nprocx, nprocy] = [", nprocx, ", ", nprocy, "]")
+    println("")
+  end
 
   #---------------------------------------------
   #        Initial divergence cleaning
@@ -495,5 +497,5 @@ function integrate(namelists::Namelists)
     println(repeat("-", 80))
   end
 
-  return state
+  return
 end
