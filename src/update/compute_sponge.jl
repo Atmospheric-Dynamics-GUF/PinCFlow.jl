@@ -119,7 +119,17 @@ function compute_sponge!(
   (; x, y, ztfc, lx, ly, lz) = state.grid
   (; tref) = state.constants
   (; lateralsponge, cosmosteps) = state.namelists.sponge
-  (; alphaunifiedsponge, dxsponge, dysponge, dzsponge, xsponge0, xsponge1, ysponge0, ysponge1, zsponge) = state.sponge
+  (;
+    alphaunifiedsponge,
+    dxsponge,
+    dysponge,
+    dzsponge,
+    xsponge0,
+    xsponge1,
+    ysponge0,
+    ysponge1,
+    zsponge,
+  ) = state.sponge
 
   if lateralsponge
     i00 = is + nbx - 1
@@ -189,7 +199,17 @@ function compute_sponge!(
   (; x, y, ztfc, lx, ly, lz) = state.grid
   (; tref) = state.constants
   (; lateralsponge, spongealphaz_dim, spongeorder) = state.namelists.sponge
-  (; alphaunifiedsponge, dxsponge, dysponge, dzsponge, xsponge0, xsponge1, ysponge0, ysponge1, zsponge) = state.sponge
+  (;
+    alphaunifiedsponge,
+    dxsponge,
+    dysponge,
+    dzsponge,
+    xsponge0,
+    xsponge1,
+    ysponge0,
+    ysponge1,
+    zsponge,
+  ) = state.sponge
 
   spongealphaz = spongealphaz_dim * tref
 
@@ -269,7 +289,17 @@ function compute_sponge!(
   (; x, y, ztfc, lx, ly, lz) = state.grid
   (; tref) = state.constants
   (; lateralsponge, spongealphaz_dim) = state.namelists.sponge
-  (; alphaunifiedsponge, dxsponge, dysponge, dzsponge, xsponge0, xsponge1, ysponge0, ysponge1, zsponge) = state.sponge
+  (;
+    alphaunifiedsponge,
+    dxsponge,
+    dysponge,
+    dzsponge,
+    xsponge0,
+    xsponge1,
+    ysponge0,
+    ysponge1,
+    zsponge,
+  ) = state.sponge
 
   spongealphaz = spongealphaz_dim * tref
 
