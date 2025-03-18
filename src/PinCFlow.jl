@@ -82,6 +82,26 @@ include("poisson/apply_corrector.jl")
 # Include integration functions.
 include("integration/integrate.jl")
 
+export DomainNamelist,
+  OutputNamelist,
+  SettingNamelist,
+  DiscretizationNamelist,
+  PoissonNamelist,
+  AtmosphereNamelist,
+  GridNamelist,
+  SpongeNamelist,
+  BoundariesNamelist,
+  Namelists
+export Rho, RhoP, U, US, V, VS, W, WS, WTFC, WSTFC, ThetaP, PiP
+export PseudoIncompressible
+export MountainWave
+export MCVariant
+export Isothermal
+export ConstantCoriolis
+export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
+export PeriodicBoundaries, SolidWallBoundaries
+export integrate
+
 # pincflow_test_dir() = joinpath(dirname(pathof(PinCFlow)), "..", "test")
 # pincflow_examples_dir() = joinpath(dirname(pathof(PinCFlow)), "..", "examples")
 

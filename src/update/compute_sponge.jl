@@ -36,7 +36,7 @@ function compute_sponge!(
   dt::AbstractFloat,
   spongetype::ExponentialSponge,
 )
-  (; sizex, sizey, nbx, nby) = state.namelists.domain
+  (; sizex, sizey, sizez, nbx, nby) = state.namelists.domain
   (; is, js, nx, ny, nz) = state.domain
   (; x, y, ztfc, lx, ly, lz) = state.grid
   (; tref) = state.constants
@@ -114,31 +114,26 @@ function compute_sponge!(
   dt::AbstractFloat,
   spongetype::COSMOSponge,
 )
-  (; sizex, sizey, nbx, nby) = state.namelists.domain
+  (; sizex, sizey, sizez, nbx, nby) = state.namelists.domain
   (; is, js, nx, ny, nz) = state.domain
   (; x, y, ztfc, lx, ly, lz) = state.grid
   (; tref) = state.constants
   (; lateralsponge, cosmosteps) = state.namelists.sponge
-  (; alphaunifiedsponge, dxsponge, dysponge, dzsponge) = state.sponge
-
-  spongealphaz = spongealphaz_dim * tref
+  (;
+    alphaunifiedsponge,
+    dxsponge,
+    dysponge,
+    dzsponge,
+    xsponge0,
+    xsponge1,
+    ysponge0,
+    ysponge1,
+    zsponge,
+  ) = state.sponge
 
   if lateralsponge
     i00 = is + nbx - 1
     j00 = js + nby - 1
-    if sizex > 1 && sizey > 1
-      spongealphaz = spongealphaz / 3.0
-      spongealphax = spongealphaz
-      spongealphay = spongealphaz
-    elseif sizex > 1
-      spongealphaz = spongealphaz / 2.0
-      spongealphax = spongealphaz
-      spongealphay = 0.0
-    elseif sizey > 1
-      spongealphaz = spongealphaz / 2.0
-      spongealphax = 0.0
-      spongealphay = spongealphaz
-    end
   end
 
   alphaunifiedsponge .= 0.0
@@ -199,12 +194,22 @@ function compute_sponge!(
   dt::AbstractFloat,
   spongetype::PolynomialSponge,
 )
-  (; sizex, sizey, nbx, nby) = state.namelists.domain
+  (; sizex, sizey, sizez, nbx, nby) = state.namelists.domain
   (; is, js, nx, ny, nz) = state.domain
   (; x, y, ztfc, lx, ly, lz) = state.grid
   (; tref) = state.constants
-  (; lateralsponge, spongealphaz, spongeorder) = state.namelists.sponge
-  (; alphaunifiedsponge, dxsponge, dysponge, dzsponge) = state.sponge
+  (; lateralsponge, spongealphaz_dim, spongeorder) = state.namelists.sponge
+  (;
+    alphaunifiedsponge,
+    dxsponge,
+    dysponge,
+    dzsponge,
+    xsponge0,
+    xsponge1,
+    ysponge0,
+    ysponge1,
+    zsponge,
+  ) = state.sponge
 
   spongealphaz = spongealphaz_dim * tref
 
@@ -279,12 +284,22 @@ function compute_sponge!(
   dt::AbstractFloat,
   spongetype::SinusoidalSponge,
 )
-  (; sizex, sizey, nbx, nby) = state.namelists.domain
+  (; sizex, sizey, sizez, nbx, nby) = state.namelists.domain
   (; is, js, nx, ny, nz) = state.domain
   (; x, y, ztfc, lx, ly, lz) = state.grid
   (; tref) = state.constants
-  (; lateralsponge, spongealphaz) = state.namelists.sponge
-  (; alphaunifiedsponge, dxsponge, dysponge, dzsponge) = state.sponge
+  (; lateralsponge, spongealphaz_dim) = state.namelists.sponge
+  (;
+    alphaunifiedsponge,
+    dxsponge,
+    dysponge,
+    dzsponge,
+    xsponge0,
+    xsponge1,
+    ysponge0,
+    ysponge1,
+    zsponge,
+  ) = state.sponge
 
   spongealphaz = spongealphaz_dim * tref
 

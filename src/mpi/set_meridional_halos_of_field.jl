@@ -11,7 +11,7 @@ function set_meridional_halos_of_field!(
   # Find the neighbour processors and initialize send and reveive buffers.
   (back, forw) = MPI.Cart_shift(comm, 1, 1)
   (ysliceback_send, ysliceforw_send, ysliceback_recv, ysliceforw_recv) = (
-    OffsetArray(zeros((nx + 2 * nbx + 1, nby)), (-nbx):(nx + nbx), nby) for
+    OffsetArray(zeros((nx + 2 * nbx + 1, nby)), (-nbx):(nx + nbx), 1:nby) for
     i in 1:4
   )
 
@@ -30,14 +30,28 @@ function set_meridional_halos_of_field!(
   dest = forw
   tag = 100
 
-  MPI.Sendrecv!(ysliceforw_send, ysliceback_recv, comm, dest, tag, source)
+  MPI.Sendrecv!(
+    ysliceforw_send,
+    ysliceback_recv,
+    comm;
+    dest = dest,
+    sendtag = tag,
+    source = source,
+  )
 
   # forw -> back
   source = forw
   dest = back
   tag = 100
 
-  Mpi.Sendrecv!(ysliceback_send, ysliceforw_recv, comm, dest, tag, source)
+  Mpi.Sendrecv!(
+    ysliceback_send,
+    ysliceforw_recv,
+    comm;
+    dest = dest,
+    sendtag = tag,
+    source = source,
+  )
 
   # write auxiliary slice to var field
   for j in 1:nby
@@ -64,7 +78,7 @@ function set_meridional_halos_of_field!(
     OffsetArray(
       zeros((nx + 2 * nbx + 1, nby, nz + 2 * nbz + 1)),
       (-nbx):(nx + nbx),
-      nby,
+      1:nby,
       (-nbz):(nz + nbz),
     ) for i in 1:4
   )
@@ -84,14 +98,28 @@ function set_meridional_halos_of_field!(
   dest = forw
   tag = 100
 
-  MPI.Sendrecv!(ysliceforw_send, ysliceback_recv, comm, dest, tag, source)
+  MPI.Sendrecv!(
+    ysliceforw_send,
+    ysliceback_recv,
+    comm;
+    dest = dest,
+    sendtag = tag,
+    source = source,
+  )
 
   # forw -> back
   source = forw
   dest = back
   tag = 100
 
-  Mpi.Sendrecv!(ysliceback_send, ysliceforw_recv, comm, dest, tag, source)
+  Mpi.Sendrecv!(
+    ysliceback_send,
+    ysliceforw_recv,
+    comm;
+    dest = dest,
+    sendtag = tag,
+    source = source,
+  )
 
   # write auxiliary slice to var field
   for j in 1:nby
@@ -112,7 +140,7 @@ function set_meridional_halos_of_field!(
     OffsetArray(
       zeros((nx + 2 * nbx + 1, nby, nz + 2 * nbz + 1, 3, 2)),
       (-nbx):(nx + nbx),
-      nby,
+      1:nby,
       (-nbz):(nz + nbz),
       1:3,
       0:1,
@@ -134,14 +162,28 @@ function set_meridional_halos_of_field!(
   dest = forw
   tag = 100
 
-  MPI.Sendrecv!(ysliceforw_send, ysliceback_recv, comm, dest, tag, source)
+  MPI.Sendrecv!(
+    ysliceforw_send,
+    ysliceback_recv,
+    comm;
+    dest = dest,
+    sendtag = tag,
+    source = source,
+  )
 
   # forw -> back
   source = forw
   dest = back
   tag = 100
 
-  Mpi.Sendrecv!(ysliceback_send, ysliceforw_recv, comm, dest, tag, source)
+  Mpi.Sendrecv!(
+    ysliceback_send,
+    ysliceforw_recv,
+    comm;
+    dest = dest,
+    sendtag = tag,
+    source = source,
+  )
 
   # write auxiliary slice to var field
   for j in 1:nby
