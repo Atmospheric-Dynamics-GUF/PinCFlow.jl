@@ -15,8 +15,8 @@
   ly_dim(1)                =                  4.0E+4 ! Maximum of y
   lz_dim(0)                =                  0.0E+0 ! Minimum of z
   lz_dim(1)                =                  2.0E+4 ! Maximum of z
-  nprocx                   =                      75 ! Processors in x
-  nprocy                   =                       1 ! Processors in y
+  nprocx                   =                {nprocx} ! Processors in x
+  nprocy                   =                {nprocy} ! Processors in y
 &end
 
 &outputList
