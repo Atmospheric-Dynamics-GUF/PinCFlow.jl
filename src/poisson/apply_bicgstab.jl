@@ -1,8 +1,8 @@
 function apply_bicgstab!(
-  b_in::Array{<:AbstractFloat, 3},
+  b_in::AbstractArray{<:AbstractFloat, 3},
   tolref::AbstractFloat,
   dt::AbstractFloat,
-  sol::Array{<:AbstractFloat, 3},
+  sol::AbstractArray{<:AbstractFloat, 3},
   res::AbstractFloat,
   niter::Integer,
   errflag::Bool,

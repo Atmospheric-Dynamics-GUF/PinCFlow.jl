@@ -8,7 +8,7 @@ struct AtmosphereNamelist{
   A <: Bool,
   B <: AbstractFloat,
   C <: AbstractBackground,
-  D <: Vector{<:AbstractFloat},
+  D <: AbstractVector{<:AbstractFloat},
   E <: AbstractCoriolis,
 }
   specifyreynolds::A

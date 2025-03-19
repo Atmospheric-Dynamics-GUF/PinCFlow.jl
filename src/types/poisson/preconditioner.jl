@@ -1,4 +1,4 @@
-struct Preconditioner{A <: Array{<:AbstractFloat, 3}}
+struct Preconditioner{A <: AbstractArray{<:AbstractFloat, 3}}
   s::A
   q::A
   p::A

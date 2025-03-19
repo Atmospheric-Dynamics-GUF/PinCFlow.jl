@@ -1,4 +1,4 @@
-struct Tendencies{A <: OffsetArray{<:AbstractFloat, 3}}
+struct Tendencies{A <: AbstractArray{<:AbstractFloat, 3}}
   drho::A
   drhop::A
   du::A

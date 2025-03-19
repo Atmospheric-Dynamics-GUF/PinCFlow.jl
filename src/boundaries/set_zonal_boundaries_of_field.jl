@@ -1,5 +1,5 @@
 function set_zonal_boundaries_of_field!(
-  field::OffsetMatrix{<:AbstractFloat},
+  field::AbstractMatrix{<:AbstractFloat},
   namelists::Namelists,
   domain::Domain,
 )
@@ -19,7 +19,7 @@ function set_zonal_boundaries_of_field!(
 end
 
 function set_zonal_boundaries_of_field!(
-  field::OffsetArray{<:AbstractFloat, 3},
+  field::AbstractArray{<:AbstractFloat, 3},
   namelists::Namelists,
   domain::Domain,
 )
@@ -39,7 +39,7 @@ function set_zonal_boundaries_of_field!(
 end
 
 function set_zonal_boundaries_of_field!(
-  field::OffsetArray{<:AbstractFloat, 5},
+  field::AbstractArray{<:AbstractFloat, 5},
   namelists::Namelists,
   domain::Domain,
 )

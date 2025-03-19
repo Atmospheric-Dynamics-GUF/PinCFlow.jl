@@ -1,6 +1,6 @@
 function solve_poisson!(
   state::State,
-  b::Array{<:AbstractFloat, 3},
+  b::AbstractArray{<:AbstractFloat, 3},
   tolref::AbstractFloat,
   dt::AbstractFloat,
   errflagbicg::Bool,
