@@ -112,5 +112,5 @@ function compute_rhs!(
     end
   end
 
-  return
+  return tolref
 end
