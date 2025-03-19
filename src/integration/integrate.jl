@@ -496,6 +496,5 @@ function integrate(namelists::Namelists)
     println(repeat(" ", 32), "PincFlow finished", repeat(" ", 33))
     println(repeat("-", 80))
   end
-
-  return
+  return state
 end
