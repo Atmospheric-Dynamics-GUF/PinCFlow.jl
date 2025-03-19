@@ -55,7 +55,7 @@ function solve_poisson!(
     for j in 1:ny
       for i in 1:nx
         fcscal = sqrt(pstrattfc[i, j, k]^2 / rhostrattfc[i, j, k])
-        sol[i, j, k] = sol[i, j, k] / fcscal
+        sol[i, j, k] /= fcscal
       end
     end
   end

@@ -10,13 +10,13 @@ function set_vertical_boundaries!(
   (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
   # Set the density fluctuations at the boundaries to zero.
-  for k in 1:(nbz)
+  for k in 1:nbz
     rho[:, :, -k + 1] = -rho[:, :, k]
     rho[:, :, nz + k] = -rho[:, :, nz - k + 1]
   end
 
   # Set the density fluctuations at the boundaries to zero.
-  for k in 1:(nbz)
+  for k in 1:nbz
     rhop[:, :, -k + 1] = -rhop[:, :, k]
     rhop[:, :, nz + k] = -rhop[:, :, nz - k + 1]
   end
@@ -24,13 +24,13 @@ function set_vertical_boundaries!(
   # Set the vertical wind at the boundaries to zero.
   w[:, :, 0] .= 0.0
   w[:, :, nz] .= 0.0
-  for k in 1:(nbz)
+  for k in 1:nbz
     w[:, :, -k] = -w[:, :, k]
     w[:, :, nz + k] = -w[:, :, nz - k]
   end
 
   # Set the horizontal-wind gradient at the boundaries to zero.
-  for k in 1:(nbz)
+  for k in 1:nbz
     u[:, :, -k + 1] = u[:, :, k]
     u[:, :, nz + k] = u[:, :, nz - k + 1]
     v[:, :, -k + 1] = v[:, :, k]

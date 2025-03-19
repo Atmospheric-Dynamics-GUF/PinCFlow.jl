@@ -21,7 +21,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
   (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
 
   #-----------------------------------------
-  #       Zonal rho fluxes in x: f
+  #             Zonal fluxes
   #-----------------------------------------
 
   for k in 1:nz
@@ -47,7 +47,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
   end
 
   #-----------------------------------------
-  #    Meridional rho fluxes in y: g
+  #           Meridional fluxes
   #-----------------------------------------
 
   for k in 1:nz
@@ -73,7 +73,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
   end
 
   #-----------------------------------------
-  #      Vertical rho fluxes in z: h
+  #            Vertical fluxes
   #-----------------------------------------
 
   for k in 0:nz
@@ -124,7 +124,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
   (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
 
   #-----------------------------------------
-  #       Zonal rho fluxes in x: f
+  #             Zonal fluxes
   #-----------------------------------------
 
   for k in 1:nz
@@ -150,7 +150,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
   end
 
   #-----------------------------------------
-  #    Meridional rho fluxes in y: g
+  #           Meridional fluxes
   #-----------------------------------------
 
   for k in 1:nz
@@ -176,7 +176,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
   end
 
   #-----------------------------------------
-  #      Vertical rho fluxes in z: h
+  #            Vertical fluxes
   #-----------------------------------------
 
   for k in 0:nz
@@ -232,7 +232,7 @@ function compute_fluxes!(
   (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
   #-----------------------------------------
-  #       Zonal rho fluxes in x: f
+  #             Zonal fluxes
   #-----------------------------------------
 
   for k in 1:nz
@@ -265,7 +265,7 @@ function compute_fluxes!(
   end
 
   #-----------------------------------------
-  #    Meridional rho fluxes in y: g
+  #           Meridional fluxes
   #-----------------------------------------
 
   for k in 1:nz
@@ -298,7 +298,7 @@ function compute_fluxes!(
   end
 
   #-----------------------------------------
-  #      Vertical rho fluxes in z: h
+  #            Vertical fluxes
   #-----------------------------------------
 
   for k in 0:nz
@@ -331,7 +331,7 @@ function compute_fluxes!(
   end
 
   #-------------------------------------------------------------------
-  #                          Viscous Fluxes
+  #                          Viscous fluxes
   #-------------------------------------------------------------------
 
   if re >= 1.0e20
@@ -339,7 +339,7 @@ function compute_fluxes!(
   end
 
   #-----------------------------------------
-  #       Zonal rho fluxes in x: f
+  #             Zonal fluxes
   #-----------------------------------------
 
   for k in 1:nz
@@ -352,13 +352,13 @@ function compute_fluxes!(
           jac[i + 1, j, k] *
           compute_stress_tensor(i + 1, j, k, 1, 1, predictands, grid)
 
-        phiu[i, j, k, 1] = phiu[i, j, k, 1] - frhou_visc
+        phiu[i, j, k, 1] -= frhou_visc
       end
     end
   end
 
   #-----------------------------------------
-  #    Meridional rho fluxes in y: g
+  #           Meridional fluxes
   #-----------------------------------------
 
   for k in 1:nz
@@ -388,13 +388,13 @@ function compute_fluxes!(
             compute_stress_tensor(i + 1, j + 1, k, 1, 2, predictands, grid)
           )
 
-        phiu[i, j, k, 2] = phiu[i, j, k, 2] - grhou_visc
+        phiu[i, j, k, 2] -= grhou_visc
       end
     end
   end
 
   #-----------------------------------------
-  #      Vertical rho fluxes in z: h
+  #            Vertical fluxes
   #-----------------------------------------
 
   for k in 0:nz
@@ -442,7 +442,7 @@ function compute_fluxes!(
             (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
           )
 
-        phiu[i, j, k, 3] = phiu[i, j, k, 3] - hrhou_visc
+        phiu[i, j, k, 3] -= hrhou_visc
       end
     end
   end
@@ -470,7 +470,7 @@ function compute_fluxes!(
   (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
   #-----------------------------------------
-  #       Zonal rho fluxes in x: f
+  #             Zonal fluxes
   #-----------------------------------------
 
   for k in 1:nz
@@ -503,7 +503,7 @@ function compute_fluxes!(
   end
 
   #-----------------------------------------
-  #    Meridional rho fluxes in y: g
+  #           Meridional fluxes
   #-----------------------------------------
 
   for k in 1:nz
@@ -536,7 +536,7 @@ function compute_fluxes!(
   end
 
   #-----------------------------------------
-  #      Vertical rho fluxes in z: h
+  #            Vertical fluxes
   #-----------------------------------------
 
   for k in 0:nz
@@ -569,7 +569,7 @@ function compute_fluxes!(
   end
 
   #-------------------------------------------------------------------
-  #                          Viscous Fluxes
+  #                          Viscous fluxes
   #-------------------------------------------------------------------
 
   if re >= 1.0e20
@@ -577,7 +577,7 @@ function compute_fluxes!(
   end
 
   #-----------------------------------------
-  #       Zonal rho fluxes in x: f
+  #             Zonal fluxes
   #-----------------------------------------
 
   for k in 1:nz
@@ -607,13 +607,13 @@ function compute_fluxes!(
             compute_stress_tensor(i + 1, j + 1, k, 2, 1, predictands, grid)
           )
 
-        phiv[i, j, k, 1] = phiv[i, j, k, 1] - frhov_visc
+        phiv[i, j, k, 1] -= frhov_visc
       end
     end
   end
 
   #-----------------------------------------
-  #    Meridional rho fluxes in y: g
+  #           Meridional fluxes
   #-----------------------------------------
 
   for k in 1:nz
@@ -626,13 +626,13 @@ function compute_fluxes!(
           jac[i, j + 1, k] *
           compute_stress_tensor(i, j + 1, k, 2, 2, predictands, grid)
 
-        phiv[i, j, k, 2] = phiv[i, j, k, 2] - grhov_visc
+        phiv[i, j, k, 2] -= grhov_visc
       end
     end
   end
 
   #-----------------------------------------
-  #      Vertical rho fluxes in z: h
+  #            Vertical fluxes
   #-----------------------------------------
 
   for k in 0:nz
@@ -680,7 +680,7 @@ function compute_fluxes!(
             (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
           )
 
-        phiv[i, j, k, 3] = phiv[i, j, k, 3] - hrhov_visc
+        phiv[i, j, k, 3] -= hrhov_visc
       end
     end
   end
@@ -708,7 +708,7 @@ function compute_fluxes!(
   (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
   #-----------------------------------------
-  #       Zonal rho fluxes in x: f
+  #             Zonal fluxes
   #-----------------------------------------
 
   for k in 0:nz
@@ -750,7 +750,7 @@ function compute_fluxes!(
   end
 
   #-----------------------------------------
-  #    Meridional rho fluxes in y: g
+  #           Meridional fluxes
   #-----------------------------------------
 
   for k in 0:nz
@@ -792,7 +792,7 @@ function compute_fluxes!(
   end
 
   #-----------------------------------------
-  #      Vertical rho fluxes in z: h
+  #            Vertical fluxes
   #-----------------------------------------
 
   for k in (-1):nz
@@ -825,7 +825,7 @@ function compute_fluxes!(
   end
 
   #-------------------------------------------------------------------
-  #                          Viscous Fluxes
+  #                          Viscous fluxes
   #-------------------------------------------------------------------
 
   if re >= 1.0e20
@@ -833,7 +833,7 @@ function compute_fluxes!(
   end
 
   #-----------------------------------------
-  #       Zonal rho fluxes in x: f
+  #             Zonal fluxes
   #-----------------------------------------
 
   for k in 0:nz
@@ -860,13 +860,13 @@ function compute_fluxes!(
             ) / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
           )
 
-        phiw[i, j, k, 1] = phiw[i, j, k, 1] - frhow_visc
+        phiw[i, j, k, 1] -= frhow_visc
       end
     end
   end
 
   #-----------------------------------------
-  #    Meridional rho fluxes in y: g
+  #           Meridional fluxes
   #-----------------------------------------
 
   for k in 0:nz
@@ -893,13 +893,13 @@ function compute_fluxes!(
             ) / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
           )
 
-        phiw[i, j, k, 2] = phiw[i, j, k, 2] - grhow_visc
+        phiw[i, j, k, 2] -= grhow_visc
       end
     end
   end
 
   #-----------------------------------------
-  #      Vertical rho fluxes in z: h
+  #            Vertical fluxes
   #-----------------------------------------
 
   for k in (-1):nz
@@ -918,7 +918,7 @@ function compute_fluxes!(
             compute_stress_tensor(i, j, k + 1, 3, 3, predictands, grid)
           )
 
-        phiw[i, j, k, 3] = phiw[i, j, k, 3] - hrhow_visc
+        phiw[i, j, k, 3] -= hrhow_visc
       end
     end
   end
