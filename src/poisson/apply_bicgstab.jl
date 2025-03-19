@@ -105,7 +105,7 @@ function apply_bicgstab!(
     v .= matvec
 
     alpha =
-      compute_global_dot_product(r, r0) / compute_global_dot_product(v, r0)
+      compute_global_dot_product(r, r0, domain) / compute_global_dot_product(v, r0, domain)
     s .= r .- alpha .* v
 
     # t = A*s
@@ -117,7 +117,7 @@ function apply_bicgstab!(
     apply_operator!(v_pc, matvec, Total(), namelists, domain, poisson)
     t .= matvec
 
-    omega = compute_global_dot_product(t, s) / compute_global_dot_product(t, t)
+    omega = compute_global_dot_product(t, s, domain) / compute_global_dot_product(t, t, domain)
     sol .= sol .+ alpha .* p .+ omega .* s
 
     rold .= r
@@ -177,8 +177,8 @@ function apply_bicgstab!(
     end
 
     beta =
-      alpha / omega * compute_global_dot_product(r, r0) /
-      compute_global_dot_product(rold, r0)
+      alpha / omega * compute_global_dot_product(r, r0, domain) /
+      compute_global_dot_product(rold, r0, domain)
     p .= r .+ beta .* (p .- omega .* v)
   end
 
