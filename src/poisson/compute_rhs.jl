@@ -6,7 +6,7 @@ function compute_rhs!(
 )
   (; sizex, sizey, sizez) = state.namelists.domain
   (; ma, kappa) = state.constants
-  (; master, comm, root, nx, ny, nz) = state.domain
+  (; master, comm, nx, ny, nz) = state.domain
   (; dx, dy, dz, jac) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; u, v, w) = state.variables.predictands
