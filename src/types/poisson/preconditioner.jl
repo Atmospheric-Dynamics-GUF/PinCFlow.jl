@@ -1,4 +1,7 @@
-struct Preconditioner{A <: AbstractArray{<:AbstractFloat, 3}, B <: AbstractMatrix{<:AbstractFloat}}
+struct Preconditioner{
+  A <: AbstractArray{<:AbstractFloat, 3},
+  B <: AbstractMatrix{<:AbstractFloat},
+}
   s_pc::A
   q_pc::A
   p_pc::B
