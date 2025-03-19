@@ -16,6 +16,6 @@ include("util.jl")
 include("test_atmosphere.jl")
 # include("test_sponge.jl")
 include("test_boundary.jl")
-
+include("test_rest_atmosphere.jl")
 include("test_namelist.jl")
 include("test_init.jl")
