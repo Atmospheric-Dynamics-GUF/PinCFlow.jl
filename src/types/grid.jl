@@ -125,8 +125,8 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
   )
 
   if mountain_case != 0
-    for jy in 1:(ny)
-      for ix in 1:(nx)
+    for jy in 1:ny
+      for ix in 1:nx
         if mountain_case == 1
           # 2D cosine mountains
           topography_surface[ix, jy] =
@@ -383,8 +383,8 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
   met[:, :, :, 1, 1] .= 1.0
   met[:, :, :, 1, 2] .= 0.0
   for kz in (-nbz + 1):(nz + nbz)
-    for jy in 1:(ny)
-      for ix in 1:(nx)
+    for jy in 1:ny
+      for ix in 1:nx
         met[ix, jy, kz, 1, 3] =
           (topography_surface[ix + 1, jy] - topography_surface[ix - 1, jy]) /
           (2.0 * dx) * (zs[kz] - lz[1]) / (lz[1] - topography_surface[ix, jy]) *
@@ -399,8 +399,8 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
   met[:, :, :, 2, 1] .= 0.0
   met[:, :, :, 2, 2] .= 1.0
   for kz in (-nbz + 1):(nz + nbz)
-    for jy in 1:(ny)
-      for ix in 1:(nx)
+    for jy in 1:ny
+      for ix in 1:nx
         met[ix, jy, kz, 2, 3] =
           (topography_surface[ix, jy + 1] - topography_surface[ix, jy - 1]) /
           (2.0 * dy) * (zs[kz] - lz[1]) / (lz[1] - topography_surface[ix, jy]) *
@@ -415,8 +415,8 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
   met[:, :, :, 3, 1] = met[:, :, :, 1, 3]
   met[:, :, :, 3, 2] = met[:, :, :, 2, 3]
   for kz in (-nbz + 1):(nz + nbz)
-    for jy in 1:(ny)
-      for ix in 1:(nx)
+    for jy in 1:ny
+      for ix in 1:nx
         met[ix, jy, kz, 3, 3] =
           (
             (lz[1] / (lz[1] - topography_surface[ix, jy]))^2.0 +
@@ -440,8 +440,8 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
   end
   set_zonal_boundaries_of_field!(view(met, :, :, :, 3, 3), namelists, domain)
   set_meridional_boundaries_of_field!(view(met, :, :, :, 3, 3), namelists, domain)
-  for jy in 1:(ny)
-    for ix in 1:(nx)
+  for jy in 1:ny
+    for ix in 1:nx
       met[ix, jy, -nbz, 3, 3] =
         (
           (lz[1] / (lz[1] - topography_surface[ix, jy]))^2.0 +
