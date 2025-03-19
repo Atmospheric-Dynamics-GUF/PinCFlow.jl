@@ -1,7 +1,6 @@
 function compute_rhs!(
   state::State,
-  b::Array{<:AbstractFloat, 3},
-  tolref::AbstractFloat,
+  b::AbstractArray{<:AbstractFloat, 3},
   dt::AbstractFloat,
   model::PseudoIncompressible,
 )

@@ -1,6 +1,6 @@
 function compute_global_dot_product(
-  a::OffsetArray{AbstractFloat, 3},
-  b::OffsetArray{AbstractFloat, 3},
+  a::AbstractArray{AbstractFloat, 3},
+  b::AbstractArray{AbstractFloat, 3},
   domain::Domain,
 )
 

@@ -1,9 +1,9 @@
 struct Grid{
-  A <: OffsetVector{<:AbstractFloat},
+  A <: AbstractVector{<:AbstractFloat},
   B <: AbstractFloat,
-  C <: OffsetMatrix{<:AbstractFloat},
-  D <: OffsetArray{<:AbstractFloat, 3},
-  E <: OffsetArray{<:AbstractFloat, 5},
+  C <: AbstractMatrix{<:AbstractFloat},
+  D <: AbstractArray{<:AbstractFloat, 3},
+  E <: AbstractArray{<:AbstractFloat, 5},
 }
 
   # Scaled domain.
