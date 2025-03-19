@@ -746,8 +746,7 @@ function correct!(
             )
           )
 
-        rhop[i, j, k] -=
-          (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim * db
+        rhop[i, j, k] -= (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim * db
       end
     end
   end
