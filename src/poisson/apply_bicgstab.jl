@@ -101,7 +101,7 @@ function apply_bicgstab!(
     else
       v_pc .= p
     end
-    apply_operator(v_pc, matvec, Total(), namelists, domain, poisson)
+    apply_operator!(v_pc, matvec, Total(), namelists, domain, poisson)
     v .= matvec
 
     alpha =
@@ -114,7 +114,7 @@ function apply_bicgstab!(
     else
       v_pc .= s
     end
-    apply_operator(v_pc, matvec, Total(), namelists, domain, poisson)
+    apply_operator!(v_pc, matvec, Total(), namelists, domain, poisson)
     t .= matvec
 
     omega = compute_global_dot_product(t, s) / compute_global_dot_product(t, t)
