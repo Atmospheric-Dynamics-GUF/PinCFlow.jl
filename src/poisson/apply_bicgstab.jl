@@ -14,7 +14,7 @@ function apply_bicgstab!(
   (; sizex, sizey, sizez) = namelists.domain
   (; tolpoisson, maxiterpoisson, preconditioner, relative_tolerance) =
     namelists.poisson
-  (; master, comm, root, nx, ny, nz) = domain
+  (; master, comm, nx, ny, nz) = domain
   (; r_vm, b_vm, p, r0, rold, r, s, t, v, matvec, v_pc) = poisson.bicgstab
 
   # Print information.

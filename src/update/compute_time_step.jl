@@ -3,7 +3,7 @@ function compute_time_step(state::State)
   (; cfl, dtmin_dim, dtmax_dim, adaptive_time_step) =
     state.namelists.discretization
   (; tref, small, re) = state.constants
-  (; master, comm, root, nx, ny, nz) = state.domain
+  (; master, comm, nx, ny, nz) = state.domain
   (; dx, dy, dz, jac) = grid
   (; predictands) = state.variables
   (; u, v, w) = predictands
