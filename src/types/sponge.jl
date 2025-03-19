@@ -1,5 +1,5 @@
 struct Sponge{
-  A <: OffsetArray{<:AbstractFloat, 3},
+  A <: AbstractArray{<:AbstractFloat, 3},
   B <: AbstractFloat,
   C <: Integer,
 }

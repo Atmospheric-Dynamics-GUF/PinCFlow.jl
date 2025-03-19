@@ -1,4 +1,4 @@
-struct Time{A <: Integer, B <: Vector{<:AbstractFloat}}
+struct Time{A <: Integer, B <: AbstractVector{<:AbstractFloat}}
   nstages::A
   alphark::B
   betark::B

@@ -1,4 +1,4 @@
-struct DomainNamelist{A <: Integer, B <: Vector{<:AbstractFloat}}
+struct DomainNamelist{A <: Integer, B <: AbstractVector{<:AbstractFloat}}
   sizex::A
   sizey::A
   sizez::A

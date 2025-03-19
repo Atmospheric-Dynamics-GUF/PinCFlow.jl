@@ -1,6 +1,6 @@
 function apply_preconditioner!(
-  sin::Array{<:AbstractFloat, 3},
-  sout::Array{<:AbstractFloat, 3},
+  sin::AbstractArray{<:AbstractFloat, 3},
+  sout::AbstractArray{<:AbstractFloat, 3},
   namelists::Namelists,
   domain::Domain,
   grid::Grid,
