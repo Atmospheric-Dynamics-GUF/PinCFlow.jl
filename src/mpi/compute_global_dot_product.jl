@@ -5,7 +5,7 @@ function compute_global_dot_product(
 )
 
   # Get parameters.
-  (; comm, root) = domain
+  (; comm) = domain
 
   # Get shapes.
   asize = size(a)
