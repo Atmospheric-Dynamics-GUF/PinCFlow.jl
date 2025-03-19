@@ -12,14 +12,14 @@ function set_boundaries!(state::State, variables::BoundaryPredictands)
 end
 
 function set_boundaries!(state::State, variables::BoundaryReconstructions)
-  (; xboundaries, yboundaries, zboundaries) = state.namelists.boundaries
+  (; xboundaries, yboundaries) = state.namelists.boundaries
   set_zonal_boundaries!(state, variables, xboundaries)
   set_meridional_boundaries!(state, variables, yboundaries)
   return
 end
 
 function set_boundaries!(state::State, variables::BoundaryFluxes)
-  (; xboundaries, yboundaries, zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.boundaries
   set_vertical_boundaries!(state, variables, zboundaries)
   return
 end
