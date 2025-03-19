@@ -553,8 +553,7 @@ function update!(
     facu = 1.0
 
     if spongelayer && sponge_uv
-      facu +=
-        dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k]) * facray
+      facu += dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k]) * facray
     end
 
     # Update wind.
@@ -804,8 +803,7 @@ function update!(
     facv = 1.0
 
     if spongelayer && sponge_uv
-      facv +=
-        dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j + 1, k]) * facray
+      facv += dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j + 1, k]) * facray
     end
 
     # Update wind.
