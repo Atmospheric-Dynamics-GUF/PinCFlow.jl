@@ -97,7 +97,7 @@ function apply_bicgstab!(
 
     # v = A*p
     if preconditioner
-      apply_preconditioner(p, v_pc, namelists, domain, grid, poisson)
+      apply_preconditioner!(p, v_pc, namelists, domain, grid, poisson)
     else
       v_pc .= p
     end
@@ -110,7 +110,7 @@ function apply_bicgstab!(
 
     # t = A*s
     if preconditioner
-      apply_preconditioner(s, v_pc, namelists, domain, grid, poisson)
+      apply_preconditioner!(s, v_pc, namelists, domain, grid, poisson)
     else
       v_pc .= s
     end
