@@ -89,7 +89,7 @@ function correct!(state::State, dt::AbstractFloat, variable::U)
 
         du = -dt * pgradx
 
-        u[i, j, k] = u[i, j, k] + du
+        u[i, j, k] += du
       end
     end
   end
@@ -121,12 +121,9 @@ function correct!(
         facu = 1.0
 
         if spongelayer && sponge_uv
-          facu =
-            facu +
+          facu +=
             dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k]) * facray
         end
-
-        facv = facu
 
         # Compute values at cell edges.
         rhou =
@@ -180,7 +177,7 @@ function correct!(
         corx[i, j, k] = facprs * dt / facu * pgradx
         du = -corx[i, j, k]
 
-        u[i, j, k] = u[i, j, k] + du
+        u[i, j, k] += du
       end
     end
   end
@@ -250,7 +247,7 @@ function correct!(state::State, dt::AbstractFloat, variable::V)
 
         dv = -dt * pgrady
 
-        v[i, j, k] = v[i, j, k] + dv
+        v[i, j, k] += dv
       end
     end
   end
@@ -282,12 +279,9 @@ function correct!(
         facv = 1.0
 
         if spongelayer && sponge_uv
-          facv =
-            facv +
+          facv +=
             dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j + 1, k]) * facray
         end
-
-        facu = facv
 
         # Compute values at cell edges.
         rhov =
@@ -341,7 +335,7 @@ function correct!(
         cory[i, j, k] = facprs * dt / facv * pgrady
         dv = -cory[i, j, k]
 
-        v[i, j, k] = v[i, j, k] + dv
+        v[i, j, k] += dv
       end
     end
   end
@@ -436,7 +430,7 @@ function correct!(state::State, dt::AbstractFloat, variable::W)
         # Correct vertical velocity.
         dw = -dt * pgradz
 
-        w[i, j, k] = w[i, j, k] + dw
+        w[i, j, k] += dw
       end
     end
   end
@@ -569,7 +563,7 @@ function correct!(
             )
           ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-        w[i, j, k] = w[i, j, k] + dw
+        w[i, j, k] += dw
       end
     end
   end
@@ -601,7 +595,7 @@ function correct!(
         facw = 1.0
 
         if spongelayer
-          facw = facw + dt * kr_sp_w_tfc[i, j, k] * facray
+          facw += dt * kr_sp_w_tfc[i, j, k] * facray
         end
 
         # Compute P coefficients.
@@ -752,8 +746,8 @@ function correct!(
             )
           )
 
-        rhop[i, j, k] =
-          rhop[i, j, k] - (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim * db
+        rhop[i, j, k] -=
+          (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim * db
       end
     end
   end

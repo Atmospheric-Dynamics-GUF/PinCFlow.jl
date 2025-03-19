@@ -42,7 +42,7 @@ function apply_operator!(
   ) = poisson.tensor
   (; s) = poisson.operator
 
-  # Initialize auxiliary fiel
+  # Initialize auxiliary field.
   s[1:nx, 1:ny, 1:nz] = sin
 
   # Set boundaries of auxiliary field.
