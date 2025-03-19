@@ -16,10 +16,9 @@ function apply_corrector!(
 
   # Initialize RHS and tolerance.
   rhs .= 0.0
-  tolref = 0.0
 
-  # Calculate RHS.
-  compute_rhs!(state, rhs, tolref, dt, model)
+  # Calculate RHS and tolreance reference.
+  tolref = compute_rhs!(state, rhs, dt, model)
 
   # Solve Poisson equation.
   solve_poisson!(
