@@ -6,21 +6,22 @@ function set_zonal_halos_of_field!(
 
   # Get all necessary fields.
   (; nbx, nby) = namelists.domain
-  (; comm, nx, ny) = domain
-
-  # Find the neighbour processors and initialize send and reveive buffers.
-  (left, right) = MPI.Cart_shift(comm, 0, 1)
-  (xsliceleft_send, xsliceright_send, xsliceleft_recv, xsliceright_recv) =
-    (zeros((nbx, ny + 2 * nby + 1)) for i in 1:4)
-
-  # Set slice size.
-  sendcount = nbx * (ny + 2 * nby + 1)
-  recvcount = sendcount
+  (;
+    comm,
+    nx,
+    ny,
+    left,
+    right,
+    send_a2_left,
+    send_a2_right,
+    recv_a2_left,
+    recv_a2_right,
+  ) = domain
 
   # Read slice into contiguous array
   for i in 1:nbx
-    xsliceleft_send[i, :] = field[i, :]
-    xsliceright_send[i, :] = field[nx - nbx + i, :]
+    send_a2_left[i, :] = field[i, :]
+    send_a2_right[i, :] = field[nx - nbx + i, :]
   end
 
   # left -> right
@@ -29,8 +30,8 @@ function set_zonal_halos_of_field!(
   tag = 100
 
   MPI.Sendrecv!(
-    xsliceright_send,
-    xsliceleft_recv,
+    send_a2_right,
+    recv_a2_left,
     comm;
     dest = dest,
     sendtag = tag,
@@ -43,8 +44,8 @@ function set_zonal_halos_of_field!(
   tag = 100
 
   MPI.Sendrecv!(
-    xsliceleft_send,
-    xsliceright_recv,
+    send_a2_left,
+    recv_a2_right,
     comm;
     dest = dest,
     sendtag = tag,
@@ -53,8 +54,8 @@ function set_zonal_halos_of_field!(
 
   # write auxiliary slice to var field
   for i in 1:nbx
-    field[nx + i, :] = xsliceright_recv[i, :]
-    field[-nbx + i, :] = xsliceleft_recv[i, :]
+    field[nx + i, :] = recv_a2_right[i, :]
+    field[-nbx + i, :] = recv_a2_left[i, :]
   end
 
   return
@@ -68,21 +69,23 @@ function set_zonal_halos_of_field!(
 
   # Get all necessary fields.
   (; nbx, nby, nbz) = namelists.domain
-  (; comm, nx, ny, nz) = domain
-
-  # Find the neighbour processors and initialize send and reveive buffers.
-  (left, right) = MPI.Cart_shift(comm, 0, 1)
-  (xsliceleft_send, xsliceright_send, xsliceleft_recv, xsliceright_recv) =
-    (zeros((nbx, ny + 2 * nby + 1, nz + 2 * nbz + 1)) for i in 1:4)
-
-  # Set slice size.
-  sendcount = nbx * (ny + 2 * nby + 1) * (nz + 2 * nbz + 1)
-  recvcount = sendcount
+  (;
+    comm,
+    nx,
+    ny,
+    nz,
+    left,
+    right,
+    send_a3_left,
+    send_a3_right,
+    recv_a3_left,
+    recv_a3_right,
+  ) = domain
 
   # Read slice into contiguous array
   for i in 1:nbx
-    xsliceleft_send[i, :, :] = field[i, :, :]
-    xsliceright_send[i, :, :] = field[nx - nbx + i, :, :]
+    send_a3_left[i, :, :] = field[i, :, :]
+    send_a3_right[i, :, :] = field[nx - nbx + i, :, :]
   end
 
   # left -> right
@@ -91,8 +94,8 @@ function set_zonal_halos_of_field!(
   tag = 100
 
   MPI.Sendrecv!(
-    xsliceright_send,
-    xsliceleft_recv,
+    send_a3_right,
+    recv_a3_left,
     comm;
     dest = dest,
     sendtag = tag,
@@ -105,8 +108,8 @@ function set_zonal_halos_of_field!(
   tag = 100
 
   MPI.Sendrecv!(
-    xsliceleft_send,
-    xsliceright_recv,
+    send_a3_left,
+    recv_a3_right,
     comm;
     dest = dest,
     sendtag = tag,
@@ -115,8 +118,8 @@ function set_zonal_halos_of_field!(
 
   # write auxiliary slice to var field
   for i in 1:nbx
-    field[nx + i, :, :] = xsliceright_recv[i, :, :]
-    field[-nbx + i, :, :] = xsliceleft_recv[i, :, :]
+    field[nx + i, :, :] = recv_a3_right[i, :, :]
+    field[-nbx + i, :, :] = recv_a3_left[i, :, :]
   end
 
   return
@@ -130,21 +133,23 @@ function set_zonal_halos_of_field!(
 
   # Get all necessary fields.
   (; nbx, nby, nbz) = namelists.domain
-  (; comm, nx, ny, nz) = domain
-
-  # Find the neighbour processors and initialize send and reveive buffers.
-  (left, right) = MPI.Cart_shift(comm, 0, 1)
-  (xsliceleft_send, xsliceright_send, xsliceleft_recv, xsliceright_recv) =
-    (zeros((nbx, ny + 2 * nby + 1, nz + 2 * nbz + 1, 3, 2)) for i in 1:4)
-
-  # Set slice size.
-  sendcount = nbx * (ny + 2 * nby + 1) * (nz + 2 * nbz + 1) * 6
-  recvcount = sendcount
+  (;
+    comm,
+    nx,
+    ny,
+    nz,
+    left,
+    right,
+    send_a5_left,
+    send_a5_right,
+    recv_a5_left,
+    recv_a5_right,
+  ) = domain
 
   # Read slice into contiguous array
   for i in 1:nbx
-    xsliceleft_send[i, :, :, :, :] = field[i, :, :, :, :]
-    xsliceright_send[i, :, :, :, :] = field[nx - nbx + i, :, :, :, :]
+    send_a5_left[i, :, :, :, :] = field[i, :, :, :, :]
+    send_a5_right[i, :, :, :, :] = field[nx - nbx + i, :, :, :, :]
   end
 
   # left -> right
@@ -153,8 +158,8 @@ function set_zonal_halos_of_field!(
   tag = 100
 
   MPI.Sendrecv!(
-    xsliceright_send,
-    xsliceleft_recv,
+    send_a5_right,
+    recv_a5_left,
     comm;
     dest = dest,
     sendtag = tag,
@@ -167,8 +172,8 @@ function set_zonal_halos_of_field!(
   tag = 100
 
   MPI.Sendrecv!(
-    xsliceleft_send,
-    xsliceright_recv,
+    send_a5_left,
+    recv_a5_right,
     comm;
     dest = dest,
     sendtag = tag,
@@ -177,8 +182,8 @@ function set_zonal_halos_of_field!(
 
   # write auxiliary slice to var field
   for i in 1:nbx
-    field[nx + i, :, :, :, :] = xsliceright_recv[i, :, :, :, :]
-    field[-nbx + i, :, :, :, :] = xsliceleft_recv[i, :, :, :, :]
+    field[nx + i, :, :, :, :] = recv_a5_right[i, :, :, :, :]
+    field[-nbx + i, :, :, :, :] = recv_a5_left[i, :, :, :, :]
   end
 
   return
