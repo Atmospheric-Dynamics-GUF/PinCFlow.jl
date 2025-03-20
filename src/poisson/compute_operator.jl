@@ -41,731 +41,693 @@ function compute_operator!(
   (; rho) = state.variables.predictands
 
   # Compute tensor elements for TFC.
-  for k in 1:nz
-    for j in 1:ny
-      for i in 1:nx
-        # Compute scaling factors.
-        fcscal = sqrt(pstrattfc[i, j, k]^2.0 / rhostrattfc[i, j, k])
-        fcscal_r = sqrt(pstrattfc[i + 1, j, k]^2.0 / rhostrattfc[i + 1, j, k])
-        fcscal_l = sqrt(pstrattfc[i - 1, j, k]^2.0 / rhostrattfc[i - 1, j, k])
-        fcscal_f = sqrt(pstrattfc[i, j + 1, k]^2.0 / rhostrattfc[i, j + 1, k])
-        fcscal_b = sqrt(pstrattfc[i, j - 1, k]^2.0 / rhostrattfc[i, j - 1, k])
-        fcscal_u = sqrt(pstrattfc[i, j, k + 1]^2.0 / rhostrattfc[i, j, k + 1])
-        fcscal_d = sqrt(pstrattfc[i, j, k - 1]^2.0 / rhostrattfc[i, j, k - 1])
-        fcscal_ru =
-          sqrt(pstrattfc[i + 1, j, k + 1]^2.0 / rhostrattfc[i + 1, j, k + 1])
-        fcscal_rd =
-          sqrt(pstrattfc[i + 1, j, k - 1]^2.0 / rhostrattfc[i + 1, j, k - 1])
-        fcscal_lu =
-          sqrt(pstrattfc[i - 1, j, k + 1]^2.0 / rhostrattfc[i - 1, j, k + 1])
-        fcscal_ld =
-          sqrt(pstrattfc[i - 1, j, k - 1]^2.0 / rhostrattfc[i - 1, j, k - 1])
-        fcscal_fu =
-          sqrt(pstrattfc[i, j + 1, k + 1]^2.0 / rhostrattfc[i, j + 1, k + 1])
-        fcscal_fd =
-          sqrt(pstrattfc[i, j + 1, k - 1]^2.0 / rhostrattfc[i, j + 1, k - 1])
-        fcscal_bu =
-          sqrt(pstrattfc[i, j - 1, k + 1]^2.0 / rhostrattfc[i, j - 1, k + 1])
-        fcscal_bd =
-          sqrt(pstrattfc[i, j - 1, k - 1]^2.0 / rhostrattfc[i, j - 1, k - 1])
-        fcscal_uu = sqrt(pstrattfc[i, j, k + 2]^2.0 / rhostrattfc[i, j, k + 2])
-        fcscal_dd = sqrt(pstrattfc[i, j, k - 2]^2.0 / rhostrattfc[i, j, k - 2])
-        fcscal_ruu =
-          sqrt(pstrattfc[i + 1, j, k + 2]^2.0 / rhostrattfc[i + 1, j, k + 2])
-        fcscal_rdd =
-          sqrt(pstrattfc[i + 1, j, k - 2]^2.0 / rhostrattfc[i + 1, j, k - 2])
-        fcscal_luu =
-          sqrt(pstrattfc[i - 1, j, k + 2]^2.0 / rhostrattfc[i - 1, j, k + 2])
-        fcscal_ldd =
-          sqrt(pstrattfc[i - 1, j, k - 2]^2.0 / rhostrattfc[i - 1, j, k - 2])
-        fcscal_fuu =
-          sqrt(pstrattfc[i, j + 1, k + 2]^2.0 / rhostrattfc[i, j + 1, k + 2])
-        fcscal_fdd =
-          sqrt(pstrattfc[i, j + 1, k - 2]^2.0 / rhostrattfc[i, j + 1, k - 2])
-        fcscal_buu =
-          sqrt(pstrattfc[i, j - 1, k + 2]^2.0 / rhostrattfc[i, j - 1, k + 2])
-        fcscal_bdd =
-          sqrt(pstrattfc[i, j - 1, k - 2]^2.0 / rhostrattfc[i, j - 1, k - 2])
+  @inbounds for k in 1:nz, j in 1:ny, i in 1:nx
+    # Compute scaling factors.
+    fcscal = sqrt(pstrattfc[i, j, k]^2.0 / rhostrattfc[i, j, k])
+    fcscal_r = sqrt(pstrattfc[i + 1, j, k]^2.0 / rhostrattfc[i + 1, j, k])
+    fcscal_l = sqrt(pstrattfc[i - 1, j, k]^2.0 / rhostrattfc[i - 1, j, k])
+    fcscal_f = sqrt(pstrattfc[i, j + 1, k]^2.0 / rhostrattfc[i, j + 1, k])
+    fcscal_b = sqrt(pstrattfc[i, j - 1, k]^2.0 / rhostrattfc[i, j - 1, k])
+    fcscal_u = sqrt(pstrattfc[i, j, k + 1]^2.0 / rhostrattfc[i, j, k + 1])
+    fcscal_d = sqrt(pstrattfc[i, j, k - 1]^2.0 / rhostrattfc[i, j, k - 1])
+    fcscal_ru =
+      sqrt(pstrattfc[i + 1, j, k + 1]^2.0 / rhostrattfc[i + 1, j, k + 1])
+    fcscal_rd =
+      sqrt(pstrattfc[i + 1, j, k - 1]^2.0 / rhostrattfc[i + 1, j, k - 1])
+    fcscal_lu =
+      sqrt(pstrattfc[i - 1, j, k + 1]^2.0 / rhostrattfc[i - 1, j, k + 1])
+    fcscal_ld =
+      sqrt(pstrattfc[i - 1, j, k - 1]^2.0 / rhostrattfc[i - 1, j, k - 1])
+    fcscal_fu =
+      sqrt(pstrattfc[i, j + 1, k + 1]^2.0 / rhostrattfc[i, j + 1, k + 1])
+    fcscal_fd =
+      sqrt(pstrattfc[i, j + 1, k - 1]^2.0 / rhostrattfc[i, j + 1, k - 1])
+    fcscal_bu =
+      sqrt(pstrattfc[i, j - 1, k + 1]^2.0 / rhostrattfc[i, j - 1, k + 1])
+    fcscal_bd =
+      sqrt(pstrattfc[i, j - 1, k - 1]^2.0 / rhostrattfc[i, j - 1, k - 1])
+    fcscal_uu = sqrt(pstrattfc[i, j, k + 2]^2.0 / rhostrattfc[i, j, k + 2])
+    fcscal_dd = sqrt(pstrattfc[i, j, k - 2]^2.0 / rhostrattfc[i, j, k - 2])
+    fcscal_ruu =
+      sqrt(pstrattfc[i + 1, j, k + 2]^2.0 / rhostrattfc[i + 1, j, k + 2])
+    fcscal_rdd =
+      sqrt(pstrattfc[i + 1, j, k - 2]^2.0 / rhostrattfc[i + 1, j, k - 2])
+    fcscal_luu =
+      sqrt(pstrattfc[i - 1, j, k + 2]^2.0 / rhostrattfc[i - 1, j, k + 2])
+    fcscal_ldd =
+      sqrt(pstrattfc[i - 1, j, k - 2]^2.0 / rhostrattfc[i - 1, j, k - 2])
+    fcscal_fuu =
+      sqrt(pstrattfc[i, j + 1, k + 2]^2.0 / rhostrattfc[i, j + 1, k + 2])
+    fcscal_fdd =
+      sqrt(pstrattfc[i, j + 1, k - 2]^2.0 / rhostrattfc[i, j + 1, k - 2])
+    fcscal_buu =
+      sqrt(pstrattfc[i, j - 1, k + 2]^2.0 / rhostrattfc[i, j - 1, k + 2])
+    fcscal_bdd =
+      sqrt(pstrattfc[i, j - 1, k - 2]^2.0 / rhostrattfc[i, j - 1, k - 2])
 
-        # Compute inverse Jacobian.
-        jacinv = 1.0 / jac[i, j, k]
+    # Compute inverse Jacobian.
+    jacinv = 1.0 / jac[i, j, k]
 
-        # Compute P coefficients (divergence).
-        pedgerdiv =
-          0.5 * (
-            jac[i, j, k] * pstrattfc[i, j, k] +
-            jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
-          )
-        pedgeldiv =
-          0.5 * (
-            jac[i, j, k] * pstrattfc[i, j, k] +
-            jac[i - 1, j, k] * pstrattfc[i - 1, j, k]
-          )
-        pedgefdiv =
-          0.5 * (
-            jac[i, j, k] * pstrattfc[i, j, k] +
-            jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
-          )
-        pedgebdiv =
-          0.5 * (
-            jac[i, j, k] * pstrattfc[i, j, k] +
-            jac[i, j - 1, k] * pstrattfc[i, j - 1, k]
-          )
-        pedgeudiv =
-          jac[i, j, k] *
-          jac[i, j, k + 1] *
-          (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
-          (jac[i, j, k] + jac[i, j, k + 1])
-        pedgeddiv =
-          jac[i, j, k] *
-          jac[i, j, k - 1] *
-          (pstrattfc[i, j, k] + pstrattfc[i, j, k - 1]) /
-          (jac[i, j, k] + jac[i, j, k - 1])
+    # Compute P coefficients (divergence).
+    pedgerdiv =
+      0.5 * (
+        jac[i, j, k] * pstrattfc[i, j, k] +
+        jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
+      )
+    pedgeldiv =
+      0.5 * (
+        jac[i, j, k] * pstrattfc[i, j, k] +
+        jac[i - 1, j, k] * pstrattfc[i - 1, j, k]
+      )
+    pedgefdiv =
+      0.5 * (
+        jac[i, j, k] * pstrattfc[i, j, k] +
+        jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
+      )
+    pedgebdiv =
+      0.5 * (
+        jac[i, j, k] * pstrattfc[i, j, k] +
+        jac[i, j - 1, k] * pstrattfc[i, j - 1, k]
+      )
+    pedgeudiv =
+      jac[i, j, k] *
+      jac[i, j, k + 1] *
+      (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
+      (jac[i, j, k] + jac[i, j, k + 1])
+    pedgeddiv =
+      jac[i, j, k] *
+      jac[i, j, k - 1] *
+      (pstrattfc[i, j, k] + pstrattfc[i, j, k - 1]) /
+      (jac[i, j, k] + jac[i, j, k - 1])
 
-        # Compute P coefficients (pressure gradient).
-        pedgergra = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i + 1, j, k])
-        pedgelgra = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i - 1, j, k])
-        pedgefgra = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j + 1, k])
-        pedgebgra = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j - 1, k])
-        pedgeugra =
-          (
-            jac[i, j, k + 1] * pstrattfc[i, j, k] +
-            jac[i, j, k] * pstrattfc[i, j, k + 1]
-          ) / (jac[i, j, k] + jac[i, j, k + 1])
-        pedgedgra =
-          (
-            jac[i, j, k - 1] * pstrattfc[i, j, k] +
-            jac[i, j, k] * pstrattfc[i, j, k - 1]
-          ) / (jac[i, j, k] + jac[i, j, k - 1])
+    # Compute P coefficients (pressure gradient).
+    pedgergra = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i + 1, j, k])
+    pedgelgra = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i - 1, j, k])
+    pedgefgra = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j + 1, k])
+    pedgebgra = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j - 1, k])
+    pedgeugra =
+      (
+        jac[i, j, k + 1] * pstrattfc[i, j, k] +
+        jac[i, j, k] * pstrattfc[i, j, k + 1]
+      ) / (jac[i, j, k] + jac[i, j, k + 1])
+    pedgedgra =
+      (
+        jac[i, j, k - 1] * pstrattfc[i, j, k] +
+        jac[i, j, k] * pstrattfc[i, j, k - 1]
+      ) / (jac[i, j, k] + jac[i, j, k - 1])
 
-        # Compute density coefficients.
-        rhoedger =
-          0.5 * (
-            rho[i, j, k] +
-            rho[i + 1, j, k] +
-            rhostrattfc[i, j, k] +
-            rhostrattfc[i + 1, j, k]
-          )
-        rhoedgel =
-          0.5 * (
-            rho[i, j, k] +
-            rho[i - 1, j, k] +
-            rhostrattfc[i, j, k] +
-            rhostrattfc[i - 1, j, k]
-          )
-        rhoedgef =
-          0.5 * (
-            rho[i, j, k] +
-            rho[i, j + 1, k] +
-            rhostrattfc[i, j, k] +
-            rhostrattfc[i, j + 1, k]
-          )
-        rhoedgeb =
-          0.5 * (
-            rho[i, j, k] +
-            rho[i, j - 1, k] +
-            rhostrattfc[i, j, k] +
-            rhostrattfc[i, j - 1, k]
-          )
-        rhoedgeu =
-          (
-            jac[i, j, k + 1] * (rho[i, j, k] + rhostrattfc[i, j, k]) +
-            jac[i, j, k] * (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1])
-          ) / (jac[i, j, k] + jac[i, j, k + 1])
-        rhoedged =
-          (
-            jac[i, j, k - 1] * (rho[i, j, k] + rhostrattfc[i, j, k]) +
-            jac[i, j, k] * (rho[i, j, k - 1] + rhostrattfc[i, j, k - 1])
-          ) / (jac[i, j, k] + jac[i, j, k - 1])
+    # Compute density coefficients.
+    rhoedger =
+      0.5 * (
+        rho[i, j, k] +
+        rho[i + 1, j, k] +
+        rhostrattfc[i, j, k] +
+        rhostrattfc[i + 1, j, k]
+      )
+    rhoedgel =
+      0.5 * (
+        rho[i, j, k] +
+        rho[i - 1, j, k] +
+        rhostrattfc[i, j, k] +
+        rhostrattfc[i - 1, j, k]
+      )
+    rhoedgef =
+      0.5 * (
+        rho[i, j, k] +
+        rho[i, j + 1, k] +
+        rhostrattfc[i, j, k] +
+        rhostrattfc[i, j + 1, k]
+      )
+    rhoedgeb =
+      0.5 * (
+        rho[i, j, k] +
+        rho[i, j - 1, k] +
+        rhostrattfc[i, j, k] +
+        rhostrattfc[i, j - 1, k]
+      )
+    rhoedgeu =
+      (
+        jac[i, j, k + 1] * (rho[i, j, k] + rhostrattfc[i, j, k]) +
+        jac[i, j, k] * (rho[i, j, k + 1] + rhostrattfc[i, j, k + 1])
+      ) / (jac[i, j, k] + jac[i, j, k + 1])
+    rhoedged =
+      (
+        jac[i, j, k - 1] * (rho[i, j, k] + rhostrattfc[i, j, k]) +
+        jac[i, j, k] * (rho[i, j, k - 1] + rhostrattfc[i, j, k - 1])
+      ) / (jac[i, j, k] + jac[i, j, k - 1])
 
-        # Interpolate metric-tensor elements.
-        met13edger = 0.5 * (met[i, j, k, 1, 3] + met[i + 1, j, k, 1, 3])
-        met13edgel = 0.5 * (met[i, j, k, 1, 3] + met[i - 1, j, k, 1, 3])
-        met23edgef = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
-        met23edgeb = 0.5 * (met[i, j, k, 2, 3] + met[i, j - 1, k, 2, 3])
-        met13edgeu =
-          (
-            jac[i, j, k + 1] * met[i, j, k, 1, 3] +
-            jac[i, j, k] * met[i, j, k + 1, 1, 3]
-          ) / (jac[i, j, k] + jac[i, j, k + 1])
-        met23edgeu =
-          (
-            jac[i, j, k + 1] * met[i, j, k, 2, 3] +
-            jac[i, j, k] * met[i, j, k + 1, 2, 3]
-          ) / (jac[i, j, k] + jac[i, j, k + 1])
-        met33edgeu =
-          (
-            jac[i, j, k + 1] * met[i, j, k, 3, 3] +
-            jac[i, j, k] * met[i, j, k + 1, 3, 3]
-          ) / (jac[i, j, k] + jac[i, j, k + 1])
-        met13edged =
-          (
-            jac[i, j, k - 1] * met[i, j, k, 1, 3] +
-            jac[i, j, k] * met[i, j, k - 1, 1, 3]
-          ) / (jac[i, j, k] + jac[i, j, k - 1])
-        met23edged =
-          (
-            jac[i, j, k - 1] * met[i, j, k, 2, 3] +
-            jac[i, j, k] * met[i, j, k - 1, 2, 3]
-          ) / (jac[i, j, k] + jac[i, j, k - 1])
-        met33edged =
-          (
-            jac[i, j, k - 1] * met[i, j, k, 3, 3] +
-            jac[i, j, k] * met[i, j, k - 1, 3, 3]
-          ) / (jac[i, j, k] + jac[i, j, k - 1])
+    # Interpolate metric-tensor elements.
+    met13edger = 0.5 * (met[i, j, k, 1, 3] + met[i + 1, j, k, 1, 3])
+    met13edgel = 0.5 * (met[i, j, k, 1, 3] + met[i - 1, j, k, 1, 3])
+    met23edgef = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
+    met23edgeb = 0.5 * (met[i, j, k, 2, 3] + met[i, j - 1, k, 2, 3])
+    met13edgeu =
+      (
+        jac[i, j, k + 1] * met[i, j, k, 1, 3] +
+        jac[i, j, k] * met[i, j, k + 1, 1, 3]
+      ) / (jac[i, j, k] + jac[i, j, k + 1])
+    met23edgeu =
+      (
+        jac[i, j, k + 1] * met[i, j, k, 2, 3] +
+        jac[i, j, k] * met[i, j, k + 1, 2, 3]
+      ) / (jac[i, j, k] + jac[i, j, k + 1])
+    met33edgeu =
+      (
+        jac[i, j, k + 1] * met[i, j, k, 3, 3] +
+        jac[i, j, k] * met[i, j, k + 1, 3, 3]
+      ) / (jac[i, j, k] + jac[i, j, k + 1])
+    met13edged =
+      (
+        jac[i, j, k - 1] * met[i, j, k, 1, 3] +
+        jac[i, j, k] * met[i, j, k - 1, 1, 3]
+      ) / (jac[i, j, k] + jac[i, j, k - 1])
+    met23edged =
+      (
+        jac[i, j, k - 1] * met[i, j, k, 2, 3] +
+        jac[i, j, k] * met[i, j, k - 1, 2, 3]
+      ) / (jac[i, j, k] + jac[i, j, k - 1])
+    met33edged =
+      (
+        jac[i, j, k - 1] * met[i, j, k, 3, 3] +
+        jac[i, j, k] * met[i, j, k - 1, 3, 3]
+      ) / (jac[i, j, k] + jac[i, j, k - 1])
 
-        # --------------------- A(i,j,k) ---------------------
+    # --------------------- A(i,j,k) ---------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          ac =
-            -jacinv / dx * (
-              pedgerdiv / rhoedger *
-              pedgergra *
-              (1.0 / dx + 0.75 * met13edger / dz) +
-              pedgeldiv / rhoedgel *
-              pedgelgra *
-              (1.0 / dx - 0.75 * met13edgel / dz)
-            ) -
-            jacinv / dy * (
-              pedgefdiv / rhoedgef *
-              pedgefgra *
-              (1.0 / dy + 0.75 * met23edgef / dz) +
-              pedgebdiv / rhoedgeb *
-              pedgebgra *
-              (1.0 / dy - 0.75 * met23edgeb / dz)
-            ) - jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met33edgeu / dz
-        elseif k == nz && zboundaries == SolidWallBoundaries()
-          ac =
-            -jacinv / dx * (
-              pedgerdiv / rhoedger *
-              pedgergra *
-              (1.0 / dx - 0.75 * met13edger / dz) +
-              pedgeldiv / rhoedgel *
-              pedgelgra *
-              (1.0 / dx + 0.75 * met13edgel / dz)
-            ) -
-            jacinv / dy * (
-              pedgefdiv / rhoedgef *
-              pedgefgra *
-              (1.0 / dy - 0.75 * met23edgef / dz) +
-              pedgebdiv / rhoedgeb *
-              pedgebgra *
-              (1.0 / dy + 0.75 * met23edgeb / dz)
-            ) - jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met33edged / dz
-        else
-          ac =
-            -jacinv / dx * (
-              pedgerdiv / rhoedger * pedgergra / dx +
-              pedgeldiv / rhoedgel * pedgelgra / dx
-            ) -
-            jacinv / dy * (
-              pedgefdiv / rhoedgef * pedgefgra / dy +
-              pedgebdiv / rhoedgeb * pedgebgra / dy
-            ) -
-            jacinv / dz * (
-              pedgeudiv / rhoedgeu * pedgeugra * met33edgeu / dz +
-              pedgeddiv / rhoedged * pedgedgra * met33edged / dz
-            )
-        end
-        # -------------------- A(i+1,j,k) --------------------
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      ac =
+        -jacinv / dx * (
+          pedgerdiv / rhoedger *
+          pedgergra *
+          (1.0 / dx + 0.75 * met13edger / dz) +
+          pedgeldiv / rhoedgel *
+          pedgelgra *
+          (1.0 / dx - 0.75 * met13edgel / dz)
+        ) -
+        jacinv / dy * (
+          pedgefdiv / rhoedgef *
+          pedgefgra *
+          (1.0 / dy + 0.75 * met23edgef / dz) +
+          pedgebdiv / rhoedgeb *
+          pedgebgra *
+          (1.0 / dy - 0.75 * met23edgeb / dz)
+        ) - jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met33edgeu / dz
+    elseif k == nz && zboundaries == SolidWallBoundaries()
+      ac =
+        -jacinv / dx * (
+          pedgerdiv / rhoedger *
+          pedgergra *
+          (1.0 / dx - 0.75 * met13edger / dz) +
+          pedgeldiv / rhoedgel *
+          pedgelgra *
+          (1.0 / dx + 0.75 * met13edgel / dz)
+        ) -
+        jacinv / dy * (
+          pedgefdiv / rhoedgef *
+          pedgefgra *
+          (1.0 / dy - 0.75 * met23edgef / dz) +
+          pedgebdiv / rhoedgeb *
+          pedgebgra *
+          (1.0 / dy + 0.75 * met23edgeb / dz)
+        ) - jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met33edged / dz
+    else
+      ac =
+        -jacinv / dx * (
+          pedgerdiv / rhoedger * pedgergra / dx +
+          pedgeldiv / rhoedgel * pedgelgra / dx
+        ) -
+        jacinv / dy * (
+          pedgefdiv / rhoedgef * pedgefgra / dy +
+          pedgebdiv / rhoedgeb * pedgebgra / dy
+        ) -
+        jacinv / dz * (
+          pedgeudiv / rhoedgeu * pedgeugra * met33edgeu / dz +
+          pedgeddiv / rhoedged * pedgedgra * met33edged / dz
+        )
+    end
+    # -------------------- A(i+1,j,k) --------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          ar =
-            jacinv / dx * pedgerdiv / rhoedger *
-            pedgergra *
-            (1.0 / dx - 0.75 * met13edger / dz) +
-            jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * 0.5 * met13edgeu /
-            dx * jac[i + 1, j, k + 1] /
-            (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
-        elseif k == nz && zboundaries == SolidWallBoundaries()
-          ar =
-            jacinv / dx * pedgerdiv / rhoedger *
-            pedgergra *
-            (1.0 / dx + 0.75 * met13edger / dz) -
-            jacinv / dz * pedgeddiv / rhoedged * pedgedgra * 0.5 * met13edged /
-            dx * jac[i + 1, j, k - 1] /
-            (jac[i + 1, j, k] + jac[i + 1, j, k - 1])
-        else
-          ar =
-            jacinv / dx * pedgerdiv / rhoedger * pedgergra / dx +
-            jacinv / dz * (
-              pedgeudiv / rhoedgeu * pedgeugra * met13edgeu * 0.5 / dx *
-              jac[i + 1, j, k + 1] / (jac[i + 1, j, k] + jac[i + 1, j, k + 1]) -
-              pedgeddiv / rhoedged * pedgedgra * met13edged * 0.5 / dx *
-              jac[i + 1, j, k - 1] / (jac[i + 1, j, k] + jac[i + 1, j, k - 1])
-            )
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      ar =
+        jacinv / dx * pedgerdiv / rhoedger *
+        pedgergra *
+        (1.0 / dx - 0.75 * met13edger / dz) +
+        jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * 0.5 * met13edgeu / dx *
+        jac[i + 1, j, k + 1] / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
+    elseif k == nz && zboundaries == SolidWallBoundaries()
+      ar =
+        jacinv / dx * pedgerdiv / rhoedger *
+        pedgergra *
+        (1.0 / dx + 0.75 * met13edger / dz) -
+        jacinv / dz * pedgeddiv / rhoedged * pedgedgra * 0.5 * met13edged / dx *
+        jac[i + 1, j, k - 1] / (jac[i + 1, j, k] + jac[i + 1, j, k - 1])
+    else
+      ar =
+        jacinv / dx * pedgerdiv / rhoedger * pedgergra / dx +
+        jacinv / dz * (
+          pedgeudiv / rhoedgeu * pedgeugra * met13edgeu * 0.5 / dx *
+          jac[i + 1, j, k + 1] / (jac[i + 1, j, k] + jac[i + 1, j, k + 1]) -
+          pedgeddiv / rhoedged * pedgedgra * met13edged * 0.5 / dx *
+          jac[i + 1, j, k - 1] / (jac[i + 1, j, k] + jac[i + 1, j, k - 1])
+        )
+    end
 
-        # -------------------- A(i-1,j,k) --------------------
+    # -------------------- A(i-1,j,k) --------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          al =
-            jacinv / dx * pedgeldiv / rhoedgel *
-            pedgelgra *
-            (1.0 / dx + 0.75 * met13edgel / dz) -
-            jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * 0.5 * met13edgeu /
-            dx * jac[i - 1, j, k + 1] /
-            (jac[i - 1, j, k] + jac[i - 1, j, k + 1])
-        elseif k == nz && zboundaries == SolidWallBoundaries()
-          al =
-            jacinv / dx * pedgeldiv / rhoedgel *
-            pedgelgra *
-            (1.0 / dx - 0.75 * met13edgel / dz) +
-            jacinv / dz * pedgeddiv / rhoedged * pedgedgra * 0.5 * met13edged /
-            dx * jac[i - 1, j, k - 1] /
-            (jac[i - 1, j, k] + jac[i - 1, j, k - 1])
-        else
-          al =
-            jacinv / dx * pedgeldiv / rhoedgel * pedgelgra / dx -
-            jacinv / dz * (
-              pedgeudiv / rhoedgeu * pedgeugra * met13edgeu * 0.5 / dx *
-              jac[i - 1, j, k + 1] / (jac[i - 1, j, k] + jac[i - 1, j, k + 1]) -
-              pedgeddiv / rhoedged * pedgedgra * met13edged * 0.5 / dx *
-              jac[i - 1, j, k - 1] / (jac[i - 1, j, k] + jac[i - 1, j, k - 1])
-            )
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      al =
+        jacinv / dx * pedgeldiv / rhoedgel *
+        pedgelgra *
+        (1.0 / dx + 0.75 * met13edgel / dz) -
+        jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * 0.5 * met13edgeu / dx *
+        jac[i - 1, j, k + 1] / (jac[i - 1, j, k] + jac[i - 1, j, k + 1])
+    elseif k == nz && zboundaries == SolidWallBoundaries()
+      al =
+        jacinv / dx * pedgeldiv / rhoedgel *
+        pedgelgra *
+        (1.0 / dx - 0.75 * met13edgel / dz) +
+        jacinv / dz * pedgeddiv / rhoedged * pedgedgra * 0.5 * met13edged / dx *
+        jac[i - 1, j, k - 1] / (jac[i - 1, j, k] + jac[i - 1, j, k - 1])
+    else
+      al =
+        jacinv / dx * pedgeldiv / rhoedgel * pedgelgra / dx -
+        jacinv / dz * (
+          pedgeudiv / rhoedgeu * pedgeugra * met13edgeu * 0.5 / dx *
+          jac[i - 1, j, k + 1] / (jac[i - 1, j, k] + jac[i - 1, j, k + 1]) -
+          pedgeddiv / rhoedged * pedgedgra * met13edged * 0.5 / dx *
+          jac[i - 1, j, k - 1] / (jac[i - 1, j, k] + jac[i - 1, j, k - 1])
+        )
+    end
 
-        # -------------------- A(i,j+1,k) --------------------
+    # -------------------- A(i,j+1,k) --------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          af =
-            jacinv / dy * pedgefdiv / rhoedgef *
-            pedgefgra *
-            (1.0 / dy - 0.75 * met23edgef / dz) +
-            jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * 0.5 * met23edgeu /
-            dy * jac[i, j + 1, k + 1] /
-            (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
-        elseif k == nz && zboundaries == SolidWallBoundaries()
-          af =
-            jacinv / dy * pedgefdiv / rhoedgef *
-            pedgefgra *
-            (1.0 / dy + 0.75 * met23edgef / dz) -
-            jacinv / dz * pedgeddiv / rhoedged * pedgedgra * 0.5 * met23edged /
-            dy * jac[i, j + 1, k - 1] /
-            (jac[i, j + 1, k] + jac[i, j + 1, k - 1])
-        else
-          af =
-            jacinv / dy * pedgefdiv / rhoedgef * pedgefgra / dy +
-            jacinv / dz * (
-              pedgeudiv / rhoedgeu * pedgeugra * met23edgeu * 0.5 / dy *
-              jac[i, j + 1, k + 1] / (jac[i, j + 1, k] + jac[i, j + 1, k + 1]) -
-              pedgeddiv / rhoedged * pedgedgra * met23edged * 0.5 / dy *
-              jac[i, j + 1, k - 1] / (jac[i, j + 1, k] + jac[i, j + 1, k - 1])
-            )
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      af =
+        jacinv / dy * pedgefdiv / rhoedgef *
+        pedgefgra *
+        (1.0 / dy - 0.75 * met23edgef / dz) +
+        jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * 0.5 * met23edgeu / dy *
+        jac[i, j + 1, k + 1] / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
+    elseif k == nz && zboundaries == SolidWallBoundaries()
+      af =
+        jacinv / dy * pedgefdiv / rhoedgef *
+        pedgefgra *
+        (1.0 / dy + 0.75 * met23edgef / dz) -
+        jacinv / dz * pedgeddiv / rhoedged * pedgedgra * 0.5 * met23edged / dy *
+        jac[i, j + 1, k - 1] / (jac[i, j + 1, k] + jac[i, j + 1, k - 1])
+    else
+      af =
+        jacinv / dy * pedgefdiv / rhoedgef * pedgefgra / dy +
+        jacinv / dz * (
+          pedgeudiv / rhoedgeu * pedgeugra * met23edgeu * 0.5 / dy *
+          jac[i, j + 1, k + 1] / (jac[i, j + 1, k] + jac[i, j + 1, k + 1]) -
+          pedgeddiv / rhoedged * pedgedgra * met23edged * 0.5 / dy *
+          jac[i, j + 1, k - 1] / (jac[i, j + 1, k] + jac[i, j + 1, k - 1])
+        )
+    end
 
-        # -------------------- A(i,j-1,k) --------------------
+    # -------------------- A(i,j-1,k) --------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          ab =
-            jacinv / dy * pedgebdiv / rhoedgeb *
-            pedgebgra *
-            (1.0 / dy + 0.75 * met23edgeb / dz) -
-            jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * 0.5 * met23edgeu /
-            dy * jac[i, j - 1, k + 1] /
-            (jac[i, j - 1, k] + jac[i, j - 1, k + 1])
-        elseif k == nz && zboundaries == SolidWallBoundaries()
-          ab =
-            jacinv / dy * pedgebdiv / rhoedgeb *
-            pedgebgra *
-            (1.0 / dy - 0.75 * met23edgeb / dz) +
-            jacinv / dz * pedgeddiv / rhoedged * pedgedgra * 0.5 * met23edged /
-            dy * jac[i, j - 1, k - 1] /
-            (jac[i, j - 1, k] + jac[i, j - 1, k - 1])
-        else
-          ab =
-            jacinv / dy * pedgebdiv / rhoedgeb * pedgebgra / dy -
-            jacinv / dz * (
-              pedgeudiv / rhoedgeu * pedgeugra * met23edgeu * 0.5 / dy *
-              jac[i, j - 1, k + 1] / (jac[i, j - 1, k] + jac[i, j - 1, k + 1]) -
-              pedgeddiv / rhoedged * pedgedgra * met23edged * 0.5 / dy *
-              jac[i, j - 1, k - 1] / (jac[i, j - 1, k] + jac[i, j - 1, k - 1])
-            )
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      ab =
+        jacinv / dy * pedgebdiv / rhoedgeb *
+        pedgebgra *
+        (1.0 / dy + 0.75 * met23edgeb / dz) -
+        jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * 0.5 * met23edgeu / dy *
+        jac[i, j - 1, k + 1] / (jac[i, j - 1, k] + jac[i, j - 1, k + 1])
+    elseif k == nz && zboundaries == SolidWallBoundaries()
+      ab =
+        jacinv / dy * pedgebdiv / rhoedgeb *
+        pedgebgra *
+        (1.0 / dy - 0.75 * met23edgeb / dz) +
+        jacinv / dz * pedgeddiv / rhoedged * pedgedgra * 0.5 * met23edged / dy *
+        jac[i, j - 1, k - 1] / (jac[i, j - 1, k] + jac[i, j - 1, k - 1])
+    else
+      ab =
+        jacinv / dy * pedgebdiv / rhoedgeb * pedgebgra / dy -
+        jacinv / dz * (
+          pedgeudiv / rhoedgeu * pedgeugra * met23edgeu * 0.5 / dy *
+          jac[i, j - 1, k + 1] / (jac[i, j - 1, k] + jac[i, j - 1, k + 1]) -
+          pedgeddiv / rhoedged * pedgedgra * met23edged * 0.5 / dy *
+          jac[i, j - 1, k - 1] / (jac[i, j - 1, k] + jac[i, j - 1, k - 1])
+        )
+    end
 
-        # -------------------- A(i,j,k+1) --------------------
+    # -------------------- A(i,j,k+1) --------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          au =
-            jacinv / dx * (
-              pedgerdiv / rhoedger * pedgergra * met13edger / dz -
-              pedgeldiv / rhoedgel * pedgelgra * met13edgel / dz
-            ) +
-            jacinv / dy * (
-              pedgefdiv / rhoedgef * pedgefgra * met23edgef / dz -
-              pedgebdiv / rhoedgeb * pedgebgra * met23edgeb / dz
-            ) +
-            jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met33edgeu / dz
-        elseif k == nz && zboundaries == SolidWallBoundaries()
-          au = 0.0
-        else
-          au =
-            jacinv / dx * (
-              pedgerdiv / rhoedger * pedgergra * met13edger * 0.25 / dz -
-              pedgeldiv / rhoedgel * pedgelgra * met13edgel * 0.25 / dz
-            ) +
-            jacinv / dy * (
-              pedgefdiv / rhoedgef * pedgefgra * met23edgef * 0.25 / dz -
-              pedgebdiv / rhoedgeb * pedgebgra * met23edgeb * 0.25 / dz
-            ) +
-            jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met33edgeu / dz
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      au =
+        jacinv / dx * (
+          pedgerdiv / rhoedger * pedgergra * met13edger / dz -
+          pedgeldiv / rhoedgel * pedgelgra * met13edgel / dz
+        ) +
+        jacinv / dy * (
+          pedgefdiv / rhoedgef * pedgefgra * met23edgef / dz -
+          pedgebdiv / rhoedgeb * pedgebgra * met23edgeb / dz
+        ) +
+        jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met33edgeu / dz
+    elseif k == nz && zboundaries == SolidWallBoundaries()
+      au = 0.0
+    else
+      au =
+        jacinv / dx * (
+          pedgerdiv / rhoedger * pedgergra * met13edger * 0.25 / dz -
+          pedgeldiv / rhoedgel * pedgelgra * met13edgel * 0.25 / dz
+        ) +
+        jacinv / dy * (
+          pedgefdiv / rhoedgef * pedgefgra * met23edgef * 0.25 / dz -
+          pedgebdiv / rhoedgeb * pedgebgra * met23edgeb * 0.25 / dz
+        ) +
+        jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met33edgeu / dz
+    end
 
-        # -------------------- A(i,j,k-1) --------------------
+    # -------------------- A(i,j,k-1) --------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          ad = 0.0
-        elseif k == nz && zboundaries == SolidWallBoundaries()
-          ad =
-            -jacinv / dx * (
-              pedgerdiv / rhoedger * pedgergra * met13edger / dz -
-              pedgeldiv / rhoedgel * pedgelgra * met13edgel / dz
-            ) -
-            jacinv / dy * (
-              pedgefdiv / rhoedgef * pedgefgra * met23edgef / dz -
-              pedgebdiv / rhoedgeb * pedgebgra * met23edgeb / dz
-            ) + jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met33edged / dz
-        else
-          ad =
-            -jacinv / dx * (
-              pedgerdiv / rhoedger * pedgergra * met13edger * 0.25 / dz -
-              pedgeldiv / rhoedgel * pedgelgra * met13edgel * 0.25 / dz
-            ) -
-            jacinv / dy * (
-              pedgefdiv / rhoedgef * pedgefgra * met23edgef * 0.25 / dz -
-              pedgebdiv / rhoedgeb * pedgebgra * met23edgeb * 0.25 / dz
-            ) + jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met33edged / dz
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      ad = 0.0
+    elseif k == nz && zboundaries == SolidWallBoundaries()
+      ad =
+        -jacinv / dx * (
+          pedgerdiv / rhoedger * pedgergra * met13edger / dz -
+          pedgeldiv / rhoedgel * pedgelgra * met13edgel / dz
+        ) -
+        jacinv / dy * (
+          pedgefdiv / rhoedgef * pedgefgra * met23edgef / dz -
+          pedgebdiv / rhoedgeb * pedgebgra * met23edgeb / dz
+        ) + jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met33edged / dz
+    else
+      ad =
+        -jacinv / dx * (
+          pedgerdiv / rhoedger * pedgergra * met13edger * 0.25 / dz -
+          pedgeldiv / rhoedgel * pedgelgra * met13edgel * 0.25 / dz
+        ) -
+        jacinv / dy * (
+          pedgefdiv / rhoedgef * pedgefgra * met23edgef * 0.25 / dz -
+          pedgebdiv / rhoedgeb * pedgebgra * met23edgeb * 0.25 / dz
+        ) + jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met33edged / dz
+    end
 
-        # ------------------- A(i+1,j,k+1) -------------------
+    # ------------------- A(i+1,j,k+1) -------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          aru =
-            jacinv / dx * pedgerdiv / rhoedger * pedgergra * met13edger / dz +
-            jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met13edgeu * 0.5 /
-            dx * jac[i + 1, j, k] / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
-        elseif k == nz && zboundaries == SolidWallBoundaries()
-          aru = 0.0
-        else
-          aru =
-            jacinv / dx * pedgerdiv / rhoedger * pedgergra * met13edger * 0.25 /
-            dz +
-            jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met13edgeu * 0.5 /
-            dx * jac[i + 1, j, k] / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      aru =
+        jacinv / dx * pedgerdiv / rhoedger * pedgergra * met13edger / dz +
+        jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met13edgeu * 0.5 / dx *
+        jac[i + 1, j, k] / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
+    elseif k == nz && zboundaries == SolidWallBoundaries()
+      aru = 0.0
+    else
+      aru =
+        jacinv / dx * pedgerdiv / rhoedger * pedgergra * met13edger * 0.25 /
+        dz +
+        jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met13edgeu * 0.5 / dx *
+        jac[i + 1, j, k] / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
+    end
 
-        # ------------------- A(i+1,j,k-1) -------------------
+    # ------------------- A(i+1,j,k-1) -------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          ard = 0.0
-        elseif k == nz && zboundaries == SolidWallBoundaries()
-          ard =
-            -jacinv / dx * pedgerdiv / rhoedger * pedgergra * met13edger / dz -
-            jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met13edged * 0.5 /
-            dx * jac[i + 1, j, k] / (jac[i + 1, j, k] + jac[i + 1, j, k - 1])
-        else
-          ard =
-            -jacinv / dx * pedgerdiv / rhoedger *
-            pedgergra *
-            met13edger *
-            0.25 / dz -
-            jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met13edged * 0.5 /
-            dx * jac[i + 1, j, k] / (jac[i + 1, j, k] + jac[i + 1, j, k - 1])
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      ard = 0.0
+    elseif k == nz && zboundaries == SolidWallBoundaries()
+      ard =
+        -jacinv / dx * pedgerdiv / rhoedger * pedgergra * met13edger / dz -
+        jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met13edged * 0.5 / dx *
+        jac[i + 1, j, k] / (jac[i + 1, j, k] + jac[i + 1, j, k - 1])
+    else
+      ard =
+        -jacinv / dx * pedgerdiv / rhoedger * pedgergra * met13edger * 0.25 /
+        dz -
+        jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met13edged * 0.5 / dx *
+        jac[i + 1, j, k] / (jac[i + 1, j, k] + jac[i + 1, j, k - 1])
+    end
 
-        # ------------------- A(i-1,j,k+1) -------------------
+    # ------------------- A(i-1,j,k+1) -------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          alu =
-            -jacinv / dx * pedgeldiv / rhoedgel * pedgelgra * met13edgel / dz -
-            jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met13edgeu * 0.5 /
-            dx * jac[i - 1, j, k] / (jac[i - 1, j, k] + jac[i - 1, j, k + 1])
-        elseif k == nz && zboundaries == SolidWallBoundaries()
-          alu = 0.0
-        else
-          alu =
-            -jacinv / dx * pedgeldiv / rhoedgel *
-            pedgelgra *
-            met13edgel *
-            0.25 / dz -
-            jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met13edgeu * 0.5 /
-            dx * jac[i - 1, j, k] / (jac[i - 1, j, k] + jac[i - 1, j, k + 1])
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      alu =
+        -jacinv / dx * pedgeldiv / rhoedgel * pedgelgra * met13edgel / dz -
+        jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met13edgeu * 0.5 / dx *
+        jac[i - 1, j, k] / (jac[i - 1, j, k] + jac[i - 1, j, k + 1])
+    elseif k == nz && zboundaries == SolidWallBoundaries()
+      alu = 0.0
+    else
+      alu =
+        -jacinv / dx * pedgeldiv / rhoedgel * pedgelgra * met13edgel * 0.25 /
+        dz -
+        jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met13edgeu * 0.5 / dx *
+        jac[i - 1, j, k] / (jac[i - 1, j, k] + jac[i - 1, j, k + 1])
+    end
 
-        # ------------------- A(i-1,j,k-1) -------------------
+    # ------------------- A(i-1,j,k-1) -------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          ald = 0.0
-        elseif k == nz && zboundaries == SolidWallBoundaries()
-          ald =
-            jacinv / dx * pedgeldiv / rhoedgel * pedgelgra * met13edgel / dz +
-            jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met13edged * 0.5 /
-            dx * jac[i - 1, j, k] / (jac[i - 1, j, k] + jac[i - 1, j, k - 1])
-        else
-          ald =
-            jacinv / dx * pedgeldiv / rhoedgel * pedgelgra * met13edgel * 0.25 /
-            dz +
-            jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met13edged * 0.5 /
-            dx * jac[i - 1, j, k] / (jac[i - 1, j, k] + jac[i - 1, j, k - 1])
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      ald = 0.0
+    elseif k == nz && zboundaries == SolidWallBoundaries()
+      ald =
+        jacinv / dx * pedgeldiv / rhoedgel * pedgelgra * met13edgel / dz +
+        jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met13edged * 0.5 / dx *
+        jac[i - 1, j, k] / (jac[i - 1, j, k] + jac[i - 1, j, k - 1])
+    else
+      ald =
+        jacinv / dx * pedgeldiv / rhoedgel * pedgelgra * met13edgel * 0.25 /
+        dz +
+        jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met13edged * 0.5 / dx *
+        jac[i - 1, j, k] / (jac[i - 1, j, k] + jac[i - 1, j, k - 1])
+    end
 
-        # ------------------- A(i,j+1,k+1) -------------------
+    # ------------------- A(i,j+1,k+1) -------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          afu =
-            jacinv / dy * pedgefdiv / rhoedgef * pedgefgra * met23edgef / dz +
-            jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met23edgeu * 0.5 /
-            dy * jac[i, j + 1, k] / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
-        elseif k == nz && zboundaries == SolidWallBoundaries()
-          afu = 0.0
-        else
-          afu =
-            jacinv / dy * pedgefdiv / rhoedgef * pedgefgra * met23edgef * 0.25 /
-            dz +
-            jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met23edgeu * 0.5 /
-            dy * jac[i, j + 1, k] / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      afu =
+        jacinv / dy * pedgefdiv / rhoedgef * pedgefgra * met23edgef / dz +
+        jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met23edgeu * 0.5 / dy *
+        jac[i, j + 1, k] / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
+    elseif k == nz && zboundaries == SolidWallBoundaries()
+      afu = 0.0
+    else
+      afu =
+        jacinv / dy * pedgefdiv / rhoedgef * pedgefgra * met23edgef * 0.25 /
+        dz +
+        jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met23edgeu * 0.5 / dy *
+        jac[i, j + 1, k] / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
+    end
 
-        # ------------------- A(i,j+1,k-1) -------------------
+    # ------------------- A(i,j+1,k-1) -------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          afd = 0.0
-        elseif k == nz && zboundaries == SolidWallBoundaries()
-          afd =
-            -jacinv / dy * pedgefdiv / rhoedgef * pedgefgra * met23edgef / dz -
-            jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met23edged * 0.5 /
-            dy * jac[i, j + 1, k] / (jac[i, j + 1, k] + jac[i, j + 1, k - 1])
-        else
-          afd =
-            -jacinv / dy * pedgefdiv / rhoedgef *
-            pedgefgra *
-            met23edgef *
-            0.25 / dz -
-            jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met23edged * 0.5 /
-            dy * jac[i, j + 1, k] / (jac[i, j + 1, k] + jac[i, j + 1, k - 1])
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      afd = 0.0
+    elseif k == nz && zboundaries == SolidWallBoundaries()
+      afd =
+        -jacinv / dy * pedgefdiv / rhoedgef * pedgefgra * met23edgef / dz -
+        jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met23edged * 0.5 / dy *
+        jac[i, j + 1, k] / (jac[i, j + 1, k] + jac[i, j + 1, k - 1])
+    else
+      afd =
+        -jacinv / dy * pedgefdiv / rhoedgef * pedgefgra * met23edgef * 0.25 /
+        dz -
+        jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met23edged * 0.5 / dy *
+        jac[i, j + 1, k] / (jac[i, j + 1, k] + jac[i, j + 1, k - 1])
+    end
 
-        # ------------------- A(i,j-1,k+1) -------------------
+    # ------------------- A(i,j-1,k+1) -------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          abu =
-            -jacinv / dy * pedgebdiv / rhoedgeb * pedgebgra * met23edgeb / dz -
-            jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met23edgeu * 0.5 /
-            dy * jac[i, j - 1, k] / (jac[i, j - 1, k] + jac[i, j - 1, k + 1])
-        elseif k == nz && zboundaries == SolidWallBoundaries()
-          abu = 0.0
-        else
-          abu =
-            -jacinv / dy * pedgebdiv / rhoedgeb *
-            pedgebgra *
-            met23edgeb *
-            0.25 / dz -
-            jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met23edgeu * 0.5 /
-            dy * jac[i, j - 1, k] / (jac[i, j - 1, k] + jac[i, j - 1, k + 1])
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      abu =
+        -jacinv / dy * pedgebdiv / rhoedgeb * pedgebgra * met23edgeb / dz -
+        jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met23edgeu * 0.5 / dy *
+        jac[i, j - 1, k] / (jac[i, j - 1, k] + jac[i, j - 1, k + 1])
+    elseif k == nz && zboundaries == SolidWallBoundaries()
+      abu = 0.0
+    else
+      abu =
+        -jacinv / dy * pedgebdiv / rhoedgeb * pedgebgra * met23edgeb * 0.25 /
+        dz -
+        jacinv / dz * pedgeudiv / rhoedgeu * pedgeugra * met23edgeu * 0.5 / dy *
+        jac[i, j - 1, k] / (jac[i, j - 1, k] + jac[i, j - 1, k + 1])
+    end
 
-        # ------------------- A(i,j-1,k-1) -------------------
+    # ------------------- A(i,j-1,k-1) -------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          abd = 0.0
-        elseif k == nz && zboundaries == SolidWallBoundaries()
-          abd =
-            jacinv / dy * pedgebdiv / rhoedgeb * pedgebgra * met23edgeb / dz +
-            jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met23edged * 0.5 /
-            dy * jac[i, j - 1, k] / (jac[i, j - 1, k] + jac[i, j - 1, k - 1])
-        else
-          abd =
-            jacinv / dy * pedgebdiv / rhoedgeb * pedgebgra * met23edgeb * 0.25 /
-            dz +
-            jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met23edged * 0.5 /
-            dy * jac[i, j - 1, k] / (jac[i, j - 1, k] + jac[i, j - 1, k - 1])
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      abd = 0.0
+    elseif k == nz && zboundaries == SolidWallBoundaries()
+      abd =
+        jacinv / dy * pedgebdiv / rhoedgeb * pedgebgra * met23edgeb / dz +
+        jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met23edged * 0.5 / dy *
+        jac[i, j - 1, k] / (jac[i, j - 1, k] + jac[i, j - 1, k - 1])
+    else
+      abd =
+        jacinv / dy * pedgebdiv / rhoedgeb * pedgebgra * met23edgeb * 0.25 /
+        dz +
+        jacinv / dz * pedgeddiv / rhoedged * pedgedgra * met23edged * 0.5 / dy *
+        jac[i, j - 1, k] / (jac[i, j - 1, k] + jac[i, j - 1, k - 1])
+    end
 
-        # ------------------- A(i,j,k+2) ---------------------
+    # ------------------- A(i,j,k+2) ---------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          auu =
-            -jacinv / dx * (
-              pedgerdiv / rhoedger * pedgergra * 0.25 * met13edger / dz -
-              pedgeldiv / rhoedgel * pedgelgra * 0.25 * met13edgel / dz
-            ) -
-            jacinv / dy * (
-              pedgefdiv / rhoedgef * pedgefgra * 0.25 * met23edgef / dz -
-              pedgebdiv / rhoedgeb * pedgebgra * 0.25 * met23edgeb / dz
-            )
-        else
-          auu = 0.0
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      auu =
+        -jacinv / dx * (
+          pedgerdiv / rhoedger * pedgergra * 0.25 * met13edger / dz -
+          pedgeldiv / rhoedgel * pedgelgra * 0.25 * met13edgel / dz
+        ) -
+        jacinv / dy * (
+          pedgefdiv / rhoedgef * pedgefgra * 0.25 * met23edgef / dz -
+          pedgebdiv / rhoedgeb * pedgebgra * 0.25 * met23edgeb / dz
+        )
+    else
+      auu = 0.0
+    end
 
-        # ------------------- A(i,j,k-2) ---------------------
+    # ------------------- A(i,j,k-2) ---------------------
 
-        if k == nz && zboundaries == SolidWallBoundaries()
-          add =
-            jacinv / dx * (
-              pedgerdiv / rhoedger * pedgergra * 0.25 * met13edger / dz -
-              pedgeldiv / rhoedgel * pedgelgra * 0.25 * met13edgel / dz
-            ) +
-            jacinv / dy * (
-              pedgefdiv / rhoedgef * pedgefgra * 0.25 * met23edgef / dz -
-              pedgebdiv / rhoedgeb * pedgebgra * 0.25 * met23edgeb / dz
-            )
-        else
-          add = 0.0
-        end
+    if k == nz && zboundaries == SolidWallBoundaries()
+      add =
+        jacinv / dx * (
+          pedgerdiv / rhoedger * pedgergra * 0.25 * met13edger / dz -
+          pedgeldiv / rhoedgel * pedgelgra * 0.25 * met13edgel / dz
+        ) +
+        jacinv / dy * (
+          pedgefdiv / rhoedgef * pedgefgra * 0.25 * met23edgef / dz -
+          pedgebdiv / rhoedgeb * pedgebgra * 0.25 * met23edgeb / dz
+        )
+    else
+      add = 0.0
+    end
 
-        # ------------------ A(i+1,j,k+2) --------------------
+    # ------------------ A(i+1,j,k+2) --------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          aruu =
-            -jacinv / dx * pedgerdiv / rhoedger *
-            pedgergra *
-            0.25 *
-            met13edger / dz
-        else
-          aruu = 0.0
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      aruu =
+        -jacinv / dx * pedgerdiv / rhoedger * pedgergra * 0.25 * met13edger / dz
+    else
+      aruu = 0.0
+    end
 
-        # ------------------ A(i+1,j,k-2) --------------------
+    # ------------------ A(i+1,j,k-2) --------------------
 
-        if k == nz && zboundaries == SolidWallBoundaries()
-          ardd =
-            jacinv / dx * pedgerdiv / rhoedger * pedgergra * 0.25 * met13edger /
-            dz
-        else
-          ardd = 0.0
-        end
+    if k == nz && zboundaries == SolidWallBoundaries()
+      ardd =
+        jacinv / dx * pedgerdiv / rhoedger * pedgergra * 0.25 * met13edger / dz
+    else
+      ardd = 0.0
+    end
 
-        # ------------------ A(i-1,j,k+2) --------------------
+    # ------------------ A(i-1,j,k+2) --------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          aluu =
-            jacinv / dx * pedgeldiv / rhoedgel * pedgelgra * 0.25 * met13edgel /
-            dz
-        else
-          aluu = 0.0
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      aluu =
+        jacinv / dx * pedgeldiv / rhoedgel * pedgelgra * 0.25 * met13edgel / dz
+    else
+      aluu = 0.0
+    end
 
-        # ------------------ A(i-1,j,k-2) --------------------
+    # ------------------ A(i-1,j,k-2) --------------------
 
-        if k == nz && zboundaries == SolidWallBoundaries()
-          aldd =
-            -jacinv / dx * pedgeldiv / rhoedgel *
-            pedgelgra *
-            0.25 *
-            met13edgel / dz
-        else
-          aldd = 0.0
-        end
+    if k == nz && zboundaries == SolidWallBoundaries()
+      aldd =
+        -jacinv / dx * pedgeldiv / rhoedgel * pedgelgra * 0.25 * met13edgel / dz
+    else
+      aldd = 0.0
+    end
 
-        # ------------------ A(i,j+1,k+2) --------------------
+    # ------------------ A(i,j+1,k+2) --------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          afuu =
-            -jacinv / dy * pedgefdiv / rhoedgef *
-            pedgefgra *
-            0.25 *
-            met23edgef / dz
-        else
-          afuu = 0.0
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      afuu =
+        -jacinv / dy * pedgefdiv / rhoedgef * pedgefgra * 0.25 * met23edgef / dz
+    else
+      afuu = 0.0
+    end
 
-        # ------------------ A(i,j+1,k-2) --------------------
+    # ------------------ A(i,j+1,k-2) --------------------
 
-        if k == nz && zboundaries == SolidWallBoundaries()
-          afdd =
-            jacinv / dy * pedgefdiv / rhoedgef * pedgefgra * 0.25 * met23edgef /
-            dz
-        else
-          afdd = 0.0
-        end
+    if k == nz && zboundaries == SolidWallBoundaries()
+      afdd =
+        jacinv / dy * pedgefdiv / rhoedgef * pedgefgra * 0.25 * met23edgef / dz
+    else
+      afdd = 0.0
+    end
 
-        # ------------------ A(i,j-1,k+2) --------------------
+    # ------------------ A(i,j-1,k+2) --------------------
 
-        if k == 1 && zboundaries == SolidWallBoundaries()
-          abuu =
-            jacinv / dy * pedgebdiv / rhoedgeb * pedgebgra * 0.25 * met23edgeb /
-            dz
-        else
-          abuu = 0.0
-        end
+    if k == 1 && zboundaries == SolidWallBoundaries()
+      abuu =
+        jacinv / dy * pedgebdiv / rhoedgeb * pedgebgra * 0.25 * met23edgeb / dz
+    else
+      abuu = 0.0
+    end
 
-        # ------------------ A(i,j-1,k-2) --------------------
+    # ------------------ A(i,j-1,k-2) --------------------
 
-        if k == nz && zboundaries == SolidWallBoundaries()
-          abdd =
-            -jacinv / dy * pedgebdiv / rhoedgeb *
-            pedgebgra *
-            0.25 *
-            met23edgeb / dz
-        else
-          abdd = 0.0
-        end
+    if k == nz && zboundaries == SolidWallBoundaries()
+      abdd =
+        -jacinv / dy * pedgebdiv / rhoedgeb * pedgebgra * 0.25 * met23edgeb / dz
+    else
+      abdd = 0.0
+    end
 
-        # Scale the tensor elements.
-        ac = ac / (fcscal^2.0)
-        ar = ar / fcscal / fcscal_r
-        al = al / fcscal / fcscal_l
-        af = af / fcscal / fcscal_f
-        ab = ab / fcscal / fcscal_b
-        au = au / fcscal / fcscal_u
-        ad = ad / fcscal / fcscal_d
-        aru = aru / fcscal / fcscal_ru
-        ard = ard / fcscal / fcscal_rd
-        alu = alu / fcscal / fcscal_lu
-        ald = ald / fcscal / fcscal_ld
-        afu = afu / fcscal / fcscal_fu
-        afd = afd / fcscal / fcscal_fd
-        abu = abu / fcscal / fcscal_bu
-        abd = abd / fcscal / fcscal_bd
-        auu = auu / fcscal / fcscal_uu
-        add = add / fcscal / fcscal_dd
-        aruu = aruu / fcscal / fcscal_ruu
-        ardd = ardd / fcscal / fcscal_rdd
-        aluu = aluu / fcscal / fcscal_luu
-        aldd = aldd / fcscal / fcscal_ldd
-        afuu = afuu / fcscal / fcscal_fuu
-        afdd = afdd / fcscal / fcscal_fdd
-        abuu = abuu / fcscal / fcscal_buu
-        abdd = abdd / fcscal / fcscal_bdd
+    # Scale the tensor elements.
+    ac = ac / (fcscal^2.0)
+    ar = ar / fcscal / fcscal_r
+    al = al / fcscal / fcscal_l
+    af = af / fcscal / fcscal_f
+    ab = ab / fcscal / fcscal_b
+    au = au / fcscal / fcscal_u
+    ad = ad / fcscal / fcscal_d
+    aru = aru / fcscal / fcscal_ru
+    ard = ard / fcscal / fcscal_rd
+    alu = alu / fcscal / fcscal_lu
+    ald = ald / fcscal / fcscal_ld
+    afu = afu / fcscal / fcscal_fu
+    afd = afd / fcscal / fcscal_fd
+    abu = abu / fcscal / fcscal_bu
+    abd = abd / fcscal / fcscal_bd
+    auu = auu / fcscal / fcscal_uu
+    add = add / fcscal / fcscal_dd
+    aruu = aruu / fcscal / fcscal_ruu
+    ardd = ardd / fcscal / fcscal_rdd
+    aluu = aluu / fcscal / fcscal_luu
+    aldd = aldd / fcscal / fcscal_ldd
+    afuu = afuu / fcscal / fcscal_fuu
+    afdd = afdd / fcscal / fcscal_fdd
+    abuu = abuu / fcscal / fcscal_buu
+    abdd = abdd / fcscal / fcscal_bdd
 
-        # Set tensor elements for bicgstab.
-        ac_b[i, j, k] = ac
-        ar_b[i, j, k] = ar
-        al_b[i, j, k] = al
-        af_b[i, j, k] = af
-        ab_b[i, j, k] = ab
-        au_b[i, j, k] = au
-        ad_b[i, j, k] = ad
-        aru_b[i, j, k] = aru
-        ard_b[i, j, k] = ard
-        alu_b[i, j, k] = alu
-        ald_b[i, j, k] = ald
-        afu_b[i, j, k] = afu
-        afd_b[i, j, k] = afd
-        abu_b[i, j, k] = abu
-        abd_b[i, j, k] = abd
-        auu_b[i, j, k] = auu
-        add_b[i, j, k] = add
-        aruu_b[i, j, k] = aruu
-        ardd_b[i, j, k] = ardd
-        aluu_b[i, j, k] = aluu
-        aldd_b[i, j, k] = aldd
-        afuu_b[i, j, k] = afuu
-        afdd_b[i, j, k] = afdd
-        abuu_b[i, j, k] = abuu
-        abdd_b[i, j, k] = abdd
+    # Set tensor elements for bicgstab.
+    ac_b[i, j, k] = ac
+    ar_b[i, j, k] = ar
+    al_b[i, j, k] = al
+    af_b[i, j, k] = af
+    ab_b[i, j, k] = ab
+    au_b[i, j, k] = au
+    ad_b[i, j, k] = ad
+    aru_b[i, j, k] = aru
+    ard_b[i, j, k] = ard
+    alu_b[i, j, k] = alu
+    ald_b[i, j, k] = ald
+    afu_b[i, j, k] = afu
+    afd_b[i, j, k] = afd
+    abu_b[i, j, k] = abu
+    abd_b[i, j, k] = abd
+    auu_b[i, j, k] = auu
+    add_b[i, j, k] = add
+    aruu_b[i, j, k] = aruu
+    ardd_b[i, j, k] = ardd
+    aluu_b[i, j, k] = aluu
+    aldd_b[i, j, k] = aldd
+    afuu_b[i, j, k] = afuu
+    afdd_b[i, j, k] = afdd
+    abuu_b[i, j, k] = abuu
+    abdd_b[i, j, k] = abdd
 
-        # Store horizontal and vertical components of AC (for
-        # preconditioner).
-        if preconditioner
-          ach_b[i, j, k] = -ar - al - af - ab
-          acv_b[i, j, k] = -au - ad
-        end
-      end
+    # Store horizontal and vertical components of AC (for
+    # preconditioner).
+    if preconditioner
+      ach_b[i, j, k] = -ar - al - af - ab
+      acv_b[i, j, k] = -au - ad
     end
   end
-
-  return
 end
 
 function compute_operator!(
