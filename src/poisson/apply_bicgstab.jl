@@ -4,8 +4,6 @@ function apply_bicgstab!(
   dt::AbstractFloat,
   sol::AbstractArray{<:AbstractFloat, 3},
   res::AbstractFloat,
-  niter::Integer,
-  errflag::Bool,
   namelists::Namelists,
   domain::Domain,
   grid::Grid,
@@ -88,7 +86,7 @@ function apply_bicgstab!(
       println("==> No iteration needed!")
     end
     niter = 0
-    return
+    return (errflag, niter)
   end
 
   # Loop
@@ -176,7 +174,7 @@ function apply_bicgstab!(
         apply_preconditioner!(s, sol, namelists, domain, grid, poisson)
       end
 
-      return
+      return (errflag, niter)
     end
 
     beta =
@@ -191,5 +189,5 @@ function apply_bicgstab!(
   niter = j_b
 
   # Return.
-  return
+  return (errflag, niter)
 end

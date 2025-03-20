@@ -1,8 +1,6 @@
 function apply_corrector!(
   state::State,
   dt::AbstractFloat,
-  errflagbicg::Bool,
-  niter::Integer,
   opt::AbstractIntegration,
   facray::AbstractFloat,
   facprs::AbstractFloat,
@@ -21,13 +19,11 @@ function apply_corrector!(
   tolref = compute_rhs!(state, rhs, dt, model)
 
   # Solve Poisson equation.
-  solve_poisson!(
+  (errflagbicg, niterbicg) = solve_poisson!(
     state,
     rhs,
     tolref,
     dt,
-    errflagbicg,
-    niter,
     opt,
     model,
     facray,
@@ -36,7 +32,7 @@ function apply_corrector!(
 
   # Return if an error occurred.
   if errflagbicg
-    return
+    return (errflagbicg, niterbicg)
   end
 
   # Set boundaries of pressure correction.
@@ -48,12 +44,12 @@ function apply_corrector!(
     dpip[:, :, 0] = dpip[:, :, 1]
     dpip[:, :, nz + 1] = dpip[:, :, nz]
   else
-    error("Error in apply_corrector: Unknown zboundaries!")
+    error("Error in apply_corrector!: Unknown zboundaries!")
   end
 
   # Correct momentum and buoyancy.
   correct!(state, dt, opt, facray, facprs)
 
   # Return.
-  return
+  return (errflagbicg, niterbicg)
 end

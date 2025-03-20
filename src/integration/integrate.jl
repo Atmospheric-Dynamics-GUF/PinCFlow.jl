@@ -59,7 +59,7 @@ function integrate(namelists::Namelists)
   if initialcleaning
     set_boundaries!(state, BoundaryPredictands())
 
-    apply_corrector!(state, 1.0, errflagbicg, niterbicg, EXPL(), 1.0, 1.0)
+    (errflagbicg, niterbicg) = apply_corrector!(state, 1.0, EXPL(), 1.0, 1.0)
 
     if errflagbicg
       exit()
@@ -278,7 +278,7 @@ function integrate(namelists::Namelists)
     set_boundaries!(state, BoundaryPredictands())
 
     # Correct momentum and density fluctuations
-    apply_corrector!(state, 0.5 * dt, errflagbicg, niterbicg, IMPL(), 1.0, 1.0)
+    (errflagbicg, niterbicg) = apply_corrector!(state, 0.5 * dt, IMPL(), 1.0, 1.0)
 
     # if errflagbicg
     #   write_output!(state, time, iout)
@@ -288,7 +288,7 @@ function integrate(namelists::Namelists)
     #   exit()
     # end
 
-    ntotalbicg = ntotalbicg + niterbicg
+    ntotalbicg += niterbicg
 
     set_boundaries!(state, BoundaryPredictands())
 
@@ -408,7 +408,7 @@ function integrate(namelists::Namelists)
 
     # (3) uses updated pressure field and (5) adjusts pressure over half a
     # time step
-    apply_corrector!(state, 0.5 * dt, errflagbicg, niterbicg, IMPL(), 2.0, 1.0)
+    (errflagbicg, niterbicg) = apply_corrector!(state, 0.5 * dt, IMPL(), 2.0, 1.0)
 
     # if errflagbicg
     #   write_output!(state, time, iout)
@@ -421,7 +421,7 @@ function integrate(namelists::Namelists)
 
     set_boundaries!(state, BoundaryPredictands())
 
-    ntotalbicg = ntotalbicg + niterbicg
+    ntotalbicg += niterbicg
 
     if master
       println("Semi-implicit time step done")

@@ -3,8 +3,6 @@ function solve_poisson!(
   b::AbstractArray{<:AbstractFloat, 3},
   tolref::AbstractFloat,
   dt::AbstractFloat,
-  errflagbicg::Bool,
-  niter::Integer,
   opt::AbstractIntegration,
   model::PseudoIncompressible,
   facray::AbstractFloat,
@@ -33,14 +31,12 @@ function solve_poisson!(
 
   compute_operator!(state, dt, opt, facray)
 
-  apply_bicgstab!(
+  (errflagbicg, niterbicg) = apply_bicgstab!(
     b,
     tolref,
     dt,
     sol,
     res,
-    niter,
-    errflagbicg,
     namelists,
     domain,
     grid,
@@ -63,5 +59,5 @@ function solve_poisson!(
   # Pass solution to pressure correction.
   dpip[1:nx, 1:ny, 1:nz] = dtinv ./ facprs .* sol
 
-  return
+  return (errflagbicg, niterbicg)
 end
