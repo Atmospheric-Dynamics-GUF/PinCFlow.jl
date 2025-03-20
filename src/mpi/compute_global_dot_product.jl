@@ -20,10 +20,8 @@ function compute_global_dot_product(
 
   # Compute local dot product.
   local_dot_product = 0.0
-  for k in 1:asize[3]
-    for j in 1:asize[2]
-      local_dot_product = local_dot_product + dot(a[:, j, k], b[:, j, k])
-    end
+  @inbounds for k in 1:asize[3], j in 1:asize[2]
+    @views local_dot_product = local_dot_product + dot(a[:, j, k], b[:, j, k])
   end
 
   # Sum over all processes.
