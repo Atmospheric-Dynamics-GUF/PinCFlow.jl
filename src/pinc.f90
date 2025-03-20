@@ -819,4 +819,119 @@ program pinc_prog
 
   call mpi_finalize(ierror)
 
+  contains
+
+  subroutine test(var, flux, variables)
+
+    type(var_type), intent(in) :: var
+    type(flux_type), intent(in) :: flux
+    character(len = *) :: variables
+    real :: local_sum, global_sum
+
+    select case(variables)
+    case("predictands")
+      local_sum = sum(var%rho * rhoRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(rho) = ", global_sum
+
+      local_sum = sum(var%rhop * rhoRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(rhop) = ", global_sum
+
+      local_sum = sum(var%u * uRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(u) = ", global_sum
+
+      local_sum = sum(var%v * uRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(v) = ", global_sum
+
+      local_sum = sum(var%w * uRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(w) = ", global_sum
+
+      local_sum = sum(var%pi)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(pip) = ", global_sum
+    case("atmosphere")
+      local_sum = sum(pStratTFC * rhoRef * thetaRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(pstrattfc) = ", global_sum
+
+      local_sum = sum(thetaStratTFC * thetaRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(thetastrattfc) = ", global_sum
+
+      local_sum = sum(rhoStratTFC * rhoRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(rhostrattfc) = ", global_sum
+
+      local_sum = sum(bvsStratTFC / tRef ** 2)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(bvsstrattfc) = ", global_sum
+    case("grid")
+      if(master) then
+        print *, "lx = ", lx
+        print *, "ly = ", ly
+        print *, "lz = ", lz
+        print *, "dx = ", dx
+        print *, "dy = ", dy
+        print *, "dz = ", dz
+        print *, "sum(x) = ", sum(x)
+        print *, "sum(y) = ", sum(y)
+        print *, "sum(z) = ", sum(z)
+        print *, "sum(zs) = ", sum(zs)
+        print *, "sum(ztildes) = ", sum(ztildes)
+      end if
+
+      local_sum = sum(topography_surface)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(topography_surface) = ", global_sum
+
+      local_sum = sum(jac)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(jac) = ", global_sum
+
+      local_sum = sum(met(:, :, :, 1, 3))
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(met(:, :, :, 1, 3)) = ", global_sum
+
+      local_sum = sum(met(:, :, :, 2, 3))
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(met(:, :, :, 2, 3)) = ", global_sum
+
+      local_sum = sum(met(:, :, :, 3, 3))
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(met(:, :, :, 3, 3)) = ", global_sum
+
+      local_sum = sum(ztfc)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(ztfc) = ", global_sum
+
+      local_sum = sum(ztildetfc)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(ztildetfc) = ", global_sum
+    end select
+
+    stop
+
+  end subroutine test
+
 end program pinc_prog
