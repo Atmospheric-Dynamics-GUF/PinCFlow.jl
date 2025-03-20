@@ -1,6 +1,6 @@
 function apply_3d_muscl!(
-  phi::OffsetArray{<:AbstractFloat, 3},
-  phitilde::OffsetArray{<:AbstractFloat, 5},
+  phi::AbstractArray{<:AbstractFloat, 3},
+  phitilde::AbstractArray{<:AbstractFloat, 5},
   sizex::Integer,
   sizey::Integer,
   sizez::Integer,

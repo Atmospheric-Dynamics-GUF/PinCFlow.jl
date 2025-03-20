@@ -146,14 +146,12 @@ function update!(
       (jac[i, j, k - 1] * rho[i, j, k] + jac[i, j, k] * rho[i, j, k - 1]) /
       (jac[i, j, k] + jac[i, j, k - 1])
 
-    rhow =
-      rhow +
+    rhow +=
       (
         jac[i, j, k + 1] * rhostrattfc[i, j, k] +
         jac[i, j, k] * rhostrattfc[i, j, k + 1]
       ) / (jac[i, j, k] + jac[i, j, k + 1])
-    rhowm =
-      rhowm +
+    rhowm +=
       (
         jac[i, j, k - 1] * rhostrattfc[i, j, k] +
         jac[i, j, k] * rhostrattfc[i, j, k - 1]
@@ -276,7 +274,7 @@ function update!(
     facw = 1.0
 
     if spongelayer
-      facw = facw + dt * kr_sp_w_tfc[i, j, k] * facray
+      facw += dt * kr_sp_w_tfc[i, j, k] * facray
     end
 
     # Predict buoyancy.
@@ -511,12 +509,6 @@ function update!(
 
   for k in 1:nz, j in 1:ny, i in i0:i1
     rhou = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
-
-    rhov0m = 0.5 * (rho[i, j, k] + rho[i, j - 1, k])
-    rhov00 = 0.5 * (rho[i, j + 1, k] + rho[i, j, k])
-    rhov1m = 0.5 * (rho[i + 1, j, k] + rho[i + 1, j - 1, k])
-    rhov10 = 0.5 * (rho[i + 1, j + 1, k] + rho[i + 1, j, k])
-
     rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
     rhou += rhostratedger
 
@@ -561,8 +553,7 @@ function update!(
     facu = 1.0
 
     if spongelayer && sponge_uv
-      facu =
-        facu + dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k]) * facray
+      facu += dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc[i + 1, j, k]) * facray
     end
 
     # Update wind.
@@ -767,13 +758,7 @@ function update!(
   end
 
   for k in 1:nz, j in j0:j1, i in 1:nx
-    rhoum0 = 0.5 * (rho[i, j, k] + rho[i - 1, j, k])
-    rhou00 = 0.5 * (rho[i + 1, j, k] + rho[i, j, k])
-    rhoum1 = 0.5 * (rho[i, j + 1, k] + rho[i - 1, j + 1, k])
-    rhou01 = 0.5 * (rho[i + 1, j + 1, k] + rho[i, j + 1, k])
-
     rhov = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
-
     rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
     rhov += rhostratedgef
 
@@ -818,8 +803,7 @@ function update!(
     facv = 1.0
 
     if spongelayer && sponge_uv
-      facv =
-        facv + dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j + 1, k]) * facray
+      facv += dt * 0.5 * (kr_sp_tfc[i, j, k] + kr_sp_tfc[i, j + 1, k]) * facray
     end
 
     # Update wind.
@@ -889,7 +873,7 @@ function update!(
     # Adjust Cartesian vertical momentum flux divergence.
     jacedgeu =
       2.0 * jac[i, j, k] * jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1])
-    fluxdiff = fluxdiff / jacedgeu
+    fluxdiff /= jacedgeu
 
     # Compute zonal momentum flux divergences.
     for ll in 0:1
@@ -902,7 +886,7 @@ function update!(
         hd = phiu[i - ll, j, k - 1 + mm, 3]
         fluxdiffu[ll, mm] = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
         jacedger = 0.5 * (jac[i - ll, j, k + mm] + jac[i + 1 - ll, j, k + mm])
-        fluxdiffu[ll, mm] = fluxdiffu[ll, mm] / jacedger
+        fluxdiffu[ll, mm] /= jacedger
       end
     end
 
@@ -917,7 +901,7 @@ function update!(
         hd = phiv[i, j - ll, k - 1 + mm, 3]
         fluxdiffv[ll, mm] = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
         jacedgef = 0.5 * (jac[i, j - ll, k + mm] + jac[i, j + 1 - ll, k + mm])
-        fluxdiffv[ll, mm] = fluxdiffv[ll, mm] / jacedgef
+        fluxdiffv[ll, mm] /= jacedgef
       end
     end
 

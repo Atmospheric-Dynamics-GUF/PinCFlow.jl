@@ -1,4 +1,4 @@
-struct Backups{A <: OffsetArray{<:AbstractFloat, 3}}
+struct Backups{A <: AbstractArray{<:AbstractFloat, 3}}
   rhoold::A
   rhopold::A
   uold::A
