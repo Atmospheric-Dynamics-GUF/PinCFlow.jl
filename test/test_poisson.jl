@@ -1,4 +1,5 @@
 using PinCFlow
+using ProfileView
 
 include("util.jl")
 function tensor_norms(tensor)
@@ -71,85 +72,57 @@ norms = tensor_norms(state.poisson.tensor)
       (1.0273546378307071e11, 5.931446233714064e8, 3.519857949212931e6)
 @test norms[12] == (9.42463084628637e8, 7.26926739962243e6, 234554.58480521778)
 
-# @testset "preCond expl" begin
-#   semi = initialize_values(300, 1, 100, 3, 3, 3, 0, 60000, 0, 40000, 0, 20000)
-#   (; cache, grid) = semi
-#   (;
-#     p_bicg,
-#     p_pc,
-#     v_pc,
-#     au_b,
-#     ad_b,
-#     ac_b,
-#     al_b,
-#     ar_b,
-#     af_b,
-#     ab_b,
-#     ach_b,
-#     acv_b,
-#     aru_b,
-#     ard_b,
-#     alu_b,
-#     ald_b,
-#     afu_b,
-#     afd_b,
-#     abu_b,
-#     abd_b,
-#     auu_b,
-#     add_b,
-#     aruu_b,
-#     ardd_b,
-#     aluu_b,
-#     aldd_b,
-#     afuu_b,
-#     afdd_b,
-#     abuu_b,
-#     abdd_b,
-#     q_pc,
-#     p_pc,
-#   ) = cache
+@testset "preCond expl" begin
+  domain = PinCFlow.DomainNamelist(; sizex = 300, sizey = 1, sizez = 100)
+  namelists = PinCFlow.Namelists(; domain = domain)
+  state = PinCFlow.State(namelists)
 
-#   normalizer = 0.01 # To get smaller values where arithmetic is more accurate
-#   set_lin_array_normalizer!(arr) = set_lin_array!(arr; normalizer = normalizer)
-#   set_lin_array_normalizer!.((
-#     p_bicg,
-#     p_pc,
-#     v_pc,
-#     au_b,
-#     ad_b,
-#     ac_b,
-#     al_b,
-#     ar_b,
-#     af_b,
-#     ab_b,
-#     ach_b,
-#     acv_b,
-#     aru_b,
-#     ard_b,
-#     alu_b,
-#     ald_b,
-#     afu_b,
-#     afd_b,
-#     abu_b,
-#     abd_b,
-#     auu_b,
-#     add_b,
-#     aruu_b,
-#     ardd_b,
-#     aluu_b,
-#     aldd_b,
-#     afuu_b,
-#     afdd_b,
-#     abuu_b,
-#     abdd_b,
-#     q_pc,
-#     p_pc,
-#   ))
+  normalizer = 0.01 # To get smaller values where arithmetic is more accurate
+  set_lin_array_normalizer!(arr) = set_lin_array!(arr; normalizer = normalizer)
+  set_lin_array_normalizer!.((
+    state.poisson.bicgstab.p,
+    state.poisson.preconditioner.p_pc,
+    state.poisson.bicgstab.v_pc,
+    state.poisson.preconditioner.q_pc,
+    state.poisson.tensor.au_b,
+    state.poisson.tensor.ad_b,
+    state.poisson.tensor.ac_b,
+    state.poisson.tensor.al_b,
+    state.poisson.tensor.ar_b,
+    state.poisson.tensor.af_b,
+    state.poisson.tensor.ab_b,
+    state.poisson.tensor.ach_b,
+    state.poisson.tensor.acv_b,
+    state.poisson.tensor.aru_b,
+    state.poisson.tensor.ard_b,
+    state.poisson.tensor.alu_b,
+    state.poisson.tensor.ald_b,
+    state.poisson.tensor.afu_b,
+    state.poisson.tensor.afd_b,
+    state.poisson.tensor.abu_b,
+    state.poisson.tensor.abd_b,
+    state.poisson.tensor.auu_b,
+    state.poisson.tensor.add_b,
+    state.poisson.tensor.aruu_b,
+    state.poisson.tensor.ardd_b,
+    state.poisson.tensor.aluu_b,
+    state.poisson.tensor.aldd_b,
+    state.poisson.tensor.afuu_b,
+    state.poisson.tensor.afdd_b,
+    state.poisson.tensor.abuu_b,
+    state.poisson.tensor.abdd_b,
+  ))
 
-#   PinCFlow.preCond(p_bicg, v_pc, "expl", semi)
-#   ref_filename = "$(pincflow_test_dir())/poisson_fortran_data/preCond/sOut.txt.gz"
-#   test_file(ref_filename, v_pc; tol_l1 = 1e-16, tol_linf = 1e-16)
-# end
+  @assert false
+  @profview PinCFlow.apply_preconditioner!(
+    state.poisson.bicgstab.p,
+    state.poisson.bicgstab.v_pc,
+    namelists,
+    state.domain,
+    state.grid,
+    state.poisson,
+  )
+end
 
 # @testset "calc_RHS and poissonSolver" begin
 #   semi = initialize_values(300, 1, 100, 3, 3, 3, 0, 60000, 0, 40000, 0, 20000)
