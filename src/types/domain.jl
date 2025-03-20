@@ -1,4 +1,14 @@
-struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
+struct Domain{
+  A <: MPI.Comm,
+  B <: Bool,
+  C <: Integer,
+  D <: AbstractMatrix{<:AbstractFloat},
+  E <: AbstractArray{<:AbstractFloat, 3},
+  F <: AbstractArray{<:AbstractFloat, 5},
+  G <: AbstractMatrix{<:AbstractFloat},
+  H <: AbstractArray{<:AbstractFloat, 3},
+  I <: AbstractArray{<:AbstractFloat, 5},
+}
 
   # MPI variables.
   comm::A
@@ -19,6 +29,38 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
   nxx::C
   nyy::C
   nzz::C
+
+  # Source and destination ranks for communication.
+  left::C
+  right::C
+  back::C
+  forw::C
+
+  # Auxiliary arrays for communication.
+  send_a2_left::D
+  send_a2_right::D
+  recv_a2_left::D
+  recv_a2_right::D
+  send_a3_left::E
+  send_a3_right::E
+  recv_a3_left::E
+  recv_a3_right::E
+  send_a5_left::F
+  send_a5_right::F
+  recv_a5_left::F
+  recv_a5_right::F
+  send_a2_back::G
+  send_a2_forw::G
+  recv_a2_back::G
+  recv_a2_forw::G
+  send_a3_back::H
+  send_a3_forw::H
+  recv_a3_back::H
+  recv_a3_forw::H
+  send_a5_back::I
+  send_a5_forw::I
+  recv_a5_back::I
+  recv_a5_forw::I
 end
 
 function Domain(namelists::Namelists)
@@ -140,6 +182,65 @@ function Domain(namelists::Namelists)
     end
   end
 
+  # Find the neighbour processors.
+  (left, right) = MPI.Cart_shift(comm, 0, 1)
+  (back, forw) = MPI.Cart_shift(comm, 1, 1)
+
+  # Initialize auxiliary arrays for communication.
+  (send_a2_left, send_a2_right, recv_a2_left, recv_a2_right) =
+    (zeros((nbx, ny + 2 * nby + 1)) for i in 1:4)
+  (send_a3_left, send_a3_right, recv_a3_left, recv_a3_right) =
+    (zeros((nbx, ny + 2 * nby + 1, nz + 2 * nbz + 1)) for i in 1:4)
+  (send_a5_left, send_a5_right, recv_a5_left, recv_a5_right) =
+    (zeros((nbx, ny + 2 * nby + 1, nz + 2 * nbz + 1, 3, 2)) for i in 1:4)
+  (send_a2_back, send_a2_forw, recv_a2_back, recv_a2_forw) =
+    (zeros((nx + 2 * nbx + 1, nby)) for i in 1:4)
+  (send_a3_back, send_a3_forw, recv_a3_back, recv_a3_forw) =
+    (zeros((nx + 2 * nbx + 1, nby, nz + 2 * nbz + 1)) for i in 1:4)
+  (send_a5_back, send_a5_forw, recv_a5_back, recv_a5_forw) =
+    (zeros((nx + 2 * nbx + 1, nby, nz + 2 * nbz + 1, 3, 2)) for i in 1:4)
+
   # Return Domain instance.
-  return Domain(comm, master, rank, root, is, js, nx, ny, nz, nxx, nyy, nzz)
+  return Domain(
+    comm,
+    master,
+    rank,
+    root,
+    is,
+    js,
+    nx,
+    ny,
+    nz,
+    nxx,
+    nyy,
+    nzz,
+    left,
+    right,
+    back,
+    forw,
+    send_a2_left,
+    send_a2_right,
+    recv_a2_left,
+    recv_a2_right,
+    send_a3_left,
+    send_a3_right,
+    recv_a3_left,
+    recv_a3_right,
+    send_a5_left,
+    send_a5_right,
+    recv_a5_left,
+    recv_a5_right,
+    send_a2_back,
+    send_a2_forw,
+    recv_a2_back,
+    recv_a2_forw,
+    send_a3_back,
+    send_a3_forw,
+    recv_a3_back,
+    recv_a3_forw,
+    send_a5_back,
+    send_a5_forw,
+    recv_a5_back,
+    recv_a5_forw,
+  )
 end
