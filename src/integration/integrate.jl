@@ -111,6 +111,7 @@ function integrate(namelists::Namelists)
     maxiterations = 2^30
   end
 
+  maxiterations = 2
   for itime in 1:maxiterations
     if master
       println("")
