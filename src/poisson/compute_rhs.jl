@@ -1,13 +1,12 @@
 function compute_rhs!(
   state::State,
-  b::Array{<:AbstractFloat, 3},
-  tolref::AbstractFloat,
+  b::AbstractArray{<:AbstractFloat, 3},
   dt::AbstractFloat,
   model::PseudoIncompressible,
 )
   (; sizex, sizey, sizez) = state.namelists.domain
   (; ma, kappa) = state.constants
-  (; master, comm, root, nx, ny, nz) = state.domain
+  (; master, comm, nx, ny, nz) = state.domain
   (; dx, dy, dz, jac) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; u, v, w) = state.variables.predictands
@@ -69,15 +68,15 @@ function compute_rhs!(
         bu = (pedger * ur - pedgel * ul) / dx / jac[i, j, k] * ma^2.0 * kappa
         bv = (pedgef * vf - pedgeb * vb) / dy / jac[i, j, k] * ma^2.0 * kappa
         bw = (pedgeu * wu - pedged * wd) / dz / jac[i, j, k] * ma^2.0 * kappa
-        divsum_local = divsum_local + bu + bv + bw
-        bu = bu / fcscal
-        bv = bv / fcscal
-        bw = bw / fcscal
+        divsum_local += bu + bv + bw
+        bu /= fcscal
+        bv /= fcscal
+        bw /= fcscal
         b[i, j, k] = bu + bv + bw
         # Compute check sum for solvability criterion.
-        divl2_local = divl2_local + b[i, j, k]^2.0
+        divl2_local += b[i, j, k]^2.0
         bl2loc = bu^2.0 + bv^2.0 + bw^2.0
-        divl2_norm_local = divl2_norm_local + bl2loc
+        divl2_norm_local += bl2loc
         if abs(b[i, j, k]) > divmax
           divmax = abs(b[i, j, k])
         end
@@ -113,5 +112,5 @@ function compute_rhs!(
     end
   end
 
-  return
+  return tolref
 end

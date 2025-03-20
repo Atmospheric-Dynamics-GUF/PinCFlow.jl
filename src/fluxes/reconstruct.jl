@@ -173,7 +173,7 @@ function reconstruct!(state::State, variable::W)
             jac[ix, jy, kz + 1] * pstrattfc[ix, jy, kz] +
             jac[ix, jy, kz] * pstrattfc[ix, jy, kz + 1]
           ) / (jac[ix, jy, kz] + jac[ix, jy, kz + 1])
-        wbar[ix, jy, kz] = wbar[ix, jy, kz] * rhoedgeu / pedgeu
+        wbar[ix, jy, kz] *= rhoedgeu / pedgeu
       end
     end
   end

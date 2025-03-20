@@ -1,5 +1,5 @@
 struct Sponge{
-  A <: OffsetArray{<:AbstractFloat, 3},
+  A <: AbstractArray{<:AbstractFloat, 3},
   B <: AbstractFloat,
   C <: Integer,
 }
@@ -60,8 +60,8 @@ function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
     alphaunifiedsponge,
     kr_sp_tfc,
     kr_sp_w_tfc,
-    dzsponge,
     zsponge,
+    dzsponge,
     ksponge,
     xsponge0,
     xsponge1,

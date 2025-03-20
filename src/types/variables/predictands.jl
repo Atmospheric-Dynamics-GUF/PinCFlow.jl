@@ -1,4 +1,4 @@
-struct Predictands{A <: OffsetArray{<:AbstractFloat, 3}}
+struct Predictands{A <: AbstractArray{<:AbstractFloat, 3}}
   rho::A
   rhop::A
   u::A

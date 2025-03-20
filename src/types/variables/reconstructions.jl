@@ -1,4 +1,4 @@
-struct Reconstructions{A <: OffsetArray{<:AbstractFloat, 5}}
+struct Reconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
   rhotilde::A
   rhoptilde::A
   utilde::A

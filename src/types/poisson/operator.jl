@@ -1,4 +1,4 @@
-struct Operator{A <: OffsetArray{<:AbstractFloat, 3}}
+struct Operator{A <: AbstractArray{<:AbstractFloat, 3}}
   s::A
 end
 

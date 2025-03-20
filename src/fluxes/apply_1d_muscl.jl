@@ -1,6 +1,6 @@
 function apply_1d_muscl!(
-  phi::Vector{<:AbstractFloat},
-  phitilde::Matrix{<:AbstractFloat},
+  phi::AbstractVector{<:AbstractFloat},
+  phitilde::AbstractMatrix{<:AbstractFloat},
   phisize::Integer,
 )
 

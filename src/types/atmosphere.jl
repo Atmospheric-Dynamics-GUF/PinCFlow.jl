@@ -1,4 +1,4 @@
-struct Atmosphere{A <: OffsetArray{<:AbstractFloat, 3}, B <: AbstractFloat}
+struct Atmosphere{A <: AbstractArray{<:AbstractFloat, 3}, B <: AbstractFloat}
 
   # Reference atmosphere.
   pstrattfc::A

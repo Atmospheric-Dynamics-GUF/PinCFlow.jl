@@ -1,4 +1,4 @@
-struct Fluxes{A <: OffsetArray{<:AbstractFloat, 4}}
+struct Fluxes{A <: AbstractArray{<:AbstractFloat, 4}}
   phirho::A
   phirhop::A
   phiu::A

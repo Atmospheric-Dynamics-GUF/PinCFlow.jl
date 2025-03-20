@@ -1,4 +1,7 @@
-struct BicGStab{A <: Matrix{<:AbstractFloat}, B <: Array{<:AbstractFloat, 3}}
+struct BicGStab{
+  A <: AbstractMatrix{<:AbstractFloat},
+  B <: AbstractArray{<:AbstractFloat, 3},
+}
   r_vm::A
   b_vm::A
   p::B

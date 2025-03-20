@@ -1,4 +1,4 @@
-struct Auxiliaries{A <: OffsetArray{<:AbstractFloat, 3}}
+struct Auxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
   rhobar::A
   rhopbar::A
   ubar::A

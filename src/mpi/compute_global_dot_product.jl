@@ -1,11 +1,11 @@
 function compute_global_dot_product(
-  a::OffsetArray{AbstractFloat, 3},
-  b::OffsetArray{AbstractFloat, 3},
+  a::AbstractArray{<:AbstractFloat, 3},
+  b::AbstractArray{<:AbstractFloat, 3},
   domain::Domain,
 )
 
   # Get parameters.
-  (; comm, root) = domain
+  (; comm) = domain
 
   # Get shapes.
   asize = size(a)
@@ -14,8 +14,7 @@ function compute_global_dot_product(
   # Check if shapes agree.
   for i in 1:3
     if asize[i] != bsize[i]
-      println("Error in global_dot_product: Shapes disagree!")
-      exit()
+      error("Error in global_dot_product: Shapes disagree!")
     end
   end
 
