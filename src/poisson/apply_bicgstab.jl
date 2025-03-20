@@ -1,8 +1,8 @@
 function apply_bicgstab!(
-  b_in::Array{<:AbstractFloat, 3},
+  b_in::AbstractArray{<:AbstractFloat, 3},
   tolref::AbstractFloat,
   dt::AbstractFloat,
-  sol::Array{<:AbstractFloat, 3},
+  sol::AbstractArray{<:AbstractFloat, 3},
   res::AbstractFloat,
   niter::Integer,
   errflag::Bool,
@@ -14,7 +14,7 @@ function apply_bicgstab!(
   (; sizex, sizey, sizez) = namelists.domain
   (; tolpoisson, maxiterpoisson, preconditioner, relative_tolerance) =
     namelists.poisson
-  (; master, comm, root, nx, ny, nz) = domain
+  (; master, comm, nx, ny, nz) = domain
   (; r_vm, b_vm, p, r0, rold, r, s, t, v, matvec, v_pc) = poisson.bicgstab
 
   # Print information.
@@ -97,27 +97,30 @@ function apply_bicgstab!(
 
     # v = A*p
     if preconditioner
-      apply_preconditioner(p, v_pc, namelists, domain, grid, poisson)
+      apply_preconditioner!(p, v_pc, namelists, domain, grid, poisson)
     else
       v_pc .= p
     end
-    apply_operator(v_pc, matvec, Total(), namelists, domain, poisson)
+    apply_operator!(v_pc, matvec, Total(), namelists, domain, poisson)
     v .= matvec
 
     alpha =
-      compute_global_dot_product(r, r0) / compute_global_dot_product(v, r0)
+      compute_global_dot_product(r, r0, domain) /
+      compute_global_dot_product(v, r0, domain)
     s .= r .- alpha .* v
 
     # t = A*s
     if preconditioner
-      apply_preconditioner(s, v_pc, namelists, domain, grid, poisson)
+      apply_preconditioner!(s, v_pc, namelists, domain, grid, poisson)
     else
       v_pc .= s
     end
-    apply_operator(v_pc, matvec, Total(), namelists, domain, poisson)
+    apply_operator!(v_pc, matvec, Total(), namelists, domain, poisson)
     t .= matvec
 
-    omega = compute_global_dot_product(t, s) / compute_global_dot_product(t, t)
+    omega =
+      compute_global_dot_product(t, s, domain) /
+      compute_global_dot_product(t, t, domain)
     sol .= sol .+ alpha .* p .+ omega .* s
 
     rold .= r
@@ -177,8 +180,8 @@ function apply_bicgstab!(
     end
 
     beta =
-      alpha / omega * compute_global_dot_product(r, r0) /
-      compute_global_dot_product(rold, r0)
+      alpha / omega * compute_global_dot_product(r, r0, domain) /
+      compute_global_dot_product(rold, r0, domain)
     p .= r .+ beta .* (p .- omega .* v)
   end
 

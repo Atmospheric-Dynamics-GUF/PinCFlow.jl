@@ -13,7 +13,7 @@ struct ThetaP <: AbstractVariable end
 struct PiP <: AbstractVariable end
 
 struct OutputNamelist{
-  A <: Vector{<:AbstractVariable},
+  A <: AbstractVector{<:AbstractVariable},
   B <: Bool,
   C <: Integer,
   D <: String,

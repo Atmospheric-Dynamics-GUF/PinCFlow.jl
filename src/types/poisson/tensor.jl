@@ -1,4 +1,4 @@
-struct Tensor{A <: Array{<:AbstractFloat, 3}}
+struct Tensor{A <: AbstractArray{<:AbstractFloat, 3}}
   ac_b::A
   acv_b::A
   ach_b::A

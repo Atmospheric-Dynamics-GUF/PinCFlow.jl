@@ -1,5 +1,5 @@
 function set_meridional_halos_of_field!(
-  field::OffsetMatrix{<:AbstractFloat},
+  field::AbstractMatrix{<:AbstractFloat},
   namelists::Namelists,
   domain::Domain,
 )
@@ -10,10 +10,8 @@ function set_meridional_halos_of_field!(
 
   # Find the neighbour processors and initialize send and reveive buffers.
   (back, forw) = MPI.Cart_shift(comm, 1, 1)
-  (ysliceback_send, ysliceforw_send, ysliceback_recv, ysliceforw_recv) = (
-    OffsetArray(zeros((nx + 2 * nbx + 1, nby)), (-nbx):(nx + nbx), 1:nby) for
-    i in 1:4
-  )
+  (ysliceback_send, ysliceforw_send, ysliceback_recv, ysliceforw_recv) =
+    (zeros((nx + 2 * nbx + 1, nby)) for i in 1:4)
 
   # Set slice size.
   sendcount = nby * (nx + 2 * nbx + 1)
@@ -63,7 +61,7 @@ function set_meridional_halos_of_field!(
 end
 
 function set_meridional_halos_of_field!(
-  field::OffsetArray{<:AbstractFloat, 3},
+  field::AbstractArray{<:AbstractFloat, 3},
   namelists::Namelists,
   domain::Domain,
 )
@@ -74,14 +72,8 @@ function set_meridional_halos_of_field!(
 
   # Find the neighbour processors and initialize send and reveive buffers.
   (back, forw) = MPI.Cart_shift(comm, 1, 1)
-  (ysliceback_send, ysliceforw_send, ysliceback_recv, ysliceforw_recv) = (
-    OffsetArray(
-      zeros((nx + 2 * nbx + 1, nby, nz + 2 * nbz + 1)),
-      (-nbx):(nx + nbx),
-      1:nby,
-      (-nbz):(nz + nbz),
-    ) for i in 1:4
-  )
+  (ysliceback_send, ysliceforw_send, ysliceback_recv, ysliceforw_recv) =
+    (zeros((nx + 2 * nbx + 1, nby, nz + 2 * nbz + 1)) for i in 1:4)
 
   # Set slice size.
   sendcount = nby * (nx + 2 * nbx + 1) * (nz + 2 * nbz + 1)
@@ -131,21 +123,13 @@ function set_meridional_halos_of_field!(
 end
 
 function set_meridional_halos_of_field!(
-  field::OffsetArray{<:AbstractFloat, 5},
+  field::AbstractArray{<:AbstractFloat, 5},
   namelists::Namelists,
   domain::Domain,
 )
   (back, forw) = MPI.Cart_shift(comm, 1, 1)
-  (ysliceback_send, ysliceforw_send, ysliceback_recv, ysliceforw_recv) = (
-    OffsetArray(
-      zeros((nx + 2 * nbx + 1, nby, nz + 2 * nbz + 1, 3, 2)),
-      (-nbx):(nx + nbx),
-      1:nby,
-      (-nbz):(nz + nbz),
-      1:3,
-      0:1,
-    ) for i in 1:4
-  )
+  (ysliceback_send, ysliceforw_send, ysliceback_recv, ysliceforw_recv) =
+    (zeros((nx + 2 * nbx + 1, nby, nz + 2 * nbz + 1, 3, 2)) for i in 1:4)
 
   # Set slice size.
   sendcount = nby * (nx + 2 * nbx + 1) * (nz + 2 * nbz + 1) * 6

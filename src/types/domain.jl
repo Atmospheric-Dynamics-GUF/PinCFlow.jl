@@ -42,8 +42,6 @@ function Domain(namelists::Namelists)
   jstart = -nby + 1 # back start index of global domain
 
   # Set number of CPUs in each direction
-  nprocx = nprocx
-  nprocy = nprocy
   if nprocx * nprocy != nbproc
     if master
       println(
@@ -73,7 +71,7 @@ function Domain(namelists::Namelists)
   else
     nx1 = div(sizex - 1, nprocx) + 1
     in1 = sizex - nprocx * (nx1 - 1)
-    if icoord > in1
+    if icoord < in1
       nx = nx1
       is = istart + icoord * nx
     else
@@ -91,7 +89,7 @@ function Domain(namelists::Namelists)
   else
     ny1 = div(sizey - 1, nprocy) + 1
     jn1 = sizey - nprocy * (ny1 - 1)
-    if jcoord > jn1
+    if jcoord < jn1
       ny = ny1
       js = jstart + jcoord * ny
     else

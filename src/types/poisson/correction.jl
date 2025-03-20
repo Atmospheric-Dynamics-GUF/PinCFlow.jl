@@ -1,4 +1,4 @@
-struct Correction{A <: OffsetArray{<:AbstractFloat, 3}}
+struct Correction{A <: AbstractArray{<:AbstractFloat, 3}}
   corx::A
   cory::A
 end
