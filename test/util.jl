@@ -1,4 +1,6 @@
+using Test
 
+using LinearAlgebra
 # used to generate the testing data for easy copy paste
 function get_norms(arr)
   l1_norm = norm(arr, 1)
