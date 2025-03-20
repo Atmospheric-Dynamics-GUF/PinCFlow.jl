@@ -3,7 +3,6 @@ module PinCFlow
 using Dates
 using OffsetArrays
 using LinearAlgebra
-using NetCDF
 using MPI
 
 # using SimpleUnPack
@@ -75,10 +74,8 @@ include("update/update.jl")
 include("poisson/apply_operator.jl")
 include("poisson/apply_preconditioner.jl")
 include("poisson/apply_bicgstab.jl")
-include("poisson/compute_rhs.jl")
 include("poisson/compute_operator.jl")
 include("poisson/compute_rhs.jl")
-include("poisson/compute_operator.jl")
 include("poisson/solve_poisson.jl")
 include("poisson/correct.jl")
 include("poisson/apply_corrector.jl")
@@ -113,5 +110,7 @@ export integrate
 # export pincflow_test_dir, pincflow_examples_dir
 # export Grid, Constants, Atmosphere, Domain, Variables, Fluxes, State
 # export Corrector
+#
+export Namelists, State
 
 end

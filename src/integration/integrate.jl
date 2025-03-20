@@ -117,6 +117,7 @@ function integrate(namelists::Namelists)
     maxiterations = 2^30
   end
 
+  maxiterations = 2
   for itime in 1:maxiterations
     if master
       println("")
@@ -502,6 +503,5 @@ function integrate(namelists::Namelists)
     println(repeat(" ", 32), "PincFlow finished", repeat(" ", 33))
     println(repeat("-", 80))
   end
-
-  return
+  return state
 end

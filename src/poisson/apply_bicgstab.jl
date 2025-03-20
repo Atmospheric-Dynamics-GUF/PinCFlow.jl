@@ -91,8 +91,9 @@ function apply_bicgstab!(
 
   # Loop
 
-  for j_b in 1:maxit
-
+  j_b = 0
+  for _ in 1:maxit
+    j_b += 1
     # v = A*p
     if preconditioner
       apply_preconditioner!(p, v_pc, namelists, domain, grid, poisson)
