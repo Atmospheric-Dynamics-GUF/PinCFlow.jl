@@ -25,6 +25,9 @@ function integrate(namelists::Namelists)
   # Initialize the model state.
   state = State(namelists)
 
+  # Save CPU start time.
+  cpu_start_time = now()
+
   # Get all necessary fields.
   (; nprocx, nprocy) = state.namelists.domain
   (; model) = state.namelists.setting
@@ -47,6 +50,9 @@ function integrate(namelists::Namelists)
     )
     println(repeat(" ", 28), "modified by many others")
     println(repeat("-", 80))
+    println("")
+    println("Date: ", Dates.Date(cpu_start_time))
+    println("Time: ", Dates.Time(cpu_start_time))
     println("")
     println("Virtual topology: [nprocx, nprocy] = [", nprocx, ", ", nprocy, "]")
     println("")
@@ -457,7 +463,7 @@ function integrate(namelists::Namelists)
 
           println("")
           println(repeat("-", 80))
-          println("PinCFlow: Resume.")
+          println("CPU time: ", canonicalize(now() - cpu_start_time))
           println("")
           println("Average Poisson iterations: ", naveragebicg)
           println(repeat("-", 80))
@@ -479,7 +485,7 @@ function integrate(namelists::Namelists)
 
       println("")
       println(repeat("-", 80))
-      println("PinCFlow: Resume.")
+      println("CPU time: ", canonicalize(now() - cpu_start_time))
       println("")
       println("Average Poisson iterations: ", naveragebicg)
       if preconditioner
