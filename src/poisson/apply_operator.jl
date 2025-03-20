@@ -53,7 +53,7 @@ function apply_operator!(
   #         Loop over field
   #---------------------------------
 
-  for k in 1:nz, j in 1:ny, i in 1:nx
+  @inbounds for k in 1:nz, j in 1:ny, i in 1:nx
 
     # ------------------ A(i+1,j,k) ------------------
 
