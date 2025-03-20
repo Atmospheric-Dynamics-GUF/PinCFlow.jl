@@ -3,7 +3,6 @@ function set_vertical_boundaries!(
   variables::BoundaryPredictands,
   boundaries::SolidWallBoundaries,
 )
-
   # Get all necessary fields.
   (; nbz) = state.namelists.domain
   (; nz) = state.domain
@@ -11,30 +10,30 @@ function set_vertical_boundaries!(
 
   # Set the density fluctuations at the boundaries to zero.
   for k in 1:nbz
-    rho[:, :, -k + 1] = -rho[:, :, k]
-    rho[:, :, nz + k] = -rho[:, :, nz - k + 1]
+    @views rho[:, :, -k + 1] = -rho[:, :, k]
+    @views rho[:, :, nz + k] = -rho[:, :, nz - k + 1]
   end
 
   # Set the density fluctuations at the boundaries to zero.
   for k in 1:nbz
-    rhop[:, :, -k + 1] = -rhop[:, :, k]
-    rhop[:, :, nz + k] = -rhop[:, :, nz - k + 1]
+    @views rhop[:, :, -k + 1] = -rhop[:, :, k]
+    @views rhop[:, :, nz + k] = -rhop[:, :, nz - k + 1]
   end
 
   # Set the vertical wind at the boundaries to zero.
   w[:, :, 0] .= 0.0
   w[:, :, nz] .= 0.0
   for k in 1:nbz
-    w[:, :, -k] = -w[:, :, k]
-    w[:, :, nz + k] = -w[:, :, nz - k]
+    @views w[:, :, -k] = -w[:, :, k]
+    @views w[:, :, nz + k] = -w[:, :, nz - k]
   end
 
   # Set the horizontal-wind gradient at the boundaries to zero.
   for k in 1:nbz
-    u[:, :, -k + 1] = u[:, :, k]
-    u[:, :, nz + k] = u[:, :, nz - k + 1]
-    v[:, :, -k + 1] = v[:, :, k]
-    v[:, :, nz + k] = v[:, :, nz - k + 1]
+    @views u[:, :, -k + 1] .= u[:, :, k]
+    @views u[:, :, nz + k] .= u[:, :, nz - k + 1]
+    @views v[:, :, -k + 1] .= v[:, :, k]
+    @views v[:, :, nz + k] .= v[:, :, nz - k + 1]
   end
 
   # Set the pressure gradient at the boundaries to zero.
