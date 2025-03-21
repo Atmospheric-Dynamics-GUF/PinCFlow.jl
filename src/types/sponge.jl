@@ -12,7 +12,6 @@ struct Sponge{
   # Vertical sponge extent.
   zsponge::B
   dzsponge::B
-  ksponge::C
 
   # Lateral sponge extent.
   xsponge0::B
@@ -26,7 +25,7 @@ end
 function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
 
   # Get parameters.
-  (; spongelayer, unifiedsponge, spongetype, spongeheight) = namelists.sponge
+  (; spongelayer, unifiedsponge, spongeheight) = namelists.sponge
   (; nx, ny, nz) = domain
   (; lx, ly, lz) = grid
 
@@ -41,11 +40,6 @@ function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
   )
 
   # Set up the sponge layer.
-  if unifiedsponge && spongetype == ExponentialSponge()
-    ksponge = 1
-  else
-    ksponge = nz - ceil(Integer, spongeheight * nz)
-  end
   dzsponge = spongeheight * (lz[1] - lz[0])
   zsponge = lz[1] - dzsponge
   dxsponge = 0.5 * spongeheight * (lx[1] - lx[0])
@@ -62,7 +56,6 @@ function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
     kr_sp_w_tfc,
     zsponge,
     dzsponge,
-    ksponge,
     xsponge0,
     xsponge1,
     ysponge0,
