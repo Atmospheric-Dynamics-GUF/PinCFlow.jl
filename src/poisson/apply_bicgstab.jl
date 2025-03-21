@@ -91,7 +91,9 @@ function apply_bicgstab!(
 
   # Loop
 
-  for j_b in 1:maxit
+  j_b = 0
+  while j_b < maxit
+    j_b += 1
 
     # v = A*p
     if preconditioner

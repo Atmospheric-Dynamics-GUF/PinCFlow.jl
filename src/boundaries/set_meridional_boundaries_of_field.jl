@@ -10,8 +10,8 @@ function set_meridional_boundaries_of_field!(
     set_meridional_halos_of_field!(field, namelists, domain)
   else
     for j in 1:nby
-      field[:, ny + j] = field[:, j]
-      field[:, -j + 1] = field[:, ny - j + 1]
+      field[:, ny + j] .= view(field, :, j)
+      field[:, -j + 1] .= view(field, :, ny - j + 1)
     end
   end
 
@@ -30,8 +30,8 @@ function set_meridional_boundaries_of_field!(
     set_meridional_halos_of_field!(field, namelists, domain)
   else
     for j in 1:nby
-      field[:, ny + j, :] = field[:, j, :]
-      field[:, -j + 1, :] = field[:, ny - j + 1, :]
+      field[:, ny + j, :] .= view(field, :, j, :)
+      field[:, -j + 1, :] .= view(field, :, ny - j + 1, :)
     end
   end
 
@@ -50,8 +50,8 @@ function set_meridional_boundaries_of_field!(
     set_meridional_halos_of_field!(field, namelists, domain)
   else
     for j in 1:nby
-      field[:, ny + j, :, :, :] = field[:, j, :, :, :]
-      field[:, -j + 1, :, :, :] = field[:, ny - j + 1, :, :, :]
+      field[:, ny + j, :, :, :] .= view(field, :, j, :, :, :)
+      field[:, -j + 1, :, :, :] .= view(field, :, ny - j + 1, :, :, :)
     end
   end
 
