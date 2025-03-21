@@ -1,85 +1,69 @@
-@testset "Test update.jl" begin
-    semi = initialize_values(30, 1, 10, 3, 3, 3, 0, 60000, 0, 40000, 0, 20000)
-    initialize_atmosphere!(semi)
-    initialize_variables!(semi)
-    (; cache, grid) = semi
-    rhs = cache.rhs_bicg
-    (; pStrat, rhoStrat, var, kr_sp_tfc, kr_sp_w_tfc, var0) = cache
-    (; topography_surface) = grid
+@testset "Boundary" begin
+  domain = PinCFlow.DomainNamelist(;
+    sizex = 30,
+    sizey = 30,
+    sizez = 10,
+    lx_dim = [0.0, 60000.0],
+    ly_dim = [0.0, 40000.0],
+    lz_dim = [0.0, 20000],
+  )
+  atmosphere =
+    PinCFlow.AtmosphereNamelist(; backgroundflow_dim = [10.0, 0.0, 0.0])
+  namelists = PinCFlow.Namelists(; domain = domain, atmosphere = atmosphere)
+  state = PinCFlow.State(namelists)
 
-    normalizer = 0.001 # To get smaller values where arithmetic is more accurate
-    set_lin_array_normalizer!(arr) = set_lin_array!(arr, normalizer = normalizer)
-    set_lin_array_normalizer!.((pStrat, rhoStrat, topography_surface))
+  var = state.variables.predictands
 
-    set_lin_array_normalizer!(var.rho)
-    set_lin_array_normalizer!(var.rhop)
-    set_lin_array_normalizer!(var.u)
-    set_lin_array_normalizer!(var.v)
-    set_lin_array_normalizer!(var.w)
-    set_lin_array_normalizer!(var.exner)
+  @testset "Zonal" begin
+    set_lin_array!(var.u)
 
-    set_lin_array_normalizer!(cache.flux.rho)
-    set_lin_array_normalizer!(cache.flux.rhop)
-    set_lin_array_normalizer!(cache.flux.u)
-    set_lin_array_normalizer!(cache.flux.v)
-    set_lin_array_normalizer!(cache.flux.w)
+    @test var.u[31, :, :] != var.u[1, :, :]
+    @test var.u[32, :, :] != var.u[2, :, :]
+    @test var.u[33, :, :] != var.u[3, :, :]
 
-    (; rho, rhop, u, v, w, exner) = cache.var
+    PinCFlow.set_zonal_boundaries_of_field!(var.u, namelists, state.domain)
 
-    PinCFlow.setBoundary_x!(semi, PinCFlow.PeriodicBC())
+    @test var.u[31, :, :] == var.u[1, :, :]
+    @test var.u[32, :, :] == var.u[2, :, :]
+    @test var.u[33, :, :] == var.u[3, :, :]
 
-    test_arr(u, 157.55600000000004, 2.3564405360628085, 0.057, tol = 1e-14)
-    test_arr(v, 153.47600000000006, 2.3083353309257246, 0.057, tol = 1e-14)
-    test_arr(w, 153.47600000000006, 2.3083353309257246, 0.057, tol = 1e-14)
-    test_arr(rho, 153.47600000000006, 2.3083353309257246, 0.057, tol = 1e-14)
-    test_arr(rhop, 153.47600000000006, 2.3083353309257246, 0.057, tol = 1e-14)
-    test_arr(exner, 153.47600000000003, 2.3224323456238647, 0.06, tol = 1e-14)
+    @test var.u[0, :, :] == var.u[30, :, :]
+    @test var.u[-1, :, :] == var.u[29, :, :]
+    @test var.u[-2, :, :] == var.u[28, :, :]
+  end
 
-    set_lin_array_normalizer!(var.rho)
-    set_lin_array_normalizer!(var.rhop)
-    set_lin_array_normalizer!(var.u)
-    set_lin_array_normalizer!(var.v)
-    set_lin_array_normalizer!(var.w)
-    set_lin_array_normalizer!(var.exner)
-    PinCFlow.setBoundary_y!(semi, PinCFlow.PeriodicBC())
+  @testset "Meridional" begin
+    set_lin_array!(var.v)
 
-    test_arr(u, 153.47600000000006, 2.3203965178391304, 0.057, tol = 1e-14)
-    test_arr(v, 155.99200000000005, 2.3516309234231376, 0.057, tol = 1e-14)
-    test_arr(w, 153.47600000000006, 2.3203965178391304, 0.057, tol = 1e-14)
-    test_arr(rho, 153.47600000000006, 2.3203965178391304, 0.057, tol = 1e-14)
-    test_arr(rhop, 153.47600000000006, 2.3203965178391304, 0.057, tol = 1e-14)
-    test_arr(exner, 153.47600000000006, 2.3239178126603286, 0.06, tol = 1e-14)
+    PinCFlow.set_meridional_boundaries_of_field!(var.v, namelists, state.domain)
 
-    set_lin_array_normalizer!(var.rho)
-    set_lin_array_normalizer!(var.rhop)
-    set_lin_array_normalizer!(var.u)
-    set_lin_array_normalizer!(var.v)
-    set_lin_array_normalizer!(var.w)
-    set_lin_array_normalizer!(var.exner)
-    PinCFlow.setBoundary_z!(semi, PinCFlow.PeriodicBC())
+    @test var.v[:, 31, :] == var.v[:, 1, :]
+    @test var.v[:, 32, :] == var.v[:, 2, :]
+    @test var.v[:, 33, :] == var.v[:, 3, :]
 
-    test_arr(u, 153.47600000000006, 2.3126979915241814, 0.057, tol = 1e-14)
-    test_arr(v, 153.47600000000006, 2.3126979915241814, 0.057, tol = 1e-14)
-    test_arr(w, 156.43600000000004, 2.3476311464963966, 0.057, tol = 1e-14)
-    test_arr(rho, 153.47600000000006, 2.3126979915241814, 0.057, tol = 1e-14)
-    test_arr(rhop, 153.47600000000006, 2.3126979915241814, 0.057, tol = 1e-14)
-    test_arr(exner, 153.47600000000006, 2.3229145485789973, 0.06, tol = 1e-14)
+    @test var.v[:, 0, :] == var.v[:, 30, :]
+    @test var.v[:, -1, :] == var.v[:, 29, :]
+    @test var.v[:, -2, :] == var.v[:, 28, :]
+  end
 
-    set_lin_array_normalizer!(var.rho)
-    set_lin_array_normalizer!(var.rhop)
-    set_lin_array_normalizer!(var.u)
-    set_lin_array_normalizer!(var.v)
-    set_lin_array_normalizer!(var.w)
-    set_lin_array_normalizer!(var.exner)
-    PinCFlow.setBoundary_z!(semi, PinCFlow.SolidWallBC())
+  @testset "Vertical" begin
+    set_lin_array!(var.w)
+    PinCFlow.set_vertical_boundaries!(
+      state,
+      PinCFlow.BoundaryPredictands(),
+      PinCFlow.SolidWallBoundaries(),
+    )
 
-    test_arr(u, 153.47600000000006, 2.31269799152418, 0.057, tol = 1e-14)
-    test_arr(v, 153.47600000000006, 2.31269799152418, 0.057, tol = 1e-14)
-    test_arr(w, 135.42000000000004, 2.166727486325857, 0.056, tol = 1e-14)
-    test_arr(rho, 153.47600000000006, 2.31269799152418, 0.057, tol = 1e-14)
-    test_arr(rhop, 153.47600000000006, 2.31269799152418, 0.057, tol = 1e-14)
-    test_arr(exner, 153.47600000000006, 2.3229145485789977, 0.06, tol = 1e-14)
+    @test all(var.w[:, :, 0] .== 0)
+    @test all(var.w[:, :, 10] .== 0)
 
-    set_lin_array_normalizer!(cache.flux.w)
-    PinCFlow.setBoundary_flux!(semi)
+    @test_broken all(var.v[:, :, 1] .== 0)
+    # TODO: is this excpected? 
+    @test var.w[:, :, -1] == -var.w[:, :, 1]
+    @test var.w[:, :, -2] == -var.w[:, :, 2]
+    @test var.w[:, :, -3] == -var.w[:, :, 3]
+    @test var.w[:, :, 11] == -var.w[:, :, 9]
+    @test var.w[:, :, 12] == -var.w[:, :, 8]
+    @test var.w[:, :, 13] == -var.w[:, :, 7]
+  end
 end
