@@ -117,7 +117,6 @@ function integrate(namelists::Namelists)
     maxiterations = 2^30
   end
 
-  maxiterations = 2
   for itime in 1:maxiterations
     if master
       println("")
@@ -285,7 +284,8 @@ function integrate(namelists::Namelists)
     set_boundaries!(state, BoundaryPredictands())
 
     # Correct momentum and density fluctuations
-    (errflagbicg, niterbicg) = apply_corrector!(state, 0.5 * dt, IMPL(), 1.0, 1.0)
+    (errflagbicg, niterbicg) =
+      apply_corrector!(state, 0.5 * dt, IMPL(), 1.0, 1.0)
 
     # if errflagbicg
     #   write_output!(state, time, iout)
@@ -415,7 +415,8 @@ function integrate(namelists::Namelists)
 
     # (3) uses updated pressure field and (5) adjusts pressure over half a
     # time step
-    (errflagbicg, niterbicg) = apply_corrector!(state, 0.5 * dt, IMPL(), 2.0, 1.0)
+    (errflagbicg, niterbicg) =
+      apply_corrector!(state, 0.5 * dt, IMPL(), 2.0, 1.0)
 
     # if errflagbicg
     #   write_output!(state, time, iout)
