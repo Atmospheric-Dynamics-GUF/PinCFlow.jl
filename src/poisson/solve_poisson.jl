@@ -38,13 +38,9 @@ function solve_poisson!(
     return
   end
 
-  for k in 1:nz
-    for j in 1:ny
-      for i in 1:nx
-        fcscal = sqrt(pstrattfc[i, j, k]^2 / rhostrattfc[i, j, k])
-        sol[i, j, k] /= fcscal
-      end
-    end
+  for k in 1:nz, j in 1:ny, i in 1:nx
+    fcscal = sqrt(pstrattfc[i, j, k]^2 / rhostrattfc[i, j, k])
+    sol[i, j, k] /= fcscal
   end
 
   # Pass solution to pressure correction.

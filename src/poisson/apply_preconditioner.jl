@@ -37,55 +37,44 @@ function apply_preconditioner!(
       end
     end
 
-    for j in 1:ny
-      for i in 1:nx
-        if niter == 0
-          q_pc[i, j, 1] = -au_b[i, j, 1] / ac_b[i, j, 1]
-          s_pc[i, j, 1] = s_pc[i, j, 1] / ac_b[i, j, 1]
-        else
-          # Treat all diagonal elements implicity.
-          q_pc[i, j, 1] = deta * au_b[i, j, 1] / (1.0 - deta * ac_b[i, j, 1])
-          s_pc[i, j, 1] = s_pc[i, j, 1] / (1.0 - deta * ac_b[i, j, 1])
-        end
+    for j in 1:ny, i in 1:nx
+      if niter == 0
+        q_pc[i, j, 1] = -au_b[i, j, 1] / ac_b[i, j, 1]
+        s_pc[i, j, 1] = s_pc[i, j, 1] / ac_b[i, j, 1]
+      else
+        # Treat all diagonal elements implicity.
+        q_pc[i, j, 1] = deta * au_b[i, j, 1] / (1.0 - deta * ac_b[i, j, 1])
+        s_pc[i, j, 1] = s_pc[i, j, 1] / (1.0 - deta * ac_b[i, j, 1])
       end
     end
 
-    for k in 2:nz
-      for j in 1:ny
-        for i in 1:nx
-          if niter == 0
-            p_pc[i, j] =
-              1.0 / (ac_b[i, j, k] + ad_b[i, j, k] * q_pc[i, j, k - 1])
+    for k in 2:nz, j in 1:ny, i in 1:nx
+      if niter == 0
+        p_pc[i, j] = 1.0 / (ac_b[i, j, k] + ad_b[i, j, k] * q_pc[i, j, k - 1])
 
-            q_pc[i, j, k] = -au_b[i, j, k] * p_pc[i, j]
+        q_pc[i, j, k] = -au_b[i, j, k] * p_pc[i, j]
 
-            s_pc[i, j, k] =
-              (s_pc[i, j, k] - ad_b[i, j, k] * s_pc[i, j, k - 1]) * p_pc[i, j]
-          else
-            # Treat all diagonal elements implicitly.
-            p_pc[i, j] =
-              1.0 / (
-                1.0 - deta * ac_b[i, j, k] -
-                deta * ad_b[i, j, k] * q_pc[i, j, k - 1]
-              )
+        s_pc[i, j, k] =
+          (s_pc[i, j, k] - ad_b[i, j, k] * s_pc[i, j, k - 1]) * p_pc[i, j]
+      else
+        # Treat all diagonal elements implicitly.
+        p_pc[i, j] =
+          1.0 / (
+            1.0 - deta * ac_b[i, j, k] -
+            deta * ad_b[i, j, k] * q_pc[i, j, k - 1]
+          )
 
-            q_pc[i, j, k] = deta * au_b[i, j, k] * p_pc[i, j]
+        q_pc[i, j, k] = deta * au_b[i, j, k] * p_pc[i, j]
 
-            s_pc[i, j, k] =
-              (s_pc[i, j, k] + deta * ad_b[i, j, k] * s_pc[i, j, k - 1]) *
-              p_pc[i, j]
-          end
-        end
+        s_pc[i, j, k] =
+          (s_pc[i, j, k] + deta * ad_b[i, j, k] * s_pc[i, j, k - 1]) *
+          p_pc[i, j]
       end
     end
 
     # Perform backward pass.
-    for k in (nz - 1):-1:1
-      for j in 1:ny
-        for i in 1:nx
-          s_pc[i, j, k] = s_pc[i, j, k] + q_pc[i, j, k] * s_pc[i, j, k + 1]
-        end
-      end
+    for k in (nz - 1):-1:1, j in 1:ny, i in 1:nx
+      s_pc[i, j, k] = s_pc[i, j, k] + q_pc[i, j, k] * s_pc[i, j, k + 1]
     end
   end
 

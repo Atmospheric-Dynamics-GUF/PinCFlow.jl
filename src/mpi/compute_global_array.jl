@@ -15,12 +15,10 @@ function compute_global_array!(namelists::Namelists, domain::Domain)
         jm = j
         for jp in 1:nprocy
           jg = ny * (jp - 1) + j
-          for ip in 1:nprocx
-            for i in 1:nx
-              ig = nx * (ip - 1) + i
-              im = nprocy * nx * (ip - 1) + (jp - 1) * nx + i
-              global_array[ig, jg, k] = master_array[im, jm, k]
-            end
+          for ip in 1:nprocx, i in 1:nx
+            ig = nx * (ip - 1) + i
+            im = nprocy * nx * (ip - 1) + (jp - 1) * nx + i
+            global_array[ig, jg, k] = master_array[im, jm, k]
           end
         end
       end

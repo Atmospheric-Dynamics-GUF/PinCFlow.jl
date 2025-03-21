@@ -1,8 +1,4 @@
-struct Sponge{
-  A <: AbstractArray{<:AbstractFloat, 3},
-  B <: AbstractFloat,
-  C <: Integer,
-}
+struct Sponge{A <: AbstractArray{<:AbstractFloat, 3}, B <: AbstractFloat}
 
   # Damping coefficients.
   alphaunifiedsponge::A
