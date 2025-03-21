@@ -38,8 +38,8 @@ function set_vertical_boundaries!(
   end
 
   # Set the pressure gradient at the boundaries to zero.
-  pip[:, :, 0] = pip[:, :, 1]
-  pip[:, :, nz + 1] = pip[:, :, nz]
+  @views pip[:, :, 0] = pip[:, :, 1]
+  @views pip[:, :, nz + 1] = pip[:, :, nz]
 
   return
 end
