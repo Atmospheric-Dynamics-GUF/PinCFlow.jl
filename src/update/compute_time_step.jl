@@ -34,22 +34,18 @@ function compute_time_step(state::State)
 
     dtconv_loc = cfl * min(dx / umax, dy / vmax, dz / wmax)
 
-    for k in 1:nz
-      for j in 1:ny
-        for i in 1:nx
-          dtconv_loc = min(
-            dtconv_loc,
-            cfl * jac[i, j, k] * dz / (
-              abs(
-                0.5 * (
-                  compute_vertical_wind(i, j, k, predictands, grid) +
-                  compute_vertical_wind(i, j, k - 1, predictands, grid)
-                ),
-              ) + small
+    for k in 1:nz, j in 1:ny, i in 1:nx
+      dtconv_loc = min(
+        dtconv_loc,
+        cfl * jac[i, j, k] * dz / (
+          abs(
+            0.5 * (
+              compute_vertical_wind(i, j, k, predictands, grid) +
+              compute_vertical_wind(i, j, k - 1, predictands, grid)
             ),
-          )
-        end
-      end
+          ) + small
+        ),
+      )
     end
     dtconv = MPI.Allreduce(dtconv_loc, min, comm)
 
@@ -60,12 +56,8 @@ function compute_time_step(state::State)
     dtvisc = 0.5 * min(dx^2, dy^2, dz^2) * re
 
     dtvisc_loc = dtvisc
-    for k in 1:(nz)
-      for j in 1:(ny)
-        for i in 1:(nx)
-          dtvisc_loc = min(dtvisc_loc, 0.5 * (jac[i, j, k] * dz)^2.0 * re)
-        end
-      end
+    for k in 1:(nz), j in 1:(ny), i in 1:(nx)
+      dtvisc_loc = min(dtvisc_loc, 0.5 * (jac[i, j, k] * dz)^2.0 * re)
     end
     dtvisc = MPI.Allreduce(dtvisc_loc, min, comm)
 

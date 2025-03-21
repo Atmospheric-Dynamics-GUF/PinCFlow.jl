@@ -44,41 +44,35 @@ function Atmosphere(
   nn = sqrt(n2)
 
   # Define 3D background fields.
-  for i in (-nbx):(nx + nbx)
-    for j in (-nby):(ny + nby)
-      for k in (-1):(nz + 2)
-        # Define pStratTFC.
-        pstrattfc[i, j, k] = p0 * exp(-sig * ztfc[i, j, k] / gamma / t0)
-        # Define thetaStratTFC.
-        thetastrattfc[i, j, k] = t0 * exp(kappa * sig / t0 * ztfc[i, j, k])
-        # Define rhoStratTFC.
-        rhostrattfc[i, j, k] = pstrattfc[i, j, k] / thetastrattfc[i, j, k]
-      end
-    end
+  for i in (-nbx):(nx + nbx), j in (-nby):(ny + nby), k in (-1):(nz + 2)
+    # Define pStratTFC.
+    pstrattfc[i, j, k] = p0 * exp(-sig * ztfc[i, j, k] / gamma / t0)
+    # Define thetaStratTFC.
+    thetastrattfc[i, j, k] = t0 * exp(kappa * sig / t0 * ztfc[i, j, k])
+    # Define rhoStratTFC.
+    rhostrattfc[i, j, k] = pstrattfc[i, j, k] / thetastrattfc[i, j, k]
   end
 
   # Define bvsStratTFC.
   bvsstrattfc .= 0.0
-  for i in (-nbx):(nx + nbx)
-    for j in (-nby):(ny + nby)
-      # Lower boundary.
-      bvsstrattfc[i, j, -1] =
-        g_ndim / thetastrattfc[i, j, 0] / jac[i, j, 0] *
-        (thetastrattfc[i, j, 1] - thetastrattfc[i, j, 0]) / dz
-      bvsstrattfc[i, j, 0] = bvsstrattfc[i, j, -1]
-      # Between boundaries.
-      for k in 1:(nz)
-        bvsstrattfc[i, j, k] =
-          g_ndim / thetastrattfc[i, j, k] / jac[i, j, k] *
-          0.5 *
-          (thetastrattfc[i, j, k + 1] - thetastrattfc[i, j, k - 1]) / dz
-      end
-      # Upper boundary.
-      bvsstrattfc[i, j, nz + 1] =
-        g_ndim / thetastrattfc[i, j, nz + 1] / jac[i, j, nz + 1] *
-        (thetastrattfc[i, j, nz + 1] - thetastrattfc[i, j, nz]) / dz
-      bvsstrattfc[i, j, nz + 2] = bvsstrattfc[i, j, nz + 1]
+  for i in (-nbx):(nx + nbx), j in (-nby):(ny + nby)
+    # Lower boundary.
+    bvsstrattfc[i, j, -1] =
+      g_ndim / thetastrattfc[i, j, 0] / jac[i, j, 0] *
+      (thetastrattfc[i, j, 1] - thetastrattfc[i, j, 0]) / dz
+    bvsstrattfc[i, j, 0] = bvsstrattfc[i, j, -1]
+    # Between boundaries.
+    for k in 1:(nz)
+      bvsstrattfc[i, j, k] =
+        g_ndim / thetastrattfc[i, j, k] / jac[i, j, k] *
+        0.5 *
+        (thetastrattfc[i, j, k + 1] - thetastrattfc[i, j, k - 1]) / dz
     end
+    # Upper boundary.
+    bvsstrattfc[i, j, nz + 1] =
+      g_ndim / thetastrattfc[i, j, nz + 1] / jac[i, j, nz + 1] *
+      (thetastrattfc[i, j, nz + 1] - thetastrattfc[i, j, nz]) / dz
+    bvsstrattfc[i, j, nz + 2] = bvsstrattfc[i, j, nz + 1]
   end
 
   # Return an Atmosphere instance.

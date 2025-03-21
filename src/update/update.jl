@@ -876,33 +876,29 @@ function update!(
     fluxdiff /= jacedgeu
 
     # Compute zonal momentum flux divergences.
-    for ll in 0:1
-      for mm in 0:1
-        fr = phiu[i - ll, j, k + mm, 1]
-        fl = phiu[i - 1 - ll, j, k + mm, 1]
-        gf = phiu[i - ll, j, k + mm, 2]
-        gb = phiu[i - ll, j - 1, k + mm, 2]
-        hu = phiu[i - ll, j, k + mm, 3]
-        hd = phiu[i - ll, j, k - 1 + mm, 3]
-        fluxdiffu[ll, mm] = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
-        jacedger = 0.5 * (jac[i - ll, j, k + mm] + jac[i + 1 - ll, j, k + mm])
-        fluxdiffu[ll, mm] /= jacedger
-      end
+    for ll in 0:1, mm in 0:1
+      fr = phiu[i - ll, j, k + mm, 1]
+      fl = phiu[i - 1 - ll, j, k + mm, 1]
+      gf = phiu[i - ll, j, k + mm, 2]
+      gb = phiu[i - ll, j - 1, k + mm, 2]
+      hu = phiu[i - ll, j, k + mm, 3]
+      hd = phiu[i - ll, j, k - 1 + mm, 3]
+      fluxdiffu[ll, mm] = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+      jacedger = 0.5 * (jac[i - ll, j, k + mm] + jac[i + 1 - ll, j, k + mm])
+      fluxdiffu[ll, mm] /= jacedger
     end
 
     # Compute meridional momentum flux divergences.
-    for ll in 0:1
-      for mm in 0:1
-        fr = phiv[i, j - ll, k + mm, 1]
-        fl = phiv[i - 1, j - ll, k + mm, 1]
-        gf = phiv[i, j - ll, k + mm, 2]
-        gb = phiv[i, j - 1 - ll, k + mm, 2]
-        hu = phiv[i, j - ll, k + mm, 3]
-        hd = phiv[i, j - ll, k - 1 + mm, 3]
-        fluxdiffv[ll, mm] = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
-        jacedgef = 0.5 * (jac[i, j - ll, k + mm] + jac[i, j + 1 - ll, k + mm])
-        fluxdiffv[ll, mm] /= jacedgef
-      end
+    for ll in 0:1, mm in 0:1
+      fr = phiv[i, j - ll, k + mm, 1]
+      fl = phiv[i - 1, j - ll, k + mm, 1]
+      gf = phiv[i, j - ll, k + mm, 2]
+      gb = phiv[i, j - 1 - ll, k + mm, 2]
+      hu = phiv[i, j - ll, k + mm, 3]
+      hd = phiv[i, j - ll, k - 1 + mm, 3]
+      fluxdiffv[ll, mm] = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+      jacedgef = 0.5 * (jac[i, j - ll, k + mm] + jac[i, j + 1 - ll, k + mm])
+      fluxdiffv[ll, mm] /= jacedgef
     end
 
     # Compute transformed vertical momentum flux divergence.

@@ -116,16 +116,12 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
 
   # Write the vertical winds.
   if W() in atmvarout
-    for k in 1:nz
-      for j in 1:ny
-        for i in 1:nx
-          local_array[i, j, k] =
-            (
-              compute_vertical_wind(i, j, k, predictands, grid) +
-              compute_vertical_wind(i, j, k - 1, predictands, grid)
-            ) / 2 * uref
-        end
-      end
+    for k in 1:nz, j in 1:ny, i in 1:nx
+      local_array[i, j, k] =
+        (
+          compute_vertical_wind(i, j, k, predictands, grid) +
+          compute_vertical_wind(i, j, k - 1, predictands, grid)
+        ) / 2 * uref
     end
     compute_global_array!(namelists, domain)
     if master
@@ -135,13 +131,9 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
 
   # Write the staggered vertical winds.
   if WS() in atmvarout
-    for k in 1:nz
-      for j in 1:ny
-        for i in 1:nx
-          local_array[i, j, k] =
-            compute_vertical_wind(i, j, k, predictands, grid) * uref
-        end
-      end
+    for k in 1:nz, j in 1:ny, i in 1:nx
+      local_array[i, j, k] =
+        compute_vertical_wind(i, j, k, predictands, grid) * uref
     end
     compute_global_array!(namelists, domain)
     if master
