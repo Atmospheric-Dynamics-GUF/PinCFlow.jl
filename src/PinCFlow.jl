@@ -77,10 +77,8 @@ include("update/update.jl")
 include("poisson/apply_operator.jl")
 include("poisson/apply_preconditioner.jl")
 include("poisson/apply_bicgstab.jl")
-include("poisson/compute_rhs.jl")
 include("poisson/compute_operator.jl")
 include("poisson/compute_rhs.jl")
-include("poisson/compute_operator.jl")
 include("poisson/solve_poisson.jl")
 include("poisson/correct.jl")
 include("poisson/apply_corrector.jl")
@@ -111,6 +109,7 @@ export Isothermal
 export ConstantCoriolis
 export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
 export PeriodicBoundaries, SolidWallBoundaries
+export State
 export integrate
 
 # pincflow_test_dir() = joinpath(dirname(pathof(PinCFlow)), "..", "test")
