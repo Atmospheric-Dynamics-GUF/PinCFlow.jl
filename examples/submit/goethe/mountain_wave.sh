@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --partition=general1
+#SBATCH --partition=test
 #SBATCH --job-name=mountain_wave
 #SBATCH --ntasks=75
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2000
 #SBATCH --mail-type=FAIL
-#SBATCH --time=0-00:05:00
+#SBATCH --time=0-01:00:00
 
 set -x
 
@@ -29,7 +29,7 @@ cp -r ${dirCode} .
 cp ${dirSubmit}/mountain_wave.jl .
 
 # Configure MPI.
-julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
+julia --project=. -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
 
 # Run the model.
 mpirun -np ${ntasks} julia mountain_wave.jl ${nprocx} ${nprocy} 1>run.log 2>&1
