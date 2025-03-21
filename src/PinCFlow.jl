@@ -3,7 +3,7 @@ module PinCFlow
 using Dates
 using OffsetArrays
 using LinearAlgebra
-using NetCDF
+using NCDatasets
 using MPI
 
 # using SimpleUnPack
@@ -58,6 +58,8 @@ include("fluxes/compute_fluxes.jl")
 include("fluxes/reconstruct.jl")
 
 # Include MPI functions.
+include("mpi/compute_global_array.jl")
+include("mpi/compute_local_array.jl")
 include("mpi/compute_global_dot_product.jl")
 include("mpi/set_meridional_halos_of_field.jl")
 include("mpi/set_zonal_halos_of_field.jl")
@@ -82,6 +84,11 @@ include("poisson/compute_operator.jl")
 include("poisson/solve_poisson.jl")
 include("poisson/correct.jl")
 include("poisson/apply_corrector.jl")
+
+# Include output functions.
+include("output/create_output.jl")
+include("output/write_output.jl")
+include("output/read_input.jl")
 
 # Include integration functions.
 include("integration/integrate.jl")

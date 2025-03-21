@@ -76,29 +76,29 @@ function integrate(namelists::Namelists)
   #              Read initial data
   #-------------------------------------------------
 
-  # if restart
-  #   if master
-  #     println("Reading restart file...")
-  #   end
+  if restart
+    if master
+      println("Reading restart file...")
+    end
 
-  #   read_input!(state, time)
+    time = read_input!(state)
 
-  #   if maxtime < time * tref
-  #     println("Restart error: maxtime < time!")
-  #   end
+    if maxtime < time * tref
+      println("Restart error: maxtime < time!")
+    end
 
-  #   set_boundaries!(state, BoundaryPredictands())
-  # end
+    set_boundaries!(state, BoundaryPredictands())
+  end
 
   #------------------------------------------
   #              Initial output
   #------------------------------------------
 
-  # # Create the output file.
-  # create_output(state)
+  # Create the output file.
+  create_output(state)
 
-  # # Write the initial state.
-  # write_output!(state, time, iout)
+  # Write the initial state.
+  iout = write_output(state, time, iout)
 
   output = false
   nextoutputtime = time * tref + outputtimediff
@@ -284,15 +284,16 @@ function integrate(namelists::Namelists)
     set_boundaries!(state, BoundaryPredictands())
 
     # Correct momentum and density fluctuations
-    (errflagbicg, niterbicg) = apply_corrector!(state, 0.5 * dt, IMPL(), 1.0, 1.0)
+    (errflagbicg, niterbicg) =
+      apply_corrector!(state, 0.5 * dt, IMPL(), 1.0, 1.0)
 
-    # if errflagbicg
-    #   write_output!(state, time, iout)
-    #   if master
-    #     println("Output last state into record", iout)
-    #   end
-    #   exit()
-    # end
+    if errflagbicg
+      iout = write_output(state, time, iout)
+      if master
+        println("Output last state into record", iout)
+      end
+      exit()
+    end
 
     ntotalbicg += niterbicg
 
@@ -414,16 +415,16 @@ function integrate(namelists::Namelists)
 
     # (3) uses updated pressure field and (5) adjusts pressure over half a
     # time step
-    (errflagbicg, niterbicg) = apply_corrector!(state, 0.5 * dt, IMPL(), 2.0, 1.0)
+    (errflagbicg, niterbicg) =
+      apply_corrector!(state, 0.5 * dt, IMPL(), 2.0, 1.0)
 
-    # if errflagbicg
-    #   write_output!(state, time, iout)
-
-    #   if master
-    #     println("Output last state into record ", iout)
-    #   end
-    #   exit()
-    # end
+    if errflagbicg
+      iout = write_output(state, time, iout)
+      if master
+        println("Output last state into record ", iout)
+      end
+      exit()
+    end
 
     set_boundaries!(state, BoundaryPredictands())
 
@@ -437,20 +438,20 @@ function integrate(namelists::Namelists)
     #                           Output
     #--------------------------------------------------------------
 
-    # if output_steps
-    #   if mod(itime, noutput) == 0
-    #     write_output!(state, time, iout)
-    #   end
-    # else
-    #   if output
-    #     write_output!(state, time, iout)
-    #     output = false
-    #     nextoutputtime = nextoutputtime + outputtimediff
-    #     if nextoutputtime >= maxtime
-    #       nextoutputtime = maxtime
-    #     end
-    #   end
-    # end
+    if output_steps
+      if mod(itime, noutput) == 0
+        iout = write_output(state, time, iout)
+      end
+    else
+      if output
+        iout = write_output(state, time, iout)
+        output = false
+        nextoutputtime = nextoutputtime + outputtimediff
+        if nextoutputtime >= maxtime
+          nextoutputtime = maxtime
+        end
+      end
+    end
 
     #-------------------------------------------
     #              Abort criteria
