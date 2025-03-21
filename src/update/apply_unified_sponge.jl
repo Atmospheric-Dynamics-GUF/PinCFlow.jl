@@ -15,16 +15,12 @@ function apply_unified_sponge!(
   end
 
   rho_bg = 0.0
-  for k in 1:nz
-    for j in 1:ny
-      for i in 1:nx
-        alpha = alphaunifiedsponge[i, j, k]
-        rho_old = rho[i, j, k]
-        beta = 1.0 / (1.0 + alpha * dt)
-        rho_new = (1.0 - beta) * rho_bg + beta * rho_old
-        rho[i, j, k] = rho_new
-      end
-    end
+  for k in 1:nz, j in 1:ny, i in 1:nx
+    alpha = alphaunifiedsponge[i, j, k]
+    rho_old = rho[i, j, k]
+    beta = 1.0 / (1.0 + alpha * dt)
+    rho_new = (1.0 - beta) * rho_bg + beta * rho_old
+    rho[i, j, k] = rho_new
   end
 
   return
@@ -47,16 +43,12 @@ function apply_unified_sponge!(
   end
 
   rho_bg = 0.0
-  for k in 1:nz
-    for j in 1:ny
-      for i in 1:nx
-        alpha = alphaunifiedsponge[i, j, k]
-        rho_old = rhop[i, j, k]
-        beta = 1.0 / (1.0 + alpha * dt)
-        rho_new = (1.0 - beta) * rho_bg + beta * rho_old
-        rhop[i, j, k] = rho_new
-      end
-    end
+  for k in 1:nz, j in 1:ny, i in 1:nx
+    alpha = alphaunifiedsponge[i, j, k]
+    rho_old = rhop[i, j, k]
+    beta = 1.0 / (1.0 + alpha * dt)
+    rho_new = (1.0 - beta) * rho_bg + beta * rho_old
+    rhop[i, j, k] = rho_new
   end
 
   return
@@ -113,15 +105,13 @@ function apply_unified_sponge!(
     if relax_to_mean
       ubg = sum_global[k]
     end
-    for j in 1:ny
-      for i in 1:nx
-        alpha =
-          0.5 * (alphaunifiedsponge[i, j, k] + alphaunifiedsponge[i + 1, j, k])
-        uold = u[i, j, k]
-        beta = 1.0 / (1.0 + alpha * dt)
-        unew = (1.0 - beta) * ubg + beta * uold
-        u[i, j, k] = unew
-      end
+    for j in 1:ny, i in 1:nx
+      alpha =
+        0.5 * (alphaunifiedsponge[i, j, k] + alphaunifiedsponge[i + 1, j, k])
+      uold = u[i, j, k]
+      beta = 1.0 / (1.0 + alpha * dt)
+      unew = (1.0 - beta) * ubg + beta * uold
+      u[i, j, k] = unew
     end
   end
 
@@ -179,15 +169,13 @@ function apply_unified_sponge!(
     if relax_to_mean
       vbg = sum_global[k]
     end
-    for j in 1:ny
-      for i in 1:nx
-        alpha =
-          0.5 * (alphaunifiedsponge[i, j, k] + alphaunifiedsponge[i, j + 1, k])
-        vold = v[i, j, k]
-        beta = 1.0 / (1.0 + alpha * dt)
-        vnew = (1.0 - beta) * vbg + beta * vold
-        v[i, j, k] = vnew
-      end
+    for j in 1:ny, i in 1:nx
+      alpha =
+        0.5 * (alphaunifiedsponge[i, j, k] + alphaunifiedsponge[i, j + 1, k])
+      vold = v[i, j, k]
+      beta = 1.0 / (1.0 + alpha * dt)
+      vnew = (1.0 - beta) * vbg + beta * vold
+      v[i, j, k] = vnew
     end
   end
 
@@ -246,18 +234,16 @@ function apply_unified_sponge!(
     if relax_to_mean
       wbg = sum_global[k]
     end
-    for j in 1:ny
-      for i in 1:nx
-        alpha =
-          (
-            jac[i, j, k + 1] * alphaunifiedsponge[i, j, k] +
-            jac[i, j, k] * alphaunifiedsponge[i, j, k + 1]
-          ) / (jac[i, j, k] + jac[i, j, k + 1])
-        wold = w[i, j, k]
-        beta = 1.0 / (1.0 + alpha * dt)
-        wnew = (1.0 - beta) * wbg + beta * wold
-        w[i, j, k] = wnew
-      end
+    for j in 1:ny, i in 1:nx
+      alpha =
+        (
+          jac[i, j, k + 1] * alphaunifiedsponge[i, j, k] +
+          jac[i, j, k] * alphaunifiedsponge[i, j, k + 1]
+        ) / (jac[i, j, k] + jac[i, j, k + 1])
+      wold = w[i, j, k]
+      beta = 1.0 / (1.0 + alpha * dt)
+      wnew = (1.0 - beta) * wbg + beta * wold
+      w[i, j, k] = wnew
     end
   end
 
