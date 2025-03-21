@@ -19,16 +19,8 @@ function apply_corrector!(
   tolref = compute_rhs!(state, rhs, dt, model)
 
   # Solve Poisson equation.
-  (errflagbicg, niterbicg) = solve_poisson!(
-    state,
-    rhs,
-    tolref,
-    dt,
-    opt,
-    model,
-    facray,
-    facprs,
-  )
+  (errflagbicg, niterbicg) =
+    solve_poisson!(state, rhs, tolref, dt, opt, model, facray, facprs)
 
   # Return if an error occurred.
   if errflagbicg

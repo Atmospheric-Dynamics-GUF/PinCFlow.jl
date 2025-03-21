@@ -31,17 +31,8 @@ function solve_poisson!(
 
   compute_operator!(state, dt, opt, facray)
 
-  (errflagbicg, niterbicg) = apply_bicgstab!(
-    b,
-    tolref,
-    dt,
-    sol,
-    res,
-    namelists,
-    domain,
-    grid,
-    poisson,
-  )
+  (errflagbicg, niterbicg) =
+    apply_bicgstab!(b, tolref, dt, sol, res, namelists, domain, grid, poisson)
 
   if errflagbicg
     return

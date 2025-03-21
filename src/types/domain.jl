@@ -8,6 +8,9 @@ struct Domain{
   G <: AbstractMatrix{<:AbstractFloat},
   H <: AbstractArray{<:AbstractFloat, 3},
   I <: AbstractArray{<:AbstractFloat, 5},
+  J <: AbstractArray{<:AbstractFloat, 3},
+  K <: AbstractArray{<:AbstractFloat, 3},
+  L <: AbstractArray{<:AbstractFloat, 3},
 }
 
   # MPI variables.
@@ -30,13 +33,13 @@ struct Domain{
   nyy::C
   nzz::C
 
-  # Source and destination ranks for communication.
+  # Source and destination ranks for halos.
   left::C
   right::C
   back::C
   forw::C
 
-  # Auxiliary arrays for communication.
+  # Auxiliary arrays for halos.
   send_a2_left::D
   send_a2_right::D
   recv_a2_left::D
@@ -61,6 +64,11 @@ struct Domain{
   send_a5_forw::I
   recv_a5_back::I
   recv_a5_forw::I
+
+  # Auxiliary arrays for gather & scatter.
+  local_array::J
+  master_array::K
+  global_array::L
 end
 
 function Domain(namelists::Namelists)
@@ -186,7 +194,7 @@ function Domain(namelists::Namelists)
   (left, right) = MPI.Cart_shift(comm, 0, 1)
   (back, forw) = MPI.Cart_shift(comm, 1, 1)
 
-  # Initialize auxiliary arrays for communication.
+  # Initialize auxiliary arrays for halos.
   (send_a2_left, send_a2_right, recv_a2_left, recv_a2_right) =
     (zeros((nbx, ny + 2 * nby + 1)) for i in 1:4)
   (send_a3_left, send_a3_right, recv_a3_left, recv_a3_right) =
@@ -199,6 +207,11 @@ function Domain(namelists::Namelists)
     (zeros((nx + 2 * nbx + 1, nby, nz + 2 * nbz + 1)) for i in 1:4)
   (send_a5_back, send_a5_forw, recv_a5_back, recv_a5_forw) =
     (zeros((nx + 2 * nbx + 1, nby, nz + 2 * nbz + 1, 3, 2)) for i in 1:4)
+
+  # Initialize auxiliary arrays for gather & scatter.
+  local_array = zeros((nx, ny, nz))
+  master_array = zeros((sizex * nprocy, ny, nz))
+  global_array = zeros((sizex, sizey, sizez))
 
   # Return Domain instance.
   return Domain(
@@ -242,5 +255,8 @@ function Domain(namelists::Namelists)
     send_a5_forw,
     recv_a5_back,
     recv_a5_forw,
+    local_array,
+    master_array,
+    global_array,
   )
 end
