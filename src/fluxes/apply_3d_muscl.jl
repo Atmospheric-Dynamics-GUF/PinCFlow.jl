@@ -1,34 +1,28 @@
 function apply_3d_muscl!(
   phi::AbstractArray{<:AbstractFloat, 3},
   phitilde::AbstractArray{<:AbstractFloat, 5},
-  sizex::Integer,
-  sizey::Integer,
-  sizez::Integer,
+  domain::Domain,
+  auxiliaries::Auxiliaries,
   limitertype::MCVariant,
 )
-  phix = zeros(sizex)
-  phiy = zeros(sizey)
-  phiz = zeros(sizez)
+  (; nxx, nyy, nzz) = domain
+  (; phix, phiy, phiz, phitildex, phitildey, phitildez) = auxiliaries
 
-  phitildex = zeros(sizex, 2)
-  phitildey = zeros(sizey, 2)
-  phitildez = zeros(sizez, 2)
-
-  for kz in 2:(sizez - 1), jy in 2:(sizey - 1)
-    phix .= phi.parent[:, jy, kz]
-    apply_1d_muscl!(phix, phitildex, sizex)
+  for kz in 2:(nzz - 1), jy in 2:(nyy - 1)
+    @views phix .= phi.parent[:, jy, kz]
+    apply_1d_muscl!(phix, phitildex, nxx)
     phitilde.parent[:, jy, kz, 1, :] .= phitildex
   end
 
-  for kz in 2:(sizez - 1), ix in 2:(sizex - 1)
-    phiy .= phi.parent[ix, :, kz]
-    apply_1d_muscl!(phiy, phitildey, sizey)
+  for kz in 2:(nzz - 1), ix in 2:(nxx - 1)
+    @views phiy .= phi.parent[ix, :, kz]
+    apply_1d_muscl!(phiy, phitildey, nyy)
     phitilde.parent[ix, :, kz, 2, :] .= phitildey
   end
 
-  for jy in 2:(sizey - 1), ix in 2:(sizex - 1)
-    phiz .= phi.parent[ix, jy, :]
-    apply_1d_muscl!(phiz, phitildez, sizez)
+  for jy in 2:(nyy - 1), ix in 2:(nxx - 1)
+    @views phiz .= phi.parent[ix, jy, :]
+    apply_1d_muscl!(phiz, phitildez, nzz)
     phitilde.parent[ix, jy, :, 3, :] .= phitildez
   end
 
