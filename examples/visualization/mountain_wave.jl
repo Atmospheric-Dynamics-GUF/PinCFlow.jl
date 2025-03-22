@@ -1,6 +1,6 @@
 include("style.jl")
-include("tools.jl")
 
+using NCDatasets
 using LaTeXStrings
 
 # Set paths.
@@ -11,19 +11,19 @@ println("data_path =", data_path)
 println("reference_path =", reference_path)
 
 # Import data.
-data = ModelOutput(data_path * "mountain_wave")
-reference = ModelOutput(reference_path * "mountain_wave")
+data = NCDataset(data_path * "mountain_wave/pincflow_output.nc")
+reference = NCDataset(reference_path * "mountain_wave/pincflow_output.nc")
 
-println("Time: ", data.variables["t"][end], " s")
+println("Time: ", data["t"][end], " s")
 
 # Set grid.
-x = data.variables["x"][99:202] .* 0.001 .- 30
-z = data.variables["z"][99:202, 1, 1:51, end] .* 0.001
+x = data["x"][99:202] .* 0.001 .- 30
+z = data["z"][99:202, 1, 1:51, end] .* 0.001
 x = x .* ones(size(z))
 
 # Get vertical wind.
-w = data.variables["w"][99:202, 1, 1:51, end]
-wr = reference.variables["w"][99:202, 1, 1:51, end]
+w = data["w"][99:202, 1, 1:51, end]
+wr = reference["w"][99:202, 1, 1:51, end]
 deltaw = w .- wr
 
 # Create plot.
