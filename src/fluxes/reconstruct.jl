@@ -22,9 +22,8 @@ function reconstruct!(state::State, variable::Rho)
   apply_3d_muscl!(
     rhobar,
     rhotilde,
-    nx + 2 * nbx + 1,
-    ny + 2 * nby + 1,
-    nz + 2 * nbz + 1,
+    state.domain,
+    state.variables.auxiliaries,
     limitertype,
   )
 
@@ -46,9 +45,8 @@ function reconstruct!(state::State, variable::RhoP)
   apply_3d_muscl!(
     rhopbar,
     rhoptilde,
-    nx + 2 * nbx + 1,
-    ny + 2 * nby + 1,
-    nz + 2 * nbz + 1,
+    state.domain,
+    state.variables.auxiliaries,
     limitertype,
   )
 
@@ -79,9 +77,8 @@ function reconstruct!(state::State, variable::U)
   apply_3d_muscl!(
     ubar,
     utilde,
-    nx + 2 * nbx + 1,
-    ny + 2 * nby + 1,
-    nz + 2 * nbz + 1,
+    state.domain,
+    state.variables.auxiliaries,
     limitertype,
   )
 
@@ -112,9 +109,8 @@ function reconstruct!(state::State, variable::V)
   apply_3d_muscl!(
     vbar,
     vtilde,
-    nx + 2 * nbx + 1,
-    ny + 2 * nby + 1,
-    nz + 2 * nbz + 1,
+    state.domain,
+    state.variables.auxiliaries,
     limitertype,
   )
 
@@ -133,7 +129,7 @@ function reconstruct!(state::State, variable::W)
   (; wtilde) = state.variables.reconstructions
   (; rhostrattfc, pstrattfc) = state.atmosphere
 
-  wbar[:, :, 0:(nz + 1)] = w[:, :, 0:(nz + 1)]
+  @views wbar[:, :, 0:(nz + 1)] = w[:, :, 0:(nz + 1)]
   for ix in 1:nx, jy in 1:ny, kz in 0:(nz + 1)
     wbar[ix, jy, kz] = compute_vertical_wind(ix, jy, kz, predictands, grid)
   end
@@ -156,9 +152,8 @@ function reconstruct!(state::State, variable::W)
   apply_3d_muscl!(
     wbar,
     wtilde,
-    nx + 2 * nbx + 1,
-    ny + 2 * nby + 1,
-    nz + 2 * nbz + 1,
+    state.domain,
+    state.variables.auxiliaries,
     limitertype,
   )
 
