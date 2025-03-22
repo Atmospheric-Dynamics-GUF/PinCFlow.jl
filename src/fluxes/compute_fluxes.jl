@@ -116,10 +116,8 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
   #-----------------------------------------
 
   for k in 1:nz, j in 1:ny, i in 0:nx
-    rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
-    pedger = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i + 1, j, k])
-    rhor = rhoptilde[i + 1, j, k, 1, 0] + rhostratedger / pedger
-    rhol = rhoptilde[i, j, k, 1, 1] + rhostratedger / pedger
+    rhor = rhoptilde[i + 1, j, k, 1, 0]
+    rhol = rhoptilde[i, j, k, 1, 1]
 
     pedger =
       0.5 * (
@@ -138,10 +136,8 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
   #-----------------------------------------
 
   for k in 1:nz, j in 0:ny, i in 1:nx
-    rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
-    pedgef = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j + 1, k])
-    rhof = rhoptilde[i, j + 1, k, 2, 0] + rhostratedgef / pedgef
-    rhob = rhoptilde[i, j, k, 2, 1] + rhostratedgef / pedgef
+    rhof = rhoptilde[i, j + 1, k, 2, 0]
+    rhob = rhoptilde[i, j, k, 2, 1]
 
     pedgef =
       0.5 * (
@@ -160,18 +156,8 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
   #-----------------------------------------
 
   for k in 0:nz, j in 1:ny, i in 1:nx
-    rhostratedgeu =
-      (
-        jac[i, j, k + 1] * rhostrattfc[i, j, k] +
-        jac[i, j, k] * rhostrattfc[i, j, k + 1]
-      ) / (jac[i, j, k] + jac[i, j, k + 1])
-    pedgeu =
-      (
-        jac[i, j, k + 1] * pstrattfc[i, j, k] +
-        jac[i, j, k] * pstrattfc[i, j, k + 1]
-      ) / (jac[i, j, k] + jac[i, j, k + 1])
-    rhou = rhoptilde[i, j, k + 1, 3, 0] + rhostratedgeu / pedgeu
-    rhod = rhoptilde[i, j, k, 3, 1] + rhostratedgeu / pedgeu
+    rhou = rhoptilde[i, j, k + 1, 3, 0]
+    rhod = rhoptilde[i, j, k, 3, 1]
 
     pedgeu =
       jac[i, j, k] *
