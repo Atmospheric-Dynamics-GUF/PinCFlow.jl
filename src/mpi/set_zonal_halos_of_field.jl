@@ -20,8 +20,8 @@ function set_zonal_halos_of_field!(
 
   # Read slice into contiguous array
   for i in 1:nbx
-    send_a2_left[i, :] = field[i, :]
-    send_a2_right[i, :] = field[nx - nbx + i, :]
+    @views send_a2_left[i, :] = field[i, :]
+    @views send_a2_right[i, :] = field[nx - nbx + i, :]
   end
 
   # left -> right
@@ -54,8 +54,8 @@ function set_zonal_halos_of_field!(
 
   # write auxiliary slice to var field
   for i in 1:nbx
-    field[nx + i, :] = recv_a2_right[i, :]
-    field[-nbx + i, :] = recv_a2_left[i, :]
+    @views field[nx + i, :] = recv_a2_right[i, :]
+    @views field[-nbx + i, :] = recv_a2_left[i, :]
   end
 
   return
@@ -84,8 +84,8 @@ function set_zonal_halos_of_field!(
 
   # Read slice into contiguous array
   for i in 1:nbx
-    send_a3_left[i, :, :] = field[i, :, :]
-    send_a3_right[i, :, :] = field[nx - nbx + i, :, :]
+    @views send_a3_left[i, :, :] = field[i, :, :]
+    @views send_a3_right[i, :, :] = field[nx - nbx + i, :, :]
   end
 
   # left -> right
@@ -118,8 +118,8 @@ function set_zonal_halos_of_field!(
 
   # write auxiliary slice to var field
   for i in 1:nbx
-    field[nx + i, :, :] = recv_a3_right[i, :, :]
-    field[-nbx + i, :, :] = recv_a3_left[i, :, :]
+    @views field[nx + i, :, :] = recv_a3_right[i, :, :]
+    @views field[-nbx + i, :, :] = recv_a3_left[i, :, :]
   end
 
   return
@@ -148,8 +148,8 @@ function set_zonal_halos_of_field!(
 
   # Read slice into contiguous array
   for i in 1:nbx
-    send_a5_left[i, :, :, :, :] = field[i, :, :, :, :]
-    send_a5_right[i, :, :, :, :] = field[nx - nbx + i, :, :, :, :]
+    @views send_a5_left[i, :, :, :, :] = field[i, :, :, :, :]
+    @views send_a5_right[i, :, :, :, :] = field[nx - nbx + i, :, :, :, :]
   end
 
   # left -> right
@@ -182,8 +182,8 @@ function set_zonal_halos_of_field!(
 
   # write auxiliary slice to var field
   for i in 1:nbx
-    field[nx + i, :, :, :, :] = recv_a5_right[i, :, :, :, :]
-    field[-nbx + i, :, :, :, :] = recv_a5_left[i, :, :, :, :]
+    @views field[nx + i, :, :, :, :] = recv_a5_right[i, :, :, :, :]
+    @views field[-nbx + i, :, :, :, :] = recv_a5_left[i, :, :, :, :]
   end
 
   return
