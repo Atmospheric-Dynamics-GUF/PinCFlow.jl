@@ -33,8 +33,8 @@ function apply_corrector!(
 
   # Set vertical boundaries of dp.
   if zboundaries == SolidWallBoundaries()
-    @views dpip[:, :, 0] = dpip[:, :, 1]
-    @views dpip[:, :, nz + 1] = dpip[:, :, nz]
+    @views dpip[:, :, 0] .= dpip[:, :, 1]
+    @views dpip[:, :, nz + 1] .= dpip[:, :, nz]
   else
     error("Error in apply_corrector!: Unknown zboundaries!")
   end

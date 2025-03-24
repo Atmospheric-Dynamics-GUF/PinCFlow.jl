@@ -27,7 +27,7 @@ function apply_preconditioner!(
     else
       # Treat all diagonal elements implicitly.
       apply_operator!(s_pc, q_pc, Horizontal(), namelists, domain, poisson)
-      s_pc .= s_pc .+ deta .* (q_pc .- sin)
+      s_pc .+= deta .* (q_pc .- sin)
     end
 
     # Perform upward sweep.
