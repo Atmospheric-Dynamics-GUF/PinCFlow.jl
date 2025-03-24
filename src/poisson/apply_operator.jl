@@ -43,7 +43,7 @@ function apply_operator!(
   (; s) = poisson.operator
 
   # Initialize auxiliary field.
-  s[1:nx, 1:ny, 1:nz] = sin
+  s[1:nx, 1:ny, 1:nz] .= sin
 
   # Set boundaries of auxiliary field.
   set_zonal_boundaries_of_field!(s, namelists, domain)

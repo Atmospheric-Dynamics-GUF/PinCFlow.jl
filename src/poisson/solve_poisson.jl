@@ -43,7 +43,7 @@ function solve_poisson!(
   end
 
   # Pass solution to pressure correction.
-  dpip[1:nx, 1:ny, 1:nz] = dtinv ./ facprs .* sol
+  dpip[1:nx, 1:ny, 1:nz] .= dtinv ./ facprs .* sol
 
   return (errflagbicg, niterbicg)
 end

@@ -370,11 +370,11 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
 
   # Compute the Jacobian.
   for kz in (-nbz + 1):(nz + nbz)
-    jac[:, :, kz] =
+    jac[:, :, kz] .=
       (lz[1] .- topography_surface) ./ lz[1] .*
       (ztildes[kz] .- ztildes[kz - 1]) ./ dz
   end
-  @views jac[:, :, -nbz] = jac[:, :, nbz + 1]
+  @views jac[:, :, -nbz] .= jac[:, :, nbz + 1]
 
   # Compute the metric tensor.
   met[:, :, :, 1, 2] .= 0.0
@@ -389,10 +389,10 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
   end
   set_zonal_boundaries_of_field!(met13, namelists, domain)
   set_meridional_boundaries_of_field!(met13, namelists, domain)
-  @views met13[:, :, -nbz] =
+  @views met13[:, :, -nbz] .=
     met13[:, :, nbz + 1] .* (zs[-nbz] .- lz[1]) ./ (zs[nbz + 1] .- lz[1])
-  met[:, :, :, 1, 3] = met13
-  met[:, :, :, 3, 1] = met13
+  met[:, :, :, 1, 3] .= met13
+  met[:, :, :, 3, 1] .= met13
   for kz in (-nbz + 1):(nz + nbz), jy in 1:ny, ix in 1:nx
     met23[ix, jy, kz] =
       (topography_surface[ix, jy + 1] - topography_surface[ix, jy - 1]) /
@@ -401,10 +401,10 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
   end
   set_zonal_boundaries_of_field!(met23, namelists, domain)
   set_meridional_boundaries_of_field!(met23, namelists, domain)
-  @views met23[:, :, -nbz] =
+  @views met23[:, :, -nbz] .=
     met23[:, :, nbz + 1] .* (zs[-nbz] .- lz[1]) ./ (zs[nbz + 1] .- lz[1])
-  met[:, :, :, 2, 3] = met23
-  met[:, :, :, 3, 2] = met23
+  met[:, :, :, 2, 3] .= met23
+  met[:, :, :, 3, 2] .= met23
   for kz in (-nbz + 1):(nz + nbz), jy in 1:ny, ix in 1:nx
     met33[ix, jy, kz] =
       (
@@ -439,7 +439,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
   end
   set_zonal_boundaries_of_field!(met33, namelists, domain)
   set_meridional_boundaries_of_field!(met33, namelists, domain)
-  met[:, :, :, 3, 3] = met33
+  met[:, :, :, 3, 3] .= met33
 
   # Initialize the physical layers.
   (ztildetfc, ztfc) = (
@@ -453,10 +453,10 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
 
   # Compute the physical layers.
   for kz in (-nbz):(nz + nbz)
-    ztildetfc[:, :, kz] =
+    ztildetfc[:, :, kz] .=
       (lz[1] .- topography_surface) ./ lz[1] .* ztildes[kz] .+
       topography_surface
-    ztfc[:, :, kz] =
+    ztfc[:, :, kz] .=
       (lz[1] .- topography_surface) ./ lz[1] .* zs[kz] .+ topography_surface
   end
 

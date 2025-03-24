@@ -47,7 +47,7 @@ function apply_bicgstab!(
 
   res_local = 0.0
   for k in 1:nz, j in 1:ny, i in 1:nx
-    res_local = res_local + r[i, j, k]^2
+    res_local += r[i, j, k]^2
   end
 
   # MPI: Find global residual.
@@ -59,13 +59,13 @@ function apply_bicgstab!(
 
   r_vm .= 0.0
   for k in 1:nz
-    @views r_vm .= r_vm .+ r[:, :, k]
+    @views r_vm .+= r[:, :, k]
   end
-  r_vm .= r_vm ./ sizez
+  r_vm ./= sizez
 
   res_local = 0.0
   for j in 1:ny, i in 1:nx
-    res_local = res_local + r_vm[i, j]^2
+    res_local += r_vm[i, j]^2
   end
 
   res_vm = MPI.Allreduce(res_local, +, comm)
@@ -114,7 +114,7 @@ function apply_bicgstab!(
     omega =
       compute_global_dot_product(t, s, domain) /
       compute_global_dot_product(t, t, domain)
-    sol .= sol .+ alpha .* p .+ omega .* s
+    sol .+= alpha .* p .+ omega .* s
 
     rold .= r
     r .= s .- omega .* t
@@ -125,7 +125,7 @@ function apply_bicgstab!(
 
     res_local = 0.0
     for k in 1:nz, j in 1:ny, i in 1:nx
-      res_local = res_local + r[i, j, k]^2
+      res_local += r[i, j, k]^2
     end
 
     # MPI: Find global residual.
@@ -135,13 +135,13 @@ function apply_bicgstab!(
 
     r_vm .= 0.0
     for k in 1:nz
-      @views r_vm .= r_vm .+ r[:, :, k]
+      @views r_vm .+= r[:, :, k]
     end
-    r_vm .= r_vm ./ sizez
+    r_vm ./= sizez
 
     res_local = 0.0
     for j in 1:ny, i in 1:nx
-      res_local = res_local + r_vm[i, j]^2
+      res_local += r_vm[i, j]^2
     end
 
     res_vm = MPI.Allreduce(res_local, +, comm)
