@@ -160,7 +160,7 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
 
   # Write the potential-temperature fluctuations.
   if ThetaP() in atmvarout
-    local_array =
+    @views local_array[:, :, :] =
       (
         pstrattfc[1:nx, 1:ny, 1:nz] ./
         (rhostrattfc[1:nx, 1:ny, 1:nz] .+ rho[1:nx, 1:ny, 1:nz]) .-
