@@ -7,7 +7,7 @@ function compute_global_array!(namelists::Namelists, domain::Domain)
   # Gather.
   for k in 1:nz
     for j in 1:ny
-      MPI.Gather!(view(local_array, :, j, k), view(master_array, :, j, k), comm)
+      @views MPI.Gather!(local_array[:, j, k], master_array[:, j, k], comm)
     end
     MPI.Barrier(comm)
     if master
