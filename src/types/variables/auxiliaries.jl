@@ -7,11 +7,7 @@ struct Auxiliaries{
   F <: AbstractMatrix{<:AbstractFloat},
   G <: AbstractMatrix{<:AbstractFloat},
 }
-  rhobar::A
-  rhopbar::A
-  ubar::A
-  vbar::A
-  wbar::A
+  phi::A
   phix::B
   phiy::C
   phiz::D
@@ -27,13 +23,11 @@ function Auxiliaries(namelists::Namelists, domain::Domain)
   (; nx, ny, nz) = domain
 
   # Initialize the auxiliaries.
-  (rhobar, rhopbar, ubar, vbar, wbar) = (
-    OffsetArray(
-      zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1)),
-      (-nbx):(nx + nbx),
-      (-nby):(ny + nby),
-      (-nbz):(nz + nbz),
-    ) for i in 1:5
+  phi = OffsetArray(
+    zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1)),
+    (-nbx):(nx + nbx),
+    (-nby):(ny + nby),
+    (-nbz):(nz + nbz),
   )
   phix = zeros(nx + 2 * nbx + 1)
   phiy = zeros(ny + 2 * nby + 1)
@@ -44,11 +38,7 @@ function Auxiliaries(namelists::Namelists, domain::Domain)
 
   # Return an Auxiliaries instance.
   return Auxiliaries(
-    rhobar,
-    rhopbar,
-    ubar,
-    vbar,
-    wbar,
+    phi,
     phix,
     phiy,
     phiz,
