@@ -26,89 +26,89 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
 
   # Write the horizontal grid.
   if master
-    @views dataset["x"][:] = x[1:sizex] .* lref
-    @views dataset["y"][:] = y[1:sizey] .* lref
+    @views dataset["x"][:] .= x[1:sizex] .* lref
+    @views dataset["y"][:] .= y[1:sizey] .* lref
   end
 
   # Write the vertical grid.
-  @views local_array[:, :, :] = ztfc[1:nx, 1:ny, 1:nz] .* lref
+  @views local_array[:, :, :] .= ztfc[1:nx, 1:ny, 1:nz] .* lref
   compute_global_array!(namelists, domain)
   if master
-    dataset["z"][:, :, :] = global_array
+    dataset["z"][:, :, :] .= global_array
   end
 
   # Write the background density.
-  @views local_array[:, :, :] = rhostrattfc[1:nx, 1:ny, 1:nz] .* rhoref
+  @views local_array[:, :, :] .= rhostrattfc[1:nx, 1:ny, 1:nz] .* rhoref
   compute_global_array!(namelists, domain)
   if master
-    dataset["rhobar"][:, :, :] = global_array
+    dataset["rhobar"][:, :, :] .= global_array
   end
 
   # Write the background potential temperature.
-  @views local_array[:, :, :] = thetastrattfc[1:nx, 1:ny, 1:nz] .* thetaref
+  @views local_array[:, :, :] .= thetastrattfc[1:nx, 1:ny, 1:nz] .* thetaref
   compute_global_array!(namelists, domain)
   if master
-    dataset["thetabar"][:, :, :] = global_array
+    dataset["thetabar"][:, :, :] .= global_array
   end
 
   # Write the buoyancy frequency.
-  @views local_array[:, :, :] = bvsstrattfc[1:nx, 1:ny, 1:nz] ./ tref .^ 2
+  @views local_array[:, :, :] .= bvsstrattfc[1:nx, 1:ny, 1:nz] ./ tref .^ 2
   compute_global_array!(namelists, domain)
   if master
-    dataset["n2"][:, :, :] = global_array
+    dataset["n2"][:, :, :] .= global_array
   end
 
   # Write the mass-weighted potential temperature.
-  @views local_array[:, :, :] = pstrattfc[1:nx, 1:ny, 1:nz] ./ tref .^ 2
+  @views local_array[:, :, :] .= pstrattfc[1:nx, 1:ny, 1:nz] ./ tref .^ 2
   compute_global_array!(namelists, domain)
   if master
-    dataset["p"][:, :, :] = global_array
+    dataset["p"][:, :, :] .= global_array
   end
 
   # Write the density fluctuations.
   if prepare_restart || RhoP() in atmvarout
-    @views local_array[:, :, :] = rho[1:nx, 1:ny, 1:nz] .* rhoref
+    @views local_array[:, :, :] .= rho[1:nx, 1:ny, 1:nz] .* rhoref
     compute_global_array!(namelists, domain)
     if master
-      dataset["rhop"][:, :, :, iout] = global_array
+      dataset["rhop"][:, :, :, iout] .= global_array
     end
   end
 
   # Write the zonal winds.
   if U() in atmvarout
-    @views local_array[:, :, :] =
+    @views local_array[:, :, :] .=
       (u[1:nx, 1:ny, 1:nz] .+ u[0:(nx - 1), 1:ny, 1:nz]) ./ 2 .* uref
     compute_global_array!(namelists, domain)
     if master
-      dataset["u"][:, :, :, iout] = global_array
+      dataset["u"][:, :, :, iout] .= global_array
     end
   end
 
   # Write the staggered zonal winds.
   if prepare_restart || US() in atmvarout
-    @views local_array[:, :, :] = u[1:nx, 1:ny, 1:nz] .* uref
+    @views local_array[:, :, :] .= u[1:nx, 1:ny, 1:nz] .* uref
     compute_global_array!(namelists, domain)
     if master
-      dataset["us"][:, :, :, iout] = global_array
+      dataset["us"][:, :, :, iout] .= global_array
     end
   end
 
   # Write the meridional winds.
   if V() in atmvarout
-    @views local_array[:, :, :] =
+    @views local_array[:, :, :] .=
       (v[1:nx, 1:ny, 1:nz] .+ v[1:nx, 0:(ny - 1), 1:nz]) ./ 2 .* uref
     compute_global_array!(namelists, domain)
     if master
-      dataset["v"][:, :, :, iout] = global_array
+      dataset["v"][:, :, :, iout] .= global_array
     end
   end
 
   # Write the staggered meridional winds.
   if prepare_restart || VS() in atmvarout
-    @views local_array[:, :, :] = v[1:nx, 1:ny, 1:nz] .* uref
+    @views local_array[:, :, :] .= v[1:nx, 1:ny, 1:nz] .* uref
     compute_global_array!(namelists, domain)
     if master
-      dataset["vs"][:, :, :, iout] = global_array
+      dataset["vs"][:, :, :, iout] .= global_array
     end
   end
 
@@ -123,7 +123,7 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
     end
     compute_global_array!(namelists, domain)
     if master
-      dataset["w"][:, :, :, iout] = global_array
+      dataset["w"][:, :, :, iout] .= global_array
     end
   end
 
@@ -135,48 +135,48 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
     end
     compute_global_array!(namelists, domain)
     if master
-      dataset["ws"][:, :, :, iout] = global_array
+      dataset["ws"][:, :, :, iout] .= global_array
     end
   end
 
   # Write the transformed vertical winds.
   if WTFC() in atmvarout
-    @views local_array[:, :, :] =
+    @views local_array[:, :, :] .=
       (w[1:nx, 1:ny, 1:nz] .+ w[1:nx, 1:ny, 0:(nz - 1)]) ./ 2 .* uref
     compute_global_array!(namelists, domain)
     if master
-      dataset["wtfc"][:, :, :, iout] = global_array
+      dataset["wtfc"][:, :, :, iout] .= global_array
     end
   end
 
   # Write the staggered transformed vertical winds.
   if prepare_restart || WSTFC() in atmvarout
-    @views local_array[:, :, :] = w[1:nx, 1:ny, 1:nz] .* uref
+    @views local_array[:, :, :] .= w[1:nx, 1:ny, 1:nz] .* uref
     compute_global_array!(namelists, domain)
     if master
-      dataset["wstfc"][:, :, :, iout] = global_array
+      dataset["wstfc"][:, :, :, iout] .= global_array
     end
   end
 
   # Write the potential-temperature fluctuations.
   if ThetaP() in atmvarout
-    @views local_array[:, :, :] =
+    @views local_array[:, :, :] .=
       (
         pstrattfc[1:nx, 1:ny, 1:nz] ./
         (rhostrattfc[1:nx, 1:ny, 1:nz] .+ rho[1:nx, 1:ny, 1:nz]) .-
         thetastrattfc[1:nx, 1:ny, 1:nz]
       ) .* thetaref
     if master
-      dataset["thetap"][:, :, :, iout] = global_array
+      dataset["thetap"][:, :, :, iout] .= global_array
     end
   end
 
   # Write the Exner-pressure fluctuations.
   if prepare_restart || PiP() in atmvarout
-    @views local_array[:, :, :] = pip[1:nx, 1:ny, 1:nz]
+    @views local_array[:, :, :] .= pip[1:nx, 1:ny, 1:nz]
     compute_global_array!(namelists, domain)
     if master
-      dataset["pip"][:, :, :, iout] = global_array
+      dataset["pip"][:, :, :, iout] .= global_array
     end
   end
 

@@ -18,10 +18,10 @@ function compute_sponge!(state::State, dt::AbstractFloat)
       end
     end
 
-    @views kr_sp_tfc[:, :, 0] = kr_sp_tfc[:, :, 1]
-    @views kr_sp_tfc[:, :, nz + 1] = kr_sp_tfc[:, :, nz]
-    @views kr_sp_w_tfc[:, :, 0] = kr_sp_w_tfc[:, :, 1]
-    @views kr_sp_w_tfc[:, :, nz + 1] = kr_sp_w_tfc[:, :, nz]
+    @views kr_sp_tfc[:, :, 0] .= kr_sp_tfc[:, :, 1]
+    @views kr_sp_tfc[:, :, nz + 1] .= kr_sp_tfc[:, :, nz]
+    @views kr_sp_w_tfc[:, :, 0] .= kr_sp_w_tfc[:, :, 1]
+    @views kr_sp_w_tfc[:, :, nz + 1] .= kr_sp_w_tfc[:, :, nz]
   end
 
   return
@@ -95,8 +95,8 @@ function compute_sponge!(
     end
   end
 
-  @views alphaunifiedsponge[:, :, 0] = alphaunifiedsponge[:, :, 1]
-  @views alphaunifiedsponge[:, :, nz + 1] = alphaunifiedsponge[:, :, nz]
+  @views alphaunifiedsponge[:, :, 0] .= alphaunifiedsponge[:, :, 1]
+  @views alphaunifiedsponge[:, :, nz + 1] .= alphaunifiedsponge[:, :, nz]
 
   return
 end
@@ -171,8 +171,8 @@ function compute_sponge!(
     end
   end
 
-  @views alphaunifiedsponge[:, :, 0] = alphaunifiedsponge[:, :, 1]
-  @views alphaunifiedsponge[:, :, nz + 1] = alphaunifiedsponge[:, :, nz]
+  @views alphaunifiedsponge[:, :, 0] .= alphaunifiedsponge[:, :, 1]
+  @views alphaunifiedsponge[:, :, nz + 1] .= alphaunifiedsponge[:, :, nz]
 
   return
 end
@@ -257,8 +257,8 @@ function compute_sponge!(
     end
   end
 
-  @views alphaunifiedsponge[:, :, 0] = alphaunifiedsponge[:, :, 1]
-  @views alphaunifiedsponge[:, :, nz + 1] = alphaunifiedsponge[:, :, nz]
+  @views alphaunifiedsponge[:, :, 0] .= alphaunifiedsponge[:, :, 1]
+  @views alphaunifiedsponge[:, :, nz + 1] .= alphaunifiedsponge[:, :, nz]
 
   return
 end
@@ -347,8 +347,8 @@ function compute_sponge!(
     end
   end
 
-  @views alphaunifiedsponge[:, :, 0] = alphaunifiedsponge[:, :, 1]
-  @views alphaunifiedsponge[:, :, nz + 1] = alphaunifiedsponge[:, :, nz]
+  @views alphaunifiedsponge[:, :, 0] .= alphaunifiedsponge[:, :, 1]
+  @views alphaunifiedsponge[:, :, nz + 1] .= alphaunifiedsponge[:, :, nz]
 
   return
 end

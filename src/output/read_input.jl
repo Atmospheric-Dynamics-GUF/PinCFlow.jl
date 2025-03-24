@@ -20,39 +20,39 @@ function read_input!(state::State)
 
   # Read the density fluctuations.
   if master
-    @views global_array[:, :, :] = dataset["rhop"][:, :, :, iin] ./ rhoref
+    @views global_array[:, :, :] .= dataset["rhop"][:, :, :, iin] ./ rhoref
   end
   compute_local_array!(namelists, domain)
-  rho[1:nx, 1:ny, 1:nz] = local_array
-  rhop[1:nx, 1:ny, 1:nz] = local_array
+  rho[1:nx, 1:ny, 1:nz] .= local_array
+  rhop[1:nx, 1:ny, 1:nz] .= local_array
 
   # Read the staggered zonal winds.
   if master
-    @views global_array[:, :, :] = dataset["us"][:, :, :, iin] ./ uref
+    @views global_array[:, :, :] .= dataset["us"][:, :, :, iin] ./ uref
   end
   compute_local_array!(namelists, domain)
-  u[1:nx, 1:ny, 1:nz] = local_array
+  u[1:nx, 1:ny, 1:nz] .= local_array
 
   # Read the staggered meridional winds.
   if master
-    @views global_array[:, :, :] = dataset["vs"][:, :, :, iin] ./ uref
+    @views global_array[:, :, :] .= dataset["vs"][:, :, :, iin] ./ uref
   end
   compute_local_array!(namelists, domain)
-  v[1:nx, 1:ny, 1:nz] = local_array
+  v[1:nx, 1:ny, 1:nz] .= local_array
 
   # Read the staggered transformed vertical winds.
   if master
-    @views global_array[:, :, :] = dataset["wstfc"][:, :, :, iin] ./ uref
+    @views global_array[:, :, :] .= dataset["wstfc"][:, :, :, iin] ./ uref
   end
   compute_local_array!(namelists, domain)
-  w[1:nx, 1:ny, 1:nz] = local_array
+  w[1:nx, 1:ny, 1:nz] .= local_array
 
   # Read the Exner-pressure fluctuations.
   if master
-    @views global_array[:, :, :] = dataset["pip"][:, :, :, iin]
+    @views global_array[:, :, :] .= dataset["pip"][:, :, :, iin]
   end
   compute_local_array!(namelists, domain)
-  pip[1:nx, 1:ny, 1:nz] = local_array
+  pip[1:nx, 1:ny, 1:nz] .= local_array
 
   # Close the dataset.
   if master
