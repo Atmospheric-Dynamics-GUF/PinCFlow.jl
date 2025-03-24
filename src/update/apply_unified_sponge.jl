@@ -71,7 +71,7 @@ function apply_unified_sponge!(
     relaxation_amplitude,
   ) = state.namelists.sponge
   (; uref, tref) = state.constants
-  (; comm, nx, ny, nz) = state.domain
+  (; comm, nx, ny, nz, local_sum, global_sum) = state.domain
   (; alphaunifiedsponge) = state.sponge
   (; u) = state.variables.predictands
 
@@ -79,15 +79,13 @@ function apply_unified_sponge!(
     return
   end
 
-  (sum_local, sum_global) = (zeros(nz) for i in 1:2)
-
   # Determine relaxation wind.
   if relax_to_mean
     for k in 1:nz
-      @views sum_local[k] = sum(u[1:nx, 1:ny, k])
+      @views local_sum[k] = sum(u[1:nx, 1:ny, k])
     end
-    MPI.Allreduce!(sum_local, sum_global, .+, comm)
-    sum_global[:] = sum_global ./ (sizex .* sizey)
+    MPI.Allreduce!(local_sum, global_sum, .+, comm)
+    global_sum ./= (sizex .* sizey)
   else
     ubg = backgroundflow_dim[1] / uref
     if relaxation_period > 0.0
@@ -103,7 +101,7 @@ function apply_unified_sponge!(
   # Update the zonal wind.
   for k in 1:nz
     if relax_to_mean
-      ubg = sum_global[k]
+      ubg = global_sum[k]
     end
     for j in 1:ny, i in 1:nx
       alpha =
@@ -135,7 +133,7 @@ function apply_unified_sponge!(
     relaxation_amplitude,
   ) = state.namelists.sponge
   (; uref, tref) = state.constants
-  (; comm, nx, ny, nz) = state.domain
+  (; comm, nx, ny, nz, local_sum, global_sum) = state.domain
   (; alphaunifiedsponge) = state.sponge
   (; v) = state.variables.predictands
 
@@ -143,15 +141,13 @@ function apply_unified_sponge!(
     return
   end
 
-  (sum_local, sum_global) = (zeros(nz) for i in 1:2)
-
   # Determine relaxation wind.
   if relax_to_mean
     for k in 1:nz
-      @views sum_local[k] = sum(v[1:nx, 1:ny, k])
+      @views local_sum[k] = sum(v[1:nx, 1:ny, k])
     end
-    MPI.Allreduce!(sum_local, sum_global, .+, comm)
-    sum_global[:] = sum_global ./ (sizex .* sizey)
+    MPI.Allreduce!(local_sum, global_sum, .+, comm)
+    global_sum ./= (sizex .* sizey)
   else
     vbg = backgroundflow_dim[2] / uref
     if relaxation_period > 0.0
@@ -167,7 +163,7 @@ function apply_unified_sponge!(
   # Update the meridional wind.
   for k in 1:nz
     if relax_to_mean
-      vbg = sum_global[k]
+      vbg = global_sum[k]
     end
     for j in 1:ny, i in 1:nx
       alpha =
@@ -199,7 +195,7 @@ function apply_unified_sponge!(
     relaxation_amplitude,
   ) = state.namelists.sponge
   (; uref, tref) = state.constants
-  (; comm, nx, ny, nz) = state.domain
+  (; comm, nx, ny, nz, local_sum, global_sum) = state.domain
   (; alphaunifiedsponge) = state.sponge
   (; w) = state.variables.predictands
   (; jac) = state.grid
@@ -208,15 +204,13 @@ function apply_unified_sponge!(
     return
   end
 
-  (sum_local, sum_global) = (zeros(nz) for i in 1:2)
-
   # Determine relaxation wind.
   if relax_to_mean
     for k in 1:nz
-      @views sum_local[k] = sum(w[1:nx, 1:ny, k])
+      @views local_sum[k] = sum(w[1:nx, 1:ny, k])
     end
-    MPI.Allreduce!(sum_local, sum_global, .+, comm)
-    sum_global[:] = sum_global ./ (sizex .* sizey)
+    MPI.Allreduce!(local_sum, global_sum, .+, comm)
+    global_sum ./= (sizex .* sizey)
   else
     wbg = backgroundflow_dim[3] / uref
     if relaxation_period > 0.0
@@ -232,7 +226,7 @@ function apply_unified_sponge!(
   # Update the vertical wind.
   for k in 1:nz
     if relax_to_mean
-      wbg = sum_global[k]
+      wbg = global_sum[k]
     end
     for j in 1:ny, i in 1:nx
       alpha =
