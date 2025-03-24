@@ -60,7 +60,7 @@ function apply_bicgstab!(
 
   r_vm .= 0.0
   for k in 1:nz
-    r_vm .= r_vm .+ r[:, :, k]
+    @views r_vm .= r_vm .+ r[:, :, k]
   end
   r_vm .= r_vm ./ sizez
 
@@ -136,7 +136,7 @@ function apply_bicgstab!(
 
     r_vm .= 0.0
     for k in 1:nz
-      r_vm .= r_vm .+ r[:, :, k]
+      @views r_vm .= r_vm .+ r[:, :, k]
     end
     r_vm .= r_vm ./ sizez
 

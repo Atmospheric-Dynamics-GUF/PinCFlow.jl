@@ -28,9 +28,9 @@ function compute_time_step(state::State)
     #     CFL condition
     #----------------------
 
-    umax = maximum(abs.(u[1:nx, 1:ny, 1:nz])) + small
-    vmax = maximum(abs.(v[1:nx, 1:ny, 1:nz])) + small
-    wmax = maximum(abs.(w[1:nx, 1:ny, 1:nz])) + small
+    @views umax = maximum(abs.(u[1:nx, 1:ny, 1:nz])) + small
+    @views vmax = maximum(abs.(v[1:nx, 1:ny, 1:nz])) + small
+    @views wmax = maximum(abs.(w[1:nx, 1:ny, 1:nz])) + small
 
     dtconv_loc = cfl * min(dx / umax, dy / vmax, dz / wmax)
 

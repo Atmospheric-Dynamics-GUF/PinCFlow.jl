@@ -21,11 +21,7 @@ function compute_local_array!(namelists::Namelists, domain::Domain)
     end
     MPI.Barrier(comm)
     for j in 1:ny
-      MPI.Scatter!(
-        view(master_array, :, j, k),
-        view(local_array, :, j, k),
-        comm,
-      )
+      @views MPI.Scatter!(master_array[:, j, k], local_array[:, j, k], comm)
     end
   end
 
