@@ -351,6 +351,14 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
     (-nby):(ny + nby),
     (-nbz):(nz + nbz),
   )
+  (met13, met23, met33) = (
+    OffsetArray(
+      zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1)),
+      (-nbx):(nx + nbx),
+      (-nby):(ny + nby),
+      (-nbz):(nz + nbz),
+    ) for i in 1:3
+  )
   met = OffsetArray(
     zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1, 3, 3)),
     (-nbx):(nx + nbx),
@@ -369,42 +377,36 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
   jac[:, :, -nbz] = jac[:, :, nbz + 1]
 
   # Compute the metric tensor.
-  met[:, :, :, 1, 1] .= 1.0
   met[:, :, :, 1, 2] .= 0.0
+  met[:, :, :, 2, 1] .= 0.0
+  met[:, :, :, 1, 1] .= 1.0
+  met[:, :, :, 2, 2] .= 1.0
   for kz in (-nbz + 1):(nz + nbz), jy in 1:ny, ix in 1:nx
-    met[ix, jy, kz, 1, 3] =
+    met13[ix, jy, kz] =
       (topography_surface[ix + 1, jy] - topography_surface[ix - 1, jy]) /
       (2.0 * dx) * (zs[kz] - lz[1]) / (lz[1] - topography_surface[ix, jy]) *
       dz / (ztildes[kz] - ztildes[kz - 1])
   end
-  set_zonal_boundaries_of_field!(view(met, :, :, :, 1, 3), namelists, domain)
-  set_meridional_boundaries_of_field!(
-    view(met, :, :, :, 1, 3),
-    namelists,
-    domain,
-  )
-  met[:, :, -nbz, 1, 3] =
-    met[:, :, nbz + 1, 1, 3] .* (zs[-nbz] .- lz[1]) ./ (zs[nbz + 1] .- lz[1])
-  met[:, :, :, 2, 1] .= 0.0
-  met[:, :, :, 2, 2] .= 1.0
+  set_zonal_boundaries_of_field!(met13, namelists, domain)
+  set_meridional_boundaries_of_field!(met13, namelists, domain)
+  @views met13[:, :, -nbz] =
+    met13[:, :, nbz + 1] .* (zs[-nbz] .- lz[1]) ./ (zs[nbz + 1] .- lz[1])
+  met[:, :, :, 1, 3] = met13
+  met[:, :, :, 3, 1] = met13
   for kz in (-nbz + 1):(nz + nbz), jy in 1:ny, ix in 1:nx
-    met[ix, jy, kz, 2, 3] =
+    met23[ix, jy, kz] =
       (topography_surface[ix, jy + 1] - topography_surface[ix, jy - 1]) /
       (2.0 * dy) * (zs[kz] - lz[1]) / (lz[1] - topography_surface[ix, jy]) *
       dz / (ztildes[kz] - ztildes[kz - 1])
   end
-  set_zonal_boundaries_of_field!(view(met, :, :, :, 2, 3), namelists, domain)
-  set_meridional_boundaries_of_field!(
-    view(met, :, :, :, 2, 3),
-    namelists,
-    domain,
-  )
-  met[:, :, -nbz, 2, 3] =
-    met[:, :, nbz + 1, 2, 3] .* (zs[-nbz] .- lz[1]) ./ (zs[nbz + 1] .- lz[1])
-  met[:, :, :, 3, 1] = met[:, :, :, 1, 3]
-  met[:, :, :, 3, 2] = met[:, :, :, 2, 3]
+  set_zonal_boundaries_of_field!(met23, namelists, domain)
+  set_meridional_boundaries_of_field!(met23, namelists, domain)
+  @views met23[:, :, -nbz] =
+    met23[:, :, nbz + 1] .* (zs[-nbz] .- lz[1]) ./ (zs[nbz + 1] .- lz[1])
+  met[:, :, :, 2, 3] = met23
+  met[:, :, :, 3, 2] = met23
   for kz in (-nbz + 1):(nz + nbz), jy in 1:ny, ix in 1:nx
-    met[ix, jy, kz, 3, 3] =
+    met33[ix, jy, kz] =
       (
         (lz[1] / (lz[1] - topography_surface[ix, jy]))^2.0 +
         ((zs[kz] - lz[1]) / (lz[1] - topography_surface[ix, jy]))^2.0 * (
@@ -419,14 +421,8 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
         )
       ) * (dz / (ztildes[kz] - ztildes[kz - 1]))^2.0
   end
-  set_zonal_boundaries_of_field!(view(met, :, :, :, 3, 3), namelists, domain)
-  set_meridional_boundaries_of_field!(
-    view(met, :, :, :, 3, 3),
-    namelists,
-    domain,
-  )
   for jy in 1:ny, ix in 1:nx
-    met[ix, jy, -nbz, 3, 3] =
+    met33[ix, jy, -nbz] =
       (
         (lz[1] / (lz[1] - topography_surface[ix, jy]))^2.0 +
         ((zs[-nbz] - lz[1]) / (lz[1] - topography_surface[ix, jy]))^2.0 * (
@@ -441,12 +437,9 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
         )
       ) * (dz / (ztildes[nbz + 1] - ztildes[nbz]))^2.0
   end
-  set_zonal_boundaries_of_field!(view(met, :, :, -nbz, 3, 3), namelists, domain)
-  set_meridional_boundaries_of_field!(
-    view(met, :, :, -nbz, 3, 3),
-    namelists,
-    domain,
-  )
+  set_zonal_boundaries_of_field!(met33, namelists, domain)
+  set_meridional_boundaries_of_field!(met33, namelists, domain)
+  met[:, :, :, 3, 3] = met33
 
   # Initialize the physical layers.
   (ztildetfc, ztfc) = (

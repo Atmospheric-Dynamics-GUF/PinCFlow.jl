@@ -20,8 +20,8 @@ function set_meridional_halos_of_field!(
 
   # Read slice into contiguous array.
   for j in 1:nby
-    @views send_a2_back[:, j] = field[:, j]
-    @views send_a2_forw[:, j] = field[:, ny - nby + j]
+    @views send_a2_back[:, j] .= field.parent[:, nby + j + 1]
+    @views send_a2_forw[:, j] .= field.parent[:, ny + j + 1]
   end
 
   # back -> forw
@@ -54,8 +54,8 @@ function set_meridional_halos_of_field!(
 
   # write auxiliary slice to var field
   for j in 1:nby
-    @views field[:, ny + j] = recv_a2_forw[:, j]
-    @views field[:, -nby + j] = recv_a2_back[:, j]
+    @views field.parent[:, ny + nby + j + 1] .= recv_a2_forw[:, j]
+    @views field.parent[:, j + 1] .= recv_a2_back[:, j]
   end
 
   return
@@ -84,8 +84,8 @@ function set_meridional_halos_of_field!(
 
   # Read slice into contiguous array.
   for j in 1:nby
-    @views send_a3_back[:, j, :] = field[:, j, :]
-    @views send_a3_forw[:, j, :] = field[:, ny - nby + j, :]
+    @views send_a3_back[:, j, :] .= field.parent[:, nby + j + 1, :]
+    @views send_a3_forw[:, j, :] .= field.parent[:, ny + j + 1, :]
   end
 
   # back -> forw
@@ -118,8 +118,8 @@ function set_meridional_halos_of_field!(
 
   # write auxiliary slice to var field
   for j in 1:nby
-    @views field[:, ny + j, :] = recv_a3_forw[:, j, :]
-    @views field[:, -nby + j, :] = recv_a3_back[:, j, :]
+    @views field.parent[:, ny + nby + j + 1, :] .= recv_a3_forw[:, j, :]
+    @views field.parent[:, j + 1, :] .= recv_a3_back[:, j, :]
   end
 
   return
@@ -148,8 +148,8 @@ function set_meridional_halos_of_field!(
 
   # Read slice into contiguous array.
   for j in 1:nby
-    @views send_a5_back[:, j, :, :, :] = field[:, j, :, :, :]
-    @views send_a5_forw[:, j, :, :, :] = field[:, ny - nby + j, :, :, :]
+    @views send_a5_back[:, j, :, :, :] .= field.parent[:, nby + j + 1, :, :, :]
+    @views send_a5_forw[:, j, :, :, :] .= field.parent[:, ny + j + 1, :, :, :]
   end
 
   # back -> forw
@@ -182,8 +182,9 @@ function set_meridional_halos_of_field!(
 
   # write auxiliary slice to var field
   for j in 1:nby
-    @views field[:, ny + j, :, :, :] = recv_a5_forw[:, j, :, :, :]
-    @views field[:, -nby + j, :, :, :] = recv_a5_back[:, j, :, :, :]
+    @views field.parent[:, ny + nby + j + 1, :, :, :] .=
+      recv_a5_forw[:, j, :, :, :]
+    @views field.parent[:, j + 1, :, :, :] .= recv_a5_back[:, j, :, :, :]
   end
 
   return
