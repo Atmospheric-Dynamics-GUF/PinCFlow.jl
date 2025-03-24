@@ -16,7 +16,6 @@ function solve_poisson!(
   # Initialize solution and residual.
   sol = state.poisson.solution
   sol .= 0.0
-  res = 0.0
 
   # Initialize.
   if dt == 0.0
@@ -31,8 +30,8 @@ function solve_poisson!(
 
   compute_operator!(state, dt, opt, facray)
 
-  (errflagbicg, niterbicg) =
-    apply_bicgstab!(b, tolref, dt, sol, res, namelists, domain, grid, poisson)
+  (errflagbicg, niterbicg, res) =
+    apply_bicgstab!(b, tolref, dt, sol, namelists, domain, grid, poisson)
 
   if errflagbicg
     return

@@ -3,7 +3,6 @@ function apply_bicgstab!(
   tolref::AbstractFloat,
   dt::AbstractFloat,
   sol::AbstractArray{<:AbstractFloat, 3},
-  res::AbstractFloat,
   namelists::Namelists,
   domain::Domain,
   grid::Grid,
@@ -179,5 +178,5 @@ function apply_bicgstab!(
   niter = j_b
 
   # Return.
-  return (errflag, niter)
+  return (errflag, niter, res)
 end
