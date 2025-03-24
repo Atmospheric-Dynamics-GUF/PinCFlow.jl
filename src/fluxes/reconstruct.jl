@@ -12,15 +12,15 @@ function reconstruct!(state::State, variable::Rho)
   (; limitertype) = state.namelists.discretization
   (; nx, ny, nz) = state.domain
   (; rho) = state.variables.predictands
-  (; rhobar) = state.variables.auxiliaries
+  (; phi) = state.variables.auxiliaries
   (; rhotilde) = state.variables.reconstructions
   (; pstrattfc) = state.atmosphere
 
   for ix in (-nbx):(nx + nbx), jy in (-nby):(ny + nby), kz in 0:(nz + 1)
-    rhobar[ix, jy, kz] = rho[ix, jy, kz] / pstrattfc[ix, jy, kz]
+    phi[ix, jy, kz] = rho[ix, jy, kz] / pstrattfc[ix, jy, kz]
   end
   apply_3d_muscl!(
-    rhobar,
+    phi,
     rhotilde,
     state.domain,
     state.variables.auxiliaries,
@@ -35,15 +35,15 @@ function reconstruct!(state::State, variable::RhoP)
   (; limitertype) = state.namelists.discretization
   (; nx, ny, nz) = state.domain
   (; rhop) = state.variables.predictands
-  (; rhopbar) = state.variables.auxiliaries
+  (; phi) = state.variables.auxiliaries
   (; rhoptilde) = state.variables.reconstructions
   (; pstrattfc) = state.atmosphere
 
   for ix in (-nbx):(nx + nbx), jy in (-nby):(ny + nby), kz in 0:(nz + 1)
-    rhopbar[ix, jy, kz] = rhop[ix, jy, kz] / pstrattfc[ix, jy, kz]
+    phi[ix, jy, kz] = rhop[ix, jy, kz] / pstrattfc[ix, jy, kz]
   end
   apply_3d_muscl!(
-    rhopbar,
+    phi,
     rhoptilde,
     state.domain,
     state.variables.auxiliaries,
@@ -58,7 +58,7 @@ function reconstruct!(state::State, variable::U)
   (; limitertype) = state.namelists.discretization
   (; nx, ny, nz) = state.domain
   (; rho, u) = state.variables.predictands
-  (; ubar) = state.variables.auxiliaries
+  (; phi) = state.variables.auxiliaries
   (; utilde) = state.variables.reconstructions
   (; rhostrattfc, pstrattfc) = state.atmosphere
 
@@ -71,11 +71,11 @@ function reconstruct!(state::State, variable::U)
         rhostrattfc[ix + 1, jy, kz]
       )
     pedge = 0.5 * (pstrattfc[ix, jy, kz] + pstrattfc[ix + 1, jy, kz])
-    ubar[ix, jy, kz] = u[ix, jy, kz] * rhoedge / pedge
+    phi[ix, jy, kz] = u[ix, jy, kz] * rhoedge / pedge
   end
 
   apply_3d_muscl!(
-    ubar,
+    phi,
     utilde,
     state.domain,
     state.variables.auxiliaries,
@@ -90,7 +90,7 @@ function reconstruct!(state::State, variable::V)
   (; limitertype) = state.namelists.discretization
   (; nx, ny, nz) = state.domain
   (; rho, v) = state.variables.predictands
-  (; vbar) = state.variables.auxiliaries
+  (; phi) = state.variables.auxiliaries
   (; vtilde) = state.variables.reconstructions
   (; rhostrattfc, pstrattfc) = state.atmosphere
 
@@ -103,11 +103,11 @@ function reconstruct!(state::State, variable::V)
         rhostrattfc[ix, jy + 1, kz]
       )
     pedge = 0.5 * (pstrattfc[ix, jy, kz] + pstrattfc[ix, jy + 1, kz])
-    vbar[ix, jy, kz] = v[ix, jy, kz] * rhoedge / pedge
+    phi[ix, jy, kz] = v[ix, jy, kz] * rhoedge / pedge
   end
 
   apply_3d_muscl!(
-    vbar,
+    phi,
     vtilde,
     state.domain,
     state.variables.auxiliaries,
@@ -125,16 +125,16 @@ function reconstruct!(state::State, variable::W)
   (; jac) = grid
   (; predictands) = state.variables
   (; rho, w) = predictands
-  (; wbar) = state.variables.auxiliaries
+  (; phi) = state.variables.auxiliaries
   (; wtilde) = state.variables.reconstructions
   (; rhostrattfc, pstrattfc) = state.atmosphere
 
-  @views wbar[:, :, 0:(nz + 1)] = w[:, :, 0:(nz + 1)]
+  @views phi[:, :, 0:(nz + 1)] .= w[:, :, 0:(nz + 1)]
   for ix in 1:nx, jy in 1:ny, kz in 0:(nz + 1)
-    wbar[ix, jy, kz] = compute_vertical_wind(ix, jy, kz, predictands, grid)
+    phi[ix, jy, kz] = compute_vertical_wind(ix, jy, kz, predictands, grid)
   end
-  set_zonal_boundaries_of_field!(wbar, namelists, domain)
-  set_meridional_boundaries_of_field!(wbar, namelists, domain)
+  set_zonal_boundaries_of_field!(phi, namelists, domain)
+  set_meridional_boundaries_of_field!(phi, namelists, domain)
   for ix in (-nbx):(nx + nbx), jy in (-nby):(ny + nby), kz in 0:(nz + 1)
     rhoedgeu =
       (
@@ -146,11 +146,11 @@ function reconstruct!(state::State, variable::W)
         jac[ix, jy, kz + 1] * pstrattfc[ix, jy, kz] +
         jac[ix, jy, kz] * pstrattfc[ix, jy, kz + 1]
       ) / (jac[ix, jy, kz] + jac[ix, jy, kz + 1])
-    wbar[ix, jy, kz] *= rhoedgeu / pedgeu
+    phi[ix, jy, kz] *= rhoedgeu / pedgeu
   end
 
   apply_3d_muscl!(
-    wbar,
+    phi,
     wtilde,
     state.domain,
     state.variables.auxiliaries,
