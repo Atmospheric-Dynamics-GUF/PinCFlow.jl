@@ -12,10 +12,10 @@ function compute_rhs!(
   (; u, v, w) = state.variables.predictands
 
   # Initialize summation fields.
-  divsum = 0.0
-  divl2 = 0.0
   divmax = 0.0
+  divsum = 0.0
   divsum_local = 0.0
+  divl2 = 0.0
   divl2_local = 0.0
   divl2_norm = 0.0
   divl2_norm_local = 0.0
