@@ -32,6 +32,6 @@ cp ${dirSubmit}/mountain_wave.jl .
 julia --project=. -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
 
 # Run the model.
-mpirun -np ${ntasks} julia mountain_wave.jl ${nprocx} ${nprocy} 1>run.log 2>&1
+mpirun -np ${ntasks} julia --project=. mountain_wave.jl ${nprocx} ${nprocy} 1>run.log 2>&1
 
 exit 0
