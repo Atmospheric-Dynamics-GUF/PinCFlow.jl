@@ -719,7 +719,7 @@ function correct!(state::State, variable::PiP)
   (; pip) = state.variables.predictands
   (; dpip) = state.variables.tendencies
 
-  pip[0:(nx + 1), 0:(ny + 1), 0:(nz + 1)] .=
+  @views pip[0:(nx + 1), 0:(ny + 1), 0:(nz + 1)] .=
     pip[0:(nx + 1), 0:(ny + 1), 0:(nz + 1)] .+
     dpip[0:(nx + 1), 0:(ny + 1), 0:(nz + 1)]
 

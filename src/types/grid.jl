@@ -374,7 +374,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
       (lz[1] .- topography_surface) ./ lz[1] .*
       (ztildes[kz] .- ztildes[kz - 1]) ./ dz
   end
-  jac[:, :, -nbz] = jac[:, :, nbz + 1]
+  @views jac[:, :, -nbz] = jac[:, :, nbz + 1]
 
   # Compute the metric tensor.
   met[:, :, :, 1, 2] .= 0.0

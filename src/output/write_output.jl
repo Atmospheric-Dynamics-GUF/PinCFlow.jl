@@ -26,40 +26,40 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
 
   # Write the horizontal grid.
   if master
-    dataset["x"][:] = view(x, 1:sizex) .* lref
-    dataset["y"][:] = view(y, 1:sizey) .* lref
+    @views dataset["x"][:] = x[1:sizex] .* lref
+    @views dataset["y"][:] = y[1:sizey] .* lref
   end
 
   # Write the vertical grid.
-  local_array[:, :, :] = view(ztfc, 1:nx, 1:ny, 1:nz) .* lref
+  @views local_array[:, :, :] = ztfc[1:nx, 1:ny, 1:nz] .* lref
   compute_global_array!(namelists, domain)
   if master
     dataset["z"][:, :, :] = global_array
   end
 
   # Write the background density.
-  local_array[:, :, :] = view(rhostrattfc, 1:nx, 1:ny, 1:nz) .* rhoref
+  @views local_array[:, :, :] = rhostrattfc[1:nx, 1:ny, 1:nz] .* rhoref
   compute_global_array!(namelists, domain)
   if master
     dataset["rhobar"][:, :, :] = global_array
   end
 
   # Write the background potential temperature.
-  local_array[:, :, :] = view(thetastrattfc, 1:nx, 1:ny, 1:nz) .* thetaref
+  @views local_array[:, :, :] = thetastrattfc[1:nx, 1:ny, 1:nz] .* thetaref
   compute_global_array!(namelists, domain)
   if master
     dataset["thetabar"][:, :, :] = global_array
   end
 
   # Write the buoyancy frequency.
-  local_array[:, :, :] = view(bvsstrattfc, 1:nx, 1:ny, 1:nz) ./ tref .^ 2
+  @views local_array[:, :, :] = bvsstrattfc[1:nx, 1:ny, 1:nz] ./ tref .^ 2
   compute_global_array!(namelists, domain)
   if master
     dataset["n2"][:, :, :] = global_array
   end
 
   # Write the mass-weighted potential temperature.
-  local_array[:, :, :] = view(pstrattfc, 1:nx, 1:ny, 1:nz) ./ tref .^ 2
+  @views local_array[:, :, :] = pstrattfc[1:nx, 1:ny, 1:nz] ./ tref .^ 2
   compute_global_array!(namelists, domain)
   if master
     dataset["p"][:, :, :] = global_array
@@ -67,7 +67,7 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
 
   # Write the density fluctuations.
   if prepare_restart || RhoP() in atmvarout
-    local_array[:, :, :] = view(rho, 1:nx, 1:ny, 1:nz) .* rhoref
+    @views local_array[:, :, :] = rho[1:nx, 1:ny, 1:nz] .* rhoref
     compute_global_array!(namelists, domain)
     if master
       dataset["rhop"][:, :, :, iout] = global_array
@@ -76,9 +76,8 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
 
   # Write the zonal winds.
   if U() in atmvarout
-    local_array[:, :, :] =
-      (view(u, 1:nx, 1:ny, 1:nz) .+ view(u, 0:(nx - 1), 1:ny, 1:nz)) ./ 2 .*
-      uref
+    @views local_array[:, :, :] =
+      (u[1:nx, 1:ny, 1:nz] .+ u[0:(nx - 1), 1:ny, 1:nz]) ./ 2 .* uref
     compute_global_array!(namelists, domain)
     if master
       dataset["u"][:, :, :, iout] = global_array
@@ -87,7 +86,7 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
 
   # Write the staggered zonal winds.
   if prepare_restart || US() in atmvarout
-    local_array[:, :, :] = view(u, 1:nx, 1:ny, 1:nz) .* uref
+    @views local_array[:, :, :] = u[1:nx, 1:ny, 1:nz] .* uref
     compute_global_array!(namelists, domain)
     if master
       dataset["us"][:, :, :, iout] = global_array
@@ -96,9 +95,8 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
 
   # Write the meridional winds.
   if V() in atmvarout
-    local_array[:, :, :] =
-      (view(v, 1:nx, 1:ny, 1:nz) .+ view(v, 1:nx, 0:(ny - 1), 1:nz)) ./ 2 .*
-      uref
+    @views local_array[:, :, :] =
+      (v[1:nx, 1:ny, 1:nz] .+ v[1:nx, 0:(ny - 1), 1:nz]) ./ 2 .* uref
     compute_global_array!(namelists, domain)
     if master
       dataset["v"][:, :, :, iout] = global_array
@@ -107,7 +105,7 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
 
   # Write the staggered meridional winds.
   if prepare_restart || VS() in atmvarout
-    local_array[:, :, :] = view(v, 1:nx, 1:ny, 1:nz) .* uref
+    @views local_array[:, :, :] = v[1:nx, 1:ny, 1:nz] .* uref
     compute_global_array!(namelists, domain)
     if master
       dataset["vs"][:, :, :, iout] = global_array
@@ -143,9 +141,8 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
 
   # Write the transformed vertical winds.
   if WTFC() in atmvarout
-    local_array[:, :, :] =
-      (view(w, 1:nx, 1:ny, 1:nz) .+ view(w, 1:nx, 1:ny, 0:(nz - 1))) ./ 2 .*
-      uref
+    @views local_array[:, :, :] =
+      (w[1:nx, 1:ny, 1:nz] .+ w[1:nx, 1:ny, 0:(nz - 1)]) ./ 2 .* uref
     compute_global_array!(namelists, domain)
     if master
       dataset["wtfc"][:, :, :, iout] = global_array
@@ -154,7 +151,7 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
 
   # Write the staggered transformed vertical winds.
   if prepare_restart || WSTFC() in atmvarout
-    local_array[:, :, :] = view(w, 1:nx, 1:ny, 1:nz) .* uref
+    @views local_array[:, :, :] = w[1:nx, 1:ny, 1:nz] .* uref
     compute_global_array!(namelists, domain)
     if master
       dataset["wstfc"][:, :, :, iout] = global_array
@@ -176,7 +173,7 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
 
   # Write the Exner-pressure fluctuations.
   if prepare_restart || PiP() in atmvarout
-    local_array[:, :, :] = view(pip, 1:nx, 1:ny, 1:nz)
+    @views local_array[:, :, :] = pip[1:nx, 1:ny, 1:nz]
     compute_global_array!(namelists, domain)
     if master
       dataset["pip"][:, :, :, iout] = global_array
