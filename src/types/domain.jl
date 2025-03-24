@@ -11,6 +11,7 @@ struct Domain{
   J <: AbstractArray{<:AbstractFloat, 3},
   K <: AbstractArray{<:AbstractFloat, 3},
   L <: AbstractArray{<:AbstractFloat, 3},
+  M <: AbstractVector{<:AbstractFloat},
 }
 
   # MPI variables.
@@ -69,6 +70,10 @@ struct Domain{
   local_array::J
   master_array::K
   global_array::L
+
+  # Auxiliary arrays for horizontal averaging.
+  local_sum::M
+  global_sum::M
 end
 
 function Domain(namelists::Namelists)
@@ -213,6 +218,9 @@ function Domain(namelists::Namelists)
   master_array = zeros((sizex * nprocy, ny, nz))
   global_array = zeros((sizex, sizey, sizez))
 
+  # Initialize auxiliary arrays for horizontal averaging.
+  (local_sum, global_sum) = (zeros(nz) for i in 1:2)
+
   # Return Domain instance.
   return Domain(
     comm,
@@ -258,5 +266,7 @@ function Domain(namelists::Namelists)
     local_array,
     master_array,
     global_array,
+    local_sum,
+    global_sum,
   )
 end
