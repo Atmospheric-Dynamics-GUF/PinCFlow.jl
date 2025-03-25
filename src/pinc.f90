@@ -859,6 +859,56 @@ program pinc_prog
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(pip) = ", global_sum
+    case("reconstructions")
+      local_sum = sum(rhotilde * rhoRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(rhotilde) = ", global_sum
+
+      local_sum = sum(rhoptilde * rhoRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(rhoptilde) = ", global_sum
+
+      local_sum = sum(utilde * uRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(utilde) = ", global_sum
+
+      local_sum = sum(vtilde * uRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(vtilde) = ", global_sum
+
+      local_sum = sum(wtilde * uRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(wtilde) = ", global_sum
+    case("fluxes")
+      local_sum = sum(flux%rho * rhoRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(phirho) = ", global_sum
+
+      local_sum = sum(flux%rhop * rhoRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(phirhop) = ", global_sum
+
+      local_sum = sum(flux%u * uRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(phiu) = ", global_sum
+
+      local_sum = sum(flux%v * uRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(phiv) = ", global_sum
+
+      local_sum = sum(flux%w * uRef)
+      call mpi_allreduce(local_sum, global_sum, 1, &
+          &mpi_double_precision, mpi_sum, comm, ierror)
+      if(master) print *, "sum(phiw) = ", global_sum
     case("atmosphere")
       local_sum = sum(pStratTFC * rhoRef * thetaRef)
       call mpi_allreduce(local_sum, global_sum, 1, &
