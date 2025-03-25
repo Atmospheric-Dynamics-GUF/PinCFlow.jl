@@ -16,7 +16,7 @@ function reconstruct!(state::State, variable::Rho)
   (; rhotilde) = state.variables.reconstructions
   (; pstrattfc) = state.atmosphere
 
-  for ix in (-nbx):(nx + nbx), jy in (-nby):(ny + nby), kz in 0:(nz + 1)
+  for kz in 0:(nz + 1), jy in (-nby):(ny + nby), ix in (-nbx):(nx + nbx)
     phi[ix, jy, kz] = rho[ix, jy, kz] / pstrattfc[ix, jy, kz]
   end
   apply_3d_muscl!(
@@ -39,7 +39,7 @@ function reconstruct!(state::State, variable::RhoP)
   (; rhoptilde) = state.variables.reconstructions
   (; pstrattfc) = state.atmosphere
 
-  for ix in (-nbx):(nx + nbx), jy in (-nby):(ny + nby), kz in 0:(nz + 1)
+  for kz in 0:(nz + 1), jy in (-nby):(ny + nby), ix in (-nbx):(nx + nbx)
     phi[ix, jy, kz] = rhop[ix, jy, kz] / pstrattfc[ix, jy, kz]
   end
   apply_3d_muscl!(
@@ -62,7 +62,7 @@ function reconstruct!(state::State, variable::U)
   (; utilde) = state.variables.reconstructions
   (; rhostrattfc, pstrattfc) = state.atmosphere
 
-  for ix in (-nbx):(nx + nbx - 1), jy in (-nby):(ny + nby), kz in 0:(nz + 1)
+  for kz in 0:(nz + 1), jy in (-nby):(ny + nby), ix in (-nbx):(nx + nbx - 1)
     rhoedge =
       0.5 * (
         rho[ix, jy, kz] +
@@ -94,7 +94,7 @@ function reconstruct!(state::State, variable::V)
   (; vtilde) = state.variables.reconstructions
   (; rhostrattfc, pstrattfc) = state.atmosphere
 
-  for ix in (-nbx):(nx + nbx), jy in (-nby):(ny + nby - 1), kz in 0:(nz + 1)
+  for kz in 0:(nz + 1), jy in (-nby):(ny + nby - 1), ix in (-nbx):(nx + nbx)
     rhoedge =
       0.5 * (
         rho[ix, jy, kz] +
@@ -130,12 +130,12 @@ function reconstruct!(state::State, variable::W)
   (; rhostrattfc, pstrattfc) = state.atmosphere
 
   @views phi[:, :, 0:(nz + 1)] .= w[:, :, 0:(nz + 1)]
-  for ix in 1:nx, jy in 1:ny, kz in 0:(nz + 1)
+  for kz in 0:(nz + 1), jy in 1:ny, ix in 1:nx
     phi[ix, jy, kz] = compute_vertical_wind(ix, jy, kz, predictands, grid)
   end
   set_zonal_boundaries_of_field!(phi, namelists, domain)
   set_meridional_boundaries_of_field!(phi, namelists, domain)
-  for ix in (-nbx):(nx + nbx), jy in (-nby):(ny + nby), kz in 0:(nz + 1)
+  for kz in 0:(nz + 1), jy in (-nby):(ny + nby), ix in (-nbx):(nx + nbx)
     rhoedgeu =
       (
         jac[ix, jy, kz + 1] * (rho[ix, jy, kz] + rhostrattfc[ix, jy, kz]) +
