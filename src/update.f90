@@ -243,10 +243,6 @@ module update_module
     real :: fL, fR, gB, gF, hD, hU ! flux Left/Right, Backward/Forward,
     ! Downward/Upward
 
-    ! usave to keep the new u until v has been updated as well
-    ! (for mmp_mod = rhs)
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz) :: usave
-
     ! other stuff
     real :: rhoM_1, rhoM ! rho(m-1), rho(m)
     real :: uM_1, vM_1, wM_1 ! u(m-1), v(m-1) and w(m-1)
@@ -455,7 +451,7 @@ module update_module
                     &+ 1, j, k)) * uhorx
               end if
 
-              usave(i, j, k) = uAst
+              var%u(i, j, k) = uAst
 
             end do
           end do
@@ -527,7 +523,7 @@ module update_module
               ! Coriolis force is integrated on LHS.
               uAst = 1.0 / facu * (uhorx + dt * (- piGradX + volfcx / rhou))
 
-              usave(i, j, k) = uAst
+              var%u(i, j, k) = uAst
             end do
           end do
         end do
@@ -768,9 +764,6 @@ module update_module
       else
         stop 'ERROR: unknown int_mod'
       end if
-
-      ! now the new u can be put into the proper array
-      var%u(:, :, :) = usave(:, :, :)
     else
       stop 'ERROR: unknown mmp_mod'
     end if
