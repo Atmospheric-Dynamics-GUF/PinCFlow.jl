@@ -89,6 +89,7 @@ include("output/write_output.jl")
 include("output/read_input.jl")
 
 # Include integration functions.
+include("integration/synchronize_density_fluctuations.jl")
 include("integration/integrate.jl")
 
 export DomainNamelist,
