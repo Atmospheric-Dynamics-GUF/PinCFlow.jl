@@ -45,9 +45,11 @@ include("types/state.jl")
 # Include boundary functions.
 include("boundaries/set_boundaries.jl")
 include("boundaries/set_meridional_boundaries_of_field.jl")
+include("boundaries/set_meridional_boundaries_of_pressure_field.jl")
 include("boundaries/set_meridional_boundaries.jl")
 include("boundaries/set_vertical_boundaries.jl")
 include("boundaries/set_zonal_boundaries_of_field.jl")
+include("boundaries/set_zonal_boundaries_of_pressure_field.jl")
 include("boundaries/set_zonal_boundaries.jl")
 
 # Include flux functionss.
@@ -62,7 +64,9 @@ include("mpi/compute_global_array.jl")
 include("mpi/compute_local_array.jl")
 include("mpi/compute_global_dot_product.jl")
 include("mpi/set_meridional_halos_of_field.jl")
+include("mpi/set_meridional_halos_of_pressure_field.jl")
 include("mpi/set_zonal_halos_of_field.jl")
+include("mpi/set_zonal_halos_of_pressure_field.jl")
 
 # Include update functions.
 include("update/apply_unified_sponge.jl")

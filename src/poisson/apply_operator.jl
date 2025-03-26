@@ -1,11 +1,10 @@
-abstract type AbstractOperatorMode end
-struct Total <: AbstractOperatorMode end
-struct Horizontal <: AbstractOperatorMode end
+struct Total end
+struct Horizontal end
 
 function apply_operator!(
   sin::AbstractArray{<:AbstractFloat, 3},
   ls::AbstractArray{<:AbstractFloat, 3},
-  hortot::AbstractOperatorMode,
+  hortot::Total,
   namelists::Namelists,
   domain::Domain,
   poisson::Poisson,
@@ -13,8 +12,6 @@ function apply_operator!(
   (; nx, ny, nz) = domain
   (;
     ac_b,
-    acv_b,
-    ach_b,
     al_b,
     ar_b,
     ab_b,
@@ -46,8 +43,8 @@ function apply_operator!(
   s[1:nx, 1:ny, 1:nz] .= sin
 
   # Set boundaries of auxiliary field.
-  set_zonal_boundaries_of_field!(s, namelists, domain)
-  set_meridional_boundaries_of_field!(s, namelists, domain)
+  set_zonal_boundaries_of_pressure_field!(s, namelists, domain)
+  set_meridional_boundaries_of_pressure_field!(s, namelists, domain)
 
   #---------------------------------
   #         Loop over field
@@ -99,22 +96,287 @@ function apply_operator!(
 
     # -------------------- A(i,j,k) --------------------------
 
-    ach = ach_b[i, j, k]
-    acv = acv_b[i, j, k]
-
     ac = ac_b[i, j, k]
     sc = s[i, j, k]
 
     # -------------------- Apply operator ---------------------
 
-    if hortot == Total()
-      ls[i, j, k] =
-        al * sl + ar * sr + af * sf + ab * sb + au * su + ad * sd + ac * sc
-    elseif hortot == Horizontal()
-      ls[i, j, k] = al * sl + ar * sr + af * sf + ab * sb
+    ls[i, j, k] =
+      al * sl + ar * sr + af * sf + ab * sb + au * su + ad * sd + ac * sc
+
+    # ----------------- A(i+1,j,k+1) -----------------
+
+    if k < nz
+      aru = aru_b[i, j, k]
+      sru = s[i + 1, j, k + 1]
     else
-      error("Error in apply_operator!: Wrong hortot!")
+      aru = 0.0
+      sru = 0.0
     end
+
+    # ----------------- A(i+1,j,k-1) -----------------
+
+    if k > 1
+      ard = ard_b[i, j, k]
+      srd = s[i + 1, j, k - 1]
+    else
+      ard = 0.0
+      srd = 0.0
+    end
+
+    # ----------------- A(i-1,j,k+1) -----------------
+
+    if k < nz
+      alu = alu_b[i, j, k]
+      slu = s[i - 1, j, k + 1]
+    else
+      alu = 0.0
+      slu = 0.0
+    end
+
+    # ----------------- A(i-1,j,k-1) -----------------
+
+    if k > 1
+      ald = ald_b[i, j, k]
+      sld = s[i - 1, j, k - 1]
+    else
+      ald = 0.0
+      sld = 0.0
+    end
+
+    # ----------------- A(i,j+1,k+1) -----------------
+
+    if k < nz
+      afu = afu_b[i, j, k]
+      sfu = s[i, j + 1, k + 1]
+    else
+      afu = 0.0
+      sfu = 0.0
+    end
+
+    # ----------------- A(i,j+1,k-1) -----------------
+
+    if k > 1
+      afd = afd_b[i, j, k]
+      sfd = s[i, j + 1, k - 1]
+    else
+      afd = 0.0
+      sfd = 0.0
+    end
+
+    # ----------------- A(i,j-1,k+1) -----------------
+
+    if k < nz
+      abu = abu_b[i, j, k]
+      sbu = s[i, j - 1, k + 1]
+    else
+      abu = 0.0
+      sbu = 0.0
+    end
+
+    # ----------------- A(i,j-1,k-1) -----------------
+
+    if k > 1
+      abd = abd_b[i, j, k]
+      sbd = s[i, j - 1, k - 1]
+    else
+      abd = 0.0
+      sbd = 0.0
+    end
+
+    # ------------------ A(i,j,k+2) -----------------
+
+    if k < nz - 1
+      auu = auu_b[i, j, k]
+      suu = s[i, j, k + 2]
+    else
+      auu = 0.0
+      suu = 0.0
+    end
+
+    # ------------------ A(i,j,k-2) -----------------
+
+    if k > 2
+      add = add_b[i, j, k]
+      sdd = s[i, j, k - 2]
+    else
+      add = 0.0
+      sdd = 0.0
+    end
+
+    # ----------------- A(i+1,j,k+2) -----------------
+
+    if k < nz - 1
+      aruu = aruu_b[i, j, k]
+      sruu = s[i + 1, j, k + 2]
+    else
+      aruu = 0.0
+      sruu = 0.0
+    end
+
+    # ----------------- A(i+1,j,k-2) -----------------
+
+    if k > 2
+      ardd = ardd_b[i, j, k]
+      srdd = s[i + 1, j, k - 2]
+    else
+      ardd = 0.0
+      srdd = 0.0
+    end
+
+    # ----------------- A(i-1,j,k+2) -----------------
+
+    if k < nz - 1
+      aluu = aluu_b[i, j, k]
+      sluu = s[i - 1, j, k + 2]
+    else
+      aluu = 0.0
+      sluu = 0.0
+    end
+
+    # ----------------- A(i-1,j,k-2) -----------------
+
+    if k > 2
+      aldd = aldd_b[i, j, k]
+      sldd = s[i - 1, j, k - 2]
+    else
+      aldd = 0.0
+      sldd = 0.0
+    end
+
+    # ----------------- A(i,j+1,k+2) -----------------
+
+    if k < nz - 1
+      afuu = afuu_b[i, j, k]
+      sfuu = s[i, j + 1, k + 2]
+    else
+      afuu = 0.0
+      sfuu = 0.0
+    end
+
+    # ----------------- A(i,j+1,k-2) -----------------
+
+    if k > 2
+      afdd = afdd_b[i, j, k]
+      sfdd = s[i, j + 1, k - 2]
+    else
+      afdd = 0.0
+      sfdd = 0.0
+    end
+
+    # ----------------- A(i,j-1,k+2) -----------------
+
+    if k < nz - 1
+      abuu = abuu_b[i, j, k]
+      sbuu = s[i, j - 1, k + 2]
+    else
+      abuu = 0.0
+      sbuu = 0.0
+    end
+
+    # ----------------- A(i,j-1,k-2) -----------------
+
+    if k > 2
+      abdd = abdd_b[i, j, k]
+      sbdd = s[i, j - 1, k - 2]
+    else
+      abdd = 0.0
+      sbdd = 0.0
+    end
+
+    # Update operator.
+    ls[i, j, k] +=
+      aru * sru +
+      ard * srd +
+      alu * slu +
+      ald * sld +
+      afu * sfu +
+      afd * sfd +
+      abu * sbu +
+      abd * sbd +
+      auu * suu +
+      add * sdd +
+      aruu * sruu +
+      ardd * srdd +
+      aluu * sluu +
+      aldd * sldd +
+      afuu * sfuu +
+      afdd * sfdd +
+      abuu * sbuu +
+      abdd * sbdd
+  end
+  return
+end
+
+function apply_operator!(
+  sin::AbstractArray{<:AbstractFloat, 3},
+  ls::AbstractArray{<:AbstractFloat, 3},
+  hortot::Horizontal,
+  namelists::Namelists,
+  domain::Domain,
+  poisson::Poisson,
+)
+  (; nx, ny, nz) = domain
+  (;
+    al_b,
+    ar_b,
+    ab_b,
+    af_b,
+    aru_b,
+    ard_b,
+    alu_b,
+    ald_b,
+    afu_b,
+    afd_b,
+    abu_b,
+    abd_b,
+    auu_b,
+    add_b,
+    aruu_b,
+    ardd_b,
+    aluu_b,
+    aldd_b,
+    afuu_b,
+    afdd_b,
+    abuu_b,
+    abdd_b,
+  ) = poisson.tensor
+  (; s) = poisson.operator
+
+  # Initialize auxiliary field.
+  s[1:nx, 1:ny, 1:nz] .= sin
+
+  # Set boundaries of auxiliary field.
+  set_zonal_boundaries_of_pressure_field!(s, namelists, domain)
+  set_meridional_boundaries_of_pressure_field!(s, namelists, domain)
+
+  #---------------------------------
+  #         Loop over field
+  #---------------------------------
+
+  for k in 1:nz, j in 1:ny, i in 1:nx
+
+    # ------------------ A(i+1,j,k) ------------------
+
+    ar = ar_b[i, j, k]
+    sr = s[i + 1, j, k]
+
+    # ------------------- A(i-1,j,k) --------------------
+
+    al = al_b[i, j, k]
+    sl = s[i - 1, j, k]
+
+    # -------------------- A(i,j+1,k) ----------------------
+
+    af = af_b[i, j, k]
+    sf = s[i, j + 1, k]
+
+    # --------------------- A(i,j-1,k) -----------------------
+
+    ab = ab_b[i, j, k]
+    sb = s[i, j - 1, k]
+
+    ls[i, j, k] = al * sl + ar * sr + af * sf + ab * sb
 
     # ----------------- A(i+1,j,k+1) -----------------
 
