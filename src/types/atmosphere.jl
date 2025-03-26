@@ -63,8 +63,7 @@ function Atmosphere(
   # Between boundaries.
   for k in 1:nz
     bvsstrattfc[:, :, k] .=
-      g_ndim ./ thetastrattfc[:, :, k] ./ jac[:, :, k] .*
-      0.5 .*
+      g_ndim ./ thetastrattfc[:, :, k] ./ jac[:, :, k] .* 0.5 .*
       (thetastrattfc[:, :, k + 1] .- thetastrattfc[:, :, k - 1]) ./ dz
   end
   # Upper boundary.
