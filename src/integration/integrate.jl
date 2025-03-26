@@ -157,9 +157,7 @@ function integrate(namelists::Namelists)
     #---------------------------------------------------------------
 
     # Synchronization of density fluctuations
-    if model == PseudoIncompressible()
-      state.variables.predictands.rhop .= state.variables.predictands.rho
-    end
+    synchronize_density_fluctuations!(state)
 
     set_boundaries!(state, BoundaryPredictands())
 
