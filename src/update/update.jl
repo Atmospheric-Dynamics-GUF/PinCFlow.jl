@@ -1,6 +1,5 @@
-abstract type AbstractSide end
-struct LHS <: AbstractSide end
-struct RHS <: AbstractSide end
+struct LHS end
+struct RHS end
 
 abstract type AbstractIntegration end
 struct EXPL <: AbstractIntegration end
