@@ -38,7 +38,7 @@ function set_meridional_halos_of_pressure_field!(
   dest = back
   tag = 100
 
-  Mpi.Sendrecv!(
+  MPI.Sendrecv!(
     send_pressure_back,
     recv_pressure_forw,
     comm;

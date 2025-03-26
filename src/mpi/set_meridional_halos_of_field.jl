@@ -43,7 +43,7 @@ function set_meridional_halos_of_field!(
   dest = back
   tag = 100
 
-  Mpi.Sendrecv!(
+  MPI.Sendrecv!(
     send_a2_back,
     recv_a2_forw,
     comm;
@@ -107,7 +107,7 @@ function set_meridional_halos_of_field!(
   dest = back
   tag = 100
 
-  Mpi.Sendrecv!(
+  MPI.Sendrecv!(
     send_a3_back,
     recv_a3_forw,
     comm;
@@ -171,7 +171,7 @@ function set_meridional_halos_of_field!(
   dest = back
   tag = 100
 
-  Mpi.Sendrecv!(
+  MPI.Sendrecv!(
     send_a5_back,
     recv_a5_forw,
     comm;
