@@ -8,10 +8,12 @@ struct Domain{
   G <: AbstractMatrix{<:AbstractFloat},
   H <: AbstractArray{<:AbstractFloat, 3},
   I <: AbstractArray{<:AbstractFloat, 5},
-  J <: AbstractArray{<:AbstractFloat, 3},
-  K <: AbstractArray{<:AbstractFloat, 3},
+  J <: AbstractMatrix{<:AbstractFloat},
+  K <: AbstractMatrix{<:AbstractFloat},
   L <: AbstractArray{<:AbstractFloat, 3},
-  M <: AbstractVector{<:AbstractFloat},
+  M <: AbstractArray{<:AbstractFloat, 3},
+  N <: AbstractArray{<:AbstractFloat, 3},
+  O <: AbstractVector{<:AbstractFloat},
 }
 
   # MPI variables.
@@ -66,14 +68,24 @@ struct Domain{
   recv_a5_back::I
   recv_a5_forw::I
 
+  # Auxiliary arrays for halos of pressure fields.
+  send_pressure_left::J
+  send_pressure_right::J
+  recv_pressure_left::J
+  recv_pressure_right::J
+  send_pressure_back::K
+  send_pressure_forw::K
+  recv_pressure_back::K
+  recv_pressure_forw::K
+
   # Auxiliary arrays for gather & scatter.
-  local_array::J
-  master_array::K
-  global_array::L
+  local_array::L
+  master_array::M
+  global_array::N
 
   # Auxiliary arrays for horizontal averaging.
-  local_sum::M
-  global_sum::M
+  local_sum::O
+  global_sum::O
 end
 
 function Domain(namelists::Namelists)
@@ -213,6 +225,20 @@ function Domain(namelists::Namelists)
   (send_a5_back, send_a5_forw, recv_a5_back, recv_a5_forw) =
     (zeros((nx + 2 * nbx + 1, nby, nz + 2 * nbz + 1, 3, 2)) for i in 1:4)
 
+  # Initialize auxiliary arrays for halos of pressure fields.
+  (
+    send_pressure_left,
+    send_pressure_right,
+    recv_pressure_left,
+    recv_pressure_right,
+  ) = (zeros((ny + 2, nz + 2)) for i in 1:4)
+  (
+    send_pressure_back,
+    send_pressure_forw,
+    recv_pressure_back,
+    recv_pressure_forw,
+  ) = (zeros((nx + 2, nz + 2)) for i in 1:4)
+
   # Initialize auxiliary arrays for gather & scatter.
   local_array = zeros((nx, ny, nz))
   master_array = zeros((sizex * nprocy, ny, nz))
@@ -263,6 +289,14 @@ function Domain(namelists::Namelists)
     send_a5_forw,
     recv_a5_back,
     recv_a5_forw,
+    send_pressure_left,
+    send_pressure_right,
+    recv_pressure_left,
+    recv_pressure_right,
+    send_pressure_back,
+    send_pressure_forw,
+    recv_pressure_back,
+    recv_pressure_forw,
     local_array,
     master_array,
     global_array,
