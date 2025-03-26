@@ -1,5 +1,3 @@
-#! format: off
-
 include("src/PinCFlow.jl")
 
 using .PinCFlow
@@ -32,10 +30,8 @@ output = OutputNamelist(;
   fancy_namelists = true,
 )
 
-setting = SettingNamelist(;
-  model = PseudoIncompressible(),
-  testcase = MountainWave()
-)
+setting =
+  SettingNamelist(; model = PseudoIncompressible(), testcase = MountainWave())
 
 discretization = DiscretizationNamelist(;
   cfl = 5.0E-1,
