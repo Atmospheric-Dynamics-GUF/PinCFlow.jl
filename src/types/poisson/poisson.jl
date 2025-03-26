@@ -23,7 +23,7 @@ function Poisson(namelists::Namelists, domain::Domain)
   # Initialize everything.
   (rhs, solution) = (zeros((nx, ny, nz)) for i in 1:2)
   tensor = Tensor(domain)
-  operator = Operator(namelists, domain)
+  operator = Operator(domain)
   preconditioner = Preconditioner(domain)
   bicgstab = BicGStab(domain)
   correction = Correction(namelists, domain)

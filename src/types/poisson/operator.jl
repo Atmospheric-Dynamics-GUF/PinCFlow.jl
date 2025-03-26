@@ -2,18 +2,17 @@ struct Operator{A <: AbstractArray{<:AbstractFloat, 3}}
   s::A
 end
 
-function Operator(namelists::Namelists, domain::Domain)
+function Operator(domain::Domain)
 
   # Get all necessary fields.
-  (; nbx, nby, nbz) = namelists.domain
   (; nx, ny, nz) = domain
 
   # Initialize s.
   s = OffsetArray(
-    zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1)),
-    (-nbx):(nx + nbx),
-    (-nby):(ny + nby),
-    (-nbz):(nz + nbz),
+    zeros((nx + 2, ny + 2, nz + 2)),
+    0:(nx + 1),
+    0:(ny + 1),
+    0:(nz + 1),
   )
 
   # Return an Operator instance.
