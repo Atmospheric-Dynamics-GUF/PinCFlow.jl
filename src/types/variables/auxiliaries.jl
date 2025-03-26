@@ -37,13 +37,5 @@ function Auxiliaries(namelists::Namelists, domain::Domain)
   phitildez = zeros(nz + 2 * nbz + 1, 2)
 
   # Return an Auxiliaries instance.
-  return Auxiliaries(
-    phi,
-    phix,
-    phiy,
-    phiz,
-    phitildex,
-    phitildey,
-    phitildez,
-  )
+  return Auxiliaries(phi, phix, phiy, phiz, phitildex, phitildey, phitildez)
 end
