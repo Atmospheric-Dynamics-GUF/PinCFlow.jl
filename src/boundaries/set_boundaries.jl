@@ -1,7 +1,6 @@
-abstract type AbstractBoundaryVariables end
-struct BoundaryPredictands <: AbstractBoundaryVariables end
-struct BoundaryReconstructions <: AbstractBoundaryVariables end
-struct BoundaryFluxes <: AbstractBoundaryVariables end
+struct BoundaryPredictands end
+struct BoundaryReconstructions end
+struct BoundaryFluxes end
 
 function set_boundaries!(state::State, variables::BoundaryPredictands)
   (; xboundaries, yboundaries, zboundaries) = state.namelists.boundaries
