@@ -417,8 +417,6 @@ module poisson_module
             if(hortot == 'tot') then
               Ls(i, j, k) = AL * sL + AR * sR + AF * sF + AB * sB + AU * sU &
                   &+ AD * sD + AC * sC
-            else if(hortot == 'hor') then
-              Ls(i, j, k) = AL * sL + AR * sR + AF * sF + AB * sB + ACH * sC
             else if(hortot == 'hnd') then
               Ls(i, j, k) = AL * sL + AR * sR + AF * sF + AB * sB
             else
