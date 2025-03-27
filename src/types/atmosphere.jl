@@ -1,16 +1,8 @@
-struct Atmosphere{A <: AbstractArray{<:AbstractFloat, 3}, B <: AbstractFloat}
-
-  # Reference atmosphere.
+struct Atmosphere{A <: AbstractArray{<:AbstractFloat, 3}}
   pstrattfc::A
   thetastrattfc::A
   rhostrattfc::A
   bvsstrattfc::A
-
-  # Scaled reference values.
-  n2::B
-  nn::B
-  t0::B
-  p0::B
 end
 
 function Atmosphere(
@@ -40,8 +32,6 @@ function Atmosphere(
 
   t0 = temp0_dim / thetaref
   p0 = press0_dim / pref
-  n2 = ma^2 / fr^4 * kappa / t0
-  nn = sqrt(n2)
 
   # Define 3D background fields.
   for k in (-1):(nz + 2)
@@ -78,9 +68,5 @@ function Atmosphere(
     thetastrattfc,
     rhostrattfc,
     bvsstrattfc,
-    n2,
-    nn,
-    t0,
-    p0,
   )
 end
