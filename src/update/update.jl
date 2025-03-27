@@ -418,7 +418,7 @@ function update!(
   (; xboundaries, zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2) = state.constants
   (; nx, ny, nz) = state.domain
-  (; dx, dz, jac, met) = state.grid
+  (; dx, dz, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; rho, u, pip) = state.variables.predictands
 
@@ -494,7 +494,7 @@ function update!(
   (; spongelayer, sponge_uv) = state.namelists.sponge
   (; kappainv, mainv2) = state.constants
   (; nx, ny, nz) = state.domain
-  (; dx, dz, jac, met) = state.grid
+  (; dx, dz, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; kr_sp_tfc) = state.sponge
   (; rho, u, pip) = state.variables.predictands
@@ -583,7 +583,7 @@ function update!(
   (; dv) = state.variables.tendencies
   (; phiv) = state.variables.fluxes
   (; rhoold, uold, vold) = state.variables.backups
-  (; rho, u, v) = state.variables.predictands
+  (; rho, v) = state.variables.predictands
 
   # Initialize non-dimensional Coriolis parameter.
   f_cor_nd = OffsetArray(zeros((ny + 2)), 0:(ny + 1))
@@ -668,7 +668,7 @@ function update!(
   (; yboundaries, zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2) = state.constants
   (; nx, ny, nz) = state.domain
-  (; dy, dz, jac, met) = state.grid
+  (; dy, dz, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; rho, v, pip) = state.variables.predictands
 
@@ -744,7 +744,7 @@ function update!(
   (; spongelayer, sponge_uv) = state.namelists.sponge
   (; kappainv, mainv2) = state.constants
   (; nx, ny, nz) = state.domain
-  (; dy, dz, jac, met) = state.grid
+  (; dy, dz, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; kr_sp_tfc) = state.sponge
   (; rho, v, pip) = state.variables.predictands
@@ -834,7 +834,7 @@ function update!(
   (; dw) = state.variables.tendencies
   (; phiu, phiv, phiw) = state.variables.fluxes
   (; rhoold, uold, vold) = state.variables.backups
-  (; rho, u, v, w) = state.variables.predictands
+  (; rho, w) = state.variables.predictands
 
   # Initialize fields for transformation of momentum flux divergence.
   (fluxdiffu, fluxdiffv) = (OffsetArray(zeros((2, 2)), 0:1, 0:1) for i in 1:2)
@@ -1021,9 +1021,6 @@ function update!(
     rho001 += rhostrattfc[i, j, k + 1]
     rhow += rhostratedgeu
 
-    piu = pip[i, j, k + 1]
-    pid = pip[i, j, k]
-
     # Compute values at cell edges.
     pedgeu =
       (
@@ -1134,9 +1131,6 @@ function update!(
     rho000 += rhostrattfc[i, j, k]
     rho001 += rhostrattfc[i, j, k + 1]
     rhow += rhostratedgeu
-
-    piu = pip[i, j, k + 1]
-    pid = pip[i, j, k]
 
     # Compute values at cell edges.
     pedgeu =

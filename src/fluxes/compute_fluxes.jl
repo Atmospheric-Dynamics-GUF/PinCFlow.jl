@@ -104,7 +104,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
   (; domain, atmosphere) = state
   (; nx, ny, nz) = domain
   (; jac) = state.grid
-  (; pstrattfc, rhostrattfc) = atmosphere
+  (; pstrattfc) = atmosphere
   (; rhoptilde) = state.variables.reconstructions
   (; phirhop) = state.variables.fluxes
 

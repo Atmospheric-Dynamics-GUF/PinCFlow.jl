@@ -8,7 +8,7 @@ function reconstruct!(state::State)
 end
 
 function reconstruct!(state::State, variable::Rho)
-  (; nbx, nby, nbz) = state.namelists.domain
+  (; nbx, nby) = state.namelists.domain
   (; limitertype) = state.namelists.discretization
   (; nx, ny, nz) = state.domain
   (; rho) = state.variables.predictands
@@ -31,7 +31,7 @@ function reconstruct!(state::State, variable::Rho)
 end
 
 function reconstruct!(state::State, variable::RhoP)
-  (; nbx, nby, nbz) = state.namelists.domain
+  (; nbx, nby) = state.namelists.domain
   (; limitertype) = state.namelists.discretization
   (; nx, ny, nz) = state.domain
   (; rhop) = state.variables.predictands
@@ -54,7 +54,7 @@ function reconstruct!(state::State, variable::RhoP)
 end
 
 function reconstruct!(state::State, variable::U)
-  (; nbx, nby, nbz) = state.namelists.domain
+  (; nbx, nby) = state.namelists.domain
   (; limitertype) = state.namelists.discretization
   (; nx, ny, nz) = state.domain
   (; rho, u) = state.variables.predictands
@@ -86,7 +86,7 @@ function reconstruct!(state::State, variable::U)
 end
 
 function reconstruct!(state::State, variable::V)
-  (; nbx, nby, nbz) = state.namelists.domain
+  (; nbx, nby) = state.namelists.domain
   (; limitertype) = state.namelists.discretization
   (; nx, ny, nz) = state.domain
   (; rho, v) = state.variables.predictands
@@ -119,7 +119,7 @@ end
 
 function reconstruct!(state::State, variable::W)
   (; namelists, domain, grid) = state
-  (; nbx, nby, nbz, nprocx, nprocy) = namelists.domain
+  (; nbx, nby) = namelists.domain
   (; limitertype) = state.namelists.discretization
   (; nx, ny, nz) = domain
   (; jac) = grid

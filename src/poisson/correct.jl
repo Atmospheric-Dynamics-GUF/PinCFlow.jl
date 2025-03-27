@@ -542,7 +542,7 @@ function correct!(
   facray::AbstractFloat,
   facprs::AbstractFloat,
 )
-  (; spongelayer, sponge_uv) = state.namelists.sponge
+  (; spongelayer) = state.namelists.sponge
   (; zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2, g_ndim) = state.constants
   (; nx, ny, nz) = state.domain

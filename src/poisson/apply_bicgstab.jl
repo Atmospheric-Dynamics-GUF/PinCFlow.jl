@@ -1,7 +1,6 @@
 function apply_bicgstab!(
   b_in::AbstractArray{<:AbstractFloat, 3},
   tolref::AbstractFloat,
-  dt::AbstractFloat,
   sol::AbstractArray{<:AbstractFloat, 3},
   namelists::Namelists,
   domain::Domain,
@@ -12,7 +11,7 @@ function apply_bicgstab!(
   (; tolpoisson, maxiterpoisson, preconditioner, relative_tolerance) =
     namelists.poisson
   (; master, comm, nx, ny, nz) = domain
-  (; r_vm, b_vm, p, r0, rold, r, s, t, v, matvec, v_pc) = poisson.bicgstab
+  (; r_vm, p, r0, rold, r, s, t, v, matvec, v_pc) = poisson.bicgstab
 
   # Print information.
   if master
