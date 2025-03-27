@@ -21,7 +21,6 @@ output = OutputNamelist(;
   prepare_restart = false,
   restart = false,
   iin = -1,
-  runname = "mountain_wave",
   output_steps = false,
   noutput = 1,
   maxiter = 1,
@@ -48,7 +47,6 @@ poisson = PoissonNamelist(;
   dtau = 4.0E+0,
   maxiteradi = 2,
   initialcleaning = true,
-  correctmomentum = true,
   relative_tolerance = false,
 )
 
