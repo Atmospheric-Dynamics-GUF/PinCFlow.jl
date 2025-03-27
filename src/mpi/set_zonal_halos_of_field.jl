@@ -5,11 +5,10 @@ function set_zonal_halos_of_field!(
 )
 
   # Get all necessary fields.
-  (; nbx, nby) = namelists.domain
+  (; nbx) = namelists.domain
   (;
     comm,
     nx,
-    ny,
     left,
     right,
     send_a2_left,
@@ -68,12 +67,10 @@ function set_zonal_halos_of_field!(
 )
 
   # Get all necessary fields.
-  (; nbx, nby, nbz) = namelists.domain
+  (; nbx) = namelists.domain
   (;
     comm,
     nx,
-    ny,
-    nz,
     left,
     right,
     send_a3_left,
@@ -132,12 +129,10 @@ function set_zonal_halos_of_field!(
 )
 
   # Get all necessary fields.
-  (; nbx, nby, nbz) = namelists.domain
+  (; nbx) = namelists.domain
   (;
     comm,
     nx,
-    ny,
-    nz,
     left,
     right,
     send_a5_left,

@@ -108,8 +108,7 @@ function compute_sponge!(
 )
   (; sizex, sizey, sizez, nbx, nby) = state.namelists.domain
   (; is, js, nx, ny, nz) = state.domain
-  (; x, y, ztfc, lx, ly, lz) = state.grid
-  (; tref) = state.constants
+  (; x, y, ztfc) = state.grid
   (; lateralsponge, cosmosteps) = state.namelists.sponge
   (;
     alphaunifiedsponge,
@@ -184,7 +183,7 @@ function compute_sponge!(
 )
   (; sizex, sizey, sizez, nbx, nby) = state.namelists.domain
   (; is, js, nx, ny, nz) = state.domain
-  (; x, y, ztfc, lx, ly, lz) = state.grid
+  (; x, y, ztfc) = state.grid
   (; tref) = state.constants
   (; lateralsponge, spongealphaz_dim, spongeorder) = state.namelists.sponge
   (;
@@ -270,7 +269,7 @@ function compute_sponge!(
 )
   (; sizex, sizey, sizez, nbx, nby) = state.namelists.domain
   (; is, js, nx, ny, nz) = state.domain
-  (; x, y, ztfc, lx, ly, lz) = state.grid
+  (; x, y, ztfc) = state.grid
   (; tref) = state.constants
   (; lateralsponge, spongealphaz_dim) = state.namelists.sponge
   (;

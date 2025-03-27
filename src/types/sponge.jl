@@ -21,7 +21,7 @@ end
 function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
 
   # Get parameters.
-  (; spongelayer, unifiedsponge, spongeheight) = namelists.sponge
+  (; spongeheight) = namelists.sponge
   (; nx, ny, nz) = domain
   (; lx, ly, lz) = grid
 

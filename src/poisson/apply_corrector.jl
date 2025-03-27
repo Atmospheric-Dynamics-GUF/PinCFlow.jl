@@ -16,7 +16,7 @@ function apply_corrector!(
   rhs .= 0.0
 
   # Calculate RHS and tolreance reference.
-  tolref = compute_rhs!(state, rhs, dt, model)
+  tolref = compute_rhs!(state, rhs, model)
 
   # Solve Poisson equation.
   (errflagbicg, niterbicg) =
