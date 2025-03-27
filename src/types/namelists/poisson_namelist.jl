@@ -5,7 +5,6 @@ struct PoissonNamelist{A <: AbstractFloat, B <: Integer, C <: Bool}
   dtau::A
   maxiteradi::B
   initialcleaning::C
-  correctmomentum::C
   relative_tolerance::C
 end
 
@@ -16,7 +15,6 @@ function PoissonNamelist(;
   dtau = 4.0e-4,
   maxiteradi = 2,
   initialcleaning = true,
-  correctmomentum = true,
   relative_tolerance = false,
 )
   return PoissonNamelist(
@@ -26,7 +24,6 @@ function PoissonNamelist(;
     dtau,
     maxiteradi,
     initialcleaning,
-    correctmomentum,
     relative_tolerance,
   )
 end

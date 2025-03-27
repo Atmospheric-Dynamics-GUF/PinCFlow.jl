@@ -16,19 +16,17 @@ struct OutputNamelist{
   A <: AbstractVector{<:AbstractVariable},
   B <: Bool,
   C <: Integer,
-  D <: String,
-  E <: AbstractFloat,
+  D <: AbstractFloat,
 }
   atmvarout::A
   prepare_restart::B
   restart::B
   iin::C
-  runname::D
   output_steps::B
   noutput::C
   maxiter::C
-  outputtimediff::E
-  maxtime::E
+  outputtimediff::D
+  maxtime::D
   fancy_namelists::B
 end
 
@@ -37,7 +35,6 @@ function OutputNamelist(;
   prepare_restart = false,
   restart = false,
   iin = -1,
-  runname = "",
   output_steps = false,
   noutput = 1,
   maxiter = 1,
@@ -50,7 +47,6 @@ function OutputNamelist(;
     prepare_restart,
     restart,
     iin,
-    runname,
     output_steps,
     noutput,
     maxiter,
