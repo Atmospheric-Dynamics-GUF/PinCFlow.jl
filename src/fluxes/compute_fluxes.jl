@@ -182,9 +182,10 @@ function compute_fluxes!(
 )
 
   # Get all necessary fields.
+  (; grid) = state
   (; re) = state.constants
   (; nx, ny, nz) = state.domain
-  (; dx, dy, dz, jac, met) = state.grid
+  (; jac, met) = grid
   (; pstrattfc, rhostrattfc) = state.atmosphere
   (; utilde) = state.variables.reconstructions
   (; phiu) = state.variables.fluxes
@@ -284,7 +285,7 @@ function compute_fluxes!(
   #                          Viscous fluxes
   #-------------------------------------------------------------------
 
-  if 1 / re < eps()
+  if 1 / re <= eps()
     return
   end
 
@@ -394,9 +395,10 @@ function compute_fluxes!(
 )
 
   # Get all necessary fields.
+  (; grid) = state
   (; re) = state.constants
   (; nx, ny, nz) = state.domain
-  (; dx, dy, dz, jac, met) = state.grid
+  (; jac, met) = grid
   (; pstrattfc, rhostrattfc) = state.atmosphere
   (; vtilde) = state.variables.reconstructions
   (; phiv) = state.variables.fluxes
@@ -496,7 +498,7 @@ function compute_fluxes!(
   #                          Viscous fluxes
   #-------------------------------------------------------------------
 
-  if 1 / re < eps()
+  if 1 / re <= eps()
     return
   end
 
@@ -606,9 +608,10 @@ function compute_fluxes!(
 )
 
   # Get all necessary fields.
+  (; grid) = state
   (; re) = state.constants
   (; nx, ny, nz) = state.domain
-  (; dx, dy, dz, jac, met) = state.grid
+  (; jac, met) = grid
   (; pstrattfc, rhostrattfc) = state.atmosphere
   (; wtilde) = state.variables.reconstructions
   (; phiw) = state.variables.fluxes
@@ -726,7 +729,7 @@ function compute_fluxes!(
   #                          Viscous fluxes
   #-------------------------------------------------------------------
 
-  if 1 / re < eps()
+  if 1 / re <= eps()
     return
   end
 
