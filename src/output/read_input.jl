@@ -4,7 +4,7 @@ function read_input!(state::State)
   (; namelists, domain) = state
   (; iin) = namelists.output
   (; comm, local_array, global_array) = domain
-  (; tref, lref, rhoref, thetaref, uref) = state.constants
+  (; tref, rhoref, uref) = state.constants
   (; rho, rhop, u, v, w, pip) = predictands
 
   # Open the dataset.

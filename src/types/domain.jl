@@ -147,7 +147,6 @@ function Domain(namelists::Namelists)
     end
   end
   nxx = nx + 2 * nbx + 1
-  ie = is + nxx - 1
 
   # Set up composition along x coordinate.
   if nprocy == 1
@@ -165,7 +164,6 @@ function Domain(namelists::Namelists)
     end
   end
   nyy = ny + 2 * nby + 1
-  je = js + nyy - 1
 
   # Set up serial z coordinate.
   nz = sizez

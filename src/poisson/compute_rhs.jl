@@ -1,12 +1,11 @@
 function compute_rhs!(
   state::State,
   b::AbstractArray{<:AbstractFloat, 3},
-  dt::AbstractFloat,
   model::PseudoIncompressible,
 )
   (; sizex, sizey, sizez) = state.namelists.domain
   (; ma, kappa) = state.constants
-  (; master, comm, nx, ny, nz) = state.domain
+  (; comm, nx, ny, nz) = state.domain
   (; dx, dy, dz, jac) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; u, v, w) = state.variables.predictands

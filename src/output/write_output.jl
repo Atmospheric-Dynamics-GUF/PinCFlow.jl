@@ -2,9 +2,9 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
 
   # Get all necessary fields.
   (; namelists, domain, grid) = state
-  (; sizex, sizey, sizez) = namelists.domain
+  (; sizex, sizey) = namelists.domain
   (; prepare_restart, atmvarout) = namelists.output
-  (; comm, master, nx, ny, nz, local_array, global_array) = domain
+  (; master, nx, ny, nz, local_array, global_array) = domain
   (; tref, lref, rhoref, thetaref, uref) = state.constants
   (; x, y, ztfc) = grid
   (; rhostrattfc, thetastrattfc, bvsstrattfc, pstrattfc) = state.atmosphere

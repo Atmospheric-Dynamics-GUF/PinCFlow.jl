@@ -5,10 +5,9 @@ function set_meridional_halos_of_field!(
 )
 
   # Get all necessary fields.
-  (; nbx, nby) = namelists.domain
+  (; nby) = namelists.domain
   (;
     comm,
-    nx,
     ny,
     back,
     forw,
@@ -68,12 +67,10 @@ function set_meridional_halos_of_field!(
 )
 
   # Get all necessary fields.
-  (; nbx, nby, nbz) = namelists.domain
+  (; nby) = namelists.domain
   (;
     comm,
-    nx,
     ny,
-    nz,
     back,
     forw,
     send_a3_back,
@@ -132,12 +129,10 @@ function set_meridional_halos_of_field!(
 )
 
   # Get all necessary fields.
-  (; nbx, nby, nbz) = namelists.domain
+  (; nby) = namelists.domain
   (;
     comm,
-    nx,
     ny,
-    nz,
     back,
     forw,
     send_a5_back,
