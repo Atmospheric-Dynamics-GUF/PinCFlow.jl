@@ -30,9 +30,6 @@ struct Constants{A <: AbstractFloat}
   frinv2::A
   fr2::A
   sig::A
-
-  # Small float.
-  small::A
 end
 
 function Constants(namelists::Namelists)
@@ -63,14 +60,14 @@ function Constants(namelists::Namelists)
 
   # Set the Reynolds number.
   if specifyreynolds
-    if reinv < 1.0e-20
-      re = 1.0e20
+    if reinv < eps()
+      re = 1 / eps()
     else
       re = 1.0 / reinv
     end
   else
-    if mu_viscous_dim / uref / lref < 1.0e-20
-      re = 1.0e20
+    if mu_viscous_dim / uref / lref < eps()
+      re = 1 / eps()
     else
       re = uref * lref / mu_viscous_dim
     end
@@ -84,10 +81,6 @@ function Constants(namelists::Namelists)
   frinv2 = 1.0 / fr^2
   fr2 = fr^2
   sig = ma^2 / fr^2
-
-  # Set small float.
-  # small = 1.0e-20
-  small = nextfloat(0.0)
 
   # Return a Constants instance.
   return Constants(
@@ -114,6 +107,5 @@ function Constants(namelists::Namelists)
     frinv2,
     fr2,
     sig,
-    small,
   )
 end

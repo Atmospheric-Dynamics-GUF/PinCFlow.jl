@@ -2,7 +2,7 @@ function compute_time_step(state::State)
   (; grid) = state
   (; cfl, dtmin_dim, dtmax_dim, adaptive_time_step) =
     state.namelists.discretization
-  (; tref, small, re) = state.constants
+  (; tref, re) = state.constants
   (; master, comm, nx, ny, nz) = state.domain
   (; dx, dy, dz, jac) = grid
   (; predictands) = state.variables
@@ -28,9 +28,9 @@ function compute_time_step(state::State)
     #     CFL condition
     #----------------------
 
-    @views umax = maximum(abs.(u[1:nx, 1:ny, 1:nz])) + small
-    @views vmax = maximum(abs.(v[1:nx, 1:ny, 1:nz])) + small
-    @views wmax = maximum(abs.(w[1:nx, 1:ny, 1:nz])) + small
+    @views umax = maximum(abs.(u[1:nx, 1:ny, 1:nz])) + eps()
+    @views vmax = maximum(abs.(v[1:nx, 1:ny, 1:nz])) + eps()
+    @views wmax = maximum(abs.(w[1:nx, 1:ny, 1:nz])) + eps()
 
     dtconv_loc = cfl * min(dx / umax, dy / vmax, dz / wmax)
 
@@ -43,7 +43,7 @@ function compute_time_step(state::State)
               compute_vertical_wind(i, j, k, predictands, grid) +
               compute_vertical_wind(i, j, k - 1, predictands, grid)
             ),
-          ) + small
+          ) + eps()
         ),
       )
     end

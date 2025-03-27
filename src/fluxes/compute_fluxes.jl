@@ -284,7 +284,7 @@ function compute_fluxes!(
   #                          Viscous fluxes
   #-------------------------------------------------------------------
 
-  if re >= 1.0e20
+  if 1 / re < eps()
     return
   end
 
@@ -496,7 +496,7 @@ function compute_fluxes!(
   #                          Viscous fluxes
   #-------------------------------------------------------------------
 
-  if re >= 1.0e20
+  if 1 / re < eps()
     return
   end
 
@@ -726,7 +726,7 @@ function compute_fluxes!(
   #                          Viscous fluxes
   #-------------------------------------------------------------------
 
-  if re >= 1.0e20
+  if 1 / re < eps()
     return
   end
 
