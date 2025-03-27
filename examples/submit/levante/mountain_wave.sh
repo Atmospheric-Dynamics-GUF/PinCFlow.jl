@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --partition=general1
-#SBATCH --job-name=mountain_wave
-#SBATCH --ntasks=75
-#SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=2000
-#SBATCH --mail-type=FAIL
+#SBATCH --partition=compute
+#SBATCH --job-name=mountainwave
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=75
 #SBATCH --time=0-00:10:00
+#SBATCH --mail-type=FAIL
+#SBATCH --account=bb1097
 
 set -x
 
@@ -18,8 +18,8 @@ nprocy=1
 mpiexec=`julia -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)'`
 
 # Define directories.
-dirScratch=/scratch/atmodynamics/jochum/dissertation/pincflow/examples/mountain_wave
-dirHome=/home/atmodynamics/jochum/dissertation/pincflow
+dirScratch=/scratch/b/b381733/dissertation/pincflow/examples/mountain_wave
+dirHome=/home/b/b381733/dissertation/code/pincflow
 dirCode=${dirHome}/src
 dirSubmit=${dirHome}/examples/submit
 
