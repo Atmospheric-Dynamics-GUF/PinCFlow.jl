@@ -9,10 +9,10 @@ function Operator(domain::Domain)
 
   # Initialize s.
   s = OffsetArray(
-    zeros((nx + 2, ny + 2, nz + 2)),
+    zeros((nx + 2, ny + 2, nz + 4)),
     0:(nx + 1),
     0:(ny + 1),
-    0:(nz + 1),
+    -1:(nz + 2),
   )
 
   # Return an Operator instance.
