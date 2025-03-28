@@ -14,9 +14,6 @@ ntasks=75
 nprocx=75
 nprocy=1
 
-# Set MPI binary.
-mpiexec=`julia -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)'`
-
 # Define directories.
 dirScratch=/scratch/b/b381733/dissertation/pincflow/examples/mountain_wave
 dirHome=/home/b/b381733/dissertation/code/pincflow
@@ -31,7 +28,13 @@ cd ${dirScratch}/ && rm -r *
 cp -r ${dirCode} .
 cp ${dirSubmit}/mountain_wave.jl .
 
-# Run the model.
-${mpiexec} -n ${ntasks} julia mountain_wave.jl ${nprocx} ${nprocy} 1>run.log 2>&1
+# # Configure MPI and run the model (JLL binary).
+# mpiexec=`julia -e 'using MPICH_jll; println(MPICH_jll.mpiexec_path)'`
+# julia --project=. -e 'using MPIPreferences; MPIPreferences.use_jll_binary()'
+# ${mpiexec} -n ${ntasks} julia --project=. mountain_wave.jl ${nprocx} ${nprocy} 1>run.log 2>&1
+
+# Configure MPI and run the model (system binary).
+julia --project=. -e 'using MPIPreferences; MPIPreferences.use_system_binary(; library_names=["/sw/spack-levante/intel-oneapi-mpi-2021.5.0-mrcss7/mpi/2021.5.0/lib/release/libmpi.so"])'
+mpiexec -n ${ntasks} julia mountain_wave.jl ${nprocx} ${nprocy} 1>run.log 2>&1
 
 exit 0
