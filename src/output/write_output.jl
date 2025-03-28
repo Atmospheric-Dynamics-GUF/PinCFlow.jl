@@ -1,4 +1,9 @@
-function write_output(state::State, time::AbstractFloat, iout::Integer)
+function write_output(
+  state::State,
+  time::AbstractFloat,
+  iout::Integer,
+  cpu_start_time::AbstractFloat,
+)
 
   # Get all necessary fields.
   (; namelists, domain, grid) = state
@@ -10,6 +15,16 @@ function write_output(state::State, time::AbstractFloat, iout::Integer)
   (; rhostrattfc, thetastrattfc, bvsstrattfc, pstrattfc) = state.atmosphere
   (; predictands) = state.variables
   (; rho, u, v, w, pip) = predictands
+
+  # Print information.
+  if master
+    println("")
+    println(repeat("-", 80))
+    println("Output into file pincflow_output.nc")
+    println("Physical time: ", time * tref, " s")
+    println("CPU time: ", canonicalize(now() - cpu_start_time))
+    println(repeat("-", 80))
+  end
 
   # Advance output counter.
   iout += 1
