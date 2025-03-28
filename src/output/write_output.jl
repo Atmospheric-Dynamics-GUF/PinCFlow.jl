@@ -2,7 +2,7 @@ function write_output(
   state::State,
   time::AbstractFloat,
   iout::Integer,
-  cpu_start_time::AbstractFloat,
+  cpu_start_time::DateTime,
 )
 
   # Get all necessary fields.
