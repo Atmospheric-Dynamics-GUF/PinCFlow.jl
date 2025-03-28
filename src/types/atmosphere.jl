@@ -1,8 +1,31 @@
-struct Atmosphere{A <: AbstractArray{<:AbstractFloat, 3}}
+struct Atmosphere{
+  A <: AbstractArray{<:AbstractFloat, 3},
+  B <: AbstractVector{<:AbstractFloat},
+}
   pstrattfc::A
   thetastrattfc::A
   rhostrattfc::A
   bvsstrattfc::A
+  f_cor_nd::B
+end
+
+function Atmosphere(
+  namelists::Namelists,
+  constants::Constants,
+  domain::Domain,
+  grid::Grid,
+)
+  (; model) = namelists.setting
+  (; background, corset) = namelists.atmosphere
+  return Atmosphere(
+    namelists,
+    constants,
+    domain,
+    grid,
+    model,
+    background,
+    corset,
+  )
 end
 
 function Atmosphere(
@@ -12,11 +35,12 @@ function Atmosphere(
   grid::Grid,
   model::PseudoIncompressible,
   background::Isothermal,
+  corset::ConstantCoriolis,
 )
   # Get parameters.
   (; nbx, nby) = namelists.domain
-  (; temp0_dim, press0_dim) = namelists.atmosphere
-  (; thetaref, pref, ma, fr, kappa, sig, gamma, g_ndim) = constants
+  (; temp0_dim, press0_dim, f_coriolis_dim) = namelists.atmosphere
+  (; tref, thetaref, pref, kappa, sig, gamma, g_ndim) = constants
   (; nx, ny, nz) = domain
   (; ztfc, jac, dz) = grid
 
@@ -62,11 +86,16 @@ function Atmosphere(
     (thetastrattfc[:, :, nz + 1] .- thetastrattfc[:, :, nz]) ./ dz
   bvsstrattfc[:, :, nz + 2] .= bvsstrattfc[:, :, nz + 1]
 
+  # Set Coriolis parameter.
+  f_cor_nd = OffsetArray(zeros(ny + 2), 0:(ny + 1))
+  f_cor_nd[0:(ny + 1)] .= f_coriolis_dim .* tref
+
   # Return an Atmosphere instance.
   return Atmosphere(
     pstrattfc,
     thetastrattfc,
     rhostrattfc,
     bvsstrattfc,
+    f_cor_nd,
   )
 end

@@ -22,16 +22,12 @@ end
 
 function State(namelists::Namelists)
 
-  # Get parameters.
-  (; model) = namelists.setting
-  (; background) = namelists.atmosphere
-
   # Initialize everything.
   constants = Constants(namelists)
   time = Time()
   domain = Domain(namelists)
   grid = Grid(namelists, constants, domain)
-  atmosphere = Atmosphere(namelists, constants, domain, grid, model, background)
+  atmosphere = Atmosphere(namelists, constants, domain, grid)
   sponge = Sponge(namelists, domain, grid)
   poisson = Poisson(namelists, domain)
   variables = Variables(namelists, constants, domain)
