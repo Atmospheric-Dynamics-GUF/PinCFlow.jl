@@ -98,7 +98,7 @@ function integrate(namelists::Namelists)
   create_output(state)
 
   # Write the initial state.
-  iout = write_output(state, time, iout)
+  iout = write_output(state, time, iout, cpu_start_time)
 
   output = false
   nextoutputtime = time * tref + outputtimediff
@@ -286,7 +286,7 @@ function integrate(namelists::Namelists)
       apply_corrector!(state, 0.5 * dt, IMPL(), 1.0, 1.0)
 
     if errflagbicg
-      iout = write_output(state, time, iout)
+      iout = write_output(state, time, iout, cpu_start_time)
       if master
         println("Output last state into record", iout)
       end
@@ -417,7 +417,7 @@ function integrate(namelists::Namelists)
       apply_corrector!(state, 0.5 * dt, IMPL(), 2.0, 1.0)
 
     if errflagbicg
-      iout = write_output(state, time, iout)
+      iout = write_output(state, time, iout, cpu_start_time)
       if master
         println("Output last state into record ", iout)
       end
@@ -438,11 +438,11 @@ function integrate(namelists::Namelists)
 
     if output_steps
       if mod(itime, noutput) == 0
-        iout = write_output(state, time, iout)
+        iout = write_output(state, time, iout, cpu_start_time)
       end
     else
       if output
-        iout = write_output(state, time, iout)
+        iout = write_output(state, time, iout, cpu_start_time)
         output = false
         nextoutputtime = nextoutputtime + outputtimediff
         if nextoutputtime >= maxtime
@@ -462,8 +462,6 @@ function integrate(namelists::Namelists)
 
           println("")
           println(repeat("-", 80))
-          println("CPU time: ", canonicalize(now() - cpu_start_time))
-          println("")
           println("Average Poisson iterations: ", naveragebicg)
           println(repeat("-", 80))
           println("")
@@ -484,8 +482,6 @@ function integrate(namelists::Namelists)
 
       println("")
       println(repeat("-", 80))
-      println("CPU time: ", canonicalize(now() - cpu_start_time))
-      println("")
       println("Average Poisson iterations: ", naveragebicg)
       if preconditioner
         println("ADI: dtau = ", dtau)
