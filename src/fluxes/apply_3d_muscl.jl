@@ -1,30 +1,39 @@
 function apply_3d_muscl!(
   phi::AbstractArray{<:AbstractFloat, 3},
   phitilde::AbstractArray{<:AbstractFloat, 5},
-  domain::Domain,
-  auxiliaries::Auxiliaries,
+  nxx::Integer,
+  nyy::Integer,
+  nzz::Integer,
   limitertype::MCVariant,
 )
-  (; nxx, nyy, nzz) = domain
-  (; phix, phiy, phiz, phitildex, phitildey, phitildez) = auxiliaries
 
+  # Reconstruct in x.
   for kz in 2:(nzz - 1), jy in 2:(nyy - 1)
-    @views phix .= phi.parent[:, jy, kz]
-    apply_1d_muscl!(phix, phitildex, nxx)
-    phitilde.parent[:, jy, kz, 1, :] .= phitildex
+    @views apply_1d_muscl!(
+      phi.parent[:, jy, kz],
+      phitilde.parent[:, jy, kz, 1, :],
+      nxx,
+    )
   end
 
+  # Reconstruct in y.
   for kz in 2:(nzz - 1), ix in 2:(nxx - 1)
-    @views phiy .= phi.parent[ix, :, kz]
-    apply_1d_muscl!(phiy, phitildey, nyy)
-    phitilde.parent[ix, :, kz, 2, :] .= phitildey
+    @views apply_1d_muscl!(
+      phi.parent[ix, :, kz],
+      phitilde.parent[ix, :, kz, 2, :],
+      nyy,
+    )
   end
 
+  # Reconstruct in z.
   for jy in 2:(nyy - 1), ix in 2:(nxx - 1)
-    @views phiz .= phi.parent[ix, jy, :]
-    apply_1d_muscl!(phiz, phitildez, nzz)
-    phitilde.parent[ix, jy, :, 3, :] .= phitildez
+    @views apply_1d_muscl!(
+      phi.parent[ix, jy, :],
+      phitilde.parent[ix, jy, :, 3, :],
+      nzz,
+    )
   end
 
+  # Return.
   return
 end
