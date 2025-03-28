@@ -318,26 +318,15 @@ function update!(
   integration::EXPL,
   facray::AbstractFloat,
 )
-  (; corset, f_coriolis_dim) = state.namelists.atmosphere
   (; xboundaries) = state.namelists.boundaries
-  (; tref) = state.constants
   (; alphark, betark) = state.time
   (; nx, ny, nz) = state.domain
   (; dx, dy, dz, jac) = state.grid
-  (; rhostrattfc) = state.atmosphere
+  (; rhostrattfc, f_cor_nd) = state.atmosphere
   (; du) = state.variables.tendencies
   (; phiu) = state.variables.fluxes
   (; rhoold, uold) = state.variables.backups
   (; rho, u, v) = state.variables.predictands
-
-  # Initialize non-dimensional Coriolis parameter.
-  f_cor_nd = OffsetArray(zeros((ny + 2)), 0:(ny + 1))
-
-  if corset == ConstantCoriolis()
-    f_cor_nd[0:(ny + 1)] .= f_coriolis_dim .* tref
-  else
-    error("Error in update!: Unknown corset!")
-  end
 
   if xboundaries == PeriodicBoundaries()
     i0 = 0
@@ -573,26 +562,15 @@ function update!(
   integration::EXPL,
   facray::AbstractFloat,
 )
-  (; corset, f_coriolis_dim) = state.namelists.atmosphere
   (; yboundaries) = state.namelists.boundaries
-  (; tref) = state.constants
   (; alphark, betark) = state.time
   (; nx, ny, nz) = state.domain
   (; dx, dy, dz, jac) = state.grid
-  (; rhostrattfc) = state.atmosphere
+  (; rhostrattfc, f_cor_nd) = state.atmosphere
   (; dv) = state.variables.tendencies
   (; phiv) = state.variables.fluxes
   (; rhoold, uold, vold) = state.variables.backups
   (; rho, v) = state.variables.predictands
-
-  # Initialize non-dimensional Coriolis parameter.
-  f_cor_nd = OffsetArray(zeros((ny + 2)), 0:(ny + 1))
-
-  if corset == ConstantCoriolis()
-    f_cor_nd[0:(ny + 1)] .= f_coriolis_dim .* tref
-  else
-    error("Error in update!: Unknown corset!")
-  end
 
   if yboundaries == PeriodicBoundaries()
     j0 = 0
@@ -823,14 +801,12 @@ function update!(
   integration::EXPL,
   facray::AbstractFloat,
 )
-  (; corset, f_coriolis_dim) = state.namelists.atmosphere
   (; zboundaries) = state.namelists.boundaries
-  (; tref) = state.constants
   (; alphark, betark) = state.time
   (; nx, ny, nz) = state.domain
   (; grid) = state
   (; dx, dy, dz, jac, met) = grid
-  (; rhostrattfc) = state.atmosphere
+  (; rhostrattfc, f_cor_nd) = state.atmosphere
   (; dw) = state.variables.tendencies
   (; phiu, phiv, phiw) = state.variables.fluxes
   (; rhoold, uold, vold) = state.variables.backups
@@ -838,15 +814,6 @@ function update!(
 
   # Initialize fields for transformation of momentum flux divergence.
   (fluxdiffu, fluxdiffv) = (OffsetArray(zeros((2, 2)), 0:1, 0:1) for i in 1:2)
-
-  # Initialize non-dimensional Coriolis parameter.
-  f_cor_nd = OffsetArray(zeros((ny + 2)), 0:(ny + 1))
-
-  if corset == ConstantCoriolis()
-    f_cor_nd[0:(ny + 1)] .= f_coriolis_dim .* tref
-  else
-    error("Error in update!: Unknown corset!")
-  end
 
   if m == 1
     dw .= 0.0
