@@ -12,7 +12,6 @@ function update!(
   variable::Rho,
   side::LHS,
   integration::EXPL,
-  facray::AbstractFloat,
 )
   (; nx, ny, nz) = state.domain
   (; dx, dy, dz, jac) = state.grid
@@ -52,7 +51,6 @@ function update!(
   variable::RhoP,
   side::LHS,
   integration::EXPL,
-  facray::AbstractFloat,
 )
   (; nx, ny, nz) = state.domain
   (; dx, dy, dz, jac) = state.grid
@@ -88,11 +86,9 @@ end
 function update!(
   state::State,
   dt::AbstractFloat,
-  m::Integer,
   variable::RhoP,
   side::RHS,
   integration::EXPL,
-  facray::AbstractFloat,
 )
   (; nx, ny, nz) = state.domain
   (; grid) = state
@@ -121,7 +117,6 @@ end
 function update!(
   state::State,
   dt::AbstractFloat,
-  m::Integer,
   variable::RhoP,
   side::RHS,
   integration::IMPL,
@@ -316,7 +311,6 @@ function update!(
   variable::U,
   side::LHS,
   integration::EXPL,
-  facray::AbstractFloat,
 )
   (; xboundaries) = state.namelists.boundaries
   (; alphark, betark) = state.time
@@ -398,11 +392,9 @@ end
 function update!(
   state::State,
   dt::AbstractFloat,
-  m::Integer,
   variable::U,
   side::RHS,
   integration::EXPL,
-  facray::AbstractFloat,
 )
   (; xboundaries, zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2) = state.constants
@@ -473,7 +465,6 @@ end
 function update!(
   state::State,
   dt::AbstractFloat,
-  m::Integer,
   variable::U,
   side::RHS,
   integration::IMPL,
@@ -560,7 +551,6 @@ function update!(
   variable::V,
   side::LHS,
   integration::EXPL,
-  facray::AbstractFloat,
 )
   (; yboundaries) = state.namelists.boundaries
   (; alphark, betark) = state.time
@@ -637,11 +627,9 @@ end
 function update!(
   state::State,
   dt::AbstractFloat,
-  m::Integer,
   variable::V,
   side::RHS,
   integration::EXPL,
-  facray::AbstractFloat,
 )
   (; yboundaries, zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2) = state.constants
@@ -712,7 +700,6 @@ end
 function update!(
   state::State,
   dt::AbstractFloat,
-  m::Integer,
   variable::V,
   side::RHS,
   integration::IMPL,
@@ -799,7 +786,6 @@ function update!(
   variable::W,
   side::LHS,
   integration::EXPL,
-  facray::AbstractFloat,
 )
   (; zboundaries) = state.namelists.boundaries
   (; alphark, betark) = state.time
@@ -950,11 +936,9 @@ end
 function update!(
   state::State,
   dt::AbstractFloat,
-  m::Integer,
   variable::W,
   side::RHS,
   integration::EXPL,
-  facray::AbstractFloat,
 )
   (; zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2, g_ndim) = state.constants
@@ -1060,7 +1044,6 @@ end
 function update!(
   state::State,
   dt::AbstractFloat,
-  m::Integer,
   variable::W,
   side::RHS,
   integration::IMPL,

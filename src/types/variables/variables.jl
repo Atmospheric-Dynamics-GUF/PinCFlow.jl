@@ -16,11 +16,8 @@ end
 
 function Variables(namelists::Namelists, constants::Constants, domain::Domain)
 
-  # Get parameters.
-  (; model, testcase) = namelists.setting
-
   # Initialize all fields.
-  predictands = Predictands(namelists, constants, domain, model, testcase)
+  predictands = Predictands(namelists, constants, domain)
   tendencies = Tendencies(namelists, domain)
   backups = Backups(namelists, domain)
   auxiliaries = Auxiliaries(namelists, domain)

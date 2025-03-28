@@ -11,6 +11,15 @@ function Predictands(
   namelists::Namelists,
   constants::Constants,
   domain::Domain,
+)
+  (; model, testcase) = namelists.setting
+  return Predictands(namelists, constants, domain, model, testcase)
+end
+
+function Predictands(
+  namelists::Namelists,
+  constants::Constants,
+  domain::Domain,
   model::PseudoIncompressible,
   testcase::MountainWave,
 )

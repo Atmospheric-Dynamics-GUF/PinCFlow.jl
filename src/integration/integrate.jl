@@ -196,7 +196,7 @@ function integrate(namelists::Namelists)
 
       state.variables.backups.rhoold .= state.variables.predictands.rho
 
-      update!(state, 0.5 * dt, rkstage, Rho(), LHS(), EXPL(), 1.0)
+      update!(state, 0.5 * dt, rkstage, Rho(), LHS(), EXPL())
       apply_unified_sponge!(
         state,
         stepfrac[rkstage] * 0.5 * dt,
@@ -205,7 +205,7 @@ function integrate(namelists::Namelists)
         model,
       )
 
-      update!(state, 0.5 * dt, rkstage, RhoP(), LHS(), EXPL(), 1.0)
+      update!(state, 0.5 * dt, rkstage, RhoP(), LHS(), EXPL())
       apply_unified_sponge!(
         state,
         stepfrac[rkstage] * 0.5 * dt,
@@ -218,9 +218,9 @@ function integrate(namelists::Namelists)
 
       set_boundaries!(state, BoundaryPredictands())
 
-      update!(state, 0.5 * dt, rkstage, U(), LHS(), EXPL(), 1.0)
-      update!(state, 0.5 * dt, rkstage, V(), LHS(), EXPL(), 1.0)
-      update!(state, 0.5 * dt, rkstage, W(), LHS(), EXPL(), 1.0)
+      update!(state, 0.5 * dt, rkstage, U(), LHS(), EXPL())
+      update!(state, 0.5 * dt, rkstage, V(), LHS(), EXPL())
+      update!(state, 0.5 * dt, rkstage, W(), LHS(), EXPL())
       apply_unified_sponge!(
         state,
         stepfrac[rkstage] * 0.5 * dt,
@@ -269,15 +269,15 @@ function integrate(namelists::Namelists)
 
     # update winds (uStar, vStar, wStar)
 
-    update!(state, 0.5 * dt, rkstage, U(), RHS(), IMPL(), 1.0)
-    update!(state, 0.5 * dt, rkstage, V(), RHS(), IMPL(), 1.0)
-    update!(state, 0.5 * dt, rkstage, W(), RHS(), IMPL(), 1.0)
+    update!(state, 0.5 * dt, U(), RHS(), IMPL(), 1.0)
+    update!(state, 0.5 * dt, V(), RHS(), IMPL(), 1.0)
+    update!(state, 0.5 * dt, W(), RHS(), IMPL(), 1.0)
 
     set_boundaries!(state, BoundaryPredictands())
 
     # update density fluctuations (rhopStar)
 
-    update!(state, 0.5 * dt, rkstage, RhoP(), RHS(), IMPL(), 1.0)
+    update!(state, 0.5 * dt, RhoP(), RHS(), IMPL(), 1.0)
 
     set_boundaries!(state, BoundaryPredictands())
 
@@ -322,13 +322,13 @@ function integrate(namelists::Namelists)
     state.variables.backups.rhopold .= state.variables.predictands.rhop
 
     # update density fluctuations (rhopStar)
-    update!(state, 0.5 * dt, rkstage, RhoP(), RHS(), EXPL(), 1.0)
+    update!(state, 0.5 * dt, RhoP(), RHS(), EXPL())
 
     # update winds (uStar, vStar, wStar)
 
-    update!(state, 0.5 * dt, rkstage, U(), RHS(), EXPL(), 1.0)
-    update!(state, 0.5 * dt, rkstage, V(), RHS(), EXPL(), 1.0)
-    update!(state, 0.5 * dt, rkstage, W(), RHS(), EXPL(), 1.0)
+    update!(state, 0.5 * dt, U(), RHS(), EXPL())
+    update!(state, 0.5 * dt, V(), RHS(), EXPL())
+    update!(state, 0.5 * dt, W(), RHS(), EXPL())
 
     set_boundaries!(state, BoundaryPredictands())
 
@@ -358,18 +358,18 @@ function integrate(namelists::Namelists)
 
       state.variables.backups.rhoold .= state.variables.predictands.rho
 
-      update!(state, dt, rkstage, Rho(), LHS(), EXPL(), 1.0)
+      update!(state, dt, rkstage, Rho(), LHS(), EXPL())
       apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, Rho(), model)
 
-      update!(state, dt, rkstage, RhoP(), LHS(), EXPL(), 1.0)
+      update!(state, dt, rkstage, RhoP(), LHS(), EXPL())
       apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, RhoP(), model)
 
       # RK step for momentum
       set_boundaries!(state, BoundaryPredictands())
 
-      update!(state, dt, rkstage, U(), LHS(), EXPL(), 1.0)
-      update!(state, dt, rkstage, V(), LHS(), EXPL(), 1.0)
-      update!(state, dt, rkstage, W(), LHS(), EXPL(), 1.0)
+      update!(state, dt, rkstage, U(), LHS(), EXPL())
+      update!(state, dt, rkstage, V(), LHS(), EXPL())
+      update!(state, dt, rkstage, W(), LHS(), EXPL())
       apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, U(), model)
       apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, V(), model)
       apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, W(), model)
@@ -399,15 +399,15 @@ function integrate(namelists::Namelists)
 
     # update winds (uStar, vStar, wStar)
 
-    update!(state, 0.5 * dt, rkstage, U(), RHS(), IMPL(), 2.0)
-    update!(state, 0.5 * dt, rkstage, V(), RHS(), IMPL(), 2.0)
-    update!(state, 0.5 * dt, rkstage, W(), RHS(), IMPL(), 2.0)
+    update!(state, 0.5 * dt, U(), RHS(), IMPL(), 2.0)
+    update!(state, 0.5 * dt, V(), RHS(), IMPL(), 2.0)
+    update!(state, 0.5 * dt, W(), RHS(), IMPL(), 2.0)
 
     set_boundaries!(state, BoundaryPredictands())
 
     # update density fluctuations (rhopStar)
 
-    update!(state, 0.5 * dt, rkstage, RhoP(), RHS(), IMPL(), 2.0)
+    update!(state, 0.5 * dt, RhoP(), RHS(), IMPL(), 2.0)
 
     set_boundaries!(state, BoundaryPredictands())
 

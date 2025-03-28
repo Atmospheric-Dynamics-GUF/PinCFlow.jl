@@ -7,7 +7,7 @@ struct Preconditioner{
   p_pc::B
 end
 
-function Preconditioner(domain)
+function Preconditioner(domain::Domain)
 
   # Get all necessary fields.
   (; nx, ny, nz) = domain
