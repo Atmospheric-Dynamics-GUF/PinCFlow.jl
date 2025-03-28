@@ -25,10 +25,10 @@ function Tendencies(namelists::Namelists, domain::Domain)
 
   # Initialize the pressure differences.
   dpip = OffsetArray(
-    zeros((nx + 2, ny + 2, nz + 2)),
+    zeros((nx + 2, ny + 2, nz + 4)),
     0:(nx + 1),
     0:(ny + 1),
-    0:(nz + 1),
+    -1:(nz + 2),
   )
 
   # Return a Variables instance.

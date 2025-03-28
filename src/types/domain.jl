@@ -229,13 +229,13 @@ function Domain(namelists::Namelists)
     send_pressure_right,
     recv_pressure_left,
     recv_pressure_right,
-  ) = (zeros((ny + 2, nz + 2)) for i in 1:4)
+  ) = (zeros((ny + 2, nz + 4)) for i in 1:4)
   (
     send_pressure_back,
     send_pressure_forw,
     recv_pressure_back,
     recv_pressure_forw,
-  ) = (zeros((nx + 2, nz + 2)) for i in 1:4)
+  ) = (zeros((nx + 2, nz + 4)) for i in 1:4)
 
   # Initialize auxiliary arrays for gather & scatter.
   local_array = zeros((nx, ny, nz))
