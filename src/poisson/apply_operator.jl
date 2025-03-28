@@ -1,25 +1,10 @@
-abstract type AbstractOperator end
-struct Total <: AbstractOperator end
-struct Horizontal <: AbstractOperator end
-
-function apply_operator!(
-  sin::AbstractArray{<:AbstractFloat, 3},
-  ls::AbstractArray{<:AbstractFloat, 3},
-  hortot::AbstractOperator,
-  namelists::Namelists,
-  domain::Domain,
-  poisson::Poisson,
-)
-  (; zboundaries) = namelists.boundaries
-  apply_operator!(sin, ls, hortot, zboundaries, namelists, domain, poisson)
-  return
-end
+struct Total end
+struct Horizontal end
 
 function apply_operator!(
   sin::AbstractArray{<:AbstractFloat, 3},
   ls::AbstractArray{<:AbstractFloat, 3},
   hortot::Total,
-  zboundaries::SolidWallBoundaries,
   namelists::Namelists,
   domain::Domain,
   poisson::Poisson,
@@ -225,7 +210,6 @@ function apply_operator!(
   sin::AbstractArray{<:AbstractFloat, 3},
   ls::AbstractArray{<:AbstractFloat, 3},
   hortot::Horizontal,
-  zboundaries::SolidWallBoundaries,
   namelists::Namelists,
   domain::Domain,
   poisson::Poisson,
