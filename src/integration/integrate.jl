@@ -16,7 +16,6 @@ function integrate(namelists::Namelists)
   nextoutputtime = 0.0
 
   # Initialize Poisson variables.
-  ntotalbicg = 0
   errflagbicg = false
   niterbicg = 0
   ntotalbicg = 0
