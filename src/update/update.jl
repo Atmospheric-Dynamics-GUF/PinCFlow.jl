@@ -788,7 +788,8 @@ function update!(
       gb = phiu[i - ll, j - 1, k + mm, 2]
       hu = phiu[i - ll, j, k + mm, 3]
       hd = phiu[i - ll, j, k - 1 + mm, 3]
-      fluxdiffu[ll + 1, mm + 1] = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+      fluxdiffu[ll + 1, mm + 1] =
+        (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
       jacedger = 0.5 * (jac[i - ll, j, k + mm] + jac[i + 1 - ll, j, k + mm])
       fluxdiffu[ll + 1, mm + 1] /= jacedger
     end
@@ -801,7 +802,8 @@ function update!(
       gb = phiv[i, j - 1 - ll, k + mm, 2]
       hu = phiv[i, j - ll, k + mm, 3]
       hd = phiv[i, j - ll, k - 1 + mm, 3]
-      fluxdiffv[ll + 1, mm + 1] = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+      fluxdiffv[ll + 1, mm + 1] =
+        (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
       jacedgef = 0.5 * (jac[i, j - ll, k + mm] + jac[i, j + 1 - ll, k + mm])
       fluxdiffv[ll + 1, mm + 1] /= jacedgef
     end

@@ -310,26 +310,22 @@ function compute_sponge!(
         if x[io + i] <= xsponge0
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
-            spongealphax *
-            sin(0.5 * pi * (xsponge0 - x[io + i]) / dxsponge)^2.0
+            spongealphax * sin(0.5 * pi * (xsponge0 - x[io + i]) / dxsponge)^2.0
         elseif x[io + i] >= xsponge1
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
-            spongealphax *
-            sin(0.5 * pi * (x[io + i] - xsponge1) / dxsponge)^2.0
+            spongealphax * sin(0.5 * pi * (x[io + i] - xsponge1) / dxsponge)^2.0
         end
       end
       if sizey > 1
         if y[jo + j] <= ysponge0
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
-            spongealphay *
-            sin(0.5 * pi * (ysponge0 - y[jo + j]) / dysponge)^2.0
+            spongealphay * sin(0.5 * pi * (ysponge0 - y[jo + j]) / dysponge)^2.0
         elseif y[jo + j] >= ysponge1
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
-            spongealphay *
-            sin(0.5 * pi * (y[jo + j] - ysponge1) / dysponge)^2.0
+            spongealphay * sin(0.5 * pi * (y[jo + j] - ysponge1) / dysponge)^2.0
         end
       end
     end
