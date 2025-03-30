@@ -6,8 +6,7 @@ function apply_corrector!(
   facprs::AbstractFloat,
 )
   (; namelists, domain) = state
-  (; model) = namelists.setting
-  (; zboundaries) = namelists.boundaries
+  (; model, zboundaries) = namelists.setting
   (; rhs) = state.poisson
   (; dpip) = state.variables.tendencies
   (; k0, k1) = domain

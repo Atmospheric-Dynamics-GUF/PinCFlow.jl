@@ -5,10 +5,6 @@ using LinearAlgebra
 using NCDatasets
 using MPI
 
-# using SimpleUnPack
-# using TimerOutputs
-# using TrixiBas
-
 # Include types.
 include("types/namelists/domain_namelist.jl")
 include("types/namelists/output_namelist.jl")
@@ -115,13 +111,5 @@ export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
 export PeriodicBoundaries, SolidWallBoundaries
 export State
 export integrate
-
-# pincflow_test_dir() = joinpath(dirname(pathof(PinCFlow)), "..", "test")
-# pincflow_examples_dir() = joinpath(dirname(pathof(PinCFlow)), "..", "examples")
-
-# export pincflow, Corrector
-# export pincflow_test_dir, pincflow_examples_dir
-# export Grid, Constants, Atmosphere, Domain, Variables, Fluxes, State
-# export Corrector
 
 end

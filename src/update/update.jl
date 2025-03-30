@@ -124,7 +124,7 @@ function update!(
 )
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dy, dz, jac, met) = state.grid
-  (; zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; spongelayer) = state.namelists.sponge
   (; kr_sp_w_tfc) = state.sponge
   (; kappainv, mainv2, g_ndim) = state.constants
@@ -312,7 +312,6 @@ function update!(
   side::LHS,
   integration::EXPL,
 )
-  (; xboundaries) = state.namelists.boundaries
   (; alphark, betark) = state.time
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dy, dz, jac) = state.grid
@@ -321,10 +320,6 @@ function update!(
   (; phiu) = state.variables.fluxes
   (; rhoold, uold) = state.variables.backups
   (; rho, u, v) = state.variables.predictands
-
-  if xboundaries != PeriodicBoundaries()
-    error("Error in update!: Unknown xboundaries!")
-  end
 
   if m == 1
     du .= 0.0
@@ -393,16 +388,12 @@ function update!(
   side::RHS,
   integration::EXPL,
 )
-  (; xboundaries, zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; kappainv, mainv2) = state.constants
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dz, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; rho, u, pip) = state.variables.predictands
-
-  if xboundaries != PeriodicBoundaries()
-    error("Error in update!: Unknown xboundaries!")
-  end
 
   for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
     rhou = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
@@ -464,7 +455,7 @@ function update!(
   integration::IMPL,
   facray::AbstractFloat,
 )
-  (; xboundaries, zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; spongelayer, sponge_uv) = state.namelists.sponge
   (; kappainv, mainv2) = state.constants
   (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -472,10 +463,6 @@ function update!(
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; kr_sp_tfc) = state.sponge
   (; rho, u, pip) = state.variables.predictands
-
-  if xboundaries != PeriodicBoundaries()
-    error("Error in update!: Unknown xboundaries!")
-  end
 
   for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
     rhou = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
@@ -543,7 +530,6 @@ function update!(
   side::LHS,
   integration::EXPL,
 )
-  (; yboundaries) = state.namelists.boundaries
   (; alphark, betark) = state.time
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dy, dz, jac) = state.grid
@@ -552,10 +538,6 @@ function update!(
   (; phiv) = state.variables.fluxes
   (; rhoold, uold, vold) = state.variables.backups
   (; rho, v) = state.variables.predictands
-
-  if yboundaries != PeriodicBoundaries()
-    error("Error in update!: Unknown yboundaries!")
-  end
 
   if m == 1
     dv .= 0.0
@@ -619,16 +601,12 @@ function update!(
   side::RHS,
   integration::EXPL,
 )
-  (; yboundaries, zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; kappainv, mainv2) = state.constants
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dy, dz, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; rho, v, pip) = state.variables.predictands
-
-  if yboundaries != PeriodicBoundaries()
-    error("Error in update!: Unknown yboundaries!")
-  end
 
   for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
     rhov = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
@@ -690,7 +668,7 @@ function update!(
   integration::IMPL,
   facray::AbstractFloat,
 )
-  (; yboundaries, zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; spongelayer, sponge_uv) = state.namelists.sponge
   (; kappainv, mainv2) = state.constants
   (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -698,10 +676,6 @@ function update!(
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; kr_sp_tfc) = state.sponge
   (; rho, v, pip) = state.variables.predictands
-
-  if yboundaries != PeriodicBoundaries()
-    error("Error in update!: Unknown yboundaries!")
-  end
 
   for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
     rhov = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
@@ -769,7 +743,7 @@ function update!(
   side::LHS,
   integration::EXPL,
 )
-  (; zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; alphark, betark) = state.time
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; grid) = state
@@ -919,7 +893,7 @@ function update!(
   side::RHS,
   integration::EXPL,
 )
-  (; zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; kappainv, mainv2, g_ndim) = state.constants
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dy, dz, jac, met) = state.grid
@@ -1026,7 +1000,7 @@ function update!(
   facray::AbstractFloat,
 )
   (; spongelayer) = state.namelists.sponge
-  (; zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; kappainv, mainv2, g_ndim) = state.constants
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dy, dz, jac, met) = state.grid

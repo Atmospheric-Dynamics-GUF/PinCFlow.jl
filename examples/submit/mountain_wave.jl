@@ -29,8 +29,11 @@ output = OutputNamelist(;
   fancy_namelists = true,
 )
 
-setting =
-  SettingNamelist(; model = PseudoIncompressible(), testcase = MountainWave())
+setting = SettingNamelist(;
+  model = PseudoIncompressible(),
+  testcase = MountainWave(),
+  zboundaries = SolidWallBoundaries(),
+)
 
 discretization = DiscretizationNamelist(;
   cfl = 5.0E-1,
@@ -88,12 +91,6 @@ sponge = SpongeNamelist(;
   relaxation_amplitude = 0.0E+0,
 )
 
-boundaries = BoundariesNamelist(;
-  xboundaries = PeriodicBoundaries(),
-  yboundaries = PeriodicBoundaries(),
-  zboundaries = SolidWallBoundaries(),
-)
-
 namelists = Namelists(;
   domain = domain,
   output = output,
@@ -103,7 +100,6 @@ namelists = Namelists(;
   atmosphere = atmosphere,
   grid = grid,
   sponge = sponge,
-  boundaries = boundaries,
 )
 
 integrate(namelists)

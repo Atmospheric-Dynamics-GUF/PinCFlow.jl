@@ -28,7 +28,7 @@ function correct!(
 end
 
 function correct!(state::State, dt::AbstractFloat, variable::U)
-  (; zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; kappainv, mainv2) = state.constants
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dz, met) = state.grid
@@ -99,7 +99,7 @@ function correct!(
   facprs::AbstractFloat,
 )
   (; spongelayer, sponge_uv) = state.namelists.sponge
-  (; zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; kappainv, mainv2) = state.constants
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dz, met) = state.grid
@@ -173,7 +173,7 @@ function correct!(
 end
 
 function correct!(state::State, dt::AbstractFloat, variable::V)
-  (; zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; kappainv, mainv2) = state.constants
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dy, dz, met) = state.grid
@@ -244,7 +244,7 @@ function correct!(
   facprs::AbstractFloat,
 )
   (; spongelayer, sponge_uv) = state.namelists.sponge
-  (; zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; kappainv, mainv2) = state.constants
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dy, dz, met) = state.grid
@@ -318,7 +318,7 @@ function correct!(
 end
 
 function correct!(state::State, dt::AbstractFloat, variable::W)
-  (; zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; kappainv, mainv2) = state.constants
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dy, dz, jac, met) = state.grid
@@ -413,7 +413,7 @@ function correct!(
   facprs::AbstractFloat,
 )
   (; spongelayer, sponge_uv) = state.namelists.sponge
-  (; zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; kappainv, mainv2) = state.constants
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dy, dz, jac, met) = state.grid
@@ -537,7 +537,7 @@ function correct!(
   facprs::AbstractFloat,
 )
   (; spongelayer) = state.namelists.sponge
-  (; zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; kappainv, mainv2, g_ndim) = state.constants
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dy, dz, jac, met) = state.grid
