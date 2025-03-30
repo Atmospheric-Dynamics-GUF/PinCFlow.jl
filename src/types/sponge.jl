@@ -22,28 +22,22 @@ function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
 
   # Get parameters.
   (; spongeheight) = namelists.sponge
-  (; nx, ny, nz) = domain
+  (; nxx, nyy, nzz) = domain
   (; lx, ly, lz) = grid
 
   # Initialize the sponge layer coefficients.
-  (kr_sp_tfc, kr_sp_w_tfc, alphaunifiedsponge) = (
-    OffsetArray(
-      zeros((nx + 2, ny + 2, nz + 2)),
-      0:(nx + 1),
-      0:(ny + 1),
-      0:(nz + 1),
-    ) for i in 1:3
-  )
+  (kr_sp_tfc, kr_sp_w_tfc, alphaunifiedsponge) =
+    (zeros(nxx, nyy, nzz) for i in 1:3)
 
   # Set up the sponge layer.
-  dzsponge = spongeheight * (lz[1] - lz[0])
-  zsponge = lz[1] - dzsponge
-  dxsponge = 0.5 * spongeheight * (lx[1] - lx[0])
-  dysponge = 0.5 * spongeheight * (ly[1] - ly[0])
-  xsponge0 = lx[0] + dxsponge
-  ysponge0 = ly[0] + dysponge
-  xsponge1 = lx[1] - dxsponge
-  ysponge1 = ly[1] - dysponge
+  dzsponge = spongeheight * (lz[2] - lz[1])
+  zsponge = lz[2] - dzsponge
+  dxsponge = 0.5 * spongeheight * (lx[2] - lx[1])
+  dysponge = 0.5 * spongeheight * (ly[2] - ly[1])
+  xsponge0 = lx[1] + dxsponge
+  ysponge0 = ly[1] + dysponge
+  xsponge1 = lx[2] - dxsponge
+  ysponge1 = ly[2] - dysponge
 
   # Return a Sponge instance.
   return Sponge(

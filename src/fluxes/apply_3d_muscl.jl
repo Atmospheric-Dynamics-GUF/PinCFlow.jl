@@ -10,8 +10,8 @@ function apply_3d_muscl!(
   # Reconstruct in x.
   for kz in 2:(nzz - 1), jy in 2:(nyy - 1)
     @views apply_1d_muscl!(
-      phi.parent[:, jy, kz],
-      phitilde.parent[:, jy, kz, 1, :],
+      phi[:, jy, kz],
+      phitilde[:, jy, kz, 1, :],
       nxx,
     )
   end
@@ -19,8 +19,8 @@ function apply_3d_muscl!(
   # Reconstruct in y.
   for kz in 2:(nzz - 1), ix in 2:(nxx - 1)
     @views apply_1d_muscl!(
-      phi.parent[ix, :, kz],
-      phitilde.parent[ix, :, kz, 2, :],
+      phi[ix, :, kz],
+      phitilde[ix, :, kz, 2, :],
       nyy,
     )
   end
@@ -28,8 +28,8 @@ function apply_3d_muscl!(
   # Reconstruct in z.
   for jy in 2:(nyy - 1), ix in 2:(nxx - 1)
     @views apply_1d_muscl!(
-      phi.parent[ix, jy, :],
-      phitilde.parent[ix, jy, :, 3, :],
+      phi[ix, jy, :],
+      phitilde[ix, jy, :, 3, :],
       nzz,
     )
   end

@@ -62,7 +62,7 @@ function Tensor(domain::Domain)
     abuu_b,
     afdd_b,
     afuu_b,
-  ) = (zeros((nx, ny, nz)) for i in 1:27)
+  ) = (zeros(nx, ny, nz) for i in 1:27)
 
   # Return an Tensor instance.
   return Tensor(

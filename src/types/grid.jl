@@ -40,8 +40,7 @@ end
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)
 
   # Get parameters.
-  (; sizex, sizey, sizez, lx_dim, ly_dim, lz_dim, nbx, nby, nbz) =
-    namelists.domain
+  (; sizex, sizey, sizez, lx_dim, ly_dim, lz_dim, nbz) = namelists.domain
   (;
     mountainheight_dim,
     mountainwidth_dim,
@@ -51,60 +50,60 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
     envelope_reduction,
     stretch_exponent,
   ) = namelists.grid
-  (; is, js, nx, ny, nz) = domain
+  (; nxx, nyy, nzz, sizexx, sizeyy, sizezz, io, jo, i0, i1, j0, j1, k0, k1) =
+    domain
   (; lref) = constants
 
   # Non-dimensionalize domain boundaries.
-  lx = OffsetVector(lx_dim, 0:1) ./ lref
-  ly = OffsetVector(ly_dim, 0:1) ./ lref
-  lz = OffsetVector(lz_dim, 0:1) ./ lref
+  lx = lx_dim ./ lref
+  ly = ly_dim ./ lref
+  lz = lz_dim ./ lref
 
   # Compute grid spacings.
-  dx = (lx[1] - lx[0]) / sizex
-  dy = (ly[1] - ly[0]) / sizey
-  dz = (lz[1] - lz[0]) / sizez
+  dx = (lx[2] - lx[1]) / sizex
+  dy = (ly[2] - ly[1]) / sizey
+  dz = (lz[2] - lz[1]) / sizez
 
   # Compute x-coordinate.
-  x = OffsetVector(zeros(sizex + 1 + 2 * nbx), (-nbx):(sizex + nbx))
-  for ix in (-nbx):(sizex + nbx)
-    x[ix] = lx[0] + (ix - 1) * dx + dx / 2
+  x = zeros(sizexx)
+  for ix in 1:sizexx
+    x[ix] = lx[1] + (ix - i0) * dx + dx / 2
   end
 
   # Compute y-coordinate.
-  y = OffsetVector(zeros(sizey + 1 + 2 * nby), (-nby):(sizey + nby))
-  for jy in (-nby):(sizey + nby)
-    y[jy] = ly[0] + (jy - 1) * dy + dy / 2
+  y = zeros(sizeyy)
+  for jy in 1:sizeyy
+    y[jy] = ly[1] + (jy - j0) * dy + dy / 2
   end
 
   # Compute z-coordinate.
-  z = OffsetVector(zeros(sizez + 1 + 2 * nbz), (-nbz):(sizez + nbz))
-  for kz in (-nbz):(sizez + nbz)
-    z[kz] = lz[0] + (kz - 1) * dz + dz / 2
+  z = zeros(sizezz)
+  for kz in 1:sizezz
+    z[kz] = lz[1] + (kz - k0) * dz + dz / 2
   end
 
   # Initialize the stretched vertical grid.
-  (ztildes, zs) =
-    (OffsetVector(zeros(nz + 2 * nbz + 1), (-nbz):(nz + nbz)) for i in 1:2)
+  (ztildes, zs) = (zeros(nzz) for i in 1:2)
 
   # Compute the stretched vertical grid.
-  for kz in (-nbz):(nz + nbz)
+  for kz in 1:nzz
     level = z[kz] + 0.5 * dz
     if level < 0
-      ztildes[kz] = -lz[1] * (-level / lz[1])^stretch_exponent
-    elseif level > lz[1]
+      ztildes[kz] = -lz[2] * (-level / lz[2])^stretch_exponent
+    elseif level > lz[2]
       ztildes[kz] =
-        2 * lz[1] - lz[1] * ((2 * lz[1] - level) / lz[1])^stretch_exponent
+        2 * lz[2] - lz[2] * ((2 * lz[2] - level) / lz[2])^stretch_exponent
     else
-      ztildes[kz] = lz[1] * (level / lz[1])^stretch_exponent
+      ztildes[kz] = lz[2] * (level / lz[2])^stretch_exponent
     end
   end
-  for kz in (-nbz + 1):(nz + nbz)
+  for kz in 2:nzz
     zs[kz] = 0.5 * (ztildes[kz] + ztildes[kz - 1])
   end
-  zs[-nbz] = ztildes[-nbz] - 0.5 * (ztildes[nbz + 1] - ztildes[nbz])
+  zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])
 
-  if lz[0] != 0.0
-    println("Error in setup_topography: lz[0] must be zero for TFC!")
+  if lz[1] != 0.0
+    println("Error in setup_topography: lz[1] must be zero for TFC!")
     exit()
   end
 
@@ -112,26 +111,19 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
   mountainwidth = mountainwidth_dim / lref
   mountainwavenumber = pi / mountainwidth
 
-  x_center = 0.5 * (lx[1] + lx[0])
-  y_center = 0.5 * (ly[1] + ly[0])
+  x_center = 0.5 * (lx[2] + lx[1])
+  y_center = 0.5 * (ly[2] + ly[1])
 
-  ix0 = is + nbx - 1
-  jy0 = js + nby - 1
-
-  topography_surface = OffsetMatrix(
-    zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1)),
-    (-nbx):(nx + nbx),
-    (-nby):(ny + nby),
-  )
+  topography_surface = zeros(nxx, nyy)
 
   if mountain_case != 0
-    for jy in 1:ny, ix in 1:nx
+    for jy in 1:nyy, ix in 1:nxx
       if mountain_case == 1
         # 2D cosine mountains
         topography_surface[ix, jy] =
           0.5 *
           mountainheight *
-          (1.0 + cos(mountainwavenumber * (x[ix + ix0] - x_center)))
+          (1.0 + cos(mountainwavenumber * (x[io + ix] - x_center)))
 
       elseif mountain_case == 2
         # 3D cosine mountains
@@ -141,7 +133,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
           (
             1.0 + cos(
               mountainwavenumber *
-              sqrt((x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0),
+              sqrt((x[io + ix] - x_center)^2.0 + (y[jo + jy] - y_center)^2.0),
             )
           )
 
@@ -149,20 +141,20 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
         # 2D isolated mountain
         topography_surface[ix, jy] =
           mountainheight /
-          (1.0 + (x[ix + ix0] - x_center)^2.0 / mountainwidth^2.0)
+          (1.0 + (x[io + ix] - x_center)^2.0 / mountainwidth^2.0)
 
       elseif mountain_case == 4
         # 3D isolated mountain
         topography_surface[ix, jy] =
           mountainheight / (
             1.0 +
-            ((x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0) /
+            ((x[io + ix] - x_center)^2.0 + (y[jo + jy] - y_center)^2.0) /
             mountainwidth^2.0
           )
 
       elseif mountain_case == 5
         # 2D cosine envelope and even background
-        if abs(x[ix + ix0] - x_center) <= mountainwidth * range_factor
+        if abs(x[io + ix] - x_center) <= mountainwidth * range_factor
           topography_surface[ix, jy] =
             0.5 *
             mountainheight *
@@ -171,10 +163,10 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
               0.5 *
               (
                 1.0 + cos(
-                  mountainwavenumber / range_factor * (x[ix + ix0] - x_center),
+                  mountainwavenumber / range_factor * (x[io + ix] - x_center),
                 )
               ) *
-              cos(mountainwavenumber * (x[ix + ix0] - x_center))
+              cos(mountainwavenumber * (x[io + ix] - x_center))
             )
         else
           topography_surface[ix, jy] = 0.5 * mountainheight
@@ -182,7 +174,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
 
       elseif mountain_case == 6
         # 3D cosine envelope and even background
-        if (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0 <=
+        if (x[io + ix] - x_center)^2.0 + (y[jo + jy] - y_center)^2.0 <=
            (mountainwidth * range_factor)^2.0
           topography_surface[ix, jy] =
             0.5 *
@@ -193,14 +185,13 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
               (
                 1.0 + cos(
                   mountainwavenumber / range_factor * sqrt(
-                    (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0,
+                    (x[io + ix] - x_center)^2.0 + (y[jo + jy] - y_center)^2.0,
                   ),
                 )
               ) *
               cos(
-                mountainwavenumber * sqrt(
-                  (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0,
-                ),
+                mountainwavenumber *
+                sqrt((x[io + ix] - x_center)^2.0 + (y[jo + jy] - y_center)^2.0),
               )
             )
         else
@@ -215,9 +206,8 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
           (
             1.0 +
             exp(
-              -(x[ix + ix0] - x_center)^2.0 /
-              (mountainwidth * range_factor)^2.0,
-            ) * cos(mountainwavenumber * (x[ix + ix0] - x_center))
+              -(x[io + ix] - x_center)^2.0 / (mountainwidth * range_factor)^2.0,
+            ) * cos(mountainwavenumber * (x[io + ix] - x_center))
           )
 
       elseif mountain_case == 8
@@ -228,46 +218,44 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
           (
             1.0 +
             exp(
-              -((x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0) /
+              -((x[io + ix] - x_center)^2.0 + (y[jo + jy] - y_center)^2.0) /
               (mountainwidth * range_factor)^2.0,
             ) * cos(
               mountainwavenumber *
-              sqrt((x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0),
+              sqrt((x[io + ix] - x_center)^2.0 + (y[jo + jy] - y_center)^2.0),
             )
           )
 
       elseif mountain_case == 9
         # 2D cosine envelope and cosine background
-        if abs(x[ix + ix0] - x_center) <= mountainwidth * range_factor
+        if abs(x[io + ix] - x_center) <= mountainwidth * range_factor
           topography_surface[ix, jy] =
             0.25 *
             mountainheight *
             (
               1.0 +
-              cos(mountainwavenumber / range_factor * (x[ix + ix0] - x_center))
+              cos(mountainwavenumber / range_factor * (x[io + ix] - x_center))
             ) *
-            (1.0 + cos(mountainwavenumber * (x[ix + ix0] - x_center)))
+            (1.0 + cos(mountainwavenumber * (x[io + ix] - x_center)))
         end
 
       elseif mountain_case == 10
         # 3D cosine envelope and cosine background
-        if (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0 <=
+        if (x[io + ix] - x_center)^2.0 + (y[jo + jy] - y_center)^2.0 <=
            (mountainwidth * range_factor)^2.0
           topography_surface[ix, jy] =
             0.25 *
             mountainheight *
             (
               1.0 + cos(
-                mountainwavenumber / range_factor * sqrt(
-                  (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0,
-                ),
+                mountainwavenumber / range_factor *
+                sqrt((x[io + ix] - x_center)^2.0 + (y[jo + jy] - y_center)^2.0),
               )
             ) *
             (
               1.0 + cos(
-                mountainwavenumber * sqrt(
-                  (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0,
-                ),
+                mountainwavenumber *
+                sqrt((x[io + ix] - x_center)^2.0 + (y[jo + jy] - y_center)^2.0),
               )
             )
         end
@@ -278,9 +266,9 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
           0.5 *
           mountainheight *
           exp(
-            -(x[ix + ix0] - x_center)^2.0 / (mountainwidth * range_factor)^2.0,
+            -(x[io + ix] - x_center)^2.0 / (mountainwidth * range_factor)^2.0,
           ) *
-          (1.0 + cos(mountainwavenumber * (x[ix + ix0] - x_center)))
+          (1.0 + cos(mountainwavenumber * (x[io + ix] - x_center)))
 
       elseif mountain_case == 12
         # 3D Gaussian envelope and Gaussian background
@@ -288,28 +276,27 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
           0.5 *
           mountainheight *
           exp(
-            -((x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0) /
+            -((x[io + ix] - x_center)^2.0 + (y[jo + jy] - y_center)^2.0) /
             (mountainwidth * range_factor)^2.0,
           ) *
           (
             1.0 + cos(
               mountainwavenumber *
-              sqrt((x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0),
+              sqrt((x[io + ix] - x_center)^2.0 + (y[jo + jy] - y_center)^2.0),
             )
           )
 
       elseif mountain_case == 13
         # 3D WKB topography
-        if (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0 <=
+        if (x[io + ix] - x_center)^2.0 + (y[jo + jy] - y_center)^2.0 <=
            (mountainwidth * range_factor)^2.0
           topography_surface[ix, jy] =
             0.25 *
             mountainheight *
             (
               1.0 + cos(
-                mountainwavenumber / range_factor * sqrt(
-                  (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0,
-                ),
+                mountainwavenumber / range_factor *
+                sqrt((x[io + ix] - x_center)^2.0 + (y[jo + jy] - y_center)^2.0),
               )
             ) *
             (1.0 + envelope_reduction)
@@ -323,11 +310,11 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
               (
                 1.0 + cos(
                   mountainwavenumber / range_factor * sqrt(
-                    (x[ix + ix0] - x_center)^2.0 + (y[jy + jy0] - y_center)^2.0,
+                    (x[io + ix] - x_center)^2.0 + (y[jo + jy] - y_center)^2.0,
                   ),
                 )
               ) *
-              cos(kk * (x[ix + ix0] - x_center) + ll * (y[jy + jy0] - y_center)) /
+              cos(kk * (x[io + ix] - x_center) + ll * (y[jo + jy] - y_center)) /
               spectral_modes * (1.0 - envelope_reduction)
           end
         end
@@ -340,76 +327,51 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
     println("Error in setup_topography: Mountain case 0 is not ready yet!")
   end
 
-  # Set halos of topography surface.
-  set_zonal_boundaries_of_field!(topography_surface, namelists, domain)
-  set_meridional_boundaries_of_field!(topography_surface, namelists, domain)
-
   # Initialize Jacobian and metric tensor.
-  jac = OffsetArray(
-    zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1)),
-    (-nbx):(nx + nbx),
-    (-nby):(ny + nby),
-    (-nbz):(nz + nbz),
-  )
-  (met13, met23, met33) = (
-    OffsetArray(
-      zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1)),
-      (-nbx):(nx + nbx),
-      (-nby):(ny + nby),
-      (-nbz):(nz + nbz),
-    ) for i in 1:3
-  )
-  met = OffsetArray(
-    zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1, 3, 3)),
-    (-nbx):(nx + nbx),
-    (-nby):(ny + nby),
-    (-nbz):(nz + nbz),
-    1:3,
-    1:3,
-  )
+  jac = zeros(nxx, nyy, nzz)
+  (met13, met23, met33) = (zeros(nxx, nyy, nzz) for i in 1:3)
+  met = zeros(nxx, nyy, nzz, 3, 3)
 
   # Compute the Jacobian.
-  for kz in (-nbz + 1):(nz + nbz)
+  for kz in 2:nzz
     jac[:, :, kz] .=
-      (lz[1] .- topography_surface) ./ lz[1] .*
+      (lz[2] .- topography_surface) ./ lz[2] .*
       (ztildes[kz] .- ztildes[kz - 1]) ./ dz
   end
-  @views jac[:, :, -nbz] .= jac[:, :, nbz + 1]
+  @views jac[:, :, 1] .= jac[:, :, 2 * nbz]
 
   # Compute the metric tensor.
   met[:, :, :, 1, 2] .= 0.0
   met[:, :, :, 2, 1] .= 0.0
   met[:, :, :, 1, 1] .= 1.0
   met[:, :, :, 2, 2] .= 1.0
-  for kz in (-nbz + 1):(nz + nbz), jy in 1:ny, ix in 1:nx
+  for kz in 2:nzz, jy in 1:nyy, ix in i0:i1
     met13[ix, jy, kz] =
       (topography_surface[ix + 1, jy] - topography_surface[ix - 1, jy]) /
-      (2.0 * dx) * (zs[kz] - lz[1]) / (lz[1] - topography_surface[ix, jy]) *
+      (2.0 * dx) * (zs[kz] - lz[2]) / (lz[2] - topography_surface[ix, jy]) *
       dz / (ztildes[kz] - ztildes[kz - 1])
   end
   set_zonal_boundaries_of_field!(met13, namelists, domain)
-  set_meridional_boundaries_of_field!(met13, namelists, domain)
-  @views met13[:, :, -nbz] .=
-    met13[:, :, nbz + 1] .* (zs[-nbz] .- lz[1]) ./ (zs[nbz + 1] .- lz[1])
+  @views met13[:, :, 1] .=
+    met13[:, :, 2 * nbz] .* (zs[1] .- lz[2]) ./ (zs[2 * nbz] .- lz[2])
   met[:, :, :, 1, 3] .= met13
   met[:, :, :, 3, 1] .= met13
-  for kz in (-nbz + 1):(nz + nbz), jy in 1:ny, ix in 1:nx
+  for kz in 2:nzz, jy in j0:j1, ix in 1:nxx
     met23[ix, jy, kz] =
       (topography_surface[ix, jy + 1] - topography_surface[ix, jy - 1]) /
-      (2.0 * dy) * (zs[kz] - lz[1]) / (lz[1] - topography_surface[ix, jy]) *
+      (2.0 * dy) * (zs[kz] - lz[2]) / (lz[2] - topography_surface[ix, jy]) *
       dz / (ztildes[kz] - ztildes[kz - 1])
   end
-  set_zonal_boundaries_of_field!(met23, namelists, domain)
   set_meridional_boundaries_of_field!(met23, namelists, domain)
-  @views met23[:, :, -nbz] .=
-    met23[:, :, nbz + 1] .* (zs[-nbz] .- lz[1]) ./ (zs[nbz + 1] .- lz[1])
+  @views met23[:, :, 1] .=
+    met23[:, :, 2 * nbz] .* (zs[1] .- lz[2]) ./ (zs[2 * nbz] .- lz[2])
   met[:, :, :, 2, 3] .= met23
   met[:, :, :, 3, 2] .= met23
-  for kz in (-nbz + 1):(nz + nbz), jy in 1:ny, ix in 1:nx
+  for kz in 2:nzz, jy in j0:j1, ix in i0:i1
     met33[ix, jy, kz] =
       (
-        (lz[1] / (lz[1] - topography_surface[ix, jy]))^2.0 +
-        ((zs[kz] - lz[1]) / (lz[1] - topography_surface[ix, jy]))^2.0 * (
+        (lz[2] / (lz[2] - topography_surface[ix, jy]))^2.0 +
+        ((zs[kz] - lz[2]) / (lz[2] - topography_surface[ix, jy]))^2.0 * (
           (
             (topography_surface[ix + 1, jy] - topography_surface[ix - 1, jy]) /
             (2.0 * dx)
@@ -421,11 +383,11 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
         )
       ) * (dz / (ztildes[kz] - ztildes[kz - 1]))^2.0
   end
-  for jy in 1:ny, ix in 1:nx
-    met33[ix, jy, -nbz] =
+  for jy in j0:j1, ix in i0:i1
+    met33[ix, jy, 1] =
       (
-        (lz[1] / (lz[1] - topography_surface[ix, jy]))^2.0 +
-        ((zs[-nbz] - lz[1]) / (lz[1] - topography_surface[ix, jy]))^2.0 * (
+        (lz[2] / (lz[2] - topography_surface[ix, jy]))^2.0 +
+        ((zs[1] - lz[2]) / (lz[2] - topography_surface[ix, jy]))^2.0 * (
           (
             (topography_surface[ix + 1, jy] - topography_surface[ix - 1, jy]) /
             (2.0 * dx)
@@ -435,29 +397,22 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
             (2.0 * dy)
           )^2.0
         )
-      ) * (dz / (ztildes[nbz + 1] - ztildes[nbz]))^2.0
+      ) * (dz / (ztildes[2 * nbz] - ztildes[2 * nbz - 1]))^2.0
   end
   set_zonal_boundaries_of_field!(met33, namelists, domain)
   set_meridional_boundaries_of_field!(met33, namelists, domain)
   met[:, :, :, 3, 3] .= met33
 
   # Initialize the physical layers.
-  (ztildetfc, ztfc) = (
-    OffsetArray(
-      zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1)),
-      (-nbx):(nx + nbx),
-      (-nby):(ny + nby),
-      (-nbz):(nz + nbz),
-    ) for i in 1:2
-  )
+  (ztildetfc, ztfc) = (zeros(nxx, nyy, nzz) for i in 1:2)
 
   # Compute the physical layers.
-  for kz in (-nbz):(nz + nbz)
+  for kz in 1:nzz
     ztildetfc[:, :, kz] .=
-      (lz[1] .- topography_surface) ./ lz[1] .* ztildes[kz] .+
+      (lz[2] .- topography_surface) ./ lz[2] .* ztildes[kz] .+
       topography_surface
     ztfc[:, :, kz] .=
-      (lz[1] .- topography_surface) ./ lz[1] .* zs[kz] .+ topography_surface
+      (lz[2] .- topography_surface) ./ lz[2] .* zs[kz] .+ topography_surface
   end
 
   # Return a Grid instance.
