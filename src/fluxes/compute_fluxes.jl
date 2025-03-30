@@ -10,10 +10,9 @@ end
 function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
 
   # Get all necessary fields.
-  (; domain, atmosphere) = state
-  (; nx, ny, nz) = domain
+  (; i0, i1, j0, j1, k0, k1) = state.domain
   (; jac) = state.grid
-  (; pstrattfc, rhostrattfc) = atmosphere
+  (; pstrattfc, rhostrattfc) = state.atmosphere
   (; rhotilde) = state.variables.reconstructions
   (; phirho) = state.variables.fluxes
 
@@ -24,11 +23,11 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
   #             Zonal fluxes
   #-----------------------------------------
 
-  for k in 1:nz, j in 1:ny, i in 0:nx
+  for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
     rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
     pedger = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i + 1, j, k])
-    rhor = rhotilde[i + 1, j, k, 1, 0] + rhostratedger / pedger
-    rhol = rhotilde[i, j, k, 1, 1] + rhostratedger / pedger
+    rhor = rhotilde[i + 1, j, k, 1, 1] + rhostratedger / pedger
+    rhol = rhotilde[i, j, k, 1, 2] + rhostratedger / pedger
 
     pedger =
       0.5 * (
@@ -46,11 +45,11 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
   #           Meridional fluxes
   #-----------------------------------------
 
-  for k in 1:nz, j in 0:ny, i in 1:nx
+  for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
     rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
     pedgef = 0.5 * (pstrattfc[i, j, k] + pstrattfc[i, j + 1, k])
-    rhof = rhotilde[i, j + 1, k, 2, 0] + rhostratedgef / pedgef
-    rhob = rhotilde[i, j, k, 2, 1] + rhostratedgef / pedgef
+    rhof = rhotilde[i, j + 1, k, 2, 1] + rhostratedgef / pedgef
+    rhob = rhotilde[i, j, k, 2, 2] + rhostratedgef / pedgef
 
     pedgef =
       0.5 * (
@@ -68,7 +67,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
   #            Vertical fluxes
   #-----------------------------------------
 
-  for k in 0:nz, j in 1:ny, i in 1:nx
+  for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
     rhostratedgeu =
       (
         jac[i, j, k + 1] * rhostrattfc[i, j, k] +
@@ -79,8 +78,8 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
         jac[i, j, k + 1] * pstrattfc[i, j, k] +
         jac[i, j, k] * pstrattfc[i, j, k + 1]
       ) / (jac[i, j, k] + jac[i, j, k + 1])
-    rhou = rhotilde[i, j, k + 1, 3, 0] + rhostratedgeu / pedgeu
-    rhod = rhotilde[i, j, k, 3, 1] + rhostratedgeu / pedgeu
+    rhou = rhotilde[i, j, k + 1, 3, 1] + rhostratedgeu / pedgeu
+    rhod = rhotilde[i, j, k, 3, 2] + rhostratedgeu / pedgeu
 
     pedgeu =
       jac[i, j, k] *
@@ -101,10 +100,9 @@ end
 function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
 
   # Get all necessary fields.
-  (; domain, atmosphere) = state
-  (; nx, ny, nz) = domain
+  (; i0, i1, j0, j1, k0, k1) = state.domain
   (; jac) = state.grid
-  (; pstrattfc) = atmosphere
+  (; pstrattfc) = state.atmosphere
   (; rhoptilde) = state.variables.reconstructions
   (; phirhop) = state.variables.fluxes
 
@@ -115,9 +113,9 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
   #             Zonal fluxes
   #-----------------------------------------
 
-  for k in 1:nz, j in 1:ny, i in 0:nx
-    rhor = rhoptilde[i + 1, j, k, 1, 0]
-    rhol = rhoptilde[i, j, k, 1, 1]
+  for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    rhor = rhoptilde[i + 1, j, k, 1, 1]
+    rhol = rhoptilde[i, j, k, 1, 2]
 
     pedger =
       0.5 * (
@@ -135,9 +133,9 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
   #           Meridional fluxes
   #-----------------------------------------
 
-  for k in 1:nz, j in 0:ny, i in 1:nx
-    rhof = rhoptilde[i, j + 1, k, 2, 0]
-    rhob = rhoptilde[i, j, k, 2, 1]
+  for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    rhof = rhoptilde[i, j + 1, k, 2, 1]
+    rhob = rhoptilde[i, j, k, 2, 2]
 
     pedgef =
       0.5 * (
@@ -155,9 +153,9 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
   #            Vertical fluxes
   #-----------------------------------------
 
-  for k in 0:nz, j in 1:ny, i in 1:nx
-    rhou = rhoptilde[i, j, k + 1, 3, 0]
-    rhod = rhoptilde[i, j, k, 3, 1]
+  for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+    rhou = rhoptilde[i, j, k + 1, 3, 1]
+    rhod = rhoptilde[i, j, k, 3, 2]
 
     pedgeu =
       jac[i, j, k] *
@@ -184,7 +182,7 @@ function compute_fluxes!(
   # Get all necessary fields.
   (; grid) = state
   (; re) = state.constants
-  (; nx, ny, nz) = state.domain
+  (; i0, i1, j0, j1, k0, k1) = state.domain
   (; jac, met) = grid
   (; pstrattfc, rhostrattfc) = state.atmosphere
   (; utilde) = state.variables.reconstructions
@@ -198,13 +196,13 @@ function compute_fluxes!(
   #             Zonal fluxes
   #-----------------------------------------
 
-  for k in 1:nz, j in 1:ny, i in (-1):nx
+  for k in k0:k1, j in j0:j1, i in (i0 - 2):i1
     # The uTilde are the reconstructed specific momenta, divided by P.
     # These are to be multiplied by the linearly interpolated velocities
     # (times P) in order to obtain the desired momentum fluxes.
 
-    ur = utilde[i + 1, j, k, 1, 0]
-    ul = utilde[i, j, k, 1, 1]
+    ur = utilde[i + 1, j, k, 1, 1]
+    ul = utilde[i, j, k, 1, 2]
 
     pedger =
       0.5 * (
@@ -227,13 +225,13 @@ function compute_fluxes!(
   #           Meridional fluxes
   #-----------------------------------------
 
-  for k in 1:nz, j in 0:ny, i in 0:nx
+  for k in k0:k1, j in (j0 - 1):j1, i in (i0 - 1):i1
     # The uTilde are the reconstructed specific momenta, divided by P.
     # These are to be multiplied by the linearly interpolated velocities
     # (times P) in order to obtain the desired momentum fluxes.
 
-    uf = utilde[i, j + 1, k, 2, 0]
-    ub = utilde[i, j, k, 2, 1]
+    uf = utilde[i, j + 1, k, 2, 1]
+    ub = utilde[i, j, k, 2, 2]
 
     pedgef =
       0.5 * (
@@ -256,13 +254,13 @@ function compute_fluxes!(
   #            Vertical fluxes
   #-----------------------------------------
 
-  for k in 0:nz, j in 1:ny, i in 0:nx
+  for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
     # The uTilde are the reconstructed specific momenta, divided by P.
     # These are to be multiplied by the linearly interpolated velocities
     # (times P) in order to obtain the desired momentum fluxes.
 
-    uu = utilde[i, j, k + 1, 3, 0]
-    ud = utilde[i, j, k, 3, 1]
+    uu = utilde[i, j, k + 1, 3, 1]
+    ud = utilde[i, j, k, 3, 2]
 
     pedgeu =
       jac[i, j, k] *
@@ -293,7 +291,7 @@ function compute_fluxes!(
   #             Zonal fluxes
   #-----------------------------------------
 
-  for k in 1:nz, j in 1:ny, i in (-1):nx
+  for k in k0:k1, j in j0:j1, i in (i0 - 2):i1
     coef_v = 1 / re * rhostrattfc[i + 1, j, 1]
 
     frhou_visc =
@@ -308,7 +306,7 @@ function compute_fluxes!(
   #           Meridional fluxes
   #-----------------------------------------
 
-  for k in 1:nz, j in 0:ny, i in 0:nx
+  for k in k0:k1, j in (j0 - 1):j1, i in (i0 - 1):i1
     coef_v =
       1 / re *
       0.25 *
@@ -339,7 +337,7 @@ function compute_fluxes!(
   #            Vertical fluxes
   #-----------------------------------------
 
-  for k in 0:nz, j in 1:ny, i in 0:nx
+  for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
     coef_v = 1 / re * 0.5 * (rhostrattfc[i, j, 1] + rhostrattfc[i + 1, j, 1])
 
     stresstens13 =
@@ -397,7 +395,7 @@ function compute_fluxes!(
   # Get all necessary fields.
   (; grid) = state
   (; re) = state.constants
-  (; nx, ny, nz) = state.domain
+  (; i0, i1, j0, j1, k0, k1) = state.domain
   (; jac, met) = grid
   (; pstrattfc, rhostrattfc) = state.atmosphere
   (; vtilde) = state.variables.reconstructions
@@ -411,13 +409,13 @@ function compute_fluxes!(
   #             Zonal fluxes
   #-----------------------------------------
 
-  for k in 1:nz, j in 0:ny, i in 0:nx
+  for k in k0:k1, j in (j0 - 1):j1, i in (i0 - 1):i1
     # The vTilde are the reconstructed specific momenta, divided by P.
     # These are to be multiplied by the linearly interpolated velocities
     # (times P) in order to obtain the desired momentum fluxes.
 
-    vr = vtilde[i + 1, j, k, 1, 0]
-    vl = vtilde[i, j, k, 1, 1]
+    vr = vtilde[i + 1, j, k, 1, 1]
+    vl = vtilde[i, j, k, 1, 2]
 
     pedger =
       0.5 * (
@@ -440,13 +438,13 @@ function compute_fluxes!(
   #           Meridional fluxes
   #-----------------------------------------
 
-  for k in 1:nz, j in (-1):ny, i in 1:nx
+  for k in k0:k1, j in (j0 - 2):j1, i in i0:i1
     # The vTilde are the reconstructed specific momenta, divided by P.
     # These are to be multiplied by the linearly interpolated velocities
     # (times P) in order to obtain the desired momentum fluxes.
 
-    vf = vtilde[i, j + 1, k, 2, 0]
-    vb = vtilde[i, j, k, 2, 1]
+    vf = vtilde[i, j + 1, k, 2, 1]
+    vb = vtilde[i, j, k, 2, 2]
 
     pedgef =
       0.5 * (
@@ -469,13 +467,13 @@ function compute_fluxes!(
   #            Vertical fluxes
   #-----------------------------------------
 
-  for k in 0:nz, j in 0:ny, i in 1:nx
+  for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
     # The vTilde are the reconstructed specific momenta, divided by P.
     # These are to be multiplied by the linearly interpolated velocities
     # (times P) in order to obtain the desired momentum fluxes.
 
-    vu = vtilde[i, j, k + 1, 3, 0]
-    vd = vtilde[i, j, k, 3, 1]
+    vu = vtilde[i, j, k + 1, 3, 1]
+    vd = vtilde[i, j, k, 3, 2]
 
     pedgeu =
       jac[i, j, k] *
@@ -506,7 +504,7 @@ function compute_fluxes!(
   #             Zonal fluxes
   #-----------------------------------------
 
-  for k in 1:nz, j in 0:ny, i in 0:nx
+  for k in k0:k1, j in (j0 - 1):j1, i in (i0 - 1):i1
     coef_v =
       1 / re *
       0.25 *
@@ -537,7 +535,7 @@ function compute_fluxes!(
   #           Meridional fluxes
   #-----------------------------------------
 
-  for k in 1:nz, j in (-1):ny, i in 1:nx
+  for k in k0:k1, j in (j0 - 2):j1, i in i0:i1
     coef_v = 1 / re * rhostrattfc[i, j + 1, 1]
 
     grhov_visc =
@@ -552,7 +550,7 @@ function compute_fluxes!(
   #            Vertical fluxes
   #-----------------------------------------
 
-  for k in 0:nz, j in 0:ny, i in 1:nx
+  for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
     coef_v = 1 / re * 0.5 * (rhostrattfc[i, j, 1] + rhostrattfc[i, j + 1, 1])
 
     stresstens23 =
@@ -610,7 +608,7 @@ function compute_fluxes!(
   # Get all necessary fields.
   (; grid) = state
   (; re) = state.constants
-  (; nx, ny, nz) = state.domain
+  (; i0, i1, j0, j1, k0, k1) = state.domain
   (; jac, met) = grid
   (; pstrattfc, rhostrattfc) = state.atmosphere
   (; wtilde) = state.variables.reconstructions
@@ -624,13 +622,13 @@ function compute_fluxes!(
   #             Zonal fluxes
   #-----------------------------------------
 
-  for k in 0:nz, j in 1:ny, i in 0:nx
+  for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
     # The wTilde are the reconstructed specific momenta, divided by P.
     # These are to be multiplied by the linearly interpolated velocities
     # (times P) in order to obtain the desired momentum fluxes.
 
-    wr = wtilde[i + 1, j, k, 1, 0]
-    wl = wtilde[i, j, k, 1, 1]
+    wr = wtilde[i + 1, j, k, 1, 1]
+    wl = wtilde[i, j, k, 1, 2]
 
     pedger =
       0.5 * (
@@ -662,13 +660,13 @@ function compute_fluxes!(
   #           Meridional fluxes
   #-----------------------------------------
 
-  for k in 0:nz, j in 0:ny, i in 1:nx
+  for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
     # The wTilde are the reconstructed specific momenta, divided by P.
     # These are to be multiplied by the linearly interpolated velocities
     # (times P) in order to obtain the desired momentum fluxes.
 
-    wf = wtilde[i, j + 1, k, 2, 0]
-    wb = wtilde[i, j, k, 2, 1]
+    wf = wtilde[i, j + 1, k, 2, 1]
+    wb = wtilde[i, j, k, 2, 2]
 
     pedgef =
       0.5 * (
@@ -700,13 +698,13 @@ function compute_fluxes!(
   #            Vertical fluxes
   #-----------------------------------------
 
-  for k in (-1):nz, j in 1:ny, i in 1:nx
+  for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
     # The wTilde are the reconstructed specific momenta, divided by P.
     # These are to be multiplied by the linearly interpolated velocities
     # (times P) in order to obtain the desired momentum fluxes.
 
-    wu = wtilde[i, j, k + 1, 3, 0]
-    wd = wtilde[i, j, k, 3, 1]
+    wu = wtilde[i, j, k + 1, 3, 1]
+    wd = wtilde[i, j, k, 3, 2]
 
     pedgeu =
       jac[i, j, k] *
@@ -737,7 +735,7 @@ function compute_fluxes!(
   #             Zonal fluxes
   #-----------------------------------------
 
-  for k in 0:nz, j in 1:ny, i in 0:nx
+  for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
     coef_v = 1 / re * 0.5 * (rhostrattfc[i, j, 1] + rhostrattfc[i + 1, j, 1])
 
     frhow_visc =
@@ -765,7 +763,7 @@ function compute_fluxes!(
   #           Meridional fluxes
   #-----------------------------------------
 
-  for k in 0:nz, j in 0:ny, i in 1:nx
+  for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
     coef_v = 1 / re * 0.5 * (rhostrattfc[i, j, 1] + rhostrattfc[i, j + 1, 1])
 
     grhow_visc =
@@ -793,7 +791,7 @@ function compute_fluxes!(
   #            Vertical fluxes
   #-----------------------------------------
 
-  for k in (-1):nz, j in 1:ny, i in 1:nx
+  for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
     coef_v = 1 / re * rhostrattfc[i, j, 1]
 
     hrhow_visc =

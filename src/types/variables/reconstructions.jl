@@ -6,23 +6,14 @@ struct Reconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
   wtilde::A
 end
 
-function Reconstructions(namelists::Namelists, domain::Domain)
+function Reconstructions(domain::Domain)
 
   # Get parameters.
-  (; nbx, nby, nbz) = namelists.domain
-  (; nx, ny, nz) = domain
+  (; nxx, nyy, nzz) = domain
 
   # Initialize the reconstructed variables.
-  (rhotilde, rhoptilde, utilde, vtilde, wtilde) = (
-    OffsetArray(
-      zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1, 3, 2)),
-      (-nbx):(nx + nbx),
-      (-nby):(ny + nby),
-      (-nbz):(nz + nbz),
-      1:3,
-      0:1,
-    ) for i in 1:5
-  )
+  (rhotilde, rhoptilde, utilde, vtilde, wtilde) =
+    (zeros(nxx, nyy, nzz, 3, 2) for i in 1:5)
 
   # Return a Reconstructions instance.
   return Reconstructions(rhotilde, rhoptilde, utilde, vtilde, wtilde)

@@ -8,9 +8,9 @@ function apply_corrector!(
   (; namelists, domain) = state
   (; model) = namelists.setting
   (; zboundaries) = namelists.boundaries
-  (; nz) = domain
   (; rhs) = state.poisson
   (; dpip) = state.variables.tendencies
+  (; k0, k1) = domain
 
   # Initialize RHS and tolerance.
   rhs .= 0.0
@@ -33,8 +33,8 @@ function apply_corrector!(
 
   # Set vertical boundaries of dp.
   if zboundaries == SolidWallBoundaries()
-    @views dpip[:, :, 0] .= dpip[:, :, 1]
-    @views dpip[:, :, nz + 1] .= dpip[:, :, nz]
+    @views dpip[:, :, k0 - 1] .= dpip[:, :, k0]
+    @views dpip[:, :, k1 + 1] .= dpip[:, :, k1]
   else
     error("Error in apply_corrector!: Unknown zboundaries!")
   end

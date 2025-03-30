@@ -20,8 +20,8 @@ function BicGStab(domain::Domain)
   (; nx, ny, nz) = domain
 
   # Initialize BicGStab fields.
-  r_vm = zeros((nx, ny))
-  (p, r0, rold, r, s, t, v, matvec, v_pc) = (zeros((nx, ny, nz)) for i in 1:9)
+  r_vm = zeros(nx, ny)
+  (p, r0, rold, r, s, t, v, matvec, v_pc) = (zeros(nx, ny, nz) for i in 1:9)
 
   # Return a BicGStab instance.
   return BicGStab(r_vm, p, r0, rold, r, s, t, v, matvec, v_pc)

@@ -5,7 +5,7 @@ function compute_rhs!(
 )
   (; sizex, sizey, sizez) = state.namelists.domain
   (; ma, kappa) = state.constants
-  (; comm, nx, ny, nz) = state.domain
+  (; comm, nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dy, dz, jac) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; u, v, w) = state.variables.predictands
@@ -20,7 +20,7 @@ function compute_rhs!(
   divl2_norm_local = 0.0
 
   # Calculate RHS for TFC.
-  for k in 1:nz, j in 1:ny, i in 1:nx
+  for k in k0:k1, j in j0:j1, i in i0:i1
     # Calculate scaling factor.
     fcscal = sqrt(pstrattfc[i, j, k]^2.0 / rhostrattfc[i, j, k])
     # Store velocities at cell edges.
@@ -61,6 +61,10 @@ function compute_rhs!(
       jac[i, j, k - 1] *
       (pstrattfc[i, j, k] + pstrattfc[i, j, k - 1]) /
       (jac[i, j, k] + jac[i, j, k - 1])
+    # Determine indices for RHS.
+    ib = i - i0 + 1
+    jb = j - j0 + 1
+    kb = k - k0 + 1
     # Compute RHS.
     bu = (pedger * ur - pedgel * ul) / dx / jac[i, j, k] * ma^2.0 * kappa
     bv = (pedgef * vf - pedgeb * vb) / dy / jac[i, j, k] * ma^2.0 * kappa
@@ -69,13 +73,13 @@ function compute_rhs!(
     bu /= fcscal
     bv /= fcscal
     bw /= fcscal
-    b[i, j, k] = bu + bv + bw
+    b[ib, jb, kb] = bu + bv + bw
     # Compute check sum for solvability criterion.
-    divl2_local += b[i, j, k]^2.0
+    divl2_local += b[ib, jb, kb]^2.0
     bl2loc = bu^2.0 + bv^2.0 + bw^2.0
     divl2_norm_local += bl2loc
-    if abs(b[i, j, k]) > divmax
-      divmax = abs(b[i, j, k])
+    if abs(b[ib, jb, kb]) > divmax
+      divmax = abs(b[ib, jb, kb])
     end
   end
 

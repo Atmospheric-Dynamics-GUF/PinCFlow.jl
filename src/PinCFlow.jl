@@ -1,7 +1,6 @@
 module PinCFlow
 
 using Dates
-using OffsetArrays
 using LinearAlgebra
 using NCDatasets
 using MPI

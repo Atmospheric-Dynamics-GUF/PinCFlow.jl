@@ -9,7 +9,7 @@ function solve_poisson!(
   facprs::AbstractFloat,
 )
   (; namelists, domain, grid, poisson) = state
-  (; nx, ny, nz) = domain
+  (; i0, i1, j0, j1, k0, k1) = domain
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; dpip) = state.variables.tendencies
 
@@ -34,16 +34,16 @@ function solve_poisson!(
     apply_bicgstab!(b, tolref, sol, namelists, domain, grid, poisson)
 
   if errflagbicg
-    return
+    return (errflagbicg, niterbicg)
   end
 
-  for k in 1:nz, j in 1:ny, i in 1:nx
+  for k in k0:k1, j in j0:j1, i in i0:i1
     fcscal = sqrt(pstrattfc[i, j, k]^2 / rhostrattfc[i, j, k])
-    sol[i, j, k] /= fcscal
+    sol[i - i0 + 1, j - j0 + 1, k - k0 + 1] /= fcscal
   end
 
   # Pass solution to pressure correction.
-  dpip[1:nx, 1:ny, 1:nz] .= dtinv ./ facprs .* sol
+  dpip[i0:i1, j0:j1, k0:k1] .= dtinv ./ facprs .* sol
 
   return (errflagbicg, niterbicg)
 end

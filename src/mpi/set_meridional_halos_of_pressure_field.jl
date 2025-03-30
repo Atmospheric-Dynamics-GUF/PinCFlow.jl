@@ -6,7 +6,12 @@ function set_meridional_halos_of_pressure_field!(
   # Get all necessary fields.
   (;
     comm,
-    ny,
+    i0,
+    i1,
+    j0,
+    j1,
+    k0,
+    k1,
     back,
     forw,
     send_pressure_back,
@@ -15,41 +20,29 @@ function set_meridional_halos_of_pressure_field!(
     recv_pressure_forw,
   ) = domain
 
-  # Read slice into contiguous array.
-  @views send_pressure_back .= field.parent[:, 2, :]
-  @views send_pressure_forw .= field.parent[:, ny + 1, :]
-
-  # back -> forw
-  source = back
-  dest = forw
-  tag = 100
+  # Read slice into auxiliary array.
+  @views send_pressure_forw .= field[(i0 - 1):(i1 + 1), j1, (k0 - 1):(k1 + 1)]
+  @views send_pressure_back .= field[(i0 - 1):(i1 + 1), j0, (k0 - 1):(k1 + 1)]
 
   MPI.Sendrecv!(
     send_pressure_forw,
     recv_pressure_back,
     comm;
-    dest = dest,
-    sendtag = tag,
-    source = source,
+    dest = forw,
+    source = back,
   )
-
-  # forw -> back
-  source = forw
-  dest = back
-  tag = 100
 
   MPI.Sendrecv!(
     send_pressure_back,
     recv_pressure_forw,
     comm;
-    dest = dest,
-    sendtag = tag,
-    source = source,
+    dest = back,
+    source = forw,
   )
 
-  # Write auxiliary slice to var field.
-  field.parent[:, ny + 2, :] .= recv_pressure_forw
-  field.parent[:, 1, :] .= recv_pressure_back
+  # Write auxiliary slice to field.
+  field[(i0 - 1):(i1 + 1), j0 - 1, (k0 - 1):(k1 + 1)] .= recv_pressure_back
+  field[(i0 - 1):(i1 + 1), j1 + 1, (k0 - 1):(k1 + 1)] .= recv_pressure_forw
 
   return
 end

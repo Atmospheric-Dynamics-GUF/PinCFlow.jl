@@ -9,7 +9,7 @@ function apply_operator!(
   domain::Domain,
   poisson::Poisson,
 )
-  (; nx, ny, nz) = domain
+  (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = domain
   (;
     ac_b,
     al_b,
@@ -40,7 +40,7 @@ function apply_operator!(
   (; s) = poisson.operator
 
   # Initialize auxiliary field.
-  s[1:nx, 1:ny, 1:nz] .= sin
+  s[i0:i1, j0:j1, k0:k1] .= sin
 
   # Set boundaries of auxiliary field.
   set_zonal_boundaries_of_pressure_field!(s, namelists, domain)
@@ -52,40 +52,45 @@ function apply_operator!(
 
   for k in 1:nz, j in 1:ny, i in 1:nx
 
+    # Determine indices for s.
+    is = i + i0 - 1
+    js = j + j0 - 1
+    ks = k + k0 - 1
+
     # ------------------ A(i+1,j,k) ------------------
 
     ar = ar_b[i, j, k]
-    sr = s[i + 1, j, k]
+    sr = s[is + 1, js, ks]
 
     # ------------------- A(i-1,j,k) --------------------
 
     al = al_b[i, j, k]
-    sl = s[i - 1, j, k]
+    sl = s[is - 1, js, ks]
 
     # -------------------- A(i,j+1,k) ----------------------
 
     af = af_b[i, j, k]
-    sf = s[i, j + 1, k]
+    sf = s[is, js + 1, ks]
 
     # --------------------- A(i,j-1,k) -----------------------
 
     ab = ab_b[i, j, k]
-    sb = s[i, j - 1, k]
+    sb = s[is, js - 1, ks]
 
     # --------------------- A(i,j,k+1) ------------------------
 
     au = au_b[i, j, k]
-    su = s[i, j, k + 1]
+    su = s[is, js, ks + 1]
 
     # --------------------- A(i,j,k-1) ------------------------
 
     ad = ad_b[i, j, k]
-    sd = s[i, j, k - 1]
+    sd = s[is, js, ks - 1]
 
     # -------------------- A(i,j,k) --------------------------
 
     ac = ac_b[i, j, k]
-    sc = s[i, j, k]
+    sc = s[is, js, ks]
 
     # -------------------- Apply operator ---------------------
 
@@ -95,92 +100,92 @@ function apply_operator!(
     # ----------------- A(i+1,j,k+1) -----------------
 
     aru = aru_b[i, j, k]
-    sru = s[i + 1, j, k + 1]
+    sru = s[is + 1, js, ks + 1]
 
     # ----------------- A(i+1,j,k-1) -----------------
 
     ard = ard_b[i, j, k]
-    srd = s[i + 1, j, k - 1]
+    srd = s[is + 1, js, ks - 1]
 
     # ----------------- A(i-1,j,k+1) -----------------
 
     alu = alu_b[i, j, k]
-    slu = s[i - 1, j, k + 1]
+    slu = s[is - 1, js, ks + 1]
 
     # ----------------- A(i-1,j,k-1) -----------------
 
     ald = ald_b[i, j, k]
-    sld = s[i - 1, j, k - 1]
+    sld = s[is - 1, js, ks - 1]
 
     # ----------------- A(i,j+1,k+1) -----------------
 
     afu = afu_b[i, j, k]
-    sfu = s[i, j + 1, k + 1]
+    sfu = s[is, js + 1, ks + 1]
 
     # ----------------- A(i,j+1,k-1) -----------------
 
     afd = afd_b[i, j, k]
-    sfd = s[i, j + 1, k - 1]
+    sfd = s[is, js + 1, ks - 1]
 
     # ----------------- A(i,j-1,k+1) -----------------
 
     abu = abu_b[i, j, k]
-    sbu = s[i, j - 1, k + 1]
+    sbu = s[is, js - 1, ks + 1]
 
     # ----------------- A(i,j-1,k-1) -----------------
 
     abd = abd_b[i, j, k]
-    sbd = s[i, j - 1, k - 1]
+    sbd = s[is, js - 1, ks - 1]
 
     # ------------------ A(i,j,k+2) -----------------
 
     auu = auu_b[i, j, k]
-    suu = s[i, j, k + 2]
+    suu = s[is, js, ks + 2]
 
     # ------------------ A(i,j,k-2) -----------------
 
     add = add_b[i, j, k]
-    sdd = s[i, j, k - 2]
+    sdd = s[is, js, ks - 2]
 
     # ----------------- A(i+1,j,k+2) -----------------
 
     aruu = aruu_b[i, j, k]
-    sruu = s[i + 1, j, k + 2]
+    sruu = s[is + 1, js, ks + 2]
 
     # ----------------- A(i+1,j,k-2) -----------------
 
     ardd = ardd_b[i, j, k]
-    srdd = s[i + 1, j, k - 2]
+    srdd = s[is + 1, js, ks - 2]
 
     # ----------------- A(i-1,j,k+2) -----------------
 
     aluu = aluu_b[i, j, k]
-    sluu = s[i - 1, j, k + 2]
+    sluu = s[is - 1, js, ks + 2]
 
     # ----------------- A(i-1,j,k-2) -----------------
 
     aldd = aldd_b[i, j, k]
-    sldd = s[i - 1, j, k - 2]
+    sldd = s[is - 1, js, ks - 2]
 
     # ----------------- A(i,j+1,k+2) -----------------
 
     afuu = afuu_b[i, j, k]
-    sfuu = s[i, j + 1, k + 2]
+    sfuu = s[is, js + 1, ks + 2]
 
     # ----------------- A(i,j+1,k-2) -----------------
 
     afdd = afdd_b[i, j, k]
-    sfdd = s[i, j + 1, k - 2]
+    sfdd = s[is, js + 1, ks - 2]
 
     # ----------------- A(i,j-1,k+2) -----------------
 
     abuu = abuu_b[i, j, k]
-    sbuu = s[i, j - 1, k + 2]
+    sbuu = s[is, js - 1, ks + 2]
 
     # ----------------- A(i,j-1,k-2) -----------------
 
     abdd = abdd_b[i, j, k]
-    sbdd = s[i, j - 1, k - 2]
+    sbdd = s[is, js - 1, ks - 2]
 
     # Update operator.
     ls[i, j, k] +=
@@ -214,7 +219,7 @@ function apply_operator!(
   domain::Domain,
   poisson::Poisson,
 )
-  (; nx, ny, nz) = domain
+  (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = domain
   (;
     al_b,
     ar_b,
@@ -242,7 +247,7 @@ function apply_operator!(
   (; s) = poisson.operator
 
   # Initialize auxiliary field.
-  s[1:nx, 1:ny, 1:nz] .= sin
+  s[i0:i1, j0:j1, k0:k1] .= sin
 
   # Set boundaries of auxiliary field.
   set_zonal_boundaries_of_pressure_field!(s, namelists, domain)
@@ -254,117 +259,122 @@ function apply_operator!(
 
   for k in 1:nz, j in 1:ny, i in 1:nx
 
+    # Determine indices for s.
+    is = i + i0 - 1
+    js = j + j0 - 1
+    ks = k + k0 - 1
+
     # ------------------ A(i+1,j,k) ------------------
 
     ar = ar_b[i, j, k]
-    sr = s[i + 1, j, k]
+    sr = s[is + 1, js, ks]
 
     # ------------------- A(i-1,j,k) --------------------
 
     al = al_b[i, j, k]
-    sl = s[i - 1, j, k]
+    sl = s[is - 1, js, ks]
 
     # -------------------- A(i,j+1,k) ----------------------
 
     af = af_b[i, j, k]
-    sf = s[i, j + 1, k]
+    sf = s[is, js + 1, ks]
 
     # --------------------- A(i,j-1,k) -----------------------
 
     ab = ab_b[i, j, k]
-    sb = s[i, j - 1, k]
+    sb = s[is, js - 1, ks]
 
     ls[i, j, k] = al * sl + ar * sr + af * sf + ab * sb
 
     # ----------------- A(i+1,j,k+1) -----------------
 
     aru = aru_b[i, j, k]
-    sru = s[i + 1, j, k + 1]
+    sru = s[is + 1, js, ks + 1]
 
     # ----------------- A(i+1,j,k-1) -----------------
 
     ard = ard_b[i, j, k]
-    srd = s[i + 1, j, k - 1]
+    srd = s[is + 1, js, ks - 1]
 
     # ----------------- A(i-1,j,k+1) -----------------
 
     alu = alu_b[i, j, k]
-    slu = s[i - 1, j, k + 1]
+    slu = s[is - 1, js, ks + 1]
 
     # ----------------- A(i-1,j,k-1) -----------------
 
     ald = ald_b[i, j, k]
-    sld = s[i - 1, j, k - 1]
+    sld = s[is - 1, js, ks - 1]
 
     # ----------------- A(i,j+1,k+1) -----------------
 
     afu = afu_b[i, j, k]
-    sfu = s[i, j + 1, k + 1]
+    sfu = s[is, js + 1, ks + 1]
 
     # ----------------- A(i,j+1,k-1) -----------------
 
     afd = afd_b[i, j, k]
-    sfd = s[i, j + 1, k - 1]
+    sfd = s[is, js + 1, ks - 1]
 
     # ----------------- A(i,j-1,k+1) -----------------
 
     abu = abu_b[i, j, k]
-    sbu = s[i, j - 1, k + 1]
+    sbu = s[is, js - 1, ks + 1]
 
     # ----------------- A(i,j-1,k-1) -----------------
 
     abd = abd_b[i, j, k]
-    sbd = s[i, j - 1, k - 1]
+    sbd = s[is, js - 1, ks - 1]
 
     # ------------------ A(i,j,k+2) -----------------
 
     auu = auu_b[i, j, k]
-    suu = s[i, j, k + 2]
+    suu = s[is, js, ks + 2]
 
     # ------------------ A(i,j,k-2) -----------------
 
     add = add_b[i, j, k]
-    sdd = s[i, j, k - 2]
+    sdd = s[is, js, ks - 2]
 
     # ----------------- A(i+1,j,k+2) -----------------
 
     aruu = aruu_b[i, j, k]
-    sruu = s[i + 1, j, k + 2]
+    sruu = s[is + 1, js, ks + 2]
 
     # ----------------- A(i+1,j,k-2) -----------------
 
     ardd = ardd_b[i, j, k]
-    srdd = s[i + 1, j, k - 2]
+    srdd = s[is + 1, js, ks - 2]
 
     # ----------------- A(i-1,j,k+2) -----------------
 
     aluu = aluu_b[i, j, k]
-    sluu = s[i - 1, j, k + 2]
+    sluu = s[is - 1, js, ks + 2]
 
     # ----------------- A(i-1,j,k-2) -----------------
 
     aldd = aldd_b[i, j, k]
-    sldd = s[i - 1, j, k - 2]
+    sldd = s[is - 1, js, ks - 2]
 
     # ----------------- A(i,j+1,k+2) -----------------
 
     afuu = afuu_b[i, j, k]
-    sfuu = s[i, j + 1, k + 2]
+    sfuu = s[is, js + 1, ks + 2]
 
     # ----------------- A(i,j+1,k-2) -----------------
 
     afdd = afdd_b[i, j, k]
-    sfdd = s[i, j + 1, k - 2]
+    sfdd = s[is, js + 1, ks - 2]
 
     # ----------------- A(i,j-1,k+2) -----------------
 
     abuu = abuu_b[i, j, k]
-    sbuu = s[i, j - 1, k + 2]
+    sbuu = s[is, js - 1, ks + 2]
 
     # ----------------- A(i,j-1,k-2) -----------------
 
     abdd = abdd_b[i, j, k]
-    sbdd = s[i, j - 1, k - 2]
+    sbdd = s[is, js - 1, ks - 2]
 
     # Update operator.
     ls[i, j, k] +=

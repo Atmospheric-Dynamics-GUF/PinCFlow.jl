@@ -4,13 +4,15 @@ function set_meridional_boundaries_of_pressure_field!(
   domain::Domain,
 )
   (; nprocy) = namelists.domain
-  (; ny) = domain
+  (; i0, i1, j0, j1, k0, k1) = domain
 
   if nprocy > 1
     set_meridional_halos_of_pressure_field!(field, domain)
   else
-    @views field[:, ny + 1, :] .= field[:, 1, :]
-    @views field[:, 0, :] .= field[:, ny, :]
+    @views field[(i0 - 1):(i1 + 1), j0 - 1, (k0 - 1):(k1 + 1)] .=
+      field[(i0 - 1):(i1 + 1), j1, (k0 - 1):(k1 + 1)]
+    @views field[(i0 - 1):(i1 + 1), j1 + 1, (k0 - 1):(k1 + 1)] .=
+      field[(i0 - 1):(i1 + 1), j0, (k0 - 1):(k1 + 1)]
   end
 
   return

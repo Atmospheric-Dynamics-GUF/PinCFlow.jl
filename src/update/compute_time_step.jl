@@ -3,7 +3,7 @@ function compute_time_step(state::State)
   (; cfl, dtmin_dim, dtmax_dim, adaptive_time_step) =
     state.namelists.discretization
   (; tref, re) = state.constants
-  (; master, comm, nx, ny, nz) = state.domain
+  (; master, comm, i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dy, dz, jac) = grid
   (; predictands) = state.variables
   (; u, v, w) = predictands
@@ -28,13 +28,13 @@ function compute_time_step(state::State)
     #     CFL condition
     #----------------------
 
-    @views umax = maximum(abs.(u[1:nx, 1:ny, 1:nz])) + eps()
-    @views vmax = maximum(abs.(v[1:nx, 1:ny, 1:nz])) + eps()
-    @views wmax = maximum(abs.(w[1:nx, 1:ny, 1:nz])) + eps()
+    @views umax = maximum(abs.(u[i0:i1, j0:j1, k0:k1])) + eps()
+    @views vmax = maximum(abs.(v[i0:i1, j0:j1, k0:k1])) + eps()
+    @views wmax = maximum(abs.(w[i0:i1, j0:j1, k0:k1])) + eps()
 
     dtconv_loc = cfl * min(dx / umax, dy / vmax, dz / wmax)
 
-    for k in 1:nz, j in 1:ny, i in 1:nx
+    for k in k0:k1, j in j0:j1, i in i0:i1
       dtconv_loc = min(
         dtconv_loc,
         cfl * jac[i, j, k] * dz / (
@@ -56,7 +56,7 @@ function compute_time_step(state::State)
     dtvisc = 0.5 * min(dx^2, dy^2, dz^2) * re
 
     dtvisc_loc = dtvisc
-    for k in 1:(nz), j in 1:(ny), i in 1:(nx)
+    for k in k0:k1, j in j0:j1, i in i0:i1
       dtvisc_loc = min(dtvisc_loc, 0.5 * (jac[i, j, k] * dz)^2.0 * re)
     end
     dtvisc = MPI.Allreduce(dtvisc_loc, min, comm)

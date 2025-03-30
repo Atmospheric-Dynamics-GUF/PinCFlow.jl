@@ -1,5 +1,5 @@
 function compute_sponge!(state::State, dt::AbstractFloat)
-  (; nx, ny, nz) = state.domain
+  (; i0, i1, j0, j1, k0, k1) = state.domain
   (; ztfc, lz, jac) = state.grid
   (; kr_sp_tfc, kr_sp_w_tfc, zsponge) = state.sponge
   (; unifiedsponge, spongetype, spongealphaz_fac) = state.namelists.sponge
@@ -9,19 +9,19 @@ function compute_sponge!(state::State, dt::AbstractFloat)
   else
     alpspg = spongealphaz_fac / dt
 
-    for k in 1:nz, j in 1:ny, i in 1:nx
+    for k in k0:k1, j in j0:j1, i in i0:i1
       if ztfc[i, j, k] >= zsponge
         kr_sp_tfc[i, j, k] =
           alpspg *
-          sin(0.5 * pi * (ztfc[i, j, k] - zsponge) / (lz[1] - zsponge))^2.0
+          sin(0.5 * pi * (ztfc[i, j, k] - zsponge) / (lz[2] - zsponge))^2.0
         kr_sp_w_tfc[i, j, k] = kr_sp_tfc[i, j, k] / jac[i, j, k]
       end
     end
 
-    @views kr_sp_tfc[:, :, 0] .= kr_sp_tfc[:, :, 1]
-    @views kr_sp_tfc[:, :, nz + 1] .= kr_sp_tfc[:, :, nz]
-    @views kr_sp_w_tfc[:, :, 0] .= kr_sp_w_tfc[:, :, 1]
-    @views kr_sp_w_tfc[:, :, nz + 1] .= kr_sp_w_tfc[:, :, nz]
+    @views kr_sp_tfc[:, :, k0 - 1] .= kr_sp_tfc[:, :, k0]
+    @views kr_sp_tfc[:, :, k1 + 1] .= kr_sp_tfc[:, :, k1]
+    @views kr_sp_w_tfc[:, :, k0 - 1] .= kr_sp_w_tfc[:, :, k0]
+    @views kr_sp_w_tfc[:, :, k1 + 1] .= kr_sp_w_tfc[:, :, k1]
   end
 
   return
@@ -32,8 +32,8 @@ function compute_sponge!(
   dt::AbstractFloat,
   spongetype::ExponentialSponge,
 )
-  (; sizex, sizey, sizez, nbx, nby) = state.namelists.domain
-  (; is, js, nx, ny, nz) = state.domain
+  (; sizex, sizey, sizez) = state.namelists.domain
+  (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
   (; x, y, ztfc, lx, ly, lz) = state.grid
   (; tref) = state.constants
   (; lateralsponge, spongealphaz_dim) = state.namelists.sponge
@@ -42,8 +42,6 @@ function compute_sponge!(
   spongealphaz = spongealphaz_dim * tref
 
   if lateralsponge
-    i00 = is + nbx - 1
-    j00 = js + nby - 1
     if sizex > 1 && sizey > 1
       spongealphaz = spongealphaz / 3.0
       spongealphax = spongealphaz
@@ -61,42 +59,42 @@ function compute_sponge!(
 
   alphaunifiedsponge .= 0.0
 
-  for k in 1:nz, j in 0:(ny + 1), i in 0:(nx + 1)
+  for k in k0:k1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
     height = ztfc[i, j, k]
 
     if sizez > 1
       alphaunifiedsponge[i, j, k] =
         alphaunifiedsponge[i, j, k] +
-        spongealphaz * exp((height - lz[1]) / dzsponge)
+        spongealphaz * exp((height - lz[2]) / dzsponge)
     end
     if lateralsponge
       if sizex > 1
-        if x[i00 + i] <= 0.5 * (lx[0] + lx[1])
+        if x[io + i] <= 0.5 * (lx[1] + lx[2])
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
-            spongealphax * exp((lx[0] - x[i00 + i]) / dxsponge)
+            spongealphax * exp((lx[1] - x[io + i]) / dxsponge)
         else
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
-            spongealphax * exp((x[i00 + i] - lx[1]) / dxsponge)
+            spongealphax * exp((x[io + i] - lx[2]) / dxsponge)
         end
       end
       if sizey > 1
-        if y[j00 + j] <= 0.5 * (ly[0] + ly[1])
+        if y[jo + j] <= 0.5 * (ly[1] + ly[2])
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
-            spongealphay * exp((ly[0] - y[j00 + j]) / dysponge)
+            spongealphay * exp((ly[1] - y[jo + j]) / dysponge)
         else
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
-            spongealphay * exp((y[j00 + j] - ly[1]) / dysponge)
+            spongealphay * exp((y[jo + j] - ly[2]) / dysponge)
         end
       end
     end
   end
 
-  @views alphaunifiedsponge[:, :, 0] .= alphaunifiedsponge[:, :, 1]
-  @views alphaunifiedsponge[:, :, nz + 1] .= alphaunifiedsponge[:, :, nz]
+  @views alphaunifiedsponge[:, :, k0 - 1] .= alphaunifiedsponge[:, :, k0]
+  @views alphaunifiedsponge[:, :, k1 + 1] .= alphaunifiedsponge[:, :, k1]
 
   return
 end
@@ -106,8 +104,8 @@ function compute_sponge!(
   dt::AbstractFloat,
   spongetype::COSMOSponge,
 )
-  (; sizex, sizey, sizez, nbx, nby) = state.namelists.domain
-  (; is, js, nx, ny, nz) = state.domain
+  (; sizex, sizey, sizez) = state.namelists.domain
+  (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
   (; x, y, ztfc) = state.grid
   (; lateralsponge, cosmosteps) = state.namelists.sponge
   (;
@@ -122,14 +120,9 @@ function compute_sponge!(
     zsponge,
   ) = state.sponge
 
-  if lateralsponge
-    i00 = is + nbx - 1
-    j00 = js + nby - 1
-  end
-
   alphaunifiedsponge .= 0.0
 
-  for k in 1:nz, j in 0:(ny + 1), i in 0:(nx + 1)
+  for k in k0:k1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
     height = ztfc[i, j, k]
 
     if sizez > 1
@@ -142,36 +135,36 @@ function compute_sponge!(
     end
     if lateralsponge
       if sizex > 1
-        if x[i00 + i] <= xsponge0
+        if x[io + i] <= xsponge0
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
             0.5 / cosmosteps / dt *
-            (1.0 - cos(pi * (xsponge0 - x[i00 + i]) / dxsponge))
-        elseif x[i00 + i] >= xsponge1
+            (1.0 - cos(pi * (xsponge0 - x[io + i]) / dxsponge))
+        elseif x[io + i] >= xsponge1
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
             0.5 / cosmosteps / dt *
-            (1.0 - cos(pi * (x[i00 + i] - xsponge1) / dxsponge))
+            (1.0 - cos(pi * (x[io + i] - xsponge1) / dxsponge))
         end
       end
       if sizey > 1
-        if y[j00 + j] <= ysponge0
+        if y[jo + j] <= ysponge0
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
             0.5 / cosmosteps / dt *
-            (1.0 - cos(pi * (ysponge0 - y[j00 + j]) / dysponge))
-        elseif y[j00 + j] >= ysponge1
+            (1.0 - cos(pi * (ysponge0 - y[jo + j]) / dysponge))
+        elseif y[jo + j] >= ysponge1
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
             0.5 / cosmosteps / dt *
-            (1.0 - cos(pi * (y[j00 + j] - ysponge1) / dysponge))
+            (1.0 - cos(pi * (y[jo + j] - ysponge1) / dysponge))
         end
       end
     end
   end
 
-  @views alphaunifiedsponge[:, :, 0] .= alphaunifiedsponge[:, :, 1]
-  @views alphaunifiedsponge[:, :, nz + 1] .= alphaunifiedsponge[:, :, nz]
+  @views alphaunifiedsponge[:, :, k0 - 1] .= alphaunifiedsponge[:, :, k0]
+  @views alphaunifiedsponge[:, :, k1 + 1] .= alphaunifiedsponge[:, :, k1]
 
   return
 end
@@ -181,8 +174,8 @@ function compute_sponge!(
   dt::AbstractFloat,
   spongetype::PolynomialSponge,
 )
-  (; sizex, sizey, sizez, nbx, nby) = state.namelists.domain
-  (; is, js, nx, ny, nz) = state.domain
+  (; sizex, sizey, sizez) = state.namelists.domain
+  (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
   (; x, y, ztfc) = state.grid
   (; tref) = state.constants
   (; lateralsponge, spongealphaz_dim, spongeorder) = state.namelists.sponge
@@ -201,8 +194,6 @@ function compute_sponge!(
   spongealphaz = spongealphaz_dim * tref
 
   if lateralsponge
-    i00 = is + nbx - 1
-    j00 = js + nby - 1
     if sizex > 1 && sizey > 1
       spongealphaz = spongealphaz / 3.0
       spongealphax = spongealphaz
@@ -220,7 +211,7 @@ function compute_sponge!(
 
   alphaunifiedsponge .= 0.0
 
-  for k in 1:nz, j in 0:(ny + 1), i in 0:(nx + 1)
+  for k in k0:k1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
     height = ztfc[i, j, k]
 
     if sizez > 1
@@ -232,32 +223,32 @@ function compute_sponge!(
     end
     if lateralsponge
       if sizex > 1
-        if x[i00 + i] <= xsponge0
+        if x[io + i] <= xsponge0
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
-            spongealphax * ((xsponge0 - x[i00 + i]) / dxsponge)^spongeorder
-        elseif x[i00 + i] >= xsponge1
+            spongealphax * ((xsponge0 - x[io + i]) / dxsponge)^spongeorder
+        elseif x[io + i] >= xsponge1
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
-            spongealphax * ((x[i00 + i] - xsponge1) / dxsponge)^spongeorder
+            spongealphax * ((x[io + i] - xsponge1) / dxsponge)^spongeorder
         end
       end
       if sizey > 1
-        if y[j00 + j] <= ysponge0
+        if y[jo + j] <= ysponge0
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
-            spongealphay * ((ysponge0 - y[j00 + j]) / dysponge)^spongeorder
-        elseif y[j00 + j] >= ysponge1
+            spongealphay * ((ysponge0 - y[jo + j]) / dysponge)^spongeorder
+        elseif y[jo + j] >= ysponge1
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
-            spongealphay * ((y[j00 + j] - ysponge1) / dysponge)^spongeorder
+            spongealphay * ((y[jo + j] - ysponge1) / dysponge)^spongeorder
         end
       end
     end
   end
 
-  @views alphaunifiedsponge[:, :, 0] .= alphaunifiedsponge[:, :, 1]
-  @views alphaunifiedsponge[:, :, nz + 1] .= alphaunifiedsponge[:, :, nz]
+  @views alphaunifiedsponge[:, :, k0 - 1] .= alphaunifiedsponge[:, :, k0]
+  @views alphaunifiedsponge[:, :, k1 + 1] .= alphaunifiedsponge[:, :, k1]
 
   return
 end
@@ -267,8 +258,8 @@ function compute_sponge!(
   dt::AbstractFloat,
   spongetype::SinusoidalSponge,
 )
-  (; sizex, sizey, sizez, nbx, nby) = state.namelists.domain
-  (; is, js, nx, ny, nz) = state.domain
+  (; sizex, sizey, sizez) = state.namelists.domain
+  (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
   (; x, y, ztfc) = state.grid
   (; tref) = state.constants
   (; lateralsponge, spongealphaz_dim) = state.namelists.sponge
@@ -287,8 +278,6 @@ function compute_sponge!(
   spongealphaz = spongealphaz_dim * tref
 
   if lateralsponge
-    i00 = is + nbx - 1
-    j00 = js + nby - 1
     if sizex > 1 && sizey > 1
       spongealphaz = spongealphaz / 3.0
       spongealphax = spongealphaz
@@ -306,7 +295,7 @@ function compute_sponge!(
 
   alphaunifiedsponge .= 0.0
 
-  for k in 1:nz, j in 0:(ny + 1), i in 0:(nx + 1)
+  for k in k0:k1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
     height = ztfc[i, j, k]
 
     if sizez > 1
@@ -318,36 +307,36 @@ function compute_sponge!(
     end
     if lateralsponge
       if sizex > 1
-        if x[i00 + i] <= xsponge0
+        if x[io + i] <= xsponge0
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
             spongealphax *
-            sin(0.5 * pi * (xsponge0 - x[i00 + i]) / dxsponge)^2.0
-        elseif x[i00 + i] >= xsponge1
+            sin(0.5 * pi * (xsponge0 - x[io + i]) / dxsponge)^2.0
+        elseif x[io + i] >= xsponge1
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
             spongealphax *
-            sin(0.5 * pi * (x[i00 + i] - xsponge1) / dxsponge)^2.0
+            sin(0.5 * pi * (x[io + i] - xsponge1) / dxsponge)^2.0
         end
       end
       if sizey > 1
-        if y[j00 + j] <= ysponge0
+        if y[jo + j] <= ysponge0
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
             spongealphay *
-            sin(0.5 * pi * (ysponge0 - y[j00 + j]) / dysponge)^2.0
-        elseif y[j00 + j] >= ysponge1
+            sin(0.5 * pi * (ysponge0 - y[jo + j]) / dysponge)^2.0
+        elseif y[jo + j] >= ysponge1
           alphaunifiedsponge[i, j, k] =
             alphaunifiedsponge[i, j, k] +
             spongealphay *
-            sin(0.5 * pi * (y[j00 + j] - ysponge1) / dysponge)^2.0
+            sin(0.5 * pi * (y[jo + j] - ysponge1) / dysponge)^2.0
         end
       end
     end
   end
 
-  @views alphaunifiedsponge[:, :, 0] .= alphaunifiedsponge[:, :, 1]
-  @views alphaunifiedsponge[:, :, nz + 1] .= alphaunifiedsponge[:, :, nz]
+  @views alphaunifiedsponge[:, :, k0 - 1] .= alphaunifiedsponge[:, :, k0]
+  @views alphaunifiedsponge[:, :, k1 + 1] .= alphaunifiedsponge[:, :, k1]
 
   return
 end
