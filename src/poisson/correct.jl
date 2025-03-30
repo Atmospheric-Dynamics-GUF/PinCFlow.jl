@@ -30,13 +30,13 @@ end
 function correct!(state::State, dt::AbstractFloat, variable::U)
   (; zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2) = state.constants
-  (; nx, ny, nz) = state.domain
+  (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dz, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; dpip) = state.variables.tendencies
   (; rho, u) = state.variables.predictands
 
-  for k in 1:nz, j in 1:ny, i in 0:nx
+  for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
     # Compute values at cell edges.
     rhou =
       0.5 * (
@@ -49,7 +49,7 @@ function correct!(state::State, dt::AbstractFloat, variable::U)
     met13edger = 0.5 * (met[i, j, k, 1, 3] + met[i + 1, j, k, 1, 3])
 
     # Compute pressure difference gradient component.
-    if k == 1 && zboundaries == SolidWallBoundaries()
+    if k == k0 && zboundaries == SolidWallBoundaries()
       dpuuedger = 0.5 * (dpip[i, j, k + 2] + dpip[i + 1, j, k + 2])
       dpuedger = 0.5 * (dpip[i, j, k + 1] + dpip[i + 1, j, k + 1])
       dpedger = 0.5 * (dpip[i, j, k] + dpip[i + 1, j, k])
@@ -60,7 +60,7 @@ function correct!(state::State, dt::AbstractFloat, variable::U)
           (dpip[i + 1, j, k] - dpip[i, j, k]) / dx +
           met13edger * (-dpuuedger + 4.0 * dpuedger - 3.0 * dpedger) * 0.5 / dz
         )
-    elseif k == nz && zboundaries == SolidWallBoundaries()
+    elseif k == k1 && zboundaries == SolidWallBoundaries()
       dpddedger = 0.5 * (dpip[i, j, k - 2] + dpip[i + 1, j, k - 2])
       dpdedger = 0.5 * (dpip[i, j, k - 1] + dpip[i + 1, j, k - 1])
       dpedger = 0.5 * (dpip[i, j, k] + dpip[i + 1, j, k])
@@ -101,7 +101,7 @@ function correct!(
   (; spongelayer, sponge_uv) = state.namelists.sponge
   (; zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2) = state.constants
-  (; nx, ny, nz) = state.domain
+  (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dz, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; kr_sp_tfc) = state.sponge
@@ -109,7 +109,7 @@ function correct!(
   (; dpip) = state.variables.tendencies
   (; rho, u) = state.variables.predictands
 
-  for k in 1:nz, j in 1:ny, i in 0:nx
+  for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
     facu = 1.0
 
     if spongelayer && sponge_uv
@@ -128,7 +128,7 @@ function correct!(
     met13edger = 0.5 * (met[i, j, k, 1, 3] + met[i + 1, j, k, 1, 3])
 
     # Compute pressure difference gradient component.
-    if k == 1 && zboundaries == SolidWallBoundaries()
+    if k == k0 && zboundaries == SolidWallBoundaries()
       dpuuedger = 0.5 * (dpip[i, j, k + 2] + dpip[i + 1, j, k + 2])
       dpuedger = 0.5 * (dpip[i, j, k + 1] + dpip[i + 1, j, k + 1])
       dpedger = 0.5 * (dpip[i, j, k] + dpip[i + 1, j, k])
@@ -139,7 +139,7 @@ function correct!(
           (dpip[i + 1, j, k] - dpip[i, j, k]) / dx +
           met13edger * (-dpuuedger + 4.0 * dpuedger - 3.0 * dpedger) * 0.5 / dz
         )
-    elseif k == nz && zboundaries == SolidWallBoundaries()
+    elseif k == k1 && zboundaries == SolidWallBoundaries()
       dpddedger = 0.5 * (dpip[i, j, k - 2] + dpip[i + 1, j, k - 2])
       dpdedger = 0.5 * (dpip[i, j, k - 1] + dpip[i + 1, j, k - 1])
       dpedger = 0.5 * (dpip[i, j, k] + dpip[i + 1, j, k])
@@ -175,13 +175,13 @@ end
 function correct!(state::State, dt::AbstractFloat, variable::V)
   (; zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2) = state.constants
-  (; nx, ny, nz) = state.domain
+  (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dy, dz, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; dpip) = state.variables.tendencies
   (; rho, v) = state.variables.predictands
 
-  for k in 1:nz, j in 0:ny, i in 1:nx
+  for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
     # Compute values at cell edges.
     rhov =
       0.5 * (
@@ -194,7 +194,7 @@ function correct!(state::State, dt::AbstractFloat, variable::V)
     met23edgef = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
 
     # Compute pressure difference gradient component.
-    if k == 1 && zboundaries == SolidWallBoundaries()
+    if k == k0 && zboundaries == SolidWallBoundaries()
       dpuuedgef = 0.5 * (dpip[i, j, k + 2] + dpip[i, j + 1, k + 2])
       dpuedgef = 0.5 * (dpip[i, j, k + 1] + dpip[i, j + 1, k + 1])
       dpedgef = 0.5 * (dpip[i, j, k] + dpip[i, j + 1, k])
@@ -205,7 +205,7 @@ function correct!(state::State, dt::AbstractFloat, variable::V)
           (dpip[i, j + 1, k] - dpip[i, j, k]) / dy +
           met23edgef * (-dpuuedgef + 4.0 * dpuedgef - 3.0 * dpedgef) * 0.5 / dz
         )
-    elseif k == nz && zboundaries == SolidWallBoundaries()
+    elseif k == k1 && zboundaries == SolidWallBoundaries()
       dpddedgef = 0.5 * (dpip[i, j, k - 2] + dpip[i, j + 1, k - 2])
       dpdedgef = 0.5 * (dpip[i, j, k - 1] + dpip[i, j + 1, k - 1])
       dpedgef = 0.5 * (dpip[i, j, k] + dpip[i, j + 1, k])
@@ -246,7 +246,7 @@ function correct!(
   (; spongelayer, sponge_uv) = state.namelists.sponge
   (; zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2) = state.constants
-  (; nx, ny, nz) = state.domain
+  (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dy, dz, met) = state.grid
   (; rhostrattfc, pstrattfc) = state.atmosphere
   (; kr_sp_tfc) = state.sponge
@@ -254,7 +254,7 @@ function correct!(
   (; dpip) = state.variables.tendencies
   (; rho, v) = state.variables.predictands
 
-  for k in 1:nz, j in 0:ny, i in 1:nx
+  for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
     facv = 1.0
 
     if spongelayer && sponge_uv
@@ -273,7 +273,7 @@ function correct!(
     met23edgef = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
 
     # Compute pressure difference gradient component.
-    if k == 1 && zboundaries == SolidWallBoundaries()
+    if k == k0 && zboundaries == SolidWallBoundaries()
       dpuuedgef = 0.5 * (dpip[i, j, k + 2] + dpip[i, j + 1, k + 2])
       dpuedgef = 0.5 * (dpip[i, j, k + 1] + dpip[i, j + 1, k + 1])
       dpedgef = 0.5 * (dpip[i, j, k] + dpip[i, j + 1, k])
@@ -284,7 +284,7 @@ function correct!(
           (dpip[i, j + 1, k] - dpip[i, j, k]) / dy +
           met23edgef * (-dpuuedgef + 4.0 * dpuedgef - 3.0 * dpedgef) * 0.5 / dz
         )
-    elseif k == nz && zboundaries == SolidWallBoundaries()
+    elseif k == k1 && zboundaries == SolidWallBoundaries()
       dpddedgef = 0.5 * (dpip[i, j, k - 2] + dpip[i, j + 1, k - 2])
       dpdedgef = 0.5 * (dpip[i, j, k - 1] + dpip[i, j + 1, k - 1])
       dpedgef = 0.5 * (dpip[i, j, k] + dpip[i, j + 1, k])
@@ -320,20 +320,17 @@ end
 function correct!(state::State, dt::AbstractFloat, variable::W)
   (; zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2) = state.constants
-  (; nx, ny, nz) = state.domain
+  (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dy, dz, jac, met) = state.grid
   (; rhostrattfc, pstrattfc, bvsstrattfc) = state.atmosphere
   (; dpip) = state.variables.tendencies
   (; rho, w) = state.variables.predictands
 
-  if zboundaries == SolidWallBoundaries()
-    k0 = 1
-    k1 = nz - 1
-  else
+  if zboundaries != SolidWallBoundaries()
     error("Error in correct!: Unknown zboundaries!")
   end
 
-  for k in k0:k1, j in 1:ny, i in 1:nx
+  for k in k0:(k1 - 1), j in j0:j1, i in i0:i1
     # Compute values at cell edges.
     rhostratedgeu =
       (
@@ -418,7 +415,7 @@ function correct!(
   (; spongelayer, sponge_uv) = state.namelists.sponge
   (; zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2) = state.constants
-  (; nx, ny, nz) = state.domain
+  (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dy, dz, jac, met) = state.grid
   (; rhostrattfc, pstrattfc, bvsstrattfc) = state.atmosphere
   (; kr_sp_w_tfc) = state.sponge
@@ -426,14 +423,11 @@ function correct!(
   (; dpip) = state.variables.tendencies
   (; rho, w) = state.variables.predictands
 
-  if zboundaries == SolidWallBoundaries()
-    k0 = 1
-    k1 = nz - 1
-  else
+  if zboundaries != SolidWallBoundaries()
     error("Error in correct!: Unknown zboundaries!")
   end
 
-  for k in k0:k1, j in 1:ny, i in 1:nx
+  for k in k0:(k1 - 1), j in j0:j1, i in i0:i1
     facw = 1.0
 
     if spongelayer
@@ -545,7 +539,7 @@ function correct!(
   (; spongelayer) = state.namelists.sponge
   (; zboundaries) = state.namelists.boundaries
   (; kappainv, mainv2, g_ndim) = state.constants
-  (; nx, ny, nz) = state.domain
+  (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dy, dz, jac, met) = state.grid
   (; rhostrattfc, pstrattfc, bvsstrattfc) = state.atmosphere
   (; kr_sp_w_tfc) = state.sponge
@@ -553,7 +547,7 @@ function correct!(
   (; dpip) = state.variables.tendencies
   (; rho, rhop, w) = state.variables.predictands
 
-  for k in 1:nz, j in 1:ny, i in 1:nx
+  for k in k0:k1, j in j0:j1, i in i0:i1
     facw = 1.0
 
     if spongelayer
@@ -673,9 +667,9 @@ function correct!(
       )
 
     # Adjust at boundaries.
-    if k == 1 && zboundaries == SolidWallBoundaries()
+    if k == k0 && zboundaries == SolidWallBoundaries()
       pgradzedged = 0.0
-    elseif k == nz && zboundaries == SolidWallBoundaries()
+    elseif k == k1 && zboundaries == SolidWallBoundaries()
       pgradzedgeu = 0.0
     end
 
@@ -715,13 +709,13 @@ function correct!(
 end
 
 function correct!(state::State, variable::PiP)
-  (; nx, ny, nz) = state.domain
+  (; i0, i1, j0, j1, k0, k1) = state.domain
   (; pip) = state.variables.predictands
   (; dpip) = state.variables.tendencies
 
-  @views pip[0:(nx + 1), 0:(ny + 1), 0:(nz + 1)] .=
-    pip[0:(nx + 1), 0:(ny + 1), 0:(nz + 1)] .+
-    dpip[0:(nx + 1), 0:(ny + 1), 0:(nz + 1)]
+  @views pip[(i0 - 1):(i1 + 1), (j0 - 1):(j1 + 1), (k0 - 1):(k1 + 1)] .=
+    pip[(i0 - 1):(i1 + 1), (j0 - 1):(j1 + 1), (k0 - 1):(k1 + 1)] .+
+    dpip[(i0 - 1):(i1 + 1), (j0 - 1):(j1 + 1), (k0 - 1):(k1 + 1)]
 
   return
 end

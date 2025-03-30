@@ -21,12 +21,12 @@ function Poisson(namelists::Namelists, domain::Domain)
   (; nx, ny, nz) = domain
 
   # Initialize everything.
-  (rhs, solution) = (zeros((nx, ny, nz)) for i in 1:2)
+  (rhs, solution) = (zeros(nx, ny, nz) for i in 1:2)
   tensor = Tensor(domain)
   operator = Operator(domain)
   preconditioner = Preconditioner(domain)
   bicgstab = BicGStab(domain)
-  correction = Correction(namelists, domain)
+  correction = Correction(domain)
 
   # Return a Poisson instance.
   return Poisson(

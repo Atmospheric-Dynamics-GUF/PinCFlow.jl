@@ -8,15 +8,14 @@ function reconstruct!(state::State)
 end
 
 function reconstruct!(state::State, variable::Rho)
-  (; nbx, nby) = state.namelists.domain
   (; limitertype) = state.namelists.discretization
-  (; nx, ny, nz, nxx, nyy, nzz) = state.domain
+  (; k0, k1, nxx, nyy, nzz) = state.domain
   (; rho) = state.variables.predictands
   (; phi) = state.variables.auxiliaries
   (; rhotilde) = state.variables.reconstructions
   (; pstrattfc) = state.atmosphere
 
-  for kz in 0:(nz + 1), jy in (-nby):(ny + nby), ix in (-nbx):(nx + nbx)
+  for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
     phi[ix, jy, kz] = rho[ix, jy, kz] / pstrattfc[ix, jy, kz]
   end
   apply_3d_muscl!(
@@ -32,15 +31,14 @@ function reconstruct!(state::State, variable::Rho)
 end
 
 function reconstruct!(state::State, variable::RhoP)
-  (; nbx, nby) = state.namelists.domain
   (; limitertype) = state.namelists.discretization
-  (; nx, ny, nz, nxx, nyy, nzz) = state.domain
+  (; k0, k1, nxx, nyy, nzz) = state.domain
   (; rhop) = state.variables.predictands
   (; phi) = state.variables.auxiliaries
   (; rhoptilde) = state.variables.reconstructions
   (; pstrattfc) = state.atmosphere
 
-  for kz in 0:(nz + 1), jy in (-nby):(ny + nby), ix in (-nbx):(nx + nbx)
+  for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
     phi[ix, jy, kz] = rhop[ix, jy, kz] / pstrattfc[ix, jy, kz]
   end
   apply_3d_muscl!(
@@ -56,15 +54,14 @@ function reconstruct!(state::State, variable::RhoP)
 end
 
 function reconstruct!(state::State, variable::U)
-  (; nbx, nby) = state.namelists.domain
   (; limitertype) = state.namelists.discretization
-  (; nx, ny, nz, nxx, nyy, nzz) = state.domain
+  (; k0, k1, nxx, nyy, nzz) = state.domain
   (; rho, u) = state.variables.predictands
   (; phi) = state.variables.auxiliaries
   (; utilde) = state.variables.reconstructions
   (; rhostrattfc, pstrattfc) = state.atmosphere
 
-  for kz in 0:(nz + 1), jy in (-nby):(ny + nby), ix in (-nbx):(nx + nbx - 1)
+  for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:(nxx - 1)
     rhoedge =
       0.5 * (
         rho[ix, jy, kz] +
@@ -89,15 +86,14 @@ function reconstruct!(state::State, variable::U)
 end
 
 function reconstruct!(state::State, variable::V)
-  (; nbx, nby) = state.namelists.domain
   (; limitertype) = state.namelists.discretization
-  (; nx, ny, nz, nxx, nyy, nzz) = state.domain
+  (; k0, k1, nxx, nyy, nzz) = state.domain
   (; rho, v) = state.variables.predictands
   (; phi) = state.variables.auxiliaries
   (; vtilde) = state.variables.reconstructions
   (; rhostrattfc, pstrattfc) = state.atmosphere
 
-  for kz in 0:(nz + 1), jy in (-nby):(ny + nby - 1), ix in (-nbx):(nx + nbx)
+  for kz in (k0 - 1):(k1 + 1), jy in 1:(nyy - 1), ix in 1:nxx
     rhoedge =
       0.5 * (
         rho[ix, jy, kz] +
@@ -123,9 +119,8 @@ end
 
 function reconstruct!(state::State, variable::W)
   (; namelists, domain, grid) = state
-  (; nbx, nby) = namelists.domain
   (; limitertype) = state.namelists.discretization
-  (; nx, ny, nz, nxx, nyy, nzz) = domain
+  (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz) = domain
   (; jac) = grid
   (; predictands) = state.variables
   (; rho, w) = predictands
@@ -133,13 +128,13 @@ function reconstruct!(state::State, variable::W)
   (; wtilde) = state.variables.reconstructions
   (; rhostrattfc, pstrattfc) = state.atmosphere
 
-  @views phi[:, :, 0:(nz + 1)] .= w[:, :, 0:(nz + 1)]
-  for kz in 0:(nz + 1), jy in 1:ny, ix in 1:nx
+  @views phi[:, :, (k0 - 1):(k1 + 1)] .= w[:, :, (k0 - 1):(k1 + 1)]
+  for kz in (k0 - 1):(k1 + 1), jy in j0:j1, ix in i0:i1
     phi[ix, jy, kz] = compute_vertical_wind(ix, jy, kz, predictands, grid)
   end
   set_zonal_boundaries_of_field!(phi, namelists, domain)
   set_meridional_boundaries_of_field!(phi, namelists, domain)
-  for kz in 0:(nz + 1), jy in (-nby):(ny + nby), ix in (-nbx):(nx + nbx)
+  for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
     rhoedgeu =
       (
         jac[ix, jy, kz + 1] * (rho[ix, jy, kz] + rhostrattfc[ix, jy, kz]) +

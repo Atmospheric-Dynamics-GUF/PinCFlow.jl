@@ -7,11 +7,7 @@ struct Predictands{A <: AbstractArray{<:AbstractFloat, 3}}
   pip::A
 end
 
-function Predictands(
-  namelists::Namelists,
-  constants::Constants,
-  domain::Domain,
-)
+function Predictands(namelists::Namelists, constants::Constants, domain::Domain)
   (; model, testcase) = namelists.setting
   return Predictands(namelists, constants, domain, model, testcase)
 end
@@ -26,19 +22,11 @@ function Predictands(
 
   # Get parameters.
   (; backgroundflow_dim) = namelists.atmosphere
-  (; nbx, nby, nbz) = namelists.domain
   (; uref) = constants
-  (; nx, ny, nz) = domain
+  (; nxx, nyy, nzz) = domain
 
   # Initialize the predictands.
-  (rho, rhop, u, v, w, pip) = (
-    OffsetArray(
-      zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 2 * nbz + 1)),
-      (-nbx):(nx + nbx),
-      (-nby):(ny + nby),
-      (-nbz):(nz + nbz),
-    ) for i in 1:6
-  )
+  (rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
 
   # Initial winds.
   u .= backgroundflow_dim[1] / uref

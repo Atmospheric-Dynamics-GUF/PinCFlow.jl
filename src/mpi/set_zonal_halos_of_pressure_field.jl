@@ -6,7 +6,12 @@ function set_zonal_halos_of_pressure_field!(
   # Get all necessary fields.
   (;
     comm,
-    nx,
+    i0,
+    i1,
+    j0,
+    j1,
+    k0,
+    k1,
     left,
     right,
     send_pressure_left,
@@ -15,41 +20,29 @@ function set_zonal_halos_of_pressure_field!(
     recv_pressure_right,
   ) = domain
 
-  # Read slice into contiguous array
-  @views send_pressure_left .= field.parent[2, :, :]
-  @views send_pressure_right .= field.parent[nx + 1, :, :]
-
-  # left -> right
-  source = left
-  dest = right
-  tag = 100
+  # Read slice into auxiliary array
+  @views send_pressure_right .= field[i1, (j0 - 1):(j1 + 1), (k0 - 1):(k1 + 1)]
+  @views send_pressure_left .= field[i0, (j0 - 1):(j1 + 1), (k0 - 1):(k1 + 1)]
 
   MPI.Sendrecv!(
     send_pressure_right,
     recv_pressure_left,
     comm;
-    dest = dest,
-    sendtag = tag,
-    source = source,
+    dest = right,
+    source = left,
   )
-
-  # right -> left
-  source = right
-  dest = left
-  tag = 100
 
   MPI.Sendrecv!(
     send_pressure_left,
     recv_pressure_right,
     comm;
-    dest = dest,
-    sendtag = tag,
-    source = source,
+    dest = left,
+    source = right,
   )
 
   # Write auxiliary slice to var field.
-  field.parent[nx + 2, :, :] .= recv_pressure_right
-  field.parent[1, :, :] .= recv_pressure_left
+  field[i0 - 1, (j0 - 1):(j1 + 1), (k0 - 1):(k1 + 1)] .= recv_pressure_left
+  field[i1 + 1, (j0 - 1):(j1 + 1), (k0 - 1):(k1 + 1)] .= recv_pressure_right
 
   return
 end

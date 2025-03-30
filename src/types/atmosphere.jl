@@ -38,27 +38,20 @@ function Atmosphere(
   corset::ConstantCoriolis,
 )
   # Get parameters.
-  (; nbx, nby) = namelists.domain
   (; temp0_dim, press0_dim, f_coriolis_dim) = namelists.atmosphere
   (; tref, thetaref, pref, kappa, sig, gamma, g_ndim) = constants
-  (; nx, ny, nz) = domain
+  (; nxx, nyy, nzz, k0, k1) = domain
   (; ztfc, jac, dz) = grid
 
   # Initialize the background fields.
-  (pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc) = (
-    OffsetArray(
-      zeros((nx + 2 * nbx + 1, ny + 2 * nby + 1, nz + 4)),
-      (-nbx):(nx + nbx),
-      (-nby):(ny + nby),
-      (-1):(nz + 2),
-    ) for i in 1:4
-  )
+  (pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc) =
+    (zeros(nxx, nyy, nzz) for i in 1:4)
 
   t0 = temp0_dim / thetaref
   p0 = press0_dim / pref
 
   # Define 3D background fields.
-  for k in (-1):(nz + 2)
+  for k in (k0 - 2):(k1 + 2)
     # Define pStratTFC.
     pstrattfc[:, :, k] .= p0 .* exp.(-sig .* ztfc[:, :, k] ./ gamma ./ t0)
     # Define thetaStratTFC.
@@ -70,25 +63,25 @@ function Atmosphere(
   # Define bvsStratTFC.
   bvsstrattfc .= 0.0
   # Lower boundary.
-  bvsstrattfc[:, :, -1] .=
-    g_ndim ./ thetastrattfc[:, :, 0] ./ jac[:, :, 0] .*
-    (thetastrattfc[:, :, 1] .- thetastrattfc[:, :, 0]) ./ dz
-  bvsstrattfc[:, :, 0] .= bvsstrattfc[:, :, -1]
+  bvsstrattfc[:, :, k0 - 2] .=
+    g_ndim ./ thetastrattfc[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
+    (thetastrattfc[:, :, k0] .- thetastrattfc[:, :, k0 - 1]) ./ dz
+  bvsstrattfc[:, :, k0 - 1] .= bvsstrattfc[:, :, k0 - 2]
   # Between boundaries.
-  for k in 1:nz
+  for k in k0:k1
     bvsstrattfc[:, :, k] .=
       g_ndim ./ thetastrattfc[:, :, k] ./ jac[:, :, k] .* 0.5 .*
       (thetastrattfc[:, :, k + 1] .- thetastrattfc[:, :, k - 1]) ./ dz
   end
   # Upper boundary.
-  bvsstrattfc[:, :, nz + 1] .=
-    g_ndim ./ thetastrattfc[:, :, nz + 1] ./ jac[:, :, nz + 1] .*
-    (thetastrattfc[:, :, nz + 1] .- thetastrattfc[:, :, nz]) ./ dz
-  bvsstrattfc[:, :, nz + 2] .= bvsstrattfc[:, :, nz + 1]
+  bvsstrattfc[:, :, k1 + 1] .=
+    g_ndim ./ thetastrattfc[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*
+    (thetastrattfc[:, :, k1 + 1] .- thetastrattfc[:, :, k1]) ./ dz
+  bvsstrattfc[:, :, k1 + 2] .= bvsstrattfc[:, :, k1 + 1]
 
   # Set Coriolis parameter.
-  f_cor_nd = OffsetArray(zeros(ny + 2), 0:(ny + 1))
-  f_cor_nd[0:(ny + 1)] .= f_coriolis_dim .* tref
+  f_cor_nd = zeros(nyy)
+  f_cor_nd .= f_coriolis_dim .* tref
 
   # Return an Atmosphere instance.
   return Atmosphere(

@@ -13,7 +13,7 @@ function Preconditioner(domain::Domain)
   (; nx, ny, nz) = domain
 
   # Initialize the preconditioner fields.
-  (s_pc, q_pc) = (zeros((nx, ny, nz)) for i in 1:2)
+  (s_pc, q_pc) = (zeros(nx, ny, nz) for i in 1:2)
   p_pc = zeros(nx, ny)
 
   # Return a Preconditioner instance.
