@@ -5,7 +5,7 @@ function compute_operator!(
   facray::AbstractFloat,
 )
   (; preconditioner) = state.namelists.poisson
-  (; zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dy, dz, jac, met) = state.grid
   (; pstrattfc, rhostrattfc) = state.atmosphere
@@ -744,7 +744,7 @@ function compute_operator!(
 )
   (; preconditioner) = state.namelists.poisson
   (; spongelayer, sponge_uv) = state.namelists.sponge
-  (; zboundaries) = state.namelists.boundaries
+  (; zboundaries) = state.namelists.setting
   (; i0, i1, j0, j1, k0, k1) = state.domain
   (; dx, dy, dz, jac, met) = state.grid
   (; pstrattfc, rhostrattfc, bvsstrattfc) = state.atmosphere

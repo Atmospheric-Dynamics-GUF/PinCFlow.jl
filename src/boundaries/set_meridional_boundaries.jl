@@ -1,7 +1,6 @@
 function set_meridional_boundaries!(
   state::State,
   variables::BoundaryPredictands,
-  boundaries::PeriodicBoundaries,
 )
   (; namelists, domain) = state
   (; rho, rhop, u, v, w, pip) = state.variables.predictands
@@ -19,7 +18,6 @@ end
 function set_meridional_boundaries!(
   state::State,
   variables::BoundaryReconstructions,
-  boundaries::PeriodicBoundaries,
 )
   (; namelists, domain) = state
   (; rhotilde, rhoptilde, utilde, vtilde, wtilde) =
