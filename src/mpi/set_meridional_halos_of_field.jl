@@ -24,21 +24,9 @@ function set_meridional_halos_of_field!(
     @views send_a3_back[:, j, :] .= field[:, j0 + j - 1, :]
   end
 
-  MPI.Sendrecv!(
-    send_a3_forw,
-    recv_a3_back,
-    comm;
-    dest = forw,
-    source = back,
-  )
+  MPI.Sendrecv!(send_a3_forw, recv_a3_back, comm; dest = forw, source = back)
 
-  MPI.Sendrecv!(
-    send_a3_back,
-    recv_a3_forw,
-    comm;
-    dest = back,
-    source = forw,
-  )
+  MPI.Sendrecv!(send_a3_back, recv_a3_forw, comm; dest = back, source = forw)
 
   # Write auxiliary slice to field.
   for j in 1:nby
@@ -75,21 +63,9 @@ function set_meridional_halos_of_field!(
     @views send_a5_back[:, j, :, :, :] .= field[:, j0 + j - 1, :, :, :]
   end
 
-  MPI.Sendrecv!(
-    send_a5_forw,
-    recv_a5_back,
-    comm;
-    dest = forw,
-    source = back,
-  )
+  MPI.Sendrecv!(send_a5_forw, recv_a5_back, comm; dest = forw, source = back)
 
-  MPI.Sendrecv!(
-    send_a5_back,
-    recv_a5_forw,
-    comm;
-    dest = back,
-    source = forw,
-  )
+  MPI.Sendrecv!(send_a5_back, recv_a5_forw, comm; dest = back, source = forw)
 
   # Write auxiliary slice to field.
   for j in 1:nby

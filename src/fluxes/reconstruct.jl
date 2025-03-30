@@ -18,14 +18,7 @@ function reconstruct!(state::State, variable::Rho)
   for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
     phi[ix, jy, kz] = rho[ix, jy, kz] / pstrattfc[ix, jy, kz]
   end
-  apply_3d_muscl!(
-    phi,
-    rhotilde,
-    nxx,
-    nyy,
-    nzz,
-    limitertype,
-  )
+  apply_3d_muscl!(phi, rhotilde, nxx, nyy, nzz, limitertype)
 
   return
 end
@@ -41,14 +34,7 @@ function reconstruct!(state::State, variable::RhoP)
   for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
     phi[ix, jy, kz] = rhop[ix, jy, kz] / pstrattfc[ix, jy, kz]
   end
-  apply_3d_muscl!(
-    phi,
-    rhoptilde,
-    nxx,
-    nyy,
-    nzz,
-    limitertype,
-  )
+  apply_3d_muscl!(phi, rhoptilde, nxx, nyy, nzz, limitertype)
 
   return
 end
@@ -73,14 +59,7 @@ function reconstruct!(state::State, variable::U)
     phi[ix, jy, kz] = u[ix, jy, kz] * rhoedge / pedge
   end
 
-  apply_3d_muscl!(
-    phi,
-    utilde,
-    nxx,
-    nyy,
-    nzz,
-    limitertype,
-  )
+  apply_3d_muscl!(phi, utilde, nxx, nyy, nzz, limitertype)
 
   return
 end
@@ -105,14 +84,7 @@ function reconstruct!(state::State, variable::V)
     phi[ix, jy, kz] = v[ix, jy, kz] * rhoedge / pedge
   end
 
-  apply_3d_muscl!(
-    phi,
-    vtilde,
-    nxx,
-    nyy,
-    nzz,
-    limitertype,
-  )
+  apply_3d_muscl!(phi, vtilde, nxx, nyy, nzz, limitertype)
 
   return
 end
@@ -148,14 +120,7 @@ function reconstruct!(state::State, variable::W)
     phi[ix, jy, kz] *= rhoedgeu / pedgeu
   end
 
-  apply_3d_muscl!(
-    phi,
-    wtilde,
-    nxx,
-    nyy,
-    nzz,
-    limitertype,
-  )
+  apply_3d_muscl!(phi, wtilde, nxx, nyy, nzz, limitertype)
 
   return
 end

@@ -1,7 +1,4 @@
-function set_zonal_boundaries!(
-  state::State,
-  variables::BoundaryPredictands,
-)
+function set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
   (; namelists, domain) = state
   (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
@@ -15,10 +12,7 @@ function set_zonal_boundaries!(
   return
 end
 
-function set_zonal_boundaries!(
-  state::State,
-  variables::BoundaryReconstructions,
-)
+function set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
   (; namelists, domain) = state
   (; rhotilde, rhoptilde, utilde, vtilde, wtilde) =
     state.variables.reconstructions
