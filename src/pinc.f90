@@ -821,154 +821,376 @@ program pinc_prog
     type(flux_type), intent(in) :: flux
     character(len = *) :: variables
     real :: local_sum, global_sum
+    integer :: dir, edge
 
     select case(variables)
     case("predictands")
-      local_sum = sum(var%rho * rhoRef)
+      local_sum = 0.0
+      do kz = - nbz + 1, nz + nbz
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + var%rho(ix, jy, kz)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(rho) = ", global_sum
 
-      local_sum = sum(var%rhop * rhoRef)
+      local_sum = 0.0
+      do kz = - nbz + 1, nz + nbz
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + var%rhop(ix, jy, kz)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(rhop) = ", global_sum
 
-      local_sum = sum(var%u * uRef)
+      local_sum = 0.0
+      do kz = - nbz + 1, nz + nbz
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + var%u(ix, jy, kz)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(u) = ", global_sum
 
-      local_sum = sum(var%v * uRef)
+      local_sum = 0.0
+      do kz = - nbz + 1, nz + nbz
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + var%v(ix, jy, kz)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(v) = ", global_sum
 
-      local_sum = sum(var%w * uRef)
+      local_sum = 0.0
+      do kz = - nbz + 1, nz + nbz
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + var%w(ix, jy, kz)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(w) = ", global_sum
 
-      local_sum = sum(var%pi)
+      local_sum = 0.0
+      do kz = - nbz + 1, nz + nbz
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + var%pi(ix, jy, kz)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(pip) = ", global_sum
     case("reconstructions")
-      local_sum = sum(rhotilde * rhoRef)
+      local_sum = 0.0
+      do edge = 0, 1
+        do dir = 1, 3
+          do kz = - nbz + 1, nz + nbz
+            do jy = - nby + 1, ny + nby
+              do ix = - nbx + 1, nx + nbx
+                local_sum = local_sum + rhotilde(ix, jy, kz, dir, edge)
+              end do
+            end do
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(rhotilde) = ", global_sum
 
-      local_sum = sum(rhoptilde * rhoRef)
+      local_sum = 0.0
+      do edge = 0, 1
+        do dir = 1, 3
+          do kz = - nbz + 1, nz + nbz
+            do jy = - nby + 1, ny + nby
+              do ix = - nbx + 1, nx + nbx
+                local_sum = local_sum + rhoptilde(ix, jy, kz, dir, edge)
+              end do
+            end do
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(rhoptilde) = ", global_sum
 
-      local_sum = sum(utilde * uRef)
+      local_sum = 0.0
+      do edge = 0, 1
+        do dir = 1, 3
+          do kz = - nbz + 1, nz + nbz
+            do jy = - nby + 1, ny + nby
+              do ix = - nbx + 1, nx + nbx
+                local_sum = local_sum + utilde(ix, jy, kz, dir, edge)
+              end do
+            end do
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(utilde) = ", global_sum
 
-      local_sum = sum(vtilde * uRef)
+      local_sum = 0.0
+      do edge = 0, 1
+        do dir = 1, 3
+          do kz = - nbz + 1, nz + nbz
+            do jy = - nby + 1, ny + nby
+              do ix = - nbx + 1, nx + nbx
+                local_sum = local_sum + vtilde(ix, jy, kz, dir, edge)
+              end do
+            end do
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(vtilde) = ", global_sum
 
-      local_sum = sum(wtilde * uRef)
+      local_sum = 0.0
+      do edge = 0, 1
+        do dir = 1, 3
+          do kz = - nbz + 1, nz + nbz
+            do jy = - nby + 1, ny + nby
+              do ix = - nbx + 1, nx + nbx
+                local_sum = local_sum + wtilde(ix, jy, kz, dir, edge)
+              end do
+            end do
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(wtilde) = ", global_sum
     case("fluxes")
-      local_sum = sum(flux%rho * rhoRef)
+      local_sum = 0.0
+      do dir = 1, 3
+        do kz = - 1, nz
+          do jy = - 1, ny
+            do ix = - 1, nx
+              local_sum = local_sum + flux%rho(ix, jy, kz, dir)
+            end do
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(phirho) = ", global_sum
 
-      local_sum = sum(flux%rhop * rhoRef)
+      local_sum = 0.0
+      do dir = 1, 3
+        do kz = - 1, nz
+          do jy = - 1, ny
+            do ix = - 1, nx
+              local_sum = local_sum + flux%rhop(ix, jy, kz, dir)
+            end do
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(phirhop) = ", global_sum
 
-      local_sum = sum(flux%u * uRef)
+      local_sum = 0.0
+      do dir = 1, 3
+        do kz = - 1, nz
+          do jy = - 1, ny
+            do ix = - 1, nx
+              local_sum = local_sum + flux%u(ix, jy, kz, dir)
+            end do
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(phiu) = ", global_sum
 
-      local_sum = sum(flux%v * uRef)
+      local_sum = 0.0
+      do dir = 1, 3
+        do kz = - 1, nz
+          do jy = - 1, ny
+            do ix = - 1, nx
+              local_sum = local_sum + flux%v(ix, jy, kz, dir)
+            end do
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(phiv) = ", global_sum
 
-      local_sum = sum(flux%w * uRef)
+      local_sum = 0.0
+      do dir = 1, 3
+        do kz = - 1, nz
+          do jy = - 1, ny
+            do ix = - 1, nx
+              local_sum = local_sum + flux%w(ix, jy, kz, dir)
+            end do
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(phiw) = ", global_sum
     case("atmosphere")
-      local_sum = sum(pStratTFC * rhoRef * thetaRef)
+      local_sum = 0.0
+      do kz = - 1, nz + 2
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + pstrattfc(ix, jy, kz)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(pstrattfc) = ", global_sum
 
-      local_sum = sum(thetaStratTFC * thetaRef)
+      local_sum = 0.0
+      do kz = - 1, nz + 2
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + thetastrattfc(ix, jy, kz)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(thetastrattfc) = ", global_sum
 
-      local_sum = sum(rhoStratTFC * rhoRef)
+      local_sum = 0.0
+      do kz = - 1, nz + 2
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + rhostrattfc(ix, jy, kz)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(rhostrattfc) = ", global_sum
 
-      local_sum = sum(bvsStratTFC / tRef ** 2)
+      local_sum = 0.0
+      do kz = - 1, nz + 2
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + bvsstrattfc(ix, jy, kz)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(bvsstrattfc) = ", global_sum
     case("grid")
       if(master) then
-        print *, "lx = ", lx
-        print *, "ly = ", ly
-        print *, "lz = ", lz
-        print *, "dx = ", dx
-        print *, "dy = ", dy
-        print *, "dz = ", dz
-        print *, "sum(x) = ", sum(x)
-        print *, "sum(y) = ", sum(y)
-        print *, "sum(z) = ", sum(z)
-        print *, "sum(zs) = ", sum(zs)
-        print *, "sum(ztildes) = ", sum(ztildes)
+        do ix = - nbx + 1, sizex + nbx
+          print *, "x(", ix + nbx, ") = ", x(ix)
+        end do
       end if
 
-      local_sum = sum(topography_surface)
+      if(master) then
+        do jy = - nby + 1, sizey + nby
+          print *, "y(", jy + nby, ") = ", y(jy)
+        end do
+      end if
+
+      if(master) then
+        do kz = - nbz + 1, sizez + nbz
+          print *, "z(", kz + nbz, ") = ", z(kz)
+        end do
+      end if
+
+      local_sum = 0.0
+      do jy = - nby + 1, ny + nby
+        do ix = - nbx + 1, nx + nbx
+          local_sum = local_sum + topography_surface(ix, jy)
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(topography_surface) = ", global_sum
 
-      local_sum = sum(jac)
+      local_sum = 0.0
+      do kz = - nbz + 1, nz + nbz
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + jac(ix, jy, kz)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(jac) = ", global_sum
 
-      local_sum = sum(met(:, :, :, 1, 3))
+      local_sum = 0.0
+      do kz = - nbz + 1, nz + nbz
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + met(ix, jy, kz, 1, 3)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(met(:, :, :, 1, 3)) = ", global_sum
 
-      local_sum = sum(met(:, :, :, 2, 3))
+      local_sum = 0.0
+      do kz = - nbz + 1, nz + nbz
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + met(ix, jy, kz, 2, 3)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(met(:, :, :, 2, 3)) = ", global_sum
 
-      local_sum = sum(met(:, :, :, 3, 3))
+      local_sum = 0.0
+      do kz = - nbz + 1, nz + nbz
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + met(ix, jy, kz, 3, 3)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(met(:, :, :, 3, 3)) = ", global_sum
 
-      local_sum = sum(ztfc)
+      local_sum = 0.0
+      do kz = - nbz + 1, nz + nbz
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + ztfc(ix, jy, kz)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(ztfc) = ", global_sum
 
-      local_sum = sum(ztildetfc)
+      local_sum = 0.0
+      do kz = - nbz + 1, nz + nbz
+        do jy = - nby + 1, ny + nby
+          do ix = - nbx + 1, nx + nbx
+            local_sum = local_sum + ztildetfc(ix, jy, kz)
+          end do
+        end do
+      end do
       call mpi_allreduce(local_sum, global_sum, 1, &
           &mpi_double_precision, mpi_sum, comm, ierror)
       if(master) print *, "sum(ztildetfc) = ", global_sum
