@@ -349,8 +349,8 @@ module atmosphere_module
 
     if(mountain_case /= 0) then
       topography_surface = 0.0
-      do jy = 1, ny
-        do ix = 1, nx
+      do jy = - nby, ny + nby
+        do ix = - nbx, nx + nbx
           select case(mountain_case)
           case(1)
             ! 2D cosine mountains
@@ -477,8 +477,6 @@ module atmosphere_module
       topography_surface = topography_surface / lRef
     end if
 
-    call setHalosOfField2D(topography_surface)
-
     ! Compute the stretched vertical grid.
     do kz = - nbz, nz + nbz
       zTildeS(kz) = map(z(kz) + 0.5 * dz)
@@ -507,7 +505,7 @@ module atmosphere_module
     met(:, :, :, 1, 1) = 1.0
     met(:, :, :, 1, 2) = 0.0
     do kz = - nbz + 1, nz + nbz
-      do jy = 1, ny
+      do jy = - nby, ny + nby
         do ix = 1, nx
           met(ix, jy, kz, 1, 3) = (topography_surface(ix + 1, jy) &
               &- topography_surface(ix - 1, jy)) / (2.0 * dx) * (zS(kz) &
@@ -523,7 +521,7 @@ module atmosphere_module
     met(:, :, :, 2, 2) = 1.0
     do kz = - nbz + 1, nz + nbz
       do jy = 1, ny
-        do ix = 1, nx
+        do ix = - nbx, nx + nbx
           met(ix, jy, kz, 2, 3) = (topography_surface(ix, jy + 1) &
               &- topography_surface(ix, jy - 1)) / (2.0 * dy) * (zS(kz) &
               &- lz(1)) / (lz(1) - topography_surface(ix, jy)) * dz &
