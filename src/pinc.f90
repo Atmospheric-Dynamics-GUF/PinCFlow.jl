@@ -457,12 +457,12 @@ program pinc_prog
     case default
     end select
 
+    call setHalos(var, "var")
+    call setBoundary(var, flux, "var")
+
     ! put initial state into var0 in order to save the advecting
     ! velocities
     var0 = var
-
-    call setHalos(var0, "var")
-    call setBoundary(var0, flux, "var")
 
     ! (1) explicit integration of convective and
     !     viscous-diffusive/turbulent fluxes over half a time step,
@@ -612,9 +612,6 @@ program pinc_prog
 
     var0 = var1
 
-    call setHalos(var0, "var")
-    call setBoundary(var0, flux, "var")
-
     do RKstage = 1, nStages
       call setHalos(var, "var")
       call setBoundary(var, flux, "var")
@@ -680,9 +677,6 @@ program pinc_prog
 
     call massUpdate(var, flux, 0.5 * dt, dRhop, RKstage, "rhop", "rhs", &
         &"impl", 2.)
-
-    call setHalos(var, "var")
-    call setBoundary(var, flux, "var")
 
     call setHalos(var, "var")
     call setBoundary(var, flux, "var")
