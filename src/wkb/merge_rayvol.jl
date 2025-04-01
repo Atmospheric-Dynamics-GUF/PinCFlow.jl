@@ -1,238 +1,141 @@
 struct widths{T}
-    dwnrk_mg_n::T
-    dwnrk_mg_p::T
-    dwnrl_mg_n::T
-    dwnrl_mg_p::T
-    dwnrm_mg_n::T
-    dwnrm_mg_p::T
+  dwnrk_mg_n::T
+  dwnrk_mg_p::T
+  dwnrl_mg_n::T
+  dwnrl_mg_p::T
+  dwnrm_mg_n::T
+  dwnrm_mg_p::T
 end
 
+mutable struct Interval{T}
+  max_n::T
+  min_n::T
+  max_p::T
+  min_p::T
+
+  function Interval{T}() where {T}
+    return new(zero(T), zero(T), zero(T), zero(T))
+  end
+end
 mutable struct Intervals{T}
-    wnrk_max_n::T
-    wnrk_min_n::T
-    wnrk_max_p::T
-    wnrk_min_p::T
+  k::Interval{T}
+  l::Interval{T}
+  m::Interval{T}
 
-    wnrl_max_n::T
-    wnrl_min_n::T
-    wnrl_max_p::T
-    wnrl_min_p::T
-
-    wnrm_max_n::T
-    wnrm_min_n::T
-    wnrm_max_p::T
-    wnrm_min_p::T
-
-    Intervals{T}() where {T} = new(zero(T), zero(T),zero(T),zero(T),zero(T),zero(T),zero(T),zero(T),zero(T),zero(T),zero(T),zero(T))
+  function Intervals{T}() where {T}
+    return new(Interval{T}(), Interval{T}(), Interval{T}())
+  end
 end
-function wave_numbers_interval(ix, jy, kz, rays, nray, domain)
-    intervals = Intervals{Float64}()
 
-    for iray in 1:nray[ix, jy, kz]
-      ray = rays[iray, ix, jy, kz]
-
-    wnrk = ray.k
-    dwnrk = abs(ray.dkray)
-
-    wnrl = ray.l
-    dwnrl = abs(ray.dlray)
-
-    wnrm = ray.m
-    dwnrm = abs(ray.dmray)
-
-    if (domain.sizex > 1)
-
-      # ! subdivide the interval of wavenumbers to be processed
-      # ! into up to three ranges:
-      # ! (1) if there are negative wavenumbers wnrk < 0, an
-      # ! interval -wnrk_max_n <= wnrk <= -wnrk_min_n
-      # ! (2) if there are zero wavnumbers wnrk = 0, a slot
-      # ! for those
-      # ! (3) if there are positive wavenumbers wnrk > 0, an
-      # ! interval wnrk_min_p <= wnrk <= wnrk_max_p
-
-      if (wnrk > 0.0)
-        if (intervals.wnrk_min_p == 0.0)
-          intervals.wnrk_min_p = wnrk
-        else
-          intervals.wnrk_min_p = min(intervals.wnrk_min_p, wnrk)
-        end
-
-        intervals.wnrk_max_p = max(intervals.wnrk_max_p, wnrk)
-      elseif (wnrk < 0.0)
-        if (intervals.wnrk_min_n == 0.0)
-          intervals.wnrk_min_n = -wnrk
-        else
-          intervals.wnrk_min_n = min(intervals.wnrk_min_n, -wnrk)
-        end
-
-        intervals.wnrk_max_n = max(intervals.wnrk_max_n, -wnrk)
-      end
-    end
-
-    if (domain.sizey > 1)
-      if (wnrl > 0.0)
-        if (intervals.wnrl_min_p == 0.0)
-          intervals.wnrl_min_p = wnrl
-        else
-          intervals.wnrl_min_p = min(intervals.wnrl_min_p, wnrl)
-        end
-
-        intervals.wnrl_max_p = max(intervals.wnrl_max_p, wnrl)
-      elseif (wnrl < 0.0)
-        if (intervals.wnrl_min_n == 0.0)
-          intervals.wnrl_min_n = -wnrl
-        else
-          intervals.wnrl_min_n = min(intervals.wnrl_min_n, -wnrl)
-        end
-
-        intervals.wnrl_max_n = max(intervals.wnrl_max_n, -wnrl)
-      end
-    end
-
-    if (wnrm > 0.0)
-      if (intervals.wnrm_min_p == 0.0)
-        intervals.wnrm_min_p = wnrm
-      else
-        intervals.wnrm_min_p = min(intervals.wnrm_min_p, wnrm)
-      end
-
-      intervals.wnrm_max_p = max(intervals.wnrm_max_p, wnrm)
-    elseif (wnrm < 0.0)
-      if (intervals.wnrm_min_n == 0.0)
-        intervals.wnrm_min_n = -wnrm
-      else
-        intervals.wnrm_min_n = min(intervals.wnrm_min_n, -wnrm)
-      end
-
-      intervals.wnrm_max_n = max(intervals.wnrm_max_n, -wnrm)
-    end
-  end
-
-  if (domain.sizex > 1)
-    if (intervals.wnrk_min_n == 0.0 && intervals.wnrk_max_n == 0.0)
-      if (intervals.wnrk_min_p != 0.0 && intervals.wnrk_max_p != 0.0)
-        intervals.wnrk_min_n = intervals.wnrk_min_p
-        intervals.wnrk_max_n = intervals.wnrk_max_p
-      else
-        # ! all limits zero only applies if all wnrk = 0
-        # ! hence, just in order to provide some numbers ...
-        intervals.wnrk_min_n = 1.0
-        intervals.wnrk_max_n = 2.0
-      end
-    end
-
-    if (intervals.wnrk_min_p == 0.0 && intervals.wnrk_max_p == 0.0)
-      if (intervals.wnrk_min_n != 0.0 && intervals.wnrk_max_n != 0.0)
-        intervals.wnrk_min_p = intervals.wnrk_min_n
-        intervals.wnrk_max_p = intervals.wnrk_max_n
-      else
-        # ! all limits zero only applies if all wnrk = 0
-        # ! hence, just in order to provide some numbers ...
-        intervals.wnrk_min_p = 1.0
-        intervals.wnrk_max_p = 2.0
-      end
-    end
-
-    # ! in order to prevent zero-width intervals ...
-
-    if (intervals.wnrk_min_n == intervals.wnrk_max_n)
-      intervals.wnrk_min_n = 0.5 * intervals.wnrk_min_n
-      intervals.wnrk_max_n = 2.0 * intervals.wnrk_max_n
-    end
-
-    if (intervals.wnrk_min_p == intervals.wnrk_max_p)
-      intervals.wnrk_min_p = 0.5 * intervals.wnrk_min_p
-      intervals.wnrk_max_p = 2.0 * intervals.wnrk_max_p
-    end
-  end
-  if (domain.sizey > 1)
-    if (intervals.wnrl_min_n == 0.0 && intervals.wnrl_max_n == 0.0)
-      if (intervals.wnrl_min_p != 0.0 && intervals.wnrl_max_p != 0.0)
-        intervals.wnrl_min_n = intervals.wnrl_min_p
-        intervals.wnrl_max_n = intervals.wnrl_max_p
-      else
-        # ! all limits zero only applies if all wnrl = 0
-        # ! hence, just in order to provide some numbers ...
-        intervals.wnrl_min_n = 1.0
-        intervals.wnrl_max_n = 2.0
-      end
-    end
-
-    if (intervals.wnrl_min_p == 0.0 && intervals.wnrl_max_p == 0.0)
-      if (intervals.wnrl_min_n != 0.0 && intervals.wnrl_max_n != 0.0)
-        intervals.wnrl_min_p = intervals.wnrl_min_n
-        intervals.wnrl_max_p = intervals.wnrl_max_n
-      else
-        # ! all limits zero only applies if all wnrl = 0
-        # ! hence, just in order to provide some numbers ...
-        intervals.wnrl_min_p = 1.0
-        intervals.wnrl_max_p = 2.0
-      end
-    end
-
-    # ! in order to prevent zero-width intervals ...
-
-    if (intervals.wnrl_min_n == intervals.wnrl_max_n)
-      intervals.wnrl_min_n = 0.5 * intervals.wnrl_min_n
-      intervals.wnrl_max_n = 2.0 * intervals.wnrl_max_n
-    end
-
-    if (intervals.wnrl_min_p == intervals.wnrl_max_p)
-      intervals.wnrl_min_p = 0.5 * intervals.wnrl_min_p
-      intervals.wnrl_max_p = 2.0 * intervals.wnrl_max_p
-    end
-  end # sizey > 1
-
-  # z
-  if (intervals.wnrm_min_n == 0.0 && intervals.wnrm_max_n == 0.0)
-    if (intervals.wnrm_min_p != 0.0 && intervals.wnrm_max_p != 0.0)
-      intervals.wnrm_min_n = intervals.wnrm_min_p
-      intervals.wnrm_max_n = intervals.wnrm_max_p
+function adjust(i::Interval)
+  # TODO: this needs a better name
+  if (i.min_n == 0.0 && i.max_n == 0.0)
+    if (i.min_p != 0.0 && i.max_p != 0.0)
+      i.min_n = i.min_p
+      i.max_n = i.max_p
     else
-      # ! all limits zero only applies if all wnrm = 0
+      # ! all limits zero only applies if all wnrk = 0
       # ! hence, just in order to provide some numbers ...
-      intervals.wnrm_min_n = 1.0
-      intervals.wnrm_max_n = 2.0
+      i.min_n = 1.0
+      i.max_n = 2.0
     end
   end
-
-  if (intervals.wnrm_min_p == 0.0 && intervals.wnrm_max_p == 0.0)
-    if (intervals.wnrm_min_n != 0.0 && intervals.wnrm_max_n != 0.0)
-      intervals.wnrm_min_p = intervals.wnrm_min_n
-      intervals.wnrm_max_p = intervals.wnrm_max_n
+  if (i.min_p == 0.0 && i.max_p == 0.0)
+    if (i.min_n != 0.0 && i.max_n != 0.0)
+      i.min_p = i.min_n
+      i.max_p = i.max_n
     else
-      # ! all limits zero only applies if all wnrm = 0
+      # ! all limits zero only applies if all wnrk = 0
       # ! hence, just in order to provide some numbers ...
-      intervals.wnrm_min_p = 1.0
-      intervals.wnrm_max_p = 2.0
+      i.min_p = 1.0
+      i.max_p = 2.0
     end
   end
 
   # ! in order to prevent zero-width intervals ...
 
-  if (intervals.wnrm_min_n == intervals.wnrm_max_n)
-    intervals.wnrm_min_n = 0.5 * intervals.wnrm_min_n
-    intervals.wnrm_max_n = 2.0 * intervals.wnrm_max_n
+  if (i.min_n == i.max_n)
+    i.min_n = 0.5 * i.min_n
+    i.max_n = 2.0 * i.max_n
   end
 
-  if (intervals.wnrm_min_p == intervals.wnrm_max_p)
-    intervals.wnrm_min_p = 0.5 * intervals.wnrm_min_p
-    intervals.wnrm_max_p = 2.0 * intervals.wnrm_max_p
+  if (i.min_p == i.max_p)
+    i.min_p = 0.5 * i.min_p
+    i.max_p = 2.0 * i.max_p
   end
+  return i
+end
+
+function subdivide(wavenumber, i::Interval)
+
+  # ! subdivide the interval of wavenumbers to be processed
+  # ! into up to three ranges:
+  # ! (1) if there are negative wavenumbers wnrk < 0, an
+  # ! interval -wnrk_max_n <= wnrk <= -wnrk_min_n
+  # ! (2) if there are zero wavnumbers wnrk = 0, a slot
+  # ! for those
+  # ! (3) if there are positive wavenumbers wnrk > 0, an
+  # ! interval wnrk_min_p <= wnrk <= wnrk_max_p
+
+  w = wavenumber
+  if (w > 0.0)
+    if (i.min_p == 0.0)
+      i.min_p = w
+    else
+      i.min_p = min(i.min_p, w)
+    end
+
+    i.max_p = max(i.max_p, w)
+  elseif (w < 0.0)
+    if (i.min_n == 0.0)
+      i.min_n = -w
+    else
+      i.min_n = min(i.min_n, -w)
+    end
+
+    i.max_n = max(i.max_n, -w)
+  end
+  return i
+end
+
+function wave_numbers_interval(ix, jy, kz, rays, nray, domain)
+  intervals = Intervals{Float64}()
+
+  for iray in 1:nray[ix, jy, kz]
+    ray = rays[iray, ix, jy, kz]
+
+    if (domain.sizex > 1)
+      intervals.k = subdivide(ray.k, intervals.k)
+    end
+
+    if (domain.sizey > 1)
+      intervals.l = subdivide(ray.l, intervals.l)
+    end
+
+    intervals.m = subdivide(ray.m, intervals.m)
+  end
+
+  if (domain.sizex > 1)
+    intervals.k = adjust(intervals.k)
+  end
+
+  if (domain.sizey > 1)
+    intervals.l = adjust(intervals.l)
+  end
+  intervals.m = adjust(intervals.m)
   return intervals
 end
 
-function log_widths(max_n, min_n, max_p, min_p, nray)
-  mg_n = log(max_n / min_n) / (nray / 2 - 1)
-  mg_p = log(max_p / min_p) / (nray / 2 - 1)
+function log_widths(interval::Interval, nray)
+  mg_n = log(interval.max_n / interval.min_n) / (nray / 2 - 1)
+  mg_p = log(interval.max_p / interval.min_p) / (nray / 2 - 1)
   return (mg_n, mg_p)
 end
 
 function generate_merged_rv(ix, jy, kz, rays, nray, intervals, widths, state)
-    domain = state.domain
-    wkb = state.wkb
-    (; nxray, nyray, nzray, nr_merge, cons_merge) = wkb
+  domain = state.domain
+  wkb = state.wkb
+  (; nxray, nyray, nzray, nr_merge, cons_merge) = wkb
   for iray in 1:nray[ix, jy, kz]
     ray = rays[iray, ix, jy, kz]
     wnrk = ray.k
@@ -268,18 +171,22 @@ function generate_merged_rv(ix, jy, kz, rays, nray, intervals, widths, state)
       # ! indices nxRay/2 + 1 ... nxRay - 1 for positive k
 
       if (wnrk < 0.0)
-        if (abs(log(-wnrk / intervals.wnrk_max_n) / widths.dwnrk_mg_n) < 1.0)
+        if (abs(log(-wnrk / intervals.k.max_n) / widths.dwnrk_mg_n) < 1.0)
           ir_k = nxray / 2 - 1
         else
-          ir_k = Int64(log(-wnrk / intervals.wnrk_min_n) / widths.dwnrk_mg_n) + 1
+          ir_k =
+            Int64(log(-wnrk / intervals.k.min_n) / widths.dwnrk_mg_n) + 1
         end
       elseif (wnrk == 0.0)
         ir_k = nxray / 2
       else
-        if (abs(log(wnrk / intervals.wnrk_max_p) / widths.dwnrk_mg_p) < 1.0)
+        if (abs(log(wnrk / intervals.k.max_p) / widths.dwnrk_mg_p) < 1.0)
           ir_k = nxray - 1
         else
-          ir_k = Int64(log(wnrk / intervals.wnrk_min_p) / widths.dwnrk_mg_p) + nxray / 2 + 1
+          ir_k =
+            Int64(log(wnrk / intervals.k.min_p) / widths.dwnrk_mg_p) +
+            nxray / 2 +
+            1
         end
       end
 
@@ -312,18 +219,22 @@ function generate_merged_rv(ix, jy, kz, rays, nray, intervals, widths, state)
       fcpspy = ayl
 
       if (wnrl < 0.0)
-        if (abs(log(-wnrl / intervals.wnrl_max_n) / widths.dwnrl_mg_n) < 1.0)
+        if (abs(log(-wnrl / intervals.l.max_n) / widths.dwnrl_mg_n) < 1.0)
           ir_l = nyray / 2 - 1
         else
-          ir_l = Int64(log(-wnrl / intervals.wnrl_min_n) / widths.dwnrl_mg_n) + 1
+          ir_l =
+            Int64(log(-wnrl / intervals.l.min_n) / widths.dwnrl_mg_n) + 1
         end
       elseif (wnrl == 0.0)
         ir_l = nyray / 2
       else
-        if (abs(log(wnrl / intervals.wnrl_max_p) / widths.dwnrl_mg_p) < 1.0)
+        if (abs(log(wnrl / intervals.l.max_p) / widths.dwnrl_mg_p) < 1.0)
           ir_l = nyray - 1
         else
-          ir_l = Int64(log(wnrl / intervals.wnrl_min_p) / widths.dwnrl_mg_p) + nyray / 2 + 1
+          ir_l =
+            Int64(log(wnrl / intervals.l.min_p) / widths.dwnrl_mg_p) +
+            nyray / 2 +
+            1
         end
       end
 
@@ -354,18 +265,21 @@ function generate_merged_rv(ix, jy, kz, rays, nray, intervals, widths, state)
     fcpspz = azm
 
     if (wnrm < 0.0)
-      if (abs(log(-wnrm / intervals.wnrm_max_n) / widths.dwnrm_mg_n) < 1.0)
+      if (abs(log(-wnrm / intervals.m.max_n) / widths.dwnrm_mg_n) < 1.0)
         ir_m = nzray / 2 - 1
       else
-        ir_m = Int64(log(-wnrm / intervals.wnrm_min_n) / widths.dwnrm_mg_n) + 1
+        ir_m = Int64(log(-wnrm / intervals.m.min_n) / widths.dwnrm_mg_n) + 1
       end
     elseif (wnrm == 0.0)
       ir_m = nzRay / 2
     else
-      if (abs(log(wnrm / intervals.wnrm_max_p) / widths.dwnrm_mg_p) < 1.0)
+      if (abs(log(wnrm / intervals.m.max_p) / widths.dwnrm_mg_p) < 1.0)
         ir_m = nzray - 1
       else
-        ir_m = Int64(log(wnrm / intervals.wnrm_min_p) / widths.dwnrm_mg_p) + nzray / 2 + 1
+        ir_m =
+          Int64(log(wnrm / intervals.m.min_p) / widths.dwnrm_mg_p) +
+          nzray / 2 +
+          1
       end
     end
 
@@ -379,7 +293,6 @@ function generate_merged_rv(ix, jy, kz, rays, nray, intervals, widths, state)
       # print *, 'wnrm_max_p - wnrm = ', wnrm_max_p - wnrm
       exit()
     elseif (ir_m > nzray - 1)
-      then
       # print *, 'ERROR in merge_rayvol: ir_m =', ir_m, '> nzRay - 1 =', &
       #     &nzRay - 1
       # print *, 'wnrm = ', wnrm
@@ -429,7 +342,6 @@ function generate_merged_rv(ix, jy, kz, rays, nray, intervals, widths, state)
 
       wkb.mrmnmg[jray] = wnrm - 0.5 * dwnrm
       wkb.mrmxmg[jray] = wnrm + 0.5 * dwnrm
-
 
       if (cons_merge == "wa")
         # ! wave-action density after merging to be determined
@@ -490,9 +402,9 @@ function generate_merged_rv(ix, jy, kz, rays, nray, intervals, widths, state)
 end
 
 function replace_rayvolume(rays, state)
-    wkb = state.wkb
-    (; nr_merge, nray_max, cons_merge) = wkb
-    iray = 0
+  wkb = state.wkb
+  (; nr_merge, nray_max, cons_merge) = wkb
+  iray = 0
 
   for jray in 1:nray_max
     if (nr_merge[jray] < 1)
@@ -582,8 +494,8 @@ function replace_rayvolume(rays, state)
 end
 
 function total_ray_volumes()
-    return 1
-    # nrvloc = sum(nRay(1:nx, 1:ny, 1:nz))
+  return 1
+  # nrvloc = sum(nRay(1:nx, 1:ny, 1:nz))
 
   # ! testb
   # ! print*,'before merging nrvloc =',nrvloc
@@ -602,21 +514,33 @@ function merge_rayvol(state)
   (; nray, rays, nray_max, nxray, nyray, nzray) = state.wkb
 
   for kz in 1:nz, jy in 1:ny, ix in 1:nx
-      if (nray[ix, jy, kz] <= nray_max)
+    if (nray[ix, jy, kz] <= nray_max)
       continue
     end
 
     intervals = wave_numbers_interval(ix, jy, kz, rays, nray, state.domain)
 
+    dwnrk_mg_n, dwnrk_mg_p = log_widths(
+        intervals.k,
+        nxray
+    )
+    dwnrl_mg_n, dwnrl_mg_p = log_widths(
+        intervals.l,
+        nyray
+    )
+    dwnrm_mg_n, dwnrm_mg_p = log_widths(
+        intervals.m,
+        nzray
+    )
 
-    dwnrk_mg_n, dwnrk_mg_p =
-      log_widths(intervals.wnrk_max_n, intervals.wnrk_min_n, intervals.wnrk_max_p, intervals.wnrk_min_p, nxray)
-    dwnrl_mg_n, dwnrl_mg_p =
-      log_widths(intervals.wnrl_max_n, intervals.wnrl_min_n, intervals.wnrl_max_p, intervals.wnrl_min_p, nyray)
-    dwnrm_mg_n, dwnrm_mg_p =
-      log_widths(intervals.wnrm_max_n, intervals.wnrm_min_n, intervals.wnrm_max_p, intervals.wnrm_min_p, nzray)
-
-    w = widths(dwnrk_mg_n, dwnrk_mg_p, dwnrl_mg_n, dwnrl_mg_p, dwnrm_mg_n, dwnrm_mg_p)
+    w = widths(
+      dwnrk_mg_n,
+      dwnrk_mg_p,
+      dwnrl_mg_n,
+      dwnrl_mg_p,
+      dwnrm_mg_n,
+      dwnrm_mg_p,
+    )
     generate_merged_rv(ix, jy, kz, rays, nray, intervals, w, state)
 
     replace_rayvolume(rays, state)
