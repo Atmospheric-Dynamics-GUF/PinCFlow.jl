@@ -55,7 +55,7 @@ function saturation!(state, dt::AbstractFloat, steadystate == false)
 
           kz = kztildetfc(ix, jy, zr)
 
-          nn_nd = stratification(zr, 1) # compute stratification
+          nn_nd = stratification(state, zr, 1) # compute stratification
 
           wnrk = ray.k[iray, ixrv, jyrv, kzrv]
           wnrl = ray.l[iray, ixrv, jyrv, kzrv]
@@ -107,7 +107,7 @@ function saturation!(state, dt::AbstractFloat, steadystate == false)
   for kz in k0:k1
     for jy in j0:j1
       for ix in i0:i1
-        nn_nd = stratification(ztfc[ix, jy, kz], 1)
+        nn_nd = stratification(state, ztfc[ix, jy, kz], 1)
 
         # check according to eq. (48)
         if mb2k2[ix, jy, kz] == 0.0 ||
@@ -213,7 +213,7 @@ function saturation!(state, dt::AbstractFloat, steadystate == false)
 
           kz = kztildetfc(ix, jy, zr)
 
-          nn_nd = stratification(zr, 1) # compute stratification
+          nn_nd = stratification(state, zr, 1) # compute stratification
 
           wnrk = ray.k[iray, ixrv, jyrv, kzrv]
           wnrl = ray.l[iray, ixrv, jyrv, kzrv]
@@ -257,7 +257,7 @@ function saturation!(state, dt::AbstractFloat, steadystate == false)
   for kz in k0:k1
     for jy in j0:j1
       for ix in i0:i1
-        nn_nd = stratification(ztfc[ix, jy, kz], 1)
+        nn_nd = stratification(state, ztfc[ix, jy, kz], 1)
 
         if mb2[ix, jy, kz] - alpha_sat^2.0 * nn_nd^2.0 >
            1.E-3 * alpha_sat^2.0 * nn_nd^2.0
