@@ -96,6 +96,8 @@ include("output/read_input.jl")
 include("integration/synchronize_density_fluctuations.jl")
 include("integration/integrate.jl")
 
+include("wkb/merge_rayvol.jl")
+
 export DomainNamelist,
   OutputNamelist,
   SettingNamelist,
