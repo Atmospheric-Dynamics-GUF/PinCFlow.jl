@@ -35,6 +35,11 @@ include("types/variables/auxiliaries.jl")
 include("types/variables/reconstructions.jl")
 include("types/variables/fluxes.jl")
 include("types/variables/variables.jl")
+include("types/wkb/rays.jl")
+include("types/wkb/increments.jl")
+include("types/wkb/integrals.jl")
+include("types/wkb/surface_indices.jl")
+include("types/wkb/wkb.jl")
 include("types/state.jl")
 
 # Include boundary functions.
