@@ -7,6 +7,7 @@ struct Namelists{
   F <: AtmosphereNamelist,
   G <: GridNamelist,
   H <: SpongeNamelist,
+  I <: WKBNamelist,
 }
   domain::A
   output::B
@@ -16,6 +17,7 @@ struct Namelists{
   atmosphere::F
   grid::G
   sponge::H
+  wkb::I
 end
 
 function Namelists(;
@@ -27,6 +29,7 @@ function Namelists(;
   atmosphere = AtmosphereNamelist(),
   grid = GridNamelist(),
   sponge = SpongeNamelist(),
+  wkb = WKBNamelist(),
 )
   return Namelists(
     domain,
@@ -37,5 +40,6 @@ function Namelists(;
     atmosphere,
     grid,
     sponge,
+    wkb,
   )
 end
