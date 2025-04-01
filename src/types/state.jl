@@ -8,6 +8,7 @@ struct State{
   G <: Sponge,
   H <: Poisson,
   I <: Variables,
+  J <: WKB,
 }
   namelists::A
   time::B
@@ -18,6 +19,7 @@ struct State{
   sponge::G
   poisson::H
   variables::I
+  wkb::J
 end
 
 function State(namelists::Namelists)
@@ -31,6 +33,8 @@ function State(namelists::Namelists)
   sponge = Sponge(namelists, domain, grid)
   poisson = Poisson(namelists, domain)
   variables = Variables(namelists, constants, domain)
+  wkb =
+    WKB(namelists, constants, domain, grid, atmosphere, variables.predictands)
 
   # Return a State instance.
   return State(
@@ -43,5 +47,6 @@ function State(namelists::Namelists)
     sponge,
     poisson,
     variables,
+    wkb,
   )
 end
