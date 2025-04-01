@@ -40,16 +40,6 @@ struct WKBNamelist{
   single_column::D
   steady_state::D
   case_wkb::B
-  amp_wkb::A
-  wlrx_init::A
-  wlry_init::A
-  wlrz_init::A
-  xr0_dim::A
-  yr0_dim::A
-  zr0_dim::A
-  sigwpx_dim::A
-  sigwpy_dim::A
-  sigwpz_dim::A
   blocking::D
   nwm::B
   launch_algorithm::E
@@ -83,16 +73,6 @@ function WKBNamelist(;
   single_column = false,
   steady_state = false,
   case_wkb = 3,
-  amp_wkb = 1.0,
-  wlrx_init = 100.0,
-  wlry_init = 100.0,
-  wlrz_init = 100.0,
-  xr0_dim = 500.0,
-  yr0_dim = 500.0,
-  zr0_dim = 500.0,
-  sigwpx_dim = 500.0,
-  sigwpy_dim = 500.0,
-  sigwpz_dim = 500.0,
   blocking = false,
   nwm = 1,
   launch_algorithm = Clip(),
@@ -125,16 +105,6 @@ function WKBNamelist(;
     single_column,
     steady_state,
     case_wkb,
-    amp_wkb,
-    wlrx_init,
-    wlry_init,
-    wlrz_init,
-    xr0_dim,
-    yr0_dim,
-    zr0_dim,
-    sigwpx_dim,
-    sigwpy_dim,
-    sigwpz_dim,
     blocking,
     nwm,
     launch_algorithm,
