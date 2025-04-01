@@ -14,6 +14,7 @@ include("types/namelists/poisson_namelist.jl")
 include("types/namelists/atmosphere_namelist.jl")
 include("types/namelists/grid_namelist.jl")
 include("types/namelists/sponge_namelist.jl")
+include("types/namelists/wkb_namelist.jl")
 include("types/namelists/namelists.jl")
 include("types/time.jl")
 include("types/constants.jl")
@@ -98,7 +99,7 @@ export DomainNamelist,
   AtmosphereNamelist,
   GridNamelist,
   SpongeNamelist,
-  BoundariesNamelist,
+  WKBNamelist,
   Namelists
 export Rho, RhoP, U, US, V, VS, W, WS, WTFC, WSTFC, ThetaP, PiP
 export PseudoIncompressible
@@ -108,6 +109,8 @@ export Isothermal
 export ConstantCoriolis
 export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
 export PeriodicBoundaries, SolidWallBoundaries
+export ConstantWaveEnergy, ConstantWaveAction
+export Clip, Scale
 export State
 export integrate
 
