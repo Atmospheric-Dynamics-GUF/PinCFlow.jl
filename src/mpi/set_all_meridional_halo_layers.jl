@@ -1,4 +1,4 @@
-function set_meridional_halos_of_field!(
+function set_all_meridional_halo_layers!(
   field::AbstractArray{<:AbstractFloat, 3},
   namelists::Namelists,
   domain::Domain,
@@ -37,7 +37,7 @@ function set_meridional_halos_of_field!(
   return
 end
 
-function set_meridional_halos_of_field!(
+function set_all_meridional_halo_layers!(
   field::AbstractArray{<:AbstractFloat, 5},
   namelists::Namelists,
   domain::Domain,
