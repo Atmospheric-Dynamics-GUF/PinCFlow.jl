@@ -7,6 +7,7 @@ function saturation!(state, dt::AbstractFloat, steadystate == false)
   # 3d extension of the saturation scheme in Boeloeni et al. (2016)
 
   # TODO first and fourth loop are basically identical
+  (; domain, grid) = state
   (; ray, diffusion) = state.wkb
   (; sizex, sizey, sizez) = state.namelists.domain
   (; alpha_sat) = state.namelists.wkb
@@ -53,7 +54,7 @@ function saturation!(state, dt::AbstractFloat, steadystate == false)
             jy = 1
           end
 
-          kz = kztildetfc(ix, jy, zr)
+          kz = kztildetfc(ix, jy, zr, domain, grid)
 
           nn_nd = stratification(state, zr, 1) # compute stratification
 
