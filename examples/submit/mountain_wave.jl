@@ -69,9 +69,9 @@ grid = GridNamelist(;
   mountainheight_dim = 4.0E+2,
   mountainwidth_dim = 1.0E+3,
   mountain_case = 3,
-  range_factor = 1.0E+1,
+  height_factor = 1.0E+0,
+  width_factor = 1.0E+0,
   spectral_modes = 1,
-  envelope_reduction = 0.0E+0,
   stretch_exponent = 1.0E+0,
 )
 
