@@ -263,7 +263,7 @@ function WKB(
 
         # Set ray-volume indices.
         if case_wkb == 3
-          i_sfc = i_sfc + 1
+          i_sfc += 1
 
           # Set surface indices.
           ix2_sfc[i_sfc] = ix2
@@ -277,13 +277,13 @@ function WKB(
           # Set surface ray-volume index.
           if wad_ini[iwm, ix, jy, kz] == 0.0
             ir_sfc[i_sfc, ix, jy] = -1
-            cycle
+            continue
           else
-            iray = iray + 1
+            iray += 1
             ir_sfc[i_sfc, ix, jy] = iray
           end
         else
-          iray = iray + 1
+          iray += 1
         end
 
         # Set ray-volume positions.
@@ -378,9 +378,9 @@ function WKB(
         rays.omega[iray, ix, jy, kz] = omi_ini[iwm, ix, jy, kz]
 
         # Interpolate winds to ray-volume position.
-        uxr = meanflow(xr, yr, zr, predictands, U())
-        vyr = meanflow(xr, yr, zr, predictands, V())
-        wzr = meanflow(xr, yr, zr, predictands, W())
+        uxr = meanflow(xr, yr, zr, namelists, domain, grid, predictands, U())
+        vyr = meanflow(xr, yr, zr, namelists, domain, grid, predictands, V())
+        wzr = meanflow(xr, yr, zr, namelists, domain, grid, predictands, W())
 
         wnrk = rays.k[iray, ix, jy, kz]
         wnrl = rays.l[iray, ix, jy, kz]
