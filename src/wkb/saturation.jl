@@ -10,7 +10,7 @@ function saturation!(state, dt::AbstractFloat, steadystate == false)
   (; ray, diffusion) = state.wkb
   (; sizex, sizey, sizez) = state.namelists.domain
   (; alpha_sat) = state.namelists.wkb
-  (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
+  (; io, jo, i0, i1, j0, j1, k0, k1, nxx, nyy, nzz) = state.domain
   (; lx, ly, lz, dx, dy, dz, jac) = state.grid
   (; rhostrattfc) = state.atmosphere
 
