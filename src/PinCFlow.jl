@@ -96,7 +96,12 @@ include("output/read_input.jl")
 include("integration/synchronize_density_fluctuations.jl")
 include("integration/integrate.jl")
 
+# Include WKB functions.
 include("wkb/merge_rayvol.jl")
+include("wkb/orographic_source.jl")
+include("wkb/saturation.jl")
+include("wkb/split_rayvol.jl")
+include("wkb/stratification.jl")
 
 export DomainNamelist,
   OutputNamelist,
