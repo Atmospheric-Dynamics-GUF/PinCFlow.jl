@@ -27,8 +27,8 @@ function apply_corrector!(
   end
 
   # Set boundaries of pressure correction.
-  set_zonal_boundaries_of_pressure_field!(dpip, namelists, domain)
-  set_meridional_boundaries_of_pressure_field!(dpip, namelists, domain)
+  set_one_zonal_boundary_layer!(dpip, namelists, domain)
+  set_one_meridional_boundary_layer!(dpip, namelists, domain)
 
   # Set vertical boundaries of dp.
   if zboundaries == SolidWallBoundaries()

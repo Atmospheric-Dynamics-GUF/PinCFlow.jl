@@ -53,7 +53,7 @@ struct Domain{
   back::C
   forw::C
 
-  # Auxiliary arrays for halos.
+  # Auxiliary arrays for setting all halo layers.
   send_a3_left::D
   send_a3_right::D
   recv_a3_left::D
@@ -71,15 +71,15 @@ struct Domain{
   recv_a5_back::G
   recv_a5_forw::G
 
-  # Auxiliary arrays for halos of pressure fields.
-  send_pressure_left::H
-  send_pressure_right::H
-  recv_pressure_left::H
-  recv_pressure_right::H
-  send_pressure_back::I
-  send_pressure_forw::I
-  recv_pressure_back::I
-  recv_pressure_forw::I
+  # Auxiliary arrays for setting one halo layer.
+  send_o3_left::H
+  send_o3_right::H
+  recv_o3_left::H
+  recv_o3_right::H
+  send_o3_back::I
+  send_o3_forw::I
+  recv_o3_back::I
+  recv_o3_forw::I
 
   # Auxiliary arrays for gather & scatter.
   local_array::J
@@ -162,7 +162,7 @@ function Domain(namelists::Namelists)
   (left, right) = MPI.Cart_shift(comm, 0, 1)
   (back, forw) = MPI.Cart_shift(comm, 1, 1)
 
-  # Initialize auxiliary arrays for halos.
+  # Initialize auxiliary arrays for setting all halo layers.
   (send_a3_left, send_a3_right, recv_a3_left, recv_a3_right) =
     (zeros(nbx, nyy, nzz) for i in 1:4)
   (send_a5_left, send_a5_right, recv_a5_left, recv_a5_right) =
@@ -172,18 +172,18 @@ function Domain(namelists::Namelists)
   (send_a5_back, send_a5_forw, recv_a5_back, recv_a5_forw) =
     (zeros(nxx, nby, nzz, 3, 2) for i in 1:4)
 
-  # Initialize auxiliary arrays for halos of pressure fields.
+  # Initialize auxiliary arrays for setting one halo layer.
   (
-    send_pressure_left,
-    send_pressure_right,
-    recv_pressure_left,
-    recv_pressure_right,
+    send_o3_left,
+    send_o3_right,
+    recv_o3_left,
+    recv_o3_right,
   ) = (zeros(ny + 2, nz + 2) for i in 1:4)
   (
-    send_pressure_back,
-    send_pressure_forw,
-    recv_pressure_back,
-    recv_pressure_forw,
+    send_o3_back,
+    send_o3_forw,
+    recv_o3_back,
+    recv_o3_forw,
   ) = (zeros(nx + 2, nz + 2) for i in 1:4)
 
   # Initialize auxiliary arrays for gather & scatter.
@@ -237,14 +237,14 @@ function Domain(namelists::Namelists)
     send_a5_forw,
     recv_a5_back,
     recv_a5_forw,
-    send_pressure_left,
-    send_pressure_right,
-    recv_pressure_left,
-    recv_pressure_right,
-    send_pressure_back,
-    send_pressure_forw,
-    recv_pressure_back,
-    recv_pressure_forw,
+    send_o3_left,
+    send_o3_right,
+    recv_o3_left,
+    recv_o3_right,
+    send_o3_back,
+    send_o3_forw,
+    recv_o3_back,
+    recv_o3_forw,
     local_array,
     master_array,
     global_array,
