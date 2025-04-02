@@ -97,13 +97,41 @@ end
 function orographic_source!(state::State, dt::AbstractFloat)
   # Get all necessary fields.
   (; f_cor_nd) = state.namelists.atmosphere
-  (; branchr, blocking, long_threshold) = state.namelists.wkb
+  (;
+    nrxl,
+    nryl,
+    nrzl,
+    nrk_init,
+    nrl_init,
+    nrm_init,
+    fac_dk_init,
+    fac_dl_init,
+    fac_dm_init,
+    branchr,
+    blocking,
+    long_threshold,
+    launch_algorithm,
+  ) = state.namelists.wkb
   (; tref) = state.constants
-  (; i0, i1, j0, j1, k0, k1) = state.domain
-  (; dz, jac, ztildetfc, k_spectrum, l_spectrum, topography_spectrum) =
-    state.grid
+  (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
+  (;
+    dx,
+    dy,
+    dz,
+    x,
+    y,
+    ztfc,
+    jac,
+    ztildetfc,
+    k_spectrum,
+    l_spectrum,
+    topography_spectrum,
+  ) = state.grid
   (; rhostrattfc, bvsstrattfc) = state.atmosphere
   (; u, v) = state.variables.predictands
+  (; ir_sfc, ix2_sfc, jy2_sfc, kz2_sfc, ik_sfc, jl_sfc, km_sfc, iwm_sfc) =
+    state.wkb.surface_indices
+  (; nray_wrk, nray, rays) = state.wkb
 
   # Set Coriolis parameter.
   f_cor_nd = f_coriolis_dim * tref
@@ -207,7 +235,7 @@ function orographic_source!(state::State, dt::AbstractFloat)
         end
 
         if wadr == 0.0
-          ray.dens[iray, ix, jy, kz] = 0.0
+          rays.dens[iray, ix, jy, kz] = 0.0
           continue
         end
       else
