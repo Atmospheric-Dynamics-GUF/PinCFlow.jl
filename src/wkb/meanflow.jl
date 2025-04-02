@@ -1,0 +1,1789 @@
+function meanflow(
+  xlc::AbstractFloat,
+  ylc::AbstractFloat,
+  zlc::AbstractFloat,
+  namelists::Namelists,
+  domain::Domain,
+  predictants::Predictands,
+  flwtype::U,
+)
+  # interpolation of the zonal mean flow to 
+  # specified location (xlc, ylc, zlc)
+
+  (; sizex, sizey) = namelists.domain
+  (; u) = predictands
+  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
+  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztfc) = grid
+
+  # locate the closest points in zonal direction
+  if sizex == 1
+    ixl = i0
+    ixr = i0
+  else
+    ixl = floor((xlc - lx[1]) / dx) - io
+    if (ixl < 0)
+      error("Error in meanflow (U): ixl = ", ixl, "< 0")
+    end
+    ixr = ixl + 1
+    if ixr > nxx
+      error("Error in meanflow (U): ixr = ", ixr, "> nxx = ", nxx)
+    end
+  end
+  xr = x[ixr + io] + 0.5 * dx
+  xl = x[ixl + io] + 0.5 * dx
+
+  # locate the closest points in meridional direction 
+  if sizey == 1
+    jyb = j0
+    jyf = j0
+  else
+    jyb = floor((ylc - 0.5 * dy - ly[1]) / dy) + 1 - jo
+    if (jyb < 0)
+      error("Error in meanflow (U): jyl = ", jyl, "< 0")
+    end
+    jyf = jyb + 1
+    if jyf > nyy
+      error("Error in meanflow (U): jyr = ", jyr, "> nyy = ", nyy)
+    end
+  end
+  yf = y[jyf + jo]
+  yb = y[jyb + jo]
+
+  # locate the closest points in vertical direction 
+  kzlbu = kztfc(ixl, jyb, zlc, domain, grid)
+  kzlbd = kzlbu - 1
+  if kzlbd > k1
+    kzlbu = k1
+    kzlbd = k1
+  end
+  zlbd = ztfc[ixl, jyb, kzlbd]
+  zlbu = ztfc[ixl, jyb, kzlbu]
+
+  kzlfu = kztfc(ixl, jyf, zlc, domain, grid)
+  kzlfd = kzlfu - 1
+  if kzlfd > k1
+    kzlfu = k1
+    kzlfd = k1
+  end
+  zlfd = ztfc[ixl, jyf, kzlfd]
+  zlfu = ztfc[ixl, jyf, kzlfu]
+
+  kzrbu = kztfc(ixr, jyb, zlc, domain, grid)
+  kzrbd = kzrbu - 1
+  if kzrbd > k1
+    kzrbu = k1
+    kzrbd = k1
+  end
+  zrbd = ztfc[ixr, jyb, kzrbd]
+  zrbu = ztfc[ixr, jyb, kzrbu]
+
+  kzrfu = kztfc(ixr, jyf, zlc, domain, grid)
+  kzrfd = kzrfu - 1
+  if kzrfd > k1
+    kzrfu = k1
+    kzrfd = k1
+  end
+  zrfd = ztfc[ixr, jyf, kzrfd]
+  zrfu = ztfc[ixr, jyf, kzrfu]
+
+  flwlbd = u[ixl, jyb, kzlbd]
+  flwlbu = u[ixl, jyb, kzlbu]
+
+  flwlfd = u[ixl, jyf, kzlfd]
+  flwlfu = u[ixl, jyf, kzlfu]
+
+  flwrbd = u[ixr, jyb, kzrbd]
+  flwrbu = u[ixr, jyb, kzrbu]
+
+  flwrfd = u[ixr, jyf, kzrfd]
+  flwrfu = u[ixr, jyf, kzrfu]
+
+  flw = meanflow_interpolation(
+    flwlbd,
+    flwlbu,
+    flwlfd,
+    flwlfu,
+    zlbd,
+    zlbu,
+    zlfd,
+    zlfu,
+    xl,
+    xr,
+    xlc,
+    yf,
+    yb,
+    ylc,
+    zlc,
+  )
+
+  return flw
+end
+
+function meanflow(
+  xlc::AbstractFloat,
+  ylc::AbstractFloat,
+  zlc::AbstractFloat,
+  namelists::Namelists,
+  domain::Domain,
+  predictants::Predictands,
+  flwtype::V,
+)
+  # interpolation of the meridional mean flow to 
+  # specified location (xlc, ylc, zlc)
+  # for variable at full levels z(k) = lz(0) +  0.5*dz + (k-1)*dz:
+  # (levels below the model bottom are replaced by the first level
+  # in the model domain)
+
+  (; sizex, sizey) = namelists.domain
+  (; v) = predictands
+  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
+  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztfc) = grid
+
+  # locate the closest points in zonal direction
+  # Locate the closest points in zonal direction.
+  if sizex == 1
+    ixl = i0
+    ixr = i0
+  else
+    ixl = floor((xlc - 0.5 * dx - lx[1]) / dx) + 1 - io
+    if ixl < 0
+      error("ERROR IN MEANFLOW (V): ixl =", ixl, "< 0")
+    end
+    ixr = ixl + 1
+    if ixr > nxx
+      error("ERROR IN MEANFLOW (V): ixr =", ixr, "> nxx =", nxx)
+    end
+  end
+  xr = x[ixr + io]
+  xl = x[ixl + io]
+
+  # Locate the closest points in meridional direction.
+  if sizey == 1
+    jyb = j0
+    jyf = j0
+  else
+    jyb = floor((ylc - ly[1]) / dy) - jo
+    if jyb < 0
+      error("ERROR IN MEANFLOW (V): jyb =", jyb, "< 0")
+    end
+    jyf = jyb + 1
+    if jyf > nyy
+      error("ERROR IN MEANFLOW (V): jyf =", jyf, "> nyy =", nyy)
+    end
+  end
+  yf = y[jyf + jo] + 0.5 * dy
+  yb = y[jyb + jo] + 0.5 * dy
+
+  # Locate the closest points in vertical direction.
+
+  kzlbu = kztfc(ixl, jyb, zlc, domain, grid)
+  kzlbd = kzlbu - 1
+  if kzlbd > k1
+    kzlbu = k1
+    kzlbd = k1
+  end
+  zlbd = ztfc[ixl, jyb, kzlbd]
+  zlbu = ztfc[ixl, jyb, kzlbu]
+
+  kzlfu = kztfc(ixl, jyf, zlc, domain, grid)
+  kzlfd = kzlfu - 1
+  if kzlfd > k1
+    kzlfu = k1
+    kzlfd = k1
+  end
+  zlfd = ztfc[ixl, jyf, kzlfd]
+  zlfu = ztfc[ixl, jyf, kzlfu]
+
+  kzrbu = kztfc(ixr, jyb, zlc, domain, grid)
+  kzrbd = kzrbu - 1
+  if kzrbd > k1
+    kzrbu = k1
+    kzrbd = k1
+  end
+  zrbd = ztfc[ixr, jyb, kzrbd]
+  zrbu = ztfc[ixr, jyb, kzrbu]
+
+  kzrfu = kztfc(ixr, jyf, zlc, domain, grid)
+  kzrfd = kzrfu - 1
+  if kzrfd > k1
+    kzrfu = k1
+    kzrfd = k1
+  end
+  zrfd = ztfc[ixr, jyf, kzrfd]
+  zrfu = ztfc[ixr, jyf, kzrfu]
+
+  # Assign the values.
+
+  flwlbd = v[ixl, jyb, kzlbd]
+  flwlbu = v[ixl, jyb, kzlbu]
+
+  flwlfd = v[ixl, jyf, kzlfd]
+  flwlfu = v[ixl, jyf, kzlfu]
+
+  flwrbd = v[ixr, jyb, kzrbd]
+  flwrbu = v[ixr, jyb, kzrbu]
+
+  flwrfd = v[ixr, jyf, kzrfd]
+  flwrfu = v[ixr, jyf, kzrfu]
+
+  flw = meanflow_interpolation(
+    flwlbd,
+    flwlbu,
+    flwlfd,
+    flwlfu,
+    zlbd,
+    zlbu,
+    zlfd,
+    zlfu,
+    xl,
+    xr,
+    xlc,
+    yf,
+    yb,
+    ylc,
+    zlc,
+  )
+
+  return flw
+end
+
+function meanflow(
+  xlc::AbstractFloat,
+  ylc::AbstractFloat,
+  zlc::AbstractFloat,
+  namelists::Namelists,
+  domain::Domain,
+  predictants::Predictands,
+  flwtype::W,
+)
+  # interpolation of the vertical mean flow to 
+  # specified location (xlc, ylc, zlc)
+  # for variable at intermediate levels
+  # z(k+1/2) = lz(0) + k*dz:
+
+  (; sizex, sizey) = namelists.domain
+  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
+  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztildetfc) = grid
+
+  # locate the closest points in zonal direction
+  # Locate the closest points in zonal direction.
+  if sizex == 1
+    ixl = i0
+    ixr = i0
+  else
+    ixl = floor((xlc - 0.5 * dx - lx[1]) / dx) + 1 - io
+    if ixl < 0
+      error("ERROR IN MEANFLOW (W): ixl =", ixl, "< 0")
+    end
+    ixr = ixl + 1
+    if ixr > nxx
+      error("ERROR IN MEANFLOW (W): ixr =", ixr, "> nxx =", nxx)
+    end
+  end
+  xr = x[ixr + io]
+  xl = x[ixl + io]
+
+  # Locate the closest points in meridional direction.
+  if sizey == 1
+    jyb = j0
+    jyf = j0
+  else
+    jyb = floor((ylc - 0.5 * dy - ly[1]) / dy) + 1 - jo
+    if jyb < 0
+      error("ERROR IN MEANFLOW (W): jyb =", jyb, "< 0")
+    end
+    jyf = jyb + 1
+    if jyf > nyy
+      error("ERROR IN MEANFLOW (W): jyf =", jyf, "> nyy = ", nyy)
+    end
+  end
+  yf = y[jyf + jo]
+  yb = y[jyb + jo]
+
+  # Locate the closest points in vertical direction.
+
+  kzlbu = kztildetfc(ixl, jyb, zlc, domain, grid)
+  kzlbd = kzlbu - 1
+  if kzlbd > k1
+    kzlbu = k1
+    kzlbd = k1
+  end
+  zlbd = ztildetfc[ixl, jyb, kzlbd]
+  zlbu = ztildetfc[ixl, jyb, kzlbu]
+
+  kzlfu = kztildetfc(ixl, jyf, zlc, domain, grid)
+  kzlfd = kzlfu - 1
+  if kzlfd > k1
+    kzlfu = k1
+    kzlfd = k1
+  end
+  zlfd = ztildetfc[ixl, jyf, kzlfd]
+  zlfu = ztildetfc[ixl, jyf, kzlfu]
+
+  kzrbu = kztildetfc(ixr, jyb, zlc, domain, grid)
+  kzrbd = kzrbu - 1
+  if kzrbd > k1
+    kzrbu = k1
+    kzrbd = k1
+  end
+  zrbd = ztildetfc[ixr, jyb, kzrbd]
+  zrbu = ztildetfc[ixr, jyb, kzrbu]
+
+  kzrfu = kztildetfc(ixr, jyf, zlc, domain, grid)
+  kzrfd = kzrfu - 1
+  if kzrfd > k1
+    kzrfu = k1
+    kzrfd = k1
+  end
+  zrfd = ztildetfc[ixr, jyf, kzrfd]
+  zrfu = ztildetfc[ixr, jyf, kzrfu]
+
+  # Assign the values.
+
+  if zlbu < ztildetfc[ixl, jyb, k0]
+    flwlbd = 0.0
+    flwlbu = 0.0
+  elseif zlbd < ztildetfc[ixl, jyb, k0]
+    flwlbd = 0.0
+    flwlbu = compute_vertical_wind(ixl, jyb, kzlbu, predictands, grid)
+  else
+    flwlbd = compute_vertical_wind(ixl, jyb, kzlbd, predictands, grid)
+    flwlbu = compute_vertical_wind(ixl, jyb, kzlbu, predictands, grid)
+  end
+
+  if zlfu < ztildetfc[ixl, jyf, k0]
+    flwlfd = 0.0
+    flwlfu = 0.0
+  elseif zlfd < ztildetfc[ixl, jyf, k0]
+    flwlfd = 0.0
+    flwlfu = compute_vertical_wind(ixl, jyf, kzlfu, predictands, grid)
+  else
+    flwlfd = compute_vertical_wind(ixl, jyf, kzlfd, predictands, grid)
+    flwlfu = compute_vertical_wind(ixl, jyf, kzlfu, predictands, grid)
+  end
+
+  if zrbu < ztildetfc[ixr, jyb, k0]
+    flwrbd = 0.0
+    flwrbu = 0.0
+  elseif zrbd < ztildetfc[ixr, jyb, k0]
+    flwrbd = 0.0
+    flwrbu = compute_vertical_wind(ixr, jyb, kzrbu, predictands, grid)
+  else
+    flwrbd = compute_vertical_wind(ixr, jyb, kzrbd, predictands, grid)
+    flwrbu = compute_vertical_wind(ixr, jyb, kzrbu, predictands, grid)
+  end
+
+  if zrfu < ztildetfc[ixr, jyf, k0]
+    flwrfd = 0.0
+    flwrfu = 0.0
+  elseif zrfd < ztildetfc[ixr, jyf, k0]
+    flwrfd = 0.0
+    flwrfu = compute_vertical_wind(ixr, jyf, kzrfu, predictands, grid)
+  else
+    flwrfd = compute_vertical_wind(ixr, jyf, kzrfd, predictands, grid)
+    flwrfu = compute_vertical_wind(ixr, jyf, kzrfu, predictands, grid)
+  end
+
+  flw = meanflow_interpolation(
+    flwlbd,
+    flwlbu,
+    flwlfd,
+    flwlfu,
+    zlbd,
+    zlbu,
+    zlfd,
+    zlfu,
+    xl,
+    xr,
+    xlc,
+    yf,
+    yb,
+    ylc,
+    zlc,
+  )
+
+  return flw
+end
+
+function meanflow(
+  xlc::AbstractFloat,
+  ylc::AbstractFloat,
+  zlc::AbstractFloat,
+  namelists::Namelists,
+  domain::Domain,
+  predictants::Predictands,
+  flwtype::DUDX,
+)
+  # interpolation of the zonal mean flow to 
+  # specified location (xlc, ylc, zlc)
+
+  (; sizex, sizey) = namelists.domain
+  (; u) = predictands
+  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
+  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztfc, met) = grid
+
+  if sizex == 1
+    flw = 0.0
+    return flw
+  else
+    ixl = floor((xlc - 0.5 * dx - lx[1]) / dx) + 1 - io
+    if ixl - 1 < 0
+      error("ERROR IN MEANFLOW (DUDX): ixl - 1 =", ixl - 1, "< 0")
+    end
+    ixr = ixl + 1
+    if ixr > nxx
+      error("ERROR IN MEANFLOW (DUDX): ixr =", ixr, "> nxx =", nxx)
+    end
+  end
+  xr = x[ixr + io]
+  xl = x[ixl + io]
+
+  # Locate the closest points in meridional direction.
+  if sizey == 1
+    jyb = j0
+    jyf = j0
+  else
+    jyb = floor((ylc - 0.5 * dy - ly[1]) / dy) + 1 - jo
+    if jyb < 0
+      error("ERROR IN MEANFLOW (DUDX): jyb =", jyb, "< 0")
+    end
+    jyf = jyb + 1
+    if jyf > nyy
+      error("ERROR IN MEANFLOW (DUDX): jyf =", jyf, "> nyy =", nyy)
+    end
+  end
+  yf = y[jyf + jo]
+  yb = y[jyb + jo]
+
+  # Locate the closest points in vertical direction.
+
+  kzlbu = kztfc(ixl, jyb, zlc, domain, grid)
+  kzlbd = kzlbu - 1
+  if kzlbd > k1
+    kzlbu = k1
+    kzlbd = k1
+  end
+  zlbd = ztfc[ixl, jyb, kzlbd]
+  zlbu = ztfc[ixl, jyb, kzlbu]
+
+  kzlfu = kztfc(ixl, jyf, zlc, domain, grid)
+  kzlfd = kzlfu - 1
+  if kzlfd > k1
+    kzlfu = k1
+    kzlfd = k1
+  end
+  zlfd = ztfc[ixl, jyf, kzlfd]
+  zlfu = ztfc[ixl, jyf, kzlfu]
+
+  kzrbu = kztfc(ixr, jyb, zlc, domain, grid)
+  kzrbd = kzrbu - 1
+  if kzrbd > k1
+    kzrbu = k1
+    kzrbd = k1
+  end
+  zrbd = ztfc[ixr, jyb, kzrbd]
+  zrbu = ztfc[ixr, jyb, kzrbu]
+
+  kzrfu = kztfc(ixr, jyf, zlc, domain, grid)
+  kzrfd = kzrfu - 1
+  if kzrfd > k1
+    kzrfu = k1
+    kzrfd = k1
+  end
+  zrfd = ztfc[ixr, jyf, kzrfd]
+  zrfu = ztfc[ixr, jyf, kzrfu]
+
+  # Assign the values.
+
+  flwlbd =
+    (u[ixl, jyb, kzlbd] - u[ixl - 1, jyb, kzlbd]) / dx +
+    met[ixl, jyb, kzlbd, 1, 3] *
+    0.25 *
+    (
+      u[ixl, jyb, kzlbd + 1] + u[ixl - 1, jyb, kzlbd + 1] -
+      u[ixl, jyb, kzlbd - 1] - u[ixl - 1, jyb, kzlbd - 1]
+    ) / dz
+  flwlbu =
+    (u[ixl, jyb, kzlbu] - u[ixl - 1, jyb, kzlbu]) / dx +
+    met[ixl, jyb, kzlbu, 1, 3] *
+    0.25 *
+    (
+      u[ixl, jyb, kzlbu + 1] + u[ixl - 1, jyb, kzlbu + 1] -
+      u[ixl, jyb, kzlbu - 1] - u[ixl - 1, jyb, kzlbu - 1]
+    ) / dz
+
+  flwlfd =
+    (u[ixl, jyf, kzlfd] - u[ixl - 1, jyf, kzlfd]) / dx +
+    met[ixl, jyf, kzlfd, 1, 3] *
+    0.25 *
+    (
+      u[ixl, jyf, kzlfd + 1] + u[ixl - 1, jyf, kzlfd + 1] -
+      u[ixl, jyf, kzlfd - 1] - u[ixl - 1, jyf, kzlfd - 1]
+    ) / dz
+  flwlfu =
+    (u[ixl, jyf, kzlfu] - u[ixl - 1, jyf, kzlfu]) / dx +
+    met[ixl, jyf, kzlfu, 1, 3] *
+    0.25 *
+    (
+      u[ixl, jyf, kzlfu + 1] + u[ixl - 1, jyf, kzlfu + 1] -
+      u[ixl, jyf, kzlfu - 1] - u[ixl - 1, jyf, kzlfu - 1]
+    ) / dz
+
+  flwrbd =
+    (u[ixr, jyb, kzrbd] - u[ixr - 1, jyb, kzrbd]) / dx +
+    met[ixr, jyb, kzrbd, 1, 3] *
+    0.25 *
+    (
+      u[ixr, jyb, kzrbd + 1] + u[ixr - 1, jyb, kzrbd + 1] -
+      u[ixr, jyb, kzrbd - 1] - u[ixr - 1, jyb, kzrbd - 1]
+    ) / dz
+  flwrbu =
+    (u[ixr, jyb, kzrbu] - u[ixr - 1, jyb, kzrbu]) / dx +
+    met[ixr, jyb, kzrbu, 1, 3] *
+    0.25 *
+    (
+      u[ixr, jyb, kzrbu + 1] + u[ixr - 1, jyb, kzrbu + 1] -
+      u[ixr, jyb, kzrbu - 1] - u[ixr - 1, jyb, kzrbu - 1]
+    ) / dz
+
+  flwrfd =
+    (u[ixr, jyf, kzrfd] - u[ixr - 1, jyf, kzrfd]) / dx +
+    met[ixr, jyf, kzrfd, 1, 3] *
+    0.25 *
+    (
+      u[ixr, jyf, kzrfd + 1] + u[ixr - 1, jyf, kzrfd + 1] -
+      u[ixr, jyf, kzrfd - 1] - u[ixr - 1, jyf, kzrfd - 1]
+    ) / dz
+  flwrfu =
+    (u[ixr, jyf, kzrfu] - u[ixr - 1, jyf, kzrfu]) / dx +
+    met[ixr, jyf, kzrfu, 1, 3] *
+    0.25 *
+    (
+      u[ixr, jyf, kzrfu + 1] + u[ixr - 1, jyf, kzrfu + 1] -
+      u[ixr, jyf, kzrfu - 1] - u[ixr - 1, jyf, kzrfu - 1]
+    ) / dz
+
+  flw = meanflow_interpolation(
+    flwlbd,
+    flwlbu,
+    flwlfd,
+    flwlfu,
+    zlbd,
+    zlbu,
+    zlfd,
+    zlfu,
+    xl,
+    xr,
+    xlc,
+    yf,
+    yb,
+    ylc,
+    zlc,
+  )
+
+  return flw
+end
+
+function meanflow(
+  xlc::AbstractFloat,
+  ylc::AbstractFloat,
+  zlc::AbstractFloat,
+  namelists::Namelists,
+  domain::Domain,
+  predictants::Predictands,
+  flwtype::DUDY,
+)
+  # interpolate du/dy using staggered-grid distribution
+  # du/dy (i+1/2,j+1/2,k)) = (u(i+1/2,j+1,k) - u(i+1/2,j,k))/dy, hence
+
+  (; sizex, sizey) = namelists.domain
+  (; u) = predictands
+  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
+  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztfc, met) = grid
+
+  # Locate the closest points in zonal direction.
+  if sizex == 1
+    ixl = i0
+    ixr = i0
+  else
+    ixl = floor((xlc - lx[1]) / dx) - io
+    if ixl < 0
+      error("ERROR IN MEANFLOW (DUDY): ixl =", ixl, "< 0")
+    end
+    ixr = ixl + 1
+    if ixr > nxx
+      error("ERROR IN MEANFLOW (DUDY): ixr =", ixr, "> nxx =", nxx)
+    end
+  end
+  xr = x[ixr + io] + 0.5 * dx
+  xl = x[ixl + io] + 0.5 * dx
+
+  # Locate the closest points in meridional direction.
+  if sizey == 1
+    flw = 0.0
+    return flw
+  else
+    jyb = floor((ylc - ly[1]) / dy) - jo
+    if jyb < 0
+      error("ERROR IN MEANFLOW (DUDY): jyb =", jyb, "< 0")
+    end
+    jyf = jyb + 1
+    if jyf + 1 > nyy
+      error("ERROR IN MEANFLOW (DUDY): jyf + 1 =", jyf + 1, "> nyy =", nyy)
+    end
+  end
+  yf = y[jyf + jo] + 0.5 * dy
+  yb = y[jyb + jo] + 0.5 * dy
+
+  # Locate the closest points in vertical direction.
+
+  kzlbu = kztfc(ixl, jyb, zlc, domain, grid)
+  kzlbd = kzlbu - 1
+  if kzlbd > k1
+    kzlbu = k1
+    kzlbd = k1
+  end
+  zlbd = ztfc[ixl, jyb, kzlbd]
+  zlbu = ztfc[ixl, jyb, kzlbu]
+
+  kzlfu = kztfc(ixl, jyf, zlc, domain, grid)
+  kzlfd = kzlfu - 1
+  if kzlfd > k1
+    kzlfu = k1
+    kzlfd = k1
+  end
+  zlfd = ztfc[ixl, jyf, kzlfd]
+  zlfu = ztfc[ixl, jyf, kzlfu]
+
+  kzrbu = kztfc(ixr, jyb, zlc, domain, grid)
+  kzrbd = kzrbu - 1
+  if kzrbd > k1
+    kzrbu = k1
+    kzrbd = k1
+  end
+  zrbd = ztfc[ixr, jyb, kzrbd]
+  zrbu = ztfc[ixr, jyb, kzrbu]
+
+  kzrfu = kztfc(ixr, jyf, zlc, domain, grid)
+  kzrfd = kzrfu - 1
+  if kzrfd > k1
+    kzrfu = k1
+    kzrfd = k1
+  end
+  zrfd = ztfc[ixr, jyf, kzrfd]
+  zrfu = ztfc[ixr, jyf, kzrfu]
+
+  # Assign the values.
+
+  flwlbd =
+    (u[ixl, jyb + 1, kzlbd] - u[ixl, jyb, kzlbd]) / dy +
+    0.25 *
+    (
+      met[ixl, jyb, kzlbd, 2, 3] +
+      met[ixl + 1, jyb, kzlbd, 2, 3] +
+      met[ixl, jyb + 1, kzlbd, 2, 3] +
+      met[ixl + 1, jyb + 1, kzlbd, 2, 3]
+    ) *
+    0.25 *
+    (
+      u[ixl, jyb, kzlbd + 1] + u[ixl, jyb + 1, kzlbd + 1] -
+      u[ixl, jyb, kzlbd - 1] - u[ixl, jyb + 1, kzlbd - 1]
+    ) / dz
+  flwlbu =
+    (u[ixl, jyb + 1, kzlbu] - u[ixl, jyb, kzlbu]) / dy +
+    0.25 *
+    (
+      met[ixl, jyb, kzlbu, 2, 3] +
+      met[ixl + 1, jyb, kzlbu, 2, 3] +
+      met[ixl, jyb + 1, kzlbu, 2, 3] +
+      met[ixl + 1, jyb + 1, kzlbu, 2, 3]
+    ) *
+    0.25 *
+    (
+      u[ixl, jyb, kzlbu + 1] + u[ixl, jyb + 1, kzlbu + 1] -
+      u[ixl, jyb, kzlbu - 1] - u[ixl, jyb + 1, kzlbu - 1]
+    ) / dz
+
+  flwlfd =
+    (u[ixl, jyf + 1, kzlfd] - u[ixl, jyf, kzlfd]) / dy +
+    0.25 *
+    (
+      met[ixl, jyf, kzlfd, 2, 3] +
+      met[ixl + 1, jyf, kzlfd, 2, 3] +
+      met[ixl, jyf + 1, kzlfd, 2, 3] +
+      met[ixl + 1, jyf + 1, kzlfd, 2, 3]
+    ) *
+    0.25 *
+    (
+      u[ixl, jyf, kzlfd + 1] + u[ixl, jyf + 1, kzlfd + 1] -
+      u[ixl, jyf, kzlfd - 1] - u[ixl, jyf + 1, kzlfd - 1]
+    ) / dz
+  flwlfu =
+    (u[ixl, jyf + 1, kzlfu] - u[ixl, jyf, kzlfu]) / dy +
+    0.25 *
+    (
+      met[ixl, jyf, kzlfu, 2, 3] +
+      met[ixl + 1, jyf, kzlfu, 2, 3] +
+      met[ixl, jyf + 1, kzlfu, 2, 3] +
+      met[ixl + 1, jyf + 1, kzlfu, 2, 3]
+    ) *
+    0.25 *
+    (
+      u[ixl, jyf, kzlfu + 1] + u[ixl, jyf + 1, kzlfu + 1] -
+      u[ixl, jyf, kzlfu - 1] - u[ixl, jyf + 1, kzlfu - 1]
+    ) / dz
+
+  flwrbd =
+    (u[ixr, jyb + 1, kzrbd] - u[ixr, jyb, kzrbd]) / dy +
+    0.25 *
+    (
+      met[ixr, jyb, kzrbd, 2, 3] +
+      met[ixr + 1, jyb, kzrbd, 2, 3] +
+      met[ixr, jyb + 1, kzrbd, 2, 3] +
+      met[ixr + 1, jyb + 1, kzrbd, 2, 3]
+    ) *
+    0.25 *
+    (
+      u[ixr, jyb, kzrbd + 1] + u[ixr, jyb + 1, kzrbd + 1] -
+      u[ixr, jyb, kzrbd - 1] - u[ixr, jyb + 1, kzrbd - 1]
+    ) / dz
+  flwrbu =
+    (u[ixr, jyb + 1, kzrbu] - u[ixr, jyb, kzrbu]) / dy +
+    0.25 *
+    (
+      met[ixr, jyb, kzrbu, 2, 3] +
+      met[ixr + 1, jyb, kzrbu, 2, 3] +
+      met[ixr, jyb + 1, kzrbu, 2, 3] +
+      met[ixr + 1, jyb + 1, kzrbu, 2, 3]
+    ) *
+    0.25 *
+    (
+      u[ixr, jyb, kzrbu + 1] + u[ixr, jyb + 1, kzrbu + 1] -
+      u[ixr, jyb, kzrbu - 1] - u[ixr, jyb + 1, kzrbu - 1]
+    ) / dz
+
+  flwrfd =
+    (u[ixr, jyf + 1, kzrfd] - u[ixr, jyf, kzrfd]) / dy +
+    0.25 *
+    (
+      met[ixr, jyf, kzrfd, 2, 3] +
+      met[ixr + 1, jyf, kzrfd, 2, 3] +
+      met[ixr, jyf + 1, kzrfd, 2, 3] +
+      met[ixr + 1, jyf + 1, kzrfd, 2, 3]
+    ) *
+    0.25 *
+    (
+      u[ixr, jyf, kzrfd + 1] + u[ixr, jyf + 1, kzrfd + 1] -
+      u[ixr, jyf, kzrfd - 1] - u[ixr, jyf + 1, kzrfd - 1]
+    ) / dz
+  flwrfu =
+    (u[ixr, jyf + 1, kzrfu] - u[ixr, jyf, kzrfu]) / dy +
+    0.25 *
+    (
+      met[ixr, jyf, kzrfu, 2, 3] +
+      met[ixr + 1, jyf, kzrfu, 2, 3] +
+      met[ixr, jyf + 1, kzrfu, 2, 3] +
+      met[ixr + 1, jyf + 1, kzrfu, 2, 3]
+    ) *
+    0.25 *
+    (
+      u[ixr, jyf, kzrfu + 1] + u[ixr, jyf + 1, kzrfu + 1] -
+      u[ixr, jyf, kzrfu - 1] - u[ixr, jyf + 1, kzrfu - 1]
+    ) / dz
+
+  flw = meanflow_interpolation(
+    flwlbd,
+    flwlbu,
+    flwlfd,
+    flwlfu,
+    zlbd,
+    zlbu,
+    zlfd,
+    zlfu,
+    xl,
+    xr,
+    xlc,
+    yf,
+    yb,
+    ylc,
+    zlc,
+  )
+
+  return flw
+end
+
+function meanflow(
+  xlc::AbstractFloat,
+  ylc::AbstractFloat,
+  zlc::AbstractFloat,
+  namelists::Namelists,
+  domain::Domain,
+  predictants::Predictands,
+  flwtype::DUDZ,
+)
+  # interpolate du/dz using staggered-grid distribution
+  # du/dz (i+1/2,j,k+1/2)) = (u(i+1/2,j,k+1) - u(i+1/2,j,k))/dz, hence
+
+  (; sizex, sizey) = namelists.domain
+  (; u) = predictands
+  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
+  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztildetfc, met) = grid
+
+  # Locate the closest points in zonal direction.
+  if sizex == 1
+    ixl = i0
+    ixr = i0
+  else
+    ixl = floor((xlc - lx[1]) / dx) - io
+    if ixl < 0
+      error("ERROR IN MEANFLOW (DUDZ): ixl =", ixl, "< 0")
+    end
+    ixr = ixl + 1
+    if ixr > nxx
+      error("ERROR IN MEANFLOW (DUDZ): ixr =", ixr, "> nxx =", nxx)
+    end
+  end
+  xr = x[ixr + io] + 0.5 * dx
+  xl = x[ixl + io] + 0.5 * dx
+
+  # Locate the closest points in meridional direction.
+  if sizey == 1
+    jyb = j0
+    jyf = j0
+  else
+    jyb = floor((ylc - 0.5 * dy - ly[1]) / dy) + 1 - jo
+    if jyb < 0
+      error("ERROR IN MEANFLOW (DUDZ): jyb =", jyb, "< 0")
+    end
+    jyf = jyb + 1
+    if jyf > nyy
+      error("ERROR IN MEANFLOW (DUDZ): jyf =", jyf, "> nyy =", nyy)
+    end
+  end
+  yf = y[jyf + jo]
+  yb = y[jyb + jo]
+
+  # Locate the closest points in vertical direction.
+
+  kzlbu = kztildetfc(ixl, jyb, zlc, domain, grid)
+  kzlbd = kzlbu - 1
+  if kzlbd > k1
+    kzlbu = k1 + 1
+    kzlbd = k1 + 1
+  end
+  zlbd = ztildetfc[ixl, jyb, kzlbd]
+  zlbu = ztildetfc[ixl, jyb, kzlbu]
+
+  kzlfu = kztildetfc(ixl, jyf, zlc, domain, grid)
+  kzlfd = kzlfu - 1
+  if kzlfd > k1
+    kzlfu = k1 + 1
+    kzlfd = k1 + 1
+  end
+  zlfd = ztildetfc[ixl, jyf, kzlfd]
+  zlfu = ztildetfc[ixl, jyf, kzlfu]
+
+  kzrbu = kztildetfc(ixr, jyb, zlc, domain, grid)
+  kzrbd = kzrbu - 1
+  if kzrbd > k1
+    kzrbu = k1 + 1
+    kzrbd = k1 + 1
+  end
+  zrbd = ztildetfc[ixr, jyb, kzrbd]
+  zrbu = ztildetfc[ixr, jyb, kzrbu]
+
+  kzrfu = kztildetfc(ixr, jyf, zlc, domain, grid)
+  kzrfd = kzrfu - 1
+  if kzrfd > k1
+    kzrfu = k1 + 1
+    kzrfd = k1 + 1
+  end
+  zrfd = ztildetfc[ixr, jyf, kzrfd]
+  zrfu = ztildetfc[ixr, jyf, kzrfu]
+
+  # Assign the values.
+
+  if zlbu < ztildetfc[ixl, jyb, k0]
+    flwlbd = 0.0
+    flwlbu = 0.0
+  elseif zlbd < ztildetfc[ixl, jyb, k0]
+    flwlbd = 0.0
+    flwlbu =
+      (u[ixl, jyb, kzlbu + 1] - u[ixl, jyb, kzlbu]) / dz / (
+        jac[ixl, jyb, kzlbu] * jac[ixl, jyb, kzlbu + 1] /
+        (jac[ixl, jyb, kzlbu] + jac[ixl, jyb, kzlbu + 1]) +
+        jac[ixl + 1, jyb, kzlbu] * jac[ixl + 1, jyb, kzlbu + 1] /
+        (jac[ixl + 1, jyb, kzlbu] + jac[ixl + 1, jyb, kzlbu + 1])
+      )
+  else
+    if zlbu < lz[2]
+      flwlbd =
+        (u[ixl, jyb, kzlbd + 1] - u[ixl, jyb, kzlbd]) / dz / (
+          jac[ixl, jyb, kzlbd] * jac[ixl, jyb, kzlbd + 1] /
+          (jac[ixl, jyb, kzlbd] + jac[ixl, jyb, kzlbd + 1]) +
+          jac[ixl + 1, jyb, kzlbd] * jac[ixl + 1, jyb, kzlbd + 1] /
+          (jac[ixl + 1, jyb, kzlbd] + jac[ixl + 1, jyb, kzlbd + 1])
+        )
+      flwlbu =
+        (u[ixl, jyb, kzlbu + 1] - u[ixl, jyb, kzlbu]) / dz / (
+          jac[ixl, jyb, kzlbu] * jac[ixl, jyb, kzlbu + 1] /
+          (jac[ixl, jyb, kzlbu] + jac[ixl, jyb, kzlbu + 1]) +
+          jac[ixl + 1, jyb, kzlbu] * jac[ixl + 1, jyb, kzlbu + 1] /
+          (jac[ixl + 1, jyb, kzlbu] + jac[ixl + 1, jyb, kzlbu + 1])
+        )
+    elseif zlbd < lz[2]
+      flwlbd =
+        (u[ixl, jyb, kzlbd + 1] - u[ixl, jyb, kzlbd]) / dz / (
+          jac[ixl, jyb, kzlbd] * jac[ixl, jyb, kzlbd + 1] /
+          (jac[ixl, jyb, kzlbd] + jac[ixl, jyb, kzlbd + 1]) +
+          jac[ixl + 1, jyb, kzlbd] * jac[ixl + 1, jyb, kzlbd + 1] /
+          (jac[ixl + 1, jyb, kzlbd] + jac[ixl + 1, jyb, kzlbd + 1])
+        )
+      flwlbu = 0.0
+    else
+      flwlbd = 0.0
+      flwlbu = 0.0
+    end
+  end
+
+  if zlfu < ztildetfc[ixl, jyf, k0]
+    flwlfd = 0.0
+    flwlfu = 0.0
+  elseif zlfd < ztildetfc[ixl, jyf, k0]
+    flwlfd = 0.0
+    flwlfu =
+      (u[ixl, jyf, kzlfu + 1] - u[ixl, jyf, kzlfu]) / dz / (
+        jac[ixl, jyf, kzlfu] * jac[ixl, jyf, kzlfu + 1] /
+        (jac[ixl, jyf, kzlfu] + jac[ixl, jyf, kzlfu + 1]) +
+        jac[ixl + 1, jyf, kzlfu] * jac[ixl + 1, jyf, kzlfu + 1] /
+        (jac[ixl + 1, jyf, kzlfu] + jac[ixl + 1, jyf, kzlfu + 1])
+      )
+  else
+    if zlfu < lz[2]
+      flwlfd =
+        (u[ixl, jyf, kzlfd + 1] - u[ixl, jyf, kzlfd]) / dz / (
+          jac[ixl, jyf, kzlfd] * jac[ixl, jyf, kzlfd + 1] /
+          (jac[ixl, jyf, kzlfd] + jac[ixl, jyf, kzlfd + 1]) +
+          jac[ixl + 1, jyf, kzlfd] * jac[ixl + 1, jyf, kzlfd + 1] /
+          (jac[ixl + 1, jyf, kzlfd] + jac[ixl + 1, jyf, kzlfd + 1])
+        )
+      flwlfu =
+        (u[ixl, jyf, kzlfu + 1] - u[ixl, jyf, kzlfu]) / dz / (
+          jac[ixl, jyf, kzlfu] * jac[ixl, jyf, kzlfu + 1] /
+          (jac[ixl, jyf, kzlfu] + jac[ixl, jyf, kzlfu + 1]) +
+          jac[ixl + 1, jyf, kzlfu] * jac[ixl + 1, jyf, kzlfu + 1] /
+          (jac[ixl + 1, jyf, kzlfu] + jac[ixl + 1, jyf, kzlfu + 1])
+        )
+    elseif zlfd < lz[2]
+      flwlfd =
+        (u[ixl, jyf, kzlfd + 1] - u[ixl, jyf, kzlfd]) / dz / (
+          jac[ixl, jyf, kzlfd] * jac[ixl, jyf, kzlfd + 1] /
+          (jac[ixl, jyf, kzlfd] + jac[ixl, jyf, kzlfd + 1]) +
+          jac[ixl + 1, jyf, kzlfd] * jac[ixl + 1, jyf, kzlfd + 1] /
+          (jac[ixl + 1, jyf, kzlfd] + jac[ixl + 1, jyf, kzlfd + 1])
+        )
+      flwlfu = 0.0
+    else
+      flwlfd = 0.0
+      flwlfu = 0.0
+    end
+  end
+
+  if zrbu < ztildetfc[ixr, jyb, k0]
+    flwrbd = 0.0
+    flwrbu = 0.0
+  elseif zrbd < ztildetfc[ixr, jyb, k0]
+    flwrbd = 0.0
+    flwrbu =
+      (u[ixr, jyb, kzrbu + 1] - u[ixr, jyb, kzrbu]) / dz / (
+        jac[ixr, jyb, kzrbu] * jac[ixr, jyb, kzrbu + 1] /
+        (jac[ixr, jyb, kzrbu] + jac[ixr, jyb, kzrbu + 1]) +
+        jac[ixr + 1, jyb, kzrbu] * jac[ixr + 1, jyb, kzrbu + 1] /
+        (jac[ixr + 1, jyb, kzrbu] + jac[ixr + 1, jyb, kzrbu + 1])
+      )
+  else
+    if zrbu < lz[2]
+      flwrbd =
+        (u[ixr, jyb, kzrbd + 1] - u[ixr, jyb, kzrbd]) / dz / (
+          jac[ixr, jyb, kzrbd] * jac[ixr, jyb, kzrbd + 1] /
+          (jac[ixr, jyb, kzrbd] + jac[ixr, jyb, kzrbd + 1]) +
+          jac[ixr + 1, jyb, kzrbd] * jac[ixr + 1, jyb, kzrbd + 1] /
+          (jac[ixr + 1, jyb, kzrbd] + jac[ixr + 1, jyb, kzrbd + 1])
+        )
+      flwrbu =
+        (u[ixr, jyb, kzrbu + 1] - u[ixr, jyb, kzrbu]) / dz / (
+          jac[ixr, jyb, kzrbu] * jac[ixr, jyb, kzrbu + 1] /
+          (jac[ixr, jyb, kzrbu] + jac[ixr, jyb, kzrbu + 1]) +
+          jac[ixr + 1, jyb, kzrbu] * jac[ixr + 1, jyb, kzrbu + 1] /
+          (jac[ixr + 1, jyb, kzrbu] + jac[ixr + 1, jyb, kzrbu + 1])
+        )
+    elseif zrbd < lz[2]
+      flwrbd =
+        (u[ixr, jyb, kzrbd + 1] - u[ixr, jyb, kzrbd]) / dz / (
+          jac[ixr, jyb, kzrbd] * jac[ixr, jyb, kzrbd + 1] /
+          (jac[ixr, jyb, kzrbd] + jac[ixr, jyb, kzrbd + 1]) +
+          jac[ixr + 1, jyb, kzrbd] * jac[ixr + 1, jyb, kzrbd + 1] /
+          (jac[ixr + 1, jyb, kzrbd] + jac[ixr + 1, jyb, kzrbd + 1])
+        )
+      flwrbu = 0.0
+    else
+      flwrbd = 0.0
+      flwrbu = 0.0
+    end
+  end
+
+  if zrfu < ztildetfc[ixr, jyf, k0]
+    flwrfd = 0.0
+    flwrfu = 0.0
+  elseif zrfd < ztildetfc[ixr, jyf, k0]
+    flwrfd = 0.0
+    flwrbu =
+      (u[ixr, jyf, kzrbu + 1] - u[ixr, jyf, kzrbu]) / dz / (
+        jac[ixr, jyf, kzrbu] * jac[ixr, jyf, kzrbu + 1] /
+        (jac[ixr, jyf, kzrbu] + jac[ixr, jyf, kzrbu + 1]) +
+        jac[ixr + 1, jyf, kzrbu] * jac[ixr + 1, jyf, kzrbu + 1] /
+        (jac[ixr + 1, jyf, kzrbu] + jac[ixr + 1, jyf, kzrbu + 1])
+      )
+  else
+    if zrfu < lz[2]
+      flwrfd =
+        (u[ixr, jyf, kzrfd + 1] - u[ixr, jyf, kzrfd]) / dz / (
+          jac[ixr, jyf, kzrfd] * jac[ixr, jyf, kzrfd + 1] /
+          (jac[ixr, jyf, kzrfd] + jac[ixr, jyf, kzrfd + 1]) +
+          jac[ixr + 1, jyf, kzrfd] * jac[ixr + 1, jyf, kzrfd + 1] /
+          (jac[ixr + 1, jyf, kzrfd] + jac[ixr + 1, jyf, kzrfd + 1])
+        )
+      flwrfu =
+        (u[ixr, jyf, kzrfu + 1] - u[ixr, jyf, kzrfu]) / dz / (
+          jac[ixr, jyf, kzrfu] * jac[ixr, jyf, kzrfu + 1] /
+          (jac[ixr, jyf, kzrfu] + jac[ixr, jyf, kzrfu + 1]) +
+          jac[ixr + 1, jyf, kzrfu] * jac[ixr + 1, jyf, kzrfu + 1] /
+          (jac[ixr + 1, jyf, kzrfu] + jac[ixr + 1, jyf, kzrfu + 1])
+        )
+    elseif zrfd < lz[2]
+      flwrfd =
+        (u[ixr, jyf, kzrfd + 1] - u[ixr, jyf, kzrfd]) / dz / (
+          jac[ixr, jyf, kzrfd] * jac[ixr, jyf, kzrfd + 1] /
+          (jac[ixr, jyf, kzrfd] + jac[ixr, jyf, kzrfd + 1]) +
+          jac[ixr + 1, jyf, kzrfd] * jac[ixr + 1, jyf, kzrfd + 1] /
+          (jac[ixr + 1, jyf, kzrfd] + jac[ixr + 1, jyf, kzrfd + 1])
+        )
+      flwrfu = 0.0
+    else
+      flwrfd = 0.0
+      flwrfu = 0.0
+    end
+  end
+
+  flw = meanflow_interpolation(
+    flwlbd,
+    flwlbu,
+    flwlfd,
+    flwlfu,
+    zlbd,
+    zlbu,
+    zlfd,
+    zlfu,
+    xl,
+    xr,
+    xlc,
+    yf,
+    yb,
+    ylc,
+    zlc,
+  )
+
+  return flw
+end
+
+function meanflow(
+  xlc::AbstractFloat,
+  ylc::AbstractFloat,
+  zlc::AbstractFloat,
+  namelists::Namelists,
+  domain::Domain,
+  predictants::Predictands,
+  flwtype::DVDX,
+)
+  # interpolate dv/dx using staggered-grid distribution
+  # dv/dx(i+1/2,j+1/2,k)) = (v(i+1,j+1/2,k) - v(i,j+1/2,k))/dx, hence
+
+  (; sizex, sizey) = namelists.domain
+  (; v) = predictands
+  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
+  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztfc, met) = grid
+
+  # Locate the closest points in zonal direction.
+  if sizex == 1
+    flw = 0.0
+    return flw
+  else
+    ixl = floor((xlc - lx[1]) / dx) - io
+    if ixl < 0
+      error("ERROR IN MEANFLOW (DVDX): ixl =", ixl, "< 0")
+    end
+    ixr = ixl + 1
+    if ixr + 1 > nxx
+      error("ERROR IN MEANFLOW (DVDX): ixr + 1 =", ixr + 1, "> nxx =", nxx)
+    end
+  end
+  xr = x[ixr + io] + 0.5 * dx
+  xl = x[ixl + io] + 0.5 * dx
+
+  # Locate the closest points in meridional direction.
+  if sizey == 1
+    jyb = j0
+    jyf = j0
+  else
+    jyb = floor((ylc - ly[1]) / dy) - jo
+    if jyb < 0
+      error("ERROR IN MEANFLOW (DVDX): jyb =", jyb, "< 0")
+    end
+    jyf = jyb + 1
+    if jyf + 1 > nyy
+      error("ERROR IN MEANFLOW (DVDX): jyf + 1 =", jyf + 1, "> nyy =", nyy)
+    end
+  end
+  yf = y[jyf + jo] + 0.5 * dy
+  yb = y[jyb + jo] + 0.5 * dy
+
+  # Locate the closest points in vertical direction.
+
+  kzlbu = kztfc(ixl, jyb, zlc, domain, grid)
+  kzlbd = kzlbu - 1
+  if kzlbd > k1
+    kzlbu = k1
+    kzlbd = k1
+  end
+  zlbd = ztfc[ixl, jyb, kzlbd]
+  zlbu = ztfc[ixl, jyb, kzlbu]
+
+  kzlfu = kztfc(ixl, jyf, zlc, domain, grid)
+  kzlfd = kzlfu - 1
+  if kzlfd > k1
+    kzlfu = k1
+    kzlfd = k1
+  end
+  zlfd = ztfc[ixl, jyf, kzlfd]
+  zlfu = ztfc[ixl, jyf, kzlfu]
+
+  kzrbu = kztfc(ixr, jyb, zlc, domain, grid)
+  kzrbd = kzrbu - 1
+  if kzrbd > k1
+    kzrbu = k1
+    kzrbd = k1
+  end
+  zrbd = ztfc[ixr, jyb, kzrbd]
+  zrbu = ztfc[ixr, jyb, kzrbu]
+
+  kzrfu = kztfc(ixr, jyf, zlc, domain, grid)
+  kzrfd = kzrfu - 1
+  if kzrfd > k1
+    kzrfu = k1
+    kzrfd = k1
+  end
+  zrfd = ztfc[ixr, jyf, kzrfd]
+  zrfu = ztfc[ixr, jyf, kzrfu]
+
+  # Assign the values.
+
+  flwlbd =
+    (v[ixl + 1, jyb, kzlbd] - v[ixl, jyb, kzlbd]) / dx +
+    0.25 *
+    (
+      met[ixl, jyb, kzlbd, 1, 3] +
+      met[ixl + 1, jyb, kzlbd, 1, 3] +
+      met[ixl, jyb + 1, kzlbd, 1, 3] +
+      met[ixl + 1, jyb + 1, kzlbd, 1, 3]
+    ) *
+    0.25 *
+    (
+      v[ixl, jyb, kzlbd + 1] + v[ixl + 1, jyb, kzlbd + 1] -
+      v[ixl, jyb, kzlbd - 1] - v[ixl + 1, jyb, kzlbd - 1]
+    ) / dz
+  flwlbu =
+    (v[ixl + 1, jyb, kzlbu] - v[ixl, jyb, kzlbu]) / dx +
+    0.25 *
+    (
+      met[ixl, jyb, kzlbu, 1, 3] +
+      met[ixl + 1, jyb, kzlbu, 1, 3] +
+      met[ixl, jyb + 1, kzlbu, 1, 3] +
+      met[ixl + 1, jyb + 1, kzlbu, 1, 3]
+    ) *
+    0.25 *
+    (
+      v[ixl, jyb, kzlbu + 1] + v[ixl + 1, jyb, kzlbu + 1] -
+      v[ixl, jyb, kzlbu - 1] - v[ixl + 1, jyb, kzlbu - 1]
+    ) / dz
+
+  flwlfd =
+    (v[ixl + 1, jyf, kzlfd] - v[ixl, jyf, kzlfd]) / dx +
+    0.25 *
+    (
+      met[ixl, jyf, kzlfd, 1, 3] +
+      met[ixl + 1, jyf, kzlfd, 1, 3] +
+      met[ixl, jyf + 1, kzlfd, 1, 3] +
+      met[ixl + 1, jyf + 1, kzlfd, 1, 3]
+    ) *
+    0.25 *
+    (
+      v[ixl, jyf, kzlfd + 1] + v[ixl + 1, jyf, kzlfd + 1] -
+      v[ixl, jyf, kzlfd - 1] - v[ixl + 1, jyf, kzlfd - 1]
+    ) / dz
+  flwlfu =
+    (v[ixl + 1, jyf, kzlfu] - v[ixl, jyf, kzlfu]) / dx +
+    0.25 *
+    (
+      met[ixl, jyf, kzlfu, 1, 3] +
+      met[ixl + 1, jyf, kzlfu, 1, 3] +
+      met[ixl, jyf + 1, kzlfu, 1, 3] +
+      met[ixl + 1, jyf + 1, kzlfu, 1, 3]
+    ) *
+    0.25 *
+    (
+      v[ixl, jyf, kzlfu + 1] + v[ixl + 1, jyf, kzlfu + 1] -
+      v[ixl, jyf, kzlfu - 1] - v[ixl + 1, jyf, kzlfu - 1]
+    ) / dz
+
+  flwrbd =
+    (v[ixr + 1, jyb, kzrbd] - v[ixr, jyb, kzrbd]) / dx +
+    0.25 *
+    (
+      met[ixr, jyb, kzrbd, 1, 3] +
+      met[ixr + 1, jyb, kzrbd, 1, 3] +
+      met[ixr, jyb + 1, kzrbd, 1, 3] +
+      met[ixr + 1, jyb + 1, kzrbd, 1, 3]
+    ) *
+    0.25 *
+    (
+      v[ixr, jyb, kzrbd + 1] + v[ixr + 1, jyb, kzrbd + 1] -
+      v[ixr, jyb, kzrbd - 1] - v[ixr + 1, jyb, kzrbd - 1]
+    ) / dz
+  flwrbu =
+    (v[ixr + 1, jyb, kzrbu] - v[ixr, jyb, kzrbu]) / dx +
+    0.25 *
+    (
+      met[ixr, jyb, kzrbu, 1, 3] +
+      met[ixr + 1, jyb, kzrbu, 1, 3] +
+      met[ixr, jyb + 1, kzrbu, 1, 3] +
+      met[ixr + 1, jyb + 1, kzrbu, 1, 3]
+    ) *
+    0.25 *
+    (
+      v[ixr, jyb, kzrbu + 1] + v[ixr + 1, jyb, kzrbu + 1] -
+      v[ixr, jyb, kzrbu - 1] - v[ixr + 1, jyb, kzrbu - 1]
+    ) / dz
+
+  flwrfd =
+    (v[ixr + 1, jyf, kzrfd] - v[ixr, jyf, kzrfd]) / dx +
+    0.25 *
+    (
+      met[ixr, jyf, kzrfd, 1, 3] +
+      met[ixr + 1, jyf, kzrfd, 1, 3] +
+      met[ixr, jyf + 1, kzrfd, 1, 3] +
+      met[ixr + 1, jyf + 1, kzrfd, 1, 3]
+    ) *
+    0.25 *
+    (
+      v[ixr, jyf, kzrfd + 1] + v[ixr + 1, jyf, kzrfd + 1] -
+      v[ixr, jyf, kzrfd - 1] - v[ixr + 1, jyf, kzrfd - 1]
+    ) / dz
+  flwrfu =
+    (v[ixr + 1, jyf, kzrfu] - v[ixr, jyf, kzrfu]) / dx +
+    0.25 *
+    (
+      met[ixr, jyf, kzrfu, 1, 3] +
+      met[ixr + 1, jyf, kzrfu, 1, 3] +
+      met[ixr, jyf + 1, kzrfu, 1, 3] +
+      met[ixr + 1, jyf + 1, kzrfu, 1, 3]
+    ) *
+    0.25 *
+    (
+      v[ixr, jyf, kzrfu + 1] + v[ixr + 1, jyf, kzrfu + 1] -
+      v[ixr, jyf, kzrfu - 1] - v[ixr + 1, jyf, kzrfu - 1]
+    ) / dz
+
+  flw = meanflow_interpolation(
+    flwlbd,
+    flwlbu,
+    flwlfd,
+    flwlfu,
+    zlbd,
+    zlbu,
+    zlfd,
+    zlfu,
+    xl,
+    xr,
+    xlc,
+    yf,
+    yb,
+    ylc,
+    zlc,
+  )
+
+  return flw
+end
+
+function meanflow(
+  xlc::AbstractFloat,
+  ylc::AbstractFloat,
+  zlc::AbstractFloat,
+  namelists::Namelists,
+  domain::Domain,
+  predictants::Predictands,
+  flwtype::DVDY,
+)
+  # interpolate dv/dy using staggered-grid distribution
+  # dv/dy (i,j,k)) = (v(i,j+1/2,k) - v(i,j-1/2,k))/dy, hence
+
+  (; sizex, sizey) = namelists.domain
+  (; v) = predictands
+  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
+  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztfc, met) = grid
+
+  # Locate the closest points in zonal direction.
+  if sizex == 1
+    ixl = i0
+    ixr = i0
+  else
+    ixl = floor((xlc - 0.5 * dx - lx[1]) / dx) + 1 - io
+    if ixl < 0
+      error("ERROR IN MEANFLOW (DVDY): ixl =", ixl, "< 0")
+    end
+    ixr = ixl + 1
+    if ixr > nxx
+      error("ERROR IN MEANFLOW (DVDY): ixr =", ixr, "> nxx =", nxx)
+    end
+  end
+  xr = x[ixr + io]
+  xl = x[ixl + io]
+
+  # Locate the closest points in meridional direction.
+  if sizey == 1
+    flw = 0.0
+    return flw
+  else
+    jyb = floor((ylc - 0.5 * dy - ly[1]) / dy) + 1 - jo
+    if jyb - 1 < 0
+      error("ERROR IN MEANFLOW (DVDY): jyb - 1 =", jyb - 1, "< 0")
+    end
+    jyf = jyb + 1
+    if jyf > nyy
+      error("ERROR IN MEANFLOW (DVDY): jyf =", jyf, "> nyy =", nyy)
+    end
+  end
+  yf = y[jyf + jo]
+  yb = y[jyb + jo]
+
+  # Locate the closest points in vertical direction.
+
+  kzlbu = kztfc(ixl, jyb, zlc, domain, grid)
+  kzlbd = kzlbu - 1
+  if kzlbd > k1
+    kzlbu = k1
+    kzlbd = k1
+  end
+  zlbd = ztfc[ixl, jyb, kzlbd]
+  zlbu = ztfc[ixl, jyb, kzlbu]
+
+  kzlfu = kztfc(ixl, jyf, zlc, domain, grid)
+  kzlfd = kzlfu - 1
+  if kzlfd > k1
+    kzlfu = k1
+    kzlfd = k1
+  end
+  zlfd = ztfc[ixl, jyf, kzlfd]
+  zlfu = ztfc[ixl, jyf, kzlfu]
+
+  kzrbu = kztfc(ixr, jyb, zlc, domain, grid)
+  kzrbd = kzrbu - 1
+  if kzrbd > k1
+    kzrbu = k1
+    kzrbd = k1
+  end
+  zrbd = ztfc[ixr, jyb, kzrbd]
+  zrbu = ztfc[ixr, jyb, kzrbu]
+
+  kzrfu = kztfc(ixr, jyf, zlc, domain, grid)
+  kzrfd = kzrfu - 1
+  if kzrfd > k1
+    kzrfu = k1
+    kzrfd = k1
+  end
+  zrfd = ztfc[ixr, jyf, kzrfd]
+  zrfu = ztfc[ixr, jyf, kzrfu]
+
+  # Assign the values.
+
+  flwlbd =
+    (v[ixl, jyb, kzlbd] - v[ixl, jyb - 1, kzlbd]) / dy +
+    met[ixl, jyb, kzlbd, 2, 3] *
+    0.25 *
+    (
+      v[ixl, jyb, kzlbd + 1] + v[ixl, jyb - 1, kzlbd + 1] -
+      v[ixl, jyb, kzlbd - 1] - v[ixl, jyb - 1, kzlbd - 1]
+    ) / dz
+  flwlbu =
+    (v[ixl, jyb, kzlbu] - v[ixl, jyb - 1, kzlbu]) / dy +
+    met[ixl, jyb, kzlbu, 2, 3] *
+    0.25 *
+    (
+      v[ixl, jyb, kzlbu + 1] + v[ixl, jyb - 1, kzlbu + 1] -
+      v[ixl, jyb, kzlbu - 1] - v[ixl, jyb - 1, kzlbu - 1]
+    ) / dz
+
+  flwlfd =
+    (v[ixl, jyf, kzlfd] - v[ixl, jyf - 1, kzlfd]) / dy +
+    met[ixl, jyf, kzlfd, 2, 3] *
+    0.25 *
+    (
+      v[ixl, jyf, kzlfd + 1] + v[ixl, jyf - 1, kzlfd + 1] -
+      v[ixl, jyf, kzlfd - 1] - v[ixl, jyf - 1, kzlfd - 1]
+    ) / dz
+  flwlfu =
+    (v[ixl, jyf, kzlfu] - v[ixl, jyf - 1, kzlfu]) / dy +
+    met[ixl, jyf, kzlfu, 2, 3] *
+    0.25 *
+    (
+      v[ixl, jyf, kzlfu + 1] + v[ixl, jyf - 1, kzlfu + 1] -
+      v[ixl, jyf, kzlfu - 1] - v[ixl, jyf - 1, kzlfu - 1]
+    ) / dz
+
+  flwrbd =
+    (v[ixr, jyb, kzrbd] - v[ixr, jyb - 1, kzrbd]) / dy +
+    met[ixr, jyb, kzrbd, 2, 3] *
+    0.25 *
+    (
+      v[ixr, jyb, kzrbd + 1] + v[ixr, jyb - 1, kzrbd + 1] -
+      v[ixr, jyb, kzrbd - 1] - v[ixr, jyb - 1, kzrbd - 1]
+    ) / dz
+  flwrbu =
+    (v[ixr, jyb, kzrbu] - v[ixr, jyb - 1, kzrbu]) / dy +
+    met[ixr, jyb, kzrbu, 2, 3] *
+    0.25 *
+    (
+      v[ixr, jyb, kzrbu + 1] + v[ixr, jyb - 1, kzrbu + 1] -
+      v[ixr, jyb, kzrbu - 1] - v[ixr, jyb - 1, kzrbu - 1]
+    ) / dz
+
+  flwrfd =
+    (v[ixr, jyf, kzrfd] - v[ixr, jyf - 1, kzrfd]) / dy +
+    met[ixr, jyf, kzrfd, 2, 3] *
+    0.25 *
+    (
+      v[ixr, jyf, kzrfd + 1] + v[ixr, jyf - 1, kzrfd + 1] -
+      v[ixr, jyf, kzrfd - 1] - v[ixr, jyf - 1, kzrfd - 1]
+    ) / dz
+  flwrfu =
+    (v[ixr, jyf, kzrfu] - v[ixr, jyf - 1, kzrfu]) / dy +
+    met[ixr, jyf, kzrfu, 2, 3] *
+    0.25 *
+    (
+      v[ixr, jyf, kzrfu + 1] + v[ixr, jyf - 1, kzrfu + 1] -
+      v[ixr, jyf, kzrfu - 1] - v[ixr, jyf - 1, kzrfu - 1]
+    ) / dz
+
+  flw = meanflow_interpolation(
+    flwlbd,
+    flwlbu,
+    flwlfd,
+    flwlfu,
+    zlbd,
+    zlbu,
+    zlfd,
+    zlfu,
+    xl,
+    xr,
+    xlc,
+    yf,
+    yb,
+    ylc,
+    zlc,
+  )
+
+  return flw
+end
+
+function meanflow(
+  xlc::AbstractFloat,
+  ylc::AbstractFloat,
+  zlc::AbstractFloat,
+  namelists::Namelists,
+  domain::Domain,
+  predictants::Predictands,
+  flwtype::DVDZ,
+)
+  # interpolate dv/dz using staggered-grid distribution
+  # dv/dz (i,j+1/2,k+1/2)) = (v(i,j+1/2,k+1) - v(i,j+1/2,k))/dz, hence
+
+  (; sizex, sizey) = namelists.domain
+  (; v) = predictands
+  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
+  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztildetfc, met) = grid
+
+  # Locate the closest points in zonal direction.
+  if sizex == 1
+    ixl = i0
+    ixr = i0
+  else
+    ixl = floor((xlc - 0.5 * dx - lx[1]) / dx) + 1 - io
+    if ixl < 0
+      error("ERROR IN MEANFLOW (DVDZ): ixl =", ixl, "< 0")
+    end
+    ixr = ixl + 1
+    if ixr > nxx
+      error("ERROR IN MEANFLOW (DVDZ): ixr =", ixr, "> nxx =", nxx)
+    end
+  end
+  xr = x[ixr + io]
+  xl = x[ixl + io]
+
+  # Locate the closest points in meridional direction.
+  if sizey == 1
+    jyb = j0
+    jyf = j0
+  else
+    jyb = floor((ylc - ly[1]) / dy) - jo
+    if jyb < 0
+      error("ERROR IN MEANFLOW: jyb =", jyb, "< 0")
+    end
+    jyf = jyb + 1
+    if jyf > nyy
+      error("ERROR IN MEANFLOW: jyf =", jyf, "> nyy =", nyy)
+    end
+  end
+  yf = y[jyf + jo] + 0.5 * dy
+  yb = y[jyb + jo] + 0.5 * dy
+
+  # Locate the closest points in vertical direction.
+
+  kzlbu = kztildetfc(ixl, jyb, zlc, domain, grid)
+  kzlbd = kzlbu - 1
+  if kzlbd > k1
+    kzlbu = k1 + 1
+    kzlbd = k1 + 1
+  end
+  zlbd = ztildetfc[ixl, jyb, kzlbd]
+  zlbu = ztildetfc[ixl, jyb, kzlbu]
+
+  kzlfu = kztildetfc(ixl, jyf, zlc, domain, grid)
+  kzlfd = kzlfu - 1
+  if kzlfd > k1
+    kzlfu = k1 + 1
+    kzlfd = k1 + 1
+  end
+  zlfd = ztildetfc[ixl, jyf, kzlfd]
+  zlfu = ztildetfc[ixl, jyf, kzlfu]
+
+  kzrbu = kztildetfc(ixr, jyb, zlc, domain, grid)
+  kzrbd = kzrbu - 1
+  if kzrbd > k1
+    kzrbu = k1 + 1
+    kzrbd = k1 + 1
+  end
+  zrbd = ztildetfc[ixr, jyb, kzrbd]
+  zrbu = ztildetfc[ixr, jyb, kzrbu]
+
+  kzrfu = kztildetfc(ixr, jyf, zlc, domain, grid)
+  kzrfd = kzrfu - 1
+  if kzrfd > k1
+    kzrfu = k1 + 1
+    kzrfd = k1 + 1
+  end
+  zrfd = ztildetfc[ixr, jyf, kzrfd]
+  zrfu = ztildetfc[ixr, jyf, kzrfu]
+
+  # Assign the values.
+
+  if zlbu < ztildetfc[ixl, jyb, k0]
+    flwlbd = 0.0
+    flwlbu = 0.0
+  elseif zlbd < ztildetfc[ixl, jyb, k0]
+    flwlbd = 0.0
+    flwlbu =
+      (v[ixl, jyb, kzlbu + 1] - v[ixl, jyb, kzlbu]) / dz / (
+        jac[ixl, jyb, kzlbu] * jac[ixl, jyb, kzlbu + 1] /
+        (jac[ixl, jyb, kzlbu] + jac[ixl, jyb, kzlbu + 1]) +
+        jac[ixl, jyb + 1, kzlbu] * jac[ixl, jyb + 1, kzlbu + 1] /
+        (jac[ixl, jyb + 1, kzlbu] + jac[ixl, jyb + 1, kzlbu + 1])
+      )
+  else
+    if zlbu < lz[2]
+      flwlbd =
+        (v[ixl, jyb, kzlbd + 1] - v[ixl, jyb, kzlbd]) / dz / (
+          jac[ixl, jyb, kzlbd] * jac[ixl, jyb, kzlbd + 1] /
+          (jac[ixl, jyb, kzlbd] + jac[ixl, jyb, kzlbd + 1]) +
+          jac[ixl, jyb + 1, kzlbd] * jac[ixl, jyb + 1, kzlbd + 1] /
+          (jac[ixl, jyb + 1, kzlbd] + jac[ixl, jyb + 1, kzlbd + 1])
+        )
+      flwlbu =
+        (v[ixl, jyb, kzlbu + 1] - v[ixl, jyb, kzlbu]) / dz / (
+          jac[ixl, jyb, kzlbu] * jac[ixl, jyb, kzlbu + 1] /
+          (jac[ixl, jyb, kzlbu] + jac[ixl, jyb, kzlbu + 1]) +
+          jac[ixl, jyb + 1, kzlbu] * jac[ixl, jyb + 1, kzlbu + 1] /
+          (jac[ixl, jyb + 1, kzlbu] + jac[ixl, jyb + 1, kzlbu + 1])
+        )
+    elseif zlbd < lz[2]
+      flwlbd =
+        (v[ixl, jyb, kzlbd + 1] - v[ixl, jyb, kzlbd]) / dz / (
+          jac[ixl, jyb, kzlbd] * jac[ixl, jyb, kzlbd + 1] /
+          (jac[ixl, jyb, kzlbd] + jac[ixl, jyb, kzlbd + 1]) +
+          jac[ixl, jyb + 1, kzlbd] * jac[ixl, jyb + 1, kzlbd + 1] /
+          (jac[ixl, jyb + 1, kzlbd] + jac[ixl, jyb + 1, kzlbd + 1])
+        )
+      flwlbu = 0.0
+    else
+      flwlbd = 0.0
+      flwlbu = 0.0
+    end
+  end
+
+  if zlfu < ztildetfc[ixl, jyf, k0]
+    flwlfd = 0.0
+    flwlfu = 0.0
+  elseif zlfd < ztildetfc[ixl, jyf, k0]
+    flwlfd = 0.0
+    flwlfu =
+      (v[ixl, jyf, kzlfu + 1] - v[ixl, jyf, kzlfu]) / dz / (
+        jac[ixl, jyf, kzlfu] * jac[ixl, jyf, kzlfu + 1] /
+        (jac[ixl, jyf, kzlfu] + jac[ixl, jyf, kzlfu + 1]) +
+        jac[ixl, jyf + 1, kzlfu] * jac[ixl, jyf + 1, kzlfu + 1] /
+        (jac[ixl, jyf + 1, kzlfu] + jac[ixl, jyf + 1, kzlfu + 1])
+      )
+  else
+    if zlfu < lz[2]
+      flwlfd =
+        (v[ixl, jyf, kzlfd + 1] - v[ixl, jyf, kzlfd]) / dz / (
+          jac[ixl, jyf, kzlfd] * jac[ixl, jyf, kzlfd + 1] /
+          (jac[ixl, jyf, kzlfd] + jac[ixl, jyf, kzlfd + 1]) +
+          jac[ixl, jyf + 1, kzlfd] * jac[ixl, jyf + 1, kzlfd + 1] /
+          (jac[ixl, jyf + 1, kzlfd] + jac[ixl, jyf + 1, kzlfd + 1])
+        )
+      flwlfu =
+        (v[ixl, jyf, kzlfu + 1] - v[ixl, jyf, kzlfu]) / dz / (
+          jac[ixl, jyf, kzlfu] * jac[ixl, jyf, kzlfu + 1] /
+          (jac[ixl, jyf, kzlfu] + jac[ixl, jyf, kzlfu + 1]) +
+          jac[ixl, jyf + 1, kzlfu] * jac[ixl, jyf + 1, kzlfu + 1] /
+          (jac[ixl, jyf + 1, kzlfu] + jac[ixl, jyf + 1, kzlfu + 1])
+        )
+    elseif zlfd < lz[2]
+      flwlfd =
+        (v[ixl, jyf, kzlfd + 1] - v[ixl, jyf, kzlfd]) / dz / (
+          jac[ixl, jyf, kzlfd] * jac[ixl, jyf, kzlfd + 1] /
+          (jac[ixl, jyf, kzlfd] + jac[ixl, jyf, kzlfd + 1]) +
+          jac[ixl, jyf + 1, kzlfd] * jac[ixl, jyf + 1, kzlfd + 1] /
+          (jac[ixl, jyf + 1, kzlfd] + jac[ixl, jyf + 1, kzlfd + 1])
+        )
+      flwlfu = 0.0
+    else
+      flwlfd = 0.0
+      flwlfu = 0.0
+    end
+  end
+
+  if zrbu < ztildetfc[ixr, jyb, k0]
+    flwrbd = 0.0
+    flwrbu = 0.0
+  elseif zrbd < ztildetfc[ixr, jyb, k0]
+    flwrbd = 0.0
+    flwrbu =
+      (v[ixr, jyb, kzrbu + 1] - v[ixr, jyb, kzrbu]) / dz / (
+        jac[ixr, jyb, kzrbu] * jac[ixr, jyb, kzrbu + 1] /
+        (jac[ixr, jyb, kzrbu] + jac[ixr, jyb, kzrbu + 1]) +
+        jac[ixr, jyb + 1, kzrbu] * jac[ixr, jyb + 1, kzrbu + 1] /
+        (jac[ixr, jyb + 1, kzrbu] + jac[ixr, jyb + 1, kzrbu + 1])
+      )
+  else
+    if zrbu < lz[2]
+      flwrbd =
+        (v[ixr, jyb, kzrbd + 1] - v[ixr, jyb, kzrbd]) / dz / (
+          jac[ixr, jyb, kzrbd] * jac[ixr, jyb, kzrbd + 1] /
+          (jac[ixr, jyb, kzrbd] + jac[ixr, jyb, kzrbd + 1]) +
+          jac[ixr, jyb + 1, kzrbd] * jac[ixr, jyb + 1, kzrbd + 1] /
+          (jac[ixr, jyb + 1, kzrbd] + jac[ixr, jyb + 1, kzrbd + 1])
+        )
+      flwrbu =
+        (v[ixr, jyb, kzrbu + 1] - v[ixr, jyb, kzrbu]) / dz / (
+          jac[ixr, jyb, kzrbu] * jac[ixr, jyb, kzrbu + 1] /
+          (jac[ixr, jyb, kzrbu] + jac[ixr, jyb, kzrbu + 1]) +
+          jac[ixr, jyb + 1, kzrbu] * jac[ixr, jyb + 1, kzrbu + 1] /
+          (jac[ixr, jyb + 1, kzrbu] + jac[ixr, jyb + 1, kzrbu + 1])
+        )
+    elseif zrbd < lz[2]
+      flwrbd =
+        (v[ixr, jyb, kzrbd + 1] - v[ixr, jyb, kzrbd]) / dz / (
+          jac[ixr, jyb, kzrbd] * jac[ixr, jyb, kzrbd + 1] /
+          (jac[ixr, jyb, kzrbd] + jac[ixr, jyb, kzrbd + 1]) +
+          jac[ixr, jyb + 1, kzrbd] * jac[ixr, jyb + 1, kzrbd + 1] /
+          (jac[ixr, jyb + 1, kzrbd] + jac[ixr, jyb + 1, kzrbd + 1])
+        )
+      flwrbu = 0.0
+    else
+      flwrbd = 0.0
+      flwrbu = 0.0
+    end
+  end
+
+  if zrfu < ztildetfc[ixr, jyf, k0]
+    flwrfd = 0.0
+    flwrfu = 0.0
+  elseif zrfd < ztildetfc[ixr, jyf, k0]
+    flwrfd = 0.0
+    flwrfu =
+      (v[ixr, jyf, kzrfu + 1] - v[ixr, jyf, kzrfu]) / dz / (
+        jac[ixr, jyf, kzrfu] * jac[ixr, jyf, kzrfu + 1] /
+        (jac[ixr, jyf, kzrfu] + jac[ixr, jyf, kzrfu + 1]) +
+        jac[ixr, jyf + 1, kzrfu] * jac[ixr, jyf + 1, kzrfu + 1] /
+        (jac[ixr, jyf + 1, kzrfu] + jac[ixr, jyf + 1, kzrfu + 1])
+      )
+  else
+    if zrfu < lz[2]
+      flwrfd =
+        (v[ixr, jyf, kzrfd + 1] - v[ixr, jyf, kzrfd]) / dz / (
+          jac[ixr, jyf, kzrfd] * jac[ixr, jyf, kzrfd + 1] /
+          (jac[ixr, jyf, kzrfd] + jac[ixr, jyf, kzrfd + 1]) +
+          jac[ixr, jyf + 1, kzrfd] * jac[ixr, jyf + 1, kzrfd + 1] /
+          (jac[ixr, jyf + 1, kzrfd] + jac[ixr, jyf + 1, kzrfd + 1])
+        )
+      flwrfu =
+        (v[ixr, jyf, kzrfu + 1] - v[ixr, jyf, kzrfu]) / dz / (
+          jac[ixr, jyf, kzrfu] * jac[ixr, jyf, kzrfu + 1] /
+          (jac[ixr, jyf, kzrfu] + jac[ixr, jyf, kzrfu + 1]) +
+          jac[ixr, jyf + 1, kzrfu] * jac[ixr, jyf + 1, kzrfu + 1] /
+          (jac[ixr, jyf + 1, kzrfu] + jac[ixr, jyf + 1, kzrfu + 1])
+        )
+    elseif zrfd < lz[2]
+      flwrfd =
+        (v[ixr, jyf, kzrfd + 1] - v[ixr, jyf, kzrfd]) / dz / (
+          jac[ixr, jyf, kzrfd] * jac[ixr, jyf, kzrfd + 1] /
+          (jac[ixr, jyf, kzrfd] + jac[ixr, jyf, kzrfd + 1]) +
+          jac[ixr, jyf + 1, kzrfd] * jac[ixr, jyf + 1, kzrfd + 1] /
+          (jac[ixr, jyf + 1, kzrfd] + jac[ixr, jyf + 1, kzrfd + 1])
+        )
+      flwrfu = 0.0
+    else
+      flwrfd = 0.0
+      flwrfu = 0.0
+    end
+  end
+
+  flw = meanflow_interpolation(
+    flwlbd,
+    flwlbu,
+    flwlfd,
+    flwlfu,
+    zlbd,
+    zlbu,
+    zlfd,
+    zlfu,
+    xl,
+    xr,
+    xlc,
+    yf,
+    yb,
+    ylc,
+    zlc,
+  )
+
+  return flw
+end
