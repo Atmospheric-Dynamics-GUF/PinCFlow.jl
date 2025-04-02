@@ -98,21 +98,65 @@ function subdivide(wavenumber, i::Interval)
   return i
 end
 
+struct Ray{A <: AbstractFloat}
+  dens::A
+  omega::A
+  x::A
+  y::A
+  z::A
+  k::A
+  l::A
+  m::A
+  dxray::A
+  dyray::A
+  dzray::A
+  dkray::A
+  dlray::A
+  dmray::A
+  area_xk::A
+  area_yl::A
+  area_zm::A
+end
+
+"""
+Convencience function to get a single ray from rays
+"""
+function get_ray(ir, i, j, k, rays)
+  return Ray{Float64}(
+    rays.dens[ir, i, j, k],
+    rays.omega[ir, i, j, k],
+    rays.x[ir, i, j, k],
+    rays.y[ir, i, j, k],
+    rays.z[ir, i, j, k],
+    rays.k[ir, i, j, k],
+    rays.l[ir, i, j, k],
+    rays.m[ir, i, j, k],
+    rays.dxray[ir, i, j, k],
+    rays.dyray[ir, i, j, k],
+    rays.dzray[ir, i, j, k],
+    rays.dkray[ir, i, j, k],
+    rays.dlray[ir, i, j, k],
+    rays.dmray[ir, i, j, k],
+    rays.area_xk[ir, i, j, k],
+    rays.area_yl[ir, i, j, k],
+    rays.area_zm[ir, i, j, k],
+  )
+end
 function wave_numbers_interval(ix, jy, kz, rays, nray, domain)
   intervals = Intervals{Float64}()
 
   for iray in 1:nray[ix, jy, kz]
-    ray = rays[iray, ix, jy, kz]
+    ijk = (iray, ix, jy, kz)
 
     if (domain.sizex > 1)
-      intervals.k = subdivide(ray.k, intervals.k)
+      intervals.k = subdivide(rays.k[(ijk)...], intervals.k)
     end
 
     if (domain.sizey > 1)
-      intervals.l = subdivide(ray.l, intervals.l)
+      intervals.l = subdivide(rays.l[(ijk)...], intervals.l)
     end
 
-    intervals.m = subdivide(ray.m, intervals.m)
+    intervals.m = subdivide(rays.m[(ijk)...], intervals.m)
   end
 
   if (domain.sizex > 1)
@@ -137,31 +181,31 @@ function generate_merged_rv(ix, jy, kz, rays, nray, intervals, widths, state)
   wkb = state.wkb
   (; nxray, nyray, nzray, nr_merge, cons_merge) = wkb
   for iray in 1:nray[ix, jy, kz]
-    ray = rays[iray, ix, jy, kz]
-    wnrk = ray.k
-    dwnrk = ray.dkray
+    ijk = (iray, ix, jy, kz)
+    wnrk = rays.k[(ijk)...]
+    dwnrk = rays.dkray[(ijk)...]
 
-    wnrl = ray.l
-    dwnrl = ray.dlray
+    wnrl = rays.l[(ijk)...]
+    dwnrl = rays.dlray[(ijk)...]
 
-    wnrm = ray.m
-    dwnrm = ray.dmray
+    wnrm = rays.m[(ijk)...]
+    dwnrm = rays.dmray[(ijk)...]
 
-    xr = ray.x
-    dxr = ray.dxray
+    xr = rays.x[(ijk)...]
+    dxr = rays.dxray[(ijk)...]
 
-    yr = ray.y
-    dyr = ray.dyray
+    yr = rays.y[(ijk)...]
+    dyr = rays.dyray[(ijk)...]
 
-    zr = ray.z
-    dzr = ray.dzray
+    zr = rays.z[(ijk)...]
+    dzr = rays.dzray[(ijk)...]
 
-    axk = ray.area_xk
-    ayl = ray.area_yl
-    azm = ray.area_zm
+    axk = rays.area_xk[(ijk)...]
+    ayl = rays.area_yl[(ijk)...]
+    azm = rays.area_zm[(ijk)...]
 
-    wdr = ray.dens
-    omir = ray.omega
+    wdr = rays.dens[(ijk)...]
+    omir = rays.omega[(ijk)...]
     if (domain.sizex > 1)
       fcpspx = axk
 
@@ -174,8 +218,7 @@ function generate_merged_rv(ix, jy, kz, rays, nray, intervals, widths, state)
         if (abs(log(-wnrk / intervals.k.max_n) / widths.dwnrk_mg_n) < 1.0)
           ir_k = nxray / 2 - 1
         else
-          ir_k =
-            Int64(log(-wnrk / intervals.k.min_n) / widths.dwnrk_mg_n) + 1
+          ir_k = Int64(log(-wnrk / intervals.k.min_n) / widths.dwnrk_mg_n) + 1
         end
       elseif (wnrk == 0.0)
         ir_k = nxray / 2
@@ -222,8 +265,7 @@ function generate_merged_rv(ix, jy, kz, rays, nray, intervals, widths, state)
         if (abs(log(-wnrl / intervals.l.max_n) / widths.dwnrl_mg_n) < 1.0)
           ir_l = nyray / 2 - 1
         else
-          ir_l =
-            Int64(log(-wnrl / intervals.l.min_n) / widths.dwnrl_mg_n) + 1
+          ir_l = Int64(log(-wnrl / intervals.l.min_n) / widths.dwnrl_mg_n) + 1
         end
       elseif (wnrl == 0.0)
         ir_l = nyray / 2
@@ -406,6 +448,8 @@ function replace_rayvolume(rays, state)
   (; nr_merge, nray_max, cons_merge) = wkb
   iray = 0
 
+  f_cor_nd = state.constants.f_coriolis_dim * state.constants.tref
+
   for jray in 1:nray_max
     if (nr_merge[jray] < 1)
       continue
@@ -414,7 +458,7 @@ function replace_rayvolume(rays, state)
     iray += 1
 
     # ! position and width in physical space
-    ray = rays[iray, ix, jy, kz]
+    ray = get_ray(iray, ix, jy, kz, rays)
 
     ray.x = 0.5 * (wkb.xrmxmg[jray] + wkb.xrmnmg[jray])
     ray.dxray = wkb.xrmxmg[jray] - wkb.xrmnmg[jray]
@@ -461,18 +505,8 @@ function replace_rayvolume(rays, state)
 
     # ! wave-action density
 
-    if (domain.sizeX > 1)
-      fcpspx = ray.area_xk
-    else
-      fcpspx = 1.0
-    end
-
-    if (sizeY > 1)
-      fcpspy = ray.area_yl
-    else
-      fcpspy = 1.0
-    end
-
+    fcpspx = ifelse(domain.sizex > 1, ray.area_xk, 1.0)
+    fcpspy = ifelse(domain.sizey > 1, ray.area_yk, 1.0)
     fcpspz = ray.area_zm
 
     if (cons_merge == "wa")
@@ -509,7 +543,6 @@ end
 function merge_rayvol(state)
   nvrtt0 = total_ray_volumes()
 
-  f_cor_nd = state.constants.f_coriolis_dim * state.constants.tref
   (; nx, ny, nz) = state.domain
   (; nray, rays, nray_max, nxray, nyray, nzray) = state.wkb
 
@@ -520,18 +553,9 @@ function merge_rayvol(state)
 
     intervals = wave_numbers_interval(ix, jy, kz, rays, nray, state.domain)
 
-    dwnrk_mg_n, dwnrk_mg_p = log_widths(
-        intervals.k,
-        nxray
-    )
-    dwnrl_mg_n, dwnrl_mg_p = log_widths(
-        intervals.l,
-        nyray
-    )
-    dwnrm_mg_n, dwnrm_mg_p = log_widths(
-        intervals.m,
-        nzray
-    )
+    dwnrk_mg_n, dwnrk_mg_p = log_widths(intervals.k, nxray)
+    dwnrl_mg_n, dwnrl_mg_p = log_widths(intervals.l, nyray)
+    dwnrm_mg_n, dwnrm_mg_p = log_widths(intervals.m, nzray)
 
     w = widths(
       dwnrk_mg_n,
