@@ -97,6 +97,8 @@ include("integration/synchronize_density_fluctuations.jl")
 include("integration/integrate.jl")
 
 # Include WKB functions.
+include("wkb/kztfc.jl")
+include("wkb/kztildetfc.jl")
 include("wkb/merge_rayvol.jl")
 include("wkb/orographic_source.jl")
 include("wkb/saturation.jl")
