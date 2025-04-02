@@ -463,7 +463,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
       (2.0 * dx) * (zs[kz] - lz[2]) / (lz[2] - topography_surface[ix, jy]) *
       dz / (ztildes[kz] - ztildes[kz - 1])
   end
-  set_zonal_boundaries_of_field!(met13, namelists, domain)
+  set_all_zonal_boundary_layers!(met13, namelists, domain)
   @views met13[:, :, 1] .=
     met13[:, :, 2 * nbz] .* (zs[1] .- lz[2]) ./ (zs[2 * nbz] .- lz[2])
   met[:, :, :, 1, 3] .= met13
@@ -474,7 +474,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
       (2.0 * dy) * (zs[kz] - lz[2]) / (lz[2] - topography_surface[ix, jy]) *
       dz / (ztildes[kz] - ztildes[kz - 1])
   end
-  set_meridional_boundaries_of_field!(met23, namelists, domain)
+  set_all_meridional_boundary_layers!(met23, namelists, domain)
   @views met23[:, :, 1] .=
     met23[:, :, 2 * nbz] .* (zs[1] .- lz[2]) ./ (zs[2 * nbz] .- lz[2])
   met[:, :, :, 2, 3] .= met23
@@ -511,8 +511,8 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
         )
       ) * (dz / (ztildes[2 * nbz] - ztildes[2 * nbz - 1]))^2.0
   end
-  set_zonal_boundaries_of_field!(met33, namelists, domain)
-  set_meridional_boundaries_of_field!(met33, namelists, domain)
+  set_all_zonal_boundary_layers!(met33, namelists, domain)
+  set_all_meridional_boundary_layers!(met33, namelists, domain)
   met[:, :, :, 3, 3] .= met33
 
   # Initialize the physical layers.

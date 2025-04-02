@@ -1,4 +1,4 @@
-function set_zonal_boundaries_of_field!(
+function set_all_zonal_boundary_layers!(
   field::AbstractArray{<:AbstractFloat, 3},
   namelists::Namelists,
   domain::Domain,
@@ -7,7 +7,7 @@ function set_zonal_boundaries_of_field!(
   (; i0, i1) = domain
 
   if nprocx > 1
-    set_zonal_halos_of_field!(field, namelists, domain)
+    set_all_zonal_halo_layers!(field, namelists, domain)
   else
     for i in 1:nbx
       @views field[i0 - i, :, :] .= field[i1 - i + 1, :, :]
@@ -18,7 +18,7 @@ function set_zonal_boundaries_of_field!(
   return
 end
 
-function set_zonal_boundaries_of_field!(
+function set_all_zonal_boundary_layers!(
   field::AbstractArray{<:AbstractFloat, 5},
   namelists::Namelists,
   domain::Domain,
@@ -27,7 +27,7 @@ function set_zonal_boundaries_of_field!(
   (; i0, i1) = domain
 
   if nprocx > 1
-    set_zonal_halos_of_field!(field, namelists, domain)
+    set_all_zonal_halo_layers!(field, namelists, domain)
   else
     for i in 1:nbx
       @views field[i0 - i, :, :, :, :] .= field[i1 - i + 1, :, :, :, :]
