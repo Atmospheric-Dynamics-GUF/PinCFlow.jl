@@ -3,13 +3,10 @@ function split_z(ix, jy, kz, rays, nray, dz)
   for iray in 1:nray[ix, jy, kz]
       ijk = (iray, ix, jy, kz)
 
-      zr = rays.z[(ijk)...]
+      xr, yr, zr = pos_physical((ijk)..., rays)
 
     dzr = ray.dzray[(ijk)...]
     azm = ray.area_zm[(ijk)...]
-
-    xr = ray.x[(ijk)...]
-    yr = ray.y[(ijk)...]
 
     ixrv = nint((xr - lx[0]) / dx + 0.5) - ix0
     jyrv = nint((yr - ly[0]) / dy + 0.5) - jy0
