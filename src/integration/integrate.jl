@@ -436,7 +436,7 @@ function integrate(namelists::Namelists)
     #--------------------------------------------------------------
 
     if output_steps
-      if mod(itime, noutput) == 0
+      if itime % noutput == 0
         iout = write_output(state, time, iout, cpu_start_time)
       end
     else

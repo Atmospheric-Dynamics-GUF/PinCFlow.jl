@@ -57,14 +57,14 @@ function stratification(state, zlc, strtype == 2)
   zu = ztildetfc(i0 - 1, j0 - 1, kzu)
 
   strd =
-    (bvsstrattfc[i0 - 1, j0 - 1, kzd + 1] - 
-    bvsstrattfc[i0 - 1, j0 - 1, kzd]) / (
+    (bvsstrattfc[i0 - 1, j0 - 1, kzd + 1] - bvsstrattfc[i0 - 1, j0 - 1, kzd]) /
+    (
       2.0 * jac[i0 - 1, j0 - 1, kzd] * jac[i0 - 1, j0 - 1, kzd + 1] /
       (jac[i0 - 1, j0 - 1, kzd] + jac[i0 - 1, j0 - 1, kzd + 1])
     ) / dz
   stru =
-    (bvsstrattfc[i0 - 1, j0 - 1, kzu + 1] - 
-    bvsstrattfc[i0 - 1, j0 - 1, kzu]) / (
+    (bvsstrattfc[i0 - 1, j0 - 1, kzu + 1] - bvsstrattfc[i0 - 1, j0 - 1, kzu]) /
+    (
       2.0 * jac[i0 - 1, j0 - 1, kzu] * jac[i0 - 1, j0 - 1, kzu + 1] /
       (jac[i0 - 1, j0 - 1, kzu] + jac[i0 - 1, j0 - 1, kzu + 1])
     ) / dz

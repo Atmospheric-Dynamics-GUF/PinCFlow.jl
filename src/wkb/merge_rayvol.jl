@@ -174,8 +174,7 @@ function generate_merged_rv(ix, jy, kz, rays, nray, intervals, widths, state)
         if (abs(log(-wnrk / intervals.k.max_n) / widths.dwnrk_mg_n) < 1.0)
           ir_k = nxray / 2 - 1
         else
-          ir_k =
-            Int64(log(-wnrk / intervals.k.min_n) / widths.dwnrk_mg_n) + 1
+          ir_k = Int64(log(-wnrk / intervals.k.min_n) / widths.dwnrk_mg_n) + 1
         end
       elseif (wnrk == 0.0)
         ir_k = nxray / 2
@@ -222,8 +221,7 @@ function generate_merged_rv(ix, jy, kz, rays, nray, intervals, widths, state)
         if (abs(log(-wnrl / intervals.l.max_n) / widths.dwnrl_mg_n) < 1.0)
           ir_l = nyray / 2 - 1
         else
-          ir_l =
-            Int64(log(-wnrl / intervals.l.min_n) / widths.dwnrl_mg_n) + 1
+          ir_l = Int64(log(-wnrl / intervals.l.min_n) / widths.dwnrl_mg_n) + 1
         end
       elseif (wnrl == 0.0)
         ir_l = nyray / 2
@@ -520,18 +518,9 @@ function merge_rayvol(state)
 
     intervals = wave_numbers_interval(ix, jy, kz, rays, nray, state.domain)
 
-    dwnrk_mg_n, dwnrk_mg_p = log_widths(
-        intervals.k,
-        nxray
-    )
-    dwnrl_mg_n, dwnrl_mg_p = log_widths(
-        intervals.l,
-        nyray
-    )
-    dwnrm_mg_n, dwnrm_mg_p = log_widths(
-        intervals.m,
-        nzray
-    )
+    dwnrk_mg_n, dwnrk_mg_p = log_widths(intervals.k, nxray)
+    dwnrl_mg_n, dwnrl_mg_p = log_widths(intervals.l, nyray)
+    dwnrm_mg_n, dwnrm_mg_p = log_widths(intervals.m, nzray)
 
     w = widths(
       dwnrk_mg_n,

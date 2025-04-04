@@ -166,8 +166,7 @@ function saturation!(state, dt::AbstractFloat, steadystate == false)
           # set it to zero in that case
           ray.dens[iray, ixrv, jyrv, kzrv] =
             ray.dens[iray, ixrv, jyrv, kzrv] *
-            max(0.0, 1.0 - dt * 2.0 * kappa * 
-            (wnrk^2.0 + wnrl^2.0 + wnrm^2.0))
+            max(0.0, 1.0 - dt * 2.0 * kappa * (wnrk^2.0 + wnrl^2.0 + wnrm^2.0))
         end
       end
     end
@@ -244,8 +243,7 @@ function saturation!(state, dt::AbstractFloat, steadystate == false)
             facpsp = facpsp * dyi / dy * dwnrl
           end
 
-          integral1 = wnrhs * wnrm^2.0 / ((wnrhs + wnrm^2.0) * omir) * 
-            facpsp
+          integral1 = wnrhs * wnrm^2.0 / ((wnrhs + wnrm^2.0) * omir) * facpsp
 
           mb2[ix, jy, kz] =
             mb2[ix, jy, kz] +

@@ -173,18 +173,10 @@ function Domain(namelists::Namelists)
     (zeros(nxx, nby, nzz, 3, 2) for i in 1:4)
 
   # Initialize auxiliary arrays for setting one halo layer.
-  (
-    send_rf3_left,
-    send_rf3_right,
-    recv_rf3_left,
-    recv_rf3_right,
-  ) = (zeros(ny + 2, nz + 2) for i in 1:4)
-  (
-    send_rf3_back,
-    send_rf3_forw,
-    recv_rf3_back,
-    recv_rf3_forw,
-  ) = (zeros(nx + 2, nz + 2) for i in 1:4)
+  (send_rf3_left, send_rf3_right, recv_rf3_left, recv_rf3_right) =
+    (zeros(ny + 2, nz + 2) for i in 1:4)
+  (send_rf3_back, send_rf3_forw, recv_rf3_back, recv_rf3_forw) =
+    (zeros(nx + 2, nz + 2) for i in 1:4)
 
   # Initialize auxiliary arrays for gather & scatter.
   local_array = zeros(nx, ny, nz)
