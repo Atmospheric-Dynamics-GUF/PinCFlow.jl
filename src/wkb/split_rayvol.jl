@@ -1,15 +1,12 @@
 function split_z(ix, jy, kz, rays, nray, dz)
   nrlc = nray[ix, jy, kz]
   for iray in 1:nray[ix, jy, kz]
-    ray = rays[iray, ix, jy, kz]
-    zr = ray(iRay, ix, jy, kz) % z
-    zr = ray.z
+      ijk = (iray, ix, jy, kz)
 
-    dzr = ray.dzray
-    azm = ray.area_zm
+      xr, yr, zr = pos_physical((ijk)..., rays)
 
-    xr = ray.x
-    yr = ray.y
+    dzr = ray.dzray[(ijk)...]
+    azm = ray.area_zm[(ijk)...]
 
     ixrv = nint((xr - lx[0]) / dx + 0.5) - ix0
     jyrv = nint((yr - ly[0]) / dy + 0.5) - jy0
@@ -23,13 +20,12 @@ function split_z(ix, jy, kz, rays, nray, dz)
 
     if (dzr > dzmin)
       factor = ceil(dzr / dzmin)
-      ray.z = zr + 0.5 * (1 / factor - 1) * dzr
-      ray.dzray = dzr / factor
-      ray.area_zm = azm / factor
+      rays.z[(ijk)...] = zr + 0.5 * (1 / factor - 1) * dzr
+      rays.dzray[(ijk)...] = dzr / factor
+      rays.area_zm[(ijk)...] = azm / factor
       for jRay in (nrlc + 1):(nrlc + factor - 1)
         ray[jRay, ix, jy, kz] = ray[iRay, ix, jy, kz]
-        ray[jRay, ix, jy, kz].z =
-          ray[jRay, ix, jy, kz].z + (jRay - nrlc) * dzr / factor
+        rays.z[(ijk)...] += (jRray - nrlc) * dzr / factor
       end
       nrlc = nrlc + factor - 1
     end
@@ -48,7 +44,7 @@ end
 
 function split_y(ix, jy, kz, rays, nray, dy)
   nrlc = nray[ix, jy, kz]
-  for iray in 1:nray(ix, jy, kz)
+  for iray in 1:nray[ix, jy, kz]
     ray = rays(iray, ix, jy, kz)
     yr = ray.y
     dyr = ray.dyray
@@ -75,16 +71,14 @@ function split_y(ix, jy, kz, rays, nray, dy)
   end
 
   if (nrlc > nray[ix, jy, kz])
-    function nray(ix, jy, kz)
-      return nrlc
-    end
+    nray[ix, jy, kz] = nrlc
+  end
     if (nray[ix, jy, kz] > nray_wrk)
       # print *, 'ERROR at ix,jy,kz =', ix, jy, kz
       # print *, 'nRay =', nRay(ix, jy, kz), '> nray_wrk =', nray_wrk
       exit()
     end
   end
-end
 
 function split_x(ix, jy, kz, rays, nray, dx)
   nrlc = nray[ix, jy, kz]
