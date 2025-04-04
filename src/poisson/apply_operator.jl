@@ -43,8 +43,8 @@ function apply_operator!(
   s[i0:i1, j0:j1, k0:k1] .= sin
 
   # Set boundaries of auxiliary field.
-  set_one_zonal_boundary_layer!(s, namelists, domain)
-  set_one_meridional_boundary_layer!(s, namelists, domain)
+  set_zonal_boundaries_of_reduced_field!(s, namelists, domain)
+  set_meridional_boundaries_of_reduced_field!(s, namelists, domain)
 
   #---------------------------------
   #         Loop over field
@@ -250,8 +250,8 @@ function apply_operator!(
   s[i0:i1, j0:j1, k0:k1] .= sin
 
   # Set boundaries of auxiliary field.
-  set_one_zonal_boundary_layer!(s, namelists, domain)
-  set_one_meridional_boundary_layer!(s, namelists, domain)
+  set_zonal_boundaries_of_reduced_field!(s, namelists, domain)
+  set_meridional_boundaries_of_reduced_field!(s, namelists, domain)
 
   #---------------------------------
   #         Loop over field

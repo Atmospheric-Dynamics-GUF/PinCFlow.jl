@@ -1,4 +1,4 @@
-function set_all_meridional_boundary_layers!(
+function set_meridional_boundaries_of_field!(
   field::AbstractArray{<:AbstractFloat, 3},
   namelists::Namelists,
   domain::Domain,
@@ -7,7 +7,7 @@ function set_all_meridional_boundary_layers!(
   (; j0, j1) = domain
 
   if nprocy > 1
-    set_all_meridional_halo_layers!(field, namelists, domain)
+    set_meridional_halos_of_field!(field, namelists, domain)
   else
     for j in 1:nby
       @views field[:, j0 - j, :] .= field[:, j1 - j + 1, :]
@@ -18,7 +18,7 @@ function set_all_meridional_boundary_layers!(
   return
 end
 
-function set_all_meridional_boundary_layers!(
+function set_meridional_boundaries_of_field!(
   field::AbstractArray{<:AbstractFloat, 5},
   namelists::Namelists,
   domain::Domain,
@@ -27,7 +27,7 @@ function set_all_meridional_boundary_layers!(
   (; j0, j1) = domain
 
   if nprocy > 1
-    set_all_meridional_halo_layers!(field, namelists, domain)
+    set_meridional_halos_of_field!(field, namelists, domain)
   else
     for j in 1:nby
       @views field[:, j0 - j, :, :, :] .= field[:, j1 - j + 1, :, :, :]

@@ -1,4 +1,4 @@
-function set_one_meridional_boundary_layer!(
+function set_meridional_boundaries_of_reduced_field!(
   field::AbstractArray{<:AbstractFloat, 3},
   namelists::Namelists,
   domain::Domain,
@@ -7,7 +7,7 @@ function set_one_meridional_boundary_layer!(
   (; i0, i1, j0, j1, k0, k1) = domain
 
   if nprocy > 1
-    set_one_meridional_halo_layer!(field, domain)
+    set_meridional_halos_of_reduced_field!(field, domain)
   else
     @views field[(i0 - 1):(i1 + 1), j0 - 1, (k0 - 1):(k1 + 1)] .=
       field[(i0 - 1):(i1 + 1), j1, (k0 - 1):(k1 + 1)]
