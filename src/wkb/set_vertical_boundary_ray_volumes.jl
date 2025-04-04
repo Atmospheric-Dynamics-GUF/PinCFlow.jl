@@ -30,8 +30,8 @@ function set_vertical_boundary_ray_volumes!(
       # Reflect ray volumes at the lower boundary.
       xr = rays.x[iray, ix, jy, kz]
       yr = rays.y[iray, ix, jy, kz]
-      ixrv = round(Int, (xr - lx[1]) / dx + 0.5) - io
-      jyrv = round(Int, (yr - ly[1]) / dy + 0.5) - jo
+      ixrv = round(Int, (xr - lx[1] - dx / 2) / dx) + i0 - io
+      jyrv = round(Int, (yr - ly[1] - dy / 2) / dy) + j0 - jo
       if zr - 0.5 * dzr < ztildetfc[ixrv, jyrv, k0 - 1]
         rays.z[iray, ix, jy, kz] =
           2.0 * ztildetfc[ixrv, jyrv, k0 - 1] - zr + dzr
@@ -64,8 +64,8 @@ function set_vertical_boundary_ray_volumes!(
 
       xr = rays.x[iray, ix, jy, kz]
       yr = rays.y[iray, ix, jy, kz]
-      ixrv = round(Int, (xr - lx[1]) / dx + 0.5) - io
-      jyrv = round(Int, (yr - ly[1]) / dy + 0.5) - jo
+      ixrv = round(Int, (xr - lx[1] - dx / 2) / dx) + i0 - io
+      jyrv = round(Int, (yr - ly[1] - dy / 2) / dy) + j0 - jo
       zsfc = ztildetfc[ixrv, jyrv, k0 - 1]
 
       if zr < zsfc
@@ -104,8 +104,8 @@ function set_vertical_boundary_ray_volumes!(
 
           xr = rays.x[iray, ix, jy, kz]
           yr = rays.y[iray, ix, jy, kz]
-          ixrv = round(Int, (xr - lx[1]) / dx + 0.5) - io
-          jyrv = round(Int, (yr - ly[1]) / dy + 0.5) - jo
+          ixrv = round(Int, (xr - lx[1] - dx / 2) / dx) + i0 - io
+          jyrv = round(Int, (yr - ly[1] - dy / 2) / dy) + j0 - jo
           if abs(zrt - ztfc[ixrv, jyrv, kz]) < abs(zr - ztfc[ixrv, jyrv, kz])
             zr = zrt
           end
@@ -123,8 +123,8 @@ function set_vertical_boundary_ray_volumes!(
 
           xr = rays.x[iray, ix, jy, kz]
           yr = rays.y[iray, ix, jy, kz]
-          ixrv = round(Int, (xr - lx[1]) / dx + 0.5) - io
-          jyrv = round(Int, (yr - ly[1]) / dy + 0.5) - jo
+          ixrv = round(Int, (xr - lx[1] - dx / 2) / dx) + i0 - io
+          jyrv = round(Int, (yr - ly[1] - dy / 2) / dy) + j0 - jo
           if abs(zrt - ztfc[ixrv, jyrv, kz]) < abs(zr - ztfc[ixrv, jyrv, kz])
             zr = zrt
           end
