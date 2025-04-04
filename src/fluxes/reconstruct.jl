@@ -104,8 +104,8 @@ function reconstruct!(state::State, variable::W)
   for kz in (k0 - 1):(k1 + 1), jy in j0:j1, ix in i0:i1
     phi[ix, jy, kz] = compute_vertical_wind(ix, jy, kz, predictands, grid)
   end
-  set_all_zonal_boundary_layers!(phi, namelists, domain)
-  set_all_meridional_boundary_layers!(phi, namelists, domain)
+  set_zonal_boundaries_of_field!(phi, namelists, domain)
+  set_meridional_boundaries_of_field!(phi, namelists, domain)
   for kz in (k0 - 1):(k1 + 1), jy in 1:nyy, ix in 1:nxx
     rhoedgeu =
       (

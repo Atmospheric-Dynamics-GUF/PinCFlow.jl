@@ -53,33 +53,33 @@ struct Domain{
   back::C
   forw::C
 
-  # Auxiliary arrays for setting all halo layers.
-  send_a3_left::D
-  send_a3_right::D
-  recv_a3_left::D
-  recv_a3_right::D
-  send_a5_left::E
-  send_a5_right::E
-  recv_a5_left::E
-  recv_a5_right::E
-  send_a3_back::F
-  send_a3_forw::F
-  recv_a3_back::F
-  recv_a3_forw::F
-  send_a5_back::G
-  send_a5_forw::G
-  recv_a5_back::G
-  recv_a5_forw::G
+  # Auxiliary arrays for setting halos of a field.
+  send_f3_left::D
+  send_f3_right::D
+  recv_f3_left::D
+  recv_f3_right::D
+  send_f5_left::E
+  send_f5_right::E
+  recv_f5_left::E
+  recv_f5_right::E
+  send_f3_back::F
+  send_f3_forw::F
+  recv_f3_back::F
+  recv_f3_forw::F
+  send_f5_back::G
+  send_f5_forw::G
+  recv_f5_back::G
+  recv_f5_forw::G
 
-  # Auxiliary arrays for setting one halo layer.
-  send_o3_left::H
-  send_o3_right::H
-  recv_o3_left::H
-  recv_o3_right::H
-  send_o3_back::I
-  send_o3_forw::I
-  recv_o3_back::I
-  recv_o3_forw::I
+  # Auxiliary arrays for setting halos of a reduced field.
+  send_rf3_left::H
+  send_rf3_right::H
+  recv_rf3_left::H
+  recv_rf3_right::H
+  send_rf3_back::I
+  send_rf3_forw::I
+  recv_rf3_back::I
+  recv_rf3_forw::I
 
   # Auxiliary arrays for gather & scatter.
   local_array::J
@@ -163,27 +163,27 @@ function Domain(namelists::Namelists)
   (back, forw) = MPI.Cart_shift(comm, 1, 1)
 
   # Initialize auxiliary arrays for setting all halo layers.
-  (send_a3_left, send_a3_right, recv_a3_left, recv_a3_right) =
+  (send_f3_left, send_f3_right, recv_f3_left, recv_f3_right) =
     (zeros(nbx, nyy, nzz) for i in 1:4)
-  (send_a5_left, send_a5_right, recv_a5_left, recv_a5_right) =
+  (send_f5_left, send_f5_right, recv_f5_left, recv_f5_right) =
     (zeros(nbx, nyy, nzz, 3, 2) for i in 1:4)
-  (send_a3_back, send_a3_forw, recv_a3_back, recv_a3_forw) =
+  (send_f3_back, send_f3_forw, recv_f3_back, recv_f3_forw) =
     (zeros(nxx, nby, nzz) for i in 1:4)
-  (send_a5_back, send_a5_forw, recv_a5_back, recv_a5_forw) =
+  (send_f5_back, send_f5_forw, recv_f5_back, recv_f5_forw) =
     (zeros(nxx, nby, nzz, 3, 2) for i in 1:4)
 
   # Initialize auxiliary arrays for setting one halo layer.
   (
-    send_o3_left,
-    send_o3_right,
-    recv_o3_left,
-    recv_o3_right,
+    send_rf3_left,
+    send_rf3_right,
+    recv_rf3_left,
+    recv_rf3_right,
   ) = (zeros(ny + 2, nz + 2) for i in 1:4)
   (
-    send_o3_back,
-    send_o3_forw,
-    recv_o3_back,
-    recv_o3_forw,
+    send_rf3_back,
+    send_rf3_forw,
+    recv_rf3_back,
+    recv_rf3_forw,
   ) = (zeros(nx + 2, nz + 2) for i in 1:4)
 
   # Initialize auxiliary arrays for gather & scatter.
@@ -221,30 +221,30 @@ function Domain(namelists::Namelists)
     right,
     back,
     forw,
-    send_a3_left,
-    send_a3_right,
-    recv_a3_left,
-    recv_a3_right,
-    send_a5_left,
-    send_a5_right,
-    recv_a5_left,
-    recv_a5_right,
-    send_a3_back,
-    send_a3_forw,
-    recv_a3_back,
-    recv_a3_forw,
-    send_a5_back,
-    send_a5_forw,
-    recv_a5_back,
-    recv_a5_forw,
-    send_o3_left,
-    send_o3_right,
-    recv_o3_left,
-    recv_o3_right,
-    send_o3_back,
-    send_o3_forw,
-    recv_o3_back,
-    recv_o3_forw,
+    send_f3_left,
+    send_f3_right,
+    recv_f3_left,
+    recv_f3_right,
+    send_f5_left,
+    send_f5_right,
+    recv_f5_left,
+    recv_f5_right,
+    send_f3_back,
+    send_f3_forw,
+    recv_f3_back,
+    recv_f3_forw,
+    send_f5_back,
+    send_f5_forw,
+    recv_f5_back,
+    recv_f5_forw,
+    send_rf3_left,
+    send_rf3_right,
+    recv_rf3_left,
+    recv_rf3_right,
+    send_rf3_back,
+    send_rf3_forw,
+    recv_rf3_back,
+    recv_rf3_forw,
     local_array,
     master_array,
     global_array,
