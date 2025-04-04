@@ -24,21 +24,9 @@ function set_meridional_halos_of_reduced_field!(
   @views send_rf3_forw .= field[(i0 - 1):(i1 + 1), j1, (k0 - 1):(k1 + 1)]
   @views send_rf3_back .= field[(i0 - 1):(i1 + 1), j0, (k0 - 1):(k1 + 1)]
 
-  MPI.Sendrecv!(
-    send_rf3_forw,
-    recv_rf3_back,
-    comm;
-    dest = forw,
-    source = back,
-  )
+  MPI.Sendrecv!(send_rf3_forw, recv_rf3_back, comm; dest = forw, source = back)
 
-  MPI.Sendrecv!(
-    send_rf3_back,
-    recv_rf3_forw,
-    comm;
-    dest = back,
-    source = forw,
-  )
+  MPI.Sendrecv!(send_rf3_back, recv_rf3_forw, comm; dest = back, source = forw)
 
   # Write auxiliary slice to field.
   field[(i0 - 1):(i1 + 1), j0 - 1, (k0 - 1):(k1 + 1)] .= recv_rf3_back
