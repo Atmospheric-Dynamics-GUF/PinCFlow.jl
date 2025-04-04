@@ -44,12 +44,12 @@ include("types/state.jl")
 
 # Include boundary functions.
 include("boundaries/set_boundaries.jl")
-include("boundaries/set_all_meridional_boundary_layers.jl")
-include("boundaries/set_one_meridional_boundary_layer.jl")
+include("boundaries/set_meridional_boundaries_of_field.jl")
+include("boundaries/set_meridional_boundaries_of_reduced_field.jl")
 include("boundaries/set_meridional_boundaries.jl")
 include("boundaries/set_vertical_boundaries.jl")
-include("boundaries/set_all_zonal_boundary_layers.jl")
-include("boundaries/set_one_zonal_boundary_layer.jl")
+include("boundaries/set_zonal_boundaries_of_field.jl")
+include("boundaries/set_zonal_boundaries_of_reduced_field.jl")
 include("boundaries/set_zonal_boundaries.jl")
 
 # Include flux functionss.
@@ -63,10 +63,10 @@ include("fluxes/reconstruct.jl")
 include("mpi/compute_global_array.jl")
 include("mpi/compute_local_array.jl")
 include("mpi/compute_global_dot_product.jl")
-include("mpi/set_all_meridional_halo_layers.jl")
-include("mpi/set_one_meridional_halo_layer.jl")
-include("mpi/set_all_zonal_halo_layers.jl")
-include("mpi/set_one_zonal_halo_layer.jl")
+include("mpi/set_meridional_halos_of_field.jl")
+include("mpi/set_meridional_halos_of_reduced_field.jl")
+include("mpi/set_zonal_halos_of_field.jl")
+include("mpi/set_zonal_halos_of_reduced_field.jl")
 
 # Include update functions.
 include("update/apply_unified_sponge.jl")
