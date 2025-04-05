@@ -5,7 +5,11 @@ using LinearAlgebra
 using NCDatasets
 using MPI
 
-# Include types.
+# Include abstract types and singletons.
+include("types/abstract_types.jl")
+include("types/singletons.jl")
+
+# Include composite types.
 include("types/namelists/domain_namelist.jl")
 include("types/namelists/output_namelist.jl")
 include("types/namelists/setting_namelist.jl")

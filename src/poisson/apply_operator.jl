@@ -1,6 +1,3 @@
-struct Total end
-struct Horizontal end
-
 function apply_operator!(
   sin::AbstractArray{<:AbstractFloat, 3},
   ls::AbstractArray{<:AbstractFloat, 3},

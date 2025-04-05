@@ -1,8 +1,3 @@
-abstract type AbstractDir end
-struct xDir <: AbstractDir end
-struct yDir <: AbstractDir end
-struct zDir <: AbstractDir end
-
 function dir_to_int(dir::AbstractDir)
   if dir == xDir()
     return 1
