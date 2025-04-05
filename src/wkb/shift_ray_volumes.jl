@@ -1,7 +1,3 @@
-struct X end
-struct Y end
-struct Z end
-
 function shift_ray_volumes!(state::State)
   (; sizex, sizey) = state.namelists.domain
   (; zboundaries) = state.namelists.setting
