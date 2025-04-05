@@ -253,7 +253,7 @@ function orographic_source!(state::State, dt::AbstractFloat)
             if nrlc > nray_wrk
               error("Error in orographic_source: nrlc > nray_wrk!")
             end
-            copy_ray!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz + 1))
+            copy_ray_volume!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz + 1))
 
             # Clip or extend the old ray volume.
             if zr - 0.5 * dzr < ztildetfc[ix, jy, kz] || kz2 == 1

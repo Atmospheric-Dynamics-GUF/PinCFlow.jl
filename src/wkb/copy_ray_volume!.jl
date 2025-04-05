@@ -1,4 +1,4 @@
-function copy_ray!(
+function copy_ray_volume!(
   rays::Rays,
   source::NTuple{4, <:Integer},
   target::NTuple{4, <:Integer},
