@@ -55,7 +55,11 @@ function shift_ray_volumes!(state::State, direction::X)
             if jray > nray_wrk
               error("Error in shift_ray_volumes!: nray > nray_wrk!")
             end
-            copy_ray!(rays, (iray, ixrv, jyrv, kzrv), (jray, ix, jyrv, kzrv))
+            copy_ray_volume!(
+              rays,
+              (iray, ixrv, jyrv, kzrv),
+              (jray, ix, jyrv, kzrv),
+            )
           end
           rays.dens[iray, ix, jyrv, kzrv] = 0.0
         end
@@ -85,7 +89,11 @@ function shift_ray_volumes!(state::State, direction::Y)
             if jray > nray_wrk
               error("Error in shift_ray_volumes!: nray > nray_wrk!")
             end
-            copy_ray!(rays, (iray, ixrv, jyrv, kzrv), (jray, ixrv, jy, kzrv))
+            copy_ray_volume!(
+              rays,
+              (iray, ixrv, jyrv, kzrv),
+              (jray, ixrv, jy, kzrv),
+            )
           end
           rays.dens[iray, ixrv, jyrv, kzrv] = 0.0
         end
@@ -118,7 +126,11 @@ function shift_ray_volumes!(state::State, direction::Z)
           if jray > nray_wrk
             error("Error in shift_ray_volumes!: nray > nray_wrk!")
           end
-          copy_ray!(rays, (iray, ixrv, jyrv, kzrv), (jray, ixrv, jyrv, kz))
+          copy_ray_volume!(
+            rays,
+            (iray, ixrv, jyrv, kzrv),
+            (jray, ixrv, jyrv, kz),
+          )
           rays.dens[iray, ixrv, jyrv, kzrv] = 0.0
         end
       end

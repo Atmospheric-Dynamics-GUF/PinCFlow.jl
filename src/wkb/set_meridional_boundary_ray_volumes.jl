@@ -16,13 +16,13 @@ function set_meridional_boundary_ray_volumes!(state::State)
     for kz in (k0 - 1):(k1 + 1), ix in (i0 - 1):(i1 + 1)
       if nray[ix, j0 - 1, kz] > 0
         for iray in 1:nray[ix, j0 - 1, kz]
-          copy_ray!(rays, (iray, ix, j1, kz), (iray, ix, j0 - 1, kz))
+          copy_ray_volume!(rays, (iray, ix, j1, kz), (iray, ix, j0 - 1, kz))
         end
       end
 
       if nray[ix, j1 + 1, kz] > 0
         for iray in 1:nray[ix, j1 + 1, kz]
-          copy_ray!(rays, (iray, ix, j0, kz), (iray, ix, j1 + 1, kz))
+          copy_ray_volume!(rays, (iray, ix, j0, kz), (iray, ix, j1 + 1, kz))
         end
       end
     end

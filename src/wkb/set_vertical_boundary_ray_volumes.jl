@@ -39,7 +39,7 @@ function set_vertical_boundary_ray_volumes!(
       end
 
       nrlc += 1
-      copy_ray!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
+      copy_ray_volume!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
     end
     nray[ix, jy, kz] = nrlc
   end
@@ -86,13 +86,13 @@ function set_vertical_boundary_ray_volumes!(
   for jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
     if nray[ix, jy, k0 - 1] > 0
       for iray in 1:nray[ix, jy, k0 - 1]
-        copy_ray!(rays, (iray, ix, jy, k1), (iray, ix, jy, k0 - 1))
+        copy_ray_volume!(rays, (iray, ix, jy, k1), (iray, ix, jy, k0 - 1))
       end
     end
 
     if nray[ix, jy, k1 + 1] > 0
       for iray in 1:nray[ix, jy, k1 + 1]
-        copy_ray!(rays, (iray, ix, jy, k0), (iray, ix, jy, k1 + 1))
+        copy_ray_volume!(rays, (iray, ix, jy, k0), (iray, ix, jy, k1 + 1))
       end
     end
 
