@@ -6,7 +6,6 @@ struct WKB{
   E <: Increments,
   F <: Integrals,
   G <: AbstractMatrix{<:AbstractFloat},
-  H <: RayCommunication,
 }
   nxray::A
   nyray::A
@@ -24,7 +23,6 @@ struct WKB{
   integrals::F
   cgz_max::B
   zb::G
-  ray_communication::H
 end
 
 function WKB(
@@ -64,7 +62,6 @@ function WKB(
     Increments(0, 0, 0, 0),
     Integrals(0, 0, 0),
     zeros(0, 0, 0),
-    RayCommunication(),
   )
 end
 
@@ -473,6 +470,5 @@ function WKB(
     integrals,
     cgz_max,
     zb,
-    RayCommunication(),
   )
 end
