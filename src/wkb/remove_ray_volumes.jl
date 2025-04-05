@@ -11,7 +11,7 @@ function remove_ray_volumes!(state::State)
         continue
       end
       nrlc = nrlc + 1
-      copy_ray!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
+      copy_ray_volume!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
     end
     nray[ix, jy, kz] = nrlc
   end
