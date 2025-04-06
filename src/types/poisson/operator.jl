@@ -7,9 +7,6 @@ function Operator(domain::Domain)
   # Get all necessary fields.
   (; nxx, nyy, nzz) = domain
 
-  # Initialize s.
-  s = zeros(nxx, nyy, nzz)
-
   # Return an Operator instance.
-  return Operator(s)
+  return Operator(zeros(nxx, nyy, nzz))
 end
