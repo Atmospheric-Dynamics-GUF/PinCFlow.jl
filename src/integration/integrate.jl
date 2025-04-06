@@ -454,20 +454,18 @@ function integrate(namelists::Namelists)
     #              Abort criteria
     #-------------------------------------------
 
-    if !output_steps
-      if time * tref >= maxtime
-        if master
-          naveragebicg = ntotalbicg / itime / 2.0
+    if !output_steps && time * tref >= maxtime
+      if master
+        naveragebicg = ntotalbicg / itime / 2
 
-          println("")
-          println(repeat("-", 80))
-          println("Average Poisson iterations: ", naveragebicg)
-          println(repeat("-", 80))
-          println("")
-        end
-
-        break
+        println("")
+        println(repeat("-", 80))
+        println("Average Poisson iterations: ", naveragebicg)
+        println(repeat("-", 80))
+        println("")
       end
+
+      break
     end
   end
 
@@ -475,16 +473,13 @@ function integrate(namelists::Namelists)
   #      Final output for output_steps
   #-------------------------------------------
 
-  if master
-    if output_steps
-      naveragebicg = ntotalbicg / (itime - 1) / nstages
+  if output_steps
+    if master
+      naveragebicg = ntotalbicg / maxiter / 2
 
       println("")
       println(repeat("-", 80))
       println("Average Poisson iterations: ", naveragebicg)
-      if preconditioner
-        println("ADI: dtau = ", dtau)
-      end
       println(repeat("-", 80))
       println("")
     end
