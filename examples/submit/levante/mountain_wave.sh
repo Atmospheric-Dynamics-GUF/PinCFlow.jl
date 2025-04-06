@@ -31,6 +31,6 @@ cp ${dirSubmit}/mountain_wave.jl .
 
 # Configure MPI and run the model (system binary).
 julia --project=. -e 'using MPIPreferences; MPIPreferences.use_system_binary(; library_names=["/sw/spack-levante/intel-oneapi-mpi-2021.5.0-mrcss7/mpi/2021.5.0/lib/release/libmpi.so"])'
-mpiexec -n ${ntasks} julia mountain_wave.jl ${nprocx} ${nprocy} 1>run.log 2>&1
+mpiexec -n ${ntasks} julia --project=. --check-bounds=no --math-mode=fast mountain_wave.jl ${nprocx} ${nprocy} 1>run.log 2>&1
 
 exit 0
