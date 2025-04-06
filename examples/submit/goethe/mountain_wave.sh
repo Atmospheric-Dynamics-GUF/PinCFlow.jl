@@ -30,6 +30,6 @@ cp ${dirSubmit}/mountain_wave.jl .
 
 # Configure MPI and run the model (system binary).
 julia --project=. -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
-mpiexec -n ${ntasks} julia mountain_wave.jl ${nprocx} ${nprocy} 1>run.log 2>&1
+mpiexec -n ${ntasks} julia --project=. --check-bounds=no --math-mode=fast mountain_wave.jl ${nprocx} ${nprocy} 1>run.log 2>&1
 
 exit 0
