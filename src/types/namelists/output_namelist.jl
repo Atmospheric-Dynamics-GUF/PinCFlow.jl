@@ -24,8 +24,8 @@ function OutputNamelist(;
   output_steps = false,
   noutput = 1,
   maxiter = 1,
-  outputtimediff = 3600.0,
-  maxtime = 3600.0,
+  outputtimediff = 3.6E+3,
+  maxtime = 3.6E+3,
   fancy_namelists = true,
 )
   return OutputNamelist(

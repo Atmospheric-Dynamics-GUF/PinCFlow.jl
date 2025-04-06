@@ -9,10 +9,10 @@ struct PoissonNamelist{A <: AbstractFloat, B <: Integer, C <: Bool}
 end
 
 function PoissonNamelist(;
-  tolpoisson = 1.0e-8,
+  tolpoisson = 1.0E-8,
   maxiterpoisson = 1000,
   preconditioner = true,
-  dtau = 4.0e-4,
+  dtau = 1.0E+0,
   maxiteradi = 2,
   initialcleaning = true,
   relative_tolerance = false,
