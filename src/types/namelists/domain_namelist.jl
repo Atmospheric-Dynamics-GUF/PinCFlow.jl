@@ -19,9 +19,9 @@ function DomainNamelist(;
   nbx = 3,
   nby = 3,
   nbz = 3,
-  lx_dim = [0.0, 1000.0],
-  ly_dim = [0.0, 1000.0],
-  lz_dim = [0.0, 1000.0],
+  lx_dim = [0.0, 1.0E+3],
+  ly_dim = [0.0, 1.0E+3],
+  lz_dim = [0.0, 1.0E+3],
   nprocx = 1,
   nprocy = 1,
 )
