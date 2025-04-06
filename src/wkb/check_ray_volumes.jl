@@ -14,16 +14,16 @@ function check_ray_volumes(state::State)
           xr = rays.x[iray, ix, jy, kz]
 
           if xr < x[io + ix] - dx / 2
-            println("Error in shift_ray_volumes!:")
+            println("Error in check_ray_volumes!:")
             println(
               "xr = ",
               xr,
-              "< x(io + ix) - dx / 2 = ",
+              "< x[io + ix] - dx / 2 = ",
               x[io + ix] - dx / 2,
             )
             println("io = ", io)
             println(
-              "(iRay, ix, jy, kz) = (",
+              "[iray, ix, jy, kz] = [",
               iray,
               ", ",
               ix,
@@ -31,22 +31,22 @@ function check_ray_volumes(state::State)
               jy,
               ", ",
               kz,
-              ")",
+              "]",
             )
             exit()
           end
 
           if xr > x[io + ix] + dx / 2
-            println("Error in shift_ray_volumes!:")
+            println("Error in check_ray_volumes!:")
             println(
               "xr = ",
               xr,
-              "> x(io + ix) + dx / 2 = ",
+              "> x[io + ix] + dx / 2 = ",
               x[io + ix] + dx / 2,
             )
             println("io = ", io)
             println(
-              "(iRay, ix, jy, kz) = (",
+              "[iray, ix, jy, kz] = [",
               iray,
               ", ",
               ix,
@@ -54,7 +54,7 @@ function check_ray_volumes(state::State)
               jy,
               ", ",
               kz,
-              ")",
+              "]",
             )
             exit()
           end
@@ -65,16 +65,16 @@ function check_ray_volumes(state::State)
           yr = rays.y[iray, ix, jy, kz]
 
           if yr < y[jo + jy] - dy / 2
-            println("Error in shift_ray_volumes!:")
+            println("Error in check_ray_volumes!:")
             println(
               "yr = ",
               yr,
-              "< y(jo + jy) - dy / 2 = ",
+              "< y[jo + jy] - dy / 2 = ",
               y[jo + jy] - dy / 2,
             )
             println("jo = ", jo)
             println(
-              "(iRay, ix, jy, kz) = (",
+              "[iray, ix, jy, kz] = [",
               iray,
               ", ",
               ix,
@@ -82,22 +82,22 @@ function check_ray_volumes(state::State)
               jy,
               ", ",
               kz,
-              ")",
+              "]",
             )
             exit()
           end
 
           if yr > y[jo + jy] + dy / 2
-            println("Error in shift_ray_volumes!:")
+            println("Error in check_ray_volumes!:")
             println(
               "yr = ",
               yr,
-              "> y(jo + jy) + dy / 2 = ",
+              "> y[jo + jy] + dy / 2 = ",
               y[jo + jy] + dy / 2,
             )
             println("jo = ", jo)
             println(
-              "(iRay, ix, jy, kz) = (",
+              "[iray, ix, jy, kz] = [",
               iray,
               ", ",
               ix,
@@ -105,7 +105,7 @@ function check_ray_volumes(state::State)
               jy,
               ", ",
               kz,
-              ")",
+              "]",
             )
             exit()
           end
@@ -115,15 +115,15 @@ function check_ray_volumes(state::State)
         zr = rays.z[iray, ix, jy, kz]
 
         if zr < ztildetfc[ix, jy, kz - 1]
-          println("Error in shift_ray_volumes!:")
+          println("Error in check_ray_volumes!:")
           println(
             "zr =",
             zr,
-            "< ztildetfc(ix, jy, kz - 1) = ",
+            "< ztildetfc[ix, jy, kz - 1] = ",
             ztildetfc[ix, jy, kz - 1],
           )
           println(
-            "(iray, ix, jy, kz) = (",
+            "[iray, ix, jy, kz] = [",
             iray,
             ", ",
             ix,
@@ -131,21 +131,21 @@ function check_ray_volumes(state::State)
             jy,
             ", ",
             kz,
-            ")",
+            "]",
           )
           exit()
         end
 
         if zr > ztildetfc[ix, jy, kz]
-          println("Error in shift_ray_volumes!:")
+          println("Error in check_ray_volumes!:")
           println(
             "zr =",
             zr,
-            "> ztildetfc(ix, jy, kz) = ",
+            "> ztildetfc[ix, jy, kz] = ",
             ztildetfc[ix, jy, kz],
           )
           println(
-            "(iray, ix, jy, kz) = (",
+            "[iray, ix, jy, kz] = [",
             iray,
             ", ",
             ix,
@@ -153,7 +153,7 @@ function check_ray_volumes(state::State)
             jy,
             ", ",
             kz,
-            ")",
+            "]",
           )
           exit()
         end
