@@ -1,8 +1,9 @@
 #!/bin/bash
 #SBATCH --partition=compute
-#SBATCH --job-name=mountainwave
+#SBATCH --job-name=mountain_wave
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=75
+#SBATCH --ntasks-per-node=64
+#SBATCH --hint=nomultithread
 #SBATCH --time=0-00:10:00
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1097
@@ -10,13 +11,13 @@
 set -x
 
 # Set number of processors (product must be equal to number of tasks).
-ntasks=75
-nprocx=75
-nprocy=1
+ntasks=64
+nprocx=8
+nprocy=8
 
 # Define directories.
-dirScratch=/scratch/b/b381733/dissertation/pincflow/examples/mountain_wave
-dirHome=/home/b/b381733/dissertation/code/pincflow
+dirScratch=/scratch/b/b381733/dissertation/pinc/examples/mountain_wave
+dirHome=/home/b/b381733/dissertation/code/pinc
 dirCode=${dirHome}/src
 dirSubmit=${dirHome}/examples/submit
 

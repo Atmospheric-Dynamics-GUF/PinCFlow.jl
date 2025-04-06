@@ -3,15 +3,15 @@ include("src/PinCFlow.jl")
 using .PinCFlow
 
 domain = DomainNamelist(;
-  sizex = 300,
-  sizey = 1,
-  sizez = 100,
+  sizex = 40,
+  sizey = 40,
+  sizez = 40,
   nbx = 3,
   nby = 3,
   nbz = 3,
-  lx_dim = [0.0E+0, 6.0E+4],
-  ly_dim = [0.0E+0, 6.0E+4],
-  lz_dim = [0.0E+0, 2.0E+4],
+  lx_dim = [0.0, 2.0E+4],
+  ly_dim = [0.0, 2.0E+4],
+  lz_dim = [0.0, 2.0E+4],
   nprocx = Meta.parse(ARGS[1]),
   nprocy = Meta.parse(ARGS[2]),
 )
@@ -45,7 +45,7 @@ discretization = DiscretizationNamelist(;
 
 poisson = PoissonNamelist(;
   tolpoisson = 1.0E-8,
-  maxiterpoisson = 5000,
+  maxiterpoisson = 1000,
   preconditioner = true,
   dtau = 4.0E+0,
   maxiteradi = 2,
@@ -66,9 +66,9 @@ atmosphere = AtmosphereNamelist(;
 )
 
 grid = GridNamelist(;
-  mountainheight_dim = 4.0E+2,
+  mountainheight_dim = 1.0E+2,
   mountainwidth_dim = 1.0E+3,
-  mountain_case = 3,
+  mountain_case = 4,
   height_factor = 1.0E+0,
   width_factor = 1.0E+0,
   spectral_modes = 1,
@@ -79,14 +79,14 @@ sponge = SpongeNamelist(;
   spongelayer = true,
   sponge_uv = false,
   spongeheight = 5.0E-1,
-  spongealphaz_dim = 1.0E-2,
+  spongealphaz_dim = 1.79E-2,
   spongealphaz_fac = 1.0E+0,
   unifiedsponge = true,
   lateralsponge = true,
   spongetype = SinusoidalSponge(),
   spongeorder = 1,
   cosmosteps = 1,
-  relax_to_mean = true,
+  relax_to_mean = false,
   relaxation_period = 0.0E+0,
   relaxation_amplitude = 0.0E+0,
 )
