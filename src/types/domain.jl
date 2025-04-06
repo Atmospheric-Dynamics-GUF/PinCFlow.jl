@@ -9,7 +9,7 @@ struct Domain{
   H <: AbstractMatrix{<:AbstractFloat},
   I <: AbstractMatrix{<:AbstractFloat},
   J <: AbstractArray{<:AbstractFloat, 3},
-  K <: AbstractArray{<:AbstractFloat, 3},
+  K <: AbstractVector{<:AbstractFloat},
   L <: AbstractArray{<:AbstractFloat, 3},
   M <: AbstractVector{<:AbstractFloat},
 }
@@ -180,7 +180,7 @@ function Domain(namelists::Namelists)
 
   # Initialize auxiliary arrays for gather & scatter.
   local_array = zeros(nx, ny, nz)
-  master_array = zeros(sizex * nprocy, ny, nz)
+  master_array = zeros(sizex * sizey * sizez)
   global_array = zeros(sizex, sizey, sizez)
 
   # Initialize auxiliary arrays for horizontal averaging.
