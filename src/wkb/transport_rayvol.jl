@@ -3,7 +3,7 @@ struct xDir <: AbstractDir end
 struct yDir <: AbstractDir end
 struct zDir <: AbstractDir end
 
-function dir_to_int(dir::AbstractDir)
+function as_index(dir::AbstractDir)
 if dir == xDir()
     return 1
 elseif dir == yDir()
@@ -13,7 +13,7 @@ elseif dir == zDir()
 end
 end
 
-function domainsize(domain, dir)
+function size(domain, dir)
     if dir == xDir()
         return domain.sizex
     elseif dir == yDir()
@@ -106,6 +106,27 @@ function displacement(rijk, rays, max_group_vs, domain)
     return (cgx_max, cgy_max, cgz_max)
 end
 
+function intrinsic_group_velocity(domain)
+    sizex, sizey, sizez = size(domain)
+
+    if (sizex > 1)
+      # ! intrinsic group velocity in x direction not depending
+      # ! on x
+      cgirx = wnrk * (nnr - omir^2) / (omir * (wnrh^2 + wnrm^2))
+    end
+
+    if (sizey > 1)
+      # ! intrinsic group velocity in y direction not depending
+      # ! on y
+      cgiry = wnrl * (nnr - omir^2) / (omir * (wnrh^2 + wnrm^2))
+    end
+
+    cgirz1 = -wnrm * (omir1^2 - f_cor_nd^2) / (omir1 * (wnrh^2 + wnrm^2))
+    cgirz2 = -wnrm * (omir2^2 - f_cor_nd^2) / (omir2 * (wnrh^2 + wnrm^2))
+
+    return cgrz
+end
+
 
 
 function transport_unsteady(rkstage, state)
@@ -128,7 +149,7 @@ function transport_unsteady(rkstage, state)
 
   kz0 = ifelse(case_wkb == 3, 0, 1)
 
-  for kz = kz0:nz, jy = 1:ny, ix = 1:nx
+  for kz in kz0:nz, jy = 1:ny, ix = 1:nx
     ijk = CartesianIndex(ix, jy, kz)
     nskip = 0
 
@@ -136,16 +157,17 @@ function transport_unsteady(rkstage, state)
       continue
     end
 
-    for iray = 1:nray(ix, jy, kz)
+    for iray in 1:nray(ix, jy, kz)
       rijk = CartesianIndex(iray, ijk)
-      wnrk = rays.k[rijk]
-      wnrl = rays.l[rijk]
-      wnrm = rays.m[rijk]
+      wnrk, wnrl, wnrm = wavenumbers(rijk, rays)
+      # wnrk = rays.k[rijk]
+      # wnrl = rays.l[rijk]
+      # wnrm = rays.m[rijk]
 
       wnrh = sqrt(wnrk^2 + wnrl^2)
 
-      xr, yr, zr = get_pos(rijk, rays)
-      dxr, dry, dzr = get_extents(rijk, rays)
+      xr, yr, zr = pos(rijk, rays)
+      dxr, dry, dzr = extents(rijk, rays)
 
       # !skip ray volumes that have left the domain
       if (case_wkb != 3)
@@ -155,9 +177,9 @@ function transport_unsteady(rkstage, state)
         end
       end
 
-      stratification(zr1, 1, nnr1)
-      stratification(zr, 1, nnr)
-      stratification(zr2, 1, nnr2)
+      nnr = stratification(zr, 1 )
+      nnr1 = stratification(zr1, 1)
+      nnr2 = stratification(zr2, 1)
 
       omir1 =
         branchr * sqrt(nnr1 * wnrh^2 + f_cor_nd^2 * wnrm^2) /
