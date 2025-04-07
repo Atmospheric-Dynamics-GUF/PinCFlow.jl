@@ -1,138 +1,109 @@
-abstract type AbstractDir end
-struct xDir <: AbstractDir end
-struct yDir <: AbstractDir end
-struct zDir <: AbstractDir end
-
-function as_index(dir::AbstractDir)
-if dir == xDir()
+function dir_to_int(dir::AbstractDir)
+  if dir == xDir()
     return 1
-elseif dir == yDir()
+  elseif dir == yDir()
     return 2
-elseif dir == zDir()
+  elseif dir == zDir()
     return 3
-end
-end
-
-function size(domain, dir)
-    if dir == xDir()
-        return domain.sizex
-    elseif dir == yDir()
-        return domain.sizey
-    elseif dir == zDir()
-        return domain.sizez
-    end
+  end
 end
 
-
+function domainsize(domain, dir)
+  if dir == xDir()
+    return domain.sizex
+  elseif dir == yDir()
+    return domain.sizey
+  elseif dir == zDir()
+    return domain.sizez
+  end
+end
 
 function interp_meanflow(xr, yr, zr, var, dir::xDir)
-    cgrx1 = cgirx + meanflow(xr1, yr, zr, var, 1)
-    cgrx2 = cgirx + meanflow(xr2, yr, zr, var, 1)
-    # ! group velocity in x direction for the carrier ray
-    cgrx = 0.5 * (cgrx1 + cgrx2)
-    return cgrx
+  cgrx1 = cgirx + meanflow(xr1, yr, zr, var, 1)
+  cgrx2 = cgirx + meanflow(xr2, yr, zr, var, 1)
+  # ! group velocity in x direction for the carrier ray
+  cgrx = 0.5 * (cgrx1 + cgrx2)
+  return cgrx
 end
 
 function interp_meanflow(dir::yDir)
-    meanflow(xr, yr1, zr, var, 2, vyr1)
-    meanflow(xr, yr2, zr, var, 2, vyr2)
-    # ! group velocity in y direction at the two edges in y
-    cgry1 = cgiry + vyr1
-    cgry2 = cgiry + vyr2
-    # ! group velocity in y direction for the carrier ray
-    cgry = 0.5 * (cgry1 + cgry2)
-    return cgry
+  meanflow(xr, yr1, zr, var, 2, vyr1)
+  meanflow(xr, yr2, zr, var, 2, vyr2)
+  # ! group velocity in y direction at the two edges in y
+  cgry1 = cgiry + vyr1
+  cgry2 = cgiry + vyr2
+  # ! group velocity in y direction for the carrier ray
+  cgry = 0.5 * (cgry1 + cgry2)
+  return cgry
 end
 
 function interp_meanflow(dir::zDir)
-    cgrz1 = cgirz1 # ! +wzr1
-    cgrz2 = cgirz2 # ! +wzr2
-    # ! group velocity in z direction for the carrier ray
-    cgrz = 0.5 * (cgrz1 + cgrz2)
-    return cgrz
+  cgrz1 = cgirz1 # ! +wzr1
+  cgrz2 = cgirz2 # ! +wzr2
+  # ! group velocity in z direction for the carrier ray
+  cgrz = 0.5 * (cgrz1 + cgrz2)
+  return cgrz
 end
 
 function displacement(rijk, max_groupvs, rays, domain, dir::AbstractDir)
- if domainsize(domain, dir) > 1 && rijk[4] > 0 && !single_column
-     dir_idx = dir_to_int(dir)
-     cgr = interp_meanflow(dir)
-     F = cgr # !allow horizontal ray propagation
-     dxRay[dir_idx, rijk] = dt * f + alphark[rkstage] * dxray[dir_idx, rijk]
-     rays.x[rijk] += betark[rkstage] * dxray[dir_idx, rijk]
-     # ! update maximum group velocity in x direction
-     max_groupvs = max(max_group_vs, abs(cgr))
- end
- return max_groupvs
+  if domainsize(domain, dir) > 1 && rijk[4] > 0 && !single_column
+    dir_idx = dir_to_int(dir)
+    cgr = interp_meanflow(dir)
+    F = cgr # !allow horizontal ray propagation
+    dxRay[dir_idx, rijk] = dt * f + alphark[rkstage] * dxray[dir_idx, rijk]
+    rays.x[rijk] += betark[rkstage] * dxray[dir_idx, rijk]
+    # ! update maximum group velocity in x direction
+    max_groupvs = max(max_group_vs, abs(cgr))
+  end
+  return max_groupvs
 end
 
 function displacement(rijk, max_group_vs, cgz_max_tfc, rays, domain, ::zDir)
 
-    # !-----------------------------
-    # !     vertical displacement
-    # !-----------------------------
+  # !-----------------------------
+  # !     vertical displacement
+  # !-----------------------------
 
-    # ! RK update
+  # ! RK update
 
-    # ! in line with the asymptotic results the vertcal wind is
-    # ! NOT added to the intrinsic vertical group velocity
-    # ! should one want to change this, one would also have to
-    # ! take the vertical-wind gradient into account in the
-    # ! prognostic equations for the wave number
+  # ! in line with the asymptotic results the vertcal wind is
+  # ! NOT added to the intrinsic vertical group velocity
+  # ! should one want to change this, one would also have to
+  # ! take the vertical-wind gradient into account in the
+  # ! prognostic equations for the wave number
 
-    # ! call meanflow(xr,yr,zr1,var,3,wzr1)
-    # ! call meanflow(xr,yr,zr2,var,3,wzr2)
+  # ! call meanflow(xr,yr,zr1,var,3,wzr1)
+  # ! call meanflow(xr,yr,zr2,var,3,wzr2)
 
-    # ! group velocity in z direction at the two edges in z
-    cgrz1 = cgirz1 # ! +wzr1
-    cgrz2 = cgirz2 # ! +wzr2
-    # ! group velocity in z direction for the carrier ray
-    cgrz = 0.5 * (cgrz1 + cgrz2)
-    F = cgrz
-    dxRay[3, rijk] = dt * F + alphark[rkstage] * dxray[3, rijk]
-    rays.z[rijk] += betark[rkstage] * dxray[3, rijk]
+  # ! group velocity in z direction at the two edges in z
+  cgrz1 = cgirz1 # ! +wzr1
+  cgrz2 = cgirz2 # ! +wzr2
+  # ! group velocity in z direction for the carrier ray
+  cgrz = 0.5 * (cgrz1 + cgrz2)
+  F = cgrz
+  dxRay[3, rijk] = dt * F + alphark[rkstage] * dxray[3, rijk]
+  rays.z[rijk] += betark[rkstage] * dxray[3, rijk]
 
-    # ! update maximum group velocity in z direction
-    max_group_vs = max(max_group_vs, abs(cgrz))
-    ijk = CartesianIndex(rijk[2], rijk[3], rijk[4])
-    cgz_max_tfc[ijk] = max(cgz_max_tfc[ijk], abs(cgrz))
-    return max_groupvs
+  # ! update maximum group velocity in z direction
+  max_group_vs = max(max_group_vs, abs(cgrz))
+  ijk = CartesianIndex(rijk[2], rijk[3], rijk[4])
+  cgz_max_tfc[ijk] = max(cgz_max_tfc[ijk], abs(cgrz))
+  return max_groupvs
 end
-
 
 function displacement(rijk, rays, max_group_vs, domain)
-    cgx_max = displacement(rijk, rays, domain, max_group_vs[1], xDir())
-    cgy_max= displacement(rijk, rays, domain, max_group_vs[2], yDir())
-    cgz_max = displacement(rijk, rays, domain, max_group_vs[3], cgz_max_tfc, zDir())
-    return (cgx_max, cgy_max, cgz_max)
+  cgx_max = displacement(rijk, rays, domain, max_group_vs[1], xDir())
+  cgy_max = displacement(rijk, rays, domain, max_group_vs[2], yDir())
+  cgz_max =
+    displacement(rijk, rays, domain, max_group_vs[3], cgz_max_tfc, zDir())
+  return (cgx_max, cgy_max, cgz_max)
 end
-
-function intrinsic_group_velocity(domain)
-    sizex, sizey, sizez = size(domain)
-
-    if (sizex > 1)
-      # ! intrinsic group velocity in x direction not depending
-      # ! on x
-      cgirx = wnrk * (nnr - omir^2) / (omir * (wnrh^2 + wnrm^2))
-    end
-
-    if (sizey > 1)
-      # ! intrinsic group velocity in y direction not depending
-      # ! on y
-      cgiry = wnrl * (nnr - omir^2) / (omir * (wnrh^2 + wnrm^2))
-    end
-
-    cgirz1 = -wnrm * (omir1^2 - f_cor_nd^2) / (omir1 * (wnrh^2 + wnrm^2))
-    cgirz2 = -wnrm * (omir2^2 - f_cor_nd^2) / (omir2 * (wnrh^2 + wnrm^2))
-
-    return cgrz
-end
-
 
 
 function transport_unsteady(rkstage, state)
   # ! initialize RK-tendencies at first RK stage
-  (; case_wkb)=  state.namelists.wkb
-  (; nx,ny,nz) = state.domain
+  (; case_wkb) = state.namelists.wkb
+  (; nx, ny, nz) = state.domain
   (; nray) = state.wkb
   if (rkstage == 1)
     dxRay = 0.0
@@ -140,16 +111,14 @@ function transport_unsteady(rkstage, state)
     ddxRay = 0.0
   end
 
-
   cgx_max = 0.0
   cgy_max = 0.0
   cgz_max = 0.0
   cgz_max_tfc .= 0.0
 
-
   kz0 = ifelse(case_wkb == 3, 0, 1)
 
-  for kz in kz0:nz, jy = 1:ny, ix = 1:nx
+  for kz in kz0:nz, jy in 1:ny, ix in 1:nx
     ijk = CartesianIndex(ix, jy, kz)
     nskip = 0
 
@@ -177,7 +146,7 @@ function transport_unsteady(rkstage, state)
         end
       end
 
-      nnr = stratification(zr, 1 )
+      nnr = stratification(zr, 1)
       nnr1 = stratification(zr1, 1)
       nnr2 = stratification(zr2, 1)
 
@@ -232,7 +201,13 @@ function transport_unsteady(rkstage, state)
       cgirz1 = -wnrm * (omir1^2 - f_cor_nd^2) / (omir1 * (wnrh^2 + wnrm^2))
       cgirz2 = -wnrm * (omir2^2 - f_cor_nd^2) / (omir2 * (wnrh^2 + wnrm^2))
 
-      cgx_max, cgy_max, cgz_max = displacement(rijk, (cgx_max, cgy_max, cgz_max), cgz_max_tfc, rays, domain)
+      cgx_max, cgy_max, cgz_max = displacement(
+        rijk,
+        (cgx_max, cgy_max, cgz_max),
+        cgz_max_tfc,
+        rays,
+        domain,
+      )
 
       # !-------------------------------
       # !    change of wavenumber
@@ -355,7 +330,6 @@ function transport_unsteady(rkstage, state)
         sqrt(wnrh^2 + wnrm^2)
 
       rays.omega[rijk] = omir
-
     end # ray loop
     if (nskip > 0)
       # print *, nskip, 'r.v. skipped in transport_rayvol out of', &
@@ -365,7 +339,7 @@ function transport_unsteady(rkstage, state)
 
   # ! Sponge layer
   if (spongelayer && unifiedsponge)
-    for kz = 1:nz, jy = 1:ny, ix = 1:nx, iray = 1:nray(ix, jy, kz)
+    for kz in 1:nz, jy in 1:ny, ix in 1:nx, iray in 1:nray(ix, jy, kz)
       rijk = CartesianIndex(iRay, ix, jy, kz)
       xr = ray.x[rijk]
       yr = ray.y[rijk]
@@ -381,13 +355,14 @@ function transport_unsteady(rkstage, state)
   end
 end
 
-
 function transport_rayvol_steady()
   grid = state.grid
-  for kz = 1:nz, jy = 1:ny, ix = 1:nx
+  for kz in 1:nz, jy in 1:ny, ix in 1:nx
 
     # ! Set ray-volume count.
-    nray(ix, jy, kz) = nray(ix, jy, kz - 1)
+    function nray(ix, jy, kz)
+      return nray(ix, jy, kz - 1)
+    end
 
     # ! Set up saturation computation.
     integral1 = 0.0
@@ -396,7 +371,7 @@ function transport_rayvol_steady()
     m2b2k2 = 0.0
 
     # ! Loop over ray volumes.
-    for iRay = 1:nray(ix, jy, kz)
+    for iRay in 1:nray(ix, jy, kz)
 
       # ! Prepare ray volume.
       ray[rijk] = ray[rijk-1]
@@ -510,7 +485,6 @@ function transport_rayvol_steady()
         rays[rijk].dens *
         jac(ix, jy, kz) *
         dz / cgirz
-
     end
     # ! Compute diffusion coefficient
     stratification(zTFC(ix, jy, kz), 1, NN_nd)
@@ -520,7 +494,7 @@ function transport_rayvol_steady()
       diffusion = (m2b2 - alpha_sat^2 * NN_nd^2) / (2.0 * m2b2k2)
     end
     # ! Reduce wave action density.
-    for iray = 1:nray(ix, jy, kz)
+    for iray in 1:nray(ix, jy, kz)
       if (!lsaturation)
         continue
       end
@@ -547,7 +521,6 @@ function transport_rayvol_steady()
           1.0 -
           jac(ix, jy, kz) * dz / cgirz * 2.0 * diffusion * (wnrh^2 + wnrm^2),
         )
-
     end
   end
   if (sizeX > 1)
@@ -558,7 +531,6 @@ function transport_rayvol_steady()
   end
   return
 end
-
 
 function transport_rayvol()
   # preamble
@@ -571,7 +543,6 @@ function transport_rayvol()
   # if(case_wkb == 3 .and. steady_state) then
   #   call orographic_source(var, ray, time, stepFrac(RKStage) * dt)
   # end if
-
 
   # big if steady_state(), then return
   #

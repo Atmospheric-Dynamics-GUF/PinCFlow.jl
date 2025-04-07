@@ -1,11 +1,3 @@
-abstract type AbstractMergeMode end
-struct ConstantWaveEnergy <: AbstractMergeMode end
-struct ConstantWaveAction <: AbstractMergeMode end
-
-abstract type AbstractLaunchAlgorithm end
-struct Clip <: AbstractLaunchAlgorithm end
-struct Scale <: AbstractLaunchAlgorithm end
-
 struct WKBNamelist{
   A <: AbstractFloat,
   B <: Integer,

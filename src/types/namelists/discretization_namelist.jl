@@ -1,6 +1,3 @@
-abstract type AbstractLimiter end
-struct MCVariant <: AbstractLimiter end
-
 struct DiscretizationNamelist{
   A <: AbstractFloat,
   B <: Bool,
@@ -14,9 +11,9 @@ struct DiscretizationNamelist{
 end
 
 function DiscretizationNamelist(;
-  cfl = 0.5,
-  dtmin_dim = 1.0e-6,
-  dtmax_dim = 1.0e3,
+  cfl = 5.0E-1,
+  dtmin_dim = 1.0E-6,
+  dtmax_dim = 1.0E+3,
   adaptive_time_step = true,
   limitertype = MCVariant(),
 )

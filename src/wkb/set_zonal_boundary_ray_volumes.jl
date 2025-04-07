@@ -10,18 +10,19 @@ function set_zonal_boundary_ray_volumes!(state::State)
 
   # Set ray-volumes properties.
   if nprocx > 1
+    error("Halo routines are not working yet!")
     set_zonal_halo_ray_volumes!(state)
   else
     for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):(j1 + 1)
       if nray[i0 - 1, jy, kz] > 0
         for iray in 1:nray[i0 - 1, jy, kz]
-          copy_ray!(rays, (iray, i1, jy, kz), (iray, i0 - 1, jy, kz))
+          copy_ray_volume!(rays, (iray, i1, jy, kz), (iray, i0 - 1, jy, kz))
         end
       end
 
       if nray[i1 + 1, jy, kz] > 0
         for iray in 1:nray[i1 + 1, jy, kz]
-          copy_ray!(rays, (iray, i0, jy, kz), (iray, i1 + 1, jy, kz))
+          copy_ray_volume!(rays, (iray, i0, jy, kz), (iray, i1 + 1, jy, kz))
         end
       end
     end

@@ -1,14 +1,3 @@
-abstract type AbstractModel end
-struct PseudoIncompressible <: AbstractModel end
-
-abstract type AbstractTestCase end
-struct MountainWave <: AbstractTestCase end
-struct RayTracer <: AbstractTestCase end
-
-abstract type AbstractBoundaries end
-struct PeriodicBoundaries <: AbstractBoundaries end
-struct SolidWallBoundaries <: AbstractBoundaries end
-
 struct SettingNamelist{
   A <: AbstractModel,
   B <: AbstractTestCase,

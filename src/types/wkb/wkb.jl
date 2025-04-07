@@ -6,7 +6,6 @@ struct WKB{
   E <: Increments,
   F <: Integrals,
   G <: AbstractMatrix{<:AbstractFloat},
-  H <: RayCommunication,
 }
   nxray::A
   nyray::A
@@ -24,7 +23,6 @@ struct WKB{
   integrals::F
   cgz_max::B
   zb::G
-  ray_communication::H
 end
 
 function WKB(
@@ -64,7 +62,6 @@ function WKB(
     Increments(0, 0, 0, 0),
     Integrals(0, 0, 0),
     zeros(0, 0, 0),
-    RayCommunication(),
   )
 end
 
@@ -141,8 +138,8 @@ function WKB(
     ixmin = i0
     ixmax = i1
   else
-    ixmin = max(i0, int(floor((xrmin - lx[1]) / dx)) + 1 - io)
-    ixmax = min(i1, int(floor((xrmax - lx[1]) / dx)) + 1 - io)
+    ixmin = max(i0, round(Int, (xr - lx[1] - dx / 2) / dx) + i0 - io)
+    ixmax = min(i1, round(Int, (xr - lx[1] - dx / 2) / dx) + i0 - io)
   end
   if sizex == 1
     nxray = 1
@@ -155,8 +152,8 @@ function WKB(
     jymin = j0
     jymax = j1
   else
-    jymin = max(j0, int(floor((yrmin - ly[1]) / dy)) + 1)
-    jymax = min(j1, int(floor((yrmax - ly[1]) / dy)) + 1)
+    jymin = max(j0, round(Int, (yr - ly[1] - dy / 2) / dy) + j0 - jo)
+    jymax = min(j1, round(Int, (yr - ly[1] - dy / 2) / dy) + j0 - jo)
   end
   if sizey == 1
     nyray = 1
@@ -199,13 +196,13 @@ function WKB(
   # Set number of surface ray volumes.
   n_sfc = nwm
   if nxray > 1
-    n_sfc *= nxray / nray_fac
+    n_sfc *= div(nxray, nray_fac)
   end
   if nyray > 1
-    n_sfc *= nyray / nray_fac
+    n_sfc *= div(nyray, nray_fac)
   end
   if nzray > 1
-    n_sfc *= nzray / nray_fac
+    n_sfc *= div(nzray, nray_fac)
   end
 
   # Initialize ray-volume arrays.
@@ -473,6 +470,5 @@ function WKB(
     integrals,
     cgz_max,
     zb,
-    RayCommunication(),
   )
 end
