@@ -1,34 +1,97 @@
-struct widths{T}
-  dwnrk_mg_n::T
-  dwnrk_mg_p::T
-  dwnrl_mg_n::T
-  dwnrl_mg_p::T
-  dwnrm_mg_n::T
-  dwnrm_mg_p::T
+abstract type AbstractWDir end
+struct KDir <: AbstractWDir end
+struct LDir <: AbstractWDir end
+struct MDir <: AbstractWDir end
+
+struct IntervalWidths{T}
+    k::IntervalWidth{T}
+    l::IntervalWidth{T}
+    m::IntervalWidth{T}
 end
 
-mutable struct Interval{T}
+struct IntervalWidth{T}
+    dwn_n::T
+    dwn_p::T
+IntervalWidth{T}() where {T} = new(T(0), T(0))
+end
+
+
+mutable struct IntervalBound{T}
   max_n::T
   min_n::T
   max_p::T
   min_p::T
 
-  function Interval{T}() where {T}
+  function IntervalBound{T}() where {T}
     return new(zero(T), zero(T), zero(T), zero(T))
   end
 end
-mutable struct Intervals{T}
+mutable struct IntervalBounds{T}
   k::Interval{T}
   l::Interval{T}
   m::Interval{T}
 
-  function Intervals{T}() where {T}
-    return new(Interval{T}(), Interval{T}(), Interval{T}())
+  function IntervalBounds{T}() where {T}
+    return new(IntervalBound{T}(), IntervalBound{T}(), IntervalBound{T}())
   end
 end
 
-function adjust(i::Interval)
-  # TODO: this needs a better name
+function index(rijk, bounds, widths, rays, dir::AbstractWDir, domain)
+    wn = wavenumber(rijk, rays, dir)
+    area  = warea(rijk, rays, dir)
+    fcpsp = area
+    ibounds = intervalbounds(dir, intervals)
+    iwidths = intervalwidhts(dir, widths)
+    nray = nrays(dir, rays)
+
+    if size(domain, dir) > 1
+    if (wn < 0.0)
+      if (abs(log(-wn / ibounds.max_n) / iwidths.dwn_n) < 1.0)
+        ir = nray / 2 - 1
+      else
+        ir = Int64(log(-wn / ibounds.min_n) / iwidths.dwn_n) + 1
+      end
+    elseif (wn == 0.0)
+      ir = nray / 2
+    else
+      if (abs(log(wnrk / intervals.k.max_p) / widths.k.dwn_p) < 1.0)
+        ir = nray - 1
+      else
+        ir =
+          Int64(log(wn / ibounds.min_p) / iwidths.dwn_p) +
+          nray / 2 + 1
+      end
+    end
+
+    if (ir < 1)
+      # print *, 'ERROR in merge_rayvol: ir_k =', ir_k, '< 1'
+      # print *, 'wnrk = ', wnrk
+      # print *, 'wnrk_min_n = ', wnrk_min_n
+      # print *, 'wnrk_max_n = ', wnrk_max_n
+      # print *, 'wnrk_min_p = ', wnrk_min_p
+      # print *, 'wnrk_max_p = ', wnrk_max_p
+      # stop
+      exit()
+    elseif (ir > nray - 1)
+      # print *, 'ERROR in merge_rayvol: ir_k =', ir_k, '> nxRay - 1 &
+      #     &=', nxRay - 1
+      # print *, 'wnrk = ', wnrk
+      # print *, 'wnrk_min_n = ', wnrk_min_n
+      # print *, 'wnrk_max_n = ', wnrk_max_n
+      # print *, 'wnrk_min_p = ', wnrk_min_p
+      # print *, 'wnrk_max_p = ', wnrk_max_p
+      # stop
+      exit()
+    end
+    else
+    fcpsp = 1.0
+    ir = 1
+  end # sizeX > 1
+
+  return ir, fcpsp
+
+end
+function adjust(i::IntervalBound)
   if (i.min_n == 0.0 && i.max_n == 0.0)
     if (i.min_p != 0.0 && i.max_p != 0.0)
       i.min_n = i.min_p
@@ -66,7 +129,7 @@ function adjust(i::Interval)
   return i
 end
 
-function subdivide(wavenumber, i::Interval)
+function subdivide(wavenumber, i::IntervalBound{T})
 
   # ! subdivide the interval of wavenumbers to be processed
   # ! into up to three ranges:
@@ -84,7 +147,6 @@ function subdivide(wavenumber, i::Interval)
     else
       i.min_p = min(i.min_p, w)
     end
-
     i.max_p = max(i.max_p, w)
   elseif (w < 0.0)
     if (i.min_n == 0.0)
@@ -92,259 +154,82 @@ function subdivide(wavenumber, i::Interval)
     else
       i.min_n = min(i.min_n, -w)
     end
-
     i.max_n = max(i.max_n, -w)
   end
   return i
 end
 
-struct Ray{A <: AbstractFloat}
-  dens::A
-  omega::A
-  x::A
-  y::A
-  z::A
-  k::A
-  l::A
-  m::A
-  dxray::A
-  dyray::A
-  dzray::A
-  dkray::A
-  dlray::A
-  dmray::A
-  area_xk::A
-  area_yl::A
-  area_zm::A
-end
 
-"""
-Convencience function to get a single ray from rays
-"""
-function get_ray(ir, i, j, k, rays)
-  return Ray{Float64}(
-    rays.dens[ir, i, j, k],
-    rays.omega[ir, i, j, k],
-    rays.x[ir, i, j, k],
-    rays.y[ir, i, j, k],
-    rays.z[ir, i, j, k],
-    rays.k[ir, i, j, k],
-    rays.l[ir, i, j, k],
-    rays.m[ir, i, j, k],
-    rays.dxray[ir, i, j, k],
-    rays.dyray[ir, i, j, k],
-    rays.dzray[ir, i, j, k],
-    rays.dkray[ir, i, j, k],
-    rays.dlray[ir, i, j, k],
-    rays.dmray[ir, i, j, k],
-    rays.area_xk[ir, i, j, k],
-    rays.area_yl[ir, i, j, k],
-    rays.area_zm[ir, i, j, k],
-  )
-end
-function wave_numbers_interval(ix, jy, kz, rays, nray, domain)
-  intervals = Intervals{Float64}()
+function wn_intervals(ijk, nray, rays::Rays, nray, domain)
+  bounds = IntervalBounds{Float64}()
 
   for iray in 1:nray[ix, jy, kz]
-    ijk = (iray, ix, jy, kz)
+    rijk = CartesianIndex(iray, ijk)
 
+    # would be great if we could dispatch on sizex
     if (domain.sizex > 1)
-      intervals.k = subdivide(rays.k[(ijk)...], intervals.k)
+      bounds.k = subdivide(rays.k[rijk], bounds.k)
     end
 
     if (domain.sizey > 1)
-      intervals.l = subdivide(rays.l[(ijk)...], intervals.l)
+      bounds.l = subdivide(rays.l[rijk], bounds.l)
     end
 
-    intervals.m = subdivide(rays.m[(ijk)...], intervals.m)
+    bounds.m = subdivide(rays.m[rijk], bounds.m)
   end
 
   if (domain.sizex > 1)
-    intervals.k = adjust(intervals.k)
+    bounds.k = adjust(bounds.k)
   end
 
   if (domain.sizey > 1)
-    intervals.l = adjust(intervals.l)
+    bounds.l = adjust(bounds.l)
   end
-  intervals.m = adjust(intervals.m)
-  return intervals
+  bounds.m = adjust(bounds.m)
+  return bounds
 end
 
-function log_widths(interval::Interval, nray)
+function log_widths(interval::IntervalBound, nray)
   mg_n = log(interval.max_n / interval.min_n) / (nray / 2 - 1)
   mg_p = log(interval.max_p / interval.min_p) / (nray / 2 - 1)
-  return (mg_n, mg_p)
+  return IntervalWidth(mg_n, mg_p)
 end
 
-function generate_merged_rv(ix, jy, kz, rays, nray, intervals, widths, state)
+function generate_merged_rv(ijk, rays, nray, intervals, widths, state)
   domain = state.domain
   wkb = state.wkb
   (; nxray, nyray, nzray, nr_merge, cons_merge) = wkb
   for iray in 1:nray[ix, jy, kz]
-    ijk = (iray, ix, jy, kz)
-    wnrk = rays.k[(ijk)...]
-    dwnrk = rays.dkray[(ijk)...]
+      rijk = CartesianIndex(iray, ijk)
+    wnrk = rays.k[rijk]
+    dwnrk = rays.dkray[rijk]
 
-    wnrl = rays.l[(ijk)...]
-    dwnrl = rays.dlray[(ijk)...]
+    wnrl = rays.l[rijk]
+    dwnrl = rays.dlray[rijk]
 
-    wnrm = rays.m[(ijk)...]
-    dwnrm = rays.dmray[(ijk)...]
+    wnrm = rays.m[rijk]
+    dwnrm = rays.dmray[rijk]
 
-    xr = rays.x[(ijk)...]
-    dxr = rays.dxray[(ijk)...]
+    xr = rays.x[rijk]
+    dxr = rays.dxray[rijk]
 
-    yr = rays.y[(ijk)...]
-    dyr = rays.dyray[(ijk)...]
+    yr = rays.y[rijk]
+    dyr = rays.dyray[rijk]
 
-    zr = rays.z[(ijk)...]
-    dzr = rays.dzray[(ijk)...]
+    zr = rays.z[rijk]
+    dzr = rays.dzray[rijk]
 
-    axk = rays.area_xk[(ijk)...]
-    ayl = rays.area_yl[(ijk)...]
-    azm = rays.area_zm[(ijk)...]
+    axk = rays.area_xk[rijk]
+    ayl = rays.area_yl[rijk]
+    azm = rays.area_zm[rijk]
 
-    wdr = rays.dens[(ijk)...]
-    omir = rays.omega[(ijk)...]
-    if (domain.sizex > 1)
-      fcpspx = axk
+    wdr = rays.dens[rijk]
+    omir = rays.omega[rijk]
 
-      # ! nxRay - 1 intervals for k:
-      # ! indices 1 ... nxRay/2 - 1 for negative k
-      # ! index nxRay/2 for k = 0
-      # ! indices nxRay/2 + 1 ... nxRay - 1 for positive k
 
-      if (wnrk < 0.0)
-        if (abs(log(-wnrk / intervals.k.max_n) / widths.dwnrk_mg_n) < 1.0)
-          ir_k = nxray / 2 - 1
-        else
-          ir_k = Int64(log(-wnrk / intervals.k.min_n) / widths.dwnrk_mg_n) + 1
-        end
-      elseif (wnrk == 0.0)
-        ir_k = nxray / 2
-      else
-        if (abs(log(wnrk / intervals.k.max_p) / widths.dwnrk_mg_p) < 1.0)
-          ir_k = nxray - 1
-        else
-          ir_k =
-            Int64(log(wnrk / intervals.k.min_p) / widths.dwnrk_mg_p) +
-            nxray / 2 +
-            1
-        end
-      end
-
-      if (ir_k < 1)
-        # print *, 'ERROR in merge_rayvol: ir_k =', ir_k, '< 1'
-        # print *, 'wnrk = ', wnrk
-        # print *, 'wnrk_min_n = ', wnrk_min_n
-        # print *, 'wnrk_max_n = ', wnrk_max_n
-        # print *, 'wnrk_min_p = ', wnrk_min_p
-        # print *, 'wnrk_max_p = ', wnrk_max_p
-        # stop
-        exit()
-      elseif (ir_k > nxray - 1)
-        # print *, 'ERROR in merge_rayvol: ir_k =', ir_k, '> nxRay - 1 &
-        #     &=', nxRay - 1
-        # print *, 'wnrk = ', wnrk
-        # print *, 'wnrk_min_n = ', wnrk_min_n
-        # print *, 'wnrk_max_n = ', wnrk_max_n
-        # print *, 'wnrk_min_p = ', wnrk_min_p
-        # print *, 'wnrk_max_p = ', wnrk_max_p
-        # stop
-        exit()
-      end
-    else
-      fcpspx = 1.0
-      ir_k = 1
-    end # sizeX > 1
-
-    if (domain.sizey > 1)
-      fcpspy = ayl
-
-      if (wnrl < 0.0)
-        if (abs(log(-wnrl / intervals.l.max_n) / widths.dwnrl_mg_n) < 1.0)
-          ir_l = nyray / 2 - 1
-        else
-          ir_l = Int64(log(-wnrl / intervals.l.min_n) / widths.dwnrl_mg_n) + 1
-        end
-      elseif (wnrl == 0.0)
-        ir_l = nyray / 2
-      else
-        if (abs(log(wnrl / intervals.l.max_p) / widths.dwnrl_mg_p) < 1.0)
-          ir_l = nyray - 1
-        else
-          ir_l =
-            Int64(log(wnrl / intervals.l.min_p) / widths.dwnrl_mg_p) +
-            nyray / 2 +
-            1
-        end
-      end
-
-      if (ir_l < 1)
-        # print *, 'ERROR in merge_rayvol: ir_l =', ir_l, '< 1'
-        # print *, 'wnrl = ', wnrl
-        # print *, 'wnrl_min_n = ', wnrl_min_n
-        # print *, 'wnrl_max_n = ', wnrl_max_n
-        # print *, 'wnrl_min_p = ', wnrl_min_p
-        # print *, 'wnrl_max_p = ', wnrl_max_p
-        exit()
-      elseif (ir_l > nyray - 1)
-        # print *, 'ERROR in merge_rayvol: ir_l =', ir_l, '> nyRay - 1 &
-        #     &=', nyRay - 1
-        # print *, 'wnrl = ', wnrl
-        # print *, 'wnrl_min_n = ', wnrl_min_n
-        # print *, 'wnrl_max_n = ', wnrl_max_n
-        # print *, 'wnrl_min_p = ', wnrl_min_p
-        # print *, 'wnrl_max_p = ', wnrl_max_p
-        # stop
-        exit()
-      end
-    else
-      fcpspy = 1.0
-      ir_l = 1
-    end # sizey > 1
-
-    fcpspz = azm
-
-    if (wnrm < 0.0)
-      if (abs(log(-wnrm / intervals.m.max_n) / widths.dwnrm_mg_n) < 1.0)
-        ir_m = nzray / 2 - 1
-      else
-        ir_m = Int64(log(-wnrm / intervals.m.min_n) / widths.dwnrm_mg_n) + 1
-      end
-    elseif (wnrm == 0.0)
-      ir_m = nzRay / 2
-    else
-      if (abs(log(wnrm / intervals.m.max_p) / widths.dwnrm_mg_p) < 1.0)
-        ir_m = nzray - 1
-      else
-        ir_m =
-          Int64(log(wnrm / intervals.m.min_p) / widths.dwnrm_mg_p) +
-          nzray / 2 +
-          1
-      end
-    end
-
-    if (ir_m < 1)
-      # print *, 'ERROR in merge_rayvol: ir_m =', ir_m, '< 1'
-      # print *, 'wnrm = ', wnrm
-      # print *, 'wnrm_min_n = ', wnrm_min_n
-      # print *, 'wnrm_max_n = ', wnrm_max_n
-      # print *, 'wnrm_min_p = ', wnrm_min_p
-      # print *, 'wnrm_max_p = ', wnrm_max_p
-      # print *, 'wnrm_max_p - wnrm = ', wnrm_max_p - wnrm
-      exit()
-    elseif (ir_m > nzray - 1)
-      # print *, 'ERROR in merge_rayvol: ir_m =', ir_m, '> nzRay - 1 =', &
-      #     &nzRay - 1
-      # print *, 'wnrm = ', wnrm
-      # print *, 'wnrm_min_n = ', wnrm_min_n
-      # print *, 'wnrm_max_n = ', wnrm_max_n
-      # print *, 'wnrm_min_p = ', wnrm_min_p
-      # print *, 'wnrm_max_p = ', wnrm_max_p
-      # print *, 'wnrm_max_p - wnrm = ', wnrm_max_p - wnrm
-      exit()
-    end
+    ir_k = index(rijk, bounds, widths, rays, KDir(), domain)
+    ir_l = index(rijk, bounds, widths, rays, LDir(), domain)
+    ir_m = index(rijk, bounds, widths, rays, MDir(), domain)
 
     if (domain.sizex > 1)
       if (domain.sizey > 1)
@@ -547,25 +432,23 @@ function merge_rayvol(state)
   (; nray, rays, nray_max, nxray, nyray, nzray) = state.wkb
 
   for kz in 1:nz, jy in 1:ny, ix in 1:nx
+      ijk = CartesianIndex(ix, jy, kz)
     if (nray[ix, jy, kz] <= nray_max)
       continue
     end
 
-    intervals = wave_numbers_interval(ix, jy, kz, rays, nray, state.domain)
+    interval_bounds = wn_intervals(ijk, rays, nray, state.domain)
 
-    dwnrk_mg_n, dwnrk_mg_p = log_widths(intervals.k, nxray)
-    dwnrl_mg_n, dwnrl_mg_p = log_widths(intervals.l, nyray)
-    dwnrm_mg_n, dwnrm_mg_p = log_widths(intervals.m, nzray)
+    k_width= log_widths(interval_bounds.k, nxray)
+    l_width = log_widths(interval_bounds.l, nyray)
+    m_width = log_widths(interval_bounds.m, nzray)
 
-    w = widths(
-      dwnrk_mg_n,
-      dwnrk_mg_p,
-      dwnrl_mg_n,
-      dwnrl_mg_p,
-      dwnrm_mg_n,
-      dwnrm_mg_p,
+    w = IntervalWidths(
+        k_width,
+        l_width,
+        m_width
     )
-    generate_merged_rv(ix, jy, kz, rays, nray, intervals, w, state)
+    generate_merged_rv(ix, jy, kz, rays, nray, interval_bounds, w, state)
 
     replace_rayvolume(rays, state)
   end
