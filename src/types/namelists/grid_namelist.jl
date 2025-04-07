@@ -9,13 +9,13 @@ struct GridNamelist{A <: AbstractFloat, B <: Integer}
 end
 
 function GridNamelist(;
-  mountainheight_dim = 100.0,
-  mountainwidth_dim = 1000.0,
+  mountainheight_dim = 1.0E+2,
+  mountainwidth_dim = 1.0E+3,
   mountain_case = 1,
-  height_factor = 1.0,
-  width_factor = 1.0,
+  height_factor = 1.0E+0,
+  width_factor = 1.0E+0,
   spectral_modes = 1,
-  stretch_exponent = 1.0,
+  stretch_exponent = 1.0E+0,
 )
   return GridNamelist(
     mountainheight_dim,

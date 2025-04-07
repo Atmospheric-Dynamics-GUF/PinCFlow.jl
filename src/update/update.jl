@@ -1,10 +1,3 @@
-struct LHS end
-struct RHS end
-
-abstract type AbstractIntegration end
-struct EXPL <: AbstractIntegration end
-struct IMPL <: AbstractIntegration end
-
 function update!(
   state::State,
   dt::AbstractFloat,
