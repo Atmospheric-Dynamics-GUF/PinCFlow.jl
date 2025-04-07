@@ -1,12 +1,13 @@
-function stratification(state, zlc, strtype == 1)
+function stratification(state, zlc, strtype = 1)
 
   # interpolation of the squared Brunt-Vaisala frequency to 
   # a specified vertical position zlc
 
+  (; domain, grid) = state
   (; bvsstrattfc) = state.atmosphere
   (; k1) = state.domain
 
-  kzu = kztfc(i0 - 1, j0 - 1, zlc)
+  kzu = kztfc(i0 - 1, j0 - 1, zlc, domain, grid)
   kzd = kru - 1
 
   if (kzu > k1 + 1)
@@ -37,15 +38,16 @@ function stratification(state, zlc, strtype == 1)
   return str
 end
 
-function stratification(state, zlc, strtype == 2)
+function stratification(state, zlc, strtype = 2)
 
   # interpolation of the vertical derivative of the squared 
   # Brunt-Vaisala frequency to a specified vertical position zlc
+  (; domain, grid) = state
   (; bvsstrattfc) = state.atmosphere
   (; k1) = state.domain
   (; ztildetfc, jac) = state.grid
 
-  kzu = kztildetfc(i0 - 1, j0 - 1, zlc)
+  kzu = kztildetfc(i0 - 1, j0 - 1, zlc, domain, grid)
   kzd = kzu - 1
 
   if kzu + 1 > k1 + 1
