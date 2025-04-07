@@ -1,4 +1,4 @@
-function stratification(state, zlc, strtype == 1)
+function stratification(state, zlc, strtype = 1)
 
   # interpolation of the squared Brunt-Vaisala frequency to 
   # a specified vertical position zlc
@@ -38,7 +38,7 @@ function stratification(state, zlc, strtype == 1)
   return str
 end
 
-function stratification(state, zlc, strtype == 2)
+function stratification(state, zlc, strtype = 2)
 
   # interpolation of the vertical derivative of the squared 
   # Brunt-Vaisala frequency to a specified vertical position zlc
