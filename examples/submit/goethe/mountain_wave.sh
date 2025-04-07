@@ -1,22 +1,22 @@
 #!/bin/bash
 #SBATCH --partition=general1
 #SBATCH --job-name=mountain_wave
-#SBATCH --ntasks=75
-#SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=2000
-#SBATCH --mail-type=FAIL
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=20
+#SBATCH --hint=nomultithread
 #SBATCH --time=0-00:10:00
+#SBATCH --mail-type=FAIL
 
 set -x
 
 # Set number of processors (product must be equal to number of tasks).
-ntasks=75
-nprocx=75
-nprocy=1
+ntasks=20
+nprocx=5
+nprocy=4
 
 # Define directories.
-dirScratch=/scratch/atmodynamics/jochum/dissertation/pincflow/examples/mountain_wave
-dirHome=/home/atmodynamics/jochum/dissertation/pincflow
+dirScratch=/scratch/atmodynamics/jochum/dissertation/pinc/examples/mountain_wave
+dirHome=/home/atmodynamics/jochum/dissertation/pinc
 dirCode=${dirHome}/src
 dirSubmit=${dirHome}/examples/submit
 
@@ -30,6 +30,6 @@ cp ${dirSubmit}/mountain_wave.jl .
 
 # Configure MPI and run the model (system binary).
 julia --project=. -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
-mpiexec -n ${ntasks} julia mountain_wave.jl ${nprocx} ${nprocy} 1>run.log 2>&1
+mpiexec -n ${ntasks} julia --project=. --check-bounds=no --math-mode=fast mountain_wave.jl ${nprocx} ${nprocy} 1>run.log 2>&1
 
 exit 0

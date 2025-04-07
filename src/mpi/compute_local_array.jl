@@ -5,25 +5,17 @@ function compute_local_array!(namelists::Namelists, domain::Domain)
   (; comm, master, nx, ny, nz, local_array, master_array, global_array) = domain
 
   # Scatter.
-  for k in 1:nz
-    if master
-      for j in 1:ny
-        jm = j
-        for jp in 1:nprocy
-          jg = ny * (jp - 1) + j
-          for ip in 1:nprocx, i in 1:nx
-            ig = nx * (i_prc - 1) + i
-            im = nprocy * nx * (ip - 1) + (jp - 1) * nx + i
-            master_array[im, jm, k] = global_array[ig, jg, k]
-          end
-        end
-      end
-    end
-    MPI.Barrier(comm)
-    for j in 1:ny
-      @views MPI.Scatter!(master_array[:, j, k], local_array[:, j, k], comm)
+  if master
+    m = 0
+    for ip in 1:nprocx, jp in 1:nprocy, k in 1:nz, j in 1:ny, i in 1:nx
+      m += 1
+      jg = (jp - 1) * ny + j
+      ig = (ip - 1) * nx + i
+      master_array[m] = global_array[ig, jg, k]
     end
   end
+  MPI.Barrier(comm)
+  @views MPI.Scatter!(master_array, local_array[:], comm)
 
   # Return.
   return

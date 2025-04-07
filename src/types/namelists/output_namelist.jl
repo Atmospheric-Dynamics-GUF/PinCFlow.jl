@@ -1,17 +1,3 @@
-abstract type AbstractVariable end
-struct Rho <: AbstractVariable end
-struct RhoP <: AbstractVariable end
-struct U <: AbstractVariable end
-struct US <: AbstractVariable end
-struct V <: AbstractVariable end
-struct VS <: AbstractVariable end
-struct W <: AbstractVariable end
-struct WS <: AbstractVariable end
-struct WTFC <: AbstractVariable end
-struct WSTFC <: AbstractVariable end
-struct ThetaP <: AbstractVariable end
-struct PiP <: AbstractVariable end
-
 struct OutputNamelist{
   A <: AbstractVector{<:AbstractVariable},
   B <: Bool,
@@ -38,8 +24,8 @@ function OutputNamelist(;
   output_steps = false,
   noutput = 1,
   maxiter = 1,
-  outputtimediff = 3600.0,
-  maxtime = 3600.0,
+  outputtimediff = 3.6E+3,
+  maxtime = 3.6E+3,
   fancy_namelists = true,
 )
   return OutputNamelist(

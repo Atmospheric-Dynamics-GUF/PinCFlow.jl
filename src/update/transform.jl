@@ -1,6 +1,3 @@
-struct Cartesian end
-struct TFC end
-
 function transform(
   i::Integer,
   j::Integer,

@@ -1,9 +1,3 @@
-abstract type AbstractBackground end
-struct Isothermal <: AbstractBackground end
-
-abstract type AbstractCoriolis end
-struct ConstantCoriolis <: AbstractCoriolis end
-
 struct AtmosphereNamelist{
   A <: Bool,
   B <: AbstractFloat,
@@ -24,13 +18,13 @@ end
 
 function AtmosphereNamelist(;
   specifyreynolds = false,
-  reinv = 0.0,
-  mu_viscous_dim = 0.0,
+  reinv = 0.0E+0,
+  mu_viscous_dim = 0.0E+0,
   background = Isothermal(),
-  temp0_dim = 300.0,
-  press0_dim = 100000.0,
-  backgroundflow_dim = [0.0, 0.0, 0.0],
-  f_coriolis_dim = 0.0,
+  temp0_dim = 3.0E+2,
+  press0_dim = 1.0E+5,
+  backgroundflow_dim = [0.0E+0, 0.0E+0, 0.0E+0],
+  f_coriolis_dim = 0.0E+0,
   corset = ConstantCoriolis(),
 )
   return AtmosphereNamelist(
