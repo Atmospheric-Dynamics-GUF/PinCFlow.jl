@@ -78,9 +78,9 @@ function set_vertical_boundary_ray_volumes!(
     end
   end
 
-  @views nray[(i0 - 1):(i1 + 1), (j0 - 1):(j1 + 1), k0 - 1] =
+  @views nray[(i0 - 1):(i1 + 1), (j0 - 1):(j1 + 1), k0 - 1] .=
     nray[(i0 - 1):(i1 + 1), (j0 - 1):(j1 + 1), k1]
-  @views nray[(i0 - 1):(i1 + 1), (j0 - 1):(j1 + 1), k1 + 1] =
+  @views nray[(i0 - 1):(i1 + 1), (j0 - 1):(j1 + 1), k1 + 1] .=
     nray[(i0 - 1):(i1 + 1), (j0 - 1):(j1 + 1), k0]
 
   for jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)

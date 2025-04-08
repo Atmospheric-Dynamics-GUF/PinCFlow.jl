@@ -32,13 +32,13 @@ function set_meridional_halo_ray_volumes!(state::State)
   recv_rays_forw = zeros(length(fields), nray_max_back, nx + 2, nz + 2)
 
   for (index, field) in enumerate(fields)
-    @views send_rays_forw[index, :, :, :] = getfield(rays, field)[
+    @views send_rays_forw[index, :, :, :] .= getfield(rays, field)[
       1:nray_max_forw,
       (i0 - 1):(i1 + 1),
       j1,
       (k0 - 1):(k1 + 1),
     ]
-    @views send_rays_back[index, :, :, :] = getfield(rays, field)[
+    @views send_rays_back[index, :, :, :] .= getfield(rays, field)[
       1:nray_max_back,
       (i0 - 1):(i1 + 1),
       j0,
