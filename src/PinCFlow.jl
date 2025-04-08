@@ -2,8 +2,8 @@ module PinCFlow
 
 using Dates
 using LinearAlgebra
-using NCDatasets
 using MPI
+using HDF5
 
 # Include abstract types and singletons.
 include("types/abstract_types.jl")
