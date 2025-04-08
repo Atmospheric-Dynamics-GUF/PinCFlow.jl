@@ -78,7 +78,7 @@ function apply_bicgstab!(
       println("==> No iteration needed!")
     end
     niter = 0
-    return (errflag, niter, res)
+    return (errflag, niter)
   end
 
   # Loop
@@ -162,7 +162,7 @@ function apply_bicgstab!(
         apply_preconditioner!(s, sol, namelists, domain, grid, poisson)
       end
 
-      return (errflag, niter, res)
+      return (errflag, niter)
     end
 
     beta =
@@ -177,5 +177,5 @@ function apply_bicgstab!(
   niter = j_b
 
   # Return.
-  return (errflag, niter, res)
+  return (errflag, niter)
 end

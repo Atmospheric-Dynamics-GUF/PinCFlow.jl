@@ -1,6 +1,11 @@
-include("src/PinCFlow.jl")
+include("../../../src/PinCFlow.jl")
 
 using .PinCFlow
+
+folder =
+  "/scratch/b/" *
+  readchomp(`whoami`) *
+  "/pinc/examples/mountain_wave/"
 
 domain = DomainNamelist(;
   sizex = 40,
@@ -12,8 +17,8 @@ domain = DomainNamelist(;
   lx_dim = [0.0, 2.0E+4],
   ly_dim = [0.0, 2.0E+4],
   lz_dim = [0.0, 2.0E+4],
-  nprocx = Meta.parse(ARGS[1]),
-  nprocy = Meta.parse(ARGS[2]),
+  nprocx = 8,
+  nprocy = 8,
 )
 
 output = OutputNamelist(;
@@ -27,6 +32,7 @@ output = OutputNamelist(;
   outputtimediff = 3.6E+3,
   maxtime = 3.6E+3,
   fancy_namelists = true,
+  folder = folder,
 )
 
 setting = SettingNamelist(;
