@@ -4,6 +4,7 @@ using Dates
 using LinearAlgebra
 using NCDatasets
 using MPI
+using StaticArrays
 
 # Include abstract types and singletons.
 include("types/abstract_types.jl")
@@ -105,9 +106,9 @@ include("wkb/kztfc.jl")
 include("wkb/kztildetfc.jl")
 include("wkb/merge_rayvol.jl")
 include("wkb/orographic_source.jl")
-include("wkb/saturation.jl")
-include("wkb/split_rayvol.jl")
-include("wkb/stratification.jl")
+# include("wkb/saturation.jl")
+# include("wkb/split_rayvol.jl")
+# include("wkb/stratification.jl")
 
 export DomainNamelist,
   OutputNamelist,

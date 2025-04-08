@@ -321,7 +321,7 @@ function min_max(wnr, min_p, max_p, min_n, max_n)
   return min_p, max_p, min_n, max_n
 end
 
-function merge_rayvol!(rays, state::AbstractState)
+function merge_rayvol!(rays, state::State)
   (; sizex, sizey, i0, i1, j0, j1, k0, k1) = state.domain
   (; nray, nray_max, rays) = state.wkb
 
