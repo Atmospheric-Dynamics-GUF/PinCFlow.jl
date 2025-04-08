@@ -141,7 +141,6 @@ function replace_rayvolumes!(rays, ijk, nr_merge, nray_max)
     fcpspz = rays.area_zm[rijk]
 
     # wave action density
-    # TODO: as functions
     if cons_merge == "wa"
       wa = tvol.wa / (fcpspx * fcpspy * fcpspz)
     else
@@ -197,6 +196,7 @@ function index_klm(rijk, w, interval, n_ray)
   end
   return ir
 end
+
 function compute_intervals(ijk, rays, nray, domain)
   k_min_p = 0.0
   k_max_p = 0.0
@@ -337,7 +337,6 @@ function merge_rayvol!(rays, state::AbstractState)
     end
 
     volume_intervals = compute_intervals(ijk, rays, nray, state.domain)
-
     generate_merged_rvs!(nr_merge, ijk, volume_intervals, rays, domain)
     replace_rayvolumes!(rays, ijk, nr_merge, nray_max)
   end
