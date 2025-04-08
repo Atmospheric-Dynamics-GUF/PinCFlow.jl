@@ -1,13 +1,17 @@
-function transport_rayvol(rkstage, state, mode::AbstractWKBMode)
-  # ! initialize RK-tendencies at first RK stage
-  (; case_wkb) = state.namelists.wkb
-  (; nx, ny, nz) = state.domain
-  (; nray) = state.wkb
+function transport_rayvol(dt, rkstage, state, mode::AbstractWKBMode)
+  (; case_wkb, branchr, zmin_wkb) = state.namelists.wkb
+  (; sizex, sizey) = state.namelists.domain
+  (; nray, cgz_max_tfc, rays, f_cor_nd) = state.wkb
   (; dxray, dkray, ddxray) = state.wkb.increments
+  (; alphark, betark, stepfrac) = state.time
+  lz = state.grid.lz
+  (; k0, k1, j0, j1, i0, i1) = state.domain
+
   if (rkstage == 1)
-    dxRay .= 0.0
-    dkRay .= 0.0
-    ddxRay .= 0.0
+    # ! initialize RK-tendencies at first RK stage
+    dxray .= 0.0
+    dkray .= 0.0
+    ddxray .= 0.0
   end
 
   cgx_max = 0.0
@@ -27,11 +31,10 @@ function transport_rayvol(rkstage, state, mode::AbstractWKBMode)
 
     for iray in 1:nray[ijk]
       rijk = CartesianIndex(iray, ijk)
-      wnrk, wnrl, wnrm = wavenumbers(rijk, rays)
+      wnrk, wnrl, wnrm = get_wavenumbers(rijk, rays)
       wnrh = sqrt(wnrk^2 + wnrl^2)
-
-      xr, yr, zr = positions(rijk, rays)
-      dxr, dyr, dzr = extents(rijk, rays)
+      xr, yr, zr = get_positions(rijk, rays)
+      dxr, dyr, dzr = get_physical_extents(rijk, rays)
       xr1 = xr - 0.5 * dxr
       xr2 = xr + 0.5 * dxr
       yr1 = yr - 0.5 * dyr
@@ -41,7 +44,7 @@ function transport_rayvol(rkstage, state, mode::AbstractWKBMode)
 
       # !skip ray volumes that have left the domain
       if (case_wkb != 3)
-        if (zr1 < ztildetfc[ix, jy, -1])
+        if (zr1 < state.grid.ztildetfc[ix, jy, -1])
           nskip = nskip + 1
           continue
         end
@@ -196,13 +199,13 @@ function transport_rayvol(rkstage, state, mode::AbstractWKBMode)
           -dudzr * wnrk - dvdzr * wnrl -
           wnrh^2 * dnndzr / (2.0 * omir + (wnrh^2 + wnrm^2))
 
-        dkRay[1, rijk] = dt * dkdt + alphaRK(rkStage) * dkRay[1, rijk]
-        dkRay[2, rijk] = dt * dldt + alphaRK(rkStage) * dkRay[2, rijk]
-        dkRay[3, rijk] = dt * dmdt + alphaRK(rkStage) * dkRay[3, rijk]
+        dkray[1, rijk] = dt * dkdt + alphark[rkstage] * dkray[1, rijk]
+        dkray[2, rijk] = dt * dldt + alphark[rkstage] * dkray[2, rijk]
+        dkray[3, rijk] = dt * dmdt + alphark[rkstage] * dkray[3, rijk]
 
-        rays.k[rijk] += betaRK(rkStage) * dkRay[1, rijk]
-        rays.l[rijk] += betaRK(rkStage) * dkRay[2, rijk]
-        rays.m[rijk] += betaRK[rkStage] * dkRay[3, rijk]
+        rays.k[rijk] += betark[rkstage] * dkray[1, rijk]
+        rays.l[rijk] += betark[rkstage] * dkray[2, rijk]
+        rays.m[rijk] += betark[rkstage] * dkray[3, rijk]
 
         # !----------------------------------------------
         # !    change of wave-number width of ray volumes
@@ -213,7 +216,7 @@ function transport_rayvol(rkstage, state, mode::AbstractWKBMode)
         if (sizex > 1 && kz > 0 && mode != SingleColumn())
           ddxdt = cgrx2 - cgrx1
 
-          ddxRay[1, rijk] = dt * ddxdt + alphark[rkstage] * ddxray[1, rijk]
+          ddxray[1, rijk] = dt * ddxdt + alphark[rkstage] * ddxray[1, rijk]
 
           rays.dxray[rijk] += betark[rkstage] * ddxray[1, rijk]
 
@@ -248,7 +251,7 @@ function transport_rayvol(rkstage, state, mode::AbstractWKBMode)
 
         ddzdt = cgrz2 - cgrz1
 
-        ddxRay[3, rijk] = dt * ddzdt + alphark[rkstage] * ddxray[3, rijk]
+        ddxray[3, rijk] = dt * ddzdt + alphark[rkstage] * ddxray[3, rijk]
 
         rays.dzray[rijk] += betark[rkstage] * ddxray[3, rijk]
 
@@ -295,15 +298,22 @@ function transport_rayvol(rkstage, state, mode::AbstractWKBMode)
   if (case_wkb == 3 && !steady_state)
     orographic_source(var, ray, time, stepfrac(rkstage) * dt)
   end
+  return nothing
 end
 
-function transport_rayvol(rkstage, state, mode::SteadyState)
+function transport_rayvol(dt, rkstage, state, mode::SteadyState)
+  (; case_wkb, branchr, zmin_wkb) = state.namelists.wkb
+  (; sizex, sizey) = state.namelists.domain
+  (; nray, cgz_max_tfc, rays, f_cor_nd) = state.wkb
+  (; dxray, dkray, ddxray) = state.wkb.increments
+  (; alphark, betark, stepfrac) = state.time
+  lz = state.grid.lz
+  (; k0, k1, j0, j1, i0, i1) = state.domain
   if (case_wkb == 3)
     orographic_source(var, ray, time, stepFrac(RKStage) * dt)
   end
 
-  for kz in 1:nz, jy in 1:ny, ix in 1:nx
-
+  for kz in k0:k1, jy in j0:j1, ix in i0:i1
     # ! Set ray-volume count.
     nray[ix, jy, kz] = nray[ix, jy, kz - 1]
 
@@ -313,18 +323,22 @@ function transport_rayvol(rkstage, state, mode::SteadyState)
     m2b2 = 0.0
     m2b2k2 = 0.0
     # ! Loop over ray volumes.
-    for iRay in 1:nray(ix, jy, kz)
-
+    for iray in 1:nray(ix, jy, kz)
+      rijk = CartesianIndex(iray, ix, jy, kz)
       # ! Prepare ray volume.
-      copy_rayvolume!(rays, (iRay, ix, jy, kz), (iRay, ix, jy, kz - 1))
+      copy_rayvolume!(rays, (iray, ix, jy, kz), (iray, ix, jy, kz - 1))
 
       # ! Skip modes with zero wave-action density.
-      if rays.dens[iRay, ix, jy, kz - 1] == 0
+      if rays.dens[iray, ix, jy, kz - 1] == 0
         continue
       end
 
       # ! Set vertical position (and extent).
-      set_vertical!(rays, nray, ix, jy, kz, ztildetfc, jac)
+      rays.z[rijk] =
+        ztildetfc[ix, jy, kz - 1] + rays.z[iray, ix, jy, kz - 1] -
+        ztildetfc[ix, jy, kz - 2] / jac[ix, jy, kz - 1] * jac[ix, jy, kz]
+      rays.dzray[iray, ix, jy, kz] =
+        rays.dzray[iray, ix, jy, kz - 1] * jac[ix, jy, kz] / jac[ix, jy, kz - 1]
 
       # ! Get horizontal wavenumbers.
       k, l, _ = wavenumbers(rijk, rays)
@@ -332,16 +346,16 @@ function transport_rayvol(rkstage, state, mode::SteadyState)
 
       # ! Set reference level.
       kz0 = max(1, kz - 1)
-      rijk0 = CartesianIndex(nray, ix, jy, kz, kz0)
+      rijk0 = CartesianIndex(iray, ix, jy, kz, kz0)
 
       # ! Compute vertical group velocity at the level below.
       nn_nd = stratification(rays.z[rijk0], 1)
       omir = rays.omega[rijk0].omega
 
-      if (branchr * omir > f_cor_nd && branchr * omir < sqrt(NN_nd))
-        wnrm = ray(rijk0).m
+      if (branchr * omir > f_cor_nd && branchr * omir < sqrt(nn_nd))
+        wnrm = rays.m[rijk0]
         cgirz0 =
-          wnrm * (f_cor_nd^2 - NN_nd) * wnrh^2 / omir / (wnrh^2 + wnrm^2)^2
+          wnrm * (f_cor_nd^2 - nn_nd) * wnrh^2 / omir / (wnrh^2 + wnrm^2)^2
       else
         rays.dens[rijk0] = 0.0
         rays.dens[rijk] = 0.0
@@ -351,7 +365,7 @@ function transport_rayvol(rkstage, state, mode::SteadyState)
       # ! wavenumber and vertical group velocity.
       nn_nd = stratification(rays.z[rijk], 1)
       omir =
-        -0.5 * (var.u[ijk] + var.u[ix - 1, jy, kz]) * wnrk -
+        -0.5 * (var.u[ix, jy, kz] + var.u[ix - 1, jy, kz]) * wnrk -
         0.5 * (var.v[ix, jy, kz] + var.v[ix, jy - 1, kz]) * wnrl
       if (branchr * omir > f_cor_nd && branchr * omir < sqrt(nn_nd))
         wnrm =
@@ -387,8 +401,8 @@ function transport_rayvol(rkstage, state, mode::SteadyState)
       end
 
       # ! Get ray volume extents.
-      dxr, dyr, dzr = extents(rijk, rays)
-      dwnrk, dwnrl, dwnrm = wave_extents(rijk, rays)
+      dxr, dyr, dzr = get_physical_extents(rijk, rays)
+      dwnrk, dwnrl, dwnrm = get_spectral_extents(rijk, rays)
 
       # ! Compute phase space factor.
       dzi = min(dzr, jac[ix, jy, kz] * dz)
