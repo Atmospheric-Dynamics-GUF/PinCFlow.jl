@@ -303,14 +303,16 @@ end
 
 function transport_rayvol(dt, rkstage, state, mode::SteadyState)
   (; case_wkb, branchr, zmin_wkb) = state.namelists.wkb
+  (; ztildetfc, jac) = state.grid
   (; sizex, sizey) = state.namelists.domain
   (; nray, cgz_max_tfc, rays, f_cor_nd) = state.wkb
   (; dxray, dkray, ddxray) = state.wkb.increments
   (; alphark, betark, stepfrac) = state.time
   lz = state.grid.lz
   (; k0, k1, j0, j1, i0, i1) = state.domain
+
   if (case_wkb == 3)
-    orographic_source(var, ray, time, stepFrac(RKStage) * dt)
+    orographic_source(var, ray, time, stepfrac[rkstage] * dt)
   end
 
   for kz in k0:k1, jy in j0:j1, ix in i0:i1
@@ -341,7 +343,7 @@ function transport_rayvol(dt, rkstage, state, mode::SteadyState)
         rays.dzray[iray, ix, jy, kz - 1] * jac[ix, jy, kz] / jac[ix, jy, kz - 1]
 
       # ! Get horizontal wavenumbers.
-      k, l, _ = wavenumbers(rijk, rays)
+      k, l, _ = get_wavenumbers(rijk, rays)
       wnrh = sqrt(k^2.0 + l^2.0)
 
       # ! Set reference level.
@@ -364,6 +366,7 @@ function transport_rayvol(dt, rkstage, state, mode::SteadyState)
       # ! Compute local intrinsic frequency, vertical
       # ! wavenumber and vertical group velocity.
       nn_nd = stratification(rays.z[rijk], 1)
+      var = state.variables.predictands
       omir =
         -0.5 * (var.u[ix, jy, kz] + var.u[ix - 1, jy, kz]) * wnrk -
         0.5 * (var.v[ix, jy, kz] + var.v[ix, jy - 1, kz]) * wnrl
@@ -383,13 +386,13 @@ function transport_rayvol(dt, rkstage, state, mode::SteadyState)
       rays.m[rijk] = wnrm
 
       # ! Set local wave action density.
-      if (spongeLayer && unifiedSponge)
+      if (spongelayer && unifiedsponge)
         xr = rays.x[rijk]
         yr = rays.y[rijk]
         zr = rays.z[rijk]
         alphasponge = 2.0 * interpolate_sponge(xr, yr, zr)
         rays.dens[rijk] =
-          1.0 / (1.0 + alphaSponge / cgirz * (rays.z[rijk].z - rays.z[rijk0])) *
+          1.0 / (1.0 + alphasponge / cgirz * (rays.z[rijk].z - rays.z[rijk0])) *
           cgirz0 *
           rays.dens[iray, ix, jy, kz0] / cgirz
       else
@@ -470,10 +473,10 @@ function transport_rayvol(dt, rkstage, state, mode::SteadyState)
     end
   end
   if (sizex > 1)
-    setboundary_rayvol_x(ray)
+    setboundary_rayvol_x(rays)
   end
   if (sizey > 1)
-    setboundary_rayvol_y(ray)
+    setboundary_rayvol_y(rays)
   end
   return nothing
 end
