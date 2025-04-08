@@ -1,7 +1,9 @@
 function transport_rayvol(dt, rkstage, state, mode::AbstractWKBMode)
-  (; case_wkb, branchr, zmin_wkb) = state.namelists.wkb
+  (; case_wkb, branchr, zmin_wkb_dim) = state.namelists.wkb
+  zmin_wkb = zmin_wkb_dim # TODO: this is likely wrong?
   (; sizex, sizey) = state.namelists.domain
-  (; nray, cgz_max_tfc, rays, f_cor_nd) = state.wkb
+  (; nray, rays) = state.wkb
+  f_cor_nd = state.atmosphere.f_cor_nd
   (; dxray, dkray, ddxray) = state.wkb.increments
   (; alphark, betark, stepfrac) = state.time
   lz = state.grid.lz
@@ -17,7 +19,7 @@ function transport_rayvol(dt, rkstage, state, mode::AbstractWKBMode)
   cgx_max = 0.0
   cgy_max = 0.0
   cgz_max = 0.0
-  cgz_max_tfc .= 0.0
+  cgz_max_tfc = zeros(i0:i1, j0:j1, k0:k1)
 
   kz0 = ifelse(case_wkb == 3, 0, 1)
 
@@ -28,6 +30,8 @@ function transport_rayvol(dt, rkstage, state, mode::AbstractWKBMode)
     if (nray[ijk] < 1)
       continue
     end
+
+
 
     for iray in 1:nray[ijk]
       rijk = CartesianIndex(iray, ijk)
@@ -295,7 +299,7 @@ function transport_rayvol(dt, rkstage, state, mode::AbstractWKBMode)
     end
   end # grid loop
 
-  if (case_wkb == 3 && !steady_state)
+  if (case_wkb == 3)
     orographic_source(var, ray, time, stepfrac(rkstage) * dt)
   end
   return nothing
