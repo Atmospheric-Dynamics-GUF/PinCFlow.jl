@@ -59,3 +59,7 @@ struct Z end
 struct xDir <: AbstractDir end
 struct yDir <: AbstractDir end
 struct zDir <: AbstractDir end
+
+struct SingleColumn <: AbstractWKBMode end
+struct SteadyState <: AbstractWKBMode end
+struct Transient <: AbstractWKBMode end
