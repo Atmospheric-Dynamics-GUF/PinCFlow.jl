@@ -1,49 +1,144 @@
 function create_output(state::State)
-
   # Get all necessary fields.
   (; sizex, sizey, sizez) = state.namelists.domain
-  (; master) = state.domain
+  (; prepare_restart, atmvarout, folder) = state.namelists.output
+  (; comm, nx, ny, nz) = state.domain
 
-  # Prepare the output on master.
-  if master
+  # Prepare the output.
+  h5open(folder * "/pincflow_output.h5", "w", comm) do file
 
-    # Create the dataset.
-    NCDataset("pincflow_output.nc", "c"; share = true) do dataset
+    # Create datasets for the dimensions.
+    create_dataset(file, "x", datatype(Float32), dataspace((sizex,)))
+    create_dataset(file, "y", datatype(Float32), dataspace((sizey,)))
+    create_dataset(
+      file,
+      "z",
+      datatype(Float32),
+      dataspace((sizex, sizey, sizez));
+      chunk = (nx, ny, nz),
+    )
+    create_dataset(
+      file,
+      "t",
+      datatype(Float32),
+      dataspace((0,), (-1,));
+      chunk = (1,),
+    )
 
-      # Define the dimensions.
-      defDim(dataset, "x", sizex)
-      defDim(dataset, "y", sizey)
-      defDim(dataset, "z", sizez)
-      defDim(dataset, "t", Inf)
-
-      # Define the dimension variables.
-      defVar(dataset, "x", Float32, ("x",))
-      defVar(dataset, "y", Float32, ("y",))
-      defVar(dataset, "z", Float32, ("x", "y", "z"))
-      defVar(dataset, "t", Float32, ("t",))
-
-      # Define the background variables.
-      defVar(dataset, "rhobar", Float32, ("x", "y", "z"))
-      defVar(dataset, "thetabar", Float32, ("x", "y", "z"))
-      defVar(dataset, "n2", Float32, ("x", "y", "z"))
-      defVar(dataset, "p", Float32, ("x", "y", "z"))
-
-      # Define the prognostic variables.
-      defVar(dataset, "rhop", Float32, ("x", "y", "z", "t"))
-      defVar(dataset, "u", Float32, ("x", "y", "z", "t"))
-      defVar(dataset, "us", Float32, ("x", "y", "z", "t"))
-      defVar(dataset, "v", Float32, ("x", "y", "z", "t"))
-      defVar(dataset, "vs", Float32, ("x", "y", "z", "t"))
-      defVar(dataset, "w", Float32, ("x", "y", "z", "t"))
-      defVar(dataset, "ws", Float32, ("x", "y", "z", "t"))
-      defVar(dataset, "wtfc", Float32, ("x", "y", "z", "t"))
-      defVar(dataset, "wstfc", Float32, ("x", "y", "z", "t"))
-      defVar(dataset, "thetap", Float32, ("x", "y", "z", "t"))
-      defVar(dataset, "pip", Float32, ("x", "y", "z", "t"))
-
-      # Return.
-      return
+    # Create datasets for the background.
+    for label in ("rhobar", "thetabar", "n2", "p")
+      create_dataset(
+        file,
+        label,
+        datatype(Float32),
+        dataspace((sizex, sizey, sizez));
+        chunk = (nx, ny, nz),
+      )
     end
+
+    # Create datasets for the prognostic variables.
+    if prepare_restart || RhoP() in atmvarout
+      create_dataset(
+        file,
+        "rhop",
+        datatype(Float32),
+        dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+        chunk = (nx, ny, nz, 1),
+      )
+    end
+    if U() in atmvarout
+      create_dataset(
+        file,
+        "u",
+        datatype(Float32),
+        dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+        chunk = (nx, ny, nz, 1),
+      )
+    end
+    if prepare_restart || US() in atmvarout
+      create_dataset(
+        file,
+        "us",
+        datatype(Float32),
+        dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+        chunk = (nx, ny, nz, 1),
+      )
+    end
+    if V() in atmvarout
+      create_dataset(
+        file,
+        "v",
+        datatype(Float32),
+        dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+        chunk = (nx, ny, nz, 1),
+      )
+    end
+    if prepare_restart || VS() in atmvarout
+      create_dataset(
+        file,
+        "vs",
+        datatype(Float32),
+        dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+        chunk = (nx, ny, nz, 1),
+      )
+    end
+    if W() in atmvarout
+      create_dataset(
+        file,
+        "w",
+        datatype(Float32),
+        dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+        chunk = (nx, ny, nz, 1),
+      )
+    end
+    if WS() in atmvarout
+      create_dataset(
+        file,
+        "ws",
+        datatype(Float32),
+        dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+        chunk = (nx, ny, nz, 1),
+      )
+    end
+    if WTFC() in atmvarout
+      create_dataset(
+        file,
+        "wtfc",
+        datatype(Float32),
+        dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+        chunk = (nx, ny, nz, 1),
+      )
+    end
+    if prepare_restart || WSTFC() in atmvarout
+      create_dataset(
+        file,
+        "wstfc",
+        datatype(Float32),
+        dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+        chunk = (nx, ny, nz, 1),
+      )
+    end
+    if ThetaP() in atmvarout
+      create_dataset(
+        file,
+        "thetap",
+        datatype(Float32),
+        dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+        chunk = (nx, ny, nz, 1),
+      )
+    end
+    if prepare_restart || PiP() in atmvarout
+      create_dataset(
+        file,
+        "pip",
+        datatype(Float32),
+        dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
+        chunk = (nx, ny, nz, 1),
+      )
+    end
+
+    # Return.
+    return
   end
 
   # Return.
