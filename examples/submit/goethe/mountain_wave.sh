@@ -9,27 +9,19 @@
 
 set -x
 
-# Set number of processors (product must be equal to number of tasks).
+# Set the number of tasks.
 ntasks=20
-nprocx=5
-nprocy=4
 
-# Define directories.
-dirScratch=/scratch/atmodynamics/jochum/dissertation/pinc/examples/mountain_wave
-dirHome=/home/atmodynamics/jochum/dissertation/pinc
-dirCode=${dirHome}/src
-dirSubmit=${dirHome}/examples/submit
+# Define the work directory.
+user=$(whoami)
+scratch=/scratch/atmodynamics/${user}/pinc/examples/mountain_wave/
+mkdir -p ${scratch}
 
-# Create work directory and go to it.
-mkdir -p ${dirScratch}
-cd ${dirScratch}/ && rm -r *
+# Configure MPI and HDF5.
+julia --project=../../../ -e 'using MPIPreferences; MPIPreferences.use_system_binary("")'
+julia --project=../../../ -e 'using HDF5; HDF5.API.set_libraries!("/home/atmodynamics/public/hdf5-1.14.4-3/src/.libs/libhdf5.so", "/home/atmodynamics/public/hdf5-1.14.4-3/hl/src/.libs/libhdf5_hl.so")'
 
-# Copy the code and run script.
-cp -r ${dirCode} .
-cp ${dirSubmit}/mountain_wave.jl .
-
-# Configure MPI and run the model (system binary).
-julia --project=. -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
-mpiexec -n ${ntasks} julia --project=. --check-bounds=no --math-mode=fast mountain_wave.jl ${nprocx} ${nprocy} 1>run.log 2>&1
+# Run the model.
+mpiexec -n ${ntasks} julia --project=../../../ -e --check-bounds=no --math-mode=fast 1>${scratch}/run.log 2>&1
 
 exit 0

@@ -1,18 +1,27 @@
 include("style.jl")
 
-using NCDatasets
+using HDF5
 using LaTeXStrings
 
 # Set paths.
-data_path = "../"
-reference_path = "../"
+host_name = readchomp(`hostname`)
+user_name = readchomp(`whoami`)
+if startswith(host_name, "login")
+  data_path =
+    "/scratch/atmodynamics/" * user_name * "/pinc/examples/mountain_wave/"
+  reference_path = data_path
+elseif startswith(host_name, "levante")
+  data_path =
+    "/scratch/b/" * user_name * "/pinc/examples/mountain_wave/"
+  reference_path = data_path
+end
 
 println("data_path =", data_path)
 println("reference_path =", reference_path)
 
 # Import data.
-data = NCDataset(data_path * "mountain_wave/pincflow_output.nc")
-reference = NCDataset(reference_path * "mountain_wave/pincflow_output.nc")
+data = h5open(data_path * "/pincflow_output.h5")
+reference = h5open(reference_path * "/pincflow_output.h5")
 
 println("Time: ", data["t"][end], " s")
 
@@ -27,6 +36,10 @@ y = [yi for ix in 1:size(z)[1], yi in y, iz in 1:size(z)[3]]
 w = data["w"][:, :, :, end]
 wr = reference["w"][:, :, :, end]
 deltaw = w .- wr
+
+# Close files.
+close(data)
+close(reference)
 
 # Create the figure.
 figure(; figsize = (12, 3))
@@ -91,7 +104,7 @@ title(L"x\approx 0\,\mathrm{km}")
 colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
 
 # Save the figure.
-savefig(data_path * "/results/mountain_wave.png")
+savefig("../results/mountain_wave.png")
 
 # Create difference plots.
 if reference_path != data_path
@@ -159,5 +172,5 @@ if reference_path != data_path
   colorbar(contours; label = L"\Delta w\,\left[\mathrm{m\,s^{-1}}\right]")
 
   # Save the figure.
-  savefig(data_path * "/results/mountain_wave_differences.png")
+  savefig("../results/mountain_wave_differences.png")
 end

@@ -32,13 +32,13 @@ function set_zonal_halo_ray_volumes!(state::State)
   recv_rays_right = zeros(length(fields), nray_max_left, ny + 2, nz + 2)
 
   for (index, field) in enumerate(fields)
-    @views send_rays_right[index, :, :, :] = getfield(rays, field)[
+    @views send_rays_right[index, :, :, :] .= getfield(rays, field)[
       1:nray_max_right,
       i1,
       (j0 - 1):(j1 + 1),
       (k0 - 1):(k1 + 1),
     ]
-    @views send_rays_left[index, :, :, :] = getfield(rays, field)[
+    @views send_rays_left[index, :, :, :] .= getfield(rays, field)[
       1:nray_max_left,
       i0,
       (j0 - 1):(j1 + 1),

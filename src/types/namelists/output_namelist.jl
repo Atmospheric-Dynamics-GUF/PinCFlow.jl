@@ -3,6 +3,7 @@ struct OutputNamelist{
   B <: Bool,
   C <: Integer,
   D <: AbstractFloat,
+  E <: AbstractString,
 }
   atmvarout::A
   prepare_restart::B
@@ -14,6 +15,7 @@ struct OutputNamelist{
   outputtimediff::D
   maxtime::D
   fancy_namelists::B
+  folder::E
 end
 
 function OutputNamelist(;
@@ -27,6 +29,7 @@ function OutputNamelist(;
   outputtimediff = 3.6E+3,
   maxtime = 3.6E+3,
   fancy_namelists = true,
+  folder = "./",
 )
   return OutputNamelist(
     atmvarout,
@@ -39,5 +42,6 @@ function OutputNamelist(;
     outputtimediff,
     maxtime,
     fancy_namelists,
+    folder,
   )
 end

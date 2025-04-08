@@ -1,62 +1,40 @@
 function read_input!(state::State)
 
   # Get all necessary fields.
-  (; namelists, domain) = state
-  (; iin) = namelists.output
-  (; comm, i0, i1, j0, j1, k0, k1, local_array, global_array) = domain
+  (; iin, folder) = state.namelists.output
+  (; comm, nx, ny, nz, io, jo, i0, i1, j0, j1, k0, k1) = state.domain
   (; tref, rhoref, uref) = state.constants
-  (; rho, rhop, u, v, w, pip) = predictands
+  (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
-  # Open the dataset.
-  if master
-    dataset = NCDataset("pincflow_input.nc", "r")
-  end
+  # Open the file. Note: Fused in-place assignments cannot be used here!
+  time = h5open(folder * "/pincflow_input.h5", "r", comm) do file
 
-  # Read the time.
-  if master
-    time = dataset["t"][iin] / tref
-  end
-  time = MPI.bcast(time, comm)
+    # Read the time.
+    time = file["t"][iin] / tref
 
-  # Read the density fluctuations.
-  if master
-    @views global_array[:, :, :] .= dataset["rhop"][:, :, :, iin] ./ rhoref
-  end
-  compute_local_array!(namelists, domain)
-  rho[i0:i1, j0:j1, k0:k1] .= local_array
-  rhop[i0:i1, j0:j1, k0:k1] .= local_array
+    # Read the density fluctuations.
+    @views rhop[i0:i1, j0:j1, k0:k1] =
+      file["rhop"][(io + 1):(io + nx), (jo + ny):(jo + j1), 1:nz, iin] ./ rhoref
+    @views rho[i0:i1, j0:j1, k0:k1] .= rhop[i0:i1, j0:j1, k0:k1]
 
-  # Read the staggered zonal winds.
-  if master
-    @views global_array[:, :, :] .= dataset["us"][:, :, :, iin] ./ uref
-  end
-  compute_local_array!(namelists, domain)
-  u[i0:i1, j0:j1, k0:k1] .= local_array
+    # Read the staggered zonal wind.
+    @views u[i0:i1, j0:j1, k0:k1] =
+      file["us"][(io + 1):(io + nx), (jo + ny):(jo + j1), 1:nz, iin] ./ uref
 
-  # Read the staggered meridional winds.
-  if master
-    @views global_array[:, :, :] .= dataset["vs"][:, :, :, iin] ./ uref
-  end
-  compute_local_array!(namelists, domain)
-  v[i0:i1, j0:j1, k0:k1] .= local_array
+    # Read the staggered meridional wind.
+    @views v[i0:i1, j0:j1, k0:k1] =
+      file["vs"][(io + 1):(io + nx), (jo + ny):(jo + j1), 1:nz, iin] ./ uref
 
-  # Read the staggered transformed vertical winds.
-  if master
-    @views global_array[:, :, :] .= dataset["wstfc"][:, :, :, iin] ./ uref
-  end
-  compute_local_array!(namelists, domain)
-  w[i0:i1, j0:j1, k0:k1] .= local_array
+    # Read the staggered transformed vertical wind.
+    @views w[i0:i1, j0:j1, k0:k1] =
+      file["wstfc"][(io + 1):(io + nx), (jo + ny):(jo + j1), 1:nz, iin] ./ uref
 
-  # Read the Exner-pressure fluctuations.
-  if master
-    @views global_array[:, :, :] .= dataset["pip"][:, :, :, iin]
-  end
-  compute_local_array!(namelists, domain)
-  pip[i0:i1, j0:j1, k0:k1] .= local_array
+    # Read the Exner-pressure fluctuations.
+    @views pip[i0:i1, j0:j1, k0:k1] =
+      file["pip"][(io + 1):(io + nx), (jo + ny):(jo + j1), 1:nz, iin]
 
-  # Close the dataset.
-  if master
-    close(dataset)
+    # Return.
+    return time
   end
 
   # Return.
