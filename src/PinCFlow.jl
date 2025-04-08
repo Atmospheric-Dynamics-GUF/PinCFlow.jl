@@ -2,7 +2,6 @@ module PinCFlow
 
 using Dates
 using LinearAlgebra
-using NCDatasets
 using MPI
 using StaticArrays
 
