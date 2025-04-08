@@ -1,114 +1,13 @@
-function dir_to_int(dir::AbstractDir)
-  if dir == xDir()
-    return 1
-  elseif dir == yDir()
-    return 2
-  elseif dir == zDir()
-    return 3
-  end
-end
-
-function domainsize(domain, dir)
-  if dir == xDir()
-    return domain.sizex
-  elseif dir == yDir()
-    return domain.sizey
-  elseif dir == zDir()
-    return domain.sizez
-  end
-end
-
-function interp_meanflow(xr, yr, zr, var, dir::xDir)
-  cgrx1 = cgirx + meanflow(xr1, yr, zr, var, 1)
-  cgrx2 = cgirx + meanflow(xr2, yr, zr, var, 1)
-  # ! group velocity in x direction for the carrier ray
-  cgrx = 0.5 * (cgrx1 + cgrx2)
-  return cgrx
-end
-
-function interp_meanflow(dir::yDir)
-  meanflow(xr, yr1, zr, var, 2, vyr1)
-  meanflow(xr, yr2, zr, var, 2, vyr2)
-  # ! group velocity in y direction at the two edges in y
-  cgry1 = cgiry + vyr1
-  cgry2 = cgiry + vyr2
-  # ! group velocity in y direction for the carrier ray
-  cgry = 0.5 * (cgry1 + cgry2)
-  return cgry
-end
-
-function interp_meanflow(dir::zDir)
-  cgrz1 = cgirz1 # ! +wzr1
-  cgrz2 = cgirz2 # ! +wzr2
-  # ! group velocity in z direction for the carrier ray
-  cgrz = 0.5 * (cgrz1 + cgrz2)
-  return cgrz
-end
-
-function displacement(rijk, max_groupvs, rays, domain, dir::AbstractDir)
-  if domainsize(domain, dir) > 1 && rijk[4] > 0 && !single_column
-    dir_idx = dir_to_int(dir)
-    cgr = interp_meanflow(dir)
-    F = cgr # !allow horizontal ray propagation
-    dxRay[dir_idx, rijk] = dt * f + alphark[rkstage] * dxray[dir_idx, rijk]
-    rays.x[rijk] += betark[rkstage] * dxray[dir_idx, rijk]
-    # ! update maximum group velocity in x direction
-    max_groupvs = max(max_group_vs, abs(cgr))
-  end
-  return max_groupvs
-end
-
-function displacement(rijk, max_group_vs, cgz_max_tfc, rays, domain, ::zDir)
-
-  # !-----------------------------
-  # !     vertical displacement
-  # !-----------------------------
-
-  # ! RK update
-
-  # ! in line with the asymptotic results the vertcal wind is
-  # ! NOT added to the intrinsic vertical group velocity
-  # ! should one want to change this, one would also have to
-  # ! take the vertical-wind gradient into account in the
-  # ! prognostic equations for the wave number
-
-  # ! call meanflow(xr,yr,zr1,var,3,wzr1)
-  # ! call meanflow(xr,yr,zr2,var,3,wzr2)
-
-  # ! group velocity in z direction at the two edges in z
-  cgrz1 = cgirz1 # ! +wzr1
-  cgrz2 = cgirz2 # ! +wzr2
-  # ! group velocity in z direction for the carrier ray
-  cgrz = 0.5 * (cgrz1 + cgrz2)
-  F = cgrz
-  dxRay[3, rijk] = dt * F + alphark[rkstage] * dxray[3, rijk]
-  rays.z[rijk] += betark[rkstage] * dxray[3, rijk]
-
-  # ! update maximum group velocity in z direction
-  max_group_vs = max(max_group_vs, abs(cgrz))
-  ijk = CartesianIndex(rijk[2], rijk[3], rijk[4])
-  cgz_max_tfc[ijk] = max(cgz_max_tfc[ijk], abs(cgrz))
-  return max_groupvs
-end
-
-function displacement(rijk, rays, max_group_vs, domain)
-  cgx_max = displacement(rijk, rays, domain, max_group_vs[1], xDir())
-  cgy_max = displacement(rijk, rays, domain, max_group_vs[2], yDir())
-  cgz_max =
-    displacement(rijk, rays, domain, max_group_vs[3], cgz_max_tfc, zDir())
-  return (cgx_max, cgy_max, cgz_max)
-end
-
-
-function transport_unsteady(rkstage, state)
+function transport_rayvol(rkstage, state, mode::AbstractWKBMode)
   # ! initialize RK-tendencies at first RK stage
   (; case_wkb) = state.namelists.wkb
   (; nx, ny, nz) = state.domain
   (; nray) = state.wkb
+  (; dxray, dkray, ddxray) = state.wkb.increments
   if (rkstage == 1)
-    dxRay = 0.0
-    dkRay = 0.0
-    ddxRay = 0.0
+    dxRay .= 0.0
+    dkRay .= 0.0
+    ddxRay .= 0.0
   end
 
   cgx_max = 0.0
@@ -118,7 +17,7 @@ function transport_unsteady(rkstage, state)
 
   kz0 = ifelse(case_wkb == 3, 0, 1)
 
-  for kz in kz0:nz, jy in 1:ny, ix in 1:nx
+  for kz in kz0:k1, jy in j0:j1, ix in i0:i1
     ijk = CartesianIndex(ix, jy, kz)
     nskip = 0
 
@@ -126,17 +25,19 @@ function transport_unsteady(rkstage, state)
       continue
     end
 
-    for iray in 1:nray(ix, jy, kz)
+    for iray in 1:nray[ijk]
       rijk = CartesianIndex(iray, ijk)
       wnrk, wnrl, wnrm = wavenumbers(rijk, rays)
-      # wnrk = rays.k[rijk]
-      # wnrl = rays.l[rijk]
-      # wnrm = rays.m[rijk]
-
       wnrh = sqrt(wnrk^2 + wnrl^2)
 
-      xr, yr, zr = pos(rijk, rays)
-      dxr, dry, dzr = extents(rijk, rays)
+      xr, yr, zr = positions(rijk, rays)
+      dxr, dyr, dzr = extents(rijk, rays)
+      xr1 = xr - 0.5 * dxr
+      xr2 = xr + 0.5 * dxr
+      yr1 = yr - 0.5 * dyr
+      yr2 = yr + 0.5 * dyr
+      zr1 = zr - 0.5 * dzr
+      zr2 = zr + 0.5 * dzr
 
       # !skip ray volumes that have left the domain
       if (case_wkb != 3)
@@ -201,13 +102,62 @@ function transport_unsteady(rkstage, state)
       cgirz1 = -wnrm * (omir1^2 - f_cor_nd^2) / (omir1 * (wnrh^2 + wnrm^2))
       cgirz2 = -wnrm * (omir2^2 - f_cor_nd^2) / (omir2 * (wnrh^2 + wnrm^2))
 
-      cgx_max, cgy_max, cgz_max = displacement(
-        rijk,
-        (cgx_max, cgy_max, cgz_max),
-        cgz_max_tfc,
-        rays,
-        domain,
-      )
+      ## till here everything is the same for single_column and transient
+      if sizex > 1 && kz > 0 && mode != SingleColumn()
+        uxr1 = meanflow(xr1, yr, zr, var, 1)
+        uxr2 = meanflow(xr2, yr, zr, var, 1)
+
+        cgrx1 = cgirx + uxr1
+        cgrx2 = cgirx + uxr2
+
+        cgrx = 0.5 * (cgrx1 + cgrx2)
+
+        F = cgrx
+        dxray[1, rijk] = dt * F + alphark(rkstage) * dxray(1, rijk)
+        rays.x[rijk] += betark(rkstage) * dxray[1, rijk]
+
+        cgx_max = max(cgx_max, abs(cgrx))
+      end
+
+      if sizey > 1 && kz > 0 && mode != SingleColumn()
+        vyr1 = meanflow(xr, yr1, zr, var, 2)
+        vyr2 = meanflow(xr, yr2, zr, var, 2)
+
+        cgry1 = cgiry + vyr1
+        cgry2 = cgiry + vyr2
+
+        cgry = 0.5 * (cgry1 + cgry2)
+        F = cgry
+        dxray[2, rijk] = dt * F + alphark(rkstage) * dxray[2, rijk]
+        rays.y[rijk] += betark(rkstage) * dxray[2, rijk]
+
+        cgy_max = max(cgy_max, abs(cgry))
+      end
+
+      # !-----------------------------
+      # !     vertical displacement
+      # !-----------------------------
+
+      # ! RK update
+
+      # ! in line with the asymptotic results the vertcal wind is
+      # ! NOT added to the intrinsic vertical group velocity
+      # ! should one want to change this, one would also have to
+      # ! take the vertical-wind gradient into account in the
+      # ! prognostic equations for the wave number
+      #
+      cgrz1 = cgirz1
+      cgrz2 = cgirz2
+
+      cgrz = 0.5 * (cgrz1 + cgrz2)
+
+      F = cgrz
+      dxray[3, rijk] = dt * F + alphark[rkstage] * dxray[3, rijk]
+      rays.z[rijk] += betark[rkstage] * dxray[3, rijk]
+
+      cgz_max = max(cgz_max, abs(cgrz))
+
+      cgz_max_tfc[ix, jy, kz] = max(cgz_max_tfc[ix, jy, kz], abs(cgrz))
 
       # !-------------------------------
       # !    change of wavenumber
@@ -218,13 +168,13 @@ function transport_unsteady(rkstage, state)
         #   # ! RK procedure
 
         # TODO: we updated xr etc. what does fortran do here? make a copy or reference?
-        meanflow(xr, yr, zr, var, 11, dudxr)
-        meanflow(xr, yr, zr, var, 12, dudyr)
-        meanflow(xr, yr, zr, var, 13, dudzr)
+        dudxr = meanflow(xr, yr, zr, var, 11)
+        dudyr = meanflow(xr, yr, zr, var, 12)
+        dudzr = meanflow(xr, yr, zr, var, 13)
 
-        meanflow(xr, yr, zr, var, 21, dvdxr)
-        meanflow(xr, yr, zr, var, 22, dvdyr)
-        meanflow(xr, yr, zr, var, 23, dvdzr)
+        dvdxr = meanflow(xr, yr, zr, var, 21)
+        dvdyr = meanflow(xr, yr, zr, var, 22)
+        dvdzr = meanflow(xr, yr, zr, var, 23)
 
         if (zr < lz[0] - dz)
           # print *, 'ERROR IN setup_wkb: LOWER EDGE OF RAY  VOLUME', &
@@ -238,7 +188,7 @@ function transport_unsteady(rkstage, state)
           exit()
         end
 
-        stratification(zr, 2, dnndzr)
+        dnndzr = stratification(zr, 2)
 
         dkdt = -dudxr * wnrk - dvdxr * wnrl
         dldt = -dudyr * wnrk - dvdyr * wnrl
@@ -260,7 +210,7 @@ function transport_unsteady(rkstage, state)
 
         # ! dk
 
-        if (sizex > 1 && kz > 0 && !single_column)
+        if (sizex > 1 && kz > 0 && mode != SingleColumn())
           ddxdt = cgrx2 - cgrx1
 
           ddxRay[1, rijk] = dt * ddxdt + alphark[rkstage] * ddxray[1, rijk]
@@ -278,7 +228,7 @@ function transport_unsteady(rkstage, state)
 
         # ! dl
 
-        if (sizey > 1 && kz > 0 && !single_column)
+        if (sizey > 1 && kz > 0 && mode != SingleColumn())
           ddydt = cgry2 - cgry1
 
           ddxray[2, rijk] = dt * ddydt + alphark[rkstage] * ddxray[2, rijk]
@@ -323,13 +273,18 @@ function transport_unsteady(rkstage, state)
 
       zr = rays.z[rijk]
 
-      stratification(zr, 1, NNr)
-
+      nnr = stratification(zr, 1)
       omir =
         branchr * sqrt(nnr * wnrh^2 + f_cor_nd^2 * wnrm^2) /
         sqrt(wnrh^2 + wnrm^2)
 
       rays.omega[rijk] = omir
+      if (spongelayer && unifiedsponge)
+        xr, yr, zr = get_positions(rijk, rays)
+        alphaSponge = 2.0 * interpolate_sponge(xr, yr, zr)
+        betasponge = 1.0 / (1.0 + alphasponge * stepfrac[rkstage] * dt)
+        rays.dens[rijk] *= betaSponge
+      end
     end # ray loop
     if (nskip > 0)
       # print *, nskip, 'r.v. skipped in transport_rayvol out of', &
@@ -337,136 +292,113 @@ function transport_unsteady(rkstage, state)
     end
   end # grid loop
 
-  # ! Sponge layer
-  if (spongelayer && unifiedsponge)
-    for kz in 1:nz, jy in 1:ny, ix in 1:nx, iray in 1:nray(ix, jy, kz)
-      rijk = CartesianIndex(iRay, ix, jy, kz)
-      xr = ray.x[rijk]
-      yr = ray.y[rijk]
-      zr = ray.z[rijk]
-      alphaSponge = 2.0 * interpolate_sponge(xr, yr, zr)
-      betasponge = 1.0 / (1.0 + alphasponge * stepfrac(rkstage) * dt)
-      rays.dens[rijk] *= betaSponge
-    end
-  end
-
   if (case_wkb == 3 && !steady_state)
     orographic_source(var, ray, time, stepfrac(rkstage) * dt)
   end
 end
 
-function transport_rayvol_steady()
-  grid = state.grid
+function transport_rayvol(rkstage, state, mode::SteadyState)
+  if (case_wkb == 3)
+    orographic_source(var, ray, time, stepFrac(RKStage) * dt)
+  end
+
   for kz in 1:nz, jy in 1:ny, ix in 1:nx
 
     # ! Set ray-volume count.
-    function nray(ix, jy, kz)
-      return nray(ix, jy, kz - 1)
-    end
+    nray[ix, jy, kz] = nray[ix, jy, kz - 1]
 
     # ! Set up saturation computation.
     integral1 = 0.0
     integral2 = 0.0
     m2b2 = 0.0
     m2b2k2 = 0.0
-
     # ! Loop over ray volumes.
     for iRay in 1:nray(ix, jy, kz)
 
       # ! Prepare ray volume.
-      ray[rijk] = ray[rijk-1]
+      copy_rayvolume!(rays, (iRay, ix, jy, kz), (iRay, ix, jy, kz - 1))
 
       # ! Skip modes with zero wave-action density.
-      if (ray(rijk - 1).dens == 0.0)
+      if rays.dens[iRay, ix, jy, kz - 1] == 0
         continue
       end
 
       # ! Set vertical position (and extent).
-      ray[rijk].z =
-        zTildeTFC(ix, jy, kz - 1) +
-        (ray(rijk - 1).z - zTildeTFC(ix, jy, kz - 2)) / jac(ix, jy, kz - 1) *
-        jac(ix, jy, kz)
-      ray[rijk].dzray =
-        ray(rijk - 1).dzray * jac(ix, jy, kz) / jac(ix, jy, kz - 1)
+      set_vertical!(rays, nray, ix, jy, kz, ztildetfc, jac)
 
       # ! Get horizontal wavenumbers.
-      wnrk = rays[rijk].k
-      wnrl = rays[rijk].l
-      wnrh = sqrt(wnrk^2.0 + wnrl^2.0)
+      k, l, _ = wavenumbers(rijk, rays)
+      wnrh = sqrt(k^2.0 + l^2.0)
 
       # ! Set reference level.
       kz0 = max(1, kz - 1)
+      rijk0 = CartesianIndex(nray, ix, jy, kz, kz0)
 
       # ! Compute vertical group velocity at the level below.
-      stratification(ray(rijk0).z, 1, NN_nd)
-      omir = ray(rijk0).omega
+      nn_nd = stratification(rays.z[rijk0], 1)
+      omir = rays.omega[rijk0].omega
+
       if (branchr * omir > f_cor_nd && branchr * omir < sqrt(NN_nd))
         wnrm = ray(rijk0).m
         cgirz0 =
           wnrm * (f_cor_nd^2 - NN_nd) * wnrh^2 / omir / (wnrh^2 + wnrm^2)^2
       else
-        ray(rijk0).dens = 0.0
-        rays[rijk].dens = 0.0
+        rays.dens[rijk0] = 0.0
+        rays.dens[rijk] = 0.0
         continue
       end
-
       # ! Compute local intrinsic frequency, vertical
       # ! wavenumber and vertical group velocity.
-      stratification(rays[rijk].z, 1, NN_nd)
+      nn_nd = stratification(rays.z[rijk], 1)
       omir =
-        -0.5 * (var.u(ix, jy, kz) + var.u(ix - 1, jy, kz)) * wnrk -
-        0.5 * (var.v(ix, jy, kz) + var.v(ix, jy - 1, kz)) * wnrl
-      if (branchr * omir > f_cor_nd && branchr * omir < sqrt(NN_nd))
+        -0.5 * (var.u[ijk] + var.u[ix - 1, jy, kz]) * wnrk -
+        0.5 * (var.v[ix, jy, kz] + var.v[ix, jy - 1, kz]) * wnrl
+      if (branchr * omir > f_cor_nd && branchr * omir < sqrt(nn_nd))
         wnrm =
-          -branchr * sqrt(wnrh^2 * (NN_nd - omir^2) / (omir^2 - f_cor_nd^2))
+          -branchr * sqrt(wnrh^2 * (nn_nd - omir^2) / (omir^2 - f_cor_nd^2))
         cgirz =
           wnrm * (f_cor_nd^2 - NN_nd) * wnrh^2 / omir / (wnrh^2 + wnrm^2)^2
       else
-        ray(rijk0).dens = 0.0
-        rays[rijk].dens = 0.0
+        rays.dens[rijk0] = 0.0
+        rays.dens[rijk] = 0.0
         continue
       end
 
       # ! Set local intrinsic frequency and vertical wavenumber.
-      rays[rijk].omega = omir
-      rays[rijk].m = wnrm
+      rays.omega[rijk] = omir
+      rays.m[rijk] = wnrm
 
       # ! Set local wave action density.
       if (spongeLayer && unifiedSponge)
-        xr = rays[rijk].x
-        yr = rays[rijk].y
-        zr = rays[rijk].z
-        alphaSponge = 2.0 * interpolate_sponge(xr, yr, zr)
-        rays[rijk].dens =
-          1.0 / (1.0 + alphaSponge / cgirz * (rays[rijk].z - ray(rijk0).z)) *
+        xr = rays.x[rijk]
+        yr = rays.y[rijk]
+        zr = rays.z[rijk]
+        alphasponge = 2.0 * interpolate_sponge(xr, yr, zr)
+        rays.dens[rijk] =
+          1.0 / (1.0 + alphaSponge / cgirz * (rays.z[rijk].z - rays.z[rijk0])) *
           cgirz0 *
-          ray(rijk0).dens / cgirz
+          rays.dens[iray, ix, jy, kz0] / cgirz
       else
-        rays[rijk].dens = cgirz0 * ray(rijk0).dens / cgirz
+        rays.dens[rijk] = cgirz0 * rays.dens[iray, ix, jy, kz0] / cgirz
       end
-
       # ! Cycle if saturation scheme is turned off.
       if (!lsaturation)
         continue
       end
 
       # ! Get ray volume extents.
-      dxr = rays[rijk].dxray
-      dyr = rays[rijk].dyray
-      dzr = rays[rijk].dzray
-      dwnrk = rays[rijk].dkray
-      dwnrl = rays[rijk].dlray
-      dwnrm = rays[rijk].dmray
+      dxr, dyr, dzr = extents(rijk, rays)
+      dwnrk, dwnrl, dwnrm = wave_extents(rijk, rays)
 
       # ! Compute phase space factor.
-      dzi = min(dzr, jac(ix, jy, kz) * dz)
-      facpsp = dzi / jac(ix, jy, kz) / dz * dwnrm
+      dzi = min(dzr, jac[ix, jy, kz] * dz)
+      facpsp = dzi / jac[ix, jy, kz] / dz * dwnrm
 
-      if (sizeX > 1)
+      if (sizex > 1)
         dxi = min(dxr, dx)
         facpsp = facpsp * dxi / dx * dwnrk
       end
-      if (sizeY > 1)
+      if (sizey > 1)
         dyi = min(dyr, dy)
         facpsp = facpsp * dyi / dy * dwnrl
       end
@@ -475,76 +407,59 @@ function transport_rayvol_steady()
       integral1 = wnrh^2 * wnrm^2 / ((wnrh^2 + wnrm^2) * omir) * facpsp
       m2b2 =
         m2b2 +
-        2.0 * NN_nd^2 / rhoStratTFC(ix, jy, kz) * integral1 * rays[rijk].dens
+        2.0 * nn_nd^2 / rhostrattfc[ix, jy, kz] * integral1 * rays.dens[rijk]
 
       integral2 = wnrh^2 * wnrm^2 / omir * facpsp
       m2b2k2 =
         m2b2k2 +
-        2.0 * NN_nd^2 / rhoStratTFC(ix, jy, kz) *
+        2.0 * nn_nd^2 / rhostrattfc[ix, jy, kz] *
         integral2 *
-        rays[rijk].dens *
-        jac(ix, jy, kz) *
+        rays.dens[rijk] *
+        jac[ix, jy, kz] *
         dz / cgirz
     end
     # ! Compute diffusion coefficient
-    stratification(zTFC(ix, jy, kz), 1, NN_nd)
-    if (m2b2k2 == 0.0 || m2b2 < alpha_sat^2 * NN_nd^2)
+    nn_nd = stratification(ztfc[ix, jy, kz], 1)
+    if (m2b2k2 == 0.0 || m2b2 < alpha_sat^2 * nn_nd^2)
       diffusion = 0.0
     else
-      diffusion = (m2b2 - alpha_sat^2 * NN_nd^2) / (2.0 * m2b2k2)
+      diffusion = (m2b2 - alpha_sat^2 * nn_nd^2) / (2.0 * m2b2k2)
     end
     # ! Reduce wave action density.
     for iray in 1:nray(ix, jy, kz)
       if (!lsaturation)
         continue
       end
-      if (rays[rijk].dens == 0.0)
+      if (rays.dens[rijk] == 0.0)
         continue
       end
-      wnrk = rays[rijk].k
-      wnrl = rays[rijk].l
-      wnrm = rays[rijk].m
+      wnrk = rays.k[rijk]
+      wnrl = rays.l[rijk]
+      wnrm = rays.m[rijk]
       wnrh = sqrt(wnrk^2 + wnrl^2)
-      stratification(rays[rijk].z, 1, NN_nd)
-      omir = rays[rijk].omega
-      if (branchr * omir > f_cor_nd && branchr * omir < sqrt(NN_nd))
+      nn_nd = stratification(rays.z[rijk], 1)
+      omir = rays.omega[rijk]
+      if (branchr * omir > f_cor_nd && branchr * omir < sqrt(nn_nd))
         cgirz =
-          wnrm * (f_cor_nd^2 - NN_nd) * wnrh^2 / omir / (wnrh^2 + wnrm^2)^2
+          wnrm * (f_cor_nd^2 - nn_nd) * wnrh^2 / omir / (wnrh^2 + wnrm^2)^2
       else
-        ray(rijk0).dens = 0.0
-        rays[rijk].dens = 0.0
-        cycle
+        rays.dens[iray, ix, jy, kz0] = 0.0
+        rays.dens[rijk].dens = 0.0
+        continue
       end
-      rays[rijk].dens =
+      rays.dens[rijk] =
         rays[rijk].dens * max(
           0.0,
           1.0 -
-          jac(ix, jy, kz) * dz / cgirz * 2.0 * diffusion * (wnrh^2 + wnrm^2),
+          jac[x, jy, kz] * dz / cgirz * 2.0 * diffusion * (wnrh^2 + wnrm^2),
         )
     end
   end
-  if (sizeX > 1)
+  if (sizex > 1)
     setboundary_rayvol_x(ray)
   end
-  if (sizeY > 1)
+  if (sizey > 1)
     setboundary_rayvol_y(ray)
   end
-  return
-end
-
-function transport_rayvol()
-  # preamble
-  #
-  # ix0 = is + nbx - 1
-  # jy0 = js + nby - 1
-
-  # f_cor_nd = f_Coriolis_dim * tRef
-
-  # if(case_wkb == 3 .and. steady_state) then
-  #   call orographic_source(var, ray, time, stepFrac(RKStage) * dt)
-  # end if
-
-  # big if steady_state(), then return
-  #
-
+  return nothing
 end
