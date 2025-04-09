@@ -3,7 +3,8 @@ struct WKBNamelist{
   B <: Integer,
   C <: AbstractMergeMode,
   D <: Bool,
-  E <: AbstractLaunchAlgorithm,
+  E <: AbstractWKBMode,
+  F <: AbstractLaunchAlgorithm,
 }
   xrmin_dim::A
   xrmax_dim::A
@@ -29,12 +30,11 @@ struct WKBNamelist{
   zmin_wkb_dim::A
   lsaturation::D
   alpha_sat::A
-  single_column::D
-  steady_state::D
+  wkb_mode::E
   case_wkb::B
   blocking::D
   nwm::B
-  launch_algorithm::E
+  launch_algorithm::F
 end
 
 function WKBNamelist(;
@@ -62,8 +62,7 @@ function WKBNamelist(;
   zmin_wkb_dim = 0.0,
   lsaturation = true,
   alpha_sat = 1.0,
-  single_column = false,
-  steady_state = false,
+  wkb_mode = MultiColumn(),
   case_wkb = 3,
   blocking = false,
   nwm = 1,
@@ -94,8 +93,7 @@ function WKBNamelist(;
     zmin_wkb_dim,
     lsaturation,
     alpha_sat,
-    single_column,
-    steady_state,
+    wkb_mode,
     case_wkb,
     blocking,
     nwm,

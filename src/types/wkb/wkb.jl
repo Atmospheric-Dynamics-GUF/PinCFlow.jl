@@ -220,7 +220,7 @@ function WKB(
   wnm_ini = zeros(nwm, nxx, nyy, nzz)
   wad_ini = zeros(nwm, nxx, nyy, nzz)
 
-  if steady_state && case_wkb != 3
+  if wkb_mode == SteadyState() && case_wkb != 3
     error("Error in WKB: Steady state is implemented for case_wkb == 3 only!")
   end
 
