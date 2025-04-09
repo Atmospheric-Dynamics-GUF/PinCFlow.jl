@@ -125,7 +125,7 @@ function write_output(
             ) + compute_vertical_wind(
               i + i0 - 1,
               j + j0 - 1,
-              k + k0 - 1,
+              k + k0 - 2,
               predictands,
               grid,
             )
