@@ -1,9 +1,18 @@
-function saturation!(state, steadystate == true)
-
-  # do nothing 
+function saturation!(state::State, dt::AbstractFloat)
+  (; wkb_mode) = state.namelists.wkb
+  saturation!(state, dt, wkb_mode)
+  return
 end
 
-function saturation!(state, dt::AbstractFloat, steadystate == false)
+function saturation!(state::State, dt::AbstractFloat, wkb_mode::SteadyState)
+  return
+end
+
+function saturation!(
+  state::State,
+  dt::AbstractFloat,
+  wkb_mode::Union{SingleColumn, MultiColumn},
+)
   # 3d extension of the saturation scheme in Boeloeni et al. (2016)
 
   # TODO first and fourth loop are basically identical
@@ -18,7 +27,7 @@ function saturation!(state, dt::AbstractFloat, steadystate == false)
   mb2 = zeros(nxx, nyy, nzz)
   mb2k2 = zeros(nxx, nyy, nzz)
 
-  # calculate the integrals in the numerator and denominator of 
+  # calculate the integrals in the numerator and denominator of
   # K(z) in eq. (32)
   for kzrv in k0:k1
     for jyrv in j0:j1
@@ -123,7 +132,7 @@ function saturation!(state, dt::AbstractFloat, steadystate == false)
     end
   end
 
-  # loop for reducing wave action density 
+  # loop for reducing wave action density
   # if m^2*B^2 exceed saturation threshold
   # reduce wave action density according to eq. (51)
   for kzrv in k0:k1
@@ -172,9 +181,9 @@ function saturation!(state, dt::AbstractFloat, steadystate == false)
     end
   end
 
-  # diagnostic to check the impact of the saturation parameterization 
-  # on the energy 
-  # check m^2*B^2 again and print diagnostic 
+  # diagnostic to check the impact of the saturation parameterization
+  # on the energy
+  # check m^2*B^2 again and print diagnostic
   # exact repeat of the first loop
   mb2 = 0.0
   for kzrv in k0:k1
@@ -268,7 +277,7 @@ function saturation!(state, dt::AbstractFloat, steadystate == false)
     end
   end
 
-  # remove ray volumes with zero wave action 
+  # remove ray volumes with zero wave action
   for kz in (k0 - 1):(k1 + 1)
     for jy in (j0 - 1):(j1 + 1)
       for ix in (ix - 1):(i1 + 1)
@@ -289,4 +298,6 @@ function saturation!(state, dt::AbstractFloat, steadystate == false)
       end
     end
   end
+
+  return
 end
