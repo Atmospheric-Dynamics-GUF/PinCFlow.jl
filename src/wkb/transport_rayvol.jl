@@ -309,7 +309,8 @@ function transport_rayvol(
   if (case_wkb == 3 && wkb_mode != SteadyState())
     orographic_source(var, ray, time, stepfrac(rkstage) * dt)
   end
-  return nothing
+
+  return
 end
 
 function transport_rayvol(
@@ -491,5 +492,6 @@ function transport_rayvol(
   if (sizey > 1)
     setboundary_rayvol_y(ray)
   end
-  return nothing
+
+  return
 end
