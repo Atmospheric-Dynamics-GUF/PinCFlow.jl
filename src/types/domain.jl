@@ -8,10 +8,7 @@ struct Domain{
   G <: AbstractArray{<:AbstractFloat, 5},
   H <: AbstractMatrix{<:AbstractFloat},
   I <: AbstractMatrix{<:AbstractFloat},
-  J <: AbstractArray{<:AbstractFloat, 3},
-  K <: AbstractVector{<:AbstractFloat},
-  L <: AbstractArray{<:AbstractFloat, 3},
-  M <: AbstractVector{<:AbstractFloat},
+  J <: AbstractVector{<:AbstractFloat},
 }
 
   # MPI variables.
@@ -82,8 +79,8 @@ struct Domain{
   recv_rf3_forw::I
 
   # Auxiliary arrays for horizontal averaging.
-  local_sum::M
-  global_sum::M
+  local_sum::J
+  global_sum::J
 end
 
 function Domain(namelists::Namelists)
