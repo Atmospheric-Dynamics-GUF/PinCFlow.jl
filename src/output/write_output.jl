@@ -9,7 +9,7 @@ function write_output(
   (; domain, grid) = state
   (; sizex, sizey, sizez) = state.namelists.domain
   (; prepare_restart, atmvarout, folder) = state.namelists.output
-  (; comm, master, nx, ny, nz, io, jo, i0, i1, j0, j1, k0, k1, local_array) =
+  (; comm, master, nx, ny, nz, io, jo, i0, i1, j0, j1, k0, k1) =
     domain
   (; tref, lref, rhoref, thetaref, uref) = state.constants
   (; x, y, ztfc) = grid
@@ -114,7 +114,7 @@ function write_output(
     if W() in atmvarout
       HDF5.set_extent_dims(file["w"], (sizex, sizey, sizez, iout))
       for k in 1:nz, j in 1:ny, i in 1:nx
-        local_array[i, j, k] =
+        file["w"][io + i, jo + j, k, iout] =
           (
             compute_vertical_wind(
               i + i0 - 1,
@@ -131,8 +131,6 @@ function write_output(
             )
           ) / 2 * uref
       end
-      file["w"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz, iout] =
-        local_array
     end
 
     # Write the staggered vertical winds.
