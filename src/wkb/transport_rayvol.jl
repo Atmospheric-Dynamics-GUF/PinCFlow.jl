@@ -1,4 +1,15 @@
-function transport_rayvol(dt, rkstage, state, mode::AbstractWKBMode)
+function transport_rayvol(state::State, dt::AbstractFloat, rkstage::Integer)
+  (; wkb_mode) = state.namelists.wkb
+  transport_rayvol(state, dt, rkstage, wkb_mode)
+  return
+end
+
+function transport_rayvol(
+  state::State,
+  dt::AbstractFloat,
+  rkstage::Integer,
+  wkb_mode::Union{SingleColumn, Multicolumn},
+)
   (; case_wkb, branchr, zmin_wkb) = state.namelists.wkb
   (; sizex, sizey) = state.namelists.domain
   (; nray, cgz_max_tfc, rays, f_cor_nd) = state.wkb
@@ -301,7 +312,12 @@ function transport_rayvol(dt, rkstage, state, mode::AbstractWKBMode)
   return nothing
 end
 
-function transport_rayvol(dt, rkstage, state, wkb_mode::SteadyState)
+function transport_rayvol(
+  state::State,
+  dt::AbstractFloat,
+  rkstage::Integer,
+  wkb_mode::SteadyState,
+)
   (; case_wkb, branchr, zmin_wkb) = state.namelists.wkb
   (; sizex, sizey) = state.namelists.domain
   (; nray, cgz_max_tfc, rays, f_cor_nd) = state.wkb
