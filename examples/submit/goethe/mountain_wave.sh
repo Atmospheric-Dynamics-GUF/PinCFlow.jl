@@ -18,7 +18,7 @@ scratch=/scratch/atmodynamics/${user}/pinc/examples/mountain_wave/
 mkdir -p ${scratch}
 
 # Configure MPI and HDF5.
-julia --project=../../../ -e 'using MPIPreferences; MPIPreferences.use_system_binary("")'
+julia --project=../../../ -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
 julia --project=../../../ -e 'using HDF5; HDF5.API.set_libraries!("/home/atmodynamics/public/hdf5-1.14.4-3/src/.libs/libhdf5.so", "/home/atmodynamics/public/hdf5-1.14.4-3/hl/src/.libs/libhdf5_hl.so")'
 
 # Run the model.
