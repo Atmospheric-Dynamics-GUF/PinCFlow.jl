@@ -295,13 +295,13 @@ function transport_rayvol(dt, rkstage, state, mode::AbstractWKBMode)
     end
   end # grid loop
 
-  if (case_wkb == 3 && !steady_state)
+  if (case_wkb == 3 && wkb_mode != SteadyState())
     orographic_source(var, ray, time, stepfrac(rkstage) * dt)
   end
   return nothing
 end
 
-function transport_rayvol(dt, rkstage, state, mode::SteadyState)
+function transport_rayvol(dt, rkstage, state, wkb_mode::SteadyState)
   (; case_wkb, branchr, zmin_wkb) = state.namelists.wkb
   (; sizex, sizey) = state.namelists.domain
   (; nray, cgz_max_tfc, rays, f_cor_nd) = state.wkb
