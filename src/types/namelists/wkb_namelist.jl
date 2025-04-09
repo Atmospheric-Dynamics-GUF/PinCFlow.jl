@@ -23,7 +23,7 @@ struct WKBNamelist{
   fac_dl_init::A
   fac_dm_init::A
   branchr::B
-  cons_merge::C
+  merge_mode::C
   nsmth_wkb::B
   lsmth_wkb::D
   sm_filter::B
@@ -55,7 +55,7 @@ function WKBNamelist(;
   fac_dl_init = 0.1,
   fac_dm_init = 0.1,
   branchr = -1,
-  cons_merge = ConstantWaveAction(),
+  merge_mode = ConstantWaveAction(),
   nsmth_wkb = 2,
   lsmth_wkb = true,
   sm_filter = 2,
@@ -86,7 +86,7 @@ function WKBNamelist(;
     fac_dl_init,
     fac_dm_init,
     branchr,
-    cons_merge,
+    merge_mode,
     nsmth_wkb,
     lsmth_wkb,
     sm_filter,
