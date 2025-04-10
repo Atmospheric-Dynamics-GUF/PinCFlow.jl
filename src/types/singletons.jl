@@ -1,6 +1,9 @@
 struct BoundaryPredictands end
 struct BoundaryReconstructions end
 struct BoundaryFluxes end
+struct BoundaryGWForces end
+struct BoundaryGWIntegrals end
+struct BoundaryGWTendencies end
 
 struct Total end
 struct Horizontal end
