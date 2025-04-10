@@ -43,6 +43,7 @@ include("types/wkb/rays.jl")
 include("types/wkb/increments.jl")
 include("types/wkb/integrals.jl")
 include("types/wkb/surface_indices.jl")
+include("types/wkb/forces.jl")
 include("types/wkb/wkb.jl")
 include("types/state.jl")
 
@@ -64,8 +65,6 @@ include("fluxes/compute_fluxes.jl")
 include("fluxes/reconstruct.jl")
 
 # Include MPI functions.
-include("mpi/compute_global_array.jl")
-include("mpi/compute_local_array.jl")
 include("mpi/compute_global_dot_product.jl")
 include("mpi/set_meridional_halos_of_field.jl")
 include("mpi/set_meridional_halos_of_reduced_field.jl")
@@ -104,7 +103,9 @@ include("integration/integrate.jl")
 include("wkb/kztfc.jl")
 include("wkb/kztildetfc.jl")
 include("wkb/merge_rayvol.jl")
+include("wkb/orographic_wave_mode.jl")
 include("wkb/orographic_source.jl")
+include("wkb/transport_rayvol.jl")
 # include("wkb/saturation.jl")
 # include("wkb/split_rayvol.jl")
 # include("wkb/stratification.jl")
@@ -131,5 +132,8 @@ export ConstantWaveEnergy, ConstantWaveAction
 export Clip, Scale
 export State
 export integrate
+export RayTracer
+
+export transport_rayvol
 
 end
