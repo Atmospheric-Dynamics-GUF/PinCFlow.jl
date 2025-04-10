@@ -8,7 +8,7 @@ function transport_rayvol(
   state::State,
   dt::AbstractFloat,
   rkstage::Integer,
-  wkb_mode::Union{SingleColumn, Multicolumn},
+  wkb_mode::Union{SingleColumn, MultiColumn},
 )
   (; case_wkb, branchr, zmin_wkb) = state.namelists.wkb
   (; sizex, sizey) = state.namelists.domain
@@ -116,8 +116,8 @@ function transport_rayvol(
       cgirz1 = -wnrm * (omir1^2 - f_cor_nd^2) / (omir1 * (wnrh^2 + wnrm^2))
       cgirz2 = -wnrm * (omir2^2 - f_cor_nd^2) / (omir2 * (wnrh^2 + wnrm^2))
 
-      ## till here everything is the same for single_column and transient
-      if sizex > 1 && kz > 0 && mode != SingleColumn()
+      ## until here everything is the same for single_column and transient
+      if sizex > 1 && kz >= k0 && mode != SingleColumn()
         uxr1 = meanflow(xr1, yr, zr, var, 1)
         uxr2 = meanflow(xr2, yr, zr, var, 1)
 
@@ -133,7 +133,7 @@ function transport_rayvol(
         cgx_max = max(cgx_max, abs(cgrx))
       end
 
-      if sizey > 1 && kz > 0 && mode != SingleColumn()
+      if sizey > 1 && kz >= k0 && mode != SingleColumn()
         vyr1 = meanflow(xr, yr1, zr, var, 2)
         vyr2 = meanflow(xr, yr2, zr, var, 2)
 
@@ -295,9 +295,9 @@ function transport_rayvol(
       rays.omega[rijk] = omir
       if (spongelayer && unifiedsponge)
         xr, yr, zr = get_positions(rijk, rays)
-        alphaSponge = 2.0 * interpolate_sponge(xr, yr, zr)
+        alphasponge = 2.0 * interpolate_sponge(xr, yr, zr)
         betasponge = 1.0 / (1.0 + alphasponge * stepfrac[rkstage] * dt)
-        rays.dens[rijk] *= betaSponge
+        rays.dens[rijk] *= betasponge
       end
     end # ray loop
     if (nskip > 0)
@@ -364,7 +364,6 @@ function transport_rayvol(
       # ! Set reference level.
       kz0 = max(1, kz - 1)
       rijk0 = CartesianIndex(iray, ix, jy, kz, kz0)
-
       # ! Compute vertical group velocity at the level below.
       nn_nd = stratification(rays.z[rijk0], 1)
       omir = rays.omega[rijk0].omega

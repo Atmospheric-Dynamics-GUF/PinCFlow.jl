@@ -26,6 +26,7 @@ function smooth_wkb!(flxwkb, state, sm_filter::BOX, homogdir::XYZ)
         ],
       ) / real((2 * nsmth + 1)^3)
   end
+  return
 end
 
 function smooth_wkb!(flxwkb, state, sm_filter::BOX, homogdir::XZ)
@@ -48,6 +49,7 @@ function smooth_wkb!(flxwkb, state, sm_filter::BOX, homogdir::XZ)
       sum(flxwkb_0[(i - nsmth):(i + nsmth), j, (k - nsmth):(k + nsmth)]) /
       real((2 * nsmth + 1)^2)
   end
+  return
 end
 
 function smooth_wkb!(flxwkb, state, sm_filter::BOX, homogdir::YZ)
@@ -70,6 +72,7 @@ function smooth_wkb!(flxwkb, state, sm_filter::BOX, homogdir::YZ)
       sum(flxwkb_0[i, (j - nsmth):(j + nsmth), (k - nsmth):(k + nsmth)]) /
       real((2 * nsmth + 1)^2)
   end
+  return
 end
 
 function smooth_wkb!(flxwkb, state, sm_filter::BOX, homogdir::X)
@@ -81,6 +84,7 @@ function smooth_wkb!(flxwkb, state, sm_filter::BOX, homogdir::X)
   for k in k0:k1, j in j0:j1, i in i0:i1
     flxwkb[i, j, k] = sum(flxwkb_0[i0:i1, j, k]) / real(nx)
   end
+  return
 end
 
 function smooth_wkb!(flxwkb, state, sm_filter::SHAPIRO, homogdir::XYZ)
@@ -249,6 +253,7 @@ function smooth_wkb!(flxwkb, state, sm_filter::SHAPIRO, homogdir::XYZ)
         ) / real((2 * nsmth + 1)^3)
     end
   end
+  return
 end
 
 function smooth_wkb!(flxwkb, state, sm_filter::SHAPIRO, homogdir::XZ)
@@ -370,6 +375,7 @@ function smooth_wkb!(flxwkb, state, sm_filter::SHAPIRO, homogdir::XZ)
         real((2 * nsmth + 1)^2)
     end
   end
+  return
 end
 
 function smooth_wkb!(flxwkb, state, sm_filter::SHAPIRO, homogdir::YZ)
@@ -491,6 +497,7 @@ function smooth_wkb!(flxwkb, state, sm_filter::SHAPIRO, homogdir::YZ)
         real((2 * nsmth + 1)^2)
     end
   end
+  return
 end
 
 function smooth_wkb!(flxwkb, state, sm_filter::SHAPIRO, homogdir::X)
@@ -501,10 +508,9 @@ function smooth_wkb!(flxwkb, state, sm_filter::SHAPIRO, homogdir::X)
   nsmth = nsmth_wkb
 
   flxwkb_0 = copy(flxwkb)
-  flxwkb_1 = zeros(flxwkb)
 
   for k in k0:k1, j in j0:j1, i in i0:i1 
     flxwkb[i, j, k] = sum(flxwkb_0[i0:i1, j, k]) / real(nx)
   end
-
+  return
 end
