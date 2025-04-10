@@ -6,8 +6,8 @@ function ixminmax_jyminmax(state, xr, yr, dxr, dyr)
   
     # indices of range of cells touched by a ray volume 
     if sizex > 1
-      ixmin = floor((xr - dxr * 0.5 - lx[1]) / dx) + 1 - io
-      ixmax = floor((xr + dxr * 0.5 - lx[1]) / dx) + 1 - io
+      ixmin = floor((xr - dxr * 0.5 - lx[1]) / dx) + i0 - io
+      ixmax = floor((xr + dxr * 0.5 - lx[1]) / dx) + i0 - io
   
       if ixmin > (i1 + 1)
         error("Error in meanflow_effect: ixmin = ", ixmin, " > i1 + 1 = ", i1 + 1)
@@ -27,8 +27,8 @@ function ixminmax_jyminmax(state, xr, yr, dxr, dyr)
     end
   
     if sizey > 1
-      jymin = floor((yr - dyr * 0.5 - ly[1]) / dy) + 1 - jo
-      jymax = floor((yr + dyr * 0.5 - ly[1]) / dy) + 1 - jo
+      jymin = floor((yr - dyr * 0.5 - ly[1]) / dy) + j0 - jo
+      jymax = floor((yr + dyr * 0.5 - ly[1]) / dy) + j0 - jo
   
       if jymin > j1 + 1
         error("Error in meanflow_effect: jymin = ", jymin, " > j1 + 1 = ", j1 + 1)
