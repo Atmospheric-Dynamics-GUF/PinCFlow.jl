@@ -3,7 +3,7 @@ module PinCFlow
 using Dates
 using LinearAlgebra
 using MPI
-using HDF5
+using StaticArrays
 
 # Include abstract types and singletons.
 include("types/abstract_types.jl")
@@ -43,6 +43,7 @@ include("types/wkb/rays.jl")
 include("types/wkb/increments.jl")
 include("types/wkb/integrals.jl")
 include("types/wkb/surface_indices.jl")
+include("types/wkb/forces.jl")
 include("types/wkb/wkb.jl")
 include("types/state.jl")
 
@@ -101,8 +102,10 @@ include("integration/integrate.jl")
 # Include WKB functions.
 include("wkb/kztfc.jl")
 include("wkb/kztildetfc.jl")
-include("wkb/merge_rayvol.jl")
+include("wkb/merge_ray_volumes.jl")
+include("wkb/orographic_wave_mode.jl")
 include("wkb/orographic_source.jl")
+include("wkb/transport_rayvol.jl")
 include("wkb/saturation.jl")
 include("wkb/split_ray_volumes.jl")
 include("wkb/stratification.jl")
@@ -130,5 +133,8 @@ export ConstantWaveEnergy, ConstantWaveAction
 export Clip, Scale
 export State
 export integrate
+export RayTracer
+
+export transport_rayvol
 
 end
