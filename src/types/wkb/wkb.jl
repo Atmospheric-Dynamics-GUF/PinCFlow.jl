@@ -6,6 +6,7 @@ struct WKB{
   E <: Increments,
   F <: Integrals,
   G <: AbstractMatrix{<:AbstractFloat},
+  H <: Forces,
 }
   nxray::A
   nyray::A
@@ -23,6 +24,7 @@ struct WKB{
   integrals::F
   cgz_max::B
   zb::G
+  gwmomforce::H
 end
 
 function WKB(
@@ -62,6 +64,7 @@ function WKB(
     Increments(0, 0, 0, 0),
     Integrals(0, 0, 0),
     zeros(0, 0, 0),
+    Forces(0, 0, 0)
   )
 end
 
@@ -212,6 +215,7 @@ function WKB(
   increments = Increments(nray_wrk, nxx, nyy, nzz)
   integrals = Integrals(nxx, nyy, nzz)
   cgz_max = zeros(nxx, nyy, nzz)
+  gwmomforce = Forces(nxx, nyy, nzz)
 
   # Initialize local arrays.
   omi_ini = zeros(nwm, nxx, nyy, nzz)
@@ -220,7 +224,7 @@ function WKB(
   wnm_ini = zeros(nwm, nxx, nyy, nzz)
   wad_ini = zeros(nwm, nxx, nyy, nzz)
 
-  if steady_state && case_wkb != 3
+  if wkb_mode == SteadyState() && case_wkb != 3
     error("Error in WKB: Steady state is implemented for case_wkb == 3 only!")
   end
 
@@ -470,5 +474,6 @@ function WKB(
     integrals,
     cgz_max,
     zb,
+    gwmomforce
   )
 end

@@ -8,10 +8,7 @@ struct Domain{
   G <: AbstractArray{<:AbstractFloat, 5},
   H <: AbstractMatrix{<:AbstractFloat},
   I <: AbstractMatrix{<:AbstractFloat},
-  J <: AbstractArray{<:AbstractFloat, 3},
-  K <: AbstractVector{<:AbstractFloat},
-  L <: AbstractArray{<:AbstractFloat, 3},
-  M <: AbstractVector{<:AbstractFloat},
+  J <: AbstractVector{<:AbstractFloat},
 }
 
   # MPI variables.
@@ -81,14 +78,9 @@ struct Domain{
   recv_rf3_back::I
   recv_rf3_forw::I
 
-  # Auxiliary arrays for gather & scatter.
-  local_array::J
-  master_array::K
-  global_array::L
-
   # Auxiliary arrays for horizontal averaging.
-  local_sum::M
-  global_sum::M
+  local_sum::J
+  global_sum::J
 end
 
 function Domain(namelists::Namelists)
@@ -178,11 +170,6 @@ function Domain(namelists::Namelists)
   (send_rf3_back, send_rf3_forw, recv_rf3_back, recv_rf3_forw) =
     (zeros(nx + 2, nz + 2) for i in 1:4)
 
-  # Initialize auxiliary arrays for gather & scatter.
-  local_array = zeros(nx, ny, nz)
-  master_array = zeros(sizex * sizey * sizez)
-  global_array = zeros(sizex, sizey, sizez)
-
   # Initialize auxiliary arrays for horizontal averaging.
   (local_sum, global_sum) = (zeros(nz) for i in 1:2)
 
@@ -237,9 +224,6 @@ function Domain(namelists::Namelists)
     send_rf3_forw,
     recv_rf3_back,
     recv_rf3_forw,
-    local_array,
-    master_array,
-    global_array,
     local_sum,
     global_sum,
   )

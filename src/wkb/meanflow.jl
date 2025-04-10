@@ -2,54 +2,65 @@ function meanflow(
   xlc::AbstractFloat,
   ylc::AbstractFloat,
   zlc::AbstractFloat,
+  state::State,
+  flwtype::AbstractVariable,
+)
+  (; namelists, domain, grid) = State
+  (; predictands) = state.variables
+  return meanflow(xlc, ylc, zlc, namelists, domain, grid, predictands, flwtype)
+end
+
+function meanflow(
+  xlc::AbstractFloat,
+  ylc::AbstractFloat,
+  zlc::AbstractFloat,
   namelists::Namelists,
   domain::Domain,
+  grid::Grid,
   predictants::Predictands,
   flwtype::U,
 )
-  # interpolation of the zonal mean flow to 
-  # specified location (xlc, ylc, zlc)
-
   (; sizex, sizey) = namelists.domain
   (; u) = predictands
-  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
-  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztfc) = grid
+  (; io, jo, i0, j0, k1) = domain
+  (; lx, ly, dx, dy, x, y, ztfc) = grid
 
-  # locate the closest points in zonal direction
+  # Locate the closest points in zonal direction.
   if sizex == 1
     ixl = i0
     ixr = i0
   else
-    ixl = floor((xlc - lx[1]) / dx) - io
-    if (ixl < 0)
-      error("Error in meanflow (U): ixl = ", ixl, "< 0")
+    ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - io
+    if (ixl < 1)
+      error("Error in meanflow (U): ixl = ", ixl, " < 1")
     end
     ixr = ixl + 1
     if ixr > nxx
       error("Error in meanflow (U): ixr = ", ixr, "> nxx = ", nxx)
     end
   end
-  xr = x[ixr + io] + 0.5 * dx
-  xl = x[ixl + io] + 0.5 * dx
+  xr = x[ixr + io] + dx / 2
+  xl = x[ixl + io] + dx / 2
 
-  # locate the closest points in meridional direction 
+  # Locate the closest points in meridional direction.
   if sizey == 1
     jyb = j0
     jyf = j0
   else
-    jyb = floor((ylc - 0.5 * dy - ly[1]) / dy) + 1 - jo
-    if (jyb < 0)
-      error("Error in meanflow (U): jyl = ", jyl, "< 0")
+    jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
+    if (jyb < 1)
+      error("Error in meanflow (U): jyl = ", jyl, " < 1")
     end
     jyf = jyb + 1
     if jyf > nyy
-      error("Error in meanflow (U): jyr = ", jyr, "> nyy = ", nyy)
+      error("Error in meanflow (U): jyr = ", jyr, " > nyy = ", nyy)
     end
   end
   yf = y[jyf + jo]
   yb = y[jyb + jo]
 
-  # locate the closest points in vertical direction 
+  # Locate the closest points in vertical direction.
+
   kzlbu = kztfc(ixl, jyb, zlc, domain, grid)
   kzlbd = kzlbu - 1
   if kzlbd > k1
@@ -98,7 +109,9 @@ function meanflow(
   flwrfd = u[ixr, jyf, kzrfd]
   flwrfu = u[ixr, jyf, kzrfu]
 
-  flw = meanflow_interpolation(
+  # Interpolate.
+  flw = interpolate(
+    namelists,
     flwlbd,
     flwlbu,
     flwlfd,
@@ -115,13 +128,13 @@ function meanflow(
     zlbu,
     zlfd,
     zlfu,
+    zlc,
     xl,
     xr,
     xlc,
     yf,
     yb,
     ylc,
-    zlc,
   )
 
   return flw
@@ -133,33 +146,27 @@ function meanflow(
   zlc::AbstractFloat,
   namelists::Namelists,
   domain::Domain,
+  grid::Grid,
   predictants::Predictands,
   flwtype::V,
 )
-  # interpolation of the meridional mean flow to 
-  # specified location (xlc, ylc, zlc)
-  # for variable at full levels z(k) = lz(0) +  0.5*dz + (k-1)*dz:
-  # (levels below the model bottom are replaced by the first level
-  # in the model domain)
-
   (; sizex, sizey) = namelists.domain
   (; v) = predictands
-  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
-  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztfc) = grid
+  (; io, jo, i0, j0, k1) = domain
+  (; lx, ly, dx, dy, x, y, ztfc) = grid
 
-  # locate the closest points in zonal direction
   # Locate the closest points in zonal direction.
   if sizex == 1
     ixl = i0
     ixr = i0
   else
-    ixl = floor((xlc - 0.5 * dx - lx[1]) / dx) + 1 - io
-    if ixl < 0
-      error("ERROR IN MEANFLOW (V): ixl =", ixl, "< 0")
+    ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
+    if ixl < 1
+      error("Error in meanflow (V): ixl = ", ixl, " < 1")
     end
     ixr = ixl + 1
     if ixr > nxx
-      error("ERROR IN MEANFLOW (V): ixr =", ixr, "> nxx =", nxx)
+      error("Error in meanflow (V): ixr = ", ixr, " > nxx = ", nxx)
     end
   end
   xr = x[ixr + io]
@@ -170,17 +177,17 @@ function meanflow(
     jyb = j0
     jyf = j0
   else
-    jyb = floor((ylc - ly[1]) / dy) - jo
-    if jyb < 0
-      error("ERROR IN MEANFLOW (V): jyb =", jyb, "< 0")
+    jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - jo
+    if jyb < 1
+      error("Error in meanflow (V): jyb = ", jyb, " < 1")
     end
     jyf = jyb + 1
     if jyf > nyy
-      error("ERROR IN MEANFLOW (V): jyf =", jyf, "> nyy =", nyy)
+      error("Error in meanflow (V): jyf = ", jyf, " > nyy = ", nyy)
     end
   end
-  yf = y[jyf + jo] + 0.5 * dy
-  yb = y[jyb + jo] + 0.5 * dy
+  yf = y[jyf + jo] + dy / 2
+  yb = y[jyb + jo] + dy / 2
 
   # Locate the closest points in vertical direction.
 
@@ -234,7 +241,9 @@ function meanflow(
   flwrfd = v[ixr, jyf, kzrfd]
   flwrfu = v[ixr, jyf, kzrfu]
 
-  flw = meanflow_interpolation(
+  # Interpolate.
+  flw = interpolate(
+    namelists,
     flwlbd,
     flwlbu,
     flwlfd,
@@ -251,13 +260,13 @@ function meanflow(
     zlbu,
     zlfd,
     zlfu,
+    zlc,
     xl,
     xr,
     xlc,
     yf,
     yb,
     ylc,
-    zlc,
   )
 
   return flw
@@ -269,31 +278,26 @@ function meanflow(
   zlc::AbstractFloat,
   namelists::Namelists,
   domain::Domain,
+  grid::Grid,
   predictants::Predictands,
   flwtype::W,
 )
-  # interpolation of the vertical mean flow to 
-  # specified location (xlc, ylc, zlc)
-  # for variable at intermediate levels
-  # z(k+1/2) = lz(0) + k*dz:
-
   (; sizex, sizey) = namelists.domain
-  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
-  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztildetfc) = grid
+  (; io, jo, i0, j0, k0, k1) = domain
+  (; lx, ly, dx, dy, x, y, ztildetfc) = grid
 
-  # locate the closest points in zonal direction
   # Locate the closest points in zonal direction.
   if sizex == 1
     ixl = i0
     ixr = i0
   else
-    ixl = floor((xlc - 0.5 * dx - lx[1]) / dx) + 1 - io
-    if ixl < 0
-      error("ERROR IN MEANFLOW (W): ixl =", ixl, "< 0")
+    ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
+    if ixl < 1
+      error("Error in meanflow (W): ixl = ", ixl, " < 1")
     end
     ixr = ixl + 1
     if ixr > nxx
-      error("ERROR IN MEANFLOW (W): ixr =", ixr, "> nxx =", nxx)
+      error("Error in meanflow (W): ixr = ", ixr, " > nxx = ", nxx)
     end
   end
   xr = x[ixr + io]
@@ -304,13 +308,13 @@ function meanflow(
     jyb = j0
     jyf = j0
   else
-    jyb = floor((ylc - 0.5 * dy - ly[1]) / dy) + 1 - jo
-    if jyb < 0
-      error("ERROR IN MEANFLOW (W): jyb =", jyb, "< 0")
+    jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
+    if jyb < 1
+      error("Error in meanflow (W): jyb = ", jyb, " < 1")
     end
     jyf = jyb + 1
     if jyf > nyy
-      error("ERROR IN MEANFLOW (W): jyf =", jyf, "> nyy = ", nyy)
+      error("Error in meanflow (W): jyf = ", jyf, " > nyy = ", nyy)
     end
   end
   yf = y[jyf + jo]
@@ -356,10 +360,10 @@ function meanflow(
 
   # Assign the values.
 
-  if zlbu < ztildetfc[ixl, jyb, k0]
+  if zlbu < ztildetfc[ixl, jyb, k0 - 1]
     flwlbd = 0.0
     flwlbu = 0.0
-  elseif zlbd < ztildetfc[ixl, jyb, k0]
+  elseif zlbd < ztildetfc[ixl, jyb, k0 - 1]
     flwlbd = 0.0
     flwlbu = compute_vertical_wind(ixl, jyb, kzlbu, predictands, grid)
   else
@@ -367,10 +371,10 @@ function meanflow(
     flwlbu = compute_vertical_wind(ixl, jyb, kzlbu, predictands, grid)
   end
 
-  if zlfu < ztildetfc[ixl, jyf, k0]
+  if zlfu < ztildetfc[ixl, jyf, k0 - 1]
     flwlfd = 0.0
     flwlfu = 0.0
-  elseif zlfd < ztildetfc[ixl, jyf, k0]
+  elseif zlfd < ztildetfc[ixl, jyf, k0 - 1]
     flwlfd = 0.0
     flwlfu = compute_vertical_wind(ixl, jyf, kzlfu, predictands, grid)
   else
@@ -378,10 +382,10 @@ function meanflow(
     flwlfu = compute_vertical_wind(ixl, jyf, kzlfu, predictands, grid)
   end
 
-  if zrbu < ztildetfc[ixr, jyb, k0]
+  if zrbu < ztildetfc[ixr, jyb, k0 - 1]
     flwrbd = 0.0
     flwrbu = 0.0
-  elseif zrbd < ztildetfc[ixr, jyb, k0]
+  elseif zrbd < ztildetfc[ixr, jyb, k0 - 1]
     flwrbd = 0.0
     flwrbu = compute_vertical_wind(ixr, jyb, kzrbu, predictands, grid)
   else
@@ -389,10 +393,10 @@ function meanflow(
     flwrbu = compute_vertical_wind(ixr, jyb, kzrbu, predictands, grid)
   end
 
-  if zrfu < ztildetfc[ixr, jyf, k0]
+  if zrfu < ztildetfc[ixr, jyf, k0 - 1]
     flwrfd = 0.0
     flwrfu = 0.0
-  elseif zrfd < ztildetfc[ixr, jyf, k0]
+  elseif zrfd < ztildetfc[ixr, jyf, k0 - 1]
     flwrfd = 0.0
     flwrfu = compute_vertical_wind(ixr, jyf, kzrfu, predictands, grid)
   else
@@ -400,7 +404,9 @@ function meanflow(
     flwrfu = compute_vertical_wind(ixr, jyf, kzrfu, predictands, grid)
   end
 
-  flw = meanflow_interpolation(
+  # Interpolate.
+  flw = interpolate(
+    namelists,
     flwlbd,
     flwlbu,
     flwlfd,
@@ -417,13 +423,13 @@ function meanflow(
     zlbu,
     zlfd,
     zlfu,
+    zlc,
     xl,
     xr,
     xlc,
     yf,
     yb,
     ylc,
-    zlc,
   )
 
   return flw
@@ -435,28 +441,26 @@ function meanflow(
   zlc::AbstractFloat,
   namelists::Namelists,
   domain::Domain,
+  grid::Grid,
   predictants::Predictands,
   flwtype::DUDX,
 )
-  # interpolation of the zonal mean flow to 
-  # specified location (xlc, ylc, zlc)
-
   (; sizex, sizey) = namelists.domain
   (; u) = predictands
-  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
-  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztfc, met) = grid
+  (; io, jo, j0, k1) = domain
+  (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
 
   if sizex == 1
     flw = 0.0
     return flw
   else
-    ixl = floor((xlc - 0.5 * dx - lx[1]) / dx) + 1 - io
-    if ixl - 1 < 0
-      error("ERROR IN MEANFLOW (DUDX): ixl - 1 =", ixl - 1, "< 0")
+    ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
+    if ixl - 1 < 1
+      error("Error in meanflow (DUDX): ixl - 1 = ", ixl - 1, " < 1")
     end
     ixr = ixl + 1
     if ixr > nxx
-      error("ERROR IN MEANFLOW (DUDX): ixr =", ixr, "> nxx =", nxx)
+      error("Error in meanflow (DUDX): ixr = ", ixr, " > nxx = ", nxx)
     end
   end
   xr = x[ixr + io]
@@ -467,13 +471,13 @@ function meanflow(
     jyb = j0
     jyf = j0
   else
-    jyb = floor((ylc - 0.5 * dy - ly[1]) / dy) + 1 - jo
-    if jyb < 0
-      error("ERROR IN MEANFLOW (DUDX): jyb =", jyb, "< 0")
+    jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
+    if jyb < 1
+      error("Error in meanflow (DUDX): jyb = ", jyb, " < 1")
     end
     jyf = jyb + 1
     if jyf > nyy
-      error("ERROR IN MEANFLOW (DUDX): jyf =", jyf, "> nyy =", nyy)
+      error("Error in meanflow (DUDX): jyf = ", jyf, " > nyy = ", nyy)
     end
   end
   yf = y[jyf + jo]
@@ -587,7 +591,9 @@ function meanflow(
       u[ixr, jyf, kzrfu - 1] - u[ixr - 1, jyf, kzrfu - 1]
     ) / dz
 
-  flw = meanflow_interpolation(
+  # Interpolate.
+  flw = interpolate(
+    namelists,
     flwlbd,
     flwlbu,
     flwlfd,
@@ -604,13 +610,13 @@ function meanflow(
     zlbu,
     zlfd,
     zlfu,
+    zlc,
     xl,
     xr,
     xlc,
     yf,
     yb,
     ylc,
-    zlc,
   )
 
   return flw
@@ -622,50 +628,48 @@ function meanflow(
   zlc::AbstractFloat,
   namelists::Namelists,
   domain::Domain,
+  grid::Grid,
   predictants::Predictands,
   flwtype::DUDY,
 )
-  # interpolate du/dy using staggered-grid distribution
-  # du/dy (i+1/2,j+1/2,k)) = (u(i+1/2,j+1,k) - u(i+1/2,j,k))/dy, hence
-
   (; sizex, sizey) = namelists.domain
   (; u) = predictands
-  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
-  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztfc, met) = grid
+  (; io, jo, i0, k1) = domain
+  (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
 
   # Locate the closest points in zonal direction.
   if sizex == 1
     ixl = i0
     ixr = i0
   else
-    ixl = floor((xlc - lx[1]) / dx) - io
-    if ixl < 0
-      error("ERROR IN MEANFLOW (DUDY): ixl =", ixl, "< 0")
+    ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - io
+    if ixl < 1
+      error("Error in meanflow (DUDY): ixl = ", ixl, " < 1")
     end
     ixr = ixl + 1
     if ixr > nxx
-      error("ERROR IN MEANFLOW (DUDY): ixr =", ixr, "> nxx =", nxx)
+      error("Error in meanflow (DUDY): ixr = ", ixr, " > nxx = ", nxx)
     end
   end
-  xr = x[ixr + io] + 0.5 * dx
-  xl = x[ixl + io] + 0.5 * dx
+  xr = x[ixr + io] + dx / 2
+  xl = x[ixl + io] + dx / 2
 
   # Locate the closest points in meridional direction.
   if sizey == 1
     flw = 0.0
     return flw
   else
-    jyb = floor((ylc - ly[1]) / dy) - jo
-    if jyb < 0
-      error("ERROR IN MEANFLOW (DUDY): jyb =", jyb, "< 0")
+    jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - jo
+    if jyb < 1
+      error("Error in meanflow (DUDY): jyb = ", jyb, " < 1")
     end
     jyf = jyb + 1
     if jyf + 1 > nyy
-      error("ERROR IN MEANFLOW (DUDY): jyf + 1 =", jyf + 1, "> nyy =", nyy)
+      error("Error in meanflow (DUDY): jyf + 1 = ", jyf + 1, " > nyy = ", nyy)
     end
   end
-  yf = y[jyf + jo] + 0.5 * dy
-  yb = y[jyb + jo] + 0.5 * dy
+  yf = y[jyf + jo] + dy / 2
+  yb = y[jyb + jo] + dy / 2
 
   # Locate the closest points in vertical direction.
 
@@ -823,7 +827,9 @@ function meanflow(
       u[ixr, jyf, kzrfu - 1] - u[ixr, jyf + 1, kzrfu - 1]
     ) / dz
 
-  flw = meanflow_interpolation(
+  # Interpolate.
+  flw = interpolate(
+    namelists,
     flwlbd,
     flwlbu,
     flwlfd,
@@ -840,13 +846,13 @@ function meanflow(
     zlbu,
     zlfd,
     zlfu,
+    zlc,
     xl,
     xr,
     xlc,
     yf,
     yb,
     ylc,
-    zlc,
   )
 
   return flw
@@ -858,46 +864,44 @@ function meanflow(
   zlc::AbstractFloat,
   namelists::Namelists,
   domain::Domain,
+  grid::Grid,
   predictants::Predictands,
   flwtype::DUDZ,
 )
-  # interpolate du/dz using staggered-grid distribution
-  # du/dz (i+1/2,j,k+1/2)) = (u(i+1/2,j,k+1) - u(i+1/2,j,k))/dz, hence
-
   (; sizex, sizey) = namelists.domain
   (; u) = predictands
-  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
-  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztildetfc, met) = grid
+  (; io, jo, i0, j0, k0, k1) = domain
+  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztildetfc) = grid
 
   # Locate the closest points in zonal direction.
   if sizex == 1
     ixl = i0
     ixr = i0
   else
-    ixl = floor((xlc - lx[1]) / dx) - io
-    if ixl < 0
-      error("ERROR IN MEANFLOW (DUDZ): ixl =", ixl, "< 0")
+    ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - io
+    if ixl < 1
+      error("Error in meanflow (DUDZ): ixl = ", ixl, " < 1")
     end
     ixr = ixl + 1
     if ixr > nxx
-      error("ERROR IN MEANFLOW (DUDZ): ixr =", ixr, "> nxx =", nxx)
+      error("Error in meanflow (DUDZ): ixr = ", ixr, " > nxx = ", nxx)
     end
   end
-  xr = x[ixr + io] + 0.5 * dx
-  xl = x[ixl + io] + 0.5 * dx
+  xr = x[ixr + io] + dx / 2
+  xl = x[ixl + io] + dx / 2
 
   # Locate the closest points in meridional direction.
   if sizey == 1
     jyb = j0
     jyf = j0
   else
-    jyb = floor((ylc - 0.5 * dy - ly[1]) / dy) + 1 - jo
-    if jyb < 0
-      error("ERROR IN MEANFLOW (DUDZ): jyb =", jyb, "< 0")
+    jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
+    if jyb < 1
+      error("Error in meanflow (DUDZ): jyb = ", jyb, " < 1")
     end
     jyf = jyb + 1
     if jyf > nyy
-      error("ERROR IN MEANFLOW (DUDZ): jyf =", jyf, "> nyy =", nyy)
+      error("Error in meanflow (DUDZ): jyf = ", jyf, " > nyy = ", nyy)
     end
   end
   yf = y[jyf + jo]
@@ -1115,7 +1119,9 @@ function meanflow(
     end
   end
 
-  flw = meanflow_interpolation(
+  # Interpolate.
+  flw = interpolate(
+    namelists,
     flwlbd,
     flwlbu,
     flwlfd,
@@ -1132,13 +1138,13 @@ function meanflow(
     zlbu,
     zlfd,
     zlfu,
+    zlc,
     xl,
     xr,
     xlc,
     yf,
     yb,
     ylc,
-    zlc,
   )
 
   return flw
@@ -1150,50 +1156,48 @@ function meanflow(
   zlc::AbstractFloat,
   namelists::Namelists,
   domain::Domain,
+  grid::Grid,
   predictants::Predictands,
   flwtype::DVDX,
 )
-  # interpolate dv/dx using staggered-grid distribution
-  # dv/dx(i+1/2,j+1/2,k)) = (v(i+1,j+1/2,k) - v(i,j+1/2,k))/dx, hence
-
   (; sizex, sizey) = namelists.domain
   (; v) = predictands
-  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
-  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztfc, met) = grid
+  (; io, jo, i0, j0, k1) = domain
+  (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
 
   # Locate the closest points in zonal direction.
   if sizex == 1
     flw = 0.0
     return flw
   else
-    ixl = floor((xlc - lx[1]) / dx) - io
-    if ixl < 0
-      error("ERROR IN MEANFLOW (DVDX): ixl =", ixl, "< 0")
+    ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - io
+    if ixl < 1
+      error("Error in meanflow (DVDX): ixl = ", ixl, " < 1")
     end
     ixr = ixl + 1
     if ixr + 1 > nxx
-      error("ERROR IN MEANFLOW (DVDX): ixr + 1 =", ixr + 1, "> nxx =", nxx)
+      error("Error in meanflow (DVDX): ixr + 1 = ", ixr + 1, " > nxx = ", nxx)
     end
   end
-  xr = x[ixr + io] + 0.5 * dx
-  xl = x[ixl + io] + 0.5 * dx
+  xr = x[ixr + io] + dx / 2
+  xl = x[ixl + io] + dx / 2
 
   # Locate the closest points in meridional direction.
   if sizey == 1
     jyb = j0
     jyf = j0
   else
-    jyb = floor((ylc - ly[1]) / dy) - jo
-    if jyb < 0
-      error("ERROR IN MEANFLOW (DVDX): jyb =", jyb, "< 0")
+    jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - jo
+    if jyb < 1
+      error("Error in meanflow (DVDX): jyb = ", jyb, " < 1")
     end
     jyf = jyb + 1
     if jyf + 1 > nyy
-      error("ERROR IN MEANFLOW (DVDX): jyf + 1 =", jyf + 1, "> nyy =", nyy)
+      error("Error in meanflow (DVDX): jyf + 1 = ", jyf + 1, " > nyy = ", nyy)
     end
   end
-  yf = y[jyf + jo] + 0.5 * dy
-  yb = y[jyb + jo] + 0.5 * dy
+  yf = y[jyf + jo] + dy / 2
+  yb = y[jyb + jo] + dy / 2
 
   # Locate the closest points in vertical direction.
 
@@ -1351,7 +1355,9 @@ function meanflow(
       v[ixr, jyf, kzrfu - 1] - v[ixr + 1, jyf, kzrfu - 1]
     ) / dz
 
-  flw = meanflow_interpolation(
+  # Interpolate.
+  flw = interpolate(
+    namelists,
     flwlbd,
     flwlbu,
     flwlfd,
@@ -1368,13 +1374,13 @@ function meanflow(
     zlbu,
     zlfd,
     zlfu,
+    zlc,
     xl,
     xr,
     xlc,
     yf,
     yb,
     ylc,
-    zlc,
   )
 
   return flw
@@ -1386,29 +1392,27 @@ function meanflow(
   zlc::AbstractFloat,
   namelists::Namelists,
   domain::Domain,
+  grid::Grid,
   predictants::Predictands,
   flwtype::DVDY,
 )
-  # interpolate dv/dy using staggered-grid distribution
-  # dv/dy (i,j,k)) = (v(i,j+1/2,k) - v(i,j-1/2,k))/dy, hence
-
   (; sizex, sizey) = namelists.domain
   (; v) = predictands
-  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
-  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztfc, met) = grid
+  (; io, jo, i0, j0, k1) = domain
+  (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
 
   # Locate the closest points in zonal direction.
   if sizex == 1
     ixl = i0
     ixr = i0
   else
-    ixl = floor((xlc - 0.5 * dx - lx[1]) / dx) + 1 - io
-    if ixl < 0
-      error("ERROR IN MEANFLOW (DVDY): ixl =", ixl, "< 0")
+    ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
+    if ixl < 1
+      error("Error in meanflow (DVDY): ixl = ", ixl, " < 1")
     end
     ixr = ixl + 1
     if ixr > nxx
-      error("ERROR IN MEANFLOW (DVDY): ixr =", ixr, "> nxx =", nxx)
+      error("Error in meanflow (DVDY): ixr = ", ixr, " > nxx = ", nxx)
     end
   end
   xr = x[ixr + io]
@@ -1419,13 +1423,13 @@ function meanflow(
     flw = 0.0
     return flw
   else
-    jyb = floor((ylc - 0.5 * dy - ly[1]) / dy) + 1 - jo
-    if jyb - 1 < 0
-      error("ERROR IN MEANFLOW (DVDY): jyb - 1 =", jyb - 1, "< 0")
+    jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
+    if jyb - 1 < 1
+      error("Error in meanflow (DVDY): jyb - 1 = ", jyb - 1, " < 1")
     end
     jyf = jyb + 1
     if jyf > nyy
-      error("ERROR IN MEANFLOW (DVDY): jyf =", jyf, "> nyy =", nyy)
+      error("Error in meanflow (DVDY): jyf = ", jyf, " > nyy = ", nyy)
     end
   end
   yf = y[jyf + jo]
@@ -1539,7 +1543,9 @@ function meanflow(
       v[ixr, jyf, kzrfu - 1] - v[ixr, jyf - 1, kzrfu - 1]
     ) / dz
 
-  flw = meanflow_interpolation(
+  # Interpolate.
+  flw = interpolate(
+    namelists,
     flwlbd,
     flwlbu,
     flwlfd,
@@ -1556,13 +1562,13 @@ function meanflow(
     zlbu,
     zlfd,
     zlfu,
+    zlc,
     xl,
     xr,
     xlc,
     yf,
     yb,
     ylc,
-    zlc,
   )
 
   return flw
@@ -1574,29 +1580,27 @@ function meanflow(
   zlc::AbstractFloat,
   namelists::Namelists,
   domain::Domain,
+  grid::Grid,
   predictants::Predictands,
   flwtype::DVDZ,
 )
-  # interpolate dv/dz using staggered-grid distribution
-  # dv/dz (i,j+1/2,k+1/2)) = (v(i,j+1/2,k+1) - v(i,j+1/2,k))/dz, hence
-
   (; sizex, sizey) = namelists.domain
   (; v) = predictands
-  (; io, jo, i0, i1, j0, j1, k0, k1) = domain
-  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztildetfc, met) = grid
+  (; io, jo, i0, j0, k0, k1) = domain
+  (; lx, ly, lz, dx, dy, dz, jac, x, y, ztildetfc) = grid
 
   # Locate the closest points in zonal direction.
   if sizex == 1
     ixl = i0
     ixr = i0
   else
-    ixl = floor((xlc - 0.5 * dx - lx[1]) / dx) + 1 - io
-    if ixl < 0
-      error("ERROR IN MEANFLOW (DVDZ): ixl =", ixl, "< 0")
+    ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
+    if ixl < 1
+      error("Error in meanflow (DVDZ): ixl = ", ixl, " < 1")
     end
     ixr = ixl + 1
     if ixr > nxx
-      error("ERROR IN MEANFLOW (DVDZ): ixr =", ixr, "> nxx =", nxx)
+      error("Error in meanflow (DVDZ): ixr = ", ixr, " > nxx = ", nxx)
     end
   end
   xr = x[ixr + io]
@@ -1607,17 +1611,17 @@ function meanflow(
     jyb = j0
     jyf = j0
   else
-    jyb = floor((ylc - ly[1]) / dy) - jo
-    if jyb < 0
-      error("ERROR IN MEANFLOW: jyb =", jyb, "< 0")
+    jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - jo
+    if jyb < 1
+      error("Error in meanflow: jyb = ", jyb, " < 1")
     end
     jyf = jyb + 1
     if jyf > nyy
-      error("ERROR IN MEANFLOW: jyf =", jyf, "> nyy =", nyy)
+      error("Error in meanflow: jyf = ", jyf, " > nyy = ", nyy)
     end
   end
-  yf = y[jyf + jo] + 0.5 * dy
-  yb = y[jyb + jo] + 0.5 * dy
+  yf = y[jyf + jo] + dy / 2
+  yb = y[jyb + jo] + dy / 2
 
   # Locate the closest points in vertical direction.
 
@@ -1831,7 +1835,9 @@ function meanflow(
     end
   end
 
-  flw = meanflow_interpolation(
+  # Interpolate.
+  flw = interpolate(
+    namelists,
     flwlbd,
     flwlbu,
     flwlfd,
@@ -1848,13 +1854,13 @@ function meanflow(
     zlbu,
     zlfd,
     zlfu,
+    zlc,
     xl,
     xr,
     xlc,
     yf,
     yb,
     ylc,
-    zlc,
   )
 
   return flw
