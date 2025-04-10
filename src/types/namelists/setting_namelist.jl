@@ -1,17 +1,17 @@
 struct SettingNamelist{
-  A <: AbstractModel,
-  B <: AbstractTestCase,
-  C <: AbstractBoundaries,
+    A <: AbstractModel,
+    B <: AbstractTestCase,
+    C <: AbstractBoundaries,
 }
-  model::A
-  testcase::B
-  zboundaries::C
+    model::A
+    testcase::B
+    zboundaries::C
 end
 
 function SettingNamelist(;
-  model = PseudoIncompressible(),
-  testcase = MountainWave(),
-  zboundaries = SolidWallBoundaries(),
+    model = PseudoIncompressible(),
+    testcase = MountainWave(),
+    zboundaries = SolidWallBoundaries(),
 )
-  return SettingNamelist(model, testcase, zboundaries)
+    return SettingNamelist(model, testcase, zboundaries)
 end
