@@ -227,7 +227,7 @@ function orographic_source!(state::State, dt::AbstractFloat)
       # (3) There is a ray volume with nonzero wave-action density, which
       #     has not yet crossed the lower boundary. It is replaced with a
       #     new one.
-      if steady_state
+      if wkb_mode == SteadyState()
         if iray < 0
           nray[ix, jy, kz] += 1
           iray = nray[ix, jy, kz]
@@ -284,7 +284,7 @@ function orographic_source!(state::State, dt::AbstractFloat)
       end
 
       # Scale the wave action density.
-      if !steady_state && launch_algorithm == Scale()
+      if wkb_mode != SteadyState() && launch_algorithm == Scale()
         cgrz =
           wnrm * (f_cor_nd^2.0 - bvsavg) * wnrh^2.0 / omir /
           (wnrh^2.0 + wnrm^2.0)^2.0
