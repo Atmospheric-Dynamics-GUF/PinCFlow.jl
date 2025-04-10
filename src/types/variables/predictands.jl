@@ -18,7 +18,7 @@ function Predictands(
     constants::Constants,
     domain::Domain,
     model::PseudoIncompressible,
-    testcase::MountainWave,
+    testcase::Union{MountainWave, RayTracer}
 )
 
     # Get parameters.
