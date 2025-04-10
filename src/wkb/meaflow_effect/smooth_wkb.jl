@@ -508,7 +508,6 @@ function smooth_wkb!(flxwkb, state, sm_filter::SHAPIRO, homogdir::X)
   nsmth = nsmth_wkb
 
   flxwkb_0 = copy(flxwkb)
-  flxwkb_1 = zeros(flxwkb)
 
   for k in k0:k1, j in j0:j1, i in i0:i1 
     flxwkb[i, j, k] = sum(flxwkb_0[i0:i1, j, k]) / real(nx)
