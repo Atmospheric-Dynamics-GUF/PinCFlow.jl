@@ -28,70 +28,54 @@ function merge_ray_volumes!(
 
         # Set bins in k.
         if sizex > 1
-            @views (wnrk_min_p, wnrk_max_p, wnrk_min_n, wnrk_max_n) =
+            @views (kr_min_p, kr_max_p, kr_min_n, kr_max_n) =
                 compute_spectral_bounds(rays.k[1:nray[ix, jy, kz], ix, jy, kz])
-            dwnrk_mrg_n = log(wnrk_max_n / wnrk_min_n) / (nxray / 2 - 1)
-            dwnrk_mrg_p = log(wnrk_max_p / wnrk_min_p) / (nxray / 2 - 1)
+            dkr_mrg_n = log(kr_max_n / kr_min_n) / (nxray / 2 - 1)
+            dkr_mrg_p = log(kr_max_p / kr_min_p) / (nxray / 2 - 1)
         else
-            wnrk_min_p = wnrk_max_p = wnrk_min_n = wnrk_max_n = 0.0
-            dwnrk_mrg_n = dwnrk_mrg_p = 0.0
+            kr_min_p = kr_max_p = kr_min_n = kr_max_n = 0.0
+            dkr_mrg_n = dkr_mrg_p = 0.0
         end
 
         # Set bins in l.
         if sizey > 1
-            @views (wnrl_min_p, wnrl_max_p, wnrl_min_n, wnrl_max_n) =
+            @views (lr_min_p, lr_max_p, lr_min_n, lr_max_n) =
                 compute_spectral_bounds(rays.l[1:nray[ix, jy, kz], ix, jy, kz])
-            dwnrl_mrg_n = log(wnrl_max_n / wnrl_min_n) / (nyray / 2 - 1)
-            dwnrl_mrg_p = log(wnrl_max_p / wnrl_min_p) / (nyray / 2 - 1)
+            dlr_mrg_n = log(lr_max_n / lr_min_n) / (nyray / 2 - 1)
+            dlr_mrg_p = log(lr_max_p / lr_min_p) / (nyray / 2 - 1)
         else
-            wnrl_min_p = wnrl_max_p = wnrl_min_n = wnrl_max_n = 0.0
-            dwnrl_mrg_n = dwnrl_mrg_p = 0.0
+            lr_min_p = lr_max_p = lr_min_n = lr_max_n = 0.0
+            dlr_mrg_n = dlr_mrg_p = 0.0
         end
 
         # Set bins in m.
-        @views (wnrm_min_p, wnrm_max_p, wnrm_min_n, wnrm_max_n) =
+        @views (mr_min_p, mr_max_p, mr_min_n, mr_max_n) =
             compute_spectral_bounds(rays.m[1:nray[ix, jy, kz], ix, jy, kz])
-        dwnrm_mrg_n = log(wnrm_max_n / wnrm_min_n) / (nzray / 2 - 1)
-        dwnrm_mrg_p = log(wnrm_max_p / wnrm_min_p) / (nzray / 2 - 1)
+        dmr_mrg_n = log(mr_max_n / mr_min_n) / (nzray / 2 - 1)
+        dmr_mrg_p = log(mr_max_p / mr_min_p) / (nzray / 2 - 1)
 
         # Loop over ray volumes.
         for iray in 1:nray[ix, jy, kz]
-            xr = rays.x[iray, ix, jy, kz]
-            dxr = rays.dxray[iray, ix, jy, kz]
+            (xr, yr, zr) = get_physical_position(rays, (iray, ix, jy, kz))
+            (kr, lr, mr) = get_spectral_position(rays, (iray, ix, jy, kz))
+            (dxr, dyr, dzr) = get_physical_extent(rays, (iray, ix, jy, kz))
+            (dkr, dlr, dmr) = get_spectral_extent(rays, (iray, ix, jy, kz))
+            (axk, ayl, azm) = get_surfaces(rays, (iray, ix, jy, kz))
 
-            yr = rays.y[iray, ix, jy, kz]
-            dyr = rays.dyray[iray, ix, jy, kz]
-
-            zr = rays.z[iray, ix, jy, kz]
-            dzr = rays.dzray[iray, ix, jy, kz]
-
-            wnrk = rays.k[iray, ix, jy, kz]
-            dwnrk = rays.dkray[iray, ix, jy, kz]
-
-            wnrl = rays.l[iray, ix, jy, kz]
-            dwnrl = rays.dlray[iray, ix, jy, kz]
-
-            wnrm = rays.m[iray, ix, jy, kz]
-            dwnrm = rays.dmray[iray, ix, jy, kz]
-
-            axk = rays.area_xk[iray, ix, jy, kz]
-            ayl = rays.area_yl[iray, ix, jy, kz]
-            azm = rays.area_zm[iray, ix, jy, kz]
-
-            wdr = rays.dens[iray, ix, jy, kz]
-            omir = ray.omega[iray, ix, jy, kz]
+            nr = rays.dens[iray, ix, jy, kz]
+            omegar = ray.omega[iray, ix, jy, kz]
 
             # Determine bin index in k.
             if sizex > 1
                 fcpspx = axk
                 ir_k = compute_merge_index(
-                    wnrk,
-                    wnrk_min_p,
-                    wnrk_max_p,
-                    wnrk_min_n,
-                    wnrk_max_n,
-                    dwnrk_mrg_p,
-                    dwnrk_mrg_n,
+                    kr,
+                    kr_min_p,
+                    kr_max_p,
+                    kr_min_n,
+                    kr_max_n,
+                    dkr_mrg_p,
+                    dkr_mrg_n,
                     nxray,
                 )
             else
@@ -103,13 +87,13 @@ function merge_ray_volumes!(
             if sizey > 1
                 fcpspy = ayl
                 ir_l = compute_merge_index(
-                    wnrl,
-                    wnrl_min_p,
-                    wnrl_max_p,
-                    wnrl_min_n,
-                    wnrl_max_n,
-                    dwnrl_mrg_p,
-                    dwnrl_mrg_n,
+                    lr,
+                    lr_min_p,
+                    lr_max_p,
+                    lr_min_n,
+                    lr_max_n,
+                    dlr_mrg_p,
+                    dlr_mrg_n,
                     nyray,
                 )
             else
@@ -120,13 +104,13 @@ function merge_ray_volumes!(
             # Determine bin index in m.
             fcpspz = azm
             ir_m = compute_merge_index(
-                wnrm,
-                wnrm_min_p,
-                wnrm_max_p,
-                wnrm_min_n,
-                wnrm_max_n,
-                dwnrm_mrg_p,
-                dwnrm_mrg_n,
+                mr,
+                mr_min_p,
+                mr_max_p,
+                mr_min_n,
+                mr_max_n,
+                dmr_mrg_p,
+                dmr_mrg_n,
                 nzray,
             )
 
@@ -158,58 +142,44 @@ function merge_ray_volumes!(
                 dyr,
                 zr,
                 dzr,
-                wnrk,
-                dwnrk,
-                wnrl,
-                dwnrl,
-                wnrm,
-                dwnrm,
+                kr,
+                dkr,
+                lr,
+                dlr,
+                mr,
+                dmr,
                 fcpspx,
                 fcpspy,
                 fcpspz,
-                wdr,
-                omir,
+                nr,
+                omegar,
             )
         end
 
         # Replace ray volumes.
         iray = 0
         for jray in 1:nray_max
-            if merged_rays[jray].dens == 0
+            if merged_rays[jray].nr == 0
                 continue
             end
 
             iray += 1
 
-            rays.x[iray, ix, jy, kz] =
-                (merged_rays[jray].xmax + merged_rays[jray].xmin) / 2
-            rays.dxray[iray, ix, jy, kz] =
-                merged_rays[jray].xmax - merged_rays[jray].xmin
+            rays.x[iray, ix, jy, kz] = mid_point(merged_rays[jray].xr)
+            rays.y[iray, ix, jy, kz] = mid_point(merged_rays[jray].yr)
+            rays.z[iray, ix, jy, kz] = mid_point(merged_rays[jray].zr)
 
-            rays.y[iray, ix, jy, kz] =
-                (merged_rays[jray].ymax + merged_rays[jray].ymin) / 2
-            rays.dyray[iray, ix, jy, kz] =
-                merged_rays[jray].ymax - merged_rays[jray].ymin
+            rays.k[iray, ix, jy, kz] = mid_point(merged_rays[jray].kr)
+            rays.l[iray, ix, jy, kz] = mid_point(merged_rays[jray].lr)
+            rays.m[iray, ix, jy, kz] = mid_point(merged_rays[jray].mr)
 
-            rays.z[iray, ix, jy, kz] =
-                (merged_rays[jray].zmax + merged_rays[jray].zmin) / 2
-            rays.dzray[iray, ix, jy, kz] =
-                merged_rays[jray].zmax - merged_rays[jray].zmin
+            rays.dxray[iray, ix, jy, kz] = difference(merged_rays[jray].dxr)
+            rays.dyray[iray, ix, jy, kz] = difference(merged_rays[jray].dyr)
+            rays.dzray[iray, ix, jy, kz] = difference(merged_rays[jray].dzr)
 
-            rays.k[iray, ix, jy, kz] =
-                (merged_rays[jray].kmax + merged_rays[jray].kmin) / 2
-            rays.dkray[iray, ix, jy, kz] =
-                merged_rays[jray].kmax - merged_rays[jray].kmin
-
-            rays.l[iray, ix, jy, kz] =
-                (merged_rays[jray].lmax + merged_rays[jray].lmin) / 2
-            rays.dlray[iray, ix, jy, kz] =
-                merged_rays[jray].lmax - merged_rays[jray].l_min_n
-
-            rays.m[iray, ix, jy, kz] =
-                (merged_rays[jray].mmax + merged_rays[jray].mmin) / 2
-            rays.dmray[iray, ix, jy, kz] =
-                merged_rays[jray].mmax - merged_rays[jray].mmin
+            rays.dkray[iray, ix, jy, kz] = difference(merged_rays[jray].dkr)
+            rays.dlray[iray, ix, jy, kz] = difference(merged_rays[jray].dlr)
+            rays.dmray[iray, ix, jy, kz] = difference(merged_rays[jray].dmr)
 
             rays.omega[iray, ix, jy, kz] =
                 compute_intrinsic_frequency(state, (iray, ix, jy, kz))
@@ -236,10 +206,10 @@ function merge_ray_volumes!(
 
             if merge_mode == ConstantWaveAction()
                 rays.dens[iray, ix, jy, kz] =
-                    merged_rays[jray].dens / (fcpspx * fcpspy * fcpspz)
+                    merged_rays[jray].nr / (fcpspx * fcpspy * fcpspz)
             elseif merge_mode == ConstantWaveEnergy()
                 rays.dens[iray, ix, jy, kz] =
-                    merged_rays[jray].dens / (omir * fcpspx * fcpspy * fcpspz)
+                    merged_rays[jray].nr / (omegar * fcpspx * fcpspy * fcpspz)
             end
         end
         nray[ix, jy, kz] = iray

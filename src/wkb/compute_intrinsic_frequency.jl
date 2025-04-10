@@ -8,15 +8,13 @@ function compute_intrinsic_frequency(
     (; rays) = state.wkb
 
     zr = rays.z[indices...]
-    wnrk = rays.k[indices...]
-    wnrl = rays.l[indices...]
-    wnrm = rays.m[indices...]
-    wnrh = sqrt(wnrk^2 + wnrl^2)
+    kr = rays.k[indices...]
+    lr = rays.l[indices...]
+    mr = rays.m[indices...]
+    khr = sqrt(kr^2 + lr^2)
 
-    nnr = stratification(zr, 1)
+    n2r = stratification(zr, state, N2())
+    fr = f_coriolis_dim * tref
 
-    f_cor_nd = f_coriolis_dim * tref
-
-    return branchr * sqrt(nnr * wnrh^2 + f_cor_nd^2 * wnrm^2) /
-           sqrt(wnrh^2 + wnrm^2)
+    return branchr * sqrt(n2r * khr^2 + fr^2 * mr^2) / sqrt(khr^2 + mr^2)
 end

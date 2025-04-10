@@ -1,10 +1,9 @@
 function compute_ray_volume_surfaces(rays::Rays, indices::NTuple{4, <:Integer})
-    dx = rays.dxray[indices...]
-    dk = rays.dkray[indices...]
-    dy = rays.dyray[indices...]
-    dl = rays.dlray[indices...]
-    dz = rays.dzray[indices...]
-    dm = rays.dmray[indices...]
-
-    return (dx * dk, dy * dl, dz * dm)
+    dxr = rays.dxray[indices...]
+    dkr = rays.dkray[indices...]
+    dyr = rays.dyray[indices...]
+    dlr = rays.dlray[indices...]
+    dzr = rays.dzray[indices...]
+    dmr = rays.dmray[indices...]
+    return (dxr * dkr, dyr * dlr, dzr * dmr)
 end
