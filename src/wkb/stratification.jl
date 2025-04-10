@@ -1,99 +1,99 @@
 function stratification(
-  zlc::AbstractFloat,
-  state::State,
-  strtype::AbstractVariable,
+    zlc::AbstractFloat,
+    state::State,
+    strtype::AbstractVariable,
 )
-  (; domain, grid, atmosphere) = state
-  return stratification(zlc, domain, grid, atmosphere, strtype)
+    (; domain, grid, atmosphere) = state
+    return stratification(zlc, domain, grid, atmosphere, strtype)
 end
 
 function stratification(
-  zlc::AbstractFloat,
-  domain::Domain,
-  grid::Grid,
-  atmosphere::Atmosphere,
-  strtype::N2,
+    zlc::AbstractFloat,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+    strtype::N2,
 )
-  (; bvsstrattfc) = atmosphere
-  (; i0, j0, k1) = domain
-  (; ztfc) = grid
+    (; bvsstrattfc) = atmosphere
+    (; i0, j0, k1) = domain
+    (; ztfc) = grid
 
-  kzu = kztfc(i0, j0, zlc, domain, grid)
-  kzd = kru - 1
+    kzu = kztfc(i0, j0, zlc, domain, grid)
+    kzd = kru - 1
 
-  if (kzu > k1 + 1)
-    kzu = k1 + 1
-    kzd = k1
-  end
+    if (kzu > k1 + 1)
+        kzu = k1 + 1
+        kzd = k1
+    end
 
-  zd = ztfc[i0, j0, kzd]
-  zu = ztfc[i0, j0, kzu]
-  strd = bvsstrattfc[i0, j0, kzd]
-  stru = bvsStrattfc[i0, j0, kzu]
+    zd = ztfc[i0, j0, kzd]
+    zu = ztfc[i0, j0, kzu]
+    strd = bvsstrattfc[i0, j0, kzd]
+    stru = bvsStrattfc[i0, j0, kzu]
 
-  if zu < zd
-    error("Error in stratification (N2): zu = ", zu, " < zd = ", zd)
-  elseif zu == zd
-    factor = 0.0
-  elseif zlc > zu
-    factor = 0.0
-  elseif zlc > zd
-    factor = (zu - zlc) / (zu - zd)
-  else
-    factor = 1.0
-  end
+    if zu < zd
+        error("Error in stratification (N2): zu = ", zu, " < zd = ", zd)
+    elseif zu == zd
+        factor = 0.0
+    elseif zlc > zu
+        factor = 0.0
+    elseif zlc > zd
+        factor = (zu - zlc) / (zu - zd)
+    else
+        factor = 1.0
+    end
 
-  str = factor * strd + (1.0 - factor) * stru
+    str = factor * strd + (1.0 - factor) * stru
 
-  return str
+    return str
 end
 
 function stratification(
-  zlc::AbstractFloat,
-  domain::Domain,
-  grid::Grid,
-  atmosphere::Atmosphere,
-  strtype::DN2DZ,
+    zlc::AbstractFloat,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+    strtype::DN2DZ,
 )
-  (; bvsstrattfc) = atmosphere
-  (; i0, j0, k1) = domain
-  (; ztildetfc, jac) = grid
+    (; bvsstrattfc) = atmosphere
+    (; i0, j0, k1) = domain
+    (; ztildetfc, jac) = grid
 
-  kzu = kztildetfc(i0, j0, zlc, domain, grid)
-  kzd = kzu - 1
+    kzu = kztildetfc(i0, j0, zlc, domain, grid)
+    kzd = kzu - 1
 
-  if kzu + 1 > k1 + 1
-    kzu = k1
-    kzd = k1 - 1
-  end
+    if kzu + 1 > k1 + 1
+        kzu = k1
+        kzd = k1 - 1
+    end
 
-  zd = ztildetfc[i0, j0, kzd]
-  zu = ztildetfc[i0, j0, kzu]
+    zd = ztildetfc[i0, j0, kzd]
+    zu = ztildetfc[i0, j0, kzu]
 
-  strd =
-    (bvsstrattfc[i0, j0, kzd + 1] - bvsstrattfc[i0, j0, kzd]) / (
-      2.0 * jac[i0, j0, kzd] * jac[i0, j0, kzd + 1] /
-      (jac[i0, j0, kzd] + jac[i0, j0, kzd + 1])
-    ) / dz
-  stru =
-    (bvsstrattfc[i0, j0, kzu + 1] - bvsstrattfc[i0, j0, kzu]) / (
-      2.0 * jac[i0, j0, kzu] * jac[i0, j0, kzu + 1] /
-      (jac[i0, j0, kzu] + jac[i0, j0, kzu + 1])
-    ) / dz
+    strd =
+        (bvsstrattfc[i0, j0, kzd + 1] - bvsstrattfc[i0, j0, kzd]) / (
+            2.0 * jac[i0, j0, kzd] * jac[i0, j0, kzd + 1] /
+            (jac[i0, j0, kzd] + jac[i0, j0, kzd + 1])
+        ) / dz
+    stru =
+        (bvsstrattfc[i0, j0, kzu + 1] - bvsstrattfc[i0, j0, kzu]) / (
+            2.0 * jac[i0, j0, kzu] * jac[i0, j0, kzu + 1] /
+            (jac[i0, j0, kzu] + jac[i0, j0, kzu + 1])
+        ) / dz
 
-  if zu < zd
-    error("Error in stratification (DN2DZ): zu = ", zu, " < zd = ", zd)
-  elseif zu == zd
-    factor = 0.0
-  elseif zlc > zu
-    factor = 0.0
-  elseif zlc > zd
-    factor = (zu - zlc) / (zu - zd)
-  else
-    factor = 1.0
-  end
+    if zu < zd
+        error("Error in stratification (DN2DZ): zu = ", zu, " < zd = ", zd)
+    elseif zu == zd
+        factor = 0.0
+    elseif zlc > zu
+        factor = 0.0
+    elseif zlc > zd
+        factor = (zu - zlc) / (zu - zd)
+    else
+        factor = 1.0
+    end
 
-  str = factor * strd + (1.0 - factor) * stru
+    str = factor * strd + (1.0 - factor) * stru
 
-  return str
+    return str
 end

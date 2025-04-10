@@ -110,15 +110,15 @@ include("wkb/orographic_source.jl")
 # include("wkb/stratification.jl")
 
 export DomainNamelist,
-  OutputNamelist,
-  SettingNamelist,
-  DiscretizationNamelist,
-  PoissonNamelist,
-  AtmosphereNamelist,
-  GridNamelist,
-  SpongeNamelist,
-  WKBNamelist,
-  Namelists
+    OutputNamelist,
+    SettingNamelist,
+    DiscretizationNamelist,
+    PoissonNamelist,
+    AtmosphereNamelist,
+    GridNamelist,
+    SpongeNamelist,
+    WKBNamelist,
+    Namelists
 export Rho, RhoP, U, US, V, VS, W, WS, WTFC, WSTFC, ThetaP, PiP
 export PseudoIncompressible
 export MountainWave
