@@ -64,8 +64,6 @@ include("fluxes/compute_fluxes.jl")
 include("fluxes/reconstruct.jl")
 
 # Include MPI functions.
-include("mpi/compute_global_array.jl")
-include("mpi/compute_local_array.jl")
 include("mpi/compute_global_dot_product.jl")
 include("mpi/set_meridional_halos_of_field.jl")
 include("mpi/set_meridional_halos_of_reduced_field.jl")
@@ -119,6 +117,7 @@ export DomainNamelist,
     SpongeNamelist,
     WKBNamelist,
     Namelists
+export AbstractVariable
 export Rho, RhoP, U, US, V, VS, W, WS, WTFC, WSTFC, ThetaP, PiP
 export PseudoIncompressible
 export MountainWave
