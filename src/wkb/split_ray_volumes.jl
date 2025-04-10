@@ -1,10 +1,41 @@
 function split_ray_volumes!(state::State)
-  (; sizex, sizey, i0, i1, j0, j1, k0, k1) = state.domain
+  (; wkb_mode) = state.namelists.wkb
+  split_ray_volumes!(state, wkb_mode)
+  return
+end
+
+function split_ray_volumes!(state::State, wkb_mode::SteadyState)
+  return
+end
+
+function split_ray_volumes!(state::State, wkb_mode::SingleColumn)
+  (; i0, i1, j0, j1, k0, k1) = state.domain
   (; nray) = state.wkb
 
-  if steady_state
-    return
+  @views nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
+  nray_before = MPI.Allreduce(nray_before, +, comm)
+
+  for kz in k0:k1, jy in j0:j1, ix in i0:i1
+    if nray[ix, jy, kz] < 1
+      continue
+    end
+    split_ray_volumes!(ix, jy, kz, state, Z())
   end
+
+  @views nray_after = sum(nray[i0:i1, j0:j1, k0:k1])
+  nray_after = MPI.Allreduce(nray_after, +, comm)
+
+  if master && nray_after > nray_before
+    println("Number of ray volumes before splitting: ", nray_before)
+    println("Number of ray volumes after splitting: ", nray_after)
+  end
+
+  return
+end
+
+function split_ray_volumes!(state::State, wkb_mode::MultiColumn)
+  (; sizex, sizey, i0, i1, j0, j1, k0, k1) = state.domain
+  (; nray) = state.wkb
 
   @views nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
   nray_before = MPI.Allreduce(nray_before, +, comm)

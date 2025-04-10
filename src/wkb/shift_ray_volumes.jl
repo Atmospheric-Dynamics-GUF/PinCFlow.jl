@@ -1,33 +1,52 @@
 function shift_ray_volumes!(state::State)
+  (; wkb_mode) = state.namelists.wkb
+  shift_ray_volumes!(state, wkb_mode)
+  return
+end
+
+function shift_ray_volumes!(state::State, wkb_mode::SteadyState)
+  return
+end
+
+function shift_ray_volumes!(state::State, wkb_mode::SingleColumn)
+  (; zboundaries) = state.namelists.setting
+
+  set_vertical_boundary_ray_volumes(state, zboundaries)
+  shift_ray_volumes!(state, Z())
+  set_vertical_boundary_ray_volumes(state, zboundaries)
+  remove_ray_volumes!(state)
+
+  check_ray_volumes(state)
+
+  return
+end
+
+function shift_ray_volumes!(state::State, wkb_mode::MultiColumn)
   (; sizex, sizey) = state.namelists.domain
   (; zboundaries) = state.namelists.setting
-  (; steady_state) = state.namelists.wkb
 
-  if steady_state
-    return
-  else
-    if sizex > 1
-      set_zonal_boundary_ray_volumes!(state)
-      shift_ray_volumes!(state, X())
-      set_zonal_boundary_ray_volumes!(state)
-      remove_ray_volumes!(state)
-    end
-
-    if sizey > 1
-      set_meridional_boundary_ray_volumes!(state)
-      shift_ray_volumes!(state, Y())
-      set_meridional_boundary_ray_volumes!(state)
-      remove_ray_volumes!(state)
-    end
-
-    set_vertical_boundary_ray_volumes(state, zboundaries)
-    shift_ray_volumes!(state, Z())
-    set_vertical_boundary_ray_volumes(state, zboundaries)
+  if sizex > 1
+    set_zonal_boundary_ray_volumes!(state)
+    shift_ray_volumes!(state, X())
+    set_zonal_boundary_ray_volumes!(state)
     remove_ray_volumes!(state)
-
-    check_ray_volumes(state)
-    return
   end
+
+  if sizey > 1
+    set_meridional_boundary_ray_volumes!(state)
+    shift_ray_volumes!(state, Y())
+    set_meridional_boundary_ray_volumes!(state)
+    remove_ray_volumes!(state)
+  end
+
+  set_vertical_boundary_ray_volumes(state, zboundaries)
+  shift_ray_volumes!(state, Z())
+  set_vertical_boundary_ray_volumes(state, zboundaries)
+  remove_ray_volumes!(state)
+
+  check_ray_volumes(state)
+
+  return
 end
 
 function shift_ray_volumes!(state::State, direction::X)

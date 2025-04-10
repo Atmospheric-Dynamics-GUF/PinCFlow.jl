@@ -5,6 +5,7 @@ struct Predictands{A <: AbstractArray{<:AbstractFloat, 3}}
   v::A
   w::A
   pip::A
+  gwh::A
 end
 
 function Predictands(namelists::Namelists, constants::Constants, domain::Domain)
@@ -26,7 +27,7 @@ function Predictands(
   (; nxx, nyy, nzz) = domain
 
   # Initialize the predictands.
-  (rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
+  (rho, rhop, u, v, w, pip, gwh) = (zeros(nxx, nyy, nzz) for i in 1:7)
 
   # Initial winds.
   u .= backgroundflow_dim[1] / uref
@@ -34,5 +35,5 @@ function Predictands(
   w .= backgroundflow_dim[3] / uref
 
   # Return a Predictands instance.
-  return Predictands(rho, rhop, u, v, w, pip)
+  return Predictands(rho, rhop, u, v, w, pip, gwh)
 end
