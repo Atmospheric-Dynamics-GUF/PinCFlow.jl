@@ -5,6 +5,4 @@ JuliaFormatter = "98e50ef6-434e-11e9-1051-2b60c6c9e899"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
 PythonPlot = "274fc56d-3b97-40fa-a1cd-1b4a50311bf9"
-
-[extras]
 MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
