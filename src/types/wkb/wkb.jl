@@ -79,7 +79,6 @@ function WKB(
 )
 
     # Get necessary fields.
-    (; f_cor_nd) = namelists.atmosphere
     (;
         xrmin_dim,
         xrmax_dim,
@@ -93,18 +92,24 @@ function WKB(
         nrk_init,
         nrl_init,
         nrm_init,
+        nray_fac,
+        nwm,
+        wkb_mode,
         fac_dk_init,
         fac_dl_init,
         fac_dm_init,
         case_wkb,
     ) = namelists.wkb
-    (; lref) = constants
-    (; sizex, sizey, sizez, nxx, nyy, nzz, io, jo, i0, i1, j0, j1, k0, k1) =
+    (; tref, lref) = constants
+    (; sizex, sizey, sizez) = namelists.domain
+    (; f_coriolis_dim) = namelists.atmosphere
+    (; nxx, nyy, nzz, io, jo, i0, i1, j0, j1, k0, k1, master, comm) =
         domain
     (; lx, ly, lz, dx, dy) = grid
 
-    # Set Coriolis parameter.
+
     f_cor_nd = f_coriolis_dim * tref
+    # Set Coriolis parameter.
 
     # Set boundaries for ray-volume propagation.
     xrmin = xrmin_dim / lref
@@ -230,21 +235,24 @@ function WKB(
         )
     end
 
+    # TODO: correct size for zb?
+    zb = zeros(nxx, nyy)
+
     if case_wkb == 3
-        orographic_source!(
-            namelists,
-            constants,
-            domain,
-            grid,
-            atmosphere,
-            predictands,
-            omi_ini,
-            wnk_ini,
-            wnl_ini,
-            wnm_ini,
-            wad_ini,
-            zb,
-        )
+        # orographic_source!(
+        #     namelists,
+        #     constants,
+        #     domain,
+        #     grid,
+        #     atmosphere,
+        #     predictands,
+        #     omi_ini,
+        #     wnk_ini,
+        #     wnl_ini,
+        #     wnm_ini,
+        #     wad_ini,
+        #     zb,
+        # )
     end
 
     # Initialize maximum horizontal group velocities.
@@ -272,21 +280,21 @@ function WKB(
                     i_sfc += 1
 
                     # Set surface indices.
-                    ix2_sfc[i_sfc] = ix2
-                    jy2_sfc[i_sfc] = jy2
-                    kz2_sfc[i_sfc] = kz2
-                    ik_sfc[i_sfc] = ik
-                    jl_sfc[i_sfc] = jl
-                    km_sfc[i_sfc] = km
-                    iwm_sfc[i_sfc] = iwm
+                    surface_indices.ix2_sfc[i_sfc] = ix2
+                    surface_indices.jy2_sfc[i_sfc] = jy2
+                    surface_indices.kz2_sfc[i_sfc] = kz2
+                    surface_indices.ik_sfc[i_sfc] = ik
+                    surface_indices.jl_sfc[i_sfc] = jl
+                    surface_indices.km_sfc[i_sfc] = km
+                    surface_indices.iwm_sfc[i_sfc] = iwm
 
                     # Set surface ray-volume index.
                     if wad_ini[iwm, ix, jy, kz] == 0.0
-                        ir_sfc[i_sfc, ix, jy] = -1
+                        surface_indices.ir_sfc[i_sfc, ix, jy] = -1
                         continue
                     else
                         iray += 1
-                        ir_sfc[i_sfc, ix, jy] = iray
+                        surface_indices.ir_sfc[i_sfc, ix, jy] = iray
                     end
                 else
                     iray += 1
