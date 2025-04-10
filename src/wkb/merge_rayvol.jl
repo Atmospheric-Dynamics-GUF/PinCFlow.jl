@@ -115,7 +115,7 @@ function replace_rayvolumes!(rays, ijk, nr_merge, nray_max)
     iray += 1
     rijk = CartesianIndex(iray, ijk)
     tvol = nr_merge[jray]
-    rays.x[rijk] = midpoint(tvol.x)
+    rays.x[rijk] = midpoint(tvol.x) 
     rays.y[rijk] = midpoint(tvol.y)
     rays.z[rijk] = midpoint(tvol.z)
 
@@ -266,6 +266,7 @@ function compute_intervals(ijk, rays, nray, domain)
   return interval_k, interval_l, interval_m
 end
 
+
 function adjust_bounds(min_p, max_p, min_n, max_n)
   if min_n == 0 && max_n == 0
     if min_p != 0 && max_p != 0
@@ -321,7 +322,7 @@ function min_max(wnr, min_p, max_p, min_n, max_n)
   return min_p, max_p, min_n, max_n
 end
 
-function merge_rayvol!(rays, state::AbstractState)
+function merge_rayvol!(rays, state::State)
   (; sizex, sizey, i0, i1, j0, j1, k0, k1) = state.domain
   (; nray, nray_max, rays) = state.wkb
 
