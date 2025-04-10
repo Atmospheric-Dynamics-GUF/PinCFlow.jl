@@ -104,7 +104,7 @@ include("wkb/kztildetfc.jl")
 include("wkb/merge_rayvol.jl")
 include("wkb/orographic_source.jl")
 include("wkb/saturation.jl")
-include("wkb/split_rayvol.jl")
+include("wkb/split_ray_volumes.jl")
 include("wkb/stratification.jl")
 
 export DomainNamelist,
