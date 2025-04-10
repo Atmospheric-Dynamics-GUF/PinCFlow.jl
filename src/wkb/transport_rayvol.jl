@@ -1,6 +1,16 @@
-function transport_rayvol(dt, rkstage, state, mode::AbstractWKBMode)
-  (; case_wkb, branchr, zmin_wkb_dim) = state.namelists.wkb
-  zmin_wkb = zmin_wkb_dim # TODO: this is likely wrong?
+function transport_rayvol(state::State, dt::AbstractFloat, rkstage::Integer)
+  (; wkb_mode) = state.namelists.wkb
+  transport_rayvol(state, dt, rkstage, wkb_mode)
+  return
+end
+
+function transport_rayvol(
+  state::State,
+  dt::AbstractFloat,
+  rkstage::Integer,
+  wkb_mode::Union{SingleColumn, Multicolumn},
+)
+  (; case_wkb, branchr, zmin_wkb) = state.namelists.wkb
   (; sizex, sizey) = state.namelists.domain
   (; nray, rays) = state.wkb
   f_cor_nd = state.atmosphere.f_cor_nd
@@ -30,8 +40,6 @@ function transport_rayvol(dt, rkstage, state, mode::AbstractWKBMode)
     if (nray[ijk] < 1)
       continue
     end
-
-
 
     for iray in 1:nray[ijk]
       rijk = CartesianIndex(iray, ijk)
@@ -299,13 +307,19 @@ function transport_rayvol(dt, rkstage, state, mode::AbstractWKBMode)
     end
   end # grid loop
 
-  if (case_wkb == 3)
+  if (case_wkb == 3 && wkb_mode != SteadyState())
     orographic_source(var, ray, time, stepfrac(rkstage) * dt)
   end
-  return nothing
+
+  return
 end
 
-function transport_rayvol(dt, rkstage, state, mode::SteadyState)
+function transport_rayvol(
+  state::State,
+  dt::AbstractFloat,
+  rkstage::Integer,
+  wkb_mode::SteadyState,
+)
   (; case_wkb, branchr, zmin_wkb) = state.namelists.wkb
   (; ztildetfc, jac) = state.grid
   (; sizex, sizey) = state.namelists.domain
@@ -482,5 +496,6 @@ function transport_rayvol(dt, rkstage, state, mode::SteadyState)
   if (sizey > 1)
     setboundary_rayvol_y(rays)
   end
-  return nothing
+
+  return
 end

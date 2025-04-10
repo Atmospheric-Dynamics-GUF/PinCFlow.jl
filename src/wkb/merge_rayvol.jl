@@ -80,9 +80,9 @@ function generate_merged_rvs(nr_merge, ijk, intervals, rays, domain)
 
     nr_merge[jray] += 1
     if nr_merge[jray] == 1
-      if cons_merge == "wa"
+      if merge_mode == ConstantWaveAction()
         wa = wdr * fxpspx * fcpspy * fcpspz
-      else
+      elseif merge_mode == ConstantWaveEnergy()
         wa = wdr * omir * fcpspx * fcpspy * fcpspz
       end
 
@@ -97,9 +97,9 @@ function generate_merged_rvs(nr_merge, ijk, intervals, rays, domain)
       vol.k = update_bound(k, dk, vol.k)
       vol.m = update_bound(m, dm, vol.m)
       nr_merge[jray] = vol # not sure if this is needed
-      if cons_merge == "wa"
+      if merge_mode == ConstantWaveAction()
         vol.wa += wdr * fcpspx * fcpspy * fcpspz
-      elseif cons_merge == "en"
+      elseif merge_mode == ConstantWaveEnergy()
         vol.wa += wdr * omir * fcpspx * fcpspy * fcpspz
       end
     end
@@ -141,9 +141,10 @@ function replace_rayvolumes!(rays, ijk, nr_merge, nray_max)
     fcpspz = rays.area_zm[rijk]
 
     # wave action density
-    if cons_merge == "wa"
+    # TODO: as functions
+    if merge_mode == ConstantWaveAction()
       wa = tvol.wa / (fcpspx * fcpspy * fcpspz)
-    else
+    elseif merge_mode == ConstantWaveEnergy()
       wa = tvol.wa / (omir * fcpspx * fcpspy * fcpspz)
     end
     rays.dens[rijk] = wa
