@@ -1,36 +1,36 @@
 struct Variables{
-  A <: Predictands,
-  B <: Tendencies,
-  C <: Backups,
-  D <: Auxiliaries,
-  E <: Reconstructions,
-  F <: Fluxes,
+    A <: Predictands,
+    B <: Tendencies,
+    C <: Backups,
+    D <: Auxiliaries,
+    E <: Reconstructions,
+    F <: Fluxes,
 }
-  predictands::A
-  tendencies::B
-  backups::C
-  auxiliaries::D
-  reconstructions::E
-  fluxes::F
+    predictands::A
+    tendencies::B
+    backups::C
+    auxiliaries::D
+    reconstructions::E
+    fluxes::F
 end
 
 function Variables(namelists::Namelists, constants::Constants, domain::Domain)
 
-  # Initialize all fields.
-  predictands = Predictands(namelists, constants, domain)
-  tendencies = Tendencies(domain)
-  backups = Backups(domain)
-  auxiliaries = Auxiliaries(domain)
-  reconstructions = Reconstructions(domain)
-  fluxes = Fluxes(domain)
+    # Initialize all fields.
+    predictands = Predictands(namelists, constants, domain)
+    tendencies = Tendencies(domain)
+    backups = Backups(domain)
+    auxiliaries = Auxiliaries(domain)
+    reconstructions = Reconstructions(domain)
+    fluxes = Fluxes(domain)
 
-  # Return a Variables instance.
-  return Variables(
-    predictands,
-    tendencies,
-    backups,
-    auxiliaries,
-    reconstructions,
-    fluxes,
-  )
+    # Return a Variables instance.
+    return Variables(
+        predictands,
+        tendencies,
+        backups,
+        auxiliaries,
+        reconstructions,
+        fluxes,
+    )
 end

@@ -1,9 +1,3 @@
-include("../../../src/PinCFlow.jl")
-
-using .PinCFlow
-
-folder = "/scratch/b/" * readchomp(`whoami`) * "/pinc/examples/mountain_wave/"
-
 domain = DomainNamelist(;
     sizex = 40,
     sizey = 40,
@@ -14,22 +8,22 @@ domain = DomainNamelist(;
     lx_dim = [0.0, 2.0E+4],
     ly_dim = [0.0, 2.0E+4],
     lz_dim = [0.0, 2.0E+4],
-    nprocx = 8,
-    nprocy = 8,
+    nprocx = 1,
+    nprocy = 1,
 )
 
 output = OutputNamelist(;
-    atmvarout = [W()],
-    prepare_restart = false,
+    atmvarout = AbstractVariable[],
+    prepare_restart = true,
     restart = false,
     iin = -1,
-    output_steps = false,
+    output_steps = true,
     noutput = 1,
     maxiter = 1,
     outputtimediff = 3.6E+3,
     maxtime = 3.6E+3,
     fancy_namelists = true,
-    folder = folder,
+    folder = "./",
 )
 
 setting = SettingNamelist(;
@@ -105,4 +99,34 @@ namelists = Namelists(;
     sponge = sponge,
 )
 
-integrate(namelists)
+let output = stdout
+    redirect_stdout(devnull)
+    integrate(namelists)
+    redirect_stdout(output)
+end
+
+data = h5open("pincflow_output.h5")
+reference = h5open("mountain_wave_tests.h5")
+
+for phi in (
+    "x",
+    "y",
+    "z",
+    "t",
+    "rhobar",
+    "thetabar",
+    "n2",
+    "p",
+    "rhop",
+    "us",
+    "vs",
+    "wstfc",
+    "pip",
+)
+    @test all(isapprox.(data[phi], reference[phi]))
+end
+
+close(data)
+close(reference)
+
+rm("pincflow_output.h5")
