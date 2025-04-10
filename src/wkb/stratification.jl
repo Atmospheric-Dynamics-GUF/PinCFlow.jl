@@ -1,28 +1,38 @@
-function stratification(state, zlc, strtype = 1)
+function stratification(
+  zlc::AbstractFloat,
+  state::State,
+  strtype::AbstractVariable,
+)
+  (; domain, grid, atmosphere) = state
+  return stratification(zlc, domain, grid, atmosphere, strtype)
+end
 
-  # interpolation of the squared Brunt-Vaisala frequency to 
-  # a specified vertical position zlc
+function stratification(
+  zlc::AbstractFloat,
+  domain::Domain,
+  grid::Grid,
+  atmosphere::Atmosphere,
+  strtype::N2,
+)
+  (; bvsstrattfc) = atmosphere
+  (; i0, j0, k1) = domain
+  (; ztfc) = grid
 
-  (; domain, grid) = state
-  (; bvsstrattfc) = state.atmosphere
-  (; k1) = state.domain
-
-  kzu = kztfc(i0 - 1, j0 - 1, zlc, domain, grid)
+  kzu = kztfc(i0, j0, zlc, domain, grid)
   kzd = kru - 1
 
   if (kzu > k1 + 1)
-    then
     kzu = k1 + 1
     kzd = k1
   end
 
-  zd = ztfc[i0 - 1, j0 - 1, kzd]
-  zu = ztfc[i0 - 1, j0 - 1, kzu]
-  strd = bvsstrattfc[i0 - 1, j0 - 1, kzd]
-  stru = bvsStrattfc[i0 - 1, j0 - 1, kzu]
+  zd = ztfc[i0, j0, kzd]
+  zu = ztfc[i0, j0, kzu]
+  strd = bvsstrattfc[i0, j0, kzd]
+  stru = bvsStrattfc[i0, j0, kzu]
 
   if zu < zd
-    error("Error in stratification: zu = ", zu, "< zd = ", zd)
+    error("Error in stratification (N2): zu = ", zu, " < zd = ", zd)
   elseif zu == zd
     factor = 0.0
   elseif zlc > zu
@@ -38,16 +48,18 @@ function stratification(state, zlc, strtype = 1)
   return str
 end
 
-function stratification(state, zlc, strtype = 2)
+function stratification(
+  zlc::AbstractFloat,
+  domain::Domain,
+  grid::Grid,
+  atmosphere::Atmosphere,
+  strtype::DN2DZ,
+)
+  (; bvsstrattfc) = atmosphere
+  (; i0, j0, k1) = domain
+  (; ztildetfc, jac) = grid
 
-  # interpolation of the vertical derivative of the squared 
-  # Brunt-Vaisala frequency to a specified vertical position zlc
-  (; domain, grid) = state
-  (; bvsstrattfc) = state.atmosphere
-  (; k1) = state.domain
-  (; ztildetfc, jac) = state.grid
-
-  kzu = kztildetfc(i0 - 1, j0 - 1, zlc, domain, grid)
+  kzu = kztildetfc(i0, j0, zlc, domain, grid)
   kzd = kzu - 1
 
   if kzu + 1 > k1 + 1
@@ -55,24 +67,22 @@ function stratification(state, zlc, strtype = 2)
     kzd = k1 - 1
   end
 
-  zd = ztildetfc(i0 - 1, j0 - 1, kzd)
-  zu = ztildetfc(i0 - 1, j0 - 1, kzu)
+  zd = ztildetfc[i0, j0, kzd]
+  zu = ztildetfc[i0, j0, kzu]
 
   strd =
-    (bvsstrattfc[i0 - 1, j0 - 1, kzd + 1] - bvsstrattfc[i0 - 1, j0 - 1, kzd]) /
-    (
-      2.0 * jac[i0 - 1, j0 - 1, kzd] * jac[i0 - 1, j0 - 1, kzd + 1] /
-      (jac[i0 - 1, j0 - 1, kzd] + jac[i0 - 1, j0 - 1, kzd + 1])
+    (bvsstrattfc[i0, j0, kzd + 1] - bvsstrattfc[i0, j0, kzd]) / (
+      2.0 * jac[i0, j0, kzd] * jac[i0, j0, kzd + 1] /
+      (jac[i0, j0, kzd] + jac[i0, j0, kzd + 1])
     ) / dz
   stru =
-    (bvsstrattfc[i0 - 1, j0 - 1, kzu + 1] - bvsstrattfc[i0 - 1, j0 - 1, kzu]) /
-    (
-      2.0 * jac[i0 - 1, j0 - 1, kzu] * jac[i0 - 1, j0 - 1, kzu + 1] /
-      (jac[i0 - 1, j0 - 1, kzu] + jac[i0 - 1, j0 - 1, kzu + 1])
+    (bvsstrattfc[i0, j0, kzu + 1] - bvsstrattfc[i0, j0, kzu]) / (
+      2.0 * jac[i0, j0, kzu] * jac[i0, j0, kzu + 1] /
+      (jac[i0, j0, kzu] + jac[i0, j0, kzu + 1])
     ) / dz
 
   if zu < zd
-    error("Error in stratification: zu = ", zu, "< zd = ", zd)
+    error("Error in stratification (DN2DZ): zu = ", zu, " < zd = ", zd)
   elseif zu == zd
     factor = 0.0
   elseif zlc > zu
