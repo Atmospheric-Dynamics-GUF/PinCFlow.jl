@@ -67,6 +67,12 @@ function compute_time_step(state::State)
 
     dtmax = dtmax_dim / tref
 
+    #---------------------------------
+    #    Gravity wave time period
+    #---------------------------------
+
+    # dtwave = 1. / ()
+
     #-------------------------------
     #        Make your choice
     #-------------------------------

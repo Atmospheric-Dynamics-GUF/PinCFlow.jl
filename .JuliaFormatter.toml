@@ -1,5 +1,5 @@
 # Set options for JuliaFormatter.
-indent = 2
+indent = 4
 margin = 80
 always_for_in = true
 whitespace_typedefs = true
