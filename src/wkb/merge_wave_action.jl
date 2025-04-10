@@ -3,10 +3,10 @@ function merge_wave_action(
     axk::AbstractFloat,
     ayl::AbstractFloat,
     azm::AbstractFloat,
-    dens::AbstractFloat,
-    omir::AbstractFloat,
+    nr::AbstractFloat,
+    omegar::AbstractFloat,
 )
-    return axk * ayl * azm * dens
+    return axk * ayl * azm * nr
 end
 
 function merge_wave_action(
@@ -14,10 +14,10 @@ function merge_wave_action(
     axk::AbstractFloat,
     ayl::AbstractFloat,
     azm::AbstractFloat,
-    dens::AbstractFloat,
-    omir::AbstractFloat,
+    nr::AbstractFloat,
+    omegar::AbstractFloat,
 )
-    return axk * ayl * azm * dens * omir
+    return axk * ayl * azm * nr * omegar
 end
 
 function merge_wave_action(
@@ -26,10 +26,10 @@ function merge_wave_action(
     axk::AbstractFloat,
     ayl::AbstractFloat,
     azm::AbstractFloat,
-    dens::AbstractFloat,
-    omir::AbstractFloat,
+    nr::AbstractFloat,
+    omegar::AbstractFloat,
 )
-    return self.dens + axk * ayl * azm * dens
+    return self.nr + axk * ayl * azm * nr
 end
 
 function merge_wave_action(
@@ -38,8 +38,8 @@ function merge_wave_action(
     axk::AbstractFloat,
     ayl::AbstractFloat,
     azm::AbstractFloat,
-    dens::AbstractFloat,
-    omir::AbstractFloat,
+    nr::AbstractFloat,
+    omegar::AbstractFloat,
 )
-    return self.dens + axk * ayl * azm * dens * omir
+    return self.nr + axk * ayl * azm * nr * omegar
 end

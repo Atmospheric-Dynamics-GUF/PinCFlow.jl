@@ -1,75 +1,63 @@
-struct MergedRayVolume{A <: AbstractFloat}
-    xmin::A
-    xmax::A
-    ymin::A
-    ymax::A
-    zmin::A
-    zmax::A
-    kmin::A
-    kmax::A
-    lmin::A
-    lmax::A
-    mmin::A
-    mmax::A
-    dens::A
+struct MergedRayVolume{A <: NTuple{2, <:AbstractFloat}, B <: AbstractFloat}
+    xr::A
+    yr::A
+    zr::A
+    kr::A
+    lr::A
+    mr::A
+    nr::B
 end
 
 function MergedRayVolume()
-    return MergedRayVolume([0.0 for i in 1:13]...)
+    return MergedRayVolume([0.0 for i in 1:7]...)
 end
 
 function MergedRayVolume(
     merge_mode::AbstractMergeMode,
     self::MergedRayVolume,
-    x::AbstractFloat,
-    dx::AbstractFloat,
-    y::AbstractFloat,
-    dy::AbstractFloat,
-    z::AbstractFloat,
-    dz::AbstractFloat,
-    k::AbstractFloat,
-    dk::AbstractFloat,
-    l::AbstractFloat,
-    dl::AbstractFloat,
-    m::AbstractFloat,
-    dm::AbstractFloat,
+    xr::AbstractFloat,
+    dxr::AbstractFloat,
+    yr::AbstractFloat,
+    dyr::AbstractFloat,
+    zr::AbstractFloat,
+    dzr::AbstractFloat,
+    kr::AbstractFloat,
+    dkr::AbstractFloat,
+    lr::AbstractFloat,
+    dlr::AbstractFloat,
+    mr::AbstractFloat,
+    dmr::AbstractFloat,
     axk::AbstractFloat,
     ayl::AbstractFloat,
     azm::AbstractFloat,
-    dens::AbstractFloat,
-    omir::AbstractFloat,
+    nr::AbstractFloat,
+    omegar::AbstractFloat,
 )
-    if self.dens == 0
+    if self.nr == 0
         return MergedRayVolume(
-            x - dx / 2,
-            x + dx / 2,
-            y - dy / 2,
-            y + dy / 2,
-            z - dz / 2,
-            z + dz / 2,
-            k - dk / 2,
-            k + dk / 2,
-            l - dl / 2,
-            l + dl / 2,
-            m - dm / 2,
-            m + dm / 2,
-            merge_wave_action(merge_mode, axk, ayl, azm, dens, omir),
+            (xr - dxr / 2, xr + dxr / 2),
+            (yr - dyr / 2, yr + dyr / 2),
+            (zr - dzr / 2, zr + dzr / 2),
+            (kr - dkr / 2, kr + dkr / 2),
+            (lr - dlr / 2, lr + dlr / 2),
+            (mr - dmr / 2, mr + dmr / 2),
+            merge_wave_action(merge_mode, axk, ayl, azm, nr, omegar),
         )
     else
         return MergedRayVolume(
-            min(self.xmin, x - dx / 2),
-            max(self.xmax, x + dx / 2),
-            min(self.ymin, y - dy / 2),
-            max(self.ymax, y + dy / 2),
-            min(self.zmin, z - dz / 2),
-            max(self.zmax, z + dz / 2),
-            min(self.kmin, k - dk / 2),
-            max(self.kmax, k + dk / 2),
-            min(self.lmin, l - dl / 2),
-            max(self.kmax, l + dl / 2),
-            min(self.mmin, m - dm / 2),
-            max(self.mmax, m + dm / 2),
-            merge_wave_action(merge_mode, self, axk, ayl, azm, dens, omir),
+            (min(self.xr[1], xr - dxr / 2),
+            max(self.xr[2], xr + dxr / 2)),
+            (min(self.yr[1], yr - dyr / 2),
+            max(self.yr[2], yr + dyr / 2)),
+            (min(self.zr[1], zr - dzr / 2),
+            max(self.zr[2], zr + dzr / 2)),
+            (min(self.kr[1], kr - dkr / 2),
+            max(self.kr[2], kr + dkr / 2)),
+            (min(self.lr[1], lr - dlr / 2),
+            max(self.lr[2], lr + dlr / 2)),
+            (min(self.mr[1], mr - dmr / 2),
+            max(self.mr[2], mr + dmr / 2)),
+            merge_wave_action(merge_mode, self, axk, ayl, azm, nr, omegar),
         )
     end
 end
