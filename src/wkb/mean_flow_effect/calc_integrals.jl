@@ -41,7 +41,7 @@ function calc_integrals!(state::State, mode::Transient)
             wnrh = sqrt(wnrk^2.0 + wnrl^2.0)
 
             # squared Brunt-Vaisala frequency
-            nnr = stratification(state, zr, 1)
+            nnr = stratification(zr, state, N2())
 
             omir =
                 branchr * sqrt(nnr * wnrh^2.0 + f_cor_nd^2.0 * wnrm^2.0) /
@@ -184,8 +184,8 @@ end
 
 function calc_integrals!(state::State, mode::AbstractWKBMode)
 
-    # steady_state or single_column 
-    # only calculate integrals.uw, vw, and e 
+    # steady_state or single_column
+    # only calculate integrals.uw, vw, and e
     (; domain, grid) = state
     (; nbx, nby, nbz, i0, i1, j0, j1, k0, k1, io, jo) = state.domain
     (; lx, ly, dx, dy, dz, ztilfetfc, jac) = state.grid
@@ -228,7 +228,7 @@ function calc_integrals!(state::State, mode::AbstractWKBMode)
             wnrh = sqrt(wnrk^2.0 + wnrl^2.0)
 
             # squared Brunt-Vaisala frequency
-            nnr = stratification(state, zr, 1)
+            nnr = stratification(zr, state, N2())
 
             omir =
                 branchr * sqrt(nnr * wnrh^2.0 + f_cor_nd^2.0 * wnrm^2.0) /

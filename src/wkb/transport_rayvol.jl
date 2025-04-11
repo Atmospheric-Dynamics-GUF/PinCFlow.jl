@@ -62,9 +62,9 @@ function transport_rayvol(
                 end
             end
 
-            nnr = stratification(zr, 1)
-            nnr1 = stratification(zr1, 1)
-            nnr2 = stratification(zr2, 1)
+            nnr = stratification(zr, state, N2())
+            nnr1 = stratification(zr1, state, N2())
+            nnr2 = stratification(zr2, state, N2())
 
             omir1 =
                 branchr * sqrt(nnr1 * wnrh^2 + f_cor_nd^2 * wnrm^2) /
@@ -121,8 +121,8 @@ function transport_rayvol(
 
             ## until here everything is the same for single_column and transient
             if sizex > 1 && kz >= k0 && mode != SingleColumn()
-                uxr1 = meanflow(xr1, yr, zr, var, 1)
-                uxr2 = meanflow(xr2, yr, zr, var, 1)
+                uxr1 = meanflow(xr1, yr, zr, state, U())
+                uxr2 = meanflow(xr2, yr, zr, state, U())
 
                 cgrx1 = cgirx + uxr1
                 cgrx2 = cgirx + uxr2
@@ -137,8 +137,8 @@ function transport_rayvol(
             end
 
             if sizey > 1 && kz >= k0 && mode != SingleColumn()
-                vyr1 = meanflow(xr, yr1, zr, var, 2)
-                vyr2 = meanflow(xr, yr2, zr, var, 2)
+                vyr1 = meanflow(xr, yr1, zr, state, V())
+                vyr2 = meanflow(xr, yr2, zr, state, V())
 
                 cgry1 = cgiry + vyr1
                 cgry2 = cgiry + vyr2
@@ -185,13 +185,13 @@ function transport_rayvol(
                 #   # ! RK procedure
 
                 # TODO: we updated xr etc. what does fortran do here? make a copy or reference?
-                dudxr = meanflow(xr, yr, zr, var, 11)
-                dudyr = meanflow(xr, yr, zr, var, 12)
-                dudzr = meanflow(xr, yr, zr, var, 13)
+                dudxr = meanflow(xr, yr, zr, state, DUDX())
+                dudyr = meanflow(xr, yr, zr, state, DUDY())
+                dudzr = meanflow(xr, yr, zr, state, DUDZ())
 
-                dvdxr = meanflow(xr, yr, zr, var, 21)
-                dvdyr = meanflow(xr, yr, zr, var, 22)
-                dvdzr = meanflow(xr, yr, zr, var, 23)
+                dvdxr = meanflow(xr, yr, zr, state, DVDX())
+                dvdyr = meanflow(xr, yr, zr, state, DVDY())
+                dvdzr = meanflow(xr, yr, zr, state, DVDZ())
 
                 if (zr < lz[0] - dz)
                     # print *, 'ERROR IN setup_wkb: LOWER EDGE OF RAY  VOLUME', &
@@ -205,7 +205,7 @@ function transport_rayvol(
                     exit()
                 end
 
-                dnndzr = stratification(zr, 2)
+                dnndzr = stratification(zr, state, DN2DZ())
 
                 dkdt = -dudxr * wnrk - dvdxr * wnrl
                 dldt = -dudyr * wnrk - dvdyr * wnrl
@@ -293,7 +293,7 @@ function transport_rayvol(
 
             zr = rays.z[rijk]
 
-            nnr = stratification(zr, 1)
+            nnr = stratification(zr, state, N2())
             omir =
                 branchr * sqrt(nnr * wnrh^2 + f_cor_nd^2 * wnrm^2) /
                 sqrt(wnrh^2 + wnrm^2)
@@ -374,7 +374,7 @@ function transport_rayvol(
             kz0 = max(1, kz - 1)
             rijk0 = CartesianIndex(iray, ix, jy, kz, kz0)
             # ! Compute vertical group velocity at the level below.
-            nn_nd = stratification(rays.z[rijk0], 1)
+            nn_nd = stratification(rays.z[rijk0], state, N2())
             omir = rays.omega[rijk0].omega
 
             if (branchr * omir > f_cor_nd && branchr * omir < sqrt(nn_nd))
@@ -389,7 +389,7 @@ function transport_rayvol(
             end
             # ! Compute local intrinsic frequency, vertical
             # ! wavenumber and vertical group velocity.
-            nn_nd = stratification(rays.z[rijk], 1)
+            nn_nd = stratification(rays.z[rijk], state, N2())
             omir =
                 -0.5 * (var.u[ix, jy, kz] + var.u[ix - 1, jy, kz]) * wnrk -
                 0.5 * (var.v[ix, jy, kz] + var.v[ix, jy - 1, kz]) * wnrl
@@ -466,7 +466,7 @@ function transport_rayvol(
                 dz / cgirz
         end
         # ! Compute diffusion coefficient
-        nn_nd = stratification(ztfc[ix, jy, kz], 1)
+        nn_nd = stratification(ztfc[ix, jy, kz], state, N2())
         if (m2b2k2 == 0.0 || m2b2 < alpha_sat^2 * nn_nd^2)
             diffusion = 0.0
         else
@@ -484,7 +484,7 @@ function transport_rayvol(
             wnrl = rays.l[rijk]
             wnrm = rays.m[rijk]
             wnrh = sqrt(wnrk^2 + wnrl^2)
-            nn_nd = stratification(rays.z[rijk], 1)
+            nn_nd = stratification(rays.z[rijk], state, N2())
             omir = rays.omega[rijk]
             if (branchr * omir > f_cor_nd && branchr * omir < sqrt(nn_nd))
                 cgirz =
