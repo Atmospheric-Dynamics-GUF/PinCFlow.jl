@@ -2,6 +2,8 @@ module PinCFlow
 
 using Dates
 using LinearAlgebra
+using StaticArrays
+using Statistics
 using MPI
 using HDF5
 
