@@ -11,15 +11,15 @@ domain = DomainNamelist(;
     nbx = 3,
     nby = 3,
     nbz = 3,
-    lx_dim = [0.0, 2.0E+4],
-    ly_dim = [0.0, 2.0E+4],
-    lz_dim = [0.0, 2.0E+4],
+    lx_dim = (0.0, 2.0E+4),
+    ly_dim = (0.0, 2.0E+4),
+    lz_dim = (0.0, 2.0E+4),
     nprocx = 8,
     nprocy = 8,
 )
 
 output = OutputNamelist(;
-    atmvarout = [W()],
+    output_variables = (:w,),
     prepare_restart = false,
     restart = false,
     iin = -1,
@@ -63,7 +63,7 @@ atmosphere = AtmosphereNamelist(;
     background = Isothermal(),
     temp0_dim = 3.0E+2,
     press0_dim = 1.0E+5,
-    backgroundflow_dim = [1.0E+1, 0.0E+0, 0.0E+0],
+    backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0),
     f_coriolis_dim = 0.0E+0,
     corset = ConstantCoriolis(),
 )

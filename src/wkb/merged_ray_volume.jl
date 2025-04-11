@@ -45,18 +45,30 @@ function MergedRayVolume(
         )
     else
         return MergedRayVolume(
-            SVector{2}(min(self.xr[1], xr - dxr / 2),
-            max(self.xr[2], xr + dxr / 2)),
-            SVector{2}(min(self.yr[1], yr - dyr / 2),
-            max(self.yr[2], yr + dyr / 2)),
-            SVector{2}(min(self.zr[1], zr - dzr / 2),
-            max(self.zr[2], zr + dzr / 2)),
-            SVector{2}(min(self.kr[1], kr - dkr / 2),
-            max(self.kr[2], kr + dkr / 2)),
-            SVector{2}(min(self.lr[1], lr - dlr / 2),
-            max(self.lr[2], lr + dlr / 2)),
-            SVector{2}(min(self.mr[1], mr - dmr / 2),
-            max(self.mr[2], mr + dmr / 2)),
+            SVector{2}(
+                min(self.xr[1], xr - dxr / 2),
+                max(self.xr[2], xr + dxr / 2),
+            ),
+            SVector{2}(
+                min(self.yr[1], yr - dyr / 2),
+                max(self.yr[2], yr + dyr / 2),
+            ),
+            SVector{2}(
+                min(self.zr[1], zr - dzr / 2),
+                max(self.zr[2], zr + dzr / 2),
+            ),
+            SVector{2}(
+                min(self.kr[1], kr - dkr / 2),
+                max(self.kr[2], kr + dkr / 2),
+            ),
+            SVector{2}(
+                min(self.lr[1], lr - dlr / 2),
+                max(self.lr[2], lr + dlr / 2),
+            ),
+            SVector{2}(
+                min(self.mr[1], mr - dmr / 2),
+                max(self.mr[2], mr + dmr / 2),
+            ),
             merge_wave_action(merge_mode, self, axk, ayl, azm, nr, omegar),
         )
     end
