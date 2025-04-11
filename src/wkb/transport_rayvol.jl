@@ -12,7 +12,7 @@ function transport_rayvol(
 )
     (; case_wkb, branchr, zmin_wkb) = state.namelists.wkb
     (; sizex, sizey) = state.namelists.domain
-    (; nray, cgz_max_tfc, rays, f_cor_nd) = state.wkb
+    (; nray, cgx_max, cgy_max, cgz_max_tfc, rays, f_cor_nd) = state.wkb
     (; dxray, dkray, ddxray) = state.wkb.increments
     (; alphark, betark, stepfrac) = state.time
     lz = state.grid.lz

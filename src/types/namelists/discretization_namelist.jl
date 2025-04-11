@@ -4,6 +4,7 @@ struct DiscretizationNamelist{
     C <: AbstractLimiter,
 }
     cfl::A
+    cfl_wave::A
     dtmin_dim::A
     dtmax_dim::A
     adaptive_time_step::B
@@ -12,6 +13,7 @@ end
 
 function DiscretizationNamelist(;
     cfl = 5.0E-1,
+    cfl_wave = 5.0E-1,
     dtmin_dim = 1.0E-6,
     dtmax_dim = 1.0E+3,
     adaptive_time_step = true,
@@ -19,6 +21,7 @@ function DiscretizationNamelist(;
 )
     return DiscretizationNamelist(
         cfl,
+        cfl_wave,
         dtmin_dim,
         dtmax_dim,
         adaptive_time_step,
