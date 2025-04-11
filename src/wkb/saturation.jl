@@ -168,7 +168,7 @@ function saturation!(
                         jy = 1
                     end
 
-                    kz = kztildetfc(ix, jy, zr)
+                    kz = kztildetfc(ix, jy, zr, domain, grid)
 
                     wnrk = ray.k[iray, ixrv, jyrv, kzrv]
                     wnrl = ray.l[iray, ixrv, jyrv, kzrv]
@@ -228,7 +228,7 @@ function saturation!(
                         jy = 1
                     end
 
-                    kz = kztildetfc(ix, jy, zr)
+                    kz = kztildetfc(ix, jy, zr, domain, grid)
 
                     nn_nd = stratification(zr, state, N2()) # compute stratification
 
