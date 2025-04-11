@@ -1,4 +1,4 @@
-function calc_gwmomforce!(state::State)
+function calc_gwh!(state::State)
     (; gwh) = state.variables.predictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; ztfc) = state.grid
