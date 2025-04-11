@@ -1,12 +1,15 @@
 function compute_time_step(state::State)
     (; grid) = state
-    (; cfl, dtmin_dim, dtmax_dim, adaptive_time_step) =
+    (; cfl, cfl_wave, dtmin_dim, dtmax_dim, adaptive_time_step) =
         state.namelists.discretization
     (; tref, re) = state.constants
     (; master, comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = grid
     (; predictands) = state.variables
     (; u, v, w) = predictands
+    (; testcase) = state.namelists.setting
+    (; sizex, sizey) = state.namelists.domain
+    (; cgx_max, cgy_max, cgz_max) = state.wkb
 
     #-------------------------------------------
     #              Fixed time step
@@ -72,17 +75,43 @@ function compute_time_step(state::State)
 
         dtmax = dtmax_dim / tref
 
-        #---------------------------------
-        #    Gravity wave time period
-        #---------------------------------
+        #----------------------------------
+        #    WKB "CFL" criterion 
+        #----------------------------------
 
-        # dtwave = 1. / ()
+        if testcase == RayTracer()
 
+            dtwkb_loc = jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps())
+
+            for kz in (k0 - 1):(k1), jy in j0:j1, ix in i0:i1
+
+                dtwkb_loc = min(dtwkb_loc, jac[ix, jy, kz] * dz /
+                    (cgz_max[ix, jy, kz] + eps()))
+            end
+
+            if sizex > 1
+                dtwkb_loc = min(dtwkb_loc, dx / (cgx_max + eps()))
+            end 
+            if sizey > 1
+                dtwkb_loc = min(dtwkb_loc, dy / (cgy_max + eps()))
+            end
+
+            dtwkb_loc = cfl_wave * dtwkb_loc
+
+            # find global minimum 
+
+            dtwkb = MPI.Allreduce(dtwkb_loc, min, comm)
+
+        end
         #-------------------------------
         #        Make your choice
         #-------------------------------
 
-        dt = min(dtvisc, dtconv, dtmax)
+        if testcase == RayTracer()
+            dt = min(dtvisc, dtconv, dtmax, dtwkb)
+        else
+            dt = min(dtvisc, dtconv, dtmax)
+        end
 
         #-----------------------------------------
         #     Inform on time step restrictions
@@ -92,6 +121,9 @@ function compute_time_step(state::State)
             println("dtvisc = ", dtvisc * tref, " seconds")
             println("dtconv = ", dtconv * tref, " seconds")
             println("dtmax = ", dtmax * tref, " seconds")
+            if testcase == RayTracer()
+                println("dtwkb = ", dtwkb * tref, " seconds")
+            end
             println("")
 
             if dt == dtmax
@@ -100,6 +132,8 @@ function compute_time_step(state::State)
                 println("--> dt = dtconv = ", dt * tref, " seconds")
             elseif dt == dtvisc
                 println("--> dt = dtvisc = ", dt * tref, " seconds")
+            elseif dt == dtwkb
+                println("--> dt = dtwkb = ", dt * tref, " seconds")
             else
                 println("--> dt = ????? = ", dt * tref, " seconds")
             end

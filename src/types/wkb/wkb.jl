@@ -7,6 +7,7 @@ struct WKB{
     F <: Integrals,
     G <: AbstractMatrix{<:AbstractFloat},
     H <: Forces,
+    I <: AbstractFloat
 }
     nxray::A
     nyray::A
@@ -22,6 +23,8 @@ struct WKB{
     surface_indices::D
     increments::E
     integrals::F
+    cgx_max::I
+    cgy_max::I
     cgz_max::B
     zb::G
     gwmomforce::H
@@ -512,6 +515,8 @@ function WKB(
         surface_indices,
         increments,
         integrals,
+        cgx_max,
+        cgy_max,
         cgz_max,
         zb,
         gwmomforce,
