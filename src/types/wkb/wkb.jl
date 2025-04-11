@@ -7,7 +7,7 @@ struct WKB{
     F <: Integrals,
     G <: AbstractMatrix{<:AbstractFloat},
     H <: Forces,
-    I <: AbstractFloat
+    I <: AbstractFloat,
 }
     nxray::A
     nyray::A
@@ -78,7 +78,7 @@ function WKB(
     grid::Grid,
     atmosphere::Atmosphere,
     predictands::Predictands,
-    testcase::RayTracer,
+    testcase::AbstractWKBTestCase,
 )
 
     # Get necessary fields.
@@ -101,15 +101,12 @@ function WKB(
         fac_dk_init,
         fac_dl_init,
         fac_dm_init,
-        case_wkb,
     ) = namelists.wkb
     (; tref, lref) = constants
     (; sizex, sizey, sizez) = namelists.domain
     (; f_coriolis_dim) = namelists.atmosphere
-    (; nxx, nyy, nzz, io, jo, i0, i1, j0, j1, k0, k1, master, comm) =
-        domain
+    (; nxx, nyy, nzz, io, jo, i0, i1, j0, j1, k0, k1, master, comm) = domain
     (; lx, ly, lz, dx, dy) = grid
-
 
     f_cor_nd = f_coriolis_dim * tref
     # Set Coriolis parameter.
@@ -145,7 +142,7 @@ function WKB(
     end
 
     # Set zonal index bounds and ray-volume count.
-    if case_wkb == 3
+    if testcase == WKBMountainWave()
         ixmin = i0
         ixmax = i1
     else
@@ -159,7 +156,7 @@ function WKB(
     end
 
     # Set meridional index bounds and ray-volume count.
-    if case_wkb == 3
+    if testcase == WKBMountainWave()
         jymin = j0
         jymax = j1
     else
@@ -173,7 +170,7 @@ function WKB(
     end
 
     # Set vertical index bounds and ray-volume count.
-    if case_wkb == 3
+    if testcase == WKBMountainWave()
         kzmin = k0 - 1
         kzmax = k0 - 1
         nzray = nray_fac * nrzl * nrm_init
@@ -232,16 +229,16 @@ function WKB(
     wnm_ini = zeros(nwm, nxx, nyy, nzz)
     wad_ini = zeros(nwm, nxx, nyy, nzz)
 
-    if wkb_mode == SteadyState() && case_wkb != 3
+    if wkb_mode == SteadyState() && testcase != WKBMountainWave()
         error(
-            "Error in WKB: Steady state is implemented for case_wkb == 3 only!",
+            "Error in WKB: Steady state is implemented for WKBMountainWave only!",
         )
     end
 
     # TODO: correct size for zb?
     zb = zeros(nxx, nyy)
 
-    if case_wkb == 3
+    if testcase == WKBMountainWave()
         # orographic_source!(
         #     namelists,
         #     constants,
@@ -279,7 +276,7 @@ function WKB(
                 iwm in 1:nwm
 
                 # Set ray-volume indices.
-                if case_wkb == 3
+                if testcase == WKBMountainWave()
                     i_sfc += 1
 
                     # Set surface indices.
@@ -343,10 +340,10 @@ function WKB(
                 wnm0 = wnm_ini[iwm, ix, jy, kz]
 
                 # Ensure correct wavenumber extents.
-                if case_wkb == 3 && sizex > 1
+                if testcase == WKBMountainWave() && sizex > 1
                     dk_ini_nd = fac_dk_init * sqrt(wnk0^2 + wnl0^2)
                 end
-                if case_wkb == 3 && sizey > 1
+                if testcase == WKBMountainWave() && sizey > 1
                     dl_ini_nd = fac_dl_init * sqrt(wnk0^2 + wnl0^2)
                 end
                 if wnm0 == 0.0
@@ -467,7 +464,7 @@ function WKB(
             end
 
             # Check if surface ray-volume count is correct.
-            if case_wkb == 3
+            if testcase == WKBMountainWave()
                 if i_sfc != n_sfc
                     println(
                         "Error in Rays: i_sfc =",

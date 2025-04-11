@@ -123,7 +123,7 @@ export DomainNamelist,
     WKBNamelist,
     Namelists
 export PseudoIncompressible
-export MountainWave
+export MountainWave, WKBMountainWave
 export MCVariant
 export Isothermal
 export ConstantCoriolis
@@ -133,7 +133,6 @@ export ConstantWaveEnergy, ConstantWaveAction
 export Clip, Scale
 export State
 export integrate
-export RayTracer
 
 export transport_rayvol
 

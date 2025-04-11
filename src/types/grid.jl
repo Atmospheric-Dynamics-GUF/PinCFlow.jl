@@ -46,7 +46,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
     # Get parameters.
     (; sizex, sizey, sizez, lx_dim, ly_dim, lz_dim, nbz) = namelists.domain
     (; testcase) = namelists.setting
-    (; case_wkb, nwm) = namelists.wkb
+    (; nwm) = namelists.wkb
     (;
         mountainheight_dim,
         mountainwidth_dim,
@@ -120,7 +120,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
     x_center = 0.5 * (lx[2] + lx[1])
     y_center = 0.5 * (ly[2] + ly[1])
 
-    if testcase == RayTracer() && case_wkb == 3
+    if testcase == WKBMountainWave()
         if nwm < 1 || (mountain_case == 13 && nwm < spectral_modes)
             error("Error in Grid: nwm is too small!")
         end
