@@ -9,5 +9,4 @@ abstract type AbstractSponge end
 abstract type AbstractMergeMode end
 abstract type AbstractLaunchAlgorithm end
 abstract type AbstractIntegration end
-abstract type AbstractDir end
 abstract type AbstractWKBMode end
