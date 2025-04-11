@@ -55,8 +55,6 @@ contours = contourf(
     levels = levels,
     cmap = colormap,
 )
-xlim(-10.0, 10.0)
-ylim(-10.0, 10.0)
 xlabel(L"x\,\left[\mathrm{km}\right]")
 ylabel(L"y\,\left[\mathrm{km}\right]")
 title(L"z\approx 5\,\mathrm{km}")
@@ -75,8 +73,6 @@ contours = contourf(
     cmap = colormap,
 )
 plot(x[:, iy, 1], z[:, iy, 1]; color = "black", linewidth = 0.5)
-xlim(-10.0, 10.0)
-ylim(0.0, 20.0)
 xlabel(L"x\,\left[\mathrm{km}\right]")
 ylabel(L"z\,\left[\mathrm{km}\right]")
 title(L"y\approx 0\,\mathrm{km}")
@@ -95,8 +91,6 @@ contours = contourf(
     cmap = colormap,
 )
 plot(y[ix, :, 1], z[ix, :, 1]; color = "black", linewidth = 0.5)
-xlim(-10.0, 10.0)
-ylim(0.0, 20.0)
 xlabel(L"x\,\left[\mathrm{km}\right]")
 ylabel(L"z\,\left[\mathrm{km}\right]")
 title(L"x\approx 0\,\mathrm{km}")
@@ -123,8 +117,6 @@ if reference_path != data_path
         levels = levels,
         cmap = colormap,
     )
-    xlim(-10.0, 10.0)
-    ylim(-10.0, 10.0)
     xlabel(L"x\,\left[\mathrm{km}\right]")
     ylabel(L"y\,\left[\mathrm{km}\right]")
     title(L"z\approx 5\,\mathrm{km}")
@@ -143,8 +135,6 @@ if reference_path != data_path
         cmap = colormap,
     )
     plot(x[:, iy, 1], z[:, iy, 1]; color = "black", linewidth = 0.5)
-    xlim(-10.0, 10.0)
-    ylim(0.0, 20.0)
     xlabel(L"x\,\left[\mathrm{km}\right]")
     ylabel(L"z\,\left[\mathrm{km}\right]")
     title(L"y\approx 0\,\mathrm{km}")
@@ -163,8 +153,6 @@ if reference_path != data_path
         cmap = colormap,
     )
     plot(y[ix, :, 1], z[ix, :, 1]; color = "black", linewidth = 0.5)
-    xlim(-10.0, 10.0)
-    ylim(0.0, 20.0)
     xlabel(L"x\,\left[\mathrm{km}\right]")
     ylabel(L"z\,\left[\mathrm{km}\right]")
     title(L"x\approx 0\,\mathrm{km}")
