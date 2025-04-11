@@ -15,6 +15,7 @@ function write_output(
     (; rhostrattfc, thetastrattfc, bvsstrattfc, pstrattfc) = state.atmosphere
     (; predictands) = state.variables
     (; rho, u, v, w, pip) = predictands
+    (; nray_max, rays) = state.wkb
 
     # Print information.
     if master
@@ -28,6 +29,15 @@ function write_output(
 
     # Advance output counter.
     iout += 1
+
+    # Determine dimensionality.
+    dim = 1
+    if sizex > 1
+        dim += 1
+    end
+    if sizey > 1
+        dim += 1
+    end
 
     # Open the file. Note: Fused in-place assignments cannot be used here!
     h5open(folder * "/pincflow_output.h5", "r+", comm) do file
@@ -231,6 +241,85 @@ function write_output(
                 1:nz,
                 iout,
             ] = pip[i0:i1, j0:j1, k0:k1]
+        end
+
+        # Write WKB variables.
+        if testcase == RayTracer()
+
+            # Write ray-volume properties.
+            if prepare_restart || save_ray_volumes
+                for (output_name, field_name) in zip(
+                    ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
+                    (:x, :y, :z, :dxray, :dyray, :dzray),
+                )
+                    HDF5.set_extent_dims(
+                        file[output_name],
+                        (nray_max, sizex, sizey, sizez, iout),
+                    )
+                    @views file[output_name][
+                        1:nray_max,
+                        (io + 1):(io + nx),
+                        (jo + 1):(jo + ny),
+                        1:nz,
+                        iout,
+                    ] =
+                        getfield(rays, field_name)[
+                            1:nray_max,
+                            i0:i1,
+                            j0:j1,
+                            k0:k1,
+                        ] .* lref
+                end
+
+                for (output_name, field_name) in zip(
+                    ("kr", "lr", "mr", "dkr", "dlr", "dmr"),
+                    (:k, :l, :m, :dkray, :dlray, :dmray),
+                )
+                    HDF5.set_extent_dims(
+                        file[output_name],
+                        (nray_max, sizex, sizey, sizez, iout),
+                    )
+                    @views file[output_name][
+                        1:nray_max,
+                        (io + 1):(io + nx),
+                        (jo + 1):(jo + ny),
+                        1:nz,
+                        iout,
+                    ] =
+                        getfield(rays, field_name)[
+                            1:nray_max,
+                            i0:i1,
+                            j0:j1,
+                            k0:k1,
+                        ] ./ lref
+                end
+
+                HDF5.set_extent_dims(
+                    file["nr"],
+                    (nray_max, sizex, sizey, sizez, iout),
+                )
+                @views file["nr"][
+                    1:nray_max,
+                    (io + 1):(io + nx),
+                    (jo + 1):(jo + ny),
+                    1:nz,
+                    iout,
+                ] =
+                    rays.dens[1:nray_max, i0:i1, j0:j1, k0:k1] .* rhoref .*
+                    uref .^ 2 .* tref .* lref .^ dim
+
+                HDF5.set_extent_dims(
+                    file["omegar"],
+                    (nray_max, sizex, sizey, sizez, iout),
+                )
+                @views file["omegar"][
+                    1:nray_max,
+                    (io + 1):(io + nx),
+                    (jo + 1):(jo + ny),
+                    1:nz,
+                    iout,
+                ] = rays.omega[1:nray_max, i0:i1, j0:j1, k0:k1] ./ tref
+            end
         end
 
         # Return.

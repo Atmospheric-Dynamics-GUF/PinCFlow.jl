@@ -1,8 +1,11 @@
 function create_output(state::State)
     # Get all necessary fields.
     (; sizex, sizey, sizez) = state.namelists.domain
-    (; prepare_restart, output_variables, folder) = state.namelists.output
+    (; prepare_restart, save_ray_volumes, output_variables, folder) =
+        state.namelists.output
+    (; testcase) = state.namelists.setting
     (; comm, nx, ny, nz) = state.domain
+    (; nray_max) = state.wkb
 
     # Prepare the output.
     h5open(folder * "/pincflow_output.h5", "w", comm) do file
@@ -135,6 +138,41 @@ function create_output(state::State)
                 dataspace((sizex, sizey, sizez, 0), (sizex, sizey, sizez, -1));
                 chunk = (nx, ny, nz, 1),
             )
+        end
+
+        # Create datasets for WKB variables.
+        if testcase == RayTracer()
+
+            # Create datasets for ray-volume properties.
+            if prepare_restart || save_ray_volumes
+                for field in (
+                    "xr",
+                    "yr",
+                    "zr",
+                    "dxr",
+                    "dyr",
+                    "dzr",
+                    "kr",
+                    "lr",
+                    "mr",
+                    "dkr",
+                    "dlr",
+                    "dmr",
+                    "nr",
+                    "omegar",
+                )
+                    create_dataset(
+                        file,
+                        field,
+                        datatype(Float32),
+                        dataspace(
+                            (nray_max, sizex, sizey, sizez, 0),
+                            (nray_max, sizex, sizey, sizez, -1),
+                        );
+                        chunk = (nray_max, nx, ny, nz, 1),
+                    )
+                end
+            end
         end
 
         # Return.

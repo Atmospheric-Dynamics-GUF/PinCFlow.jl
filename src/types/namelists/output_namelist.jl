@@ -6,6 +6,7 @@ struct OutputNamelist{
     E <: AbstractString,
 }
     output_variables::A
+    save_ray_volumes::B
     prepare_restart::B
     restart::B
     iin::C
@@ -20,6 +21,7 @@ end
 
 function OutputNamelist(;
     output_variables = (),
+    save_ray_volumes = false,
     prepare_restart = false,
     restart = false,
     iin = -1,
@@ -33,6 +35,7 @@ function OutputNamelist(;
 )
     return OutputNamelist(
         output_variables,
+        save_ray_volumes,
         prepare_restart,
         restart,
         iin,
