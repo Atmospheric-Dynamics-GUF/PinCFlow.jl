@@ -244,7 +244,7 @@ function write_output(
         end
 
         # Write WKB variables.
-        if testcase == RayTracer()
+        if typeof(testcase) <: AbstractWKBTestCase
 
             # Write ray-volume properties.
             if prepare_restart || save_ray_volumes

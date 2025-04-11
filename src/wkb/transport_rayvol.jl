@@ -10,7 +10,8 @@ function transport_rayvol(
     rkstage::Integer,
     wkb_mode::Union{SingleColumn, MultiColumn},
 )
-    (; case_wkb, branchr, zmin_wkb) = state.namelists.wkb
+    (; testcase) = state.namelists.setting
+    (; branchr, zmin_wkb) = state.namelists.wkb
     (; sizex, sizey) = state.namelists.domain
     (; nray, cgx_max, cgy_max, cgz_max_tfc, rays, f_cor_nd) = state.wkb
     (; dxray, dkray, ddxray) = state.wkb.increments
@@ -30,7 +31,7 @@ function transport_rayvol(
     cgz_max = 0.0
     cgz_max_tfc .= 0.0
 
-    kz0 = ifelse(case_wkb == 3, 0, 1)
+    kz0 = ifelse(testcase == WKBMountainWave(), 0, 1)
 
     for kz in kz0:k1, jy in j0:j1, ix in i0:i1
         ijk = CartesianIndex(ix, jy, kz)
@@ -54,7 +55,7 @@ function transport_rayvol(
             zr2 = zr + 0.5 * dzr
 
             # !skip ray volumes that have left the domain
-            if (case_wkb != 3)
+            if testcase != WKBMountainWave()
                 if (zr1 < state.grid.ztildetfc[ix, jy, -1])
                     nskip = nskip + 1
                     continue
@@ -311,7 +312,7 @@ function transport_rayvol(
         end
     end # grid loop
 
-    if (case_wkb == 3 && wkb_mode != SteadyState())
+    if (testcase == WKBMountainWave() && wkb_mode != SteadyState())
         orographic_source(var, ray, time, stepfrac(rkstage) * dt)
     end
 
@@ -324,14 +325,15 @@ function transport_rayvol(
     rkstage::Integer,
     wkb_mode::SteadyState,
 )
-    (; case_wkb, branchr, zmin_wkb) = state.namelists.wkb
+    (; testcase) = state.namelists.setting
+    (; branchr, zmin_wkb) = state.namelists.wkb
     (; sizex, sizey) = state.namelists.domain
     (; nray, cgz_max_tfc, rays, f_cor_nd) = state.wkb
     (; dxray, dkray, ddxray) = state.wkb.increments
     (; alphark, betark, stepfrac) = state.time
     lz = state.grid.lz
     (; k0, k1, j0, j1, i0, i1) = state.domain
-    if (case_wkb == 3)
+    if testcase == WKBMountainWave()
         orographic_source(var, ray, time, stepFrac(RKStage) * dt)
     end
 

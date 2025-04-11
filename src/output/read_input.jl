@@ -48,7 +48,7 @@ function read_input!(state::State)
             file["pip"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz, iin]
 
         # Read ray-volume properties.
-        if testcase == RayTracer()
+        if typeof(testcase) <: AbstractWKBTestCase
             for (output_name, field_name) in zip(
                 ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
                 (:x, :y, :z, :dxray, :dyray, :dzray),

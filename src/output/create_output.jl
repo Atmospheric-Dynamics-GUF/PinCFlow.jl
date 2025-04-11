@@ -141,7 +141,7 @@ function create_output(state::State)
         end
 
         # Create datasets for WKB variables.
-        if testcase == RayTracer()
+        if typeof(testcase) <: AbstractWKBTestCase
 
             # Create datasets for ray-volume properties.
             if prepare_restart || save_ray_volumes
