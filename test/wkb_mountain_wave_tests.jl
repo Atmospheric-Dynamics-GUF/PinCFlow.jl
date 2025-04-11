@@ -5,8 +5,8 @@ domain = DomainNamelist(;
     nbx = 3,
     nby = 3,
     nbz = 3,
-    lx_dim = (0.0, 2.0E+4),
-    ly_dim = (0.0, 2.0E+4),
+    lx_dim = (0.0, 4.0E+5),
+    ly_dim = (0.0, 4.0E+5),
     lz_dim = (0.0, 2.0E+4),
     nprocx = 1,
     nprocy = 1,
@@ -17,18 +17,18 @@ output = OutputNamelist(;
     prepare_restart = true,
     restart = false,
     iin = -1,
-    output_steps = true,
+    output_steps = false,
     noutput = 1,
     maxiter = 1,
     outputtimediff = 3.6E+3,
     maxtime = 3.6E+3,
     fancy_namelists = true,
-    folder = "./",
+    folder = folder,
 )
 
 setting = SettingNamelist(;
     model = PseudoIncompressible(),
-    testcase = MountainWave(),
+    testcase = RayTracer(),
     zboundaries = SolidWallBoundaries(),
 )
 
@@ -63,11 +63,11 @@ atmosphere = AtmosphereNamelist(;
 )
 
 grid = GridNamelist(;
-    mountainheight_dim = 1.0E+2,
-    mountainwidth_dim = 1.0E+3,
-    mountain_case = 4,
-    height_factor = 1.0E+0,
-    width_factor = 1.0E+0,
+    mountainheight_dim = 1.5E+2,
+    mountainwidth_dim = 5.0E+3,
+    mountain_case = 13,
+    height_factor = 2.0E+0,
+    width_factor = 1.0E+1,
     spectral_modes = 1,
     stretch_exponent = 1.0E+0,
 )
@@ -75,17 +75,49 @@ grid = GridNamelist(;
 sponge = SpongeNamelist(;
     spongelayer = true,
     sponge_uv = false,
-    spongeheight = 5.0E-1,
+    spongeheight = 1.0E-1,
     spongealphaz_dim = 1.79E-2,
     spongealphaz_fac = 1.0E+0,
     unifiedsponge = true,
     lateralsponge = true,
-    spongetype = SinusoidalSponge(),
+    spongetype = ExponentialSponge(),
     spongeorder = 1,
     cosmosteps = 1,
     relax_to_mean = false,
     relaxation_period = 0.0E+0,
     relaxation_amplitude = 0.0E+0,
+)
+
+wkb = WKBNamelist(;
+    xrmin_dim = 0.0E+0,
+    xrmax_dim = 4.0E+5,
+    yrmin_dim = 0.0,
+    yrmax_dim = 4.0E+5,
+    zrmin_dim = 0.0,
+    zrmax_dim = 2.0E+4,
+    nrxl = 1,
+    nryl = 1,
+    nrzl = 1,
+    nrk_init = 1,
+    nrl_init = 1,
+    nrm_init = 1,
+    nray_fac = 4,
+    fac_dk_init = 1.0E-1,
+    fac_dl_init = 1.0E-1,
+    fac_dm_init = 1.0E-1,
+    branchr = -1,
+    merge_mode = ConstantWaveAction(),
+    nsmth_wkb = 2,
+    lsmth_wkb = true,
+    sm_filter = 2,
+    zmin_wkb_dim = 0.0E+0,
+    lsaturation = true,
+    alpha_sat = 1.0E+0,
+    wkb_mode = MultiColumn(),
+    case_wkb = 3,
+    blocking = false,
+    nwm = 1,
+    launch_algorithm = Clip(),
 )
 
 namelists = Namelists(;
@@ -97,6 +129,7 @@ namelists = Namelists(;
     atmosphere = atmosphere,
     grid = grid,
     sponge = sponge,
+    wkb = wkb,
 )
 
 let output = stdout
@@ -106,7 +139,7 @@ let output = stdout
 end
 
 data = h5open("pincflow_output.h5")
-reference = h5open("mountain_wave_tests.h5")
+reference = h5open("wkb_mountain_wave_tests.h5")
 
 for key in keys(reference)
     @test all(isapprox.(data[key], reference[key]))

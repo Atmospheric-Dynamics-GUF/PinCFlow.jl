@@ -8,4 +8,8 @@ using HDF5
     @testset "Mountain-wave tests" begin
         include("mountain_wave_tests.jl")
     end
+
+    @testset "WKB mountain-wave tests" begin
+        include("wkb_mountain_wave_tests.jl")
+    end
 end
