@@ -61,9 +61,9 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
     (; lref) = constants
 
     # Non-dimensionalize domain boundaries.
-    lx = lx_dim ./ lref
-    ly = ly_dim ./ lref
-    lz = lz_dim ./ lref
+    lx = [lx_dim...] ./ lref
+    ly = [ly_dim...] ./ lref
+    lz = [lz_dim...] ./ lref
 
     # Compute grid spacings.
     dx = (lx[2] - lx[1]) / sizex

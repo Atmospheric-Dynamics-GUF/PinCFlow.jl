@@ -8,7 +8,7 @@ function write_output(
     # Get all necessary fields.
     (; domain, grid) = state
     (; sizex, sizey, sizez) = state.namelists.domain
-    (; prepare_restart, atmvarout, folder) = state.namelists.output
+    (; prepare_restart, output_variables, folder) = state.namelists.output
     (; comm, master, nx, ny, nz, io, jo, i0, i1, j0, j1, k0, k1) = domain
     (; tref, lref, rhoref, thetaref, uref) = state.constants
     (; x, y, ztfc) = grid
@@ -79,7 +79,7 @@ function write_output(
         end
 
         # Write the density fluctuations.
-        if prepare_restart || RhoP() in atmvarout
+        if prepare_restart || :rhop in output_variables
             HDF5.set_extent_dims(file["rhop"], (sizex, sizey, sizez, iout))
             @views file["rhop"][
                 (io + 1):(io + nx),
@@ -90,7 +90,7 @@ function write_output(
         end
 
         # Write the zonal winds.
-        if U() in atmvarout
+        if :u in output_variables
             HDF5.set_extent_dims(file["u"], (sizex, sizey, sizez, iout))
             @views file["u"][
                 (io + 1):(io + nx),
@@ -105,7 +105,7 @@ function write_output(
         end
 
         # Write the staggered zonal winds.
-        if prepare_restart || US() in atmvarout
+        if prepare_restart || :us in output_variables
             HDF5.set_extent_dims(file["us"], (sizex, sizey, sizez, iout))
             @views file["us"][
                 (io + 1):(io + nx),
@@ -116,7 +116,7 @@ function write_output(
         end
 
         # Write the meridional winds.
-        if V() in atmvarout
+        if :v in output_variables
             HDF5.set_extent_dims(file["v"], (sizex, sizey, sizez, iout))
             @views file["v"][
                 (io + 1):(io + nx),
@@ -131,7 +131,7 @@ function write_output(
         end
 
         # Write the staggered meridional winds.
-        if prepare_restart || VS() in atmvarout
+        if prepare_restart || :vs in output_variables
             HDF5.set_extent_dims(file["vs"], (sizex, sizey, sizez, iout))
             @views file["vs"][
                 (io + 1):(io + nx),
@@ -142,7 +142,7 @@ function write_output(
         end
 
         # Write the vertical winds.
-        if W() in atmvarout
+        if :w in output_variables
             HDF5.set_extent_dims(file["w"], (sizex, sizey, sizez, iout))
             for k in 1:nz, j in 1:ny, i in 1:nx
                 file["w"][io + i, jo + j, k, iout] =
@@ -165,7 +165,7 @@ function write_output(
         end
 
         # Write the staggered vertical winds.
-        if WS() in atmvarout
+        if :ws in output_variables
             HDF5.set_extent_dims(file["ws"], (sizex, sizey, sizez, iout))
             for k in 1:nz, j in 1:ny, i in 1:nx
                 file["ws"][io + i, jo + j, k, iout] =
@@ -180,7 +180,7 @@ function write_output(
         end
 
         # Write the transformed vertical winds.
-        if WTFC() in atmvarout
+        if :wtfc in output_variables
             HDF5.set_extent_dims(file["wtfc"], (sizex, sizey, sizez, iout))
             @views file["wtfc"][
                 (io + 1):(io + nx),
@@ -195,7 +195,7 @@ function write_output(
         end
 
         # Write the staggered transformed vertical winds.
-        if prepare_restart || WSTFC() in atmvarout
+        if prepare_restart || :wstfc in output_variables
             HDF5.set_extent_dims(file["wstfc"], (sizex, sizey, sizez, iout))
             @views file["wstfc"][
                 (io + 1):(io + nx),
@@ -206,7 +206,7 @@ function write_output(
         end
 
         # Write the potential-temperature fluctuations.
-        if ThetaP() in atmvarout
+        if :thetap in output_variables
             HDF5.set_extent_dims(file["thetap"], (sizex, sizey, sizez, iout))
             @views file["thetap"][
                 (io + 1):(io + nx),
@@ -223,7 +223,7 @@ function write_output(
         end
 
         # Write the Exner-pressure fluctuations.
-        if prepare_restart || PiP() in atmvarout
+        if prepare_restart || :pip in output_variables
             HDF5.set_extent_dims(file["pip"], (sizex, sizey, sizez, iout))
             @views file["pip"][
                 (io + 1):(io + nx),

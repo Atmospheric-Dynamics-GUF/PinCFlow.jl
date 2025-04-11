@@ -1,11 +1,11 @@
 struct OutputNamelist{
-    A <: AbstractVector{<:AbstractVariable},
+    A <: Tuple{Vararg{Symbol, <:Integer}},
     B <: Bool,
     C <: Integer,
     D <: AbstractFloat,
     E <: AbstractString,
 }
-    atmvarout::A
+    output_variables::A
     prepare_restart::B
     restart::B
     iin::C
@@ -19,7 +19,7 @@ struct OutputNamelist{
 end
 
 function OutputNamelist(;
-    atmvarout = Vector{AbstractVariable}(undef, 0),
+    output_variables = (),
     prepare_restart = false,
     restart = false,
     iin = -1,
@@ -32,7 +32,7 @@ function OutputNamelist(;
     folder = "./",
 )
     return OutputNamelist(
-        atmvarout,
+        output_variables,
         prepare_restart,
         restart,
         iin,

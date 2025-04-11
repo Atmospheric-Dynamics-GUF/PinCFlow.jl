@@ -1,7 +1,7 @@
 function create_output(state::State)
     # Get all necessary fields.
     (; sizex, sizey, sizez) = state.namelists.domain
-    (; prepare_restart, atmvarout, folder) = state.namelists.output
+    (; prepare_restart, output_variables, folder) = state.namelists.output
     (; comm, nx, ny, nz) = state.domain
 
     # Prepare the output.
@@ -37,7 +37,7 @@ function create_output(state::State)
         end
 
         # Create datasets for the prognostic variables.
-        if prepare_restart || RhoP() in atmvarout
+        if prepare_restart || :rhop in output_variables
             create_dataset(
                 file,
                 "rhop",
@@ -46,7 +46,7 @@ function create_output(state::State)
                 chunk = (nx, ny, nz, 1),
             )
         end
-        if U() in atmvarout
+        if :u in output_variables
             create_dataset(
                 file,
                 "u",
@@ -55,7 +55,7 @@ function create_output(state::State)
                 chunk = (nx, ny, nz, 1),
             )
         end
-        if prepare_restart || US() in atmvarout
+        if prepare_restart || :us in output_variables
             create_dataset(
                 file,
                 "us",
@@ -64,7 +64,7 @@ function create_output(state::State)
                 chunk = (nx, ny, nz, 1),
             )
         end
-        if V() in atmvarout
+        if :v in output_variables
             create_dataset(
                 file,
                 "v",
@@ -73,7 +73,7 @@ function create_output(state::State)
                 chunk = (nx, ny, nz, 1),
             )
         end
-        if prepare_restart || VS() in atmvarout
+        if prepare_restart || :vs in output_variables
             create_dataset(
                 file,
                 "vs",
@@ -82,7 +82,7 @@ function create_output(state::State)
                 chunk = (nx, ny, nz, 1),
             )
         end
-        if W() in atmvarout
+        if :w in output_variables
             create_dataset(
                 file,
                 "w",
@@ -91,7 +91,7 @@ function create_output(state::State)
                 chunk = (nx, ny, nz, 1),
             )
         end
-        if WS() in atmvarout
+        if :ws in output_variables
             create_dataset(
                 file,
                 "ws",
@@ -100,7 +100,7 @@ function create_output(state::State)
                 chunk = (nx, ny, nz, 1),
             )
         end
-        if WTFC() in atmvarout
+        if :wtfc in output_variables
             create_dataset(
                 file,
                 "wtfc",
@@ -109,7 +109,7 @@ function create_output(state::State)
                 chunk = (nx, ny, nz, 1),
             )
         end
-        if prepare_restart || WSTFC() in atmvarout
+        if prepare_restart || :wstfc in output_variables
             create_dataset(
                 file,
                 "wstfc",
@@ -118,7 +118,7 @@ function create_output(state::State)
                 chunk = (nx, ny, nz, 1),
             )
         end
-        if ThetaP() in atmvarout
+        if :thetap in output_variables
             create_dataset(
                 file,
                 "thetap",
@@ -127,7 +127,7 @@ function create_output(state::State)
                 chunk = (nx, ny, nz, 1),
             )
         end
-        if prepare_restart || PiP() in atmvarout
+        if prepare_restart || :pip in output_variables
             create_dataset(
                 file,
                 "pip",
