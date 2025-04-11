@@ -35,7 +35,7 @@ output = OutputNamelist(;
 
 setting = SettingNamelist(;
     model = PseudoIncompressible(),
-    testcase = RayTracer(),
+    testcase = WKBMountainWave(),
     zboundaries = SolidWallBoundaries(),
 )
 
@@ -121,7 +121,6 @@ wkb = WKBNamelist(;
     lsaturation = true,
     alpha_sat = 1.0E+0,
     wkb_mode = MultiColumn(),
-    case_wkb = 3,
     blocking = false,
     nwm = 1,
     launch_algorithm = Clip(),

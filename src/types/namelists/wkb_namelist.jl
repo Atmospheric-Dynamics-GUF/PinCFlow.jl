@@ -31,7 +31,6 @@ struct WKBNamelist{
     lsaturation::D
     alpha_sat::A
     wkb_mode::E
-    case_wkb::B
     blocking::D
     nwm::B
     launch_algorithm::F
@@ -63,7 +62,6 @@ function WKBNamelist(;
     lsaturation = true,
     alpha_sat = 1.0,
     wkb_mode = MultiColumn(),
-    case_wkb = 3,
     blocking = false,
     nwm = 1,
     launch_algorithm = Clip(),
@@ -94,7 +92,6 @@ function WKBNamelist(;
         lsaturation,
         alpha_sat,
         wkb_mode,
-        case_wkb,
         blocking,
         nwm,
         launch_algorithm,

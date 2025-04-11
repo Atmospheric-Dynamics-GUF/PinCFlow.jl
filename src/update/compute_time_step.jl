@@ -76,10 +76,10 @@ function compute_time_step(state::State)
         dtmax = dtmax_dim / tref
 
         #----------------------------------
-        #    WKB "CFL" criterion 
+        #         WKB-CFL criterion
         #----------------------------------
 
-        if testcase == RayTracer()
+        if typeof(testcase) <: AbstractWKBTestCase
 
             dtwkb_loc = jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps())
 
@@ -91,14 +91,14 @@ function compute_time_step(state::State)
 
             if sizex > 1
                 dtwkb_loc = min(dtwkb_loc, dx / (cgx_max + eps()))
-            end 
+            end
             if sizey > 1
                 dtwkb_loc = min(dtwkb_loc, dy / (cgy_max + eps()))
             end
 
             dtwkb_loc = cfl_wave * dtwkb_loc
 
-            # find global minimum 
+            # find global minimum
 
             dtwkb = MPI.Allreduce(dtwkb_loc, min, comm)
 
@@ -107,7 +107,7 @@ function compute_time_step(state::State)
         #        Make your choice
         #-------------------------------
 
-        if testcase == RayTracer()
+        if typeof(testcase) <: AbstractWKBTestCase
             dt = min(dtvisc, dtconv, dtmax, dtwkb)
         else
             dt = min(dtvisc, dtconv, dtmax)
@@ -121,7 +121,7 @@ function compute_time_step(state::State)
             println("dtvisc = ", dtvisc * tref, " seconds")
             println("dtconv = ", dtconv * tref, " seconds")
             println("dtmax = ", dtmax * tref, " seconds")
-            if testcase == RayTracer()
+            if typeof(testcase) <: AbstractWKBTestCase
                 println("dtwkb = ", dtwkb * tref, " seconds")
             end
             println("")

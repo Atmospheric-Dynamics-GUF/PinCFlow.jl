@@ -24,7 +24,7 @@ struct PiP <: AbstractVariable end
 struct PseudoIncompressible <: AbstractModel end
 
 struct MountainWave <: AbstractTestCase end
-struct RayTracer <: AbstractTestCase end
+struct WKBMountainWave <: AbstractWKBTestCase end
 
 struct PeriodicBoundaries <: AbstractBoundaries end
 struct SolidWallBoundaries <: AbstractBoundaries end
