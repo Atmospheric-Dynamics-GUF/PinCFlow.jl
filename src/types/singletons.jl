@@ -21,6 +21,16 @@ struct V <: AbstractVariable end
 struct W <: AbstractVariable end
 struct PiP <: AbstractVariable end
 
+struct N2 <: AbstractVariable end
+struct DN2DZ <: AbstractVariable end
+
+struct DUDX <: AbstractVariable end
+struct DUDY <: AbstractVariable end
+struct DUDZ <: AbstractVariable end
+struct DVDX <: AbstractVariable end
+struct DVDY <: AbstractVariable end
+struct DVDZ <: AbstractVariable end
+
 struct PseudoIncompressible <: AbstractModel end
 
 struct MountainWave <: AbstractTestCase end
