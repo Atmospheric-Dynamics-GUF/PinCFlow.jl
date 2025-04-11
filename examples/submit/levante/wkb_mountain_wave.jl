@@ -35,7 +35,7 @@ output = OutputNamelist(;
 
 setting = SettingNamelist(;
     model = PseudoIncompressible(),
-    testcase = MountainWave(),
+    testcase = RayTracer(),
     zboundaries = SolidWallBoundaries(),
 )
 
