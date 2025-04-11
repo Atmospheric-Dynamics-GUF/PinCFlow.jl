@@ -108,21 +108,7 @@ end
 data = h5open("pincflow_output.h5")
 reference = h5open("mountain_wave_tests.h5")
 
-for phi in (
-    "x",
-    "y",
-    "z",
-    "t",
-    "rhobar",
-    "thetabar",
-    "n2",
-    "p",
-    "rhop",
-    "us",
-    "vs",
-    "wstfc",
-    "pip",
-)
+for phi in keys(reference)
     @test all(isapprox.(data[phi], reference[phi]))
 end
 
