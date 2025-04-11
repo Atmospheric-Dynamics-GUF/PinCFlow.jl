@@ -17,14 +17,8 @@ struct MCVariant <: AbstractLimiter end
 struct Rho <: AbstractVariable end
 struct RhoP <: AbstractVariable end
 struct U <: AbstractVariable end
-struct US <: AbstractVariable end
 struct V <: AbstractVariable end
-struct VS <: AbstractVariable end
 struct W <: AbstractVariable end
-struct WS <: AbstractVariable end
-struct WTFC <: AbstractVariable end
-struct WSTFC <: AbstractVariable end
-struct ThetaP <: AbstractVariable end
 struct PiP <: AbstractVariable end
 
 struct PseudoIncompressible <: AbstractModel end
@@ -58,10 +52,6 @@ struct IMPL <: AbstractIntegration end
 struct X end
 struct Y end
 struct Z end
-
-struct xDir <: AbstractDir end
-struct yDir <: AbstractDir end
-struct zDir <: AbstractDir end
 
 struct SteadyState <: AbstractWKBMode end
 struct SingleColumn <: AbstractWKBMode end

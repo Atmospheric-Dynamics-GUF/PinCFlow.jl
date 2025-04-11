@@ -122,8 +122,6 @@ export DomainNamelist,
     SpongeNamelist,
     WKBNamelist,
     Namelists
-export AbstractVariable
-export Rho, RhoP, U, US, V, VS, W, WS, WTFC, WSTFC, ThetaP, PiP
 export PseudoIncompressible
 export MountainWave
 export MCVariant
