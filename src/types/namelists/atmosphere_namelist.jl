@@ -2,7 +2,7 @@ struct AtmosphereNamelist{
     A <: Bool,
     B <: AbstractFloat,
     C <: AbstractBackground,
-    D <: AbstractVector{<:AbstractFloat},
+    D <: NTuple{3, <:AbstractFloat},
     E <: AbstractCoriolis,
 }
     specifyreynolds::A
@@ -23,7 +23,7 @@ function AtmosphereNamelist(;
     background = Isothermal(),
     temp0_dim = 3.0E+2,
     press0_dim = 1.0E+5,
-    backgroundflow_dim = [0.0E+0, 0.0E+0, 0.0E+0],
+    backgroundflow_dim = (0.0E+0, 0.0E+0, 0.0E+0),
     f_coriolis_dim = 0.0E+0,
     corset = ConstantCoriolis(),
 )
