@@ -328,7 +328,7 @@ function WKB(
                 end
 
                 # Compute local stratification.
-                nnr = stratification(zr, N2())
+                n2r = stratification(zr, domain, grid, atmosphere, N2())
 
                 # Set spatial extents.
                 rays.dxray[iray, ix, jy, kz] = dx / nrxl
@@ -431,11 +431,11 @@ function WKB(
                 omir = rays.omega[iray, ix, jy, kz]
 
                 # Compute maximum group velocities.
-                cgirx = wnrk * (nnr - omir^2) / (omir * (wnrh^2 + wnrm^2))
+                cgirx = wnrk * (n2r - omir^2) / (omir * (wnrh^2 + wnrm^2))
                 if abs(uxr + cgirx) > abs(cgx_max)
                     cgx_max = abs(uxr + cgirx)
                 end
-                cgiry = wnrl * (nnr - omir^2) / (omir * (wnrh^2 + wnrm^2))
+                cgiry = wnrl * (n2r - omir^2) / (omir * (wnrh^2 + wnrm^2))
                 if abs(vyr + cgiry) > abs(cgy_max)
                     cgy_max = abs(vyr + cgiry)
                 end
