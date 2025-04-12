@@ -26,12 +26,12 @@ function interpolate_mean_flow(
     namelists::Namelists,
     domain::Domain,
     grid::Grid,
-    predictants::Predictands,
+    predictands::Predictands,
     flwtype::U,
 )
     (; sizex, sizey) = namelists.domain
     (; u) = predictands
-    (; io, jo, i0, j0, k1) = domain
+    (; nxx, nyy, io, jo, i0, j0, k1) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -156,12 +156,12 @@ function interpolate_mean_flow(
     namelists::Namelists,
     domain::Domain,
     grid::Grid,
-    predictants::Predictands,
+    predictands::Predictands,
     flwtype::V,
 )
     (; sizex, sizey) = namelists.domain
     (; v) = predictands
-    (; io, jo, i0, j0, k1) = domain
+    (; nxx, nyy, io, jo, i0, j0, k1) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -288,11 +288,11 @@ function interpolate_mean_flow(
     namelists::Namelists,
     domain::Domain,
     grid::Grid,
-    predictants::Predictands,
+    predictands::Predictands,
     flwtype::W,
 )
     (; sizex, sizey) = namelists.domain
-    (; io, jo, i0, j0, k0, k1) = domain
+    (; nxx, nyy, io, jo, i0, j0, k0, k1) = domain
     (; lx, ly, dx, dy, x, y, ztildetfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -451,12 +451,12 @@ function interpolate_mean_flow(
     namelists::Namelists,
     domain::Domain,
     grid::Grid,
-    predictants::Predictands,
+    predictands::Predictands,
     flwtype::DUDX,
 )
     (; sizex, sizey) = namelists.domain
     (; u) = predictands
-    (; io, jo, j0, k1) = domain
+    (; nxx, nyy, io, jo, j0, k1) = domain
     (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
 
     if sizex == 1
@@ -638,12 +638,12 @@ function interpolate_mean_flow(
     namelists::Namelists,
     domain::Domain,
     grid::Grid,
-    predictants::Predictands,
+    predictands::Predictands,
     flwtype::DUDY,
 )
     (; sizex, sizey) = namelists.domain
     (; u) = predictands
-    (; io, jo, i0, k1) = domain
+    (; nxx, nyy, io, jo, i0, k1) = domain
     (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
 
     # Locate the closest points in zonal direction.
@@ -879,12 +879,12 @@ function interpolate_mean_flow(
     namelists::Namelists,
     domain::Domain,
     grid::Grid,
-    predictants::Predictands,
+    predictands::Predictands,
     flwtype::DUDZ,
 )
     (; sizex, sizey) = namelists.domain
     (; u) = predictands
-    (; io, jo, i0, j0, k0, k1) = domain
+    (; nxx, nyy, io, jo, i0, j0, k0, k1) = domain
     (; lx, ly, lz, dx, dy, dz, jac, x, y, ztildetfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -1171,12 +1171,12 @@ function interpolate_mean_flow(
     namelists::Namelists,
     domain::Domain,
     grid::Grid,
-    predictants::Predictands,
+    predictands::Predictands,
     flwtype::DVDX,
 )
     (; sizex, sizey) = namelists.domain
     (; v) = predictands
-    (; io, jo, i0, j0, k1) = domain
+    (; nxx, nyy, io, jo, i0, j0, k1) = domain
     (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
 
     # Locate the closest points in zonal direction.
@@ -1417,12 +1417,12 @@ function interpolate_mean_flow(
     namelists::Namelists,
     domain::Domain,
     grid::Grid,
-    predictants::Predictands,
+    predictands::Predictands,
     flwtype::DVDY,
 )
     (; sizex, sizey) = namelists.domain
     (; v) = predictands
-    (; io, jo, i0, j0, k1) = domain
+    (; nxx, nyy, io, jo, i0, j0, k1) = domain
     (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
 
     # Locate the closest points in zonal direction.
@@ -1605,12 +1605,12 @@ function interpolate_mean_flow(
     namelists::Namelists,
     domain::Domain,
     grid::Grid,
-    predictants::Predictands,
+    predictands::Predictands,
     flwtype::DVDZ,
 )
     (; sizex, sizey) = namelists.domain
     (; v) = predictands
-    (; io, jo, i0, j0, k0, k1) = domain
+    (; nxx, nyy, io, jo, i0, j0, k0, k1) = domain
     (; lx, ly, lz, dx, dy, dz, jac, x, y, ztildetfc) = grid
 
     # Locate the closest points in zonal direction.

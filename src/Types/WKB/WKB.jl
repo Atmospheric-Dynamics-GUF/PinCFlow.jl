@@ -108,10 +108,10 @@ function WKB(
     (; sizex, sizey, sizez) = namelists.domain
     (; f_coriolis_dim) = namelists.atmosphere
     (; nxx, nyy, nzz, io, jo, i0, i1, j0, j1, k0, k1, master, comm) = domain
-    (; lx, ly, lz, dx, dy) = grid
+    (; lx, ly, lz, dx, dy, dz, jac) = grid
 
-    f_cor_nd = f_coriolis_dim * tref
     # Set Coriolis parameter.
+    f_cor_nd = f_coriolis_dim * tref
 
     # Set boundaries for ray-volume propagation.
     xrmin = xrmin_dim / lref
@@ -330,7 +330,13 @@ function WKB(
                 end
 
                 # Compute local stratification.
-                n2r = stratification(zr, domain, grid, atmosphere, N2())
+                n2r = interpolate_stratification(
+                    zr,
+                    domain,
+                    grid,
+                    atmosphere,
+                    N2(),
+                )
 
                 # Set spatial extents.
                 rays.dxray[iray, ix, jy, kz] = dx / nrxl
@@ -395,7 +401,7 @@ function WKB(
                 rays.omega[iray, ix, jy, kz] = omi_ini[iwm, ix, jy, kz]
 
                 # Interpolate winds to ray-volume position.
-                uxr = meanflow(
+                uxr = interpolate_mean_flow(
                     xr,
                     yr,
                     zr,
@@ -405,7 +411,7 @@ function WKB(
                     predictands,
                     U(),
                 )
-                vyr = meanflow(
+                vyr = interpolate_mean_flow(
                     xr,
                     yr,
                     zr,
@@ -415,7 +421,7 @@ function WKB(
                     predictands,
                     V(),
                 )
-                wzr = meanflow(
+                wzr = interpolate_mean_flow(
                     xr,
                     yr,
                     zr,
@@ -443,9 +449,9 @@ function WKB(
                 end
                 cgirz =
                     -wnrm * (omir^2 - f_cor_nd^2) / (omir * (wnrh^2 + wnrm^2))
-                if abs(wzr + cgirz) > abs(cgz_max)
+                if abs(wzr + cgirz) > abs(cgz_max[ix, jy, kz])
                     cgz_max[ix, jy, kz] =
-                        max(cgz_max[ix, jy, kz], abs[wzr + cgirz])
+                        max(cgz_max[ix, jy, kz], abs(wzr + cgirz))
                 end
             end
 
