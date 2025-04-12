@@ -17,13 +17,13 @@ output = OutputNamelist(;
     prepare_restart = true,
     restart = false,
     iin = -1,
-    output_steps = false,
+    output_steps = true,
     noutput = 1,
     maxiter = 1,
     outputtimediff = 3.6E+3,
     maxtime = 3.6E+3,
     fancy_namelists = true,
-    folder = folder,
+    folder = "./",
 )
 
 setting = SettingNamelist(;
@@ -109,7 +109,7 @@ wkb = WKBNamelist(;
     merge_mode = ConstantWaveAction(),
     nsmth_wkb = 2,
     lsmth_wkb = true,
-    sm_filter = 2,
+    sm_filter = Shapiro(),
     zmin_wkb_dim = 0.0E+0,
     lsaturation = true,
     alpha_sat = 1.0E+0,
