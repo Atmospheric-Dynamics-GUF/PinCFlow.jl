@@ -147,6 +147,11 @@ include("../MSGWaM/RaySources/activate_orographic_source!.jl")
 include("../MSGWaM/RaySources/compute_orographic_mode.jl")
 include("../MSGWaM/Interpolation/interpolate_stratification.jl")
 include("../MSGWaM/Interpolation/interpolate_mean_flow.jl")
+include("../MSGWaM/Interpolation/interpolate.jl")
+include("../MSGWaM/Interpolation/get_next_level.jl")
+include("../MSGWaM/Interpolation/get_next_half_level.jl")
+include("../Update/compute_vertical_wind.jl")
+include("../Update/transform.jl")
 
 # Export abstract types. Some of these may be moved to other modules.
 export AbstractBackground,
