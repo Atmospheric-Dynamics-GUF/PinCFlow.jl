@@ -19,7 +19,7 @@ function interpolate_stratification(
     (; ztfc) = grid
 
     kzu = get_next_level(i0, j0, zlc, domain, grid)
-    kzd = kru - 1
+    kzd = kzu - 1
 
     if (kzu > k1 + 1)
         kzu = k1 + 1
@@ -29,7 +29,7 @@ function interpolate_stratification(
     zd = ztfc[i0, j0, kzd]
     zu = ztfc[i0, j0, kzu]
     strd = bvsstrattfc[i0, j0, kzd]
-    stru = bvsStrattfc[i0, j0, kzu]
+    stru = bvsstrattfc[i0, j0, kzu]
 
     if zu < zd
         error("Error in interpolate_stratification (N2): zu = ", zu, " < zd = ", zd)

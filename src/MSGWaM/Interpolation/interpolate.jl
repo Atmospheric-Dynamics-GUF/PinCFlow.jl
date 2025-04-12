@@ -24,7 +24,7 @@ function interpolate(
     yb::AbstractFloat,
     ylc::AbstractFloat,
 )
-    (; sizex, sizey) = namelists
+    (; sizex, sizey) = namelists.domain
 
     # Interpolate in x.
     if sizex == 1
