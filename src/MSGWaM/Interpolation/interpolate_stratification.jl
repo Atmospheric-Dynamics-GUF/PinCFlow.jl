@@ -22,7 +22,12 @@ function interpolate_stratification(
     stru = bvsstrattfc[i0, j0, kzu]
 
     if zu < zd
-        error("Error in interpolate_stratification (N2): zu = ", zu, " < zd = ", zd)
+        error(
+            "Error in interpolate_stratification (N2): zu = ",
+            zu,
+            " < zd = ",
+            zd,
+        )
     elseif zu == zd
         factor = 0.0
     elseif zlc > zu
@@ -46,7 +51,7 @@ function interpolate_stratification(
     (; domain, grid) = state
     (; bvsstrattfc) = state.atmosphere
     (; i0, j0, k1) = domain
-    (; ztildetfc, jac) = grid
+    (; dz, ztildetfc, jac) = grid
 
     kzu = get_next_half_level(i0, j0, zlc, domain, grid)
     kzd = kzu - 1
@@ -71,7 +76,12 @@ function interpolate_stratification(
         ) / dz
 
     if zu < zd
-        error("Error in interpolate_stratification (DN2DZ): zu = ", zu, " < zd = ", zd)
+        error(
+            "Error in interpolate_stratification (DN2DZ): zu = ",
+            zu,
+            " < zd = ",
+            zd,
+        )
     elseif zu == zd
         factor = 0.0
     elseif zlc > zu

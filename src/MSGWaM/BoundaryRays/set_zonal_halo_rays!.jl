@@ -15,7 +15,6 @@ function set_zonal_halo_rays!(state::State)
         :dkray,
         :dlray,
         :dmray,
-        :omega,
         :dens,
     )
 
@@ -76,110 +75,6 @@ function set_zonal_halo_rays!(state::State)
             (k0 - 1):(k1 + 1),
         ] = recv_rays_right[index, :, :, :]
     end
-
-    @views rays.area_xk[
-        1:nray_max_right,
-        i0 - 1,
-        (j0 - 1):(j1 + 1),
-        (k0 - 1):(k1 + 1),
-    ] =
-        rays.dxray[
-            1:nray_max_right,
-            i0 - 1,
-            (j0 - 1):(j1 + 1),
-            (k0 - 1):(k1 + 1),
-        ] * rays.dkray[
-            1:nray_max_right,
-            i0 - 1,
-            (j0 - 1):(j1 + 1),
-            (k0 - 1):(k1 + 1),
-        ]
-    @views rays.area_yl[
-        1:nray_max_right,
-        i0 - 1,
-        (j0 - 1):(j1 + 1),
-        (k0 - 1):(k1 + 1),
-    ] =
-        rays.dyray[
-            1:nray_max_right,
-            i0 - 1,
-            (j0 - 1):(j1 + 1),
-            (k0 - 1):(k1 + 1),
-        ] * rays.dlray[
-            1:nray_max_right,
-            i0 - 1,
-            (j0 - 1):(j1 + 1),
-            (k0 - 1):(k1 + 1),
-        ]
-    @views rays.area_zm[
-        1:nray_max_right,
-        i0 - 1,
-        (j0 - 1):(j1 + 1),
-        (k0 - 1):(k1 + 1),
-    ] =
-        rays.dzray[
-            1:nray_max_right,
-            i0 - 1,
-            (j0 - 1):(j1 + 1),
-            (k0 - 1):(k1 + 1),
-        ] * rays.dmray[
-            1:nray_max_right,
-            i0 - 1,
-            (j0 - 1):(j1 + 1),
-            (k0 - 1):(k1 + 1),
-        ]
-
-    @views rays.area_xk[
-        1:nray_max_left,
-        i1 + 1,
-        (j0 - 1):(j1 + 1),
-        (k0 - 1):(k1 + 1),
-    ] =
-        rays.dxray[
-            1:nray_max_left,
-            i1 + 1,
-            (j0 - 1):(j1 + 1),
-            (k0 - 1):(k1 + 1),
-        ] * rays.dkray[
-            1:nray_max_left,
-            i1 + 1,
-            (j0 - 1):(j1 + 1),
-            (k0 - 1):(k1 + 1),
-        ]
-    @views rays.area_yl[
-        1:nray_max_left,
-        i1 + 1,
-        (j0 - 1):(j1 + 1),
-        (k0 - 1):(k1 + 1),
-    ] =
-        rays.dyray[
-            1:nray_max_left,
-            i1 + 1,
-            (j0 - 1):(j1 + 1),
-            (k0 - 1):(k1 + 1),
-        ] * rays.dlray[
-            1:nray_max_left,
-            i1 + 1,
-            (j0 - 1):(j1 + 1),
-            (k0 - 1):(k1 + 1),
-        ]
-    @views rays.area_zm[
-        1:nray_max_left,
-        i1 + 1,
-        (j0 - 1):(j1 + 1),
-        (k0 - 1):(k1 + 1),
-    ] =
-        rays.dzray[
-            1:nray_max_left,
-            i1 + 1,
-            (j0 - 1):(j1 + 1),
-            (k0 - 1):(k1 + 1),
-        ] * rays.dmray[
-            1:nray_max_left,
-            i1 + 1,
-            (j0 - 1):(j1 + 1),
-            (k0 - 1):(k1 + 1),
-        ]
 
     return
 end

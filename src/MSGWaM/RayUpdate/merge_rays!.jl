@@ -8,10 +8,7 @@ function merge_rays!(state::State, wkb_mode::SteadyState)
     return
 end
 
-function merge_rays!(
-    state::State,
-    wkb_mode::Union{SingleColumn, MultiColumn},
-)
+function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
 
     # Compute ray-volume count before merging.
     @views nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
@@ -63,7 +60,7 @@ function merge_rays!(
             (axk, ayl, azm) = get_surfaces(rays, (iray, ix, jy, kz))
 
             nr = rays.dens[iray, ix, jy, kz]
-            omegar = ray.omega[iray, ix, jy, kz]
+            omegar = compute_intrinsic_frequency(state, (iray, ix, jy, kz))
 
             # Determine bin index in k.
             if sizex > 1
@@ -181,28 +178,22 @@ function merge_rays!(
             rays.dlray[iray, ix, jy, kz] = diff(merged_rays[jray].dlr)[1]
             rays.dmray[iray, ix, jy, kz] = diff(merged_rays[jray].dmr)[1]
 
-            rays.omega[iray, ix, jy, kz] =
-                compute_intrinsic_frequency(state, (iray, ix, jy, kz))
-
-            (
-                rays.area_xk[iray, ix, jy, kz],
-                rays.area_yl[iray, ix, jy, kz],
-                rays.area_zm[iray, ix, jy, kz],
-            ) = compute_ray_volumes_surfaces(rays, (iray, ix, jy, kz))
+            (axk, ayl, azm) =
+                get_surfaces(rays, (iray, ix, jy, kz))
 
             if sizex > 1
-                fcpspx = rays.area_xk[iray, ix, jy, kz]
+                fcpspx = axk
             else
                 fcpspx = 1.0
             end
 
             if sizey > 1
-                fcpspy = rays.area_yl[iray, ix, jy, kz]
+                fcpspy = ayl
             else
                 fcpspy = 1.0
             end
 
-            fcpspz = rays.area_zm[iray, ix, jy, kz]
+            fcpspz = azm
 
             if merge_mode == ConstantWaveAction()
                 rays.dens[iray, ix, jy, kz] =

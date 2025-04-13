@@ -6,8 +6,6 @@ function activate_orographic_source!(
     wnm_ini::AbstractArray{<:AbstractFloat, 4},
     wad_ini::AbstractArray{<:AbstractFloat, 4},
 )
-
-    # Get all necessary fields.
     (; f_coriolis_dim) = state.namelists.atmosphere
     (; branchr, blocking, long_threshold, nwm) = state.namelists.wkb
     (; tref) = state.constants
@@ -97,8 +95,8 @@ function activate_orographic_source!(
 end
 
 function activate_orographic_source!(state::State, dt::AbstractFloat)
-    # Get all necessary fields.
-    (; f_cor_nd) = state.namelists.atmosphere
+    (; sizex, sizey) = state.namelists.domain
+    (; f_coriolis_dim) = state.namelists.atmosphere
     (;
         nrxl,
         nryl,
@@ -113,6 +111,7 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
         blocking,
         long_threshold,
         launch_algorithm,
+        wkb_mode,
     ) = state.namelists.wkb
     (; tref) = state.constants
     (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
@@ -133,7 +132,7 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
     (; u, v) = state.variables.predictands
     (; ir_sfc, ix2_sfc, jy2_sfc, kz2_sfc, ik_sfc, jl_sfc, km_sfc, iwm_sfc) =
         state.wkb.surface_indices
-    (; nray_wrk, nray, rays) = state.wkb
+    (; nray_wrk, n_sfc, nray, rays) = state.wkb
 
     # Set Coriolis parameter.
     f_cor_nd = f_coriolis_dim * tref
@@ -141,8 +140,8 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
     # Iterate over surface grid cells.
     for jy in j0:j1, ix in i0:i1
 
-        # Average mean wind, reference density and buoyancy frequency. This should
-        # be done without a vertical loop.
+        # Average mean wind, reference density and buoyancy frequency. This
+        # should be done without a vertical loop.
         uavg = 0.0
         vavg = 0.0
         rhoavg = 0.0
@@ -273,9 +272,6 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
                             rays.z[nrlc, ix, jy, kz + 1] =
                                 zr + 0.5 * dzr -
                                 0.5 * rays.dzray[nrlc, ix, jy, kz + 1]
-                            rays.area_zm[nrlc, ix, jy, kz + 1] =
-                                rays.dzray[nrlc, ix, jy, kz + 1] *
-                                rays.dmray[nrlc, ix, jy, kz + 1]
                         end
 
                         # Check for case (1).
@@ -334,7 +330,7 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
             if wnrm == 0.0
                 error("Error in orographic_source: wnrm = 0!")
             else
-                dm_ini_nd = fac_dm_init * abs[wnrm]
+                dm_ini_nd = fac_dm_init * abs(wnrm)
             end
 
             # Set spectral ray-volume position.
@@ -350,14 +346,6 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
             rays.dlray[iray, ix, jy, kz] = dl_ini_nd / nrl_init
             rays.dmray[iray, ix, jy, kz] = dm_ini_nd / nrm_init
 
-            # Set phase-space volume.
-            rays.area_xk[iray, ix, jy, kz] =
-                rays.dxray[iray, ix, jy, kz] * rays.dkray[iray, ix, jy, kz]
-            rays.area_yl[iray, ix, jy, kz] =
-                rays.dyray[iray, ix, jy, kz] * rays.dlray[iray, ix, jy, kz]
-            rays.area_zm[iray, ix, jy, kz] =
-                rays.dzray[iray, ix, jy, kz] * rays.dmray[iray, ix, jy, kz]
-
             # Compute spectral volume.
             pspvol = dm_ini_nd
             if sizex > 1
@@ -369,9 +357,6 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
 
             # Set phase-space wave-action density.
             rays.dens[iray, ix, jy, kz] = wadr / pspvol
-
-            # Set intrinsic frequency.
-            rays.omega[iray, ix, jy, kz] = omir
         end
     end
 end

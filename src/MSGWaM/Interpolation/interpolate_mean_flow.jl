@@ -3,7 +3,7 @@ function interpolate_mean_flow(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    flwtype::U,
+    phitype::U,
 )
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
@@ -22,7 +22,12 @@ function interpolate_mean_flow(
         end
         ixr = ixl + 1
         if ixr > nxx
-            error("Error in interpolate_mean_flow (U): ixr = ", ixr, "> nxx = ", nxx)
+            error(
+                "Error in interpolate_mean_flow (U): ixr = ",
+                ixr,
+                "> nxx = ",
+                nxx,
+            )
         end
     end
     xr = x[ixr + io] + dx / 2
@@ -39,7 +44,12 @@ function interpolate_mean_flow(
         end
         jyf = jyb + 1
         if jyf > nyy
-            error("Error in interpolate_mean_flow (U): jyr = ", jyr, " > nyy = ", nyy)
+            error(
+                "Error in interpolate_mean_flow (U): jyr = ",
+                jyr,
+                " > nyy = ",
+                nyy,
+            )
         end
     end
     yf = y[jyf + jo]
@@ -83,29 +93,29 @@ function interpolate_mean_flow(
     zrfd = ztfc[ixr, jyf, kzrfd]
     zrfu = ztfc[ixr, jyf, kzrfu]
 
-    flwlbd = u[ixl, jyb, kzlbd]
-    flwlbu = u[ixl, jyb, kzlbu]
+    philbd = u[ixl, jyb, kzlbd]
+    philbu = u[ixl, jyb, kzlbu]
 
-    flwlfd = u[ixl, jyf, kzlfd]
-    flwlfu = u[ixl, jyf, kzlfu]
+    philfd = u[ixl, jyf, kzlfd]
+    philfu = u[ixl, jyf, kzlfu]
 
-    flwrbd = u[ixr, jyb, kzrbd]
-    flwrbu = u[ixr, jyb, kzrbu]
+    phirbd = u[ixr, jyb, kzrbd]
+    phirbu = u[ixr, jyb, kzrbu]
 
-    flwrfd = u[ixr, jyf, kzrfd]
-    flwrfu = u[ixr, jyf, kzrfu]
+    phirfd = u[ixr, jyf, kzrfd]
+    phirfu = u[ixr, jyf, kzrfu]
 
     # Interpolate.
-    flw = interpolate(
+    phi = interpolate(;
         namelists,
-        flwlbd,
-        flwlbu,
-        flwlfd,
-        flwlfu,
-        flwrbd,
-        flwrbu,
-        flwrfd,
-        flwrfu,
+        philbd,
+        philbu,
+        philfd,
+        philfu,
+        phirbd,
+        phirbu,
+        phirfd,
+        phirfu,
         zrbd,
         zrbu,
         zrfd,
@@ -123,7 +133,7 @@ function interpolate_mean_flow(
         ylc,
     )
 
-    return flw
+    return phi
 end
 
 function interpolate_mean_flow(
@@ -131,7 +141,7 @@ function interpolate_mean_flow(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    flwtype::V,
+    phitype::V,
 )
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
@@ -150,7 +160,12 @@ function interpolate_mean_flow(
         end
         ixr = ixl + 1
         if ixr > nxx
-            error("Error in interpolate_mean_flow (V): ixr = ", ixr, " > nxx = ", nxx)
+            error(
+                "Error in interpolate_mean_flow (V): ixr = ",
+                ixr,
+                " > nxx = ",
+                nxx,
+            )
         end
     end
     xr = x[ixr + io]
@@ -167,7 +182,12 @@ function interpolate_mean_flow(
         end
         jyf = jyb + 1
         if jyf > nyy
-            error("Error in interpolate_mean_flow (V): jyf = ", jyf, " > nyy = ", nyy)
+            error(
+                "Error in interpolate_mean_flow (V): jyf = ",
+                jyf,
+                " > nyy = ",
+                nyy,
+            )
         end
     end
     yf = y[jyf + jo] + dy / 2
@@ -213,29 +233,29 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    flwlbd = v[ixl, jyb, kzlbd]
-    flwlbu = v[ixl, jyb, kzlbu]
+    philbd = v[ixl, jyb, kzlbd]
+    philbu = v[ixl, jyb, kzlbu]
 
-    flwlfd = v[ixl, jyf, kzlfd]
-    flwlfu = v[ixl, jyf, kzlfu]
+    philfd = v[ixl, jyf, kzlfd]
+    philfu = v[ixl, jyf, kzlfu]
 
-    flwrbd = v[ixr, jyb, kzrbd]
-    flwrbu = v[ixr, jyb, kzrbu]
+    phirbd = v[ixr, jyb, kzrbd]
+    phirbu = v[ixr, jyb, kzrbu]
 
-    flwrfd = v[ixr, jyf, kzrfd]
-    flwrfu = v[ixr, jyf, kzrfu]
+    phirfd = v[ixr, jyf, kzrfd]
+    phirfu = v[ixr, jyf, kzrfu]
 
     # Interpolate.
-    flw = interpolate(
+    phi = interpolate(;
         namelists,
-        flwlbd,
-        flwlbu,
-        flwlfd,
-        flwlfu,
-        flwrbd,
-        flwrbu,
-        flwrfd,
-        flwrfu,
+        philbd,
+        philbu,
+        philfd,
+        philfu,
+        phirbd,
+        phirbu,
+        phirfd,
+        phirfu,
         zrbd,
         zrbu,
         zrfd,
@@ -253,7 +273,7 @@ function interpolate_mean_flow(
         ylc,
     )
 
-    return flw
+    return phi
 end
 
 function interpolate_mean_flow(
@@ -261,7 +281,7 @@ function interpolate_mean_flow(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    flwtype::W,
+    phitype::W,
 )
     (; namelists, domain, grid) = state
     (; predictands) = state.variables
@@ -280,7 +300,12 @@ function interpolate_mean_flow(
         end
         ixr = ixl + 1
         if ixr > nxx
-            error("Error in interpolate_mean_flow (W): ixr = ", ixr, " > nxx = ", nxx)
+            error(
+                "Error in interpolate_mean_flow (W): ixr = ",
+                ixr,
+                " > nxx = ",
+                nxx,
+            )
         end
     end
     xr = x[ixr + io]
@@ -297,7 +322,12 @@ function interpolate_mean_flow(
         end
         jyf = jyb + 1
         if jyf > nyy
-            error("Error in interpolate_mean_flow (W): jyf = ", jyf, " > nyy = ", nyy)
+            error(
+                "Error in interpolate_mean_flow (W): jyf = ",
+                jyf,
+                " > nyy = ",
+                nyy,
+            )
         end
     end
     yf = y[jyf + jo]
@@ -344,60 +374,60 @@ function interpolate_mean_flow(
     # Assign the values.
 
     if zlbu < ztildetfc[ixl, jyb, k0 - 1]
-        flwlbd = 0.0
-        flwlbu = 0.0
+        philbd = 0.0
+        philbu = 0.0
     elseif zlbd < ztildetfc[ixl, jyb, k0 - 1]
-        flwlbd = 0.0
-        flwlbu = compute_vertical_wind(ixl, jyb, kzlbu, predictands, grid)
+        philbd = 0.0
+        philbu = compute_vertical_wind(ixl, jyb, kzlbu, predictands, grid)
     else
-        flwlbd = compute_vertical_wind(ixl, jyb, kzlbd, predictands, grid)
-        flwlbu = compute_vertical_wind(ixl, jyb, kzlbu, predictands, grid)
+        philbd = compute_vertical_wind(ixl, jyb, kzlbd, predictands, grid)
+        philbu = compute_vertical_wind(ixl, jyb, kzlbu, predictands, grid)
     end
 
     if zlfu < ztildetfc[ixl, jyf, k0 - 1]
-        flwlfd = 0.0
-        flwlfu = 0.0
+        philfd = 0.0
+        philfu = 0.0
     elseif zlfd < ztildetfc[ixl, jyf, k0 - 1]
-        flwlfd = 0.0
-        flwlfu = compute_vertical_wind(ixl, jyf, kzlfu, predictands, grid)
+        philfd = 0.0
+        philfu = compute_vertical_wind(ixl, jyf, kzlfu, predictands, grid)
     else
-        flwlfd = compute_vertical_wind(ixl, jyf, kzlfd, predictands, grid)
-        flwlfu = compute_vertical_wind(ixl, jyf, kzlfu, predictands, grid)
+        philfd = compute_vertical_wind(ixl, jyf, kzlfd, predictands, grid)
+        philfu = compute_vertical_wind(ixl, jyf, kzlfu, predictands, grid)
     end
 
     if zrbu < ztildetfc[ixr, jyb, k0 - 1]
-        flwrbd = 0.0
-        flwrbu = 0.0
+        phirbd = 0.0
+        phirbu = 0.0
     elseif zrbd < ztildetfc[ixr, jyb, k0 - 1]
-        flwrbd = 0.0
-        flwrbu = compute_vertical_wind(ixr, jyb, kzrbu, predictands, grid)
+        phirbd = 0.0
+        phirbu = compute_vertical_wind(ixr, jyb, kzrbu, predictands, grid)
     else
-        flwrbd = compute_vertical_wind(ixr, jyb, kzrbd, predictands, grid)
-        flwrbu = compute_vertical_wind(ixr, jyb, kzrbu, predictands, grid)
+        phirbd = compute_vertical_wind(ixr, jyb, kzrbd, predictands, grid)
+        phirbu = compute_vertical_wind(ixr, jyb, kzrbu, predictands, grid)
     end
 
     if zrfu < ztildetfc[ixr, jyf, k0 - 1]
-        flwrfd = 0.0
-        flwrfu = 0.0
+        phirfd = 0.0
+        phirfu = 0.0
     elseif zrfd < ztildetfc[ixr, jyf, k0 - 1]
-        flwrfd = 0.0
-        flwrfu = compute_vertical_wind(ixr, jyf, kzrfu, predictands, grid)
+        phirfd = 0.0
+        phirfu = compute_vertical_wind(ixr, jyf, kzrfu, predictands, grid)
     else
-        flwrfd = compute_vertical_wind(ixr, jyf, kzrfd, predictands, grid)
-        flwrfu = compute_vertical_wind(ixr, jyf, kzrfu, predictands, grid)
+        phirfd = compute_vertical_wind(ixr, jyf, kzrfd, predictands, grid)
+        phirfu = compute_vertical_wind(ixr, jyf, kzrfu, predictands, grid)
     end
 
     # Interpolate.
-    flw = interpolate(
+    phi = interpolate(;
         namelists,
-        flwlbd,
-        flwlbu,
-        flwlfd,
-        flwlfu,
-        flwrbd,
-        flwrbu,
-        flwrfd,
-        flwrfu,
+        philbd,
+        philbu,
+        philfd,
+        philfu,
+        phirbd,
+        phirbu,
+        phirfd,
+        phirfu,
         zrbd,
         zrbu,
         zrfd,
@@ -415,7 +445,7 @@ function interpolate_mean_flow(
         ylc,
     )
 
-    return flw
+    return phi
 end
 
 function interpolate_mean_flow(
@@ -423,25 +453,34 @@ function interpolate_mean_flow(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    flwtype::DUDX,
+    phitype::DUDX,
 )
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; u) = state.variables.predictands
-    (; nxx, nyy, io, jo, j0, k1) = domain
+    (; nxx, nyy, io, jo, i0, j0, k1) = domain
     (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
 
     if sizex == 1
-        flw = 0.0
-        return flw
+        phi = 0.0
+        return phi
     else
         ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
         if ixl - 1 < 1
-            error("Error in interpolate_mean_flow (DUDX): ixl - 1 = ", ixl - 1, " < 1")
+            error(
+                "Error in interpolate_mean_flow (DUDX): ixl - 1 = ",
+                ixl - 1,
+                " < 1",
+            )
         end
         ixr = ixl + 1
         if ixr > nxx
-            error("Error in interpolate_mean_flow (DUDX): ixr = ", ixr, " > nxx = ", nxx)
+            error(
+                "Error in interpolate_mean_flow (DUDX): ixr = ",
+                ixr,
+                " > nxx = ",
+                nxx,
+            )
         end
     end
     xr = x[ixr + io]
@@ -458,7 +497,12 @@ function interpolate_mean_flow(
         end
         jyf = jyb + 1
         if jyf > nyy
-            error("Error in interpolate_mean_flow (DUDX): jyf = ", jyf, " > nyy = ", nyy)
+            error(
+                "Error in interpolate_mean_flow (DUDX): jyf = ",
+                jyf,
+                " > nyy = ",
+                nyy,
+            )
         end
     end
     yf = y[jyf + jo]
@@ -504,7 +548,7 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    flwlbd =
+    philbd =
         (u[ixl, jyb, kzlbd] - u[ixl - 1, jyb, kzlbd]) / dx +
         met[ixl, jyb, kzlbd, 1, 3] *
         0.25 *
@@ -512,7 +556,7 @@ function interpolate_mean_flow(
             u[ixl, jyb, kzlbd + 1] + u[ixl - 1, jyb, kzlbd + 1] -
             u[ixl, jyb, kzlbd - 1] - u[ixl - 1, jyb, kzlbd - 1]
         ) / dz
-    flwlbu =
+    philbu =
         (u[ixl, jyb, kzlbu] - u[ixl - 1, jyb, kzlbu]) / dx +
         met[ixl, jyb, kzlbu, 1, 3] *
         0.25 *
@@ -521,7 +565,7 @@ function interpolate_mean_flow(
             u[ixl, jyb, kzlbu - 1] - u[ixl - 1, jyb, kzlbu - 1]
         ) / dz
 
-    flwlfd =
+    philfd =
         (u[ixl, jyf, kzlfd] - u[ixl - 1, jyf, kzlfd]) / dx +
         met[ixl, jyf, kzlfd, 1, 3] *
         0.25 *
@@ -529,7 +573,7 @@ function interpolate_mean_flow(
             u[ixl, jyf, kzlfd + 1] + u[ixl - 1, jyf, kzlfd + 1] -
             u[ixl, jyf, kzlfd - 1] - u[ixl - 1, jyf, kzlfd - 1]
         ) / dz
-    flwlfu =
+    philfu =
         (u[ixl, jyf, kzlfu] - u[ixl - 1, jyf, kzlfu]) / dx +
         met[ixl, jyf, kzlfu, 1, 3] *
         0.25 *
@@ -538,7 +582,7 @@ function interpolate_mean_flow(
             u[ixl, jyf, kzlfu - 1] - u[ixl - 1, jyf, kzlfu - 1]
         ) / dz
 
-    flwrbd =
+    phirbd =
         (u[ixr, jyb, kzrbd] - u[ixr - 1, jyb, kzrbd]) / dx +
         met[ixr, jyb, kzrbd, 1, 3] *
         0.25 *
@@ -546,7 +590,7 @@ function interpolate_mean_flow(
             u[ixr, jyb, kzrbd + 1] + u[ixr - 1, jyb, kzrbd + 1] -
             u[ixr, jyb, kzrbd - 1] - u[ixr - 1, jyb, kzrbd - 1]
         ) / dz
-    flwrbu =
+    phirbu =
         (u[ixr, jyb, kzrbu] - u[ixr - 1, jyb, kzrbu]) / dx +
         met[ixr, jyb, kzrbu, 1, 3] *
         0.25 *
@@ -555,7 +599,7 @@ function interpolate_mean_flow(
             u[ixr, jyb, kzrbu - 1] - u[ixr - 1, jyb, kzrbu - 1]
         ) / dz
 
-    flwrfd =
+    phirfd =
         (u[ixr, jyf, kzrfd] - u[ixr - 1, jyf, kzrfd]) / dx +
         met[ixr, jyf, kzrfd, 1, 3] *
         0.25 *
@@ -563,7 +607,7 @@ function interpolate_mean_flow(
             u[ixr, jyf, kzrfd + 1] + u[ixr - 1, jyf, kzrfd + 1] -
             u[ixr, jyf, kzrfd - 1] - u[ixr - 1, jyf, kzrfd - 1]
         ) / dz
-    flwrfu =
+    phirfu =
         (u[ixr, jyf, kzrfu] - u[ixr - 1, jyf, kzrfu]) / dx +
         met[ixr, jyf, kzrfu, 1, 3] *
         0.25 *
@@ -573,16 +617,16 @@ function interpolate_mean_flow(
         ) / dz
 
     # Interpolate.
-    flw = interpolate(
+    phi = interpolate(;
         namelists,
-        flwlbd,
-        flwlbu,
-        flwlfd,
-        flwlfu,
-        flwrbd,
-        flwrbu,
-        flwrfd,
-        flwrfu,
+        philbd,
+        philbu,
+        philfd,
+        philfu,
+        phirbd,
+        phirbu,
+        phirfd,
+        phirfu,
         zrbd,
         zrbu,
         zrfd,
@@ -600,7 +644,7 @@ function interpolate_mean_flow(
         ylc,
     )
 
-    return flw
+    return phi
 end
 
 function interpolate_mean_flow(
@@ -608,12 +652,12 @@ function interpolate_mean_flow(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    flwtype::DUDY,
+    phitype::DUDY,
 )
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
     (; u) = state.variables.predictands
-    (; nxx, nyy, io, jo, i0, k1) = domain
+    (; nxx, nyy, io, jo, i0, j0, k1) = domain
     (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
 
     # Locate the closest points in zonal direction.
@@ -627,7 +671,12 @@ function interpolate_mean_flow(
         end
         ixr = ixl + 1
         if ixr > nxx
-            error("Error in interpolate_mean_flow (DUDY): ixr = ", ixr, " > nxx = ", nxx)
+            error(
+                "Error in interpolate_mean_flow (DUDY): ixr = ",
+                ixr,
+                " > nxx = ",
+                nxx,
+            )
         end
     end
     xr = x[ixr + io] + dx / 2
@@ -635,8 +684,8 @@ function interpolate_mean_flow(
 
     # Locate the closest points in meridional direction.
     if sizey == 1
-        flw = 0.0
-        return flw
+        phi = 0.0
+        return phi
     else
         jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - jo
         if jyb < 1
@@ -695,7 +744,7 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    flwlbd =
+    philbd =
         (u[ixl, jyb + 1, kzlbd] - u[ixl, jyb, kzlbd]) / dy +
         0.25 *
         (
@@ -709,7 +758,7 @@ function interpolate_mean_flow(
             u[ixl, jyb, kzlbd + 1] + u[ixl, jyb + 1, kzlbd + 1] -
             u[ixl, jyb, kzlbd - 1] - u[ixl, jyb + 1, kzlbd - 1]
         ) / dz
-    flwlbu =
+    philbu =
         (u[ixl, jyb + 1, kzlbu] - u[ixl, jyb, kzlbu]) / dy +
         0.25 *
         (
@@ -724,7 +773,7 @@ function interpolate_mean_flow(
             u[ixl, jyb, kzlbu - 1] - u[ixl, jyb + 1, kzlbu - 1]
         ) / dz
 
-    flwlfd =
+    philfd =
         (u[ixl, jyf + 1, kzlfd] - u[ixl, jyf, kzlfd]) / dy +
         0.25 *
         (
@@ -738,7 +787,7 @@ function interpolate_mean_flow(
             u[ixl, jyf, kzlfd + 1] + u[ixl, jyf + 1, kzlfd + 1] -
             u[ixl, jyf, kzlfd - 1] - u[ixl, jyf + 1, kzlfd - 1]
         ) / dz
-    flwlfu =
+    philfu =
         (u[ixl, jyf + 1, kzlfu] - u[ixl, jyf, kzlfu]) / dy +
         0.25 *
         (
@@ -753,7 +802,7 @@ function interpolate_mean_flow(
             u[ixl, jyf, kzlfu - 1] - u[ixl, jyf + 1, kzlfu - 1]
         ) / dz
 
-    flwrbd =
+    phirbd =
         (u[ixr, jyb + 1, kzrbd] - u[ixr, jyb, kzrbd]) / dy +
         0.25 *
         (
@@ -767,7 +816,7 @@ function interpolate_mean_flow(
             u[ixr, jyb, kzrbd + 1] + u[ixr, jyb + 1, kzrbd + 1] -
             u[ixr, jyb, kzrbd - 1] - u[ixr, jyb + 1, kzrbd - 1]
         ) / dz
-    flwrbu =
+    phirbu =
         (u[ixr, jyb + 1, kzrbu] - u[ixr, jyb, kzrbu]) / dy +
         0.25 *
         (
@@ -782,7 +831,7 @@ function interpolate_mean_flow(
             u[ixr, jyb, kzrbu - 1] - u[ixr, jyb + 1, kzrbu - 1]
         ) / dz
 
-    flwrfd =
+    phirfd =
         (u[ixr, jyf + 1, kzrfd] - u[ixr, jyf, kzrfd]) / dy +
         0.25 *
         (
@@ -796,7 +845,7 @@ function interpolate_mean_flow(
             u[ixr, jyf, kzrfd + 1] + u[ixr, jyf + 1, kzrfd + 1] -
             u[ixr, jyf, kzrfd - 1] - u[ixr, jyf + 1, kzrfd - 1]
         ) / dz
-    flwrfu =
+    phirfu =
         (u[ixr, jyf + 1, kzrfu] - u[ixr, jyf, kzrfu]) / dy +
         0.25 *
         (
@@ -812,16 +861,16 @@ function interpolate_mean_flow(
         ) / dz
 
     # Interpolate.
-    flw = interpolate(
+    phi = interpolate(;
         namelists,
-        flwlbd,
-        flwlbu,
-        flwlfd,
-        flwlfu,
-        flwrbd,
-        flwrbu,
-        flwrfd,
-        flwrfu,
+        philbd,
+        philbu,
+        philfd,
+        philfu,
+        phirbd,
+        phirbu,
+        phirfd,
+        phirfu,
         zrbd,
         zrbu,
         zrfd,
@@ -839,7 +888,7 @@ function interpolate_mean_flow(
         ylc,
     )
 
-    return flw
+    return phi
 end
 
 function interpolate_mean_flow(
@@ -847,7 +896,7 @@ function interpolate_mean_flow(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    flwtype::DUDZ,
+    phitype::DUDZ,
 )
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
@@ -866,7 +915,12 @@ function interpolate_mean_flow(
         end
         ixr = ixl + 1
         if ixr > nxx
-            error("Error in interpolate_mean_flow (DUDZ): ixr = ", ixr, " > nxx = ", nxx)
+            error(
+                "Error in interpolate_mean_flow (DUDZ): ixr = ",
+                ixr,
+                " > nxx = ",
+                nxx,
+            )
         end
     end
     xr = x[ixr + io] + dx / 2
@@ -883,7 +937,12 @@ function interpolate_mean_flow(
         end
         jyf = jyb + 1
         if jyf > nyy
-            error("Error in interpolate_mean_flow (DUDZ): jyf = ", jyf, " > nyy = ", nyy)
+            error(
+                "Error in interpolate_mean_flow (DUDZ): jyf = ",
+                jyf,
+                " > nyy = ",
+                nyy,
+            )
         end
     end
     yf = y[jyf + jo]
@@ -930,11 +989,11 @@ function interpolate_mean_flow(
     # Assign the values.
 
     if zlbu < ztildetfc[ixl, jyb, k0]
-        flwlbd = 0.0
-        flwlbu = 0.0
+        philbd = 0.0
+        philbu = 0.0
     elseif zlbd < ztildetfc[ixl, jyb, k0]
-        flwlbd = 0.0
-        flwlbu =
+        philbd = 0.0
+        philbu =
             (u[ixl, jyb, kzlbu + 1] - u[ixl, jyb, kzlbu]) / dz / (
                 jac[ixl, jyb, kzlbu] * jac[ixl, jyb, kzlbu + 1] /
                 (jac[ixl, jyb, kzlbu] + jac[ixl, jyb, kzlbu + 1]) +
@@ -943,14 +1002,14 @@ function interpolate_mean_flow(
             )
     else
         if zlbu < lz[2]
-            flwlbd =
+            philbd =
                 (u[ixl, jyb, kzlbd + 1] - u[ixl, jyb, kzlbd]) / dz / (
                     jac[ixl, jyb, kzlbd] * jac[ixl, jyb, kzlbd + 1] /
                     (jac[ixl, jyb, kzlbd] + jac[ixl, jyb, kzlbd + 1]) +
                     jac[ixl + 1, jyb, kzlbd] * jac[ixl + 1, jyb, kzlbd + 1] /
                     (jac[ixl + 1, jyb, kzlbd] + jac[ixl + 1, jyb, kzlbd + 1])
                 )
-            flwlbu =
+            philbu =
                 (u[ixl, jyb, kzlbu + 1] - u[ixl, jyb, kzlbu]) / dz / (
                     jac[ixl, jyb, kzlbu] * jac[ixl, jyb, kzlbu + 1] /
                     (jac[ixl, jyb, kzlbu] + jac[ixl, jyb, kzlbu + 1]) +
@@ -958,26 +1017,26 @@ function interpolate_mean_flow(
                     (jac[ixl + 1, jyb, kzlbu] + jac[ixl + 1, jyb, kzlbu + 1])
                 )
         elseif zlbd < lz[2]
-            flwlbd =
+            philbd =
                 (u[ixl, jyb, kzlbd + 1] - u[ixl, jyb, kzlbd]) / dz / (
                     jac[ixl, jyb, kzlbd] * jac[ixl, jyb, kzlbd + 1] /
                     (jac[ixl, jyb, kzlbd] + jac[ixl, jyb, kzlbd + 1]) +
                     jac[ixl + 1, jyb, kzlbd] * jac[ixl + 1, jyb, kzlbd + 1] /
                     (jac[ixl + 1, jyb, kzlbd] + jac[ixl + 1, jyb, kzlbd + 1])
                 )
-            flwlbu = 0.0
+            philbu = 0.0
         else
-            flwlbd = 0.0
-            flwlbu = 0.0
+            philbd = 0.0
+            philbu = 0.0
         end
     end
 
     if zlfu < ztildetfc[ixl, jyf, k0]
-        flwlfd = 0.0
-        flwlfu = 0.0
+        philfd = 0.0
+        philfu = 0.0
     elseif zlfd < ztildetfc[ixl, jyf, k0]
-        flwlfd = 0.0
-        flwlfu =
+        philfd = 0.0
+        philfu =
             (u[ixl, jyf, kzlfu + 1] - u[ixl, jyf, kzlfu]) / dz / (
                 jac[ixl, jyf, kzlfu] * jac[ixl, jyf, kzlfu + 1] /
                 (jac[ixl, jyf, kzlfu] + jac[ixl, jyf, kzlfu + 1]) +
@@ -986,14 +1045,14 @@ function interpolate_mean_flow(
             )
     else
         if zlfu < lz[2]
-            flwlfd =
+            philfd =
                 (u[ixl, jyf, kzlfd + 1] - u[ixl, jyf, kzlfd]) / dz / (
                     jac[ixl, jyf, kzlfd] * jac[ixl, jyf, kzlfd + 1] /
                     (jac[ixl, jyf, kzlfd] + jac[ixl, jyf, kzlfd + 1]) +
                     jac[ixl + 1, jyf, kzlfd] * jac[ixl + 1, jyf, kzlfd + 1] /
                     (jac[ixl + 1, jyf, kzlfd] + jac[ixl + 1, jyf, kzlfd + 1])
                 )
-            flwlfu =
+            philfu =
                 (u[ixl, jyf, kzlfu + 1] - u[ixl, jyf, kzlfu]) / dz / (
                     jac[ixl, jyf, kzlfu] * jac[ixl, jyf, kzlfu + 1] /
                     (jac[ixl, jyf, kzlfu] + jac[ixl, jyf, kzlfu + 1]) +
@@ -1001,26 +1060,26 @@ function interpolate_mean_flow(
                     (jac[ixl + 1, jyf, kzlfu] + jac[ixl + 1, jyf, kzlfu + 1])
                 )
         elseif zlfd < lz[2]
-            flwlfd =
+            philfd =
                 (u[ixl, jyf, kzlfd + 1] - u[ixl, jyf, kzlfd]) / dz / (
                     jac[ixl, jyf, kzlfd] * jac[ixl, jyf, kzlfd + 1] /
                     (jac[ixl, jyf, kzlfd] + jac[ixl, jyf, kzlfd + 1]) +
                     jac[ixl + 1, jyf, kzlfd] * jac[ixl + 1, jyf, kzlfd + 1] /
                     (jac[ixl + 1, jyf, kzlfd] + jac[ixl + 1, jyf, kzlfd + 1])
                 )
-            flwlfu = 0.0
+            philfu = 0.0
         else
-            flwlfd = 0.0
-            flwlfu = 0.0
+            philfd = 0.0
+            philfu = 0.0
         end
     end
 
     if zrbu < ztildetfc[ixr, jyb, k0]
-        flwrbd = 0.0
-        flwrbu = 0.0
+        phirbd = 0.0
+        phirbu = 0.0
     elseif zrbd < ztildetfc[ixr, jyb, k0]
-        flwrbd = 0.0
-        flwrbu =
+        phirbd = 0.0
+        phirbu =
             (u[ixr, jyb, kzrbu + 1] - u[ixr, jyb, kzrbu]) / dz / (
                 jac[ixr, jyb, kzrbu] * jac[ixr, jyb, kzrbu + 1] /
                 (jac[ixr, jyb, kzrbu] + jac[ixr, jyb, kzrbu + 1]) +
@@ -1029,14 +1088,14 @@ function interpolate_mean_flow(
             )
     else
         if zrbu < lz[2]
-            flwrbd =
+            phirbd =
                 (u[ixr, jyb, kzrbd + 1] - u[ixr, jyb, kzrbd]) / dz / (
                     jac[ixr, jyb, kzrbd] * jac[ixr, jyb, kzrbd + 1] /
                     (jac[ixr, jyb, kzrbd] + jac[ixr, jyb, kzrbd + 1]) +
                     jac[ixr + 1, jyb, kzrbd] * jac[ixr + 1, jyb, kzrbd + 1] /
                     (jac[ixr + 1, jyb, kzrbd] + jac[ixr + 1, jyb, kzrbd + 1])
                 )
-            flwrbu =
+            phirbu =
                 (u[ixr, jyb, kzrbu + 1] - u[ixr, jyb, kzrbu]) / dz / (
                     jac[ixr, jyb, kzrbu] * jac[ixr, jyb, kzrbu + 1] /
                     (jac[ixr, jyb, kzrbu] + jac[ixr, jyb, kzrbu + 1]) +
@@ -1044,26 +1103,26 @@ function interpolate_mean_flow(
                     (jac[ixr + 1, jyb, kzrbu] + jac[ixr + 1, jyb, kzrbu + 1])
                 )
         elseif zrbd < lz[2]
-            flwrbd =
+            phirbd =
                 (u[ixr, jyb, kzrbd + 1] - u[ixr, jyb, kzrbd]) / dz / (
                     jac[ixr, jyb, kzrbd] * jac[ixr, jyb, kzrbd + 1] /
                     (jac[ixr, jyb, kzrbd] + jac[ixr, jyb, kzrbd + 1]) +
                     jac[ixr + 1, jyb, kzrbd] * jac[ixr + 1, jyb, kzrbd + 1] /
                     (jac[ixr + 1, jyb, kzrbd] + jac[ixr + 1, jyb, kzrbd + 1])
                 )
-            flwrbu = 0.0
+            phirbu = 0.0
         else
-            flwrbd = 0.0
-            flwrbu = 0.0
+            phirbd = 0.0
+            phirbu = 0.0
         end
     end
 
     if zrfu < ztildetfc[ixr, jyf, k0]
-        flwrfd = 0.0
-        flwrfu = 0.0
+        phirfd = 0.0
+        phirfu = 0.0
     elseif zrfd < ztildetfc[ixr, jyf, k0]
-        flwrfd = 0.0
-        flwrbu =
+        phirfd = 0.0
+        phirfu =
             (u[ixr, jyf, kzrbu + 1] - u[ixr, jyf, kzrbu]) / dz / (
                 jac[ixr, jyf, kzrbu] * jac[ixr, jyf, kzrbu + 1] /
                 (jac[ixr, jyf, kzrbu] + jac[ixr, jyf, kzrbu + 1]) +
@@ -1072,14 +1131,14 @@ function interpolate_mean_flow(
             )
     else
         if zrfu < lz[2]
-            flwrfd =
+            phirfd =
                 (u[ixr, jyf, kzrfd + 1] - u[ixr, jyf, kzrfd]) / dz / (
                     jac[ixr, jyf, kzrfd] * jac[ixr, jyf, kzrfd + 1] /
                     (jac[ixr, jyf, kzrfd] + jac[ixr, jyf, kzrfd + 1]) +
                     jac[ixr + 1, jyf, kzrfd] * jac[ixr + 1, jyf, kzrfd + 1] /
                     (jac[ixr + 1, jyf, kzrfd] + jac[ixr + 1, jyf, kzrfd + 1])
                 )
-            flwrfu =
+            phirfu =
                 (u[ixr, jyf, kzrfu + 1] - u[ixr, jyf, kzrfu]) / dz / (
                     jac[ixr, jyf, kzrfu] * jac[ixr, jyf, kzrfu + 1] /
                     (jac[ixr, jyf, kzrfu] + jac[ixr, jyf, kzrfu + 1]) +
@@ -1087,31 +1146,31 @@ function interpolate_mean_flow(
                     (jac[ixr + 1, jyf, kzrfu] + jac[ixr + 1, jyf, kzrfu + 1])
                 )
         elseif zrfd < lz[2]
-            flwrfd =
+            phirfd =
                 (u[ixr, jyf, kzrfd + 1] - u[ixr, jyf, kzrfd]) / dz / (
                     jac[ixr, jyf, kzrfd] * jac[ixr, jyf, kzrfd + 1] /
                     (jac[ixr, jyf, kzrfd] + jac[ixr, jyf, kzrfd + 1]) +
                     jac[ixr + 1, jyf, kzrfd] * jac[ixr + 1, jyf, kzrfd + 1] /
                     (jac[ixr + 1, jyf, kzrfd] + jac[ixr + 1, jyf, kzrfd + 1])
                 )
-            flwrfu = 0.0
+            phirfu = 0.0
         else
-            flwrfd = 0.0
-            flwrfu = 0.0
+            phirfd = 0.0
+            phirfu = 0.0
         end
     end
 
     # Interpolate.
-    flw = interpolate(
+    phi = interpolate(;
         namelists,
-        flwlbd,
-        flwlbu,
-        flwlfd,
-        flwlfu,
-        flwrbd,
-        flwrbu,
-        flwrfd,
-        flwrfu,
+        philbd,
+        philbu,
+        philfd,
+        philfu,
+        phirbd,
+        phirbu,
+        phirfd,
+        phirfu,
         zrbd,
         zrbu,
         zrfd,
@@ -1129,7 +1188,7 @@ function interpolate_mean_flow(
         ylc,
     )
 
-    return flw
+    return phi
 end
 
 function interpolate_mean_flow(
@@ -1137,7 +1196,7 @@ function interpolate_mean_flow(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    flwtype::DVDX,
+    phitype::DVDX,
 )
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
@@ -1147,8 +1206,8 @@ function interpolate_mean_flow(
 
     # Locate the closest points in zonal direction.
     if sizex == 1
-        flw = 0.0
-        return flw
+        phi = 0.0
+        return phi
     else
         ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - io
         if ixl < 1
@@ -1229,7 +1288,7 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    flwlbd =
+    philbd =
         (v[ixl + 1, jyb, kzlbd] - v[ixl, jyb, kzlbd]) / dx +
         0.25 *
         (
@@ -1243,7 +1302,7 @@ function interpolate_mean_flow(
             v[ixl, jyb, kzlbd + 1] + v[ixl + 1, jyb, kzlbd + 1] -
             v[ixl, jyb, kzlbd - 1] - v[ixl + 1, jyb, kzlbd - 1]
         ) / dz
-    flwlbu =
+    philbu =
         (v[ixl + 1, jyb, kzlbu] - v[ixl, jyb, kzlbu]) / dx +
         0.25 *
         (
@@ -1258,7 +1317,7 @@ function interpolate_mean_flow(
             v[ixl, jyb, kzlbu - 1] - v[ixl + 1, jyb, kzlbu - 1]
         ) / dz
 
-    flwlfd =
+    philfd =
         (v[ixl + 1, jyf, kzlfd] - v[ixl, jyf, kzlfd]) / dx +
         0.25 *
         (
@@ -1272,7 +1331,7 @@ function interpolate_mean_flow(
             v[ixl, jyf, kzlfd + 1] + v[ixl + 1, jyf, kzlfd + 1] -
             v[ixl, jyf, kzlfd - 1] - v[ixl + 1, jyf, kzlfd - 1]
         ) / dz
-    flwlfu =
+    philfu =
         (v[ixl + 1, jyf, kzlfu] - v[ixl, jyf, kzlfu]) / dx +
         0.25 *
         (
@@ -1287,7 +1346,7 @@ function interpolate_mean_flow(
             v[ixl, jyf, kzlfu - 1] - v[ixl + 1, jyf, kzlfu - 1]
         ) / dz
 
-    flwrbd =
+    phirbd =
         (v[ixr + 1, jyb, kzrbd] - v[ixr, jyb, kzrbd]) / dx +
         0.25 *
         (
@@ -1301,7 +1360,7 @@ function interpolate_mean_flow(
             v[ixr, jyb, kzrbd + 1] + v[ixr + 1, jyb, kzrbd + 1] -
             v[ixr, jyb, kzrbd - 1] - v[ixr + 1, jyb, kzrbd - 1]
         ) / dz
-    flwrbu =
+    phirbu =
         (v[ixr + 1, jyb, kzrbu] - v[ixr, jyb, kzrbu]) / dx +
         0.25 *
         (
@@ -1316,7 +1375,7 @@ function interpolate_mean_flow(
             v[ixr, jyb, kzrbu - 1] - v[ixr + 1, jyb, kzrbu - 1]
         ) / dz
 
-    flwrfd =
+    phirfd =
         (v[ixr + 1, jyf, kzrfd] - v[ixr, jyf, kzrfd]) / dx +
         0.25 *
         (
@@ -1330,7 +1389,7 @@ function interpolate_mean_flow(
             v[ixr, jyf, kzrfd + 1] + v[ixr + 1, jyf, kzrfd + 1] -
             v[ixr, jyf, kzrfd - 1] - v[ixr + 1, jyf, kzrfd - 1]
         ) / dz
-    flwrfu =
+    phirfu =
         (v[ixr + 1, jyf, kzrfu] - v[ixr, jyf, kzrfu]) / dx +
         0.25 *
         (
@@ -1346,16 +1405,16 @@ function interpolate_mean_flow(
         ) / dz
 
     # Interpolate.
-    flw = interpolate(
+    phi = interpolate(;
         namelists,
-        flwlbd,
-        flwlbu,
-        flwlfd,
-        flwlfu,
-        flwrbd,
-        flwrbu,
-        flwrfd,
-        flwrfu,
+        philbd,
+        philbu,
+        philfd,
+        philfu,
+        phirbd,
+        phirbu,
+        phirfd,
+        phirfu,
         zrbd,
         zrbu,
         zrfd,
@@ -1373,7 +1432,7 @@ function interpolate_mean_flow(
         ylc,
     )
 
-    return flw
+    return phi
 end
 
 function interpolate_mean_flow(
@@ -1381,7 +1440,7 @@ function interpolate_mean_flow(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    flwtype::DVDY,
+    phitype::DVDY,
 )
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
@@ -1400,7 +1459,12 @@ function interpolate_mean_flow(
         end
         ixr = ixl + 1
         if ixr > nxx
-            error("Error in interpolate_mean_flow (DVDY): ixr = ", ixr, " > nxx = ", nxx)
+            error(
+                "Error in interpolate_mean_flow (DVDY): ixr = ",
+                ixr,
+                " > nxx = ",
+                nxx,
+            )
         end
     end
     xr = x[ixr + io]
@@ -1408,16 +1472,25 @@ function interpolate_mean_flow(
 
     # Locate the closest points in meridional direction.
     if sizey == 1
-        flw = 0.0
-        return flw
+        phi = 0.0
+        return phi
     else
         jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
         if jyb - 1 < 1
-            error("Error in interpolate_mean_flow (DVDY): jyb - 1 = ", jyb - 1, " < 1")
+            error(
+                "Error in interpolate_mean_flow (DVDY): jyb - 1 = ",
+                jyb - 1,
+                " < 1",
+            )
         end
         jyf = jyb + 1
         if jyf > nyy
-            error("Error in interpolate_mean_flow (DVDY): jyf = ", jyf, " > nyy = ", nyy)
+            error(
+                "Error in interpolate_mean_flow (DVDY): jyf = ",
+                jyf,
+                " > nyy = ",
+                nyy,
+            )
         end
     end
     yf = y[jyf + jo]
@@ -1463,7 +1536,7 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    flwlbd =
+    philbd =
         (v[ixl, jyb, kzlbd] - v[ixl, jyb - 1, kzlbd]) / dy +
         met[ixl, jyb, kzlbd, 2, 3] *
         0.25 *
@@ -1471,7 +1544,7 @@ function interpolate_mean_flow(
             v[ixl, jyb, kzlbd + 1] + v[ixl, jyb - 1, kzlbd + 1] -
             v[ixl, jyb, kzlbd - 1] - v[ixl, jyb - 1, kzlbd - 1]
         ) / dz
-    flwlbu =
+    philbu =
         (v[ixl, jyb, kzlbu] - v[ixl, jyb - 1, kzlbu]) / dy +
         met[ixl, jyb, kzlbu, 2, 3] *
         0.25 *
@@ -1480,7 +1553,7 @@ function interpolate_mean_flow(
             v[ixl, jyb, kzlbu - 1] - v[ixl, jyb - 1, kzlbu - 1]
         ) / dz
 
-    flwlfd =
+    philfd =
         (v[ixl, jyf, kzlfd] - v[ixl, jyf - 1, kzlfd]) / dy +
         met[ixl, jyf, kzlfd, 2, 3] *
         0.25 *
@@ -1488,7 +1561,7 @@ function interpolate_mean_flow(
             v[ixl, jyf, kzlfd + 1] + v[ixl, jyf - 1, kzlfd + 1] -
             v[ixl, jyf, kzlfd - 1] - v[ixl, jyf - 1, kzlfd - 1]
         ) / dz
-    flwlfu =
+    philfu =
         (v[ixl, jyf, kzlfu] - v[ixl, jyf - 1, kzlfu]) / dy +
         met[ixl, jyf, kzlfu, 2, 3] *
         0.25 *
@@ -1497,7 +1570,7 @@ function interpolate_mean_flow(
             v[ixl, jyf, kzlfu - 1] - v[ixl, jyf - 1, kzlfu - 1]
         ) / dz
 
-    flwrbd =
+    phirbd =
         (v[ixr, jyb, kzrbd] - v[ixr, jyb - 1, kzrbd]) / dy +
         met[ixr, jyb, kzrbd, 2, 3] *
         0.25 *
@@ -1505,7 +1578,7 @@ function interpolate_mean_flow(
             v[ixr, jyb, kzrbd + 1] + v[ixr, jyb - 1, kzrbd + 1] -
             v[ixr, jyb, kzrbd - 1] - v[ixr, jyb - 1, kzrbd - 1]
         ) / dz
-    flwrbu =
+    phirbu =
         (v[ixr, jyb, kzrbu] - v[ixr, jyb - 1, kzrbu]) / dy +
         met[ixr, jyb, kzrbu, 2, 3] *
         0.25 *
@@ -1514,7 +1587,7 @@ function interpolate_mean_flow(
             v[ixr, jyb, kzrbu - 1] - v[ixr, jyb - 1, kzrbu - 1]
         ) / dz
 
-    flwrfd =
+    phirfd =
         (v[ixr, jyf, kzrfd] - v[ixr, jyf - 1, kzrfd]) / dy +
         met[ixr, jyf, kzrfd, 2, 3] *
         0.25 *
@@ -1522,7 +1595,7 @@ function interpolate_mean_flow(
             v[ixr, jyf, kzrfd + 1] + v[ixr, jyf - 1, kzrfd + 1] -
             v[ixr, jyf, kzrfd - 1] - v[ixr, jyf - 1, kzrfd - 1]
         ) / dz
-    flwrfu =
+    phirfu =
         (v[ixr, jyf, kzrfu] - v[ixr, jyf - 1, kzrfu]) / dy +
         met[ixr, jyf, kzrfu, 2, 3] *
         0.25 *
@@ -1532,16 +1605,16 @@ function interpolate_mean_flow(
         ) / dz
 
     # Interpolate.
-    flw = interpolate(
+    phi = interpolate(;
         namelists,
-        flwlbd,
-        flwlbu,
-        flwlfd,
-        flwlfu,
-        flwrbd,
-        flwrbu,
-        flwrfd,
-        flwrfu,
+        philbd,
+        philbu,
+        philfd,
+        philfu,
+        phirbd,
+        phirbu,
+        phirfd,
+        phirfu,
         zrbd,
         zrbu,
         zrfd,
@@ -1559,7 +1632,7 @@ function interpolate_mean_flow(
         ylc,
     )
 
-    return flw
+    return phi
 end
 
 function interpolate_mean_flow(
@@ -1567,7 +1640,7 @@ function interpolate_mean_flow(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    flwtype::DVDZ,
+    phitype::DVDZ,
 )
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
@@ -1586,7 +1659,12 @@ function interpolate_mean_flow(
         end
         ixr = ixl + 1
         if ixr > nxx
-            error("Error in interpolate_mean_flow (DVDZ): ixr = ", ixr, " > nxx = ", nxx)
+            error(
+                "Error in interpolate_mean_flow (DVDZ): ixr = ",
+                ixr,
+                " > nxx = ",
+                nxx,
+            )
         end
     end
     xr = x[ixr + io]
@@ -1603,7 +1681,12 @@ function interpolate_mean_flow(
         end
         jyf = jyb + 1
         if jyf > nyy
-            error("Error in interpolate_mean_flow: jyf = ", jyf, " > nyy = ", nyy)
+            error(
+                "Error in interpolate_mean_flow: jyf = ",
+                jyf,
+                " > nyy = ",
+                nyy,
+            )
         end
     end
     yf = y[jyf + jo] + dy / 2
@@ -1650,11 +1733,11 @@ function interpolate_mean_flow(
     # Assign the values.
 
     if zlbu < ztildetfc[ixl, jyb, k0]
-        flwlbd = 0.0
-        flwlbu = 0.0
+        philbd = 0.0
+        philbu = 0.0
     elseif zlbd < ztildetfc[ixl, jyb, k0]
-        flwlbd = 0.0
-        flwlbu =
+        philbd = 0.0
+        philbu =
             (v[ixl, jyb, kzlbu + 1] - v[ixl, jyb, kzlbu]) / dz / (
                 jac[ixl, jyb, kzlbu] * jac[ixl, jyb, kzlbu + 1] /
                 (jac[ixl, jyb, kzlbu] + jac[ixl, jyb, kzlbu + 1]) +
@@ -1663,14 +1746,14 @@ function interpolate_mean_flow(
             )
     else
         if zlbu < lz[2]
-            flwlbd =
+            philbd =
                 (v[ixl, jyb, kzlbd + 1] - v[ixl, jyb, kzlbd]) / dz / (
                     jac[ixl, jyb, kzlbd] * jac[ixl, jyb, kzlbd + 1] /
                     (jac[ixl, jyb, kzlbd] + jac[ixl, jyb, kzlbd + 1]) +
                     jac[ixl, jyb + 1, kzlbd] * jac[ixl, jyb + 1, kzlbd + 1] /
                     (jac[ixl, jyb + 1, kzlbd] + jac[ixl, jyb + 1, kzlbd + 1])
                 )
-            flwlbu =
+            philbu =
                 (v[ixl, jyb, kzlbu + 1] - v[ixl, jyb, kzlbu]) / dz / (
                     jac[ixl, jyb, kzlbu] * jac[ixl, jyb, kzlbu + 1] /
                     (jac[ixl, jyb, kzlbu] + jac[ixl, jyb, kzlbu + 1]) +
@@ -1678,26 +1761,26 @@ function interpolate_mean_flow(
                     (jac[ixl, jyb + 1, kzlbu] + jac[ixl, jyb + 1, kzlbu + 1])
                 )
         elseif zlbd < lz[2]
-            flwlbd =
+            philbd =
                 (v[ixl, jyb, kzlbd + 1] - v[ixl, jyb, kzlbd]) / dz / (
                     jac[ixl, jyb, kzlbd] * jac[ixl, jyb, kzlbd + 1] /
                     (jac[ixl, jyb, kzlbd] + jac[ixl, jyb, kzlbd + 1]) +
                     jac[ixl, jyb + 1, kzlbd] * jac[ixl, jyb + 1, kzlbd + 1] /
                     (jac[ixl, jyb + 1, kzlbd] + jac[ixl, jyb + 1, kzlbd + 1])
                 )
-            flwlbu = 0.0
+            philbu = 0.0
         else
-            flwlbd = 0.0
-            flwlbu = 0.0
+            philbd = 0.0
+            philbu = 0.0
         end
     end
 
     if zlfu < ztildetfc[ixl, jyf, k0]
-        flwlfd = 0.0
-        flwlfu = 0.0
+        philfd = 0.0
+        philfu = 0.0
     elseif zlfd < ztildetfc[ixl, jyf, k0]
-        flwlfd = 0.0
-        flwlfu =
+        philfd = 0.0
+        philfu =
             (v[ixl, jyf, kzlfu + 1] - v[ixl, jyf, kzlfu]) / dz / (
                 jac[ixl, jyf, kzlfu] * jac[ixl, jyf, kzlfu + 1] /
                 (jac[ixl, jyf, kzlfu] + jac[ixl, jyf, kzlfu + 1]) +
@@ -1706,14 +1789,14 @@ function interpolate_mean_flow(
             )
     else
         if zlfu < lz[2]
-            flwlfd =
+            philfd =
                 (v[ixl, jyf, kzlfd + 1] - v[ixl, jyf, kzlfd]) / dz / (
                     jac[ixl, jyf, kzlfd] * jac[ixl, jyf, kzlfd + 1] /
                     (jac[ixl, jyf, kzlfd] + jac[ixl, jyf, kzlfd + 1]) +
                     jac[ixl, jyf + 1, kzlfd] * jac[ixl, jyf + 1, kzlfd + 1] /
                     (jac[ixl, jyf + 1, kzlfd] + jac[ixl, jyf + 1, kzlfd + 1])
                 )
-            flwlfu =
+            philfu =
                 (v[ixl, jyf, kzlfu + 1] - v[ixl, jyf, kzlfu]) / dz / (
                     jac[ixl, jyf, kzlfu] * jac[ixl, jyf, kzlfu + 1] /
                     (jac[ixl, jyf, kzlfu] + jac[ixl, jyf, kzlfu + 1]) +
@@ -1721,26 +1804,26 @@ function interpolate_mean_flow(
                     (jac[ixl, jyf + 1, kzlfu] + jac[ixl, jyf + 1, kzlfu + 1])
                 )
         elseif zlfd < lz[2]
-            flwlfd =
+            philfd =
                 (v[ixl, jyf, kzlfd + 1] - v[ixl, jyf, kzlfd]) / dz / (
                     jac[ixl, jyf, kzlfd] * jac[ixl, jyf, kzlfd + 1] /
                     (jac[ixl, jyf, kzlfd] + jac[ixl, jyf, kzlfd + 1]) +
                     jac[ixl, jyf + 1, kzlfd] * jac[ixl, jyf + 1, kzlfd + 1] /
                     (jac[ixl, jyf + 1, kzlfd] + jac[ixl, jyf + 1, kzlfd + 1])
                 )
-            flwlfu = 0.0
+            philfu = 0.0
         else
-            flwlfd = 0.0
-            flwlfu = 0.0
+            philfd = 0.0
+            philfu = 0.0
         end
     end
 
     if zrbu < ztildetfc[ixr, jyb, k0]
-        flwrbd = 0.0
-        flwrbu = 0.0
+        phirbd = 0.0
+        phirbu = 0.0
     elseif zrbd < ztildetfc[ixr, jyb, k0]
-        flwrbd = 0.0
-        flwrbu =
+        phirbd = 0.0
+        phirbu =
             (v[ixr, jyb, kzrbu + 1] - v[ixr, jyb, kzrbu]) / dz / (
                 jac[ixr, jyb, kzrbu] * jac[ixr, jyb, kzrbu + 1] /
                 (jac[ixr, jyb, kzrbu] + jac[ixr, jyb, kzrbu + 1]) +
@@ -1749,14 +1832,14 @@ function interpolate_mean_flow(
             )
     else
         if zrbu < lz[2]
-            flwrbd =
+            phirbd =
                 (v[ixr, jyb, kzrbd + 1] - v[ixr, jyb, kzrbd]) / dz / (
                     jac[ixr, jyb, kzrbd] * jac[ixr, jyb, kzrbd + 1] /
                     (jac[ixr, jyb, kzrbd] + jac[ixr, jyb, kzrbd + 1]) +
                     jac[ixr, jyb + 1, kzrbd] * jac[ixr, jyb + 1, kzrbd + 1] /
                     (jac[ixr, jyb + 1, kzrbd] + jac[ixr, jyb + 1, kzrbd + 1])
                 )
-            flwrbu =
+            phirbu =
                 (v[ixr, jyb, kzrbu + 1] - v[ixr, jyb, kzrbu]) / dz / (
                     jac[ixr, jyb, kzrbu] * jac[ixr, jyb, kzrbu + 1] /
                     (jac[ixr, jyb, kzrbu] + jac[ixr, jyb, kzrbu + 1]) +
@@ -1764,26 +1847,26 @@ function interpolate_mean_flow(
                     (jac[ixr, jyb + 1, kzrbu] + jac[ixr, jyb + 1, kzrbu + 1])
                 )
         elseif zrbd < lz[2]
-            flwrbd =
+            phirbd =
                 (v[ixr, jyb, kzrbd + 1] - v[ixr, jyb, kzrbd]) / dz / (
                     jac[ixr, jyb, kzrbd] * jac[ixr, jyb, kzrbd + 1] /
                     (jac[ixr, jyb, kzrbd] + jac[ixr, jyb, kzrbd + 1]) +
                     jac[ixr, jyb + 1, kzrbd] * jac[ixr, jyb + 1, kzrbd + 1] /
                     (jac[ixr, jyb + 1, kzrbd] + jac[ixr, jyb + 1, kzrbd + 1])
                 )
-            flwrbu = 0.0
+            phirbu = 0.0
         else
-            flwrbd = 0.0
-            flwrbu = 0.0
+            phirbd = 0.0
+            phirbu = 0.0
         end
     end
 
     if zrfu < ztildetfc[ixr, jyf, k0]
-        flwrfd = 0.0
-        flwrfu = 0.0
+        phirfd = 0.0
+        phirfu = 0.0
     elseif zrfd < ztildetfc[ixr, jyf, k0]
-        flwrfd = 0.0
-        flwrfu =
+        phirfd = 0.0
+        phirfu =
             (v[ixr, jyf, kzrfu + 1] - v[ixr, jyf, kzrfu]) / dz / (
                 jac[ixr, jyf, kzrfu] * jac[ixr, jyf, kzrfu + 1] /
                 (jac[ixr, jyf, kzrfu] + jac[ixr, jyf, kzrfu + 1]) +
@@ -1792,14 +1875,14 @@ function interpolate_mean_flow(
             )
     else
         if zrfu < lz[2]
-            flwrfd =
+            phirfd =
                 (v[ixr, jyf, kzrfd + 1] - v[ixr, jyf, kzrfd]) / dz / (
                     jac[ixr, jyf, kzrfd] * jac[ixr, jyf, kzrfd + 1] /
                     (jac[ixr, jyf, kzrfd] + jac[ixr, jyf, kzrfd + 1]) +
                     jac[ixr, jyf + 1, kzrfd] * jac[ixr, jyf + 1, kzrfd + 1] /
                     (jac[ixr, jyf + 1, kzrfd] + jac[ixr, jyf + 1, kzrfd + 1])
                 )
-            flwrfu =
+            phirfu =
                 (v[ixr, jyf, kzrfu + 1] - v[ixr, jyf, kzrfu]) / dz / (
                     jac[ixr, jyf, kzrfu] * jac[ixr, jyf, kzrfu + 1] /
                     (jac[ixr, jyf, kzrfu] + jac[ixr, jyf, kzrfu + 1]) +
@@ -1807,31 +1890,31 @@ function interpolate_mean_flow(
                     (jac[ixr, jyf + 1, kzrfu] + jac[ixr, jyf + 1, kzrfu + 1])
                 )
         elseif zrfd < lz[2]
-            flwrfd =
+            phirfd =
                 (v[ixr, jyf, kzrfd + 1] - v[ixr, jyf, kzrfd]) / dz / (
                     jac[ixr, jyf, kzrfd] * jac[ixr, jyf, kzrfd + 1] /
                     (jac[ixr, jyf, kzrfd] + jac[ixr, jyf, kzrfd + 1]) +
                     jac[ixr, jyf + 1, kzrfd] * jac[ixr, jyf + 1, kzrfd + 1] /
                     (jac[ixr, jyf + 1, kzrfd] + jac[ixr, jyf + 1, kzrfd + 1])
                 )
-            flwrfu = 0.0
+            phirfu = 0.0
         else
-            flwrfd = 0.0
-            flwrfu = 0.0
+            phirfd = 0.0
+            phirfu = 0.0
         end
     end
 
     # Interpolate.
-    flw = interpolate(
+    phi = interpolate(;
         namelists,
-        flwlbd,
-        flwlbu,
-        flwlfd,
-        flwlfu,
-        flwrbd,
-        flwrbu,
-        flwrfd,
-        flwrfu,
+        philbd,
+        philbu,
+        philfd,
+        philfu,
+        phirbd,
+        phirbu,
+        phirfd,
+        phirfu,
         zrbd,
         zrbu,
         zrfd,
@@ -1849,5 +1932,5 @@ function interpolate_mean_flow(
         ylc,
     )
 
-    return flw
+    return phi
 end

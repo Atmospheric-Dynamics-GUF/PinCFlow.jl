@@ -308,18 +308,6 @@ function write_output(
                 ] =
                     rays.dens[1:nray_max, i0:i1, j0:j1, k0:k1] .* rhoref .*
                     uref .^ 2 .* tref .* lref .^ dim
-
-                HDF5.set_extent_dims(
-                    file["omegar"],
-                    (nray_max, sizex, sizey, sizez, iout),
-                )
-                @views file["omegar"][
-                    1:nray_max,
-                    (io + 1):(io + nx),
-                    (jo + 1):(jo + ny),
-                    1:nz,
-                    iout,
-                ] = rays.omega[1:nray_max, i0:i1, j0:j1, k0:k1] ./ tref
             end
         end
 

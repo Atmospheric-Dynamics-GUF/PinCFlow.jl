@@ -85,11 +85,7 @@ function split_rays!(
         if dxr > dx
             nrlc += 1
 
-            axk = ray.area_xk[iray, ix, jy, kz]
-
             rays.dxray[iray, ix, jy, kz] = 0.5 * dxr
-
-            rays.area_xk[iray, ix, jy, kz] = 0.5 * axk
 
             copy_ray_volume!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
 
@@ -138,11 +134,7 @@ function split_rays!(
         if dyr > dy
             nrlc += 1
 
-            ayl = rays.area_yl[ix, jy, kz]
-
             rays.dyray[iray, ix, jy, kz] = 0.5 * dyr
-
-            rays.area_yl[iray, ix, jy, kz] = 0.5 * ayl
 
             copy_ray_volume!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
 
@@ -192,7 +184,6 @@ function split_rays!(
         zr = rays.z[iray, ix, jy, kz]
 
         dzr = rays.dzray[iray, ix, jy, kz]
-        azm = rays.area_zm[iray, ix, jy, kz]
 
         ixrv = round(Int, (xr - lx[1] - dx / 2) / dx) + i0 - io
         jyrv = round(Int, (yr - ly[1] - dy / 2) / dy) + j0 - jo
@@ -208,7 +199,6 @@ function split_rays!(
             factor = ceil(dzr / dzmin)
             rays.z[iray, ix, jy, kz] = zr + 0.5 * (1 / factor - 1) * dzr
             rays.dzray[iray, ix, jy, kz] = dzr / factor
-            rays.area_zm[iray, ix, jy, kz] = azm / factor
             for jRay in (nrlc + 1):(nrlc + factor - 1)
                 copy_ray_volume!(rays, (iRay, ix, jy, kz), (jRay, ix, jy, kz))
                 rays.z[jRay, ix, jy, kz] += (jRray - nrlc) * dzr / factor

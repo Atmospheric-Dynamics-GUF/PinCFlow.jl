@@ -85,15 +85,6 @@ function read_input!(state::State)
                     1:nz,
                     iin,
                 ] ./ rhoref ./ uref .^ 2 ./ tref ./ lref .^ dim
-
-            @views rays.omega[1:nray_max, i0:i1, j0:j1, k0:k1] =
-                file["omegar"][
-                    1:nray_max,
-                    (io + 1):(io + nx),
-                    (jo + 1):(jo + ny),
-                    1:nz,
-                    iin,
-                ] .* tref
         end
 
         # Return.
