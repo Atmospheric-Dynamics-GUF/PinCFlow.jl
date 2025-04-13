@@ -182,6 +182,10 @@ function integrate(namelists::Namelists)
         for rkstage in 1:nstages
             propagate_rays!(state, dt, rkstage)
         end
+        split_rays!(state)
+        shift_rays!(state)
+        merge_rays!(state)
+        set_boundary_rays!(state)
 
         # Synchronization of density fluctuations
         synchronize_density_fluctuations!(state)

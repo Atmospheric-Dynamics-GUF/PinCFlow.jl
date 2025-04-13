@@ -2,7 +2,7 @@ function set_vertical_boundary_rays!(
     state::State,
     zboundaries::SolidWallBoundaries,
 )
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
     (; lx, ly, lz, dx, dy, ztildetfc) = state.grid
     (; nray, rays) = state.wkb
 
@@ -50,7 +50,7 @@ function set_vertical_boundary_rays!(
     state::State,
     zboundaries::PeriodicBoundaries,
 )
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
     (; lx, ly, lz, dx, dy, ztildetfc) = state.grid
     (; nray, rays) = state.wkb
 
