@@ -29,6 +29,7 @@ struct WKB{
     cgz_max::H
     zb::I
     gwmomforce::J
+    diffusion::H
 end
 
 function WKB(
@@ -59,6 +60,7 @@ function WKB(
         zeros(0, 0, 0),
         zeros(0, 0),
         Forces(0, 0, 0),
+        zeros(0, 0, 0),
     )
 end
 
@@ -184,6 +186,7 @@ function WKB(
     cgz_max = zeros(nxx, nyy, nzz)
     zb = zeros(nxx, nyy)
     gwmomforce = Forces(nxx, nyy, nzz)
+    diffusion = zeros(nxx, nyy, nzz)
 
     return WKB(
         nxray,
@@ -205,5 +208,6 @@ function WKB(
         cgz_max,
         zb,
         gwmomforce,
+        diffusion,
     )
 end
