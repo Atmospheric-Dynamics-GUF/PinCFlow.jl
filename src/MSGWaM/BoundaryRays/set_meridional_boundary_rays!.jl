@@ -47,7 +47,7 @@ function set_meridional_boundary_rays!(state::State)
         end
     end
 
-    if io == 0
+    if jo == 0
         for kz in (k0 - 1):(k1 + 1), ix in (i0 - 1):(i1 + 1)
             for jy in j1:(j1 + 1)
                 if nray[ix, jy, kz] > 0
