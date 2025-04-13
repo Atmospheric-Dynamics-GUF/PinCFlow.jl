@@ -3,34 +3,11 @@ function interpolate_mean_flow(
     ylc::AbstractFloat,
     zlc::AbstractFloat,
     state::State,
-    flwtype::AbstractVariable,
-)
-    (; namelists, domain, grid) = State
-    (; predictands) = state.variables
-    return interpolate_mean_flow(
-        xlc,
-        ylc,
-        zlc,
-        namelists,
-        domain,
-        grid,
-        predictands,
-        flwtype,
-    )
-end
-
-function interpolate_mean_flow(
-    xlc::AbstractFloat,
-    ylc::AbstractFloat,
-    zlc::AbstractFloat,
-    namelists::Namelists,
-    domain::Domain,
-    grid::Grid,
-    predictands::Predictands,
     flwtype::U,
 )
+    (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
-    (; u) = predictands
+    (; u) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, j0, k1) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
@@ -153,14 +130,12 @@ function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    namelists::Namelists,
-    domain::Domain,
-    grid::Grid,
-    predictands::Predictands,
+    state::State,
     flwtype::V,
 )
+    (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
-    (; v) = predictands
+    (; v) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, j0, k1) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
@@ -285,12 +260,11 @@ function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    namelists::Namelists,
-    domain::Domain,
-    grid::Grid,
-    predictands::Predictands,
+    state::State,
     flwtype::W,
 )
+    (; namelists, domain, grid) = state
+    (; predictands) = state.variables
     (; sizex, sizey) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0, k0, k1) = domain
     (; lx, ly, dx, dy, x, y, ztildetfc) = grid
@@ -448,14 +422,12 @@ function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    namelists::Namelists,
-    domain::Domain,
-    grid::Grid,
-    predictands::Predictands,
+    state::State,
     flwtype::DUDX,
 )
+    (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
-    (; u) = predictands
+    (; u) = state.variables.predictands
     (; nxx, nyy, io, jo, j0, k1) = domain
     (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
 
@@ -635,14 +607,12 @@ function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    namelists::Namelists,
-    domain::Domain,
-    grid::Grid,
-    predictands::Predictands,
+    state::State,
     flwtype::DUDY,
 )
+    (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
-    (; u) = predictands
+    (; u) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, k1) = domain
     (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
 
@@ -876,14 +846,12 @@ function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    namelists::Namelists,
-    domain::Domain,
-    grid::Grid,
-    predictands::Predictands,
+    state::State,
     flwtype::DUDZ,
 )
+    (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
-    (; u) = predictands
+    (; u) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, j0, k0, k1) = domain
     (; lx, ly, lz, dx, dy, dz, jac, x, y, ztildetfc) = grid
 
@@ -1168,14 +1136,12 @@ function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    namelists::Namelists,
-    domain::Domain,
-    grid::Grid,
-    predictands::Predictands,
+    state::State,
     flwtype::DVDX,
 )
+    (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
-    (; v) = predictands
+    (; v) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, j0, k1) = domain
     (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
 
@@ -1414,14 +1380,12 @@ function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    namelists::Namelists,
-    domain::Domain,
-    grid::Grid,
-    predictands::Predictands,
+    state::State,
     flwtype::DVDY,
 )
+    (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
-    (; v) = predictands
+    (; v) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, j0, k1) = domain
     (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
 
@@ -1602,14 +1566,12 @@ function interpolate_mean_flow(
     xlc::AbstractFloat,
     ylc::AbstractFloat,
     zlc::AbstractFloat,
-    namelists::Namelists,
-    domain::Domain,
-    grid::Grid,
-    predictands::Predictands,
+    state::State,
     flwtype::DVDZ,
 )
+    (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
-    (; v) = predictands
+    (; v) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, j0, k0, k1) = domain
     (; lx, ly, lz, dx, dy, dz, jac, x, y, ztildetfc) = grid
 

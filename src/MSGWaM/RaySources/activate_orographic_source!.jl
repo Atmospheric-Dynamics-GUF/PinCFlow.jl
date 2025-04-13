@@ -1,26 +1,22 @@
 function activate_orographic_source!(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-    atmosphere::Atmosphere,
-    predictands::Predictands,
+    state::State,
     omi_ini::AbstractArray{<:AbstractFloat, 4},
     wnk_ini::AbstractArray{<:AbstractFloat, 4},
     wnl_ini::AbstractArray{<:AbstractFloat, 4},
     wnm_ini::AbstractArray{<:AbstractFloat, 4},
     wad_ini::AbstractArray{<:AbstractFloat, 4},
-    zb::AbstractMatrix{<:AbstractFloat},
 )
 
     # Get all necessary fields.
-    (; f_coriolis_dim) = namelists.atmosphere
-    (; branchr, blocking, long_threshold, nwm) = namelists.wkb
-    (; tref) = constants
-    (; i0, i1, j0, j1, k0, k1) = domain
-    (; dz, jac, ztildetfc, k_spectrum, l_spectrum, topography_spectrum) = grid
-    (; rhostrattfc, bvsstrattfc) = atmosphere
-    (; u, v) = predictands
+    (; f_coriolis_dim) = state.namelists.atmosphere
+    (; branchr, blocking, long_threshold, nwm) = state.namelists.wkb
+    (; tref) = state.constants
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dz, jac, ztildetfc, k_spectrum, l_spectrum, topography_spectrum) =
+        state.grid
+    (; rhostrattfc, bvsstrattfc) = state.atmosphere
+    (; u, v) = state.variables.predictands
+    (; zb) = state.wkb
 
     # Set Coriolis parameter.
     f_cor_nd = f_coriolis_dim * tref
