@@ -2,6 +2,7 @@ module RayOperations
 
 using StaticArrays
 using ...Types
+using ..Interpolation
 
 include("MergedRays.jl")
 
@@ -14,7 +15,7 @@ include("get_physical_extent.jl")
 include("get_physical_position.jl")
 include("get_spectral_extent.jl")
 include("get_spectral_position.jl")
-include("get_sufaces.jl")
+include("get_surfaces.jl")
 include("merge_wave_action.jl")
 include("remove_rays!.jl")
 
@@ -28,7 +29,7 @@ export MergedRays,
     get_physical_position,
     get_spectral_extent,
     get_spectral_position,
-    get_sufaces,
+    get_surfaces,
     merge_wave_action,
     remove_rays!
 

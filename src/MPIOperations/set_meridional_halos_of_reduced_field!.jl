@@ -1,5 +1,5 @@
 function set_meridional_halos_of_reduced_field!(
-    field::AbstractArray{<:AbstractFloat, 3},
+    field::AbstractArray{<:Real, 3},
     domain::Domain,
 )
 

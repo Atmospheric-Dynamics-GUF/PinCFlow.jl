@@ -210,15 +210,8 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
             rays.dlray[iray, ix, jy, kz] = dl_ini_nd / nrl_init
             rays.dmray[iray, ix, jy, kz] = dm_ini_nd / nrm_init
 
-            # Set phase-space volume.
-            rays.area_xk[iray, ix, jy, kz] =
-                rays.dxray[iray, ix, jy, kz] * rays.dkray[iray, ix, jy, kz]
-            rays.area_yl[iray, ix, jy, kz] =
-                rays.dyray[iray, ix, jy, kz] * rays.dlray[iray, ix, jy, kz]
-            rays.area_zm[iray, ix, jy, kz] =
-                rays.dzray[iray, ix, jy, kz] * rays.dmray[iray, ix, jy, kz]
+            # Set spectral volume.
             pspvol = dm_ini_nd
-
             if sizex > 1
                 pspvol = pspvol * dk_ini_nd
             end
@@ -233,9 +226,6 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
                 rays.dens[iray, ix, jy, kz] = wad_ini[iwm, ix, jy, kz] / pspvol
             end
 
-            # Set intrinsic frequency.
-            rays.omega[iray, ix, jy, kz] = omi_ini[iwm, ix, jy, kz]
-
             # Interpolate winds to ray-volume position.
             uxr = interpolate_mean_flow(xr, yr, zr, state, U())
             vyr = interpolate_mean_flow(xr, yr, zr, state, V())
@@ -245,7 +235,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
             wnrl = rays.l[iray, ix, jy, kz]
             wnrm = rays.m[iray, ix, jy, kz]
             wnrh = sqrt(wnrk^2 + wnrl^2)
-            omir = rays.omega[iray, ix, jy, kz]
+            omir = omi_ini[iwm, ix, jy, kz]
 
             # Compute maximum group velocities.
             cgirx = wnrk * (n2r - omir^2) / (omir * (wnrh^2 + wnrm^2))

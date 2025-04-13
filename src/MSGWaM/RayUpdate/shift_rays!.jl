@@ -68,9 +68,7 @@ function shift_rays!(state::State, direction::X)
                         nray[ix, jyrv, kzrv] += 1
                         jray = nray[ix, jyrv, kzrv]
                         if jray > nray_wrk
-                            error(
-                                "Error in shift_rays!: nray > nray_wrk!",
-                            )
+                            error("Error in shift_rays!: nray > nray_wrk!")
                         end
                         copy_ray_volume!(
                             rays,
@@ -104,9 +102,7 @@ function shift_rays!(state::State, direction::Y)
                         nray[ixrv, jy, kzrv] += 1
                         jray = nray[ixrv, jy, kzrv]
                         if jray > nray_wrk
-                            error(
-                                "Error in shift_rays!: nray > nray_wrk!",
-                            )
+                            error("Error in shift_rays!: nray > nray_wrk!")
                         end
                         copy_ray_volume!(
                             rays,

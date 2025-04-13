@@ -1,4 +1,24 @@
 function propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
+    (; testcase) = state.namelists.setting
+    propagate_rays!(state, dt, rkstage, testcase)
+    return
+end
+
+function propagate_rays!(
+    state::State,
+    dt::AbstractFloat,
+    rkstage::Integer,
+    testcase::AbstractTestCase,
+)
+    return
+end
+
+function propagate_rays!(
+    state::State,
+    dt::AbstractFloat,
+    rkstage::Integer,
+    testcase::AbstractWKBTestCase,
+)
     (; wkb_mode) = state.namelists.wkb
     propagate_rays!(state, dt, rkstage, wkb_mode)
     return
@@ -11,16 +31,23 @@ function propagate_rays!(
     wkb_mode::Union{SingleColumn, MultiColumn},
 )
     (; testcase) = state.namelists.setting
-    (; branchr, zmin_wkb) = state.namelists.wkb
+    (; branchr, zmin_wkb_dim) = state.namelists.wkb
     (; sizex, sizey) = state.namelists.domain
-    (; nray, cgx_max, cgy_max, cgz_max, rays, f_cor_nd) = state.wkb
-    (; dxray, dkray, ddxray) = state.wkb.increments
+    (; f_coriolis_dim) = state.namelists.atmosphere
+    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; lref, tref) = state.constants
+    (; nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
+    (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
+        state.wkb.increments
     (; alphark, betark, stepfrac) = state.time
-    lz = state.grid.lz
+    (; lz) = state.grid
     (; k0, k1, j0, j1, i0, i1) = state.domain
 
+    # Set Coriolis parameter.
+    f_cor_nd = f_coriolis_dim * tref
+
+    # Initialize RK tendencies at the first RK stage.
     if (rkstage == 1)
-        # ! initialize RK-tendencies at first RK stage
         dxray .= 0.0
         dkray .= 0.0
         ddxray .= 0.0
@@ -30,289 +57,244 @@ function propagate_rays!(
     cgy_max .= 0.0
     cgz_max .= 0.0
 
-    kz0 = ifelse(testcase == WKBMountainWave(), 0, 1)
+    kz0 = testcase == WKBMountainWave() ? k0 - 1 : k0
 
     for kz in kz0:k1, jy in j0:j1, ix in i0:i1
-        ijk = CartesianIndex(ix, jy, kz)
         nskip = 0
+        for iray in 1:nray[ix, jy, kz]
+            (xr, yr, zr) = get_physical_position(rays, (iray, ix, jy, kz))
+            (kr, lr, mr) = get_spectral_position(rays, (iray, ix, jy, kz))
+            (dxr, dyr, dzr) = get_physical_extent(rays, (iray, ix, jy, kz))
+            (axk, ayl, azm) = get_surfaces(rays, (iray, ix, jy, kz))
 
-        if (nray[ijk] < 1)
-            continue
-        end
+            xr1 = xr - dxr / 2
+            xr2 = xr + dxr / 2
+            yr1 = yr - dyr / 2
+            yr2 = yr + dyr / 2
+            zr1 = zr - dzr / 2
+            zr2 = zr + dzr / 2
 
-        for iray in 1:nray[ijk]
-            rijk = CartesianIndex(iray, ijk)
-            wnrk, wnrl, wnrm = get_wavenumbers(rijk, rays)
-            wnrh = sqrt(wnrk^2 + wnrl^2)
-            xr, yr, zr = get_positions(rijk, rays)
-            dxr, dyr, dzr = get_physical_extents(rijk, rays)
-            xr1 = xr - 0.5 * dxr
-            xr2 = xr + 0.5 * dxr
-            yr1 = yr - 0.5 * dyr
-            yr2 = yr + 0.5 * dyr
-            zr1 = zr - 0.5 * dzr
-            zr2 = zr + 0.5 * dzr
+            khr = sqrt(kr^2 + lr^2)
 
-            # !skip ray volumes that have left the domain
+            # Skip ray volumes that have left the domain.
             if testcase != WKBMountainWave()
-                if (zr1 < state.grid.ztildetfc[ix, jy, -1])
-                    nskip = nskip + 1
+                if zr1 < state.grid.ztildetfc[ix, jy, k0 - 2]
+                    nskip += 1
                     continue
                 end
             end
 
-            nnr = stratification(zr, state, N2())
-            nnr1 = stratification(zr1, state, N2())
-            nnr2 = stratification(zr2, state, N2())
+            n2r = interpolate_stratification(zr, state, N2())
+            n2r1 = interpolate_stratification(zr1, state, N2())
+            n2r2 = interpolate_stratification(zr2, state, N2())
 
             omir1 =
-                branchr * sqrt(nnr1 * wnrh^2 + f_cor_nd^2 * wnrm^2) /
-                sqrt(wnrh^2 + wnrm^2)
+                branchr * sqrt(n2r1 * khr^2 + f_cor_nd^2 * mr^2) /
+                sqrt(khr^2 + mr^2)
 
             omir =
-                branchr * sqrt(nnr * wnrh^2 + f_cor_nd^2 * wnrm^2) /
-                sqrt(wnrh^2 + wnrm^2)
-
-            if (nnr2 <= 0.0)
-                # print *, 'NNr2 =', NNr2, '<= 0.0 at'
-                # print *, 'zr2 =', zr2, 'from'
-                # print *, 'ray(iRay,ix,jy,kz)%z =', rays[rijk]%z
-                # print *, 'ray(iRay,ix,jy,kz)%dzray =', rays[rijk]%dzray
-                # print *, 'iRay,ix,jy,kz =', rijk
-                exit()
-            end
-
-            if (wnrh <= 0.0)
-                # print *, 'wnrh =', wnrh, '<= 0.0 from'
-                # print *, 'wnrk =', wnrk
-                # print *, 'wnrl =', wnrl
-                # print *, 'iRay,ix,jy,kz =', rijk
-                exit()
-            end
+                branchr * sqrt(n2r * khr^2 + f_cor_nd^2 * mr^2) /
+                sqrt(khr^2 + mr^2)
 
             omir2 =
-                branchr * sqrt(nnr2 * wnrh^2 + f_cor_nd^2 * wnrm^2) /
-                sqrt(wnrh^2 + wnrm^2)
+                branchr * sqrt(n2r2 * khr^2 + f_cor_nd^2 * mr^2) /
+                sqrt(khr^2 + mr^2)
 
-            rays.omega[rijk] = omir
-
-            # ! intrinsic group velocities at the respective edges of
-            # ! the ray volumes
-
+            # Compute intrinsic zonal group velocity.
             if (sizex > 1)
-                # ! intrinsic group velocity in x direction not depending
-                # ! on x
-                cgirx = wnrk * (nnr - omir^2) / (omir * (wnrh^2 + wnrm^2))
+                cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             end
 
+            # Compute intrinsic meridional group velocity.
             if (sizey > 1)
-                # ! intrinsic group velocity in y direction not depending
-                # ! on y
-                cgiry = wnrl * (nnr - omir^2) / (omir * (wnrh^2 + wnrm^2))
+                cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             end
 
-            # ! intrinsic vertical group velocity depending on z
-            # ! (via the stratification)
-            cgirz1 =
-                -wnrm * (omir1^2 - f_cor_nd^2) / (omir1 * (wnrh^2 + wnrm^2))
-            cgirz2 =
-                -wnrm * (omir2^2 - f_cor_nd^2) / (omir2 * (wnrh^2 + wnrm^2))
+            # Compute intrinsic vertical group velocities at the vertical edges.
+            cgirz1 = -mr * (omir1^2 - f_cor_nd^2) / (omir1 * (khr^2 + mr^2))
+            cgirz2 = -mr * (omir2^2 - f_cor_nd^2) / (omir2 * (khr^2 + mr^2))
 
-            ## until here everything is the same for single_column and transient
-            if sizex > 1 && kz >= k0 && mode != SingleColumn()
-                uxr1 = meanflow(xr1, yr, zr, state, U())
-                uxr2 = meanflow(xr2, yr, zr, state, U())
+            #-------------------------------
+            #      Change of position
+            #-------------------------------
+
+            # Update zonal position.
+
+            if sizex > 1 && kz >= k0 && wkb_mode != SingleColumn()
+                uxr1 = interpolate_mean_flow(xr1, yr, zr, state, U())
+                uxr2 = interpolate_mean_flow(xr2, yr, zr, state, U())
 
                 cgrx1 = cgirx + uxr1
                 cgrx2 = cgirx + uxr2
 
-                cgrx = 0.5 * (cgrx1 + cgrx2)
+                cgrx = (cgrx1 + cgrx2) / 2
 
-                F = cgrx
-                dxray[1, rijk] = dt * F + alphark(rkstage) * dxray(1, rijk)
-                rays.x[rijk] += betark(rkstage) * dxray[1, rijk]
+                f = cgrx
+                dxray[iray, ix, jy, kz] =
+                    dt * f + alphark[rkstage] * dxray[iray, ix, jy, kz]
+                rays.x[iray, ix, jy, kz] +=
+                    betark[rkstage] * dxray[iray, ix, jy, kz]
 
                 cgx_max[1] = max(cgx_max[1], abs(cgrx))
             end
 
-            if sizey > 1 && kz >= k0 && mode != SingleColumn()
-                vyr1 = meanflow(xr, yr1, zr, state, V())
-                vyr2 = meanflow(xr, yr2, zr, state, V())
+            # Update meridional position.
+
+            if sizey > 1 && kz >= k0 && wkb_mode != SingleColumn()
+                vyr1 = interpolate_mean_flow(xr, yr1, zr, state, V())
+                vyr2 = interpolate_mean_flow(xr, yr2, zr, state, V())
 
                 cgry1 = cgiry + vyr1
                 cgry2 = cgiry + vyr2
 
-                cgry = 0.5 * (cgry1 + cgry2)
-                F = cgry
-                dxray[2, rijk] = dt * F + alphark(rkstage) * dxray[2, rijk]
-                rays.y[rijk] += betark(rkstage) * dxray[2, rijk]
+                cgry = (cgry1 + cgry2) / 2
+
+                f = cgry
+                dyray[iray, ix, jy, kz] =
+                    dt * f + alphark[rkstage] * dyray[iray, ix, jy, kz]
+                rays.y[iray, ix, jy, kz] +=
+                    betark[rkstage] * dyray[iray, ix, jy, kz]
 
                 cgy_max[1] = max(cgy_max[1], abs(cgry))
             end
 
-            # !-----------------------------
-            # !     vertical displacement
-            # !-----------------------------
+            # Update vertical position.
 
-            # ! RK update
-
-            # ! in line with the asymptotic results the vertcal wind is
-            # ! NOT added to the intrinsic vertical group velocity
-            # ! should one want to change this, one would also have to
-            # ! take the vertical-wind gradient into account in the
-            # ! prognostic equations for the wave number
-            #
             cgrz1 = cgirz1
             cgrz2 = cgirz2
 
-            cgrz = 0.5 * (cgrz1 + cgrz2)
+            cgrz = (cgrz1 + cgrz2) / 2
 
-            F = cgrz
-            dxray[3, rijk] = dt * F + alphark[rkstage] * dxray[3, rijk]
-            rays.z[rijk] += betark[rkstage] * dxray[3, rijk]
-
-            cgz_max = max(cgz_max, abs(cgrz))
+            f = cgrz
+            dzray[iray, ix, jy, kz] =
+                dt * f + alphark[rkstage] * dzray[iray, ix, jy, kz]
+            rays.z[iray, ix, jy, kz] +=
+                betark[rkstage] * dzray[iray, ix, jy, kz]
 
             cgz_max[ix, jy, kz] = max(cgz_max[ix, jy, kz], abs(cgrz))
 
-            # !-------------------------------
-            # !    change of wavenumber
-            # !-------------------------------
+            # Refraction is only allowed above lz[1] + zmin_wkb_dim / lref.
 
-            # ! wave refraction only above lz(0) + zmin_wkb
-            if (zr > lz[0] + zmin_wkb)
-                #   # ! RK procedure
+            if zr > lz[1] + zmin_wkb_dim / lref
 
-                # TODO: we updated xr etc. what does fortran do here? make a copy or reference?
-                dudxr = meanflow(xr, yr, zr, state, DUDX())
-                dudyr = meanflow(xr, yr, zr, state, DUDY())
-                dudzr = meanflow(xr, yr, zr, state, DUDZ())
+                #-------------------------------
+                #      Change of wavenumber
+                #-------------------------------
 
-                dvdxr = meanflow(xr, yr, zr, state, DVDX())
-                dvdyr = meanflow(xr, yr, zr, state, DVDY())
-                dvdzr = meanflow(xr, yr, zr, state, DVDZ())
+                dudxr = interpolate_mean_flow(xr, yr, zr, state, DUDX())
+                dudyr = interpolate_mean_flow(xr, yr, zr, state, DUDY())
+                dudzr = interpolate_mean_flow(xr, yr, zr, state, DUDZ())
 
-                if (zr < lz[0] - dz)
-                    # print *, 'ERROR IN setup_wkb: LOWER EDGE OF RAY  VOLUME', &
-                    #     &rijk, 'TOO LOW'
-                    exit()
-                end
+                dvdxr = interpolate_mean_flow(xr, yr, zr, state, DVDX())
+                dvdyr = interpolate_mean_flow(xr, yr, zr, state, DVDY())
+                dvdzr = interpolate_mean_flow(xr, yr, zr, state, DVDZ())
 
-                if (zr < lz[0] - dz)
-                    # print *, 'ERROR IN propagate_rays!: RAY VOLUME', iRay, ix, &
-                    #     &jy, kz, 'TOO LOW'
-                    exit()
-                end
+                dn2dzr = interpolate_stratification(zr, state, DN2DZ())
 
-                dnndzr = stratification(zr, state, DN2DZ())
-
-                dkdt = -dudxr * wnrk - dvdxr * wnrl
-                dldt = -dudyr * wnrk - dvdyr * wnrl
+                dkdt = -dudxr * kr - dvdxr * lr
+                dldt = -dudyr * kr - dvdyr * lr
                 dmdt =
-                    -dudzr * wnrk - dvdzr * wnrl -
-                    wnrh^2 * dnndzr / (2.0 * omir + (wnrh^2 + wnrm^2))
+                    -dudzr * kr - dvdzr * lr -
+                    khr^2 * dn2dzr / (2 * omir + (khr^2 + mr^2))
 
-                dkray[1, rijk] = dt * dkdt + alphark[rkstage] * dkray[1, rijk]
-                dkray[2, rijk] = dt * dldt + alphark[rkstage] * dkray[2, rijk]
-                dkray[3, rijk] = dt * dmdt + alphark[rkstage] * dkray[3, rijk]
+                dkray[iray, ix, jy, kz] =
+                    dt * dkdt + alphark[rkstage] * dkray[iray, ix, jy, kz]
+                dlray[iray, ix, jy, kz] =
+                    dt * dldt + alphark[rkstage] * dlray[iray, ix, jy, kz]
+                dmray[iray, ix, jy, kz] =
+                    dt * dmdt + alphark[rkstage] * dmray[iray, ix, jy, kz]
 
-                rays.k[rijk] += betark[rkstage] * dkray[1, rijk]
-                rays.l[rijk] += betark[rkstage] * dkray[2, rijk]
-                rays.m[rijk] += betark[rkstage] * dkray[3, rijk]
+                rays.k[iray, ix, jy, kz] +=
+                    betark[rkstage] * dkray[iray, ix, jy, kz]
+                rays.l[iray, ix, jy, kz] +=
+                    betark[rkstage] * dlray[iray, ix, jy, kz]
+                rays.m[iray, ix, jy, kz] +=
+                    betark[rkstage] * dmray[iray, ix, jy, kz]
 
-                # !----------------------------------------------
-                # !    change of wave-number width of ray volumes
-                # !----------------------------------------------
+                #-------------------------------
+                #      Change of extents
+                #-------------------------------
 
-                # ! dk
+                # Update extents in x and k.
 
-                if (sizex > 1 && kz > 0 && mode != SingleColumn())
+                if (sizex > 1 && kz > k0 - 1 && wkb_mode != SingleColumn())
                     ddxdt = cgrx2 - cgrx1
 
-                    ddxray[1, rijk] =
-                        dt * ddxdt + alphark[rkstage] * ddxray[1, rijk]
+                    ddxray[iray, ix, jy, kz] =
+                        dt * ddxdt + alphark[rkstage] * ddxray[iray, ix, jy, kz]
 
-                    rays.dxray[rijk] += betark[rkstage] * ddxray[1, rijk]
+                    rays.dxray[iray, ix, jy, kz] +=
+                        betark[rkstage] * ddxray[iray, ix, jy, kz]
 
-                    if (rays.dxray[rijk] <= 0.0)
-                        # print *, 'dxray(', rijk, ') <= 0.0  ==> time &
-                        #     &step too large?'
-                        rays.dxray[rijk] *= -1
+                    if rays.dxray[iray, ix, jy, kz] <= 0
+                        rays.dxray[iray, ix, jy, kz] *= -1
                     end
 
-                    rays.dkray[rijk] = rays.area_xk[rijk] / rays.dxray[rijk]
+                    rays.dkray[iray, ix, jy, kz] =
+                        axk / rays.dxray[iray, ix, jy, kz]
                 end
 
-                # ! dl
+                # Update extents in y and l.
 
-                if (sizey > 1 && kz > 0 && mode != SingleColumn())
+                if (sizey > 1 && kz > k0 - 1 && wkb_mode != SingleColumn())
                     ddydt = cgry2 - cgry1
 
-                    ddxray[2, rijk] =
-                        dt * ddydt + alphark[rkstage] * ddxray[2, rijk]
+                    ddyray[iray, ix, jy, kz] =
+                        dt * ddydt + alphark[rkstage] * ddyray[iray, ix, jy, kz]
 
-                    rays.dyray[rijk] += betark[rkstage] * ddxray[2, rijk]
+                    rays.dyray[iray, ix, jy, kz] +=
+                        betark[rkstage] * ddyray[iray, ix, jy, kz]
 
-                    if (rays.dyray[rijk] <= 0.0)
-                        # print *, 'dyray(', rijk, ') <= 0.0  ==> time &
-                        #     &step too large?'
-                        rays.dyray[rijk] *= -1
+                    if rays.dyray[iray, ix, jy, kz] <= 0
+                        rays.dyray[iray, ix, jy, kz] *= -1
                     end
 
-                    rays.dlray[rijk] = rays.area_yl[rijk] / rays.dyray[rijk]
+                    rays.dlray[iray, ix, jy, kz] =
+                        ayl / rays.dyray[iray, ix, jy, kz]
                 end
 
-                # !dm
+                # Update extents in z and m.
 
                 ddzdt = cgrz2 - cgrz1
 
-                ddxray[3, rijk] =
-                    dt * ddzdt + alphark[rkstage] * ddxray[3, rijk]
+                ddzray[iray, ix, jy, kz] =
+                    dt * ddzdt + alphark[rkstage] * ddzray[iray, ix, jy, kz]
 
-                rays.dzray[rijk] += betark[rkstage] * ddxray[3, rijk]
+                rays.dzray[iray, ix, jy, kz] +=
+                    betark[rkstage] * ddzray[iray, ix, jy, kz]
 
-                if (rays.dzray[rijk] <= 0.0)
-                    # print *, 'dzray(', rijk, ') <= 0.0  ==> time step &
-                    #     &too large?'
-                    rays.dzray[rijk] *= -1
+                if rays.dzray[iray, ix, jy, kz] <= 0
+                    rays.dzray[iray, ix, jy, kz] *= -1
                 end
 
-                rays.dmray[rijk] = rays.area_zm[rijk] / rays.dzray[rijk]
+                rays.dmray[iray, ix, jy, kz] =
+                    azm / rays.dzray[iray, ix, jy, kz]
             end
 
-            # !-----------------------------------
-            # ! update of the intrinsic frequency
-            # !-----------------------------------
+            #-------------------------------
+            #     Change of wave action
+            #-------------------------------
 
-            wnrk = rays.k[rijk]
-            wnrl = rays.l[rijk]
-            wnrm = rays.m[rijk]
-
-            wnrh = sqrt(wnrk^2 + wnrl^2)
-
-            zr = rays.z[rijk]
-
-            nnr = stratification(zr, state, N2())
-            omir =
-                branchr * sqrt(nnr * wnrh^2 + f_cor_nd^2 * wnrm^2) /
-                sqrt(wnrh^2 + wnrm^2)
-
-            rays.omega[rijk] = omir
-            if (spongelayer && unifiedsponge)
-                xr, yr, zr = get_positions(rijk, rays)
-                alphasponge = 2.0 * interpolate_sponge(xr, yr, zr)
-                betasponge = 1.0 / (1.0 + alphasponge * stepfrac[rkstage] * dt)
-                rays.dens[rijk] *= betasponge
+            if spongelayer && unifiedsponge
+                (xr, yr, zr) = get_physical_position(rays, (iray, ix, jy, kz))
+                alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
+                betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
+                rays.dens[iray, ix, jy, kz] *= betasponge
             end
-        end # ray loop
-        if (nskip > 0)
-            # print *, nskip, 'r.v. skipped in propagate_rays! out of', &
-            # &nRay(ix, jy, kz)
         end
-    end # grid loop
 
-    if (testcase == WKBMountainWave() && wkb_mode != SteadyState())
-        activate_orographic_source(var, ray, time, stepfrac(rkstage) * dt)
+        if nskip > 0
+            println(
+                nskip,
+                " out of ",
+                nray[ix, jy, kz],
+                " ray volumes have been skipped in propagate_rays!!",
+            )
+        end
+    end
+
+    if testcase == WKBMountainWave()
+        activate_orographic_source!(state, stepfrac[rkstage] * dt)
     end
 
     return
@@ -324,19 +306,29 @@ function propagate_rays!(
     rkstage::Integer,
     wkb_mode::SteadyState,
 )
-    (; testcase) = state.namelists.setting
-    (; branchr, zmin_wkb) = state.namelists.wkb
     (; sizex, sizey) = state.namelists.domain
-    (; nray, cgz_max, rays, f_cor_nd) = state.wkb
-    (; dxray, dkray, ddxray) = state.wkb.increments
-    (; alphark, betark, stepfrac) = state.time
-    lz = state.grid.lz
+    (; testcase) = state.namelists.setting
+    (; f_coriolis_dim) = state.namelists.atmosphere
+    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; branchr, lsaturation, alpha_sat) = state.namelists.wkb
+    (; stepfrac) = state.time
+    (; tref) = state.constants
     (; k0, k1, j0, j1, i0, i1) = state.domain
+    (; dx, dy, dz, ztildetfc, ztfc, jac) = state.grid
+    (; rhostrattfc) = state.atmosphere
+    (; u, v) = state.variables.predictands
+    (; nray, rays) = state.wkb
+
+    # Set Coriolis parameter.
+    f_cor_nd = f_coriolis_dim * tref
+
     if testcase == WKBMountainWave()
-        activate_orographic_source(var, ray, time, stepFrac(RKStage) * dt)
+        activate_orographic_source!(state, stepfrac[rkstage] * dt)
     end
 
+    # Loop over grid cells.
     for kz in k0:k1, jy in j0:j1, ix in i0:i1
+
         # ! Set ray-volume count.
         nray[ix, jy, kz] = nray[ix, jy, kz - 1]
 
@@ -345,19 +337,20 @@ function propagate_rays!(
         integral2 = 0.0
         m2b2 = 0.0
         m2b2k2 = 0.0
-        # ! Loop over ray volumes.
-        for iray in 1:nray(ix, jy, kz)
-            rijk = CartesianIndex(iray, ix, jy, kz)
-            # ! Prepare ray volume.
-            copy_rayvolume!(rays, (iray, ix, jy, kz), (iray, ix, jy, kz - 1))
 
-            # ! Skip modes with zero wave-action density.
+        # Loop over ray volumes.
+        for iray in 1:nray[ix, jy, kz]
+
+            # Prepare ray volume.
+            copy_rays!(rays, (iray, ix, jy, kz - 1), (iray, ix, jy, kz))
+
+            # Skip modes with zero wave-action density.
             if rays.dens[iray, ix, jy, kz - 1] == 0
                 continue
             end
 
-            # ! Set vertical position (and extent).
-            rays.z[rijk] =
+            # Set vertical position (and extent).
+            rays.z[iray, ix, jy, kz] =
                 ztildetfc[ix, jy, kz - 1] + rays.z[iray, ix, jy, kz - 1] -
                 ztildetfc[ix, jy, kz - 2] / jac[ix, jy, kz - 1] *
                 jac[ix, jy, kz]
@@ -365,151 +358,163 @@ function propagate_rays!(
                 rays.dzray[iray, ix, jy, kz - 1] * jac[ix, jy, kz] /
                 jac[ix, jy, kz - 1]
 
-            # ! Get horizontal wavenumbers.
-            k, l, _ = wavenumbers(rijk, rays)
-            wnrh = sqrt(k^2.0 + l^2.0)
+            # Get horizontal wavenumbers.
+            (kr, lr, mr) = get_spectral_position(rays, (iray, ix, jy, kz))
+            khr = sqrt(kr^2 + lr^2)
 
-            # ! Set reference level.
-            kz0 = max(1, kz - 1)
-            rijk0 = CartesianIndex(iray, ix, jy, kz, kz0)
-            # ! Compute vertical group velocity at the level below.
-            nn_nd = stratification(rays.z[rijk0], state, N2())
-            omir = rays.omega[rijk0].omega
+            # Set reference level.
+            kz0 = max(k0, kz - 1)
 
-            if (branchr * omir > f_cor_nd && branchr * omir < sqrt(nn_nd))
-                wnrm = rays.m[rijk0]
+            # Compute vertical group velocity at the level below.
+            n2r = interpolate_stratification(
+                rays.z[iray, ix, jy, kz0],
+                state,
+                N2(),
+            )
+            omir = compute_intrinsic_frequency(state, (iray, ix, jy, kz0))
+
+            if branchr * omir > f_cor_nd && branchr * omir < sqrt(n2r)
+                mr = rays.m[iray, ix, jy, kz0]
                 cgirz0 =
-                    wnrm * (f_cor_nd^2 - nn_nd) * wnrh^2 / omir /
-                    (wnrh^2 + wnrm^2)^2
+                    mr * (f_cor_nd^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
-                rays.dens[rijk0] = 0.0
-                rays.dens[rijk] = 0.0
+                rays.dens[iray, ix, jy, kz0] = 0.0
+                rays.dens[iray, ix, jy, kz] = 0.0
                 continue
             end
-            # ! Compute local intrinsic frequency, vertical
-            # ! wavenumber and vertical group velocity.
-            nn_nd = stratification(rays.z[rijk], state, N2())
+
+            # Compute local intrinsic frequency, vertical
+            # wavenumber and vertical group velocity.
+            n2r = interpolate_stratification(
+                rays.z[iray, ix, jy, kz],
+                state,
+                N2(),
+            )
             omir =
-                -0.5 * (var.u[ix, jy, kz] + var.u[ix - 1, jy, kz]) * wnrk -
-                0.5 * (var.v[ix, jy, kz] + var.v[ix, jy - 1, kz]) * wnrl
-            if (branchr * omir > f_cor_nd && branchr * omir < sqrt(nn_nd))
-                wnrm =
+                -(u[ix, jy, kz] + u[ix - 1, jy, kz]) / 2 * kr -
+                (v[ix, jy, kz] + v[ix, jy - 1, kz]) / 2 * lr
+            if (branchr * omir > f_cor_nd && branchr * omir < sqrt(n2r))
+                mr =
                     -branchr *
-                    sqrt(wnrh^2 * (nn_nd - omir^2) / (omir^2 - f_cor_nd^2))
+                    sqrt(khr^2 * (n2r - omir^2) / (omir^2 - f_cor_nd^2))
                 cgirz =
-                    wnrm * (f_cor_nd^2 - NN_nd) * wnrh^2 / omir /
-                    (wnrh^2 + wnrm^2)^2
+                    mr * (f_cor_nd^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
-                rays.dens[rijk0] = 0.0
-                rays.dens[rijk] = 0.0
+                rays.dens[iray, ix, jy, kz0] = 0.0
+                rays.dens[iray, ix, jy, kz] = 0.0
                 continue
             end
 
-            # ! Set local intrinsic frequency and vertical wavenumber.
-            rays.omega[rijk] = omir
-            rays.m[rijk] = wnrm
+            # Set local intrinsic frequency and vertical wavenumber.
+            rays.m[iray, ix, jy, kz] = mr
 
-            # ! Set local wave action density.
-            if (spongeLayer && unifiedSponge)
-                xr = rays.x[rijk]
-                yr = rays.y[rijk]
-                zr = rays.z[rijk]
-                alphasponge = 2.0 * interpolate_sponge(xr, yr, zr)
-                rays.dens[rijk] =
-                    1.0 / (
-                        1.0 +
-                        alphaSponge / cgirz * (rays.z[rijk].z - rays.z[rijk0])
+            # Set local wave action density.
+            if (spongelayer && unifiedsponge)
+                xr = rays.x[iray, ix, jy, kz]
+                yr = rays.y[iray, ix, jy, kz]
+                zr = rays.z[iray, ix, jy, kz]
+                alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
+                rays.dens[iray, ix, jy, kz] =
+                    1 / (
+                        1 +
+                        alphasponge / cgirz *
+                        (rays.z[iray, ix, jy, kz] - rays.z[iray, ix, jy, kz0])
                     ) *
                     cgirz0 *
                     rays.dens[iray, ix, jy, kz0] / cgirz
             else
-                rays.dens[rijk] = cgirz0 * rays.dens[iray, ix, jy, kz0] / cgirz
+                rays.dens[iray, ix, jy, kz] =
+                    cgirz0 * rays.dens[iray, ix, jy, kz0] / cgirz
             end
-            # ! Cycle if saturation scheme is turned off.
-            if (!lsaturation)
+
+            # Cycle if saturation scheme is turned off.
+            if !lsaturation
                 continue
             end
 
-            # ! Get ray volume extents.
-            dxr, dyr, dzr = get_physical_extents(rijk, rays)
-            dwnrk, dwnrl, dwnrm = get_spectral_extents(rijk, rays)
+            # Get ray volume extents.
+            (dxr, dyr, dzr) = get_physical_extent(rays, (iray, ix, jy, kz))
+            (dkr, dlr, dmr) = get_spectral_extent(rays, (iray, ix, jy, kz))
 
-            # ! Compute phase space factor.
+            # Compute phase space factor.
             dzi = min(dzr, jac[ix, jy, kz] * dz)
-            facpsp = dzi / jac[ix, jy, kz] / dz * dwnrm
+            facpsp = dzi / jac[ix, jy, kz] / dz * dmr
 
-            if (sizex > 1)
+            if sizex > 1
                 dxi = min(dxr, dx)
-                facpsp = facpsp * dxi / dx * dwnrk
+                facpsp = facpsp * dxi / dx * dkr
             end
-            if (sizey > 1)
+            if sizey > 1
                 dyi = min(dyr, dy)
-                facpsp = facpsp * dyi / dy * dwnrl
+                facpsp = facpsp * dyi / dy * dlr
             end
 
             # ! Update saturation amplitude.
-            integral1 = wnrh^2 * wnrm^2 / ((wnrh^2 + wnrm^2) * omir) * facpsp
-            m2b2 =
-                m2b2 +
-                2.0 * nn_nd^2 / rhostrattfc[ix, jy, kz] *
+            integral1 = khr^2 * mr^2 / ((khr^2 + mr^2) * omir) * facpsp
+            m2b2 +=
+                2 * n2r^2 / rhostrattfc[ix, jy, kz] *
                 integral1 *
-                rays.dens[rijk]
+                rays.dens[iray, ix, jy, kz]
 
-            integral2 = wnrh^2 * wnrm^2 / omir * facpsp
-            m2b2k2 =
-                m2b2k2 +
-                2.0 * nn_nd^2 / rhostrattfc[ix, jy, kz] *
+            integral2 = khr^2 * mr^2 / omir * facpsp
+            m2b2k2 +=
+                2 * n2r^2 / rhostrattfc[ix, jy, kz] *
                 integral2 *
-                rays.dens[rijk] *
+                rays.dens[iray, ix, jy, kz] *
                 jac[ix, jy, kz] *
                 dz / cgirz
         end
-        # ! Compute diffusion coefficient
-        nn_nd = stratification(ztfc[ix, jy, kz], state, N2())
-        if (m2b2k2 == 0.0 || m2b2 < alpha_sat^2 * nn_nd^2)
+
+        # Compute diffusion coefficient
+        n2r = interpolate_stratification(ztfc[ix, jy, kz], state, N2())
+        if m2b2k2 == 0.0 || m2b2 < alpha_sat^2 * n2r^2
             diffusion = 0.0
         else
-            diffusion = (m2b2 - alpha_sat^2 * nn_nd^2) / (2.0 * m2b2k2)
+            diffusion = (m2b2 - alpha_sat^2 * n2r^2) / (2 * m2b2k2)
         end
-        # ! Reduce wave action density.
-        for iray in 1:nray(ix, jy, kz)
-            if (!lsaturation)
+
+        # Reduce wave action density.
+        for iray in 1:nray[ix, jy, kz]
+            if !lsaturation
                 continue
             end
-            if (rays.dens[rijk] == 0.0)
+            if rays.dens[iray, ix, jy, kz] == 0
                 continue
             end
-            wnrk = rays.k[rijk]
-            wnrl = rays.l[rijk]
-            wnrm = rays.m[rijk]
-            wnrh = sqrt(wnrk^2 + wnrl^2)
-            nn_nd = stratification(rays.z[rijk], state, N2())
-            omir = rays.omega[rijk]
-            if (branchr * omir > f_cor_nd && branchr * omir < sqrt(nn_nd))
+            kr = rays.k[iray, ix, jy, kz]
+            lr = rays.l[iray, ix, jy, kz]
+            mr = rays.m[iray, ix, jy, kz]
+            khr = sqrt(kr^2 + lr^2)
+            n2r = interpolate_stratification(
+                rays.z[iray, ix, jy, kz],
+                state,
+                N2(),
+            )
+            omir = compute_intrinsic_frequency(state, (iray, ix, jy, kz))
+            if (branchr * omir > f_cor_nd && branchr * omir < sqrt(n2r))
                 cgirz =
-                    wnrm * (f_cor_nd^2 - nn_nd) * wnrh^2 / omir /
-                    (wnrh^2 + wnrm^2)^2
+                    mr * (f_cor_nd^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
                 rays.dens[iray, ix, jy, kz0] = 0.0
-                rays.dens[rijk].dens = 0.0
+                rays.dens[iray, ix, jy, kz] = 0.0
                 continue
             end
-            rays.dens[rijk] =
-                rays[rijk].dens * max(
-                    0.0,
-                    1.0 -
-                    jac[x, jy, kz] * dz / cgirz *
-                    2.0 *
+            rays.dens[iray, ix, jy, kz] =
+                rays.dens[iray, ix, jy, kz] * max(
+                    0,
+                    1 -
+                    jac[ix, jy, kz] * dz / cgirz *
+                    2 *
                     diffusion *
-                    (wnrh^2 + wnrm^2),
+                    (khr^2 + mr^2),
                 )
         end
     end
-    if (sizex > 1)
-        setboundary_rayvol_x(ray)
+    if sizex > 1
+        set_zonal_boundary_rays!(state)
     end
-    if (sizey > 1)
-        setboundary_rayvol_y(ray)
+    if sizey > 1
+        set_zonal_boundary_rays!(state)
     end
 
     return

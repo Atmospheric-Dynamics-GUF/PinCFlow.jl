@@ -91,7 +91,7 @@ function apply_saturation_scheme!(
             dwnrl = rays.dlray[iray, ixrv, jyrv, kzrv]
             dwnrm = rays.dmray[iray, ixrv, jyrv, kzrv]
 
-            omir = rays.omega[iray, ixrv, jyrv, kzrv]
+            omir = compute_intrinsic_frequency(state, (iray, ixrv, jyrv, kzrv))
 
             densr = rays.dens[iray, ixrv, jyrv, kzrv]
 
@@ -215,7 +215,7 @@ function apply_saturation_scheme!(
             dwnrl = rays.dlray[iray, ixrv, jyrv, kzrv]
             dwnrm = rays.dmray[iray, ixrv, jyrv, kzrv]
 
-            omir = rays.omega[iray, ixrv, jyrv, kzrv]
+            omir = compute_intrinsic_frequency(state, (iray, ixrv, jyrv, kzrv))
 
             densr = rays.dens[iray, ixrv, jyrv, kzrv]
 
