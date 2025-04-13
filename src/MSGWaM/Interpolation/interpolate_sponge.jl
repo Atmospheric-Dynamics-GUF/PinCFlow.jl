@@ -4,10 +4,10 @@ function interpolate_sponge(
     zlc::AbstractFloat,
     state::State,
 )
-    (; sizex, sizey) = state.namelists.domain
-    (; domain, grid) = state
+    (; namelists, domain, grid) = state
+    (; sizex, sizey) = namelists.domain
     (; io, jo, i0, j0, k1) = domain
-    (; dx, dy, x, y, ztfc) = grid
+    (; lx, ly, dx, dy, x, y, ztfc) = grid
     (; alphaunifiedsponge) = state.sponge
 
     # Dermine closest points in horizontal direction.
@@ -42,8 +42,8 @@ function interpolate_sponge(
     end
     zlbd = ztfc[ixl, jyb, kzlbd]
     zlbu = ztfc[ixl, jyb, kzlbu]
-    alphalbd = alphaunifiedsponge[ixl, jyb, kzlbd]
-    alphalbu = alphaunifiedsponge[ixl, jyb, kzlbu]
+    philbd = alphaunifiedsponge[ixl, jyb, kzlbd]
+    philbu = alphaunifiedsponge[ixl, jyb, kzlbu]
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
     if kzlfd > k1
@@ -52,8 +52,8 @@ function interpolate_sponge(
     end
     zlfd = ztfc[ixl, jyf, kzlfd]
     zlfu = ztfc[ixl, jyf, kzlfu]
-    alphalfd = alphaunifiedsponge[ixl, jyf, kzlfd]
-    alphalfu = alphaunifiedsponge[ixl, jyf, kzlfu]
+    philfd = alphaunifiedsponge[ixl, jyf, kzlfd]
+    philfu = alphaunifiedsponge[ixl, jyf, kzlfu]
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
     if kzrbd > k1
@@ -62,8 +62,8 @@ function interpolate_sponge(
     end
     zrbd = ztfc[ixr, jyb, kzrbd]
     zrbu = ztfc[ixr, jyb, kzrbu]
-    alpharbd = alphaunifiedsponge[ixr, jyb, kzrbd]
-    alpharbu = alphaunifiedsponge[ixr, jyb, kzrbu]
+    phirbd = alphaunifiedsponge[ixr, jyb, kzrbd]
+    phirbu = alphaunifiedsponge[ixr, jyb, kzrbu]
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
     if kzrfd > k1
@@ -72,20 +72,20 @@ function interpolate_sponge(
     end
     zrfd = ztfc[ixr, jyf, kzrfd]
     zrfu = ztfc[ixr, jyf, kzrfu]
-    alpharfd = alphaunifiedsponge[ixr, jyf, kzrfd]
-    alpharfu = alphaunifiedsponge[ixr, jyf, kzrfu]
+    phirfd = alphaunifiedsponge[ixr, jyf, kzrfd]
+    phirfu = alphaunifiedsponge[ixr, jyf, kzrfu]
 
     # Interpolate.
-    alpha = interpolate(
+    phi = interpolate(;
         namelists,
-        alphalbd,
-        alphalbu,
-        alphalfd,
-        alphalfu,
-        alpharbd,
-        alpharbu,
-        alpharfd,
-        alpharfu,
+        philbd,
+        philbu,
+        philfd,
+        philfu,
+        phirbd,
+        phirbu,
+        phirfd,
+        phirfu,
         zrbd,
         zrbu,
         zrfd,
@@ -103,5 +103,5 @@ function interpolate_sponge(
         ylc,
     )
 
-    return alpha
+    return phi
 end

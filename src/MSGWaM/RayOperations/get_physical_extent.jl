@@ -1,7 +1,7 @@
 function get_physical_extent(rays::Rays, indices::NTuple{4, <:Integer})
     return (
-        rays.dxray[indices...],
-        rays.dyray[indices...],
-        rays.dzray[indices...],
+        copy(rays.dxray[indices...]),
+        copy(rays.dyray[indices...]),
+        copy(rays.dzray[indices...]),
     )
 end

@@ -24,8 +24,6 @@ function set_vertical_boundary_rays!(
                 rays.dzray[iray, ix, jy, kz] = lz[2] - zr + 0.5 * dzr
                 rays.z[iray, ix, jy, kz] =
                     lz[2] - 0.5 * rays.dzray[iray, ix, jy, kz]
-                rays.area_zm[iray, ix, jy, kz] =
-                    rays.dzray[iray, ix, jy, kz] * rays.dmray[iray, ix, jy, kz]
             end
 
             # Reflect ray volumes at the lower boundary.
@@ -87,21 +85,13 @@ function set_vertical_boundary_rays!(
     for jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
         if nray[ix, jy, k0 - 1] > 0
             for iray in 1:nray[ix, jy, k0 - 1]
-                copy_rays!(
-                    rays,
-                    (iray, ix, jy, k1),
-                    (iray, ix, jy, k0 - 1),
-                )
+                copy_rays!(rays, (iray, ix, jy, k1), (iray, ix, jy, k0 - 1))
             end
         end
 
         if nray[ix, jy, k1 + 1] > 0
             for iray in 1:nray[ix, jy, k1 + 1]
-                copy_rays!(
-                    rays,
-                    (iray, ix, jy, k0),
-                    (iray, ix, jy, k1 + 1),
-                )
+                copy_rays!(rays, (iray, ix, jy, k0), (iray, ix, jy, k1 + 1))
             end
         end
 

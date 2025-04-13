@@ -80,13 +80,13 @@ function compute_time_step(state::State)
         #----------------------------------
 
         if typeof(testcase) <: AbstractWKBTestCase
-
             dtwkb_loc = jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps())
 
             for kz in (k0 - 1):(k1), jy in j0:j1, ix in i0:i1
-
-                dtwkb_loc = min(dtwkb_loc, jac[ix, jy, kz] * dz /
-                    (cgz_max[ix, jy, kz] + eps()))
+                dtwkb_loc = min(
+                    dtwkb_loc,
+                    jac[ix, jy, kz] * dz / (cgz_max[ix, jy, kz] + eps()),
+                )
             end
 
             if sizex > 1
@@ -101,7 +101,6 @@ function compute_time_step(state::State)
             # find global minimum
 
             dtwkb = MPI.Allreduce(dtwkb_loc, min, comm)
-
         end
         #-------------------------------
         #        Make your choice

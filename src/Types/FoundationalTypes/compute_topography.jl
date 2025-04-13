@@ -173,8 +173,7 @@ function compute_topography(
         width_factor,
         spectral_modes,
     ) = namelists.grid
-    (; nxx, nyy, io, jo) =
-        domain
+    (; nxx, nyy, io, jo) = domain
     (; lref) = constants
 
     mountainheight = mountainheight_dim / lref

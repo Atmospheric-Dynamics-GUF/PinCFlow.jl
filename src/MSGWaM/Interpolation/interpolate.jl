@@ -1,28 +1,28 @@
-function interpolate(
-    namelists::Namelists,
-    philbd::AbstractFloat,
-    philbu::AbstractFloat,
-    philfd::AbstractFloat,
-    philfu::AbstractFloat,
-    phirbd::AbstractFloat,
-    phirbu::AbstractFloat,
-    phirfd::AbstractFloat,
-    phirfu::AbstractFloat,
-    zrbd::AbstractFloat,
-    zrbu::AbstractFloat,
-    zrfd::AbstractFloat,
-    zrfu::AbstractFloat,
-    zlbd::AbstractFloat,
-    zlbu::AbstractFloat,
-    zlfd::AbstractFloat,
-    zlfu::AbstractFloat,
-    zlc::AbstractFloat,
-    xl::AbstractFloat,
-    xr::AbstractFloat,
-    xlc::AbstractFloat,
-    yf::AbstractFloat,
-    yb::AbstractFloat,
-    ylc::AbstractFloat,
+function interpolate(;
+    namelists::Union{Nothing, Namelists} = nothing,
+    philbd::Union{Nothing, AbstractFloat} = nothing,
+    philbu::Union{Nothing, AbstractFloat} = nothing,
+    philfd::Union{Nothing, AbstractFloat} = nothing,
+    philfu::Union{Nothing, AbstractFloat} = nothing,
+    phirbd::Union{Nothing, AbstractFloat} = nothing,
+    phirbu::Union{Nothing, AbstractFloat} = nothing,
+    phirfd::Union{Nothing, AbstractFloat} = nothing,
+    phirfu::Union{Nothing, AbstractFloat} = nothing,
+    zlbd::Union{Nothing, AbstractFloat} = nothing,
+    zlbu::Union{Nothing, AbstractFloat} = nothing,
+    zlfd::Union{Nothing, AbstractFloat} = nothing,
+    zlfu::Union{Nothing, AbstractFloat} = nothing,
+    zrbd::Union{Nothing, AbstractFloat} = nothing,
+    zrbu::Union{Nothing, AbstractFloat} = nothing,
+    zrfd::Union{Nothing, AbstractFloat} = nothing,
+    zrfu::Union{Nothing, AbstractFloat} = nothing,
+    zlc::Union{Nothing, AbstractFloat} = nothing,
+    yb::Union{Nothing, AbstractFloat} = nothing,
+    yf::Union{Nothing, AbstractFloat} = nothing,
+    ylc::Union{Nothing, AbstractFloat} = nothing,
+    xl::Union{Nothing, AbstractFloat} = nothing,
+    xr::Union{Nothing, AbstractFloat} = nothing,
+    xlc::Union{Nothing, AbstractFloat} = nothing,
 )
     (; sizex, sizey) = namelists.domain
 
@@ -47,7 +47,7 @@ function interpolate(
         elseif xlc > xr
             factor = 0.0
         elseif xlc > xl
-            factor = (xr - xlc) / dx
+            factor = (xr - xlc) / (xr - xl)
         else
             factor = 1.0
         end
@@ -80,7 +80,7 @@ function interpolate(
         elseif ylc > yf
             factor = 0.0
         elseif ylc > yb
-            factor = (yf - ylc) / dy
+            factor = (yf - ylc) / (yf - yb)
         else
             factor = 1.0
         end

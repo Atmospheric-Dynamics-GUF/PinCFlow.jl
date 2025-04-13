@@ -178,6 +178,11 @@ function integrate(namelists::Namelists)
         #                   Semi-implicit time scheme
         #---------------------------------------------------------------
 
+        # Run MS-GWaM.
+        for rkstage in 1:nstages
+            propagate_rays!(state, dt, rkstage)
+        end
+
         # Synchronization of density fluctuations
         synchronize_density_fluctuations!(state)
 
