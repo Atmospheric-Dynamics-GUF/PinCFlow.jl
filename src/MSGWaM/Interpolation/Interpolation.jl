@@ -1,6 +1,7 @@
 module Interpolation
 
 using ...Types
+using ...Update
 
 include("get_next_half_level.jl")
 include("get_next_level.jl")

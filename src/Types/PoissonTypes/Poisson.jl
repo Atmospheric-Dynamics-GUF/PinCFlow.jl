@@ -15,7 +15,7 @@ struct Poisson{
     correction::F
 end
 
-function Poisson(namelists::Namelists, domain::Domain)
+function Poisson(domain::Domain)
 
     # Get all necessary fields.
     (; nx, ny, nz) = domain
