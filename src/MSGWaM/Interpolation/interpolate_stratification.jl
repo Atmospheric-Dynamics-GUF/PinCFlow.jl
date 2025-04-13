@@ -1,20 +1,10 @@
 function interpolate_stratification(
     zlc::AbstractFloat,
     state::State,
-    strtype::AbstractVariable,
-)
-    (; domain, grid, atmosphere) = state
-    return interpolate_stratification(zlc, domain, grid, atmosphere, strtype)
-end
-
-function interpolate_stratification(
-    zlc::AbstractFloat,
-    domain::Domain,
-    grid::Grid,
-    atmosphere::Atmosphere,
     strtype::N2,
 )
-    (; bvsstrattfc) = atmosphere
+    (; domain, grid) = state
+    (; bvsstrattfc) = state.atmosphere
     (; i0, j0, k1) = domain
     (; ztfc) = grid
 
@@ -50,12 +40,11 @@ end
 
 function interpolate_stratification(
     zlc::AbstractFloat,
-    domain::Domain,
-    grid::Grid,
-    atmosphere::Atmosphere,
+    state::State,
     strtype::DN2DZ,
 )
-    (; bvsstrattfc) = atmosphere
+    (; domain, grid) = state
+    (; bvsstrattfc) = state.atmosphere
     (; i0, j0, k1) = domain
     (; ztildetfc, jac) = grid
 

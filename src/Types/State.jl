@@ -31,16 +31,9 @@ function State(namelists::Namelists)
     grid = Grid(namelists, constants, domain)
     atmosphere = Atmosphere(namelists, constants, domain, grid)
     sponge = Sponge(namelists, domain, grid)
-    poisson = Poisson(namelists, domain)
+    poisson = Poisson(domain)
     variables = Variables(namelists, constants, domain)
-    wkb = WKB(
-        namelists,
-        constants,
-        domain,
-        grid,
-        atmosphere,
-        variables.predictands,
-    )
+    wkb = WKB(namelists, constants, domain, grid)
 
     # Return a State instance.
     return State(
