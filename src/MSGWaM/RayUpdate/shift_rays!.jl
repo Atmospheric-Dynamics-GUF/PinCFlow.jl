@@ -11,10 +11,10 @@ end
 function shift_rays!(state::State, wkb_mode::SingleColumn)
     (; zboundaries) = state.namelists.setting
 
-    set_vertical_boundary_ray_volumes(state, zboundaries)
+    set_vertical_boundary_rays!(state, zboundaries)
     shift_rays!(state, Z())
-    set_vertical_boundary_ray_volumes(state, zboundaries)
-    remove_ray_volumes!(state)
+    set_vertical_boundary_rays!(state, zboundaries)
+    remove_rays!(state)
 
     check_ray_volumes(state)
 
@@ -26,25 +26,25 @@ function shift_rays!(state::State, wkb_mode::MultiColumn)
     (; zboundaries) = state.namelists.setting
 
     if sizex > 1
-        set_zonal_boundary_ray_volumes!(state)
+        set_zonal_boundary_rays!(state)
         shift_rays!(state, X())
-        set_zonal_boundary_ray_volumes!(state)
-        remove_ray_volumes!(state)
+        set_zonal_boundary_rays!(state)
+        remove_rays!(state)
     end
 
     if sizey > 1
-        set_meridional_boundary_ray_volumes!(state)
+        set_meridional_boundary_rays!(state)
         shift_rays!(state, Y())
-        set_meridional_boundary_ray_volumes!(state)
-        remove_ray_volumes!(state)
+        set_meridional_boundary_rays!(state)
+        remove_rays!(state)
     end
 
-    set_vertical_boundary_ray_volumes(state, zboundaries)
+    set_vertical_boundary_rays!(state, zboundaries)
     shift_rays!(state, Z())
-    set_vertical_boundary_ray_volumes(state, zboundaries)
-    remove_ray_volumes!(state)
+    set_vertical_boundary_rays!(state, zboundaries)
+    remove_rays!(state)
 
-    check_ray_volumes(state)
+    check_rays(state)
 
     return
 end
@@ -126,7 +126,7 @@ function shift_rays!(state::State, direction::Z)
         for iray in 1:nray[ixrv, jyrv, kzrv]
             if rays.dens[iray, ixrv, jyrv, kzrv] != 0.0
                 zr = rays.z[iray, ixrv, jyrv, kzrv]
-                kz = kztildetfc(ixrv, jyrv, zr, domain, grid)
+                kz = get_next_half_level(ixrv, jyrv, zr, domain, grid)
 
                 if kz > k1
                     kz = k1
@@ -141,7 +141,7 @@ function shift_rays!(state::State, direction::Z)
                     if jray > nray_wrk
                         error("Error in shift_rays!: nray > nray_wrk!")
                     end
-                    copy_ray_volume!(
+                    copy_rays!(
                         rays,
                         (iray, ixrv, jyrv, kzrv),
                         (jray, ixrv, jyrv, kz),

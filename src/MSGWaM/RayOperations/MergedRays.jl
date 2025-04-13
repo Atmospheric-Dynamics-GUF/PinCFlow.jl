@@ -9,7 +9,7 @@ struct MergedRays{A <: SVector{2, <:AbstractFloat}, B <: AbstractFloat}
 end
 
 function MergedRays()
-    return MergedRays([SVector{2}(0.0, 0.0) for i in 1:7]...)
+    return MergedRays([SVector{2}(0.0, 0.0) for i in 1:6]..., 0.0)
 end
 
 function MergedRays(

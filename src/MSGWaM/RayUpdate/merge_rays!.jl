@@ -1,6 +1,6 @@
 function merge_rays!(state::State)
     (; wkb_mode) = state.namelists.wkb
-    merge_ray_volumes(state, wkb_mode)
+    merge_rays!(state, wkb_mode)
     return
 end
 
@@ -9,6 +9,10 @@ function merge_rays!(state::State, wkb_mode::SteadyState)
 end
 
 function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
+    (; sizex, sizey) = state.namelists.domain
+    (; merge_mode) = state.namelists.wkb
+    (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nxray, nyray, nzray, nray_max, nray, rays) = state.wkb
 
     # Compute ray-volume count before merging.
     @views nray_before = sum(nray[i0:i1, j0:j1, k0:k1])

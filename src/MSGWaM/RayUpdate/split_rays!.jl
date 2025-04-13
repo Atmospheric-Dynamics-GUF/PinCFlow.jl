@@ -9,7 +9,7 @@ function split_rays!(state::State, wkb_mode::SteadyState)
 end
 
 function split_rays!(state::State, wkb_mode::SingleColumn)
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray) = state.wkb
 
     @views nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
@@ -34,7 +34,8 @@ function split_rays!(state::State, wkb_mode::SingleColumn)
 end
 
 function split_rays!(state::State, wkb_mode::MultiColumn)
-    (; sizex, sizey, i0, i1, j0, j1, k0, k1) = state.domain
+    (; sizex, sizey) = state.namelists.domain
+    (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
     (; nray) = state.wkb
 
     @views nray_before = sum(nray[i0:i1, j0:j1, k0:k1])
@@ -87,7 +88,7 @@ function split_rays!(
 
             rays.dxray[iray, ix, jy, kz] = 0.5 * dxr
 
-            copy_ray_volume!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
+            copy_rays!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
 
             rays.x[iray, ix, jy, kz] = xr - 0.25 * dxr
             rays.x[nrlc, ix, jy, kz] = xr + 0.25 * dxr
@@ -136,7 +137,7 @@ function split_rays!(
 
             rays.dyray[iray, ix, jy, kz] = 0.5 * dyr
 
-            copy_ray_volume!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
+            copy_rays!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
 
             rays.y[iray, ix, jy, kz] = yr - 0.25 * dyr
             rays.y[nrlc, ix, jy, kz] = yr + 0.25 * dyr
@@ -174,7 +175,7 @@ function split_rays!(
 )
     (; domain, grid) = state
     (; io, jo, i0, j0) = domain
-    (; dx, dy, dz, jac) = grid
+    (; lx, ly, dx, dy, dz, jac) = grid
     (; nray_wrk, nray, rays) = state.wkb
 
     nrlc = nray[ix, jy, kz]
@@ -187,8 +188,8 @@ function split_rays!(
 
         ixrv = round(Int, (xr - lx[1] - dx / 2) / dx) + i0 - io
         jyrv = round(Int, (yr - ly[1] - dy / 2) / dy) + j0 - jo
-        kzrvd = kztildetfc(ixrv, jyrv, zr - 0.5 * dzr, domain, grid)
-        kzrvu = kzTildetfc(ixrv, jyrv, zr + 0.5 * dzr, domain, grid)
+        kzrvd = get_next_half_level(ixrv, jyrv, zr - 0.5 * dzr, domain, grid)
+        kzrvu = get_next_half_level(ixrv, jyrv, zr + 0.5 * dzr, domain, grid)
 
         dzmin = dz
         for kzrv in kzrvd:kzrvu
@@ -196,11 +197,11 @@ function split_rays!(
         end
 
         if dzr > dzmin
-            factor = ceil(dzr / dzmin)
+            factor = ceil(Int, dzr / dzmin)
             rays.z[iray, ix, jy, kz] = zr + 0.5 * (1 / factor - 1) * dzr
             rays.dzray[iray, ix, jy, kz] = dzr / factor
             for jRay in (nrlc + 1):(nrlc + factor - 1)
-                copy_ray_volume!(rays, (iRay, ix, jy, kz), (jRay, ix, jy, kz))
+                copy_rays!(rays, (iRay, ix, jy, kz), (jRay, ix, jy, kz))
                 rays.z[jRay, ix, jy, kz] += (jRray - nrlc) * dzr / factor
             end
             nrlc += factor - 1
