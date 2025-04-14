@@ -8,7 +8,8 @@ function write_output(
     # Get all necessary fields.
     (; domain, grid) = state
     (; sizex, sizey, sizez) = state.namelists.domain
-    (; prepare_restart, output_variables, folder) = state.namelists.output
+    (; prepare_restart, save_ray_volumes, output_variables, folder) =
+        state.namelists.output
     (; testcase) = state.namelists.setting
     (; comm, master, nx, ny, nz, io, jo, i0, i1, j0, j1, k0, k1) = domain
     (; tref, lref, rhoref, thetaref, uref) = state.constants
