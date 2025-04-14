@@ -82,42 +82,76 @@ end
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryGWIntegrals,
-    boundaries::SolidWallBoundaries,
+    boundaries::AbstractBoundaries,
 )
-    # Get all necessary fields.
-    (; k0, k1) = state.domain
+    (; wkb_mode) = state.namelists.wkb
+    set_vertical_boundaries!(state, variables, boundaries, wkb_mode)
+    return
+end
+
+function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryGWIntegrals,
+    boundaries::SolidWallBoundaries,
+    wkb_mode::Union{SteadyState, SingleColumn},
+)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; uw, vw, e) = state.wkb.integrals
+
+    for jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
+        uw[ix, jy, k0 - 1] = uw[ix, jy, k0]
+        uw[ix, jy, k1 + 1] = uw[ix, jy, k1]
+        vw[ix, jy, k0 - 1] = vw[ix, jy, k0]
+        vw[ix, jy, k1 + 1] = vw[ix, jy, k1]
+        e[ix, jy, k0 - 1] = e[ix, jy, k0]
+        e[ix, jy, k1 + 1] = e[ix, jy, k1]
+    end
+
+    return
+end
+
+function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryGWIntegrals,
+    boundaries::SolidWallBoundaries,
+    wkb_mode::MultiColumn,
+)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
     (; uu, uv, uw, vv, vw, etx, ety, utheta, vtheta, e) = state.wkb.integrals
 
-    if steady_state || single_column
-        @views uw[:, :, k0 - 1] .= uw[:, :, k0]
-        @views uw[:, :, k1 + 1] .= uw[:, :, k1]
-        @views vw[:, :, k0 - 1] .= vw[:, :, k0]
-        @views vw[:, :, k1 + 1] .= vw[:, :, k1]
-        @views e[:, :, k0 - 1] .= e[:, :, k0]
-        @views e[:, :, k1 + 1] .= e[:, :, k1]
-    else
-        # no loop as Integrals also contains the tendencies
-        @views uu[:, :, k0 - 1] .= uu[:, :, k0]
-        @views uu[:, :, k1 + 1] .= uu[:, :, k1]
-        @views uv[:, :, k0 - 1] .= uv[:, :, k0]
-        @views uv[:, :, k1 + 1] .= uv[:, :, k1]
-        @views uw[:, :, k0 - 1] .= uw[:, :, k0]
-        @views uw[:, :, k1 + 1] .= uw[:, :, k1]
-        @views vv[:, :, k0 - 1] .= vv[:, :, k0]
-        @views vv[:, :, k1 + 1] .= vv[:, :, k1]
-        @views vw[:, :, k0 - 1] .= vw[:, :, k0]
-        @views vw[:, :, k1 + 1] .= vw[:, :, k1]
-        @views etx[:, :, k0 - 1] .= etx[:, :, k0]
-        @views etx[:, :, k1 + 1] .= etx[:, :, k1]
-        @views ety[:, :, k0 - 1] .= ety[:, :, k0]
-        @views ety[:, :, k1 + 1] .= ety[:, :, k1]
-        @views utheta[:, :, k0 - 1] .= utheta[:, :, k0]
-        @views utheta[:, :, k1 + 1] .= utheta[:, :, k1]
-        @views vtheta[:, :, k0 - 1] .= vtheta[:, :, k0]
-        @views vtheta[:, :, k1 + 1] .= vtheta[:, :, k1]
-        @views e[:, :, k0 - 1] .= e[:, :, k0]
-        @views e[:, :, k1 + 1] .= e[:, :, k1]
+    for jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
+        uu[ix, jy, k0 - 1] = uu[ix, jy, k0]
+        uu[ix, jy, k1 + 1] = uu[ix, jy, k1]
+        uv[ix, jy, k0 - 1] = uv[ix, jy, k0]
+        uv[ix, jy, k1 + 1] = uv[ix, jy, k1]
+        uw[ix, jy, k0 - 1] = uw[ix, jy, k0]
+        uw[ix, jy, k1 + 1] = uw[ix, jy, k1]
+        vv[ix, jy, k0 - 1] = vv[ix, jy, k0]
+        vv[ix, jy, k1 + 1] = vv[ix, jy, k1]
+        vw[ix, jy, k0 - 1] = vw[ix, jy, k0]
+        vw[ix, jy, k1 + 1] = vw[ix, jy, k1]
+        etx[ix, jy, k0 - 1] = etx[ix, jy, k0]
+        etx[ix, jy, k1 + 1] = etx[ix, jy, k1]
+        ety[ix, jy, k0 - 1] = ety[ix, jy, k0]
+        ety[ix, jy, k1 + 1] = ety[ix, jy, k1]
+        utheta[ix, jy, k0 - 1] = utheta[ix, jy, k0]
+        utheta[ix, jy, k1 + 1] = utheta[ix, jy, k1]
+        vtheta[ix, jy, k0 - 1] = vtheta[ix, jy, k0]
+        vtheta[ix, jy, k1 + 1] = vtheta[ix, jy, k1]
+        e[ix, jy, k0 - 1] = e[ix, jy, k0]
+        e[ix, jy, k1 + 1] = e[ix, jy, k1]
     end
+
+    return
+end
+
+function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryGWTendencies,
+    boundaries::AbstractBoundaries,
+)
+    (; wkb_mode) = state.namelists.wkb
+    set_vertical_boundaries!(state, variables, boundaries, wkb_mode)
     return
 end
 
@@ -125,24 +159,39 @@ function set_vertical_boundaries!(
     state::State,
     variables::BoundaryGWTendencies,
     boundaries::SolidWallBoundaries,
+    wkb_mode::Union{SteadyState, SingleColumn},
 )
-    # Get all necessary fields.
-    (; k0, k1) = state.domain
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dudt, dvdt) = state.wkb.integrals
+
+    for jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
+        dudt[ix, jy, k0 - 1] = dudt[ix, jy, k0]
+        dudt[ix, jy, k1 + 1] = dudt[ix, jy, k1]
+        dvdt[ix, jy, k0 - 1] = dvdt[ix, jy, k0]
+        dvdt[ix, jy, k1 + 1] = dvdt[ix, jy, k1]
+    end
+
+    return
+end
+
+function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryGWTendencies,
+    boundaries::SolidWallBoundaries,
+    wkb_mode::MultiColumn,
+)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dudt, dvdt, dthetadt) = state.wkb.integrals
 
-    if steady_state || single_column
-        @views dudt[:, :, k0 - 1] .= dudt[:, :, k0]
-        @views dudt[:, :, k1 + 1] .= dudt[:, :, k1]
-        @views dvdt[:, :, k0 - 1] .= dvdt[:, :, k0]
-        @views dvdt[:, :, k1 + 1] .= dvdt[:, :, k1]
-    else
-        @views dudt[:, :, k0 - 1] .= dudt[:, :, k0]
-        @views dudt[:, :, k1 + 1] .= dudt[:, :, k1]
-        @views dvdt[:, :, k0 - 1] .= dvdt[:, :, k0]
-        @views dvdt[:, :, k1 + 1] .= dvdt[:, :, k1]
-        @views dthetadt[:, :, k0 - 1] .= dthetadt[:, :, k0]
-        @views dthetadt[:, :, k1 + 1] .= dthetadt[:, :, k1]
+    for jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
+        dudt[ix, jy, k0 - 1] = dudt[ix, jy, k0]
+        dudt[ix, jy, k1 + 1] = dudt[ix, jy, k1]
+        dvdt[ix, jy, k0 - 1] = dvdt[ix, jy, k0]
+        dvdt[ix, jy, k1 + 1] = dvdt[ix, jy, k1]
+        dthetadt[ix, jy, k0 - 1] = dthetadt[ix, jy, k0]
+        dthetadt[ix, jy, k1 + 1] = dthetadt[ix, jy, k1]
     end
+
     return
 end
 
@@ -151,15 +200,21 @@ function set_vertical_boundaries!(
     variables::BoundaryGWForces,
     boundaries::SolidWallBoundaries,
 )
-    # Get all necessary fields.
-    (; k0, k1) = state.domain
+    (; i0, i1, j0, j1, k0, k1) = state.domain
     (; u, v, w) = state.wkb.gwmomforce
 
-    @views u[:, :, k0 - 1] .= -u[:, :, k0]
-    @views u[:, :, k1 + 1] .= -u[:, :, k1]
-    @views v[:, :, k0 - 1] .= -v[:, :, k0]
-    @views v[:, :, k1 + 1] .= -v[:, :, k1]
-    @views w[:, :, k0 - 1] .= -w[:, :, k0]
-    @views w[:, :, k1 + 1] .= -w[:, :, k1]
+    # This is really confusing: Why are the vertical boundary conditions for
+    # the forcings different from those for the tendencies? They should be
+    # identical, i.e. line-reflected (free-slip).
+
+    for jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
+        u[ix, jy, k0 - 1] = -u[ix, jy, k0]
+        u[ix, jy, k1 + 1] = -u[ix, jy, k1]
+        v[ix, jy, k0 - 1] = -v[ix, jy, k0]
+        v[ix, jy, k1 + 1] = -v[ix, jy, k1]
+        w[ix, jy, k0 - 1] = -w[ix, jy, k0]
+        w[ix, jy, k1 + 1] = -w[ix, jy, k1]
+    end
+
     return
 end

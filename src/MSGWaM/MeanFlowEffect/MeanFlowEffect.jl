@@ -13,6 +13,6 @@ include("compute_horizontal_cell_indices.jl")
 include("set_integrals_to_zero!.jl")
 include("smooth_tendencies!.jl")
 
-export calc_meanflow_effect!
+export compute_mean_flow_effect!
 
 end

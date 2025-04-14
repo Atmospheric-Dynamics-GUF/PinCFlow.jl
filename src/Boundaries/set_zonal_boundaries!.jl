@@ -27,41 +27,84 @@ function set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
 end
 
 function set_zonal_boundaries!(state::State, variables::BoundaryGWIntegrals)
+    (; wkb_mode) = state.namelists.wkb
+    set_zonal_boundaries!(state, variables, wkb_mode)
+    return
+end
+
+function set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryGWIntegrals,
+    wkb_mode::Union{SteadyState, SingleColumn},
+)
+    (; namelists, domain) = state
+    (; uw, vw, e) = state.wkb.integrals
+
+    set_zonal_boundaries_of_reduced_field!(uw, namelists, domain)
+    set_zonal_boundaries_of_reduced_field!(vw, namelists, domain)
+
+    # This one might be unnecessary.
+    set_zonal_boundaries_of_reduced_field!(e, namelists, domain)
+
+    return
+end
+
+function set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryGWIntegrals,
+    wkb_mode::MultiColumn,
+)
     (; namelists, domain) = state
     (; uu, uv, uw, vv, vw, etx, ety, e, utheta, vtheta) = state.wkb.integrals
 
-    if steady_state || single_column # not sure if this is the right condition
-        # all remaining fluxes are 0
-        set_zonal_boundaries_of_reduced_field!(uw, namelists, domain)
-        set_zonal_boundaries_of_reduced_field!(vw, namelists, domain)
-        # not necessary to set boundaries of e
-        set_zonal_boundaries_of_reduced_field!(e, namelists, domain)
-    else
-        # transient mode
-        set_zonal_boundaries_of_reduced_field!(uu, namelists, domain)
-        set_zonal_boundaries_of_reduced_field!(uv, namelists, domain)
-        set_zonal_boundaries_of_reduced_field!(uw, namelists, domain)
-        set_zonal_boundaries_of_reduced_field!(vv, namelists, domain)
-        set_zonal_boundaries_of_reduced_field!(vw, namelists, domain)
-        # these are not necessary
-        set_zonal_boundaries_of_reduced_field!(e, namelists, domain)
-        set_zonal_boundaries_of_reduced_field!(etx, namelists, domain)
-        set_zonal_boundaries_of_reduced_field!(ety, namelists, domain)
-        set_zonal_boundaries_of_reduced_field!(utheta, namelists, domain)
-        set_zonal_boundaries_of_reduced_field!(vtheta, namelists, domain)
-    end
+    set_zonal_boundaries_of_reduced_field!(uu, namelists, domain)
+    set_zonal_boundaries_of_reduced_field!(uv, namelists, domain)
+    set_zonal_boundaries_of_reduced_field!(uw, namelists, domain)
+    set_zonal_boundaries_of_reduced_field!(vv, namelists, domain)
+    set_zonal_boundaries_of_reduced_field!(vw, namelists, domain)
+
+    # These might be unnecessary.
+    set_zonal_boundaries_of_reduced_field!(e, namelists, domain)
+    set_zonal_boundaries_of_reduced_field!(etx, namelists, domain)
+    set_zonal_boundaries_of_reduced_field!(ety, namelists, domain)
+    set_zonal_boundaries_of_reduced_field!(utheta, namelists, domain)
+    set_zonal_boundaries_of_reduced_field!(vtheta, namelists, domain)
+
     return
 end
 
 function set_zonal_boundaries!(state::State, variables::BoundaryGWTendencies)
+    (; wkb_mode) = state.namelists.wkb
+    set_zonal_boundaries!(state, variables, wkb_mode)
+    return
+end
+
+function set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryGWTendencies,
+    wkb_mode::Union{SteadyState, SingleColumn},
+)
     (; namelists, domain) = state
     (; dudt, dvdt, dthetadt) = state.wkb.integrals
 
     set_zonal_boundaries_of_reduced_field!(dudt, namelists, domain)
     set_zonal_boundaries_of_reduced_field!(dvdt, namelists, domain)
-    if !steady_state || !single_column
-        set_zonal_boundaries_of_reduced_field!(dthetadt, namelists, domain)
-    end
+
+    return
+end
+
+function set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryGWTendencies,
+    wkb_mode::MultiColumn,
+)
+    (; namelists, domain) = state
+    (; dudt, dvdt, dthetadt) = state.wkb.integrals
+
+    set_zonal_boundaries_of_reduced_field!(dudt, namelists, domain)
+    set_zonal_boundaries_of_reduced_field!(dvdt, namelists, domain)
+    set_zonal_boundaries_of_reduced_field!(dthetadt, namelists, domain)
+
     return
 end
 
@@ -72,5 +115,6 @@ function set_zonal_boundaries!(state::State, variables::BoundaryGWForces)
     set_zonal_boundaries_of_reduced_field!(u, namelists, domain)
     set_zonal_boundaries_of_reduced_field!(v, namelists, domain)
     set_zonal_boundaries_of_reduced_field!(w, namelists, domain)
+
     return
 end
