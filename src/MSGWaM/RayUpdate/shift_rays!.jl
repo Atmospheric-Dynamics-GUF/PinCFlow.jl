@@ -1,4 +1,14 @@
 function shift_rays!(state::State)
+    (; testcase) = state.namelists.setting
+    shift_rays!(state, testcase)
+    return
+end
+
+function shift_rays!(state::State, testcase::AbstractTestCase)
+    return
+end
+
+function shift_rays!(state::State, testcase::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
     shift_rays!(state, wkb_mode)
     return

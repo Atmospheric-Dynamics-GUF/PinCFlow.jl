@@ -1,4 +1,14 @@
 function merge_rays!(state::State)
+    (; testcase) = state.namelists.setting
+    merge_rays!(state, testcase)
+    return
+end
+
+function merge_rays!(state::State, testcase::AbstractTestCase)
+    return
+end
+
+function merge_rays!(state::State, testcase::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
     merge_rays!(state, wkb_mode)
     return
