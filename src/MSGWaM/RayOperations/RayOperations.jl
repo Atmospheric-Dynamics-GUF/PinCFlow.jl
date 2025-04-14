@@ -9,6 +9,7 @@ include("MergedRays.jl")
 include("check_rays.jl")
 include("compute_intrinsic_frequency.jl")
 include("compute_merge_index.jl")
+include("compute_saturation_integrals.jl")
 include("compute_spectral_bounds.jl")
 include("copy_rays!.jl")
 include("get_physical_extent.jl")
@@ -23,6 +24,7 @@ export MergedRays,
     check_rays,
     compute_intrinsic_frequency,
     compute_merge_index,
+    compute_saturation_integrals,
     compute_spectral_bounds,
     copy_rays!,
     get_physical_extent,
