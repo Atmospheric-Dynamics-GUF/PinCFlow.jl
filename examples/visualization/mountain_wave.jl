@@ -11,8 +11,7 @@ if occursin("login", host_name)
         "/scratch/atmodynamics/" * user_name * "/pinc/examples/mountain_wave/"
     reference_path = data_path
 elseif occursin("dkrz", host_name)
-    data_path =
-        "/scratch/b/" * user_name * "/dissertation/pinc/examples/mountain_wave/"
+    data_path = "/scratch/b/" * user_name * "/pinc/examples/mountain_wave/"
     reference_path = data_path
 end
 
