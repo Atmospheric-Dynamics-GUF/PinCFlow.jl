@@ -1,5 +1,6 @@
 module BoundaryRays
 
+using MPI
 using ...Types
 using ...Boundaries
 using ..RayOperations
