@@ -12,6 +12,7 @@ using .RayUpdate
 using .MeanFlowEffect
 
 export apply_saturation_scheme!,
+    compute_mean_flow_effect!,
     initialize_rays!,
     merge_rays!,
     propagate_rays!,
