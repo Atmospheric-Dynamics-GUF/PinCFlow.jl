@@ -10,7 +10,6 @@ function set_zonal_boundary_rays!(state::State)
 
     # Set ray-volumes properties.
     if nprocx > 1
-        error("Halo routines are not working yet!")
         set_zonal_halo_rays!(state)
     else
         for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):(j1 + 1)

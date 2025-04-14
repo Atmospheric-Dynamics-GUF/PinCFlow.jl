@@ -10,7 +10,6 @@ function set_meridional_boundary_rays!(state::State)
 
     # Set ray-volumes properties.
     if nprocy > 1
-        error("Halo routines are not working yet!")
         set_zonal_halo_rays!(state)
     else
         for kz in (k0 - 1):(k1 + 1), ix in (i0 - 1):(i1 + 1)
