@@ -34,8 +34,9 @@ function smooth_tendencies!(
     sm_filter::Box,
     direction::XYZ,
 )
-    (; nbx, nby, nbz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nbx, nby, nbz) = state.namelists.domain
     (; nsmth_wkb) = state.namelists.wkb
+    (; i0, i1, j0, j1, k0, k1) = state.domain
 
     if nbx < nsmth_wkb
         error("Error in smooth_tendencies!: nbx < nsmth_wkb!")
@@ -68,8 +69,9 @@ function smooth_tendencies!(
     sm_filter::Box,
     direction::XZ,
 )
-    (; nbx, nbz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nbx, nbz) = state.namelists.domain
     (; nsmth_wkb) = state.namelists.wkb
+    (; i0, i1, j0, j1, k0, k1) = state.domain
 
     if nbx < nsmth_wkb
         error("Error in smooth_tendencies!: nbx < nsmth_wkb!")
@@ -99,8 +101,9 @@ function smooth_tendencies!(
     sm_filter::Box,
     direction::YZ,
 )
-    (; nby, nbz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nby, nbz) = state.namelists.domain
     (; nsmth_wkb) = state.namelists.wkb
+    (; i0, i1, j0, j1, k0, k1) = state.domain
 
     if nby < nsmth_wkb
         error("Error in smooth_tendencies!: nby < nsmth_wkb!")
@@ -130,8 +133,9 @@ function smooth_tendencies!(
     sm_filter::Box,
     direction::Z,
 )
-    (; nbz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nbz) = state.namelists.domain
     (; nsmth_wkb) = state.namelists.wkb
+    (; i0, i1, j0, j1, k0, k1) = state.domain
 
     if nbz < nsmth_wkb
         error("Error in smooth_tendencies!: nbz < nsmth_wkb!")
@@ -187,6 +191,7 @@ function smooth_tendencies!(
     sm_filter::Shapiro,
     direction::Z,
 )
+    (; nbz) = state.namelists.domain
     (; nsmth_wkb) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
 
@@ -213,6 +218,7 @@ function smooth_tendencies!(
     sm_filter::Shapiro,
     direction::Y,
 )
+    (; nby) = state.namelists.domain
     (; nsmth_wkb) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
 
@@ -239,8 +245,9 @@ function smooth_tendencies!(
     sm_filter::Shapiro,
     direction::X,
 )
+    (; nbx) = state.namelists.domain
     (; nsmth_wkb) = state.namelists.wkb
-    (; nbx, i0, i1, j0, j1, k0, k1) = state.domain
+    (; i0, i1, j0, j1, k0, k1) = state.domain
 
     if nbx < nsmth_wkb
         error("Error in smooth_tendencies!: nbx < nsmth_wkb!")

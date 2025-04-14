@@ -1,13 +1,12 @@
 
 function compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
+    (; sizex, sizey) = state.namelists.domain
     (; i0, i1, j0, j1, io, jo) = state.domain
     (; lx, ly, dx, dy) = state.grid
-    (; sizex, sizey) = state.namelist.domain
 
-    # indices of range of cells touched by a ray volume
     if sizex > 1
-        ixmin = floor((xr - dxr * 0.5 - lx[1]) / dx) + i0 - io
-        ixmax = floor((xr + dxr * 0.5 - lx[1]) / dx) + i0 - io
+        ixmin = floor(Int, (xr - lx[1] - dxr / 2) / dx) + i0 - io
+        ixmax = floor(Int, (xr - lx[1] + dxr / 2) / dx) + i0 - io
 
         if ixmin > (i1 + 1)
             error(
@@ -37,8 +36,8 @@ function compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
     end
 
     if sizey > 1
-        jymin = floor((yr - dyr * 0.5 - ly[1]) / dy) + j0 - jo
-        jymax = floor((yr + dyr * 0.5 - ly[1]) / dy) + j0 - jo
+        jymin = floor(Int, (yr - ly[1] - dyr / 2) / dy) + j0 - jo
+        jymax = floor(Int, (yr - ly[1] + dyr / 2) / dy) + j0 - jo
 
         if jymin > j1 + 1
             error(
@@ -66,5 +65,5 @@ function compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
         jymax = 1
     end
 
-    return ixmin, ixmax, jymin, jymax
+    return (ixmin, ixmax, jymin, jymax)
 end

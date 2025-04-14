@@ -186,6 +186,7 @@ function integrate(namelists::Namelists)
         shift_rays!(state)
         merge_rays!(state)
         set_boundary_rays!(state)
+        compute_mean_flow_effect!(state)
 
         # Synchronization of density fluctuations
         synchronize_density_fluctuations!(state)
