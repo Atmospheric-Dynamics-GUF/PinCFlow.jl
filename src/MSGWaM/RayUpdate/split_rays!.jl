@@ -1,4 +1,14 @@
 function split_rays!(state::State)
+    (; testcase) = state.namelists.setting
+    split_rays!(state, testcase)
+    return
+end
+
+function split_rays!(state::State, testcase::AbstractTestCase)
+    return
+end
+
+function split_rays!(state::State, testcase::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
     split_rays!(state, wkb_mode)
     return
