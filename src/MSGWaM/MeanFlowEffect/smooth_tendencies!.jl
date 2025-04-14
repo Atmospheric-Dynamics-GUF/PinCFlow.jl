@@ -1,4 +1,4 @@
-function smooth_tendencies!(state)
+function smooth_tendencies!(state::State)
     (; sizex, sizey) = state.namelists.domain
     (; lsmth_wkb, sm_filter) = state.namelists.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.integrals
@@ -7,552 +7,320 @@ function smooth_tendencies!(state)
         return
     end
 
-    if sizey == 1
-        if sizex > 1
-            smooth_tendencies!(dudt, state, sm_filter, XZ())
-            smooth_tendencies!(dvdt, state, sm_filter, XZ())
-            smooth_tendencies!(dthetadt, state, sm_filter, XZ())
-        else
-            error("Smoothing just in z not yet implemented.")
-        end
+    if sizex == sizey == 1
+        smooth_tendencies!(dudt, state, sm_filter, Z())
+        smooth_tendencies!(dvdt, state, sm_filter, Z())
+        smooth_tendencies!(dthetadt, state, sm_filter, Z())
     elseif sizex == 1
         smooth_tendencies!(dudt, state, sm_filter, YZ())
         smooth_tendencies!(dvdt, state, sm_filter, YZ())
         smooth_tendencies!(dthetadt, state, sm_filter, YZ())
-    elseif sizex > 1
+    elseif sizey == 1
+        smooth_tendencies!(dudt, state, sm_filter, XZ())
+        smooth_tendencies!(dvdt, state, sm_filter, XZ())
+        smooth_tendencies!(dthetadt, state, sm_filter, XZ())
+    else
         smooth_tendencies!(dudt, state, sm_filter, XYZ())
         smooth_tendencies!(dvdt, state, sm_filter, XYZ())
         smooth_tendencies!(dthetadt, state, sm_filter, XYZ())
     end
+
     return
 end
 
-function smooth_tendencies!(flxwkb, state, sm_filter::Box, homogdir::XYZ)
-    (; nx, ny, nz, nbx, nby, nbz, i0, i1, j0, j1, k0, k1) = state.domain
-    (; nsmth_wkb) = state.namelists.WKBNamelist
+function smooth_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Box,
+    direction::XYZ,
+)
+    (; nbx, nby, nbz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nsmth_wkb) = state.namelists.wkb
 
-    nsmth = nsmth_wkb
-
-    if min(nx, nbx) < nsmth
-        error("min(nx, nbx) too small for smoothing")
+    if nbx < nsmth_wkb
+        error("Error in smooth_tendencies!: nbx < nsmth_wkb!")
     end
-    if min(ny, nby) < nsmth
-        error("min(ny, nby) too small for smoothing")
+    if nby < nsmth_wkb
+        error("Error in smooth_tendencies!: nby < nsmth_wkb!")
     end
-    if min(nz, nbz) < nsmth
-        error("min(nz, nbz) too small for smoothing")
+    if nbz < nsmth_wkb
+        error("Error in smooth_tendencies!: nbz < nsmth_wkb!")
     end
 
-    flxwkb_0 = copy(flxwkb)
-
+    input = copy(output)
     for k in k0:k1, j in j0:j1, i in i0:i1
-        flxwkb[i, j, k] =
+        @views output[i, j, k] =
             sum(
-                flxwkb_0[
-                    (i - nsmth):(i + nsmth),
-                    (j - nsmth):(j + nsmth),
-                    (k - nsmth):(k + nsmth),
+                input[
+                    (i - nsmth_wkb):(i + nsmth_wkb),
+                    (j - nsmth_wkb):(j + nsmth_wkb),
+                    (k - nsmth_wkb):(k + nsmth_wkb),
                 ],
-            ) / real((2 * nsmth + 1)^3)
+            ) / (2 * nsmth_wkb + 1)^3
     end
+
     return
 end
 
-function smooth_tendencies!(flxwkb, state, sm_filter::Box, homogdir::XZ)
-    (; nx, ny, nz, nbx, nby, nbz, i0, i1, j0, j1, k0, k1) = state.domain
-    (; nsmth_wkb) = state.namelists.WKBNamelist
+function smooth_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Box,
+    direction::XZ,
+)
+    (; nbx, nbz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nsmth_wkb) = state.namelists.wkb
 
-    nsmth = nsmth_wkb
-
-    if min(nx, nbx) < nsmth
-        error("min(nx, nbx) too small for smoothing")
+    if nbx < nsmth_wkb
+        error("Error in smooth_tendencies!: nbx < nsmth_wkb!")
     end
-    if min(nz, nbz) < nsmth
-        error("min(nz, nbz) too small for smoothing")
+    if nbz < nsmth_wkb
+        error("Error in smooth_tendencies!: nbz < nsmth_wkb!")
     end
 
-    flxwkb_0 = copy(flxwkb)
-
+    input = copy(output)
     for k in k0:k1, j in j0:j1, i in i0:i1
-        flxwkb[i, j, k] =
-            sum(flxwkb_0[(i - nsmth):(i + nsmth), j, (k - nsmth):(k + nsmth)]) /
-            real((2 * nsmth + 1)^2)
+        @views output[i, j, k] =
+            sum(
+                input[
+                    (i - nsmth_wkb):(i + nsmth_wkb),
+                    j,
+                    (k - nsmth_wkb):(k + nsmth_wkb),
+                ],
+            ) / (2 * nsmth_wkb + 1)^2
     end
+
     return
 end
 
-function smooth_tendencies!(flxwkb, state, sm_filter::Box, homogdir::YZ)
-    (; nx, ny, nz, nbx, nby, nbz, i0, i1, j0, j1, k0, k1) = state.domain
-    (; nsmth_wkb) = state.namelists.WKBNamelist
+function smooth_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Box,
+    direction::YZ,
+)
+    (; nby, nbz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nsmth_wkb) = state.namelists.wkb
 
-    nsmth = nsmth_wkb
-
-    if min(ny, nby) < nsmth
-        error("min(ny, nby) too small for smoothing")
+    if nby < nsmth_wkb
+        error("Error in smooth_tendencies!: nby < nsmth_wkb!")
     end
-    if min(nz, nbz) < nsmth
-        error("min(nz, nbz) too small for smoothing")
+    if nbz < nsmth_wkb
+        error("Error in smooth_tendencies!: nbz < nsmth_wkb!")
     end
 
-    flxwkb_0 = copy(flxwkb)
-
+    input = copy(output)
     for k in k0:k1, j in j0:j1, i in i0:i1
-        flxwkb[i, j, k] =
-            sum(flxwkb_0[i, (j - nsmth):(j + nsmth), (k - nsmth):(k + nsmth)]) /
-            real((2 * nsmth + 1)^2)
+        @views output[i, j, k] =
+            sum(
+                input[
+                    i,
+                    (j - nsmth_wkb):(j + nsmth_wkb),
+                    (k - nsmth_wkb):(k + nsmth_wkb),
+                ],
+            ) / (2 * nsmth_wkb + 1)^2
     end
+
     return
 end
 
-function smooth_tendencies!(flxwkb, state, sm_filter::Box, homogdir::X)
-    (; nx, ny, nz, nbx, nby, nbz, i0, i1, j0, j1, k0, k1) = state.domain
-    (; nsmth_wkb) = state.namelists.WKBNamelist
+function smooth_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Box,
+    direction::Z,
+)
+    (; nbz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; nsmth_wkb) = state.namelists.wkb
 
-    flxwkb_0 = copy(flxwkb)
+    if nbz < nsmth_wkb
+        error("Error in smooth_tendencies!: nbz < nsmth_wkb!")
+    end
 
+    input = copy(output)
     for k in k0:k1, j in j0:j1, i in i0:i1
-        flxwkb[i, j, k] = sum(flxwkb_0[i0:i1, j, k]) / real(nx)
+        @views output[i, j, k] =
+            sum(input[i, j, (k - nsmth_wkb):(k + nsmth_wkb)]) /
+            (2 * nsmth_wkb + 1)
+    end
+
+    return
+end
+
+function smooth_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::XYZ,
+)
+    smooth_tendencies!(output, state, sm_filter, X())
+    smooth_tendencies!(output, state, sm_filter, Y())
+    smooth_tendencies!(output, state, sm_filter, Z())
+    return
+end
+
+function smooth_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::XZ,
+)
+    smooth_tendencies!(output, state, sm_filter, X())
+    smooth_tendencies!(output, state, sm_filter, Z())
+    return
+end
+
+function smooth_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::YZ,
+)
+    smooth_tendencies!(output, state, sm_filter, Y())
+    smooth_tendencies!(output, state, sm_filter, Z())
+    return
+end
+
+function smooth_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::Z,
+)
+    (; nsmth_wkb) = state.namelists.wkb
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+
+    if nbz < nsmth_wkb
+        error("Error in smooth_tendencies!: nbz < nsmth_wkb!")
+    end
+
+    input = copy(output)
+    for j in j0:j1, i in i0:i1
+        @views smooth_tendencies!(
+            input[i, j, :],
+            output[i, j, :],
+            (k0, k1),
+            Val(nsmth_wkb),
+        )
+    end
+
+    return
+end
+
+function smooth_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::Y,
+)
+    (; nsmth_wkb) = state.namelists.wkb
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+
+    if nby < nsmth_wkb
+        error("Error in smooth_tendencies!: nby < nsmth_wkb!")
+    end
+
+    input = copy(output)
+    for k in k0:k1, i in i0:i1
+        @views smooth_tendencies!(
+            input[i, :, k],
+            output[i, :, k],
+            (j0, j1),
+            Val(nsmth_wkb),
+        )
+    end
+
+    return
+end
+
+function smooth_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::X,
+)
+    (; nsmth_wkb) = state.namelists.wkb
+    (; nbx, i0, i1, j0, j1, k0, k1) = state.domain
+
+    if nbx < nsmth_wkb
+        error("Error in smooth_tendencies!: nbx < nsmth_wkb!")
+    end
+
+    input = copy(output)
+    for k in k0:k1, j in j0:j1
+        @views smooth_tendencies!(
+            input[:, j, k],
+            output[:, j, k],
+            (i0, i1),
+            Val(nsmth_wkb),
+        )
+    end
+
+    return
+end
+
+function smooth_tendencies!(
+    input::AbstractVector{<:AbstractFloat},
+    output::AbstractVector{<:AbstractFloat},
+    bounds::NTuple{2, <:Integer},
+    order::Val{1},
+)
+    for i in bounds[1]:bounds[2]
+        output[i] = (input[i - 1] + input[i + 1] + 2 * input[i]) / 4
     end
     return
 end
 
-function smooth_tendencies!(flxwkb, state, sm_filter::Shapiro, homogdir::XYZ)
-    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, i0, i1, j0, j1, k0, k1) =
-        state.domain
-    (; nsmth_wkb) = state.namelists.WKBNamelist
-
-    nsmth = nsmth_wkb
-
-    if min(nx, nbx) < nsmth
-        error("min(nx, nbx) too small for smoothing")
-    end
-    if min(ny, nby) < nsmth
-        error("min(ny, nby) too small for smoothing")
-    end
-    if min(nz, nbz) < nsmth
-        error("min(nz, nbz) too small for smoothing")
-    end
-
-    flxwkb_0 = copy(flxwkb)
-    flxwkb_1 = zeros(flxwkb)
-
-    if nsmth == 1
-        # smooth in x
-        for k in (k0 - nbz):(k1 + nbz), j in (j0 - nby):(j1 + nby), i in i0:i1
-            flxwkb_0[i, j, k] =
-                (
-                    flxwkb[i - 1, j, k] +
-                    flxwkb[i + 1, j, k] +
-                    2.0 * flxwkb[i, j, k]
-                ) / 4.0
-        end
-
-        # smooth in y
-        for k in (k0 - nbz):(k1 + nbz), j in j0:j1, i in i0:i1
-            flxwkb_1[i, j, k] =
-                (
-                    flxwkb_0[i, j - 1, k] +
-                    flxwkb_0[i, j + 1, k] +
-                    2.0 * flxwkb_0[i, j, k]
-                ) / 4.0
-        end
-
-        # smooth in z
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            flxwkb[i, j, k] =
-                (
-                    flxwkb_1[i, j, k - 1] +
-                    flxwkb_1[i, j, k + 1] +
-                    2.0 * flxwkb_1[i, j, k]
-                ) / 4.0
-        end
-
-    elseif nsmth == 2
-
-        # smooth in x
-        for k in (k0 - nbz):(k1 + nbz), j in (j0 - nby):(j1 + nby), i in i0:i1
-            flxwkb_0[i, j, k] =
-                (
-                    -flxwkb[i - 2, j, k] - flxwkb[i + 2, j, k] +
-                    4.0 * (flxwkb[i - 1, j, k] + flxwkb[i + 1, j, k]) +
-                    10.0 * flxwkb[i, j, k]
-                ) / 16.0
-        end
-
-        # smooth in y
-        for k in (k0 - nbz):(k1 + nbz), j in j0:j1, i in i0:i1
-            flxwkb_1[i, j, k] =
-                (
-                    -flxwkb_0[i, j - 2, k] - flxwkb_0[i, j + 2, k] +
-                    4.0 * (flxwkb_0[i, j - 1, k] + flxwkb_0[i, j + 1, k]) +
-                    10.0 * flxwkb_0[i, j, k]
-                ) / 16.0
-        end
-
-        # smooth in z
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            flxwkb[i, j, k] =
-                (
-                    -flxwkb_1[i, j, k - 2] - flxwkb_1[i, j, k + 2] +
-                    4.0 * (flxwkb_1[i, j, k - 1] + flxwkb_1[i, j, k + 1]) +
-                    10.0 * flxwkb_1[i, j, k]
-                ) / 16.0
-        end
-
-    elseif nsmth == 3
-
-        # smooth in x
-        for k in (k0 - nbz):(k1 + nbz), j in (j0 - nby):(j1 + nby), i in i0:i1
-            flxwkb_0[i, j, k] =
-                (
-                    flxwkb[i - 3, j, k] + flxwkb[i + 3, j, k] -
-                    6.0 * (flxwkb[i - 2, j, k] + flxwkb[i + 2, j, k]) +
-                    15.0 * (flxwkb[i - 1, j, k] + flxwkb[i + 1, j, k]) +
-                    44.0 * flxwkb[i, j, k]
-                ) / 64.0
-        end
-
-        # smooth in y
-        for k in (k0 - nbz):(k1 + nbz), j in j0:j1, i in i0:i1
-            flxwkb_1[i, j, k] =
-                (
-                    flxwkb_0[i, j - 3, k] + flxwkb_0[i, j + 3, k] -
-                    6.0 * (flxwkb_0[i, j - 2, k] + flxwkb_0[i, j + 2, k]) +
-                    15.0 * (flxwkb_0[i, j - 1, k] + flxwkb_0[i, j + 1, k]) +
-                    44.0 * flxwkb_0[i, j, k]
-                ) / 64.0
-        end
-
-        # smooth in z
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            flxwkb[i, j, k] =
-                (
-                    flxwkb_1[i, j, k - 3] + flxwkb_1[i, j, k + 3] -
-                    6.0 * (flxwkb_1[i, j, k - 2] + flxwkb_1[i, j, k + 2]) +
-                    15.0 * (flxwkb_1[i, j, k - 1] + flxwkb_1[i, j, k + 1]) +
-                    44.0 * flxwkb_1[i, j, k]
-                ) / 64.0
-        end
-
-    elseif nsmth == 4
-
-        # smooth in x
-        for k in (k0 - nbz):(k1 + nbz), j in (j0 - nby):(j1 + nby), i in i0:i1
-            flxwkb_0[i, j, k] =
-                (
-                    -flxwkb[i - 4, j, k] - flxwkb[i + 4, j, k] +
-                    8.0 * (flxwkb[i - 3, j, k] + flxwkb[i + 3, j, k]) -
-                    28.0 * (flxwkb[i - 2, j, k] + flxwkb[i + 2, j, k]) +
-                    56.0 * (flxwkb[i - 1, j, k] + flxwkb[i + 1, j, k]) +
-                    186.0 * flxwkb[i, j, k]
-                ) / 256.0
-        end
-
-        # smooth in y
-        for k in (k0 - nbz):(k1 + nbz), j in j0:j1, i in i0:i1
-            flxwkb_1[i, j, k] =
-                (
-                    -flxwkb_0[i, j - 4, k] - flxwkb_0[i, j + 4, k] +
-                    8.0 * (flxwkb_0[i, j - 3, k] + flxwkb_0[i, j + 3, k]) -
-                    28.0 * (flxwkb_0[i, j - 2, k] + flxwkb_0[i, j + 2, k]) +
-                    56.0 * (flxwkb_0[i, j - 1, k] + flxwkb_0[i, j + 1, k]) +
-                    186.0 * flxwkb_0[i, j, k]
-                ) / 256.0
-        end
-
-        # smooth in z
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            flxwkb[i, j, k] =
-                (
-                    flxwkb_1[i, j, k - 4] +
-                    flxwkb_1[i, j, k + 4] +
-                    8.0 * (flxwkb_1[i, j, k - 3] + flxwkb_1[i, j, k + 3]) -
-                    28.0 * (flxwkb_1[i, j, k - 2] + flxwkb_1[i, j, k + 2]) +
-                    56.0 * (flxwkb_1[i, j, k - 1] + flxwkb_1[i, j, k + 1]) +
-                    186.0 * flxwkb_1[i, j, k]
-                ) / 256.0
-        end
-
-    else
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            flxwkb[i, j, k] =
-                sum(
-                    flxwkb_0[
-                        (i - nsmth):(i + nsmth),
-                        (j - nsmth):(j + nsmth),
-                        (k - nsmth):(k + nsmth),
-                    ],
-                ) / real((2 * nsmth + 1)^3)
-        end
+function smooth_tendencies!(
+    input::AbstractVector{<:AbstractFloat},
+    output::AbstractVector{<:AbstractFloat},
+    bounds::NTuple{2, <:Integer},
+    order::Val{2},
+)
+    for i in bounds[1]:bounds[2]
+        output[i] =
+            (
+                -input[i - 2] - input[i + 2] +
+                4 * (input[i - 1] + input[i + 1]) +
+                10 * input[i]
+            ) / 16
     end
     return
 end
 
-function smooth_tendencies!(flxwkb, state, sm_filter::Shapiro, homogdir::XZ)
-    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, i0, i1, j0, j1, k0, k1) =
-        state.domain
-    (; nsmth_wkb) = state.namelists.WKBNamelist
-
-    nsmth = nsmth_wkb
-
-    if min(nx, nbx) < nsmth
-        error("min(nx, nbx) too small for smoothing")
-    end
-    if min(nz, nbz) < nsmth
-        error("min(nz, nbz) too small for smoothing")
-    end
-
-    flxwkb_0 = copy(flxwkb)
-    flxwkb_1 = zeros(flxwkb)
-
-    if nsmth == 1
-
-        # smooth in x
-        for k in (k0 - nbz):(k1 + nbz), j in j0:j1, i in i0:i1
-            flxwkb_1[i, j, k] =
-                (
-                    flxwkb_0[i - 1, j, k] +
-                    flxwkb_0[i + 1, j, k] +
-                    2.0 * flxwkb_0[i, j, k]
-                ) / 4.0
-        end
-
-        # smooth in z
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            flxwkb[i, j, k] =
-                (
-                    flxwkb_1[i, j, k - 1] +
-                    flxwkb_1[i, j, k + 1] +
-                    2.0 * flxwkb_1[i, j, k]
-                ) / 4.0
-        end
-
-    elseif nsmth == 2
-
-        # smooth in x
-        for k in (k0 - nbz):(k1 + nbz), j in j0:j1, i in i0:i1
-            flxwkb_1[i, j, k] =
-                (
-                    -flxwkb_0[i - 2, j, k] - flxwkb_0[i + 2, j, k] +
-                    4.0 * (flxwkb_0[i - 1, j, k] + flxwkb_0[i + 1, j, k]) +
-                    10.0 * flxwkb_0[i, j, k]
-                ) / 16.0
-        end
-
-        # smooth in z
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            flxwkb[i, j, k] =
-                (
-                    -flxwkb_1[i, j, k - 2] - flxwkb_1[i, j, k + 2] +
-                    4.0 * (flxwkb_1[i, j, k - 1] + flxwkb_1[i, j, k + 1]) +
-                    10.0 * flxwkb_1[i, j, k]
-                ) / 16.0
-        end
-
-    elseif nsmth == 3
-
-        # smooth in x
-        for k in (k0 - nbz):(k1 + nbz), j in j0:j1, i in i0:i1
-            flxwkb_1[i, j, k] =
-                (
-                    flxwkb_0[i - 3, j, k] + flxwkb_0[i + 3, j, k] -
-                    6.0 * (flxwkb_0[i - 2, j, k] + flxwkb_0[i + 2, j, k]) +
-                    15.0 * (flxwkb_0[i - 1, j, k] + flxwkb_0[i + 1, j, k]) +
-                    44.0 * flxwkb_0[i, j, k]
-                ) / 64.0
-        end
-
-        # smooth in z
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            flxwkb[i, j, k] =
-                (
-                    flxwkb_1[i, j, k - 3] + flxwkb_1[i, j, k + 3] -
-                    6.0 * (flxwkb_1[i, j, k - 2] + flxwkb_1[i, j, k + 2]) +
-                    15.0 * (flxwkb_1[i, j, k - 1] + flxwkb_1[i, j, k + 1]) +
-                    44.0 * flxwkb_1[i, j, k]
-                ) / 64.0
-        end
-
-    elseif nsmth == 4
-
-        # smooth in x
-        for k in (k0 - nbz):(k1 + nbz), j in j0:j1, i in i0:i1
-            flxwkb_1[i, j, k] =
-                (
-                    -flxwkb_0[i - 4, j, k] - flxwkb_0[i + 4, j, k] +
-                    8.0 * (flxwkb_0[i - 3, j, k] + flxwkb_0[i + 3, j, k]) -
-                    28.0 * (flxwkb_0[i - 2, j, k] + flxwkb_0[i + 2, j, k]) +
-                    56.0 * (flxwkb_0[i - 1, j, k] + flxwkb_0[i + 1, j, k]) +
-                    186.0 * flxwkb_0[i, j, k]
-                ) / 256.0
-        end
-
-        # smooth in z
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            flxwkb[i, j, k] =
-                (
-                    flxwkb_1[i, j, k - 4] +
-                    flxwkb_1[i, j, k + 4] +
-                    8.0 * (flxwkb_1[i, j, k - 3] + flxwkb_1[i, j, k + 3]) -
-                    28.0 * (flxwkb_1[i, j, k - 2] + flxwkb_1[i, j, k + 2]) +
-                    56.0 * (flxwkb_1[i, j, k - 1] + flxwkb_1[i, j, k + 1]) +
-                    186.0 * flxwkb_1[i, j, k]
-                ) / 256.0
-        end
-
-    else
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            flxwkb[i, j, k] =
-                sum(
-                    flxwkb_0[
-                        (i - nsmth):(i + nsmth),
-                        j,
-                        (k - nsmth):(k + nsmth),
-                    ],
-                ) / real((2 * nsmth + 1)^2)
-        end
+function smooth_tendencies!(
+    input::AbstractVector{<:AbstractFloat},
+    output::AbstractVector{<:AbstractFloat},
+    bounds::NTuple{2, <:Integer},
+    order::Val{3},
+)
+    for i in bounds[1]:bounds[2]
+        output[i] =
+            (
+                input[i - 3] + input[i + 3] -
+                6 * (input[i - 2] + input[i + 2]) +
+                15 * (input[i - 1] + input[i + 1]) +
+                44 * input[i]
+            ) / 64
     end
     return
 end
 
-function smooth_tendencies!(flxwkb, state, sm_filter::Shapiro, homogdir::YZ)
-    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, i0, i1, j0, j1, k0, k1) =
-        state.domain
-    (; nsmth_wkb) = state.namelists.WKBNamelist
-
-    nsmth = nsmth_wkb
-
-    if min(ny, nby) < nsmth
-        error("min(ny, nby) too small for smoothing")
-    end
-    if min(nz, nbz) < nsmth
-        error("min(nz, nbz) too small for smoothing")
-    end
-
-    flxwkb_0 = copy(flxwkb)
-    flxwkb_1 = zeros(flxwkb)
-
-    if nsmth == 1
-
-        # smooth in y
-        for k in (k0 - nbz):(k1 + nbz), j in j0:j1, i in i0:i1
-            flxwkb_1[i, j, k] =
-                (
-                    flxwkb_0[i, j - 1, k] +
-                    flxwkb_0[i, j + 1, k] +
-                    2.0 * flxwkb_0[i, j, k]
-                ) / 4.0
-        end
-
-        # smooth in z
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            flxwkb[i, j, k] =
-                (
-                    flxwkb_1[i, j, k - 1] +
-                    flxwkb_1[i, j, k + 1] +
-                    2.0 * flxwkb_1[i, j, k]
-                ) / 4.0
-        end
-
-    elseif nsmth == 2
-
-        # smooth in y
-        for k in (k0 - nbz):(k1 + nbz), j in j0:j1, i in i0:i1
-            flxwkb_1[i, j, k] =
-                (
-                    -flxwkb_0[i, j - 2, k] - flxwkb_0[i, j + 2, k] +
-                    4.0 * (flxwkb_0[i, j - 1, k] + flxwkb_0[i, j + 1, k]) +
-                    10.0 * flxwkb_0[i, j, k]
-                ) / 16.0
-        end
-
-        # smooth in z
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            flxwkb[i, j, k] =
-                (
-                    -flxwkb_1[i, j, k - 2] - flxwkb_1[i, j, k + 2] +
-                    4.0 * (flxwkb_1[i, j, k - 1] + flxwkb_1[i, j, k + 1]) +
-                    10.0 * flxwkb_1[i, j, k]
-                ) / 16.0
-        end
-
-    elseif nsmth == 3
-
-        # smooth in y
-        for k in (k0 - nbz):(k1 + nbz), j in j0:j1, i in i0:i1
-            flxwkb_1[i, j, k] =
-                (
-                    flxwkb_0[i, j - 3, k] + flxwkb_0[i, j + 3, k] -
-                    6.0 * (flxwkb_0[i, j - 2, k] + flxwkb_0[i, j + 2, k]) +
-                    15.0 * (flxwkb_0[i, j - 1, k] + flxwkb_0[i, j + 1, k]) +
-                    44.0 * flxwkb_0[i, j, k]
-                ) / 64.0
-        end
-
-        # smooth in z
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            flxwkb[i, j, k] =
-                (
-                    flxwkb_1[i, j, k - 3] + flxwkb_1[i, j, k + 3] -
-                    6.0 * (flxwkb_1[i, j, k - 2] + flxwkb_1[i, j, k + 2]) +
-                    15.0 * (flxwkb_1[i, j, k - 1] + flxwkb_1[i, j, k + 1]) +
-                    44.0 * flxwkb_1[i, j, k]
-                ) / 64.0
-        end
-
-    elseif nsmth == 4
-
-        # smooth in y
-        for k in (k0 - nbz):(k1 + nbz), j in j0:j1, i in i0:i1
-            flxwkb_1[i, j, k] =
-                (
-                    -flxwkb_0[i, j - 4, k] - flxwkb_0[i, j + 4, k] +
-                    8.0 * (flxwkb_0[i, j - 3, k] + flxwkb_0[i, j + 3, k]) -
-                    28.0 * (flxwkb_0[i, j - 2, k] + flxwkb_0[i, j + 2, k]) +
-                    56.0 * (flxwkb_0[i, j - 1, k] + flxwkb_0[i, j + 1, k]) +
-                    186.0 * flxwkb_0[i, j, k]
-                ) / 256.0
-        end
-
-        # smooth in z
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            flxwkb[i, j, k] =
-                (
-                    flxwkb_1[i, j, k - 4] +
-                    flxwkb_1[i, j, k + 4] +
-                    8.0 * (flxwkb_1[i, j, k - 3] + flxwkb_1[i, j, k + 3]) -
-                    28.0 * (flxwkb_1[i, j, k - 2] + flxwkb_1[i, j, k + 2]) +
-                    56.0 * (flxwkb_1[i, j, k - 1] + flxwkb_1[i, j, k + 1]) +
-                    186.0 * flxwkb_1[i, j, k]
-                ) / 256.0
-        end
-
-    else
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            flxwkb[i, j, k] =
-                sum(
-                    flxwkb_0[
-                        i,
-                        (j - nsmth):(j + nsmth),
-                        (k - nsmth):(k + nsmth),
-                    ],
-                ) / real((2 * nsmth + 1)^2)
-        end
-    end
-    return
-end
-
-function smooth_tendencies!(flxwkb, state, sm_filter::Shapiro, homogdir::X)
-    (; nx, ny, nz, nbx, nby, nbz, nxx, nyy, nzz, i0, i1, j0, j1, k0, k1) =
-        state.domain
-    (; nsmth_wkb) = state.namelists.WKBNamelist
-
-    nsmth = nsmth_wkb
-
-    flxwkb_0 = copy(flxwkb)
-
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        flxwkb[i, j, k] = sum(flxwkb_0[i0:i1, j, k]) / real(nx)
+function smooth_tendencies!(
+    input::AbstractVector{<:AbstractFloat},
+    output::AbstractVector{<:AbstractFloat},
+    bounds::NTuple{2, <:Integer},
+    order::Val{4},
+)
+    for i in bounds[1]:bounds[2]
+        output[i] =
+            (
+                -input[i - 4] - input[i + 4] +
+                8 * (input[i - 3] + input[i + 3]) -
+                28 * (input[i - 2] + input[i + 2]) +
+                56 * (input[i - 1] + input[i + 1]) +
+                186 * input[i]
+            ) / 256
     end
     return
 end
