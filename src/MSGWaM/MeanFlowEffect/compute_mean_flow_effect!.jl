@@ -1,9 +1,17 @@
-function compute_meanflow_effect!(state::State)
-    if steady_state || single_column
-        calc_integrals!(state, AbstractWKBMode())
-    else
-        calc_integrals!(state, MultiColumn())
-    end
+function compute_mean_flow_effect!(state::State)
+    (; testcase) = state.namelists.setting
+    compute_mean_flow_effect!(state, testcase)
+    return
+end
+
+function compute_mean_flow_effect!(state::State, testcase::AbstractTestCase)
+    return
+end
+
+function compute_mean_flow_effect!(state::State, testcase::AbstractWKBTestCase)
+    (; wkb_mode) = state.namelists.wkb
+
+    compute_integrals!(state, wkb_mode)
 
     set_boundaries!(state, BoundaryGWIntegrals())
 
