@@ -6,12 +6,13 @@ using LaTeXStrings
 # Set paths.
 host_name = readchomp(`hostname`)
 user_name = readchomp(`whoami`)
-if startswith(host_name, "login")
+if occursin("login", host_name)
     data_path =
         "/scratch/atmodynamics/" * user_name * "/pinc/examples/mountain_wave/"
     reference_path = data_path
-elseif startswith(host_name, "levante")
-    data_path = "/scratch/b/" * user_name * "/pinc/examples/mountain_wave/"
+elseif occursin("dkrz", host_name)
+    data_path =
+        "/scratch/b/" * user_name * "/dissertation/pinc/examples/mountain_wave/"
     reference_path = data_path
 end
 
