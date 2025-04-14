@@ -1,4 +1,14 @@
 function set_boundary_rays!(state::State)
+    (; testcase) = state.namelists.setting
+    set_boundary_rays!(state, testcase)
+    return
+end
+
+function set_boundary_rays!(state::State, testcase::AbstractTestCase)
+    return
+end
+
+function set_boundary_rays!(state::State, testcase::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
     set_boundary_rays!(state, wkb_mode)
     return
