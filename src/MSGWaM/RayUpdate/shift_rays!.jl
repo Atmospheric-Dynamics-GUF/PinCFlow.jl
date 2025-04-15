@@ -86,7 +86,7 @@ function shift_rays!(state::State, direction::X)
                             (jray, ix, jyrv, kzrv),
                         )
                     end
-                    rays.dens[iray, ix, jyrv, kzrv] = 0.0
+                    rays.dens[iray, ixrv, jyrv, kzrv] = 0.0
                 end
             end
         end
