@@ -63,17 +63,17 @@ function set_meridional_halo_rays!(state::State)
 
     for (index, field) in enumerate(fields)
         @views getfield(rays, field)[
-            1:nray_max_back,
+            1:nray_max_forw,
             (i0 - 1):(i1 + 1),
             j0 - 1,
             (k0 - 1):(k1 + 1),
-        ] = recv_rays_back[index, :, :, :]
+        ] .= recv_rays_back[index, :, :, :]
         @views getfield(rays, field)[
-            1:nray_max_forw,
+            1:nray_max_back,
             (i0 - 1):(i1 + 1),
             j1 + 1,
             (k0 - 1):(k1 + 1),
-        ] = recv_rays_forw[index, :, :, :]
+        ] .= recv_rays_forw[index, :, :, :]
     end
 
     return
