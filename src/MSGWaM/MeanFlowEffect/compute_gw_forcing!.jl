@@ -2,7 +2,7 @@ function compute_gw_forcing!(state::State)
     (; zmin_wkb_dim) = state.namelists.wkb
     (; lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; lz, ztfc, met) = state.grid
+    (; lz, ztfc) = state.grid
     (; rhostrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
     (; integrals, gwmomforce) = state.wkb
@@ -22,9 +22,7 @@ function compute_gw_forcing!(state::State)
             gwmomforce.v[ix, jy, kz] = integrals.dvdt[ix, jy, kz]
 
             # Add forcing on transformed vertical wind.
-            gwmomforce.w[ix, jy, kz] =
-                met[ix, jy, kz, 1, 3] * integrals.dudt[ix, jy, kz] +
-                met[ix, jy, kz, 2, 3] * integrals.dvdt[ix, jy, kz]
+            gwmomforce.w[ix, jy, kz] = integrals.dwdt[ix, jy, kz]
         end
     end
     return

@@ -53,8 +53,7 @@ function compute_gw_tendencies!(state)
                 )
         end
 
-        integrals.dudt[ix, jy, kz] +=
-            rhotot * integrals.etx[ix, jy, kz]
+        integrals.dudt[ix, jy, kz] += rhotot * integrals.etx[ix, jy, kz]
 
         # forcing in y direction
 
@@ -93,8 +92,11 @@ function compute_gw_tendencies!(state)
                 )
         end
 
-        integrals.dvdt[ix, jy, kz] +=
-            rhotot * integrals.ety[ix, jy, kz]
+        integrals.dvdt[ix, jy, kz] += rhotot * integrals.ety[ix, jy, kz]
+
+        integrals.dwdt[ix, jy, kz] =
+            met[ix, jy, kz, 1, 3] * integrals.dudt[ix, jy, kz] +
+            met[ix, jy, kz, 2, 3] * integrals.dvdt[ix, jy, kz]
     end
 
     if f_cor_nd != 0.0 && (sizex > 1 || sizey > 1)

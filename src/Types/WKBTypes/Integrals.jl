@@ -11,9 +11,10 @@ struct Integrals{A <: AbstractArray{<:AbstractFloat, 3}}
     e::A
     dudt::A
     dvdt::A
+    dwdt::A
     dthetadt::A
 end
 
 function Integrals(nxx::Integer, nyy::Integer, nzz::Integer)
-    return Integrals([zeros(nxx, nyy, nzz) for i in 1:13]...)
+    return Integrals([zeros(nxx, nyy, nzz) for i in 1:14]...)
 end
