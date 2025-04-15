@@ -98,15 +98,7 @@ function apply_saturation_scheme!(
         # Check if saturation is violated.
         n2r = interpolate_stratification(ztfc[ix, jy, kz], state, N2())
         if mb2 - alpha_sat^2 * n2r^2 > 1.0E-3 * alpha_sat^2 * n2r^2
-            println(
-                "Saturation violated at (ix, jy, kz) = (",
-                ix,
-                ", ",
-                jy,
-                ", ",
-                kz,
-                ")",
-            )
+            println("Saturation violated at (ix, jy, kz) = ", (ix, jy, kz))
             println("mb2[ix, jy, kz] = ", mb2)
             println("alpha_sat^2 * n2r^2 = ", alpha_sat^2 * n2r^2)
         end

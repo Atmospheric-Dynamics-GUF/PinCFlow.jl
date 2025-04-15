@@ -53,13 +53,7 @@ function integrate(namelists::Namelists)
         println("Date: ", Dates.Date(cpu_start_time))
         println("Time: ", Dates.Time(cpu_start_time))
         println("")
-        println(
-            "Virtual topology: [nprocx, nprocy] = [",
-            nprocx,
-            ", ",
-            nprocy,
-            "]",
-        )
+        println("Virtual topology: (nprocx, nprocy) = ", (nprocx, nprocy))
         println("")
     end
 

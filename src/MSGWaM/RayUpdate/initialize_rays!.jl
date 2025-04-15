@@ -255,36 +255,25 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
         # Set ray-volume count.
         nray[ix, jy, kz] = iray
         if iray > nray_wrk
-            println(
-                "Error in initialize_rays!: nray[",
-                ix,
-                ", ",
-                jy,
-                ", ",
-                kz,
-                "] > nray_wrk =",
+            error(
+                "Error in initialize_rays!: nray",
+                [ix, jy, kz],
+                " > nray_wrk =",
                 nray_wrk,
             )
-            exit()
         end
 
         # Check if surface ray-volume count is correct.
         if testcase == WKBMountainWave()
             if i_sfc != n_sfc
-                println(
+                error(
                     "Error in initialize_rays!: i_sfc =",
                     i_sfc,
                     "/= n_sfc =",
                     n_sfc,
-                    "at [ix, jy, kz] = [",
-                    ix,
-                    ", ",
-                    jy,
-                    ", ",
-                    kz,
-                    "]",
+                    "at (ix, jy, kz) = ",
+                    (ix, jy, kz),
                 )
-                exit()
             end
         end
     end
