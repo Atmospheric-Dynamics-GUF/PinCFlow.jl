@@ -2,7 +2,7 @@ function write_output(
     state::State,
     time::AbstractFloat,
     iout::Integer,
-    cpu_start_time::DateTime,
+    machine_start_time::DateTime,
 )
 
     # Get all necessary fields.
@@ -21,12 +21,12 @@ function write_output(
 
     # Print information.
     if master
-        println("")
         println(repeat("-", 80))
         println("Output into file pincflow_output.h5")
         println("Physical time: ", time * tref, " s")
-        println("CPU time: ", canonicalize(now() - cpu_start_time))
+        println("Machine time: ", canonicalize(now() - machine_start_time))
         println(repeat("-", 80))
+        println("")
     end
 
     # Advance output counter.

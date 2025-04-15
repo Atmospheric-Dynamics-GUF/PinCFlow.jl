@@ -24,8 +24,8 @@ function integrate(namelists::Namelists)
     # Initialize the model state.
     state = State(namelists)
 
-    # Save CPU start time.
-    cpu_start_time = now()
+    # Save machine start time.
+    machine_start_time = now()
 
     # Get all necessary fields.
     (; nprocx, nprocy) = state.namelists.domain
@@ -40,7 +40,6 @@ function integrate(namelists::Namelists)
 
     # Print information.
     if master
-        println("")
         println(repeat("-", 80))
         println(repeat(" ", 36), "PinCFlow")
         println(
@@ -50,8 +49,8 @@ function integrate(namelists::Namelists)
         println(repeat(" ", 28), "modified by many others")
         println(repeat("-", 80))
         println("")
-        println("Date: ", Dates.Date(cpu_start_time))
-        println("Time: ", Dates.Time(cpu_start_time))
+        println("Date: ", Dates.Date(machine_start_time))
+        println("Time: ", Dates.Time(machine_start_time))
         println("")
         println("Virtual topology: (nprocx, nprocy) = ", (nprocx, nprocy))
         println("")
@@ -85,12 +84,13 @@ function integrate(namelists::Namelists)
     if restart
         if master
             println("Reading restart file...")
+            println("")
         end
 
         time = read_input!(state)
 
         if maxtime < time * tref
-            println("Restart error: maxtime < time!")
+            error("Restart error: maxtime < time!")
         end
 
         set_boundaries!(state, BoundaryPredictands())
@@ -104,7 +104,7 @@ function integrate(namelists::Namelists)
     create_output(state)
 
     # Write the initial state.
-    iout = write_output(state, time, iout, cpu_start_time)
+    iout = write_output(state, time, iout, machine_start_time)
 
     output = false
     nextoutputtime = time * tref + outputtimediff
@@ -115,6 +115,7 @@ function integrate(namelists::Namelists)
 
     if master
         println("Starting the time loop...")
+        println("")
     end
 
     if output_steps
@@ -125,11 +126,11 @@ function integrate(namelists::Namelists)
 
     for itime in 1:maxiterations
         if master
-            println("")
             println(repeat("-", 80))
             println("Time step = ", itime)
             println("Time = ", time * tref, " seconds")
             println(repeat("-", 80))
+            println("")
         end
 
         #----------------------------------
@@ -149,6 +150,7 @@ function integrate(namelists::Namelists)
                         dt * tref,
                         " seconds",
                     )
+                    println("")
                 end
             end
         end
@@ -199,7 +201,9 @@ function integrate(namelists::Namelists)
 
         if master
             println("Beginning a semi-implicit time step...")
+            println("")
             println("(1) Explicit integration lhs over dt/2...")
+            println("")
         end
 
         for rkstage in 1:nstages
@@ -277,6 +281,7 @@ function integrate(namelists::Namelists)
 
         if master
             println("(2) Implicit integration rhs over dt/2...")
+            println("")
         end
 
         set_boundaries!(state, BoundaryPredictands())
@@ -312,7 +317,7 @@ function integrate(namelists::Namelists)
             apply_corrector!(state, 0.5 * dt, IMPL(), 1.0, 1.0)
 
         if errflagbicg
-            iout = write_output(state, time, iout, cpu_start_time)
+            iout = write_output(state, time, iout, machine_start_time)
             if master
                 println("Output last state into record", iout)
             end
@@ -333,6 +338,7 @@ function integrate(namelists::Namelists)
 
         if master
             println("(3) Explicit integration rhs over dt/2...")
+            println("")
         end
 
         # (3) uses updated pressure field and (5) adjusts pressure over half a
@@ -365,6 +371,7 @@ function integrate(namelists::Namelists)
 
         if master
             println("(4) Explicit integration lhs over dt...")
+            println("")
         end
 
         v0 = deepcopy(v1)
@@ -438,6 +445,7 @@ function integrate(namelists::Namelists)
 
         if master
             println("(5) Implicit integration rhs over dt/2...")
+            println("")
         end
 
         set_boundaries!(state, BoundaryPredictands())
@@ -473,7 +481,7 @@ function integrate(namelists::Namelists)
             apply_corrector!(state, 0.5 * dt, IMPL(), 2.0, 1.0)
 
         if errflagbicg
-            iout = write_output(state, time, iout, cpu_start_time)
+            iout = write_output(state, time, iout, machine_start_time)
             if master
                 println("Output last state into record ", iout)
             end
@@ -485,7 +493,8 @@ function integrate(namelists::Namelists)
         ntotalbicg += niterbicg
 
         if master
-            println("Semi-implicit time step done")
+            println("...the semi-implicit time step is done.")
+            println("")
         end
 
         #--------------------------------------------------------------
@@ -494,11 +503,11 @@ function integrate(namelists::Namelists)
 
         if output_steps
             if itime % noutput == 0
-                iout = write_output(state, time, iout, cpu_start_time)
+                iout = write_output(state, time, iout, machine_start_time)
             end
         else
             if output
-                iout = write_output(state, time, iout, cpu_start_time)
+                iout = write_output(state, time, iout, machine_start_time)
                 output = false
                 nextoutputtime = nextoutputtime + outputtimediff
                 if nextoutputtime >= maxtime
@@ -515,7 +524,6 @@ function integrate(namelists::Namelists)
             if master
                 naveragebicg = ntotalbicg / itime / 2
 
-                println("")
                 println(repeat("-", 80))
                 println("Average Poisson iterations: ", naveragebicg)
                 println(repeat("-", 80))
@@ -534,7 +542,6 @@ function integrate(namelists::Namelists)
         if master
             naveragebicg = ntotalbicg / maxiter / 2
 
-            println("")
             println(repeat("-", 80))
             println("Average Poisson iterations: ", naveragebicg)
             println(repeat("-", 80))
@@ -543,7 +550,6 @@ function integrate(namelists::Namelists)
     end
 
     if master
-        println("")
         println(repeat("-", 80))
         println(repeat(" ", 32), "PincFlow finished", repeat(" ", 33))
         println(repeat("-", 80))

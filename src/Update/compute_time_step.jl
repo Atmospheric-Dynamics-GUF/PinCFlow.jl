@@ -20,6 +20,7 @@ function compute_time_step(state::State)
 
         if master
             println("dt = dtfix = ", dt * tref, " seconds")
+            println("")
         end
     else
 
@@ -126,29 +127,28 @@ function compute_time_step(state::State)
             println("")
 
             if dt == dtmax
-                println("--> dt = dtmax = ", dt * tref, " seconds")
+                println("=> dt = dtmax = ", dt * tref, " seconds")
             elseif dt == dtconv
-                println("--> dt = dtconv = ", dt * tref, " seconds")
+                println("=> dt = dtconv = ", dt * tref, " seconds")
             elseif dt == dtvisc
-                println("--> dt = dtvisc = ", dt * tref, " seconds")
+                println("=> dt = dtvisc = ", dt * tref, " seconds")
             elseif dt == dtwkb
-                println("--> dt = dtwkb = ", dt * tref, " seconds")
+                println("=> dt = dtwkb = ", dt * tref, " seconds")
             else
-                println("--> dt = ????? = ", dt * tref, " seconds")
+                println("=> dt = ??? = ", dt * tref, " seconds")
             end
             println("")
         end
     end
 
     if dt * tref < dtmin_dim
-        println(
+        error(
             "Error in compute_time_step: dt = ",
             dt * tref,
             " < ",
             dtmin_dim,
             " = dtmin",
         )
-        exit()
     end
 
     return dt

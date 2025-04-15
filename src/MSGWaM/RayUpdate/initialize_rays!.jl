@@ -284,10 +284,10 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
 
     # Print information.
     if master
-        println("")
         println("MS-GWaM:")
         println("Global ray-volume count: ", global_sum)
         println("Maximum number of ray volumes per cell: ", nray_max)
+        println("")
     end
 
     return

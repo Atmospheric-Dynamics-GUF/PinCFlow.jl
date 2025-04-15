@@ -15,9 +15,8 @@ function apply_bicgstab!(
 
     # Print information.
     if master
-        println("")
         println(repeat("-", 80))
-        println("BICGSTAB: Solving linear system...")
+        println("BicGStab: Solving linear system...")
         println(repeat("-", 80))
         println("")
     end
@@ -75,7 +74,7 @@ function apply_bicgstab!(
 
     if res == 0.0 || res / b_norm <= tol
         if master
-            println("==> No iteration needed!")
+            println("=> No iteration needed!")
         end
         niter = 0
         return (errflag, niter)
@@ -149,9 +148,8 @@ function apply_bicgstab!(
 
         if max(res / b_norm, res_vm / b_vm_norm) <= tol
             if master
-                println("Nb.of iterations: j = ", j_b)
-                println("Final residual: res = ", res / b_norm)
-                println("Final residual v.m. = ", res_vm / b_vm_norm)
+                println("Iterations: ", j_b)
+                println("Final residual: ", res / b_norm)
                 println("")
             end
 
