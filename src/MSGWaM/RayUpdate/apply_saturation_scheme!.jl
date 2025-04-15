@@ -101,6 +101,7 @@ function apply_saturation_scheme!(
             println("Saturation violated at (ix, jy, kz) = ", (ix, jy, kz))
             println("mb2[ix, jy, kz] = ", mb2)
             println("alpha_sat^2 * n2r^2 = ", alpha_sat^2 * n2r^2)
+            println("")
         end
     end
 

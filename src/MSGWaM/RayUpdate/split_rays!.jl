@@ -38,6 +38,7 @@ function split_rays!(state::State, wkb_mode::SingleColumn)
     if master && nray_after > nray_before
         println("Number of ray volumes before splitting: ", nray_before)
         println("Number of ray volumes after splitting: ", nray_after)
+        println("")
     end
 
     return
@@ -73,6 +74,7 @@ function split_rays!(state::State, wkb_mode::MultiColumn)
     if master && nray_after > nray_before
         println("Number of ray volumes before splitting: ", nray_before)
         println("Number of ray volumes after splitting: ", nray_after)
+        println("")
     end
 
     return

@@ -227,6 +227,7 @@ function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
     if master && nray_after < nray_before
         println("Number of ray volumes before merging: ", nray_before)
         println("Number of ray volumes after merging: ", nray_after)
+        println("")
     end
 
     return
