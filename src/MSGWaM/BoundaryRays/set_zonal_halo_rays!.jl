@@ -63,17 +63,17 @@ function set_zonal_halo_rays!(state::State)
 
     for (index, field) in enumerate(fields)
         @views getfield(rays, field)[
-            1:nray_max_left,
+            1:nray_max_right,
             i0 - 1,
             (j0 - 1):(j1 + 1),
             (k0 - 1):(k1 + 1),
-        ] = recv_rays_left[index, :, :, :]
+        ] .= recv_rays_left[index, :, :, :]
         @views getfield(rays, field)[
-            1:nray_max_right,
+            1:nray_max_left,
             i1 + 1,
             (j0 - 1):(j1 + 1),
             (k0 - 1):(k1 + 1),
-        ] = recv_rays_right[index, :, :, :]
+        ] .= recv_rays_right[index, :, :, :]
     end
 
     return
