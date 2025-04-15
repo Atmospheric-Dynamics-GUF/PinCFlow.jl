@@ -203,17 +203,13 @@ function set_vertical_boundaries!(
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; u, v, w) = state.wkb.gwmomforce
 
-    # This is really confusing: Why are the vertical boundary conditions for
-    # the forcings different from those for the tendencies? They should be
-    # identical, i.e. line-reflected (free-slip).
-
     for jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
-        u[ix, jy, k0 - 1] = -u[ix, jy, k0]
-        u[ix, jy, k1 + 1] = -u[ix, jy, k1]
-        v[ix, jy, k0 - 1] = -v[ix, jy, k0]
-        v[ix, jy, k1 + 1] = -v[ix, jy, k1]
-        w[ix, jy, k0 - 1] = -w[ix, jy, k0]
-        w[ix, jy, k1 + 1] = -w[ix, jy, k1]
+        u[ix, jy, k0 - 1] = u[ix, jy, k0]
+        u[ix, jy, k1 + 1] = u[ix, jy, k1]
+        v[ix, jy, k0 - 1] = v[ix, jy, k0]
+        v[ix, jy, k1 + 1] = v[ix, jy, k1]
+        w[ix, jy, k0 - 1] = w[ix, jy, k0]
+        w[ix, jy, k1 + 1] = w[ix, jy, k1]
     end
 
     return
