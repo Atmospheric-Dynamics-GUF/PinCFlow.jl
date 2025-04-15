@@ -109,18 +109,12 @@ function split_rays!(
         nray[ix, jy, kz] = nrlc
 
         if nray[ix, jy, kz] > nray_wrk
-            println("Error in split_rays!:")
-            println(
-                "nray[",
-                ix,
-                ", ",
-                iy,
-                ", ",
-                iz,
-                "] > nray_wrk = ",
+            error(
+                "Error in split_rays!: nray",
+                [ix, iy, iz],
+                " > nray_wrk = ",
                 nray_wrk,
             )
-            exit()
         end
     end
 
@@ -158,18 +152,12 @@ function split_rays!(
         nray[ix, jy, kz] = nrlc
 
         if nray[ix, jy, kz] > nray_wrk
-            println("Error in split_rays!:")
-            println(
-                "nray[",
-                ix,
-                ", ",
-                iy,
-                ", ",
-                iz,
-                "] > nray_wrk = ",
+            error(
+                "Error in split_rays!: nray",
+                [ix, iy, iz],
+                " > nray_wrk = ",
                 nray_wrk,
             )
-            exit()
         end
     end
 
@@ -222,18 +210,12 @@ function split_rays!(
         nray[ix, jy, kz] = nrlc
 
         if nray[ix, jy, kz] > nray_wrk
-            println("Error in split_rays!:")
-            println(
-                "nray[",
-                ix,
-                ", ",
-                iy,
-                ", ",
-                iz,
-                "] > nray_wrk = ",
+            error(
+                "Error in split_rays!: nray",
+                [ix, iy, iz],
+                " > nray_wrk = ",
                 nray_wrk,
             )
-            exit()
         end
     end
 
