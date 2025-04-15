@@ -290,6 +290,7 @@ function propagate_rays!(
                 nray[ix, jy, kz],
                 " ray volumes have been skipped in propagate_rays!!",
             )
+            println("")
         end
     end
 
