@@ -437,12 +437,12 @@ function update!(
                 )
         end
 
-        volfcx = 0.0
+        volfcx = compute_volume_force(state, (i, j, k), U())
 
         uhorx = u[i, j, k]
 
         # Update wind.
-        uast = uhorx + dt * (-pigrad + volfcx / rhou)
+        uast = uhorx + dt * (-pigrad + volfcx)
         u[i, j, k] = uast
     end
 
@@ -512,7 +512,7 @@ function update!(
                 )
         end
 
-        volfcx = 0.0
+        volfcx = compute_volume_force(state, (i, j, k), U())
 
         uhorx = u[i, j, k]
 
@@ -527,7 +527,7 @@ function update!(
         end
 
         # Update wind.
-        uast = 1.0 / facu * (uhorx + dt * (-pigradx + volfcx / rhou))
+        uast = 1.0 / facu * (uhorx + dt * (-pigradx + volfcx))
         u[i, j, k] = uast
     end
 
@@ -668,12 +668,12 @@ function update!(
                 )
         end
 
-        volfcy = 0.0
+        volfcy = compute_volume_force(state, (i, j, k), V())
 
         vhory = v[i, j, k]
 
         # Update wind.
-        vast = vhory + dt * (-pigrad + volfcy / rhov)
+        vast = vhory + dt * (-pigrad + volfcy)
         v[i, j, k] = vast
     end
 
@@ -743,7 +743,7 @@ function update!(
                 )
         end
 
-        volfcy = 0.0
+        volfcy = compute_volume_force(state, (i, j, k), V())
 
         vhory = v[i, j, k]
 
@@ -758,7 +758,7 @@ function update!(
         end
 
         # Update wind.
-        vast = 1.0 / facv * (vhory + dt * (-pigrady + volfcy / rhov))
+        vast = 1.0 / facv * (vhory + dt * (-pigrady + volfcy))
         v[i, j, k] = vast
     end
 
@@ -1013,7 +1013,7 @@ function update!(
                 met33edgeu * (pip[i, j, k + 1] - pip[i, j, k]) / dz
             )
 
-        volfcz = 0.0
+        volfcz = compute_volume_force(state, (i, j, k), W())
 
         wvert = w[i, j, k]
 
@@ -1024,7 +1024,7 @@ function update!(
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         # Update wind.
-        wast = wvert + dt * (buoy - pigrad + volfcz / rhow)
+        wast = wvert + dt * (buoy - pigrad + volfcz)
         w[i, j, k] = wast
     end
 
@@ -1122,7 +1122,7 @@ function update!(
                 met33edgeu * (pip[i, j, k + 1] - pip[i, j, k]) / dz
             )
 
-        volfcz = 0.0
+        volfcz = compute_volume_force(state, (i, j, k), W())
 
         wvert = w[i, j, k]
 
@@ -1159,7 +1159,7 @@ function update!(
             1.0 / (facw + rhostratedgeu / rhow * bvsstw * dt^2.0) * (
                 wvert - dt * pigrad +
                 dt * buoy +
-                dt * volfcz / rhow +
+                dt * volfcz +
                 rhostratedgeu / rhow *
                 bvsstw *
                 dt^2.0 *
