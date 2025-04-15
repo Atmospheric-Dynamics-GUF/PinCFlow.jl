@@ -62,7 +62,7 @@ end
 function shift_rays!(state::State, direction::X)
     (; io, i0, i1, j0, j1, k0, k1) = state.domain
     (; lx, dx) = state.grid
-    (; nray, rays) = state.wkb
+    (; nray_wrk, nray, rays) = state.wkb
 
     for kzrv in (k0 - 1):(k1 + 1),
         jyrv in (j0 - 1):(j1 + 1),
@@ -80,7 +80,7 @@ function shift_rays!(state::State, direction::X)
                         if jray > nray_wrk
                             error("Error in shift_rays!: nray > nray_wrk!")
                         end
-                        copy_ray_volume!(
+                        copy_rays!(
                             rays,
                             (iray, ixrv, jyrv, kzrv),
                             (jray, ix, jyrv, kzrv),
@@ -96,7 +96,7 @@ end
 function shift_rays!(state::State, direction::Y)
     (; jo, i0, i1, j0, j1, k0, k1) = state.domain
     (; ly, dy) = state.grid
-    (; nray, rays) = state.wkb
+    (; nray_wrk, nray, rays) = state.wkb
 
     for kzrv in (k0 - 1):(k1 + 1),
         jyrv in (j0 - 1):(j1 + 1),
@@ -114,7 +114,7 @@ function shift_rays!(state::State, direction::Y)
                         if jray > nray_wrk
                             error("Error in shift_rays!: nray > nray_wrk!")
                         end
-                        copy_ray_volume!(
+                        copy_rays!(
                             rays,
                             (iray, ixrv, jyrv, kzrv),
                             (jray, ixrv, jy, kzrv),
@@ -130,7 +130,7 @@ end
 function shift_rays!(state::State, direction::Z)
     (; domain, grid) = state
     (; i0, i1, j0, j1, k0, k1) = domain
-    (; nray, rays) = state.wkb
+    (; nray_wrk, nray, rays) = state.wkb
 
     for kzrv in k0:k1, jyrv in (j0 - 1):(j1 + 1), ixrv in (i0 - 1):(i1 + 1)
         for iray in 1:nray[ixrv, jyrv, kzrv]
