@@ -1,6 +1,7 @@
 module RayUpdate
 
 using MPI
+using Statistics
 using ...Types
 using ..BoundaryRays
 using ..Interpolation

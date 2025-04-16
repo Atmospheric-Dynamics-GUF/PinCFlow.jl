@@ -184,16 +184,18 @@ function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
             rays.l[iray, ix, jy, kz] = mean(merged_rays[jray].lr)
             rays.m[iray, ix, jy, kz] = mean(merged_rays[jray].mr)
 
-            rays.dxray[iray, ix, jy, kz] = diff(merged_rays[jray].dxr)[1]
-            rays.dyray[iray, ix, jy, kz] = diff(merged_rays[jray].dyr)[1]
-            rays.dzray[iray, ix, jy, kz] = diff(merged_rays[jray].dzr)[1]
+            rays.dxray[iray, ix, jy, kz] = diff(merged_rays[jray].xr)[1]
+            rays.dyray[iray, ix, jy, kz] = diff(merged_rays[jray].yr)[1]
+            rays.dzray[iray, ix, jy, kz] = diff(merged_rays[jray].zr)[1]
 
-            rays.dkray[iray, ix, jy, kz] = diff(merged_rays[jray].dkr)[1]
-            rays.dlray[iray, ix, jy, kz] = diff(merged_rays[jray].dlr)[1]
-            rays.dmray[iray, ix, jy, kz] = diff(merged_rays[jray].dmr)[1]
+            rays.dkray[iray, ix, jy, kz] = diff(merged_rays[jray].kr)[1]
+            rays.dlray[iray, ix, jy, kz] = diff(merged_rays[jray].lr)[1]
+            rays.dmray[iray, ix, jy, kz] = diff(merged_rays[jray].mr)[1]
 
             (axk, ayl, azm) =
                 get_surfaces(rays, (iray, ix, jy, kz))
+
+            omegar = compute_intrinsic_frequency(state, (iray, ix, jy, kz))
 
             if sizex > 1
                 fcpspx = axk
