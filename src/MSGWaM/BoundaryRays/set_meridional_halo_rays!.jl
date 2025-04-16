@@ -21,8 +21,8 @@ function set_meridional_halo_rays!(state::State)
     @views nray_max_back = maximum(nray[:, j0, :])
     @views nray_max_forw = maximum(nray[:, j1, :])
 
-    nray_max_back = MPI.Allreduce(nray_max_back, +, comm)
-    nray_max_forw = MPI.Allreduce(nray_max_forw, +, comm)
+    nray_max_back = MPI.Allreduce(nray_max_back, max, comm)
+    nray_max_forw = MPI.Allreduce(nray_max_forw, max, comm)
 
     send_rays_forw = zeros(length(fields), nray_max_forw, nx + 2, nz + 2)
     send_rays_back = zeros(length(fields), nray_max_back, nx + 2, nz + 2)

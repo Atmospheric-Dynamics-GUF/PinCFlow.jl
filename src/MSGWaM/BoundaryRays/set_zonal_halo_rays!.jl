@@ -21,8 +21,8 @@ function set_zonal_halo_rays!(state::State)
     @views nray_max_left = maximum(nray[i0, :, :])
     @views nray_max_right = maximum(nray[i1, :, :])
 
-    nray_max_left = MPI.Allreduce(nray_max_left, +, comm)
-    nray_max_right = MPI.Allreduce(nray_max_right, +, comm)
+    nray_max_left = MPI.Allreduce(nray_max_left, max, comm)
+    nray_max_right = MPI.Allreduce(nray_max_right, max, comm)
 
     send_rays_right = zeros(length(fields), nray_max_right, ny + 2, nz + 2)
     send_rays_left = zeros(length(fields), nray_max_left, ny + 2, nz + 2)
