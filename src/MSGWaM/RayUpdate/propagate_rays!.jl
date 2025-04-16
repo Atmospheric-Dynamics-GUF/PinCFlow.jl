@@ -40,7 +40,7 @@ function propagate_rays!(
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
         state.wkb.increments
     (; alphark, betark, stepfrac) = state.time
-    (; lz) = state.grid
+    (; lz, ztildetfc) = state.grid
     (; k0, k1, j0, j1, i0, i1) = state.domain
 
     # Set Coriolis parameter.
@@ -49,8 +49,14 @@ function propagate_rays!(
     # Initialize RK tendencies at the first RK stage.
     if (rkstage == 1)
         dxray .= 0.0
+        dyray .= 0.0
+        dzray .= 0.0
         dkray .= 0.0
+        dlray .= 0.0
+        dmray .= 0.0
         ddxray .= 0.0
+        ddyray .= 0.0
+        ddzray .= 0.0
     end
 
     cgx_max .= 0.0
@@ -78,14 +84,14 @@ function propagate_rays!(
 
             # Skip ray volumes that have left the domain.
             if testcase != WKBMountainWave()
-                if zr1 < state.grid.ztildetfc[ix, jy, k0 - 2]
+                if zr1 < ztildetfc[ix, jy, k0 - 2]
                     nskip += 1
                     continue
                 end
             end
 
-            n2r = interpolate_stratification(zr, state, N2())
             n2r1 = interpolate_stratification(zr1, state, N2())
+            n2r = interpolate_stratification(zr, state, N2())
             n2r2 = interpolate_stratification(zr2, state, N2())
 
             omir1 =
@@ -275,7 +281,7 @@ function propagate_rays!(
             #     Change of wave action
             #-------------------------------
 
-            if spongelayer && unifiedsponge
+            if kz >= k0 && spongelayer && unifiedsponge
                 (xr, yr, zr) = get_physical_position(rays, (iray, ix, jy, kz))
                 alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
                 betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
