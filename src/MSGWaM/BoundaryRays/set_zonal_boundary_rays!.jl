@@ -1,7 +1,7 @@
 function set_zonal_boundary_rays!(state::State)
     (; namelists, domain) = state
-    (; sizex, nprocx) = namelists.domain
-    (; nxx, io, i0, i1, j0, j1, k0, k1) = domain
+    (; nprocx) = namelists.domain
+    (; nxx, sizexx, io, i0, i1, j0, j1, k0, k1) = domain
     (; lx, x) = state.grid
     (; nray, rays) = state.wkb
 
@@ -27,7 +27,7 @@ function set_zonal_boundary_rays!(state::State)
         end
     end
 
-    if io + nxx == sizex
+    if io == 0
         for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):(j1 + 1)
             for ix in (i0 - 1):i0
                 if nray[ix, jy, kz] > 0
@@ -46,7 +46,7 @@ function set_zonal_boundary_rays!(state::State)
         end
     end
 
-    if io == 0
+    if io + nxx == sizexx
         for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):(j1 + 1)
             for ix in i1:(i1 + 1)
                 if nray[ix, jy, kz] > 0
