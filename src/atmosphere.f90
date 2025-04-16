@@ -549,6 +549,49 @@ module atmosphere_module
       alphaTracer = lRef
     end if
 
+    if(compute_cloudcover) then
+      dxsc = dx / NSCX
+      dysc = dy / NSCY
+      dzsc = dz / NSCZ
+
+      SizeX2 = sizeX * NSCX
+      SizeY2 = sizeY * NSCY
+      SizeZ2 = sizeZ * NSCZ
+
+      allocate(x2(SizeX2), stat = allocstat)
+      if(allocstat /= 0) stop "init.f90: could not allocate x2"
+
+      allocate(y2(sizeY2), stat = allocstat)
+      if(allocstat /= 0) stop "init.f90: could not allocate y2"
+
+      allocate(z2(sizeZ2), stat = allocstat)
+      if(allocstat /= 0) stop "init.f90: could not allocate z2"
+
+      k = 0
+      do i = 1, sizeX
+        do j = 1, NSCX
+          k = k + 1
+          x2(k) = lx(0) + real(k - 1) * dxsc + dxsc / 2.0
+        end do
+      end do
+
+      k = 0
+      do j = 1, sizeY
+        do i = 1, NSCY
+          k = k + 1
+          y2(k) = ly(0) + real(k - 1) * dysc + dysc / 2.0
+        end do
+      end do
+
+      i = 0
+      do k = 1, sizeZ
+        do j = 1, NSCZ
+          i = i + 1
+          z2(i) = lz(0) + real(i - 1) * dzsc + dzsc / 2.0
+        end do
+      end do
+    end if
+
     !----------------------------------
     !            setup topography
     !----------------------------------
@@ -804,11 +847,11 @@ module atmosphere_module
               do j = - nby, ny + nby
                 do k = - 1, nz + 2
                   ! Define pStratTFC.
-                  pStratTFC(i, j, k) = p0 * exp(- sig * zTFC(i, j, k) &
-                      &/ gamma / T0)
+                  pStratTFC(i, j, k) = p0 * exp(- sig * zTFC(i, j, k) / gamma &
+                      &/ T0)
                   ! Define thetaStratTFC.
-                  thetaStratTFC(i, j, k) = T0 * exp(kappa * sig / T0 &
-                      &* zTFC(i, j, k))
+                  thetaStratTFC(i, j, k) = T0 * exp(kappa * sig / T0 * zTFC(i, &
+                      &j, k))
                   ! Define rhoStratTFC.
                   rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
                       &j, k)
@@ -1736,9 +1779,8 @@ module atmosphere_module
         &TFC!"
 
     if(zBoundary == "periodic") then
-      if(mountainHeight_dim /= 0.0) stop "Error in &
-          &setup_topography: mountainHeight_dim must be zero for zBoundary &
-          &= 'periodic'"
+      if(mountainHeight_dim /= 0.0) stop "Error in setup_topography: &
+          &mountainHeight_dim must be zero for zBoundary = 'periodic'"
       if(stretch_exponent /= 1.0) stop "Error in setup_topography: &
           &stretch_exponent must be one for zBoundary = 'periodic'"
     end if
@@ -2146,11 +2188,10 @@ module atmosphere_module
           do j = - nby, ny + nby
             do k = - 1, nz + 2
               ! Define pStratTFC.
-              pStratTFC(i, j, k) = p0 * exp(- sig * zTFC(i, j, k) / gamma &
-                  &/ T0)
+              pStratTFC(i, j, k) = p0 * exp(- sig * zTFC(i, j, k) / gamma / T0)
               ! Define thetaStratTFC.
-              thetaStratTFC(i, j, k) = T0 * exp(kappa * sig / T0 &
-                  &* zTFC(i, j, k))
+              thetaStratTFC(i, j, k) = T0 * exp(kappa * sig / T0 * zTFC(i, j, &
+                  &k))
               ! Define rhoStratTFC.
               rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, j, k)
             end do
@@ -2194,8 +2235,8 @@ module atmosphere_module
               pStratTFC(i, j, k) = p0 * (1.0 + FrInv2 * kappa * sig / N2 &
                   &/ theta0 * (term - 1.0)) ** power
               ! Define thetaStratTFC.
-              thetaStratTFC(i, j, k) = theta0 * exp(Fr ** 2.0 * N2 &
-                  &* zTFC(i, j, k))
+              thetaStratTFC(i, j, k) = theta0 * exp(Fr ** 2.0 * N2 * zTFC(i, &
+                  &j, k))
               ! Define rhoStratTFC.
               rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, j, k)
             end do
@@ -2276,8 +2317,7 @@ module atmosphere_module
               ! Define thetaStratTFC.
               thetaStratTFC(i, j, k) = T_bar / piStratTFC(i, j, k)
               ! Define rhoStratTFC.
-              rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
-                  &j, k)
+              rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, j, k)
             end do
 
             ! Integrate upwards.
@@ -2310,8 +2350,7 @@ module atmosphere_module
               ! Define thetaStratTFC.
               thetaStratTFC(i, j, k) = T_bar / piStratTFC(i, j, k)
               ! Define rhoStratTFC.
-              rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
-                  &j, k)
+              rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, j, k)
             end do
             ! Adjust at the lower boundary.
             piStratTFC(i, j, - 1) = piStratTFC(i, j, 0)
@@ -2444,12 +2483,12 @@ module atmosphere_module
 
     if((mu == 1 .and. nu == 3) .or. (mu == 3 .and. nu == 1)) then
       met = (topography_surface(i + 1, j) - topography_surface(i - 1, j)) &
-          &/ (2.0 * dx) * (zS(k) - lz(1)) / (lz(1) - topography_surface(i, &
-          &j)) * dz / (zTildeS(k) - zTildeS(k - 1))
+          &/ (2.0 * dx) * (zS(k) - lz(1)) / (lz(1) - topography_surface(i, j)) &
+          &* dz / (zTildeS(k) - zTildeS(k - 1))
     else if((mu == 2 .and. nu == 3) .or. (mu == 3 .and. nu == 2)) then
       met = (topography_surface(i, j + 1) - topography_surface(i, j - 1)) &
-          &/ (2.0 * dy) * (zS(k) - lz(1)) / (lz(1) - topography_surface(i, &
-          &j)) * dz / (zTildeS(k) - zTildeS(k - 1))
+          &/ (2.0 * dy) * (zS(k) - lz(1)) / (lz(1) - topography_surface(i, j)) &
+          &* dz / (zTildeS(k) - zTildeS(k - 1))
     else if(mu == 3 .and. nu == 3) then
       met = ((lz(1) / (lz(1) - topography_surface(i, j))) ** 2.0 + ((zS(k) &
           &- lz(1)) / (lz(1) - topography_surface(i, j))) ** 2.0 &
@@ -2520,10 +2559,10 @@ module atmosphere_module
             &+ met(i, j, k + 1, 2, 3) * vU) / (jac(i, j, k) + jac(i, j, k &
             &+ 1)) + jacEdgeU * wEdgeU
       else if(wind == "tfc") then
-        trafoTFC = (jac(i, j, k) * jac(i, j, k + 1) * (met(i, j, k, 1, 3) &
-            &* uC + met(i, j, k + 1, 1, 3) * uU + met(i, j, k, 2, 3) * vC &
-            &+ met(i, j, k + 1, 2, 3) * vU) / (jac(i, j, k) + jac(i, j, k &
-            &+ 1)) + wEdgeU) / jacEdgeU
+        trafoTFC = (jac(i, j, k) * jac(i, j, k + 1) * (met(i, j, k, 1, 3) * uC &
+            &+ met(i, j, k + 1, 1, 3) * uU + met(i, j, k, 2, 3) * vC + met(i, &
+            &j, k + 1, 2, 3) * vU) / (jac(i, j, k) + jac(i, j, k + 1)) &
+            &+ wEdgeU) / jacEdgeU
       end if
 
     case(2)
@@ -2621,26 +2660,26 @@ module atmosphere_module
       metEdgeRU = 0.5 * ((jac(i, j, k + 1) + jac(i + 1, j, k + 1)) * (jac(i, &
           &j, k) * met(i, j, k, 1, 3) + jac(i + 1, j, k) * met(i + 1, j, k, 1, &
           &3)) + (jac(i, j, k) + jac(i + 1, j, k)) * (jac(i, j, k + 1) &
-          &* met(i, j, k + 1, 1, 3) + jac(i + 1, j, k + 1) * met(i + 1, j, k + &
-          &1, 1, 3))) / (jac(i, j, k) + jac(i + 1, j, k) + jac(i, j, k + 1) &
+          &* met(i, j, k + 1, 1, 3) + jac(i + 1, j, k + 1) * met(i + 1, j, k &
+          &+ 1, 1, 3))) / (jac(i, j, k) + jac(i + 1, j, k) + jac(i, j, k + 1) &
           &+ jac(i + 1, j, k + 1))
       metEdgeLU = 0.5 * ((jac(i, j, k + 1) + jac(i - 1, j, k + 1)) * (jac(i, &
           &j, k) * met(i, j, k, 1, 3) + jac(i - 1, j, k) * met(i - 1, j, k, 1, &
           &3)) + (jac(i, j, k) + jac(i - 1, j, k)) * (jac(i, j, k + 1) &
-          &* met(i, j, k + 1, 1, 3) + jac(i - 1, j, k + 1) * met(i - 1, j, k + &
-          &1, 1, 3))) / (jac(i, j, k) + jac(i - 1, j, k) + jac(i, j, k + 1) &
+          &* met(i, j, k + 1, 1, 3) + jac(i - 1, j, k + 1) * met(i - 1, j, k &
+          &+ 1, 1, 3))) / (jac(i, j, k) + jac(i - 1, j, k) + jac(i, j, k + 1) &
           &+ jac(i - 1, j, k + 1))
       metEdgeFU = 0.5 * ((jac(i, j, k + 1) + jac(i, j + 1, k + 1)) * (jac(i, &
           &j, k) * met(i, j, k, 2, 3) + jac(i, j + 1, k) * met(i, j + 1, k, 2, &
           &3)) + (jac(i, j, k) + jac(i, j + 1, k)) * (jac(i, j, k + 1) &
-          &* met(i, j, k + 1, 2, 3) + jac(i, j + 1, k + 1) * met(i, j + 1, k + &
-          &1, 2, 3))) / (jac(i, j, k) + jac(i, j + 1, k) + jac(i, j, k + 1) &
+          &* met(i, j, k + 1, 2, 3) + jac(i, j + 1, k + 1) * met(i, j + 1, k &
+          &+ 1, 2, 3))) / (jac(i, j, k) + jac(i, j + 1, k) + jac(i, j, k + 1) &
           &+ jac(i, j + 1, k + 1))
       metEdgeBU = 0.5 * ((jac(i, j, k + 1) + jac(i, j - 1, k + 1)) * (jac(i, &
           &j, k) * met(i, j, k, 2, 3) + jac(i, j - 1, k) * met(i, j - 1, k, 2, &
           &3)) + (jac(i, j, k) + jac(i, j - 1, k)) * (jac(i, j, k + 1) &
-          &* met(i, j, k + 1, 2, 3) + jac(i, j - 1, k + 1) * met(i, j - 1, k + &
-          &1, 2, 3))) / (jac(i, j, k) + jac(i, j - 1, k) + jac(i, j, k + 1) &
+          &* met(i, j, k + 1, 2, 3) + jac(i, j - 1, k + 1) * met(i, j - 1, k &
+          &+ 1, 2, 3))) / (jac(i, j, k) + jac(i, j - 1, k) + jac(i, j, k + 1) &
           &+ jac(i, j - 1, k + 1))
       uEdgeRU = ((jac(i, j, k + 1) + jac(i + 1, j, k + 1)) * uEdgeR + (jac(i, &
           &j, k) + jac(i + 1, j, k)) * uUEdgeR) / (jac(i, j, k) + jac(i + 1, &
