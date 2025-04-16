@@ -22,7 +22,9 @@ function compute_volume_force(
     variable::U,
     testcase::AbstractWKBTestCase,
 )
-    return state.wkb.integrals.dudt[indices...]
+    (; dudt) = state.wkb.tendencies
+    (ix, jy, kz) = indices
+    return (dudt[ix, jy, kz] + dudt[ix + 1, jy, kz]) / 2
 end
 
 function compute_volume_force(
@@ -31,7 +33,9 @@ function compute_volume_force(
     variable::V,
     testcase::AbstractWKBTestCase,
 )
-    return state.wkb.integrals.dvdt[indices...]
+    (; dvdt) = state.wkb.tendencies
+    (ix, jy, kz) = indices
+    return (dvdt[ix, jy, kz] + dvdt[ix, jy + 1, kz]) / 2
 end
 
 function compute_volume_force(
@@ -40,5 +44,13 @@ function compute_volume_force(
     variable::W,
     testcase::AbstractWKBTestCase,
 )
-    return state.wkb.integrals.dwdt[indices...]
+    (; met) = state.grid
+    (; dudt, dvdt) = state.wkb.tendencies
+    (; ix, jy, kz) = indices
+    return (
+        met[ix, jy, kz, 1, 3] * dudt[ix, jy, kz] +
+        met[ix, jy, kz, 2, 3] * dvdt[ix, jy, kz] +
+        met[ix, jy, kz + 1, 1, 3] * dudt[ix, jy, kz + 1] +
+        met[ix, jy, kz + 1, 2, 3] * dvdt[ix, jy, kz + 1]
+    ) / 2
 end

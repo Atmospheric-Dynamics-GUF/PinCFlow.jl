@@ -1,34 +1,34 @@
-function smooth_tendencies!(state::State)
+function smooth_gw_tendencies!(state::State)
     (; sizex, sizey) = state.namelists.domain
     (; lsmth_wkb, sm_filter) = state.namelists.wkb
-    (; dudt, dvdt, dthetadt) = state.wkb.integrals
+    (; dudt, dvdt, dthetadt) = state.wkb.tendencies
 
     if !lsmth_wkb
         return
     end
 
     if sizex == sizey == 1
-        smooth_tendencies!(dudt, state, sm_filter, Z())
-        smooth_tendencies!(dvdt, state, sm_filter, Z())
-        smooth_tendencies!(dthetadt, state, sm_filter, Z())
+        smooth_gw_tendencies!(dudt, state, sm_filter, Z())
+        smooth_gw_tendencies!(dvdt, state, sm_filter, Z())
+        smooth_gw_tendencies!(dthetadt, state, sm_filter, Z())
     elseif sizex == 1
-        smooth_tendencies!(dudt, state, sm_filter, YZ())
-        smooth_tendencies!(dvdt, state, sm_filter, YZ())
-        smooth_tendencies!(dthetadt, state, sm_filter, YZ())
+        smooth_gw_tendencies!(dudt, state, sm_filter, YZ())
+        smooth_gw_tendencies!(dvdt, state, sm_filter, YZ())
+        smooth_gw_tendencies!(dthetadt, state, sm_filter, YZ())
     elseif sizey == 1
-        smooth_tendencies!(dudt, state, sm_filter, XZ())
-        smooth_tendencies!(dvdt, state, sm_filter, XZ())
-        smooth_tendencies!(dthetadt, state, sm_filter, XZ())
+        smooth_gw_tendencies!(dudt, state, sm_filter, XZ())
+        smooth_gw_tendencies!(dvdt, state, sm_filter, XZ())
+        smooth_gw_tendencies!(dthetadt, state, sm_filter, XZ())
     else
-        smooth_tendencies!(dudt, state, sm_filter, XYZ())
-        smooth_tendencies!(dvdt, state, sm_filter, XYZ())
-        smooth_tendencies!(dthetadt, state, sm_filter, XYZ())
+        smooth_gw_tendencies!(dudt, state, sm_filter, XYZ())
+        smooth_gw_tendencies!(dvdt, state, sm_filter, XYZ())
+        smooth_gw_tendencies!(dthetadt, state, sm_filter, XYZ())
     end
 
     return
 end
 
-function smooth_tendencies!(
+function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     sm_filter::Box,
@@ -39,13 +39,13 @@ function smooth_tendencies!(
     (; i0, i1, j0, j1, k0, k1) = state.domain
 
     if nbx < nsmth_wkb
-        error("Error in smooth_tendencies!: nbx < nsmth_wkb!")
+        error("Error in smooth_gw_tendencies!: nbx < nsmth_wkb!")
     end
     if nby < nsmth_wkb
-        error("Error in smooth_tendencies!: nby < nsmth_wkb!")
+        error("Error in smooth_gw_tendencies!: nby < nsmth_wkb!")
     end
     if nbz < nsmth_wkb
-        error("Error in smooth_tendencies!: nbz < nsmth_wkb!")
+        error("Error in smooth_gw_tendencies!: nbz < nsmth_wkb!")
     end
 
     input = copy(output)
@@ -63,7 +63,7 @@ function smooth_tendencies!(
     return
 end
 
-function smooth_tendencies!(
+function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     sm_filter::Box,
@@ -74,10 +74,10 @@ function smooth_tendencies!(
     (; i0, i1, j0, j1, k0, k1) = state.domain
 
     if nbx < nsmth_wkb
-        error("Error in smooth_tendencies!: nbx < nsmth_wkb!")
+        error("Error in smooth_gw_tendencies!: nbx < nsmth_wkb!")
     end
     if nbz < nsmth_wkb
-        error("Error in smooth_tendencies!: nbz < nsmth_wkb!")
+        error("Error in smooth_gw_tendencies!: nbz < nsmth_wkb!")
     end
 
     input = copy(output)
@@ -95,7 +95,7 @@ function smooth_tendencies!(
     return
 end
 
-function smooth_tendencies!(
+function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     sm_filter::Box,
@@ -106,10 +106,10 @@ function smooth_tendencies!(
     (; i0, i1, j0, j1, k0, k1) = state.domain
 
     if nby < nsmth_wkb
-        error("Error in smooth_tendencies!: nby < nsmth_wkb!")
+        error("Error in smooth_gw_tendencies!: nby < nsmth_wkb!")
     end
     if nbz < nsmth_wkb
-        error("Error in smooth_tendencies!: nbz < nsmth_wkb!")
+        error("Error in smooth_gw_tendencies!: nbz < nsmth_wkb!")
     end
 
     input = copy(output)
@@ -127,7 +127,7 @@ function smooth_tendencies!(
     return
 end
 
-function smooth_tendencies!(
+function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     sm_filter::Box,
@@ -138,7 +138,7 @@ function smooth_tendencies!(
     (; i0, i1, j0, j1, k0, k1) = state.domain
 
     if nbz < nsmth_wkb
-        error("Error in smooth_tendencies!: nbz < nsmth_wkb!")
+        error("Error in smooth_gw_tendencies!: nbz < nsmth_wkb!")
     end
 
     input = copy(output)
@@ -151,41 +151,41 @@ function smooth_tendencies!(
     return
 end
 
-function smooth_tendencies!(
+function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     sm_filter::Shapiro,
     direction::XYZ,
 )
-    smooth_tendencies!(output, state, sm_filter, X())
-    smooth_tendencies!(output, state, sm_filter, Y())
-    smooth_tendencies!(output, state, sm_filter, Z())
+    smooth_gw_tendencies!(output, state, sm_filter, X())
+    smooth_gw_tendencies!(output, state, sm_filter, Y())
+    smooth_gw_tendencies!(output, state, sm_filter, Z())
     return
 end
 
-function smooth_tendencies!(
+function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     sm_filter::Shapiro,
     direction::XZ,
 )
-    smooth_tendencies!(output, state, sm_filter, X())
-    smooth_tendencies!(output, state, sm_filter, Z())
+    smooth_gw_tendencies!(output, state, sm_filter, X())
+    smooth_gw_tendencies!(output, state, sm_filter, Z())
     return
 end
 
-function smooth_tendencies!(
+function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     sm_filter::Shapiro,
     direction::YZ,
 )
-    smooth_tendencies!(output, state, sm_filter, Y())
-    smooth_tendencies!(output, state, sm_filter, Z())
+    smooth_gw_tendencies!(output, state, sm_filter, Y())
+    smooth_gw_tendencies!(output, state, sm_filter, Z())
     return
 end
 
-function smooth_tendencies!(
+function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     sm_filter::Shapiro,
@@ -196,12 +196,12 @@ function smooth_tendencies!(
     (; i0, i1, j0, j1, k0, k1) = state.domain
 
     if nbz < nsmth_wkb
-        error("Error in smooth_tendencies!: nbz < nsmth_wkb!")
+        error("Error in smooth_gw_tendencies!: nbz < nsmth_wkb!")
     end
 
     input = copy(output)
     for j in j0:j1, i in i0:i1
-        @views smooth_tendencies!(
+        @views smooth_gw_tendencies!(
             input[i, j, :],
             output[i, j, :],
             (k0, k1),
@@ -212,7 +212,7 @@ function smooth_tendencies!(
     return
 end
 
-function smooth_tendencies!(
+function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     sm_filter::Shapiro,
@@ -223,12 +223,12 @@ function smooth_tendencies!(
     (; i0, i1, j0, j1, k0, k1) = state.domain
 
     if nby < nsmth_wkb
-        error("Error in smooth_tendencies!: nby < nsmth_wkb!")
+        error("Error in smooth_gw_tendencies!: nby < nsmth_wkb!")
     end
 
     input = copy(output)
     for k in k0:k1, i in i0:i1
-        @views smooth_tendencies!(
+        @views smooth_gw_tendencies!(
             input[i, :, k],
             output[i, :, k],
             (j0, j1),
@@ -239,7 +239,7 @@ function smooth_tendencies!(
     return
 end
 
-function smooth_tendencies!(
+function smooth_gw_tendencies!(
     output::AbstractArray{<:AbstractFloat, 3},
     state::State,
     sm_filter::Shapiro,
@@ -250,12 +250,12 @@ function smooth_tendencies!(
     (; i0, i1, j0, j1, k0, k1) = state.domain
 
     if nbx < nsmth_wkb
-        error("Error in smooth_tendencies!: nbx < nsmth_wkb!")
+        error("Error in smooth_gw_tendencies!: nbx < nsmth_wkb!")
     end
 
     input = copy(output)
     for k in k0:k1, j in j0:j1
-        @views smooth_tendencies!(
+        @views smooth_gw_tendencies!(
             input[:, j, k],
             output[:, j, k],
             (i0, i1),
@@ -266,7 +266,7 @@ function smooth_tendencies!(
     return
 end
 
-function smooth_tendencies!(
+function smooth_gw_tendencies!(
     input::AbstractVector{<:AbstractFloat},
     output::AbstractVector{<:AbstractFloat},
     bounds::NTuple{2, <:Integer},
@@ -278,7 +278,7 @@ function smooth_tendencies!(
     return
 end
 
-function smooth_tendencies!(
+function smooth_gw_tendencies!(
     input::AbstractVector{<:AbstractFloat},
     output::AbstractVector{<:AbstractFloat},
     bounds::NTuple{2, <:Integer},
@@ -295,7 +295,7 @@ function smooth_tendencies!(
     return
 end
 
-function smooth_tendencies!(
+function smooth_gw_tendencies!(
     input::AbstractVector{<:AbstractFloat},
     output::AbstractVector{<:AbstractFloat},
     bounds::NTuple{2, <:Integer},
@@ -313,7 +313,7 @@ function smooth_tendencies!(
     return
 end
 
-function smooth_tendencies!(
+function smooth_gw_tendencies!(
     input::AbstractVector{<:AbstractFloat},
     output::AbstractVector{<:AbstractFloat},
     bounds::NTuple{2, <:Integer},

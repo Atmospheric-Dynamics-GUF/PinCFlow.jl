@@ -1,8 +1,4 @@
 function compute_gw_tendencies!(state)
-
-    # wave impact on horizontal momentum and wave-induced heating
-    # integrals.dudt, dvdt, dthetadt
-
     (; sizex, sizey) = state.namelists.domain
     (; f_coriolis_dim) = state.namelists.atmosphere
     (; tref) = state.constants
@@ -10,23 +6,23 @@ function compute_gw_tendencies!(state)
     (; dx, dy, dz, jac, met) = state.grid
     (; rhostrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
-    (; integrals) = state.wkb
+    (; integrals, tendencies) = state.wkb
 
-    # Set Coriolis parameter.
+    # Set the Coriolis parameter.
     f_cor_nd = f_coriolis_dim * tref
 
     for kz in k0:k1, jy in j0:j1, ix in i0:i1
         rhotot = rho[ix, jy, kz] + rhostrattfc[ix, jy, kz]
 
-        # forcing in x direction
+        # Compute the drag on the zonal wind.
 
-        integrals.dudt[ix, jy, kz] =
+        tendencies.dudt[ix, jy, kz] =
             -rhotot / rhostrattfc[ix, jy, kz] / jac[ix, jy, kz] *
             (integrals.uw[ix, jy, kz + 1] - integrals.uw[ix, jy, kz - 1]) /
             (2.0 * dz)
 
         if sizex > 1
-            integrals.dudt[ix, jy, kz] -=
+            tendencies.dudt[ix, jy, kz] -=
                 rhotot / rhostrattfc[ix, jy, kz] * (
                     (
                         integrals.uu[ix + 1, jy, kz] -
@@ -40,7 +36,7 @@ function compute_gw_tendencies!(state)
         end
 
         if sizey > 1
-            integrals.dudt[ix, jy, kz] -=
+            tendencies.dudt[ix, jy, kz] -=
                 rhotot / rhostrattfc[ix, jy, kz] * (
                     (
                         integrals.uv[ix, jy + 1, kz] -
@@ -53,19 +49,17 @@ function compute_gw_tendencies!(state)
                 )
         end
 
-        integrals.dudt[ix, jy, kz] += rhotot * integrals.etx[ix, jy, kz]
+        tendencies.dudt[ix, jy, kz] += rhotot * integrals.etx[ix, jy, kz]
 
-        # forcing in y direction
+        # Compute the drag on the meridional wind.
 
-        rhotot = rho[ix, jy, kz] + rhostrattfc[ix, jy, kz]
-
-        integrals.dvdt[ix, jy, kz] =
+        tendencies.dvdt[ix, jy, kz] =
             -rhotot / rhostrattfc[ix, jy, kz] / jac[ix, jy, kz] *
             (integrals.vw[ix, jy, kz + 1] - integrals.vw[ix, jy, kz - 1]) /
             (2.0 * dz)
 
         if sizex > 1
-            integrals.dvdt[ix, jy, kz] -=
+            tendencies.dvdt[ix, jy, kz] -=
                 rhotot / rhostrattfc[ix, jy, kz] * (
                     (
                         integrals.uv[ix + 1, jy, kz] -
@@ -79,7 +73,7 @@ function compute_gw_tendencies!(state)
         end
 
         if sizey > 1
-            integrals.dvdt[ix, jy, kz] -=
+            tendencies.dvdt[ix, jy, kz] -=
                 rhotot / rhostrattfc[ix, jy, kz] * (
                     (
                         integrals.vv[ix, jy + 1, kz] -
@@ -92,17 +86,11 @@ function compute_gw_tendencies!(state)
                 )
         end
 
-        integrals.dvdt[ix, jy, kz] += rhotot * integrals.ety[ix, jy, kz]
+        tendencies.dvdt[ix, jy, kz] += rhotot * integrals.ety[ix, jy, kz]
 
-        integrals.dwdt[ix, jy, kz] =
-            met[ix, jy, kz, 1, 3] * integrals.dudt[ix, jy, kz] +
-            met[ix, jy, kz, 2, 3] * integrals.dvdt[ix, jy, kz]
-    end
+        # Compute the heating.
 
-    if f_cor_nd != 0.0 && (sizex > 1 || sizey > 1)
-        for kz in k0:k1, jy in j0:j1, ix in i0:i1
-            rhotot = var.rho[ix, jy, kz] + rhostrattfc[ix, jy, kz]
-
+        if f_cor_nd != 0.0 && (sizex > 1 || sizey > 1)
             if sizex > 1
                 integrals.dthetadt[ix, jy, kz] +=
                     rhotot * (
