@@ -41,7 +41,7 @@ function MergedRays(
             SVector{2}(kr - dkr / 2, kr + dkr / 2),
             SVector{2}(lr - dlr / 2, lr + dlr / 2),
             SVector{2}(mr - dmr / 2, mr + dmr / 2),
-            merge_wave_action(merge_mode, axk, ayl, azm, nr, omegar),
+            merge_wave_action(merge_mode, self, axk, ayl, azm, nr, omegar),
         )
     else
         return MergedRays(
