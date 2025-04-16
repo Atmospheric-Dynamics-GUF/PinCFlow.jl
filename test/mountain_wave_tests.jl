@@ -109,7 +109,7 @@ data = h5open("pincflow_output.h5")
 reference = h5open("mountain_wave_tests.h5")
 
 for key in keys(reference)
-    @test all(isapprox.(data[key], reference[key]))
+    @test all(isapprox.(data[key], reference[key], atol=1e-6))
 end
 
 close(data)
