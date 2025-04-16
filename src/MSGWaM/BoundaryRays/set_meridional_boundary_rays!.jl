@@ -1,16 +1,16 @@
 function set_meridional_boundary_rays!(state::State)
     (; namelists, domain) = state
-    (; sizey, nprocy) = namelists.domain
-    (; nyy, jo, i0, i1, j0, j1, k0, k1) = domain
+    (; nprocy) = namelists.domain
+    (; nyy, sizeyy, jo, i0, i1, j0, j1, k0, k1) = domain
     (; ly, y) = state.grid
     (; nray, rays) = state.wkb
 
     # Set ray-volume count.
-    set_zonal_boundaries_of_reduced_field!(nray, namelists, domain)
+    set_meridional_boundaries_of_reduced_field!(nray, namelists, domain)
 
     # Set ray-volumes properties.
     if nprocy > 1
-        set_zonal_halo_rays!(state)
+        set_meridional_halo_rays!(state)
     else
         for kz in (k0 - 1):(k1 + 1), ix in (i0 - 1):(i1 + 1)
             if nray[ix, j0 - 1, kz] > 0
@@ -27,7 +27,7 @@ function set_meridional_boundary_rays!(state::State)
         end
     end
 
-    if jo + nyy == sizey
+    if jo == 0
         for kz in (k0 - 1):(k1 + 1), ix in (i0 - 1):(i1 + 1)
             for jy in (j0 - 1):j0
                 if nray[ix, jy, kz] > 0
@@ -46,7 +46,7 @@ function set_meridional_boundary_rays!(state::State)
         end
     end
 
-    if jo == 0
+    if jo + nyy == sizeyy
         for kz in (k0 - 1):(k1 + 1), ix in (i0 - 1):(i1 + 1)
             for jy in j1:(j1 + 1)
                 if nray[ix, jy, kz] > 0
