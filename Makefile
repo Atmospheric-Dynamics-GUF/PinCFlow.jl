@@ -37,7 +37,6 @@ OFILES = atmosphere.o \
 		boundary.o \
 		finish.o \
 		fluxes.o \
-		ice_sub.o \
 		ice.o \
 		init.o \
 		mpi.o \
@@ -93,12 +92,6 @@ $(BUILD)/fluxes.o: $(BUILD)/muscl.o
 $(BUILD)/fluxes.o: $(BUILD)/sizeof.o
 $(BUILD)/fluxes.o: $(BUILD)/types.o
 
-# List dependencies of ice_sub.f90.
-$(BUILD)/ice_sub.o: $(BUILD)/atmosphere.o
-$(BUILD)/ice_sub.o: $(BUILD)/boundary.o
-$(BUILD)/ice_sub.o: $(BUILD)/mpi.o
-$(BUILD)/ice_sub.o: $(BUILD)/types.o
-
 # List dependencies of ice.f90.
 $(BUILD)/ice.o: $(BUILD)/atmosphere.o
 $(BUILD)/ice.o: $(BUILD)/boundary.o
@@ -110,7 +103,6 @@ $(BUILD)/ice.o: $(BUILD)/types.o
 # List dependencies of init.f90.
 $(BUILD)/init.o: $(BUILD)/atmosphere.o
 $(BUILD)/init.o: $(BUILD)/boundary.o
-$(BUILD)/init.o: $(BUILD)/ice_sub.o
 $(BUILD)/init.o: $(BUILD)/ice.o
 $(BUILD)/init.o: $(BUILD)/mpi.o
 $(BUILD)/init.o: $(BUILD)/output_netcdf.o
@@ -176,4 +168,11 @@ $(BUILD)/wkb.o: $(BUILD)/atmosphere.o
 $(BUILD)/wkb.o: $(BUILD)/ice.o
 $(BUILD)/wkb.o: $(BUILD)/muscl.o
 $(BUILD)/wkb.o: $(BUILD)/timeScheme.o
+<<<<<<< HEAD
 $(BUILD)/wkb.o: $(BUILD)/types.o
+
+# List dependencies of xweno.f90.
+$(BUILD)/xweno.o: $(BUILD)/types.o
+=======
+$(BUILD)/wkb.o: $(BUILD)/types.o
+>>>>>>> pincflow_git/development

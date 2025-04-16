@@ -56,12 +56,12 @@ module tracer_module
                 var%chi(ii, jj, kk) = rho(ii, jj, kk) * (tracerprime(ii, jj, &
                     &kk) + alphaTracer * zTFC(ii, jj, kk))
               else
-                var%chi(ii, jj, kk) = rho(ii, jj, kk) * alphaTracer &
-                    &* zTFC(ii, jj, kk)
+                var%chi(ii, jj, kk) = rho(ii, jj, kk) * alphaTracer * zTFC(ii, &
+                    &jj, kk)
               end if
               initialtracer(ii, jj, kk) = alphaTracer * zTFC(ii, jj, kk)
-              initialtracerrho(ii, jj, kk) = alphaTracer * zTFC(ii, jj, &
-                  &kk) * rho(ii, jj, kk)
+              initialtracerrho(ii, jj, kk) = alphaTracer * zTFC(ii, jj, kk) &
+                  &* rho(ii, jj, kk)
             end do
           end do
         end do
