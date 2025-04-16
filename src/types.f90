@@ -124,6 +124,7 @@ module type_module
   character(len = 10), dimension(1:20) :: atmvarOut
   character(len = 10), dimension(1:20) :: rayvarOut
   character(len = 10), dimension(1:20) :: icevarOut
+  character(len = 10), dimension(1:20) :: optvarOut
 
   logical :: saverayvols
   logical :: prepare_restart
@@ -144,9 +145,10 @@ module type_module
 
   logical :: fancy_namelists
 
-  namelist / outputList / atmvarOut, rayvarOut, icevarOut, saverayvols, &
-      &prepare_restart, restart, iIn, runName, outputType, nOutput, maxIter, &
-      &outputTimeDiff, maxTime, detailedinfo, RHS_diagnostics, fancy_namelists
+  namelist / outputList / atmvarOut, rayvarOut, icevarOut, optvarOut, &
+      &saverayvols, prepare_restart, restart, iIn, runName, outputType, &
+      &nOutput, maxIter, outputTimeDiff, maxTime, detailedinfo, &
+      &RHS_diagnostics, fancy_namelists
   !achatzb
   !achatze
 
@@ -198,11 +200,13 @@ module type_module
   real :: amp_mod_x, amp_mod_y
   logical :: inducedwind
   ! achatze
+  logical :: MultipleWavePackets !run 'wavePacket'-case with multiple WPs
 
   namelist / wavePacket / wavePacketType, wavePacketDim, lambdaX_dim, &
       &lambdaY_dim, lambdaZ_dim, amplitudeFactor, x0_dim, y0_dim, z0_dim, &
       &sigma_dim, sigma_hor_dim, amp_mod_x, sigma_hor_yyy_dim, amp_mod_y, &
-      &L_cos_dim, omiSign, u0_jet_dim, z0_jet_dim, L_jet_dim, inducedwind
+      &L_cos_dim, omiSign, u0_jet_dim, z0_jet_dim, L_jet_dim, inducedwind, &
+      &MultipleWavePackets
   ! achatzb
   ! achatze
   ! achatzb
@@ -648,8 +652,8 @@ module type_module
   real :: stretch_exponent
 
   namelist / topographyList / topography, ipolTFC, topographyTime, &
-      &mountainHeight_dim, mountainWidth_dim, mountain_case, &
-      &range_factor, spectral_modes, envelope_reduction, stretch_exponent
+      &mountainHeight_dim, mountainWidth_dim, mountain_case, range_factor, &
+      &spectral_modes, envelope_reduction, stretch_exponent
   !UAB
   !UAE
 
@@ -816,6 +820,35 @@ module type_module
     real :: w ! vertical velocity amplitude
   end type opt_rayType
 
+  type ice_rayType
+    real :: wwp ! wPrime: vertical vertical GW fluctuation
+    real :: epp ! expPrime: Exner pressure GW fluctuation
+    real :: thp ! thetaPrime: potential temperature GW fluctuation
+  end type ice_rayType
+
+  type ice_rayType2
+    real :: wwp ! wPrime: vertical vertical GW fluctuation
+    real :: epp ! expPrime: Exner pressure GW fluctuation
+    real :: thp ! thetaPrime: potential temperature GW fluctuation
+
+    !evolved ice fields
+    real :: Ni, Qi, Qv
+    !auxillary arrays required for RK integration
+    real :: qNi, qQi, qQv
+    !tendency ice fields
+    real :: tNi, tQi, tQv
+
+  end type ice_rayType2
+
+  type ice_cloud
+    !evolved ice fields
+    real :: Ni, Qi, Qv
+  end type ice_cloud
+
+  logical :: compute_cloudcover
+  integer :: NSCX, NSCY, NSCZ
+  real :: dxsc, dysc, dzsc
+
   integer, dimension(:), allocatable :: iVarIce
   type(opt_rayType), dimension(:, :, :, :), allocatable :: opt_ray
   integer :: inN, inQ, inQv, nVarIce
@@ -829,7 +862,7 @@ module type_module
   real, parameter :: meanMassIce = 1.E-12 ! mean mass ice crystals [kg]
   real :: mRef ! reference mass
   real, parameter :: PsatIceRef = 1 !reference saturation pressure [Pa]
-  real :: Dep ! deposition coefficient
+  real :: Dep, Dep0, DepS ! deposition coefficient
   real, dimension(:, :, :), allocatable :: PsatIce
   real, parameter :: thetaRef_trp = 210. ! reference temperature in the tropopause region [K]
   real, parameter :: L_ice = 2.8E6 ! constant latent heat  ice [J/kg]
@@ -844,13 +877,49 @@ module type_module
 
   logical :: no_ice_source ! set to true if only ice advection and no ice source
   ! are considered
-  logical, parameter :: compare_raytracer = .True. ! modify Wavepacket simulation to facilitate comparison with raytracer
-  namelist / iceList / inN, inQ, inQv, nVarIce, dt_ice, no_ice_source
-
-  real, allocatable :: var_ww(:, :, :) ! flux <w'w'> from RayTracer
+  logical :: compare_raytracer = .true. ! modify Wavepacket simulation to facilitate comparison with raytracer
 
   !include_testoutput
   integer :: iVarO, iVarS, iVarAW
+  logical :: update_phase = .true. !update phase in tracer
+  logical :: average_cell = .false. ! average vertical velocity RT
+  logical :: average_cell_3 = .false. !compute averaged vertical velocity, use three cells
+  integer :: reconstruct_gw_field ! 1 average over waveaction density
+  ! 2 superimpose waves from different RV
+
+  logical :: gauss_smoothing = .false. !apply gaussian kernel smoothing
+  logical :: parameterized_nucleation = .false. !switch on parameterization of nucleatio
+  real * 4, dimension(:, :), allocatable :: field_out_cld, field_mst_cld
+
+  real, dimension(:), allocatable :: x2, y2, z2
+  integer :: SizeX2, SizeY2, SizeZ2
+
+  namelist / iceList / inN, inQ, inQv, nVarIce, dt_ice, no_ice_source, &
+      &parameterized_nucleation, average_cell, average_cell_3, &
+      &compute_cloudcover, NSCX, NSCY, gauss_smoothing, reconstruct_gw_field, &
+      &compare_raytracer
+
+  integer, parameter :: NWM_WP = 2
+  integer :: TWM
+  real, dimension(NWM_WP) :: amp_wkb_sp, wnrk_init_sp, wnrl_init_sp, &
+      &wnrm_init_sp, sigwpx_sp, sigwpy_sp, sigwpz_sp, xr0_sp, yr0_sp, zr0_sp
+
+  real, dimension(NWM_WP) :: wlrx_init_sp, wlry_init_sp, wlrz_init_sp, &
+      &sigwpx_dim_sp, sigwpy_dim_sp, sigwpz_dim_sp, xr0_dim_sp, yr0_dim_sp, &
+      &zr0_dim_sp
+  real, dimension(NWM_WP) :: lambdaX_dim_sp, lambdaY_dim_sp, lambdaZ_dim_sp, &
+      &x0_dim_sp, y0_dim_sp, z0_dim_sp, sigma_hor_dim_sp, &
+      &sigma_hor_yyy_dim_sp, sigma_dim_sp, amplitudeFactor_sp
+
+  integer, dimension(NWM_WP) :: branchr_sp, omiSign_sp
+
+  namelist / case_wkb_5_list / branchr_sp, amp_wkb_sp, wlrx_init_sp, &
+      &wlry_init_sp, wlrz_init_sp, sigwpx_dim_sp, sigwpy_dim_sp, &
+      &sigwpz_dim_sp, xr0_dim_sp, yr0_dim_sp, zr0_dim_sp
+
+  namelist / MultipleWavePackets_list / lambdaX_dim_sp, lambdaY_dim_sp, &
+      &lambdaZ_dim_sp, x0_dim_sp, y0_dim_sp, z0_dim_sp, sigma_hor_dim_sp, &
+      &sigma_hor_yyy_dim_sp, sigma_dim_sp, amplitudeFactor_sp, omiSign_sp
 
   !output ray volumes
   real * 4, dimension(:), allocatable :: nor_mst
@@ -879,6 +948,7 @@ module type_module
     atmvarOut = ""
     rayvarOut = ""
     icevarOut = ""
+    optvarOut = ""
     saverayvols = .false.
     prepare_restart = .false.
     restart = .false.
@@ -1144,6 +1214,18 @@ module type_module
     dt_ice = 0.0
     no_ice_source = .false.
 
+    compare_raytracer = .true.
+    MultipleWavePackets = .false.
+    compute_cloudcover = .false.
+    average_cell = .false.
+    average_cell_3 = .false.
+    NSCX = 1
+    NSCY = 1
+    NSCZ = 1
+    gauss_smoothing = .false.
+    reconstruct_gw_field = 1
+    parameterized_nucleation = .false.
+
   end subroutine default_values
 
   subroutine write_namelists
@@ -1188,6 +1270,16 @@ module type_module
       iceVarOut(jVar) = iceVarOut(iVar)
     end do
     iceVarOut(jVar + 1:) = ""
+
+    ! Adjust iceVarOut.
+    jVar = 0
+    do iVar = 1, size(optVarOut)
+      if(optVarOut(iVar) == "" .or. (iVar > 1 .and. any(optVarOut(:iVar - 1) &
+          &== optVarOut(iVar)))) cycle
+      jVar = jVar + 1
+      optVarOut(jVar) = optVarOut(iVar)
+    end do
+    optVarOut(jVar + 1:) = ""
 
     ! Write namelists in standard format.
     if(master .and. .not. fancy_namelists) then
@@ -1238,6 +1330,10 @@ module type_module
       write(unit = 90, nml = tracerList)
       write(90, "(a)") ""
       write(unit = 90, nml = iceList)
+      write(90, "(a)") ""
+      write(unit = 90, nml = case_wkb_5_list)
+      write(90, "(a)") ""
+      write(unit = 90, nml = MultipleWavePackets_list)
       close(90)
       return
     end if
@@ -1738,12 +1834,12 @@ module type_module
       call write_logical("relax_to_mean", relax_to_mean, "Relax the wind to &
           &its (terrain-following) horizontal mean (otherwise, relax to the &
           &initial state) if unifiedSponge == .true.")
-      call write_float("relaxation_period", relaxation_period, "Period of &
-          &an oscillation superposed on the background wind if unifiedSponge &
+      call write_float("relaxation_period", relaxation_period, "Period of an &
+          &oscillation superposed on the background wind if unifiedSponge &
           &== .true. and relax_to_mean == .false. (0 for no oscillation)")
-      call write_float("relaxation_amplitude", relaxation_amplitude, &
-          &"Relative amplitude of an oscillation superposed on the background &
-          &wind if unifiedSponge == .true. and relax_to_mean == .false.")
+      call write_float("relaxation_amplitude", relaxation_amplitude, "Relative &
+          &amplitude of an oscillation superposed on the background wind if &
+          &unifiedSponge == .true. and relax_to_mean == .false.")
       write(90, "(a)") "&end"
       write(90, "(a)") ""
 
@@ -1779,12 +1875,76 @@ module type_module
 
       ! Write ice namelist.
       write(90, "(a)") "&iceList"
-      call write_integer("inN", inN, "...")
-      call write_integer("inQ", inQ, "...")
-      call write_integer("inQv", inQv, "...")
-      call write_integer("nVarIce", nVarIce, "...")
-      call write_float("dt_ice", dt_ice, "...")
-      call write_logical("no_ice_source", no_ice_source, "...")
+      call write_integer("inN", inN, "Ice number concentration")
+      call write_integer("inQ", inQ, "Ice mixing ratio")
+      call write_integer("inQv", inQv, "Vapor mixing ratio")
+      call write_integer("nVarIce", nVarIce, "Number ice variables")
+      call write_float("dt_ice", dt_ice, "Time step ice microphysics")
+      call write_logical("no_ice_source", no_ice_source, "Switch off ice &
+          &microphysics, only advect")
+      call write_logical("parameterized_nucleation", parameterized_nucleation, &
+          &"Param. or resolved nucleation source term")
+      !reconstruct_gw_field = 2,
+      !average_cell = .true.
+      call write_logical("compute_cloudcover", compute_cloudcover, 'Compute &
+          &ice physics on a sub-grid within PinCFlow grid')
+      call write_integer("nscx", nscx, "sub-grid points in x per cell")
+      call write_integer("nscx", nscy, "sub-grid points in y per cell")
+      write(90, "(a)") "&end"
+      write(90, "(a)") ""
+
+      !case_wkb_5_list
+      write(90, "(a)") "&case_wkb_5_list"
+      do iVar = 1, 2
+        call write_integer("Wavepacket number", iVar, "List below parameters &
+            &of wavepacket")
+        call write_integer("branchr_sp", branchr_sp(iVar), "Frequency branches")
+        call write_float("amp_wkb", amp_wkb_sp(iVar), "Relative amplitude of &
+            &wave packet")
+        call write_float("wlrx_init_sp", wlrx_init_sp(iVar), "Wavelength in x &
+            &of wave packets")
+        call write_float("wlry_init", wlry_init_sp(iVar), "Wavelength in y of &
+            &wave packet")
+        call write_float("wlrz_init", wlrz_init_sp(iVar), "Wavelength in z of &
+            &wave packet")
+        call write_float("xr0_dim", xr0_dim_sp(iVar), "Wave packet center in x")
+        call write_float("yr0_dim", yr0_dim_sp(iVar), "Wave packet center in y")
+        call write_float("zr0_dim", zr0_dim_sp(iVar), "Wave packet center in z")
+        call write_float("sigwpx_dim", sigwpx_dim_sp(iVar), "Wave packet width &
+            &in x (0.0 for infinite width)")
+        call write_float("sigwpy_dim", sigwpy_dim_sp(iVar), "Wave packet width &
+            &in y (0.0 for infinite width)")
+        call write_float("sigwpz_dim", sigwpz_dim_sp(iVar), "Wave packet width &
+            &in z (0.0 for infinite width)")
+      end do
+      write(90, "(a)") "&end"
+      write(90, "(a)") ""
+
+      ! Write multiple wave packets namelist.
+      write(90, "(a)") "&MultipleWavePackets_list"
+      do iVar = 1, NWM_WP
+        call write_integer("Wavepacket number", iVar, "List below parameters &
+            &of wavepacket")
+        call write_float("lambdaX_dim", lambdaX_dim_sp(iVar), "Wavelength in x &
+            &(0.0 for infinite wavelength)")
+        call write_float("lambdaY_dim", lambdaY_dim_sp(iVar), "Wavelength in y &
+            &(0.0 for infinite wavelength)")
+        call write_float("lambdaZ_dim", lambdaZ_dim_sp(iVar), "Wavelength in z")
+        call write_float("amplitudeFactor", amplitudeFactor_sp(iVar), &
+            &"Normalized buoyancy amplitude")
+        call write_float("x0_dim", x0_dim_sp(iVar), "Wave-packet center in x")
+        call write_float("y0_dim", y0_dim_sp(iVar), "Wave-packet center in y")
+        call write_float("z0_dim", z0_dim_sp(iVar), "Wave-packet center in z")
+        call write_float("sigma_dim", sigma_dim_sp(iVar), "Vertical width of &
+            &Gaussian wave packet")
+        call write_float("sigma_hor_dim", sigma_hor_dim_sp(iVar), "Cosine &
+            &distribution width in x (0.0 for infinite width)")
+        call write_float("amp_mod_x", amp_mod_x, "Fractional amplitude &
+            &modulation in x")
+        call write_float("sigma_hor_yyy_dim", sigma_hor_yyy_dim_sp(iVar), &
+            &"Cosine distribution width in y (0.0 for infinite width)")
+        call write_integer("omiSign", omiSign_sp(iVar), "Frequency branch")
+      end do
       write(90, "(a)") "&end"
 
       ! Close info file.
