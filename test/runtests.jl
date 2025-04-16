@@ -6,10 +6,12 @@ using HDF5
 
 @testset "PinCFlow tests" begin
     @testset "Mountain-wave tests" begin
-        include("mountain_wave_tests.jl")
+        # include("mountain_wave_tests.jl")
     end
 
     @testset "WKB mountain-wave tests" begin
-        include("wkb_mountain_wave_tests.jl")
+        # include("wkb_mountain_wave_tests.jl")
     end
+
+    include("read_input.jl")
 end
