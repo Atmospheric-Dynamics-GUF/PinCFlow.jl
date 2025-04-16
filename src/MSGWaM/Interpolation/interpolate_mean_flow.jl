@@ -16,7 +16,7 @@ function interpolate_mean_flow(
         ixl = i0
         ixr = i0
     else
-        ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - io
+        ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
         if (ixl < 1)
             error("Error in interpolate_mean_flow (U): ixl = ", ixl, " < 1")
         end
@@ -176,7 +176,7 @@ function interpolate_mean_flow(
         jyb = j0
         jyf = j0
     else
-        jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - jo
+        jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - 1 - jo
         if jyb < 1
             error("Error in interpolate_mean_flow (V): jyb = ", jyb, " < 1")
         end
@@ -665,7 +665,7 @@ function interpolate_mean_flow(
         ixl = i0
         ixr = i0
     else
-        ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - io
+        ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
         if ixl < 1
             error("Error in interpolate_mean_flow (DUDY): ixl = ", ixl, " < 1")
         end
@@ -687,7 +687,7 @@ function interpolate_mean_flow(
         phi = 0.0
         return phi
     else
-        jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - jo
+        jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - 1 - jo
         if jyb < 1
             error("Error in interpolate_mean_flow (DUDY): jyb = ", jyb, " < 1")
         end
@@ -909,7 +909,7 @@ function interpolate_mean_flow(
         ixl = i0
         ixr = i0
     else
-        ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - io
+        ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
         if ixl < 1
             error("Error in interpolate_mean_flow (DUDZ): ixl = ", ixl, " < 1")
         end
@@ -988,10 +988,10 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    if zlbu < ztildetfc[ixl, jyb, k0]
+    if zlbu < ztildetfc[ixl, jyb, k0 - 1]
         philbd = 0.0
         philbu = 0.0
-    elseif zlbd < ztildetfc[ixl, jyb, k0]
+    elseif zlbd < ztildetfc[ixl, jyb, k0 - 1]
         philbd = 0.0
         philbu =
             (u[ixl, jyb, kzlbu + 1] - u[ixl, jyb, kzlbu]) / dz / (
@@ -1031,10 +1031,10 @@ function interpolate_mean_flow(
         end
     end
 
-    if zlfu < ztildetfc[ixl, jyf, k0]
+    if zlfu < ztildetfc[ixl, jyf, k0 - 1]
         philfd = 0.0
         philfu = 0.0
-    elseif zlfd < ztildetfc[ixl, jyf, k0]
+    elseif zlfd < ztildetfc[ixl, jyf, k0 - 1]
         philfd = 0.0
         philfu =
             (u[ixl, jyf, kzlfu + 1] - u[ixl, jyf, kzlfu]) / dz / (
@@ -1074,10 +1074,10 @@ function interpolate_mean_flow(
         end
     end
 
-    if zrbu < ztildetfc[ixr, jyb, k0]
+    if zrbu < ztildetfc[ixr, jyb, k0 - 1]
         phirbd = 0.0
         phirbu = 0.0
-    elseif zrbd < ztildetfc[ixr, jyb, k0]
+    elseif zrbd < ztildetfc[ixr, jyb, k0 - 1]
         phirbd = 0.0
         phirbu =
             (u[ixr, jyb, kzrbu + 1] - u[ixr, jyb, kzrbu]) / dz / (
@@ -1117,10 +1117,10 @@ function interpolate_mean_flow(
         end
     end
 
-    if zrfu < ztildetfc[ixr, jyf, k0]
+    if zrfu < ztildetfc[ixr, jyf, k0 - 1]
         phirfd = 0.0
         phirfu = 0.0
-    elseif zrfd < ztildetfc[ixr, jyf, k0]
+    elseif zrfd < ztildetfc[ixr, jyf, k0 - 1]
         phirfd = 0.0
         phirfu =
             (u[ixr, jyf, kzrbu + 1] - u[ixr, jyf, kzrbu]) / dz / (
@@ -1209,7 +1209,7 @@ function interpolate_mean_flow(
         phi = 0.0
         return phi
     else
-        ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - io
+        ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
         if ixl < 1
             error("Error in interpolate_mean_flow (DVDX): ixl = ", ixl, " < 1")
         end
@@ -1231,7 +1231,7 @@ function interpolate_mean_flow(
         jyb = j0
         jyf = j0
     else
-        jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - jo
+        jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - 1 - jo
         if jyb < 1
             error("Error in interpolate_mean_flow (DVDX): jyb = ", jyb, " < 1")
         end
@@ -1675,7 +1675,7 @@ function interpolate_mean_flow(
         jyb = j0
         jyf = j0
     else
-        jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - jo
+        jyb = floor(Int, (ylc - ly[1]) / dy) + j0 - 1 - jo
         if jyb < 1
             error("Error in interpolate_mean_flow: jyb = ", jyb, " < 1")
         end
@@ -1732,10 +1732,10 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    if zlbu < ztildetfc[ixl, jyb, k0]
+    if zlbu < ztildetfc[ixl, jyb, k0 - 1]
         philbd = 0.0
         philbu = 0.0
-    elseif zlbd < ztildetfc[ixl, jyb, k0]
+    elseif zlbd < ztildetfc[ixl, jyb, k0 - 1]
         philbd = 0.0
         philbu =
             (v[ixl, jyb, kzlbu + 1] - v[ixl, jyb, kzlbu]) / dz / (
@@ -1775,10 +1775,10 @@ function interpolate_mean_flow(
         end
     end
 
-    if zlfu < ztildetfc[ixl, jyf, k0]
+    if zlfu < ztildetfc[ixl, jyf, k0 - 1]
         philfd = 0.0
         philfu = 0.0
-    elseif zlfd < ztildetfc[ixl, jyf, k0]
+    elseif zlfd < ztildetfc[ixl, jyf, k0 - 1]
         philfd = 0.0
         philfu =
             (v[ixl, jyf, kzlfu + 1] - v[ixl, jyf, kzlfu]) / dz / (
@@ -1818,10 +1818,10 @@ function interpolate_mean_flow(
         end
     end
 
-    if zrbu < ztildetfc[ixr, jyb, k0]
+    if zrbu < ztildetfc[ixr, jyb, k0 - 1]
         phirbd = 0.0
         phirbu = 0.0
-    elseif zrbd < ztildetfc[ixr, jyb, k0]
+    elseif zrbd < ztildetfc[ixr, jyb, k0 - 1]
         phirbd = 0.0
         phirbu =
             (v[ixr, jyb, kzrbu + 1] - v[ixr, jyb, kzrbu]) / dz / (
@@ -1861,10 +1861,10 @@ function interpolate_mean_flow(
         end
     end
 
-    if zrfu < ztildetfc[ixr, jyf, k0]
+    if zrfu < ztildetfc[ixr, jyf, k0 - 1]
         phirfd = 0.0
         phirfu = 0.0
-    elseif zrfd < ztildetfc[ixr, jyf, k0]
+    elseif zrfd < ztildetfc[ixr, jyf, k0 - 1]
         phirfd = 0.0
         phirfu =
             (v[ixr, jyf, kzrfu + 1] - v[ixr, jyf, kzrfu]) / dz / (
