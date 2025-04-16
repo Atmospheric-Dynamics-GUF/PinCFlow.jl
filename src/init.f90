@@ -204,11 +204,11 @@ module init_module
         if(allocstat /= 0) stop "setup: could not allocate &
             &final_topography_surface"
       end if
-      allocate(zTildeTFC(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
-          &stat = allocstat)
+      allocate(zTildeTFC(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+          &= allocstat)
       if(allocstat /= 0) stop "setup: could not allocate zTildeTFC"
-      allocate(zTFC(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), &
-          &stat = allocstat)
+      allocate(zTFC(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
+          &= allocstat)
       if(allocstat /= 0) stop "setup: could not allocate zTFC"
       allocate(zTildeS(- nbz:nz + nbz), stat = allocstat)
       if(allocstat /= 0) stop "setup: could not allocate zTildeS"
@@ -333,17 +333,6 @@ module init_module
       allocate(dTracer(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
           &= allocstat)
       if(allocstat /= 0) stop "init.f90: Could not allocate dTracer."
-    end if
-
-    if(include_testoutput) then
-
-      allocate(ofield(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, 6), stat &
-          &= allocstat)
-      if(allocstat /= 0) stop "init.f90: Could not allocate ofield."
-
-      !init
-      ofield = 0.
-
     end if
 
     ! allocate dPStrat
@@ -609,8 +598,8 @@ module init_module
 
     integer :: allocstat
 
-    real :: u1, w1, b1, p1
-    real :: u2, w2, b2, p2
+    real :: u1, w1, b1, p1, v1
+    real :: u2, w2, b2, p2, v2
 
     logical, parameter :: initWave2 = .false.
 
@@ -692,9 +681,12 @@ module init_module
     integer :: switch, k_tropopause
 
     real :: indwindcoeff
+    integer :: iwm
 
     integer :: kshalf
     real :: fchtms, zhtmsd, zhtmsu
+    real :: bmax
+    bmax = 0.
 
     ! open the namelist file
     open(unit = 10, file = file_namelist, action = "read", form = "formatted", &
@@ -895,6 +887,31 @@ module init_module
       rewind(unit = 10)
       read(unit = 10, nml = wavePacket)
 
+      !SDJul2024
+      !MultipleWavePackets = .true.
+      !if ( master ) print*, 'set MultipleWavePackets = .true.'
+
+      if(MultipleWavePackets) then
+
+        !init
+        var%rho = 0.
+        var%u = 0.
+        var%v = 0.
+        var%w = 0.
+        var%pi = 0.
+        TWM = NWM_WP
+
+        read(unit = 10, nml = MultipleWavePackets_list)
+
+        if(inducedwind .or. initWave2) then
+          print *, 'MultipleWavePackets not implemented for &
+              &inducedwind/initWave2 == true'
+          stop
+        end if
+      else
+        TWM = 1
+      end if
+
       u0 = u0_jet_dim / uRef ! amplitude of jet
       L_jet = L_jet_dim / lRef ! half width of cos profile
       z0_jet = z0_jet_dim / lRef ! center of jet
@@ -931,131 +948,170 @@ module init_module
         end do
       end if
 
-      !--------------------
-      !     set up GWP
-      !--------------------
-      call init_GWP(Psi, kk, mm, ll, indwindcoeff)
+      do iwm = 1, TWM
 
-      do k = 0, (nz + 1)
-        do j = 0, (ny + 1)
-          do i = 0, (nx + 1)
-            if(topography) then
-              phi = kk * x(i + i0) + ll * y(j + j0) + mm * zTFC(i, j, k)
-            else
-              phi = kk * x(i + i0) + mm * z(k) + ll * y(j + j0)
-            end if
+        ! overwite input if superposition of wavepackets considered
+        if(MultipleWavePackets) then
 
-            ! wave 1
-            u1 = real(Psi(i, j, k, 1, 1) * exp(phi * imag))
-            w1 = real(Psi(i, j, k, 2, 1) * exp(phi * imag))
-            b1 = real(Psi(i, j, k, 3, 1) * exp(phi * imag))
-            p1 = real(Psi(i, j, k, 4, 1) * exp(phi * imag))
+          lambdaX_dim = lambdaX_dim_sp(iwm)
+          lambdaY_dim = lambdaY_dim_sp(iwm)
+          lambdaZ_dim = lambdaZ_dim_sp(iwm)
 
-            ! wave 2
-            if(initWave2) then
-              stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
-              u2 = real(Psi(i, j, k, 1, 2) * exp(2. * phi * imag))
-              w2 = real(Psi(i, j, k, 2, 2) * exp(2. * phi * imag))
-              b2 = real(Psi(i, j, k, 3, 2) * exp(2. * phi * imag))
-              p2 = real(Psi(i, j, k, 4, 2) * exp(2. * phi * imag))
-            end if
+          x0_dim = x0_dim_sp(iwm)
+          y0_dim = y0_dim_sp(iwm)
+          z0_dim = z0_dim_sp(iwm)
 
-            ! sum of wave 1 and 2
-            if(initWave2) then
-              stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
-              b = b1 + b2
-              u = u1 + u2
-              w = w1 + w2
-              p = p1 + p2
-            else
-              b = b1
-              u = u1
-              w = w1
-              p = p1
-            end if
+          sigma_hor_dim = sigma_hor_dim_sp(iwm)
+          sigma_hor_yyy_dim = sigma_hor_yyy_dim_sp(iwm)
+          sigma_dim = sigma_dim_sp(iwm)
 
-            ! additional vars
-            if(topography) then
-              rho = 1.0 / (1.0 + Fr2 * b) * rhoStratTFC(i, j, k)
-            else
-              rho = 1. / (1. + Fr2 * b) * rhoStrat(k)
-            end if
-            theta = Fr2 * theta00 * b
+          amplitudeFactor = amplitudeFactor_sp(iwm)
+          omiSign = omiSign_sp(iwm)
+        end if
 
-            ! write to field
-            select case(model)
-            case("pseudo_incompressible", "compressible")
+        !--------------------
+        !     set up GWP
+        !--------------------
+        call init_GWP(Psi, kk, mm, ll, indwindcoeff)
 
-              ! add random noise
-              rho = rho + randNoise(i, j, k)
-
-              ! subtract background for fluctuation mode
+        do k = 0, (nz + 1)
+          do j = 0, (ny + 1)
+            do i = 0, (nx + 1)
               if(topography) then
-                rho = rho - rhoStratTFC(i, j, k)
+                ! TFC FJ
+                phi = kk * x(i + i0) + ll * y(j + j0) + mm * zTFC(i, j, k)
               else
-                rho = rho - rhoStrat(k)
+                phi = kk * x(i + i0) + mm * z(k) + ll * y(j + j0)
               end if
 
-              ! write to field
-              var%rho(i, j, k) = rho
+              ! wave 1
+              u1 = real(Psi(i, j, k, 1, 1) * exp(phi * imag))
+              w1 = real(Psi(i, j, k, 2, 1) * exp(phi * imag))
+              b1 = real(Psi(i, j, k, 3, 1) * exp(phi * imag))
+              p1 = real(Psi(i, j, k, 4, 1) * exp(phi * imag))
+              v1 = real(Psi(i, j, k, 5, 1) * exp(phi * imag))
 
-            case("Boussinesq")
-
-              ! Density fluctuations are stored in var%rhop, var%rho must
-              ! remain zero!
-              if(topography) then
-                var%rhop(i, j, k) = rho - rhoStratTFC(i, j, k)
-              else
-                var%rhop(i, j, k) = rho - rhoStrat(k)
+              ! wave 2
+              if(initWave2) then
+                stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
+                u2 = real(Psi(i, j, k, 1, 2) * exp(2. * phi * imag))
+                w2 = real(Psi(i, j, k, 2, 2) * exp(2. * phi * imag))
+                b2 = real(Psi(i, j, k, 3, 2) * exp(2. * phi * imag))
+                p2 = real(Psi(i, j, k, 4, 2) * exp(2. * phi * imag))
+                v2 = real(Psi(i, j, k, 5, 2) * exp(2. * phi * imag))
               end if
 
-            case default
-              stop "initialize: unknown case model"
-            end select
-
-            var%u(i, j, k) = var%u(i, j, k) + u
-            var%v(i, j, k) = real(Psi(i, j, k, 5, 1) * exp(phi * imag))
-            var%w(i, j, k) = w
-            var%pi(i, j, k) = p
-
-            if(include_tracer) then
-              ! chi = <chi> + chi'
-              ! where chi' = alphaTracer/N^2 * b'
-              ! from inserting WKB ansatz into linearized
-              ! equation for chi' and using polarization
-              ! relation
-              if(topography) then
-                stop 'init.f90: wavepacket tracer prime and topography not &
-                    &implemented'
+              ! sum of wave 1 and 2
+              if(initWave2) then
+                stop 'ERROR: 2ndary wave not ready for 2D or 3D wave p.'
+                b = b1 + b2
+                u = u1 + u2
+                w = w1 + w2
+                p = p1 + p2
+                v = v1 + v2
               else
-                ! only set up for <chi>=alphaTracer*z
-                ! large-scale tracer distribution
-                if(tracerSetup == "alpha_z") then
-                  var%chi(i, j, k) = alphaTracer / N2 * b
+                b = b1
+                u = u1
+                w = w1
+                p = p1
+                v = v1
+              end if
+
+              !SDDec24
+              var%rho(i, j, k) = var%rho(i, j, k) + b ! store b at 1
+              var%u(i, j, k) = var%u(i, j, k) + u
+              var%v(i, j, k) = var%v(i, j, k) + v
+              var%w(i, j, k) = var%w(i, j, k) + w
+              var%pi(i, j, k) = var%pi(i, j, k) + p
+
+              if(iwm .eq. TWM) then
+
+                !reset rho
+                b = var%rho(i, j, k)
+                var%rho(i, j, k) = 0.
+
+                ! additional vars
+                if(topography) then
+                  ! TFC FJ
+                  rho = 1.0 / (1.0 + Fr2 * b) * rhoStratTFC(i, j, k)
                 else
-                  stop 'init.f90: unknown initial tracer with wavepacket &
-                      &tracer prime'
+                  rho = 1. / (1. + Fr2 * b) * rhoStrat(k)
                 end if
-              end if
-            end if
+                theta = Fr2 * theta00 * b
 
-            if(inducedwind) then
-              !stop "Error: induced wind currently not possible. Potential error in code."
-              var%u(i, j, k) = var%u(i, j, k) + indwindcoeff * b ** 2.
-            end if
+                ! write to field
+                select case(model)
+                case("pseudo_incompressible", "compressible")
 
-            if(include_testoutput .and. testCase == 'wavePacket') then
-              ofield(i, j, k, 4) = real(Psi(i, j, k, 2, 1) * exp(phi * imag))
-            end if
+                  ! add random noise
+                  rho = rho + randNoise(i, j, k)
 
-            ! Compute terrain-following vertical wind.
-            if(topography) then
-              var%w(i, j, k) = var%w(i, j, k) / jac(i, j, k) + met(i, j, k, 1, &
-                  &3) * var%u(i, j, k) + met(i, j, k, 2, 3) * var%v(i, j, k)
-            end if
-          end do
-        end do ! modified by Junhong Wei for 3DWP (20170922)
-      end do
+                  ! subtract background for fluctuation mode
+                  if(topography) then
+                    ! TFC FJ
+                    rho = rho - rhoStratTFC(i, j, k)
+                  else
+                    rho = rho - rhoStrat(k)
+                  end if
+
+                  ! write to field
+                  var%rho(i, j, k) = rho
+
+                case("Boussinesq")
+
+                  ! Density fluctuations are stored in var%rhop(i, j, k),
+                  ! var%rho(i, j, k) must remain zero!
+                  if(topography) then
+                    var%rhop(i, j, k) = rho - rhoStratTFC(i, j, k)
+                  else
+                    var%rhop(i, j, k) = rho - rhoStrat(k)
+                  end if
+
+                  ! var(i,j,k,6) = theta
+
+                case default
+                  stop "initialize: unknown case model"
+                end select ! model
+
+                if(include_tracer) then
+                  ! chi = <chi> + chi'
+                  ! where chi' = alphaTracer/N^2 * b'
+                  ! from inserting WKB ansatz into linearized
+                  ! equation for chi' and using polarization
+                  ! relation
+                  if(topography) then
+                    stop 'init.f90: wavepacket tracer prime and topography not &
+                        &implemented'
+                  else
+                    ! only set up for <chi>=alphaTracer*z
+                    ! large-scale tracer distribution
+                    if(tracerSetup == "alpha_z") then
+                      var%chi(i, j, k) = alphaTracer / N2 * b
+                    else
+                      stop 'init.f90: unknown initial tracer with wavepacket &
+                          &tracer prime'
+                    end if
+                  end if
+                end if
+
+                if(inducedwind) then
+                  !stop "Error: induced wind currently not possible. Potential error in code."
+                  var%u(i, j, k) = var%u(i, j, k) + indwindcoeff * b ** 2.
+                end if
+
+                ! TFC FJ
+                ! Compute terrain-following vertical wind.
+                if(topography) then
+                  var%w(i, j, k) = var%w(i, j, k) / jac(i, j, k) + met(i, j, &
+                      &k, 1, 3) * var%u(i, j, k) + met(i, j, k, 2, 3) &
+                      &* var%v(i, j, k)
+                end if
+
+              end if ! iwm==TWM
+            end do !i
+          end do ! l modified by Junhong Wei for 3DWP (20170922)
+        end do ! k
+      end do ! iwm
 
       ! average zonal velocities to cell face...
       do i = 0, nx
@@ -1306,6 +1362,16 @@ module init_module
           end do
         end do
       end do
+
+      ! raytracer + case_wkb=5
+      if(case_wkb == 5) then
+        read(unit = 10, nml = case_wkb_5_list)
+        if(nwm .ne. NWM_WP) then
+          print *, 'nwm /= NWM_WP !!'
+          print *, 'change NWM, NWM_WP'
+          stop
+        end if
+      end if
 
       if(include_ice) call setup_ice(var)
 
@@ -2375,8 +2441,8 @@ module init_module
             ! FJApr2024
             ! It seems like there is one factor 1/2 too much here...
             if(topography) then
-              var%pi(i, j, 0) = - 0.25 * jac(i, j, 0) * dz * Ma2 * kappa &
-                  &* rho / (jac(i, j, 1) * pStratTFC(i, j, 0) + jac(i, j, 0) &
+              var%pi(i, j, 0) = - 0.25 * jac(i, j, 0) * dz * Ma2 * kappa * rho &
+                  &/ (jac(i, j, 1) * pStratTFC(i, j, 0) + jac(i, j, 0) &
                   &* pStratTFC(i, j, 1)) * (jac(i, j, 1) * buoy0 + jac(i, j, &
                   &0) * buoy1)
             else
@@ -2622,7 +2688,7 @@ module init_module
 
               if(topography) then
                 var%pi(i, j, k) = var%pi(i, j, k - 1) - 0.5 * dz * 2.0 &
-                    &* jac(i, j, k) * jac(i, j, k - 1) /  (jac(i, j, k) &
+                    &* jac(i, j, k) * jac(i, j, k - 1) / (jac(i, j, k) &
                     &+ jac(i, j, k - 1)) * (kappa / thetastar + kappa &
                     &/ the_env_pp(i, j, k - 1))
               else
@@ -2647,8 +2713,7 @@ module init_module
               do k = 0, nz + 1
                 do i = 1, nx
                   if(zTFC(i, j, k) >= zSponge) then
-                    if(zTFC(i, j, k) >= zSponge + 0.5 * (lz(1) &
-                        &- zSponge)) then
+                    if(zTFC(i, j, k) >= zSponge + 0.5 * (lz(1) - zSponge)) then
                       var%pi(i, j, k) = piStratTFC(i, j, k)
                     else
                       var%pi(i, j, k) = piStratTFC(i, j, k) + cos(0.5 * pi &
@@ -2831,14 +2896,14 @@ module init_module
                       &+ 1))
                   piDEdgeB = 0.5 * (var%pi(i, j, k - 1) + var%pi(i, j - 1, k &
                       &- 1))
-                  piRUEdgeF = 0.5 * (var%pi(i + 1, j, k + 1) + var%pi(i + 1, &
-                      &j + 1, k + 1))
-                  piRDEdgeF = 0.5 * (var%pi(i + 1, j, k - 1) + var%pi(i + 1, &
-                      &j + 1, k - 1))
-                  piRUEdgeB = 0.5 * (var%pi(i + 1, j, k + 1) + var%pi(i + 1, &
-                      &j - 1, k + 1))
-                  piRDEdgeB = 0.5 * (var%pi(i + 1, j, k - 1) + var%pi(i + 1, &
-                      &j - 1, k - 1))
+                  piRUEdgeF = 0.5 * (var%pi(i + 1, j, k + 1) + var%pi(i + 1, j &
+                      &+ 1, k + 1))
+                  piRDEdgeF = 0.5 * (var%pi(i + 1, j, k - 1) + var%pi(i + 1, j &
+                      &+ 1, k - 1))
+                  piRUEdgeB = 0.5 * (var%pi(i + 1, j, k + 1) + var%pi(i + 1, j &
+                      &- 1, k + 1))
+                  piRDEdgeB = 0.5 * (var%pi(i + 1, j, k - 1) + var%pi(i + 1, j &
+                      &- 1, k - 1))
                   piUUEdgeF = 0.5 * (var%pi(i, j, k + 2) + var%pi(i, j + 1, k &
                       &+ 2))
                   piDDEdgeF = 0.5 * (var%pi(i, j, k - 2) + var%pi(i, j + 1, k &
@@ -3129,8 +3194,8 @@ module init_module
         do i = 1, nx
           do j = 1, ny
             ! Find numerical tropopause.
-            k_2_tfc(i, j) = minloc(abs(zTFC(i, j, :) - z_tr_dim / lRef), &
-                &dim = 1) - nbz - 1
+            k_2_tfc(i, j) = minloc(abs(zTFC(i, j, :) - z_tr_dim / lRef), dim &
+                &= 1) - nbz - 1
             z_2_tfc(i, j) = zTFC(i, j, k_2_tfc(i, j)) * lRef
             theta_bar_0_tfc(i, j) = thetaStratTFC(i, j, k_2_tfc(i, j)) &
                 &* thetaRef
@@ -3531,18 +3596,18 @@ module init_module
                         &+ 1, k, 1, 3))
                     if(k == 1) then
                       piGrad = 0.25 * (pEdgeR / rho_int_00 * ((var%pi(i + 1, &
-                          &j, k) - var%pi(i, j, k)) / dx + metEdgeR &
-                          &* (- piUUEdgeR + 4.0 * piUEdgeR - 3.0 * piEdgeR) &
-                          &* 0.5 / dz) + pEdgeL / rho_int_m0 * ((var%pi(i, j, &
-                          &k) - var%pi(i - 1, j, k)) / dx + metEdgeL &
-                          &* (- piUUEdgeL + 4.0 * piUEdgeL - 3.0 * piEdgeL) &
-                          &* 0.5 / dz) + pFEdgeR / rho_int_0p * ((var%pi(i &
-                          &+ 1, j + 1, k) - var%pi(i, j + 1, k)) / dx &
-                          &+ metFEdgeR * (- piFUUEdgeR + 4.0 * piFUEdgeR - 3.0 &
-                          &* piFEdgeR) * 0.5 / dz) + pFEdgeL / rho_int_mp &
-                          &* ((var%pi(i, j + 1, k) - var%pi(i - 1, j + 1, k)) &
-                          &/ dx + metFEdgeL * (- piFUUEdgeL + 4.0 * piFUEdgeL &
-                          &- 3.0 * piFEdgeL) * 0.5 / dz))
+                          &j, k) - var%pi(i, j, k)) / dx + metEdgeR * (- &
+                          &piUUEdgeR + 4.0 * piUEdgeR - 3.0 * piEdgeR) * 0.5 &
+                          &/ dz) + pEdgeL / rho_int_m0 * ((var%pi(i, j, k) &
+                          &- var%pi(i - 1, j, k)) / dx + metEdgeL * (- &
+                          &piUUEdgeL + 4.0 * piUEdgeL - 3.0 * piEdgeL) * 0.5 &
+                          &/ dz) + pFEdgeR / rho_int_0p * ((var%pi(i + 1, j &
+                          &+ 1, k) - var%pi(i, j + 1, k)) / dx + metFEdgeR * &
+                          &(- piFUUEdgeR + 4.0 * piFUEdgeR - 3.0 * piFEdgeR) &
+                          &* 0.5 / dz) + pFEdgeL / rho_int_mp * ((var%pi(i, j &
+                          &+ 1, k) - var%pi(i - 1, j + 1, k)) / dx + metFEdgeL &
+                          &* (- piFUUEdgeL + 4.0 * piFUEdgeL - 3.0 * piFEdgeL) &
+                          &* 0.5 / dz))
                     else if(k == nz) then
                       piGrad = 0.25 * (pEdgeR / rho_int_00 * ((var%pi(i + 1, &
                           &j, k) - var%pi(i, j, k)) / dx + metEdgeR &
@@ -3698,18 +3763,18 @@ module init_module
                         &- 1, k, 2, 3))
                     if(k == 1) then
                       piGrad = 0.25 * (pEdgeF / rho_int_00 * ((var%pi(i, j &
-                          &+ 1, k) - var%pi(i, j, k)) / dy + metEdgeF &
-                          &* (- piUUEdgeF + 4.0 * piUEdgeF - 3.0 * piEdgeF) &
-                          &* 0.5 / dz) + pEdgeB / rho_int_0m * ((var%pi(i, j, &
-                          &k) - var%pi(i, j - 1, k)) / dy + metEdgeB &
-                          &* (- piUUEdgeB + 4.0 * piUEdgeB - 3.0 * piEdgeB) &
-                          &* 0.5 / dz) + pREdgeF / rho_int_p0 * ((var%pi(i &
-                          &+ 1, j + 1, k) - var%pi(i + 1, j, k)) / dy &
-                          &+ metREdgeF * (- piRUUEdgeF + 4.0 * piRUEdgeF - 3.0 &
-                          &* piREdgeF) * 0.5 / dz) + pREdgeB / rho_int_pm &
-                          &* ((var%pi(i + 1, j, k) - var%pi(i + 1, j - 1, k)) &
-                          &/ dy + metREdgeB * (- piRUUEdgeB + 4.0 * piRUEdgeB &
-                          &- 3.0 * piREdgeB) * 0.5 / dz))
+                          &+ 1, k) - var%pi(i, j, k)) / dy + metEdgeF * (- &
+                          &piUUEdgeF + 4.0 * piUEdgeF - 3.0 * piEdgeF) * 0.5 &
+                          &/ dz) + pEdgeB / rho_int_0m * ((var%pi(i, j, k) &
+                          &- var%pi(i, j - 1, k)) / dy + metEdgeB * (- &
+                          &piUUEdgeB + 4.0 * piUEdgeB - 3.0 * piEdgeB) * 0.5 &
+                          &/ dz) + pREdgeF / rho_int_p0 * ((var%pi(i + 1, j &
+                          &+ 1, k) - var%pi(i + 1, j, k)) / dy + metREdgeF * &
+                          &(- piRUUEdgeF + 4.0 * piRUEdgeF - 3.0 * piREdgeF) &
+                          &* 0.5 / dz) + pREdgeB / rho_int_pm * ((var%pi(i &
+                          &+ 1, j, k) - var%pi(i + 1, j - 1, k)) / dy &
+                          &+ metREdgeB * (- piRUUEdgeB + 4.0 * piRUEdgeB - 3.0 &
+                          &* piREdgeB) * 0.5 / dz))
                     else if(k == nz) then
                       piGrad = 0.25 * (pEdgeF / rho_int_00 * ((var%pi(i, j &
                           &+ 1, k) - var%pi(i, j, k)) / dy + metEdgeF &
@@ -3850,17 +3915,17 @@ module init_module
                   &/ dy + 0.5 * met(i, j, k, 2, 3) * (var%pi(i, j, k + 1) &
                   &- var%pi(i, j, k - 1)) / dz) / (kappa * lRef)
 
-              balance2(i, j, k) = thetaRef * Rsp * var%rhop(i, j, k) &
-                  &* 0.5 * (var%pi(i, j, k + 1) - var%pi(i, j, k - 1)) &
-                  &/ (jac(i, j, k) * kappa * dz * lRef) - g * (var%rhop(i, j, &
-                  &k) - thetaStratTFC(i, j, k)) / thetaStratTFC(i, j, k)
+              balance2(i, j, k) = thetaRef * Rsp * var%rhop(i, j, k) * 0.5 &
+                  &* (var%pi(i, j, k + 1) - var%pi(i, j, k - 1)) / (jac(i, j, &
+                  &k) * kappa * dz * lRef) - g * (var%rhop(i, j, k) &
+                  &- thetaStratTFC(i, j, k)) / thetaStratTFC(i, j, k)
 
               balance3(i, j, k) = g * (var%rhop(i, j, k) - thetaStratTFC(i, j, &
                   &k)) / thetaStratTFC(i, j, k)
 
-              balance4(i, j, k) = thetaRef * Rsp * var%rhop(i, j, k) &
-                  &* 0.5 * (var%pi(i, j, k + 1) - var%pi(i, j, k - 1)) &
-                  &/ (jac(i, j, k) * kappa * dz * lRef)
+              balance4(i, j, k) = thetaRef * Rsp * var%rhop(i, j, k) * 0.5 &
+                  &* (var%pi(i, j, k + 1) - var%pi(i, j, k - 1)) / (jac(i, j, &
+                  &k) * kappa * dz * lRef)
             end do
           end do
         end do
@@ -4873,8 +4938,8 @@ module init_module
               envel = 0.0
               if(topography) then
                 envel = 1. / (exp((zTFC(i, j, k) - zCenter - sigma_z) &
-                    &/ (lambdaZ)) + 1) + 1. / (exp(- (zTFC(i, j, k) &
-                    &- zCenter + sigma_z) / (lambdaZ)) + 1) - 1.
+                    &/ (lambdaZ)) + 1) + 1. / (exp(- (zTFC(i, j, k) - zCenter &
+                    &+ sigma_z) / (lambdaZ)) + 1) - 1.
               else
                 envel = 1. / (exp((z(k) - zCenter - sigma_z) / (lambdaZ)) + 1) &
                     &+ 1. / (exp(- (z(k) - zCenter + sigma_z) / (lambdaZ)) &

@@ -76,6 +76,8 @@ module wkb_module
   ! FJApr2023
   integer, dimension(:), allocatable :: iwm_sfc
 
+  real, dimension(:, :, :, :), allocatable :: dpRay
+
   integer :: iRay ! index of ray v. within a
   ! cell
   integer :: ixrv, jyrv, kzrv ! cell indices of ray volume
@@ -1161,8 +1163,8 @@ module wkb_module
               if(sizeX > 1) then
                 var_drtdt(ix, jy, kz) = rhotot * ((var_ut(ix + 1, jy, kz) &
                     &- var_ut(ix - 1, jy, kz)) / (2.0 * dx) + met(ix, jy, kz, &
-                    &1, 3) * (var_ut(ix, jy, kz + 1) - var_ut(ix, jy, kz &
-                    &- 1)) / (2.0 * dz))
+                    &1, 3) * (var_ut(ix, jy, kz + 1) - var_ut(ix, jy, kz - 1)) &
+                    &/ (2.0 * dz))
               end if
 
               if(sizeY > 1) then
@@ -1355,7 +1357,7 @@ module wkb_module
   !---------------------------------------------------------------------
 
   subroutine setup_wkb(ray, ray_var3D, var, diffusioncoeff, waveAmplitudes, &
-      &dPhase)
+      &dPhase, ray_varIce, ray_cloud)
 
     !------------------------------------------------
     ! allocate ray field
@@ -1374,6 +1376,10 @@ module wkb_module
     ! turbulent eddy diffusivity. Needed for the mixing of tracer
     real, dimension(:, :, :), allocatable, intent(out) :: diffusioncoeff
     real, dimension(:, :, :), allocatable, intent(out) :: dPhase
+    type(ice_rayType), dimension(:, :, :), allocatable, intent(out) :: &
+        &ray_varIce
+    type(ice_rayType2), dimension(:, :, :, :, :), allocatable, intent(out) :: &
+        &ray_cloud
 
     type(waveAmpType), dimension(:, :, :), allocatable, intent(out) :: &
         &waveAmplitudes
@@ -1450,6 +1456,18 @@ module wkb_module
     zrmin = zrmin_dim / lRef
     zrmax = zrmax_dim / lRef
 
+    !SDJul2024
+    if(case_wkb == 5) then
+
+      xr0_sp = xr0_dim_sp / lRef
+      yr0_sp = yr0_dim_sp / lRef
+      zr0_sp = zr0_dim_sp / lRef
+
+      sigwpx_sp = sigwpx_dim_sp / lRef
+      sigwpy_sp = sigwpy_dim_sp / lRef
+      sigwpz_sp = sigwpz_dim_sp / lRef
+
+    end if
     !-------------------------------------------
     ! compute maximum number of ray volumes  ...
     !-------------------------------------------
@@ -1611,6 +1629,46 @@ module wkb_module
         &= allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate ddxRay"
 
+    if(include_ice) then
+      ! phase increment
+      allocate(dpRay(nray_wrk, 0:nx + 1, 0:ny + 1, - 1:nz + 2), stat &
+          &= allocstat)
+      if(allocstat /= 0) stop "setup_wkb: could not allocate dpRay"
+
+      if(raytracer) then
+        allocate(ray_varIce(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
+        if(allocstat /= 0) stop "setup_wkb: could not allocate ray_varIce"
+
+        !if ( compute_cloudcover ) then
+        !should be only allocated if cloud cover used/ requires to rewrite subroutines
+        allocate(ray_cloud(0:nx + 1, 0:ny + 1, 0:nz + 1, NSCX, NSCY), stat &
+            &= allocstat)
+        if(allocstat /= 0) stop "setup_wkb: could not allocate ray_cloud"
+
+        allocate(field_mst_cld(sizeX * NSCX * nprocy, ny * NSCY), stat &
+            &= allocstat)
+        allocate(field_out_cld(sizeX * NSCX, sizeY * NSCY), stat = allocstat)
+        !end if
+
+        !has to be placed probably somewhere else
+        if(compute_cloudcover) then
+
+          dxsc = dx / nscx
+          dysc = dy / nscy
+
+          do kz = 1, nz
+            do jy = 1, ny
+              do ix = 1, nx
+                ray_cloud(ix, jy, kz, :, :)%Ni = var%ICE(ix, jy, kz, inN)
+                ray_cloud(ix, jy, kz, :, :)%Qi = var%ICE(ix, jy, kz, inQ)
+                ray_cloud(ix, jy, kz, :, :)%Qv = var%ICE(ix, jy, kz, inQv)
+              end do
+            end do
+          end do
+        end if
+      end if
+    end if
+
     ! fields for data WKB output
     allocate(ray_var3D(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:6), stat = allocstat)
     if(allocstat /= 0) stop "setup_wkb: could not allocate ray_var3D"
@@ -1657,6 +1715,27 @@ module wkb_module
     wnrh_init = sqrt(wnrk_init ** 2 + wnrl_init ** 2)
 
     wnrm_init = 2.0 * pi / wlrz_init * lRef
+
+    if(case_wkb == 5) then
+
+      do iwm = 1, NWM_WP
+
+        if(wlrx_init_sp(iwm) /= 0.0) then
+          wnrk_init_sp(iwm) = 2.0 * pi / wlrx_init_sp(iwm) * lRef
+        else
+          wnrk_init_sp(iwm) = 0.0
+        end if
+
+        if(wlry_init_sp(iwm) /= 0.0) then
+          wnrl_init_sp(iwm) = 2.0 * pi / wlry_init_sp(iwm) * lRef
+        else
+          wnrl_init_sp(iwm) = 0.0
+        end if
+
+        wnrm_init_sp(iwm) = 2.0 * pi / wlrz_init_sp(iwm) * lRef
+      end do
+
+    end if
 
     ! achatzc:
     ! a slight inconsistency below is that the stratification
@@ -1797,8 +1876,14 @@ module wkb_module
           end do
         end do
       end if
-    else
+    else ! case_wkb /= 3
       if(topography) then
+
+        if(case_wkb == 5) then
+          print *, 'case_wkb == 5 + topography NOT implemented yet in setup_wkb'
+          stop
+        end if
+
         do kz = 1, sizeZ
           do jy = 1, ny
             do ix = 1, nx
@@ -1886,23 +1971,145 @@ module wkb_module
           ! wave-action density
           do jy = 1, ny
             do ix = 1, nx
-              ! intrinsic frequency
-              omi_notop(ix, jy, kz) = branchr * sqrt((NN_nd * wnrh_init ** 2 &
-                  &+ f_cor_nd ** 2 * wnrm_init ** 2) / (wnrh_init ** 2 &
-                  &+ wnrm_init ** 2))
 
-              fld_amp(ix, jy, kz, :) = (amp_wkb / wnrm_init) ** 2 * (wnrh_init &
-                  &** 2 + wnrm_init ** 2) / (2.0 * wnrh_init ** 2) &
-                  &* omi_notop(ix, jy, kz) * rhoStrat(kz)
+              if(case_wkb == 5) then
 
-              if(case_wkb == 1) then
-                fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
-                    &((z(kz) - zr0) / sigwpz) ** 2)
-                if(compare_raytracer) then
+                do iwm = 1, NWM_WP
+
+                  branchr = branchr_sp(iwm)
+                  amp_wkb = amp_wkb_sp(iwm)
+
+                  wnrk_init = wnrk_init_sp(iwm)
+                  wnrl_init = wnrl_init_sp(iwm)
+                  wnrm_init = wnrm_init_sp(iwm)
+
+                  wnrh_init = sqrt(wnrk_init ** 2.0 + wnrl_init ** 2.0)
+
+                  sigwpz = sigwpz_sp(iwm)
+                  sigwpx = sigwpx_sp(iwm)
+                  sigwpy = sigwpy_sp(iwm)
+
+                  zr0 = zr0_sp(iwm)
+                  xr0 = xr0_sp(iwm)
+                  yr0 = yr0_sp(iwm)
+
+                  ! intrinsic frequency
+                  omi_notop(ix, jy, kz) = branchr * sqrt((NN_nd * wnrh_init &
+                      &** 2 + f_cor_nd ** 2 * wnrm_init ** 2) / (wnrh_init &
+                      &** 2 + wnrm_init ** 2))
+
+                  fld_amp(ix, jy, kz, iwm) = (amp_wkb / wnrm_init) ** 2 &
+                      &* (wnrh_init ** 2 + wnrm_init ** 2) / (2.0 * wnrh_init &
+                      &** 2) * omi_notop(ix, jy, kz) * rhoStrat(kz)
+
+                  if(abs(z(kz) - zr0) < sigwpz) then
+                    fld_amp(ix, jy, kz, iwm) = fld_amp(ix, jy, kz, iwm) * 0.5 &
+                        &* (1.0 + cos(pi * (z(kz) - zr0) / sigwpz))
+
+                    if(sigwpx > 0.0) then
+                      if(abs(x(ix + ix0) - xr0) < sigwpx) then
+                        fld_amp(ix, jy, kz, iwm) = fld_amp(ix, jy, kz, iwm) &
+                            &* 0.5 * (1.0 + cos(pi * (x(ix + ix0) - xr0) &
+                            &/ sigwpx))
+                      else
+                        fld_amp(ix, jy, kz, iwm) = 0.0
+                      end if
+                    end if
+
+                    if(sigwpy > 0.0) then
+                      if(abs(y(jy + jy0) - yr0) < sigwpy) then
+                        fld_amp(ix, jy, kz, iwm) = fld_amp(ix, jy, kz, iwm) &
+                            &* 0.5 * (1.0 + cos(pi * (y(jy + jy0) - yr0) &
+                            &/ sigwpy))
+                      else
+                        fld_amp(ix, jy, kz, iwm) = 0.0
+                      end if
+                    end if
+
+                  else
+                    fld_amp(ix, jy, kz, iwm) = 0.0
+                  end if
+
+                end do ! iwm
+
+              else ! case_wkb /= 5
+                ! intrinsic frequency
+                omi_notop(ix, jy, kz) = branchr * sqrt((NN_nd * wnrh_init ** 2 &
+                    &+ f_cor_nd ** 2 * wnrm_init ** 2) / (wnrh_init ** 2 &
+                    &+ wnrm_init ** 2))
+
+                fld_amp(ix, jy, kz, :) = (amp_wkb / wnrm_init) ** 2 &
+                    &* (wnrh_init ** 2 + wnrm_init ** 2) / (2.0 * wnrh_init &
+                    &** 2) * omi_notop(ix, jy, kz) * rhoStrat(kz)
+
+                if(case_wkb == 1) then
+                  fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
+                      &((z(kz) - zr0) / sigwpz) ** 2)
+                  if(compare_raytracer) then
+                    if(sigwpx > 0.0) then
+                      if(abs(x(ix + ix0) - xr0) < sigwpx) then
+                        fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
+                            &* (1.0 + cos(pi * (x(ix + ix0) - xr0) / sigwpx))
+                      else
+                        fld_amp(ix, jy, kz, :) = 0.0
+                      end if
+                    end if
+
+                    if(sigwpy > 0.0) then
+                      if(abs(y(jy + jy0) - yr0) < sigwpy) then
+                        fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
+                            &* (1.0 + cos(pi * (y(jy + jy0) - yr0) / sigwpy))
+                      else
+                        fld_amp(ix, jy, kz, :) = 0.0
+                      end if
+                    end if
+                  else
+                    if(sigwpx_dim > 0.0) then
+                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
+                          &((x(ix + ix0) - xr0) / sigwpx) ** 2)
+                    end if
+
+                    if(sigwpy_dim > 0.0) then
+                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
+                          &((y(jy + jy0) - yr0) / sigwpy) ** 2)
+                    end if
+                  end if
+                elseif(case_wkb == 2) then
+
+                  if(abs(z(kz) - zr0) < sigwpz) then
+                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
+                        &* (1.0 + cos(pi * (z(kz) - zr0) / sigwpz))
+
+                    if(sigwpx > 0.0) then
+                      if(abs(x(ix + ix0) - xr0) < sigwpx) then
+                        fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
+                            &* (1.0 + cos(pi * (x(ix + ix0) - xr0) / sigwpx))
+                      else
+                        fld_amp(ix, jy, kz, :) = 0.0
+                      end if
+                    end if
+
+                    if(sigwpy > 0.0) then
+                      if(abs(y(jy + jy0) - yr0) < sigwpy) then
+                        fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
+                            &* (1.0 + cos(pi * (y(jy + jy0) - yr0) / sigwpy))
+                      else
+                        fld_amp(ix, jy, kz, :) = 0.0
+                      end if
+                    end if
+
+                  else
+                    fld_amp(ix, jy, kz, :) = 0.0
+                  end if
+
+                elseif(case_wkb == 4) then ! to match the wavepacket case gaussian
+                  fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
+                      &(z(kz) - zr0) ** 2. / sigwpz ** 2.)
+
                   if(sigwpx > 0.0) then
                     if(abs(x(ix + ix0) - xr0) < sigwpx) then
-                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
-                          &* (1.0 + cos(pi * (x(ix + ix0) - xr0) / sigwpx))
+                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
+                          &* (x(ix + ix0) - xr0) / (2. * sigwpx)) ** 2.
                     else
                       fld_amp(ix, jy, kz, :) = 0.0
                     end if
@@ -1910,73 +2117,15 @@ module wkb_module
 
                   if(sigwpy > 0.0) then
                     if(abs(y(jy + jy0) - yr0) < sigwpy) then
-                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
-                          &* (1.0 + cos(pi * (y(jy + jy0) - yr0) / sigwpy))
+                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
+                          &* (y(jy + jy0) - yr0) / (2. * sigwpy)) ** 2.
                     else
                       fld_amp(ix, jy, kz, :) = 0.0
                     end if
                   end if
-                else
-                  if(sigwpx_dim > 0.0) then
-                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
-                        &((x(ix + ix0) - xr0) / sigwpx) ** 2)
-                  end if
+                end if ! case_wkb
 
-                  if(sigwpy_dim > 0.0) then
-                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- &
-                        &((y(jy + jy0) - yr0) / sigwpy) ** 2)
-                  end if
-                end if
-              elseif(case_wkb == 2) then
-                if(abs(z(kz) - zr0) < sigwpz) then
-                  fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 * (1.0 &
-                      &+ cos(pi * (z(kz) - zr0) / sigwpz))
-
-                  if(sigwpx > 0.0) then
-                    if(abs(x(ix + ix0) - xr0) < sigwpx) then
-                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
-                          &* (1.0 + cos(pi * (x(ix + ix0) - xr0) / sigwpx))
-                    else
-                      fld_amp(ix, jy, kz, :) = 0.0
-                    end if
-                  end if
-
-                  if(sigwpy > 0.0) then
-                    if(abs(y(jy + jy0) - yr0) < sigwpy) then
-                      fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * 0.5 &
-                          &* (1.0 + cos(pi * (y(jy + jy0) - yr0) / sigwpy))
-                    else
-                      fld_amp(ix, jy, kz, :) = 0.0
-                    end if
-                  end if
-
-                else
-                  fld_amp(ix, jy, kz, :) = 0.0
-                end if
-
-              elseif(case_wkb == 4) then ! to match the wavepacket case gaussian
-                fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * exp(- (z(kz) &
-                    &- zr0) ** 2. / sigwpz ** 2.)
-
-                if(sigwpx > 0.0) then
-                  if(abs(x(ix + ix0) - xr0) < sigwpx) then
-                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
-                        &* (x(ix + ix0) - xr0) / (2. * sigwpx)) ** 2.
-                  else
-                    fld_amp(ix, jy, kz, :) = 0.0
-                  end if
-                end if
-
-                if(sigwpy > 0.0) then
-                  if(abs(y(jy + jy0) - yr0) < sigwpy) then
-                    fld_amp(ix, jy, kz, :) = fld_amp(ix, jy, kz, :) * cos(pi &
-                        &* (y(jy + jy0) - yr0) / (2. * sigwpy)) ** 2.
-                  else
-                    fld_amp(ix, jy, kz, :) = 0.0
-                  end if
-                end if
-              end if ! case_wkb
-
+              end if !case_wkb /=5
             end do ! ix
           end do ! jy
         end do ! kz
@@ -2180,6 +2329,10 @@ module wkb_module
                             wnk_0 = wnk_sfc(ix, jy, iwm)
                             wnl_0 = wnl_sfc(ix, jy, iwm)
                             wnm_0 = wnm_sfc(ix, jy, iwm)
+                          elseif(case_wkb == 5) then
+                            wnk_0 = wnrk_init_sp(iwm)
+                            wnl_0 = wnrl_init_sp(iwm)
+                            wnm_0 = wnrm_init_sp(iwm)
                           else
                             wnk_0 = wnrk_init
                             wnl_0 = wnrl_init
@@ -2485,10 +2638,10 @@ module wkb_module
         zd = zTildeTFC(0, 0, kzd)
         zu = zTildeTFC(0, 0, kzu)
         strd = (bvsStratTFC(0, 0, kzd + 1) - bvsStratTFC(0, 0, kzd)) / (2.0 &
-            & * jac(0, 0, kzd) * jac(0, 0, kzd + 1) / (jac(0, 0, kzd) + jac(0, &
+            &* jac(0, 0, kzd) * jac(0, 0, kzd + 1) / (jac(0, 0, kzd) + jac(0, &
             &0, kzd + 1))) / dz
         stru = (bvsStratTFC(0, 0, kzu + 1) - bvsStratTFC(0, 0, kzu)) / (2.0 &
-            & * jac(0, 0, kzu) * jac(0, 0, kzu + 1) / (jac(0, 0, kzu) + jac(0, &
+            &* jac(0, 0, kzu) * jac(0, 0, kzu + 1) / (jac(0, 0, kzu) + jac(0, &
             &0, kzu + 1))) / dz
       else
         kzd = max(- 1, floor((zlc - lz(0)) / dz))
@@ -3832,57 +3985,57 @@ module wkb_module
 
         ! Assign the values.
 
-        flwlbd = (var%u(ixl, jyb + 1, kzlbd) - var%u(ixl, jyb, kzlbd)) &
-            &/ dy + 0.25 * (met(ixl, jyb, kzlbd, 2, 3) + met(ixl + 1, jyb, &
-            &kzlbd, 2, 3) + met(ixl, jyb + 1, kzlbd, 2, 3) + met(ixl + 1, jyb &
-            &+ 1, kzlbd, 2, 3)) * 0.25 * (var%u(ixl, jyb, kzlbd + 1) &
-            &+ var%u(ixl, jyb + 1, kzlbd + 1) - var%u(ixl, jyb, kzlbd - 1) &
-            &- var%u(ixl, jyb + 1, kzlbd - 1)) / dz
-        flwlbu = (var%u(ixl, jyb + 1, kzlbu) - var%u(ixl, jyb, kzlbu)) &
-            &/ dy + 0.25 * (met(ixl, jyb, kzlbu, 2, 3) + met(ixl + 1, jyb, &
-            &kzlbu, 2, 3) + met(ixl, jyb + 1, kzlbu, 2, 3) + met(ixl + 1, jyb &
-            &+ 1, kzlbu, 2, 3)) * 0.25 * (var%u(ixl, jyb, kzlbu + 1) &
-            &+ var%u(ixl, jyb + 1, kzlbu + 1) - var%u(ixl, jyb, kzlbu - 1) &
-            &- var%u(ixl, jyb + 1, kzlbu - 1)) / dz
+        flwlbd = (var%u(ixl, jyb + 1, kzlbd) - var%u(ixl, jyb, kzlbd)) / dy &
+            &+ 0.25 * (met(ixl, jyb, kzlbd, 2, 3) + met(ixl + 1, jyb, kzlbd, &
+            &2, 3) + met(ixl, jyb + 1, kzlbd, 2, 3) + met(ixl + 1, jyb + 1, &
+            &kzlbd, 2, 3)) * 0.25 * (var%u(ixl, jyb, kzlbd + 1) + var%u(ixl, &
+            &jyb + 1, kzlbd + 1) - var%u(ixl, jyb, kzlbd - 1) - var%u(ixl, jyb &
+            &+ 1, kzlbd - 1)) / dz
+        flwlbu = (var%u(ixl, jyb + 1, kzlbu) - var%u(ixl, jyb, kzlbu)) / dy &
+            &+ 0.25 * (met(ixl, jyb, kzlbu, 2, 3) + met(ixl + 1, jyb, kzlbu, &
+            &2, 3) + met(ixl, jyb + 1, kzlbu, 2, 3) + met(ixl + 1, jyb + 1, &
+            &kzlbu, 2, 3)) * 0.25 * (var%u(ixl, jyb, kzlbu + 1) + var%u(ixl, &
+            &jyb + 1, kzlbu + 1) - var%u(ixl, jyb, kzlbu - 1) - var%u(ixl, jyb &
+            &+ 1, kzlbu - 1)) / dz
 
-        flwlfd = (var%u(ixl, jyf + 1, kzlfd) - var%u(ixl, jyf, kzlfd)) &
-            &/ dy + 0.25 * (met(ixl, jyf, kzlfd, 2, 3) + met(ixl + 1, jyf, &
-            &kzlfd, 2, 3) + met(ixl, jyf + 1, kzlfd, 2, 3) + met(ixl + 1, jyf &
-            &+ 1, kzlfd, 2, 3)) * 0.25 * (var%u(ixl, jyf, kzlfd + 1) &
-            &+ var%u(ixl, jyf + 1, kzlfd + 1) - var%u(ixl, jyf, kzlfd - 1) &
-            &- var%u(ixl, jyf + 1, kzlfd - 1)) / dz
-        flwlfu = (var%u(ixl, jyf + 1, kzlfu) - var%u(ixl, jyf, kzlfu)) &
-            &/ dy + 0.25 * (met(ixl, jyf, kzlfu, 2, 3) + met(ixl + 1, jyf, &
-            &kzlfu, 2, 3) + met(ixl, jyf + 1, kzlfu, 2, 3) + met(ixl + 1, jyf &
-            &+ 1, kzlfu, 2, 3)) * 0.25 * (var%u(ixl, jyf, kzlfu + 1) &
-            &+ var%u(ixl, jyf + 1, kzlfu + 1) - var%u(ixl, jyf, kzlfu - 1) &
-            &- var%u(ixl, jyf + 1, kzlfu - 1)) / dz
+        flwlfd = (var%u(ixl, jyf + 1, kzlfd) - var%u(ixl, jyf, kzlfd)) / dy &
+            &+ 0.25 * (met(ixl, jyf, kzlfd, 2, 3) + met(ixl + 1, jyf, kzlfd, &
+            &2, 3) + met(ixl, jyf + 1, kzlfd, 2, 3) + met(ixl + 1, jyf + 1, &
+            &kzlfd, 2, 3)) * 0.25 * (var%u(ixl, jyf, kzlfd + 1) + var%u(ixl, &
+            &jyf + 1, kzlfd + 1) - var%u(ixl, jyf, kzlfd - 1) - var%u(ixl, jyf &
+            &+ 1, kzlfd - 1)) / dz
+        flwlfu = (var%u(ixl, jyf + 1, kzlfu) - var%u(ixl, jyf, kzlfu)) / dy &
+            &+ 0.25 * (met(ixl, jyf, kzlfu, 2, 3) + met(ixl + 1, jyf, kzlfu, &
+            &2, 3) + met(ixl, jyf + 1, kzlfu, 2, 3) + met(ixl + 1, jyf + 1, &
+            &kzlfu, 2, 3)) * 0.25 * (var%u(ixl, jyf, kzlfu + 1) + var%u(ixl, &
+            &jyf + 1, kzlfu + 1) - var%u(ixl, jyf, kzlfu - 1) - var%u(ixl, jyf &
+            &+ 1, kzlfu - 1)) / dz
 
-        flwrbd = (var%u(ixr, jyb + 1, kzrbd) - var%u(ixr, jyb, kzrbd)) &
-            &/ dy + 0.25 * (met(ixr, jyb, kzrbd, 2, 3) + met(ixr + 1, jyb, &
-            &kzrbd, 2, 3) + met(ixr, jyb + 1, kzrbd, 2, 3) + met(ixr + 1, jyb &
-            &+ 1, kzrbd, 2, 3)) * 0.25 * (var%u(ixr, jyb, kzrbd + 1) &
-            &+ var%u(ixr, jyb + 1, kzrbd + 1) - var%u(ixr, jyb, kzrbd - 1) &
-            &- var%u(ixr, jyb + 1, kzrbd - 1)) / dz
-        flwrbu = (var%u(ixr, jyb + 1, kzrbu) - var%u(ixr, jyb, kzrbu)) &
-            &/ dy + 0.25 * (met(ixr, jyb, kzrbu, 2, 3) + met(ixr + 1, jyb, &
-            &kzrbu, 2, 3) + met(ixr, jyb + 1, kzrbu, 2, 3) + met(ixr + 1, jyb &
-            &+ 1, kzrbu, 2, 3)) * 0.25 * (var%u(ixr, jyb, kzrbu + 1) &
-            &+ var%u(ixr, jyb + 1, kzrbu + 1) - var%u(ixr, jyb, kzrbu - 1) &
-            &- var%u(ixr, jyb + 1, kzrbu - 1)) / dz
+        flwrbd = (var%u(ixr, jyb + 1, kzrbd) - var%u(ixr, jyb, kzrbd)) / dy &
+            &+ 0.25 * (met(ixr, jyb, kzrbd, 2, 3) + met(ixr + 1, jyb, kzrbd, &
+            &2, 3) + met(ixr, jyb + 1, kzrbd, 2, 3) + met(ixr + 1, jyb + 1, &
+            &kzrbd, 2, 3)) * 0.25 * (var%u(ixr, jyb, kzrbd + 1) + var%u(ixr, &
+            &jyb + 1, kzrbd + 1) - var%u(ixr, jyb, kzrbd - 1) - var%u(ixr, jyb &
+            &+ 1, kzrbd - 1)) / dz
+        flwrbu = (var%u(ixr, jyb + 1, kzrbu) - var%u(ixr, jyb, kzrbu)) / dy &
+            &+ 0.25 * (met(ixr, jyb, kzrbu, 2, 3) + met(ixr + 1, jyb, kzrbu, &
+            &2, 3) + met(ixr, jyb + 1, kzrbu, 2, 3) + met(ixr + 1, jyb + 1, &
+            &kzrbu, 2, 3)) * 0.25 * (var%u(ixr, jyb, kzrbu + 1) + var%u(ixr, &
+            &jyb + 1, kzrbu + 1) - var%u(ixr, jyb, kzrbu - 1) - var%u(ixr, jyb &
+            &+ 1, kzrbu - 1)) / dz
 
-        flwrfd = (var%u(ixr, jyf + 1, kzrfd) - var%u(ixr, jyf, kzrfd)) &
-            &/ dy + 0.25 * (met(ixr, jyf, kzrfd, 2, 3) + met(ixr + 1, jyf, &
-            &kzrfd, 2, 3) + met(ixr, jyf + 1, kzrfd, 2, 3) + met(ixr + 1, jyf &
-            &+ 1, kzrfd, 2, 3)) * 0.25 * (var%u(ixr, jyf, kzrfd + 1) &
-            &+ var%u(ixr, jyf + 1, kzrfd + 1) - var%u(ixr, jyf, kzrfd - 1) &
-            &- var%u(ixr, jyf + 1, kzrfd - 1)) / dz
-        flwrfu = (var%u(ixr, jyf + 1, kzrfu) - var%u(ixr, jyf, kzrfu)) &
-            &/ dy + 0.25 * (met(ixr, jyf, kzrfu, 2, 3) + met(ixr + 1, jyf, &
-            &kzrfu, 2, 3) + met(ixr, jyf + 1, kzrfu, 2, 3) + met(ixr + 1, jyf &
-            &+ 1, kzrfu, 2, 3)) * 0.25 * (var%u(ixr, jyf, kzrfu + 1) &
-            &+ var%u(ixr, jyf + 1, kzrfu + 1) - var%u(ixr, jyf, kzrfu - 1) &
-            &- var%u(ixr, jyf + 1, kzrfu - 1)) / dz
+        flwrfd = (var%u(ixr, jyf + 1, kzrfd) - var%u(ixr, jyf, kzrfd)) / dy &
+            &+ 0.25 * (met(ixr, jyf, kzrfd, 2, 3) + met(ixr + 1, jyf, kzrfd, &
+            &2, 3) + met(ixr, jyf + 1, kzrfd, 2, 3) + met(ixr + 1, jyf + 1, &
+            &kzrfd, 2, 3)) * 0.25 * (var%u(ixr, jyf, kzrfd + 1) + var%u(ixr, &
+            &jyf + 1, kzrfd + 1) - var%u(ixr, jyf, kzrfd - 1) - var%u(ixr, jyf &
+            &+ 1, kzrfd - 1)) / dz
+        flwrfu = (var%u(ixr, jyf + 1, kzrfu) - var%u(ixr, jyf, kzrfu)) / dy &
+            &+ 0.25 * (met(ixr, jyf, kzrfu, 2, 3) + met(ixr + 1, jyf, kzrfu, &
+            &2, 3) + met(ixr, jyf + 1, kzrfu, 2, 3) + met(ixr + 1, jyf + 1, &
+            &kzrfu, 2, 3)) * 0.25 * (var%u(ixr, jyf, kzrfu + 1) + var%u(ixr, &
+            &jyf + 1, kzrfu + 1) - var%u(ixr, jyf, kzrfu - 1) - var%u(ixr, jyf &
+            &+ 1, kzrfu - 1)) / dz
       else
         if(sizeY == 1) then
           !no derivative if there is no y dependence
@@ -4678,38 +4831,38 @@ module wkb_module
 
         flwlbd = (var%v(ixl, jyb, kzlbd) - var%v(ixl, jyb - 1, kzlbd)) / dy &
             &+ met(ixl, jyb, kzlbd, 2, 3) * 0.25 * (var%v(ixl, jyb, kzlbd + 1) &
-            &+ var%v(ixl, jyb - 1, kzlbd + 1)- var%v(ixl, jyb, kzlbd - 1) &
+            &+ var%v(ixl, jyb - 1, kzlbd + 1) - var%v(ixl, jyb, kzlbd - 1) &
             &- var%v(ixl, jyb - 1, kzlbd - 1)) / dz
         flwlbu = (var%v(ixl, jyb, kzlbu) - var%v(ixl, jyb - 1, kzlbu)) / dy &
             &+ met(ixl, jyb, kzlbu, 2, 3) * 0.25 * (var%v(ixl, jyb, kzlbu + 1) &
-            &+ var%v(ixl, jyb - 1, kzlbu + 1)- var%v(ixl, jyb, kzlbu - 1) &
+            &+ var%v(ixl, jyb - 1, kzlbu + 1) - var%v(ixl, jyb, kzlbu - 1) &
             &- var%v(ixl, jyb - 1, kzlbu - 1)) / dz
 
         flwlfd = (var%v(ixl, jyf, kzlfd) - var%v(ixl, jyf - 1, kzlfd)) / dy &
             &+ met(ixl, jyf, kzlfd, 2, 3) * 0.25 * (var%v(ixl, jyf, kzlfd + 1) &
-            &+ var%v(ixl, jyf - 1, kzlfd + 1)- var%v(ixl, jyf, kzlfd - 1) &
+            &+ var%v(ixl, jyf - 1, kzlfd + 1) - var%v(ixl, jyf, kzlfd - 1) &
             &- var%v(ixl, jyf - 1, kzlfd - 1)) / dz
         flwlfu = (var%v(ixl, jyf, kzlfu) - var%v(ixl, jyf - 1, kzlfu)) / dy &
             &+ met(ixl, jyf, kzlfu, 2, 3) * 0.25 * (var%v(ixl, jyf, kzlfu + 1) &
-            &+ var%v(ixl, jyf - 1, kzlfu + 1)- var%v(ixl, jyf, kzlfu - 1) &
+            &+ var%v(ixl, jyf - 1, kzlfu + 1) - var%v(ixl, jyf, kzlfu - 1) &
             &- var%v(ixl, jyf - 1, kzlfu - 1)) / dz
 
         flwrbd = (var%v(ixr, jyb, kzrbd) - var%v(ixr, jyb - 1, kzrbd)) / dy &
             &+ met(ixr, jyb, kzrbd, 2, 3) * 0.25 * (var%v(ixr, jyb, kzrbd + 1) &
-            &+ var%v(ixr, jyb - 1, kzrbd + 1)- var%v(ixr, jyb, kzrbd - 1) &
+            &+ var%v(ixr, jyb - 1, kzrbd + 1) - var%v(ixr, jyb, kzrbd - 1) &
             &- var%v(ixr, jyb - 1, kzrbd - 1)) / dz
         flwrbu = (var%v(ixr, jyb, kzrbu) - var%v(ixr, jyb - 1, kzrbu)) / dy &
             &+ met(ixr, jyb, kzrbu, 2, 3) * 0.25 * (var%v(ixr, jyb, kzrbu + 1) &
-            &+ var%v(ixr, jyb - 1, kzrbu + 1)- var%v(ixr, jyb, kzrbu - 1) &
+            &+ var%v(ixr, jyb - 1, kzrbu + 1) - var%v(ixr, jyb, kzrbu - 1) &
             &- var%v(ixr, jyb - 1, kzrbu - 1)) / dz
 
         flwrfd = (var%v(ixr, jyf, kzrfd) - var%v(ixr, jyf - 1, kzrfd)) / dy &
             &+ met(ixr, jyf, kzrfd, 2, 3) * 0.25 * (var%v(ixr, jyf, kzrfd + 1) &
-            &+ var%v(ixr, jyf - 1, kzrfd + 1)- var%v(ixr, jyf, kzrfd - 1) &
+            &+ var%v(ixr, jyf - 1, kzrfd + 1) - var%v(ixr, jyf, kzrfd - 1) &
             &- var%v(ixr, jyf - 1, kzrfd - 1)) / dz
         flwrfu = (var%v(ixr, jyf, kzrfu) - var%v(ixr, jyf - 1, kzrfu)) / dy &
             &+ met(ixr, jyf, kzrfu, 2, 3) * 0.25 * (var%v(ixr, jyf, kzrfu + 1) &
-            &+ var%v(ixr, jyf - 1, kzrfu + 1)- var%v(ixr, jyf, kzrfu - 1) &
+            &+ var%v(ixr, jyf - 1, kzrfu + 1) - var%v(ixr, jyf, kzrfu - 1) &
             &- var%v(ixr, jyf - 1, kzrfu - 1)) / dz
       else
         if(sizeY == 1) then
@@ -5309,7 +5462,7 @@ module wkb_module
     real :: xr, yr, zr
     real :: dxr, dyr, dzr
     real :: axk, ayl, azm
-
+    real :: dphi, deltaPhi
     integer :: nrvtt0, nrvtt1, nrvloc
 
     integer :: jRay
@@ -5366,6 +5519,14 @@ module wkb_module
 
                 ray(iRay, ix, jy, kz)%x = xr - 0.25 * dxr
                 ray(nrlc, ix, jy, kz)%x = xr + 0.25 * dxr
+
+                !SDJul2024
+                if(update_phase) then
+                  dphi = ray(iRay, ix, jy, kz)%dphi
+                  deltaPhi = 0.25 * dxr * ray(iRay, ix, jy, kz)%k
+                  ray(iRay, ix, jy, kz)%dphi = dphi - deltaPhi
+                  ray(nrlc, ix, jy, kz)%dphi = dphi + deltaPhi
+                end if
               end if
             end do
 
@@ -5407,6 +5568,14 @@ module wkb_module
 
                 ray(iRay, ix, jy, kz)%y = yr - 0.25 * dyr
                 ray(nrlc, ix, jy, kz)%y = yr + 0.25 * dyr
+
+                !SDJul2024
+                if(update_phase) then
+                  dphi = ray(iRay, ix, jy, kz)%dphi
+                  deltaPhi = 0.25 * dyr * ray(iRay, ix, jy, kz)%l
+                  ray(iRay, ix, jy, kz)%dphi = dphi - deltaPhi
+                  ray(nrlc, ix, jy, kz)%dphi = dphi + deltaPhi
+                end if
               end if
             end do
 
@@ -5450,12 +5619,25 @@ module wkb_module
               ray(iRay, ix, jy, kz)%z = zr + 0.5 * (1 / factor - 1) * dzr
               ray(iRay, ix, jy, kz)%dzray = dzr / factor
               ray(iRay, ix, jy, kz)%area_zm = azm / factor
+
+              if(update_phase) then
+                dphi = ray(iRay, ix, jy, kz)%dphi - ray(iRay, ix, jy, kz)%m * zr
+                deltaPhi = ray(iRay, ix, jy, kz)%z * ray(iRay, ix, jy, kz)%m
+                ray(iRay, ix, jy, kz)%dphi = dphi + deltaPhi
+              end if
+
               do jRay = nrlc + 1, nrlc + factor - 1
                 ray(jRay, ix, jy, kz) = ray(iRay, ix, jy, kz)
                 ray(jRay, ix, jy, kz)%z = ray(jRay, ix, jy, kz)%z + (jRay &
                     &- nrlc) * dzr / factor
+
+                if(update_phase) then
+                  deltaPhi = ray(jRay, ix, jy, kz)%z * ray(jRay, ix, jy, kz)%m
+                  ray(jRay, ix, jy, kz)%dphi = dphi + deltaPhi
+                end if
+
               end do
-            nrlc = nrlc + factor - 1
+              nrlc = nrlc + factor - 1
             end if
           end do
 
@@ -7189,6 +7371,10 @@ module wkb_module
               stop 'wrong cons_merge in merge_rayvol'
             end if
 
+            !SDJul2024
+            !set phase to zero after merging
+            if(update_phase) ray(iRay, ix, jy, kz)%dphi = 0
+
             !testb
             !if (sizeX > 1) then
             !   fcpspx = ray(iRay,ix,jy,kz)%area_xk
@@ -7465,9 +7651,9 @@ module wkb_module
                 yr = ray(iRay, ix, jy, kz)%y
                 zr = ray(iRay, ix, jy, kz)%z
                 alphaSponge = 2.0 * interpolate_sponge(xr, yr, zr)
-                ray(iRay, ix, jy, kz)%dens = 1.0 / (1.0 + alphaSponge &
-                      &/ cgirz * (ray(iRay, ix, jy, kz)%z - ray(iRay, ix, jy, &
-                      &kz0)%z)) * cgirz0 * ray(iRay, ix, jy, kz0)%dens / cgirz
+                ray(iRay, ix, jy, kz)%dens = 1.0 / (1.0 + alphaSponge / cgirz &
+                    &* (ray(iRay, ix, jy, kz)%z - ray(iRay, ix, jy, kz0)%z)) &
+                    &* cgirz0 * ray(iRay, ix, jy, kz0)%dens / cgirz
               else
                 ray(iRay, ix, jy, kz)%dens = cgirz0 * ray(iRay, ix, jy, &
                     &kz0)%dens / cgirz
@@ -7574,6 +7760,14 @@ module wkb_module
       dxRay = 0.0
       dkRay = 0.0
       ddxRay = 0.0
+    end if
+
+    !SD
+    ! init RK phase tendency
+    if(include_ice) then
+      if(RKstage == 1) then
+        dpRay = 0.0
+      end if
     end if
 
     cgx_max = 0.0
@@ -7778,8 +7972,7 @@ module wkb_module
             cgz_max = max(cgz_max, abs(cgrz))
 
             if(topography) then
-              cgz_max_tfc(ix, jy, kz) = max(cgz_max_tfc(ix, jy, &
-                  &kz), abs(cgrz))
+              cgz_max_tfc(ix, jy, kz) = max(cgz_max_tfc(ix, jy, kz), abs(cgrz))
             end if
 
             !-------------------------------
@@ -7901,6 +8094,23 @@ module wkb_module
                   &/ ray(iRay, ix, jy, kz)%dzray
             end if
 
+            ! SD
+            !-----------------------------------
+            ! update phase
+            !-----------------------------------
+
+            if(include_ice .and. update_phase) then
+
+              call meanflow(xr, yr, zr, var, 1, uxr)
+              call meanflow(xr, yr, zr, var, 2, vyr)
+
+              !NB intrinsic group vel. orthogonal to wavenumber vector
+              dpRay(iRay, ix, jy, kz) = - dt * (omir + 2. * (uxr * wnrk + vyr &
+                  &* wnrl)) + alphaRK(rkStage) * dpRay(iRay, ix, jy, kz)
+              ray(iRay, ix, jy, kz)%dphi = ray(iRay, ix, jy, kz)%dphi &
+                  &+ betaRK(rkStage) * dpRay(iRay, ix, jy, kz)
+
+            end if
             !-----------------------------------
             ! update of the intrinsic frequency
             !-----------------------------------
@@ -10992,8 +11202,8 @@ module wkb_module
                 ixrv = nint((xr - lx(0)) / dx + 0.5) - ix0
                 jyrv = nint((yr - ly(0)) / dy + 0.5) - jy0
                 if(zr - 0.5 * dzr < zTildeTFC(ixrv, jyrv, 0)) then
-                  ray(iRay, ix, jy, kz)%z = 2.0 * zTildeTFC(ixrv, &
-                      &jyrv, 0) - zr + dzr
+                  ray(iRay, ix, jy, kz)%z = 2.0 * zTildeTFC(ixrv, jyrv, 0) &
+                      &- zr + dzr
                   ray(iRay, ix, jy, kz)%m = - wnrm
                 end if
               else
@@ -11723,45 +11933,18 @@ module wkb_module
 
   ! ----------------------------------------------------------------------
 
-  subroutine calc_ice(ray, var)
-
-    ! supplemements cell-centered volume forces by WKB force
-    ! as well as the heating by entropy-flux convergence
+  subroutine calc_ice(ray, var, ray_varIce, ray_cloud)
 
     implicit none
 
     ! in/out variables
-    type(var_type), intent(in) :: var
-
-    !    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 3), intent(inout) :: force
-
-    !    real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, 1:6), intent(inout) :: &
-    !        ray_var3D
-
+    type(var_type), intent(inout) :: var
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1), &
         &intent(in) :: ray
-
-    ! local variables
-    real :: F
-
-    real, allocatable :: var_uu(:, :, :)
-    real, allocatable :: var_uv(:, :, :)
-    real, allocatable :: var_uw(:, :, :)
-
-    real, allocatable :: var_vv(:, :, :)
-    real, allocatable :: var_vw(:, :, :)
-
-    real, allocatable :: var_ETx(:, :, :)
-    real, allocatable :: var_ETy(:, :, :)
-
-    real, allocatable :: var_ut(:, :, :)
-    real, allocatable :: var_vt(:, :, :)
-
-    real, allocatable :: var_E(:, :, :)
-
-    real, allocatable :: var_drudt(:, :, :)
-    real, allocatable :: var_drvdt(:, :, :)
-    real, allocatable :: var_drtdt(:, :, :)
+    type(ice_rayType), dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(out) :: &
+        &ray_varIce
+    type(ice_rayType2), dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, NSCX, NSCY), &
+        &intent(out) :: ray_cloud
 
     real :: dxi, dyi, dzi
 
@@ -11782,27 +11965,60 @@ module wkb_module
     real :: dwnrk, dwnrl, dwnrm
     real :: f_cor_nd
 
-    real :: cgirx, cgiry, cgirz
     real :: omir
 
     real :: xr, yr, zr
     real :: dxr, dyr, dzr
 
     real :: fcpspx, fcpspy, fcpspz
-    real :: wadr
-
     real :: NNR
 
     !SD
     real :: fcpswn
-    real :: amprw, amprw2, amprb, amprt, amprp, amprep, amprpt
-    real :: amprw_tt, amprb_tt, amprt_tt, amprp_tt, amprep_tt, amprpt_tt
-    real :: C_p, phase, fac_ep, fac_pt
-    real :: MeanT, MeanExnP, MeanTheta, MeanPi, MeanP, MeanPsi, MeanS
-    real :: FullT, FullExnP, FullTheta, FullPi, FullP, FullPsi, FullRho, FullS
-    real :: TildS
-    real :: tldpi, rho
-    integer :: cnt
+    real :: fcpsar, amprw, wadr
+    real :: rho
+    real :: thetaPrime, expPrime, wPrime
+    real :: dphi
+    complex :: w10, b11, theta11, pi12
+    real :: theta0
+    real :: dxx, dyy, dzz !compute phase a cell center
+    !real :: dxo, dyo, dzo !overlap
+    real :: dxoh, dyoh, dzoh !overlap
+    real, parameter :: fxo = 1., fyo = fxo, fzo = fxo ! overlap = 1-fxo
+    real, parameter :: fxoh = 1., fyoh = fxoh, fzoh = fxoh ! overlap = 1-fxoh
+    real :: xrh, yrh, zrh, dxrh, dyrh, dzrh !
+    real :: wnrk0
+    real :: wnrl0
+    real :: wnrm0
+    integer :: crv
+    real :: sigdex, sigdey, sigdez
+    real :: is2pi3, vv, nn, dens_gauss
+    integer :: ii, jj
+    real :: xsc, ysc
+    logical :: apply
+
+    !real, allocatable :: var_uu(:, :, :)
+    real, allocatable :: wadr_sum(:, :, :)
+    real, allocatable :: fcpsar_max(:, :, :)
+
+    allocate(wadr_sum(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
+    allocate(fcpsar_max(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
+
+    !Init
+    wadr_sum = 0.
+    fcpsar_max = 0.
+    ray_varIce%wwp = 0.
+    ray_varIce%epp = 0.
+    ray_varIce%thp = 0.
+
+    !TEST***
+    !var%OPT(:, :, :, 3) = 0.
+
+    if(compute_cloudcover) then
+      ray_cloud%wwp = 0.
+      ray_cloud%epp = 0.
+      ray_cloud%thp = 0.
+    end if
 
     f_cor_nd = f_Coriolis_dim * tRef
 
@@ -11819,29 +12035,11 @@ module wkb_module
 
           if(nRay(ixrv, jyrv, kzrv) < 1) cycle
 
-          !SD
-          ! compute coarse grid fields (non-dimensional)
-
-          ! NO topography
-          rho = var%rho(ixrv, jyrv, kzrv) + rhoStrat(kzrv)
-
-          !problems in \pi
-          !if heating switched on
-          MeanTheta = Pstrat(kzrv) / rho
-
-          MeanExnP = var%pi(ixrv, jyrv, kzrv) + (PStrat(kzrv) / p0) ** gamma_1
-
-          MeanP = p0 * MeanExnP ** kappaInv !kappaInv = c_p/R
-
-          MeanT = MeanTheta * MeanExnP
-
-          MeanPsi = Psat_ice(MeanT)
-
-          MeanPi = MeanP / MeanPsi
+          crv = 0
 
           do iRay = 1, nRay(ixrv, jyrv, kzrv)
-            ! skip counting ray volumes with zero wave-action density
 
+            ! skip counting ray volumes with zero wave-action density
             if(ray(iRay, ixrv, jyrv, kzrv)%dens == 0.0) cycle
 
             xr = ray(iRay, ixrv, jyrv, kzrv)%x
@@ -11851,6 +12049,146 @@ module wkb_module
             dxr = ray(iRay, ixrv, jyrv, kzrv)%dxray
             dyr = ray(iRay, ixrv, jyrv, kzrv)%dyray
             dzr = ray(iRay, ixrv, jyrv, kzrv)%dzray
+
+            ! vertical boundary conditions:
+            ! zBoundary = 'periodic': implement periodicity
+            ! zBoundary = 'solid_wall': skip counting ray volumes
+            !                           that have completely left the
+            !                           model domain
+
+            ! FJApr2023
+            apply = .false.
+            if(.not. topography .and. zr < lz(0)) then
+              apply = .true.
+            else if(topography) then
+              if(zr < topography_surface(ixrv, jyrv)) then
+                apply = .true.
+              end if
+            end if
+            if(apply) then
+              select case(zBoundary)
+              case("periodic")
+                zr = lz(1) + mod(zr - lz(0), lz(1) - lz(0))
+              case("solid_wall")
+                if((.not. topography .and. zr + 0.5 * dzr < lz(0)) .or. &
+                    &(topography .and. zr + 0.5 * dzr &
+                    &< topography_surface(ixrv, jyrv))) cycle
+              case default
+                stop "calc_meanflow_effect: unknown case zBoundary"
+              end select
+            elseif(zr > lz(1)) then
+              select case(zBoundary)
+              case("periodic")
+                zr = lz(0) + mod(zr - lz(1), lz(1) - lz(0))
+              case("solid_wall")
+                if(zr - 0.5 * dzr > lz(1)) cycle
+              case default
+                stop "calc_meanflow_effect: unknown case zBoundary"
+              end select
+            end if
+
+            ! implement horizontal boundary conditions for ray-volume
+            ! positions
+
+            if(sizeX > 1) then
+              if(xBoundary /= "periodic") then
+                print *, 'ERROR in calc_meanflow_effect:  boundary conditions &
+                    &in x must be periodic'
+                stop
+              end if
+
+              ! for leftmost cpu make sure that xr in
+              ! ghost cell to the left is between x(0) - dx
+              ! and x(0)
+
+              if(ixrv == 0 .and. is + nbx == 1) then
+                if(xr > lx(1) - dx .and. xr < lx(1)) then
+                  xr = xr - lx(1) + lx(0)
+                elseif(xr > lx(0) - dx .and. xr < lx(0)) then
+                  xr = xr
+                else
+                  print *, 'ERROR in calc_meanflow_effect:'
+                  print *, 'xr =', xr
+                  print *, 'but r.v. is in ghost cell to the  left of the &
+                      &leftmost cpu so that  one should have either'
+                  print *, lx(1) - dx, '= lx(1) - dx < xr < lx(1) =', lx(1), ' &
+                      &or'
+                  print *, lx(0) - dx, '= lx(0) - dx < xr < lx(0) =', lx(0)
+                  stop
+                end if
+              end if
+
+              ! for rightmost cpu make sure that xr in
+              ! ghost cell to the right is between x(0) + L_x
+              ! and x(0) + L_x + dx
+
+              if(ixrv == nx + 1 .and. is + nbx + nx == sizeX) then
+                if(xr > lx(0) .and. xr < lx(0) + dx) then
+                  xr = xr + lx(1) - lx(0)
+                elseif(xr > lx(1) .and. xr < lx(1) + dx) then
+                  xr = xr
+                else
+                  print *, 'ERROR in calc_meanflow_effect:'
+                  print *, 'xr =', xr
+                  print *, 'but r.v. is in ghost cell to the  right of the &
+                      &rightmost cpu so that  one should have either'
+                  print *, lx(0), '= lx(0) < xr < lx(0) + dx =', lx(0) + dx, ' &
+                      &or'
+                  print *, lx(1), '= lx(1) < xr < lx(1) + dx =', lx(1) + dx
+                  stop
+                end if
+              end if
+            end if
+
+            if(sizeY > 1) then
+              if(yBoundary /= "periodic") then
+                print *, 'ERROR in calc_meanflow_effect:  boundary conditions &
+                    &in y must be periodic'
+                stop
+              end if
+
+              ! for first cpu in y direct. make sure that yr in
+              ! ghost cell in front is between y(0) - dy
+              ! and y(0)
+
+              if(jyrv == 0 .and. js + nby == 1) then
+                if(yr > ly(1) - dy .and. yr < ly(1)) then
+                  yr = yr - ly(1) + ly(0)
+                elseif(yr > ly(0) - dy .and. yr < ly(0)) then
+                  yr = yr
+                else
+                  print *, 'ERROR in calc_meanflow_effect:'
+                  print *, 'yr =', yr
+                  print *, 'but r.v. is in ghost cell in front of the first &
+                      &cpu in y dir. so that  one should have either'
+                  print *, ly(1) - dy, '= ly(1) - dy < yr < ly(1) =', ly(1), ' &
+                      &or'
+                  print *, ly(0) - dy, '= ly(0) - dy < yr < ly(0) =', ly(0)
+                  stop
+                end if
+              end if
+
+              ! for last cpu in y direction make sure that yr
+              ! in ghost cell behind is between
+              ! y(0) + L_y and y(0) + L_y + dy
+
+              if(jyrv == ny + 1 .and. js + nby + ny == sizeY) then
+                if(yr > ly(0) .and. yr < ly(0) + dy) then
+                  yr = yr + ly(1) - ly(0)
+                elseif(yr > ly(1) .and. yr < ly(1) + dy) then
+                  yr = yr
+                else
+                  print *, 'ERROR in calc_meanflow_effect:'
+                  print *, 'yr =', yr
+                  print *, 'but r.v. is in ghost cell behind the last cpu in y &
+                      &dir. so that  one should have either'
+                  print *, ly(0), '= ly(0) < yr < ly(0) + dy =', ly(0) + dy, ' &
+                      &or'
+                  print *, ly(1), '= ly(1) < yr < ly(1) + dy =', ly(1) + dy
+                  stop
+                end if
+              end if
+            end if
 
             wnrk = ray(iRay, ixrv, jyrv, kzrv)%k
             wnrl = ray(iRay, ixrv, jyrv, kzrv)%l
@@ -11862,7 +12200,19 @@ module wkb_module
 
             wnrh = sqrt(wnrk ** 2 + wnrl ** 2)
 
-            if(zr < lz(0) - dz) then
+            apply = .false.
+            if((.not. topography .and. zr < lz(0) - dz)) then
+              apply = .true.
+            else if(topography) then
+              if(zr < topography_surface(ixrv, jyrv) - jac(ixrv, jyrv, kzrv) &
+                  &* dz) then
+                apply = .true.
+              end if
+            end if
+            if(apply) then
+              !            if((.not. topography .and. zr < lz(0) - dz) .or. (topography .and. &
+              !                zr < topography_surface(ixrv, jyrv) - jac(ixrv, jyrv, kzrv) &
+              !                * dz)) then
               print *, 'ERROR IN calc_meanflow_effect: RAY VOLUME', iRay, 'in &
                   &cell', ixrv, jyrv, kzrv, 'TOO LOW'
               stop
@@ -11873,20 +12223,23 @@ module wkb_module
             omir = branchr * sqrt(NNr * wnrh ** 2 + f_cor_nd ** 2 * wnrm ** 2) &
                 &/ sqrt(wnrh ** 2 + wnrm ** 2)
 
-            cgirx = wnrk * (NNr - omir ** 2) / (omir * (wnrh ** 2 + wnrm ** 2))
-            cgiry = wnrl * (NNr - omir ** 2) / (omir * (wnrh ** 2 + wnrm ** 2))
-
-            cgirz = - wnrm * (omir ** 2 - f_cor_nd ** 2) / (omir * (wnrh ** 2 &
-                &+ wnrm ** 2))
-
             ! indices of range of cells touched by a ray volume
 
             if(sizeX > 1) then
               ! last x-index leftmost of cpu
               ix0 = is + nbx - 1
 
-              ixmin = floor((xr - dxr * 0.5 - lx(0)) / dx) + 1 - ix0
-              ixmax = floor((xr + dxr * 0.5 - lx(0)) / dx) + 1 - ix0
+              ! SD
+              if(average_cell) then
+                ixmin = floor((xr - dxr * 0.5 - lx(0)) / dx) + 1 - ix0
+                ixmax = floor((xr + dxr * 0.5 - lx(0)) / dx) + 1 - ix0
+              elseif(average_cell_3) then
+                ixmin = ixrv - 1
+                ixmax = ixrv + 1
+              else
+                ixmin = ixrv
+                ixmax = ixrv
+              end if
 
               if(ixmin > nx + 1) then
                 print *, 'ixmin =', ixmin, '> nx+1 = ', nx + 1
@@ -11921,14 +12274,27 @@ module wkb_module
             else
               ixmin = 1
               ixmax = 1
+
+              !SD
+              ix0 = 0
+
             end if
 
             if(sizeY > 1) then
               ! last y-index in front of cpu
               jy0 = js + nby - 1
 
-              jymin = floor((yr - dyr * 0.5 - ly(0)) / dy) + 1 - jy0
-              jymax = floor((yr + dyr * 0.5 - ly(0)) / dy) + 1 - jy0
+              !SD
+              if(average_cell) then
+                jymin = floor((yr - dyr * 0.5 - ly(0)) / dy) + 1 - jy0
+                jymax = floor((yr + dyr * 0.5 - ly(0)) / dy) + 1 - jy0
+              elseif(average_cell_3) then
+                jymin = jyrv - 1
+                jymax = jyrv + 1
+              else
+                jymin = jyrv
+                jymax = jyrv
+              end if
 
               if(jymin > ny + 1) then
                 print *, 'jymin =', jymin, '> ny+1 = ', ny + 1
@@ -11954,139 +12320,484 @@ module wkb_module
             else
               jymin = 1
               jymax = 1
-            end if
-
-            kzmin = max(1, floor((zr - dzr * 0.5 - lz(0)) / dz) + 1)
-            kzmax = min(nz, floor((zr + dzr * 0.5 - lz(0)) / dz) + 1)
-
-            ! calculate momentum-flux / energy / elastic-term
-            ! contribution from each ray volume
-
-            do kz = kzmin, kzmax
-              dzi = (min((zr + dzr * 0.5), lz(0) + kz * dz) - max((zr - dzr &
-                  &* 0.5), lz(0) + (kz - 1) * dz))
-
-              fcpspz = dwnrm * dzi / dz
 
               !SD
-              fcpswn = dwnrm
+              jy0 = 0
+            end if
 
-              do jy = jymin, jymax
-                if(sizeY > 1) then
-                  dyi = (min((yr + dyr * 0.5), ly(0) + (jy + jy0) * dy) &
-                      &- max((yr - dyr * 0.5), ly(0) + (jy + jy0 - 1) * dy))
+            if(topography) then
 
-                  fcpspy = dwnrl * dyi / dy
+              print *, 'superposition of GW not implemented yet for topography &
+                  &case'
+              stop
+
+              if(include_tracer) then
+                stop "Tracer, topography, and ray tracer not possible."
+              end if
+
+              do ix = ixmin, ixmax
+                if(sizeX > 1) then
+                  dxi = (min((xr + dxr * 0.5), lx(0) + (ix + ix0) * dx) &
+                      &- max((xr - dxr * 0.5), lx(0) + (ix + ix0 - 1) * dx))
+
+                  fcpspx = dwnrk * dxi / dx
 
                   !SD
-                  fcpswn = fcpswn * dwnrl
+                  !fcpswn = fcpswn * dwnrk
 
                 else
-                  fcpspy = 1.0
+                  fcpspx = 1.0
                 end if
 
-                do ix = ixmin, ixmax
-                  if(sizeX > 1) then
-                    dxi = (min((xr + dxr * 0.5), lx(0) + (ix + ix0) * dx) &
-                        &- max((xr - dxr * 0.5), lx(0) + (ix + ix0 - 1) * dx))
+                do jy = jymin, jymax
+                  if(sizeY > 1) then
+                    dyi = (min((yr + dyr * 0.5), ly(0) + (jy + jy0) * dy) &
+                        &- max((yr - dyr * 0.5), ly(0) + (jy + jy0 - 1) * dy))
 
-                    fcpspx = dwnrk * dxi / dx
+                    fcpspy = dwnrl * dyi / dy
+                    !SD
+                    !fcpswn = fcpswn * dwnrl
+                  else
+                    fcpspy = 1.0
+                  end if
+
+                  if(average_cell) then
+                    ! Jacobian is height-independent!
+                    kzmin = max(1, floor((zr - dzr * 0.5 &
+                        &- topography_surface(ix, jy)) / jac(ix, jy, 0) / dz) &
+                        &+ 1)
+                    kzmax = min(nz, floor((zr + dzr * 0.5 &
+                        &- topography_surface(ix, jy)) / jac(ix, jy, 0) / dz) &
+                        &+ 1)
+                  elseif(average_cell_3) then
+                    print *, 'average_cell_3 not working with topography'
+                    stop
+                  else
+                    kzmin = kzrv
+                    kzmax = kzrv
+                  end if
+
+                  do kz = kzmin, kzmax
+                    dzi = (min((zr + dzr * 0.5), topography_surface(ix, jy) &
+                        &+ kz * jac(ix, jy, kz) * dz) - max((zr - dzr * 0.5), &
+                        &topography_surface(ix, jy) + (kz - 1) * jac(ix, jy, &
+                        &kz - 1) * dz))
+
+                    fcpspz = dwnrm * dzi / jac(ix, jy, kz) / dz
 
                     !SD
-                    fcpswn = fcpswn * dwnrk
-                  else
-                    fcpspx = 1.0
-                  end if
+                    !fcpswn = fcpswn * dwnrm
 
-                  wadr = fcpspx * fcpspy * fcpspz * ray(iRay, ixrv, jyrv, &
-                      &kzrv)%dens
+                    wadr = fcpspx * fcpspy * fcpspz * ray(iRay, ixrv, jyrv, &
+                        &kzrv)%dens
 
-                  !**********************************
-                  ! compute S fluctuations
-                  !
-                  ! relevant for Exner-pressure, ..
-                  ! NB: Qv = rho q_v but in fluctuation mode
-                  !     Qv = \tilde rho q_v !!
-                  !**********************************
+                    wadr_sum(ix, jy, kz) = wadr_sum(ix, jy, kz) + wadr !integrated waveaction density
+                    fcpsar = dzi / jac(ix, jy, kz) / dz
 
-                  !vertical velocity squared
-                  amprw2 = wadr * abs(omir) * 2. * wnrh ** 2 / (wnrh ** 2 &
-                      &+ wnrm ** 2) / rhoStrat(kz)
+                    if(sizeX > 1) then
+                      fcpsar = (dxi / dx) * fcpsar
+                    end if
+                    if(sizeY > 1) then
+                      fcpsar = (dyi / dy) * fcpsar
+                    end if
+                    fcpsar = abs(fcpsar) !fraction volume of RV inside some cell
 
-                  ofield(ix, jy, kz, 4) = ofield(ix, jy, kz, 4) + amprw2
-                  !amprw = sqrt(amprw2)
-                  !ofield(ix, jy, kz, 5) = ofield(ix, jy, kz, 5) + amprw
+                    ! save fluctutations corresponding to max volume
+                    if(fcpsar .gt. fcpsar_max(ix, jy, kz) .and. wadr .gt. 0) &
+                        &then
 
-                  !ofield(ixrv, jyrv, kzrv, 6) = ofield(ixrv, jyrv, kzrv, 6) + wadr
+                      ! here we should extend for terrain following coord.
+                      ! new: wadr missing under the root
+                      amprw = sqrt(abs(omir) * 2. * wnrh ** 2 / (wnrh ** 2 &
+                          &+ wnrm ** 2) / rhoStratTFC(ix, jy, kz))
 
-                  !fine, ray-volume grid
-                  !opt_ray(iRay, ixrv, jyrv, kzrv)%w = amprw*
+                      !interpolate phase at coarse cell center
+                      dxx = x(ix + ix0) - xr
+                      dyy = y(jy + jy0) - yr
+                      dzz = zTFC(ix, jy, kz) - zr
 
-                  !save maximum amplitude vertical vel. of a ray
-                  amprw = sqrt(fcpswn * abs(omir) * 2. * wnrh ** 2 / (wnrh &
-                      &** 2 + wnrm ** 2) / rhoStrat(kz) * ray(iRay, ixrv, &
-                      &jyrv, kzrv)%dens)
+                      !
+                      !heightTFC(i, j, k)
 
-                  if(amprw .gt. ofield(ix, jy, kz, 6)) then
+                      dphi = (ray(iRay, ixrv, jyrv, kzrv)%dphi + wnrk * dxx &
+                          &+ wnrl * dyy + wnrm * dzz)
 
-                    ofield(ix, jy, kz, 6) = amprw
-                    ofield(ix, jy, kz, 2) = omir
-                    ofield(ix, jy, kz, 3) = ray(iRay, ixrv, jyrv, kzrv)%dphi
-                  end if
+                      !to be consisten with LES wavepacket simulation
+                      !there amplitude of b11 is real with sign from vert. wavenumber
+                      b11 = amprw / abs(omir / NNr) * sign(1., wnrm)
+                      w10 = cmplx(0.0, omir / NNr) * b11 ! amplitude w
 
-                end do ! ix
-              end do !jy
-            end do !kz
+                      theta0 = thetaStratTFC(ix, jy, kz)
+                      theta11 = Fr2 * theta0 * b11
 
-            !***************************************
-            ! compute fluctuation inside each RV
-            !***************************************
+                      pi12 = cmplx(0.0, kappa * Ma2 * (omir * omir - NNr) &
+                          &/ NNr / wnrm / thetaStratTFC(ix, jy, kz)) * b11
 
-            !!$            fac_w2 = omir * 2. * wnrh** 2 &
-            !!$                 / (wnrh ** 2 + wnrm ** 2) / rhoStrat(kzrv) * &
-            !!$                 dwnrk * dwnrl * dwnrm * ray(iRay, ixrv, jyrv, kzrv)%dens
-            !!$
-            !!$            amprw = sqrt(abs(fac_w2))
-            !!$
-            !!$            !standard deviation w
-            !!$            opt_ray(iRay, ixrv, jyrv, kzrv)%w = sqrt(fac_w2/2)
-            !!$
-            !!$            !buoyancy
-            !!$            !up to sign of omega
-            !!$            amprb = amprw * NNr / omir
-            !!$
-            !!$            ! Exner pressure
-            !!$            amprep = kappa * rhoStrat(kzrv)/Pstrat(kzrv) * &
-            !!$                 (omir**2 - NNr) / NNr * amprb / wnrm
-            !!$
-            !!$            ! pot. temperature
-            !!$            amprpt = amprb * Pstrat(kzrv)/rhoStrat(kzrv)/g_ndim
+                      thetaPrime = real(theta11 * exp(dphi * imag))
+                      expPrime = real(pi12 * exp(dphi * imag))
+                      wPrime = real(w10 * exp(dphi * imag))
 
-            ! temperature
-            ! T = \teta \pi
-            ! nonlinear relation
-            !amprt = amprpt * amprep
+                      !store fields
+                      ray_varIce(ix, jy, kz)%wwp = wPrime
+                      ray_varIce(ix, jy, kz)%epp = expPrime
+                      ray_varIce(ix, jy, kz)%thp = thetaPrime
+                      fcpsar_max(ix, jy, kz) = fcpsar !max area coverd by RV
 
-            ! pressure
-            ! nonlinear relation
-            !amprp = p0 * amprep ** kappaInv
+                    end if
 
-            !***************************************
-            ! end compute fluctuation inside each RV
-            !***************************************
+                  end do !ix
+                end do !jy
+              end do !kz
+
+            else ! (no topography)
+
+              !*********************
+              ! local GW fluctuations
+              !*********************
+
+              if(average_cell) then
+                kzmin = max(1, floor((zr - dzr * 0.5 - lz(0)) / dz) + 1)
+                kzmax = min(nz, floor((zr + dzr * 0.5 - lz(0)) / dz) + 1)
+              elseif(average_cell_3) then
+                kzmin = kzrv - 1
+                kzmax = kzrv + 1
+              else
+                kzmin = kzrv
+                kzmax = kzrv
+              end if
+
+              if(reconstruct_gw_field == 1) then
+
+                do kz = kzmin, kzmax
+                  dzi = (min((zr + dzr * 0.5), lz(0) + kz * dz) - max((zr &
+                      &- dzr * 0.5), lz(0) + (kz - 1) * dz))
+
+                  fcpspz = dwnrm * dzi / dz
+
+                  !SD
+                  !fcpswn = dwnrm
+
+                  do jy = jymin, jymax
+                    if(sizeY > 1) then
+                      dyi = (min((yr + dyr * 0.5), ly(0) + (jy + jy0) * dy) &
+                          &- max((yr - dyr * 0.5), ly(0) + (jy + jy0 - 1) * dy))
+
+                      fcpspy = dwnrl * dyi / dy
+
+                      !SD
+                      !fcpswn = fcpswn * dwnrl
+                    else
+                      fcpspy = 1.0
+                    end if
+
+                    do ix = ixmin, ixmax
+                      if(sizeX > 1) then
+                        dxi = (min((xr + dxr * 0.5), lx(0) + (ix + ix0) * dx) &
+                            &- max((xr - dxr * 0.5), lx(0) + (ix + ix0 - 1) &
+                            &* dx))
+
+                        fcpspx = dwnrk * dxi / dx
+
+                        !SD
+                        !fcpswn = fcpswn * dwnrk
+                        !?fcpsar = fcpsar * dxi /dx
+                      else
+                        fcpspx = 1.0
+                      end if
+
+                      wadr = fcpspx * fcpspy * fcpspz * ray(iRay, ixrv, jyrv, &
+                          &kzrv)%dens
+
+                      wadr_sum(ix, jy, kz) = wadr_sum(ix, jy, kz) + wadr !integrated waveaction density
+                      fcpsar = dzi / dz
+                      if(sizeX > 1) then
+                        fcpsar = (dxi / dx) * fcpsar
+                      end if
+                      if(sizeY > 1) then
+                        fcpsar = (dyi / dy) * fcpsar
+                      end if
+                      fcpsar = abs(fcpsar) !fraction volume of RV inside some cell
+
+                      ! save fluctutations corresponding to max ray volume
+                      if(fcpsar .gt. fcpsar_max(ix, jy, kz) .and. wadr .gt. 0) &
+                          &then
+
+                        ! here we should extend for terrain following coord.
+                        ! new: wadr missing under the root
+                        amprw = sqrt(abs(omir) * 2. * wnrh ** 2 / (wnrh ** 2 &
+                            &+ wnrm ** 2) / rhoStrat(kz))
+
+                        !interpolate phase at coarse cell center
+                        dxx = x(ix + ix0) - xr
+                        dyy = y(jy + jy0) - yr
+                        dzz = z(kz) - zr
+
+                        !
+                        !heightTFC(i, j, k)
+
+                        dphi = (ray(iRay, ixrv, jyrv, kzrv)%dphi + wnrk * dxx &
+                            &+ wnrl * dyy + wnrm * dzz)
+
+                        !to be consisten with LES wavepacket simulation
+                        !there amplitude of b11 is real with sign from vert. wavenumber
+                        b11 = amprw / abs(omir / NNr) * sign(1., wnrm)
+                        w10 = cmplx(0.0, omir / NNr) * b11 ! amplitude w
+
+                        theta0 = thetaStrat(kz)
+                        theta11 = Fr2 * theta0 * b11
+
+                        pi12 = cmplx(0.0, kappa * Ma2 * (omir * omir - NNr) &
+                            &/ NNr / wnrm / thetaStrat(kz)) * b11
+
+                        thetaPrime = real(theta11 * exp(dphi * imag))
+                        expPrime = real(pi12 * exp(dphi * imag))
+                        wPrime = real(w10 * exp(dphi * imag))
+
+                        !store fields
+                        ray_varIce(ix, jy, kz)%wwp = wPrime
+                        ray_varIce(ix, jy, kz)%epp = expPrime
+                        ray_varIce(ix, jy, kz)%thp = thetaPrime
+                        fcpsar_max(ix, jy, kz) = fcpsar !max fraction volume in a cell
+
+                        !TEST***
+                        !compare wave action
+                        var%OPT(ix, jy, kz, 3) = wPrime !dphi
+
+                      end if
+
+                    end do ! ix
+                  end do !jy
+                end do !kz
+
+              elseif(reconstruct_gw_field == 2) then
+
+                do kz = kzmin, kzmax
+
+                  fcpswn = dwnrm
+
+                  do jy = jymin, jymax
+
+                    if(sizeY > 1) then
+                      fcpswn = fcpswn * dwnrl
+                    else
+                      fcpspy = 1.0
+                    end if
+
+                    do ix = ixmin, ixmax
+
+                      if(sizeX > 1) then
+                        fcpswn = fcpswn * dwnrk
+                      else
+                        fcpspx = 1.0
+                      end if
+
+                      !interpolate phase at coarse cell center
+                      dxx = x(ix + ix0) - xr
+                      dyy = y(jy + jy0) - yr
+                      dzz = z(kz) - zr
+
+                      dphi = (ray(iRay, ixrv, jyrv, kzrv)%dphi + wnrk * dxx &
+                          &+ wnrl * dyy + wnrm * dzz)
+
+                      if(.not. compute_cloudcover) then
+                        if(gauss_smoothing) then
+
+                          ! standard deviation Gauss dist. set to width RV
+                          ! (sigdeX is variance)
+                          sigdex = dxr ** 2
+                          sigdey = dyr ** 2
+                          sigdez = dzr ** 2
+
+                          nn = 1. / sqrt(2. * pi) ** 3 / sqrt(sigdex * sigdey &
+                              &* sigdez)
+                          vv = dxr * dyr * dzr
+
+                          ! dens = F exp{}
+                          dens_gauss = nn * vv * ray(iRay, ixrv, jyrv, &
+                              &kzrv)%dens * exp(- (dxx ** 2 / sigdex + dyy &
+                              &** 2 / sigdey + dzz ** 2 / sigdez) / 2.)
+                          amprw = sqrt(abs(omir) * 2. * wnrh ** 2 / (wnrh ** 2 &
+                              &+ wnrm ** 2) / rhoStrat(kz) * fcpswn &
+                              &* dens_gauss)
+                        else
+                          print *, 'compute_cloudcover=false works only with &
+                              &gauss_smoothing=true'
+                          stop
+                        end if
+                        !to be consisten with LES wavepacket simulation
+                        !there amplitude of b11 is real with sign from vert. wavenumber
+                        b11 = amprw / abs(omir / NNr) * sign(1., wnrm)
+                        w10 = cmplx(0.0, omir / NNr) * b11 ! amplitude w
+
+                        theta0 = thetaStrat(kz)
+                        theta11 = Fr2 * theta0 * b11
+
+                        pi12 = cmplx(0.0, kappa * Ma2 * (omir * omir - NNr) &
+                            &/ NNr / wnrm / thetaStrat(kz)) * b11
+
+                        thetaPrime = real(theta11 * exp(dphi * imag))
+                        expPrime = real(pi12 * exp(dphi * imag))
+                        wPrime = real(w10 * exp(dphi * imag))
+
+                        !superimpose fields
+                        ray_varIce(ix, jy, kz)%wwp = ray_varIce(ix, jy, &
+                            &kz)%wwp + wPrime
+                        ray_varIce(ix, jy, kz)%epp = ray_varIce(ix, jy, &
+                            &kz)%epp + expPrime
+                        ray_varIce(ix, jy, kz)%thp = ray_varIce(ix, jy, &
+                            &kz)%thp + thetaPrime
+                      elseif(compute_cloudcover) then
+
+                        ! standard deviation Gauss dist. set to width RV
+                        ! (sigdeX is variance)
+                        sigdex = dxr ** 2
+                        sigdey = dyr ** 2
+                        sigdez = dzr ** 2
+
+                        nn = 1. / sqrt(2. * pi) ** 3 / sqrt(sigdex * sigdey &
+                            &* sigdez)
+                        vv = dxr * dyr * dzr
+
+                        do ii = 1, NSCX
+                          do jj = 1, NSCY
+
+                            !subcell center
+                            xsc = x(ix + ix0) - dx / 2. + (ii - 0.5) * dxsc
+                            ysc = y(jy + jy0) - dy / 2. + (jj - 0.5) * dysc
+
+                            !interpolate phase/amplitude RV at cell center
+                            dxx = xsc - xr
+                            dyy = ysc - yr
+                            dzz = z(kz) - zr
+
+                            !****************
+                            !CHANGES
+                            !****************
+
+                            if(sizeX > 1) then
+                              dxi = (min((xr + dxr * 0.5), xsc + dxsc * 0.5) &
+                                  &- max((xr - dxr * 0.5), xsc - dxsc * 0.5))
+
+                              fcpspx = dwnrk * dxi / dx
+                            else
+                              fcpspx = 1.0
+                            end if
+                            if(sizeY > 1) then
+                              dyi = (min((yr + dyr * 0.5), ysc + dysc * 0.5) &
+                                  &- max((yr - dyr * 0.5), ysc - dysc * 0.5))
+
+                              fcpspy = dwnrl * dyi / dy
+                            else
+                              fcpspy = 1.0
+                            end if
+
+                            dzi = (min((zr + dzr * 0.5), z(kz) + dz * 0.5) &
+                                &- max((zr - dzr * 0.5), z(kz) - dz * 0.5))
+
+                            fcpspz = dwnrm * dzi / dz
+
+                            fcpswn = fcpspz * fcpspy * fcpspx
+
+                            !****************
+                            !END CHANGES
+                            !****************
+
+                            if(gauss_smoothing) then
+
+                              ! dens = N exp{-x**2 / (2 \sigma)}
+                              dens_gauss = nn * vv * ray(iRay, ixrv, jyrv, &
+                                  &kzrv)%dens * exp(- (dxx ** 2 / sigdex + dyy &
+                                  &** 2 / sigdey + dzz ** 2 / sigdez) / 2.)
+                              amprw = sqrt(abs(omir) * 2. * wnrh ** 2 / (wnrh &
+                                  &** 2 + wnrm ** 2) / rhoStrat(kz) * fcpswn &
+                                  &* dens_gauss)
+
+                            else
+                              !cell center inside RV
+                              if(abs(dxx) .le. dxr / 2. .and. abs(dyy) .le. &
+                                  &dyr / 2. .and. abs(dzz) .le. dzr / 2.) then
+
+                                amprw = sqrt(abs(omir) * 2. * wnrh ** 2 &
+                                    &/ (wnrh ** 2 + wnrm ** 2) / rhoStrat(kz) &
+                                    &* fcpswn * ray(iRay, ixrv, jyrv, &
+                                    &kzrv)%dens)
+                              end if
+                            end if
+
+                            !to be consisten with LES wavepacket simulation
+                            !there amplitude of b11 is real with sign from vert. wavenumber
+                            b11 = amprw / abs(omir / NNr) * sign(1., wnrm)
+                            w10 = cmplx(0.0, omir / NNr) * b11 ! amplitude w
+
+                            theta0 = thetaStrat(kz)
+                            theta11 = Fr2 * theta0 * b11
+
+                            pi12 = cmplx(0.0, kappa * Ma2 * (omir * omir &
+                                &- NNr) / NNr / wnrm / thetaStrat(kz)) * b11
+
+                            ! phase at cell center
+                            dphi = (ray(iRay, ixrv, jyrv, kzrv)%dphi + wnrk &
+                                &* dxx + wnrl * dyy + wnrm * dzz)
+
+                            thetaPrime = real(theta11 * exp(dphi * imag))
+                            expPrime = real(pi12 * exp(dphi * imag))
+                            wPrime = real(w10 * exp(dphi * imag))
+
+                            !superimpose fields
+                            ray_cloud(ix, jy, kz, ii, jj)%wwp = ray_cloud(ix, &
+                                &jy, kz, ii, jj)%wwp + wPrime
+                            ray_cloud(ix, jy, kz, ii, jj)%epp = ray_cloud(ix, &
+                                &jy, kz, ii, jj)%epp + expPrime
+                            ray_cloud(ix, jy, kz, ii, jj)%thp = ray_cloud(ix, &
+                                &jy, kz, ii, jj)%thp + thetaPrime
+                          end do ! ii
+                        end do ! jj
+                      end if ! compute_cloudcover
+
+                    end do ! ix
+                  end do !jy
+                end do !kz
+
+              else
+                print *, 'reconstruct_gw_field only 1 or 2'
+                stop
+                stop
+              end if
+
+            end if ! topography
 
           end do !iray
         end do !ixrv
       end do !jyrv
     end do !kzrv
 
-    !***************************************
-    ! compute effective fluctuations
-    !***************************************
+    if(reconstruct_gw_field == 1) then
+      !***************************************
+      ! compute effective fluctuations
+      !***************************************
 
-    !standard deviation vertical vel.
+      do kz = 1, nz
+        do jy = 1, ny
+          do ix = 1, nx
 
-    ofield(1:nx, 1:ny, 1:nz, 5) = sqrt(ofield(1:nx, 1:ny, 1:nz, 4)) / 2.
+            wadr = wadr_sum(ix, jy, kz)
+
+            if(wadr .ge. 0) then
+
+              ray_varIce(ix, jy, kz)%wwp = ray_varIce(ix, jy, kz)%wwp &
+                  &* sqrt(wadr)
+              ray_varIce(ix, jy, kz)%epp = ray_varIce(ix, jy, kz)%epp &
+                  &* sqrt(wadr)
+              ray_varIce(ix, jy, kz)%thp = ray_varIce(ix, jy, kz)%thp &
+                  &* sqrt(wadr)
+
+            end if
+
+          end do !ix
+        end do !jy
+      end do !kz
+
+    end if ! reconstruct_gw_field == 1
 
   end subroutine calc_ice
 

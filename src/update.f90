@@ -25,7 +25,7 @@ module update_module
   public :: init_update
   public :: CoefDySma_update
   public :: Var3DSmthDySma
-  public :: iceUpdate, iceUpdate_apb, timeUpdate
+  public :: iceUpdate_apb, timeUpdate
   public :: setHaloAndBoundary
 
   public :: smooth_shapiro
@@ -532,8 +532,8 @@ module update_module
                       &+ 1))
                   piEdgeR = 0.5 * (var%pi(i, j, k) + var%pi(i + 1, j, k))
                   piGrad = kappaInv * MaInv2 * pEdgeR * ((piR - piL) / dx &
-                      &+ met13EdgeR * (- piUUEdgeR + 4.0 &
-                      &* piUEdgeR - 3.0 * piEdgeR) * 0.5 / dz)
+                      &+ met13EdgeR * (- piUUEdgeR + 4.0 * piUEdgeR - 3.0 &
+                      &* piEdgeR) * 0.5 / dz)
                 else if(k == nz .and. zBoundary == "solid_wall") then
                   piDDEdgeR = 0.5 * (var%pi(i, j, k - 2) + var%pi(i + 1, j, k &
                       &- 2))
@@ -541,16 +541,15 @@ module update_module
                       &- 1))
                   piEdgeR = 0.5 * (var%pi(i, j, k) + var%pi(i + 1, j, k))
                   piGrad = kappaInv * MaInv2 * pEdgeR * ((piR - piL) / dx &
-                      &+ met13EdgeR * (piDDEdgeR - 4.0 &
-                      &* piDEdgeR + 3.0 * piEdgeR) * 0.5 / dz)
+                      &+ met13EdgeR * (piDDEdgeR - 4.0 * piDEdgeR + 3.0 &
+                      &* piEdgeR) * 0.5 / dz)
                 else
                   piUEdgeR = 0.5 * (var%pi(i, j, k + 1) + var%pi(i + 1, j, k &
                       &+ 1))
                   piDEdgeR = 0.5 * (var%pi(i, j, k - 1) + var%pi(i + 1, j, k &
                       &- 1))
                   piGrad = kappaInv * MaInv2 * pEdgeR * ((piR - piL) / dx &
-                      &+ met13EdgeR * (piUEdgeR &
-                      &- piDEdgeR) * 0.5 / dz)
+                      &+ met13EdgeR * (piUEdgeR - piDEdgeR) * 0.5 / dz)
                 end if
                 if(testCase == "baroclinic_LC") then
                   var%pi(:, :, :) = var%pi(:, :, :) + var_env%pi(:, :, :)
@@ -742,8 +741,8 @@ module update_module
                       &+ 1))
                   piEdgeR = 0.5 * (var%pi(i, j, k) + var%pi(i + 1, j, k))
                   piGrad = kappaInv * MaInv2 * pEdgeR / rhou * ((piR - piL) &
-                      &/ dx + met13EdgeR * (- piUUEdgeR &
-                      &+ 4.0 * piUEdgeR - 3.0 * piEdgeR) * 0.5 / dz)
+                      &/ dx + met13EdgeR * (- piUUEdgeR + 4.0 * piUEdgeR - 3.0 &
+                      &* piEdgeR) * 0.5 / dz)
                 else if(k == nz .and. zBoundary == "solid_wall") then
                   piDDEdgeR = 0.5 * (var%pi(i, j, k - 2) + var%pi(i + 1, j, k &
                       &- 2))
@@ -751,16 +750,15 @@ module update_module
                       &- 1))
                   piEdgeR = 0.5 * (var%pi(i, j, k) + var%pi(i + 1, j, k))
                   piGrad = kappaInv * MaInv2 * pEdgeR / rhou * ((piR - piL) &
-                      &/ dx + met13EdgeR * (piDDEdgeR - 4.0 &
-                      &* piDEdgeR + 3.0 * piEdgeR) * 0.5 / dz)
+                      &/ dx + met13EdgeR * (piDDEdgeR - 4.0 * piDEdgeR + 3.0 &
+                      &* piEdgeR) * 0.5 / dz)
                 else
                   piUEdgeR = 0.5 * (var%pi(i, j, k + 1) + var%pi(i + 1, j, k &
                       &+ 1))
                   piDEdgeR = 0.5 * (var%pi(i, j, k - 1) + var%pi(i + 1, j, k &
                       &- 1))
                   piGrad = kappaInv * MaInv2 * pEdgeR / rhou * ((piR - piL) &
-                      &/ dx + met13EdgeR * (piUEdgeR &
-                      &- piDEdgeR) * 0.5 / dz)
+                      &/ dx + met13EdgeR * (piUEdgeR - piDEdgeR) * 0.5 / dz)
                 end if
                 if(testCase == "baroclinic_LC") then
                   var%pi(:, :, :) = var%pi(:, :, :) + var_env%pi(:, :, :)
@@ -785,8 +783,8 @@ module update_module
                         &j, k))
                     piGrad = piGrad + kappaInv * MaInv2 * (pEdgeR / rhou &
                         &- pEdgeR / rhou_e) * ((piR_e - piL_e) / dx &
-                        &+ met13EdgeR * (- piUUEdgeR + 4.0 &
-                        &* piUEdgeR - 3.0 * piEdgeR) * 0.5 / dz)
+                        &+ met13EdgeR * (- piUUEdgeR + 4.0 * piUEdgeR - 3.0 &
+                        &* piEdgeR) * 0.5 / dz)
                   else if(k == nz .and. zBoundary == "solid_wall") then
                     piDDEdgeR = 0.5 * (var_env%pi(i, j, k - 2) + var_env%pi(i &
                         &+ 1, j, k - 2))
@@ -796,8 +794,8 @@ module update_module
                         &j, k))
                     piGrad = piGrad + kappaInv * MaInv2 * (pEdgeR / rhou &
                         &- pEdgeR / rhou_e) * ((piR_e - piL_e) / dx &
-                        &+ met13EdgeR * (piDDEdgeR - 4.0 &
-                        &* piDEdgeR + 3.0 * piEdgeR) * 0.5 / dz)
+                        &+ met13EdgeR * (piDDEdgeR - 4.0 * piDEdgeR + 3.0 &
+                        &* piEdgeR) * 0.5 / dz)
                   else
                     piUEdgeR = 0.5 * (var_env%pi(i, j, k + 1) + var_env%pi(i &
                         &+ 1, j, k + 1))
@@ -805,8 +803,7 @@ module update_module
                         &+ 1, j, k - 1))
                     piGrad = piGrad + kappaInv * MaInv2 * (pEdgeR / rhou &
                         &- pEdgeR / rhou_e) * ((piR_e - piL_e) / dx &
-                        &+ met13EdgeR * (piUEdgeR - piDEdgeR) &
-                        &* 0.5 / dz)
+                        &+ met13EdgeR * (piUEdgeR - piDEdgeR) * 0.5 / dz)
                   end if
                 else
                   piGrad = piGrad + kappaInv * MaInv2 * (Pstrat(k) / rhou &
@@ -944,8 +941,8 @@ module update_module
                       &+ 1))
                   piEdgeR = 0.5 * (var%pi(i, j, k) + var%pi(i + 1, j, k))
                   piGradX = kappaInv * MaInv2 * pEdgeR / rhou * ((piR - piL) &
-                      &/ dx + met13EdgeR * (- piUUEdgeR &
-                      &+ 4.0 * piUEdgeR - 3.0 * piEdgeR) * 0.5 / dz)
+                      &/ dx + met13EdgeR * (- piUUEdgeR + 4.0 * piUEdgeR - 3.0 &
+                      &* piEdgeR) * 0.5 / dz)
                 else if(k == nz .and. zBoundary == "solid_wall") then
                   piDDEdgeR = 0.5 * (var%pi(i, j, k - 2) + var%pi(i + 1, j, k &
                       &- 2))
@@ -953,16 +950,15 @@ module update_module
                       &- 1))
                   piEdgeR = 0.5 * (var%pi(i, j, k) + var%pi(i + 1, j, k))
                   piGradX = kappaInv * MaInv2 * pEdgeR / rhou * ((piR - piL) &
-                      &/ dx + met13EdgeR * (piDDEdgeR &
-                      &- 4.0 * piDEdgeR + 3.0 * piEdgeR) * 0.5 / dz)
+                      &/ dx + met13EdgeR * (piDDEdgeR - 4.0 * piDEdgeR + 3.0 &
+                      &* piEdgeR) * 0.5 / dz)
                 else
                   piUEdgeR = 0.5 * (var%pi(i, j, k + 1) + var%pi(i + 1, j, k &
                       &+ 1))
                   piDEdgeR = 0.5 * (var%pi(i, j, k - 1) + var%pi(i + 1, j, k &
                       &- 1))
                   piGradX = kappaInv * MaInv2 * pEdgeR / rhou * ((piR - piL) &
-                      &/ dx + met13EdgeR * (piUEdgeR &
-                      &- piDEdgeR) * 0.5 / dz)
+                      &/ dx + met13EdgeR * (piUEdgeR - piDEdgeR) * 0.5 / dz)
                 end if
                 if(testCase == "baroclinic_LC") then
                   var%pi(:, :, :) = var%pi(:, :, :) + var_env%pi(:, :, :)
@@ -988,8 +984,8 @@ module update_module
                         &j, k))
                     piGradX = piGradX + kappaInv * MaInv2 * (pEdgeR / rhou &
                         &- pEdgeR / rhou_e) * ((piR_e - piL_e) / dx &
-                        &+ met13EdgeR * (- piUUEdgeR + 4.0 &
-                        &* piUEdgeR - 3.0 * piEdgeR) * 0.5 / dz)
+                        &+ met13EdgeR * (- piUUEdgeR + 4.0 * piUEdgeR - 3.0 &
+                        &* piEdgeR) * 0.5 / dz)
                   else if(k == nz .and. zBoundary == "solid_wall") then
                     piDDEdgeR = 0.5 * (var_env%pi(i, j, k - 2) + var_env%pi(i &
                         &+ 1, j, k - 2))
@@ -999,8 +995,8 @@ module update_module
                         &j, k))
                     piGradX = piGradX + kappaInv * MaInv2 * (pEdgeR / rhou &
                         &- pEdgeR / rhou_e) * ((piR_e - piL_e) / dx &
-                        &+ met13EdgeR * (piDDEdgeR - 4.0 &
-                        &* piDEdgeR + 3.0 * piEdgeR) * 0.5 / dz)
+                        &+ met13EdgeR * (piDDEdgeR - 4.0 * piDEdgeR + 3.0 &
+                        &* piEdgeR) * 0.5 / dz)
                   else
                     piUEdgeR = 0.5 * (var_env%pi(i, j, k + 1) + var_env%pi(i &
                         &+ 1, j, k + 1))
@@ -1008,8 +1004,7 @@ module update_module
                         &+ 1, j, k - 1))
                     piGradX = piGradX + kappaInv * MaInv2 * (pEdgeR / rhou &
                         &- pEdgeR / rhou_e) * ((piR_e - piL_e) / dx &
-                        &+ met13EdgeR * (piUEdgeR - piDEdgeR) &
-                        &* 0.5 / dz)
+                        &+ met13EdgeR * (piUEdgeR - piDEdgeR) * 0.5 / dz)
                   end if
                 else
                   piGradx = piGradx + kappaInv * MaInv2 * (PStrat(k) / rhou &
@@ -1197,8 +1192,8 @@ module update_module
                       &+ 1))
                   piEdgeF = 0.5 * (var%pi(i, j, k) + var%pi(i, j + 1, k))
                   piGrad = kappaInv * MaInv2 * pEdgeF * ((piF - piB) / dy &
-                      &+ met23EdgeF * (- piUUEdgeF + 4.0 &
-                      &* piUEdgeF - 3.0 * piEdgeF) * 0.5 / dz)
+                      &+ met23EdgeF * (- piUUEdgeF + 4.0 * piUEdgeF - 3.0 &
+                      &* piEdgeF) * 0.5 / dz)
                 else if(k == nz .and. zBoundary == "solid_wall") then
                   piDDEdgeF = 0.5 * (var%pi(i, j, k - 2) + var%pi(i, j + 1, k &
                       &- 2))
@@ -1206,16 +1201,15 @@ module update_module
                       &- 1))
                   piEdgeF = 0.5 * (var%pi(i, j, k) + var%pi(i, j + 1, k))
                   piGrad = kappaInv * MaInv2 * pEdgeF * ((piF - piB) / dy &
-                      &+ met23EdgeF * (piDDEdgeF - 4.0 &
-                      &* piDEdgeF + 3.0 * piEdgeF) * 0.5 / dz)
+                      &+ met23EdgeF * (piDDEdgeF - 4.0 * piDEdgeF + 3.0 &
+                      &* piEdgeF) * 0.5 / dz)
                 else
                   piUEdgeF = 0.5 * (var%pi(i, j, k + 1) + var%pi(i, j + 1, k &
                       &+ 1))
                   piDEdgeF = 0.5 * (var%pi(i, j, k - 1) + var%pi(i, j + 1, k &
                       &- 1))
                   piGrad = kappaInv * MaInv2 * pEdgeF * ((piF - piB) / dy &
-                      &+ met23EdgeF * (piUEdgeF &
-                      &- piDEdgeF) * 0.5 / dz)
+                      &+ met23EdgeF * (piUEdgeF - piDEdgeF) * 0.5 / dz)
                 end if
                 if(testCase == "baroclinic_LC") then
                   var%pi(:, :, :) = var%pi(:, :, :) + var_env%pi(:, :, :)
@@ -1416,8 +1410,8 @@ module update_module
                       &+ 1))
                   piEdgeF = 0.5 * (var%pi(i, j, k) + var%pi(i, j + 1, k))
                   piGrad = kappaInv * MaInv2 * pEdgeF / rhov * ((piF - piB) &
-                      &/ dy + met23EdgeF * (- piUUEdgeF &
-                      &+ 4.0 * piUEdgeF - 3.0 * piEdgeF) * 0.5 / dz)
+                      &/ dy + met23EdgeF * (- piUUEdgeF + 4.0 * piUEdgeF - 3.0 &
+                      &* piEdgeF) * 0.5 / dz)
                 else if(k == nz .and. zBoundary == "solid_wall") then
                   piDDEdgeF = 0.5 * (var%pi(i, j, k - 2) + var%pi(i, j + 1, k &
                       &- 2))
@@ -1425,16 +1419,15 @@ module update_module
                       &- 1))
                   piEdgeF = 0.5 * (var%pi(i, j, k) + var%pi(i, j + 1, k))
                   piGrad = kappaInv * MaInv2 * pEdgeF / rhov * ((piF - piB) &
-                      &/ dy + met23EdgeF * (piDDEdgeF - 4.0 &
-                      &* piDEdgeF + 3.0 * piEdgeF) * 0.5 / dz)
+                      &/ dy + met23EdgeF * (piDDEdgeF - 4.0 * piDEdgeF + 3.0 &
+                      &* piEdgeF) * 0.5 / dz)
                 else
                   piUEdgeF = 0.5 * (var%pi(i, j, k + 1) + var%pi(i, j + 1, k &
                       &+ 1))
                   piDEdgeF = 0.5 * (var%pi(i, j, k - 1) + var%pi(i, j + 1, k &
                       &- 1))
                   piGrad = kappaInv * MaInv2 * pEdgeF / rhov * ((piF - piB) &
-                      &/ dy + met23EdgeF * (piUEdgeF &
-                      &- piDEdgeF) * 0.5 / dz)
+                      &/ dy + met23EdgeF * (piUEdgeF - piDEdgeF) * 0.5 / dz)
                 end if
                 if(testCase == "baroclinic_LC") then
                   var%pi(:, :, :) = var%pi(:, :, :) + var_env%pi(:, :, :)
@@ -1459,8 +1452,8 @@ module update_module
                         &+ 1, k))
                     piGrad = piGrad + kappaInv * MaInv2 * (pEdgeF / rhov &
                         &- pEdgeF / rhov_e) * ((piF_e - piB_e) / dy &
-                        &+ met23EdgeF * (- piUUEdgeF + 4.0 &
-                        &* piUEdgeF - 3.0 * piEdgeF) * 0.5 / dz)
+                        &+ met23EdgeF * (- piUUEdgeF + 4.0 * piUEdgeF - 3.0 &
+                        &* piEdgeF) * 0.5 / dz)
                   else if(k == nz .and. zBoundary == "solid_wall") then
                     piDDEdgeF = 0.5 * (var_env%pi(i, j, k - 2) + var_env%pi(i, &
                         &j + 1, k - 2))
@@ -1470,8 +1463,8 @@ module update_module
                         &+ 1, k))
                     piGrad = piGrad + kappaInv * MaInv2 * (pEdgeF / rhov &
                         &- pEdgeF / rhov_e) * ((piF_e - piB_e) / dy &
-                        &+ met23EdgeF * (piDDEdgeF - 4.0 &
-                        &* piDEdgeF + 3.0 * piEdgeF) * 0.5 / dz)
+                        &+ met23EdgeF * (piDDEdgeF - 4.0 * piDEdgeF + 3.0 &
+                        &* piEdgeF) * 0.5 / dz)
                   else
                     piUEdgeF = 0.5 * (var_env%pi(i, j, k + 1) + var_env%pi(i, &
                         &j + 1, k + 1))
@@ -1479,8 +1472,7 @@ module update_module
                         &j + 1, k - 1))
                     piGrad = piGrad + kappaInv * MaInv2 * (pEdgeF / rhov &
                         &- pEdgeF / rhov_e) * ((piF_e - piB_e) / dy &
-                        &+ met23EdgeF * (piUEdgeF - piDEdgeF) &
-                        &* 0.5 / dz)
+                        &+ met23EdgeF * (piUEdgeF - piDEdgeF) * 0.5 / dz)
                   end if
                 else
                   piGrad = piGrad + kappaInv * MaInv2 * (Pstrat(k) / rhov &
@@ -1660,8 +1652,8 @@ module update_module
                       &+ 1))
                   piEdgeF = 0.5 * (var%pi(i, j, k) + var%pi(i, j + 1, k))
                   piGradY = kappaInv * MaInv2 * pEdgeF / rhov * ((piF - piB) &
-                      &/ dy + met23EdgeF * (- piUUEdgeF &
-                      &+ 4.0 * piUEdgeF - 3.0 * piEdgeF) * 0.5 / dz)
+                      &/ dy + met23EdgeF * (- piUUEdgeF + 4.0 * piUEdgeF - 3.0 &
+                      &* piEdgeF) * 0.5 / dz)
                 else if(k == nz .and. zBoundary == "solid_wall") then
                   piDDEdgeF = 0.5 * (var%pi(i, j, k - 2) + var%pi(i, j + 1, k &
                       &- 2))
@@ -1669,16 +1661,15 @@ module update_module
                       &- 1))
                   piEdgeF = 0.5 * (var%pi(i, j, k) + var%pi(i, j + 1, k))
                   piGradY = kappaInv * MaInv2 * pEdgeF / rhov * ((piF - piB) &
-                      &/ dy + met23EdgeF * (piDDEdgeF &
-                      &- 4.0 * piDEdgeF + 3.0 * piEdgeF) * 0.5 / dz)
+                      &/ dy + met23EdgeF * (piDDEdgeF - 4.0 * piDEdgeF + 3.0 &
+                      &* piEdgeF) * 0.5 / dz)
                 else
                   piUEdgeF = 0.5 * (var%pi(i, j, k + 1) + var%pi(i, j + 1, k &
                       &+ 1))
                   piDEdgeF = 0.5 * (var%pi(i, j, k - 1) + var%pi(i, j + 1, k &
                       &- 1))
                   piGradY = kappaInv * MaInv2 * pEdgeF / rhov * ((piF - piB) &
-                      &/ dy + met23EdgeF * (piUEdgeF &
-                      &- piDEdgeF) * 0.5 / dz)
+                      &/ dy + met23EdgeF * (piUEdgeF - piDEdgeF) * 0.5 / dz)
                 end if
                 if(testCase == "baroclinic_LC") then
                   var%pi(:, :, :) = var%pi(:, :, :) + var_env%pi(:, :, :)
@@ -1704,8 +1695,8 @@ module update_module
                         &+ 1, k))
                     piGradY = piGradY + kappaInv * MaInv2 * (pEdgeF / rhov &
                         &- pEdgeF / rhov_e) * ((piF_e - piB_e) / dy &
-                        &+ met23EdgeF * (- piUUEdgeF + 4.0 &
-                        &* piUEdgeF - 3.0 * piEdgeF) * 0.5 / dz)
+                        &+ met23EdgeF * (- piUUEdgeF + 4.0 * piUEdgeF - 3.0 &
+                        &* piEdgeF) * 0.5 / dz)
                   else if(k == nz .and. zBoundary == "solid_wall") then
                     piDDEdgeF = 0.5 * (var_env%pi(i, j, k - 2) + var_env%pi(i, &
                         &j + 1, k - 2))
@@ -1715,8 +1706,8 @@ module update_module
                         &+ 1, k))
                     piGradY = piGradY + kappaInv * MaInv2 * (pEdgeF / rhov &
                         &- pEdgeF / rhov_e) * ((piF_e - piB_e) / dy &
-                        &+ met23EdgeF * (piDDEdgeF - 4.0 &
-                        &* piDEdgeF + 3.0 * piEdgeF) * 0.5 / dz)
+                        &+ met23EdgeF * (piDDEdgeF - 4.0 * piDEdgeF + 3.0 &
+                        &* piEdgeF) * 0.5 / dz)
                   else
                     piUEdgeF = 0.5 * (var_env%pi(i, j, k + 1) + var_env%pi(i, &
                         &j + 1, k + 1))
@@ -1724,8 +1715,7 @@ module update_module
                         &j + 1, k - 1))
                     piGradY = piGradY + kappaInv * MaInv2 * (pEdgeF / rhov &
                         &- pEdgeF / rhov_e) * ((piF_e - piB_e) / dy &
-                        &+ met23EdgeF * (piUEdgeF - piDEdgeF) &
-                        &* 0.5 / dz)
+                        &+ met23EdgeF * (piUEdgeF - piDEdgeF) * 0.5 / dz)
                   end if
                 else
                   piGrady = piGrady + kappaInv * MaInv2 * (Pstrat(k) / rhov &
@@ -1926,12 +1916,12 @@ module update_module
                 met33EdgeU = (jac(i, j, k + 1) * met(i, j, k, 3, 3) + jac(i, &
                     &j, k) * met(i, j, k + 1, 3, 3)) / (jac(i, j, k) + jac(i, &
                     &j, k + 1))
-                piREdgeU = (jac(i + 1, j, k + 1) * var%pi(i + 1, j, k) &
-                    &+ jac(i + 1, j, k) * var%pi(i + 1, j, k + 1)) / (jac(i &
-                    &+ 1, j, k) + jac(i + 1, j, k + 1))
-                piLEdgeU = (jac(i - 1, j, k + 1) * var%pi(i - 1, j, k) &
-                    &+ jac(i - 1, j, k) * var%pi(i - 1, j, k + 1)) / (jac(i &
-                    &- 1, j, k) + jac(i - 1, j, k + 1))
+                piREdgeU = (jac(i + 1, j, k + 1) * var%pi(i + 1, j, k) + jac(i &
+                    &+ 1, j, k) * var%pi(i + 1, j, k + 1)) / (jac(i + 1, j, k) &
+                    &+ jac(i + 1, j, k + 1))
+                piLEdgeU = (jac(i - 1, j, k + 1) * var%pi(i - 1, j, k) + jac(i &
+                    &- 1, j, k) * var%pi(i - 1, j, k + 1)) / (jac(i - 1, j, k) &
+                    &+ jac(i - 1, j, k + 1))
                 piFEdgeU = (jac(i, j + 1, k + 1) * var%pi(i, j + 1, k) &
                     &+ jac(i, j + 1, k) * var%pi(i, j + 1, k + 1)) / (jac(i, j &
                     &+ 1, k) + jac(i, j + 1, k + 1))
@@ -1970,9 +1960,9 @@ module update_module
                 select case(model)
                 case("pseudo_incompressible", "compressible")
                   if(topography) then
-                    drho_e = (jac(i, j, k + 1) * var_env%rho(i, j, k) &
-                        &+ jac(i, j, k) * var_env%rho(i, j, k + 1)) / (jac(i, &
-                        &j, k) + jac(i, j, k + 1))
+                    drho_e = (jac(i, j, k + 1) * var_env%rho(i, j, k) + jac(i, &
+                        &j, k) * var_env%rho(i, j, k + 1)) / (jac(i, j, k) &
+                        &+ jac(i, j, k + 1))
                   else
                     drho_e = 0.5 * (var_env%rho(i, j, k) + var_env%rho(i, j, k &
                         &+ 1))
@@ -2149,9 +2139,9 @@ module update_module
                 rho001_e = var_env%rho(i, j, k + 1)
 
                 if(topography) then
-                  rhow_e = (jac(i, j, k + 1) * var_env%rho(i, j, k) &
-                      &+ jac(i, j, k) * var_env%rho(i, j, k + 1)) / (jac(i, j, &
-                      &k) + jac(i, j, k + 1))
+                  rhow_e = (jac(i, j, k + 1) * var_env%rho(i, j, k) + jac(i, &
+                      &j, k) * var_env%rho(i, j, k + 1)) / (jac(i, j, k) &
+                      &+ jac(i, j, k + 1))
 
                   rho000_e = rho000_e + rhoStratTFC(i, j, k)
                   rho001_e = rho001_e + rhoStratTFC(i, j, k + 1)
@@ -2198,12 +2188,12 @@ module update_module
                 met33EdgeU = (jac(i, j, k + 1) * met(i, j, k, 3, 3) + jac(i, &
                     &j, k) * met(i, j, k + 1, 3, 3)) / (jac(i, j, k) + jac(i, &
                     &j, k + 1))
-                piREdgeU = (jac(i + 1, j, k + 1) * var%pi(i + 1, j, k) &
-                    &+ jac(i + 1, j, k) * var%pi(i + 1, j, k + 1)) / (jac(i &
-                    &+ 1, j, k) + jac(i + 1, j, k + 1))
-                piLEdgeU = (jac(i - 1, j, k + 1) * var%pi(i - 1, j, k) &
-                    &+ jac(i - 1, j, k) * var%pi(i - 1, j, k + 1)) / (jac(i &
-                    &- 1, j, k) + jac(i - 1, j, k + 1))
+                piREdgeU = (jac(i + 1, j, k + 1) * var%pi(i + 1, j, k) + jac(i &
+                    &+ 1, j, k) * var%pi(i + 1, j, k + 1)) / (jac(i + 1, j, k) &
+                    &+ jac(i + 1, j, k + 1))
+                piLEdgeU = (jac(i - 1, j, k + 1) * var%pi(i - 1, j, k) + jac(i &
+                    &- 1, j, k) * var%pi(i - 1, j, k + 1)) / (jac(i - 1, j, k) &
+                    &+ jac(i - 1, j, k + 1))
                 piFEdgeU = (jac(i, j + 1, k + 1) * var%pi(i, j + 1, k) &
                     &+ jac(i, j + 1, k) * var%pi(i, j + 1, k + 1)) / (jac(i, j &
                     &+ 1, k) + jac(i, j + 1, k + 1))
@@ -2253,8 +2243,8 @@ module update_module
                   piGrad = piGrad + kappaInv * MaInv2 * (pEdgeU / rhow &
                       &- pEdgeU / rhow_e) * (met13EdgeU * (piREdgeU &
                       &- piLEdgeU) * 0.5 / dx + met23EdgeU * (piFEdgeU &
-                      &- piBEdgeU) * 0.5 / dy + met33EdgeU * (var_env%pi(i, &
-                      &j, k + 1) - var_env%pi(i, j, k)) / dz)
+                      &- piBEdgeU) * 0.5 / dy + met33EdgeU * (var_env%pi(i, j, &
+                      &k + 1) - var_env%pi(i, j, k)) / dz)
                 else
                   piGrad = piGrad + kappaInv * MaInv2 * (pstw / rhow - pstw_e &
                       &/ rhow_e) * (piU_e - piD_e) / dz
@@ -2385,9 +2375,9 @@ module update_module
                 rho001_e = var_env%rho(i, j, k + 1)
 
                 if(topography) then
-                  rhow_e = (jac(i, j, k + 1) * var_env%rho(i, j, k) &
-                      &+ jac(i, j, k) * var_env%rho(i, j, k + 1)) / (jac(i, j, &
-                      &k) + jac(i, j, k + 1))
+                  rhow_e = (jac(i, j, k + 1) * var_env%rho(i, j, k) + jac(i, &
+                      &j, k) * var_env%rho(i, j, k + 1)) / (jac(i, j, k) &
+                      &+ jac(i, j, k + 1))
 
                   rho000_e = rho000_e + rhoStratTFC(i, j, k)
                   rho001_e = rho001_e + rhoStratTFC(i, j, k + 1)
@@ -2434,12 +2424,12 @@ module update_module
                 met33EdgeU = (jac(i, j, k + 1) * met(i, j, k, 3, 3) + jac(i, &
                     &j, k) * met(i, j, k + 1, 3, 3)) / (jac(i, j, k) + jac(i, &
                     &j, k + 1))
-                piREdgeU = (jac(i + 1, j, k + 1) * var%pi(i + 1, j, k) &
-                    &+ jac(i + 1, j, k) * var%pi(i + 1, j, k + 1)) / (jac(i &
-                    &+ 1, j, k) + jac(i + 1, j, k + 1))
-                piLEdgeU = (jac(i - 1, j, k + 1) * var%pi(i - 1, j, k) &
-                    &+ jac(i - 1, j, k) * var%pi(i - 1, j, k + 1)) / (jac(i &
-                    &- 1, j, k) + jac(i - 1, j, k + 1))
+                piREdgeU = (jac(i + 1, j, k + 1) * var%pi(i + 1, j, k) + jac(i &
+                    &+ 1, j, k) * var%pi(i + 1, j, k + 1)) / (jac(i + 1, j, k) &
+                    &+ jac(i + 1, j, k + 1))
+                piLEdgeU = (jac(i - 1, j, k + 1) * var%pi(i - 1, j, k) + jac(i &
+                    &- 1, j, k) * var%pi(i - 1, j, k + 1)) / (jac(i - 1, j, k) &
+                    &+ jac(i - 1, j, k + 1))
                 piFEdgeU = (jac(i, j + 1, k + 1) * var%pi(i, j + 1, k) &
                     &+ jac(i, j + 1, k) * var%pi(i, j + 1, k + 1)) / (jac(i, j &
                     &+ 1, k) + jac(i, j + 1, k + 1))
@@ -2489,8 +2479,8 @@ module update_module
                   piGrad = piGrad + kappaInv * MaInv2 * (pEdgeU / rhow &
                       &- pEdgeU / rhow_e) * (met13EdgeU * (piREdgeU &
                       &- piLEdgeU) * 0.5 / dx + met23EdgeU * (piFEdgeU &
-                      &- piBEdgeU) * 0.5 / dy + met33EdgeU * (var_env%pi(i, &
-                      &j, k + 1) - var_env%pi(i, j, k)) / dz)
+                      &- piBEdgeU) * 0.5 / dy + met33EdgeU * (var_env%pi(i, j, &
+                      &k + 1) - var_env%pi(i, j, k)) / dz)
                 else
                   piGrad = piGrad + kappaInv * MaInv2 * (pstw / rhow - pstw_e &
                       &/ rhow_e) * (piU_e - piD_e) / dz
@@ -3080,7 +3070,7 @@ module update_module
                     var%pi(:, :, :) = var%pi(:, :, :) - var_env%pi(:, :, :)
                   end if
                   ! Compute P coefficients.
-                  pEdgeU = (jac(i, j, k + 1) * pStratTFC(i, j, k) + jac(i, j,&
+                  pEdgeU = (jac(i, j, k + 1) * pStratTFC(i, j, k) + jac(i, j, &
                       &k) * pStratTFC(i, j, k + 1)) / (jac(i, j, k) + jac(i, &
                       &j, k + 1))
                   pEdgeD = (jac(i, j, k - 1) * pStratTFC(i, j, k) + jac(i, j, &
@@ -3186,10 +3176,10 @@ module update_module
                         &/ (jac(i, j - 1, k) + jac(i, j - 1, k - 1))
                     ! Compute pressure gradients.
                     piGradZEdgeU = kappaInv * MaInv2 * (pEdgeU / rhow - pEdgeU &
-                        &/ rhow_e) * (0.5 * met13EdgeU * (piREdgeU &
-                        &- piLEdgeU) / dx + 0.5 * met23EdgeU * (piFEdgeU &
-                        &- piBEdgeU) / dy + met33EdgeU * (var_env%pi(i, j, k &
-                        &+ 1) - var_env%pi(i, j, k)) / dz)
+                        &/ rhow_e) * (0.5 * met13EdgeU * (piREdgeU - piLEdgeU) &
+                        &/ dx + 0.5 * met23EdgeU * (piFEdgeU - piBEdgeU) / dy &
+                        &+ met33EdgeU * (var_env%pi(i, j, k + 1) &
+                        &- var_env%pi(i, j, k)) / dz)
                     piGradZEdgeD = kappaInv * MaInv2 * (pEdgeD / rhowm &
                         &- pEdgeD / rhowm_e) * (0.5 * met13EdgeD * (piREdgeD &
                         &- piLEdgeD) / dx + 0.5 * met23EdgeD * (piFEdgeD &
@@ -3574,26 +3564,115 @@ module update_module
 
   end subroutine timeUpdate
 
-  !-------------------------------------------------------------------------
-
-  subroutine iceUpdate_apb(var, flux, source, dt, q, m, update_type)
-    !-----------------------------
-    ! adds ice flux to cell ice field
-    !-----------------------------
+  !!$  subroutine iceUpdate_apb(var, flux, source, dt, q, m, update_type, ray_cloud)
+  !!$
+  !!$    ! in/out variables
+  !!$    type(var_type), intent(inout) :: var
+  !!$    type(flux_type), intent(in) :: flux
+  !!$    type(var_type), intent(in) :: source
+  !!$    real, intent(in) :: dt
+  !!$    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
+  !!$         &intent(inout) :: q
+  !!$    type(ice_rayType2), dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, nscx, nscy), &
+  !!$         &intent(inout) :: ray_cloud
+  !!$    integer, intent(in) :: m
+  !!$    character(len = 3), intent(in) :: update_type
+  !!$
+  !!$    ! local variables
+  !!$    integer :: i, j, k, l
+  !!$    real :: fL, fR ! flux Left/Right
+  !!$    real :: gB, gF ! flux Backward/Forward
+  !!$    real :: hD, hU ! flux Downward/Upward
+  !!$    real :: fluxDiff ! convective part
+  !!$    real :: F ! F(phi)
+  !!$
+  !!$    integer :: ii, iVar
+  !!$
+  !!$    if(compute_cloudcover) then
+  !!$
+  !!$       ! init q
+  !!$       if(m == 1) then
+  !!$          ray_cloud%qNi = 0.
+  !!$          ray_cloud%qQi = 0.
+  !!$          ray_cloud%qQv = 0.
+  !!$       end if
+  !!$
+  !!$       ! update: q(m-1) -> q(m)
+  !!$       ray_cloud%qNi = dt * ray_cloud%tNi + alphaRK(m) * ray_cloud%qNi
+  !!$       ray_cloud%qQi = dt * ray_cloud%tQi + alphaRK(m) * ray_cloud%qQi
+  !!$       ray_cloud%qQv = dt * ray_cloud%tQv + alphaRK(m) * ray_cloud%qQv
+  !!$
+  !!$       ! update fields
+  !!$       ray_cloud%Ni = ray_cloud%Ni + betaRK(m) * ray_cloud%qNi
+  !!$       ray_cloud%Qi = ray_cloud%Qi + betaRK(m) * ray_cloud%qQi
+  !!$       ray_cloud%Qv = ray_cloud%Qv + betaRK(m) * ray_cloud%qQv
+  !!$
+  !!$    else
+  !!$
+  !!$       ! init q
+  !!$       if(m == 1) q = 0.
+  !!$
+  !!$       do iVar = 1, nVarIce
+  !!$
+  !!$          do k = 1, nz
+  !!$             do j = 1, ny
+  !!$                do i = 1, nx
+  !!$
+  !!$                   if(update_type .eq. 'ADV' .or. update_type .eq. 'BOT') then
+  !!$
+  !!$                      fL = flux%ICE(i - 1, j, k, 1, iVar) ! flux accros left cell edge
+  !!$                      fR = flux%ICE(i, j, k, 1, iVar) ! right
+  !!$                      gB = flux%ICE(i, j - 1, k, 2, iVar) ! backward
+  !!$                      gF = flux%ICE(i, j, k, 2, iVar) ! forward
+  !!$                      hD = flux%ICE(i, j, k - 1, 3, iVar) ! downward
+  !!$                      hU = flux%ICE(i, j, k, 3, iVar) ! upward
+  !!$
+  !!$                      ! convective part
+  !!$                      fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
+  !!$
+  !!$                      ! TFC FJ
+  !!$                      ! Adjust mass flux divergence.
+  !!$                      if(topography) then
+  !!$                         fluxDiff = fluxDiff / jac(i, j, k)
+  !!$                      end if
+  !!$
+  !!$                      if(update_type .eq. 'BOT') then
+  !!$                         ! F(phi)
+  !!$                         F = - fluxDiff + source%ICE(i, j, k, iVar)
+  !!$                      elseif(update_type .eq. 'ADV') then
+  !!$                         F = - fluxDiff
+  !!$                      elseif(update_type .eq. 'PHY') then
+  !!$                         F = source%ICE(i, j, k, iVar)
+  !!$                      else
+  !!$                         print *, 'wrong update_type in iceUpdate_apb'
+  !!$                         stop
+  !!$                      end if
+  !!$
+  !!$                      ! update: q(m-1) -> q(m)
+  !!$                      q(i, j, k, iVar) = dt * F + alphaRK(m) * q(i, j, k, iVar)
+  !!$
+  !!$                      ! update fields
+  !!$                      var%ICE(i, j, k, iVar) = var%ICE(i, j, k, iVar) + betaRK(m) &
+  !!$                           &* q(i, j, k, iVar)
+  !!$
+  !!$                   end do !i
+  !!$                end do !j
+  !!$             end do !k
+  !!$
+  !!$          end do !ii
+  !!$       end if !compute cloudcover
+  !!$     end subroutine iceUpdate_apb
+  subroutine iceUpdate_apb(var, flux, source, dt, q, m, update_type, ray_cloud)
 
     ! in/out variables
     type(var_type), intent(inout) :: var
     type(flux_type), intent(in) :: flux
-    ! flux(i,j,k,dir,iFlux)
-    ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
-    ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
-
     type(var_type), intent(in) :: source
-
     real, intent(in) :: dt
     real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
         &intent(inout) :: q
-
+    type(ice_rayType2), dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, nscx, nscy), &
+        &intent(inout) :: ray_cloud
     integer, intent(in) :: m
     character(len = 3), intent(in) :: update_type
 
@@ -3603,186 +3682,85 @@ module update_module
     real :: gB, gF ! flux Backward/Forward
     real :: hD, hU ! flux Downward/Upward
     real :: fluxDiff ! convective part
-    real :: F ! F(phi)
-
+    real :: F !
     integer :: ii, iVar
 
-    ! init q
-    if(m == 1) q = 0.
+    if(compute_cloudcover) then
 
-    do iVar = 1, nVarIce
+      ! init q
+      if(m == 1) then
+        ray_cloud%qNi = 0.
+        ray_cloud%qQi = 0.
+        ray_cloud%qQv = 0.
+      end if
 
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
+      ! update: q(m-1) -> q(m)
+      ray_cloud%qNi = dt * ray_cloud%tNi + alphaRK(m) * ray_cloud%qNi
+      ray_cloud%qQi = dt * ray_cloud%tQi + alphaRK(m) * ray_cloud%qQi
+      ray_cloud%qQv = dt * ray_cloud%tQv + alphaRK(m) * ray_cloud%qQv
 
-            if(update_type .eq. 'ADV' .or. update_type .eq. 'BOT') then
+      ! update fields
+      ray_cloud%Ni = ray_cloud%Ni + betaRK(m) * ray_cloud%qNi
+      ray_cloud%Qi = ray_cloud%Qi + betaRK(m) * ray_cloud%qQi
+      ray_cloud%Qv = ray_cloud%Qv + betaRK(m) * ray_cloud%qQv
 
-              fL = flux%ICE(i - 1, j, k, 1, iVar) ! mass flux accros left cell edge
-              fR = flux%ICE(i, j, k, 1, iVar) ! right
-              gB = flux%ICE(i, j - 1, k, 2, iVar) ! backward
-              gF = flux%ICE(i, j, k, 2, iVar) ! forward
-              hD = flux%ICE(i, j, k - 1, 3, iVar) ! downward
-              hU = flux%ICE(i, j, k, 3, iVar) ! upward
+    else
 
-              ! convective part
-              fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
+      ! init q
+      if(m == 1) q = 0.
 
-              ! Adjust mass flux divergence.
-              if(topography) then
-                fluxDiff = fluxDiff / jac(i, j, k)
+      do iVar = 1, nVarIce
+
+        do k = 1, nz
+          do j = 1, ny
+            do i = 1, nx
+
+              if(update_type .eq. 'ADV' .or. update_type .eq. 'BOT') then
+
+                fL = flux%ICE(i - 1, j, k, 1, iVar) ! flux accros left cell edge
+                fR = flux%ICE(i, j, k, 1, iVar) ! right
+                gB = flux%ICE(i, j - 1, k, 2, iVar) ! backward
+                gF = flux%ICE(i, j, k, 2, iVar) ! forward
+                hD = flux%ICE(i, j, k - 1, 3, iVar) ! downward
+                hU = flux%ICE(i, j, k, 3, iVar) ! upward
+
+                ! convective part
+                fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
+
+                ! TFC FJ
+                ! Adjust mass flux divergence.
+                if(topography) then
+                  fluxDiff = fluxDiff / jac(i, j, k)
+                end if
+
               end if
 
-            end if
+              if(update_type .eq. 'BOT') then
+                ! F(phi)
+                F = - fluxDiff + source%ICE(i, j, k, iVar)
+              elseif(update_type .eq. 'ADV') then
+                F = - fluxDiff
+              elseif(update_type .eq. 'PHY') then
+                F = source%ICE(i, j, k, iVar)
+              else
+                print *, 'wrong update_type in iceUpdate_apb'
+                stop
+              end if
 
-            if(update_type .eq. 'BOT') then
-              ! F(phi)
-              F = - fluxDiff + source%ICE(i, j, k, iVar)
-            elseif(update_type .eq. 'ADV') then
-              F = - fluxDiff
-            elseif(update_type .eq. 'PHY') then
-              F = source%ICE(i, j, k, iVar)
-            else
-              print *, 'wrong update_type in iceUpdate_apb'
-              stop
+              ! update: q(m-1) -> q(m)
+              q(i, j, k, iVar) = dt * F + alphaRK(m) * q(i, j, k, iVar)
 
-            end if
+              ! update fields
+              var%ICE(i, j, k, iVar) = var%ICE(i, j, k, iVar) + betaRK(m) &
+                  &* q(i, j, k, iVar)
 
-            ! update: q(m-1) -> q(m)
-            q(i, j, k, iVar) = dt * F + alphaRK(m) * q(i, j, k, iVar)
+            end do !i
+          end do !j
+        end do !k
 
-            ! update fields
-            var%ICE(i, j, k, iVar) = var%ICE(i, j, k, iVar) + betaRK(m) * q(i, &
-                &j, k, iVar)
-
-          end do !i
-        end do !j
-      end do !k
-
-    end do !ii
-
+      end do !ii
+    end if !compute cloudcover
   end subroutine iceUpdate_apb
-
-  !-----------------------------------------------------------------------
-
-  subroutine iceUpdate(var, flux, dt, q, m, int_mod, facray)
-    !-----------------------------
-    ! adds ice flux to cell ice field
-    !-----------------------------
-
-    ! in/out variables
-    type(var_type), intent(inout) :: var
-
-    ! upd_var decides what is to be propagated in time:
-    ! rho => total density
-    ! rhop => density fluctuations
-
-    ! upd_mod decides which part of the equation is to be used:
-    ! tot => total equation (always the case for the total density)
-    ! lhs => only advection and molecular and turbulent diffusive fluxes
-    !        on the left-hand side of the density-fluctuation equation
-    ! rhs => only the right-hand side of the density-fluctuation equation
-
-    ! int_mod discriminates implicit and explicit time stepping:
-    ! expl => explicit time stepping
-    !         (always the case for the total density)
-    !         RK sub step for the total density
-    !         Euler step for the rhs of the density-fluctuation equation
-    ! impl => implicit-time-step part without pressure-gradient term
-    !         (only for the density fluctuations, only for rhs)
-
-    ! facray multiplies the Rayleigh-damping terms so that they are only
-    ! handled in the implicit time stepping (sponge and immersed boundary)
-    character(len = *), intent(in) :: int_mod
-
-    type(flux_type), intent(in) :: flux
-    ! flux(i,j,k,dir,iFlux)
-    ! dir = 1..3 > f-, g- and h-flux in x,y,z-direction
-    ! iFlux = 1..4 > fRho, fRhoU, rRhoV, fRhoW
-
-    !UAC real, intent(in) :: dt
-    real, intent(in) :: dt, facray
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz, nVarIce), &
-        &intent(inout) :: q
-
-    integer, intent(in) :: m
-    integer :: i00, j00
-
-    ! local variables
-    integer :: i, j, k, l
-    real :: fL, fR ! flux Left/Right
-    real :: gB, gF ! flux Backward/Forward
-    real :: hD, hU ! flux Downward/Upward
-    real :: fluxDiff ! convective part
-    real :: F ! F(phi)
-
-    !    real, dimension(-nbx:nx+nbx,-nby:ny+nby,-nbz:nz+nbz) :: heat
-
-    !    real :: buoy0, buoy, rho, rhow, rhowm, rhop, wvrt, facw, facr, &
-    !         & pstw, pstwm, piU, piD, piGrad
-
-    real :: rho_p
-
-    real, dimension(- nbz:nz + nbz) :: w_0
-    real, dimension(- nbz:nz + nbz) :: S_bar
-    real :: heat_flc
-
-    !UAB
-    real :: rho_e, pstw_e, pstwm_e, rhow_e, rhowm_e
-    !    !UAE
-
-    !    real, dimension(1:nz) :: sum_local, sum_global
-
-    !    real, dimension(-nbz:nz+nbz) :: rhopw_bar
-
-    real :: ymax, yloc
-    integer :: ii, iVar
-
-    ymax = ly_dim(1) / lRef
-
-    ! init q
-    if(m == 1) q = 0.
-
-    do iVar = 1, nVarIce
-
-      do k = 1, nz
-        do j = 1, ny
-          do i = 1, nx
-
-            fL = flux%ICE(i - 1, j, k, 1, iVar) ! mass flux accros left cell edge
-            fR = flux%ICE(i, j, k, 1, iVar) ! right
-            gB = flux%ICE(i, j - 1, k, 2, iVar) ! backward
-            gF = flux%ICE(i, j, k, 2, iVar) ! forward
-            hD = flux%ICE(i, j, k - 1, 3, iVar) ! downward
-            hU = flux%ICE(i, j, k, 3, iVar) ! upward
-
-            ! convective part
-            fluxDiff = (fR - fL) / dx + (gF - gB) / dy + (hU - hD) / dz
-
-            ! Adjust mass flux divergence.
-            if(topography) then
-              fluxDiff = fluxDiff / jac(i, j, k)
-            end if
-
-            ! F(phi)
-            F = - fluxDiff
-
-            ! update: q(m-1) -> q(m)
-            q(i, j, k, iVar) = dt * F + alphaRK(m) * q(i, j, k, iVar)
-
-            ! update fields
-            var%ICE(i, j, k, iVar) = var%ICE(i, j, k, iVar) + betaRK(m) * q(i, &
-                &j, k, iVar)
-
-          end do !i
-        end do !j
-      end do !k
-
-    end do !ii
-
-  end subroutine iceUpdate
-
-  !-------------------------------------------------------------------------
 
   subroutine timestep(var, dt, errFlag)
     !---------------------------------------------
