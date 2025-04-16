@@ -17,12 +17,15 @@ module output_netCDF_module
   integer :: ncid ! id of the netCDF file
   integer :: atmvarid, rayvarid, icevarid ! group ids
   integer :: rayvolid ! group id for ray volumes
+  integer :: optvarid !
 
   ! start and count values for nf90_put_var(...)
   integer :: startxNC, startyNC, countxNC, countyNC
   integer :: starthNC, starttNC, counthNC, counttNC
   integer, dimension(4) :: startNC, countNC
   integer, dimension(5) :: startNCray, countNCray
+  integer, dimension(4) :: startNC2, countNC2
+  integer :: startxNC2, startyNC2, countxNC2, countyNC2
 
   ! dimensions of the grid
   integer :: dim
@@ -38,6 +41,12 @@ module output_netCDF_module
   ! variable ids of the topography
   integer :: ncidhm ! large-scale topography
   integer :: ncidhw, ncidkh, ncidlh ! small-scale topography
+
+  ! ids of the dimensions
+  integer :: dimidx2, dimidy2, dimidz2, dimidt2 ! x, y, z, t
+  ! variable ids of the subgrid-scale axis
+  integer :: ncidx2, ncidy2, ncidz2
+  integer :: ncidx3, dimidx3, xdim
 
   ! variable ids in the group atmvar
   integer :: atmvarid_u, atmvarid_v, atmvarid_w ! u, v, w wind
@@ -77,6 +86,20 @@ module output_netCDF_module
   integer :: rayvolid_dxray, rayvolid_dyray, rayvolid_dzray
   integer :: rayvolid_dens
   integer :: rayvolid_dphi
+
+  ! variable ids in the group icevol
+  integer :: icevarid_n ! number concentration
+  integer :: icevarid_q ! ice mixing ratio
+  integer :: icevarid_qv ! vapor mixing ratio
+
+  ! variable ids in the group icevol for subgrid scale fields
+  integer :: icevarid_sn ! number concentration
+  integer :: icevarid_sq ! ice mixing ratio
+  integer :: icevarid_sqv ! vapor mixing ratio
+
+  ! variable ids in the group optvol
+  integer :: optvarid_s !
+  integer :: optvarid_w, optvarid_t
 
   contains
 
@@ -137,6 +160,13 @@ module output_netCDF_module
       call handle_err(nf90_def_dim(ncid, 'h', nwm, dimidh))
     end if
 
+    if(compute_cloudcover) Then
+      ! define the x2-, y2-dimensions
+      call handle_err(nf90_def_dim(ncid, 'x2', sizeX * NSCX, dimidx2))
+      call handle_err(nf90_def_dim(ncid, 'y2', sizeY * NSCY, dimidy2))
+      call handle_err(nf90_def_dim(ncid, 'z2', sizeZ * NSCZ, dimidz2))
+    end if
+
     !--------------------------
     ! define the grid variables
     !--------------------------
@@ -180,25 +210,44 @@ module output_netCDF_module
       call handle_err(nf90_def_var(ncid, 'kh', nf90_float, [dimidx, dimidy, &
           &dimidh, dimidt], ncidkh))
       call handle_err(nf90_var_par_access(ncid, ncidkh, nf90_collective))
-      call handle_err(nf90_put_att(ncid, ncidkh, 'long_name', &
-          &'zonal wavenumbers of the small-scale topography spectrum'))
+      call handle_err(nf90_put_att(ncid, ncidkh, 'long_name', 'zonal &
+          &wavenumbers of the small-scale topography spectrum'))
       call handle_err(nf90_put_att(ncid, ncidkh, 'units', '1/m'))
 
       ! meridional wavenumbers
       call handle_err(nf90_def_var(ncid, 'lh', nf90_float, [dimidx, dimidy, &
           &dimidh, dimidt], ncidlh))
       call handle_err(nf90_var_par_access(ncid, ncidlh, nf90_collective))
-      call handle_err(nf90_put_att(ncid, ncidlh, 'long_name', &
-          &'meridional wavenumbers of the small-scale topography spectrum'))
+      call handle_err(nf90_put_att(ncid, ncidlh, 'long_name', 'meridional &
+          &wavenumbers of the small-scale topography spectrum'))
       call handle_err(nf90_put_att(ncid, ncidlh, 'units', '1/m'))
 
       ! wave amplitudes
       call handle_err(nf90_def_var(ncid, 'hw', nf90_float, [dimidx, dimidy, &
           &dimidh, dimidt], ncidhw))
       call handle_err(nf90_var_par_access(ncid, ncidhw, nf90_collective))
-      call handle_err(nf90_put_att(ncid, ncidhw, 'long_name', &
-          &'amplitudes of the small-scale topography spectrum'))
+      call handle_err(nf90_put_att(ncid, ncidhw, 'long_name', 'amplitudes of &
+          &the small-scale topography spectrum'))
       call handle_err(nf90_put_att(ncid, ncidhw, 'units', 'm'))
+    end if
+
+    !subgrid-scale cloud cover
+    if(compute_cloudcover) then
+
+      ! x axis
+      call handle_err(nf90_def_var(ncid, 'x2', nf90_float, [dimidx2], ncidx2))
+      call handle_err(nf90_var_par_access(ncid, ncidx2, nf90_collective))
+      call handle_err(nf90_put_att(ncid, ncidx2, 'units', 'm'))
+
+      ! y axis
+      call handle_err(nf90_def_var(ncid, 'y2', nf90_float, [dimidy2], ncidy2))
+      call handle_err(nf90_var_par_access(ncid, ncidy2, nf90_collective))
+      call handle_err(nf90_put_att(ncid, ncidy2, 'units', 'm'))
+
+      ! z axis
+      call handle_err(nf90_def_var(ncid, 'z2', nf90_float, [dimidz2], ncidz2))
+      call handle_err(nf90_var_par_access(ncid, ncidz2, nf90_collective))
+      call handle_err(nf90_put_att(ncid, ncidz2, 'units', 'm'))
     end if
 
     !---------------------------------------------------
@@ -214,6 +263,10 @@ module output_netCDF_module
     end if
     if(include_ice) then
       call handle_err(nf90_def_grp(ncid, 'icevar', icevarid))
+    end if
+
+    if(include_testoutput) then
+      call handle_err(nf90_def_grp(ncid, 'optvar', optvarid))
     end if
 
     !-------------------------------------
@@ -435,6 +488,106 @@ module output_netCDF_module
           &'Change in tracer mixing ratio from initial distribution'))
     end if
 
+    !-------------------------------------
+    ! define the variables in icevar group
+    !-------------------------------------
+
+    ! ice crystal number concentration
+    if(include_ice .and. (prepare_restart .or. any(icevarOut == 'n'))) then
+      call handle_err(nf90_def_var(icevarid, 'n', nf90_float, [dimidx, dimidy, &
+          &dimidz, dimidt], icevarid_n))
+      call handle_err(nf90_var_par_access(icevarid, icevarid_n, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(icevarid, icevarid_n, 'long_name', 'ice &
+          &crystal number concentration'))
+      call handle_err(nf90_put_att(icevarid, icevarid_n, 'units', '1/kg'))
+    end if
+
+    ! ice mixing ratio
+    if(include_ice .and. (prepare_restart .or. any(icevarOut == 'q'))) then
+      call handle_err(nf90_def_var(icevarid, 'q', nf90_float, [dimidx, dimidy, &
+          &dimidz, dimidt], icevarid_q))
+      call handle_err(nf90_var_par_access(icevarid, icevarid_q, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(icevarid, icevarid_q, 'long_name', 'ice &
+          &mixing ratio'))
+      call handle_err(nf90_put_att(icevarid, icevarid_q, 'units', 'none'))
+    end if
+
+    ! vapor mixing ratio
+    if(include_ice .and. (prepare_restart .or. any(icevarOut == 'qv'))) then
+      call handle_err(nf90_def_var(icevarid, 'qv', nf90_float, [dimidx, &
+          &dimidy, dimidz, dimidt], icevarid_qv))
+      call handle_err(nf90_var_par_access(icevarid, icevarid_qv, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(icevarid, icevarid_qv, 'long_name', 'vapor &
+          &mixing ratio'))
+      call handle_err(nf90_put_att(icevarid, icevarid_qv, 'units', 'none'))
+    end if
+
+    if(include_ice .and. compute_cloudcover) then
+
+      call handle_err(nf90_def_var(icevarid, 'sn', nf90_float, [dimidx2, &
+          &dimidy2, dimidz2, dimidt], icevarid_sn))
+      call handle_err(nf90_var_par_access(icevarid, icevarid_sn, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(icevarid, icevarid_sn, 'long_name', &
+          &'subgrid scale ice crystal number concentration'))
+      call handle_err(nf90_put_att(icevarid, icevarid_sn, 'units', '1/kg'))
+
+      call handle_err(nf90_def_var(icevarid, 'sq', nf90_float, [dimidx2, &
+          &dimidy2, dimidz2, dimidt], icevarid_sq))
+      call handle_err(nf90_var_par_access(icevarid, icevarid_sq, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(icevarid, icevarid_sq, 'long_name', &
+          &'subgrid scale ice mixing ratio'))
+      call handle_err(nf90_put_att(icevarid, icevarid_sq, 'units', 'none'))
+
+      call handle_err(nf90_def_var(icevarid, 'sqv', nf90_float, [dimidx2, &
+          &dimidy2, dimidz2, dimidt], icevarid_sqv))
+      call handle_err(nf90_var_par_access(icevarid, icevarid_sqv, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(icevarid, icevarid_sqv, 'long_name', &
+          &'subgrid scale vapor mixing ratio'))
+      call handle_err(nf90_put_att(icevarid, icevarid_sqv, 'units', 'none'))
+
+    end if
+    !-------------------------------------
+    ! define the variables in optvar group
+    !-------------------------------------
+
+    if(include_testoutput .and. (prepare_restart .or. any(optvarOut == 's'))) &
+        &then
+      call handle_err(nf90_def_var(optvarid, 's', nf90_float, [dimidx, dimidy, &
+          &dimidz, dimidt], optvarid_s))
+      call handle_err(nf90_var_par_access(optvarid, optvarid_s, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(optvarid, optvarid_s, 'long_name', &
+          &'saturation ratio'))
+      call handle_err(nf90_put_att(optvarid, optvarid_s, 'units', 'none'))
+    end if
+
+    if(include_testoutput .and. (prepare_restart .or. any(optvarOut == 'w'))) &
+        &then
+      call handle_err(nf90_def_var(optvarid, 'w', nf90_float, [dimidx, dimidy, &
+          &dimidz, dimidt], optvarid_w))
+      call handle_err(nf90_var_par_access(optvarid, optvarid_w, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(optvarid, optvarid_w, 'long_name', &
+          &'vertical velocity due to GW'))
+      call handle_err(nf90_put_att(optvarid, optvarid_w, 'units', 'm/s'))
+    end if
+
+    if(include_testoutput .and. (prepare_restart .or. any(optvarOut == 't'))) &
+        &then
+      call handle_err(nf90_def_var(optvarid, 't', nf90_float, [dimidx, dimidy, &
+          &dimidz, dimidt], optvarid_t))
+      call handle_err(nf90_var_par_access(optvarid, optvarid_t, &
+          &nf90_collective))
+      call handle_err(nf90_put_att(optvarid, optvarid_t, 'long_name', 'test &
+          &variable'))
+      call handle_err(nf90_put_att(optvarid, optvarid_t, 'units', 'none'))
+    end if
     !-------------------------------------
     ! define the variables in rayvar group
     !-------------------------------------
@@ -812,6 +965,28 @@ module output_netCDF_module
             &= [1], count = [sizeY]))
       end if
 
+      if(compute_cloudcover) then
+
+        if(sizeX2 == 1) then
+          call handle_err(nf90_put_var(ncid, ncidx2, x2(1:sizeX2) * lRef, &
+              &start = [1]))
+        else
+          call handle_err(nf90_put_var(ncid, ncidx2, x2(1:sizeX2) * lRef, &
+              &start = [1], count = [sizeX2]))
+        end if
+
+        if(sizeY2 == 1) then
+          call handle_err(nf90_put_var(ncid, ncidy2, y2(1:sizeY2) * lRef, &
+              &start = [1]))
+        else
+          call handle_err(nf90_put_var(ncid, ncidy2, y2(1:sizeY2) * lRef, &
+              &start = [1], count = [sizeY2]))
+        end if
+
+        call handle_err(nf90_put_var(ncid, ncidz2, z2(1:sizeZ2) * lRef, start &
+            &= [1], count = [sizeZ2]))
+      end if
+
       ! initial time
       call handle_err(nf90_put_var(ncid, ncidt, 0.0, start = [1]))
     end if
@@ -884,7 +1059,7 @@ module output_netCDF_module
   !-------------------------------------------------------------------------
 
   subroutine write_netCDF(iOutput, iTime, time, cpuTime, var, ray_var3D, &
-      &tracerforce, waveAmplitudes, ray)
+      &tracerforce, waveAmplitudes, ray, ray_cloud, sc_ice_field)
 
     implicit none
 
@@ -904,6 +1079,8 @@ module output_netCDF_module
 
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1), &
         &intent(in), optional :: ray
+    type(ice_rayType2), dimension(0:nx + 1, 0:ny + 1, 0:nz + 1, nscx, nscy), &
+        &intent(inout), optional :: ray_cloud
 
     real :: time_dim
 
@@ -919,6 +1096,13 @@ module output_netCDF_module
     real, dimension(1:nx, 1:ny, 1:nz) :: tmparray
 
     integer :: ix, jy, kz
+
+    ! output subgrid scale cloud fields
+    !type(ice_rayType2), dimension(nx * nscx, ny * nscy, nz) :: sc_ice_field
+    type(ice_cloud), dimension(nx * nscx, ny * nscy, nz * NSCZ), &
+        &intent(inout), optional :: sc_ice_field
+
+    integer :: i, j, k, isc, jsc, ksc
 
     time_dim = time * tRef
 
@@ -961,6 +1145,25 @@ module output_netCDF_module
 
     startNC = (/startxNC, startyNC, 1, iOutput + 1/)
     countNC = (/countxNC, countyNC, nz, 1/)
+
+    if(sizeX == 1) then
+      startxNC2 = 1
+      countxNC2 = 1
+    else
+      startxNC2 = (is + nbx - 1) * NSCX + 1
+      countxNC2 = nx * NSCX
+    end if
+
+    if(sizeY == 1) then
+      startyNC2 = 1
+      countyNC2 = 1
+    else
+      startyNC2 = (js + nby) * NSCY
+      countyNC2 = ny * NSCY
+    end if
+
+    startNC2 = (/startxNC2, startyNC2, 1, iOutput + 1/)
+    countNC2 = (/countxNC2, countyNC2, nz * NSCZ, 1/)
 
     call write_netCDF_background(iOutput)
 
@@ -1099,6 +1302,85 @@ module output_netCDF_module
     if(TurbScheme .and. any(atmvarOut == 'dsc')) then
       call handle_Err(nf90_put_var(atmvarid, atmvarid_dsc, var%DSC(1:nx, 1:ny, &
           &1:nz) * uRef * lRef, start = startNC, count = countNC))
+    end if
+
+    !--------------------------------
+    ! save variables in icevar group
+    !--------------------------------
+
+    if(include_ice .and. (prepare_restart .or. any(icevarOut == 'n'))) then
+      call handle_err(nf90_put_var(icevarid, icevarid_n, var%ICE(1:nx, 1:ny, &
+          &1:nz, 1) / rho / mRef, start = startNC, count = countNC), 'save n')
+    end if
+
+    if(include_ice .and. (prepare_restart .or. any(icevarOut == 'q'))) then
+      call handle_err(nf90_put_var(icevarid, icevarid_q, var%ICE(1:nx, 1:ny, &
+          &1:nz, 2) / rho, start = startNC, count = countNC), 'save q')
+    end if
+
+    if(include_ice .and. (prepare_restart .or. any(icevarOut == 'qv'))) then
+      call handle_err(nf90_put_var(icevarid, icevarid_qv, var%ICE(1:nx, 1:ny, &
+          &1:nz, 3) / rho, start = startNC, count = countNC), 'save qv')
+    end if
+
+    if(include_ice .and. compute_cloudcover) then
+
+      do k = 1, nz
+        do ksc = 1, NSCZ
+          do i = 1, nx
+            do isc = 1, NSCX
+              do j = 1, ny
+                do jsc = 1, NSCY
+                  !convert to mass specific variables
+                  sc_ice_field((i - 1) * NSCX + isc, (j - 1) * NSCY + jsc, (k &
+                      &- 1) * NSCZ + ksc)%Ni = ray_cloud(i, j, k, isc, jsc)%Ni &
+                      &/ rho(i, j, k)
+                  sc_ice_field((i - 1) * NSCX + isc, (j - 1) * NSCY + jsc, (k &
+                      &- 1) * NSCZ + ksc)%Qi = ray_cloud(i, j, k, isc, jsc)%Qi &
+                      &/ rho(i, j, k)
+                  sc_ice_field((i - 1) * NSCX + isc, (j - 1) * NSCY + jsc, (k &
+                      &- 1) * NSCZ + ksc)%Qv = ray_cloud(i, j, k, isc, jsc)%Qv &
+                      &/ rho(i, j, k)
+                end do
+              end do
+            end do
+          end do
+        end do
+      end do
+
+      call handle_err(nf90_put_var(icevarid, icevarid_sn, sc_ice_field(1:nx &
+          &* NSCX, 1:ny * NSCY, 1:nz * NSCZ)%Ni / mRef, start = startNC2, &
+          &count = countNC2), 'save sn')
+
+      call handle_err(nf90_put_var(icevarid, icevarid_sq, sc_ice_field(1:nx &
+          &* NSCX, 1:ny * NSCY, 1:nz * NSCZ)%Qi, start = startNC2, count &
+          &= countNC2), 'save sq')
+
+      call handle_err(nf90_put_var(icevarid, icevarid_sqv, sc_ice_field(1:nx &
+          &* NSCX, 1:ny * NSCY, 1:nz * NSCZ)%Qv, start = startNC2, count &
+          &= countNC2), 'save sqv')
+    end if
+
+    !--------------------------------
+    ! save variables in optvar group
+    !--------------------------------
+
+    if(include_testoutput .and. (prepare_restart .or. any(optvarOut == 's'))) &
+        &then
+      call handle_err(nf90_put_var(optvarid, optvarid_s, var%OPT(1:nx, 1:ny, &
+          &1:nz, 1), start = startNC, count = countNC), 'save opt s')
+    end if
+
+    if(include_testoutput .and. (prepare_restart .or. any(optvarOut == 'w'))) &
+        &then
+      call handle_err(nf90_put_var(optvarid, optvarid_w, var%OPT(1:nx, 1:ny, &
+          &1:nz, 2) * uRef, start = startNC, count = countNC), 'save opt w')
+    end if
+
+    if(include_testoutput .and. (prepare_restart .or. any(optvarOut == 't'))) &
+        &then
+      call handle_err(nf90_put_var(optvarid, optvarid_t, var%OPT(1:nx, 1:ny, &
+          &1:nz, 3), start = startNC, count = countNC), 'save opt t')
     end if
 
     !--------------------------------
@@ -1744,5 +2026,5 @@ module output_netCDF_module
       stop 2
     endif
   end subroutine handle_err
-
+ 
 end module output_netCDF_module

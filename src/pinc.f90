@@ -120,10 +120,12 @@ program pinc_prog
 
   real :: height
 
-  !SD
   integer :: n_step_ice, ii
   real :: dtt_ice
   real :: uTime, qTime
+  type(ice_rayType), dimension(:, :, :), allocatable :: ray_varIce
+  type(ice_rayType2), dimension(:, :, :, :, :), allocatable :: ray_cloud
+  type(ice_cloud), dimension(:, :, :), allocatable :: sc_ice_field
 
   !-------------------------------------------------
   !                    Set up
@@ -301,15 +303,25 @@ program pinc_prog
   if(rayTracer) then
 
     ! allocate and initialize ray fields
-    call setup_wkb(ray, ray_var3D, var, diffusioncoeff, waveAmplitudes, dPhase)
+    call setup_wkb(ray, ray_var3D, var, diffusioncoeff, waveAmplitudes, &
+        &dPhase, ray_varIce, ray_cloud)
 
     if(include_ice) then
-      uTime = 0 !set initial time
-      !Init ofield to zero except omega, phi (2,3)
-      ofield(:, :, :, 1) = 0. !p_i(0)
-      ofield(:, :, :, 4:6) = 0.
-      call calc_ice(ray, var)
+      !* uTime = 0 !set initial time
+      call calc_ice(ray, var, ray_varIce, ray_cloud)
+      if(compute_cloudcover) then
+        allocate(sc_ice_field(nx * NSCX, ny * NSCY, nz * NSCZ), stat &
+            &= allocstat)
+        if(allocstat /= 0) stop "pinc.f90: could not allocate sc_ice_field"
+      end if
     end if
+  else
+    ! allocate ray_varice/ray_cloud for running with debug option
+    allocate(ray_varIce(0:1, 0:1, 0:1), stat = allocstat)
+    if(allocstat /= 0) stop "setup_wkb: could not allocate ray_varIce"
+    allocate(ray_cloud(0:1, 0:1, 0:1, NSCX, NSCY), stat = allocstat)
+    if(allocstat /= 0) stop "setup_wkb: could not allocate ray_cloud"
+
   end if
 
   !-------------------------------------------------
@@ -391,8 +403,13 @@ program pinc_prog
 
   ! write initial state to netCDF file
   if(rayTracer) then
-    call write_netCDF(iOut, iTime, time, cpuTime, var, waveAmplitudes &
-        &= waveAmplitudes)
+    if(include_ice .and. compute_cloudcover) then
+      call write_netCDF(iOut, iTime, time, cpuTime, var, waveAmplitudes &
+          &= waveAmplitudes, ray_cloud = ray_cloud, sc_ice_field = sc_ice_field)
+    else
+      call write_netCDF(iOut, iTime, time, cpuTime, var, waveAmplitudes &
+          &= waveAmplitudes)
+    end if
   else
     call write_netCDF(iOut, iTime, time, cpuTime, var)
   end if
@@ -457,6 +474,10 @@ program pinc_prog
           call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
               &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
               &= waveAmplitudes, ray = ray)
+        elseif(include_ice .and. compute_cloudcover) then
+          call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+              &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray, &
+              &ray_cloud = ray_cloud, sc_ice_field = sc_ice_field)
         else
           call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
               &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
@@ -509,6 +530,21 @@ program pinc_prog
     !   end do
     ! end if
 
+    ! Check for static instability.
+    ! if(topography) then
+    !   do k = 2, nz
+    !     do j = 1, ny
+    !       do i = 1, nx
+    !         if(pStratTFC(i, j, k) / (var(i, j, k, 1) + rhoStratTFC(i, j, k)) &
+    !             < pStratTFC(i, j, k - 1) / (var(i, j, k - 1, 1) &
+    !             + rhoStratTFC(i, j, k - 1))) then
+    !           print *, "Static instability at z =", heightTFC(i, j, k), "m"
+    !         end if
+    !       end do
+    !     end do
+    !   end do
+    ! end if
+
     !-----------------------------------------------------------------
     ! relaxation rate for
     ! (1) Rayleigh damping in land cells and
@@ -530,6 +566,8 @@ program pinc_prog
         end if
 
         spongeAlphaZ = spongeAlphaZ_dim * tRef
+
+        alphaUnifiedSponge = 0.0
 
         if(lateralSponge) then
           i00 = is + nbx - 1
@@ -709,8 +747,8 @@ program pinc_prog
             do j = 1, ny
               do i = 1, nx
                 if(zTFC(i, j, k) >= zSponge) then
-                  kr_sp_tfc(i, j, k) = alpspg * sin(0.5 * pi * (zTFC(i, &
-                      &j, k) - zSponge) / (lz(1) - zSponge)) ** 2.0
+                  kr_sp_tfc(i, j, k) = alpspg * sin(0.5 * pi * (zTFC(i, j, k) &
+                      &- zSponge) / (lz(1) - zSponge)) ** 2.0
                   kr_sp_w_tfc(i, j, k) = kr_sp_tfc(i, j, k) / jac(i, j, k)
                 end if
               end do
@@ -773,8 +811,8 @@ program pinc_prog
 
       if(rayTracer) then
         do RKstage = 1, nStages
+          !call calc_meanFlow_effect(ray, var, force, ray_var3D, time)
           call transport_rayvol(var, ray, dt, RKstage, time)
-
           if(RKstage == nStages) then
             call split_rayvol(ray)
             call shift_rayvol(ray)
@@ -783,14 +821,15 @@ program pinc_prog
 
             call calc_meanFlow_effect(ray, var, force, ray_var3D)
 
+            if(include_ice) then
+              call calc_ice(ray, var, ray_varIce, ray_cloud)
+            end if
+
             if(include_tracer) then
               call calc_tracerforce(ray, var, ray_var3D, tracerforce, &
                   &waveAmplitudes, dt)
             end if
 
-            if(include_ice) then
-              call calc_ice(ray, var)
-            end if
           end if
         end do
       end if
@@ -1226,6 +1265,10 @@ program pinc_prog
           call tracerUpdate(var, flux, tracerforce, dt, dTracer, RKstage)
         end if
 
+        !SD
+        !if(include_ice) call integrate_ice_advection(var, var0, flux, "lin", &
+        !    source, dt, dIce, RKstage, PStrat01, PStratTilde01)
+
         ! RK step for momentum
         call setHalos(var, "var")
         if(include_tracer) call setHalos(var, "tracer")
@@ -1235,10 +1278,6 @@ program pinc_prog
             &"expl", 1.)
 
         call applyUnifiedSponge(var, stepFrac(RKstage) * dt, time, "uvw")
-
-        !SD
-        !if(include_ice) call integrate_ice_advection(var, var0, flux, "lin", &
-        !    source, dt, dIce, RKstage, PStrat01, PStratTilde01)
 
       end do
 
@@ -1447,6 +1486,7 @@ program pinc_prog
         ! Lag Ray tracer (position-wavenumber space method)
 
         if(rayTracer) then
+
           call transport_rayvol(var, ray, dt, RKstage, time)
 
           if(RKstage == nStages) then
@@ -1454,7 +1494,6 @@ program pinc_prog
             call shift_rayvol(ray)
             call merge_rayvol(ray)
             call boundary_rayvol(ray)
-
             call calc_meanFlow_effect(ray, var, force, ray_var3D)
 
             if(include_tracer) then
@@ -1463,10 +1502,11 @@ program pinc_prog
             end if
 
             if(include_ice) then
-              call calc_ice(ray, var)
-            end if
-          end if
-        end if
+              call calc_ice(ray, var, ray_varIce, ray_cloud)
+            endif
+
+          end if ! RKstage=nstage
+        end if ! raytracer
 
         ! Reconstruction
 
@@ -1561,6 +1601,9 @@ program pinc_prog
           if(RKstage == 1) dTracer = 0.0
           call tracerUpdate(var, flux, tracerforce, dt, dTracer, RKstage)
         end if
+
+        !if(include_ice) call integrate_ice_advection(var, var0, flux, "lin", &
+        !    source, dt, dIce, RKstage, PStrat01, PStratTilde01)
 
         if(predictMomentum) then
           ! predictor: uStar
@@ -1675,7 +1718,7 @@ program pinc_prog
       end do Runge_Kutta_Loop
     end if ! timeScheme
 
-    ! integrate ice physics/advection with fixed dry dynamics
+    !explicit integration of ice physics/advection with fixed dry dynamics
     if(include_ice) then
 
       n_step_ice = ceiling(dt * tRef / dt_ice)
@@ -1683,13 +1726,18 @@ program pinc_prog
 
       do ii = 1, n_step_ice
         do RKstage = 1, nStages
+          !INTEGRATION OF ICE PHYSICS ONLY WITHOUT ADVECTION
+          !ADVECTION SHOULD BE INTEGRATED IN THE EXPL. /IMPLICIT PART
           call integrate_ice(var, var0, flux, "nln", source, dtt_ice, dIce, &
-              &RKstage, PStrat, PStratTilde, 'BOT', uTime, qTime)
+              &RKstage, PStrat, PStratTilde, 'PHY', uTime, qTime, ray_varIce, &
+              &ray_cloud)
         end do ! RKstage
       end do !ii
+
       if(master) then
-        print *, 'maxval', maxval(var%ICE(:, :, :, inN)), maxval(var%ICE(:, :, &
-            &:, inQ)), maxval(var%ICE(:, :, :, inQv))
+        print *, 'maxval N, Q, Qv', real(maxval(var%ICE(:, :, :, inN)), 4), &
+            &real(maxval(var%ICE(:, :, :, inQ)), 4), real(maxval(var%ICE(:, :, &
+            &:, inQv)), 4)
       end if
     end if !include_ice
 
@@ -1709,6 +1757,10 @@ program pinc_prog
             call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
                 &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
                 &= waveAmplitudes, ray = ray)
+          elseif(include_ice .and. compute_cloudcover) then
+            call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray, &
+                &ray_cloud = ray_cloud, sc_ice_field = sc_ice_field)
           else
             call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
                 &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
@@ -1729,10 +1781,15 @@ program pinc_prog
         end if
 
         if(rayTracer) then
+
           if(include_tracer) then
             call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
                 &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
                 &= waveAmplitudes, ray = ray)
+          elseif(include_ice .and. compute_cloudcover) then
+            call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+                &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray, &
+                &ray_cloud = ray_cloud, sc_ice_field = sc_ice_field)
           else
             call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
                 &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
