@@ -6,7 +6,6 @@ abstract type AbstractIntegration end
 struct BoundaryPredictands end
 struct BoundaryReconstructions end
 struct BoundaryFluxes end
-struct BoundaryGWForces end
 struct BoundaryGWIntegrals end
 struct BoundaryGWTendencies end
 struct Total end
@@ -80,7 +79,6 @@ export AbstractBackground,
 export BoundaryPredictands,
     BoundaryReconstructions,
     BoundaryFluxes,
-    BoundaryGWForces,
     BoundaryGWIntegrals,
     BoundaryGWTendencies,
     Total,
@@ -162,11 +160,11 @@ export DomainNamelist,
     Reconstructions,
     Fluxes,
     Variables,
+    GWIntegrals,
+    GWTendencies,
     Rays,
     Increments,
-    Integrals,
     SurfaceIndices,
-    Forces,
     WKB,
     State
 

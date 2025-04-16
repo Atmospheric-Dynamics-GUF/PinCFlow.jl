@@ -4,11 +4,11 @@ struct WKB{
     C <: Rays,
     D <: SurfaceIndices,
     E <: Increments,
-    F <: Integrals,
-    G <: AbstractVector{<:AbstractFloat},
-    H <: AbstractArray{<:AbstractFloat, 3},
-    I <: AbstractMatrix{<:AbstractFloat},
-    J <: Forces,
+    F <: GWIntegrals,
+    G <: GWTendencies,
+    H <: AbstractVector{<:AbstractFloat},
+    I <: AbstractArray{<:AbstractFloat, 3},
+    J <: AbstractMatrix{<:AbstractFloat},
 }
     nxray::A
     nyray::A
@@ -24,12 +24,12 @@ struct WKB{
     surface_indices::D
     increments::E
     integrals::F
-    cgx_max::G
-    cgy_max::G
-    cgz_max::H
-    zb::I
-    gwmomforce::J
-    diffusion::H
+    tendencies::G
+    cgx_max::H
+    cgy_max::H
+    cgz_max::I
+    zb::J
+    diffusion::I
 end
 
 function WKB(
@@ -55,11 +55,11 @@ function WKB(
         Rays(0, 0, 0, 0),
         SurfaceIndices(0, 0, 0),
         Increments(0, 0, 0, 0),
-        Integrals(0, 0, 0),
+        GWIntegrals(0, 0, 0),
+        GWTendencies(0, 0, 0),
         [zeros(0) for i in 1:2]...,
         zeros(0, 0, 0),
         zeros(0, 0),
-        Forces(0, 0, 0),
         zeros(0, 0, 0),
     )
 end
@@ -180,12 +180,12 @@ function WKB(
     rays = Rays(nray_wrk, nxx, nyy, nzz)
     surface_indices = SurfaceIndices(n_sfc, nxx, nyy)
     increments = Increments(nray_wrk, nxx, nyy, nzz)
-    integrals = Integrals(nxx, nyy, nzz)
+    integrals = GWIntegrals(nxx, nyy, nzz)
+    tendencies = GWTendencies(nxx, nyy, nzz)
     cgx_max = [0.0]
     cgy_max = [0.0]
     cgz_max = zeros(nxx, nyy, nzz)
     zb = zeros(nxx, nyy)
-    gwmomforce = Forces(nxx, nyy, nzz)
     diffusion = zeros(nxx, nyy, nzz)
 
     return WKB(
@@ -203,11 +203,11 @@ function WKB(
         surface_indices,
         increments,
         integrals,
+        tendencies,
         cgx_max,
         cgy_max,
         cgz_max,
         zb,
-        gwmomforce,
         diffusion,
     )
 end

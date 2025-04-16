@@ -85,7 +85,7 @@ function set_zonal_boundaries!(
     wkb_mode::Union{SteadyState, SingleColumn},
 )
     (; namelists, domain) = state
-    (; dudt, dvdt, dthetadt) = state.wkb.integrals
+    (; dudt, dvdt) = state.wkb.tendencies
 
     set_zonal_boundaries_of_reduced_field!(dudt, namelists, domain)
     set_zonal_boundaries_of_reduced_field!(dvdt, namelists, domain)
@@ -99,22 +99,11 @@ function set_zonal_boundaries!(
     wkb_mode::MultiColumn,
 )
     (; namelists, domain) = state
-    (; dudt, dvdt, dthetadt) = state.wkb.integrals
+    (; dudt, dvdt, dthetadt) = state.wkb.tendencies
 
     set_zonal_boundaries_of_reduced_field!(dudt, namelists, domain)
     set_zonal_boundaries_of_reduced_field!(dvdt, namelists, domain)
     set_zonal_boundaries_of_reduced_field!(dthetadt, namelists, domain)
-
-    return
-end
-
-function set_zonal_boundaries!(state::State, variables::BoundaryGWForces)
-    (; namelists, domain) = state
-    (; u, v, w) = state.wkb.gwmomforce
-
-    set_zonal_boundaries_of_reduced_field!(u, namelists, domain)
-    set_zonal_boundaries_of_reduced_field!(v, namelists, domain)
-    set_zonal_boundaries_of_reduced_field!(w, namelists, domain)
 
     return
 end
