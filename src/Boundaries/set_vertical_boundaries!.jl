@@ -162,7 +162,7 @@ function set_vertical_boundaries!(
     wkb_mode::Union{SteadyState, SingleColumn},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dudt, dvdt) = state.wkb.integrals
+    (; dudt, dvdt) = state.wkb.tendencies
 
     for jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
         dudt[ix, jy, k0 - 1] = dudt[ix, jy, k0]
@@ -181,7 +181,7 @@ function set_vertical_boundaries!(
     wkb_mode::MultiColumn,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dudt, dvdt, dthetadt) = state.wkb.integrals
+    (; dudt, dvdt, dthetadt) = state.wkb.tendencies
 
     for jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
         dudt[ix, jy, k0 - 1] = dudt[ix, jy, k0]
@@ -190,26 +190,6 @@ function set_vertical_boundaries!(
         dvdt[ix, jy, k1 + 1] = dvdt[ix, jy, k1]
         dthetadt[ix, jy, k0 - 1] = dthetadt[ix, jy, k0]
         dthetadt[ix, jy, k1 + 1] = dthetadt[ix, jy, k1]
-    end
-
-    return
-end
-
-function set_vertical_boundaries!(
-    state::State,
-    variables::BoundaryGWForces,
-    boundaries::SolidWallBoundaries,
-)
-    (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; u, v, w) = state.wkb.gwmomforce
-
-    for jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
-        u[ix, jy, k0 - 1] = u[ix, jy, k0]
-        u[ix, jy, k1 + 1] = u[ix, jy, k1]
-        v[ix, jy, k0 - 1] = v[ix, jy, k0]
-        v[ix, jy, k1 + 1] = v[ix, jy, k1]
-        w[ix, jy, k0 - 1] = w[ix, jy, k0]
-        w[ix, jy, k1 + 1] = w[ix, jy, k1]
     end
 
     return

@@ -1,6 +1,6 @@
-function compute_integrals!(state::State, mode::MultiColumn)
+function compute_gw_integrals!(state::State, mode::MultiColumn)
     (; domain, grid) = state
-    (; sizex, sizey, nbx, nby, nbz) = state.namelists.domain
+    (; sizex, sizey) = state.namelists.domain
     (; f_coriolis_dim) = state.namelists.atmosphere
     (; branchr) = state.namelists.wkb
     (; tref) = state.constants
@@ -12,7 +12,9 @@ function compute_integrals!(state::State, mode::MultiColumn)
     # Set Coriolis parameter.
     f_cor_nd = f_coriolis_dim * tref
 
-    set_integrals_to_zero!(integrals)
+    for field in fieldnames(GWIntegrals)
+        getfield(integrals, field) .= 0.0
+    end
 
     for kzrv in (k0 - 1):(k1 + 1),
         jyrv in (j0 - 1):(j1 + 1),
@@ -169,22 +171,21 @@ function compute_integrals!(state::State, mode::MultiColumn)
     end
 end
 
-function compute_integrals!(
+function compute_gw_integrals!(
     state::State,
     mode::Union{SingleColumn, SteadyState},
 )
-
-    # steady_state or single_column
-    # only calculate integrals.uw, vw, and e
     (; domain, grid) = state
-    (; nbx, nby, nbz, i0, i1, j0, j1, k0, k1, io, jo) = state.domain
+    (; i0, i1, j0, j1, k0, k1, io, jo) = state.domain
     (; lx, ly, dx, dy, dz, ztildetfc, jac) = state.grid
     (; sizex, sizey) = state.namelists.domain
     (; branchr) = state.namelists.wkb
     (; nray, rays, integrals) = state.wkb
     (; f_cor_nd) = state.atmosphere
 
-    set_integrals_to_zero!(integrals)
+    for field in fieldnames(GWIntegrals)
+        getfield(integrals, field) .= 0.0
+    end
 
     for kzrv in (k0 - 1):(k1 + 1),
         jyrv in (j0 - 1):(j1 + 1),

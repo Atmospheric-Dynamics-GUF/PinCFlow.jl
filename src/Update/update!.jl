@@ -442,7 +442,7 @@ function update!(
         uhorx = u[i, j, k]
 
         # Update wind.
-        uast = uhorx + dt * (-pigrad + volfcx)
+        uast = uhorx + dt * (-pigrad + volfcx / rhou)
         u[i, j, k] = uast
     end
 
@@ -527,7 +527,7 @@ function update!(
         end
 
         # Update wind.
-        uast = 1.0 / facu * (uhorx + dt * (-pigradx + volfcx))
+        uast = 1.0 / facu * (uhorx + dt * (-pigradx + volfcx / rhou))
         u[i, j, k] = uast
     end
 
@@ -673,7 +673,7 @@ function update!(
         vhory = v[i, j, k]
 
         # Update wind.
-        vast = vhory + dt * (-pigrad + volfcy)
+        vast = vhory + dt * (-pigrad + volfcy / rhov)
         v[i, j, k] = vast
     end
 
@@ -758,7 +758,7 @@ function update!(
         end
 
         # Update wind.
-        vast = 1.0 / facv * (vhory + dt * (-pigrady + volfcy))
+        vast = 1.0 / facv * (vhory + dt * (-pigrady + volfcy / rhov))
         v[i, j, k] = vast
     end
 
@@ -1024,7 +1024,7 @@ function update!(
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         # Update wind.
-        wast = wvert + dt * (buoy - pigrad + volfcz)
+        wast = wvert + dt * (buoy - pigrad + volfcz / rhow)
         w[i, j, k] = wast
     end
 
@@ -1159,7 +1159,7 @@ function update!(
             1.0 / (facw + rhostratedgeu / rhow * bvsstw * dt^2.0) * (
                 wvert - dt * pigrad +
                 dt * buoy +
-                dt * volfcz +
+                dt * volfcz / rhow +
                 rhostratedgeu / rhow *
                 bvsstw *
                 dt^2.0 *
