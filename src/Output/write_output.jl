@@ -87,7 +87,7 @@ function write_output(
         # Write the mass-weighted potential temperature.
         if iout == 1
             @views file["p"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz] =
-                rhostrattfc[i0:i1, j0:j1, k0:k1] .* rhoref .* thetaref
+                pstrattfc[i0:i1, j0:j1, k0:k1] .* rhoref .* thetaref
         end
 
         # Write the density fluctuations.
