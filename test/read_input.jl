@@ -26,7 +26,8 @@ output = OutputNamelist(;
     outputtimediff = 3.6E+3,
     maxtime = 3.6E+3,
     fancy_namelists = true,
-    folder = "./",
+    input_file = "./pincflow_input.h5",
+    output_file = "./pincflow_output.h5",
 )
 setting = SettingNamelist(;
     model = PseudoIncompressible(),
@@ -82,7 +83,6 @@ namelists = Namelists(;
 )
 
 @testset "Read input" begin
-
     state = State(namelists)
     (; k0, k1, i0, i1, j0, j1) = state.domain
     (; sizex, sizey, sizez) = state.namelists.domain
@@ -119,7 +119,8 @@ namelists = Namelists(;
         output_variables = (),
         restart = true,
         iin = 2,
-        folder = "./",
+        input_file = "./pincflow_output.h5",
+        output_file = "./pincflow_output.h5",
     )
     in_state = PinCFlow.State(
         Namelists(;
@@ -135,7 +136,7 @@ namelists = Namelists(;
         ),
     )
 
-    t = PinCFlow.read_input!(in_state, input_file = "./pincflow_output.h5")
+    t = PinCFlow.read_input!(in_state)
 
     # check that fields match **inside** grid
     (; i0, i1, j0, j1, k0, k1) = in_state.domain
