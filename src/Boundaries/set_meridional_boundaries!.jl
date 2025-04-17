@@ -99,8 +99,8 @@ function set_meridional_boundaries!(
     (; namelists, domain) = state
     (; dudt, dvdt) = state.wkb.tendencies
 
-    set_meridional_boundaries_of_reduced_field!(dudt, namelists, domain)
-    set_meridional_boundaries_of_reduced_field!(dvdt, namelists, domain)
+    set_meridional_boundaries_of_field!(dudt, namelists, domain)
+    set_meridional_boundaries_of_field!(dvdt, namelists, domain)
 
     return
 end
@@ -113,9 +113,9 @@ function set_meridional_boundaries!(
     (; namelists, domain) = state
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
 
-    set_meridional_boundaries_of_reduced_field!(dudt, namelists, domain)
-    set_meridional_boundaries_of_reduced_field!(dvdt, namelists, domain)
-    set_meridional_boundaries_of_reduced_field!(dthetadt, namelists, domain)
+    set_meridional_boundaries_of_field!(dudt, namelists, domain)
+    set_meridional_boundaries_of_field!(dvdt, namelists, domain)
+    set_meridional_boundaries_of_field!(dthetadt, namelists, domain)
 
     return
 end
