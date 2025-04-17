@@ -193,14 +193,14 @@ function smooth_gw_tendencies!(
 )
     (; nbz) = state.namelists.domain
     (; nsmth_wkb) = state.namelists.wkb
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; nxx, nyy, k0, k1) = state.domain
 
     if nbz < nsmth_wkb
         error("Error in smooth_gw_tendencies!: nbz < nsmth_wkb!")
     end
 
     input = copy(output)
-    for j in j0:j1, i in i0:i1
+    for j in 1:nyy, i in 1:nxx
         @views smooth_gw_tendencies!(
             input[i, j, :],
             output[i, j, :],
@@ -220,14 +220,14 @@ function smooth_gw_tendencies!(
 )
     (; nby) = state.namelists.domain
     (; nsmth_wkb) = state.namelists.wkb
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; nxx, nzz, j0, j1) = state.domain
 
     if nby < nsmth_wkb
         error("Error in smooth_gw_tendencies!: nby < nsmth_wkb!")
     end
 
     input = copy(output)
-    for k in k0:k1, i in i0:i1
+    for k in 1:nzz, i in 1:nxx
         @views smooth_gw_tendencies!(
             input[i, :, k],
             output[i, :, k],
@@ -247,14 +247,14 @@ function smooth_gw_tendencies!(
 )
     (; nbx) = state.namelists.domain
     (; nsmth_wkb) = state.namelists.wkb
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; nyy, nzz, i0, i1) = state.domain
 
     if nbx < nsmth_wkb
         error("Error in smooth_gw_tendencies!: nbx < nsmth_wkb!")
     end
 
     input = copy(output)
-    for k in k0:k1, j in j0:j1
+    for k in 1:nzz, j in 1:nyy
         @views smooth_gw_tendencies!(
             input[:, j, k],
             output[:, j, k],
