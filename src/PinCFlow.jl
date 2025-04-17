@@ -47,6 +47,6 @@ export SteadyState, SingleColumn, MultiColumn
 export Clip, Scale
 
 # Export integration function.
-export integrate
+export integrate, State
 
 end
