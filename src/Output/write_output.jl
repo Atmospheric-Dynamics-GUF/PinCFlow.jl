@@ -8,7 +8,7 @@ function write_output(
     # Get all necessary fields.
     (; domain, grid) = state
     (; sizex, sizey, sizez) = state.namelists.domain
-    (; prepare_restart, save_ray_volumes, output_variables, folder) =
+    (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
     (; testcase) = state.namelists.setting
     (; comm, master, nx, ny, nz, io, jo, i0, i1, j0, j1, k0, k1) = domain
@@ -42,7 +42,7 @@ function write_output(
     end
 
     # Open the file. Note: Fused in-place assignments cannot be used here!
-    h5open(folder * "/pincflow_output.h5", "r+", comm) do file
+    h5open(output_file, "r+", comm) do file
 
         # Write the time.
         HDF5.set_extent_dims(file["t"], (iout,))

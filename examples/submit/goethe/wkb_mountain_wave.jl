@@ -2,10 +2,10 @@ include("../../../src/PinCFlow.jl")
 
 using .PinCFlow
 
-folder =
+output_file =
     "/scratch/atmodynamics/" *
     readchomp(`whoami`) *
-    "/pinc/examples/wkb_mountain_wave/"
+    "/pinc/examples/wkb_mountain_wave/pincflow_output.h5"
 
 domain = DomainNamelist(;
     sizex = 40,
@@ -32,7 +32,8 @@ output = OutputNamelist(;
     outputtimediff = 3.6E+3,
     maxtime = 3.6E+3,
     fancy_namelists = true,
-    folder = folder,
+    input_file = "./pincflow_input.h5",
+    output_file = output_file,
 )
 
 setting = SettingNamelist(;

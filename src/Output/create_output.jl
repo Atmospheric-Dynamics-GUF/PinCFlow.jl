@@ -1,14 +1,14 @@
 function create_output(state::State)
     # Get all necessary fields.
     (; sizex, sizey, sizez) = state.namelists.domain
-    (; prepare_restart, save_ray_volumes, output_variables, folder) =
+    (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
     (; testcase) = state.namelists.setting
     (; comm, nx, ny, nz) = state.domain
     (; nray_max) = state.wkb
 
     # Prepare the output.
-    h5open(folder * "/pincflow_output.h5", "w", comm) do file
+    h5open(output_file, "w", comm) do file
 
         # Create datasets for the dimensions.
         create_dataset(file, "x", datatype(Float32), dataspace((sizex,)))

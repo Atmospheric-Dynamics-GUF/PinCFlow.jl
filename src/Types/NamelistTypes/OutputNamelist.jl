@@ -16,7 +16,8 @@ struct OutputNamelist{
     outputtimediff::D
     maxtime::D
     fancy_namelists::B
-    folder::E
+    input_file::E
+    output_file::E
 end
 
 function OutputNamelist(;
@@ -31,7 +32,8 @@ function OutputNamelist(;
     outputtimediff = 3.6E+3,
     maxtime = 3.6E+3,
     fancy_namelists = true,
-    folder = "./",
+    input_file = "./pincflow_input.h5",
+    output_file = "./pincflow_output.h5",
 )
     return OutputNamelist(
         output_variables,
@@ -45,6 +47,7 @@ function OutputNamelist(;
         outputtimediff,
         maxtime,
         fancy_namelists,
-        folder,
+        input_file,
+        output_file,
     )
 end
