@@ -3,6 +3,12 @@ module Update
 using MPI
 using ..Types
 
+struct Cartesian end
+struct TFC end
+
+struct LHS end
+struct RHS end
+
 include("apply_unified_sponge!.jl")
 include("compute_sponge!.jl")
 include("compute_stress_tensor.jl")
@@ -19,6 +25,6 @@ export apply_unified_sponge!,
     compute_time_step,
     compute_vertical_wind,
     update!,
-    synchronize_density_fluctuations!
-
+    synchronize_density_fluctuations!,
+    LHS, RHS
 end
