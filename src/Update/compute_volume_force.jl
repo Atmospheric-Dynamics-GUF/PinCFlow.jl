@@ -46,7 +46,7 @@ function compute_volume_force(
 )
     (; met) = state.grid
     (; dudt, dvdt) = state.wkb.tendencies
-    (; ix, jy, kz) = indices
+    (ix, jy, kz) = indices
     return (
         met[ix, jy, kz, 1, 3] * dudt[ix, jy, kz] +
         met[ix, jy, kz, 2, 3] * dvdt[ix, jy, kz] +
