@@ -1,8 +1,8 @@
-function read_input!(state::State; input_file = nothing)
+function read_input!(state::State)
 
     # Get all necessary fields.
     (; sizex, sizey) = state.namelists.domain
-    (; iin, folder) = state.namelists.output
+    (; iin, input_file) = state.namelists.output
     (; testcase) = state.namelists.setting
     (; comm, nx, ny, nz, io, jo, i0, i1, j0, j1, k0, k1) = state.domain
     (; lref, tref, rhoref, uref) = state.constants
@@ -17,11 +17,6 @@ function read_input!(state::State; input_file = nothing)
     if sizey > 1
         dim += 1
     end
-
-    if isnothing(input_file)
-        input_file = folder * "/pincflow_input.h5"
-    end
-
 
     # Open the file. Note: Fused in-place assignments cannot be used here!
     time = h5open(input_file, "r", comm) do file

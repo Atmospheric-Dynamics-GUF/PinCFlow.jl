@@ -23,7 +23,8 @@ output = OutputNamelist(;
     outputtimediff = 3.6E+3,
     maxtime = 3.6E+3,
     fancy_namelists = true,
-    folder = "./",
+    input_file = "./pincflow_input.h5",
+    output_file = "./pincflow_output.h5",
 )
 
 setting = SettingNamelist(;
