@@ -5,7 +5,7 @@ function compute_gw_integrals!(state::State, mode::MultiColumn)
     (; branchr) = state.namelists.wkb
     (; tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = domain
-    (; lx, ly, dx, dy, dz, ztildetfc, jac) = grid
+    (; dx, dy, dz, x, y, ztildetfc, jac) = grid
     (; rhostrattfc, thetastrattfc) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
 
@@ -21,7 +21,7 @@ function compute_gw_integrals!(state::State, mode::MultiColumn)
         ixrv in (i0 - 1):(i1 + 1)
 
         for iray in 1:nray[ixrv, jyrv, kzrv]
-            if rays.dens[iray, ixrv, jyrv, kzrv] == 0.0
+            if rays.dens[iray, ixrv, jyrv, kzrv] == 0
                 continue
             end
 
@@ -43,7 +43,6 @@ function compute_gw_integrals!(state::State, mode::MultiColumn)
 
             khr = sqrt(kr^2 + lr^2)
 
-            # squared Brunt-Vaisala frequency
             n2r = interpolate_stratification(zr, state, N2())
 
             omir =
@@ -60,8 +59,8 @@ function compute_gw_integrals!(state::State, mode::MultiColumn)
             for ix in ixmin:ixmax
                 if sizex > 1
                     dxi = (
-                        min((xr + dxr / 2), (lx[1] + (ix + io) * dx)) -
-                        max((xr - dxr / 2), (lx[1] + (ix + io - 1) * dx))
+                        min(xr + dxr / 2, x[io + ix] + dx / 2) -
+                        max(xr - dxr / 2, x[io + ix] - dx / 2)
                     )
 
                     fcpspx = dkr * dxi / dx
@@ -72,8 +71,8 @@ function compute_gw_integrals!(state::State, mode::MultiColumn)
                 for jy in jymin:jymax
                     if sizey > 1
                         dyi = (
-                            min((yr + dyr / 2), (ly[1] + (jy + jo) * dy)) -
-                            max((yr - dyr / 2), (ly[1] + (jy + jo - 1) * dy))
+                            min(yr + dyr / 2, y[jo + jy] + dy / 2) -
+                            max(yr - dyr / 2, y[jo + jy] - dy / 2)
                         )
 
                         fcpspy = dlr * dyi / dy
@@ -100,12 +99,12 @@ function compute_gw_integrals!(state::State, mode::MultiColumn)
                             rays.dens[iray, ixrv, jyrv, kzrv]
 
                         if sizex > 1
-                            if f_cor_nd != 0.0
+                            if f_cor_nd != 0
                                 integrals.uu[ix, jy, kz] +=
                                     wadr * (
                                         kr * cgirx -
                                         (kr * cgirx + lr * cgiry) /
-                                        (1.0 - (omir / f_cor_nd)^2)
+                                        (1 - (omir / f_cor_nd)^2)
                                     )
                             else
                                 integrals.uu[ix, jy, kz] += wadr * kr * cgirx
@@ -117,15 +116,15 @@ function compute_gw_integrals!(state::State, mode::MultiColumn)
                         end
 
                         integrals.uw[ix, jy, kz] +=
-                            wadr * kr * cgirz / (1.0 - (f_cor_nd / omir)^2)
+                            wadr * kr * cgirz / (1 - (f_cor_nd / omir)^2)
 
                         if sizey > 1
-                            if f_cor_nd != 0.0
+                            if f_cor_nd != 0
                                 integrals.vv[ix, jy, kz] +=
                                     wadr * (
                                         lr * cgiry -
                                         (kr * cgirx + lr * cgiry) /
-                                        (1.0 - (omir / f_cor_nd)^2)
+                                        (1 - (omir / f_cor_nd)^2)
                                     )
                             else
                                 integrals.vv[ix, jy, kz] += wadr * lr * cgiry
@@ -133,9 +132,9 @@ function compute_gw_integrals!(state::State, mode::MultiColumn)
                         end
 
                         integrals.vw[ix, jy, kz] +=
-                            wadr * lr * cgirz / (1.0 - (f_cor_nd / omir)^2)
+                            wadr * lr * cgirz / (1 - (f_cor_nd / omir)^2)
 
-                        if f_cor_nd != 0.0
+                        if f_cor_nd != 0
                             integrals.etx[ix, jy, kz] +=
                                 wadr * f_cor_nd^2 * n2r * kr * mr / (
                                     rhostrattfc[ix, jy, kz] *
@@ -160,7 +159,7 @@ function compute_gw_integrals!(state::State, mode::MultiColumn)
         end
     end
 
-    if f_cor_nd != 0.0
+    if f_cor_nd != 0
         for kz in k0:k1, jy in j0:j1, ix in i0:i1
             integrals.utheta[ix, jy, kz] =
                 thetastrattfc[ix, jy, kz] / f_cor_nd * integrals.ety[ix, jy, kz]
@@ -192,7 +191,7 @@ function compute_gw_integrals!(
         ixrv in (i0 - 1):(i1 + 1)
 
         for iray in 1:nray[ixrv, jyrv, kzrv]
-            if rays.dens[iray, ixrv, jyrv, kzrv] == 0.0
+            if rays.dens[iray, ixrv, jyrv, kzrv] == 0
                 continue
             end
 
@@ -214,7 +213,6 @@ function compute_gw_integrals!(
 
             khr = sqrt(kr^2 + lr^2)
 
-            # squared Brunt-Vaisala frequency
             n2r = interpolate_stratification(zr, state, N2())
 
             omir =
@@ -229,8 +227,8 @@ function compute_gw_integrals!(
             for ix in ixmin:ixmax
                 if sizex > 1
                     dxi = (
-                        min((xr + dxr / 2), (lx[1] + (ix + io) * dx)) -
-                        max((xr - dxr / 2), (lx[1] + (ix + io - 1) * dx))
+                        min(xr + dxr / 2, x[io + ix] + dx / 2) -
+                        max(xr - dxr / 2, x[io + ix] - dx / 2)
                     )
 
                     fcpspx = dkr * dxi / dx
@@ -241,8 +239,8 @@ function compute_gw_integrals!(
                 for jy in jymin:jymax
                     if sizey > 1
                         dyr = (
-                            min((yr + dyr / 2), (ly[1] + (jy + jo) * dy)) -
-                            max((yr - dyr / 2), (ly[1] + (jy + jo - 1) * dy))
+                            min(yr + dyr / 2, y[jo + jy] + dy / 2) -
+                            max(yr - dyr / 2, y[jo + jy] - dy / 2)
                         )
 
                         fcpspy = dlr * dyi / dy
@@ -269,10 +267,10 @@ function compute_gw_integrals!(
                             rays.dens[iray, ixrv, jyrv, kzrv]
 
                         integrals.uw[ix, jy, kz] +=
-                            wadr * kr * cgirz / (1.0 - (f_cor_nd / omir)^2)
+                            wadr * kr * cgirz / (1 - (f_cor_nd / omir)^2)
 
                         integrals.vw[ix, jy, kz] +=
-                            wadr * lr * cgirz / (1.0 - (f_cor_nd / omir)^2)
+                            wadr * lr * cgirz / (1 - (f_cor_nd / omir)^2)
 
                         integrals.e[ix, jy, kz] += wadr * omir
                     end

@@ -31,8 +31,8 @@ function compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
         end
 
     else
-        ixmin = 1
-        ixmax = 1
+        ixmin = i0
+        ixmax = i0
     end
 
     if sizey > 1
@@ -61,8 +61,8 @@ function compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
             jymax = min(jymax, j1)
         end
     else
-        jymin = 1
-        jymax = 1
+        jymin = j0
+        jymax = j0
     end
 
     return (ixmin, ixmax, jymin, jymax)

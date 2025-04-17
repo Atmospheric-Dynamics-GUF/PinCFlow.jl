@@ -161,14 +161,15 @@ function set_vertical_boundaries!(
     boundaries::SolidWallBoundaries,
     wkb_mode::Union{SteadyState, SingleColumn},
 )
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; nbz) = state.namelists.domain
+    (; k0, k1) = state.domain
     (; dudt, dvdt) = state.wkb.tendencies
 
-    for jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
-        dudt[ix, jy, k0 - 1] = dudt[ix, jy, k0]
-        dudt[ix, jy, k1 + 1] = dudt[ix, jy, k1]
-        dvdt[ix, jy, k0 - 1] = dvdt[ix, jy, k0]
-        dvdt[ix, jy, k1 + 1] = dvdt[ix, jy, k1]
+    for kz in 1:nbz
+        @views dudt[:, :, k0 - kz] .= dudt[:, :, k0 + kz - 1]
+        @views dudt[:, :, k1 + kz] .= dudt[:, :, k1 - kz + 1]
+        @views dvdt[:, :, k0 - kz] .= dvdt[:, :, k0 + kz - 1]
+        @views dvdt[:, :, k1 + kz] .= dvdt[:, :, k1 - kz + 1]
     end
 
     return
@@ -180,16 +181,17 @@ function set_vertical_boundaries!(
     boundaries::SolidWallBoundaries,
     wkb_mode::MultiColumn,
 )
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; nbz) = state.namelists.domain
+    (; k0, k1) = state.domain
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
 
-    for jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
-        dudt[ix, jy, k0 - 1] = dudt[ix, jy, k0]
-        dudt[ix, jy, k1 + 1] = dudt[ix, jy, k1]
-        dvdt[ix, jy, k0 - 1] = dvdt[ix, jy, k0]
-        dvdt[ix, jy, k1 + 1] = dvdt[ix, jy, k1]
-        dthetadt[ix, jy, k0 - 1] = dthetadt[ix, jy, k0]
-        dthetadt[ix, jy, k1 + 1] = dthetadt[ix, jy, k1]
+    for kz in 1:nbz
+        @views dudt[:, :, k0 - kz] .= dudt[:, :, k0 + kz - 1]
+        @views dudt[:, :, k1 + kz] .= dudt[:, :, k1 - kz + 1]
+        @views dvdt[:, :, k0 - kz] .= dvdt[:, :, k0 + kz - 1]
+        @views dvdt[:, :, k1 + kz] .= dvdt[:, :, k1 - kz + 1]
+        @views dthetadt[:, :, k0 - kz] .= dthetadt[:, :, k0 + kz - 1]
+        @views dthetadt[:, :, k1 + kz] .= dthetadt[:, :, k1 - kz + 1]
     end
 
     return
