@@ -1,4 +1,4 @@
-function read_input!(state::State)
+function read_input!(state::State; input_file = nothing)
 
     # Get all necessary fields.
     (; sizex, sizey) = state.namelists.domain
@@ -18,8 +18,13 @@ function read_input!(state::State)
         dim += 1
     end
 
+    if isnothing(input_file)
+        input_file = folder * "/pincflow_input.h5"
+    end
+
+
     # Open the file. Note: Fused in-place assignments cannot be used here!
-    time = h5open(folder * "/pincflow_input.h5", "r", comm) do file
+    time = h5open(input_file, "r", comm) do file
 
         # Read the time.
         time = file["t"][iin] / tref
@@ -85,6 +90,17 @@ function read_input!(state::State)
                     1:nz,
                     iin,
                 ] ./ rhoref ./ uref .^ 2 ./ tref ./ lref .^ dim
+
+            # delete zero density ray volumes and set n_rays
+            @views indx = sortperm(rays.dens[1:nray_max, i0:i1, j0:j1, k0:k1], dims = 1, rev=true)
+
+            for field_name in (:x, :y, :z, :dxray, :dyray, :dzray, :k, :l, :m, :dkray, :dlray, :dmray, :dens)
+                getfield(rays, field_name)[1:nray_max, i0:i1, j0:j1, k0:k1] = getfield(rays, field_name)[1:nray_max, i0:i1, j0:j1, k0:k1][indx]
+            end
+
+            nray = findfirst.(x -> x <= 0, eachslice(rays.dens[1:nray_max, i0:i1, j0:j1, k0:k1], dims=tuple(2:ndims(rays.dens)...)))
+            nray = map(x -> ifelse(isnothing(x), nray_max + 1, x), nray) .- 1
+            state.wkb.nray[i0:i1, j0:j1, k0:k1] .= nray
         end
 
         # Return.
