@@ -71,7 +71,7 @@ function shift_rays!(state::State, direction::X)
         for iray in 1:nray[ixrv, jyrv, kzrv]
             if rays.dens[iray, ixrv, jyrv, kzrv] != 0.0
                 xr = rays.x[iray, ixrv, jyrv, kzrv]
-                ix = round(Int, (xr - lx[1] - dx / 2) / dx) + i0 - io
+                ix = floor(Int, (xr - lx[1]) / dx) + i0 - io
 
                 if ix != ixrv
                     if i0 <= ix <= i1
@@ -105,7 +105,7 @@ function shift_rays!(state::State, direction::Y)
         for iray in 1:nray[ixrv, jyrv, kzrv]
             if rays.dens[iray, ixrv, jyrv, kzrv] != 0.0
                 yr = rays.y[iray, ixrv, jyrv, kzrv]
-                jy = round(Int, (yr - ly[1] - dy / 2) / dy) + j0 - jo
+                jy = floor(Int, (yr - ly[1]) / dy) + j0 - jo
 
                 if jy != jyrv
                     if j0 <= jy <= j1
