@@ -17,7 +17,7 @@ function write_output(
     (; rhostrattfc, thetastrattfc, bvsstrattfc, pstrattfc) = state.atmosphere
     (; predictands) = state.variables
     (; rho, u, v, w, pip) = predictands
-    (; nray_max, rays) = state.wkb
+    (; nray_max, rays, tendencies) = state.wkb
 
     # Print information.
     if master
@@ -256,20 +256,20 @@ function write_output(
                 )
                     HDF5.set_extent_dims(
                         file[output_name],
-                        (nray_max, sizex, sizey, sizez, iout),
+                        (nray_max, sizex, sizey, sizez + 2, iout),
                     )
                     @views file[output_name][
                         1:nray_max,
                         (io + 1):(io + nx),
                         (jo + 1):(jo + ny),
-                        1:nz,
+                        1:(nz + 2),
                         iout,
                     ] =
                         getfield(rays, field_name)[
                             1:nray_max,
                             i0:i1,
                             j0:j1,
-                            k0:k1,
+                            (k0 - 1):(k1 + 1),
                         ] .* lref
                 end
 
@@ -279,36 +279,61 @@ function write_output(
                 )
                     HDF5.set_extent_dims(
                         file[output_name],
-                        (nray_max, sizex, sizey, sizez, iout),
+                        (nray_max, sizex, sizey, sizez + 2, iout),
                     )
                     @views file[output_name][
                         1:nray_max,
                         (io + 1):(io + nx),
                         (jo + 1):(jo + ny),
-                        1:nz,
+                        1:(nz + 2),
                         iout,
                     ] =
                         getfield(rays, field_name)[
                             1:nray_max,
                             i0:i1,
                             j0:j1,
-                            k0:k1,
+                            (k0 - 1):(k1 + 1),
                         ] ./ lref
                 end
 
                 HDF5.set_extent_dims(
                     file["nr"],
-                    (nray_max, sizex, sizey, sizez, iout),
+                    (nray_max, sizex, sizey, sizez + 2, iout),
                 )
                 @views file["nr"][
                     1:nray_max,
                     (io + 1):(io + nx),
                     (jo + 1):(jo + ny),
-                    1:nz,
+                    1:(nz + 2),
                     iout,
                 ] =
-                    rays.dens[1:nray_max, i0:i1, j0:j1, k0:k1] .* rhoref .*
-                    uref .^ 2 .* tref .* lref .^ dim
+                    rays.dens[1:nray_max, i0:i1, j0:j1, (k0 - 1):(k1 + 1)] .*
+                    rhoref .* uref .^ 2 .* tref .* lref .^ dim
+            end
+
+            # Write GW tendencies.
+            for (field, scaling) in zip(
+                (:dudt, :dvdt, :dthetadt),
+                (
+                    rhoref * uref / tref,
+                    rhoref * uref / tref,
+                    rhoref * thetaref / tref,
+                ),
+            )
+                if field in output_variables
+                    HDF5.set_extent_dims(
+                        file[string(field)],
+                        (sizex, sizey, sizez, iout),
+                    )
+                    @views file[string(field)][
+                        (io + 1):(io + nx),
+                        (jo + 1):(jo + ny),
+                        1:nz,
+                        iout,
+                    ] =
+                        getfield(tendencies, field)[i0:i1, j0:j1, k0:k1] .*
+                        scaling
+                end
             end
         end
 
