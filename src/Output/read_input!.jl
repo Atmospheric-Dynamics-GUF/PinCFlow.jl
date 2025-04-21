@@ -53,12 +53,17 @@ function read_input!(state::State)
                 ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
                 (:x, :y, :z, :dxray, :dyray, :dzray),
             )
-                @views getfield(rays, field_name)[1:nray_max, i0:i1, j0:j1, k0:k1] =
+                @views getfield(rays, field_name)[
+                    1:nray_max,
+                    i0:i1,
+                    j0:j1,
+                    (k0 - 1):(k1 + 1),
+                ] =
                     file[output_name][
                         1:nray_max,
                         (io + 1):(io + nx),
                         (jo + 1):(jo + ny),
-                        1:nz,
+                        1:(nz + 2),
                         iin,
                     ] ./ lref
             end
@@ -67,35 +72,76 @@ function read_input!(state::State)
                 ("kr", "lr", "mr", "dkr", "dlr", "dmr"),
                 (:k, :l, :m, :dkray, :dlray, :dmray),
             )
-                @views getfield(rays, field_name)[1:nray_max, i0:i1, j0:j1, k0:k1] =
+                @views getfield(rays, field_name)[
+                    1:nray_max,
+                    i0:i1,
+                    j0:j1,
+                    (k0 - 1):(k1 + 1),
+                ] =
                     file[output_name][
                         1:nray_max,
                         (io + 1):(io + nx),
                         (jo + 1):(jo + ny),
-                        1:nz,
+                        1:(nz + 2),
                         iin,
                     ] .* lref
             end
 
-            @views rays.dens[1:nray_max, i0:i1, j0:j1, k0:k1] =
+            @views rays.dens[1:nray_max, i0:i1, j0:j1, (k0 - 1):(k1 + 1)] =
                 file["nr"][
                     1:nray_max,
                     (io + 1):(io + nx),
                     (jo + 1):(jo + ny),
-                    1:nz,
+                    1:(nz + 2),
                     iin,
                 ] ./ rhoref ./ uref .^ 2 ./ tref ./ lref .^ dim
 
             # delete zero density ray volumes and set n_rays
-            @views indx = sortperm(rays.dens[1:nray_max, i0:i1, j0:j1, k0:k1], dims = 1, rev=true)
+            @views indx = sortperm(
+                rays.dens[1:nray_max, i0:i1, j0:j1, (k0 - 1):(k1 + 1)];
+                dims = 1,
+                rev = true,
+            )
 
-            for field_name in (:x, :y, :z, :dxray, :dyray, :dzray, :k, :l, :m, :dkray, :dlray, :dmray, :dens)
-                getfield(rays, field_name)[1:nray_max, i0:i1, j0:j1, k0:k1] = getfield(rays, field_name)[1:nray_max, i0:i1, j0:j1, k0:k1][indx]
+            for field_name in (
+                :x,
+                :y,
+                :z,
+                :dxray,
+                :dyray,
+                :dzray,
+                :k,
+                :l,
+                :m,
+                :dkray,
+                :dlray,
+                :dmray,
+                :dens,
+            )
+                getfield(rays, field_name)[
+                    1:nray_max,
+                    i0:i1,
+                    j0:j1,
+                    (k0 - 1):(k1 + 1),
+                ] = getfield(rays, field_name)[
+                    1:nray_max,
+                    i0:i1,
+                    j0:j1,
+                    (k0 - 1):(k1 + 1),
+                ][indx]
             end
 
-            nray = findfirst.(x -> x <= 0, eachslice(rays.dens[1:nray_max, i0:i1, j0:j1, k0:k1], dims=tuple(2:ndims(rays.dens)...)))
-            nray = map(x -> ifelse(isnothing(x), nray_max + 1, x), nray) .- 1
-            state.wkb.nray[i0:i1, j0:j1, k0:k1] .= nray
+            nray =
+                findfirst.(
+                    x -> x <= 0,
+                    eachslice(
+                        rays.dens[1:nray_max, i0:i1, j0:j1, (k0 - 1):(k1 + 1)];
+                        dims = tuple(2:ndims(rays.dens)...),
+                    ),
+                )
+            nray =
+                map(x -> ifelse(isnothing(x), nray_max + 1, x), nray) .- 1
+            state.wkb.nray[i0:i1, j0:j1, (k0 - 1):(k1 + 1)] .= nray
         end
 
         # Return.
