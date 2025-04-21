@@ -165,26 +165,26 @@ function integrate(namelists::Namelists)
         compute_sponge!(state, dt)
 
         #-----------------------------------------------------------------
-        #                       Apply saturation scheme
+        #                           MS-GWaM
         #-----------------------------------------------------------------
 
         apply_saturation_scheme!(state, dt)
+
+        for rkstage in 1:nstages
+            propagate_rays!(state, dt, rkstage)
+        end
+
+        split_rays!(state)
+        shift_rays!(state)
+        merge_rays!(state)
+        set_boundary_rays!(state)
+
+        compute_mean_flow_effect!(state)
 
         #---------------------------------------------------------------
         #                   Semi-implicit time scheme
         #---------------------------------------------------------------
 
-        # Run MS-GWaM.
-        for rkstage in 1:nstages
-            propagate_rays!(state, dt, rkstage)
-        end
-        split_rays!(state)
-        shift_rays!(state)
-        merge_rays!(state)
-        set_boundary_rays!(state)
-        compute_mean_flow_effect!(state)
-
-        # Synchronization of density fluctuations
         synchronize_density_fluctuations!(state)
 
         set_boundaries!(state, BoundaryPredictands())
