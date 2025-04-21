@@ -5,6 +5,9 @@ using ..Types
 using ..MPIOperations
 using ..Boundaries
 
+struct Total end
+struct Horizontal end
+
 include("apply_bicgstab!.jl")
 include("apply_corrector!.jl")
 include("apply_operator!.jl")
