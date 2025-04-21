@@ -113,7 +113,7 @@ function split_rays!(
         if nray[ix, jy, kz] > nray_wrk
             error(
                 "Error in split_rays!: nray",
-                [ix, iy, iz],
+                [ix, jy, iz],
                 " > nray_wrk = ",
                 nray_wrk,
             )
@@ -156,7 +156,7 @@ function split_rays!(
         if nray[ix, jy, kz] > nray_wrk
             error(
                 "Error in split_rays!: nray",
-                [ix, iy, iz],
+                [ix, jy, iz],
                 " > nray_wrk = ",
                 nray_wrk,
             )
@@ -214,7 +214,7 @@ function split_rays!(
         if nray[ix, jy, kz] > nray_wrk
             error(
                 "Error in split_rays!: nray",
-                [ix, iy, iz],
+                [ix, jy, iz],
                 " > nray_wrk = ",
                 nray_wrk,
             )
