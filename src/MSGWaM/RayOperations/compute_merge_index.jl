@@ -20,7 +20,8 @@ function compute_merge_index(
         if abs(log(wnr / wnr_max_p) / dwnr_mrg_p) < 1
             iray = nray - 1
         else
-            iray = round(Int, log(wnr / wnr_min_p) / dwnr_mrg_p) + nray / 2 + 1
+            iray =
+                round(Int, log(wnr / wnr_min_p) / dwnr_mrg_p) + div(nray, 2) + 1
         end
     end
 

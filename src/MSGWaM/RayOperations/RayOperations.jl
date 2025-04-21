@@ -1,6 +1,5 @@
 module RayOperations
 
-using StaticArrays
 using ...Types
 using ..Interpolation
 
@@ -11,14 +10,15 @@ include("compute_intrinsic_frequency.jl")
 include("compute_merge_index.jl")
 include("compute_saturation_integrals.jl")
 include("compute_spectral_bounds.jl")
+include("compute_wave_action_integral.jl")
 include("copy_rays!.jl")
 include("get_physical_extent.jl")
 include("get_physical_position.jl")
 include("get_spectral_extent.jl")
 include("get_spectral_position.jl")
 include("get_surfaces.jl")
-include("merge_wave_action.jl")
 include("remove_rays!.jl")
+include("update_merged_rays!.jl")
 
 export MergedRays,
     check_rays,
@@ -26,6 +26,7 @@ export MergedRays,
     compute_merge_index,
     compute_saturation_integrals,
     compute_spectral_bounds,
+    compute_wave_action_integral,
     copy_rays!,
     get_physical_extent,
     get_physical_position,
@@ -33,6 +34,7 @@ export MergedRays,
     get_spectral_position,
     get_surfaces,
     merge_wave_action,
-    remove_rays!
+    remove_rays!,
+    update_merged_rays!
 
 end

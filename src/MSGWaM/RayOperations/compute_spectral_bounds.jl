@@ -1,35 +1,54 @@
 function compute_spectral_bounds(wavenumbers::AbstractVector{<:AbstractFloat})
 
+    # Initialize minima and maxima.
+    krminp = 0.0
+    krmaxp = 0.0
+    krminn = 0.0
+    krmaxn = 0.0
+
     # Compute minima and maxima.
-    @views min_p = minimum(wavenumbers[wavenumbers .> 0.0]; init = 0.0)
-    @views max_p = maximum(wavenumbers[wavenumbers .> 0.0]; init = 0.0)
-    @views min_n = minimum(-wavenumbers[wavenumbers .< 0.0]; init = 0.0)
-    @views max_n = maximum(-wavenumbers[wavenumbers .< 0.0]; init = 0.0)
+    for kr in wavenumbers
+        if kr > 0
+            if krminp == 0
+                krminp = kr
+            else
+                krminp = min(krminp, kr)
+            end
+            krmaxp = max(krmaxp, kr)
+        elseif kr < 0
+            if krminn == 0
+                krminn = -kr
+            else
+                krminn = min(krminn, -kr)
+            end
+            krmaxn = max(krmaxn, -kr)
+        end
+    end
 
     # Adjust bounds that are zero.
-    if min_p == max_p == min_n == max_n == 0.0
-        min_p = 1.0
-        max_p = 2.0
-        min_n = 1.0
-        max_n = 2.0
-    elseif min_p == max_p == 0.0
-        min_p = min_n
-        max_p = max_n
-    elseif min_n == max_n == 0.0
-        min_n = min_p
-        max_n = max_p
+    if krminp == krmaxp == krminn == krmaxn == 0
+        krminp = 1.0
+        krmaxp = 2.0
+        krminn = 1.0
+        krmaxn = 2.0
+    elseif krminp == krmaxp == 0
+        krminp = krminn
+        krmaxp = krmaxn
+    elseif krminn == krmaxn == 0
+        krminn = krminp
+        krmaxn = krmaxp
     end
 
     # Prevent zero-width intervals.
-    if min_n == max_n
-        min_n /= 2
-        max_n *= 2
+    if krminn == krmaxn
+        krminn /= 2
+        krmaxn *= 2
     end
-    if min_p == max_p
-        min_p /= 2
-        max_p *= 2
+    if krminp == krmaxp
+        krminp /= 2
+        krmaxp *= 2
     end
 
     # Return.
-    return (min_p, max_p, min_n, max_n)
+    return (krminp, krmaxp, krminn, krmaxn)
 end
