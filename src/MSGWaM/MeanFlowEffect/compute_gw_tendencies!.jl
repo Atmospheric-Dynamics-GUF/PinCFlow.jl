@@ -1,9 +1,10 @@
 function compute_gw_tendencies!(state)
     (; sizex, sizey) = state.namelists.domain
     (; f_coriolis_dim) = state.namelists.atmosphere
-    (; tref) = state.constants
+    (; zmin_wkb_dim) = state.namelists.wkb
+    (; tref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, jac, met) = state.grid
+    (; lz, dx, dy, dz, ztfc, jac, met) = state.grid
     (; rhostrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
     (; integrals, tendencies) = state.wkb
@@ -11,7 +12,15 @@ function compute_gw_tendencies!(state)
     # Set the Coriolis parameter.
     f_cor_nd = f_coriolis_dim * tref
 
+    for field in fieldnames(GWTendencies)
+        getfield(tendencies, field) .= 0.0
+    end
+
     for kz in k0:k1, jy in j0:j1, ix in i0:i1
+        if ztfc[ix, jy, kz] < lz[1] + zmin_wkb_dim / lref
+            continue
+        end
+
         rhotot = rho[ix, jy, kz] + rhostrattfc[ix, jy, kz]
 
         # Compute the drag on the zonal wind.
