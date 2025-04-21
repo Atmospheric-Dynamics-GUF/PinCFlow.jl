@@ -11,7 +11,7 @@ function apply_corrector!(
     (; dpip) = state.variables.tendencies
     (; k0, k1) = domain
 
-    # Initialize RHS and tolerance.
+    # Initialize RHS.
     rhs .= 0.0
 
     # Calculate RHS and tolreance reference.
