@@ -165,10 +165,26 @@ function create_output(state::State)
                         field,
                         datatype(Float32),
                         dataspace(
-                            (nray_max, sizex, sizey, sizez, 0),
-                            (nray_max, sizex, sizey, sizez, -1),
+                            (nray_max, sizex, sizey, sizez + 2, 0),
+                            (nray_max, sizex, sizey, sizez + 2, -1),
                         );
-                        chunk = (nray_max, nx, ny, nz, 1),
+                        chunk = (nray_max, nx, ny, nz + 2, 1),
+                    )
+                end
+            end
+
+            # Create datasets for GW tendencies.
+            for field in (:dudt, :dvdt, :dthetadt)
+                if field in output_variables
+                    create_dataset(
+                        file,
+                        string(field),
+                        datatype(Float32),
+                        dataspace(
+                            (sizex, sizey, sizez, 0),
+                            (sizex, sizey, sizez, -1),
+                        );
+                        chunk = (nx, ny, nz, 1),
                     )
                 end
             end
