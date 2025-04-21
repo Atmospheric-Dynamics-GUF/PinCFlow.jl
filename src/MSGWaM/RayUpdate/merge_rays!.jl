@@ -29,7 +29,8 @@ function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
     # Initialize array for merged ray volumes.
-    merged_rays = [MergedRays() for i in 1:nray_max]
+    merged_rays =
+        [MergedRays([[0.0, 0.0] for i in 1:6]..., Ref(0.0)) for i in 1:nray_max]
 
     # Loop over grid cells.
     for kz in k0:k1, jy in j0:j1, ix in i0:i1
@@ -64,6 +65,11 @@ function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
             compute_spectral_bounds(rays.m[1:nray[ix, jy, kz], ix, jy, kz])
         dmr_mrg_n = log(mr_max_n / mr_min_n) / (nzray / 2 - 1)
         dmr_mrg_p = log(mr_max_p / mr_min_p) / (nzray / 2 - 1)
+
+        # Reset the merged ray volumes.
+        for iray in 1:nray_max
+            merged_rays[iray].nr[] = 0.0
+        end
 
         # Loop over ray volumes.
         for iray in 1:nray[ix, jy, kz]
@@ -144,9 +150,10 @@ function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
             end
 
             # Generate the merged ray volumes.
-            merged_rays[jray] = MergedRays(
+            update_merged_rays!(
                 merge_mode,
-                merged_rays[jray],
+                merged_rays,
+                jray,
                 xr,
                 dxr,
                 yr,
@@ -167,10 +174,15 @@ function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
             )
         end
 
-        # Replace ray volumes.
+        # Reset the old ray volumes.
+        for field in fieldnames(Rays)
+            @views getfield(rays, field)[:, ix, jy, kz] .= 0.0
+        end
+
+        # Construct the merged ray volumes.
         iray = 0
         for jray in 1:nray_max
-            if merged_rays[jray].nr == 0
+            if merged_rays[jray].nr[] == 0
                 continue
             end
 
@@ -192,8 +204,7 @@ function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
             rays.dlray[iray, ix, jy, kz] = diff(merged_rays[jray].lr)[1]
             rays.dmray[iray, ix, jy, kz] = diff(merged_rays[jray].mr)[1]
 
-            (axk, ayl, azm) =
-                get_surfaces(rays, (iray, ix, jy, kz))
+            (axk, ayl, azm) = get_surfaces(rays, (iray, ix, jy, kz))
 
             omegar = compute_intrinsic_frequency(state, (iray, ix, jy, kz))
 
@@ -211,13 +222,14 @@ function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
 
             fcpspz = azm
 
-            if merge_mode == ConstantWaveAction()
-                rays.dens[iray, ix, jy, kz] =
-                    merged_rays[jray].nr / (fcpspx * fcpspy * fcpspz)
-            elseif merge_mode == ConstantWaveEnergy()
-                rays.dens[iray, ix, jy, kz] =
-                    merged_rays[jray].nr / (omegar * fcpspx * fcpspy * fcpspz)
-            end
+            rays.dens[iray, ix, jy, kz] = compute_wave_action_integral(
+                merge_mode,
+                merged_rays[jray].nr[],
+                1 / omegar,
+                1 / fcpspx,
+                1 / fcpspy,
+                1 / fcpspz,
+            )
         end
         nray[ix, jy, kz] = iray
     end
