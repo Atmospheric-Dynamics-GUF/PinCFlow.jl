@@ -201,9 +201,9 @@ function smooth_gw_tendencies!(
 
     input = copy(output)
     for j in 1:nyy, i in 1:nxx
-        @views smooth_gw_tendencies!(
-            input[i, j, :],
+        @views shapiro_filter!(
             output[i, j, :],
+            input[i, j, :],
             (k0, k1),
             Val(nsmth_wkb),
         )
@@ -228,9 +228,9 @@ function smooth_gw_tendencies!(
 
     input = copy(output)
     for k in 1:nzz, i in 1:nxx
-        @views smooth_gw_tendencies!(
-            input[i, :, k],
+        @views shapiro_filter!(
             output[i, :, k],
+            input[i, :, k],
             (j0, j1),
             Val(nsmth_wkb),
         )
@@ -255,79 +255,13 @@ function smooth_gw_tendencies!(
 
     input = copy(output)
     for k in 1:nzz, j in 1:nyy
-        @views smooth_gw_tendencies!(
-            input[:, j, k],
+        @views shapiro_filter!(
             output[:, j, k],
+            input[:, j, k],
             (i0, i1),
             Val(nsmth_wkb),
         )
     end
 
-    return
-end
-
-function smooth_gw_tendencies!(
-    input::AbstractVector{<:AbstractFloat},
-    output::AbstractVector{<:AbstractFloat},
-    bounds::NTuple{2, <:Integer},
-    order::Val{1},
-)
-    for i in bounds[1]:bounds[2]
-        output[i] = (input[i - 1] + input[i + 1] + 2 * input[i]) / 4
-    end
-    return
-end
-
-function smooth_gw_tendencies!(
-    input::AbstractVector{<:AbstractFloat},
-    output::AbstractVector{<:AbstractFloat},
-    bounds::NTuple{2, <:Integer},
-    order::Val{2},
-)
-    for i in bounds[1]:bounds[2]
-        output[i] =
-            (
-                -input[i - 2] - input[i + 2] +
-                4 * (input[i - 1] + input[i + 1]) +
-                10 * input[i]
-            ) / 16
-    end
-    return
-end
-
-function smooth_gw_tendencies!(
-    input::AbstractVector{<:AbstractFloat},
-    output::AbstractVector{<:AbstractFloat},
-    bounds::NTuple{2, <:Integer},
-    order::Val{3},
-)
-    for i in bounds[1]:bounds[2]
-        output[i] =
-            (
-                input[i - 3] + input[i + 3] -
-                6 * (input[i - 2] + input[i + 2]) +
-                15 * (input[i - 1] + input[i + 1]) +
-                44 * input[i]
-            ) / 64
-    end
-    return
-end
-
-function smooth_gw_tendencies!(
-    input::AbstractVector{<:AbstractFloat},
-    output::AbstractVector{<:AbstractFloat},
-    bounds::NTuple{2, <:Integer},
-    order::Val{4},
-)
-    for i in bounds[1]:bounds[2]
-        output[i] =
-            (
-                -input[i - 4] - input[i + 4] +
-                8 * (input[i - 3] + input[i + 3]) -
-                28 * (input[i - 2] + input[i + 2]) +
-                56 * (input[i - 1] + input[i + 1]) +
-                186 * input[i]
-            ) / 256
-    end
     return
 end
