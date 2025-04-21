@@ -60,8 +60,8 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
         ixmin = i0
         ixmax = i1
     else
-        ixmin = max(i0, round(Int, (xrmin - lx[1] - dx / 2) / dx) + i0 - io)
-        ixmax = min(i1, round(Int, (xrmax - lx[1] - dx / 2) / dx) + i0 - io)
+        ixmin = max(i0, floor(Int, (xrmin - lx[1]) / dx) + i0 - io)
+        ixmax = min(i1, floor(Int, (xrmax - lx[1]) / dx) + i0 - io)
     end
 
     # Set meridional index bounds.
@@ -69,8 +69,8 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
         jymin = j0
         jymax = j1
     else
-        jymin = max(j0, round(Int, (yrmin - ly[1] - dy / 2) / dy) + j0 - jo)
-        jymax = min(j1, round(Int, (yrmax - ly[1] - dy / 2) / dy) + j0 - jo)
+        jymin = max(j0, floor(Int, (yrmin - ly[1]) / dy) + j0 - jo)
+        jymax = min(j1, floor(Int, (yrmax - ly[1]) / dy) + j0 - jo)
     end
 
     # Set vertical index bounds.
