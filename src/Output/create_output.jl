@@ -159,7 +159,6 @@ function create_output(state::State)
                     "dlr",
                     "dmr",
                     "nr",
-                    "omegar",
                 )
                     create_dataset(
                         file,
