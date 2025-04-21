@@ -3,6 +3,7 @@ module MeanFlowEffect
 using ...Types
 using ...Boundaries
 using ..Interpolation
+using ..RayUpdate
 
 include("compute_gw_integrals!.jl")
 include("compute_gw_tendencies!.jl")
