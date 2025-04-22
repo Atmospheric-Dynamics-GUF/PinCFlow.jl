@@ -5616,7 +5616,7 @@ module wkb_module
 
             if(dzr > dzmin) then
               factor = ceiling(dzr / dzmin)
-              ray(iRay, ix, jy, kz)%z = zr + 0.5 * (1 / factor - 1) * dzr
+              ray(iRay, ix, jy, kz)%z = zr + 0.5 * (1.0 / factor - 1.0) * dzr
               ray(iRay, ix, jy, kz)%dzray = dzr / factor
               ray(iRay, ix, jy, kz)%area_zm = azm / factor
 
