@@ -5,7 +5,6 @@ using ..Types
 
 struct Cartesian end
 struct TFC end
-
 struct LHS end
 struct RHS end
 
@@ -19,12 +18,14 @@ include("transform.jl")
 include("update!.jl")
 include("synchronize_density_fluctuations!.jl")
 
+export LHS, RHS
+
 export apply_unified_sponge!,
     compute_sponge!,
     compute_stress_tensor,
     compute_time_step,
     compute_vertical_wind,
     update!,
-    synchronize_density_fluctuations!,
-    LHS, RHS
+    synchronize_density_fluctuations!
+
 end
