@@ -223,7 +223,7 @@ function propagate_rays!(
 
                 # Update extents in x and k.
 
-                if (sizex > 1 && kz > k0 - 1 && wkb_mode != SingleColumn())
+                if (sizex > 1 && kz >= k0 && wkb_mode != SingleColumn())
                     ddxdt = cgrx2 - cgrx1
 
                     ddxray[iray, ix, jy, kz] =
@@ -242,7 +242,7 @@ function propagate_rays!(
 
                 # Update extents in y and l.
 
-                if (sizey > 1 && kz > k0 - 1 && wkb_mode != SingleColumn())
+                if (sizey > 1 && kz >= k0 && wkb_mode != SingleColumn())
                     ddydt = cgry2 - cgry1
 
                     ddyray[iray, ix, jy, kz] =

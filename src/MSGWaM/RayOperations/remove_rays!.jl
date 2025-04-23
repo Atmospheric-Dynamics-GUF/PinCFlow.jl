@@ -10,7 +10,7 @@ function remove_rays!(state::State)
             if rays.dens[iray, ix, jy, kz] == 0
                 continue
             end
-            nrlc = nrlc + 1
+            nrlc += 1
             copy_rays!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
         end
         nray[ix, jy, kz] = nrlc
