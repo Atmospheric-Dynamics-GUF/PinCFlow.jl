@@ -103,12 +103,6 @@ function Domain(namelists::Namelists)
     if master && nprocx * nprocy != nproc
         error("Error in Domain: nprocx * nprocy != nproc!")
     end
-    if master && sizex % nprocx != 0
-        error("Error in Domain: sizex % nprocx != 0!")
-    end
-    if master && sizey % nprocy != 0
-        error("Error in Domain: sizey % nprocy != 0!")
-    end
     if master && nprocx > 1 && nbx > div(sizex, nprocx)
         error("Error in Domain: nprocx > 1 && nbx > div(sizex, nprocx)!")
     end
@@ -126,8 +120,16 @@ function Domain(namelists::Namelists)
     coords = MPI.Cart_coords(comm, rank)
 
     # Set local grid size.
-    nx = div(sizex, nprocx)
-    ny = div(sizey, nprocy)
+    if coords[1] == nprocx - 1
+        nx = div(sizex, nprocx) + sizex % nprocx
+    else
+        nx = div(sizex, nprocx)
+    end
+    if coords[2] == nprocy - 1
+        ny = div(sizey, nprocy) + sizey % nprocy
+    else
+        ny = div(sizey, nprocy)
+    end
     nz = sizez
 
     # Set grid sizes with boundary cells.
@@ -139,8 +141,8 @@ function Domain(namelists::Namelists)
     sizezz = sizez + 2 * nbz
 
     # Set index offsets.
-    io = coords[1] * nx
-    jo = coords[2] * ny
+    io = coords[1] * div(sizex, nprocx)
+    jo = coords[2] * div(sizey, nprocy)
 
     # Set index bounds.
     i0 = nbx + 1
