@@ -1,4 +1,4 @@
-function shapiro_filter!(
+function apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
     bounds::NTuple{2, <:Integer},
@@ -10,7 +10,7 @@ function shapiro_filter!(
     return
 end
 
-function shapiro_filter!(
+function apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
     bounds::NTuple{2, <:Integer},
@@ -27,7 +27,7 @@ function shapiro_filter!(
     return
 end
 
-function shapiro_filter!(
+function apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
     bounds::NTuple{2, <:Integer},
@@ -45,7 +45,7 @@ function shapiro_filter!(
     return
 end
 
-function shapiro_filter!(
+function apply_shapiro_filter!(
     output::AbstractVector{<:AbstractFloat},
     input::AbstractVector{<:AbstractFloat},
     bounds::NTuple{2, <:Integer},

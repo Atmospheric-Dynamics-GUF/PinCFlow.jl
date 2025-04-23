@@ -20,8 +20,9 @@ include("get_surfaces.jl")
 include("remove_rays!.jl")
 include("update_merged_rays!.jl")
 
-export MergedRays,
-    check_rays,
+export MergedRays
+
+export check_rays,
     compute_intrinsic_frequency,
     compute_merge_index,
     compute_saturation_integrals,

@@ -18,6 +18,12 @@ include("set_zonal_boundaries_of_field!.jl")
 include("set_zonal_boundaries_of_reduced_field!.jl")
 include("set_zonal_boundaries!.jl")
 
+export BoundaryPredictands,
+    BoundaryReconstructions,
+    BoundaryFluxes,
+    BoundaryGWIntegrals,
+    BoundaryGWTendencies
+
 export set_boundaries!,
     set_meridional_boundaries_of_field!,
     set_meridional_boundaries_of_reduced_field!,
@@ -25,10 +31,6 @@ export set_boundaries!,
     set_vertical_boundaries!,
     set_zonal_boundaries_of_field!,
     set_zonal_boundaries_of_reduced_field!,
-    set_zonal_boundaries!,
-    BoundaryPredictands,
-    BoundaryReconstructions,
-    BoundaryFluxes,
-    BoundaryGWIntegrals,
-    BoundaryGWTendencies
+    set_zonal_boundaries!
+
 end
