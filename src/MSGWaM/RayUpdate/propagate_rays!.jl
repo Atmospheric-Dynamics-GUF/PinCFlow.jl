@@ -336,10 +336,10 @@ function propagate_rays!(
     # Loop over grid cells.
     for kz in k0:k1, jy in j0:j1, ix in i0:i1
 
-        # ! Set ray-volume count.
+        # Set the ray-volume count.
         nray[ix, jy, kz] = nray[ix, jy, kz - 1]
 
-        # ! Set up saturation computation.
+        # Set up the saturation integrals.
         integral1 = 0.0
         integral2 = 0.0
         m2b2 = 0.0
@@ -348,7 +348,7 @@ function propagate_rays!(
         # Loop over ray volumes.
         for iray in 1:nray[ix, jy, kz]
 
-            # Prepare ray volume.
+            # Prepare the ray volume.
             copy_rays!(rays, (iray, ix, jy, kz - 1), (iray, ix, jy, kz))
 
             # Skip modes with zero wave-action density.
@@ -356,31 +356,32 @@ function propagate_rays!(
                 continue
             end
 
-            # Set vertical position (and extent).
+            # Set the vertical position (and extent).
             rays.z[iray, ix, jy, kz] =
-                ztildetfc[ix, jy, kz - 1] + rays.z[iray, ix, jy, kz - 1] -
-                ztildetfc[ix, jy, kz - 2] / jac[ix, jy, kz - 1] *
-                jac[ix, jy, kz]
+                ztildetfc[ix, jy, kz - 1] +
+                (rays.z[iray, ix, jy, kz - 1] - ztildetfc[ix, jy, kz - 2]) /
+                jac[ix, jy, kz - 1] * jac[ix, jy, kz]
             rays.dzray[iray, ix, jy, kz] =
                 rays.dzray[iray, ix, jy, kz - 1] * jac[ix, jy, kz] /
                 jac[ix, jy, kz - 1]
 
-            # Get horizontal wavenumbers.
+            # Get the horizontal wavenumbers.
             (kr, lr, mr) = get_spectral_position(rays, (iray, ix, jy, kz))
             khr = sqrt(kr^2 + lr^2)
 
-            # Set reference level.
+            # Set the reference level.
             kz0 = max(k0, kz - 1)
 
-            # Compute vertical group velocity at the level below.
+            # Compute the vertical group velocity at the level below.
             n2r = interpolate_stratification(
                 rays.z[iray, ix, jy, kz0],
                 state,
                 N2(),
             )
-            omir = compute_intrinsic_frequency(state, (iray, ix, jy, kz0))
-
-            if branchr * omir > f_cor_nd && branchr * omir < sqrt(n2r)
+            omir =
+                -(u[ix, jy, kz0] + u[ix - 1, jy, kz0]) / 2 * kr -
+                (v[ix, jy, kz0] + v[ix, jy - 1, kz0]) / 2 * lr
+            if f_cor_nd < branchr * omir < sqrt(n2r)
                 mr = rays.m[iray, ix, jy, kz0]
                 cgirz0 =
                     mr * (f_cor_nd^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
@@ -390,8 +391,7 @@ function propagate_rays!(
                 continue
             end
 
-            # Compute local intrinsic frequency, vertical
-            # wavenumber and vertical group velocity.
+            # Compute the local vertical wavenumber and vertical group velocity.
             n2r = interpolate_stratification(
                 rays.z[iray, ix, jy, kz],
                 state,
@@ -400,7 +400,7 @@ function propagate_rays!(
             omir =
                 -(u[ix, jy, kz] + u[ix - 1, jy, kz]) / 2 * kr -
                 (v[ix, jy, kz] + v[ix, jy - 1, kz]) / 2 * lr
-            if (branchr * omir > f_cor_nd && branchr * omir < sqrt(n2r))
+            if f_cor_nd < branchr * omir < sqrt(n2r)
                 mr =
                     -branchr *
                     sqrt(khr^2 * (n2r - omir^2) / (omir^2 - f_cor_nd^2))
@@ -412,14 +412,12 @@ function propagate_rays!(
                 continue
             end
 
-            # Set local intrinsic frequency and vertical wavenumber.
+            # Set the local vertical wavenumber.
             rays.m[iray, ix, jy, kz] = mr
 
-            # Set local wave action density.
+            # Set the local wave action density.
             if (spongelayer && unifiedsponge)
-                xr = rays.x[iray, ix, jy, kz]
-                yr = rays.y[iray, ix, jy, kz]
-                zr = rays.z[iray, ix, jy, kz]
+                (xr, yr, zr) = get_physical_position(rays, (iray, ix, jy, kz))
                 alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
                 rays.dens[iray, ix, jy, kz] =
                     1 / (
@@ -434,35 +432,33 @@ function propagate_rays!(
                     cgirz0 * rays.dens[iray, ix, jy, kz0] / cgirz
             end
 
-            # Cycle if saturation scheme is turned off.
+            # Cycle if the saturation scheme is turned off.
             if !lsaturation
                 continue
             end
 
-            # Get ray volume extents.
+            # Get the ray volume extents.
             (dxr, dyr, dzr) = get_physical_extent(rays, (iray, ix, jy, kz))
             (dkr, dlr, dmr) = get_spectral_extent(rays, (iray, ix, jy, kz))
 
-            # Compute phase space factor.
+            # Compute the phase space factor.
             dzi = min(dzr, jac[ix, jy, kz] * dz)
             facpsp = dzi / jac[ix, jy, kz] / dz * dmr
-
             if sizex > 1
                 dxi = min(dxr, dx)
-                facpsp = facpsp * dxi / dx * dkr
+                facpsp *= dxi / dx * dkr
             end
             if sizey > 1
                 dyi = min(dyr, dy)
-                facpsp = facpsp * dyi / dy * dlr
+                facpsp *= dyi / dy * dlr
             end
 
-            # ! Update saturation amplitude.
+            # Compute the saturation integrals.
             integral1 = khr^2 * mr^2 / ((khr^2 + mr^2) * omir) * facpsp
             m2b2 +=
                 2 * n2r^2 / rhostrattfc[ix, jy, kz] *
                 integral1 *
                 rays.dens[iray, ix, jy, kz]
-
             integral2 = khr^2 * mr^2 / omir * facpsp
             m2b2k2 +=
                 2 * n2r^2 / rhostrattfc[ix, jy, kz] *
@@ -472,15 +468,15 @@ function propagate_rays!(
                 dz / cgirz
         end
 
-        # Compute diffusion coefficient
+        # Compute the diffusion coefficient
         n2r = interpolate_stratification(ztfc[ix, jy, kz], state, N2())
-        if m2b2k2 == 0.0 || m2b2 < alpha_sat^2 * n2r^2
+        if m2b2k2 == 0 || m2b2 < alpha_sat^2 * n2r^2
             diffusion = 0.0
         else
             diffusion = (m2b2 - alpha_sat^2 * n2r^2) / (2 * m2b2k2)
         end
 
-        # Reduce wave action density.
+        # Reduce the wave action density.
         for iray in 1:nray[ix, jy, kz]
             if !lsaturation
                 continue
@@ -488,17 +484,17 @@ function propagate_rays!(
             if rays.dens[iray, ix, jy, kz] == 0
                 continue
             end
-            kr = rays.k[iray, ix, jy, kz]
-            lr = rays.l[iray, ix, jy, kz]
-            mr = rays.m[iray, ix, jy, kz]
+            (kr, lr, mr) = get_spectral_position(rays, (iray, ix, jy, kz))
             khr = sqrt(kr^2 + lr^2)
             n2r = interpolate_stratification(
                 rays.z[iray, ix, jy, kz],
                 state,
                 N2(),
             )
-            omir = compute_intrinsic_frequency(state, (iray, ix, jy, kz))
-            if (branchr * omir > f_cor_nd && branchr * omir < sqrt(n2r))
+            omir =
+                -(u[ix, jy, kz] + u[ix - 1, jy, kz]) / 2 * kr -
+                (v[ix, jy, kz] + v[ix, jy - 1, kz]) / 2 * lr
+            if f_cor_nd < branchr * omir < sqrt(n2r)
                 cgirz =
                     mr * (f_cor_nd^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
@@ -506,22 +502,12 @@ function propagate_rays!(
                 rays.dens[iray, ix, jy, kz] = 0.0
                 continue
             end
-            rays.dens[iray, ix, jy, kz] =
-                rays.dens[iray, ix, jy, kz] * max(
-                    0,
-                    1 -
-                    jac[ix, jy, kz] * dz / cgirz *
-                    2 *
-                    diffusion *
-                    (khr^2 + mr^2),
-                )
+            rays.dens[iray, ix, jy, kz] *= max(
+                0,
+                1 -
+                jac[ix, jy, kz] * dz / cgirz * 2 * diffusion * (khr^2 + mr^2),
+            )
         end
-    end
-    if sizex > 1
-        set_zonal_boundary_rays!(state)
-    end
-    if sizey > 1
-        set_zonal_boundary_rays!(state)
     end
 
     return

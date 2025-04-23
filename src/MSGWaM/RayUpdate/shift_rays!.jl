@@ -26,7 +26,7 @@ function shift_rays!(state::State, wkb_mode::SingleColumn)
     set_vertical_boundary_rays!(state, zboundaries)
     remove_rays!(state)
 
-    check_ray_volumes(state)
+    check_rays(state)
 
     return
 end
