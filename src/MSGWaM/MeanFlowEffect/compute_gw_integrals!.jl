@@ -240,7 +240,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
 
                 for jy in jymin:jymax
                     if sizey > 1
-                        dyr = (
+                        dyi = (
                             min(yr + dyr / 2, y[jo + jy] + dy / 2) -
                             max(yr - dyr / 2, y[jo + jy] - dy / 2)
                         )
@@ -312,12 +312,16 @@ end
 
 function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
     (; domain, grid) = state
+    (; f_coriolis_dim) = state.namelists.atmosphere
+    (; tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = state.domain
-    (; dx, dy, dz, ztildetfc, jac) = state.grid
+    (; dx, dy, dz, x, y, ztildetfc, jac) = state.grid
     (; sizex, sizey) = state.namelists.domain
     (; branchr) = state.namelists.wkb
     (; nray, rays, integrals) = state.wkb
-    (; f_cor_nd) = state.atmosphere
+
+    # Set Coriolis parameter.
+    f_cor_nd = f_coriolis_dim * tref
 
     for field in fieldnames(GWIntegrals)
         getfield(integrals, field) .= 0.0
@@ -375,7 +379,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
 
                 for jy in jymin:jymax
                     if sizey > 1
-                        dyr = (
+                        dyi = (
                             min(yr + dyr / 2, y[jo + jy] + dy / 2) -
                             max(yr - dyr / 2, y[jo + jy] - dy / 2)
                         )
