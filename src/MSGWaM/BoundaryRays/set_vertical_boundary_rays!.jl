@@ -7,9 +7,6 @@ function set_vertical_boundary_rays!(
     (; nray, rays) = state.wkb
 
     for kz in k0:k1, jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
-        if nray[ix, jy, kz] <= 0
-            continue
-        end
         nrlc = 0
         for iray in 1:nray[ix, jy, kz]
             zr = rays.z[iray, ix, jy, kz]
@@ -31,14 +28,16 @@ function set_vertical_boundary_rays!(
             yr = rays.y[iray, ix, jy, kz]
             ixrv = floor(Int, (xr - lx[1]) / dx) + i0 - io
             jyrv = floor(Int, (yr - ly[1]) / dy) + j0 - jo
-            if zr - 0.5 * dzr < ztildetfc[ixrv, jyrv, k0 - 1]
+            if ztildetfc[ixrv, jyrv, k0 - 1] - zr + 0.5 * dzr > eps()
                 rays.z[iray, ix, jy, kz] =
                     2.0 * ztildetfc[ixrv, jyrv, k0 - 1] - zr + dzr
                 rays.m[iray, ix, jy, kz] = -wnrm
             end
 
             nrlc += 1
-            copy_rays!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
+            if nrlc != iray
+                copy_rays!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
+            end
         end
         nray[ix, jy, kz] = nrlc
     end
