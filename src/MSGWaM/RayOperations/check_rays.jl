@@ -5,7 +5,10 @@ function check_rays(state::State)
     (; nray, rays) = state.wkb
 
     # Loop over ray volumes.
-    for kz in k0:k1, jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
+    for kz in (k0 - 1):(k1 + 1),
+        jy in (j0 - 1):(j1 + 1),
+        ix in (i0 - 1):(i1 + 1)
+
         for iray in 1:nray[ix, jy, kz]
 
             # Check zonal position.
