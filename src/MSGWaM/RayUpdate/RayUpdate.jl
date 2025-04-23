@@ -22,7 +22,9 @@ include("propagate_rays!.jl")
 include("shift_rays!.jl")
 include("split_rays!.jl")
 
+export X, Y, Z, XZ, YZ, XYZ
+
 export apply_saturation_scheme!,
-    initialize_rays!, merge_rays!, propagate_rays!, shift_rays!, split_rays!, X, Y, Z, XZ, YZ, XYZ
+    initialize_rays!, merge_rays!, propagate_rays!, shift_rays!, split_rays!
 
 end
