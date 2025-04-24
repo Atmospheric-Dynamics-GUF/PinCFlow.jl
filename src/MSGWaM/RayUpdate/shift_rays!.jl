@@ -74,6 +74,9 @@ function shift_rays!(state::State, direction::X)
                 ix = floor(Int, (xr - lx[1]) / dx) + i0 - io
 
                 if ix != ixrv
+                    if abs(ix - ixrv) > 1
+                        error("Error in shift_rays!: abs(ix - ixrv) > 1!")
+                    end
                     if i0 <= ix <= i1
                         nray[ix, jyrv, kzrv] += 1
                         jray = nray[ix, jyrv, kzrv]
@@ -108,6 +111,9 @@ function shift_rays!(state::State, direction::Y)
                 jy = floor(Int, (yr - ly[1]) / dy) + j0 - jo
 
                 if jy != jyrv
+                    if abs(jy - jyrv) > 1
+                        error("Error in shift_rays!: abs(jy - jyrv) > 1!")
+                    end
                     if j0 <= jy <= j1
                         nray[ixrv, jy, kzrv] += 1
                         jray = nray[ixrv, jy, kzrv]
