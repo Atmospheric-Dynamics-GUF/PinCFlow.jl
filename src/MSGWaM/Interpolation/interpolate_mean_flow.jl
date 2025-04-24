@@ -1123,11 +1123,11 @@ function interpolate_mean_flow(
     elseif zrfd < ztildetfc[ixr, jyf, k0 - 1]
         phirfd = 0.0
         phirfu =
-            (u[ixr, jyf, kzrbu + 1] - u[ixr, jyf, kzrbu]) / dz / (
-                jac[ixr, jyf, kzrbu] * jac[ixr, jyf, kzrbu + 1] /
-                (jac[ixr, jyf, kzrbu] + jac[ixr, jyf, kzrbu + 1]) +
-                jac[ixr + 1, jyf, kzrbu] * jac[ixr + 1, jyf, kzrbu + 1] /
-                (jac[ixr + 1, jyf, kzrbu] + jac[ixr + 1, jyf, kzrbu + 1])
+            (u[ixr, jyf, kzrfu + 1] - u[ixr, jyf, kzrfu]) / dz / (
+                jac[ixr, jyf, kzrfu] * jac[ixr, jyf, kzrfu + 1] /
+                (jac[ixr, jyf, kzrfu] + jac[ixr, jyf, kzrfu + 1]) +
+                jac[ixr + 1, jyf, kzrfu] * jac[ixr + 1, jyf, kzrfu + 1] /
+                (jac[ixr + 1, jyf, kzrfu] + jac[ixr + 1, jyf, kzrfu + 1])
             )
     else
         if zrfu < lz[2]
