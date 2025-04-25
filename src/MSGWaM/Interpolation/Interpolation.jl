@@ -12,6 +12,7 @@ struct DVDX <: AbstractVariable end
 struct DVDY <: AbstractVariable end
 struct DVDZ <: AbstractVariable end
 
+include("compute_derivatives.jl")
 include("get_next_half_level.jl")
 include("get_next_level.jl")
 include("interpolate_mean_flow.jl")
