@@ -3,29 +3,22 @@ function solve_poisson!(
     b::AbstractArray{<:AbstractFloat, 3},
     tolref::AbstractFloat,
     dt::AbstractFloat,
-    model::PseudoIncompressible,
     facray::AbstractFloat,
     facprs::AbstractFloat,
 )
     (; namelists, domain, grid, poisson) = state
+    (; model) = namelists.setting
     (; i0, i1, j0, j1, k0, k1) = domain
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; dpip) = state.variables.tendencies
 
-    # Initialize solution and residual.
     sol = state.poisson.solution
     sol .= 0.0
 
-    # Initialize.
     if dt == 0.0
         error("Error in solve_poisson!: dt = 0.0!")
     end
     dtinv = 1.0 / dt
-
-    #--------------------------------
-    #     Linear equation solver
-    #     solve for dt * dp ...
-    #--------------------------------
 
     compute_operator!(state, dt, facray)
 
@@ -36,9 +29,11 @@ function solve_poisson!(
         return (errflagbicg, niterbicg)
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        fcscal = sqrt(pstrattfc[i, j, k]^2 / rhostrattfc[i, j, k])
-        sol[i - i0 + 1, j - j0 + 1, k - k0 + 1] /= fcscal
+    if model != Boussinesq()
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            fcscal = sqrt(pstrattfc[i, j, k]^2 / rhostrattfc[i, j, k])
+            sol[i - i0 + 1, j - j0 + 1, k - k0 + 1] /= fcscal
+        end
     end
 
     # Pass solution to pressure correction.

@@ -63,8 +63,7 @@ function integrate(namelists::Namelists)
     if initialcleaning
         set_boundaries!(state, BoundaryPredictands())
 
-        (errflagbicg, niterbicg) =
-            apply_corrector!(state, 1.0, EXPL(), 1.0, 1.0)
+        (errflagbicg, niterbicg) = apply_corrector!(state, 1.0, 1.0, 1.0)
 
         if errflagbicg
             exit()
@@ -226,51 +225,46 @@ function integrate(namelists::Namelists)
 
             state.variables.backups.rhoold .= state.variables.predictands.rho
 
-            update!(state, 0.5 * dt, rkstage, Rho(), LHS(), EXPL())
+            update!(state, 0.5 * dt, rkstage, Rho())
             apply_unified_sponge!(
                 state,
                 stepfrac[rkstage] * 0.5 * dt,
                 time,
                 Rho(),
-                model,
             )
 
-            update!(state, 0.5 * dt, rkstage, RhoP(), LHS(), EXPL())
+            update!(state, 0.5 * dt, rkstage, RhoP(), LHS())
             apply_unified_sponge!(
                 state,
                 stepfrac[rkstage] * 0.5 * dt,
                 time,
                 RhoP(),
-                model,
             )
 
             # RK step for momentum
 
             set_boundaries!(state, BoundaryPredictands())
 
-            update!(state, 0.5 * dt, rkstage, U(), LHS(), EXPL())
-            update!(state, 0.5 * dt, rkstage, V(), LHS(), EXPL())
-            update!(state, 0.5 * dt, rkstage, W(), LHS(), EXPL())
+            update!(state, 0.5 * dt, rkstage, U(), LHS())
+            update!(state, 0.5 * dt, rkstage, V(), LHS())
+            update!(state, 0.5 * dt, rkstage, W(), LHS())
             apply_unified_sponge!(
                 state,
                 stepfrac[rkstage] * 0.5 * dt,
                 time,
                 U(),
-                model,
             )
             apply_unified_sponge!(
                 state,
                 stepfrac[rkstage] * 0.5 * dt,
                 time,
                 V(),
-                model,
             )
             apply_unified_sponge!(
                 state,
                 stepfrac[rkstage] * 0.5 * dt,
                 time,
                 W(),
-                model,
             )
         end
 
@@ -313,8 +307,7 @@ function integrate(namelists::Namelists)
         set_boundaries!(state, BoundaryPredictands())
 
         # Correct momentum and density fluctuations
-        (errflagbicg, niterbicg) =
-            apply_corrector!(state, 0.5 * dt, IMPL(), 1.0, 1.0)
+        (errflagbicg, niterbicg) = apply_corrector!(state, 0.5 * dt, 1.0, 1.0)
 
         if errflagbicg
             iout = write_output(state, time, iout, machine_start_time)
@@ -391,51 +384,21 @@ function integrate(namelists::Namelists)
 
             state.variables.backups.rhoold .= state.variables.predictands.rho
 
-            update!(state, dt, rkstage, Rho(), LHS(), EXPL())
-            apply_unified_sponge!(
-                state,
-                stepfrac[rkstage] * dt,
-                time,
-                Rho(),
-                model,
-            )
+            update!(state, dt, rkstage, Rho())
+            apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, Rho())
 
-            update!(state, dt, rkstage, RhoP(), LHS(), EXPL())
-            apply_unified_sponge!(
-                state,
-                stepfrac[rkstage] * dt,
-                time,
-                RhoP(),
-                model,
-            )
+            update!(state, dt, rkstage, RhoP(), LHS())
+            apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, RhoP())
 
             # RK step for momentum
             set_boundaries!(state, BoundaryPredictands())
 
-            update!(state, dt, rkstage, U(), LHS(), EXPL())
-            update!(state, dt, rkstage, V(), LHS(), EXPL())
-            update!(state, dt, rkstage, W(), LHS(), EXPL())
-            apply_unified_sponge!(
-                state,
-                stepfrac[rkstage] * dt,
-                time,
-                U(),
-                model,
-            )
-            apply_unified_sponge!(
-                state,
-                stepfrac[rkstage] * dt,
-                time,
-                V(),
-                model,
-            )
-            apply_unified_sponge!(
-                state,
-                stepfrac[rkstage] * dt,
-                time,
-                W(),
-                model,
-            )
+            update!(state, dt, rkstage, U(), LHS())
+            update!(state, dt, rkstage, V(), LHS())
+            update!(state, dt, rkstage, W(), LHS())
+            apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, U())
+            apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, V())
+            apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, W())
         end
 
         # (5) implicit integration of the linear right-hand sides of the
@@ -477,8 +440,7 @@ function integrate(namelists::Namelists)
 
         # (3) uses updated pressure field and (5) adjusts pressure over half a
         # time step
-        (errflagbicg, niterbicg) =
-            apply_corrector!(state, 0.5 * dt, IMPL(), 2.0, 1.0)
+        (errflagbicg, niterbicg) = apply_corrector!(state, 0.5 * dt, 2.0, 1.0)
 
         if errflagbicg
             iout = write_output(state, time, iout, machine_start_time)

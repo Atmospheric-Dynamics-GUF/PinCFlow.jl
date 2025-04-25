@@ -1,7 +1,7 @@
 module NamelistTypes
 
 abstract type AbstractBackground end
-abstract type AbstractCoriolis end
+abstract type AbstractCoriolisMode end
 abstract type AbstractLimiter end
 abstract type AbstractModel end
 abstract type AbstractTestCase end
@@ -13,9 +13,12 @@ abstract type AbstractWKBMode end
 abstract type AbstractWKBTestCase <: AbstractTestCase end
 abstract type AbstractWKBFilter end
 
+struct UniformBoussinesq <: AbstractBackground end
+struct StratifiedBoussinesq <: AbstractBackground end
 struct Isothermal <: AbstractBackground end
-struct ConstantCoriolis <: AbstractCoriolis end
+struct FPlane <: AbstractCoriolisMode end
 struct MCVariant <: AbstractLimiter end
+struct Boussinesq <: AbstractModel end
 struct PseudoIncompressible <: AbstractModel end
 struct MountainWave <: AbstractTestCase end
 struct WKBMountainWave <: AbstractWKBTestCase end
@@ -47,7 +50,7 @@ include("WKBNamelist.jl")
 include("Namelists.jl")
 
 export AbstractBackground,
-    AbstractCoriolis,
+    AbstractCoriolisMode,
     AbstractLimiter,
     AbstractModel,
     AbstractTestCase,
@@ -59,9 +62,12 @@ export AbstractBackground,
     AbstractWKBTestCase,
     AbstractWKBFilter
 
-export Isothermal,
-    ConstantCoriolis,
+export UniformBoussinesq,
+    StratifiedBoussinesq,
+    Isothermal,
+    FPlane,
     MCVariant,
+    Boussinesq,
     PseudoIncompressible,
     MountainWave,
     WKBMountainWave,

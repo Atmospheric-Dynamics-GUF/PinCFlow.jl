@@ -4,12 +4,14 @@ function synchronize_density_fluctuations!(state::State)
     return
 end
 
+function synchronize_density_fluctuations!(state::State, model::Boussinesq)
+    return
+end
+
 function synchronize_density_fluctuations!(
     state::State,
     model::PseudoIncompressible,
 )
-
-    # Get all necessary fields.
     (; rho, rhop) = state.variables.predictands
 
     # Synchronize density fluctuations.

@@ -2,6 +2,27 @@ function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
     time::AbstractFloat,
+    variable::AbstractVariable,
+)
+    (; model) = state.namelists.setting
+    apply_unified_sponge!(state, dt, time, variable, model)
+    return
+end
+
+function apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Rho,
+    model::Boussinesq,
+)
+    return
+end
+
+function apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
     variable::Rho,
     model::PseudoIncompressible,
 )

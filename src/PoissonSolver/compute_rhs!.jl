@@ -1,6 +1,94 @@
 function compute_rhs!(
     state::State,
     b::AbstractArray{<:AbstractFloat, 3},
+    model::Boussinesq,
+)
+    (; sizex, sizey, sizez) = state.namelists.domain
+    (; ma, kappa) = state.constants
+    (; comm, nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; thetastrattfc) = state.atmosphere
+    (; u, v, w) = state.variables.predictands
+
+    # Initialize summation fields.
+    divmax = 0.0
+    divsum = 0.0
+    divsum_local = 0.0
+    divl2 = 0.0
+    divl2_local = 0.0
+    divl2_norm = 0.0
+    divl2_norm_local = 0.0
+
+    # Calculate RHS for TFC.
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        # Store velocities at cell edges.
+        ur = (jac[i, j, k] + jac[i + 1, j, k]) / 2 * u[i, j, k]
+        ul = (jac[i, j, k] + jac[i - 1, j, k]) / 2 * u[i - 1, j, k]
+        vf = (jac[i, j, k] + jac[i, j + 1, k]) / 2 * v[i, j, k]
+        vb = (jac[i, j, k] + jac[i, j - 1, k]) / 2 * v[i, j - 1, k]
+        wu =
+            2 * jac[i, j, k] * jac[i, j, k + 1] /
+            (jac[i, j, k] + jac[i, j, k + 1]) * w[i, j, k]
+        wd =
+            2 * jac[i, j, k] * jac[i, j, k - 1] /
+            (jac[i, j, k] + jac[i, j, k - 1]) * w[i, j, k - 1]
+        # Determine indices for RHS.
+        ib = i - i0 + 1
+        jb = j - j0 + 1
+        kb = k - k0 + 1
+        # Compute RHS.
+        bu =
+            (ur - ul) / dx / jac[i, j, k] * ma^2 * kappa /
+            thetastrattfc[i, j, k]
+        bv =
+            (vf - vb) / dy / jac[i, j, k] * ma^2 * kappa /
+            thetastrattfc[i, j, k]
+        bw =
+            (wu - wd) / dz / jac[i, j, k] * ma^2 * kappa /
+            thetastrattfc[i, j, k]
+        b[ib, jb, kb] = bu + bv + bw
+        bl2loc = bu^2 + bv^2 + bw^2
+        # Compute check sum for solvability criterion.
+        divsum_local += b[ib, jb, kb]
+        divl2_local += b[ib, jb, kb]^2
+        divl2_norm_local += bl2loc
+        if abs(b[ib, jb, kb]) > divmax
+            divmax = abs(b[ib, jb, kb])
+        end
+    end
+
+    # MPI: sum divSum_local over all procs
+    divsum = MPI.Allreduce(divsum_local, +, comm)
+
+    # MPI: sum divL2_local over all procs
+    divl2 = MPI.Allreduce(divl2_local, +, comm)
+
+    # MPI: sum divL2_norm_local over all procs
+    divl2_norm = MPI.Allreduce(divl2_norm_local, +, comm)
+
+    # scale div
+    divl2_local = sqrt(divl2_local / nx / ny / nz)
+    divl2 = sqrt(divl2 / sizex / sizey / sizez)
+
+    divl2_norm_local = sqrt(divl2_norm_local / nx / ny / nz)
+    divl2_norm = sqrt(divl2_norm / sizex / sizey / sizez)
+
+    if divl2_norm != 0.0
+        tolref = divl2 / divl2_norm
+    else
+        if divl2 == 0.0
+            tolref = 1.0
+        else
+            error("Error in compute_rhs: divl2_norm = 0 while divl2 != 0!")
+        end
+    end
+
+    return tolref
+end
+
+function compute_rhs!(
+    state::State,
+    b::AbstractArray{<:AbstractFloat, 3},
     model::PseudoIncompressible,
 )
     (; sizex, sizey, sizez) = state.namelists.domain
@@ -98,8 +186,6 @@ function compute_rhs!(
 
     divl2_norm_local = sqrt(divl2_norm_local / nx / ny / nz)
     divl2_norm = sqrt(divl2_norm / sizex / sizey / sizez)
-
-    b_norm = divl2
 
     if divl2_norm != 0.0
         tolref = divl2 / divl2_norm
