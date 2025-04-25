@@ -3,7 +3,7 @@ function read_input!(state::State)
     # Get all necessary fields.
     (; sizex, sizey) = state.namelists.domain
     (; iin, input_file) = state.namelists.output
-    (; testcase) = state.namelists.setting
+    (; model, testcase) = state.namelists.setting
     (; comm, nx, ny, nz, io, jo, i0, i1, j0, j1, k0, k1) = state.domain
     (; lref, tref, rhoref, uref) = state.constants
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
@@ -27,7 +27,9 @@ function read_input!(state::State)
         # Read the density fluctuations.
         @views rhop[i0:i1, j0:j1, k0:k1] =
             file["rhop"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz, iin] ./ rhoref
-        @views rho[i0:i1, j0:j1, k0:k1] .= rhop[i0:i1, j0:j1, k0:k1]
+        if model != Boussinesq()
+            @views rho[i0:i1, j0:j1, k0:k1] .= rhop[i0:i1, j0:j1, k0:k1]
+        end
 
         # Read the staggered zonal wind.
         @views u[i0:i1, j0:j1, k0:k1] =

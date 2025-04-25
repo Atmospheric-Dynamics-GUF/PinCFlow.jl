@@ -34,12 +34,12 @@ export DomainNamelist,
     Namelists
 
 # Export singletons needed in namelists.
-export PseudoIncompressible
+export Boussinesq, PseudoIncompressible
 export MountainWave, WKBMountainWave
 export PeriodicBoundaries, SolidWallBoundaries
 export MCVariant
-export Isothermal
-export ConstantCoriolis
+export UniformBoussinesq, StratifiedBoussinesq, Isothermal
+export FPlane
 export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
 export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro
