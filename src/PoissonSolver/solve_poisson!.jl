@@ -3,7 +3,6 @@ function solve_poisson!(
     b::AbstractArray{<:AbstractFloat, 3},
     tolref::AbstractFloat,
     dt::AbstractFloat,
-    opt::AbstractIntegration,
     model::PseudoIncompressible,
     facray::AbstractFloat,
     facprs::AbstractFloat,
@@ -28,7 +27,7 @@ function solve_poisson!(
     #     solve for dt * dp ...
     #--------------------------------
 
-    compute_operator!(state, dt, opt, facray)
+    compute_operator!(state, dt, facray)
 
     (errflagbicg, niterbicg) =
         apply_bicgstab!(b, tolref, sol, namelists, domain, grid, poisson)

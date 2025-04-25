@@ -1,7 +1,6 @@
 module Types
 
 abstract type AbstractVariable end
-abstract type AbstractIntegration end
 
 struct Rho <: AbstractVariable end
 struct RhoP <: AbstractVariable end
@@ -9,8 +8,8 @@ struct U <: AbstractVariable end
 struct V <: AbstractVariable end
 struct W <: AbstractVariable end
 struct PiP <: AbstractVariable end
-struct EXPL <: AbstractIntegration end
-struct IMPL <: AbstractIntegration end
+struct EXPL end
+struct IMPL end
 
 include("NamelistTypes/NamelistTypes.jl")
 include("FoundationalTypes/FoundationalTypes.jl")
@@ -36,7 +35,6 @@ export AbstractBackground,
     AbstractSponge,
     AbstractMergeMode,
     AbstractLaunchAlgorithm,
-    AbstractIntegration,
     AbstractWKBMode,
     AbstractWKBTestCase,
     AbstractWKBFilter
