@@ -457,9 +457,8 @@ function interpolate_mean_flow(
 )
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
-    (; u) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, j0, k1) = domain
-    (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
+    (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     if sizex == 1
         phi = 0.0
@@ -548,73 +547,17 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    philbd =
-        (u[ixl, jyb, kzlbd] - u[ixl - 1, jyb, kzlbd]) / dx +
-        met[ixl, jyb, kzlbd, 1, 3] *
-        0.25 *
-        (
-            u[ixl, jyb, kzlbd + 1] + u[ixl - 1, jyb, kzlbd + 1] -
-            u[ixl, jyb, kzlbd - 1] - u[ixl - 1, jyb, kzlbd - 1]
-        ) / dz
-    philbu =
-        (u[ixl, jyb, kzlbu] - u[ixl - 1, jyb, kzlbu]) / dx +
-        met[ixl, jyb, kzlbu, 1, 3] *
-        0.25 *
-        (
-            u[ixl, jyb, kzlbu + 1] + u[ixl - 1, jyb, kzlbu + 1] -
-            u[ixl, jyb, kzlbu - 1] - u[ixl - 1, jyb, kzlbu - 1]
-        ) / dz
+    (philbd, philbu) =
+        compute_derivatives(state, (ixl, jyb, kzlbd, kzlbu), DUDX())
 
-    philfd =
-        (u[ixl, jyf, kzlfd] - u[ixl - 1, jyf, kzlfd]) / dx +
-        met[ixl, jyf, kzlfd, 1, 3] *
-        0.25 *
-        (
-            u[ixl, jyf, kzlfd + 1] + u[ixl - 1, jyf, kzlfd + 1] -
-            u[ixl, jyf, kzlfd - 1] - u[ixl - 1, jyf, kzlfd - 1]
-        ) / dz
-    philfu =
-        (u[ixl, jyf, kzlfu] - u[ixl - 1, jyf, kzlfu]) / dx +
-        met[ixl, jyf, kzlfu, 1, 3] *
-        0.25 *
-        (
-            u[ixl, jyf, kzlfu + 1] + u[ixl - 1, jyf, kzlfu + 1] -
-            u[ixl, jyf, kzlfu - 1] - u[ixl - 1, jyf, kzlfu - 1]
-        ) / dz
+    (philfd, philfu) =
+        compute_derivatives(state, (ixl, jyf, kzlfd, kzlfu), DUDX())
 
-    phirbd =
-        (u[ixr, jyb, kzrbd] - u[ixr - 1, jyb, kzrbd]) / dx +
-        met[ixr, jyb, kzrbd, 1, 3] *
-        0.25 *
-        (
-            u[ixr, jyb, kzrbd + 1] + u[ixr - 1, jyb, kzrbd + 1] -
-            u[ixr, jyb, kzrbd - 1] - u[ixr - 1, jyb, kzrbd - 1]
-        ) / dz
-    phirbu =
-        (u[ixr, jyb, kzrbu] - u[ixr - 1, jyb, kzrbu]) / dx +
-        met[ixr, jyb, kzrbu, 1, 3] *
-        0.25 *
-        (
-            u[ixr, jyb, kzrbu + 1] + u[ixr - 1, jyb, kzrbu + 1] -
-            u[ixr, jyb, kzrbu - 1] - u[ixr - 1, jyb, kzrbu - 1]
-        ) / dz
+    (phirbd, phirbu) =
+        compute_derivatives(state, (ixr, jyb, kzrbd, kzrbu), DUDX())
 
-    phirfd =
-        (u[ixr, jyf, kzrfd] - u[ixr - 1, jyf, kzrfd]) / dx +
-        met[ixr, jyf, kzrfd, 1, 3] *
-        0.25 *
-        (
-            u[ixr, jyf, kzrfd + 1] + u[ixr - 1, jyf, kzrfd + 1] -
-            u[ixr, jyf, kzrfd - 1] - u[ixr - 1, jyf, kzrfd - 1]
-        ) / dz
-    phirfu =
-        (u[ixr, jyf, kzrfu] - u[ixr - 1, jyf, kzrfu]) / dx +
-        met[ixr, jyf, kzrfu, 1, 3] *
-        0.25 *
-        (
-            u[ixr, jyf, kzrfu + 1] + u[ixr - 1, jyf, kzrfu + 1] -
-            u[ixr, jyf, kzrfu - 1] - u[ixr - 1, jyf, kzrfu - 1]
-        ) / dz
+    (phirfd, phirfu) =
+        compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DUDX())
 
     # Interpolate.
     phi = interpolate(;
@@ -656,9 +599,8 @@ function interpolate_mean_flow(
 )
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
-    (; u) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, j0, k1) = domain
-    (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
+    (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
     if sizex == 1
@@ -744,121 +686,17 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    philbd =
-        (u[ixl, jyb + 1, kzlbd] - u[ixl, jyb, kzlbd]) / dy +
-        0.25 *
-        (
-            met[ixl, jyb, kzlbd, 2, 3] +
-            met[ixl + 1, jyb, kzlbd, 2, 3] +
-            met[ixl, jyb + 1, kzlbd, 2, 3] +
-            met[ixl + 1, jyb + 1, kzlbd, 2, 3]
-        ) *
-        0.25 *
-        (
-            u[ixl, jyb, kzlbd + 1] + u[ixl, jyb + 1, kzlbd + 1] -
-            u[ixl, jyb, kzlbd - 1] - u[ixl, jyb + 1, kzlbd - 1]
-        ) / dz
-    philbu =
-        (u[ixl, jyb + 1, kzlbu] - u[ixl, jyb, kzlbu]) / dy +
-        0.25 *
-        (
-            met[ixl, jyb, kzlbu, 2, 3] +
-            met[ixl + 1, jyb, kzlbu, 2, 3] +
-            met[ixl, jyb + 1, kzlbu, 2, 3] +
-            met[ixl + 1, jyb + 1, kzlbu, 2, 3]
-        ) *
-        0.25 *
-        (
-            u[ixl, jyb, kzlbu + 1] + u[ixl, jyb + 1, kzlbu + 1] -
-            u[ixl, jyb, kzlbu - 1] - u[ixl, jyb + 1, kzlbu - 1]
-        ) / dz
+    (philbd, philbu) =
+        compute_derivatives(state, (ixl, jyb, kzlbd, kzlbu), DUDY())
 
-    philfd =
-        (u[ixl, jyf + 1, kzlfd] - u[ixl, jyf, kzlfd]) / dy +
-        0.25 *
-        (
-            met[ixl, jyf, kzlfd, 2, 3] +
-            met[ixl + 1, jyf, kzlfd, 2, 3] +
-            met[ixl, jyf + 1, kzlfd, 2, 3] +
-            met[ixl + 1, jyf + 1, kzlfd, 2, 3]
-        ) *
-        0.25 *
-        (
-            u[ixl, jyf, kzlfd + 1] + u[ixl, jyf + 1, kzlfd + 1] -
-            u[ixl, jyf, kzlfd - 1] - u[ixl, jyf + 1, kzlfd - 1]
-        ) / dz
-    philfu =
-        (u[ixl, jyf + 1, kzlfu] - u[ixl, jyf, kzlfu]) / dy +
-        0.25 *
-        (
-            met[ixl, jyf, kzlfu, 2, 3] +
-            met[ixl + 1, jyf, kzlfu, 2, 3] +
-            met[ixl, jyf + 1, kzlfu, 2, 3] +
-            met[ixl + 1, jyf + 1, kzlfu, 2, 3]
-        ) *
-        0.25 *
-        (
-            u[ixl, jyf, kzlfu + 1] + u[ixl, jyf + 1, kzlfu + 1] -
-            u[ixl, jyf, kzlfu - 1] - u[ixl, jyf + 1, kzlfu - 1]
-        ) / dz
+    (philfd, philfu) =
+        compute_derivatives(state, (ixl, jyf, kzlfd, kzlfu), DUDY())
 
-    phirbd =
-        (u[ixr, jyb + 1, kzrbd] - u[ixr, jyb, kzrbd]) / dy +
-        0.25 *
-        (
-            met[ixr, jyb, kzrbd, 2, 3] +
-            met[ixr + 1, jyb, kzrbd, 2, 3] +
-            met[ixr, jyb + 1, kzrbd, 2, 3] +
-            met[ixr + 1, jyb + 1, kzrbd, 2, 3]
-        ) *
-        0.25 *
-        (
-            u[ixr, jyb, kzrbd + 1] + u[ixr, jyb + 1, kzrbd + 1] -
-            u[ixr, jyb, kzrbd - 1] - u[ixr, jyb + 1, kzrbd - 1]
-        ) / dz
-    phirbu =
-        (u[ixr, jyb + 1, kzrbu] - u[ixr, jyb, kzrbu]) / dy +
-        0.25 *
-        (
-            met[ixr, jyb, kzrbu, 2, 3] +
-            met[ixr + 1, jyb, kzrbu, 2, 3] +
-            met[ixr, jyb + 1, kzrbu, 2, 3] +
-            met[ixr + 1, jyb + 1, kzrbu, 2, 3]
-        ) *
-        0.25 *
-        (
-            u[ixr, jyb, kzrbu + 1] + u[ixr, jyb + 1, kzrbu + 1] -
-            u[ixr, jyb, kzrbu - 1] - u[ixr, jyb + 1, kzrbu - 1]
-        ) / dz
+    (phirbd, phirbu) =
+        compute_derivatives(state, (ixr, jyb, kzrbd, kzrbu), DUDY())
 
-    phirfd =
-        (u[ixr, jyf + 1, kzrfd] - u[ixr, jyf, kzrfd]) / dy +
-        0.25 *
-        (
-            met[ixr, jyf, kzrfd, 2, 3] +
-            met[ixr + 1, jyf, kzrfd, 2, 3] +
-            met[ixr, jyf + 1, kzrfd, 2, 3] +
-            met[ixr + 1, jyf + 1, kzrfd, 2, 3]
-        ) *
-        0.25 *
-        (
-            u[ixr, jyf, kzrfd + 1] + u[ixr, jyf + 1, kzrfd + 1] -
-            u[ixr, jyf, kzrfd - 1] - u[ixr, jyf + 1, kzrfd - 1]
-        ) / dz
-    phirfu =
-        (u[ixr, jyf + 1, kzrfu] - u[ixr, jyf, kzrfu]) / dy +
-        0.25 *
-        (
-            met[ixr, jyf, kzrfu, 2, 3] +
-            met[ixr + 1, jyf, kzrfu, 2, 3] +
-            met[ixr, jyf + 1, kzrfu, 2, 3] +
-            met[ixr + 1, jyf + 1, kzrfu, 2, 3]
-        ) *
-        0.25 *
-        (
-            u[ixr, jyf, kzrfu + 1] + u[ixr, jyf + 1, kzrfu + 1] -
-            u[ixr, jyf, kzrfu - 1] - u[ixr, jyf + 1, kzrfu - 1]
-        ) / dz
+    (phirfd, phirfu) =
+        compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DUDY())
 
     # Interpolate.
     phi = interpolate(;
@@ -900,9 +738,8 @@ function interpolate_mean_flow(
 )
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
-    (; u) = state.variables.predictands
-    (; nxx, nyy, io, jo, i0, j0, k0, k1) = domain
-    (; lx, ly, lz, dx, dy, dz, jac, x, y, ztildetfc) = grid
+    (; nxx, nyy, io, jo, i0, j0, k1) = domain
+    (; lx, ly, dx, dy, x, y, ztildetfc) = grid
 
     # Locate the closest points in zonal direction.
     if sizex == 1
@@ -988,177 +825,17 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    if zlbu < ztildetfc[ixl, jyb, k0 - 1]
-        philbd = 0.0
-        philbu = 0.0
-    elseif zlbd < ztildetfc[ixl, jyb, k0 - 1]
-        philbd = 0.0
-        philbu =
-            (u[ixl, jyb, kzlbu + 1] - u[ixl, jyb, kzlbu]) / dz / (
-                jac[ixl, jyb, kzlbu] * jac[ixl, jyb, kzlbu + 1] /
-                (jac[ixl, jyb, kzlbu] + jac[ixl, jyb, kzlbu + 1]) +
-                jac[ixl + 1, jyb, kzlbu] * jac[ixl + 1, jyb, kzlbu + 1] /
-                (jac[ixl + 1, jyb, kzlbu] + jac[ixl + 1, jyb, kzlbu + 1])
-            )
-    else
-        if zlbu < lz[2]
-            philbd =
-                (u[ixl, jyb, kzlbd + 1] - u[ixl, jyb, kzlbd]) / dz / (
-                    jac[ixl, jyb, kzlbd] * jac[ixl, jyb, kzlbd + 1] /
-                    (jac[ixl, jyb, kzlbd] + jac[ixl, jyb, kzlbd + 1]) +
-                    jac[ixl + 1, jyb, kzlbd] * jac[ixl + 1, jyb, kzlbd + 1] /
-                    (jac[ixl + 1, jyb, kzlbd] + jac[ixl + 1, jyb, kzlbd + 1])
-                )
-            philbu =
-                (u[ixl, jyb, kzlbu + 1] - u[ixl, jyb, kzlbu]) / dz / (
-                    jac[ixl, jyb, kzlbu] * jac[ixl, jyb, kzlbu + 1] /
-                    (jac[ixl, jyb, kzlbu] + jac[ixl, jyb, kzlbu + 1]) +
-                    jac[ixl + 1, jyb, kzlbu] * jac[ixl + 1, jyb, kzlbu + 1] /
-                    (jac[ixl + 1, jyb, kzlbu] + jac[ixl + 1, jyb, kzlbu + 1])
-                )
-        elseif zlbd < lz[2]
-            philbd =
-                (u[ixl, jyb, kzlbd + 1] - u[ixl, jyb, kzlbd]) / dz / (
-                    jac[ixl, jyb, kzlbd] * jac[ixl, jyb, kzlbd + 1] /
-                    (jac[ixl, jyb, kzlbd] + jac[ixl, jyb, kzlbd + 1]) +
-                    jac[ixl + 1, jyb, kzlbd] * jac[ixl + 1, jyb, kzlbd + 1] /
-                    (jac[ixl + 1, jyb, kzlbd] + jac[ixl + 1, jyb, kzlbd + 1])
-                )
-            philbu = 0.0
-        else
-            philbd = 0.0
-            philbu = 0.0
-        end
-    end
+    (philbd, philbu) =
+        compute_derivatives(state, (ixl, jyb, kzlbd, kzlbu), DUDZ())
 
-    if zlfu < ztildetfc[ixl, jyf, k0 - 1]
-        philfd = 0.0
-        philfu = 0.0
-    elseif zlfd < ztildetfc[ixl, jyf, k0 - 1]
-        philfd = 0.0
-        philfu =
-            (u[ixl, jyf, kzlfu + 1] - u[ixl, jyf, kzlfu]) / dz / (
-                jac[ixl, jyf, kzlfu] * jac[ixl, jyf, kzlfu + 1] /
-                (jac[ixl, jyf, kzlfu] + jac[ixl, jyf, kzlfu + 1]) +
-                jac[ixl + 1, jyf, kzlfu] * jac[ixl + 1, jyf, kzlfu + 1] /
-                (jac[ixl + 1, jyf, kzlfu] + jac[ixl + 1, jyf, kzlfu + 1])
-            )
-    else
-        if zlfu < lz[2]
-            philfd =
-                (u[ixl, jyf, kzlfd + 1] - u[ixl, jyf, kzlfd]) / dz / (
-                    jac[ixl, jyf, kzlfd] * jac[ixl, jyf, kzlfd + 1] /
-                    (jac[ixl, jyf, kzlfd] + jac[ixl, jyf, kzlfd + 1]) +
-                    jac[ixl + 1, jyf, kzlfd] * jac[ixl + 1, jyf, kzlfd + 1] /
-                    (jac[ixl + 1, jyf, kzlfd] + jac[ixl + 1, jyf, kzlfd + 1])
-                )
-            philfu =
-                (u[ixl, jyf, kzlfu + 1] - u[ixl, jyf, kzlfu]) / dz / (
-                    jac[ixl, jyf, kzlfu] * jac[ixl, jyf, kzlfu + 1] /
-                    (jac[ixl, jyf, kzlfu] + jac[ixl, jyf, kzlfu + 1]) +
-                    jac[ixl + 1, jyf, kzlfu] * jac[ixl + 1, jyf, kzlfu + 1] /
-                    (jac[ixl + 1, jyf, kzlfu] + jac[ixl + 1, jyf, kzlfu + 1])
-                )
-        elseif zlfd < lz[2]
-            philfd =
-                (u[ixl, jyf, kzlfd + 1] - u[ixl, jyf, kzlfd]) / dz / (
-                    jac[ixl, jyf, kzlfd] * jac[ixl, jyf, kzlfd + 1] /
-                    (jac[ixl, jyf, kzlfd] + jac[ixl, jyf, kzlfd + 1]) +
-                    jac[ixl + 1, jyf, kzlfd] * jac[ixl + 1, jyf, kzlfd + 1] /
-                    (jac[ixl + 1, jyf, kzlfd] + jac[ixl + 1, jyf, kzlfd + 1])
-                )
-            philfu = 0.0
-        else
-            philfd = 0.0
-            philfu = 0.0
-        end
-    end
+    (philfd, philfu) =
+        compute_derivatives(state, (ixl, jyf, kzlfd, kzlfu), DUDZ())
 
-    if zrbu < ztildetfc[ixr, jyb, k0 - 1]
-        phirbd = 0.0
-        phirbu = 0.0
-    elseif zrbd < ztildetfc[ixr, jyb, k0 - 1]
-        phirbd = 0.0
-        phirbu =
-            (u[ixr, jyb, kzrbu + 1] - u[ixr, jyb, kzrbu]) / dz / (
-                jac[ixr, jyb, kzrbu] * jac[ixr, jyb, kzrbu + 1] /
-                (jac[ixr, jyb, kzrbu] + jac[ixr, jyb, kzrbu + 1]) +
-                jac[ixr + 1, jyb, kzrbu] * jac[ixr + 1, jyb, kzrbu + 1] /
-                (jac[ixr + 1, jyb, kzrbu] + jac[ixr + 1, jyb, kzrbu + 1])
-            )
-    else
-        if zrbu < lz[2]
-            phirbd =
-                (u[ixr, jyb, kzrbd + 1] - u[ixr, jyb, kzrbd]) / dz / (
-                    jac[ixr, jyb, kzrbd] * jac[ixr, jyb, kzrbd + 1] /
-                    (jac[ixr, jyb, kzrbd] + jac[ixr, jyb, kzrbd + 1]) +
-                    jac[ixr + 1, jyb, kzrbd] * jac[ixr + 1, jyb, kzrbd + 1] /
-                    (jac[ixr + 1, jyb, kzrbd] + jac[ixr + 1, jyb, kzrbd + 1])
-                )
-            phirbu =
-                (u[ixr, jyb, kzrbu + 1] - u[ixr, jyb, kzrbu]) / dz / (
-                    jac[ixr, jyb, kzrbu] * jac[ixr, jyb, kzrbu + 1] /
-                    (jac[ixr, jyb, kzrbu] + jac[ixr, jyb, kzrbu + 1]) +
-                    jac[ixr + 1, jyb, kzrbu] * jac[ixr + 1, jyb, kzrbu + 1] /
-                    (jac[ixr + 1, jyb, kzrbu] + jac[ixr + 1, jyb, kzrbu + 1])
-                )
-        elseif zrbd < lz[2]
-            phirbd =
-                (u[ixr, jyb, kzrbd + 1] - u[ixr, jyb, kzrbd]) / dz / (
-                    jac[ixr, jyb, kzrbd] * jac[ixr, jyb, kzrbd + 1] /
-                    (jac[ixr, jyb, kzrbd] + jac[ixr, jyb, kzrbd + 1]) +
-                    jac[ixr + 1, jyb, kzrbd] * jac[ixr + 1, jyb, kzrbd + 1] /
-                    (jac[ixr + 1, jyb, kzrbd] + jac[ixr + 1, jyb, kzrbd + 1])
-                )
-            phirbu = 0.0
-        else
-            phirbd = 0.0
-            phirbu = 0.0
-        end
-    end
+    (phirbd, phirbu) =
+        compute_derivatives(state, (ixr, jyb, kzrbd, kzrbu), DUDZ())
 
-    if zrfu < ztildetfc[ixr, jyf, k0 - 1]
-        phirfd = 0.0
-        phirfu = 0.0
-    elseif zrfd < ztildetfc[ixr, jyf, k0 - 1]
-        phirfd = 0.0
-        phirfu =
-            (u[ixr, jyf, kzrfu + 1] - u[ixr, jyf, kzrfu]) / dz / (
-                jac[ixr, jyf, kzrfu] * jac[ixr, jyf, kzrfu + 1] /
-                (jac[ixr, jyf, kzrfu] + jac[ixr, jyf, kzrfu + 1]) +
-                jac[ixr + 1, jyf, kzrfu] * jac[ixr + 1, jyf, kzrfu + 1] /
-                (jac[ixr + 1, jyf, kzrfu] + jac[ixr + 1, jyf, kzrfu + 1])
-            )
-    else
-        if zrfu < lz[2]
-            phirfd =
-                (u[ixr, jyf, kzrfd + 1] - u[ixr, jyf, kzrfd]) / dz / (
-                    jac[ixr, jyf, kzrfd] * jac[ixr, jyf, kzrfd + 1] /
-                    (jac[ixr, jyf, kzrfd] + jac[ixr, jyf, kzrfd + 1]) +
-                    jac[ixr + 1, jyf, kzrfd] * jac[ixr + 1, jyf, kzrfd + 1] /
-                    (jac[ixr + 1, jyf, kzrfd] + jac[ixr + 1, jyf, kzrfd + 1])
-                )
-            phirfu =
-                (u[ixr, jyf, kzrfu + 1] - u[ixr, jyf, kzrfu]) / dz / (
-                    jac[ixr, jyf, kzrfu] * jac[ixr, jyf, kzrfu + 1] /
-                    (jac[ixr, jyf, kzrfu] + jac[ixr, jyf, kzrfu + 1]) +
-                    jac[ixr + 1, jyf, kzrfu] * jac[ixr + 1, jyf, kzrfu + 1] /
-                    (jac[ixr + 1, jyf, kzrfu] + jac[ixr + 1, jyf, kzrfu + 1])
-                )
-        elseif zrfd < lz[2]
-            phirfd =
-                (u[ixr, jyf, kzrfd + 1] - u[ixr, jyf, kzrfd]) / dz / (
-                    jac[ixr, jyf, kzrfd] * jac[ixr, jyf, kzrfd + 1] /
-                    (jac[ixr, jyf, kzrfd] + jac[ixr, jyf, kzrfd + 1]) +
-                    jac[ixr + 1, jyf, kzrfd] * jac[ixr + 1, jyf, kzrfd + 1] /
-                    (jac[ixr + 1, jyf, kzrfd] + jac[ixr + 1, jyf, kzrfd + 1])
-                )
-            phirfu = 0.0
-        else
-            phirfd = 0.0
-            phirfu = 0.0
-        end
-    end
+    (phirfd, phirfu) =
+        compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DUDZ())
 
     # Interpolate.
     phi = interpolate(;
@@ -1200,9 +877,8 @@ function interpolate_mean_flow(
 )
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
-    (; v) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, j0, k1) = domain
-    (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
+    (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
     if sizex == 1
@@ -1288,121 +964,17 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    philbd =
-        (v[ixl + 1, jyb, kzlbd] - v[ixl, jyb, kzlbd]) / dx +
-        0.25 *
-        (
-            met[ixl, jyb, kzlbd, 1, 3] +
-            met[ixl + 1, jyb, kzlbd, 1, 3] +
-            met[ixl, jyb + 1, kzlbd, 1, 3] +
-            met[ixl + 1, jyb + 1, kzlbd, 1, 3]
-        ) *
-        0.25 *
-        (
-            v[ixl, jyb, kzlbd + 1] + v[ixl + 1, jyb, kzlbd + 1] -
-            v[ixl, jyb, kzlbd - 1] - v[ixl + 1, jyb, kzlbd - 1]
-        ) / dz
-    philbu =
-        (v[ixl + 1, jyb, kzlbu] - v[ixl, jyb, kzlbu]) / dx +
-        0.25 *
-        (
-            met[ixl, jyb, kzlbu, 1, 3] +
-            met[ixl + 1, jyb, kzlbu, 1, 3] +
-            met[ixl, jyb + 1, kzlbu, 1, 3] +
-            met[ixl + 1, jyb + 1, kzlbu, 1, 3]
-        ) *
-        0.25 *
-        (
-            v[ixl, jyb, kzlbu + 1] + v[ixl + 1, jyb, kzlbu + 1] -
-            v[ixl, jyb, kzlbu - 1] - v[ixl + 1, jyb, kzlbu - 1]
-        ) / dz
+    (philbd, philbu) =
+        compute_derivatives(state, (ixl, jyb, kzlbd, kzlbu), DVDX())
 
-    philfd =
-        (v[ixl + 1, jyf, kzlfd] - v[ixl, jyf, kzlfd]) / dx +
-        0.25 *
-        (
-            met[ixl, jyf, kzlfd, 1, 3] +
-            met[ixl + 1, jyf, kzlfd, 1, 3] +
-            met[ixl, jyf + 1, kzlfd, 1, 3] +
-            met[ixl + 1, jyf + 1, kzlfd, 1, 3]
-        ) *
-        0.25 *
-        (
-            v[ixl, jyf, kzlfd + 1] + v[ixl + 1, jyf, kzlfd + 1] -
-            v[ixl, jyf, kzlfd - 1] - v[ixl + 1, jyf, kzlfd - 1]
-        ) / dz
-    philfu =
-        (v[ixl + 1, jyf, kzlfu] - v[ixl, jyf, kzlfu]) / dx +
-        0.25 *
-        (
-            met[ixl, jyf, kzlfu, 1, 3] +
-            met[ixl + 1, jyf, kzlfu, 1, 3] +
-            met[ixl, jyf + 1, kzlfu, 1, 3] +
-            met[ixl + 1, jyf + 1, kzlfu, 1, 3]
-        ) *
-        0.25 *
-        (
-            v[ixl, jyf, kzlfu + 1] + v[ixl + 1, jyf, kzlfu + 1] -
-            v[ixl, jyf, kzlfu - 1] - v[ixl + 1, jyf, kzlfu - 1]
-        ) / dz
+    (philfd, philfu) =
+        compute_derivatives(state, (ixl, jyf, kzlfd, kzlfu), DVDX())
 
-    phirbd =
-        (v[ixr + 1, jyb, kzrbd] - v[ixr, jyb, kzrbd]) / dx +
-        0.25 *
-        (
-            met[ixr, jyb, kzrbd, 1, 3] +
-            met[ixr + 1, jyb, kzrbd, 1, 3] +
-            met[ixr, jyb + 1, kzrbd, 1, 3] +
-            met[ixr + 1, jyb + 1, kzrbd, 1, 3]
-        ) *
-        0.25 *
-        (
-            v[ixr, jyb, kzrbd + 1] + v[ixr + 1, jyb, kzrbd + 1] -
-            v[ixr, jyb, kzrbd - 1] - v[ixr + 1, jyb, kzrbd - 1]
-        ) / dz
-    phirbu =
-        (v[ixr + 1, jyb, kzrbu] - v[ixr, jyb, kzrbu]) / dx +
-        0.25 *
-        (
-            met[ixr, jyb, kzrbu, 1, 3] +
-            met[ixr + 1, jyb, kzrbu, 1, 3] +
-            met[ixr, jyb + 1, kzrbu, 1, 3] +
-            met[ixr + 1, jyb + 1, kzrbu, 1, 3]
-        ) *
-        0.25 *
-        (
-            v[ixr, jyb, kzrbu + 1] + v[ixr + 1, jyb, kzrbu + 1] -
-            v[ixr, jyb, kzrbu - 1] - v[ixr + 1, jyb, kzrbu - 1]
-        ) / dz
+    (phirbd, phirbu) =
+        compute_derivatives(state, (ixr, jyb, kzrbd, kzrbu), DVDX())
 
-    phirfd =
-        (v[ixr + 1, jyf, kzrfd] - v[ixr, jyf, kzrfd]) / dx +
-        0.25 *
-        (
-            met[ixr, jyf, kzrfd, 1, 3] +
-            met[ixr + 1, jyf, kzrfd, 1, 3] +
-            met[ixr, jyf + 1, kzrfd, 1, 3] +
-            met[ixr + 1, jyf + 1, kzrfd, 1, 3]
-        ) *
-        0.25 *
-        (
-            v[ixr, jyf, kzrfd + 1] + v[ixr + 1, jyf, kzrfd + 1] -
-            v[ixr, jyf, kzrfd - 1] - v[ixr + 1, jyf, kzrfd - 1]
-        ) / dz
-    phirfu =
-        (v[ixr + 1, jyf, kzrfu] - v[ixr, jyf, kzrfu]) / dx +
-        0.25 *
-        (
-            met[ixr, jyf, kzrfu, 1, 3] +
-            met[ixr + 1, jyf, kzrfu, 1, 3] +
-            met[ixr, jyf + 1, kzrfu, 1, 3] +
-            met[ixr + 1, jyf + 1, kzrfu, 1, 3]
-        ) *
-        0.25 *
-        (
-            v[ixr, jyf, kzrfu + 1] + v[ixr + 1, jyf, kzrfu + 1] -
-            v[ixr, jyf, kzrfu - 1] - v[ixr + 1, jyf, kzrfu - 1]
-        ) / dz
+    (phirfd, phirfu) =
+        compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DVDX())
 
     # Interpolate.
     phi = interpolate(;
@@ -1444,9 +1016,8 @@ function interpolate_mean_flow(
 )
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
-    (; v) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, j0, k1) = domain
-    (; lx, ly, dx, dy, dz, x, y, ztfc, met) = grid
+    (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
     if sizex == 1
@@ -1536,73 +1107,17 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    philbd =
-        (v[ixl, jyb, kzlbd] - v[ixl, jyb - 1, kzlbd]) / dy +
-        met[ixl, jyb, kzlbd, 2, 3] *
-        0.25 *
-        (
-            v[ixl, jyb, kzlbd + 1] + v[ixl, jyb - 1, kzlbd + 1] -
-            v[ixl, jyb, kzlbd - 1] - v[ixl, jyb - 1, kzlbd - 1]
-        ) / dz
-    philbu =
-        (v[ixl, jyb, kzlbu] - v[ixl, jyb - 1, kzlbu]) / dy +
-        met[ixl, jyb, kzlbu, 2, 3] *
-        0.25 *
-        (
-            v[ixl, jyb, kzlbu + 1] + v[ixl, jyb - 1, kzlbu + 1] -
-            v[ixl, jyb, kzlbu - 1] - v[ixl, jyb - 1, kzlbu - 1]
-        ) / dz
+    (philbd, philbu) =
+        compute_derivatives(state, (ixl, jyb, kzlbd, kzlbu), DVDY())
 
-    philfd =
-        (v[ixl, jyf, kzlfd] - v[ixl, jyf - 1, kzlfd]) / dy +
-        met[ixl, jyf, kzlfd, 2, 3] *
-        0.25 *
-        (
-            v[ixl, jyf, kzlfd + 1] + v[ixl, jyf - 1, kzlfd + 1] -
-            v[ixl, jyf, kzlfd - 1] - v[ixl, jyf - 1, kzlfd - 1]
-        ) / dz
-    philfu =
-        (v[ixl, jyf, kzlfu] - v[ixl, jyf - 1, kzlfu]) / dy +
-        met[ixl, jyf, kzlfu, 2, 3] *
-        0.25 *
-        (
-            v[ixl, jyf, kzlfu + 1] + v[ixl, jyf - 1, kzlfu + 1] -
-            v[ixl, jyf, kzlfu - 1] - v[ixl, jyf - 1, kzlfu - 1]
-        ) / dz
+    (philfd, philfu) =
+        compute_derivatives(state, (ixl, jyf, kzlfd, kzlfu), DVDY())
 
-    phirbd =
-        (v[ixr, jyb, kzrbd] - v[ixr, jyb - 1, kzrbd]) / dy +
-        met[ixr, jyb, kzrbd, 2, 3] *
-        0.25 *
-        (
-            v[ixr, jyb, kzrbd + 1] + v[ixr, jyb - 1, kzrbd + 1] -
-            v[ixr, jyb, kzrbd - 1] - v[ixr, jyb - 1, kzrbd - 1]
-        ) / dz
-    phirbu =
-        (v[ixr, jyb, kzrbu] - v[ixr, jyb - 1, kzrbu]) / dy +
-        met[ixr, jyb, kzrbu, 2, 3] *
-        0.25 *
-        (
-            v[ixr, jyb, kzrbu + 1] + v[ixr, jyb - 1, kzrbu + 1] -
-            v[ixr, jyb, kzrbu - 1] - v[ixr, jyb - 1, kzrbu - 1]
-        ) / dz
+    (phirbd, phirbu) =
+        compute_derivatives(state, (ixr, jyb, kzrbd, kzrbu), DVDY())
 
-    phirfd =
-        (v[ixr, jyf, kzrfd] - v[ixr, jyf - 1, kzrfd]) / dy +
-        met[ixr, jyf, kzrfd, 2, 3] *
-        0.25 *
-        (
-            v[ixr, jyf, kzrfd + 1] + v[ixr, jyf - 1, kzrfd + 1] -
-            v[ixr, jyf, kzrfd - 1] - v[ixr, jyf - 1, kzrfd - 1]
-        ) / dz
-    phirfu =
-        (v[ixr, jyf, kzrfu] - v[ixr, jyf - 1, kzrfu]) / dy +
-        met[ixr, jyf, kzrfu, 2, 3] *
-        0.25 *
-        (
-            v[ixr, jyf, kzrfu + 1] + v[ixr, jyf - 1, kzrfu + 1] -
-            v[ixr, jyf, kzrfu - 1] - v[ixr, jyf - 1, kzrfu - 1]
-        ) / dz
+    (phirfd, phirfu) =
+        compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DVDY())
 
     # Interpolate.
     phi = interpolate(;
@@ -1644,9 +1159,8 @@ function interpolate_mean_flow(
 )
     (; namelists, domain, grid) = state
     (; sizex, sizey) = namelists.domain
-    (; v) = state.variables.predictands
     (; nxx, nyy, io, jo, i0, j0, k0, k1) = domain
-    (; lx, ly, lz, dx, dy, dz, jac, x, y, ztildetfc) = grid
+    (; lx, ly, dx, dy, x, y, ztildetfc) = grid
 
     # Locate the closest points in zonal direction.
     if sizex == 1
@@ -1732,177 +1246,17 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    if zlbu < ztildetfc[ixl, jyb, k0 - 1]
-        philbd = 0.0
-        philbu = 0.0
-    elseif zlbd < ztildetfc[ixl, jyb, k0 - 1]
-        philbd = 0.0
-        philbu =
-            (v[ixl, jyb, kzlbu + 1] - v[ixl, jyb, kzlbu]) / dz / (
-                jac[ixl, jyb, kzlbu] * jac[ixl, jyb, kzlbu + 1] /
-                (jac[ixl, jyb, kzlbu] + jac[ixl, jyb, kzlbu + 1]) +
-                jac[ixl, jyb + 1, kzlbu] * jac[ixl, jyb + 1, kzlbu + 1] /
-                (jac[ixl, jyb + 1, kzlbu] + jac[ixl, jyb + 1, kzlbu + 1])
-            )
-    else
-        if zlbu < lz[2]
-            philbd =
-                (v[ixl, jyb, kzlbd + 1] - v[ixl, jyb, kzlbd]) / dz / (
-                    jac[ixl, jyb, kzlbd] * jac[ixl, jyb, kzlbd + 1] /
-                    (jac[ixl, jyb, kzlbd] + jac[ixl, jyb, kzlbd + 1]) +
-                    jac[ixl, jyb + 1, kzlbd] * jac[ixl, jyb + 1, kzlbd + 1] /
-                    (jac[ixl, jyb + 1, kzlbd] + jac[ixl, jyb + 1, kzlbd + 1])
-                )
-            philbu =
-                (v[ixl, jyb, kzlbu + 1] - v[ixl, jyb, kzlbu]) / dz / (
-                    jac[ixl, jyb, kzlbu] * jac[ixl, jyb, kzlbu + 1] /
-                    (jac[ixl, jyb, kzlbu] + jac[ixl, jyb, kzlbu + 1]) +
-                    jac[ixl, jyb + 1, kzlbu] * jac[ixl, jyb + 1, kzlbu + 1] /
-                    (jac[ixl, jyb + 1, kzlbu] + jac[ixl, jyb + 1, kzlbu + 1])
-                )
-        elseif zlbd < lz[2]
-            philbd =
-                (v[ixl, jyb, kzlbd + 1] - v[ixl, jyb, kzlbd]) / dz / (
-                    jac[ixl, jyb, kzlbd] * jac[ixl, jyb, kzlbd + 1] /
-                    (jac[ixl, jyb, kzlbd] + jac[ixl, jyb, kzlbd + 1]) +
-                    jac[ixl, jyb + 1, kzlbd] * jac[ixl, jyb + 1, kzlbd + 1] /
-                    (jac[ixl, jyb + 1, kzlbd] + jac[ixl, jyb + 1, kzlbd + 1])
-                )
-            philbu = 0.0
-        else
-            philbd = 0.0
-            philbu = 0.0
-        end
-    end
+    (philbd, philbu) =
+        compute_derivatives(state, (ixl, jyb, kzlbd, kzlbu), DVDZ())
 
-    if zlfu < ztildetfc[ixl, jyf, k0 - 1]
-        philfd = 0.0
-        philfu = 0.0
-    elseif zlfd < ztildetfc[ixl, jyf, k0 - 1]
-        philfd = 0.0
-        philfu =
-            (v[ixl, jyf, kzlfu + 1] - v[ixl, jyf, kzlfu]) / dz / (
-                jac[ixl, jyf, kzlfu] * jac[ixl, jyf, kzlfu + 1] /
-                (jac[ixl, jyf, kzlfu] + jac[ixl, jyf, kzlfu + 1]) +
-                jac[ixl, jyf + 1, kzlfu] * jac[ixl, jyf + 1, kzlfu + 1] /
-                (jac[ixl, jyf + 1, kzlfu] + jac[ixl, jyf + 1, kzlfu + 1])
-            )
-    else
-        if zlfu < lz[2]
-            philfd =
-                (v[ixl, jyf, kzlfd + 1] - v[ixl, jyf, kzlfd]) / dz / (
-                    jac[ixl, jyf, kzlfd] * jac[ixl, jyf, kzlfd + 1] /
-                    (jac[ixl, jyf, kzlfd] + jac[ixl, jyf, kzlfd + 1]) +
-                    jac[ixl, jyf + 1, kzlfd] * jac[ixl, jyf + 1, kzlfd + 1] /
-                    (jac[ixl, jyf + 1, kzlfd] + jac[ixl, jyf + 1, kzlfd + 1])
-                )
-            philfu =
-                (v[ixl, jyf, kzlfu + 1] - v[ixl, jyf, kzlfu]) / dz / (
-                    jac[ixl, jyf, kzlfu] * jac[ixl, jyf, kzlfu + 1] /
-                    (jac[ixl, jyf, kzlfu] + jac[ixl, jyf, kzlfu + 1]) +
-                    jac[ixl, jyf + 1, kzlfu] * jac[ixl, jyf + 1, kzlfu + 1] /
-                    (jac[ixl, jyf + 1, kzlfu] + jac[ixl, jyf + 1, kzlfu + 1])
-                )
-        elseif zlfd < lz[2]
-            philfd =
-                (v[ixl, jyf, kzlfd + 1] - v[ixl, jyf, kzlfd]) / dz / (
-                    jac[ixl, jyf, kzlfd] * jac[ixl, jyf, kzlfd + 1] /
-                    (jac[ixl, jyf, kzlfd] + jac[ixl, jyf, kzlfd + 1]) +
-                    jac[ixl, jyf + 1, kzlfd] * jac[ixl, jyf + 1, kzlfd + 1] /
-                    (jac[ixl, jyf + 1, kzlfd] + jac[ixl, jyf + 1, kzlfd + 1])
-                )
-            philfu = 0.0
-        else
-            philfd = 0.0
-            philfu = 0.0
-        end
-    end
+    (philfd, philfu) =
+        compute_derivatives(state, (ixl, jyf, kzlfd, kzlfu), DVDZ())
 
-    if zrbu < ztildetfc[ixr, jyb, k0 - 1]
-        phirbd = 0.0
-        phirbu = 0.0
-    elseif zrbd < ztildetfc[ixr, jyb, k0 - 1]
-        phirbd = 0.0
-        phirbu =
-            (v[ixr, jyb, kzrbu + 1] - v[ixr, jyb, kzrbu]) / dz / (
-                jac[ixr, jyb, kzrbu] * jac[ixr, jyb, kzrbu + 1] /
-                (jac[ixr, jyb, kzrbu] + jac[ixr, jyb, kzrbu + 1]) +
-                jac[ixr, jyb + 1, kzrbu] * jac[ixr, jyb + 1, kzrbu + 1] /
-                (jac[ixr, jyb + 1, kzrbu] + jac[ixr, jyb + 1, kzrbu + 1])
-            )
-    else
-        if zrbu < lz[2]
-            phirbd =
-                (v[ixr, jyb, kzrbd + 1] - v[ixr, jyb, kzrbd]) / dz / (
-                    jac[ixr, jyb, kzrbd] * jac[ixr, jyb, kzrbd + 1] /
-                    (jac[ixr, jyb, kzrbd] + jac[ixr, jyb, kzrbd + 1]) +
-                    jac[ixr, jyb + 1, kzrbd] * jac[ixr, jyb + 1, kzrbd + 1] /
-                    (jac[ixr, jyb + 1, kzrbd] + jac[ixr, jyb + 1, kzrbd + 1])
-                )
-            phirbu =
-                (v[ixr, jyb, kzrbu + 1] - v[ixr, jyb, kzrbu]) / dz / (
-                    jac[ixr, jyb, kzrbu] * jac[ixr, jyb, kzrbu + 1] /
-                    (jac[ixr, jyb, kzrbu] + jac[ixr, jyb, kzrbu + 1]) +
-                    jac[ixr, jyb + 1, kzrbu] * jac[ixr, jyb + 1, kzrbu + 1] /
-                    (jac[ixr, jyb + 1, kzrbu] + jac[ixr, jyb + 1, kzrbu + 1])
-                )
-        elseif zrbd < lz[2]
-            phirbd =
-                (v[ixr, jyb, kzrbd + 1] - v[ixr, jyb, kzrbd]) / dz / (
-                    jac[ixr, jyb, kzrbd] * jac[ixr, jyb, kzrbd + 1] /
-                    (jac[ixr, jyb, kzrbd] + jac[ixr, jyb, kzrbd + 1]) +
-                    jac[ixr, jyb + 1, kzrbd] * jac[ixr, jyb + 1, kzrbd + 1] /
-                    (jac[ixr, jyb + 1, kzrbd] + jac[ixr, jyb + 1, kzrbd + 1])
-                )
-            phirbu = 0.0
-        else
-            phirbd = 0.0
-            phirbu = 0.0
-        end
-    end
+    (phirbd, phirbu) =
+        compute_derivatives(state, (ixr, jyb, kzrbd, kzrbu), DVDZ())
 
-    if zrfu < ztildetfc[ixr, jyf, k0 - 1]
-        phirfd = 0.0
-        phirfu = 0.0
-    elseif zrfd < ztildetfc[ixr, jyf, k0 - 1]
-        phirfd = 0.0
-        phirfu =
-            (v[ixr, jyf, kzrfu + 1] - v[ixr, jyf, kzrfu]) / dz / (
-                jac[ixr, jyf, kzrfu] * jac[ixr, jyf, kzrfu + 1] /
-                (jac[ixr, jyf, kzrfu] + jac[ixr, jyf, kzrfu + 1]) +
-                jac[ixr, jyf + 1, kzrfu] * jac[ixr, jyf + 1, kzrfu + 1] /
-                (jac[ixr, jyf + 1, kzrfu] + jac[ixr, jyf + 1, kzrfu + 1])
-            )
-    else
-        if zrfu < lz[2]
-            phirfd =
-                (v[ixr, jyf, kzrfd + 1] - v[ixr, jyf, kzrfd]) / dz / (
-                    jac[ixr, jyf, kzrfd] * jac[ixr, jyf, kzrfd + 1] /
-                    (jac[ixr, jyf, kzrfd] + jac[ixr, jyf, kzrfd + 1]) +
-                    jac[ixr, jyf + 1, kzrfd] * jac[ixr, jyf + 1, kzrfd + 1] /
-                    (jac[ixr, jyf + 1, kzrfd] + jac[ixr, jyf + 1, kzrfd + 1])
-                )
-            phirfu =
-                (v[ixr, jyf, kzrfu + 1] - v[ixr, jyf, kzrfu]) / dz / (
-                    jac[ixr, jyf, kzrfu] * jac[ixr, jyf, kzrfu + 1] /
-                    (jac[ixr, jyf, kzrfu] + jac[ixr, jyf, kzrfu + 1]) +
-                    jac[ixr, jyf + 1, kzrfu] * jac[ixr, jyf + 1, kzrfu + 1] /
-                    (jac[ixr, jyf + 1, kzrfu] + jac[ixr, jyf + 1, kzrfu + 1])
-                )
-        elseif zrfd < lz[2]
-            phirfd =
-                (v[ixr, jyf, kzrfd + 1] - v[ixr, jyf, kzrfd]) / dz / (
-                    jac[ixr, jyf, kzrfd] * jac[ixr, jyf, kzrfd + 1] /
-                    (jac[ixr, jyf, kzrfd] + jac[ixr, jyf, kzrfd + 1]) +
-                    jac[ixr, jyf + 1, kzrfd] * jac[ixr, jyf + 1, kzrfd + 1] /
-                    (jac[ixr, jyf + 1, kzrfd] + jac[ixr, jyf + 1, kzrfd + 1])
-                )
-            phirfu = 0.0
-        else
-            phirfd = 0.0
-            phirfu = 0.0
-        end
-    end
+    (phirfd, phirfu) =
+        compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DVDZ())
 
     # Interpolate.
     phi = interpolate(;
