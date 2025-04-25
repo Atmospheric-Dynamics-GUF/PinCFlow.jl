@@ -10,13 +10,13 @@ function write_output(
     (; sizex, sizey, sizez) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
-    (; testcase) = state.namelists.setting
+    (; model, testcase) = state.namelists.setting
     (; comm, master, nx, ny, nz, io, jo, i0, i1, j0, j1, k0, k1) = domain
     (; tref, lref, rhoref, thetaref, uref) = state.constants
     (; x, y, ztfc) = grid
     (; rhostrattfc, thetastrattfc, bvsstrattfc, pstrattfc) = state.atmosphere
     (; predictands) = state.variables
-    (; rho, u, v, w, pip) = predictands
+    (; rho, rhop, u, v, w, pip) = predictands
     (; nray_max, rays, tendencies) = state.wkb
 
     # Print information.
@@ -61,7 +61,7 @@ function write_output(
         end
 
         # Write the background density.
-        if iout == 1
+        if model != Boussinesq() && iout == 1
             @views file["rhobar"][
                 (io + 1):(io + nx),
                 (jo + 1):(jo + ny),
@@ -70,7 +70,7 @@ function write_output(
         end
 
         # Write the background potential temperature.
-        if iout == 1
+        if model != Boussinesq() && iout == 1
             @views file["thetabar"][
                 (io + 1):(io + nx),
                 (jo + 1):(jo + ny),
@@ -79,13 +79,13 @@ function write_output(
         end
 
         # Write the buoyancy frequency.
-        if iout == 1
+        if model != Boussinesq() && iout == 1
             @views file["n2"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz] =
                 bvsstrattfc[i0:i1, j0:j1, k0:k1] ./ tref .^ 2
         end
 
         # Write the mass-weighted potential temperature.
-        if iout == 1
+        if model != Boussinesq() && iout == 1
             @views file["p"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz] =
                 pstrattfc[i0:i1, j0:j1, k0:k1] .* rhoref .* thetaref
         end
@@ -93,12 +93,21 @@ function write_output(
         # Write the density fluctuations.
         if prepare_restart || :rhop in output_variables
             HDF5.set_extent_dims(file["rhop"], (sizex, sizey, sizez, iout))
-            @views file["rhop"][
-                (io + 1):(io + nx),
-                (jo + 1):(jo + ny),
-                1:nz,
-                iout,
-            ] = rho[i0:i1, j0:j1, k0:k1] .* rhoref
+            if model == Boussinesq()
+                @views file["rhop"][
+                    (io + 1):(io + nx),
+                    (jo + 1):(jo + ny),
+                    1:nz,
+                    iout,
+                ] = rhop[i0:i1, j0:j1, k0:k1] .* rhoref
+            else
+                @views file["rhop"][
+                    (io + 1):(io + nx),
+                    (jo + 1):(jo + ny),
+                    1:nz,
+                    iout,
+                ] = rho[i0:i1, j0:j1, k0:k1] .* rhoref
+            end
         end
 
         # Write the zonal winds.
@@ -220,18 +229,33 @@ function write_output(
         # Write the potential-temperature fluctuations.
         if :thetap in output_variables
             HDF5.set_extent_dims(file["thetap"], (sizex, sizey, sizez, iout))
-            @views file["thetap"][
-                (io + 1):(io + nx),
-                (jo + 1):(jo + ny),
-                1:nz,
-                iout,
-            ] =
-                (
-                    pstrattfc[i0:i1, j0:j1, k0:k1] ./ (
-                        rhostrattfc[i0:i1, j0:j1, k0:k1] .+
-                        rho[i0:i1, j0:j1, k0:k1]
-                    ) .- thetastrattfc[i0:i1, j0:j1, k0:k1]
-                ) .* thetaref
+            if model == Boussinesq()
+                @views file["thetap"][
+                    (io + 1):(io + nx),
+                    (jo + 1):(jo + ny),
+                    1:nz,
+                    iout,
+                ] =
+                    (
+                        pstrattfc[i0:i1, j0:j1, k0:k1] ./ (
+                            rhostrattfc[i0:i1, j0:j1, k0:k1] .+
+                            rhop[i0:i1, j0:j1, k0:k1]
+                        ) .- thetastrattfc[i0:i1, j0:j1, k0:k1]
+                    ) .* thetaref
+            else
+                @views file["thetap"][
+                    (io + 1):(io + nx),
+                    (jo + 1):(jo + ny),
+                    1:nz,
+                    iout,
+                ] =
+                    (
+                        pstrattfc[i0:i1, j0:j1, k0:k1] ./ (
+                            rhostrattfc[i0:i1, j0:j1, k0:k1] .+
+                            rho[i0:i1, j0:j1, k0:k1]
+                        ) .- thetastrattfc[i0:i1, j0:j1, k0:k1]
+                    ) .* thetaref
+            end
         end
 
         # Write the Exner-pressure fluctuations.

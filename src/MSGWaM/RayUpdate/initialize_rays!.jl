@@ -11,7 +11,7 @@ end
 function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
     (; sizex, sizey, sizez) = state.namelists.domain
     (; testcase) = state.namelists.setting
-    (; f_coriolis_dim) = state.namelists.atmosphere
+    (; coriolis_frequency) = state.namelists.atmosphere
     (;
         xrmin_dim,
         xrmax_dim,
@@ -47,7 +47,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
     ) = state.wkb
 
     # Set Coriolis parameter.
-    f_cor_nd = f_coriolis_dim * tref
+    fc = coriolis_frequency * tref
 
     # Non-dimensionalize boundaries for ray-volume propagation.
     xrmin = xrmin_dim / lref
@@ -246,7 +246,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
             if abs(vyr + cgiry) > abs(cgy_max[1])
                 cgy_max[1] = abs(vyr + cgiry)
             end
-            cgirz = -wnrm * (omir^2 - f_cor_nd^2) / (omir * (wnrh^2 + wnrm^2))
+            cgirz = -wnrm * (omir^2 - fc^2) / (omir * (wnrh^2 + wnrm^2))
             if abs(wzr + cgirz) > abs(cgz_max[ix, jy, kz])
                 cgz_max[ix, jy, kz] = max(cgz_max[ix, jy, kz], abs(wzr + cgirz))
             end

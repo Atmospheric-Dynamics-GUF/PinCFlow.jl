@@ -16,7 +16,7 @@ function Predictands(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
-    model::PseudoIncompressible,
+    model::AbstractModel,
     testcase::Union{MountainWave, WKBMountainWave},
 )
 

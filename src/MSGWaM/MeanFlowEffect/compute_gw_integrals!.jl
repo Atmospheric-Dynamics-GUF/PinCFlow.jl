@@ -1,7 +1,7 @@
 function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     (; domain, grid) = state
     (; sizex, sizey) = state.namelists.domain
-    (; f_coriolis_dim) = state.namelists.atmosphere
+    (; coriolis_frequency) = state.namelists.atmosphere
     (; branchr) = state.namelists.wkb
     (; tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = domain
@@ -10,7 +10,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     (; nray, rays, integrals) = state.wkb
 
     # Set Coriolis parameter.
-    f_cor_nd = f_coriolis_dim * tref
+    fc = coriolis_frequency * tref
 
     for field in fieldnames(GWIntegrals)
         getfield(integrals, field) .= 0.0
@@ -46,12 +46,11 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
             n2r = interpolate_stratification(zr, state, N2())
 
             omir =
-                branchr * sqrt(n2r * khr^2 + f_cor_nd^2 * mr^2) /
-                sqrt(khr^2 + mr^2)
+                branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
-            cgirz = -mr * (omir^2 - f_cor_nd^2) / (omir * (khr^2 + mr^2))
+            cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
 
             (ixmin, ixmax, jymin, jymax) =
                 compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
@@ -99,12 +98,12 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                             rays.dens[iray, ixrv, jyrv, kzrv]
 
                         if sizex > 1
-                            if f_cor_nd != 0
+                            if fc != 0
                                 integrals.uu[ix, jy, kz] +=
                                     wadr * (
                                         kr * cgirx -
                                         (kr * cgirx + lr * cgiry) /
-                                        (1 - (omir / f_cor_nd)^2)
+                                        (1 - (omir / fc)^2)
                                     )
                             else
                                 integrals.uu[ix, jy, kz] += wadr * kr * cgirx
@@ -116,15 +115,15 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                         end
 
                         integrals.uw[ix, jy, kz] +=
-                            wadr * kr * cgirz / (1 - (f_cor_nd / omir)^2)
+                            wadr * kr * cgirz / (1 - (fc / omir)^2)
 
                         if sizey > 1
-                            if f_cor_nd != 0
+                            if fc != 0
                                 integrals.vv[ix, jy, kz] +=
                                     wadr * (
                                         lr * cgiry -
                                         (kr * cgirx + lr * cgiry) /
-                                        (1 - (omir / f_cor_nd)^2)
+                                        (1 - (omir / fc)^2)
                                     )
                             else
                                 integrals.vv[ix, jy, kz] += wadr * lr * cgiry
@@ -132,11 +131,11 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                         end
 
                         integrals.vw[ix, jy, kz] +=
-                            wadr * lr * cgirz / (1 - (f_cor_nd / omir)^2)
+                            wadr * lr * cgirz / (1 - (fc / omir)^2)
 
-                        if f_cor_nd != 0
+                        if fc != 0
                             integrals.etx[ix, jy, kz] +=
-                                wadr * f_cor_nd^2 * n2r * kr * mr / (
+                                wadr * fc^2 * n2r * kr * mr / (
                                     rhostrattfc[ix, jy, kz] *
                                     g_ndim *
                                     omir *
@@ -144,7 +143,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
                                 )
 
                             integrals.ety[ix, jy, kz] +=
-                                wadr * f_cor_nd^2 * n2r * lr * mr / (
+                                wadr * fc^2 * n2r * lr * mr / (
                                     rhostrattfc[ix, jy, kz] *
                                     g_ndim *
                                     omir *
@@ -159,13 +158,12 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
         end
     end
 
-    if f_cor_nd != 0
+    if fc != 0
         for kz in k0:k1, jy in j0:j1, ix in i0:i1
             integrals.utheta[ix, jy, kz] =
-                thetastrattfc[ix, jy, kz] / f_cor_nd * integrals.ety[ix, jy, kz]
+                thetastrattfc[ix, jy, kz] / fc * integrals.ety[ix, jy, kz]
             integrals.vtheta[ix, jy, kz] =
-                -thetastrattfc[ix, jy, kz] / f_cor_nd *
-                integrals.etx[ix, jy, kz]
+                -thetastrattfc[ix, jy, kz] / fc * integrals.etx[ix, jy, kz]
         end
     end
 end
@@ -173,7 +171,7 @@ end
 function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     (; domain, grid) = state
     (; sizex, sizey) = state.namelists.domain
-    (; f_coriolis_dim) = state.namelists.atmosphere
+    (; coriolis_frequency) = state.namelists.atmosphere
     (; branchr) = state.namelists.wkb
     (; tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = domain
@@ -182,7 +180,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     (; nray, rays, integrals) = state.wkb
 
     # Set Coriolis parameter.
-    f_cor_nd = f_coriolis_dim * tref
+    fc = coriolis_frequency * tref
 
     for field in fieldnames(GWIntegrals)
         getfield(integrals, field) .= 0.0
@@ -218,10 +216,9 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
             n2r = interpolate_stratification(zr, state, N2())
 
             omir =
-                branchr * sqrt(n2r * khr^2 + f_cor_nd^2 * mr^2) /
-                sqrt(khr^2 + mr^2)
+                branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
-            cgirz = -mr * (omir^2 - f_cor_nd^2) / (omir * (khr^2 + mr^2))
+            cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
 
             ixmin, ixmax, jymin, jymax =
                 compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
@@ -269,14 +266,14 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                             rays.dens[iray, ixrv, jyrv, kzrv]
 
                         integrals.uw[ix, jy, kz] +=
-                            wadr * kr * cgirz / (1 - (f_cor_nd / omir)^2)
+                            wadr * kr * cgirz / (1 - (fc / omir)^2)
 
                         integrals.vw[ix, jy, kz] +=
-                            wadr * lr * cgirz / (1 - (f_cor_nd / omir)^2)
+                            wadr * lr * cgirz / (1 - (fc / omir)^2)
 
-                        if f_cor_nd != 0
+                        if fc != 0
                             integrals.etx[ix, jy, kz] +=
-                                wadr * f_cor_nd^2 * n2r * kr * mr / (
+                                wadr * fc^2 * n2r * kr * mr / (
                                     rhostrattfc[ix, jy, kz] *
                                     g_ndim *
                                     omir *
@@ -284,7 +281,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
                                 )
 
                             integrals.ety[ix, jy, kz] +=
-                                wadr * f_cor_nd^2 * n2r * lr * mr / (
+                                wadr * fc^2 * n2r * lr * mr / (
                                     rhostrattfc[ix, jy, kz] *
                                     g_ndim *
                                     omir *
@@ -299,20 +296,19 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
         end
     end
 
-    if f_cor_nd != 0
+    if fc != 0
         for kz in k0:k1, jy in j0:j1, ix in i0:i1
             integrals.utheta[ix, jy, kz] =
-                thetastrattfc[ix, jy, kz] / f_cor_nd * integrals.ety[ix, jy, kz]
+                thetastrattfc[ix, jy, kz] / fc * integrals.ety[ix, jy, kz]
             integrals.vtheta[ix, jy, kz] =
-                -thetastrattfc[ix, jy, kz] / f_cor_nd *
-                integrals.etx[ix, jy, kz]
+                -thetastrattfc[ix, jy, kz] / fc * integrals.etx[ix, jy, kz]
         end
     end
 end
 
 function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
     (; domain, grid) = state
-    (; f_coriolis_dim) = state.namelists.atmosphere
+    (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = state.domain
     (; dx, dy, dz, x, y, ztildetfc, jac) = state.grid
@@ -321,7 +317,7 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
     (; nray, rays, integrals) = state.wkb
 
     # Set Coriolis parameter.
-    f_cor_nd = f_coriolis_dim * tref
+    fc = coriolis_frequency * tref
 
     for field in fieldnames(GWIntegrals)
         getfield(integrals, field) .= 0.0
@@ -357,10 +353,9 @@ function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
             n2r = interpolate_stratification(zr, state, N2())
 
             omir =
-                branchr * sqrt(n2r * khr^2 + f_cor_nd^2 * mr^2) /
-                sqrt(khr^2 + mr^2)
+                branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
-            cgirz = -mr * (omir^2 - f_cor_nd^2) / (omir * (khr^2 + mr^2))
+            cgirz = -mr * (omir^2 - fc^2) / (omir * (khr^2 + mr^2))
 
             ixmin, ixmax, jymin, jymax =
                 compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)

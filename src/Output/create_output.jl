@@ -2,7 +2,7 @@ function create_output(state::State)
     (; sizex, sizey, sizez, nprocx, nprocy) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
-    (; testcase) = state.namelists.setting
+    (; model, testcase) = state.namelists.setting
     (; comm) = state.domain
     (; nray_max) = state.wkb
 
@@ -35,14 +35,16 @@ function create_output(state::State)
         )
 
         # Create datasets for the background.
-        for label in ("rhobar", "thetabar", "n2", "p")
-            create_dataset(
-                file,
-                label,
-                datatype(Float32),
-                dataspace((sizex, sizey, sizez));
-                chunk = (cx, cy, cz),
-            )
+        if model != Boussinesq()
+            for label in ("rhobar", "thetabar", "n2", "p")
+                create_dataset(
+                    file,
+                    label,
+                    datatype(Float32),
+                    dataspace((sizex, sizey, sizez));
+                    chunk = (cx, cy, cz),
+                )
+            end
         end
 
         # Create datasets for the prognostic variables.

@@ -1,6 +1,6 @@
 function compute_gw_tendencies!(state)
     (; sizex, sizey) = state.namelists.domain
-    (; f_coriolis_dim) = state.namelists.atmosphere
+    (; coriolis_frequency) = state.namelists.atmosphere
     (; zmin_wkb_dim) = state.namelists.wkb
     (; tref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -10,7 +10,7 @@ function compute_gw_tendencies!(state)
     (; integrals, tendencies) = state.wkb
 
     # Set the Coriolis parameter.
-    f_cor_nd = f_coriolis_dim * tref
+    fc = coriolis_frequency * tref
 
     for field in fieldnames(GWTendencies)
         getfield(tendencies, field) .= 0.0
@@ -99,7 +99,7 @@ function compute_gw_tendencies!(state)
 
         # Compute the heating.
 
-        if f_cor_nd != 0.0 && (sizex > 1 || sizey > 1)
+        if fc != 0.0 && (sizex > 1 || sizey > 1)
             if sizex > 1
                 integrals.dthetadt[ix, jy, kz] +=
                     rhotot * (

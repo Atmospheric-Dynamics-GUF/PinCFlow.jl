@@ -1,10 +1,25 @@
+function update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
+    (; model) = state.namelists.setting
+    update!(state, dt, m, variable, model)
+    return
+end
+
 function update!(
     state::State,
     dt::AbstractFloat,
     m::Integer,
     variable::Rho,
-    side::LHS,
-    integration::EXPL,
+    model::Boussinesq,
+)
+    return
+end
+
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::Rho,
+    model::PseudoIncompressible,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
@@ -43,7 +58,6 @@ function update!(
     m::Integer,
     variable::RhoP,
     side::LHS,
-    integration::EXPL,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
@@ -307,12 +321,11 @@ function update!(
     m::Integer,
     variable::U,
     side::LHS,
-    integration::EXPL,
 )
     (; alphark, betark) = state.time
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; rhostrattfc, f_cor_nd) = state.atmosphere
+    (; rhostrattfc, fc) = state.atmosphere
     (; du) = state.variables.tendencies
     (; phiu) = state.variables.fluxes
     (; rhoold, uold) = state.variables.backups
@@ -343,7 +356,7 @@ function update!(
         vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
         volforce =
             0.5 *
-            f_cor_nd[j] *
+            fc[j] *
             (
                 (rhoold[i, j, k] + rhostrattfc[i, j, k]) * vc +
                 (rhoold[i + 1, j, k] + rhostrattfc[i + 1, j, k]) * vr
@@ -541,12 +554,11 @@ function update!(
     m::Integer,
     variable::V,
     side::LHS,
-    integration::EXPL,
 )
     (; alphark, betark) = state.time
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; rhostrattfc, f_cor_nd) = state.atmosphere
+    (; rhostrattfc, fc) = state.atmosphere
     (; dv) = state.variables.tendencies
     (; phiv) = state.variables.fluxes
     (; rhoold, uold, vold) = state.variables.backups
@@ -578,8 +590,8 @@ function update!(
 
         volforce =
             -0.5 * (
-                f_cor_nd[j] * (rhoold[i, j, k] + rhostrattfc[i, j, k]) * uc +
-                f_cor_nd[j + 1] *
+                fc[j] * (rhoold[i, j, k] + rhostrattfc[i, j, k]) * uc +
+                fc[j + 1] *
                 (rhoold[i, j + 1, k] + rhostrattfc[i, j + 1, k]) *
                 uf
             )
@@ -772,14 +784,13 @@ function update!(
     m::Integer,
     variable::W,
     side::LHS,
-    integration::EXPL,
 )
     (; zboundaries) = state.namelists.setting
     (; alphark, betark) = state.time
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; grid) = state
     (; dx, dy, dz, jac, met) = grid
-    (; rhostrattfc, f_cor_nd) = state.atmosphere
+    (; rhostrattfc, fc) = state.atmosphere
     (; dw) = state.variables.tendencies
     (; phiu, phiv, phiw) = state.variables.fluxes
     (; rhoold, uold, vold) = state.variables.backups
@@ -867,7 +878,7 @@ function update!(
         uu = 0.5 * (uold[i, j, k + 1] + uold[i - 1, j, k + 1])
 
         volforce =
-            f_cor_nd[j] * (
+            fc[j] * (
                 jac[i, j, k + 1] *
                 met[i, j, k, 1, 3] *
                 (rhoold[i, j, k] + rhostrattfc[i, j, k]) *
@@ -877,7 +888,7 @@ function update!(
                 (rhoold[i, j, k + 1] + rhostrattfc[i, j, k + 1]) *
                 vu
             ) / (jac[i, j, k] + jac[i, j, k + 1]) -
-            f_cor_nd[j] * (
+            fc[j] * (
                 jac[i, j, k + 1] *
                 met[i, j, k, 2, 3] *
                 (rhoold[i, j, k] + rhostrattfc[i, j, k]) *

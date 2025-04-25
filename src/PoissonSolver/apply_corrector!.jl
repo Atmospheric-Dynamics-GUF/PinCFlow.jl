@@ -18,7 +18,7 @@ function apply_corrector!(
 
     # Solve Poisson equation.
     (errflagbicg, niterbicg) =
-        solve_poisson!(state, rhs, tolref, dt, model, facray, facprs)
+        solve_poisson!(state, rhs, tolref, dt, facray, facprs)
 
     # Return if an error occurred.
     if errflagbicg

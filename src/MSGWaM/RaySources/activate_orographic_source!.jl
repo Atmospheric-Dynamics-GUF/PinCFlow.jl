@@ -6,7 +6,7 @@ function activate_orographic_source!(
     wnm_ini::AbstractArray{<:AbstractFloat, 4},
     wad_ini::AbstractArray{<:AbstractFloat, 4},
 )
-    (; f_coriolis_dim) = state.namelists.atmosphere
+    (; coriolis_frequency) = state.namelists.atmosphere
     (; branchr, blocking, long_threshold, nwm) = state.namelists.wkb
     (; tref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -17,7 +17,7 @@ function activate_orographic_source!(
     (; zb) = state.wkb
 
     # Set Coriolis parameter.
-    f_cor_nd = f_coriolis_dim * tref
+    fc = coriolis_frequency * tref
 
     # Iterate over surface grid cells.
     for jy in j0:j1, ix in i0:i1
@@ -79,7 +79,7 @@ function activate_orographic_source!(
                 vavg,
                 rhoavg,
                 bvsavg,
-                f_cor_nd,
+                fc,
                 branchr,
             )
 
@@ -96,7 +96,7 @@ end
 
 function activate_orographic_source!(state::State, dt::AbstractFloat)
     (; sizex, sizey) = state.namelists.domain
-    (; f_coriolis_dim) = state.namelists.atmosphere
+    (; coriolis_frequency) = state.namelists.atmosphere
     (;
         nrxl,
         nryl,
@@ -135,7 +135,7 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
     (; nray_wrk, n_sfc, nray, rays) = state.wkb
 
     # Set Coriolis parameter.
-    f_cor_nd = f_coriolis_dim * tref
+    fc = coriolis_frequency * tref
 
     # Iterate over surface grid cells.
     for jy in j0:j1, ix in i0:i1
@@ -207,7 +207,7 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
                 vavg,
                 rhoavg,
                 bvsavg,
-                f_cor_nd,
+                fc,
                 branchr,
             )
 
@@ -296,7 +296,7 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
             # Scale the wave action density.
             if wkb_mode != SteadyState() && launch_algorithm == Scale()
                 cgrz =
-                    wnrm * (f_cor_nd^2.0 - bvsavg) * wnrh^2.0 / omir /
+                    wnrm * (fc^2.0 - bvsavg) * wnrh^2.0 / omir /
                     (wnrh^2.0 + wnrm^2.0)^2.0
                 wadr *= dt * cgrz / jac[ix, jy, kz] / dz
             end

@@ -33,7 +33,7 @@ function propagate_rays!(
     (; testcase) = state.namelists.setting
     (; branchr, zmin_wkb_dim) = state.namelists.wkb
     (; sizex, sizey) = state.namelists.domain
-    (; f_coriolis_dim) = state.namelists.atmosphere
+    (; coriolis_frequency) = state.namelists.atmosphere
     (; spongelayer, unifiedsponge) = state.namelists.sponge
     (; lref, tref) = state.constants
     (; nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
@@ -44,7 +44,7 @@ function propagate_rays!(
     (; k0, k1, j0, j1, i0, i1) = state.domain
 
     # Set Coriolis parameter.
-    f_cor_nd = f_coriolis_dim * tref
+    fc = coriolis_frequency * tref
 
     # Initialize RK tendencies at the first RK stage.
     if (rkstage == 1)
@@ -95,16 +95,13 @@ function propagate_rays!(
             n2r2 = interpolate_stratification(zr2, state, N2())
 
             omir1 =
-                branchr * sqrt(n2r1 * khr^2 + f_cor_nd^2 * mr^2) /
-                sqrt(khr^2 + mr^2)
+                branchr * sqrt(n2r1 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             omir =
-                branchr * sqrt(n2r * khr^2 + f_cor_nd^2 * mr^2) /
-                sqrt(khr^2 + mr^2)
+                branchr * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             omir2 =
-                branchr * sqrt(n2r2 * khr^2 + f_cor_nd^2 * mr^2) /
-                sqrt(khr^2 + mr^2)
+                branchr * sqrt(n2r2 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             # Compute intrinsic zonal group velocity.
             if (sizex > 1)
@@ -117,8 +114,8 @@ function propagate_rays!(
             end
 
             # Compute intrinsic vertical group velocities at the vertical edges.
-            cgirz1 = -mr * (omir1^2 - f_cor_nd^2) / (omir1 * (khr^2 + mr^2))
-            cgirz2 = -mr * (omir2^2 - f_cor_nd^2) / (omir2 * (khr^2 + mr^2))
+            cgirz1 = -mr * (omir1^2 - fc^2) / (omir1 * (khr^2 + mr^2))
+            cgirz2 = -mr * (omir2^2 - fc^2) / (omir2 * (khr^2 + mr^2))
 
             #-------------------------------
             #      Change of position
@@ -315,7 +312,7 @@ function propagate_rays!(
 )
     (; sizex, sizey) = state.namelists.domain
     (; testcase) = state.namelists.setting
-    (; f_coriolis_dim) = state.namelists.atmosphere
+    (; coriolis_frequency) = state.namelists.atmosphere
     (; spongelayer, unifiedsponge) = state.namelists.sponge
     (; branchr, lsaturation, alpha_sat) = state.namelists.wkb
     (; stepfrac) = state.time
@@ -327,7 +324,7 @@ function propagate_rays!(
     (; nray, rays) = state.wkb
 
     # Set Coriolis parameter.
-    f_cor_nd = f_coriolis_dim * tref
+    fc = coriolis_frequency * tref
 
     if testcase == WKBMountainWave()
         activate_orographic_source!(state, stepfrac[rkstage] * dt)
@@ -381,10 +378,9 @@ function propagate_rays!(
             omir =
                 -(u[ix, jy, kz0] + u[ix - 1, jy, kz0]) / 2 * kr -
                 (v[ix, jy, kz0] + v[ix, jy - 1, kz0]) / 2 * lr
-            if f_cor_nd < branchr * omir < sqrt(n2r)
+            if fc < branchr * omir < sqrt(n2r)
                 mr = rays.m[iray, ix, jy, kz0]
-                cgirz0 =
-                    mr * (f_cor_nd^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
+                cgirz0 = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
                 rays.dens[iray, ix, jy, kz0] = 0.0
                 rays.dens[iray, ix, jy, kz] = 0.0
@@ -400,12 +396,9 @@ function propagate_rays!(
             omir =
                 -(u[ix, jy, kz] + u[ix - 1, jy, kz]) / 2 * kr -
                 (v[ix, jy, kz] + v[ix, jy - 1, kz]) / 2 * lr
-            if f_cor_nd < branchr * omir < sqrt(n2r)
-                mr =
-                    -branchr *
-                    sqrt(khr^2 * (n2r - omir^2) / (omir^2 - f_cor_nd^2))
-                cgirz =
-                    mr * (f_cor_nd^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
+            if fc < branchr * omir < sqrt(n2r)
+                mr = -branchr * sqrt(khr^2 * (n2r - omir^2) / (omir^2 - fc^2))
+                cgirz = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
                 rays.dens[iray, ix, jy, kz0] = 0.0
                 rays.dens[iray, ix, jy, kz] = 0.0
@@ -494,9 +487,8 @@ function propagate_rays!(
             omir =
                 -(u[ix, jy, kz] + u[ix - 1, jy, kz]) / 2 * kr -
                 (v[ix, jy, kz] + v[ix, jy - 1, kz]) / 2 * lr
-            if f_cor_nd < branchr * omir < sqrt(n2r)
-                cgirz =
-                    mr * (f_cor_nd^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
+            if fc < branchr * omir < sqrt(n2r)
+                cgirz = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
             else
                 rays.dens[iray, ix, jy, kz0] = 0.0
                 rays.dens[iray, ix, jy, kz] = 0.0

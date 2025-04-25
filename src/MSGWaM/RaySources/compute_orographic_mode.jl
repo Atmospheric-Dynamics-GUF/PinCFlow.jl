@@ -6,7 +6,7 @@ function compute_orographic_mode(
     vavg::AbstractFloat,
     rhoavg::AbstractFloat,
     bvsavg::AbstractFloat,
-    f_cor_nd::AbstractFloat,
+    fc::AbstractFloat,
     branch::Integer,
 )
 
@@ -25,10 +25,10 @@ function compute_orographic_mode(
     end
 
     # Compute vertical wavenumber and wave-action density.
-    if omi^2 > f_cor_nd^2 && omi^2 < bvsavg
+    if omi^2 > fc^2 && omi^2 < bvsavg
 
         # Compute vertical wavenumber.
-        wnm = -branch * sqrt(wnh^2 * (bvsavg - omi^2) / (omi^2 - f_cor_nd^2))
+        wnm = -branch * sqrt(wnh^2 * (bvsavg - omi^2) / (omi^2 - fc^2))
 
         # Compute wave-action density.
         wad = 0.5 * rhoavg * displm^2 * omi * (wnh^2 + wnm^2) / wnh^2

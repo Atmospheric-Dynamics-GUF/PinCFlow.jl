@@ -59,8 +59,8 @@ atmosphere = AtmosphereNamelist(;
     temp0_dim = 3.0E+2,
     press0_dim = 1.0E+5,
     backgroundflow_dim = (1.0E+1, 0.0E+0, 0.0E+0),
-    f_coriolis_dim = 0.0E+0,
-    corset = ConstantCoriolis(),
+    coriolis_frequency = 0.0E+0,
+    coriolis_mode = FPlane(),
 )
 
 grid = GridNamelist(;
@@ -100,11 +100,7 @@ namelists = Namelists(;
     sponge = sponge,
 )
 
-let output = stdout
-    redirect_stdout(devnull)
-    integrate(namelists)
-    redirect_stdout(output)
-end
+integrate(namelists)
 
 data = h5open("pincflow_output.h5")
 reference = h5open("mountain_wave_tests.h5")
