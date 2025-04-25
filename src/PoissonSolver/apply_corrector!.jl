@@ -1,7 +1,6 @@
 function apply_corrector!(
     state::State,
     dt::AbstractFloat,
-    opt::AbstractIntegration,
     facray::AbstractFloat,
     facprs::AbstractFloat,
 )
@@ -19,7 +18,7 @@ function apply_corrector!(
 
     # Solve Poisson equation.
     (errflagbicg, niterbicg) =
-        solve_poisson!(state, rhs, tolref, dt, opt, model, facray, facprs)
+        solve_poisson!(state, rhs, tolref, dt, model, facray, facprs)
 
     # Return if an error occurred.
     if errflagbicg
@@ -39,7 +38,7 @@ function apply_corrector!(
     end
 
     # Correct momentum and buoyancy.
-    correct!(state, dt, opt, facray, facprs)
+    correct!(state, dt, facray, facprs)
 
     # Return.
     return (errflagbicg, niterbicg)
