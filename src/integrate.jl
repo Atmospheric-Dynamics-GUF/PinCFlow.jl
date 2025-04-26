@@ -29,7 +29,6 @@ function integrate(namelists::Namelists)
 
     # Get all necessary fields.
     (; nprocx, nprocy) = state.namelists.domain
-    (; model) = state.namelists.setting
     (; initialcleaning) = state.namelists.poisson
     (; dtmin_dim) = state.namelists.discretization
     (; restart, maxtime, outputtimediff, output_steps, maxiter, noutput) =
