@@ -18,8 +18,10 @@ function set_zonal_halo_rays!(state::State)
         :dens,
     )
 
-    @views nray_max_left = maximum(nray[i0, :, :])
-    @views nray_max_right = maximum(nray[i1, :, :])
+    @views nray_max_left =
+        maximum(nray[i0, (j0 - 1):(j1 + 1), (k0 - 1):(k1 + 1)])
+    @views nray_max_right =
+        maximum(nray[i1, (j0 - 1):(j1 + 1), (k0 - 1):(k1 + 1)])
 
     nray_max_left = MPI.Allreduce(nray_max_left, max, comm)
     nray_max_right = MPI.Allreduce(nray_max_right, max, comm)
