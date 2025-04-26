@@ -28,7 +28,7 @@ function propagate_rays!(
     state::State,
     dt::AbstractFloat,
     rkstage::Integer,
-    wkb_mode::Union{SingleColumn, MultiColumn},
+    wkb_mode::AbstractWKBMode,
 )
     (; testcase) = state.namelists.setting
     (; branchr, zmin_wkb_dim) = state.namelists.wkb

@@ -93,7 +93,7 @@ function set_vertical_boundaries!(
     state::State,
     variables::BoundaryGWIntegrals,
     boundaries::SolidWallBoundaries,
-    wkb_mode::Union{SteadyState, SingleColumn},
+    wkb_mode::AbstractWKBMode,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; uw, vw, e) = state.wkb.integrals
@@ -159,7 +159,7 @@ function set_vertical_boundaries!(
     state::State,
     variables::BoundaryGWTendencies,
     boundaries::SolidWallBoundaries,
-    wkb_mode::Union{SteadyState, SingleColumn},
+    wkb_mode::AbstractWKBMode,
 )
     (; nbz) = state.namelists.domain
     (; k0, k1) = state.domain

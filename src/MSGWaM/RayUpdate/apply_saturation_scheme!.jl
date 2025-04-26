@@ -33,7 +33,7 @@ end
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
-    wkb_mode::Union{SingleColumn, MultiColumn},
+    wkb_mode::AbstractWKBMode,
 )
     (; domain, grid) = state
     (; nray, rays, diffusion) = state.wkb

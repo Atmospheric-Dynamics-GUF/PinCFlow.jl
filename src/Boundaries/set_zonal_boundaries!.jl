@@ -35,7 +35,7 @@ end
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryGWIntegrals,
-    wkb_mode::Union{SteadyState, SingleColumn},
+    wkb_mode::AbstractWKBMode,
 )
     (; namelists, domain) = state
     (; uw, vw, e) = state.wkb.integrals
@@ -82,7 +82,7 @@ end
 function set_zonal_boundaries!(
     state::State,
     variables::BoundaryGWTendencies,
-    wkb_mode::Union{SteadyState, SingleColumn},
+    wkb_mode::AbstractWKBMode,
 )
     (; namelists, domain) = state
     (; dudt, dvdt) = state.wkb.tendencies
