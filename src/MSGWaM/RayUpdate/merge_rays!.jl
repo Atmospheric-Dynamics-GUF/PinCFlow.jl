@@ -18,7 +18,7 @@ function merge_rays!(state::State, wkb_mode::SteadyState)
     return
 end
 
-function merge_rays!(state::State, wkb_mode::Union{SingleColumn, MultiColumn})
+function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
     (; sizex, sizey) = state.namelists.domain
     (; merge_mode) = state.namelists.wkb
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain

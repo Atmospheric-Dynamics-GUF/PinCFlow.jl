@@ -29,7 +29,7 @@ end
 
 function set_boundary_rays!(
     state::State,
-    wkb_mode::Union{SingleColumn, MultiColumn},
+    wkb_mode::AbstractWKBMode,
 )
     (; sizex, sizey) = state.namelists.domain
     (; zboundaries) = state.namelists.setting

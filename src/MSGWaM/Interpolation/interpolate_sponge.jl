@@ -76,8 +76,8 @@ function interpolate_sponge(
     phirfu = alphaunifiedsponge[ixr, jyf, kzrfu]
 
     # Interpolate.
-    phi = interpolate(;
-        namelists,
+    phi = interpolate(
+        namelists;
         philbd,
         philbu,
         philfd,

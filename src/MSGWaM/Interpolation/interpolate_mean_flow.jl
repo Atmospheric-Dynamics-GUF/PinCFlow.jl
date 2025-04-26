@@ -106,8 +106,8 @@ function interpolate_mean_flow(
     phirfu = u[ixr, jyf, kzrfu]
 
     # Interpolate.
-    phi = interpolate(;
-        namelists,
+    phi = interpolate(
+        namelists;
         philbd,
         philbu,
         philfd,
@@ -246,8 +246,8 @@ function interpolate_mean_flow(
     phirfu = v[ixr, jyf, kzrfu]
 
     # Interpolate.
-    phi = interpolate(;
-        namelists,
+    phi = interpolate(
+        namelists;
         philbd,
         philbu,
         philfd,
@@ -418,8 +418,8 @@ function interpolate_mean_flow(
     end
 
     # Interpolate.
-    phi = interpolate(;
-        namelists,
+    phi = interpolate(
+        namelists;
         philbd,
         philbu,
         philfd,
@@ -560,8 +560,8 @@ function interpolate_mean_flow(
         compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DUDX())
 
     # Interpolate.
-    phi = interpolate(;
-        namelists,
+    phi = interpolate(
+        namelists;
         philbd,
         philbu,
         philfd,
@@ -699,8 +699,8 @@ function interpolate_mean_flow(
         compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DUDY())
 
     # Interpolate.
-    phi = interpolate(;
-        namelists,
+    phi = interpolate(
+        namelists;
         philbd,
         philbu,
         philfd,
@@ -838,8 +838,8 @@ function interpolate_mean_flow(
         compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DUDZ())
 
     # Interpolate.
-    phi = interpolate(;
-        namelists,
+    phi = interpolate(
+        namelists;
         philbd,
         philbu,
         philfd,
@@ -977,8 +977,8 @@ function interpolate_mean_flow(
         compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DVDX())
 
     # Interpolate.
-    phi = interpolate(;
-        namelists,
+    phi = interpolate(
+        namelists;
         philbd,
         philbu,
         philfd,
@@ -1120,8 +1120,8 @@ function interpolate_mean_flow(
         compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DVDY())
 
     # Interpolate.
-    phi = interpolate(;
-        namelists,
+    phi = interpolate(
+        namelists;
         philbd,
         philbu,
         philfd,
@@ -1259,8 +1259,8 @@ function interpolate_mean_flow(
         compute_derivatives(state, (ixr, jyf, kzrfd, kzrfu), DVDZ())
 
     # Interpolate.
-    phi = interpolate(;
-        namelists,
+    phi = interpolate(
+        namelists;
         philbd,
         philbu,
         philfd,
