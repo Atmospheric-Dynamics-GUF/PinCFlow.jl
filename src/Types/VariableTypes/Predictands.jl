@@ -17,7 +17,7 @@ function Predictands(
     constants::Constants,
     domain::Domain,
     model::AbstractModel,
-    testcase::Union{MountainWave, WKBMountainWave},
+    testcase::AbstractTestCase,
 )
 
     # Get parameters.
