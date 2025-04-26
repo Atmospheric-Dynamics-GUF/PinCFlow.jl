@@ -10,7 +10,7 @@ using HDF5
     end
 
     @testset "WKB mountain-wave tests" begin
-        # include("wkb_mountain_wave_tests.jl")
+        include("wkb_mountain_wave_tests.jl")
     end
 
     @testset "Input test" begin

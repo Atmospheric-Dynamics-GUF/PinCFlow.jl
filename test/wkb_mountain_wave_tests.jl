@@ -1,7 +1,7 @@
 domain = DomainNamelist(;
-    sizex = 40,
-    sizey = 40,
-    sizez = 40,
+    sizex = 10,
+    sizey = 10,
+    sizez = 10,
     nbx = 3,
     nby = 3,
     nbz = 3,
@@ -17,7 +17,7 @@ output = OutputNamelist(;
     prepare_restart = true,
     restart = false,
     iin = -1,
-    output_steps = true,
+    output_steps = false,
     noutput = 1,
     maxiter = 1,
     outputtimediff = 3.6E+3,
@@ -134,14 +134,14 @@ namelists = Namelists(;
 
 integrate(namelists)
 
-# data = h5open("pincflow_output.h5")
-# reference = h5open("wkb_mountain_wave_tests.h5")
+data = h5open("pincflow_output.h5")
+reference = h5open("wkb_mountain_wave_tests.h5")
 
-# for key in keys(reference)
-#     @test all(isapprox.(data[key], reference[key]))
-# end
+for key in keys(reference)
+    @test all(isapprox.(data[key], reference[key]))
+end
 
-# close(data)
-# close(reference)
+close(data)
+close(reference)
 
-# rm("pincflow_output.h5")
+rm("pincflow_output.h5")
