@@ -6,7 +6,7 @@ struct WKB{
     E <: Increments,
     F <: GWIntegrals,
     G <: GWTendencies,
-    H <: AbstractVector{<:AbstractFloat},
+    H <: Ref{<:AbstractFloat},
     I <: AbstractArray{<:AbstractFloat, 3},
     J <: AbstractMatrix{<:AbstractFloat},
 }
@@ -57,7 +57,7 @@ function WKB(
         Increments(0, 0, 0, 0),
         GWIntegrals(0, 0, 0),
         GWTendencies(0, 0, 0),
-        [zeros(0) for i in 1:2]...,
+        [Ref(0.0) for i in 1:2]...,
         zeros(0, 0, 0),
         zeros(0, 0),
         zeros(0, 0, 0),
@@ -182,8 +182,8 @@ function WKB(
     increments = Increments(nray_wrk, nxx, nyy, nzz)
     integrals = GWIntegrals(nxx, nyy, nzz)
     tendencies = GWTendencies(nxx, nyy, nzz)
-    cgx_max = [0.0]
-    cgy_max = [0.0]
+    cgx_max = Ref(0.0)
+    cgy_max = Ref(0.0)
     cgz_max = zeros(nxx, nyy, nzz)
     zb = zeros(nxx, nyy)
     diffusion = zeros(nxx, nyy, nzz)

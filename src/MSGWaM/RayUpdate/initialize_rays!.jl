@@ -239,12 +239,12 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
 
             # Compute maximum group velocities.
             cgirx = wnrk * (n2r - omir^2) / (omir * (wnrh^2 + wnrm^2))
-            if abs(uxr + cgirx) > abs(cgx_max[1])
-                cgx_max[1] = abs(uxr + cgirx)
+            if abs(uxr + cgirx) > abs(cgx_max[])
+                cgx_max[] = abs(uxr + cgirx)
             end
             cgiry = wnrl * (n2r - omir^2) / (omir * (wnrh^2 + wnrm^2))
-            if abs(vyr + cgiry) > abs(cgy_max[1])
-                cgy_max[1] = abs(vyr + cgiry)
+            if abs(vyr + cgiry) > abs(cgy_max[])
+                cgy_max[] = abs(vyr + cgiry)
             end
             cgirz = -wnrm * (omir^2 - fc^2) / (omir * (wnrh^2 + wnrm^2))
             if abs(wzr + cgirz) > abs(cgz_max[ix, jy, kz])
