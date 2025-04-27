@@ -59,8 +59,8 @@ function propagate_rays!(
         ddzray .= 0.0
     end
 
-    cgx_max .= 0.0
-    cgy_max .= 0.0
+    cgx_max[] = 0.0
+    cgy_max[] = 0.0
     cgz_max .= 0.0
 
     kz0 = testcase == WKBMountainWave() ? k0 - 1 : k0
@@ -138,7 +138,7 @@ function propagate_rays!(
                 rays.x[iray, ix, jy, kz] +=
                     betark[rkstage] * dxray[iray, ix, jy, kz]
 
-                cgx_max[1] = max(cgx_max[1], abs(cgrx))
+                cgx_max[] = max(cgx_max[], abs(cgrx))
             end
 
             # Update meridional position.
@@ -158,7 +158,7 @@ function propagate_rays!(
                 rays.y[iray, ix, jy, kz] +=
                     betark[rkstage] * dyray[iray, ix, jy, kz]
 
-                cgy_max[1] = max(cgy_max[1], abs(cgry))
+                cgy_max[] = max(cgy_max[], abs(cgry))
             end
 
             # Update vertical position.
