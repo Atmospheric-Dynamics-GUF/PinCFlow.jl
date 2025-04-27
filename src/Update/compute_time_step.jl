@@ -91,10 +91,10 @@ function compute_time_step(state::State)
             end
 
             if sizex > 1
-                dtwkb_loc = min(dtwkb_loc, dx / (cgx_max[1] + eps()))
+                dtwkb_loc = min(dtwkb_loc, dx / (cgx_max[] + eps()))
             end
             if sizey > 1
-                dtwkb_loc = min(dtwkb_loc, dy / (cgy_max[1] + eps()))
+                dtwkb_loc = min(dtwkb_loc, dy / (cgy_max[] + eps()))
             end
 
             dtwkb_loc = cfl_wave * dtwkb_loc
