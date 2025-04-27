@@ -54,9 +54,6 @@ function set_vertical_boundary_rays!(
     (; nray, rays) = state.wkb
 
     for kz in k0:k1, jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
-        if nray[ix, jy, kz] <= 0
-            continue
-        end
         for iray in 1:nray[ix, jy, kz]
             zr = rays.z[iray, ix, jy, kz]
 
@@ -82,56 +79,46 @@ function set_vertical_boundary_rays!(
         nray[(i0 - 1):(i1 + 1), (j0 - 1):(j1 + 1), k0]
 
     for jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
-        if nray[ix, jy, k0 - 1] > 0
-            for iray in 1:nray[ix, jy, k0 - 1]
-                copy_rays!(rays, (iray, ix, jy, k1), (iray, ix, jy, k0 - 1))
-            end
+        for iray in 1:nray[ix, jy, k0 - 1]
+            copy_rays!(rays, (iray, ix, jy, k1), (iray, ix, jy, k0 - 1))
         end
 
-        if nray[ix, jy, k1 + 1] > 0
-            for iray in 1:nray[ix, jy, k1 + 1]
-                copy_rays!(rays, (iray, ix, jy, k0), (iray, ix, jy, k1 + 1))
-            end
+        for iray in 1:nray[ix, jy, k1 + 1]
+            copy_rays!(rays, (iray, ix, jy, k0), (iray, ix, jy, k1 + 1))
         end
+    end
 
-        for kz in (k0 - 1):k0
-            if nray[ix, jy, kz] > 0
-                for iray in 1:nray[ix, jy, kz]
-                    zr = rays.z[iray, ix, jy, kz]
-                    zrt = zr - lz[2] + lz[1]
+    for kz in (k0 - 1):k0, jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
+        for iray in 1:nray[ix, jy, kz]
+            zr = rays.z[iray, ix, jy, kz]
+            zrt = zr - lz[2] + lz[1]
 
-                    xr = rays.x[iray, ix, jy, kz]
-                    yr = rays.y[iray, ix, jy, kz]
-                    ixrv = floor(Int, (xr - lx[1]) / dx) + i0 - io
-                    jyrv = floor(Int, (yr - ly[1]) / dy) + j0 - jo
-                    if abs(zrt - ztfc[ixrv, jyrv, kz]) <
-                       abs(zr - ztfc[ixrv, jyrv, kz])
-                        zr = zrt
-                    end
-
-                    rays.z[iray, ix, jy, kz] = zr
-                end
+            xr = rays.x[iray, ix, jy, kz]
+            yr = rays.y[iray, ix, jy, kz]
+            ixrv = floor(Int, (xr - lx[1]) / dx) + i0 - io
+            jyrv = floor(Int, (yr - ly[1]) / dy) + j0 - jo
+            if abs(zrt - ztfc[ixrv, jyrv, kz]) < abs(zr - ztfc[ixrv, jyrv, kz])
+                zr = zrt
             end
+
+            rays.z[iray, ix, jy, kz] = zr
         end
+    end
 
-        for kz in k1:(k1 + 1)
-            if nray[ix, jy, kz] > 0
-                for iray in 1:nray[ix, jy, kz]
-                    zr = rays.z[iray, ix, jy, kz]
-                    zrt = zr + lz[2] - lz[1]
+    for kz in k1:(k1 + 1), jy in (j0 - 1):(j1 + 1), ix in (i0 - 1):(i1 + 1)
+        for iray in 1:nray[ix, jy, kz]
+            zr = rays.z[iray, ix, jy, kz]
+            zrt = zr + lz[2] - lz[1]
 
-                    xr = rays.x[iray, ix, jy, kz]
-                    yr = rays.y[iray, ix, jy, kz]
-                    ixrv = floor(Int, (xr - lx[1]) / dx) + i0 - io
-                    jyrv = floor(Int, (yr - ly[1]) / dy) + j0 - jo
-                    if abs(zrt - ztfc[ixrv, jyrv, kz]) <
-                       abs(zr - ztfc[ixrv, jyrv, kz])
-                        zr = zrt
-                    end
-
-                    rays.z[iray, ix, jy, kz] = zr
-                end
+            xr = rays.x[iray, ix, jy, kz]
+            yr = rays.y[iray, ix, jy, kz]
+            ixrv = floor(Int, (xr - lx[1]) / dx) + i0 - io
+            jyrv = floor(Int, (yr - ly[1]) / dy) + j0 - jo
+            if abs(zrt - ztfc[ixrv, jyrv, kz]) < abs(zr - ztfc[ixrv, jyrv, kz])
+                zr = zrt
             end
+
+            rays.z[iray, ix, jy, kz] = zr
         end
     end
 
