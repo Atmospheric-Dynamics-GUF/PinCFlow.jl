@@ -36,7 +36,7 @@ function propagate_rays!(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; spongelayer, unifiedsponge) = state.namelists.sponge
     (; lref, tref) = state.constants
-    (; nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
+    (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
         state.wkb.increments
     (; alphark, betark, stepfrac) = state.time
@@ -46,24 +46,24 @@ function propagate_rays!(
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
+    kz0 = testcase == WKBMountainWave() ? k0 - 1 : k0
+
     # Initialize RK tendencies at the first RK stage.
-    if (rkstage == 1)
-        dxray .= 0.0
-        dyray .= 0.0
-        dzray .= 0.0
-        dkray .= 0.0
-        dlray .= 0.0
-        dmray .= 0.0
-        ddxray .= 0.0
-        ddyray .= 0.0
-        ddzray .= 0.0
+    if rkstage == 1
+        dxray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
+        dyray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
+        dzray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
+        dkray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
+        dlray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
+        dmray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
+        ddxray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
+        ddyray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
+        ddzray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
     end
 
     cgx_max[] = 0.0
     cgy_max[] = 0.0
-    cgz_max .= 0.0
-
-    kz0 = testcase == WKBMountainWave() ? k0 - 1 : k0
+    cgz_max[i0:i1, j0:j1, kz0:k1] .= 0.0
 
     for kz in kz0:k1, jy in j0:j1, ix in i0:i1
         nskip = 0
@@ -273,17 +273,6 @@ function propagate_rays!(
                 rays.dmray[iray, ix, jy, kz] =
                     azm / rays.dzray[iray, ix, jy, kz]
             end
-
-            #-------------------------------
-            #     Change of wave action
-            #-------------------------------
-
-            if kz >= k0 && spongelayer && unifiedsponge
-                (xr, yr, zr) = get_physical_position(rays, (iray, ix, jy, kz))
-                alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
-                betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
-                rays.dens[iray, ix, jy, kz] *= betasponge
-            end
         end
 
         if nskip > 0
@@ -294,6 +283,21 @@ function propagate_rays!(
                 " ray volumes have been skipped in propagate_rays!!",
             )
             println("")
+        end
+    end
+
+    #-------------------------------
+    #     Change of wave action
+    #-------------------------------
+
+    if spongelayer && unifiedsponge
+        for kz in k0:k1, jy in j0:j1, ix in i0:i1
+            for iray in 1:nray[ix, jy, kz]
+                (xr, yr, zr) = get_physical_position(rays, (iray, ix, jy, kz))
+                alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
+                betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
+                rays.dens[iray, ix, jy, kz] *= betasponge
+            end
         end
     end
 
