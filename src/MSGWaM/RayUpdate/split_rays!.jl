@@ -26,9 +26,6 @@ function split_rays!(state::State, wkb_mode::SingleColumn)
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
     for kz in k0:k1, jy in j0:j1, ix in i0:i1
-        if nray[ix, jy, kz] < 1
-            continue
-        end
         split_rays!(ix, jy, kz, state, Z())
     end
 
@@ -53,10 +50,6 @@ function split_rays!(state::State, wkb_mode::MultiColumn)
     nray_before = MPI.Allreduce(nray_before, +, comm)
 
     for kz in k0:k1, jy in j0:j1, ix in i0:i1
-        if nray[ix, jy, kz] < 1
-            continue
-        end
-
         if sizex > 1
             split_rays!(ix, jy, kz, state, X())
         end
