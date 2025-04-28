@@ -6,7 +6,7 @@ function read_input!(state::State)
     (; model, testcase) = state.namelists.setting
     (; comm, nx, ny, nz, io, jo, i0, i1, j0, j1, k0, k1) = state.domain
     (; lref, tref, rhoref, uref) = state.constants
-    (; rho, rhop, u, v, w, pip) = state.variables.predictands
+    (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
     (; rays, nray_max) = state.wkb
 
     # Determine dimensionality.
@@ -48,6 +48,12 @@ function read_input!(state::State)
         # Read the Exner-pressure fluctuations.
         @views pip[i0:i1, j0:j1, k0:k1] =
             file["pip"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz, iin]
+
+        # Read the mass-weighted potential temperature.
+        if model == Compressible()
+            @views p[i0:i1, j0:j1, k0:k1] =
+            file["p"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz, iin]
+        end
 
         # Read ray-volume properties.
         if typeof(testcase) <: AbstractWKBTestCase

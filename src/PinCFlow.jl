@@ -34,7 +34,7 @@ export DomainNamelist,
     Namelists
 
 # Export singletons needed in namelists.
-export Boussinesq, PseudoIncompressible
+export Boussinesq, PseudoIncompressible, Compressible
 export MountainWave, WKBMountainWave
 export PeriodicBoundaries, SolidWallBoundaries
 export MCVariant

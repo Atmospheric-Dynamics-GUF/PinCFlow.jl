@@ -5,7 +5,8 @@ function compute_operator!(
 )
     (; preconditioner) = state.namelists.poisson
     (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; zboundaries) = state.namelists.setting
+    (; model, zboundaries) = state.namelists.setting
+    (; gamma, rsp, pref, kappa) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid
     (; pstrattfc, rhostrattfc, bvsstrattfc) = state.atmosphere
@@ -174,6 +175,15 @@ function compute_operator!(
                 jac[i, j, k - 1] * rho[i, j, k] +
                 jac[i, j, k] * rho[i, j, k - 1]
             ) / (jac[i, j, k] + jac[i, j, k - 1]) + rhostratedged
+
+        if model == Compressible()
+            rhostratedger = rhoedger
+            rhostratedgel = rhoedgel
+            rhostratedgef = rhoedgef
+            rhostratedgeb = rhoedgeb
+            rhostratedgeu = rhoedgeu
+            rhostratedged = rhoedged
+        end
 
         rhouedger =
             0.5 * (
@@ -822,6 +832,14 @@ function compute_operator!(
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz +
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz +
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
+        end
+
+        if model == Compressible()
+            dpdpi =
+                1 / (gamma - 1) *
+                (rsp / pref)^(1 - gamma) *
+                p[i, j, k]^(2 - gamma)
+            ac -= (dpdpi / dt) / (dt * rsp / kappa)
         end
 
         # ------------------ A(i+1,j,k) -------------------#

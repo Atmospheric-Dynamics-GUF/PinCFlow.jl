@@ -4,6 +4,7 @@ function set_meridional_boundaries!(
 )
     (; namelists, domain) = state
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
+    (; model) = namelists.setting
 
     set_meridional_boundaries_of_field!(rho, namelists, domain)
     set_meridional_boundaries_of_field!(rhop, namelists, domain)
@@ -11,6 +12,8 @@ function set_meridional_boundaries!(
     set_meridional_boundaries_of_field!(v, namelists, domain)
     set_meridional_boundaries_of_field!(w, namelists, domain)
     set_meridional_boundaries_of_field!(pip, namelists, domain)
+
+    set_compressible_meridional_boundaries!(state, model)
 
     return
 end

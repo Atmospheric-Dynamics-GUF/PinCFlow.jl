@@ -19,7 +19,7 @@ function update!(
     dt::AbstractFloat,
     m::Integer,
     variable::Rho,
-    model::PseudoIncompressible,
+    model::AbstractModel,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
@@ -61,6 +61,7 @@ function update!(
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
+    (; thetastrattfc) = state.atmosphere
     (; alphark, betark) = state.time
     (; drhop) = state.variables.tendencies
     (; phirhop) = state.variables.fluxes
@@ -81,7 +82,9 @@ function update!(
         fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
         fluxdiff /= jac[i, j, k]
 
-        f = -fluxdiff
+        heating = compute_volume_force(state, (i, j, k), P())
+
+        f = -fluxdiff + heating / thetastrattfc[i, j, k]
 
         drhop[i, j, k] = dt * f + alphark[m] * drhop[i, j, k]
         rhop[i, j, k] += betark[m] * drhop[i, j, k]
@@ -97,24 +100,50 @@ function update!(
     side::RHS,
     integration::EXPL,
 )
+    (; model) = state.namelists.setting
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; grid) = state
     (; g_ndim) = state.constants
+    (; jac) = grid
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
     (; predictands) = state.variables
-    (; rho, rhop) = predictands
+    (; rho, rhop, p) = predictands
 
     for k in k0:k1, j in j0:j1, i in i0:i1
-        wvrt =
-            0.5 * (
-                compute_vertical_wind(i, j, k, predictands, grid) +
-                compute_vertical_wind(i, j, k - 1, predictands, grid)
-            )
+        if model == Compressible()
+            jpu =
+                jac[i, j, k] *
+                jac[i, j, k + 1] *
+                (p[i, j, k] + p[i, j, k + 1]) /
+                (jac[i, j, k] + jac[i, j, k + 1])
+            jpd =
+                jac[i, j, k] *
+                jac[i, j, k - 1] *
+                (p[i, j, k] + p[i, j, k - 1]) /
+                (jac[i, j, k] + jac[i, j, k - 1])
+            wvrt =
+                0.5 * (
+                    compute_vertical_wind(i, j, k, predictands, grid) / jpu +
+                    compute_vertical_wind(i, j, k - 1, predictands, grid) / jpd
+                )
+        else
+            wvrt =
+                0.5 * (
+                    compute_vertical_wind(i, j, k, predictands, grid) +
+                    compute_vertical_wind(i, j, k - 1, predictands, grid)
+                )
+        end
+
         buoy = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
-        buoy -=
-            dt * rhostrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k]) *
-            bvsstrattfc[i, j, k] *
-            wvrt
+        if model == Compressible()
+            buoy = buoy - dt * bvsstrattfc[i, j, k] * wvrt
+        else
+            buoy -=
+                dt * rhostrattfc[i, j, k] /
+                (rho[i, j, k] + rhostrattfc[i, j, k]) *
+                bvsstrattfc[i, j, k] *
+                wvrt
+        end
         rhop[i, j, k] = -buoy * (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim
     end
 
@@ -131,12 +160,12 @@ function update!(
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid
-    (; zboundaries) = state.namelists.setting
+    (; model, zboundaries) = state.namelists.setting
     (; spongelayer) = state.namelists.sponge
     (; kr_sp_w_tfc) = state.sponge
     (; kappainv, mainv2, g_ndim) = state.constants
     (; rhostrattfc, pstrattfc, bvsstrattfc) = state.atmosphere
-    (; rho, rhop, u, v, pip) = state.variables.predictands
+    (; rho, rhop, u, v, pip, p) = state.variables.predictands
     (; wold) = state.variables.backups
 
     for k in k0:k1, j in j0:j1, i in i0:i1
@@ -164,7 +193,21 @@ function update!(
 
         # Momentum is predicted before buoyancy in implicit
         # steps.
-        wvrt = 0.5 * (wold[i, j, k] + wold[i, j, k - 1])
+        if model == Compressible()
+            jpu =
+                jac[i, j, k] *
+                jac[i, j, k + 1] *
+                (p[i, j, k] + p[i, j, k + 1]) /
+                (jac[i, j, k] + jac[i, j, k + 1])
+            jpd =
+                jac[i, j, k] *
+                jac[i, j, k - 1] *
+                (p[i, j, k] + p[i, j, k - 1]) /
+                (jac[i, j, k] + jac[i, j, k - 1])
+            wvrt = 0.5 * (wold[i, j, k] / jpu + wold[i, j, k - 1] / jpd)
+        else
+            wvrt = 0.5 * (wold[i, j, k] + wold[i, j, k - 1])
+        end
 
         # Compute P coefficients.
         pedgeu =
@@ -284,30 +327,67 @@ function update!(
 
         # Predict buoyancy.
         buoy = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
-        buoy =
-            1.0 / (
-                facw +
-                rhostrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k]) *
-                bvsstrattfc[i, j, k] *
-                dt^2.0
-            ) * (
-                -rhostrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k]) *
-                bvsstrattfc[i, j, k] *
-                dt *
-                jac[i, j, k] *
-                (wvrt - dt * pigrad) +
-                facw * buoy +
-                rhostrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k]) *
-                bvsstrattfc[i, j, k] *
-                dt *
-                jac[i, j, k] *
-                facw *
+        if model == Compressible()
+            jpr =
                 0.5 *
-                (
-                    met[i, j, k, 1, 3] * (u[i, j, k] + u[i - 1, j, k]) +
-                    met[i, j, k, 2, 3] * (v[i, j, k] + v[i, j - 1, k])
+                (jac[i, j, k] * p[i, j, k] + jac[i + 1, j, k] * p[i + 1, j, k])
+            jpl =
+                0.5 *
+                (jac[i, j, k] * p[i, j, k] + jac[i - 1, j, k] * p[i - 1, j, k])
+            jpf =
+                0.5 *
+                (jac[i, j, k] * p[i, j, k] + jac[i, j + 1, k] * p[i, j + 1, k])
+            jpb =
+                0.5 *
+                (jac[i, j, k] * p[i, j, k] + jac[i, j - 1, k] * p[i, j - 1, k])
+            buoy =
+                1.0 / (facw + bvsstrattfc[i, j, k] * dt^2.0) * (
+                    -bvsstrattfc[i, j, k] *
+                    dt *
+                    jac[i, j, k] *
+                    (wvrt - dt * pigrad) +
+                    facw * buoy +
+                    bvsstrattfc[i, j, k] *
+                    dt *
+                    jac[i, j, k] *
+                    facw *
+                    0.5 *
+                    (
+                        met[i, j, k, 1, 3] *
+                        (u[i, j, k] / jpr + u[i - 1, j, k] / jpl) +
+                        met[i, j, k, 2, 3] *
+                        (v[i, j, k] / jpf + v[i, j - 1, k] / jpb)
+                    )
                 )
-            )
+        else
+            buoy =
+                1.0 / (
+                    facw +
+                    rhostrattfc[i, j, k] /
+                    (rho[i, j, k] + rhostrattfc[i, j, k]) *
+                    bvsstrattfc[i, j, k] *
+                    dt^2.0
+                ) * (
+                    -rhostrattfc[i, j, k] /
+                    (rho[i, j, k] + rhostrattfc[i, j, k]) *
+                    bvsstrattfc[i, j, k] *
+                    dt *
+                    jac[i, j, k] *
+                    (wvrt - dt * pigrad) +
+                    facw * buoy +
+                    rhostrattfc[i, j, k] /
+                    (rho[i, j, k] + rhostrattfc[i, j, k]) *
+                    bvsstrattfc[i, j, k] *
+                    dt *
+                    jac[i, j, k] *
+                    facw *
+                    0.5 *
+                    (
+                        met[i, j, k, 1, 3] * (u[i, j, k] + u[i - 1, j, k]) +
+                        met[i, j, k, 2, 3] * (v[i, j, k] + v[i, j - 1, k])
+                    )
+                )
+        end
 
         rhop[i, j, k] = -buoy * (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim
     end
@@ -398,12 +478,12 @@ function update!(
     side::RHS,
     integration::EXPL,
 )
-    (; zboundaries) = state.namelists.setting
+    (; model, zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dz, met) = state.grid
+    (; dx, dz, jac, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
-    (; rho, u, pip) = state.variables.predictands
+    (; rho, u, pip, p) = state.variables.predictands
 
     for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhou = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
@@ -455,7 +535,16 @@ function update!(
         uhorx = u[i, j, k]
 
         # Update wind.
-        uast = uhorx + dt * (-pigrad + volfcx / rhou)
+        if model == Compressible()
+            jpr =
+                (
+                    jac[i, j, k] * p[i, j, k] +
+                    jac[i + 1, j, k] * p[i + 1, j, k]
+                ) / 2
+            uast = uhorx + dt * (-pigrad + volfcx / rhou) * jpr
+        else
+            uast = uhorx + dt * (-pigrad + volfcx / rhou)
+        end
         u[i, j, k] = uast
     end
 
@@ -471,14 +560,14 @@ function update!(
     integration::IMPL,
     facray::AbstractFloat,
 )
-    (; zboundaries) = state.namelists.setting
+    (; model, zboundaries) = state.namelists.setting
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dz, met) = state.grid
+    (; dx, dz, jac, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; kr_sp_tfc) = state.sponge
-    (; rho, u, pip) = state.variables.predictands
+    (; rho, u, pip, p) = state.variables.predictands
 
     for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhou = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
@@ -540,7 +629,16 @@ function update!(
         end
 
         # Update wind.
-        uast = 1.0 / facu * (uhorx + dt * (-pigradx + volfcx / rhou))
+        if model == Compressible()
+            jpr =
+                (
+                    jac[i, j, k] * p[i, j, k] +
+                    jac[i + 1, j, k] * p[i + 1, j, k]
+                ) / 2
+            uast = 1.0 / facu * (uhorx + dt * (-pigradx + volfcx / rhou) * jpr)
+        else
+            uast = 1.0 / facu * (uhorx + dt * (-pigradx + volfcx / rhou))
+        end
         u[i, j, k] = uast
     end
 
@@ -628,12 +726,12 @@ function update!(
     side::RHS,
     integration::EXPL,
 )
-    (; zboundaries) = state.namelists.setting
+    (; model, zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dy, dz, met) = state.grid
+    (; dy, dz, jac, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
-    (; rho, v, pip) = state.variables.predictands
+    (; rho, v, pip, p) = state.variables.predictands
 
     for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhov = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
@@ -685,7 +783,16 @@ function update!(
         vhory = v[i, j, k]
 
         # Update wind.
-        vast = vhory + dt * (-pigrad + volfcy / rhov)
+        if model == Compressible()
+            jpf =
+                (
+                    jac[i, j, k] * p[i, j, k] +
+                    jac[i, j + 1, k] * p[i, j + 1, k]
+                ) / 2
+            vast = vhory + dt * (-pigrad + volfcy / rhov) * jpf
+        else
+            vast = vhory + dt * (-pigrad + volfcy / rhov)
+        end
         v[i, j, k] = vast
     end
 
@@ -701,14 +808,14 @@ function update!(
     integration::IMPL,
     facray::AbstractFloat,
 )
-    (; zboundaries) = state.namelists.setting
+    (; model, zboundaries) = state.namelists.setting
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dy, dz, met) = state.grid
+    (; dy, dz, jac, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; kr_sp_tfc) = state.sponge
-    (; rho, v, pip) = state.variables.predictands
+    (; rho, v, pip, p) = state.variables.predictands
 
     for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhov = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
@@ -770,7 +877,16 @@ function update!(
         end
 
         # Update wind.
-        vast = 1.0 / facv * (vhory + dt * (-pigrady + volfcy / rhov))
+        if model == Compressible()
+            jpf =
+                (
+                    jac[i, j, k] * p[i, j, k] +
+                    jac[i, j + 1, k] * p[i, j + 1, k]
+                ) / 2
+            vast = 1.0 / facv * (vhory + dt * (-pigrady + volfcy / rhov) * jpf)
+        else
+            vast = 1.0 / facv * (vhory + dt * (-pigrady + volfcy / rhov))
+        end
         v[i, j, k] = vast
     end
 
@@ -943,13 +1059,13 @@ function update!(
     side::RHS,
     integration::EXPL,
 )
-    (; zboundaries) = state.namelists.setting
+    (; model, zboundaries) = state.namelists.setting
     (; kappainv, mainv2, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; rhopold) = state.variables.backups
-    (; rho, w, pip) = state.variables.predictands
+    (; rho, w, pip, p) = state.variables.predictands
 
     if zboundaries != SolidWallBoundaries()
         error("Error in update!: Unknown zboundaries!")
@@ -1035,7 +1151,16 @@ function update!(
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         # Update wind.
-        wast = wvert + dt * (buoy - pigrad + volfcz / rhow)
+        if model == Compressible()
+            jpu =
+                jac[i, j, k] *
+                jac[i, j, k + 1] *
+                (p[i, j, k] + p[i, j, k + 1]) /
+                (jac[i, j, k] + jac[i, j, k + 1])
+            wast = wvert + dt * (buoy - pigrad + volfcz / rhow) * jpu
+        else
+            wast = wvert + dt * (buoy - pigrad + volfcz / rhow)
+        end
         w[i, j, k] = wast
     end
 
@@ -1052,13 +1177,13 @@ function update!(
     facray::AbstractFloat,
 )
     (; spongelayer) = state.namelists.sponge
-    (; zboundaries) = state.namelists.setting
+    (; model, zboundaries) = state.namelists.setting
     (; kappainv, mainv2, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid
     (; rhostrattfc, pstrattfc, bvsstrattfc) = state.atmosphere
     (; kr_sp_w_tfc) = state.sponge
-    (; rho, rhop, u, v, w, pip) = state.variables.predictands
+    (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
 
     if zboundaries != SolidWallBoundaries()
         error("Error in update!: Unknown zboundaries!")
@@ -1160,30 +1285,201 @@ function update!(
                 jac[i, j, k] * rhop[i, j, k + 1] / rho001 / jac[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-        uc = 0.5 * (u[i, j, k] + u[i - 1, j, k])
-        uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
-        vc = 0.5 * (v[i, j, k] + v[i, j - 1, k])
-        vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
+        if model == Compressible()
+            jpr =
+                0.5 *
+                (jac[i, j, k] * p[i, j, k] + jac[i + 1, j, k] * p[i + 1, j, k])
+            jpl =
+                0.5 *
+                (jac[i, j, k] * p[i, j, k] + jac[i - 1, j, k] * p[i - 1, j, k])
+            jpf =
+                0.5 *
+                (jac[i, j, k] * p[i, j, k] + jac[i, j + 1, k] * p[i, j + 1, k])
+            jpb =
+                0.5 *
+                (jac[i, j, k] * p[i, j, k] + jac[i, j - 1, k] * p[i, j - 1, k])
+            jpur =
+                0.5 * (
+                    jac[i, j, k + 1] * p[i, j, k + 1] +
+                    jac[i + 1, j, k + 1] * p[i + 1, j, k + 1]
+                )
+            jpul =
+                0.5 * (
+                    jac[i, j, k + 1] * p[i, j, k + 1] +
+                    jac[i - 1, j, k + 1] * p[i - 1, j, k + 1]
+                )
+            jpuf =
+                0.5 * (
+                    jac[i, j, k + 1] * p[i, j, k + 1] +
+                    jac[i, j + 1, k + 1] * p[i, j + 1, k + 1]
+                )
+            jpub =
+                0.5 * (
+                    jac[i, j, k + 1] * p[i, j, k + 1] +
+                    jac[i, j - 1, k + 1] * p[i, j - 1, k + 1]
+                )
+
+            uC = 0.5 * (u[i, j, k] / jpr + u[i - 1, j, k] / jpl)
+            uU = 0.5 * (u[i, j, k + 1] / jpur + u[i - 1, j, k + 1] / jpul)
+            vC = 0.5 * (v[i, j, k] / jpf + v[i, j - 1, k] / jpb)
+            vU = 0.5 * (v[i, j, k + 1] / jpuf + v[i, j - 1, k + 1] / jpub)
+        else
+            uc = 0.5 * (u[i, j, k] + u[i - 1, j, k])
+            uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
+            vc = 0.5 * (v[i, j, k] + v[i, j - 1, k])
+            vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
+        end
 
         # Update wind.
-        wast =
-            1.0 / (facw + rhostratedgeu / rhow * bvsstw * dt^2.0) * (
-                wvert - dt * pigrad +
-                dt * buoy +
-                dt * volfcz / rhow +
-                rhostratedgeu / rhow *
-                bvsstw *
-                dt^2.0 *
-                (
-                    jac[i, j, k + 1] *
-                    (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
-                    jac[i, j, k] *
-                    (met[i, j, k + 1, 1, 3] * uu + met[i, j, k + 1, 2, 3] * vu)
-                ) / (jac[i, j, k] + jac[i, j, k + 1])
-            )
+        if model == Compressible()
+            jpu =
+                jac[i, j, k] *
+                jac[i, j, k + 1] *
+                (p[i, j, k] + p[i, j, k + 1]) /
+                (jac[i, j, k] + jac[i, j, k + 1])
+            wast =
+                1.0 / (facw + bvsstw * dt^2.0) * (
+                    wvert - dt * pigrad * jpu +
+                    dt * buoy * jpu +
+                    dt * volfcz / rhow * jpu +
+                    jpu *
+                    bvsstw *
+                    dt^2.0 *
+                    (
+                        jac[i, j, k + 1] *
+                        (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
+                        jac[i, j, k] * (
+                            met[i, j, k + 1, 1, 3] * uu +
+                            met[i, j, k + 1, 2, 3] * vu
+                        )
+                    ) / (jac[i, j, k] + jac[i, j, k + 1])
+                )
+        else
+            wast =
+                1.0 / (facw + rhostratedgeu / rhow * bvsstw * dt^2.0) * (
+                    wvert - dt * pigrad +
+                    dt * buoy +
+                    dt * volfcz / rhow +
+                    rhostratedgeu / rhow *
+                    bvsstw *
+                    dt^2.0 *
+                    (
+                        jac[i, j, k + 1] *
+                        (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
+                        jac[i, j, k] * (
+                            met[i, j, k + 1, 1, 3] * uu +
+                            met[i, j, k + 1, 2, 3] * vu
+                        )
+                    ) / (jac[i, j, k] + jac[i, j, k + 1])
+                )
+        end
         w[i, j, k] = wast
     end
 
     # Return.
+    return
+end
+
+function update!(state::State, dt::AbstractFloat, variable::PiP)
+    (; model) = state.namelists.setting
+    update!(state, dt, variable, model)
+    return
+end
+
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::PiP,
+    model::AbstractModel,
+)
+    return
+end
+
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::PiP,
+    model::Compressible,
+)
+    (; gamma, rsp, pref) = state.constants
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; p) = state.variables.predictands
+
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        fl = u[i - 1, j, k]
+        fr = u[i, j, k]
+        gb = v[i, j - 1, k]
+        gf = v[i, j, k]
+        hd = w[i, j, k - 1]
+        hu = w[i, j, k]
+
+        fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+        fluxdiff /= jac[i, j, k]
+
+        heating = compute_volume_force(state, (i, j, k), P())
+
+        dpdpi =
+            1 / (gamma - 1) * (rsp / pref)^(1 - gamma) * p[i, j, k]^(2 - gamma)
+
+        pip[i, j, k] -= dt * (fluxdiff + heating) / dpdpi
+    end
+
+    return
+end
+
+function update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
+    (; model) = state.namelists.setting
+    update!(state, dt, m, variable, model)
+    return
+end
+
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::P,
+    model::AbstractModel,
+)
+    return
+end
+
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::P,
+    model::Compressible,
+)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; alphark, betark) = state.time
+    (; dp) = state.variables.tendencies
+    (; phip) = state.variables.fluxes
+    (; p) = state.variables.predictands
+
+    if m == 1
+        dp .= 0.0
+    end
+
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        fl = phip[i - 1, j, k, 1]
+        fr = phip[i, j, k, 1]
+        gb = phip[i, j - 1, k, 2]
+        gf = phip[i, j, k, 2]
+        hd = phip[i, j, k - 1, 3]
+        hu = phip[i, j, k, 3]
+
+        fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+        fluxdiff /= jac[i, j, k]
+
+        heating = compute_volume_force(state, (i, j, k), P())
+
+        f = -fluxdiff - heating
+
+        dp[i, j, k] = dt * f + alphark[m] * dp[i, j, k]
+        p[i, j, k] += betark[m] * dp[i, j, k]
+    end
+
     return
 end

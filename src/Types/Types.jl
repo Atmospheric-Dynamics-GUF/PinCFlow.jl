@@ -8,6 +8,7 @@ struct U <: AbstractVariable end
 struct V <: AbstractVariable end
 struct W <: AbstractVariable end
 struct PiP <: AbstractVariable end
+struct P <: AbstractVariable end
 struct EXPL end
 struct IMPL end
 
@@ -45,6 +46,7 @@ export Rho,
     V,
     W,
     PiP,
+    P,
     EXPL,
     IMPL,
     UniformBoussinesq,
@@ -54,6 +56,7 @@ export Rho,
     MCVariant,
     Boussinesq,
     PseudoIncompressible,
+    Compressible,
     MountainWave,
     WKBMountainWave,
     PeriodicBoundaries,

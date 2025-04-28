@@ -87,7 +87,7 @@ function Atmosphere(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-    model::PseudoIncompressible,
+    model::AbstractModel,
     background::Isothermal,
 )
     # Get parameters.

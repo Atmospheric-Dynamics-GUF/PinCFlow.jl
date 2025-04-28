@@ -24,7 +24,7 @@ function apply_unified_sponge!(
     dt::AbstractFloat,
     time::AbstractFloat,
     variable::Rho,
-    model::PseudoIncompressible,
+    model::AbstractModel,
 )
     (; spongelayer, unifiedsponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -262,6 +262,90 @@ function apply_unified_sponge!(
             wnew = (1.0 - beta) * wbg + beta * wold
             w[i, j, k] = wnew
         end
+    end
+
+    return
+end
+
+function apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::PiP,
+    model::AbstractModel,
+)
+    return
+end
+
+function apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::PiP,
+    model::Compressible,
+)
+    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; gamma, rsp, pref) = state.constants
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; alphaunifiedsponge) = state.sponge
+    (; rhostrattfc, pstrattfc)
+    (; rho, pip, p) = state.variables.predictands
+
+    if !spongelayer || !unifiedsponge
+        return
+    end
+
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        dpdpi =
+            1 / (gamma - 1) * (rsp / pref)^(1 - gamma) * p[i, j, k]^(2 - gamma)
+        pib =
+            rhostrattfc[i, j, k] * pstrattfc[i, j, k] /
+            (rho[i, j, k] + rhostrattfc[i, j, k]) / dpdpi
+        alpha = alphaunifiedsponge[i, j, k]
+        pipold = pip[i, j, k]
+        pipnew = pipold - alpha * dt * (pstrattfc[i, j, k] / dpdpi - pib)
+        pip[i, j, k] = pipnew
+    end
+
+    return
+end
+
+function apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::P,
+    model::AbstractModel,
+)
+    return
+end
+
+function apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::P,
+    model::Compressible,
+)
+    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; alphaunifiedsponge) = state.sponge
+    (; rhostrattfc, pstrattfc)
+    (; rho, p) = state.variables.predictands
+
+    if !spongelayer || !unifiedsponge
+        return
+    end
+
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        pb =
+            rhostrattfc[i, j, k] * pstrattfc[i, j, k] /
+            (rho[i, j, k] + rhostrattfc[i, j, k])
+        alpha = alphaunifiedsponge[i, j, k]
+        pold = p[i, j, k]
+        beta = 1 / (1 + alpha * dt)
+        pnew = (1 - beta) * pb + beta * pold
+        p[i, j, k] = pnew
     end
 
     return
