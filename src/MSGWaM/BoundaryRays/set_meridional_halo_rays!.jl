@@ -2,21 +2,7 @@ function set_meridional_halo_rays!(state::State)
     (; comm, nx, nz, i0, i1, j0, j1, k0, k1, back, forw) = state.domain
     (; nray, rays) = state.wkb
 
-    fields = (
-        :x,
-        :y,
-        :z,
-        :k,
-        :l,
-        :m,
-        :dxray,
-        :dyray,
-        :dzray,
-        :dkray,
-        :dlray,
-        :dmray,
-        :dens,
-    )
+    fields = fieldnames(Rays)
 
     @views nray_max_back =
         maximum(nray[(i0 - 1):(i1 + 1), j0, (k0 - 1):(k1 + 1)])
