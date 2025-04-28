@@ -214,7 +214,7 @@ function integrate(namelists::Namelists)
         if master
             println("Beginning a semi-implicit time step...")
             println("")
-            println("(1) Explicit integration lhs over dt/2...")
+            println("(1) Explicit integration of LHS over dt/2...")
             println("")
         end
 
@@ -300,7 +300,7 @@ function integrate(namelists::Namelists)
         #     \psi^{n+1/2} = \psi^# + dt/2 Q(\psi^{n+1/2})
 
         if master
-            println("(2) Implicit integration rhs over dt/2...")
+            println("(2) Implicit integration of RHS over dt/2...")
             println("")
         end
 
@@ -361,7 +361,7 @@ function integrate(namelists::Namelists)
         #     \psi^\ast = \psi^n + dt/2 Q(\psi^n)
 
         if master
-            println("(3) Explicit integration rhs over dt/2...")
+            println("(3) Explicit integration of RHS over dt/2...")
             println("")
         end
 
@@ -406,7 +406,7 @@ function integrate(namelists::Namelists)
         #     \psi^{\ast\ast} = \psi^\ast + A^dt (\psi^\ast, v^{n+1/2})
 
         if master
-            println("(4) Explicit integration lhs over dt...")
+            println("(4) Explicit integration of LHS over dt...")
             println("")
         end
 
@@ -463,7 +463,7 @@ function integrate(namelists::Namelists)
         #     \psi^{n+1} = \psi^{\ast\ast} + dt/2 Q(\psi^{n+1})
 
         if master
-            println("(5) Implicit integration rhs over dt/2...")
+            println("(5) Implicit integration of RHS over dt/2...")
             println("")
         end
 
