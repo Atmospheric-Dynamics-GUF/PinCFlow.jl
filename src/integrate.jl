@@ -66,16 +66,16 @@ function integrate(namelists::Namelists)
         set_boundaries!(state, BoundaryPredictands())
 
         modify_compressible_wind!(state, *)
-        set_boundaries!(state, BoundaryPredictands())
 
         (errflagbicg, niterbicg) = apply_corrector!(state, 1.0, 1.0, 1.0)
-
-        modify_compressible_wind!(state, /)
-        set_boundaries!(state, BoundaryPredictands())
 
         if errflagbicg
             exit()
         end
+
+        modify_compressible_wind!(state, /)
+
+        set_boundaries!(state, BoundaryPredictands())
     end
 
     #---------------------------------------------
@@ -502,7 +502,6 @@ function integrate(namelists::Namelists)
         (errflagbicg, niterbicg) = apply_corrector!(state, 0.5 * dt, 2.0, 1.0)
 
         modify_compressible_wind!(state, *)
-        set_boundaries!(state, BoundaryPredictands())
 
         if errflagbicg
             iout = write_output(state, time, iout, machine_start_time)
