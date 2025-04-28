@@ -7,8 +7,6 @@ struct Backups{A <: AbstractArray{<:AbstractFloat, 3}}
 end
 
 function Backups(domain::Domain)
-
-    # Get parameters.
     (; nxx, nyy, nzz) = domain
 
     # Initialize the backups.

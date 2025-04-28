@@ -32,7 +32,7 @@ function State(namelists::Namelists)
     atmosphere = Atmosphere(namelists, constants, domain, grid)
     sponge = Sponge(namelists, domain, grid)
     poisson = Poisson(domain)
-    variables = Variables(namelists, constants, domain)
+    variables = Variables(namelists, constants, domain, atmosphere)
     wkb = WKB(namelists, constants, domain, grid)
 
     # Return a State instance.

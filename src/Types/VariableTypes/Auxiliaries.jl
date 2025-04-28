@@ -3,8 +3,6 @@ struct Auxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
 end
 
 function Auxiliaries(domain::Domain)
-
-    # Get parameters.
     (; nxx, nyy, nzz) = domain
 
     # Initialize the auxiliaries.

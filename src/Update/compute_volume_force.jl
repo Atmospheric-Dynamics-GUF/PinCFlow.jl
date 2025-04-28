@@ -58,3 +58,14 @@ function compute_volume_force(
         )
     ) / (jac[ix, jy, kz] + jac[ix, jy, kz + 1])
 end
+
+function compute_volume_force(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::P,
+    testcase::AbstractWKBTestCase,
+)
+    (; dthetadt) = state.wkb.tendencies
+    (ix, jy, kz) = indices
+    return dthetadt[ix, jy, kz]
+end

@@ -1,9 +1,14 @@
 function compute_fluxes!(state::State, predictands::Predictands)
+    (; model) = state.namelists.setting
+
     compute_fluxes!(state, predictands, Rho())
     compute_fluxes!(state, predictands, RhoP())
     compute_fluxes!(state, predictands, U())
     compute_fluxes!(state, predictands, V())
     compute_fluxes!(state, predictands, W())
+
+    compute_fluxes!(state, predictands, model, P())
+
     return
 end
 
@@ -170,6 +175,71 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
     end
 
     # Return.
+    return
+end
+
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    model::AbstractModel,
+    variable::P,
+)
+    return
+end
+
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    model::Compressible,
+    variable::P,
+)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; jac) = state.grid
+    (; pstrattfc) = state.atmosphere
+    (; phip) = state.variables.fluxes
+
+    (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
+
+    #-----------------------------------------
+    #             Zonal fluxes
+    #-----------------------------------------
+
+    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+        phip[i, j, k, 1] =
+            0.5 *
+            (
+                jac[i, j, k] * pstrattfc[i, j, k] +
+                jac[i + 1, j, k] * pstrattfc[i + 1, j, k]
+            ) *
+            u0[i, j, k]
+    end
+
+    #-----------------------------------------
+    #           Meridional fluxes
+    #-----------------------------------------
+
+    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+        phip[i, j, k, 2] =
+            0.5 *
+            (
+                jac[i, j, k] * pstrattfc[i, j, k] +
+                jac[i, j + 1, k] * pstrattfc[i, j + 1, k]
+            ) *
+            v0[i, j, k]
+    end
+
+    #-----------------------------------------
+    #            Vertical fluxes
+    #-----------------------------------------
+
+    for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+        phip[i, j, k, 3] =
+            jac[i, j, k] *
+            jac[i, j, k + 1] *
+            (pstrattfc[i, j, k] + pstrattfc[i, j, k + 1]) /
+            (jac[i, j, k] + jac[i, j, k + 1]) * w0[i, j, k]
+    end
+
     return
 end
 

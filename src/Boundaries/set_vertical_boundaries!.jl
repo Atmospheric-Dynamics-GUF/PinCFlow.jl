@@ -3,11 +3,10 @@ function set_vertical_boundaries!(
     variables::BoundaryPredictands,
     boundaries::SolidWallBoundaries,
 )
-
-    # Get all necessary fields.
     (; nbz) = state.namelists.domain
     (; k0, k1) = state.domain
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
+    (; model) = state.namelists.setting
 
     # Set the density fluctuations at the boundaries to zero.
     for k in 1:nbz
@@ -41,6 +40,8 @@ function set_vertical_boundaries!(
     @views pip[:, :, k0 - 1] .= pip[:, :, k0]
     @views pip[:, :, k1 + 1] .= pip[:, :, k1]
 
+    set_compressible_vertical_boundaries!(state, variables, model)
+
     return
 end
 
@@ -49,10 +50,9 @@ function set_vertical_boundaries!(
     variables::BoundaryFluxes,
     boundaries::SolidWallBoundaries,
 )
-
-    # Get all necessary fields.
     (; k0, k1) = state.domain
     (; phirho, phirhop, phiu, phiv, phiw) = state.variables.fluxes
+    (; model) = state.namelists.setting
 
     # Set all vertical boundary fluxes to zero.
 
@@ -75,6 +75,8 @@ function set_vertical_boundaries!(
     # Vertical momentum
     phiw[:, :, k0 - 2, 3] .= 0.0
     phiw[:, :, k1, 3] .= 0.0
+
+    set_compressible_vertical_boundaries!(state, variables, model)
 
     return
 end

@@ -16,7 +16,7 @@ function write_output(
     (; x, y, ztfc) = grid
     (; rhostrattfc, thetastrattfc, bvsstrattfc, pstrattfc) = state.atmosphere
     (; predictands) = state.variables
-    (; rho, rhop, u, v, w, pip) = predictands
+    (; rho, rhop, u, v, w, pip, p) = predictands
     (; nray_max, rays, tendencies) = state.wkb
 
     # Print information.
@@ -85,9 +85,15 @@ function write_output(
         end
 
         # Write the mass-weighted potential temperature.
-        if model != Boussinesq() && iout == 1
+        if model == Compressible()
+            HDF5.set_extent_dims(file["p"], (sizex, sizey, sizez, iout))
             @views file["p"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz] =
-                pstrattfc[i0:i1, j0:j1, k0:k1] .* rhoref .* thetaref
+                p[i0:i1, j0:j1, k0:k1] .* rhoref .* thetaref
+        else
+            if model != Boussinesq() && iout == 1
+                @views file["p"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz] =
+                    pstrattfc[i0:i1, j0:j1, k0:k1] .* rhoref .* thetaref
+            end
         end
 
         # Write the density fluctuations.

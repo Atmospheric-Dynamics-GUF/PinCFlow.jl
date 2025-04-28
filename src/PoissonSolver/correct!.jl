@@ -20,7 +20,7 @@ function correct!(
     facprs::AbstractFloat,
 )
     (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; zboundaries) = state.namelists.setting
+    (; model, zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dz, met) = state.grid
@@ -93,7 +93,16 @@ function correct!(
 
         # Compute velocity correction.
         corx[i, j, k] = facprs * dt / facu * pgradx
-        du = -corx[i, j, k]
+        if model == Compressible()
+            jpr =
+                (
+                    jac[i, j, k] * p[i, j, k] +
+                    jac[i + 1, j, k] * p[i + 1, j, k]
+                ) / 2
+            du = -jpr * corx[i, j, k]
+        else
+            du = -corx[i, j, k]
+        end
 
         u[i, j, k] += du
     end
@@ -109,7 +118,7 @@ function correct!(
     facprs::AbstractFloat,
 )
     (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; zboundaries) = state.namelists.setting
+    (; model, zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dy, dz, met) = state.grid
@@ -182,7 +191,16 @@ function correct!(
 
         # Compute velocity correction.
         cory[i, j, k] = facprs * dt / facv * pgrady
-        dv = -cory[i, j, k]
+        if model == Compressible()
+            jpf =
+                (
+                    jac[i, j, k] * p[i, j, k] +
+                    jac[i, j + 1, k] * p[i, j + 1, k]
+                ) / 2
+            dv = -jpf * cory[i, j, k]
+        else
+            dv = -cory[i, j, k]
+        end
 
         v[i, j, k] += dv
     end
@@ -198,7 +216,7 @@ function correct!(
     facprs::AbstractFloat,
 )
     (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; zboundaries) = state.namelists.setting
+    (; model, zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid
@@ -291,26 +309,58 @@ function correct!(
             )
 
         # Compute velocity correction.
-        dw =
-            -facprs * dt / (facw + rhostratedgeu / rhoedge * bvsstw * dt^2.0) *
-            pgradz -
-            1.0 / (facw + rhostratedgeu / rhoedge * bvsstw * dt^2.0) *
-            rhostratedgeu / rhoedge *
-            bvsstw *
-            dt^2.0 *
-            0.5 *
-            (
-                jac[i, j, k + 1] * (
-                    met[i, j, k, 1, 3] * (corx[i, j, k] + corx[i - 1, j, k]) +
-                    met[i, j, k, 2, 3] * (cory[i, j, k] + cory[i, j - 1, k])
-                ) +
-                jac[i, j, k] * (
-                    met[i, j, k + 1, 1, 3] *
-                    (corx[i, j, k + 1] + corx[i - 1, j, k + 1]) +
-                    met[i, j, k + 1, 2, 3] *
-                    (cory[i, j, k + 1] + cory[i, j - 1, k + 1])
-                )
-            ) / (jac[i, j, k] + jac[i, j, k + 1])
+        if model == Compressible()
+            jpu =
+                jac[i, j, k] *
+                jac[i, j, k + 1] *
+                (p[i, j, k] + p[i, j, k + 1]) /
+                (jac[i, j, k] + jac[i, j, k + 1])
+
+            dw =
+                -facprs * dt / (facw + bvsstw * dt^2.0) * jpu * pgradz -
+                1.0 / (facw + bvsstw * dt^2.0) *
+                bvsstw *
+                dt^2.0 *
+                jpu *
+                0.5 *
+                (
+                    jac[i, j, k + 1] * (
+                        met[i, j, k, 1, 3] *
+                        (corx[i, j, k] + corx[i - 1, j, k]) +
+                        met[i, j, k, 2, 3] *
+                        (cory[i, j, k] + cory[i, j - 1, k])
+                    ) +
+                    jac[i, j, k] * (
+                        met[i, j, k + 1, 1, 3] *
+                        (corx[i, j, k + 1] + corx[i - 1, j, k + 1]) +
+                        met[i, j, k + 1, 2, 3] *
+                        (cory[i, j, k + 1] + cory[i, j - 1, k + 1])
+                    )
+                ) / (jac[i, j, k] + jac[i, j, k + 1])
+        else
+            dw =
+                -facprs * dt /
+                (facw + rhostratedgeu / rhoedge * bvsstw * dt^2.0) * pgradz -
+                1.0 / (facw + rhostratedgeu / rhoedge * bvsstw * dt^2.0) *
+                rhostratedgeu / rhoedge *
+                bvsstw *
+                dt^2.0 *
+                0.5 *
+                (
+                    jac[i, j, k + 1] * (
+                        met[i, j, k, 1, 3] *
+                        (corx[i, j, k] + corx[i - 1, j, k]) +
+                        met[i, j, k, 2, 3] *
+                        (cory[i, j, k] + cory[i, j - 1, k])
+                    ) +
+                    jac[i, j, k] * (
+                        met[i, j, k + 1, 1, 3] *
+                        (corx[i, j, k + 1] + corx[i - 1, j, k + 1]) +
+                        met[i, j, k + 1, 2, 3] *
+                        (cory[i, j, k + 1] + cory[i, j - 1, k + 1])
+                    )
+                ) / (jac[i, j, k] + jac[i, j, k + 1])
+        end
 
         w[i, j, k] += dw
     end
@@ -326,7 +376,7 @@ function correct!(
     facprs::AbstractFloat,
 )
     (; spongelayer) = state.namelists.sponge
-    (; zboundaries) = state.namelists.setting
+    (; model, zboundaries) = state.namelists.setting
     (; kappainv, mainv2, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid
@@ -466,30 +516,57 @@ function correct!(
         pgradz = 0.5 * (pgradzedgeu + pgradzedged)
 
         # Compute buoyancy correction.
-        db =
-            -1.0 / (
-                facw +
-                rhostrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k]) *
-                bvsstrattfc[i, j, k] *
-                dt^2.0
-            ) * (
-                -rhostrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k]) *
-                bvsstrattfc[i, j, k] *
-                facprs *
-                dt^2.0 *
-                jac[i, j, k] *
-                pgradz +
-                rhostrattfc[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k]) *
-                bvsstrattfc[i, j, k] *
-                dt *
-                jac[i, j, k] *
-                facw *
-                0.5 *
-                (
-                    met[i, j, k, 1, 3] * (corx[i, j, k] + corx[i - 1, j, k]) +
-                    met[i, j, k, 2, 3] * (cory[i, j, k] + cory[i, j - 1, k])
+        if model == Compressible()
+            db =
+                -1.0 / (facw + bvsstrattfc[i, j, k] * dt^2.0) * (
+                    -bvsstrattfc[i, j, k] *
+                    facprs *
+                    dt^2.0 *
+                    jac[i, j, k] *
+                    pgradz +
+                    bvsstrattfc[i, j, k] *
+                    dt *
+                    jac[i, j, k] *
+                    facw *
+                    0.5 *
+                    (
+                        met[i, j, k, 1, 3] *
+                        (corx[i, j, k] + corx[i - 1, j, k]) +
+                        met[i, j, k, 2, 3] *
+                        (cory[i, j, k] + cory[i, j - 1, k])
+                    )
                 )
-            )
+        else
+            db =
+                -1.0 / (
+                    facw +
+                    rhostrattfc[i, j, k] /
+                    (rho[i, j, k] + rhostrattfc[i, j, k]) *
+                    bvsstrattfc[i, j, k] *
+                    dt^2.0
+                ) * (
+                    -rhostrattfc[i, j, k] /
+                    (rho[i, j, k] + rhostrattfc[i, j, k]) *
+                    bvsstrattfc[i, j, k] *
+                    facprs *
+                    dt^2.0 *
+                    jac[i, j, k] *
+                    pgradz +
+                    rhostrattfc[i, j, k] /
+                    (rho[i, j, k] + rhostrattfc[i, j, k]) *
+                    bvsstrattfc[i, j, k] *
+                    dt *
+                    jac[i, j, k] *
+                    facw *
+                    0.5 *
+                    (
+                        met[i, j, k, 1, 3] *
+                        (corx[i, j, k] + corx[i - 1, j, k]) +
+                        met[i, j, k, 2, 3] *
+                        (cory[i, j, k] + cory[i, j - 1, k])
+                    )
+                )
+        end
 
         rhop[i, j, k] -= (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim * db
     end
