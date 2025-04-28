@@ -1,6 +1,7 @@
 function set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
     (; namelists, domain) = state
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
+    (; model) = namelists.setting
 
     set_zonal_boundaries_of_field!(rho, namelists, domain)
     set_zonal_boundaries_of_field!(rhop, namelists, domain)
@@ -8,6 +9,8 @@ function set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
     set_zonal_boundaries_of_field!(v, namelists, domain)
     set_zonal_boundaries_of_field!(w, namelists, domain)
     set_zonal_boundaries_of_field!(pip, namelists, domain)
+
+    set_compressible_zonal_boundaries!(state, model)
 
     return
 end

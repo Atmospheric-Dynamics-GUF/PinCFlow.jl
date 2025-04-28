@@ -14,15 +14,20 @@ struct Variables{
     fluxes::F
 end
 
-function Variables(namelists::Namelists, constants::Constants, domain::Domain)
+function Variables(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+)
 
     # Initialize all fields.
-    predictands = Predictands(namelists, constants, domain)
-    tendencies = Tendencies(domain)
+    predictands = Predictands(namelists, constants, domain, atmosphere)
+    tendencies = Tendencies(namelists, domain)
     backups = Backups(domain)
     auxiliaries = Auxiliaries(domain)
     reconstructions = Reconstructions(domain)
-    fluxes = Fluxes(domain)
+    fluxes = Fluxes(namelists, domain)
 
     # Return a Variables instance.
     return Variables(

@@ -20,6 +20,7 @@ struct FPlane <: AbstractCoriolisMode end
 struct MCVariant <: AbstractLimiter end
 struct Boussinesq <: AbstractModel end
 struct PseudoIncompressible <: AbstractModel end
+struct Compressible <: AbstractModel end
 struct MountainWave <: AbstractTestCase end
 struct WKBMountainWave <: AbstractWKBTestCase end
 struct PeriodicBoundaries <: AbstractBoundaries end
@@ -69,6 +70,7 @@ export UniformBoussinesq,
     MCVariant,
     Boussinesq,
     PseudoIncompressible,
+    Compressible,
     MountainWave,
     WKBMountainWave,
     PeriodicBoundaries,

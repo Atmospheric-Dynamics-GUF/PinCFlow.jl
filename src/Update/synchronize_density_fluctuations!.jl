@@ -14,9 +14,16 @@ function synchronize_density_fluctuations!(
 )
     (; rho, rhop) = state.variables.predictands
 
-    # Synchronize density fluctuations.
     rhop .= rho
 
-    # Return.
+    return
+end
+
+function synchronize_density_fluctuations!(state::State, model::Compressible)
+    (; rhostrattfc, thetastrattfc, pstrattfc)
+    (; rho, rhop) = state.variables.predictands
+
+    rhop .= rho .+ rhostrattfc .- pstrattfc ./ thetastrattfc
+
     return
 end
