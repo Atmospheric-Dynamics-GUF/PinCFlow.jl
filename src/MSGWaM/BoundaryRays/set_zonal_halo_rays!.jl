@@ -2,21 +2,7 @@ function set_zonal_halo_rays!(state::State)
     (; comm, ny, nz, i0, i1, j0, j1, k0, k1, left, right) = state.domain
     (; nray, rays) = state.wkb
 
-    fields = (
-        :x,
-        :y,
-        :z,
-        :k,
-        :l,
-        :m,
-        :dxray,
-        :dyray,
-        :dzray,
-        :dkray,
-        :dlray,
-        :dmray,
-        :dens,
-    )
+    fields = fieldnames(Rays)
 
     @views nray_max_left =
         maximum(nray[i0, (j0 - 1):(j1 + 1), (k0 - 1):(k1 + 1)])
