@@ -2,6 +2,7 @@ module Update
 
 using MPI
 using ..Types
+using ..Boundaries
 
 struct Cartesian end
 struct TFC end
