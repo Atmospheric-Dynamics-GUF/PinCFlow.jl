@@ -288,7 +288,7 @@ function apply_unified_sponge!(
     (; gamma, rsp, pref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphaunifiedsponge) = state.sponge
-    (; rhostrattfc, pstrattfc)
+    (; rhostrattfc, pstrattfc) = state.atmosphere
     (; rho, pip, p) = state.variables.predictands
 
     if !spongelayer || !unifiedsponge
@@ -330,7 +330,7 @@ function apply_unified_sponge!(
     (; spongelayer, unifiedsponge) = state.namelists.sponge
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphaunifiedsponge) = state.sponge
-    (; rhostrattfc, pstrattfc)
+    (; rhostrattfc, pstrattfc) = state.atmosphere
     (; rho, p) = state.variables.predictands
 
     if !spongelayer || !unifiedsponge

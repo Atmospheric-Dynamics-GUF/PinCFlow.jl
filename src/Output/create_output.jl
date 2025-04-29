@@ -36,7 +36,7 @@ function create_output(state::State)
 
         # Create datasets for the background.
         if model != Boussinesq()
-            for label in ("rhobar", "thetabar", "n2")
+            for label in ("rhobar", "thetabar")
                 create_dataset(
                     file,
                     label,
@@ -47,21 +47,28 @@ function create_output(state::State)
             end
 
             if model == Compressible()
-                create_dataset(
-                    file,
-                    "p",
-                    datatype(Float32),
-                    dataspace((sizex, sizey, sizez, -1));
-                    chunk = (cx, cy, cz, ct),
-                )
+                for label in ("n2", "p")
+                    create_dataset(
+                        file,
+                        label,
+                        datatype(Float32),
+                        dataspace(
+                            (sizex, sizey, sizez, 0),
+                            (sizex, sizey, sizez, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
             else
-                create_dataset(
-                    file,
-                    "p",
-                    datatype(Float32),
-                    dataspace((sizex, sizey, sizez));
-                    chunk = (cx, cy, cz),
-                )
+                for label in ("n2", "p")
+                    create_dataset(
+                        file,
+                        label,
+                        datatype(Float32),
+                        dataspace((sizex, sizey, sizez));
+                        chunk = (cx, cy, cz),
+                    )
+                end
             end
         end
 

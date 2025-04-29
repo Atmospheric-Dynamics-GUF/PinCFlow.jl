@@ -20,7 +20,7 @@ function synchronize_density_fluctuations!(
 end
 
 function synchronize_density_fluctuations!(state::State, model::Compressible)
-    (; rhostrattfc, thetastrattfc, pstrattfc)
+    (; rhostrattfc, thetastrattfc, pstrattfc) = state.atmosphere
     (; rho, rhop) = state.variables.predictands
 
     rhop .= rho .+ rhostrattfc .- pstrattfc ./ thetastrattfc

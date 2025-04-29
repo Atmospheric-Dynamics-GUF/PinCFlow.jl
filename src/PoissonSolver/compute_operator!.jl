@@ -40,7 +40,7 @@ function compute_operator!(
         abuu_b,
         abdd_b,
     ) = state.poisson.tensor
-    (; rho) = state.variables.predictands
+    (; rho, p) = state.variables.predictands
 
     # Compute tensor elements for TFC.
     for k in k0:k1, j in j0:j1, i in i0:i1

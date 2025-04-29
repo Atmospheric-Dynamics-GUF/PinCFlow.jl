@@ -376,6 +376,7 @@ function integrate(namelists::Namelists)
         if model == Compressible()
             state.variables.predictands.pip .= v0.pip
             state.variables.predictands.p .= v0.p
+            pstrattfc .= v0.p
             update_buoyancy_frequency!(state)
             modify_compressible_wind!(state, *)
         end
@@ -383,6 +384,9 @@ function integrate(namelists::Namelists)
         set_boundaries!(state, BoundaryPredictands())
 
         state.variables.backups.rhopold .= state.variables.predictands.rhop
+        state.variables.backups.uold .= state.variables.predictands.u
+        state.variables.backups.vold .= state.variables.predictands.v
+        state.variables.backups.wold .= state.variables.predictands.w
 
         # update density fluctuations (rhopStar)
         update!(state, 0.5 * dt, RhoP(), RHS(), Explicit())
@@ -413,7 +417,6 @@ function integrate(namelists::Namelists)
         v0 = deepcopy(v1)
 
         if model == Compressible()
-            v1 = deepcopy(state.variables.predictands)
             pstrattfc .= v0.p
         end
 
@@ -501,7 +504,7 @@ function integrate(namelists::Namelists)
         # time step
         (errflagbicg, niterbicg) = apply_corrector!(state, 0.5 * dt, 2.0, 1.0)
 
-        modify_compressible_wind!(state, *)
+        modify_compressible_wind!(state, /)
 
         if errflagbicg
             iout = write_output(state, time, iout, machine_start_time)

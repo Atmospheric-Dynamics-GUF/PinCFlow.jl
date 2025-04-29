@@ -236,18 +236,21 @@ function compute_rhs!(
         ib = i - i0 + 1
         jb = j - j0 + 1
         kb = k - k0 + 1
+        # Compute the heating.
+        heating = compute_volume_force(state, (i, j, k), P())
         # Compute RHS.
-        bu = (pedger * ur - pedgel * ul) / dx / jac[i, j, k] * ma^2.0 * kappa
-        bv = (pedgef * vf - pedgeb * vb) / dy / jac[i, j, k] * ma^2.0 * kappa
-        bw = (pedgeu * wu - pedged * wd) / dz / jac[i, j, k] * ma^2.0 * kappa
-        divsum_local += bu + bv + bw
+        bu = (ur - ul) / dx / jac[i, j, k] * ma^2.0 * kappa
+        bv = (vf - vb) / dy / jac[i, j, k] * ma^2.0 * kappa
+        bw = (wu - wd) / dz / jac[i, j, k] * ma^2.0 * kappa
+        divsum_local += bu + bv + bw + heating
         bu /= fcscal
         bv /= fcscal
         bw /= fcscal
-        b[ib, jb, kb] = bu + bv + bw
+        heating /= fcscal
+        b[ib, jb, kb] = bu + bv + bw + heating
         # Compute check sum for solvability criterion.
         divl2_local += b[ib, jb, kb]^2.0
-        bl2loc = bu^2.0 + bv^2.0 + bw^2.0
+        bl2loc = bu^2.0 + bv^2.0 + bw^2.0 + heating^2.0
         divl2_norm_local += bl2loc
         if abs(b[ib, jb, kb]) > divmax
             divmax = abs(b[ib, jb, kb])
