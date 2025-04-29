@@ -23,12 +23,12 @@ function correct!(
     (; model, zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dz, met) = state.grid
+    (; dx, dz, jac, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; kr_sp_tfc) = state.sponge
     (; corx) = state.poisson.correction
     (; dpip) = state.variables.tendencies
-    (; rho, u) = state.variables.predictands
+    (; rho, u, p) = state.variables.predictands
 
     for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         facu = 1.0
@@ -121,12 +121,12 @@ function correct!(
     (; model, zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dy, dz, met) = state.grid
+    (; dy, dz, jac, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; kr_sp_tfc) = state.sponge
     (; cory) = state.poisson.correction
     (; dpip) = state.variables.tendencies
-    (; rho, v) = state.variables.predictands
+    (; rho, v, p) = state.variables.predictands
 
     for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         facv = 1.0
@@ -215,7 +215,7 @@ function correct!(
     facray::AbstractFloat,
     facprs::AbstractFloat,
 )
-    (; spongelayer, sponge_uv) = state.namelists.sponge
+    (; spongelayer) = state.namelists.sponge
     (; model, zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -224,7 +224,7 @@ function correct!(
     (; kr_sp_w_tfc) = state.sponge
     (; corx, cory) = state.poisson.correction
     (; dpip) = state.variables.tendencies
-    (; rho, w) = state.variables.predictands
+    (; rho, w, p) = state.variables.predictands
 
     if zboundaries != SolidWallBoundaries()
         error("Error in correct!: Unknown zboundaries!")
@@ -384,7 +384,7 @@ function correct!(
     (; kr_sp_w_tfc) = state.sponge
     (; corx, cory) = state.poisson.correction
     (; dpip) = state.variables.tendencies
-    (; rho, rhop, w) = state.variables.predictands
+    (; rho, rhop) = state.variables.predictands
 
     for k in k0:k1, j in j0:j1, i in i0:i1
         facw = 1.0

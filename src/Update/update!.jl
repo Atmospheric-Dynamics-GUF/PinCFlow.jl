@@ -1319,10 +1319,10 @@ function update!(
                     jac[i, j - 1, k + 1] * p[i, j - 1, k + 1]
                 )
 
-            uC = 0.5 * (u[i, j, k] / jpr + u[i - 1, j, k] / jpl)
-            uU = 0.5 * (u[i, j, k + 1] / jpur + u[i - 1, j, k + 1] / jpul)
-            vC = 0.5 * (v[i, j, k] / jpf + v[i, j - 1, k] / jpb)
-            vU = 0.5 * (v[i, j, k + 1] / jpuf + v[i, j - 1, k + 1] / jpub)
+            uc = 0.5 * (u[i, j, k] / jpr + u[i - 1, j, k] / jpl)
+            uu = 0.5 * (u[i, j, k + 1] / jpur + u[i - 1, j, k + 1] / jpul)
+            vc = 0.5 * (v[i, j, k] / jpf + v[i, j - 1, k] / jpb)
+            vu = 0.5 * (v[i, j, k + 1] / jpuf + v[i, j - 1, k + 1] / jpub)
         else
             uc = 0.5 * (u[i, j, k] + u[i - 1, j, k])
             uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
@@ -1404,15 +1404,16 @@ function update!(
     (; gamma, rsp, pref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
-    (; p) = state.variables.predictands
+    (; uold, vold, wold) = state.variables.backups
+    (; pip, p) = state.variables.predictands
 
     for k in k0:k1, j in j0:j1, i in i0:i1
-        fl = u[i - 1, j, k]
-        fr = u[i, j, k]
-        gb = v[i, j - 1, k]
-        gf = v[i, j, k]
-        hd = w[i, j, k - 1]
-        hu = w[i, j, k]
+        fl = uold[i - 1, j, k]
+        fr = uold[i, j, k]
+        gb = vold[i, j - 1, k]
+        gf = vold[i, j, k]
+        hd = wold[i, j, k - 1]
+        hu = wold[i, j, k]
 
         fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
         fluxdiff /= jac[i, j, k]

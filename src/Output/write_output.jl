@@ -79,7 +79,15 @@ function write_output(
         end
 
         # Write the buoyancy frequency.
-        if model != Boussinesq() && iout == 1
+        if model == Compressible()
+            HDF5.set_extent_dims(file["n2"], (sizex, sizey, sizez, iout))
+            @views file["n2"][
+                (io + 1):(io + nx),
+                (jo + 1):(jo + ny),
+                1:nz,
+                iout,
+            ] = bvsstrattfc[i0:i1, j0:j1, k0:k1] ./ tref .^ 2
+        elseif model != Boussinesq() && iout == 1
             @views file["n2"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz] =
                 bvsstrattfc[i0:i1, j0:j1, k0:k1] ./ tref .^ 2
         end
@@ -87,13 +95,15 @@ function write_output(
         # Write the mass-weighted potential temperature.
         if model == Compressible()
             HDF5.set_extent_dims(file["p"], (sizex, sizey, sizez, iout))
+            @views file["p"][
+                (io + 1):(io + nx),
+                (jo + 1):(jo + ny),
+                1:nz,
+                iout,
+            ] = p[i0:i1, j0:j1, k0:k1] .* rhoref .* thetaref
+        elseif model != Boussinesq() && iout == 1
             @views file["p"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz] =
-                p[i0:i1, j0:j1, k0:k1] .* rhoref .* thetaref
-        else
-            if model != Boussinesq() && iout == 1
-                @views file["p"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz] =
-                    pstrattfc[i0:i1, j0:j1, k0:k1] .* rhoref .* thetaref
-            end
+                pstrattfc[i0:i1, j0:j1, k0:k1] .* rhoref .* thetaref
         end
 
         # Write the density fluctuations.

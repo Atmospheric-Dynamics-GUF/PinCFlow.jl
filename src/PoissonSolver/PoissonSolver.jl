@@ -4,6 +4,7 @@ using MPI
 using ..Types
 using ..MPIOperations
 using ..Boundaries
+using ..Update
 
 struct Total end
 struct Horizontal end

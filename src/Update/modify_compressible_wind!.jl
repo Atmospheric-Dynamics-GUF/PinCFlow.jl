@@ -18,6 +18,7 @@ function modify_compressible_wind!(
     model::Compressible,
 )
     (; namelists, domain) = state
+    (; nbz) = namelists.domain
     (; zboundaries) = namelists.setting
     (; nxx, nyy, i0, i1, j0, j1, k0, k1) = domain
     (; jac) = state.grid
