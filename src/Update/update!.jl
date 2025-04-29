@@ -98,7 +98,7 @@ function update!(
     dt::AbstractFloat,
     variable::RhoP,
     side::RHS,
-    integration::EXPL,
+    integration::Explicit,
 )
     (; model) = state.namelists.setting
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -155,7 +155,7 @@ function update!(
     dt::AbstractFloat,
     variable::RhoP,
     side::RHS,
-    integration::IMPL,
+    integration::Implicit,
     facray::AbstractFloat,
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -476,7 +476,7 @@ function update!(
     dt::AbstractFloat,
     variable::U,
     side::RHS,
-    integration::EXPL,
+    integration::Explicit,
 )
     (; model, zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
@@ -557,7 +557,7 @@ function update!(
     dt::AbstractFloat,
     variable::U,
     side::RHS,
-    integration::IMPL,
+    integration::Implicit,
     facray::AbstractFloat,
 )
     (; model, zboundaries) = state.namelists.setting
@@ -724,7 +724,7 @@ function update!(
     dt::AbstractFloat,
     variable::V,
     side::RHS,
-    integration::EXPL,
+    integration::Explicit,
 )
     (; model, zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
@@ -805,7 +805,7 @@ function update!(
     dt::AbstractFloat,
     variable::V,
     side::RHS,
-    integration::IMPL,
+    integration::Implicit,
     facray::AbstractFloat,
 )
     (; model, zboundaries) = state.namelists.setting
@@ -983,7 +983,7 @@ function update!(
             fluxdiffv[2, 1],
             fluxdiffv[2, 2],
             fluxdiff,
-            TFC(),
+            Transformed(),
             grid,
         )
 
@@ -1057,7 +1057,7 @@ function update!(
     dt::AbstractFloat,
     variable::W,
     side::RHS,
-    integration::EXPL,
+    integration::Explicit,
 )
     (; model, zboundaries) = state.namelists.setting
     (; kappainv, mainv2, g_ndim) = state.constants
@@ -1173,7 +1173,7 @@ function update!(
     dt::AbstractFloat,
     variable::W,
     side::RHS,
-    integration::IMPL,
+    integration::Implicit,
     facray::AbstractFloat,
 )
     (; spongelayer) = state.namelists.sponge

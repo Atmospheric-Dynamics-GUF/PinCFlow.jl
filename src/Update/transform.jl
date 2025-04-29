@@ -48,7 +48,7 @@ function transform(
     vedgeb::AbstractFloat,
     vuedgeb::AbstractFloat,
     wedgeu::AbstractFloat,
-    coordinate::TFC,
+    coordinate::Transformed,
     grid::Grid,
 )
     (; jac, met) = grid
