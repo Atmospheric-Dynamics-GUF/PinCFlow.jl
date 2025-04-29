@@ -5,16 +5,16 @@ using Dates
 include("Types/Types.jl")
 include("MPIOperations/MPIOperations.jl")
 include("Boundaries/Boundaries.jl")
-include("PoissonSolver/PoissonSolver.jl")
 include("Update/Update.jl")
+include("PoissonSolver/PoissonSolver.jl")
 include("FluxCalculator/FluxCalculator.jl")
 include("Output/Output.jl")
 include("MSGWaM/MSGWaM.jl")
 
 using .Types
 using .Boundaries
-using .PoissonSolver
 using .Update
+using .PoissonSolver
 using .FluxCalculator
 using .Output
 using .MSGWaM
