@@ -5,7 +5,7 @@ using ..Types
 using ..Boundaries
 
 struct Cartesian end
-struct TFC end
+struct Transformed end
 struct LHS end
 struct RHS end
 

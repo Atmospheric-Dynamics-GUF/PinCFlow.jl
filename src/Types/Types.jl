@@ -9,8 +9,8 @@ struct V <: AbstractVariable end
 struct W <: AbstractVariable end
 struct PiP <: AbstractVariable end
 struct P <: AbstractVariable end
-struct EXPL end
-struct IMPL end
+struct Explicit end
+struct Implicit end
 
 include("NamelistTypes/NamelistTypes.jl")
 include("FoundationalTypes/FoundationalTypes.jl")
@@ -47,8 +47,8 @@ export Rho,
     W,
     PiP,
     P,
-    EXPL,
-    IMPL,
+    Explicit,
+    Implicit,
     UniformBoussinesq,
     StratifiedBoussinesq,
     Isothermal,

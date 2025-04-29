@@ -323,15 +323,15 @@ function integrate(namelists::Namelists)
 
         # update winds (uStar, vStar, wStar)
 
-        update!(state, 0.5 * dt, U(), RHS(), IMPL(), 1.0)
-        update!(state, 0.5 * dt, V(), RHS(), IMPL(), 1.0)
-        update!(state, 0.5 * dt, W(), RHS(), IMPL(), 1.0)
+        update!(state, 0.5 * dt, U(), RHS(), Implicit(), 1.0)
+        update!(state, 0.5 * dt, V(), RHS(), Implicit(), 1.0)
+        update!(state, 0.5 * dt, W(), RHS(), Implicit(), 1.0)
 
         set_boundaries!(state, BoundaryPredictands())
 
         # update density fluctuations (rhopStar)
 
-        update!(state, 0.5 * dt, RhoP(), RHS(), IMPL(), 1.0)
+        update!(state, 0.5 * dt, RhoP(), RHS(), Implicit(), 1.0)
 
         set_boundaries!(state, BoundaryPredictands())
 
@@ -385,13 +385,13 @@ function integrate(namelists::Namelists)
         state.variables.backups.rhopold .= state.variables.predictands.rhop
 
         # update density fluctuations (rhopStar)
-        update!(state, 0.5 * dt, RhoP(), RHS(), EXPL())
+        update!(state, 0.5 * dt, RhoP(), RHS(), Explicit())
 
         # update winds (uStar, vStar, wStar)
 
-        update!(state, 0.5 * dt, U(), RHS(), EXPL())
-        update!(state, 0.5 * dt, V(), RHS(), EXPL())
-        update!(state, 0.5 * dt, W(), RHS(), EXPL())
+        update!(state, 0.5 * dt, U(), RHS(), Explicit())
+        update!(state, 0.5 * dt, V(), RHS(), Explicit())
+        update!(state, 0.5 * dt, W(), RHS(), Explicit())
 
         # Update the Exner pressure.
         update!(state, 0.5 * dt, PiP())
@@ -485,15 +485,15 @@ function integrate(namelists::Namelists)
 
         # update winds (uStar, vStar, wStar)
 
-        update!(state, 0.5 * dt, U(), RHS(), IMPL(), 2.0)
-        update!(state, 0.5 * dt, V(), RHS(), IMPL(), 2.0)
-        update!(state, 0.5 * dt, W(), RHS(), IMPL(), 2.0)
+        update!(state, 0.5 * dt, U(), RHS(), Implicit(), 2.0)
+        update!(state, 0.5 * dt, V(), RHS(), Implicit(), 2.0)
+        update!(state, 0.5 * dt, W(), RHS(), Implicit(), 2.0)
 
         set_boundaries!(state, BoundaryPredictands())
 
         # update density fluctuations (rhopStar)
 
-        update!(state, 0.5 * dt, RhoP(), RHS(), IMPL(), 2.0)
+        update!(state, 0.5 * dt, RhoP(), RHS(), Implicit(), 2.0)
 
         set_boundaries!(state, BoundaryPredictands())
 
