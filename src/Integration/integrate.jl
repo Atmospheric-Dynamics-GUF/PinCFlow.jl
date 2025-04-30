@@ -348,7 +348,6 @@ function integrate(namelists::Namelists)
 
         p0 = deepcopy(p1)
 
-        # I'm not sure why we use P at dt/2 here, instead of the initial P...
         synchronize_compressible_atmosphere!(state, p0)
 
         for rkstage in 1:nstages
