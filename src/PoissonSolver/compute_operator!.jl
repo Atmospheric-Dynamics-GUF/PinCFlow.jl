@@ -177,7 +177,7 @@ function compute_operator!(
             ) / (jac[i, j, k] + jac[i, j, k - 1]) + rhostratedged
 
         fwu = compute_compressible_buoyancy_factor(state, (i, j, k), W())
-        fwd = compute_compressible_buoyancy_factor(state, (i, j, k), RhoP())
+        fwd = compute_compressible_buoyancy_factor(state, (i, j, k - 1), W())
 
         rhouedger =
             0.5 * (
