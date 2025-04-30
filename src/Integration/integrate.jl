@@ -36,8 +36,6 @@ function integrate(namelists::Namelists)
     (; nstages, stepfrac) = state.time
     (; tref) = state.constants
     (; master) = state.domain
-    (; pstrattfc) = state.atmosphere
-    (; p) = state.variables.predictands
 
     # Print information.
     if master

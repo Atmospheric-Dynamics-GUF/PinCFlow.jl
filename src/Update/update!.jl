@@ -110,40 +110,18 @@ function update!(
     (; rho, rhop, p) = predictands
 
     for k in k0:k1, j in j0:j1, i in i0:i1
-        if model == Compressible()
-            jpu =
-                jac[i, j, k] *
-                jac[i, j, k + 1] *
-                (p[i, j, k] + p[i, j, k + 1]) /
-                (jac[i, j, k] + jac[i, j, k + 1])
-            jpd =
-                jac[i, j, k] *
-                jac[i, j, k - 1] *
-                (p[i, j, k] + p[i, j, k - 1]) /
-                (jac[i, j, k] + jac[i, j, k - 1])
-            wvrt =
-                0.5 * (
-                    compute_vertical_wind(i, j, k, predictands, grid) / jpu +
-                    compute_vertical_wind(i, j, k - 1, predictands, grid) / jpd
-                )
-        else
-            wvrt =
-                0.5 * (
-                    compute_vertical_wind(i, j, k, predictands, grid) +
-                    compute_vertical_wind(i, j, k - 1, predictands, grid)
-                )
-        end
+        jpu = compute_compressible_wind_factor(state, (i, j, k), W())
+        jpd = compute_compressible_wind_factor(state, (i, j, k - 1), W())
+        wvrt =
+            0.5 * (
+                compute_vertical_wind(i, j, k, predictands, grid) / jpu +
+                compute_vertical_wind(i, j, k - 1, predictands, grid) / jpd
+            )
 
         buoy = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
-        if model == Compressible()
-            buoy = buoy - dt * bvsstrattfc[i, j, k] * wvrt
-        else
-            buoy -=
-                dt * rhostrattfc[i, j, k] /
-                (rho[i, j, k] + rhostrattfc[i, j, k]) *
-                bvsstrattfc[i, j, k] *
-                wvrt
-        end
+        fb = compute_compressible_buoyancy_factor(state, (i, j, k), RhoP())
+        buoy -= dt * fb * bvsstrattfc[i, j, k] * wvrt
+
         rhop[i, j, k] = -buoy * (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim
     end
 
@@ -193,21 +171,9 @@ function update!(
 
         # Momentum is predicted before buoyancy in implicit
         # steps.
-        if model == Compressible()
-            jpu =
-                jac[i, j, k] *
-                jac[i, j, k + 1] *
-                (p[i, j, k] + p[i, j, k + 1]) /
-                (jac[i, j, k] + jac[i, j, k + 1])
-            jpd =
-                jac[i, j, k] *
-                jac[i, j, k - 1] *
-                (p[i, j, k] + p[i, j, k - 1]) /
-                (jac[i, j, k] + jac[i, j, k - 1])
-            wvrt = 0.5 * (wold[i, j, k] / jpu + wold[i, j, k - 1] / jpd)
-        else
-            wvrt = 0.5 * (wold[i, j, k] + wold[i, j, k - 1])
-        end
+        jpu = compute_compressible_wind_factor(state, (i, j, k), W())
+        jpd = compute_compressible_wind_factor(state, (i, j, k - 1), W())
+        wvrt = 0.5 * (wold[i, j, k] / jpu + wold[i, j, k - 1] / jpd)
 
         # Compute P coefficients.
         pedgeu =
@@ -327,67 +293,32 @@ function update!(
 
         # Predict buoyancy.
         buoy = -g_ndim * rhop[i, j, k] / (rho[i, j, k] + rhostrattfc[i, j, k])
-        if model == Compressible()
-            jpr =
+        jpr = compute_compressible_wind_factor(state, (i, j, k), U())
+        jpl = compute_compressible_wind_factor(state, (i - 1, j, k), U())
+        jpf = compute_compressible_wind_factor(state, (i, j, k), V())
+        jpb = compute_compressible_wind_factor(state, (i, j - 1, k), V())
+        fb = compute_compressible_buoyancy_factor(state, (i, j, k), RhoP())
+        buoy =
+            1.0 / (facw + fb * bvsstrattfc[i, j, k] * dt^2.0) * (
+                -fb *
+                bvsstrattfc[i, j, k] *
+                dt *
+                jac[i, j, k] *
+                (wvrt - dt * pigrad) +
+                facw * buoy +
+                fb *
+                bvsstrattfc[i, j, k] *
+                dt *
+                jac[i, j, k] *
+                facw *
                 0.5 *
-                (jac[i, j, k] * p[i, j, k] + jac[i + 1, j, k] * p[i + 1, j, k])
-            jpl =
-                0.5 *
-                (jac[i, j, k] * p[i, j, k] + jac[i - 1, j, k] * p[i - 1, j, k])
-            jpf =
-                0.5 *
-                (jac[i, j, k] * p[i, j, k] + jac[i, j + 1, k] * p[i, j + 1, k])
-            jpb =
-                0.5 *
-                (jac[i, j, k] * p[i, j, k] + jac[i, j - 1, k] * p[i, j - 1, k])
-            buoy =
-                1.0 / (facw + bvsstrattfc[i, j, k] * dt^2.0) * (
-                    -bvsstrattfc[i, j, k] *
-                    dt *
-                    jac[i, j, k] *
-                    (wvrt - dt * pigrad) +
-                    facw * buoy +
-                    bvsstrattfc[i, j, k] *
-                    dt *
-                    jac[i, j, k] *
-                    facw *
-                    0.5 *
-                    (
-                        met[i, j, k, 1, 3] *
-                        (u[i, j, k] / jpr + u[i - 1, j, k] / jpl) +
-                        met[i, j, k, 2, 3] *
-                        (v[i, j, k] / jpf + v[i, j - 1, k] / jpb)
-                    )
+                (
+                    met[i, j, k, 1, 3] *
+                    (u[i, j, k] / jpr + u[i - 1, j, k] / jpl) +
+                    met[i, j, k, 2, 3] *
+                    (v[i, j, k] / jpf + v[i, j - 1, k] / jpb)
                 )
-        else
-            buoy =
-                1.0 / (
-                    facw +
-                    rhostrattfc[i, j, k] /
-                    (rho[i, j, k] + rhostrattfc[i, j, k]) *
-                    bvsstrattfc[i, j, k] *
-                    dt^2.0
-                ) * (
-                    -rhostrattfc[i, j, k] /
-                    (rho[i, j, k] + rhostrattfc[i, j, k]) *
-                    bvsstrattfc[i, j, k] *
-                    dt *
-                    jac[i, j, k] *
-                    (wvrt - dt * pigrad) +
-                    facw * buoy +
-                    rhostrattfc[i, j, k] /
-                    (rho[i, j, k] + rhostrattfc[i, j, k]) *
-                    bvsstrattfc[i, j, k] *
-                    dt *
-                    jac[i, j, k] *
-                    facw *
-                    0.5 *
-                    (
-                        met[i, j, k, 1, 3] * (u[i, j, k] + u[i - 1, j, k]) +
-                        met[i, j, k, 2, 3] * (v[i, j, k] + v[i, j - 1, k])
-                    )
-                )
-        end
+            )
 
         rhop[i, j, k] = -buoy * (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim
     end
@@ -535,16 +466,8 @@ function update!(
         uhorx = u[i, j, k]
 
         # Update wind.
-        if model == Compressible()
-            jpr =
-                (
-                    jac[i, j, k] * p[i, j, k] +
-                    jac[i + 1, j, k] * p[i + 1, j, k]
-                ) / 2
-            uast = uhorx + dt * (-pigrad + volfcx / rhou) * jpr
-        else
-            uast = uhorx + dt * (-pigrad + volfcx / rhou)
-        end
+        jpr = compute_compressible_wind_factor(state, (i, j, k), U())
+        uast = uhorx + dt * (-pigrad + volfcx / rhou) * jpr
         u[i, j, k] = uast
     end
 
@@ -629,16 +552,8 @@ function update!(
         end
 
         # Update wind.
-        if model == Compressible()
-            jpr =
-                (
-                    jac[i, j, k] * p[i, j, k] +
-                    jac[i + 1, j, k] * p[i + 1, j, k]
-                ) / 2
-            uast = 1.0 / facu * (uhorx + dt * (-pigradx + volfcx / rhou) * jpr)
-        else
-            uast = 1.0 / facu * (uhorx + dt * (-pigradx + volfcx / rhou))
-        end
+        jpr = compute_compressible_wind_factor(state, (i, j, k), U())
+        uast = 1.0 / facu * (uhorx + dt * (-pigradx + volfcx / rhou) * jpr)
         u[i, j, k] = uast
     end
 
@@ -783,16 +698,8 @@ function update!(
         vhory = v[i, j, k]
 
         # Update wind.
-        if model == Compressible()
-            jpf =
-                (
-                    jac[i, j, k] * p[i, j, k] +
-                    jac[i, j + 1, k] * p[i, j + 1, k]
-                ) / 2
-            vast = vhory + dt * (-pigrad + volfcy / rhov) * jpf
-        else
-            vast = vhory + dt * (-pigrad + volfcy / rhov)
-        end
+        jpf = compute_compressible_wind_factor(state, (i, j, k), V())
+        vast = vhory + dt * (-pigrad + volfcy / rhov) * jpf
         v[i, j, k] = vast
     end
 
@@ -877,16 +784,8 @@ function update!(
         end
 
         # Update wind.
-        if model == Compressible()
-            jpf =
-                (
-                    jac[i, j, k] * p[i, j, k] +
-                    jac[i, j + 1, k] * p[i, j + 1, k]
-                ) / 2
-            vast = 1.0 / facv * (vhory + dt * (-pigrady + volfcy / rhov) * jpf)
-        else
-            vast = 1.0 / facv * (vhory + dt * (-pigrady + volfcy / rhov))
-        end
+        jpf = compute_compressible_wind_factor(state, (i, j, k), V())
+        vast = 1.0 / facv * (vhory + dt * (-pigrady + volfcy / rhov) * jpf)
         v[i, j, k] = vast
     end
 
@@ -1151,16 +1050,8 @@ function update!(
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         # Update wind.
-        if model == Compressible()
-            jpu =
-                jac[i, j, k] *
-                jac[i, j, k + 1] *
-                (p[i, j, k] + p[i, j, k + 1]) /
-                (jac[i, j, k] + jac[i, j, k + 1])
-            wast = wvert + dt * (buoy - pigrad + volfcz / rhow) * jpu
-        else
-            wast = wvert + dt * (buoy - pigrad + volfcz / rhow)
-        end
+        jpu = compute_compressible_wind_factor(state, (i, j, k), W())
+        wast = wvert + dt * (buoy - pigrad + volfcz / rhow) * jpu
         w[i, j, k] = wast
     end
 
@@ -1285,94 +1176,39 @@ function update!(
                 jac[i, j, k] * rhop[i, j, k + 1] / rho001 / jac[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
-        if model == Compressible()
-            jpr =
-                0.5 *
-                (jac[i, j, k] * p[i, j, k] + jac[i + 1, j, k] * p[i + 1, j, k])
-            jpl =
-                0.5 *
-                (jac[i, j, k] * p[i, j, k] + jac[i - 1, j, k] * p[i - 1, j, k])
-            jpf =
-                0.5 *
-                (jac[i, j, k] * p[i, j, k] + jac[i, j + 1, k] * p[i, j + 1, k])
-            jpb =
-                0.5 *
-                (jac[i, j, k] * p[i, j, k] + jac[i, j - 1, k] * p[i, j - 1, k])
-            jpur =
-                0.5 * (
-                    jac[i, j, k + 1] * p[i, j, k + 1] +
-                    jac[i + 1, j, k + 1] * p[i + 1, j, k + 1]
-                )
-            jpul =
-                0.5 * (
-                    jac[i, j, k + 1] * p[i, j, k + 1] +
-                    jac[i - 1, j, k + 1] * p[i - 1, j, k + 1]
-                )
-            jpuf =
-                0.5 * (
-                    jac[i, j, k + 1] * p[i, j, k + 1] +
-                    jac[i, j + 1, k + 1] * p[i, j + 1, k + 1]
-                )
-            jpub =
-                0.5 * (
-                    jac[i, j, k + 1] * p[i, j, k + 1] +
-                    jac[i, j - 1, k + 1] * p[i, j - 1, k + 1]
-                )
+        jpr = compute_compressible_wind_factor(state, (i, j, k), U())
+        jpl = compute_compressible_wind_factor(state, (i - 1, j, k), U())
+        jpf = compute_compressible_wind_factor(state, (i, j, k), V())
+        jpb = compute_compressible_wind_factor(state, (i, j - 1, k), V())
+        jpur = compute_compressible_wind_factor(state, (i, j, k + 1), U())
+        jpul = compute_compressible_wind_factor(state, (i - 1, j, k + 1), U())
+        jpuf = compute_compressible_wind_factor(state, (i, j, k + 1), V())
+        jpub = compute_compressible_wind_factor(state, (i, j - 1, k + 1), V())
 
-            uc = 0.5 * (u[i, j, k] / jpr + u[i - 1, j, k] / jpl)
-            uu = 0.5 * (u[i, j, k + 1] / jpur + u[i - 1, j, k + 1] / jpul)
-            vc = 0.5 * (v[i, j, k] / jpf + v[i, j - 1, k] / jpb)
-            vu = 0.5 * (v[i, j, k + 1] / jpuf + v[i, j - 1, k + 1] / jpub)
-        else
-            uc = 0.5 * (u[i, j, k] + u[i - 1, j, k])
-            uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
-            vc = 0.5 * (v[i, j, k] + v[i, j - 1, k])
-            vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
-        end
+        uc = 0.5 * (u[i, j, k] / jpr + u[i - 1, j, k] / jpl)
+        uu = 0.5 * (u[i, j, k + 1] / jpur + u[i - 1, j, k + 1] / jpul)
+        vc = 0.5 * (v[i, j, k] / jpf + v[i, j - 1, k] / jpb)
+        vu = 0.5 * (v[i, j, k + 1] / jpuf + v[i, j - 1, k + 1] / jpub)
 
         # Update wind.
-        if model == Compressible()
-            jpu =
-                jac[i, j, k] *
-                jac[i, j, k + 1] *
-                (p[i, j, k] + p[i, j, k + 1]) /
-                (jac[i, j, k] + jac[i, j, k + 1])
-            wast =
-                1.0 / (facw + bvsstw * dt^2.0) * (
-                    wvert - dt * pigrad * jpu +
-                    dt * buoy * jpu +
-                    dt * volfcz / rhow * jpu +
-                    jpu *
-                    bvsstw *
-                    dt^2.0 *
-                    (
-                        jac[i, j, k + 1] *
-                        (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
-                        jac[i, j, k] * (
-                            met[i, j, k + 1, 1, 3] * uu +
-                            met[i, j, k + 1, 2, 3] * vu
-                        )
-                    ) / (jac[i, j, k] + jac[i, j, k + 1])
-                )
-        else
-            wast =
-                1.0 / (facw + rhostratedgeu / rhow * bvsstw * dt^2.0) * (
-                    wvert - dt * pigrad +
-                    dt * buoy +
-                    dt * volfcz / rhow +
-                    rhostratedgeu / rhow *
-                    bvsstw *
-                    dt^2.0 *
-                    (
-                        jac[i, j, k + 1] *
-                        (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
-                        jac[i, j, k] * (
-                            met[i, j, k + 1, 1, 3] * uu +
-                            met[i, j, k + 1, 2, 3] * vu
-                        )
-                    ) / (jac[i, j, k] + jac[i, j, k + 1])
-                )
-        end
+        jpu = compute_compressible_wind_factor(state, (i, j, k), W())
+        fw = compute_compressible_buoyancy_factor(state, (i, j, k), W())
+        wast =
+            1.0 / (facw + fw * bvsstw * dt^2.0) * (
+                wvert - dt * pigrad * jpu +
+                dt * buoy * jpu +
+                dt * volfcz / rhow * jpu +
+                jpu *
+                fw *
+                bvsstw *
+                dt^2.0 *
+                (
+                    jac[i, j, k + 1] *
+                    (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
+                    jac[i, j, k] *
+                    (met[i, j, k + 1, 1, 3] * uu + met[i, j, k + 1, 2, 3] * vu)
+                ) / (jac[i, j, k] + jac[i, j, k + 1])
+            )
         w[i, j, k] = wast
     end
 

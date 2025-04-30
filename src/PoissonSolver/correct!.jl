@@ -93,16 +93,8 @@ function correct!(
 
         # Compute velocity correction.
         corx[i, j, k] = facprs * dt / facu * pgradx
-        if model == Compressible()
-            jpr =
-                (
-                    jac[i, j, k] * p[i, j, k] +
-                    jac[i + 1, j, k] * p[i + 1, j, k]
-                ) / 2
-            du = -jpr * corx[i, j, k]
-        else
-            du = -corx[i, j, k]
-        end
+        jpr = compute_compressible_wind_factor(state, (i, j, k), U())
+        du = -jpr * corx[i, j, k]
 
         u[i, j, k] += du
     end
@@ -191,16 +183,8 @@ function correct!(
 
         # Compute velocity correction.
         cory[i, j, k] = facprs * dt / facv * pgrady
-        if model == Compressible()
-            jpf =
-                (
-                    jac[i, j, k] * p[i, j, k] +
-                    jac[i, j + 1, k] * p[i, j + 1, k]
-                ) / 2
-            dv = -jpf * cory[i, j, k]
-        else
-            dv = -cory[i, j, k]
-        end
+        jpf = compute_compressible_wind_factor(state, (i, j, k), V())
+        dv = -jpf * cory[i, j, k]
 
         v[i, j, k] += dv
     end
@@ -309,58 +293,28 @@ function correct!(
             )
 
         # Compute velocity correction.
-        if model == Compressible()
-            jpu =
-                jac[i, j, k] *
-                jac[i, j, k + 1] *
-                (p[i, j, k] + p[i, j, k + 1]) /
-                (jac[i, j, k] + jac[i, j, k + 1])
-
-            dw =
-                -facprs * dt / (facw + bvsstw * dt^2.0) * jpu * pgradz -
-                1.0 / (facw + bvsstw * dt^2.0) *
-                bvsstw *
-                dt^2.0 *
-                jpu *
-                0.5 *
-                (
-                    jac[i, j, k + 1] * (
-                        met[i, j, k, 1, 3] *
-                        (corx[i, j, k] + corx[i - 1, j, k]) +
-                        met[i, j, k, 2, 3] *
-                        (cory[i, j, k] + cory[i, j - 1, k])
-                    ) +
-                    jac[i, j, k] * (
-                        met[i, j, k + 1, 1, 3] *
-                        (corx[i, j, k + 1] + corx[i - 1, j, k + 1]) +
-                        met[i, j, k + 1, 2, 3] *
-                        (cory[i, j, k + 1] + cory[i, j - 1, k + 1])
-                    )
-                ) / (jac[i, j, k] + jac[i, j, k + 1])
-        else
-            dw =
-                -facprs * dt /
-                (facw + rhostratedgeu / rhoedge * bvsstw * dt^2.0) * pgradz -
-                1.0 / (facw + rhostratedgeu / rhoedge * bvsstw * dt^2.0) *
-                rhostratedgeu / rhoedge *
-                bvsstw *
-                dt^2.0 *
-                0.5 *
-                (
-                    jac[i, j, k + 1] * (
-                        met[i, j, k, 1, 3] *
-                        (corx[i, j, k] + corx[i - 1, j, k]) +
-                        met[i, j, k, 2, 3] *
-                        (cory[i, j, k] + cory[i, j - 1, k])
-                    ) +
-                    jac[i, j, k] * (
-                        met[i, j, k + 1, 1, 3] *
-                        (corx[i, j, k + 1] + corx[i - 1, j, k + 1]) +
-                        met[i, j, k + 1, 2, 3] *
-                        (cory[i, j, k + 1] + cory[i, j - 1, k + 1])
-                    )
-                ) / (jac[i, j, k] + jac[i, j, k + 1])
-        end
+        jpu = compute_compressible_wind_factor(state, (i, j, k), W())
+        fw = compute_compressible_buoyancy_factor(state, (i, j, k), W())
+        dw =
+            -facprs * dt / (facw + fw * bvsstw * dt^2.0) * jpu * pgradz -
+            1.0 / (facw + fw * bvsstw * dt^2.0) *
+            fw *
+            bvsstw *
+            dt^2.0 *
+            jpu *
+            0.5 *
+            (
+                jac[i, j, k + 1] * (
+                    met[i, j, k, 1, 3] * (corx[i, j, k] + corx[i - 1, j, k]) +
+                    met[i, j, k, 2, 3] * (cory[i, j, k] + cory[i, j - 1, k])
+                ) +
+                jac[i, j, k] * (
+                    met[i, j, k + 1, 1, 3] *
+                    (corx[i, j, k + 1] + corx[i - 1, j, k + 1]) +
+                    met[i, j, k + 1, 2, 3] *
+                    (cory[i, j, k + 1] + cory[i, j - 1, k + 1])
+                )
+            ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         w[i, j, k] += dw
     end
@@ -516,57 +470,26 @@ function correct!(
         pgradz = 0.5 * (pgradzedgeu + pgradzedged)
 
         # Compute buoyancy correction.
-        if model == Compressible()
-            db =
-                -1.0 / (facw + bvsstrattfc[i, j, k] * dt^2.0) * (
-                    -bvsstrattfc[i, j, k] *
-                    facprs *
-                    dt^2.0 *
-                    jac[i, j, k] *
-                    pgradz +
-                    bvsstrattfc[i, j, k] *
-                    dt *
-                    jac[i, j, k] *
-                    facw *
-                    0.5 *
-                    (
-                        met[i, j, k, 1, 3] *
-                        (corx[i, j, k] + corx[i - 1, j, k]) +
-                        met[i, j, k, 2, 3] *
-                        (cory[i, j, k] + cory[i, j - 1, k])
-                    )
+        fb = compute_compressible_buoyancy_factor(state, (i, j, k), RhoP())
+        db =
+            -1.0 / (facw + fb * bvsstrattfc[i, j, k] * dt^2.0) * (
+                -fb *
+                bvsstrattfc[i, j, k] *
+                facprs *
+                dt^2.0 *
+                jac[i, j, k] *
+                pgradz +
+                fb *
+                bvsstrattfc[i, j, k] *
+                dt *
+                jac[i, j, k] *
+                facw *
+                0.5 *
+                (
+                    met[i, j, k, 1, 3] * (corx[i, j, k] + corx[i - 1, j, k]) +
+                    met[i, j, k, 2, 3] * (cory[i, j, k] + cory[i, j - 1, k])
                 )
-        else
-            db =
-                -1.0 / (
-                    facw +
-                    rhostrattfc[i, j, k] /
-                    (rho[i, j, k] + rhostrattfc[i, j, k]) *
-                    bvsstrattfc[i, j, k] *
-                    dt^2.0
-                ) * (
-                    -rhostrattfc[i, j, k] /
-                    (rho[i, j, k] + rhostrattfc[i, j, k]) *
-                    bvsstrattfc[i, j, k] *
-                    facprs *
-                    dt^2.0 *
-                    jac[i, j, k] *
-                    pgradz +
-                    rhostrattfc[i, j, k] /
-                    (rho[i, j, k] + rhostrattfc[i, j, k]) *
-                    bvsstrattfc[i, j, k] *
-                    dt *
-                    jac[i, j, k] *
-                    facw *
-                    0.5 *
-                    (
-                        met[i, j, k, 1, 3] *
-                        (corx[i, j, k] + corx[i - 1, j, k]) +
-                        met[i, j, k, 2, 3] *
-                        (cory[i, j, k] + cory[i, j - 1, k])
-                    )
-                )
-        end
+            )
 
         rhop[i, j, k] -= (rho[i, j, k] + rhostrattfc[i, j, k]) / g_ndim * db
     end
