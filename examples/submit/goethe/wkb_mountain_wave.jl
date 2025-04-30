@@ -22,7 +22,7 @@ domain = DomainNamelist(;
 )
 
 output = OutputNamelist(;
-    output_variables = (:u, :v, :w),
+    output_variables = (:w,),
     prepare_restart = false,
     restart = false,
     iin = -1,
