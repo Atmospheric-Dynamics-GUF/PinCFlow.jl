@@ -176,14 +176,8 @@ function compute_operator!(
                 jac[i, j, k] * rho[i, j, k - 1]
             ) / (jac[i, j, k] + jac[i, j, k - 1]) + rhostratedged
 
-        if model == Compressible()
-            rhostratedger = rhoedger
-            rhostratedgel = rhoedgel
-            rhostratedgef = rhoedgef
-            rhostratedgeb = rhoedgeb
-            rhostratedgeu = rhoedgeu
-            rhostratedged = rhoedged
-        end
+        fwu = compute_compressible_buoyancy_factor(state, (i, j, k), W())
+        fwd = compute_compressible_buoyancy_factor(state, (i, j, k), RhoP())
 
         rhouedger =
             0.5 * (
@@ -423,10 +417,8 @@ function compute_operator!(
         imphordedgel = 1.0 / (facdedgel^2.0)
         imphordedgef = 1.0 / (facdedgef^2.0)
         imphordedgeb = 1.0 / (facdedgeb^2.0)
-        impveredgeu =
-            1.0 / (facedgeu + rhostratedgeu / rhoedgeu * bvsstratedgeu * dt^2.0)
-        impveredged =
-            1.0 / (facedged + rhostratedged / rhoedged * bvsstratedged * dt^2.0)
+        impveredgeu = 1.0 / (facedgeu + fwu * bvsstratedgeu * dt^2.0)
+        impveredged = 1.0 / (facedged + fwd * bvsstratedged * dt^2.0)
 
         # Compute gradient coefficients
 
@@ -434,8 +426,10 @@ function compute_operator!(
         if k == k0 && zboundaries == SolidWallBoundaries()
             gedger =
                 jacinv / dx * pedgerdiv * imphoredger * facedger / rhoedger +
-                jacinv / dz * pedgeudiv * impveredgeu * rhostratedgeu /
-                rhoedgeu *
+                jacinv / dz *
+                pedgeudiv *
+                impveredgeu *
+                fwu *
                 bvsstratedgeu *
                 dt^2.0 *
                 0.5 *
@@ -446,8 +440,10 @@ function compute_operator!(
         elseif k == k1 && zboundaries == SolidWallBoundaries()
             gedger =
                 jacinv / dx * pedgerdiv * imphoredger * facedger / rhoedger -
-                jacinv / dz * pedgeddiv * impveredged * rhostratedged /
-                rhoedged *
+                jacinv / dz *
+                pedgeddiv *
+                impveredged *
+                fwd *
                 bvsstratedged *
                 dt^2.0 *
                 0.5 *
@@ -458,8 +454,10 @@ function compute_operator!(
         else
             gedger =
                 jacinv / dx * pedgerdiv * imphoredger * facedger / rhoedger +
-                jacinv / dz * pedgeudiv * impveredgeu * rhostratedgeu /
-                rhoedgeu *
+                jacinv / dz *
+                pedgeudiv *
+                impveredgeu *
+                fwu *
                 bvsstratedgeu *
                 dt^2.0 *
                 0.5 *
@@ -467,8 +465,10 @@ function compute_operator!(
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredger *
                 facedger / rhoedger -
-                jacinv / dz * pedgeddiv * impveredged * rhostratedged /
-                rhoedged *
+                jacinv / dz *
+                pedgeddiv *
+                impveredged *
+                fwd *
                 bvsstratedged *
                 dt^2.0 *
                 0.5 *
@@ -482,8 +482,10 @@ function compute_operator!(
         if k == k0 && zboundaries == SolidWallBoundaries()
             gedgel =
                 -jacinv / dx * pedgeldiv * imphoredgel * facedgel / rhoedgel +
-                jacinv / dz * pedgeudiv * impveredgeu * rhostratedgeu /
-                rhoedgeu *
+                jacinv / dz *
+                pedgeudiv *
+                impveredgeu *
+                fwu *
                 bvsstratedgeu *
                 dt^2.0 *
                 0.5 *
@@ -494,8 +496,10 @@ function compute_operator!(
         elseif k == k1 && zboundaries == SolidWallBoundaries()
             gedgel =
                 -jacinv / dx * pedgeldiv * imphoredgel * facedgel / rhoedgel -
-                jacinv / dz * pedgeddiv * impveredged * rhostratedged /
-                rhoedged *
+                jacinv / dz *
+                pedgeddiv *
+                impveredged *
+                fwd *
                 bvsstratedged *
                 dt^2.0 *
                 0.5 *
@@ -506,8 +510,10 @@ function compute_operator!(
         else
             gedgel =
                 -jacinv / dx * pedgeldiv * imphoredgel * facedgel / rhoedgel +
-                jacinv / dz * pedgeudiv * impveredgeu * rhostratedgeu /
-                rhoedgeu *
+                jacinv / dz *
+                pedgeudiv *
+                impveredgeu *
+                fwu *
                 bvsstratedgeu *
                 dt^2.0 *
                 0.5 *
@@ -515,8 +521,10 @@ function compute_operator!(
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgel *
                 facedgel / rhoedgel -
-                jacinv / dz * pedgeddiv * impveredged * rhostratedged /
-                rhoedged *
+                jacinv / dz *
+                pedgeddiv *
+                impveredged *
+                fwd *
                 bvsstratedged *
                 dt^2.0 *
                 0.5 *
@@ -530,8 +538,10 @@ function compute_operator!(
         if k == k0 && zboundaries == SolidWallBoundaries()
             gedgef =
                 jacinv / dy * pedgefdiv * imphoredgef * facedgef / rhoedgef +
-                jacinv / dz * pedgeudiv * impveredgeu * rhostratedgeu /
-                rhoedgeu *
+                jacinv / dz *
+                pedgeudiv *
+                impveredgeu *
+                fwu *
                 bvsstratedgeu *
                 dt^2.0 *
                 0.5 *
@@ -542,8 +552,10 @@ function compute_operator!(
         elseif k == k1 && zboundaries == SolidWallBoundaries()
             gedgef =
                 jacinv / dy * pedgefdiv * imphoredgef * facedgef / rhoedgef -
-                jacinv / dz * pedgeddiv * impveredged * rhostratedged /
-                rhoedged *
+                jacinv / dz *
+                pedgeddiv *
+                impveredged *
+                fwd *
                 bvsstratedged *
                 dt^2.0 *
                 0.5 *
@@ -554,8 +566,10 @@ function compute_operator!(
         else
             gedgef =
                 jacinv / dy * pedgefdiv * imphoredgef * facedgef / rhoedgef +
-                jacinv / dz * pedgeudiv * impveredgeu * rhostratedgeu /
-                rhoedgeu *
+                jacinv / dz *
+                pedgeudiv *
+                impveredgeu *
+                fwu *
                 bvsstratedgeu *
                 dt^2.0 *
                 0.5 *
@@ -563,8 +577,10 @@ function compute_operator!(
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgef *
                 facedgef / rhoedgef -
-                jacinv / dz * pedgeddiv * impveredged * rhostratedged /
-                rhoedged *
+                jacinv / dz *
+                pedgeddiv *
+                impveredged *
+                fwd *
                 bvsstratedged *
                 dt^2.0 *
                 0.5 *
@@ -578,8 +594,10 @@ function compute_operator!(
         if k == k0 && zboundaries == SolidWallBoundaries()
             gedgeb =
                 -jacinv / dy * pedgebdiv * imphoredgeb * facedgeb / rhoedgeb +
-                jacinv / dz * pedgeudiv * impveredgeu * rhostratedgeu /
-                rhoedgeu *
+                jacinv / dz *
+                pedgeudiv *
+                impveredgeu *
+                fwu *
                 bvsstratedgeu *
                 dt^2.0 *
                 0.5 *
@@ -590,8 +608,10 @@ function compute_operator!(
         elseif k == k1 && zboundaries == SolidWallBoundaries()
             gedgeb =
                 -jacinv / dy * pedgebdiv * imphoredgeb * facedgeb / rhoedgeb -
-                jacinv / dz * pedgeddiv * impveredged * rhostratedged /
-                rhoedged *
+                jacinv / dz *
+                pedgeddiv *
+                impveredged *
+                fwd *
                 bvsstratedged *
                 dt^2.0 *
                 0.5 *
@@ -602,8 +622,10 @@ function compute_operator!(
         else
             gedgeb =
                 -jacinv / dy * pedgebdiv * imphoredgeb * facedgeb / rhoedgeb +
-                jacinv / dz * pedgeudiv * impveredgeu * rhostratedgeu /
-                rhoedgeu *
+                jacinv / dz *
+                pedgeudiv *
+                impveredgeu *
+                fwu *
                 bvsstratedgeu *
                 dt^2.0 *
                 0.5 *
@@ -611,8 +633,10 @@ function compute_operator!(
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgeb *
                 facedgeb / rhoedgeb -
-                jacinv / dz * pedgeddiv * impveredged * rhostratedged /
-                rhoedged *
+                jacinv / dz *
+                pedgeddiv *
+                impveredged *
+                fwd *
                 bvsstratedged *
                 dt^2.0 *
                 0.5 *
@@ -641,8 +665,10 @@ function compute_operator!(
             guedger = 0.0
         else
             guedger =
-                jacinv / dz * pedgeudiv * impveredgeu * rhostratedgeu /
-                rhoedgeu *
+                jacinv / dz *
+                pedgeudiv *
+                impveredgeu *
+                fwu *
                 bvsstratedgeu *
                 dt^2.0 *
                 0.5 *
@@ -657,8 +683,10 @@ function compute_operator!(
             guedgel = 0.0
         else
             guedgel =
-                jacinv / dz * pedgeudiv * impveredgeu * rhostratedgeu /
-                rhoedgeu *
+                jacinv / dz *
+                pedgeudiv *
+                impveredgeu *
+                fwu *
                 bvsstratedgeu *
                 dt^2.0 *
                 0.5 *
@@ -673,8 +701,10 @@ function compute_operator!(
             guedgef = 0.0
         else
             guedgef =
-                jacinv / dz * pedgeudiv * impveredgeu * rhostratedgeu /
-                rhoedgeu *
+                jacinv / dz *
+                pedgeudiv *
+                impveredgeu *
+                fwu *
                 bvsstratedgeu *
                 dt^2.0 *
                 0.5 *
@@ -689,8 +719,10 @@ function compute_operator!(
             guedgeb = 0.0
         else
             guedgeb =
-                jacinv / dz * pedgeudiv * impveredgeu * rhostratedgeu /
-                rhoedgeu *
+                jacinv / dz *
+                pedgeudiv *
+                impveredgeu *
+                fwu *
                 bvsstratedgeu *
                 dt^2.0 *
                 0.5 *
@@ -705,8 +737,10 @@ function compute_operator!(
             gdedger = 0.0
         else
             gdedger =
-                -jacinv / dz * pedgeddiv * impveredged * rhostratedged /
-                rhoedged *
+                -jacinv / dz *
+                pedgeddiv *
+                impveredged *
+                fwd *
                 bvsstratedged *
                 dt^2.0 *
                 0.5 *
@@ -721,8 +755,10 @@ function compute_operator!(
             gdedgel = 0.0
         else
             gdedgel =
-                -jacinv / dz * pedgeddiv * impveredged * rhostratedged /
-                rhoedged *
+                -jacinv / dz *
+                pedgeddiv *
+                impveredged *
+                fwd *
                 bvsstratedged *
                 dt^2.0 *
                 0.5 *
@@ -737,8 +773,10 @@ function compute_operator!(
             gdedgef = 0.0
         else
             gdedgef =
-                -jacinv / dz * pedgeddiv * impveredged * rhostratedged /
-                rhoedged *
+                -jacinv / dz *
+                pedgeddiv *
+                impveredged *
+                fwd *
                 bvsstratedged *
                 dt^2.0 *
                 0.5 *
@@ -753,8 +791,10 @@ function compute_operator!(
             gdedgeb = 0.0
         else
             gdedgeb =
-                -jacinv / dz * pedgeddiv * impveredged * rhostratedged /
-                rhoedged *
+                -jacinv / dz *
+                pedgeddiv *
+                impveredged *
+                fwd *
                 bvsstratedged *
                 dt^2.0 *
                 0.5 *
