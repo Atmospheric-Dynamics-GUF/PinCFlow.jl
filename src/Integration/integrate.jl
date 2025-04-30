@@ -204,7 +204,6 @@ function integrate(namelists::Namelists)
         set_boundaries!(state, BoundaryPredictands())
 
         p0 = deepcopy(state.variables.predictands)
-        f0 = deepcopy(state.variables.fluxes)
 
         if master
             println("(1) Explicit integration of LHS over dt/2...")
@@ -217,10 +216,6 @@ function integrate(namelists::Namelists)
 
             compute_fluxes!(state, p0)
             set_boundaries!(state, BoundaryFluxes())
-
-            if rkstage == 1
-                f0 = deepcopy(state.variables.fluxes)
-            end
 
             state.variables.backups.rhoold .= state.variables.predictands.rho
 
@@ -287,8 +282,6 @@ function integrate(namelists::Namelists)
         modify_compressible_wind!(state, *)
 
         set_boundaries!(state, BoundaryPredictands())
-
-        reset_fluxes!(state, f0)
 
         state.variables.backups.wold .= state.variables.predictands.w
 
@@ -402,8 +395,6 @@ function integrate(namelists::Namelists)
         modify_compressible_wind!(state, *)
 
         set_boundaries!(state, BoundaryPredictands())
-
-        reset_fluxes!(state, f0)
 
         state.variables.backups.wold .= state.variables.predictands.w
 
