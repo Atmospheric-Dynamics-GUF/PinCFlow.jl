@@ -1,7 +1,7 @@
 function integrate(namelists::Namelists)
 
     #-------------------------------------------------
-    #                    Set up
+    #                     Setup
     #-------------------------------------------------
 
     # Initialize time variables.
@@ -63,9 +63,9 @@ function integrate(namelists::Namelists)
     #---------------------------------------------
 
     if initialcleaning
-        set_boundaries!(state, BoundaryPredictands())
-
         modify_compressible_wind!(state, *)
+
+        set_boundaries!(state, BoundaryPredictands())
 
         (errflagbicg, niterbicg) = apply_corrector!(state, 1.0, 1.0, 1.0)
 
@@ -102,10 +102,7 @@ function integrate(namelists::Namelists)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        if model == Compressible()
-            pstrattfc .= p
-            update_buoyancy_frequency!(state)
-        end
+        synchronize_compressible_atmosphere!(state, state.variables.predictands)
     end
 
     #------------------------------------------
@@ -118,6 +115,7 @@ function integrate(namelists::Namelists)
     # Write the initial state.
     iout = write_output(state, time, iout, machine_start_time)
 
+    # Prepare the next output.
     output = false
     nextoutputtime = time * tref + outputtimediff
 
@@ -151,7 +149,7 @@ function integrate(namelists::Namelists)
 
         dt = compute_time_step(state)
 
-        # correct dt to hit desired output time for outputType 'time'
+        # Correct dt to hit desired output time.
         if !output_steps
             if (time + dt) * tref + dtmin_dim > nextoutputtime
                 dt = nextoutputtime / tref - time
@@ -167,7 +165,6 @@ function integrate(namelists::Namelists)
             end
         end
 
-        # Advance time
         time += dt
 
         #-----------------------------------------------------------------
@@ -197,44 +194,33 @@ function integrate(namelists::Namelists)
         #                   Semi-implicit time scheme
         #---------------------------------------------------------------
 
+        if master
+            println("Beginning a semi-implicit time step...")
+            println("")
+        end
+
         synchronize_density_fluctuations!(state)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        # put initial state into var0 in order to save the advecting
-        # velocities
-        v0 = deepcopy(state.variables.predictands)
+        p0 = deepcopy(state.variables.predictands)
         f0 = deepcopy(state.variables.fluxes)
 
-        # (1) explicit integration of convective and
-        #     viscous-diffusive/turbulent fluxes over half a time step,
-        #     with the advection velocity kept constant
-        #     \psi^# = \psi^n + A^{dt/2} (\psi^n, v^n)
-
         if master
-            println("Beginning a semi-implicit time step...")
-            println("")
             println("(1) Explicit integration of LHS over dt/2...")
             println("")
         end
 
         for rkstage in 1:nstages
-            set_boundaries!(state, BoundaryPredictands())
-
-            # Reconstruction
             reconstruct!(state)
             set_boundaries!(state, BoundaryReconstructions())
 
-            # Fluxes
-            compute_fluxes!(state, v0)
+            compute_fluxes!(state, p0)
             set_boundaries!(state, BoundaryFluxes())
 
-            # store initial flux
             if rkstage == 1
                 f0 = deepcopy(state.variables.fluxes)
             end
-
-            # RK step for density and density fluctuations
 
             state.variables.backups.rhoold .= state.variables.predictands.rho
 
@@ -262,8 +248,6 @@ function integrate(namelists::Namelists)
                 P(),
             )
 
-            # RK step for momentum
-
             set_boundaries!(state, BoundaryPredictands())
 
             update!(state, 0.5 * dt, rkstage, U(), LHS())
@@ -287,17 +271,13 @@ function integrate(namelists::Namelists)
                 time,
                 W(),
             )
+
+            set_boundaries!(state, BoundaryPredictands())
         end
 
-        if model == Compressible()
-            pstrattfc .= p
-            apply_unified_sponge!(state, 0.5 * dt, time, PiP())
-        end
+        synchronize_compressible_atmosphere!(state, state.variables.predictands)
 
-        # (2) implicit integration of the linear right-hand sides of the
-        #     equations for density fluctuations and momentum over half a
-        #     time step, under consideration of the divergence constraint
-        #     \psi^{n+1/2} = \psi^# + dt/2 Q(\psi^{n+1/2})
+        apply_unified_sponge!(state, 0.5 * dt, time, PiP())
 
         if master
             println("(2) Implicit integration of RHS over dt/2...")
@@ -305,23 +285,12 @@ function integrate(namelists::Namelists)
         end
 
         modify_compressible_wind!(state, *)
-        update_buoyancy_frequency!(state)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        # use initial flux for update of reference atmosphere and w0
-        state.variables.fluxes.phirho .= f0.phirho
-        state.variables.fluxes.phirhop .= f0.phirhop
-        state.variables.fluxes.phiu .= f0.phiu
-        state.variables.fluxes.phiv .= f0.phiv
-        state.variables.fluxes.phiw .= f0.phiw
-
-        # uStar and vStar are needed for update of density fluctuations,
-        # therefore w is stored instead of rhop
+        reset_fluxes!(state, f0)
 
         state.variables.backups.wold .= state.variables.predictands.w
-
-        # update winds (uStar, vStar, wStar)
 
         update!(state, 0.5 * dt, U(), RHS(), Implicit(), 1.0)
         update!(state, 0.5 * dt, V(), RHS(), Implicit(), 1.0)
@@ -329,13 +298,10 @@ function integrate(namelists::Namelists)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        # update density fluctuations (rhopStar)
-
         update!(state, 0.5 * dt, RhoP(), RHS(), Implicit(), 1.0)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        # Correct momentum and density fluctuations
         (errflagbicg, niterbicg) = apply_corrector!(state, 0.5 * dt, 1.0, 1.0)
 
         if errflagbicg
@@ -352,34 +318,18 @@ function integrate(namelists::Namelists)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        # put new state into var1 in order to save the advection velocities
-        v1 = deepcopy(state.variables.predictands)
-
-        # (3) explicit integration of the linear right-hand sides of the
-        #     equations for density fluctuations and momentum over half a
-        #     time step, under consideration of the divergence constraint
-        #     \psi^\ast = \psi^n + dt/2 Q(\psi^n)
+        p1 = deepcopy(state.variables.predictands)
 
         if master
             println("(3) Explicit integration of RHS over dt/2...")
             println("")
         end
 
-        # (3) uses updated pressure field and (5) adjusts pressure over half a
-        # time step#
-        state.variables.predictands.rho .= v0.rho
-        state.variables.predictands.rhop .= v0.rhop
-        state.variables.predictands.u .= v0.u
-        state.variables.predictands.v .= v0.v
-        state.variables.predictands.w .= v0.w
+        reset_predictands!(state, p0)
 
-        if model == Compressible()
-            state.variables.predictands.pip .= v0.pip
-            state.variables.predictands.p .= v0.p
-            pstrattfc .= v0.p
-            update_buoyancy_frequency!(state)
-            modify_compressible_wind!(state, *)
-        end
+        synchronize_compressible_atmosphere!(state, state.variables.predictands)
+
+        modify_compressible_wind!(state, *)
 
         set_boundaries!(state, BoundaryPredictands())
 
@@ -388,50 +338,34 @@ function integrate(namelists::Namelists)
         state.variables.backups.vold .= state.variables.predictands.v
         state.variables.backups.wold .= state.variables.predictands.w
 
-        # update density fluctuations (rhopStar)
         update!(state, 0.5 * dt, RhoP(), RHS(), Explicit())
-
-        # update winds (uStar, vStar, wStar)
 
         update!(state, 0.5 * dt, U(), RHS(), Explicit())
         update!(state, 0.5 * dt, V(), RHS(), Explicit())
         update!(state, 0.5 * dt, W(), RHS(), Explicit())
 
-        # Update the Exner pressure.
         update!(state, 0.5 * dt, PiP())
 
         modify_compressible_wind!(state, /)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        # (4) explicit integration of convective and
-        #     viscous-diffusive/turbulent fluxes over a full time step,
-        #     with the advection velocity kept constant
-        #     \psi^{\ast\ast} = \psi^\ast + A^dt (\psi^\ast, v^{n+1/2})
-
         if master
             println("(4) Explicit integration of LHS over dt...")
             println("")
         end
 
-        v0 = deepcopy(v1)
+        p0 = deepcopy(p1)
 
-        if model == Compressible()
-            pstrattfc .= v0.p
-        end
+        # I'm not sure why we use P at dt/2 here, instead of the initial P...
+        synchronize_compressible_atmosphere!(state, p0)
 
         for rkstage in 1:nstages
-            set_boundaries!(state, BoundaryPredictands())
-
-            # Reconstruction
             reconstruct!(state)
             set_boundaries!(state, BoundaryReconstructions())
 
-            # Fluxes
-            compute_fluxes!(state, v0)
+            compute_fluxes!(state, p0)
             set_boundaries!(state, BoundaryFluxes())
-
-            # RK step for density and density fluctuations
 
             state.variables.backups.rhoold .= state.variables.predictands.rho
 
@@ -444,7 +378,6 @@ function integrate(namelists::Namelists)
             update!(state, dt, rkstage, P())
             apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, P())
 
-            # RK step for momentum
             set_boundaries!(state, BoundaryPredictands())
 
             update!(state, dt, rkstage, U(), LHS())
@@ -453,17 +386,13 @@ function integrate(namelists::Namelists)
             apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, U())
             apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, V())
             apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, W())
+
+            set_boundaries!(state, BoundaryPredictands())
         end
 
-        if model == Compressible()
-            pstrattfc .= p
-            apply_unified_sponge!(state, dt, time, PiP())
-        end
+        synchronize_compressible_atmosphere!(state, state.variables.predictands)
 
-        # (5) implicit integration of the linear right-hand sides of the
-        #     equations for density fluctuations and momentum over half a
-        #     time step, under consideration of the divergence constraint
-        #     \psi^{n+1} = \psi^{\ast\ast} + dt/2 Q(\psi^{n+1})
+        apply_unified_sponge!(state, dt, time, PiP())
 
         if master
             println("(5) Implicit integration of RHS over dt/2...")
@@ -471,22 +400,12 @@ function integrate(namelists::Namelists)
         end
 
         modify_compressible_wind!(state, *)
-        update_buoyancy_frequency!(state)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        # use initial flux for update of reference atmosphere and w0
-        state.variables.fluxes.phirho .= f0.phirho
-        state.variables.fluxes.phirhop .= f0.phirhop
-        state.variables.fluxes.phiu .= f0.phiu
-        state.variables.fluxes.phiv .= f0.phiv
-        state.variables.fluxes.phiw .= f0.phiw
+        reset_fluxes!(state, f0)
 
-        # uStar and vStar are needed for update of density fluctuations,
-        # therefore w is stored instead of rhop
         state.variables.backups.wold .= state.variables.predictands.w
-
-        # update winds (uStar, vStar, wStar)
 
         update!(state, 0.5 * dt, U(), RHS(), Implicit(), 2.0)
         update!(state, 0.5 * dt, V(), RHS(), Implicit(), 2.0)
@@ -494,14 +413,10 @@ function integrate(namelists::Namelists)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        # update density fluctuations (rhopStar)
-
         update!(state, 0.5 * dt, RhoP(), RHS(), Implicit(), 2.0)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        # (3) uses updated pressure field and (5) adjusts pressure over half a
-        # time step
         (errflagbicg, niterbicg) = apply_corrector!(state, 0.5 * dt, 2.0, 1.0)
 
         modify_compressible_wind!(state, /)
@@ -514,9 +429,9 @@ function integrate(namelists::Namelists)
             exit()
         end
 
-        set_boundaries!(state, BoundaryPredictands())
-
         ntotalbicg += niterbicg
+
+        set_boundaries!(state, BoundaryPredictands())
 
         if master
             println("...the semi-implicit time step is done.")
