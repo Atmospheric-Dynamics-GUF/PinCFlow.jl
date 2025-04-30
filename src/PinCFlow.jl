@@ -1,7 +1,5 @@
 module PinCFlow
 
-using Dates
-
 include("Types/Types.jl")
 include("MPIOperations/MPIOperations.jl")
 include("Boundaries/Boundaries.jl")
@@ -10,16 +8,10 @@ include("PoissonSolver/PoissonSolver.jl")
 include("FluxCalculator/FluxCalculator.jl")
 include("Output/Output.jl")
 include("MSGWaM/MSGWaM.jl")
+include("Integration/Integration.jl")
 
 using .Types
-using .Boundaries
-using .Update
-using .PoissonSolver
-using .FluxCalculator
-using .Output
-using .MSGWaM
-
-include("integrate.jl")
+using .Integration
 
 # Export namelists.
 export DomainNamelist,
@@ -46,7 +38,10 @@ export Box, Shapiro
 export SteadyState, SingleColumn, MultiColumn
 export Clip, Scale
 
+# Export model-state constructor.
+export State
+
 # Export integration function.
-export integrate, State
+export integrate
 
 end
