@@ -100,14 +100,12 @@ function update!(
     side::RHS,
     integration::Explicit,
 )
-    (; model) = state.namelists.setting
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; grid) = state
     (; g_ndim) = state.constants
-    (; jac) = grid
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
     (; predictands) = state.variables
-    (; rho, rhop, p) = predictands
+    (; rho, rhop) = predictands
 
     for k in k0:k1, j in j0:j1, i in i0:i1
         jpu = compute_compressible_wind_factor(state, (i, j, k), W())
@@ -138,12 +136,12 @@ function update!(
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid
-    (; model, zboundaries) = state.namelists.setting
+    (; zboundaries) = state.namelists.setting
     (; spongelayer) = state.namelists.sponge
     (; kr_sp_w_tfc) = state.sponge
     (; kappainv, mainv2, g_ndim) = state.constants
     (; rhostrattfc, pstrattfc, bvsstrattfc) = state.atmosphere
-    (; rho, rhop, u, v, pip, p) = state.variables.predictands
+    (; rho, rhop, u, v, pip) = state.variables.predictands
     (; wold) = state.variables.backups
 
     for k in k0:k1, j in j0:j1, i in i0:i1
@@ -409,12 +407,12 @@ function update!(
     side::RHS,
     integration::Explicit,
 )
-    (; model, zboundaries) = state.namelists.setting
+    (; zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dz, jac, met) = state.grid
+    (; dx, dz, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
-    (; rho, u, pip, p) = state.variables.predictands
+    (; rho, u, pip) = state.variables.predictands
 
     for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhou = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
@@ -483,14 +481,14 @@ function update!(
     integration::Implicit,
     facray::AbstractFloat,
 )
-    (; model, zboundaries) = state.namelists.setting
+    (; zboundaries) = state.namelists.setting
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dz, jac, met) = state.grid
+    (; dx, dz, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; kr_sp_tfc) = state.sponge
-    (; rho, u, pip, p) = state.variables.predictands
+    (; rho, u, pip) = state.variables.predictands
 
     for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         rhou = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
@@ -641,12 +639,12 @@ function update!(
     side::RHS,
     integration::Explicit,
 )
-    (; model, zboundaries) = state.namelists.setting
+    (; zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dy, dz, jac, met) = state.grid
+    (; dy, dz, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
-    (; rho, v, pip, p) = state.variables.predictands
+    (; rho, v, pip) = state.variables.predictands
 
     for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhov = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
@@ -715,14 +713,14 @@ function update!(
     integration::Implicit,
     facray::AbstractFloat,
 )
-    (; model, zboundaries) = state.namelists.setting
+    (; zboundaries) = state.namelists.setting
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dy, dz, jac, met) = state.grid
+    (; dy, dz, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; kr_sp_tfc) = state.sponge
-    (; rho, v, pip, p) = state.variables.predictands
+    (; rho, v, pip) = state.variables.predictands
 
     for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         rhov = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
@@ -958,13 +956,13 @@ function update!(
     side::RHS,
     integration::Explicit,
 )
-    (; model, zboundaries) = state.namelists.setting
+    (; zboundaries) = state.namelists.setting
     (; kappainv, mainv2, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; rhopold) = state.variables.backups
-    (; rho, w, pip, p) = state.variables.predictands
+    (; rho, w, pip) = state.variables.predictands
 
     if zboundaries != SolidWallBoundaries()
         error("Error in update!: Unknown zboundaries!")
@@ -1068,13 +1066,13 @@ function update!(
     facray::AbstractFloat,
 )
     (; spongelayer) = state.namelists.sponge
-    (; model, zboundaries) = state.namelists.setting
+    (; zboundaries) = state.namelists.setting
     (; kappainv, mainv2, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid
     (; rhostrattfc, pstrattfc, bvsstrattfc) = state.atmosphere
     (; kr_sp_w_tfc) = state.sponge
-    (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
+    (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
     if zboundaries != SolidWallBoundaries()
         error("Error in update!: Unknown zboundaries!")

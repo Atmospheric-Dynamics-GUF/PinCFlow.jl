@@ -20,15 +20,15 @@ function correct!(
     facprs::AbstractFloat,
 )
     (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; model, zboundaries) = state.namelists.setting
+    (; zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dz, jac, met) = state.grid
+    (; dx, dz, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; kr_sp_tfc) = state.sponge
     (; corx) = state.poisson.correction
     (; dpip) = state.variables.tendencies
-    (; rho, u, p) = state.variables.predictands
+    (; rho, u) = state.variables.predictands
 
     for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
         facu = 1.0
@@ -110,15 +110,15 @@ function correct!(
     facprs::AbstractFloat,
 )
     (; spongelayer, sponge_uv) = state.namelists.sponge
-    (; model, zboundaries) = state.namelists.setting
+    (; zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dy, dz, jac, met) = state.grid
+    (; dy, dz, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; kr_sp_tfc) = state.sponge
     (; cory) = state.poisson.correction
     (; dpip) = state.variables.tendencies
-    (; rho, v, p) = state.variables.predictands
+    (; rho, v) = state.variables.predictands
 
     for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
         facv = 1.0
@@ -200,7 +200,7 @@ function correct!(
     facprs::AbstractFloat,
 )
     (; spongelayer) = state.namelists.sponge
-    (; model, zboundaries) = state.namelists.setting
+    (; zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid
@@ -208,7 +208,7 @@ function correct!(
     (; kr_sp_w_tfc) = state.sponge
     (; corx, cory) = state.poisson.correction
     (; dpip) = state.variables.tendencies
-    (; rho, w, p) = state.variables.predictands
+    (; rho, w) = state.variables.predictands
 
     if zboundaries != SolidWallBoundaries()
         error("Error in correct!: Unknown zboundaries!")
@@ -330,7 +330,7 @@ function correct!(
     facprs::AbstractFloat,
 )
     (; spongelayer) = state.namelists.sponge
-    (; model, zboundaries) = state.namelists.setting
+    (; zboundaries) = state.namelists.setting
     (; kappainv, mainv2, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid
