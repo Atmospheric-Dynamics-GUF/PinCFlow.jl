@@ -1,19 +1,32 @@
-function update_buoyancy_frequency!(state::State)
+function synchronize_compressible_atmosphere!(
+    state::State,
+    predictands::Predictands,
+)
     (; model) = state.namelists.setting
-    update_buoyancy_frequency!(state, model)
+    synchronize_compressible_atmosphere!(state, predictands, model)
     return
 end
 
-function update_buoyancy_frequency!(state::State, model::AbstractModel)
+function synchronize_compressible_atmosphere!(
+    state::State,
+    predictands::Predictands,
+    model::AbstractModel,
+)
     return
 end
 
-function update_buoyancy_frequency!(state::State, model::Compressible)
+function synchronize_compressible_atmosphere!(
+    state::State,
+    predictands::Predictands,
+    model::Compressible,
+)
     (; g_ndim) = state.constants
     (; nxx, nyy, k0, k1) = state.domain
     (; dz, jac) = state.grid
-    (; bvsstrattfc, thetastrattfc, rhostrattfc) = state.atmosphere
-    (; rho, p) = state.variables.predictands
+    (; pstrattfc, bvsstrattfc, thetastrattfc, rhostrattfc) = state.atmosphere
+    (; rho, p) = predictands
+
+    pstrattfc .= p
 
     for jy in 1:nyy, ix in 1:nxx
         bvsstrattfc[ix, jy, k0 - 2] =
