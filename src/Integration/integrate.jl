@@ -29,7 +29,6 @@ function integrate(namelists::Namelists)
 
     # Get all necessary fields.
     (; nprocx, nprocy) = state.namelists.domain
-    (; model) = state.namelists.setting
     (; initialcleaning) = state.namelists.poisson
     (; dtmin_dim) = state.namelists.discretization
     (; restart, maxtime, outputtimediff, output_steps, maxiter, noutput) =
@@ -70,6 +69,10 @@ function integrate(namelists::Namelists)
         (errflagbicg, niterbicg) = apply_corrector!(state, 1.0, 1.0, 1.0)
 
         if errflagbicg
+            iout = write_output(state, time, iout, machine_start_time)
+            if master
+                println("Output last state into record", iout)
+            end
             exit()
         end
 
@@ -217,7 +220,7 @@ function integrate(namelists::Namelists)
             compute_fluxes!(state, p0)
             set_boundaries!(state, BoundaryFluxes())
 
-            state.variables.backups.rhoold .= state.variables.predictands.rho
+            save_backups!(state, :rho)
 
             update!(state, 0.5 * dt, rkstage, Rho())
             apply_unified_sponge!(
@@ -283,7 +286,7 @@ function integrate(namelists::Namelists)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        state.variables.backups.wold .= state.variables.predictands.w
+        save_backups!(state, :w)
 
         update!(state, 0.5 * dt, U(), RHS(), Implicit(), 1.0)
         update!(state, 0.5 * dt, V(), RHS(), Implicit(), 1.0)
@@ -326,10 +329,7 @@ function integrate(namelists::Namelists)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        state.variables.backups.rhopold .= state.variables.predictands.rhop
-        state.variables.backups.uold .= state.variables.predictands.u
-        state.variables.backups.vold .= state.variables.predictands.v
-        state.variables.backups.wold .= state.variables.predictands.w
+        save_backups!(state, :rhop, :u, :v, :w)
 
         update!(state, 0.5 * dt, RhoP(), RHS(), Explicit())
 
@@ -360,7 +360,7 @@ function integrate(namelists::Namelists)
             compute_fluxes!(state, p0)
             set_boundaries!(state, BoundaryFluxes())
 
-            state.variables.backups.rhoold .= state.variables.predictands.rho
+            save_backups!(state, :rho)
 
             update!(state, dt, rkstage, Rho())
             apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, Rho())
@@ -396,7 +396,7 @@ function integrate(namelists::Namelists)
 
         set_boundaries!(state, BoundaryPredictands())
 
-        state.variables.backups.wold .= state.variables.predictands.w
+        save_backups!(state, :w)
 
         update!(state, 0.5 * dt, U(), RHS(), Implicit(), 2.0)
         update!(state, 0.5 * dt, V(), RHS(), Implicit(), 2.0)
@@ -410,8 +410,6 @@ function integrate(namelists::Namelists)
 
         (errflagbicg, niterbicg) = apply_corrector!(state, 0.5 * dt, 2.0, 1.0)
 
-        modify_compressible_wind!(state, /)
-
         if errflagbicg
             iout = write_output(state, time, iout, machine_start_time)
             if master
@@ -421,6 +419,8 @@ function integrate(namelists::Namelists)
         end
 
         ntotalbicg += niterbicg
+
+        modify_compressible_wind!(state, /)
 
         set_boundaries!(state, BoundaryPredictands())
 
