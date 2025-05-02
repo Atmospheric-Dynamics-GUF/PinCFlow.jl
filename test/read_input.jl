@@ -112,7 +112,7 @@ end
 dens_sum = sum(state.wkb.rays.dens)
 @assert isapprox(dens_sum, sizex * sizey * sizez * nray)
 
-PinCFlow.write_output(state, 0.0, 1, cpu_start_time)
+PinCFlow.Output.write_output(state, 0.0, 1, cpu_start_time)
 
 restart_output = OutputNamelist(;
     output_variables = (),
@@ -135,7 +135,7 @@ in_state = PinCFlow.State(
     ),
 )
 
-t = PinCFlow.read_input!(in_state)
+t = PinCFlow.Output.read_input!(in_state)
 
 # check that fields match **inside** grid
 (; i0, i1, j0, j1, k0, k1) = in_state.domain
