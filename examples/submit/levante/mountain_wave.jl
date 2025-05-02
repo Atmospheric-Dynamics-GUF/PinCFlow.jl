@@ -17,8 +17,8 @@ domain = DomainNamelist(;
     lx_dim = (0.0, 2.0E+4),
     ly_dim = (0.0, 2.0E+4),
     lz_dim = (0.0, 2.0E+4),
-    nprocx = 8,
-    nprocy = 8,
+    npx = 8,
+    npy = 8,
 )
 
 output = OutputNamelist(;

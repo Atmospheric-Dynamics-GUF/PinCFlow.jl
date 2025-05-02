@@ -3,10 +3,10 @@ function set_meridional_boundaries_of_field!(
     namelists::Namelists,
     domain::Domain,
 )
-    (; nby, nprocy) = namelists.domain
+    (; nby, npy) = namelists.domain
     (; j0, j1) = domain
 
-    if nprocy > 1
+    if npy > 1
         set_meridional_halos_of_field!(field, namelists, domain)
     else
         for j in 1:nby
@@ -23,10 +23,10 @@ function set_meridional_boundaries_of_field!(
     namelists::Namelists,
     domain::Domain,
 )
-    (; nby, nprocy) = namelists.domain
+    (; nby, npy) = namelists.domain
     (; j0, j1) = domain
 
-    if nprocy > 1
+    if npy > 1
         set_meridional_halos_of_field!(field, namelists, domain)
     else
         for j in 1:nby

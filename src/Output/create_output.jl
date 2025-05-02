@@ -1,5 +1,5 @@
 function create_output(state::State)
-    (; sizex, sizey, sizez, nprocx, nprocy) = state.namelists.domain
+    (; sizex, sizey, sizez, npx, npy) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
     (; model, testcase) = state.namelists.setting
@@ -8,8 +8,8 @@ function create_output(state::State)
 
     # Set the chunk dimensions.
     cr = nray_max
-    cx = div(sizex, nprocx)
-    cy = div(sizey, nprocy)
+    cx = div(sizex, npx)
+    cy = div(sizey, npy)
     cz = sizez
     ct = 1
 

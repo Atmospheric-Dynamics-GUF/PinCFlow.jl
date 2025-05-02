@@ -1,6 +1,6 @@
 function set_zonal_boundary_rays!(state::State)
     (; namelists, domain) = state
-    (; nprocx) = namelists.domain
+    (; npx) = namelists.domain
     (; nxx, sizexx, io, i0, i1, j0, j1, k0, k1) = domain
     (; lx, x) = state.grid
     (; nray, rays) = state.wkb
@@ -9,7 +9,7 @@ function set_zonal_boundary_rays!(state::State)
     set_zonal_boundaries_of_reduced_field!(nray, namelists, domain)
 
     # Set ray-volumes properties.
-    if nprocx > 1
+    if npx > 1
         set_zonal_halo_rays!(state)
     else
         for kz in (k0 - 1):(k1 + 1), jy in (j0 - 1):(j1 + 1)
