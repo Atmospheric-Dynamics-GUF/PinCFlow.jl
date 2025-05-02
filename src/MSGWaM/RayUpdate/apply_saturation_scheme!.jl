@@ -59,11 +59,6 @@ function apply_saturation_scheme!(
         # Reduce the wave-action density.
         for iray in 1:nray[ix, jy, kz]
 
-            # Skip ray volumes with zero wave-action density.
-            if rays.dens[iray, ix, jy, kz] == 0.0
-                continue
-            end
-
             xr = rays.x[iray, ix, jy, kz]
             yr = rays.y[iray, ix, jy, kz]
             zr = rays.z[iray, ix, jy, kz]
