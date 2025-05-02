@@ -3,10 +3,10 @@ function set_zonal_boundaries_of_field!(
     namelists::Namelists,
     domain::Domain,
 )
-    (; nbx, nprocx) = namelists.domain
+    (; nbx, npx) = namelists.domain
     (; i0, i1) = domain
 
-    if nprocx > 1
+    if npx > 1
         set_zonal_halos_of_field!(field, namelists, domain)
     else
         for i in 1:nbx
@@ -23,10 +23,10 @@ function set_zonal_boundaries_of_field!(
     namelists::Namelists,
     domain::Domain,
 )
-    (; nbx, nprocx) = namelists.domain
+    (; nbx, npx) = namelists.domain
     (; i0, i1) = domain
 
-    if nprocx > 1
+    if npx > 1
         set_zonal_halos_of_field!(field, namelists, domain)
     else
         for i in 1:nbx

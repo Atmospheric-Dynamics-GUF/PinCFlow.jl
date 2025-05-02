@@ -86,7 +86,7 @@ end
 function Domain(namelists::Namelists)
 
     # Get domain parameters.
-    (; sizex, sizey, sizez, nbx, nby, nbz, nprocx, nprocy) = namelists.domain
+    (; sizex, sizey, sizez, nbx, nby, nbz, npx, npy) = namelists.domain
 
     # Initialize MPI.
     MPI.Init()
@@ -100,18 +100,18 @@ function Domain(namelists::Namelists)
     nproc = MPI.Comm_size(MPI.COMM_WORLD)
 
     # Check if parallelization is set up correctly.
-    if master && nprocx * nprocy != nproc
-        error("Error in Domain: nprocx * nprocy != nproc!")
+    if master && npx * npy != nproc
+        error("Error in Domain: npx * npy != nproc!")
     end
-    if master && nprocx > 1 && nbx > div(sizex, nprocx)
-        error("Error in Domain: nprocx > 1 && nbx > div(sizex, nprocx)!")
+    if master && npx > 1 && nbx > div(sizex, npx)
+        error("Error in Domain: npx > 1 && nbx > div(sizex, npx)!")
     end
-    if master && nprocy > 1 && nby > div(sizey, nprocy)
-        error("Error in Domain: nprocy > 1 && nby > div(sizey, nprocy)!")
+    if master && npy > 1 && nby > div(sizey, npy)
+        error("Error in Domain: npy > 1 && nby > div(sizey, npy)!")
     end
 
     # Set dimensions and periodicity.
-    dims = [nprocx, nprocy]
+    dims = [npx, npy]
     periods = [true, true]
 
     # Create a Cartesian topology.
@@ -120,15 +120,15 @@ function Domain(namelists::Namelists)
     coords = MPI.Cart_coords(comm, rank)
 
     # Set local grid size.
-    if coords[1] == nprocx - 1
-        nx = div(sizex, nprocx) + sizex % nprocx
+    if coords[1] == npx - 1
+        nx = div(sizex, npx) + sizex % npx
     else
-        nx = div(sizex, nprocx)
+        nx = div(sizex, npx)
     end
-    if coords[2] == nprocy - 1
-        ny = div(sizey, nprocy) + sizey % nprocy
+    if coords[2] == npy - 1
+        ny = div(sizey, npy) + sizey % npy
     else
-        ny = div(sizey, nprocy)
+        ny = div(sizey, npy)
     end
     nz = sizez
 
@@ -141,8 +141,8 @@ function Domain(namelists::Namelists)
     sizezz = sizez + 2 * nbz
 
     # Set index offsets.
-    io = coords[1] * div(sizex, nprocx)
-    jo = coords[2] * div(sizey, nprocy)
+    io = coords[1] * div(sizex, npx)
+    jo = coords[2] * div(sizey, npy)
 
     # Set index bounds.
     i0 = nbx + 1
