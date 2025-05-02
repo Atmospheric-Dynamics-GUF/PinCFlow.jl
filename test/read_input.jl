@@ -12,8 +12,8 @@ domain = DomainNamelist(;
     lx_dim = (0.0, 4.0E+5),
     ly_dim = (0.0, 4.0E+5),
     lz_dim = (0.0, 2.0E+4),
-    nprocx = 1,
-    nprocy = 1,
+    npx = 1,
+    npy = 1,
 )
 output = OutputNamelist(;
     output_variables = (),
@@ -87,7 +87,7 @@ state = State(namelists)
 (; sizex, sizey, sizez) = state.namelists.domain
 
 cpu_start_time = now()
-PinCFlow.create_output(state)
+PinCFlow.Output.create_output(state)
 
 state.variables.predictands.u .=
     rand(Float32, size(state.variables.predictands.u))
