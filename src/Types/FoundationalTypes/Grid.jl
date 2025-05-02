@@ -22,10 +22,6 @@ struct Grid{
     y::A
     z::A
 
-    # Stretched vertical grid.
-    zs::A
-    ztildes::A
-
     # Topography.
     topography_surface::C
     topography_spectrum::D
@@ -229,8 +225,6 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
         x,
         y,
         z,
-        zs,
-        ztildes,
         topography_surface,
         topography_spectrum,
         k_spectrum,
