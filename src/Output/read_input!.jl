@@ -137,7 +137,7 @@ function read_input!(state::State)
             # Determine nray.
             for kz in (k0 - dk0):(k1 + dk1), jy in j0:j1, ix in i0:i1
                 nrlc = 0
-                for iray in 1:nray[ix, jy, kz]
+                for iray in 1:nray_max
                     if rays.dens[iray, ix, jy, kz] == 0
                         break
                     end
