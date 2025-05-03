@@ -7,10 +7,10 @@ function apply_preconditioner!(
     poisson::Poisson,
 )
     (; dtau, maxiteradi) = namelists.poisson
-    (; nx, ny, nz) = domain
+    (; sizezz, nz, nzz, ko) = domain
     (; dx, dy) = grid
     (; au_b, ac_b, ad_b) = poisson.tensor
-    (; s_pc, q_pc, p_pc) = poisson.preconditioner
+    (; s_pc, q_pc, p_pc, s_pc_bc, q_pc_bc) = poisson.preconditioner
 
     # Initialize auxiliary fields.
     s_pc .= 0.0
@@ -22,69 +22,66 @@ function apply_preconditioner!(
 
     # Iterate.
     for niter in 1:maxiteradi
-        if niter == 0
-            s_pc .= sin
+        apply_operator!(s_pc, q_pc, Horizontal(), namelists, domain, poisson)
+        s_pc .+= deta .* (q_pc .- sin)
+
+        # Set the lower boundary.
+        if ko == 0
+            @views q_pc[:, :, 1] .=
+                deta .* au_b[:, :, 1] ./ (1.0 .- deta .* ac_b[:, :, 1])
+            @views s_pc[:, :, 1] .=
+                s_pc[:, :, 1] ./ (1.0 .- deta .* ac_b[:, :, 1])
         else
-            # Treat all diagonal elements implicitly.
-            apply_operator!(
-                s_pc,
-                q_pc,
-                Horizontal(),
-                namelists,
-                domain,
-                poisson,
-            )
-            s_pc .+= deta .* (q_pc .- sin)
+            MPI.Recv!(q_pc_bc, comm; source = down)
+            MPI.Recv!(s_pc_bc, comm; source = down)
+
+            @views p_pc .=
+                1.0 ./ (
+                    1.0 .- deta .* ac_b[:, :, 1] .-
+                    deta .* ad_b[:, :, 1] .* q_pc_bc
+                )
+            @views q_pc[:, :, 1] .= deta .* au_b[:, :, 1] .* p_pc
+            @views s_pc[:, :, 1] .=
+                (s_pc[:, :, 1] .+ deta .* ad_b[:, :, 1] .* s_pc_bc) .* p_pc
         end
 
         # Perform upward sweep.
-        for j in 1:ny
-            for i in 1:nx
-                au_b[i, j, nz] = 0.0
-            end
+        for k in 2:nz
+            @views p_pc .=
+                1.0 ./ (
+                    1.0 .- deta .* ac_b[:, :, k] .-
+                    deta .* ad_b[:, :, k] .* q_pc[:, :, k - 1]
+                )
+            @views q_pc[:, :, k] .= deta .* au_b[:, :, k] .* p_pc
+            @views s_pc[:, :, k] .=
+                (s_pc[:, :, k] .+ deta .* ad_b[:, :, k] .* s_pc[:, :, k - 1]) .*
+                p_pc
         end
 
-        for j in 1:ny, i in 1:nx
-            if niter == 0
-                q_pc[i, j, 1] = -au_b[i, j, 1] / ac_b[i, j, 1]
-                s_pc[i, j, 1] = s_pc[i, j, 1] / ac_b[i, j, 1]
-            else
-                # Treat all diagonal elements implicity.
-                q_pc[i, j, 1] =
-                    deta * au_b[i, j, 1] / (1.0 - deta * ac_b[i, j, 1])
-                s_pc[i, j, 1] = s_pc[i, j, 1] / (1.0 - deta * ac_b[i, j, 1])
-            end
+        # Communicate the upper boundary and set it for the downward sweep.
+        if ko + nzz != sizezz
+            @views q_pc_bc .= q_pc[:, :, nz]
+            @views s_pc_bc .= s_pc[:, :, nz]
+
+            MPI.Send(q_pc_bc, comm; dest = up)
+            MPI.Send(s_pc_bc, comm; dest = up)
+
+            MPI.Recv!(s_pc_bc, comm; source = up)
+
+            @views s_pc[:, :, nz] .= s_pc[:, :, nz] .+ q_pc[:, :, nz] .* s_pc_bc
         end
 
-        for k in 2:nz, j in 1:ny, i in 1:nx
-            if niter == 0
-                p_pc[i, j] =
-                    1.0 / (ac_b[i, j, k] + ad_b[i, j, k] * q_pc[i, j, k - 1])
-
-                q_pc[i, j, k] = -au_b[i, j, k] * p_pc[i, j]
-
-                s_pc[i, j, k] =
-                    (s_pc[i, j, k] - ad_b[i, j, k] * s_pc[i, j, k - 1]) *
-                    p_pc[i, j]
-            else
-                # Treat all diagonal elements implicitly.
-                p_pc[i, j] =
-                    1.0 / (
-                        1.0 - deta * ac_b[i, j, k] -
-                        deta * ad_b[i, j, k] * q_pc[i, j, k - 1]
-                    )
-
-                q_pc[i, j, k] = deta * au_b[i, j, k] * p_pc[i, j]
-
-                s_pc[i, j, k] =
-                    (s_pc[i, j, k] + deta * ad_b[i, j, k] * s_pc[i, j, k - 1]) *
-                    p_pc[i, j]
-            end
+        # Perform downward sweep.
+        for k in (nz - 1):-1:1
+            @views s_pc[:, :, k] .=
+                s_pc[:, :, k] .+ q_pc[:, :, k] .* s_pc[:, :, k + 1]
         end
 
-        # Perform backward pass.
-        for k in (nz - 1):-1:1, j in 1:ny, i in 1:nx
-            s_pc[i, j, k] = s_pc[i, j, k] + q_pc[i, j, k] * s_pc[i, j, k + 1]
+        # Communicate the lower boundary.
+        if ko != 0
+            @views s_pc_bc .= s_pc[:, :, 1]
+
+            MPI.Send(s_pc_bc, comm; dest = down)
         end
     end
 

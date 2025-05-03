@@ -6,6 +6,7 @@ function apply_operator!(
     domain::Domain,
     poisson::Poisson,
 )
+    (; zboundaries) = namelists.setting
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = domain
     (;
         ac_b,
@@ -42,6 +43,13 @@ function apply_operator!(
     # Set boundaries of auxiliary field.
     set_zonal_boundaries_of_reduced_field!(s, namelists, domain)
     set_meridional_boundaries_of_reduced_field!(s, namelists, domain)
+    set_vertical_boundaries_of_reduced_field!(
+        s,
+        namelists,
+        domain,
+        zboundaries,
+        +,
+    )
 
     #---------------------------------
     #         Loop over field
@@ -216,6 +224,7 @@ function apply_operator!(
     domain::Domain,
     poisson::Poisson,
 )
+    (; zboundaries) = namelists.setting
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = domain
     (;
         al_b,
@@ -249,6 +258,13 @@ function apply_operator!(
     # Set boundaries of auxiliary field.
     set_zonal_boundaries_of_reduced_field!(s, namelists, domain)
     set_meridional_boundaries_of_reduced_field!(s, namelists, domain)
+    set_vertical_boundaries_of_reduced_field!(
+        s,
+        namelists,
+        domain,
+        zboundaries,
+        +,
+    )
 
     #---------------------------------
     #         Loop over field

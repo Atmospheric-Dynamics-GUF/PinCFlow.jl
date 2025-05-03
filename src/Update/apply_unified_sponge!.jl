@@ -100,10 +100,13 @@ function apply_unified_sponge!(
         return
     end
 
+    local_sum .= 0.0
+    global_sum .= 0.0
+
     # Determine relaxation wind.
     if relax_to_mean
         for k in k0:k1
-            @views local_sum[k - k0 + 1] = sum(u[i0:i1, j0:j1, k])
+            @views local_sum[ko + k - k0 + 1] = sum(u[i0:i1, j0:j1, k])
         end
         MPI.Allreduce!(local_sum, global_sum, .+, comm)
         global_sum ./= (sizex .* sizey)
@@ -122,7 +125,7 @@ function apply_unified_sponge!(
     # Update the zonal wind.
     for k in k0:k1
         if relax_to_mean
-            ubg = global_sum[k - k0 + 1]
+            ubg = global_sum[ko + k - k0 + 1]
         end
         for j in j0:j1, i in i0:i1
             alpha =
@@ -163,10 +166,13 @@ function apply_unified_sponge!(
         return
     end
 
+    local_sum .= 0.0
+    global_sum .= 0.0
+
     # Determine relaxation wind.
     if relax_to_mean
         for k in k0:k1
-            @views local_sum[k - k0 + 1] = sum(v[i0:i1, j0:j1, k])
+            @views local_sum[ko + k - k0 + 1] = sum(v[i0:i1, j0:j1, k])
         end
         MPI.Allreduce!(local_sum, global_sum, .+, comm)
         global_sum ./= (sizex .* sizey)
@@ -185,7 +191,7 @@ function apply_unified_sponge!(
     # Update the meridional wind.
     for k in k0:k1
         if relax_to_mean
-            vbg = global_sum[k - k0 + 1]
+            vbg = global_sum[ko + k - k0 + 1]
         end
         for j in j0:j1, i in i0:i1
             alpha =
@@ -227,10 +233,13 @@ function apply_unified_sponge!(
         return
     end
 
+    local_sum .= 0.0
+    global_sum .= 0.0
+
     # Determine relaxation wind.
     if relax_to_mean
         for k in k0:k1
-            @views local_sum[k - k0 + 1] = sum(w[i0:i1, j0:j1, k])
+            @views local_sum[ko + k - k0 + 1] = sum(w[i0:i1, j0:j1, k])
         end
         MPI.Allreduce!(local_sum, global_sum, .+, comm)
         global_sum ./= (sizex .* sizey)
@@ -249,7 +258,7 @@ function apply_unified_sponge!(
     # Update the vertical wind.
     for k in k0:k1
         if relax_to_mean
-            wbg = global_sum[k - k0 + 1]
+            wbg = global_sum[ko + k - k0 + 1]
         end
         for j in j0:j1, i in i0:i1
             alpha =

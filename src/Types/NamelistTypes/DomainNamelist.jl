@@ -10,6 +10,7 @@ struct DomainNamelist{A <: Integer, B <: NTuple{2, <:AbstractFloat}}
     lz_dim::B
     npx::A
     npy::A
+    npz::A
 end
 
 function DomainNamelist(;
@@ -24,6 +25,7 @@ function DomainNamelist(;
     lz_dim = (0.0, 1.0E+3),
     npx = 1,
     npy = 1,
+    npz = 1,
 )
     return DomainNamelist(
         sizex,
@@ -37,5 +39,6 @@ function DomainNamelist(;
         lz_dim,
         npx,
         npy,
+        npz,
     )
 end

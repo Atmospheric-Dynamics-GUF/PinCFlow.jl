@@ -7,8 +7,10 @@ function set_boundaries!(state::State, variables::BoundaryPredictands)
 end
 
 function set_boundaries!(state::State, variables::BoundaryReconstructions)
+    (; zboundaries) = state.namelists.setting
     set_zonal_boundaries!(state, variables)
     set_meridional_boundaries!(state, variables)
+    set_vertical_boundaries!(state, variables, zboundaries)
     return
 end
 

@@ -1,5 +1,5 @@
 function create_output(state::State)
-    (; sizex, sizey, sizez, npx, npy) = state.namelists.domain
+    (; sizex, sizey, sizez, npx, npy, npz) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
     (; model, testcase) = state.namelists.setting
@@ -10,7 +10,7 @@ function create_output(state::State)
     cr = nray_max
     cx = div(sizex, npx)
     cy = div(sizey, npy)
-    cz = sizez
+    cz = div(sizez, npz)
     ct = 1
 
     # Prepare the output.
@@ -201,7 +201,7 @@ function create_output(state::State)
                             (nray_max, sizex, sizey, sizez + 2, 0),
                             (nray_max, sizex, sizey, sizez + 2, -1),
                         );
-                        chunk = (cr, cx, cy, cz + 2, ct),
+                        chunk = (cr, cx, cy, cz, ct),
                     )
                 end
             end

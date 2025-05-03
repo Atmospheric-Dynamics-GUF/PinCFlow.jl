@@ -5,6 +5,8 @@ struct Preconditioner{
     s_pc::A
     q_pc::A
     p_pc::B
+    s_pc_bc::B
+    q_pc_bc::B
 end
 
 function Preconditioner(domain::Domain)
@@ -13,5 +15,8 @@ function Preconditioner(domain::Domain)
     (; nx, ny, nz) = domain
 
     # Return a Preconditioner instance.
-    return Preconditioner([zeros(nx, ny, nz) for i in 1:2]..., zeros(nx, ny))
+    return Preconditioner(
+        [zeros(nx, ny, nz) for i in 1:2]...,
+        [zeros(nx, ny) for i in 1:3]...,
+    )
 end
