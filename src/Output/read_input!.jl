@@ -139,7 +139,7 @@ function read_input!(state::State)
                 nrlc = 0
                 for iray in 1:nray_max
                     if rays.dens[iray, ix, jy, kz] == 0
-                        break
+                        continue
                     end
                     nrlc += 1
                 end
