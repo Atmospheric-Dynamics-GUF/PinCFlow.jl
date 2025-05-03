@@ -38,22 +38,10 @@ struct Grid{
 end
 
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)
-
-    # Get parameters.
     (; sizex, sizey, sizez, lx_dim, ly_dim, lz_dim, nbz) = namelists.domain
     (; testcase) = namelists.setting
-    (; nwm) = namelists.wkb
-    (;
-        mountainheight_dim,
-        mountainwidth_dim,
-        mountain_case,
-        height_factor,
-        width_factor,
-        spectral_modes,
-        stretch_exponent,
-    ) = namelists.grid
-    (; nxx, nyy, nzz, sizexx, sizeyy, sizezz, io, jo, i0, i1, j0, j1, k0, k1) =
-        domain
+    (; stretch_exponent,) = namelists.grid
+    (; nxx, nyy, nzz, sizexx, sizeyy, sizezz, ko, i0, i1, j0, j1, k0) = domain
     (; lref) = constants
 
     # Non-dimensionalize domain boundaries.
@@ -85,10 +73,10 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
     end
 
     # Initialize the stretched vertical grid.
-    (ztildes, zs) = (zeros(nzz) for i in 1:2)
+    (ztildes, zs) = (zeros(sizezz) for i in 1:2)
 
     # Compute the stretched vertical grid.
-    for kz in 1:nzz
+    for kz in 1:sizezz
         level = z[kz] + 0.5 * dz
         if level < 0
             ztildes[kz] = -lz[2] * (-level / lz[2])^stretch_exponent
@@ -100,7 +88,7 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
             ztildes[kz] = lz[2] * (level / lz[2])^stretch_exponent
         end
     end
-    for kz in 2:nzz
+    for kz in 2:sizezz
         zs[kz] = 0.5 * (ztildes[kz] + ztildes[kz - 1])
     end
     zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])
@@ -118,49 +106,58 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
     (met13, met23, met33) = (zeros(nxx, nyy, nzz) for i in 1:3)
     met = zeros(nxx, nyy, nzz, 3, 3)
 
+    # Set the start index for the computation of the Jacobian and metric tensor.
+    kz0 = ko == 0 ? 2 : 1
+
     # Compute the Jacobian.
-    for kz in 2:nzz
+    for kz in kz0:nzz
         jac[:, :, kz] .=
             (lz[2] .- topography_surface) ./ lz[2] .*
-            (ztildes[kz] .- ztildes[kz - 1]) ./ dz
+            (ztildes[ko + kz] .- ztildes[ko + kz - 1]) ./ dz
     end
-    @views jac[:, :, 1] .= jac[:, :, 2 * nbz]
+    ko == 0 && @views jac[:, :, 1] .= jac[:, :, 2 * nbz]
 
     # Compute the metric tensor.
+
     met[:, :, :, 1, 2] .= 0.0
     met[:, :, :, 2, 1] .= 0.0
     met[:, :, :, 1, 1] .= 1.0
     met[:, :, :, 2, 2] .= 1.0
-    for kz in 2:nzz, jy in 1:nyy, ix in i0:i1
+
+    for kz in kz0:nzz, jy in 1:nyy, ix in i0:i1
         met13[ix, jy, kz] =
             (topography_surface[ix + 1, jy] - topography_surface[ix - 1, jy]) /
-            (2.0 * dx) * (zs[kz] - lz[2]) /
+            (2.0 * dx) * (zs[ko + kz] - lz[2]) /
             (lz[2] - topography_surface[ix, jy]) * dz /
-            (ztildes[kz] - ztildes[kz - 1])
+            (ztildes[ko + kz] - ztildes[ko + kz - 1])
     end
     set_zonal_boundaries_of_field!(met13, namelists, domain)
-    @views met13[:, :, 1] .=
+    ko == 0 && @views met13[:, :, 1] .=
         met13[:, :, 2 * nbz] .* (zs[1] .- lz[2]) ./ (zs[2 * nbz] .- lz[2])
     met[:, :, :, 1, 3] .= met13
     met[:, :, :, 3, 1] .= met13
+
     for kz in 2:nzz, jy in j0:j1, ix in 1:nxx
         met23[ix, jy, kz] =
             (topography_surface[ix, jy + 1] - topography_surface[ix, jy - 1]) /
-            (2.0 * dy) * (zs[kz] - lz[2]) /
+            (2.0 * dy) * (zs[ko + kz] - lz[2]) /
             (lz[2] - topography_surface[ix, jy]) * dz /
-            (ztildes[kz] - ztildes[kz - 1])
+            (ztildes[ko + kz] - ztildes[ko + kz - 1])
     end
     set_meridional_boundaries_of_field!(met23, namelists, domain)
-    @views met23[:, :, 1] .=
+    ko == 0 && @views met23[:, :, 1] .=
         met23[:, :, 2 * nbz] .* (zs[1] .- lz[2]) ./ (zs[2 * nbz] .- lz[2])
     met[:, :, :, 2, 3] .= met23
     met[:, :, :, 3, 2] .= met23
-    for kz in 2:nzz, jy in j0:j1, ix in i0:i1
+
+    for kz in kz0:nzz, jy in j0:j1, ix in i0:i1
         met33[ix, jy, kz] =
             (
                 (lz[2] / (lz[2] - topography_surface[ix, jy]))^2.0 +
-                ((zs[kz] - lz[2]) / (lz[2] - topography_surface[ix, jy]))^2.0 *
                 (
+                    (zs[ko + kz] - lz[2]) /
+                    (lz[2] - topography_surface[ix, jy])
+                )^2.0 * (
                     (
                         (
                             topography_surface[ix + 1, jy] -
@@ -174,14 +171,13 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
                         ) / (2.0 * dy)
                     )^2.0
                 )
-            ) * (dz / (ztildes[kz] - ztildes[kz - 1]))^2.0
+            ) * (dz / (ztildes[ko + kz] - ztildes[ko + kz - 1]))^2.0
     end
-    for jy in j0:j1, ix in i0:i1
+    ko == 0 && for jy in j0:j1, ix in i0:i1
         met33[ix, jy, 1] =
             (
                 (lz[2] / (lz[2] - topography_surface[ix, jy]))^2.0 +
-                ((zs[1] - lz[2]) / (lz[2] - topography_surface[ix, jy]))^2.0 *
-                (
+                ((zs[1] - lz[2]) / (lz[2] - topography_surface[ix, jy]))^2.0 * (
                     (
                         (
                             topography_surface[ix + 1, jy] -
@@ -207,10 +203,10 @@ function Grid(namelists::Namelists, constants::Constants, domain::Domain)
     # Compute the physical layers.
     for kz in 1:nzz
         ztildetfc[:, :, kz] .=
-            (lz[2] .- topography_surface) ./ lz[2] .* ztildes[kz] .+
+            (lz[2] .- topography_surface) ./ lz[2] .* ztildes[ko + kz] .+
             topography_surface
         ztfc[:, :, kz] .=
-            (lz[2] .- topography_surface) ./ lz[2] .* zs[kz] .+
+            (lz[2] .- topography_surface) ./ lz[2] .* zs[ko + kz] .+
             topography_surface
     end
 

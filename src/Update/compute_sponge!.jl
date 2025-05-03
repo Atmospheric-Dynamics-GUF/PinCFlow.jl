@@ -1,5 +1,5 @@
 function compute_sponge!(state::State, dt::AbstractFloat)
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; ztfc, lz, jac) = state.grid
     (; kr_sp_tfc, kr_sp_w_tfc, zsponge) = state.sponge
     (; unifiedsponge, spongetype, spongealphaz_fac) = state.namelists.sponge
@@ -9,7 +9,10 @@ function compute_sponge!(state::State, dt::AbstractFloat)
     else
         alpspg = spongealphaz_fac / dt
 
-        for k in k0:k1, j in j0:j1, i in i0:i1
+        kz0 = ko == 0 ? k0 : k0 - 1
+        kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+
+        for k in kz0:kz1, j in j0:j1, i in i0:i1
             if ztfc[i, j, k] >= zsponge
                 kr_sp_tfc[i, j, k] =
                     alpspg *
@@ -21,10 +24,15 @@ function compute_sponge!(state::State, dt::AbstractFloat)
             end
         end
 
-        @views kr_sp_tfc[:, :, k0 - 1] .= kr_sp_tfc[:, :, k0]
-        @views kr_sp_tfc[:, :, k1 + 1] .= kr_sp_tfc[:, :, k1]
-        @views kr_sp_w_tfc[:, :, k0 - 1] .= kr_sp_w_tfc[:, :, k0]
-        @views kr_sp_w_tfc[:, :, k1 + 1] .= kr_sp_w_tfc[:, :, k1]
+        if ko == 0
+            @views kr_sp_tfc[:, :, k0 - 1] .= kr_sp_tfc[:, :, k0]
+            @views kr_sp_w_tfc[:, :, k0 - 1] .= kr_sp_w_tfc[:, :, k0]
+        end
+
+        if ko + nzz == sizezz
+            @views kr_sp_tfc[:, :, k1 + 1] .= kr_sp_tfc[:, :, k1]
+            @views kr_sp_w_tfc[:, :, k1 + 1] .= kr_sp_w_tfc[:, :, k1]
+        end
     end
 
     return
@@ -36,7 +44,7 @@ function compute_sponge!(
     spongetype::ExponentialSponge,
 )
     (; sizex, sizey, sizez) = state.namelists.domain
-    (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
+    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; x, y, ztfc, lx, ly, lz) = state.grid
     (; tref) = state.constants
     (; lateralsponge, spongealphaz_dim) = state.namelists.sponge
@@ -62,7 +70,10 @@ function compute_sponge!(
 
     alphaunifiedsponge .= 0.0
 
-    for k in k0:k1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    kz0 = ko == 0 ? k0 : k0 - 1
+    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+
+    for k in kz0:kz1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         height = ztfc[i, j, k]
 
         if sizez > 1
@@ -96,8 +107,10 @@ function compute_sponge!(
         end
     end
 
-    @views alphaunifiedsponge[:, :, k0 - 1] .= alphaunifiedsponge[:, :, k0]
-    @views alphaunifiedsponge[:, :, k1 + 1] .= alphaunifiedsponge[:, :, k1]
+    @views ko == 0 && alphaunifiedsponge[:, :, k0 - 1] .=
+        alphaunifiedsponge[:, :, k0]
+    @views ko + nzz == sizezz && alphaunifiedsponge[:, :, k1 + 1] .=
+        alphaunifiedsponge[:, :, k1]
 
     return
 end
@@ -108,7 +121,7 @@ function compute_sponge!(
     spongetype::COSMOSponge,
 )
     (; sizex, sizey, sizez) = state.namelists.domain
-    (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
+    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; x, y, ztfc) = state.grid
     (; lateralsponge, cosmosteps) = state.namelists.sponge
     (;
@@ -125,7 +138,10 @@ function compute_sponge!(
 
     alphaunifiedsponge .= 0.0
 
-    for k in k0:k1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    kz0 = ko == 0 ? k0 : k0 - 1
+    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+
+    for k in kz0:kz1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         height = ztfc[i, j, k]
 
         if sizez > 1
@@ -166,8 +182,10 @@ function compute_sponge!(
         end
     end
 
-    @views alphaunifiedsponge[:, :, k0 - 1] .= alphaunifiedsponge[:, :, k0]
-    @views alphaunifiedsponge[:, :, k1 + 1] .= alphaunifiedsponge[:, :, k1]
+    @views ko == 0 && alphaunifiedsponge[:, :, k0 - 1] .=
+        alphaunifiedsponge[:, :, k0]
+    @views ko + nzz == sizezz && alphaunifiedsponge[:, :, k1 + 1] .=
+        alphaunifiedsponge[:, :, k1]
 
     return
 end
@@ -178,7 +196,7 @@ function compute_sponge!(
     spongetype::PolynomialSponge,
 )
     (; sizex, sizey, sizez) = state.namelists.domain
-    (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
+    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; x, y, ztfc) = state.grid
     (; tref) = state.constants
     (; lateralsponge, spongealphaz_dim, spongeorder) = state.namelists.sponge
@@ -214,7 +232,10 @@ function compute_sponge!(
 
     alphaunifiedsponge .= 0.0
 
-    for k in k0:k1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    kz0 = ko == 0 ? k0 : k0 - 1
+    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+
+    for k in kz0:kz1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         height = ztfc[i, j, k]
 
         if sizez > 1
@@ -254,8 +275,10 @@ function compute_sponge!(
         end
     end
 
-    @views alphaunifiedsponge[:, :, k0 - 1] .= alphaunifiedsponge[:, :, k0]
-    @views alphaunifiedsponge[:, :, k1 + 1] .= alphaunifiedsponge[:, :, k1]
+    @views ko == 0 && alphaunifiedsponge[:, :, k0 - 1] .=
+        alphaunifiedsponge[:, :, k0]
+    @views ko + nzz == sizezz && alphaunifiedsponge[:, :, k1 + 1] .=
+        alphaunifiedsponge[:, :, k1]
 
     return
 end
@@ -266,7 +289,7 @@ function compute_sponge!(
     spongetype::SinusoidalSponge,
 )
     (; sizex, sizey, sizez) = state.namelists.domain
-    (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
+    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; x, y, ztfc) = state.grid
     (; tref) = state.constants
     (; lateralsponge, spongealphaz_dim) = state.namelists.sponge
@@ -302,7 +325,10 @@ function compute_sponge!(
 
     alphaunifiedsponge .= 0.0
 
-    for k in k0:k1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    kz0 = ko == 0 ? k0 : k0 - 1
+    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+
+    for k in kz0:kz1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         height = ztfc[i, j, k]
 
         if sizez > 1
@@ -343,8 +369,10 @@ function compute_sponge!(
         end
     end
 
-    @views alphaunifiedsponge[:, :, k0 - 1] .= alphaunifiedsponge[:, :, k0]
-    @views alphaunifiedsponge[:, :, k1 + 1] .= alphaunifiedsponge[:, :, k1]
+    @views ko == 0 && alphaunifiedsponge[:, :, k0 - 1] .=
+        alphaunifiedsponge[:, :, k0]
+    @views ko + nzz == sizezz && alphaunifiedsponge[:, :, k1 + 1] .=
+        alphaunifiedsponge[:, :, k1]
 
     return
 end

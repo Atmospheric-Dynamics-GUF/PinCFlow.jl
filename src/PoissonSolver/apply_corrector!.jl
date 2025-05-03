@@ -28,14 +28,7 @@ function apply_corrector!(
     # Set boundaries of pressure correction.
     set_zonal_boundaries_of_reduced_field!(dpip, namelists, domain)
     set_meridional_boundaries_of_reduced_field!(dpip, namelists, domain)
-
-    # Set vertical boundaries of dp.
-    if zboundaries == SolidWallBoundaries()
-        @views dpip[:, :, k0 - 1] .= dpip[:, :, k0]
-        @views dpip[:, :, k1 + 1] .= dpip[:, :, k1]
-    else
-        error("Error in apply_corrector!: Unknown zboundaries!")
-    end
+    set_vertical_boundaries_of_field!(dpip, namelists, domain, zboundaries, +)
 
     # Correct momentum and buoyancy.
     correct!(state, dt, facray, facprs)

@@ -11,13 +11,12 @@ function set_compressible_vertical_boundaries!(
     variables::BoundaryPredictands,
     model::Compressible,
 )
-    (; nbz) = state.namelists.domain
-    (; k0, k1) = state.domain
+    (; namelists, domain) = state
+    (; zboundaries) = namelists.setting
     (; p) = state.variables.predictands
-    for k in 1:nbz
-        @views p[:, :, k0 - k] .= p[:, :, k0 + k - 1]
-        @views p[:, :, k1 + k] .= p[:, :, k1 - k + 1]
-    end
+
+    set_vertical_boundaries_of_field!(p, namelists, domain, zboundaries, +)
+
     return
 end
 
@@ -26,9 +25,16 @@ function set_compressible_vertical_boundaries!(
     variables::BoundaryFluxes,
     model::Compressible,
 )
-    (; k0, k1) = state.domain
+    (; sizezz, nzz, ko, k0, k1)
     (; phip) = state.variables.fluxes
-    phip[:, :, k0 - 1, 3] .= 0.0
-    phip[:, :, k1, 3] .= 0.0
+
+    if ko == 0
+        phip[:, :, k0 - 1, 3] .= 0.0
+    end
+
+    if ko + nzz == sizezz
+        phip[:, :, k1, 3] .= 0.0
+    end
+
     return
 end

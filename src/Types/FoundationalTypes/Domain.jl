@@ -6,9 +6,12 @@ struct Domain{
     E <: AbstractArray{<:AbstractFloat, 5},
     F <: AbstractArray{<:AbstractFloat, 3},
     G <: AbstractArray{<:AbstractFloat, 5},
-    H <: AbstractMatrix{<:AbstractFloat},
-    I <: AbstractMatrix{<:AbstractFloat},
-    J <: AbstractVector{<:AbstractFloat},
+    H <: AbstractArray{<:AbstractFloat, 3},
+    I <: AbstractArray{<:AbstractFloat, 5},
+    J <: AbstractMatrix{<:AbstractFloat},
+    K <: AbstractMatrix{<:AbstractFloat},
+    L <: AbstractMatrix{<:AbstractFloat},
+    M <: AbstractVector{<:AbstractFloat},
 }
 
     # MPI variables.
@@ -35,6 +38,7 @@ struct Domain{
     # Index offsets.
     io::C
     jo::C
+    ko::C
 
     # Index bounds.
     i0::C
@@ -49,6 +53,8 @@ struct Domain{
     right::C
     back::C
     forw::C
+    down::C
+    up::C
 
     # Auxiliary arrays for setting halos of a field.
     send_f3_left::D
@@ -67,26 +73,37 @@ struct Domain{
     send_f5_forw::G
     recv_f5_back::G
     recv_f5_forw::G
+    send_f3_down::H
+    send_f3_up::H
+    recv_f3_down::H
+    recv_f3_up::H
+    send_f5_down::I
+    send_f5_up::I
+    recv_f5_down::I
+    recv_f5_up::I
 
     # Auxiliary arrays for setting halos of a reduced field.
-    send_rf3_left::H
-    send_rf3_right::H
-    recv_rf3_left::H
-    recv_rf3_right::H
-    send_rf3_back::I
-    send_rf3_forw::I
-    recv_rf3_back::I
-    recv_rf3_forw::I
+    send_rf3_left::J
+    send_rf3_right::J
+    recv_rf3_left::J
+    recv_rf3_right::J
+    send_rf3_back::K
+    send_rf3_forw::K
+    recv_rf3_back::K
+    recv_rf3_forw::K
+    send_rf3_down::L
+    send_rf3_up::L
+    recv_rf3_down::L
+    recv_rf3_up::L
 
     # Auxiliary arrays for horizontal averaging.
-    local_sum::J
-    global_sum::J
+    local_sum::M
+    global_sum::M
 end
 
 function Domain(namelists::Namelists)
-
-    # Get domain parameters.
-    (; sizex, sizey, sizez, nbx, nby, nbz, npx, npy) = namelists.domain
+    (; sizex, sizey, sizez, nbx, nby, nbz, npx, npy, npz) = namelists.domain
+    (; zboundaries) = namelists.setting
 
     # Initialize MPI.
     MPI.Init()
@@ -97,11 +114,11 @@ function Domain(namelists::Namelists)
     else
         master = false
     end
-    nproc = MPI.Comm_size(MPI.COMM_WORLD)
+    np = MPI.Comm_size(MPI.COMM_WORLD)
 
     # Check if parallelization is set up correctly.
-    if master && npx * npy != nproc
-        error("Error in Domain: npx * npy != nproc!")
+    if master && npx * npy * npz != np
+        error("Error in Domain: npx * npy * npz != np!")
     end
     if master && npx > 1 && nbx > div(sizex, npx)
         error("Error in Domain: npx > 1 && nbx > div(sizex, npx)!")
@@ -109,10 +126,17 @@ function Domain(namelists::Namelists)
     if master && npy > 1 && nby > div(sizey, npy)
         error("Error in Domain: npy > 1 && nby > div(sizey, npy)!")
     end
+    if master && npz > 1 && nbz > div(sizez, npz)
+        error("Error in Domain: npz > 1 && nbz > div(sizez, npz)!")
+    end
 
     # Set dimensions and periodicity.
-    dims = [npx, npy]
-    periods = [true, true]
+    dims = [npx, npy, npz]
+    if zboundaries == SolidWallBoundaries()
+        periods = [true, true, false]
+    else
+        error("Error in Domain: Unknown zboundaries!")
+    end
 
     # Create a Cartesian topology.
     comm = MPI.Cart_create(MPI.COMM_WORLD, dims; periodic = periods)
@@ -130,7 +154,11 @@ function Domain(namelists::Namelists)
     else
         ny = div(sizey, npy)
     end
-    nz = sizez
+    if coords[3] == npz - 1
+        nz = div(sizez, npz) + sizez % npz
+    else
+        nz = div(sizez, npz)
+    end
 
     # Set grid sizes with boundary cells.
     nxx = nx + 2 * nbx
@@ -143,6 +171,7 @@ function Domain(namelists::Namelists)
     # Set index offsets.
     io = coords[1] * div(sizex, npx)
     jo = coords[2] * div(sizey, npy)
+    ko = coords[3] * div(sizez, npz)
 
     # Set index bounds.
     i0 = nbx + 1
@@ -155,6 +184,7 @@ function Domain(namelists::Namelists)
     # Find the neighbour processors.
     (left, right) = MPI.Cart_shift(comm, 0, 1)
     (back, forw) = MPI.Cart_shift(comm, 1, 1)
+    (down, up) = MPI.Cart_shift(comm, 2, 1)
 
     # Initialize auxiliary arrays for setting all halo layers.
     (send_f3_left, send_f3_right, recv_f3_left, recv_f3_right) =
@@ -165,15 +195,21 @@ function Domain(namelists::Namelists)
         (zeros(nxx, nby, nzz) for i in 1:4)
     (send_f5_back, send_f5_forw, recv_f5_back, recv_f5_forw) =
         (zeros(nxx, nby, nzz, 3, 2) for i in 1:4)
+    (send_f3_down, send_f3_up, recv_f3_down, recv_f3_up) =
+        (zeros(nxx, nyy, nbz) for i in 1:4)
+    (send_f5_down, send_f5_up, recv_f5_down, recv_f5_up) =
+        (zeros(nxx, nyy, nbz, 3, 2) for i in 1:4)
 
     # Initialize auxiliary arrays for setting one halo layer.
     (send_rf3_left, send_rf3_right, recv_rf3_left, recv_rf3_right) =
         (zeros(ny + 2, nz + 2) for i in 1:4)
     (send_rf3_back, send_rf3_forw, recv_rf3_back, recv_rf3_forw) =
         (zeros(nx + 2, nz + 2) for i in 1:4)
+    (send_rf3_down, send_rf3_up, recv_rf3_down, recv_rf3_up) =
+        (zeros(nx + 2, ny + 2) for i in 1:4)
 
     # Initialize auxiliary arrays for horizontal averaging.
-    (local_sum, global_sum) = (zeros(nz) for i in 1:2)
+    (local_sum, global_sum) = (zeros(sizez) for i in 1:2)
 
     # Return Domain instance.
     return Domain(
@@ -192,6 +228,7 @@ function Domain(namelists::Namelists)
         sizezz,
         io,
         jo,
+        ko,
         i0,
         i1,
         j0,
@@ -202,6 +239,8 @@ function Domain(namelists::Namelists)
         right,
         back,
         forw,
+        down,
+        up,
         send_f3_left,
         send_f3_right,
         recv_f3_left,
@@ -218,6 +257,14 @@ function Domain(namelists::Namelists)
         send_f5_forw,
         recv_f5_back,
         recv_f5_forw,
+        send_f3_down,
+        send_f3_up,
+        recv_f3_down,
+        recv_f3_up,
+        send_f5_down,
+        send_f5_up,
+        recv_f5_down,
+        recv_f5_up,
         send_rf3_left,
         send_rf3_right,
         recv_rf3_left,
@@ -226,6 +273,10 @@ function Domain(namelists::Namelists)
         send_rf3_forw,
         recv_rf3_back,
         recv_rf3_forw,
+        send_rf3_down,
+        send_rf3_up,
+        recv_rf3_down,
+        recv_rf3_up,
         local_sum,
         global_sum,
     )

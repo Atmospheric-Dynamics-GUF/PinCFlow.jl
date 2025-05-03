@@ -3,11 +3,12 @@ function compute_operator!(
     dt::AbstractFloat,
     facray::AbstractFloat,
 )
+    (; nbz) = state.namelists.domain
     (; preconditioner) = state.namelists.poisson
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; model, zboundaries) = state.namelists.setting
     (; gamma, rsp, pref, kappa) = state.constants
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac, met) = state.grid
     (; pstrattfc, rhostrattfc, bvsstrattfc) = state.atmosphere
     (; kr_sp_tfc, kr_sp_w_tfc) = state.sponge
@@ -423,7 +424,7 @@ function compute_operator!(
         # Compute gradient coefficients
 
         # G(i + 1 / 2)
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             gedger =
                 jacinv / dx * pedgerdiv * imphoredger * facedger / rhoedger +
                 jacinv / dz *
@@ -437,7 +438,7 @@ function compute_operator!(
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredger *
                 facedger / rhoedger
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             gedger =
                 jacinv / dx * pedgerdiv * imphoredger * facedger / rhoedger -
                 jacinv / dz *
@@ -479,7 +480,7 @@ function compute_operator!(
         end
 
         # G(i - 1 / 2)
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             gedgel =
                 -jacinv / dx * pedgeldiv * imphoredgel * facedgel / rhoedgel +
                 jacinv / dz *
@@ -493,7 +494,7 @@ function compute_operator!(
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgel *
                 facedgel / rhoedgel
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             gedgel =
                 -jacinv / dx * pedgeldiv * imphoredgel * facedgel / rhoedgel -
                 jacinv / dz *
@@ -535,7 +536,7 @@ function compute_operator!(
         end
 
         # G(j + 1 / 2)
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             gedgef =
                 jacinv / dy * pedgefdiv * imphoredgef * facedgef / rhoedgef +
                 jacinv / dz *
@@ -549,7 +550,7 @@ function compute_operator!(
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgef *
                 facedgef / rhoedgef
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             gedgef =
                 jacinv / dy * pedgefdiv * imphoredgef * facedgef / rhoedgef -
                 jacinv / dz *
@@ -591,7 +592,7 @@ function compute_operator!(
         end
 
         # G(j - 1 / 2)
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             gedgeb =
                 -jacinv / dy * pedgebdiv * imphoredgeb * facedgeb / rhoedgeb +
                 jacinv / dz *
@@ -605,7 +606,7 @@ function compute_operator!(
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgeb *
                 facedgeb / rhoedgeb
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             gedgeb =
                 -jacinv / dy * pedgebdiv * imphoredgeb * facedgeb / rhoedgeb -
                 jacinv / dz *
@@ -647,21 +648,21 @@ function compute_operator!(
         end
 
         # G(k + 1 / 2)
-        if k == k1 && zboundaries == SolidWallBoundaries()
+        if ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             gedgeu = 0.0
         else
             gedgeu = jacinv / dz * pedgeudiv * impveredgeu / rhoedgeu
         end
 
         # G(k - 1 / 2)
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             gedged = 0.0
         else
             gedged = -jacinv / dz * pedgeddiv * impveredged / rhoedged
         end
 
         # G(i + 1 / 2, k + 1)
-        if k == k1 && zboundaries == SolidWallBoundaries()
+        if ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             guedger = 0.0
         else
             guedger =
@@ -679,7 +680,7 @@ function compute_operator!(
         end
 
         # G(i - 1 / 2, k + 1)
-        if k == k1 && zboundaries == SolidWallBoundaries()
+        if ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             guedgel = 0.0
         else
             guedgel =
@@ -697,7 +698,7 @@ function compute_operator!(
         end
 
         # G(j + 1 / 2, k + 1)
-        if k == k1 && zboundaries == SolidWallBoundaries()
+        if ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             guedgef = 0.0
         else
             guedgef =
@@ -715,7 +716,7 @@ function compute_operator!(
         end
 
         # G(j - 1 / 2, k + 1)
-        if k == k1 && zboundaries == SolidWallBoundaries()
+        if ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             guedgeb = 0.0
         else
             guedgeb =
@@ -733,7 +734,7 @@ function compute_operator!(
         end
 
         # G(i + 1 / 2, k - 1)
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             gdedger = 0.0
         else
             gdedger =
@@ -751,7 +752,7 @@ function compute_operator!(
         end
 
         # G(i - 1 / 2, k - 1)
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             gdedgel = 0.0
         else
             gdedgel =
@@ -769,7 +770,7 @@ function compute_operator!(
         end
 
         # G(j + 1 / 2, k - 1)
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             gdedgef = 0.0
         else
             gdedgef =
@@ -787,7 +788,7 @@ function compute_operator!(
         end
 
         # G(j - 1 / 2, k - 1)
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             gdedgeb = 0.0
         else
             gdedgeb =
@@ -808,7 +809,7 @@ function compute_operator!(
 
         # ------------------- A(i,j,k) --------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             ac =
                 -gedger * pedgergra * (1.0 / dx + 0.75 * met13edger / dz) +
                 gedgel * pedgelgra * (1.0 / dx - 0.75 * met13edgel / dz) -
@@ -819,7 +820,7 @@ function compute_operator!(
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz -
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz -
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif k == k0 + 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == k0 + 1 && zboundaries == SolidWallBoundaries()
             ac =
                 -gedger * pedgergra / dx + gedgel * pedgelgra / dx -
                 gedgef * pedgefgra / dy + gedgeb * pedgebgra / dy -
@@ -833,7 +834,8 @@ function compute_operator!(
                 gdedgel * pdedgelgra * met13dedgel / dz +
                 gdedgef * pdedgefgra * met23dedgef / dz +
                 gdedgeb * pdedgebgra * met23dedgeb / dz
-        elseif k == k1 - 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             ac =
                 -gedger * pedgergra / dx + gedgel * pedgelgra / dx -
                 gedgef * pedgefgra / dy + gedgeb * pedgebgra / dy -
@@ -847,7 +849,7 @@ function compute_operator!(
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz +
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz +
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             ac =
                 -gedger * pedgergra * (1.0 / dx - 0.75 * met13edger / dz) +
                 gedgel * pedgelgra * (1.0 / dx + 0.75 * met13edgel / dz) -
@@ -884,14 +886,14 @@ function compute_operator!(
 
         # ------------------ A(i+1,j,k) -------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             ar =
                 gedger * pedgergra * (1.0 / dx - 0.75 * met13edger / dz) +
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx *
                 jac[i + 1, j, k + 1] /
                 (jac[i + 1, j, k] + jac[i + 1, j, k + 1]) -
                 guedger * puedgergra * 0.25 * met13uedger / dz
-        elseif k == k0 + 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == k0 + 1 && zboundaries == SolidWallBoundaries()
             ar =
                 gedger * pedgergra / dx +
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx *
@@ -901,7 +903,8 @@ function compute_operator!(
                 jac[i + 1, j, k - 1] / (jac[i + 1, j, k] + jac[i + 1, j, k - 1]) -
                 guedger * puedgergra * 0.25 * met13uedger / dz +
                 gdedger * pdedgergra * met13dedger / dz
-        elseif k == k1 - 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             ar =
                 gedger * pedgergra / dx +
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx *
@@ -911,7 +914,7 @@ function compute_operator!(
                 jac[i + 1, j, k - 1] / (jac[i + 1, j, k] + jac[i + 1, j, k - 1]) -
                 guedger * puedgergra * met13uedger / dz +
                 gdedger * pdedgergra * 0.25 * met13dedger / dz
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             ar =
                 gedger * pedgergra * (1.0 / dx + 0.75 * met13edger / dz) +
                 gedged * pedgedgra * 0.5 * met13edged / dx *
@@ -932,14 +935,14 @@ function compute_operator!(
 
         # ------------------ A(i-1,j,k) -------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             al =
                 -gedgel * pedgelgra * (1.0 / dx + 0.75 * met13edgel / dz) -
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx *
                 jac[i - 1, j, k + 1] /
                 (jac[i - 1, j, k] + jac[i - 1, j, k + 1]) -
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz
-        elseif k == k0 + 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == k0 + 1 && zboundaries == SolidWallBoundaries()
             al =
                 -gedgel * pedgelgra / dx -
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx *
@@ -950,7 +953,8 @@ function compute_operator!(
                 (jac[i - 1, j, k] + jac[i - 1, j, k - 1]) -
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz +
                 gdedgel * pdedgelgra * met13dedgel / dz
-        elseif k == k1 - 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             al =
                 -gedgel * pedgelgra / dx -
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx *
@@ -961,7 +965,7 @@ function compute_operator!(
                 (jac[i - 1, j, k] + jac[i - 1, j, k - 1]) -
                 guedgel * puedgelgra * met13uedgel / dz +
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             al =
                 -gedgel * pedgelgra * (1.0 / dx - 0.75 * met13edgel / dz) -
                 gedged * pedgedgra * 0.5 * met13edged / dx *
@@ -983,14 +987,14 @@ function compute_operator!(
 
         # ------------------ A(i,j+1,k) -------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             af =
                 gedgef * pedgefgra * (1.0 / dy - 0.75 * met23edgef / dz) +
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy *
                 jac[i, j + 1, k + 1] /
                 (jac[i, j + 1, k] + jac[i, j + 1, k + 1]) -
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz
-        elseif k == k0 + 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == k0 + 1 && zboundaries == SolidWallBoundaries()
             af =
                 gedgef * pedgefgra / dy +
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy *
@@ -1000,7 +1004,8 @@ function compute_operator!(
                 jac[i, j + 1, k - 1] / (jac[i, j + 1, k] + jac[i, j + 1, k - 1]) -
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz +
                 gdedgef * pdedgefgra * met23dedgef / dz
-        elseif k == k1 - 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             af =
                 gedgef * pedgefgra / dy +
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy *
@@ -1010,7 +1015,7 @@ function compute_operator!(
                 jac[i, j + 1, k - 1] / (jac[i, j + 1, k] + jac[i, j + 1, k - 1]) -
                 guedgef * puedgefgra * met23uedgef / dz +
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             af =
                 gedgef * pedgefgra * (1.0 / dy + 0.75 * met23edgef / dz) +
                 gedged * pedgedgra * 0.5 * met23edged / dy *
@@ -1031,14 +1036,14 @@ function compute_operator!(
 
         # ------------------ A(i,j-1,k) -------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             ab =
                 -gedgeb * pedgebgra * (1.0 / dy + 0.75 * met23edgeb / dz) -
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy *
                 jac[i, j - 1, k + 1] /
                 (jac[i, j - 1, k] + jac[i, j - 1, k + 1]) -
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif k == k0 + 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == k0 + 1 && zboundaries == SolidWallBoundaries()
             ab =
                 -gedgeb * pedgebgra / dy -
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy *
@@ -1049,7 +1054,8 @@ function compute_operator!(
                 (jac[i, j - 1, k] + jac[i, j - 1, k - 1]) -
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz +
                 gdedgeb * pdedgebgra * met23dedgeb / dz
-        elseif k == k1 - 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             ab =
                 -gedgeb * pedgebgra / dy -
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy *
@@ -1060,7 +1066,7 @@ function compute_operator!(
                 (jac[i, j - 1, k] + jac[i, j - 1, k - 1]) -
                 guedgeb * puedgebgra * met23uedgeb / dz +
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             ab =
                 -gedgeb * pedgebgra * (1.0 / dy - 0.75 * met23edgeb / dz) -
                 gedged * pedgedgra * 0.5 * met23edged / dy *
@@ -1082,7 +1088,7 @@ function compute_operator!(
 
         # ------------------ A(i,j,k+1) -------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             au =
                 gedger * pedgergra * met13edger / dz +
                 gedgel * pedgelgra * met13edgel / dz +
@@ -1091,7 +1097,7 @@ function compute_operator!(
                 gedgeu * pedgeugra * met33edgeu / dz -
                 guedger * puedgergra / dx + guedgel * puedgelgra / dx -
                 guedgef * puedgefgra / dy + guedgeb * puedgebgra / dy
-        elseif k == k0 + 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == k0 + 1 && zboundaries == SolidWallBoundaries()
             au =
                 gedger * pedgergra * 0.25 * met13edger / dz +
                 gedgel * pedgelgra * 0.25 * met13edgel / dz +
@@ -1104,7 +1110,8 @@ function compute_operator!(
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz -
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz -
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
-        elseif k == k1 - 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             au =
                 gedger * pedgergra * 0.25 * met13edger / dz +
                 gedgel * pedgelgra * 0.25 * met13edgel / dz +
@@ -1115,7 +1122,7 @@ function compute_operator!(
                 guedgel * puedgelgra * (1.0 / dx + 0.75 * met13uedgel / dz) -
                 guedgef * puedgefgra * (1.0 / dy - 0.75 * met23uedgef / dz) +
                 guedgeb * puedgebgra * (1.0 / dy + 0.75 * met23uedgeb / dz)
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             au = 0.0
         else
             au =
@@ -1130,9 +1137,9 @@ function compute_operator!(
 
         # ------------------ A(i,j,k-1) -------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             ad = 0.0
-        elseif k == k0 + 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == k0 + 1 && zboundaries == SolidWallBoundaries()
             ad =
                 -gedger * pedgergra * 0.25 * met13edger / dz -
                 gedgel * pedgelgra * 0.25 * met13edgel / dz -
@@ -1143,7 +1150,8 @@ function compute_operator!(
                 gdedgel * pdedgelgra * (1.0 / dx - 0.75 * met13dedgel / dz) -
                 gdedgef * pdedgefgra * (1.0 / dy + 0.75 * met23dedgef / dz) +
                 gdedgeb * pdedgebgra * (1.0 / dy - 0.75 * met23dedgeb / dz)
-        elseif k == k1 - 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             ad =
                 -gedger * pedgergra * 0.25 * met13edger / dz -
                 gedgel * pedgelgra * 0.25 * met13edgel / dz -
@@ -1157,7 +1165,7 @@ function compute_operator!(
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz +
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz +
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             ad =
                 -gedger * pedgergra * met13edger / dz -
                 gedgel * pedgelgra * met13edgel / dz -
@@ -1179,26 +1187,27 @@ function compute_operator!(
 
         # ----------------- A(i+1,j,k+1) ------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             aru =
                 gedger * pedgergra * met13edger / dz +
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx * jac[i + 1, j, k] /
                 (jac[i + 1, j, k] + jac[i + 1, j, k + 1]) +
                 guedger * puedgergra / dx
-        elseif k == k0 + 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == k0 + 1 && zboundaries == SolidWallBoundaries()
             aru =
                 gedger * pedgergra * 0.25 * met13edger / dz +
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx * jac[i + 1, j, k] /
                 (jac[i + 1, j, k] + jac[i + 1, j, k + 1]) +
                 guedger * puedgergra / dx -
                 gdedger * pdedgergra * 0.25 * met13dedger / dz
-        elseif k == k1 - 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             aru =
                 gedger * pedgergra * 0.25 * met13edger / dz +
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx * jac[i + 1, j, k] /
                 (jac[i + 1, j, k] + jac[i + 1, j, k + 1]) +
                 guedger * puedgergra * (1.0 / dx + 0.75 * met13uedger / dz)
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             aru = 0.0
         else
             aru =
@@ -1210,22 +1219,23 @@ function compute_operator!(
 
         # ----------------- A(i+1,j,k-1) ------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             ard = 0.0
-        elseif k == k0 + 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == k0 + 1 && zboundaries == SolidWallBoundaries()
             ard =
                 -gedger * pedgergra * 0.25 * met13edger / dz +
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i + 1, j, k] /
                 (jac[i + 1, j, k] + jac[i + 1, j, k - 1]) +
                 gdedger * pdedgergra * (1.0 / dx - 0.75 * met13dedger / dz)
-        elseif k == k1 - 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             ard =
                 -gedger * pedgergra * 0.25 * met13edger / dz +
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i + 1, j, k] /
                 (jac[i + 1, j, k] + jac[i + 1, j, k - 1]) +
                 gdedger * pdedgergra / dx +
                 guedger * puedgergra * 0.25 * met13uedger / dz
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             ard =
                 -gedger * pedgergra * met13edger / dz +
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i + 1, j, k] /
@@ -1241,26 +1251,27 @@ function compute_operator!(
 
         # ----------------- A(i-1,j,k+1) ------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             alu =
                 gedgel * pedgelgra * met13edgel / dz -
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx * jac[i - 1, j, k] /
                 (jac[i - 1, j, k] + jac[i - 1, j, k + 1]) -
                 guedgel * puedgelgra / dx
-        elseif k == k0 + 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == k0 + 1 && zboundaries == SolidWallBoundaries()
             alu =
                 gedgel * pedgelgra * 0.25 * met13edgel / dz -
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx * jac[i - 1, j, k] /
                 (jac[i - 1, j, k] + jac[i - 1, j, k + 1]) -
                 guedgel * puedgelgra / dx -
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz
-        elseif k == k1 - 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             alu =
                 gedgel * pedgelgra * 0.25 * met13edgel / dz -
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx * jac[i - 1, j, k] /
                 (jac[i - 1, j, k] + jac[i - 1, j, k + 1]) -
                 guedgel * puedgelgra * (1.0 / dx - 0.75 * met13uedgel / dz)
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             alu = 0.0
         else
             alu =
@@ -1272,22 +1283,23 @@ function compute_operator!(
 
         # ----------------- A(i-1,j,k-1) ------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             ald = 0.0
-        elseif k == k0 + 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == k0 + 1 && zboundaries == SolidWallBoundaries()
             ald =
                 -gedgel * pedgelgra * 0.25 * met13edgel / dz -
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i - 1, j, k] /
                 (jac[i - 1, j, k] + jac[i - 1, j, k - 1]) -
                 gdedgel * pdedgelgra * (1.0 / dx + 0.75 * met13dedgel / dz)
-        elseif k == k1 - 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             ald =
                 -gedgel * pedgelgra * 0.25 * met13edgel / dz -
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i - 1, j, k] /
                 (jac[i - 1, j, k] + jac[i - 1, j, k - 1]) -
                 gdedgel * pdedgelgra / dx +
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             ald =
                 -gedgel * pedgelgra * met13edgel / dz -
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i - 1, j, k] /
@@ -1303,26 +1315,27 @@ function compute_operator!(
 
         # ----------------- A(i,j+1,k+1) ------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             afu =
                 gedgef * pedgefgra * met23edgef / dz +
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy * jac[i, j + 1, k] /
                 (jac[i, j + 1, k] + jac[i, j + 1, k + 1]) +
                 guedgef * puedgefgra / dy
-        elseif k == k0 + 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == k0 + 1 && zboundaries == SolidWallBoundaries()
             afu =
                 gedgef * pedgefgra * 0.25 * met23edgef / dz +
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy * jac[i, j + 1, k] /
                 (jac[i, j + 1, k] + jac[i, j + 1, k + 1]) +
                 guedgef * puedgefgra / dy -
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz
-        elseif k == k1 - 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             afu =
                 gedgef * pedgefgra * 0.25 * met23edgef / dz +
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy * jac[i, j + 1, k] /
                 (jac[i, j + 1, k] + jac[i, j + 1, k + 1]) +
                 guedgef * puedgefgra * (1.0 / dy + 0.75 * met23uedgef / dz)
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             afu = 0.0
         else
             afu =
@@ -1334,22 +1347,23 @@ function compute_operator!(
 
         # ----------------- A(i,j+1,k-1) ------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             afd = 0.0
-        elseif k == k0 + 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == k0 + 1 && zboundaries == SolidWallBoundaries()
             afd =
                 -gedgef * pedgefgra * 0.25 * met23edgef / dz +
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j + 1, k] /
                 (jac[i, j + 1, k] + jac[i, j + 1, k - 1]) +
                 gdedgef * pdedgefgra * (1.0 / dy - 0.75 * met23dedgef / dz)
-        elseif k == k1 - 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             afd =
                 -gedgef * pedgefgra * 0.25 * met23edgef / dz +
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j + 1, k] /
                 (jac[i, j + 1, k] + jac[i, j + 1, k - 1]) +
                 gdedgef * pdedgefgra / dy +
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             afd =
                 -gedgef * pedgefgra * met23edgef / dz +
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j + 1, k] /
@@ -1365,26 +1379,27 @@ function compute_operator!(
 
         # ----------------- A(i,j-1,k+1) ------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             abu =
                 gedgeb * pedgebgra * met23edgeb / dz -
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy * jac[i, j - 1, k] /
                 (jac[i, j - 1, k] + jac[i, j - 1, k + 1]) -
                 guedgeb * puedgebgra / dy
-        elseif k == k0 + 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == k0 + 1 && zboundaries == SolidWallBoundaries()
             abu =
                 gedgeb * pedgebgra * 0.25 * met23edgeb / dz -
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy * jac[i, j - 1, k] /
                 (jac[i, j - 1, k] + jac[i, j - 1, k + 1]) -
                 guedgeb * puedgebgra / dy -
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
-        elseif k == k1 - 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             abu =
                 gedgeb * pedgebgra * 0.25 * met23edgeb / dz -
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy * jac[i, j - 1, k] /
                 (jac[i, j - 1, k] + jac[i, j - 1, k + 1]) -
                 guedgeb * puedgebgra * (1.0 / dy - 0.75 * met23uedgeb / dz)
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             abu = 0.0
         else
             abu =
@@ -1396,22 +1411,23 @@ function compute_operator!(
 
         # ----------------- A(i,j-1,k-1) ------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             abd = 0.0
-        elseif k == k0 + 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == k0 + 1 && zboundaries == SolidWallBoundaries()
             abd =
                 -gedgeb * pedgebgra * 0.25 * met23edgeb / dz -
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j - 1, k] /
                 (jac[i, j - 1, k] + jac[i, j - 1, k - 1]) -
                 gdedgeb * pdedgebgra * (1.0 / dy + 0.75 * met23dedgeb / dz)
-        elseif k == k1 - 1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             abd =
                 -gedgeb * pedgebgra * 0.25 * met23edgeb / dz -
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j - 1, k] /
                 (jac[i, j - 1, k] + jac[i, j - 1, k - 1]) -
                 gdedgeb * pdedgebgra / dy +
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             abd =
                 -gedgeb * pedgebgra * met23edgeb / dz -
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j - 1, k] /
@@ -1427,7 +1443,7 @@ function compute_operator!(
 
         # ------------------ A(i,j,k+2) -------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             auu =
                 -gedger * pedgergra * 0.25 * met13edger / dz -
                 gedgel * pedgelgra * 0.25 * met13edgel / dz -
@@ -1437,7 +1453,8 @@ function compute_operator!(
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz +
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz +
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif (k == k1 - 1 || k == k1) && zboundaries == SolidWallBoundaries()
+        elseif ko + k >= sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             auu = 0.0
         else
             auu =
@@ -1449,9 +1466,9 @@ function compute_operator!(
 
         # ------------------ A(i,j,k-2) -------------------#
 
-        if (k == k0 || k == k0 + 1) && zboundaries == SolidWallBoundaries()
+        if ko + k <= k0 + 1 && zboundaries == SolidWallBoundaries()
             add = 0.0
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             add =
                 gedger * pedgergra * 0.25 * met13edger / dz +
                 gedgel * pedgelgra * 0.25 * met13edgel / dz +
@@ -1471,11 +1488,12 @@ function compute_operator!(
 
         # ----------------- A(i+1,j,k+2) ------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             aruu =
                 -gedger * pedgergra * 0.25 * met13edger / dz +
                 guedger * puedgergra * 0.25 * met13uedger / dz
-        elseif (k == k1 - 1 || k == k1) && zboundaries == SolidWallBoundaries()
+        elseif ko + k >= sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             aruu = 0.0
         else
             aruu = guedger * puedgergra * 0.25 * met13uedger / dz
@@ -1483,9 +1501,9 @@ function compute_operator!(
 
         # ----------------- A(i+1,j,k-2) ------------------#
 
-        if (k == k0 || k == k0 + 1) && zboundaries == SolidWallBoundaries()
+        if ko + k <= k0 + 1 && zboundaries == SolidWallBoundaries()
             ardd = 0.0
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             ardd =
                 gedger * pedgergra * 0.25 * met13edger / dz -
                 gdedger * pdedgergra * 0.25 * met13dedger / dz
@@ -1495,11 +1513,12 @@ function compute_operator!(
 
         # ----------------- A(i-1,j,k+2) ------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             aluu =
                 -gedgel * pedgelgra * 0.25 * met13edgel / dz +
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz
-        elseif (k == k1 - 1 || k == k1) && zboundaries == SolidWallBoundaries()
+        elseif ko + k >= sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             aluu = 0.0
         else
             aluu = guedgel * puedgelgra * 0.25 * met13uedgel / dz
@@ -1507,9 +1526,9 @@ function compute_operator!(
 
         # ----------------- A(i-1,j,k-2) ------------------#
 
-        if (k == k0 || k == k0 + 1) && zboundaries == SolidWallBoundaries()
+        if ko + k <= k0 + 1 && zboundaries == SolidWallBoundaries()
             aldd = 0.0
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             aldd =
                 gedgel * pedgelgra * 0.25 * met13edgel / dz -
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz
@@ -1519,11 +1538,12 @@ function compute_operator!(
 
         # ----------------- A(i,j+1,k+2) ------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             afuu =
                 -gedgef * pedgefgra * 0.25 * met23edgef / dz +
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz
-        elseif (k == k1 - 1 || k == k1) && zboundaries == SolidWallBoundaries()
+        elseif ko + k >= sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             afuu = 0.0
         else
             afuu = guedgef * puedgefgra * 0.25 * met23uedgef / dz
@@ -1531,9 +1551,9 @@ function compute_operator!(
 
         # ----------------- A(i,j+1,k-2) ------------------#
 
-        if (k == k0 || k == k0 + 1) && zboundaries == SolidWallBoundaries()
+        if ko + k <= k0 + 1 && zboundaries == SolidWallBoundaries()
             afdd = 0.0
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             afdd =
                 gedgef * pedgefgra * 0.25 * met23edgef / dz -
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz
@@ -1543,11 +1563,12 @@ function compute_operator!(
 
         # ----------------- A(i,j-1,k+2) ------------------#
 
-        if k == k0 && zboundaries == SolidWallBoundaries()
+        if ko + k == k0 && zboundaries == SolidWallBoundaries()
             abuu =
                 -gedgeb * pedgebgra * 0.25 * met23edgeb / dz +
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif (k == k1 - 1 || k == k1) && zboundaries == SolidWallBoundaries()
+        elseif ko + k >= sizezz - nbz - 1 &&
+               zboundaries == SolidWallBoundaries()
             abuu = 0.0
         else
             abuu = guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
@@ -1555,9 +1576,9 @@ function compute_operator!(
 
         # ----------------- A(i,j-1,k-2) ------------------#
 
-        if (k == k0 || k == k0 + 1) && zboundaries == SolidWallBoundaries()
+        if ko + k <= k0 + 1 && zboundaries == SolidWallBoundaries()
             abdd = 0.0
-        elseif k == k1 && zboundaries == SolidWallBoundaries()
+        elseif ko + k == sizezz - nbz && zboundaries == SolidWallBoundaries()
             abdd =
                 gedgeb * pedgebgra * 0.25 * met23edgeb / dz -
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
