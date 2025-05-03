@@ -20,38 +20,44 @@ function synchronize_compressible_atmosphere!(
     predictands::Predictands,
     model::Compressible,
 )
+    (; nbz) = state.namelists.domain
     (; g_ndim) = state.constants
-    (; nxx, nyy, k0, k1) = state.domain
+    (; sizezz, nzz, ko, k0, k1) = state.domain
     (; dz, jac) = state.grid
     (; pstrattfc, bvsstrattfc, thetastrattfc, rhostrattfc) = state.atmosphere
     (; rho, p) = predictands
 
     pstrattfc .= p
 
-    for jy in 1:nyy, ix in 1:nxx
-        bvsstrattfc[ix, jy, k0 - 2] =
-            g_ndim * p[ix, jy, k0 - 1] /
-            (rho[ix, jy, k0 - 1] + rhostrattfc[ix, jy, k0 - 1]) /
-            (thetastrattfc[ix, jy, k0 - 1]^2) / jac[ix, jy, k0 - 1] *
-            (thetastrattfc[ix, jy, k0] - thetastrattfc[ix, jy, k0 - 1]) / dz
-        bvsstrattfc[ix, jy, k0 - 1] = bvsstrattfc[ix, jy, k0 - 2]
+    kz0 = ko == 0 ? k0 : 1
+    kz1 = ko + nzz == sizezz ? k1 : nzz
 
-        for kz in k0:k1
-            bvsstrattfc[ix, jy, kz] =
-                g_ndim * p[ix, jy, kz] /
-                (rho[ix, jy, kz] + rhostrattfc[ix, jy, kz]) /
-                (thetastrattfc[ix, jy, kz]^2) / jac[ix, jy, kz] * (
-                    thetastrattfc[ix, jy, kz + 1] -
-                    thetastrattfc[ix, jy, kz - 1]
-                ) / 2 / dz
+    if ko == 0
+        for k in 1:nbz
+            bvsstrattfc[:, :, k] .=
+                g_ndim .* p[:, :, k0 - 1] ./
+                (rho[:, :, k0 - 1] .+ rhostrattfc[:, :, k0 - 1]) ./
+                (thetastrattfc[:, :, k0 - 1] .^ 2) ./ jac[:, :, k0 - 1] .*
+                (thetastrattfc[:, :, k0] .- thetastrattfc[:, :, k0 - 1]) ./ dz
         end
+    end
 
-        bvsstrattfc[ix, jy, k1 + 1] =
-            g_ndim * p[ix, jy, k1 + 1] /
-            (rho[ix, jy, k1 + 1] + rhostrattfc[ix, jy, k1 + 1]) /
-            (thetastrattfc[ix, jy, k1 + 1]^2) / jac[ix, jy, k1 + 1] *
-            (thetastrattfc[ix, jy, k1 + 1] - thetastrattfc[ix, jy, k1]) / dz
-        bvsstrattfc[ix, jy, k1 + 2] = bvsstrattfc[ix, jy, k1 + 1]
+    for kz in kz0:kz1
+        bvsstrattfc[:, :, kz] .=
+            g_ndim .* p[:, :, kz] ./ (rho[:, :, kz] .+ rhostrattfc[:, :, kz]) ./
+            (thetastrattfc[:, :, kz] .^ 2) ./ jac[:, :, kz] .*
+            (thetastrattfc[:, :, kz + 1] .- thetastrattfc[:, :, kz - 1]) ./ 2 ./
+            dz
+    end
+
+    if ko + nzz == sizezz
+        for k in 1:nbz
+        bvsstrattfc[:, :, k1 + k] .=
+            g_ndim .* p[:, :, k1 + 1] ./
+            (rho[:, :, k1 + 1] .+ rhostrattfc[:, :, k1 + 1]) ./
+            (thetastrattfc[:, :, k1 + 1] .^ 2) ./ jac[:, :, k1 + 1] .*
+            (thetastrattfc[:, :, k1 + 1] .- thetastrattfc[:, :, k1]) ./ dz
+        end
     end
 
     return

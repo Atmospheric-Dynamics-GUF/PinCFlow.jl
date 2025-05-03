@@ -90,10 +90,10 @@ function Atmosphere(
     model::AbstractModel,
     background::Isothermal,
 )
-    # Get parameters.
+    (; nbz) = namelists.domain
     (; temp0_dim, press0_dim, coriolis_mode) = namelists.atmosphere
     (; thetaref, pref, kappa, sig, gamma, g_ndim) = constants
-    (; nxx, nyy, nzz, k0, k1) = domain
+    (; sizezz, nxx, nyy, nzz, ko, k0, k1) = domain
     (; ztfc, jac, dz) = grid
 
     # Initialize the background fields.
@@ -103,37 +103,39 @@ function Atmosphere(
     t0 = temp0_dim / thetaref
     p0 = press0_dim / pref
 
-    # Define 3D background fields.
-    for k in (k0 - 2):(k1 + 2)
-        # Define pStratTFC.
-        pstrattfc[:, :, k] .= p0 .* exp.(-sig .* ztfc[:, :, k] ./ gamma ./ t0)
-        # Define thetaStratTFC.
-        thetastrattfc[:, :, k] .=
-            t0 .* exp.(kappa .* sig ./ t0 .* ztfc[:, :, k])
-        # Define rhoStratTFC.
-        rhostrattfc[:, :, k] .= pstrattfc[:, :, k] ./ thetastrattfc[:, :, k]
-    end
+    # Compute the background fields.
+    pstrattfc .= p0 .* exp.(-sig .* ztfc ./ gamma ./ t0)
+    thetastrattfc .= t0 .* exp.(kappa .* sig ./ t0 .* ztfc)
+    rhostrattfc .= pstrattfc ./ thetastrattfc
 
-    # Define bvsStratTFC.
+    # Set the vertical index bounds for the computation of the squared buoyancy
+    # frequency.
+    kz0 = ko == 0 ? k0 : 1
+    kz1 = ko + nzz == sizezz ? k1 : nzz
+
+    # Compute the squared buoyancy frequency.
     bvsstrattfc .= 0.0
-    # Lower boundary.
-    bvsstrattfc[:, :, k0 - 2] .=
-        g_ndim ./ thetastrattfc[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
-        (thetastrattfc[:, :, k0] .- thetastrattfc[:, :, k0 - 1]) ./ dz
-    bvsstrattfc[:, :, k0 - 1] .= bvsstrattfc[:, :, k0 - 2]
-    # Between boundaries.
-    for k in k0:k1
+    if ko == 0
+        for k in 1:nbz
+            bvsstrattfc[:, :, k] .=
+                g_ndim ./ thetastrattfc[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
+                (thetastrattfc[:, :, k0] .- thetastrattfc[:, :, k0 - 1]) ./ dz
+        end
+    end
+    for k in kz0:kz1
         bvsstrattfc[:, :, k] .=
             g_ndim ./ thetastrattfc[:, :, k] ./ jac[:, :, k] .* 0.5 .*
             (thetastrattfc[:, :, k + 1] .- thetastrattfc[:, :, k - 1]) ./ dz
     end
-    # Upper boundary.
-    bvsstrattfc[:, :, k1 + 1] .=
-        g_ndim ./ thetastrattfc[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*
-        (thetastrattfc[:, :, k1 + 1] .- thetastrattfc[:, :, k1]) ./ dz
-    bvsstrattfc[:, :, k1 + 2] .= bvsstrattfc[:, :, k1 + 1]
+    if ko + nzz == sizezz
+        for k in 1:nbz
+            bvsstrattfc[:, :, k1 + k] .=
+                g_ndim ./ thetastrattfc[:, :, k1 + 1] ./ jac[:, :, k1 + 1] .*
+                (thetastrattfc[:, :, k1 + 1] .- thetastrattfc[:, :, k1]) ./ dz
+        end
+    end
 
-    # Set Coriolis parameter.
+    # Set the Coriolis parameter.
     fc = compute_coriolis_parameter(
         namelists,
         constants,

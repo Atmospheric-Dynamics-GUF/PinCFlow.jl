@@ -11,7 +11,24 @@ function write_output(
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
     (; model, testcase) = state.namelists.setting
-    (; comm, master, nx, ny, nz, io, jo, i0, i1, j0, j1, k0, k1) = domain
+    (;
+        comm,
+        master,
+        sizezz,
+        nx,
+        ny,
+        nz,
+        nzz,
+        io,
+        jo,
+        ko,
+        i0,
+        i1,
+        j0,
+        j1,
+        k0,
+        k1,
+    ) = domain
     (; tref, lref, rhoref, thetaref, uref) = state.constants
     (; x, y, ztfc) = grid
     (; rhostrattfc, thetastrattfc, bvsstrattfc, pstrattfc) = state.atmosphere
@@ -56,8 +73,11 @@ function write_output(
 
         # Write the vertical grid.
         if iout == 1
-            @views file["z"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz] =
-                ztfc[i0:i1, j0:j1, k0:k1] .* lref
+            @views file["z"][
+                (io + 1):(io + nx),
+                (jo + 1):(jo + ny),
+                (ko + 1):(ko + nz),
+            ] = ztfc[i0:i1, j0:j1, k0:k1] .* lref
         end
 
         # Write the background density.
@@ -65,7 +85,7 @@ function write_output(
             @views file["rhobar"][
                 (io + 1):(io + nx),
                 (jo + 1):(jo + ny),
-                1:nz,
+                (ko + 1):(ko + nz),
             ] = rhostrattfc[i0:i1, j0:j1, k0:k1] .* rhoref
         end
 
@@ -74,7 +94,7 @@ function write_output(
             @views file["thetabar"][
                 (io + 1):(io + nx),
                 (jo + 1):(jo + ny),
-                1:nz,
+                (ko + 1):(ko + nz),
             ] = thetastrattfc[i0:i1, j0:j1, k0:k1] .* thetaref
         end
 
@@ -84,12 +104,15 @@ function write_output(
             @views file["n2"][
                 (io + 1):(io + nx),
                 (jo + 1):(jo + ny),
-                1:nz,
+                (ko + 1):(ko + nz),
                 iout,
             ] = bvsstrattfc[i0:i1, j0:j1, k0:k1] ./ tref .^ 2
         elseif model != Boussinesq() && iout == 1
-            @views file["n2"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz] =
-                bvsstrattfc[i0:i1, j0:j1, k0:k1] ./ tref .^ 2
+            @views file["n2"][
+                (io + 1):(io + nx),
+                (jo + 1):(jo + ny),
+                (ko + 1):(ko + nz),
+            ] = bvsstrattfc[i0:i1, j0:j1, k0:k1] ./ tref .^ 2
         end
 
         # Write the mass-weighted potential temperature.
@@ -98,12 +121,15 @@ function write_output(
             @views file["p"][
                 (io + 1):(io + nx),
                 (jo + 1):(jo + ny),
-                1:nz,
+                (ko + 1):(ko + nz),
                 iout,
             ] = p[i0:i1, j0:j1, k0:k1] .* rhoref .* thetaref
         elseif model != Boussinesq() && iout == 1
-            @views file["p"][(io + 1):(io + nx), (jo + 1):(jo + ny), 1:nz] =
-                pstrattfc[i0:i1, j0:j1, k0:k1] .* rhoref .* thetaref
+            @views file["p"][
+                (io + 1):(io + nx),
+                (jo + 1):(jo + ny),
+                (ko + 1):(ko + nz),
+            ] = pstrattfc[i0:i1, j0:j1, k0:k1] .* rhoref .* thetaref
         end
 
         # Write the density fluctuations.
@@ -113,14 +139,14 @@ function write_output(
                 @views file["rhop"][
                     (io + 1):(io + nx),
                     (jo + 1):(jo + ny),
-                    1:nz,
+                    (ko + 1):(ko + nz),
                     iout,
                 ] = rhop[i0:i1, j0:j1, k0:k1] .* rhoref
             else
                 @views file["rhop"][
                     (io + 1):(io + nx),
                     (jo + 1):(jo + ny),
-                    1:nz,
+                    (ko + 1):(ko + nz),
                     iout,
                 ] = rho[i0:i1, j0:j1, k0:k1] .* rhoref
             end
@@ -132,7 +158,7 @@ function write_output(
             @views file["u"][
                 (io + 1):(io + nx),
                 (jo + 1):(jo + ny),
-                1:nz,
+                (ko + 1):(ko + nz),
                 iout,
             ] =
                 (
@@ -147,7 +173,7 @@ function write_output(
             @views file["us"][
                 (io + 1):(io + nx),
                 (jo + 1):(jo + ny),
-                1:nz,
+                (ko + 1):(ko + nz),
                 iout,
             ] = u[i0:i1, j0:j1, k0:k1] .* uref
         end
@@ -158,7 +184,7 @@ function write_output(
             @views file["v"][
                 (io + 1):(io + nx),
                 (jo + 1):(jo + ny),
-                1:nz,
+                (ko + 1):(ko + nz),
                 iout,
             ] =
                 (
@@ -173,7 +199,7 @@ function write_output(
             @views file["vs"][
                 (io + 1):(io + nx),
                 (jo + 1):(jo + ny),
-                1:nz,
+                (ko + 1):(ko + nz),
                 iout,
             ] = v[i0:i1, j0:j1, k0:k1] .* uref
         end
@@ -182,7 +208,7 @@ function write_output(
         if :w in output_variables
             HDF5.set_extent_dims(file["w"], (sizex, sizey, sizez, iout))
             for k in 1:nz, j in 1:ny, i in 1:nx
-                file["w"][io + i, jo + j, k, iout] =
+                file["w"][io + i, jo + j, ko + k, iout] =
                     (
                         compute_vertical_wind(
                             i + i0 - 1,
@@ -205,7 +231,7 @@ function write_output(
         if :ws in output_variables
             HDF5.set_extent_dims(file["ws"], (sizex, sizey, sizez, iout))
             for k in 1:nz, j in 1:ny, i in 1:nx
-                file["ws"][io + i, jo + j, k, iout] =
+                file["ws"][io + i, jo + j, ko + k, iout] =
                     compute_vertical_wind(
                         i + i0 - 1,
                         j + j0 - 1,
@@ -222,7 +248,7 @@ function write_output(
             @views file["wtfc"][
                 (io + 1):(io + nx),
                 (jo + 1):(jo + ny),
-                1:nz,
+                (ko + 1):(ko + nz),
                 iout,
             ] =
                 (
@@ -237,7 +263,7 @@ function write_output(
             @views file["wstfc"][
                 (io + 1):(io + nx),
                 (jo + 1):(jo + ny),
-                1:nz,
+                (ko + 1):(ko + nz),
                 iout,
             ] = w[i0:i1, j0:j1, k0:k1] .* uref
         end
@@ -249,7 +275,7 @@ function write_output(
                 @views file["thetap"][
                     (io + 1):(io + nx),
                     (jo + 1):(jo + ny),
-                    1:nz,
+                    (ko + 1):(ko + nz),
                     iout,
                 ] =
                     (
@@ -262,7 +288,7 @@ function write_output(
                 @views file["thetap"][
                     (io + 1):(io + nx),
                     (jo + 1):(jo + ny),
-                    1:nz,
+                    (ko + 1):(ko + nz),
                     iout,
                 ] =
                     (
@@ -280,7 +306,7 @@ function write_output(
             @views file["pip"][
                 (io + 1):(io + nx),
                 (jo + 1):(jo + ny),
-                1:nz,
+                (ko + 1):(ko + nz),
                 iout,
             ] = pip[i0:i1, j0:j1, k0:k1]
         end
@@ -290,6 +316,9 @@ function write_output(
 
             # Write ray-volume properties.
             if prepare_restart || save_ray_volumes
+                dk0 = ko == 0 ? 1 : 0
+                dk1 = ko + nzz == sizezz ? 1 : 0
+
                 for (output_name, field_name) in zip(
                     ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
                     (:x, :y, :z, :dxray, :dyray, :dzray),
@@ -302,14 +331,14 @@ function write_output(
                         1:nray_max,
                         (io + 1):(io + nx),
                         (jo + 1):(jo + ny),
-                        1:(nz + 2),
+                        (ko + 2 - dk0):(ko + nz + 1 + dk1),
                         iout,
                     ] =
                         getfield(rays, field_name)[
                             1:nray_max,
                             i0:i1,
                             j0:j1,
-                            (k0 - 1):(k1 + 1),
+                            (k0 - dk0):(k1 + dk1),
                         ] .* lref
                 end
 
@@ -325,14 +354,14 @@ function write_output(
                         1:nray_max,
                         (io + 1):(io + nx),
                         (jo + 1):(jo + ny),
-                        1:(nz + 2),
+                        (ko + 2 - dk0):(ko + nz + 1 + dk1),
                         iout,
                     ] =
                         getfield(rays, field_name)[
                             1:nray_max,
                             i0:i1,
                             j0:j1,
-                            (k0 - 1):(k1 + 1),
+                            (k0 - dk0):(k1 + dk1),
                         ] ./ lref
                 end
 
@@ -344,11 +373,15 @@ function write_output(
                     1:nray_max,
                     (io + 1):(io + nx),
                     (jo + 1):(jo + ny),
-                    1:(nz + 2),
+                    (ko + 2 - dk0):(ko + nz + 1 + dk1),
                     iout,
                 ] =
-                    rays.dens[1:nray_max, i0:i1, j0:j1, (k0 - 1):(k1 + 1)] .*
-                    rhoref .* uref .^ 2 .* tref .* lref .^ dim
+                    rays.dens[
+                        1:nray_max,
+                        i0:i1,
+                        j0:j1,
+                        (k0 - dk0):(k1 + dk1),
+                    ] .* rhoref .* uref .^ 2 .* tref .* lref .^ dim
             end
 
             # Write GW tendencies.
@@ -368,7 +401,7 @@ function write_output(
                     @views file[string(field)][
                         (io + 1):(io + nx),
                         (jo + 1):(jo + ny),
-                        1:nz,
+                        (ko + 1):(ko + nz),
                         iout,
                     ] =
                         getfield(tendencies, field)[i0:i1, j0:j1, k0:k1] .*
