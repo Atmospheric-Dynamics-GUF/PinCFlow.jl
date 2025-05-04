@@ -59,6 +59,7 @@ function apply_bicgstab!(
     for k in 1:nz
         @views r_vm .+= r[:, :, k]
     end
+    MPI.Allreduce!(r_vm, .+, comm)
     r_vm ./= sizez
 
     res_local = 0.0
@@ -135,6 +136,7 @@ function apply_bicgstab!(
         for k in 1:nz
             @views r_vm .+= r[:, :, k]
         end
+        MPI.Allreduce!(r_vm, .+, comm)
         r_vm ./= sizez
 
         res_local = 0.0
