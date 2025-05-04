@@ -43,13 +43,7 @@ function apply_operator!(
     # Set boundaries of auxiliary field.
     set_zonal_boundaries_of_reduced_field!(s, namelists, domain)
     set_meridional_boundaries_of_reduced_field!(s, namelists, domain)
-    set_vertical_boundaries_of_reduced_field!(
-        s,
-        namelists,
-        domain,
-        zboundaries,
-        +,
-    )
+    set_vertical_boundaries_of_field!(s, namelists, domain, zboundaries, +)
 
     #---------------------------------
     #         Loop over field
@@ -258,13 +252,7 @@ function apply_operator!(
     # Set boundaries of auxiliary field.
     set_zonal_boundaries_of_reduced_field!(s, namelists, domain)
     set_meridional_boundaries_of_reduced_field!(s, namelists, domain)
-    set_vertical_boundaries_of_reduced_field!(
-        s,
-        namelists,
-        domain,
-        zboundaries,
-        +,
-    )
+    set_vertical_boundaries_of_field!(s, namelists, domain, zboundaries, +)
 
     #---------------------------------
     #         Loop over field
