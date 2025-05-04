@@ -62,9 +62,10 @@ function set_vertical_boundaries!(
     # Set all vertical boundary fluxes to zero.
 
     if ko == 0
-        for field in (:phirho, :phirhop, :phiu, :phiv, :phiw)
+        for field in (:phirho, :phirhop, :phiu, :phiv)
             getfield(fluxes, field)[:, :, k0 - 1, 3] .= 0.0
         end
+        fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
     end
 
     if ko + nzz == sizezz
