@@ -2,6 +2,7 @@ function set_vertical_halos_of_reduced_field!(
     field::AbstractArray{<:AbstractFloat, 3},
     namelists::Namelists,
     domain::Domain,
+    zboundaries::SolidWallBoundaries,
 )
 
     # Get all necessary fields.
