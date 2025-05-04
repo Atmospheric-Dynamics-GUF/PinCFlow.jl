@@ -7,7 +7,7 @@ function apply_preconditioner!(
     poisson::Poisson,
 )
     (; dtau, maxiteradi) = namelists.poisson
-    (; sizezz, nz, nzz, ko) = domain
+    (; comm, sizezz, nz, nzz, ko, down, up) = domain
     (; dx, dy) = grid
     (; au_b, ac_b, ad_b) = poisson.tensor
     (; s_pc, q_pc, p_pc, s_pc_bc, q_pc_bc) = poisson.preconditioner
