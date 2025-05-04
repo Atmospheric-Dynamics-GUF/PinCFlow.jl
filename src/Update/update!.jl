@@ -826,7 +826,7 @@ function update!(
     end
 
     kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = k0 + nzz == sizezz ? k1 - 1 : k1
+    kz1 = ko + nzz == sizezz ? k1 - 1 : k1
 
     for k in kz0:kz1, j in j0:j1, i in i0:i1
         # Compute vertical momentum flux divergence.
@@ -977,7 +977,7 @@ function update!(
     end
 
     kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = k0 + nzz == sizezz ? k1 - 1 : k1
+    kz1 = ko + nzz == sizezz ? k1 - 1 : k1
 
     for k in kz0:kz1, j in j0:j1, i in i0:i1
         rho000 = rho[i, j, k]
@@ -1090,7 +1090,7 @@ function update!(
     end
 
     kz0 = ko == 0 ? k0 : k0 - 1
-    kz1 = k0 + nzz == sizezz ? k1 - 1 : k1
+    kz1 = ko + nzz == sizezz ? k1 - 1 : k1
 
     for k in kz0:kz1, j in j0:j1, i in i0:i1
         rho000 = rho[i, j, k]
