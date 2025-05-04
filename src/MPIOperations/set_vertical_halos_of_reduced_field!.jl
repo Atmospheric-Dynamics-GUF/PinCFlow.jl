@@ -4,13 +4,15 @@ function set_vertical_halos_of_reduced_field!(
     domain::Domain,
     zboundaries::SolidWallBoundaries,
 )
-
-    # Get all necessary fields.
     (;
         comm,
         sizezz,
         nzz,
         ko,
+        i0,
+        i1,
+        j0,
+        j1,
         k0,
         k1,
         down,
@@ -21,19 +23,18 @@ function set_vertical_halos_of_reduced_field!(
         recv_rf3_up,
     ) = domain
 
-    if ko == 0
-        @views send_rf3_up .= field[:, :, k1]
+    ix = (i0 - 1):(i1 + 1)
+    jy = (j0 - 1):(j1 + 1)
 
-        # MPI.Send(send_rf3_up, comm; dest = up)
-        # MPI.Recv!(recv_rf3_up, comm; source = up)
+    if ko == 0
+        @views send_rf3_up .= field[ix, jy, k1]
+
         MPI.Sendrecv!(send_rf3_up, recv_rf3_up, comm; dest = up, source = up)
 
-        field[:, :, k1 + 1] .= recv_rf3_up
+        field[ix, jy, k1 + 1] .= recv_rf3_up
     elseif ko + nzz == sizezz
-        @views send_rf3_down .= field[:, :, k0]
+        @views send_rf3_down .= field[ix, jy, k0]
 
-        # MPI.Send(send_rf3_down, comm; dest = down)
-        # MPI.Recv!(recv_rf3_down, comm; source = down)
         MPI.Sendrecv!(
             send_rf3_down,
             recv_rf3_down,
@@ -42,10 +43,10 @@ function set_vertical_halos_of_reduced_field!(
             source = down,
         )
 
-        field[:, :, k0 - 1] .= recv_rf3_down
+        field[ix, jy, k0 - 1] .= recv_rf3_down
     else
-        @views send_rf3_up .= field[:, :, k1]
-        @views send_rf3_down .= field[:, :, k0]
+        @views send_rf3_up .= field[ix, jy, k1]
+        @views send_rf3_down .= field[ix, jy, k0]
 
         MPI.Sendrecv!(
             send_rf3_up,
@@ -63,8 +64,8 @@ function set_vertical_halos_of_reduced_field!(
             source = up,
         )
 
-        field[:, :, k0 - 1] .= recv_rf3_down
-        field[:, :, k1 + 1] .= recv_rf3_up
+        field[ix, jy, k0 - 1] .= recv_rf3_down
+        field[ix, jy, k1 + 1] .= recv_rf3_up
     end
 
     return
