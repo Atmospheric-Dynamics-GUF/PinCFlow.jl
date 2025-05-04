@@ -8,7 +8,6 @@ function apply_corrector!(
     (; model, zboundaries) = namelists.setting
     (; rhs) = state.poisson
     (; dpip) = state.variables.tendencies
-    (; k0, k1) = domain
 
     # Initialize RHS.
     rhs .= 0.0
