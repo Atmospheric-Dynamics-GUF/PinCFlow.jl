@@ -107,10 +107,10 @@ function compute_sponge!(
         end
     end
 
-    @views ko == 0 && alphaunifiedsponge[:, :, k0 - 1] .=
-        alphaunifiedsponge[:, :, k0]
-    @views ko + nzz == sizezz && alphaunifiedsponge[:, :, k1 + 1] .=
-        alphaunifiedsponge[:, :, k1]
+    ko == 0 &&
+        @views alphaunifiedsponge[:, :, k0 - 1] .= alphaunifiedsponge[:, :, k0]
+    ko + nzz == sizezz &&
+        @views alphaunifiedsponge[:, :, k1 + 1] .= alphaunifiedsponge[:, :, k1]
 
     return
 end
@@ -182,10 +182,10 @@ function compute_sponge!(
         end
     end
 
-    @views ko == 0 && alphaunifiedsponge[:, :, k0 - 1] .=
-        alphaunifiedsponge[:, :, k0]
-    @views ko + nzz == sizezz && alphaunifiedsponge[:, :, k1 + 1] .=
-        alphaunifiedsponge[:, :, k1]
+    ko == 0 &&
+        @views alphaunifiedsponge[:, :, k0 - 1] .= alphaunifiedsponge[:, :, k0]
+    ko + nzz == sizezz &&
+        @views alphaunifiedsponge[:, :, k1 + 1] .= alphaunifiedsponge[:, :, k1]
 
     return
 end
@@ -275,10 +275,10 @@ function compute_sponge!(
         end
     end
 
-    @views ko == 0 && alphaunifiedsponge[:, :, k0 - 1] .=
-        alphaunifiedsponge[:, :, k0]
-    @views ko + nzz == sizezz && alphaunifiedsponge[:, :, k1 + 1] .=
-        alphaunifiedsponge[:, :, k1]
+    ko == 0 &&
+        @views alphaunifiedsponge[:, :, k0 - 1] .= alphaunifiedsponge[:, :, k0]
+    ko + nzz == sizezz &&
+        @views alphaunifiedsponge[:, :, k1 + 1] .= alphaunifiedsponge[:, :, k1]
 
     return
 end
@@ -369,10 +369,10 @@ function compute_sponge!(
         end
     end
 
-    @views ko == 0 && alphaunifiedsponge[:, :, k0 - 1] .=
-        alphaunifiedsponge[:, :, k0]
-    @views ko + nzz == sizezz && alphaunifiedsponge[:, :, k1 + 1] .=
-        alphaunifiedsponge[:, :, k1]
+    ko == 0 &&
+        @views alphaunifiedsponge[:, :, k0 - 1] .= alphaunifiedsponge[:, :, k0]
+    ko + nzz == sizezz &&
+        @views alphaunifiedsponge[:, :, k1 + 1] .= alphaunifiedsponge[:, :, k1]
 
     return
 end
