@@ -4,8 +4,6 @@ function set_vertical_halos_of_field!(
     domain::Domain,
     zboundaries::SolidWallBoundaries,
 )
-
-    # Get all necessary fields.
     (; nbz) = namelists.domain
     (;
         comm,
@@ -27,11 +25,9 @@ function set_vertical_halos_of_field!(
             @views send_f3_up[:, :, k] .= field[:, :, k1 - k + 1]
         end
 
-        # MPI.Send(send_f3_up, comm; dest = up)
-        # MPI.Recv!(recv_f3_up, comm; source = up)
         MPI.Sendrecv!(send_f3_up, recv_f3_up, comm; dest = up, source = up)
 
-        for i in 1:nbz
+        for k in 1:nbz
             @views field[:, :, k1 + k] .= recv_f3_up[:, :, k]
         end
     elseif ko + nzz == sizezz
@@ -39,8 +35,6 @@ function set_vertical_halos_of_field!(
             @views send_f3_down[:, :, k] .= field[:, :, k0 + k - 1]
         end
 
-        # MPI.Send(send_f3_down, comm; dest = down)
-        # MPI.Recv!(recv_f3_down, comm; source = down)
         MPI.Sendrecv!(
             send_f3_down,
             recv_f3_down,
@@ -77,8 +71,6 @@ function set_vertical_halos_of_field!(
     domain::Domain,
     zboundaries::SolidWallBoundaries,
 )
-
-    # Get all necessary fields.
     (; nbz) = namelists.domain
     (;
         comm,
@@ -100,11 +92,9 @@ function set_vertical_halos_of_field!(
             @views send_f5_up[:, :, k, :, :] .= field[:, :, k1 - k + 1, :, :]
         end
 
-        # MPI.Send(send_f5_up, comm; dest = up)
-        # MPI.Recv!(recv_f5_up, comm; source = up)
         MPI.Sendrecv!(send_f5_up, recv_f5_up, comm; dest = up, source = up)
 
-        for i in 1:nbz
+        for k in 1:nbz
             @views field[:, :, k1 + k, :, :] .= recv_f5_up[:, :, k, :, :]
         end
     elseif ko + nzz == sizezz
@@ -112,8 +102,6 @@ function set_vertical_halos_of_field!(
             @views send_f5_down[:, :, k, :, :] .= field[:, :, k0 + k - 1, :, :]
         end
 
-        # MPI.Send(send_f5_down, comm; dest = down)
-        # MPI.Recv!(recv_f5_down, comm; source = down)
         MPI.Sendrecv!(
             send_f5_down,
             recv_f5_down,
