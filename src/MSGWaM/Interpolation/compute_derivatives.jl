@@ -75,16 +75,15 @@ function compute_derivatives(
     indices::NTuple{4, <:Integer},
     phitype::DUDZ,
 )
-    (; k0) = state.domain
-    (; lz, dz, ztildetfc, jac) = state.grid
+    (; lz, dz, ztildetfc, jac, topography_surface) = state.grid
     (; u) = state.variables.predictands
 
     (ix, jy, kzd, kzu) = indices
 
-    if ztildetfc[ix, jy, kzu] < ztildetfc[ix, jy, k0 - 1]
+    if ztildetfc[ix, jy, kzu] < topography_surface[ix, jy]
         phid = 0.0
         phiu = 0.0
-    elseif ztildetfc[ix, jy, kzd] < ztildetfc[ix, jy, k0 - 1]
+    elseif ztildetfc[ix, jy, kzd] < topography_surface[ix, jy]
         phid = 0.0
         phiu =
             (u[ix, jy, kzu + 1] - u[ix, jy, kzu]) / dz / (
@@ -204,16 +203,15 @@ function compute_derivatives(
     indices::NTuple{4, <:Integer},
     phitype::DVDZ,
 )
-    (; k0) = state.domain
-    (; lz, dz, ztildetfc, jac) = state.grid
+    (; lz, dz, ztildetfc, jac, topography_surface) = state.grid
     (; v) = state.variables.predictands
 
     (ix, jy, kzd, kzu) = indices
 
-    if ztildetfc[ix, jy, kzu] < ztildetfc[ix, jy, k0 - 1]
+    if ztildetfc[ix, jy, kzu] < topography_surface[ix, jy]
         phid = 0.0
         phiu = 0.0
-    elseif ztildetfc[ix, jy, kzd] < ztildetfc[ix, jy, k0 - 1]
+    elseif ztildetfc[ix, jy, kzd] < topography_surface[ix, jy]
         phid = 0.0
         phiu =
             (v[ix, jy, kzu + 1] - v[ix, jy, kzu]) / dz / (

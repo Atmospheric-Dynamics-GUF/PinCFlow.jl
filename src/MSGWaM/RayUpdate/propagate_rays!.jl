@@ -41,31 +41,32 @@ function propagate_rays!(
         state.wkb.increments
     (; alphark, betark, stepfrac) = state.time
     (; lz, ztildetfc) = state.grid
-    (; k0, k1, j0, j1, i0, i1) = state.domain
+    (; ko, k0, k1, j0, j1, i0, i1) = state.domain
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    kz0 = testcase == WKBMountainWave() ? k0 - 1 : k0
+    kz0 = testcase == WKBMountainWave() && ko == 0 ? k0 - 1 : k0
+    kz1 = k1
 
     # Initialize RK tendencies at the first RK stage.
     if rkstage == 1
-        dxray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
-        dyray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
-        dzray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
-        dkray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
-        dlray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
-        dmray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
-        ddxray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
-        ddyray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
-        ddzray[1:nray_max, i0:i1, j0:j1, kz0:k1] .= 0.0
+        dxray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
+        dyray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
+        dzray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
+        dkray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
+        dlray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
+        dmray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
+        ddxray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
+        ddyray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
+        ddzray[1:nray_max, i0:i1, j0:j1, kz0:kz1] .= 0.0
     end
 
     cgx_max[] = 0.0
     cgy_max[] = 0.0
-    cgz_max[i0:i1, j0:j1, kz0:k1] .= 0.0
+    cgz_max[i0:i1, j0:j1, kz0:kz1] .= 0.0
 
-    for kz in kz0:k1, jy in j0:j1, ix in i0:i1
+    for kz in kz0:kz1, jy in j0:j1, ix in i0:i1
         nskip = 0
         for iray in 1:nray[ix, jy, kz]
             (xr, yr, zr) = get_physical_position(rays, (iray, ix, jy, kz))
@@ -321,7 +322,7 @@ function propagate_rays!(
     (; branchr, lsaturation, alpha_sat) = state.namelists.wkb
     (; stepfrac) = state.time
     (; tref) = state.constants
-    (; k0, k1, j0, j1, i0, i1) = state.domain
+    (; sizezz, nzz, ko, k0, k1, j0, j1, i0, i1) = state.domain
     (; dx, dy, dz, ztildetfc, ztfc, jac) = state.grid
     (; rhostrattfc) = state.atmosphere
     (; u, v) = state.variables.predictands
@@ -332,6 +333,23 @@ function propagate_rays!(
 
     if testcase == WKBMountainWave()
         activate_orographic_source!(state, stepfrac[rkstage] * dt)
+    end
+
+    if ko != 0
+        nray_down = zeros(Int, nx, ny)
+        MPI.Recv!(nray_down, comm; source = down)
+        nray[i0:i1, j0:j1, k0 - 1] .= nray_down
+
+        count = maximum(nray[i0:i1, j0:j1, k0 - 1])
+        if count > 0
+            fields = fieldnames(Rays)
+            rays_down = zeros(length(fields), count, nx, ny)
+            MPI.Recv!(rays_down, comm; source = down)
+            for (index, field) in enumerate(fields)
+                @views getfield(rays, field)[1:count, i0:i1, j0:j1, k0 - 1] .=
+                    rays_down[index, :, :, :]
+            end
+        end
     end
 
     # Loop over grid cells.
@@ -503,6 +521,22 @@ function propagate_rays!(
                 1 -
                 jac[ix, jy, kz] * dz / cgirz * 2 * diffusion * (khr^2 + mr^2),
             )
+        end
+    end
+
+    if ko + nzz != sizezz
+        @views nray_up .= nray[i0:i1, j0:j1, k1]
+        MPI.Send(nray_up, comm; dest = up)
+
+        count = maximum(nray[i0:i1, j0:j1, k1])
+        if count > 0
+            fields = fieldnames(Rays)
+            rays_up = zeros(length(fields), count, nx, ny)
+            for (index, field) in enumerate(fields)
+                @views rays_up[index, :, :, :] .=
+                    getfield(rays, field)[1:count, i0:i1, j0:j1, k1]
+            end
+            MPI.Send(rays_up, comm; dest = up)
         end
     end
 
