@@ -1,4 +1,9 @@
-struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
+struct Domain{
+    A <: MPI.Comm,
+    B <: Bool,
+    C <: Integer,
+    D <: AbstractVector{<:AbstractFloat},
+}
 
     # MPI variables.
     comm::A
@@ -41,6 +46,10 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
     forw::C
     down::C
     up::C
+
+    # Auxiliary arrays for horizontal averages.
+    local_sum::D
+    global_sum::D
 end
 
 function Domain(namelists::Namelists)
@@ -128,6 +137,9 @@ function Domain(namelists::Namelists)
     (back, forw) = MPI.Cart_shift(comm, 1, 1)
     (down, up) = MPI.Cart_shift(comm, 2, 1)
 
+    # Initialize auxiliary arrays for horizontal averages.
+    (local_sum, global_sum) = (zeros(sizez) for i in 1:2)
+
     # Return Domain instance.
     return Domain(
         comm,
@@ -158,5 +170,7 @@ function Domain(namelists::Namelists)
         forw,
         down,
         up,
+        local_sum,
+        global_sum,
     )
 end
