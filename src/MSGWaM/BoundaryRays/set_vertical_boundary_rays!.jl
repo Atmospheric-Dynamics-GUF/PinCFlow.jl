@@ -4,7 +4,7 @@ function set_vertical_boundary_rays!(
 )
     (; namelists, domain) = state
     (; npz) = namelists.domain
-    (; io, jo, i0, i1, j0, j1, k0, k1) = domain
+    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; lx, ly, lz, dx, dy, topography_surface) = state.grid
     (; nray, rays) = state.wkb
 
