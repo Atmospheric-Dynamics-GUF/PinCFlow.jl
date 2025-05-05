@@ -333,7 +333,7 @@ function update!(
     side::LHS,
 )
     (; alphark, betark) = state.time
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; rhostrattfc, fc) = state.atmosphere
     (; du) = state.variables.tendencies
@@ -362,6 +362,9 @@ function update!(
 
         # Explicit integration of Coriolis force in TFC.
         uold[i, j, k] = u[i, j, k]
+        if k == k1 && ko + nzz != sizezz
+            uold[i, j, k + 1] = u[i, j, k + 1]
+        end
         vc = 0.5 * (v[i, j, k] + v[i, j - 1, k])
         vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
         volforce =
@@ -487,13 +490,16 @@ function update!(
     (; zboundaries) = state.namelists.setting
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; kappainv, mainv2) = state.constants
-    (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dz, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; kr_sp_tfc) = state.sponge
     (; rho, u, pip) = state.variables.predictands
 
-    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    kz0 = k0
+    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+
+    for k in kz0:kz1, j in j0:j1, i in (i0 - 1):i1
         rhou = 0.5 * (rho[i, j, k] + rho[i + 1, j, k])
         rhostratedger = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i + 1, j, k])
         rhou += rhostratedger
@@ -570,7 +576,7 @@ function update!(
     side::LHS,
 )
     (; alphark, betark) = state.time
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; rhostrattfc, fc) = state.atmosphere
     (; dv) = state.variables.tendencies
@@ -599,6 +605,9 @@ function update!(
 
         # Explicit integration of Coriolis force in TFC.
         vold[i, j, k] = v[i, j, k]
+        if k == k1 && ko + nzz != sizezz
+            vold[i, j, k + 1] = v[i, j, k + 1]
+        end
         uc = 0.5 * (uold[i, j, k] + uold[i - 1, j, k])
         uf = 0.5 * (uold[i, j + 1, k] + uold[i - 1, j + 1, k])
 
@@ -721,13 +730,16 @@ function update!(
     (; zboundaries) = state.namelists.setting
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; kappainv, mainv2) = state.constants
-    (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dy, dz, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; kr_sp_tfc) = state.sponge
     (; rho, v, pip) = state.variables.predictands
 
-    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    kz0 = k0
+    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+
+    for k in kz0:kz1, j in (j0 - 1):j1, i in i0:i1
         rhov = 0.5 * (rho[i, j, k] + rho[i, j + 1, k])
         rhostratedgef = 0.5 * (rhostrattfc[i, j, k] + rhostrattfc[i, j + 1, k])
         rhov += rhostratedgef
@@ -822,7 +834,7 @@ function update!(
     end
 
     if zboundaries != SolidWallBoundaries()
-        error("Error in update_momentum!: Unknown case zBoundary!")
+        error("Error in update!: Unknown case zBoundary!")
     end
 
     kz0 = ko == 0 ? k0 : k0 - 1
