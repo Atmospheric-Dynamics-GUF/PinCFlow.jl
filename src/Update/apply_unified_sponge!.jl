@@ -82,7 +82,7 @@ function apply_unified_sponge!(
     variable::U,
     model::AbstractModel,
 )
-    (; sizex, sizey) = state.namelists.domain
+    (; sizex, sizey, sizez) = state.namelists.domain
     (; backgroundflow_dim) = state.namelists.atmosphere
     (;
         spongelayer,
@@ -92,7 +92,7 @@ function apply_unified_sponge!(
         relaxation_amplitude,
     ) = state.namelists.sponge
     (; uref, tref) = state.constants
-    (; comm, i0, i1, j0, j1, k0, k1, local_sum, global_sum) = state.domain
+    (; comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; alphaunifiedsponge) = state.sponge
     (; u) = state.variables.predictands
 
@@ -100,8 +100,7 @@ function apply_unified_sponge!(
         return
     end
 
-    local_sum .= 0.0
-    global_sum .= 0.0
+    (local_sum, global_sum) = (zeros(sizez) for i in 1:2)
 
     # Determine relaxation wind.
     if relax_to_mean
@@ -148,7 +147,7 @@ function apply_unified_sponge!(
     variable::V,
     model::AbstractModel,
 )
-    (; sizex, sizey) = state.namelists.domain
+    (; sizex, sizey, sizez) = state.namelists.domain
     (; backgroundflow_dim) = state.namelists.atmosphere
     (;
         spongelayer,
@@ -158,7 +157,7 @@ function apply_unified_sponge!(
         relaxation_amplitude,
     ) = state.namelists.sponge
     (; uref, tref) = state.constants
-    (; comm, i0, i1, j0, j1, k0, k1, local_sum, global_sum) = state.domain
+    (; comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; alphaunifiedsponge) = state.sponge
     (; v) = state.variables.predictands
 
@@ -166,8 +165,7 @@ function apply_unified_sponge!(
         return
     end
 
-    local_sum .= 0.0
-    global_sum .= 0.0
+    (local_sum, global_sum) = (zeros(sizez) for i in 1:2)
 
     # Determine relaxation wind.
     if relax_to_mean
@@ -214,7 +212,7 @@ function apply_unified_sponge!(
     variable::W,
     model::AbstractModel,
 )
-    (; sizex, sizey) = state.namelists.domain
+    (; sizex, sizey, sizez) = state.namelists.domain
     (; backgroundflow_dim) = state.namelists.atmosphere
     (;
         spongelayer,
@@ -224,7 +222,7 @@ function apply_unified_sponge!(
         relaxation_amplitude,
     ) = state.namelists.sponge
     (; uref, tref) = state.constants
-    (; comm, i0, i1, j0, j1, k0, k1, local_sum, global_sum) = state.domain
+    (; comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; alphaunifiedsponge) = state.sponge
     (; w) = state.variables.predictands
     (; jac) = state.grid
@@ -233,8 +231,7 @@ function apply_unified_sponge!(
         return
     end
 
-    local_sum .= 0.0
-    global_sum .= 0.0
+    (local_sum, global_sum) = (zeros(sizez) for i in 1:2)
 
     # Determine relaxation wind.
     if relax_to_mean

@@ -42,8 +42,13 @@ function apply_operator!(
     s[i0:i1, j0:j1, k0:k1] .= sin
 
     # Set boundaries of auxiliary field.
-    set_zonal_boundaries_of_reduced_field!(s, namelists, domain)
-    set_meridional_boundaries_of_reduced_field!(s, namelists, domain)
+    set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
+    set_meridional_boundaries_of_field!(
+        s,
+        namelists,
+        domain;
+        layers = (1, 1, 1),
+    )
     npz > 1 && set_vertical_halos_of_field!(s, namelists, domain, zboundaries)
 
     #---------------------------------
@@ -252,8 +257,13 @@ function apply_operator!(
     s[i0:i1, j0:j1, k0:k1] .= sin
 
     # Set boundaries of auxiliary field.
-    set_zonal_boundaries_of_reduced_field!(s, namelists, domain)
-    set_meridional_boundaries_of_reduced_field!(s, namelists, domain)
+    set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
+    set_meridional_boundaries_of_field!(
+        s,
+        namelists,
+        domain;
+        layers = (1, 1, 1),
+    )
     npz > 1 && set_vertical_halos_of_field!(s, namelists, domain, zboundaries)
 
     #---------------------------------
