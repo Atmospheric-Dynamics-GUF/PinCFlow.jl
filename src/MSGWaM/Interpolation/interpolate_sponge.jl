@@ -5,8 +5,8 @@ function interpolate_sponge(
     state::State,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
-    (; io, jo, i0, j0, k1) = domain
+    (; sizex, sizey, nbz) = namelists.domain
+    (; sizezz, io, jo, ko, i0, j0, k1) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
     (; alphaunifiedsponge) = state.sponge
 
@@ -36,7 +36,7 @@ function interpolate_sponge(
     # values.
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd > k1
+    if kzlbd + ko > sizezz - nbz
         kzlbd = k1
         kzlbu = k1
     end
@@ -46,7 +46,7 @@ function interpolate_sponge(
     philbu = alphaunifiedsponge[ixl, jyb, kzlbu]
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd > k1
+    if kzlfd + ko > sizezz - nbz
         kzlfd = k1
         kzlfu = k1
     end
@@ -56,7 +56,7 @@ function interpolate_sponge(
     philfu = alphaunifiedsponge[ixl, jyf, kzlfu]
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd > k1
+    if kzrbd + ko > sizezz - nbz
         kzrbd = k1
         kzrbu = k1
     end
@@ -66,7 +66,7 @@ function interpolate_sponge(
     phirbu = alphaunifiedsponge[ixr, jyb, kzrbu]
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd > k1
+    if kzrfd + ko > sizezz - nbz
         kzrfd = k1
         kzrfu = k1
     end

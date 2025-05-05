@@ -6,9 +6,9 @@ function interpolate_mean_flow(
     phitype::U,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; sizex, sizey, nbz) = namelists.domain
     (; u) = state.variables.predictands
-    (; nxx, nyy, io, jo, i0, j0, k1) = domain
+    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -59,7 +59,7 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd > k1
+    if kzlbd + ko > sizezz - nbz
         kzlbu = k1
         kzlbd = k1
     end
@@ -68,7 +68,7 @@ function interpolate_mean_flow(
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd > k1
+    if kzlfd + ko > sizezz - nbz
         kzlfu = k1
         kzlfd = k1
     end
@@ -77,7 +77,7 @@ function interpolate_mean_flow(
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd > k1
+    if kzrbd + ko > sizezz - nbz
         kzrbu = k1
         kzrbd = k1
     end
@@ -86,7 +86,7 @@ function interpolate_mean_flow(
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd > k1
+    if kzrfd + ko > sizezz - nbz
         kzrfu = k1
         kzrfd = k1
     end
@@ -144,9 +144,9 @@ function interpolate_mean_flow(
     phitype::V,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
+    (; sizex, sizey, nbz) = namelists.domain
     (; v) = state.variables.predictands
-    (; nxx, nyy, io, jo, i0, j0, k1) = domain
+    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -197,7 +197,7 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd > k1
+    if kzlbd + ko > sizezz - nbz
         kzlbu = k1
         kzlbd = k1
     end
@@ -206,7 +206,7 @@ function interpolate_mean_flow(
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd > k1
+    if kzlfd + ko > sizezz - nbz
         kzlfu = k1
         kzlfd = k1
     end
@@ -215,7 +215,7 @@ function interpolate_mean_flow(
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd > k1
+    if kzrbd + ko > sizezz - nbz
         kzrbu = k1
         kzrbd = k1
     end
@@ -224,7 +224,7 @@ function interpolate_mean_flow(
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd > k1
+    if kzrfd + ko > sizezz - nbz
         kzrfu = k1
         kzrfd = k1
     end
@@ -285,9 +285,9 @@ function interpolate_mean_flow(
 )
     (; namelists, domain, grid) = state
     (; predictands) = state.variables
-    (; sizex, sizey) = namelists.domain
-    (; nxx, nyy, io, jo, i0, j0, k0, k1) = domain
-    (; lx, ly, dx, dy, x, y, ztildetfc) = grid
+    (; sizex, sizey, nbz) = namelists.domain
+    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
+    (; lx, ly, dx, dy, x, y, ztildetfc, topography_surface) = grid
 
     # Locate the closest points in zonal direction.
     if sizex == 1
@@ -337,7 +337,7 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_half_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd > k1
+    if kzlbd + ko > sizezz - nbz
         kzlbu = k1
         kzlbd = k1
     end
@@ -346,7 +346,7 @@ function interpolate_mean_flow(
 
     kzlfu = get_next_half_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd > k1
+    if kzlfd + ko > sizezz - nbz
         kzlfu = k1
         kzlfd = k1
     end
@@ -355,7 +355,7 @@ function interpolate_mean_flow(
 
     kzrbu = get_next_half_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd > k1
+    if kzrbd + ko > sizezz - nbz
         kzrbu = k1
         kzrbd = k1
     end
@@ -364,7 +364,7 @@ function interpolate_mean_flow(
 
     kzrfu = get_next_half_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd > k1
+    if kzrfd + ko > sizezz - nbz
         kzrfu = k1
         kzrfd = k1
     end
@@ -373,10 +373,10 @@ function interpolate_mean_flow(
 
     # Assign the values.
 
-    if zlbu < ztildetfc[ixl, jyb, k0 - 1]
+    if zlbu < topography_surface[ixl, jyb]
         philbd = 0.0
         philbu = 0.0
-    elseif zlbd < ztildetfc[ixl, jyb, k0 - 1]
+    elseif zlbd < topography_surface[ixl, jyb]
         philbd = 0.0
         philbu = compute_vertical_wind(ixl, jyb, kzlbu, predictands, grid)
     else
@@ -384,10 +384,10 @@ function interpolate_mean_flow(
         philbu = compute_vertical_wind(ixl, jyb, kzlbu, predictands, grid)
     end
 
-    if zlfu < ztildetfc[ixl, jyf, k0 - 1]
+    if zlfu < topography_surface[ixl, jyf]
         philfd = 0.0
         philfu = 0.0
-    elseif zlfd < ztildetfc[ixl, jyf, k0 - 1]
+    elseif zlfd < topography_surface[ixl, jyf]
         philfd = 0.0
         philfu = compute_vertical_wind(ixl, jyf, kzlfu, predictands, grid)
     else
@@ -395,10 +395,10 @@ function interpolate_mean_flow(
         philfu = compute_vertical_wind(ixl, jyf, kzlfu, predictands, grid)
     end
 
-    if zrbu < ztildetfc[ixr, jyb, k0 - 1]
+    if zrbu < topography_surface[ixr, jyb]
         phirbd = 0.0
         phirbu = 0.0
-    elseif zrbd < ztildetfc[ixr, jyb, k0 - 1]
+    elseif zrbd < topography_surface[ixr, jyb]
         phirbd = 0.0
         phirbu = compute_vertical_wind(ixr, jyb, kzrbu, predictands, grid)
     else
@@ -406,10 +406,10 @@ function interpolate_mean_flow(
         phirbu = compute_vertical_wind(ixr, jyb, kzrbu, predictands, grid)
     end
 
-    if zrfu < ztildetfc[ixr, jyf, k0 - 1]
+    if zrfu < topography_surface[ixr, jyf]
         phirfd = 0.0
         phirfu = 0.0
-    elseif zrfd < ztildetfc[ixr, jyf, k0 - 1]
+    elseif zrfd < topography_surface[ixr, jyf]
         phirfd = 0.0
         phirfu = compute_vertical_wind(ixr, jyf, kzrfu, predictands, grid)
     else
@@ -456,8 +456,8 @@ function interpolate_mean_flow(
     phitype::DUDX,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
-    (; nxx, nyy, io, jo, i0, j0, k1) = domain
+    (; sizex, sizey, nbz) = namelists.domain
+    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     if sizex == 1
@@ -511,7 +511,7 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd > k1
+    if kzlbd + ko > sizezz - nbz
         kzlbu = k1
         kzlbd = k1
     end
@@ -520,7 +520,7 @@ function interpolate_mean_flow(
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd > k1
+    if kzlfd + ko > sizezz - nbz
         kzlfu = k1
         kzlfd = k1
     end
@@ -529,7 +529,7 @@ function interpolate_mean_flow(
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd > k1
+    if kzrbd + ko > sizezz - nbz
         kzrbu = k1
         kzrbd = k1
     end
@@ -538,7 +538,7 @@ function interpolate_mean_flow(
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd > k1
+    if kzrfd + ko > sizezz - nbz
         kzrfu = k1
         kzrfd = k1
     end
@@ -598,8 +598,8 @@ function interpolate_mean_flow(
     phitype::DUDY,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
-    (; nxx, nyy, io, jo, i0, j0, k1) = domain
+    (; sizex, sizey, nbz) = namelists.domain
+    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -650,7 +650,7 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd > k1
+    if kzlbd + ko > sizezz - nbz
         kzlbu = k1
         kzlbd = k1
     end
@@ -659,7 +659,7 @@ function interpolate_mean_flow(
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd > k1
+    if kzlfd + ko > sizezz - nbz
         kzlfu = k1
         kzlfd = k1
     end
@@ -668,7 +668,7 @@ function interpolate_mean_flow(
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd > k1
+    if kzrbd + ko > sizezz - nbz
         kzrbu = k1
         kzrbd = k1
     end
@@ -677,7 +677,7 @@ function interpolate_mean_flow(
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd > k1
+    if kzrfd + ko > sizezz - nbz
         kzrfu = k1
         kzrfd = k1
     end
@@ -737,8 +737,8 @@ function interpolate_mean_flow(
     phitype::DUDZ,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
-    (; nxx, nyy, io, jo, i0, j0, k1) = domain
+    (; sizex, sizey, nbz) = namelists.domain
+    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
     (; lx, ly, dx, dy, x, y, ztildetfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -789,7 +789,7 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_half_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd > k1
+    if kzlbd + ko > sizezz - nbz
         kzlbu = k1 + 1
         kzlbd = k1 + 1
     end
@@ -798,7 +798,7 @@ function interpolate_mean_flow(
 
     kzlfu = get_next_half_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd > k1
+    if kzlfd + ko > sizezz - nbz
         kzlfu = k1 + 1
         kzlfd = k1 + 1
     end
@@ -807,7 +807,7 @@ function interpolate_mean_flow(
 
     kzrbu = get_next_half_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd > k1
+    if kzrbd + ko > sizezz - nbz
         kzrbu = k1 + 1
         kzrbd = k1 + 1
     end
@@ -816,7 +816,7 @@ function interpolate_mean_flow(
 
     kzrfu = get_next_half_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd > k1
+    if kzrfd + ko > sizezz - nbz
         kzrfu = k1 + 1
         kzrfd = k1 + 1
     end
@@ -876,8 +876,8 @@ function interpolate_mean_flow(
     phitype::DVDX,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
-    (; nxx, nyy, io, jo, i0, j0, k1) = domain
+    (; sizex, sizey, nbz) = namelists.domain
+    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -928,7 +928,7 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd > k1
+    if kzlbd + ko > sizezz - nbz
         kzlbu = k1
         kzlbd = k1
     end
@@ -937,7 +937,7 @@ function interpolate_mean_flow(
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd > k1
+    if kzlfd + ko > sizezz - nbz
         kzlfu = k1
         kzlfd = k1
     end
@@ -946,7 +946,7 @@ function interpolate_mean_flow(
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd > k1
+    if kzrbd + ko > sizezz - nbz
         kzrbu = k1
         kzrbd = k1
     end
@@ -955,7 +955,7 @@ function interpolate_mean_flow(
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd > k1
+    if kzrfd + ko > sizezz - nbz
         kzrfu = k1
         kzrfd = k1
     end
@@ -1015,8 +1015,8 @@ function interpolate_mean_flow(
     phitype::DVDY,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
-    (; nxx, nyy, io, jo, i0, j0, k1) = domain
+    (; sizex, sizey, nbz) = namelists.domain
+    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -1071,7 +1071,7 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd > k1
+    if kzlbd + ko > sizezz - nbz
         kzlbu = k1
         kzlbd = k1
     end
@@ -1080,7 +1080,7 @@ function interpolate_mean_flow(
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd > k1
+    if kzlfd + ko > sizezz - nbz
         kzlfu = k1
         kzlfd = k1
     end
@@ -1089,7 +1089,7 @@ function interpolate_mean_flow(
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd > k1
+    if kzrbd + ko > sizezz - nbz
         kzrbu = k1
         kzrbd = k1
     end
@@ -1098,7 +1098,7 @@ function interpolate_mean_flow(
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd > k1
+    if kzrfd + ko > sizezz - nbz
         kzrfu = k1
         kzrfd = k1
     end
@@ -1158,8 +1158,8 @@ function interpolate_mean_flow(
     phitype::DVDZ,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey) = namelists.domain
-    (; nxx, nyy, io, jo, i0, j0, k0, k1) = domain
+    (; sizex, sizey, nbz) = namelists.domain
+    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
     (; lx, ly, dx, dy, x, y, ztildetfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -1210,7 +1210,7 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_half_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd > k1
+    if kzlbd + ko > sizezz - nbz
         kzlbu = k1 + 1
         kzlbd = k1 + 1
     end
@@ -1219,7 +1219,7 @@ function interpolate_mean_flow(
 
     kzlfu = get_next_half_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd > k1
+    if kzlfd + ko > sizezz - nbz
         kzlfu = k1 + 1
         kzlfd = k1 + 1
     end
@@ -1228,7 +1228,7 @@ function interpolate_mean_flow(
 
     kzrbu = get_next_half_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd > k1
+    if kzrbd + ko > sizezz - nbz
         kzrbu = k1 + 1
         kzrbd = k1 + 1
     end
@@ -1237,7 +1237,7 @@ function interpolate_mean_flow(
 
     kzrfu = get_next_half_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd > k1
+    if kzrfd + ko > sizezz - nbz
         kzrfu = k1 + 1
         kzrfd = k1 + 1
     end
