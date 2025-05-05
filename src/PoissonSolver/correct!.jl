@@ -23,7 +23,7 @@ function correct!(
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
-    (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dz, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; kr_sp_tfc) = state.sponge
@@ -31,7 +31,10 @@ function correct!(
     (; dpip) = state.variables.tendencies
     (; rho, u) = state.variables.predictands
 
-    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+    kz0 = k0
+    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+
+    for k in kz0:kz1, j in j0:j1, i in (i0 - 1):i1
         facu = 1.0
 
         if spongelayer && sponge_uv
@@ -114,7 +117,7 @@ function correct!(
     (; spongelayer, sponge_uv) = state.namelists.sponge
     (; zboundaries) = state.namelists.setting
     (; kappainv, mainv2) = state.constants
-    (; sizezz, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dy, dz, met) = state.grid
     (; rhostrattfc, pstrattfc) = state.atmosphere
     (; kr_sp_tfc) = state.sponge
@@ -122,7 +125,10 @@ function correct!(
     (; dpip) = state.variables.tendencies
     (; rho, v) = state.variables.predictands
 
-    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+    kz0 = k0
+    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+
+    for k in kz0:kz1, j in (j0 - 1):j1, i in i0:i1
         facv = 1.0
 
         if spongelayer && sponge_uv
