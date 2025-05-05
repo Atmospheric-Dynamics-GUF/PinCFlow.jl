@@ -131,19 +131,22 @@ end
 
 function shift_rays!(state::State, direction::Z)
     (; domain, grid) = state
-    (; i0, i1, j0, j1, k0, k1) = domain
+    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; nray_wrk, nray, rays) = state.wkb
 
-    for kzrv in k0:k1, jyrv in (j0 - 1):(j1 + 1), ixrv in (i0 - 1):(i1 + 1)
+    kz0 = ko == 0 ? k0 : k0 - 1
+    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+
+    for kzrv in kz0:kz1, jyrv in (j0 - 1):(j1 + 1), ixrv in (i0 - 1):(i1 + 1)
         for iray in 1:nray[ixrv, jyrv, kzrv]
             zr = rays.z[iray, ixrv, jyrv, kzrv]
             kz = get_next_half_level(ixrv, jyrv, zr, domain, grid)
 
-            if kz > k1
-                kz = k1
+            if kz > kz1
+                kz = kz1
             end
-            if kz < k0
-                kz = k0
+            if kz < kz0
+                kz = kz0
             end
 
             if kz != kzrv

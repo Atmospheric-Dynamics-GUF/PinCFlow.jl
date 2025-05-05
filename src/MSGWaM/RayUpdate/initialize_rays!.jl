@@ -57,29 +57,29 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
 
     # Set zonal index bounds.
     if testcase == WKBMountainWave()
-        ixmin = i0
-        ixmax = i1
+        ix0 = i0
+        ix1 = i1
     else
-        ixmin = max(i0, floor(Int, (xrmin - lx[1]) / dx) + i0 - io)
-        ixmax = min(i1, floor(Int, (xrmax - lx[1]) / dx) + i0 - io)
+        ix0 = max(i0, floor(Int, (xrmin - lx[1]) / dx) + i0 - io)
+        ix1 = min(i1, floor(Int, (xrmax - lx[1]) / dx) + i0 - io)
     end
 
     # Set meridional index bounds.
     if testcase == WKBMountainWave()
-        jymin = j0
-        jymax = j1
+        jy0 = j0
+        jy1 = j1
     else
-        jymin = max(j0, floor(Int, (yrmin - ly[1]) / dy) + j0 - jo)
-        jymax = min(j1, floor(Int, (yrmax - ly[1]) / dy) + j0 - jo)
+        jy0 = max(j0, floor(Int, (yrmin - ly[1]) / dy) + j0 - jo)
+        jy1 = min(j1, floor(Int, (yrmax - ly[1]) / dy) + j0 - jo)
     end
 
     # Set vertical index bounds.
-    if testcase == WKBMountainWave()
-        kzmin = k0 - 1
-        kzmax = k0 - 1
+    if testcase == WKBMountainWave() && ko == 0
+        kz0 = k0 - 1
+        kz1 = k0 - 1
     else
-        kzmin = k0
-        kzmax = k1
+        kz0 = k0
+        kz1 = k1
     end
 
     # Initialize local arrays.
@@ -107,7 +107,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
     end
 
     # Loop over all grid cells with ray volumes.
-    for kz in kzmin:kzmax, jy in jymin:jymax, ix in ixmin:ixmax
+    for kz in kz0:kz1, jy in jy0:jy1, ix in ix0:ix1
         iray = 0
         i_sfc = 0
 
@@ -279,7 +279,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
     end
 
     # Compute global ray-volume count.
-    local_sum = sum(nray[i0:i1, j0:j1, (k0 - 1):k1])
+    local_sum = sum(nray[ix0:ix1, jy0:jy1, kz0:kz1])
     global_sum = MPI.Allreduce(local_sum, +, comm)
 
     # Print information.

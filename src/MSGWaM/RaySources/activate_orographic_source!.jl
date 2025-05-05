@@ -9,12 +9,16 @@ function activate_orographic_source!(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branchr, blocking, long_threshold, nwm) = state.namelists.wkb
     (; tref) = state.constants
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dz, jac, ztildetfc, k_spectrum, l_spectrum, topography_spectrum) =
         state.grid
     (; rhostrattfc, bvsstrattfc) = state.atmosphere
     (; u, v) = state.variables.predictands
     (; zb) = state.wkb
+
+    if ko != 0
+        return
+    end
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -114,7 +118,7 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
         wkb_mode,
     ) = state.namelists.wkb
     (; tref) = state.constants
-    (; io, jo, i0, i1, j0, j1, k0, k1) = state.domain
+    (; io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (;
         dx,
         dy,
@@ -133,6 +137,10 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
     (; ir_sfc, ix2_sfc, jy2_sfc, kz2_sfc, ik_sfc, jl_sfc, km_sfc, iwm_sfc) =
         state.wkb.surface_indices
     (; nray_wrk, n_sfc, nray, rays) = state.wkb
+
+    if ko != 0
+        return
+    end
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
