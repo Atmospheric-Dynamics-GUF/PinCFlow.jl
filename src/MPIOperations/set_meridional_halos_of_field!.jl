@@ -4,7 +4,7 @@ function set_meridional_halos_of_field!(
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
-    (; comm, i0, i1, j0, j1, k0, k1, back, forw) = domain
+    (; comm, i0, i1, j0, j1, k0, k1, backward, forward) = domain
 
     nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
     nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
@@ -17,16 +17,16 @@ function set_meridional_halos_of_field!(
         field[i, (j1 - nby + 1):j1, k],
         field[i, (j0 - nby):(j0 - 1), k],
         comm;
-        dest = forw,
-        source = back,
+        dest = forward,
+        source = backward,
     )
 
     @views MPI.Sendrecv!(
         field[i, j0:(j0 + nby - 1), k],
         field[i, (j1 + 1):(j1 + nby), k],
         comm;
-        dest = back,
-        source = forw,
+        dest = backward,
+        source = forward,
     )
 
     return
@@ -38,7 +38,7 @@ function set_meridional_halos_of_field!(
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
-    (; comm, i0, i1, j0, j1, k0, k1, back, forw) = domain
+    (; comm, i0, i1, j0, j1, k0, k1, backward, forward) = domain
 
     nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
     nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
@@ -51,16 +51,16 @@ function set_meridional_halos_of_field!(
         field[i, (j1 - nby + 1):j1, k, :, :],
         field[i, (j0 - nby):(j0 - 1), k, :, :],
         comm;
-        dest = forw,
-        source = back,
+        dest = forward,
+        source = backward,
     )
 
     @views MPI.Sendrecv!(
         field[i, j0:(j0 + nby - 1), k, :, :],
         field[i, (j1 + 1):(j1 + nby), k, :, :],
         comm;
-        dest = back,
-        source = forw,
+        dest = backward,
+        source = forward,
     )
 
     return
