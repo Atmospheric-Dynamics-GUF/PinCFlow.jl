@@ -15,7 +15,7 @@ struct Poisson{
     correction::F
 end
 
-function Poisson(domain::Domain)
+function Poisson(namelists::Namelists, domain::Domain)
 
     # Get all necessary fields.
     (; nx, ny, nz) = domain
@@ -25,7 +25,7 @@ function Poisson(domain::Domain)
     tensor = Tensor(domain)
     operator = Operator(domain)
     preconditioner = Preconditioner(domain)
-    bicgstab = BicGStab(domain)
+    bicgstab = BicGStab(namelists, domain)
     correction = Correction(domain)
 
     # Return a Poisson instance.

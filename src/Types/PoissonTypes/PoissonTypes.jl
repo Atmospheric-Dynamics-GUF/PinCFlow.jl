@@ -1,5 +1,6 @@
 module PoissonTypes
 
+using ..NamelistTypes
 using ..FoundationalTypes
 
 include("Tensor.jl")
