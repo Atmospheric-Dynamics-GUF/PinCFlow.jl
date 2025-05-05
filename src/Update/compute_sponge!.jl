@@ -12,7 +12,7 @@ function compute_sponge!(state::State, dt::AbstractFloat)
         kz0 = ko == 0 ? k0 : k0 - 1
         kz1 = ko + nzz == sizezz ? k1 : k1 + 1
 
-        for k in kz0:kz1, j in j0:j1, i in i0:i1
+        for k in kz0:kz1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
             if ztfc[i, j, k] >= zsponge
                 kr_sp_tfc[i, j, k] =
                     alpspg *
