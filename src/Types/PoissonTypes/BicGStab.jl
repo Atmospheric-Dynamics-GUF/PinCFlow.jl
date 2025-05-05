@@ -14,11 +14,8 @@ struct BicGStab{
     v_pc::B
 end
 
-function BicGStab(domain::Domain)
-
-    # Get all necessary fields.
+function BicGStab(namelists::Namelists, domain::Domain)
+    (; sizex, sizey) = namelists.domain
     (; nx, ny, nz) = domain
-
-    # Return a BicGStab instance.
-    return BicGStab(zeros(nx, ny), [zeros(nx, ny, nz) for i in 1:9]...)
+    return BicGStab(zeros(sizex, sizey), [zeros(nx, ny, nz) for i in 1:9]...)
 end
