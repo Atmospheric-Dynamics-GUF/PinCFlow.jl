@@ -31,7 +31,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
         nwm,
     ) = state.namelists.wkb
     (; lref, tref) = state.constants
-    (; comm, master, nxx, nyy, nzz, io, jo, i0, i1, j0, j1, k0, k1) =
+    (; comm, master, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) =
         state.domain
     (; lx, ly, lz, dx, dy, dz, x, y, ztfc, jac) = state.grid
     (;

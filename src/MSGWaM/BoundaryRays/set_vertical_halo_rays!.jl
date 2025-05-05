@@ -1,4 +1,4 @@
-function set_zonal_halo_rays!(state::State)
+function set_vertical_halo_rays!(state::State)
     (; comm, sizezz, nzz, nx, ny, ko, i0, i1, j0, j1, k0, k1, down, up) =
         state.domain
     (; nray, rays) = state.wkb

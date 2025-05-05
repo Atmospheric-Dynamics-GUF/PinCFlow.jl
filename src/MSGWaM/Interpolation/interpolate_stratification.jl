@@ -52,7 +52,7 @@ function interpolate_stratification(
     (; domain, grid) = state
     (; nbz) = state.namelists.domain
     (; bvsstrattfc) = state.atmosphere
-    (; ko, i0, j0, k1) = domain
+    (; sizezz, ko, i0, j0, k1) = domain
     (; dz, ztildetfc, jac) = grid
 
     kzu = get_next_half_level(i0, j0, zlc, domain, grid)
