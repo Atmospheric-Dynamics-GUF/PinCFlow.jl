@@ -12,20 +12,20 @@ function set_zonal_halo_rays!(state::State)
     nray_max_left = MPI.Allreduce(nray_max_left, max, comm)
     nray_max_right = MPI.Allreduce(nray_max_right, max, comm)
 
-    send_rays_right = zeros(length(fields), nray_max_right, ny + 2, nz + 2)
-    send_rays_left = zeros(length(fields), nray_max_left, ny + 2, nz + 2)
+    send_right = zeros(length(fields), nray_max_right, ny + 2, nz + 2)
+    send_left = zeros(length(fields), nray_max_left, ny + 2, nz + 2)
 
-    recv_rays_left = zeros(length(fields), nray_max_right, ny + 2, nz + 2)
-    recv_rays_right = zeros(length(fields), nray_max_left, ny + 2, nz + 2)
+    receive_left = zeros(length(fields), nray_max_right, ny + 2, nz + 2)
+    receive_right = zeros(length(fields), nray_max_left, ny + 2, nz + 2)
 
     for (index, field) in enumerate(fields)
-        @views send_rays_right[index, :, :, :] .= getfield(rays, field)[
+        @views send_right[index, :, :, :] .= getfield(rays, field)[
             1:nray_max_right,
             i1,
             (j0 - 1):(j1 + 1),
             (k0 - 1):(k1 + 1),
         ]
-        @views send_rays_left[index, :, :, :] .= getfield(rays, field)[
+        @views send_left[index, :, :, :] .= getfield(rays, field)[
             1:nray_max_left,
             i0,
             (j0 - 1):(j1 + 1),
@@ -34,16 +34,16 @@ function set_zonal_halo_rays!(state::State)
     end
 
     MPI.Sendrecv!(
-        send_rays_right,
-        recv_rays_left,
+        send_right,
+        receive_left,
         comm;
         dest = right,
         source = left,
     )
 
     MPI.Sendrecv!(
-        send_rays_left,
-        recv_rays_right,
+        send_left,
+        receive_right,
         comm;
         dest = left,
         source = right,
@@ -55,13 +55,13 @@ function set_zonal_halo_rays!(state::State)
             i0 - 1,
             (j0 - 1):(j1 + 1),
             (k0 - 1):(k1 + 1),
-        ] .= recv_rays_left[index, :, :, :]
+        ] .= receive_left[index, :, :, :]
         @views getfield(rays, field)[
             1:nray_max_left,
             i1 + 1,
             (j0 - 1):(j1 + 1),
             (k0 - 1):(k1 + 1),
-        ] .= recv_rays_right[index, :, :, :]
+        ] .= receive_right[index, :, :, :]
     end
 
     return

@@ -82,7 +82,7 @@ function apply_unified_sponge!(
     variable::U,
     model::AbstractModel,
 )
-    (; sizex, sizey) = state.namelists.domain
+    (; sizex, sizey, sizez) = state.namelists.domain
     (; backgroundflow_dim) = state.namelists.atmosphere
     (;
         spongelayer,
@@ -148,7 +148,7 @@ function apply_unified_sponge!(
     variable::V,
     model::AbstractModel,
 )
-    (; sizex, sizey) = state.namelists.domain
+    (; sizex, sizey, sizez) = state.namelists.domain
     (; backgroundflow_dim) = state.namelists.atmosphere
     (;
         spongelayer,
@@ -214,7 +214,7 @@ function apply_unified_sponge!(
     variable::W,
     model::AbstractModel,
 )
-    (; sizex, sizey) = state.namelists.domain
+    (; sizex, sizey, sizez) = state.namelists.domain
     (; backgroundflow_dim) = state.namelists.atmosphere
     (;
         spongelayer,
