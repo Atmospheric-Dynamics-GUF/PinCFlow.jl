@@ -46,10 +46,11 @@ function set_zonal_boundaries!(
     (; integrals) = state.wkb
 
     for field in (:uw, :vw, :e)
-        set_zonal_boundaries_of_reduced_field!(
+        set_zonal_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
-            domain,
+            domain;
+            layers = (1, 1, 1),
         )
     end
 
@@ -65,10 +66,11 @@ function set_zonal_boundaries!(
     (; integrals) = state.wkb
 
     for field in (:uu, :uv, :uw, :vv, :vw, :etx, :ety, :utheta, :vtheta, :e)
-        set_zonal_boundaries_of_reduced_field!(
+        set_zonal_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
-            domain,
+            domain;
+            layers = (1, 1, 1),
         )
     end
 

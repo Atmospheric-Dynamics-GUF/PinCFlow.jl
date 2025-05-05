@@ -6,7 +6,12 @@ function set_meridional_boundary_rays!(state::State)
     (; nray, rays) = state.wkb
 
     # Set ray-volume count.
-    set_meridional_boundaries_of_reduced_field!(nray, namelists, domain)
+    set_meridional_boundaries_of_field!(
+        nray,
+        namelists,
+        domain;
+        layers = (1, 1, 1),
+    )
 
     # Set ray-volumes properties.
     if npy > 1

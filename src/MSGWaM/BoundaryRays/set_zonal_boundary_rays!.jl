@@ -6,7 +6,7 @@ function set_zonal_boundary_rays!(state::State)
     (; nray, rays) = state.wkb
 
     # Set ray-volume count.
-    set_zonal_boundaries_of_reduced_field!(nray, namelists, domain)
+    set_zonal_boundaries_of_field!(nray, namelists, domain; layers = (1, 1, 1))
 
     # Set ray-volumes properties.
     if npx > 1

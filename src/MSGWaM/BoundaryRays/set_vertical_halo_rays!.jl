@@ -12,15 +12,15 @@ function set_vertical_halo_rays!(state::State)
     nray_max_down = MPI.Allreduce(nray_max_down, max, comm)
     nray_max_up = MPI.Allreduce(nray_max_up, max, comm)
 
-    send_rays_up = zeros(length(fields), nray_max_up, nx + 2, ny + 2)
-    send_rays_down = zeros(length(fields), nray_max_down, nx + 2, ny + 2)
+    send_up = zeros(length(fields), nray_max_up, nx + 2, ny + 2)
+    send_down = zeros(length(fields), nray_max_down, nx + 2, ny + 2)
 
-    recv_rays_down = zeros(length(fields), nray_max_up, nx + 2, ny + 2)
-    recv_rays_up = zeros(length(fields), nray_max_down, nx + 2, ny + 2)
+    receive_down = zeros(length(fields), nray_max_up, nx + 2, ny + 2)
+    receive_up = zeros(length(fields), nray_max_down, nx + 2, ny + 2)
 
     if ko == 0
         for (index, field) in enumerate(fields)
-            @views send_rays_up[index, :, :, :] .= getfield(rays, field)[
+            @views send_up[index, :, :, :] .= getfield(rays, field)[
                 1:nray_max_up,
                 (i0 - 1):(i1 + 1),
                 (j0 - 1):(j1 + 1),
@@ -28,7 +28,7 @@ function set_vertical_halo_rays!(state::State)
             ]
         end
 
-        MPI.Sendrecv!(send_rays_up, recv_rays_up, comm; dest = up, source = up)
+        MPI.Sendrecv!(send_up, receive_up, comm; dest = up, source = up)
 
         for (index, field) in enumerate(fields)
             @views getfield(rays, field)[
@@ -36,11 +36,11 @@ function set_vertical_halo_rays!(state::State)
                 (i0 - 1):(i1 + 1),
                 (j0 - 1):(j1 + 1),
                 k1 + 1,
-            ] .= recv_rays_up[index, :, :, :]
+            ] .= receive_up[index, :, :, :]
         end
     elseif ko + nzz == sizezz
         for (index, field) in enumerate(fields)
-            @views send_rays_down[index, :, :, :] .= getfield(rays, field)[
+            @views send_down[index, :, :, :] .= getfield(rays, field)[
                 1:nray_max_down,
                 (i0 - 1):(i1 + 1),
                 (j0 - 1):(j1 + 1),
@@ -49,8 +49,8 @@ function set_vertical_halo_rays!(state::State)
         end
 
         MPI.Sendrecv!(
-            send_rays_down,
-            recv_rays_down,
+            send_down,
+            receive_down,
             comm;
             dest = down,
             source = down,
@@ -62,17 +62,17 @@ function set_vertical_halo_rays!(state::State)
                 (i0 - 1):(i1 + 1),
                 (j0 - 1):(j1 + 1),
                 k0 - 1,
-            ] .= recv_rays_down[index, :, :, :]
+            ] .= receive_down[index, :, :, :]
         end
     else
         for (index, field) in enumerate(fields)
-            @views send_rays_up[index, :, :, :] .= getfield(rays, field)[
+            @views send_up[index, :, :, :] .= getfield(rays, field)[
                 1:nray_max_up,
                 (i0 - 1):(i1 + 1),
                 (j0 - 1):(j1 + 1),
                 k1,
             ]
-            @views send_rays_down[index, :, :, :] .= getfield(rays, field)[
+            @views send_down[index, :, :, :] .= getfield(rays, field)[
                 1:nray_max_down,
                 (i0 - 1):(i1 + 1),
                 (j0 - 1):(j1 + 1),
@@ -81,16 +81,16 @@ function set_vertical_halo_rays!(state::State)
         end
 
         MPI.Sendrecv!(
-            send_rays_up,
-            recv_rays_down,
+            send_up,
+            receive_down,
             comm;
             dest = up,
             source = down,
         )
 
         MPI.Sendrecv!(
-            send_rays_down,
-            recv_rays_up,
+            send_down,
+            receive_up,
             comm;
             dest = down,
             source = up,
@@ -102,13 +102,13 @@ function set_vertical_halo_rays!(state::State)
                 (i0 - 1):(i1 + 1),
                 (j0 - 1):(j1 + 1),
                 k0 - 1,
-            ] .= recv_rays_down[index, :, :, :]
+            ] .= receive_down[index, :, :, :]
             @views getfield(rays, field)[
                 1:nray_max_down,
                 (i0 - 1):(i1 + 1),
                 (j0 - 1):(j1 + 1),
                 k1 + 1,
-            ] .= recv_rays_up[index, :, :, :]
+            ] .= receive_up[index, :, :, :]
         end
     end
 
