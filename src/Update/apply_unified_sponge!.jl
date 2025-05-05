@@ -108,7 +108,7 @@ function apply_unified_sponge!(
         for k in k0:k1
             @views local_sum[ko + k - k0 + 1] = sum(u[i0:i1, j0:j1, k])
         end
-        MPI.Allreduce!(local_sum, global_sum, .+, comm)
+        MPI.Allreduce!(local_sum, global_sum, +, comm)
         global_sum ./= (sizex .* sizey)
     else
         ubg = backgroundflow_dim[1] / uref
@@ -174,7 +174,7 @@ function apply_unified_sponge!(
         for k in k0:k1
             @views local_sum[ko + k - k0 + 1] = sum(v[i0:i1, j0:j1, k])
         end
-        MPI.Allreduce!(local_sum, global_sum, .+, comm)
+        MPI.Allreduce!(local_sum, global_sum, +, comm)
         global_sum ./= (sizex .* sizey)
     else
         vbg = backgroundflow_dim[2] / uref
@@ -241,7 +241,7 @@ function apply_unified_sponge!(
         for k in k0:k1
             @views local_sum[ko + k - k0 + 1] = sum(w[i0:i1, j0:j1, k])
         end
-        MPI.Allreduce!(local_sum, global_sum, .+, comm)
+        MPI.Allreduce!(local_sum, global_sum, +, comm)
         global_sum ./= (sizex .* sizey)
     else
         wbg = backgroundflow_dim[3] / uref
