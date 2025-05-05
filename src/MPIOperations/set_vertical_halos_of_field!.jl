@@ -6,52 +6,47 @@ function set_vertical_halos_of_field!(
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
     (; nbz) = namelists.domain
-    (; comm, sizezz, nzz, nx, ny, ko, i0, i1, j0, j1, k0, k1, down, up) = domain
+    (; comm, sizezz, nzz, ko, i0, i1, j0, j1, k0, k1, down, up) = domain
 
     nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
     nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
     nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    (send_up, send_down, receive_up, receive_down) =
-        (zeros(nx + 2 * nbx, ny + 2 * nby, nbz) for i in 1:4)
-
     i = (i0 - nbx):(i1 + nbx)
     j = (j0 - nby):(j1 + nby)
 
     if ko == 0
-        for k in 1:nbz
-            @views send_up[:, :, k] .= field[i, j, k1 - k + 1]
-        end
-
-        MPI.Sendrecv!(send_up, receive_up, comm; dest = up, source = up)
-
-        for k in 1:nbz
-            @views field[i, j, k1 + k] .= receive_up[:, :, k]
-        end
+        @views MPI.Sendrecv!(
+            field[i, j, (k1 - nbz + 1):k1],
+            field[i, j, (k1 + 1):(k1 + nbz)],
+            comm;
+            dest = up,
+            source = up,
+        )
     elseif ko + nzz == sizezz
-        for k in 1:nbz
-            @views send_down[:, :, k] .= field[i, j, k0 + k - 1]
-        end
-
-        MPI.Sendrecv!(send_down, receive_down, comm; dest = down, source = down)
-
-        for k in 1:nbz
-            @views field[i, j, k0 - k] .= receive_down[:, :, k]
-        end
+        @views MPI.Sendrecv!(
+            field[i, j, k0:(k0 + nbz - 1)],
+            field[i, j, (k0 - nbz):(k0 - 1)],
+            comm;
+            dest = down,
+            source = down,
+        )
     else
-        for k in 1:nbz
-            @views send_up[:, :, k] .= field[i, j, k1 - k + 1]
-            @views send_down[:, :, k] .= field[i, j, k0 + k - 1]
-        end
+        @views MPI.Sendrecv!(
+            field[i, j, (k1 - nbz + 1):k1],
+            field[i, j, (k0 - nbz):(k0 - 1)],
+            comm;
+            dest = up,
+            source = down,
+        )
 
-        MPI.Sendrecv!(send_up, receive_down, comm; dest = up, source = down)
-
-        MPI.Sendrecv!(send_down, receive_up, comm; dest = down, source = up)
-
-        for k in 1:nbz
-            @views field[i, j, k0 - k] .= receive_down[:, :, k]
-            @views field[i, j, k1 + k] .= receive_up[:, :, k]
-        end
+        @views MPI.Sendrecv!(
+            field[i, j, k0:(k0 + nbz - 1)],
+            field[i, j, (k1 + 1):(k1 + nbz)],
+            comm;
+            dest = down,
+            source = up,
+        )
     end
 
     return
@@ -65,52 +60,47 @@ function set_vertical_halos_of_field!(
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
     (; nbz) = namelists.domain
-    (; comm, sizezz, nzz, nx, ny, ko, i0, i1, j0, j1, k0, k1, down, up) = domain
+    (; comm, sizezz, nzz, ko, i0, i1, j0, j1, k0, k1, down, up) = domain
 
     nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
     nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
     nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    (send_up, send_down, receive_up, receive_down) =
-        (zeros(nx + 2 * nbx, ny + 2 * nby, nbz, 3, 2) for i in 1:4)
-
     i = (i0 - nbx):(i1 + nbx)
     j = (j0 - nby):(j1 + nby)
 
     if ko == 0
-        for k in 1:nbz
-            @views send_up[:, :, k, :, :] .= field[i, j, k1 - k + 1, :, :]
-        end
-
-        MPI.Sendrecv!(send_up, receive_up, comm; dest = up, source = up)
-
-        for k in 1:nbz
-            @views field[i, j, k1 + k, :, :] .= receive_up[:, :, k, :, :]
-        end
+        @views MPI.Sendrecv!(
+            field[i, j, (k1 - nbz + 1):k1, :, :],
+            field[i, j, (k1 + 1):(k1 + nbz), :, :],
+            comm;
+            dest = up,
+            source = up,
+        )
     elseif ko + nzz == sizezz
-        for k in 1:nbz
-            @views send_down[:, :, k, :, :] .= field[i, j, k0 + k - 1, :, :]
-        end
-
-        MPI.Sendrecv!(send_down, receive_down, comm; dest = down, source = down)
-
-        for k in 1:nbz
-            @views field[i, j, k0 - k, :, :] .= receive_down[:, :, k, :, :]
-        end
+        @views MPI.Sendrecv!(
+            field[i, j, k0:(k0 + nbz - 1), :, :],
+            field[i, j, (k0 - nbz):(k0 - 1), :, :],
+            comm;
+            dest = down,
+            source = down,
+        )
     else
-        for k in 1:nbz
-            @views send_up[:, :, k, :, :] .= field[i, j, k1 - k + 1, :, :]
-            @views send_down[:, :, k, :, :] .= field[i, j, k0 + k - 1, :, :]
-        end
+        @views MPI.Sendrecv!(
+            field[i, j, (k1 - nbz + 1):k1, :, :],
+            field[i, j, (k0 - nbz):(k0 - 1), :, :],
+            comm;
+            dest = up,
+            source = down,
+        )
 
-        MPI.Sendrecv!(send_up, receive_down, comm; dest = up, source = down)
-
-        MPI.Sendrecv!(send_down, receive_up, comm; dest = down, source = up)
-
-        for k in 1:nbz
-            @views field[i, j, k0 - k, :, :] .= receive_down[:, :, k, :, :]
-            @views field[i, j, k1 + k, :, :] .= receive_up[:, :, k, :, :]
-        end
+        @views MPI.Sendrecv!(
+            field[i, j, k0:(k0 + nbz - 1), :, :],
+            field[i, j, (k1 + 1):(k1 + nbz), :, :],
+            comm;
+            dest = down,
+            source = up,
+        )
     end
 
     return
