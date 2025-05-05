@@ -42,8 +42,8 @@ struct Domain{
     # Source and destination ranks for halos.
     left::C
     right::C
-    back::C
-    forw::C
+    backward::C
+    forward::C
     down::C
     up::C
 
@@ -134,7 +134,7 @@ function Domain(namelists::Namelists)
 
     # Find the neighbour processors.
     (left, right) = MPI.Cart_shift(comm, 0, 1)
-    (back, forw) = MPI.Cart_shift(comm, 1, 1)
+    (backward, forward) = MPI.Cart_shift(comm, 1, 1)
     (down, up) = MPI.Cart_shift(comm, 2, 1)
 
     # Initialize auxiliary arrays for horizontal averages.
@@ -166,8 +166,8 @@ function Domain(namelists::Namelists)
         k1,
         left,
         right,
-        back,
-        forw,
+        backward,
+        forward,
         down,
         up,
         local_sum,

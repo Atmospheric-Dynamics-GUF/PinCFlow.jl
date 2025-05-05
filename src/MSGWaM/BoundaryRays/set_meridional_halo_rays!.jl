@@ -1,32 +1,32 @@
 function set_meridional_halo_rays!(state::State)
-    (; comm, nx, nz, i0, i1, j0, j1, k0, k1, back, forw) = state.domain
+    (; comm, nx, nz, i0, i1, j0, j1, k0, k1, backward, forward) = state.domain
     (; nray, rays) = state.wkb
 
     fields = fieldnames(Rays)
 
-    @views nray_max_back =
+    @views nray_max_backward =
         maximum(nray[(i0 - 1):(i1 + 1), j0, (k0 - 1):(k1 + 1)])
-    @views nray_max_forw =
+    @views nray_max_forward =
         maximum(nray[(i0 - 1):(i1 + 1), j1, (k0 - 1):(k1 + 1)])
 
-    nray_max_back = MPI.Allreduce(nray_max_back, max, comm)
-    nray_max_forw = MPI.Allreduce(nray_max_forw, max, comm)
+    nray_max_backward = MPI.Allreduce(nray_max_backward, max, comm)
+    nray_max_forward = MPI.Allreduce(nray_max_forward, max, comm)
 
-    send_forw = zeros(length(fields), nray_max_forw, nx + 2, nz + 2)
-    send_back = zeros(length(fields), nray_max_back, nx + 2, nz + 2)
+    send_forward = zeros(length(fields), nray_max_forward, nx + 2, nz + 2)
+    send_backward = zeros(length(fields), nray_max_backward, nx + 2, nz + 2)
 
-    receive_back = zeros(length(fields), nray_max_forw, nx + 2, nz + 2)
-    receive_forw = zeros(length(fields), nray_max_back, nx + 2, nz + 2)
+    receive_backward = zeros(length(fields), nray_max_forward, nx + 2, nz + 2)
+    receive_forward = zeros(length(fields), nray_max_backward, nx + 2, nz + 2)
 
     for (index, field) in enumerate(fields)
-        @views send_forw[index, :, :, :] .= getfield(rays, field)[
-            1:nray_max_forw,
+        @views send_forward[index, :, :, :] .= getfield(rays, field)[
+            1:nray_max_forward,
             (i0 - 1):(i1 + 1),
             j1,
             (k0 - 1):(k1 + 1),
         ]
-        @views send_back[index, :, :, :] .= getfield(rays, field)[
-            1:nray_max_back,
+        @views send_backward[index, :, :, :] .= getfield(rays, field)[
+            1:nray_max_backward,
             (i0 - 1):(i1 + 1),
             j0,
             (k0 - 1):(k1 + 1),
@@ -34,34 +34,34 @@ function set_meridional_halo_rays!(state::State)
     end
 
     MPI.Sendrecv!(
-        send_forw,
-        receive_back,
+        send_forward,
+        receive_backward,
         comm;
-        dest = forw,
-        source = back,
+        dest = forward,
+        source = backward,
     )
 
     MPI.Sendrecv!(
-        send_back,
-        receive_forw,
+        send_backward,
+        receive_forward,
         comm;
-        dest = back,
-        source = forw,
+        dest = backward,
+        source = forward,
     )
 
     for (index, field) in enumerate(fields)
         @views getfield(rays, field)[
-            1:nray_max_forw,
+            1:nray_max_forward,
             (i0 - 1):(i1 + 1),
             j0 - 1,
             (k0 - 1):(k1 + 1),
-        ] .= receive_back[index, :, :, :]
+        ] .= receive_backward[index, :, :, :]
         @views getfield(rays, field)[
-            1:nray_max_back,
+            1:nray_max_backward,
             (i0 - 1):(i1 + 1),
             j1 + 1,
             (k0 - 1):(k1 + 1),
-        ] .= receive_forw[index, :, :, :]
+        ] .= receive_forward[index, :, :, :]
     end
 
     return
