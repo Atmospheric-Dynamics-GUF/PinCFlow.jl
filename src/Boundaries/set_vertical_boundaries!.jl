@@ -100,12 +100,13 @@ function set_vertical_boundaries!(
     (; integrals) = state.wkb
 
     for field in (:uw, :vw, :e)
-        set_vertical_boundaries_of_reduced_field!(
+        set_vertical_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
             domain,
             zboundaries,
-            +,
+            +;
+            layers = (1, 1, 1),
         )
     end
 
@@ -123,12 +124,13 @@ function set_vertical_boundaries!(
     (; integrals) = state.wkb
 
     for field in (:uu, :uv, :uw, :vv, :vw, :etx, :ety, :utheta, :vtheta, :e)
-        set_vertical_boundaries_of_reduced_field!(
+        set_vertical_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
             domain,
             zboundaries,
-            +,
+            +;
+            layers = (1, 1, 1),
         )
     end
 

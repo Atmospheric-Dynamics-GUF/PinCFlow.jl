@@ -10,11 +10,12 @@ function set_vertical_boundary_rays!(
 
     # Set ray-volume count and ray-volumes properties.
     if npz > 1
-        set_vertical_halos_of_reduced_field!(
+        set_vertical_halos_of_field!(
             nray,
             namelists,
             domain,
-            zboundaries,
+            zboundaries;
+            layers = (1, 1, 1),
         )
         set_vertical_halo_rays!(state)
     end

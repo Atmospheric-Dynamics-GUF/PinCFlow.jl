@@ -16,13 +16,10 @@ include("set_compressible_meridional_boundaries!.jl")
 include("set_compressible_vertical_boundaries!.jl")
 include("set_compressible_zonal_boundaries!.jl")
 include("set_meridional_boundaries_of_field!.jl")
-include("set_meridional_boundaries_of_reduced_field!.jl")
 include("set_meridional_boundaries!.jl")
 include("set_vertical_boundaries_of_field!.jl")
-include("set_vertical_boundaries_of_reduced_field!.jl")
 include("set_vertical_boundaries!.jl")
 include("set_zonal_boundaries_of_field!.jl")
-include("set_zonal_boundaries_of_reduced_field!.jl")
 include("set_zonal_boundaries!.jl")
 
 export BoundaryPredictands,
@@ -33,13 +30,10 @@ export BoundaryPredictands,
 
 export set_boundaries!,
     set_meridional_boundaries_of_field!,
-    set_meridional_boundaries_of_reduced_field!,
     set_meridional_boundaries!,
     set_vertical_boundaries_of_field!,
-    set_vertical_boundaries_of_reduced_field!,
     set_vertical_boundaries!,
     set_zonal_boundaries_of_field!,
-    set_zonal_boundaries_of_reduced_field!,
     set_zonal_boundaries!
 
 end

@@ -1,38 +1,33 @@
 function set_meridional_halos_of_field!(
-    field::AbstractArray{<:AbstractFloat, 3},
+    field::AbstractArray{<:Real, 3},
     namelists::Namelists,
-    domain::Domain,
+    domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
+    (; comm, i0, i1, j0, j1, k0, k1, backward, forward) = domain
 
-    # Get all necessary fields.
-    (; nby) = namelists.domain
-    (;
-        comm,
-        j0,
-        j1,
-        back,
-        forw,
-        send_f3_back,
-        send_f3_forw,
-        recv_f3_back,
-        recv_f3_forw,
-    ) = domain
+    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    # Read slice into auxiliary array.
-    for j in 1:nby
-        @views send_f3_forw[:, j, :] .= field[:, j1 - j + 1, :]
-        @views send_f3_back[:, j, :] .= field[:, j0 + j - 1, :]
-    end
+    i = (i0 - nbx):(i1 + nbx)
+    k = (k0 - nbz):(k1 + nbz)
 
-    MPI.Sendrecv!(send_f3_forw, recv_f3_back, comm; dest = forw, source = back)
+    @views MPI.Sendrecv!(
+        field[i, (j1 - nby + 1):j1, k],
+        field[i, (j0 - nby):(j0 - 1), k],
+        comm;
+        dest = forward,
+        source = backward,
+    )
 
-    MPI.Sendrecv!(send_f3_back, recv_f3_forw, comm; dest = back, source = forw)
-
-    # Write auxiliary slice to field.
-    for j in 1:nby
-        @views field[:, j0 - j, :] .= recv_f3_back[:, j, :]
-        @views field[:, j1 + j, :] .= recv_f3_forw[:, j, :]
-    end
+    @views MPI.Sendrecv!(
+        field[i, j0:(j0 + nby - 1), k],
+        field[i, (j1 + 1):(j1 + nby), k],
+        comm;
+        dest = backward,
+        source = forward,
+    )
 
     return
 end
@@ -40,38 +35,33 @@ end
 function set_meridional_halos_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,
-    domain::Domain,
+    domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
 )
+    (; comm, i0, i1, j0, j1, k0, k1, backward, forward) = domain
 
-    # Get all necessary fields.
-    (; nby) = namelists.domain
-    (;
-        comm,
-        j0,
-        j1,
-        back,
-        forw,
-        send_f5_back,
-        send_f5_forw,
-        recv_f5_back,
-        recv_f5_forw,
-    ) = domain
+    nbx = layers[1] == -1 ? namelists.domain.nbx : layers[1]
+    nby = layers[2] == -1 ? namelists.domain.nby : layers[2]
+    nbz = layers[3] == -1 ? namelists.domain.nbz : layers[3]
 
-    # Read slice into auxiliary array.
-    for j in 1:nby
-        @views send_f5_forw[:, j, :, :, :] .= field[:, j1 - j + 1, :, :, :]
-        @views send_f5_back[:, j, :, :, :] .= field[:, j0 + j - 1, :, :, :]
-    end
+    i = (i0 - nbx):(i1 + nbx)
+    k = (k0 - nbz):(k1 + nbz)
 
-    MPI.Sendrecv!(send_f5_forw, recv_f5_back, comm; dest = forw, source = back)
+    @views MPI.Sendrecv!(
+        field[i, (j1 - nby + 1):j1, k, :, :],
+        field[i, (j0 - nby):(j0 - 1), k, :, :],
+        comm;
+        dest = forward,
+        source = backward,
+    )
 
-    MPI.Sendrecv!(send_f5_back, recv_f5_forw, comm; dest = back, source = forw)
-
-    # Write auxiliary slice to field.
-    for j in 1:nby
-        @views field[:, j0 - j, :, :, :] .= recv_f5_back[:, j, :, :, :]
-        @views field[:, j1 + j, :, :, :] .= recv_f5_forw[:, j, :, :, :]
-    end
+    @views MPI.Sendrecv!(
+        field[i, j0:(j0 + nby - 1), k, :, :],
+        field[i, (j1 + 1):(j1 + nby), k, :, :],
+        comm;
+        dest = backward,
+        source = forward,
+    )
 
     return
 end

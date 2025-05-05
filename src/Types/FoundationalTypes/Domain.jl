@@ -2,16 +2,7 @@ struct Domain{
     A <: MPI.Comm,
     B <: Bool,
     C <: Integer,
-    D <: AbstractArray{<:AbstractFloat, 3},
-    E <: AbstractArray{<:AbstractFloat, 5},
-    F <: AbstractArray{<:AbstractFloat, 3},
-    G <: AbstractArray{<:AbstractFloat, 5},
-    H <: AbstractArray{<:AbstractFloat, 3},
-    I <: AbstractArray{<:AbstractFloat, 5},
-    J <: AbstractMatrix{<:AbstractFloat},
-    K <: AbstractMatrix{<:AbstractFloat},
-    L <: AbstractMatrix{<:AbstractFloat},
-    M <: AbstractVector{<:AbstractFloat},
+    D <: AbstractVector{<:AbstractFloat},
 }
 
     # MPI variables.
@@ -51,54 +42,14 @@ struct Domain{
     # Source and destination ranks for halos.
     left::C
     right::C
-    back::C
-    forw::C
+    backward::C
+    forward::C
     down::C
     up::C
 
-    # Auxiliary arrays for setting halos of a field.
-    send_f3_left::D
-    send_f3_right::D
-    recv_f3_left::D
-    recv_f3_right::D
-    send_f5_left::E
-    send_f5_right::E
-    recv_f5_left::E
-    recv_f5_right::E
-    send_f3_back::F
-    send_f3_forw::F
-    recv_f3_back::F
-    recv_f3_forw::F
-    send_f5_back::G
-    send_f5_forw::G
-    recv_f5_back::G
-    recv_f5_forw::G
-    send_f3_down::H
-    send_f3_up::H
-    recv_f3_down::H
-    recv_f3_up::H
-    send_f5_down::I
-    send_f5_up::I
-    recv_f5_down::I
-    recv_f5_up::I
-
-    # Auxiliary arrays for setting halos of a reduced field.
-    send_rf3_left::J
-    send_rf3_right::J
-    recv_rf3_left::J
-    recv_rf3_right::J
-    send_rf3_back::K
-    send_rf3_forw::K
-    recv_rf3_back::K
-    recv_rf3_forw::K
-    send_rf3_down::L
-    send_rf3_up::L
-    recv_rf3_down::L
-    recv_rf3_up::L
-
-    # Auxiliary arrays for horizontal averaging.
-    local_sum::M
-    global_sum::M
+    # Auxiliary arrays for horizontal averages.
+    local_sum::D
+    global_sum::D
 end
 
 function Domain(namelists::Namelists)
@@ -183,32 +134,10 @@ function Domain(namelists::Namelists)
 
     # Find the neighbour processors.
     (left, right) = MPI.Cart_shift(comm, 0, 1)
-    (back, forw) = MPI.Cart_shift(comm, 1, 1)
+    (backward, forward) = MPI.Cart_shift(comm, 1, 1)
     (down, up) = MPI.Cart_shift(comm, 2, 1)
 
-    # Initialize auxiliary arrays for setting all halo layers.
-    (send_f3_left, send_f3_right, recv_f3_left, recv_f3_right) =
-        (zeros(nbx, nyy, nzz) for i in 1:4)
-    (send_f5_left, send_f5_right, recv_f5_left, recv_f5_right) =
-        (zeros(nbx, nyy, nzz, 3, 2) for i in 1:4)
-    (send_f3_back, send_f3_forw, recv_f3_back, recv_f3_forw) =
-        (zeros(nxx, nby, nzz) for i in 1:4)
-    (send_f5_back, send_f5_forw, recv_f5_back, recv_f5_forw) =
-        (zeros(nxx, nby, nzz, 3, 2) for i in 1:4)
-    (send_f3_down, send_f3_up, recv_f3_down, recv_f3_up) =
-        (zeros(nxx, nyy, nbz) for i in 1:4)
-    (send_f5_down, send_f5_up, recv_f5_down, recv_f5_up) =
-        (zeros(nxx, nyy, nbz, 3, 2) for i in 1:4)
-
-    # Initialize auxiliary arrays for setting one halo layer.
-    (send_rf3_left, send_rf3_right, recv_rf3_left, recv_rf3_right) =
-        (zeros(ny + 2, nz + 2) for i in 1:4)
-    (send_rf3_back, send_rf3_forw, recv_rf3_back, recv_rf3_forw) =
-        (zeros(nx + 2, nz + 2) for i in 1:4)
-    (send_rf3_down, send_rf3_up, recv_rf3_down, recv_rf3_up) =
-        (zeros(nx + 2, ny + 2) for i in 1:4)
-
-    # Initialize auxiliary arrays for horizontal averaging.
+    # Initialize auxiliary arrays for horizontal averages.
     (local_sum, global_sum) = (zeros(sizez) for i in 1:2)
 
     # Return Domain instance.
@@ -237,46 +166,10 @@ function Domain(namelists::Namelists)
         k1,
         left,
         right,
-        back,
-        forw,
+        backward,
+        forward,
         down,
         up,
-        send_f3_left,
-        send_f3_right,
-        recv_f3_left,
-        recv_f3_right,
-        send_f5_left,
-        send_f5_right,
-        recv_f5_left,
-        recv_f5_right,
-        send_f3_back,
-        send_f3_forw,
-        recv_f3_back,
-        recv_f3_forw,
-        send_f5_back,
-        send_f5_forw,
-        recv_f5_back,
-        recv_f5_forw,
-        send_f3_down,
-        send_f3_up,
-        recv_f3_down,
-        recv_f3_up,
-        send_f5_down,
-        send_f5_up,
-        recv_f5_down,
-        recv_f5_up,
-        send_rf3_left,
-        send_rf3_right,
-        recv_rf3_left,
-        recv_rf3_right,
-        send_rf3_back,
-        send_rf3_forw,
-        recv_rf3_back,
-        recv_rf3_forw,
-        send_rf3_down,
-        send_rf3_up,
-        recv_rf3_down,
-        recv_rf3_up,
         local_sum,
         global_sum,
     )
