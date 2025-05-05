@@ -32,8 +32,8 @@ function apply_preconditioner!(
             @views s_pc[:, :, 1] .=
                 s_pc[:, :, 1] ./ (1.0 .- deta .* ac_b[:, :, 1])
         else
-            MPI.Recv!(q_pc_bc, comm; source = down)
-            MPI.Recv!(s_pc_bc, comm; source = down)
+            MPI.Recv!(q_pc_bc, comm; source = down, tag = 1)
+            MPI.Recv!(s_pc_bc, comm; source = down, tag = 2)
 
             @views p_pc .=
                 1.0 ./ (
@@ -63,8 +63,8 @@ function apply_preconditioner!(
             @views q_pc_bc .= q_pc[:, :, nz]
             @views s_pc_bc .= s_pc[:, :, nz]
 
-            MPI.Send(q_pc_bc, comm; dest = up)
-            MPI.Send(s_pc_bc, comm; dest = up)
+            MPI.Send(q_pc_bc, comm; dest = up, tag = 1)
+            MPI.Send(s_pc_bc, comm; dest = up, tag = 2)
 
             MPI.Recv!(s_pc_bc, comm; source = up)
 
