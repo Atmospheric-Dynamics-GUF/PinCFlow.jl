@@ -42,14 +42,30 @@ function apply_operator!(
     s[i0:i1, j0:j1, k0:k1] .= sin
 
     # Set boundaries of auxiliary field.
-    set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
-    set_meridional_boundaries_of_field!(
-        s,
-        namelists,
-        domain;
-        layers = (1, 1, 1),
-    )
-    npz > 1 && set_vertical_halos_of_field!(s, namelists, domain, zboundaries)
+    if npz > 1
+        set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 2))
+        set_meridional_boundaries_of_field!(
+            s,
+            namelists,
+            domain;
+            layers = (1, 1, 2),
+        )
+        set_vertical_halos_of_field!(
+            s,
+            namelists,
+            domain,
+            zboundaries;
+            layers = (1, 1, 2),
+        )
+    else
+        set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
+        set_meridional_boundaries_of_field!(
+            s,
+            namelists,
+            domain;
+            layers = (1, 1, 1),
+        )
+    end
 
     #---------------------------------
     #         Loop over field
@@ -257,14 +273,30 @@ function apply_operator!(
     s[i0:i1, j0:j1, k0:k1] .= sin
 
     # Set boundaries of auxiliary field.
-    set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
-    set_meridional_boundaries_of_field!(
-        s,
-        namelists,
-        domain;
-        layers = (1, 1, 1),
-    )
-    npz > 1 && set_vertical_halos_of_field!(s, namelists, domain, zboundaries)
+    if npz > 1
+        set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 2))
+        set_meridional_boundaries_of_field!(
+            s,
+            namelists,
+            domain;
+            layers = (1, 1, 2),
+        )
+        set_vertical_halos_of_field!(
+            s,
+            namelists,
+            domain,
+            zboundaries;
+            layers = (1, 1, 2),
+        )
+    else
+        set_zonal_boundaries_of_field!(s, namelists, domain; layers = (1, 1, 1))
+        set_meridional_boundaries_of_field!(
+            s,
+            namelists,
+            domain;
+            layers = (1, 1, 1),
+        )
+    end
 
     #---------------------------------
     #         Loop over field
