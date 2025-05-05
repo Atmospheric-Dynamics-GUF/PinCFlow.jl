@@ -252,7 +252,7 @@ function compute_fluxes!(
     # Get all necessary fields.
     (; grid) = state
     (; re) = state.constants
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
     (; pstrattfc, rhostrattfc) = state.atmosphere
     (; utilde) = state.variables.reconstructions
@@ -262,11 +262,14 @@ function compute_fluxes!(
     # Get old wind.
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
+    kz0 = k0
+    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+
     #-----------------------------------------
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in j0:j1, i in (i0 - 2):i1
+    for k in kz0:kz1, j in j0:j1, i in (i0 - 2):i1
         # The uTilde are the reconstructed specific momenta, divided by P.
         # These are to be multiplied by the linearly interpolated velocities
         # (times P) in order to obtain the desired momentum fluxes.
@@ -295,7 +298,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
         # The uTilde are the reconstructed specific momenta, divided by P.
         # These are to be multiplied by the linearly interpolated velocities
         # (times P) in order to obtain the desired momentum fluxes.
@@ -324,7 +327,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+    for k in (kz0 - 1):kz1, j in j0:j1, i in (i0 - 1):i1
         # The uTilde are the reconstructed specific momenta, divided by P.
         # These are to be multiplied by the linearly interpolated velocities
         # (times P) in order to obtain the desired momentum fluxes.
@@ -361,7 +364,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in j0:j1, i in (i0 - 2):i1
+    for k in kz0:kz1, j in j0:j1, i in (i0 - 2):i1
         coef_v = 1 / re * rhostrattfc[i + 1, j, 1]
 
         frhou_visc =
@@ -376,7 +379,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_v =
             1 / re *
             0.25 *
@@ -408,7 +411,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
+    for k in (kz0 - 1):kz1, j in j0:j1, i in (i0 - 1):i1
         coef_v =
             1 / re * 0.5 * (rhostrattfc[i, j, 1] + rhostrattfc[i + 1, j, 1])
 
@@ -470,7 +473,7 @@ function compute_fluxes!(
     # Get all necessary fields.
     (; grid) = state
     (; re) = state.constants
-    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met) = grid
     (; pstrattfc, rhostrattfc) = state.atmosphere
     (; vtilde) = state.variables.reconstructions
@@ -480,11 +483,14 @@ function compute_fluxes!(
     # Get old wind.
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
+    kz0 = k0
+    kz1 = ko + nzz == sizezz ? k1 : k1 + 1
+
     #-----------------------------------------
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
         # The vTilde are the reconstructed specific momenta, divided by P.
         # These are to be multiplied by the linearly interpolated velocities
         # (times P) in order to obtain the desired momentum fluxes.
@@ -513,7 +519,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in (j0 - 2):j1, i in i0:i1
+    for k in kz0:kz1, j in (j0 - 2):j1, i in i0:i1
         # The vTilde are the reconstructed specific momenta, divided by P.
         # These are to be multiplied by the linearly interpolated velocities
         # (times P) in order to obtain the desired momentum fluxes.
@@ -542,7 +548,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+    for k in (kz0 - 1):kz1, j in (j0 - 1):j1, i in i0:i1
         # The vTilde are the reconstructed specific momenta, divided by P.
         # These are to be multiplied by the linearly interpolated velocities
         # (times P) in order to obtain the desired momentum fluxes.
@@ -579,7 +585,7 @@ function compute_fluxes!(
     #             Zonal fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in (j0 - 1):j1, i in (i0 - 1):i1
+    for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_v =
             1 / re *
             0.25 *
@@ -611,7 +617,7 @@ function compute_fluxes!(
     #           Meridional fluxes
     #-----------------------------------------
 
-    for k in k0:k1, j in (j0 - 2):j1, i in i0:i1
+    for k in kz0:kz1, j in (j0 - 2):j1, i in i0:i1
         coef_v = 1 / re * rhostrattfc[i, j + 1, 1]
 
         grhov_visc =
@@ -626,7 +632,7 @@ function compute_fluxes!(
     #            Vertical fluxes
     #-----------------------------------------
 
-    for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
+    for k in (kz0 - 1):kz1, j in (j0 - 1):j1, i in i0:i1
         coef_v =
             1 / re * 0.5 * (rhostrattfc[i, j, 1] + rhostrattfc[i, j + 1, 1])
 
