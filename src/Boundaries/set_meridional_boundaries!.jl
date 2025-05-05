@@ -3,15 +3,16 @@ function set_meridional_boundaries!(
     variables::BoundaryPredictands,
 )
     (; namelists, domain) = state
-    (; rho, rhop, u, v, w, pip) = state.variables.predictands
+    (; predictands) = state.variables
     (; model) = namelists.setting
 
-    set_meridional_boundaries_of_field!(rho, namelists, domain)
-    set_meridional_boundaries_of_field!(rhop, namelists, domain)
-    set_meridional_boundaries_of_field!(u, namelists, domain)
-    set_meridional_boundaries_of_field!(v, namelists, domain)
-    set_meridional_boundaries_of_field!(w, namelists, domain)
-    set_meridional_boundaries_of_field!(pip, namelists, domain)
+    for field in (:rho, :rhop, :u, :v, :w, :pip)
+        set_meridional_boundaries_of_field!(
+            getfield(predictands, field),
+            namelists,
+            domain,
+        )
+    end
 
     set_compressible_meridional_boundaries!(state, model)
 
@@ -23,14 +24,15 @@ function set_meridional_boundaries!(
     variables::BoundaryReconstructions,
 )
     (; namelists, domain) = state
-    (; rhotilde, rhoptilde, utilde, vtilde, wtilde) =
-        state.variables.reconstructions
+    (; reconstructions) = state.variables
 
-    set_meridional_boundaries_of_field!(rhotilde, namelists, domain)
-    set_meridional_boundaries_of_field!(rhoptilde, namelists, domain)
-    set_meridional_boundaries_of_field!(utilde, namelists, domain)
-    set_meridional_boundaries_of_field!(vtilde, namelists, domain)
-    set_meridional_boundaries_of_field!(wtilde, namelists, domain)
+    for field in fieldnames(Reconstructions)
+        set_meridional_boundaries_of_field!(
+            getfield(reconstructions, field),
+            namelists,
+            domain,
+        )
+    end
 
     return
 end
@@ -50,13 +52,15 @@ function set_meridional_boundaries!(
     wkb_mode::AbstractWKBMode,
 )
     (; namelists, domain) = state
-    (; uw, vw, e) = state.wkb.integrals
+    (; integrals) = state.wkb
 
-    set_meridional_boundaries_of_reduced_field!(uw, namelists, domain)
-    set_meridional_boundaries_of_reduced_field!(vw, namelists, domain)
-
-    # This one might be unnecessary.
-    set_meridional_boundaries_of_reduced_field!(e, namelists, domain)
+    for field in (:uw, :vw, :e)
+        set_meridional_boundaries_of_reduced_field!(
+            getfield(integrals, field),
+            namelists,
+            domain,
+        )
+    end
 
     return
 end
@@ -67,20 +71,15 @@ function set_meridional_boundaries!(
     wkb_mode::MultiColumn,
 )
     (; namelists, domain) = state
-    (; uu, uv, uw, vv, vw, etx, ety, e, utheta, vtheta) = state.wkb.integrals
+    (; integrals) = state.wkb
 
-    set_meridional_boundaries_of_reduced_field!(uu, namelists, domain)
-    set_meridional_boundaries_of_reduced_field!(uv, namelists, domain)
-    set_meridional_boundaries_of_reduced_field!(uw, namelists, domain)
-    set_meridional_boundaries_of_reduced_field!(vv, namelists, domain)
-    set_meridional_boundaries_of_reduced_field!(vw, namelists, domain)
-
-    # These might be unnecessary.
-    set_meridional_boundaries_of_reduced_field!(e, namelists, domain)
-    set_meridional_boundaries_of_reduced_field!(etx, namelists, domain)
-    set_meridional_boundaries_of_reduced_field!(ety, namelists, domain)
-    set_meridional_boundaries_of_reduced_field!(utheta, namelists, domain)
-    set_meridional_boundaries_of_reduced_field!(vtheta, namelists, domain)
+    for field in (:uu, :uv, :uw, :vv, :vw, :etx, :ety, :utheta, :vtheta, :e)
+        set_meridional_boundaries_of_reduced_field!(
+            getfield(integrals, field),
+            namelists,
+            domain,
+        )
+    end
 
     return
 end
@@ -100,10 +99,15 @@ function set_meridional_boundaries!(
     wkb_mode::AbstractWKBMode,
 )
     (; namelists, domain) = state
-    (; dudt, dvdt) = state.wkb.tendencies
+    (; tendencies) = state.wkb
 
-    set_meridional_boundaries_of_field!(dudt, namelists, domain)
-    set_meridional_boundaries_of_field!(dvdt, namelists, domain)
+    for field in (:dudt, :dvdt)
+        set_meridional_boundaries_of_field!(
+            getfield(tendencies, field),
+            namelists,
+            domain,
+        )
+    end
 
     return
 end
@@ -114,11 +118,15 @@ function set_meridional_boundaries!(
     wkb_mode::MultiColumn,
 )
     (; namelists, domain) = state
-    (; dudt, dvdt, dthetadt) = state.wkb.tendencies
+    (; tendencies) = state.wkb
 
-    set_meridional_boundaries_of_field!(dudt, namelists, domain)
-    set_meridional_boundaries_of_field!(dvdt, namelists, domain)
-    set_meridional_boundaries_of_field!(dthetadt, namelists, domain)
+    for field in (:dudt, :dvdt, :dthetadt)
+        set_meridional_boundaries_of_field!(
+            getfield(tendencies, field),
+            namelists,
+            domain,
+        )
+    end
 
     return
 end

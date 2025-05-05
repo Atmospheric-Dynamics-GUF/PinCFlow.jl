@@ -9,10 +9,11 @@ function set_meridional_boundaries_of_reduced_field!(
     if npy > 1
         set_meridional_halos_of_reduced_field!(field, domain)
     else
-        @views field[(i0 - 1):(i1 + 1), j0 - 1, (k0 - 1):(k1 + 1)] .=
-            field[(i0 - 1):(i1 + 1), j1, (k0 - 1):(k1 + 1)]
-        @views field[(i0 - 1):(i1 + 1), j1 + 1, (k0 - 1):(k1 + 1)] .=
-            field[(i0 - 1):(i1 + 1), j0, (k0 - 1):(k1 + 1)]
+        ix = (i0 - 1):(i1 + 1)
+        kz = (k0 - 1):(k1 + 1)
+
+        @views field[ix, j0 - 1, kz] .= field[ix, j1, kz]
+        @views field[ix, j1 + 1, kz] .= field[ix, j0, kz]
     end
 
     return
