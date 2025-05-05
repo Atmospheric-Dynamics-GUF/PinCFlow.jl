@@ -25,8 +25,13 @@ function apply_corrector!(
     end
 
     # Set boundaries of pressure correction.
-    set_zonal_boundaries_of_reduced_field!(dpip, namelists, domain)
-    set_meridional_boundaries_of_reduced_field!(dpip, namelists, domain)
+    set_zonal_boundaries_of_field!(dpip, namelists, domain; layers = (1, 1, 1))
+    set_meridional_boundaries_of_field!(
+        dpip,
+        namelists,
+        domain;
+        layers = (1, 1, 1),
+    )
     set_vertical_boundaries_of_field!(dpip, namelists, domain, zboundaries, +)
 
     # Correct momentum and buoyancy.
