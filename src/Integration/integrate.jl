@@ -28,7 +28,7 @@ function integrate(namelists::Namelists)
     machine_start_time = now()
 
     # Get all necessary fields.
-    (; npx, npy) = state.namelists.domain
+    (; npx, npy, npz) = state.namelists.domain
     (; initialcleaning) = state.namelists.poisson
     (; dtmin_dim) = state.namelists.discretization
     (; restart, maxtime, outputtimediff, output_steps, maxiter, noutput) =
@@ -51,7 +51,7 @@ function integrate(namelists::Namelists)
         println("Date: ", Dates.Date(machine_start_time))
         println("Time: ", Dates.Time(machine_start_time))
         println("")
-        println("Virtual topology: (npx, npy) = ", (npx, npy))
+        println("Virtual topology: (npx, npy, npz) = ", (npx, npy, npz))
         println("")
     end
 
