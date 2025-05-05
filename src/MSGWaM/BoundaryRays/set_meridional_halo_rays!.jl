@@ -12,20 +12,20 @@ function set_meridional_halo_rays!(state::State)
     nray_max_back = MPI.Allreduce(nray_max_back, max, comm)
     nray_max_forw = MPI.Allreduce(nray_max_forw, max, comm)
 
-    send_rays_forw = zeros(length(fields), nray_max_forw, nx + 2, nz + 2)
-    send_rays_back = zeros(length(fields), nray_max_back, nx + 2, nz + 2)
+    send_forw = zeros(length(fields), nray_max_forw, nx + 2, nz + 2)
+    send_back = zeros(length(fields), nray_max_back, nx + 2, nz + 2)
 
-    recv_rays_back = zeros(length(fields), nray_max_forw, nx + 2, nz + 2)
-    recv_rays_forw = zeros(length(fields), nray_max_back, nx + 2, nz + 2)
+    receive_back = zeros(length(fields), nray_max_forw, nx + 2, nz + 2)
+    receive_forw = zeros(length(fields), nray_max_back, nx + 2, nz + 2)
 
     for (index, field) in enumerate(fields)
-        @views send_rays_forw[index, :, :, :] .= getfield(rays, field)[
+        @views send_forw[index, :, :, :] .= getfield(rays, field)[
             1:nray_max_forw,
             (i0 - 1):(i1 + 1),
             j1,
             (k0 - 1):(k1 + 1),
         ]
-        @views send_rays_back[index, :, :, :] .= getfield(rays, field)[
+        @views send_back[index, :, :, :] .= getfield(rays, field)[
             1:nray_max_back,
             (i0 - 1):(i1 + 1),
             j0,
@@ -34,16 +34,16 @@ function set_meridional_halo_rays!(state::State)
     end
 
     MPI.Sendrecv!(
-        send_rays_forw,
-        recv_rays_back,
+        send_forw,
+        receive_back,
         comm;
         dest = forw,
         source = back,
     )
 
     MPI.Sendrecv!(
-        send_rays_back,
-        recv_rays_forw,
+        send_back,
+        receive_forw,
         comm;
         dest = back,
         source = forw,
@@ -55,13 +55,13 @@ function set_meridional_halo_rays!(state::State)
             (i0 - 1):(i1 + 1),
             j0 - 1,
             (k0 - 1):(k1 + 1),
-        ] .= recv_rays_back[index, :, :, :]
+        ] .= receive_back[index, :, :, :]
         @views getfield(rays, field)[
             1:nray_max_back,
             (i0 - 1):(i1 + 1),
             j1 + 1,
             (k0 - 1):(k1 + 1),
-        ] .= recv_rays_forw[index, :, :, :]
+        ] .= receive_forw[index, :, :, :]
     end
 
     return
