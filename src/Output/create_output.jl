@@ -198,8 +198,8 @@ function create_output(state::State)
                         field,
                         datatype(Float32),
                         dataspace(
-                            (nray_max, sizex, sizey, sizez + 2, 0),
-                            (nray_max, sizex, sizey, sizez + 2, -1),
+                            (nray_max, sizex, sizey, sizez + 1, 0),
+                            (nray_max, sizex, sizey, sizez + 1, -1),
                         );
                         chunk = (cr, cx, cy, cz, ct),
                     )
