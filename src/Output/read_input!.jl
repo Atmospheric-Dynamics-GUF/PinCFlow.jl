@@ -85,7 +85,6 @@ function read_input!(state::State)
         # Read ray-volume properties.
         if typeof(testcase) <: AbstractWKBTestCase
             dk0 = ko == 0 ? 1 : 0
-            dk1 = ko + nzz == sizezz ? 1 : 0
 
             for (output_name, field_name) in zip(
                 ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
@@ -95,13 +94,13 @@ function read_input!(state::State)
                     1:nray_max,
                     i0:i1,
                     j0:j1,
-                    (k0 - dk0):(k1 + dk1),
+                    (k0 - dk0):k1,
                 ] =
                     file[output_name][
                         1:nray_max,
                         (io + 1):(io + nx),
                         (jo + 1):(jo + ny),
-                        (ko + 2 - dk0):(ko + nz + 1 + dk1),
+                        (ko + 2 - dk0):(ko + nz + 1),
                         iin,
                     ] ./ lref
             end
@@ -114,28 +113,28 @@ function read_input!(state::State)
                     1:nray_max,
                     i0:i1,
                     j0:j1,
-                    (k0 - dk0):(k1 + dk1),
+                    (k0 - dk0):k1,
                 ] =
                     file[output_name][
                         1:nray_max,
                         (io + 1):(io + nx),
                         (jo + 1):(jo + ny),
-                        (ko + 2 - dk0):(ko + nz + 1 + dk1),
+                        (ko + 2 - dk0):(ko + nz + 1),
                         iin,
                     ] .* lref
             end
 
-            @views rays.dens[1:nray_max, i0:i1, j0:j1, (k0 - dk0):(k1 + dk1)] =
+            @views rays.dens[1:nray_max, i0:i1, j0:j1, (k0 - dk0):k1] =
                 file["nr"][
                     1:nray_max,
                     (io + 1):(io + nx),
                     (jo + 1):(jo + ny),
-                    (ko + 2 - dk0):(ko + nz + 1 + dk1),
+                    (ko + 2 - dk0):(ko + nz + 1),
                     iin,
                 ] ./ rhoref ./ uref .^ 2 ./ tref ./ lref .^ dim
 
             # Determine nray.
-            for kz in (k0 - dk0):(k1 + dk1), jy in j0:j1, ix in i0:i1
+            for kz in (k0 - dk0):k1, jy in j0:j1, ix in i0:i1
                 nrlc = 0
                 for iray in 1:nray_max
                     if rays.dens[iray, ix, jy, kz] == 0
