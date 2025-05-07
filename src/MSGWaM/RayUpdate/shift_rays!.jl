@@ -142,24 +142,22 @@ function shift_rays!(state::State, direction::Z)
             zr = rays.z[iray, ixrv, jyrv, kzrv]
             kz = get_next_half_level(ixrv, jyrv, zr, domain, grid)
 
-            if kz > kz1
-                kz = kz1
-            end
-            if kz < kz0
-                kz = kz0
-            end
-
             if kz != kzrv
-                nray[ixrv, jyrv, kz] += 1
-                jray = nray[ixrv, jyrv, kz]
-                if jray > nray_wrk
-                    error("Error in shift_rays!: nray > nray_wrk!")
+                if abs(kz - kzrv) > 1
+                    error("Error in shift_rays!: abs(kz - kzrv) > 1!")
                 end
-                copy_rays!(
-                    rays,
-                    (iray, ixrv, jyrv, kzrv),
-                    (jray, ixrv, jyrv, kz),
-                )
+                if k0 <= kz <= k1
+                    nray[ixrv, jyrv, kz] += 1
+                    jray = nray[ixrv, jyrv, kz]
+                    if jray > nray_wrk
+                        error("Error in shift_rays!: nray > nray_wrk!")
+                    end
+                    copy_rays!(
+                        rays,
+                        (iray, ixrv, jyrv, kzrv),
+                        (jray, ixrv, jyrv, kz),
+                    )
+                end
                 rays.dens[iray, ixrv, jyrv, kzrv] = 0.0
             end
         end
