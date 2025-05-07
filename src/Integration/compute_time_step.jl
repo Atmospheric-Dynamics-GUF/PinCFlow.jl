@@ -83,10 +83,11 @@ function compute_time_step(state::State)
         if typeof(testcase) <: AbstractWKBTestCase
             dtwkb_loc = jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps())
 
-            for kz in (k0 - 1):(k1), jy in j0:j1, ix in i0:i1
-                dtwkb_loc = min(
+            for kz in (k0 - 1):k1, jy in j0:j1, ix in i0:i1
+                @views dtwkb_loc = min(
                     dtwkb_loc,
-                    jac[ix, jy, kz] * dz / (cgz_max[ix, jy, kz] + eps()),
+                    minimum(jac[ix, jy, (kz - 1):(kz + 1)]) * dz /
+                    (cgz_max[ix, jy, kz] + eps()),
                 )
             end
 
