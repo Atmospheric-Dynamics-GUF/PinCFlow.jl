@@ -317,7 +317,6 @@ function write_output(
             # Write ray-volume properties.
             if prepare_restart || save_ray_volumes
                 dk0 = ko == 0 ? 1 : 0
-                dk1 = ko + nzz == sizezz ? 1 : 0
 
                 for (output_name, field_name) in zip(
                     ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
@@ -325,20 +324,20 @@ function write_output(
                 )
                     HDF5.set_extent_dims(
                         file[output_name],
-                        (nray_max, sizex, sizey, sizez + 2, iout),
+                        (nray_max, sizex, sizey, sizez + 1, iout),
                     )
                     @views file[output_name][
                         1:nray_max,
                         (io + 1):(io + nx),
                         (jo + 1):(jo + ny),
-                        (ko + 2 - dk0):(ko + nz + 1 + dk1),
+                        (ko + 2 - dk0):(ko + nz + 1),
                         iout,
                     ] =
                         getfield(rays, field_name)[
                             1:nray_max,
                             i0:i1,
                             j0:j1,
-                            (k0 - dk0):(k1 + dk1),
+                            (k0 - dk0):k1,
                         ] .* lref
                 end
 
@@ -348,40 +347,36 @@ function write_output(
                 )
                     HDF5.set_extent_dims(
                         file[output_name],
-                        (nray_max, sizex, sizey, sizez + 2, iout),
+                        (nray_max, sizex, sizey, sizez + 1, iout),
                     )
                     @views file[output_name][
                         1:nray_max,
                         (io + 1):(io + nx),
                         (jo + 1):(jo + ny),
-                        (ko + 2 - dk0):(ko + nz + 1 + dk1),
+                        (ko + 2 - dk0):(ko + nz + 1),
                         iout,
                     ] =
                         getfield(rays, field_name)[
                             1:nray_max,
                             i0:i1,
                             j0:j1,
-                            (k0 - dk0):(k1 + dk1),
+                            (k0 - dk0):k1,
                         ] ./ lref
                 end
 
                 HDF5.set_extent_dims(
                     file["nr"],
-                    (nray_max, sizex, sizey, sizez + 2, iout),
+                    (nray_max, sizex, sizey, sizez + 1, iout),
                 )
                 @views file["nr"][
                     1:nray_max,
                     (io + 1):(io + nx),
                     (jo + 1):(jo + ny),
-                    (ko + 2 - dk0):(ko + nz + 1 + dk1),
+                    (ko + 2 - dk0):(ko + nz + 1),
                     iout,
                 ] =
-                    rays.dens[
-                        1:nray_max,
-                        i0:i1,
-                        j0:j1,
-                        (k0 - dk0):(k1 + dk1),
-                    ] .* rhoref .* uref .^ 2 .* tref .* lref .^ dim
+                    rays.dens[1:nray_max, i0:i1, j0:j1, (k0 - dk0):k1] .*
+                    rhoref .* uref .^ 2 .* tref .* lref .^ dim
             end
 
             # Write GW tendencies.
