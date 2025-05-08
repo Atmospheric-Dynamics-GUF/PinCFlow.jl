@@ -86,8 +86,13 @@ function compute_time_step(state::State)
             for kz in (k0 - 1):k1, jy in j0:j1, ix in i0:i1
                 @views dtwkb_loc = min(
                     dtwkb_loc,
-                    minimum(jac[ix, jy, (kz - 1):(kz + 1)]) * dz /
-                    (cgz_max[ix, jy, kz] + eps()),
+                    minimum(
+                        jac[
+                            (ix - 1):(ix + 1),
+                            (jy - 1):(jy + 1),
+                            (kz - 1):(kz + 1),
+                        ],
+                    ) * dz / (cgz_max[ix, jy, kz] + eps()),
                 )
             end
 
@@ -98,7 +103,7 @@ function compute_time_step(state::State)
                 dtwkb_loc = min(dtwkb_loc, dy / (cgy_max[] + eps()))
             end
 
-            dtwkb_loc = cfl_wave * dtwkb_loc
+            dtwkb_loc *= cfl_wave
 
             # find global minimum
 
