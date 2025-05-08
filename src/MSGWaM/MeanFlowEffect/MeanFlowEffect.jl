@@ -1,5 +1,6 @@
 module MeanFlowEffect
 
+using LinearAlgebra
 using ...Types
 using ...Boundaries
 using ..Interpolation
