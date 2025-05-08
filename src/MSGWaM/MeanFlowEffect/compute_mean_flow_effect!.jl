@@ -21,6 +21,8 @@ function compute_mean_flow_effect!(state::State, testcase::AbstractWKBTestCase)
 
     smooth_gw_tendencies!(state)
 
+    apply_blocked_layer_scheme!(state)
+
     set_boundaries!(state, BoundaryGWTendencies())
 
     return
