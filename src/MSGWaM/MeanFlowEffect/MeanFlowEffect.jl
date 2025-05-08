@@ -5,6 +5,7 @@ using ...Boundaries
 using ..Interpolation
 using ..RayUpdate
 
+include("apply_blocked_layer_scheme!.jl")
 include("apply_shapiro_filter!.jl")
 include("compute_gw_integrals!.jl")
 include("compute_gw_tendencies!.jl")

@@ -31,7 +31,7 @@ function compute_orographic_mode(
         wnm = -branch * sqrt(wnh^2 * (bvsavg - omi^2) / (omi^2 - fc^2))
 
         # Compute wave-action density.
-        wad = 0.5 * rhoavg * displm^2 * omi * (wnh^2 + wnm^2) / wnh^2
+        wad = rhoavg / 2 * displm^2 * omi * (wnh^2 + wnm^2) / wnh^2
 
         # Set to zero if something went wrong.
         if wad != wad || wnm != wnm
