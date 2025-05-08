@@ -106,6 +106,10 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
         )
     end
 
+    dk_ini_nd = 0.0
+    dl_ini_nd = 0.0
+    dm_ini_nd = 0.0
+
     # Loop over all grid cells with ray volumes.
     for kz in kz0:kz1, jy in jy0:jy1, ix in ix0:ix1
         iray = 0
