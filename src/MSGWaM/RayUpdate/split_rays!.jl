@@ -191,7 +191,7 @@ function split_rays!(
 
         if dzr > dzmin
             factor = ceil(Int, dzr / dzmin)
-            rays.z[iray, ix, jy, kz] = zr + 0.5 * (1 / factor - 1) * dzr
+            rays.z[iray, ix, jy, kz] = zr + (1 / factor - 1) * dzr / 2
             rays.dzray[iray, ix, jy, kz] = dzr / factor
             for jray in (nrlc + 1):(nrlc + factor - 1)
                 copy_rays!(rays, (iray, ix, jy, kz), (jray, ix, jy, kz))
