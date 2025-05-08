@@ -93,7 +93,7 @@ contours = contourf(
     cmap = colormap,
 )
 plot(y[ix, :, 1], z[ix, :, 1]; color = "black", linewidth = 0.5)
-xlabel(L"x\,\left[\mathrm{km}\right]")
+xlabel(L"y\,\left[\mathrm{km}\right]")
 ylabel(L"z\,\left[\mathrm{km}\right]")
 title(L"x\approx 0\,\mathrm{km}")
 colorbar(contours; label = L"w\,\left[\mathrm{m\,s^{-1}}\right]")
@@ -155,7 +155,7 @@ if reference_path != data_path
         cmap = colormap,
     )
     plot(y[ix, :, 1], z[ix, :, 1]; color = "black", linewidth = 0.5)
-    xlabel(L"x\,\left[\mathrm{km}\right]")
+    xlabel(L"y\,\left[\mathrm{km}\right]")
     ylabel(L"z\,\left[\mathrm{km}\right]")
     title(L"x\approx 0\,\mathrm{km}")
     colorbar(contours; label = L"\Delta w\,\left[\mathrm{m\,s^{-1}}\right]")

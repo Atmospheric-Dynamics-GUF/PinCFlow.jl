@@ -35,15 +35,15 @@ function activate_orographic_source!(
         dzsum = 0.0
         for kz in k0:k1
             uavg +=
-                0.5 * (u[ix, jy, kz] + u[ix - 1, jy, kz]) * jac[ix, jy, kz] * dz
+                (u[ix, jy, kz] + u[ix - 1, jy, kz]) / 2 * jac[ix, jy, kz] * dz
             vavg +=
-                0.5 * (v[ix, jy, kz] + v[ix, jy - 1, kz]) * jac[ix, jy, kz] * dz
+                (v[ix, jy, kz] + v[ix, jy - 1, kz]) / 2 * jac[ix, jy, kz] * dz
             rhoavg += rhostrattfc[ix, jy, kz] * jac[ix, jy, kz] * dz
             bvsavg += bvsstrattfc[ix, jy, kz] * jac[ix, jy, kz] * dz
             dzsum += jac[ix, jy, kz] * dz
-            if ztildetfc[ix, jy, kz] >
-               ztildetfc[ix, jy, k0 - 1] +
-               sum(abs.(topography_spectrum[:, ix, jy]))
+            @views if ztildetfc[ix, jy, kz] >
+                      ztildetfc[ix, jy, k0 - 1] +
+                      sum(abs.(topography_spectrum[:, ix, jy]))
                 break
             end
         end
@@ -53,19 +53,19 @@ function activate_orographic_source!(
         bvsavg = bvsavg / dzsum
 
         # Determine the blocked layer.
-        if blocking && sum(abs(topography_spectrum[:, ix, jy])) > 0.0
+        @views if blocking && sum(abs.(topography_spectrum[:, ix, jy])) > 0
             long =
-                sqrt(bvsavg) / sqrt(uavg^2.0 + vavg^2.0) *
+                sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) *
                 sum(abs.(topography_spectrum[:, ix, jy]))
-            ratio = min(1.0, long_threshold / long)
+            ratio = min(1, long_threshold / long)
             zb[ix, jy] =
-                ztildetfc[ix, jy, 0] +
-                sum(abs.(topography_spectrum[:, ix, jy])) * (1.0 - 2.0 * ratio)
+                ztildetfc[ix, jy, k0 - 1] +
+                sum(abs.(topography_spectrum[:, ix, jy])) * (1 - 2 * ratio)
         elseif blocking
-            ratio = 1.0
-            zb[ix, jy] = ztildetfc[ix, jy, 0]
+            ratio = 1
+            zb[ix, jy] = ztildetfc[ix, jy, k0 - 1]
         else
-            ratio = 1.0
+            ratio = 1
         end
 
         # Set launch level.
@@ -136,7 +136,7 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
     (; u, v) = state.variables.predictands
     (; ir_sfc, ix2_sfc, jy2_sfc, kz2_sfc, ik_sfc, jl_sfc, km_sfc, iwm_sfc) =
         state.wkb.surface_indices
-    (; nray_wrk, n_sfc, nray, rays) = state.wkb
+    (; nray_wrk, n_sfc, nray, rays, zb) = state.wkb
 
     if ko != 0
         return
@@ -157,15 +157,15 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
         dzsum = 0.0
         for kz in k0:k1
             uavg +=
-                0.5 * (u[ix, jy, kz] + u[ix - 1, jy, kz]) * jac[ix, jy, kz] * dz
+                (u[ix, jy, kz] + u[ix - 1, jy, kz]) / 2 * jac[ix, jy, kz] * dz
             vavg +=
-                0.5 * (v[ix, jy, kz] + v[ix, jy - 1, kz]) * jac[ix, jy, kz] * dz
+                (v[ix, jy, kz] + v[ix, jy - 1, kz]) / 2 * jac[ix, jy, kz] * dz
             rhoavg += rhostrattfc[ix, jy, kz] * jac[ix, jy, kz] * dz
             bvsavg += bvsstrattfc[ix, jy, kz] * jac[ix, jy, kz] * dz
             dzsum += jac[ix, jy, kz] * dz
-            if ztildetfc[ix, jy, kz] >
-               ztildetfc[ix, jy, k0 - 1] +
-               sum(abs.(topography_spectrum[:, ix, jy]))
+            @views if ztildetfc[ix, jy, kz] >
+                      ztildetfc[ix, jy, k0 - 1] +
+                      sum(abs.(topography_spectrum[:, ix, jy]))
                 break
             end
         end
@@ -175,17 +175,17 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
         bvsavg = bvsavg / dzsum
 
         # Determine the blocked layer.
-        if blocking && sum(abs(topography_spectrum[:, ix, jy])) > 0.0
+        @views if blocking && sum(abs.(topography_spectrum[:, ix, jy])) > 0
             long =
-                sqrt(bvsavg) / sqrt(uavg^2.0 + vavg^2.0) *
+                sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) *
                 sum(abs.(topography_spectrum[:, ix, jy]))
-            ratio = min(1.0, long_threshold / long)
+            ratio = min(1, long_threshold / long)
             zb[ix, jy] =
-                ztildetfc[ix, jy, 0] +
-                sum(abs.(topography_spectrum[:, ix, jy])) * (1.0 - 2.0 * ratio)
+                ztildetfc[ix, jy, k0 - 1] +
+                sum(abs.(topography_spectrum[:, ix, jy])) * (1 - 2 * ratio)
         elseif blocking
             ratio = 1.0
-            zb[ix, jy] = ztildetfc[ix, jy, 0]
+            zb[ix, jy] = ztildetfc[ix, jy, k0 - 1]
         else
             ratio = 1.0
         end
@@ -257,7 +257,7 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
                     end
 
                     # Check for case (2).
-                    if iray > 0 && zr + 0.5 * dzr > ztildetfc[ix, jy, kz]
+                    if iray > 0 && zr + dzr / 2 > ztildetfc[ix, jy, kz]
 
                         # Shift the old ray volume.
                         nray[ix, jy, kz + 1] += 1
@@ -274,12 +274,12 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
                         )
 
                         # Clip or extend the old ray volume.
-                        if zr - 0.5 * dzr < ztildetfc[ix, jy, kz] || kz2 == 1
+                        if zr - dzr / 2 < ztildetfc[ix, jy, kz] || kz2 == 1
                             rays.dzray[nrlc, ix, jy, kz + 1] =
-                                zr + 0.5 * dzr - ztildetfc[ix, jy, kz]
+                                zr + dzr / 2 - ztildetfc[ix, jy, kz]
                             rays.z[nrlc, ix, jy, kz + 1] =
-                                zr + 0.5 * dzr -
-                                0.5 * rays.dzray[nrlc, ix, jy, kz + 1]
+                                zr + dzr / 2 -
+                                rays.dzray[nrlc, ix, jy, kz + 1] / 2
                         end
 
                         # Check for case (1).
@@ -304,18 +304,17 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
             # Scale the wave action density.
             if wkb_mode != SteadyState() && launch_algorithm == Scale()
                 cgrz =
-                    wnrm * (fc^2.0 - bvsavg) * wnrh^2.0 / omir /
-                    (wnrh^2.0 + wnrm^2.0)^2.0
+                    wnrm * (fc^2 - bvsavg) * wnrh^2 / omir / (wnrh^2 + wnrm^2)^2
                 wadr *= dt * cgrz / jac[ix, jy, kz] / dz
             end
 
             # Set physical ray-volume positions.
             rays.x[iray, ix, jy, kz] =
-                (x[io + ix] - 0.5 * dx + (ix2 - 0.5) * dx / nrxl)
+                (x[io + ix] - dx / 2 + (ix2 - 0.5) * dx / nrxl)
             rays.y[iray, ix, jy, kz] =
-                (y[jo + jy] - 0.5 * dy + (jy2 - 0.5) * dy / nryl)
+                (y[jo + jy] - dy / 2 + (jy2 - 0.5) * dy / nryl)
             rays.z[iray, ix, jy, kz] = (
-                ztfc[ix, jy, kz] - 0.5 * jac[ix, jy, kz] * dz +
+                ztfc[ix, jy, kz] - jac[ix, jy, kz] * dz / 2 +
                 (kz2 - 0.5) * jac[ix, jy, kz] * dz / nrzl
             )
 
@@ -343,11 +342,11 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
 
             # Set spectral ray-volume position.
             rays.k[iray, ix, jy, kz] =
-                (wnrk - 0.5 * dk_ini_nd + (ik - 0.5) * dk_ini_nd / nrk_init)
+                (wnrk - dk_ini_nd / 2 + (ik - 0.5) * dk_ini_nd / nrk_init)
             rays.l[iray, ix, jy, kz] =
-                (wnrl - 0.5 * dl_ini_nd + (jl - 0.5) * dl_ini_nd / nrl_init)
+                (wnrl - dl_ini_nd / 2 + (jl - 0.5) * dl_ini_nd / nrl_init)
             rays.m[iray, ix, jy, kz] =
-                (wnrm - 0.5 * dm_ini_nd + (km - 0.5) * dm_ini_nd / nrm_init)
+                (wnrm - dm_ini_nd / 2 + (km - 0.5) * dm_ini_nd / nrm_init)
 
             # Set spectral ray-voume extent.
             rays.dkray[iray, ix, jy, kz] = dk_ini_nd / nrk_init
