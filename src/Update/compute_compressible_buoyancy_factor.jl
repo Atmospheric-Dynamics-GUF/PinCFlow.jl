@@ -43,13 +43,15 @@ function compute_compressible_buoyancy_factor(
     variable::W,
     model::AbstractModel,
 )
+    (; jac) = state.grid
     (; rhostrattfc) = state.atmosphere
     (; rho) = state.variables.predictands
     (ix, jy, kz) = indices
-    return (rhostrattfc[ix, jy, kz] + rhostrattfc[ix, jy, kz + 1]) / (
-        rho[ix, jy, kz] +
-        rho[ix, jy, kz + 1] +
-        rhostrattfc[ix, jy, kz] +
-        rhostrattfc[ix, jy, kz + 1]
+    return (
+        jac[ix, jy, kz + 1] * rhostrattfc[ix, jy, kz] +
+        jac[ix, jy, kz] * rhostrattfc[ix, jy, kz + 1]
+    ) / (
+        jac[ix, jy, kz + 1] * (rho[ix, jy, kz] + rhostrattfc[ix, jy, kz]) +
+        jac[ix, jy, kz] * (rho[ix, jy, kz + 1] + rhostrattfc[ix, jy, kz + 1])
     )
 end
