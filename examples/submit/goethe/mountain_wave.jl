@@ -94,8 +94,8 @@ sponge = SpongeNamelist(;
     spongeorder = 1,
     cosmosteps = 1,
     relax_to_mean = false,
-    relaxation_period = 0.0E+0,
-    relaxation_amplitude = 0.0E+0,
+    perturbation_period = 0.0E+0,
+    perturbation_amplitude = 0.0E+0,
 )
 
 namelists = Namelists(;

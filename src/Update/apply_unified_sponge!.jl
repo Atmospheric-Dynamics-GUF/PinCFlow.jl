@@ -83,13 +83,13 @@ function apply_unified_sponge!(
     model::AbstractModel,
 )
     (; sizex, sizey) = state.namelists.domain
-    (; backgroundflow_dim) = state.namelists.atmosphere
     (;
         spongelayer,
         unifiedsponge,
         relax_to_mean,
-        relaxation_period,
-        relaxation_amplitude,
+        perturbation_period,
+        perturbation_amplitude,
+        relaxation_wind,
     ) = state.namelists.sponge
     (; uref, tref) = state.constants
     (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
@@ -110,13 +110,13 @@ function apply_unified_sponge!(
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
         global_sum ./= (sizex .* sizey)
     else
-        ubg = backgroundflow_dim[1] / uref
-        if relaxation_period > 0.0
+        ubg = relaxation_wind[1] / uref
+        if perturbation_period > 0.0
             ubg =
                 ubg * (
                     1.0 +
-                    relaxation_amplitude *
-                    sin(2.0 * pi * time / relaxation_period * tref)
+                    perturbation_amplitude *
+                    sin(2.0 * pi * time / perturbation_period * tref)
                 )
         end
     end
@@ -148,13 +148,13 @@ function apply_unified_sponge!(
     model::AbstractModel,
 )
     (; sizex, sizey) = state.namelists.domain
-    (; backgroundflow_dim) = state.namelists.atmosphere
     (;
         spongelayer,
         unifiedsponge,
         relax_to_mean,
-        relaxation_period,
-        relaxation_amplitude,
+        perturbation_period,
+        perturbation_amplitude,
+        relaxation_wind,
     ) = state.namelists.sponge
     (; uref, tref) = state.constants
     (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
@@ -175,13 +175,13 @@ function apply_unified_sponge!(
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
         global_sum ./= (sizex .* sizey)
     else
-        vbg = backgroundflow_dim[2] / uref
-        if relaxation_period > 0.0
+        vbg = relaxation_wind[2] / uref
+        if perturbation_period > 0.0
             vbg =
                 vbg * (
                     1.0 +
-                    relaxation_amplitude *
-                    sin(2.0 * pi * time / relaxation_period * tref)
+                    perturbation_amplitude *
+                    sin(2.0 * pi * time / perturbation_period * tref)
                 )
         end
     end
@@ -213,13 +213,13 @@ function apply_unified_sponge!(
     model::AbstractModel,
 )
     (; sizex, sizey) = state.namelists.domain
-    (; backgroundflow_dim) = state.namelists.atmosphere
     (;
         spongelayer,
         unifiedsponge,
         relax_to_mean,
-        relaxation_period,
-        relaxation_amplitude,
+        perturbation_period,
+        perturbation_amplitude,
+        relaxation_wind,
     ) = state.namelists.sponge
     (; uref, tref) = state.constants
     (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
@@ -241,13 +241,13 @@ function apply_unified_sponge!(
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
         global_sum ./= (sizex .* sizey)
     else
-        wbg = backgroundflow_dim[3] / uref
-        if relaxation_period > 0.0
+        wbg = relaxation_wind[3] / uref
+        if perturbation_period > 0.0
             wbg =
                 wbg * (
                     1.0 +
-                    relaxation_amplitude *
-                    sin(2.0 * pi * time / relaxation_period * tref)
+                    perturbation_amplitude *
+                    sin(2.0 * pi * time / perturbation_period * tref)
                 )
         end
     end
