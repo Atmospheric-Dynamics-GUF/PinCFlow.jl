@@ -7,10 +7,10 @@ function apply_bicgstab!(
     grid::Grid,
     poisson::Poisson,
 )
-    (; sizex, sizey, sizez, npz) = namelists.domain
+    (; sizex, sizey, sizez) = namelists.domain
     (; tolpoisson, maxiterpoisson, preconditioner, relative_tolerance) =
         namelists.poisson
-    (; master, comm, nx, ny, nz, io, jo) = domain
+    (; master, comm, nx, ny, nz, column_comm, layer_comm) = domain
     (; r_vm, p, r0, rold, r, s, t, v, matvec, v_pc) = poisson.bicgstab
 
     # Print information.
@@ -57,19 +57,19 @@ function apply_bicgstab!(
 
     r_vm .= 0.0
     for k in 1:nz
-        @views r_vm[(io + 1):(io + nx), (jo + 1):(jo + ny)] .+= r[:, :, k]
+        @views r_vm .+= r[:, :, k]
     end
-    MPI.Allreduce!(r_vm, +, comm)
+    MPI.Allreduce!(r_vm, +, column_comm)
     r_vm ./= sizez
 
     res_local = 0.0
     for j in 1:ny, i in 1:nx
-        res_local += r_vm[io + i, jo + j]^2
+        res_local += r_vm[i, j]^2
     end
 
-    res_vm = MPI.Allreduce(res_local, +, comm)
+    res_vm = MPI.Allreduce(res_local, +, layer_comm)
 
-    res_vm = sqrt(res_vm / sizex / sizey / npz)
+    res_vm = sqrt(res_vm / sizex / sizey)
 
     b_vm_norm = res_vm
 
@@ -134,19 +134,19 @@ function apply_bicgstab!(
 
         r_vm .= 0.0
         for k in 1:nz
-            @views r_vm[(io + 1):(io + nx), (jo + 1):(jo + ny)] .+= r[:, :, k]
+            @views r_vm .+= r[:, :, k]
         end
-        MPI.Allreduce!(r_vm, +, comm)
+        MPI.Allreduce!(r_vm, +, column_comm)
         r_vm ./= sizez
 
         res_local = 0.0
         for j in 1:ny, i in 1:nx
-            res_local += r_vm[io + i, jo + j]^2
+            res_local += r_vm[i, j]^2
         end
 
-        res_vm = MPI.Allreduce(res_local, +, comm)
+        res_vm = MPI.Allreduce(res_local, +, layer_comm)
 
-        res_vm = sqrt(res_vm / sizex / sizey / npz)
+        res_vm = sqrt(res_vm / sizex / sizey)
 
         if max(res / b_norm, res_vm / b_vm_norm) <= tol
             if master
