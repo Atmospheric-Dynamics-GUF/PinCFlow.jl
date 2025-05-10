@@ -3,6 +3,7 @@ struct SpongeNamelist{
     B <: AbstractFloat,
     C <: AbstractSponge,
     D <: Integer,
+    E <: NTuple{3, <:AbstractFloat},
 }
     spongelayer::A
     sponge_uv::A
@@ -15,8 +16,9 @@ struct SpongeNamelist{
     spongeorder::D
     cosmosteps::D
     relax_to_mean::A
-    relaxation_period::B
-    relaxation_amplitude::B
+    perturbation_period::B
+    perturbation_amplitude::B
+    relaxation_wind::E
 end
 
 function SpongeNamelist(;
@@ -31,8 +33,9 @@ function SpongeNamelist(;
     spongeorder = 1,
     cosmosteps = 1,
     relax_to_mean = true,
-    relaxation_period = 0.0E+0,
-    relaxation_amplitude = 0.0E+0,
+    perturbation_period = 0.0E+0,
+    perturbation_amplitude = 0.0E+0,
+    relaxation_wind = (0.0E+0, 0.0E+0, 0.0E+0),
 )
     return SpongeNamelist(
         spongelayer,
@@ -46,7 +49,8 @@ function SpongeNamelist(;
         spongeorder,
         cosmosteps,
         relax_to_mean,
-        relaxation_period,
-        relaxation_amplitude,
+        perturbation_period,
+        perturbation_amplitude,
+        relaxation_wind,
     )
 end
