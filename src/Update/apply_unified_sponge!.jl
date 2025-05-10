@@ -92,23 +92,22 @@ function apply_unified_sponge!(
         relaxation_amplitude,
     ) = state.namelists.sponge
     (; uref, tref) = state.constants
-    (; comm, i0, i1, j0, j1, k0, k1, local_sum, global_sum) = state.domain
-    (; alphaunifiedsponge) = state.sponge
+    (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
+    (; alphaunifiedsponge, horizontal_mean) = state.sponge
     (; u) = state.variables.predictands
 
     if !spongelayer || !unifiedsponge
         return
     end
 
-    local_sum .= 0.0
-    global_sum .= 0.0
+    horizontal_mean .= 0.0
 
     # Determine relaxation wind.
     if relax_to_mean
         for k in k0:k1
-            @views local_sum[ko + k - k0 + 1] = sum(u[i0:i1, j0:j1, k])
+            @views horizontal_mean[k - k0 + 1] = sum(u[i0:i1, j0:j1, k])
         end
-        MPI.Allreduce!(local_sum, global_sum, +, comm)
+        MPI.Allreduce!(horizontal_mean, +, layer_comm)
         global_sum ./= (sizex .* sizey)
     else
         ubg = backgroundflow_dim[1] / uref
@@ -158,23 +157,22 @@ function apply_unified_sponge!(
         relaxation_amplitude,
     ) = state.namelists.sponge
     (; uref, tref) = state.constants
-    (; comm, i0, i1, j0, j1, k0, k1, local_sum, global_sum) = state.domain
-    (; alphaunifiedsponge) = state.sponge
+    (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
+    (; alphaunifiedsponge, horizontal_mean) = state.sponge
     (; v) = state.variables.predictands
 
     if !spongelayer || !unifiedsponge
         return
     end
 
-    local_sum .= 0.0
-    global_sum .= 0.0
+    horizontal_mean .= 0.0
 
     # Determine relaxation wind.
     if relax_to_mean
         for k in k0:k1
-            @views local_sum[ko + k - k0 + 1] = sum(v[i0:i1, j0:j1, k])
+            @views horizontal_mean[k - k0 + 1] = sum(v[i0:i1, j0:j1, k])
         end
-        MPI.Allreduce!(local_sum, global_sum, +, comm)
+        MPI.Allreduce!(horizontal_mean, +, layer_comm)
         global_sum ./= (sizex .* sizey)
     else
         vbg = backgroundflow_dim[2] / uref
@@ -224,8 +222,8 @@ function apply_unified_sponge!(
         relaxation_amplitude,
     ) = state.namelists.sponge
     (; uref, tref) = state.constants
-    (; comm, i0, i1, j0, j1, k0, k1, local_sum, global_sum) = state.domain
-    (; alphaunifiedsponge) = state.sponge
+    (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
+    (; alphaunifiedsponge, horizontal_mean) = state.sponge
     (; w) = state.variables.predictands
     (; jac) = state.grid
 
@@ -233,15 +231,14 @@ function apply_unified_sponge!(
         return
     end
 
-    local_sum .= 0.0
-    global_sum .= 0.0
+    horizontal_mean .= 0.0
 
     # Determine relaxation wind.
     if relax_to_mean
         for k in k0:k1
-            @views local_sum[ko + k - k0 + 1] = sum(w[i0:i1, j0:j1, k])
+            @views horizontal_mean[k - k0 + 1] = sum(w[i0:i1, j0:j1, k])
         end
-        MPI.Allreduce!(local_sum, global_sum, +, comm)
+        MPI.Allreduce!(horizontal_mean, +, layer_comm)
         global_sum ./= (sizex .* sizey)
     else
         wbg = backgroundflow_dim[3] / uref
