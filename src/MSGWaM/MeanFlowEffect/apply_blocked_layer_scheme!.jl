@@ -19,6 +19,7 @@ function apply_blocked_layer_scheme!(state::State, testcase::WKBMountainWave)
     (; rhostrattfc) = state.atmosphere
     (; rho, u, v) = state.variables.predictands
     (; zb) = state.wkb
+    (; dudt, dvdt, dthetadt) = state.wkb.tendencies
 
     if !blocking
         return
