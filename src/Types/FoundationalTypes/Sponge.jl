@@ -1,4 +1,8 @@
-struct Sponge{A <: AbstractArray{<:AbstractFloat, 3}, B <: AbstractFloat}
+struct Sponge{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractFloat,
+    C <: AbstractVector{<:AbstractFloat},
+}
 
     # Damping coefficients.
     alphaunifiedsponge::A
@@ -16,13 +20,16 @@ struct Sponge{A <: AbstractArray{<:AbstractFloat, 3}, B <: AbstractFloat}
     ysponge1::B
     dxsponge::B
     dysponge::B
+
+    # Auxiliary array for horizontal means.
+    horizontal_mean::C
 end
 
 function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
 
     # Get parameters.
     (; spongeheight) = namelists.sponge
-    (; nxx, nyy, nzz) = domain
+    (; nxx, nyy, nzz, nz) = domain
     (; lx, ly, lz) = grid
 
     # Initialize the sponge layer coefficients.
@@ -39,6 +46,9 @@ function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
     xsponge1 = lx[2] - dxsponge
     ysponge1 = ly[2] - dysponge
 
+    # Initialize the auxiliary array for horizontal means.
+    horizontal_mean = zeros(nz)
+
     # Return a Sponge instance.
     return Sponge(
         alphaunifiedsponge,
@@ -52,5 +62,6 @@ function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
         ysponge1,
         dxsponge,
         dysponge,
+        horizontal_mean,
     )
 end
