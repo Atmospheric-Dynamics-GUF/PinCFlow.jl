@@ -322,7 +322,8 @@ function propagate_rays!(
     (; branchr, lsaturation, alpha_sat) = state.namelists.wkb
     (; stepfrac) = state.time
     (; tref) = state.constants
-    (; sizezz, nzz, ko, k0, k1, j0, j1, i0, i1) = state.domain
+    (; comm, sizezz, nzz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) =
+        state.domain
     (; dx, dy, dz, ztildetfc, ztfc, jac) = state.grid
     (; rhostrattfc) = state.atmosphere
     (; u, v) = state.variables.predictands
@@ -525,7 +526,7 @@ function propagate_rays!(
     end
 
     if ko + nzz != sizezz
-        @views nray_up .= nray[i0:i1, j0:j1, k1]
+        @views nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 
         count = maximum(nray[i0:i1, j0:j1, k1])
