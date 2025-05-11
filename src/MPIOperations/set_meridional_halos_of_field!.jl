@@ -1,4 +1,31 @@
 function set_meridional_halos_of_field!(
+    field::AbstractMatrix{<:AbstractFloat},
+    namelists::Namelists,
+    domain::Domain,
+)
+    (; nby) = namelists.domain
+    (; comm, j0, j1, backward, forward) = domain
+
+    @views MPI.Sendrecv!(
+        field[:, (j1 - nby + 1):j1],
+        field[:, (j0 - nby):(j0 - 1)],
+        comm;
+        dest = forward,
+        source = backward,
+    )
+
+    @views MPI.Sendrecv!(
+        field[:, j0:(j0 + nby - 1)],
+        field[:, (j1 + 1):(j1 + nby)],
+        comm;
+        dest = backward,
+        source = forward,
+    )
+
+    return
+end
+
+function set_meridional_halos_of_field!(
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
     domain::Domain;
