@@ -17,7 +17,7 @@ function compute_topography(
         width_factor,
         spectral_modes,
     ) = namelists.grid
-    (; nxx, nyy, io, jo) = domain
+    (; nxx, nyy, io, jo, i0, i1, j0, j1) = domain
     (; lref) = constants
 
     if nwm < 1 || (mountain_case == 13 && nwm < spectral_modes)
@@ -36,7 +36,7 @@ function compute_topography(
     k_spectrum = zeros(nwm, nxx, nyy)
     l_spectrum = zeros(nwm, nxx, nyy)
 
-    for jy in 1:nyy, ix in 1:nxx
+    for jy in j0:j1, ix in i0:i1
         if mountain_case == 1
             # 2D cosine mountains
             topography_surface[ix, jy] = 0.5 * mountainheight
@@ -152,6 +152,9 @@ function compute_topography(
         end
     end
 
+    set_zonal_boundaries_of_field!(topography_surface, namelists, domain)
+    set_meridional_boundaries_of_field!(topography_surface, namelists, domain)
+
     return (topography_surface, topography_spectrum, k_spectrum, l_spectrum)
 end
 
@@ -173,7 +176,7 @@ function compute_topography(
         width_factor,
         spectral_modes,
     ) = namelists.grid
-    (; nxx, nyy, io, jo) = domain
+    (; nxx, nyy, io, jo, i0, i1, j0, j1) = domain
     (; lref) = constants
 
     mountainheight = mountainheight_dim / lref
@@ -188,7 +191,7 @@ function compute_topography(
     k_spectrum = zeros(0, 0, 0)
     l_spectrum = zeros(0, 0, 0)
 
-    for jy in 1:nyy, ix in 1:nxx
+    for jy in j0:j1, ix in i0:i1
         if mountain_case == 1
             # 2D cosine mountains
             topography_surface[ix, jy] =
@@ -422,6 +425,9 @@ function compute_topography(
             error("Error in compute_topography: Unknown mountain case!")
         end
     end
+
+    set_zonal_boundaries_of_field!(topography_surface, namelists, domain)
+    set_meridional_boundaries_of_field!(topography_surface, namelists, domain)
 
     return (topography_surface, topography_spectrum, k_spectrum, l_spectrum)
 end

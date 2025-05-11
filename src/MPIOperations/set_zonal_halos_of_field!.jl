@@ -1,4 +1,31 @@
 function set_zonal_halos_of_field!(
+    field::AbstractMatrix{<:AbstractFloat},
+    namelists::Namelists,
+    domain::Domain,
+)
+    (; nbx) = namelists.domain
+    (; comm, i0, i1, left, right) = domain
+
+    @views MPI.Sendrecv!(
+        field[(i1 - nbx + 1):i1, :],
+        field[(i0 - nbx):(i0 - 1), :],
+        comm;
+        dest = right,
+        source = left,
+    )
+
+    @views MPI.Sendrecv!(
+        field[i0:(i0 + nbx - 1), :],
+        field[(i1 + 1):(i1 + nbx), :],
+        comm;
+        dest = left,
+        source = right,
+    )
+
+    return
+end
+
+function set_zonal_halos_of_field!(
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
     domain::Domain;
