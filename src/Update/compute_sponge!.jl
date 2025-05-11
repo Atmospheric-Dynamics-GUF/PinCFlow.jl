@@ -43,16 +43,22 @@ function compute_sponge!(
     dt::AbstractFloat,
     spongetype::ExponentialSponge,
 )
-    (; sizex, sizey, sizez) = state.namelists.domain
-    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; namelists, domain) = state
+    (; sizex, sizey, sizez) = namelists.domain
+    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, ztfc, lx, ly, lz) = state.grid
     (; tref) = state.constants
-    (; lateralsponge, spongealphaz_dim) = state.namelists.sponge
+    (; lateralsponge, spongealphaz_dim) = namelists.sponge
     (; alphaunifiedsponge, dxsponge, dysponge, dzsponge) = state.sponge
 
     spongealphaz = spongealphaz_dim * tref
 
     if lateralsponge
+        ix0 = i0
+        ix1 = i1
+        jy0 = j0
+        jy1 = j1
+
         if sizex > 1 && sizey > 1
             spongealphaz = spongealphaz / 3.0
             spongealphax = spongealphaz
@@ -66,6 +72,11 @@ function compute_sponge!(
             spongealphax = 0.0
             spongealphay = spongealphaz
         end
+    else
+        ix0 = i0 - 1
+        ix1 = i1 + 1
+        jy0 = j0 - 1
+        jy1 = j1 + 1
     end
 
     alphaunifiedsponge .= 0.0
@@ -73,7 +84,7 @@ function compute_sponge!(
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
 
-    for k in kz0:kz1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    for k in kz0:kz1, j in jy0:jy1, i in ix0:ix1
         height = ztfc[i, j, k]
 
         if sizez > 1
@@ -107,6 +118,21 @@ function compute_sponge!(
         end
     end
 
+    if lateralsponge
+        set_zonal_boundaries_of_field!(
+            alphaunifiedsponge,
+            namelists,
+            domain;
+            layers = (1, 1, 1),
+        )
+        set_meridional_boundaries_of_field!(
+            alphaunifiedsponge,
+            namelists,
+            domain;
+            layers = (1, 1, 1),
+        )
+    end
+
     ko == 0 &&
         @views alphaunifiedsponge[:, :, k0 - 1] .= alphaunifiedsponge[:, :, k0]
     ko + nzz == sizezz &&
@@ -120,10 +146,11 @@ function compute_sponge!(
     dt::AbstractFloat,
     spongetype::COSMOSponge,
 )
-    (; sizex, sizey, sizez) = state.namelists.domain
-    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; namelists, domain) = state
+    (; sizex, sizey, sizez) = namelists.domain
+    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, ztfc) = state.grid
-    (; lateralsponge, cosmosteps) = state.namelists.sponge
+    (; lateralsponge, cosmosteps) = namelists.sponge
     (;
         alphaunifiedsponge,
         dxsponge,
@@ -136,12 +163,24 @@ function compute_sponge!(
         zsponge,
     ) = state.sponge
 
+    if lateralsponge
+        ix0 = i0
+        ix1 = i1
+        jy0 = j0
+        jy1 = j1
+    else
+        ix0 = i0 - 1
+        ix1 = i1 + 1
+        jy0 = j0 - 1
+        jy1 = j1 + 1
+    end
+
     alphaunifiedsponge .= 0.0
 
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
 
-    for k in kz0:kz1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    for k in kz0:kz1, j in jy0:jy1, i in ix0:ix1
         height = ztfc[i, j, k]
 
         if sizez > 1
@@ -182,6 +221,21 @@ function compute_sponge!(
         end
     end
 
+    if lateralsponge
+        set_zonal_boundaries_of_field!(
+            alphaunifiedsponge,
+            namelists,
+            domain;
+            layers = (1, 1, 1),
+        )
+        set_meridional_boundaries_of_field!(
+            alphaunifiedsponge,
+            namelists,
+            domain;
+            layers = (1, 1, 1),
+        )
+    end
+
     ko == 0 &&
         @views alphaunifiedsponge[:, :, k0 - 1] .= alphaunifiedsponge[:, :, k0]
     ko + nzz == sizezz &&
@@ -195,11 +249,12 @@ function compute_sponge!(
     dt::AbstractFloat,
     spongetype::PolynomialSponge,
 )
-    (; sizex, sizey, sizez) = state.namelists.domain
-    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; namelists, domain) = state
+    (; sizex, sizey, sizez) = namelists.domain
+    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, ztfc) = state.grid
     (; tref) = state.constants
-    (; lateralsponge, spongealphaz_dim, spongeorder) = state.namelists.sponge
+    (; lateralsponge, spongealphaz_dim, spongeorder) = namelists.sponge
     (;
         alphaunifiedsponge,
         dxsponge,
@@ -215,6 +270,11 @@ function compute_sponge!(
     spongealphaz = spongealphaz_dim * tref
 
     if lateralsponge
+        ix0 = i0
+        ix1 = i1
+        jy0 = j0
+        jy1 = j1
+
         if sizex > 1 && sizey > 1
             spongealphaz = spongealphaz / 3.0
             spongealphax = spongealphaz
@@ -228,6 +288,11 @@ function compute_sponge!(
             spongealphax = 0.0
             spongealphay = spongealphaz
         end
+    else
+        ix0 = i0 - 1
+        ix1 = i1 + 1
+        jy0 = j0 - 1
+        jy1 = j1 + 1
     end
 
     alphaunifiedsponge .= 0.0
@@ -235,7 +300,7 @@ function compute_sponge!(
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
 
-    for k in kz0:kz1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    for k in kz0:kz1, j in jy0:jy1, i in ix0:ix1
         height = ztfc[i, j, k]
 
         if sizez > 1
@@ -275,6 +340,21 @@ function compute_sponge!(
         end
     end
 
+    if lateralsponge
+        set_zonal_boundaries_of_field!(
+            alphaunifiedsponge,
+            namelists,
+            domain;
+            layers = (1, 1, 1),
+        )
+        set_meridional_boundaries_of_field!(
+            alphaunifiedsponge,
+            namelists,
+            domain;
+            layers = (1, 1, 1),
+        )
+    end
+
     ko == 0 &&
         @views alphaunifiedsponge[:, :, k0 - 1] .= alphaunifiedsponge[:, :, k0]
     ko + nzz == sizezz &&
@@ -288,11 +368,12 @@ function compute_sponge!(
     dt::AbstractFloat,
     spongetype::SinusoidalSponge,
 )
-    (; sizex, sizey, sizez) = state.namelists.domain
-    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; namelists, domain) = state
+    (; sizex, sizey, sizez) = namelists.domain
+    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, ztfc) = state.grid
     (; tref) = state.constants
-    (; lateralsponge, spongealphaz_dim) = state.namelists.sponge
+    (; lateralsponge, spongealphaz_dim) = namelists.sponge
     (;
         alphaunifiedsponge,
         dxsponge,
@@ -308,6 +389,11 @@ function compute_sponge!(
     spongealphaz = spongealphaz_dim * tref
 
     if lateralsponge
+        ix0 = i0
+        ix1 = i1
+        jy0 = j0
+        jy1 = j1
+
         if sizex > 1 && sizey > 1
             spongealphaz = spongealphaz / 3.0
             spongealphax = spongealphaz
@@ -321,6 +407,11 @@ function compute_sponge!(
             spongealphax = 0.0
             spongealphay = spongealphaz
         end
+    else
+        ix0 = i0 - 1
+        ix1 = i1 + 1
+        jy0 = j0 - 1
+        jy1 = j1 + 1
     end
 
     alphaunifiedsponge .= 0.0
@@ -328,7 +419,7 @@ function compute_sponge!(
     kz0 = ko == 0 ? k0 : k0 - 1
     kz1 = ko + nzz == sizezz ? k1 : k1 + 1
 
-    for k in kz0:kz1, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
+    for k in kz0:kz1, j in jy0:jy1, i in ix0:ix1
         height = ztfc[i, j, k]
 
         if sizez > 1
@@ -367,6 +458,21 @@ function compute_sponge!(
                 end
             end
         end
+    end
+
+    if lateralsponge
+        set_zonal_boundaries_of_field!(
+            alphaunifiedsponge,
+            namelists,
+            domain;
+            layers = (1, 1, 1),
+        )
+        set_meridional_boundaries_of_field!(
+            alphaunifiedsponge,
+            namelists,
+            domain;
+            layers = (1, 1, 1),
+        )
     end
 
     ko == 0 &&
