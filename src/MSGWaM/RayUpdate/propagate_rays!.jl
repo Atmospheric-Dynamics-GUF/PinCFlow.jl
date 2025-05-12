@@ -390,7 +390,7 @@ function propagate_rays!(
             khr = sqrt(kr^2 + lr^2)
 
             # Set the reference level.
-            kz0 = max(k0, kz - 1)
+            kz0 = ko == 0 ? max(k0, kz - 1) : kz - 1
 
             # Compute the vertical group velocity at the level below.
             n2r = interpolate_stratification(
@@ -432,7 +432,7 @@ function propagate_rays!(
             rays.m[iray, ix, jy, kz] = mr
 
             # Set the local wave action density.
-            if (spongelayer && unifiedsponge)
+            if spongelayer && unifiedsponge
                 (xr, yr, zr) = get_physical_position(rays, (iray, ix, jy, kz))
                 alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
                 rays.dens[iray, ix, jy, kz] =
