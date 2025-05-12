@@ -15,8 +15,8 @@ function interpolate_sponge(
         ixl = floor(Int, (xlc - lx[1] - dx / 2) / dx) + i0 - io
         ixr = ixl + 1
     else
-        ixl = 1
-        ixr = 1
+        ixl = i0
+        ixr = i0
     end
     xl = x[io + ixl]
     xr = x[io + ixr]
@@ -26,8 +26,8 @@ function interpolate_sponge(
         jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
         jyf = jyb + 1
     else
-        jyb = 1
-        jyf = 1
+        jyb = j0
+        jyf = j0
     end
     yb = y[jo + jyb]
     yf = y[jo + jyf]
