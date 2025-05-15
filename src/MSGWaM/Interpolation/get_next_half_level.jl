@@ -5,21 +5,19 @@ function get_next_half_level(
     domain::Domain,
     grid::Grid,
 )
-
-    # Get all necessary fields.
-    (; nzz) = domain
+    (; sizezz, nzz, nz, ko, k0, k1) = domain
     (; ztildetfc) = grid
 
-    # Compute the vertical index.
     @views k = argmin(abs.(ztildetfc[i, j, :] .- z))
-    if ztildetfc[i, j, k] < z
+    if ztildetfc[i, j, k] < z && k < nzz
         k += 1
     end
-    if k < 2
-        k = 2
+    if ko + k < k0
+        k = k0
     end
-    if k > nzz
-        k = nzz
+    if ko + k > sizezz - (nzz - nz) / 2
+        k = k1
     end
+
     return k
 end
