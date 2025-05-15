@@ -45,7 +45,7 @@ function compute_sponge!(
 )
     (; namelists, domain) = state
     (; sizex, sizey, sizez) = namelists.domain
-    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; sizezz, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, ztfc, lx, ly, lz) = state.grid
     (; tref) = state.constants
     (; lateralsponge, spongealphaz_dim) = namelists.sponge
@@ -73,10 +73,10 @@ function compute_sponge!(
             spongealphay = spongealphaz
         end
     else
-        ix0 = i0 - 1
-        ix1 = i1 + 1
-        jy0 = j0 - 1
-        jy1 = j1 + 1
+        ix0 = 1
+        ix1 = nxx
+        jy0 = 1
+        jy1 = nyy
     end
 
     alphaunifiedsponge .= 0.0
@@ -119,17 +119,11 @@ function compute_sponge!(
     end
 
     if lateralsponge
-        set_zonal_boundaries_of_field!(
-            alphaunifiedsponge,
-            namelists,
-            domain;
-            layers = (1, 1, 1),
-        )
+        set_zonal_boundaries_of_field!(alphaunifiedsponge, namelists, domain)
         set_meridional_boundaries_of_field!(
             alphaunifiedsponge,
             namelists,
-            domain;
-            layers = (1, 1, 1),
+            domain,
         )
     end
 
@@ -148,7 +142,7 @@ function compute_sponge!(
 )
     (; namelists, domain) = state
     (; sizex, sizey, sizez) = namelists.domain
-    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; sizezz, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, ztfc) = state.grid
     (; lateralsponge, cosmosteps) = namelists.sponge
     (;
@@ -169,10 +163,10 @@ function compute_sponge!(
         jy0 = j0
         jy1 = j1
     else
-        ix0 = i0 - 1
-        ix1 = i1 + 1
-        jy0 = j0 - 1
-        jy1 = j1 + 1
+        ix0 = 1
+        ix1 = nxx
+        jy0 = 1
+        jy1 = nyy
     end
 
     alphaunifiedsponge .= 0.0
@@ -222,17 +216,11 @@ function compute_sponge!(
     end
 
     if lateralsponge
-        set_zonal_boundaries_of_field!(
-            alphaunifiedsponge,
-            namelists,
-            domain;
-            layers = (1, 1, 1),
-        )
+        set_zonal_boundaries_of_field!(alphaunifiedsponge, namelists, domain)
         set_meridional_boundaries_of_field!(
             alphaunifiedsponge,
             namelists,
-            domain;
-            layers = (1, 1, 1),
+            domain,
         )
     end
 
@@ -251,7 +239,7 @@ function compute_sponge!(
 )
     (; namelists, domain) = state
     (; sizex, sizey, sizez) = namelists.domain
-    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; sizezz, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, ztfc) = state.grid
     (; tref) = state.constants
     (; lateralsponge, spongealphaz_dim, spongeorder) = namelists.sponge
@@ -289,10 +277,10 @@ function compute_sponge!(
             spongealphay = spongealphaz
         end
     else
-        ix0 = i0 - 1
-        ix1 = i1 + 1
-        jy0 = j0 - 1
-        jy1 = j1 + 1
+        ix0 = 1
+        ix1 = nxx
+        jy0 = 1
+        jy1 = nyy
     end
 
     alphaunifiedsponge .= 0.0
@@ -341,17 +329,11 @@ function compute_sponge!(
     end
 
     if lateralsponge
-        set_zonal_boundaries_of_field!(
-            alphaunifiedsponge,
-            namelists,
-            domain;
-            layers = (1, 1, 1),
-        )
+        set_zonal_boundaries_of_field!(alphaunifiedsponge, namelists, domain)
         set_meridional_boundaries_of_field!(
             alphaunifiedsponge,
             namelists,
-            domain;
-            layers = (1, 1, 1),
+            domain,
         )
     end
 
@@ -370,7 +352,7 @@ function compute_sponge!(
 )
     (; namelists, domain) = state
     (; sizex, sizey, sizez) = namelists.domain
-    (; sizezz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; sizezz, nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, ztfc) = state.grid
     (; tref) = state.constants
     (; lateralsponge, spongealphaz_dim) = namelists.sponge
@@ -408,10 +390,10 @@ function compute_sponge!(
             spongealphay = spongealphaz
         end
     else
-        ix0 = i0 - 1
-        ix1 = i1 + 1
-        jy0 = j0 - 1
-        jy1 = j1 + 1
+        ix0 = 1
+        ix1 = nxx
+        jy0 = 1
+        jy1 = nyy
     end
 
     alphaunifiedsponge .= 0.0
@@ -461,17 +443,11 @@ function compute_sponge!(
     end
 
     if lateralsponge
-        set_zonal_boundaries_of_field!(
-            alphaunifiedsponge,
-            namelists,
-            domain;
-            layers = (1, 1, 1),
-        )
+        set_zonal_boundaries_of_field!(alphaunifiedsponge, namelists, domain)
         set_meridional_boundaries_of_field!(
             alphaunifiedsponge,
             namelists,
-            domain;
-            layers = (1, 1, 1),
+            domain,
         )
     end
 
