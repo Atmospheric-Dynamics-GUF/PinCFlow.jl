@@ -6,7 +6,7 @@ function interpolate_stratification(
     (; domain, grid) = state
     (; nbz) = state.namelists.domain
     (; bvsstrattfc) = state.atmosphere
-    (; sizezz, ko, i0, j0, k1) = domain
+    (; sizezz, ko, i0, j0, k0, k1) = domain
     (; ztfc) = grid
 
     kzu = get_next_level(i0, j0, zlc, domain, grid)
@@ -15,6 +15,11 @@ function interpolate_stratification(
     if ko + kzu > sizezz - nbz + 1
         kzu = k1 + 1
         kzd = k1
+    end
+
+    if ko + kzd < k0 - 1
+        kzd = k0 - 1
+        kzu = k0
     end
 
     zd = ztfc[i0, j0, kzd]
@@ -52,7 +57,7 @@ function interpolate_stratification(
     (; domain, grid) = state
     (; nbz) = state.namelists.domain
     (; bvsstrattfc) = state.atmosphere
-    (; sizezz, ko, i0, j0, k1) = domain
+    (; sizezz, ko, i0, j0, k0, k1) = domain
     (; dz, ztildetfc, jac) = grid
 
     kzu = get_next_half_level(i0, j0, zlc, domain, grid)
@@ -61,6 +66,11 @@ function interpolate_stratification(
     if ko + kzu + 1 > sizezz - nbz + 1
         kzu = k1
         kzd = k1 - 1
+    end
+
+    if ko + kzd < k0 - 1
+        kzd = k0 - 1
+        kzu = k0
     end
 
     zd = ztildetfc[i0, j0, kzd]
