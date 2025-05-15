@@ -61,6 +61,7 @@ function set_vertical_boundary_rays!(
                 nrlc += 1
                 if nrlc != iray
                     copy_rays!(rays, (iray, ix, jy, kz), (nrlc, ix, jy, kz))
+                    rays.dens[iray, ix, jy, kz] = 0.0
                 end
             end
             nray[ix, jy, kz] = nrlc
