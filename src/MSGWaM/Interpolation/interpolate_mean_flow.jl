@@ -6,9 +6,9 @@ function interpolate_mean_flow(
     phitype::U,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey, nbz) = namelists.domain
+    (; sizex, sizey) = namelists.domain
     (; u) = state.variables.predictands
-    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
+    (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -59,37 +59,21 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd + ko > sizezz - nbz
-        kzlbu = k1
-        kzlbd = k1
-    end
     zlbd = ztfc[ixl, jyb, kzlbd]
     zlbu = ztfc[ixl, jyb, kzlbu]
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd + ko > sizezz - nbz
-        kzlfu = k1
-        kzlfd = k1
-    end
     zlfd = ztfc[ixl, jyf, kzlfd]
     zlfu = ztfc[ixl, jyf, kzlfu]
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd + ko > sizezz - nbz
-        kzrbu = k1
-        kzrbd = k1
-    end
     zrbd = ztfc[ixr, jyb, kzrbd]
     zrbu = ztfc[ixr, jyb, kzrbu]
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd + ko > sizezz - nbz
-        kzrfu = k1
-        kzrfd = k1
-    end
     zrfd = ztfc[ixr, jyf, kzrfd]
     zrfu = ztfc[ixr, jyf, kzrfu]
 
@@ -144,9 +128,9 @@ function interpolate_mean_flow(
     phitype::V,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey, nbz) = namelists.domain
+    (; sizex, sizey) = namelists.domain
     (; v) = state.variables.predictands
-    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
+    (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -197,37 +181,21 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd + ko > sizezz - nbz
-        kzlbu = k1
-        kzlbd = k1
-    end
     zlbd = ztfc[ixl, jyb, kzlbd]
     zlbu = ztfc[ixl, jyb, kzlbu]
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd + ko > sizezz - nbz
-        kzlfu = k1
-        kzlfd = k1
-    end
     zlfd = ztfc[ixl, jyf, kzlfd]
     zlfu = ztfc[ixl, jyf, kzlfu]
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd + ko > sizezz - nbz
-        kzrbu = k1
-        kzrbd = k1
-    end
     zrbd = ztfc[ixr, jyb, kzrbd]
     zrbu = ztfc[ixr, jyb, kzrbu]
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd + ko > sizezz - nbz
-        kzrfu = k1
-        kzrfd = k1
-    end
     zrfd = ztfc[ixr, jyf, kzrfd]
     zrfu = ztfc[ixr, jyf, kzrfu]
 
@@ -285,8 +253,8 @@ function interpolate_mean_flow(
 )
     (; namelists, domain, grid) = state
     (; predictands) = state.variables
-    (; sizex, sizey, nbz) = namelists.domain
-    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
+    (; sizex, sizey) = namelists.domain
+    (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztildetfc, topography_surface) = grid
 
     # Locate the closest points in zonal direction.
@@ -337,37 +305,21 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_half_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd + ko > sizezz - nbz
-        kzlbu = k1
-        kzlbd = k1
-    end
     zlbd = ztildetfc[ixl, jyb, kzlbd]
     zlbu = ztildetfc[ixl, jyb, kzlbu]
 
     kzlfu = get_next_half_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd + ko > sizezz - nbz
-        kzlfu = k1
-        kzlfd = k1
-    end
     zlfd = ztildetfc[ixl, jyf, kzlfd]
     zlfu = ztildetfc[ixl, jyf, kzlfu]
 
     kzrbu = get_next_half_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd + ko > sizezz - nbz
-        kzrbu = k1
-        kzrbd = k1
-    end
     zrbd = ztildetfc[ixr, jyb, kzrbd]
     zrbu = ztildetfc[ixr, jyb, kzrbu]
 
     kzrfu = get_next_half_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd + ko > sizezz - nbz
-        kzrfu = k1
-        kzrfd = k1
-    end
     zrfd = ztildetfc[ixr, jyf, kzrfd]
     zrfu = ztildetfc[ixr, jyf, kzrfu]
 
@@ -456,8 +408,8 @@ function interpolate_mean_flow(
     phitype::DUDX,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey, nbz) = namelists.domain
-    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
+    (; sizex, sizey) = namelists.domain
+    (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     if sizex == 1
@@ -511,37 +463,21 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd + ko > sizezz - nbz
-        kzlbu = k1
-        kzlbd = k1
-    end
     zlbd = ztfc[ixl, jyb, kzlbd]
     zlbu = ztfc[ixl, jyb, kzlbu]
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd + ko > sizezz - nbz
-        kzlfu = k1
-        kzlfd = k1
-    end
     zlfd = ztfc[ixl, jyf, kzlfd]
     zlfu = ztfc[ixl, jyf, kzlfu]
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd + ko > sizezz - nbz
-        kzrbu = k1
-        kzrbd = k1
-    end
     zrbd = ztfc[ixr, jyb, kzrbd]
     zrbu = ztfc[ixr, jyb, kzrbu]
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd + ko > sizezz - nbz
-        kzrfu = k1
-        kzrfd = k1
-    end
     zrfd = ztfc[ixr, jyf, kzrfd]
     zrfu = ztfc[ixr, jyf, kzrfu]
 
@@ -598,8 +534,8 @@ function interpolate_mean_flow(
     phitype::DUDY,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey, nbz) = namelists.domain
-    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
+    (; sizex, sizey) = namelists.domain
+    (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -650,37 +586,21 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd + ko > sizezz - nbz
-        kzlbu = k1
-        kzlbd = k1
-    end
     zlbd = ztfc[ixl, jyb, kzlbd]
     zlbu = ztfc[ixl, jyb, kzlbu]
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd + ko > sizezz - nbz
-        kzlfu = k1
-        kzlfd = k1
-    end
     zlfd = ztfc[ixl, jyf, kzlfd]
     zlfu = ztfc[ixl, jyf, kzlfu]
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd + ko > sizezz - nbz
-        kzrbu = k1
-        kzrbd = k1
-    end
     zrbd = ztfc[ixr, jyb, kzrbd]
     zrbu = ztfc[ixr, jyb, kzrbu]
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd + ko > sizezz - nbz
-        kzrfu = k1
-        kzrfd = k1
-    end
     zrfd = ztfc[ixr, jyf, kzrfd]
     zrfu = ztfc[ixr, jyf, kzrfu]
 
@@ -737,8 +657,8 @@ function interpolate_mean_flow(
     phitype::DUDZ,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey, nbz) = namelists.domain
-    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
+    (; sizex, sizey) = namelists.domain
+    (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztildetfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -789,37 +709,21 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_half_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd + ko > sizezz - nbz
-        kzlbu = k1 + 1
-        kzlbd = k1 + 1
-    end
     zlbd = ztildetfc[ixl, jyb, kzlbd]
     zlbu = ztildetfc[ixl, jyb, kzlbu]
 
     kzlfu = get_next_half_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd + ko > sizezz - nbz
-        kzlfu = k1 + 1
-        kzlfd = k1 + 1
-    end
     zlfd = ztildetfc[ixl, jyf, kzlfd]
     zlfu = ztildetfc[ixl, jyf, kzlfu]
 
     kzrbu = get_next_half_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd + ko > sizezz - nbz
-        kzrbu = k1 + 1
-        kzrbd = k1 + 1
-    end
     zrbd = ztildetfc[ixr, jyb, kzrbd]
     zrbu = ztildetfc[ixr, jyb, kzrbu]
 
     kzrfu = get_next_half_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd + ko > sizezz - nbz
-        kzrfu = k1 + 1
-        kzrfd = k1 + 1
-    end
     zrfd = ztildetfc[ixr, jyf, kzrfd]
     zrfu = ztildetfc[ixr, jyf, kzrfu]
 
@@ -876,8 +780,8 @@ function interpolate_mean_flow(
     phitype::DVDX,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey, nbz) = namelists.domain
-    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
+    (; sizex, sizey) = namelists.domain
+    (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -928,37 +832,21 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd + ko > sizezz - nbz
-        kzlbu = k1
-        kzlbd = k1
-    end
     zlbd = ztfc[ixl, jyb, kzlbd]
     zlbu = ztfc[ixl, jyb, kzlbu]
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd + ko > sizezz - nbz
-        kzlfu = k1
-        kzlfd = k1
-    end
     zlfd = ztfc[ixl, jyf, kzlfd]
     zlfu = ztfc[ixl, jyf, kzlfu]
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd + ko > sizezz - nbz
-        kzrbu = k1
-        kzrbd = k1
-    end
     zrbd = ztfc[ixr, jyb, kzrbd]
     zrbu = ztfc[ixr, jyb, kzrbu]
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd + ko > sizezz - nbz
-        kzrfu = k1
-        kzrfd = k1
-    end
     zrfd = ztfc[ixr, jyf, kzrfd]
     zrfu = ztfc[ixr, jyf, kzrfu]
 
@@ -1015,8 +903,8 @@ function interpolate_mean_flow(
     phitype::DVDY,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey, nbz) = namelists.domain
-    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
+    (; sizex, sizey) = namelists.domain
+    (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -1071,37 +959,21 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd + ko > sizezz - nbz
-        kzlbu = k1
-        kzlbd = k1
-    end
     zlbd = ztfc[ixl, jyb, kzlbd]
     zlbu = ztfc[ixl, jyb, kzlbu]
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd + ko > sizezz - nbz
-        kzlfu = k1
-        kzlfd = k1
-    end
     zlfd = ztfc[ixl, jyf, kzlfd]
     zlfu = ztfc[ixl, jyf, kzlfu]
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd + ko > sizezz - nbz
-        kzrbu = k1
-        kzrbd = k1
-    end
     zrbd = ztfc[ixr, jyb, kzrbd]
     zrbu = ztfc[ixr, jyb, kzrbu]
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd + ko > sizezz - nbz
-        kzrfu = k1
-        kzrfd = k1
-    end
     zrfd = ztfc[ixr, jyf, kzrfd]
     zrfu = ztfc[ixr, jyf, kzrfu]
 
@@ -1158,8 +1030,8 @@ function interpolate_mean_flow(
     phitype::DVDZ,
 )
     (; namelists, domain, grid) = state
-    (; sizex, sizey, nbz) = namelists.domain
-    (; sizezz, nxx, nyy, io, jo, ko, i0, j0, k1) = domain
+    (; sizex, sizey) = namelists.domain
+    (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, ztildetfc) = grid
 
     # Locate the closest points in zonal direction.
@@ -1210,37 +1082,21 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_half_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    if kzlbd + ko > sizezz - nbz
-        kzlbu = k1 + 1
-        kzlbd = k1 + 1
-    end
     zlbd = ztildetfc[ixl, jyb, kzlbd]
     zlbu = ztildetfc[ixl, jyb, kzlbu]
 
     kzlfu = get_next_half_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    if kzlfd + ko > sizezz - nbz
-        kzlfu = k1 + 1
-        kzlfd = k1 + 1
-    end
     zlfd = ztildetfc[ixl, jyf, kzlfd]
     zlfu = ztildetfc[ixl, jyf, kzlfu]
 
     kzrbu = get_next_half_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    if kzrbd + ko > sizezz - nbz
-        kzrbu = k1 + 1
-        kzrbd = k1 + 1
-    end
     zrbd = ztildetfc[ixr, jyb, kzrbd]
     zrbu = ztildetfc[ixr, jyb, kzrbu]
 
     kzrfu = get_next_half_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    if kzrfd + ko > sizezz - nbz
-        kzrfu = k1 + 1
-        kzrfd = k1 + 1
-    end
     zrfd = ztildetfc[ixr, jyf, kzrfd]
     zrfu = ztildetfc[ixr, jyf, kzrfu]
 
