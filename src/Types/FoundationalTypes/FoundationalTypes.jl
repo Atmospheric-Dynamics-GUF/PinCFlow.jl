@@ -17,8 +17,10 @@ include("compute_topography.jl")
 # functions...
 include("../../Boundaries/set_zonal_boundaries_of_field!.jl")
 include("../../Boundaries/set_meridional_boundaries_of_field!.jl")
+include("../../Boundaries/set_vertical_boundaries_of_field!.jl")
 include("../../MPIOperations/set_zonal_halos_of_field!.jl")
 include("../../MPIOperations/set_meridional_halos_of_field!.jl")
+include("../../MPIOperations/set_vertical_halos_of_field!.jl")
 
 export Time, Constants, Domain, Grid, Atmosphere, Sponge
 
