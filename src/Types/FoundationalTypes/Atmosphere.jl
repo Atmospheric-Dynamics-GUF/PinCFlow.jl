@@ -91,6 +91,7 @@ function Atmosphere(
     background::Isothermal,
 )
     (; nbz) = namelists.domain
+    (; zboundaries) = namelists.setting
     (; temp0_dim, press0_dim, coriolis_mode) = namelists.atmosphere
     (; thetaref, pref, kappa, sig, gamma, g_ndim) = constants
     (; sizezz, nxx, nyy, nzz, ko, k0, k1) = domain
@@ -108,24 +109,28 @@ function Atmosphere(
     thetastrattfc .= t0 .* exp.(kappa .* sig ./ t0 .* ztfc)
     rhostrattfc .= pstrattfc ./ thetastrattfc
 
-    # Set the vertical index bounds for the computation of the squared buoyancy
-    # frequency.
-    kz0 = ko == 0 ? k0 : 1
-    kz1 = ko + nzz == sizezz ? k1 : nzz
-
     # Compute the squared buoyancy frequency.
     bvsstrattfc .= 0.0
+    for k in k0:k1
+        bvsstrattfc[:, :, k] .=
+            g_ndim ./ thetastrattfc[:, :, k] ./ jac[:, :, k] .* 0.5 .*
+            (thetastrattfc[:, :, k + 1] .- thetastrattfc[:, :, k - 1]) ./ dz
+    end
+
+    # Compute the squared buoyancy frequency at the boundaries.
+    set_vertical_boundaries_of_field!(
+        bvsstrattfc,
+        namelists,
+        domain,
+        zboundaries,
+        +,
+    )
     if ko == 0
         for k in 1:nbz
             bvsstrattfc[:, :, k] .=
                 g_ndim ./ thetastrattfc[:, :, k0 - 1] ./ jac[:, :, k0 - 1] .*
                 (thetastrattfc[:, :, k0] .- thetastrattfc[:, :, k0 - 1]) ./ dz
         end
-    end
-    for k in kz0:kz1
-        bvsstrattfc[:, :, k] .=
-            g_ndim ./ thetastrattfc[:, :, k] ./ jac[:, :, k] .* 0.5 .*
-            (thetastrattfc[:, :, k + 1] .- thetastrattfc[:, :, k - 1]) ./ dz
     end
     if ko + nzz == sizezz
         for k in 1:nbz
