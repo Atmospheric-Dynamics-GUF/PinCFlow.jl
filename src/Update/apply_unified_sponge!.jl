@@ -108,7 +108,7 @@ function apply_unified_sponge!(
             @views horizontal_mean[k - k0 + 1] = sum(u[i0:i1, j0:j1, k])
         end
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
-        global_sum ./= (sizex .* sizey)
+        horizontal_mean ./= (sizex .* sizey)
     else
         ubg = relaxation_wind[1] / uref
         if perturbation_period > 0.0
@@ -124,7 +124,7 @@ function apply_unified_sponge!(
     # Update the zonal wind.
     for k in k0:k1
         if relax_to_mean
-            ubg = global_sum[ko + k - k0 + 1]
+            ubg = horizontal_mean[k - k0 + 1]
         end
         for j in j0:j1, i in i0:i1
             alpha =
@@ -173,7 +173,7 @@ function apply_unified_sponge!(
             @views horizontal_mean[k - k0 + 1] = sum(v[i0:i1, j0:j1, k])
         end
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
-        global_sum ./= (sizex .* sizey)
+        horizontal_mean ./= (sizex .* sizey)
     else
         vbg = relaxation_wind[2] / uref
         if perturbation_period > 0.0
@@ -189,7 +189,7 @@ function apply_unified_sponge!(
     # Update the meridional wind.
     for k in k0:k1
         if relax_to_mean
-            vbg = global_sum[ko + k - k0 + 1]
+            vbg = horizontal_mean[k - k0 + 1]
         end
         for j in j0:j1, i in i0:i1
             alpha =
@@ -239,7 +239,7 @@ function apply_unified_sponge!(
             @views horizontal_mean[k - k0 + 1] = sum(w[i0:i1, j0:j1, k])
         end
         MPI.Allreduce!(horizontal_mean, +, layer_comm)
-        global_sum ./= (sizex .* sizey)
+        horizontal_mean ./= (sizex .* sizey)
     else
         wbg = relaxation_wind[3] / uref
         if perturbation_period > 0.0
@@ -255,7 +255,7 @@ function apply_unified_sponge!(
     # Update the vertical wind.
     for k in k0:k1
         if relax_to_mean
-            wbg = global_sum[ko + k - k0 + 1]
+            wbg = horizontal_mean[k - k0 + 1]
         end
         for j in j0:j1, i in i0:i1
             alpha =
