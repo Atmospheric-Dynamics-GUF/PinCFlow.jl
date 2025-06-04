@@ -92,6 +92,8 @@ function shift_rays!(state::State, direction::X)
             end
         end
     end
+
+    return
 end
 
 function shift_rays!(state::State, direction::Y)
@@ -127,6 +129,8 @@ function shift_rays!(state::State, direction::Y)
             end
         end
     end
+
+    return
 end
 
 function shift_rays!(state::State, direction::Z)
