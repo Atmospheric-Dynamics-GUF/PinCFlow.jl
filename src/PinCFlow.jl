@@ -36,7 +36,6 @@ export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
 export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro
 export SteadyState, SingleColumn, MultiColumn
-export Clip, Scale
 
 # Export model-state constructor.
 export State

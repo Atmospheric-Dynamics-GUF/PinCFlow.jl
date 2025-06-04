@@ -8,7 +8,6 @@ abstract type AbstractTestCase end
 abstract type AbstractBoundaries end
 abstract type AbstractSponge end
 abstract type AbstractMergeMode end
-abstract type AbstractLaunchAlgorithm end
 abstract type AbstractWKBMode end
 abstract type AbstractWKBTestCase <: AbstractTestCase end
 abstract type AbstractWKBFilter end
@@ -31,8 +30,6 @@ struct PolynomialSponge <: AbstractSponge end
 struct SinusoidalSponge <: AbstractSponge end
 struct ConstantWaveAction <: AbstractMergeMode end
 struct ConstantWaveEnergy <: AbstractMergeMode end
-struct Clip <: AbstractLaunchAlgorithm end
-struct Scale <: AbstractLaunchAlgorithm end
 struct SteadyState <: AbstractWKBMode end
 struct SingleColumn <: AbstractWKBMode end
 struct MultiColumn <: AbstractWKBMode end
@@ -58,7 +55,6 @@ export AbstractBackground,
     AbstractBoundaries,
     AbstractSponge,
     AbstractMergeMode,
-    AbstractLaunchAlgorithm,
     AbstractWKBMode,
     AbstractWKBTestCase,
     AbstractWKBFilter
@@ -81,8 +77,6 @@ export UniformBoussinesq,
     SinusoidalSponge,
     ConstantWaveAction,
     ConstantWaveEnergy,
-    Clip,
-    Scale,
     SteadyState,
     SingleColumn,
     MultiColumn,
