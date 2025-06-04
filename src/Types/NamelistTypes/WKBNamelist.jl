@@ -5,7 +5,6 @@ struct WKBNamelist{
     D <: Bool,
     E <: AbstractWKBFilter,
     F <: AbstractWKBMode,
-    G <: AbstractLaunchAlgorithm,
 }
     xrmin_dim::A
     xrmax_dim::A
@@ -36,7 +35,6 @@ struct WKBNamelist{
     long_threshold::A
     drag_coefficient::A
     nwm::B
-    launch_algorithm::G
 end
 
 function WKBNamelist(;
@@ -69,7 +67,6 @@ function WKBNamelist(;
     long_threshold = 2.5E-1,
     drag_coefficient = 1.0E+0,
     nwm = 1,
-    launch_algorithm = Clip(),
 )
     return WKBNamelist(
         xrmin_dim,
@@ -101,6 +98,5 @@ function WKBNamelist(;
         long_threshold,
         drag_coefficient,
         nwm,
-        launch_algorithm,
     )
 end
