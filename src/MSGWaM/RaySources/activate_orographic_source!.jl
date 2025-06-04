@@ -114,7 +114,6 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
         branchr,
         blocking,
         long_threshold,
-        launch_algorithm,
         wkb_mode,
     ) = state.namelists.wkb
     (; tref) = state.constants
@@ -252,10 +251,6 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
                 end
             else
                 if wadr != 0.0
-                    if launch_algorithm == Scale()
-                        iray = -1
-                    end
-
                     # Check for case (2).
                     if iray > 0 && zr + dzr / 2 > ztildetfc[ix, jy, kz]
 
@@ -299,13 +294,6 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
                     ir_sfc[i_sfc, ix, jy] = -1
                     continue
                 end
-            end
-
-            # Scale the wave action density.
-            if wkb_mode != SteadyState() && launch_algorithm == Scale()
-                cgrz =
-                    wnrm * (fc^2 - bvsavg) * wnrh^2 / omir / (wnrh^2 + wnrm^2)^2
-                wadr *= dt * cgrz / jac[ix, jy, kz] / dz
             end
 
             # Set physical ray-volume positions.

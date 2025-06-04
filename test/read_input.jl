@@ -67,7 +67,6 @@ wkb = WKBNamelist(;
     wkb_mode = MultiColumn(),
     blocking = false,
     nwm = 1,
-    launch_algorithm = Clip(),
 )
 
 namelists = Namelists(;
