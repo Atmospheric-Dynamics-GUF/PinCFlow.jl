@@ -227,8 +227,8 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
                 dzr = 0.0
             end
 
-            # Check if a new ray volume is to be launched and clip the old one.
-            # Three cases are distinguished.
+            # Check if a new ray volume is to be launched and clip/extend the
+            # old one. Three cases are distinguished.
             # (1) There is no ray volume with nonzero wave-action density. A new
             #     ray volume is launched.
             # (2) There is a ray volume with nonzero wave-action density, which
@@ -240,19 +240,24 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
             #     new one.
             if wkb_mode == SteadyState()
                 if iray < 0
-                    nray[ix, jy, kz] += 1
-                    iray = nray[ix, jy, kz]
-                    ir_sfc[i_sfc, ix, jy] = iray
-                end
-
-                if wadr == 0.0
-                    rays.dens[iray, ix, jy, kz] = 0.0
-                    continue
+                    if wadr == 0
+                        continue
+                    else
+                        nray[ix, jy, kz] += 1
+                        iray = nray[ix, jy, kz]
+                        ir_sfc[i_sfc, ix, jy] = iray
+                    end
+                elseif iray > 0
+                    if wadr == 0
+                        rays.dens[iray, ix, jy, kz] = 0.0
+                        ir_sfc[i_sfc, ix, jy] = -1
+                        continue
+                    end
                 end
             else
-                if wadr != 0.0
-                    # Check for case (2).
-                    if iray > 0 && zr + dzr / 2 > ztildetfc[ix, jy, kz]
+                if iray > 0
+                    # Shift and clip/extend the old ray volume.
+                    if zr + dzr / 2 > ztildetfc[ix, jy, kz]
 
                         # Shift the old ray volume.
                         nray[ix, jy, kz + 1] += 1
@@ -268,7 +273,7 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
                             (nrlc, ix, jy, kz + 1),
                         )
 
-                        # Clip or extend the old ray volume.
+                        # Clip/extend the old ray volume.
                         if zr - dzr / 2 < ztildetfc[ix, jy, kz] || kz2 == 1
                             rays.dzray[nrlc, ix, jy, kz + 1] =
                                 zr + dzr / 2 - ztildetfc[ix, jy, kz]
@@ -276,9 +281,17 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
                                 zr + dzr / 2 -
                                 rays.dzray[nrlc, ix, jy, kz + 1] / 2
                         end
+                    end
 
-                        # Check for case (1).
-                    elseif iray < 0
+                    if wadr == 0
+                        rays.dens[iray, ix, jy, kz] = 0.0
+                        ir_sfc[i_sfc, ix, jy] = -1
+                        continue
+                    end
+                elseif iray < 0
+                    if wadr == 0
+                        continue
+                    else
                         nray[ix, jy, kz] += 1
                         iray = nray[ix, jy, kz]
                         if iray > nray_wrk
@@ -288,11 +301,6 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
                         end
                         ir_sfc[i_sfc, ix, jy] = iray
                     end
-
-                    # No ray volume is launched for zero wave-action density.
-                else
-                    ir_sfc[i_sfc, ix, jy] = -1
-                    continue
                 end
             end
 
