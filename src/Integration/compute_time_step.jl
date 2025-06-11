@@ -3,7 +3,7 @@ function compute_time_step(state::State)
     (; cfl, cfl_wave, dtmin_dim, dtmax_dim, adaptive_time_step) =
         state.namelists.discretization
     (; tref, re) = state.constants
-    (; master, comm, i0, i1, j0, j1, k0, k1) = state.domain
+    (; master, comm, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = grid
     (; predictands) = state.variables
     (; u, v, w) = predictands
@@ -83,7 +83,10 @@ function compute_time_step(state::State)
         if typeof(testcase) <: AbstractWKBTestCase
             dtwkb_loc = jac[i0, j0, k0] * dz / (cgz_max[i0, j0, k0] + eps())
 
-            for kz in (k0 - 1):k1, jy in j0:j1, ix in i0:i1
+            kz0 = ko == 0 ? k0 - 1 : k0
+            kz1 = k1
+
+            for kz in kz0:kz1, jy in j0:j1, ix in i0:i1
                 @views dtwkb_loc = min(
                     dtwkb_loc,
                     minimum(
