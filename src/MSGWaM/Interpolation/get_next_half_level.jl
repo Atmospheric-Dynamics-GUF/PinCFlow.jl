@@ -16,13 +16,23 @@ function get_next_half_level(
     if ko == 0
         k = max(k, k0)
     else
-        k = max(k, 3)
+        if k < 3
+            error("Error in get_next_half_level: k = ", k, " < 3")
+        end
     end
 
     if ko + nzz == sizezz
         k = min(k, k1)
     else
-        k = min(k, nzz - 1)
+        if k > nzz - 1
+            error(
+                "Error in get_next_half_level: k = ",
+                k,
+                " > ",
+                nzz - 1,
+                " = nzz - 1",
+            )
+        end
     end
 
     return k
