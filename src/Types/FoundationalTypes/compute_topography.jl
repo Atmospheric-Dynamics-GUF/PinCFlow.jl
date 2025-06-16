@@ -147,8 +147,6 @@ function compute_topography(
                     ) *
                     height_factor / (height_factor + 1.0)
             end
-
-        else
         end
     end
 
