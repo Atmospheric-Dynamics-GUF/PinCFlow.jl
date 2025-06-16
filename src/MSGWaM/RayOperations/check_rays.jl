@@ -20,7 +20,7 @@ function check_rays(state::State)
                     println(
                         "xr = ",
                         xr,
-                        "< x[io + ix] - dx / 2 = ",
+                        " < x[io + ix] - dx / 2 = ",
                         x[io + ix] - dx / 2,
                     )
                     println("io = ", io)
@@ -33,7 +33,7 @@ function check_rays(state::State)
                     println(
                         "xr = ",
                         xr,
-                        "> x[io + ix] + dx / 2 = ",
+                        " > x[io + ix] + dx / 2 = ",
                         x[io + ix] + dx / 2,
                     )
                     println("io = ", io)
@@ -51,7 +51,7 @@ function check_rays(state::State)
                     println(
                         "yr = ",
                         yr,
-                        "< y[jo + jy] - dy / 2 = ",
+                        " < y[jo + jy] - dy / 2 = ",
                         y[jo + jy] - dy / 2,
                     )
                     println("jo = ", jo)
@@ -64,7 +64,7 @@ function check_rays(state::State)
                     println(
                         "yr = ",
                         yr,
-                        "> y[jo + jy] + dy / 2 = ",
+                        " > y[jo + jy] + dy / 2 = ",
                         y[jo + jy] + dy / 2,
                     )
                     println("jo = ", jo)
@@ -79,9 +79,9 @@ function check_rays(state::State)
             if zr < ztildetfc[ix, jy, kz - 1]
                 println("Error in check_rays:")
                 println(
-                    "zr =",
+                    "zr = ",
                     zr,
-                    "< ztildetfc[ix, jy, kz - 1] = ",
+                    " < ztildetfc[ix, jy, kz - 1] = ",
                     ztildetfc[ix, jy, kz - 1],
                 )
                 println("(iray, ix, jy, kz) = ", (iray, ix, jy, kz))
@@ -91,9 +91,9 @@ function check_rays(state::State)
             if zr > ztildetfc[ix, jy, kz]
                 println("Error in check_rays:")
                 println(
-                    "zr =",
+                    "zr = ",
                     zr,
-                    "> ztildetfc[ix, jy, kz] = ",
+                    " > ztildetfc[ix, jy, kz] = ",
                     ztildetfc[ix, jy, kz],
                 )
                 println("(iray, ix, jy, kz) = ", (iray, ix, jy, kz))
@@ -101,5 +101,6 @@ function check_rays(state::State)
             end
         end
     end
+
     return
 end
