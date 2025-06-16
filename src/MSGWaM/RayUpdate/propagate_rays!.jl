@@ -105,12 +105,12 @@ function propagate_rays!(
                 branchr * sqrt(n2r2 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
             # Compute intrinsic zonal group velocity.
-            if (sizex > 1)
+            if sizex > 1
                 cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             end
 
             # Compute intrinsic meridional group velocity.
-            if (sizey > 1)
+            if sizey > 1
                 cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
             end
 
@@ -221,7 +221,7 @@ function propagate_rays!(
 
                 # Update extents in x and k.
 
-                if (sizex > 1 && kz >= k0 && wkb_mode != SingleColumn())
+                if sizex > 1 && kz >= k0 && wkb_mode != SingleColumn()
                     ddxdt = cgrx2 - cgrx1
 
                     ddxray[iray, ix, jy, kz] =
@@ -240,7 +240,7 @@ function propagate_rays!(
 
                 # Update extents in y and l.
 
-                if (sizey > 1 && kz >= k0 && wkb_mode != SingleColumn())
+                if sizey > 1 && kz >= k0 && wkb_mode != SingleColumn()
                     ddydt = cgry2 - cgry1
 
                     ddyray[iray, ix, jy, kz] =

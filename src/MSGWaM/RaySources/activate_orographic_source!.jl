@@ -47,10 +47,10 @@ function activate_orographic_source!(
                 break
             end
         end
-        uavg = uavg / dzsum
-        vavg = vavg / dzsum
-        rhoavg = rhoavg / dzsum
-        bvsavg = bvsavg / dzsum
+        uavg /= dzsum
+        vavg /= dzsum
+        rhoavg /= dzsum
+        bvsavg /= dzsum
 
         # Determine the blocked layer.
         @views if blocking && sum(abs.(topography_spectrum[:, ix, jy])) > 0
@@ -168,10 +168,10 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
                 break
             end
         end
-        uavg = uavg / dzsum
-        vavg = vavg / dzsum
-        rhoavg = rhoavg / dzsum
-        bvsavg = bvsavg / dzsum
+        uavg /= dzsum
+        vavg /= dzsum
+        rhoavg /= dzsum
+        bvsavg /= dzsum
 
         # Determine the blocked layer.
         @views if blocking && sum(abs.(topography_spectrum[:, ix, jy])) > 0

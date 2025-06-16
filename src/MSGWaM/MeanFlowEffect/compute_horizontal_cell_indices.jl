@@ -8,7 +8,7 @@ function compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
         ixmin = floor(Int, (xr - lx[1] - dxr / 2) / dx) + i0 - io
         ixmax = floor(Int, (xr - lx[1] + dxr / 2) / dx) + i0 - io
 
-        if ixmin > (i1 + 1)
+        if ixmin > i1 + 1
             error(
                 "Error in meanflow_effect: ixmin = ",
                 ixmin,
