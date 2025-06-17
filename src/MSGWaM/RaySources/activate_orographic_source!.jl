@@ -98,7 +98,7 @@ function activate_orographic_source!(
     return
 end
 
-function activate_orographic_source!(state::State, dt::AbstractFloat)
+function activate_orographic_source!(state::State)
     (; sizex, sizey) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (;
