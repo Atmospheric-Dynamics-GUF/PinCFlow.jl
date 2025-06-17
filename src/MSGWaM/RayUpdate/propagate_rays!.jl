@@ -315,7 +315,7 @@ function propagate_rays!(
     end
 
     if testcase == WKBMountainWave() && rkstage == nstages
-        activate_orographic_source!(state, stepfrac[rkstage] * dt)
+        activate_orographic_source!(state)
     end
 
     return
@@ -345,7 +345,7 @@ function propagate_rays!(
     fc = coriolis_frequency * tref
 
     if testcase == WKBMountainWave()
-        activate_orographic_source!(state, stepfrac[rkstage] * dt)
+        activate_orographic_source!(state)
     end
 
     if ko != 0
