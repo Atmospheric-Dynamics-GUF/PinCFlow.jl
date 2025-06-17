@@ -264,7 +264,7 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
                         nrlc = nray[ix, jy, kz + 1]
                         if nrlc > nray_wrk
                             error(
-                                "Error in orographic_source: nrlc > nray_wrk!",
+                                "Error in activate_orographic_source!: nrlc > nray_wrk!",
                             )
                         end
                         copy_rays!(
@@ -296,7 +296,7 @@ function activate_orographic_source!(state::State, dt::AbstractFloat)
                         iray = nray[ix, jy, kz]
                         if iray > nray_wrk
                             error(
-                                "Error in orographic_source: iray > nray_wrk!",
+                                "Error in activate_orographic_source!: iray > nray_wrk!",
                             )
                         end
                         ir_sfc[i_sfc, ix, jy] = iray
