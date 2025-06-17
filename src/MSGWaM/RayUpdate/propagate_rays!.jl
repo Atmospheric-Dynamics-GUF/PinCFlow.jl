@@ -104,6 +104,18 @@ function propagate_rays!(
             omir2 =
                 branchr * sqrt(n2r2 * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 
+            if any((n2r1, n2r, n2r2) .<= 0)
+                error(
+                    "Error in propagate_rays!: Interpolated stratification is negative!",
+                )
+            end
+
+            if khr <= 0
+                error(
+                    "Error in propagate_rays!: Horizontal wavenumber is negative!",
+                )
+            end
+
             # Compute intrinsic zonal group velocity.
             if sizex > 1
                 cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
