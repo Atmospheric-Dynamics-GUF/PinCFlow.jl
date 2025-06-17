@@ -39,7 +39,7 @@ function propagate_rays!(
     (; nray_max, nray, cgx_max, cgy_max, cgz_max, rays) = state.wkb
     (; dxray, dyray, dzray, dkray, dlray, dmray, ddxray, ddyray, ddzray) =
         state.wkb.increments
-    (; alphark, betark, stepfrac) = state.time
+    (; alphark, betark, stepfrac, nstages) = state.time
     (; lz, ztildetfc) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
 
@@ -302,7 +302,7 @@ function propagate_rays!(
         end
     end
 
-    if testcase == WKBMountainWave()
+    if testcase == WKBMountainWave() && rkstage == nstages
         activate_orographic_source!(state, stepfrac[rkstage] * dt)
     end
 
