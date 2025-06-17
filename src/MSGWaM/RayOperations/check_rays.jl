@@ -10,6 +10,9 @@ function check_rays(state::State)
         ix in (i0 - 1):(i1 + 1)
 
         for iray in 1:nray[ix, jy, kz]
+            if rays.dens[iray, ix, jy, kz] == 0
+                continue
+            end
 
             # Check zonal position.
             if sizex > 1
