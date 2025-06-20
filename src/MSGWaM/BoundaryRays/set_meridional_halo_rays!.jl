@@ -1,3 +1,10 @@
+"""
+    set_meridional_halo_rays!(state::State)
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+"""
 function set_meridional_halo_rays!(state::State)
     (; comm, nx, nz, i0, i1, j0, j1, k0, k1, backward, forward) = state.domain
     (; nray, rays) = state.wkb

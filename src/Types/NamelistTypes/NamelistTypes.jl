@@ -15,24 +15,33 @@ abstract type AbstractWKBFilter end
 struct UniformBoussinesq <: AbstractBackground end
 struct StratifiedBoussinesq <: AbstractBackground end
 struct Isothermal <: AbstractBackground end
+
 struct FPlane <: AbstractCoriolisMode end
+
 struct MCVariant <: AbstractLimiter end
+
 struct Boussinesq <: AbstractModel end
 struct PseudoIncompressible <: AbstractModel end
 struct Compressible <: AbstractModel end
+
 struct MountainWave <: AbstractTestCase end
+
 struct WKBMountainWave <: AbstractWKBTestCase end
+
 struct PeriodicBoundaries <: AbstractBoundaries end
 struct SolidWallBoundaries <: AbstractBoundaries end
+
 struct ExponentialSponge <: AbstractSponge end
 struct COSMOSponge <: AbstractSponge end
 struct PolynomialSponge <: AbstractSponge end
 struct SinusoidalSponge <: AbstractSponge end
+
 struct ConstantWaveAction <: AbstractMergeMode end
 struct ConstantWaveEnergy <: AbstractMergeMode end
 struct SteadyState <: AbstractWKBMode end
 struct SingleColumn <: AbstractWKBMode end
 struct MultiColumn <: AbstractWKBMode end
+
 struct Box <: AbstractWKBFilter end
 struct Shapiro <: AbstractWKBFilter end
 

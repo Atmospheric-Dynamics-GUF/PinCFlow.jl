@@ -1,3 +1,10 @@
+"""
+    set_vertical_halo_rays!(state::State)
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+"""
 function set_vertical_halo_rays!(state::State)
     (; comm, sizezz, nzz, nx, ny, ko, i0, i1, j0, j1, k0, k1, down, up) =
         state.domain
@@ -48,13 +55,7 @@ function set_vertical_halo_rays!(state::State)
             ]
         end
 
-        MPI.Sendrecv!(
-            send_down,
-            receive_down,
-            comm;
-            dest = down,
-            source = down,
-        )
+        MPI.Sendrecv!(send_down, receive_down, comm; dest = down, source = down)
 
         for (index, field) in enumerate(fields)
             @views getfield(rays, field)[
@@ -80,21 +81,9 @@ function set_vertical_halo_rays!(state::State)
             ]
         end
 
-        MPI.Sendrecv!(
-            send_up,
-            receive_down,
-            comm;
-            dest = up,
-            source = down,
-        )
+        MPI.Sendrecv!(send_up, receive_down, comm; dest = up, source = down)
 
-        MPI.Sendrecv!(
-            send_down,
-            receive_up,
-            comm;
-            dest = down,
-            source = up,
-        )
+        MPI.Sendrecv!(send_down, receive_up, comm; dest = down, source = up)
 
         for (index, field) in enumerate(fields)
             @views getfield(rays, field)[

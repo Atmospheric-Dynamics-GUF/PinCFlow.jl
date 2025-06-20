@@ -1,3 +1,31 @@
+"""
+    apply_3d_muscl!(phi, phitilde, nxx, nyy, nzz, limitertype)
+
+Applies the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) reconstruction
+in three dimensions.
+
+# Arguments
+
+  - `phi::AbstractArray{<:AbstractFloat, 3}`: Input scalar values at cell centers.
+  - `phitilde::AbstractArray{<:AbstractFloat, 5}`: Output reconstructed values at cell interfaces.
+    The fourth dimension (1,2,3) represents directions (x,y,z), and the fifth dimension contains
+    left/right interface values.
+  - `nxx::Integer`: Size of the grid in x-direction, including ghost cells.
+  - `nyy::Integer`: Size of the grid in y-direction, including ghost cells.
+  - `nzz::Integer`: Size of the grid in z-direction, including ghost cells.
+  - `limitertype::MCVariant`: Type of slope limiter to use.
+
+# Details
+
+This function applies one-dimensional MUSCL reconstruction sequentially in each direction
+(x, y, and z). For each direction, it uses the `apply_1d_muscl!` function to perform
+the reconstruction along the corresponding dimension.
+
+# Notes
+
+  - The function modifies `phitilde` in-place.
+  - Reconstruction is applied only to interior cells (from 2 to n-1 in each dimension).
+"""
 function apply_3d_muscl!(
     phi::AbstractArray{<:AbstractFloat, 3},
     phitilde::AbstractArray{<:AbstractFloat, 5},

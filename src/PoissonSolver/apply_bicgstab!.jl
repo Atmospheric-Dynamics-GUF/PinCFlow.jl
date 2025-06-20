@@ -1,3 +1,36 @@
+"""
+    apply_bicgstab!(b_in, tolref, sol, namelists, domain, grid, poisson)
+
+Solve the linear system using BiCGStab iterative method.
+
+Implements the Bi-Conjugate Gradient Stabilized method for solving the discrete
+Poisson equation. This is the core linear algebra routine for the pressure correction
+step.
+
+# Arguments
+
+  - `b_in::AbstractArray{<:AbstractFloat, 3}`: Right-hand side vector
+  - `tolref::AbstractFloat`: Reference tolerance for relative error checking
+  - `sol::AbstractArray{<:AbstractFloat, 3}`: Solution vector (input/output)
+  - `namelists::Namelists`: Solver parameters (tolerance, max iterations, preconditioner flag)
+  - `domain::Domain`: MPI domain info for parallel reductions
+  - `grid::Grid`: Grid information
+  - `poisson::Poisson`: Operator and workspace arrays
+
+# Returns
+
+  - `(errflag, niter)`: Convergence flag and iteration count
+
+# Convergence criteria
+
+  - Absolute and relative residual norms computed globally across MPI processes
+  - Separate monitoring of 3D and vertically-averaged residuals
+  - Convergence when both criteria are satisfied
+
+# Parallelization
+
+  - Preconditioner requires vertical communication between processes
+"""
 function apply_bicgstab!(
     b_in::AbstractArray{<:AbstractFloat, 3},
     tolref::AbstractFloat,
@@ -13,7 +46,6 @@ function apply_bicgstab!(
     (; master, comm, nx, ny, nz, column_comm, layer_comm) = domain
     (; r_vm, p, r0, rold, r, s, t, v, matvec, v_pc) = poisson.bicgstab
 
-    # Print information.
     if master
         println(repeat("-", 80))
         println("BicGStab: Solving linear system...")

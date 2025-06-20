@@ -25,9 +25,14 @@ struct Sponge{
     horizontal_mean::C
 end
 
-function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
+"""
+  Sponge(namelists::Namelists, domain::Domain, grid::Grid)
 
-    # Get parameters.
+Construct a `Sponge` from `namelists`, `domain` and `grid`.
+
+Sponge holds damping coefficients, vertical and lateral sponge extents.
+"""
+function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
     (; spongeheight) = namelists.sponge
     (; nxx, nyy, nzz, nz) = domain
     (; lx, ly, lz) = grid
