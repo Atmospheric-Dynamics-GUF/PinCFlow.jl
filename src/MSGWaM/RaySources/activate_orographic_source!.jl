@@ -135,7 +135,7 @@ function activate_orographic_source!(state::State)
     (; u, v) = state.variables.predictands
     (; ir_sfc, ix2_sfc, jy2_sfc, kz2_sfc, ik_sfc, jl_sfc, km_sfc, iwm_sfc) =
         state.wkb.surface_indices
-    (; nray_wrk, n_sfc, nray, rays, zb) = state.wkb
+    (; nray_wrk, n_sfc, nray, rays, zb, increments) = state.wkb
 
     if ko != 0
         return
@@ -272,6 +272,11 @@ function activate_orographic_source!(state::State)
                             (iray, ix, jy, kz),
                             (nrlc, ix, jy, kz + 1),
                         )
+                        for field in fieldnames(Increments)
+                            getfield(increments, field)[nrlc, ix, jy, kz + 1] =
+                                getfield(increments, field)[iray, ix, jy, kz]
+                            getfield(increments, field)[iray, ix, jy, kz] = 0.0
+                        end
 
                         # Clip/extend the old ray volume.
                         if zr - dzr / 2 < ztildetfc[ix, jy, kz] || kz2 == 1
