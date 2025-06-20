@@ -8,6 +8,21 @@ struct GridNamelist{A <: AbstractFloat, B <: Integer}
     stretch_exponent::A
 end
 
+"""
+GridNamelist(; <keyword arguments>)
+
+Configuration parameters for topography and vertical grid stretching.
+
+# Arguments
+
+  - `mountainheight_dim::AbstractFloat = 1.0E+2`: Mountain height [m]
+  - `mountainwidth_dim::AbstractFloat = 1.0E+3`: Mountain width [m]
+  - `mountain_case::Integer = 1`: Mountain profile selector. See [compute_topography] for a available options.
+  - `height_factor::AbstractFloat = 1.0E+0`: Topography height scaling
+  - `width_factor::AbstractFloat = 1.0E+0`: Topography width scaling
+  - `spectral_modes::Integer = 1`: Number of spectral modes for terrain representation
+  - `stretch_exponent::AbstractFloat = 1.0E+0`: Vertical grid stretching parameter
+"""
 function GridNamelist(;
     mountainheight_dim = 1.0E+2,
     mountainwidth_dim = 1.0E+3,

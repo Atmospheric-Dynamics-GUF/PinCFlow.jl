@@ -1,3 +1,16 @@
+"""
+    synchronize_compressible_atmosphere!(state::State, predictands::Predictands)
+
+Synchronize compressible atmosphere fields based on model type.
+
+This function dispatches to the appropriate model-specific implementation
+for updating atmospheric stratification fields in compressible models.
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+  - `predictands::Predictands`: Current values of predicted variables
+"""
 function synchronize_compressible_atmosphere!(
     state::State,
     predictands::Predictands,
@@ -7,6 +20,20 @@ function synchronize_compressible_atmosphere!(
     return
 end
 
+"""
+    synchronize_compressible_atmosphere!(state::State, predictands::Predictands, model::AbstractModel)
+
+No-op for non-compressible models.
+
+Most model types don't require atmospheric synchronization as they don't
+maintain stratified background atmosphere fields.
+
+# Arguments
+
+  - `state::State`: Simulation state (unused)
+  - `predictands::Predictands`: Predicted variables (unused)
+  - `model::AbstractModel`: Non-compressible model type
+"""
 function synchronize_compressible_atmosphere!(
     state::State,
     predictands::Predictands,
@@ -15,6 +42,27 @@ function synchronize_compressible_atmosphere!(
     return
 end
 
+"""
+    synchronize_compressible_atmosphere!(state::State, predictands::Predictands, model::Compressible)
+
+Synchronize stratified atmosphere fields for compressible model.
+
+Updates the background stratification fields based on current predictand values,
+including pressure stratification and Brunt-Väisälä frequency computation.
+
+# Arguments
+
+  - `state::State`: Simulation state containing grid, domain, and atmosphere data
+  - `predictands::Predictands`: Current predicted field values
+  - `model::Compressible`: Compressible model type
+
+# Details
+
+  - Updates pressure stratification: `pstrattfc = p`
+  - Computes Brunt-Väisälä frequency using current density and pressure fields
+  - Applies vertical boundary conditions for the computed stratification
+  - Handles special cases for boundary processes in MPI decomposition
+"""
 function synchronize_compressible_atmosphere!(
     state::State,
     predictands::Predictands,

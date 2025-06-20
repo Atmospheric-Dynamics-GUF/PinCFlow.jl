@@ -1,3 +1,27 @@
+"""
+    apply_operator!(sin, ls, hortot::Total, namelists, domain, poisson)
+
+Apply the discrete Poisson operator including all directional components.
+
+This function performs the matrix-vector multiplication for the discretized Poisson
+operator, including horizontal (x,y) and vertical (z) derivatives with cross-coupling
+terms for terrain-following coordinates.
+
+# Arguments
+
+  - `sin::AbstractArray{<:AbstractFloat, 3}`: Input field
+  - `ls::AbstractArray{<:AbstractFloat, 3}`: Output field (operator applied to input)
+  - `hortot::Total`: Flag indicating full 3D operator application
+  - `namelists::Namelists`: Simulation parameters
+  - `domain::Domain`: Domain decomposition information
+  - `poisson::Poisson`: Poisson solver data structures containing operator coefficients
+
+# Notes
+
+  - Uses stencil coefficients pre-computed in `compute_operator!`
+  - Handles boundary conditions through halo exchanges
+  - Modifies `ls` in place
+  """
 function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},
@@ -232,6 +256,22 @@ function apply_operator!(
     return
 end
 
+"""
+    apply_operator!(sin, ls, hortot::Horizontal, namelists, domain, poisson)
+
+Apply only the horizontal components of the Poisson operator.
+
+Used in the preconditioner.
+
+# Arguments
+
+  - `sin::AbstractArray{<:AbstractFloat, 3}`: Input field
+  - `ls::AbstractArray{<:AbstractFloat, 3}`: Output field
+  - `hortot::Horizontal`: Flag for horizontal-only operation
+  - `namelists::Namelists`: Simulation parameters
+  - `domain::Domain`: Domain information
+  - `poisson::Poisson`: Operator coefficient storage
+"""
 function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},

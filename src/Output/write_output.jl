@@ -1,3 +1,35 @@
+"""
+    write_output(state::State, time::AbstractFloat, iout::Integer, machine_start_time::DateTime)
+
+Write simulation state to HDF5 output file.
+
+Outputs grid coordinates, background fields, prognostic variables, and WKB ray data
+to the HDF5 file specified in [`OutputNamelist`](src/Types/NamelistTypes/OutputNamelist.jl).
+Handles MPI-parallel I/O with proper domain decomposition.
+
+# Arguments
+- `state::State`: Complete simulation state
+- `time::AbstractFloat`: Current simulation time (dimensionless)
+- `iout::Integer`: Output step counter
+- `machine_start_time::DateTime`: Wall-clock start time for timing info
+
+# Returns
+- `Integer`: Updated output counter
+
+# Output Variables
+- **Grid**: Coordinates `x`, `y`, `z` and time `t`
+- **Background**: Density `rhobar`, potential temperature `thetabar`, buoyancy frequency `n2`
+- **Prognostic**: Density `rhop`, velocities `u/v/w`, pressure `pip`, potential temperature `p`
+- **Staggered**: Cell-edge velocities `us/vs/ws`, transformed winds `wtfc/wstfc`
+- **WKB**: Ray positions, wavenumbers, densities, and gravity wave tendencies
+
+# Implementation
+- **Parallel I/O**: Uses collective HDF5 operations across MPI ranks
+- **Chunking**: Optimized for domain decomposition with chunk sizes
+- **Scaling**: Applies dimensional scaling factors from [`Constants`](src/Types/FoundationalTypes/Constants.jl)
+- **Conditionals**: Only outputs variables specified in [`output_variables`](src/Types/NamelistTypes/OutputNamelist.jl)
+"""
+
 function write_output(
     state::State,
     time::AbstractFloat,

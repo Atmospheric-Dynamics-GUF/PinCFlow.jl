@@ -1,3 +1,29 @@
+"""
+    apply_preconditioner!(sin, sout, namelists, domain, grid, poisson)
+
+Apply line relaxation preconditioner for the Poisson equation.
+
+This preconditioner uses alternating direction implicit (ADI) method with vertical
+line relaxation to accelerate convergence of the BiCGStab solver. It treats the
+vertical direction implicitly while horizontal coupling is handled explicitly.
+
+# Arguments
+
+  - `sin::AbstractArray{<:AbstractFloat, 3}`: Input residual field
+  - `sout::AbstractArray{<:AbstractFloat, 3}`: Preconditioned output field
+  - `namelists::Namelists`: Contains preconditioner parameters (dtau, maxiteradi)
+  - `domain::Domain`: MPI domain decomposition info for vertical communication
+  - `grid::Grid`: Grid spacing for pseudo-time step calculation
+  - `poisson::Poisson`: Operator coefficients and preconditioner workspace
+
+# Algorithm
+
+ 1. Set pseudo-time step based on horizontal grid spacing
+ 2. Iterate ADI relaxation sweeps
+ 3. Perform tridiagonal solves in vertical direction
+ 4. Handle MPI communication for domain boundaries
+ 5. Apply upward and downward elimination sweeps
+"""
 function apply_preconditioner!(
     sin::AbstractArray{<:AbstractFloat, 3},
     sout::AbstractArray{<:AbstractFloat, 3},

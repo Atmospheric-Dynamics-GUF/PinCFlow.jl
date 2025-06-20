@@ -1,9 +1,37 @@
+"""
+    propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
+
+Entry point for ray propagation based on test case type.
+
+Dispatches to the appropriate propagation method depending on whether the
+simulation uses WKB ray tracing or standard test cases.
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+  - `dt::AbstractFloat`: Time step size
+  - `rkstage::Integer`: Runge-Kutta stage number
+"""
 function propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
     (; testcase) = state.namelists.setting
     propagate_rays!(state, dt, rkstage, testcase)
     return
 end
 
+"""
+    propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer, testcase::AbstractTestCase)
+
+No-op for non-WKB test cases.
+
+Standard test cases don't use ray tracing, so no ray propagation is needed.
+
+# Arguments
+
+  - `state::State`: Simulation state (unused)
+  - `dt::AbstractFloat`: Time step (unused)
+  - `rkstage::Integer`: RK stage (unused)
+  - `testcase::AbstractTestCase`: Non-WKB test case
+"""
 function propagate_rays!(
     state::State,
     dt::AbstractFloat,
@@ -13,6 +41,20 @@ function propagate_rays!(
     return
 end
 
+"""
+    propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer, testcase::AbstractWKBTestCase)
+
+Propagate rays for WKB test cases based on WKB mode.
+
+Dispatches to the specific WKB mode implementation for ray propagation.
+
+# Arguments
+
+  - `state::State`: Simulation state containing WKB configuration
+  - `dt::AbstractFloat`: Time step size
+  - `rkstage::Integer`: Runge-Kutta stage number
+  - `testcase::AbstractWKBTestCase`: WKB test case specification
+"""
 function propagate_rays!(
     state::State,
     dt::AbstractFloat,
@@ -24,6 +66,50 @@ function propagate_rays!(
     return
 end
 
+"""
+    propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer, wkb_mode::AbstractWKBMode)
+
+Propagate rays using general WKB ray tracing equations.
+
+Implements the full ray tracing equations including:
+
+  - Position updates using group velocities
+  - Wavenumber refraction due to background flow gradients
+  - Ray volume extent evolution
+  - Wave action density transport with sponge layer damping
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+  - `dt::AbstractFloat`: Time step size
+  - `rkstage::Integer`: Runge-Kutta stage number (1-based)
+  - `wkb_mode::AbstractWKBMode`: WKB mode (MultiColumn, SingleColumn, etc.)
+
+# Ray Tracing Equations
+
+## Position Evolution
+
+  - Horizontal: `dx/dt = cgx = (∂ω/∂k) + u`, `dy/dt = cgy = (∂ω/∂l) + v`
+  - Vertical: `dz/dt = cgz = ∂ω/∂m`
+
+## Wavenumber Evolution (Refraction)
+
+  - `dk/dt = -∂u/∂x·k - ∂v/∂x·l`
+  - `dl/dt = -∂u/∂y·k - ∂v/∂y·l`
+  - `dm/dt = -∂u/∂z·k - ∂v/∂z·l - k²∂N²/∂z/(2ω + k²+l²+m²)`
+
+## Ray Volume Extent Evolution
+
+Ray volumes can stretch or compress as they propagate through varying background flows.
+
+# Features
+
+  - Multi-stage Runge-Kutta time integration
+  - Group velocity calculation for CFL constraints
+  - Orographic source activation for mountain wave test cases
+  - Unified sponge layer damping
+  - Refraction only above minimum altitude threshold
+"""
 function propagate_rays!(
     state::State,
     dt::AbstractFloat,
@@ -321,6 +407,49 @@ function propagate_rays!(
     return
 end
 
+"""
+    propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer, wkb_mode::SteadyState)
+
+Propagate rays using steady-state vertical propagation.
+
+Implements a simplified ray propagation scheme where rays move only vertically
+through a steady background atmosphere. This is computationally efficient for
+mountain wave simulations where horizontal propagation can be neglected.
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+  - `dt::AbstractFloat`: Time step size (used for sponge damping)
+  - `rkstage::Integer`: Runge-Kutta stage number
+  - `wkb_mode::SteadyState`: Steady-state WKB mode
+
+# Algorithm
+
+ 1. **Vertical Transport**: Copies rays from level k-1 to level k
+ 2. **Coordinate Transformation**: Adjusts ray positions for terrain-following coordinates
+ 3. **Local Dispersion**: Computes vertical wavenumber from local conditions
+ 4. **Wave Action Conservation**: `ρ·cgz·A = constant` along ray paths
+ 5. **Saturation Scheme**: Applies wave breaking parameterization
+ 6. **MPI Communication**: Exchanges rays between vertical neighbor processes
+
+# Steady-State Assumptions
+
+  - Background flow and stratification are approximately steady
+  - Horizontal ray propagation is negligible compared to vertical
+  - Rays maintain their horizontal wavenumber spectrum
+  - Only vertical group velocity matters for transport
+
+# Boundary Conditions
+
+  - **Critical Levels**: Rays are absorbed where `f < ω < N`
+  - **Reflecting Levels**: Ray action set to zero in unstable regions
+  - **Sponge Damping**: Exponential decay in specified regions
+
+# Performance
+
+Much faster than full ray tracing for mountain wave problems where the
+steady-state assumption is valid.
+"""
 function propagate_rays!(
     state::State,
     dt::AbstractFloat,

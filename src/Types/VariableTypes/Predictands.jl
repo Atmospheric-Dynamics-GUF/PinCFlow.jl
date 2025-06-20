@@ -1,3 +1,20 @@
+"""
+    Predictands{A, B}
+
+Storage for prognostic variables (predictands) on a 3D grid.
+
+# Fields
+
+  - `rho::A`: Density field (nxx × nyy × nzz)
+  - `rhop::A`: Density perturbation field (nxx × nyy × nzz)
+  - `u::A`: x-velocity field (nxx × nyy × nzz)
+  - `v::A`: y-velocity field (nxx × nyy × nzz)
+  - `w::A`: z-velocity field (nxx × nyy × nzz)
+  - `pip::A`: Pressure perturbation field (nxx × nyy × nzz)
+  - `p::B`: Pressure field (model-dependent dimensions)
+
+For incompressible models, `p` is empty (0×0×0).
+"""
 struct Predictands{
     A <: AbstractArray{<:AbstractFloat, 3},
     B <: AbstractArray{<:AbstractFloat, 3},
@@ -11,6 +28,11 @@ struct Predictands{
     p::B
 end
 
+"""
+    Predictands(namelists::Namelists, constants::Constants, domain::Domain, atmosphere::Atmosphere)
+
+Construct `Predictands` from configuration namelists, constants, domain, and atmosphere.
+"""
 function Predictands(
     namelists::Namelists,
     constants::Constants,
@@ -28,6 +50,11 @@ function Predictands(
     )
 end
 
+"""
+    Predictands(namelists, constants, domain, atmosphere, model::AbstractModel, testcase)
+
+Construct `Predictands` for incompressible models. Initializes velocity fields with background flow and sets empty pressure field.
+"""
 function Predictands(
     namelists::Namelists,
     constants::Constants,
@@ -53,6 +80,11 @@ function Predictands(
     return Predictands(rho, rhop, u, v, w, pip, p)
 end
 
+"""
+    Predictands(namelists, constants, domain, atmosphere, model::Compressible, testcase)
+
+Construct `Predictands` for compressible models. Initializes velocity fields with background flow and pressure field with stratified values.
+"""
 function Predictands(
     namelists::Namelists,
     constants::Constants,
