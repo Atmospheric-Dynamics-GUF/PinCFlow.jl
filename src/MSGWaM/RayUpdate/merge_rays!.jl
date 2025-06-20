@@ -1,23 +1,119 @@
+"""
+    merge_rays!(state::State)
+
+Entry point for ray merging operations based on test case type.
+
+Dispatches to the appropriate merging method depending on the simulation
+configuration.
+
+# Arguments
+
+  - `state::State`: Complete simulation state containing ray data
+"""
 function merge_rays!(state::State)
     (; testcase) = state.namelists.setting
     merge_rays!(state, testcase)
     return
 end
 
+"""
+    merge_rays!(state::State, testcase::AbstractTestCase)
+
+No-op for non-WKB test cases.
+
+Standard test cases don't use ray tracing, so no ray merging is needed.
+
+# Arguments
+
+  - `state::State`: Simulation state (unused)
+  - `testcase::AbstractTestCase`: Non-WKB test case
+"""
 function merge_rays!(state::State, testcase::AbstractTestCase)
     return
 end
 
+"""
+    merge_rays!(state::State, testcase::AbstractWKBTestCase)
+
+Merge rays for WKB test cases based on WKB mode.
+
+Dispatches to the specific WKB mode implementation for ray merging.
+
+# Arguments
+
+  - `state::State`: Simulation state containing WKB configuration and ray data
+  - `testcase::AbstractWKBTestCase`: WKB test case specification
+"""
 function merge_rays!(state::State, testcase::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
     merge_rays!(state, wkb_mode)
     return
 end
 
+"""
+    merge_rays!(state::State, wkb_mode::SteadyState)
+
+No-op for steady-state WKB mode.
+
+Steady-state mode typically doesn't require ray merging as the ray
+distribution remains relatively stable.
+
+# Arguments
+
+  - `state::State`: Simulation state (unused)
+  - `wkb_mode::SteadyState`: Steady-state WKB mode
+"""
 function merge_rays!(state::State, wkb_mode::SteadyState)
     return
 end
 
+"""
+    merge_rays!(state::State, wkb_mode::AbstractWKBMode)
+
+Merge rays when ray count exceeds maximum per grid cell.
+
+When the number of ray volumes in a grid cell exceeds the maximum allowed,
+this function combines nearby rays in phase space to reduce the total count
+while preserving wave action and spectral characteristics.
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+  - `wkb_mode::AbstractWKBMode`: WKB mode (MultiColumn, SingleColumn, etc.)
+
+# Algorithm
+
+ 1. **Check Ray Count**: Only merge if `nray > nray_max` in any cell
+ 2. **Define Spectral Bins**: Create logarithmic bins in k, l, m space
+ 3. **Spectral Bounds**: Compute min/max wavenumbers for positive/negative values
+ 4. **Ray Assignment**: Assign each ray to appropriate spectral bin
+ 5. **Spatial Merging**: Combine spatial extents (min/max positions)
+ 6. **Spectral Merging**: Combine spectral extents in each bin
+ 7. **Wave Action Integration**: Conserve total wave action in each bin
+ 8. **Reconstruction**: Create merged rays at bin centers
+
+# Spectral Binning
+
+  - **Positive wavenumbers**: Logarithmic spacing from k_min to k_max
+  - **Negative wavenumbers**: Logarithmic spacing from -k_max to -k_min
+  - **Bin count**: User-specified (nxray, nyray, nzray)
+
+# Wave Action Conservation
+
+Total wave action is preserved: `∑ A_old = ∑ A_new`
+where A includes both density and phase space volume factors.
+
+# Benefits
+
+  - Prevents excessive ray counts that would slow computation
+  - Maintains spectral representation of wave field
+  - Preserves total wave energy and momentum flux
+  - Enables long-time integrations
+
+# Statistics
+
+Reports before/after ray counts if merging occurs.
+"""
 function merge_rays!(state::State, wkb_mode::AbstractWKBMode)
     (; sizex, sizey) = state.namelists.domain
     (; merge_mode) = state.namelists.wkb

@@ -1,9 +1,19 @@
+"""
+    update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
+
+Dispatch method for density updates based on equation model type.
+"""
 function update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
     (; model) = state.namelists.setting
     update!(state, dt, m, variable, model)
     return
 end
 
+"""
+    update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho, model::Boussinesq)
+
+No-op for Boussinesq approximation where density is constant.
+"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -14,6 +24,20 @@ function update!(
     return
 end
 
+"""
+    update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho, model::AbstractModel)
+
+Update density using flux divergence with Runge-Kutta time integration.
+
+# Mathematical Formulation
+
+∂ρ/∂t + ∇·(ρv) = 0
+
+# Implementation
+
+  - **Flux computation**: Computes divergence of density flux `φ_ρ`
+  - **Jacobian scaling**: Divides by metric Jacobian for TCF
+"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -52,6 +76,11 @@ function update!(
     return
 end
 
+"""
+    update!(state::State, dt::AbstractFloat, m::Integer, variable::RhoP, side::LHS)
+
+Update potential density with flux divergence and heating on left-hand side.
+"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -93,6 +122,11 @@ function update!(
     return
 end
 
+"""
+    update!(state::State, dt::AbstractFloat, variable::RhoP, side::RHS, integration::Explicit)
+
+Explicit buoyancy update for potential density on right-hand side.
+"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -126,6 +160,11 @@ function update!(
     return
 end
 
+"""
+    update!(state::State, dt::AbstractFloat, variable::RhoP, side::RHS, integration::Implicit, facray::AbstractFloat)
+
+Implicit buoyancy update.
+"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -325,6 +364,11 @@ function update!(
     return
 end
 
+"""
+    update!(state::State, dt::AbstractFloat, m::Integer, variable::U, side::LHS)
+
+Update zonal momentum with flux divergence and Coriolis force.
+"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -404,6 +448,11 @@ function update!(
     return
 end
 
+"""
+    update!(state::State, dt::AbstractFloat, variable::U, side::RHS, integration::Explicit)
+
+Explicit pressure gradient update for zonal wind.
+"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -478,6 +527,11 @@ function update!(
     return
 end
 
+"""
+    update!(state::State, dt::AbstractFloat, variable::U, side::RHS, integration::Implicit, facray::AbstractFloat)
+
+Implicit pressure gradient update with sponge damping.
+"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -568,6 +622,11 @@ function update!(
     return
 end
 
+"""
+    update!(state::State, dt::AbstractFloat, m::Integer, variable::V, side::LHS)
+
+Update meridional momentum with flux divergence and Coriolis force.
+"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -644,6 +703,14 @@ function update!(
     return
 end
 
+"""
+    update!(state::State, dt::AbstractFloat, variable::V, side::RHS, integration::Explicit)
+
+Explicit meridional pressure gradient update.
+
+Identical structure to zonal wind but operates in y-direction with
+appropriate metric tensor components and boundary conditions.
+"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -717,6 +784,15 @@ function update!(
     # Return.
     return
 end
+"""
+    update!(state::State, dt::AbstractFloat, variable::V, side::RHS, integration::Implicit, facray::AbstractFloat)
+
+Implicit meridional pressure gradient update with sponge damping.
+
+Updates meridional velocity component using pressure gradient forcing with implicit time stepping
+and Rayleigh sponge layer damping. Handles terrain-following coordinate transformations and
+boundary conditions for solid walls.
+"""
 
 function update!(
     state::State,
@@ -808,6 +884,27 @@ function update!(
     return
 end
 
+"""
+    update!(state::State, dt::AbstractFloat, m::Integer, variable::W, side::LHS)
+
+Left-hand side update for vertical velocity component.
+
+Updates vertical velocity using implicit time stepping on the left-hand side of the equation system.
+Applies metric tensor corrections for terrain-following coordinates and handles boundary conditions.
+
+# Arguments
+
+  - `state::State`: Simulation state containing grid, atmosphere, and variable fields
+  - `dt::AbstractFloat`: Time step size
+  - `m::Integer`: Current RK step
+  - `variable::W`: Type dispatch for vertical velocity component
+  - `side::LHS`: Left-hand side integration flag
+
+# Implementation
+
+  - **Metric corrections**: Applies terrain-following coordinate transformations
+  - **Boundary treatment**: Handles top/bottom boundary conditions for vertical velocity
+"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -969,6 +1066,22 @@ function update!(
     return
 end
 
+"""
+    update!(state::State, dt::AbstractFloat, variable::W, side::RHS, integration::Explicit)
+
+Explicit right-hand side update for vertical velocity.
+
+Updates vertical velocity using explicit time stepping with buoyancy forcing,
+pressure gradient terms, and metric tensor corrections.
+
+# Arguments
+
+  - `state::State`: Simulation state containing grid, atmosphere, and variable fields
+  - `dt::AbstractFloat`: Time step size
+  - `variable::W`: Type dispatch for vertical velocity component
+  - `side::RHS`: Right-hand side integration flag
+  - `integration::Explicit`: Explicit time stepping method
+"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1079,7 +1192,14 @@ function update!(
     # Return.
     return
 end
+"""
+    update!(state::State, dt::AbstractFloat, variable::W, side::RHS, integration::Implicit, facray::AbstractFloat)
 
+Implicit vertical velocity update with Rayleigh damping.
+
+Updates vertical velocity using implicit time stepping with buoyancy forcing,
+pressure gradient terms, and sponge layer damping.
+"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1236,15 +1356,25 @@ function update!(
         w[i, j, k] = wast
     end
 
-    # Return.
     return
 end
 
+"""
+    update!(state::State, dt::AbstractFloat, variable::PiP)
+
+    Dispatcher for update on pressure perturbation.
+"""
 function update!(state::State, dt::AbstractFloat, variable::PiP)
     (; model) = state.namelists.setting
     update!(state, dt, variable, model)
     return
 end
+
+"""
+    update!(state::State, dt::AbstractFloat, variable::PiP, model::AbstractModel)
+
+    No-op for AbstractModel, as most models do not require explicit pressure perturbation updates.
+"""
 
 function update!(
     state::State,
@@ -1255,6 +1385,28 @@ function update!(
     return
 end
 
+"""
+    update!(state::State, dt::AbstractFloat, variable::PiP, model::Compressible)
+
+Updates pressure perturbation for compressible flow using velocity divergence constraint.
+
+Computes pressure perturbation evolution from velocity field divergence and heating terms.
+Applies boundary conditions and handles terrain-following coordinate transformations.
+
+# Arguments
+
+  - `state::State`: Simulation state containing grid, atmosphere, and variable fields
+  - `dt::AbstractFloat`: Time step size
+  - `variable::PiP`: Type dispatch for pressure perturbation
+  - `model::Compressible`: Compressible equation model
+
+# Implementation
+
+  - **Divergence constraint**: Enforces mass conservation through velocity divergence
+  - **Heating coupling**: Incorporates thermodynamic heating effects
+  - **Metric corrections**: Handles terrain-following coordinate transformations
+  - **Boundary treatment**: Applies appropriate pressure boundary conditions
+"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1289,11 +1441,35 @@ function update!(
     return
 end
 
+"""
+    update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
+
+Model-dispatched pressure update.
+
+Dispatches pressure update to model-specific implementation based on equation set.
+
+# Arguments
+- `state::State`: Simulation state
+- `dt::AbstractFloat`: Time step size
+- `m::Integer`: Runge-Kutta stage number
+- `variable::P`: Type dispatch for pressure field
+"""
+
 function update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
     (; model) = state.namelists.setting
     update!(state, dt, m, variable, model)
     return
 end
+
+"""
+    update!(state::State, dt::AbstractFloat, m::Integer, variable::P, model::AbstractModel)
+
+No-op for non-compressible models.
+
+Most equation models don't require explicit pressure evolution as they use
+diagnostic pressure relationships or projection methods.
+
+"""
 
 function update!(
     state::State,
@@ -1304,6 +1480,28 @@ function update!(
 )
     return
 end
+
+"""
+    update!(state::State, dt::AbstractFloat, m::Integer, variable::P, model::Compressible)
+
+Update pressure field for compressible model using flux divergence.
+
+Evolves pressure using thermodynamic equation with heating sources and
+Runge-Kutta time integration. Applies Jacobian scaling for terrain-following coordinates.
+
+# Arguments
+- `state::State`: Simulation state containing grid, fluxes, and predictands
+- `dt::AbstractFloat`: Time step size
+- `m::Integer`: Current Runge-Kutta stage
+- `variable::P`: Type dispatch for pressure field
+- `model::Compressible`: Compressible equation model
+
+# Implementation
+- **Flux divergence**: Computes ∇·(φₚ) from [`phip`](src/Types/State.jl) fluxes
+- **Volume heating**: Incorporates thermodynamic source terms via [`compute_volume_force`](src/Update/compute_volume_force.jl)
+- **RK integration**: Uses [`alphark`](src/Types/State.jl) and [`betark`](src/Types/State.jl) coefficients
+- **Metric scaling**: Divides by Jacobian for generalized coordinates
+"""
 
 function update!(
     state::State,

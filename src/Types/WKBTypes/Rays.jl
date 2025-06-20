@@ -1,3 +1,15 @@
+"""
+    Rays
+
+Container for ray position, wavenumber, and propagation data.
+
+# Fields
+- `x`, `y`, `z`: Ray positions in physical space
+- `k`, `l`, `m`: Ray wavenumbers in spectral space
+- `dxray`, `dyray`, `dzray`: Ray position increments
+- `dkray`, `dlray`, `dmray`: Ray wavenumber increments
+- `dens`: Ray density (wave action density)
+"""
 struct Rays{A <: AbstractArray{<:AbstractFloat, 4}}
     x::A
     y::A

@@ -1,3 +1,9 @@
+"""
+    WKBTypes
+
+Collection of types for WKB ray tracing calculations including ray data structures,
+surface indices, integrals, tendencies, and increments.
+"""
 module WKBTypes
 
 using ..NamelistTypes

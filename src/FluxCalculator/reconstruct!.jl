@@ -1,3 +1,26 @@
+"""
+    reconstruct!(state::State)
+    reconstruct!(state::State, variable::Union{Rho,RhoP})
+    reconstruct!(state::State, variable::Union{U,V,W})
+
+Perform MUSCL reconstruction for state variables in a computational domain.
+
+These functions handle the reconstruction of various flow quantities using the MUSCL scheme.
+The reconstruction is performed separately for each variable.
+
+# Arguments
+
+  - `state::State`: The complete state object containing all simulation variables
+  - `variable`: Type parameter indicating which variable to reconstruct (Rho, RhoP, U, V, or W)
+
+# Details
+
+  - For density (Rho) and density perturbation (RhoP): Scales by reference pressure
+  - For velocities (U,V,W): Includes density averaging at appropriate cell faces and pressure scaling
+  - W-component additionally requires special vertical wind computation and boundary handling
+
+The functions modify the corresponding 'tilde' variables in `state.variables.reconstructions`.
+"""
 function reconstruct!(state::State)
     reconstruct!(state, Rho())
     reconstruct!(state, RhoP())
@@ -7,6 +30,14 @@ function reconstruct!(state::State)
     return
 end
 
+# Density reconstruction methods share implementation pattern
+"""
+    reconstruct!(state::State, variable::Rho)
+    reconstruct!(state::State, variable::RhoP)
+
+Reconstruct density or density perturbation fields.
+Scales the field by the reference pressure before applying MUSCL reconstruction.
+"""
 function reconstruct!(state::State, variable::Rho)
     (; limitertype) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
@@ -39,6 +70,18 @@ function reconstruct!(state::State, variable::RhoP)
     return
 end
 
+"""
+    reconstruct!(state::State, variable::U)
+    reconstruct!(state::State, variable::V)
+    reconstruct!(state::State, variable::W)
+
+Reconstruct velocity components (u,v,w).
+Includes:
+
+  - Density averaging at appropriate cell faces
+  - Pressure scaling
+  - For W: Additional vertical wind computation and boundary condition handling
+"""
 function reconstruct!(state::State, variable::U)
     (; limitertype) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain

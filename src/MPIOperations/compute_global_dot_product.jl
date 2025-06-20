@@ -1,3 +1,29 @@
+"""
+    compute_global_dot_product(a::AbstractArray{<:AbstractFloat, 3}, b::AbstractArray{<:AbstractFloat, 3}, domain::Domain)
+
+Compute dot product of two 3D arrays distributed across MPI processes.
+
+# Arguments
+
+  - `a, b::AbstractArray{<:AbstractFloat, 3}`: Input arrays (must have identical shapes)
+  - `domain::Domain`: MPI domain decomposition information
+
+# Returns
+
+  - `AbstractFloat`: Global dot product `∑ᵢ aᵢ·bᵢ` across all processes
+
+# Implementation
+
+ 1. Validates array shapes match
+ 2. Computes local dot product using `LinearAlgebra.dot`
+ 3. Reduces via `MPI.Allreduce` with sum operation
+
+# Use Cases
+
+  - Iterative solver convergence testing
+  - Distributed array norm computation
+  - Global scalar reductions
+"""
 function compute_global_dot_product(
     a::AbstractArray{<:AbstractFloat, 3},
     b::AbstractArray{<:AbstractFloat, 3},

@@ -1,3 +1,31 @@
+"""
+    solve_poisson!(state, b, tolref, dt, facray, facprs)
+
+Solve the Poisson equation for pressure correction in the atmospheric flow solver.
+
+This function performs the core pressure correction step by solving the discretized
+Poisson equation using BiCGStab iterative method. The solution is scaled appropriately
+for different equation models (Boussinesq, PseudoIncompressible, Compressible).
+
+# Arguments
+
+  - `state::State`: Complete simulation state containing all field variables and parameters
+  - `b::AbstractArray{<:AbstractFloat, 3}`: Right-hand side of the Poisson equation
+  - `tolref::AbstractFloat`: Reference tolerance for convergence checking
+  - `dt::AbstractFloat`: Time step size
+  - `facray::AbstractFloat`: Rayleigh damping factor for sponge layers
+  - `facprs::AbstractFloat`: Pressure correction factor
+
+# Returns
+
+  - `(errflagbicg, niterbicg)`: Error flag and number of iterations from BiCGStab solver
+
+# Notes
+
+  - The solution is stored in `state.poisson.solution` and then transferred to pressure correction field
+  - For non-Boussinesq models, the solution is scaled by the compressibility factor
+  - The function will error if `dt = 0.0` to prevent division by zero
+"""
 function solve_poisson!(
     state::State,
     b::AbstractArray{<:AbstractFloat, 3},

@@ -1,3 +1,8 @@
+"""
+    set_compressible_vertical_boundaries!(state, variables, model::AbstractModel)
+
+No-op for non-compressible models.
+"""
 function set_compressible_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
@@ -6,6 +11,11 @@ function set_compressible_vertical_boundaries!(
     return
 end
 
+"""
+    set_compressible_vertical_boundaries!(state, variables::BoundaryPredictands, model::Compressible)
+
+Set vertical boundaries for pressure field in compressible model with symmetric conditions.
+"""
 function set_compressible_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
@@ -20,6 +30,11 @@ function set_compressible_vertical_boundaries!(
     return
 end
 
+"""
+    set_compressible_vertical_boundaries!(state, variables::BoundaryFluxes, model::Compressible)
+
+Set vertical pressure flux boundaries to zero at solid walls.
+"""
 function set_compressible_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,

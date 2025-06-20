@@ -20,6 +20,27 @@ struct OutputNamelist{
     output_file::E
 end
 
+"""
+    OutputNamelist(; <keyword arguments>)
+
+Construct a new OutputNamelist instance, which holds output and input related parameters.
+
+# Arguments
+
+  - `output_variables::A`: A tuple of symbols representing the output variables which should be written to the output file.
+  - `save_ray_volumes::B`: A boolean indicating whether to write out ray volumes.
+  - `prepare_restart::B`: A boolean indicating whether to prepare an output file for restart.
+  - `restart::B`: A boolean indicating whether to restart from a previous state. If true, restart from a previous state saved in `input_file`.
+  - `iin::C`: An integer representing the time index used for restart.
+  - `output_steps::B`: If true, write output every `noutput` steps.
+  - `noutput::C`: If `output_steps` is true, an integer representing the number of steps between outputs.
+  - `maxiter::C`: An integer representing the maximum number of iterations. Only used if `output_steps` is true.
+  - `outputtimediff::D`: a floating-point number determining the time difference between outputs in seconds. Only used if `output_steps` is false.
+  - `maxtime::D`: A floating-point number representing the maximum simulaton time. Only used if `output_steps` is false.
+  - `fancy_namelists::B`: Not used for now.
+  - `input_file::E`: A string holding the input HDF5 file path used for restart.
+  - `output_file::E`: A string holding the output HDF5 file path.
+"""
 function OutputNamelist(;
     output_variables = (),
     save_ray_volumes = false,
