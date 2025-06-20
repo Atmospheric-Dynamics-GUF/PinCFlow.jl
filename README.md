@@ -2,7 +2,7 @@
 
 ## Introduction
 
-PinCFlow integrates the pseudo-incompressible equations in a conservative flux form, using either a third-order accurate Runge-Kutta method [(Rieper et al., 2013)](https://doi.org/10.1175/mwr-d-12-00026.1) or a semi-implicit method that combines explicit and implicit time-stepping schemes [(Schmid et al., 2021)](https://doi.org/10.1175/MWR-D-21-0126.1). The equations are discretized with a finite-volume method, such that all quantities are represented by spatial averages over grid cells and fluxes are computed on the respective cell interfaces. The grid is staggered so that the velocity components are defined at the same points as the corresponding fluxes of scalar quantities. PinCFlow operates in a vertically stretched terrain-following coordinate system based on [Gal-Chen and Somerville (1975a)](https://doi.org/10.1016/0021-9991(75)90037-6), [Gal-Chen and Somerville (1975b)](https://doi.org/10.1016/0021-9991(75)90054-6) and [Clark (1977)](https://doi.org/10.1016/0021-9991(77)90057-2).
+PinCFlow integrates the pseudo-incompressible equations in a conservative flux form, using either a third-order accurate Runge-Kutta method [(Rieper et al., 2013)](https://doi.org/10.1175/mwr-d-12-00026.1) or a semi-implicit method that combines explicit and implicit time-stepping schemes [(Schmid et al., 2021)](https://doi.org/10.1175/MWR-D-21-0126.1). The equations are discretized with a finite-volume method, such that all quantities are represented by spatial averages over grid cells and fluxes are computed on the respective cell interfaces. The grid is staggered so that the velocity components are defined at the same points as the corresponding fluxes of scalar quantities. PinCFlow operates in a vertically stretched terrain-following coordinate system based on [Gal-Chen and Somerville (1975a)](<https://doi.org/10.1016/0021-9991(75)90037-6>), [Gal-Chen and Somerville (1975b)](<https://doi.org/10.1016/0021-9991(75)90054-6>) and [Clark (1977)](<https://doi.org/10.1016/0021-9991(77)90057-2>).
 
 ## Workflow
 
@@ -25,3 +25,13 @@ The code is shared in a GitLab repository. Any contributions to the code should 
 1. Request to merge the development branch of the fork into the development branch of the upstream repository.
 
 ![](workflow.png "Workflow  ")
+
+## Building and accessing the documentation
+
+The code uses Documenter.jl to build the documentation. To build the documentation, run the following command in the root directory of the repository:
+
+```julia
+julia --project=docs docs/make.jl
+```
+
+The documentation will be generated in the `docs/build` directory. To view the documentation, open the `index.html` file in a web browser.

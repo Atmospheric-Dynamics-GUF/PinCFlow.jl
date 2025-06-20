@@ -37,6 +37,44 @@ struct WKBNamelist{
     nwm::B
 end
 
+"""
+    WKBNamelist(; <keyword arguments>)
+
+Construct a WKBNamelist instance, which holds parameters for the WKB ray tracing algorithm.
+
+# Arguments:
+
+  - `xrmin_dim::AbstractFloat = 0.0E+0`: Minimum x-coordinate of ray tracing domain in dimensional units.
+  - `xrmax_dim::AbstractFloat = 1.0E+3`: Maximum x-coordinate of ray tracing domain in dimensional units.
+  - `yrmin_dim::AbstractFloat = 0.0E+0`: Minimum y-coordinate of ray tracing domain in dimensional units.
+  - `yrmax_dim::AbstractFloat = 1.0E+3`: Maximum y-coordinate of ray tracing domain in dimensional units.
+  - `zrmin_dim::AbstractFloat = 0.0E+0`: Minimum z-coordinate of ray tracing domain in dimensional units.
+  - `zrmax_dim::AbstractFloat = 1.0E+3`: Maximum z-coordinate of ray tracing domain in dimensional units.
+  - `nrxl::Integer = 1`: Number of ray launch points in x-direction.
+  - `nryl::Integer = 1`: Number of ray launch points in y-direction.
+  - `nrzl::Integer = 1`: Number of ray launch points in z-direction.
+  - `nrk_init::Integer = 1`: Initial number of wavenumber points in x-direction.
+  - `nrl_init::Integer = 1`: Initial number of wavenumber points in y-direction.
+  - `nrm_init::Integer = 1`: Initial number of wavenumber points in z-direction.
+  - `nray_fac::Integer = 4`: Ray multiplication factor.
+  - `fac_dk_init::AbstractFloat = 1.0E-1`: Initial wavenumber spacing factor in x-direction.
+  - `fac_dl_init::AbstractFloat = 1.0E-1`: Initial wavenumber spacing factor in y-direction.
+  - `fac_dm_init::AbstractFloat = 1.0E-1`: Initial wavenumber spacing factor in z-direction.
+  - `branchr::Integer = -1`: Branch selection for ray tracing.
+  - `merge_mode::AbstractMergeMode = ConstantWaveAction()`: Algorithm to use when merging ray beams.
+  - `nsmth_wkb::Integer = 2`: Number of smoothing passes for WKB solution.
+  - `lsmth_wkb::Bool = true`: Whether to apply smoothing to WKB solution.
+  - `sm_filter::AbstractWKBFilter = Shapiro()`: Type of smoothing filter to apply to WKB solution.
+  - `zmin_wkb_dim::AbstractFloat = 0.0`: Minimum height for WKB calculation in dimensional units.
+  - `lsaturation::Bool = true`: Whether to apply wave saturation.
+  - `alpha_sat::AbstractFloat = 1.0E+0`: Saturation coefficient.
+  - `wkb_mode::AbstractWKBMode = MultiColumn()`: WKB calculation mode.
+  - `blocking::Bool = false`: Whether to apply wave blocking.
+  - `long_threshold::AbstractFloat = 2.5E-1`: Threshold for long wavelength approximation.
+  - `drag_coefficient::AbstractFloat = 1.0E+0`: Coefficient for wave-induced drag.
+  - `nwm::Integer = 1`: Number of wave modes.
+  - `launch_algorithm::AbstractLaunchAlgorithm = Clip()`: Algorithm used for wave launching.
+"""
 function WKBNamelist(;
     xrmin_dim = 0.0E+0,
     xrmax_dim = 1.0E+3,

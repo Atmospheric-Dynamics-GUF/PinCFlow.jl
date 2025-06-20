@@ -1,3 +1,32 @@
+"""
+    activate_orographic_source!(state::State, omi_ini::AbstractArray{<:AbstractFloat, 4}, wnk_ini::AbstractArray{<:AbstractFloat, 4}, wnl_ini::AbstractArray{<:AbstractFloat, 4}, wnm_ini::AbstractArray{<:AbstractFloat, 4}, wad_ini::AbstractArray{<:AbstractFloat, 4})
+
+Initialize orographic wave source for ray initialization phase.
+
+Computes initial wave mode characteristics for all wavenumber modes at the
+surface level, used during ray volume initialization.
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+  - `omi_ini`: Output array for intrinsic frequencies [nwm, nx, ny, nz]
+  - `wnk_ini`: Output array for x-direction wavenumbers [nwm, nx, ny, nz]
+  - `wnl_ini`: Output array for y-direction wavenumbers [nwm, nx, ny, nz]
+  - `wnm_ini`: Output array for vertical wavenumbers [nwm, nx, ny, nz]
+  - `wad_ini`: Output array for wave action densities [nwm, nx, ny, nz]
+
+# Process
+
+ 1. **Surface Only**: Only processes surface grid cells (`ko == 0`)
+ 2. **Background Averaging**: Computes column-averaged wind, density, and stratification
+ 3. **Topographic Spectrum**: Uses pre-computed topographic wavenumber spectrum
+ 4. **Mode Calculation**: Calls `compute_orographic_mode` for each spectral mode
+ 5. **Storage**: Saves results in provided arrays for later ray initialization
+
+# Applications
+
+Used during simulation initialization to pre-compute source characteristics.
+"""
 function activate_orographic_source!(
     state::State,
     omi_ini::AbstractArray{<:AbstractFloat, 4},
@@ -98,6 +127,74 @@ function activate_orographic_source!(
     return
 end
 
+"""
+    activate_orographic_source!(state::State, dt::AbstractFloat)
+
+Activate orographic wave source during time integration.
+
+Updates surface ray volumes to maintain continuous wave generation from
+topography, handling ray replacement, clipping, and new ray creation
+as rays propagate away from the surface.
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+
+# Algorithm
+
+ 1. **Surface Processing**: Only operates on surface processes (`ko == 0`)
+
+ 2. **Background Conditions**: Re-computes column-averaged atmospheric state
+ 3. **Blocking Calculation**: Applies flow blocking parameterization if enabled
+ 4. **Ray Management**: For each surface ray volume:
+
+      + **Existing rays**: Update or remove based on wave conditions
+      + **Propagated rays**: Clip/extend rays crossing vertical boundaries
+      + **New rays**: Create fresh ray volumes with current source strength
+ 5. **Mode Characteristics**: Re-compute wave properties for current conditions
+ 6. **Ray Properties**: Set physical/spectral positions, extents, and wave action
+
+# Flow Blocking
+
+When enabled, reduces effective topographic height based on:
+
+  - **Linearity parameter**: `L = N·h / U` (ratio of buoyancy to advection timescales)
+  - **Blocking ratio**: `r = min(1, L_threshold / L)`
+  - **Effective height**: `h_eff = h · r`
+  - **Blocked layer depth**: `z_b = h · (1 - 2r)`
+
+# Ray Volume Management
+
+Three cases for existing ray volumes:
+
+ 1. **No existing ray** (`iray < 0`): Create new ray if source is active
+ 2. **Existing ray, zero source**: Remove ray and mark inactive
+ 3. **Existing ray, active source**: Update ray properties
+
+# Boundary Handling
+
+  - **Steady State**: Simple replacement of ray properties
+
+  - **Time Dependent**:
+
+      + Shift rays crossing vertical boundaries to next level
+      + Clip ray extents at boundary interfaces
+      + Preserve wave action through coordinate transformations
+
+# Wave Action Conservation
+
+Maintains consistency between:
+
+  - Source strength from topographic spectrum
+  - Ray volume phase space density
+  - Spectral volume normalization factors
+
+# Error Checking
+
+  - Validates ray counts don't exceed working limits
+  - Ensures non-zero vertical wavenumber for active sources
+  - Checks ray positioning within valid domains
+"""
 function activate_orographic_source!(state::State)
     (; sizex, sizey) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere

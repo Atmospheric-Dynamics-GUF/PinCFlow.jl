@@ -1,3 +1,14 @@
+"""
+    get_next_level(i::Integer, j::Integer, z::AbstractFloat, domain::Domain, grid::Grid)
+
+# Arguments
+
+  - `i::Integer`: Grid index in x-direction
+  - `j::Integer`: Grid index in y-direction
+  - `z::AbstractFloat`: Target vertical coordinate
+  - `domain::Domain`: Domain configuration
+  - `grid::Grid`: Grid structure
+"""
 function get_next_level(
     i::Integer,
     j::Integer,

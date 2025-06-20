@@ -1,3 +1,22 @@
+"""
+    compute_rhs!(state, b, model::Boussinesq)
+
+Compute the right-hand side of the Poisson equation for Boussinesq approximation.
+
+For the Boussinesq model, the RHS is computed from the velocity divergence scaled by
+stratification parameters. The function also computes convergence tolerance based on
+the L2 norm of the divergence field.
+
+# Arguments
+
+  - `state::State`: Simulation state containing velocity fields and grid information
+  - `b::AbstractArray{<:AbstractFloat, 3}`: Output array for RHS values
+  - `model::Boussinesq`: Boussinesq model type dispatch
+
+# Returns
+
+  - `tolref::AbstractFloat`: Reference tolerance for iterative solver convergence
+"""
 function compute_rhs!(
     state::State,
     b::AbstractArray{<:AbstractFloat, 3},
@@ -86,6 +105,24 @@ function compute_rhs!(
     return tolref
 end
 
+"""
+    compute_rhs!(state, b, model::PseudoIncompressible)
+
+Compute the right-hand side of the Poisson equation for the pseudo-incompressible approximation.
+
+This version accounts for density variations by including pressure-weighted velocity
+divergence terms.
+
+# Arguments
+
+  - `state::State`: Simulation state
+  - `b::AbstractArray{<:AbstractFloat, 3}`: Output array for RHS values
+  - `model::PseudoIncompressible`: Model type for dispatch
+
+# Returns
+
+  - `tolref::AbstractFloat`: Reference tolerance for iterative solver convergence
+"""
 function compute_rhs!(
     state::State,
     b::AbstractArray{<:AbstractFloat, 3},
@@ -200,6 +237,24 @@ function compute_rhs!(
     return tolref
 end
 
+"""
+    compute_rhs!(state, b, model::Compressible)
+
+Compute the RHS for the Poisson equation for the fully compressible equations including heating terms.
+
+The compressible formulation includes additional source terms from diabatic heating
+computed through the volume force calculation.
+
+# Arguments
+
+  - `state::State`: Simulation state
+  - `b::AbstractArray{<:AbstractFloat, 3}`: Output RHS array
+  - `model::Compressible`: Compressible model type
+
+# Returns
+
+  - `tolref::AbstractFloat`: Reference tolerance for convergence
+"""
 function compute_rhs!(
     state::State,
     b::AbstractArray{<:AbstractFloat, 3},

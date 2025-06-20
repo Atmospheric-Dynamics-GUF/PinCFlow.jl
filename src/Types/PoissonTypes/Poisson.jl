@@ -1,3 +1,24 @@
+"""
+    Poisson{A, B, C, D, E, F}
+
+Main container for Poisson solver workspace and solution arrays.
+
+# Fields
+
+  - `rhs::A`: Right-hand side vector
+  - `solution::A`: Solution vector
+  - `tensor::B`: Matrix coefficient tensor for 27-point stencil
+  - `operator::C`: Operator workspace for matrix-vector products
+  - `preconditioner::D`: Preconditioner workspace arrays
+  - `bicgstab::E`: BiCGStab iterative solver workspace
+  - `correction::F`: Pressure correction terms for velocity field
+
+# Usage
+
+Central data structure used by [`PinCFlow.PoissonSolver.solve_poisson!`](@ref)
+to solve the pressure Poisson equation and apply corrections to maintain
+mass conservation.
+"""
 struct Poisson{
     A <: AbstractArray{<:AbstractFloat, 3},
     B <: Tensor,
@@ -15,6 +36,20 @@ struct Poisson{
     correction::F
 end
 
+"""
+    Poisson(namelists::Namelists, domain::Domain)
+
+Initialize complete Poisson solver workspace sized according to local domain.
+
+# Arguments
+
+  - `namelists::Namelists`: Configuration parameters
+  - `domain::Domain`: Local domain dimensions
+
+# Returns
+
+  - `Poisson`: Container with all solver components initialized
+"""
 function Poisson(namelists::Namelists, domain::Domain)
 
     # Get all necessary fields.

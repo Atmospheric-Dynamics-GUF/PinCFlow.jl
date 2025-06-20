@@ -1,3 +1,28 @@
+"""
+    create_output(state::State)
+
+Initialize HDF5 output file with dimensions, attributes, and datasets.
+
+Creates output file structure with grid coordinates, variable datasets, and
+metadata. Sets up chunking and compression for efficient parallel I/O.
+
+# Arguments
+
+  - `state::State`: Simulation state containing grid and configuration
+
+# File Structure
+
+  - **Dimensions**: `nx`, `ny`, `nz`, `nt` for spatial and temporal extents
+  - **Coordinates**: `x`, `y`, `z`, `t` arrays with proper scaling
+  - **Variables**: Datasets for all prognostic and diagnostic fields
+  - **Attributes**: Simulation metadata, constants, and namelist parameters
+
+# Implementation
+
+  - **Chunking**: Optimized for domain decomposition access patterns
+  - **Compression**: Applies deflate compression for storage efficiency
+  - **Parallel**: Creates collective datasets for MPI-parallel writing
+"""
 function create_output(state::State)
     (; sizex, sizey, sizez, npx, npy, npz) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =

@@ -1,14 +1,18 @@
-function set_compressible_zonal_boundaries!(
-    state::State,
-    model::AbstractModel,
-)
+"""
+    set_compressible_zonal_boundaries!(state, model::AbstractModel)
+
+No-op for non-compressible models.
+"""
+function set_compressible_zonal_boundaries!(state::State, model::AbstractModel)
     return
 end
 
-function set_compressible_zonal_boundaries!(
-    state::State,
-    model::Compressible,
-)
+"""
+    set_compressible_zonal_boundaries!(state, model::Compressible)
+
+Set zonal boundaries for pressure field in compressible model.
+"""
+function set_compressible_zonal_boundaries!(state::State, model::Compressible)
     (; namelists, domain) = state
     (; p) = state.variables.predictands
     set_zonal_boundaries_of_field!(p, namelists, domain)

@@ -1,14 +1,42 @@
+"""
+    Boundaries
+
+Module for setting boundary conditions on different variable types and field dimensions.
+Handles periodic boundaries, solid wall boundaries, and MPI halo exchanges.
+"""
 module Boundaries
 
 using ..Types
 using ..MPIOperations
 
+"""
+Abstract type for boundary variable categories.
+"""
 abstract type AbstractBoundaryVariables end
 
+"""
+Boundary variables for predictand fields (rho, rhop, u, v, w, pip).
+"""
 struct BoundaryPredictands <: AbstractBoundaryVariables end
+
+"""
+Boundary variables for reconstruction fields.
+"""
 struct BoundaryReconstructions <: AbstractBoundaryVariables end
+
+"""
+Boundary variables for flux fields.
+"""
 struct BoundaryFluxes <: AbstractBoundaryVariables end
+
+"""
+Boundary variables for gravity wave integral fields.
+"""
 struct BoundaryGWIntegrals <: AbstractBoundaryVariables end
+
+"""
+Boundary variables for gravity wave tendency fields.
+"""
 struct BoundaryGWTendencies <: AbstractBoundaryVariables end
 
 include("set_boundaries!.jl")

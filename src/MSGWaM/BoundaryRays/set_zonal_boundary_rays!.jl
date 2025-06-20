@@ -1,3 +1,10 @@
+"""
+    set_zonal_boundary_rays!(state::State)
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+"""
 function set_zonal_boundary_rays!(state::State)
     (; namelists, domain) = state
     (; npx) = namelists.domain
