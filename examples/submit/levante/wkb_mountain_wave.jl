@@ -96,6 +96,7 @@ sponge = SpongeNamelist(;
     relax_to_mean = false,
     perturbation_period = 0.0E+0,
     perturbation_amplitude = 0.0E+0,
+    relaxation_wind = (1.0E+1, 0.0E+0, 0.0E+0),
 )
 
 wkb = WKBNamelist(;
