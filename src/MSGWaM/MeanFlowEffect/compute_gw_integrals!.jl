@@ -1,3 +1,71 @@
+"""
+    compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
+
+Compute gravity wave momentum flux integrals for multi-column WKB mode.
+
+Calculates momentum flux and Eliassen-Palm flux components by integrating
+over all ray volumes, accounting for their spatial and spectral distribution
+across grid cells.
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+  - `wkb_mode::MultiColumn`: Multi-column WKB mode allowing horizontal propagation
+
+# Computed Integrals
+
+## Momentum Flux Components
+
+  - `uu`: Zonal momentum flux in x-direction `⟨u'u'⟩`
+  - `uv`: Cross momentum flux `⟨u'v'⟩`
+  - `uw`: Vertical zonal momentum flux `⟨u'w'⟩`
+  - `vv`: Meridional momentum flux in y-direction `⟨v'v'⟩`
+  - `vw`: Vertical meridional momentum flux `⟨v'w'⟩`
+
+## Eliassen-Palm Components
+
+  - `etx`: Zonal EP flux component
+  - `ety`: Meridional EP flux component
+  - `utheta`: Zonal heat flux `⟨u'θ'⟩`
+  - `vtheta`: Meridional heat flux `⟨v'θ'⟩`
+
+## Energy
+
+  - `e`: Wave energy density
+
+# Integration Process
+
+For each ray volume:
+
+ 1. **Overlap Calculation**: Determine which grid cells the ray intersects
+ 2. **Phase Space Factors**: Compute spectral and spatial overlap fractions
+ 3. **Group Velocities**: Calculate from local dispersion relation
+ 4. **Flux Components**: Compute momentum flux using group velocity relations
+ 5. **Grid Integration**: Distribute ray contribution across overlapping cells
+
+# Dispersion Relations
+
+Uses full gravity wave dispersion relation including rotation:
+
+  - `ω² = N²k_h²/(k_h² + m²) + f²m²/(k_h² + m²)`
+  - Group velocities: `cg_i = ∂ω/∂k_i`
+
+# Rotational Effects
+
+When Coriolis parameter `f ≠ 0`:
+
+  - Modified momentum flux expressions account for wave polarization
+  - Eliassen-Palm fluxes include geostrophic adjustment effects
+  - Heat flux components computed from EP flux relations
+
+# Spatial Distribution
+
+Ray contributions are distributed across grid cells based on:
+
+  - **Physical overlap**: Ray volume intersection with grid cells
+  - **Spectral weighting**: Wavenumber extent and resolution
+  - **Phase space volume**: Conservation of wave action density    # Set Coriolis parameter.
+"""
 function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     (; domain, grid) = state
     (; sizex, sizey) = state.namelists.domain
@@ -168,6 +236,43 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     end
 end
 
+"""
+    compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
+
+Compute gravity wave integrals for single-column WKB mode.
+
+Simplified integration for column models where only vertical momentum
+transport matters and horizontal propagation is neglected.
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+  - `wkb_mode::SingleColumn`: Single-column mode with vertical-only propagation
+
+# Computed Integrals
+
+Focus on vertical momentum transport:
+
+  - `uw`: Vertical zonal momentum flux `⟨u'w'⟩`
+  - `vw`: Vertical meridional momentum flux `⟨v'w'⟩`
+  - `etx`, `ety`: Eliassen-Palm flux components
+  - `e`: Wave energy density
+
+# Simplified Physics
+
+  - No horizontal momentum fluxes (`uu`, `uv`, `vv` not computed)
+  - Only vertical group velocity matters
+  - Dispersion relation still includes rotation effects
+  - Heat fluxes computed if rotation present
+
+# Efficiency
+
+Much faster than multi-column mode since:
+
+  - No horizontal ray tracking needed
+  - Simplified overlap calculations
+  - Reduced flux components to compute
+"""
 function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     (; domain, grid) = state
     (; sizex, sizey) = state.namelists.domain
@@ -306,6 +411,41 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
     end
 end
 
+"""
+    compute_gw_integrals!(state::State, wkb_mode::SteadyState)
+
+Compute gravity wave integrals for steady-state WKB mode.
+
+Minimal integration for steady-state mountain wave simulations
+where only essential momentum flux components are needed.
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+  - `wkb_mode::SteadyState`: Steady-state mode with fixed background
+
+# Computed Integrals
+
+Only essential momentum transport:
+
+  - `uw`: Vertical zonal momentum flux
+  - `vw`: Vertical meridional momentum flux
+
+# Steady-State Assumptions
+
+  - Background atmosphere is time-independent
+  - Wave field reaches quasi-equilibrium
+  - Only vertical momentum transport affects mean flow
+  - No EP flux computations needed
+
+# Applications
+
+Optimized for:
+
+  - Mountain wave drag parameterizations
+  - Long-term climate integrations
+  - Cases where transient effects are negligible
+"""
 function compute_gw_integrals!(state::State, wkb_mode::SteadyState)
     (; domain, grid) = state
     (; coriolis_frequency) = state.namelists.atmosphere

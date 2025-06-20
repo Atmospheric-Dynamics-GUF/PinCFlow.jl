@@ -1,3 +1,11 @@
+"""
+    set_vertical_boundary_rays!(state::State, zboundaries::SolidWallBoundaries)
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+  - `zboundaries::SolidWallBoundaries`: Boundary type specification
+"""
 function set_vertical_boundary_rays!(
     state::State,
     zboundaries::SolidWallBoundaries,

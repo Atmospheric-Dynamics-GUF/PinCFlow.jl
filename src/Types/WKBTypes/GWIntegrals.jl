@@ -1,3 +1,14 @@
+"""
+    GWIntegrals
+
+Gravity wave momentum and energy integral quantities.
+
+# Fields
+- `uu`, `uv`, `uw`, `vv`, `vw`: Momentum flux components
+- `etx`, `ety`: Horizontal energy flux components
+- `utheta`, `vtheta`: Temperature flux components
+- `e`: Wave energy density
+"""
 struct GWIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     uu::A
     uv::A

@@ -1,3 +1,13 @@
+"""
+    set_vertical_boundaries!(state, variables::BoundaryPredictands, boundaries)
+
+Set vertical boundaries for predictand fields with appropriate symmetry conditions:
+
+  - Density fields (rho, rhop): antisymmetric (-)
+  - Vertical velocity (w): antisymmetric (-), staggered grid handling
+  - Horizontal velocities (u, v): symmetric (+)
+  - Pressure perturbation (pip): symmetric (+)
+"""
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
@@ -29,6 +39,11 @@ function set_vertical_boundaries!(
     return
 end
 
+"""
+    set_vertical_boundaries!(state, variables::BoundaryReconstructions, boundaries)
+
+Set vertical boundaries for all reconstruction fields.
+"""
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
@@ -50,6 +65,11 @@ function set_vertical_boundaries!(
     return
 end
 
+"""
+    set_vertical_boundaries!(state, variables::BoundaryFluxes, boundaries::SolidWallBoundaries)
+
+Set vertical flux boundaries to zero at solid walls (top and bottom domain boundaries).
+"""
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
@@ -79,6 +99,11 @@ function set_vertical_boundaries!(
     return
 end
 
+"""
+    set_vertical_boundaries!(state, variables::BoundaryGWIntegrals, boundaries)
+
+Set vertical boundaries for GW integral fields. Dispatches based on WKB mode.
+"""
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryGWIntegrals,
@@ -89,6 +114,11 @@ function set_vertical_boundaries!(
     return
 end
 
+"""
+    set_vertical_boundaries!(state, variables::BoundaryGWIntegrals, boundaries, wkb_mode::AbstractWKBMode)
+
+Set vertical boundaries for basic GW integral fields (uw, vw, e) with symmetric conditions.
+"""
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryGWIntegrals,
@@ -113,6 +143,11 @@ function set_vertical_boundaries!(
     return
 end
 
+"""
+    set_vertical_boundaries!(state, variables::BoundaryGWIntegrals, boundaries, wkb_mode::MultiColumn)
+
+Set vertical boundaries for extended GW integral fields in multi-column mode.
+"""
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryGWIntegrals,
@@ -137,6 +172,11 @@ function set_vertical_boundaries!(
     return
 end
 
+"""
+    set_vertical_boundaries!(state, variables::BoundaryGWTendencies, boundaries)
+
+Set vertical boundaries for GW tendency fields. Dispatches based on WKB mode.
+"""
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryGWTendencies,
@@ -147,6 +187,11 @@ function set_vertical_boundaries!(
     return
 end
 
+"""
+    set_vertical_boundaries!(state, variables::BoundaryGWTendencies, boundaries, wkb_mode::AbstractWKBMode)
+
+Set vertical boundaries for basic GW tendency fields (dudt, dvdt) with symmetric conditions.
+"""
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryGWTendencies,
@@ -170,6 +215,11 @@ function set_vertical_boundaries!(
     return
 end
 
+"""
+    set_vertical_boundaries!(state, variables::BoundaryGWTendencies, boundaries, wkb_mode::MultiColumn)
+
+Set vertical boundaries for GW tendency fields in multi-column mode, including dthetadt.
+"""
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryGWTendencies,

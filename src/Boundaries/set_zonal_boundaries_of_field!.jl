@@ -1,3 +1,9 @@
+"""
+    set_zonal_boundaries_of_field!(field::AbstractMatrix, namelists, domain)
+
+Set zonal boundary conditions for 2D fields. Uses halo exchange for multi-process domains
+(`npx > 1`), otherwise applies periodic boundaries.
+"""
 function set_zonal_boundaries_of_field!(
     field::AbstractMatrix{<:AbstractFloat},
     namelists::Namelists,
@@ -18,6 +24,15 @@ function set_zonal_boundaries_of_field!(
     return
 end
 
+"""
+    set_zonal_boundaries_of_field!(field::AbstractArray{<:Real, 3}, namelists, domain; layers)
+
+Set zonal boundary conditions for 3D fields.
+
+# Arguments
+
+  - `layers::NTuple{3, <:Integer}`: Boundary layer sizes (nbx, nby, nbz). Use -1 for defaults.
+"""
 function set_zonal_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
@@ -46,6 +61,12 @@ function set_zonal_boundaries_of_field!(
     return
 end
 
+"""
+    set_zonal_boundaries_of_field!(field::AbstractArray{<:AbstractFloat, 5}, namelists, domain; layers)
+
+Set zonal boundary conditions for 5D fields. Applies boundaries to all elements in
+dimensions 4 and 5.
+"""
 function set_zonal_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,

@@ -1,2 +1,5 @@
 .CondaPkg
 LocalPreferences.toml
+.aider*
+/build
+/docs/build
