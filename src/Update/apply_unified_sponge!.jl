@@ -1,3 +1,23 @@
+"""
+    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::AbstractVariable)
+
+Apply unified sponge layer damping to prevent spurious wave reflections.
+
+# Mathematical Formulation
+
+Sponge damping uses exponential relaxation: `φ_new = β*φ_old + (1-β)*φ_bg`
+where `β = 1/(1 + α*dt)` and α is the spatially-varying damping coefficient.
+
+# Implementation Strategy
+
+  - **Variable-specific backgrounds**: Each variable relaxes toward appropriate reference state
+  - **Staggered grid handling**: Damping coefficients averaged at edge locations
+  - **Time-dependent perturbations**: Optional sinusoidal modulation of background states
+  - **Horizontal averaging**: Option to relax toward instantaneous horizontal mean
+
+The unified approach uses single damping coefficient field for all variables,
+computed by [`compute_sponge!`](@ref) with various spatial profiles.
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -9,6 +29,11 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::Rho, model::Boussinesq)
+
+No-op for Boussinesq density (incompressible assumption).
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -19,6 +44,13 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::Rho, model::AbstractModel)
+
+Apply sponge damping to density perturbations.
+
+Relaxes toward zero background density perturbation: ρ' → 0.
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -47,6 +79,13 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::RhoP, model::AbstractModel)
+
+Apply sponge damping to potential density perturbations.
+
+Relaxes toward zero background potential density perturbation.
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -75,6 +114,22 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::U, model::AbstractModel)
+
+Apply sponge damping to zonal wind with background relaxation.
+
+# Relaxation Options
+
+  - **Mean relaxation**: Toward horizontal mean if `relax_to_mean=true`
+  - **Fixed background**: Toward `relaxation_wind[1]` with optional perturbations
+  - **Edge averaging**: Uses average of adjacent cell damping coefficients
+
+# Time Modulation
+
+Background wind can vary sinusoidally: `u_bg = u₀(1 + A*sin(2πt/T))`
+where A is amplitude and T is period.
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -140,6 +195,14 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::V, model::AbstractModel)
+
+Apply sponge damping to meridional wind with background relaxation.
+
+Similar to zonal wind but for y-component with appropriate staggering.
+Uses `relaxation_wind[2]` for fixed background state.
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -205,6 +268,17 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::W, model::AbstractModel)
+
+Apply sponge damping to vertical wind with Jacobian-weighted averaging.
+
+Uses harmonic mean of damping coefficients weighted by Jacobian for proper
+vertical staggering in terrain-following coordinates:
+`α = (J[k+1]*α[k] + J[k]*α[k+1])/(J[k] + J[k+1])`
+
+Uses `relaxation_wind[3]` for fixed background vertical velocity.
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -326,6 +400,13 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::P, model::Compressible)
+
+Apply sponge damping to pressure field for compressible model.
+
+Relaxes toward hydrostatic background pressure: `p_bg = ρ₀*p₀/(ρ + ρ₀)`
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,

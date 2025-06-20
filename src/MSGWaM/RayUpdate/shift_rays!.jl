@@ -1,23 +1,93 @@
+"""
+    RayUpdate: shift_rays!
+
+This file contains functions for shifting wave rays between the grid cells
+
+The shifting process ensures that rays are correctly positioned in their respective
+grid cells after their positions have been updated. Different implementations handle
+different model configurations (SteadyState, SingleColumn, MultiColumn) and different
+spatial dimensions (X, Y, Z).
+"""
+
+"""
+    shift_rays!(state::State)
+
+Entry point for ray shifting operations. Delegates to the appropriate method based on
+the test case specified in the state's settings.
+
+# Arguments
+
+  - `state::State`: The state object containing model data and configuration
+"""
 function shift_rays!(state::State)
     (; testcase) = state.namelists.setting
     shift_rays!(state, testcase)
     return
 end
 
+"""
+    shift_rays!(state::State, testcase::AbstractTestCase)
+
+Default implementation for non-WKB test cases. Does nothing.
+
+# Arguments
+
+  - `state::State`: The state object containing model data and configuration
+  - `testcase::AbstractTestCase`: The test case specification
+"""
 function shift_rays!(state::State, testcase::AbstractTestCase)
     return
 end
 
+"""
+    shift_rays!(state::State, testcase::AbstractWKBTestCase)
+
+Implementation for WKB test cases. Delegates to the appropriate method based on
+the WKB mode specified in the state's configuration.
+
+# Arguments
+
+  - `state::State`: The state object containing model data and configuration
+  - `testcase::AbstractWKBTestCase`: The WKB test case specification
+"""
 function shift_rays!(state::State, testcase::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
     shift_rays!(state, wkb_mode)
     return
 end
 
+"""
+    shift_rays!(state::State, wkb_mode::SteadyState)
+
+Implementation for steady state WKB mode. Does nothing as rays remain stationary.
+
+# Arguments
+
+  - `state::State`: The state object containing model data and configuration
+  - `wkb_mode::SteadyState`: The steady state WKB mode specification
+"""
 function shift_rays!(state::State, wkb_mode::SteadyState)
     return
 end
 
+"""
+    shift_rays!(state::State, wkb_mode::SingleColumn)
+
+Implementation for single column WKB mode. Shifts rays in the vertical (Z) direction only.
+
+# Arguments
+
+  - `state::State`: The state object containing model data and configuration
+  - `wkb_mode::SingleColumn`: The single column WKB mode specification
+
+# Workflow
+
+ 1. Sets vertical boundary rays
+ 2. Shifts rays in Z direction
+ 3. Re-establishes vertical boundary rays
+ 4. Removes invalid rays
+ 5. Performs ray validation checks
+"""
 function shift_rays!(state::State, wkb_mode::SingleColumn)
     (; zboundaries) = state.namelists.setting
 
@@ -31,6 +101,27 @@ function shift_rays!(state::State, wkb_mode::SingleColumn)
     return
 end
 
+"""
+    shift_rays!(state::State, wkb_mode::MultiColumn)
+
+Implementation for multi-column WKB mode. Shifts rays in X, Y, and Z directions
+as appropriate based on domain dimensions.
+
+# Arguments
+
+  - `state::State`: The state object containing model data and configuration
+  - `wkb_mode::MultiColumn`: The multi-column WKB mode specification
+
+# Workflow
+
+ 1. If X-dimension > 1: Sets zonal boundary rays, shifts rays in X direction,
+    re-establishes zonal boundary rays, and removes invalid rays
+ 2. If Y-dimension > 1: Sets meridional boundary rays, shifts rays in Y direction,
+    re-establishes meridional boundary rays, and removes invalid rays
+ 3. Sets vertical boundary rays, shifts rays in Z direction, re-establishes vertical
+    boundary rays, and removes invalid rays
+ 4. Performs ray validation checks
+"""
 function shift_rays!(state::State, wkb_mode::MultiColumn)
     (; sizex, sizey) = state.namelists.domain
     (; zboundaries) = state.namelists.setting
@@ -59,6 +150,24 @@ function shift_rays!(state::State, wkb_mode::MultiColumn)
     return
 end
 
+"""
+    shift_rays!(state::State, direction::X)
+
+Shifts rays in the X (zonal) direction when their positions no longer correspond
+to their assigned grid cell.
+
+# Arguments
+
+  - `state::State`: The state object containing model data and configuration
+  - `direction::X`: Dispatch type indicating X-direction shifting
+
+# Implementation
+
+  - Examines each ray's X position
+  - If a ray has moved to a new grid cell, transfers it to the appropriate cell
+  - Sets density to zero in the original location to mark the original ray as invalid
+  - Error checks to ensure rays don't move more than one grid cell at a time
+"""
 function shift_rays!(state::State, direction::X)
     (; sizezz, nzz, io, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; lx, dx) = state.grid
@@ -96,6 +205,24 @@ function shift_rays!(state::State, direction::X)
     return
 end
 
+"""
+    shift_rays!(state::State, direction::Y)
+
+Shifts rays in the Y (meridional) direction when their positions no longer correspond
+to their assigned grid cell.
+
+# Arguments
+
+  - `state::State`: The state object containing model data and configuration
+  - `direction::Y`: Dispatch type indicating Y-direction shifting
+
+# Implementation
+
+  - Examines each ray's Y position
+  - If a ray has moved to a new grid cell, transfers it to the appropriate cell
+  - Sets density to zero in the original location to mark the original ray as invalid
+  - Error checks to ensure rays don't move more than one grid cell at a time
+"""
 function shift_rays!(state::State, direction::Y)
     (; sizezz, nzz, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; ly, dy) = state.grid
@@ -133,6 +260,25 @@ function shift_rays!(state::State, direction::Y)
     return
 end
 
+"""
+    shift_rays!(state::State, direction::Z)
+
+Shifts rays in the Z (vertical) direction when their positions no longer correspond
+to their assigned grid cell.
+
+# Arguments
+
+  - `state::State`: The state object containing model data and configuration
+  - `direction::Z`: Dispatch type indicating Z-direction shifting
+
+# Implementation
+
+  - Examines each ray's Z position
+  - Uses `get_next_half_level` to determine the appropriate vertical level
+  - If a ray has moved to a new grid cell, transfers it to the appropriate cell
+  - Sets density to zero in the original location to mark the original ray as invalid
+  - Enforces domain boundaries for vertical movement
+"""
 function shift_rays!(state::State, direction::Z)
     (; domain, grid) = state
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = domain

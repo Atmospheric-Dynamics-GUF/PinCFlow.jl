@@ -1,3 +1,17 @@
+"""
+    compute_merge_index(wnr::AbstractFloat, wnr_min_p::AbstractFloat, wnr_max_p::AbstractFloat, wnr_min_n::AbstractFloat, wnr_max_n::AbstractFloat, dwnr_mrg_p::AbstractFloat, dwnr_mrg_n::AbstractFloat, nray::Integer)
+
+# Arguments
+
+  - `wnr::AbstractFloat`: Wavenumber value
+  - `wnr_min_p::AbstractFloat`: Minimum positive wavenumber
+  - `wnr_max_p::AbstractFloat`: Maximum positive wavenumber
+  - `wnr_min_n::AbstractFloat`: Minimum negative wavenumber
+  - `wnr_max_n::AbstractFloat`: Maximum negative wavenumber
+  - `dwnr_mrg_p::AbstractFloat`: Positive wavenumber merge spacing
+  - `dwnr_mrg_n::AbstractFloat`: Negative wavenumber merge spacing
+  - `nray::Integer`: Number of ray volumes
+"""
 function compute_merge_index(
     wnr::AbstractFloat,
     wnr_min_p::AbstractFloat,

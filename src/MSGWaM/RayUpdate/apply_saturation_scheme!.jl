@@ -1,9 +1,35 @@
+"""
+    apply_saturation_scheme!(state::State, dt::AbstractFloat)
+
+Entry point for wave saturation scheme based on test case type.
+
+Dispatches to the appropriate saturation implementation depending on
+simulation configuration.
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+  - `dt::AbstractFloat`: Time step for saturation calculation
+"""
 function apply_saturation_scheme!(state::State, dt::AbstractFloat)
     (; testcase) = state.namelists.setting
     apply_saturation_scheme!(state, dt, testcase)
     return
 end
 
+"""
+    apply_saturation_scheme!(state::State, dt::AbstractFloat, testcase::AbstractTestCase)
+
+No-op for non-WKB test cases.
+
+Standard test cases don't use ray tracing or wave saturation.
+
+# Arguments
+
+  - `state::State`: Simulation state (unused)
+  - `dt::AbstractFloat`: Time step (unused)
+  - `testcase::AbstractTestCase`: Non-WKB test case
+"""
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
@@ -12,6 +38,19 @@ function apply_saturation_scheme!(
     return
 end
 
+"""
+    apply_saturation_scheme!(state::State, dt::AbstractFloat, testcase::AbstractWKBTestCase)
+
+Apply saturation scheme for WKB test cases based on WKB mode.
+
+Dispatches to the specific WKB mode implementation.
+
+# Arguments
+
+  - `state::State`: Simulation state containing WKB configuration
+  - `dt::AbstractFloat`: Time step for saturation calculation
+  - `testcase::AbstractWKBTestCase`: WKB test case specification
+"""
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
@@ -22,6 +61,20 @@ function apply_saturation_scheme!(
     return
 end
 
+"""
+    apply_saturation_scheme!(state::State, dt::AbstractFloat, wkb_mode::SteadyState)
+
+No-op for steady-state WKB mode.
+
+Steady-state mode handles saturation differently, typically within
+the propagation step rather than as a separate scheme.
+
+# Arguments
+
+  - `state::State`: Simulation state (unused)
+  - `dt::AbstractFloat`: Time step (unused)
+  - `wkb_mode::SteadyState`: Steady-state WKB mode
+"""
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
@@ -30,6 +83,69 @@ function apply_saturation_scheme!(
     return
 end
 
+"""
+    apply_saturation_scheme!(state::State, dt::AbstractFloat, wkb_mode::AbstractWKBMode)
+
+Apply wave breaking saturation scheme to limit wave amplitudes.
+
+Implements a parameterization of wave breaking that prevents wave amplitudes
+from exceeding critical values, representing the onset of convective instability
+and turbulent mixing in the atmosphere.
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+  - `dt::AbstractFloat`: Time step for diffusion calculation
+  - `wkb_mode::AbstractWKBMode`: WKB mode (MultiColumn, SingleColumn, etc.)
+
+# Saturation Theory
+
+Wave breaking occurs when wave-induced potential temperature perturbations
+exceed a critical fraction of the background stratification:
+
+`|θ'| > α_sat · θ₀ · N/g`
+
+where:
+
+  - `α_sat`: Saturation parameter (typically 0.1-1.0)
+  - `θ₀`: Background potential temperature
+  - `N`: Brunt-Väisälä frequency
+  - `g`: Gravitational acceleration
+
+# Algorithm
+
+ 1. **Saturation Integral**: Compute `mb2 = ∫ (wave momentum flux)`
+ 2. **Critical Value**: `mb2_crit = α_sat² · N²`
+ 3. **Diffusion Coefficient**: `κ = (mb2 - mb2_crit) / (2·dt·mb2k2)` if mb2 > mb2_crit
+ 4. **Wave Action Reduction**: `A_new = A_old · max(0, 1 - 2κ·dt·|k|²)`
+ 5. **Ray Removal**: Remove rays with zero wave action
+
+# Saturation Integrals
+
+  - `mb2`: Total squared momentum flux `∫ ρ·A·ω·(k²+l²+m²)`
+  - `mb2k2`: Weighted momentum flux for diffusion `∫ ρ·A·ω·|k|²·(vertical transport)`
+
+# Physical Interpretation
+
+  - **Pre-breaking**: Waves propagate without significant damping
+  - **At saturation**: Turbulent diffusion removes excess wave energy
+  - **Post-breaking**: Wave field relaxes toward saturated state
+
+# Grid Cell Processing
+
+Applied independently to each grid cell, allowing for spatially varying
+saturation based on local wave field and background conditions.
+
+# Diagnostics
+
+  - Reports saturation violations if residual exceeds tolerance
+  - Removes rays with negligible wave action density
+
+# Conservation
+
+Total wave action is not conserved during saturation - the "lost" action
+represents conversion to turbulent kinetic energy and mixing.
+"""
 function apply_saturation_scheme!(
     state::State,
     dt::AbstractFloat,
@@ -62,7 +178,6 @@ function apply_saturation_scheme!(
 
         # Reduce the wave-action density.
         for iray in 1:nray[ix, jy, kz]
-
             xr = rays.x[iray, ix, jy, kz]
             yr = rays.y[iray, ix, jy, kz]
             zr = rays.z[iray, ix, jy, kz]

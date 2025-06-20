@@ -1,3 +1,22 @@
+"""
+MPI communication operations for domain decomposition.
+
+Provides halo exchange functions for maintaining field continuity across
+process boundaries and global reduction operations for distributed arrays.
+
+# Key Functions
+
+  - [`set_zonal_halos_of_field!`](@ref): X-direction halo exchange
+  - [`set_meridional_halos_of_field!`](@ref): Y-direction halo exchange
+  - [`set_vertical_halos_of_field!`](@ref): Z-direction halo exchange
+  - [`compute_global_dot_product`](@ref): Distributed dot product computation
+
+# Array Support
+
+  - 2D, 3D, and 5D field arrays
+  - Custom halo layer specifications
+  - Solid wall boundary handling
+"""
 module MPIOperations
 
 using MPI

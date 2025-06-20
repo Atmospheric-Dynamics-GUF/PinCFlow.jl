@@ -1,3 +1,88 @@
+"""
+    compute_saturation_integrals(state::State, indices::NTuple{3, <:Integer}) -> Tuple{AbstractFloat, AbstractFloat}
+
+Compute wave saturation integrals for a grid cell.
+
+Calculates the momentum flux and diffusion integrals needed for the wave
+saturation scheme, which parameterizes wave breaking when wave amplitudes
+exceed critical values.
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+  - `indices::NTuple{3, <:Integer}`: Grid cell indices (ix, jy, kz)
+
+# Returns
+
+  - `Tuple{AbstractFloat, AbstractFloat}`: Saturation integrals (mb2, mb2k2)
+
+      + `mb2`: Total momentum flux integral `∫ ρ·A·ω·(k²+l²+m²)`
+      + `mb2k2`: Diffusion-weighted integral for saturation calculation
+
+# Physical Theory
+
+## Wave Breaking Criterion
+
+Convective instability occurs when potential temperature perturbations exceed:
+`|θ'| > α_sat · θ₀ · N/g`
+
+## Momentum Flux Integral
+
+`mb2 = ∫ (2N²/ρ₀) · A · (k²m²/(k²+l²+m²)) · (1/ω) · dV_phasespace`
+
+where:
+
+  - `N²`: Brunt-Väisälä frequency squared
+  - `ρ₀`: Background density
+  - `A`: Wave action density
+  - `k²,l²,m²`: Wavenumber components
+  - `ω`: Intrinsic frequency
+  - `dV_phasespace`: Phase space volume element
+
+## Diffusion Integral
+
+`mb2k2`: Similar to mb2 but weighted for diffusion calculations
+
+# Algorithm
+
+ 1. **Ray Loop**: Iterate over all ray volumes in the grid cell
+ 2. **Position Mapping**: Determine which grid cell each ray occupies
+ 3. **Phase Space Factors**: Compute spatial and spectral overlap fractions
+ 4. **Local Properties**: Interpolate stratification and compute frequency
+ 5. **Integral Contributions**: Add weighted contributions from each ray
+
+# Saturation Scheme
+
+Used to compute turbulent diffusion coefficient:
+
+```julia
+if mb2 > α_sat² · N²
+    κ = (mb2 - α_sat² · N²) / (2 · dt · mb2k2)
+else
+    κ = 0
+end
+```
+
+# Phase Space Weighting
+
+Accounts for:
+
+  - Ray volume overlap with grid cell
+  - Spectral resolution factors
+  - Coordinate system metrics (terrain-following)
+
+# Applications
+
+  - Wave breaking parameterization
+  - Turbulent mixing calculations
+  - Energy dissipation estimates
+  - Momentum flux saturation
+
+# Grid Cell Association
+    # Get indices.
+Rays are associated with grid cells based on their center positions,
+with appropriate interpolation for rays spanning multiple cells.
+"""
 function compute_saturation_integrals(
     state::State,
     indices::NTuple{3, <:Integer},

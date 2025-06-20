@@ -1,3 +1,8 @@
+"""
+    set_compressible_meridional_boundaries!(state, model::AbstractModel)
+
+No-op for non-compressible models.
+"""
 function set_compressible_meridional_boundaries!(
     state::State,
     model::AbstractModel,
@@ -5,6 +10,11 @@ function set_compressible_meridional_boundaries!(
     return
 end
 
+"""
+    set_compressible_meridional_boundaries!(state, model::Compressible)
+
+Set meridional boundaries for pressure field in compressible model.
+"""
 function set_compressible_meridional_boundaries!(
     state::State,
     model::Compressible,
