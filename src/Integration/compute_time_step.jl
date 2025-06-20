@@ -1,3 +1,63 @@
+"""
+    compute_time_step(state::State) -> Float64
+
+Compute adaptive time step based on stability constraints.
+
+Calculates the maximum allowable time step by evaluating multiple stability
+criteria including CFL condition, viscous stability, and wave propagation
+constraints. Returns the most restrictive time step.
+
+# Arguments
+
+  - `state::State`: Complete simulation state containing grid, flow fields, and parameters
+
+# Returns
+
+  - `Float64`: Time step in non-dimensional units
+
+# Stability Criteria
+
+## CFL Condition (Advective Stability)
+
+  - Horizontal: `dt ≤ cfl * min(dx/|u|, dy/|v|)`
+  - Vertical: `dt ≤ cfl * jac * dz / |w_physical|`
+  - Uses terrain-following coordinate transformation for vertical velocity
+
+## von Neumann Condition (Viscous Stability)
+
+  - `dt ≤ 0.5 * Re * min(dx², dy², (jac*dz)²)`
+  - Ensures stability of viscous diffusion terms
+
+## WKB-CFL Condition (for gravity wave test cases)
+
+  - `dt ≤ cfl_wave * min(dx/cgx, dy/cgy, jac*dz/cgz)`
+  - Based on group velocity components from WKB ray tracing
+  - Only applied for `AbstractWKBTestCase` types
+
+## Maximum Time Step
+
+  - User-specified upper limit: `dt ≤ dtmax`
+
+# Adaptive vs Fixed Time Step
+
+  - If `adaptive_time_step = false`: returns fixed `dtmax`
+  - If `adaptive_time_step = true`: returns minimum of all constraints
+
+# MPI Communication
+
+  - Uses `MPI.Allreduce` with `min` operation to find global minimum
+  - Ensures all processes use the same time step
+
+# Output
+
+  - Master process prints all constraint values and selected time step
+  - Identifies which constraint is most restrictive
+
+# Error Conditions
+
+  - Throws error if computed time step falls below `dtmin`
+  - Prevents simulation from becoming unstable due to overly small time steps
+"""
 function compute_time_step(state::State)
     (; grid) = state
     (; cfl, cfl_wave, dtmin_dim, dtmax_dim, adaptive_time_step) =

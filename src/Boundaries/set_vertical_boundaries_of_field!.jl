@@ -1,3 +1,14 @@
+"""
+    set_vertical_boundaries_of_field!(field, namelists, domain, zboundaries::SolidWallBoundaries, mode; layers, staggered)
+
+Set vertical boundary conditions for 3D fields at solid walls.
+
+# Arguments
+
+  - `mode::Function`: Boundary condition mode (+ for symmetric, - for antisymmetric)
+  - `staggered::Bool`: Whether field is on staggered vertical grid (sets boundary values to zero)
+  - `layers::NTuple{3, <:Integer}`: Boundary layer sizes. Use -1 for defaults.
+"""
 function set_vertical_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
@@ -56,6 +67,11 @@ function set_vertical_boundaries_of_field!(
     return
 end
 
+"""
+    set_vertical_boundaries_of_field!(field::AbstractArray{<:AbstractFloat, 5}, namelists, domain, zboundaries; layers)
+
+Set vertical boundary conditions for 5D fields. Uses halo exchange for multi-process domains.
+"""
 function set_vertical_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,

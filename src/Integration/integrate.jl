@@ -1,3 +1,51 @@
+"""
+    integrate(namelists::Namelists)
+
+Main time integration loop for PinCFLow.
+
+This function performs the complete time integration of the governing equations
+using a semi-implicit time stepping scheme. It handles initialization,
+time stepping, output, and finalization of the simulation.
+
+# Arguments
+
+  - `namelists::Namelists`: Configuration parameters for the simulation
+
+# Algorithm Overview
+
+The integration uses a 5-stage semi-implicit scheme:
+
+ 1. Explicit integration of LHS (advection/diffusion) over dt/2
+ 2. Implicit integration of RHS (pressure/acoustic terms) over dt/2
+ 3. Explicit integration of RHS over dt/2 (predictor step)
+ 4. Explicit integration of LHS over full dt
+ 5. Implicit integration of RHS over dt/2 (corrector step)
+
+# Initialization
+
+  - Sets up MPI communication and domain decomposition
+  - Initializes all field variables and boundary conditions
+  - Performs optional initial divergence cleaning
+  - Initializes gravity wave ray tracing (MS-GWaM)
+  - Handles restart from previous simulation if requested
+
+# Time Stepping
+
+Each time step involves:
+
+  - CFL-based time step computation
+  - Sponge layer application
+  - Gravity wave propagation and saturation
+  - Semi-implicit integration of momentum and continuity equations
+  - Poisson solver for pressure correction
+  - Boundary condition updates
+
+# Output
+
+  - Creates NetCDF output files
+  - Writes field data at specified intervals
+  - Supports both time-based and step-based output
+"""
 function integrate(namelists::Namelists)
 
     #-------------------------------------------------

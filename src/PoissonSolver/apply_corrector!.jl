@@ -1,3 +1,30 @@
+"""
+    apply_corrector!(state, dt, facray, facprs)
+
+Apply the pressure correction step to enforce mass conservation.
+
+This is the main interface for the pressure correction procedure. It computes the
+right-hand side, solves the Poisson equation, and applies velocity/density corrections
+to satisfy the divergence-free condition.
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+  - `dt::AbstractFloat`: Time step size
+  - `facray::AbstractFloat`: Rayleigh damping factor for sponge boundaries
+  - `facprs::AbstractFloat`: Pressure correction scaling factor
+
+# Returns
+
+  - `(errflagbicg, niterbicg)`: Error status and iteration count from linear solver
+
+# Process
+
+ 1. Initialize and compute RHS of Poisson equation
+ 2. Solve linear system using BiCGStab
+ 3. Set boundary conditions on pressure correction
+ 4. Apply momentum and buoyancy corrections
+"""
 function apply_corrector!(
     state::State,
     dt::AbstractFloat,

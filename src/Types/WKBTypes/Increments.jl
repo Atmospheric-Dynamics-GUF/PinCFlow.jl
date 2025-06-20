@@ -1,3 +1,13 @@
+"""
+    Increments
+
+Ray propagation increments for position and wavenumber evolution.
+
+# Fields
+- `dxray`, `dyray`, `dzray`: Position increments
+- `dkray`, `dlray`, `dmray`: Wavenumber increments  
+- `ddxray`, `ddyray`, `ddzray`: Second-order position increments
+"""
 struct Increments{A <: AbstractArray{<:AbstractFloat, 4}}
     dxray::A
     dyray::A
