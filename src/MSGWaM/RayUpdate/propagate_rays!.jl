@@ -314,7 +314,7 @@ function propagate_rays!(
         end
     end
 
-    if testcase == WKBMountainWave() && rkstage == nstages
+    if testcase == WKBMountainWave()
         activate_orographic_source!(state)
     end
 
