@@ -1,3 +1,10 @@
+"""
+    compute_spectral_bounds(wavenumbers::AbstractVector{<:AbstractFloat})
+
+# Arguments
+
+  - `wavenumbers::AbstractVector{<:AbstractFloat}`: Vector of wavenumber values to analyze
+"""
 function compute_spectral_bounds(wavenumbers::AbstractVector{<:AbstractFloat})
 
     # Initialize minima and maxima.

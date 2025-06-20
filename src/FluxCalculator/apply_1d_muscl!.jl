@@ -1,3 +1,23 @@
+"""
+    apply_1d_muscl!(phi, phitilde, phisize)
+
+Applies the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) reconstruction
+in one dimension.
+
+# Arguments
+
+  - `phi::AbstractVector{<:AbstractFloat}`: Input scalar values at cell centers.
+  - `phitilde::AbstractMatrix{<:AbstractFloat}`: Output reconstructed values at cell interfaces.
+    Column 1 contains (left,down,back) interface values, column 2 contains (right,up,front) interface values.
+  - `phisize::Integer`: Size of the input array `phi`, including ghost cells.
+
+# TODO: this assumes that phi has only one ghost cell on each side?
+
+# Notes
+
+  - The function modifies `phitilde` in-place.
+  - Boundary cells (1 and phisize) are not reconstructed.
+"""
 function apply_1d_muscl!(
     phi::AbstractVector{<:AbstractFloat},
     phitilde::AbstractMatrix{<:AbstractFloat},

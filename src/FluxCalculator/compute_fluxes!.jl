@@ -1,3 +1,18 @@
+"""
+    compute_fluxes!(state::State, predictands::Predictands)
+
+Main function for computing fluxes for all variables. This function calls the specialized
+flux calculation functions for each variable (Rho, RhoP, U, V, W, and P).
+
+# Arguments
+
+  - `state::State`: The current state containing grid information, variables, and other data
+  - `predictands::Predictands`: The predictand variables used in flux calculations
+
+# Returns
+
+  - `nothing`: This function modifies the `predictands` in-place
+"""
 function compute_fluxes!(state::State, predictands::Predictands)
     (; model) = state.namelists.setting
 
@@ -12,6 +27,23 @@ function compute_fluxes!(state::State, predictands::Predictands)
     return
 end
 
+"""
+compute_fluxes!(state::State, predictands::Predictands, ::Rho)
+
+Compute fluxes for the density (Rho) variable in all three directions.
+
+This function calculates zonal, meridional, and vertical fluxes for the density
+variable, using the reconstructed density fields and the old wind fields.
+
+# Arguments
+
+  - `state::State`: The current state containing grid information, variables, and other data
+  - `predictands::Predictands`: The predictand variables containing the wind fields (u, v, w)
+
+# Returns
+
+  - `nothing`: This function modifies the `phirho` flux field in the state in-place
+"""
 function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
 
     # Get all necessary fields.
@@ -102,6 +134,23 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
     return
 end
 
+"""
+compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
+
+Compute fluxes for the density perturbations (RhoP) variable in all three directions.
+
+This function calculates zonal, meridional, and vertical fluxes for the perturbed
+variable, using the reconstructed perturbed density field and the old wind fields.
+
+# Arguments
+
+  - `state::State`: The current state containing grid information, variables, and other data
+  - `predictands::Predictands`: The predictand variables containing the wind fields (u, v, w)
+
+# Returns
+
+  - `nothing`: This function modifies the `phirhop` flux field in the state in-place
+"""
 function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
 
     # Get all necessary fields.
@@ -178,6 +227,7 @@ function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
     return
 end
 
+# no pressure flux for incompressible models. 
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
@@ -187,6 +237,22 @@ function compute_fluxes!(
     return
 end
 
+"""
+compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
+
+Compute fluxes for the pressure field variable in all three directions.
+
+This function calculates zonal, meridional, and vertical fluxes for the pressure variable, using the reconstructed pressure  field and the old wind fields.
+
+# Arguments
+
+  - `state::State`: The current state containing grid information, variables, and other data
+  - `predictands::Predictands`: The predictand variables containing the wind fields (u, v, w)
+
+# Returns
+
+  - `nothing`: This function modifies the `phip` flux field in the state in-place
+"""
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
@@ -242,6 +308,32 @@ function compute_fluxes!(
 
     return
 end
+
+"""
+    compute_fluxes!(state::State, old_predictands::Predictands, variable::U)
+    compute_fluxes!(state::State, old_predictands::Predictands, variable::V)
+    compute_fluxes!(state::State, old_predictands::Predictands, variable::W)
+
+Compute momentum fluxes for velocity components (U, V, W) in all three directions.
+
+These methods calculate advective and viscous fluxes for momentum in the:
+- U: zonal direction (east-west)
+- V: meridional direction (north-south) 
+- W: vertical direction (up-down)
+
+The implementation follows the same pattern for all three components, with appropriate
+adjustments for the direction-specific reconstructions and stress tensor components.
+
+# Arguments
+  - `state::State`: Current simulation state with grid, domain and variable data
+  - `old_predictands::Predictands`: Previous timestep's wind fields
+  - `variable::Union{U,V,W}`: Type parameter indicating which momentum component to compute
+
+# Returns
+  - `nothing`: Modifies the respective flux fields (`phiu`, `phiv`, `phiw`) in-place
+
+See also: [`compute_flux`](@ref), [`compute_stress_tensor`](@ref)
+"""
 
 function compute_fluxes!(
     state::State,

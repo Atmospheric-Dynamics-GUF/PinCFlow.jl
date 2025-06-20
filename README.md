@@ -22,6 +22,16 @@ The code is shared in a GitLab repository. Any contributions to the code should 
 
 1. Request to merge your remote development branch into the remote master branch.
 
+## Building and accessing the documentation
+
+The code uses Documenter.jl to build the documentation. To build the documentation, run the following command in the root directory of the repository:
+
+```julia
+julia --project=docs docs/make.jl
+```
+
+The documentation will be generated in the `docs/build` directory. To view the documentation, open the `index.html` file in a web browser.
+
 ## List of publications
 
 1. [Rieper et al. (2013)](https://doi.org/10.1175/mwr-d-12-00026.1)

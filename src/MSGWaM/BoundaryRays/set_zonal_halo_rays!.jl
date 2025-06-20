@@ -1,3 +1,12 @@
+"""
+    set_zonal_halo_rays!(state::State)
+
+    Synchronize ray volumes across zonal domain boundaries. 
+
+# Arguments
+
+  - `state::State`: Complete simulation state
+"""
 function set_zonal_halo_rays!(state::State)
     (; comm, ny, nz, i0, i1, j0, j1, k0, k1, left, right) = state.domain
     (; nray, rays) = state.wkb
@@ -33,21 +42,9 @@ function set_zonal_halo_rays!(state::State)
         ]
     end
 
-    MPI.Sendrecv!(
-        send_right,
-        receive_left,
-        comm;
-        dest = right,
-        source = left,
-    )
+    MPI.Sendrecv!(send_right, receive_left, comm; dest = right, source = left)
 
-    MPI.Sendrecv!(
-        send_left,
-        receive_right,
-        comm;
-        dest = left,
-        source = right,
-    )
+    MPI.Sendrecv!(send_left, receive_right, comm; dest = left, source = right)
 
     for (index, field) in enumerate(fields)
         @views getfield(rays, field)[
