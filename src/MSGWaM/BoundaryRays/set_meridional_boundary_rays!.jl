@@ -1,3 +1,10 @@
+"""
+    set_meridional_boundary_rays!(state::State)
+
+# Arguments
+
+  - `state::State`:  Simulation state
+"""
 function set_meridional_boundary_rays!(state::State)
     (; namelists, domain) = state
     (; npy) = namelists.domain

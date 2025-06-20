@@ -1,3 +1,110 @@
+"""
+    interpolate(namelists::Namelists; kwargs...) -> AbstractFloat
+
+Perform trilinear interpolation in 3D space with terrain-following coordinates.
+
+Core interpolation function that implements trilinear interpolation for arbitrary
+points in 3D atmospheric domains. Handles domain dimensionality automatically
+and accounts for terrain-following coordinate systems used in atmospheric models.
+
+# Arguments
+
+  - `namelists::Namelists`: Model configuration containing domain dimensions
+
+# Keyword Arguments
+
+## Field Values (8 corner points)
+
+  - `philbd, philbu`: Left-backward field values (down/up in vertical)
+  - `philfd, philfu`: Left-forward field values (down/up in vertical)
+  - `phirbd, phirbu`: Right-backward field values (down/up in vertical)
+  - `phirfd, phirfu`: Right-forward field values (down/up in vertical)
+
+## Coordinate Values (8 corner points)
+
+  - `zlbd, zlbu, zlfd, zlfu`: Left vertical coordinates (backward/forward, down/up)
+  - `zrbd, zrbu, zrfd, zrfu`: Right vertical coordinates (backward/forward, down/up)
+
+## Interpolation Point
+
+  - `xlc, ylc, zlc`: Target coordinates for interpolation
+  - `xl, xr`: Left/right grid coordinates
+  - `yb, yf`: Backward/forward grid coordinates
+
+# Returns
+
+  - `AbstractFloat`: Interpolated field value at target point
+
+# Algorithm
+
+Performs sequential interpolation in each dimension:
+
+## 1. X-Direction Interpolation
+
+For multi-dimensional domains (`sizex > 1`):
+
+  - Computes interpolation factor based on position within grid cell
+  - Linearly interpolates between left and right grid values
+  - Handles edge cases where target point is outside interpolation bounds
+
+## 2. Y-Direction Interpolation
+
+For multi-dimensional domains (`sizey > 1`):
+
+  - Interpolates between backward and forward values
+  - Uses results from x-direction interpolation as input
+
+## 3. Z-Direction Interpolation
+
+Final vertical interpolation:
+
+  - Accounts for terrain-following coordinate stretching
+  - Handles varying grid spacing in vertical direction
+  - Produces final interpolated value
+
+# Interpolation Factor Calculation
+
+For each direction, computes factor `f` where:
+
+  - `f = 0`: Use lower/left/backward value exclusively
+  - `f = 1`: Use upper/right/forward value exclusively
+  - `0 < f < 1`: Linear combination of both values
+
+Special cases:
+
+  - Points outside interpolation bounds use nearest boundary value
+  - Zero spacing between grid points defaults to lower/left/backward value
+
+# Coordinate System Support
+
+  - **Cartesian coordinates**: Standard rectangular grids
+  - **Terrain-following**: Vertical coordinates follow surface topography
+  - **Stretched grids**: Non-uniform spacing in any direction
+  - **Staggered grids**: Different variable locations on grid
+
+# Error Handling
+
+Validates coordinate ordering:
+
+  - `xr ≥ xl`: Right coordinate ≥ left coordinate
+  - `yf ≥ yb`: Forward coordinate ≥ backward coordinate
+  - `zu ≥ zd`: Upper coordinate ≥ lower coordinate
+
+# Applications
+
+Used throughout MSGWaM for:
+
+  - Mean flow interpolation to ray positions
+  - Stratification evaluation along ray paths
+  - Sponge layer coefficient determination
+  - Background field derivatives for refraction calculations
+
+# Performance Notes
+
+  - Efficient for scattered interpolation points
+  - Avoids expensive grid searches by using pre-computed indices
+  - Handles domain boundaries and coordinate singularities gracefully
+"""
 function interpolate(
     namelists::Namelists;
     philbd::AbstractFloat = NaN,

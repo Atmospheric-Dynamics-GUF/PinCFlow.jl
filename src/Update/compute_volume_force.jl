@@ -1,3 +1,19 @@
+"""
+    compute_volume_force(state, indices, variable)
+
+Test case-dispatched volume force computation.
+
+Dispatches to specific implementation based on test case type.
+
+# Arguments
+- `state::State`: Simulation state
+- `indices::NTuple{3, <:Integer}`: Grid indices (ix, jy, kz)
+- `variable::AbstractVariable`: Variable type for force computation
+
+# Returns
+- `AbstractFloat`: Volume force per unit mass
+"""
+
 function compute_volume_force(
     state::State,
     indices::NTuple{3, <:Integer},
@@ -7,6 +23,17 @@ function compute_volume_force(
     return compute_volume_force(state, indices, variable, testcase)
 end
 
+"""
+    compute_volume_force(state, indices, variable, testcase::AbstractTestCase)
+
+Default zero volume force for standard test cases.
+
+Most test cases have no additional volume forcing beyond standard physics.
+
+# Returns
+- `Float64`: Always returns 0.0
+"""
+
 function compute_volume_force(
     state::State,
     indices::NTuple{3, <:Integer},
@@ -15,6 +42,22 @@ function compute_volume_force(
 )
     return 0.0
 end
+
+"""
+    compute_volume_force(state, indices, variable::U, testcase::AbstractWKBTestCase)
+
+Zonal volume force from gravity wave drag.
+
+Computes cell-edge interpolated zonal wind tendency from WKB gravity wave 
+parameterization for use in momentum equations.
+
+# Implementation
+Averages [`dudt`](src/Types/VariableTypes/VariableTypes.jl) between horizontally adjacent cells:
+`force = (dudt[i] + dudt[i+1]) / 2`
+
+# Returns
+- `AbstractFloat`: Zonal acceleration [m/s²]
+"""
 
 function compute_volume_force(
     state::State,
@@ -27,6 +70,21 @@ function compute_volume_force(
     return (dudt[ix, jy, kz] + dudt[ix + 1, jy, kz]) / 2
 end
 
+"""
+    compute_volume_force(state, indices, variable::V, testcase::AbstractWKBTestCase)
+
+Meridional volume force from gravity wave drag.
+
+Computes cell-edge interpolated meridional wind tendency for momentum equations.
+
+# Implementation
+
+Averages [`dvdt`](src/Types/VariableTypes/VariableTypes.jl) between meridionally adjacent cells.
+
+# Returns
+
+  - `AbstractFloat`: Meridional acceleration [m/s²]
+"""
 function compute_volume_force(
     state::State,
     indices::NTuple{3, <:Integer},
@@ -38,6 +96,24 @@ function compute_volume_force(
     return (dvdt[ix, jy, kz] + dvdt[ix, jy + 1, kz]) / 2
 end
 
+"""
+    compute_volume_force(state, indices, variable::W, testcase::AbstractWKBTestCase)
+
+Vertical volume force from terrain-following coordinate transformation.
+
+Transforms horizontal gravity wave tendencies to vertical component using
+metric tensor coefficients and Jacobian weighting for terrain-following coordinates.
+
+# Implementation
+
+  - **Metric transformation**: Uses [`met`](src/Types/FoundationalTypes/Grid.jl) tensor components
+  - **Jacobian weighting**: Properly averages between vertical levels
+  - **Coordinate mapping**: `w_force = (∂ζ/∂x)·u_force + (∂ζ/∂y)·v_force`
+
+# Returns
+
+  - `AbstractFloat`: Vertical acceleration [m/s²]
+"""
 function compute_volume_force(
     state::State,
     indices::NTuple{3, <:Integer},
@@ -59,6 +135,18 @@ function compute_volume_force(
     ) / (jac[ix, jy, kz] + jac[ix, jy, kz + 1])
 end
 
+"""
+    compute_volume_force(state, indices, variable::P, testcase::AbstractWKBTestCase)
+
+Thermal forcing from gravity wave heating.
+
+Returns potential temperature tendency from gravity wave energy dissipation
+for use in thermodynamic equation.
+
+# Returns
+
+  - `AbstractFloat`: Heating rate [K/s]
+"""
 function compute_volume_force(
     state::State,
     indices::NTuple{3, <:Integer},
