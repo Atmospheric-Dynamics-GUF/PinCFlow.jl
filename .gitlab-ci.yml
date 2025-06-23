@@ -17,8 +17,7 @@ docs:
       - docs/build
 
   only:
-    refs:
-      - julia_doc
+    - julia
 
 pages:
   stage: pages
@@ -33,5 +32,4 @@ pages:
     paths:
       - public
   only:
-    refs:
-      - julia_doc
+    - julia
