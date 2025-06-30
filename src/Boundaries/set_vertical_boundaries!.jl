@@ -4,10 +4,10 @@
 Enforce vertical boundary conditions for all predictand fields.
 
 The symmetry conditions are as follows:
-- Density-fluctuation fields (`rho`, `rhop`): point reflection (-)
-- Vertical velocity (`w`): point reflection (-) on the staggered grid
-- Horizontal velocities (`u`, `v`): line reflection (+)
-- Exner-pressure fluctuations (`pip`): line reflection (+)
+- Density-fluctuation fields (`rho`, `rhop`): point reflection (`-`)
+- Vertical velocity (`w`): point reflection (`-`) on the staggered grid
+- Horizontal velocities (`u`, `v`): line reflection (`+`)
+- Exner-pressure fluctuations (`pip`): line reflection (`+`)
 """
 function set_vertical_boundaries!(
     state::State,
