@@ -1,8 +1,9 @@
 """
-    set_zonal_boundaries_of_field!(field::AbstractMatrix, namelists, domain)
+    set_zonal_boundaries_of_field!(field::AbstractMatrix{<:AbstractFloat}, namelists::Namelists, domain::Domain)
 
-Set zonal boundary conditions for 2D fields. Uses halo exchange for multi-process domains
-(`npx > 1`), otherwise applies periodic boundaries.
+Enforce zonal boundary conditions for 2D fields.
+
+Halo exchange is used for multi-process domains (`npx > 1`), otherwise periodic boundaries are set by copying values from opposite domain edges.
 """
 function set_zonal_boundaries_of_field!(
     field::AbstractMatrix{<:AbstractFloat},
@@ -25,13 +26,15 @@ function set_zonal_boundaries_of_field!(
 end
 
 """
-    set_zonal_boundaries_of_field!(field::AbstractArray{<:Real, 3}, namelists, domain; layers)
+    set_zonal_boundaries_of_field!(field::AbstractArray{<:Real, 3}, namelists::Namelists, domain::Domain; <keyword arguments>)
 
-Set zonal boundary conditions for 3D fields.
+Enforce zonal boundary conditions for 3D fields.
+
+Halo exchange is used for multi-process domains (`npx > 1`), otherwise periodic boundaries are set by copying values from opposite domain edges.
 
 # Arguments
 
-  - `layers::NTuple{3, <:Integer}`: Boundary layer sizes (nbx, nby, nbz). Use -1 for defaults.
+- `layers::NTuple{3, <:Integer} = (-1, -1, -1)`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
 """
 function set_zonal_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
@@ -62,10 +65,15 @@ function set_zonal_boundaries_of_field!(
 end
 
 """
-    set_zonal_boundaries_of_field!(field::AbstractArray{<:AbstractFloat, 5}, namelists, domain; layers)
+    set_zonal_boundaries_of_field!(field::AbstractArray{<:AbstractFloat, 5}, namelists::Namelists, domain::Domain; <keyword arguments>)
 
-Set zonal boundary conditions for 5D fields. Applies boundaries to all elements in
-dimensions 4 and 5.
+Enforce zonal boundary conditions for 5D fields.
+
+Halo exchange is used for multi-process domains (`npx > 1`), otherwise periodic boundaries are set by copying values from opposite domain edges. Boundary conditions are enforced across all elements in dimensions 4 and 5.
+
+# Arguments
+
+- `layers::NTuple{3, <:Integer} = (-1, -1, -1)`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
 """
 function set_zonal_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},

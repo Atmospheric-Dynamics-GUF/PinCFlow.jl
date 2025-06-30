@@ -27,10 +27,31 @@ The code is shared in a GitLab repository. Any contributions to the code should 
 The code uses Documenter.jl to build the documentation. To build the documentation, run the following command in the root directory of the repository:
 
 ```julia
+julia --project=docs -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
 julia --project=docs docs/make.jl
 ```
 
 The documentation will be generated in the `docs/build` directory. To view the documentation, open the `index.html` file in a web browser.
+
+## Style guide
+
+### Documentation
+
+1. Write docstrings for modules, types and methods.
+
+1. Always show the full signature of the object at the top of the documentation, with a four-space indent so that it is printed as Julia code. Enclose optional arguments without a default value in brackets (i.e. `f(x, y = 1)` but `f(x[, y])`). Replace keyword arguments with a `<keyword arguments>` placeholder in the signature (i.e. `f(x; <keyword arguments>)`) and give the complete lists in the `# Arguments` section.
+
+1. Include a single one-line sentence describing what the function does or what the object represents after the simplified signature block. Use the imperative form when documenting functions. If needed, provide more details in a second paragraph, after a blank line.
+
+1. Do not repeat yourself.
+
+1. List keyword arguments under an `# Arguments` header, with one `-` bullet for each argument. Include the types and default values (in Julia syntax).
+
+1. Provide hints to related functions in a `See also` paragraph.
+
+1. Use single backticks to identify code and double backticks to identify equations. Use Unicode characters rather than LaTeX escape sequences.
+
+1. Place the starting and ending `"""` characters on lines by themselves.
 
 ## List of publications
 

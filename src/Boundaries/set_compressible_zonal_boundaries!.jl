@@ -1,7 +1,7 @@
 """
-    set_compressible_zonal_boundaries!(state, model::AbstractModel)
+    set_compressible_zonal_boundaries!(state::State, model::AbstractModel)
 
-No-op for non-compressible models.
+Return in non-compressible modes.
 """
 function set_compressible_zonal_boundaries!(state::State, model::AbstractModel)
     return
@@ -10,7 +10,7 @@ end
 """
     set_compressible_zonal_boundaries!(state, model::Compressible)
 
-Set zonal boundaries for pressure field in compressible model.
+Enforce zonal boundary conditions for mass-weighted potential temperature in compressible mode.
 """
 function set_compressible_zonal_boundaries!(state::State, model::Compressible)
     (; namelists, domain) = state

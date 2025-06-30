@@ -1,8 +1,9 @@
 """
     Boundaries
 
-Module for setting boundary conditions on different variable types and field dimensions.
-Handles periodic boundaries, solid wall boundaries, and MPI halo exchanges.
+Module for enforcing boundary conditions for different variable types and field dimensions.
+
+Handles periodic boundaries in the horizontal and solid-wall boundaries in the vertical, as well as MPI communication in all dimensions (via `MPIOperations`).
 """
 module Boundaries
 
@@ -10,32 +11,44 @@ using ..Types
 using ..MPIOperations
 
 """
-Abstract type for boundary variable categories.
+    AbstractBoundaryVariables
+
+Abstract type for boundary-variable categories.
 """
 abstract type AbstractBoundaryVariables end
 
 """
-Boundary variables for predictand fields (rho, rhop, u, v, w, pip).
+    BoundaryPredictands <: AbstractBoundaryVariables
+
+Boundary-variable category for predictand fields.
 """
 struct BoundaryPredictands <: AbstractBoundaryVariables end
 
 """
-Boundary variables for reconstruction fields.
+    BoundaryReconstructions <: AbstractBoundaryVariables
+
+Boundary-variable category for reconstruction fields.
 """
 struct BoundaryReconstructions <: AbstractBoundaryVariables end
 
 """
-Boundary variables for flux fields.
+    BoundaryFluxes <: AbstractBoundaryVariables
+
+Boundary-variable category for flux fields.
 """
 struct BoundaryFluxes <: AbstractBoundaryVariables end
 
 """
-Boundary variables for gravity wave integral fields.
+    BoundaryGWIntegrals <: AbstractBoundaryVariables
+
+Boundary-variable category for gravity-wave-integral fields.
 """
 struct BoundaryGWIntegrals <: AbstractBoundaryVariables end
 
 """
-Boundary variables for gravity wave tendency fields.
+    BoundaryGWTendencies <: AbstractBoundaryVariables
+
+Boundary-variable category for gravity-wave-tendency fields.
 """
 struct BoundaryGWTendencies <: AbstractBoundaryVariables end
 

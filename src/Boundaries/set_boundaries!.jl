@@ -1,7 +1,7 @@
 """
-    set_boundaries!(state, variables::BoundaryPredictands)
+    set_boundaries!(state::State, variables::BoundaryPredictands)
 
-Set all boundary conditions (zonal, meridional, vertical) for predictand fields.
+Enforce all boundary conditions for predictand fields.
 """
 function set_boundaries!(state::State, variables::BoundaryPredictands)
     (; zboundaries) = state.namelists.setting
@@ -12,9 +12,9 @@ function set_boundaries!(state::State, variables::BoundaryPredictands)
 end
 
 """
-    set_boundaries!(state, variables::BoundaryReconstructions)
+    set_boundaries!(state::State, variables::BoundaryReconstructions)
 
-Set all boundary conditions for reconstruction fields.
+Enforce all boundary conditions for reconstruction fields.
 """
 function set_boundaries!(state::State, variables::BoundaryReconstructions)
     (; zboundaries) = state.namelists.setting
@@ -25,9 +25,9 @@ function set_boundaries!(state::State, variables::BoundaryReconstructions)
 end
 
 """
-    set_boundaries!(state, variables::BoundaryFluxes)
+    set_boundaries!(state::State, variables::BoundaryFluxes)
 
-Set vertical boundary conditions for flux fields (no horizontal boundaries needed).
+Enforce vertical boundary conditions for flux fields (horizontal boundaries are taken care of at the reconstruction stage).
 """
 function set_boundaries!(state::State, variables::BoundaryFluxes)
     (; zboundaries) = state.namelists.setting
@@ -36,9 +36,9 @@ function set_boundaries!(state::State, variables::BoundaryFluxes)
 end
 
 """
-    set_boundaries!(state, variables::BoundaryGWIntegrals)
+    set_boundaries!(state::State, variables::BoundaryGWIntegrals)
 
-Set all boundary conditions for gravity wave integral fields.
+Enforce all boundary conditions for gravity-wave-integral fields.
 """
 function set_boundaries!(state::State, variables::BoundaryGWIntegrals)
     (; zboundaries) = state.namelists.setting
@@ -49,9 +49,9 @@ function set_boundaries!(state::State, variables::BoundaryGWIntegrals)
 end
 
 """
-    set_boundaries!(state, variables::BoundaryGWTendencies)
+    set_boundaries!(state::State, variables::BoundaryGWTendencies)
 
-Set all boundary conditions for gravity wave tendency fields.
+Enforce all boundary conditions for gravity-wave-tendency fields.
 """
 function set_boundaries!(state::State, variables::BoundaryGWTendencies)
     (; zboundaries) = state.namelists.setting

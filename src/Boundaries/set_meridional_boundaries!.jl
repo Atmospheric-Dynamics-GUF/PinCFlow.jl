@@ -1,7 +1,7 @@
 """
-    set_meridional_boundaries!(state, variables::BoundaryPredictands)
+    set_meridional_boundaries!(state::State, variables::BoundaryPredictands)
 
-Set meridional boundaries for all predictand fields and handle compressible model boundaries.
+Enforce meridional boundary conditions for all predictand fields.
 """
 function set_meridional_boundaries!(
     state::State,
@@ -25,9 +25,9 @@ function set_meridional_boundaries!(
 end
 
 """
-    set_meridional_boundaries!(state, variables::BoundaryReconstructions)
+    set_meridional_boundaries!(state::State, variables::BoundaryReconstructions)
 
-Set meridional boundaries for all reconstruction fields.
+Enforce meridional boundary conditions for all reconstruction fields.
 """
 function set_meridional_boundaries!(
     state::State,
@@ -48,9 +48,9 @@ function set_meridional_boundaries!(
 end
 
 """
-    set_meridional_boundaries!(state, variables::BoundaryGWIntegrals)
+    set_meridional_boundaries!(state::State, variables::BoundaryGWIntegrals)
 
-Set meridional boundaries for GW integral fields. Dispatches based on WKB mode.
+Enforce meridional boundary conditions for gravity-wave-integral fields, dispatching based on WKB mode.
 """
 function set_meridional_boundaries!(
     state::State,
@@ -62,9 +62,9 @@ function set_meridional_boundaries!(
 end
 
 """
-    set_meridional_boundaries!(state, variables::BoundaryGWIntegrals, wkb_mode::AbstractWKBMode)
+    set_meridional_boundaries!(state::State, variables::BoundaryGWIntegrals, wkb_mode::AbstractWKBMode)
 
-Set meridional boundaries for basic GW integral fields with minimal boundary layers.
+Enforce meridional boundary conditions for gravity-wave-integral fields needed in `SingleColumn` and `SteadyState` configurations.
 """
 function set_meridional_boundaries!(
     state::State,
@@ -87,9 +87,9 @@ function set_meridional_boundaries!(
 end
 
 """
-    set_meridional_boundaries!(state, variables::BoundaryGWIntegrals, wkb_mode::MultiColumn)
+    set_meridional_boundaries!(state::State, variables::BoundaryGWIntegrals, wkb_mode::MultiColumn)
 
-Set meridional boundaries for extended GW integral fields in multi-column mode.
+Enforce meridional boundary conditions for gravity-wave-integral fields needed in `MultiColumn` configurations.
 """
 function set_meridional_boundaries!(
     state::State,
@@ -112,9 +112,9 @@ function set_meridional_boundaries!(
 end
 
 """
-    set_meridional_boundaries!(state, variables::BoundaryGWTendencies)
+    set_meridional_boundaries!(state::State, variables::BoundaryGWTendencies)
 
-Set meridional boundaries for GW tendency fields. Dispatches based on WKB mode.
+Enforce meridional boundary conditions for gravity-wave-tendency fields, dispatching based on WKB mode.
 """
 function set_meridional_boundaries!(
     state::State,
@@ -126,9 +126,9 @@ function set_meridional_boundaries!(
 end
 
 """
-    set_meridional_boundaries!(state, variables::BoundaryGWTendencies, wkb_mode::AbstractWKBMode)
+    set_meridional_boundaries!(state::State, variables::BoundaryGWTendencies, wkb_mode::AbstractWKBMode)
 
-Set meridional boundaries for basic GW tendency fields.
+Enforce meridional boundary conditions for gravity-wave-tendency fields needed in `SingleColumn` and `SteadyState` configurations.
 """
 function set_meridional_boundaries!(
     state::State,
@@ -150,9 +150,9 @@ function set_meridional_boundaries!(
 end
 
 """
-    set_meridional_boundaries!(state, variables::BoundaryGWTendencies, wkb_mode::MultiColumn)
+    set_meridional_boundaries!(state::State, variables::BoundaryGWTendencies, wkb_mode::MultiColumn)
 
-Set meridional boundaries for GW tendency fields in multi-column mode.
+Enforce meridional boundary conditions for gravity-wave-tendency fields needed in `MultiColumn` configurations.
 """
 function set_meridional_boundaries!(
     state::State,
