@@ -1,5 +1,11 @@
 """
-    set_compressible_vertical_boundaries!(state::State, variables::AbstractBoundaryVariables, model::AbstractModel)
+```julia
+set_compressible_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+    model::AbstractModel,
+)
+```
 
 Return in non-compressible modes.
 """
@@ -12,7 +18,13 @@ function set_compressible_vertical_boundaries!(
 end
 
 """
-    set_compressible_vertical_boundaries!(state::State, variables::BoundaryPredictands, model::Compressible)
+```julia
+set_compressible_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    model::Compressible,
+)
+```
 
 Enforce vertical boundary conditions for mass-weighted potential temperature in compressible mode (line reflection).
 """
@@ -31,7 +43,13 @@ function set_compressible_vertical_boundaries!(
 end
 
 """
-    set_compressible_vertical_boundaries!(state::State, variables::BoundaryFluxes, model::Compressible)
+```julia
+set_compressible_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    model::Compressible,
+)
+```
 
 Enforce vertical boundary conditions for vertical mass-weighted potential-temperature flux (no flux through boundaries).
 """

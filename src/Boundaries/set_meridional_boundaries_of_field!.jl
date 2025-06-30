@@ -1,5 +1,11 @@
 """
-    set_meridional_boundaries_of_field!(field::AbstractMatrix{<:AbstractFloat}, namelists::Namelists, domain::Domain)
+```julia
+set_meridional_boundaries_of_field!(
+    field::AbstractMatrix{<:AbstractFloat},
+    namelists::Namelists,
+    domain::Domain,
+)
+```
 
 Enforce meridional boundary conditions for 2D fields.
 
@@ -26,7 +32,14 @@ function set_meridional_boundaries_of_field!(
 end
 
 """
-    set_meridional_boundaries_of_field!(field::AbstractArray{<:Real, 3}, namelists::Namelists, domain::Domain; <keyword arguments>)
+```julia
+set_meridional_boundaries_of_field!(
+    field::AbstractArray{<:Real, 3},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
 
 Enforce meridional boundary conditions for 3D fields.
 
@@ -34,8 +47,7 @@ Halo exchange is used for multi-process domains (`npy > 1`), otherwise periodic 
 
 # Arguments
 
-- `layers::NTuple{3, <:Integer} = (-1, -1, -1)`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
-
+  - `layers::NTuple{3, <:Integer} = (-1, -1, -1)`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
 """
 function set_meridional_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
@@ -66,7 +78,14 @@ function set_meridional_boundaries_of_field!(
 end
 
 """
-    set_meridional_boundaries_of_field!(field::AbstractArray{<:AbstractFloat, 5}, namelists::Namelists, domain::Domain; <keyword arguments>)
+```julia
+set_meridional_boundaries_of_field!(
+    field::AbstractArray{<:AbstractFloat, 5},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
 
 Enforce meridional boundary conditions for 5D fields.
 
@@ -74,7 +93,7 @@ Halo exchange is used for multi-process domains (`npy > 1`), otherwise periodic 
 
 # Arguments
 
-- `layers::NTuple{3, <:Integer} = (-1, -1, -1)`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
+  - `layers::NTuple{3, <:Integer} = (-1, -1, -1)`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
 """
 function set_meridional_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},

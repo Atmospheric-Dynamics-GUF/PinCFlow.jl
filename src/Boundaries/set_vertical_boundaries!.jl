@@ -1,13 +1,20 @@
 """
-    set_vertical_boundaries!(state::State, variables::BoundaryPredictands, zboundaries::SolidWallBoundaries)
+```julia
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    zboundaries::SolidWallBoundaries,
+)
+```
 
 Enforce vertical boundary conditions for all predictand fields.
 
 The symmetry conditions are as follows:
-- Density-fluctuation fields (`rho`, `rhop`): point reflection (`-`)
-- Vertical velocity (`w`): point reflection (`-`) on the staggered grid
-- Horizontal velocities (`u`, `v`): line reflection (`+`)
-- Exner-pressure fluctuations (`pip`): line reflection (`+`)
+
+  - Density-fluctuation fields (`rho`, `rhop`): point reflection (`-`)
+  - Vertical velocity (`w`): point reflection (`-`) on the staggered grid
+  - Horizontal velocities (`u`, `v`): line reflection (`+`)
+  - Exner-pressure fluctuations (`pip`): line reflection (`+`)
 """
 function set_vertical_boundaries!(
     state::State,
@@ -41,7 +48,13 @@ function set_vertical_boundaries!(
 end
 
 """
-    set_vertical_boundaries!(state::State, variables::BoundaryReconstructions, zboundaries::SolidWallBoundaries)
+```julia
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    zboundaries::SolidWallBoundaries,
+)
+```
 
 Enforce vertical boundary conditions for all reconstruction fields.
 """
@@ -67,7 +80,13 @@ function set_vertical_boundaries!(
 end
 
 """
-    set_vertical_boundaries!(state::State, variables::BoundaryFluxes, zboundaries::SolidWallBoundaries)
+```julia
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    zboundaries::SolidWallBoundaries,
+)
+```
 
 Set the vertical fluxes at the vertical boundaries to zero (in `SolidWallBoundaries` configurations).
 """
@@ -101,7 +120,13 @@ function set_vertical_boundaries!(
 end
 
 """
-    set_vertical_boundaries!(state::State, variables::BoundaryGWIntegrals, zboundaries::SolidWallBoundaries)
+```julia
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryGWIntegrals,
+    zboundaries::SolidWallBoundaries,
+)
+```
 
 Enforce vertical boundary conditions for gravity-wave-integral fields, dispatching based on WKB mode.
 """
@@ -116,7 +141,14 @@ function set_vertical_boundaries!(
 end
 
 """
-    set_vertical_boundaries!(state::State, variables::BoundaryGWIntegrals, zboundaries::SolidWallBoundaries, wkb_mode::AbstractWKBMode)
+```julia
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryGWIntegrals,
+    zboundaries::SolidWallBoundaries,
+    wkb_mode::AbstractWKBMode,
+)
+```
 
 Enforce vertical boundary conditions for gravity-wave-integral fields needed in `SingleColumn` and `SteadyState` configurations, using line reflection.
 """
@@ -145,7 +177,14 @@ function set_vertical_boundaries!(
 end
 
 """
-    set_vertical_boundaries!(state::State, variables::BoundaryGWIntegrals, zboundaries::SolidWallBoundaries, wkb_mode::MultiColumn)
+```julia
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryGWIntegrals,
+    zboundaries::SolidWallBoundaries,
+    wkb_mode::MultiColumn,
+)
+```
 
 Enforce vertical boundary conditions for gravity-wave-integral fields needed in `MultiColumn` configurations, using line reflection.
 """
@@ -174,7 +213,13 @@ function set_vertical_boundaries!(
 end
 
 """
-    set_vertical_boundaries!(state::State, variables::BoundaryGWTendencies, zboundaries::SolidWallBoundaries)
+```julia
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryGWTendencies,
+    zboundaries::SolidWallBoundaries,
+)
+```
 
 Enforce vertical boundary conditions for gravity-wave-tendency fields, dispatching based on WKB mode.
 """
@@ -189,7 +234,14 @@ function set_vertical_boundaries!(
 end
 
 """
-    set_vertical_boundaries!(state::State, variables::BoundaryGWTendencies, zboundaries::SolidWallBoundaries, wkb_mode::AbstractWKBMode)
+```julia
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryGWTendencies,
+    zboundaries::SolidWallBoundaries,
+    wkb_mode::AbstractWKBMode,
+)
+```
 
 Enforce vertical boundary conditions for gravity-wave-tendency fields needed in `SingleColumn` and `SteadyState` configurations, using line reflection.
 """
@@ -217,7 +269,14 @@ function set_vertical_boundaries!(
 end
 
 """
-    set_vertical_boundaries!(state::State, variables::BoundaryGWTendencies, zboundaries::SolidWallBoundaries, wkb_mode::MultiColumn)
+```julia
+set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryGWTendencies,
+    zboundaries::SolidWallBoundaries,
+    wkb_mode::MultiColumn,
+)
+```
 
 Enforce vertical boundary conditions for gravity-wave-tendency fields needed in `MultiColumn` configurations, using line reflection.
 """

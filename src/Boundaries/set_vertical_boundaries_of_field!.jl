@@ -1,5 +1,15 @@
 """
-    set_vertical_boundaries_of_field!(field::AbstractArray{<:Real, 3}, namelists::Namelists, domain::Domain, zboundaries::SolidWallBoundaries, mode::Function; <keyword arguments>)
+```julia
+set_vertical_boundaries_of_field!(
+    field::AbstractArray{<:Real, 3},
+    namelists::Namelists,
+    domain::Domain,
+    zboundaries::SolidWallBoundaries,
+    mode::Function;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+    staggered = false,
+)
+```
 
 Enforce vertical boundary conditions for 3D fields in a `SolidWallBoundaries` configuration.
 
@@ -7,8 +17,8 @@ Halo exchange is used for multi-process domains (`npz > 1`). Use `mode = +` (`mo
 
 # Arguments
 
-- `layers::NTuple{3, <:Integer} = (-1, -1, -1)`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
-- `staggered::Bool = false`: A switch for whether or not the field is on the staggered vertical grid.
+  - `layers::NTuple{3, <:Integer} = (-1, -1, -1)`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
+  - `staggered::Bool = false`: A switch for whether or not the field is on the staggered vertical grid.
 """
 function set_vertical_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
@@ -69,7 +79,15 @@ function set_vertical_boundaries_of_field!(
 end
 
 """
-    set_vertical_boundaries_of_field!(field::AbstractArray{<:AbstractFloat, 5}, namelists::Namelists, domain::Domain, zboundaries::SolidWallBoundaries; <keyword arguments>)
+```julia
+set_vertical_boundaries_of_field!(
+    field::AbstractArray{<:AbstractFloat, 5},
+    namelists::Namelists,
+    domain::Domain,
+    zboundaries::SolidWallBoundaries;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
 
 Enforce vertical boundary conditions for 5D fields.
 
@@ -77,7 +95,7 @@ Halo exchange is used for multi-process domains (`npz > 1`). Boundary conditions
 
 # Arguments
 
-- `layers::NTuple{3, <:Integer} = (-1, -1, -1)`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
+  - `layers::NTuple{3, <:Integer} = (-1, -1, -1)`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
 """
 function set_vertical_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},

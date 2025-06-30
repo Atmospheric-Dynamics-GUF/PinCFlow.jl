@@ -1,5 +1,7 @@
 """
-    set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
+```julia
+set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
+```
 
 Enforce zonal boundary conditions for all predictand fields.
 """
@@ -22,7 +24,9 @@ function set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
 end
 
 """
-    set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
+```julia
+set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
+```
 
 Enforce zonal boundary conditions for all reconstruction fields.
 """
@@ -42,7 +46,9 @@ function set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
 end
 
 """
-    set_zonal_boundaries!(state::State, variables::BoundaryGWIntegrals)
+```julia
+set_zonal_boundaries!(state::State, variables::BoundaryGWIntegrals)
+```
 
 Enforce zonal boundary conditions for gravity-wave-integral fields, dispatching based on WKB mode.
 """
@@ -53,7 +59,13 @@ function set_zonal_boundaries!(state::State, variables::BoundaryGWIntegrals)
 end
 
 """
-    set_zonal_boundaries!(state::State, variables::BoundaryGWIntegrals, wkb_mode::AbstractWKBMode)
+```julia
+set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryGWIntegrals,
+    wkb_mode::AbstractWKBMode,
+)
+```
 
 Enforce zonal boundary conditions for gravity-wave-integral fields needed in `SingleColumn` and `SteadyState` configurations.
 """
@@ -78,7 +90,13 @@ function set_zonal_boundaries!(
 end
 
 """
-    set_zonal_boundaries!(state::State, variables::BoundaryGWIntegrals, wkb_mode::MultiColumn)
+```julia
+set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryGWIntegrals,
+    wkb_mode::MultiColumn,
+)
+```
 
 Enforce zonal boundary conditions for gravity-wave-integral fields needed in `MultiColumn` configurations.
 """
@@ -103,7 +121,9 @@ function set_zonal_boundaries!(
 end
 
 """
-    set_zonal_boundaries!(state::State, variables::BoundaryGWTendencies)
+```julia
+set_zonal_boundaries!(state::State, variables::BoundaryGWTendencies)
+```
 
 Enforce zonal boundary conditions for gravity-wave-tendency fields, dispatching based on WKB mode.
 """
@@ -114,7 +134,13 @@ function set_zonal_boundaries!(state::State, variables::BoundaryGWTendencies)
 end
 
 """
-    set_zonal_boundaries!(state::State, variables::BoundaryGWTendencies, wkb_mode::AbstractWKBMode)
+```julia
+set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryGWTendencies,
+    wkb_mode::AbstractWKBMode,
+)
+```
 
 Enforce zonal boundary conditions for gravity-wave-tendency fields needed in `SingleColumn` and `SteadyState` configurations.
 """
@@ -138,7 +164,13 @@ function set_zonal_boundaries!(
 end
 
 """
-    set_zonal_boundaries!(state::State, variables::BoundaryGWTendencies, wkb_mode::MultiColumn)
+```julia
+set_zonal_boundaries!(
+    state::State,
+    variables::BoundaryGWTendencies,
+    wkb_mode::MultiColumn,
+)
+```
 
 Enforce zonal boundary conditions for gravity-wave-tendency fields needed in `MultiColumn` configurations.
 """

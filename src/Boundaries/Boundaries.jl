@@ -1,5 +1,7 @@
 """
-    Boundaries
+```julia
+Boundaries
+```
 
 Module for enforcing boundary conditions for different variable types and field dimensions.
 
@@ -11,42 +13,54 @@ using ..Types
 using ..MPIOperations
 
 """
-    AbstractBoundaryVariables
+```julia
+AbstractBoundaryVariables
+```
 
 Abstract type for boundary-variable categories.
 """
 abstract type AbstractBoundaryVariables end
 
 """
-    BoundaryPredictands <: AbstractBoundaryVariables
+```julia
+BoundaryPredictands <: AbstractBoundaryVariables
+```
 
 Boundary-variable category for predictand fields.
 """
 struct BoundaryPredictands <: AbstractBoundaryVariables end
 
 """
-    BoundaryReconstructions <: AbstractBoundaryVariables
+```julia
+BoundaryReconstructions <: AbstractBoundaryVariables
+```
 
 Boundary-variable category for reconstruction fields.
 """
 struct BoundaryReconstructions <: AbstractBoundaryVariables end
 
 """
-    BoundaryFluxes <: AbstractBoundaryVariables
+```julia
+BoundaryFluxes <: AbstractBoundaryVariables
+```
 
 Boundary-variable category for flux fields.
 """
 struct BoundaryFluxes <: AbstractBoundaryVariables end
 
 """
-    BoundaryGWIntegrals <: AbstractBoundaryVariables
+```julia
+BoundaryGWIntegrals <: AbstractBoundaryVariables
+```
 
 Boundary-variable category for gravity-wave-integral fields.
 """
 struct BoundaryGWIntegrals <: AbstractBoundaryVariables end
 
 """
-    BoundaryGWTendencies <: AbstractBoundaryVariables
+```julia
+BoundaryGWTendencies <: AbstractBoundaryVariables
+```
 
 Boundary-variable category for gravity-wave-tendency fields.
 """

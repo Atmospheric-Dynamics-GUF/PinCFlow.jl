@@ -1,5 +1,7 @@
 """
-    set_boundaries!(state::State, variables::BoundaryPredictands)
+```julia
+set_boundaries!(state::State, variables::BoundaryPredictands)
+```
 
 Enforce all boundary conditions for predictand fields.
 """
@@ -12,7 +14,9 @@ function set_boundaries!(state::State, variables::BoundaryPredictands)
 end
 
 """
-    set_boundaries!(state::State, variables::BoundaryReconstructions)
+```julia
+set_boundaries!(state::State, variables::BoundaryReconstructions)
+```
 
 Enforce all boundary conditions for reconstruction fields.
 """
@@ -25,7 +29,9 @@ function set_boundaries!(state::State, variables::BoundaryReconstructions)
 end
 
 """
-    set_boundaries!(state::State, variables::BoundaryFluxes)
+```julia
+set_boundaries!(state::State, variables::BoundaryFluxes)
+```
 
 Enforce vertical boundary conditions for flux fields (horizontal boundaries are taken care of at the reconstruction stage).
 """
@@ -36,7 +42,9 @@ function set_boundaries!(state::State, variables::BoundaryFluxes)
 end
 
 """
-    set_boundaries!(state::State, variables::BoundaryGWIntegrals)
+```julia
+set_boundaries!(state::State, variables::BoundaryGWIntegrals)
+```
 
 Enforce all boundary conditions for gravity-wave-integral fields.
 """
@@ -49,7 +57,9 @@ function set_boundaries!(state::State, variables::BoundaryGWIntegrals)
 end
 
 """
-    set_boundaries!(state::State, variables::BoundaryGWTendencies)
+```julia
+set_boundaries!(state::State, variables::BoundaryGWTendencies)
+```
 
 Enforce all boundary conditions for gravity-wave-tendency fields.
 """

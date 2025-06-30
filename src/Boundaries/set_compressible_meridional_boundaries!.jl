@@ -1,5 +1,7 @@
 """
-    set_compressible_meridional_boundaries!(state::State, model::AbstractModel)
+```julia
+set_compressible_meridional_boundaries!(state::State, model::AbstractModel)
+```
 
 Return in non-compressible modes.
 """
@@ -11,7 +13,9 @@ function set_compressible_meridional_boundaries!(
 end
 
 """
-    set_compressible_meridional_boundaries!(state::State, model::Compressible)
+```julia
+set_compressible_meridional_boundaries!(state::State, model::Compressible)
+```
 
 Enforce meridional boundary conditions for mass-weighted potential temperature in compressible mode.
 """

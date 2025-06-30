@@ -1,5 +1,7 @@
 """
-    set_compressible_zonal_boundaries!(state::State, model::AbstractModel)
+```julia
+set_compressible_zonal_boundaries!(state::State, model::AbstractModel)
+```
 
 Return in non-compressible modes.
 """
@@ -8,7 +10,9 @@ function set_compressible_zonal_boundaries!(state::State, model::AbstractModel)
 end
 
 """
-    set_compressible_zonal_boundaries!(state, model::Compressible)
+```julia
+set_compressible_zonal_boundaries!(state, model::Compressible)
+```
 
 Enforce zonal boundary conditions for mass-weighted potential temperature in compressible mode.
 """
