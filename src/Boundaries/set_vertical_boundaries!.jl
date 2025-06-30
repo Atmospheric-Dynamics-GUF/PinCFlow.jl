@@ -15,6 +15,12 @@ The symmetry conditions are as follows:
   - Vertical velocity (`w`): point reflection (`-`) on the staggered grid
   - Horizontal velocities (`u`, `v`): line reflection (`+`)
   - Exner-pressure fluctuations (`pip`): line reflection (`+`)
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `zboundaries`: Vertical boundary conditions.
 """
 function set_vertical_boundaries!(
     state::State,
@@ -57,6 +63,12 @@ set_vertical_boundaries!(
 ```
 
 Enforce vertical boundary conditions for all reconstruction fields.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `zboundaries`: Vertical boundary conditions.
 """
 function set_vertical_boundaries!(
     state::State,
@@ -89,6 +101,12 @@ set_vertical_boundaries!(
 ```
 
 Set the vertical fluxes at the vertical boundaries to zero (in `SolidWallBoundaries` configurations).
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `zboundaries`: Vertical boundary conditions.
 """
 function set_vertical_boundaries!(
     state::State,
@@ -129,6 +147,12 @@ set_vertical_boundaries!(
 ```
 
 Enforce vertical boundary conditions for gravity-wave-integral fields, dispatching based on WKB mode.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `zboundaries`: Vertical boundary conditions.
 """
 function set_vertical_boundaries!(
     state::State,
@@ -151,6 +175,12 @@ set_vertical_boundaries!(
 ```
 
 Enforce vertical boundary conditions for gravity-wave-integral fields needed in `SingleColumn` and `SteadyState` configurations, using line reflection.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `zboundaries`: Vertical boundary conditions.
 """
 function set_vertical_boundaries!(
     state::State,
@@ -187,6 +217,12 @@ set_vertical_boundaries!(
 ```
 
 Enforce vertical boundary conditions for gravity-wave-integral fields needed in `MultiColumn` configurations, using line reflection.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `zboundaries`: Vertical boundary conditions.
 """
 function set_vertical_boundaries!(
     state::State,
@@ -222,6 +258,12 @@ set_vertical_boundaries!(
 ```
 
 Enforce vertical boundary conditions for gravity-wave-tendency fields, dispatching based on WKB mode.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `zboundaries`: Vertical boundary conditions.
 """
 function set_vertical_boundaries!(
     state::State,
@@ -244,6 +286,13 @@ set_vertical_boundaries!(
 ```
 
 Enforce vertical boundary conditions for gravity-wave-tendency fields needed in `SingleColumn` and `SteadyState` configurations, using line reflection.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `zboundaries`: Vertical boundary conditions.
+  - `wkb_mode`: Approximations used by MSGWaM.
 """
 function set_vertical_boundaries!(
     state::State,
@@ -279,6 +328,13 @@ set_vertical_boundaries!(
 ```
 
 Enforce vertical boundary conditions for gravity-wave-tendency fields needed in `MultiColumn` configurations, using line reflection.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `zboundaries`: Vertical boundary conditions.
+  - `wkb_mode`: Approximations used by MSGWaM.
 """
 function set_vertical_boundaries!(
     state::State,

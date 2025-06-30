@@ -10,6 +10,12 @@ set_zonal_boundaries_of_field!(
 Enforce zonal boundary conditions for 2D fields.
 
 Halo exchange is used for multi-process domains (`npx > 1`), otherwise periodic boundaries are set by copying values from opposite domain edges.
+
+# Arguments
+
+  - `field`: 2D input field.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 """
 function set_zonal_boundaries_of_field!(
     field::AbstractMatrix{<:AbstractFloat},
@@ -47,7 +53,10 @@ Halo exchange is used for multi-process domains (`npx > 1`), otherwise periodic 
 
 # Arguments
 
-  - `layers::NTuple{3, <:Integer} = (-1, -1, -1)`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
+  - `field`: 3D input field.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `layers`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
 """
 function set_zonal_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
@@ -93,7 +102,10 @@ Halo exchange is used for multi-process domains (`npx > 1`), otherwise periodic 
 
 # Arguments
 
-  - `layers::NTuple{3, <:Integer} = (-1, -1, -1)`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
+  - `field`: 5D input field.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `layers`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
 """
 function set_zonal_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},

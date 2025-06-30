@@ -4,6 +4,11 @@ set_compressible_meridional_boundaries!(state::State, model::AbstractModel)
 ```
 
 Return in non-compressible modes.
+
+# Arguments
+
+  - `state`: Model state.
+  - `model`: Dynamic equations.
 """
 function set_compressible_meridional_boundaries!(
     state::State,
@@ -18,6 +23,11 @@ set_compressible_meridional_boundaries!(state::State, model::Compressible)
 ```
 
 Enforce meridional boundary conditions for mass-weighted potential temperature in compressible mode.
+
+# Arguments
+
+  - `state`: Model state.
+  - `model`: Dynamic equations.
 """
 function set_compressible_meridional_boundaries!(
     state::State,

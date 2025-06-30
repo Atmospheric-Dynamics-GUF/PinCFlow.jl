@@ -8,6 +8,12 @@ set_compressible_vertical_boundaries!(
 ```
 
 Return in non-compressible modes.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `model`: Dynamic equations.
 """
 function set_compressible_vertical_boundaries!(
     state::State,
@@ -27,6 +33,12 @@ set_compressible_vertical_boundaries!(
 ```
 
 Enforce vertical boundary conditions for mass-weighted potential temperature in compressible mode (line reflection).
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `model`: Dynamic equations.
 """
 function set_compressible_vertical_boundaries!(
     state::State,
@@ -52,6 +64,12 @@ set_compressible_vertical_boundaries!(
 ```
 
 Enforce vertical boundary conditions for vertical mass-weighted potential-temperature flux (no flux through boundaries).
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `model`: Dynamic equations.
 """
 function set_compressible_vertical_boundaries!(
     state::State,

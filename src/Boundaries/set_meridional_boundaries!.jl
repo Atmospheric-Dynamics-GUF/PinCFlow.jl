@@ -4,6 +4,11 @@ set_meridional_boundaries!(state::State, variables::BoundaryPredictands)
 ```
 
 Enforce meridional boundary conditions for all predictand fields.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
 """
 function set_meridional_boundaries!(
     state::State,
@@ -32,6 +37,11 @@ set_meridional_boundaries!(state::State, variables::BoundaryReconstructions)
 ```
 
 Enforce meridional boundary conditions for all reconstruction fields.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
 """
 function set_meridional_boundaries!(
     state::State,
@@ -57,6 +67,11 @@ set_meridional_boundaries!(state::State, variables::BoundaryGWIntegrals)
 ```
 
 Enforce meridional boundary conditions for gravity-wave-integral fields, dispatching based on WKB mode.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
 """
 function set_meridional_boundaries!(
     state::State,
@@ -77,6 +92,12 @@ set_meridional_boundaries!(
 ```
 
 Enforce meridional boundary conditions for gravity-wave-integral fields needed in `SingleColumn` and `SteadyState` configurations.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `wkb_mode`: Approximations used by MSGWaM.
 """
 function set_meridional_boundaries!(
     state::State,
@@ -108,6 +129,12 @@ set_meridional_boundaries!(
 ```
 
 Enforce meridional boundary conditions for gravity-wave-integral fields needed in `MultiColumn` configurations.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `wkb_mode`: Approximations used by MSGWaM.
 """
 function set_meridional_boundaries!(
     state::State,
@@ -135,6 +162,11 @@ set_meridional_boundaries!(state::State, variables::BoundaryGWTendencies)
 ```
 
 Enforce meridional boundary conditions for gravity-wave-tendency fields, dispatching based on WKB mode.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
 """
 function set_meridional_boundaries!(
     state::State,
@@ -155,6 +187,12 @@ set_meridional_boundaries!(
 ```
 
 Enforce meridional boundary conditions for gravity-wave-tendency fields needed in `SingleColumn` and `SteadyState` configurations.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `wkb_mode`: Approximations used by MSGWaM.
 """
 function set_meridional_boundaries!(
     state::State,
@@ -185,6 +223,12 @@ set_meridional_boundaries!(
 ```
 
 Enforce meridional boundary conditions for gravity-wave-tendency fields needed in `MultiColumn` configurations.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variables`: Boundary-variable category.
+  - `wkb_mode`: Approximations used by MSGWaM.
 """
 function set_meridional_boundaries!(
     state::State,
