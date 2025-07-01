@@ -1,5 +1,16 @@
 """
-    compute_merge_index(wnr::AbstractFloat, wnr_min_p::AbstractFloat, wnr_max_p::AbstractFloat, wnr_min_n::AbstractFloat, wnr_max_n::AbstractFloat, dwnr_mrg_p::AbstractFloat, dwnr_mrg_n::AbstractFloat, nray::Integer)
+```julia
+compute_merge_index(
+    wnr::AbstractFloat,
+    wnr_min_p::AbstractFloat,
+    wnr_max_p::AbstractFloat,
+    wnr_min_n::AbstractFloat,
+    wnr_max_n::AbstractFloat,
+    dwnr_mrg_p::AbstractFloat,
+    dwnr_mrg_n::AbstractFloat,
+    nray::Integer,
+)
+```
 
 # Arguments
 

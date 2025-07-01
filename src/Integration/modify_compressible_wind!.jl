@@ -1,5 +1,7 @@
 """
-    modify_compressible_wind!(state::State, operation::Function)
+```julia
+modify_compressible_wind!(state::State, operation::Function)
+```
 
 Apply operation to wind fields based on model type.
 
@@ -18,7 +20,13 @@ function modify_compressible_wind!(state::State, operation::Function)
 end
 
 """
-    modify_compressible_wind!(state::State, operation::Function, model::AbstractModel)
+```julia
+modify_compressible_wind!(
+    state::State,
+    operation::Function,
+    model::AbstractModel,
+)
+```
 
 No-op for non-compressible models.
 
@@ -40,7 +48,13 @@ function modify_compressible_wind!(
 end
 
 """
-    modify_compressible_wind!(state::State, operation::Function, model::Compressible)
+```julia
+modify_compressible_wind!(
+    state::State,
+    operation::Function,
+    model::Compressible,
+)
+```
 
 Modify wind components for compressible model using pressure weighting.
 

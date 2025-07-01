@@ -1,16 +1,7 @@
 """
-    RayUpdate: shift_rays!
-
-This file contains functions for shifting wave rays between the grid cells
-
-The shifting process ensures that rays are correctly positioned in their respective
-grid cells after their positions have been updated. Different implementations handle
-different model configurations (SteadyState, SingleColumn, MultiColumn) and different
-spatial dimensions (X, Y, Z).
-"""
-
-"""
-    shift_rays!(state::State)
+```julia
+shift_rays!(state::State)
+```
 
 Entry point for ray shifting operations. Delegates to the appropriate method based on
 the test case specified in the state's settings.
@@ -26,7 +17,9 @@ function shift_rays!(state::State)
 end
 
 """
-    shift_rays!(state::State, testcase::AbstractTestCase)
+```julia
+shift_rays!(state::State, testcase::AbstractTestCase)
+```
 
 Default implementation for non-WKB test cases. Does nothing.
 
@@ -40,7 +33,9 @@ function shift_rays!(state::State, testcase::AbstractTestCase)
 end
 
 """
-    shift_rays!(state::State, testcase::AbstractWKBTestCase)
+```julia
+shift_rays!(state::State, testcase::AbstractWKBTestCase)
+```
 
 Implementation for WKB test cases. Delegates to the appropriate method based on
 the WKB mode specified in the state's configuration.
@@ -57,7 +52,9 @@ function shift_rays!(state::State, testcase::AbstractWKBTestCase)
 end
 
 """
-    shift_rays!(state::State, wkb_mode::SteadyState)
+```julia
+shift_rays!(state::State, wkb_mode::SteadyState)
+```
 
 Implementation for steady state WKB mode. Does nothing as rays remain stationary.
 
@@ -71,7 +68,9 @@ function shift_rays!(state::State, wkb_mode::SteadyState)
 end
 
 """
-    shift_rays!(state::State, wkb_mode::SingleColumn)
+```julia
+shift_rays!(state::State, wkb_mode::SingleColumn)
+```
 
 Implementation for single column WKB mode. Shifts rays in the vertical (Z) direction only.
 
@@ -102,7 +101,9 @@ function shift_rays!(state::State, wkb_mode::SingleColumn)
 end
 
 """
-    shift_rays!(state::State, wkb_mode::MultiColumn)
+```julia
+shift_rays!(state::State, wkb_mode::MultiColumn)
+```
 
 Implementation for multi-column WKB mode. Shifts rays in X, Y, and Z directions
 as appropriate based on domain dimensions.
@@ -151,7 +152,9 @@ function shift_rays!(state::State, wkb_mode::MultiColumn)
 end
 
 """
-    shift_rays!(state::State, direction::X)
+```julia
+shift_rays!(state::State, direction::X)
+```
 
 Shifts rays in the X (zonal) direction when their positions no longer correspond
 to their assigned grid cell.
@@ -206,7 +209,9 @@ function shift_rays!(state::State, direction::X)
 end
 
 """
-    shift_rays!(state::State, direction::Y)
+```julia
+shift_rays!(state::State, direction::Y)
+```
 
 Shifts rays in the Y (meridional) direction when their positions no longer correspond
 to their assigned grid cell.
@@ -261,7 +266,9 @@ function shift_rays!(state::State, direction::Y)
 end
 
 """
-    shift_rays!(state::State, direction::Z)
+```julia
+shift_rays!(state::State, direction::Z)
+```
 
 Shifts rays in the Z (vertical) direction when their positions no longer correspond
 to their assigned grid cell.

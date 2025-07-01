@@ -1,5 +1,7 @@
 """
-    get_physical_position(rays::Rays, indices::NTuple{4, <:Integer})
+```julia
+get_physical_position(rays::Rays, indices::NTuple{4, <:Integer})
+```
 
 # Arguments
 

@@ -1,5 +1,7 @@
 """
-    compute_sponge!(state::State, dt::AbstractFloat)
+```julia
+compute_sponge!(state::State, dt::AbstractFloat)
+```
 
 Compute sponge layer damping coefficients for wave absorption.
 
@@ -20,7 +22,6 @@ gradual damping of wave amplitudes.
 
   - **Unified sponge**: Single coefficient array for all variables
   - **Legacy sponge**: Separate coefficients for different grid staggerings
-
 """
 function compute_sponge!(state::State, dt::AbstractFloat)
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -63,7 +64,9 @@ function compute_sponge!(state::State, dt::AbstractFloat)
 end
 
 """
-    compute_sponge!(state::State, dt::AbstractFloat, spongetype::ExponentialSponge)
+```julia
+compute_sponge!(state::State, dt::AbstractFloat, spongetype::ExponentialSponge)
+```
 
 Compute exponential sponge layer with distance-based damping.
 
@@ -174,7 +177,9 @@ function compute_sponge!(
 end
 
 """
-    compute_sponge!(state::State, dt::AbstractFloat, spongetype::COSMOSponge)
+```julia
+compute_sponge!(state::State, dt::AbstractFloat, spongetype::COSMOSponge)
+```
 
 Compute COSMO-style sponge layer using cosine profile.
 
@@ -278,7 +283,9 @@ function compute_sponge!(
 end
 
 """
-    compute_sponge!(state::State, dt::AbstractFloat, spongetype::PolynomialSponge)
+```julia
+compute_sponge!(state::State, dt::AbstractFloat, spongetype::PolynomialSponge)
+```
 
 Compute polynomial sponge layer with power-law damping profile.
 
@@ -405,7 +412,9 @@ function compute_sponge!(
 end
 
 """
-    compute_sponge!(state::State, dt::AbstractFloat, spongetype::SinusoidalSponge)
+```julia
+compute_sponge!(state::State, dt::AbstractFloat, spongetype::SinusoidalSponge)
+```
 
 Compute sinusoidal sponge layer using squared sine profile.
 

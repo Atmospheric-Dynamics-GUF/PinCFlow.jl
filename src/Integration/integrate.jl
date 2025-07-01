@@ -1,7 +1,9 @@
 """
-    integrate(namelists::Namelists)
+```julia
+integrate(namelists::Namelists)
+```
 
-Main time integration loop for PinCFLow.
+Main time integration loop for PinCFlow.
 
 This function performs the complete time integration of the governing equations
 using a semi-implicit time stepping scheme. It handles initialization,

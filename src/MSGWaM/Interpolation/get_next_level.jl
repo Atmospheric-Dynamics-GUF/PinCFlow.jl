@@ -1,5 +1,13 @@
 """
-    get_next_level(i::Integer, j::Integer, z::AbstractFloat, domain::Domain, grid::Grid)
+```julia
+get_next_level(
+    i::Integer,
+    j::Integer,
+    z::AbstractFloat,
+    domain::Domain,
+    grid::Grid,
+)
+```
 
 # Arguments
 

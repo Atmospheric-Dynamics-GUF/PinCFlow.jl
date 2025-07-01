@@ -1,5 +1,13 @@
 """
-    set_vertical_halos_of_field!(field::AbstractArray{<:Real, 3}, namelists::Namelists, domain::Domain, zboundaries::SolidWallBoundaries; layers::NTuple{3, <:Integer} = (-1, -1, -1))
+```julia
+set_vertical_halos_of_field!(
+    field::AbstractArray{<:Real, 3},
+    namelists::Namelists,
+    domain::Domain,
+    zboundaries::SolidWallBoundaries;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
 
 Exchange vertical (z-direction) halo regions for 3D field arrays with solid wall boundaries.
 
@@ -87,7 +95,15 @@ function set_vertical_halos_of_field!(
 end
 
 """
-    set_vertical_halos_of_field!(field::AbstractArray{<:AbstractFloat, 5}, namelists::Namelists, domain::Domain, zboundaries::SolidWallBoundaries; layers::NTuple{3, <:Integer} = (-1, -1, -1))
+```julia
+set_vertical_halos_of_field!(
+    field::AbstractArray{<:AbstractFloat, 5},
+    namelists::Namelists,
+    domain::Domain,
+    zboundaries::SolidWallBoundaries;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
 
 Exchange vertical (z-direction) halo regions for 5D field arrays with solid wall boundaries.
 

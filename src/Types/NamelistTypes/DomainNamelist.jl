@@ -1,3 +1,10 @@
+"""
+```julia
+DomainNamelist{A <: Integer, B <: NTuple{2, <:AbstractFloat}}
+```
+
+Namelist for the model domain (see constructor for parameter descriptions).
+"""
 struct DomainNamelist{A <: Integer, B <: NTuple{2, <:AbstractFloat}}
     sizex::A
     sizey::A
@@ -14,7 +21,22 @@ struct DomainNamelist{A <: Integer, B <: NTuple{2, <:AbstractFloat}}
 end
 
 """
-DomainNamelist(; <keyword arguments>)
+```julia
+DomainNamelist(;
+    sizex = 4,
+    sizey = 4,
+    sizez = 4,
+    nbx = 3,
+    nby = 3,
+    nbz = 3,
+    lx_dim = (0.0E+0, 1.0E+3),
+    ly_dim = (0.0E+0, 1.0E+3),
+    lz_dim = (0.0E+0, 1.0E+3),
+    npx = 1,
+    npy = 1,
+    npz = 1,
+)
+```
 
 Construct a DomainNamelist, which holds parameters for the spatial domain.
 

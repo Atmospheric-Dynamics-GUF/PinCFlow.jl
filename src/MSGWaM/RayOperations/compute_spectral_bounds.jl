@@ -1,5 +1,7 @@
 """
-    compute_spectral_bounds(wavenumbers::AbstractVector{<:AbstractFloat})
+```julia
+compute_spectral_bounds(wavenumbers::AbstractVector{<:AbstractFloat})
+```
 
 # Arguments
 

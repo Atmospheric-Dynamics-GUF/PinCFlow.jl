@@ -1,5 +1,13 @@
 """
-    compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
+```julia
+compute_horizontal_cell_indices(
+    state::State,
+    xr::AbstractFloat,
+    yr::AbstractFloat,
+    dxr::AbstractFloat,
+    dyr::AbstractFloat,
+)
+```
 
 Calculate grid cell indices that overlap with a ray volume in horizontal dimensions.
 
@@ -28,7 +36,13 @@ For each direction, calculates cell indices by:
 
 Throws error if ray volume falls completely outside computational domain
 """
-function compute_horizontal_cell_indices(state, xr, yr, dxr, dyr)
+function compute_horizontal_cell_indices(
+    state::State,
+    xr::AbstractFloat,
+    yr::AbstractFloat,
+    dxr::AbstractFloat,
+    dyr::AbstractFloat,
+)
     (; sizex, sizey) = state.namelists.domain
     (; i0, i1, j0, j1, io, jo) = state.domain
     (; lx, ly, dx, dy) = state.grid

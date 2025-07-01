@@ -1,5 +1,11 @@
 """
-    compute_global_dot_product(a::AbstractArray{<:AbstractFloat, 3}, b::AbstractArray{<:AbstractFloat, 3}, domain::Domain)
+```julia
+compute_global_dot_product(
+    a::AbstractArray{<:AbstractFloat, 3},
+    b::AbstractArray{<:AbstractFloat, 3},
+    domain::Domain,
+)
+```
 
 Compute dot product of two 3D arrays distributed across MPI processes.
 
@@ -10,7 +16,7 @@ Compute dot product of two 3D arrays distributed across MPI processes.
 
 # Returns
 
-  - `AbstractFloat`: Global dot product `∑ᵢ aᵢ·bᵢ` across all processes
+  - `global_dot_product::AbstractFloat`: Global dot product ``∑ᵢ aᵢ·bᵢ`` across all MPI processes.
 
 # Implementation
 

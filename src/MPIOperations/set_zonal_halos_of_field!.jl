@@ -1,10 +1,16 @@
 """
-    set_zonal_halos_of_field!(field::AbstractMatrix{<:AbstractFloat}, namelists::Namelists, domain::Domain)
+```julia
+set_zonal_halos_of_field!(
+    field::AbstractMatrix{<:AbstractFloat},
+    namelists::Namelists,
+    domain::Domain,
+)
+```
 
-Exchange zonal (x-direction) halo regions for 2D field arrays.
+Exchange zonal (`x`-direction) halo regions for 2D field arrays.
 
-Performs MPI communication to update ghost/halo cells at the left and right
-boundaries of the local domain.
+Performs bidirectional MPI communication between left and right neighbor
+processes to maintain field continuity across domain boundaries in `x`-direction.
 
 # Arguments
 
@@ -14,8 +20,8 @@ boundaries of the local domain.
 
 # Communication Pattern
 
-  - Sends rightmost `nbx` columns to right neighbor, receives into left halo
-  - Sends leftmost `nbx` columns to left neighbor, receives into right halo
+  - Sends rightmost `nbx` columns to right neighbor, receives into left halos
+  - Sends leftmost `nbx` columns to left neighbor, receives into right halos
   - Uses `MPI.Sendrecv!` for bidirectional communication
 """
 function set_zonal_halos_of_field!(
@@ -46,7 +52,14 @@ function set_zonal_halos_of_field!(
 end
 
 """
-    set_zonal_halos_of_field!(field::AbstractArray{<:Real, 3}, namelists::Namelists, domain::Domain; layers::NTuple{3, <:Integer} = (-1, -1, -1))
+```julia
+set_zonal_halos_of_field!(
+    field::AbstractArray{<:Real, 3},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
 
 Exchange zonal (x-direction) halo regions for 3D field arrays.
 
@@ -109,7 +122,14 @@ function set_zonal_halos_of_field!(
 end
 
 """
-    set_zonal_halos_of_field!(field::AbstractArray{<:AbstractFloat, 5}, namelists::Namelists, domain::Domain; layers::NTuple{3, <:Integer} = (-1, -1, -1))
+```julia
+set_zonal_halos_of_field!(
+    field::AbstractArray{<:AbstractFloat, 5},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
 
 Exchange zonal (x-direction) halo regions for 5D field arrays.
 

@@ -1,5 +1,8 @@
 """
-    compute_intrinsic_frequency(state::State, indices::NTuple{4, <:Integer}) -> AbstractFloat
+```julia
+compute_intrinsic_frequency(state::State, indices::NTuple{4, <:Integer}) ->
+    AbstractFloat
+```
 
 Compute the intrinsic frequency of a gravity wave ray volume.
 

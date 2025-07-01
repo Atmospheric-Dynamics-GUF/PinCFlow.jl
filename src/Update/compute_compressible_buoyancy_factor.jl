@@ -1,5 +1,11 @@
 """
-    compute_compressible_buoyancy_factor(state, indices, variable)
+```julia
+compute_compressible_buoyancy_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::AbstractVariable,
+)
+```
 
 Compute compressible buoyancy factor for the given variable at specified grid indices.
 Dispatches based on the model type from the state configuration.
@@ -24,7 +30,14 @@ function compute_compressible_buoyancy_factor(
 end
 
 """
-    compute_compressible_buoyancy_factor(state, indices, variable::RhoP, model::Compressible)
+```julia
+compute_compressible_buoyancy_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::RhoP,
+    model::Compressible,
+)
+```
 
 Return unity buoyancy factor for density perturbations in fully compressible model.
 
@@ -42,7 +55,14 @@ function compute_compressible_buoyancy_factor(
 end
 
 """
-    compute_compressible_buoyancy_factor(state, indices, variable::RhoP, model::AbstractModel)
+```julia
+compute_compressible_buoyancy_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::RhoP,
+    model::AbstractModel,
+)
+```
 
 Compute buoyancy factor for density perturbations in non-compressible models.
 Factor represents the ratio of reference density to total density.
@@ -64,7 +84,14 @@ function compute_compressible_buoyancy_factor(
 end
 
 """
-    compute_compressible_buoyancy_factor(state, indices, variable::W, model::Compressible)
+```julia
+compute_compressible_buoyancy_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::W,
+    model::Compressible,
+)
+```
 
 Return unity buoyancy factor for vertical velocity in fully compressible model.
 
@@ -82,7 +109,14 @@ function compute_compressible_buoyancy_factor(
 end
 
 """
-    compute_compressible_buoyancy_factor(state, indices, variable::W, model::AbstractModel)
+```julia
+compute_compressible_buoyancy_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::W,
+    model::AbstractModel,
+)
+```
 
 Compute buoyancy factor for vertical velocity in non-compressible models.
 Uses Jacobian-weighted interpolation between vertical levels.

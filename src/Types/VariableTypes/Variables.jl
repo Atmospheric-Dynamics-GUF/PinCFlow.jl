@@ -1,5 +1,14 @@
 """
-    Variables{A,B,C,D,E,F}
+```julia
+Variables{
+    A <: Predictands,
+    B <: Tendencies,
+    C <: Backups,
+    D <: Auxiliaries,
+    E <: Reconstructions,
+    F <: Fluxes,
+}
+```
 
 Complete field variable storage for the simulation.
 
@@ -82,7 +91,14 @@ struct Variables{
 end
 
 """
-    Variables(namelists, constants, domain, atmosphere)
+```julia
+Variables(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+)
+```
 
 Initialize complete field variable storage for atmospheric simulation.
 

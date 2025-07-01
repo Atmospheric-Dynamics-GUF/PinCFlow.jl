@@ -1,5 +1,7 @@
 """
-    compute_mean_flow_effect!(state::State)
+```julia
+compute_mean_flow_effect!(state::State)
+```
 
 Entry point for computing gravity wave effects on the mean flow.
 
@@ -16,7 +18,9 @@ function compute_mean_flow_effect!(state::State)
 end
 
 """
-    compute_mean_flow_effect!(state::State, testcase::AbstractTestCase)
+```julia
+compute_mean_flow_effect!(state::State, testcase::AbstractTestCase)
+```
 
 No-op for non-WKB test cases.
 
@@ -32,7 +36,9 @@ function compute_mean_flow_effect!(state::State, testcase::AbstractTestCase)
 end
 
 """
-    compute_mean_flow_effect!(state::State, testcase::AbstractWKBTestCase)
+```julia
+compute_mean_flow_effect!(state::State, testcase::AbstractWKBTestCase)
+```
 
 Compute gravity wave effects on mean flow for WKB test cases.
 

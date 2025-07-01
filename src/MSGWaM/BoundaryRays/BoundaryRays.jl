@@ -1,3 +1,12 @@
+"""
+```julia
+BoundaryRays
+```
+
+Module for setting the ray volumes in boundary cells.
+
+Provides functions for configurations that are serial/parallel in any dimension of physical space. Assumes periodicity in the horizontal and solid-wall boundaries in the vertical.
+"""
 module BoundaryRays
 
 using MPI

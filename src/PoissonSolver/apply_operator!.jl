@@ -1,5 +1,14 @@
 """
-    apply_operator!(sin, ls, hortot::Total, namelists, domain, poisson)
+```julia
+apply_operator!(
+    sin::AbstractArray{<:AbstractFloat, 3},
+    ls::AbstractArray{<:AbstractFloat, 3},
+    hortot::Total,
+    namelists::Namelists,
+    domain::Domain,
+    poisson::Poisson,
+)
+```
 
 Apply the discrete Poisson operator including all directional components.
 
@@ -21,7 +30,7 @@ terms for terrain-following coordinates.
   - Uses stencil coefficients pre-computed in `compute_operator!`
   - Handles boundary conditions through halo exchanges
   - Modifies `ls` in place
-  """
+"""
 function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},
@@ -257,7 +266,16 @@ function apply_operator!(
 end
 
 """
-    apply_operator!(sin, ls, hortot::Horizontal, namelists, domain, poisson)
+```julia
+apply_operator!(
+    sin::AbstractArray{<:AbstractFloat, 3},
+    ls::AbstractArray{<:AbstractFloat, 3},
+    hortot::Horizontal,
+    namelists::Namelists,
+    domain::Domain,
+    poisson::Poisson,
+)
+```
 
 Apply only the horizontal components of the Poisson operator.
 

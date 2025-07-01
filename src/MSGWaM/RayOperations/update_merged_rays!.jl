@@ -1,5 +1,28 @@
 """
-    update_merged_rays!(merge_mode::AbstractMergeMode, merged_rays::AbstractVector{<:MergedRays}, jray::Integer, xr::AbstractFloat, dxr::AbstractFloat, yr::AbstractFloat, dyr::AbstractFloat, zr::AbstractFloat, dzr::AbstractFloat, kr::AbstractFloat, dkr::AbstractFloat, lr::AbstractFloat, dlr::AbstractFloat, mr::AbstractFloat, dmr::AbstractFloat, fxk::AbstractFloat, fyl::AbstractFloat, fzm::AbstractFloat, nr::AbstractFloat, omegar::AbstractFloat)
+```julia
+update_merged_rays!(
+    merge_mode::AbstractMergeMode,
+    merged_rays::AbstractVector{<:MergedRays},
+    jray::Integer,
+    xr::AbstractFloat,
+    dxr::AbstractFloat,
+    yr::AbstractFloat,
+    dyr::AbstractFloat,
+    zr::AbstractFloat,
+    dzr::AbstractFloat,
+    kr::AbstractFloat,
+    dkr::AbstractFloat,
+    lr::AbstractFloat,
+    dlr::AbstractFloat,
+    mr::AbstractFloat,
+    dmr::AbstractFloat,
+    fxk::AbstractFloat,
+    fyl::AbstractFloat,
+    fzm::AbstractFloat,
+    nr::AbstractFloat,
+    omegar::AbstractFloat,
+)
+```
 
 Update merged ray volume data structure during ray merging process.
 

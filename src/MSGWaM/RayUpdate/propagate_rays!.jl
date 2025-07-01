@@ -1,5 +1,7 @@
 """
-    propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
+```julia
+propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
+```
 
 Entry point for ray propagation based on test case type.
 
@@ -19,7 +21,14 @@ function propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
 end
 
 """
-    propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer, testcase::AbstractTestCase)
+```julia
+propagate_rays!(
+    state::State,
+    dt::AbstractFloat,
+    rkstage::Integer,
+    testcase::AbstractTestCase,
+)
+```
 
 No-op for non-WKB test cases.
 
@@ -42,7 +51,14 @@ function propagate_rays!(
 end
 
 """
-    propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer, testcase::AbstractWKBTestCase)
+```julia
+propagate_rays!(
+    state::State,
+    dt::AbstractFloat,
+    rkstage::Integer,
+    testcase::AbstractWKBTestCase,
+)
+```
 
 Propagate rays for WKB test cases based on WKB mode.
 
@@ -67,7 +83,14 @@ function propagate_rays!(
 end
 
 """
-    propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer, wkb_mode::AbstractWKBMode)
+```julia
+propagate_rays!(
+    state::State,
+    dt::AbstractFloat,
+    rkstage::Integer,
+    wkb_mode::AbstractWKBMode,
+)
+```
 
 Propagate rays using general WKB ray tracing equations.
 
@@ -408,7 +431,14 @@ function propagate_rays!(
 end
 
 """
-    propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer, wkb_mode::SteadyState)
+```julia
+propagate_rays!(
+    state::State,
+    dt::AbstractFloat,
+    rkstage::Integer,
+    wkb_mode::SteadyState,
+)
+```
 
 Propagate rays using steady-state vertical propagation.
 

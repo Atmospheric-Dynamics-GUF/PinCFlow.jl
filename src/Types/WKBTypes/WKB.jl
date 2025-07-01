@@ -1,22 +1,36 @@
 """
-    WKB
+```julia
+WKB{
+    A <: Integer,
+    B <: AbstractArray{<:Integer, 3},
+    C <: Rays,
+    D <: SurfaceIndices,
+    E <: Increments,
+    F <: GWIntegrals,
+    G <: GWTendencies,
+    H <: Ref{<:AbstractFloat},
+    I <: AbstractArray{<:AbstractFloat, 3},
+    J <: AbstractMatrix{<:AbstractFloat},
+}
+```
 
 Main container for WKB ray tracing data and parameters.
 
 # Fields
-- `nxray`, `nyray`, `nzray`: Number of ray volumes in each direction
-- `nxray_wrk`, `nyray_wrk`, `nzray_wrk`: Working array dimensions (spectral)
-- `nray_max`, `nray_wrk`: Maximum and working ray counts
-- `n_sfc`: Number of surface ray volumes
-- `nray`: 3D array of ray counts per grid cell
-- `rays`: Ray position, wavenumber, and density data
-- `surface_indices`: Indices for surface ray launching
-- `increments`: Ray propagation increments
-- `integrals`: Gravity wave momentum and energy integrals
-- `tendencies`: Gravity wave drag and heating tendencies
-- `cgx_max`, `cgy_max`, `cgz_max`: Maximum group velocities
-- `zb`: Bottom boundary height
-- `diffusion`: Diffusion coefficients
+
+  - `nxray`, `nyray`, `nzray`: Number of ray volumes in each direction
+  - `nxray_wrk`, `nyray_wrk`, `nzray_wrk`: Working array dimensions (spectral)
+  - `nray_max`, `nray_wrk`: Maximum and working ray counts
+  - `n_sfc`: Number of surface ray volumes
+  - `nray`: 3D array of ray counts per grid cell
+  - `rays`: Ray position, wavenumber, and density data
+  - `surface_indices`: Indices for surface ray launching
+  - `increments`: Ray propagation increments
+  - `integrals`: Gravity wave momentum and energy integrals
+  - `tendencies`: Gravity wave drag and heating tendencies
+  - `cgx_max`, `cgy_max`, `cgz_max`: Maximum group velocities
+  - `zb`: Bottom boundary height
+  - `diffusion`: Diffusion coefficients
 """
 struct WKB{
     A <: Integer,
@@ -52,6 +66,13 @@ struct WKB{
     diffusion::I
 end
 
+"""
+```julia
+WKB(namelists::Namelists, constants::Constants, domain::Domain, grid::Grid)
+```
+
+Dispatch to a `WKB` constructor, based on the type of `testcase`.
+"""
 function WKB(
     namelists::Namelists,
     constants::Constants,
@@ -62,6 +83,19 @@ function WKB(
     return WKB(namelists, constants, domain, grid, testcase)
 end
 
+"""
+```julia
+WKB(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    testcase::AbstractTestCase,
+)
+```
+
+Construct a `WKB` instance with zero-size arrays, since they are not needed.
+"""
 function WKB(
     namelists::Namelists,
     constants::Constants,
@@ -84,6 +118,19 @@ function WKB(
     )
 end
 
+"""
+```julia
+WKB(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    testcase::AbstractWKBTestCase,
+)
+```
+
+Construct a `WKB` instance.
+"""
 function WKB(
     namelists::Namelists,
     constants::Constants,

@@ -1,5 +1,7 @@
 """
-    apply_blocked_layer_scheme!(state::State)
+```julia
+apply_blocked_layer_scheme!(state::State)
+```
 
 Entry point for applying blocked layer drag scheme based on test case.
 
@@ -17,7 +19,9 @@ function apply_blocked_layer_scheme!(state::State)
 end
 
 """
-    apply_blocked_layer_scheme!(state::State, testcase::AbstractWKBTestCase)
+```julia
+apply_blocked_layer_scheme!(state::State, testcase::AbstractWKBTestCase)
+```
 
 Default implementation for general WKB test cases. No blocked layer scheme applied.
 
@@ -36,7 +40,9 @@ function apply_blocked_layer_scheme!(
 end
 
 """
-    apply_blocked_layer_scheme!(state::State, testcase::WKBMountainWave)
+```julia
+apply_blocked_layer_scheme!(state::State, testcase::WKBMountainWave)
+```
 
 Apply blocked layer drag scheme for mountain wave simulations.
 

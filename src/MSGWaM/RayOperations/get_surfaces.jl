@@ -1,5 +1,8 @@
 """
-    get_surfaces(rays::Rays, indices::NTuple{4, <:Integer}) -> Tuple{AbstractFloat, AbstractFloat, AbstractFloat}
+```julia
+get_surfaces(rays::Rays, indices::NTuple{4, <:Integer}) ->
+    Tuple{AbstractFloat, AbstractFloat, AbstractFloat}
+```
 
 Compute phase space surface areas for a ray volume.
 

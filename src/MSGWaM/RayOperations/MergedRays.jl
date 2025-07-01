@@ -1,5 +1,7 @@
 """
-    MergedRays{A, B}
+```julia
+MergedRays{A <: AbstractVector{<:AbstractFloat}, B <: Ref{<:AbstractFloat}}
+```
 
 # Type Parameters
 

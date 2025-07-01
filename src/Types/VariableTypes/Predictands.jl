@@ -1,5 +1,10 @@
 """
-    Predictands{A, B}
+```julia
+Predictands{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:AbstractFloat, 3},
+}
+```
 
 Storage for prognostic variables (predictands) on a 3D grid.
 
@@ -29,7 +34,14 @@ struct Predictands{
 end
 
 """
-    Predictands(namelists::Namelists, constants::Constants, domain::Domain, atmosphere::Atmosphere)
+```julia
+Predictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+)
+```
 
 Construct `Predictands` from configuration namelists, constants, domain, and atmosphere.
 """
@@ -51,7 +63,16 @@ function Predictands(
 end
 
 """
-    Predictands(namelists, constants, domain, atmosphere, model::AbstractModel, testcase)
+```julia
+Predictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    model::AbstractModel,
+    testcase::AbstractTestCase,
+)
+```
 
 Construct `Predictands` for incompressible models. Initializes velocity fields with background flow and sets empty pressure field.
 """
@@ -81,7 +102,16 @@ function Predictands(
 end
 
 """
-    Predictands(namelists, constants, domain, atmosphere, model::Compressible, testcase)
+```julia
+Predictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    model::Compressible,
+    testcase::AbstractTestCase,
+)
+```
 
 Construct `Predictands` for compressible models. Initializes velocity fields with background flow and pressure field with stratified values.
 """

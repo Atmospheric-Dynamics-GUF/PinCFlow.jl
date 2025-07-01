@@ -1,3 +1,10 @@
+"""
+```julia
+PinCFlow
+```
+
+Main module of PinCFlow.
+"""
 module PinCFlow
 
 include("Types/Types.jl")

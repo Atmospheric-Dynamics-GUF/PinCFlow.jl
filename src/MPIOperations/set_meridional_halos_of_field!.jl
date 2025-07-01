@@ -1,10 +1,15 @@
 """
-    set_meridional_halos_of_field!(field::AbstractMatrix{<:AbstractFloat}, namelists::Namelists, domain::Domain)
+```julia
+set_meridional_halos_of_field!(
+    field::AbstractMatrix{<:AbstractFloat},
+    namelists::Namelists,
+    domain::Domain,
+)
+```
 
-Exchange meridional (y-direction) halo regions for 2D field arrays.
+Exchange meridional (`y`-direction) halo regions for 2D field arrays.
 
-Performs bidirectional MPI communication between backward and forward neighbor
-processes to maintain field continuity across y-direction domain boundaries.
+Performs bidirectional MPI communication between backward and forward neighbor processes to maintain field continuity across domain boundaries in `y`-direction.
 
 # Arguments
 
@@ -14,9 +19,9 @@ processes to maintain field continuity across y-direction domain boundaries.
 
 # Communication Pattern
 
-  - **Send forward**: `field[:, (j1-nby+1):j1]` → forward neighbor's `(j0-nby):(j0-1)`
-  - **Send backward**: `field[:, j0:(j0+nby-1)]` → backward neighbor's `(j1+1):(j1+nby)`
-  - Uses `MPI.Sendrecv!` for deadlock-free bidirectional exchange
+  - Sends foremost `nby` columns to forward neighbor, receives into backward halos
+  - Sends backmost `nby` columns to backward neighbor, receives into forward halos
+  - Uses `MPI.Sendrecv!` for bidirectional communication
 """
 function set_meridional_halos_of_field!(
     field::AbstractMatrix{<:AbstractFloat},
@@ -46,7 +51,14 @@ function set_meridional_halos_of_field!(
 end
 
 """
-    set_meridional_halos_of_field!(field::AbstractArray{<:Real, 3}, namelists::Namelists, domain::Domain; layers::NTuple{3, <:Integer} = (-1, -1, -1))
+```julia
+set_meridional_halos_of_field!(
+    field::AbstractArray{<:Real, 3},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
 
 Exchange meridional (y-direction) halo regions for 3D field arrays.
 
@@ -96,7 +108,14 @@ function set_meridional_halos_of_field!(
 end
 
 """
-    set_meridional_halos_of_field!(field::AbstractArray{<:AbstractFloat, 5}, namelists::Namelists, domain::Domain; layers::NTuple{3, <:Integer} = (-1, -1, -1))
+```julia
+set_meridional_halos_of_field!(
+    field::AbstractArray{<:AbstractFloat, 5},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
 
 Exchange meridional (y-direction) halo regions for 5D field arrays.
 

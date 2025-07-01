@@ -1,5 +1,7 @@
 """
-    check_rays(state::State)
+```julia
+check_rays(state::State)
+```
 
 Validate ray volume positions are within expected grid cell boundaries.
 

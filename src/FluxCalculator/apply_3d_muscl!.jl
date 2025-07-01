@@ -1,8 +1,16 @@
 """
-    apply_3d_muscl!(phi, phitilde, nxx, nyy, nzz, limitertype)
+```julia
+apply_3d_muscl!(
+    phi::AbstractArray{<:AbstractFloat, 3},
+    phitilde::AbstractArray{<:AbstractFloat, 5},
+    nxx::Integer,
+    nyy::Integer,
+    nzz::Integer,
+    limitertype::MCVariant,
+)
+```
 
-Applies the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) reconstruction
-in three dimensions.
+Applies the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) reconstruction in three dimensions.
 
 # Arguments
 

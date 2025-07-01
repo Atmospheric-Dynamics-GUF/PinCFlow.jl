@@ -1,5 +1,7 @@
 """
-    set_zonal_boundary_rays!(state::State)
+```julia
+set_zonal_boundary_rays!(state::State)
+```
 
 # Arguments
 

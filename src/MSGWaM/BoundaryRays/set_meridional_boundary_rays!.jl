@@ -1,5 +1,7 @@
 """
-    set_meridional_boundary_rays!(state::State)
+```julia
+set_meridional_boundary_rays!(state::State)
+```
 
 # Arguments
 

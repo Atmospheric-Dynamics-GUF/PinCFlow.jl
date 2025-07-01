@@ -1,5 +1,14 @@
 """
-    compute_wave_action_integral(merge_mode::ConstantWaveAction, nr::AbstractFloat, omegar::AbstractFloat, fxk::AbstractFloat, fyl::AbstractFloat, fzm::AbstractFloat)
+```julia
+compute_wave_action_integral(
+    merge_mode::ConstantWaveAction,
+    nr::AbstractFloat,
+    omegar::AbstractFloat,
+    fxk::AbstractFloat,
+    fyl::AbstractFloat,
+    fzm::AbstractFloat,
+)
+```
 
 # Arguments
 
@@ -22,7 +31,16 @@ function compute_wave_action_integral(
 end
 
 """
-    compute_wave_action_integral(merge_mode::ConstantWaveEnergy, nr::AbstractFloat, omegar::AbstractFloat, fxk::AbstractFloat, fyl::AbstractFloat, fzm::AbstractFloat)
+```julia
+compute_wave_action_integral(
+    merge_mode::ConstantWaveEnergy,
+    nr::AbstractFloat,
+    omegar::AbstractFloat,
+    fxk::AbstractFloat,
+    fyl::AbstractFloat,
+    fzm::AbstractFloat,
+)
+```
 
 # Arguments
 

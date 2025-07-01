@@ -1,13 +1,16 @@
 """
-    SurfaceIndices
+```julia
+SurfaceIndices{A <: AbstractArray{<:Integer, 3}, B <: AbstractVector{<:Integer}}
+```
 
 Indices for ray launching at surface boundaries.
 
 # Fields
-- `ir_sfc`: Surface ray indices (3D array)
-- `ix2_sfc`, `jy2_sfc`, `kz2_sfc`: Grid position indices for surface rays
-- `ik_sfc`, `jl_sfc`, `km_sfc`: Wavenumber indices for surface rays
-- `iwm_sfc`: Wave mode indices for surface rays
+
+  - `ir_sfc`: Surface ray indices (3D array)
+  - `ix2_sfc`, `jy2_sfc`, `kz2_sfc`: Grid position indices for surface rays
+  - `ik_sfc`, `jl_sfc`, `km_sfc`: Wavenumber indices for surface rays
+  - `iwm_sfc`: Wave mode indices for surface rays
 """
 struct SurfaceIndices{
     A <: AbstractArray{<:Integer, 3},
@@ -23,6 +26,13 @@ struct SurfaceIndices{
     iwm_sfc::B
 end
 
+"""
+```julia
+SurfaceIndices(n_sfc::Integer, nxx::Integer, nyy::Integer)
+```
+
+Construct a `SurfaceIndices` instance.
+"""
 function SurfaceIndices(n_sfc::Integer, nxx::Integer, nyy::Integer)
     return SurfaceIndices(
         zeros(Int, n_sfc, nxx, nyy),

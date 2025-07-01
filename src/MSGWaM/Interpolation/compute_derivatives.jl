@@ -1,5 +1,11 @@
 """
-    compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DUDX) -> Tuple{AbstractFloat, AbstractFloat}
+```julia
+compute_derivatives(
+    state::State,
+    indices::NTuple{4, <:Integer},
+    phitype::DUDX,
+) -> Tuple{AbstractFloat, AbstractFloat}
+```
 
 Compute zonal derivative of zonal wind (∂u/∂x) at specified grid levels.
 
@@ -92,7 +98,13 @@ function compute_derivatives(
 end
 
 """
-    compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DUDY) -> Tuple{AbstractFloat, AbstractFloat}
+```julia
+compute_derivatives(
+    state::State,
+    indices::NTuple{4, <:Integer},
+    phitype::DUDY,
+) -> Tuple{AbstractFloat, AbstractFloat}
+```
 
 Compute meridional derivative of zonal wind (∂u/∂y).
 
@@ -177,7 +189,13 @@ function compute_derivatives(
 end
 
 """
-    compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DUDZ) -> Tuple{AbstractFloat, AbstractFloat}
+```julia
+compute_derivatives(
+    state::State,
+    indices::NTuple{4, <:Integer},
+    phitype::DUDZ,
+) -> Tuple{AbstractFloat, AbstractFloat}
+```
 
 Compute vertical derivative of zonal wind (∂u/∂z).
 
@@ -292,7 +310,13 @@ function compute_derivatives(
 end
 
 """
-    compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DVDX) -> Tuple{AbstractFloat, AbstractFloat}
+```julia
+compute_derivatives(
+    state::State,
+    indices::NTuple{4, <:Integer},
+    phitype::DVDX,
+) -> Tuple{AbstractFloat, AbstractFloat}
+```
 
 Compute zonal derivative of meridional wind (∂v/∂x).
 
@@ -349,7 +373,13 @@ function compute_derivatives(
 end
 
 """
-    compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DVDY) -> Tuple{AbstractFloat, AbstractFloat}
+```julia
+compute_derivatives(
+    state::State,
+    indices::NTuple{4, <:Integer},
+    phitype::DVDY,
+) -> Tuple{AbstractFloat, AbstractFloat}
+```
 
 Compute meridional derivative of meridional wind (∂v/∂y).
 
@@ -394,7 +424,13 @@ function compute_derivatives(
 end
 
 """
-    compute_derivatives(state::State, indices::NTuple{4, <:Integer}, phitype::DVDZ) -> Tuple{AbstractFloat, AbstractFloat}
+```julia
+compute_derivatives(
+    state::State,
+    indices::NTuple{4, <:Integer},
+    phitype::DVDZ,
+) -> Tuple{AbstractFloat, AbstractFloat}
+```
 
 Compute vertical derivative of meridional wind (∂v/∂z).
 

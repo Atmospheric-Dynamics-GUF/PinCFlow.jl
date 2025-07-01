@@ -1,5 +1,7 @@
 """
-    set_boundary_rays!(state::State)
+```julia
+set_boundary_rays!(state::State)
+```
 
 Entry point for setting ray boundary conditions based on test case type.
 
@@ -17,7 +19,9 @@ function set_boundary_rays!(state::State)
 end
 
 """
-    set_boundary_rays!(state::State, testcase::AbstractTestCase)
+```julia
+set_boundary_rays!(state::State, testcase::AbstractTestCase)
+```
 
 No-op for non-WKB test cases.
 
@@ -33,7 +37,9 @@ function set_boundary_rays!(state::State, testcase::AbstractTestCase)
 end
 
 """
-    set_boundary_rays!(state::State, testcase::AbstractWKBTestCase)
+```julia
+set_boundary_rays!(state::State, testcase::AbstractWKBTestCase)
+```
 
 Set ray boundary conditions for WKB test cases based on WKB mode.
 
@@ -51,7 +57,9 @@ function set_boundary_rays!(state::State, testcase::AbstractWKBTestCase)
 end
 
 """
-    set_boundary_rays!(state::State, wkb_mode::SteadyState)
+```julia
+set_boundary_rays!(state::State, wkb_mode::SteadyState)
+```
 
 Set ray boundary conditions for steady-state WKB mode.
 
@@ -89,7 +97,9 @@ function set_boundary_rays!(state::State, wkb_mode::SteadyState)
 end
 
 """
-    set_boundary_rays!(state::State, wkb_mode::AbstractWKBMode)
+```julia
+set_boundary_rays!(state::State, wkb_mode::AbstractWKBMode)
+```
 
 Set ray boundary conditions for general WKB modes.
 

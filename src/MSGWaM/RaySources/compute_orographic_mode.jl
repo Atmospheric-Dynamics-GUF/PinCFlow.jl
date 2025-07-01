@@ -1,5 +1,17 @@
 """
-    compute_orographic_mode(displm::AbstractFloat, wnk::AbstractFloat, wnl::AbstractFloat, uavg::AbstractFloat, vavg::AbstractFloat, rhoavg::AbstractFloat, bvsavg::AbstractFloat, fc::AbstractFloat, branch::Integer) -> Tuple
+```julia
+compute_orographic_mode(
+    displm::AbstractFloat,
+    wnk::AbstractFloat,
+    wnl::AbstractFloat,
+    uavg::AbstractFloat,
+    vavg::AbstractFloat,
+    rhoavg::AbstractFloat,
+    bvsavg::AbstractFloat,
+    fc::AbstractFloat,
+    branch::Integer,
+) -> Tuple
+```
 
 Compute orographic gravity wave mode characteristics.
 
@@ -88,7 +100,7 @@ Returns zero wave action if:
 # Applications
 
 Used in orographic gravity wave parameterizations for:
-    # Compute horizontal wavenumber.
+
   - Mountain wave drag calculations
   - Momentum flux estimates
   - Wave energy budget studies    # Compute intrinsic frequency from orographic wavenumbers.

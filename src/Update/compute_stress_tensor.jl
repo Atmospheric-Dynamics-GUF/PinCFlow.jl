@@ -1,5 +1,15 @@
 """
-    compute_stress_tensor(i::Integer, j::Integer, k::Integer, mu::Integer, nu::Integer, predictands::Predictands, grid::Grid)
+```julia
+compute_stress_tensor(
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    mu::Integer,
+    nu::Integer,
+    predictands::Predictands,
+    grid::Grid,
+)
+```
 
 Compute viscous stress tensor component τ_μν at grid point (i,j,k).
 

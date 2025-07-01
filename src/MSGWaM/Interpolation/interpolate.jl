@@ -1,5 +1,32 @@
 """
-    interpolate(namelists::Namelists; kwargs...) -> AbstractFloat
+```julia
+interpolate(
+    namelists::Namelists;
+    philbd::AbstractFloat = NaN,
+    philbu::AbstractFloat = NaN,
+    philfd::AbstractFloat = NaN,
+    philfu::AbstractFloat = NaN,
+    phirbd::AbstractFloat = NaN,
+    phirbu::AbstractFloat = NaN,
+    phirfd::AbstractFloat = NaN,
+    phirfu::AbstractFloat = NaN,
+    zlbd::AbstractFloat = NaN,
+    zlbu::AbstractFloat = NaN,
+    zlfd::AbstractFloat = NaN,
+    zlfu::AbstractFloat = NaN,
+    zrbd::AbstractFloat = NaN,
+    zrbu::AbstractFloat = NaN,
+    zrfd::AbstractFloat = NaN,
+    zrfu::AbstractFloat = NaN,
+    zlc::AbstractFloat = NaN,
+    yb::AbstractFloat = NaN,
+    yf::AbstractFloat = NaN,
+    ylc::AbstractFloat = NaN,
+    xl::AbstractFloat = NaN,
+    xr::AbstractFloat = NaN,
+    xlc::AbstractFloat = NaN,
+) -> AbstractFloat
+```
 
 Perform trilinear interpolation in 3D space with terrain-following coordinates.
 

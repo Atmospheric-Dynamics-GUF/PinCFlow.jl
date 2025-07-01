@@ -1,3 +1,12 @@
+"""
+```julia
+FluxCalculator
+```
+
+Module for flux calculation.
+
+Provides functions for MUSCL reconstruction and flux computation at cell boundaries.
+"""
 module FluxCalculator
 
 using ..Types

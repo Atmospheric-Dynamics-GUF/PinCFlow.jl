@@ -1,7 +1,7 @@
 """
-    reconstruct!(state::State)
-    reconstruct!(state::State, variable::Union{Rho,RhoP})
-    reconstruct!(state::State, variable::Union{U,V,W})
+```julia
+reconstruct!(state::State)
+```
 
 Perform MUSCL reconstruction for state variables in a computational domain.
 
@@ -32,8 +32,10 @@ end
 
 # Density reconstruction methods share implementation pattern
 """
-    reconstruct!(state::State, variable::Rho)
-    reconstruct!(state::State, variable::RhoP)
+```julia
+reconstruct!(state::State, variable::Rho)
+reconstruct!(state::State, variable::RhoP)
+```
 
 Reconstruct density or density perturbation fields.
 Scales the field by the reference pressure before applying MUSCL reconstruction.
@@ -71,9 +73,11 @@ function reconstruct!(state::State, variable::RhoP)
 end
 
 """
-    reconstruct!(state::State, variable::U)
-    reconstruct!(state::State, variable::V)
-    reconstruct!(state::State, variable::W)
+```julia
+reconstruct!(state::State, variable::U)
+reconstruct!(state::State, variable::V)
+reconstruct!(state::State, variable::W)
+```
 
 Reconstruct velocity components (u,v,w).
 Includes:

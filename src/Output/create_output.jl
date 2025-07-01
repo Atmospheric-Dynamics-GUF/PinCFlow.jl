@@ -1,5 +1,7 @@
 """
-    create_output(state::State)
+```julia
+create_output(state::State)
+```
 
 Initialize HDF5 output file with dimensions, attributes, and datasets.
 

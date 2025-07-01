@@ -1,5 +1,7 @@
 """
-    Backups{A <: AbstractArray{<:AbstractFloat, 3}}
+```julia
+Backups{A <: AbstractArray{<:AbstractFloat, 3}}
+```
 
 Storage container for backup copies of predictand variables during time stepping.
 
@@ -25,7 +27,9 @@ struct Backups{A <: AbstractArray{<:AbstractFloat, 3}}
 end
 
 """
-    Backups(domain::Domain)
+```julia
+Backups(domain::Domain)
+```
 
 Initialize backup storage arrays sized according to domain decomposition.
 

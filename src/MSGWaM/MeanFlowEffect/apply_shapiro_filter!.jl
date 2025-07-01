@@ -1,5 +1,12 @@
 """
-    apply_shapiro_filter!(output::AbstractVector{<:AbstractFloat}, input::AbstractVector{<:AbstractFloat}, bounds::NTuple{2, <:Integer}, order::Val{1})
+```julia
+apply_shapiro_filter!(
+    output::AbstractVector{<:AbstractFloat},
+    input::AbstractVector{<:AbstractFloat},
+    bounds::NTuple{2, <:Integer},
+    order::Val{1},
+)
+```
 
 # Arguments
 
@@ -21,7 +28,14 @@ function apply_shapiro_filter!(
 end
 
 """
-    apply_shapiro_filter!(output::AbstractVector{<:AbstractFloat}, input::AbstractVector{<:AbstractFloat}, bounds::NTuple{2, <:Integer}, order::Val{2})
+```julia
+apply_shapiro_filter!(
+    output::AbstractVector{<:AbstractFloat},
+    input::AbstractVector{<:AbstractFloat},
+    bounds::NTuple{2, <:Integer},
+    order::Val{2},
+)
+```
 
 # Arguments
 
@@ -48,7 +62,14 @@ function apply_shapiro_filter!(
 end
 
 """
-    apply_shapiro_filter!(output::AbstractVector{<:AbstractFloat}, input::AbstractVector{<:AbstractFloat}, bounds::NTuple{2, <:Integer}, order::Val{3})
+```julia
+apply_shapiro_filter!(
+    output::AbstractVector{<:AbstractFloat},
+    input::AbstractVector{<:AbstractFloat},
+    bounds::NTuple{2, <:Integer},
+    order::Val{3},
+)
+```
 
 # Arguments
 
@@ -76,7 +97,14 @@ function apply_shapiro_filter!(
 end
 
 """
-    apply_shapiro_filter!(output::AbstractVector{<:AbstractFloat}, input::AbstractVector{<:AbstractFloat}, bounds::NTuple{2, <:Integer}, order::Val{4})
+```julia
+apply_shapiro_filter!(
+    output::AbstractVector{<:AbstractFloat},
+    input::AbstractVector{<:AbstractFloat},
+    bounds::NTuple{2, <:Integer},
+    order::Val{4},
+)
+```
 
 # Arguments
 

@@ -1,5 +1,7 @@
 """
-    smooth_gw_tendencies!(state::State)
+```julia
+smooth_gw_tendencies!(state::State)
+```
 
 Apply spatial smoothing to gravity wave tendency fields.
 
@@ -64,7 +66,14 @@ function smooth_gw_tendencies!(state::State)
 end
 
 """
-    smooth_gw_tendencies!(output::AbstractArray{<:AbstractFloat, 3}, state::State, sm_filter::Box, direction::XYZ)
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Box,
+    direction::XYZ,
+)
+```
 
 Apply 3D box filter smoothing in all spatial directions.
 
@@ -123,7 +132,14 @@ function smooth_gw_tendencies!(
 end
 
 """
-    smooth_gw_tendencies!(output::AbstractArray{<:AbstractFloat, 3}, state::State, sm_filter::Box, direction::XZ)
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Box,
+    direction::XZ,
+)
+```
 
 Apply 2D box filter smoothing in X and Z directions.
 
@@ -175,7 +191,14 @@ function smooth_gw_tendencies!(
 end
 
 """
-    smooth_gw_tendencies!(output::AbstractArray{<:AbstractFloat, 3}, state::State, sm_filter::Box, direction::YZ)
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Box,
+    direction::YZ,
+)
+```
 
 Apply 2D box filter smoothing in Y and Z directions.
 
@@ -221,7 +244,14 @@ function smooth_gw_tendencies!(
 end
 
 """
-    smooth_gw_tendencies!(output::AbstractArray{<:AbstractFloat, 3}, state::State, sm_filter::Box, direction::Z)
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Box,
+    direction::Z,
+)
+```
 
 Apply 1D box filter smoothing in Z direction only.
 
@@ -265,7 +295,14 @@ function smooth_gw_tendencies!(
 end
 
 """
-    smooth_gw_tendencies!(output::AbstractArray{<:AbstractFloat, 3}, state::State, sm_filter::Shapiro, direction::XYZ)
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::XYZ,
+)
+```
 
 Apply 3D Shapiro filter smoothing in all spatial directions.
 
@@ -299,7 +336,14 @@ function smooth_gw_tendencies!(
 end
 
 """
-    smooth_gw_tendencies!(output::AbstractArray{<:AbstractFloat, 3}, state::State, sm_filter::Shapiro, direction::XZ)
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::XZ,
+)
+```
 
 Apply 2D Shapiro filter smoothing in X and Z directions.
 
@@ -322,7 +366,14 @@ function smooth_gw_tendencies!(
 end
 
 """
-    smooth_gw_tendencies!(output::AbstractArray{<:AbstractFloat, 3}, state::State, sm_filter::Shapiro, direction::YZ)
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::YZ,
+)
+```
 
 Apply 2D Shapiro filter smoothing in Y and Z directions.
 
@@ -345,7 +396,14 @@ function smooth_gw_tendencies!(
 end
 
 """
-    smooth_gw_tendencies!(output::AbstractArray{<:AbstractFloat, 3}, state::State, sm_filter::Shapiro, direction::Z)
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::Z,
+)
+```
 
 Apply 1D Shapiro filter smoothing in Z direction.
 
@@ -387,7 +445,14 @@ function smooth_gw_tendencies!(
 end
 
 """
-    smooth_gw_tendencies!(output::AbstractArray{<:AbstractFloat, 3}, state::State, sm_filter::Shapiro, direction::Y)
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::Y,
+)
+```
 
 Apply 1D Shapiro filter smoothing in Y direction.
 
@@ -429,7 +494,14 @@ function smooth_gw_tendencies!(
 end
 
 """
-    smooth_gw_tendencies!(output::AbstractArray{<:AbstractFloat, 3}, state::State, sm_filter::Shapiro, direction::X)
+```julia
+smooth_gw_tendencies!(
+    output::AbstractArray{<:AbstractFloat, 3},
+    state::State,
+    sm_filter::Shapiro,
+    direction::X,
+)
+```
 
 Apply 1D Shapiro filter smoothing in X direction.
 

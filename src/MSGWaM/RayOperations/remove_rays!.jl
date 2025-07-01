@@ -1,5 +1,7 @@
 """
-    remove_rays!(state::State)
+```julia
+remove_rays!(state::State)
+```
 
 Remove ray volumes with zero wave action density and compact ray arrays.
 

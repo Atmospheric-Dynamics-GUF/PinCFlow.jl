@@ -1,17 +1,27 @@
 """
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::U)
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::U,
+)
+```
 
 Interpolate zonal velocity component (U) to a given 3D location using trilinear interpolation.
 
 # Arguments
-- `xlc::AbstractFloat`: Target x-coordinate
-- `ylc::AbstractFloat`: Target y-coordinate  
-- `zlc::AbstractFloat`: Target z-coordinate
-- `state::State`: Model state containing variables and grid information
-- `phitype::U`: Type specifier for zonal velocity component
+
+  - `xlc::AbstractFloat`: Target x-coordinate
+  - `ylc::AbstractFloat`: Target y-coordinate
+  - `zlc::AbstractFloat`: Target z-coordinate
+  - `state::State`: Model state containing variables and grid information
+  - `phitype::U`: Type specifier for zonal velocity component
 
 # Returns
-- Interpolated U velocity value at the specified location
+
+  - Interpolated U velocity value at the specified location
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -136,19 +146,29 @@ function interpolate_mean_flow(
 end
 
 """
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::V)
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::V,
+)
+```
 
 Interpolate meridional velocity component (V) to a given 3D location using trilinear interpolation.
 
 # Arguments
-- `xlc::AbstractFloat`: Target x-coordinate
-- `ylc::AbstractFloat`: Target y-coordinate
-- `zlc::AbstractFloat`: Target z-coordinate
-- `state::State`: Model state containing variables and grid information
-- `phitype::V`: Type specifier for meridional velocity component
+
+  - `xlc::AbstractFloat`: Target x-coordinate
+  - `ylc::AbstractFloat`: Target y-coordinate
+  - `zlc::AbstractFloat`: Target z-coordinate
+  - `state::State`: Model state containing variables and grid information
+  - `phitype::V`: Type specifier for meridional velocity component
 
 # Returns
-- Interpolated V velocity value at the specified location
+
+  - Interpolated V velocity value at the specified location
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -275,20 +295,30 @@ function interpolate_mean_flow(
 end
 
 """
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::W)
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::W,
+)
+```
 
 Interpolate vertical velocity component (W) to a given 3D location using trilinear interpolation.
 Handles topography by setting velocity to zero below surface level.
 
 # Arguments
-- `xlc::AbstractFloat`: Target x-coordinate
-- `ylc::AbstractFloat`: Target y-coordinate
-- `zlc::AbstractFloat`: Target z-coordinate
-- `state::State`: Model state containing variables and grid information
-- `phitype::W`: Type specifier for vertical velocity component
+
+  - `xlc::AbstractFloat`: Target x-coordinate
+  - `ylc::AbstractFloat`: Target y-coordinate
+  - `zlc::AbstractFloat`: Target z-coordinate
+  - `state::State`: Model state containing variables and grid information
+  - `phitype::W`: Type specifier for vertical velocity component
 
 # Returns
-- Interpolated W velocity value at the specified location
+
+  - Interpolated W velocity value at the specified location
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -447,20 +477,30 @@ function interpolate_mean_flow(
 end
 
 """
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::DUDX)
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DUDX,
+)
+```
 
 Interpolate zonal derivative of zonal velocity (∂u/∂x) to a given 3D location.
 Returns zero for single-point domains in x-direction.
 
 # Arguments
-- `xlc::AbstractFloat`: Target x-coordinate
-- `ylc::AbstractFloat`: Target y-coordinate
-- `zlc::AbstractFloat`: Target z-coordinate
-- `state::State`: Model state containing variables and grid information
-- `phitype::DUDX`: Type specifier for ∂u/∂x derivative
+
+  - `xlc::AbstractFloat`: Target x-coordinate
+  - `ylc::AbstractFloat`: Target y-coordinate
+  - `zlc::AbstractFloat`: Target z-coordinate
+  - `state::State`: Model state containing variables and grid information
+  - `phitype::DUDX`: Type specifier for ∂u/∂x derivative
 
 # Returns
-- Interpolated ∂u/∂x value at the specified location
+
+  - Interpolated ∂u/∂x value at the specified location
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -589,20 +629,30 @@ function interpolate_mean_flow(
 end
 
 """
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::DUDY)
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DUDY,
+)
+```
 
 Interpolate meridional derivative of zonal velocity (∂u/∂y) to a given 3D location.
 Returns zero for single-point domains in y-direction.
 
 # Arguments
-- `xlc::AbstractFloat`: Target x-coordinate
-- `ylc::AbstractFloat`: Target y-coordinate
-- `zlc::AbstractFloat`: Target z-coordinate
-- `state::State`: Model state containing variables and grid information
-- `phitype::DUDY`: Type specifier for ∂u/∂y derivative
+
+  - `xlc::AbstractFloat`: Target x-coordinate
+  - `ylc::AbstractFloat`: Target y-coordinate
+  - `zlc::AbstractFloat`: Target z-coordinate
+  - `state::State`: Model state containing variables and grid information
+  - `phitype::DUDY`: Type specifier for ∂u/∂y derivative
 
 # Returns
-- Interpolated ∂u/∂y value at the specified location
+
+  - Interpolated ∂u/∂y value at the specified location
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -728,19 +778,29 @@ function interpolate_mean_flow(
 end
 
 """
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::DUDZ)
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DUDZ,
+)
+```
 
 Interpolate vertical derivative of zonal velocity (∂u/∂z) to a given 3D location.
 
 # Arguments
-- `xlc::AbstractFloat`: Target x-coordinate
-- `ylc::AbstractFloat`: Target y-coordinate
-- `zlc::AbstractFloat`: Target z-coordinate
-- `state::State`: Model state containing variables and grid information
-- `phitype::DUDZ`: Type specifier for ∂u/∂z derivative
+
+  - `xlc::AbstractFloat`: Target x-coordinate
+  - `ylc::AbstractFloat`: Target y-coordinate
+  - `zlc::AbstractFloat`: Target z-coordinate
+  - `state::State`: Model state containing variables and grid information
+  - `phitype::DUDZ`: Type specifier for ∂u/∂z derivative
 
 # Returns
-- Interpolated ∂u/∂z value at the specified location
+
+  - Interpolated ∂u/∂z value at the specified location
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -866,20 +926,30 @@ function interpolate_mean_flow(
 end
 
 """
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::DVDX)
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DVDX,
+)
+```
 
 Interpolate zonal derivative of meridional velocity (∂v/∂x) to a given 3D location.
 Returns zero for single-point domains in x-direction.
 
 # Arguments
-- `xlc::AbstractFloat`: Target x-coordinate
-- `ylc::AbstractFloat`: Target y-coordinate
-- `zlc::AbstractFloat`: Target z-coordinate
-- `state::State`: Model state containing variables and grid information
-- `phitype::DVDX`: Type specifier for ∂v/∂x derivative
+
+  - `xlc::AbstractFloat`: Target x-coordinate
+  - `ylc::AbstractFloat`: Target y-coordinate
+  - `zlc::AbstractFloat`: Target z-coordinate
+  - `state::State`: Model state containing variables and grid information
+  - `phitype::DVDX`: Type specifier for ∂v/∂x derivative
 
 # Returns
-- Interpolated ∂v/∂x value at the specified location
+
+  - Interpolated ∂v/∂x value at the specified location
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -1005,20 +1075,30 @@ function interpolate_mean_flow(
 end
 
 """
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::DVDY)
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DVDY,
+)
+```
 
 Interpolate meridional derivative of meridional velocity (∂v/∂y) to a given 3D location.
 Returns zero for single-point domains in y-direction.
 
 # Arguments
-- `xlc::AbstractFloat`: Target x-coordinate
-- `ylc::AbstractFloat`: Target y-coordinate
-- `zlc::AbstractFloat`: Target z-coordinate
-- `state::State`: Model state containing variables and grid information
-- `phitype::DVDY`: Type specifier for ∂v/∂y derivative
+
+  - `xlc::AbstractFloat`: Target x-coordinate
+  - `ylc::AbstractFloat`: Target y-coordinate
+  - `zlc::AbstractFloat`: Target z-coordinate
+  - `state::State`: Model state containing variables and grid information
+  - `phitype::DVDY`: Type specifier for ∂v/∂y derivative
 
 # Returns
-- Interpolated ∂v/∂y value at the specified location
+
+  - Interpolated ∂v/∂y value at the specified location
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -1148,19 +1228,29 @@ function interpolate_mean_flow(
 end
 
 """
-    interpolate_mean_flow(xlc, ylc, zlc, state, phitype::DVDZ)
+```julia
+interpolate_mean_flow(
+    xlc::AbstractFloat,
+    ylc::AbstractFloat,
+    zlc::AbstractFloat,
+    state::State,
+    phitype::DVDZ,
+)
+```
 
 Interpolate vertical derivative of meridional velocity (∂v/∂z) to a given 3D location.
 
 # Arguments
-- `xlc::AbstractFloat`: Target x-coordinate
-- `ylc::AbstractFloat`: Target y-coordinate
-- `zlc::AbstractFloat`: Target z-coordinate
-- `state::State`: Model state containing variables and grid information
-- `phitype::DVDZ`: Type specifier for ∂v/∂z derivative
+
+  - `xlc::AbstractFloat`: Target x-coordinate
+  - `ylc::AbstractFloat`: Target y-coordinate
+  - `zlc::AbstractFloat`: Target z-coordinate
+  - `state::State`: Model state containing variables and grid information
+  - `phitype::DVDZ`: Type specifier for ∂v/∂z derivative
 
 # Returns
-- Interpolated ∂v/∂z value at the specified location
+
+  - Interpolated ∂v/∂z value at the specified location
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,

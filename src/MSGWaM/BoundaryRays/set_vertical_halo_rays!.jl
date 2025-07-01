@@ -1,5 +1,7 @@
 """
-    set_vertical_halo_rays!(state::State)
+```julia
+set_vertical_halo_rays!(state::State)
+```
 
 # Arguments
 

@@ -1,12 +1,15 @@
 """
-    GWTendencies
+```julia
+GWTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+```
 
 Gravity wave drag and heating tendency fields.
 
 # Fields
-- `dudt`: Zonal wind tendency (gravity wave drag)
-- `dvdt`: Meridional wind tendency (gravity wave drag)
-- `dthetadt`: Potential temperature tendency (gravity wave heating)
+
+  - `dudt`: Zonal wind tendency (gravity wave drag)
+  - `dvdt`: Meridional wind tendency (gravity wave drag)
+  - `dthetadt`: Potential temperature tendency (gravity wave heating)
 """
 struct GWTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dudt::A
@@ -14,6 +17,13 @@ struct GWTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dthetadt::A
 end
 
+"""
+```julia
+GWTendencies(nxx::Integer, nyy::Integer, nzz::Integer)
+```
+
+Construct a `GWTendencies` instance.
+"""
 function GWTendencies(nxx::Integer, nyy::Integer, nzz::Integer)
     return GWTendencies([zeros(nxx, nyy, nzz) for i in 1:3]...)
 end

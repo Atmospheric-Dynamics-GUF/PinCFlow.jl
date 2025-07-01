@@ -1,3 +1,12 @@
+"""
+```julia
+RayUpdate
+```
+
+Module for the integration of the ray equations.
+
+In addition to ray-volume initialization and propagation, functions for tracking ray volumes on the model grid and controlling their count, as well as a saturation scheme for capturing wave breaking, are provided.
+"""
 module RayUpdate
 
 using MPI
@@ -8,11 +17,58 @@ using ..Interpolation
 using ..RayOperations
 using ..RaySources
 
+"""
+```julia
+X
+```
+
+Singleton for dispatch to operations in ``𝑥``-direction.
+"""
 struct X end
+
+"""
+```julia
+Y
+```
+
+Singleton for dispatch to operations in ``𝑦``-direction.
+"""
 struct Y end
+
+"""
+```julia
+Z
+```
+
+Singleton for dispatch to operations in ``𝑧``-direction.
+"""
 struct Z end
+
+"""
+```julia
+XZ
+```
+
+Singleton for dispatch to operations in ``𝑥``- and ``𝑧``-direction.
+"""
 struct XZ end
+
+"""
+```julia
+YZ
+```
+
+Singleton for dispatch to operations in ``𝑦``- and ``𝑧``-direction.
+"""
 struct YZ end
+
+"""
+```julia
+XYZ
+```
+
+Singleton for dispatch to operations in all directions.
+"""
 struct XYZ end
 
 include("apply_saturation_scheme!.jl")

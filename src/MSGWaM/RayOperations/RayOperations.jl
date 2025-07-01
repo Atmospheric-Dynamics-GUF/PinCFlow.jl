@@ -1,3 +1,10 @@
+"""
+```julia
+RayOperations
+```
+
+Module for various ray-volume operations needed throughout MSGWaM.
+"""
 module RayOperations
 
 using ...Types

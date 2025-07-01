@@ -1,5 +1,7 @@
 """
-    Correction{A <: AbstractArray{<:AbstractFloat, 3}}
+```julia
+Correction{A <: AbstractArray{<:AbstractFloat, 3}}
+```
 
 Storage for pressure correction terms applied to velocity fields.
 
@@ -20,7 +22,9 @@ struct Correction{A <: AbstractArray{<:AbstractFloat, 3}}
 end
 
 """
-    Correction(domain::Domain)
+```julia
+Correction(domain::Domain)
+```
 
 Initialize correction arrays sized according to extended domain.
 

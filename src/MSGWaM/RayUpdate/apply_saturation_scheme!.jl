@@ -1,5 +1,7 @@
 """
-    apply_saturation_scheme!(state::State, dt::AbstractFloat)
+```julia
+apply_saturation_scheme!(state::State, dt::AbstractFloat)
+```
 
 Entry point for wave saturation scheme based on test case type.
 
@@ -18,7 +20,13 @@ function apply_saturation_scheme!(state::State, dt::AbstractFloat)
 end
 
 """
-    apply_saturation_scheme!(state::State, dt::AbstractFloat, testcase::AbstractTestCase)
+```julia
+apply_saturation_scheme!(
+    state::State,
+    dt::AbstractFloat,
+    testcase::AbstractTestCase,
+)
+```
 
 No-op for non-WKB test cases.
 
@@ -39,7 +47,13 @@ function apply_saturation_scheme!(
 end
 
 """
-    apply_saturation_scheme!(state::State, dt::AbstractFloat, testcase::AbstractWKBTestCase)
+```julia
+apply_saturation_scheme!(
+    state::State,
+    dt::AbstractFloat,
+    testcase::AbstractWKBTestCase,
+)
+```
 
 Apply saturation scheme for WKB test cases based on WKB mode.
 
@@ -62,7 +76,9 @@ function apply_saturation_scheme!(
 end
 
 """
-    apply_saturation_scheme!(state::State, dt::AbstractFloat, wkb_mode::SteadyState)
+```julia
+apply_saturation_scheme!(state::State, dt::AbstractFloat, wkb_mode::SteadyState)
+```
 
 No-op for steady-state WKB mode.
 
@@ -84,7 +100,13 @@ function apply_saturation_scheme!(
 end
 
 """
-    apply_saturation_scheme!(state::State, dt::AbstractFloat, wkb_mode::AbstractWKBMode)
+```julia
+apply_saturation_scheme!(
+    state::State,
+    dt::AbstractFloat,
+    wkb_mode::AbstractWKBMode,
+)
+```
 
 Apply wave breaking saturation scheme to limit wave amplitudes.
 

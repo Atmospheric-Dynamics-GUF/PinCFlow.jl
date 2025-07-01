@@ -1,5 +1,14 @@
 """
-    compute_topography(namelists, constants, domain, x, y, testcase::WKBMountainWave)
+```julia
+compute_topography(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    x::AbstractVector{<:AbstractFloat},
+    y::AbstractVector{<:AbstractFloat},
+    testcase::WKBMountainWave,
+)
+```
 
 Compute topography for WKB mountain wave test cases with spectral decomposition.
 
@@ -195,7 +204,16 @@ function compute_topography(
 end
 
 """
-    compute_topography(namelists, constants, domain, x, y, testcase::MountainWave)
+```julia
+compute_topography(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    x::AbstractVector{<:AbstractFloat},
+    y::AbstractVector{<:AbstractFloat},
+    testcase::MountainWave,
+)
+```
 
 Compute topography for standard mountain wave test cases.
 

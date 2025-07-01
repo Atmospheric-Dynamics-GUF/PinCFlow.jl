@@ -1,5 +1,7 @@
 """
-    compute_gw_tendencies!(state)
+```julia
+compute_gw_tendencies!(state::State)
+```
 
 Compute gravity wave momentum and heating tendencies from wave stress divergence.
 
@@ -73,14 +75,14 @@ Updates the following tendency fields:
   - `tendencies.dudt[i,j,k]`: Zonal wind tendency
   - `tendencies.dvdt[i,j,k]`: Meridional wind tendency
   - `tendencies.dthetadt[i,j,k]`: Potential temperature tendency
-    # Set the Coriolis parameter.
+
 # Conservation Properties
 
   - Momentum: Conserved through proper flux divergence calculation
   - Energy: Heating terms maintain thermodynamic consistency
   - Angular momentum: Preserved when rotation effects included
 """
-function compute_gw_tendencies!(state)
+function compute_gw_tendencies!(state::State)
     (; sizex, sizey) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; zmin_wkb_dim) = state.namelists.wkb

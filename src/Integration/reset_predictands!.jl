@@ -1,5 +1,7 @@
 """
-    reset_predictands!(state::State, predictands::Predictands)
+```julia
+reset_predictands!(state::State, predictands::Predictands)
+```
 
 Reset current predictand fields to specified values based on model type.
 
@@ -18,7 +20,9 @@ function reset_predictands!(state::State, predictands::Predictands)
 end
 
 """
-    reset_predictands!(state::State, predictands::Predictands, model::AbstractModel)
+```julia
+reset_predictands!(state::State, predictands::Predictands, model::AbstractModel)
+```
 
 Reset predictand fields for general model types.
 
@@ -48,7 +52,9 @@ function reset_predictands!(
 end
 
 """
-    reset_predictands!(state::State, predictands::Predictands, model::Compressible)
+```julia
+reset_predictands!(state::State, predictands::Predictands, model::Compressible)
+```
 
 Reset predictand fields for compressible model.
 

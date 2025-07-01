@@ -1,5 +1,11 @@
 """
-    copy_rays!(rays::Rays, source::NTuple{4, <:Integer}, target::NTuple{4, <:Integer})
+```julia
+copy_rays!(
+    rays::Rays,
+    source::NTuple{4, <:Integer},
+    target::NTuple{4, <:Integer},
+)
+```
 
 Copy all properties of a ray volume from source to target location.
 

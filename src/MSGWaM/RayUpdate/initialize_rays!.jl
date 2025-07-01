@@ -1,5 +1,7 @@
 """
-    initialize_rays!(state::State)
+```julia
+initialize_rays!(state::State)
+```
 
 Entry point for ray initialization based on test case type.
 
@@ -17,7 +19,9 @@ function initialize_rays!(state::State)
 end
 
 """
-    initialize_rays!(state::State, testcase::AbstractTestCase)
+```julia
+initialize_rays!(state::State, testcase::AbstractTestCase)
+```
 
 No-op for non-WKB test cases.
 
@@ -33,7 +37,9 @@ function initialize_rays!(state::State, testcase::AbstractTestCase)
 end
 
 """
-    initialize_rays!(state::State, testcase::AbstractWKBTestCase)
+```julia
+initialize_rays!(state::State, testcase::AbstractWKBTestCase)
+```
 
 Initialize ray volumes for WKB test cases.
 

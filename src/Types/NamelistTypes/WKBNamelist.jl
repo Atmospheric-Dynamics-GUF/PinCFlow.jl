@@ -1,3 +1,17 @@
+"""
+```julia
+WKBNamelist{
+    A <: AbstractFloat,
+    B <: Integer,
+    C <: AbstractMergeMode,
+    D <: Bool,
+    E <: AbstractWKBFilter,
+    F <: AbstractWKBMode,
+}
+```
+
+Namelist for the configuration of MS-GWaM (see constructor for parameter descriptions).
+"""
 struct WKBNamelist{
     A <: AbstractFloat,
     B <: Integer,
@@ -38,7 +52,39 @@ struct WKBNamelist{
 end
 
 """
-    WKBNamelist(; <keyword arguments>)
+```julia
+WKBNamelist(;
+    xrmin_dim = 0.0E+0,
+    xrmax_dim = 1.0E+3,
+    yrmin_dim = 0.0E+0,
+    yrmax_dim = 1.0E+3,
+    zrmin_dim = 0.0E+0,
+    zrmax_dim = 1.0E+3,
+    nrxl = 1,
+    nryl = 1,
+    nrzl = 1,
+    nrk_init = 1,
+    nrl_init = 1,
+    nrm_init = 1,
+    nray_fac = 4,
+    fac_dk_init = 1.0E-1,
+    fac_dl_init = 1.0E-1,
+    fac_dm_init = 1.0E-1,
+    branchr = -1,
+    merge_mode = ConstantWaveAction(),
+    nsmth_wkb = 2,
+    lsmth_wkb = true,
+    sm_filter = Shapiro(),
+    zmin_wkb_dim = 0.0,
+    lsaturation = true,
+    alpha_sat = 1.0E+0,
+    wkb_mode = MultiColumn(),
+    blocking = false,
+    long_threshold = 2.5E-1,
+    drag_coefficient = 1.0E+0,
+    nwm = 1,
+)
+```
 
 Construct a WKBNamelist instance, which holds parameters for the WKB ray tracing algorithm.
 

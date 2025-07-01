@@ -1,5 +1,7 @@
 """
-    get_spectral_extent(rays::Rays, indices::NTuple{4, <:Integer})
+```julia
+get_spectral_extent(rays::Rays, indices::NTuple{4, <:Integer})
+```
 
 # Arguments
 

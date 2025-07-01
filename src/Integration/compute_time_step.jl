@@ -1,5 +1,7 @@
 """
-    compute_time_step(state::State) -> Float64
+```julia
+compute_time_step(state::State) -> Float64
+```
 
 Compute adaptive time step based on stability constraints.
 

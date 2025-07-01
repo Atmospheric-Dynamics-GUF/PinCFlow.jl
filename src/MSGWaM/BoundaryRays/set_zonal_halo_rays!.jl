@@ -1,7 +1,9 @@
 """
-    set_zonal_halo_rays!(state::State)
+```julia
+set_zonal_halo_rays!(state::State)
+```
 
-    Synchronize ray volumes across zonal domain boundaries. 
+Synchronize ray volumes across zonal domain boundaries.
 
 # Arguments
 

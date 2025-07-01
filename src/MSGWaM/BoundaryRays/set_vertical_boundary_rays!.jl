@@ -1,5 +1,7 @@
 """
-    set_vertical_boundary_rays!(state::State, zboundaries::SolidWallBoundaries)
+```julia
+set_vertical_boundary_rays!(state::State, zboundaries::SolidWallBoundaries)
+```
 
 # Arguments
 

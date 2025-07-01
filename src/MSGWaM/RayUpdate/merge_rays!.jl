@@ -1,5 +1,7 @@
 """
-    merge_rays!(state::State)
+```julia
+merge_rays!(state::State)
+```
 
 Entry point for ray merging operations based on test case type.
 
@@ -17,7 +19,9 @@ function merge_rays!(state::State)
 end
 
 """
-    merge_rays!(state::State, testcase::AbstractTestCase)
+```julia
+merge_rays!(state::State, testcase::AbstractTestCase)
+```
 
 No-op for non-WKB test cases.
 
@@ -33,7 +37,9 @@ function merge_rays!(state::State, testcase::AbstractTestCase)
 end
 
 """
-    merge_rays!(state::State, testcase::AbstractWKBTestCase)
+```julia
+merge_rays!(state::State, testcase::AbstractWKBTestCase)
+```
 
 Merge rays for WKB test cases based on WKB mode.
 
@@ -51,7 +57,9 @@ function merge_rays!(state::State, testcase::AbstractWKBTestCase)
 end
 
 """
-    merge_rays!(state::State, wkb_mode::SteadyState)
+```julia
+merge_rays!(state::State, wkb_mode::SteadyState)
+```
 
 No-op for steady-state WKB mode.
 
@@ -68,7 +76,9 @@ function merge_rays!(state::State, wkb_mode::SteadyState)
 end
 
 """
-    merge_rays!(state::State, wkb_mode::AbstractWKBMode)
+```julia
+merge_rays!(state::State, wkb_mode::AbstractWKBMode)
+```
 
 Merge rays when ray count exceeds maximum per grid cell.
 

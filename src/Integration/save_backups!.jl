@@ -1,5 +1,7 @@
 """
-    save_backups!(state::State, variables::Vararg{Symbol})
+```julia
+save_backups!(state::State, variables::Vararg{Symbol})
+```
 
 Save backup copies of specified predictand variables.
 

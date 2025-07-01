@@ -1,5 +1,7 @@
 """
-    Reconstructions{A<:AbstractArray{<:AbstractFloat, 5}}
+```julia
+Reconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
+```
 
 Storage for MUSCL-reconstructed variables at cell interfaces.
 
@@ -56,7 +58,11 @@ u_right = recons.utilde[i, j, k, 1, 2]  # Right state, x-direction
   - Account for spatial gradients within computational cells
   - Support upwind-biased reconstruction for stability
 
-See also: [`apply_3d_muscl!`](@ref), [`compute_fluxes!`](@ref), [`Variables`](@ref)
+# See also
+
+  - [`apply_3d_muscl!`](@ref)
+  - [`compute_fluxes!`](@ref)
+  - [`Variables`](@ref)
 """
 struct Reconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     rhotilde::A
@@ -67,7 +73,9 @@ struct Reconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
 end
 
 """
-    Reconstructions(domain::Domain)
+```julia
+Reconstructions(domain::Domain)
+```
 
 Create MUSCL reconstruction storage for prognostic variables.
 

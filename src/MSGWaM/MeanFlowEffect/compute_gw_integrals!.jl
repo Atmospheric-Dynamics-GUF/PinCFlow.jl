@@ -1,5 +1,7 @@
 """
-    compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
+```julia
+compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
+```
 
 Compute gravity wave momentum flux integrals for multi-column WKB mode.
 
@@ -237,7 +239,9 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
 end
 
 """
-    compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
+```julia
+compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
+```
 
 Compute gravity wave integrals for single-column WKB mode.
 
@@ -412,7 +416,9 @@ function compute_gw_integrals!(state::State, wkb_mode::SingleColumn)
 end
 
 """
-    compute_gw_integrals!(state::State, wkb_mode::SteadyState)
+```julia
+compute_gw_integrals!(state::State, wkb_mode::SteadyState)
+```
 
 Compute gravity wave integrals for steady-state WKB mode.
 

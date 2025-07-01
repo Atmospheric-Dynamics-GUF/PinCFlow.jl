@@ -1,5 +1,14 @@
 """
-    activate_orographic_source!(state::State, omi_ini::AbstractArray{<:AbstractFloat, 4}, wnk_ini::AbstractArray{<:AbstractFloat, 4}, wnl_ini::AbstractArray{<:AbstractFloat, 4}, wnm_ini::AbstractArray{<:AbstractFloat, 4}, wad_ini::AbstractArray{<:AbstractFloat, 4})
+```julia
+activate_orographic_source!(
+    state::State,
+    omi_ini::AbstractArray{<:AbstractFloat, 4},
+    wnk_ini::AbstractArray{<:AbstractFloat, 4},
+    wnl_ini::AbstractArray{<:AbstractFloat, 4},
+    wnm_ini::AbstractArray{<:AbstractFloat, 4},
+    wad_ini::AbstractArray{<:AbstractFloat, 4},
+)
+```
 
 Initialize orographic wave source for ray initialization phase.
 
@@ -128,7 +137,9 @@ function activate_orographic_source!(
 end
 
 """
-    activate_orographic_source!(state::State, dt::AbstractFloat)
+```julia
+activate_orographic_source!(state::State)
+```
 
 Activate orographic wave source during time integration.
 

@@ -1,3 +1,10 @@
+"""
+```julia
+RaySources
+```
+
+Module for ray-volume sources.
+"""
 module RaySources
 
 using ...Types

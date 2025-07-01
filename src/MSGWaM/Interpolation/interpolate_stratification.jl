@@ -1,5 +1,8 @@
 """
-    interpolate_stratification(zlc::AbstractFloat, state::State, strtype::N2) -> AbstractFloat
+```julia
+interpolate_stratification(zlc::AbstractFloat, state::State, strtype::N2) ->
+    AbstractFloat
+```
 
 Interpolate Brunt-Väisälä frequency squared (N²) to a specified vertical level.
 
@@ -101,7 +104,10 @@ function interpolate_stratification(
 end
 
 """
-    interpolate_stratification(zlc::AbstractFloat, state::State, strtype::DN2DZ) -> AbstractFloat
+```julia
+interpolate_stratification(zlc::AbstractFloat, state::State, strtype::DN2DZ) ->
+    AbstractFloat
+```
 
 Interpolate vertical derivative of Brunt-Väisälä frequency squared (dN²/dz).
 

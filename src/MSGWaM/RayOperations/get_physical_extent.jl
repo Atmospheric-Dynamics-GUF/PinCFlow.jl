@@ -1,5 +1,8 @@
 """
-    get_physical_extent(rays::Rays, indices::NTuple{4, <:Integer}) -> Tuple{AbstractFloat, AbstractFloat, AbstractFloat}
+```julia
+get_physical_extent(rays::Rays, indices::NTuple{4, <:Integer}) ->
+    Tuple{AbstractFloat, AbstractFloat, AbstractFloat}
+```
 
 Get the physical spatial extents of a ray volume.
 

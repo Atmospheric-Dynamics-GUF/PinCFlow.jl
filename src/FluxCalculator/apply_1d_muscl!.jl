@@ -1,5 +1,11 @@
 """
-    apply_1d_muscl!(phi, phitilde, phisize)
+```julia
+apply_1d_muscl!(
+    phi::AbstractVector{<:AbstractFloat},
+    phitilde::AbstractMatrix{<:AbstractFloat},
+    phisize::Integer,
+)
+```
 
 Applies the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) reconstruction
 in one dimension.

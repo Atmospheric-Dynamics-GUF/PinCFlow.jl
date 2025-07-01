@@ -1,5 +1,7 @@
 """
-    synchronize_compressible_atmosphere!(state::State, predictands::Predictands)
+```julia
+synchronize_compressible_atmosphere!(state::State, predictands::Predictands)
+```
 
 Synchronize compressible atmosphere fields based on model type.
 
@@ -21,7 +23,13 @@ function synchronize_compressible_atmosphere!(
 end
 
 """
-    synchronize_compressible_atmosphere!(state::State, predictands::Predictands, model::AbstractModel)
+```julia
+synchronize_compressible_atmosphere!(
+    state::State,
+    predictands::Predictands,
+    model::AbstractModel,
+)
+```
 
 No-op for non-compressible models.
 
@@ -43,7 +51,13 @@ function synchronize_compressible_atmosphere!(
 end
 
 """
-    synchronize_compressible_atmosphere!(state::State, predictands::Predictands, model::Compressible)
+```julia
+synchronize_compressible_atmosphere!(
+    state::State,
+    predictands::Predictands,
+    model::Compressible,
+)
+```
 
 Synchronize stratified atmosphere fields for compressible model.
 

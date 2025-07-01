@@ -1,12 +1,52 @@
+"""
+```julia
+Update
+```
+
+Module for integrating the prognostic equations.
+
+Provides functions for updating the prognostic variables at the various stages of the semi-implicit time scheme.
+"""
 module Update
 
 using MPI
 using ..Types
 using ..Boundaries
 
+"""
+```julia
+Cartesian
+```
+
+Singleton for transformations from the terrain-following system to the Cartesian one.
+"""
 struct Cartesian end
+
+"""
+```julia
+Transformed
+```
+
+Singleton for transformations from the Cartesian system to the terrain-following one.
+"""
 struct Transformed end
+
+"""
+```julia
+LHS
+```
+
+Singleton for the integration of the left-hand side of an equation.
+"""
 struct LHS end
+
+"""
+```julia
+RHS
+```
+
+Singleton for the integration of the right-hand side of an equation.
+"""
 struct RHS end
 
 include("apply_unified_sponge!.jl")
