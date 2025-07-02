@@ -4,9 +4,10 @@
 Gravity wave drag and heating tendency fields.
 
 # Fields
-- `dudt`: Zonal wind tendency (gravity wave drag)
-- `dvdt`: Meridional wind tendency (gravity wave drag)
-- `dthetadt`: Potential temperature tendency (gravity wave heating)
+
+  - `dudt`: Zonal wind tendency (gravity wave drag)
+  - `dvdt`: Meridional wind tendency (gravity wave drag)
+  - `dthetadt`: Potential temperature tendency (gravity wave heating)
 """
 struct GWTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dudt::A

@@ -26,7 +26,7 @@ struct Sponge{
 end
 
 """
-  Sponge(namelists::Namelists, domain::Domain, grid::Grid)
+Sponge(namelists::Namelists, domain::Domain, grid::Grid)
 
 Construct a `Sponge` from `namelists`, `domain` and `grid`.
 

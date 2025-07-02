@@ -4,19 +4,20 @@
 Main container for WKB ray tracing data and parameters.
 
 # Fields
-- `nxray`, `nyray`, `nzray`: Number of ray volumes in each direction
-- `nxray_wrk`, `nyray_wrk`, `nzray_wrk`: Working array dimensions (spectral)
-- `nray_max`, `nray_wrk`: Maximum and working ray counts
-- `n_sfc`: Number of surface ray volumes
-- `nray`: 3D array of ray counts per grid cell
-- `rays`: Ray position, wavenumber, and density data
-- `surface_indices`: Indices for surface ray launching
-- `increments`: Ray propagation increments
-- `integrals`: Gravity wave momentum and energy integrals
-- `tendencies`: Gravity wave drag and heating tendencies
-- `cgx_max`, `cgy_max`, `cgz_max`: Maximum group velocities
-- `zb`: Bottom boundary height
-- `diffusion`: Diffusion coefficients
+
+  - `nxray`, `nyray`, `nzray`: Number of ray volumes in each direction
+  - `nxray_wrk`, `nyray_wrk`, `nzray_wrk`: Working array dimensions (spectral)
+  - `nray_max`, `nray_wrk`: Maximum and working ray counts
+  - `n_sfc`: Number of surface ray volumes
+  - `nray`: 3D array of ray counts per grid cell
+  - `rays`: Ray position, wavenumber, and density data
+  - `surface_indices`: Indices for surface ray launching
+  - `increments`: Ray propagation increments
+  - `integrals`: Gravity wave momentum and energy integrals
+  - `tendencies`: Gravity wave drag and heating tendencies
+  - `cgx_max`, `cgy_max`, `cgz_max`: Maximum group velocities
+  - `zb`: Bottom boundary height
+  - `diffusion`: Diffusion coefficients
 """
 struct WKB{
     A <: Integer,

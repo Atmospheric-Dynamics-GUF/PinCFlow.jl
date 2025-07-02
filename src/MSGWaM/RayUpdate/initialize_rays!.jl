@@ -48,6 +48,7 @@ their positions, wavenumbers, extents, and wave action densities.
 # Initialization Process
 
  1. **Domain Setup**: Determine spatial bounds for ray initialization
+
  2. **Index Bounds**: Compute grid cell ranges based on domain/test case
  3. **Source Activation**: For mountain waves, compute orographic source terms
  4. **Ray Volume Creation**: Initialize individual ray volumes with:
