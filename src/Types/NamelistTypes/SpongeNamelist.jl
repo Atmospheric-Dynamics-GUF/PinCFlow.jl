@@ -44,7 +44,6 @@ Configuration parameters for damping layers that absorb waves near domain bounda
   - `relaxation_wind::NTuple{3,AbstractFloat} = (0,0,0)`: Target wind field [m/s] when not relaxing to mean
 
 # Usage
-
 """
 function SpongeNamelist(;
     spongelayer = false,

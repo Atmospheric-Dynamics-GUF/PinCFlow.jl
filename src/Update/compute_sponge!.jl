@@ -20,7 +20,6 @@ gradual damping of wave amplitudes.
 
   - **Unified sponge**: Single coefficient array for all variables
   - **Legacy sponge**: Separate coefficients for different grid staggerings
-
 """
 function compute_sponge!(state::State, dt::AbstractFloat)
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
