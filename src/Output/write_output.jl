@@ -10,9 +10,7 @@ write_output(
 
 Write simulation state to HDF5 output file.
 
-Outputs grid coordinates, background fields, prognostic variables, and WKB ray data
-to the HDF5 file specified in [`OutputNamelist`](src/Types/NamelistTypes/OutputNamelist.jl).
-Handles MPI-parallel I/O with proper domain decomposition.
+Outputs grid coordinates, background fields, prognostic variables, and WKB ray data to the HDF5 file specified by the parameter `output_file` in [`OutputNamelist`](@ref). Handles MPI-parallel I/O with proper domain decomposition.
 
 # Arguments
 
@@ -37,8 +35,8 @@ Handles MPI-parallel I/O with proper domain decomposition.
 
   - **Parallel I/O**: Uses collective HDF5 operations across MPI ranks
   - **Chunking**: Optimized for domain decomposition with chunk sizes
-  - **Scaling**: Applies dimensional scaling factors from [`Constants`](src/Types/FoundationalTypes/Constants.jl)
-  - **Conditionals**: Only outputs variables specified in [`output_variables`](src/Types/NamelistTypes/OutputNamelist.jl)
+  - **Scaling**: Applies dimensional scaling factors from [`Constants`](@ref)
+  - **Conditionals**: Only outputs variables specified by the parameter `output_variables` in [`OutputNamelist`](@ref)
 """
 function write_output(
     state::State,
