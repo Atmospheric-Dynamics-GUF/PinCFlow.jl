@@ -1,14 +1,14 @@
-"""
-```julia
-Sponge{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractFloat,
-    C <: AbstractVector{<:AbstractFloat},
-}
-```
+# """
+# ```julia
+# Sponge{
+#     A <: AbstractArray{<:AbstractFloat, 3},
+#     B <: AbstractFloat,
+#     C <: AbstractVector{<:AbstractFloat},
+# }
+# ```
 
-Composite type that contains damping coefficients, vertical and lateral sponge extents.
-"""
+# Composite type that contains damping coefficients, vertical and lateral sponge extents.
+# """
 struct Sponge{
     A <: AbstractArray{<:AbstractFloat, 3},
     B <: AbstractFloat,
@@ -36,13 +36,13 @@ struct Sponge{
     horizontal_mean::C
 end
 
-"""
-```julia
-Sponge(namelists::Namelists, domain::Domain, grid::Grid)
-```
+# """
+# ```julia
+# Sponge(namelists::Namelists, domain::Domain, grid::Grid)
+# ```
 
-Construct a `Sponge` instance from `namelists`, `domain` and `grid`.
-"""
+# Construct a `Sponge` instance from `namelists`, `domain` and `grid`.
+# """
 function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
     (; spongeheight) = namelists.sponge
     (; nxx, nyy, nzz, nz) = domain

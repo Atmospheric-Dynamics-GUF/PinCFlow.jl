@@ -1,51 +1,51 @@
-"""
-```julia
-Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
-```
+# """
+# ```julia
+# Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
+# ```
 
-Collection of domain-decomposition and MPI-communication parameters.
+# Collection of domain-decomposition and MPI-communication parameters.
 
-# Fields
+# # Fields
 
-## MPI Communication
+# ## MPI Communication
 
-  - `comm`: MPI communicator with Cartesian topology for the computational domain
-  - `master`: Boolean flag indicating if this process is the master process (rank 0)
-  - `rank`: MPI rank of this process within the communicator
-  - `root`: Root process rank (typically 0)
+#   - `comm`: MPI communicator with Cartesian topology for the computational domain
+#   - `master`: Boolean flag indicating if this process is the master process (rank 0)
+#   - `rank`: MPI rank of this process within the communicator
+#   - `root`: Root process rank (typically 0)
 
-## Local Grid Dimensions
+# ## Local Grid Dimensions
 
-  - `nx`, `ny`, `nz`: Number of grid points in each direction for this process (excluding boundary cells)
-  - `nxx`, `nyy`, `nzz`: Total grid points in each direction including boundary cells (`n* + 2*nb*`)
+#   - `nx`, `ny`, `nz`: Number of grid points in each direction for this process (excluding boundary cells)
+#   - `nxx`, `nyy`, `nzz`: Total grid points in each direction including boundary cells (`n* + 2*nb*`)
 
-## Global Grid Dimensions
+# ## Global Grid Dimensions
 
-  - `sizexx`, `sizeyy`, `sizezz`: Global grid size in each direction including boundary cells
+#   - `sizexx`, `sizeyy`, `sizezz`: Global grid size in each direction including boundary cells
 
-## Index Management
+# ## Index Management
 
-  - `io`, `jo`, `ko`: Index offsets in each direction for global-to-local coordinate transformation
-  - `i0`, `i1`: Starting and ending indices for computational domain in x-direction
-  - `j0`, `j1`: Starting and ending indices for computational domain in y-direction
-  - `k0`, `k1`: Starting and ending indices for computational domain in z-direction
+#   - `io`, `jo`, `ko`: Index offsets in each direction for global-to-local coordinate transformation
+#   - `i0`, `i1`: Starting and ending indices for computational domain in x-direction
+#   - `j0`, `j1`: Starting and ending indices for computational domain in y-direction
+#   - `k0`, `k1`: Starting and ending indices for computational domain in z-direction
 
-## Neighbor Process Ranks
+# ## Neighbor Process Ranks
 
-  - `left`, `right`: MPI ranks of neighbor processes in x-direction (negative/positive)
-  - `backward`, `forward`: MPI ranks of neighbor processes in y-direction (negative/positive)
-  - `down`, `up`: MPI ranks of neighbor processes in z-direction (negative/positive)
+#   - `left`, `right`: MPI ranks of neighbor processes in x-direction (negative/positive)
+#   - `backward`, `forward`: MPI ranks of neighbor processes in y-direction (negative/positive)
+#   - `down`, `up`: MPI ranks of neighbor processes in z-direction (negative/positive)
 
-## Specialized Communicators
+# ## Specialized Communicators
 
-  - `layer_comm`: MPI communicator for processes in the same horizontal layer (same k-coordinate)
-  - `column_comm`: MPI communicator for processes in the same vertical column (same i,j coordinates)
+#   - `layer_comm`: MPI communicator for processes in the same horizontal layer (same k-coordinate)
+#   - `column_comm`: MPI communicator for processes in the same vertical column (same i,j coordinates)
 
-# Usage
+# # Usage
 
-Arrays should be allocated with dimensions `[nxx, nyy, nzz]` and accessed using
-indices `i0:i1`, `j0:j1`, `k0:k1` for the computational domain.
-"""
+# Arrays should be allocated with dimensions `[nxx, nyy, nzz]` and accessed using
+# indices `i0:i1`, `j0:j1`, `k0:k1` for the computational domain.
+# """
 struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
 
     # MPI variables.
@@ -95,39 +95,39 @@ struct Domain{A <: MPI.Comm, B <: Bool, C <: Integer}
     column_comm::A
 end
 
-"""
-```julia
-Domain(namelists::Namelists) -> Domain
-```
+# """
+# ```julia
+# Domain(namelists::Namelists) -> Domain
+# ```
 
-Construct a `Domain` instance for MPI domain decomposition.
+# Construct a `Domain` instance for MPI domain decomposition.
 
-This constructor initializes the MPI environment and sets up a 3D Cartesian topology
-for parallel computation. It distributes the global computational domain across
-multiple MPI processes and establishes communication patterns for halo exchanges.
+# This constructor initializes the MPI environment and sets up a 3D Cartesian topology
+# for parallel computation. It distributes the global computational domain across
+# multiple MPI processes and establishes communication patterns for halo exchanges.
 
-# Arguments
+# # Arguments
 
-  - `namelists::Namelists`: Configuration object containing domain and setting parameters
+#   - `namelists::Namelists`: Configuration object containing domain and setting parameters
 
-      + `namelists.domain`: Contains grid dimensions (`sizex`, `sizey`, `sizez`),
-        boundary cell counts (`nbx`, `nby`, `nbz`), and process counts (`npx`, `npy`, `npz`)
-      + `namelists.setting`: Contains boundary condition settings (`zboundaries`)
+#       + `namelists.domain`: Contains grid dimensions (`sizex`, `sizey`, `sizez`),
+#         boundary cell counts (`nbx`, `nby`, `nbz`), and process counts (`npx`, `npy`, `npz`)
+#       + `namelists.setting`: Contains boundary condition settings (`zboundaries`)
 
-# Returns
+# # Returns
 
-A `Domain` instance.
+# A `Domain` instance.
 
-# Error Conditions
+# # Error Conditions
 
-Throws an error if:
+# Throws an error if:
 
-  - Process decomposition doesn't match total process count (`npx * npy * npz != np`)
-  - Boundary cell count exceeds local domain size in any parallelized direction
-  - Unknown boundary condition type is specified
+#   - Process decomposition doesn't match total process count (`npx * npy * npz != np`)
+#   - Boundary cell count exceeds local domain size in any parallelized direction
+#   - Unknown boundary condition type is specified
 
-Currently supports `SolidWallBoundaries()` for z-direction with periodic boundaries in x and y.
-"""
+# Currently supports `SolidWallBoundaries()` for z-direction with periodic boundaries in x and y.
+# """
 function Domain(namelists::Namelists)
     (; sizex, sizey, sizez, nbx, nby, nbz, npx, npy, npz) = namelists.domain
     (; zboundaries) = namelists.setting

@@ -1,16 +1,16 @@
-"""
-```julia
-compute_coriolis_parameter(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-    coriolis_mode::FPlane,
-)
-```
+# """
+# ```julia
+# compute_coriolis_parameter(
+#     namelists::Namelists,
+#     constants::Constants,
+#     domain::Domain,
+#     grid::Grid,
+#     coriolis_mode::FPlane,
+# )
+# ```
 
-Set the Coriolis parameter to a constant.
-"""
+# Set the Coriolis parameter to a constant.
+# """
 function compute_coriolis_parameter(
     namelists::Namelists,
     constants::Constants,

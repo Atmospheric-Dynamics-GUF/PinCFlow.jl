@@ -1,64 +1,64 @@
-"""
-```julia
-Grid{
-    A <: AbstractVector{<:AbstractFloat},
-    B <: AbstractFloat,
-    C <: AbstractMatrix{<:AbstractFloat},
-    D <: AbstractArray{<:AbstractFloat, 3},
-    E <: AbstractArray{<:AbstractFloat, 3},
-    F <: AbstractArray{<:AbstractFloat, 5},
-}
-```
+# """
+# ```julia
+# Grid{
+#     A <: AbstractVector{<:AbstractFloat},
+#     B <: AbstractFloat,
+#     C <: AbstractMatrix{<:AbstractFloat},
+#     D <: AbstractArray{<:AbstractFloat, 3},
+#     E <: AbstractArray{<:AbstractFloat, 3},
+#     F <: AbstractArray{<:AbstractFloat, 5},
+# }
+# ```
 
-Grid information.
+# Grid information.
 
-# Fields
+# # Fields
 
-## Domain Boundaries
+# ## Domain Boundaries
 
-  - `lx`: Non-dimensional domain boundaries in x-direction [x_min, x_max]
-  - `ly`: Non-dimensional domain boundaries in y-direction [y_min, y_max]
-  - `lz`: Non-dimensional domain boundaries in z-direction [z_min, z_max]
+#   - `lx`: Non-dimensional domain boundaries in x-direction [x_min, x_max]
+#   - `ly`: Non-dimensional domain boundaries in y-direction [y_min, y_max]
+#   - `lz`: Non-dimensional domain boundaries in z-direction [z_min, z_max]
 
-## Grid Spacing
+# ## Grid Spacing
 
-  - `dx`: Uniform grid spacing in x-direction
-  - `dy`: Uniform grid spacing in y-direction
-  - `dz`: Uniform grid spacing in z-direction (before vertical stretching)
+#   - `dx`: Uniform grid spacing in x-direction
+#   - `dy`: Uniform grid spacing in y-direction
+#   - `dz`: Uniform grid spacing in z-direction (before vertical stretching)
 
-## Coordinate Arrays
+# ## Coordinate Arrays
 
-  - `x`: Cell-centered x-coordinates for the local domain
-  - `y`: Cell-centered y-coordinates for the local domain
-  - `z`: Cell-centered z-coordinates for the local domain
+#   - `x`: Cell-centered x-coordinates for the local domain
+#   - `y`: Cell-centered y-coordinates for the local domain
+#   - `z`: Cell-centered z-coordinates for the local domain
 
-## Topography
+# ## Topography
 
-  - `topography_surface`: 2D surface topography field
-  - `topography_spectrum`: 3D spectral representation of topography
-  - `k_spectrum`: Wavenumber array in x-direction for spectral methods
-  - `l_spectrum`: Wavenumber array in y-direction for spectral methods
+#   - `topography_surface`: 2D surface topography field
+#   - `topography_spectrum`: 3D spectral representation of topography
+#   - `k_spectrum`: Wavenumber array in x-direction for spectral methods
+#   - `l_spectrum`: Wavenumber array in y-direction for spectral methods
 
-## Coordinate Transformation
+# ## Coordinate Transformation
 
-  - `jac`: 3D Jacobian of the terrain-following coordinate transformation
-  - `met`: 5D metric tensor (3×3 at each grid point) for coordinate transformation
+#   - `jac`: 3D Jacobian of the terrain-following coordinate transformation
+#   - `met`: 5D metric tensor (3×3 at each grid point) for coordinate transformation
 
-## Physical Coordinates
+# ## Physical Coordinates
 
-  - `ztfc`: Physical z-coordinates at cell centers (terrain-following)
-  - `ztildetfc`: Physical z-coordinates at cell faces (terrain-following)
+#   - `ztfc`: Physical z-coordinates at cell centers (terrain-following)
+#   - `ztildetfc`: Physical z-coordinates at cell faces (terrain-following)
 
-# Terrain-Following Coordinates
+# # Terrain-Following Coordinates
 
-The grid uses terrain-following coordinates where:
+# The grid uses terrain-following coordinates where:
 
-  - Horizontal coordinates (x,y) remain Cartesian
-  - Vertical coordinate ζ follows the terrain: ζ = (z - h(x,y))/(H - h(x,y))
-  - Physical height: z_phys = h(x,y) + ζ * (H - h(x,y))
+#   - Horizontal coordinates (x,y) remain Cartesian
+#   - Vertical coordinate ζ follows the terrain: ζ = (z - h(x,y))/(H - h(x,y))
+#   - Physical height: z_phys = h(x,y) + ζ * (H - h(x,y))
 
-where h(x,y) is surface topography and H is domain height.
-"""
+# where h(x,y) is surface topography and H is domain height.
+# """
 struct Grid{
     A <: AbstractVector{<:AbstractFloat},
     B <: AbstractFloat,
@@ -98,42 +98,42 @@ struct Grid{
     ztildetfc::E
 end
 
-"""
-```julia
-Grid(namelists::Namelists, constants::Constants, domain::Domain) -> Grid
-```
+# """
+# ```julia
+# Grid(namelists::Namelists, constants::Constants, domain::Domain) -> Grid
+# ```
 
-Construct a `Grid` instance for mesh generation with terrain-following coordinates.
+# Construct a `Grid` instance for mesh generation with terrain-following coordinates.
 
-This constructor creates a 3D computational grid with terrain-following coordinates (TFC),
-including topography handling, coordinate transformations, and metric tensor computations.
+# This constructor creates a 3D computational grid with terrain-following coordinates (TFC),
+# including topography handling, coordinate transformations, and metric tensor computations.
 
-# Arguments
+# # Arguments
 
-  - `namelists::Namelists`: Configuration object containing grid and domain parameters
-  - `constants::Constants`: Physical constants including reference length scale
-  - `domain::Domain`: MPI domain decomposition information
+#   - `namelists::Namelists`: Configuration object containing grid and domain parameters
+#   - `constants::Constants`: Physical constants including reference length scale
+#   - `domain::Domain`: MPI domain decomposition information
 
-# Returns
+# # Returns
 
-A `Grid` instance.
+# A `Grid` instance.
 
-# Grid Generation Process
+# # Grid Generation Process
 
- 1. Non-dimensionalizes domain boundaries using reference length scale
- 2. Computes uniform grid spacings in each direction
- 3. Generates coordinate arrays for the local MPI subdomain
- 4. Applies vertical stretching transformation based on `stretch_exponent`
- 5. Computes topography using specified test case
- 6. Calculates Jacobian and metric tensor for terrain-following coordinates
- 7. Transforms computational coordinates to physical terrain-following coordinates
+#  1. Non-dimensionalizes domain boundaries using reference length scale
+#  2. Computes uniform grid spacings in each direction
+#  3. Generates coordinate arrays for the local MPI subdomain
+#  4. Applies vertical stretching transformation based on `stretch_exponent`
+#  5. Computes topography using specified test case
+#  6. Calculates Jacobian and metric tensor for terrain-following coordinates
+#  7. Transforms computational coordinates to physical terrain-following coordinates
 
-# Requirements
+# # Requirements
 
-  - `lz[1]` must be zero for terrain-following coordinates
-  - Requires `compute_topography` function for topography generation
-  - Requires boundary condition functions for metric tensor computation
-"""
+#   - `lz[1]` must be zero for terrain-following coordinates
+#   - Requires `compute_topography` function for topography generation
+#   - Requires boundary condition functions for metric tensor computation
+# """
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)
     (; sizex, sizey, sizez, lx_dim, ly_dim, lz_dim, nbz) = namelists.domain
     (; testcase) = namelists.setting

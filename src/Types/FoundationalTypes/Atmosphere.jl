@@ -1,69 +1,69 @@
-"""
-```julia
-Atmosphere{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractVector{<:AbstractFloat},
-}
-```
+# """
+# ```julia
+# Atmosphere{
+#     A <: AbstractArray{<:AbstractFloat, 3},
+#     B <: AbstractVector{<:AbstractFloat},
+# }
+# ```
 
-A type representing the atmospheric background state in terrain-following coordinates.
+# A type representing the atmospheric background state in terrain-following coordinates.
 
-# Type Parameters
+# # Type Parameters
 
-  - `A <: AbstractArray{<:AbstractFloat, 3}`: 3D array type for field variables
-  - `B <: AbstractVector{<:AbstractFloat}`: Vector type for parameters
+#   - `A <: AbstractArray{<:AbstractFloat, 3}`: 3D array type for field variables
+#   - `B <: AbstractVector{<:AbstractFloat}`: Vector type for parameters
 
-# Fields
+# # Fields
 
-  - `pstrattfc::A`: Background pressure [p/pref]
-  - `thetastrattfc::A`: Background potential temperature [θ/θref]
-  - `rhostrattfc::A`: Background density [ρ/ρref]
-  - `bvsstrattfc::A`: Brunt-Väisälä frequency squared [N²/Nref²]
-  - `fc::B`: Coriolis parameter [f/fref]
+#   - `pstrattfc::A`: Background pressure [p/pref]
+#   - `thetastrattfc::A`: Background potential temperature [θ/θref]
+#   - `rhostrattfc::A`: Background density [ρ/ρref]
+#   - `bvsstrattfc::A`: Brunt-Väisälä frequency squared [N²/Nref²]
+#   - `fc::B`: Coriolis parameter [f/fref]
 
-## Parameters
+# ## Parameters
 
-  - `namelists::Namelists`: Configuration parameters
-  - `constants::Constants`: Physical constants
-  - `domain::Domain`: Computational domain information
-  - `grid::Grid`: Grid configuration
-  - `model`: Atmospheric model type (e.g., `Boussinesq`, `AbstractModel`)
-  - `background`: Background state type (e.g., `Isothermal`, `UniformBoussinesq`)
+#   - `namelists::Namelists`: Configuration parameters
+#   - `constants::Constants`: Physical constants
+#   - `domain::Domain`: Computational domain information
+#   - `grid::Grid`: Grid configuration
+#   - `model`: Atmospheric model type (e.g., `Boussinesq`, `AbstractModel`)
+#   - `background`: Background state type (e.g., `Isothermal`, `UniformBoussinesq`)
 
-# Model Types
+# # Model Types
 
-  - `Boussinesq`: Boussinesq approximation
-  - Subtypes of `AbstractModel`: Other atmospheric models
+#   - `Boussinesq`: Boussinesq approximation
+#   - Subtypes of `AbstractModel`: Other atmospheric models
 
-# Background Types
+# # Background Types
 
-  - `Isothermal`: Isothermal background state
-  - `UniformBoussinesq`: Uniform background for Boussinesq model
-  - `StratifiedBoussinesq`: Stratified background for Boussinesq model
+#   - `Isothermal`: Isothermal background state
+#   - `UniformBoussinesq`: Uniform background for Boussinesq model
+#   - `StratifiedBoussinesq`: Stratified background for Boussinesq model
 
-# Examples
+# # Examples
 
-```julia
-# Create atmosphere with default model and background
-atm = Atmosphere(namelists, constants, domain, grid)
+# ```julia
+# # Create atmosphere with default model and background
+# atm = Atmosphere(namelists, constants, domain, grid)
 
-# Create Boussinesq atmosphere with uniform background
-atm = Atmosphere(
-    namelists,
-    constants,
-    domain,
-    grid,
-    Boussinesq(),
-    UniformBoussinesq(),
-)
-```
+# # Create Boussinesq atmosphere with uniform background
+# atm = Atmosphere(
+#     namelists,
+#     constants,
+#     domain,
+#     grid,
+#     Boussinesq(),
+#     UniformBoussinesq(),
+# )
+# ```
 
-# Notes
+# # Notes
 
-  - All fields are non-dimensionalized using reference values from `Constants`
-  - Coordinates are in terrain-following system
-  - Grid decomposition for parallel computation is handled through `Domain`
-"""
+#   - All fields are non-dimensionalized using reference values from `Constants`
+#   - Coordinates are in terrain-following system
+#   - Grid decomposition for parallel computation is handled through `Domain`
+# """
 struct Atmosphere{
     A <: AbstractArray{<:AbstractFloat, 3},
     B <: AbstractVector{<:AbstractFloat},
@@ -75,30 +75,30 @@ struct Atmosphere{
     fc::B
 end
 
-"""
-```julia
-Atmosphere(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-)
-```
+# """
+# ```julia
+# Atmosphere(
+#     namelists::Namelists,
+#     constants::Constants,
+#     domain::Domain,
+#     grid::Grid,
+# )
+# ```
 
-Creates an `Atmosphere` instance with model and background types specified in namelists.
+# Creates an `Atmosphere` instance with model and background types specified in namelists.
 
-# Arguments
+# # Arguments
 
-  - `namelists`: Configuration settings including:
+#   - `namelists`: Configuration settings including:
 
-      + `atmosphere`: Background state parameters
-      + `domain`: Domain configuration
-      + `setting`: Model settings
+#       + `atmosphere`: Background state parameters
+#       + `domain`: Domain configuration
+#       + `setting`: Model settings
 
-  - `constants`: Physical constants and reference values
-  - `domain`: Grid domain information including parallel decomposition
-  - `grid`: Grid metrics and coordinate information
-"""
+#   - `constants`: Physical constants and reference values
+#   - `domain`: Grid domain information including parallel decomposition
+#   - `grid`: Grid metrics and coordinate information
+# """
 function Atmosphere(
     namelists::Namelists,
     constants::Constants,
@@ -110,25 +110,25 @@ function Atmosphere(
     return Atmosphere(namelists, constants, domain, grid, model, background)
 end
 
-"""
-```julia
-Atmosphere(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-    model::Boussinesq,
-    background::UniformBoussinesq,
-)
-```
+# """
+# ```julia
+# Atmosphere(
+#     namelists::Namelists,
+#     constants::Constants,
+#     domain::Domain,
+#     grid::Grid,
+#     model::Boussinesq,
+#     background::UniformBoussinesq,
+# )
+# ```
 
-Creates a uniform Boussinesq atmosphere with:
+# Creates a uniform Boussinesq atmosphere with:
 
-  - Constant density (ρ = ρref)
-  - Uniform potential temperature (θ = θ0)
-  - Zero buoyancy frequency (N² = 0)
-  - Coriolis parameter based on specified mode
-"""
+#   - Constant density (ρ = ρref)
+#   - Uniform potential temperature (θ = θ0)
+#   - Zero buoyancy frequency (N² = 0)
+#   - Coriolis parameter based on specified mode
+# """
 function Atmosphere(
     namelists::Namelists,
     constants::Constants,
@@ -160,26 +160,26 @@ function Atmosphere(
     return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc, fc)
 end
 
-"""
-```julia
-Atmosphere(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-    model::Boussinesq,
-    background::StratifiedBoussinesq,
-)
-```
+# """
+# ```julia
+# Atmosphere(
+#     namelists::Namelists,
+#     constants::Constants,
+#     domain::Domain,
+#     grid::Grid,
+#     model::Boussinesq,
+#     background::StratifiedBoussinesq,
+# )
+# ```
 
-Creates a stratified Boussinesq atmosphere with:
+# Creates a stratified Boussinesq atmosphere with:
 
-  - Constant density: ρ = ρ_ref
-  - Uniform potential temperature: θ = θ_0
-  - Constant pressure from equation of state: p = ρΘ
-  - Constant buoyancy frequency (N² = N0²)
-  - Coriolis parameter based on specified mode
-"""
+#   - Constant density: ρ = ρ_ref
+#   - Uniform potential temperature: θ = θ_0
+#   - Constant pressure from equation of state: p = ρΘ
+#   - Constant buoyancy frequency (N² = N0²)
+#   - Coriolis parameter based on specified mode
+# """
 function Atmosphere(
     namelists::Namelists,
     constants::Constants,
@@ -211,26 +211,26 @@ function Atmosphere(
     return Atmosphere(pstrattfc, thetastrattfc, rhostrattfc, bvsstrattfc, fc)
 end
 
-"""
-```julia
-Atmosphere(
-    namelists::Namelists,
-    constants::Constants,
-    domain::Domain,
-    grid::Grid,
-    model::AbstractModel,
-    background::Isothermal,
-)
-```
+# """
+# ```julia
+# Atmosphere(
+#     namelists::Namelists,
+#     constants::Constants,
+#     domain::Domain,
+#     grid::Grid,
+#     model::AbstractModel,
+#     background::Isothermal,
+# )
+# ```
 
-Creates an isothermal atmosphere with:
+# Creates an isothermal atmosphere with:
 
-  - Exponential pressure profile: p(z) = p0 * exp(-σz/γT0)
-  - Temperature profile: θ(z) = T0 * exp(κσz/T0)
-  - Density from equation of state: ρ = p/θ
-  - N² computed from vertical θ gradient
-  - Handles boundary conditions for N² calculation
-"""
+#   - Exponential pressure profile: p(z) = p0 * exp(-σz/γT0)
+#   - Temperature profile: θ(z) = T0 * exp(κσz/T0)
+#   - Density from equation of state: ρ = p/θ
+#   - N² computed from vertical θ gradient
+#   - Handles boundary conditions for N² calculation
+# """
 function Atmosphere(
     namelists::Namelists,
     constants::Constants,
