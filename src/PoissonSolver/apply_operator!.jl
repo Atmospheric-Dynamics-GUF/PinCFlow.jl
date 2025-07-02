@@ -21,7 +21,7 @@ terms for terrain-following coordinates.
   - Uses stencil coefficients pre-computed in `compute_operator!`
   - Handles boundary conditions through halo exchanges
   - Modifies `ls` in place
-  """
+"""
 function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
     ls::AbstractArray{<:AbstractFloat, 3},

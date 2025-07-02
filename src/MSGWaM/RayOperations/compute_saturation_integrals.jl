@@ -79,7 +79,9 @@ Accounts for:
   - Momentum flux saturation
 
 # Grid Cell Association
+
     # Get indices.
+
 Rays are associated with grid cells based on their center positions,
 with appropriate interpolation for rays spanning multiple cells.
 """

@@ -71,9 +71,12 @@ Only computes tendencies above minimum WKB altitude:
 Updates the following tendency fields:
 
   - `tendencies.dudt[i,j,k]`: Zonal wind tendency
+
   - `tendencies.dvdt[i,j,k]`: Meridional wind tendency
   - `tendencies.dthetadt[i,j,k]`: Potential temperature tendency
+
     # Set the Coriolis parameter.
+
 # Conservation Properties
 
   - Momentum: Conserved through proper flux divergence calculation

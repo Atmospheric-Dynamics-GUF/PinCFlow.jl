@@ -1,11 +1,12 @@
 """
     split_rays!(state::State)
 
-Entry point for ray splitting operations. Delegates to the appropriate method based on 
+Entry point for ray splitting operations. Delegates to the appropriate method based on
 the test case specified in the state's settings.
 
 # Arguments
-- `state::State`: The state object containing model data and configuration
+
+  - `state::State`: The state object containing model data and configuration
 """
 function split_rays!(state::State)
     (; testcase) = state.namelists.setting
@@ -16,12 +17,13 @@ end
 """
     split_rays!(state::State, testcase::AbstractTestCase)
 
-Default implementation for non-WKB test cases. Does nothing as ray splitting is not 
+Default implementation for non-WKB test cases. Does nothing as ray splitting is not
 required for standard test cases.
 
 # Arguments
-- `state::State`: The state object containing model data and configuration
-- `testcase::AbstractTestCase`: The test case specification
+
+  - `state::State`: The state object containing model data and configuration
+  - `testcase::AbstractTestCase`: The test case specification
 """
 function split_rays!(state::State, testcase::AbstractTestCase)
     return
@@ -34,8 +36,9 @@ Implementation for WKB test cases. Delegates to the appropriate method based on
 the WKB mode specified in the state's configuration.
 
 # Arguments
-- `state::State`: The state object containing model data and configuration
-- `testcase::AbstractWKBTestCase`: The WKB test case specification
+
+  - `state::State`: The state object containing model data and configuration
+  - `testcase::AbstractWKBTestCase`: The WKB test case specification
 """
 function split_rays!(state::State, testcase::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
@@ -50,8 +53,9 @@ Implementation for steady state WKB mode. Does nothing as rays remain stationary
 and do not require splitting.
 
 # Arguments
-- `state::State`: The state object containing model data and configuration
-- `wkb_mode::SteadyState`: The steady state WKB mode specification
+
+  - `state::State`: The state object containing model data and configuration
+  - `wkb_mode::SteadyState`: The steady state WKB mode specification
 """
 function split_rays!(state::State, wkb_mode::SteadyState)
     return
@@ -64,14 +68,16 @@ Implementation for single column WKB mode. Splits rays in the vertical (Z) direc
 when their extent becomes too large relative to the grid spacing.
 
 # Arguments
-- `state::State`: The state object containing model data and configuration
-- `wkb_mode::SingleColumn`: The single column WKB mode specification
+
+  - `state::State`: The state object containing model data and configuration
+  - `wkb_mode::SingleColumn`: The single column WKB mode specification
 
 # Implementation
-- Counts total ray volumes before and after splitting across all MPI processes
-- Performs vertical ray splitting for each grid cell
-- Reports splitting statistics if rays were actually split
-- Only the master process prints output to avoid duplicate messages
+
+  - Counts total ray volumes before and after splitting across all MPI processes
+  - Performs vertical ray splitting for each grid cell
+  - Reports splitting statistics if rays were actually split
+  - Only the master process prints output to avoid duplicate messages
 """
 function split_rays!(state::State, wkb_mode::SingleColumn)
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
@@ -103,17 +109,21 @@ Implementation for multi-column WKB mode. Splits rays in X, Y, and Z directions
 as appropriate based on domain dimensions.
 
 # Arguments
-- `state::State`: The state object containing model data and configuration
-- `wkb_mode::MultiColumn`: The multi-column WKB mode specification
+
+  - `state::State`: The state object containing model data and configuration
+  - `wkb_mode::MultiColumn`: The multi-column WKB mode specification
 
 # Implementation
-- Counts total ray volumes before and after splitting across all MPI processes
-- For each grid cell, performs splitting in active dimensions:
-  - X-direction splitting if domain size in X > 1
-  - Y-direction splitting if domain size in Y > 1
-  - Z-direction splitting (always performed)
-- Reports splitting statistics if rays were actually split
-- Only the master process prints output to avoid duplicate messages
+
+  - Counts total ray volumes before and after splitting across all MPI processes
+
+  - For each grid cell, performs splitting in active dimensions:
+
+      + X-direction splitting if domain size in X > 1
+      + Y-direction splitting if domain size in Y > 1
+      + Z-direction splitting (always performed)
+  - Reports splitting statistics if rays were actually split
+  - Only the master process prints output to avoid duplicate messages
 """
 function split_rays!(state::State, wkb_mode::MultiColumn)
     (; sizex, sizey) = state.namelists.domain
@@ -154,23 +164,28 @@ Split rays in the X (zonal) direction for a specific grid cell when ray extent
 exceeds the grid spacing.
 
 # Arguments
-- `ix::Integer`: Grid cell index in X direction
-- `jy::Integer`: Grid cell index in Y direction  
-- `kz::Integer`: Grid cell index in Z direction
-- `state::State`: The state object containing model data and configuration
-- `axis::X`: Dispatch type indicating X-direction splitting
+
+  - `ix::Integer`: Grid cell index in X direction
+  - `jy::Integer`: Grid cell index in Y direction
+  - `kz::Integer`: Grid cell index in Z direction
+  - `state::State`: The state object containing model data and configuration
+  - `axis::X`: Dispatch type indicating X-direction splitting
 
 # Implementation
-- Examines each ray's X-direction extent (`dxray`)
-- If `dxray > dx` (grid spacing), splits the ray into two parts:
-  - Both parts have half the original extent (`0.5 * dxray`)
-  - Original ray position shifted to `xr - 0.25 * dxray`
-  - New ray position set to `xr + 0.25 * dxray`
-- Updates ray count and performs bounds checking
-- Copies all ray properties to the new ray volume
+
+  - Examines each ray's X-direction extent (`dxray`)
+
+  - If `dxray > dx` (grid spacing), splits the ray into two parts:
+
+      + Both parts have half the original extent (`0.5 * dxray`)
+      + Original ray position shifted to `xr - 0.25 * dxray`
+      + New ray position set to `xr + 0.25 * dxray`
+  - Updates ray count and performs bounds checking
+  - Copies all ray properties to the new ray volume
 
 # Error Handling
-- Throws error if total ray count exceeds `nray_wrk` limit
+
+  - Throws error if total ray count exceeds `nray_wrk` limit
 """
 function split_rays!(
     ix::Integer,
@@ -222,23 +237,28 @@ Split rays in the Y (meridional) direction for a specific grid cell when ray ext
 exceeds the grid spacing.
 
 # Arguments
-- `ix::Integer`: Grid cell index in X direction
-- `jy::Integer`: Grid cell index in Y direction
-- `kz::Integer`: Grid cell index in Z direction  
-- `state::State`: The state object containing model data and configuration
-- `axis::Y`: Dispatch type indicating Y-direction splitting
+
+  - `ix::Integer`: Grid cell index in X direction
+  - `jy::Integer`: Grid cell index in Y direction
+  - `kz::Integer`: Grid cell index in Z direction
+  - `state::State`: The state object containing model data and configuration
+  - `axis::Y`: Dispatch type indicating Y-direction splitting
 
 # Implementation
-- Examines each ray's Y-direction extent (`dyray`)
-- If `dyray > dy` (grid spacing), splits the ray into two parts:
-  - Both parts have half the original extent (`0.5 * dyray`)
-  - Original ray position shifted to `yr - 0.25 * dyray`
-  - New ray position set to `yr + 0.25 * dyray`
-- Updates ray count and performs bounds checking
-- Copies all ray properties to the new ray volume
+
+  - Examines each ray's Y-direction extent (`dyray`)
+
+  - If `dyray > dy` (grid spacing), splits the ray into two parts:
+
+      + Both parts have half the original extent (`0.5 * dyray`)
+      + Original ray position shifted to `yr - 0.25 * dyray`
+      + New ray position set to `yr + 0.25 * dyray`
+  - Updates ray count and performs bounds checking
+  - Copies all ray properties to the new ray volume
 
 # Error Handling
-- Throws error if total ray count exceeds `nray_wrk` limit
+
+  - Throws error if total ray count exceeds `nray_wrk` limit
 """
 function split_rays!(
     ix::Integer,
@@ -290,30 +310,36 @@ Split rays in the Z (vertical) direction for a specific grid cell when ray exten
 exceeds the minimum local grid spacing.
 
 # Arguments
-- `ix::Integer`: Grid cell index in X direction
-- `jy::Integer`: Grid cell index in Y direction
-- `kz::Integer`: Grid cell index in Z direction
-- `state::State`: The state object containing model data and configuration  
-- `axis::Z`: Dispatch type indicating Z-direction splitting
+
+  - `ix::Integer`: Grid cell index in X direction
+  - `jy::Integer`: Grid cell index in Y direction
+  - `kz::Integer`: Grid cell index in Z direction
+  - `state::State`: The state object containing model data and configuration
+  - `axis::Z`: Dispatch type indicating Z-direction splitting
 
 # Implementation
-- Determines vertical extent of ray (`dzray`) and its spatial range
-- Finds minimum grid spacing (`dzmin`) over all levels the ray spans
-- Uses `get_next_half_level` to determine vertical level boundaries
-- Accounts for grid stretching via Jacobian factor
-- If `dzray > dzmin`, splits ray into multiple parts:
-  - Number of parts: `factor = ceil(dzray / dzmin)`
-  - Each part has extent `dzray / factor`
-  - Parts are distributed vertically with spacing `dzray / factor`
-- Updates ray count and performs bounds checking
+
+  - Determines vertical extent of ray (`dzray`) and its spatial range
+
+  - Finds minimum grid spacing (`dzmin`) over all levels the ray spans
+  - Uses `get_next_half_level` to determine vertical level boundaries
+  - Accounts for grid stretching via Jacobian factor
+  - If `dzray > dzmin`, splits ray into multiple parts:
+
+      + Number of parts: `factor = ceil(dzray / dzmin)`
+      + Each part has extent `dzray / factor`
+      + Parts are distributed vertically with spacing `dzray / factor`
+  - Updates ray count and performs bounds checking
 
 # Error Handling
-- Throws error if total ray count exceeds `nray_wrk` limit
+
+  - Throws error if total ray count exceeds `nray_wrk` limit
 
 # Notes
-- More complex than X/Y splitting due to vertical grid stretching
-- Can split into more than 2 parts if necessary
-- Respects terrain-following coordinate system
+
+  - More complex than X/Y splitting due to vertical grid stretching
+  - Can split into more than 2 parts if necessary
+  - Respects terrain-following coordinate system
 """
 function split_rays!(
     ix::Integer,

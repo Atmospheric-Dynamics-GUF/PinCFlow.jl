@@ -26,8 +26,8 @@ output = OutputNamelist(;
     outputtimediff = 3.6E+3,
     maxtime = 3.6E+3,
     fancy_namelists = true,
-    input_file = "./pincflow_input.h5",
-    output_file = "./pincflow_output.h5",
+    input_file = "./test/pincflow_input.h5",
+    output_file = "./test/pincflow_output.h5",
 )
 setting = SettingNamelist(;
     model = PseudoIncompressible(),
@@ -117,8 +117,8 @@ restart_output = OutputNamelist(;
     output_variables = (),
     restart = true,
     iin = 2,
-    input_file = "./pincflow_output.h5",
-    output_file = "./pincflow_output.h5",
+    input_file = "./test/pincflow_output.h5",
+    output_file = "./test/pincflow_output.h5",
 )
 in_state = PinCFlow.State(
     Namelists(;
@@ -169,4 +169,4 @@ foreach(marked_x_values) do i
     @test isapprox(in_state.wkb.rays.dens[i], 1.0, rtol = 1e-6)
 end
 
-rm("pincflow_output.h5")
+rm("./test/pincflow_output.h5")

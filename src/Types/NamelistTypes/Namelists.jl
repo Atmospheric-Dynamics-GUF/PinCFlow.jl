@@ -13,6 +13,10 @@ struct Namelists{
     G <: GridNamelist,
     H <: SpongeNamelist,
     I <: WKBNamelist,
+    J <: TracerNamelist,
+    K <: IceNamelist,
+    L <: TurbulenceNamelist,
+    M <: WavePacketNamelist,
 }
     domain::A
     output::B
@@ -23,6 +27,10 @@ struct Namelists{
     grid::G
     sponge::H
     wkb::I
+    tracer::J
+    ice::K
+    turbulence::L
+    wavepacket::M
 end
 
 """
@@ -30,7 +38,7 @@ end
     domain = DomainNamelist(), output = OutputNamelist(), setting = SettingNamelist(),
     discretization = DiscretizationNamelist(), poisson = PoissonNamelist(),
     atmosphere = AtmosphereNamelist(), grid = GridNamelist(), sponge = SpongeNamelist(),
-    wkb = WKBNamelist())
+    wkb = WKBNamelist(), wavepacket = WavePacketNamelist())
 
 Create a new `Namelist` instance with the provided namelists. Omitted namelists will be initialized with default values.
 """
@@ -44,6 +52,10 @@ function Namelists(;
     grid = GridNamelist(),
     sponge = SpongeNamelist(),
     wkb = WKBNamelist(),
+    tracer = TracerNamelist(),
+    ice = IceNamelist(),
+    turbulence = TurbulenceNamelist(),
+    wavepacket = WavePacketNamelist(),
 )
     return Namelists(
         domain,
@@ -55,5 +67,9 @@ function Namelists(;
         grid,
         sponge,
         wkb,
+        tracer,
+        ice,
+        turbulence,
+        wavepacket,
     )
 end
