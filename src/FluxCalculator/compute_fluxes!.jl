@@ -358,8 +358,8 @@ adjustments for the direction-specific reconstructions and stress tensor compone
 
 # See also
 
-  - [`compute_flux`](@ref)
-  - [`compute_stress_tensor`](@ref)
+  - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
+  - [`PinCFlow.Update.compute_stress_tensor`](@ref)
 """
 function compute_fluxes!(
     state::State,

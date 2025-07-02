@@ -24,7 +24,7 @@ Compute contravariant vertical velocity w^ζ in terrain-following coordinates.
 # Implementation
 
 Extracts velocity components at cell edges and applies coordinate transformation
-via [`transform`](@ref) function to account for terrain-following effects.
+via [`PinCFlow.Update.transform`](@ref) function to account for terrain-following effects.
 """
 function compute_vertical_wind(
     i::Integer,

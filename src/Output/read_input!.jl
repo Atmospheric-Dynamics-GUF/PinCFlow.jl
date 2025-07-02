@@ -5,7 +5,7 @@ read_input(state::State)
 
 Read initial conditions and background fields from HDF5 input file.
 
-Loads grid coordinates, background atmosphere state, and prognostic variable initial conditions from the file specified by the parameter `input_file` in [`OutputNamelist`](@ref).
+Loads grid coordinates, background atmosphere state, and prognostic variable initial conditions from the file specified by the parameter `input_file` in [`PinCFlow.Types.NamelistTypes.OutputNamelist`](@ref).
 
 # Arguments
 
@@ -21,7 +21,7 @@ Loads grid coordinates, background atmosphere state, and prognostic variable ini
 # Implementation
 
   - **MPI I/O**: Reads domain-decomposed data with proper rank distribution
-  - **Scaling**: Applies inverse dimensional scaling from [`Constants`](@ref)
+  - **Scaling**: Applies inverse dimensional scaling from [`PinCFlow.Types.FoundationalTypes.Constants`](@ref)
   - **Interpolation**: Handles grid mismatches between input and simulation grids
   - **Validation**: Checks input dimensions against simulation
 """

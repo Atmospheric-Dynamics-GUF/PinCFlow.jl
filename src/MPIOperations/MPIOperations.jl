@@ -10,10 +10,10 @@ process boundaries and global reduction operations for distributed arrays.
 
 # Key Functions
 
-  - [`set_zonal_halos_of_field!`](@ref): Halo exchange in ``x``-direction.
-  - [`set_meridional_halos_of_field!`](@ref): Halo exchange in ``y``-direction.
-  - [`set_vertical_halos_of_field!`](@ref): Halo exchange in ``z``-direction.
-  - [`compute_global_dot_product`](@ref): Distributed dot product computation.
+  - [`PinCFlow.MPIOperations.set_zonal_halos_of_field!`](@ref): Halo exchange in ``x``-direction.
+  - [`PinCFlow.MPIOperations.set_meridional_halos_of_field!`](@ref): Halo exchange in ``y``-direction.
+  - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref): Halo exchange in ``z``-direction.
+  - [`PinCFlow.MPIOperations.compute_global_dot_product`](@ref): Distributed dot product computation.
 
 # Array Support
 

@@ -23,7 +23,7 @@ where `β = 1/(1 + α*dt)` and α is the spatially-varying damping coefficient.
   - **Horizontal averaging**: Option to relax toward instantaneous horizontal mean
 
 The unified approach uses single damping coefficient field for all variables,
-computed by [`compute_sponge!`](@ref) with various spatial profiles.
+computed by [`PinCFlow.Update.compute_sponge!`](@ref) with various spatial profiles.
 """
 function apply_unified_sponge!(
     state::State,

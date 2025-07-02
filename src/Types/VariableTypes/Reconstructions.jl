@@ -60,9 +60,9 @@ u_right = recons.utilde[i, j, k, 1, 2]  # Right state, x-direction
 
 # See also
 
-  - [`apply_3d_muscl!`](@ref)
-  - [`compute_fluxes!`](@ref)
-  - [`Variables`](@ref)
+  - [`PinCFlow.FluxCalculator.apply_3d_muscl!`](@ref)
+  - [`PinCFlow.FluxCalculator.compute_fluxes!`](@ref)
+  - [`PinCFlow.Types.VariableTypes.Variables`](@ref)
 """
 struct Reconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     rhotilde::A

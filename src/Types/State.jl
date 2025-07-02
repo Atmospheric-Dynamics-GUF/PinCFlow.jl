@@ -133,10 +133,10 @@ rho0 = state.atmosphere.rhostrattfc
 
 # See also
 
-  - [`Namelists`](@ref)
-  - [`Variables`](@ref)
-  - [`Grid`](@ref)
-  - [`Poisson`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.Namelists`](@ref)
+  - [`PinCFlow.Types.VariableTypes.Variables`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.Grid`](@ref)
+  - [`PinCFlow.Types.PoissonTypes.Poisson`](@ref)
 """
 struct State{
     A <: Namelists,
