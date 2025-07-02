@@ -1,50 +1,50 @@
-# """
-# ```julia
-# compute_topography(
-#     namelists::Namelists,
-#     constants::Constants,
-#     domain::Domain,
-#     x::AbstractVector{<:AbstractFloat},
-#     y::AbstractVector{<:AbstractFloat},
-#     testcase::WKBMountainWave,
-# )
-# ```
+"""
+```julia
+compute_topography(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    x::AbstractVector{<:AbstractFloat},
+    y::AbstractVector{<:AbstractFloat},
+    testcase::WKBMountainWave,
+)
+```
 
-# Compute topography for WKB mountain wave test cases with spectral decomposition.
+Compute topography for WKB mountain wave test cases with spectral decomposition.
 
-# # Arguments
+# Arguments
 
-#   - `namelists::Namelists`: Configuration parameters including domain, grid, and WKB settings
-#   - `constants::Constants`: Physical constants including reference length scale
-#   - `domain::Domain`: Computational domain specification
-#   - `x::AbstractVector{<:AbstractFloat}`: X-coordinate grid points
-#   - `y::AbstractVector{<:AbstractFloat}`: Y-coordinate grid points
-#   - `testcase::WKBMountainWave`: WKB mountain wave test case specification
+  - `namelists::Namelists`: Configuration parameters including domain, grid, and WKB settings
+  - `constants::Constants`: Physical constants including reference length scale
+  - `domain::Domain`: Computational domain specification
+  - `x::AbstractVector{<:AbstractFloat}`: X-coordinate grid points
+  - `y::AbstractVector{<:AbstractFloat}`: Y-coordinate grid points
+  - `testcase::WKBMountainWave`: WKB mountain wave test case specification
 
-# # Returns
+# Returns
 
-#   - `Tuple`: (topography_surface, topography_spectrum, k_spectrum, l_spectrum)
+  - `Tuple`: (topography_surface, topography_spectrum, k_spectrum, l_spectrum)
 
-#       + `topography_surface`: 2D array of surface height values
-#       + `topography_spectrum`: 3D array of spectral amplitude components
-#       + `k_spectrum`: 3D array of zonal wavenumber components
-#       + `l_spectrum`: 3D array of meridional wavenumber components
+      + `topography_surface`: 2D array of surface height values
+      + `topography_spectrum`: 3D array of spectral amplitude components
+      + `k_spectrum`: 3D array of zonal wavenumber components
+      + `l_spectrum`: 3D array of meridional wavenumber components
 
-# # Mountain Cases (WKB-specific)
+# Mountain Cases (WKB-specific)
 
-#   - **Case 1**: 2D cosine mountains - Simple periodic structure in x-direction
-#   - **Case 5**: 2D cosine envelope with even background - Modulated cosine wave
-#   - **Case 7**: 2D Gaussian envelope with even background - Gaussian-modulated structure
-#   - **Case 9**: 2D cosine envelope with cosine background - Double cosine modulation
-#   - **Case 11**: 2D Gaussian envelope with Gaussian background - Full Gaussian structure
-#   - **Case 13**: 3D WKB topography - Complex 3D structure with multiple spectral modes
+  - **Case 1**: 2D cosine mountains - Simple periodic structure in x-direction
+  - **Case 5**: 2D cosine envelope with even background - Modulated cosine wave
+  - **Case 7**: 2D Gaussian envelope with even background - Gaussian-modulated structure
+  - **Case 9**: 2D cosine envelope with cosine background - Double cosine modulation
+  - **Case 11**: 2D Gaussian envelope with Gaussian background - Full Gaussian structure
+  - **Case 13**: 3D WKB topography - Complex 3D structure with multiple spectral modes
 
-# # Notes
+# Notes
 
-#   - For Case 13, spectral modes are distributed uniformly in wavenumber space
-#   - The function validates that `nwm` (number of wave modes) is sufficient for the chosen case
-#   - All coordinates are normalized by the reference length scale
-# """
+  - For Case 13, spectral modes are distributed uniformly in wavenumber space
+  - The function validates that `nwm` (number of wave modes) is sufficient for the chosen case
+  - All coordinates are normalized by the reference length scale
+"""
 function compute_topography(
     namelists::Namelists,
     constants::Constants,
@@ -203,117 +203,117 @@ function compute_topography(
     return (topography_surface, topography_spectrum, k_spectrum, l_spectrum)
 end
 
-# """
-# ```julia
-# compute_topography(
-#     namelists::Namelists,
-#     constants::Constants,
-#     domain::Domain,
-#     x::AbstractVector{<:AbstractFloat},
-#     y::AbstractVector{<:AbstractFloat},
-#     testcase::MountainWave,
-# )
-# ```
+"""
+```julia
+compute_topography(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    x::AbstractVector{<:AbstractFloat},
+    y::AbstractVector{<:AbstractFloat},
+    testcase::MountainWave,
+)
+```
 
-# Compute topography for standard mountain wave test cases.
+Compute topography for standard mountain wave test cases.
 
-# # Arguments
+# Arguments
 
-#   - `namelists::Namelists`: Configuration parameters including domain and grid settings
-#   - `constants::Constants`: Physical constants including reference length scale
-#   - `domain::Domain`: Computational domain specification
-#   - `x::AbstractVector{<:AbstractFloat}`: X-coordinate grid points
-#   - `y::AbstractVector{<:AbstractFloat}`: Y-coordinate grid points
-#   - `testcase::MountainWave`: Standard mountain wave test case specification
+  - `namelists::Namelists`: Configuration parameters including domain and grid settings
+  - `constants::Constants`: Physical constants including reference length scale
+  - `domain::Domain`: Computational domain specification
+  - `x::AbstractVector{<:AbstractFloat}`: X-coordinate grid points
+  - `y::AbstractVector{<:AbstractFloat}`: Y-coordinate grid points
+  - `testcase::MountainWave`: Standard mountain wave test case specification
 
-# # Returns
+# Returns
 
-#   - `Tuple`: (topography_surface, topography_spectrum, k_spectrum, l_spectrum)
+  - `Tuple`: (topography_surface, topography_spectrum, k_spectrum, l_spectrum)
 
-#       + `topography_surface`: 2D array of surface height values
-#       + `topography_spectrum`: Empty 3D array (not used for standard cases)
-#       + `k_spectrum`: Empty 3D array (not used for standard cases)
-#       + `l_spectrum`: Empty 3D array (not used for standard cases)
+      + `topography_surface`: 2D array of surface height values
+      + `topography_spectrum`: Empty 3D array (not used for standard cases)
+      + `k_spectrum`: Empty 3D array (not used for standard cases)
+      + `l_spectrum`: Empty 3D array (not used for standard cases)
 
-# # Mountain Cases (Complete List)
+# Mountain Cases (Complete List)
 
-# ## 2D Cases
+## 2D Cases
 
-#   - **Case 1**: 2D cosine mountains
+  - **Case 1**: 2D cosine mountains
 
-#       + Formula: `h = 0.5 * H * (1 + cos(k * (x - x_c)))`
-#       + Simple periodic mountain ridge in x-direction
+      + Formula: `h = 0.5 * H * (1 + cos(k * (x - x_c)))`
+      + Simple periodic mountain ridge in x-direction
 
-#   - **Case 3**: 2D isolated mountain
+  - **Case 3**: 2D isolated mountain
 
-#       + Formula: `h = H / (1 + (x - x_c)²/W²)`
-#       + Classic bell-shaped isolated peak
-#   - **Case 5**: 2D cosine envelope with even background
+      + Formula: `h = H / (1 + (x - x_c)²/W²)`
+      + Classic bell-shaped isolated peak
+  - **Case 5**: 2D cosine envelope with even background
 
-#       + Within envelope: Modulated cosine wave
-#       + Outside envelope: Constant background height
-#       + Smooth transition between regions
-#   - **Case 7**: 2D Gaussian envelope with even background
+      + Within envelope: Modulated cosine wave
+      + Outside envelope: Constant background height
+      + Smooth transition between regions
+  - **Case 7**: 2D Gaussian envelope with even background
 
-#       + Formula: `h = 0.5 * H * (1 + exp(-(x-x_c)²/W²) * cos(k*(x-x_c)))`
-#       + Gaussian-modulated oscillatory structure
-#   - **Case 9**: 2D cosine envelope with cosine background
+      + Formula: `h = 0.5 * H * (1 + exp(-(x-x_c)²/W²) * cos(k*(x-x_c)))`
+      + Gaussian-modulated oscillatory structure
+  - **Case 9**: 2D cosine envelope with cosine background
 
-#       + Within envelope: `h = 0.25 * H * envelope * (1 + cos(k*(x-x_c)))`
-#       + Localized cosine mountain with smooth edges
-#   - **Case 11**: 2D Gaussian envelope with Gaussian background
+      + Within envelope: `h = 0.25 * H * envelope * (1 + cos(k*(x-x_c)))`
+      + Localized cosine mountain with smooth edges
+  - **Case 11**: 2D Gaussian envelope with Gaussian background
 
-#       + Formula: `h = 0.5 * H * exp(-(x-x_c)²/W²) * (1 + cos(k*(x-x_c)))`
-#       + Fully Gaussian-modulated structure
+      + Formula: `h = 0.5 * H * exp(-(x-x_c)²/W²) * (1 + cos(k*(x-x_c)))`
+      + Fully Gaussian-modulated structure
 
-# ## 3D Cases
+## 3D Cases
 
-#   - **Case 2**: 3D cosine mountains
+  - **Case 2**: 3D cosine mountains
 
-#       + Formula: `h = 0.5 * H * (1 + cos(k * √((x-x_c)² + (y-y_c)²)))`
-#       + Radially symmetric cosine structure
+      + Formula: `h = 0.5 * H * (1 + cos(k * √((x-x_c)² + (y-y_c)²)))`
+      + Radially symmetric cosine structure
 
-#   - **Case 4**: 3D isolated mountain
+  - **Case 4**: 3D isolated mountain
 
-#       + Formula: `h = H / (1 + ((x-x_c)² + (y-y_c)²)/W²)`
-#       + Axisymmetric bell-shaped mountain
-#   - **Case 6**: 3D cosine envelope with even background
+      + Formula: `h = H / (1 + ((x-x_c)² + (y-y_c)²)/W²)`
+      + Axisymmetric bell-shaped mountain
+  - **Case 6**: 3D cosine envelope with even background
 
-#       + Within circular envelope: Modulated 3D cosine structure
-#       + Outside envelope: Constant background height
-#   - **Case 8**: 3D Gaussian envelope with even background
+      + Within circular envelope: Modulated 3D cosine structure
+      + Outside envelope: Constant background height
+  - **Case 8**: 3D Gaussian envelope with even background
 
-#       + Formula: `h = 0.5 * H * (1 + exp(-r²/W²) * cos(k*r))`
-#       + Where `r = √((x-x_c)² + (y-y_c)²)`
-#   - **Case 10**: 3D cosine envelope with cosine background
+      + Formula: `h = 0.5 * H * (1 + exp(-r²/W²) * cos(k*r))`
+      + Where `r = √((x-x_c)² + (y-y_c)²)`
+  - **Case 10**: 3D cosine envelope with cosine background
 
-#       + Within envelope: Double cosine modulation in 3D
-#       + Localized 3D structure with smooth transitions
-#   - **Case 12**: 3D Gaussian envelope with Gaussian background
+      + Within envelope: Double cosine modulation in 3D
+      + Localized 3D structure with smooth transitions
+  - **Case 12**: 3D Gaussian envelope with Gaussian background
 
-#       + Formula: `h = 0.5 * H * exp(-r²/W²) * (1 + cos(k*r))`
-#       + Fully 3D Gaussian-modulated structure
-#   - **Case 13**: 3D WKB topography with spectral modes
+      + Formula: `h = 0.5 * H * exp(-r²/W²) * (1 + cos(k*r))`
+      + Fully 3D Gaussian-modulated structure
+  - **Case 13**: 3D WKB topography with spectral modes
 
-#       + Combines base topography with multiple spectral components
-#       + Each mode has specific wavenumber orientation
-#       + Used for complex wave interaction studies
+      + Combines base topography with multiple spectral components
+      + Each mode has specific wavenumber orientation
+      + Used for complex wave interaction studies
 
-# # Parameters
+# Parameters
 
-#   - `H`: Mountain height (mountainheight_dim/lref)
-#   - `W`: Mountain width (mountainwidth_dim/lref)
-#   - `k`: Mountain wavenumber (π/W)
-#   - `(x_c, y_c)`: Mountain center coordinates
-#   - `width_factor`: Envelope width scaling factor
-#   - `height_factor`: Height distribution factor (Case 13)
-#   - `spectral_modes`: Number of spectral components (Case 13)
+  - `H`: Mountain height (mountainheight_dim/lref)
+  - `W`: Mountain width (mountainwidth_dim/lref)
+  - `k`: Mountain wavenumber (π/W)
+  - `(x_c, y_c)`: Mountain center coordinates
+  - `width_factor`: Envelope width scaling factor
+  - `height_factor`: Height distribution factor (Case 13)
+  - `spectral_modes`: Number of spectral components (Case 13)
 
-# # Notes
+# Notes
 
-#   - All coordinates are normalized by the reference length scale (lref)
-#   - Boundary conditions are applied to ensure proper domain periodicity
-# """
+  - All coordinates are normalized by the reference length scale (lref)
+  - Boundary conditions are applied to ensure proper domain periodicity
+"""
 function compute_topography(
     namelists::Namelists,
     constants::Constants,
