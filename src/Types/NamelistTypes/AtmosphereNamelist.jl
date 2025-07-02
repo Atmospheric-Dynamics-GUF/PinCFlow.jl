@@ -18,25 +18,25 @@ struct AtmosphereNamelist{
     coriolis_mode::E
 end
 
-
 """
     AtmosphereNamelist(; <keyword arguments>)
 
 Constructor for the `AtmosphereNamelist` type, which defines parameters for the background atmosphere.
 
 # Arguments
-- `specifyreynolds::Bool = false`: Flag to specify Reynolds number instead of viscosity
-- `reinv::AbstractFloat = 0.0E+0`: Inverse Reynolds number
-- `mu_viscous_dim::AbstractFloat = 0.0E+0`: Dimensional viscosity
-- `background::AbstractBackground = Isothermal()`: Background atmosphere model. 
+
+  - `specifyreynolds::Bool = false`: Flag to specify Reynolds number instead of viscosity
+  - `reinv::AbstractFloat = 0.0E+0`: Inverse Reynolds number
+  - `mu_viscous_dim::AbstractFloat = 0.0E+0`: Dimensional viscosity
+  - `background::AbstractBackground = Isothermal()`: Background atmosphere model.
     Can be `Isothermal()`, `StratifiedBoussinesq()`, or `Stratified()`
-- `buoyancy_frequency::AbstractFloat = 1.0E-2`: Buoyancy frequency. Used only if `background` is `StratifiedBoussinesq()`
-- `theta0_dim::AbstractFloat = 3.0E+2`: Reference potential temperature
-- `temp0_dim::AbstractFloat = 3.0E+2`: Reference temperature
-- `press0_dim::AbstractFloat = 1.0E+5`: Reference pressure
-- `backgroundflow_dim::NTuple{3,AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0)`: Background flow in 3D
-- `coriolis_frequency::AbstractFloat = 0.0E+0`: Coriolis frequency. Used only if `background` is `Stratified()`
-- `coriolis_mode::AbstractCoriolisMode = FPlane()`: Coriolis mode. Used only if `background` is `Stratified()`
+  - `buoyancy_frequency::AbstractFloat = 1.0E-2`: Buoyancy frequency. Used only if `background` is `StratifiedBoussinesq()`
+  - `theta0_dim::AbstractFloat = 3.0E+2`: Reference potential temperature
+  - `temp0_dim::AbstractFloat = 3.0E+2`: Reference temperature
+  - `press0_dim::AbstractFloat = 1.0E+5`: Reference pressure
+  - `backgroundflow_dim::NTuple{3,AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0)`: Background flow in 3D
+  - `coriolis_frequency::AbstractFloat = 0.0E+0`: Coriolis frequency. Used only if `background` is `Stratified()`
+  - `coriolis_mode::AbstractCoriolisMode = FPlane()`: Coriolis mode. Used only if `background` is `Stratified()`
 """
 function AtmosphereNamelist(;
     specifyreynolds = false,

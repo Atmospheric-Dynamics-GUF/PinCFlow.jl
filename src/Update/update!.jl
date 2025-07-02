@@ -1542,3 +1542,144 @@ function update!(
 
     return
 end
+
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    tracersetup::NoTracer,
+)
+    return
+end
+
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    tracersetup::AbstractTracer,
+)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; alphark, betark) = state.time
+    (; tracertendencies, tracerpredictands, tracerfluxes) = state.tracer
+
+    for (fd, field) in enumerate(fieldnames(TracerPredictands))
+        if m == 1
+            getfield(tracertendencies, fd) .= 0.0
+        end
+
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            fl = getfield(tracerfluxes, fd)[i - 1, j, k, 1]
+            fr = getfield(tracerfluxes, fd)[i, j, k, 1]
+            gb = getfield(tracerfluxes, fd)[i, j - 1, k, 2]
+            gf = getfield(tracerfluxes, fd)[i, j, k, 2]
+            hd = getfield(tracerfluxes, fd)[i, j, k - 1, 3]
+            hu = getfield(tracerfluxes, fd)[i, j, k, 3]
+
+            fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+            fluxdiff /= jac[i, j, k]
+
+            f = -fluxdiff
+
+            getfield(tracertendencies, fd)[i, j, k] =
+                dt * f + alphark[m] * getfield(tracertendencies, fd)[i, j, k]
+            getfield(tracerpredictands, fd)[i, j, k] +=
+                betark[m] * getfield(tracertendencies, fd)[i, j, k]
+        end
+    end
+
+    return
+end
+
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    icesetup::AbstractIce,
+)
+    return
+end
+
+function update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; alphark, betark) = state.time
+    (; icetendencies, icepredictands, icefluxes) = state.ice
+
+    for (fd, field) in enumerate(fieldnames(IcePredictands))
+        if m == 1
+            getfield(icetendencies, fd) .= 0.0
+        end
+
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            fl = getfield(icefluxes, fd)[i - 1, j, k, 1]
+            fr = getfield(icefluxes, fd)[i, j, k, 1]
+            gb = getfield(icefluxes, fd)[i, j - 1, k, 2]
+            gf = getfield(icefluxes, fd)[i, j, k, 2]
+            hd = getfield(icefluxes, fd)[i, j, k - 1, 3]
+            hu = getfield(icefluxes, fd)[i, j, k, 3]
+
+            fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+            fluxdiff /= jac[i, j, k]
+
+            f = -fluxdiff
+
+            getfield(icetendencies, fd)[i, j, k] =
+                dt * f + alphark[m] * getfield(icetendencies, fd)[i, j, k]
+            getfield(icepredictands, fd)[i, j, k] +=
+                betark[m] * getfield(icetendencies, fd)[i, j, k]
+        end
+    end
+
+    return
+end
+
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    turbulencesetup::NoTurbulence,
+)
+    return
+end
+
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    turbulencesetup::AbstractTurbulence,
+)
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; alphark, betark) = state.time
+    (; turbulencetendencies, turbulencepredictands, turbulencefluxes) =
+        state.turbulence
+
+    for (fd, field) in enumerate(fieldnames(TurbulencePredictands))
+        if m == 1
+            getfield(turbulencetendencies, fd) .= 0.0
+        end
+
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            fl = getfield(turbulencefluxes, fd)[i - 1, j, k, 1]
+            fr = getfield(turbulencefluxes, fd)[i, j, k, 1]
+            gb = getfield(turbulencefluxes, fd)[i, j - 1, k, 2]
+            gf = getfield(turbulencefluxes, fd)[i, j, k, 2]
+            hd = getfield(turbulencefluxes, fd)[i, j, k - 1, 3]
+            hu = getfield(turbulencefluxes, fd)[i, j, k, 3]
+
+            fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+            fluxdiff /= jac[i, j, k]
+
+            f = -fluxdiff
+
+            getfield(turbulencetendencies, fd)[i, j, k] =
+                dt * f +
+                alphark[m] * getfield(turbulencetendencies, fd)[i, j, k]
+            getfield(turbulencepredictands, fd)[i, j, k] +=
+                betark[m] * getfield(turbulencetendencies, fd)[i, j, k]
+        end
+    end
+
+    return
+end

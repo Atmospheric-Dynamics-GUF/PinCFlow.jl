@@ -23,8 +23,8 @@ output = OutputNamelist(;
     outputtimediff = 3.6E+3,
     maxtime = 3.6E+3,
     fancy_namelists = true,
-    input_file = "./pincflow_input.h5",
-    output_file = "./pincflow_output.h5",
+    input_file = "./test/pincflow_input.h5",
+    output_file = "./test/pincflow_output.h5",
 )
 
 setting = SettingNamelist(;
@@ -134,8 +134,8 @@ namelists = Namelists(;
 
 integrate(namelists)
 
-data = h5open("pincflow_output.h5")
-reference = h5open("wkb_mountain_wave_tests.h5")
+data = h5open("./test/pincflow_output.h5")
+reference = h5open("./test/wkb_mountain_wave_tests.h5")
 
 for key in keys(reference)
     @test all(isapprox.(data[key], reference[key]))
@@ -144,4 +144,4 @@ end
 close(data)
 close(reference)
 
-rm("pincflow_output.h5")
+rm("./test/pincflow_output.h5")
