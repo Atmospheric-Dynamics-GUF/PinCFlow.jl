@@ -90,7 +90,7 @@ Creates a `Constants` instance from simulation parameters.
 
       + `atmosphere.specifyreynolds`: Whether to use prescribed Reynolds number
       + `atmosphere.reinv`: Inverse Reynolds number (if prescribed)
-      + `atmosphere.mu_viscous_dim`: Dynamic viscosity [Pa·s] (if computed)
+      + `atmosphere.mu_viscous_dim`: Dynamic viscosity (if computed)
 
 # Non-dimensionalization scheme
 
