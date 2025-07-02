@@ -5,7 +5,11 @@ Boundaries
 
 Module for enforcing boundary conditions for different variable types and field dimensions.
 
-Handles periodic boundaries in the horizontal and solid-wall boundaries in the vertical, as well as MPI communication in all dimensions (via `MPIOperations`).
+Handles periodic boundaries in the horizontal and solid-wall boundaries in the vertical, as well as MPI communication in all dimensions.
+
+# See also
+
+  - [`PinCFlow.MPIOperations`](@ref)
 """
 module Boundaries
 

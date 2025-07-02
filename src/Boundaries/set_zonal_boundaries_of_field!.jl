@@ -16,6 +16,10 @@ Halo exchange is used for multi-process domains (`npx > 1`), otherwise periodic 
   - `field`: 2D input field.
   - `namelists`: Namelists with all model parameters.
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
+# See also
+
+  - [`PinCFlow.MPIOperations.set_zonal_halos_of_field!`](@ref)
 """
 function set_zonal_boundaries_of_field!(
     field::AbstractMatrix{<:AbstractFloat},
@@ -57,6 +61,10 @@ Halo exchange is used for multi-process domains (`npx > 1`), otherwise periodic 
   - `namelists`: Namelists with all model parameters.
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
   - `layers`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
+
+# See also
+
+  - [`PinCFlow.MPIOperations.set_zonal_halos_of_field!`](@ref)
 """
 function set_zonal_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
@@ -106,6 +114,10 @@ Halo exchange is used for multi-process domains (`npx > 1`), otherwise periodic 
   - `namelists`: Namelists with all model parameters.
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
   - `layers`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
+
+# See also
+
+  - [`PinCFlow.MPIOperations.set_zonal_halos_of_field!`](@ref)
 """
 function set_zonal_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
