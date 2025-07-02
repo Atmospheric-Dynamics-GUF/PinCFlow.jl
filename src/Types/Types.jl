@@ -17,12 +17,18 @@ include("FoundationalTypes/FoundationalTypes.jl")
 include("PoissonTypes/PoissonTypes.jl")
 include("VariableTypes/VariableTypes.jl")
 include("WKBTypes/WKBTypes.jl")
+include("TracerTypes/TracerTypes.jl")
+include("IceTypes/IceTypes.jl")
+include("TurbulenceTypes/TurbulenceTypes.jl")
 
 using .NamelistTypes
 using .FoundationalTypes
 using .PoissonTypes
 using .VariableTypes
 using .WKBTypes
+using .TracerTypes
+using .IceTypes
+using .TurbulenceTypes
 
 include("State.jl")
 
@@ -37,7 +43,10 @@ export AbstractBackground,
     AbstractMergeMode,
     AbstractWKBMode,
     AbstractWKBTestCase,
-    AbstractWKBFilter
+    AbstractWKBFilter,
+    AbstractTracer,
+    AbstractIce,
+    AbstractTurbulence
 
 export Rho,
     RhoP,
@@ -58,6 +67,7 @@ export Rho,
     Compressible,
     MountainWave,
     WKBMountainWave,
+    WavePacket,
     PeriodicBoundaries,
     SolidWallBoundaries,
     ExponentialSponge,
@@ -78,9 +88,13 @@ export DomainNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,
+    WavePacketNamelist,
     GridNamelist,
     SpongeNamelist,
     WKBNamelist,
+    TracerNamelist,
+    IceNamelist,
+    TurbulenceNamelist,
     Namelists,
     Time,
     Constants,
@@ -107,6 +121,30 @@ export DomainNamelist,
     Increments,
     SurfaceIndices,
     WKB,
-    State
+    Tracer,
+    Ice,
+    Turbulence,
+    State,
+    NoTracer,
+    LinearTracer,
+    TracerPredictands,
+    TracerAuxiliaries,
+    TracerTendencies,
+    TracerReconstructions,
+    TracerFluxes,
+    IceOn,
+    NoIce,
+    IcePredictands,
+    IceAuxiliaries,
+    IceTendencies,
+    IceReconstructions,
+    IceFluxes,
+    TurbulenceOn,
+    NoTurbulence,
+    TurbulencePredictands,
+    TurbulenceAuxiliaries,
+    TurbulenceTendencies,
+    TurbulenceReconstructions,
+    TurbulenceFluxes
 
 end

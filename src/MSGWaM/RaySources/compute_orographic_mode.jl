@@ -88,7 +88,9 @@ Returns zero wave action if:
 # Applications
 
 Used in orographic gravity wave parameterizations for:
-    # Compute horizontal wavenumber.
+
+# Compute horizontal wavenumber.
+
   - Mountain wave drag calculations
   - Momentum flux estimates
   - Wave energy budget studies    # Compute intrinsic frequency from orographic wavenumbers.

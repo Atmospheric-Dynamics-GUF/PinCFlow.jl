@@ -106,10 +106,11 @@ function Variables(
     constants::Constants,
     domain::Domain,
     atmosphere::Atmosphere,
+    grid::Grid,
 )
 
     # Initialize all fields.
-    predictands = Predictands(namelists, constants, domain, atmosphere)
+    predictands = Predictands(namelists, constants, domain, atmosphere, grid)
     tendencies = Tendencies(namelists, domain)
     backups = Backups(domain)
     auxiliaries = Auxiliaries(domain)
