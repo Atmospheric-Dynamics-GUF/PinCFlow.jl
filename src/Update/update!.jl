@@ -1615,9 +1615,9 @@ Runge-Kutta time integration. Applies Jacobian scaling for terrain-following coo
 
 # Implementation
 
-  - **Flux divergence**: Computes ∇·(φₚ) from [`phip`](src/Types/State.jl) fluxes
-  - **Volume heating**: Incorporates thermodynamic source terms via [`compute_volume_force`](src/Update/compute_volume_force.jl)
-  - **RK integration**: Uses [`alphark`](src/Types/State.jl) and [`betark`](src/Types/State.jl) coefficients
+  - **Flux divergence**: Computes ∇·(φₚ) from `phip` fluxes
+  - **Volume heating**: Incorporates thermodynamic source terms via `compute_volume_force`
+  - **RK integration**: Uses `alphark` and `betark` coefficients
   - **Metric scaling**: Divides by Jacobian for generalized coordinates
 """
 function update!(

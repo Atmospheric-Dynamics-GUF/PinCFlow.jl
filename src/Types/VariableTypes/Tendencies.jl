@@ -25,7 +25,7 @@ processes including advection, and pressure forces.
   - `dv::A`: Meridional velocity tendency [∂v/∂t]
   - `dw::A`: Vertical velocity tendency [∂w/∂t]
   - `dpip::A`: Pressure correction tendency [∂π'/∂t]
-  - `dp::B`: Pressure tendency [∂p/∂t] (Compressible model only)
+  - `dp::B`: Pressure tendency (compressible model only) [∂p/∂t]
 
 # Constructors
 

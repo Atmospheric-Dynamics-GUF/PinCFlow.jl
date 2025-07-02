@@ -74,7 +74,7 @@ Computes cell-edge interpolated zonal wind tendency from WKB gravity wave parame
 
 # Implementation
 
-Averages [`dudt`](src/Types/VariableTypes/VariableTypes.jl) between horizontally adjacent cells:
+Averages `dudt` between horizontally adjacent cells:
 `force = (dudt[i] + dudt[i+1]) / 2`
 
 # Returns
@@ -109,7 +109,7 @@ Computes cell-edge interpolated meridional wind tendency for momentum equations.
 
 # Implementation
 
-Averages [`dvdt`](src/Types/VariableTypes/VariableTypes.jl) between meridionally adjacent cells.
+Averages `dvdt` between meridionally adjacent cells.
 
 # Returns
 
@@ -144,7 +144,7 @@ metric tensor coefficients and Jacobian weighting for terrain-following coordina
 
 # Implementation
 
-  - **Metric transformation**: Uses [`met`](src/Types/FoundationalTypes/Grid.jl) tensor components
+  - **Metric transformation**: Uses `met` tensor components
   - **Jacobian weighting**: Properly averages between vertical levels
   - **Coordinate mapping**: `w_force = (∂ζ/∂x)·u_force + (∂ζ/∂y)·v_force`
 

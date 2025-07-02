@@ -16,7 +16,7 @@ Storage container for backup copies of predictand variables during time stepping
 # Usage
 
 Backup fields store previous time step values for multi-stage time integration schemes.
-Used by [`save_backups!`](src/Integration/save_backups%21.jl) to preserve state before updates.
+Used by [`save_backups!`](@ref) to preserve state before updates.
 """
 struct Backups{A <: AbstractArray{<:AbstractFloat, 3}}
     rhoold::A
