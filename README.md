@@ -35,19 +35,25 @@ The documentation will be generated in the `docs/build` directory. To view the d
 
 ## Style guide
 
+### Code
+
+1. Put every module, composite type (including constructor methods) and function into a file on its own, with the file name matching that of the object. Create a folder for every module.
+
+1. Only use Unicode in strings and docstrings.
+
 ### Documentation
 
-1. Write docstrings for modules, types and methods.
+1. Write a docstring for every module, type and method.
 
-1. Always show the full signature of the object at the top of the documentation, with a four-space indent so that it is printed as Julia code. Enclose optional arguments without a default value in brackets (i.e. `f(x, y = 1)` but `f(x[, y])`). Replace keyword arguments with a `<keyword arguments>` placeholder in the signature (i.e. `f(x; <keyword arguments>)`) and give the complete lists in the `# Arguments` section.
+1. Always show the exact full signature of the object at the top of the documentation, within a Julia code block.
 
-1. Include a single one-line sentence describing what the function does or what the object represents after the simplified signature block. Use the imperative form when documenting functions. If needed, provide more details in a second paragraph, after a blank line.
+1. Include a single sentence describing what the function does or what the object represents after the signature block. Use the imperative form when documenting methods. If needed, provide more details in a second paragraph, after a blank line.
 
-1. Do not repeat yourself.
+1. List all arguments with descriptions (but without types and default values) under an `# Arguments` header, with one `-` bullet for each argument.
 
-1. List keyword arguments under an `# Arguments` header, with one `-` bullet for each argument. Include the types and default values (in Julia syntax).
+1. If a method returns something other than `nothing`, list all returned objects with descriptions under a `# Returns` header, with one `-` bullet for each returned object. Include the types (in Julia syntax).
 
-1. Provide hints to related functions in a `See also` paragraph.
+1. Provide links to related functions under a `See also` header, with one `-` bullet for each function.
 
 1. Use single backticks to identify code and double backticks to identify equations. Use Unicode characters rather than LaTeX escape sequences.
 
