@@ -84,7 +84,9 @@ A_new = A_old * exp(-2 * α_sponge * dt)
   - **Memory efficient**: Single storage array for all sponge coefficients
 
 # Numerical Considerations
+
     # Dermine closest points in horizontal direction.
+
   - **Smooth transitions**: Avoids discontinuous jumps in damping rate
   - **Conservation**: Maintains overall wave energy budget accounting
   - **Stability**: Prevents numerical instabilities from excessive damping
