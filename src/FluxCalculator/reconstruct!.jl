@@ -57,7 +57,7 @@ reconstruct!(state::State, variable::RhoP)
 
 Reconstruct the density fluctuations.
 
-Since the transporting velocity is ``P \\widehat{\boldsymbol{u}}``, the density fluctuations are divided by ``P`` before reconstruction. The result is written into `state.variables.reconstructions.rhoptilde`.
+Since the transporting velocity is ``P \\widehat{\\boldsymbol{u}}``, the density fluctuations are divided by ``P`` before reconstruction. The result is written into `state.variables.reconstructions.rhoptilde`.
 
 # Arguments
 
@@ -87,7 +87,7 @@ reconstruct!(state::State, variable::U)
 
 Reconstruct the zonal momentum.
 
-Since the transporting velocity is ``P \\widehat{\boldsymbol{u}}``, the momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction. The result is written into `state.variables.reconstructions.utilde`.
+Since the transporting velocity is ``P \\widehat{\\boldsymbol{u}}``, the momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction. The result is written into `state.variables.reconstructions.utilde`.
 
 # Arguments
 
@@ -126,7 +126,7 @@ reconstruct!(state::State, variable::V)
 
 Reconstruct the meridional momentum.
 
-Since the transporting velocity is ``P \\widehat{\boldsymbol{u}}``, the momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction. The result is written into `state.variables.reconstructions.vtilde`.
+Since the transporting velocity is ``P \\widehat{\\boldsymbol{u}}``, the momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction. The result is written into `state.variables.reconstructions.vtilde`.
 
 # Arguments
 
@@ -165,7 +165,7 @@ reconstruct!(state::State, variable::W)
 
 Reconstruct the vertical momentum.
 
-The vertical momentum is computed with `compute_vertical_wind`, `set_zonal_boundaries_of_field!` and `set_meridional_boundaries_of_field!`. Since the transporting velocity is ``P \\widehat{\boldsymbol{u}}``, the momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction. The result is written into `state.variables.reconstructions.wtilde`.
+The vertical momentum is computed with `compute_vertical_wind`, `set_zonal_boundaries_of_field!` and `set_meridional_boundaries_of_field!`. Since the transporting velocity is ``P \\widehat{\\boldsymbol{u}}``, the momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction. The result is written into `state.variables.reconstructions.wtilde`.
 
 # Arguments
 
