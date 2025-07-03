@@ -22,7 +22,7 @@ using ..RaySources
 X
 ```
 
-Singleton for dispatch to operations in ``𝑥``-direction.
+Singleton for dispatch to operations in ``x``-direction.
 """
 struct X end
 
@@ -31,7 +31,7 @@ struct X end
 Y
 ```
 
-Singleton for dispatch to operations in ``𝑦``-direction.
+Singleton for dispatch to operations in ``y``-direction.
 """
 struct Y end
 
@@ -40,7 +40,7 @@ struct Y end
 Z
 ```
 
-Singleton for dispatch to operations in ``𝑧``-direction.
+Singleton for dispatch to operations in ``z``-direction.
 """
 struct Z end
 
@@ -49,7 +49,7 @@ struct Z end
 XZ
 ```
 
-Singleton for dispatch to operations in ``𝑥``- and ``𝑧``-direction.
+Singleton for dispatch to operations in ``x``- and ``z``-direction.
 """
 struct XZ end
 
@@ -58,7 +58,7 @@ struct XZ end
 YZ
 ```
 
-Singleton for dispatch to operations in ``𝑦``- and ``𝑧``-direction.
+Singleton for dispatch to operations in ``y``- and ``z``-direction.
 """
 struct YZ end
 

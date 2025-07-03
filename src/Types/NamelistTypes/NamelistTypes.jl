@@ -140,7 +140,7 @@ struct Isothermal <: AbstractBackground end
 FPlane <: AbstractCoriolisMode
 ```
 
-Singleton for the ``𝑓``-plane approximation of the Coriolis parameter.
+Singleton for the ``f``-plane approximation of the Coriolis parameter.
 """
 struct FPlane <: AbstractCoriolisMode end
 

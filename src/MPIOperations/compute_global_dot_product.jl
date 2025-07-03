@@ -17,7 +17,7 @@ Compute the dot product of two 3D arrays distributed across MPI processes.
 
 # Returns
 
-  - `::AbstractFloat`: Global dot product ``∑ᵢ aᵢ·bᵢ`` across all MPI processes.
+  - `::AbstractFloat`: Global dot product ``\\sum\\limits_i a_i \\cdot b_i`` across all MPI processes.
 """
 function compute_global_dot_product(
     a::AbstractArray{<:AbstractFloat, 3},

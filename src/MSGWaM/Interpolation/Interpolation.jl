@@ -17,7 +17,7 @@ using ...Update
 N2 <: AbstractVariable
 ```
 
-Singleton for dispatch to interpolation of ``𝑁²``.
+Singleton for dispatch to interpolation of ``N^2``.
 """
 struct N2 <: AbstractVariable end
 
@@ -26,7 +26,7 @@ struct N2 <: AbstractVariable end
 DN2DZ <: AbstractVariable
 ```
 
-Singleton for dispatch to interpolation of ``∂𝑁²/∂z``.
+Singleton for dispatch to interpolation of ``\\partial N^2 / \\partial z``.
 """
 struct DN2DZ <: AbstractVariable end
 
@@ -35,7 +35,7 @@ struct DN2DZ <: AbstractVariable end
 DUDX <: AbstractVariable
 ```
 
-Singleton for dispatch to interpolation of ``∂𝑢/∂𝑥``.
+Singleton for dispatch to interpolation of ``\\partial u / \\partial x``.
 """
 struct DUDX <: AbstractVariable end
 
@@ -44,7 +44,7 @@ struct DUDX <: AbstractVariable end
 DUDY <: AbstractVariable
 ```
 
-Singleton for dispatch to interpolation of ``∂𝑢/∂𝑦``.
+Singleton for dispatch to interpolation of ``\\partial u / \\partial y``.
 """
 struct DUDY <: AbstractVariable end
 
@@ -53,7 +53,7 @@ struct DUDY <: AbstractVariable end
 DUDZ <: AbstractVariable
 ```
 
-Singleton for dispatch to interpolation of ``∂𝑢/∂𝑧``.
+Singleton for dispatch to interpolation of ``\\partial u / \\partial z``.
 """
 struct DUDZ <: AbstractVariable end
 
@@ -62,7 +62,7 @@ struct DUDZ <: AbstractVariable end
 DVDX <: AbstractVariable
 ```
 
-Singleton for dispatch to interpolation of ``∂𝑣/∂𝑥``.
+Singleton for dispatch to interpolation of ``\\partial v / \\partial x``.
 """
 struct DVDX <: AbstractVariable end
 
@@ -71,7 +71,7 @@ struct DVDX <: AbstractVariable end
 DVDY <: AbstractVariable
 ```
 
-Singleton for dispatch to interpolation of ``∂𝑣/∂𝑦``.
+Singleton for dispatch to interpolation of ``\\partial v / \\partial y``.
 """
 struct DVDY <: AbstractVariable end
 
@@ -80,7 +80,7 @@ struct DVDY <: AbstractVariable end
 DVDZ <: AbstractVariable
 ```
 
-Singleton for dispatch to interpolation of ``∂𝑣/∂𝑧``.
+Singleton for dispatch to interpolation of ``\\partial v / \\partial z``.
 """
 struct DVDZ <: AbstractVariable end
 

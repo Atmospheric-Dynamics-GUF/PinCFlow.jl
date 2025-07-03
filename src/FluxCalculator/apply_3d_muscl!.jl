@@ -16,9 +16,9 @@ Applies the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for
 
   - `phi`: Input array.
   - `phitilde`: Output array with reconstructed values. The fourth dimension represents the directions in which the input was reconstructed and the fifth dimension the reconstructions to the left and right.
-  - `nxx`: Size of `phi` in ``x``-direction.
-  - `nyy`: Size of `phi` in ``y``-direction.
-  - `nzz`: Size of `phi` in ``z``-direction.
+  - `nxx`: Size of `phi` in ``\\widehat{x}``-direction.
+  - `nyy`: Size of `phi` in ``\\widehat{y}``-direction.
+  - `nzz`: Size of `phi` in ``\\widehat{z}``-direction.
   - `limitertype`: Type of flux limiter to use.
 
 """
