@@ -111,7 +111,8 @@ function update!(
         fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
         fluxdiff /= jac[i, j, k]
 
-        heating = compute_volume_force(state, (i, j, k), P())
+        heating = compute_volume_force(state, (i, j, k), P()) + 
+            conductive_heating(state, (i, j, k))
 
         f = -fluxdiff + heating / thetastrattfc[i, j, k]
 
@@ -1532,7 +1533,8 @@ function update!(
         fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
         fluxdiff /= jac[i, j, k]
 
-        heating = compute_volume_force(state, (i, j, k), P())
+        heating = compute_volume_force(state, (i, j, k), P()) + 
+            conductive_heating(state, (i, j, k))
 
         f = -fluxdiff - heating
 

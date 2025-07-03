@@ -18,6 +18,7 @@ include("compute_vertical_wind.jl")
 include("compute_volume_force.jl")
 include("transform.jl")
 include("update!.jl")
+include("conductive_heating.jl")
 
 export LHS, RHS
 
@@ -28,6 +29,7 @@ export apply_unified_sponge!,
     compute_stress_tensor,
     compute_vertical_wind,
     compute_volume_force,
+    conductive_heating,
     update!
 
 end
