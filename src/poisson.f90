@@ -52,10 +52,6 @@ module poisson_module
 
   real :: tol
 
-  ! TFC
-  ! Status of Boussinesq tensor elements.
-  logical :: expEle, impEle
-
   contains
 
   subroutine Corrector(var, flux, dMom, dt, errFlagBicg, nIter, m, opt, &
@@ -149,13 +145,13 @@ module poisson_module
 
     real :: deta
 
+    s_pc = 0.0
+    q_pc = 0.0
+    p_pc = 0.0
+
     ! pseudo timestep
 
     deta = dtau / (2. * (1. / dx ** 2 + 1. / dy ** 2))
-
-    ! work with auxiliary field s_pc
-
-    s_pc = 0.
 
     do niter = 1, maxIterADI
       if(niter == 0) then
@@ -1236,10 +1232,6 @@ module poisson_module
       divL2_local = sqrt(divL2_local / nx / ny / nz)
       divL2 = sqrt(divL2 / sizeX / sizeY / sizeZ)
 
-      ! scale by number of cells
-      divL2_local = sqrt(divL2_local / nx / ny / nz)
-      divL2 = sqrt(divL2 / sizeX / sizeY / sizeZ)
-
       divL2_norm_local = sqrt(divL2_norm_local / nx / ny / nz)
       divL2_norm = sqrt(divL2_norm / sizeX / sizeY / sizeZ)
 
@@ -1415,35 +1407,9 @@ module poisson_module
 
     select case(model)
 
-    case("pseudo_incompressible", "compressible")
+    case("Boussinesq", "pseudo_incompressible", "compressible")
 
       call val_PsIn(var, dt, opt, facray)
-
-    case("Boussinesq")
-
-      ! Update tensor elements when topography is growing.
-      if(topography .and. topographyTime > 0.0) then
-        call val_PsIn(var, dt, opt, facray)
-        if(opt == "expl") then
-          expEle = .true.
-          impEle = .false.
-        else if(opt == "impl") then
-          impEle = .true.
-          expEle = .false.
-        end if
-      end if
-
-      ! Tensor elements are constant. Due to the scaling, the subroutine also
-      ! works for the Boussinesq model.
-      if(opt == "expl" .and. .not. expEle) then
-        call val_PsIn(var, dt, opt, facray)
-        expEle = .true.
-        impEle = .false.
-      else if(opt == "impl" .and. .not. impEle) then
-        call val_PsIn(var, dt, opt, facray)
-        impEle = .true.
-        expEle = .false.
-      end if
 
     case default
       stop "linOpr: unknown case model"
@@ -2987,12 +2953,6 @@ module poisson_module
 
     allocate(p_pred(1:nx, 1:ny, 1:nz), stat = allocstat)
     if(allocstat /= 0) stop "init_poisson: alloc failed"
-
-    ! Initial status of Boussinesq tensor elements.
-    if(model == "Boussinesq") then
-      expEle = .false.
-      impEle = .false.
-    end if
 
   end subroutine init_poisson
 

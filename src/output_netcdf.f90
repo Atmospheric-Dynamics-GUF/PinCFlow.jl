@@ -1085,7 +1085,7 @@ module output_netCDF_module
     real :: time_dim
 
     real :: cpuTimeLoc
-    integer :: days, hours, minutes, seconds
+    integer :: days, hours, minutes, seconds, milliseconds
 
     real, dimension(1:nx, 1:ny, 1:nz) :: rho, rhop
     real, dimension(1:nx, 1:ny, 1:nz) :: buoyancy
@@ -1114,6 +1114,8 @@ module output_netCDF_module
     minutes = floor(cpuTimeLoc / 60.0)
     cpuTimeLoc = cpuTimeLoc - minutes * 60.0
     seconds = floor(cpuTimeLoc)
+    cpuTimeLoc = cpuTimeLoc - seconds
+    milliseconds = floor(cpuTimeLoc * 1000.0)
 
     if(master) then
       print *, "------------------------------------------------"
@@ -1122,8 +1124,8 @@ module output_netCDF_module
       write(*, fmt = "(a25,i15)") " at time step = ", iTime
       write(*, fmt = "(a25,f15.1,a8)") " at physical time = ", time_dim, " &
           &seconds"
-      write(*, fmt = "(a25,4x,i2.2,a1,i2.2,a1,i2.2,a1,i2.2)") "CPU time = ", &
-          &days, "-", hours, ":", minutes, ":", seconds
+      write(*, fmt = "(a25,4x,i2.2,a1,i2.2,a1,i2.2,a1,i2.2,a1,i3.3)") "CPU time = ", &
+          &days, "-", hours, ":", minutes, ":", seconds, ":", milliseconds
       print *, "------------------------------------------------"
     end if
 
@@ -1397,19 +1399,21 @@ module output_netCDF_module
       ! zonal-wind tendency
       if(any(rayvarOut == 'dudt')) then
         call handle_err(nf90_put_var(rayvarid, rayvarid_dudt, ray_var3D(1:nx, &
-            &1:ny, 1:nz, 1) * uRef / tRef, start = startNC, count = countNC))
+            &1:ny, 1:nz, 1) * rhoref * uRef / tRef, start = startNC, count &
+            &= countNC))
       end if
 
       ! meridional-wind tendency
       if(any(rayvarOut == 'dvdt')) then
         call handle_err(nf90_put_var(rayvarid, rayvarid_dvdt, ray_var3D(1:nx, &
-            &1:ny, 1:nz, 2) * uRef / tRef, start = startNC, count = countNC))
+            &1:ny, 1:nz, 2) * rhoref * uRef / tRef, start = startNC, count &
+            &= countNC))
       end if
 
       ! potential-temperature tendency
       if(any(rayvarOut == 'dthetadt')) then
         call handle_err(nf90_put_var(rayvarid, rayvarid_dthetadt, &
-            &ray_var3D(1:nx, 1:ny, 1:nz, 3) * thetaRef / tRef, start &
+            &ray_var3D(1:nx, 1:ny, 1:nz, 3) * rhoref * thetaRef / tRef, start &
             &= startNC, count = countNC))
       end if
 
@@ -1798,7 +1802,7 @@ module output_netCDF_module
       call handle_err(nf90_get_var(atmvarid, atmvarid_p, var%P(1:nx, 1:ny, &
           &1:nz), start = startNC, count = countNC))
       var%P(1:nx, 1:ny, 1:nz) = var%P(1:nx, 1:ny, 1:nz) / rhoRef / thetaRef
-    else
+    else if(.not. topography) then
       call handle_err(nf90_get_var(atmvarid, atmvarid_p, pStrat(1:nz), start &
           &= startNC(3:4), count = countNC(3:4)))
       pStrat(1:nz) = pStrat(1:nz) / rhoRef / thetaRef
