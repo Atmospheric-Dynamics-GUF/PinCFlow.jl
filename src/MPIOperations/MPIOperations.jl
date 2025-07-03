@@ -3,23 +3,10 @@
 MPIOperations
 ```
 
-Module for operations that require communication across MPI processes.
+Module for operations that require communication between MPI processes.
 
 Provides halo exchange functions for maintaining field continuity across
-process boundaries and global reduction operations for distributed arrays.
-
-# Key Functions
-
-  - [`PinCFlow.MPIOperations.set_zonal_halos_of_field!`](@ref): Halo exchange in ``x``-direction.
-  - [`PinCFlow.MPIOperations.set_meridional_halos_of_field!`](@ref): Halo exchange in ``y``-direction.
-  - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref): Halo exchange in ``z``-direction.
-  - [`PinCFlow.MPIOperations.compute_global_dot_product`](@ref): Distributed dot product computation.
-
-# Array Support
-
-  - 2D, 3D, and 5D field arrays
-  - Custom halo-layer specifications
-  - Solid-wall boundary handling in the vertical.
+process boundaries, as well as global reduction operations.
 """
 module MPIOperations
 
