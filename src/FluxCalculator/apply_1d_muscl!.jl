@@ -7,7 +7,7 @@ apply_1d_muscl!(
 )
 ```
 
-Applies the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) reconstruction in one dimension.
+Applies the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for reconstruction in one dimension.
 
 # Arguments
 

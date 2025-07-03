@@ -5,7 +5,7 @@ FluxCalculator
 
 Module for flux calculation.
 
-Provides functions for MUSCL reconstruction and flux computation at cell boundaries.
+Provides functions for MUSCL reconstruction and flux computation.
 """
 module FluxCalculator
 

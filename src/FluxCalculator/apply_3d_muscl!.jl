@@ -10,15 +10,15 @@ apply_3d_muscl!(
 )
 ```
 
-Applies the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) reconstruction in three dimensions.
+Applies the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for reconstruction in three dimensions.
 
 # Arguments
 
-  - `phi::`: 3D Input array.
-  - `phitilde`: 5D Output array with reconstructed values. The fourth dimension represents the directions in which the input was reconstructed and the fifth dimension the reconstructions to the left and right.
-  - `nxx`: Size of `phi` in ``𝑥``-direction.
-  - `nyy`: Size of `phi` in ``𝑦``-direction.
-  - `nzz`: Size of `phi` in ``𝑧``-direction.
+  - `phi`: Input array.
+  - `phitilde`: Output array with reconstructed values. The fourth dimension represents the directions in which the input was reconstructed and the fifth dimension the reconstructions to the left and right.
+  - `nxx`: Size of `phi` in ``x``-direction.
+  - `nyy`: Size of `phi` in ``y``-direction.
+  - `nzz`: Size of `phi` in ``z``-direction.
   - `limitertype`: Type of flux limiter to use.
 
 """

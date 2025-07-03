@@ -3,23 +3,13 @@
 reconstruct!(state::State)
 ```
 
-Perform MUSCL reconstruction for state variables in a computational domain.
+Reconstruct the prognostic variables at the cell interfaces of their respective grids, using the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL).
 
-These functions handle the reconstruction of various flow quantities using the MUSCL scheme.
-The reconstruction is performed separately for each variable.
+This method calls specialized methods for each variable (`Rho`, `RhoP`, `U`, `V`, and `W`).
 
 # Arguments
 
-  - `state::State`: The complete state object containing all simulation variables
-  - `variable`: Type parameter indicating which variable to reconstruct (Rho, RhoP, U, V, or W)
-
-# Details
-
-  - For density (Rho) and density perturbation (RhoP): Scales by reference pressure
-  - For velocities (U,V,W): Includes density averaging at appropriate cell faces and pressure scaling
-  - W-component additionally requires special vertical wind computation and boundary handling
-
-The functions modify the corresponding 'tilde' variables in `state.variables.reconstructions`.
+  - `state`: Model state.
 """
 function reconstruct!(state::State)
     reconstruct!(state, Rho())
@@ -30,15 +20,19 @@ function reconstruct!(state::State)
     return
 end
 
-# Density reconstruction methods share implementation pattern
 """
 ```julia
 reconstruct!(state::State, variable::Rho)
-reconstruct!(state::State, variable::RhoP)
 ```
 
-Reconstruct density or density perturbation fields.
-Scales the field by the reference pressure before applying MUSCL reconstruction.
+Reconstruct the density.
+
+Since the transporting velocity is ``P \\widehat{\boldsymbol{u}}``, the density is divided by ``P`` before reconstruction. The result is written into `state.variables.reconstructions.rhotilde`.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variable`: The reconstructed variable.
 """
 function reconstruct!(state::State, variable::Rho)
     (; limitertype) = state.namelists.discretization
@@ -56,6 +50,20 @@ function reconstruct!(state::State, variable::Rho)
     return
 end
 
+"""
+```julia
+reconstruct!(state::State, variable::RhoP)
+```
+
+Reconstruct the density fluctuations.
+
+Since the transporting velocity is ``P \\widehat{\boldsymbol{u}}``, the density fluctuations are divided by ``P`` before reconstruction. The result is written into `state.variables.reconstructions.rhoptilde`.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variable`: The reconstructed variable.
+"""
 function reconstruct!(state::State, variable::RhoP)
     (; limitertype) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
@@ -75,16 +83,16 @@ end
 """
 ```julia
 reconstruct!(state::State, variable::U)
-reconstruct!(state::State, variable::V)
-reconstruct!(state::State, variable::W)
 ```
 
-Reconstruct velocity components (u,v,w).
-Includes:
+Reconstruct the zonal momentum.
 
-  - Density averaging at appropriate cell faces
-  - Pressure scaling
-  - For W: Additional vertical wind computation and boundary condition handling
+Since the transporting velocity is ``P \\widehat{\boldsymbol{u}}``, the momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction. The result is written into `state.variables.reconstructions.utilde`.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variable`: The reconstructed variable.
 """
 function reconstruct!(state::State, variable::U)
     (; limitertype) = state.namelists.discretization
@@ -111,6 +119,20 @@ function reconstruct!(state::State, variable::U)
     return
 end
 
+"""
+```julia
+reconstruct!(state::State, variable::V)
+```
+
+Reconstruct the meridional momentum.
+
+Since the transporting velocity is ``P \\widehat{\boldsymbol{u}}``, the momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction. The result is written into `state.variables.reconstructions.vtilde`.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variable`: The reconstructed variable.
+"""
 function reconstruct!(state::State, variable::V)
     (; limitertype) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
@@ -136,6 +158,26 @@ function reconstruct!(state::State, variable::V)
     return
 end
 
+"""
+```julia
+reconstruct!(state::State, variable::W)
+```
+
+Reconstruct the vertical momentum.
+
+The vertical momentum is computed with `compute_vertical_wind`, `set_zonal_boundaries_of_field!` and `set_meridional_boundaries_of_field!`. Since the transporting velocity is ``P \\widehat{\boldsymbol{u}}``, the momentum is divided by ``P`` interpolated to the respective cell interfaces before reconstruction. The result is written into `state.variables.reconstructions.wtilde`.
+
+# Arguments
+
+  - `state`: Model state.
+  - `variable`: The reconstructed variable.
+
+# See also
+
+  - [PinCFlow.Update.compute_vertical_wind](@ref)
+  - [PinCFlow.Boundaries.set_zonal_boundaries_of_field!](@ref)
+  - [PinCFlow.Boundaries.set_meridional_boundaries_of_field!](@ref)
+"""
 function reconstruct!(state::State, variable::W)
     (; namelists, domain, grid) = state
     (; limitertype) = state.namelists.discretization
