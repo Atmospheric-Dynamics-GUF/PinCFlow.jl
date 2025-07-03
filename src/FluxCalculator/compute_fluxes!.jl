@@ -21,6 +21,7 @@ function compute_fluxes!(state::State, predictands::Predictands)
     compute_fluxes!(state, predictands, U())
     compute_fluxes!(state, predictands, V())
     compute_fluxes!(state, predictands, W())
+    compute_fluxes!(state, predictands, Theta())
 
     compute_fluxes!(state, predictands, model, P())
     compute_fluxes!(state, predictands, state.namelists.tracer.tracersetup)
@@ -1257,5 +1258,202 @@ function compute_fluxes!(
         end
     end
 
+    return
+end
+
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Theta,
+)
+
+    # Get all necessary fields.
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; jac, dx, dy, dz, met) = state.grid
+    (; pstrattfc, rhostrattfc) = state.atmosphere
+    (; phitheta) = state.variables.fluxes
+    (; mu_conduct_dim) = state.namelists.atmosphere
+    (; uref, lref) = state.constants
+    (; rho) = state.variables.predictands
+
+    # Get old wind.
+    (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
+
+    mu_conduct = mu_conduct_dim / uref / lref + eps()
+
+    #-----------------------------------------
+    #             Zonal fluxes
+    #-----------------------------------------
+
+    for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
+        # this is an unnecessary calculation for Boussinesq, 
+        # but it's the only difference between Boussinesq and 
+        # PseudoIncompressible/Compressible
+        coef_t =
+            mu_conduct *
+            0.5 *
+            (
+                rhostrattfc[i, j, k0] / rhostrattfc[i, j, k] +
+                rhostrattfc[i + 1, j, k0] / rhostrattfc[i + 1, j, k]
+            )
+
+        rhol = rho[i, j, k] + rhostrattfc[i, j, k]
+        rhor = rho[i + 1, j, k] + rhostrattfc[i + 1, j, k]
+        rhod =
+            0.5 * (
+                rho[i, j, k - 1] +
+                rhostrattfc[i, j, k - 1] +
+                rho[i + 1, j, k - 1] +
+                rhostrattfc[i + 1, j, k - 1]
+            )
+        rhou =
+            0.5 * (
+                rho[i, j, k + 1] +
+                rhostrattfc[i, j, k + 1] +
+                rho[i + 1, j, k + 1] +
+                rhostrattfc[i + 1, j, k + 1]
+            )
+
+        pl = pstrattfc[i, j, k]
+        pr = pstrattfc[i + 1, j, k]
+        pd = 0.5 * (pstrattfc[i, j, k - 1] + pstrattfc[i + 1, j, k - 1])
+        pu = 0.5 * (pstrattfc[i, j, k + 1] + pstrattfc[i + 1, j, k + 1])
+
+        dtht_dxi =
+            0.5 * (jac[i, j, k] + jac[i + 1, j, k]) * (pr / rhor - pl / rhol) /
+            dx +
+            0.5 *
+            (
+                jac[i, j, k] * met[i, j, k, 1, 3] +
+                jac[i + 1, j, k] * met[i + 1, j, k, 1, 3]
+            ) *
+            (pu / rhou - pd / rhod) / (2.0 * dz)
+
+        phitheta[i, j, k, 1] = -coef_t * dtht_dxi
+    end
+
+    #-----------------------------------------
+    #           Meridional fluxes
+    #-----------------------------------------
+
+    for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
+        coef_t =
+            mu_conduct *
+            0.5 *
+            (
+                rhostrattfc[i, j, k0] / rhostrattfc[i, j, k] +
+                rhostrattfc[i, j + 1, k0] / rhostrattfc[i, j + 1, k]
+            )
+
+        rhob = rho[i, j, k] + rhostrattfc[i, j, k]
+        rhof = rho[i, j + 1, k] + rhostrattfc[i, j + 1, k]
+        rhod =
+            0.5 * (
+                rho[i, j, k - 1] +
+                rhostrattfc[i, j, k - 1] +
+                rho[i, j + 1, k - 1] +
+                rhostrattfc[i, j + 1, k - 1]
+            )
+        rhou =
+            0.5 * (
+                rho[i, j, k + 1] +
+                rhostrattfc[i, j, k + 1] +
+                rho[i, j + 1, k + 1] +
+                rhostrattfc[i, j + 1, k + 1]
+            )
+
+        pb = pstrattfc[i, j, k]
+        pf = pstrattfc[i, j + 1, k]
+        pd = 0.5 * (pstrattfc[i, j, k - 1] + pstrattfc[i, j + 1, k - 1])
+        pu = 0.5 * (pstrattfc[i, j, k + 1] + pstrattfc[i, j + 1, k + 1])
+
+        dtht_dyi =
+            0.5 * (jac[i, j, k] + jac[i, j + 1, k]) * (pf / rhof - pb / rhob) /
+            dy +
+            0.5 *
+            (
+                jac[i, j, k] * met[i, j, k, 2, 3] +
+                jac[i, j + 1, k] * met[i, j + 1, k, 2, 3]
+            ) *
+            (pu / rhou - pd / rhod) / (2.0 * dz)
+
+        phitheta[i, j, k, 2] = -coef_t * dtht_dyi
+    end
+
+    #-----------------------------------------
+    #            Vertical fluxes
+    #-----------------------------------------
+
+    for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
+        coef_t =
+            mu_conduct *
+            0.5 *
+            (
+                rhostrattfc[i, j, 1] / rhostrattfc[i, j, k] +
+                rhostrattfc[i, j, 1] / rhostrattfc[i, j, k + 1]
+            )
+
+        rhol =
+            0.5 * (
+                rho[i - 1, j, k] +
+                rhostrattfc[i - 1, j, k] +
+                rho[i - 1, j, k + 1] +
+                rhostrattfc[i - 1, j, k + 1]
+            )
+        rhor =
+            0.5 * (
+                rho[i + 1, j, k] +
+                rhostrattfc[i + 1, j, k] +
+                rho[i + 1, j, k + 1] +
+                rhostrattfc[i + 1, j, k + 1]
+            )
+        rhob =
+            0.5 * (
+                rho[i, j - 1, k] +
+                rhostrattfc[i, j - 1, k] +
+                rho[i, j - 1, k + 1] +
+                rhostrattfc[i, j - 1, k + 1]
+            )
+        rhof =
+            0.5 * (
+                rho[i, j + 1, k] +
+                rhostrattfc[i, j + 1, k] +
+                rho[i, j + 1, k + 1] +
+                rhostrattfc[i, j + 1, k + 1]
+            )
+        rhod = rho[i, j, k] + rhostrattfc[i, j, k]
+        rhou = rho[i, j, k + 1] + rhostrattfc[i, j, k + 1]
+
+        pl = 0.5 * (pstrattfc[i - 1, j, k] + pstrattfc[i - 1, j, k + 1])
+        pr = 0.5 * (pstrattfc[i + 1, j, k] + pstrattfc[i + 1, j, k + 1])
+        pb = 0.5 * (pstrattfc[i, j - 1, k] + pstrattfc[i, j - 1, k + 1])
+        pf = 0.5 * (pstrattfc[i, j + 1, k] + pstrattfc[i, j + 1, k + 1])
+        pd = pstrattfc[i, j, k]
+        pu = pstrattfc[i, j, k + 1]
+
+        dtht_dzi =
+            0.5 *
+            (
+                jac[i, j, k] * met[i, j, k, 1, 3] +
+                jac[i, j, k + 1] * met[i, j, k + 1, 1, 3]
+            ) *
+            (pr / rhor - pl / rhol) / (2.0 * dx) +
+            0.5 *
+            (
+                jac[i, j, k] * met[i, j, k, 2, 3] +
+                jac[i, j, k + 1] * met[i, j, k + 1, 2, 3]
+            ) *
+            (pf / rhof - pb / rhob) / (2.0 * dy) +
+            0.5 *
+            (
+                jac[i, j, k] * met[i, j, k, 3, 3] +
+                jac[i, j, k + 1] * met[i, j, k + 1, 3, 3]
+            ) *
+            (pu / rhou - pd / rhod) / dz
+
+        phitheta[i, j, k, 3] = -coef_t * dtht_dzi
+    end
+
+    # Return.
     return
 end

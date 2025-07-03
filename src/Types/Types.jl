@@ -9,6 +9,7 @@ struct V <: AbstractVariable end
 struct W <: AbstractVariable end
 struct PiP <: AbstractVariable end
 struct P <: AbstractVariable end
+struct Theta <: AbstractVariable end
 struct Explicit end
 struct Implicit end
 
@@ -55,6 +56,7 @@ export Rho,
     W,
     PiP,
     P,
+    Theta,
     Explicit,
     Implicit,
     UniformBoussinesq,
