@@ -2,6 +2,7 @@ module atmosphere_module
 
   use type_module
   use sizeof_module
+  use mpi_module
   use mpi
 
   implicit none
@@ -15,9 +16,7 @@ module atmosphere_module
   public :: terminate_atmosphere
 
   ! TFC
-  public :: setHalosOfField2D
-  public :: jac, met, vertWindTFC, trafoTFC, stressTensTFC
-
+  public :: vertWindTFC, trafoTFC, stressTensTFC
   public :: update_topography
 
   ! compressible
@@ -96,6 +95,10 @@ module atmosphere_module
 
   real :: mountainHeight, mountainWidth, k_mountain
   real :: x_center, y_center
+
+  ! Jacobian and metric tensor
+  real, dimension(:, :, :), allocatable :: jac
+  real, dimension(:, :, :, :, :), allocatable :: met
 
   ! 3D background fields.
   real, dimension(:, :, :), allocatable :: pStratTFC, thetaStratTFC, &
@@ -323,9 +326,20 @@ module atmosphere_module
       if(allocstat /= 0) stop "atmosphere.f90: could not allocate RoInv"
     end if
 
-    ! TFC
-    ! Allocate 3D background fields.
+    ! Allocate Jacobian, metric tensor and 3D background fields.
     if(topography) then
+      if(.not. allocated(jac)) then
+        allocate(jac((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
+            &+ nbz)), stat = allocstat)
+        if(allocstat /= 0) stop "atmosphere.f90: could not allocate jac"
+      end if
+
+      if(.not. allocated(met)) then
+        allocate(met((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
+            &+ nbz), 1:3, 1:3), stat = allocstat)
+        if(allocstat /= 0) stop "atmosphere.f90: could not allocate met"
+      end if
+
       if(.not. allocated(pStratTFC)) then
         allocate(pStratTFC((- nbx):(nx + nbx), (- nby):(ny + nby), (- nbz):(nz &
             &+ nbz)), stat = allocstat)
@@ -669,16 +683,6 @@ module atmosphere_module
         thetaStratTilde = theta00
         rhoStratTilde = rho00
 
-        ! Define 3D background fields.
-        if(topography) then
-          ! Define pStratTFC.
-          pStratTFC = p00
-          ! Define thetaStratTFC.
-          thetaStratTFC = theta00
-          ! Define rhoStratTFC.
-          rhoStratTFC = rho00
-        end if
-
         !-----------------------------------------------------------
         !   Isentropic troposphere / isothermal stratosphere
         !-----------------------------------------------------------
@@ -752,42 +756,6 @@ module atmosphere_module
           end if
         end do ! k loop
 
-        ! Define 3D background fields.
-        if(topography) then
-          do i = - nbx, nx + nbx
-            do j = - nby, ny + nby
-              do k = - 1, nz + 2
-                if(zTFC(i, j, k) <= z_tr) then
-                  ! Isentropic troposphere.
-                  power = 1.0 / (gamma - 1.0)
-                  term = kappa * sig / theta_tr * zTFC(i, j, k)
-                  if(term > 1.0) then
-                    stop "init_atmosphere: negative term. Stop"
-                  end if
-                  ! Define pStratTFC.
-                  pStratTFC(i, j, k) = p0 * (1.0 - term) ** power
-                  ! Define thetaStratTFC.
-                  thetaStratTFC(i, j, k) = theta_tr
-                  ! Define rhoStratTFC.
-                  rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
-                      &j, k)
-                else
-                  ! Isothermal stratosphere.
-                  ! Define pStratTFC.
-                  pStratTFC(i, j, k) = p0 ** kappa * press_tr ** (1.0 / gamma) &
-                      &* exp(- sig / gamma / T_tr * (zTFC(i, j, k) - z_tr))
-                  ! Define thetaStratTFC.
-                  thetaStratTFC(i, j, k) = theta_tr * exp(kappa * sig / T_tr &
-                      &* (zTFC(i, j, k) - z_tr))
-                  ! Define rhoStratTFC.
-                  rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
-                      &j, k)
-                end if
-              end do
-            end do
-          end do
-        end if
-
         !-----------------------------------------------------------
         !                    Isothermal atmosphere
         !-----------------------------------------------------------
@@ -840,26 +808,6 @@ module atmosphere_module
               rhoStratTilde(k) = 0.5 * (rhoStrat(k) + rhoStrat(k + 1))
             end if
           end do
-
-          ! Define 3D background fields.
-          if(topography) then
-            do i = - nbx, nx + nbx
-              do j = - nby, ny + nby
-                do k = - 1, nz + 2
-                  ! Define pStratTFC.
-                  pStratTFC(i, j, k) = p0 * exp(- sig * zTFC(i, j, k) / gamma &
-                      &/ T0)
-                  ! Define thetaStratTFC.
-                  thetaStratTFC(i, j, k) = T0 * exp(kappa * sig / T0 * zTFC(i, &
-                      &j, k))
-                  ! Define rhoStratTFC.
-                  rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
-                      &j, k)
-                end do
-              end do
-            end do
-          end if
-
         end if
 
         ! GBcorr
@@ -946,29 +894,6 @@ module atmosphere_module
               rhoStratTilde(k) = 0.5 * (rhoStrat(k) + rhoStrat(k + 1))
             end if
           end do
-
-          ! Define 3D background fields.
-          if(topography) then
-            do i = - nbx, nx + nbx
-              do j = - nby, ny + nby
-                do k = - 1, nz + 2
-                  power = 1.0 / (gamma - 1.0)
-                  term = kappa * sig / theta0 * zTFC(i, j, k)
-                  if(term > 1.0) then
-                    stop "init_atmosphere: negative term. Stop"
-                  end if
-                  ! Define pStratTFC.
-                  pStratTFC(i, j, k) = p0 * (1.0 - term) ** power
-                  ! Define thetaStratTFC.
-                  thetaStratTFC(i, j, k) = theta0
-                  ! Define rhoStratTFC.
-                  rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
-                      &j, k)
-                end do
-              end do
-            end do
-          end if
-
         end if
 
         ! GBcorr
@@ -1062,28 +987,6 @@ module atmosphere_module
               rhoStratTilde(k) = 0.5 * (rhoStrat(k) + rhoStrat(k + 1))
             end if
           end do
-
-          ! Define 3D background fields.
-          if(topography) then
-            do i = - nbx, nx + nbx
-              do j = - nby, ny + nby
-                do k = - 1, nz + 2
-                  power = 1.0 / (gamma - 1.0)
-                  term = exp(- Fr2 * N2 * zTFC(i, j, k))
-                  ! Define pStratTFC.
-                  pStratTFC(i, j, k) = p0 * (1.0 + FrInv2 * kappa * sig / N2 &
-                      &/ theta0 * (term - 1.0)) ** power
-                  ! Define thetaStratTFC.
-                  thetaStratTFC(i, j, k) = theta0 * exp(Fr ** 2.0 * N2 &
-                      &* zTFC(i, j, k))
-                  ! Define rhoStratTFC.
-                  rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
-                      &j, k)
-                end do
-              end do
-            end do
-          end if
-
         end if
 
         ! GBcorr
@@ -1191,45 +1094,6 @@ module atmosphere_module
             thetaStratTilde(k) = PStratTilde(k) / rhoStratTilde(k)
           end if
         enddo
-
-        ! Define 3D background fields.
-        if(topography) then
-          do i = - nbx, nx + nbx
-            do j = - nby, ny + nby
-              do k = - 1, nz + 2
-                zk = zTFC(i, j, k) * lRef
-
-                if(zk < z_tr_dim) then
-                  T_bar = Temp0_dim - gamma_t * zk
-                  if(gamma_t /= 0.0) then
-                    p_bar = press0_dim * (1.0 - gamma_t * zk / Temp0_dim) &
-                        &** pow_t
-                  else
-                    p_bar = press0_dim * exp(- zk / (Rsp * Temp0_dim / g))
-                  end if
-                else
-                  T_bar = Temp0_dim - gamma_t * z_tr_dim - gamma_s * (zk &
-                      &- z_tr_dim)
-                  if(gamma_s /= 0.0) then
-                    p_bar = p_t_b * (1.0 - gamma_s * (zk - z_tr_dim) / T_c_b) &
-                        &** pow_s
-                  else
-                    p_bar = p_t_b * exp(- (zk - z_tr_dim) / (Rsp * T_c_b / g))
-                  end if
-                end if
-
-                ! Define thetaStratTFC.
-                thetaStratTFC(i, j, k) = T_bar * (press0_dim / p_bar) ** kappa &
-                    &/ thetaRef
-                ! Define rhoStratTFC.
-                rhoStratTFC(i, j, k) = p_bar / (Rsp * T_bar) / rhoRef
-                ! Define pStratTFC.
-                pStratTFC(i, j, k) = rhoStratTFC(i, j, k) * thetaStratTFC(i, &
-                    &j, k)
-              end do
-            end do
-          end do
-        end if
 
         !-----------------------------------------------------------
         ! Setting for an atmmosphere according to Held & Suarez (1994)
@@ -1353,75 +1217,6 @@ module atmosphere_module
           end if
         enddo
 
-        ! Define 3D background fields.
-        ! This implementation does not work yet.
-        if(topography) then
-          do i = - nbx, nx + nbx
-            do j = - nby, ny + nby
-              ! Define Exner pressure and 3D background fields at
-              ! the surface.
-              do k = 0, 1
-                T_bar = max(tp_strato, tp_srf_trp - 0.5 * tpdiffhor_tropo)
-                ! Define Exner pressure.
-                piStratTFC(i, j, k) = 1.0 - zTFC(i, j, k) * kappa / T_bar
-                if(k == 1 .and. piStratTFC(i, j, k) <= 0.0) then
-                  stop "ERROR: non-positive piStratTFC at k = 1"
-                end if
-                T_bar = max(tp_strato, piStratTFC(i, j, k) * (tp_srf_trp - 0.5 &
-                    &* tpdiffhor_tropo - 0.5 * ptdiffvert_tropo / kappa &
-                    &* log(piStratTFC(i, j, k))))
-                ! Define pStratTFC.
-                pStratTFC(i, j, k) = piStratTFC(i, j, k) ** ((1.0 - kappa) &
-                    &/ kappa)
-                ! Define thetaStratTFC.
-                thetaStratTFC(i, j, k) = T_bar / piStratTFC(i, j, k)
-                ! Define rhoStratTFC.
-                rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
-                    &j, k)
-              end do
-
-              ! Integrate upwards.
-              do k = 2, nz + 2
-                ! Leapfrog step.
-                piStar = piStratTFC(i, j, k - 2) - 2.0 * dz * jac(i, j, k - 1) &
-                    &* kappa / thetaStratTFC(i, j, k - 1)
-                if(piStar <= 0.0) then
-                  print *, "ERROR: non-positive piStar at k =", k
-                  stop
-                end if
-                T_bar = max(tp_strato, piStar * (tp_srf_trp - 0.5 &
-                    &* tpdiffhor_tropo - 0.5 * ptdiffvert_tropo / kappa &
-                    &* log(piStar)))
-                thetaStar = T_bar / piStar
-                ! Trapezoidal step.
-                piStratTFC(i, j, k) = piStratTFC(i, j, k - 1) - dz * jac(i, j, &
-                    &k) * jac(i, j, k - 1) / (jac(i, j, k) + jac(i, j, k - 1)) &
-                    &* (kappa / thetaStar + kappa / thetaStratTFC(i, j, k - 1))
-                if(piStratTFC(i, j, k) <= 0.0) then
-                  print *, "ERROR: non-positive piStratTFC at k =", k
-                  stop
-                end if
-                T_bar = max(tp_strato, piStratTFC(i, j, k) * (tp_srf_trp - 0.5 &
-                    &* tpdiffhor_tropo - 0.5 * ptdiffvert_tropo / kappa &
-                    &* log(piStratTFC(i, j, k))))
-                ! Define pStratTFC.
-                pStratTFC(i, j, k) = piStratTFC(i, j, k) ** ((1.0 - kappa) &
-                    &/ kappa)
-                ! Define thetaStratTFC.
-                thetaStratTFC(i, j, k) = T_bar / piStratTFC(i, j, k)
-                ! Define rhoStratTFC.
-                rhoStratTFC(i, j, k) = pStratTFC(i, j, k) / thetaStratTFC(i, &
-                    &j, k)
-              end do
-              ! Adjust at the lower boundary.
-              piStratTFC(i, j, - 1) = piStratTFC(i, j, 0)
-              pStratTFC(i, j, - 1) = pStratTFC(i, j, 0)
-              thetaStratTFC(i, j, - 1) = thetaStratTFC(i, j, 0)
-              rhoStratTFC(i, j, - 1) = rhoStratTFC(i, j, 0)
-            end do
-          end do
-        end if
-
         !------------------------------------------------------------------
 
       case default
@@ -1462,33 +1257,6 @@ module atmosphere_module
 
       if(TestCase == "smoothVortex") then
         bvsstrat(:) = 0.
-      end if
-
-      ! Define bvsStratTFC.
-      if(topography) then
-        bvsStratTFC = 0.0
-        do i = - nbx, nx + nbx
-          do j = - nby, ny + nby
-            ! Lower boundary.
-            bvsStratTFC(i, j, - 1) = g_ndim / thetaStratTFC(i, j, 0) / jac(i, &
-                &j, 0) * (thetaStratTFC(i, j, 1) - thetaStratTFC(i, j, 0)) / dz
-            bvsStratTFC(i, j, 0) = bvsStratTFC(i, j, - 1)
-            ! Between boundaries.
-            do k = 1, nz
-              bvsStratTFC(i, j, k) = g_ndim / thetaStratTFC(i, j, k) / jac(i, &
-                  &j, k) * 0.5 * (thetaStratTFC(i, j, k + 1) &
-                  &- thetaStratTFC(i, j, k - 1)) / dz
-            end do
-            ! Upper boundary.
-            bvsStratTFC(i, j, nz + 1) = g_ndim / thetaStratTFC(i, j, nz + 1) &
-                &/ jac(i, j, nz + 1) * (thetaStratTFC(i, j, nz + 1) &
-                &- thetaStratTFC(i, j, nz)) / dz
-            bvsStratTFC(i, j, nz + 2) = bvsStratTFC(i, j, nz + 1)
-          end do
-        end do
-        if(testCase == "smoothVortex") then
-          bvsStratTFC = 0.0
-        end if
       end if
 
     case("Boussinesq")
@@ -1542,18 +1310,15 @@ module atmosphere_module
 
       bvsStrat = N2
 
-      ! Background fields.
-      if(topography) then
-        pStratTFC = p00
-        thetaStratTFC = theta00
-        rhoStratTFC = rho00
-        bvsStratTFC = N2
-      end if
-
     case default
       print *, "model = ", model
       stop "init_atmosphere: unknown case model."
     end select
+
+    ! Set background fields in TFC.
+    if(topography) then
+      call set_background_tfc
+    end if
 
   end subroutine init_atmosphere
 
@@ -1596,8 +1361,14 @@ module atmosphere_module
     deallocate(RoInv, stat = allocstat) !FS
     if(allocstat /= 0) stop "atmosphere.f90: could not dealloc RoInv"
 
-    ! Deallocate 3D background fields.
+    ! Deallocate Jacobian, metric tensor and 3D background fields.
     if(topography) then
+      deallocate(jac, stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not dealloc jac"
+
+      deallocate(met, stat = allocstat)
+      if(allocstat /= 0) stop "atmosphere.f90: could not dealloc met"
+
       deallocate(pStratTFC, stat = allocstat)
       if(allocstat /= 0) stop "atmosphere.f90: could not dealloc pStratTFC"
 
@@ -1615,152 +1386,6 @@ module atmosphere_module
     end if
 
   end subroutine terminate_atmosphere
-
-  !---------------------------------------------------------------------------
-
-  subroutine setHalosOfField2D(field)
-
-    ! Subroutine needed for halos of topography.
-
-    !-------------------------------
-    !  set values in halo cells
-    !-------------------------------
-
-    ! in/out variables
-    real, dimension(- nbx:nx + nbx, - nby:ny + nby), intent(inout) :: field
-
-    ! auxiliary fields
-    real, dimension(nbx, - nby:ny + nby) :: xSliceLeft_send, xSliceRight_send
-    real, dimension(nbx, - nby:ny + nby) :: xSliceLeft_recv, xSliceRight_recv
-    real, dimension(- nbx:nx + nbx, nby) :: ySliceBack_send, ySliceForw_send
-    real, dimension(- nbx:nx + nbx, nby) :: ySliceBack_recv, ySliceForw_recv
-
-    ! MPI variables
-    integer :: dest, source, tag
-    integer :: sendcount, recvcount
-
-    ! locals
-    integer :: i, j, k
-    integer :: i0, j0, k0
-
-    !-----------------------------
-    !     find neighbour procs
-    !-----------------------------
-
-    if(idim > 1) call mpi_cart_shift(comm, 0, 1, left, right, ierror)
-    if(jdim > 1) call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
-
-    !------------------------------
-    !          x-direction
-    !------------------------------
-
-    if(idim > 1) then
-
-      ! slice size
-      sendcount = nbx * (ny + 2 * nby + 1)
-      recvcount = sendcount
-
-      ! read slice into contiguous array
-      do i = 1, nbx
-        xSliceLeft_send(i, :) = field(i, :)
-        xSliceRight_send(i, :) = field(nx - nbx + i, :)
-      end do
-
-      ! left -> right
-      source = left
-      dest = right
-      tag = 100
-
-      i0 = 1; j0 = - nby
-
-      call mpi_sendrecv(xSliceRight_send(i0, j0), sendcount, &
-          &mpi_double_precision, dest, tag, xSliceLeft_recv(i0, j0), &
-          &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-          &sts_left, ierror)
-
-      ! right -> left
-      source = right
-      dest = left
-      tag = 100
-
-      call mpi_sendrecv(xSliceLeft_send(i0, j0), sendcount, &
-          &mpi_double_precision, dest, tag, xSliceRight_recv(i0, j0), &
-          &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-          &sts_right, ierror)
-
-      ! write auxiliary slice to var field
-      do i = 1, nbx
-        ! right halos
-        field(nx + i, :) = xSliceRight_recv(i, :)
-        ! left halos
-        field(- nbx + i, :) = xSliceLeft_recv(i, :)
-      end do
-
-    else
-
-      do i = 1, nbx
-        field(nx + i, :) = field(i, :)
-        field(- i + 1, :) = field(nx - i + 1, :)
-      end do
-
-    end if
-
-    !------------------------------
-    !          y-direction
-    !------------------------------
-
-    if(jdim > 1) then
-
-      ! slice size
-      sendcount = nby * (nx + 2 * nbx + 1)
-      recvcount = sendcount
-
-      ! read slice into contiguous array
-      do j = 1, nby
-        ySliceBack_send(:, j) = field(:, j)
-        ySliceForw_send(:, j) = field(:, ny - nby + j)
-      end do
-
-      ! back -> forw
-      source = back
-      dest = forw
-      tag = 100
-
-      i0 = - nbx; j0 = 1
-
-      call mpi_sendrecv(ySliceForw_send(i0, j0), sendcount, &
-          &mpi_double_precision, dest, tag, ySliceBack_recv(i0, j0), &
-          &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-          &sts_back, ierror)
-
-      ! forw -> back
-      source = forw
-      dest = back
-      tag = 100
-
-      call mpi_sendrecv(ySliceBack_send(i0, j0), sendcount, &
-          &mpi_double_precision, dest, tag, ySliceForw_recv(i0, j0), &
-          &recvcount, mpi_double_precision, source, mpi_any_tag, comm, &
-          &sts_forw, ierror)
-
-      ! write auxiliary slice to var field
-      do j = 1, nby
-        ! right halos
-        field(:, ny + j) = ySliceForw_recv(:, j)
-        ! left halos
-        field(:, - nby + j) = ySliceBack_recv(:, j)
-      end do
-
-    else
-
-      do j = 1, nby
-        field(:, ny + j) = field(:, j)
-        field(:, - j + 1) = field(:, ny - j + 1)
-      end do
-
-    end if
-
-  end subroutine setHalosOfField2D
 
   !---------------------------------------------------------------------------
 
@@ -1816,11 +1441,11 @@ module atmosphere_module
 
             case(5)
               ! 2D cosine envelope and even background
-              if(abs(x(ix + ix0) - x_center) <= mountainWidth * range_factor) &
+              if(abs(x(ix + ix0) - x_center) <= mountainWidth * width_factor) &
                   &then
                 k_spectrum(ix, jy, 1) = mountainWavenumber
                 topography_spectrum(ix, jy, 1) = 0.25 * mountainHeight * (1.0 &
-                    &+ cos(mountainWavenumber / range_factor * (x(ix + ix0) &
+                    &+ cos(mountainWavenumber / width_factor * (x(ix + ix0) &
                     &- x_center)))
               end if
               topography_surface(ix, jy) = 0.5 * mountainHeight
@@ -1830,19 +1455,19 @@ module atmosphere_module
               k_spectrum(ix, jy, 1) = mountainWavenumber
               topography_spectrum(ix, jy, 1) = 0.5 * mountainHeight * exp(- &
                   &(x(ix + ix0) - x_center) ** 2.0 / (mountainWidth &
-                  &* range_factor) ** 2.0)
+                  &* width_factor) ** 2.0)
               topography_surface(ix, jy) = 0.5 * mountainHeight
 
             case(9)
               ! 2D cosine envelope and cosine background
-              if(abs(x(ix + ix0) - x_center) <= mountainWidth * range_factor) &
+              if(abs(x(ix + ix0) - x_center) <= mountainWidth * width_factor) &
                   &then
                 k_spectrum(ix, jy, 1) = mountainWavenumber
                 topography_spectrum(ix, jy, 1) = 0.25 * mountainHeight * (1.0 &
-                    &+ cos(mountainWavenumber / range_factor * (x(ix + ix0) &
+                    &+ cos(mountainWavenumber / width_factor * (x(ix + ix0) &
                     &- x_center)))
                 topography_surface(ix, jy) = 0.25 * mountainHeight * (1.0 &
-                    &+ cos(mountainWavenumber / range_factor * (x(ix + ix0) &
+                    &+ cos(mountainWavenumber / width_factor * (x(ix + ix0) &
                     &- x_center)))
               end if
 
@@ -1851,30 +1476,30 @@ module atmosphere_module
               k_spectrum(ix, jy, 1) = mountainWavenumber
               topography_spectrum(ix, jy, 1) = 0.5 * mountainHeight * exp(- &
                   &(x(ix + ix0) - x_center) ** 2.0 / (mountainWidth &
-                  &* range_factor) ** 2.0)
+                  &* width_factor) ** 2.0)
               topography_surface(ix, jy) = 0.5 * mountainHeight * exp(- (x(ix &
-                  &+ ix0) - x_center) ** 2.0 / (mountainWidth * range_factor) &
+                  &+ ix0) - x_center) ** 2.0 / (mountainWidth * width_factor) &
                   &** 2.0)
 
             case(13)
               ! 3D WKB topography
               if((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
-                  &** 2.0 <= (mountainWidth * range_factor) ** 2.0) then
+                  &** 2.0 <= (mountainWidth * width_factor) ** 2.0) then
                 do iwm = 0, spectral_modes - 1
                   k_spectrum(ix, jy, iwm + 1) = mountainWavenumber * cos(pi &
                       &/ spectral_modes * iwm)
                   l_spectrum(ix, jy, iwm + 1) = mountainWavenumber * sin(pi &
                       &/ spectral_modes * iwm)
-                  topography_spectrum(ix, jy, iwm + 1) = 0.25 * mountainHeight &
-                      &* (1.0 + cos(mountainWavenumber / range_factor &
+                  topography_spectrum(ix, jy, iwm + 1) = 0.5 * mountainHeight &
+                      &* (1.0 + cos(mountainWavenumber / width_factor &
                       &* sqrt((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) &
-                      &- y_center) ** 2.0))) / spectral_modes * (1.0 &
-                      &- envelope_reduction)
+                      &- y_center) ** 2.0))) / spectral_modes / (height_factor &
+                      &+ 1.0)
                 end do
-                topography_surface(ix, jy) = 0.25 * mountainHeight * (1.0 &
-                    &+ cos(mountainWavenumber / range_factor * sqrt((x(ix &
+                topography_surface(ix, jy) = 0.5 * mountainHeight * (1.0 &
+                    &+ cos(mountainWavenumber / width_factor * sqrt((x(ix &
                     &+ ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
-                    &** 2.0))) * (1.0 + envelope_reduction)
+                    &** 2.0))) * height_factor / (height_factor + 1.0)
               end if
 
             case default
@@ -1892,9 +1517,9 @@ module atmosphere_module
       call setHalosOfField2D(topography_surface)
 
       if(topographyTime > 0.0) then
-        final_topography_spectrum = topography_spectrum
+        reference_topography_spectrum = topography_spectrum
         topography_spectrum = 0.0
-        final_topography_surface = topography_surface
+        reference_topography_surface = topography_surface
         topography_surface = 0.0
       end if
     else if(topography) then
@@ -1927,10 +1552,10 @@ module atmosphere_module
 
             case(5)
               ! 2D cosine envelope and even background
-              if(abs(x(ix + ix0) - x_center) <= mountainWidth * range_factor) &
+              if(abs(x(ix + ix0) - x_center) <= mountainWidth * width_factor) &
                   &then
                 topography_surface(ix, jy) = 0.5 * mountainHeight * (1.0 + 0.5 &
-                    &* (1.0 + cos(mountainWavenumber / range_factor * (x(ix &
+                    &* (1.0 + cos(mountainWavenumber / width_factor * (x(ix &
                     &+ ix0) - x_center))) * cos(mountainWavenumber * (x(ix &
                     &+ ix0) - x_center)))
               else
@@ -1940,9 +1565,9 @@ module atmosphere_module
             case(6)
               ! 3D cosine envelope and even background
               if((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
-                  &** 2.0 <= (mountainWidth * range_factor) ** 2.0) then
+                  &** 2.0 <= (mountainWidth * width_factor) ** 2.0) then
                 topography_surface(ix, jy) = 0.5 * mountainHeight * (1.0 + 0.5 &
-                    &* (1.0 + cos(mountainWavenumber / range_factor &
+                    &* (1.0 + cos(mountainWavenumber / width_factor &
                     &* sqrt((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) &
                     &- y_center) ** 2.0))) * cos(mountainWavenumber &
                     &* sqrt((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) &
@@ -1955,23 +1580,23 @@ module atmosphere_module
               ! 2D Gaussian envelope and even background
               topography_surface(ix, jy) = 0.5 * mountainHeight * (1.0 + exp(- &
                   &(x(ix + ix0) - x_center) ** 2.0 / (mountainWidth &
-                  &* range_factor) ** 2.0) * cos(mountainWavenumber * (x(ix &
+                  &* width_factor) ** 2.0) * cos(mountainWavenumber * (x(ix &
                   &+ ix0) - x_center)))
 
             case(8)
               ! 3D Gaussian envelope and even background
               topography_surface(ix, jy) = 0.5 * mountainHeight * (1.0 + exp(- &
                   &((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
-                  &** 2.0) / (mountainWidth * range_factor) ** 2.0) &
+                  &** 2.0) / (mountainWidth * width_factor) ** 2.0) &
                   &* cos(mountainWavenumber * sqrt((x(ix + ix0) - x_center) &
                   &** 2.0 + (y(jy + jy0) - y_center) ** 2.0)))
 
             case(9)
               ! 2D cosine envelope and cosine background
-              if(abs(x(ix + ix0) - x_center) <= mountainWidth * range_factor) &
+              if(abs(x(ix + ix0) - x_center) <= mountainWidth * width_factor) &
                   &then
                 topography_surface(ix, jy) = 0.25 * mountainHeight * (1.0 &
-                    &+ cos(mountainWavenumber / range_factor * (x(ix + ix0) &
+                    &+ cos(mountainWavenumber / width_factor * (x(ix + ix0) &
                     &- x_center))) * (1.0 + cos(mountainWavenumber * (x(ix &
                     &+ ix0) - x_center)))
               end if
@@ -1979,9 +1604,9 @@ module atmosphere_module
             case(10)
               ! 3D cosine envelope and cosine background
               if((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
-                  &** 2.0 <= (mountainWidth * range_factor) ** 2.0) then
+                  &** 2.0 <= (mountainWidth * width_factor) ** 2.0) then
                 topography_surface(ix, jy) = 0.25 * mountainHeight * (1.0 &
-                    &+ cos(mountainWavenumber / range_factor * sqrt((x(ix &
+                    &+ cos(mountainWavenumber / width_factor * sqrt((x(ix &
                     &+ ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
                     &** 2.0))) * (1.0 + cos(mountainWavenumber * sqrt((x(ix &
                     &+ ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
@@ -1991,7 +1616,7 @@ module atmosphere_module
             case(11)
               ! 2D Gaussian envelope and Gaussian background
               topography_surface(ix, jy) = 0.5 * mountainHeight * exp(- (x(ix &
-                  &+ ix0) - x_center) ** 2.0 / (mountainWidth * range_factor) &
+                  &+ ix0) - x_center) ** 2.0 / (mountainWidth * width_factor) &
                   &** 2.0) * (1.0 + cos(mountainWavenumber * (x(ix + ix0) &
                   &- x_center)))
 
@@ -1999,27 +1624,27 @@ module atmosphere_module
               ! 3D Gaussian envelope and Gaussian background
               topography_surface(ix, jy) = 0.5 * mountainHeight * exp(- ((x(ix &
                   &+ ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
-                  &** 2.0) / (mountainWidth * range_factor) ** 2.0) * (1.0 &
+                  &** 2.0) / (mountainWidth * width_factor) ** 2.0) * (1.0 &
                   &+ cos(mountainWavenumber * sqrt((x(ix + ix0) - x_center) &
                   &** 2.0 + (y(jy + jy0) - y_center) ** 2.0)))
 
             case(13)
               ! 3D WKB topography
               if((x(ix + ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
-                  &** 2.0 <= (mountainWidth * range_factor) ** 2.0) then
-                topography_surface(ix, jy) = 0.25 * mountainHeight * (1.0 &
-                    &+ cos(mountainWavenumber / range_factor * sqrt((x(ix &
+                  &** 2.0 <= (mountainWidth * width_factor) ** 2.0) then
+                topography_surface(ix, jy) = 0.5 * mountainHeight * (1.0 &
+                    &+ cos(mountainWavenumber / width_factor * sqrt((x(ix &
                     &+ ix0) - x_center) ** 2.0 + (y(jy + jy0) - y_center) &
-                    &** 2.0))) * (1.0 + envelope_reduction)
+                    &** 2.0))) * height_factor / (height_factor + 1.0)
                 do iwm = 0, spectral_modes - 1
                   kk = mountainWavenumber * cos(pi / spectral_modes * iwm)
                   ll = mountainWavenumber * sin(pi / spectral_modes * iwm)
                   topography_surface(ix, jy) = topography_surface(ix, jy) &
-                      &+ 0.25 * mountainHeight * (1.0 + cos(mountainWavenumber &
-                      &/ range_factor * sqrt((x(ix + ix0) - x_center) ** 2.0 &
+                      &+ 0.5 * mountainHeight * (1.0 + cos(mountainWavenumber &
+                      &/ width_factor * sqrt((x(ix + ix0) - x_center) ** 2.0 &
                       &+ (y(jy + jy0) - y_center) ** 2.0))) * cos(kk * (x(ix &
                       &+ ix0) - x_center) + ll * (y(jy + jy0) - y_center)) &
-                      &/ spectral_modes * (1.0 - envelope_reduction)
+                      &/ spectral_modes / (height_factor + 1.0)
                 end do
               end if
 
@@ -2035,7 +1660,7 @@ module atmosphere_module
       call setHalosOfField2D(topography_surface)
 
       if(topographyTime > 0.0) then
-        final_topography_surface = topography_surface
+        reference_topography_surface = topography_surface
         topography_surface = 0.0
       end if
     end if
@@ -2049,7 +1674,155 @@ module atmosphere_module
     end do
     zS(- nbz) = zTildeS(- nbz) - 0.5 * (zTildeS(nbz + 1) - zTildeS(nbz))
 
-    ! Compute the physical layers.
+    ! Compute the vertical layers, Jacobian and metric tensor.
+    call compute_grid_tfc
+
+  end subroutine setup_topography
+
+  !---------------------------------------------------------------------------
+
+  subroutine update_topography(var, time, dt)
+
+    type(var_type), intent(inout) :: var
+    real, intent(in) :: time
+    real, intent(in) :: dt
+
+    real, dimension(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz) :: &
+        &zTFCOld, zTildeTFCOld
+    type(var_type) :: varOld
+
+    integer :: ix, jy, kz
+
+    real :: zc, zu, zd, phi
+    real :: zwc, zwu, zwd, phiw
+    integer :: kzu, kzd
+    integer :: kzwu, kzwd
+
+    ! Return for constant topography.
+    if(topographyTime <= 0.0) return
+
+    ! Allocate varOld.
+    call allocate_var_type(varOld)
+
+    ! Save the old grid and prognostic variables.
+    zTildeTFCOld = zTildeTFC
+    zTFCOld = zTFC
+    varOld = var
+
+    ! Grow the topography spectrum.
+    if(rayTracer .and. case_wkb == 3) then
+      topography_spectrum = min(1.0, time / topographyTime * tRef) &
+          &* reference_topography_spectrum
+    end if
+
+    ! Grow the topography surface.
+    topography_surface = min(1.0, time / topographyTime * tRef) &
+        &* reference_topography_surface
+
+    ! Update the grid.
+    call compute_grid_tfc
+
+    ! Return if the grid hasn't changed.
+    if(all(zTFCOld == zTFC) .and. all(zTildeTFCOld == zTildeTFC)) return
+
+    ! Update the background fields.
+    call set_background_tfc
+
+    ! Interpolate to the new grid.
+    do kz = 1, nz
+      do jy = 1, ny
+        do ix = 1, nx
+          zc = zTFC(ix, jy, kz)
+          zwc = zTildeTFC(ix, jy, kz)
+
+          ! Determine adjacent levels.
+          kzu = minloc(abs(zTFCOld(ix, jy, :) - zc), dim = 1) - nbz - 1
+          if(zTFCOld(ix, jy, kzu) < zc) kzu = kzu + 1
+          if(kzu < - nbz + 1) kzu = - nbz + 1
+          if(kzu > nz + nbz) kzu = nz + nbz
+          kzd = kzu - 1
+          zu = zTFCOld(ix, jy, kzu)
+          zd = zTFCOld(ix, jy, kzd)
+
+          ! Set interpolation factor.
+          if(zc > zu) then
+            phi = 0.0
+          else if(zc > zd) then
+            phi = (zu - zc) / (zu - zd)
+          else
+            phi = 1.0
+          end if
+
+          ! Determine adjacent half-levels.
+          kzwu = minloc(abs(zTildeTFCOld(ix, jy, :) - zwc), dim = 1) - nbz - 1
+          if(zTildeTFCOld(ix, jy, kzwu) < zwc) kzwu = kzwu + 1
+          if(kzwu < - nbz + 1) kzwu = - nbz + 1
+          if(kzwu > nz + nbz) kzwu = nz + nbz
+          kzwd = kzwu - 1
+          zwu = zTildeTFCOld(ix, jy, kzwu)
+          zwd = zTildeTFCOld(ix, jy, kzwd)
+
+          ! Set interpolation factor for half-levels.
+          if(zwc > zwu) then
+            phiw = 0.0
+          else if(zwc > zwd) then
+            phiw = (zwu - zwc) / (zwu - zwd)
+          else
+            phiw = 1.0
+          end if
+
+          ! Perform interpolation (not all of these are technically needed).
+          var%rho(ix, jy, kz) = phi * varOld%rho(ix, jy, kzd) + (1.0 - phi) &
+              &* varOld%rho(ix, jy, kzu)
+          var%u(ix, jy, kz) = phi * varOld%u(ix, jy, kzd) + (1.0 - phi) &
+              &* varOld%u(ix, jy, kzu)
+          var%v(ix, jy, kz) = phi * varOld%v(ix, jy, kzd) + (1.0 - phi) &
+              &* varOld%v(ix, jy, kzu)
+          var%w(ix, jy, kz) = phiw * varOld%w(ix, jy, kzwd) + (1.0 - phiw) &
+              &* varOld%w(ix, jy, kzwu)
+          var%pi(ix, jy, kz) = phi * varOld%pi(ix, jy, kzd) + (1.0 - phi) &
+              &* varOld%pi(ix, jy, kzu)
+          var%rhop(ix, jy, kz) = phi * varOld%rhop(ix, jy, kzd) + (1.0 - phi) &
+              &* varOld%rhop(ix, jy, kzu)
+          if(turbScheme) then
+            var%DSC(ix, jy, kz) = phi * varOld%DSC(ix, jy, kzd) + (1.0 - phi) &
+                &* varOld%DSC(ix, jy, kzu)
+          end if
+          if(rayTracer) then
+            var%GWH(ix, jy, kz) = phi * varOld%GWH(ix, jy, kzd) + (1.0 - phi) &
+                &* varOld%GWH(ix, jy, kzu)
+          end if
+          if(model == "compressible") then
+            var%P(ix, jy, kz) = phi * varOld%P(ix, jy, kzd) + (1.0 - phi) &
+                &* varOld%P(ix, jy, kzu)
+          end if
+          if(include_tracer) then
+            var%chi(ix, jy, kz) = phi * varOld%chi(ix, jy, kzd) + (1.0 - phi) &
+                &* varOld%chi(ix, jy, kzu)
+          end if
+          if(include_ice) then
+            var%ICE(ix, jy, kz, :) = phi * varOld%ICE(ix, jy, kzd, :) + (1.0 &
+                &- phi) * varOld%ICE(ix, jy, kzu, :)
+          end if
+          if(include_testoutput) then
+            var%OPT(ix, jy, kz, :) = phi * varOld%OPT(ix, jy, kzd, :) + (1.0 &
+                &- phi) * varOld%OPT(ix, jy, kzu, :)
+          end if
+        end do
+      end do
+    end do
+
+  end subroutine update_topography
+
+  !---------------------------------------------------------------------------
+
+  subroutine compute_grid_tfc
+
+    ! Compute the vertical layers, Jacobian and metric tensor.
+
+    integer :: ix, jy, kz
+
+    ! Compute the vertical layers.
     do kz = - nbz, nz + nbz
       zTildeTFC(:, :, kz) = (lz(1) - topography_surface) / lz(1) * zTildeS(kz) &
           &+ topography_surface
@@ -2057,14 +1830,80 @@ module atmosphere_module
           &+ topography_surface
     end do
 
-  end subroutine setup_topography
+    ! Compute the Jacobian.
+    do kz = - nbz + 1, nz + nbz
+      jac(:, :, kz) = (lz(1) - topography_surface) / lz(1) * (zTildeS(kz) &
+          &- zTildeS(kz - 1)) / dz
+    end do
+    jac(:, :, - nbz) = jac(:, :, nbz + 1)
+
+    ! Compute the metric tensor.
+    met(:, :, :, 1, 1) = 1.0
+    met(:, :, :, 1, 2) = 0.0
+    do kz = - nbz + 1, nz + nbz
+      do jy = 1, ny
+        do ix = 1, nx
+          met(ix, jy, kz, 1, 3) = (topography_surface(ix + 1, jy) &
+              &- topography_surface(ix - 1, jy)) / (2.0 * dx) * (zS(kz) &
+              &- lz(1)) / (lz(1) - topography_surface(ix, jy)) * dz &
+              &/ (zTildeS(kz) - zTildeS(kz - 1))
+        end do
+      end do
+      call setHalosOfField2D(met(:, :, kz, 1, 3))
+    end do
+    met(:, :, - nbz, 1, 3) = met(:, :, nbz + 1, 1, 3) * (zS(- nbz) - lz(1)) &
+        &/ (zS(nbz + 1) - lz(1))
+    met(:, :, :, 2, 1) = 0.0
+    met(:, :, :, 2, 2) = 1.0
+    do kz = - nbz + 1, nz + nbz
+      do jy = 1, ny
+        do ix = 1, nx
+          met(ix, jy, kz, 2, 3) = (topography_surface(ix, jy + 1) &
+              &- topography_surface(ix, jy - 1)) / (2.0 * dy) * (zS(kz) &
+              &- lz(1)) / (lz(1) - topography_surface(ix, jy)) * dz &
+              &/ (zTildeS(kz) - zTildeS(kz - 1))
+        end do
+      end do
+      call setHalosOfField2D(met(:, :, kz, 2, 3))
+    end do
+    met(:, :, - nbz, 2, 3) = met(:, :, nbz + 1, 2, 3) * (zS(- nbz) - lz(1)) &
+        &/ (zS(nbz + 1) - lz(1))
+    met(:, :, :, 3, 1) = met(:, :, :, 1, 3)
+    met(:, :, :, 3, 2) = met(:, :, :, 2, 3)
+    do kz = - nbz + 1, nz + nbz
+      do jy = 1, ny
+        do ix = 1, nx
+          met(ix, jy, kz, 3, 3) = ((lz(1) / (lz(1) - topography_surface(ix, &
+              &jy))) ** 2.0 + ((zS(kz) - lz(1)) / (lz(1) &
+              &- topography_surface(ix, jy))) ** 2.0 &
+              &* (((topography_surface(ix + 1, jy) - topography_surface(ix &
+              &- 1, jy)) / (2.0 * dx)) ** 2.0 + ((topography_surface(ix, jy &
+              &+ 1) - topography_surface(ix, jy - 1)) / (2.0 * dy)) ** 2.0)) &
+              &* (dz / (zTildeS(kz) - zTildeS(kz - 1))) ** 2.0
+        end do
+      end do
+      call setHalosOfField2D(met(:, :, kz, 3, 3))
+    end do
+    do jy = 1, ny
+      do ix = 1, nx
+        met(ix, jy, - nbz, 3, 3) = ((lz(1) / (lz(1) - topography_surface(ix, &
+            &jy))) ** 2.0 + ((zS(- nbz) - lz(1)) / (lz(1) &
+            &- topography_surface(ix, jy))) ** 2.0 * (((topography_surface(ix &
+            &+ 1, jy) - topography_surface(ix - 1, jy)) / (2.0 * dx)) ** 2.0 &
+            &+ ((topography_surface(ix, jy + 1) - topography_surface(ix, jy &
+            &- 1)) / (2.0 * dy)) ** 2.0)) * (dz / (zTildeS(nbz + 1) &
+            &- zTildeS(nbz))) ** 2.0
+      end do
+    end do
+    call setHalosOfField2D(met(:, :, - nbz, 3, 3))
+
+  end subroutine compute_grid_tfc
 
   !---------------------------------------------------------------------------
 
-  subroutine update_topography(time, dt)
+  subroutine set_background_tfc
 
-    real, intent(in) :: time
-    real, intent(in) :: dt
+    ! Set all background fields in TFC.
 
     real :: z_tr
     real :: theta_tr
@@ -2080,65 +1919,16 @@ module atmosphere_module
 
     integer :: i, j, k
 
-    if(topographyTime <= 0.0) return
+    select case(model)
+    case("pseudo_incompressible", "compressible")
 
-    if(rayTracer .and. case_wkb == 3) then
-      if(any(topography_spectrum /= final_topography_spectrum)) then
-        if(time < topographyTime / tRef) then
-          topography_spectrum = time / topographyTime * tRef &
-              &* final_topography_spectrum
-        else
-          topography_spectrum = final_topography_spectrum
-        end if
-      end if
-    end if
-
-    if(any(topography_surface /= final_topography_surface)) then
-
-      ! Save old metric-tensor elements and inverse Jacobian.
-      do k = 0, nz + 1
-        do j = 0, ny + 1
-          do i = 0, nx + 1
-            dMet13Dt(i, j, k) = met(i, j, k, 1, 3)
-            dMet23Dt(i, j, k) = met(i, j, k, 2, 3)
-            dJacInvDt(i, j, k) = 1.0 / jac(i, j, k)
-          end do
-        end do
-      end do
-
-      ! Update topography.
-      if(time < topographyTime / tRef) then
-        topography_surface = time / topographyTime * tRef &
-            &* final_topography_surface
-      else
-        topography_surface = final_topography_surface
-      end if
-
-      ! Update the physical layers.
-      do k = - nbz, nz + nbz
-        zTildeTFC(:, :, k) = (lz(1) - topography_surface) / lz(1) * zTildeS(k) &
-            &+ topography_surface
-        zTFC(:, :, k) = (lz(1) - topography_surface) / lz(1) * zS(k) &
-            &+ topography_surface
-      end do
-
-      ! Compute temporal derivatives of metric-tensor elements and inverse
-      ! Jacobian.
-      do k = 0, nz + 1
-        do j = 0, ny + 1
-          do i = 0, nx + 1
-            dMet13Dt(i, j, k) = (met(i, j, k, 1, 3) - dMet13Dt(i, j, k)) / dt
-            dMet23Dt(i, j, k) = (met(i, j, k, 2, 3) - dMet23Dt(i, j, k)) / dt
-            dJacInvDt(i, j, k) = (1.0 / jac(i, j, k) - dJacInvDt(i, j, k)) / dt
-          end do
-        end do
-      end do
-
-      ! Return if model is Boussinesq.
-      if(model == "Boussinesq") return
-
-      ! Update TFC background if necessary.
       select case(background)
+
+      case("smoothV")
+
+        pStratTFC = p00
+        thetaStratTFC = theta00
+        rhoStratTFC = rho00
 
       case("realistic")
 
@@ -2385,9 +2175,17 @@ module atmosphere_module
       if(testCase == "smoothVortex") then
         bvsStratTFC = 0.0
       end if
-    end if
 
-  end subroutine update_topography
+    case("Boussinesq")
+
+      pStratTFC = p00
+      thetaStratTFC = theta00
+      rhoStratTFC = rho00
+      bvsStratTFC = N2
+
+    end select
+
+  end subroutine set_background_tfc
 
   !---------------------------------------------------------------------------
 
@@ -2443,6 +2241,36 @@ module atmosphere_module
       stop "add_JP_to_u unknown option."
     end select
 
+    call setHalosOfField(var%u)
+    call setHalosOfField(var%v)
+    call setHalosOfField(var%w)
+
+    select case(zBoundary)
+    case("periodic")
+      var%w(:, :, 0) = var%w(:, :, nz)
+      do k = 1, nbz
+        var%u(:, :, nz + k) = var%u(:, :, k)
+        var%u(:, :, - k + 1) = var%u(:, :, nz - k + 1)
+        var%v(:, :, nz + k) = var%v(:, :, k)
+        var%v(:, :, - k + 1) = var%v(:, :, nz - k + 1)
+        var%w(:, :, nz + k) = var%w(:, :, k)
+        var%w(:, :, - k) = var%w(:, :, nz - k)
+      enddo
+    case("solid_wall")
+      var%w(:, :, 0) = 0.0
+      var%w(:, :, nz) = 0.0
+      do k = 1, nbz
+        var%u(:, :, - k + 1) = var%u(:, :, k)
+        var%u(:, :, nz + k) = var%u(:, :, nz - k + 1)
+        var%v(:, :, - k + 1) = var%v(:, :, k)
+        var%v(:, :, nz + k) = var%v(:, :, nz - k + 1)
+        var%w(:, :, - k) = - var%w(:, :, k)
+        var%w(:, :, nz + k) = - var%w(:, :, nz - k)
+      end do
+    case default
+      stop "Error in add_JP_to_u: Unknown zBoundary!"
+    end select
+
   end subroutine
 
   !---------------------------------------------------------------------------
@@ -2463,42 +2291,6 @@ module atmosphere_module
     end if
 
   end function map
-
-  function jac(i, j, k)
-    ! Jacobian.
-
-    real :: jac
-    integer :: i, j, k
-
-    jac = (lz(1) - topography_surface(i, j)) / lz(1) * (zTildeS(k) - zTildeS(k &
-        &- 1)) / dz
-
-  end function jac
-
-  function met(i, j, k, mu, nu)
-    ! Metric tensor.
-
-    real :: met
-    integer :: i, j, k, mu, nu
-
-    if((mu == 1 .and. nu == 3) .or. (mu == 3 .and. nu == 1)) then
-      met = (topography_surface(i + 1, j) - topography_surface(i - 1, j)) &
-          &/ (2.0 * dx) * (zS(k) - lz(1)) / (lz(1) - topography_surface(i, j)) &
-          &* dz / (zTildeS(k) - zTildeS(k - 1))
-    else if((mu == 2 .and. nu == 3) .or. (mu == 3 .and. nu == 2)) then
-      met = (topography_surface(i, j + 1) - topography_surface(i, j - 1)) &
-          &/ (2.0 * dy) * (zS(k) - lz(1)) / (lz(1) - topography_surface(i, j)) &
-          &* dz / (zTildeS(k) - zTildeS(k - 1))
-    else if(mu == 3 .and. nu == 3) then
-      met = ((lz(1) / (lz(1) - topography_surface(i, j))) ** 2.0 + ((zS(k) &
-          &- lz(1)) / (lz(1) - topography_surface(i, j))) ** 2.0 &
-          &* (((topography_surface(i + 1, j) - topography_surface(i - 1, j)) &
-          &/ (2.0 * dx)) ** 2.0 + ((topography_surface(i, j + 1) &
-          &- topography_surface(i, j - 1)) / (2.0 * dy)) ** 2.0)) * (dz &
-          &/ (zTildeS(k) - zTildeS(k - 1))) ** 2.0
-    end if
-
-  end function met
 
   function vertWindTFC(i, j, k, var)
     ! Transformation of the vertical wind.
