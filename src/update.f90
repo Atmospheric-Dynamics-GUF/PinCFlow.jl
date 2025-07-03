@@ -812,8 +812,7 @@ module update_module
               end if
 
               ! gravity-wave forcing
-              if(raytracer .or. (testCase == "mountainwave") .or. (topography &
-                  &.and. topographyTime > 0.0)) then
+              if(raytracer .or. testCase == "mountainwave") then
                 volfcx = 0.5 * (force(i, j, k, 1) + force(i + 1, j, k, 1))
               else
                 volfcx = 0.0
@@ -1046,8 +1045,7 @@ module update_module
               end if
 
               ! gravity-wave forcing
-              if(raytracer .or. (testCase == "mountainwave") .or. (topography &
-                  &.and. topographyTime > 0.0)) then
+              if(raytracer .or. testCase == "mountainwave") then
                 volfcx = 0.5 * (force(i, j, k, 1) + force(i + 1, j, k, 1))
                 volfcy = 0.5 * (force(i, j, k, 2) + force(i, j + 1, k, 2))
               else
@@ -1481,8 +1479,7 @@ module update_module
               end if
 
               ! gravity-wave forcing
-              if(raytracer .or. (testCase == "mountainwave") .or. (topography &
-                  &.and. topographyTime > 0.0)) then
+              if(raytracer .or. testCase == "mountainwave") then
                 volfcy = 0.5 * (force(i, j, k, 2) + force(i, j + 1, k, 2))
               else
                 volfcy = 0.0
@@ -1724,8 +1721,7 @@ module update_module
               end if
 
               ! gravity-wave forcing
-              if(raytracer .or. (testCase == "mountainwave") .or. (topography &
-                  &.and. topographyTime > 0.0)) then
+              if(raytracer .or. testCase == "mountainwave") then
                 volfcx = 0.5 * (force(i, j, k, 1) + force(i + 1, j, k, 1))
                 volfcy = 0.5 * (force(i, j, k, 2) + force(i, j + 1, k, 2))
               else
@@ -2251,9 +2247,8 @@ module update_module
                 end if
               end if
 
-              ! Metric terms due to topography growth.
-              if((testCase == "mountainwave") .or. (topography .and. &
-                  &topographyTime > 0.0)) then
+              ! Gravity-wave forcing and metric terms due to topography growth.
+              if(raytracer .or. testCase == "mountainwave") then
                 volfcz = (jac(i, j, k + 1) * force(i, j, k, 3) + jac(i, j, k) &
                     &* force(i, j, k + 1, 3)) / (jac(i, j, k) + jac(i, j, k &
                     &+ 1))
@@ -2487,9 +2482,8 @@ module update_module
                 end if
               end if
 
-              ! Metric terms due to topography growth.
-              if((testCase == "mountainwave") .or. (topography .and. &
-                  &topographyTime > 0.0)) then
+              ! Gravity-wave forcing and metric terms due to topography growth.
+              if(raytracer .or. testCase == "mountainwave") then
                 volfcz = (jac(i, j, k + 1) * force(i, j, k, 3) + jac(i, j, k) &
                     &* force(i, j, k + 1, 3)) / (jac(i, j, k) + jac(i, j, k &
                     &+ 1))
@@ -3768,8 +3762,7 @@ module update_module
     ! 1) CFL criterion for advection
     ! 2) von Neumann cirterion for dissipation
     ! 3) set maximum time step
-    ! 4) buouyancy acceleration ->  1/2 b_max*dt^2 < dz
-    ! 5) gravity-wave group condition: c_g_x * dt < dx, ...dy,dz
+    ! 4) gravity-wave group condition: c_g_x * dt < dx, ...dy,dz
     !---------------------------------------------
 
     ! in/out variables
@@ -3783,12 +3776,6 @@ module update_module
     real :: dtConv_loc, dtVisc_loc, dtCond_loc, dtWKB_loc
     real :: dtMax
     real :: dtWave
-
-    ! Buoyancy time step restriction
-    real :: dtBuoy, dtBuoy_loc
-    real, dimension(3) :: bMax, bMaxNew, duMax
-    real :: buoyMax, buoyMin, buoyMaxNew, the_New, the_max, the_min
-    real :: bb, ww
 
     ! local integer
     integer :: i, j, k
@@ -3849,91 +3836,6 @@ module update_module
             &root, comm, ierror)
 
         call mpi_bcast(dtConv, 1, mpi_double_precision, root, comm, ierror)
-
-        !---------------------------
-        !  Acceleration condition
-        !---------------------------
-        bMax = 0.0
-        do k = 1, nz
-          do j = 1, ny
-            do i = 1, nx
-
-              select case(model)
-
-              case("pseudo_incompressible", "compressible")
-                if(topography) then
-                  bMaxNew = abs(var%rho(i, j, k)) / (rhoStratTFC(i, j, k) &
-                      &+ var%rho(i, j, k)) * vertical
-                else
-                  bMaxNew = abs(var%rho(i, j, k)) / (rhoStrat(k) + var%rho(i, &
-                      &j, k)) * vertical
-                end if
-
-              case("Boussinesq")
-                ! Boussinesq: density fluctuations are stored in var%rhop!
-                bMaxNew = abs(- var%rhop(i, j, k)) / rho00 * vertical
-
-              case default
-                stop "timeStep: unknown case model."
-              end select
-
-              if(bMaxNew(1) > bMax(1)) bMax(1) = bMaxNew(1)
-              if(bMaxNew(2) > bMax(2)) bMax(2) = bMaxNew(2)
-              if(bMaxNew(3) > bMax(3)) bMax(3) = bMaxNew(3)
-            end do
-          end do
-        end do
-        bMax = FrInv2 * bMax
-
-        ! check whether acceleration condition is needed
-        duMax = bMax * dtConv
-        if((duMax(1) > 1.e-2 * uMax .or. duMax(2) > 1.e-2 * vMax .or. duMax(3) &
-            &> 1.e-2 * wMax) .and. ((bMax(1) /= 0.) .and. (bMax(2) /= 0.) &
-            &.and. (bMax(3) /= 0.))) then
-
-          dtBuoy_loc = max(- uMax / bMax(1) + sqrt((uMax / bMax(1)) ** 2 + 2. &
-              &* cfl * dx / bMax(1)), - vMax / bMax(2) + sqrt((vMax / bMax(2)) &
-              &** 2 + 2. * cfl * dy / bMax(2)), - wMax / bMax(3) + sqrt((wMax &
-              &/ bMax(3)) ** 2 + 2. * cfl * dz / bMax(3)))
-
-          if(dtBuoy_loc * tRef < 1.e-2) then
-            print *, "dtBuoy_loc*tRef  = ", dtBuoy_loc * tRef
-            print *, "bMax(3) = ", bMax(3) * FrInv2
-          end if
-
-          if(topography) then
-            do k = 1, nz
-              do j = 1, ny
-                do i = 1, nx
-                  select case(model)
-                  case("pseudo_incompressible", "compressible")
-                    bb = abs(var%rho(i, j, k)) / (rhoStratTFC(i, j, k) &
-                        &+ var%rho(i, j, k))
-                  case("Boussinesq")
-                    bb = abs(var%rhop(i, j, k)) / rho00
-                  case default
-                    stop "Error in timestep: Unknown case model!"
-                  end select
-                  ww = abs(0.5 * (vertWindTFC(i, j, k, var) + vertWindTFC(i, &
-                      &j, k - 1, var))) + small
-                  dtBuoy_loc = min(dtBuoy_loc, - ww / bb + sqrt((ww / bb) &
-                      &** 2.0 + 2.0 * cfl * jac(i, j, k) * dz / bb))
-                end do
-              end do
-            end do
-          end if
-        else
-
-          dtBuoy_loc = 1.0e20 / tRef ! set to high value if not needed
-
-        end if
-
-        ! find global minimum
-
-        call mpi_reduce(dtBuoy_loc, dtBuoy, 1, mpi_double_precision, mpi_min, &
-            &root, comm, ierror)
-
-        call mpi_bcast(dtBuoy, 1, mpi_double_precision, root, comm, ierror)
 
         !---------------------------
         !   von Neumann condition
@@ -4010,9 +3912,9 @@ module update_module
         !-------------------------------
 
         if(dtWave_on .and. timeScheme /= 'semiimplicit') then
-          dt = min(dtVisc, dtCond, dtConv, dtMax, dtBuoy, dtWave)
+          dt = min(dtVisc, dtCond, dtConv, dtMax, dtWave)
         else
-          dt = min(dtVisc, dtCond, dtConv, dtMax, dtBuoy)
+          dt = min(dtVisc, dtCond, dtConv, dtMax)
         end if
 
         if(raytracer) dt = min(dt, dtWKB)
@@ -4027,7 +3929,6 @@ module update_module
           write(*, fmt = "(a25,es15.1,a8)") "dtCond =", dtCond * tRef, "seconds"
           write(*, fmt = "(a25,es15.1,a8)") "dtConv =", dtConv * tRef, "seconds"
           write(*, fmt = "(a25,es15.1,a8)") "dtMax =", dtMax * tRef, "seconds"
-          write(*, fmt = "(a25,es15.1,a8)") "dtBuoy =", dtBuoy * tRef, "seconds"
           write(*, fmt = "(a25,es15.1,a8)") "dtWave =", dtWave * tRef, "seconds"
           if(raytracer) then
             write(*, fmt = "(a25,es15.1,a8)") "dtWKB =", dtWKB * tRef, "seconds"
@@ -4045,9 +3946,6 @@ module update_module
                 &"seconds"
           else if(dt == dtCond) then
             write(*, fmt = "(a25,es15.1,a8)") "--> dt = dtCond = ", dt * tRef, &
-                &"seconds"
-          else if(dt == dtBuoy) then
-            write(*, fmt = "(a25,es15.1,a8)") "--> dt = dtBuoy = ", dt * tRef, &
                 &"seconds"
           else if(dt == dtWave) then
             write(*, fmt = "(a25,es15.1,a8)") "--> dt = dtWave = ", dt * tRef, &
@@ -6141,7 +6039,10 @@ module update_module
       do k = - nbz, nz + nbz
         do j = - nby, ny + nby
           do i = - nbx, nx + nbx
-            pinew(i, j, k) = var%pi(i, j, k) - dt * heat(i, j, k)
+            dPdPi = 1 / (gamma - 1) * (Rsp / pref) ** (1 - gamma) * var%P(i, &
+                &j, k) ** (2 - gamma)
+
+            pinew(i, j, k) = var%pi(i, j, k) - dt * heat(i, j, k) / dPdPi
           end do
         end do
       end do

@@ -150,11 +150,6 @@ module init_module
     read(unit = 10, nml = boundaryList, end = 18)
     18 continue
 
-    ! Read second boundary namelist.
-    rewind(unit = 10)
-    read(unit = 10, nml = boundaryList2, end = 19)
-    19 continue
-
     ! Read WKB namelist.
     rewind(unit = 10)
     read(unit = 10, nml = wkbList, end = 20)
@@ -199,10 +194,10 @@ module init_module
           &= allocstat)
       if(allocstat /= 0) stop "setup: could not allocate topography_surface"
       if(topographyTime > 0.0) then
-        allocate(final_topography_surface(- nbx:nx + nbx, - nby:ny + nby), &
+        allocate(reference_topography_surface(- nbx:nx + nbx, - nby:ny + nby), &
             &stat = allocstat)
         if(allocstat /= 0) stop "setup: could not allocate &
-            &final_topography_surface"
+            &reference_topography_surface"
       end if
       allocate(zTildeTFC(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz), stat &
           &= allocstat)
@@ -225,21 +220,11 @@ module init_module
       allocate(topography_spectrum(1:nx, 1:ny, 1:nwm), stat = allocstat)
       if(allocstat /= 0) stop "setup: could not allocate topography_spectrum"
       if(topographyTime > 0.0) then
-        allocate(final_topography_spectrum(1:nx, 1:ny, 1:nwm), stat = allocstat)
+        allocate(reference_topography_spectrum(1:nx, 1:ny, 1:nwm), stat &
+            &= allocstat)
         if(allocstat /= 0) stop "setup: could not allocate &
-            &final_topography_spectrum"
+            &reference_topography_spectrum"
       end if
-    end if
-
-    ! Allocate temporal derivatives of metric-tensor elements and inverse
-    ! Jacobian.
-    if(topographyTime > 0.0) then
-      allocate(dMet13Dt(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
-      if(allocstat /= 0) stop "setup: could not allocate dMet13Dt"
-      allocate(dMet23Dt(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
-      if(allocstat /= 0) stop "setup: could not allocate dMet23Dt"
-      allocate(dJacInvDt(0:nx + 1, 0:ny + 1, 0:nz + 1), stat = allocstat)
-      if(allocstat /= 0) stop "setup: could not allocate dJacInvDt"
     end if
 
     allocate(kbl_topo(- nbx:nx + nbx, - nby:ny + nby, 3), stat = allocstat)
@@ -461,11 +446,9 @@ module init_module
       end if
     end if
 
-    ! Safety switch for halos in TFC
-    if(topography) then
-      if(.not. (nbx >= 3 .and. nby >= 3 .and. nbz >= 3)) then
-        stop "Three halos / ghost cells are needed in TFC!"
-      end if
+    ! Safety switch for halos / ghost cells
+    if(nbx < 3 .or. nby < 3 .or. nbz < 3) then
+      stop "Two halos / ghost cells are needed in each direction!"
     end if
 
     !---------------------------------------
@@ -487,7 +470,6 @@ module init_module
       auxil_equ = .true.
       heatingONK14 = .false.
       TurbScheme = .false.
-      rayTracer = .false.
       if(include_tracer) then
         updateTracer = .true.
       end if

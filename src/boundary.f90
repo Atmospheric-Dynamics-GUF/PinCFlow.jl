@@ -1,7 +1,6 @@
 module boundary_module
 
   use type_module
-  use flux_module ! BC for rhoTilde, uTilde,...
   use atmosphere_module
   use mpi_module
   use mpi
@@ -208,91 +207,7 @@ module boundary_module
       if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal BC &
           &for ice variables set."
 
-    case("iceTilde")
-      ! reconstructed density needed in ghost cell i = nx+2
-      nAerTilde(nx + 2, :, :, 1, 0) = nAerTilde(2, :, :, 1, 0)
-      nIceTilde(nx + 2, :, :, 1, 0) = nIceTilde(2, :, :, 1, 0)
-      qIceTilde(nx + 2, :, :, 1, 0) = qIceTilde(2, :, :, 1, 0)
-      qvTilde(nx + 2, :, :, 1, 0) = qvTilde(2, :, :, 1, 0)
-
-      ! ...in ghost cell i = -1
-      nAerTilde(- 1, :, :, 1, 1) = nAerTilde(nx - 1, :, :, 1, 1)
-      nIceTilde(- 1, :, :, 1, 1) = nIceTilde(nx - 1, :, :, 1, 1)
-      qIceTilde(- 1, :, :, 1, 1) = qIceTilde(nx - 1, :, :, 1, 1)
-      qvTilde(- 1, :, :, 1, 1) = qvTilde(nx - 1, :, :, 1, 1)
-
-      if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal BC &
-          &for iceTilde variables set."
-
-    case("iceFlux")
-      ! nothing
-
-    case("varTilde")
-      !-----------------------------------
-      !             varTilde
-      !-----------------------------------
-
-      ! the following three boundary-condition calls can probably be
-      ! removed
-      ! probably only necessary for ALDM (that is not used any more
-      ! anyway)
-
-      if(updateMass) then
-        ! reconstructed density needed in ghost cell i = nx+2
-        rhoTilde(nx + 2, :, :, 1, 0) = rhoTilde(2, :, :, 1, 0)
-
-        ! ...in ghost cell i = -1
-        rhoTilde(- 1, :, :, 1, 1) = rhoTilde(nx - 1, :, :, 1, 1)
-
-        if(verbose .and. master) then
-          print *, "horizontalBoundary: x-horizontal BC for rhoTilde set."
-        end if
-      end if
-
-      if(timeScheme == "semiimplicit" .or. auxil_equ) then
-        ! reconstructed density fluctuation needed in ghost cell i = nx+2
-        rhopTilde(nx + 2, :, :, 1, 0) = rhopTilde(2, :, :, 1, 0)
-
-        ! ...in ghost cell i = -1
-        rhopTilde(- 1, :, :, 1, 1) = rhopTilde(nx - 1, :, :, 1, 1)
-
-        if(verbose .and. master) then
-          print *, "horizontalBoundary: x-horizontal BC for rhoTilde set."
-        end if
-      end if
-
-      if(updateIce) then
-        ! reconstructed density needed in ghost cell i = nx+2
-        nAerTilde(nx + 2, :, :, 1, 0) = nAerTilde(2, :, :, 1, 0)
-        nIceTilde(nx + 2, :, :, 1, 0) = nIceTilde(2, :, :, 1, 0)
-        qIceTilde(nx + 2, :, :, 1, 0) = qIceTilde(2, :, :, 1, 0)
-        qvTilde(nx + 2, :, :, 1, 0) = qvTilde(2, :, :, 1, 0)
-
-        ! ...in ghost cell i = -1
-        nAerTilde(- 1, :, :, 1, 1) = nAerTilde(nx - 1, :, :, 1, 1)
-        nIceTilde(- 1, :, :, 1, 1) = nIceTilde(nx - 1, :, :, 1, 1)
-        qIceTilde(- 1, :, :, 1, 1) = qIceTilde(nx - 1, :, :, 1, 1)
-        qvTilde(- 1, :, :, 1, 1) = qvTilde(nx - 1, :, :, 1, 1)
-
-        if(verbose .and. master) print *, "horizontalBoundary:  x-horizontal &
-            &BC for iceTilde variables set."
-
-      end if
-
-      ! set boundaries if including tracer
-      if(updateTracer) then
-        tracerTilde(nx + 2, :, :, 1, 0) = tracerTilde(2, :, :, 1, 0)
-        tracerTilde(- 1, :, :, 1, 1) = tracerTilde(nx - 1, :, :, 1, 1)
-
-        if(verbose .and. master) then
-          print *, "horizontalBoundary: x-horizontal BC for tracerTilde set."
-        end if
-      end if
-
     case("flux")
-      !-----------------------------------
-      !              flux
-      !-----------------------------------
 
       return
 
@@ -422,92 +337,8 @@ module boundary_module
       if(verbose .and. master) print *, "horizontalBoundary:  y-horizontal BC &
           &for ice variables set."
 
-    case("iceTilde")
-      ! see above, similar to rho
-      nAerTilde(:, ny + 2, :, 2, 0) = nAerTilde(:, 2, :, 2, 0)
-      nIceTilde(:, ny + 2, :, 2, 0) = nIceTilde(:, 2, :, 2, 0)
-      qIceTilde(:, ny + 2, :, 2, 0) = qIceTilde(:, 2, :, 2, 0)
-      qvTilde(:, ny + 2, :, 2, 0) = qvTilde(:, 2, :, 2, 0)
-
-      ! see above, similar to rho
-      nAerTilde(:, - 1, :, 2, 1) = nAerTilde(:, ny - 1, :, 2, 1)
-      nIceTilde(:, - 1, :, 2, 1) = nIceTilde(:, ny - 1, :, 2, 1)
-      qIceTilde(:, - 1, :, 2, 1) = qIceTilde(:, ny - 1, :, 2, 1)
-      qvTilde(:, - 1, :, 2, 1) = qvTilde(:, ny - 1, :, 2, 1)
-
-      if(verbose .and. master) print *, "horizontalBoundary:  y-horizontal BC &
-          &for iceTilde variables set."
-
-    case("iceFlux")
-      ! nothing
-
-    case("varTilde")
-      !-----------------------------------
-      !              varTilde
-      !-----------------------------------
-
-      ! the following three boundary-condition calls can probably be
-      ! removed
-      ! probably only necessary for ALDM (that is not used any more
-      ! anyway)
-
-      if(updateMass) then
-        ! reconstructed density needed in ghost cell j = ny+2
-        rhoTilde(:, ny + 2, :, 2, 0) = rhoTilde(:, 2, :, 2, 0)
-
-        ! ...in ghost cell j = -1
-        rhoTilde(:, - 1, :, 2, 1) = rhoTilde(:, ny - 1, :, 2, 1)
-
-        if(verbose .and. master) then
-          print *, "horizontalBoundary: y-horizontal BC for rhoTilde set."
-        end if
-      end if
-
-      if(timeScheme == "semiimplicit" .or. auxil_equ) then
-        ! reconstructed density fluctuations needed in ghost cell
-        ! j = ny+2
-        rhopTilde(:, ny + 2, :, 2, 0) = rhopTilde(:, 2, :, 2, 0)
-
-        ! ...in ghost cell j = -1
-        rhopTilde(:, - 1, :, 2, 1) = rhopTilde(:, ny - 1, :, 2, 1)
-
-        if(verbose .and. master) then
-          print *, "horizontalBoundary: y-horizontal BC for rhoTilde set."
-        end if
-      end if
-
-      if(updateIce) then
-        ! see above, similar to rho
-        nAerTilde(:, ny + 2, :, 2, 0) = nAerTilde(:, 2, :, 2, 0)
-        nIceTilde(:, ny + 2, :, 2, 0) = nIceTilde(:, 2, :, 2, 0)
-        qIceTilde(:, ny + 2, :, 2, 0) = qIceTilde(:, 2, :, 2, 0)
-        qvTilde(:, ny + 2, :, 2, 0) = qvTilde(:, 2, :, 2, 0)
-
-        ! see above, similar to rho
-        nAerTilde(:, - 1, :, 2, 1) = nAerTilde(:, ny - 1, :, 2, 1)
-        nIceTilde(:, - 1, :, 2, 1) = nIceTilde(:, ny - 1, :, 2, 1)
-        qIceTilde(:, - 1, :, 2, 1) = qIceTilde(:, ny - 1, :, 2, 1)
-        qvTilde(:, - 1, :, 2, 1) = qvTilde(:, ny - 1, :, 2, 1)
-
-        if(verbose .and. master) print *, "horizontalBoundary:  y-horizontal &
-            &BC for iceTilde variables set."
-
-      end if
-
-      ! set boundaries if including tracer
-      if(updateTracer) then
-        tracerTilde(:, ny + 2, :, 2, 0) = tracerTilde(:, 2, :, 2, 0)
-        tracerTilde(:, - 1, :, 2, 1) = tracerTilde(:, ny - 1, :, 2, 1)
-
-        if(verbose .and. master) then
-          print *, "horizontalBoundary: y-horizontal BC for tracerTilde set."
-        end if
-      end if
-
     case("flux")
-      !-----------------------------------
-      !              flux
-      !-----------------------------------
+
       return
 
     case default
@@ -622,81 +453,8 @@ module boundary_module
       if(verbose .and. master) print *, "setBoundary_z_periodic:  z-periodic &
           &BC for ice variables set."
 
-    case("iceTilde")
-      ! see above, similar to rho
-      nAerTilde(:, :, nz + 2, 3, 0) = nAerTilde(:, :, 2, 3, 0)
-      nIceTilde(:, :, nz + 2, 3, 0) = nIceTilde(:, :, 2, 3, 0)
-      qIceTilde(:, :, nz + 2, 3, 0) = qIceTilde(:, :, 2, 3, 0)
-      qvTilde(:, :, nz + 2, 3, 0) = qvTilde(:, :, 2, 3, 0)
-
-      ! see above, similar to rho
-      nAerTilde(:, :, - 1, 3, 1) = nAerTilde(:, :, nz - 1, 3, 1)
-      nIceTilde(:, :, - 1, 3, 1) = nIceTilde(:, :, nz - 1, 3, 1)
-      qIceTilde(:, :, - 1, 3, 1) = qIceTilde(:, :, nz - 1, 3, 1)
-      qvTilde(:, :, - 1, 3, 1) = qvTilde(:, :, nz - 1, 3, 1)
-
-      if(verbose .and. master) print *, "setBoundary_z_periodic:   z-periodic &
-          &BC for iceTilde variables set."
-
-    case("iceFlux")
-      ! nothing
-
-    case("varTilde")
-      !-----------------------------------
-      !              varTilde
-      !-----------------------------------
-
-      ! the following three boundary-condition calls can probably be
-      ! removed
-      ! probably only necessary for ALDM (that is not used any more
-      ! anyway)
-
-      if(updateMass) then
-        ! reconstructed density needed in ghost cell k = nz+2
-        rhoTilde(:, :, nz + 2, 3, 0) = rhoTilde(:, :, 2, 3, 0)
-
-        ! ...in ghost cell j = -1
-        rhoTilde(:, :, - 1, 3, 1) = rhoTilde(:, :, nz - 1, 3, 1)
-
-        if(verbose .and. master) then
-          print *, "setBoundary_z_periodic:  z-periodic BC for rhoTilde set."
-        end if
-      end if
-
-      if(timeScheme == "semiimplicit" .or. auxil_equ) then
-        ! reconstructed density needed in ghost cell k = nz+2
-        rhopTilde(:, :, nz + 2, 3, 0) = rhopTilde(:, :, 2, 3, 0)
-
-        ! ...in ghost cell j = -1
-        rhopTilde(:, :, - 1, 3, 1) = rhopTilde(:, :, nz - 1, 3, 1)
-
-        if(verbose .and. master) then
-          print *, "setBoundary_z_periodic:  z-periodic BC for rhoTilde set."
-        end if
-      end if
-
-      if(updateIce) then
-        ! see above, similar to rho
-        nAerTilde(:, :, nz + 2, 3, 0) = nAerTilde(:, :, 2, 3, 0)
-        nIceTilde(:, :, nz + 2, 3, 0) = nIceTilde(:, :, 2, 3, 0)
-        qIceTilde(:, :, nz + 2, 3, 0) = qIceTilde(:, :, 2, 3, 0)
-        qvTilde(:, :, nz + 2, 3, 0) = qvTilde(:, :, 2, 3, 0)
-
-        ! see above, similar to rho
-        nAerTilde(:, :, - 1, 3, 1) = nAerTilde(:, :, nz - 1, 3, 1)
-        nIceTilde(:, :, - 1, 3, 1) = nIceTilde(:, :, nz - 1, 3, 1)
-        qIceTilde(:, :, - 1, 3, 1) = qIceTilde(:, :, nz - 1, 3, 1)
-        qvTilde(:, :, - 1, 3, 1) = qvTilde(:, :, nz - 1, 3, 1)
-
-        if(verbose .and. master) print *, "setBoundary_z_periodic:   &
-            &z-periodic BC for iceTilde variables set."
-
-      end if
-
     case("flux")
-      !-----------------------------------
-      !              flux
-      !-----------------------------------
+
       return
 
     case default
@@ -942,20 +700,6 @@ module boundary_module
         end do
       end do
 
-    case("iceTilde")
-      !nothing
-
-    case("iceFlux")
-
-      !---------------------------------------------------------------
-
-    case("varTilde ")
-      !-----------------------------------
-      !             varTilde
-      !-----------------------------------
-
-      return
-
     case("flux")
       !-----------------------------------
       !                flux
@@ -994,6 +738,11 @@ module boundary_module
         ! density fluctuations
         flux%rhop(:, :, 0, 3) = 0.0
         flux%rhop(:, :, nz, 3) = 0.0
+      end if
+
+      if(model == "compressible") then
+        flux%P(:, :, 0, 3) = 0.0
+        flux%P(:, :, nz, 3) = 0.0
       end if
 
       ! set vertical tracer fluxes at wall to 0

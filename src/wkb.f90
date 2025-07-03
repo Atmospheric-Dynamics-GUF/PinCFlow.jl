@@ -76,6 +76,9 @@ module wkb_module
   ! FJApr2023
   integer, dimension(:), allocatable :: iwm_sfc
 
+  ! Upper edge of the blocked layer
+  real, dimension(:, :), allocatable :: zb
+
   real, dimension(:, :, :, :), allocatable :: dpRay
 
   integer :: iRay ! index of ray v. within a
@@ -595,6 +598,9 @@ module wkb_module
     real :: wadr
 
     real :: NNR
+
+    real, dimension(1:2) :: kavg, uperp, drag
+    real :: fraction
 
     allocate(var_uu(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
     allocate(var_uv(- nbx:nx + nbx, - nby:ny + nby, - nbz:nz + nbz))
@@ -1242,6 +1248,37 @@ module wkb_module
       endif
     endif
 
+    ! Adjust the drag to account for blocking.
+    if(case_wkb == 3 .and. blocking) then
+      do kz = 1, nz
+        do jy = 1, ny
+          do ix = 1, nx
+            fraction = (min(zb(ix, jy), zTildeTFC(ix, jy, kz)) - zTildeTFC(ix, &
+                &jy, kz - 1)) / jac(ix, jy, kz) / dz
+            if(fraction > 0.0) then
+              kavg = [sum(abs(topography_spectrum(ix, jy, :)) * k_spectrum(ix, &
+                  &jy, :)), sum(abs(topography_spectrum(ix, jy, :)) &
+                  &* l_spectrum(ix, jy, :))] / sum(abs(topography_spectrum(ix, &
+                  &jy, :)))
+              uperp = 0.5 * ((var%u(ix, jy, kz) + var%u(ix - 1, jy, kz)) &
+                  &* kavg(1) + (var%v(ix, jy, kz) + var%v(ix, jy - 1, kz)) &
+                  &* kavg(2)) * kavg / dot_product(kavg, kavg)
+              drag = - drag_coefficient * (var%rho(ix, jy, kz) &
+                  &+ rhoStratTFC(ix, jy, kz)) * sqrt(dot_product(kavg, kavg)) &
+                  &/ (2.0 * pi) * sqrt(dot_product(uperp, uperp)) * uperp
+              var_drudt(ix, jy, kz) = fraction * drag(1) + (1.0 - fraction) &
+                  &* var_drudt(ix, jy, kz)
+              var_drvdt(ix, jy, kz) = fraction * drag(2) + (1.0 - fraction) &
+                  &* var_drvdt(ix, jy, kz)
+              var_drtdt(ix, jy, kz) = (1.0 - fraction) * var_drtdt(ix, jy, kz)
+            else
+              cycle
+            end if
+          end do
+        end do
+      end do
+    end if
+
     ! add wave impact to tendencies ...
 
     do kz = 1, nz
@@ -1276,7 +1313,7 @@ module wkb_module
           force(ix, jy, kz, 1) = force(ix, jy, kz, 1) + var_drudt(ix, jy, kz)
 
           ! for output of mean-flow acceleration in x direction by GWs
-          ray_var3D(ix, jy, kz, 1) = var_drudt(ix, jy, kz) / rhotot
+          ray_var3D(ix, jy, kz, 1) = var_drudt(ix, jy, kz)
 
           ! forcing in y direction
 
@@ -1301,7 +1338,7 @@ module wkb_module
           force(ix, jy, kz, 2) = force(ix, jy, kz, 2) + var_drvdt(ix, jy, kz)
 
           ! for output of mean-flow acceleration in y direction by GWs
-          ray_var3D(ix, jy, kz, 2) = var_drvdt(ix, jy, kz) / rhotot
+          ray_var3D(ix, jy, kz, 2) = var_drvdt(ix, jy, kz)
 
           ! Add forcing on terrain-following wind (FJJul2023).
           if(topography) then
@@ -1315,16 +1352,20 @@ module wkb_module
 
     call setboundary_frc_wkb(force(:, :, :, 1))
     call setboundary_frc_wkb(force(:, :, :, 2))
+    call setboundary_frc_wkb(force(:, :, :, 3))
 
     var%GWH(:, :, :) = 0.0
 
     if((f_cor_nd /= 0.0) .and. (sizeX > 1 .or. sizeY > 1)) then
       do kz = 1, nz
         ! only allow wave impact on mean flow above lz(0) + zmin_wkb
-        if(z(kz) < lz(0) + zmin_wkb) cycle
+        if(.not. topography .and. z(kz) < lz(0) + zmin_wkb) cycle
 
         do jy = 1, ny
           do ix = 1, nx
+            if(topography) then
+              if(zTFC(ix, jy, kz) < lz(0) + zmin_wkb) cycle
+            end if
             select case(model)
             case("Boussinesq")
               rhotot = rho00
@@ -1422,9 +1463,6 @@ module wkb_module
     real :: xr, yr, zr
 
     integer :: nrsuml, nr_sum
-
-    ! Long number
-    real :: long
 
     ! Wave-mode index
     integer :: iwm
@@ -1525,8 +1563,8 @@ module wkb_module
       jymin = 1
       jymax = ny
     else
-      jymin = max(1, int(floor((yrmin - ly(0)) / dy)) + 1)
-      jymax = min(ny, int(floor((yrmax - ly(0)) / dy)) + 1)
+      jymin = max(1, int(floor((yrmin - ly(0)) / dy)) + 1 - jy0)
+      jymax = min(ny, int(floor((yrmax - ly(0)) / dy)) + 1 - jy0)
 
       ! if the cpu domain is outside of the range where r.v. are to be
       ! generated one gets jymin > jymax. In this case do not do anything
@@ -1586,6 +1624,20 @@ module wkb_module
       if(allocstat /= 0) stop "setup_wkb: could not allocate cgz_max_tfc"
     end if
 
+    ray(:, :, :, :)%x = 0.0
+    ray(:, :, :, :)%y = 0.0
+    ray(:, :, :, :)%z = 0.0
+    ray(:, :, :, :)%k = 0.0
+    ray(:, :, :, :)%l = 0.0
+    ray(:, :, :, :)%m = 0.0
+    ray(:, :, :, :)%dxray = 0.0
+    ray(:, :, :, :)%dyray = 0.0
+    ray(:, :, :, :)%dzray = 0.0
+    ray(:, :, :, :)%dkray = 0.0
+    ray(:, :, :, :)%dlray = 0.0
+    ray(:, :, :, :)%dmray = 0.0
+    ray(:, :, :, :)%dens = 0.0
+
     nRay = 0
 
     if(case_wkb == 3) then
@@ -1614,6 +1666,12 @@ module wkb_module
 
       allocate(iwm_sfc(n_sfc), stat = allocstat)
       if(allocstat /= 0) stop "setup_wkb: could not allocate iwm_sfc"
+
+      ! Upper edge of the blocked layer
+      if(blocking) then
+        allocate(zb(1:nx, 1:ny), stat = allocstat)
+        if(allocstat /= 0) stop "setup_wkb: could not allocate zb"
+      end if
     end if
 
     ! position displacement increment
@@ -1743,140 +1801,16 @@ module wkb_module
     ! interpolated to the ray-volume positions
     ! this is no issue in the isothermal case
 
+    ! Set up orographic source.
     if(case_wkb == 3) then
-      ! intrinsic frequency and horizontal wave number mountain wave
-
-      kz = 0
-      if(topography) then
-        do jy = 1, ny
-          do ix = 1, nx
-            ! Local squared buoyancy frequency
-            call stratification(zTFC(ix, jy, 1), 1, NN_nd)
-            do iwm = 1, nwm
-              ! Wavenumbers
-              wnrk_init = k_spectrum(ix, jy, iwm)
-              wnrl_init = l_spectrum(ix, jy, iwm)
-              wnrh_init = sqrt(wnrk_init ** 2.0 + wnrl_init ** 2.0)
-              wnrm_init = 0.0
-
-              ! Intrinsic frequency
-              omi_sfc(ix, jy, iwm) = - 0.5 * (var%u(ix, jy, 1) + var%u(ix - 1, &
-                  &jy, 1)) * wnrk_init - 0.5 * (var%v(ix, jy, 1) + var%v(ix, &
-                  &jy - 1, 1)) * wnrl_init
-
-              ! Frequency branch
-              if(omi_sfc(ix, jy, iwm) * branchr >= 0.0) then
-                wnk_sfc(ix, jy, iwm) = wnrk_init
-                wnl_sfc(ix, jy, iwm) = wnrl_init
-              else
-                omi_sfc(ix, jy, iwm) = - omi_sfc(ix, jy, iwm)
-
-                wnk_sfc(ix, jy, iwm) = - wnrk_init
-                wnl_sfc(ix, jy, iwm) = - wnrl_init
-              end if
-
-              ! Wave action density and vertical wavenumber
-              if(abs(omi_sfc(ix, jy, iwm)) <= f_cor_nd) then
-                fld_amp(ix, jy, kz, iwm) = 0.0
-                wnrm = 0.0
-              else if(abs(omi_sfc(ix, jy, iwm)) < sqrt(NN_nd)) then
-                wnrm = - branchr * sqrt(wnrh_init ** 2 * (NN_nd - omi_sfc(ix, &
-                    &jy, iwm) ** 2) / (omi_sfc(ix, jy, iwm) ** 2 - f_cor_nd &
-                    &** 2))
-
-                ! Displacement
-                displm = abs(topography_spectrum(ix, jy, iwm))
-
-                ! Long number scaling
-                if(blocking) then
-                  ! Compute Long number.
-                  long = sqrt(NN_nd / (0.25 * (var%u(ix, jy, 1) + var%u(ix &
-                      &- 1, jy, 1)) ** 2.0 + 0.25 * (var%v(ix, jy, 1) &
-                      &+ var%v(ix, jy - 1, 1)) ** 2.0)) &
-                      &* sum(abs(topography_spectrum(ix, jy, :)))
-                  ! Apply scaling.
-                  displm = displm * wave_amplitude_reduction(long)
-                end if
-
-                ! Surface wave-action density
-                fld_amp(ix, jy, kz, iwm) = 0.5 * rhoStratTFC(ix, jy, 1) &
-                    &* displm ** 2 * omi_sfc(ix, jy, iwm) * (wnrh_init ** 2 &
-                    &+ wnrm ** 2) / wnrh_init ** 2
-              else
-                fld_amp(ix, jy, kz, iwm) = 0.0
-                wnrm = 0.0
-              end if
-              wnm_sfc(ix, jy, iwm) = wnrm
-            end do
-          end do
-        end do
-      else
-        call stratification(z(1), 1, NN_nd)
-        do jy = 1, ny
-          do ix = 1, nx
-            do iwm = 1, nwm
-              ! Wavenumbers
-              wnrk_init = k_spectrum(ix, jy, iwm)
-              wnrl_init = l_spectrum(ix, jy, iwm)
-              wnrh_init = sqrt(wnrk_init ** 2.0 + wnrl_init ** 2.0)
-              wnrm_init = 0.0
-
-              ! Intrinsic frequency
-              omi_sfc(ix, jy, iwm) = - 0.5 * (var%u(ix, jy, 1) + var%u(ix - 1, &
-                  &jy, 1)) * wnrk_init - 0.5 * (var%v(ix, jy, 1) + var%v(ix, &
-                  &jy - 1, 1)) * wnrl_init
-
-              ! Frequency branch
-              if(omi_sfc(ix, jy, iwm) * branchr >= 0.0) then
-                wnk_sfc(ix, jy, iwm) = wnrk_init
-                wnl_sfc(ix, jy, iwm) = wnrl_init
-              else
-                omi_sfc(ix, jy, iwm) = - omi_sfc(ix, jy, iwm)
-
-                wnk_sfc(ix, jy, iwm) = - wnrk_init
-                wnl_sfc(ix, jy, iwm) = - wnrl_init
-              end if
-
-              fld_amp(ix, jy, kz, iwm) = 0.0
-              wnrm = 0.0
-
-              ! Wave action density and vertical wavenumber
-              if(abs(omi_sfc(ix, jy, iwm)) <= f_cor_nd) then
-                fld_amp(ix, jy, kz, iwm) = 0.0
-                wnrm = 0.0
-              elseif(abs(omi_sfc(ix, jy, iwm)) < sqrt(NN_nd)) then
-                wnrm = - branchr * sqrt(wnrh_init ** 2 * (NN_nd - omi_sfc(ix, &
-                    &jy, iwm) ** 2) / (omi_sfc(ix, jy, iwm) ** 2 - f_cor_nd &
-                    &** 2))
-
-                ! Displacement
-                displm = abs(topography_spectrum(ix, jy, iwm))
-
-                ! Long number scaling
-                if(blocking) then
-                  ! Compute Long number.
-                  long = sqrt(NN_nd / (0.25 * (var%u(ix, jy, 1) + var%u(ix &
-                      &- 1, jy, 1)) ** 2.0 + 0.25 * (var%v(ix, jy, 1) &
-                      &+ var%v(ix, jy - 1, 1)) ** 2.0)) &
-                      &* sum(abs(topography_spectrum(ix, jy, :)))
-                  ! Apply scaling.
-                  displm = displm * wave_amplitude_reduction(long)
-                end if
-
-                ! Surface wave-action density
-                fld_amp(ix, jy, kz, iwm) = 0.5 * rhoStrat(1) * displm ** 2 &
-                    &* omi_sfc(ix, jy, iwm) * (wnrh_init ** 2 + wnrm ** 2) &
-                    &/ wnrh_init ** 2
-              else
-                fld_amp(ix, jy, kz, iwm) = 0.0
-                wnrm = 0.0
-              end if
-              wnm_sfc(ix, jy, iwm) = wnrm
-            end do
-          end do
-        end do
-      end if
-    else ! case_wkb /= 3
+      omi_sfc = 0.0
+      wnk_sfc = 0.0
+      wnl_sfc = 0.0
+      wnm_sfc = 0.0
+      fld_amp = 0.0
+      call orographic_source(var, ray, 0.0, 0.0, omi_sfc, wnk_sfc, wnl_sfc, &
+          &wnm_sfc, fld_amp(:, :, 0, :))
+    else
       if(topography) then
 
         if(case_wkb == 5) then
@@ -2594,7 +2528,7 @@ module wkb_module
     if(strtpe == 1) then
       if(topography) then
         ! Locate the two closest levels.
-        kzu = kzTFC(0, 0, zlc)
+        kzu = kzTFC(1, 1, zlc)
         kzd = kzu - 1
 
         if(kzu > nz + 1) then
@@ -2603,10 +2537,10 @@ module wkb_module
         end if
 
         ! Assign the values.
-        zd = zTFC(0, 0, kzd)
-        zu = zTFC(0, 0, kzu)
-        strd = bvsStratTFC(0, 0, kzd)
-        stru = bvsStratTFC(0, 0, kzu)
+        zd = zTFC(1, 1, kzd)
+        zu = zTFC(1, 1, kzu)
+        strd = bvsStratTFC(1, 1, kzd)
+        stru = bvsStratTFC(1, 1, kzu)
       else
         kzd = max(- 1, floor((zlc - 0.5 * dz - lz(0)) / dz) + 1)
 
@@ -2626,7 +2560,7 @@ module wkb_module
     elseif(strtpe == 2) then
       if(topography) then
         ! Locate the two closest levels.
-        kzu = kzTildeTFC(0, 0, zlc)
+        kzu = kzTildeTFC(1, 1, zlc)
         kzd = kzu - 1
 
         if(kzu + 1 > nz + 1) then
@@ -2635,14 +2569,14 @@ module wkb_module
         end if
 
         ! Assign the values.
-        zd = zTildeTFC(0, 0, kzd)
-        zu = zTildeTFC(0, 0, kzu)
-        strd = (bvsStratTFC(0, 0, kzd + 1) - bvsStratTFC(0, 0, kzd)) / (2.0 &
-            &* jac(0, 0, kzd) * jac(0, 0, kzd + 1) / (jac(0, 0, kzd) + jac(0, &
-            &0, kzd + 1))) / dz
-        stru = (bvsStratTFC(0, 0, kzu + 1) - bvsStratTFC(0, 0, kzu)) / (2.0 &
-            &* jac(0, 0, kzu) * jac(0, 0, kzu + 1) / (jac(0, 0, kzu) + jac(0, &
-            &0, kzu + 1))) / dz
+        zd = zTildeTFC(1, 1, kzd)
+        zu = zTildeTFC(1, 1, kzu)
+        strd = (bvsStratTFC(1, 1, kzd + 1) - bvsStratTFC(1, 1, kzd)) / (2.0 &
+            &* jac(1, 1, kzd) * jac(1, 1, kzd + 1) / (jac(1, 1, kzd) + jac(1, &
+            &1, kzd + 1))) / dz
+        stru = (bvsStratTFC(1, 1, kzu + 1) - bvsStratTFC(1, 1, kzu)) / (2.0 &
+            &* jac(1, 1, kzu) * jac(1, 1, kzu + 1) / (jac(1, 1, kzu) + jac(1, &
+            &1, kzu + 1))) / dz
       else
         kzd = max(- 1, floor((zlc - lz(0)) / dz))
 
@@ -3006,8 +2940,8 @@ module wkb_module
 
     if(zBoundary == "periodic") then
       if(topography) then
-        ixrv = nint((xlc - lx(0)) / dx + 0.5) - ix0
-        jyrv = nint((ylc - ly(0)) / dy + 0.5) - jy0
+        ixrv = floor((xlc - lx(0)) / dx) + 1 - ix0
+        jyrv = floor((ylc - ly(0)) / dy) + 1 - jy0
         zsfc = zTildeTFC(ixrv, jyrv, 0)
       else
         zsfc = lz(0)
@@ -3072,8 +3006,8 @@ module wkb_module
           ixr = 1
         else
           ixl = floor((xlc - lx(0)) / dx) - ix0
-          if(ixl < - nbx) then
-            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx =", - nbx
+          if(ixl < - nbx + 1) then
+            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx + 1 =", - nbx + 1
             stop
           end if
           ixr = ixl + 1
@@ -3091,8 +3025,8 @@ module wkb_module
           jyf = 1
         else
           jyb = floor((ylc - 0.5 * dy - ly(0)) / dy) + 1 - jy0
-          if(jyb < - nby) then
-            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby =", - nby
+          if(jyb < - nby + 1) then
+            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby + 1 =", - nby + 1
             stop
           end if
           jyf = jyb + 1
@@ -3180,8 +3114,8 @@ module wkb_module
           ! index for backward level used for linear interpolation
           jyb = floor((ylc - 0.5 * dy - ly(0)) / dy) + 1 - jy0
 
-          if(jyb < - nby) then
-            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< -nby =', - nby
+          if(jyb < - nby + 1) then
+            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< - nby + 1 =', - nby + 1
             stop
           end if
 
@@ -3208,8 +3142,8 @@ module wkb_module
           ! index for leftmost level used for linear interpolation
           ixl = floor((xlc - lx(0)) / dx) - ix0
 
-          if(ixl < - nbx) then
-            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< -nbx =', - nbx
+          if(ixl < - nbx + 1) then
+            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< - nbx + 1 =', - nbx + 1
             ! testb
             print *, 'variable = u'
             print *, 'xlc =', xlc
@@ -3262,8 +3196,8 @@ module wkb_module
           ixr = 1
         else
           ixl = floor((xlc - 0.5 * dx - lx(0)) / dx) + 1 - ix0
-          if(ixl < - nbx) then
-            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx =", - nbx
+          if(ixl < - nbx + 1) then
+            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx + 1 =", - nbx + 1
             stop
           end if
           ixr = ixl + 1
@@ -3281,8 +3215,8 @@ module wkb_module
           jyf = 1
         else
           jyb = floor((ylc - ly(0)) / dy) - jy0
-          if(jyb < - nby) then
-            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby =", - nby
+          if(jyb < - nby + 1) then
+            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby + 1 =", - nby + 1
             stop
           end if
           jyf = jyb + 1
@@ -3371,8 +3305,8 @@ module wkb_module
           ! index for backward level used for linear interpolation
           jyb = floor((ylc - ly(0)) / dy) - jy0
 
-          if(jyb < - nby) then
-            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< -nby =', - nby
+          if(jyb < - nby + 1) then
+            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< - nby + 1 =', - nby + 1
             stop
           end if
 
@@ -3398,8 +3332,8 @@ module wkb_module
           ! index for leftmost level used for linear interpolation
           ixl = floor((xlc - 0.5 * dx - lx(0)) / dx) + 1 - ix0
 
-          if(ixl < - nbx) then
-            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< -nbx =', - nbx
+          if(ixl < - nbx + 1) then
+            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< - nbx + 1 =', - nbx + 1
             ! testb
             print *, 'variable = v'
             print *, 'xlc =', xlc
@@ -3451,8 +3385,8 @@ module wkb_module
           ixr = 1
         else
           ixl = floor((xlc - 0.5 * dx - lx(0)) / dx) + 1 - ix0
-          if(ixl < - nbx) then
-            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx =", - nbx
+          if(ixl < - nbx + 1) then
+            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx + 1 =", - nbx + 1
             stop
           end if
           ixr = ixl + 1
@@ -3470,8 +3404,8 @@ module wkb_module
           jyf = 1
         else
           jyb = floor((ylc - 0.5 * dy - ly(0)) / dy) + 1 - jy0
-          if(jyb < - nby) then
-            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby =", - nby
+          if(jyb < - nby + 1) then
+            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby + 1 =", - nby + 1
             stop
           end if
           jyf = jyb + 1
@@ -3591,8 +3525,8 @@ module wkb_module
           ! index for backward level used for linear interpolation
           jyb = floor((ylc - 0.5 * dy - ly(0)) / dy) + 1 - jy0
 
-          if(jyb < - nby) then
-            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< -nby =', - nby
+          if(jyb < - nby + 1) then
+            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< - nby + 1 =', - nby + 1
             stop
           end if
 
@@ -3618,8 +3552,8 @@ module wkb_module
           ! index for leftmost level used for linear interpolation
           ixl = floor((xlc - 0.5 * dx - lx(0)) / dx) + 1 - ix0
 
-          if(ixl < - nbx) then
-            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< -nbx =', - nbx
+          if(ixl < - nbx + 1) then
+            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< - nbx + 1 =', - nbx + 1
             ! testb
             print *, 'variable = w'
             print *, 'xlc =', xlc
@@ -3696,8 +3630,9 @@ module wkb_module
           return
         else
           ixl = floor((xlc - 0.5 * dx - lx(0)) / dx) + 1 - ix0
-          if(ixl - 1 < - nbx) then
-            print *, "ERROR IN MEANFLOW: ixl - 1 =", ixl - 1, "< - nbx =", - nbx
+          if(ixl - 1 < - nbx + 1) then
+            print *, "ERROR IN MEANFLOW: ixl - 1 =", ixl - 1, "< - nbx + 1 =", &
+                &- nbx + 1
             stop
           end if
           ixr = ixl + 1
@@ -3715,8 +3650,8 @@ module wkb_module
           jyf = 1
         else
           jyb = floor((ylc - 0.5 * dy - ly(0)) / dy) + 1 - jy0
-          if(jyb < - nby) then
-            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby =", - nby
+          if(jyb < - nby + 1) then
+            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby + 1 =", - nby + 1
             stop
           end if
           jyf = jyb + 1
@@ -3815,8 +3750,9 @@ module wkb_module
           ! index for leftmost level used for linear interpolation
           ixl = floor((xlc - 0.5 * dx - lx(0)) / dx) + 1 - ix0
 
-          if(ixl - 1 < - nbx) then
-            print *, 'ERROR IN MEANFLOW: ixl - 1 =', ixl - 1, '< -nbx =', - nbx
+          if(ixl - 1 < - nbx + 1) then
+            print *, 'ERROR IN MEANFLOW: ixl - 1 =', ixl - 1, '< - nbx + 1 =', &
+                &- nbx + 1
             ! testb
             print *, 'variable = du/dx'
             print *, 'xlc =', xlc
@@ -3869,8 +3805,8 @@ module wkb_module
           ! index for backward level used for linear interpolation
           jyb = floor((ylc - 0.5 * dy - ly(0)) / dy) + 1 - jy0
 
-          if(jyb < - nby) then
-            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< -nby =', - nby
+          if(jyb < - nby + 1) then
+            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< - nby + 1 =', - nby + 1
             stop
           end if
 
@@ -3912,8 +3848,8 @@ module wkb_module
           ixr = 1
         else
           ixl = floor((xlc - lx(0)) / dx) - ix0
-          if(ixl < - nbx) then
-            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx =", - nbx
+          if(ixl < - nbx + 1) then
+            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx + 1 =", - nbx + 1
             stop
           end if
           ixr = ixl + 1
@@ -3931,8 +3867,8 @@ module wkb_module
           return
         else
           jyb = floor((ylc - ly(0)) / dy) - jy0
-          if(jyb < - nby) then
-            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby =", - nby
+          if(jyb < - nby + 1) then
+            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby + 1 =", - nby + 1
             stop
           end if
           jyf = jyb + 1
@@ -4050,8 +3986,8 @@ module wkb_module
           ! index for backward level used for linear interpolation
           jyb = floor((ylc - ly(0)) / dy) - jy0
 
-          if(jyb < - nby) then
-            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< -nby =', - nby
+          if(jyb < - nby + 1) then
+            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< - nby + 1 =', - nby + 1
             stop
           end if
 
@@ -4097,8 +4033,8 @@ module wkb_module
           ! index for leftmost level used for linear interpolation
           ixl = floor((xlc - lx(0)) / dx) - ix0
 
-          if(ixl < - nbx) then
-            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< -nbx =', - nbx
+          if(ixl < - nbx + 1) then
+            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< - nbx + 1 =', - nbx + 1
             ! testb
             print *, 'variable = du/dy'
             print *, 'xlc =', xlc
@@ -4148,8 +4084,8 @@ module wkb_module
           ixr = 1
         else
           ixl = floor((xlc - lx(0)) / dx) - ix0
-          if(ixl < - nbx) then
-            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx =", - nbx
+          if(ixl < - nbx + 1) then
+            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx + 1 =", - nbx + 1
             stop
           end if
           ixr = ixl + 1
@@ -4167,8 +4103,8 @@ module wkb_module
           jyf = 1
         else
           jyb = floor((ylc - 0.5 * dy - ly(0)) / dy) + 1 - jy0
-          if(jyb < - nby) then
-            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby =", - nby
+          if(jyb < - nby + 1) then
+            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby + 1 =", - nby + 1
             stop
           end if
           jyf = jyb + 1
@@ -4330,11 +4266,11 @@ module wkb_module
           flwrfu = 0.0
         else if(zrfd < zTildeTFC(ixr, jyf, 0)) then
           flwrfd = 0.0
-          flwrbu = (var%u(ixr, jyf, kzrbu + 1) - var%u(ixr, jyf, kzrbu)) / dz &
-              &/ (jac(ixr, jyf, kzrbu) * jac(ixr, jyf, kzrbu + 1) / (jac(ixr, &
-              &jyf, kzrbu) + jac(ixr, jyf, kzrbu + 1)) + jac(ixr + 1, jyf, &
-              &kzrbu) * jac(ixr + 1, jyf, kzrbu + 1) / (jac(ixr + 1, jyf, &
-              &kzrbu) + jac(ixr + 1, jyf, kzrbu + 1)))
+          flwrfu = (var%u(ixr, jyf, kzrfu + 1) - var%u(ixr, jyf, kzrfu)) / dz &
+              &/ (jac(ixr, jyf, kzrfu) * jac(ixr, jyf, kzrfu + 1) / (jac(ixr, &
+              &jyf, kzrfu) + jac(ixr, jyf, kzrfu + 1)) + jac(ixr + 1, jyf, &
+              &kzrfu) * jac(ixr + 1, jyf, kzrfu + 1) / (jac(ixr + 1, jyf, &
+              &kzrfu) + jac(ixr + 1, jyf, kzrfu + 1)))
         else
           if(zrfu < lz(1)) then
             flwrfd = (var%u(ixr, jyf, kzrfd + 1) - var%u(ixr, jyf, kzrfd)) &
@@ -4389,8 +4325,8 @@ module wkb_module
           ! index for backward level used for linear interpolation
           jyb = floor((ylc - 0.5 * dy - ly(0)) / dy) + 1 - jy0
 
-          if(jyb < - nby) then
-            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< -nby =', - nby
+          if(jyb < - nby + 1) then
+            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< - nby + 1 =', - nby + 1
             stop
           end if
 
@@ -4417,8 +4353,8 @@ module wkb_module
           ! index for leftmost level used for linear interpolation
           ixl = floor((xlc - lx(0)) / dx) - ix0
 
-          if(ixl < - nbx) then
-            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< -nbx =', - nbx
+          if(ixl < - nbx + 1) then
+            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< - nbx + 1 =', - nbx + 1
             ! testb
             print *, 'variable = du/dz'
             print *, 'xlc =', xlc
@@ -4521,8 +4457,8 @@ module wkb_module
           return
         else
           ixl = floor((xlc - lx(0)) / dx) - ix0
-          if(ixl < - nbx) then
-            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx =", - nbx
+          if(ixl < - nbx + 1) then
+            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx + 1 =", - nbx + 1
             stop
           end if
           ixr = ixl + 1
@@ -4541,8 +4477,8 @@ module wkb_module
           jyf = 1
         else
           jyb = floor((ylc - ly(0)) / dy) - jy0
-          if(jyb < - nby) then
-            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby =", - nby
+          if(jyb < - nby + 1) then
+            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby + 1 =", - nby + 1
             stop
           end if
           jyf = jyb + 1
@@ -4659,8 +4595,8 @@ module wkb_module
           ! index for leftmost level used for linear interpolation
           ixl = floor((xlc - lx(0)) / dx) - ix0
 
-          if(ixl < - nbx) then
-            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< -nbx =', - nbx
+          if(ixl < - nbx + 1) then
+            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< - nbx + 1 =', - nbx + 1
             ! testb
             print *, 'variable = dv/dx'
             print *, 'xlc =', xlc
@@ -4714,8 +4650,8 @@ module wkb_module
           ! index for backward level used for linear interpolation
           jyb = floor((ylc - ly(0)) / dy) - jy0
 
-          if(jyb < - nby) then
-            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< -nby =', - nby
+          if(jyb < - nby + 1) then
+            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< - nby + 1 =', - nby + 1
             stop
           end if
 
@@ -4757,8 +4693,8 @@ module wkb_module
           ixr = 1
         else
           ixl = floor((xlc - 0.5 * dx - lx(0)) / dx) + 1 - ix0
-          if(ixl < - nbx) then
-            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx =", - nbx
+          if(ixl < - nbx + 1) then
+            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx + 1 =", - nbx + 1
             stop
           end if
           ixr = ixl + 1
@@ -4776,8 +4712,8 @@ module wkb_module
           return
         else
           jyb = floor((ylc - 0.5 * dy - ly(0)) / dy) + 1 - jy0
-          if(jyb - 1 < - nby) then
-            print *, "ERROR IN MEANFLOW: jyb - 1 =", jyb - 1, "< - nby =", - nby
+          if(jyb - 1 < - nby + 1) then
+            print *, "ERROR IN MEANFLOW: jyb - 1 =", jyb - 1, "< - nby + 1 =", - nby + 1
             stop
           end if
           jyf = jyb + 1
@@ -4876,8 +4812,8 @@ module wkb_module
           ! index for backward level used for linear interpolation
           jyb = floor((ylc - 0.5 * dy - ly(0)) / dy) + 1 - jy0
 
-          if(jyb - 1 < - nby) then
-            print *, 'MEANFLOW: jyb - 1 =', jyb - 1, '< -nby =', - nby
+          if(jyb - 1 < - nby + 1) then
+            print *, 'MEANFLOW: jyb - 1 =', jyb - 1, '< - nby + 1 =', - nby + 1
             stop
           end if
 
@@ -4922,8 +4858,8 @@ module wkb_module
           ! index for leftmost level used for linear interpolation
           ixl = floor((xlc - 0.5 * dx - lx(0)) / dx) + 1 - ix0
 
-          if(ixl < - nbx) then
-            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< -nbx =', - nbx
+          if(ixl < - nbx + 1) then
+            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< - nbx + 1 =', - nbx + 1
             ! testb
             print *, 'variable = dv/dy'
             print *, 'xlc =', xlc
@@ -4973,8 +4909,8 @@ module wkb_module
           ixr = 1
         else
           ixl = floor((xlc - 0.5 * dx - lx(0)) / dx) + 1 - ix0
-          if(ixl < - nbx) then
-            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx =", - nbx
+          if(ixl < - nbx + 1) then
+            print *, "ERROR IN MEANFLOW: ixl =", ixl, "< - nbx + 1 =", - nbx + 1
             stop
           end if
           ixr = ixl + 1
@@ -4992,8 +4928,8 @@ module wkb_module
           jyf = 1
         else
           jyb = floor((ylc - ly(0)) / dy) - jy0
-          if(jyb < - nby) then
-            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby =", - nby
+          if(jyb < - nby + 1) then
+            print *, "ERROR IN MEANFLOW: jyb =", jyb, "< - nby + 1 =", - nby + 1
             stop
           end if
           jyf = jyb + 1
@@ -5215,8 +5151,8 @@ module wkb_module
           ! index for backward level used for linear interpolation
           jyb = floor((ylc - ly(0)) / dy) - jy0
 
-          if(jyb < - nby) then
-            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< -nby =', - nby
+          if(jyb < - nby + 1) then
+            print *, 'ERROR IN MEANFLOW: jyb =', jyb, '< - nby + 1 =', - nby + 1
             stop
           end if
 
@@ -5242,8 +5178,8 @@ module wkb_module
           ! index for leftmost level used for linear interpolation
           ixl = floor((xlc - 0.5 * dx - lx(0)) / dx) + 1 - ix0
 
-          if(ixl < - nbx) then
-            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< -nbx =', - nbx
+          if(ixl < - nbx + 1) then
+            print *, 'ERROR IN MEANFLOW: ixl =', ixl, '< - nbx + 1 =', - nbx + 1
             ! testb
             print *, 'variable = dv/dz'
             print *, 'xlc =', xlc
@@ -5601,8 +5537,8 @@ module wkb_module
               xr = ray(iRay, ix, jy, kz)%x
               yr = ray(iRay, ix, jy, kz)%y
 
-              ixrv = nint((xr - lx(0)) / dx + 0.5) - ix0
-              jyrv = nint((yr - ly(0)) / dy + 0.5) - jy0
+              ixrv = floor((xr - lx(0)) / dx) + 1 - ix0
+              jyrv = floor((yr - ly(0)) / dy) + 1 - jy0
               kzrvd = kzTildeTFC(ixrv, jyrv, zr - 0.5 * dzr)
               kzrvu = kzTildeTFC(ixrv, jyrv, zr + 0.5 * dzr)
 
@@ -5635,7 +5571,6 @@ module wkb_module
                   deltaPhi = ray(jRay, ix, jy, kz)%z * ray(jRay, ix, jy, kz)%m
                   ray(jRay, ix, jy, kz)%dphi = dphi + deltaPhi
                 end if
-
               end do
               nrlc = nrlc + factor - 1
             end if
@@ -5690,38 +5625,12 @@ module wkb_module
     integer :: ix, jy, kz
     integer :: nrlc
     integer :: jRay
-    integer :: nsl, nsr, nsb, nsf, nsd, nsu
-    integer :: ish, jsh, ksh, nsh
-    integer, dimension(:, :, :), allocatable :: nshl, nshr, nshb, nshf, nshd, &
-        &nshu
-    integer, dimension(:, :, :, :), allocatable :: irsl, irsr, irsb, irsf, &
-        &irsd, irsu
-
-    integer :: irsh(nray_wrk)
-
-    logical :: lplace
 
     real :: xr, yr, zr
 
     integer :: ix0, jy0
 
-    logical :: outside
-
     if(steady_state) return
-
-    allocate(nshl(0:nx + 1, 0:ny + 1, 0:nz + 1))
-    allocate(nshr(0:nx + 1, 0:ny + 1, 0:nz + 1))
-    allocate(nshb(0:nx + 1, 0:ny + 1, 0:nz + 1))
-    allocate(nshf(0:nx + 1, 0:ny + 1, 0:nz + 1))
-    allocate(nshd(0:nx + 1, 0:ny + 1, 0:nz + 1))
-    allocate(nshu(0:nx + 1, 0:ny + 1, 0:nz + 1))
-
-    allocate(irsl(nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1))
-    allocate(irsr(nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1))
-    allocate(irsb(nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1))
-    allocate(irsf(nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1))
-    allocate(irsd(nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1))
-    allocate(irsu(nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1))
 
     ix0 = is + nbx - 1
     jy0 = js + nby - 1
@@ -5731,417 +5640,96 @@ module wkb_module
     !------------------------
 
     if(sizeX > 1) then
-      nshl = 0
-      nshr = 0
-
-      irsl = 0
-      irsr = 0
-
-      ! periodic boundary conditions in x
-
       call setboundary_rayvol_x(ray)
+      do kzrv = 0, nz + 1
+        do jyrv = 0, ny + 1
+          do ixrv = 0, nx + 1
+            do iray = 1, nray(ixrv, jyrv, kzrv)
+              if(ray(iray, ixrv, jyrv, kzrv)%dens /= 0.0) then
+                xr = ray(iray, ixrv, jyrv, kzrv)%x
+                ix = floor((xr - lx(0)) / dx) + 1 - ix0
 
-      ! move ray volumes to appropriate cell:
-      ! check whether r.v. from neighboring cells have propagated into
-      ! the cell and re-associate them
-
-      do kz = 0, nz + 1
+                if(ix /= ixrv) then
+                  if(abs(ix - ixrv) > 1) stop "Error in shift_rayvol: abs(ix &
+                      &- ixrv) > 1"
+                  if(1 <= ix .and. ix <= nx) then
+                    nray(ix, jyrv, kzrv) = nray(ix, jyrv, kzrv) + 1
+                    jray = nray(ix, jyrv, kzrv)
+                    if(jray > nray_wrk) stop "Error in shift_rayvol: nray > &
+                        &nray_wrk!"
+                    ray(jray, ix, jyrv, kzrv) = ray(iray, ixrv, jyrv, kzrv)
+                  endif
+                  ray(iray, ixrv, jyrv, kzrv)%dens = 0.0
+                endif
+              endif
+            enddo
+          enddo
+        enddo
+      enddo
+      call setboundary_rayvol_x(ray)
+      do kz = 1, nz
         do jy = 0, ny + 1
-          do ix = 1, nx
-            ! # of r.v. in the cell
-            nrlc = nRay(ix, jy, kz)
-
-            ! # r.v. taken from the cell to the left
-            nsl = 0
-            ! # r.v. taken from the cell to the right
-            nsr = 0
-
-            !  take over ray volumes from cell to the left
-
-            if(nRay(ix - 1, jy, kz) > 0) then
-              do iRay = 1, nRay(ix - 1, jy, kz)
-                xr = ray(iRay, ix - 1, jy, kz)%x
-
-                if(xr > x(ix - 1 + ix0) + 0.5 * dx) then
-                  nrlc = nrlc + 1
-
-                  nsl = nsl + 1
-
-                  ray(nrlc, ix, jy, kz) = ray(iRay, ix - 1, jy, kz)
-
-                  irsl(nsl, ix, jy, kz) = iRay
-                end if
-              end do
-
-              ! # r.v. taken from the cell to the left
-              nshl(ix, jy, kz) = nsl
-            end if
-
-            ! ray volumes from cell to the right
-
-            if(nRay(ix + 1, jy, kz) > 0) then
-              do iRay = 1, nRay(ix + 1, jy, kz)
-                xr = ray(iRay, ix + 1, jy, kz)%x
-
-                if(xr < x(ix + 1 + ix0) - 0.5 * dx) then
-                  nrlc = nrlc + 1
-
-                  nsr = nsr + 1
-
-                  ray(nrlc, ix, jy, kz) = ray(iRay, ix + 1, jy, kz)
-
-                  irsr(nsr, ix, jy, kz) = iRay
-                end if
-              end do
-
-              ! # r.v. taken from the cell to the right
-              nshr(ix, jy, kz) = nsr
-            end if
-
-            ! new # of r.v. in the cell
-            if(nrlc > nray_wrk) then
-              print *, 'at ix,jy,kz =', ix, jy, kz, 'nrlc > nray_wrk'
-              stop
-            else
-              nRay(ix, jy, kz) = nrlc
-            end if
+          do ix = 0, nx + 1
+            if(nRay(ix, jy, kz) <= 0) cycle
+            nrlc = 0
+            do iRay = 1, nRay(ix, jy, kz)
+              if(ray(iRay, ix, jy, kz)%dens == 0.0) cycle
+              nrlc = nrlc + 1
+              ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+            end do
+            nRay(ix, jy, kz) = nrlc
           end do
         end do
       end do
-
-      ! periodic boundary conditions in x for the index and number arrays
-      ! filled above
-
-      call setboundary_nshift_x(nshl, nshr)
-      call setboundary_irshift_x(irsl, irsr)
-
-      ! remove ray volumes from cells they have left
-
-      do kz = 0, nz + 1
-        do jy = 0, ny + 1
-          do ix = 1, nx
-            ! ordered list of ray indices for r.v. that have left a
-            ! cell, stored in array irsh
-
-            ! # of r.v. that have been transferred away
-            nsh = 0
-
-            ! r.v. that have been shifted to the right
-
-            if(nshl(ix + 1, jy, kz) > 0) then
-              do ish = 1, nshl(ix + 1, jy, kz)
-                iRay = irsl(ish, ix + 1, jy, kz)
-
-                ! list of r.v. shifted to the right already ordered
-                ! by r.v. index
-                irsh(ish) = iRay
-              end do
-
-              nsh = nshl(ix + 1, jy, kz)
-            end if
-
-            ! r.v. that have been shifted to the left
-
-            if(nshr(ix - 1, jy, kz) > 0) then
-              do ish = 1, nshr(ix - 1, jy, kz)
-                iRay = irsr(ish, ix - 1, jy, kz)
-
-                ! list of r.v. shifted to the right already ordered
-                ! by r.v. index, but they have to be taken up into
-                ! the complete list of all shifted r.v. so that
-                ! they are  all ordered correctly by cell index
-                if(nsh == 0) then
-                  irsh(1) = iRay
-                elseif(iRay < irsh(1)) then
-                  do jsh = nsh, 1, - 1
-                    irsh(jsh + 1) = irsh(jsh)
-                  end do
-
-                  irsh(1) = iRay
-                elseif(iRay > irsh(nsh)) then
-                  irsh(nsh + 1) = iRay
-                else
-                  !testb
-                  if(nsh < 2) then
-                    print *, 'ERROR: nsh < 2 in x-shifting where  this must &
-                        &not be the case'
-                    print *, 'ix,jy,kz =', ix, jy, kz
-                    print *, 'nshl(ix+1,jy,kz) =', nshl(ix + 1, jy, kz)
-                    print *, 'nshr(ix-1,jy,kz) =', nshr(ix - 1, jy, kz)
-                    print *, 'ish =', ish
-                    print *, 'iRay =', iRay
-                    print *, 'nsh =', nsh
-                    print *, 'irsh(1) =', irsh(1)
-                    print *, 'irsh(nsh) =', irsh(nsh)
-                    print *, 'xr =', ray(iRay, ix, jy, kz)%x
-                    print *, 'x(ix0+ix) - 0.5*dx', x(ix0 + ix) - 0.5 * dx
-                    print *, 'x(ix0+ix) + 0.5*dx', x(ix0 + ix) + 0.5 * dx
-                    stop
-                  end if
-                  !teste
-
-                  lplace = .false.
-
-                  do jsh = 1, nsh - 1
-                    if(lplace) cycle
-
-                    if(iRay < irsh(jsh + 1)) then
-                      do ksh = nsh, jsh + 1, - 1
-                        irsh(ksh + 1) = irsh(ksh)
-                      end do
-
-                      irsh(jsh + 1) = iRay
-
-                      lplace = .true.
-                    end if
-                  end do
-                end if
-
-                nsh = nsh + 1
-              end do
-            end if
-
-            if(nsh /= nshl(ix + 1, jy, kz) + nshr(ix - 1, jy, kz)) then
-              print *, 'at ix,jy,kz =', ix, jy, kz, 'nsh /= nshl + nshr'
-              stop
-            end if
-
-            ! remove shifted ray volumes
-
-            if(nsh > 0) then
-              ! # of r.v. in the cell
-              nrlc = nRay(ix, jy, kz)
-
-              do ish = nsh, 1, - 1
-                iRay = irsh(ish)
-
-                if(iRay < nrlc) then
-                  do jRay = iRay + 1, nrlc
-                    !testb
-                    if(jRay < 0) then
-                      print *, 'ish =', ish
-                      print *, 'nsh =', nsh
-                      print *, 'iRay =', iRay
-                      print *, 'nrlc =', nrlc
-                      print *, 'jRay =', jRay
-                      print *, 'ix,jy,kz =', ix, jy, kz
-                      stop
-                    end if
-                    !teste
-                    ray(jRay - 1, ix, jy, kz) = ray(jRay, ix, jy, kz)
-                  end do
-                end if
-
-                nrlc = nrlc - 1
-              end do
-
-              ! new # of r.v. in the cell
-              if(nrlc /= nRay(ix, jy, kz) - nshl(ix + 1, jy, kz) - nshr(ix &
-                  &- 1, jy, kz)) then
-                print *, 'at ix,jy,kz =', ix, jy, kz, 'nrlc &
-                    &/= nRay(ix,jy,kz)   - nshl(ix+1,jy,kz) - nshr(ix-1,jy,kz)'
-                stop
-              else
-                nRay(ix, jy, kz) = nrlc
-              end if
-            end if
-          end do ! ix
-        end do ! jy
-      end do ! kz
-
-      ! periodic boundary conditions in x
-
-      call setboundary_rayvol_x(ray)
-    end if
+    endif
 
     !------------------------
     ! shifting in y direction
     !------------------------
 
     if(sizeY > 1) then
-      ! procedure completely analogous to shifting in x ...
-
-      nshb = 0
-      nshf = 0
-
-      irsb = 0
-      irsf = 0
-
-      ! periodic boundary conditions in y
-
       call setboundary_rayvol_y(ray)
+      do kzrv = 0, nz + 1
+        do jyrv = 0, ny + 1
+          do ixrv = 0, nx + 1
+            do iray = 1, nray(ixrv, jyrv, kzrv)
+              if(ray(iray, ixrv, jyrv, kzrv)%dens /= 0.0) then
+                yr = ray(iray, ixrv, jyrv, kzrv)%y
+                jy = floor((yr - ly(0)) / dy) + 1 - jy0
 
-      ! move ray volumes to appropriate cell
-
-      do kz = 0, nz + 1
-        do jy = 1, ny
+                if(jy /= jyrv) then
+                  if(abs(jy - jyrv) > 1) stop "Error in shift_rayvol: abs(jy &
+                      &- jyrv) > 1"
+                  if(1 <= jy .and. jy <= ny) then
+                    nray(ixrv, jy, kzrv) = nray(ixrv, jy, kzrv) + 1
+                    jray = nray(ixrv, jy, kzrv)
+                    if(jray > nray_wrk) stop "Error in shift_rayvol: nray > &
+                        &nray_wrk!"
+                    ray(jray, ixrv, jy, kzrv) = ray(iray, ixrv, jyrv, kzrv)
+                  endif
+                  ray(iray, ixrv, jyrv, kzrv)%dens = 0.0
+                endif
+              endif
+            enddo
+          enddo
+        enddo
+      enddo
+      call setboundary_rayvol_y(ray)
+      do kz = 1, nz
+        do jy = 0, ny + 1
           do ix = 0, nx + 1
-            nrlc = nRay(ix, jy, kz)
-
-            nsb = 0
-            nsf = 0
-
-            ! ray volumes from cell behind
-
-            if(nRay(ix, jy - 1, kz) > 0) then
-              do iRay = 1, nRay(ix, jy - 1, kz)
-                yr = ray(iRay, ix, jy - 1, kz)%y
-
-                if(yr > y(jy - 1 + jy0) + 0.5 * dy) then
-                  nrlc = nrlc + 1
-
-                  nsb = nsb + 1
-
-                  ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy - 1, kz)
-
-                  irsb(nsb, ix, jy, kz) = iRay
-                end if
-              end do
-
-              nshb(ix, jy, kz) = nsb
-            end if
-
-            ! ray volumes from cell in front
-
-            if(nRay(ix, jy + 1, kz) > 0) then
-              do iRay = 1, nRay(ix, jy + 1, kz)
-                yr = ray(iRay, ix, jy + 1, kz)%y
-
-                if(yr < y(jy + 1 + jy0) - 0.5 * dy) then
-                  nrlc = nrlc + 1
-
-                  nsf = nsf + 1
-
-                  ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy + 1, kz)
-
-                  irsf(nsf, ix, jy, kz) = iRay
-                end if
-              end do
-
-              nshf(ix, jy, kz) = nsf
-            end if
-
-            if(nrlc > nray_wrk) then
-              print *, 'at ix,jy,kz =', ix, jy, kz, 'nrlc > nray_wrk'
-              stop
-            else
-              nRay(ix, jy, kz) = nrlc
-            end if
+            if(nRay(ix, jy, kz) <= 0) cycle
+            nrlc = 0
+            do iRay = 1, nRay(ix, jy, kz)
+              if(ray(iRay, ix, jy, kz)%dens == 0.0) cycle
+              nrlc = nrlc + 1
+              ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+            end do
+            nRay(ix, jy, kz) = nrlc
           end do
         end do
       end do
-
-      ! periodic boundary conditions in y
-
-      call setboundary_nshift_y(nshb, nshf)
-      call setboundary_irshift_y(irsb, irsf)
-
-      ! remove ray volumes from cells they have left
-
-      do kz = 0, nz + 1
-        do jy = 1, ny
-          do ix = 0, nx + 1
-            ! ordered list of ray indices for r.v. that have left the
-            ! cell
-
-            nsh = 0
-
-            ! r.v. that have been shifted forward
-
-            if(nshb(ix, jy + 1, kz) > 0) then
-              do ish = 1, nshb(ix, jy + 1, kz)
-                iRay = irsb(ish, ix, jy + 1, kz)
-                irsh(ish) = iRay
-              end do
-
-              nsh = nshb(ix, jy + 1, kz)
-            end if
-
-            ! r.v. that have been shifted backward
-
-            if(nshf(ix, jy - 1, kz) > 0) then
-              do ish = 1, nshf(ix, jy - 1, kz)
-                iRay = irsf(ish, ix, jy - 1, kz)
-
-                if(nsh == 0) then
-                  irsh(1) = iRay
-                elseif(iRay < irsh(1)) then
-                  do jsh = nsh, 1, - 1
-                    irsh(jsh + 1) = irsh(jsh)
-                  end do
-
-                  irsh(1) = iRay
-                elseif(iRay > irsh(nsh)) then
-                  irsh(nsh + 1) = iRay
-                else
-                  !testb
-                  if(nsh < 2) then
-                    print *, 'ERROR: nsh < 2 in y-shifting where  this must &
-                        &not be the case'
-                    stop
-                  end if
-                  !teste
-
-                  lplace = .false.
-
-                  do jsh = 1, nsh - 1
-                    if(lplace) cycle
-
-                    if(iRay < irsh(jsh + 1)) then
-                      do ksh = nsh, jsh + 1, - 1
-                        irsh(ksh + 1) = irsh(ksh)
-                      end do
-
-                      irsh(jsh + 1) = iRay
-
-                      lplace = .true.
-                    end if
-                  end do
-                end if
-
-                nsh = nsh + 1
-              end do
-            end if
-
-            if(nsh /= nshb(ix, jy + 1, kz) + nshf(ix, jy - 1, kz)) then
-              print *, 'at ix,jy,kz =', ix, jy, kz, 'nsh /= nshb + nshf'
-              stop
-            end if
-
-            ! remove shifted ray volumes
-
-            if(nsh > 0) then
-              nrlc = nRay(ix, jy, kz)
-
-              do ish = nsh, 1, - 1
-                iRay = irsh(ish)
-
-                if(iRay < nrlc) then
-                  do jRay = iRay + 1, nrlc
-                    ray(jRay - 1, ix, jy, kz) = ray(jRay, ix, jy, kz)
-                  end do
-                end if
-
-                nrlc = nrlc - 1
-              end do
-
-              if(nrlc /= nRay(ix, jy, kz) - nshb(ix, jy + 1, kz) - nshf(ix, jy &
-                  &- 1, kz)) then
-                print *, 'at ix,jy,kz =', ix, jy, kz, 'nrlc &
-                    &/= nRay(ix,jy,kz)   - nshb(ix,jy+1,kz) - nshf(ix,jy-1,kz)'
-                stop
-              else
-                nRay(ix, jy, kz) = nrlc
-              end if
-            end if
-          end do ! ix
-        end do ! jy
-      end do ! kz
-
-      ! periodic boundary conditions in y
-
-      call setboundary_rayvol_y(ray)
-    end if
+    endif
 
     !------------------------
     ! shifting in z direction
@@ -6159,7 +5747,7 @@ module wkb_module
                 if(topography) then
                   kz = kzTildeTFC(ixrv, jyrv, zr)
                 else
-                  kz = nint((zr - lz(0)) / dz + 0.5)
+                  kz = floor((zr - lz(0)) / dz) + 1
                 end if
 
                 if(kz > nz) kz = nz
@@ -6973,6 +6561,8 @@ module wkb_module
 
           nr_merge = 0
 
+          wadrmg = 0.0
+
           do iRay = 1, nRay(ix, jy, kz)
             wnrk = ray(iRay, ix, jy, kz)%k
             dwnrk = ray(iRay, ix, jy, kz)%dkray
@@ -7172,7 +6762,7 @@ module wkb_module
 
             nr_merge(jRay) = nr_merge(jRay) + 1
 
-            if(nr_merge(jRay) == 1) then
+            if(wadrmg(jRay) == 0.0) then
               xrmnmg(jRay) = xr - 0.5 * dxr
               xrmxmg(jRay) = xr + 0.5 * dxr
 
@@ -7244,6 +6834,21 @@ module wkb_module
             end if
           end do
 
+          ! Reset the old ray volumes.
+          ray(:, ix, jy, kz)%x = 0.0
+          ray(:, ix, jy, kz)%y = 0.0
+          ray(:, ix, jy, kz)%z = 0.0
+          ray(:, ix, jy, kz)%k = 0.0
+          ray(:, ix, jy, kz)%l = 0.0
+          ray(:, ix, jy, kz)%m = 0.0
+          ray(:, ix, jy, kz)%dxray = 0.0
+          ray(:, ix, jy, kz)%dyray = 0.0
+          ray(:, ix, jy, kz)%dzray = 0.0
+          ray(:, ix, jy, kz)%dkray = 0.0
+          ray(:, ix, jy, kz)%dlray = 0.0
+          ray(:, ix, jy, kz)%dmray = 0.0
+          ray(:, ix, jy, kz)%dens = 0.0
+
           ! replace old r.v. by the merged r.v.
 
           !testb
@@ -7251,9 +6856,8 @@ module wkb_module
           !teste
 
           iRay = 0
-
           do jRay = 1, nray_max
-            if(nr_merge(jRay) < 1) cycle
+            if(wadrmg(jRay) == 0.0) cycle
 
             iRay = iRay + 1
 
@@ -7541,9 +7145,6 @@ module wkb_module
 
     real :: ddxdt, ddydt, ddzdt
 
-    ! Long number (FJJan2023)
-    real :: long
-
     ! Wave mode (FJApr2023)
     integer :: iwm
 
@@ -7750,8 +7351,6 @@ module wkb_module
           end do
         end do
       end do
-      if(sizeX > 1) call setboundary_rayvol_x(ray)
-      if(sizeY > 1) call setboundary_rayvol_y(ray)
       return
     end if
 
@@ -8175,12 +7774,10 @@ module wkb_module
     type(rayType), dimension(nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1), &
         &intent(inout) :: ray
 
-    if(steady_state) return
-
     ! Apply boundary conditions.
     if(sizeX > 1) call setboundary_rayvol_x(ray)
     if(sizeY > 1) call setboundary_rayvol_y(ray)
-    call setboundary_rayvol_z(ray)
+    if(.not. steady_state) call setboundary_rayvol_z(ray)
 
   end subroutine boundary_rayvol
 
@@ -8785,11 +8382,11 @@ module wkb_module
         do k = 1, nz
           do j = 1, ny
             do i = 1, nx
-              flxwkb(i, j, k) = (flxwkb_1(i, j, k - 4) + flxwkb_1(i, j, k + 4) &
-                  &+ 8.0 * (flxwkb_1(i, j, k - 3) + flxwkb_1(i, j, k + 3)) &
-                  &- 28.0 * (flxwkb_1(i, j, k - 2) + flxwkb_1(i, j, k + 2)) &
-                  &+ 56.0 * (flxwkb_1(i, j, k - 1) + flxwkb_1(i, j, k + 1)) &
-                  &+ 186.0 * flxwkb_1(i, j, k)) / 256.0
+              flxwkb(i, j, k) = (- flxwkb_1(i, j, k - 4) - flxwkb_1(i, j, k &
+                  &+ 4) + 8.0 * (flxwkb_1(i, j, k - 3) + flxwkb_1(i, j, k &
+                  &+ 3)) - 28.0 * (flxwkb_1(i, j, k - 2) + flxwkb_1(i, j, k &
+                  &+ 2)) + 56.0 * (flxwkb_1(i, j, k - 1) + flxwkb_1(i, j, k &
+                  &+ 1)) + 186.0 * flxwkb_1(i, j, k)) / 256.0
             end do
           end do
         end do
@@ -9429,8 +9026,7 @@ module wkb_module
 
     do k = 1, min(nz, nbz)
       flxwkb(:, :, nz + k) = flxwkb(:, :, nz - k + 1)
-      flxwkb(:, :, - k + 1) = flxwkb(:, :, 1)
-      !      flxwkb(:,:,-k+1) = flxwkb(:,:,k)
+      flxwkb(:, :, - k + 1) = flxwkb(:, :, k)
     end do
 
   end subroutine setboundary_z_solidwall_wkb
@@ -9663,8 +9259,8 @@ module wkb_module
 
     real, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(inout) :: frcwkb
 
-    frcwkb(:, :, nz + 1) = - frcwkb(:, :, nz)
-    frcwkb(:, :, 0) = - frcwkb(:, :, 1)
+    frcwkb(:, :, nz + 1) = frcwkb(:, :, nz)
+    frcwkb(:, :, 0) = frcwkb(:, :, 1)
 
   end subroutine setboundary_frc_z_solidwall_wkb
 
@@ -10101,269 +9697,6 @@ module wkb_module
 
   ! ----------------------------------------------------------------------
 
-  subroutine setboundary_irshift_x(irsl, irsr)
-
-    ! -------------------------------------------------------------------
-    ! (periodic) boundary conditions in x direction for indices of
-    ! ray volumes shifted to the left or right
-    ! -------------------------------------------------------------------
-
-    implicit none
-
-    ! argument list
-    integer, dimension(nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1), intent(inout) &
-        &:: irsl, irsr
-
-    ! MPI variables
-    integer :: dest, source, tag
-    integer :: sendcount, recvcount
-
-    ! locals
-    integer :: ix, irprop, nrmxrl, nrmxll, nrmaxl, nrmaxr
-    integer :: jy, kz, iRay
-
-    ! auxiliary fields
-    integer, dimension(:, :, :, :), allocatable :: xSliceLeft_send, &
-        &xSliceRight_send
-    integer, dimension(:, :, :, :), allocatable :: xSliceLeft_recv, &
-        &xSliceRight_recv
-
-    if(xBoundary /= "periodic") then
-      stop 'ERROR: boundary conditions in setboundary_irshift_x must be  &
-          &periodic!'
-    end if
-
-    ! boundary conditions for number of ray volumes per cell
-
-    call setboundary_nray_x
-
-    if(idim > 1) then
-      ! more than 1 cpu in x direction
-
-      call mpi_cart_shift(comm, 0, 1, left, right, ierror)
-
-      ! find global maximum of number of ray volumes per cell
-      ! (at left and right edges of the cpu domains)
-
-      nrmxll = maxval(nRay(1, :, :))
-      nrmxrl = maxval(nRay(nx, :, :))
-
-      call mpi_reduce(nrmxll, nrmaxl, 1, mpi_integer, mpi_max, root, comm, &
-          &ierror)
-      call mpi_bcast(nrmaxl, 1, mpi_integer, root, comm, ierror)
-
-      call mpi_reduce(nrmxrl, nrmaxr, 1, mpi_integer, mpi_max, root, comm, &
-          &ierror)
-      call mpi_bcast(nrmaxr, 1, mpi_integer, root, comm, ierror)
-
-      allocate(xSliceLeft_send(nrmaxl, 1, 0:ny + 1, 0:nz + 1))
-      allocate(xSliceRight_send(nrmaxr, 1, 0:ny + 1, 0:nz + 1))
-
-      allocate(xSliceLeft_recv(nrmaxr, 1, 0:ny + 1, 0:nz + 1))
-      allocate(xSliceRight_recv(nrmaxl, 1, 0:ny + 1, 0:nz + 1))
-
-      do irprop = 1, 2
-        ! read slice into contiguous array
-
-        do kz = 0, nz + 1
-          do jy = 0, ny + 1
-            if(nRay(1, jy, kz) > 0) then
-              do iRay = 1, nRay(1, jy, kz)
-                if(irprop == 1) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = irsl(iRay, 1, jy, kz)
-                elseif(irprop == 2) then
-                  xSliceLeft_send(iRay, 1, jy, kz) = irsr(iRay, 1, jy, kz)
-                end if
-              end do
-            end if
-          end do
-        end do
-
-        do kz = 0, nz + 1
-          do jy = 0, ny + 1
-            if(nRay(nx, jy, kz) > 0) then
-              do iRay = 1, nRay(nx, jy, kz)
-                if(irprop == 1) then
-                  xSliceRight_send(iRay, 1, jy, kz) = irsl(iRay, nx, jy, kz)
-                elseif(irprop == 2) then
-                  xSliceRight_send(iRay, 1, jy, kz) = irsr(iRay, nx, jy, kz)
-                end if
-              end do
-            end if
-          end do
-        end do
-
-        ! left -> right
-        sendcount = nrmaxr * (ny + 2) * (nz + 2)
-        recvcount = sendcount
-        source = left
-        dest = right
-        tag = 100
-
-        call mpi_sendrecv(xSliceRight_send(1, 1, 0, 0), sendcount, &
-            &mpi_integer, dest, tag, xSliceLeft_recv(1, 1, 0, 0), recvcount, &
-            &mpi_integer, source, mpi_any_tag, comm, sts_left, ierror)
-
-        ! right -> left
-        sendcount = nrmaxl * (ny + 2) * (nz + 2)
-        recvcount = sendcount
-        source = right
-        dest = left
-        tag = 100
-
-        call mpi_sendrecv(xSliceLeft_send(1, 1, 0, 0), sendcount, mpi_integer, &
-            &dest, tag, xSliceRight_recv(1, 1, 0, 0), recvcount, mpi_integer, &
-            &source, mpi_any_tag, comm, sts_right, ierror)
-
-        ! write auxiliary slice to ray field
-
-        ! right halos
-        do kz = 0, nz + 1
-          do jy = 0, ny + 1
-            if(nRay(nx + 1, jy, kz) > 0) then
-              do iRay = 1, nRay(nx + 1, jy, kz)
-                if(irprop == 1) then
-                  irsl(iRay, nx + 1, jy, kz) = xSliceRight_recv(iRay, 1, jy, kz)
-                elseif(irprop == 2) then
-                  irsr(iRay, nx + 1, jy, kz) = xSliceRight_recv(iRay, 1, jy, kz)
-                end if
-              end do
-            end if
-          end do
-        end do
-
-        ! left halos
-
-        do kz = 0, nz + 1
-          do jy = 0, ny + 1
-            if(nRay(0, jy, kz) > 0) then
-              do iRay = 1, nRay(0, jy, kz)
-                if(irprop == 1) then
-                  irsl(iRay, 0, jy, kz) = xSliceLeft_recv(iRay, 1, jy, kz)
-                elseif(irprop == 2) then
-                  irsr(iRay, 0, jy, kz) = xSliceLeft_recv(iRay, 1, jy, kz)
-                end if
-              end do
-            end if
-          end do
-        end do
-      end do
-
-      deallocate(xSliceLeft_send)
-      deallocate(xSliceRight_send)
-
-      deallocate(xSliceLeft_recv)
-      deallocate(xSliceRight_recv)
-    else
-      ! only 1 cpu in x direction
-
-      irsl(:, 0, :, :) = irsl(:, nx, :, :)
-      irsl(:, nx + 1, :, :) = irsl(:, 1, :, :)
-
-      irsr(:, 0, :, :) = irsr(:, nx, :, :)
-      irsr(:, nx + 1, :, :) = irsr(:, 1, :, :)
-    end if
-
-  end subroutine setboundary_irshift_x
-
-  ! ----------------------------------------------------------------------
-
-  subroutine setboundary_nshift_x(nshl, nshr)
-
-    ! -------------------------------------------------------------------
-    ! (periodic) boundary conditions in x direction for number of
-    ! ray volumes shifted to the left or right
-    ! -------------------------------------------------------------------
-
-    implicit none
-
-    ! argument list
-    integer, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(inout) :: nshl, &
-        &nshr
-
-    ! MPI variables
-    integer :: dest, source, tag
-    integer :: sendcount, recvcount
-
-    ! locals
-    integer :: ix, irprop
-
-    ! auxiliary fields
-    integer, dimension(1, 0:ny + 1, 0:nz + 1) :: xSliceLeft_send, &
-        &xSliceRight_send
-    integer, dimension(1, 0:ny + 1, 0:nz + 1) :: xSliceLeft_recv, &
-        &xSliceRight_recv
-
-    if(xBoundary /= "periodic") then
-      stop 'ERROR: boundary conditions in setboundary_nshift_x must be  &
-          &periodic!'
-    end if
-
-    if(idim > 1) then
-      ! more than 1 cpu in x direction
-
-      call mpi_cart_shift(comm, 0, 1, left, right, ierror)
-
-      ! slice size
-      sendcount = (ny + 2) * (nz + 2)
-      recvcount = sendcount
-
-      do irprop = 1, 2
-        ! read slice into contiguous array
-
-        if(irprop == 1) then
-          xSliceLeft_send(1, :, :) = nshl(1, :, :)
-          xSliceRight_send(1, :, :) = nshl(nx, :, :)
-        elseif(irprop == 2) then
-          xSliceLeft_send(1, :, :) = nshr(1, :, :)
-          xSliceRight_send(1, :, :) = nshr(nx, :, :)
-        end if
-
-        ! left -> right
-        source = left
-        dest = right
-        tag = 100
-
-        call mpi_sendrecv(xSliceRight_send(1, 0, 0), sendcount, mpi_integer, &
-            &dest, tag, xSliceLeft_recv(1, 0, 0), recvcount, mpi_integer, &
-            &source, mpi_any_tag, comm, sts_left, ierror)
-
-        ! right -> left
-        source = right
-        dest = left
-        tag = 100
-
-        call mpi_sendrecv(xSliceLeft_send(1, 0, 0), sendcount, mpi_integer, &
-            &dest, tag, xSliceRight_recv(1, 0, 0), recvcount, mpi_integer, &
-            &source, mpi_any_tag, comm, sts_right, ierror)
-
-        ! write auxiliary slice to ray field
-
-        if(irprop == 1) then
-          ! right halos
-          nshl(nx + 1, :, :) = xSliceRight_recv(1, :, :)
-
-          ! left halos
-          nshl(0, :, :) = xSliceLeft_recv(1, :, :)
-        elseif(irprop == 2) then
-          nshr(nx + 1, :, :) = xSliceRight_recv(1, :, :)
-          nshr(0, :, :) = xSliceLeft_recv(1, :, :)
-        end if
-      end do
-    else
-      ! only 1 cpu in x direction
-
-      nshl(0, :, :) = nshl(nx, :, :)
-      nshl(nx + 1, :, :) = nshl(1, :, :)
-
-      nshr(0, :, :) = nshr(nx, :, :)
-      nshr(nx + 1, :, :) = nshr(1, :, :)
-    end if
-
-  end subroutine setboundary_nshift_x
-
-  ! ----------------------------------------------------------------------
-
   subroutine setboundary_rayvol_y(ray)
 
     ! -------------------------------------------------------------------
@@ -10780,270 +10113,6 @@ module wkb_module
 
   ! ----------------------------------------------------------------------
 
-  subroutine setboundary_irshift_y(irsb, irsf)
-
-    ! -------------------------------------------------------------------
-    ! (periodic) boundary conditions in x direction for indices of
-    ! ray volumes shifted backward or forward
-    ! -------------------------------------------------------------------
-
-    implicit none
-
-    ! argument list
-    integer, dimension(nray_wrk, 0:nx + 1, 0:ny + 1, 0:nz + 1), intent(inout) &
-        &:: irsb, irsf
-
-    ! MPI variables
-    integer :: dest, source, tag
-    integer :: sendcount, recvcount
-
-    ! locals
-    integer :: jy, irprop, nrmxbl, nrmxfl, nrmaxb, nrmaxf
-    integer :: ix, kz, iRay
-
-    ! auxiliary fields
-    integer, dimension(:, :, :, :), allocatable :: ySliceBack_send, &
-        &ySliceForw_send
-    integer, dimension(:, :, :, :), allocatable :: ySliceBack_recv, &
-        &ySliceForw_recv
-
-    if(yBoundary /= "periodic") then
-      stop 'ERROR: boundary conditions in setboundary_irshift_y must be  &
-          &periodic!'
-    end if
-
-    ! boundary conditions for number of ray volumes per cell
-
-    call setboundary_nray_y
-
-    if(jdim > 1) then
-      ! more than 1 cpu in x direction
-
-      call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
-
-      ! find global maximum of number of ray volumes per cell
-      ! (at forward and backward edges of the cpu domains)
-
-      nrmxbl = maxval(nRay(:, 1, :))
-      nrmxfl = maxval(nRay(:, ny, :))
-
-      call mpi_reduce(nrmxbl, nrmaxb, 1, mpi_integer, mpi_max, root, comm, &
-          &ierror)
-      call mpi_bcast(nrmaxb, 1, mpi_integer, root, comm, ierror)
-
-      call mpi_reduce(nrmxfl, nrmaxf, 1, mpi_integer, mpi_max, root, comm, &
-          &ierror)
-      call mpi_bcast(nrmaxf, 1, mpi_integer, root, comm, ierror)
-
-      allocate(ySliceBack_send(nrmaxb, 0:nx + 1, 1, 0:nz + 1))
-      allocate(ySliceForw_send(nrmaxf, 0:nx + 1, 1, 0:nz + 1))
-
-      allocate(ySliceBack_recv(nrmaxf, 0:nx + 1, 1, 0:nz + 1))
-      allocate(ySliceForw_recv(nrmaxb, 0:nx + 1, 1, 0:nz + 1))
-
-      do irprop = 1, 2
-        ! read slice into contiguous array
-
-        do kz = 0, nz + 1
-          do ix = 0, nx + 1
-            if(nRay(ix, 1, kz) > 0) then
-              do iRay = 1, nRay(ix, 1, kz)
-                if(irprop == 1) then
-                  ySliceBack_send(iRay, ix, 1, kz) = irsb(iRay, ix, 1, kz)
-                elseif(irprop == 2) then
-                  ySliceBack_send(iRay, ix, 1, kz) = irsf(iRay, ix, 1, kz)
-                end if
-              end do
-            end if
-          end do
-        end do
-
-        do kz = 0, nz + 1
-          do ix = 0, nx + 1
-            if(nRay(ix, ny, kz) > 0) then
-              do iRay = 1, nRay(ix, ny, kz)
-                if(irprop == 1) then
-                  ySliceForw_send(iRay, ix, 1, kz) = irsb(iRay, ix, ny, kz)
-                elseif(irprop == 2) then
-                  ySliceForw_send(iRay, ix, 1, kz) = irsf(iRay, ix, ny, kz)
-                end if
-              end do
-            end if
-          end do
-        end do
-
-        ! back -> forw
-        sendcount = nrmaxf * (nx + 2) * (nz + 2)
-        recvcount = sendcount
-        source = back
-        dest = forw
-        tag = 100
-
-        call mpi_sendrecv(ySliceForw_send(1, 0, 1, 0), sendcount, mpi_integer, &
-            &dest, tag, ySliceBack_recv(1, 0, 1, 0), recvcount, mpi_integer, &
-            &source, mpi_any_tag, comm, sts_back, ierror)
-
-        ! forw -> back
-        sendcount = nrmaxb * (nx + 2) * (nz + 2)
-        recvcount = sendcount
-        source = forw
-        dest = back
-        tag = 100
-
-        call mpi_sendrecv(ySliceBack_send(1, 0, 1, 0), sendcount, mpi_integer, &
-            &dest, tag, ySliceForw_recv(1, 0, 1, 0), recvcount, mpi_integer, &
-            &source, mpi_any_tag, comm, sts_forw, ierror)
-
-        ! write auxiliary slice to ray field
-
-        ! forw halos
-
-        do kz = 0, nz + 1
-          do ix = 0, nx + 1
-            if(nRay(ix, ny + 1, kz) > 0) then
-              do iRay = 1, nRay(ix, ny + 1, kz)
-                if(irprop == 1) then
-                  irsb(iRay, ix, ny + 1, kz) = ySliceForw_recv(iRay, ix, 1, kz)
-                elseif(irprop == 2) then
-                  irsf(iRay, ix, ny + 1, kz) = ySliceForw_recv(iRay, ix, 1, kz)
-                end if
-              end do
-            end if
-          end do
-        end do
-
-        ! back halos
-
-        do kz = 0, nz + 1
-          do ix = 0, nx + 1
-            if(nRay(ix, 0, kz) > 0) then
-              do iRay = 1, nRay(ix, 0, kz)
-                if(irprop == 1) then
-                  irsb(iRay, ix, 0, kz) = ySliceBack_recv(iRay, ix, 1, kz)
-                elseif(irprop == 2) then
-                  irsf(iRay, ix, 0, kz) = ySliceBack_recv(iRay, ix, 1, kz)
-                end if
-              end do
-            end if
-          end do
-        end do
-      end do
-
-      deallocate(ySliceBack_send)
-      deallocate(ySliceForw_send)
-
-      deallocate(ySliceBack_recv)
-      deallocate(ySliceForw_recv)
-    else
-      ! only 1 cpu in x direction
-
-      irsb(:, :, 0, :) = irsb(:, :, ny, :)
-      irsb(:, :, ny + 1, :) = irsb(:, :, 1, :)
-
-      irsf(:, :, 0, :) = irsf(:, :, ny, :)
-      irsf(:, :, ny + 1, :) = irsf(:, :, 1, :)
-    end if
-
-  end subroutine setboundary_irshift_y
-
-  ! ----------------------------------------------------------------------
-
-  subroutine setboundary_nshift_y(nshb, nshf)
-
-    ! -------------------------------------------------------------------
-    ! (periodic) boundary conditions in x direction for number of
-    ! ray volumes shifted to the back or forw
-    ! -------------------------------------------------------------------
-
-    implicit none
-
-    ! argument list
-    integer, dimension(0:nx + 1, 0:ny + 1, 0:nz + 1), intent(inout) :: nshb, &
-        &nshf
-
-    ! MPI variables
-    integer :: dest, source, tag
-    integer :: sendcount, recvcount
-
-    ! locals
-    integer :: jy, irprop
-
-    ! auxiliary fields
-    integer, dimension(0:nx + 1, 1, 0:nz + 1) :: ySliceBack_send, &
-        &ySliceForw_send
-    integer, dimension(0:nx + 1, 1, 0:nz + 1) :: ySliceBack_recv, &
-        &ySliceForw_recv
-
-    if(yBoundary /= "periodic") then
-      stop 'ERROR: boundary conditions in setboundary_nshift_y must be  &
-          &periodic!'
-    end if
-
-    if(jdim > 1) then
-      ! more than 1 cpu in x direction
-
-      call mpi_cart_shift(comm, 1, 1, back, forw, ierror)
-
-      ! slice size
-      sendcount = (nx + 2) * (nz + 2)
-      recvcount = sendcount
-
-      do irprop = 1, 2
-        ! read slice into contiguous array
-
-        if(irprop == 1) then
-          ySliceBack_send(:, 1, :) = nshb(:, 1, :)
-          ySliceForw_send(:, 1, :) = nshb(:, ny, :)
-        elseif(irprop == 2) then
-          ySliceBack_send(:, 1, :) = nshf(:, 1, :)
-          ySliceForw_send(:, 1, :) = nshf(:, ny, :)
-        end if
-
-        ! back -> forw
-        source = back
-        dest = forw
-        tag = 100
-
-        call mpi_sendrecv(ySliceForw_send(0, 1, 0), sendcount, mpi_integer, &
-            &dest, tag, ySliceBack_recv(0, 1, 0), recvcount, mpi_integer, &
-            &source, mpi_any_tag, comm, sts_back, ierror)
-
-        ! forw -> back
-        source = forw
-        dest = back
-        tag = 100
-
-        call mpi_sendrecv(ySliceBack_send(0, 1, 0), sendcount, mpi_integer, &
-            &dest, tag, ySliceForw_recv(0, 1, 0), recvcount, mpi_integer, &
-            &source, mpi_any_tag, comm, sts_forw, ierror)
-
-        ! write auxiliary slice to ray field
-
-        if(irprop == 1) then
-          ! forw halos
-          nshb(:, ny + 1, :) = ySliceForw_recv(:, 1, :)
-
-          ! back halos
-          nshb(:, 0, :) = ySliceBack_recv(:, 1, :)
-        elseif(irprop == 2) then
-          nshf(:, ny + 1, :) = ySliceForw_recv(:, 1, :)
-          nshf(:, 0, :) = ySliceBack_recv(:, 1, :)
-        end if
-      end do
-    else
-      ! only 1 cpu in x direction
-
-      nshb(:, 0, :) = nshb(:, ny, :)
-      nshb(:, ny + 1, :) = nshb(:, 1, :)
-
-      nshf(:, 0, :) = nshf(:, ny, :)
-      nshf(:, ny + 1, :) = nshf(:, 1, :)
-    end if
-
-  end subroutine setboundary_nshift_y
-
-  ! ----------------------------------------------------------------------
-
   subroutine setboundary_rayvol_z(ray)
 
     ! Update ray volumes at the vertical boundaries.
@@ -11078,8 +10147,8 @@ module wkb_module
               if(topography) then
                 xr = ray(iRay, ix, jy, kz)%x
                 yr = ray(iRay, ix, jy, kz)%y
-                ixrv = nint((xr - lx(0)) / dx + 0.5) - ix0
-                jyrv = nint((yr - ly(0)) / dy + 0.5) - jy0
+                ixrv = floor((xr - lx(0)) / dx) + 1 - ix0
+                jyrv = floor((yr - ly(0)) / dy) + 1 - jy0
                 zsfc = zTildeTFC(ixrv, jyrv, 0)
               else
                 zsfc = lz(0)
@@ -11117,8 +10186,8 @@ module wkb_module
                 if(topography) then
                   xr = ray(iRay, ix, jy, kz)%x
                   yr = ray(iRay, ix, jy, kz)%y
-                  ixrv = nint((xr - lx(0)) / dx + 0.5) - ix0
-                  jyrv = nint((yr - ly(0)) / dy + 0.5) - jy0
+                  ixrv = floor((xr - lx(0)) / dx) + 1 - ix0
+                  jyrv = floor((yr - ly(0)) / dy) + 1 - jy0
                   if(abs(zrt - zTFC(ixrv, jyrv, kz)) < abs(zr - zTFC(ixrv, &
                       &jyrv, kz))) then
                     zr = zrt
@@ -11153,8 +10222,8 @@ module wkb_module
                 if(topography) then
                   xr = ray(iRay, ix, jy, kz)%x
                   yr = ray(iRay, ix, jy, kz)%y
-                  ixrv = nint((xr - lx(0)) / dx + 0.5) - ix0
-                  jyrv = nint((yr - ly(0)) / dy + 0.5) - jy0
+                  ixrv = floor((xr - lx(0)) / dx) + 1 - ix0
+                  jyrv = floor((yr - ly(0)) / dy) + 1 - jy0
                   if(abs(zrt - zTFC(ixrv, jyrv, kz)) < abs(zr - zTFC(ixrv, &
                       &jyrv, kz))) then
                     zr = zrt
@@ -11177,7 +10246,6 @@ module wkb_module
       do kz = 1, nz
         do jy = 0, ny + 1
           do ix = 0, nx + 1
-            if(nRay(ix, jy, kz) <= 0) cycle
             nrlc = 0
             do iRay = 1, nRay(ix, jy, kz)
 
@@ -11199,9 +10267,10 @@ module wkb_module
               if(topography) then
                 xr = ray(iRay, ix, jy, kz)%x
                 yr = ray(iRay, ix, jy, kz)%y
-                ixrv = nint((xr - lx(0)) / dx + 0.5) - ix0
-                jyrv = nint((yr - ly(0)) / dy + 0.5) - jy0
-                if(zr - 0.5 * dzr < zTildeTFC(ixrv, jyrv, 0)) then
+                ixrv = floor((xr - lx(0)) / dx) + 1 - ix0
+                jyrv = floor((yr - ly(0)) / dy) + 1 - jy0
+                if(zTildeTFC(ixrv, jyrv, 0) - zr + 0.5 * dzr &
+                    &> epsilon(1.0d0)) then
                   ray(iRay, ix, jy, kz)%z = 2.0 * zTildeTFC(ixrv, jyrv, 0) &
                       &- zr + dzr
                   ray(iRay, ix, jy, kz)%m = - wnrm
@@ -11214,7 +10283,7 @@ module wkb_module
               end if
 
               nrlc = nrlc + 1
-              ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+              if(nrlc /= iray) ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
             end do
             nRay(ix, jy, kz) = nrlc
           end do
@@ -11381,7 +10450,8 @@ module wkb_module
 
   ! ----------------------------------------------------------------------
 
-  subroutine orographic_source(var, ray, time, dt)
+  subroutine orographic_source(var, ray, time, dt, omi_sfc, wnk_sfc, wnl_sfc, &
+      &wnm_sfc, wad_sfc)
 
     ! Launch ray volumes according to the lower boundary condition for mountain
     ! waves.
@@ -11394,6 +10464,8 @@ module wkb_module
         &intent(inout) :: ray
     real, intent(in) :: time
     real, intent(in) :: dt
+    real, dimension(1:nx, 1:ny, 1:nwm), intent(out), optional :: omi_sfc, &
+        &wnk_sfc, wnl_sfc, wnm_sfc, wad_sfc
     integer :: ix, jy, kz
     integer :: ix2, jy2, kz2, ik, jl, km, iwm
     integer :: nrlc
@@ -11405,8 +10477,9 @@ module wkb_module
     real :: dk_ini_nd, dl_ini_nd, dm_ini_nd
     real :: pspvol
     real :: wadr, displm
-    real :: long
     real :: cgrz
+    real :: uavg, vavg, rhoavg, bvsavg, dzsum
+    real :: long, ratio
 
     ! Determine index offset.
     ix0 = is + nbx - 1
@@ -11415,272 +10488,281 @@ module wkb_module
     ! Set Coriolis parameter.
     f_cor_nd = f_Coriolis_dim * tRef
 
-    ! Compute local buoyancy frequency.
-    if(.not. topography) then
-      call stratification(z(1), 1, NN_nd)
-    end if
-
-    ! Set launch level.
-    kz = 0
-
     ! Iterate over surface grid cells.
     do jy = 1, ny
       do ix = 1, nx
 
-        ! Compute local buoyancy frequency.
-        if(topography) then
-          call stratification(zTFC(ix, jy, 1), 1, NN_nd)
+        ! Average mean wind, reference density and buoyancy frequency.
+        uavg = 0.0
+        vavg = 0.0
+        rhoavg = 0.0
+        bvsavg = 0.0
+        dzsum = 0.0
+        do kz = 1, nz
+          uavg = uavg + 0.5 * (var%u(ix, jy, kz) + var%u(ix - 1, jy, kz)) &
+              &* jac(ix, jy, kz) * dz
+          vavg = vavg + 0.5 * (var%v(ix, jy, kz) + var%v(ix, jy - 1, kz)) &
+              &* jac(ix, jy, kz) * dz
+          rhoavg = rhoavg + rhoStratTFC(ix, jy, kz) * jac(ix, jy, kz) * dz
+          bvsavg = bvsavg + bvsStratTFC(ix, jy, kz) * jac(ix, jy, kz) * dz
+          dzsum = dzsum + jac(ix, jy, kz) * dz
+          if(zTildeTFC(ix, jy, kz) > zTildeTFC(ix, jy, 0) &
+              &+ sum(abs(topography_spectrum(ix, jy, :)))) exit
+        end do
+        uavg = uavg / dzsum
+        vavg = vavg / dzsum
+        rhoavg = rhoavg / dzsum
+        bvsavg = bvsavg / dzsum
+
+        ! Determine the blocked layer.
+        if(blocking .and. sum(abs(topography_spectrum(ix, jy, :))) > 0.0) then
+          long = sqrt(bvsavg) / sqrt(uavg ** 2.0 + vavg ** 2.0) &
+              &* sum(abs(topography_spectrum(ix, jy, :)))
+          ratio = min(1.0, long_threshold / long)
+          zb(ix, jy) = zTildeTFC(ix, jy, 0) + sum(abs(topography_spectrum(ix, &
+              &jy, :))) * (1.0 - 2.0 * ratio)
+        else if(blocking) then
+          ratio = 1.0
+          zb(ix, jy) = zTildeTFC(ix, jy, 0)
+        else
+          ratio = 1.0
         end if
 
-        ! Iterate over surface ray volumes.
-        do i_sfc = 1, n_sfc
-          iRay = ir_sfc(i_sfc, ix, jy)
+        ! Set launch level.
+        kz = 0
 
-          ! Set surface indices.
-          ix2 = ix2_sfc(i_sfc)
-          jy2 = jy2_sfc(i_sfc)
-          kz2 = kz2_sfc(i_sfc)
-          ik = ik_sfc(i_sfc)
-          jl = jl_sfc(i_sfc)
-          km = km_sfc(i_sfc)
-          iwm = iwm_sfc(i_sfc)
+        ! Iterate over wave modes / surface ray volumes.
+        if(present(omi_sfc) .and. present(wnk_sfc) .and. present(wnl_sfc) &
+            &.and. present(wnm_sfc) .and. present(wad_sfc)) then
+          do iwm = 1, nwm
 
-          ! Set wavenumbers.
-          wnrk = k_spectrum(ix, jy, iwm)
-          wnrl = l_spectrum(ix, jy, iwm)
-          wnrh = sqrt(wnrk ** 2.0 + wnrl ** 2.0)
+            ! Compute the properties of the wave mode.
+            call orographic_wave_mode
 
-          ! Get vertical position and extent of old ray volume.
-          if(iRay > 0) then
-            zr = ray(iRay, ix, jy, kz)%z
-            dzr = ray(iRay, ix, jy, kz)%dzray
-          else
-            zr = 0.0
-            dzr = 0.0
-          end if
+            ! Save intrinsic frequency, wavenumbers and wave-action density.
+            omi_sfc(ix, jy, iwm) = omir
+            wnk_sfc(ix, jy, iwm) = wnrk
+            wnl_sfc(ix, jy, iwm) = wnrl
+            wnm_sfc(ix, jy, iwm) = wnrm
+            wad_sfc(ix, jy, iwm) = wadr
+          end do
+        else
+          do i_sfc = 1, n_sfc
+            iRay = ir_sfc(i_sfc, ix, jy)
 
-          ! Compute intrinsic frequency from orographic wavenumbers.
-          omir = - 0.5 * (var%u(ix, jy, 1) + var%u(ix - 1, jy, 1)) * wnrk &
-              &- 0.5 * (var%v(ix, jy, 1) + var%v(ix, jy - 1, 1)) * wnrl
+            ! Set surface indices.
+            ix2 = ix2_sfc(i_sfc)
+            jy2 = jy2_sfc(i_sfc)
+            kz2 = kz2_sfc(i_sfc)
+            ik = ik_sfc(i_sfc)
+            jl = jl_sfc(i_sfc)
+            km = km_sfc(i_sfc)
+            iwm = iwm_sfc(i_sfc)
 
-          ! Adjust the signs to be consistent with the chosen frequency branch.
-          if(omir * branchr < 0.0) then
-            omir = - omir
-            wnrk = - wnrk
-            wnrl = - wnrl
-          end if
+            ! Compute the properties of the wave mode.
+            call orographic_wave_mode
 
-          ! Compute vertical wavenumber and wave-action density.
-          if(omir ** 2 > f_cor_nd ** 2 .and. omir ** 2 < NN_nd) then
-
-            ! Compute vertical wavenumber.
-            wnrm = - branchr * sqrt(wnrh ** 2 * (NN_nd - omir ** 2) / (omir &
-                &** 2 - f_cor_nd ** 2))
-
-            ! Get orographic mode.
-            displm = abs(topography_spectrum(ix, jy, iwm))
-
-            ! Apply reduction due to blocked-layer formation.
-            if(blocking) then
-              long = sqrt(NN_nd / (0.25 * (var%u(ix, jy, 1) + var%u(ix - 1, &
-                  &jy, 1)) ** 2.0 + 0.25 * (var%v(ix, jy, 1) + var%v(ix, jy &
-                  &- 1, 1)) ** 2.0)) * sum(abs(topography_spectrum(ix, jy, :)))
-              displm = displm * wave_amplitude_reduction(long)
-            end if
-
-            ! Compute wave-action density.
-            if(topography) then
-              wadr = 0.5 * rhoStratTFC(ix, jy, 1) * displm ** 2 * omir * (wnrh &
-                  &** 2 + wnrm ** 2) / wnrh ** 2
+            ! Get vertical position and extent of old ray volume.
+            if(iRay > 0) then
+              zr = ray(iRay, ix, jy, kz)%z
+              dzr = ray(iRay, ix, jy, kz)%dzray
             else
-              wadr = 0.5 * rhoStrat(1) * displm ** 2 * omir * (wnrh ** 2 &
-                  &+ wnrm ** 2) / wnrh ** 2
+              zr = 0.0
+              dzr = 0.0
             end if
 
-            ! Set to zero if something went wrong.
-            if(wadr /= wadr .or. wnrm /= wnrm) then
-              wadr = 0.0
-              wnrm = 0.0
-            end if
-
-            ! Account for critical and reflecting levels.
-          else
-            wadr = 0.0
-            wnrm = 0.0
-          end if
-
-          ! Check if a new ray volume is to be launched and clip the old one.
-          ! Three cases are distinguished.
-          ! (1) There is no ray volume with nonzero wave-action density. A new
-          !     ray volume is launched.
-          ! (2) There is a ray volume with nonzero wave-action density, which
-          !     has partially passed the lower boundary. It is clipped and the
-          !     part below the lower boundary discarded before a new ray volume
-          !     is launched.
-          ! (3) There is a ray volume with nonzero wave-action density, which
-          !     has not yet crossed the lower boundary. It is replaced with a
-          !     new one.
-          if(steady_state) then
-            if(iRay < 0) then
-              nRay(ix, jy, kz) = nRay(ix, jy, kz) + 1
-              iRay = nRay(ix, jy, kz)
-              ir_sfc(i_sfc, ix, jy) = iRay
-            end if
-
-            if(wadr == 0.0) then
-              ray(iRay, ix, jy, kz)%dens = 0.0
-              cycle
-            end if
-          else
-            if(wadr /= 0.0) then
-              if(launch_algorithm == "scale") iRay = - 1
-
-              ! Check for case (2).
-              if(iRay > 0 .and. .not. topography .and. zr + 0.5 * dzr > z(kz) &
-                  &+ 0.5 * dz) then
-
-                ! Shift the old ray volume.
-                nRay(ix, jy, kz + 1) = nRay(ix, jy, kz + 1) + 1
-                nrlc = nRay(ix, jy, kz + 1)
-                if(nrlc > nray_wrk) stop "Error in orographic_source: nrlc &
-                    &> nray_wrk!"
-                ray(nrlc, ix, jy, kz + 1) = ray(iRay, ix, jy, kz)
-
-                ! Clip or extend the old ray volume.
-                if(zr - 0.5 * dzr < z(kz) + 0.5 * dz .or. kz2 == 1) then
-                  ray(nrlc, ix, jy, kz + 1)%dzray = zr + 0.5 * dzr - (z(kz) &
-                      &+ 0.5 * dz)
-                  ray(nrlc, ix, jy, kz + 1)%z = zr + 0.5 * dzr - 0.5 &
-                      &* ray(nrlc, ix, jy, kz + 1)%dzray
-                  ray(nrlc, ix, jy, kz + 1)%area_zm = ray(nrlc, ix, jy, kz &
-                      &+ 1)%dzray * ray(nrlc, ix, jy, kz + 1)%dmray
-                end if
-
-                ! Check for case (2) in TFC.
-              else if(iRay > 0 .and. topography .and. zr + 0.5 * dzr &
-                  &> zTildeTFC(ix, jy, kz)) then
-
-                ! Shift the old ray volume.
-                nRay(ix, jy, kz + 1) = nRay(ix, jy, kz + 1) + 1
-                nrlc = nRay(ix, jy, kz + 1)
-                if(nrlc > nray_wrk) stop "Error in orographic_source: nrlc &
-                    &> nray_wrk!"
-                ray(nrlc, ix, jy, kz + 1) = ray(iRay, ix, jy, kz)
-
-                ! Clip or extend the old ray volume.
-                if(zr - 0.5 * dzr < zTildeTFC(ix, jy, kz) .or. kz2 == 1) then
-                  ray(nrlc, ix, jy, kz + 1)%dzray = zr + 0.5 * dzr &
-                      &- zTildeTFC(ix, jy, kz)
-                  ray(nrlc, ix, jy, kz + 1)%z = zr + 0.5 * dzr - 0.5 &
-                      &* ray(nrlc, ix, jy, kz + 1)%dzray
-                  ray(nrlc, ix, jy, kz + 1)%area_zm = ray(nrlc, ix, jy, kz &
-                      &+ 1)%dzray * ray(nrlc, ix, jy, kz + 1)%dmray
-                end if
-
-                ! Check for case (1).
-              elseif(iRay < 0) then
+            ! Check if a new ray volume is to be launched and clip the old one.
+            ! Three cases are distinguished.
+            ! (1) There is no ray volume with nonzero wave-action density. A new
+            !     ray volume is launched.
+            ! (2) There is a ray volume with nonzero wave-action density, which
+            !     has partially passed the lower boundary. It is clipped and the
+            !     part below the lower boundary discarded before a new ray
+            !     volume is launched.
+            ! (3) There is a ray volume with nonzero wave-action density, which
+            !     has not yet crossed the lower boundary. It is replaced with a
+            !     new one.
+            if(steady_state) then
+              if(iRay < 0) then
                 nRay(ix, jy, kz) = nRay(ix, jy, kz) + 1
                 iRay = nRay(ix, jy, kz)
-                if(iRay > nray_wrk) stop "Error in orographic_source: iRay &
-                    &> nray_wrk!"
                 ir_sfc(i_sfc, ix, jy) = iRay
               end if
 
-              ! No ray volume is launched for zero wave-action density.
+              if(wadr == 0.0) then
+                ray(iRay, ix, jy, kz)%dens = 0.0
+                cycle
+              end if
             else
-              ir_sfc(i_sfc, ix, jy) = - 1
-              cycle
-            end if
-          end if
+              if(wadr /= 0.0) then
+                if(launch_algorithm == "scale") iRay = - 1
 
-          ! Scale the wave action density.
-          if(.not. steady_state .and. launch_algorithm == "scale") then
-            cgrz = wnrm * (f_cor_nd ** 2.0 - NN_nd) * wnrh ** 2.0 / omir &
-                &/ (wnrh ** 2.0 + wnrm ** 2.0) ** 2.0
-            if(topography) then
-              wadr = wadr * dt * cgrz / jac(ix, jy, kz) / dz
-            else
-              wadr = wadr * dt * cgrz / dz
-            end if
-          end if
+                ! Check for case (2).
+                if(iRay > 0 .and. zr + 0.5 * dzr > zTildeTFC(ix, jy, kz)) then
 
-          ! Set physical ray-volume positions.
-          ray(iRay, ix, jy, kz)%x = (x(ix + ix0) - 0.5 * dx + (ix2 - 0.5) * dx &
-              &/ nrxl)
-          ray(iRay, ix, jy, kz)%y = (y(jy + jy0) - 0.5 * dy + (jy2 - 0.5) * dy &
-              &/ nryl)
-          if(topography) then
+                  ! Shift the old ray volume.
+                  nRay(ix, jy, kz + 1) = nRay(ix, jy, kz + 1) + 1
+                  nrlc = nRay(ix, jy, kz + 1)
+                  if(nrlc > nray_wrk) stop "Error in orographic_source: nrlc &
+                      &> nray_wrk!"
+                  ray(nrlc, ix, jy, kz + 1) = ray(iRay, ix, jy, kz)
+
+                  ! Clip or extend the old ray volume.
+                  if(zr - 0.5 * dzr < zTildeTFC(ix, jy, kz) .or. kz2 == 1) then
+                    ray(nrlc, ix, jy, kz + 1)%dzray = zr + 0.5 * dzr &
+                        &- zTildeTFC(ix, jy, kz)
+                    ray(nrlc, ix, jy, kz + 1)%z = zr + 0.5 * dzr - 0.5 &
+                        &* ray(nrlc, ix, jy, kz + 1)%dzray
+                    ray(nrlc, ix, jy, kz + 1)%area_zm = ray(nrlc, ix, jy, kz &
+                        &+ 1)%dzray * ray(nrlc, ix, jy, kz + 1)%dmray
+                  end if
+
+                  ! Check for case (1).
+                elseif(iRay < 0) then
+                  nRay(ix, jy, kz) = nRay(ix, jy, kz) + 1
+                  iRay = nRay(ix, jy, kz)
+                  if(iRay > nray_wrk) stop "Error in orographic_source: iRay &
+                      &> nray_wrk!"
+                  ir_sfc(i_sfc, ix, jy) = iRay
+                end if
+
+                ! No ray volume is launched for zero wave-action density.
+              else
+                ir_sfc(i_sfc, ix, jy) = - 1
+                cycle
+              end if
+            end if
+
+            ! Scale the wave action density.
+            if(.not. steady_state .and. launch_algorithm == "scale") then
+              cgrz = wnrm * (f_cor_nd ** 2.0 - bvsavg) * wnrh ** 2.0 / omir &
+                  &/ (wnrh ** 2.0 + wnrm ** 2.0) ** 2.0
+              if(topography) then
+                wadr = wadr * dt * cgrz / jac(ix, jy, kz) / dz
+              else
+                wadr = wadr * dt * cgrz / dz
+              end if
+            end if
+
+            ! Set physical ray-volume positions.
+            ray(iRay, ix, jy, kz)%x = (x(ix + ix0) - 0.5 * dx + (ix2 - 0.5) &
+                &* dx / nrxl)
+            ray(iRay, ix, jy, kz)%y = (y(jy + jy0) - 0.5 * dy + (jy2 - 0.5) &
+                &* dy / nryl)
             ray(iRay, ix, jy, kz)%z = (zTFC(ix, jy, kz) - 0.5 * jac(ix, jy, &
                 &kz) * dz + (kz2 - 0.5) * jac(ix, jy, kz) * dz / nrzl)
-          else
-            ray(iRay, ix, jy, kz)%z = (z(kz) - 0.5 * dz + (kz2 - 0.5) * dz &
-                &/ nrzl)
-          end if
 
-          ! Set physical ray-volume extent.
-          ray(iRay, ix, jy, kz)%dxray = dx / nrxl
-          ray(iRay, ix, jy, kz)%dyray = dy / nryl
-          if(topography) then
+            ! Set physical ray-volume extent.
+            ray(iRay, ix, jy, kz)%dxray = dx / nrxl
+            ray(iRay, ix, jy, kz)%dyray = dy / nryl
             ray(iRay, ix, jy, kz)%dzray = jac(ix, jy, kz) * dz / nrzl
-          else
-            ray(iRay, ix, jy, kz)%dzray = dz / nrzl
-          end if
 
-          ! Compute spectral ray-volume extent.
-          if(sizeX == 1) then
-            dk_ini_nd = 0.0
-          else
-            dk_ini_nd = fac_dk_init * sqrt(wnrk ** 2.0 + wnrl ** 2.0)
-          end if
-          if(sizeY == 1) then
-            dl_ini_nd = 0.0
-          else
-            dl_ini_nd = fac_dl_init * sqrt(wnrk ** 2.0 + wnrl ** 2.0)
-          end if
-          if(wnrm == 0.0) then
-            stop 'Error in orographic_source: wnrm = 0!'
-          else
-            dm_ini_nd = fac_dm_init * abs(wnrm)
-          end if
+            ! Compute spectral ray-volume extent.
+            if(sizeX == 1) then
+              dk_ini_nd = 0.0
+            else
+              dk_ini_nd = fac_dk_init * sqrt(wnrk ** 2.0 + wnrl ** 2.0)
+            end if
+            if(sizeY == 1) then
+              dl_ini_nd = 0.0
+            else
+              dl_ini_nd = fac_dl_init * sqrt(wnrk ** 2.0 + wnrl ** 2.0)
+            end if
+            if(wnrm == 0.0) then
+              stop 'Error in orographic_source: wnrm = 0!'
+            else
+              dm_ini_nd = fac_dm_init * abs(wnrm)
+            end if
 
-          ! Set spectral ray-volume position.
-          ray(iRay, ix, jy, kz)%k = (wnrk - 0.5 * dk_ini_nd + (real(ik) - 0.5) &
-              &* dk_ini_nd / nrk_init)
-          ray(iRay, ix, jy, kz)%l = (wnrl - 0.5 * dl_ini_nd + (real(jl) - 0.5) &
-              &* dl_ini_nd / nrl_init)
-          ray(iRay, ix, jy, kz)%m = (wnrm - 0.5 * dm_ini_nd + (real(km) - 0.5) &
-              &* dm_ini_nd / nrm_init)
+            ! Set spectral ray-volume position.
+            ray(iRay, ix, jy, kz)%k = (wnrk - 0.5 * dk_ini_nd + (real(ik) &
+                &- 0.5) * dk_ini_nd / nrk_init)
+            ray(iRay, ix, jy, kz)%l = (wnrl - 0.5 * dl_ini_nd + (real(jl) &
+                &- 0.5) * dl_ini_nd / nrl_init)
+            ray(iRay, ix, jy, kz)%m = (wnrm - 0.5 * dm_ini_nd + (real(km) &
+                &- 0.5) * dm_ini_nd / nrm_init)
 
-          ! Set spectral ray-voume extent.
-          ray(iRay, ix, jy, kz)%dkray = dk_ini_nd / nrk_init
-          ray(iRay, ix, jy, kz)%dlray = dl_ini_nd / nrl_init
-          ray(iRay, ix, jy, kz)%dmray = dm_ini_nd / nrm_init
+            ! Set spectral ray-voume extent.
+            ray(iRay, ix, jy, kz)%dkray = dk_ini_nd / nrk_init
+            ray(iRay, ix, jy, kz)%dlray = dl_ini_nd / nrl_init
+            ray(iRay, ix, jy, kz)%dmray = dm_ini_nd / nrm_init
 
-          ! Set phase-space volume.
-          ray(iRay, ix, jy, kz)%area_xk = ray(iRay, ix, jy, kz)%dxray &
-              &* ray(iRay, ix, jy, kz)%dkray
-          ray(iRay, ix, jy, kz)%area_yl = ray(iRay, ix, jy, kz)%dyray &
-              &* ray(iRay, ix, jy, kz)%dlray
-          ray(iRay, ix, jy, kz)%area_zm = ray(iRay, ix, jy, kz)%dzray &
-              &* ray(iRay, ix, jy, kz)%dmray
+            ! Set phase-space volume.
+            ray(iRay, ix, jy, kz)%area_xk = ray(iRay, ix, jy, kz)%dxray &
+                &* ray(iRay, ix, jy, kz)%dkray
+            ray(iRay, ix, jy, kz)%area_yl = ray(iRay, ix, jy, kz)%dyray &
+                &* ray(iRay, ix, jy, kz)%dlray
+            ray(iRay, ix, jy, kz)%area_zm = ray(iRay, ix, jy, kz)%dzray &
+                &* ray(iRay, ix, jy, kz)%dmray
 
-          ! Compute spectral volume.
-          pspvol = dm_ini_nd
-          if(sizeX > 1) then
-            pspvol = pspvol * dk_ini_nd
-          end if
-          if(sizeY > 1) then
-            pspvol = pspvol * dl_ini_nd
-          end if
+            ! Compute spectral volume.
+            pspvol = dm_ini_nd
+            if(sizeX > 1) then
+              pspvol = pspvol * dk_ini_nd
+            end if
+            if(sizeY > 1) then
+              pspvol = pspvol * dl_ini_nd
+            end if
 
-          ! Set phase-space wave-action density.
-          ray(iRay, ix, jy, kz)%dens = wadr / pspvol
+            ! Set phase-space wave-action density.
+            ray(iRay, ix, jy, kz)%dens = wadr / pspvol
 
-          ! Set intrinsic frequency.
-          ray(iRay, ix, jy, kz)%omega = omir
-        end do
+            ! Set intrinsic frequency.
+            ray(iRay, ix, jy, kz)%omega = omir
+          end do
+        end if
       end do
     end do
+
+    contains
+
+    subroutine orographic_wave_mode
+
+      ! Compute the properties of an orographic wave mode.
+
+      ! Set wavenumbers.
+      wnrk = k_spectrum(ix, jy, iwm)
+      wnrl = l_spectrum(ix, jy, iwm)
+      wnrh = sqrt(wnrk ** 2.0 + wnrl ** 2.0)
+
+      ! Compute intrinsic frequency from orographic wavenumbers.
+      omir = - uavg * wnrk - vavg * wnrl
+
+      ! Adjust the signs to be consistent with the chosen frequency
+      ! branch.
+      if(omir * branchr < 0.0) then
+        omir = - omir
+        wnrk = - wnrk
+        wnrl = - wnrl
+      end if
+
+      ! Compute vertical wavenumber and wave-action density.
+      if(omir ** 2 > f_cor_nd ** 2 .and. omir ** 2 < bvsavg) then
+
+        ! Compute vertical wavenumber.
+        wnrm = - branchr * sqrt(wnrh ** 2 * (bvsavg - omir ** 2) / (omir ** 2 &
+            &- f_cor_nd ** 2))
+
+        ! Compute displacement.
+        displm = ratio * abs(topography_spectrum(ix, jy, iwm))
+
+        ! Compute wave-action density.
+        wadr = 0.5 * rhoavg * displm ** 2 * omir * (wnrh ** 2 + wnrm ** 2) &
+            &/ wnrh ** 2
+
+        ! Set to zero if something went wrong.
+        if(wadr /= wadr .or. wnrm /= wnrm) then
+          wadr = 0.0
+          wnrm = 0.0
+        end if
+
+        ! Account for critical and reflecting levels.
+      else
+        wadr = 0.0
+        wnrm = 0.0
+      end if
+
+    end subroutine orographic_wave_mode
 
   end subroutine orographic_source
 
@@ -11914,22 +10996,6 @@ module wkb_module
     if(kz > nz + nbz) kz = nz + nbz
 
   end function kzTildeTFC
-
-  ! ----------------------------------------------------------------------
-
-  function wave_amplitude_reduction(long) result(factor)
-
-    real :: long
-    real :: factor
-    real, parameter :: cc = 0.25
-
-    if(long == 0.0) then
-      factor = 1.0
-    else
-      factor = min(1.0, cc / long)
-    end if
-
-  end function wave_amplitude_reduction
 
   ! ----------------------------------------------------------------------
 
