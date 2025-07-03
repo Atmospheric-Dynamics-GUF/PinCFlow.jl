@@ -6,9 +6,9 @@
   sizeX                    =                     300 ! Cells in x
   sizeY                    =                       1 ! Cells in y
   sizeZ                    =                      10 ! Cells in z
-  nbx                      =                       2 ! Halo/ghost cells in x
-  nby                      =                       2 ! Halo/ghost cells in y
-  nbz                      =                       2 ! Ghost cells in z
+  nbx                      =                       3 ! Halo/ghost cells in x
+  nby                      =                       3 ! Halo/ghost cells in y
+  nbz                      =                       3 ! Ghost cells in z
   lx_dim(0)                =                  0.0E+0 ! Minimum of x
   lx_dim(1)                =                  3.0E+5 ! Maximum of x
   ly_dim(0)                =                  0.0E+0 ! Minimum of y
@@ -173,8 +173,11 @@
   branchr                  =                       1 ! Frequency branch
   lindUinit                =                       F ! Induced wind at initial
                                                      ! time
-  blocking                 =                       F ! Simple blocked-layer
-                                                     ! scheme
+  blocking                 =                       F ! Blocked-layer scheme
+  long_threshold           =                  2.5E-1 ! Long-number threshold of
+                                                     ! the blocked-layer scheme
+  drag_coefficient         =                  1.0E+0 ! Drag coefficient of the
+                                                     ! blocked-layer scheme
   nwm                      =                       1 ! Number of initial wave
                                                      ! modes
   launch_algorithm         =                  'clip' ! Ray-volume launch
@@ -421,12 +424,12 @@
   mountainHeight_dim       =                  5.0E+2 ! Maximum height
   mountainWidth_dim        =                  1.0E+6 ! Half width
   mountain_case            =                       2 ! Predefined topography
-  range_factor             =                  1.0E+1 ! Ratio between large and
-                                                     ! small scales
+  height_factor            =                  1.0E+0 ! Ratio between large- and
+                                                     ! small-scale wave
+                                                     ! amplitudes
+  width_factor             =                  1.0E+1 ! Ratio between large- and
+                                                     ! small-scale wavelengths
   spectral_modes           =                       1 ! Number of spectral modes
-  envelope_reduction       =                  0.0E+0 ! Relative reduction of
-                                                     ! the envelope (between 0
-                                                     ! and 1)
   stretch_exponent         =                  1.0E+0 ! Exponent of vertical
                                                      ! grid stretching (1 for
                                                      ! no stretching)
@@ -485,9 +488,6 @@
                                                      ! if unifiedSponge ==
                                                      ! .true. and relax_to_mean
                                                      ! == .false.
-&end
-
-&boundaryList2
   xBoundary                =              'periodic' ! Boundary conditions in x
                                                      ! ('periodic' only)
   yBoundary                =              'periodic' ! Boundary conditions in y

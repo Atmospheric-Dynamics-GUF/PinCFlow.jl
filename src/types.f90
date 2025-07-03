@@ -268,8 +268,10 @@ module type_module
   integer :: branchr
   logical :: lindUinit
 
-  ! Long number scaling of displacement (FJJan2023)
+  ! Blocked-layer scheme
   logical :: blocking
+  real :: long_threshold
+  real :: drag_coefficient
 
   ! Number of wave modes (FJApr2023)
   integer :: nwm
@@ -292,7 +294,8 @@ module type_module
       &sm_filter, lsaturation, alpha_sat, single_column, steady_state, &
       &case_wkb, amp_wkb, wlrx_init, wlry_init, wlrz_init, xr0_dim, yr0_dim, &
       &zr0_dim, sigwpx_dim, sigwpy_dim, sigwpz_dim, branchr, lindUinit, &
-      &blocking, nwm, launch_algorithm, zmin_wkb_dim, nray_fac, cons_merge ! JaWi: new nml!
+      &blocking, long_threshold, drag_coefficient, nwm, launch_algorithm, &
+      &zmin_wkb_dim, nray_fac, cons_merge ! JaWi: new nml!
   ! Jan Weinkaemmerer, 27.11.18
 
   !------------------------------------------
@@ -608,20 +611,17 @@ module type_module
 
   ! Resolved topography
   real, dimension(:, :), allocatable :: topography_surface, &
-      &final_topography_surface
+      &reference_topography_surface
 
   ! Unresolved topography
   real, dimension(:, :, :), allocatable :: k_spectrum, l_spectrum, &
-      &topography_spectrum, final_topography_spectrum
+      &topography_spectrum, reference_topography_spectrum
 
   ! Layers
   real, dimension(:, :, :), allocatable :: zTFC, zTildeTFC
 
   ! Stretched vertical grid
   real, dimension(:), allocatable :: zS, zTildeS
-
-  ! Temporal derivatives of metric-tensor elements and inverse Jacobian.
-  real, dimension(:, :, :), allocatable :: dMet13Dt, dMet23Dt, dJacInvDt
 
   ! vertical index of (velocity) reconstruction points just above the
   ! mountain surface
@@ -646,14 +646,14 @@ module type_module
   real :: mountainHeight_dim
   real :: mountainWidth_dim
   integer :: mountain_case
-  real :: range_factor
+  real :: height_factor
+  real :: width_factor
   integer :: spectral_modes
-  real :: envelope_reduction
   real :: stretch_exponent
 
   namelist / topographyList / topography, ipolTFC, topographyTime, &
-      &mountainHeight_dim, mountainWidth_dim, mountain_case, range_factor, &
-      &spectral_modes, envelope_reduction, stretch_exponent
+      &mountainHeight_dim, mountainWidth_dim, mountain_case, height_factor, &
+      &width_factor, spectral_modes, stretch_exponent
   !UAB
   !UAE
 
@@ -692,6 +692,11 @@ module type_module
   real :: relaxation_period
   real :: relaxation_amplitude
 
+  ! boundary types
+  character(len = 15) :: xBoundary
+  character(len = 15) :: yBoundary
+  character(len = 15) :: zBoundary
+
   ! gaga: backup, delete later
   real, dimension(:, :), allocatable :: u_const ! constant wind for baroclinic life cycle experiments
 
@@ -699,14 +704,7 @@ module type_module
       &wFluxCorr, thetaFluxCorr, nbCellCorr, spongeLayer, sponge_uv, &
       &spongeHeight, spongeAlphaZ_dim, spongeAlphaZ_fac, unifiedSponge, &
       &lateralSponge, spongeType, spongeOrder, cosmoSteps, relax_to_mean, &
-      &relaxation_period, relaxation_amplitude
-
-  ! boundary types
-  character(len = 15) :: xBoundary
-  character(len = 15) :: yBoundary
-  character(len = 15) :: zBoundary
-
-  namelist / boundaryList2 / xBoundary, yBoundary, zBoundary
+      &relaxation_period, relaxation_amplitude, xBoundary, yBoundary, zBoundary
 
   !-----------------------------------------------------------------
   !                     WKB arrays and variables
@@ -1023,11 +1021,13 @@ module type_module
     branchr = 1
     lindUinit = .false.
     blocking = .false.
+    long_threshold = 0.25
+    drag_coefficient = 1.0
     nwm = 1
     launch_algorithm = "clip"
     zmin_wkb_dim = 0.0
-    nray_fac = 20
-    cons_merge = "en"
+    nray_fac = 10
+    cons_merge = "wa"
 
     ! Bubbles
     dTheta0_dim = 1.0
@@ -1169,9 +1169,9 @@ module type_module
     mountainHeight_dim = 0.1 * (lz_dim(1) - lz_dim(0))
     mountainWidth_dim = 0.1 * (lx_dim(1) - lx_dim(0))
     mountain_case = 1
-    range_factor = 1.0
+    height_factor = 1.0
+    width_factor = 1.0
     spectral_modes = 1
-    envelope_reduction = 0.0
     stretch_exponent = 1.0
 
     ! Boundaries
@@ -1322,8 +1322,6 @@ module type_module
       write(unit = 90, nml = topographyList)
       write(90, "(a)") ""
       write(unit = 90, nml = boundaryList)
-      write(90, "(a)") ""
-      write(unit = 90, nml = boundaryList2)
       write(90, "(a)") ""
       write(unit = 90, nml = wkbList)
       write(90, "(a)") ""
@@ -1548,7 +1546,11 @@ module type_module
           &for infinite width)")
       call write_integer("branchr", branchr, "Frequency branch")
       call write_logical("lindUinit", lindUinit, "Induced wind at initial time")
-      call write_logical("blocking", blocking, "Simple blocked-layer scheme")
+      call write_logical("blocking", blocking, "Blocked-layer scheme")
+      call write_float("long_threshold", long_threshold, "Long-number &
+          &threshold of the blocked-layer scheme")
+      call write_float("drag_coefficient", drag_coefficient, "Drag coefficient &
+          &of the blocked-layer scheme")
       call write_integer("nwm", nwm, "Number of initial wave modes")
       call write_character("launch_algorithm", launch_algorithm, "Ray-volume &
           &launch algorithm")
@@ -1790,12 +1792,12 @@ module type_module
       call write_float("mountainWidth_dim", mountainWidth_dim, "Half width")
       call write_integer("mountain_case", mountain_case, "Predefined &
           &topography")
-      call write_float("range_factor", range_factor, "Ratio between large and &
-          &small scales")
+      call write_float("height_factor", height_factor, "Ratio between large- &
+          &and small-scale wave amplitudes")
+      call write_float("width_factor", width_factor, "Ratio between large- and &
+          &small-scale wavelengths")
       call write_integer("spectral_modes", spectral_modes, "Number of spectral &
           &modes")
-      call write_float("envelope_reduction", envelope_reduction, "Relative &
-          &reduction of the envelope (between 0 and 1)")
       call write_float("stretch_exponent", stretch_exponent, "Exponent of &
           &vertical grid stretching (1 for no stretching)")
       write(90, "(a)") "&end"
@@ -1840,11 +1842,6 @@ module type_module
       call write_float("relaxation_amplitude", relaxation_amplitude, "Relative &
           &amplitude of an oscillation superposed on the background wind if &
           &unifiedSponge == .true. and relax_to_mean == .false.")
-      write(90, "(a)") "&end"
-      write(90, "(a)") ""
-
-      ! Write second boundary namelist.
-      write(90, "(a)") "&boundaryList2"
       call write_character("xBoundary", xBoundary, "Boundary conditions in x &
           &('periodic' only)")
       call write_character("yBoundary", yBoundary, "Boundary conditions in y &

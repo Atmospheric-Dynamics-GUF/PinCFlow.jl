@@ -271,22 +271,26 @@ program pinc_prog
 
     if(model == "compressible") then
       call add_JP_to_u(var, "forward")
-      call setHalos(var, "var")
-      call setBoundary(var, flux, "var")
     end if
 
-    call Corrector(var, flux, dMom, 1.0, errFlagBicg, nIterBicg, 1, "expl", &
-        &1., 1.)
+    if(timeScheme == "semiimplicit") then
+      call Corrector(var, flux, dMom, 1.0, errFlagBicg, nIterBicg, 1, "impl", &
+          &1., 1.)
+    else
+      call Corrector(var, flux, dMom, 1.0, errFlagBicg, nIterBicg, 1, "expl", &
+          &1., 1.)
+    end if
 
     if(model == "compressible") then
       call add_JP_to_u(var, "backward")
-      call setHalos(var, "var")
-      call setBoundary(var, flux, "var")
     end if
 
     if(errFlagBicg) stop
 
     tolPoisson = tolpoisson_s
+
+    call setHalos(var, "var")
+    call setBoundary(var, flux, "var")
   end if
 
   !-------------------------------------------------------------------
@@ -403,12 +407,16 @@ program pinc_prog
 
   ! write initial state to netCDF file
   if(rayTracer) then
-    if(include_ice .and. compute_cloudcover) then
-      call write_netCDF(iOut, iTime, time, cpuTime, var, waveAmplitudes &
-          &= waveAmplitudes, ray_cloud = ray_cloud, sc_ice_field = sc_ice_field)
+    if(include_tracer) then
+      call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+          &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
+          &= waveAmplitudes, ray = ray)
+    elseif(include_ice .and. compute_cloudcover) then
+        call write_netCDF(iOut, iTime, time, cpuTime, var, waveAmplitudes &
+            &= waveAmplitudes, ray_cloud = ray_cloud, sc_ice_field = sc_ice_field)
     else
-      call write_netCDF(iOut, iTime, time, cpuTime, var, waveAmplitudes &
-          &= waveAmplitudes)
+      call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
+          &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
     end if
   else
     call write_netCDF(iOut, iTime, time, cpuTime, var)
@@ -512,7 +520,16 @@ program pinc_prog
 
     ! Update the topography.
     if(topography .and. topographyTime > 0.0) then
-      call update_topography(time, dt)
+      call update_topography(var, time, dt)
+
+      call setHalos(var, "var")
+      if(include_tracer) call setHalos(var, "tracer")
+      call setBoundary(var, flux, "var")
+
+      if(model == "compressible") then
+        pStratTFC = var%P
+        call bvsUpdate(bvsStratTFC, var)
+      end if
     end if
 
     ! Check for static instability.
@@ -524,21 +541,6 @@ program pinc_prog
     !             < pStratTFC(i, j, k - 1) / (var(i, j, k - 1, 1) &
     !             + rhoStratTFC(i, j, k - 1))) then
     !           print *, "Static instability at z =", zTFC(i, j, k), "m"
-    !         end if
-    !       end do
-    !     end do
-    !   end do
-    ! end if
-
-    ! Check for static instability.
-    ! if(topography) then
-    !   do k = 2, nz
-    !     do j = 1, ny
-    !       do i = 1, nx
-    !         if(pStratTFC(i, j, k) / (var(i, j, k, 1) + rhoStratTFC(i, j, k)) &
-    !             < pStratTFC(i, j, k - 1) / (var(i, j, k - 1, 1) &
-    !             + rhoStratTFC(i, j, k - 1))) then
-    !           print *, "Static instability at z =", heightTFC(i, j, k), "m"
     !         end if
     !       end do
     !     end do
@@ -566,8 +568,6 @@ program pinc_prog
         end if
 
         spongeAlphaZ = spongeAlphaZ_dim * tRef
-
-        alphaUnifiedSponge = 0.0
 
         if(lateralSponge) then
           i00 = is + nbx - 1
@@ -811,8 +811,8 @@ program pinc_prog
 
       if(rayTracer) then
         do RKstage = 1, nStages
-          !call calc_meanFlow_effect(ray, var, force, ray_var3D, time)
           call transport_rayvol(var, ray, dt, RKstage, time)
+
           if(RKstage == nStages) then
             call split_rayvol(ray)
             call shift_rayvol(ray)
@@ -836,8 +836,7 @@ program pinc_prog
 
       ! wind relaxation at horizontal boundaries
 
-      if((testCase == "mountainwave") .or. (raytracer .and. case_wkb == 3) &
-          &.or. (topography .and. topographyTime > 0.0)) then
+      if(testCase == "mountainwave" .or. (raytracer .and. case_wkb == 3)) then
         call volumeForce(var, time, force)
       end if
 
@@ -881,6 +880,10 @@ program pinc_prog
         end if
       end if
 
+      call setHalos(var, "var")
+      if(include_tracer) call setHalos(var, "tracer")
+      call setBoundary(var, flux, "var")
+
       ! put initial state into var0 in order to save the advecting
       ! velocities
 
@@ -893,10 +896,6 @@ program pinc_prog
 
       PStratTilde00 = PStratTilde
 
-      call setHalos(var0, "var")
-      if(include_tracer) call setHalos(var0, "tracer")
-      call setBoundary(var0, flux, "var")
-
       ! (1) explicit integration of convective and
       !     viscous-diffusive/turbulent fluxes over half a time step,
       !     with the advection velocity kept constant
@@ -908,19 +907,12 @@ program pinc_prog
       do RKstage = 1, nStages
         ! Reconstruction
 
-        call setHalos(var, "var")
-        if(include_tracer) call setHalos(var, "tracer")
-        call setBoundary(var, flux, "var")
-
         call reconstruction(var, "rho")
         call reconstruction(var, "rhop")
         call reconstruction(var, "uvw")
         if(include_tracer) then
           call reconstruction(var, "tracer")
         end if
-
-        call setHalos(var, "varTilde")
-        call setBoundary(var, flux, "varTilde")
 
         ! Fluxes and Forces
 
@@ -970,6 +962,9 @@ program pinc_prog
 
         call applyUnifiedSponge(var, stepFrac(RKstage) * 0.5 * dt, time, "uvw")
 
+        call setHalos(var, "var")
+        if(include_tracer) call setHalos(var, "tracer")
+        call setBoundary(var, flux, "var")
       end do
 
       if(model == "compressible") then
@@ -1003,7 +998,7 @@ program pinc_prog
       flux = flux0
 
       if(heatingONK14 .or. TurbScheme .or. rayTracer) then
-        if(model == 'Boussinesq') then
+        if(model == 'Boussinesq' .and. heatingONK14) then
           print *, "main:ONeill+Klein2014 heating only for  &
               &pseudo-incompressible dyn."
           stop
@@ -1171,8 +1166,6 @@ program pinc_prog
       if(model == "compressible") then
         call add_JP_to_u(var, "backward")
         var%pi(:, :, :) = pinew(:, :, :) ! update pi' with pinew from the piUpdate
-        call setHalos(var, "var")
-        call setBoundary(var, flux, "var")
       end if
       ! Shapiro filter
 
@@ -1211,16 +1204,8 @@ program pinc_prog
       PStrat = PStrat01
       PStratTilde = PStratTilde01
 
-      call setHalos(var0, "var")
-      if(include_tracer) call setHalos(var0, "tracer")
-      call setBoundary(var0, flux, "var")
-
       do RKstage = 1, nStages
         ! Reconstruction
-
-        call setHalos(var, "var")
-        if(include_tracer) call setHalos(var, "tracer")
-        call setBoundary(var, flux, "var")
 
         call reconstruction(var, "rho")
         call reconstruction(var, "rhop")
@@ -1228,9 +1213,6 @@ program pinc_prog
         if(include_tracer) then
           call reconstruction(var, "tracer")
         end if
-
-        call setHalos(var, "varTilde")
-        call setBoundary(var, flux, "varTilde")
 
         ! Fluxes and Forces
 
@@ -1265,9 +1247,8 @@ program pinc_prog
           call tracerUpdate(var, flux, tracerforce, dt, dTracer, RKstage)
         end if
 
-        !SD
-        !if(include_ice) call integrate_ice_advection(var, var0, flux, "lin", &
-        !    source, dt, dIce, RKstage, PStrat01, PStratTilde01)
+        ! if(include_ice) call integrate_ice_advection(var, var0, flux, "lin", &
+        !     &source, dt, dIce, RKstage, PStrat01, PStratTilde01)
 
         ! RK step for momentum
         call setHalos(var, "var")
@@ -1279,6 +1260,9 @@ program pinc_prog
 
         call applyUnifiedSponge(var, stepFrac(RKstage) * dt, time, "uvw")
 
+        call setHalos(var, "var")
+        if(include_tracer) call setHalos(var, "tracer")
+        call setBoundary(var, flux, "var")
       end do
 
       if(model == "compressible") then
@@ -1312,7 +1296,7 @@ program pinc_prog
       flux = flux0
 
       if(heatingONK14 .or. TurbScheme .or. rayTracer) then
-        if(model == 'Boussinesq') then
+        if(model == 'Boussinesq' .and. heatingONK14) then
           print *, "main:ONeill+Klein2014 heating only for  &
               &pseudo-incompressible dyn."
           stop
@@ -1394,8 +1378,6 @@ program pinc_prog
 
       if(model == "compressible") then
         call add_JP_to_u(var, "backward")
-        call setHalos(var, "var")
-        call setBoundary(var, flux, "var")
       end if
 
       if(errFlagBicg) then
@@ -1486,7 +1468,6 @@ program pinc_prog
         ! Lag Ray tracer (position-wavenumber space method)
 
         if(rayTracer) then
-
           call transport_rayvol(var, ray, dt, RKstage, time)
 
           if(RKstage == nStages) then
@@ -1494,6 +1475,7 @@ program pinc_prog
             call shift_rayvol(ray)
             call merge_rayvol(ray)
             call boundary_rayvol(ray)
+
             call calc_meanFlow_effect(ray, var, force, ray_var3D)
 
             if(include_tracer) then
@@ -1505,8 +1487,8 @@ program pinc_prog
               call calc_ice(ray, var, ray_varIce, ray_cloud)
             endif
 
-          end if ! RKstage=nstage
-        end if ! raytracer
+          end if
+        end if
 
         ! Reconstruction
 
@@ -1525,9 +1507,6 @@ program pinc_prog
             &reconstruction(var, "uvw")
         if((include_tracer) .and. (updateTracer)) call reconstruction(var, &
             &"tracer")
-
-        call setHalos(var, "varTilde")
-        call setBoundary(var, flux, "varTilde")
 
         ! Fluxes and Forces
 
@@ -1554,8 +1533,7 @@ program pinc_prog
         ! implementation of heating ONeill and Klein 2014
 
         if(heatingONK14 .or. TurbScheme .or. rayTracer) then
-
-          if(model == 'Boussinesq') then
+          if(model == 'Boussinesq' .and. heatingONK14) then
             print *, "main:ONeill+Klein2014 heating only for  &
                 &pseudo-incompressible dyn."
             stop
@@ -1601,9 +1579,6 @@ program pinc_prog
           if(RKstage == 1) dTracer = 0.0
           call tracerUpdate(var, flux, tracerforce, dt, dTracer, RKstage)
         end if
-
-        !if(include_ice) call integrate_ice_advection(var, var0, flux, "lin", &
-        !    source, dt, dIce, RKstage, PStrat01, PStratTilde01)
 
         if(predictMomentum) then
           ! predictor: uStar
@@ -1781,7 +1756,6 @@ program pinc_prog
         end if
 
         if(rayTracer) then
-
           if(include_tracer) then
             call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
                 &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
