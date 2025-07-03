@@ -1,11 +1,15 @@
 """
 ```julia
-DomainNamelist{A <: Integer, B <: NTuple{2, <:AbstractFloat}}
+DomainNamelist{A <: Integer, B <: NTuple{2, <:AbstractFloat}, C <: MPI.Comm}
 ```
 
 Namelist for the model domain (see constructor for parameter descriptions).
 """
-struct DomainNamelist{A <: Integer, B <: NTuple{2, <:AbstractFloat}}
+struct DomainNamelist{
+    A <: Integer,
+    B <: NTuple{2, <:AbstractFloat},
+    C <: MPI.Comm,
+}
     sizex::A
     sizey::A
     sizez::A
@@ -18,6 +22,7 @@ struct DomainNamelist{A <: Integer, B <: NTuple{2, <:AbstractFloat}}
     npx::A
     npy::A
     npz::A
+    base_comm::C
 end
 
 """
@@ -35,6 +40,7 @@ DomainNamelist(;
     npx = 1,
     npy = 1,
     npz = 1,
+    base_comm = MPI.COMM_WORLD,
 )
 ```
 
@@ -54,6 +60,7 @@ Construct a DomainNamelist, which holds parameters for the spatial domain.
   - `npx::Integer = 1`: Number of processors in the x-direction.
   - `npy::Integer = 1`: Number of processors in the y-direction.
   - `npz::Integer = 1`: Number of processors in the z-direction.
+  - `base_comm = MPI.COMM_WORLD`: MPI base communicator.
 """
 function DomainNamelist(;
     sizex = 4,
@@ -68,6 +75,7 @@ function DomainNamelist(;
     npx = 1,
     npy = 1,
     npz = 1,
+    base_comm = MPI.COMM_WORLD,
 )
     return DomainNamelist(
         sizex,
@@ -82,5 +90,6 @@ function DomainNamelist(;
         npx,
         npy,
         npz,
+        base_comm,
     )
 end

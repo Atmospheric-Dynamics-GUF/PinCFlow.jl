@@ -129,19 +129,22 @@ Throws an error if:
 Currently supports `SolidWallBoundaries()` for z-direction with periodic boundaries in x and y.
 """
 function Domain(namelists::Namelists)
-    (; sizex, sizey, sizez, nbx, nby, nbz, npx, npy, npz) = namelists.domain
+    (; sizex, sizey, sizez, nbx, nby, nbz, npx, npy, npz, base_comm) =
+        namelists.domain
     (; zboundaries) = namelists.setting
 
     # Initialize MPI.
-    MPI.Init()
-    rank = MPI.Comm_rank(MPI.COMM_WORLD)
+    if base_comm == MPI.COMM_WORLD
+        MPI.Init()
+    end
+    rank = MPI.Comm_rank(base_comm)
     root = 0
     if rank == root
         master = true
     else
         master = false
     end
-    np = MPI.Comm_size(MPI.COMM_WORLD)
+    np = MPI.Comm_size(base_comm)
 
     # Check if parallelization is set up correctly.
     if master && npx * npy * npz != np
@@ -166,7 +169,7 @@ function Domain(namelists::Namelists)
     end
 
     # Create a Cartesian topology.
-    comm = MPI.Cart_create(MPI.COMM_WORLD, dims; periodic = periods)
+    comm = MPI.Cart_create(base_comm, dims; periodic = periods)
     rank = MPI.Comm_rank(comm)
     coords = MPI.Cart_coords(comm, rank)
 

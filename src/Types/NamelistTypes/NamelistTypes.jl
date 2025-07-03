@@ -315,6 +315,8 @@ Singleton for a Shapiro filter as smoothing method applied to gravity-wave tende
 """
 struct Shapiro <: AbstractWKBFilter end
 
+using MPI
+
 include("DomainNamelist.jl")
 include("OutputNamelist.jl")
 include("SettingNamelist.jl")
