@@ -70,6 +70,7 @@ clean:
 # List dependencies of atmosphere.f90.
 $(BUILD)/atmosphere.o: $(BUILD)/sizeof.o
 $(BUILD)/atmosphere.o: $(BUILD)/types.o
+$(BUILD)/atmosphere.o: $(BUILD)/mpi.o
 
 # List dependencies of bicgstab_tools.f90.
 $(BUILD)/bicgstab_tools.o: $(BUILD)/atmosphere.o
@@ -79,7 +80,6 @@ $(BUILD)/bicgstab_tools.o: $(BUILD)/types.o
 
 # List dependencies of boundary.f90.
 $(BUILD)/boundary.o: $(BUILD)/atmosphere.o
-$(BUILD)/boundary.o: $(BUILD)/fluxes.o
 $(BUILD)/boundary.o: $(BUILD)/mpi.o
 $(BUILD)/boundary.o: $(BUILD)/types.o
 
@@ -91,6 +91,7 @@ $(BUILD)/fluxes.o: $(BUILD)/atmosphere.o
 $(BUILD)/fluxes.o: $(BUILD)/muscl.o
 $(BUILD)/fluxes.o: $(BUILD)/sizeof.o
 $(BUILD)/fluxes.o: $(BUILD)/types.o
+$(BUILD)/fluxes.o: $(BUILD)/mpi.o
 
 # List dependencies of ice.f90.
 $(BUILD)/ice.o: $(BUILD)/atmosphere.o
@@ -110,7 +111,6 @@ $(BUILD)/init.o: $(BUILD)/sizeof.o
 $(BUILD)/init.o: $(BUILD)/types.o
 
 # List dependencies of mpi.f90.
-$(BUILD)/mpi.o: $(BUILD)/fluxes.o
 $(BUILD)/mpi.o: $(BUILD)/types.o
 
 # List dependencies of muscl.f90.
@@ -168,11 +168,4 @@ $(BUILD)/wkb.o: $(BUILD)/atmosphere.o
 $(BUILD)/wkb.o: $(BUILD)/ice.o
 $(BUILD)/wkb.o: $(BUILD)/muscl.o
 $(BUILD)/wkb.o: $(BUILD)/timeScheme.o
-<<<<<<< HEAD
 $(BUILD)/wkb.o: $(BUILD)/types.o
-
-# List dependencies of xweno.f90.
-$(BUILD)/xweno.o: $(BUILD)/types.o
-=======
-$(BUILD)/wkb.o: $(BUILD)/types.o
->>>>>>> pincflow_git/development

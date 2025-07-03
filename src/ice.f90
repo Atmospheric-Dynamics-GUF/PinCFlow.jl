@@ -582,9 +582,6 @@ module ice_module
 
       call reconstruction(var, "ice")
 
-      !** ?? call setHalos( var, "iceTilde" )
-      call setBoundary(var, flux, "iceTilde")
-
       ! Fluxes and Sources
       call iceFlux(var0, var, flux, fluxmode, PS0, PSTilde0)
 
