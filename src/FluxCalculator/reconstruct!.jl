@@ -174,9 +174,9 @@ The vertical momentum is computed with `compute_vertical_wind`, `set_zonal_bound
 
 # See also
 
-  - [PinCFlow.Update.compute_vertical_wind](@ref)
-  - [PinCFlow.Boundaries.set_zonal_boundaries_of_field!](@ref)
-  - [PinCFlow.Boundaries.set_meridional_boundaries_of_field!](@ref)
+  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function reconstruct!(state::State, variable::W)
     (; namelists, domain, grid) = state
