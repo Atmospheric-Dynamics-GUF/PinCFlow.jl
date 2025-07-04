@@ -21,7 +21,7 @@ The individual stability criteria are as follows.
 \\Delta t_\\mathrm{CFL} = \\mu_\\mathrm{CFL} \\min\\limits_\\mathrm{global} \\left[\\frac{\\Delta \\widehat{x}}{u_{\\max}}, \\frac{\\Delta \\widehat{y}}{v_{\\max}}, \\min \\left(\\frac{J \\Delta \\widehat{z}}{w}\\right)\\right]
 ```
 
-  - CFL condition with respect to the (grid-cell) maxima of the group velocities of unresolved gravity waves (with ``J_{\\min}`` being the minimum Jacobian in a one-grid-cell radius):
+  - CFL condition with respect to the group velocities of unresolved gravity waves (where ``J_{\\min}`` is the minimum Jacobian in a one-grid-cell radius and ``c_{\\mathrm{g} z}`` is the maximum vertical group velocity within a grid cell):
 
 ```math
 \\Delta t_\\mathrm{WKB} = \\mu_\\mathrm{WKB} \\min\\limits_\\mathrm{global} \\left[\\frac{\\Delta \\widehat{x}}{c_{\\mathrm{g} x, \\max}}, \\frac{\\Delta \\widehat{y}}{c_{\\mathrm{g} y, \\max}}, \\min \\left(\\frac{J_{\\min} \\Delta \\widehat{z}}{c_{\\mathrm{g} z}}\\right)\\right]
