@@ -3,7 +3,7 @@
 set_zonal_halo_rays!(state::State)
 ```
 
-Exchange ray volumes in halo cells.
+Exchange ray volumes in zonal halo cells.
 
 Performs bidirectional MPI communication between left and right neighbor processes. The number of communicated ray volumes is determined from the maximum counts at the left and right boundaries of the MPI subdomains.
 

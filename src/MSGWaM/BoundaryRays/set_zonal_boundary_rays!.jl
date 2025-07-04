@@ -5,7 +5,7 @@ set_zonal_boundary_rays!(state::State)
 
 Set the ray volumes at the zonal boundaries.
 
-This method first enforces zonal boundary conditions for `state.wkb.nray` (by applying `set_zonal_boundaries_of_field!` to it) and then sets the corresponding boundary ray volumes, assuming periodicity. If the domain is parallelized in ``\\widehat{x}``, ray volumes are communicated between MPI processes, using `set_zonal_halo_rays!`. At the zonal boundaries of the domain the ``x``-coordinates of ray volumes are adjusted such that shifting works properly.
+This method first enforces zonal boundary conditions for `state.wkb.nray` (by applying `set_zonal_boundaries_of_field!` to it) and then sets the corresponding boundary ray volumes, assuming periodicity. If the domain is parallelized in ``\\widehat{x}``, ray volumes are communicated between MPI processes, using `set_zonal_halo_rays!`. At the zonal boundaries of the domain, the ``x``-coordinates of ray volumes are adjusted such that shifting works properly.
 
 # Arguments
 

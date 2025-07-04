@@ -3,9 +3,9 @@
 set_vertical_halo_rays!(state::State)
 ```
 
-Exchange ray volumes in halo cells.
+Exchange ray volumes in vertical halo cells.
 
-Performs MPI communication between downward and upward neighbor processes. The number of communicated ray volumes is determined from the maximum counts at the downward and upward boundaries of the MPI subdomains. Solid walls are assumed at the vertical boundaries of the full domain. The corresponding ghost-cell values are not changed.
+Performs MPI communication between downward and upward neighbor processes. The number of communicated ray volumes is determined from the maximum counts at the downward and upward boundaries of the MPI subdomains. Solid walls are assumed at the vertical boundaries of the full domain. The corresponding ghost-cell ray volumes are not changed.
 
 # Arguments
 

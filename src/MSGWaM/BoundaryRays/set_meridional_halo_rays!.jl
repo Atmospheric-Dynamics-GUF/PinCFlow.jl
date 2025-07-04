@@ -3,7 +3,7 @@
 set_meridional_halo_rays!(state::State)
 ```
 
-Exchange ray volumes in halo cells.
+Exchange ray volumes in meridional halo cells.
 
 Performs bidirectional MPI communication between backward and forward neighbor processes. The number of communicated ray volumes is determined from the maximum counts at the backward and forward boundaries of the MPI subdomains.
 
