@@ -7,16 +7,16 @@ Compute adaptive time step based on several stability criteria.
 
 If `state.namelists.discretization.adaptive_time_step` is set to `true`, the returned time step is given by
 ```math
-\\Delta t = \\min \\left(\\Delta t_\\mathrm{CFL}, \\Delta t_\\mathrm{WKB}, \\Delta t_\\mathrm{viscous}, \\Delta t_\\max\\right),
+\\Delta t = \\min \\left(\\Delta t_\\mathrm{CFL}, \\Delta t_\\mathrm{WKB}, \\Delta t_\\mathrm{viscous}, \\Delta t_{\\max}\\right),
 ```
-where ``\\Delta t_\\mathrm{CFL}`` and ``\\Delta t_\\mathrm{WKB}`` are computed from CFL conditions with respect to the resolved flow and unresolved gravity waves, respectively, ``\\Delta t_\\mathrm{viscous}`` is determined from a von Neumann condition that takes the viscosity into account and ``\\Delta t_\\max`` is an upper limit specified in `state.namelists.discretization`. Otherwise, the returned time step is equal to ``\\Delta t_\\max``. If ``\\Delta t`` is smaller than ``\\Delta t_\\min`` (also specified in `state.namelists.discretization`), an error is thrown.
+where ``\\Delta t_\\mathrm{CFL}`` and ``\\Delta t_\\mathrm{WKB}`` are computed from CFL conditions with respect to the resolved flow and unresolved gravity waves, respectively, ``\\Delta t_\\mathrm{viscous}`` is determined from a von Neumann condition that takes the viscosity into account and ``\\Delta t_{\\max}`` is an upper limit specified in `state.namelists.discretization`. Otherwise, the returned time step is equal to ``\\Delta t_{\\max}``. If ``\\Delta t`` is smaller than ``\\Delta t_{\\min}`` (also specified in `state.namelists.discretization`), an error is thrown.
 
 # Stability constraints
 
 ## CFL condition with respect to the resolved flow
 
 ```math
-\\Delta t_\\mathrm{CFL} = \\min\\limits_\\mathrm{global} \\mu_\\mathrm{CFL} \\left[\\frac{\\Delta \\widehat{x}}{u_\\max}, \\frac{\\Delta \\widehat{y}}{v_\\max}, \\min \\left(\\frac{J \\Delta \\widehat{z}}{w}\\right)\\right]
+\\Delta t_\\mathrm{CFL} = \\min\\limits_\\mathrm{global} \\mu_\\mathrm{CFL} \\left[\\frac{\\Delta \\widehat{x}}{u_{\\max}}, \\frac{\\Delta \\widehat{y}}{v_{\\max}}, \\min \\left(\\frac{J \\Delta \\widehat{z}}{w}\\right)\\right]
 ```
 
 ## CFL condition with respect to the group velocities of unresolved gravity waves
