@@ -3,11 +3,13 @@
 set_zonal_halo_rays!(state::State)
 ```
 
-Synchronize ray volumes across zonal domain boundaries.
+Exchange ray volumes in halo cells.
+
+Performs bidirectional MPI communication between left and right neighbor processes. The number of communicated ray volumes is determined from the maximum counts at the left and right boundaries of the MPI subdomains.
 
 # Arguments
 
-  - `state::State`: Complete simulation state
+  - `state`: Model state.
 """
 function set_zonal_halo_rays!(state::State)
     (; comm, ny, nz, i0, i1, j0, j1, k0, k1, left, right) = state.domain

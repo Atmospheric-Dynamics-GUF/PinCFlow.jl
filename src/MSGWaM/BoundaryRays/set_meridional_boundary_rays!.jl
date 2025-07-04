@@ -3,9 +3,19 @@
 set_meridional_boundary_rays!(state::State)
 ```
 
+Set the ray volumes at the meridional boundaries.
+
+This method first enforces meridional boundary conditions for `state.wkb.nray` (by applying `set_meridional_boundaries_of_field!` to it) and then sets the corresponding boundary ray volumes, assuming periodicity. If the domain is parallelized in ``\\widehat{y}``, ray volumes are communicated between MPI processes, using `set_meridional_halo_rays!`. At the meridional boundaries of the domain the ``y``-coordinates of ray volumes are adjusted such that shifting works properly.
+
 # Arguments
 
-  - `state::State`:  Simulation state
+  - `state`: Model state.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_meridional_halo_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
 function set_meridional_boundary_rays!(state::State)
     (; namelists, domain) = state

@@ -3,10 +3,20 @@
 set_vertical_boundary_rays!(state::State, zboundaries::SolidWallBoundaries)
 ```
 
+Enforce vertical boundary conditions for ray volumes.
+
+If the domain is parallelized in ``\\widehat{z}``, ray-volume counts and the ray volumes themselves are first communicated between MPI processes, using `set_vertical_halos_of_field!` and `set_vertical_halo_rays!`, respectively. The vertical boundary conditions are then enforced by cutting (removing) ray volumes that have partially (fully) crossed the upper boundary and reflecting ray volumes (by adjusting the vertical position and wavenumber) that have at least partially crossed the lower boundary from above.
+
 # Arguments
 
-  - `state::State`: Complete simulation state
-  - `zboundaries::SolidWallBoundaries`: Boundary type specification
+  - `state`: Model state.
+  - `zboundaries`: Vertical boundary conditions.
+
+# See also
+
+  - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_vertical_halo_rays!`]
+  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
 function set_vertical_boundary_rays!(
     state::State,
