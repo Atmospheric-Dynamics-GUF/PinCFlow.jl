@@ -21,6 +21,9 @@ Applies the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for
   - `nzz`: Size of `phi` in ``\\widehat{z}``-direction.
   - `limitertype`: Type of flux limiter to use.
 
+# See also
+
+  - [`PinCFlow.FluxCalculator.apply_1d_muscl!`](@ref)
 """
 function apply_3d_muscl!(
     phi::AbstractArray{<:AbstractFloat, 3},

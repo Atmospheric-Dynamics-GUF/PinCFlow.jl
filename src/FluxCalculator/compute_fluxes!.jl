@@ -40,6 +40,10 @@ The fluxes are computed from the MUSCL reconstruction of ``\\rho / P`` and the l
   - `state`: Model state.
   - `predictands`: The predictands that are used to compute the transporting velocities.
   - `variable`: The flux variable.
+
+# See also
+
+  - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
 """
 function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
 
@@ -145,6 +149,10 @@ The fluxes are computed from the MUSCL reconstruction of ``\\rho' / P`` and the 
   - `state`: Model state.
   - `predictands`: The predictands that are used to compute the transporting velocities.
   - `variable`: The flux variable.
+
+# See also
+
+  - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
 """
 function compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
 
@@ -344,6 +352,7 @@ The advective fluxes are computed from the MUSCL reconstruction of ``\\rho u / P
 
 # See also
 
+  - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
   - [`PinCFlow.Update.compute_stress_tensor`](@ref)
 """
 function compute_fluxes!(
@@ -584,6 +593,7 @@ The advective fluxes are computed from the MUSCL reconstruction of ``\\rho v / P
 
 # See also
 
+  - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
   - [`PinCFlow.Update.compute_stress_tensor`](@ref)
 """
 function compute_fluxes!(
@@ -824,6 +834,7 @@ The advective fluxes are computed from the MUSCL reconstruction of ``\\rho w / P
 
 # See also
 
+  - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
   - [`PinCFlow.Update.compute_stress_tensor`](@ref)
 """
 function compute_fluxes!(
