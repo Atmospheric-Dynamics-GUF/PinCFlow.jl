@@ -22,10 +22,10 @@ where ``\\Delta t_\\mathrm{CFL}`` and ``\\Delta t_\\mathrm{WKB}`` are computed f
 ## CFL condition with respect to the group velocities of unresolved gravity waves
 
 ```math
-\\Delta t_\\mathrm{WKB} = \\mu_\\mathrm{WKB} \\min\\limits_\\mathrm{global} \\left[\\frac{\\Delta \\widehat{x}}{c_{\\mathrm{g} x, \\max}}, \\frac{\\Delta \\widehat{y}}{c_{\\mathrm{g} y, \\max}}, \\min(\\frac{J \\Delta \\widehat{z}}{c_{\\mathrm{g} z}}\\right)\\right]
+\\Delta t_\\mathrm{WKB} = \\mu_\\mathrm{WKB} \\min\\limits_\\mathrm{global} \\left[\\frac{\\Delta \\widehat{x}}{c_{\\mathrm{g} x, \\max}}, \\frac{\\Delta \\widehat{y}}{c_{\\mathrm{g} y, \\max}}, \\min \\left(\\frac{J \\Delta \\widehat{z}}{c_{\\mathrm{g} z, \\max}}\\right)\\right]
 ```
 
-## von Neumann condition
+## Von Neumann condition
 
 ```math
 \\Delta t_\\mathrm{viscous} = \\frac{\\mathrm{Re}}{2} \\min\\limits_\\mathrm{global} \\left[\\left(\\Delta \\widehat{x}\\right)^2, \\left(\\Delta \\widehat{y}\\right)^2, \\left(J \\Delta \\widehat{z}\\right)^2\\right]
