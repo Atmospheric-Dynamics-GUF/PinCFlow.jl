@@ -1,64 +1,47 @@
 """
 ```julia
-compute_time_step(state::State) -> Float64
+compute_time_step(state::State)
 ```
 
-Compute adaptive time step based on stability constraints.
+Compute adaptive time step based on several stability criteria.
 
-Calculates the maximum allowable time step by evaluating multiple stability
-criteria including CFL condition, viscous stability, and wave propagation
-constraints. Returns the most restrictive time step.
+If `state.namelists.discretization.adaptive_time_step` is set to `true`, the returned time step is given by
+```math
+\\Delta t = \\min \\left(\\Delta t_\\mathrm{CFL}, \\Delta t_\\mathrm{WKB}, \\Delta t_\\mathrm{viscous}, \\Delta t_\\max\\right),
+```
+where ``\\Delta t_\\mathrm{CFL}`` and ``\\Delta t_\\mathrm{WKB}`` are computed from CFL conditions with respect to the resolved flow and unresolved gravity waves, respectively, ``\\Delta t_\\mathrm{viscous}`` is determined from a von Neumann condition that takes the viscosity into account and ``\\Delta t_\\max`` is an upper limit specified in `state.namelists.discretization`. Otherwise, the returned time step is equal to ``\\Delta t_\\max``. If ``\\Delta t`` is smaller than ``\\Delta t_\\min`` (also specified in `state.namelists.discretization`), an error is thrown.
+
+# Stability constraints
+
+## CFL condition with respect to the resolved flow
+
+```math
+\\Delta t_\\mathrm{CFL} = \\min\\limits_\\mathrm{global} \\mu_\\mathrm{CFL} \\left[\\frac{\\Delta \\widehat{x}}{u_\\max}, \\frac{\\Delta \\widehat{y}}{v_\\max}, \\min \\left(\\frac{J \\Delta \\widehat{z}}{w}\\right)\\right]
+```
+
+## CFL condition with respect to the group velocities of unresolved gravity waves
+
+```math
+\\Delta t_\\mathrm{WKB} = \\min\\limits_\\mathrm{global} \\mu_\\mathrm{WKB} \\left[\\frac{\\Delta \\widehat{x}}{c_{\\mathrm{g} x, \\max}}, \\frac{\\Delta \\widehat{y}}{c_{\\mathrm{g} y, \\max}}, \\min(\\frac{J \\Delta \\widehat{z}}{c_{\\mathrm{g} z}}\\right)\\right]
+```
+
+## von Neumann condition
+
+```math
+\\Delta t_\\mathrm{viscous} = \\frac{\\mathrm{Re}}{2} \\min\\limits_\\mathrm{global} \\left[\\left(\\Delta \\widehat{x}\\right)^2, \\left(\\Delta \\widehat{y}\\right)^2, \\left(J \\Delta \\widehat{z}\\right)^2\\right]
+```
 
 # Arguments
 
-  - `state::State`: Complete simulation state containing grid, flow fields, and parameters
+  - `state`: Model state.
 
 # Returns
 
-  - `Float64`: Time step in non-dimensional units
+  - `::Float64`: Time step.
 
-# Stability Criteria
+# See also
 
-## CFL Condition (Advective Stability)
-
-  - Horizontal: `dt ≤ cfl * min(dx/|u|, dy/|v|)`
-  - Vertical: `dt ≤ cfl * jac * dz / |w_physical|`
-  - Uses terrain-following coordinate transformation for vertical velocity
-
-## von Neumann Condition (Viscous Stability)
-
-  - `dt ≤ 0.5 * Re * min(dx², dy², (jac*dz)²)`
-  - Ensures stability of viscous diffusion terms
-
-## WKB-CFL Condition (for gravity wave test cases)
-
-  - `dt ≤ cfl_wave * min(dx/cgx, dy/cgy, jac*dz/cgz)`
-  - Based on group velocity components from WKB ray tracing
-  - Only applied for `AbstractWKBTestCase` types
-
-## Maximum Time Step
-
-  - User-specified upper limit: `dt ≤ dtmax`
-
-# Adaptive vs Fixed Time Step
-
-  - If `adaptive_time_step = false`: returns fixed `dtmax`
-  - If `adaptive_time_step = true`: returns minimum of all constraints
-
-# MPI Communication
-
-  - Uses `MPI.Allreduce` with `min` operation to find global minimum
-  - Ensures all processes use the same time step
-
-# Output
-
-  - Master process prints all constraint values and selected time step
-  - Identifies which constraint is most restrictive
-
-# Error Conditions
-
-  - Throws error if computed time step falls below `dtmin`
-  - Prevents simulation from becoming unstable due to overly small time steps
+  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 """
 function compute_time_step(state::State)
     (; grid) = state
