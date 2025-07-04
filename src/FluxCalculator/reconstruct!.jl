@@ -27,7 +27,7 @@ reconstruct!(state::State, variable::Rho)
 
 Reconstruct the density.
 
-Since the transporting velocity is ``P \\widehat{\boldsymbol{u}}``, the density is divided by ``P`` before reconstruction. The result is written into `state.variables.reconstructions.rhotilde`.
+Since the transporting velocity is ``P \\widehat{\\boldsymbol{u}}``, the density is divided by ``P`` before reconstruction. The result is written into `state.variables.reconstructions.rhotilde`.
 
 # Arguments
 
