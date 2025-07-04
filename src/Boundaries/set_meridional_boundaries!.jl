@@ -9,6 +9,11 @@ Enforce meridional boundary conditions for all predictand fields.
 
   - `state`: Model state.
   - `variables`: Boundary-variable category.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_compressible_meridional_boundaries!`](@ref)
 """
 function set_meridional_boundaries!(
     state::State,
@@ -42,6 +47,10 @@ Enforce meridional boundary conditions for all reconstruction fields.
 
   - `state`: Model state.
   - `variables`: Boundary-variable category.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function set_meridional_boundaries!(
     state::State,
@@ -98,6 +107,10 @@ Enforce meridional boundary conditions for gravity-wave-integral fields needed i
   - `state`: Model state.
   - `variables`: Boundary-variable category.
   - `wkb_mode`: Approximations used by MSGWaM.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function set_meridional_boundaries!(
     state::State,
@@ -135,6 +148,10 @@ Enforce meridional boundary conditions for gravity-wave-integral fields needed i
   - `state`: Model state.
   - `variables`: Boundary-variable category.
   - `wkb_mode`: Approximations used by MSGWaM.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function set_meridional_boundaries!(
     state::State,
@@ -193,6 +210,10 @@ Enforce meridional boundary conditions for gravity-wave-tendency fields needed i
   - `state`: Model state.
   - `variables`: Boundary-variable category.
   - `wkb_mode`: Approximations used by MSGWaM.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function set_meridional_boundaries!(
     state::State,
@@ -229,6 +250,10 @@ Enforce meridional boundary conditions for gravity-wave-tendency fields needed i
   - `state`: Model state.
   - `variables`: Boundary-variable category.
   - `wkb_mode`: Approximations used by MSGWaM.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function set_meridional_boundaries!(
     state::State,

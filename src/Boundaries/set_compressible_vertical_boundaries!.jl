@@ -39,6 +39,10 @@ Enforce vertical boundary conditions for mass-weighted potential temperature in 
   - `state`: Model state.
   - `variables`: Boundary-variable category.
   - `model`: Dynamic equations.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
 function set_compressible_vertical_boundaries!(
     state::State,

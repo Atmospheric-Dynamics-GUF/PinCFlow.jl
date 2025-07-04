@@ -21,6 +21,11 @@ The symmetry conditions are as follows:
   - `state`: Model state.
   - `variables`: Boundary-variable category.
   - `zboundaries`: Vertical boundary conditions.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_compressible_vertical_boundaries!`](@ref)
 """
 function set_vertical_boundaries!(
     state::State,
@@ -69,6 +74,10 @@ Enforce vertical boundary conditions for all reconstruction fields.
   - `state`: Model state.
   - `variables`: Boundary-variable category.
   - `zboundaries`: Vertical boundary conditions.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
 function set_vertical_boundaries!(
     state::State,
@@ -107,6 +116,10 @@ Set the vertical fluxes at the vertical boundaries to zero (in `SolidWallBoundar
   - `state`: Model state.
   - `variables`: Boundary-variable category.
   - `zboundaries`: Vertical boundary conditions.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_compressible_vertical_boundaries!`](@ref)
 """
 function set_vertical_boundaries!(
     state::State,
@@ -181,6 +194,10 @@ Enforce vertical boundary conditions for gravity-wave-integral fields needed in 
   - `state`: Model state.
   - `variables`: Boundary-variable category.
   - `zboundaries`: Vertical boundary conditions.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
 function set_vertical_boundaries!(
     state::State,
@@ -223,6 +240,10 @@ Enforce vertical boundary conditions for gravity-wave-integral fields needed in 
   - `state`: Model state.
   - `variables`: Boundary-variable category.
   - `zboundaries`: Vertical boundary conditions.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
 function set_vertical_boundaries!(
     state::State,
@@ -293,6 +314,10 @@ Enforce vertical boundary conditions for gravity-wave-tendency fields needed in 
   - `variables`: Boundary-variable category.
   - `zboundaries`: Vertical boundary conditions.
   - `wkb_mode`: Approximations used by MSGWaM.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
 function set_vertical_boundaries!(
     state::State,
@@ -335,6 +360,10 @@ Enforce vertical boundary conditions for gravity-wave-tendency fields needed in 
   - `variables`: Boundary-variable category.
   - `zboundaries`: Vertical boundary conditions.
   - `wkb_mode`: Approximations used by MSGWaM.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
 function set_vertical_boundaries!(
     state::State,
