@@ -10,7 +10,7 @@ write_output(
 
 Write the current simulation state to a previously created HDF5 output file.
 
-The output is written in parallel, using the chunking prepared by `create_output`. The grid, i.e. the fields `x`, `y` and `ztfc` of `state.grid`, as well as the fields of `state.atmosphere` are only written if `iout == 1` (which should be the case only for the initial output). In Boussinesq mode, the fields of `state.atmosphere` do not have a spatial dependence and are therefore not written at all. In compressible mode, the mass-weighted potential temperature and squared buoyancy frequency have a temporal dependence and are therefore written even if `iout != 1`. Any other field is only written if it is listed in `state.namelists.output.output_variables` or if it is essential for restarts and `state.namelists.output.prepare_restart == true`.
+The output is written in parallel, using the chunking prepared by `create_output`. The grid, i.e. the fields `x`, `y` and `ztfc` of `state.grid`, as well as the fields of `state.atmosphere` are only written if `iout == 1` (which should only be the case for the initial output). In Boussinesq mode, the fields of `state.atmosphere` do not have a spatial dependence and are therefore not written at all. In compressible mode, the mass-weighted potential temperature and squared buoyancy frequency have a temporal dependence and are therefore written even if `iout != 1`. Any other field is only written if it is listed in `state.namelists.output.output_variables` or if it is essential for restarts and `state.namelists.output.prepare_restart == true`.
 
 The list of available output variables (as specified in `state.namelists.output.output_variables`) is as follows.
 
@@ -29,9 +29,9 @@ The list of available output variables (as specified in `state.namelists.output.
   - `:dvdt`: Meridional-momentum drag due to unresolved gravity waves.
   - `:dthetadt`: Mass-weighted potential-temperature tendency due to unresolved gravity waves.
 
-  An output of all ray-volume properties is provided if `state.namelists.output.save_ray_volumes == true` and/or `state.namelists.output.prepare_restart == true`.
+An output of all ray-volume properties is provided if `state.namelists.output.save_ray_volumes == true` and/or `state.namelists.output.prepare_restart == true`.
 
-  All output variables are re-dimensionalized with the scale parameters stored in `state.constants`.
+All output variables are re-dimensionalized with the scale parameters stored in `state.constants`.
 
 # Arguments
 
@@ -43,6 +43,10 @@ The list of available output variables (as specified in `state.namelists.output.
 # Returns
 
   - `::Integer`: Advanced output counter.
+
+# See also
+
+  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 """
 function write_output(
     state::State,
