@@ -39,7 +39,7 @@ The documentation will be generated in the `docs/build` directory. To view the d
 
 1. Put every module, composite type (including constructor methods) and function into a file on its own, with the file name matching that of the object. Create a folder for every module.
 
-1. Only use Unicode in strings and docstrings.
+1. Do not use Unicode.
 
 ### Documentation
 
@@ -53,9 +53,9 @@ The documentation will be generated in the `docs/build` directory. To view the d
 
 1. If a method returns something other than `nothing`, list all returned objects with descriptions under a `# Returns` header, with one `-` bullet for each returned object. Include the types (in Julia syntax).
 
-1. Provide links to related functions under a `See also` header, with one `-` bullet for each function.
+1. Provide links to related functions under a `# See also` header, with one `-` bullet for each function.
 
-1. Use single backticks to identify code and double backticks to identify equations. Use Unicode characters rather than LaTeX escape sequences.
+1. Use single backticks to identify code and double backticks to identify equations. Use LaTeX escape sequences rather than Unicode characters.
 
 1. Place the starting and ending `"""` characters on lines by themselves.
 
