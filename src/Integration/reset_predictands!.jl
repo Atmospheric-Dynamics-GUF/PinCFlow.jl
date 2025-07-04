@@ -3,15 +3,14 @@
 reset_predictands!(state::State, predictands::Predictands)
 ```
 
-Reset current predictand fields to specified values based on model type.
+Reset predictand fields in `state.variables.predictands` to those in `predictands`.
 
-This function dispatches to the appropriate model-specific implementation
-for restoring predictand variables from a given state.
+This function dispatches to the appropriate model-specific methods.
 
 # Arguments
 
-  - `state::State`: Simulation state to modify
-  - `predictands::Predictands`: Source values to restore from
+  - `state`: Model state.
+  - `predictands`: Fields to reset to.
 """
 function reset_predictands!(state::State, predictands::Predictands)
     (; model) = state.namelists.setting
@@ -24,16 +23,13 @@ end
 reset_predictands!(state::State, predictands::Predictands, model::AbstractModel)
 ```
 
-Reset predictand fields for general model types.
-
-Restores the basic set of predictand variables (density, velocity components)
-from the provided source state. Used for non-compressible model types.
+Reset the density, density fluctuations and wind components in `state.variables.predictands` to those in `predictands`.
 
 # Arguments
 
-  - `state::State`: Simulation state to modify
-  - `predictands::Predictands`: Source values containing rho, rhop, u, v, w
-  - `model::AbstractModel`: General model type (Boussinesq, PseudoIncompressible, etc.)
+  - `state`: Model state.
+  - `predictands`: Fields to reset to.
+  - `model`: Dynamic equations.
 """
 function reset_predictands!(
     state::State,
@@ -56,20 +52,13 @@ end
 reset_predictands!(state::State, predictands::Predictands, model::Compressible)
 ```
 
-Reset predictand fields for compressible model.
-
-Restores all predictand variables including pressure fields that are specific
-to compressible flow models.
+Reset the density, density fluctuations, wind components, Exner pressure and mass-weighted potential temperature (i.e. all fields) in `state.variables.predictands` to those in `predictands`.
 
 # Arguments
 
-  - `state::State`: Simulation state to modify
-  - `predictands::Predictands`: Source values containing all compressible variables
-  - `model::Compressible`: Compressible model type
-
-# Details
-
-Restores: rho, rhop, u, v, w, pip (pressure perturbation), p (total pressure)
+  - `state`: Model state.
+  - `predictands`: Fields to reset to.
+  - `model`: Dynamic equations.
 """
 function reset_predictands!(
     state::State,
