@@ -43,7 +43,7 @@ Therein, the left-hand sides of the equations include advective fluxes, diffusio
   - [`PinCFlow.MSGWaM.RayUpdate.split_rays!`](@ref)
   - [`PinCFlow.MSGWaM.RayUpdate.shift_rays!`](@ref)
   - [`PinCFlow.MSGWaM.RayUpdate.merge_rays!`](@ref)
-  - [`PinCFlow.MSGWaM.RayUpdate.set_boundary_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_boundary_rays!`](@ref)
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_mean_flow_effect!`](@ref)
   - [`PinCFlow.Integration.synchronize_density_fluctuations!`](@ref)
   - [`PinCFlow.FluxCalculator.reconstruct!`](@ref)
