@@ -57,7 +57,7 @@ synchronize_compressible_atmosphere!(
 
 Synchronize `state.atmosphere.pstrattfc` with `predictands.p` and recompute `state.atmosphere.bvsstrattfc`.
 
-In compressible mode, ``P`` and, through its dependence on ``P``, ``N^2`` are time-dependent. In the update of ``P``, only `state.variables.predictands.p` is changed, so that the old values of ``P`` and ``N^2`` are retained in the respective fields of `state.atmosphere`. When these are no longer needed, the fields are updated accordingly.
+In compressible mode, ``P`` and, through its dependence on ``P``, ``N^2`` are time-dependent. In the update of ``P``, only `state.variables.predictands.p` is changed, so that the old values of ``P`` and ``N^2`` are retained in the respective fields of `state.atmosphere`. When these are no longer needed, this method is used to update the fields accordingly.
 
 # Arguments
 

@@ -52,7 +52,7 @@ modify_compressible_wind!(
 )
 ```
 
-Interpolate ``J P`` to the velocity grids and replace the velocities with the result of applying `operation` to them and the interpolations.
+Interpolate ``J P`` to the wind grids and replace the wind components with the result of applying `operation` to them and the interpolations.
 
 # Arguments
 

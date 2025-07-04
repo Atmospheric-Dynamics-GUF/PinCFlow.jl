@@ -3,7 +3,7 @@
 reset_predictands!(state::State, predictands::Predictands)
 ```
 
-Reset predictand fields in `state.variables.predictands` to those in `predictands`.
+Reset fields in `state.variables.predictands` to those in `predictands`.
 
 This function dispatches to the appropriate model-specific methods.
 
