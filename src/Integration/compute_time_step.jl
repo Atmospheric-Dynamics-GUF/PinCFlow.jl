@@ -16,13 +16,13 @@ where ``\\Delta t_\\mathrm{CFL}`` and ``\\Delta t_\\mathrm{WKB}`` are computed f
 ## CFL condition with respect to the resolved flow
 
 ```math
-\\Delta t_\\mathrm{CFL} = \\min\\limits_\\mathrm{global} \\mu_\\mathrm{CFL} \\left[\\frac{\\Delta \\widehat{x}}{u_{\\max}}, \\frac{\\Delta \\widehat{y}}{v_{\\max}}, \\min \\left(\\frac{J \\Delta \\widehat{z}}{w}\\right)\\right]
+\\Delta t_\\mathrm{CFL} = \\mu_\\mathrm{CFL} \\min\\limits_\\mathrm{global} \\left[\\frac{\\Delta \\widehat{x}}{u_{\\max}}, \\frac{\\Delta \\widehat{y}}{v_{\\max}}, \\min \\left(\\frac{J \\Delta \\widehat{z}}{w}\\right)\\right]
 ```
 
 ## CFL condition with respect to the group velocities of unresolved gravity waves
 
 ```math
-\\Delta t_\\mathrm{WKB} = \\min\\limits_\\mathrm{global} \\mu_\\mathrm{WKB} \\left[\\frac{\\Delta \\widehat{x}}{c_{\\mathrm{g} x, \\max}}, \\frac{\\Delta \\widehat{y}}{c_{\\mathrm{g} y, \\max}}, \\min(\\frac{J \\Delta \\widehat{z}}{c_{\\mathrm{g} z}}\\right)\\right]
+\\Delta t_\\mathrm{WKB} = \\mu_\\mathrm{WKB} \\min\\limits_\\mathrm{global} \\left[\\frac{\\Delta \\widehat{x}}{c_{\\mathrm{g} x, \\max}}, \\frac{\\Delta \\widehat{y}}{c_{\\mathrm{g} y, \\max}}, \\min(\\frac{J \\Delta \\widehat{z}}{c_{\\mathrm{g} z}}\\right)\\right]
 ```
 
 ## von Neumann condition
