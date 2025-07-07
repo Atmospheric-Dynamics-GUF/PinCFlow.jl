@@ -180,8 +180,6 @@
                                                      ! blocked-layer scheme
   nwm                      =                       1 ! Number of initial wave
                                                      ! modes
-  launch_algorithm         =                  'clip' ! Ray-volume launch
-                                                     ! algorithm
   zmin_wkb_dim             =                  0.0E+0 ! Minimum altitude for
                                                      ! wave-mean-flow
                                                      ! interaction

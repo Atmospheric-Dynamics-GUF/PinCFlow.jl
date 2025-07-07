@@ -416,8 +416,8 @@ module init_module
 
     ! Allocate damping coefficient for unified sponge.
     if(spongeLayer .and. unifiedSponge) then
-      allocate(alphaUnifiedSponge(0:(nx + 1), 0:(ny + 1), 0:(nz + 1)), stat &
-          &= allocstat)
+      allocate(alphaUnifiedSponge((- nbx):(nx + nbx), (- nby):(ny + nby), (- &
+          &nbz):(nz + nbz)), stat = allocstat)
       if(allocstat /= 0) stop "init.f90: could not allocate alphaUnifiedSponge"
     end if
 
