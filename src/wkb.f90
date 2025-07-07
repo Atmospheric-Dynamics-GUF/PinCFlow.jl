@@ -2531,11 +2531,6 @@ module wkb_module
         kzu = kzTFC(1, 1, zlc)
         kzd = kzu - 1
 
-        if(kzu > nz + 1) then
-          kzu = nz + 1
-          kzd = nz
-        end if
-
         ! Assign the values.
         zd = zTFC(1, 1, kzd)
         zu = zTFC(1, 1, kzu)
@@ -2562,11 +2557,6 @@ module wkb_module
         ! Locate the two closest levels.
         kzu = kzTildeTFC(1, 1, zlc)
         kzd = kzu - 1
-
-        if(kzu + 1 > nz + 1) then
-          kzu = nz
-          kzd = nz - 1
-        end if
 
         ! Assign the values.
         zd = zTildeTFC(1, 1, kzd)
@@ -3042,37 +3032,21 @@ module wkb_module
 
         kzlbu = kzTFC(ixl, jyb, zlc)
         kzlbd = kzlbu - 1
-        if(kzlbd > nz) then
-          kzlbu = nz
-          kzlbd = nz
-        end if
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
         kzlfu = kzTFC(ixl, jyf, zlc)
         kzlfd = kzlfu - 1
-        if(kzlfd > nz) then
-          kzlfu = nz
-          kzlfd = nz
-        end if
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
         kzrbu = kzTFC(ixr, jyb, zlc)
         kzrbd = kzrbu - 1
-        if(kzrbd > nz) then
-          kzrbu = nz
-          kzrbd = nz
-        end if
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
         kzrfu = kzTFC(ixr, jyf, zlc)
         kzrfd = kzrfu - 1
-        if(kzrfd > nz) then
-          kzrfu = nz
-          kzrfd = nz
-        end if
         zrfd = zTFC(ixr, jyf, kzrfd)
         zrfu = zTFC(ixr, jyf, kzrfu)
 
@@ -3232,37 +3206,21 @@ module wkb_module
 
         kzlbu = kzTFC(ixl, jyb, zlc)
         kzlbd = kzlbu - 1
-        if(kzlbd > nz) then
-          kzlbu = nz
-          kzlbd = nz
-        end if
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
         kzlfu = kzTFC(ixl, jyf, zlc)
         kzlfd = kzlfu - 1
-        if(kzlfd > nz) then
-          kzlfu = nz
-          kzlfd = nz
-        end if
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
         kzrbu = kzTFC(ixr, jyb, zlc)
         kzrbd = kzrbu - 1
-        if(kzrbd > nz) then
-          kzrbu = nz
-          kzrbd = nz
-        end if
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
         kzrfu = kzTFC(ixr, jyf, zlc)
         kzrfd = kzrfu - 1
-        if(kzrfd > nz) then
-          kzrfu = nz
-          kzrfd = nz
-        end if
         zrfd = zTFC(ixr, jyf, kzrfd)
         zrfu = zTFC(ixr, jyf, kzrfu)
 
@@ -3421,37 +3379,21 @@ module wkb_module
 
         kzlbu = kzTildeTFC(ixl, jyb, zlc)
         kzlbd = kzlbu - 1
-        if(kzlbd > nz) then
-          kzlbu = nz
-          kzlbd = nz
-        end if
         zlbd = zTildeTFC(ixl, jyb, kzlbd)
         zlbu = zTildeTFC(ixl, jyb, kzlbu)
 
         kzlfu = kzTildeTFC(ixl, jyf, zlc)
         kzlfd = kzlfu - 1
-        if(kzlfd > nz) then
-          kzlfu = nz
-          kzlfd = nz
-        end if
         zlfd = zTildeTFC(ixl, jyf, kzlfd)
         zlfu = zTildeTFC(ixl, jyf, kzlfu)
 
         kzrbu = kzTildeTFC(ixr, jyb, zlc)
         kzrbd = kzrbu - 1
-        if(kzrbd > nz) then
-          kzrbu = nz
-          kzrbd = nz
-        end if
         zrbd = zTildeTFC(ixr, jyb, kzrbd)
         zrbu = zTildeTFC(ixr, jyb, kzrbu)
 
         kzrfu = kzTildeTFC(ixr, jyf, zlc)
         kzrfd = kzrfu - 1
-        if(kzrfd > nz) then
-          kzrfu = nz
-          kzrfd = nz
-        end if
         zrfd = zTildeTFC(ixr, jyf, kzrfd)
         zrfu = zTildeTFC(ixr, jyf, kzrfu)
 
@@ -3667,37 +3609,21 @@ module wkb_module
 
         kzlbu = kzTFC(ixl, jyb, zlc)
         kzlbd = kzlbu - 1
-        if(kzlbd > nz) then
-          kzlbu = nz
-          kzlbd = nz
-        end if
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
         kzlfu = kzTFC(ixl, jyf, zlc)
         kzlfd = kzlfu - 1
-        if(kzlfd > nz) then
-          kzlfu = nz
-          kzlfd = nz
-        end if
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
         kzrbu = kzTFC(ixr, jyb, zlc)
         kzrbd = kzrbu - 1
-        if(kzrbd > nz) then
-          kzrbu = nz
-          kzrbd = nz
-        end if
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
         kzrfu = kzTFC(ixr, jyf, zlc)
         kzrfd = kzrfu - 1
-        if(kzrfd > nz) then
-          kzrfu = nz
-          kzrfd = nz
-        end if
         zrfd = zTFC(ixr, jyf, kzrfd)
         zrfu = zTFC(ixr, jyf, kzrfu)
 
@@ -3885,37 +3811,21 @@ module wkb_module
 
         kzlbu = kzTFC(ixl, jyb, zlc)
         kzlbd = kzlbu - 1
-        if(kzlbd > nz) then
-          kzlbu = nz
-          kzlbd = nz
-        end if
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
         kzlfu = kzTFC(ixl, jyf, zlc)
         kzlfd = kzlfu - 1
-        if(kzlfd > nz) then
-          kzlfu = nz
-          kzlfd = nz
-        end if
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
         kzrbu = kzTFC(ixr, jyb, zlc)
         kzrbd = kzrbu - 1
-        if(kzrbd > nz) then
-          kzrbu = nz
-          kzrbd = nz
-        end if
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
         kzrfu = kzTFC(ixr, jyf, zlc)
         kzrfd = kzrfu - 1
-        if(kzrfd > nz) then
-          kzrfu = nz
-          kzrfd = nz
-        end if
         zrfd = zTFC(ixr, jyf, kzrfd)
         zrfu = zTFC(ixr, jyf, kzrfu)
 
@@ -4120,37 +4030,21 @@ module wkb_module
 
         kzlbu = kzTildeTFC(ixl, jyb, zlc)
         kzlbd = kzlbu - 1
-        if(kzlbd > nz) then
-          kzlbu = nz + 1
-          kzlbd = nz + 1
-        end if
         zlbd = zTildeTFC(ixl, jyb, kzlbd)
         zlbu = zTildeTFC(ixl, jyb, kzlbu)
 
         kzlfu = kzTildeTFC(ixl, jyf, zlc)
         kzlfd = kzlfu - 1
-        if(kzlfd > nz) then
-          kzlfu = nz + 1
-          kzlfd = nz + 1
-        end if
         zlfd = zTildeTFC(ixl, jyf, kzlfd)
         zlfu = zTildeTFC(ixl, jyf, kzlfu)
 
         kzrbu = kzTildeTFC(ixr, jyb, zlc)
         kzrbd = kzrbu - 1
-        if(kzrbd > nz) then
-          kzrbu = nz + 1
-          kzrbd = nz + 1
-        end if
         zrbd = zTildeTFC(ixr, jyb, kzrbd)
         zrbu = zTildeTFC(ixr, jyb, kzrbu)
 
         kzrfu = kzTildeTFC(ixr, jyf, zlc)
         kzrfd = kzrfu - 1
-        if(kzrfd > nz) then
-          kzrfu = nz + 1
-          kzrfd = nz + 1
-        end if
         zrfd = zTildeTFC(ixr, jyf, kzrfd)
         zrfu = zTildeTFC(ixr, jyf, kzrfu)
 
@@ -4495,37 +4389,21 @@ module wkb_module
 
         kzlbu = kzTFC(ixl, jyb, zlc)
         kzlbd = kzlbu - 1
-        if(kzlbd > nz) then
-          kzlbu = nz
-          kzlbd = nz
-        end if
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
         kzlfu = kzTFC(ixl, jyf, zlc)
         kzlfd = kzlfu - 1
-        if(kzlfd > nz) then
-          kzlfu = nz
-          kzlfd = nz
-        end if
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
         kzrbu = kzTFC(ixr, jyb, zlc)
         kzrbd = kzrbu - 1
-        if(kzrbd > nz) then
-          kzrbu = nz
-          kzrbd = nz
-        end if
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
         kzrfu = kzTFC(ixr, jyf, zlc)
         kzrfd = kzrfu - 1
-        if(kzrfd > nz) then
-          kzrfu = nz
-          kzrfd = nz
-        end if
         zrfd = zTFC(ixr, jyf, kzrfd)
         zrfu = zTFC(ixr, jyf, kzrfu)
 
@@ -4713,7 +4591,8 @@ module wkb_module
         else
           jyb = floor((ylc - 0.5 * dy - ly(0)) / dy) + 1 - jy0
           if(jyb - 1 < - nby + 1) then
-            print *, "ERROR IN MEANFLOW: jyb - 1 =", jyb - 1, "< - nby + 1 =", - nby + 1
+            print *, "ERROR IN MEANFLOW: jyb - 1 =", jyb - 1, "< - nby + 1 =", &
+                &- nby + 1
             stop
           end if
           jyf = jyb + 1
@@ -4729,37 +4608,21 @@ module wkb_module
 
         kzlbu = kzTFC(ixl, jyb, zlc)
         kzlbd = kzlbu - 1
-        if(kzlbd > nz) then
-          kzlbu = nz
-          kzlbd = nz
-        end if
         zlbd = zTFC(ixl, jyb, kzlbd)
         zlbu = zTFC(ixl, jyb, kzlbu)
 
         kzlfu = kzTFC(ixl, jyf, zlc)
         kzlfd = kzlfu - 1
-        if(kzlfd > nz) then
-          kzlfu = nz
-          kzlfd = nz
-        end if
         zlfd = zTFC(ixl, jyf, kzlfd)
         zlfu = zTFC(ixl, jyf, kzlfu)
 
         kzrbu = kzTFC(ixr, jyb, zlc)
         kzrbd = kzrbu - 1
-        if(kzrbd > nz) then
-          kzrbu = nz
-          kzrbd = nz
-        end if
         zrbd = zTFC(ixr, jyb, kzrbd)
         zrbu = zTFC(ixr, jyb, kzrbu)
 
         kzrfu = kzTFC(ixr, jyf, zlc)
         kzrfd = kzrfu - 1
-        if(kzrfd > nz) then
-          kzrfu = nz
-          kzrfd = nz
-        end if
         zrfd = zTFC(ixr, jyf, kzrfd)
         zrfu = zTFC(ixr, jyf, kzrfu)
 
@@ -4945,37 +4808,21 @@ module wkb_module
 
         kzlbu = kzTildeTFC(ixl, jyb, zlc)
         kzlbd = kzlbu - 1
-        if(kzlbd > nz) then
-          kzlbu = nz + 1
-          kzlbd = nz + 1
-        end if
         zlbd = zTildeTFC(ixl, jyb, kzlbd)
         zlbu = zTildeTFC(ixl, jyb, kzlbu)
 
         kzlfu = kzTildeTFC(ixl, jyf, zlc)
         kzlfd = kzlfu - 1
-        if(kzlfd > nz) then
-          kzlfu = nz + 1
-          kzlfd = nz + 1
-        end if
         zlfd = zTildeTFC(ixl, jyf, kzlfd)
         zlfu = zTildeTFC(ixl, jyf, kzlfu)
 
         kzrbu = kzTildeTFC(ixr, jyb, zlc)
         kzrbd = kzrbu - 1
-        if(kzrbd > nz) then
-          kzrbu = nz + 1
-          kzrbd = nz + 1
-        end if
         zrbd = zTildeTFC(ixr, jyb, kzrbd)
         zrbu = zTildeTFC(ixr, jyb, kzrbu)
 
         kzrfu = kzTildeTFC(ixr, jyf, zlc)
         kzrfd = kzrfu - 1
-        if(kzrfd > nz) then
-          kzrfu = nz + 1
-          kzrfd = nz + 1
-        end if
         zrfd = zTildeTFC(ixr, jyf, kzrfd)
         zrfu = zTildeTFC(ixr, jyf, kzrfu)
 
@@ -5641,7 +5488,7 @@ module wkb_module
 
     if(sizeX > 1) then
       call setboundary_rayvol_x(ray)
-      do kzrv = 0, nz + 1
+      do kzrv = 1, nz
         do jyrv = 0, ny + 1
           do ixrv = 0, nx + 1
             do iray = 1, nray(ixrv, jyrv, kzrv)
@@ -5655,8 +5502,8 @@ module wkb_module
                   if(1 <= ix .and. ix <= nx) then
                     nray(ix, jyrv, kzrv) = nray(ix, jyrv, kzrv) + 1
                     jray = nray(ix, jyrv, kzrv)
-                    if(jray > nray_wrk) stop "Error in shift_rayvol: nray > &
-                        &nray_wrk!"
+                    if(jray > nray_wrk) stop "Error in shift_rayvol: nray &
+                        &> nray_wrk!"
                     ray(jray, ix, jyrv, kzrv) = ray(iray, ixrv, jyrv, kzrv)
                   endif
                   ray(iray, ixrv, jyrv, kzrv)%dens = 0.0
@@ -5675,7 +5522,10 @@ module wkb_module
             do iRay = 1, nRay(ix, jy, kz)
               if(ray(iRay, ix, jy, kz)%dens == 0.0) cycle
               nrlc = nrlc + 1
-              ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+              if(nrlc /= iray) then
+                ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+                ray(iRay, ix, jy, kz)%dens = 0.0
+              end if
             end do
             nRay(ix, jy, kz) = nrlc
           end do
@@ -5689,7 +5539,7 @@ module wkb_module
 
     if(sizeY > 1) then
       call setboundary_rayvol_y(ray)
-      do kzrv = 0, nz + 1
+      do kzrv = 1, nz
         do jyrv = 0, ny + 1
           do ixrv = 0, nx + 1
             do iray = 1, nray(ixrv, jyrv, kzrv)
@@ -5703,8 +5553,8 @@ module wkb_module
                   if(1 <= jy .and. jy <= ny) then
                     nray(ixrv, jy, kzrv) = nray(ixrv, jy, kzrv) + 1
                     jray = nray(ixrv, jy, kzrv)
-                    if(jray > nray_wrk) stop "Error in shift_rayvol: nray > &
-                        &nray_wrk!"
+                    if(jray > nray_wrk) stop "Error in shift_rayvol: nray &
+                        &> nray_wrk!"
                     ray(jray, ixrv, jy, kzrv) = ray(iray, ixrv, jyrv, kzrv)
                   endif
                   ray(iray, ixrv, jyrv, kzrv)%dens = 0.0
@@ -5723,7 +5573,10 @@ module wkb_module
             do iRay = 1, nRay(ix, jy, kz)
               if(ray(iRay, ix, jy, kz)%dens == 0.0) cycle
               nrlc = nrlc + 1
-              ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+              if(nrlc /= iray) then
+                ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+                ray(iRay, ix, jy, kz)%dens = 0.0
+              end if
             end do
             nRay(ix, jy, kz) = nrlc
           end do
@@ -5750,15 +5603,16 @@ module wkb_module
                   kz = floor((zr - lz(0)) / dz) + 1
                 end if
 
-                if(kz > nz) kz = nz
-                if(kz < 1) kz = 1
-
                 if(kz /= kzrv) then
-                  nRay(ixrv, jyrv, kz) = nRay(ixrv, jyrv, kz) + 1
-                  jRay = nRay(ixrv, jyrv, kz)
-                  if(jRay > nray_wrk) stop "Error in shift_rayvol: nRay &
-                      &> nray_wrk!"
-                  ray(jRay, ixrv, jyrv, kz) = ray(iRay, ixrv, jyrv, kzrv)
+                  if(abs(kz - kzrv) > 1) stop "Error in shift_rayvol: abs(kz &
+                      &- kzrv) > 1"
+                  if(kz >= 1 .and. kz <= nz) then
+                    nRay(ixrv, jyrv, kz) = nRay(ixrv, jyrv, kz) + 1
+                    jRay = nRay(ixrv, jyrv, kz)
+                    if(jRay > nray_wrk) stop "Error in shift_rayvol: nRay &
+                        &> nray_wrk!"
+                    ray(jRay, ixrv, jyrv, kz) = ray(iRay, ixrv, jyrv, kzrv)
+                  end if
                   ray(iRay, ixrv, jyrv, kzrv)%dens = 0.0
                 end if
               end if
@@ -5775,7 +5629,10 @@ module wkb_module
             do iRay = 1, nRay(ix, jy, kz)
               if(ray(iRay, ix, jy, kz)%dens == 0.0) cycle
               nrlc = nrlc + 1
-              ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+              if(nrlc /= iray) then
+                ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+                ray(iRay, ix, jy, kz)%dens = 0.0
+              end if
             end do
             nRay(ix, jy, kz) = nrlc
           end do
@@ -5784,11 +5641,13 @@ module wkb_module
     end if
 
     ! testb
-    do kz = 1, nz
+    do kz = 0, nz + 1
       do jy = 0, ny + 1
         do ix = 0, nx + 1
           if(nRay(ix, jy, kz) > 0) then
             do iRay = 1, nRay(ix, jy, kz)
+              if(ray(iRay, ix, jy, kz)%dens == 0.0) cycle
+
               if(sizeX > 1) then
                 xr = ray(iRay, ix, jy, kz)%x
 
@@ -8173,7 +8032,7 @@ module wkb_module
     end if
 
     ! Remove ray volumes with zero wave action.
-    do kz = 0, nz + 1
+    do kz = 1, nz
       do jy = 0, ny + 1
         do ix = 0, nx + 1
           if(nRay(ix, jy, kz) <= 0) cycle
@@ -8181,7 +8040,10 @@ module wkb_module
           do iRay = 1, nRay(ix, jy, kz)
             if(ray(iRay, ix, jy, kz)%dens == 0.0) cycle
             nrlc = nrlc + 1
-            ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+            if(nrlc /= iray) then
+              ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+              ray(iRay, ix, jy, kz)%dens = 0.0
+            end if
           end do
           nRay(ix, jy, kz) = nrlc
         end do
@@ -10269,8 +10131,8 @@ module wkb_module
                 yr = ray(iRay, ix, jy, kz)%y
                 ixrv = floor((xr - lx(0)) / dx) + 1 - ix0
                 jyrv = floor((yr - ly(0)) / dy) + 1 - jy0
-                if(zTildeTFC(ixrv, jyrv, 0) - zr + 0.5 * dzr &
-                    &> epsilon(1.0d0)) then
+                if(zTildeTFC(ixrv, jyrv, 0) - zr + 0.5 * dzr > epsilon(1.0d0)) &
+                    &then
                   ray(iRay, ix, jy, kz)%z = 2.0 * zTildeTFC(ixrv, jyrv, 0) &
                       &- zr + dzr
                   ray(iRay, ix, jy, kz)%m = - wnrm
@@ -10283,7 +10145,10 @@ module wkb_module
               end if
 
               nrlc = nrlc + 1
-              if(nrlc /= iray) ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+              if(nrlc /= iray) then
+                ray(nrlc, ix, jy, kz) = ray(iRay, ix, jy, kz)
+                ray(iRay, ix, jy, kz)%dens = 0.0
+              end if
             end do
             nRay(ix, jy, kz) = nrlc
           end do
@@ -10584,21 +10449,24 @@ module wkb_module
             !     new one.
             if(steady_state) then
               if(iRay < 0) then
-                nRay(ix, jy, kz) = nRay(ix, jy, kz) + 1
-                iRay = nRay(ix, jy, kz)
-                ir_sfc(i_sfc, ix, jy) = iRay
-              end if
-
-              if(wadr == 0.0) then
-                ray(iRay, ix, jy, kz)%dens = 0.0
-                cycle
+                if(wadr == 0.0) then
+                  cycle
+                else
+                  nRay(ix, jy, kz) = nRay(ix, jy, kz) + 1
+                  iRay = nRay(ix, jy, kz)
+                  ir_sfc(i_sfc, ix, jy) = iRay
+                end if
+              else if(iRay > 0) then
+                if(wadr == 0.0) then
+                  ray(iRay, ix, jy, kz)%dens = 0.0
+                  ir_sfc(i_sfc, ix, jy) = - 1
+                  cycle
+                end if
               end if
             else
-              if(wadr /= 0.0) then
-                if(launch_algorithm == "scale") iRay = - 1
-
-                ! Check for case (2).
-                if(iRay > 0 .and. zr + 0.5 * dzr > zTildeTFC(ix, jy, kz)) then
+              if(iRay > 0) then
+                ! Shift and clip/extend the old ray volume.
+                if(zr + 0.5 * dzr > zTildeTFC(ix, jy, kz)) then
 
                   ! Shift the old ray volume.
                   nRay(ix, jy, kz + 1) = nRay(ix, jy, kz + 1) + 1
@@ -10606,8 +10474,14 @@ module wkb_module
                   if(nrlc > nray_wrk) stop "Error in orographic_source: nrlc &
                       &> nray_wrk!"
                   ray(nrlc, ix, jy, kz + 1) = ray(iRay, ix, jy, kz)
+                  dxRay(:, nrlc, ix, jy, kz + 1) = dxRay(:, iRay, ix, jy, kz)
+                  dkRay(:, nrlc, ix, jy, kz + 1) = dkRay(:, iRay, ix, jy, kz)
+                  ddxRay(:, nrlc, ix, jy, kz + 1) = ddxRay(:, iRay, ix, jy, kz)
+                  dxRay(:, iRay, ix, jy, kz) = 0.0
+                  dkRay(:, iRay, ix, jy, kz) = 0.0
+                  ddxRay(:, iRay, ix, jy, kz) = 0.0
 
-                  ! Clip or extend the old ray volume.
+                  ! Clip/extend the old ray volume.
                   if(zr - 0.5 * dzr < zTildeTFC(ix, jy, kz) .or. kz2 == 1) then
                     ray(nrlc, ix, jy, kz + 1)%dzray = zr + 0.5 * dzr &
                         &- zTildeTFC(ix, jy, kz)
@@ -10616,31 +10490,23 @@ module wkb_module
                     ray(nrlc, ix, jy, kz + 1)%area_zm = ray(nrlc, ix, jy, kz &
                         &+ 1)%dzray * ray(nrlc, ix, jy, kz + 1)%dmray
                   end if
+                end if
 
-                  ! Check for case (1).
-                elseif(iRay < 0) then
+                if(wadr == 0.0) then
+                  ray(iRay, ix, jy, kz)%dens = 0.0
+                  ir_sfc(i_sfc, ix, jy) = - 1
+                  cycle
+                end if
+              elseif(iRay < 0) then
+                if(wadr == 0.0) then
+                  cycle
+                else
                   nRay(ix, jy, kz) = nRay(ix, jy, kz) + 1
                   iRay = nRay(ix, jy, kz)
                   if(iRay > nray_wrk) stop "Error in orographic_source: iRay &
                       &> nray_wrk!"
                   ir_sfc(i_sfc, ix, jy) = iRay
                 end if
-
-                ! No ray volume is launched for zero wave-action density.
-              else
-                ir_sfc(i_sfc, ix, jy) = - 1
-                cycle
-              end if
-            end if
-
-            ! Scale the wave action density.
-            if(.not. steady_state .and. launch_algorithm == "scale") then
-              cgrz = wnrm * (f_cor_nd ** 2.0 - bvsavg) * wnrh ** 2.0 / omir &
-                  &/ (wnrh ** 2.0 + wnrm ** 2.0) ** 2.0
-              if(topography) then
-                wadr = wadr * dt * cgrz / jac(ix, jy, kz) / dz
-              else
-                wadr = wadr * dt * cgrz / dz
               end if
             end if
 
@@ -10823,42 +10689,33 @@ module wkb_module
     if(topography) then
       kzlbu = kzTFC(ixl, jyb, zlc)
       kzlbd = kzlbu - 1
-      if(kzlbd > nz) then
-        kzlbd = nz
-        kzlbu = nz
-      end if
       zlbd = zTFC(ixl, jyb, kzlbd)
       zlbu = zTFC(ixl, jyb, kzlbu)
-      alphalbd = alphaUnifiedSponge(ixl, jyb, kzlbd)
-      alphalbu = alphaUnifiedSponge(ixl, jyb, kzlbu)
+
       kzlfu = kzTFC(ixl, jyf, zlc)
       kzlfd = kzlfu - 1
-      if(kzlfd > nz) then
-        kzlfd = nz
-        kzlfu = nz
-      end if
       zlfd = zTFC(ixl, jyf, kzlfd)
       zlfu = zTFC(ixl, jyf, kzlfu)
-      alphalfd = alphaUnifiedSponge(ixl, jyf, kzlfd)
-      alphalfu = alphaUnifiedSponge(ixl, jyf, kzlfu)
+
       kzrbu = kzTFC(ixr, jyb, zlc)
       kzrbd = kzrbu - 1
-      if(kzrbd > nz) then
-        kzrbd = nz
-        kzrbu = nz
-      end if
       zrbd = zTFC(ixr, jyb, kzrbd)
       zrbu = zTFC(ixr, jyb, kzrbu)
-      alpharbd = alphaUnifiedSponge(ixr, jyb, kzrbd)
-      alpharbu = alphaUnifiedSponge(ixr, jyb, kzrbu)
+
       kzrfu = kzTFC(ixr, jyf, zlc)
       kzrfd = kzrfu - 1
-      if(kzrfd > nz) then
-        kzrfd = nz
-        kzrfu = nz
-      end if
       zrfd = zTFC(ixr, jyf, kzrfd)
       zrfu = zTFC(ixr, jyf, kzrfu)
+
+      alphalbd = alphaUnifiedSponge(ixl, jyb, kzlbd)
+      alphalbu = alphaUnifiedSponge(ixl, jyb, kzlbu)
+
+      alphalfd = alphaUnifiedSponge(ixl, jyf, kzlfd)
+      alphalfu = alphaUnifiedSponge(ixl, jyf, kzlfu)
+
+      alpharbd = alphaUnifiedSponge(ixr, jyb, kzrbd)
+      alpharbu = alphaUnifiedSponge(ixr, jyb, kzrbu)
+
       alpharfd = alphaUnifiedSponge(ixr, jyf, kzrfd)
       alpharfu = alphaUnifiedSponge(ixr, jyf, kzrfu)
     else
@@ -10975,9 +10832,9 @@ module wkb_module
     real :: zz
 
     kz = minloc(abs(zTFC(ix, jy, :) - zz), dim = 1) - nbz - 1
-    if(zTFC(ix, jy, kz) < zz) kz = kz + 1
-    if(kz < - nbz + 1) kz = - nbz + 1
-    if(kz > nz + nbz) kz = nz + nbz
+    if(zTFC(ix, jy, kz) < zz .and. kz < nz + nbz) kz = kz + 1
+    if(kz < 1) kz = 1
+    if(kz > nz + 1) kz = nz + 1
 
   end function kzTFC
 
@@ -10991,9 +10848,9 @@ module wkb_module
     real :: zz
 
     kz = minloc(abs(zTildeTFC(ix, jy, :) - zz), dim = 1) - nbz - 1
-    if(zTildeTFC(ix, jy, kz) < zz) kz = kz + 1
-    if(kz < - nbz + 1) kz = - nbz + 1
-    if(kz > nz + nbz) kz = nz + nbz
+    if(zTildeTFC(ix, jy, kz) < zz .and. kz < nz + nbz) kz = kz + 1
+    if(kz < 1) kz = 1
+    if(kz > nz) kz = nz
 
   end function kzTildeTFC
 

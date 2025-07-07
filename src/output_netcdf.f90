@@ -1124,8 +1124,9 @@ module output_netCDF_module
       write(*, fmt = "(a25,i15)") " at time step = ", iTime
       write(*, fmt = "(a25,f15.1,a8)") " at physical time = ", time_dim, " &
           &seconds"
-      write(*, fmt = "(a25,4x,i2.2,a1,i2.2,a1,i2.2,a1,i2.2,a1,i3.3)") "CPU time = ", &
-          &days, "-", hours, ":", minutes, ":", seconds, ":", milliseconds
+      write(*, fmt = "(a25,4x,i2.2,a1,i2.2,a1,i2.2,a1,i2.2,a1,i3.3)") "CPU &
+          &time = ", days, "-", hours, ":", minutes, ":", seconds, ":", &
+          &milliseconds
       print *, "------------------------------------------------"
     end if
 
@@ -2030,5 +2031,5 @@ module output_netCDF_module
       stop 2
     endif
   end subroutine handle_err
- 
+
 end module output_netCDF_module
