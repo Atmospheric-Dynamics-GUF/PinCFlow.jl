@@ -32,28 +32,28 @@ Perform trilinear interpolation to `(xlc, ylc, zlc)`, with values from eight sur
 
 Out of the eight grid points, four each are assumed to be to the left, to the right, behind, in front of, below and above the location of interest. Due to the grid being terrain-following, this includes eight different vertical positions, but only two zonal and two meridional positions. This is handled by performing successive linear interpolations, where the vertical position is interpolated along with the field of interest.
 
-The exact algorithm is as follows (where the acronyms ``\\mathrm{L}``, ``\\mathrm{R}``, ``\\mathrm{B}``, ``\\mathrm{F}``, ``\\mathrm{D}`` and ``\\mathrm{U}``).
+The exact algorithm is as follows.
 
   1. Interpolation in ``x``:
 
 ```math
-\\psi_\\mathrm{BD} & = f_x \\psi_\\mathrm{LBD} + (1 - f_x) \\psi_\\mathrm{RBD},\\
-\\psi_\\mathrm{BU} & = f_x \\psi_\\mathrm{LBU} + (1 - f_x) \\psi_\\mathrm{RBU},\\
-\\psi_\\mathrm{FD} & = f_x \\psi_\\mathrm{LFD} + (1 - f_x) \\psi_\\mathrm{RFD},\\
-\\psi_\\mathrm{FU} & = f_x \\psi_\\mathrm{LFU} + (1 - f_x) \\psi_\\mathrm{RFU}
+\\psi_\\mathrm{BD} = f_x \\psi_\\mathrm{LBD} + (1 - f_x) \\psi_\\mathrm{RBD},\\
+\\psi_\\mathrm{BU} = f_x \\psi_\\mathrm{LBU} + (1 - f_x) \\psi_\\mathrm{RBU},\\
+\\psi_\\mathrm{FD} = f_x \\psi_\\mathrm{LFD} + (1 - f_x) \\psi_\\mathrm{RFD},\\
+\\psi_\\mathrm{FU} = f_x \\psi_\\mathrm{LFU} + (1 - f_x) \\psi_\\mathrm{RFU}
 ```
 
   2. Interpolation in ``y``:
 
 ```math
-\\psi_\\mathrm{D} & = f_y \\psi_\\mathrm{BD} + (1 - f_y) \\psi_\\mathrm{FD},\\
-\\psi_\\mathrm{U} & = f_y \\psi_\\mathrm{BU} + (1 - f_y) \\psi_\\mathrm{FU}
+\\psi_\\mathrm{D} = f_y \\psi_\\mathrm{BD} + (1 - f_y) \\psi_\\mathrm{FD},\\
+\\psi_\\mathrm{U} = f_y \\psi_\\mathrm{BU} + (1 - f_y) \\psi_\\mathrm{FU}
 ```
 
   3. Interpolation in ``z``:
 
 ```math
-\\phi_\\mathrm{C} & = f_z \\phi_\\mathrm{D} + (1 - f_z) \\phi_\\mathrm{U}
+\\phi_\\mathrm{C} = f_z \\phi_\\mathrm{D} + (1 - f_z) \\phi_\\mathrm{U}
 ```
 
 Therein, the acronyms ``\\mathrm{L}``, ``\\mathrm{R}``, ``\\mathrm{B}``, ``\\mathrm{F}``, ``\\mathrm{D}`` and ``\\mathrm{U}`` represent the grid points to the left, to the right, forward, backward, downward and upward of the location of interest (denoted by ``\\mathrm{C}``), respectively, ``\\psi = \\left(\\phi, z\\right)`` and
@@ -101,8 +101,6 @@ Due to their large number, the positions and values are given as keyword argumen
 # Returns
 
   - `::AbstractFloat`: Interpolated field value at the location of interest.
-
-# Algorithm
 """
 function interpolate(
     namelists::Namelists;
