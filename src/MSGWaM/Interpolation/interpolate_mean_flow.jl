@@ -9,19 +9,24 @@ interpolate_mean_flow(
 )
 ```
 
-Interpolate zonal velocity component (U) to a given 3D location using trilinear interpolation.
+Interpolate the zonal wind to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
 
 # Arguments
 
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::U`: Type specifier for zonal velocity component
+  - `xlc`: Zonal position of interest.
+  - `ylc`: Meridional position of interest.
+  - `zlc`: Vertical position of interest.
+  - `state::State`: Model state.
+  - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
 
-  - Interpolated U velocity value at the specified location
+  - `::AbstractFloat`: Interpolated zonal wind at the location of interest.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -156,19 +161,24 @@ interpolate_mean_flow(
 )
 ```
 
-Interpolate meridional velocity component (V) to a given 3D location using trilinear interpolation.
+Interpolate the meridional wind to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
 
 # Arguments
 
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::V`: Type specifier for meridional velocity component
+  - `xlc`: Zonal position of interest.
+  - `ylc`: Meridional position of interest.
+  - `zlc`: Vertical position of interest.
+  - `state::State`: Model state.
+  - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
 
-  - Interpolated V velocity value at the specified location
+  - `::AbstractFloat`: Interpolated meridional wind at the location of interest.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -305,20 +315,27 @@ interpolate_mean_flow(
 )
 ```
 
-Interpolate vertical velocity component (W) to a given 3D location using trilinear interpolation.
-Handles topography by setting velocity to zero below surface level.
+Interpolate the vertical wind to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+
+At grid points beyond the vertical boundaries, the values used in the interpolation are replaced with zero.
 
 # Arguments
 
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::W`: Type specifier for vertical velocity component
+  - `xlc`: Zonal position of interest.
+  - `ylc`: Meridional position of interest.
+  - `zlc`: Vertical position of interest.
+  - `state::State`: Model state.
+  - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
 
-  - Interpolated W velocity value at the specified location
+  - `::AbstractFloat`: Interpolated vertical wind at the location of interest.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+  - [`PinCFlow.MSGWaM.Update.compute_vertical_wind`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -487,20 +504,25 @@ interpolate_mean_flow(
 )
 ```
 
-Interpolate zonal derivative of zonal velocity (∂u/∂x) to a given 3D location.
-Returns zero for single-point domains in x-direction.
+Interpolate the zonal derivative of the zonal wind (``\\partial u / \\partial x``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
 
 # Arguments
 
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::DUDX`: Type specifier for ∂u/∂x derivative
+  - `xlc`: Zonal position of interest.
+  - `ylc`: Meridional position of interest.
+  - `zlc`: Vertical position of interest.
+  - `state::State`: Model state.
+  - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
 
-  - Interpolated ∂u/∂x value at the specified location
+  - `::AbstractFloat`: Interpolated ``\\partial u / \\partial x`` at the location of interest.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.compute_derivatives`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -639,20 +661,25 @@ interpolate_mean_flow(
 )
 ```
 
-Interpolate meridional derivative of zonal velocity (∂u/∂y) to a given 3D location.
-Returns zero for single-point domains in y-direction.
+Interpolate the meridional derivative of the zonal wind (``\\partial u / \\partial y``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
 
 # Arguments
 
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::DUDY`: Type specifier for ∂u/∂y derivative
+  - `xlc`: Zonal position of interest.
+  - `ylc`: Meridional position of interest.
+  - `zlc`: Vertical position of interest.
+  - `state::State`: Model state.
+  - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
 
-  - Interpolated ∂u/∂y value at the specified location
+  - `::AbstractFloat`: Interpolated ``\\partial u / \\partial y`` at the location of interest.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.compute_derivatives`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -788,19 +815,25 @@ interpolate_mean_flow(
 )
 ```
 
-Interpolate vertical derivative of zonal velocity (∂u/∂z) to a given 3D location.
+Interpolate the vertical derivative of the zonal wind (``\\partial u / \\partial z``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
 
 # Arguments
 
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::DUDZ`: Type specifier for ∂u/∂z derivative
+  - `xlc`: Zonal position of interest.
+  - `ylc`: Meridional position of interest.
+  - `zlc`: Vertical position of interest.
+  - `state::State`: Model state.
+  - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
 
-  - Interpolated ∂u/∂z value at the specified location
+  - `::AbstractFloat`: Interpolated ``\\partial u / \\partial z`` at the location of interest.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.compute_derivatives`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -936,20 +969,25 @@ interpolate_mean_flow(
 )
 ```
 
-Interpolate zonal derivative of meridional velocity (∂v/∂x) to a given 3D location.
-Returns zero for single-point domains in x-direction.
+Interpolate the zonal derivative of the meridional wind (``\\partial v / \\partial x``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
 
 # Arguments
 
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::DVDX`: Type specifier for ∂v/∂x derivative
+  - `xlc`: Zonal position of interest.
+  - `ylc`: Meridional position of interest.
+  - `zlc`: Vertical position of interest.
+  - `state::State`: Model state.
+  - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
 
-  - Interpolated ∂v/∂x value at the specified location
+  - `::AbstractFloat`: Interpolated ``\\partial v / \\partial x`` at the location of interest.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.compute_derivatives`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -1085,20 +1123,25 @@ interpolate_mean_flow(
 )
 ```
 
-Interpolate meridional derivative of meridional velocity (∂v/∂y) to a given 3D location.
-Returns zero for single-point domains in y-direction.
+Interpolate the meridional derivative of the meridional wind (``\\partial v / \\partial y``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
 
 # Arguments
 
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::DVDY`: Type specifier for ∂v/∂y derivative
+  - `xlc`: Zonal position of interest.
+  - `ylc`: Meridional position of interest.
+  - `zlc`: Vertical position of interest.
+  - `state::State`: Model state.
+  - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
 
-  - Interpolated ∂v/∂y value at the specified location
+  - `::AbstractFloat`: Interpolated ``\\partial v / \\partial y`` at the location of interest.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.compute_derivatives`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
@@ -1238,19 +1281,25 @@ interpolate_mean_flow(
 )
 ```
 
-Interpolate vertical derivative of meridional velocity (∂v/∂z) to a given 3D location.
+Interpolate the vertical derivative of the meridional wind (``\\partial v / \\partial z``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
 
 # Arguments
 
-  - `xlc::AbstractFloat`: Target x-coordinate
-  - `ylc::AbstractFloat`: Target y-coordinate
-  - `zlc::AbstractFloat`: Target z-coordinate
-  - `state::State`: Model state containing variables and grid information
-  - `phitype::DVDZ`: Type specifier for ∂v/∂z derivative
+  - `xlc`: Zonal position of interest.
+  - `ylc`: Meridional position of interest.
+  - `zlc`: Vertical position of interest.
+  - `state::State`: Model state.
+  - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
 
-  - Interpolated ∂v/∂z value at the specified location
+  - `::AbstractFloat`: Interpolated ``\\partial v / \\partial z`` at the location of interest.
+
+# See also
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.compute_derivatives`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
 function interpolate_mean_flow(
     xlc::AbstractFloat,
