@@ -37,10 +37,12 @@ The exact algorithm is as follows.
   1. Interpolation in ``x``:
 
 ```math
-\\psi_\\mathrm{BD} = f_x \\psi_\\mathrm{LBD} + (1 - f_x) \\psi_\\mathrm{RBD},\\\\
-\\psi_\\mathrm{BU} = f_x \\psi_\\mathrm{LBU} + (1 - f_x) \\psi_\\mathrm{RBU},\\\\
-\\psi_\\mathrm{FD} = f_x \\psi_\\mathrm{LFD} + (1 - f_x) \\psi_\\mathrm{RFD},\\\\
-\\psi_\\mathrm{FU} = f_x \\psi_\\mathrm{LFU} + (1 - f_x) \\psi_\\mathrm{RFU}
+\\begin{align*}
+\\psi_\\mathrm{BD} & = f_x \\psi_\\mathrm{LBD} + (1 - f_x) \\psi_\\mathrm{RBD},\\\\
+\\psi_\\mathrm{BU} & = f_x \\psi_\\mathrm{LBU} + (1 - f_x) \\psi_\\mathrm{RBU},\\\\
+\\psi_\\mathrm{FD} & = f_x \\psi_\\mathrm{LFD} + (1 - f_x) \\psi_\\mathrm{RFD},\\\\
+\\psi_\\mathrm{FU} & = f_x \\psi_\\mathrm{LFU} + (1 - f_x) \\psi_\\mathrm{RFU}
+\\end{align*}
 ```
 
   2. Interpolation in ``y``:
