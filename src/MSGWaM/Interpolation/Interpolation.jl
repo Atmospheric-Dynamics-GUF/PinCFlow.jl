@@ -9,8 +9,8 @@ Provides functions that find the grid points closest to a given ray-volume posit
 
 # See also
 
-  - [`PinCFlow.Types`]
-  - [`PinCFlow.Update`]
+  - [`PinCFlow.Types`](@ref)
+  - [`PinCFlow.Update`](@ref)
 """
 module Interpolation
 
