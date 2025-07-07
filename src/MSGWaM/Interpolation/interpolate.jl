@@ -25,112 +25,84 @@ interpolate(
     xl::AbstractFloat = NaN,
     xr::AbstractFloat = NaN,
     xlc::AbstractFloat = NaN,
-) -> AbstractFloat
+)
 ```
 
-Perform trilinear interpolation in 3D space with terrain-following coordinates.
+Perform trilinear interpolation to `(xlc, ylc, zlc)`, with values from eight surrounding grid points (two zonal positions, two meridional positions and eight vertical positions).
 
-Core interpolation function that implements trilinear interpolation for arbitrary
-points in 3D atmospheric domains. Handles domain dimensionality automatically
-and accounts for terrain-following coordinate systems used in atmospheric models.
+Out of the eight grid points, four each are assumed to be to the left, to the right, behind, in front of, below and above the location of interest. Due to the grid being terrain-following, this includes eight different vertical positions, but only two zonal and two meridional positions. This is handled by performing successive linear interpolations, where the vertical position is interpolated along with the field of interest.
+
+The exact algorithm is as follows (where the acronyms ``\\mathrm{L}``, ``\\mathrm{R}``, ``\\mathrm{B}``, ``\\mathrm{F}``, ``\\mathrm{D}`` and ``\\mathrm{U}``).
+
+  1. Interpolation in ``x``:
+
+```math
+\\psi_\\mathrm{BD} & = f_x \\psi_\\mathrm{LBD} + (1 - f_x) \\psi_\\mathrm{RBD},\\
+\\psi_\\mathrm{BU} & = f_x \\psi_\\mathrm{LBU} + (1 - f_x) \\psi_\\mathrm{RBU},\\
+\\psi_\\mathrm{FD} & = f_x \\psi_\\mathrm{LFD} + (1 - f_x) \\psi_\\mathrm{RFD},\\
+\\psi_\\mathrm{FU} & = f_x \\psi_\\mathrm{LFU} + (1 - f_x) \\psi_\\mathrm{RFU}
+```
+
+  2. Interpolation in ``y``:
+
+```math
+\\psi_\\mathrm{D} & = f_y \\psi_\\mathrm{BD} + (1 - f_y) \\psi_\\mathrm{FD},\\
+\\psi_\\mathrm{U} & = f_y \\psi_\\mathrm{BU} + (1 - f_y) \\psi_\\mathrm{FU}
+```
+
+  3. Interpolation in ``z``:
+
+```math
+\\phi_\\mathrm{C} & = f_z \\phi_\\mathrm{D} + (1 - f_z) \\phi_\\mathrm{U}
+```
+
+Therein, the acronyms ``\\mathrm{L}``, ``\\mathrm{R}``, ``\\mathrm{B}``, ``\\mathrm{F}``, ``\\mathrm{D}`` and ``\\mathrm{U}`` represent the grid points to the left, to the right, forward, backward, downward and upward of the location of interest (denoted by ``\\mathrm{C}``), respectively, ``\\psi = \\left(\\phi, z\\right)`` and
+
+```math
+\\f_\\alpha = \\begin{cases}
+0 & \\mathrm{if} \\quad \\alpha_\\beta = \\alpha_\\gamma,\\
+1 & \\mathrm{if} \\quad \\alpha_\\mathrm{C} < \\alpha_\\beta,\\
+\\frac{\\alpha_\\gamma - \\alpha_\\mathrm{C}}{\\alpha_\\gamma - \\alpha_\\beta} & \\alpha_\\beta \\leq \\alpha_\\mathrm{C} \\leq \\alpha_\\gamma,\\
+0 & \\alpha_\\gamma < \\alpha_\\mathrm{C}
+\\end{cases}
+```
+
+where ``\\left(\\alpha, \\beta, \\gamma\\right) \\in \\left\\{\\left(x, \\mathrm{L}, \\mathrm{R}\\right), \\left(y, \\mathrm{B}, \\mathrm{F}\\right), \\left(z, \\mathrm{D}, \\mathrm{U}\\right)\\right}``.
+
+Due to their large number, the positions and values are given as keyword arguments with the default value `NaN`, so that their order does not matter and missing arguments are easy to detect.
 
 # Arguments
 
-  - `namelists::Namelists`: Model configuration containing domain dimensions
-
-# Keyword Arguments
-
-## Field Values (8 corner points)
-
-  - `philbd, philbu`: Left-backward field values (down/up in vertical)
-  - `philfd, philfu`: Left-forward field values (down/up in vertical)
-  - `phirbd, phirbu`: Right-backward field values (down/up in vertical)
-  - `phirfd, phirfu`: Right-forward field values (down/up in vertical)
-
-## Coordinate Values (8 corner points)
-
-  - `zlbd, zlbu, zlfd, zlfu`: Left vertical coordinates (backward/forward, down/up)
-  - `zrbd, zrbu, zrfd, zrfu`: Right vertical coordinates (backward/forward, down/up)
-
-## Interpolation Point
-
-  - `xlc, ylc, zlc`: Target coordinates for interpolation
-  - `xl, xr`: Left/right grid coordinates
-  - `yb, yf`: Backward/forward grid coordinates
+  - `namelists`: Namelists with all model parameters.
+  - `philbd`: Value at the point to the left, behind and below.
+  - `philbu`: Value at the point to the left, behind and above.
+  - `philfd`: Value at the point to the left, in front and below.
+  - `philfu`: Value at the point to the left, in front and above.
+  - `phirbd`: Value at the point to the right, behind and below.
+  - `phirbu`: Value at the point to the right, behind and above.
+  - `phirfd`: Value at the point to the right, in front and below.
+  - `phirfu`: Value at the point to the right, in front and above.
+  - `zlbd`: Vertical coordinate of the point to the left, behind and below.
+  - `zlbu`: Vertical coordinate of the point to the left, behind and above.
+  - `zlfd`: Vertical coordinate of the point to the left, in front and below.
+  - `zlfu`: Vertical coordinate of the point to the left, in front and above.
+  - `zrbd`: Vertical coordinate of the point to the right, behind and below.
+  - `zrbu`: Vertical coordinate of the point to the right, behind and above.
+  - `zrfd`: Vertical coordinate of the point to the right, in front and below.
+  - `zrfu`: Vertical coordinate of the point to the right, in front and above.
+  - `zlc`: Vertical position of interest.
+  - `yb`: Meridional coordinate of the points behind.
+  - `yf`: Meridional coordinate of the points in front.
+  - `ylc`: Meridional position of interest.
+  - `xl`: Zonal coordinate of the points to the left.
+  - `xr`: Zonal coordinate of the points to the right.
+  - `xlc`: Zonal position of interest.
 
 # Returns
 
-  - `AbstractFloat`: Interpolated field value at target point
+  - `::AbstractFloat`: Interpolated field value at the location of interest.
 
 # Algorithm
-
-Performs sequential interpolation in each dimension:
-
-## 1. X-Direction Interpolation
-
-For multi-dimensional domains (`sizex > 1`):
-
-  - Computes interpolation factor based on position within grid cell
-  - Linearly interpolates between left and right grid values
-  - Handles edge cases where target point is outside interpolation bounds
-
-## 2. Y-Direction Interpolation
-
-For multi-dimensional domains (`sizey > 1`):
-
-  - Interpolates between backward and forward values
-  - Uses results from x-direction interpolation as input
-
-## 3. Z-Direction Interpolation
-
-Final vertical interpolation:
-
-  - Accounts for terrain-following coordinate stretching
-  - Handles varying grid spacing in vertical direction
-  - Produces final interpolated value
-
-# Interpolation Factor Calculation
-
-For each direction, computes factor `f` where:
-
-  - `f = 0`: Use lower/left/backward value exclusively
-  - `f = 1`: Use upper/right/forward value exclusively
-  - `0 < f < 1`: Linear combination of both values
-
-Special cases:
-
-  - Points outside interpolation bounds use nearest boundary value
-  - Zero spacing between grid points defaults to lower/left/backward value
-
-# Coordinate System Support
-
-  - **Cartesian coordinates**: Standard rectangular grids
-  - **Terrain-following**: Vertical coordinates follow surface topography
-  - **Stretched grids**: Non-uniform spacing in any direction
-  - **Staggered grids**: Different variable locations on grid
-
-# Error Handling
-
-Validates coordinate ordering:
-
-  - `xr ≥ xl`: Right coordinate ≥ left coordinate
-  - `yf ≥ yb`: Forward coordinate ≥ backward coordinate
-  - `zu ≥ zd`: Upper coordinate ≥ lower coordinate
-
-# Applications
-
-Used throughout MSGWaM for:
-
-  - Mean flow interpolation to ray positions
-  - Stratification evaluation along ray paths
-  - Sponge layer coefficient determination
-  - Background field derivatives for refraction calculations
-
-# Performance Notes
-
-  - Efficient for scattered interpolation points
-  - Avoids expensive grid searches by using pre-computed indices
-  - Handles domain boundaries and coordinate singularities gracefully
 """
 function interpolate(
     namelists::Namelists;
