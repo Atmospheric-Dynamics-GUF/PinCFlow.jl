@@ -276,8 +276,6 @@ module type_module
   ! Number of wave modes (FJApr2023)
   integer :: nwm
 
-  character(len = 10) :: launch_algorithm
-
   real :: zmin_wkb_dim, zmin_wkb
 
   integer :: nray_fac ! maximum factor by which the # of rays may increase
@@ -294,8 +292,8 @@ module type_module
       &sm_filter, lsaturation, alpha_sat, single_column, steady_state, &
       &case_wkb, amp_wkb, wlrx_init, wlry_init, wlrz_init, xr0_dim, yr0_dim, &
       &zr0_dim, sigwpx_dim, sigwpy_dim, sigwpz_dim, branchr, lindUinit, &
-      &blocking, long_threshold, drag_coefficient, nwm, launch_algorithm, &
-      &zmin_wkb_dim, nray_fac, cons_merge ! JaWi: new nml!
+      &blocking, long_threshold, drag_coefficient, nwm, zmin_wkb_dim, &
+      &nray_fac, cons_merge ! JaWi: new nml!
   ! Jan Weinkaemmerer, 27.11.18
 
   !------------------------------------------
@@ -691,6 +689,7 @@ module type_module
 
   real :: relaxation_period
   real :: relaxation_amplitude
+  real, dimension(1:3) :: relaxation_wind
 
   ! boundary types
   character(len = 15) :: xBoundary
@@ -704,7 +703,8 @@ module type_module
       &wFluxCorr, thetaFluxCorr, nbCellCorr, spongeLayer, sponge_uv, &
       &spongeHeight, spongeAlphaZ_dim, spongeAlphaZ_fac, unifiedSponge, &
       &lateralSponge, spongeType, spongeOrder, cosmoSteps, relax_to_mean, &
-      &relaxation_period, relaxation_amplitude, xBoundary, yBoundary, zBoundary
+      &relaxation_period, relaxation_amplitude, relaxation_wind, xBoundary, &
+      &yBoundary, zBoundary
 
   !-----------------------------------------------------------------
   !                     WKB arrays and variables
@@ -1024,7 +1024,6 @@ module type_module
     long_threshold = 0.25
     drag_coefficient = 1.0
     nwm = 1
-    launch_algorithm = "clip"
     zmin_wkb_dim = 0.0
     nray_fac = 10
     cons_merge = "wa"
@@ -1193,6 +1192,7 @@ module type_module
     relax_to_mean = .true.
     relaxation_period = 0.0
     relaxation_amplitude = 0.0
+    relaxation_wind = 0.0
     xBoundary = "periodic"
     yBoundary = "periodic"
     zBoundary = "solid_wall"
@@ -1552,8 +1552,6 @@ module type_module
       call write_float("drag_coefficient", drag_coefficient, "Drag coefficient &
           &of the blocked-layer scheme")
       call write_integer("nwm", nwm, "Number of initial wave modes")
-      call write_character("launch_algorithm", launch_algorithm, "Ray-volume &
-          &launch algorithm")
       call write_float("zmin_wkb_dim", zmin_wkb_dim, "Minimum altitude for &
           &wave-mean-flow interaction")
       call write_integer("nray_fac", nray_fac, "Maximum multiplication factor &
@@ -1842,6 +1840,12 @@ module type_module
       call write_float("relaxation_amplitude", relaxation_amplitude, "Relative &
           &amplitude of an oscillation superposed on the background wind if &
           &unifiedSponge == .true. and relax_to_mean == .false.")
+      do iVar = 1, 3
+        write(counter, "(i2)") iVar
+        call write_float("relaxation_wind(" // trim(adjustl(counter)) // ")", &
+            &relaxation_wind(iVar), "Wind to be obtained via relaxation if &
+            &relax_to_mean == .false.")
+      end do
       call write_character("xBoundary", xBoundary, "Boundary conditions in x &
           &('periodic' only)")
       call write_character("yBoundary", yBoundary, "Boundary conditions in y &
