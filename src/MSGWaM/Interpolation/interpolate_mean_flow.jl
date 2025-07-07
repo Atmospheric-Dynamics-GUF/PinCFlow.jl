@@ -9,7 +9,9 @@ interpolate_mean_flow(
 )
 ```
 
-Interpolate the zonal wind to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+Interpolate the zonal wind (``u``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+
+This method first determines the two points in ``\\widehat{x} + \\Delta \\widehat{x} / 2`` and ``\\widehat{y}`` that are closest to ``xlc`` and ``ylc``, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``u`` to the location of interest, using `interpolate`.
 
 # Arguments
 
@@ -21,7 +23,7 @@ Interpolate the zonal wind to `(xlc, ylc, zlc)`, using a trilinear-interpolation
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated zonal wind at the location of interest.
+  - `::AbstractFloat`: Interpolated ``u`` at the location of interest.
 
 # See also
 
@@ -161,7 +163,9 @@ interpolate_mean_flow(
 )
 ```
 
-Interpolate the meridional wind to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+Interpolate the meridional wind (``v``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+
+This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y} + \\Delta \\widehat{y} / 2`` that are closest to ``xlc`` and ``ylc``, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``v`` to the location of interest, using `interpolate`.
 
 # Arguments
 
@@ -173,7 +177,7 @@ Interpolate the meridional wind to `(xlc, ylc, zlc)`, using a trilinear-interpol
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated meridional wind at the location of interest.
+  - `::AbstractFloat`: Interpolated ``v`` at the location of interest.
 
 # See also
 
@@ -315,9 +319,9 @@ interpolate_mean_flow(
 )
 ```
 
-Interpolate the vertical wind to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+Interpolate the vertical wind (``w``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
 
-At grid points beyond the vertical boundaries, the values used in the interpolation are replaced with zero.
+This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to ``xlc`` and ``ylc``, respectively. For each of these four horizontal positions, it then determines the two points in ``z + J \\Delta \\widehat{z} / 2`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``w`` to the location of interest, using `compute_vertical_wind` and `interpolate`. At grid points beyond the vertical boundaries, the values used in the interpolation are replaced with zeros.
 
 # Arguments
 
@@ -329,7 +333,7 @@ At grid points beyond the vertical boundaries, the values used in the interpolat
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated vertical wind at the location of interest.
+  - `::AbstractFloat`: Interpolated ``w`` at the location of interest.
 
 # See also
 
@@ -506,6 +510,8 @@ interpolate_mean_flow(
 
 Interpolate the zonal derivative of the zonal wind (``\\partial u / \\partial x``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
 
+This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to ``xlc`` and ``ylc``, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial u / \\partial x`` to the location of interest, using `compute_derivatives` and `interpolate`.
+
 # Arguments
 
   - `xlc`: Zonal position of interest.
@@ -663,6 +669,8 @@ interpolate_mean_flow(
 
 Interpolate the meridional derivative of the zonal wind (``\\partial u / \\partial y``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
 
+This method first determines the two points in ``\\widehat{x} + \\Delta \\widehat{x} / 2`` and ``\\widehat{y} + \\Delta \\widehat{y} / 2`` that are closest to ``xlc`` and ``ylc``, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial u / \\partial y`` to the location of interest, using `compute_derivatives` and `interpolate`.
+
 # Arguments
 
   - `xlc`: Zonal position of interest.
@@ -816,6 +824,8 @@ interpolate_mean_flow(
 ```
 
 Interpolate the vertical derivative of the zonal wind (``\\partial u / \\partial z``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+
+This method first determines the two points in ``\\widehat{x} + \\Delta \\widehat{x} / 2`` and ``\\widehat{y}`` that are closest to ``xlc`` and ``ylc``, respectively. For each of these four horizontal positions, it then determines the two points in ``z + J \\Delta \\widehat{z} / 2`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial u / \\partial z`` to the location of interest, using `compute_derivatives` and `interpolate`.
 
 # Arguments
 
@@ -971,6 +981,8 @@ interpolate_mean_flow(
 
 Interpolate the zonal derivative of the meridional wind (``\\partial v / \\partial x``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
 
+This method first determines the two points in ``\\widehat{x} + \\Delta \\widehat{x} / 2`` and ``\\widehat{y} + \\Delta \\widehat{y} / 2`` that are closest to ``xlc`` and ``ylc``, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial v / \\partial x`` to the location of interest, using `compute_derivatives` and `interpolate`.
+
 # Arguments
 
   - `xlc`: Zonal position of interest.
@@ -1124,6 +1136,8 @@ interpolate_mean_flow(
 ```
 
 Interpolate the meridional derivative of the meridional wind (``\\partial v / \\partial y``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+
+This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y}`` that are closest to ``xlc`` and ``ylc``, respectively. For each of these four horizontal positions, it then determines the two points in ``z`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial v / \\partial y`` to the location of interest, using `compute_derivatives` and `interpolate`.
 
 # Arguments
 
@@ -1282,6 +1296,8 @@ interpolate_mean_flow(
 ```
 
 Interpolate the vertical derivative of the meridional wind (``\\partial v / \\partial z``) to `(xlc, ylc, zlc)`, using a trilinear-interpolation algorithm.
+
+This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{y} + \\Delta \\widehat{y} / 2`` that are closest to ``xlc`` and ``ylc``, respectively. For each of these four horizontal positions, it then determines the two points in ``z + J \\Delta \\widehat{z} / 2`` that are closest to `zlc`. The resulting eight grid points are used to interpolate ``\\partial v / \\partial z`` to the location of interest, using `compute_derivatives` and `interpolate`.
 
 # Arguments
 
