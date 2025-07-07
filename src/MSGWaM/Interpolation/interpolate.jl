@@ -48,8 +48,10 @@ The exact algorithm is as follows.
   2. Interpolation in ``y``:
 
 ```math
-\\psi_\\mathrm{D} = f_y \\psi_\\mathrm{BD} + (1 - f_y) \\psi_\\mathrm{FD},\\\\
-\\psi_\\mathrm{U} = f_y \\psi_\\mathrm{BU} + (1 - f_y) \\psi_\\mathrm{FU}
+\\begin{align*}
+\\psi_\\mathrm{D} & = f_y \\psi_\\mathrm{BD} + (1 - f_y) \\psi_\\mathrm{FD},\\\\
+\\psi_\\mathrm{U} & = f_y \\psi_\\mathrm{BU} + (1 - f_y) \\psi_\\mathrm{FU}
+\\end{align*}
 ```
 
   3. Interpolation in ``z``:
@@ -62,9 +64,9 @@ Therein, the acronyms ``\\mathrm{L}``, ``\\mathrm{R}``, ``\\mathrm{B}``, ``\\mat
 
 ```math
 \\f_\\alpha = \\begin{cases}
-0 & \\mathrm{if} \\quad \\alpha_\\beta = \\alpha_\\gamma,\\
-1 & \\mathrm{if} \\quad \\alpha_\\mathrm{C} < \\alpha_\\beta,\\
-\\frac{\\alpha_\\gamma - \\alpha_\\mathrm{C}}{\\alpha_\\gamma - \\alpha_\\beta} & \\alpha_\\beta \\leq \\alpha_\\mathrm{C} \\leq \\alpha_\\gamma,\\
+0 & \\mathrm{if} \\quad \\alpha_\\beta = \\alpha_\\gamma,\\\\
+1 & \\mathrm{if} \\quad \\alpha_\\mathrm{C} < \\alpha_\\beta,\\\\
+\\frac{\\alpha_\\gamma - \\alpha_\\mathrm{C}}{\\alpha_\\gamma - \\alpha_\\beta} & \\alpha_\\beta \\leq \\alpha_\\mathrm{C} \\leq \\alpha_\\gamma,\\\\
 0 & \\alpha_\\gamma < \\alpha_\\mathrm{C}
 \\end{cases}
 ```
