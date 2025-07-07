@@ -36,38 +36,38 @@ The exact algorithm is as follows.
 
  1. Interpolation in ``x``:
 
-```math
-\\begin{align*}
-\\psi_\\mathrm{BD} & = f_x \\psi_\\mathrm{LBD} + (1 - f_x) \\psi_\\mathrm{RBD},\\\\
-\\psi_\\mathrm{BU} & = f_x \\psi_\\mathrm{LBU} + (1 - f_x) \\psi_\\mathrm{RBU},\\\\
-\\psi_\\mathrm{FD} & = f_x \\psi_\\mathrm{LFD} + (1 - f_x) \\psi_\\mathrm{RFD},\\\\
-\\psi_\\mathrm{FU} & = f_x \\psi_\\mathrm{LFU} + (1 - f_x) \\psi_\\mathrm{RFU}
-\\end{align*}
-```
+    ```math
+    \\begin{align*}
+    \\psi_\\mathrm{BD} & = f_x \\psi_\\mathrm{LBD} + (1 - f_x) \\psi_\\mathrm{RBD},\\\\
+    \\psi_\\mathrm{BU} & = f_x \\psi_\\mathrm{LBU} + (1 - f_x) \\psi_\\mathrm{RBU},\\\\
+    \\psi_\\mathrm{FD} & = f_x \\psi_\\mathrm{LFD} + (1 - f_x) \\psi_\\mathrm{RFD},\\\\
+    \\psi_\\mathrm{FU} & = f_x \\psi_\\mathrm{LFU} + (1 - f_x) \\psi_\\mathrm{RFU}
+    \\end{align*}
+    ```
 
  2. Interpolation in ``y``:
 
-```math
-\\begin{align*}
-\\psi_\\mathrm{D} & = f_y \\psi_\\mathrm{BD} + (1 - f_y) \\psi_\\mathrm{FD},\\\\
-\\psi_\\mathrm{U} & = f_y \\psi_\\mathrm{BU} + (1 - f_y) \\psi_\\mathrm{FU}
-\\end{align*}
-```
+    ```math
+    \\begin{align*}
+    \\psi_\\mathrm{D} & = f_y \\psi_\\mathrm{BD} + (1 - f_y) \\psi_\\mathrm{FD},\\\\
+    \\psi_\\mathrm{U} & = f_y \\psi_\\mathrm{BU} + (1 - f_y) \\psi_\\mathrm{FU}
+    \\end{align*}
+    ```
 
  3. Interpolation in ``z``:
 
-```math
-\\phi_\\mathrm{C} = f_z \\phi_\\mathrm{D} + (1 - f_z) \\phi_\\mathrm{U}
-```
+    ```math
+    \\phi_\\mathrm{C} = f_z \\phi_\\mathrm{D} + (1 - f_z) \\phi_\\mathrm{U}
+    ```
 
-Therein, the acronyms ``\\mathrm{L}``, ``\\mathrm{R}``, ``\\mathrm{B}``, ``\\mathrm{F}``, ``\\mathrm{D}`` and ``\\mathrm{U}`` denote the grid points to the left, to the right, forward, backward, downward and upward of the location of interest (denoted by ``\\mathrm{C}``), respectively, ``\\psi = \\left(\\phi, z\\right)`` and
+Therein, ``\\mathrm{L}``, ``\\mathrm{R}``, ``\\mathrm{B}``, ``\\mathrm{F}``, ``\\mathrm{D}`` and ``\\mathrm{U}`` denote grid points to the left, to the right, forward, backward, downward and upward of the location of interest (denoted by ``\\mathrm{C}``), respectively, ``\\psi = \\left(\\phi, z\\right)`` and
 
 ```math
 f_\\alpha = \\begin{cases}
 0 & \\mathrm{if} \\quad \\alpha_\\beta = \\alpha_\\gamma,\\\\
 1 & \\mathrm{if} \\quad \\alpha_\\mathrm{C} < \\alpha_\\beta,\\\\
-\\frac{\\alpha_\\gamma - \\alpha_\\mathrm{C}}{\\alpha_\\gamma - \\alpha_\\beta} & \\alpha_\\beta \\leq \\alpha_\\mathrm{C} \\leq \\alpha_\\gamma,\\\\
-0 & \\alpha_\\gamma < \\alpha_\\mathrm{C},
+\\frac{\\alpha_\\gamma - \\alpha_\\mathrm{C}}{\\alpha_\\gamma - \\alpha_\\beta} & \\mathrm{if} \\quad \\alpha_\\beta \\leq \\alpha_\\mathrm{C} \\leq \\alpha_\\gamma,\\\\
+0 & \\mathrm{if} \\quad \\alpha_\\gamma < \\alpha_\\mathrm{C},
 \\end{cases}
 ```
 
@@ -104,7 +104,7 @@ Due to their large number, the positions and values are given as keyword argumen
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated field value at the location of interest.
+  - `::AbstractFloat`: Interpolated value at the location of interest.
 """
 function interpolate(
     namelists::Namelists;
