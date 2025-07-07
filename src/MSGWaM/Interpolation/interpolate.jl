@@ -34,7 +34,7 @@ Out of the eight grid points, four each are assumed to be to the left, to the ri
 
 The exact algorithm is as follows.
 
-  1. Interpolation in ``x``:
+ 1. Interpolation in ``x``:
 
 ```math
 \\begin{align*}
@@ -45,7 +45,7 @@ The exact algorithm is as follows.
 \\end{align*}
 ```
 
-  2. Interpolation in ``y``:
+ 2. Interpolation in ``y``:
 
 ```math
 \\begin{align*}
@@ -54,7 +54,7 @@ The exact algorithm is as follows.
 \\end{align*}
 ```
 
-  3. Interpolation in ``z``:
+ 3. Interpolation in ``z``:
 
 ```math
 \\phi_\\mathrm{C} = f_z \\phi_\\mathrm{D} + (1 - f_z) \\phi_\\mathrm{U}
@@ -63,7 +63,7 @@ The exact algorithm is as follows.
 Therein, the acronyms ``\\mathrm{L}``, ``\\mathrm{R}``, ``\\mathrm{B}``, ``\\mathrm{F}``, ``\\mathrm{D}`` and ``\\mathrm{U}`` represent the grid points to the left, to the right, forward, backward, downward and upward of the location of interest (denoted by ``\\mathrm{C}``), respectively, ``\\psi = \\left(\\phi, z\\right)`` and
 
 ```math
-\\f_\\alpha = \\begin{cases}
+f_\\alpha = \\begin{cases}{ll}
 0 & \\mathrm{if} \\quad \\alpha_\\beta = \\alpha_\\gamma,\\\\
 1 & \\mathrm{if} \\quad \\alpha_\\mathrm{C} < \\alpha_\\beta,\\\\
 \\frac{\\alpha_\\gamma - \\alpha_\\mathrm{C}}{\\alpha_\\gamma - \\alpha_\\beta} & \\alpha_\\beta \\leq \\alpha_\\mathrm{C} \\leq \\alpha_\\gamma,\\\\
