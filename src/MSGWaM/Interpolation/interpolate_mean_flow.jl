@@ -16,7 +16,7 @@ Interpolate the zonal wind to `(xlc, ylc, zlc)`, using a trilinear-interpolation
   - `xlc`: Zonal position of interest.
   - `ylc`: Meridional position of interest.
   - `zlc`: Vertical position of interest.
-  - `state::State`: Model state.
+  - `state`: Model state.
   - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
@@ -168,7 +168,7 @@ Interpolate the meridional wind to `(xlc, ylc, zlc)`, using a trilinear-interpol
   - `xlc`: Zonal position of interest.
   - `ylc`: Meridional position of interest.
   - `zlc`: Vertical position of interest.
-  - `state::State`: Model state.
+  - `state`: Model state.
   - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
@@ -324,7 +324,7 @@ At grid points beyond the vertical boundaries, the values used in the interpolat
   - `xlc`: Zonal position of interest.
   - `ylc`: Meridional position of interest.
   - `zlc`: Vertical position of interest.
-  - `state::State`: Model state.
+  - `state`: Model state.
   - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
@@ -511,7 +511,7 @@ Interpolate the zonal derivative of the zonal wind (``\\partial u / \\partial x`
   - `xlc`: Zonal position of interest.
   - `ylc`: Meridional position of interest.
   - `zlc`: Vertical position of interest.
-  - `state::State`: Model state.
+  - `state`: Model state.
   - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
@@ -668,7 +668,7 @@ Interpolate the meridional derivative of the zonal wind (``\\partial u / \\parti
   - `xlc`: Zonal position of interest.
   - `ylc`: Meridional position of interest.
   - `zlc`: Vertical position of interest.
-  - `state::State`: Model state.
+  - `state`: Model state.
   - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
@@ -822,7 +822,7 @@ Interpolate the vertical derivative of the zonal wind (``\\partial u / \\partial
   - `xlc`: Zonal position of interest.
   - `ylc`: Meridional position of interest.
   - `zlc`: Vertical position of interest.
-  - `state::State`: Model state.
+  - `state`: Model state.
   - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
@@ -976,7 +976,7 @@ Interpolate the zonal derivative of the meridional wind (``\\partial v / \\parti
   - `xlc`: Zonal position of interest.
   - `ylc`: Meridional position of interest.
   - `zlc`: Vertical position of interest.
-  - `state::State`: Model state.
+  - `state`: Model state.
   - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
@@ -1130,7 +1130,7 @@ Interpolate the meridional derivative of the meridional wind (``\\partial v / \\
   - `xlc`: Zonal position of interest.
   - `ylc`: Meridional position of interest.
   - `zlc`: Vertical position of interest.
-  - `state::State`: Model state.
+  - `state`: Model state.
   - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
@@ -1288,7 +1288,7 @@ Interpolate the vertical derivative of the meridional wind (``\\partial v / \\pa
   - `xlc`: Zonal position of interest.
   - `ylc`: Meridional position of interest.
   - `zlc`: Vertical position of interest.
-  - `state::State`: Model state.
+  - `state`: Model state.
   - `phitype`: Mean-flow quantity to interpolate.
 
 # Returns
