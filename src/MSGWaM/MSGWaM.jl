@@ -7,6 +7,12 @@ MSGWaM
 
 Computes the impact of unresolved gravity waves on the resolved flow...
 
+# See also
+
+  - [`PinCFlow.MSGWaM.BoundaryRays`](@ref)
+  - [`PinCFlow.MSGWaM.RayUpdate`](@ref)
+  - [`PinCFlow.MSGWaM.MeanFlowEffect`](@ref)
+
 # External links
 
   1. [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1)
