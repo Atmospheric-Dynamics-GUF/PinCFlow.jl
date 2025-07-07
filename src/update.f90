@@ -169,7 +169,7 @@ module update_module
             &mpi_double_precision, mpi_sum, comm, ierror)
         sum_global = sum_global / (sizeX * sizeY)
       else
-        uBG = backgroundFlow_dim(1) / uRef
+        uBG = relaxation_wind(1) / uRef
         if(relaxation_period > 0.0) uBG = uBG * (1.0 + relaxation_amplitude &
             &* sin(2.0 * pi * time / relaxation_period * tRef))
       end if
@@ -202,7 +202,7 @@ module update_module
             &mpi_double_precision, mpi_sum, comm, ierror)
         sum_global = sum_global / (sizeX * sizeY)
       else
-        vBG = backgroundFlow_dim(2) / uRef
+        vBG = relaxation_wind(2) / uRef
         if(relaxation_period > 0.0) vBG = vBG * (1.0 + relaxation_amplitude &
             &* sin(2.0 * pi * time / relaxation_period * tRef))
       end if
@@ -235,7 +235,7 @@ module update_module
             &mpi_double_precision, mpi_sum, comm, ierror)
         sum_global = sum_global / (sizeX * sizeY)
       else
-        wBG = backgroundFlow_dim(3) / uRef
+        wBG = relaxation_wind(3) / uRef
         if(relaxation_period > 0.0) wBG = wBG * (1.0 + relaxation_amplitude &
             &* sin(2.0 * pi * time / relaxation_period * tRef))
       end if
@@ -3812,9 +3812,9 @@ module update_module
         !----------------------
         !     CFL condition
         !----------------------
-        uMax = maxval(abs(var%u(1:nx, 1:ny, 1:nz))) + small
-        vMax = maxval(abs(var%v(1:nx, 1:ny, 1:nz))) + small
-        wMax = maxval(abs(var%w(1:nx, 1:ny, 1:nz))) + small
+        uMax = maxval(abs(var%u(1:nx, 1:ny, 1:nz))) + epsilon(1.0d0)
+        vMax = maxval(abs(var%v(1:nx, 1:ny, 1:nz))) + epsilon(1.0d0)
+        wMax = maxval(abs(var%w(1:nx, 1:ny, 1:nz))) + epsilon(1.0d0)
 
         dtConv_loc = cfl * min(dx / uMax, dy / vMax, dz / wMax)
 
@@ -3824,7 +3824,7 @@ module update_module
               do i = 1, nx
                 dtConv_loc = min(dtConv_loc, cfl * jac(i, j, k) * dz &
                     &/ (abs(0.5 * (vertWindTFC(i, j, k, var) + vertWindTFC(i, &
-                    &j, k - 1, var))) + small))
+                    &j, k - 1, var))) + epsilon(1.0d0)))
               end do
             end do
           end do
@@ -3874,28 +3874,31 @@ module update_module
         !    Gravity wave time period
         !------------------------------------
 
-        dtWave = 1. / (NN + small)
+        dtWave = 1. / (NN + epsilon(1.0d0))
 
         !------------------------------------
         !     WKB "CFL" criterion
         !------------------------------------
 
         if(raytracer) then
-          dtWKB_loc = dz / (cgz_max + small)
+          dtWKB_loc = dz / (cgz_max + epsilon(1.0d0))
 
           if(topography) then
             do k = 0, nz
               do j = 1, ny
                 do i = 1, nx
-                  dtWKB_loc = min(dtWKB_loc, jac(i, j, k) * dz &
-                      &/ (cgz_max_tfc(i, j, k) + small))
+                  dtWKB_loc = min(dtWKB_loc, minval(jac((i - 1):(i + 1), (j &
+                      &- 1):(j + 1), (k - 1):(k + 1))) * dz / (cgz_max_tfc(i, &
+                      &j, k) + epsilon(1.0d0)))
                 end do
               end do
             end do
           end if
 
-          if(sizeX > 1) dtWKB_loc = min(dtWKB_loc, dx / (cgx_max + small))
-          if(sizeY > 1) dtWKB_loc = min(dtWKB_loc, dy / (cgy_max + small))
+          if(sizeX > 1) dtWKB_loc = min(dtWKB_loc, dx / (cgx_max &
+              &+ epsilon(1.0d0)))
+          if(sizeY > 1) dtWKB_loc = min(dtWKB_loc, dy / (cgy_max &
+              &+ epsilon(1.0d0)))
 
           dtWKB_loc = cfl_wave * dtWKB_loc
 
