@@ -334,7 +334,7 @@ At grid points beyond the vertical boundaries, the values used in the interpolat
 # See also
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
-  - [`PinCFlow.MSGWaM.Update.compute_vertical_wind`](@ref)
+  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
   - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
 function interpolate_mean_flow(
