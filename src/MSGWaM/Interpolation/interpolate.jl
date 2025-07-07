@@ -60,20 +60,20 @@ The exact algorithm is as follows.
 \\phi_\\mathrm{C} = f_z \\phi_\\mathrm{D} + (1 - f_z) \\phi_\\mathrm{U}
 ```
 
-Therein, the acronyms ``\\mathrm{L}``, ``\\mathrm{R}``, ``\\mathrm{B}``, ``\\mathrm{F}``, ``\\mathrm{D}`` and ``\\mathrm{U}`` represent the grid points to the left, to the right, forward, backward, downward and upward of the location of interest (denoted by ``\\mathrm{C}``), respectively, ``\\psi = \\left(\\phi, z\\right)`` and
+Therein, the acronyms ``\\mathrm{L}``, ``\\mathrm{R}``, ``\\mathrm{B}``, ``\\mathrm{F}``, ``\\mathrm{D}`` and ``\\mathrm{U}`` denote the grid points to the left, to the right, forward, backward, downward and upward of the location of interest (denoted by ``\\mathrm{C}``), respectively, ``\\psi = \\left(\\phi, z\\right)`` and
 
 ```math
 f_\\alpha = \\begin{cases}
 0 & \\mathrm{if} \\quad \\alpha_\\beta = \\alpha_\\gamma,\\\\
 1 & \\mathrm{if} \\quad \\alpha_\\mathrm{C} < \\alpha_\\beta,\\\\
 \\frac{\\alpha_\\gamma - \\alpha_\\mathrm{C}}{\\alpha_\\gamma - \\alpha_\\beta} & \\alpha_\\beta \\leq \\alpha_\\mathrm{C} \\leq \\alpha_\\gamma,\\\\
-0 & \\alpha_\\gamma < \\alpha_\\mathrm{C}
+0 & \\alpha_\\gamma < \\alpha_\\mathrm{C},
 \\end{cases}
 ```
 
 where ``\\left(\\alpha, \\beta, \\gamma\\right) \\in \\left\\{\\left(x, \\mathrm{L}, \\mathrm{R}\\right), \\left(y, \\mathrm{B}, \\mathrm{F}\\right), \\left(z, \\mathrm{D}, \\mathrm{U}\\right)\\right\\}``.
 
-Due to their large number, the positions and values are given as keyword arguments with the default value `NaN`, so that their order does not matter and missing arguments are easy to detect.
+Due to their large number, the positions and values are given as keyword arguments with the default value `NaN`, so that their order does not matter and calls with missing arguments are easy to detect.
 
 # Arguments
 
