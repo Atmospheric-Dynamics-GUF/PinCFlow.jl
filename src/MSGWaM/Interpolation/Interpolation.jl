@@ -6,6 +6,11 @@ Interpolation
 Module for interpolating mean-flow quantities to ray-volume positions.
 
 Provides functions that find the grid points closest to a given ray-volume position and perform trilinear interpolation of mean-flow quantities.
+
+# See also
+
+  - [`PinCFlow.Types`]
+  - [`PinCFlow.Update`]
 """
 module Interpolation
 
