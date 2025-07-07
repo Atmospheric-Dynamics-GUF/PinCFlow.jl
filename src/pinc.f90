@@ -412,8 +412,8 @@ program pinc_prog
           &= ray_var3D, tracerforce = tracerforce, waveAmplitudes &
           &= waveAmplitudes, ray = ray)
     elseif(include_ice .and. compute_cloudcover) then
-        call write_netCDF(iOut, iTime, time, cpuTime, var, waveAmplitudes &
-            &= waveAmplitudes, ray_cloud = ray_cloud, sc_ice_field = sc_ice_field)
+      call write_netCDF(iOut, iTime, time, cpuTime, var, waveAmplitudes &
+          &= waveAmplitudes, ray_cloud = ray_cloud, sc_ice_field = sc_ice_field)
     else
       call write_netCDF(iOut, iTime, time, cpuTime, var, ray_var3D &
           &= ray_var3D, waveAmplitudes = waveAmplitudes, ray = ray)
@@ -590,8 +590,8 @@ program pinc_prog
         alphaUnifiedSponge = 0.0
 
         do k = 1, nz
-          do j = 0, ny + 1
-            do i = 0, nx + 1
+          do j = - nby, ny + nby
+            do i = - nbx, nx + nbx
               if(topography) then
                 height = zTFC(i, j, k)
               else
@@ -730,6 +730,8 @@ program pinc_prog
             end do
           end do
         end do
+
+        if(lateralSponge) call setHalosOfField(alphaUnifiedSponge)
 
         alphaUnifiedSponge(:, :, 0) = alphaUnifiedSponge(:, :, 1)
         alphaUnifiedSponge(:, :, nz + 1) = alphaUnifiedSponge(:, :, nz)
