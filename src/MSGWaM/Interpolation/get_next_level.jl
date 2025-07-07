@@ -9,12 +9,12 @@ get_next_level(
 )
 ```
 
-Determine the index of the closest level above `z` at the horizontal position `(i, j)`.
+Determine the index of the next level above `z` at the horizontal position `(i, j)`.
 
-This method is heavily used for interpolation to ray-volume positions. To ensure that the vertical boundary conditions are enforced and no out-of-bounds errors occur, the following constraints are set.
+This method is heavily used for interpolation to ray-volume positions. To ensure that the vertical boundary conditions are met and no out-of-bounds errors occur, the following constraints are set.
 
-  - On MPI processes at the lower boundary of the domain, the returned index cannot be smaller than `domain.k0`, on other processes, it cannot be smaller than 3.
-  - On MPI processes at the upper boundary of the domain, the returned index cannot be larger than `domain.k1 + 1`, on other processes, it cannot be larger than `domain.nzz - 1`.
+  - In MPI processes at the lower boundary of the domain, the returned index cannot be smaller than `domain.k0`, in other processes, it cannot be smaller than 3.
+  - In MPI processes at the upper boundary of the domain, the returned index cannot be larger than `domain.k1 + 1`, in other processes, it cannot be larger than `domain.nzz - 1`.
 
 # Arguments
 
