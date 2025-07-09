@@ -3,20 +3,17 @@
 MergedRays{A <: AbstractVector{<:AbstractFloat}, B <: Ref{<:AbstractFloat}}
 ```
 
-# Type Parameters
-
-  - `A <: AbstractVector{<:AbstractFloat}`: Vector type for position and extent arrays
-  - `B <: Ref{<:AbstractFloat}`: Reference type for scalar values
+Composite type used for creating merged ray volumes.
 
 # Fields
 
-  - `xr::A`: X-direction position bounds
-  - `yr::A`: Y-direction position bounds
-  - `zr::A`: Z-direction position bounds
-  - `kr::A`: K-direction wavenumber bounds
-  - `lr::A`: L-direction wavenumber bounds
-  - `mr::A`: M-direction wavenumber bounds
-  - `nr::B`: Wave action density reference
+  - `xr::A`: Outermost ray-volume bounds in ``x``.
+  - `yr::A`: Outermost ray-volume bounds in ``y``.
+  - `zr::A`: Outermost ray-volume bounds in ``z``.
+  - `kr::A`: Outermost ray-volume bounds in ``k``.
+  - `lr::A`: Outermost ray-volume bounds in ``l``.
+  - `mr::A`: Outermost ray-volume bounds in ``m``.
+  - `nr::B`: Wave-action integral.
 """
 struct MergedRays{
     A <: AbstractVector{<:AbstractFloat},

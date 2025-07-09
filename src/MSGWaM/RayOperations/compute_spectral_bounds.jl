@@ -3,9 +3,20 @@
 compute_spectral_bounds(wavenumbers::AbstractVector{<:AbstractFloat})
 ```
 
+Compute the minima and maxima of positive and negative entries in `wavenumbers`.
+
+This method is used by [`PinCFlow.MSGWaM.RayUpdate.merge_rays!`](@ref) to create spectral bins.
+
 # Arguments
 
-  - `wavenumbers::AbstractVector{<:AbstractFloat}`: Vector of wavenumber values to analyze
+  - `wavenumbers`: Vector of wavenumbers in the considered spectral dimension.
+
+# Returns
+
+  - `::AbstractFloat`: Minimum positive wavenumber.
+  - `::AbstractFloat`: Maximum positive wavenumber.
+  - `::AbstractFloat`: Minimum negative wavenumber.
+  - `::AbstractFloat`: Maximum negative wavenumber.
 """
 function compute_spectral_bounds(wavenumbers::AbstractVector{<:AbstractFloat})
 

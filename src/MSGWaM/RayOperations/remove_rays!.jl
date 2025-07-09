@@ -3,55 +3,17 @@
 remove_rays!(state::State)
 ```
 
-Remove ray volumes with zero wave action density and compact ray arrays.
+Remove gaps (i.e. zero-wave-action ray volumes between nonzero-wave-action ray volumes) in the ray-volume arrays.
 
-Performs cleanup by removing rays marked for deletion (with zero density) and
-compacting the remaining rays to eliminate gaps in the ray volume arrays.
-This maintains array efficiency and prevents memory fragmentation.
+In each grid cell, this method moves all ray volumes as far to the front of the arrays possible and updates `nray` accordingly, so that every ray volume in the range `1:nray[ix, jy, kz]` has nonzero wave action.
 
 # Arguments
 
-  - `state::State`: Complete simulation state containing ray data
+  - `state`: Model state.
 
-# Algorithm
+# See also
 
- 1. **Extended Domain**: Processes rays in extended domain including halo regions
- 2. **Compaction**: For each grid cell, compacts non-zero rays to beginning of array
- 3. **Array Cleanup**: Moves valid rays to fill gaps left by removed rays
- 4. **Count Update**: Updates `nray` count to reflect actual number of active rays
-
-# Grid Cell Range
-
-Processes rays in extended domain:
-
-  - X: `(i0-1):(i1+1)` or adjusted for domain boundaries
-  - Y: `(j0-1):(j1+1)`
-  - Z: Adjusted based on vertical position in global domain
-
-# Implementation Details
-
-  - Uses `copy_rays!` to move ray data between array positions
-  - Sets density to zero for rays in their original positions after copying
-  - Maintains ray order while eliminating gaps
-  - Efficient O(n) compaction algorithm per grid cell
-
-# Memory Management
-
-Essential for:
-
-  - Preventing memory waste from "dead" ray volumes
-  - Maintaining array access efficiency
-  - Enabling accurate ray counting for diagnostics
-  - Preparing arrays for subsequent operations
-
-# Usage Context
-
-Typically called after:
-
-  - Ray shifting operations
-  - Boundary condition applications
-  - Saturation scheme applications
-  - Any operation that may mark rays for removal
+  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """
 function remove_rays!(state::State)
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
