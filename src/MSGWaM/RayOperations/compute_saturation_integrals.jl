@@ -3,33 +3,30 @@
 compute_saturation_integrals(state::State, indices::NTuple{3, <:Integer})
 ```
 
-Compute two spectral integrals needed by the saturation scheme (in a specified grid cell).
+Compute two spectral integrals needed by the saturation scheme (in the grid cell specified by `indices`).
 
-Approximates the spectral integrals
-
-```math
-\\begin{align*}
-    I_1 & = \\int \\left(m \\left|b_\\mathrm{w}\\right|\\right)^2 \\, \\mathrm{d} V_{\\boldsymbol{k}},\\\\
-    I_2 & = \\int \\left(m \\left|b_\\mathrm{w}\\right| \\left|\\boldsymbol{k}\\right|\\right)^2 \\, \\mathrm{d} V_{\\boldsymbol{k}},
-\\end{align*}
-```
-
-where ``\\boldsymbol{k} = \\left(k, l, m\\right)^\\mathrm{T}`` is the wavevector, ``b_\\mathrm{w}`` is the buoyancy gravity-wave amplitude and ``\\mathrm{d} V_{\\boldsymbol{k}} = \\mathrm{d} k \\mathrm{d} l \\mathrm{d} m``. The discrete implementation of these integrals follows
+Computes the sums
 
 ```math
 \\begin{align*}
-    I_1 & \\approx \\sum\\limits_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right|\\right)^2 S_\\alpha \\Delta k_\\alpha, \\Delta l_\\alpha \\Delta m_\\alpha,\\\\
-    I_2 & \\approx \\sum\\limits_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right| \\left|\\boldsymbol{k}_\\alpha\\right|\\right)^2 S_\\alpha \\Delta k_\\alpha, \\Delta l_\\alpha \\Delta m_\\alpha,
+    S_1 & \\approx \\sum\\limits_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right|\\right)^2 f_\\alpha,\\\\
+    S_2 & \\approx \\sum\\limits_\\alpha \\left(m_\\alpha \\left|b_{\\mathrm{w}, \\alpha}\\right| \\left|\\boldsymbol{k}_\\alpha\\right|\\right)^2 f_\\alpha,
 \\end{align*}
 ```
 
-where ``\\alpha`` is the spectral ray-volume index, ``\\left(\\Delta k_\\alpha, \\Delta l_\\alpha, \\Delta m_\\alpha\\right)`` are the spectral ray-volume extents and
+where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)^\\mathrm{T}`` is the wavevector,
 
 ```math
-S_\\alpha = \\max \\left(1, \\frac{\\Delta x_\\alpha}{\\Delta \\widehat{x}}\\right) \\max \\left(1, \\frac{\\Delta y_\\alpha}{\\Delta \\widehat{y}}\\right) \\max \\left(1, \\frac{\\Delta z_\\alpha}{J \\Delta \\widehat{z}}\\right)
+f_\\alpha = \\max \\left(1, \\frac{\\Delta x_\\alpha}{\\Delta \\widehat{x}}\\right) \\max \\left(1, \\frac{\\Delta y_\\alpha}{\\Delta \\widehat{y}}\\right) \\max \\left(1, \\frac{\\Delta z_\\alpha}{J \\Delta \\widehat{z}}\\right)
 ```
 
-is the maximum grid-cell fraction that can be covered by each ray volume (with ``\\left(\\Delta k_\\alpha, \\Delta l_\\alpha, \\Delta m_\\alpha\\right)`` being the ray-volume extents in physical space). In the computation of ``b_{\\mathrm{w}, \\alpha}``, the intrinsic frequency is calculated with `compute_intrinsic_frequency` and the squared buoyancy frequency is interpolated to the ray-volume position, using `interpolate_stratification`.
+is the maximum grid-cell fraction that can be covered by each ray volume (with ``\\left(\\Delta x_\\alpha, \\Delta y_\\alpha, \\Delta z_\\alpha\\right)`` being the ray-volume extents in physical space) and
+
+```math
+\\left|b_{\\mathrm{w}, \\alpha}\\right|^2 = \\frac{2}{\\overline{\\rho}} \\frac{N^4 \\left(k_\\alpha^2 + l_\\alpha^2\\right)}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2} \\mathcal{N}_\\alpha \\Delta k_\\alpha \\Delta l_\\alpha \\Delta m_\\alpha
+```
+
+is the squared buoyancy amplitude. Therein, ``\\overline{\\rho}`` is the background density, ``N^2`` is the squared buoyancy frequency interpolated to the ray-volume position (using `interpolate_stratification`), ``\\widehat{\\omega}_\\alpha`` is the intrinsic frequency (calculated with `compute_intrinsic_frequency`), ``\\mathcal{N}_\\alpha`` is the phase-space wave-action density and ``\\left(\\Delta k_\\alpha, \\Delta l_\\alpha, \\Delta m_\\alpha\\right)`` are the ray-volume extents in spectral space.
 
 # Arguments
 
@@ -38,8 +35,8 @@ is the maximum grid-cell fraction that can be covered by each ray volume (with `
 
 # Returns
 
-  - `::AbstractFloat`: Saturation integral ``I_1``.
-  - `::AbstractFloat`: Saturation integral ``I_2``.
+  - `::AbstractFloat`: Discretized saturation integral ``S_1``.
+  - `::AbstractFloat`: Discretized saturation integral ``S_2``.
 
 # See also
 
