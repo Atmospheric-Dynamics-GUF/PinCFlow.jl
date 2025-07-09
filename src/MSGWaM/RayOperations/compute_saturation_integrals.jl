@@ -26,7 +26,7 @@ is the maximum grid-cell fraction that can be covered by each ray volume (with `
 \\left|b_{\\mathrm{w}, \\alpha}\\right|^2 = \\frac{2}{\\overline{\\rho}} \\frac{N^4 \\left(k_\\alpha^2 + l_\\alpha^2\\right)}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2} \\mathcal{N}_\\alpha \\Delta k_\\alpha \\Delta l_\\alpha \\Delta m_\\alpha
 ```
 
-is the squared buoyancy amplitude. Therein, ``\\overline{\\rho}`` is the background density, ``N^2`` is the squared buoyancy frequency interpolated to the ray-volume position (using `interpolate_stratification`), ``\\widehat{\\omega}_\\alpha`` is the intrinsic frequency (calculated with `compute_intrinsic_frequency`), ``\\mathcal{N}_\\alpha`` is the phase-space wave-action density and ``\\left(\\Delta k_\\alpha, \\Delta l_\\alpha, \\Delta m_\\alpha\\right)`` are the ray-volume extents in spectral space.
+is the squared gravity-wave amplitude of the buoyancy. Therein, ``\\overline{\\rho}`` is the background density, ``N^2`` is the squared buoyancy frequency interpolated to the ray-volume position (using `interpolate_stratification`), ``\\widehat{\\omega}_\\alpha`` is the intrinsic frequency (calculated with `compute_intrinsic_frequency`), ``\\mathcal{N}_\\alpha`` is the phase-space wave-action density and ``\\left(\\Delta k_\\alpha, \\Delta l_\\alpha, \\Delta m_\\alpha\\right)`` are the ray-volume extents in spectral space.
 
 # Arguments
 
