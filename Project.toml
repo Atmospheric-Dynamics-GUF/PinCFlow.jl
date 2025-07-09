@@ -5,6 +5,7 @@ version = "0.1.0"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 HDF5_jll = "0234f1f7-429e-5d53-9886-15a909be8d59"
 JuliaFormatter = "98e50ef6-434e-11e9-1051-2b60c6c9e899"
@@ -20,6 +21,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 Dates = "1.11.0"
+Documenter = "1.13.0"
 LinearAlgebra = "1.11.0"
 MPICH_jll = "4.3.0"
 Random = "1.11.0"
