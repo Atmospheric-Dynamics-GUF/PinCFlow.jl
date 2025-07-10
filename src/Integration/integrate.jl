@@ -256,7 +256,15 @@ function integrate(namelists::Namelists)
             println("")
         end
 
-        implicit_integration!(state, 0.5 * dt, time, ntotalbicg, RHS(), iout)
+        implicit_integration!(
+            state,
+            0.5 * dt,
+            time,
+            ntotalbicg,
+            RHS(),
+            iout,
+            machine_start_time,
+        )
 
         p1 = deepcopy(state.variables.predictands)
 
@@ -285,7 +293,15 @@ function integrate(namelists::Namelists)
             println("")
         end
 
-        implicit_integration!(state, 0.5 * dt, time, ntotalbicg, RHS(), iout)
+        implicit_integration!(
+            state,
+            0.5 * dt,
+            time,
+            ntotalbicg,
+            RHS(),
+            iout,
+            machine_start_time,
+        )
 
         if master
             println("...the semi-implicit time step is done.")

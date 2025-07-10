@@ -40,7 +40,7 @@ function set_compressible_vertical_boundaries!(
     variables::BoundaryFluxes,
     model::Compressible,
 )
-    (; sizezz, nzz, ko, k0, k1)
+    (; sizezz, nzz, ko, k0, k1) = state.domain
     (; phip) = state.variables.fluxes
 
     if ko == 0

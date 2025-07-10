@@ -5,7 +5,10 @@ function implicit_integration!(
     ntotalbicg::Integer,
     side::RHS,
     iout::Integer,
+    machine_start_time::DateTime,
 )
+    (; master) = state.domain
+
     modify_compressible_wind!(state, *)
 
     set_boundaries!(state, BoundaryPredictands())
