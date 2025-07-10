@@ -320,7 +320,7 @@ function propagate_rays!(
                 dldt = -dudyr * kr - dvdyr * lr
                 dmdt =
                     -dudzr * kr - dvdzr * lr -
-                    khr^2 * dn2dzr / (2 * omir + (khr^2 + mr^2))
+                    khr^2 * dn2dzr / (2 * omir * (khr^2 + mr^2))
 
                 dkray[iray, ix, jy, kz] =
                     dt * dkdt + alphark[rkstage] * dkray[iray, ix, jy, kz]
