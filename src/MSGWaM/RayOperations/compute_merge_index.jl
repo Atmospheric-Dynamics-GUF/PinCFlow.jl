@@ -29,7 +29,7 @@ This method is used by [`PinCFlow.MSGWaM.RayUpdate.merge_rays!`](@ref) to sort r
 
 # Returns
 
-  - `::Integer`: Position on the 1D spectral grid.
+  - `::Int`: Position on the 1D spectral grid.
 """
 function compute_merge_index(
     wnr::AbstractFloat,

@@ -25,7 +25,7 @@ This method is used to implement conservation of wave action in ray-volume mergi
 
 # Returns
 
-  - `::AbstractFloat`: `fxk * fyl * fzm * nr`
+  - `::Float64`: `fxk * fyl * fzm * nr`
 """
 function compute_wave_action_integral(
     merge_mode::ConstantWaveAction,
@@ -65,7 +65,7 @@ This method is used to implement conservation of wave energy in ray-volume mergi
 
 # Returns
 
-  - `::AbstractFloat`: `fxk * fyl * fzm * nr * omegar`
+  - `::Float64`: `fxk * fyl * fzm * nr * omegar`
 """
 function compute_wave_action_integral(
     merge_mode::ConstantWaveEnergy,

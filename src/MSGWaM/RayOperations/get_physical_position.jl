@@ -12,9 +12,9 @@ Return the physical position of the ray volume specified by `indices`.
 
 # Returns
 
-  - `::AbstractFloat`: Position in ``x``-direction.
-  - `::AbstractFloat`: Position in ``y``-direction.
-  - `::AbstractFloat`: Position in ``z``-direction.
+  - `::Float64`: Position in ``x``-direction.
+  - `::Float64`: Position in ``y``-direction.
+  - `::Float64`: Position in ``z``-direction.
 """
 function get_physical_position(rays::Rays, indices::NTuple{4, <:Integer})
     return (rays.x[indices...], rays.y[indices...], rays.z[indices...])

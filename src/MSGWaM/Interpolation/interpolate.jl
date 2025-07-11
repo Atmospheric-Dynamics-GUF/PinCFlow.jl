@@ -104,7 +104,7 @@ Due to their large number, the positions and values are given as keyword argumen
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated value at the location of interest.
+  - `::Float64`: Interpolated value at the location of interest.
 """
 function interpolate(
     namelists::Namelists;

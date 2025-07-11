@@ -12,9 +12,9 @@ Return the spectral position of the ray volume specified by `indices`.
 
 # Returns
 
-  - `::AbstractFloat`: Position in ``k``-direction.
-  - `::AbstractFloat`: Position in ``l``-direction.
-  - `::AbstractFloat`: Position in ``m``-direction.
+  - `::Float64`: Position in ``k``-direction.
+  - `::Float64`: Position in ``l``-direction.
+  - `::Float64`: Position in ``m``-direction.
 """
 function get_spectral_position(rays::Rays, indices::NTuple{4, <:Integer})
     return (rays.k[indices...], rays.l[indices...], rays.m[indices...])

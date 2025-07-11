@@ -20,7 +20,7 @@ where ``\\boldsymbol{k}_\\alpha = \\left(k_\\alpha, l_\\alpha, m_\\alpha\\right)
 
 # Returns
 
-  - `::AbstractFloat`: Intrinsic frequency.
+  - `::Float64`: Intrinsic frequency.
 
 # See also
 

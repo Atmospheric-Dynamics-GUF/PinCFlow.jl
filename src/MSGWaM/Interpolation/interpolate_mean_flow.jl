@@ -23,7 +23,7 @@ This method first determines the two points in ``\\widehat{x} + \\Delta \\wideha
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated ``u`` at the location of interest.
+  - `::Float64`: Interpolated ``u`` at the location of interest.
 
 # See also
 
@@ -177,7 +177,7 @@ This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated ``v`` at the location of interest.
+  - `::Float64`: Interpolated ``v`` at the location of interest.
 
 # See also
 
@@ -333,7 +333,7 @@ This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated ``w`` at the location of interest.
+  - `::Float64`: Interpolated ``w`` at the location of interest.
 
 # See also
 
@@ -522,7 +522,7 @@ This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated ``\\partial u / \\partial x`` at the location of interest.
+  - `::Float64`: Interpolated ``\\partial u / \\partial x`` at the location of interest.
 
 # See also
 
@@ -681,7 +681,7 @@ This method first determines the two points in ``\\widehat{x} + \\Delta \\wideha
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated ``\\partial u / \\partial y`` at the location of interest.
+  - `::Float64`: Interpolated ``\\partial u / \\partial y`` at the location of interest.
 
 # See also
 
@@ -837,7 +837,7 @@ This method first determines the two points in ``\\widehat{x} + \\Delta \\wideha
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated ``\\partial u / \\partial z`` at the location of interest.
+  - `::Float64`: Interpolated ``\\partial u / \\partial z`` at the location of interest.
 
 # See also
 
@@ -993,7 +993,7 @@ This method first determines the two points in ``\\widehat{x} + \\Delta \\wideha
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated ``\\partial v / \\partial x`` at the location of interest.
+  - `::Float64`: Interpolated ``\\partial v / \\partial x`` at the location of interest.
 
 # See also
 
@@ -1149,7 +1149,7 @@ This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated ``\\partial v / \\partial y`` at the location of interest.
+  - `::Float64`: Interpolated ``\\partial v / \\partial y`` at the location of interest.
 
 # See also
 
@@ -1309,7 +1309,7 @@ This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated ``\\partial v / \\partial z`` at the location of interest.
+  - `::Float64`: Interpolated ``\\partial v / \\partial z`` at the location of interest.
 
 # See also
 

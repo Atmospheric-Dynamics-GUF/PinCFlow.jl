@@ -15,7 +15,7 @@ This method first determines the two points in ``z`` that are closest to `zlc`. 
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated ``N^2`` at the location of interest.
+  - `::Float64`: Interpolated ``N^2`` at the location of interest.
 
 # See also
 
@@ -78,7 +78,7 @@ This method first determines the two points in ``z + J \\Delta \\widehat{z} / 2`
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated ``\\partial N^2 / \\partial z`` at the location of interest.
+  - `::Float64`: Interpolated ``\\partial N^2 / \\partial z`` at the location of interest.
 
 # See also
 

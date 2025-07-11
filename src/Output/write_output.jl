@@ -42,7 +42,7 @@ All output variables are re-dimensionalized with the scale parameters stored in 
 
 # Returns
 
-  - `::Integer`: Advanced output counter.
+  - `::Int`: Advanced output counter.
 
 # See also
 

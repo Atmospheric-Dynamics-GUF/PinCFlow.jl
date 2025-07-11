@@ -21,7 +21,7 @@ This method first determines the two points in ``\\widehat{x}`` and ``\\widehat{
 
 # Returns
 
-  - `::AbstractFloat`: Interpolated ``\\alpha_\\mathrm{R}`` at the location of interest.
+  - `::Float64`: Interpolated ``\\alpha_\\mathrm{R}`` at the location of interest.
 
 # See also
 

@@ -21,8 +21,8 @@ where unshifted indices have been omitted.
 
 # Returns
 
-  - `::AbstractFloat`: ``\\partial u / \\partial x`` at `(ix, jy, kzd)`.
-  - `::AbstractFloat`: ``\\partial u / \\partial x`` at `(ix, jy, kzu)`.
+  - `::Float64`: ``\\partial u / \\partial x`` at `(ix, jy, kzd)`.
+  - `::Float64`: ``\\partial u / \\partial x`` at `(ix, jy, kzu)`.
 """
 function compute_derivatives(
     state::State,
@@ -77,8 +77,8 @@ where unshifted indices have been omitted.
 
 # Returns
 
-  - `::AbstractFloat`: ``\\partial u / \\partial y`` at `(ix + 1 / 2, jy + 1 / 2, kzd)`.
-  - `::AbstractFloat`: ``\\partial u / \\partial y`` at `(ix + 1 / 2, jy + 1 / 2, kzu)`.
+  - `::Float64`: ``\\partial u / \\partial y`` at `(ix + 1 / 2, jy + 1 / 2, kzd)`.
+  - `::Float64`: ``\\partial u / \\partial y`` at `(ix + 1 / 2, jy + 1 / 2, kzu)`.
 """
 function compute_derivatives(
     state::State,
@@ -145,8 +145,8 @@ where unshifted indices have been omitted. At grid points beyond the vertical bo
 
 # Returns
 
-  - `::AbstractFloat`: ``\\partial u / \\partial z`` at `(ix + 1 / 2, jy, kzd + 1 / 2)`.
-  - `::AbstractFloat`: ``\\partial u / \\partial z`` at `(ix + 1 / 2, jy, kzu + 1 / 2)`.
+  - `::Float64`: ``\\partial u / \\partial z`` at `(ix + 1 / 2, jy, kzd + 1 / 2)`.
+  - `::Float64`: ``\\partial u / \\partial z`` at `(ix + 1 / 2, jy, kzu + 1 / 2)`.
 """
 function compute_derivatives(
     state::State,
@@ -227,8 +227,8 @@ where unshifted indices have been omitted.
 
 # Returns
 
-  - `::AbstractFloat`: ``\\partial v / \\partial x`` at `(ix + 1 / 2, jy + 1 / 2, kzd)`.
-  - `::AbstractFloat`: ``\\partial v / \\partial x`` at `(ix + 1 / 2, jy + 1 / 2, kzu)`.
+  - `::Float64`: ``\\partial v / \\partial x`` at `(ix + 1 / 2, jy + 1 / 2, kzd)`.
+  - `::Float64`: ``\\partial v / \\partial x`` at `(ix + 1 / 2, jy + 1 / 2, kzu)`.
 """
 function compute_derivatives(
     state::State,
@@ -295,8 +295,8 @@ where unshifted indices have been omitted.
 
 # Returns
 
-  - `::AbstractFloat`: ``\\partial v / \\partial y`` at `(ix, jy, kzd)`.
-  - `::AbstractFloat`: ``\\partial v / \\partial y`` at `(ix, jy, kzu)`.
+  - `::Float64`: ``\\partial v / \\partial y`` at `(ix, jy, kzd)`.
+  - `::Float64`: ``\\partial v / \\partial y`` at `(ix, jy, kzu)`.
 """
 function compute_derivatives(
     state::State,
@@ -351,8 +351,8 @@ where unshifted indices have been omitted. At grid points beyond the vertical bo
 
 # Returns
 
-  - `::AbstractFloat`: ``\\partial v / \\partial z`` at `(ix, jy + 1 / 2, kzd + 1 / 2)`.
-  - `::AbstractFloat`: ``\\partial v / \\partial z`` at `(ix, jy + 1 / 2, kzu + 1 / 2)`.
+  - `::Float64`: ``\\partial v / \\partial z`` at `(ix, jy + 1 / 2, kzd + 1 / 2)`.
+  - `::Float64`: ``\\partial v / \\partial z`` at `(ix, jy + 1 / 2, kzu + 1 / 2)`.
 """
 function compute_derivatives(
     state::State,

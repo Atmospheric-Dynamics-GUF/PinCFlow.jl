@@ -12,9 +12,9 @@ Return the physical extents of the ray volume specified by `indices`.
 
 # Returns
 
-  - `::AbstractFloat`: Extent in ``x``-direction.
-  - `::AbstractFloat`: Extent in ``y``-direction.
-  - `::AbstractFloat`: Extent in ``z``-direction.
+  - `::Float64`: Extent in ``x``-direction.
+  - `::Float64`: Extent in ``y``-direction.
+  - `::Float64`: Extent in ``z``-direction.
 """
 function get_physical_extent(rays::Rays, indices::NTuple{4, <:Integer})
     return (
