@@ -33,13 +33,11 @@ mountain-wave theory. The implemented formulas are as follows (where this method
         l_\\alpha & = \\sigma \\mathrm{sgn} \\left(- k_{h, \\alpha} u_h - l_{h, \\alpha} v_h\\right) l_{h, \\alpha}
     \\end{align*}
     ```
-
   - Vertical wavenumber:
 
     ```math
     m_\\alpha = - \\sigma \\sqrt{\\frac{\\left(k_\\alpha^2 + l_\\alpha^2\\right) \\left(N_h^2 - \\widehat{\\omega}_\\alpha^2\\right)}{\\widehat{\\omega}_\\alpha^2 - f^2}}
     ```
-
   - Wave-action density:
 
     ```math

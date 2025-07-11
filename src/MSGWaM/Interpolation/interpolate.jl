@@ -53,7 +53,6 @@ The exact algorithm is as follows.
     \\psi_\\mathrm{U} & = f_y \\psi_\\mathrm{BU} + (1 - f_y) \\psi_\\mathrm{FU}
     \\end{align*}
     ```
-
  3. Interpolation in ``z``:
 
     ```math

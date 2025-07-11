@@ -224,7 +224,8 @@ function State(namelists::Namelists)
     wkb = WKB(namelists, constants, domain, grid)
     tracer = Tracer(namelists, constants, domain, atmosphere, grid, variables)
     ice = Ice(namelists, constants, domain, atmosphere, grid, variables)
-    turbulence = Turbulence(namelists, constants, domain, atmosphere, grid, variables)
+    turbulence =
+        Turbulence(namelists, constants, domain, atmosphere, grid, variables)
 
     # Return a State instance.
     return State(
