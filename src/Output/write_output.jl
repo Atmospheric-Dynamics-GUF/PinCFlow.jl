@@ -211,10 +211,8 @@ function write_output(
                 (ko + 1):(ko + nz),
                 iout,
             ] =
-                (
-                    u[i0:i1, j0:j1, k0:k1] .+
-                    u[(i0 - 1):(i1 - 1), j0:j1, k0:k1]
-                ) ./ 2 .* uref
+                (u[i0:i1, j0:j1, k0:k1] .+ u[(i0 - 1):(i1 - 1), j0:j1, k0:k1]) ./
+                2 .* uref
         end
 
         # Write the staggered zonal winds.
@@ -237,10 +235,8 @@ function write_output(
                 (ko + 1):(ko + nz),
                 iout,
             ] =
-                (
-                    v[i0:i1, j0:j1, k0:k1] .+
-                    v[i0:i1, (j0 - 1):(j1 - 1), k0:k1]
-                ) ./ 2 .* uref
+                (v[i0:i1, j0:j1, k0:k1] .+ v[i0:i1, (j0 - 1):(j1 - 1), k0:k1]) ./
+                2 .* uref
         end
 
         # Write the staggered meridional winds.
@@ -301,10 +297,8 @@ function write_output(
                 (ko + 1):(ko + nz),
                 iout,
             ] =
-                (
-                    w[i0:i1, j0:j1, k0:k1] .+
-                    w[i0:i1, j0:j1, (k0 - 1):(k1 - 1)]
-                ) ./ 2 .* uref
+                (w[i0:i1, j0:j1, k0:k1] .+ w[i0:i1, j0:j1, (k0 - 1):(k1 - 1)]) ./
+                2 .* uref
         end
 
         # Write the staggered transformed vertical winds.
@@ -359,6 +353,75 @@ function write_output(
                 (ko + 1):(ko + nz),
                 iout,
             ] = pip[i0:i1, j0:j1, k0:k1]
+        end
+
+        if !(typeof(state.namelists.tracer.tracersetup) <: NoTracer)
+            for field in fieldnames(TracerPredictands)
+                HDF5.set_extent_dims(
+                    file[string(field)],
+                    (sizex, sizey, sizez, iout),
+                )
+                @views file[string(field)][
+                    (io + 1):(io + nx),
+                    (jo + 1):(jo + ny),
+                    (ko + 1):(ko + nz),
+                    iout,
+                ] =
+                    getfield(state.tracer.tracerpredictands, field)[
+                        i0:i1,
+                        j0:j1,
+                        k0:k1,
+                    ] ./ (
+                        rhostrattfc[i0:i1, j0:j1, k0:k1] .+
+                        rho[i0:i1, j0:j1, k0:k1]
+                    ) .* lref
+            end
+        end
+
+        if !(typeof(state.namelists.ice.icesetup) <: NoIce)
+            for field in fieldnames(IcePredictands)
+                HDF5.set_extent_dims(
+                    file[string(field)],
+                    (sizex, sizey, sizez, iout),
+                )
+                @views file[string(field)][
+                    (io + 1):(io + nx),
+                    (jo + 1):(jo + ny),
+                    (ko + 1):(ko + nz),
+                    iout,
+                ] =
+                    getfield(state.ice.icepredictands, field)[
+                        i0:i1,
+                        j0:j1,
+                        k0:k1,
+                    ] ./ (
+                        rhostrattfc[i0:i1, j0:j1, k0:k1] .+
+                        rho[i0:i1, j0:j1, k0:k1]
+                    ) .* lref
+            end
+        end
+
+        if !(typeof(state.namelists.turbulence.turbulencesetup) <: NoTurbulence)
+            for field in fieldnames(TurbulencePredictands)
+                HDF5.set_extent_dims(
+                    file[string(field)],
+                    (sizex, sizey, sizez, iout),
+                )
+                @views file[string(field)][
+                    (io + 1):(io + nx),
+                    (jo + 1):(jo + ny),
+                    (ko + 1):(ko + nz),
+                    iout,
+                ] =
+                    getfield(state.turbulence.turbulencepredictands, field)[
+                        i0:i1,
+                        j0:j1,
+                        k0:k1,
+                    ] ./ (
+                        rhostrattfc[i0:i1, j0:j1, k0:k1] .+
+                        rho[i0:i1, j0:j1, k0:k1]
+                    ) .* (lref ^ 2.0) ./ (tref ^ 2.0)
+            end
         end
 
         # Write WKB variables.

@@ -198,6 +198,8 @@ Singleton for WKB-mountain-wave test cases.
 """
 struct WKBMountainWave <: AbstractWKBTestCase end
 
+struct WavePacket <: AbstractTestCase end
+
 """
 ```julia
 PeriodicBoundaries <: AbstractBoundaries
@@ -315,6 +317,18 @@ Singleton for a Shapiro filter as smoothing method applied to gravity-wave tende
 """
 struct Shapiro <: AbstractWKBFilter end
 
+abstract type AbstractTracer end
+struct NoTracer <: AbstractTracer end
+struct LinearTracer <: AbstractTracer end
+
+abstract type AbstractIce end
+struct NoIce <: AbstractIce end
+struct IceOn <: AbstractIce end
+
+abstract type AbstractTurbulence end
+struct NoTurbulence <: AbstractTurbulence end
+struct TurbulenceOn <: AbstractTurbulence end
+
 using MPI
 
 include("DomainNamelist.jl")
@@ -323,9 +337,13 @@ include("SettingNamelist.jl")
 include("DiscretizationNamelist.jl")
 include("PoissonNamelist.jl")
 include("AtmosphereNamelist.jl")
+include("WavePacketNamelist.jl")
 include("GridNamelist.jl")
 include("SpongeNamelist.jl")
 include("WKBNamelist.jl")
+include("TracerNamelist.jl")
+include("IceNamelist.jl")
+include("TurbulenceNamelist.jl")
 include("Namelists.jl")
 
 export AbstractBackground,
@@ -338,7 +356,10 @@ export AbstractBackground,
     AbstractMergeMode,
     AbstractWKBMode,
     AbstractWKBTestCase,
-    AbstractWKBFilter
+    AbstractWKBFilter,
+    AbstractTracer,
+    AbstractIce,
+    AbstractTurbulence
 
 export UniformBoussinesq,
     StratifiedBoussinesq,
@@ -350,6 +371,7 @@ export UniformBoussinesq,
     Compressible,
     MountainWave,
     WKBMountainWave,
+    WavePacket,
     PeriodicBoundaries,
     SolidWallBoundaries,
     ExponentialSponge,
@@ -362,7 +384,13 @@ export UniformBoussinesq,
     SingleColumn,
     MultiColumn,
     Box,
-    Shapiro
+    Shapiro,
+    NoTracer,
+    LinearTracer,
+    NoIce,
+    IceOn,
+    NoTurbulence,
+    TurbulenceOn
 
 export DomainNamelist,
     OutputNamelist,
@@ -370,9 +398,13 @@ export DomainNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,
+    WavePacketNamelist,
     GridNamelist,
     SpongeNamelist,
     WKBNamelist,
+    TracerNamelist,
+    IceNamelist,
+    TurbulenceNamelist,
     Namelists
 
 end

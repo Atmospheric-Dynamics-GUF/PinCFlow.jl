@@ -15,6 +15,10 @@ struct Namelists{
     G <: GridNamelist,
     H <: SpongeNamelist,
     I <: WKBNamelist,
+    J <: TracerNamelist,
+    K <: IceNamelist,
+    L <: TurbulenceNamelist,
+    M <: WavePacketNamelist,
 }
     domain::A
     output::B
@@ -25,6 +29,10 @@ struct Namelists{
     grid::G
     sponge::H
     wkb::I
+    tracer::J
+    ice::K
+    turbulence::L
+    wavepacket::M
 end
 
 """
@@ -54,6 +62,10 @@ function Namelists(;
     grid = GridNamelist(),
     sponge = SpongeNamelist(),
     wkb = WKBNamelist(),
+    tracer = TracerNamelist(),
+    ice = IceNamelist(),
+    turbulence = TurbulenceNamelist(),
+    wavepacket = WavePacketNamelist(),
 )
     return Namelists(
         domain,
@@ -65,5 +77,9 @@ function Namelists(;
         grid,
         sponge,
         wkb,
+        tracer,
+        ice,
+        turbulence,
+        wavepacket,
     )
 end

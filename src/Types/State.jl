@@ -149,6 +149,9 @@ struct State{
     H <: Poisson,
     I <: Variables,
     J <: WKB,
+    K <: Tracer,
+    L <: Ice,
+    M <: Turbulence,
 }
     namelists::A
     time::B
@@ -160,6 +163,9 @@ struct State{
     poisson::H
     variables::I
     wkb::J
+    tracer::K
+    ice::L
+    turbulence::M
 end
 
 """
@@ -214,8 +220,11 @@ function State(namelists::Namelists)
     atmosphere = Atmosphere(namelists, constants, domain, grid)
     sponge = Sponge(namelists, domain, grid)
     poisson = Poisson(namelists, domain)
-    variables = Variables(namelists, constants, domain, atmosphere)
+    variables = Variables(namelists, constants, domain, atmosphere, grid)
     wkb = WKB(namelists, constants, domain, grid)
+    tracer = Tracer(namelists, constants, domain, atmosphere, grid, variables)
+    ice = Ice(namelists, constants, domain, atmosphere, grid, variables)
+    turbulence = Turbulence(namelists, constants, domain, atmosphere, grid, variables)
 
     # Return a State instance.
     return State(
@@ -229,5 +238,8 @@ function State(namelists::Namelists)
         poisson,
         variables,
         wkb,
+        tracer,
+        ice,
+        turbulence,
     )
 end

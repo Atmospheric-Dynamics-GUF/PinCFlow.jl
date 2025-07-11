@@ -539,3 +539,120 @@ function apply_unified_sponge!(
 
     return
 end
+
+function apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    tracersetup::NoTracer,
+)
+    return
+end
+
+function apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    tracersetup::AbstractTracer,
+)
+    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; alphaunifiedsponge) = state.sponge
+    (; tracerpredictands) = state.tracer
+    (; initialtracer) = state.tracer.tracerauxiliaries
+
+    if !spongelayer || !unifiedsponge
+        return
+    end
+
+    for field in fieldnames(TracerPredictands)
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            alpha = alphaunifiedsponge[i, j, k]
+            chi_old = getfield(tracerpredictands, field)[i, j, k]
+            beta = 1.0 / (1.0 + alpha * dt)
+            chi_new = (1.0 - beta) * initialtracer[i, j, k] + beta * chi_old
+            getfield(tracerpredictands, field)[i, j, k] = chi_new
+        end
+    end
+
+    return
+end
+
+function apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    icesetup::AbstractIce,
+)
+    return
+end
+
+function apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    icesetup::IceOn,
+)
+    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; alphaunifiedsponge) = state.sponge
+    (; icepredictands) = state.ice
+    (; iceauxiliaries) = state.ice
+
+    if !spongelayer || !unifiedsponge
+        return
+    end
+
+    for (fd, field) in enumerate(fieldnames(IcePredictands))
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            ice_bg = getfield(iceauxiliaries, fd)[i, j, k]
+            alpha = alphaunifiedsponge[i, j, k]
+            ice_old = getfield(icepredictands, fd)[i, j, k]
+            beta = 1.0 / (1.0 + alpha * dt)
+            ice_new = (1.0 - beta) * ice_bg + beta * ice_old
+            getfield(icepredictands, fd)[i, j, k] = ice_new
+        end
+    end
+
+    return
+end
+
+function apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    turbulencesetup::NoTurbulence,
+)
+    return
+end
+
+function apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    turbulencesetup::AbstractTurbulence,
+)
+    (; spongelayer, unifiedsponge) = state.namelists.sponge
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; alphaunifiedsponge) = state.sponge
+    (; turbulencepredictands) = state.turbulence
+    (; turbulenceauxiliaries) = state.turbulence
+
+    if !spongelayer || !unifiedsponge
+        return
+    end
+
+    for (fd, field) in enumerate(fieldnames(TurbulencePredictands))
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            turbulence_bg = getfield(turbulenceauxiliaries, fd)
+            alpha = alphaunifiedsponge[i, j, k]
+            turbulence_old = getfield(turbulencepredictands, fd)[i, j, k]
+            beta = 1.0 / (1.0 + alpha * dt)
+            turbulence_new =
+                (1.0 - beta) * turbulence_bg + beta * turbulence_old
+            getfield(turbulencepredictands, fd)[i, j, k] = turbulence_new
+        end
+    end
+
+    return
+end

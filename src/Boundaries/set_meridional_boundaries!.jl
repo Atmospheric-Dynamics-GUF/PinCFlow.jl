@@ -22,6 +22,9 @@ function set_meridional_boundaries!(
     (; namelists, domain) = state
     (; predictands) = state.variables
     (; model) = namelists.setting
+    (; tracersetup) = namelists.tracer
+    (; icesetup) = namelists.ice
+    (; turbulencesetup) = namelists.turbulence
 
     for field in (:rho, :rhop, :u, :v, :w, :pip)
         set_meridional_boundaries_of_field!(
@@ -32,6 +35,9 @@ function set_meridional_boundaries!(
     end
 
     set_compressible_meridional_boundaries!(state, model)
+    set_tracer_meridional_boundaries!(state, variables, tracersetup)
+    set_ice_meridional_boundaries!(state, variables, icesetup)
+    set_turbulence_meridional_boundaries!(state, variables, turbulencesetup)
 
     return
 end
@@ -58,6 +64,9 @@ function set_meridional_boundaries!(
 )
     (; namelists, domain) = state
     (; reconstructions) = state.variables
+    (; tracersetup) = namelists.tracer
+    (; icesetup) = namelists.ice
+    (; turbulencesetup) = namelists.turbulence
 
     for field in fieldnames(Reconstructions)
         set_meridional_boundaries_of_field!(
@@ -66,6 +75,10 @@ function set_meridional_boundaries!(
             domain,
         )
     end
+
+    set_tracer_meridional_boundaries!(state, variables, tracersetup)
+    set_ice_meridional_boundaries!(state, variables, icesetup)
+    set_turbulence_meridional_boundaries!(state, variables, turbulencesetup)
 
     return
 end

@@ -19,6 +19,9 @@ function set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
     (; namelists, domain) = state
     (; predictands) = state.variables
     (; model) = namelists.setting
+    (; tracersetup) = namelists.tracer
+    (; icesetup) = namelists.ice
+    (; turbulencesetup) = namelists.turbulence
 
     for field in (:rho, :rhop, :u, :v, :w, :pip)
         set_zonal_boundaries_of_field!(
@@ -29,6 +32,10 @@ function set_zonal_boundaries!(state::State, variables::BoundaryPredictands)
     end
 
     set_compressible_zonal_boundaries!(state, model)
+
+    set_tracer_zonal_boundaries!(state, variables, tracersetup)
+    set_ice_zonal_boundaries!(state, variables, icesetup)
+    set_turbulence_zonal_boundaries!(state, variables, turbulencesetup)
 
     return
 end
@@ -52,6 +59,9 @@ Enforce zonal boundary conditions for all reconstruction fields.
 function set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
     (; namelists, domain) = state
     (; reconstructions) = state.variables
+    (; tracersetup) = namelists.tracer
+    (; icesetup) = namelists.ice
+    (; turbulencesetup) = namelists.turbulence
 
     for field in fieldnames(Reconstructions)
         set_zonal_boundaries_of_field!(
@@ -60,6 +70,10 @@ function set_zonal_boundaries!(state::State, variables::BoundaryReconstructions)
             domain,
         )
     end
+
+    set_tracer_zonal_boundaries!(state, variables, tracersetup)
+    set_ice_zonal_boundaries!(state, variables, icesetup)
+    set_turbulence_zonal_boundaries!(state, variables, turbulencesetup)
 
     return
 end

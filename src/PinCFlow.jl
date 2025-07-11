@@ -27,14 +27,18 @@ export DomainNamelist,
     DiscretizationNamelist,
     PoissonNamelist,
     AtmosphereNamelist,
+    WavePacketNamelist,
     GridNamelist,
     SpongeNamelist,
     WKBNamelist,
+    TracerNamelist,
+    IceNamelist,
+    TurbulenceNamelist,
     Namelists
 
 # Export singletons needed in namelists.
 export Boussinesq, PseudoIncompressible, Compressible
-export MountainWave, WKBMountainWave
+export MountainWave, WKBMountainWave, WavePacket
 export PeriodicBoundaries, SolidWallBoundaries
 export MCVariant
 export UniformBoussinesq, StratifiedBoussinesq, Isothermal
@@ -43,6 +47,9 @@ export ExponentialSponge, COSMOSponge, PolynomialSponge, SinusoidalSponge
 export ConstantWaveAction, ConstantWaveEnergy
 export Box, Shapiro
 export SteadyState, SingleColumn, MultiColumn
+export NoTracer, LinearTracer
+export NoIce, IceOn
+export NoTurbulence, TurbulenceOn
 
 # Export model-state constructor.
 export State

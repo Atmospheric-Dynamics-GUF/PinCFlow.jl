@@ -122,6 +122,7 @@ function integrate(namelists::Namelists)
         (errflagbicg, niterbicg) = apply_corrector!(state, 1.0, 1.0, 1.0)
 
         if errflagbicg
+            create_output(state)
             iout = write_output(state, time, iout, machine_start_time)
             if master
                 println("Output last state into record", iout)
@@ -233,18 +234,7 @@ function integrate(namelists::Namelists)
         #                           MS-GWaM
         #-----------------------------------------------------------------
 
-        apply_saturation_scheme!(state, dt)
-
-        for rkstage in 1:nstages
-            propagate_rays!(state, dt, rkstage)
-        end
-
-        split_rays!(state)
-        shift_rays!(state)
-        merge_rays!(state)
-        set_boundary_rays!(state)
-
-        compute_mean_flow_effect!(state)
+        wkb_integration!(state, dt)
 
         #---------------------------------------------------------------
         #                   Semi-implicit time scheme
@@ -266,106 +256,22 @@ function integrate(namelists::Namelists)
             println("")
         end
 
-        for rkstage in 1:nstages
-            reconstruct!(state)
-            set_boundaries!(state, BoundaryReconstructions())
-
-            compute_fluxes!(state, p0)
-            set_boundaries!(state, BoundaryFluxes())
-
-            save_backups!(state, :rho)
-
-            update!(state, 0.5 * dt, rkstage, Rho())
-            apply_unified_sponge!(
-                state,
-                stepfrac[rkstage] * 0.5 * dt,
-                time,
-                Rho(),
-            )
-
-            update!(state, 0.5 * dt, rkstage, RhoP(), LHS())
-            apply_unified_sponge!(
-                state,
-                stepfrac[rkstage] * 0.5 * dt,
-                time,
-                RhoP(),
-            )
-
-            update!(state, 0.5 * dt, rkstage, P())
-            apply_unified_sponge!(
-                state,
-                stepfrac[rkstage] * 0.5 * dt,
-                time,
-                P(),
-            )
-
-            set_boundaries!(state, BoundaryPredictands())
-
-            update!(state, 0.5 * dt, rkstage, U(), LHS())
-            update!(state, 0.5 * dt, rkstage, V(), LHS())
-            update!(state, 0.5 * dt, rkstage, W(), LHS())
-            apply_unified_sponge!(
-                state,
-                stepfrac[rkstage] * 0.5 * dt,
-                time,
-                U(),
-            )
-            apply_unified_sponge!(
-                state,
-                stepfrac[rkstage] * 0.5 * dt,
-                time,
-                V(),
-            )
-            apply_unified_sponge!(
-                state,
-                stepfrac[rkstage] * 0.5 * dt,
-                time,
-                W(),
-            )
-
-            set_boundaries!(state, BoundaryPredictands())
-        end
-
-        synchronize_compressible_atmosphere!(state, state.variables.predictands)
-
-        apply_unified_sponge!(state, 0.5 * dt, time, PiP())
+        explicit_integration!(state, p0, 0.5 * dt, time, LHS())
 
         if master
             println("(2) Implicit integration of RHS over dt/2...")
             println("")
         end
 
-        modify_compressible_wind!(state, *)
-
-        set_boundaries!(state, BoundaryPredictands())
-
-        save_backups!(state, :w)
-
-        update!(state, 0.5 * dt, U(), RHS(), Implicit(), 1.0)
-        update!(state, 0.5 * dt, V(), RHS(), Implicit(), 1.0)
-        update!(state, 0.5 * dt, W(), RHS(), Implicit(), 1.0)
-
-        set_boundaries!(state, BoundaryPredictands())
-
-        update!(state, 0.5 * dt, RhoP(), RHS(), Implicit(), 1.0)
-
-        set_boundaries!(state, BoundaryPredictands())
-
-        (errflagbicg, niterbicg) = apply_corrector!(state, 0.5 * dt, 1.0, 1.0)
-
-        if errflagbicg
-            iout = write_output(state, time, iout, machine_start_time)
-            if master
-                println("Output last state into record", iout)
-            end
-            exit()
-        end
-
-        ntotalbicg += niterbicg
-
-        modify_compressible_wind!(state, /)
-
-        set_boundaries!(state, BoundaryPredictands())
+        implicit_integration!(
+            state,
+            0.5 * dt,
+            time,
+            ntotalbicg,
+            RHS(),
+            iout,
+            machine_start_time,
+        )
 
         p1 = deepcopy(state.variables.predictands)
 
@@ -376,25 +282,7 @@ function integrate(namelists::Namelists)
 
         reset_predictands!(state, p0)
 
-        synchronize_compressible_atmosphere!(state, state.variables.predictands)
-
-        modify_compressible_wind!(state, *)
-
-        set_boundaries!(state, BoundaryPredictands())
-
-        save_backups!(state, :rhop, :u, :v, :w)
-
-        update!(state, 0.5 * dt, RhoP(), RHS(), Explicit())
-
-        update!(state, 0.5 * dt, U(), RHS(), Explicit())
-        update!(state, 0.5 * dt, V(), RHS(), Explicit())
-        update!(state, 0.5 * dt, W(), RHS(), Explicit())
-
-        update!(state, 0.5 * dt, PiP())
-
-        modify_compressible_wind!(state, /)
-
-        set_boundaries!(state, BoundaryPredictands())
+        explicit_integration!(state, p0, 0.5 * dt, time, RHS())
 
         if master
             println("(4) Explicit integration of LHS over dt...")
@@ -405,76 +293,22 @@ function integrate(namelists::Namelists)
 
         synchronize_compressible_atmosphere!(state, p0)
 
-        for rkstage in 1:nstages
-            reconstruct!(state)
-            set_boundaries!(state, BoundaryReconstructions())
-
-            compute_fluxes!(state, p0)
-            set_boundaries!(state, BoundaryFluxes())
-
-            save_backups!(state, :rho)
-
-            update!(state, dt, rkstage, Rho())
-            apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, Rho())
-
-            update!(state, dt, rkstage, RhoP(), LHS())
-            apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, RhoP())
-
-            update!(state, dt, rkstage, P())
-            apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, P())
-
-            set_boundaries!(state, BoundaryPredictands())
-
-            update!(state, dt, rkstage, U(), LHS())
-            update!(state, dt, rkstage, V(), LHS())
-            update!(state, dt, rkstage, W(), LHS())
-            apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, U())
-            apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, V())
-            apply_unified_sponge!(state, stepfrac[rkstage] * dt, time, W())
-
-            set_boundaries!(state, BoundaryPredictands())
-        end
-
-        synchronize_compressible_atmosphere!(state, state.variables.predictands)
-
-        apply_unified_sponge!(state, dt, time, PiP())
+        explicit_integration!(state, p0, dt, time, LHS())
 
         if master
             println("(5) Implicit integration of RHS over dt/2...")
             println("")
         end
 
-        modify_compressible_wind!(state, *)
-
-        set_boundaries!(state, BoundaryPredictands())
-
-        save_backups!(state, :w)
-
-        update!(state, 0.5 * dt, U(), RHS(), Implicit(), 2.0)
-        update!(state, 0.5 * dt, V(), RHS(), Implicit(), 2.0)
-        update!(state, 0.5 * dt, W(), RHS(), Implicit(), 2.0)
-
-        set_boundaries!(state, BoundaryPredictands())
-
-        update!(state, 0.5 * dt, RhoP(), RHS(), Implicit(), 2.0)
-
-        set_boundaries!(state, BoundaryPredictands())
-
-        (errflagbicg, niterbicg) = apply_corrector!(state, 0.5 * dt, 2.0, 1.0)
-
-        if errflagbicg
-            iout = write_output(state, time, iout, machine_start_time)
-            if master
-                println("Output last state into record ", iout)
-            end
-            exit()
-        end
-
-        ntotalbicg += niterbicg
-
-        modify_compressible_wind!(state, /)
-
-        set_boundaries!(state, BoundaryPredictands())
+        implicit_integration!(
+            state,
+            0.5 * dt,
+            time,
+            ntotalbicg,
+            RHS(),
+            iout,
+            machine_start_time,
+        )
 
         if master
             println("...the semi-implicit time step is done.")
