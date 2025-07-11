@@ -40,7 +40,7 @@ struct DN2DZ <: AbstractVariable end
 DUDX <: AbstractVariable
 ```
 
-Singleton for dispatch to interpolation of ``\\partial u / \\partial x``.
+Singleton for dispatch to interpolation of ``\\partial u_\\mathrm{b} / \\partial x``.
 """
 struct DUDX <: AbstractVariable end
 
@@ -49,7 +49,7 @@ struct DUDX <: AbstractVariable end
 DUDY <: AbstractVariable
 ```
 
-Singleton for dispatch to interpolation of ``\\partial u / \\partial y``.
+Singleton for dispatch to interpolation of ``\\partial u_\\mathrm{b} / \\partial y``.
 """
 struct DUDY <: AbstractVariable end
 
@@ -58,7 +58,7 @@ struct DUDY <: AbstractVariable end
 DUDZ <: AbstractVariable
 ```
 
-Singleton for dispatch to interpolation of ``\\partial u / \\partial z``.
+Singleton for dispatch to interpolation of ``\\partial u_\\mathrm{b} / \\partial z``.
 """
 struct DUDZ <: AbstractVariable end
 
@@ -67,7 +67,7 @@ struct DUDZ <: AbstractVariable end
 DVDX <: AbstractVariable
 ```
 
-Singleton for dispatch to interpolation of ``\\partial v / \\partial x``.
+Singleton for dispatch to interpolation of ``\\partial v_\\mathrm{b} / \\partial x``.
 """
 struct DVDX <: AbstractVariable end
 
@@ -76,7 +76,7 @@ struct DVDX <: AbstractVariable end
 DVDY <: AbstractVariable
 ```
 
-Singleton for dispatch to interpolation of ``\\partial v / \\partial y``.
+Singleton for dispatch to interpolation of ``\\partial v_\\mathrm{b} / \\partial y``.
 """
 struct DVDY <: AbstractVariable end
 
@@ -85,7 +85,7 @@ struct DVDY <: AbstractVariable end
 DVDZ <: AbstractVariable
 ```
 
-Singleton for dispatch to interpolation of ``\\partial v / \\partial z``.
+Singleton for dispatch to interpolation of ``\\partial v_\\mathrm{b} / \\partial z``.
 """
 struct DVDZ <: AbstractVariable end
 

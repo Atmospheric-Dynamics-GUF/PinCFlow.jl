@@ -95,12 +95,12 @@ The ray equations are given by
 
 ```math
 \\begin{align*}
-    \\frac{\\mathrm{d} x_\\alpha}{\\mathrm{d} t} & = c_{\\mathrm{g}, x, \\alpha} = u_\\alpha + k_\\alpha \\frac{N_\\alpha^2 - \\widehat{\\omega}_\\alpha^2}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
-    \\frac{\\mathrm{d} y_\\alpha}{\\mathrm{d} t} & = c_{\\mathrm{g}, y, \\alpha} = v_\\alpha + l_\\alpha \\frac{N_\\alpha^2 - \\widehat{\\omega}_\\alpha^2}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
+    \\frac{\\mathrm{d} x_\\alpha}{\\mathrm{d} t} & = c_{\\mathrm{g}, x, \\alpha} = u_{\\mathrm{b}, \\alpha} + k_\\alpha \\frac{N_\\alpha^2 - \\widehat{\\omega}_\\alpha^2}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
+    \\frac{\\mathrm{d} y_\\alpha}{\\mathrm{d} t} & = c_{\\mathrm{g}, y, \\alpha} = v_{\\mathrm{b}, \\alpha} + l_\\alpha \\frac{N_\\alpha^2 - \\widehat{\\omega}_\\alpha^2}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
     \\frac{\\mathrm{d} z_\\alpha}{\\mathrm{d} t} & = c_{\\mathrm{g}, z, \\alpha} = - \\frac{m_\\alpha \\left(\\widehat{\\omega}_\\alpha^2 - f^2\\right)}{\\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2},\\\\
-    \\frac{\\mathrm{d} k_\\alpha}{\\mathrm{d} t} & = \\dot{k}_\\alpha = - k_\\alpha \\left(\\frac{\\partial u}{\\partial x}\\right)_\\alpha - l_\\alpha \\left(\\frac{\\partial v}{\\partial x}\\right)_\\alpha,\\\\
-    \\frac{\\mathrm{d} l_\\alpha}{\\mathrm{d} t} & = \\dot{l}_\\alpha = - k_\\alpha \\left(\\frac{\\partial u}{\\partial y}\\right)_\\alpha - l_\\alpha \\left(\\frac{\\partial v}{\\partial y}\\right)_\\alpha,\\\\
-    \\frac{\\mathrm{d} m_\\alpha}{\\mathrm{d} t} & = \\dot{m}_\\alpha = - k_\\alpha \\left(\\frac{\\partial u}{\\partial z}\\right)_\\alpha - l_\\alpha \\left(\\frac{\\partial v}{\\partial z}\\right)_\\alpha - \\frac{k_\\alpha^2 + l_\\alpha^2}{2 \\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2} \\left(\\frac{\\partial N^2}{\\partial z}\\right)_\\alpha,
+    \\frac{\\mathrm{d} k_\\alpha}{\\mathrm{d} t} & = \\dot{k}_\\alpha = - k_\\alpha \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial x}\\right)_\\alpha - l_\\alpha \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial x}\\right)_\\alpha,\\\\
+    \\frac{\\mathrm{d} l_\\alpha}{\\mathrm{d} t} & = \\dot{l}_\\alpha = - k_\\alpha \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial y}\\right)_\\alpha - l_\\alpha \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial y}\\right)_\\alpha,\\\\
+    \\frac{\\mathrm{d} m_\\alpha}{\\mathrm{d} t} & = \\dot{m}_\\alpha = - k_\\alpha \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_\\alpha - l_\\alpha \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_\\alpha - \\frac{k_\\alpha^2 + l_\\alpha^2}{2 \\widehat{\\omega}_\\alpha \\left|\\boldsymbol{k}_\\alpha\\right|^2} \\left(\\frac{\\partial N^2}{\\partial z}\\right)_\\alpha,
 \\end{align*}
 ```
 
@@ -108,13 +108,13 @@ where the subscript ``\\alpha`` indicates either a ray-volume property or a mean
 
 ```math
 \\begin{align*}
-    \\frac{\\mathrm{d} \\Delta x_\\alpha}{\\mathrm{d} t} & = \\frac{\\mathrm{d} x_{\\alpha, +}}{\\mathrm{d} t} - \\frac{\\mathrm{d} x_{\\alpha, -}}{\\mathrm{d} t} = u_{\\alpha, +} - u_{\\alpha, -},\\\\
-    \\frac{\\mathrm{d} \\Delta y_\\alpha}{\\mathrm{d} t} & = \\frac{\\mathrm{d} y_{\\alpha, +}}{\\mathrm{d} t} - \\frac{\\mathrm{d} y_{\\alpha, -}}{\\mathrm{d} t} = v_{\\alpha, +} - v_{\\alpha, -},\\\\
+    \\frac{\\mathrm{d} \\Delta x_\\alpha}{\\mathrm{d} t} & = \\frac{\\mathrm{d} x_{\\alpha, +}}{\\mathrm{d} t} - \\frac{\\mathrm{d} x_{\\alpha, -}}{\\mathrm{d} t} = u_{\\mathrm{b}, \\alpha, +} - u_{\\mathrm{b}, \\alpha, -},\\\\
+    \\frac{\\mathrm{d} \\Delta y_\\alpha}{\\mathrm{d} t} & = \\frac{\\mathrm{d} y_{\\alpha, +}}{\\mathrm{d} t} - \\frac{\\mathrm{d} y_{\\alpha, -}}{\\mathrm{d} t} = v_{\\mathrm{b}, \\alpha, +} - v_{\\mathrm{b}, \\alpha, -},\\\\
     \\frac{\\mathrm{d} \\Delta z_\\alpha}{\\mathrm{d} t} & = \\frac{\\mathrm{d} z_{\\alpha, +}}{\\mathrm{d} t} - \\frac{\\mathrm{d} z_{\\alpha, -}}{\\mathrm{d} t} = c_{\\mathrm{g} z, \\alpha, +} - c_{\\mathrm{g} z, \\alpha, -},
 \\end{align*}
 ```
 
-where ``u_{\\alpha, \\pm}`` is the interpolation of ``u`` to ``x_{\\alpha, \\pm} = x_\\alpha \\pm \\Delta x_\\alpha / 2`` and ``v_{\\alpha, \\pm}`` is the equivalent for ``v`` in ``y``-direction. In the computation of ``c_{\\mathrm{g} z, \\alpha, \\pm}``, the intrinsic frequency and squared buoyancy frequency are interpolated to ``z_{\\alpha, \\pm} = z_\\alpha \\pm \\Delta z_\\alpha / 2``. The update of the spectral ray-volume extents uses the fact that the surfaces in the ``x``-``k``, ``y``-``l`` and ``z``-``m`` subspaces are conserved. Finally, the prognostic equation for the phase-space wave-action density reads
+where ``u_{\\mathrm{b}, \\alpha, \\pm}`` is the interpolation of ``u_\\mathrm{b}`` to ``x_{\\alpha, \\pm} = x_\\alpha \\pm \\Delta x_\\alpha / 2`` and ``v_{\\mathrm{b}, \\alpha, \\pm}`` is the equivalent for ``v_\\mathrm{b}`` in ``y``-direction. In the computation of ``c_{\\mathrm{g} z, \\alpha, \\pm}``, the intrinsic frequency and squared buoyancy frequency are interpolated to ``z_{\\alpha, \\pm} = z_\\alpha \\pm \\Delta z_\\alpha / 2``. The update of the spectral ray-volume extents uses the fact that the surfaces in the ``x``-``k``, ``y``-``l`` and ``z``-``m`` subspaces are conserved. Finally, the prognostic equation for the phase-space wave-action density reads
 
 ```math
 \\frac{\\mathrm{d} \\mathcal{N}_\\alpha}{\\mathrm{d} t} = - 2 \\alpha_{\\mathrm{R}, \\alpha} \\mathcal{N}_\\alpha
@@ -455,7 +455,7 @@ In steady-state mode, the ray volumes are stationary in physical space. In mount
 m_\\alpha = - \\sigma \\sqrt{\\frac{\\left(k_\\alpha^2 + l_\\alpha^2\\right) \\left(N_\\alpha^2 - \\widehat{\\omega}_\\alpha^2\\right)}{\\widehat{\\omega}_\\alpha^2 - f^2}},
 ```
 
-where ``N_\\alpha^2`` is the squared buoyancy frequency interpolated to the ray-volume position (with `interpolate_stratification`) and ``\\widehat{\\omega}_\\alpha = - k_\\alpha u - l_\\alpha v`` is the intrinsic frequency (in the case of mountain waves, for which ``\\omega_\\alpha = 0``). The new wave-action-density field is obtained by integrating
+where ``N_\\alpha^2`` is the squared buoyancy frequency interpolated to the ray-volume position (with `interpolate_stratification`) and ``\\widehat{\\omega}_\\alpha = - k_\\alpha u_\\mathrm{b} - l_\\alpha v_\\mathrm{b}`` is the intrinsic frequency (in the case of mountain waves, for which ``\\omega_\\alpha = 0``). The new wave-action-density field is obtained by integrating
 
 ```math
 \\frac{\\partial \\mathcal{A}_\\alpha}{\\partial z} = - 2 \\alpha_{\\mathrm{R}, \\alpha} \\mathcal{A}_\\alpha - 2 K \\left|\\boldsymbol{k}_\\alpha\\right|^2 \\mathcal{A}_\\alpha,
