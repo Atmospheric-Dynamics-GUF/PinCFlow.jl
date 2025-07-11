@@ -9,6 +9,8 @@ The Lagrangian WKB model MS-GWaM is interactively coupled to PinCFlow, so that u
 ## List of publications
 
 1. [Rieper et al. (2013)](https://doi.org/10.1175/mwr-d-12-00026.1)
+1. [Muraschko et al. (2014)](https://doi.org/10.1002/qj.2381)
+1. [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1)
 1. [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1)
 1. [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1)
 1. [Schmid et al. (2021)](https://doi.org/10.1175/MWR-D-21-0126.1)

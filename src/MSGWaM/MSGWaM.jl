@@ -5,8 +5,6 @@ MSGWaM
 
 3D transient implementation of MS-GWaM.
 
-Computes the impact of unresolved gravity waves on the resolved flow...
-
 # See also
 
   - [`PinCFlow.MSGWaM.BoundaryRays`](@ref)
@@ -15,9 +13,11 @@ Computes the impact of unresolved gravity waves on the resolved flow...
 
 # External links
 
-  1. [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1)
-  2. [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1)
-  3. [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1)
+  1. [Muraschko et al. (2014)](https://doi.org/10.1002/qj.2381)
+  2. [Boeloeni et al. (2016)](https://doi.org/10.1175/JAS-D-16-0069.1)
+  3. [Wilhelm et al. (2018)](https://doi.org/10.1175/JAS-D-17-0289.1)
+  4. [Wei et al. (2019)](https://doi.org/10.1175/JAS-D-18-0337.1)
+  5. [Jochum et al. (2025)](https://doi.org/10.1175/JAS-D-24-0158.1)
 """
 module MSGWaM
 
