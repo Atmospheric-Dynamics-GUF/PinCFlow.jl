@@ -47,13 +47,13 @@ The documentation will be generated in the `docs/build` directory. To view the d
 
 1. Always show the exact full signature of the object at the top of the documentation, within a Julia code block.
 
-1. Include a single sentence describing what the function does or what the object represents after the signature block. Use the imperative form when documenting methods. If needed, provide more details in a second paragraph, after a blank line.
+1. Include a single sentence describing what the method does or what the object represents after the signature block. Use the imperative form when documenting methods. If needed, provide more details in a second paragraph, after a blank line.
 
-1. List all arguments with descriptions (but without types and default values) under an `# Arguments` header, with one `-` bullet for each argument.
+1. For method, list all arguments with descriptions (but without types and default values) under an `# Arguments` header, with one `-` bullet for each argument. For composite types, list all fields with their type restrictions and descriptions under a `# Fields` header, with one `-` bullet for each field.
 
 1. If a method returns something other than `nothing`, list all returned objects with descriptions under a `# Returns` header, with one `-` bullet for each returned object. Include the types (in Julia syntax).
 
-1. Provide links to related functions under a `# See also` header, with one `-` bullet for each function.
+1. Provide links to imported modules and called functions under a `# See also` header, with one `-` bullet for each module/function.
 
 1. Use single backticks to identify code and double backticks to identify equations. Use LaTeX escape sequences rather than Unicode characters.
 
