@@ -564,7 +564,11 @@ function compute_fluxes!(
     #             Diffusion fluxes
     #-------------------------------------------------------------------
 
-    mu_conduct = mu_conduct_dim / uref / lref + eps()
+    if mu_conduct_dim == 0.0
+        return 
+    end
+
+    mu_conduct = mu_conduct_dim / uref / lref
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -914,6 +918,10 @@ function compute_fluxes!(
     #-------------------------------------------------------------------
     #                          Diffusion fluxes
     #-------------------------------------------------------------------
+
+    if mu_conduct_dim == 0.0
+        return 
+    end
 
     mu_conduct = mu_conduct_dim / uref / lref
 
@@ -1294,7 +1302,11 @@ function compute_fluxes!(
     #                          Diffusion fluxes
     #-------------------------------------------------------------------
 
-    mu_conduct = mu_conduct_dim / uref / lref + eps()
+    if mu_conduct_dim == 0.0
+        return 
+    end
+
+    mu_conduct = mu_conduct_dim / uref / lref
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -1684,7 +1696,11 @@ function compute_fluxes!(
     # Get old wind.
     (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
 
-    mu_conduct = mu_conduct_dim / uref / lref + eps()
+    if mu_conduct_dim == 0.
+        return 
+    end
+
+    mu_conduct = mu_conduct_dim / uref / lref
 
     #-----------------------------------------
     #             Zonal fluxes
