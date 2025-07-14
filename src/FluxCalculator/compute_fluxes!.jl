@@ -465,7 +465,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     for k in kz0:kz1, j in j0:j1, i in (i0 - 2):i1
-        coef_v = 1 / re * rhostrattfc[i + 1, j, 1]
+        coef_v = 1 / re * rhostrattfc[i + 1, j, k0]
 
         frhou_visc =
             coef_v *
@@ -484,10 +484,10 @@ function compute_fluxes!(
             1 / re *
             0.25 *
             (
-                rhostrattfc[i, j, 1] +
-                rhostrattfc[i + 1, j, 1] +
-                rhostrattfc[i, j + 1, 1] +
-                rhostrattfc[i + 1, j + 1, 1]
+                rhostrattfc[i, j, k0] +
+                rhostrattfc[i + 1, j, k0] +
+                rhostrattfc[i, j + 1, k0] +
+                rhostrattfc[i + 1, j + 1, k0]
             )
 
         grhou_visc =
@@ -513,7 +513,7 @@ function compute_fluxes!(
 
     for k in (kz0 - 1):kz1, j in j0:j1, i in (i0 - 1):i1
         coef_v =
-            1 / re * 0.5 * (rhostrattfc[i, j, 1] + rhostrattfc[i + 1, j, 1])
+            1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i + 1, j, k0])
 
         stresstens13 =
             met[i, j, k, 1, 3] *
@@ -565,7 +565,7 @@ function compute_fluxes!(
     #-------------------------------------------------------------------
 
     if mu_conduct_dim == 0.0
-        return 
+        return
     end
 
     mu_conduct = mu_conduct_dim / uref / lref
@@ -576,7 +576,6 @@ function compute_fluxes!(
 
     for k in kz0:kz1, j in j0:j1, i in (i0 - 2):i1
         coef_d = mu_conduct * rhostrattfc[i + 1, j, k0]
-        #  mu_conduct * rhostrattfc[i + 1, j, k0] / rhostrattfc[i + 1, j, k]
 
         frhou_diff =
             coef_d *
@@ -600,14 +599,6 @@ function compute_fluxes!(
                 rhostrattfc[i, j + 1, k0] +
                 rhostrattfc[i + 1, j + 1, k0]
             )
-        # mu_conduct *
-        # 0.25 *
-        # (
-        #     rhostrattfc[i, j, k0] / rhostrattfc[i, j, k] +
-        #     rhostrattfc[i + 1, j, k0] / rhostrattfc[i + 1, j, k] +
-        #     rhostrattfc[i, j + 1, k0] / rhostrattfc[i, j + 1, k] +
-        #     rhostrattfc[i + 1, j + 1, k0] / rhostrattfc[i + 1, j + 1, k]
-        # )
 
         grhou_diff =
             coef_d *
@@ -642,23 +633,12 @@ function compute_fluxes!(
                 jac[i + 1, j, k + 1] * rhostrattfc[i + 1, j, k0] +
                 jac[i + 1, j, k] * rhostrattfc[i + 1, j, k0]
             ) / (jac[i + 1, j, k + 1] + jac[i + 1, j, k])
-        # mu_conduct * (
-        #     jac[i + 1, j, k + 1] * rhostrattfc[i + 1, j, k0] /
-        #     rhostrattfc[i + 1, j, k] +
-        #     jac[i + 1, j, k] * rhostrattfc[i + 1, j, k0] /
-        #     rhostrattfc[i + 1, j, k + 1]
-        # ) / (jac[i + 1, j, k + 1] + jac[i + 1, j, k])
 
         coef_dl =
             mu_conduct * (
                 jac[i, j, k + 1] * rhostrattfc[i, j, k0] +
                 jac[i, j, k] * rhostrattfc[i, j, k0]
             ) / (jac[i, j, k + 1] + jac[i, j, k])
-        # mu_conduct * (
-        #     jac[i, j, k + 1] * rhostrattfc[i, j, k0] /
-        #     rhostrattfc[i, j, k] +
-        #     jac[i, j, k] * rhostrattfc[i, j, k0] / rhostrattfc[i, j, k + 1]
-        # ) / (jac[i, j, k + 1] + jac[i, j, k])
 
         coef_d = 0.5 * (coef_dr + coef_dl)
 
@@ -824,10 +804,10 @@ function compute_fluxes!(
             1 / re *
             0.25 *
             (
-                rhostrattfc[i, j, 1] +
-                rhostrattfc[i + 1, j, 1] +
-                rhostrattfc[i, j + 1, 1] +
-                rhostrattfc[i + 1, j + 1, 1]
+                rhostrattfc[i, j, k0] +
+                rhostrattfc[i + 1, j, k0] +
+                rhostrattfc[i, j + 1, k0] +
+                rhostrattfc[i + 1, j + 1, k0]
             )
 
         frhov_visc =
@@ -852,7 +832,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     for k in kz0:kz1, j in (j0 - 2):j1, i in i0:i1
-        coef_v = 1 / re * rhostrattfc[i, j + 1, 1]
+        coef_v = 1 / re * rhostrattfc[i, j + 1, k0]
 
         grhov_visc =
             coef_v *
@@ -868,7 +848,7 @@ function compute_fluxes!(
 
     for k in (kz0 - 1):kz1, j in (j0 - 1):j1, i in i0:i1
         coef_v =
-            1 / re * 0.5 * (rhostrattfc[i, j, 1] + rhostrattfc[i, j + 1, 1])
+            1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i, j + 1, k0])
 
         stresstens23 =
             met[i, j, k, 1, 3] *
@@ -920,7 +900,7 @@ function compute_fluxes!(
     #-------------------------------------------------------------------
 
     if mu_conduct_dim == 0.0
-        return 
+        return
     end
 
     mu_conduct = mu_conduct_dim / uref / lref
@@ -939,14 +919,6 @@ function compute_fluxes!(
                 rhostrattfc[i, j + 1, k0] +
                 rhostrattfc[i + 1, j + 1, k0]
             )
-        # mu_conduct *
-        # 0.25 *
-        # (
-        #     rhostrattfc[i, j, k0] / rhostrattfc[i, j, k] +
-        #     rhostrattfc[i + 1, j, k0] / rhostrattfc[i + 1, j, k] +
-        #     rhostrattfc[i, j + 1, k0] / rhostrattfc[i, j + 1, k] +
-        #     rhostrattfc[i + 1, j + 1, k0] / rhostrattfc[i + 1, j + 1, k]
-        # )
 
         frhov_diff =
             coef_d *
@@ -977,7 +949,6 @@ function compute_fluxes!(
 
     for k in kz0:kz1, j in (j0 - 2):j1, i in i0:i1
         coef_d = mu_conduct * rhostrattfc[i, j + 1, k0]
-        # mu_conduct * rhostrattfc[i, j + 1, k0] / rhostrattfc[i, j + 1, k]
 
         grhov_diff =
             coef_d *
@@ -997,23 +968,12 @@ function compute_fluxes!(
                 jac[i, j + 1, k + 1] * rhostrattfc[i, j + 1, k0] +
                 jac[i, j + 1, k] * rhostrattfc[i, j + 1, k0]
             ) / (jac[i, j + 1, k + 1] + jac[i, j + 1, k])
-        # mu_conduct * (
-        #     jac[i, j + 1, k + 1] * rhostrattfc[i, j + 1, k0] /
-        #     rhostrattfc[i, j + 1, k] +
-        #     jac[i, j + 1, k] * rhostrattfc[i, j + 1, k0] /
-        #     rhostrattfc[i, j + 1, k + 1]
-        # ) / (jac[i, j + 1, k + 1] + jac[i, j + 1, k])
 
         coef_dl =
             mu_conduct * (
                 jac[i, j, k + 1] * rhostrattfc[i, j, k0] +
                 jac[i, j, k] * rhostrattfc[i, j, k0]
             ) / (jac[i, j, k + 1] + jac[i, j, k])
-        # mu_conduct * (
-        #     jac[i, j, k + 1] * rhostrattfc[i, j, k0] /
-        #     rhostrattfc[i, j, k] +
-        #     jac[i, j, k] * rhostrattfc[i, j, k0] / rhostrattfc[i, j, k + 1]
-        # ) / (jac[i, j, k + 1] + jac[i, j, k])
 
         coef_d = 0.5 * (coef_dr + coef_dl)
 
@@ -1195,7 +1155,7 @@ function compute_fluxes!(
 
     for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
         coef_v =
-            1 / re * 0.5 * (rhostrattfc[i, j, 1] + rhostrattfc[i + 1, j, 1])
+            1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i + 1, j, k0])
 
         frhow_visc =
             coef_v *
@@ -1239,7 +1199,7 @@ function compute_fluxes!(
 
     for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
         coef_v =
-            1 / re * 0.5 * (rhostrattfc[i, j, 1] + rhostrattfc[i, j + 1, 1])
+            1 / re * 0.5 * (rhostrattfc[i, j, k0] + rhostrattfc[i, j + 1, k0])
 
         grhow_visc =
             coef_v *
@@ -1282,7 +1242,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
-        coef_v = 1 / re * rhostrattfc[i, j, 1]
+        coef_v = 1 / re * rhostrattfc[i, j, k0]
 
         hrhow_visc =
             coef_v * (
@@ -1303,7 +1263,7 @@ function compute_fluxes!(
     #-------------------------------------------------------------------
 
     if mu_conduct_dim == 0.0
-        return 
+        return
     end
 
     mu_conduct = mu_conduct_dim / uref / lref
@@ -1318,23 +1278,12 @@ function compute_fluxes!(
                 jac[i + 1, j, k + 1] * rhostrattfc[i + 1, j, k0] +
                 jac[i + 1, j, k] * rhostrattfc[i + 1, j, k0]
             ) / (jac[i + 1, j, k + 1] + jac[i + 1, j, k])
-        # mu_conduct * (
-        #     jac[i + 1, j, k + 1] * rhostrattfc[i + 1, j, k0] /
-        #     rhostrattfc[i + 1, j, k] +
-        #     jac[i + 1, j, k] * rhostrattfc[i + 1, j, k0] /
-        #     rhostrattfc[i + 1, j, k + 1]
-        # ) / (jac[i + 1, j, k + 1] + jac[i + 1, j, k])
 
         coef_dl =
             mu_conduct * (
                 jac[i, j, k + 1] * rhostrattfc[i, j, k0] +
                 jac[i, j, k] * rhostrattfc[i, j, k0]
             ) / (jac[i, j, k + 1] + jac[i, j, k])
-        # mu_conduct * (
-        #     jac[i, j, k + 1] * rhostrattfc[i, j, k0] /
-        #     rhostrattfc[i, j, k] +
-        #     jac[i, j, k] * rhostrattfc[i, j, k0] / rhostrattfc[i, j, k + 1]
-        # ) / (jac[i, j, k + 1] + jac[i, j, k])
 
         coef_d = 0.5 * (coef_dr + coef_dl)
 
@@ -1379,23 +1328,12 @@ function compute_fluxes!(
                 jac[i, j + 1, k + 1] * rhostrattfc[i, j + 1, k0] +
                 jac[i, j + 1, k] * rhostrattfc[i, j + 1, k0]
             ) / (jac[i, j + 1, k + 1] + jac[i, j + 1, k])
-        # mu_conduct * (
-        #     jac[i, j + 1, k + 1] * rhostrattfc[i, j + 1, k0] /
-        #     rhostrattfc[i, j + 1, k] +
-        #     jac[i, j + 1, k] * rhostrattfc[i, j + 1, k0] /
-        #     rhostrattfc[i, j + 1, k + 1]
-        # ) / (jac[i, j + 1, k + 1] + jac[i, j + 1, k])
 
         coef_dl =
             mu_conduct * (
                 jac[i, j, k + 1] * rhostrattfc[i, j, k0] +
                 jac[i, j, k] * rhostrattfc[i, j, k0]
             ) / (jac[i, j, k + 1] + jac[i, j, k])
-        # mu_conduct * (
-        #     jac[i, j, k + 1] * rhostrattfc[i, j, k0] /
-        #     rhostrattfc[i, j, k] +
-        #     jac[i, j, k] * rhostrattfc[i, j, k0] / rhostrattfc[i, j, k + 1]
-        # ) / (jac[i, j, k + 1] + jac[i, j, k])
 
         coef_d = 0.5 * (coef_dr + coef_dl)
 
@@ -1436,7 +1374,6 @@ function compute_fluxes!(
 
     for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
         coef_d = mu_conduct * rhostrattfc[i, j, k0]
-        # mu_conduct * rhostrattfc[i, j, k0] / rhostrattfc[i, j, k + 1]
 
         hrhow_visc =
             coef_d *
@@ -1696,8 +1633,8 @@ function compute_fluxes!(
     # Get old wind.
     (u0, v0, w0) = (predictands.u, predictands.v, predictands.w)
 
-    if mu_conduct_dim == 0.
-        return 
+    if mu_conduct_dim == 0.0
+        return
     end
 
     mu_conduct = mu_conduct_dim / uref / lref
@@ -1707,9 +1644,6 @@ function compute_fluxes!(
     #-----------------------------------------
 
     for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
-        # this is an unnecessary calculation for Boussinesq, 
-        # but it's the only difference between Boussinesq and 
-        # PseudoIncompressible/Compressible
         coef_t =
             mu_conduct *
             0.5 *
