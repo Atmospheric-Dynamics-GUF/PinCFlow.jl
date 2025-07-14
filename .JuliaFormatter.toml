@@ -34,5 +34,5 @@ short_circuit_to_if = false
 disallow_single_arg_nesting = false
 overwrite = true
 verbose = false
-format_markdown = false
+format_markdown = true
 ignore = []

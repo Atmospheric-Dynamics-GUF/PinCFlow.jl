@@ -1,3 +1,16 @@
+"""
+```julia
+AtmosphereNamelist{
+    A <: Bool,
+    B <: AbstractFloat,
+    C <: AbstractBackground,
+    D <: NTuple{3, <:AbstractFloat},
+    E <: AbstractCoriolisMode,
+}
+```
+
+Namelist for the atmosphere (see constructor for parameter descriptions).
+"""
 struct AtmosphereNamelist{
     A <: Bool,
     B <: AbstractFloat,
@@ -19,7 +32,21 @@ struct AtmosphereNamelist{
 end
 
 """
-    AtmosphereNamelist(; <keyword arguments>)
+```julia
+AtmosphereNamelist(;
+    specifyreynolds = false,
+    reinv = 0.0E+0,
+    mu_viscous_dim = 0.0E+0,
+    background = Isothermal(),
+    buoyancy_frequency = 1.0E-2,
+    theta0_dim = 3.0E+2,
+    temp0_dim = 3.0E+2,
+    press0_dim = 1.0E+5,
+    backgroundflow_dim = (0.0E+0, 0.0E+0, 0.0E+0),
+    coriolis_frequency = 0.0E+0,
+    coriolis_mode = FPlane(),
+)
+```
 
 Constructor for the `AtmosphereNamelist` type, which defines parameters for the background atmosphere.
 

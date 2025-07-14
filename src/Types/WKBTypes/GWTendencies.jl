@@ -1,5 +1,7 @@
 """
-    GWTendencies
+```julia
+GWTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+```
 
 Gravity wave drag and heating tendency fields.
 
@@ -15,6 +17,13 @@ struct GWTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dthetadt::A
 end
 
+"""
+```julia
+GWTendencies(nxx::Integer, nyy::Integer, nzz::Integer)
+```
+
+Construct a `GWTendencies` instance.
+"""
 function GWTendencies(nxx::Integer, nyy::Integer, nzz::Integer)
     return GWTendencies([zeros(nxx, nyy, nzz) for i in 1:3]...)
 end

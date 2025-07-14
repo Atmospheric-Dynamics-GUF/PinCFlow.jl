@@ -1,3 +1,10 @@
+"""
+```julia
+DiscretizationNamelist{A <: AbstractFloat, B <: Bool, C <: AbstractLimiter}
+```
+
+Namelist for the discretization (see constructor for parameter descriptions).
+"""
 struct DiscretizationNamelist{
     A <: AbstractFloat,
     B <: Bool,
@@ -12,7 +19,16 @@ struct DiscretizationNamelist{
 end
 
 """
-DiscretizationNamelist(;<keyword arguments>)
+```julia
+DiscretizationNamelist(;
+    cfl = 5.0E-1,
+    cfl_wave = 5.0E-1,
+    dtmin_dim = 1.0E-6,
+    dtmax_dim = 1.0E+3,
+    adaptive_time_step = true,
+    limitertype = MCVariant(),
+)
+```
 
 Construct a DiscretizationNamelist object, which holds parameters for the time discretization.
 

@@ -1,5 +1,14 @@
 """
-    solve_poisson!(state, b, tolref, dt, facray, facprs)
+```julia
+solve_poisson!(
+    state::State,
+    b::AbstractArray{<:AbstractFloat, 3},
+    tolref::AbstractFloat,
+    dt::AbstractFloat,
+    facray::AbstractFloat,
+    facprs::AbstractFloat,
+)
+```
 
 Solve the Poisson equation for pressure correction in the atmospheric flow solver.
 

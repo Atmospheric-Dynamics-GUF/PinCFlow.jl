@@ -1,5 +1,7 @@
 """
-    GWIntegrals
+```julia
+GWIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
+```
 
 Gravity wave momentum and energy integral quantities.
 
@@ -23,6 +25,13 @@ struct GWIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     e::A
 end
 
+"""
+```julia
+GWIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)
+```
+
+Construct a `GWIntegrals` instance.
+"""
 function GWIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)
     return GWIntegrals([zeros(nxx, nyy, nzz) for i in 1:10]...)
 end

@@ -1,27 +1,14 @@
 """
-    read_input(state::State)
+```julia
+read_input!(state::State)
+```
 
-Read initial conditions and background fields from HDF5 input file.
-
-Loads grid coordinates, background atmosphere state, and prognostic variable 
-initial conditions from the file specified in [`InputNamelist`](src/Types/NamelistTypes/InputNamelist.jl).
+Read initial values for all prognostic variables from an HDF5 input file.
 
 # Arguments
-- `state::State`: Simulation state to populate with input data
 
-# Input Variables
-- **Grid**: Coordinates `x`, `y`, `z` 
-- **Background**: Density `rhobar`, potential temperature `thetabar`, buoyancy frequency `n2`
-- **Initial conditions**: Density perturbation `rhop`, velocities `u/v/w`, pressure `pip`, potential temperature `p`
-- **WKB**: Ray positions, wavenumbers, and amplitudes if present
-
-# Implementation
-- **MPI I/O**: Reads domain-decomposed data with proper rank distribution
-- **Scaling**: Applies inverse dimensional scaling from [`Constants`](src/Types/FoundationalTypes/Constants.jl)
-- **Interpolation**: Handles grid mismatches between input and simulation grids
-- **Validation**: Checks input dimensions against simulation
+  - `state`: Model state.
 """
-
 function read_input!(state::State)
 
     # Get all necessary fields.

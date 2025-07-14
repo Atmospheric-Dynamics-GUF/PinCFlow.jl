@@ -1,27 +1,15 @@
 """
-    create_output(state::State)
+```julia
+create_output(state::State)
+```
 
-Initialize HDF5 output file with dimensions, attributes, and datasets.
+Create an HDF5 output file with one dataset for each variable.
 
-Creates output file structure with grid coordinates, variable datasets, and
-metadata. Sets up chunking and compression for efficient parallel I/O.
+The dimensions of the datasets are set to those of the domain, whereas the chunks are set to the dimensions of the MPI subdomains, in preparation for parallel output. Datasets for the grid, i.e. the fields `x`, `y` and `ztfc` of `state.grid`, the time and the fields of `state.atmosphere` are always created, regardless of the specifications in `state.namelists.output`. The one exception to this is the Boussinesq mode, in which no datasets are created for the fields of `state.atmosphere`, since they do not have a spatial dependence.
 
 # Arguments
 
-  - `state::State`: Simulation state containing grid and configuration
-
-# File Structure
-
-  - **Dimensions**: `nx`, `ny`, `nz`, `nt` for spatial and temporal extents
-  - **Coordinates**: `x`, `y`, `z`, `t` arrays with proper scaling
-  - **Variables**: Datasets for all prognostic and diagnostic fields
-  - **Attributes**: Simulation metadata, constants, and namelist parameters
-
-# Implementation
-
-  - **Chunking**: Optimized for domain decomposition access patterns
-  - **Compression**: Applies deflate compression for storage efficiency
-  - **Parallel**: Creates collective datasets for MPI-parallel writing
+  - `state`: Model state.
 """
 function create_output(state::State)
     (; sizex, sizey, sizez, npx, npy, npz) = state.namelists.domain

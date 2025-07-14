@@ -1,3 +1,17 @@
+"""
+```julia
+Output
+```
+
+Module for I/O of PinCFlow simulation data.
+
+Provides functions for writing the model state and initializing the model with data from a previous simulation.
+
+# See also
+
+  - [`PinCFlow.Types`](@ref)
+  - [`PinCFlow.Update`](@ref)
+"""
 module Output
 
 using Dates
