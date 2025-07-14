@@ -1,5 +1,7 @@
 """
-    Backups{A <: AbstractArray{<:AbstractFloat, 3}}
+```julia
+Backups{A <: AbstractArray{<:AbstractFloat, 3}}
+```
 
 Storage container for backup copies of predictand variables during time stepping.
 
@@ -14,7 +16,7 @@ Storage container for backup copies of predictand variables during time stepping
 # Usage
 
 Backup fields store previous time step values for multi-stage time integration schemes.
-Used by [`save_backups!`](src/Integration/save_backups%21.jl) to preserve state before updates.
+Used by [`PinCFlow.Integration.save_backups!`](@ref) to preserve state before updates.
 """
 struct Backups{A <: AbstractArray{<:AbstractFloat, 3}}
     rhoold::A
@@ -25,7 +27,9 @@ struct Backups{A <: AbstractArray{<:AbstractFloat, 3}}
 end
 
 """
-    Backups(domain::Domain)
+```julia
+Backups(domain::Domain)
+```
 
 Initialize backup storage arrays sized according to domain decomposition.
 

@@ -1,11 +1,11 @@
 """
-    Constants{A<:AbstractFloat}
+```julia
+Constants{A <: AbstractFloat}
+```
 
 Physical constants and reference quantities.
 
-This struct contains all dimensional and non-dimensional parameters used throughout
-the model, including thermodynamic constants, reference scales, and
-derived flow parameters for proper non-dimensionalization.
+This struct contains all dimensional and non-dimensional parameters used throughout the model, including thermodynamic constants, reference scales, and derived flow parameters for proper non-dimensionalization.
 
 # Type Parameters
 
@@ -42,54 +42,6 @@ derived flow parameters for proper non-dimensionalization.
   - `frinv2::A`: Inverse Froude number squared = g·lref/uref²
   - `fr2::A`: Froude number squared = uref²/(g·lref)
   - `sig::A`: Stratification parameter = Ma²/Fr² = ρref·g·lref/pref
-
-# Constructor
-
-    Constants(namelists::Namelists)
-
-Creates a Constants instance from simulation parameters.
-
-## Parameters
-
-  - `namelists::Namelists`: Configuration containing:
-
-      + `atmosphere.specifyreynolds`: Whether to use prescribed Reynolds number
-      + `atmosphere.reinv`: Inverse Reynolds number (if prescribed)
-      + `atmosphere.mu_viscous_dim`: Dynamic viscosity [Pa·s] (if computed)
-
-## Non-dimensionalization Scheme
-
-The model uses a consistent non-dimensionalization based on:
-
-  - **Length scale**: Pressure scale height lref = pref/(ρref·g)
-  - **Velocity scale**: Sound speed uref = √(pref/ρref)
-  - **Time scale**: Acoustic time tref = lref/uref
-  - **Pressure scale**: Reference pressure pref
-  - **Density scale**: Reference density ρref
-  - **Temperature scale**: Acoustic temperature θref = uref²/rsp
-
-## Examples
-
-```julia
-# Create constants from namelists
-constants = Constants(namelists)
-
-# Access physical constants
-γ = constants.gamma          # 1.4
-R = constants.rsp           # 287.0 J/(kg·K)
-g = constants.g             # 9.81 m/s²
-
-# Reference scales
-ρ₀ = constants.rhoref       # 1.184 kg/m³
-p₀ = constants.pref         # 101325.0 Pa
-c₀ = constants.aref         # ~293 m/s
-L₀ = constants.lref         # ~8700 m
-
-# Non-dimensional parameters
-Re = constants.re           # Reynolds number
-Ma = constants.ma           # Mach number (≡ 1)
-Fr = constants.fr           # Froude number (≡ 1)
-```
 """
 struct Constants{A <: AbstractFloat}
 
@@ -125,6 +77,55 @@ struct Constants{A <: AbstractFloat}
     sig::A
 end
 
+"""
+```julia
+Constants(namelists::Namelists)
+```
+
+Creates a `Constants` instance from simulation parameters.
+
+# Arguments
+
+  - `namelists::Namelists`: Configuration containing:
+
+      + `atmosphere.specifyreynolds`: Whether to use prescribed Reynolds number
+      + `atmosphere.reinv`: Inverse Reynolds number (if prescribed)
+      + `atmosphere.mu_viscous_dim`: Dynamic viscosity (if computed)
+
+# Non-dimensionalization scheme
+
+The model uses a consistent non-dimensionalization based on:
+
+  - **Length scale**: Pressure scale height lref = pref/(ρref·g)
+  - **Velocity scale**: Sound speed uref = √(pref/ρref)
+  - **Time scale**: Acoustic time tref = lref/uref
+  - **Pressure scale**: Reference pressure pref
+  - **Density scale**: Reference density ρref
+  - **Temperature scale**: Acoustic temperature θref = uref²/rsp
+
+# Examples
+
+```julia
+# Create constants from namelists
+constants = Constants(namelists)
+
+# Physical constants
+γ = constants.gamma         # 1.4
+R = constants.rsp           # 287.0 J/(kg·K)
+g = constants.g             # 9.81 m/s²
+
+# Reference scales
+ρ₀ = constants.rhoref       # 1.184 kg/m³
+p₀ = constants.pref         # 101325.0 Pa
+c₀ = constants.aref         # ~293 m/s
+L₀ = constants.lref         # ~8700 m
+
+# Non-dimensional parameters
+Re = constants.re           # Reynolds number
+Ma = constants.ma           # Mach number (≡ 1)
+Fr = constants.fr           # Froude number (≡ 1)
+```
+"""
 function Constants(namelists::Namelists)
 
     # Get parameters.

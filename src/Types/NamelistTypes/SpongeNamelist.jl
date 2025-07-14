@@ -1,3 +1,16 @@
+"""
+```julia
+SpongeNamelist{
+    A <: Bool,
+    B <: AbstractFloat,
+    C <: AbstractSponge,
+    D <: Integer,
+    E <: NTuple{3, <:AbstractFloat},
+}
+```
+
+Namelist for sponge configuration (see constructor for parameter descriptions).
+"""
 struct SpongeNamelist{
     A <: Bool,
     B <: AbstractFloat,
@@ -22,7 +35,24 @@ struct SpongeNamelist{
 end
 
 """
-    SpongeNamelist(; <keyword arguments>)
+```julia
+SpongeNamelist(;
+    spongelayer = false,
+    sponge_uv = false,
+    spongeheight = 5.0E-1,
+    spongealphaz_dim = 1.0E-2,
+    spongealphaz_fac = 1.0E+0,
+    unifiedsponge = false,
+    lateralsponge = false,
+    spongetype = PolynomialSponge(),
+    spongeorder = 1,
+    cosmosteps = 1,
+    relax_to_mean = true,
+    perturbation_period = 0.0E+0,
+    perturbation_amplitude = 0.0E+0,
+    relaxation_wind = (0.0E+0, 0.0E+0, 0.0E+0),
+)
+```
 
 Configuration parameters for damping layers that absorb waves near domain boundaries.
 
@@ -42,8 +72,6 @@ Configuration parameters for damping layers that absorb waves near domain bounda
   - `perturbation_period::AbstractFloat = 0.0E+0`: Period for time-varying relaxation [s]
   - `perturbation_amplitude::AbstractFloat = 0.0E+0`: Amplitude of relaxation perturbation
   - `relaxation_wind::NTuple{3,AbstractFloat} = (0,0,0)`: Target wind field [m/s] when not relaxing to mean
-
-# Usage
 """
 function SpongeNamelist(;
     spongelayer = false,

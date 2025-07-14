@@ -1,3 +1,18 @@
+"""
+```julia
+FluxCalculator
+```
+
+Module for flux calculation.
+
+Provides functions for MUSCL reconstruction and flux computation.
+
+# See also
+
+  - [`PinCFlow.Types`](@ref)
+  - [`PinCFlow.Boundaries`](@ref)
+  - [`PinCFlow.Update`](@ref)
+"""
 module FluxCalculator
 
 using ..Types

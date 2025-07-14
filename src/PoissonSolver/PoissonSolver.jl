@@ -1,3 +1,12 @@
+"""
+```julia
+PoissonSolver
+```
+
+Module for solving the Poisson equation and performing a corrector step.
+
+Provides the functions needed to solve the Poisson equation of the semi-implicit time scheme, using a preconditioned BiCGStab algorithm, and correcting the Exner-pressure, momentum and buoyancy accordingly.
+"""
 module PoissonSolver
 
 using MPI
@@ -6,7 +15,22 @@ using ..MPIOperations
 using ..Boundaries
 using ..Update
 
+"""
+```julia
+Total
+```
+
+Singleton for dispatch to application of the full linear operator.
+"""
 struct Total end
+
+"""
+```julia
+Horizontal
+```
+
+Singleton for dispatch to application of the horizontal part of the linear operator.
+"""
 struct Horizontal end
 
 include("apply_bicgstab!.jl")

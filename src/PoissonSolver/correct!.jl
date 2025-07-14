@@ -1,5 +1,12 @@
 """
-    correct!(state, dt, facray, facprs)
+```julia
+correct!(
+    state::State,
+    dt::AbstractFloat,
+    facray::AbstractFloat,
+    facprs::AbstractFloat,
+)
+```
 
 Apply pressure corrections to velocity and density fields.
 
@@ -36,7 +43,15 @@ function correct!(
 end
 
 """
-    correct!(state, dt, variable::U, facray, facprs)
+```julia
+correct!(
+    state::State,
+    dt::AbstractFloat,
+    variable::U,
+    facray::AbstractFloat,
+    facprs::AbstractFloat,
+)
+```
 
 Apply pressure correction to horizontal velocity component u.
 
@@ -147,7 +162,15 @@ function correct!(
 end
 
 """
-    correct!(state, dt, variable::V, facray, facprs)
+```julia
+correct!(
+    state::State,
+    dt::AbstractFloat,
+    variable::V,
+    facray::AbstractFloat,
+    facprs::AbstractFloat,
+)
+```
 
 Apply pressure correction to horizontal velocity component v.
 
@@ -249,7 +272,15 @@ function correct!(
 end
 
 """
-    correct!(state, dt, variable::W, facray, facprs)
+```julia
+correct!(
+    state::State,
+    dt::AbstractFloat,
+    variable::W,
+    facray::AbstractFloat,
+    facprs::AbstractFloat,
+)
+```
 
 Apply pressure correction to vertical velocity with buoyancy coupling.
 
@@ -390,7 +421,15 @@ function correct!(
 end
 
 """
-    correct!(state, dt, variable::RhoP, facray, facprs)
+```julia
+correct!(
+    state::State,
+    dt::AbstractFloat,
+    variable::RhoP,
+    facray::AbstractFloat,
+    facprs::AbstractFloat,
+)
+```
 
 Apply buoyancy correction to density perturbation field.
 
@@ -575,7 +614,9 @@ function correct!(
 end
 
 """
-    correct!(state, variable::PiP)
+```julia
+correct!(state::State, variable::PiP)
+```
 
 Update pressure perturbation with computed correction.
 

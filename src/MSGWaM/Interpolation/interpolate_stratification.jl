@@ -1,64 +1,25 @@
 """
-    interpolate_stratification(zlc::AbstractFloat, state::State, strtype::N2) -> AbstractFloat
+```julia
+interpolate_stratification(zlc::AbstractFloat, state::State, strtype::N2)
+```
 
-Interpolate Brunt-Väisälä frequency squared (N²) to a specified vertical level.
+Interpolate the squared buoyancy frequency (``N^2``) to `zlc`.
 
-Computes the atmospheric stratification parameter N² at arbitrary vertical
-positions through linear interpolation between model grid levels. N² determines
-gravity wave propagation characteristics and is fundamental to wave dynamics.
+This method first determines the two points in ``z`` that are closest to `zlc`. As horizontal position, it uses `(i0, j0)`, which is arbitrary, since ``N^2`` has no horizontal dependence. Subsequently, simple linear interpolation is performed to find ``N^2`` at `zlc`.
 
 # Arguments
 
-  - `zlc::AbstractFloat`: Target vertical coordinate for interpolation
-  - `state::State`: Complete simulation state containing atmospheric data
-  - `strtype::N2`: Type dispatch for N² interpolation
+  - `zlc`: Vertical position of interest.
+  - `state`: Model state.
+  - `strtype`: Stratification quantity to interpolate.
 
 # Returns
 
-  - `AbstractFloat`: Brunt-Väisälä frequency squared [s⁻²] at target level
+  - `::Float64`: Interpolated ``N^2`` at the location of interest.
 
-# Physical Background
+# See also
 
-The Brunt-Väisälä frequency N² characterizes atmospheric stability:
-
-  - `N² = (g/θ) * (dθ/dz)` where g is gravity, θ potential temperature
-  - **N² > 0**: Stable stratification (gravity waves can propagate)
-  - **N² = 0**: Neutral stratification (marginal stability)
-  - **N² < 0**: Unstable stratification (convective instability)
-
-# Algorithm
-
- 1. **Level Location**: Find grid levels bracketing target height using `get_next_level`
- 2. **Value Extraction**: Get N² values from atmospheric state at bracket levels
- 3. **Linear Interpolation**: Compute weighted average based on vertical position
- 4. **Boundary Handling**: Extrapolate using nearest values for points outside domain
-
-# Interpolation Formula
-
-```
-N²(z) = f * N²_lower + (1-f) * N²_upper
-```
-
-where `f` is the interpolation factor based on relative position between levels.
-
-# Grid Considerations
-
-  - Uses full model levels (`ztfc`) for coordinate reference
-  - Accounts for terrain-following coordinate system
-  - Handles variable vertical grid spacing
-
-# Applications in Wave Dynamics
-
-  - **Dispersion relation**: N² appears directly in gravity wave frequency
-  - **Vertical wavelength**: Determines local vertical scale of waves
-  - **Critical levels**: N² = 0 levels where waves are absorbed
-  - **Wave breaking**: Large N² gradients can trigger instabilities
-
-# Performance Notes
-
-  - Efficient single-level interpolation for ray tracing
-  - Uses pre-computed atmospheric profiles
-  - Minimal computational overhead per ray evaluation
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
 """
 function interpolate_stratification(
     zlc::AbstractFloat,
@@ -101,72 +62,27 @@ function interpolate_stratification(
 end
 
 """
-    interpolate_stratification(zlc::AbstractFloat, state::State, strtype::DN2DZ) -> AbstractFloat
+```julia
+interpolate_stratification(zlc::AbstractFloat, state::State, strtype::DN2DZ)
+```
 
-Interpolate vertical derivative of Brunt-Väisälä frequency squared (dN²/dz).
+Interpolate the vertical derivative of the squared buoyancy frequency (``\\partial N^2 / \\partial z``) to `zlc`.
 
-Computes the vertical gradient of atmospheric stratification at arbitrary
-vertical positions. This quantity is crucial for gravity wave refraction
-and affects wave propagation characteristics.
+This method first determines the two points in ``z + J \\Delta \\widehat{z} / 2`` that are closest to `zlc`. As horizontal position, it uses `(i0, j0)`, which is arbitrary, since ``\\partial N^2 / \\partial z`` has no horizontal dependence. Subsequently, simple linear interpolation is performed to find ``\\partial N^2 / \\partial z`` at `zlc`.
 
 # Arguments
 
-  - `zlc::AbstractFloat`: Target vertical coordinate for interpolation
-  - `state::State`: Complete simulation state containing atmospheric data
-  - `strtype::DN2DZ`: Type dispatch for dN²/dz interpolation
+  - `zlc`: Vertical position of interest.
+  - `state`: Model state.
+  - `strtype`: Stratification quantity to interpolate.
 
 # Returns
 
-  - `AbstractFloat`: Vertical derivative of N² [s⁻² m⁻¹] at target level
+  - `::Float64`: Interpolated ``\\partial N^2 / \\partial z`` at the location of interest.
 
-# Physical Significance
+# See also
 
-The vertical gradient dN²/dz affects:
-
-  - **Wave refraction**: Changes in N² bend wave ray paths
-  - **Critical level formation**: Sharp N² gradients create wave absorption regions
-  - **Vertical group velocity**: Modified by stratification variations
-  - **Wave breaking**: Strong gradients can trigger convective instability
-
-# Algorithm
-
- 1. **Level Location**: Find half-levels bracketing target using `get_next_half_level`
- 2. **Derivative Computation**: Calculate dN²/dz using centered differences at each level
- 3. **Terrain-Following Correction**: Account for coordinate system metrics (`jac`)
- 4. **Linear Interpolation**: Weighted average of derivatives at bracket levels
-
-# Derivative Calculation
-
-At each half-level:
-
-```
-dN²/dz = (N²_above - N²_below) / (effective_spacing)
-```
-
-where effective spacing accounts for terrain-following coordinates:
-
-```
-effective_spacing = 2 * jac_lower * jac_upper / (jac_lower + jac_upper) * dz
-```
-
-# Terrain-Following Coordinates
-
-  - Uses half-levels (`ztildetfc`) for derivative evaluation
-  - Jacobian factors (`jac`) account for coordinate stretching
-  - Maintains accuracy in regions with steep topography
-
-# Applications
-
-  - **Ray propagation**: Refraction calculations in `propagate_rays!`
-  - **Wavenumber evolution**: Contributes to dk/dt, dl/dt, dm/dt equations
-  - **Wave-mean flow interaction**: Background flow modification effects
-  - **Instability analysis**: Convective breakdown prediction
-
-# Numerical Considerations
-
-  - Second-order accurate centered differences
-  - Proper metric factor weighting for terrain-following grids
-  - Stable interpolation even with steep coordinate stretching
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 """
 function interpolate_stratification(
     zlc::AbstractFloat,

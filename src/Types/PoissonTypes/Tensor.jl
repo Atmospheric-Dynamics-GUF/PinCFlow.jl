@@ -1,5 +1,7 @@
 """
-    Tensor{A <: AbstractArray{<:AbstractFloat, 3}}
+```julia
+Tensor{A <: AbstractArray{<:AbstractFloat, 3}}
+```
 
 Storage for 27-point stencil matrix coefficients of the Poisson operator.
 
@@ -69,7 +71,9 @@ struct Tensor{A <: AbstractArray{<:AbstractFloat, 3}}
 end
 
 """
-    Tensor(domain::Domain)
+```julia
+Tensor(domain::Domain)
+```
 
 Initialize tensor coefficient arrays sized according to local domain.
 

@@ -1,9 +1,15 @@
 """
-    set_vertical_halo_rays!(state::State)
+```julia
+set_vertical_halo_rays!(state::State)
+```
+
+Exchange ray volumes in vertical halo cells.
+
+Performs MPI communication between downward and upward neighbor processes. The number of communicated ray volumes is determined from the maximum counts at the downward and upward boundaries of the MPI subdomains. Solid walls are assumed at the vertical boundaries of the full domain. The corresponding ghost-cell ray volumes are not changed.
 
 # Arguments
 
-  - `state::State`: Complete simulation state
+  - `state`: Model state.
 """
 function set_vertical_halo_rays!(state::State)
     (; comm, sizezz, nzz, nx, ny, ko, i0, i1, j0, j1, k0, k1, down, up) =

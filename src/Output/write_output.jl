@@ -1,35 +1,53 @@
 """
-    write_output(state::State, time::AbstractFloat, iout::Integer, machine_start_time::DateTime)
+```julia
+write_output(
+    state::State,
+    time::AbstractFloat,
+    iout::Integer,
+    machine_start_time::DateTime,
+)
+```
 
-Write simulation state to HDF5 output file.
+Write the current simulation state to a previously created HDF5 output file.
 
-Outputs grid coordinates, background fields, prognostic variables, and WKB ray data
-to the HDF5 file specified in [`OutputNamelist`](src/Types/NamelistTypes/OutputNamelist.jl).
-Handles MPI-parallel I/O with proper domain decomposition.
+The output is written in parallel, using the chunking prepared by `create_output`. The grid, i.e. the fields `x`, `y` and `ztfc` of `state.grid`, as well as the fields of `state.atmosphere` are only written if `iout == 1` (which should only be the case for the initial output). In Boussinesq mode, the fields of `state.atmosphere` do not have a spatial dependence and are therefore not written at all. In compressible mode, the mass-weighted potential temperature and squared buoyancy frequency have a temporal dependence and are therefore written even if `iout != 1`. Any other field is only written if it is listed in `state.namelists.output.output_variables` or if it is essential for restarts and `state.namelists.output.prepare_restart == true`.
+
+The list of available output variables (as specified in `state.namelists.output.output_variables`) is as follows.
+
+  - `:rhop`: Density fluctuations (restart variable).
+  - `:u`: Zonal wind.
+  - `:us`: Staggered zonal wind (restart variable).
+  - `:v`: Meridional wind.
+  - `:vs`: Staggered meridional wind (restart variable).
+  - `:w`: Vertical wind (computed with `compute_vertical_wind`).
+  - `:ws`: Staggered vertical wind (computed with `compute_vertical_wind`).
+  - `:wtfc`: Transformed vertical wind.
+  - `:wstfc`: Staggered transformed vertical wind (restart variable).
+  - `:thetap`: Potential-temperature fluctuations.
+  - `:pip`: Exner-pressure fluctuations (restart variable).
+  - `:dudt`: Zonal-momentum drag due to unresolved gravity waves.
+  - `:dvdt`: Meridional-momentum drag due to unresolved gravity waves.
+  - `:dthetadt`: Mass-weighted potential-temperature tendency due to unresolved gravity waves.
+
+An output of all ray-volume properties is provided if `state.namelists.output.save_ray_volumes == true` and/or `state.namelists.output.prepare_restart == true`.
+
+All output variables are re-dimensionalized with the scale parameters stored in `state.constants`.
 
 # Arguments
-- `state::State`: Complete simulation state
-- `time::AbstractFloat`: Current simulation time (dimensionless)
-- `iout::Integer`: Output step counter
-- `machine_start_time::DateTime`: Wall-clock start time for timing info
+
+  - `state`: Model state.
+  - `time`: Simulation time.
+  - `iout`: Output counter. This is the temporal index of the output. It is advanced before the output is written, so that the first call of `write_output` should receive `iout = 0`.
+  - `machine_start_time`: Wall-clock start time.
 
 # Returns
-- `Integer`: Updated output counter
 
-# Output Variables
-- **Grid**: Coordinates `x`, `y`, `z` and time `t`
-- **Background**: Density `rhobar`, potential temperature `thetabar`, buoyancy frequency `n2`
-- **Prognostic**: Density `rhop`, velocities `u/v/w`, pressure `pip`, potential temperature `p`
-- **Staggered**: Cell-edge velocities `us/vs/ws`, transformed winds `wtfc/wstfc`
-- **WKB**: Ray positions, wavenumbers, densities, and gravity wave tendencies
+  - `::Int`: Advanced output counter.
 
-# Implementation
-- **Parallel I/O**: Uses collective HDF5 operations across MPI ranks
-- **Chunking**: Optimized for domain decomposition with chunk sizes
-- **Scaling**: Applies dimensional scaling factors from [`Constants`](src/Types/FoundationalTypes/Constants.jl)
-- **Conditionals**: Only outputs variables specified in [`output_variables`](src/Types/NamelistTypes/OutputNamelist.jl)
+# See also
+
+  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 """
-
 function write_output(
     state::State,
     time::AbstractFloat,

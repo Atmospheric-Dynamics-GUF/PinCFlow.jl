@@ -1,5 +1,7 @@
 """
+```julia
 Namelists
+```
 
 Represents all configurable parameters for the simulation.
 """
@@ -34,11 +36,19 @@ struct Namelists{
 end
 
 """
-    Namelists(
-    domain = DomainNamelist(), output = OutputNamelist(), setting = SettingNamelist(),
-    discretization = DiscretizationNamelist(), poisson = PoissonNamelist(),
-    atmosphere = AtmosphereNamelist(), grid = GridNamelist(), sponge = SpongeNamelist(),
-    wkb = WKBNamelist(), wavepacket = WavePacketNamelist())
+```julia
+Namelists(;
+    domain = DomainNamelist(),
+    output = OutputNamelist(),
+    setting = SettingNamelist(),
+    discretization = DiscretizationNamelist(),
+    poisson = PoissonNamelist(),
+    atmosphere = AtmosphereNamelist(),
+    grid = GridNamelist(),
+    sponge = SpongeNamelist(),
+    wkb = WKBNamelist(),
+)
+```
 
 Create a new `Namelist` instance with the provided namelists. Omitted namelists will be initialized with default values.
 """

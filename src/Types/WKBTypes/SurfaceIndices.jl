@@ -1,5 +1,7 @@
 """
-    SurfaceIndices
+```julia
+SurfaceIndices{A <: AbstractArray{<:Integer, 3}, B <: AbstractVector{<:Integer}}
+```
 
 Indices for ray launching at surface boundaries.
 
@@ -24,6 +26,13 @@ struct SurfaceIndices{
     iwm_sfc::B
 end
 
+"""
+```julia
+SurfaceIndices(n_sfc::Integer, nxx::Integer, nyy::Integer)
+```
+
+Construct a `SurfaceIndices` instance.
+"""
 function SurfaceIndices(n_sfc::Integer, nxx::Integer, nyy::Integer)
     return SurfaceIndices(
         zeros(Int, n_sfc, nxx, nyy),
