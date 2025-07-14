@@ -28,7 +28,6 @@ struct OutputNamelist{
     maxiter::C
     outputtimediff::D
     maxtime::D
-    fancy_namelists::B
     input_file::E
     output_file::E
 end
@@ -46,7 +45,6 @@ OutputNamelist(;
     maxiter = 1,
     outputtimediff = 3.6E+3,
     maxtime = 3.6E+3,
-    fancy_namelists = true,
     input_file = "./pincflow_input.h5",
     output_file = "./pincflow_output.h5",
 )
@@ -66,7 +64,6 @@ Construct a new OutputNamelist instance, which holds output and input related pa
   - `maxiter::C`: An integer representing the maximum number of iterations. Only used if `output_steps` is true.
   - `outputtimediff::D`: a floating-point number determining the time difference between outputs in seconds. Only used if `output_steps` is false.
   - `maxtime::D`: A floating-point number representing the maximum simulaton time. Only used if `output_steps` is false.
-  - `fancy_namelists::B`: Not used for now.
   - `input_file::E`: A string holding the input HDF5 file path used for restart.
   - `output_file::E`: A string holding the output HDF5 file path.
 """
@@ -81,7 +78,6 @@ function OutputNamelist(;
     maxiter = 1,
     outputtimediff = 3.6E+3,
     maxtime = 3.6E+3,
-    fancy_namelists = true,
     input_file = "./pincflow_input.h5",
     output_file = "./pincflow_output.h5",
 )
@@ -96,7 +92,6 @@ function OutputNamelist(;
         maxiter,
         outputtimediff,
         maxtime,
-        fancy_namelists,
         input_file,
         output_file,
     )
