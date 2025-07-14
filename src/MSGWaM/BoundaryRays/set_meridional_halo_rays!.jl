@@ -1,9 +1,15 @@
 """
-    set_meridional_halo_rays!(state::State)
+```julia
+set_meridional_halo_rays!(state::State)
+```
+
+Exchange ray volumes in meridional halo cells.
+
+Performs bidirectional MPI communication between backward and forward neighbor processes. The number of communicated ray volumes is determined from the maximum counts at the backward and forward boundaries of the MPI subdomains.
 
 # Arguments
 
-  - `state::State`: Complete simulation state
+  - `state`: Model state.
 """
 function set_meridional_halo_rays!(state::State)
     (; comm, nx, nz, i0, i1, j0, j1, k0, k1, backward, forward) = state.domain

@@ -1,3 +1,14 @@
+"""
+```julia
+SettingNamelist{
+    A <: AbstractModel,
+    B <: AbstractTestCase,
+    C <: AbstractBoundaries,
+}
+```
+
+Namelist for level of compressibility, test case and vertical boundary conditions (see constructor for parameter descriptions).
+"""
 struct SettingNamelist{
     A <: AbstractModel,
     B <: AbstractTestCase,
@@ -9,11 +20,13 @@ struct SettingNamelist{
 end
 
 """
-    SettingNamelist(; 
-        model = PseudoIncompressible(),
-        testcase = MountainWave(),
-        zboundaries = SolidWallBoundaries()
-    )
+```julia
+SettingNamelist(;
+    model = PseudoIncompressible(),
+    testcase = MountainWave(),
+    zboundaries = SolidWallBoundaries(),
+)
+```
 
 Core simulation configuration specifying equation set, test case, and vertical boundary conditions.
 

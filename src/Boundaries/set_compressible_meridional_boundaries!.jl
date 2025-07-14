@@ -1,7 +1,14 @@
 """
-    set_compressible_meridional_boundaries!(state, model::AbstractModel)
+```julia
+set_compressible_meridional_boundaries!(state::State, model::AbstractModel)
+```
 
-No-op for non-compressible models.
+Return in non-compressible modes.
+
+# Arguments
+
+  - `state`: Model state.
+  - `model`: Dynamic equations.
 """
 function set_compressible_meridional_boundaries!(
     state::State,
@@ -11,9 +18,20 @@ function set_compressible_meridional_boundaries!(
 end
 
 """
-    set_compressible_meridional_boundaries!(state, model::Compressible)
+```julia
+set_compressible_meridional_boundaries!(state::State, model::Compressible)
+```
 
-Set meridional boundaries for pressure field in compressible model.
+Enforce meridional boundary conditions for mass-weighted potential temperature in compressible mode.
+
+# Arguments
+
+  - `state`: Model state.
+  - `model`: Dynamic equations.
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function set_compressible_meridional_boundaries!(
     state::State,

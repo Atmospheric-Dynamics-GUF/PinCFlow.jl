@@ -1,10 +1,11 @@
 """
-    Time{A<:Integer, B<:AbstractVector{<:AbstractFloat}}
+```julia
+Time{A <: Integer, B <: AbstractVector{<:AbstractFloat}}
+```
 
 Time integration parameters for explicit Runge-Kutta scheme.
 
-This struct encapsulates the coefficients and stage information for multi-stage explicit
-Runge-Kutta time integration methods used to advance the governing equations in time.
+This struct encapsulates the coefficients and stage information for multi-stage explicit Runge-Kutta time integration methods used to advance the governing equations in time.
 
 # Type Parameters
 
@@ -25,6 +26,13 @@ struct Time{A <: Integer, B <: AbstractVector{<:AbstractFloat}}
     stepfrac::B
 end
 
+"""
+```julia
+Time()
+```
+
+Constructs a `Time` instance.
+"""
 function Time()
 
     # Set Runge-Kutta parameters.

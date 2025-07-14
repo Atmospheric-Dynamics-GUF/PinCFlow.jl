@@ -1,3 +1,16 @@
+"""
+```julia
+OutputNamelist{
+    A <: Tuple{Vararg{Symbol, <:Integer}},
+    B <: Bool,
+    C <: Integer,
+    D <: AbstractFloat,
+    E <: AbstractString,
+}
+```
+
+Namelist for I/O (see constructor for parameter descriptions).
+"""
 struct OutputNamelist{
     A <: Tuple{Vararg{Symbol, <:Integer}},
     B <: Bool,
@@ -21,7 +34,23 @@ struct OutputNamelist{
 end
 
 """
-    OutputNamelist(; <keyword arguments>)
+```julia
+OutputNamelist(;
+    output_variables = (),
+    save_ray_volumes = false,
+    prepare_restart = false,
+    restart = false,
+    iin = -1,
+    output_steps = false,
+    noutput = 1,
+    maxiter = 1,
+    outputtimediff = 3.6E+3,
+    maxtime = 3.6E+3,
+    fancy_namelists = true,
+    input_file = "./pincflow_input.h5",
+    output_file = "./pincflow_output.h5",
+)
+```
 
 Construct a new OutputNamelist instance, which holds output and input related parameters.
 

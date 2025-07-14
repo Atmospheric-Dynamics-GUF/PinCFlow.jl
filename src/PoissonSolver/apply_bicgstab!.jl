@@ -1,5 +1,15 @@
 """
-    apply_bicgstab!(b_in, tolref, sol, namelists, domain, grid, poisson)
+```julia
+apply_bicgstab!(
+    b_in::AbstractArray{<:AbstractFloat, 3},
+    tolref::AbstractFloat,
+    sol::AbstractArray{<:AbstractFloat, 3},
+    namelists::Namelists,
+    domain::Domain,
+    grid::Grid,
+    poisson::Poisson,
+)
+```
 
 Solve the linear system using BiCGStab iterative method.
 

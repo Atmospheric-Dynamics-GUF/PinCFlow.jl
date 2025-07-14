@@ -1,3 +1,15 @@
+"""
+```julia
+RaySources
+```
+
+Module for ray-volume sources.
+
+# See also
+
+  - [`PinCFlow.Types`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations`](@ref)
+"""
 module RaySources
 
 using ...Types
