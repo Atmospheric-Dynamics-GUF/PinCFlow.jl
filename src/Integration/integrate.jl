@@ -263,7 +263,7 @@ function integrate(namelists::Namelists)
             println("")
         end
 
-        implicit_integration!(
+        ntotalbicg = implicit_integration!(
             state,
             0.5 * dt,
             time,
@@ -300,7 +300,7 @@ function integrate(namelists::Namelists)
             println("")
         end
 
-        implicit_integration!(
+        ntotalbicg = implicit_integration!(
             state,
             0.5 * dt,
             time,
