@@ -1,13 +1,32 @@
 """
-    get_next_half_level(i::Integer, j::Integer, z::AbstractFloat, domain::Domain, grid::Grid)
+```julia
+get_next_half_level(
+    i::Integer,
+    j::Integer,
+    z::AbstractFloat,
+    domain::Domain,
+    grid::Grid,
+)
+```
+
+Determine the index of the next half-level above `z` at the horizontal position `(i, j)`.
+
+This method is heavily used for interpolation to ray-volume positions. To ensure that the vertical boundary conditions are met and no out-of-bounds errors occur, the following constraints are set.
+
+  - In MPI processes at the lower boundary of the domain, the returned index cannot be smaller than `domain.k0`, in other processes, it cannot be smaller than 3.
+  - In MPI processes at the upper boundary of the domain, the returned index cannot be larger than `domain.k1`, in other processes, it cannot be larger than `domain.nzz - 1`.
 
 # Arguments
 
-  - `i::Integer`: Grid index in x-direction
-  - `j::Integer`: Grid index in y-direction
-  - `z::AbstractFloat`: Target vertical coordinate
-  - `domain::Domain`: Domain configuration
-  - `grid::Grid`: Grid structure
+  - `i`: Zonal index.
+  - `j`: Meridional index.
+  - `z`: Vertical position.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `grid`: Collection of parameters and fields that describe the grid.
+
+# Returns
+
+  - `::Int`: Index of the next half-level.
 """
 function get_next_half_level(
     i::Integer,

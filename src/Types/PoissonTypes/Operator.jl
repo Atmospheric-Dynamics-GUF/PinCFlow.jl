@@ -1,5 +1,7 @@
 """
-    Operator{A <: AbstractArray{<:AbstractFloat, 3}}
+```julia
+Operator{A <: AbstractArray{<:AbstractFloat, 3}}
+```
 
 Workspace array for matrix-vector operations in the Poisson solver.
 
@@ -17,7 +19,9 @@ struct Operator{A <: AbstractArray{<:AbstractFloat, 3}}
 end
 
 """
-    Operator(domain::Domain)
+```julia
+Operator(domain::Domain)
+```
 
 Initialize operator workspace array sized according to extended domain.
 

@@ -1,5 +1,12 @@
 """
-    apply_corrector!(state, dt, facray, facprs)
+```julia
+apply_corrector!(
+    state::State,
+    dt::AbstractFloat,
+    facray::AbstractFloat,
+    facprs::AbstractFloat,
+)
+```
 
 Apply the pressure correction step to enforce mass conservation.
 

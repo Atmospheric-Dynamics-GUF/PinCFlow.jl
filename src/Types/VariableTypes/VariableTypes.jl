@@ -1,3 +1,10 @@
+"""
+```julia
+VariableTypes
+```
+
+Module for composite types needed for the integration in time.
+"""
 module VariableTypes
 
 using ..NamelistTypes

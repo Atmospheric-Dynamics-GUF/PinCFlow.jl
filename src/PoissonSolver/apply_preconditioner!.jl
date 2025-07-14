@@ -1,5 +1,14 @@
 """
-    apply_preconditioner!(sin, sout, namelists, domain, grid, poisson)
+```julia
+apply_preconditioner!(
+    sin::AbstractArray{<:AbstractFloat, 3},
+    sout::AbstractArray{<:AbstractFloat, 3},
+    namelists::Namelists,
+    domain::Domain,
+    grid::Grid,
+    poisson::Poisson,
+)
+```
 
 Apply line relaxation preconditioner for the Poisson equation.
 

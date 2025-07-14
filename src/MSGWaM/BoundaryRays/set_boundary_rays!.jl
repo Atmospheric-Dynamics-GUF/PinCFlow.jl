@@ -1,14 +1,15 @@
 """
-    set_boundary_rays!(state::State)
+```julia
+set_boundary_rays!(state::State)
+```
 
-Entry point for setting ray boundary conditions based on test case type.
+Enforce boundary conditions for ray volumes based on the test case.
 
-Dispatches to the appropriate boundary condition implementation depending on
-whether the simulation uses WKB ray tracing.
+Dispatches to the appropriate methods depending on whether or not the simulation uses MS-GWaM (i.e. whether or not a WKB test case is simulated).
 
 # Arguments
 
-  - `state::State`: Complete simulation state containing ray data
+  - `state`: Model state.
 """
 function set_boundary_rays!(state::State)
     (; testcase) = state.namelists.setting
@@ -17,32 +18,34 @@ function set_boundary_rays!(state::State)
 end
 
 """
-    set_boundary_rays!(state::State, testcase::AbstractTestCase)
+```julia
+set_boundary_rays!(state::State, testcase::AbstractTestCase)
+```
 
-No-op for non-WKB test cases.
-
-Standard test cases don't use ray tracing, so no ray boundary conditions are needed.
+Return for non-WKB test cases.
 
 # Arguments
 
-  - `state::State`: Simulation state (unused)
-  - `testcase::AbstractTestCase`: Non-WKB test case
+  - `state`: Model state.
+  - `testcase`: Test case on which the current simulation is based.
 """
 function set_boundary_rays!(state::State, testcase::AbstractTestCase)
     return
 end
 
 """
-    set_boundary_rays!(state::State, testcase::AbstractWKBTestCase)
+```julia
+set_boundary_rays!(state::State, testcase::AbstractWKBTestCase)
+```
 
-Set ray boundary conditions for WKB test cases based on WKB mode.
+Enforce boundary conditions for ray volumes based on the WKB mode.
 
-Dispatches to the specific WKB mode implementation for ray boundary handling.
+Dispatches to specific methods depending on the WKB mode.
 
 # Arguments
 
-  - `state::State`: Simulation state containing WKB configuration
-  - `testcase::AbstractWKBTestCase`: WKB test case specification
+  - `state`: Model state.
+  - `testcase`: Test case on which the current simulation is based.
 """
 function set_boundary_rays!(state::State, testcase::AbstractWKBTestCase)
     (; wkb_mode) = state.namelists.wkb
@@ -51,29 +54,23 @@ function set_boundary_rays!(state::State, testcase::AbstractWKBTestCase)
 end
 
 """
-    set_boundary_rays!(state::State, wkb_mode::SteadyState)
+```julia
+set_boundary_rays!(state::State, wkb_mode::SteadyState)
+```
 
-Set ray boundary conditions for steady-state WKB mode.
+Enforce horizontal boundary conditions for "ray volumes" in steady-state mode.
 
-Applies horizontal boundary conditions only, as steady-state mode typically
-handles vertical boundaries differently (no reflection/absorption needed).
+Zonal (meridional) boundary conditions are only enforced if `state.namelists.domain.sizex > 1` (`state.namelists.domain.sizey > 1`).
 
 # Arguments
 
-  - `state::State`: Simulation state
-  - `wkb_mode::SteadyState`: Steady-state WKB mode
+  - `state`: Model state.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
-# Boundary Conditions Applied
+# See also
 
-  - **Zonal**: Periodic or wall boundaries in x-direction (if sizex > 1)
-  - **Meridional**: Periodic or wall boundaries in y-direction (if sizey > 1)
-  - **Vertical**: No special handling (rays transported vertically)
-
-# Steady-State Assumptions
-
-  - Background atmosphere is time-independent
-  - Vertical boundary effects handled by propagation scheme
-  - Only horizontal domain coupling needed for MPI decomposition
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_zonal_boundary_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_meridional_boundary_rays!`](@ref)
 """
 function set_boundary_rays!(state::State, wkb_mode::SteadyState)
     (; sizex, sizey) = state.namelists.domain
@@ -89,61 +86,24 @@ function set_boundary_rays!(state::State, wkb_mode::SteadyState)
 end
 
 """
-    set_boundary_rays!(state::State, wkb_mode::AbstractWKBMode)
+```julia
+set_boundary_rays!(state::State, wkb_mode::AbstractWKBMode)
+```
 
-Set ray boundary conditions for general WKB modes.
+Enforce horizontal and vertical boundary conditions for ray volumes in single-column or multi-column mode.
 
-Applies comprehensive boundary conditions in all active spatial dimensions,
-including vertical boundaries with reflection, absorption, or transmission.
+Zonal (meridional) boundary conditions are only enforced if `state.namelists.domain.sizex > 1` (`state.namelists.domain.sizey > 1`).
 
 # Arguments
 
-  - `state::State`: Simulation state
-  - `wkb_mode::AbstractWKBMode`: General WKB mode (MultiColumn, SingleColumn, etc.)
+  - `state`: Model state.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
-# Boundary Conditions Applied
+# See also
 
-  - **Zonal**: Domain boundaries in x-direction (if sizex > 1)
-  - **Meridional**: Domain boundaries in y-direction (if sizey > 1)
-  - **Vertical**: Physical boundaries (surface reflection, top absorption)
-
-# Vertical Boundary Types
-
-Determined by `zboundaries` setting:
-
-  - **SolidWallBoundaries**: Reflection at surface, absorption at top
-  - **PeriodicBoundaries**: Vertical periodicity (rare, for idealized cases)
-  - **OpenBoundaries**: Transmission through boundaries
-
-# Physical Implementation
-
-## Surface Reflection
-
-  - Rays hitting topography are reflected upward
-  - Vertical wavenumber sign flipped: `m → -m`
-  - Conserves wave energy while changing propagation direction
-
-## Top Absorption
-
-  - Rays reaching domain top are removed or damped
-  - Prevents artificial wave accumulation
-  - Simulates radiative damping in upper atmosphere
-
-# MPI Coordination
-
-Ensures proper ray exchange between:
-
-  - Horizontally adjacent processes
-  - Vertically stacked processes
-  - Corner/edge processes in 2D/3D decompositions
-
-# Order of Operations
-
- 1. Apply zonal boundaries (x-direction)
- 2. Apply meridional boundaries (y-direction)
- 3. Apply vertical boundaries (z-direction)
-
-This order ensures all domain coupling is properly handled.
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_zonal_boundary_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_meridional_boundary_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_vertical_boundary_rays!`](@ref)
 """
 function set_boundary_rays!(state::State, wkb_mode::AbstractWKBMode)
     (; sizex, sizey) = state.namelists.domain

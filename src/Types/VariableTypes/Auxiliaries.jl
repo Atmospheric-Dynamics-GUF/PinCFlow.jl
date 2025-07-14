@@ -1,5 +1,7 @@
 """
-    Auxiliaries{A}
+```julia
+Auxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
+```
 
 Container for auxiliary variables on a 3D grid.
 
@@ -12,7 +14,9 @@ struct Auxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
 end
 
 """
-    Auxiliaries(domain::Domain)
+```julia
+Auxiliaries(domain::Domain)
+```
 
 Construct `Auxiliaries` with zero-initialized auxiliary field based on domain dimensions.
 """

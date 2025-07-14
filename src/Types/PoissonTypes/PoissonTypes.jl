@@ -1,3 +1,10 @@
+"""
+```julia
+PoissonTypes
+```
+
+Module for composite types used by the Poisson solver.
+"""
 module PoissonTypes
 
 using ..NamelistTypes

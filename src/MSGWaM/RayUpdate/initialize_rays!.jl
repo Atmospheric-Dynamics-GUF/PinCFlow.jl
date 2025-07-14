@@ -1,14 +1,15 @@
 """
-    initialize_rays!(state::State)
+```julia
+initialize_rays!(state::State)
+```
 
-Entry point for ray initialization based on test case type.
+Complete the initialization of MS-GWaM, based on the test case.
 
-Dispatches to the appropriate initialization method depending on whether
-the simulation uses WKB ray tracing.
+Dispatches to the appropriate method depending on the test case.
 
 # Arguments
 
-  - `state::State`: Complete simulation state to initialize
+  - `state`: Model state.
 """
 function initialize_rays!(state::State)
     (; testcase) = state.namelists.setting
@@ -17,89 +18,40 @@ function initialize_rays!(state::State)
 end
 
 """
-    initialize_rays!(state::State, testcase::AbstractTestCase)
+```julia
+initialize_rays!(state::State, testcase::AbstractTestCase)
+```
 
-No-op for non-WKB test cases.
-
-Standard test cases don't use ray tracing, so no ray initialization is needed.
+Return for non-WKB test cases.
 
 # Arguments
 
-  - `state::State`: Simulation state (unused)
-  - `testcase::AbstractTestCase`: Non-WKB test case
+  - `state`: Model state.
+  - `testcase`: Test case on which the current simulation is based.
 """
 function initialize_rays!(state::State, testcase::AbstractTestCase)
     return
 end
 
 """
-    initialize_rays!(state::State, testcase::AbstractWKBTestCase)
+```julia
+initialize_rays!(state::State, testcase::AbstractWKBTestCase)
+```
 
-Initialize ray volumes for WKB test cases.
+Complete the initialization of MS-GWaM for WKB test cases.
 
-Sets up the initial distribution of ray volumes in phase space, including
-their positions, wavenumbers, extents, and wave action densities.
+In each grid cell, `nwm` wave modes are computed, using e.g. `activate_orographic_source!` for mountain waves. For each of these modes, `nrxl * nryl * nrzl * nrk * nrl * nrm` ray volumes are then defined such that they evenly divide the volume one would get for `nrxl = nryl = nrzl = nrk = nrl = nrm = 1` (the parameters are taken from `state.namelists.wkb`). Finally, the maximum group velocities are determined for the corresponding CFL condition that is used in the computation of the time step.
 
 # Arguments
 
-  - `state::State`: Complete simulation state
-  - `testcase::AbstractWKBTestCase`: WKB test case specification
+  - `state`: Model state.
+  - `testcase`: Test case on which the current simulation is based.
 
-# Initialization Process
+# See also
 
- 1. **Domain Setup**: Determine spatial bounds for ray initialization
-
- 2. **Index Bounds**: Compute grid cell ranges based on domain/test case
- 3. **Source Activation**: For mountain waves, compute orographic source terms
- 4. **Ray Volume Creation**: Initialize individual ray volumes with:
-
-      + Physical positions (x, y, z) within each grid cell
-      + Wavenumber positions (k, l, m) around source spectrum
-      + Spatial extents (dx, dy, dz) based on grid resolution
-      + Spectral extents (dk, dl, dm) based on source width
-      + Wave action density from source strength
-
-# Spatial Distribution
-
-  - **Sub-grid sampling**: `nrxl × nryl × nrzl` rays per grid cell
-  - **Physical positions**: Uniformly distributed within cell
-  - **Terrain following**: Vertical positions follow grid stretching
-
-# Spectral Distribution
-
-  - **Wavenumber sampling**: `nrk × nrl × nrm` points around each mode
-  - **Source spectrum**: From orographic or other specified sources
-  - **Spectral width**: Controlled by `fac_dk`, `fac_dl`, `fac_dm` factors
-
-# Wave Action Density
-
-  - Computed from source strength and spectral volume
-  - Includes dispersion relation checks (f < ω < N)
-  - Accounts for phase space volume normalization
-
-# Group Velocity Computation
-
-Calculates maximum group velocities for CFL constraint:
-
-  - `cgx_max`: Maximum horizontal group velocity (x-direction)
-  - `cgy_max`: Maximum horizontal group velocity (y-direction)
-  - `cgz_max`: Maximum vertical group velocity per grid point
-
-# Special Cases
-
-  - **Mountain waves**: Orographic source at surface level
-  - **Domain restrictions**: Ray launch only within specified bounds
-  - **Steady state**: Special handling for fixed background
-
-# Output Statistics
-
-Reports global ray volume count and maximum rays per cell.
-
-# Error Checking
-
-  - Validates ray positions are above minimum altitude
-  - Checks ray counts don't exceed working array limits
-  - Verifies surface ray indexing consistency
+  - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
 """
 function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
     (; sizex, sizey, sizez) = state.namelists.domain

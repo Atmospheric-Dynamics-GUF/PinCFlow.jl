@@ -1,3 +1,10 @@
+"""
+```julia
+FoundationalTypes
+```
+
+Module that contains the composite types `Time`, `Constants`, `Domain`, `Grid`, `Atmosphere` and `Sponge`.
+"""
 module FoundationalTypes
 
 using MPI
