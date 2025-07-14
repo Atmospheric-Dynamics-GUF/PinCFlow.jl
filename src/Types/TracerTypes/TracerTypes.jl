@@ -9,6 +9,8 @@ include("TracerTendencies.jl")
 include("TracerAuxiliaries.jl")
 include("TracerReconstructions.jl")
 include("TracerFluxes.jl")
+include("TracerGWImpact.jl")
+include("TracerForcings.jl")
 include("Tracer.jl")
 include("initialize_tracer_wave_packet!.jl")
 
@@ -17,5 +19,7 @@ export TracerPredictands,
     TracerAuxiliaries,
     TracerReconstructions,
     TracerFluxes,
+    TracerGWForcings,
+    TracerGWImpact,
     Tracer
 end

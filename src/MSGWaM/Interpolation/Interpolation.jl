@@ -11,6 +11,9 @@ struct DUDZ <: AbstractVariable end
 struct DVDX <: AbstractVariable end
 struct DVDY <: AbstractVariable end
 struct DVDZ <: AbstractVariable end
+struct DCHIDX <: AbstractVariable end
+struct DCHIDY <: AbstractVariable end
+struct DCHIDZ <: AbstractVariable end
 
 include("compute_derivatives.jl")
 include("get_next_half_level.jl")

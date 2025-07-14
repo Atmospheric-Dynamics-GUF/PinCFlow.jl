@@ -1,21 +1,52 @@
-struct TracerForcings{
-    A <: AbstractArray{<:AbstractFloat, 3},
-    B <: AbstractArray{<:AbstractFloat, 3},
-    C <: AbstractArray{<:AbstractFloat, 3},
-}
-    chiu0::A
-    chiv0::A
-    chiw0::A
-    chiu1::B
-    chiv1::B
-    chiw1::B
-    chiturbu::C
-    chiturbv::C
-    chiturbw::C
+struct TracerForcings{A <: TracerGWImpact}
+    chiq0::A
 end
 
-function TracerForcing(namelists::Namelists, domain::Domain)
+function TracerForcings(namelists::Namelists, domain::Domain)
     (; tracersetup) = namelists.tracer
 
-    return
+    return TracerForcings(namelists, domain, tracersetup)
+end
+
+function TracerForcings(
+    namelists::Namelists,
+    domain::Domain,
+    tracersetup::NoTracer,
+)
+    return TracerForcings(TracerGWImpact(0, 0, 0))
+end
+
+function TracerForcings(
+    namelists::Namelists,
+    domain::Domain,
+    tracersetup::AbstractTracer,
+)
+    (; testcase) = namelists.setting
+
+    return TracerForcings(namelists, domain, testcase)
+end
+
+function TracerForcings(
+    namelists::Namelists,
+    domain::Domain,
+    testcase::AbstractTestCase,
+)
+    return TracerForcings(TracerGWImpact(0, 0, 0))
+end
+
+function TracerForcings(
+    namelists::Namelists,
+    domain::Domain,
+    testcase::AbstractWKBTestCase,
+)
+    (; nxx, nyy, nzz) = domain
+
+    (; model) = namelists.setting 
+    (; leading_order_impact) = namelists.tracer
+
+    if leading_order_impact && model == PseudoIncompressible()
+        error("Cannot calculate leading_order_impact in TFC with PI model")
+    end
+
+    return TracerForcings(TracerGWImpact(nxx, nyy, nzz))
 end
