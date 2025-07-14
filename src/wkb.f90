@@ -7466,7 +7466,7 @@ module wkb_module
               dkdt = - dudxr * wnrk - dvdxr * wnrl
               dldt = - dudyr * wnrk - dvdyr * wnrl
               dmdt = - dudzr * wnrk - dvdzr * wnrl - wnrh ** 2 * dnndzr / (2.0 &
-                  &* omir + (wnrh ** 2 + wnrm ** 2))
+                  &* omir * (wnrh ** 2 + wnrm ** 2))
 
               dkRay(1, iRay, ix, jy, kz) = dt * dkdt + alphaRK(rkStage) &
                   &* dkRay(1, iRay, ix, jy, kz)
