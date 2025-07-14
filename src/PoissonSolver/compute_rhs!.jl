@@ -1,5 +1,11 @@
 """
-    compute_rhs!(state, b, model::Boussinesq)
+```julia
+compute_rhs!(
+    state::State,
+    b::AbstractArray{<:AbstractFloat, 3},
+    model::Boussinesq,
+)
+```
 
 Compute the right-hand side of the Poisson equation for Boussinesq approximation.
 
@@ -106,7 +112,13 @@ function compute_rhs!(
 end
 
 """
-    compute_rhs!(state, b, model::PseudoIncompressible)
+```julia
+compute_rhs!(
+    state::State,
+    b::AbstractArray{<:AbstractFloat, 3},
+    model::PseudoIncompressible,
+)
+```
 
 Compute the right-hand side of the Poisson equation for the pseudo-incompressible approximation.
 
@@ -238,7 +250,13 @@ function compute_rhs!(
 end
 
 """
-    compute_rhs!(state, b, model::Compressible)
+```julia
+compute_rhs!(
+    state::State,
+    b::AbstractArray{<:AbstractFloat, 3},
+    model::Compressible,
+)
+```
 
 Compute the RHS for the Poisson equation for the fully compressible equations including heating terms.
 

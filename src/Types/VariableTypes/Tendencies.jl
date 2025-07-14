@@ -1,5 +1,10 @@
 """
-    Tendencies{A,B}
+```julia
+Tendencies{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractArray{<:AbstractFloat, 3},
+}
+```
 
 Time tendency storage for the prognostic variables.
 
@@ -20,7 +25,7 @@ processes including advection, and pressure forces.
   - `dv::A`: Meridional velocity tendency [∂v/∂t]
   - `dw::A`: Vertical velocity tendency [∂w/∂t]
   - `dpip::A`: Pressure correction tendency [∂π'/∂t]
-  - `dp::B`: Pressure tendency [∂p/∂t] (Compressible model only)
+  - `dp::B`: Pressure tendency (compressible model only) [∂p/∂t]
 
 # Constructors
 
@@ -61,7 +66,9 @@ struct Tendencies{
 end
 
 """
-    Tendencies(namelists::Namelists, domain::Domain)
+```julia
+Tendencies(namelists::Namelists, domain::Domain)
+```
 
 Create tendencies storage from configuration.
 
@@ -83,7 +90,9 @@ function Tendencies(namelists::Namelists, domain::Domain)
 end
 
 """
-    Tendencies(domain::Domain, model::AbstractModel)
+```julia
+Tendencies(domain::Domain, model::AbstractModel)
+```
 
 Create tendencies for non-compressible models (Boussinesq, PseudoIncompressible).
 
@@ -108,7 +117,9 @@ function Tendencies(domain::Domain, model::AbstractModel)
 end
 
 """
-    Tendencies(domain::Domain, model::Compressible)
+```julia
+Tendencies(domain::Domain, model::Compressible)
+```
 
 Create tendencies for fully compressible model.
 

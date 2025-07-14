@@ -1,3 +1,10 @@
+"""
+```julia
+PoissonNamelist{A <: AbstractFloat, B <: Integer, C <: Bool}
+```
+
+Namelist for the Poisson solver (see constructor for parameter descriptions).
+"""
 struct PoissonNamelist{A <: AbstractFloat, B <: Integer, C <: Bool}
     tolpoisson::A
     maxiterpoisson::B
@@ -9,7 +16,17 @@ struct PoissonNamelist{A <: AbstractFloat, B <: Integer, C <: Bool}
 end
 
 """
-    PoissonNamelist(; <keyword arguments>)
+```julia
+PoissonNamelist(;
+    tolpoisson = 1.0E-8,
+    maxiterpoisson = 1000,
+    preconditioner = true,
+    dtau = 1.0E+0,
+    maxiteradi = 2,
+    initialcleaning = true,
+    relative_tolerance = false,
+)
+```
 
 Construct a PoissonNamelist instance, which holds parameters for the Poisson solver.
 

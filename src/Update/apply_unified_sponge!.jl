@@ -1,5 +1,12 @@
 """
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::AbstractVariable)
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::AbstractVariable,
+)
+```
 
 Apply unified sponge layer damping to prevent spurious wave reflections.
 
@@ -16,7 +23,7 @@ where `β = 1/(1 + α*dt)` and α is the spatially-varying damping coefficient.
   - **Horizontal averaging**: Option to relax toward instantaneous horizontal mean
 
 The unified approach uses single damping coefficient field for all variables,
-computed by [`compute_sponge!`](@ref) with various spatial profiles.
+computed by [`PinCFlow.Update.compute_sponge!`](@ref) with various spatial profiles.
 """
 function apply_unified_sponge!(
     state::State,
@@ -30,7 +37,15 @@ function apply_unified_sponge!(
 end
 
 """
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::Rho, model::Boussinesq)
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Rho,
+    model::Boussinesq,
+)
+```
 
 No-op for Boussinesq density (incompressible assumption).
 """
@@ -45,7 +60,15 @@ function apply_unified_sponge!(
 end
 
 """
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::Rho, model::AbstractModel)
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::Rho,
+    model::AbstractModel,
+)
+```
 
 Apply sponge damping to density perturbations.
 
@@ -80,7 +103,15 @@ function apply_unified_sponge!(
 end
 
 """
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::RhoP, model::AbstractModel)
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::RhoP,
+    model::AbstractModel,
+)
+```
 
 Apply sponge damping to potential density perturbations.
 
@@ -115,7 +146,15 @@ function apply_unified_sponge!(
 end
 
 """
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::U, model::AbstractModel)
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::U,
+    model::AbstractModel,
+)
+```
 
 Apply sponge damping to zonal wind with background relaxation.
 
@@ -196,7 +235,15 @@ function apply_unified_sponge!(
 end
 
 """
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::V, model::AbstractModel)
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::V,
+    model::AbstractModel,
+)
+```
 
 Apply sponge damping to meridional wind with background relaxation.
 
@@ -269,7 +316,15 @@ function apply_unified_sponge!(
 end
 
 """
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::W, model::AbstractModel)
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::W,
+    model::AbstractModel,
+)
+```
 
 Apply sponge damping to vertical wind with Jacobian-weighted averaging.
 
@@ -347,6 +402,19 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::PiP,
+    model::AbstractModel,
+)
+```
+
+Return in non-compressible modes.
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -357,6 +425,19 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::PiP,
+    model::Compressible,
+)
+```
+
+Apply the unified sponge to the Exner-pressure fluctuations.
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -390,6 +471,19 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::P,
+    model::AbstractModel,
+)
+```
+
+Return in non-compressible modes.
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -401,11 +495,19 @@ function apply_unified_sponge!(
 end
 
 """
-    apply_unified_sponge!(state::State, dt::AbstractFloat, time::AbstractFloat, variable::P, model::Compressible)
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    variable::P,
+    model::Compressible,
+)
+```
 
-Apply sponge damping to pressure field for compressible model.
+Apply sponge damping to mass-weighted potential-temperature field in compressible mode.
 
-Relaxes toward hydrostatic background pressure: `p_bg = ρ₀*p₀/(ρ + ρ₀)`
+Relaxes toward hydrostatic background: `p_bg = ρ₀*p₀/(ρ + ρ₀)`
 """
 function apply_unified_sponge!(
     state::State,

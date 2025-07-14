@@ -1,5 +1,18 @@
 """
-    WKB
+```julia
+WKB{
+    A <: Integer,
+    B <: AbstractArray{<:Integer, 3},
+    C <: Rays,
+    D <: SurfaceIndices,
+    E <: Increments,
+    F <: GWIntegrals,
+    G <: GWTendencies,
+    H <: Ref{<:AbstractFloat},
+    I <: AbstractArray{<:AbstractFloat, 3},
+    J <: AbstractMatrix{<:AbstractFloat},
+}
+```
 
 Main container for WKB ray tracing data and parameters.
 
@@ -53,6 +66,13 @@ struct WKB{
     diffusion::I
 end
 
+"""
+```julia
+WKB(namelists::Namelists, constants::Constants, domain::Domain, grid::Grid)
+```
+
+Dispatch to a `WKB` constructor, based on the type of `testcase`.
+"""
 function WKB(
     namelists::Namelists,
     constants::Constants,
@@ -63,6 +83,19 @@ function WKB(
     return WKB(namelists, constants, domain, grid, testcase)
 end
 
+"""
+```julia
+WKB(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    testcase::AbstractTestCase,
+)
+```
+
+Construct a `WKB` instance with zero-size arrays, since they are not needed.
+"""
 function WKB(
     namelists::Namelists,
     constants::Constants,
@@ -85,6 +118,19 @@ function WKB(
     )
 end
 
+"""
+```julia
+WKB(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    testcase::AbstractWKBTestCase,
+)
+```
+
+Construct a `WKB` instance.
+"""
 function WKB(
     namelists::Namelists,
     constants::Constants,

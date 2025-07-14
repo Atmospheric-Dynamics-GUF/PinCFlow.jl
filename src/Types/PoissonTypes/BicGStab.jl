@@ -1,5 +1,10 @@
 """
-    BicGStab{A <: AbstractMatrix{<:AbstractFloat}, B <: AbstractArray{<:AbstractFloat, 3}}
+```julia
+BicGStab{
+    A <: AbstractMatrix{<:AbstractFloat},
+    B <: AbstractArray{<:AbstractFloat, 3},
+}
+```
 
 Workspace arrays for the BiCGStab iterative linear solver.
 
@@ -38,7 +43,9 @@ struct BicGStab{
 end
 
 """
-    BicGStab(namelists::Namelists, domain::Domain)
+```julia
+BicGStab(namelists::Namelists, domain::Domain)
+```
 
 Initialize BiCGStab workspace arrays sized according to local domain.
 
