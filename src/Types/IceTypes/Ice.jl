@@ -4,12 +4,15 @@ struct Ice{
     C <: IceAuxiliaries,
     D <: IceReconstructions,
     E <: IceFluxes,
-}
+    F <: IceSource,
+    }
+    
     icepredictands::A
     icetendencies::B
     iceauxiliaries::C
     icereconstructions::D
     icefluxes::E
+    icesource::F
 end
 
 function Ice(
@@ -32,6 +35,7 @@ function Ice(
     iceauxiliaries = IceAuxiliaries(icepredictands)
     icereconstructions = IceReconstructions(namelists, domain)
     icefluxes = IceFluxes(namelists, domain)
+    icesource = IceSource(domain)
 
     return Ice(
         icepredictands,
@@ -39,5 +43,6 @@ function Ice(
         iceauxiliaries,
         icereconstructions,
         icefluxes,
+        icesource
     )
 end

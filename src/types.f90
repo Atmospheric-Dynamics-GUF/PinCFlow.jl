@@ -858,7 +858,7 @@ module type_module
   type(opt_rayType), dimension(:, :, :, :), allocatable :: opt_ray
   integer :: inN, inQ, inQv, nVarIce
 
-  real :: J_nuc !Nucleation rate [#/kg/s]
+  real ::  J_nuc !Nucleation rate [#/kg/s]
   real :: B_nuc !Exponent nucleation function (dimension less)
   !CHANGE
   real, parameter :: S_c = 1.5 !Critical saturation ratio

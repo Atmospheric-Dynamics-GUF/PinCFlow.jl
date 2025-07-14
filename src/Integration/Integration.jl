@@ -9,6 +9,7 @@ using ..PoissonSolver
 using ..FluxCalculator
 using ..Output
 using ..MSGWaM
+using ..IceRoutine
 
 include("compute_time_step.jl")
 include("integrate.jl")
@@ -20,6 +21,7 @@ include("synchronize_density_fluctuations!.jl")
 include("explicit_integration!.jl")
 include("implicit_integration!.jl")
 include("wkb_integration!.jl")
+include("explicit_integration_rhs_ice!.jl")
 
 export integrate
 

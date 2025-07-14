@@ -8,6 +8,9 @@ struct Cartesian end
 struct Transformed end
 struct LHS end
 struct RHS end
+struct IceUpdateAdv end
+struct IceUpdatePhy end
+struct IceUpdateBoth end
 
 include("apply_unified_sponge!.jl")
 include("compute_compressible_buoyancy_factor.jl")
@@ -19,7 +22,7 @@ include("compute_volume_force.jl")
 include("transform.jl")
 include("update!.jl")
 
-export LHS, RHS
+export LHS, RHS, IceUpdatePhy
 
 export apply_unified_sponge!,
     compute_compressible_buoyancy_factor,

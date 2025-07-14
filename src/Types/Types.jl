@@ -139,6 +139,8 @@ export DomainNamelist,
     IceTendencies,
     IceReconstructions,
     IceFluxes,
+    IceSource,
+    IceConstants
     TurbulenceOn,
     NoTurbulence,
     TurbulencePredictands,
