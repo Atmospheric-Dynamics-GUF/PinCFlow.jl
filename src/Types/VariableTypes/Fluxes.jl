@@ -1,5 +1,10 @@
 """
-    Fluxes{A, B}
+```julia
+Fluxes{
+    A <: AbstractArray{<:AbstractFloat, 4},
+    B <: AbstractArray{<:AbstractFloat, 4},
+}
+```
 
 Storage for numerical fluxes in three spatial directions (x, y, z) on a 3D grid.
 
@@ -28,7 +33,9 @@ struct Fluxes{
 end
 
 """
-    Fluxes(namelists::Namelists, domain::Domain)
+```julia
+Fluxes(namelists::Namelists, domain::Domain)
+```
 
 Construct `Fluxes` from configuration namelists and domain specification.
 """
@@ -38,7 +45,9 @@ function Fluxes(namelists::Namelists, domain::Domain)
 end
 
 """
-    Fluxes(domain::Domain, model::AbstractModel)
+```julia
+Fluxes(domain::Domain, model::AbstractModel)
+```
 
 Construct `Fluxes` for incompressible models with empty pressure flux array.
 """
@@ -54,7 +63,9 @@ function Fluxes(domain::Domain, model::AbstractModel)
 end
 
 """
-    Fluxes(domain::Domain, model::Compressible)
+```julia
+Fluxes(domain::Domain, model::Compressible)
+```
 
 Construct `Fluxes` for compressible models including pressure flux arrays.
 """

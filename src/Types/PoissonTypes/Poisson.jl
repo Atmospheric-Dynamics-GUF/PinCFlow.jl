@@ -1,5 +1,14 @@
 """
-    Poisson{A, B, C, D, E, F}
+```julia
+Poisson{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: Tensor,
+    C <: Operator,
+    D <: Preconditioner,
+    E <: BicGStab,
+    F <: Correction,
+}
+```
 
 Main container for Poisson solver workspace and solution arrays.
 
@@ -37,7 +46,9 @@ struct Poisson{
 end
 
 """
-    Poisson(namelists::Namelists, domain::Domain)
+```julia
+Poisson(namelists::Namelists, domain::Domain)
+```
 
 Initialize complete Poisson solver workspace sized according to local domain.
 

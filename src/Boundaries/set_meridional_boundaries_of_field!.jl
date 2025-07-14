@@ -1,14 +1,25 @@
 """
-    set_meridional_boundaries_of_field!(field::AbstractMatrix, namelists, domain)
+```julia
+set_meridional_boundaries_of_field!(
+    field::AbstractMatrix{<:AbstractFloat},
+    namelists::Namelists,
+    domain::Domain,
+)
+```
 
-Set meridional boundary conditions for 2D fields. Uses halo exchange for multi-process domains (`npy > 1`),
-otherwise applies periodic boundaries by copying values from opposite domain edges.
+Enforce meridional boundary conditions for 2D fields.
+
+Halo exchange is used for multi-process domains (`npy > 1`), otherwise periodic boundaries are set by copying values from opposite domain edges.
 
 # Arguments
 
-  - `field::AbstractMatrix{<:AbstractFloat}`: 2D field array to apply boundaries to
-  - `namelists::Namelists`: Configuration containing domain parameters (`npy`, `nby`)
-  - `domain::Domain`: Domain indices containing `j0`, `j1`
+  - `field`: 2D input field.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
+# See also
+
+  - [`PinCFlow.MPIOperations.set_meridional_halos_of_field!`](@ref)
 """
 function set_meridional_boundaries_of_field!(
     field::AbstractMatrix{<:AbstractFloat},
@@ -31,16 +42,29 @@ function set_meridional_boundaries_of_field!(
 end
 
 """
-    set_meridional_boundaries_of_field!(field::AbstractArray{<:Real, 3}, namelists, domain; layers)
+```julia
+set_meridional_boundaries_of_field!(
+    field::AbstractArray{<:Real, 3},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
 
-Set meridional boundary conditions for 3D fields.
+Enforce meridional boundary conditions for 3D fields.
+
+Halo exchange is used for multi-process domains (`npy > 1`), otherwise periodic boundaries are set by copying values from opposite domain edges.
 
 # Arguments
 
-  - `field::AbstractArray{<:Real, 3}`: 3D field array to apply boundaries to
-  - `namelists::Namelists`: Configuration containing domain parameters (`npy`, `nbx`, `nby`, `nbz`)
-  - `domain::Domain`: Domain indices containing `i0`, `i1`, `j0`, `j1`, `k0`, `k1`
-  - `layers::NTuple{3, <:Integer}`: Tuple `(nbx, nby, nbz)` specifying boundary layer thickness. Use `-1` for default values from namelists.
+  - `field`: 3D input field.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `layers`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
+
+# See also
+
+  - [`PinCFlow.MPIOperations.set_meridional_halos_of_field!`](@ref)
 """
 function set_meridional_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
@@ -71,17 +95,29 @@ function set_meridional_boundaries_of_field!(
 end
 
 """
-    set_meridional_boundaries_of_field!(field::AbstractArray{<:AbstractFloat, 5}, namelists, domain; layers)
+```julia
+set_meridional_boundaries_of_field!(
+    field::AbstractArray{<:AbstractFloat, 5},
+    namelists::Namelists,
+    domain::Domain;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
 
-Set meridional boundary conditions for 5D fields. Applies boundary conditions across all elements
-in dimensions 4 and 5.
+Enforce meridional boundary conditions for 5D fields.
+
+Halo exchange is used for multi-process domains (`npy > 1`), otherwise periodic boundaries are set by copying values from opposite domain edges. Boundary conditions are enforced across all elements in dimensions 4 and 5.
 
 # Arguments
 
-  - `field::AbstractArray{<:AbstractFloat, 5}`: 5D field array to apply boundaries to
-  - `namelists::Namelists`: Configuration containing domain parameters (`npy`, `nbx`, `nby`, `nbz`)
-  - `domain::Domain`: Domain indices containing `i0`, `i1`, `j0`, `j1`, `k0`, `k1`
-  - `layers::NTuple{3, <:Integer}`: Tuple `(nbx, nby, nbz)` specifying boundary layer thickness. Use `-1` for default values from namelists.
+  - `field`: 5D input field.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `layers`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
+
+# See also
+
+  - [`PinCFlow.MPIOperations.set_meridional_halos_of_field!`](@ref)
 """
 function set_meridional_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},

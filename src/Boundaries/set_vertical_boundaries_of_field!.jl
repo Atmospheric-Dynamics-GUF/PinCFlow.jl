@@ -1,13 +1,33 @@
 """
-    set_vertical_boundaries_of_field!(field, namelists, domain, zboundaries::SolidWallBoundaries, mode; layers, staggered)
+```julia
+set_vertical_boundaries_of_field!(
+    field::AbstractArray{<:Real, 3},
+    namelists::Namelists,
+    domain::Domain,
+    zboundaries::SolidWallBoundaries,
+    mode::Function;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+    staggered = false,
+)
+```
 
-Set vertical boundary conditions for 3D fields at solid walls.
+Enforce vertical boundary conditions for 3D fields in a `SolidWallBoundaries` configuration.
+
+Halo exchange is used for multi-process domains (`npz > 1`). Use `mode = +` (`mode = -`) for line-reflected (point-reflected) ghost-cell values.
 
 # Arguments
 
-  - `mode::Function`: Boundary condition mode (+ for symmetric, - for antisymmetric)
-  - `staggered::Bool`: Whether field is on staggered vertical grid (sets boundary values to zero)
-  - `layers::NTuple{3, <:Integer}`: Boundary layer sizes. Use -1 for defaults.
+  - `field`: 3D input field.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `zboundaries`: Vertical boundary conditions.
+  - `mode`: Method used for setting the boundary-cell values.
+  - `layers::NTuple{3, <:Integer} = (-1, -1, -1)`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
+  - `staggered::Bool = false`: A switch for whether or not the field is on the staggered vertical grid.
+
+# See also
+
+  - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
 """
 function set_vertical_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
@@ -68,9 +88,31 @@ function set_vertical_boundaries_of_field!(
 end
 
 """
-    set_vertical_boundaries_of_field!(field::AbstractArray{<:AbstractFloat, 5}, namelists, domain, zboundaries; layers)
+```julia
+set_vertical_boundaries_of_field!(
+    field::AbstractArray{<:AbstractFloat, 5},
+    namelists::Namelists,
+    domain::Domain,
+    zboundaries::SolidWallBoundaries;
+    layers::NTuple{3, <:Integer} = (-1, -1, -1),
+)
+```
 
-Set vertical boundary conditions for 5D fields. Uses halo exchange for multi-process domains.
+Enforce vertical boundary conditions for 5D fields.
+
+Halo exchange is used for multi-process domains (`npz > 1`). Boundary conditions are enforced across all elements in dimensions 4 and 5.
+
+# Arguments
+
+  - `field`: 5D input field.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `zboundaries`: Vertical boundary conditions.
+  - `layers::NTuple{3, <:Integer} = (-1, -1, -1)`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
+
+# See also
+
+  - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
 """
 function set_vertical_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},

@@ -1,5 +1,7 @@
 """
-    Rays
+```julia
+Rays{A <: AbstractArray{<:AbstractFloat, 4}}
+```
 
 Container for ray position, wavenumber, and propagation data.
 
@@ -27,6 +29,13 @@ struct Rays{A <: AbstractArray{<:AbstractFloat, 4}}
     dens::A
 end
 
+"""
+```julia
+Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)
+```
+
+Construct a `Rays` instance.
+"""
 function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)
     return Rays([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:13]...)
 end

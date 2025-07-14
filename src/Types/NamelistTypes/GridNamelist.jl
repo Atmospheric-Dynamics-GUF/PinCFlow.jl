@@ -1,3 +1,10 @@
+"""
+```julia
+GridNamelist{A <: AbstractFloat, B <: Integer}
+```
+
+Namelist for the grid (see constructor for parameter descriptions).
+"""
 struct GridNamelist{A <: AbstractFloat, B <: Integer}
     mountainheight_dim::A
     mountainwidth_dim::A
@@ -9,7 +16,17 @@ struct GridNamelist{A <: AbstractFloat, B <: Integer}
 end
 
 """
-GridNamelist(; <keyword arguments>)
+```julia
+GridNamelist(;
+    mountainheight_dim = 1.0E+2,
+    mountainwidth_dim = 1.0E+3,
+    mountain_case = 1,
+    height_factor = 1.0E+0,
+    width_factor = 1.0E+0,
+    spectral_modes = 1,
+    stretch_exponent = 1.0E+0,
+)
+```
 
 Configuration parameters for topography and vertical grid stretching.
 

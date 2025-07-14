@@ -1,5 +1,10 @@
 """
-    Preconditioner{A <: AbstractArray{<:AbstractFloat, 3}, B <: AbstractMatrix{<:AbstractFloat}}
+```julia
+Preconditioner{
+    A <: AbstractArray{<:AbstractFloat, 3},
+    B <: AbstractMatrix{<:AbstractFloat},
+}
+```
 
 Workspace arrays for line relaxation preconditioner using alternating direction implicit (ADI) method.
 
@@ -28,7 +33,9 @@ struct Preconditioner{
 end
 
 """
-    Preconditioner(domain::Domain)
+```julia
+Preconditioner(domain::Domain)
+```
 
 Initialize preconditioner workspace arrays sized according to local domain.
 

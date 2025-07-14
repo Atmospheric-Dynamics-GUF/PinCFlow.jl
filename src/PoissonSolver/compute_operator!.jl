@@ -1,5 +1,7 @@
 """
-    compute_operator!(state, dt, facray)
+```julia
+compute_operator!(state::State, dt::AbstractFloat, facray::AbstractFloat)
+```
 
 Compute coefficients for the discrete Poisson operator matrix.
 

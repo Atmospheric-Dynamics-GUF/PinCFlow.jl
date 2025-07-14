@@ -1,5 +1,11 @@
 """
-    compute_compressible_wind_factor(state::State, indices::NTuple{3, <:Integer}, variable::AbstractVariable)
+```julia
+compute_compressible_wind_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::AbstractVariable,
+)
+```
 
 Model-dispatched wind factor computation for momentum equation scaling.
 
@@ -32,7 +38,14 @@ function compute_compressible_wind_factor(
 end
 
 """
-    compute_compressible_wind_factor(state, indices, variable::AbstractVariable, model::AbstractModel)
+```julia
+compute_compressible_wind_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::AbstractVariable,
+    model::AbstractModel,
+)
+```
 
 Unity wind factor for non-compressible models.
 
@@ -53,7 +66,14 @@ function compute_compressible_wind_factor(
 end
 
 """
-    compute_compressible_wind_factor(state, indices, variable::U, model::Compressible)
+```julia
+compute_compressible_wind_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::U,
+    model::Compressible,
+)
+```
 
 Pressure-weighted wind factor for zonal velocity.
 
@@ -61,14 +81,14 @@ Computes Jacobian-weighted pressure average between horizontally adjacent cells
 to account for variable density effects on zonal momentum transport.
 
 # Implementation
+
 Averages pressure between grid points (i, i+1) weighted by grid Jacobians:
 factor = (J[i]*P[i] + J[i+1]*P[i+1]) / 2
 
-
 # Returns
-- `AbstractFloat`: Pressure-weighted factor for zonal momentum scaling
-"""
 
+  - `AbstractFloat`: Pressure-weighted factor for zonal momentum scaling
+"""
 function compute_compressible_wind_factor(
     state::State,
     indices::NTuple{3, <:Integer},
@@ -85,7 +105,14 @@ function compute_compressible_wind_factor(
 end
 
 """
-    compute_compressible_wind_factor(state, indices, variable::V, model::Compressible)
+```julia
+compute_compressible_wind_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::V,
+    model::Compressible,
+)
+```
 
 Pressure-weighted wind factor for meridional velocity.
 
@@ -93,13 +120,14 @@ Computes Jacobian-weighted pressure average between meridionally adjacent cells
 for proper meridional momentum equation scaling in compressible flows.
 
 # Implementation
+
 Averages pressure between grid points (j, j+1) weighted by grid Jacobians:
 factor = (J[i]*P[i] + J[i+1]*P[i+1]) / 2
 
 # Returns
-- `AbstractFloat`: Pressure-weighted factor for meridional momentum scaling
-"""
 
+  - `AbstractFloat`: Pressure-weighted factor for meridional momentum scaling
+"""
 function compute_compressible_wind_factor(
     state::State,
     indices::NTuple{3, <:Integer},
@@ -116,7 +144,14 @@ function compute_compressible_wind_factor(
 end
 
 """
-    compute_compressible_wind_factor(state, indices, variable::W, model::Compressible)
+```julia
+compute_compressible_wind_factor(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::W,
+    model::Compressible,
+)
+```
 
 Pressure-weighted wind factor for vertical velocity in compressible flows.
 
@@ -124,14 +159,14 @@ Computes double Jacobian-weighted pressure average between vertically adjacent c
 accounting for terrain-following coordinate transformations and variable density effects
 on vertical momentum transport.
 
-
 # Returns
-- `AbstractFloat`: Pressure-weighted scaling factor
+
+  - `AbstractFloat`: Pressure-weighted scaling factor
 
 # Implementation
+
 Formula: `J[k]*J[k+1]*(P[k] + P[k+1]) / (J[k] + J[k+1])`
 """
-
 function compute_compressible_wind_factor(
     state::State,
     indices::NTuple{3, <:Integer},

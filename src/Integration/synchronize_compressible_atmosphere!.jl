@@ -1,15 +1,16 @@
 """
-    synchronize_compressible_atmosphere!(state::State, predictands::Predictands)
+```julia
+synchronize_compressible_atmosphere!(state::State, predictands::Predictands)
+```
 
-Synchronize compressible atmosphere fields based on model type.
+Synchronize `state.atmosphere.pstrattfc` with `predictands.p` and recompute `state.atmosphere.bvsstrattfc` if the atmosphere is compressible.
 
-This function dispatches to the appropriate model-specific implementation
-for updating atmospheric stratification fields in compressible models.
+This function dispatches to the appropriate model-specific methods.
 
 # Arguments
 
-  - `state::State`: Complete simulation state
-  - `predictands::Predictands`: Current values of predicted variables
+  - `state`: Model state.
+  - `predictands`: Predictands to use for the synchronization of the mass-weighted potential temperature.
 """
 function synchronize_compressible_atmosphere!(
     state::State,
@@ -21,18 +22,21 @@ function synchronize_compressible_atmosphere!(
 end
 
 """
-    synchronize_compressible_atmosphere!(state::State, predictands::Predictands, model::AbstractModel)
+```julia
+synchronize_compressible_atmosphere!(
+    state::State,
+    predictands::Predictands,
+    model::AbstractModel,
+)
+```
 
-No-op for non-compressible models.
-
-Most model types don't require atmospheric synchronization as they don't
-maintain stratified background atmosphere fields.
+Return for non-compressible modes.
 
 # Arguments
 
-  - `state::State`: Simulation state (unused)
-  - `predictands::Predictands`: Predicted variables (unused)
-  - `model::AbstractModel`: Non-compressible model type
+  - `state`: Model state.
+  - `predictands`: Predictands to use for the synchronization of the mass-weighted potential temperature.
+  - `model`: Dynamic equations.
 """
 function synchronize_compressible_atmosphere!(
     state::State,
@@ -43,25 +47,27 @@ function synchronize_compressible_atmosphere!(
 end
 
 """
-    synchronize_compressible_atmosphere!(state::State, predictands::Predictands, model::Compressible)
+```julia
+synchronize_compressible_atmosphere!(
+    state::State,
+    predictands::Predictands,
+    model::Compressible,
+)
+```
 
-Synchronize stratified atmosphere fields for compressible model.
+Synchronize `state.atmosphere.pstrattfc` with `predictands.p` and recompute `state.atmosphere.bvsstrattfc`.
 
-Updates the background stratification fields based on current predictand values,
-including pressure stratification and Brunt-Väisälä frequency computation.
+In compressible mode, ``P`` and, through its dependence on ``P``, ``N^2`` are time-dependent. In the update of ``P``, only `state.variables.predictands.p` is changed, so that the old values of ``P`` and ``N^2`` are retained in the respective fields of `state.atmosphere`. When these are no longer needed, this method is used to update the fields accordingly.
 
 # Arguments
 
-  - `state::State`: Simulation state containing grid, domain, and atmosphere data
-  - `predictands::Predictands`: Current predicted field values
-  - `model::Compressible`: Compressible model type
+  - `state`: Model state.
+  - `predictands`: Predictands to use for the synchronization of the mass-weighted potential temperature.
+  - `model`: Dynamic equations.
 
-# Details
+# See also
 
-  - Updates pressure stratification: `pstrattfc = p`
-  - Computes Brunt-Väisälä frequency using current density and pressure fields
-  - Applies vertical boundary conditions for the computed stratification
-  - Handles special cases for boundary processes in MPI decomposition
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
 function synchronize_compressible_atmosphere!(
     state::State,

@@ -12,7 +12,7 @@ makedocs(;
             "Boundaries.md",
             "FluxCalculator.md",
             "PoissonSolver.md",
-            # "Update.md",
+            "Update.md",
             "MSGWaM.md",
             "Integration.md",
             "Output.md",
@@ -21,6 +21,6 @@ makedocs(;
     pagesonly = true,
     format = Documenter.HTML(;
         repolink = "git@gitlab.dkrz.de:atmodynamics-goethe-universitaet-frankfurt/pinc.git",
-        size_threshold_ignore = ["MSGWaM.md"],
+        size_threshold_ignore = ["Types.md", "MSGWaM.md"],
     ),
 )

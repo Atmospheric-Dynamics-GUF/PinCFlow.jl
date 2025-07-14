@@ -1,15 +1,100 @@
+"""
+```julia
+Types
+```
+
+Module for the construction of a single composite type that contains all information on the current model state.
+"""
 module Types
 
+"""
+```julia
+AbstractVariable
+```
+
+Abstract type for prognostic variables.
+"""
 abstract type AbstractVariable end
 
+"""
+```julia
+Rho <: AbstractVariable
+```
+
+Singleton that represents density fluctuations predicted with the continuity equation.
+"""
 struct Rho <: AbstractVariable end
+
+"""
+```julia
+RhoP <: AbstractVariable
+```
+
+Singleton that represents density fluctuations predicted with the auxiliary equation.
+"""
 struct RhoP <: AbstractVariable end
+
+"""
+```julia
+U <: AbstractVariable
+```
+
+Singleton that represents the zonal wind.
+"""
 struct U <: AbstractVariable end
+
+"""
+```julia
+V <: AbstractVariable
+```
+
+Singleton that represents the meridional wind.
+"""
 struct V <: AbstractVariable end
+
+"""
+```julia
+W <: AbstractVariable
+```
+
+Singleton that represents the (transformed) vertical wind.
+"""
 struct W <: AbstractVariable end
+
+"""
+```julia
+PiP <: AbstractVariable
+```
+
+Singleton that represents the Exner-pressure fluctuations.
+"""
 struct PiP <: AbstractVariable end
+
+"""
+```julia
+P <: AbstractVariable
+```
+
+Singleton that represents the mass-weighted potential temperature.
+"""
 struct P <: AbstractVariable end
+
+"""
+```julia
+Explicit
+```
+
+Singleton for explicit integration in time.
+"""
 struct Explicit end
+
+"""
+```julia
+Implicit
+```
+
+Singleton for implicit integration in time.
+"""
 struct Implicit end
 
 include("NamelistTypes/NamelistTypes.jl")
