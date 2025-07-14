@@ -49,14 +49,14 @@ function interpolate_mean_flow(
         ixr = i0
     else
         ixl = floor(Int, (xlc - lx[1]) / dx) + i0 - 1 - io
-        if (ixl < 1)
+        if ixl < 1
             error("Error in interpolate_mean_flow (U): ixl = ", ixl, " < 1")
         end
         ixr = ixl + 1
-        if ixr > nxx
+        if ixr + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (U): ixr = ",
-                ixr,
+                "Error in interpolate_mean_flow (U): ixr + 1 = ",
+                ixr + 1,
                 "> nxx = ",
                 nxx,
             )
@@ -71,7 +71,7 @@ function interpolate_mean_flow(
         jyf = j0
     else
         jyb = floor(Int, (ylc - ly[1] - dy / 2) / dy) + j0 - jo
-        if (jyb < 1)
+        if jyb < 1
             error("Error in interpolate_mean_flow (U): jyl = ", jyl, " < 1")
         end
         jyf = jyb + 1
@@ -91,23 +91,23 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    zlbd = ztfc[ixl, jyb, kzlbd]
-    zlbu = ztfc[ixl, jyb, kzlbu]
+    zlbd = (ztfc[ixl, jyb, kzlbd] + ztfc[ixl + 1, jyb, kzlbd]) / 2
+    zlbu = (ztfc[ixl, jyb, kzlbu] + ztfc[ixl + 1, jyb, kzlbu]) / 2
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    zlfd = ztfc[ixl, jyf, kzlfd]
-    zlfu = ztfc[ixl, jyf, kzlfu]
+    zlfd = (ztfc[ixl, jyf, kzlfd] + ztfc[ixl + 1, jyf, kzlfd]) / 2
+    zlfu = (ztfc[ixl, jyf, kzlfu] + ztfc[ixl + 1, jyf, kzlfu]) / 2
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    zrbd = ztfc[ixr, jyb, kzrbd]
-    zrbu = ztfc[ixr, jyb, kzrbu]
+    zrbd = (ztfc[ixr, jyb, kzrbd] + ztfc[ixr + 1, jyb, kzrbd]) / 2
+    zrbu = (ztfc[ixr, jyb, kzrbu] + ztfc[ixr + 1, jyb, kzrbu]) / 2
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    zrfd = ztfc[ixr, jyf, kzrfd]
-    zrfu = ztfc[ixr, jyf, kzrfu]
+    zrfd = (ztfc[ixr, jyf, kzrfd] + ztfc[ixr + 1, jyf, kzrfd]) / 2
+    zrfu = (ztfc[ixr, jyf, kzrfu] + ztfc[ixr + 1, jyf, kzrfu]) / 2
 
     philbd = u[ixl, jyb, kzlbd]
     philbu = u[ixl, jyb, kzlbu]
@@ -229,10 +229,10 @@ function interpolate_mean_flow(
             error("Error in interpolate_mean_flow (V): jyb = ", jyb, " < 1")
         end
         jyf = jyb + 1
-        if jyf > nyy
+        if jyf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow (V): jyf = ",
-                jyf,
+                "Error in interpolate_mean_flow (V): jyf + 1 = ",
+                jyf + 1,
                 " > nyy = ",
                 nyy,
             )
@@ -245,23 +245,23 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    zlbd = ztfc[ixl, jyb, kzlbd]
-    zlbu = ztfc[ixl, jyb, kzlbu]
+    zlbd = (ztfc[ixl, jyb, kzlbd] + ztfc[ixl, jyb + 1, kzlbd]) / 2
+    zlbu = (ztfc[ixl, jyb, kzlbu] + ztfc[ixl, jyb + 1, kzlbu]) / 2
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    zlfd = ztfc[ixl, jyf, kzlfd]
-    zlfu = ztfc[ixl, jyf, kzlfu]
+    zlfd = (ztfc[ixl, jyf, kzlfd] + ztfc[ixl, jyf + 1, kzlfd]) / 2
+    zlfu = (ztfc[ixl, jyf, kzlfu] + ztfc[ixl, jyf + 1, kzlfu]) / 2
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    zrbd = ztfc[ixr, jyb, kzrbd]
-    zrbu = ztfc[ixr, jyb, kzrbu]
+    zrbd = (ztfc[ixr, jyb, kzrbd] + ztfc[ixr, jyb + 1, kzrbd]) / 2
+    zrbu = (ztfc[ixr, jyb, kzrbu] + ztfc[ixr, jyb + 1, kzrbu]) / 2
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    zrfd = ztfc[ixr, jyf, kzrfd]
-    zrfu = ztfc[ixr, jyf, kzrfu]
+    zrfd = (ztfc[ixr, jyf, kzrfd] + ztfc[ixr, jyf + 1, kzrfd]) / 2
+    zrfu = (ztfc[ixr, jyf, kzrfu] + ztfc[ixr, jyf + 1, kzrfu]) / 2
 
     # Assign the values.
 
@@ -711,10 +711,10 @@ function interpolate_mean_flow(
             error("Error in interpolate_mean_flow (DUDY): ixl = ", ixl, " < 1")
         end
         ixr = ixl + 1
-        if ixr > nxx
+        if ixr + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (DUDY): ixr = ",
-                ixr,
+                "Error in interpolate_mean_flow (DUDY): ixr + 1 = ",
+                ixr + 1,
                 " > nxx = ",
                 nxx,
             )
@@ -749,23 +749,71 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    zlbd = ztfc[ixl, jyb, kzlbd]
-    zlbu = ztfc[ixl, jyb, kzlbu]
+    zlbd =
+        (
+            ztfc[ixl, jyb, kzlbd] +
+            ztfc[ixl + 1, jyb, kzlbd] +
+            ztfc[ixl, jyb + 1, kzlbd] +
+            ztfc[ixl + 1, jyb + 1, kzlbd]
+        ) / 4
+    zlbu =
+        (
+            ztfc[ixl, jyb, kzlbu] +
+            ztfc[ixl + 1, jyb, kzlbu] +
+            ztfc[ixl, jyb + 1, kzlbu] +
+            ztfc[ixl + 1, jyb + 1, kzlbu]
+        ) / 4
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    zlfd = ztfc[ixl, jyf, kzlfd]
-    zlfu = ztfc[ixl, jyf, kzlfu]
+    zlfd =
+        (
+            ztfc[ixl, jyf, kzlfd] +
+            ztfc[ixl + 1, jyf, kzlfd] +
+            ztfc[ixl, jyf + 1, kzlfd] +
+            ztfc[ixl + 1, jyf + 1, kzlfd]
+        ) / 4
+    zlfu =
+        (
+            ztfc[ixl, jyf, kzlfu] +
+            ztfc[ixl + 1, jyf, kzlfu] +
+            ztfc[ixl, jyf + 1, kzlfu] +
+            ztfc[ixl + 1, jyf + 1, kzlfu]
+        ) / 4
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    zrbd = ztfc[ixr, jyb, kzrbd]
-    zrbu = ztfc[ixr, jyb, kzrbu]
+    zrbd =
+        (
+            ztfc[ixr, jyb, kzrbd] +
+            ztfc[ixr + 1, jyb, kzrbd] +
+            ztfc[ixr, jyb + 1, kzrbd] +
+            ztfc[ixr + 1, jyb + 1, kzrbd]
+        ) / 4
+    zrbu =
+        (
+            ztfc[ixr, jyb, kzrbu] +
+            ztfc[ixr + 1, jyb, kzrbu] +
+            ztfc[ixr, jyb + 1, kzrbu] +
+            ztfc[ixr + 1, jyb + 1, kzrbu]
+        ) / 4
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    zrfd = ztfc[ixr, jyf, kzrfd]
-    zrfu = ztfc[ixr, jyf, kzrfu]
+    zrfd =
+        (
+            ztfc[ixr, jyf, kzrfd] +
+            ztfc[ixr + 1, jyf, kzrfd] +
+            ztfc[ixr, jyf + 1, kzrfd] +
+            ztfc[ixr + 1, jyf + 1, kzrfd]
+        ) / 4
+    zrfu =
+        (
+            ztfc[ixr, jyf, kzrfu] +
+            ztfc[ixr + 1, jyf, kzrfu] +
+            ztfc[ixr, jyf + 1, kzrfu] +
+            ztfc[ixr + 1, jyf + 1, kzrfu]
+        ) / 4
 
     # Assign the values.
 
@@ -867,10 +915,10 @@ function interpolate_mean_flow(
             error("Error in interpolate_mean_flow (DUDZ): ixl = ", ixl, " < 1")
         end
         ixr = ixl + 1
-        if ixr > nxx
+        if ixr + 1 > nxx
             error(
-                "Error in interpolate_mean_flow (DUDZ): ixr = ",
-                ixr,
+                "Error in interpolate_mean_flow (DUDZ): ixr + 1 = ",
+                ixr + 1,
                 " > nxx = ",
                 nxx,
             )
@@ -905,23 +953,23 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_half_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    zlbd = ztildetfc[ixl, jyb, kzlbd]
-    zlbu = ztildetfc[ixl, jyb, kzlbu]
+    zlbd = (ztildetfc[ixl, jyb, kzlbd] + ztildetfc[ixl + 1, jyb, kzlbd]) / 2
+    zlbu = (ztildetfc[ixl, jyb, kzlbu] + ztildetfc[ixl + 1, jyb, kzlbu]) / 2
 
     kzlfu = get_next_half_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    zlfd = ztildetfc[ixl, jyf, kzlfd]
-    zlfu = ztildetfc[ixl, jyf, kzlfu]
+    zlfd = (ztildetfc[ixl, jyf, kzlfd] + ztildetfc[ixl + 1, jyf, kzlfd]) / 2
+    zlfu = (ztildetfc[ixl, jyf, kzlfu] + ztildetfc[ixl + 1, jyf, kzlfu]) / 2
 
     kzrbu = get_next_half_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    zrbd = ztildetfc[ixr, jyb, kzrbd]
-    zrbu = ztildetfc[ixr, jyb, kzrbu]
+    zrbd = (ztildetfc[ixr, jyb, kzrbd] + ztildetfc[ixr + 1, jyb, kzrbd]) / 2
+    zrbu = (ztildetfc[ixr, jyb, kzrbu] + ztildetfc[ixr + 1, jyb, kzrbu]) / 2
 
     kzrfu = get_next_half_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    zrfd = ztildetfc[ixr, jyf, kzrfd]
-    zrfu = ztildetfc[ixr, jyf, kzrfu]
+    zrfd = (ztildetfc[ixr, jyf, kzrfd] + ztildetfc[ixr + 1, jyf, kzrfd]) / 2
+    zrfu = (ztildetfc[ixr, jyf, kzrfu] + ztildetfc[ixr + 1, jyf, kzrfu]) / 2
 
     # Assign the values.
 
@@ -1061,23 +1109,71 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    zlbd = ztfc[ixl, jyb, kzlbd]
-    zlbu = ztfc[ixl, jyb, kzlbu]
+    zlbd =
+        (
+            ztfc[ixl, jyb, kzlbd] +
+            ztfc[ixl + 1, jyb, kzlbd] +
+            ztfc[ixl, jyb + 1, kzlbd] +
+            ztfc[ixl + 1, jyb + 1, kzlbd]
+        ) / 4
+    zlbu =
+        (
+            ztfc[ixl, jyb, kzlbu] +
+            ztfc[ixl + 1, jyb, kzlbu] +
+            ztfc[ixl, jyb + 1, kzlbu] +
+            ztfc[ixl + 1, jyb + 1, kzlbu]
+        ) / 4
 
     kzlfu = get_next_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    zlfd = ztfc[ixl, jyf, kzlfd]
-    zlfu = ztfc[ixl, jyf, kzlfu]
+    zlfd =
+        (
+            ztfc[ixl, jyf, kzlfd] +
+            ztfc[ixl + 1, jyf, kzlfd] +
+            ztfc[ixl, jyf + 1, kzlfd] +
+            ztfc[ixl + 1, jyf + 1, kzlfd]
+        ) / 4
+    zlfu =
+        (
+            ztfc[ixl, jyf, kzlfu] +
+            ztfc[ixl + 1, jyf, kzlfu] +
+            ztfc[ixl, jyf + 1, kzlfu] +
+            ztfc[ixl + 1, jyf + 1, kzlfu]
+        ) / 4
 
     kzrbu = get_next_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    zrbd = ztfc[ixr, jyb, kzrbd]
-    zrbu = ztfc[ixr, jyb, kzrbu]
+    zrbd =
+        (
+            ztfc[ixr, jyb, kzrbd] +
+            ztfc[ixr + 1, jyb, kzrbd] +
+            ztfc[ixr, jyb + 1, kzrbd] +
+            ztfc[ixr + 1, jyb + 1, kzrbd]
+        ) / 4
+    zrbu =
+        (
+            ztfc[ixr, jyb, kzrbu] +
+            ztfc[ixr + 1, jyb, kzrbu] +
+            ztfc[ixr, jyb + 1, kzrbu] +
+            ztfc[ixr + 1, jyb + 1, kzrbu]
+        ) / 4
 
     kzrfu = get_next_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    zrfd = ztfc[ixr, jyf, kzrfd]
-    zrfu = ztfc[ixr, jyf, kzrfu]
+    zrfd =
+        (
+            ztfc[ixr, jyf, kzrfd] +
+            ztfc[ixr + 1, jyf, kzrfd] +
+            ztfc[ixr, jyf + 1, kzrfd] +
+            ztfc[ixr + 1, jyf + 1, kzrfd]
+        ) / 4
+    zrfu =
+        (
+            ztfc[ixr, jyf, kzrfu] +
+            ztfc[ixr + 1, jyf, kzrfu] +
+            ztfc[ixr, jyf + 1, kzrfu] +
+            ztfc[ixr + 1, jyf + 1, kzrfu]
+        ) / 4
 
     # Assign the values.
 
@@ -1361,10 +1457,10 @@ function interpolate_mean_flow(
             error("Error in interpolate_mean_flow: jyb = ", jyb, " < 1")
         end
         jyf = jyb + 1
-        if jyf > nyy
+        if jyf + 1 > nyy
             error(
-                "Error in interpolate_mean_flow: jyf = ",
-                jyf,
+                "Error in interpolate_mean_flow: jyf + 1 = ",
+                jyf + 1,
                 " > nyy = ",
                 nyy,
             )
@@ -1377,23 +1473,23 @@ function interpolate_mean_flow(
 
     kzlbu = get_next_half_level(ixl, jyb, zlc, domain, grid)
     kzlbd = kzlbu - 1
-    zlbd = ztildetfc[ixl, jyb, kzlbd]
-    zlbu = ztildetfc[ixl, jyb, kzlbu]
+    zlbd = (ztildetfc[ixl, jyb, kzlbd] + ztildetfc[ixl, jyb + 1, kzlbd]) / 2
+    zlbu = (ztildetfc[ixl, jyb, kzlbu] + ztildetfc[ixl, jyb + 1, kzlbu]) / 2
 
     kzlfu = get_next_half_level(ixl, jyf, zlc, domain, grid)
     kzlfd = kzlfu - 1
-    zlfd = ztildetfc[ixl, jyf, kzlfd]
-    zlfu = ztildetfc[ixl, jyf, kzlfu]
+    zlfd = (ztildetfc[ixl, jyf, kzlfd] + ztildetfc[ixl, jyf + 1, kzlfd]) / 2
+    zlfu = (ztildetfc[ixl, jyf, kzlfu] + ztildetfc[ixl, jyf + 1, kzlfu]) / 2
 
     kzrbu = get_next_half_level(ixr, jyb, zlc, domain, grid)
     kzrbd = kzrbu - 1
-    zrbd = ztildetfc[ixr, jyb, kzrbd]
-    zrbu = ztildetfc[ixr, jyb, kzrbu]
+    zrbd = (ztildetfc[ixr, jyb, kzrbd] + ztildetfc[ixr, jyb + 1, kzrbd]) / 2
+    zrbu = (ztildetfc[ixr, jyb, kzrbu] + ztildetfc[ixr, jyb + 1, kzrbu]) / 2
 
     kzrfu = get_next_half_level(ixr, jyf, zlc, domain, grid)
     kzrfd = kzrfu - 1
-    zrfd = ztildetfc[ixr, jyf, kzrfd]
-    zrfu = ztildetfc[ixr, jyf, kzrfu]
+    zrfd = (ztildetfc[ixr, jyf, kzrfd] + ztildetfc[ixr, jyf + 1, kzrfd]) / 2
+    zrfu = (ztildetfc[ixr, jyf, kzrfu] + ztildetfc[ixr, jyf + 1, kzrfu]) / 2
 
     # Assign the values.
 
