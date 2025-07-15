@@ -32,6 +32,10 @@ vertical direction implicitly while horizontal coupling is handled explicitly.
  3. Perform tridiagonal solves in vertical direction
  4. Handle MPI communication for domain boundaries
  5. Apply upward and downward elimination sweeps
+
+# See also
+
+  - [`PinCFlow.PoissonSolver.apply_operator!`](@ref)
 """
 function apply_preconditioner!(
     sin::AbstractArray{<:AbstractFloat, 3},

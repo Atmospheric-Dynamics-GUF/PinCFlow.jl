@@ -44,6 +44,11 @@ Compute topography for WKB mountain wave test cases with spectral decomposition.
   - For Case 13, spectral modes are distributed uniformly in wavenumber space
   - The function validates that `nwm` (number of wave modes) is sufficient for the chosen case
   - All coordinates are normalized by the reference length scale
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function compute_topography(
     namelists::Namelists,
@@ -313,6 +318,11 @@ Compute topography for standard mountain wave test cases.
 
   - All coordinates are normalized by the reference length scale (lref)
   - Boundary conditions are applied to ensure proper domain periodicity
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function compute_topography(
     namelists::Namelists,

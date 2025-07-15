@@ -69,6 +69,11 @@ where δ is the decay length scale.
   - `state`: Simulation state
   - `dt`: Not used for `ExponentialSponge`
   - `spongetype`: Type dispatch for sponge type
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`]
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`]
 """
 function compute_sponge!(
     state::State,
@@ -181,6 +186,11 @@ Implements damping coefficient: `α(r) = α₀/2 * (1 - cos(π * (r - r_start) /
   - `state`: Simulation state
   - `dt`: Time step
   - `spongetype`: Type dispatch for sponge type
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`]
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`]
 """
 function compute_sponge!(
     state::State,
@@ -294,6 +304,11 @@ where n is the polynomial order.
   - `state`: Simulation state
   - `dt`: Time step. Not used for `PolynomialSponge`
   - `spongetype`: Type dispatch for sponge type
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`]
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`]
 """
 function compute_sponge!(
     state::State,
@@ -423,6 +438,11 @@ providing smooth quadratic-like transitions.
   - `state`: Simulation state
   - `dt`: Time step. Not used for `SinusoidalSponge`
   - `spongetype`: Type dispatch for sponge type
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`]
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`]
 """
 function compute_sponge!(
     state::State,

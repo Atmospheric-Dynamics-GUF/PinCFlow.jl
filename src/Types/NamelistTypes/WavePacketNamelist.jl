@@ -1,3 +1,8 @@
+"""
+```julia
+WavePacketNamelist{A <: AbstractFloat, B <: Integer}
+```
+"""
 struct WavePacketNamelist{A <: AbstractFloat, B <: Integer}
     wavepacketdim::B
     lambdax_dim::A
@@ -13,6 +18,24 @@ struct WavePacketNamelist{A <: AbstractFloat, B <: Integer}
     branch::B
 end
 
+"""
+```julia
+WavePacketNamelist(;
+    wavepacketdim = 1,
+    lambdax_dim = 1.0E+3,
+    lambday_dim = 0.0E+0,
+    lambdaz_dim = 1.0E+3,
+    x0_dim = 5.0E+3,
+    y0_dim = 1.0E+3,
+    z0_dim = 1.0E+4,
+    sigmax_dim = 0.0E+0,
+    sigmay_dim = 0.0E+0,
+    sigmaz_dim = 2.0E+3,
+    a0 = 9.0E-1,
+    branch = -1,
+)
+```
+"""
 function WavePacketNamelist(;
     wavepacketdim = 1,
     lambdax_dim = 1.0E+3,

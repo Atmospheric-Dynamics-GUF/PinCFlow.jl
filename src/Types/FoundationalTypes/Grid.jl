@@ -58,6 +58,12 @@ The grid uses terrain-following coordinates where:
   - Physical height: z_phys = h(x,y) + ζ * (H - h(x,y))
 
 where h(x,y) is surface topography and H is domain height.
+
+# See also
+
+  - [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref)
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 struct Grid{
     A <: AbstractVector{<:AbstractFloat},

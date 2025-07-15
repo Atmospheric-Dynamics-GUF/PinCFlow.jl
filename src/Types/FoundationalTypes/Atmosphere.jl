@@ -97,6 +97,10 @@ Creates a uniform Boussinesq atmosphere with:
   - Uniform potential temperature (``\\theta = \\theta_0``)
   - Zero buoyancy frequency (``N^2 = 0``)
   - Coriolis parameter based on specified mode
+
+# See also
+
+  - [`PinCFlow.Types.FoundationalTypes.compute_coriolis_parameter`](@ref)
 """
 function Atmosphere(
     namelists::Namelists,
@@ -148,6 +152,10 @@ Creates a stratified Boussinesq atmosphere with:
   - Constant pressure from equation of state: ``p = \\rho \\theta``
   - Constant buoyancy frequency (``N^2 = N_0^2``)
   - Coriolis parameter based on specified mode
+
+# See also
+
+  - [`PinCFlow.Types.FoundationalTypes.compute_coriolis_parameter`](@ref)
 """
 function Atmosphere(
     namelists::Namelists,
@@ -199,6 +207,11 @@ Creates an isothermal atmosphere with:
   - Density from equation of state ``\\rho = p/\\theta``
   - ``N^2`` computed from vertical ``\\theta`` gradient
   - Handles boundary conditions for ``N^2`` calculation
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.compute_coriolis_parameter`](@ref)
 """
 function Atmosphere(
     namelists::Namelists,

@@ -30,6 +30,10 @@ Notes on the implementation:
 # Returns
 
   - `AbstractFloat`: Stress tensor component including terrain-following coordinate effects
+
+# See also
+
+  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 """
 function compute_stress_tensor(
     i::Integer,

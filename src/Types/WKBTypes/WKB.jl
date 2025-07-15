@@ -95,6 +95,14 @@ WKB(
 ```
 
 Construct a `WKB` instance with zero-size arrays, since they are not needed.
+
+# See also
+
+  - [`PinCFlow.Types.WKBTypes.Rays`](@ref)
+  - [`PinCFlow.Types.WKBTypes.SurfaceIndices`](@ref)
+  - [`PinCFlow.Types.WKBTypes.Increments`](@ref)
+  - [`PinCFlow.Types.WKBTypes.GWIntegrals`](@ref)
+  - [`PinCFlow.Types.WKBTypes.GWTendencies`](@ref)
 """
 function WKB(
     namelists::Namelists,
@@ -130,6 +138,14 @@ WKB(
 ```
 
 Construct a `WKB` instance.
+
+# See also
+
+  - [`PinCFlow.Types.WKBTypes.Rays`](@ref)
+  - [`PinCFlow.Types.WKBTypes.SurfaceIndices`](@ref)
+  - [`PinCFlow.Types.WKBTypes.Increments`](@ref)
+  - [`PinCFlow.Types.WKBTypes.GWIntegrals`](@ref)
+  - [`PinCFlow.Types.WKBTypes.GWTendencies`](@ref)
 """
 function WKB(
     namelists::Namelists,

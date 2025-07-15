@@ -4,6 +4,10 @@ FoundationalTypes
 ```
 
 Module that contains the composite types `Time`, `Constants`, `Domain`, `Grid`, `Atmosphere` and `Sponge`.
+
+# See also
+
+  - [`PinCFlow.Types.NamelistTypes`](@ref)
 """
 module FoundationalTypes
 

@@ -65,6 +65,10 @@ for sponge layer damping.
   - `variable`: Type dispatch for u-velocity component
   - `facray`: Rayleigh damping factor
   - `facprs`: Pressure correction factor
+
+# See also
+
+  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
 """
 function correct!(
     state::State,
@@ -183,6 +187,10 @@ handling of terrain-following coordinate metric terms.
   - `variable`: Type dispatch for v-velocity component
   - `facray`: Rayleigh damping factor
   - `facprs`: Pressure correction factor
+
+# See also
+
+  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
 """
 function correct!(
     state::State,
@@ -301,6 +309,11 @@ buoyancy restoring force from stratification.
   - `variable`: Type dispatch for w-velocity component
   - `facray`: Rayleigh damping factor
   - `facprs`: Pressure correction factor
+
+# See also
+
+  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
+  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
 """
 function correct!(
     state::State,
@@ -459,6 +472,10 @@ coupling with stratification.
   - `variable`: Type dispatch for density perturbation
   - `facray`: Rayleigh damping factor
   - `facprs`: Pressure correction factor
+
+# See also
+
+  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
 """
 function correct!(
     state::State,

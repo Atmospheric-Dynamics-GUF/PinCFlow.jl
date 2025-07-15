@@ -60,6 +60,14 @@ Initialize complete Poisson solver workspace sized according to local domain.
 # Returns
 
   - `Poisson`: Container with all solver components initialized
+
+# See also
+
+  - [`PinCFlow.Types.PoissonTypes.Tensor`](@ref)
+  - [`PinCFlow.Types.PoissonTypes.Operator`](@ref)
+  - [`PinCFlow.Types.PoissonTypes.Preconditioner`](@ref)
+  - [`PinCFlow.Types.PoissonTypes.BicGStab`](@ref)
+  - [`PinCFlow.Types.PoissonTypes.Correction`](@ref)
 """
 function Poisson(namelists::Namelists, domain::Domain)
 

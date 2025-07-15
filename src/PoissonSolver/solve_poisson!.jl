@@ -34,6 +34,11 @@ for different equation models (Boussinesq, PseudoIncompressible, Compressible).
   - The solution is stored in `state.poisson.solution` and then transferred to pressure correction field
   - For non-Boussinesq models, the solution is scaled by the compressibility factor
   - The function will error if `dt = 0.0` to prevent division by zero
+
+# See also
+
+  - [`PinCFlow.PoissonSolver.compute_operator!`](@ref)
+  - [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref)
 """
 function solve_poisson!(
     state::State,

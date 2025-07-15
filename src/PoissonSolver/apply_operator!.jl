@@ -29,6 +29,12 @@ terms for terrain-following coordinates.
 
   - Uses stencil coefficients pre-computed in `compute_operator!`
   - Modifies `ls` in place
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+  - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
 """
 function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},
@@ -288,6 +294,12 @@ Used in the preconditioner.
   - `namelists`: Simulation parameters
   - `domain`: Domain information
   - `poisson`: Operator coefficient storage
+
+# See also
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+  - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
 """
 function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},

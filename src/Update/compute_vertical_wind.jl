@@ -23,6 +23,10 @@ via [`PinCFlow.Update.transform`](@ref) function to account for terrain-followin
 # Returns
 
   - `AbstractFloat`: Contravariant vertical velocity component
+
+# See also
+
+  - [`PinCFlow.Update.transform`](@ref)
 """
 function compute_vertical_wind(
     i::Integer,

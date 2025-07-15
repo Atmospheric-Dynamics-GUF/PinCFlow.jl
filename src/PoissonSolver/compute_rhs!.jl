@@ -272,6 +272,10 @@ computed through the volume force calculation.
 # Returns
 
   - `tolref`: Reference tolerance for convergence
+
+# See also
+
+  - [`PinCFlow.Update.compute_volume_force`](@ref)
 """
 function compute_rhs!(
     state::State,

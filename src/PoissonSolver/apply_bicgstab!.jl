@@ -32,6 +32,12 @@ Note that the preconditioner requires vertical communication between processes
 # Returns
 
   - `(errflag, niter)`: Convergence flag and iteration count
+
+# See also
+
+  - [`PinCFlow.PoissonSolver.apply_operator!`](@ref)
+  - [`PinCFlow.PoissonSolver.apply_preconditioner!`](@ref)
+  - [`PinCFlow.MPIOperations.compute_global_dot_product`](@ref)
 """
 function apply_bicgstab!(
     b_in::AbstractArray{<:AbstractFloat, 3},

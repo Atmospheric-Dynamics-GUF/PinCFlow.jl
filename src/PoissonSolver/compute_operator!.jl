@@ -18,6 +18,10 @@ and sponge layer damping. The resulting operator is used in the BiCGStab linear 
 # Output
 
   - Matrix coefficients stored in `state.poisson.tensor`
+
+# See also
+
+  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
 """
 function compute_operator!(
     state::State,

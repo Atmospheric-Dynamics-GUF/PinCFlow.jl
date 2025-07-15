@@ -31,6 +31,15 @@ to satisfy the divergence-free condition.
  2. Solve linear system using BiCGStab
  3. Set boundary conditions on pressure correction
  4. Apply momentum and buoyancy corrections
+
+# See also
+
+  - [`PinCFlow.PoissonSolver.compute_rhs!`](@ref)
+  - [`PinCFlow.PoissonSolver.solve_poisson!`](@ref)
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
+  - [`PinCFlow.PoissonSolver.correct!`](@ref)
 """
 function apply_corrector!(
     state::State,

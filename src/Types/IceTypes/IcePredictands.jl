@@ -1,9 +1,26 @@
+"""
+```julia
+IcePredictands{A <: AbstractArray{<:AbstractFloat, 3}}
+```
+"""
 struct IcePredictands{A <: AbstractArray{<:AbstractFloat, 3}}
     n::A # ice crystal number concentration n
     q::A # ice mixing ratio q
     qv::A # vapor mixing ratio qv
 end
 
+"""
+```julia
+IcePredictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    variables::Variables,
+)
+```
+"""
 function IcePredictands(
     namelists::Namelists,
     constants::Constants,
@@ -25,6 +42,19 @@ function IcePredictands(
     )
 end
 
+"""
+```julia
+IcePredictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    icesetup::NoIce,
+    variables::Variables,
+)
+```
+"""
 function IcePredictands(
     namelists::Namelists,
     constants::Constants,
@@ -41,6 +71,19 @@ function IcePredictands(
     return IcePredictands(n, q, qv)
 end
 
+"""
+```julia
+IcePredictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    icesetup::AbstractIce,
+    variables::Variables,
+)
+```
+"""
 function IcePredictands(
     namelists::Namelists,
     constants::Constants,

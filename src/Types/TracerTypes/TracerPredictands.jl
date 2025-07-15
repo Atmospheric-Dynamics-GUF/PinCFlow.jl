@@ -1,8 +1,25 @@
+"""
+```julia
+TracerPredictands{A <: AbstractArray{<:AbstractFloat, 3}}
+```
+"""
 struct TracerPredictands{A <: AbstractArray{<:AbstractFloat, 3}}
     chi::A
     # can be extended to included more passive tracers
 end
 
+"""
+```julia
+TracerPredictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    variables::Variables,
+)
+```
+"""
 function TracerPredictands(
     namelists::Namelists,
     constants::Constants,
@@ -24,6 +41,19 @@ function TracerPredictands(
     )
 end
 
+"""
+```julia
+TracerPredictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    tracersetup::AbstractTracer,
+    variables::Variables,
+)
+```
+"""
 function TracerPredictands(
     namelists::Namelists,
     constants::Constants,
@@ -38,6 +68,19 @@ function TracerPredictands(
     return TracerPredictands(chi)
 end
 
+"""
+```julia
+TracerPredictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    tracersetup::LinearTracer,
+    variables::Variables,
+)
+```
+"""
 function TracerPredictands(
     namelists::Namelists,
     constants::Constants,

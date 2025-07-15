@@ -4,6 +4,22 @@ Namelists
 ```
 
 Represents all configurable parameters for the simulation.
+
+# See also
+
+  - [`PinCFlow.Types.NamelistTypes.DomainNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.OutputNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.SettingNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.DiscretizationNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.PoissonNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.AtmosphereNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.GridNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.SpongeNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.WKBNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.TracerNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.IceNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.TurbulenceNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.WavePacketNamelist`](@ref)
 """
 struct Namelists{
     A <: DomainNamelist,
