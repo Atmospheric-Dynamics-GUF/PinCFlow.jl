@@ -23,6 +23,7 @@ struct Compressible <: AbstractModel end
 struct MountainWave <: AbstractTestCase end
 struct WavePacket <: AbstractTestCase end
 struct WKBMountainWave <: AbstractWKBTestCase end
+struct WKBWavePacket <: AbstractWKBTestCase end
 struct PeriodicBoundaries <: AbstractBoundaries end
 struct SolidWallBoundaries <: AbstractBoundaries end
 struct ExponentialSponge <: AbstractSponge end

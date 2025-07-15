@@ -42,7 +42,7 @@ function compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    testcase::WKBMountainWave,
+    testcase::AbstractWKBTestCase,
 )
     (; lx_dim, ly_dim) = namelists.domain
     (; testcase) = namelists.setting

@@ -142,6 +142,9 @@ function Predictands(
         a0,
         branch,
         wavepacketdim,
+        u0_jet_dim,
+        sigmaz_jet_dim,
+        z0_jet_dim,
     ) = namelists.wavepacket
     (; uref, lref, tref, kappa, ma, thetaref, fr2) = constants
     (; nxx, nyy, nzz, k0, k1, j0, j1, i0, i1, io, jo) = domain
@@ -156,6 +159,25 @@ function Predictands(
     u .= backgroundflow_dim[1] / uref
     v .= backgroundflow_dim[2] / uref
     w .= backgroundflow_dim[3] / uref
+
+    u0_jet = u0_jet_dim / uref
+    sigmaz_jet = sigmaz_jet_dim / lref
+    z0_jet = z0_jet_dim / lref
+
+    for kz in (k0 - nbz):(k1 + nbz),
+        jy in (j0 - nby):(j1 + nby),
+        ix in (i0 - nbx):(i1 + nbx)
+
+        deltaz = ztfc[ix, jy, kz] - z0_jet
+
+        if abs(deltaz) <= sigmaz_jet
+            u_jet = 0.5 * u0_jet * (1.0 + cos(pi * deltaz / sigmaz_jet))
+        else
+            u_jet = 0.0
+        end
+
+        u[ix, jy, kz] = u[ix, jy, kz] + u_jet
+    end
 
     if lambdax_dim == 0.0
         kk = 0.0
