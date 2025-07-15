@@ -10,20 +10,18 @@ apply_unified_sponge!(
 
 Apply unified sponge layer damping to prevent spurious wave reflections.
 
-# Mathematical Formulation
-
 Sponge damping uses exponential relaxation: `φ_new = β*φ_old + (1-β)*φ_bg`
 where `β = 1/(1 + α*dt)` and α is the spatially-varying damping coefficient.
 
-# Implementation Strategy
-
-  - **Variable-specific backgrounds**: Each variable relaxes toward appropriate reference state
-  - **Staggered grid handling**: Damping coefficients averaged at edge locations
-  - **Time-dependent perturbations**: Optional sinusoidal modulation of background states
-  - **Horizontal averaging**: Option to relax toward instantaneous horizontal mean
-
 The unified approach uses single damping coefficient field for all variables,
 computed by [`PinCFlow.Update.compute_sponge!`](@ref) with various spatial profiles.
+
+# Arguments
+
+  - `state`: Simulation state
+  - `dt`: Time step size
+  - `time`: Current simulation time
+  - `variable`: Variable type to apply sponge damping
 """
 function apply_unified_sponge!(
     state::State,
@@ -48,6 +46,14 @@ apply_unified_sponge!(
 ```
 
 No-op for Boussinesq density (incompressible assumption).
+
+# Arguments
+
+  - `state`: Simulation state
+  - `dt`: Time step size
+  - `time`: Current simulation time
+  - `variable`: Variable type to apply sponge damping
+  - `model`: Model type for dispatch
 """
 function apply_unified_sponge!(
     state::State,
@@ -73,6 +79,14 @@ apply_unified_sponge!(
 Apply sponge damping to density perturbations.
 
 Relaxes toward zero background density perturbation: ρ' → 0.
+
+# Arguments
+
+  - `state`: Simulation state
+  - `dt`: Time step size
+  - `time`: Current simulation time
+  - `variable`: Variable type to apply sponge damping
+  - `model`: Model type for dispatch
 """
 function apply_unified_sponge!(
     state::State,
@@ -116,6 +130,14 @@ apply_unified_sponge!(
 Apply sponge damping to potential density perturbations.
 
 Relaxes toward zero background potential density perturbation.
+
+# Arguments
+
+  - `state`: Simulation state
+  - `dt`: Time step size
+  - `time`: Current simulation time
+  - `variable`: Variable type to apply sponge damping
+  - `model`: Model type for dispatch
 """
 function apply_unified_sponge!(
     state::State,
@@ -158,16 +180,13 @@ apply_unified_sponge!(
 
 Apply sponge damping to zonal wind with background relaxation.
 
-# Relaxation Options
+# Arguments
 
-  - **Mean relaxation**: Toward horizontal mean if `relax_to_mean=true`
-  - **Fixed background**: Toward `relaxation_wind[1]` with optional perturbations
-  - **Edge averaging**: Uses average of adjacent cell damping coefficients
-
-# Time Modulation
-
-Background wind can vary sinusoidally: `u_bg = u₀(1 + A*sin(2πt/T))`
-where A is amplitude and T is period.
+  - `state`: Simulation state
+  - `dt`: Time step size
+  - `time`: Current simulation time
+  - `variable`: Variable type to apply sponge damping
+  - `model`: Model type for dispatch
 """
 function apply_unified_sponge!(
     state::State,
@@ -249,6 +268,14 @@ Apply sponge damping to meridional wind with background relaxation.
 
 Similar to zonal wind but for y-component with appropriate staggering.
 Uses `relaxation_wind[2]` for fixed background state.
+
+# Arguments
+
+  - `state`: Simulation state
+  - `dt`: Time step size
+  - `time`: Current simulation time
+  - `variable`: Variable type to apply sponge damping
+  - `model`: Model type for dispatch
 """
 function apply_unified_sponge!(
     state::State,
@@ -333,6 +360,14 @@ vertical staggering in terrain-following coordinates:
 `α = (J[k+1]*α[k] + J[k]*α[k+1])/(J[k] + J[k+1])`
 
 Uses `relaxation_wind[3]` for fixed background vertical velocity.
+
+# Arguments
+
+  - `state`: Simulation state
+  - `dt`: Time step size
+  - `time`: Current simulation time
+  - `variable`: Variable type to apply sponge damping
+  - `model`: Model type for dispatch
 """
 function apply_unified_sponge!(
     state::State,
@@ -413,7 +448,15 @@ apply_unified_sponge!(
 )
 ```
 
-Return in non-compressible modes.
+No-op Return in non-compressible modes.
+
+# Arguments
+
+  - `state`: Simulation state
+  - `dt`: Time step size
+  - `time`: Current simulation time
+  - `variable`: Variable type to apply sponge damping
+  - `model`: Model type for dispatch
 """
 function apply_unified_sponge!(
     state::State,
@@ -437,6 +480,14 @@ apply_unified_sponge!(
 ```
 
 Apply the unified sponge to the Exner-pressure fluctuations.
+
+# Arguments
+
+  - `state`: Simulation state
+  - `dt`: Time step size
+  - `time`: Current simulation time. Not used in this implementation.
+  - `variable`: Variable type to apply sponge damping
+  - `model`: Model type for dispatch
 """
 function apply_unified_sponge!(
     state::State,
@@ -482,7 +533,15 @@ apply_unified_sponge!(
 )
 ```
 
-Return in non-compressible modes.
+No-op in non-compressible modes.
+
+# Arguments
+
+  - `state`: Simulation state
+  - `dt`: Time step size
+  - `time`: Current simulation time
+  - `variable`: Variable type to apply sponge damping
+  - `model`: Model type for dispatch
 """
 function apply_unified_sponge!(
     state::State,
@@ -508,6 +567,14 @@ apply_unified_sponge!(
 Apply sponge damping to mass-weighted potential-temperature field in compressible mode.
 
 Relaxes toward hydrostatic background: `p_bg = ρ₀*p₀/(ρ + ρ₀)`
+
+# Arguments
+
+  - `state`: Simulation state
+  - `dt`: Time step size
+  - `time`: Current simulation time. Not used in this implementation.
+  - `variable`: Variable type to apply sponge damping
+  - `model`: Model type for dispatch
 """
 function apply_unified_sponge!(
     state::State,

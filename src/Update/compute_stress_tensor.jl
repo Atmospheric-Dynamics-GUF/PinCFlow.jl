@@ -13,23 +13,23 @@ compute_stress_tensor(
 
 Compute viscous stress tensor component τ_μν at grid point (i,j,k).
 
-# Arguments
-
-  - `i, j, k::Integer`: Grid indices
-  - `mu, nu::Integer`: Tensor indices (1=x, 2=y, 3=z)
-  - `predictands::Predictands`: Velocity field variables
-  - `grid::Grid`: Grid metrics and spacing
-
-# Returns
-
-  - `AbstractFloat`: Stress tensor component including terrain-following coordinate effects
-
-# Implementation
+Notes on the implementation:
 
   - **Diagonal terms**: Normal stresses with divergence damping (2/3 factor)
   - **Off-diagonal terms**: Shear stresses with metric tensor corrections
   - **Coordinate effects**: Handles terrain-following transformations via [`PinCFlow.Update.compute_vertical_wind`](@ref)
   - **Jacobian weighting**: Density-weighted averaging at staggered locations
+
+# Arguments
+
+  - `i, j, k`: Grid indices
+  - `mu, nu`: Tensor indices (1=x, 2=y, 3=z)
+  - `predictands`: Velocity field variables
+  - `grid`: Grid metrics and spacing
+
+# Returns
+
+  - `AbstractFloat`: Stress tensor component including terrain-following coordinate effects
 """
 function compute_stress_tensor(
     i::Integer,

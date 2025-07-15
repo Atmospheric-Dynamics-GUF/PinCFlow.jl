@@ -54,8 +54,8 @@ Initialize complete Poisson solver workspace sized according to local domain.
 
 # Arguments
 
-  - `namelists::Namelists`: Configuration parameters
-  - `domain::Domain`: Local domain dimensions
+  - `namelists`: Configuration parameters
+  - `domain`: Local domain dimensions
 
 # Returns
 

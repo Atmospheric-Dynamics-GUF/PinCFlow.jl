@@ -35,7 +35,7 @@ Initialize backup storage arrays sized according to domain decomposition.
 
 # Arguments
 
-  - `domain::Domain`: Domain specification containing grid dimensions
+  - `domain`: Domain specification containing grid dimensions
 
 # Returns
 

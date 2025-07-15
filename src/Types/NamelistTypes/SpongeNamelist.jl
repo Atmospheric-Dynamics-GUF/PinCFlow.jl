@@ -58,20 +58,20 @@ Configuration parameters for damping layers that absorb waves near domain bounda
 
 # Arguments
 
-  - `spongelayer::Bool = false`: Enable sponge layer damping
-  - `sponge_uv::Bool = false`: Apply sponge to horizontal velocity components
-  - `spongeheight::AbstractFloat = 5.0E-1`: Fractional height of vertical sponge region
-  - `spongealphaz_dim::AbstractFloat = 1.0E-2`: Dimensional damping coefficient [1/s]
-  - `spongealphaz_fac::AbstractFloat = 1.0E+0`: Damping coefficient scaling factor
-  - `unifiedsponge::Bool = false`: Use unified damping formulation for all variables
-  - `lateralsponge::Bool = false`: Enable horizontal boundary damping
-  - `spongetype::AbstractSponge = PolynomialSponge()`: Spatial damping profile. Options: `ExponentialSponge()`, `COSMOSponge()`, `PolynomialSponge()`, `SinusoidalSponge()`
-  - `spongeorder::Integer = 1`: Polynomial order for `PolynomialSponge()`
-  - `cosmosteps::Integer = 1`: Time substeps for COSMO-type damping
-  - `relax_to_mean::Bool = true`: Damp toward horizontal mean instead of zero
-  - `perturbation_period::AbstractFloat = 0.0E+0`: Period for time-varying relaxation [s]
-  - `perturbation_amplitude::AbstractFloat = 0.0E+0`: Amplitude of relaxation perturbation
-  - `relaxation_wind::NTuple{3,AbstractFloat} = (0,0,0)`: Target wind field [m/s] when not relaxing to mean
+  - `spongelayer`: Enable sponge layer damping
+  - `sponge_uv`: Apply sponge to horizontal velocity components
+  - `spongeheight:AbstractFloat = `: Fractional height of vertical sponge region
+  - `spongealphaz_dim:AbstractFloat = `: Dimensional damping coefficient [1/s]
+  - `spongealphaz_fac:AbstractFloat = `: Damping coefficient scaling factor
+  - `unifiedsponge`: Use unified damping formulation for all variables
+  - `lateralsponge`: Enable horizontal boundary damping
+  - `spongetype:AbstractSponge`: Spatial damping profile. Options: `ExponentialSponge()`, `COSMOSponge()`, `PolynomialSponge()`, `SinusoidalSponge()`
+  - `spongeorde`: Polynomial order for `PolynomialSponge()`
+  - `cosmostep`: Time substeps for COSMO-type damping
+  - `relax_to_mean`: Damp toward horizontal mean instead of zero
+  - `perturbation_period`: Period for time-varying relaxation [s]
+  - `perturbation_amplitude`: Amplitude of relaxation perturbation
+  - `relaxation_wind`: Target wind field [m/s] when not relaxing to mean
 """
 function SpongeNamelist(;
     spongelayer = false,

@@ -18,17 +18,16 @@ terms for terrain-following coordinates.
 
 # Arguments
 
-  - `sin::AbstractArray{<:AbstractFloat, 3}`: Input field
-  - `ls::AbstractArray{<:AbstractFloat, 3}`: Output field (operator applied to input)
+  - `sin`: Input field
+  - `ls`: Output field (operator applied to input)
   - `hortot::Total`: Flag indicating full 3D operator application
-  - `namelists::Namelists`: Simulation parameters
-  - `domain::Domain`: Domain decomposition information
-  - `poisson::Poisson`: Poisson solver data structures containing operator coefficients
+  - `namelists`: Simulation parameters
+  - `domain`: Domain decomposition information
+  - `poisson`: Poisson solver data structures containing operator coefficients
 
 # Notes
 
   - Uses stencil coefficients pre-computed in `compute_operator!`
-  - Handles boundary conditions through halo exchanges
   - Modifies `ls` in place
 """
 function apply_operator!(
@@ -283,12 +282,12 @@ Used in the preconditioner.
 
 # Arguments
 
-  - `sin::AbstractArray{<:AbstractFloat, 3}`: Input field
-  - `ls::AbstractArray{<:AbstractFloat, 3}`: Output field
+  - `sin`: Input field
+  - `ls`: Output field (modified in place)
   - `hortot::Horizontal`: Flag for horizontal-only operation
-  - `namelists::Namelists`: Simulation parameters
-  - `domain::Domain`: Domain information
-  - `poisson::Poisson`: Operator coefficient storage
+  - `namelists`: Simulation parameters
+  - `domain`: Domain information
+  - `poisson`: Operator coefficient storage
 """
 function apply_operator!(
     sin::AbstractArray{<:AbstractFloat, 3},

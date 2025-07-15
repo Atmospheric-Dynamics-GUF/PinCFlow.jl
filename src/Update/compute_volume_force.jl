@@ -13,9 +13,9 @@ Dispatches to specific implementation based on test case type.
 
 # Arguments
 
-  - `state::State`: Simulation state
-  - `indices::NTuple{3, <:Integer}`: Grid indices (ix, jy, kz)
-  - `variable::AbstractVariable`: Variable type for force computation
+  - `state`: Simulation state
+  - `indices`: Grid indices (ix, jy, kz)
+  - `variable`: Variable type for force computation
 
 # Returns
 
@@ -45,6 +45,13 @@ Default zero volume force for standard test cases.
 
 Most test cases have no additional volume forcing beyond standard physics.
 
+# Arguments
+
+  - `state`: Simulation state
+  - `indices`: Grid indices (ix, jy, kz)
+  - `variable`: Variable type for force computation
+  - `testcase`: Testcase type to dispatch
+
 # Returns
 
   - `Float64`: Always returns 0.0
@@ -72,10 +79,12 @@ Zonal volume force from gravity wave drag.
 
 Computes cell-edge interpolated zonal wind tendency from WKB gravity wave parameterization for use in momentum equations.
 
-# Implementation
+# Arguments
 
-Averages `dudt` between horizontally adjacent cells:
-`force = (dudt[i] + dudt[i+1]) / 2`
+  - `state`: Simulation state
+  - `indices`: Grid indices (ix, jy, kz)
+  - `variable`: Variable type for force computation
+  - `testcase`: Testcase type to dispatch
 
 # Returns
 
@@ -107,9 +116,12 @@ Meridional volume force from gravity wave drag.
 
 Computes cell-edge interpolated meridional wind tendency for momentum equations.
 
-# Implementation
+# Arguments
 
-Averages `dvdt` between meridionally adjacent cells.
+  - `state`: Simulation state
+  - `indices`: Grid indices (ix, jy, kz)
+  - `variable`: Variable type for force computation
+  - `testcase`: Testcase type to dispatch
 
 # Returns
 
@@ -142,11 +154,12 @@ Vertical volume force from terrain-following coordinate transformation.
 Transforms horizontal gravity wave tendencies to vertical component using
 metric tensor coefficients and Jacobian weighting for terrain-following coordinates.
 
-# Implementation
+# Arguments
 
-  - **Metric transformation**: Uses `met` tensor components
-  - **Jacobian weighting**: Properly averages between vertical levels
-  - **Coordinate mapping**: `w_force = (∂ζ/∂x)·u_force + (∂ζ/∂y)·v_force`
+  - `state`: Simulation state
+  - `indices`: Grid indices (ix, jy, kz)
+  - `variable`: Variable type for force computation
+  - `testcase`: Testcase type to dispatch
 
 # Returns
 
@@ -188,6 +201,13 @@ Thermal forcing from gravity wave heating.
 
 Returns potential temperature tendency from gravity wave energy dissipation
 for use in thermodynamic equation.
+
+# Arguments
+
+  - `state`: Simulation state
+  - `indices`: Grid indices (ix, jy, kz)
+  - `variable`: Variable type for force computation
+  - `testcase`: Testcase type to dispatch
 
 # Returns
 

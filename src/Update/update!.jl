@@ -4,6 +4,13 @@ update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
 ```
 
 Dispatch method for density updates based on equation model type.
+
+# Arguments
+
+  - `state`: Simulation state containing grid, fluxes, and predictands
+  - `dt`: Time step size
+  - `m`: Current Runge-Kutta stage
+  - `variable::Rho`: Type dispatch for density field
 """
 function update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
     (; model) = state.namelists.setting
@@ -22,7 +29,17 @@ update!(
 )
 ```
 
-No-op for Boussinesq approximation where density is constant.
+Update density field for Boussinesq model.
+
+No-op for Boussinesq approximation, as density is constant.
+
+# Arguments
+
+  - `state`: Simulation state containing grid, fluxes, and predictands
+  - `dt`: Time step size
+  - `m`: Current Runge-Kutta stage
+  - `variable::Rho`: Type dispatch for density field
+  - `model::Boussinesq`: Type dispatch for Boussinesq model
 """
 function update!(
     state::State,
@@ -45,16 +62,15 @@ update!(
 )
 ```
 
-Update density using flux divergence with Runge-Kutta time integration.
+Density update for general models.
 
-# Mathematical Formulation
+# Arguments
 
-∂ρ/∂t + ∇·(ρv) = 0
-
-# Implementation
-
-  - **Flux computation**: Computes divergence of density flux `φ_ρ`
-  - **Jacobian scaling**: Divides by metric Jacobian for TCF
+  - `state`: Simulation state containing grid, fluxes, and predictands
+  - `dt`: Time step size
+  - `m`: Current Runge-Kutta stage
+  - `variable::Rho`: Type dispatch for density field
+  - `model::AbstractModel`: Type dispatch for non-specialized models
 """
 function update!(
     state::State,
@@ -100,6 +116,14 @@ update!(state::State, dt::AbstractFloat, m::Integer, variable::RhoP, side::LHS)
 ```
 
 Update potential density with flux divergence and heating on left-hand side.
+
+# Arguments
+
+  - `state`: Simulation state containing grid, fluxes, and predictands
+  - `dt`: Time step size
+  - `m`: Current Runge-Kutta stage
+  - `variable::RhoP`: Type dispatch for potential density field
+  - `side::LHS`: Type dispatch for left-hand-side of equation
 """
 function update!(
     state::State,
@@ -154,6 +178,14 @@ update!(
 ```
 
 Explicit buoyancy update for potential density on right-hand side.
+
+# Arguments
+
+  - `state`: Simulation state containing grid, fluxes, and predictands
+  - `dt`: Time step size
+  - `variable::RhoP`: Type dispatch for potential density field
+  - `side::RHS`: Type dispatch for right-hand-side of equation
+  - `integration::Explicit`: Type dispatch to use explicit integration
 """
 function update!(
     state::State,
@@ -201,6 +233,15 @@ update!(
 ```
 
 Implicit buoyancy update.
+
+# Arguments
+
+  - `state`: Simulation state containing grid, fluxes, and predictands
+  - `dt`: Time step size
+  - `variable::RhoP`: Type dispatch for potential density field
+  - `side::RHS`: Type dispatch for right-hand-side of equation
+  - `integration::Implicit`: Type dispatch to use implict integration
+  - `facray`: Rayleigh damping factor for sponge layer
 """
 function update!(
     state::State,
@@ -407,6 +448,14 @@ update!(state::State, dt::AbstractFloat, m::Integer, variable::U, side::LHS)
 ```
 
 Update zonal momentum with flux divergence and Coriolis force.
+
+# Arguments
+
+  - `state`: Simulation state containing grid, fluxes, and predictands
+  - `dt`: Time step size
+  - `m`: Current Runge-Kutta stage
+  - `variable::U`: Type dispatch for zonal velocity component
+  - `side::LHS`: Type dispatch for left-hand-side of equation
 """
 function update!(
     state::State,
@@ -499,6 +548,14 @@ update!(
 ```
 
 Explicit pressure gradient update for zonal wind.
+
+# Arguments
+
+  - `state`: Simulation state containing grid, fluxes, and predictands
+  - `dt`: Time step size
+  - `variable::U`: Type dispatch for zonal velocity component
+  - `side::RHS`: Type dispatch for right-hand-side of equation
+  - `integration::Explicit`: Type dispatch for explicit integration
 """
 function update!(
     state::State,
@@ -587,6 +644,15 @@ update!(
 ```
 
 Implicit pressure gradient update with sponge damping.
+
+# Arguments
+
+  - `state`: Simulation state containing grid, fluxes, and predictands
+  - `dt`: Time step size
+  - `variable::U`: Type dispatch for zonal velocity component
+  - `side::RHS`: Type dispatch for right-hand-side of equation
+  - `integration::Implicit`: Type dispatch for implicit integration
+  - `facray`: Rayleigh damping factor for sponge layer
 """
 function update!(
     state::State,
@@ -684,6 +750,14 @@ update!(state::State, dt::AbstractFloat, m::Integer, variable::V, side::LHS)
 ```
 
 Update meridional momentum with flux divergence and Coriolis force.
+
+# Arguments
+
+  - `state`: Simulation state containing grid, fluxes, and predictands
+  - `dt`: Time step size
+  - `m`: Current Runge-Kutta stage
+  - `variable::V`: Type dispatch for meridional velocity component
+  - `side::LHS`: Type dispatch for left-hand-side of equation
 """
 function update!(
     state::State,
@@ -776,6 +850,14 @@ Explicit meridional pressure gradient update.
 
 Identical structure to zonal wind but operates in y-direction with
 appropriate metric tensor components and boundary conditions.
+
+# Arguments
+
+  - `state`: Simulation state containing grid, fluxes, and predictands
+  - `dt`: Time step size
+  - `variable::V`: Type dispatch for meridional velocity component
+  - `side::RHS`: Type dispatch for right-hand-side of equation
+  - `integration::Explicit`: Type dispatch for explicit integration
 """
 function update!(
     state::State,
@@ -868,6 +950,15 @@ Implicit meridional pressure gradient update with sponge damping.
 Updates meridional velocity component using pressure gradient forcing with implicit time stepping
 and Rayleigh sponge layer damping. Handles terrain-following coordinate transformations and
 boundary conditions for solid walls.
+
+# Arguments
+
+  - `state`: Simulation state containing grid, fluxes, and predictands
+  - `dt`: Time step size
+  - `variable::V`: Type dispatch for meridional velocity component
+  - `side::RHS`: Type dispatch for right-hand-side of equation
+  - `integration::Implicit`: Type dispatch for implicit integration
+  - `facray`: Rayleigh damping factor for sponge layer
 """
 function update!(
     state::State,
@@ -971,16 +1062,11 @@ Applies metric tensor corrections for terrain-following coordinates and handles 
 
 # Arguments
 
-  - `state::State`: Simulation state containing grid, atmosphere, and variable fields
-  - `dt::AbstractFloat`: Time step size
-  - `m::Integer`: Current RK step
+  - `state`: Simulation state containing grid, atmosphere, and variable fields
+  - `dt`: Time step size
+  - `m`: Current RK step
   - `variable::W`: Type dispatch for vertical velocity component
   - `side::LHS`: Left-hand side integration flag
-
-# Implementation
-
-  - **Metric corrections**: Applies terrain-following coordinate transformations
-  - **Boundary treatment**: Handles top/bottom boundary conditions for vertical velocity
 """
 function update!(
     state::State,
@@ -1139,7 +1225,6 @@ function update!(
         w[i, j, k] = wast
     end
 
-    # Return.
     return
 end
 
@@ -1161,11 +1246,10 @@ pressure gradient terms, and metric tensor corrections.
 
 # Arguments
 
-  - `state::State`: Simulation state containing grid, atmosphere, and variable fields
-  - `dt::AbstractFloat`: Time step size
-  - `variable::W`: Type dispatch for vertical velocity component
-  - `side::RHS`: Right-hand side integration flag
-  - `integration::Explicit`: Explicit time stepping method
+  - `state`: Simulation state containing grid, fluxes, and predictands
+  - `dt`: Time step size
+  - `variable::PiP`: Type dispatch for pressure perturbation field
+  - `model::AbstractModel`: Type dispatch for general model types
 """
 function update!(
     state::State,
@@ -1274,7 +1358,6 @@ function update!(
         w[i, j, k] = wast
     end
 
-    # Return.
     return
 end
 
@@ -1294,6 +1377,15 @@ Implicit vertical velocity update with Rayleigh damping.
 
 Updates vertical velocity using implicit time stepping with buoyancy forcing,
 pressure gradient terms, and sponge layer damping.
+
+# Arguments
+
+  - `state`: Complete simulation state
+  - `dt`: Time step size
+  - `variable::W`: Type dispatch for vertical wind
+  - `side::RHS`: Type dipatch for right-hand-side
+  - `integration::Implicit`: Use implicit integration scheme
+  - `facray`: Rayleigh-damping strength for sponge layer
 """
 function update!(
     state::State,
@@ -1460,6 +1552,12 @@ update!(state::State, dt::AbstractFloat, variable::PiP)
 ```
 
 Dispatches for update on pressure perturbation.
+
+# Arguments
+
+  - `state`: Complete simulation state
+  - `dt`: Time step size
+  - `variable::PiP`: Type dispatch for pressure perturbation
 """
 function update!(state::State, dt::AbstractFloat, variable::PiP)
     (; model) = state.namelists.setting
@@ -1495,17 +1593,10 @@ Applies boundary conditions and handles terrain-following coordinate transformat
 
 # Arguments
 
-  - `state::State`: Simulation state containing grid, atmosphere, and variable fields
-  - `dt::AbstractFloat`: Time step size
+  - `state`: Simulation state containing grid, atmosphere, and variable fields
+  - `dt`: Time step size
   - `variable::PiP`: Type dispatch for pressure perturbation
   - `model::Compressible`: Compressible equation model
-
-# Implementation
-
-  - **Divergence constraint**: Enforces mass conservation through velocity divergence
-  - **Heating coupling**: Incorporates thermodynamic heating effects
-  - **Metric corrections**: Handles terrain-following coordinate transformations
-  - **Boundary treatment**: Applies appropriate pressure boundary conditions
 """
 function update!(
     state::State,
@@ -1607,18 +1698,11 @@ Runge-Kutta time integration. Applies Jacobian scaling for terrain-following coo
 
 # Arguments
 
-  - `state::State`: Simulation state containing grid, fluxes, and predictands
-  - `dt::AbstractFloat`: Time step size
-  - `m::Integer`: Current Runge-Kutta stage
+  - `state`: Simulation state containing grid, fluxes, and predictands
+  - `dt`: Time step size
+  - `m`: Current Runge-Kutta stage
   - `variable::P`: Type dispatch for pressure field
   - `model::Compressible`: Compressible equation model
-
-# Implementation
-
-  - **Flux divergence**: Computes ∇·(φₚ) from `phip` fluxes
-  - **Volume heating**: Incorporates thermodynamic source terms via `compute_volume_force`
-  - **RK integration**: Uses `alphark` and `betark` coefficients
-  - **Metric scaling**: Divides by Jacobian for generalized coordinates
 """
 function update!(
     state::State,

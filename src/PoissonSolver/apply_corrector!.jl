@@ -16,10 +16,10 @@ to satisfy the divergence-free condition.
 
 # Arguments
 
-  - `state::State`: Complete simulation state
-  - `dt::AbstractFloat`: Time step size
-  - `facray::AbstractFloat`: Rayleigh damping factor for sponge boundaries
-  - `facprs::AbstractFloat`: Pressure correction scaling factor
+  - `state`: Complete simulation state
+  - `dt`: Time step size
+  - `facray`: Rayleigh damping factor for sponge boundaries
+  - `facprs`: Pressure correction scaling factor
 
 # Returns
 
@@ -66,6 +66,5 @@ function apply_corrector!(
     # Correct momentum and buoyancy.
     correct!(state, dt, facray, facprs)
 
-    # Return.
     return (errflagbicg, niterbicg)
 end

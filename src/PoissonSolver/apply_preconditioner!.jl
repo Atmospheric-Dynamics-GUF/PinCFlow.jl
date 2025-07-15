@@ -18,12 +18,12 @@ vertical direction implicitly while horizontal coupling is handled explicitly.
 
 # Arguments
 
-  - `sin::AbstractArray{<:AbstractFloat, 3}`: Input residual field
-  - `sout::AbstractArray{<:AbstractFloat, 3}`: Preconditioned output field
-  - `namelists::Namelists`: Contains preconditioner parameters (dtau, maxiteradi)
-  - `domain::Domain`: MPI domain decomposition info for vertical communication
-  - `grid::Grid`: Grid spacing for pseudo-time step calculation
-  - `poisson::Poisson`: Operator coefficients and preconditioner workspace
+  - `sin`: Input residual field
+  - `sout`: Preconditioned output field
+  - `namelists`: Contains preconditioner parameters (dtau, maxiteradi)
+  - `domain`: MPI domain decomposition info for vertical communication
+  - `grid`: Grid spacing for pseudo-time step calculation
+  - `poisson`: Operator coefficients and preconditioner workspace
 
 # Algorithm
 
@@ -115,10 +115,6 @@ function apply_preconditioner!(
             MPI.Send(s_pc_bc, comm; dest = down)
         end
     end
-
-    # Set final result.
     sout .= s_pc
-
-    # Return.
     return
 end

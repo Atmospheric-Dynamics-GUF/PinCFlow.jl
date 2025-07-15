@@ -10,16 +10,15 @@ correct!(
 
 Apply pressure corrections to velocity and density fields.
 
-Master function that coordinates the correction of all prognostic variables after
-solving the pressure Poisson equation. Ensures mass conservation and proper
-coupling between momentum and buoyancy equations.
+Main function that handles the correction of all prognostic variables after
+solving the pressure Poisson equation.
 
 # Arguments
 
-  - `state::State`: Simulation state with pressure correction field computed
-  - `dt::AbstractFloat`: Time step size
-  - `facray::AbstractFloat`: Rayleigh damping factor
-  - `facprs::AbstractFloat`: Pressure correction scaling factor
+  - `state`: Simulation state with pressure correction field computed
+  - `dt`: Time step size
+  - `facray`: Rayleigh damping factor
+  - `facprs`: Pressure correction scaling factor
 
 # Corrected fields
 
@@ -61,11 +60,11 @@ for sponge layer damping.
 
 # Arguments
 
-  - `state::State`: Simulation state
-  - `dt::AbstractFloat`: Time step
-  - `variable::U`: Type dispatch for u-velocity component
-  - `facray::AbstractFloat`: Rayleigh damping factor
-  - `facprs::AbstractFloat`: Pressure correction factor
+  - `state`: Simulation state
+  - `dt`: Time step
+  - `variable`: Type dispatch for u-velocity component
+  - `facray`: Rayleigh damping factor
+  - `facprs`: Pressure correction factor
 """
 function correct!(
     state::State,
@@ -176,6 +175,14 @@ Apply pressure correction to horizontal velocity component v.
 
 Similar to u-correction but for meridional (y) direction, including proper
 handling of terrain-following coordinate metric terms.
+
+# Arguments
+
+  - `state`: Simulation state
+  - `dt`: Time step
+  - `variable`: Type dispatch for v-velocity component
+  - `facray`: Rayleigh damping factor
+  - `facprs`: Pressure correction factor
 """
 function correct!(
     state::State,
@@ -286,6 +293,14 @@ Apply pressure correction to vertical velocity with buoyancy coupling.
 
 The vertical velocity correction includes both pressure gradient effects and
 buoyancy restoring force from stratification.
+
+# Arguments
+
+  - `state`: Simulation state
+  - `dt`: Time step
+  - `variable`: Type dispatch for w-velocity component
+  - `facray`: Rayleigh damping factor
+  - `facprs`: Pressure correction factor
 """
 function correct!(
     state::State,
@@ -436,6 +451,14 @@ Apply buoyancy correction to density perturbation field.
 Updates the density perturbation field based on vertical motion corrections,
 maintaining consistency with the anelastic/Boussinesq constraint and proper
 coupling with stratification.
+
+# Arguments
+
+  - `state`: Simulation state
+  - `dt`: Time step
+  - `variable`: Type dispatch for density perturbation
+  - `facray`: Rayleigh damping factor
+  - `facprs`: Pressure correction factor
 """
 function correct!(
     state::State,
@@ -620,7 +643,12 @@ correct!(state::State, variable::PiP)
 
 Update pressure perturbation with computed correction.
 
-Simple addition of pressure correction increment to the pressure perturbation field.
+Adds the pressure correction increment to the pressure perturbation field.
+
+# Arguments
+
+  - `state`: Simulation state
+  - `variable`: Type dispatch for density perturbation
 """
 function correct!(state::State, variable::PiP)
     (; i0, i1, j0, j1, k0, k1) = state.domain

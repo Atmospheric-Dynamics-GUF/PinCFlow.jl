@@ -11,20 +11,18 @@ compute_vertical_wind(
 
 Compute contravariant vertical velocity w^ζ in terrain-following coordinates.
 
+Extracts velocity components at cell edges and applies coordinate transformation
+via [`PinCFlow.Update.transform`](@ref) function to account for terrain-following effects.
+
 # Arguments
 
-  - `i, j, k::Integer`: Grid indices
-  - `predictands::Predictands`: Velocity field variables
-  - `grid::Grid`: Metric tensor and coordinate information
+  - `i, j, k`: Grid indices
+  - `predictands`: Velocity field variables
+  - `grid`: Metric tensor and coordinate information
 
 # Returns
 
   - `AbstractFloat`: Contravariant vertical velocity component
-
-# Implementation
-
-Extracts velocity components at cell edges and applies coordinate transformation
-via [`PinCFlow.Update.transform`](@ref) function to account for terrain-following effects.
 """
 function compute_vertical_wind(
     i::Integer,
