@@ -3,6 +3,7 @@ module VariableTypes
 using ..NamelistTypes
 using ..FoundationalTypes
 
+include("set_p.jl")
 include("Predictands.jl")
 include("Tendencies.jl")
 include("Backups.jl")
