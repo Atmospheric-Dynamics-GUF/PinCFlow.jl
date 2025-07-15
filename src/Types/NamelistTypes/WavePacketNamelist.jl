@@ -11,6 +11,9 @@ struct WavePacketNamelist{A <: AbstractFloat, B <: Integer}
     sigmaz_dim::A
     a0::A
     branch::B
+    u0_jet_dim::A 
+    sigmaz_jet_dim::A
+    z0_jet_dim::A
 end
 
 function WavePacketNamelist(;
@@ -26,6 +29,9 @@ function WavePacketNamelist(;
     sigmaz_dim = 2.0E+3,
     a0 = 9.0E-1,
     branch = -1,
+    u0_jet_dim = 0.0E+0,
+    sigmaz_jet_dim = 0.0E+0,
+    z0_jet_dim = 0.0E+0,
 )
     return WavePacketNamelist(
         wavepacketdim,
@@ -40,5 +46,8 @@ function WavePacketNamelist(;
         sigmaz_dim,
         a0,
         branch,
+        u0_jet_dim,
+        sigmaz_jet_dim,
+        z0_jet_dim,
     )
 end
