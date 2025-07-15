@@ -96,10 +96,16 @@ function integrate(namelists::Namelists)
     if master
         println(repeat("-", 80))
         println(repeat(" ", 36), "PinCFlow")
-        println(
-            repeat(" ", 12),
-            "developed by Rieper et al (2013) and Schmid et al (2021)",
-        )
+        println("")
+        println(repeat(" ", 34), "developed by")
+        println(repeat(" ", 30), "Rieper et al. (2013)")
+        println(repeat(" ", 28), "Muraschko et al. (2014)")
+        println(repeat(" ", 29), "Boeloeni et al. (2016)")
+        println(repeat(" ", 29), "Wilhelm et al. (2018)")
+        println(repeat(" ", 31), "Wei et al. (2019)")
+        println(repeat(" ", 30), "Schmid et al. (2021)")
+        println(repeat(" ", 30), "Jochum et al. (2025)")
+        println("")
         println(repeat(" ", 28), "modified by many others")
         println(repeat("-", 80))
         println("")
@@ -125,7 +131,7 @@ function integrate(namelists::Namelists)
             create_output(state)
             iout = write_output(state, time, iout, machine_start_time)
             if master
-                println("Output last state into record", iout)
+                println("Output last state into record ", iout, ".")
             end
             exit()
         end
