@@ -41,7 +41,17 @@ end
 Sponge(namelists::Namelists, domain::Domain, grid::Grid)
 ```
 
-Construct a `Sponge` instance from `namelists`, `domain` and `grid`.
+Construct a `Sponge` instance from.
+
+# Arguments
+
+  - `namelists`: Configuration parameters containing sponge settings
+  - `domain`: Domain specification with grid dimensions
+  - `grid`: Grid specification with spatial extents
+
+# Returns
+
+  - `Sponge`: Initialized sponge layer with zero arrays and computed extents
 """
 function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
     (; spongeheight) = namelists.sponge

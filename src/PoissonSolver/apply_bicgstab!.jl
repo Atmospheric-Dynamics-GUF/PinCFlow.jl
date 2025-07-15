@@ -17,29 +17,21 @@ Implements the Bi-Conjugate Gradient Stabilized method for solving the discrete
 Poisson equation. This is the core linear algebra routine for the pressure correction
 step.
 
+Note that the preconditioner requires vertical communication between processes
+
 # Arguments
 
-  - `b_in::AbstractArray{<:AbstractFloat, 3}`: Right-hand side vector
-  - `tolref::AbstractFloat`: Reference tolerance for relative error checking
-  - `sol::AbstractArray{<:AbstractFloat, 3}`: Solution vector (input/output)
-  - `namelists::Namelists`: Solver parameters (tolerance, max iterations, preconditioner flag)
-  - `domain::Domain`: MPI domain info for parallel reductions
-  - `grid::Grid`: Grid information
-  - `poisson::Poisson`: Operator and workspace arrays
+  - `b_in`: Right-hand side vector
+  - `tolref`: Reference tolerance for relative error checking
+  - `sol`: Solution vector (input/output)
+  - `namelists`: Solver parameters (tolerance, max iterations, preconditioner flag)
+  - `domain`: MPI domain info for parallel reductions
+  - `grid`: Grid information
+  - `poisson`: Operator and workspace arrays
 
 # Returns
 
   - `(errflag, niter)`: Convergence flag and iteration count
-
-# Convergence criteria
-
-  - Absolute and relative residual norms computed globally across MPI processes
-  - Separate monitoring of 3D and vertically-averaged residuals
-  - Convergence when both criteria are satisfied
-
-# Parallelization
-
-  - Preconditioner requires vertical communication between processes
 """
 function apply_bicgstab!(
     b_in::AbstractArray{<:AbstractFloat, 3},
@@ -219,6 +211,5 @@ function apply_bicgstab!(
     errflag = true
     niter = j_b
 
-    # Return.
     return (errflag, niter)
 end

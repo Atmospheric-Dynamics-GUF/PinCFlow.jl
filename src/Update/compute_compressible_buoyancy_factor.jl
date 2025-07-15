@@ -12,9 +12,9 @@ Dispatches based on the model type from the state configuration.
 
 # Arguments
 
-  - `state::State`: Current simulation state
-  - `indices::NTuple{3, <:Integer}`: Grid indices (ix, jy, kz)
-  - `variable::AbstractVariable`: Variable type for which to compute the factor
+  - `state`: Current simulation state
+  - `indices`: Grid indices (ix, jy, kz)
+  - `variable`: Variable type for which to compute the factor
 
 # Returns
 
@@ -41,6 +41,13 @@ compute_compressible_buoyancy_factor(
 
 Return unity buoyancy factor for density perturbations in fully compressible model.
 
+# Arguments
+
+  - `state`: Current simulation state
+  - `indices`: Grid indices (ix, jy, kz)
+  - `variable`: Variable type for which to compute the factor
+  - `model`: Model type to dispatch for
+
 # Returns
 
   - `Float64`: Always returns 1.0
@@ -66,6 +73,13 @@ compute_compressible_buoyancy_factor(
 
 Compute buoyancy factor for density perturbations in non-compressible models.
 Factor represents the ratio of reference density to total density.
+
+# Arguments
+
+  - `state`: Current simulation state
+  - `indices`: Grid indices (ix, jy, kz)
+  - `variable`: Variable type for which to compute the factor
+  - `model`: Model type to dispatch for
 
 # Returns
 
@@ -95,6 +109,13 @@ compute_compressible_buoyancy_factor(
 
 Return unity buoyancy factor for vertical velocity in fully compressible model.
 
+# Arguments
+
+  - `state`: Current simulation state
+  - `indices`: Grid indices (ix, jy, kz)
+  - `variable`: Variable type for which to compute the factor
+  - `model`: Model type to dispatch for
+
 # Returns
 
   - `Float64`: Always returns 1.0
@@ -120,6 +141,13 @@ compute_compressible_buoyancy_factor(
 
 Compute buoyancy factor for vertical velocity in non-compressible models.
 Uses Jacobian-weighted interpolation between vertical levels.
+
+# Arguments
+
+  - `state`: Current simulation state
+  - `indices`: Grid indices (ix, jy, kz)
+  - `variable`: Variable type for which to compute the factor
+  - `model`: Model type to dispatch for
 
 # Returns
 

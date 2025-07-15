@@ -23,6 +23,16 @@ GWTendencies(nxx::Integer, nyy::Integer, nzz::Integer)
 ```
 
 Construct a `GWTendencies` instance.
+
+# Arguments
+
+  - `nxx`: Number of grid points in x-direction
+  - `nyy`: Number of grid points in y-direction
+  - `nzz`: Number of grid points in z-direction
+
+# Returns
+
+  - `GWTendencies`: Initialized container with zero arrays for gravity wave tendencies
 """
 function GWTendencies(nxx::Integer, nyy::Integer, nzz::Integer)
     return GWTendencies([zeros(nxx, nyy, nzz) for i in 1:3]...)

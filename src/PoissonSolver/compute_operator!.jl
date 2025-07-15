@@ -11,22 +11,13 @@ and sponge layer damping. The resulting operator is used in the BiCGStab linear 
 
 # Arguments
 
-  - `state::State`: Complete simulation state containing all physical fields
-  - `dt::AbstractFloat`: Time step size for implicit contributions
-  - `facray::AbstractFloat`: Rayleigh damping factor for sponge layers
-
-# Physical considerations
-
-  - Terrain-following coordinate transformations via metric tensor
-  - Variable density effects for compressible/pseudo-incompressible models
-  - Buoyancy frequency coupling for stratified atmosphere
-  - Rayleigh sponge damping near boundaries
+  - `state`: Complete simulation state containing all physical fields
+  - `dt`: Time step size for implicit contributions
+  - `facray`: Rayleigh damping factor for sponge layers
 
 # Output
 
-  - Matrix coefficients stored in `state.poisson.tensor` for 19-point stencil
-  - Horizontal/vertical operator components for preconditioner
-  - Boundary condition modifications for solid walls
+  - Matrix coefficients stored in `state.poisson.tensor`
 """
 function compute_operator!(
     state::State,

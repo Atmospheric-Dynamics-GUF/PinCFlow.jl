@@ -11,17 +11,8 @@ gradual damping of wave amplitudes.
 
 # Arguments
 
-  - `state::State`: Complete simulation state
-  - `dt::AbstractFloat`: Time step size for legacy damping coefficient scaling
-
-# Sponge Layer Design
-
-**Purpose**: Absorb outgoing waves near domain boundaries without artificial reflections
-
-**Implementation**:
-
-  - **Unified sponge**: Single coefficient array for all variables
-  - **Legacy sponge**: Separate coefficients for different grid staggerings
+  - `state`: Complete simulation state
+  - `dt`: Time step size for legacy damping coefficient scaling
 """
 function compute_sponge!(state::State, dt::AbstractFloat)
     (; sizezz, nzz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -73,11 +64,11 @@ Compute exponential sponge layer with distance-based damping.
 Implements damping coefficient: `α(r) = α₀ * exp((r - r_boundary) / δ)`
 where δ is the decay length scale.
 
-# Features
+# Arguments
 
-  - **Smooth onset**: Exponential transition prevents discontinuities
-  - **Physical realism**: Mimics atmospheric dissipation processes
-  - **Configurable decay**: Different length scales for each direction
+  - `state`: Simulation state
+  - `dt`: Not used for `ExponentialSponge`
+  - `spongetype`: Type dispatch for sponge type
 """
 function compute_sponge!(
     state::State,
@@ -184,6 +175,12 @@ compute_sponge!(state::State, dt::AbstractFloat, spongetype::COSMOSponge)
 Compute COSMO-style sponge layer using cosine profile.
 
 Implements damping coefficient: `α(r) = α₀/2 * (1 - cos(π * (r - r_start) / δ))`.
+
+# Arguments
+
+  - `state`: Simulation state
+  - `dt`: Time step
+  - `spongetype`: Type dispatch for sponge type
 """
 function compute_sponge!(
     state::State,
@@ -292,11 +289,11 @@ Compute polynomial sponge layer with power-law damping profile.
 Implements damping coefficient: `α(r) = α₀ * ((r - r_start) / δ)^n`
 where n is the polynomial order.
 
-# Features
+# Arguments
 
-  - **Flexible profiles**: Adjustable polynomial order for different transition shapes
-  - **Sharp transitions**: Higher orders create more localized damping regions
-  - **Computational efficiency**: Simple power function evaluation
+  - `state`: Simulation state
+  - `dt`: Time step. Not used for `PolynomialSponge`
+  - `spongetype`: Type dispatch for sponge type
 """
 function compute_sponge!(
     state::State,
@@ -421,10 +418,11 @@ Compute sinusoidal sponge layer using squared sine profile.
 Implements damping coefficient: `α(r) = α₀ * sin²(π/2 * (r - r_start) / δ)`
 providing smooth quadratic-like transitions.
 
-# Features
+# Arguments
 
-  - **Smooth transitions**: sin² profile ensures smooth derivatives
-  - **Moderate gradients**: Balanced between sharp and gradual transitions
+  - `state`: Simulation state
+  - `dt`: Time step. Not used for `SinusoidalSponge`
+  - `spongetype`: Type dispatch for sponge type
 """
 function compute_sponge!(
     state::State,

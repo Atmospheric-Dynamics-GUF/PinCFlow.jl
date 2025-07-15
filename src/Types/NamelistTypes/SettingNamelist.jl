@@ -32,13 +32,13 @@ Core simulation configuration specifying equation set, test case, and vertical b
 
 # Arguments
 
-  - `model = PseudoIncompressible()`: Governing equation set. Options: `PseudoIncompressible()`, `Boussinesq()`, `Compressible()`
-  - `testcase = MountainWave()`: Initial/forcing configuration. Options: `MountainWave()`, `WKBMountainWave()`
-  - `zboundaries = SolidWallBoundaries()`: Vertical boundary treatment. Options: `SolidWallBoundaries()`, `PeriodicBoundaries()`
+  - `model`: Governing equation set. Options: `PseudoIncompressible()`, `Boussinesq()`, `Compressible()`
+  - `testcase`: Initial/forcing configuration. Options: `MountainWave()`, `WKBMountainWave()`
+  - `zboundaries`: Vertical boundary treatment. Options: `SolidWallBoundaries()`, `PeriodicBoundaries()`
 
-# Usage
+# Returns
 
-Determines which equations are solved, how initial conditions are set, and boundary condition implementation.
+  - `SettingNamelist`: Configuration container for simulation setup
 """
 function SettingNamelist(;
     model = PseudoIncompressible(),

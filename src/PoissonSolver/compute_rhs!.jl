@@ -15,13 +15,13 @@ the L2 norm of the divergence field.
 
 # Arguments
 
-  - `state::State`: Simulation state containing velocity fields and grid information
-  - `b::AbstractArray{<:AbstractFloat, 3}`: Output array for RHS values
-  - `model::Boussinesq`: Boussinesq model type dispatch
+  - `state`: Simulation state containing velocity fields and grid information
+  - `b`: Output array for RHS values
+  - `model`: Boussinesq model type dispatch
 
 # Returns
 
-  - `tolref::AbstractFloat`: Reference tolerance for iterative solver convergence
+  - `tolref`: Reference tolerance for iterative solver convergence
 """
 function compute_rhs!(
     state::State,
@@ -127,13 +127,13 @@ divergence terms.
 
 # Arguments
 
-  - `state::State`: Simulation state
-  - `b::AbstractArray{<:AbstractFloat, 3}`: Output array for RHS values
-  - `model::PseudoIncompressible`: Model type for dispatch
+  - `state`: Simulation state
+  - `b`: Output array for RHS values
+  - `model`: Model type for dispatch
 
 # Returns
 
-  - `tolref::AbstractFloat`: Reference tolerance for iterative solver convergence
+  - `tolref`: Reference tolerance for iterative solver convergence
 """
 function compute_rhs!(
     state::State,
@@ -265,13 +265,13 @@ computed through the volume force calculation.
 
 # Arguments
 
-  - `state::State`: Simulation state
-  - `b::AbstractArray{<:AbstractFloat, 3}`: Output RHS array
-  - `model::Compressible`: Compressible model type
+  - `state`: Simulation state
+  - `b`: Output RHS array
+  - `model`: Compressible model type dispatch
 
 # Returns
 
-  - `tolref::AbstractFloat`: Reference tolerance for convergence
+  - `tolref`: Reference tolerance for convergence
 """
 function compute_rhs!(
     state::State,

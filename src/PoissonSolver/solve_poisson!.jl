@@ -18,12 +18,12 @@ for different equation models (Boussinesq, PseudoIncompressible, Compressible).
 
 # Arguments
 
-  - `state::State`: Complete simulation state containing all field variables and parameters
-  - `b::AbstractArray{<:AbstractFloat, 3}`: Right-hand side of the Poisson equation
-  - `tolref::AbstractFloat`: Reference tolerance for convergence checking
-  - `dt::AbstractFloat`: Time step size
-  - `facray::AbstractFloat`: Rayleigh damping factor for sponge layers
-  - `facprs::AbstractFloat`: Pressure correction factor
+  - `state`: Complete simulation state containing all field variables and parameters
+  - `b`: Right-hand side of the Poisson equation
+  - `tolref`: Reference tolerance for convergence checking
+  - `dt`: Time step size
+  - `facray`: Rayleigh damping factor for sponge layers
+  - `facprs`: Pressure correction factor
 
 # Returns
 

@@ -44,6 +44,17 @@ Predictands(
 ```
 
 Construct `Predictands` from configuration namelists, constants, domain, and atmosphere.
+
+# Arguments
+
+  - `namelists`: Configuration settings
+  - `constants`: Physical constants
+  - `domain`: Simulation domain dimensions
+  - `atmosphere`: Atmospheric conditions
+
+# Returns
+
+`Predictands`: Initialized predictands based on model type
 """
 function Predictands(
     namelists::Namelists,
@@ -77,6 +88,19 @@ Predictands(
 ```
 
 Construct `Predictands` for incompressible models. Initializes velocity fields with background flow and sets empty pressure field.
+
+# Arguments
+
+  - `namelists`: Configuration settings
+  - `constants`: Physical constants
+  - `domain`: Simulation domain dimensions
+  - `atmosphere`: Atmospheric conditions
+  - `model`: Model type (incompressible)
+  - `testcase`: Test case type
+
+# Returns
+
+`Predictands`: Initialized predictands with velocity fields set to background flow and empty pressure field.
 """
 function Predictands(
     namelists::Namelists,
@@ -117,6 +141,19 @@ Predictands(
 ```
 
 Construct `Predictands` for compressible models. Initializes velocity fields with background flow and pressure field with stratified values.
+
+# Arguments
+
+  - `namelists`: Configuration settings
+  - `constants`: Physical constants
+  - `domain`: Simulation domain dimensions
+  - `atmosphere`: Atmospheric conditions
+  - `model`: Model type (compressible)
+  - `testcase`: Test case type
+
+# Returns
+
+`Predictands`: Initialized predictands with velocity fields set to background flow and pressure field initialized to stratified values.
 """
 function Predictands(
     namelists::Namelists,

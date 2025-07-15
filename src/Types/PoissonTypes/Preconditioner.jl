@@ -41,7 +41,7 @@ Initialize preconditioner workspace arrays sized according to local domain.
 
 # Arguments
 
-  - `domain::Domain`: Local domain dimensions
+  - `domain`: Local domain dimensions
 
 # Returns
 

@@ -16,15 +16,6 @@ Central container for all field variables and computational arrays used during
 time integration, including prognostic fields, tendencies, auxiliary variables,
 and flux calculations.
 
-# Type Parameters
-
-  - `A<:Predictands`: Prognostic variable storage
-  - `B<:Tendencies`: Time tendency storage
-  - `C<:Backups`: Backup copies for time stepping
-  - `D<:Auxiliaries`: Diagnostic and auxiliary fields
-  - `E<:Reconstructions`: MUSCL reconstructed interface values
-  - `F<:Fluxes`: Flux arrays for finite volume calculations
-
 # Fields
 
   - `predictands::A`: Prognostic variables (u, v, w, ρ, p, π')
@@ -67,12 +58,6 @@ compute_fluxes!(vars.fluxes, vars.reconstructions, state)
   - `auxiliaries` computes diagnostic quantities from predictands
   - `reconstructions` provides high-order interface values for fluxes
   - `fluxes` stores numerical flux vectors for finite volume updates
-
-# Memory Organization
-
-  - All arrays sized according to domain decomposition
-  - Includes halo regions for MPI boundary exchanges
-  - Model-dependent allocation (Boussinesq vs Compressible)
 """
 struct Variables{
     A <: Predictands,
@@ -108,14 +93,14 @@ computational workspace for finite volume calculations.
 
 # Arguments
 
-  - `namelists::Namelists`: Simulation configuration
-  - `constants::Constants`: Physical constants and reference scales
-  - `domain::Domain`: Computational domain and MPI decomposition
-  - `atmosphere::Atmosphere`: Background atmospheric state
+  - `namelists`: Simulation configuration
+  - `constants`: Physical constants and reference scales
+  - `domain`: Computational domain and MPI decomposition
+  - `atmosphere`: Background atmospheric state
 
 # Returns
 
-  - `Variables`: Complete field variable storage
+  - `Variables`: Initialized field variable storage
 """
 function Variables(
     namelists::Namelists,
