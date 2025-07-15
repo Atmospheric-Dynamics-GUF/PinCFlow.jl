@@ -147,14 +147,13 @@ function Predictands(
     return Predictands(rho, rhop, u, v, w, pip, p)
 end
 
-#------------------------------------------------------------------
 function Predictands(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    model::AbstractModel,
+    model::PseudoIncompressible,
     testcase::WavePacket,
 )
     (; backgroundflow_dim, theta0_dim) = namelists.atmosphere
@@ -235,7 +234,7 @@ function Predictands(
 
         deltaz = ztfc[ix, jy, kz] - z0
 
-        # Gaussian in z, Cosine in x and y 
+        # Gaussian in z, Cosine in x and y.
 
         if sigmax == 0.0
             envel = 1.0
