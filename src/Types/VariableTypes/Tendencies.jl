@@ -12,11 +12,6 @@ Holds the time derivatives (tendencies) computed during each Runge-Kutta stage
 for all prognostic fields. These tendencies are accumulated from various
 processes including advection, and pressure forces.
 
-# Type Parameters
-
-  - `A<:AbstractArray{<:AbstractFloat, 3}`: 3D array type for most tendency fields
-  - `B<:AbstractArray{<:AbstractFloat, 3}`: 3D array type for pressure tendency (model-dependent)
-
 # Fields
 
   - `drho::A`: Total density tendency [∂ρ/∂t]
@@ -45,12 +40,6 @@ processes including advection, and pressure forces.
 
   - Uses all 7 tendency fields including dp
   - Explicit pressure evolution equation
-
-# Memory Layout
-
-  - All arrays sized according to domain decomposition (nxx, nyy, nzz)
-  - Includes halo regions for boundary exchanges
-  - Zero-initialized for accumulation of tendency contributions
 """
 struct Tendencies{
     A <: AbstractArray{<:AbstractFloat, 3},
@@ -77,8 +66,8 @@ in namelists.setting.model.
 
 # Arguments
 
-  - `namelists::Namelists`: Configuration including model type
-  - `domain::Domain`: Domain decomposition for array sizing
+  - `namelists`: Configuration including model type
+  - `domain`: Domain decomposition for array sizing
 
 # Returns
 
@@ -98,8 +87,8 @@ Create tendencies for non-compressible models (Boussinesq, PseudoIncompressible)
 
 # Arguments
 
-  - `domain::Domain`: Domain information for array dimensions
-  - `model::AbstractModel`: Model type (excludes Compressible)
+  - `domain`: Domain information for array dimensions
+  - `model`: Model type (excludes Compressible)
 
 # Returns
 
@@ -125,8 +114,8 @@ Create tendencies for fully compressible model.
 
 # Arguments
 
-  - `domain::Domain`: Domain information for array dimensions
-  - `model::Compressible`: Compressible model type
+  - `domain`: Domain information for array dimensions
+  - `model`: Compressible model type
 
 # Returns
 

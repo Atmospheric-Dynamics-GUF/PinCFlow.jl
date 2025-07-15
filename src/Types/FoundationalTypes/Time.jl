@@ -7,11 +7,6 @@ Time integration parameters for explicit Runge-Kutta scheme.
 
 This struct encapsulates the coefficients and stage information for multi-stage explicit Runge-Kutta time integration methods used to advance the governing equations in time.
 
-# Type Parameters
-
-  - `A<:Integer`: Integer type for number of stages
-  - `B<:AbstractVector{<:AbstractFloat}`: Vector type for RK coefficients
-
 # Fields
 
   - `nstages::A`: Number of Runge-Kutta stages
@@ -32,6 +27,10 @@ Time()
 ```
 
 Constructs a `Time` instance.
+
+# Returns
+
+  - `Time`: Initialized time integration parameters for 3rd order Runge-Kutta method
 """
 function Time()
 

@@ -32,6 +32,16 @@ SurfaceIndices(n_sfc::Integer, nxx::Integer, nyy::Integer)
 ```
 
 Construct a `SurfaceIndices` instance.
+
+# Arguments
+
+  - `n_sfc`: Number of surface rays
+  - `nxx`: Number of grid points in x-direction
+  - `nyy`: Number of grid points in y-direction
+
+# Returns
+
+  - `SurfaceIndices`: Initialized container with zero arrays for surface ray indices
 """
 function SurfaceIndices(n_sfc::Integer, nxx::Integer, nyy::Integer)
     return SurfaceIndices(

@@ -14,12 +14,12 @@ Compute topography for WKB mountain wave test cases with spectral decomposition.
 
 # Arguments
 
-  - `namelists::Namelists`: Configuration parameters including domain, grid, and WKB settings
-  - `constants::Constants`: Physical constants including reference length scale
-  - `domain::Domain`: Computational domain specification
-  - `x::AbstractVector{<:AbstractFloat}`: X-coordinate grid points
-  - `y::AbstractVector{<:AbstractFloat}`: Y-coordinate grid points
-  - `testcase::WKBMountainWave`: WKB mountain wave test case specification
+  - `namelists`: Configuration parameters including domain, grid, and WKB settings
+  - `constants`: Physical constants including reference length scale
+  - `domain`: Computational domain specification
+  - `x`: X-coordinate grid points
+  - `y`: Y-coordinate grid points
+  - `testcase`: WKB mountain wave test case specification
 
 # Returns
 
@@ -219,12 +219,12 @@ Compute topography for standard mountain wave test cases.
 
 # Arguments
 
-  - `namelists::Namelists`: Configuration parameters including domain and grid settings
-  - `constants::Constants`: Physical constants including reference length scale
-  - `domain::Domain`: Computational domain specification
-  - `x::AbstractVector{<:AbstractFloat}`: X-coordinate grid points
-  - `y::AbstractVector{<:AbstractFloat}`: Y-coordinate grid points
-  - `testcase::MountainWave`: Standard mountain wave test case specification
+  - `namelists`: Configuration parameters including domain and grid settings
+  - `constants`: Physical constants including reference length scale
+  - `domain`: Computational domain specification
+  - `x`: X-coordinate grid points
+  - `y`: Y-coordinate grid points
+  - `testcase`: Standard mountain wave test case specification
 
 # Returns
 

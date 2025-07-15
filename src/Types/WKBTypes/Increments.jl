@@ -29,6 +29,17 @@ Increments(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)
 ```
 
 Construct an `Increments` instance.
+
+# Arguments
+
+  - `nray_wrk`: Number of working rays
+  - `nxx`: Number of grid points in x-direction
+  - `nyy`: Number of grid points in y-direction
+  - `nzz`: Number of grid points in z-direction
+
+# Returns
+
+  - `Increments`: Initialized container with zero arrays for ray increments
 """
 function Increments(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)
     return Increments([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:9]...)

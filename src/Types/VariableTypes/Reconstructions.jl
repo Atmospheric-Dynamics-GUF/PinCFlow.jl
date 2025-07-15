@@ -8,10 +8,6 @@ Storage for MUSCL-reconstructed variables at cell interfaces.
 Holds left and right reconstructed states for all prognostic variables at cell faces
 in each spatial direction.
 
-# Type Parameters
-
-  - `A<:AbstractArray{<:AbstractFloat, 5}`: 5D array type for reconstructed fields
-
 # Fields
 
   - `rhotilde::A`: Reconstructed total density [ρ_L, ρ_R] at interfaces
@@ -82,19 +78,18 @@ Create MUSCL reconstruction storage for prognostic variables.
 Allocates 5D arrays to store left and right reconstructed states at cell interfaces
 for all prognostic fields in each spatial direction.
 
-# Arguments
-
-  - `domain::Domain`: Computational domain specification for array sizing
-
-# Returns
-
-  - `Reconstructions`: Initialized storage with zero-filled arrays
-
 # Array Layout
 
   - Each field: `(nxx, nyy, nzz, 3, 2)` dimensions
   - Includes halo regions for boundary communications
-  - Memory allocated for all spatial directions and interface sides
+
+# Arguments
+
+  - `domain`: Computational domain specification for array sizing
+
+# Returns
+
+  - `Reconstructions`: Initialized storage with zero-filled arrays
 """
 function Reconstructions(domain::Domain)
 

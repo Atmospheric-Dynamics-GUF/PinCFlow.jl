@@ -51,8 +51,8 @@ Initialize BiCGStab workspace arrays sized according to local domain.
 
 # Arguments
 
-  - `namelists::Namelists`: Configuration parameters (unused)
-  - `domain::Domain`: Local domain dimensions
+  - `namelists`: Configuration parameters (unused)
+  - `domain`: Local domain dimensions
 
 # Returns
 

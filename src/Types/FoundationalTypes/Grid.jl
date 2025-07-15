@@ -110,15 +110,17 @@ including topography handling, coordinate transformations, and metric tensor com
 
 # Arguments
 
-  - `namelists::Namelists`: Configuration object containing grid and domain parameters
-  - `constants::Constants`: Physical constants including reference length scale
-  - `domain::Domain`: MPI domain decomposition information
+  - `namelists`: Configuration object containing grid and domain parameters
+  - `constants`: Physical constants including reference length scale
+  - `domain`: MPI domain decomposition information
 
 # Returns
 
 A `Grid` instance.
 
-# Grid Generation Process
+# Additional Information
+
+## Grid Generation Process
 
  1. Non-dimensionalizes domain boundaries using reference length scale
  2. Computes uniform grid spacings in each direction
@@ -127,12 +129,6 @@ A `Grid` instance.
  5. Computes topography using specified test case
  6. Calculates Jacobian and metric tensor for terrain-following coordinates
  7. Transforms computational coordinates to physical terrain-following coordinates
-
-# Requirements
-
-  - `lz[1]` must be zero for terrain-following coordinates
-  - Requires `compute_topography` function for topography generation
-  - Requires boundary condition functions for metric tensor computation
 """
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)
     (; sizex, sizey, sizez, lx_dim, ly_dim, lz_dim, nbz) = namelists.domain

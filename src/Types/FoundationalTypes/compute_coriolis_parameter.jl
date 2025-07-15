@@ -10,6 +10,18 @@ compute_coriolis_parameter(
 ```
 
 Set the Coriolis parameter to a constant.
+
+# Arguments
+
+  - `namelists`: Simulation parameters
+  - `constants`: Simulation constants
+  - `domain`: Computational domain
+  - `grid`: not used
+  - `coriolis_mode`: Type dispatch on mode for coriolis force computation
+
+# Returns
+
+  - Array with size `nyy`, initialized with coriolis_frequency * t_ref
 """
 function compute_coriolis_parameter(
     namelists::Namelists,

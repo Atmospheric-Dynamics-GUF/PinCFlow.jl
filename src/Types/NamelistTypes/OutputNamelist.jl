@@ -56,19 +56,23 @@ Construct a new OutputNamelist instance, which holds output and input related pa
 
 # Arguments
 
-  - `output_variables::A`: A tuple of symbols representing the output variables which should be written to the output file.
-  - `save_ray_volumes::B`: A boolean indicating whether to write out ray volumes.
-  - `prepare_restart::B`: A boolean indicating whether to prepare an output file for restart.
-  - `restart::B`: A boolean indicating whether to restart from a previous state. If true, restart from a previous state saved in `input_file`.
-  - `iin::C`: An integer representing the time index used for restart.
-  - `output_steps::B`: If true, write output every `noutput` steps.
-  - `noutput::C`: If `output_steps` is true, an integer representing the number of steps between outputs.
-  - `maxiter::C`: An integer representing the maximum number of iterations. Only used if `output_steps` is true.
-  - `outputtimediff::D`: a floating-point number determining the time difference between outputs in seconds. Only used if `output_steps` is false.
-  - `maxtime::D`: A floating-point number representing the maximum simulaton time. Only used if `output_steps` is false.
-  - `fancy_namelists::B`: Not used for now.
-  - `input_file::E`: A string holding the input HDF5 file path used for restart.
-  - `output_file::E`: A string holding the output HDF5 file path.
+  - `output_variables`: A tuple of symbols representing the output variables which should be written to the output file.
+  - `save_ray_volumes`: A boolean indicating whether to write out ray volumes.
+  - `prepare_restart`: A boolean indicating whether to prepare an output file for restart.
+  - `restart`: A boolean indicating whether to restart from a previous state. If true, restart from a previous state saved in `input_file`.
+  - `iin`: An integer representing the time index used for restart.
+  - `output_steps`: If true, write output every `noutput` steps.
+  - `noutput`: If `output_steps` is true, an integer representing the number of steps between outputs.
+  - `maxiter`: An integer representing the maximum number of iterations. Only used if `output_steps` is true.
+  - `outputtimediff`: a floating-point number determining the time difference between outputs in seconds. Only used if `output_steps` is false.
+  - `maxtime`: A floating-point number representing the maximum simulaton time. Only used if `output_steps` is false.
+  - `fancy_namelists`: Not used for now.
+  - `input_file`: A string holding the input HDF5 file path used for restart.
+  - `output_file`: A string holding the output HDF5 file path.
+
+# Returns
+
+  - `OutputNamelist`: A new instance of `OutputNamelist` with the specified parameters.
 """
 function OutputNamelist(;
     output_variables = (),

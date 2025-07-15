@@ -31,6 +31,16 @@ GWIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)
 ```
 
 Construct a `GWIntegrals` instance.
+
+# Arguments
+
+  - `nxx`: Number of grid points in x-direction
+  - `nyy`: Number of grid points in y-direction
+  - `nzz`: Number of grid points in z-direction
+
+# Returns
+
+  - `GWIntegrals`: Initialized container with zero arrays for gravity wave integrals
 """
 function GWIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)
     return GWIntegrals([zeros(nxx, nyy, nzz) for i in 1:10]...)

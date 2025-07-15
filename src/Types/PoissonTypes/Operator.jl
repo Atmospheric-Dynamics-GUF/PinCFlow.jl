@@ -27,7 +27,7 @@ Initialize operator workspace array sized according to extended domain.
 
 # Arguments
 
-  - `domain::Domain`: Domain specification with extended dimensions
+  - `domain`: Domain specification with extended dimensions
 
 # Returns
 

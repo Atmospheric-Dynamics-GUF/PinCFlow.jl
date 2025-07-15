@@ -108,11 +108,7 @@ multiple MPI processes and establishes communication patterns for halo exchanges
 
 # Arguments
 
-  - `namelists::Namelists`: Configuration object containing domain and setting parameters
-
-      + `namelists.domain`: Contains grid dimensions (`sizex`, `sizey`, `sizez`),
-        boundary cell counts (`nbx`, `nby`, `nbz`), and process counts (`npx`, `npy`, `npz`)
-      + `namelists.setting`: Contains boundary condition settings (`zboundaries`)
+  - `namelists`: Configuration object containing domain and setting parameters
 
 # Returns
 

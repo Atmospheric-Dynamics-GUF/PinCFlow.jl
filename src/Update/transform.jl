@@ -20,22 +20,22 @@ transform(
 
 Transform vertical velocity from Cartesian to terrain-following coordinates.
 
-# Arguments
-
-  - `i, j, k::Integer`: Grid indices
-  - `u*, v*, w*::AbstractFloat`: Velocity components at cell edges
-  - `coordinate::Cartesian`: Coordinate system type
-  - `grid::Grid`: Metric tensor and Jacobian
-
-# Returns
-
-  - `AbstractFloat`: Contravariant vertical velocity w^ζ
-
 # Coordinate Transformation
 
   - **Cartesian**: `w^ζ = w - (g^{1ζ}u + g^{2ζ}v)`
   - **Metric terms**: Uses `met[i,j,k,1,3]` and `met[i,j,k,2,3]`
   - **Jacobian weighting**: Harmonic mean between adjacent cells
+
+# Arguments
+
+  - `i, j, k`: Grid indices
+  - `u*, v*, w*`: Velocity components at cell edges
+  - `coordinate::Cartesian`: Coordinate system type
+  - `grid`: Structure containing metric tensor and Jacobian
+
+# Returns
+
+  - `AbstractFloat`: Contravariant vertical velocity w^ζ
 """
 function transform(
     i::Integer,
@@ -97,6 +97,17 @@ transform(
 Transform vertical velocity including terrain-following coordinate effects.
 
 For terrain-following coordinates with additional metric corrections.
+
+# Arguments
+
+  - `i, j, k`: Grid indices
+  - `u*, v*, w*`: Velocity components at cell edges
+  - `coordinate::Transformed`: Type dispatch for transformed coordinate system
+  - `grid`: Structure containing metric tensor and Jacobian
+
+# Returns
+
+  - `AbstractFloat`: Contravariant vertical velocity w^ζ
 """
 function transform(
     i::Integer,

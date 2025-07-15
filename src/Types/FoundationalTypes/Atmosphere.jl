@@ -8,27 +8,13 @@ Atmosphere{
 
 A type representing the atmospheric background state in terrain-following coordinates.
 
-# Type Parameters
-
-  - `A <: AbstractArray{<:AbstractFloat, 3}`: 3D array type for field variables
-  - `B <: AbstractVector{<:AbstractFloat}`: Vector type for parameters
-
 # Fields
 
-  - `pstrattfc::A`: Background pressure [p/pref]
-  - `thetastrattfc::A`: Background potential temperature [θ/θref]
-  - `rhostrattfc::A`: Background density [ρ/ρref]
-  - `bvsstrattfc::A`: Brunt-Väisälä frequency squared [N²/Nref²]
-  - `fc::B`: Coriolis parameter [f/fref]
-
-## Parameters
-
-  - `namelists::Namelists`: Configuration parameters
-  - `constants::Constants`: Physical constants
-  - `domain::Domain`: Computational domain information
-  - `grid::Grid`: Grid configuration
-  - `model`: Atmospheric model type (e.g., `Boussinesq`, `AbstractModel`)
-  - `background`: Background state type (e.g., `Isothermal`, `UniformBoussinesq`)
+  - `pstrattfc::A`: Background pressure ``p/p_\\mathrm{ref}``
+  - `thetastrattfc::A`: Background potential temperature ``\\theta/\\theta_\\mathrm{ref}``
+  - `rhostrattfc::A`: Background density ``\\rho/\\rho_\\mathrm{ref}``
+  - `bvsstrattfc::A`: Brunt-Väisälä frequency squared ``N^2/N_\\mathrm{ref}^2``
+  - `fc::B`: Coriolis parameter ``f/f_\\mathrm{ref}``
 
 # Model Types
 
@@ -40,23 +26,6 @@ A type representing the atmospheric background state in terrain-following coordi
   - `Isothermal`: Isothermal background state
   - `UniformBoussinesq`: Uniform background for Boussinesq model
   - `StratifiedBoussinesq`: Stratified background for Boussinesq model
-
-# Examples
-
-```julia
-# Create atmosphere with default model and background
-atm = Atmosphere(namelists, constants, domain, grid)
-
-# Create Boussinesq atmosphere with uniform background
-atm = Atmosphere(
-    namelists,
-    constants,
-    domain,
-    grid,
-    Boussinesq(),
-    UniformBoussinesq(),
-)
-```
 
 # Notes
 
@@ -124,9 +93,9 @@ Atmosphere(
 
 Creates a uniform Boussinesq atmosphere with:
 
-  - Constant density (ρ = ρref)
-  - Uniform potential temperature (θ = θ0)
-  - Zero buoyancy frequency (N² = 0)
+  - Constant density (``\\rho = \\rho_\\mathrm{ref}``)
+  - Uniform potential temperature (``\\theta = \\theta_0``)
+  - Zero buoyancy frequency (``N^2 = 0``)
   - Coriolis parameter based on specified mode
 """
 function Atmosphere(
@@ -174,10 +143,10 @@ Atmosphere(
 
 Creates a stratified Boussinesq atmosphere with:
 
-  - Constant density: ρ = ρ_ref
-  - Uniform potential temperature: θ = θ_0
-  - Constant pressure from equation of state: p = ρΘ
-  - Constant buoyancy frequency (N² = N0²)
+  - Constant density: ``\\rho = \\rho_\\mathrm{ref}``
+  - Uniform potential temperature: ``\\theta = \\theta_0``
+  - Constant pressure from equation of state: ``p = \\rho \\theta``
+  - Constant buoyancy frequency (``N^2 = N_0^2``)
   - Coriolis parameter based on specified mode
 """
 function Atmosphere(
@@ -225,11 +194,11 @@ Atmosphere(
 
 Creates an isothermal atmosphere with:
 
-  - Exponential pressure profile: p(z) = p0 * exp(-σz/γT0)
-  - Temperature profile: θ(z) = T0 * exp(κσz/T0)
-  - Density from equation of state: ρ = p/θ
-  - N² computed from vertical θ gradient
-  - Handles boundary conditions for N² calculation
+  - Exponential pressure profile ``p(z) = p_0 \\exp(-\\sigma z/\\gamma T_0)``
+  - Temperature profile ``\\theta(z) = T_0 \\exp(\\kappa \\sigma z/T_0)``
+  - Density from equation of state ``\\rho = p/\\theta``
+  - ``N^2`` computed from vertical ``\\theta`` gradient
+  - Handles boundary conditions for ``N^2`` calculation
 """
 function Atmosphere(
     namelists::Namelists,
