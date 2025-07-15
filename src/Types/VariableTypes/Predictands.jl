@@ -279,3 +279,52 @@ function Predictands(
     # Return a Predictands instance.
     return Predictands(rho, rhop, u, v, w, pip, p)
 end
+
+function Predictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    model::AbstractModel,
+    testcase::WKBWavePacket,
+)
+    (; backgroundflow_dim) = namelists.atmosphere
+    (; nbx, nby, nbz) = namelists.domain
+    (; u0_jet_dim, sigmaz_jet_dim, z0_jet_dim) = namelists.wavepacket
+    (; uref, lref) = constants
+    (; nxx, nyy, nzz, k0, k1, j0, j1, i0, i1) = domain
+    (; pstrattfc) = atmosphere
+    (; ztfc) = grid
+
+    # Initialize the predictands.
+    (rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
+
+    p = set_p(model, nxx, nyy, nzz, pstrattfc)
+
+    # Set the initial winds.
+    u .= backgroundflow_dim[1] / uref
+    v .= backgroundflow_dim[2] / uref
+    w .= backgroundflow_dim[3] / uref
+
+    u0_jet = u0_jet_dim / uref
+    sigmaz_jet = sigmaz_jet_dim / lref
+    z0_jet = z0_jet_dim / lref
+
+    for kz in (k0 - nbz):(k1 + nbz),
+        jy in (j0 - nby):(j1 + nby),
+        ix in (i0 - nbx):(i1 + nbx)
+
+        deltaz = ztfc[ix, jy, kz] - z0_jet
+
+        if abs(deltaz) <= sigmaz_jet
+            u_jet = 0.5 * u0_jet * (1.0 + cos(pi * deltaz / sigmaz_jet))
+        else
+            u_jet = 0.0
+        end
+
+        u[ix, jy, kz] = u[ix, jy, kz] + u_jet
+    end
+
+    return Predictands(rho, rhop, u, v, w, pip, p)
+end

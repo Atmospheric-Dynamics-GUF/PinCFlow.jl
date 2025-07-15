@@ -197,6 +197,15 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
             wnm_ini,
             wad_ini,
         )
+    elseif testcase == WKBWavePacket()
+        initialize_wkb_wave_packet!(
+            state,
+            omi_ini,
+            wnk_ini,
+            wnl_ini,
+            wnm_ini,
+            wad_ini,
+        )
     end
 
     dk_ini_nd = 0.0

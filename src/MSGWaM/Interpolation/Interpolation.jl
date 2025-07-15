@@ -23,12 +23,13 @@ include("interpolate_sponge.jl")
 include("interpolate_stratification.jl")
 include("interpolate.jl")
 
-export N2, DN2DZ, DUDX, DUDY, DUDZ, DVDX, DVDY, DVDZ
+export N2, DN2DZ, DUDX, DUDY, DUDZ, DVDX, DVDY, DVDZ, DCHIDX, DCHIDY, DCHIDZ
 
 export get_next_half_level,
     get_next_level,
     interpolate_mean_flow,
     interpolate_sponge,
-    interpolate_stratification
+    interpolate_stratification,
+    compute_derivatives
 
 end

@@ -6,9 +6,9 @@ using ...Boundaries
 using ..Interpolation
 using ..RayUpdate
 
-struct UCHI <: AbstractVariable end 
-struct VCHI <: AbstractVariable end 
-struct WCHI <: AbstractVariable end 
+struct UCHI <: AbstractVariable end
+struct VCHI <: AbstractVariable end
+struct WCHI <: AbstractVariable end
 
 include("apply_blocked_layer_scheme!.jl")
 include("apply_shapiro_filter!.jl")

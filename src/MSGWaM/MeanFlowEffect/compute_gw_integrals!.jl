@@ -71,7 +71,7 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
     (; sizex, sizey) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branchr) = state.namelists.wkb
-    (; tref) = state.constants
+    (; tref, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1, io, jo) = domain
     (; dx, dy, dz, x, y, ztildetfc, jac) = grid
     (; rhostrattfc, thetastrattfc) = state.atmosphere

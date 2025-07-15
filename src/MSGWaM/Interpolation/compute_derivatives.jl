@@ -482,6 +482,7 @@ function compute_derivatives(
     (; chi) = state.tracer.tracerpredictands
     (; rho) = state.variables.predictands
     (; rhostrattfc) = state.atmosphere
+    (; domain, grid) = state
 
     if sizex == 1
         return 0.0
@@ -607,6 +608,7 @@ function compute_derivatives(
     (; chi) = state.tracer.tracerpredictands
     (; rho) = state.variables.predictands
     (; rhostrattfc) = state.atmosphere
+    (; domain, grid) = state
 
     if sizey == 1
         return 0.0
@@ -732,6 +734,7 @@ function compute_derivatives(
     (; chi) = state.tracer.tracerpredictands
     (; rho) = state.variables.predictands
     (; rhostrattfc) = state.atmosphere
+    (; domain, grid) = state
 
     # find closest points in zonal direction 
     if sizex == 1
