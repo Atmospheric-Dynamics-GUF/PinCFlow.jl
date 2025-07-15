@@ -357,7 +357,7 @@ function compute_fluxes!(
     (; utilde) = state.variables.reconstructions
     (; phiu) = state.variables.fluxes
     (; predictands) = state.variables
-    (; mu_conduct_dim) = state.namelists.atmosphere
+    (; mu_mom_diff_dim) = state.namelists.atmosphere
 
     # Get old wind.
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
@@ -564,18 +564,18 @@ function compute_fluxes!(
     #             Diffusion fluxes
     #-------------------------------------------------------------------
 
-    if mu_conduct_dim == 0.0
+    if mu_mom_diff_dim == 0.0
         return
     end
 
-    mu_conduct = mu_conduct_dim / uref / lref
+    mu_mom_diff = mu_mom_diff_dim / uref / lref
 
     #-----------------------------------------
     #             Zonal fluxes
     #-----------------------------------------
 
     for k in kz0:kz1, j in j0:j1, i in (i0 - 2):i1
-        coef_d = mu_conduct * rhostrattfc[i + 1, j, k0]
+        coef_d = mu_mom_diff * rhostrattfc[i + 1, j, k0]
 
         frhou_diff =
             coef_d *
@@ -591,7 +591,7 @@ function compute_fluxes!(
 
     for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_d =
-            mu_conduct *
+            mu_mom_diff *
             0.25 *
             (
                 rhostrattfc[i, j, k0] +
@@ -629,13 +629,13 @@ function compute_fluxes!(
 
     for k in (kz0 - 1):kz1, j in j0:j1, i in (i0 - 1):i1
         coef_dr =
-            mu_conduct * (
+            mu_mom_diff * (
                 jac[i + 1, j, k + 1] * rhostrattfc[i + 1, j, k0] +
                 jac[i + 1, j, k] * rhostrattfc[i + 1, j, k0]
             ) / (jac[i + 1, j, k + 1] + jac[i + 1, j, k])
 
         coef_dl =
-            mu_conduct * (
+            mu_mom_diff * (
                 jac[i, j, k + 1] * rhostrattfc[i, j, k0] +
                 jac[i, j, k] * rhostrattfc[i, j, k0]
             ) / (jac[i, j, k + 1] + jac[i, j, k])
@@ -692,7 +692,7 @@ function compute_fluxes!(
     (; vtilde) = state.variables.reconstructions
     (; phiv) = state.variables.fluxes
     (; predictands) = state.variables
-    (; mu_conduct_dim) = state.namelists.atmosphere
+    (; mu_mom_diff_dim) = state.namelists.atmosphere
 
     # Get old wind.
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
@@ -899,11 +899,11 @@ function compute_fluxes!(
     #                          Diffusion fluxes
     #-------------------------------------------------------------------
 
-    if mu_conduct_dim == 0.0
+    if mu_mom_diff_dim == 0.0
         return
     end
 
-    mu_conduct = mu_conduct_dim / uref / lref
+    mu_mom_diff = mu_mom_diff_dim / uref / lref
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -911,7 +911,7 @@ function compute_fluxes!(
 
     for k in kz0:kz1, j in (j0 - 1):j1, i in (i0 - 1):i1
         coef_d =
-            mu_conduct *
+            mu_mom_diff *
             0.25 *
             (
                 rhostrattfc[i, j, k0] +
@@ -948,7 +948,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     for k in kz0:kz1, j in (j0 - 2):j1, i in i0:i1
-        coef_d = mu_conduct * rhostrattfc[i, j + 1, k0]
+        coef_d = mu_mom_diff * rhostrattfc[i, j + 1, k0]
 
         grhov_diff =
             coef_d *
@@ -964,13 +964,13 @@ function compute_fluxes!(
 
     for k in (kz0 - 1):kz1, j in (j0 - 1):j1, i in i0:i1
         coef_dr =
-            mu_conduct * (
+            mu_mom_diff * (
                 jac[i, j + 1, k + 1] * rhostrattfc[i, j + 1, k0] +
                 jac[i, j + 1, k] * rhostrattfc[i, j + 1, k0]
             ) / (jac[i, j + 1, k + 1] + jac[i, j + 1, k])
 
         coef_dl =
-            mu_conduct * (
+            mu_mom_diff * (
                 jac[i, j, k + 1] * rhostrattfc[i, j, k0] +
                 jac[i, j, k] * rhostrattfc[i, j, k0]
             ) / (jac[i, j, k + 1] + jac[i, j, k])
@@ -1027,7 +1027,7 @@ function compute_fluxes!(
     (; wtilde) = state.variables.reconstructions
     (; phiw) = state.variables.fluxes
     (; predictands) = state.variables
-    (; mu_conduct_dim) = state.namelists.atmosphere
+    (; mu_mom_diff_dim) = state.namelists.atmosphere
 
     # Get old wind.
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
@@ -1262,11 +1262,11 @@ function compute_fluxes!(
     #                          Diffusion fluxes
     #-------------------------------------------------------------------
 
-    if mu_conduct_dim == 0.0
+    if mu_mom_diff_dim == 0.0
         return
     end
 
-    mu_conduct = mu_conduct_dim / uref / lref
+    mu_mom_diff = mu_mom_diff_dim / uref / lref
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -1274,13 +1274,13 @@ function compute_fluxes!(
 
     for k in (k0 - 1):k1, j in j0:j1, i in (i0 - 1):i1
         coef_dr =
-            mu_conduct * (
+            mu_mom_diff * (
                 jac[i + 1, j, k + 1] * rhostrattfc[i + 1, j, k0] +
                 jac[i + 1, j, k] * rhostrattfc[i + 1, j, k0]
             ) / (jac[i + 1, j, k + 1] + jac[i + 1, j, k])
 
         coef_dl =
-            mu_conduct * (
+            mu_mom_diff * (
                 jac[i, j, k + 1] * rhostrattfc[i, j, k0] +
                 jac[i, j, k] * rhostrattfc[i, j, k0]
             ) / (jac[i, j, k + 1] + jac[i, j, k])
@@ -1324,13 +1324,13 @@ function compute_fluxes!(
 
     for k in (k0 - 1):k1, j in (j0 - 1):j1, i in i0:i1
         coef_dr =
-            mu_conduct * (
+            mu_mom_diff * (
                 jac[i, j + 1, k + 1] * rhostrattfc[i, j + 1, k0] +
                 jac[i, j + 1, k] * rhostrattfc[i, j + 1, k0]
             ) / (jac[i, j + 1, k + 1] + jac[i, j + 1, k])
 
         coef_dl =
-            mu_conduct * (
+            mu_mom_diff * (
                 jac[i, j, k + 1] * rhostrattfc[i, j, k0] +
                 jac[i, j, k] * rhostrattfc[i, j, k0]
             ) / (jac[i, j, k + 1] + jac[i, j, k])
@@ -1373,7 +1373,7 @@ function compute_fluxes!(
     #-----------------------------------------
 
     for k in (k0 - 2):k1, j in j0:j1, i in i0:i1
-        coef_d = mu_conduct * rhostrattfc[i, j, k0]
+        coef_d = mu_mom_diff * rhostrattfc[i, j, k0]
 
         hrhow_visc =
             coef_d *

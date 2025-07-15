@@ -9,6 +9,7 @@ struct AtmosphereNamelist{
     reinv::B
     mu_viscous_dim::B
     mu_conduct_dim::B
+    mu_mom_diff_dim::B
     background::C
     buoyancy_frequency::B
     theta0_dim::B
@@ -30,6 +31,7 @@ Constructor for the `AtmosphereNamelist` type, which defines parameters for the 
   - `reinv::AbstractFloat = 0.0E+0`: Inverse Reynolds number
   - `mu_viscous_dim::AbstractFloat = 0.0E+0`: Dimensional viscosity
   - `mu_conduct_dim::AbstractFloat = 0.0E+0`: Dimensional conductive heating
+  - `mu_mom_diff_dim::AbstractFloat = 0.0E+0`: Dimensional momentum diffusion parameter
   - `background::AbstractBackground = Isothermal()`: Background atmosphere model.
     Can be `Isothermal()`, `StratifiedBoussinesq()`, or `Stratified()`
   - `buoyancy_frequency::AbstractFloat = 1.0E-2`: Buoyancy frequency. Used only if `background` is `StratifiedBoussinesq()`
@@ -45,6 +47,7 @@ function AtmosphereNamelist(;
     reinv = 0.0E+0,
     mu_viscous_dim = 0.0E+0,
     mu_conduct_dim = 0.0E+0,
+    mu_mom_diff_dim = 0.0E+0,
     background = Isothermal(),
     buoyancy_frequency = 1.0E-2,
     theta0_dim = 3.0E+2,
@@ -59,6 +62,7 @@ function AtmosphereNamelist(;
         reinv,
         mu_viscous_dim,
         mu_conduct_dim,
+        mu_mom_diff_dim,
         background,
         buoyancy_frequency,
         theta0_dim,
