@@ -72,8 +72,8 @@ where δ is the decay length scale.
 
 # See also
 
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`]
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`]
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function compute_sponge!(
     state::State,
@@ -189,8 +189,8 @@ Implements damping coefficient: `α(r) = α₀/2 * (1 - cos(π * (r - r_start) /
 
 # See also
 
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`]
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`]
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function compute_sponge!(
     state::State,
@@ -307,8 +307,8 @@ where n is the polynomial order.
 
 # See also
 
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`]
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`]
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function compute_sponge!(
     state::State,
@@ -441,8 +441,8 @@ providing smooth quadratic-like transitions.
 
 # See also
 
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`]
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`]
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function compute_sponge!(
     state::State,
