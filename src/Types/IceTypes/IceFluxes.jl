@@ -33,7 +33,6 @@ function IceFluxes(domain::Domain, icesetup::NoIce)
     return IceFluxes(phin, phiq, phiqv)
 end
 
-
 """
 ```julia
 IceFluxes(domain::Domain, icesetup::AbstractIce)

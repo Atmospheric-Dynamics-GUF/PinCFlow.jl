@@ -21,10 +21,7 @@ end
 
 """
 ```julia
-TurbulenceReconstructions(
-    domain::Domain,
-    turbulencesetup::NoTurbulence,
-)
+TurbulenceReconstructions(domain::Domain, turbulencesetup::NoTurbulence)
 ```
 """
 function TurbulenceReconstructions(
@@ -39,10 +36,7 @@ end
 
 """
 ```julia
-TurbulenceReconstructions(
-    domain::Domain,
-    turbulencesetup::AbstractTurbulence,
-)
+TurbulenceReconstructions(domain::Domain, turbulencesetup::AbstractTurbulence)
 ```
 """
 function TurbulenceReconstructions(

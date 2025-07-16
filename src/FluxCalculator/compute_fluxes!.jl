@@ -1094,11 +1094,7 @@ end
 
 """
 ```julia
-compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    tracersetup::NoTracer,
-)
+compute_fluxes!(state::State, predictands::Predictands, tracersetup::NoTracer)
 ```
 """
 function compute_fluxes!(
@@ -1188,11 +1184,7 @@ end
 
 """
 ```julia
-compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    icesetup::NoIce,
-)
+compute_fluxes!(state::State, predictands::Predictands, icesetup::NoIce)
 ```
 """
 function compute_fluxes!(
@@ -1205,11 +1197,7 @@ end
 
 """
 ```julia
-compute_fluxes!(
-    state::State,
-    predictands::Predictands,
-    icesetup::AbstractIce,
-)
+compute_fluxes!(state::State, predictands::Predictands, icesetup::AbstractIce)
 ```
 """
 function compute_fluxes!(
