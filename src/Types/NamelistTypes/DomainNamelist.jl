@@ -61,6 +61,10 @@ Construct a DomainNamelist, which holds parameters for the spatial domain.
   - `npy`: Number of processors in the y-direction.
   - `npz`: Number of processors in the z-direction.
   - `base_comm`: MPI base communicator.
+
+# Returns
+
+  - `::DomainNamelist`: `DomainNamelist` instance.
 """
 function DomainNamelist(;
     sizex = 4,

@@ -31,7 +31,8 @@ Note that the preconditioner requires vertical communication between processes
 
 # Returns
 
-  - `(errflag, niter)`: Convergence flag and iteration count
+  - `::Bool`: Error flag.
+  - `::Integer`: Number of iterations.
 
 # See also
 

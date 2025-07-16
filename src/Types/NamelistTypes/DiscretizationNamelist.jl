@@ -43,7 +43,7 @@ Construct a DiscretizationNamelist object, which holds parameters for the time d
 
 # Returns
 
-  - `DiscretizationNamelist`: Initialized namelist with the given parameters.
+  - `::DiscretizationNamelist`: `DiscretizationNamelist` instance.
 """
 function DiscretizationNamelist(;
     cfl = 5.0E-1,

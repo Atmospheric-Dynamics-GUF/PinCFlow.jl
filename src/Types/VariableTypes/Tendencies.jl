@@ -71,7 +71,7 @@ in namelists.setting.model.
 
 # Returns
 
-  - `Tendencies`: Initialized tendency storage for the specified model
+  - `::Tendencies`: `Tendencies` instance with zero-initialized arrays of the appropriate dimensions.
 """
 function Tendencies(namelists::Namelists, domain::Domain)
     (; model) = namelists.setting
@@ -92,7 +92,7 @@ Create tendencies for non-compressible models (Boussinesq, PseudoIncompressible)
 
 # Returns
 
-  - `Tendencies`: Storage with 6 active fields, dp field unused (empty array)
+  - `::Tendencies`: `Tendencies` instance with zero-initialized arrays (`dp` has size `(0, 0, 0)`).
 """
 function Tendencies(domain::Domain, model::AbstractModel)
     (; nxx, nyy, nzz) = domain
@@ -119,7 +119,7 @@ Create tendencies for fully compressible model.
 
 # Returns
 
-  - `Tendencies`: Storage with all 7 fields active including explicit pressure tendency
+  - `::Tendencies`: `Tendencies` instance with zero-initialized arrays.
 """
 function Tendencies(domain::Domain, model::Compressible)
     (; nxx, nyy, nzz) = domain

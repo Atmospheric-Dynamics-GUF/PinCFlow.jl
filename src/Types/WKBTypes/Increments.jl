@@ -39,7 +39,7 @@ Construct an `Increments` instance.
 
 # Returns
 
-  - `Increments`: Initialized container with zero arrays for ray increments
+  - `::Increments`: `Increments` instance with zero-initialized arrays.
 """
 function Increments(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)
     return Increments([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:9]...)

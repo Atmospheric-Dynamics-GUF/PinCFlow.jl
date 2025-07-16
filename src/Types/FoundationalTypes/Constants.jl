@@ -100,6 +100,10 @@ The model uses a non-dimensionalization based on:
   - **Pressure scale**: Reference pressure ``p_\\mathrm{ref}``
   - **Density scale**: Reference density ``\\rho_\\mathrm{ref}``
   - **Temperature scale**: Acoustic temperature ``\\theta_\\mathrm{ref} = u_\\mathrm{ref}^2/r_\\mathrm{sp}``
+
+# Returns
+
+  - `::Constants`: `Constants` instance.
 """
 function Constants(namelists::Namelists)
 

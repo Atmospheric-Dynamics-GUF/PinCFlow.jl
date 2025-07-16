@@ -59,7 +59,7 @@ Initialize complete Poisson solver workspace sized according to local domain.
 
 # Returns
 
-  - `Poisson`: Container with all solver components initialized
+  - `::Poisson`: `Poisson` instance with zero-initialized arrays.
 
 # See also
 

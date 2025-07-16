@@ -45,7 +45,7 @@ Initialize preconditioner workspace arrays sized according to local domain.
 
 # Returns
 
-  - `Preconditioner`: Container with zero-initialized workspace arrays
+  - `::Preconditioner`: `Preconditioner` instance with zero-initialized arrays.
 """
 function Preconditioner(domain::Domain)
 

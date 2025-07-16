@@ -21,7 +21,7 @@ Set the Coriolis parameter to a constant.
 
 # Returns
 
-  - Array with size `nyy`, initialized with coriolis_frequency * t_ref
+  - `::AbstractVector{<:AbstractFloat}`: Coriolis parameter with no meridional dependence.
 """
 function compute_coriolis_parameter(
     namelists::Namelists,

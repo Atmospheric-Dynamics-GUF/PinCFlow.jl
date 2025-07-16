@@ -32,7 +32,7 @@ Construct a `GWTendencies` instance.
 
 # Returns
 
-  - `GWTendencies`: Initialized container with zero arrays for gravity wave tendencies
+  - `::GWTendencies`: `GWTendencies` instance with zero-initialized arrays.
 """
 function GWTendencies(nxx::Integer, nyy::Integer, nzz::Integer)
     return GWTendencies([zeros(nxx, nyy, nzz) for i in 1:3]...)

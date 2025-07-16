@@ -56,7 +56,7 @@ Initialize BiCGStab workspace arrays sized according to local domain.
 
 # Returns
 
-  - `BicGStab`: Workspace container with zero-initialized arrays
+  - `::BicGStab`: `BicGStab` instance with zero-initialized arrays.
 """
 function BicGStab(namelists::Namelists, domain::Domain)
     (; nx, ny, nz) = domain

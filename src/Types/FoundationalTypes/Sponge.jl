@@ -51,7 +51,7 @@ Construct a `Sponge` instance from.
 
 # Returns
 
-  - `Sponge`: Initialized sponge layer with zero arrays and computed extents
+  - `::Sponge`: `Sponge` instance.
 """
 function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
     (; spongeheight) = namelists.sponge

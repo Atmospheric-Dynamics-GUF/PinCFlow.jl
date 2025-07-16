@@ -18,7 +18,7 @@ Dispatches based on the model type from the state configuration.
 
 # Returns
 
-  - `AbstractFloat`: Buoyancy scaling factor
+  - `::AbstractFloat`: Buoyancy factor.
 """
 function compute_compressible_buoyancy_factor(
     state::State,
@@ -50,7 +50,7 @@ Return unity buoyancy factor for density perturbations in fully compressible mod
 
 # Returns
 
-  - `Float64`: Always returns 1.0
+  - `::AbstractFloat`: Buoyancy factor (`1.0`).
 """
 function compute_compressible_buoyancy_factor(
     state::State,
@@ -83,7 +83,7 @@ Factor represents the ratio of reference density to total density.
 
 # Returns
 
-  - `AbstractFloat`: ρ₀/(ρ + ρ₀) where ρ₀ is reference density and ρ is density perturbation
+  - `::AbstractFloat`: Buoyancy factor (``\\overline{\\rho} / \\rho``).
 """
 function compute_compressible_buoyancy_factor(
     state::State,
@@ -118,7 +118,7 @@ Return unity buoyancy factor for vertical velocity in fully compressible model.
 
 # Returns
 
-  - `Float64`: Always returns 1.0
+  - `::AbstractFloat`: Buoyancy factor (`1.0`).
 """
 function compute_compressible_buoyancy_factor(
     state::State,
@@ -151,7 +151,7 @@ Uses Jacobian-weighted interpolation between vertical levels.
 
 # Returns
 
-  - `AbstractFloat`: Jacobian-weighted factor accounting for grid stretching and density variation
+  - `::AbstractFloat`: Buoyancy factor (``\\overline{\\rho}_{k + 1 / 2} / \\rho_{k + 1 / 2}``).
 """
 function compute_compressible_buoyancy_factor(
     state::State,

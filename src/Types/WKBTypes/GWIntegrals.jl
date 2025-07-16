@@ -40,7 +40,7 @@ Construct a `GWIntegrals` instance.
 
 # Returns
 
-  - `GWIntegrals`: Initialized container with zero arrays for gravity wave integrals
+  - `::GWIntegrals`: `GWIntegrals` instance with zero-initialized arrays.
 """
 function GWIntegrals(nxx::Integer, nyy::Integer, nzz::Integer)
     return GWIntegrals([zeros(nxx, nyy, nzz) for i in 1:10]...)

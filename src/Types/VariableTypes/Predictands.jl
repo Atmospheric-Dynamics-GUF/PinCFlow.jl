@@ -54,7 +54,7 @@ Construct `Predictands` from configuration namelists, constants, domain, and atm
 
 # Returns
 
-`Predictands`: Initialized predictands based on model type
+  - `::Predictands`: `Predictands` instance with arrays initialized according to `model` and `testcase`.
 """
 function Predictands(
     namelists::Namelists,
@@ -100,7 +100,7 @@ Construct `Predictands` for incompressible models. Initializes velocity fields w
 
 # Returns
 
-`Predictands`: Initialized predictands with velocity fields set to background flow and empty pressure field.
+  - `::Predictands`: `Predictands` instance with arrays initialized for a non-compressible model (`p` has size `(0, 0, 0)`).
 """
 function Predictands(
     namelists::Namelists,
@@ -153,7 +153,7 @@ Construct `Predictands` for compressible models. Initializes velocity fields wit
 
 # Returns
 
-`Predictands`: Initialized predictands with velocity fields set to background flow and pressure field initialized to stratified values.
+  - `::Predictands`: `Predictands` instance with arrays initialized for a compressible model.
 """
 function Predictands(
     namelists::Namelists,

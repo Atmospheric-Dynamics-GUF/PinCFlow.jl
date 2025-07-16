@@ -72,6 +72,10 @@ WKB(namelists::Namelists, constants::Constants, domain::Domain, grid::Grid)
 ```
 
 Dispatch to a `WKB` constructor, based on the type of `testcase`.
+
+# Returns
+
+  - `::WKB`: `WKB` instance with zero-initialized arrays of the appropriate dimensions.
 """
 function WKB(
     namelists::Namelists,
@@ -95,6 +99,10 @@ WKB(
 ```
 
 Construct a `WKB` instance with zero-size arrays, since they are not needed.
+
+# Returns
+
+  - `::WKB`: `WKB` instance with zero-initialized arrays (all dimensions have size `0`).
 
 # See also
 
@@ -138,6 +146,10 @@ WKB(
 ```
 
 Construct a `WKB` instance.
+
+# Returns
+
+  - `::WKB`: `WKB` instance with zero-initialized arrays.
 
 # See also
 

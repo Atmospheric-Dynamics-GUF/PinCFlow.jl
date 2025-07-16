@@ -29,7 +29,7 @@ Notes on the implementation:
 
 # Returns
 
-  - `AbstractFloat`: Stress tensor component including terrain-following coordinate effects
+  - `::AbstractFloat`: Element `(mu, nu)` of the Cartesian stress tensor at `(i, j, k)`.
 
 # See also
 

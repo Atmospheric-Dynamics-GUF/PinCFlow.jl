@@ -122,7 +122,7 @@ including topography handling, coordinate transformations, and metric tensor com
 
 # Returns
 
-A `Grid` instance.
+  - `::Grid`: `Grid` instance.
 
 # Additional Information
 

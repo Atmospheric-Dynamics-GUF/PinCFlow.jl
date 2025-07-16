@@ -100,7 +100,7 @@ computational workspace for finite volume calculations.
 
 # Returns
 
-  - `Variables`: Initialized field variable storage
+  - `::Variables`: `Variables` instance with fields initialized for the given model configuration.
 
 # See also
 

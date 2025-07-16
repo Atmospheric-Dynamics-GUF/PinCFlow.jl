@@ -89,7 +89,7 @@ for all prognostic fields in each spatial direction.
 
 # Returns
 
-  - `Reconstructions`: Initialized storage with zero-filled arrays
+  - `::Reconstructions`: `Reconstructions` instance with zero-initialized arrays.
 """
 function Reconstructions(domain::Domain)
 

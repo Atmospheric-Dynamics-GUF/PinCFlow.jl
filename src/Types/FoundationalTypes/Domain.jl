@@ -112,7 +112,7 @@ multiple MPI processes and establishes communication patterns for halo exchanges
 
 # Returns
 
-A `Domain` instance.
+  - `::Domain`: `Domain` instance.
 
 # Error Conditions
 

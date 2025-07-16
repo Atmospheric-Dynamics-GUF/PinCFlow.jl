@@ -42,7 +42,7 @@ Configuration parameters for topography and vertical grid stretching.
 
 # Returns
 
-  - `GridNamelist`: Initialized grid namelist with specified parameters
+  - `::GridNamelist`: `GridNamelist` instance.
 """
 function GridNamelist(;
     mountainheight_dim = 1.0E+2,

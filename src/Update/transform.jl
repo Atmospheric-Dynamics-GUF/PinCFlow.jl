@@ -35,7 +35,7 @@ Transform vertical velocity from Cartesian to terrain-following coordinates.
 
 # Returns
 
-  - `AbstractFloat`: Contravariant vertical velocity w^ζ
+  - `::AbstractFloat`: Vertical-wind-like transformation of the given quantity at `(i, j, k)` (`Transformed` to `Cartesian`).
 """
 function transform(
     i::Integer,
@@ -107,7 +107,7 @@ For terrain-following coordinates with additional metric corrections.
 
 # Returns
 
-  - `AbstractFloat`: Contravariant vertical velocity w^ζ
+  - `::AbstractFloat`: Vertical-wind-like transformation of the given quantity at `(i, j, k)` (`Cartesian` to `Transformed`).
 """
 function transform(
     i::Integer,

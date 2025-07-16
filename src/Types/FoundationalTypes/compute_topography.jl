@@ -23,12 +23,10 @@ Compute topography for WKB mountain wave test cases with spectral decomposition.
 
 # Returns
 
-  - `Tuple`: (topography_surface, topography_spectrum, k_spectrum, l_spectrum)
-
-      + `topography_surface`: 2D array of surface height values
-      + `topography_spectrum`: 3D array of spectral amplitude components
-      + `k_spectrum`: 3D array of zonal wavenumber components
-      + `l_spectrum`: 3D array of meridional wavenumber components
+  - `::AbstractMatrix{<:AbstractFloat}`: Resolved orography.
+  - `::AbstractArray{<:AbstractFloat, 3}`: Spectrum of the unresolved orography.
+  - `::AbstractArray{<:AbstractFloat, 3}`: Zonal wavenumbers of the orographic spectrum.
+  - `::AbstractArray{<:AbstractFloat, 3}`: Meridional wavenumbers of the orographic spectrum.
 
 # Mountain Cases (WKB-specific)
 
@@ -233,12 +231,10 @@ Compute topography for standard mountain wave test cases.
 
 # Returns
 
-  - `Tuple`: (topography_surface, topography_spectrum, k_spectrum, l_spectrum)
-
-      + `topography_surface`: 2D array of surface height values
-      + `topography_spectrum`: Empty 3D array (not used for standard cases)
-      + `k_spectrum`: Empty 3D array (not used for standard cases)
-      + `l_spectrum`: Empty 3D array (not used for standard cases)
+  - `::AbstractMatrix{<:AbstractFloat}`: Resolved orography.
+  - `::AbstractArray{<:AbstractFloat, 3}`: Spectrum of the unresolved orography (size `(0, 0, 0)`).
+  - `::AbstractArray{<:AbstractFloat, 3}`: Zonal wavenumbers of the orographic spectrum (size `(0, 0, 0)`).
+  - `::AbstractArray{<:AbstractFloat, 3}`: Meridional wavenumbers of the orographic spectrum (size `(0, 0, 0)`).
 
 # Mountain Cases (Complete List)
 

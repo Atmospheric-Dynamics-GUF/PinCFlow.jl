@@ -45,7 +45,7 @@ Construct a `Rays` instance.
 
 # Returns
 
-  - `Rays`: Initialized container with zero arrays for ray data
+  - `::Rays`: `Rays` instance with zero-initialized arrays.
 """
 function Rays(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)
     return Rays([zeros(nray_wrk, nxx, nyy, nzz) for i in 1:13]...)

@@ -23,7 +23,8 @@ to satisfy the divergence-free condition.
 
 # Returns
 
-  - `(errflagbicg, niterbicg)`: Error status and iteration count from linear solver
+  - `::Bool`: Error flag.
+  - `::Integer`: Number of iterations.
 
 # Process
 

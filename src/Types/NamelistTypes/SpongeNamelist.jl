@@ -72,6 +72,10 @@ Configuration parameters for damping layers that absorb waves near domain bounda
   - `perturbation_period`: Period for time-varying relaxation [s]
   - `perturbation_amplitude`: Amplitude of relaxation perturbation
   - `relaxation_wind`: Target wind field [m/s] when not relaxing to mean
+
+# Returns
+
+  - `::SpongeNamelist`: `SpongeNamelist` instance.
 """
 function SpongeNamelist(;
     spongelayer = false,

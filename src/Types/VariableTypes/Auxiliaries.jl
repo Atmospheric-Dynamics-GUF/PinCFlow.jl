@@ -26,7 +26,7 @@ Construct `Auxiliaries` with zero-initialized auxiliary field based on domain di
 
 # Returns
 
-  - `Auxiliaries`: Initialized container with zero arrays for auxiliary variables
+  - `::Auxiliaries`: `Auxiliaries` instance with a zero-initialized array.
 """
 function Auxiliaries(domain::Domain)
     (; nxx, nyy, nzz) = domain

@@ -38,7 +38,7 @@ Core simulation configuration specifying equation set, test case, and vertical b
 
 # Returns
 
-  - `SettingNamelist`: Configuration container for simulation setup
+  - `::SettingNamelist`: `SettingNamelist` instance.
 """
 function SettingNamelist(;
     model = PseudoIncompressible(),

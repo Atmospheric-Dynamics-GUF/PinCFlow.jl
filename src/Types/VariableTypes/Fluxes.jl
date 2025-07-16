@@ -46,7 +46,7 @@ Construct `Fluxes` from configuration namelists and domain specification.
 
 # Returns
 
-  - `Fluxes`: Initialized fluxes container with appropriate dimensions based on the model type
+  - `::Fluxes`: `Fluxes` instance with zero-initialized arrays of the appropriate dimensions.
 """
 function Fluxes(namelists::Namelists, domain::Domain)
     (; model) = namelists.setting
@@ -64,6 +64,10 @@ Construct `Fluxes` for incompressible models with empty pressure flux array.
 
   - `domain`: Domain specification containing grid dimensions
   - `model`: Model type
+
+# Returns
+
+  - `::Fluxes`: `Fluxes` instance with zero-initialized arrays (`phip` has size `(0, 0, 0, 0)`).
 """
 function Fluxes(domain::Domain, model::AbstractModel)
     (; nxx, nyy, nzz) = domain
@@ -90,7 +94,7 @@ Construct `Fluxes` for compressible models including pressure flux arrays.
 
 # Returns
 
-  - `Fluxes`: Initialized fluxes container with pressure flux arrays
+  - `::Fluxes`: `Fluxes` instance with zero-initialized arrays.
 """
 function Fluxes(domain::Domain, model::Compressible)
     (; nxx, nyy, nzz) = domain

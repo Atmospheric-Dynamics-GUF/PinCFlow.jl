@@ -41,7 +41,7 @@ Construct a `SurfaceIndices` instance.
 
 # Returns
 
-  - `SurfaceIndices`: Initialized container with zero arrays for surface ray indices
+  - `::SurfaceIndices`: `SurfaceIndices` instance with zero-initialized arrays.
 """
 function SurfaceIndices(n_sfc::Integer, nxx::Integer, nyy::Integer)
     return SurfaceIndices(

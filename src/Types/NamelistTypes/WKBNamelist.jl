@@ -120,6 +120,10 @@ Construct a WKBNamelist instance, which holds parameters for the WKB ray tracing
   - `drag_coefficient`: Coefficient for wave-induced drag.
   - `nwm`: Number of wave modes.
   - `launch_algorithm`: Algorithm used for wave launching.
+
+# Returns
+
+  - `::WKBNamelist`: `WKBNamelist` instance.
 """
 function WKBNamelist(;
     xrmin_dim = 0.0E+0,

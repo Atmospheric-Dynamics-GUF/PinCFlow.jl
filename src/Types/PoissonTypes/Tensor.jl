@@ -83,7 +83,7 @@ Initialize tensor coefficient arrays sized according to local domain.
 
 # Returns
 
-  - `Tensor`: Container with zero-initialized coefficient arrays
+  - `::Tensor`: `Tensor` instance zero-initialized arrays.
 """
 function Tensor(domain::Domain)
     (; nx, ny, nz) = domain

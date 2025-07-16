@@ -67,6 +67,10 @@ Namelists(;
 ```
 
 Create a new `Namelist` instance with the provided namelists. Omitted namelists will be initialized with default values.
+
+# Returns
+
+  - `::Namelists`: `Namelists` instance.
 """
 function Namelists(;
     domain = DomainNamelist(),

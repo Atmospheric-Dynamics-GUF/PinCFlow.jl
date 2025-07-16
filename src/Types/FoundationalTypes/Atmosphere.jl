@@ -67,6 +67,10 @@ Creates an `Atmosphere` instance with model and background types specified in na
   - `constants`: Physical constants and reference values
   - `domain`: Grid domain information including parallel decomposition
   - `grid`: Grid metrics and coordinate information
+
+# Returns
+
+  - `::Atmosphere`: `Atmosphere` instance.
 """
 function Atmosphere(
     namelists::Namelists,
@@ -97,6 +101,10 @@ Creates a uniform Boussinesq atmosphere with:
   - Uniform potential temperature (``\\theta = \\theta_0``)
   - Zero buoyancy frequency (``N^2 = 0``)
   - Coriolis parameter based on specified mode
+
+# Returns
+
+  - `::Atmosphere`: `Atmosphere` instance.
 
 # See also
 
@@ -153,6 +161,10 @@ Creates a stratified Boussinesq atmosphere with:
   - Constant buoyancy frequency (``N^2 = N_0^2``)
   - Coriolis parameter based on specified mode
 
+# Returns
+
+  - `::Atmosphere`: `Atmosphere` instance.
+
 # See also
 
   - [`PinCFlow.Types.FoundationalTypes.compute_coriolis_parameter`](@ref)
@@ -207,6 +219,10 @@ Creates an isothermal atmosphere with:
   - Density from equation of state ``\\rho = p/\\theta``
   - ``N^2`` computed from vertical ``\\theta`` gradient
   - Handles boundary conditions for ``N^2`` calculation
+
+# Returns
+
+  - `::Atmosphere`: `Atmosphere` instance.
 
 # See also
 

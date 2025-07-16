@@ -31,7 +31,7 @@ Initialize operator workspace array sized according to extended domain.
 
 # Returns
 
-  - `Operator`: Container with zero-initialized workspace array
+  - `::Operator`: `Operator` instance with a zero-initialized array.
 """
 function Operator(domain::Domain)
 

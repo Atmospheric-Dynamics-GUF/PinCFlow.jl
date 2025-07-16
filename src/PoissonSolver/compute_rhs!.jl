@@ -21,7 +21,7 @@ the L2 norm of the divergence field.
 
 # Returns
 
-  - `tolref`: Reference tolerance for iterative solver convergence
+  - `::AbstractFloat`: Reference tolerance for [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref).
 """
 function compute_rhs!(
     state::State,
@@ -133,7 +133,7 @@ divergence terms.
 
 # Returns
 
-  - `tolref`: Reference tolerance for iterative solver convergence
+  - `::AbstractFloat`: Reference tolerance for [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref).
 """
 function compute_rhs!(
     state::State,
@@ -271,7 +271,7 @@ computed through the volume force calculation.
 
 # Returns
 
-  - `tolref`: Reference tolerance for convergence
+  - `::AbstractFloat`: Reference tolerance for [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref).
 
 # See also
 

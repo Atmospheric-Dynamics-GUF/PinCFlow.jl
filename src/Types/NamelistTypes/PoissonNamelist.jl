@@ -42,7 +42,7 @@ Construct a PoissonNamelist instance, which holds parameters for the Poisson sol
 
 # Returns
 
-  - `PoissonNamelist`: Container holding the configuration parameters for the Poisson solver.
+  - `::PoissonNamelist`: `PoissonNamelist` instance.
 """
 function PoissonNamelist(;
     tolpoisson = 1.0E-8,

@@ -19,7 +19,7 @@ Dispatches to specific implementation based on test case type.
 
 # Returns
 
-  - `AbstractFloat`: Volume force per unit mass
+  - `::AbstractFloat`: Volume force in the specified equation.
 """
 function compute_volume_force(
     state::State,
@@ -54,7 +54,7 @@ Most test cases have no additional volume forcing beyond standard physics.
 
 # Returns
 
-  - `Float64`: Always returns 0.0
+  - `::AbstractFloat`: Volume force in the specified equation (`0.0`).
 """
 function compute_volume_force(
     state::State,
@@ -88,7 +88,7 @@ Computes cell-edge interpolated zonal wind tendency from WKB gravity wave parame
 
 # Returns
 
-  - `AbstractFloat`: Zonal acceleration [m/s²]
+  - `::AbstractFloat`: Volume force in the zonal-momentum equation.
 """
 function compute_volume_force(
     state::State,
@@ -125,7 +125,7 @@ Computes cell-edge interpolated meridional wind tendency for momentum equations.
 
 # Returns
 
-  - `AbstractFloat`: Meridional acceleration [m/s²]
+  - `::AbstractFloat`: Volume force in the meridional-momentum equation.
 """
 function compute_volume_force(
     state::State,
@@ -163,7 +163,7 @@ metric tensor coefficients and Jacobian weighting for terrain-following coordina
 
 # Returns
 
-  - `AbstractFloat`: Vertical acceleration [m/s²]
+  - `::AbstractFloat`: Volume force in the transformed-vertical-momentum equation.
 """
 function compute_volume_force(
     state::State,
@@ -211,7 +211,7 @@ for use in thermodynamic equation.
 
 # Returns
 
-  - `AbstractFloat`: Heating rate [K/s]
+  - `::AbstractFloat`: Volume force in the thermodynamic-energy equation.
 """
 function compute_volume_force(
     state::State,

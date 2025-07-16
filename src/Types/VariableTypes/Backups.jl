@@ -39,7 +39,7 @@ Initialize backup storage arrays sized according to domain decomposition.
 
 # Returns
 
-  - `Backups`: Container with zero-initialized backup arrays
+  - `::Backups`: `Backups` instance with zero-initialized arrays.
 """
 function Backups(domain::Domain)
     (; nxx, nyy, nzz) = domain

@@ -30,7 +30,7 @@ Constructs a `Time` instance.
 
 # Returns
 
-  - `Time`: Initialized time integration parameters for 3rd order Runge-Kutta method
+  - `::Time`: `Time` instance.
 """
 function Time()
 

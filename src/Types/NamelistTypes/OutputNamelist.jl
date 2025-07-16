@@ -70,7 +70,7 @@ Construct a new OutputNamelist instance, which holds output and input related pa
 
 # Returns
 
-  - `OutputNamelist`: A new instance of `OutputNamelist` with the specified parameters.
+  - `::OutputNamelist`: `OutputNamelist` instance.
 """
 function OutputNamelist(;
     output_variables = (),

@@ -66,7 +66,7 @@ Constructor for the `AtmosphereNamelist` type, which defines parameters for the 
 
 # Returns
 
-  - `AtmosphereNamelist`: Initialized namelist with specified parameters
+  - `::AtmosphereNamelist`: `AtmosphereNamelist` instance.
 """
 function AtmosphereNamelist(;
     specifyreynolds = false,

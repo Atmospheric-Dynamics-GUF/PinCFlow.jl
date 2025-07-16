@@ -185,7 +185,7 @@ field storage, and numerical solvers.
 
 # Returns
 
-  - `State`: Fully initialized simulation state ready for time integration
+  - `::State`: `State` instance with the fields initialized according to the configuration specified by `namelists`.
 
 # Initialization Order
 

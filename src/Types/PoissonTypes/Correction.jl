@@ -34,7 +34,7 @@ Initialize correction arrays sized according to extended domain.
 
 # Returns
 
-  - `Correction`: Container with zero-initialized correction arrays
+  - `::Correction`: `Correction` instance with zero-initialized arrays.
 """
 function Correction(domain::Domain)
 

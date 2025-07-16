@@ -20,7 +20,7 @@ where the wind factor ensures proper compressible flow dynamics.
 
 # Returns
 
-  - `AbstractFloat`: Pressure-weighted scaling factor
+  - `::AbstractFloat`: Wind factor.
 """
 function compute_compressible_wind_factor(
     state::State,
@@ -55,7 +55,7 @@ the need for pressure-weighted momentum scaling.
 
 # Returns
 
-  - `Float64`: Always returns 1.0
+  - `::AbstractFloat`: Wind factor (`1.0`).
 """
 function compute_compressible_wind_factor(
     state::State,
@@ -93,7 +93,7 @@ factor = (J[i]*P[i] + J[i+1]*P[i+1]) / 2
 
 # Returns
 
-  - `AbstractFloat`: Pressure-weighted factor for zonal momentum scaling
+  - `::AbstractFloat`: Zonal wind factor (``\\left(J P\\right)_{i + 1 / 2}``).
 """
 function compute_compressible_wind_factor(
     state::State,
@@ -137,7 +137,7 @@ factor = (J[i]*P[i] + J[i+1]*P[i+1]) / 2
 
 # Returns
 
-  - `AbstractFloat`: Pressure-weighted factor for meridional momentum scaling
+  - `::AbstractFloat`: Meridional wind factor (`\\left(J P\\right)_{j + 1 / 2}``).
 """
 function compute_compressible_wind_factor(
     state::State,
@@ -181,7 +181,7 @@ Formula: `J[k]*J[k+1]*(P[k] + P[k+1]) / (J[k] + J[k+1])`
 
 # Returns
 
-  - `AbstractFloat`: Pressure-weighted scaling factor
+  - `::AbstractFloat`: Vertical wind factor (``\\left(J P\\right)_{k + 1 / 2}``).
 """
 function compute_compressible_wind_factor(
     state::State,

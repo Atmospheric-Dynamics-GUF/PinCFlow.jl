@@ -27,7 +27,8 @@ for different equation models (Boussinesq, PseudoIncompressible, Compressible).
 
 # Returns
 
-  - `(errflagbicg, niterbicg)`: Error flag and number of iterations from BiCGStab solver
+  - `::Bool`: Error flag.
+  - `::Integer`: Number of iterations.
 
 # Notes
 

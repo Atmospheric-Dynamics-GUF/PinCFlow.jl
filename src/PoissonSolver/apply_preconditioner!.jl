@@ -119,6 +119,8 @@ function apply_preconditioner!(
             MPI.Send(s_pc_bc, comm; dest = down)
         end
     end
+
     sout .= s_pc
+
     return
 end
