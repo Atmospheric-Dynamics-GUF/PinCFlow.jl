@@ -1092,6 +1092,15 @@ function compute_fluxes!(
     return
 end
 
+"""
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    tracersetup::NoTracer,
+)
+```
+"""
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
@@ -1100,6 +1109,15 @@ function compute_fluxes!(
     return
 end
 
+"""
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    tracersetup::AbstractTracer,
+)
+```
+"""
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
@@ -1168,6 +1186,15 @@ function compute_fluxes!(
     return
 end
 
+"""
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    icesetup::NoIce,
+)
+```
+"""
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
@@ -1176,6 +1203,15 @@ function compute_fluxes!(
     return
 end
 
+"""
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    icesetup::AbstractIce,
+)
+```
+"""
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
@@ -1244,6 +1280,15 @@ function compute_fluxes!(
     return
 end
 
+"""
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    turbulencesetup::NoTurbulence,
+)
+```
+"""
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
@@ -1252,6 +1297,15 @@ function compute_fluxes!(
     return
 end
 
+"""
+```julia
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    turbulencesetup::AbstractTurbulence,
+)
+```
+"""
 function compute_fluxes!(
     state::State,
     predictands::Predictands,

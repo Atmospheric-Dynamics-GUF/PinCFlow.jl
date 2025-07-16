@@ -1,3 +1,12 @@
+"""
+```julia
+set_ice_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    icesetup::NoIce,
+)
+```
+"""
 function set_ice_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
@@ -6,6 +15,15 @@ function set_ice_vertical_boundaries!(
     return
 end
 
+"""
+```julia
+set_ice_vertical_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+    icesetup::AbstractIce,
+)
+```
+"""
 function set_ice_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
@@ -28,6 +46,15 @@ function set_ice_vertical_boundaries!(
     return
 end
 
+"""
+```julia
+set_ice_vertical_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    icesetup::NoIce,
+)
+```
+"""
 function set_ice_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
@@ -36,6 +63,15 @@ function set_ice_vertical_boundaries!(
     return
 end
 
+"""
+```julia
+set_ice_vertical_boundaries!(
+    state::State,
+    variables::BoundaryReconstructions,
+    icesetup::AbstractIce,
+)
+```
+"""
 function set_ice_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
@@ -57,6 +93,15 @@ function set_ice_vertical_boundaries!(
     return
 end
 
+"""
+```julia
+set_ice_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    icesetup::NoIce,
+)
+```
+"""
 function set_ice_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
@@ -65,6 +110,15 @@ function set_ice_vertical_boundaries!(
     return
 end
 
+"""
+```julia
+set_ice_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    icesetup::AbstractIce,
+)
+```
+"""
 function set_ice_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,

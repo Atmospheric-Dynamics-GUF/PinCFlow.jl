@@ -607,6 +607,16 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    tracersetup::NoTracer,
+)
+```
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -616,6 +626,16 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    tracersetup::AbstractTracer,
+)
+```
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -645,6 +665,16 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    icesetup::AbstractIce,
+)
+```
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -654,6 +684,16 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    icesetup::IceOn,
+)
+```
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -684,6 +724,16 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    turbulencesetup::NoTurbulence,
+)
+```
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,
@@ -693,6 +743,16 @@ function apply_unified_sponge!(
     return
 end
 
+"""
+```julia
+apply_unified_sponge!(
+    state::State,
+    dt::AbstractFloat,
+    time::AbstractFloat,
+    turbulencesetup::AbstractTurbulence,
+)
+```
+"""
 function apply_unified_sponge!(
     state::State,
     dt::AbstractFloat,

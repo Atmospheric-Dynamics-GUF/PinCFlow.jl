@@ -184,6 +184,19 @@ function Predictands(
     return Predictands(rho, rhop, u, v, w, pip, p)
 end
 
+"""
+```julia
+Predictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    model::PseudoIncompressible,
+    testcase::WavePacket,
+)
+```
+"""
 function Predictands(
     namelists::Namelists,
     constants::Constants,
