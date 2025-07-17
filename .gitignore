@@ -3,4 +3,3 @@ LocalPreferences.toml
 .aider*
 /build
 /docs/build
-examples/submit/local

@@ -63,7 +63,10 @@ Set zonal boundaries for gravity wave integral fields. Dispatches based on WKB m
 """
 function set_zonal_boundaries!(state::State, variables::BoundaryGWIntegrals)
     (; wkb_mode) = state.namelists.wkb
+    (; tracersetup) = state.namelists.tracer
+
     set_zonal_boundaries!(state, variables, wkb_mode)
+    set_tracer_zonal_boundaries!(state, variables, wkb_mode, tracersetup)
     return
 end
 
@@ -118,6 +121,7 @@ function set_zonal_boundaries!(
     return
 end
 
+
 """
     set_zonal_boundaries!(state, variables::BoundaryGWTendencies)
 
@@ -125,7 +129,9 @@ Set zonal boundaries for GW tendency fields. Dispatches based on WKB mode.
 """
 function set_zonal_boundaries!(state::State, variables::BoundaryGWTendencies)
     (; wkb_mode) = state.namelists.wkb
+    (; tracersetup) = state.namelists.tracer
     set_zonal_boundaries!(state, variables, wkb_mode)
+    set_tracer_zonal_boundaries!(state, variables, wkb_mode, tracersetup)
     return
 end
 

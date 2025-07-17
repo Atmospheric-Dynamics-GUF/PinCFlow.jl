@@ -52,10 +52,11 @@ function TracerPredictands(
     (; rhostrattfc) = atmosphere
     (; rho) = variables.predictands
     (; testcase) = namelists.setting
+    (; lref) = constants
 
-    αtracer = 1.0
+    alphatracer = lref
     chi = zeros(nxx, nyy, nzz)
-    chi .= αtracer .* ztfc
+    chi .= alphatracer .* ztfc
 
     initialize_tracer_wave_packet!(
         namelists,
@@ -64,7 +65,7 @@ function TracerPredictands(
         atmosphere,
         grid,
         variables,
-        αtracer,
+        alphatracer,
         chi,
         testcase,
     )

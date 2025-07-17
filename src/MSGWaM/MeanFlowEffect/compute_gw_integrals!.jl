@@ -84,6 +84,8 @@ function compute_gw_integrals!(state::State, wkb_mode::MultiColumn)
         getfield(integrals, field) .= 0.0
     end
 
+    set_tracer_field_zero!(state)
+
     for kzrv in (k0 - 1):(k1 + 1),
         jyrv in (j0 - 1):(j1 + 1),
         ixrv in (i0 - 1):(i1 + 1)

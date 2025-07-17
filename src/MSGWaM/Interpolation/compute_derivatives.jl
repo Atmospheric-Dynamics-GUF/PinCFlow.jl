@@ -810,13 +810,13 @@ function compute_derivatives(
             chi[ix, jy, kzu + 1] /
             (rho[ix, jy, kzu + 1] + rhostrattfc[ix, jy, kzu + 1]) -
             chi[ix, jy, kzu] / (rho[ix, jy, kzu] + rhostrattfc[ix, jy, kzu])
-        ) / dy
+        ) / dz
     dchid =
         (
             chi[ix, jy, kzd + 1] /
             (rho[ix, jy, kzd + 1] + rhostrattfc[ix, jy, kzd + 1]) -
             chi[ix, jy, kzd] / (rho[ix, jy, kzd] + rhostrattfc[ix, jy, kzd])
-        ) / dy
+        ) / dz
 
     if zu < zd
         then
@@ -828,10 +828,10 @@ function compute_derivatives(
         )
     elseif zu == zd
         factor = 0.0
-    elseif ylc > zu
+    elseif zlc > zu
         factor = 0.0
-    elseif ylc > zd
-        factor = (zu - ylc) / dy
+    elseif zlc > zd
+        factor = (zu - zlc) / dz
     else
         factor = 1.0
     end

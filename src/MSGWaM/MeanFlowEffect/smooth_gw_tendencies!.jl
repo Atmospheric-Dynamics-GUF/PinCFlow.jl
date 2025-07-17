@@ -37,6 +37,7 @@ function smooth_gw_tendencies!(state::State)
     (; sizex, sizey) = state.namelists.domain
     (; lsmth_wkb, sm_filter) = state.namelists.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
+    (; tracersetup) = state.namelists.tracer
 
     if !lsmth_wkb
         return
@@ -59,6 +60,8 @@ function smooth_gw_tendencies!(state::State)
         smooth_gw_tendencies!(dvdt, state, sm_filter, XYZ())
         smooth_gw_tendencies!(dthetadt, state, sm_filter, XYZ())
     end
+
+    smooth_gw_tendencies!(state, tracersetup)
 
     return
 end
@@ -467,5 +470,31 @@ function smooth_gw_tendencies!(
         )
     end
 
+    return
+end
+
+function smooth_gw_tendencies!(state::State, tracersetup::AbstractTracer)
+    (; sizex, sizey) = state.namelists.domain
+    (; lsmth_wkb, sm_filter) = state.namelists.wkb
+    (; dchidt) = state.tracer.tracerforcings.chiq0
+
+    if !lsmth_wkb
+        return
+    end
+
+    if sizex == sizey == 1
+        smooth_gw_tendencies!(dchidt, state, sm_filter, Z())
+    elseif sizex == 1
+        smooth_gw_tendencies!(dchidt, state, sm_filter, YZ())
+    elseif sizey == 1
+        smooth_gw_tendencies!(dchidt, state, sm_filter, XZ())
+    else
+        smooth_gw_tendencies!(dchidt, state, sm_filter, XYZ())
+    end
+
+    return
+end
+
+function smooth_gw_tendencies!(state::State, tracersetup::NoTracer)
     return
 end

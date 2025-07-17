@@ -70,7 +70,10 @@ function set_meridional_boundaries!(
     variables::BoundaryGWIntegrals,
 )
     (; wkb_mode) = state.namelists.wkb
+    (; tracersetup) = state.namelists.tracer 
+
     set_meridional_boundaries!(state, variables, wkb_mode)
+    set_tracer_meridional_boundaries!(state, variables, wkb_mode, tracersetup)
     return
 end
 
@@ -134,7 +137,10 @@ function set_meridional_boundaries!(
     variables::BoundaryGWTendencies,
 )
     (; wkb_mode) = state.namelists.wkb
+    (; tracersetup) = state.namelists.tracer
+    
     set_meridional_boundaries!(state, variables, wkb_mode)
+    set_tracer_meridional_boundaries!(state, variables, wkb_mode, tracersetup)
     return
 end
 
