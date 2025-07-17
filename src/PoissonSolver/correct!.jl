@@ -8,24 +8,16 @@ correct!(
 )
 ```
 
-Apply pressure corrections to velocity and density fields.
+Correct the Exner-pressure, wind and buoyancy (density fluctuations) such that the divergence constraint is satisfied, using the Exner-pressure differences obtained from the solution to the Poisson problem.
 
-Main function that handles the correction of all prognostic variables after
-solving the pressure Poisson equation.
+This method calls the appropriate methods for the correction of each individual variable.
 
 # Arguments
 
-  - `state`: Simulation state with pressure correction field computed
-  - `dt`: Time step size
-  - `facray`: Rayleigh damping factor
-  - `facprs`: Pressure correction scaling factor
-
-# Corrected fields
-
-  - Horizontal velocities (u, v) with pressure gradient forcing
-  - Vertical velocity (w) including buoyancy restoring force
-  - Density perturbation (rhop) from buoyancy correction
-  - Pressure perturbation (pip) updated with correction increment
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
 """
 function correct!(
     state::State,
@@ -52,19 +44,15 @@ correct!(
 )
 ```
 
-Apply pressure correction to horizontal velocity component u.
-
-Computes pressure gradient force in x-direction including terrain-following
-coordinate contributions and applies velocity correction with proper scaling
-for sponge layer damping.
+Correct the zonal wind to account for the pressure differences obtained from the solution to the Poisson problem.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `dt`: Time step
-  - `variable`: Type dispatch for u-velocity component
-  - `facray`: Rayleigh damping factor
-  - `facprs`: Pressure correction factor
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `variable`: Variable to correct.
+  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
 
 # See also
 
@@ -175,18 +163,15 @@ correct!(
 )
 ```
 
-Apply pressure correction to horizontal velocity component v.
-
-Similar to u-correction but for meridional (y) direction, including proper
-handling of terrain-following coordinate metric terms.
+Correct the meridional wind to account for the pressure differences obtained from the solution to the Poisson problem.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `dt`: Time step
-  - `variable`: Type dispatch for v-velocity component
-  - `facray`: Rayleigh damping factor
-  - `facprs`: Pressure correction factor
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `variable`: Variable to correct.
+  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
 
 # See also
 
@@ -297,18 +282,15 @@ correct!(
 )
 ```
 
-Apply pressure correction to vertical velocity with buoyancy coupling.
-
-The vertical velocity correction includes both pressure gradient effects and
-buoyancy restoring force from stratification.
+Correct the transformed vertical wind to account for the pressure differences obtained from the solution to the Poisson problem.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `dt`: Time step
-  - `variable`: Type dispatch for w-velocity component
-  - `facray`: Rayleigh damping factor
-  - `facprs`: Pressure correction factor
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `variable`: Variable to correct.
+  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
 
 # See also
 
@@ -459,19 +441,15 @@ correct!(
 )
 ```
 
-Apply buoyancy correction to density perturbation field.
-
-Updates the density perturbation field based on vertical motion corrections,
-maintaining consistency with the anelastic/Boussinesq constraint and proper
-coupling with stratification.
+Correct the buoyancy (density fluctuations) to account for the pressure differences obtained from the solution to the Poisson problem.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `dt`: Time step
-  - `variable`: Type dispatch for density perturbation
-  - `facray`: Rayleigh damping factor
-  - `facprs`: Pressure correction factor
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `variable`: Variable to correct.
+  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
 
 # See also
 
@@ -658,14 +636,12 @@ end
 correct!(state::State, variable::PiP)
 ```
 
-Update pressure perturbation with computed correction.
-
-Adds the pressure correction increment to the pressure perturbation field.
+Update the Exner-pressure fluctuations with the differences obtained from the solution to the Poisson problem.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `variable`: Type dispatch for density perturbation
+  - `state`: Model state.
+  - `variable`: Variable to correct.
 """
 function correct!(state::State, variable::PiP)
     (; i0, i1, j0, j1, k0, k1) = state.domain

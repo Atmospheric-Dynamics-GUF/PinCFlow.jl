@@ -10,25 +10,18 @@ apply_operator!(
 )
 ```
 
-Apply the discrete Poisson operator including all directional components.
+Apply the total linear operator to the solution array `sin`.
 
-This function performs the matrix-vector multiplication for the discretized Poisson
-operator, including horizontal (x,y) and vertical (z) derivatives with cross-coupling
-terms for terrain-following coordinates.
+Before the operator is applied, the boundary/halo values of `sin` are set, using `set_zonal_boundaries_of_field!`, `set_meridional_boundaries_of_field!` and `set_vertical_halos_of_field!`. Note that in the vertical, only halo values need to be set (if the domain is paralellized in that direction), due to the solid-wall boundaries.
 
 # Arguments
 
-  - `sin`: Input field
-  - `ls`: Output field (operator applied to input)
-  - `hortot::Total`: Flag indicating full 3D operator application
-  - `namelists`: Simulation parameters
-  - `domain`: Domain decomposition information
-  - `poisson`: Poisson solver data structures containing operator coefficients
-
-# Notes
-
-  - Uses stencil coefficients pre-computed in `compute_operator!`
-  - Modifies `ls` in place
+  - `sin`: Solution array.
+  - `ls`: Result of applying the operator to the solution array.
+  - `hortot`: Linear-operator mode.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `poisson`: Operator and workspace arrays needed for the Poisson equation.
 
 # See also
 
@@ -282,18 +275,18 @@ apply_operator!(
 )
 ```
 
-Apply only the horizontal components of the Poisson operator.
+Apply the "horizontal part" of the linear operator (excluding the lower, center and upper diagonal) to the solution array `sin`.
 
-Used in the preconditioner.
+Before the operator is applied, the boundary/halo values of `sin` are set, using `set_zonal_boundaries_of_field!`, `set_meridional_boundaries_of_field!` and `set_vertical_halos_of_field!`. Note that in the vertical, only halo values need to be set (if the domain is paralellized in that direction), due to the solid-wall boundaries.
 
 # Arguments
 
-  - `sin`: Input field
-  - `ls`: Output field (modified in place)
-  - `hortot::Horizontal`: Flag for horizontal-only operation
-  - `namelists`: Simulation parameters
-  - `domain`: Domain information
-  - `poisson`: Operator coefficient storage
+  - `sin`: Solution array.
+  - `ls`: Result of applying the operator to the solution array.
+  - `hortot`: Linear-operator mode.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `poisson`: Operator and workspace arrays needed for the Poisson equation.
 
 # See also
 

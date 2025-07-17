@@ -8,30 +8,19 @@ apply_corrector!(
 )
 ```
 
-Apply the pressure correction step to enforce mass conservation.
-
-This is the main interface for the pressure correction procedure. It computes the
-right-hand side, solves the Poisson equation, and applies velocity/density corrections
-to satisfy the divergence-free condition.
+Perform the corrector step by computing the right-hand side and linear operator of the discrete Poisson equation, solving it and correcting the Exner-pressure, wind and buoyancy accordingly.
 
 # Arguments
 
-  - `state`: Complete simulation state
-  - `dt`: Time step size
-  - `facray`: Rayleigh damping factor for sponge boundaries
-  - `facprs`: Pressure correction scaling factor
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
 
 # Returns
 
   - `::Bool`: Error flag.
   - `::Integer`: Number of iterations.
-
-# Process
-
- 1. Initialize and compute RHS of Poisson equation
- 2. Solve linear system using BiCGStab
- 3. Set boundary conditions on pressure correction
- 4. Apply momentum and buoyancy corrections
 
 # See also
 

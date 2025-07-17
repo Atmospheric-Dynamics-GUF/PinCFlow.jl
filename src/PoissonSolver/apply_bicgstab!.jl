@@ -11,23 +11,17 @@ apply_bicgstab!(
 )
 ```
 
-Solve the linear system using BiCGStab iterative method.
-
-Implements the Bi-Conjugate Gradient Stabilized method for solving the discrete
-Poisson equation. This is the core linear algebra routine for the pressure correction
-step.
-
-Note that the preconditioner requires vertical communication between processes
+Solve the Poisson equation using a preconditioned BicGStab algorithm.
 
 # Arguments
 
-  - `b_in`: Right-hand side vector
-  - `tolref`: Reference tolerance for relative error checking
-  - `sol`: Solution vector (input/output)
-  - `namelists`: Solver parameters (tolerance, max iterations, preconditioner flag)
-  - `domain`: MPI domain info for parallel reductions
-  - `grid`: Grid information
-  - `poisson`: Operator and workspace arrays
+  - `b_in`: Right-hand side.
+  - `tolref`: Reference tolerance for convergence criterion.
+  - `sol`: Solution (Exner-pressure differences).
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `grid`: Collection of parameters and fields that describe the grid.
+  - `poisson`: Operator and workspace arrays needed for the Poisson equation.
 
 # Returns
 

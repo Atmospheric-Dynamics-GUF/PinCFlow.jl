@@ -10,28 +10,30 @@ apply_preconditioner!(
 )
 ```
 
-Apply line relaxation preconditioner for the Poisson equation.
+Apply a preconditioner to the Poisson problem.
 
-This preconditioner uses alternating direction implicit (ADI) method with vertical
-line relaxation to accelerate convergence of the BiCGStab solver. It treats the
-vertical direction implicitly while horizontal coupling is handled explicitly.
+This preconditioner integrates the auxiliary equation
+
+```math
+\\frac{\\mathrm{d} s}{\\mathrm{d} \\eta} = \\mathcal{L}_\\mathrm{h} \\left(s\\right) + \\mathcal{L}_\\mathrm{v} \\left(s\\right) - b,
+```
+
+where ``s`` is the iterative solution, ``\\eta`` is a pseudo-time variable, ``\\mathcal{L}_\\mathrm{v}`` contains the lower, center and upper diagonals of the linear operator, ``\\mathcal{L}_\\mathrm{h}`` contains all remaining elements, and ``b`` is the right-hand side. The integration is performed in a semi-implicit manner, following
+
+```math
+\\left(1 - \\Delta \\eta \\mathcal{L}_\\mathrm{v}\\right) \\left(s^{\\left(m + 1\\right)}\\right) = \\left(1 + \\Delta \\eta \\mathcal{L}_\\mathrm{h}\\right) \\left(s^{\\left(m\\right)}\\right) - \\Delta \\eta b,
+```
+
+where ``\\Delta \\eta = \\Delta \\tau / 2 \\left[\\left(\\Delta \\widehat{x}\\right)^{- 2} + \\left(\\Delta \\widehat{y}\\right)^{- 2}\\right]^{- 1}``, with ``\\Delta \\tau`` being a namelist parameter (`state.namelist.poisson.dtau`). Therein, the implicit problem is solved with the Thomas algorithm for tridiagonal matrices. The number of iterations is given by `state.namelist.poisson.maxiteradi`. Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is paralellized in the vertical.
 
 # Arguments
 
-  - `sin`: Input residual field
-  - `sout`: Preconditioned output field
-  - `namelists`: Contains preconditioner parameters (dtau, maxiteradi)
-  - `domain`: MPI domain decomposition info for vertical communication
-  - `grid`: Grid spacing for pseudo-time step calculation
-  - `poisson`: Operator coefficients and preconditioner workspace
-
-# Algorithm
-
- 1. Set pseudo-time step based on horizontal grid spacing
- 2. Iterate ADI relaxation sweeps
- 3. Perform tridiagonal solves in vertical direction
- 4. Handle MPI communication for domain boundaries
- 5. Apply upward and downward elimination sweeps
+  - `sin`: Residual array.
+  - `sout`: Solution of the preconditioner.
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `grid`: Collection of parameters and fields that describe the grid.
+  - `poisson`: Operator and workspace arrays needed for the Poisson equation.
 
 # See also
 
