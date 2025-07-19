@@ -7,15 +7,15 @@ compute_volume_force(
 )
 ```
 
-Test case-dispatched volume force computation.
+Compute the volume force in the equation specified by `variable`.
 
-Dispatches to specific implementation based on test case type.
+Dispatches to specific methods based on `testcase`.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `indices`: Grid indices (ix, jy, kz)
-  - `variable`: Variable type for force computation
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable (equation) of choice.
 
 # Returns
 
@@ -41,16 +41,14 @@ compute_volume_force(
 )
 ```
 
-Default zero volume force for standard test cases.
-
-Most test cases have no additional volume forcing beyond standard physics.
+Return `0.0` as the volume force in non-WKB test cases.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `indices`: Grid indices (ix, jy, kz)
-  - `variable`: Variable type for force computation
-  - `testcase`: Testcase type to dispatch
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable (equation) of choice.
+  - `testcase`: Test case on which the current simulation is based.
 
 # Returns
 
@@ -75,16 +73,14 @@ compute_volume_force(
 )
 ```
 
-Zonal volume force from gravity wave drag.
-
-Computes cell-edge interpolated zonal wind tendency from WKB gravity wave parameterization for use in momentum equations.
+Return the gravity-wave drag on the zonal momentum, interpolated to ``\\left(i + 1 / 2, j, k\\right)``.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `indices`: Grid indices (ix, jy, kz)
-  - `variable`: Variable type for force computation
-  - `testcase`: Testcase type to dispatch
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable (equation) of choice.
+  - `testcase`: Test case on which the current simulation is based.
 
 # Returns
 
@@ -112,16 +108,14 @@ compute_volume_force(
 )
 ```
 
-Meridional volume force from gravity wave drag.
-
-Computes cell-edge interpolated meridional wind tendency for momentum equations.
+Return the gravity-wave drag on the meridional momentum, interpolated to ``\\left(i, j + 1 / 2, k\\right)``.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `indices`: Grid indices (ix, jy, kz)
-  - `variable`: Variable type for force computation
-  - `testcase`: Testcase type to dispatch
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable (equation) of choice.
+  - `testcase`: Test case on which the current simulation is based.
 
 # Returns
 
@@ -149,17 +143,20 @@ compute_volume_force(
 )
 ```
 
-Vertical volume force from terrain-following coordinate transformation.
+Return the gravity-wave drag on the transformed vertical momentum, interpolated to ``\\left(i, j, k + 1 / 2\\right)``.
 
-Transforms horizontal gravity wave tendencies to vertical component using
-metric tensor coefficients and Jacobian weighting for terrain-following coordinates.
+The drag is given by
+
+```math
+\\left(\\frac{\\partial \\widehat{w}}{\\partial t}\\right)_\\mathrm{w} = \\left[G^{1 3} \\left(\\frac{\\partial u}{\\partial t}\\right)_\\mathrm{w}\\right]_{k + 1 / 2} + \\left[G^{2 3} \\left(\\frac{\\partial v}{\\partial t}\\right)_\\mathrm{w}\\right]_{k + 1 / 2}.
+```
 
 # Arguments
 
-  - `state`: Simulation state
-  - `indices`: Grid indices (ix, jy, kz)
-  - `variable`: Variable type for force computation
-  - `testcase`: Testcase type to dispatch
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable (equation) of choice.
+  - `testcase`: Test case on which the current simulation is based.
 
 # Returns
 
@@ -197,17 +194,14 @@ compute_volume_force(
 )
 ```
 
-Thermal forcing from gravity wave heating.
-
-Returns potential temperature tendency from gravity wave energy dissipation
-for use in thermodynamic equation.
+Return the gravity-wave impact on the mass-weighted potential temperature (diabatic heating).
 
 # Arguments
 
-  - `state`: Simulation state
-  - `indices`: Grid indices (ix, jy, kz)
-  - `variable`: Variable type for force computation
-  - `testcase`: Testcase type to dispatch
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable (equation) of choice.
+  - `testcase`: Test case on which the current simulation is based.
 
 # Returns
 

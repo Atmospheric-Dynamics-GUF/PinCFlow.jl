@@ -8,20 +8,16 @@ apply_unified_sponge!(
 )
 ```
 
-Apply unified sponge layer damping to prevent spurious wave reflections.
+Perform an implicit substep to integrate the Rayleigh-damping term that represents the unified sponge layer in the prognostic equation for `variable`.
 
-Sponge damping uses exponential relaxation: `φ_new = β*φ_old + (1-β)*φ_bg`
-where `β = 1/(1 + α*dt)` and α is the spatially-varying damping coefficient.
-
-The unified approach uses single damping coefficient field for all variables,
-computed by [`PinCFlow.Update.compute_sponge!`](@ref) with various spatial profiles.
+This method dispatches to the specific method for `variable` and `state.namelists.setting.model`.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `dt`: Time step size
-  - `time`: Current simulation time
-  - `variable`: Variable type to apply sponge damping
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `time`: Simulation time.
+  - `variable`: Variable to apply Rayleigh damping to.
 """
 function apply_unified_sponge!(
     state::State,
@@ -45,15 +41,15 @@ apply_unified_sponge!(
 )
 ```
 
-No-op for Boussinesq density (incompressible assumption).
+Return in Boussinesq mode (constant density).
 
 # Arguments
 
-  - `state`: Simulation state
-  - `dt`: Time step size
-  - `time`: Current simulation time
-  - `variable`: Variable type to apply sponge damping
-  - `model`: Model type for dispatch
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `time`: Simulation time
+  - `variable`: Variable to apply Rayleigh damping to.
+  - `model`: Dynamic equations.
 """
 function apply_unified_sponge!(
     state::State,
@@ -76,17 +72,23 @@ apply_unified_sponge!(
 )
 ```
 
-Apply sponge damping to density perturbations.
+Integrate the Rayleigh-damping term that represents the unified sponge in the continuity equation.
 
-Relaxes toward zero background density perturbation: ρ' → 0.
+The update is given by
+
+```math
+\\rho \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\left(\\rho + \\alpha_\\mathrm{R} \\Delta t \\overline{\\rho}\\right),
+```
+
+where ``\\alpha_\\mathrm{R}`` is the Rayleigh-damping coefficient computed by [`PinCFlow.Update.compute_sponge!`](@ref) and ``\\Delta t`` is the time step given as input to this method.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `dt`: Time step size
-  - `time`: Current simulation time
-  - `variable`: Variable type to apply sponge damping
-  - `model`: Model type for dispatch
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `time`: Simulation time.
+  - `variable`: Variable to apply Rayleigh damping to.
+  - `model`: Dynamic equations.
 """
 function apply_unified_sponge!(
     state::State,
@@ -127,17 +129,23 @@ apply_unified_sponge!(
 )
 ```
 
-Apply sponge damping to potential density perturbations.
+Integrate the Rayleigh-damping term that represents the unified sponge in the auxiliary equation.
 
-Relaxes toward zero background potential density perturbation.
+The update is given by
+
+```math
+\\rho' \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} \\rho',
+```
+
+where ``\\alpha_\\mathrm{R}`` is the Rayleigh-damping coefficient computed by [`PinCFlow.Update.compute_sponge!`](@ref) and ``\\Delta t`` is the time step given as input to this method.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `dt`: Time step size
-  - `time`: Current simulation time
-  - `variable`: Variable type to apply sponge damping
-  - `model`: Model type for dispatch
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `time`: Simulation time.
+  - `variable`: Variable to apply Rayleigh damping to.
+  - `model`: Dynamic equations.
 """
 function apply_unified_sponge!(
     state::State,
@@ -178,15 +186,23 @@ apply_unified_sponge!(
 )
 ```
 
-Apply sponge damping to zonal wind with background relaxation.
+Integrate the Rayleigh-damping term that represents the unified sponge in the zonal-momentum equation.
+
+The update is given by
+
+```math
+u_{i + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, i + 1 / 2} \\Delta t\\right)^{- 1} \\left\\{u_{i + 1 / 2} + \\alpha_{\\mathrm{R}, i + 1 / 2} \\Delta t u_\\mathrm{r} \\left[1 + a_\\mathrm{r} \\sin \\left(\\frac{2 \\pi t}{t_\\mathrm{r}}\\right)\\right]\\right\\},
+```
+
+where ``\\alpha_\\mathrm{R}`` is the Rayleigh-damping coefficient computed by [`PinCFlow.Update.compute_sponge!`](@ref) and ``\\Delta t`` is the time step given as input to this method. If `state.namelists.sponge.relax_to_mean` is `false`, ``u_\\mathrm{r}``, ``a_\\mathrm{r}`` and ``t_\\mathrm{r}`` are given by the sponge-namelist parameters `relaxation_wind[1]`, `perturbation_amplitude` and `perturbation_period`, respectively. Otherwise, ``u_\\mathrm{r}`` is the average of ``u_{i + 1 / 2}`` across the terrain-following coordinate surface and ``a_\\mathrm{r} = 0``.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `dt`: Time step size
-  - `time`: Current simulation time
-  - `variable`: Variable type to apply sponge damping
-  - `model`: Model type for dispatch
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `time`: Simulation time.
+  - `variable`: Variable to apply Rayleigh damping to.
+  - `model`: Dynamic equations.
 """
 function apply_unified_sponge!(
     state::State,
@@ -264,18 +280,23 @@ apply_unified_sponge!(
 )
 ```
 
-Apply sponge damping to meridional wind with background relaxation.
+Integrate the Rayleigh-damping term that represents the unified sponge in the meridional-momentum equation.
 
-Similar to zonal wind but for y-component with appropriate staggering.
-Uses `relaxation_wind[2]` for fixed background state.
+The update is given by
+
+```math
+v_{j + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, j + 1 / 2} \\Delta t\\right)^{- 1} \\left\\{v_{j + 1 / 2} + \\alpha_{\\mathrm{R}, j + 1 / 2} \\Delta t v_\\mathrm{r} \\left[1 + a_\\mathrm{r} \\sin \\left(\\frac{2 \\pi t}{t_\\mathrm{r}}\\right)\\right]\\right\\},
+```
+
+where ``\\alpha_\\mathrm{R}`` is the Rayleigh-damping coefficient computed by [`PinCFlow.Update.compute_sponge!`](@ref) and ``\\Delta t`` is the time step given as input to this method. If `state.namelists.sponge.relax_to_mean` is `false`, ``v_\\mathrm{r}``, ``a_\\mathrm{r}`` and ``t_\\mathrm{r}`` are given by the sponge-namelist parameters `relaxation_wind[2]`,s `perturbation_amplitude` and `perturbation_period`, respectively. Otherwise, ``v_\\mathrm{r}`` is the average of ``v_{j + 1 / 2}`` across the terrain-following coordinate surface and ``a_\\mathrm{r} = 0``.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `dt`: Time step size
-  - `time`: Current simulation time
-  - `variable`: Variable type to apply sponge damping
-  - `model`: Model type for dispatch
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `time`: Simulation time.
+  - `variable`: Variable to apply Rayleigh damping to.
+  - `model`: Dynamic equations.
 """
 function apply_unified_sponge!(
     state::State,
@@ -353,21 +374,23 @@ apply_unified_sponge!(
 )
 ```
 
-Apply sponge damping to vertical wind with Jacobian-weighted averaging.
+Integrate the Rayleigh-damping term that represents the unified sponge in the transformed-vertical-momentum equation.
 
-Uses harmonic mean of damping coefficients weighted by Jacobian for proper
-vertical staggering in terrain-following coordinates:
-`α = (J[k+1]*α[k] + J[k]*α[k+1])/(J[k] + J[k+1])`
+The update is given by
 
-Uses `relaxation_wind[3]` for fixed background vertical velocity.
+```math
+\\widehat{w}_{k + 1 / 2} \\rightarrow \\left(1 + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t\\right)^{- 1} \\left\\{\\widehat{w}_{k + 1 / 2} + \\alpha_{\\mathrm{R}, k + 1 / 2} \\Delta t \\widehat{w}_\\mathrm{r} \\left[1 + a_\\mathrm{r} \\sin \\left(\\frac{2 \\pi t}{t_\\mathrm{r}}\\right)\\right]\\right\\},
+```
+
+where ``\\alpha_\\mathrm{R}`` is the Rayleigh-damping coefficient computed by [`PinCFlow.Update.compute_sponge!`](@ref) and ``\\Delta t`` is the time step given as input to this method. If `state.namelists.sponge.relax_to_mean` is `false`, ``\\widehat{w}_\\mathrm{r}``, ``a_\\mathrm{r}`` and ``t_\\mathrm{r}`` are given by the sponge-namelist parameters `relaxation_wind[3]`, `perturbation_amplitude` and `perturbation_period`, respectively. Otherwise, ``\\widehat{w}_\\mathrm{r}`` is the average of ``\\widehat{w}_{k + 1 / 2}`` across the terrain-following coordinate surface and ``a_\\mathrm{r} = 0``.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `dt`: Time step size
-  - `time`: Current simulation time
-  - `variable`: Variable type to apply sponge damping
-  - `model`: Model type for dispatch
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `time`: Simulation time.
+  - `variable`: Variable to apply Rayleigh damping to.
+  - `model`: Dynamic equations.
 """
 function apply_unified_sponge!(
     state::State,
@@ -448,15 +471,15 @@ apply_unified_sponge!(
 )
 ```
 
-No-op Return in non-compressible modes.
+Return in non-compressible modes (Exner-pressure fluctuations are only updated in the corrector step).
 
 # Arguments
 
-  - `state`: Simulation state
-  - `dt`: Time step size
-  - `time`: Current simulation time
-  - `variable`: Variable type to apply sponge damping
-  - `model`: Model type for dispatch
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `time`: Simulation time.
+  - `variable`: Variable to apply Rayleigh damping to.
+  - `model`: Dynamic equations.
 """
 function apply_unified_sponge!(
     state::State,
@@ -479,15 +502,23 @@ apply_unified_sponge!(
 )
 ```
 
-Apply the unified sponge to the Exner-pressure fluctuations.
+Update the Exner-pressure fluctuations to account for the Rayleigh damping applied to the mass-weighted potential temperature.
+
+The update is given by
+
+```math
+\\pi' \\rightarrow \\pi' - \\alpha_\\mathrm{R} \\Delta t P \\frac{\\partial \\pi'}{\\partial P} \\left(1 - \\frac{\\overline{\\rho}}{\\rho}\\right)
+```
+
+where ``\\alpha_\\mathrm{R}`` is the Rayleigh-damping coefficient computed by [`PinCFlow.Update.compute_sponge!`](@ref) and ``\\Delta t`` is the time step given as input to this method.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `dt`: Time step size
-  - `time`: Current simulation time. Not used in this implementation.
-  - `variable`: Variable type to apply sponge damping
-  - `model`: Model type for dispatch
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `time`: Simulation time.
+  - `variable`: Variable to apply Rayleigh damping to.
+  - `model`: Dynamic equations.
 """
 function apply_unified_sponge!(
     state::State,
@@ -533,15 +564,15 @@ apply_unified_sponge!(
 )
 ```
 
-No-op in non-compressible modes.
+Return in non-compressible modes (mass-weighted potential temperature is constant in time).
 
 # Arguments
 
-  - `state`: Simulation state
-  - `dt`: Time step size
-  - `time`: Current simulation time
-  - `variable`: Variable type to apply sponge damping
-  - `model`: Model type for dispatch
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `time`: Simulation time.
+  - `variable`: Variable to apply Rayleigh damping to.
+  - `model`: Dynamic equations.
 """
 function apply_unified_sponge!(
     state::State,
@@ -564,17 +595,23 @@ apply_unified_sponge!(
 )
 ```
 
-Apply sponge damping to mass-weighted potential-temperature field in compressible mode.
+Integrate the Rayleigh-damping term that represents the unified sponge in the thermodynamic-energy equation.
 
-Relaxes toward hydrostatic background: `p_bg = ρ₀*p₀/(ρ + ρ₀)`
+The update is given by
+
+```math
+P \\rightarrow \\left(1 + \\alpha_\\mathrm{R} \\Delta t\\right)^{- 1} P \\left(1 + \\alpha_\\mathrm{R} \\Delta t \\frac{\\overline{\\rho}}{\\rho}\\right),
+```
+
+where ``\\alpha_\\mathrm{R}`` is the Rayleigh-damping coefficient computed by [`PinCFlow.Update.compute_sponge!`](@ref) and ``\\Delta t`` is the time step given as input to this method.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `dt`: Time step size
-  - `time`: Current simulation time. Not used in this implementation.
-  - `variable`: Variable type to apply sponge damping
-  - `model`: Model type for dispatch
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `time`: Simulation time.
+  - `variable`: Variable to apply Rayleigh damping to.
+  - `model`: Dynamic equations.
 """
 function apply_unified_sponge!(
     state::State,

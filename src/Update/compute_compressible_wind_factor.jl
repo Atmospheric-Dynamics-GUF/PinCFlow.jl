@@ -7,16 +7,15 @@ compute_compressible_wind_factor(
 )
 ```
 
-Model-dispatched wind factor computation for momentum equation scaling.
+Compute the factor by which the wind should be multiplied at ``\\left(i + 1 / 2, j, k\\right)``, ``\\left(i, j + 1 / 2, k\\right)`` or ``\\left(i, j, k + 1 / 2\\right)``, depending on the component specified by `variable`.
 
-Applied in momentum updates as: `u_new = u_old + dt * force * wind_factor`
-where the wind factor ensures proper compressible flow dynamics.
+In compressible mode, the Euler steps that are used to integrate the right-hand side of the momentum equation update ``\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2}``, ``\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2}`` and ``\\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2}`` instead of ``u_{i + 1 / 2}``, ``v_{j + 1 / 2}`` and ``\\widehat{w}_{k + 1 / 2}``.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `indices`: Grid indices (ix, jy, kz)
-  - `variable`: Variable type for which to compute factor
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable for which the factor is needed.
 
 # Returns
 
@@ -41,17 +40,16 @@ compute_compressible_wind_factor(
 )
 ```
 
-Unity wind factor for non-compressible models.
+Return `1.0` as the factor by which the wind should be multiplied in non-compressible mode.
 
-Non-compressible models use constant density assumptions, eliminating
-the need for pressure-weighted momentum scaling.
+In non-compressible modes, the Euler steps that are used to integrate the right-hand side of the momentum equation update ``u_{i + 1 / 2}``, ``v_{j + 1 / 2}`` and ``\\widehat{w}_{k + 1 / 2}``.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `indices`: Grid indices (ix, jy, kz)
-  - `variable`: Variable type for which to compute factor
-  - `model`: Model type for dispatch
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable for which the factor is needed.
+  - `model`: Dynamic equations.
 
 # Returns
 
@@ -76,20 +74,16 @@ compute_compressible_wind_factor(
 )
 ```
 
-Pressure-weighted wind factor for zonal velocity.
+Compute the factor by which the zonal wind should be multiplied at ``\\left(i + 1 / 2, j, k\\right)``.
 
-Computes Jacobian-weighted pressure average between horizontally adjacent cells
-to account for variable density effects on zonal momentum transport.
-
-Averages pressure between grid points (i, i+1) weighted by grid Jacobians:
-factor = (J[i]*P[i] + J[i+1]*P[i+1]) / 2
+In compressible mode, the Euler steps that are used to integrate the right-hand side of the zonal-momentum equation update ``\\left(J P\\right)_{i + 1 / 2} u_{i + 1 / 2}``.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `indices`: Grid indices (ix, jy, kz)
-  - `variable`: Variable type for which to compute factor
-  - `model`: Model type for dispatch
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable for which the factor is needed.
+  - `model`: Dynamic equations.
 
 # Returns
 
@@ -120,24 +114,20 @@ compute_compressible_wind_factor(
 )
 ```
 
-Pressure-weighted wind factor for meridional velocity.
+Compute the factor by which the meridional wind should be multiplied at ``\\left(i, j + 1 / 2, k\\right)``.
 
-Computes Jacobian-weighted pressure average between meridionally adjacent cells
-for proper meridional momentum equation scaling in compressible flows.
-
-Averages pressure between grid points (j, j+1) weighted by grid Jacobians:
-factor = (J[i]*P[i] + J[i+1]*P[i+1]) / 2
+In compressible mode, the Euler steps that are used to integrate the right-hand side of the zonal-momentum equation update ``\\left(J P\\right)_{j + 1 / 2} v_{j + 1 / 2}``.
 
 # Arguments
 
-  - `state`: Simulation state
-  - `indices`: Grid indices (ix, jy, kz)
-  - `variable`: Variable type for which to compute factor
-  - `model`: Model type for dispatch
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable for which the factor is needed.
+  - `model`: Dynamic equations.
 
 # Returns
 
-  - `::AbstractFloat`: Meridional wind factor (`\\left(J P\\right)_{j + 1 / 2}``).
+  - `::AbstractFloat`: Meridional wind factor (``\\left(J P\\right)_{j + 1 / 2}``).
 """
 function compute_compressible_wind_factor(
     state::State,
@@ -164,20 +154,20 @@ compute_compressible_wind_factor(
 )
 ```
 
-Pressure-weighted wind factor for vertical velocity in compressible flows.
+Compute the factor by which the transformed vertical wind should be multiplied at ``\\left(i, j, k + 1 / 2\\right)``.
 
-Computes double Jacobian-weighted pressure average between vertically adjacent cells
-accounting for terrain-following coordinate transformations and variable density effects
-on vertical momentum transport.
+In compressible mode, the Euler steps that are used to integrate the right-hand side of the transformed-vertical-momentum equation update ``\\left(J P\\right)_{k + 1 / 2} \\widehat{w}_{k + 1 / 2}``. The interpolation is given by
 
-Formula: `J[k]*J[k+1]*(P[k] + P[k+1]) / (J[k] + J[k+1])`
+```math
+\\left(J P\\right)_{k + 1 / 2} = \\frac{J J_{k + 1} \\left(P + P_{k + 1}\\right)}{J + J_{k + 1}}.
+```
 
 # Arguments
 
-  - `state`: Simulation state
-  - `indices`: Grid indices (ix, jy, kz)
-  - `variable`: Variable type for which to compute factor
-  - `model`: Model type for dispatch
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable for which the factor is needed.
+  - `model`: Dynamic equations.
 
 # Returns
 
