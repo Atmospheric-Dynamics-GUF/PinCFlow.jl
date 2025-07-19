@@ -10,60 +10,44 @@ Grid{
 }
 ```
 
-Grid information.
+Collection of parameters and fields that describe the grid.
 
 # Fields
 
-## Domain Boundaries
+Domain boundaries:
 
-  - `lx`: Non-dimensional domain boundaries in x-direction [x_min, x_max]
-  - `ly`: Non-dimensional domain boundaries in y-direction [y_min, y_max]
-  - `lz`: Non-dimensional domain boundaries in z-direction [z_min, z_max]
+  - `lx::A`: Non-dimensional domain boundaries in ``\\widehat{x}``-direction.
+  - `ly::A`: Non-dimensional domain boundaries in ``\\widehat{y}``-direction.
+  - `lz::A`: Non-dimensional domain boundaries in ``\\widehat{z}``-direction.
 
-## Grid Spacing
+Grid spacing:
 
-  - `dx`: Uniform grid spacing in x-direction
-  - `dy`: Uniform grid spacing in y-direction
-  - `dz`: Uniform grid spacing in z-direction (before vertical stretching)
+  - `dx::B`: Grid spacing ``\\Delta \\widehat{x}``.
+  - `dy::B`: Grid spacing ``\\Delta \\widehat{y}``.
+  - `dz::B`: Grid spacing ``\\Delta \\widehat{z}``.
 
-## Coordinate Arrays
+Coordinate arrays:
 
-  - `x`: Cell-centered x-coordinates for the local domain
-  - `y`: Cell-centered y-coordinates for the local domain
-  - `z`: Cell-centered z-coordinates for the local domain
+  - `x::A`: Cell-centered ``\\widehat{x}``-coordinate of the entire domain.
+  - `y::A`: Cell-centered ``\\widehat{y}``-coordinate of the entire domain.
+  - `z::A`: Cell-centered ``\\widehat{z}``-coordinate of the entire domain.
 
-## Topography
+Topography:
 
-  - `topography_surface`: 2D surface topography field
-  - `topography_spectrum`: 3D spectral representation of topography
-  - `k_spectrum`: Wavenumber array in x-direction for spectral methods
-  - `l_spectrum`: Wavenumber array in y-direction for spectral methods
+  - `topography_surface::C`: Resolved surface topography.
+  - `topography_spectrum::D`: Spectrum of the unresolved surface topography.
+  - `k_spectrum::D`: Zonal wavenumbers of the spectrum.
+  - `l_spectrum::D`: Meridional wavenumbers of the spectrum.
 
-## Coordinate Transformation
+Coordinate transformation.
 
-  - `jac`: 3D Jacobian of the terrain-following coordinate transformation
-  - `met`: 5D metric tensor (3×3 at each grid point) for coordinate transformation
+  - `jac::E`: Jacobian.
+  - `met::F`: Metric tensor.
 
-## Physical Coordinates
+Physical coordinates:
 
-  - `ztfc`: Physical z-coordinates at cell centers (terrain-following)
-  - `ztildetfc`: Physical z-coordinates at cell faces (terrain-following)
-
-# Terrain-Following Coordinates
-
-The grid uses terrain-following coordinates where:
-
-  - Horizontal coordinates (x,y) remain Cartesian
-  - Vertical coordinate ζ follows the terrain: ζ = (z - h(x,y))/(H - h(x,y))
-  - Physical height: z_phys = h(x,y) + ζ * (H - h(x,y))
-
-where h(x,y) is surface topography and H is domain height.
-
-# See also
-
-  - [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref)
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+  - `ztfc::E`: Physical height at cell centers.
+  - `ztildetfc::E`: Physical height at vertical cell edges.
 """
 struct Grid{
     A <: AbstractVector{<:AbstractFloat},
@@ -109,32 +93,58 @@ end
 Grid(namelists::Namelists, constants::Constants, domain::Domain) -> Grid
 ```
 
-Construct a `Grid` instance for mesh generation with terrain-following coordinates.
+Construct a `Grid` instance, using the specifications in `namelists.grid` and the MPI decomposition described by `domain`.
 
-This constructor creates a 3D computational grid with terrain-following coordinates (TFC),
-including topography handling, coordinate transformations, and metric tensor computations.
+This constructor creates a 3D parallelized grid for a terrain-following, vertically stretched coordinate system. The global computational grid is defined by
+
+```math
+\\begin{align*}
+    \\widehat{x} & = L_x^{\\left(0\\right)} + \\left(i - i_0 + \\frac{1}{2}\\right) \\Delta \\widehat{x},\\\\
+    \\widehat{y} & = L_y^{\\left(0\\right)} + \\left(j - j_0 + \\frac{1}{2}\\right) \\Delta \\widehat{y},\\\\
+    \\widehat{z} & = L_z^{\\left(0\\right)} + \\left(k - k_0 + \\frac{1}{2}\\right) \\Delta \\widehat{z},\\\\
+\\end{align*}
+```
+
+where ``\\left(L_x^{\\left(0\\right)}, L_y^{\\left(0\\right)}, L_z^{\\left(0\\right)}\\right)``, ``\\left(i_0, j_0, k_0\\right)`` and ``\\left(\\Delta \\widehat{x}, \\Delta \\widehat{y}, \\Delta \\widehat{z}\\right)`` are the lower bounds of the domain, the lower index bounds of the MPI subdomains and the grid spacings (determined from the total extents and grid-point counts of the domain), respectively. The vertical layer centers and edges of the stretched and physical grids are given by
+
+```math
+\\begin{align*}
+    \\widetilde{z}_{k + 1 / 2} & = L_z \\left(\\frac{\\widehat{z}_{k + 1 / 2}}{L_z}\\right)^s, & z_{k + 1 / 2} & = \\frac{L_z - h_\\mathrm{b}}{L_z} \\widetilde{z}_{k + 1 / 2} + h_\\mathrm{b},\\\\
+    \\widetilde{z} & = \\frac{\\widetilde{z}_{k + 1 / 2} + \\widetilde{z}_{k - 1 / 2}}{2}, & z & = \\frac{L_z - h_\\mathrm{b}}{L_z} \\widetilde{z} + h_\\mathrm{b},
+\\end{align*}
+```
+
+where ``L_z``, ``s`` and ``h_\\mathrm{b}`` are the vertical extent of the domain (`diff(namelists.domain.lz)`), the vertical-stretching parameter (`namelists.grid.stretch_exponent`) and the resolved surface topography (as returned by `compute_topography`), respectively. Finally, the Jacobian is
+
+```math
+J = \\frac{L_z - h_\\mathrm{b}}{L_z} \\frac{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}{\\Delta \\widehat{z}}
+```
+
+and the non-Cartesian elements of the metric tensor are
+
+```math
+\\begin{align*}
+    G^{1 3} & = \\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}} \\frac{\\widetilde{z} - L_z}{L_z - h_\\mathrm{b}} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
+    G^{2 3} & = \\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}} \\frac{\\widetilde{z} - L_z}{L_z - h_\\mathrm{b}} \\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}},\\\\
+    G^{3 3} & = \\left\\{\\left(\\frac{L_z}{L_z - h_\\mathrm{b}}\\right)^2 + \\left(\\frac{\\widetilde{z} - L_z}{L_z - h_\\mathrm{b}}\\right)^2 \\left[\\left(\\frac{h_{\\mathrm{b}, i + 1} - h_{\\mathrm{b}, i - 1}}{2 \\Delta \\widehat{x}}\\right)^2 + \\left(\\frac{h_{\\mathrm{b}, j + 1} - h_{\\mathrm{b}, j - 1}}{2 \\Delta \\widehat{y}}\\right)^2\\right]\\right\\} \\left(\\frac{\\Delta \\widehat{z}}{\\widetilde{z}_{k + 1 / 2} - \\widetilde{z}_{k - 1 / 2}}\\right)^2.
+\\end{align*}
+```
 
 # Arguments
 
-  - `namelists`: Configuration object containing grid and domain parameters
-  - `constants`: Physical constants including reference length scale
-  - `domain`: MPI domain decomposition information
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
 # Returns
 
   - `::Grid`: `Grid` instance.
 
-# Additional Information
+# See also
 
-## Grid Generation Process
-
- 1. Non-dimensionalizes domain boundaries using reference length scale
- 2. Computes uniform grid spacings in each direction
- 3. Generates coordinate arrays for the local MPI subdomain
- 4. Applies vertical stretching transformation based on `stretch_exponent`
- 5. Computes topography using specified test case
- 6. Calculates Jacobian and metric tensor for terrain-following coordinates
- 7. Transforms computational coordinates to physical terrain-following coordinates
+  - [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref)
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function Grid(namelists::Namelists, constants::Constants, domain::Domain)
     (; sizex, sizey, sizez, lx_dim, ly_dim, lz_dim, nbz) = namelists.domain

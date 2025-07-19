@@ -3,43 +3,41 @@
 Constants{A <: AbstractFloat}
 ```
 
-Physical constants and reference quantities.
-
-This struct contains all dimensional and non-dimensional parameters used throughout the model, including thermodynamic constants, reference scales, and derived flow parameters for proper non-dimensionalization.
+Composite type for natural constants, reference quantities and non-dimensional parameters.
 
 # Fields
 
-## Physical Constants
+Natural constants:
 
-  - `gamma::A`: Ratio of specific heats ``c_p/c_v = 1.4``
-  - `gammainv::A`: Inverse ratio of specific heats ``1/\\gamma``
-  - `kappa::A`: Poisson constant ``(\\gamma-1)/\\gamma = R/c_p ≈ 0.286``
-  - `kappainv::A`: Inverse Poisson constant ``\\gamma/(\\gamma-1) = c_p/R``
-  - `rsp::A`: Specific gas constant ``R`` [J/(kg·K)] = 287.0
-  - `g::A`: Gravitational acceleration [m/s²] = 9.81
+  - `gamma::A`: Ratio of specific heats ``\\gamma = c_p / c_V = 1.4``.
+  - `gammainv::A`: Inverse ratio of specific heats ``1 / \\gamma``.
+  - `kappa::A`: Ratio between specific gas constant and specific heat capacity at constant pressure ``\\kappa = \\left(\\gamma - 1\\right) / \\gamma = R / c_p = 2 / 7``.
+  - `kappainv::A`: Ratio between specific heat capacity at constant pressure and specific gas constant ``1 / \\kappa``.
+  - `rsp::A`: Specific gas constant ``R = 287 \\, \\mathrm{J \\, kg^{- 1} \\, K^{- 1}}``.
+  - `g::A`: Gravitational acceleration ``g = 9.81 \\, \\mathrm{m \\, s^{- 2}}``.
 
-## Reference Quantities
+Reference quantities:
 
-  - `rhoref::A`: Reference density [kg/m³] ≡ 1.184 (sea level)
-  - `pref::A`: Reference pressure [Pa] ≡ 101325.0 (sea level)
-  - `aref::A`: Reference sound speed [m/s] ``= \\sqrt{p_\\mathrm{ref}/\\rho_\\mathrm{ref}}``
-  - `uref::A`: Reference velocity [m/s] ``= a_\\mathrm{ref}`` (Mach 1 scaling)
-  - `lref::A`: Reference length [m] ``= p_\\mathrm{ref}/(\\rho_\\mathrm{ref} \\cdot g)`` (pressure scale height)
-  - `tref::A`: Reference time [s] ``= l_\\mathrm{ref}/a_\\mathrm{ref}`` (acoustic time scale)
-  - `thetaref::A`: Reference temperature [K] ``= a_\\mathrm{ref}^2/r_\\mathrm{sp}``
-  - `fref::A`: Reference body force [N/m³] ``= \\rho_\\mathrm{ref} \\cdot u_\\mathrm{ref}^2/l_\\mathrm{ref}``
+  - `rhoref::A`: Reference density ``\\rho_\\mathrm{ref} = 1.184 \\, \\mathrm{kg \\, m^{- 3}}``.
+  - `pref::A`: Reference pressure ``p_\\mathrm{ref} = 101325 \\, \\mathrm{Pa}``.
+  - `aref::A`: Reference sound speed ``c_\\mathrm{ref} = \\sqrt{p_\\mathrm{ref} / \\rho_\\mathrm{ref}}``.
+  - `uref::A`: Reference wind ``u_\\mathrm{ref} = a_\\mathrm{ref}``.
+  - `lref::A`: Reference length ``L_\\mathrm{ref} = p_\\mathrm{ref} /\\left(g \\rho_\\mathrm{ref}\\right)``.
+  - `tref::A`: Reference time ``t_\\mathrm{ref} = L_\\mathrm{ref} / a_\\mathrm{ref}``.
+  - `thetaref::A`: Reference potential temperature ``\\theta_\\mathrm{ref} = a_\\mathrm{ref}^2 / R``.
+  - `fref::A`: Reference body force ``F_\\mathrm{ref} = \\rho_\\mathrm{ref} u_\\mathrm{ref}^2 / L_\\mathrm{ref}``.
 
-## Non-dimensional Parameters
+Non-dimensional parameters
 
-  - `g_ndim::A`: Non-dimensional gravity ``= g/(u_\\mathrm{ref}^2/l_\\mathrm{ref}) ≡ \\mathrm{Fr}^{-2}``
-  - `re::A`: Reynolds number ``= \\rho_\\mathrm{ref} \\cdot u_\\mathrm{ref} \\cdot l_\\mathrm{ref}/\\mu``
-  - `ma::A`: Mach number ``= u_\\mathrm{ref}/a_\\mathrm{ref} ≡ 1.0`` (by construction)
-  - `mainv2::A`: Inverse Mach number squared ``= (a_\\mathrm{ref}/u_\\mathrm{ref})^2``
-  - `ma2::A`: Mach number squared ``= (u_\\mathrm{ref}/a_\\mathrm{ref})^2``
-  - `fr::A`: Froude number ``= u_\\mathrm{ref}/\\sqrt{g \\cdot l_\\mathrm{ref}} ≡ 1.0`` (by construction)
-  - `frinv2::A`: Inverse Froude number squared ``= g \\cdot l_\\mathrm{ref}/u_\\mathrm{ref}^2``
-  - `fr2::A`: Froude number squared ``= u_\\mathrm{ref}^2/(g \\cdot l_\\mathrm{ref})``
-  - `sig::A`: Stratification parameter ``= \\mathrm{Ma}^2/\\mathrm{Fr}^2 = \\rho_\\mathrm{ref} \\cdot g \\cdot l_\\mathrm{ref}/p_\\mathrm{ref}``
+  - `g_ndim::A`: Non-dimensional gravitational acceleration ``\\widehat{g} = g L_\\mathrm{ref} / u_\\mathrm{ref}^2``.
+  - `re::A`: Reynolds number ``\\mathrm{Re} = L_\\mathrm{ref} u_\\mathrm{ref} / \\mu`` (with ``\\mu`` being the kinematic viscosity at the surface).
+  - `ma::A`: Mach number ``\\mathrm{Ma} = u_\\mathrm{ref} / a_\\mathrm{ref}``.
+  - `mainv2::A`: Inverse Mach number squared ``\\mathrm{Ma}^{- 2}``.
+  - `ma2::A`: Mach number squared ``\\mathrm{Ma}^2``.
+  - `fr::A`: Froude number ``\\mathrm{Fr} = u_\\mathrm{ref} / \\sqrt{g L_\\mathrm{ref}}``.
+  - `frinv2::A`: Inverse Froude number squared ``\\mathrm{Fr}^{- 2}``.
+  - `fr2::A`: Froude number squared ``\\mathrm{Fr}^{2}``.
+  - `sig::A`: Ratio between squared Mach number and squared Froude number ``\\sigma = \\mathrm{Ma}^2 / \\mathrm{Fr}^2``.
 """
 struct Constants{A <: AbstractFloat}
 
@@ -80,26 +78,13 @@ end
 Constants(namelists::Namelists)
 ```
 
-Creates a `Constants` instance from simulation parameters.
+Creates a `Constants` instance.
+
+The Reynolds number is the only constant that depends on the model parameters in `namelists`. If `namelists.atmosphere.specifyreynolds` is `false`, the Reynolds number is ``\\mathrm{Re} = L_\\mathrm{ref} u_\\mathrm{ref} / \\mu``, with ``\\mu`` being the kinematic viscosity at the surface, given by `namelists.atmosphere.mu_viscous_dim`. Otherwise, it is set to the inverse of `namelists.atmosphere.reinv`.
 
 # Arguments
 
-  - `namelists`: Configuration containing:
-
-      + `atmosphere.specifyreynolds`: Whether to use prescribed Reynolds number
-      + `atmosphere.reinv`: Inverse Reynolds number (if prescribed)
-      + `atmosphere.mu_viscous_dim`: Dynamic viscosity (if computed)
-
-# Non-dimensionalization scheme
-
-The model uses a non-dimensionalization based on:
-
-  - **Length scale**: Pressure scale height ``l_\\mathrm{ref} = p_\\mathrm{ref}/(\\rho_\\mathrm{ref}g)``
-  - **Velocity scale**: Sound speed ``u_\\mathrm{ref} = \\sqrt{p_\\mathrm{ref}/\\rho_\\mathrm{ref}}``
-  - **Time scale**: Acoustic time ``t_\\mathrm{ref} = l_\\mathrm{ref}/u_\\mathrm{ref}``
-  - **Pressure scale**: Reference pressure ``p_\\mathrm{ref}``
-  - **Density scale**: Reference density ``\\rho_\\mathrm{ref}``
-  - **Temperature scale**: Acoustic temperature ``\\theta_\\mathrm{ref} = u_\\mathrm{ref}^2/r_\\mathrm{sp}``
+  - `namelists`: Namelists with all model parameters.
 
 # Returns
 

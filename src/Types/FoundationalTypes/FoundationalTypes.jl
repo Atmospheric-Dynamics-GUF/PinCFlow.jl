@@ -21,7 +21,7 @@ include("Grid.jl")
 include("Atmosphere.jl")
 include("Sponge.jl")
 
-include("compute_coriolis_parameter.jl")
+include("compute_coriolis_frequency.jl")
 include("compute_topography.jl")
 
 # This is not ideal - maybe it would be better to have copies of these

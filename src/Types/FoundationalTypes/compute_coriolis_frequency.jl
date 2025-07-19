@@ -1,6 +1,6 @@
 """
 ```julia
-compute_coriolis_parameter(
+compute_coriolis_frequency(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
@@ -9,7 +9,7 @@ compute_coriolis_parameter(
 )
 ```
 
-Set the Coriolis parameter to a constant.
+Set the Coriolis parameter to ``f = f_0``, with ``f_0`` being given by `namelists.atmosphere.coriolis_frequency`.
 
 # Arguments
 
@@ -23,7 +23,7 @@ Set the Coriolis parameter to a constant.
 
   - `::AbstractVector{<:AbstractFloat}`: Coriolis parameter with no meridional dependence.
 """
-function compute_coriolis_parameter(
+function compute_coriolis_frequency(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,

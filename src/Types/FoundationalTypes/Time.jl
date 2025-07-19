@@ -3,16 +3,14 @@
 Time{A <: Integer, B <: AbstractVector{<:AbstractFloat}}
 ```
 
-Time integration parameters for explicit Runge-Kutta scheme.
-
-This struct encapsulates the coefficients and stage information for multi-stage explicit Runge-Kutta time integration methods used to advance the governing equations in time.
+Time integration parameters for the low-storage third-order Runge-Kutta scheme.
 
 # Fields
 
-  - `nstages::A`: Number of Runge-Kutta stages
-  - `alphark::B`: RK coefficients for intermediate stage combinations [α₁, α₂, α₃]
-  - `betark::B`: RK coefficients for time step fractions [β₁, β₂, β₃]
-  - `stepfrac::B`: Fractional time steps for each stage
+  - `nstages::A`: Number of Runge-Kutta stages, i.e. ``n_\\mathrm{RK} = 3``.
+  - `alphark::B`: Runge-Kutta coefficients for the total tendency, i.e. ``\\boldsymbol{\\alpha}_\\mathrm{RK} = \\left(0, - 5 / 9, - 153 / 128\\right)``.
+  - `betark::B`: Runge-Kutta coefficients for the previous tendency, i.e. ``\\boldsymbol{\\beta}_\\mathrm{RK} = \\left(1 / 3, 15 / 16, 8 / 15\\right)``.
+  - `stepfrac::B`: Time step fractions for each stage, i.e. ``\\boldsymbol{f}_\\mathrm{RK} = \\left(1 / 3, 5 / 12, 1 / 4\\right)``.
 """
 struct Time{A <: Integer, B <: AbstractVector{<:AbstractFloat}}
     nstages::A
