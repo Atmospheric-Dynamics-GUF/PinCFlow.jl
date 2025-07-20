@@ -3,13 +3,19 @@
 Increments{A <: AbstractArray{<:AbstractFloat, 4}}
 ```
 
-Ray propagation increments for position and wavenumber evolution.
+Ray-volume-propagation increments.
 
 # Fields
 
-  - `dxray`, `dyray`, `dzray`: Position increments
-  - `dkray`, `dlray`, `dmray`: Wavenumber increments
-  - `ddxray`, `ddyray`, `ddzray`: Second-order position increments
+  - `dxray::A`: Increments for the position in ``x``.
+  - `dyray::A`: Increments for the position in ``y``.
+  - `dzray::A`: Increments for the position in ``z``.
+  - `dkray::A`: Increments for the position in ``k``.
+  - `dlray::A`: Increments for the position in ``l``.
+  - `dmray::A`: Increments for the position in ``m``.
+  - `ddxray::A`: Increments for the extent in ``x``.
+  - `ddyray::A`: Increments for the extent in ``y``.
+  - `ddzray::A`: Increments for the extent in ``z``.
 """
 struct Increments{A <: AbstractArray{<:AbstractFloat, 4}}
     dxray::A
@@ -28,14 +34,14 @@ end
 Increments(nray_wrk::Integer, nxx::Integer, nyy::Integer, nzz::Integer)
 ```
 
-Construct an `Increments` instance.
+Construct an `Increments` instance, with arrays sized according to the given dimensions.
 
 # Arguments
 
-  - `nray_wrk`: Number of working rays
-  - `nxx`: Number of grid points in x-direction
-  - `nyy`: Number of grid points in y-direction
-  - `nzz`: Number of grid points in z-direction
+  - `nray_wrk`: Size of the spectral dimension of ray-volume arrays.
+  - `nxx`: Number of subdomain grid points in ``\\widehat{x}``-direction.
+  - `nyy`: Number of subdomain grid points in ``\\widehat{y}``-direction.
+  - `nzz`: Number of subdomain grid points in ``\\widehat{z}``-direction.
 
 # Returns
 
