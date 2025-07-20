@@ -1,6 +1,20 @@
 """
 ```julia
-Namelists
+Namelists{
+    A <: DomainNamelist,
+    B <: OutputNamelist,
+    C <: SettingNamelist,
+    D <: DiscretizationNamelist,
+    E <: PoissonNamelist,
+    F <: AtmosphereNamelist,
+    G <: GridNamelist,
+    H <: SpongeNamelist,
+    I <: WKBNamelist,
+    J <: TracerNamelist,
+    K <: IceNamelist,
+    L <: TurbulenceNamelist,
+    M <: WavePacketNamelist,
+}
 ```
 
 Collection of all configurable model parameters.
