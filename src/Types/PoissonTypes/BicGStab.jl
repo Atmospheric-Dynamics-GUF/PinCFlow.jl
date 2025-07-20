@@ -6,25 +6,20 @@ BicGStab{
 }
 ```
 
-Workspace arrays for the BiCGStab iterative linear solver.
+Workspace arrays used by [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref).
 
 # Fields
 
-  - `r_vm::A`: Vertically-averaged residual vector for convergence monitoring (nx × ny)
-  - `p::B`: Search direction vector (nx × ny × nz)
-  - `r0::B`: Initial residual vector (fixed throughout iteration) (nx × ny × nz)
-  - `rold::B`: Previous residual vector (nx × ny × nz)
-  - `r::B`: Current residual vector (nx × ny × nz)
-  - `s::B`: Intermediate vector in BiCGStab algorithm (nx × ny × nz)
-  - `t::B`: Matrix-vector product of s (nx × ny × nz)
-  - `v::B`: Matrix-vector product of p (nx × ny × nz)
-  - `matvec::B`: General matrix-vector product workspace (nx × ny × nz)
-  - `v_pc::B`: Preconditioned vector workspace (nx × ny × nz)
-
-# Usage
-
-Provides temporary storage for [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref)
-to avoid repeated memory allocations during iterative solving.
+  - `r_vm::A`: Vertically-averaged residual.
+  - `p::B`: Search direction.
+  - `r0::B`: Initial residual.
+  - `rold::B`: Previous residual.
+  - `r::B`: Current residual.
+  - `s::B`: Intermediate solution.
+  - `t::B`: Result of applying the linear operator to `s`.
+  - `v::B`: Result of applying the linear operator to `p`.
+  - `matvec::B`: Intermediate result of applying the linear operator.
+  - `v_pc::B`: Output of the preconditioner.
 """
 struct BicGStab{
     A <: AbstractMatrix{<:AbstractFloat},
@@ -44,21 +39,20 @@ end
 
 """
 ```julia
-BicGStab(namelists::Namelists, domain::Domain)
+BicGStab(domain::Domain)
 ```
 
-Initialize BiCGStab workspace arrays sized according to local domain.
+Initialize BicGStab workspace arrays sized according to dimensions of the MPI subdomain.
 
 # Arguments
 
-  - `namelists`: Configuration parameters (unused)
-  - `domain`: Local domain dimensions
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
 # Returns
 
   - `::BicGStab`: `BicGStab` instance with zero-initialized arrays.
 """
-function BicGStab(namelists::Namelists, domain::Domain)
+function BicGStab(domain::Domain)
     (; nx, ny, nz) = domain
     return BicGStab(zeros(nx, ny), [zeros(nx, ny, nz) for i in 1:9]...)
 end

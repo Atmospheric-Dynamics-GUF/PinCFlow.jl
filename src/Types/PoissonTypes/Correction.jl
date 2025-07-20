@@ -3,18 +3,12 @@
 Correction{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
-Storage for pressure correction terms applied to velocity fields.
+Correction terms used to update the horizontal wind in the corrector step.
 
 # Fields
 
-  - `corx::A`: Pressure correction in x-direction (nxx x nyy x nzz)
-  - `cory::A`: Pressure correction in y-direction (nxx x nyy x nzz)
-
-# Usage
-
-Correction terms are computed from the pressure solution and applied by
-[`PinCFlow.PoissonSolver.correct!`](@ref) to ensure mass conservation
-in the velocity field.
+  - `corx::A`: Correction term for the zonal wind.
+  - `cory::A`: Correction term for the meridional wind.
 """
 struct Correction{A <: AbstractArray{<:AbstractFloat, 3}}
     corx::A
@@ -26,11 +20,11 @@ end
 Correction(domain::Domain)
 ```
 
-Initialize correction arrays sized according to extended domain.
+Initialize correction arrays sized according to the dimensions of the MPI subdomain.
 
 # Arguments
 
-  - `domain`: Domain specification with extended dimensions
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
 # Returns
 
