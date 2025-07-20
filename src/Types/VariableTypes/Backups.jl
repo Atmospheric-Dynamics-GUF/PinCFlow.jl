@@ -3,20 +3,15 @@
 Backups{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
-Storage container for backup copies of predictand variables during time stepping.
+Container for backup copies needed in the semi-implicit time scheme.
 
 # Fields
 
-  - `rhoold::A`: Previous density values (nxx x nyy x nzz)
-  - `rhopold::A`: Previous density fluctuation values (nxx x nyy x nzz)
-  - `uold::A`: Previous zonal velocity values (nxx x nyy x nzz)
-  - `vold::A`: Previous meridional velocity values (nxx x nyy x nzz)
-  - `wold::A`: Previous vertical velocity values (nxx x nyy x nzz)
-
-# Usage
-
-Backup fields store previous time step values for multi-stage time integration schemes.
-Used by [`PinCFlow.Integration.save_backups!`](@ref) to preserve state before updates.
+  - `rhoold::A`: Density backup.
+  - `rhopold::A`: Density-fluctuations backup.
+  - `uold::A`: Zonal-wind backup.
+  - `vold::A`: Meridional-wind backup.
+  - `wold::A`: Transformed-vertical-wind backup.
 """
 struct Backups{A <: AbstractArray{<:AbstractFloat, 3}}
     rhoold::A
@@ -31,11 +26,11 @@ end
 Backups(domain::Domain)
 ```
 
-Initialize backup storage arrays sized according to domain decomposition.
+Initialize backup arrays sized according to the dimensions of the MPI subdomain.
 
 # Arguments
 
-  - `domain`: Domain specification containing grid dimensions
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
 # Returns
 

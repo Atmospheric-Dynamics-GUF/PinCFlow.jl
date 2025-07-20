@@ -10,54 +10,16 @@ Variables{
 }
 ```
 
-Complete field variable storage for the simulation.
-
-Central container for all field variables and computational arrays used during
-time integration, including prognostic fields, tendencies, auxiliary variables,
-and flux calculations.
+Container for arrays needed for the prediction of the prognostic variables.
 
 # Fields
 
-  - `predictands::A`: Prognostic variables (u, v, w, ρ, p, π')
-  - `tendencies::B`: Time derivatives for Runge-Kutta integration
-  - `backups::C`: Previous time step storage for multi-stage scheme
-  - `auxiliaries::D`: Diagnostic fields and intermediate calculations
-  - `reconstructions::E`: Left/right states at cell interfaces (MUSCL)
-  - `fluxes::F`: Flux vectors for advective and pressure terms
-
-# Constructor
-
-    Variables(namelists, constants, domain, atmosphere)
-
-Create complete variable storage from simulation configuration.
-
-# Usage Context
-
-```julia
-# Initialize all field storage
-vars = Variables(namelists, constants, domain, atmosphere)
-
-# Access prognostic fields
-u, v, w = vars.predictands.u, vars.predictands.v, vars.predictands.w
-ρ, p = vars.predictands.rho, vars.predictands.p
-
-# Access tendencies during RK stages
-du_dt = vars.tendencies.du
-dp_dt = vars.tendencies.dpip
-
-# Use reconstructions in flux calculations
-apply_3d_muscl!(vars.predictands, vars.reconstructions, state)
-compute_fluxes!(vars.fluxes, vars.reconstructions, state)
-```
-
-# Component Relationships
-
-  - `predictands` stores evolving solution fields
-  - `tendencies` accumulates time derivative contributions
-  - `backups` preserves previous values for multi-stage time stepping
-  - `auxiliaries` computes diagnostic quantities from predictands
-  - `reconstructions` provides high-order interface values for fluxes
-  - `fluxes` stores numerical flux vectors for finite volume updates
+  - `predictands::A`: Prognostic variables.
+  - `tendencies::B`: Runge-Kutta updates and pressure correction.
+  - `backups::C`: Backups of the prognostic variables needed in the semi-implicit time scheme.
+  - `auxiliaries::D`: Auxiliary array needed in the reconstruction.
+  - `reconstructions::E`: Reconstructions of the prognostic variables.
+  - `fluxes::F`: Fluxes of the prognostic variables.
 """
 struct Variables{
     A <: Predictands,
@@ -85,18 +47,14 @@ Variables(
 )
 ```
 
-Initialize complete field variable storage for atmospheric simulation.
-
-Creates and organizes all variable containers required for the simulation,
-including prognostic fields, time derivatives, auxiliary arrays, and
-computational workspace for finite volume calculations.
+Construct a `Variables` instance, with array dimensions and initial values set according to the model configuration.
 
 # Arguments
 
-  - `namelists`: Simulation configuration
-  - `constants`: Physical constants and reference scales
-  - `domain`: Computational domain and MPI decomposition
-  - `atmosphere`: Background atmospheric state
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `atmosphere`: Atmospheric-background fields.
 
 # Returns
 
