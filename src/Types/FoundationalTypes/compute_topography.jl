@@ -21,11 +21,8 @@ The supported topography shapes are as follows, listed according to the value of
     ```
 
  2. ``-``
-
  3. ``-``
-
  4. ``-``
-
  5. 2D cosine envelope and even background:
 
     ```math
@@ -37,9 +34,7 @@ The supported topography shapes are as follows, listed according to the value of
         \\end{cases}
     \\end{align*}
     ```
-
  6. ``-``
-
  7. 2D Gaussian envelope and even background:
 
     ```math
@@ -48,9 +43,7 @@ The supported topography shapes are as follows, listed according to the value of
         h_\\mathrm{w} \\left(x\\right) & = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right]
     \\end{align*}
     ```
-
  8. ``-``
-
  9. 2D cosine envelope and cosine background:
 
     ```math
@@ -62,10 +55,8 @@ The supported topography shapes are as follows, listed according to the value of
         \\end{cases}
     \\end{align*}
     ```
-
- 10. ``-``
-
- 11. 2D Gaussian envelope and Gaussian background:
+10. ``-``
+11. 2D Gaussian envelope and Gaussian background:
 
     ```math
     \\begin{align*}
@@ -73,10 +64,8 @@ The supported topography shapes are as follows, listed according to the value of
         h_\\mathrm{w} \\left(x\\right) & = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right]
     \\end{align*}
     ```
-
- 12. ``-``
-
- 13. 3D WKB topography:
+12. ``-``
+13. 3D WKB topography:
 
     ```math
     \\begin{align*}
@@ -322,19 +311,16 @@ The supported topography shapes are as follows, listed according to the value of
         \\frac{h_0}{2} & \\mathrm{else}
     \\end{cases}
     ```
-
  7. 2D Gaussian envelope and even background:
 
     ```math
     h \\left(x\\right) = \\frac{h_0}{2} \\left\\{1 + \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right] \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
     ```
-
  8. 3D Gaussian envelope and even background:
 
     ```math
     h \\left(x, y\\right) = \\frac{h_0}{2} \\left\\{1 + \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2 - \\left(\\frac{y - y_0}{r_l l_0}\\right)^2\\right] \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
     ```
-
  9. 2D cosine envelope and cosine background:
 
     ```math
@@ -343,8 +329,7 @@ The supported topography shapes are as follows, listed according to the value of
         0 & \\mathrm{else}
     \\end{cases}
     ```
-
- 10. 3D cosine envelope and cosine background:
+10. 3D cosine envelope and cosine background:
 
     ```math
     h \\left(x, y\\right) = \\begin{cases}
@@ -352,20 +337,17 @@ The supported topography shapes are as follows, listed according to the value of
         0 & \\mathrm{else}
     \\end{cases}
     ```
-
- 11. 2D Gaussian envelope and Gaussian background:
+11. 2D Gaussian envelope and Gaussian background:
 
     ```math
     h \\left(x\\right) = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right] \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
     ```
-
- 12. 3D Gaussian envelope and Gaussian background:
+12. 3D Gaussian envelope and Gaussian background:
 
     ```math
     h \\left(x, y\\right) = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2 - \\left(\\frac{y - y_0}{r_l l_0}\\right)^2\\right] \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
     ```
-
- 13. 3D WKB topography:
+13. 3D WKB topography:
 
     ```math
     \\begin{align*}
