@@ -21,12 +21,12 @@ end
 """
 ```julia
 DiscretizationNamelist(;
-    cfl = 5.0E-1,
-    cfl_wave = 5.0E-1,
-    dtmin_dim = 1.0E-6,
-    dtmax_dim = 1.0E+3,
-    adaptive_time_step = true,
-    limitertype = MCVariant(),
+    cfl::AbstractFloat = 5.0E-1,
+    cfl_wave::AbstractFloat = 5.0E-1,
+    dtmin_dim::AbstractFloat = 1.0E-6,
+    dtmax_dim::AbstractFloat = 1.0E+3,
+    adaptive_time_step::Bool = true,
+    limitertype::AbstractLimiter = MCVariant(),
 )
 ```
 
@@ -46,12 +46,12 @@ Construct a DiscretizationNamelist object, which holds parameters for the time d
   - `::DiscretizationNamelist`: `DiscretizationNamelist` instance.
 """
 function DiscretizationNamelist(;
-    cfl = 5.0E-1,
-    cfl_wave = 5.0E-1,
-    dtmin_dim = 1.0E-6,
-    dtmax_dim = 1.0E+3,
-    adaptive_time_step = true,
-    limitertype = MCVariant(),
+    cfl::AbstractFloat = 5.0E-1,
+    cfl_wave::AbstractFloat = 5.0E-1,
+    dtmin_dim::AbstractFloat = 1.0E-6,
+    dtmax_dim::AbstractFloat = 1.0E+3,
+    adaptive_time_step::Bool = true,
+    limitertype::AbstractLimiter = MCVariant(),
 )
     return DiscretizationNamelist(
         cfl,

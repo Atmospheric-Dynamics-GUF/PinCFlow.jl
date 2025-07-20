@@ -18,13 +18,13 @@ end
 """
 ```julia
 PoissonNamelist(;
-    tolpoisson = 1.0E-8,
-    maxiterpoisson = 1000,
-    preconditioner = true,
-    dtau = 1.0E+0,
-    maxiteradi = 2,
-    initialcleaning = true,
-    relative_tolerance = false,
+    tolpoisson::AbstractFloat = 1.0E-8,
+    maxiterpoisson::Integer = 1000,
+    preconditioner::Bool = true,
+    dtau::AbstractFloat = 1.0E+0,
+    maxiteradi::Integer = 2,
+    initialcleaning::Bool = true,
+    relative_tolerance::Bool = false,
 )
 ```
 
@@ -45,13 +45,13 @@ Construct a PoissonNamelist instance, which holds parameters for the Poisson sol
   - `::PoissonNamelist`: `PoissonNamelist` instance.
 """
 function PoissonNamelist(;
-    tolpoisson = 1.0E-8,
-    maxiterpoisson = 1000,
-    preconditioner = true,
-    dtau = 1.0E+0,
-    maxiteradi = 2,
-    initialcleaning = true,
-    relative_tolerance = false,
+    tolpoisson::AbstractFloat = 1.0E-8,
+    maxiterpoisson::Integer = 1000,
+    preconditioner::Bool = true,
+    dtau::AbstractFloat = 1.0E+0,
+    maxiteradi::Integer = 2,
+    initialcleaning::Bool = true,
+    relative_tolerance::Bool = false,
 )
     return PoissonNamelist(
         tolpoisson,

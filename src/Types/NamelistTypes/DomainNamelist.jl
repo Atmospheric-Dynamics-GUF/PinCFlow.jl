@@ -28,19 +28,19 @@ end
 """
 ```julia
 DomainNamelist(;
-    sizex = 4,
-    sizey = 4,
-    sizez = 4,
-    nbx = 3,
-    nby = 3,
-    nbz = 3,
-    lx_dim = (0.0E+0, 1.0E+3),
-    ly_dim = (0.0E+0, 1.0E+3),
-    lz_dim = (0.0E+0, 1.0E+3),
-    npx = 1,
-    npy = 1,
-    npz = 1,
-    base_comm = MPI.COMM_WORLD,
+    sizex::Integer = 4,
+    sizey::Integer = 4,
+    sizez::Integer = 4,
+    nbx::Integer = 3,
+    nby::Integer = 3,
+    nbz::Integer = 3,
+    lx_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
+    ly_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
+    lz_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
 )
 ```
 
@@ -67,19 +67,19 @@ Construct a DomainNamelist, which holds parameters for the spatial domain.
   - `::DomainNamelist`: `DomainNamelist` instance.
 """
 function DomainNamelist(;
-    sizex = 4,
-    sizey = 4,
-    sizez = 4,
-    nbx = 3,
-    nby = 3,
-    nbz = 3,
-    lx_dim = (0.0E+0, 1.0E+3),
-    ly_dim = (0.0E+0, 1.0E+3),
-    lz_dim = (0.0E+0, 1.0E+3),
-    npx = 1,
-    npy = 1,
-    npz = 1,
-    base_comm = MPI.COMM_WORLD,
+    sizex::Integer = 4,
+    sizey::Integer = 4,
+    sizez::Integer = 4,
+    nbx::Integer = 3,
+    nby::Integer = 3,
+    nbz::Integer = 3,
+    lx_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
+    ly_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
+    lz_dim::NTuple{2, <:AbstractFloat} = (0.0E+0, 1.0E+3),
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
+    base_comm::MPI.Comm = MPI.COMM_WORLD,
 )
     return DomainNamelist(
         sizex,

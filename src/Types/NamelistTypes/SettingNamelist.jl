@@ -22,9 +22,9 @@ end
 """
 ```julia
 SettingNamelist(;
-    model = PseudoIncompressible(),
-    testcase = MountainWave(),
-    zboundaries = SolidWallBoundaries(),
+    model::AbstractModel = PseudoIncompressible(),
+    testcase::AbstractTestCase = MountainWave(),
+    zboundaries::AbstractBoundaries = SolidWallBoundaries(),
 )
 ```
 
@@ -41,9 +41,9 @@ Core simulation configuration specifying equation set, test case, and vertical b
   - `::SettingNamelist`: `SettingNamelist` instance.
 """
 function SettingNamelist(;
-    model = PseudoIncompressible(),
-    testcase = MountainWave(),
-    zboundaries = SolidWallBoundaries(),
+    model::AbstractModel = PseudoIncompressible(),
+    testcase::AbstractTestCase = MountainWave(),
+    zboundaries::AbstractBoundaries = SolidWallBoundaries(),
 )
     return SettingNamelist(model, testcase, zboundaries)
 end

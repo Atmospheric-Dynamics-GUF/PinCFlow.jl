@@ -18,13 +18,13 @@ end
 """
 ```julia
 GridNamelist(;
-    mountainheight_dim = 1.0E+2,
-    mountainwidth_dim = 1.0E+3,
-    mountain_case = 1,
-    height_factor = 1.0E+0,
-    width_factor = 1.0E+0,
-    spectral_modes = 1,
-    stretch_exponent = 1.0E+0,
+    mountainheight_dim::AbstractFloat = 1.0E+2,
+    mountainwidth_dim::AbstractFloat = 1.0E+3,
+    mountain_case::Integer = 1,
+    height_factor::AbstractFloat = 1.0E+0,
+    width_factor::AbstractFloat = 1.0E+0,
+    spectral_modes::Integer = 1,
+    stretch_exponent::AbstractFloat = 1.0E+0,
 )
 ```
 
@@ -45,13 +45,13 @@ Configuration parameters for topography and vertical grid stretching.
   - `::GridNamelist`: `GridNamelist` instance.
 """
 function GridNamelist(;
-    mountainheight_dim = 1.0E+2,
-    mountainwidth_dim = 1.0E+3,
-    mountain_case = 1,
-    height_factor = 1.0E+0,
-    width_factor = 1.0E+0,
-    spectral_modes = 1,
-    stretch_exponent = 1.0E+0,
+    mountainheight_dim::AbstractFloat = 1.0E+2,
+    mountainwidth_dim::AbstractFloat = 1.0E+3,
+    mountain_case::Integer = 1,
+    height_factor::AbstractFloat = 1.0E+0,
+    width_factor::AbstractFloat = 1.0E+0,
+    spectral_modes::Integer = 1,
+    stretch_exponent::AbstractFloat = 1.0E+0,
 )
     return GridNamelist(
         mountainheight_dim,

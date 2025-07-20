@@ -9,9 +9,11 @@ end
 
 """
 ```julia
-TurbulenceNamelist(; turbulencesetup = NoTurbulence())
+TurbulenceNamelist(; turbulencesetup::AbstractTurbulence = NoTurbulence())
 ```
 """
-function TurbulenceNamelist(; turbulencesetup = NoTurbulence())
+function TurbulenceNamelist(;
+    turbulencesetup::AbstractTurbulence = NoTurbulence(),
+)
     return TurbulenceNamelist(turbulencesetup)
 end

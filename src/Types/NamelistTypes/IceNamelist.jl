@@ -9,9 +9,9 @@ end
 
 """
 ```julia
-IceNamelist(; icesetup = NoIce())
+IceNamelist(; icesetup::AbstractIce = NoIce())
 ```
 """
-function IceNamelist(; icesetup = NoIce())
+function IceNamelist(; icesetup::AbstractIce = NoIce())
     return IceNamelist(icesetup)
 end

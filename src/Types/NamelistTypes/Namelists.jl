@@ -54,15 +54,19 @@ end
 """
 ```julia
 Namelists(;
-    domain = DomainNamelist(),
-    output = OutputNamelist(),
-    setting = SettingNamelist(),
-    discretization = DiscretizationNamelist(),
-    poisson = PoissonNamelist(),
-    atmosphere = AtmosphereNamelist(),
-    grid = GridNamelist(),
-    sponge = SpongeNamelist(),
-    wkb = WKBNamelist(),
+    domain::DomainNamelist = DomainNamelist(),
+    output::OutputNamelist = OutputNamelist(),
+    setting::SettingNamelist = SettingNamelist(),
+    discretization::DiscretizationNamelist = DiscretizationNamelist(),
+    poisson::PoissonNamelist = PoissonNamelist(),
+    atmosphere::AtmosphereNamelist = AtmosphereNamelist(),
+    grid::GridNamelist = GridNamelist(),
+    sponge::SpongeNamelist = SpongeNamelist(),
+    wkb::WKBNamelist = WKBNamelist(),
+    tracer::TracerNamelist = TracerNamelist(),
+    ice::IceNamelist = IceNamelist(),
+    turbulence::TurbulenceNamelist = TurbulenceNamelist(),
+    wavepacket::WavePacketNamelist = WavePacketNamelist(),
 )
 ```
 
@@ -73,19 +77,19 @@ Create a new `Namelist` instance with the provided namelists. Omitted namelists 
   - `::Namelists`: `Namelists` instance.
 """
 function Namelists(;
-    domain = DomainNamelist(),
-    output = OutputNamelist(),
-    setting = SettingNamelist(),
-    discretization = DiscretizationNamelist(),
-    poisson = PoissonNamelist(),
-    atmosphere = AtmosphereNamelist(),
-    grid = GridNamelist(),
-    sponge = SpongeNamelist(),
-    wkb = WKBNamelist(),
-    tracer = TracerNamelist(),
-    ice = IceNamelist(),
-    turbulence = TurbulenceNamelist(),
-    wavepacket = WavePacketNamelist(),
+    domain::DomainNamelist = DomainNamelist(),
+    output::OutputNamelist = OutputNamelist(),
+    setting::SettingNamelist = SettingNamelist(),
+    discretization::DiscretizationNamelist = DiscretizationNamelist(),
+    poisson::PoissonNamelist = PoissonNamelist(),
+    atmosphere::AtmosphereNamelist = AtmosphereNamelist(),
+    grid::GridNamelist = GridNamelist(),
+    sponge::SpongeNamelist = SpongeNamelist(),
+    wkb::WKBNamelist = WKBNamelist(),
+    tracer::TracerNamelist = TracerNamelist(),
+    ice::IceNamelist = IceNamelist(),
+    turbulence::TurbulenceNamelist = TurbulenceNamelist(),
+    wavepacket::WavePacketNamelist = WavePacketNamelist(),
 )
     return Namelists(
         domain,

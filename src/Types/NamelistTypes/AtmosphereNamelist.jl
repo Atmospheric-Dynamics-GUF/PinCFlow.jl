@@ -34,17 +34,17 @@ end
 """
 ```julia
 AtmosphereNamelist(;
-    specifyreynolds = false,
-    reinv = 0.0E+0,
-    mu_viscous_dim = 0.0E+0,
-    background = Isothermal(),
-    buoyancy_frequency = 1.0E-2,
-    theta0_dim = 3.0E+2,
-    temp0_dim = 3.0E+2,
-    press0_dim = 1.0E+5,
-    backgroundflow_dim = (0.0E+0, 0.0E+0, 0.0E+0),
-    coriolis_frequency = 0.0E+0,
-    coriolis_mode = FPlane(),
+    specifyreynolds::Bool = false,
+    reinv::AbstractFloat = 0.0E+0,
+    mu_viscous_dim::AbstractFloat = 0.0E+0,
+    background::AbstractBackground = Isothermal(),
+    buoyancy_frequency::AbstractFloat = 1.0E-2,
+    theta0_dim::AbstractFloat = 3.0E+2,
+    temp0_dim::AbstractFloat = 3.0E+2,
+    press0_dim::AbstractFloat = 1.0E+5,
+    backgroundflow_dim::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
+    coriolis_frequency::AbstractFloat = 0.0E+0,
+    coriolis_mode::AbstractCoriolisMode = FPlane(),
 )
 ```
 
@@ -69,17 +69,17 @@ Constructor for the `AtmosphereNamelist` type, which defines parameters for the 
   - `::AtmosphereNamelist`: `AtmosphereNamelist` instance.
 """
 function AtmosphereNamelist(;
-    specifyreynolds = false,
-    reinv = 0.0E+0,
-    mu_viscous_dim = 0.0E+0,
-    background = Isothermal(),
-    buoyancy_frequency = 1.0E-2,
-    theta0_dim = 3.0E+2,
-    temp0_dim = 3.0E+2,
-    press0_dim = 1.0E+5,
-    backgroundflow_dim = (0.0E+0, 0.0E+0, 0.0E+0),
-    coriolis_frequency = 0.0E+0,
-    coriolis_mode = FPlane(),
+    specifyreynolds::Bool = false,
+    reinv::AbstractFloat = 0.0E+0,
+    mu_viscous_dim::AbstractFloat = 0.0E+0,
+    background::AbstractBackground = Isothermal(),
+    buoyancy_frequency::AbstractFloat = 1.0E-2,
+    theta0_dim::AbstractFloat = 3.0E+2,
+    temp0_dim::AbstractFloat = 3.0E+2,
+    press0_dim::AbstractFloat = 1.0E+5,
+    backgroundflow_dim::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
+    coriolis_frequency::AbstractFloat = 0.0E+0,
+    coriolis_mode::AbstractCoriolisMode = FPlane(),
 )
     return AtmosphereNamelist(
         specifyreynolds,

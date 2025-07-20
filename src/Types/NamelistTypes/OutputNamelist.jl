@@ -35,18 +35,18 @@ end
 """
 ```julia
 OutputNamelist(;
-    output_variables = (),
-    save_ray_volumes = false,
-    prepare_restart = false,
-    restart = false,
-    iin = -1,
-    output_steps = false,
-    noutput = 1,
-    maxiter = 1,
-    outputtimediff = 3.6E+3,
-    maxtime = 3.6E+3,
-    input_file = "./pincflow_input.h5",
-    output_file = "./pincflow_output.h5",
+    output_variables::Tuple{Vararg{Symbol, <:Integer}} = (),
+    save_ray_volumes::Bool = false,
+    prepare_restart::Bool = false,
+    restart::Bool = false,
+    iin::Integer = -1,
+    output_steps::Bool = false,
+    noutput::Integer = 1,
+    maxiter::Integer = 1,
+    outputtimediff::AbstractFloat = 3.6E+3,
+    maxtime::AbstractFloat = 3.6E+3,
+    input_file::AbstractString = "./pincflow_input.h5",
+    output_file::AbstractString = "./pincflow_output.h5",
 )
 ```
 
@@ -73,18 +73,18 @@ Construct a new OutputNamelist instance, which holds output and input related pa
   - `::OutputNamelist`: `OutputNamelist` instance.
 """
 function OutputNamelist(;
-    output_variables = (),
-    save_ray_volumes = false,
-    prepare_restart = false,
-    restart = false,
-    iin = -1,
-    output_steps = false,
-    noutput = 1,
-    maxiter = 1,
-    outputtimediff = 3.6E+3,
-    maxtime = 3.6E+3,
-    input_file = "./pincflow_input.h5",
-    output_file = "./pincflow_output.h5",
+    output_variables::Tuple{Vararg{Symbol, <:Integer}} = (),
+    save_ray_volumes::Bool = false,
+    prepare_restart::Bool = false,
+    restart::Bool = false,
+    iin::Integer = -1,
+    output_steps::Bool = false,
+    noutput::Integer = 1,
+    maxiter::Integer = 1,
+    outputtimediff::AbstractFloat = 3.6E+3,
+    maxtime::AbstractFloat = 3.6E+3,
+    input_file::AbstractString = "./pincflow_input.h5",
+    output_file::AbstractString = "./pincflow_output.h5",
 )
     return OutputNamelist(
         output_variables,

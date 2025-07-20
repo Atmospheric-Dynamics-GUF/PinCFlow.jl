@@ -9,9 +9,9 @@ end
 
 """
 ```julia
-TracerNamelist(; tracersetup = NoTracer())
+TracerNamelist(; tracersetup::AbstractTracer = NoTracer())
 ```
 """
-function TracerNamelist(; tracersetup = NoTracer())
+function TracerNamelist(; tracersetup::AbstractTracer = NoTracer())
     return TracerNamelist(tracersetup)
 end
