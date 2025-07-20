@@ -9,7 +9,21 @@ AtmosphereNamelist{
 }
 ```
 
-Namelist for the atmosphere (see constructor for parameter descriptions).
+Namelist for parameters describing the atmospheric background.
+
+# Fields
+
+  - `specifyreynolds::A`: Flag to specify inverse Reynolds number instead of viscosity.
+  - `reinv::B`: Inverse Reynolds number.
+  - `mu_viscous_dim::B`: Kinematic viscosity at the surface.
+  - `background::C`: Atmospheric background.
+  - `buoyancy_frequency::B`: Buoyancy frequency if `background == StratifiedBoussinesq()`.
+  - `theta0_dim::B`: Reference potential temperature.
+  - `temp0_dim::B`: Reference temperature.
+  - `press0_dim::B`: Reference pressure.
+  - `backgroundflow_dim::D`: Initial wind.
+  - `coriolis_frequency::B`: Coriolis frequency if `coriolis_mode == FPlane()`
+  - `coriolis_mode::E`: Approximation used for the Coriolis frequency.
 """
 struct AtmosphereNamelist{
     A <: Bool,
@@ -48,21 +62,21 @@ AtmosphereNamelist(;
 )
 ```
 
-Constructor for the `AtmosphereNamelist` type, which defines parameters for the background atmosphere.
+Construct an `AtmosphereNamelist` instance with the given keyword arguments as properties.
 
 # Arguments
 
-  - `specifyreynolds`: Flag to specify Reynolds number instead of viscosity
-  - `reinv`: Inverse Reynolds number
-  - `mu_viscous_dim`: Dimensional viscosity
-  - `background`: Background atmosphere model. Can be `Isothermal()`, `StratifiedBoussinesq()`, or `Stratified()`
-  - `buoyancy_frequency`: Buoyancy frequency. Used only if `background` is `StratifiedBoussinesq()`
-  - `theta0_dim`: Reference potential temperature
-  - `temp0_dim`: Reference temperature
-  - `press0_dim`: Reference pressure
-  - `backgroundflow_dim`: Background flow in 3D
-  - `coriolis_frequency`: Coriolis frequency. Used only if `background` is `Stratified()`
-  - `coriolis_mode`: Coriolis mode. Used only if `background` is `Stratified()`
+  - `specifyreynolds`: Flag to specify inverse Reynolds number instead of viscosity.
+  - `reinv`: Inverse Reynolds number.
+  - `mu_viscous_dim`: Kinematic viscosity at the surface.
+  - `background`: Atmospheric background.
+  - `buoyancy_frequency`: Buoyancy frequency if `background == StratifiedBoussinesq()`.
+  - `theta0_dim`: Reference potential temperature.
+  - `temp0_dim`: Reference temperature.
+  - `press0_dim`: Reference pressure.
+  - `backgroundflow_dim`: Initial wind.
+  - `coriolis_frequency`: Coriolis frequency if `coriolis_mode == FPlane()`
+  - `coriolis_mode`: Approximation used for the Coriolis frequency.
 
 # Returns
 

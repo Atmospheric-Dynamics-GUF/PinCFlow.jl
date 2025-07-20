@@ -3,7 +3,16 @@
 DiscretizationNamelist{A <: AbstractFloat, B <: Bool, C <: AbstractLimiter}
 ```
 
-Namelist for the discretization (see constructor for parameter descriptions).
+Namelist for parameters describing the discretization.
+
+# Fields
+
+  - `cfl::A`: Number used for the CFL condition in the time step computation.
+  - `cfl_wave::A`: Number used for the WKB-CFL condition in the time step computation.
+  - `dtmin_dim::A`: Minimum time step allowed for the integration.
+  - `dtmax_dim::A`: Maximum time step allowed for the integration.
+  - `adaptive_time_step::B`: Switch for using stability criteria to determine the time step. If set to `false`, `dtmax_dim` is used as a fixed time step.
+  - `limitertype::C`: Flux limiter used by the MUSCL scheme.
 """
 struct DiscretizationNamelist{
     A <: AbstractFloat,
@@ -30,16 +39,16 @@ DiscretizationNamelist(;
 )
 ```
 
-Construct a DiscretizationNamelist object, which holds parameters for the time discretization.
+Construct a `DiscretizationNamelist` instance with the given keyword arguments as properties.
 
 # Arguments
 
-  - `cfl`: Courant-Friedrichs-Lewy number used in `compute_time_step`.
-  - `cfl_wave`: Courant-Friedrichs-Lewy number for WKB mode.
-  - `dtmin_dim`: minimum time step the integration routine is allowed to take.
-  - `dtmax_dim`: maximum time step the integration routine is allowed to take.
-  - `adaptive_time_step`: whether to use adaptive time step. If false, a constant time step based on `dtmax_dim` is used.
-  - `limitertype`: type of limiter used in MUSCL scheme. Currently the only option is `MCVariant()`.
+  - `cfl`: Number used for the CFL condition in the time step computation.
+  - `cfl_wave`: Number used for the WKB-CFL condition in the time step computation.
+  - `dtmin_dim`: Minimum time step allowed for the integration.
+  - `dtmax_dim`: Maximum time step allowed for the integration.
+  - `adaptive_time_step`: Switch for using stability criteria to determine the time step. If set to `false`, `dtmax_dim` is used as a fixed time step.
+  - `limitertype`: Flux limiter used by the MUSCL scheme.
 
 # Returns
 

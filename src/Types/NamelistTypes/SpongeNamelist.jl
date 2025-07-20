@@ -9,7 +9,24 @@ SpongeNamelist{
 }
 ```
 
-Namelist for sponge configuration (see constructor for parameter descriptions).
+Namelist for parameters describing the sponge.
+
+# Fields
+
+  - `spongelayer::A`: Switch for enabling Rayleigh-damping in the sponge layer.
+  - `sponge_uv::A`: Switch for applying the non-unified sponge to the horizontal wind.
+  - `spongeheight::B`: Fractional vertical extent of the sponge.
+  - `spongealphaz_dim::B`: Rayleigh-damping coefficient of the unified sponge.
+  - `spongealphaz_fac::B`: Rayleigh-damping coefficient of the non-unified sponge, multiplied by the time step.
+  - `unifiedsponge::A`: Switch for the unified sponge (provides several profiles and is applied to all prognostic variables).
+  - `lateralsponge::A`: Switch for the lateral unified sponge.
+  - `spongetype::C`: Profile of the unified sponge.
+  - `spongeorder::D`: Order of the polynomial unified sponge.
+  - `cosmosteps::D`: Factor by which the time step is mulitplied in the damping coefficient of the COSMO-like unified sponge.
+  - `relax_to_mean::A`: Switch for relaxing the wind towards its averages on the terrain-following surfaces. If set to `false`, the wind is relaxed towards `relaxation_wind`.
+  - `perturbation_period::B`: Period of an oscillating perturbation on top of `relaxation_wind`.
+  - `perturbation_amplitude::B`: Amplitude of an oscillating perturbation on top of `relaxation_wind`.
+  - `relaxation_wind::E`: Wind to be obtained through Rayleigh damping in the unified sponge.
 """
 struct SpongeNamelist{
     A <: Bool,
@@ -54,24 +71,24 @@ SpongeNamelist(;
 )
 ```
 
-Configuration parameters for damping layers that absorb waves near domain boundaries.
+Construct a `SpongeNamelist` instance with the given keyword arguments as properties.
 
 # Arguments
 
-  - `spongelayer`: Enable sponge layer damping
-  - `sponge_uv`: Apply sponge to horizontal velocity components
-  - `spongeheight:AbstractFloat = `: Fractional height of vertical sponge region
-  - `spongealphaz_dim:AbstractFloat = `: Dimensional damping coefficient [1/s]
-  - `spongealphaz_fac:AbstractFloat = `: Damping coefficient scaling factor
-  - `unifiedsponge`: Use unified damping formulation for all variables
-  - `lateralsponge`: Enable horizontal boundary damping
-  - `spongetype:AbstractSponge`: Spatial damping profile. Options: `ExponentialSponge()`, `COSMOSponge()`, `PolynomialSponge()`, `SinusoidalSponge()`
-  - `spongeorde`: Polynomial order for `PolynomialSponge()`
-  - `cosmostep`: Time substeps for COSMO-type damping
-  - `relax_to_mean`: Damp toward horizontal mean instead of zero
-  - `perturbation_period`: Period for time-varying relaxation [s]
-  - `perturbation_amplitude`: Amplitude of relaxation perturbation
-  - `relaxation_wind`: Target wind field [m/s] when not relaxing to mean
+  - `spongelayer`: Switch for enabling Rayleigh-damping in the sponge layer.
+  - `sponge_uv`: Switch for applying the non-unified sponge to the horizontal wind.
+  - `spongeheight`: Fractional vertical extent of the sponge.
+  - `spongealphaz_dim`: Rayleigh-damping coefficient of the unified sponge.
+  - `spongealphaz_fac`: Rayleigh-damping coefficient of the non-unified sponge, multiplied by the time step.
+  - `unifiedsponge`: Switch for the unified sponge (provides several profiles and is applied to all prognostic variables).
+  - `lateralsponge`: Switch for the lateral unified sponge.
+  - `spongetype`: Profile of the unified sponge.
+  - `spongeorder`: Order of the polynomial unified sponge.
+  - `cosmosteps`: Factor by which the time step is mulitplied in the damping coefficient of the COSMO-like unified sponge.
+  - `relax_to_mean`: Switch for relaxing the wind towards its averages on the terrain-following surfaces. If set to `false`, the wind is relaxed towards `relaxation_wind`.
+  - `perturbation_period`: Period of an oscillating perturbation on top of `relaxation_wind`.
+  - `perturbation_amplitude`: Amplitude of an oscillating perturbation on top of `relaxation_wind`.
+  - `relaxation_wind`: Wind to be obtained through Rayleigh damping in the unified sponge.
 
 # Returns
 

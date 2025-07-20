@@ -3,7 +3,23 @@
 DomainNamelist{A <: Integer, B <: NTuple{2, <:AbstractFloat}, C <: MPI.Comm}
 ```
 
-Namelist for the model domain (see constructor for parameter descriptions).
+Namelist for parameters describing the model domain.
+
+# Fields
+
+  - `sizex::A`: Number of grid cells in ``\\widehat{x}``-direction.
+  - `sizey::A`: Number of grid cells in ``\\widehat{y}``-direction.
+  - `sizez::A`: Number of grid cells in ``\\widehat{z}``-direction.
+  - `nbx::A`: Number of boundary/halo cells in ``\\widehat{x}``-direction.
+  - `nby::A`: Number of boundary/halo cells in ``\\widehat{y}``-direction.
+  - `nbz::A`: Number of boundary/halo cells in ``\\widehat{z}``-direction.
+  - `lx_dim::B`: Domain boundaries in ``\\widehat{x}``-direction.
+  - `ly_dim::B`: Domain boundaries in ``\\widehat{y}``-direction.
+  - `lz_dim::B`: Domain boundaries in ``\\widehat{z}``-direction.
+  - `npx::A`: Number of MPI processes in ``\\widehat{x}``-direction.
+  - `npy::A`: Number of MPI processes in ``\\widehat{y}``-direction.
+  - `npz::A`: Number of MPI processes in ``\\widehat{z}``-direction.
+  - `base_comm::C`: MPI base communicator.
 """
 struct DomainNamelist{
     A <: Integer,
@@ -44,22 +60,22 @@ DomainNamelist(;
 )
 ```
 
-Construct a DomainNamelist, which holds parameters for the spatial domain.
+Construct a `DomainNamelist` instance with the given keyword arguments as properties.
 
 # Arguments
 
-  - `sizex`: Number of grid cells in the x-direction.
-  - `sizey`: Number of grid cells in the y-direction.
-  - `sizez`: Number of grid cells in the z-direction.
-  - `nbx`: Number of boundary cells in the x-direction.
-  - `nby`: Number of boundary cells in the y-direction.
-  - `nbz`: Number of boundary cells in the z-direction.
-  - `lx_dim`: Dimensions of the domain in the x-direction.
-  - `ly_dim`: Dimensions of the domain in the y-direction.
-  - `lz_dim`: Dimensions of the domain in the z-direction.
-  - `npx`: Number of processors in the x-direction.
-  - `npy`: Number of processors in the y-direction.
-  - `npz`: Number of processors in the z-direction.
+  - `sizex`: Number of grid cells in ``\\widehat{x}``-direction.
+  - `sizey`: Number of grid cells in ``\\widehat{y}``-direction.
+  - `sizez`: Number of grid cells in ``\\widehat{z}``-direction.
+  - `nbx`: Number of boundary/halo cells in ``\\widehat{x}``-direction.
+  - `nby`: Number of boundary/halo cells in ``\\widehat{y}``-direction.
+  - `nbz`: Number of boundary/halo cells in ``\\widehat{z}``-direction.
+  - `lx_dim`: Domain boundaries in ``\\widehat{x}``-direction.
+  - `ly_dim`: Domain boundaries in ``\\widehat{y}``-direction.
+  - `lz_dim`: Domain boundaries in ``\\widehat{z}``-direction.
+  - `npx`: Number of MPI processes in ``\\widehat{x}``-direction.
+  - `npy`: Number of MPI processes in ``\\widehat{y}``-direction.
+  - `npz`: Number of MPI processes in ``\\widehat{z}``-direction.
   - `base_comm`: MPI base communicator.
 
 # Returns

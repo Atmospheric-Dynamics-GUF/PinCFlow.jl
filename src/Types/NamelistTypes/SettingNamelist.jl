@@ -7,7 +7,13 @@ SettingNamelist{
 }
 ```
 
-Namelist for level of compressibility, test case and vertical boundary conditions (see constructor for parameter descriptions).
+Namelist for parameters describing the general model setting.
+
+# Fields
+
+  - `model::A`: Dynamic equations.
+  - `testcase::B`: Test case on wich the current simulation is based.
+  - `zboundaries::C`: Vertical boundary conditions.
 """
 struct SettingNamelist{
     A <: AbstractModel,
@@ -28,13 +34,13 @@ SettingNamelist(;
 )
 ```
 
-Core simulation configuration specifying equation set, test case, and vertical boundary conditions.
+Construct a `SettingNamelist` instance with the given keyword arguments as properties.
 
 # Arguments
 
-  - `model`: Governing equation set. Options: `PseudoIncompressible()`, `Boussinesq()`, `Compressible()`
-  - `testcase`: Initial/forcing configuration. Options: `MountainWave()`, `WKBMountainWave()`
-  - `zboundaries`: Vertical boundary treatment. Options: `SolidWallBoundaries()`, `PeriodicBoundaries()`
+  - `model`: Dynamic equations.
+  - `testcase`: Test case on wich the current simulation is based.
+  - `zboundaries`: Vertical boundary conditions.
 
 # Returns
 

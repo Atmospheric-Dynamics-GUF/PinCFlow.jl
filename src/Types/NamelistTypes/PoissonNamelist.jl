@@ -3,7 +3,17 @@
 PoissonNamelist{A <: AbstractFloat, B <: Integer, C <: Bool}
 ```
 
-Namelist for the Poisson solver (see constructor for parameter descriptions).
+Namelist for parameters used by the Poisson solver.
+
+# Fields
+
+  - `tolpoisson::A`: Tolerance for the convergence criterion of the Poisson solver.
+  - `maxiterpoisson::B`: Maximum number of iterations performed by the Poisson solver before it terminates regardless of convergence.
+  - `preconditioner::C`: Whether to use a preconditioner to accelerate the convergence of the Poisson solver.
+  - `dtau::A`: Pseudo-time step coefficient used by the preconditioner.
+  - `maxiteradi::B`: Number of iterations performed by the preconditioner.
+  - `initialcleaning::C`: Whether to solve the Poisson problem at initialization to guarantee an initially divergence-free state.
+  - `relative_tolerance::C`: If set to `true`, the tolerance used for the convergence criterion is given by `tolpoisson`. If set to `false`, the tolerance is given by `tolpoisson` divided by a reference value determined from the right-hand side.
 """
 struct PoissonNamelist{A <: AbstractFloat, B <: Integer, C <: Bool}
     tolpoisson::A
@@ -28,17 +38,17 @@ PoissonNamelist(;
 )
 ```
 
-Construct a PoissonNamelist instance, which holds parameters for the Poisson solver.
+Construct a `PoissonNamelists` instance with the given keyword arguments as properties.
 
 # Arguments:
 
-  - `tolpoisson`: Convergence tolerance for the Poisson solver. The solver will terminate when the residual falls below this value.
-  - `maxiterpoisson`: Maximum number of iterations for the Poisson solver before terminating regardless of convergence.
-  - `preconditioner`: Whether to use a preconditioner to accelerate convergence of the Poisson solver.
-  - `dtau`: Time step parameter for the Poisson solver, controls stability and convergence rate.
-  - `maxiteradi`: Maximum number of iterations for the Alternating Direction Implicit (ADI) iterative solver.
-  - `initialcleaning`: Whether to perform initial cleaning of the solution field before starting the Poisson solver.
-  - `relative_tolerance`: When true, uses relative error for convergence criterion instead of absolute error.
+  - `tolpoisson`: Tolerance for the convergence criterion of the Poisson solver.
+  - `maxiterpoisson`: Maximum number of iterations performed by the Poisson solver before it terminates regardless of convergence.
+  - `preconditioner`: Whether to use a preconditioner to accelerate the convergence of the Poisson solver.
+  - `dtau`: Pseudo-time step coefficient used by the preconditioner.
+  - `maxiteradi`: Number of iterations performed by the preconditioner.
+  - `initialcleaning`: Whether to solve the Poisson problem at initialization to guarantee an initially divergence-free state.
+  - `relative_tolerance`: If set to `true`, the tolerance used for the convergence criterion is given by `tolpoisson`. If set to `false`, the tolerance is given by `tolpoisson` divided by a reference value determined from the right-hand side.
 
 # Returns
 
