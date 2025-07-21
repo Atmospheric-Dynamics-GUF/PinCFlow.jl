@@ -379,7 +379,24 @@ function write_output(
                     ] ./ (
                         rhostrattfc[i0:i1, j0:j1, k0:k1] .+
                         rho[i0:i1, j0:j1, k0:k1]
-                    ) .* lref
+                    ) * getfield(state.ice.iceconstants, field)                  
+            end
+            for field in fieldnames(IceAuxiliaries)
+                HDF5.set_extent_dims(
+                    file[string(field)],
+                    (sizex, sizey, sizez, iout),
+                )
+                @views file[string(field)][
+                    (io + 1):(io + nx),
+                    (jo + 1):(jo + ny),
+                    (ko + 1):(ko + nz),
+                    iout,
+                ] =
+                    getfield(state.ice.iceauxiliaries, field)[
+                        i0:i1,
+                        j0:j1,
+                        k0:k1,
+                    ]                  
             end
         end
 

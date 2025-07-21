@@ -21,9 +21,9 @@ function explicit_integration_rhs_ice!(
         #set_boundaries!(state, BoundaryFluxes())
 
         #save_backups!(state, :rho)
-        ComputeSourceIce!(state) 
+        compute_source_ice!(state) 
         update!(state, dtt_ice, rkstage, IceUpdatePhy())
-        
+
         #apply_unified_sponge!(
         #    state,
         #    stepfrac[rkstage] * dtstage,

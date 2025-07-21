@@ -8,11 +8,7 @@ include("PoissonSolver/PoissonSolver.jl")
 include("FluxCalculator/FluxCalculator.jl")
 include("Output/Output.jl")
 include("MSGWaM/MSGWaM.jl")
-include("IceRoutine.jl")
 include("Integration/Integration.jl")
-
-#using .IceRoutine 
-#export ComputeSourceIce!
 
 using .Types
 using .Integration

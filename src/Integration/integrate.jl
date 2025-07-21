@@ -48,21 +48,6 @@ Each time step involves:
 """
 function integrate(namelists::Namelists)
 
-    #********
-    # CHANGES
-    #********
-    #ice = namelist(
-    # ice_setup = IceOn(),
-    #ice_source = 1,
-    #ice_predictands = IcePredictands(),
-    #ice_auxiliaries = IceAuxiliaries(IcePredictands()),
-    #ice_physics = IcePhysics(),
-    #)
-    #namelists.ice.icesetup = IceOn()
-    println(namelists.ice.icesetup)
-    #exit()
-    #icenamelists = ice
-    
     #-------------------------------------------------
     #                     Setup
     #-------------------------------------------------
@@ -235,10 +220,9 @@ function integrate(namelists::Namelists)
         #--------------------------------------------------------------
         #              Update RHS ice variables
         #--------------------------------------------------------------
-        #CHANGES  
+
         explicit_integration_rhs_ice!(state, dt)
-        println("Ice source term computed.")
-        
+
         #-----------------------------------------------------------------
         #                         Sponge layer
         #-----------------------------------------------------------------

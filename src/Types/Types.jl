@@ -140,7 +140,7 @@ export DomainNamelist,
     IceReconstructions,
     IceFluxes,
     IceSource,
-    IceConstants
+    IceConstants,
     TurbulenceOn,
     NoTurbulence,
     TurbulencePredictands,

@@ -5,6 +5,7 @@ struct Ice{
     D <: IceReconstructions,
     E <: IceFluxes,
     F <: IceSource,
+    G <: IceConstants
     }
     
     icepredictands::A
@@ -13,6 +14,7 @@ struct Ice{
     icereconstructions::D
     icefluxes::E
     icesource::F
+    iceconstants::G
 end
 
 function Ice(
@@ -23,6 +25,8 @@ function Ice(
     grid::Grid,
     variables::Variables,
 )
+    iceconstants = IceConstants(constants)
+
     icepredictands = IcePredictands(
         namelists,
         constants,
@@ -30,6 +34,7 @@ function Ice(
         atmosphere,
         grid,
         variables,
+        iceconstants
     )
     icetendencies = IceTendencies(namelists, domain)
     iceauxiliaries = IceAuxiliaries(icepredictands)
@@ -43,6 +48,7 @@ function Ice(
         iceauxiliaries,
         icereconstructions,
         icefluxes,
-        icesource
+        icesource,
+        iceconstants
     )
 end

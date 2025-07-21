@@ -3,33 +3,32 @@
 include("../src/PinCFlow.jl")
 
 using .PinCFlow
-using HDF5
+#using HDF5
 
 domain = DomainNamelist(;
-    sizex = 10,
-    sizey = 10,
-    sizez = 10,
+    sizex = 40,
+    sizey = 1,
+    sizez = 40,
     nbx = 3,
     nby = 3,
     nbz = 3,
     lx_dim = (0.0, 2.0E+4),
     ly_dim = (0.0, 2.0E+4),
     lz_dim = (0.0, 2.0E+4),
-    npx = 1,
-    
+    npx = 1,    
     npy = 1,
 )
 
 output = OutputNamelist(;
-    output_variables = (:w, :n, :qv, :q),
+    output_variables = (:w,:n,:qv,:q),
     prepare_restart = true,
     restart = false,
     iin = -1,
     output_steps = false,
     noutput = 1,
     maxiter = 1,
-    outputtimediff = 3.6E+1, #E+3
-    maxtime = 3.6E+1, #E+3
+    outputtimediff = 3.6E+3,
+    maxtime = 3.6E+3,
     fancy_namelists = true,
     input_file = "./test/pincflow_input.h5",
     output_file = "./test/pincflow_output.h5",
@@ -121,13 +120,3 @@ namelists = Namelists(;
 integrate(namelists)
 
 #rm("./test/pincflow_output.h5")174 
-
-# Plot
-data = h5open("/home/dolaptch/PF/pinc/test/pincflow_output.h5")
-#w = data["w"][:, :, :, end]
-#fld = data["w"][:, :, :, 1]
-fld = data["qv"][:, :, :, 1]
-#contourf(fld[:,1,:]')
-#plot(fld[end//2,1,:])
-plot(fld[Int(length(fld[:,1,1])//2),1,:])
-savefig("mountain_wave.png")
