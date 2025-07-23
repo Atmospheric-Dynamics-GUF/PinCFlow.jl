@@ -1,5 +1,11 @@
-.CondaPkg
-LocalPreferences.toml
-.aider*
-/build
-/docs/build
+slurm*.out
+*~
+build/
+!build/.gitkeep 
+output/
+!output/.gitkeep 
+*.h5
+git_hash
+
+
+
