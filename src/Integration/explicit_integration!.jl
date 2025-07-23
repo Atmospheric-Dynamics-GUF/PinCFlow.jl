@@ -37,7 +37,8 @@ function explicit_integration!(
             tracersetup,
         )
 
-        update!(state, dtstage, rkstage, icesetup)
+        #CHANGES
+        #update!(state, dtstage, rkstage, icesetup)
         apply_unified_sponge!(
             state,
             stepfrac[rkstage] * dtstage,

@@ -228,7 +228,6 @@ function create_output(state::State)
             end            
         end
 
-        #CHANGES
         if !(typeof(state.namelists.ice.icesetup) <: NoIce)
             for field in fieldnames(IceAuxiliaries)
                 create_dataset(

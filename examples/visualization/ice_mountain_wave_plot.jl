@@ -1,3 +1,6 @@
+# RUN in PF/pinc/
+# julia --project=. examples/visualization/ice_mountain_wave_plot.jl
+#
 include("style.jl")
 
 using HDF5

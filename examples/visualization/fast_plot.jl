@@ -1,3 +1,7 @@
+# RUN in PF/pinc/
+# julia --project=. examples/visualization/fast_plot.jl
+# view with: eog examples/visualization/mountain_wave.png &
+#
 using HDF5
 #using LaTeXStrings
 using PyPlot
@@ -14,14 +18,14 @@ y = [yi for ix in 1:size(z)[1], yi in y, iz in 1:size(z)[3]]
 
 iy = 1
 #fld = data["iaux1"][:, :, :, :]
-#println(maximum(fld))
 #fld = data["iaux1"][:, :, :, 1]
-#fld = data["w"][:, :, :, 1]
-fld = data["n"][:, :, :, end]
+#fld = data["w"][:, :, :, end]
+fld = data["qv"][:, :, :, end]
 #contour = contourf( fld[:,1,:]')
-contour = contourf(x[:, iy, :], z[:, iy, :], fld[:,iy,:]; cmap="Blues")
+#contour = contourf(x[:, iy, :], z[:, iy, :], fld[:,iy,:]; cmap="Blues")
+contour = pcolormesh(x[:, iy, :], z[:, iy, :], fld[:,iy,:]; cmap="Blues")
 colorbar(contour)
 #plot(fld[Int(length(fld[:,1,1])//2),1,:])
 #plot(mean(fld[:,1,:], dims=1), label="Mean over x")
 
-savefig("/home/dolaptch/PF/pinc/examples/mountain_wave.png")
+savefig("/home/dolaptch/PF/pinc/examples/visualization/mountain_wave.png")
