@@ -21,7 +21,7 @@ function set_tracer_vertical_boundaries!(
             namelists,
             domain,
             zboundaries,
-            -,
+            +,
         )
     end
 

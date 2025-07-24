@@ -41,6 +41,7 @@ struct Shapiro <: AbstractWKBFilter end
 abstract type AbstractTracer end
 struct NoTracer <: AbstractTracer end
 struct LinearTracer <: AbstractTracer end
+struct LikeDensity <: AbstractTracer end
 
 abstract type AbstractIce end
 struct NoIce <: AbstractIce end
@@ -107,6 +108,7 @@ export UniformBoussinesq,
     Shapiro,
     NoTracer,
     LinearTracer,
+    LikeDensity,
     NoIce,
     IceOn,
     NoTurbulence,

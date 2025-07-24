@@ -74,3 +74,26 @@ function TracerPredictands(
 
     return TracerPredictands(chi)
 end
+
+function TracerPredictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    tracersetup::LikeDensity,
+    variables::Variables,
+)
+    (; nxx, nyy, nzz) = domain
+    (; ztfc) = grid
+    (; rhostrattfc) = atmosphere
+    (; rho) = variables.predictands
+    (; testcase) = namelists.setting
+    (; lref) = constants
+
+    chi = zeros(nxx, nyy, nzz)
+
+    chi .= rho .+ rhostrattfc
+
+    return TracerPredictands(chi)
+end

@@ -94,7 +94,7 @@ function Predictands(
     model::AbstractModel,
     testcase::WavePacket,
 )
-    (; backgroundflow_dim, theta0_dim) = namelists.atmosphere
+    (; backgroundflow_dim, theta0_dim, coriolis_frequency) = namelists.atmosphere
     (; nbx, nby, nbz) = namelists.domain
     (;
         lambdax_dim,
@@ -117,6 +117,7 @@ function Predictands(
     (; nxx, nyy, nzz, k0, k1, j0, j1, i0, i1, io, jo) = domain
     (; bvsstrattfc, fc, rhostrattfc, pstrattfc) = atmosphere
     (; x, y, ztfc, jac, met) = grid
+    (; temp0_dim) = namelists.atmosphere
 
     # Initialize the predictands.
     (rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
@@ -175,7 +176,8 @@ function Predictands(
         jy in (j0 - nby):(j1 + nby),
         ix in (i0 - nbx):(i1 + nbx)
 
-        n2 = bvsstrattfc[ix, jy, kz]
+        n2 = ma^2. / fr2^2. * kappa / (temp0_dim / thetaref) # bvsstrattfc[ix, jy, kz]
+
         f = fc[jy]
         f2 = f^2.0
         omega = branch * sqrt((n2 * kh^2.0 + f2 * mm^2.0) / (kh^2.0 + mm^2.0))
@@ -199,7 +201,7 @@ function Predictands(
 
         if sigmax == 0.0
             envel = 1.0
-        elseif abs(deltax) < sigmax
+        elseif abs(deltax) <= sigmax
             envel = 0.5 * (1.0 + cos(deltax * pi / sigmax))
         else
             envel = 0.0
@@ -207,13 +209,13 @@ function Predictands(
 
         if sigmay == 0.0
             envel = 1.0 * envel
-        elseif abs(deltay) < sigmay
+        elseif abs(deltay) <= sigmay
             envel = envel * 0.5 * (1.0 + cos(deltay * pi / sigmay))
         else
             envel = 0.0
         end
 
-        envel = envel * exp(-deltaz^2.0 / (2.0 * sigmaz^2.0))
+        envel = envel * exp(-deltaz^2.0 / (2. * sigmaz^2.0))
 
         theta0 = theta0_dim / thetaref
 

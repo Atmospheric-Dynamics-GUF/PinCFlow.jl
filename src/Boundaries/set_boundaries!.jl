@@ -5,10 +5,46 @@ Set all boundary conditions (zonal, meridional, vertical) for predictand fields.
 """
 function set_boundaries!(state::State, variables::BoundaryPredictands)
     (; zboundaries) = state.namelists.setting
+    (; tracersetup) = state.namelists.tracer 
+
+    divide_tracer_by_rho!(state, tracersetup)
+
     set_zonal_boundaries!(state, variables)
     set_meridional_boundaries!(state, variables)
     set_vertical_boundaries!(state, variables, zboundaries)
+
+    multiply_tracer_by_rho!(state, tracersetup)
     return
+end
+
+function divide_tracer_by_rho!(state::State, tracersetup::NoTracer)
+    return
+end
+
+function divide_tracer_by_rho!(state::State, tracersetup::AbstractTracer)
+
+    (; chi) = state.tracer.tracerpredictands
+    (; rho) = state.variables.predictands
+    (; rhostrattfc) = state.atmosphere
+
+    chi .= chi ./ (rho .+ rhostrattfc)
+
+    return 
+end
+
+function multiply_tracer_by_rho!(state::State, tracersetup::NoTracer)
+    return 
+end
+
+function multiply_tracer_by_rho!(state::State, tracersetup::AbstractTracer)
+
+    (; chi) = state.tracer.tracerpredictands
+    (; rho) = state.variables.predictands
+    (; rhostrattfc) = state.atmosphere
+
+    chi .= chi .* (rho .+ rhostrattfc)
+
+    return 
 end
 
 """
