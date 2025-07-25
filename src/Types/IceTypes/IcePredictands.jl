@@ -89,7 +89,7 @@ function IcePredictands(
     zMax_issr = z0_issr + sig_issr
 
     p0 = press0_dim / pref    
-    S0_ini = 0.1
+    S0_ini = 0
 
     for k in k0:k1, j in j0:j1, i in i0:i1
         

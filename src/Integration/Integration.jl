@@ -20,8 +20,8 @@ include("synchronize_density_fluctuations!.jl")
 include("explicit_integration!.jl")
 include("implicit_integration!.jl")
 include("wkb_integration!.jl")
-include("../IceRoutine.jl")
-include("../IceRoutine_nostate.jl")
+include("compute_source_ice!.jl")
+include("iceroutines.jl")
 include("explicit_integration_rhs_ice!.jl")
 
 export integrate

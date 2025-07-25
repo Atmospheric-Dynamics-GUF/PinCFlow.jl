@@ -24,12 +24,12 @@ iy = 1
 tidx = size(data["w"][:, :, :, :], 4)  # for a 4D array, 4th dimension is often "time"
 #tidx = 1
 
-fld = data["w"][:, :, :, tidx]
-#fld = data["n"][:, :, :, tidx]
+#fld = data["w"][:, :, :, tidx]
+fld = data["n"][:, :, :, tidx]
 #fld = data["iaux3"][:, :, :, tidx]
 
-fld2 = data2.group["atmvar"]["w"][:, :, :, tidx]
-#fld2 = data2.group["icevar"]["n"][:, :, :, tidx]
+#fld2 = data2.group["atmvar"]["w"][:, :, :, tidx]
+fld2 = data2.group["icevar"]["n"][:, :, :, tidx]
 #fld2 = data2.group["optvar"]["s"][:, :, :, tidx] 
 #fld2 = data2.group["optvar"]["w"][:, :, :, tidx] 
 #fld2 = data2.group["optvar"]["t"][:, :, :, tidx] 
@@ -60,3 +60,9 @@ contour2 = pcolormesh(x[:, iy, :], z[:, iy, :], fld[:,iy,:]-fld2[:,iy,:]; cmap="
 colorbar(contour2)
 
 savefig("/home/dolaptch/PF/pinc/examples/visualization/mountain_wave.png")
+
+clf()
+plot(fld[1,iy,:], label="fld")
+plot(fld2[1,iy,:], label="fld2")
+legend()
+savefig("/home/dolaptch/PF/pinc/examples/visualization/test.png")
