@@ -155,6 +155,11 @@ function integrate(namelists::Namelists)
         synchronize_compressible_atmosphere!(state, state.variables.predictands)
     end
 
+    # CHANGE
+    #compute_source_ice!(state)
+    #println("Press Enter to continue...")
+    #readline()
+    
     #------------------------------------------
     #              Initial output
     #------------------------------------------

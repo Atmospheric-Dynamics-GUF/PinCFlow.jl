@@ -32,11 +32,10 @@ function compute_source_ice!(state::State)
 
         sice = sat_ratio(rqv, pres, psi, rhoMean, iceconstants)
 
-        iceauxiliaries.iaux1[i, j, k] = sice
-        iceauxiliaries.iaux2[i, j, k] = psi
-        iceauxiliaries.iaux3[i, j, k] = rqv
-
         if sice >= iceconstants.S_c  
+            
+            sice = iceconstants.S_c #set to critical value
+
             icesource.nsource[i, j, k] = dot_n(sice, rho_full, iceconstants)
         else
             icesource.nsource[i, j, k] = 0.0       
@@ -46,8 +45,20 @@ function compute_source_ice!(state::State)
 
         icesource.qvsource[i, j, k] = dqv
         icesource.qsource[i, j, k] = -dqv
+
+        #CHANGES
+        iceauxiliaries.iaux1[i, j, k] = sice
+        iceauxiliaries.iaux2[i, j, k] = icesource.nsource[i, j, k]
+        iceauxiliaries.iaux3[i, j, k] = dqv 
     end 
 
+    # CHANGE
+    println(maximum(icesource.nsource), " ", minimum(icesource.nsource))
+    println(maximum(icesource.qsource), " ", minimum(icesource.qsource))
+    println(maximum(icesource.qvsource), " ", minimum(icesource.qvsource))
+    println(maximum(iceauxiliaries.iaux1), " ", minimum(iceauxiliaries.iaux1))
+    println("****")
+    
     return
 end
 
