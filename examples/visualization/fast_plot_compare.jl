@@ -9,7 +9,7 @@ using Statistics
 using NCDatasets
 
 data = h5open("/home/dolaptch/PF/pinc/test/pincflow_output.h5")
-data2 = Dataset("/home/dolaptch/PF/runs/tjl02/pincflow_data_out.nc", "r")
+data2 = Dataset("/home/dolaptch/PF/runs/tjl01/pincflow_data_out.nc", "r")
 
 # Set grid.
 x = data["x"][:] .* 0.001 .- 10
@@ -24,12 +24,12 @@ iy = 1
 tidx = size(data["w"][:, :, :, :], 4)  # for a 4D array, 4th dimension is often "time"
 #tidx = 1
 
-#fld = data["w"][:, :, :, tidx]
-fld = data["n"][:, :, :, tidx]
+fld = data["w"][:, :, :, tidx]
+#fld = data["n"][:, :, :, tidx]
 #fld = data["iaux3"][:, :, :, tidx]
 
-#fld2 = data2.group["atmvar"]["w"][:, :, :, tidx]
-fld2 = data2.group["icevar"]["n"][:, :, :, tidx]
+fld2 = data2.group["atmvar"]["w"][:, :, :, tidx]
+#fld2 = data2.group["icevar"]["n"][:, :, :, tidx]
 #fld2 = data2.group["optvar"]["s"][:, :, :, tidx] 
 #fld2 = data2.group["optvar"]["w"][:, :, :, tidx] 
 #fld2 = data2.group["optvar"]["t"][:, :, :, tidx] 

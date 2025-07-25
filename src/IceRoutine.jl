@@ -53,11 +53,11 @@ function compute_source_ice!(state::State)
     end 
 
     # CHANGE
-    println(maximum(icesource.nsource), " ", minimum(icesource.nsource))
-    println(maximum(icesource.qsource), " ", minimum(icesource.qsource))
-    println(maximum(icesource.qvsource), " ", minimum(icesource.qvsource))
-    println(maximum(iceauxiliaries.iaux1), " ", minimum(iceauxiliaries.iaux1))
-    println("****")
+    # println(maximum(icesource.nsource), " ", minimum(icesource.nsource))
+    # println(maximum(icesource.qsource), " ", minimum(icesource.qsource))
+    # println(maximum(icesource.qvsource), " ", minimum(icesource.qvsource))
+    # println(maximum(iceauxiliaries.iaux1), " ", minimum(iceauxiliaries.iaux1))
+    # println("****")
     
     return
 end

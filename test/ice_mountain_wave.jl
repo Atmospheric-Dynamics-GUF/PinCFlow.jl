@@ -1,3 +1,5 @@
+#julia --project=. test/ice_mountain_wave.jl
+#julia --project=. examples/visualization/fast_plot_compare.jl 
 #using Revise
 
 include("../src/PinCFlow.jl")

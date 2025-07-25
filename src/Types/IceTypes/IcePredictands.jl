@@ -72,7 +72,7 @@ function IcePredictands(
     # vertical width ISSR (standard deviation of gaussian dist.)
     sig_issr = 4.e3 # [m]
     # max value S in ISSR
-    S_issr = iceconstants.S_c + 0.2 # CHANGES 1.49
+    S_issr = iceconstants.S_c # CHANGES 1.49
    
     # **********************
 
