@@ -17,7 +17,7 @@ function read_input!(state::State)
     (; model, testcase) = state.namelists.setting
     (; comm, sizezz, nx, ny, nz, nzz, io, jo, ko, i0, i1, j0, j1, k0, k1) =
         state.domain
-    (; lref, tref, rhoref, uref) = state.constants
+    (; lref, tref, rhoref, uref, thetaref) = state.constants
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
     (; nray_max, nray, rays) = state.wkb
 
@@ -85,12 +85,13 @@ function read_input!(state::State)
 
         # Read the mass-weighted potential temperature.
         if model == Compressible()
-            @views p[i0:i1, j0:j1, k0:k1] = file["p"][
-                (io + 1):(io + nx),
-                (jo + 1):(jo + ny),
-                (ko + 1):(ko + nz),
-                iin,
-            ]
+            @views p[i0:i1, j0:j1, k0:k1] =
+                file["p"][
+                    (io + 1):(io + nx),
+                    (jo + 1):(jo + ny),
+                    (ko + 1):(ko + nz),
+                    iin,
+                ] ./ rhoref ./ thetaref
         end
 
         # Read ray-volume properties.

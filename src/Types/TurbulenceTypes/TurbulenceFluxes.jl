@@ -1,14 +1,29 @@
+"""
+```julia
+TurbulenceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
+```
+"""
 struct TurbulenceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
     phitke::A
     phitte::A
 end
 
+"""
+```julia
+TurbulenceFluxes(namelists::Namelists, domain::Domain)
+```
+"""
 function TurbulenceFluxes(namelists::Namelists, domain::Domain)
     (; turbulencesetup) = namelists.turbulence
 
     return TurbulenceFluxes(domain, turbulencesetup)
 end
 
+"""
+```julia
+TurbulenceFluxes(domain::Domain, turbulencesetup::NoTurbulence)
+```
+"""
 function TurbulenceFluxes(domain::Domain, turbulencesetup::NoTurbulence)
     phitke = zeros(0, 0, 0, 0)
     phitte = zeros(0, 0, 0, 0)
@@ -16,6 +31,11 @@ function TurbulenceFluxes(domain::Domain, turbulencesetup::NoTurbulence)
     return TurbulenceFluxes(phitke, phitte)
 end
 
+"""
+```julia
+TurbulenceFluxes(domain::Domain, turbulencesetup::AbstractTurbulence)
+```
+"""
 function TurbulenceFluxes(domain::Domain, turbulencesetup::AbstractTurbulence)
     (; nxx, nyy, nzz) = domain
 

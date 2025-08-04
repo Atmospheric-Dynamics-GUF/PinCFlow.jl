@@ -7,19 +7,19 @@ compute_volume_force(
 )
 ```
 
-Test case-dispatched volume force computation.
+Compute the volume force in the equation specified by `variable`.
 
-Dispatches to specific implementation based on test case type.
+Dispatches to specific methods based on `testcase`.
 
 # Arguments
 
-  - `state::State`: Simulation state
-  - `indices::NTuple{3, <:Integer}`: Grid indices (ix, jy, kz)
-  - `variable::AbstractVariable`: Variable type for force computation
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable (equation) of choice.
 
 # Returns
 
-  - `AbstractFloat`: Volume force per unit mass
+  - `::AbstractFloat`: Volume force in the specified equation.
 """
 function compute_volume_force(
     state::State,
@@ -41,13 +41,18 @@ compute_volume_force(
 )
 ```
 
-Default zero volume force for standard test cases.
+Return `0.0` as the volume force in non-WKB test cases.
 
-Most test cases have no additional volume forcing beyond standard physics.
+# Arguments
+
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable (equation) of choice.
+  - `testcase`: Test case on which the current simulation is based.
 
 # Returns
 
-  - `Float64`: Always returns 0.0
+  - `::AbstractFloat`: Volume force in the specified equation (`0.0`).
 """
 function compute_volume_force(
     state::State,
@@ -68,18 +73,18 @@ compute_volume_force(
 )
 ```
 
-Zonal volume force from gravity wave drag.
+Return the gravity-wave drag on the zonal momentum, interpolated to ``\\left(i + 1 / 2, j, k\\right)``.
 
-Computes cell-edge interpolated zonal wind tendency from WKB gravity wave parameterization for use in momentum equations.
+# Arguments
 
-# Implementation
-
-Averages `dudt` between horizontally adjacent cells:
-`force = (dudt[i] + dudt[i+1]) / 2`
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable (equation) of choice.
+  - `testcase`: Test case on which the current simulation is based.
 
 # Returns
 
-  - `AbstractFloat`: Zonal acceleration [m/s²]
+  - `::AbstractFloat`: Volume force in the zonal-momentum equation.
 """
 function compute_volume_force(
     state::State,
@@ -103,17 +108,18 @@ compute_volume_force(
 )
 ```
 
-Meridional volume force from gravity wave drag.
+Return the gravity-wave drag on the meridional momentum, interpolated to ``\\left(i, j + 1 / 2, k\\right)``.
 
-Computes cell-edge interpolated meridional wind tendency for momentum equations.
+# Arguments
 
-# Implementation
-
-Averages `dvdt` between meridionally adjacent cells.
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable (equation) of choice.
+  - `testcase`: Test case on which the current simulation is based.
 
 # Returns
 
-  - `AbstractFloat`: Meridional acceleration [m/s²]
+  - `::AbstractFloat`: Volume force in the meridional-momentum equation.
 """
 function compute_volume_force(
     state::State,
@@ -137,20 +143,24 @@ compute_volume_force(
 )
 ```
 
-Vertical volume force from terrain-following coordinate transformation.
+Return the gravity-wave drag on the transformed vertical momentum, interpolated to ``\\left(i, j, k + 1 / 2\\right)``.
 
-Transforms horizontal gravity wave tendencies to vertical component using
-metric tensor coefficients and Jacobian weighting for terrain-following coordinates.
+The drag is given by
 
-# Implementation
+```math
+\\left(\\frac{\\partial \\widehat{w}}{\\partial t}\\right)_\\mathrm{w} = \\left[G^{1 3} \\left(\\frac{\\partial u}{\\partial t}\\right)_\\mathrm{w}\\right]_{k + 1 / 2} + \\left[G^{2 3} \\left(\\frac{\\partial v}{\\partial t}\\right)_\\mathrm{w}\\right]_{k + 1 / 2}.
+```
 
-  - **Metric transformation**: Uses `met` tensor components
-  - **Jacobian weighting**: Properly averages between vertical levels
-  - **Coordinate mapping**: `w_force = (∂ζ/∂x)·u_force + (∂ζ/∂y)·v_force`
+# Arguments
+
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable (equation) of choice.
+  - `testcase`: Test case on which the current simulation is based.
 
 # Returns
 
-  - `AbstractFloat`: Vertical acceleration [m/s²]
+  - `::AbstractFloat`: Volume force in the transformed-vertical-momentum equation.
 """
 function compute_volume_force(
     state::State,
@@ -184,14 +194,18 @@ compute_volume_force(
 )
 ```
 
-Thermal forcing from gravity wave heating.
+Return the gravity-wave impact on the mass-weighted potential temperature (diabatic heating).
 
-Returns potential temperature tendency from gravity wave energy dissipation
-for use in thermodynamic equation.
+# Arguments
+
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable (equation) of choice.
+  - `testcase`: Test case on which the current simulation is based.
 
 # Returns
 
-  - `AbstractFloat`: Heating rate [K/s]
+  - `::AbstractFloat`: Volume force in the thermodynamic-energy equation.
 """
 function compute_volume_force(
     state::State,

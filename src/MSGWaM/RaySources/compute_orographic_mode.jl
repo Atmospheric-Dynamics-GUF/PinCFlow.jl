@@ -60,11 +60,11 @@ If the squared intrinsic frequency is smaller than the squared Coriolis paramete
 
 # Returns
 
-  - `::Float64`: Intrinsic frequency.
-  - `::Float64`: Zonal wavenumber.
-  - `::Float64`: Meridional wavenumber.
-  - `::Float64`: Vertical wavenumber.
-  - `::Float64`: Wave-action density.
+  - `::AbstractFloat`: Intrinsic frequency.
+  - `::AbstractFloat`: Zonal wavenumber.
+  - `::AbstractFloat`: Meridional wavenumber.
+  - `::AbstractFloat`: Vertical wavenumber.
+  - `::AbstractFloat`: Wave-action density.
 """
 function compute_orographic_mode(
     displm::AbstractFloat,

@@ -33,3 +33,21 @@ Modules = [PinCFlow.Types.PoissonTypes]
 ```@autodocs
 Modules = [PinCFlow.Types.WKBTypes]
 ```
+
+## TracerTypes
+
+```@autodocs
+Modules = [PinCFlow.Types.TracerTypes]
+```
+
+## IceTypes
+
+```@autodocs
+Modules = [PinCFlow.Types.IceTypes]
+```
+
+## TurbulenceTypes
+
+```@autodocs
+Modules = [PinCFlow.Types.TurbulenceTypes]
+```

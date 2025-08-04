@@ -21,6 +21,7 @@ makedocs(;
     pagesonly = true,
     format = Documenter.HTML(;
         repolink = "git@gitlab.dkrz.de:atmodynamics-goethe-universitaet-frankfurt/pinc.git",
-        size_threshold_ignore = ["Types.md", "MSGWaM.md"],
+        size_threshold = nothing,
+        size_threshold_warn = nothing,
     ),
 )

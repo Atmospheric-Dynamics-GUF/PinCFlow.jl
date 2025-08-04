@@ -8,29 +8,28 @@ apply_corrector!(
 )
 ```
 
-Apply the pressure correction step to enforce mass conservation.
-
-This is the main interface for the pressure correction procedure. It computes the
-right-hand side, solves the Poisson equation, and applies velocity/density corrections
-to satisfy the divergence-free condition.
+Perform the corrector step by computing the right-hand side and linear operator of the discrete Poisson equation, solving it and correcting the Exner-pressure, wind and buoyancy accordingly.
 
 # Arguments
 
-  - `state::State`: Complete simulation state
-  - `dt::AbstractFloat`: Time step size
-  - `facray::AbstractFloat`: Rayleigh damping factor for sponge boundaries
-  - `facprs::AbstractFloat`: Pressure correction scaling factor
+  - `state`: Model state.
+  - `dt`: Time step.
+  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
 
 # Returns
 
-  - `(errflagbicg, niterbicg)`: Error status and iteration count from linear solver
+  - `::Bool`: Error flag.
+  - `::Integer`: Number of iterations.
 
-# Process
+# See also
 
- 1. Initialize and compute RHS of Poisson equation
- 2. Solve linear system using BiCGStab
- 3. Set boundary conditions on pressure correction
- 4. Apply momentum and buoyancy corrections
+  - [`PinCFlow.PoissonSolver.compute_rhs!`](@ref)
+  - [`PinCFlow.PoissonSolver.solve_poisson!`](@ref)
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
+  - [`PinCFlow.PoissonSolver.correct!`](@ref)
 """
 function apply_corrector!(
     state::State,
@@ -66,6 +65,5 @@ function apply_corrector!(
     # Correct momentum and buoyancy.
     correct!(state, dt, facray, facprs)
 
-    # Return.
     return (errflagbicg, niterbicg)
 end

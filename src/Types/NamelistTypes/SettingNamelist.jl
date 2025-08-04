@@ -7,7 +7,13 @@ SettingNamelist{
 }
 ```
 
-Namelist for level of compressibility, test case and vertical boundary conditions (see constructor for parameter descriptions).
+Namelist for parameters describing the general model setting.
+
+# Fields
+
+  - `model::A`: Dynamic equations.
+  - `testcase::B`: Test case on wich the current simulation is based.
+  - `zboundaries::C`: Vertical boundary conditions.
 """
 struct SettingNamelist{
     A <: AbstractModel,
@@ -22,28 +28,28 @@ end
 """
 ```julia
 SettingNamelist(;
-    model = PseudoIncompressible(),
-    testcase = MountainWave(),
-    zboundaries = SolidWallBoundaries(),
+    model::AbstractModel = PseudoIncompressible(),
+    testcase::AbstractTestCase = MountainWave(),
+    zboundaries::AbstractBoundaries = SolidWallBoundaries(),
 )
 ```
 
-Core simulation configuration specifying equation set, test case, and vertical boundary conditions.
+Construct a `SettingNamelist` instance with the given keyword arguments as properties.
 
 # Arguments
 
-  - `model = PseudoIncompressible()`: Governing equation set. Options: `PseudoIncompressible()`, `Boussinesq()`, `Compressible()`
-  - `testcase = MountainWave()`: Initial/forcing configuration. Options: `MountainWave()`, `WKBMountainWave()`
-  - `zboundaries = SolidWallBoundaries()`: Vertical boundary treatment. Options: `SolidWallBoundaries()`, `PeriodicBoundaries()`
+  - `model`: Dynamic equations.
+  - `testcase`: Test case on wich the current simulation is based.
+  - `zboundaries`: Vertical boundary conditions.
 
-# Usage
+# Returns
 
-Determines which equations are solved, how initial conditions are set, and boundary condition implementation.
+  - `::SettingNamelist`: `SettingNamelist` instance.
 """
 function SettingNamelist(;
-    model = PseudoIncompressible(),
-    testcase = MountainWave(),
-    zboundaries = SolidWallBoundaries(),
+    model::AbstractModel = PseudoIncompressible(),
+    testcase::AbstractTestCase = MountainWave(),
+    zboundaries::AbstractBoundaries = SolidWallBoundaries(),
 )
     return SettingNamelist(model, testcase, zboundaries)
 end
