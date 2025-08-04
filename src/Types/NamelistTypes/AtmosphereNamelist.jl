@@ -9,7 +9,21 @@ AtmosphereNamelist{
 }
 ```
 
-Namelist for the atmosphere (see constructor for parameter descriptions).
+Namelist for parameters describing the atmospheric background.
+
+# Fields
+
+  - `specifyreynolds::A`: Flag to specify inverse Reynolds number instead of viscosity.
+  - `reinv::B`: Inverse Reynolds number.
+  - `mu_viscous_dim::B`: Kinematic viscosity at the surface.
+  - `background::C`: Atmospheric background.
+  - `buoyancy_frequency::B`: Buoyancy frequency if `background == StratifiedBoussinesq()`.
+  - `theta0_dim::B`: Reference potential temperature.
+  - `temp0_dim::B`: Reference temperature.
+  - `press0_dim::B`: Reference pressure.
+  - `backgroundflow_dim::D`: Initial wind.
+  - `coriolis_frequency::B`: Coriolis frequency if `coriolis_mode == FPlane()`
+  - `coriolis_mode::E`: Approximation used for the Coriolis frequency.
 """
 struct AtmosphereNamelist{
     A <: Bool,
@@ -34,49 +48,52 @@ end
 """
 ```julia
 AtmosphereNamelist(;
-    specifyreynolds = false,
-    reinv = 0.0E+0,
-    mu_viscous_dim = 0.0E+0,
-    background = Isothermal(),
-    buoyancy_frequency = 1.0E-2,
-    theta0_dim = 3.0E+2,
-    temp0_dim = 3.0E+2,
-    press0_dim = 1.0E+5,
-    backgroundflow_dim = (0.0E+0, 0.0E+0, 0.0E+0),
-    coriolis_frequency = 0.0E+0,
-    coriolis_mode = FPlane(),
+    specifyreynolds::Bool = false,
+    reinv::AbstractFloat = 0.0E+0,
+    mu_viscous_dim::AbstractFloat = 0.0E+0,
+    background::AbstractBackground = Isothermal(),
+    buoyancy_frequency::AbstractFloat = 1.0E-2,
+    theta0_dim::AbstractFloat = 3.0E+2,
+    temp0_dim::AbstractFloat = 3.0E+2,
+    press0_dim::AbstractFloat = 1.0E+5,
+    backgroundflow_dim::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
+    coriolis_frequency::AbstractFloat = 0.0E+0,
+    coriolis_mode::AbstractCoriolisMode = FPlane(),
 )
 ```
 
-Constructor for the `AtmosphereNamelist` type, which defines parameters for the background atmosphere.
+Construct an `AtmosphereNamelist` instance with the given keyword arguments as properties.
 
 # Arguments
 
-  - `specifyreynolds::Bool = false`: Flag to specify Reynolds number instead of viscosity
-  - `reinv::AbstractFloat = 0.0E+0`: Inverse Reynolds number
-  - `mu_viscous_dim::AbstractFloat = 0.0E+0`: Dimensional viscosity
-  - `background::AbstractBackground = Isothermal()`: Background atmosphere model.
-    Can be `Isothermal()`, `StratifiedBoussinesq()`, or `Stratified()`
-  - `buoyancy_frequency::AbstractFloat = 1.0E-2`: Buoyancy frequency. Used only if `background` is `StratifiedBoussinesq()`
-  - `theta0_dim::AbstractFloat = 3.0E+2`: Reference potential temperature
-  - `temp0_dim::AbstractFloat = 3.0E+2`: Reference temperature
-  - `press0_dim::AbstractFloat = 1.0E+5`: Reference pressure
-  - `backgroundflow_dim::NTuple{3,AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0)`: Background flow in 3D
-  - `coriolis_frequency::AbstractFloat = 0.0E+0`: Coriolis frequency. Used only if `background` is `Stratified()`
-  - `coriolis_mode::AbstractCoriolisMode = FPlane()`: Coriolis mode. Used only if `background` is `Stratified()`
+  - `specifyreynolds`: Flag to specify inverse Reynolds number instead of viscosity.
+  - `reinv`: Inverse Reynolds number.
+  - `mu_viscous_dim`: Kinematic viscosity at the surface.
+  - `background`: Atmospheric background.
+  - `buoyancy_frequency`: Buoyancy frequency if `background == StratifiedBoussinesq()`.
+  - `theta0_dim`: Reference potential temperature.
+  - `temp0_dim`: Reference temperature.
+  - `press0_dim`: Reference pressure.
+  - `backgroundflow_dim`: Initial wind.
+  - `coriolis_frequency`: Coriolis frequency if `coriolis_mode == FPlane()`
+  - `coriolis_mode`: Approximation used for the Coriolis frequency.
+
+# Returns
+
+  - `::AtmosphereNamelist`: `AtmosphereNamelist` instance.
 """
 function AtmosphereNamelist(;
-    specifyreynolds = false,
-    reinv = 0.0E+0,
-    mu_viscous_dim = 0.0E+0,
-    background = Isothermal(),
-    buoyancy_frequency = 1.0E-2,
-    theta0_dim = 3.0E+2,
-    temp0_dim = 3.0E+2,
-    press0_dim = 1.0E+5,
-    backgroundflow_dim = (0.0E+0, 0.0E+0, 0.0E+0),
-    coriolis_frequency = 0.0E+0,
-    coriolis_mode = FPlane(),
+    specifyreynolds::Bool = false,
+    reinv::AbstractFloat = 0.0E+0,
+    mu_viscous_dim::AbstractFloat = 0.0E+0,
+    background::AbstractBackground = Isothermal(),
+    buoyancy_frequency::AbstractFloat = 1.0E-2,
+    theta0_dim::AbstractFloat = 3.0E+2,
+    temp0_dim::AbstractFloat = 3.0E+2,
+    press0_dim::AbstractFloat = 1.0E+5,
+    backgroundflow_dim::NTuple{3, <:AbstractFloat} = (0.0E+0, 0.0E+0, 0.0E+0),
+    coriolis_frequency::AbstractFloat = 0.0E+0,
+    coriolis_mode::AbstractCoriolisMode = FPlane(),
 )
     return AtmosphereNamelist(
         specifyreynolds,

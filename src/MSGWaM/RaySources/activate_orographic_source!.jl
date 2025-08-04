@@ -83,11 +83,11 @@ function activate_orographic_source!(
 
         # Determine the blocked layer.
         @views if blocking && sum(abs.(topography_spectrum[:, ix, jy])) > 0
-            long =
+            @views long =
                 sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) *
                 sum(abs.(topography_spectrum[:, ix, jy]))
             ratio = min(1, long_threshold / long)
-            zb[ix, jy] =
+            @views zb[ix, jy] =
                 ztildetfc[ix, jy, k0 - 1] +
                 sum(abs.(topography_spectrum[:, ix, jy])) * (1 - 2 * ratio)
         elseif blocking
@@ -249,11 +249,11 @@ function activate_orographic_source!(state::State)
 
         # Determine the blocked layer.
         @views if blocking && sum(abs.(topography_spectrum[:, ix, jy])) > 0
-            long =
+            @views long =
                 sqrt(bvsavg) / sqrt(uavg^2 + vavg^2) *
                 sum(abs.(topography_spectrum[:, ix, jy]))
             ratio = min(1, long_threshold / long)
-            zb[ix, jy] =
+            @views zb[ix, jy] =
                 ztildetfc[ix, jy, k0 - 1] +
                 sum(abs.(topography_spectrum[:, ix, jy])) * (1 - 2 * ratio)
         elseif blocking

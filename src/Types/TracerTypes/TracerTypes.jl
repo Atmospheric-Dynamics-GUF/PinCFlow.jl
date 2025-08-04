@@ -1,3 +1,8 @@
+"""
+```julia
+TracerTypes
+```
+"""
 module TracerTypes
 
 using ..NamelistTypes

@@ -9,7 +9,22 @@ OutputNamelist{
 }
 ```
 
-Namelist for I/O (see constructor for parameter descriptions).
+Namelist for I/O parameters.
+
+# Fields
+
+  - `output_variables::A`: A tuple of symbols representing the variables that should be written to the output file.
+  - `save_ray_volumes::B`: A boolean indicating whether to write ray-volume data.
+  - `prepare_restart::B`: A boolean indicating whether to write all variables needed for restart simulations.
+  - `restart::B`: A boolean indicating whether to initialize with data from a previous state (as written in `input_file`).
+  - `iin::C`: Temporal index in `input_file` at which to read the data to initialize with in restart simulations.
+  - `output_steps::B`: If set to `true`, write output every `noutput` time steps.
+  - `noutput::C`: Output interval (in indices) if `output_steps == true`.
+  - `maxiter::C`: Maximum number of iterations if `output_steps == true`.
+  - `outputtimediff::D`: Output interval (in physical time) if `output_steps == false`.
+  - `maxtime::D`: Simulation time if `output_steps == false`.
+  - `input_file::E`: File from which to read input data in restart simulations.
+  - `output_file::E`: File to which output data is written.
 """
 struct OutputNamelist{
     A <: Tuple{Vararg{Symbol, <:Integer}},
@@ -28,7 +43,6 @@ struct OutputNamelist{
     maxiter::C
     outputtimediff::D
     maxtime::D
-    fancy_namelists::B
     input_file::E
     output_file::E
 end
@@ -36,54 +50,55 @@ end
 """
 ```julia
 OutputNamelist(;
-    output_variables = (),
-    save_ray_volumes = false,
-    prepare_restart = false,
-    restart = false,
-    iin = -1,
-    output_steps = false,
-    noutput = 1,
-    maxiter = 1,
-    outputtimediff = 3.6E+3,
-    maxtime = 3.6E+3,
-    fancy_namelists = true,
-    input_file = "./pincflow_input.h5",
-    output_file = "./pincflow_output.h5",
+    output_variables::Tuple{Vararg{Symbol, <:Integer}} = (),
+    save_ray_volumes::Bool = false,
+    prepare_restart::Bool = false,
+    restart::Bool = false,
+    iin::Integer = -1,
+    output_steps::Bool = false,
+    noutput::Integer = 1,
+    maxiter::Integer = 1,
+    outputtimediff::AbstractFloat = 3.6E+3,
+    maxtime::AbstractFloat = 3.6E+3,
+    input_file::AbstractString = "./pincflow_input.h5",
+    output_file::AbstractString = "./pincflow_output.h5",
 )
 ```
 
-Construct a new OutputNamelist instance, which holds output and input related parameters.
+Construct an `OutputNamelist` instance with the given keyword arguments as properties.
 
 # Arguments
 
-  - `output_variables::A`: A tuple of symbols representing the output variables which should be written to the output file.
-  - `save_ray_volumes::B`: A boolean indicating whether to write out ray volumes.
-  - `prepare_restart::B`: A boolean indicating whether to prepare an output file for restart.
-  - `restart::B`: A boolean indicating whether to restart from a previous state. If true, restart from a previous state saved in `input_file`.
-  - `iin::C`: An integer representing the time index used for restart.
-  - `output_steps::B`: If true, write output every `noutput` steps.
-  - `noutput::C`: If `output_steps` is true, an integer representing the number of steps between outputs.
-  - `maxiter::C`: An integer representing the maximum number of iterations. Only used if `output_steps` is true.
-  - `outputtimediff::D`: a floating-point number determining the time difference between outputs in seconds. Only used if `output_steps` is false.
-  - `maxtime::D`: A floating-point number representing the maximum simulaton time. Only used if `output_steps` is false.
-  - `fancy_namelists::B`: Not used for now.
-  - `input_file::E`: A string holding the input HDF5 file path used for restart.
-  - `output_file::E`: A string holding the output HDF5 file path.
+  - `output_variables`: A tuple of symbols representing the variables that should be written to the output file.
+  - `save_ray_volumes`: A boolean indicating whether to write ray-volume data.
+  - `prepare_restart`: A boolean indicating whether to write all variables needed for restart simulations.
+  - `restart`: A boolean indicating whether to initialize with data from a previous state (as written in `input_file`).
+  - `iin`: Temporal index in `input_file` at which to read the data to initialize with in restart simulations.
+  - `output_steps`: If set to `true`, write output every `noutput` time steps.
+  - `noutput`: Output interval (in indices) if `output_steps == true`.
+  - `maxiter`: Maximum number of iterations if `output_steps == true`.
+  - `outputtimediff`: Output interval (in physical time) if `output_steps == false`.
+  - `maxtime`: Simulation time if `output_steps == false`.
+  - `input_file`: File from which to read input data in restart simulations.
+  - `output_file`: File to which output data is written.
+
+# Returns
+
+  - `::OutputNamelist`: `OutputNamelist` instance.
 """
 function OutputNamelist(;
-    output_variables = (),
-    save_ray_volumes = false,
-    prepare_restart = false,
-    restart = false,
-    iin = -1,
-    output_steps = false,
-    noutput = 1,
-    maxiter = 1,
-    outputtimediff = 3.6E+3,
-    maxtime = 3.6E+3,
-    fancy_namelists = true,
-    input_file = "./pincflow_input.h5",
-    output_file = "./pincflow_output.h5",
+    output_variables::Tuple{Vararg{Symbol, <:Integer}} = (),
+    save_ray_volumes::Bool = false,
+    prepare_restart::Bool = false,
+    restart::Bool = false,
+    iin::Integer = -1,
+    output_steps::Bool = false,
+    noutput::Integer = 1,
+    maxiter::Integer = 1,
+    outputtimediff::AbstractFloat = 3.6E+3,
+    maxtime::AbstractFloat = 3.6E+3,
+    input_file::AbstractString = "./pincflow_input.h5",
+    output_file::AbstractString = "./pincflow_output.h5",
 )
     return OutputNamelist(
         output_variables,
@@ -96,7 +111,6 @@ function OutputNamelist(;
         maxiter,
         outputtimediff,
         maxtime,
-        fancy_namelists,
         input_file,
         output_file,
     )

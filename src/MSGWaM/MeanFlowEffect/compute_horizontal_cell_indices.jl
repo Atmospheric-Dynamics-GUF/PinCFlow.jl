@@ -21,10 +21,10 @@ From the given horizontal ray-volume position and extent, determine the indices 
 
 # Returns
 
-  - `::Int`: Zonal index of the grid cell that contains the left edge.
-  - `::Int`: Zonal index of the grid cell that contains the right edge.
-  - `::Int`: Meridional index of the grid cell that contains the backward edge.
-  - `::Int`: Meridional index of the grid cell that contains the forward edge.
+  - `::Integer`: Zonal index of the grid cell that contains the left edge.
+  - `::Integer`: Zonal index of the grid cell that contains the right edge.
+  - `::Integer`: Meridional index of the grid cell that contains the backward edge.
+  - `::Integer`: Meridional index of the grid cell that contains the forward edge.
 """
 function compute_horizontal_cell_indices(
     state::State,

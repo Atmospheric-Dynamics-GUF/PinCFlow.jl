@@ -10,40 +10,95 @@ compute_topography(
 )
 ```
 
-Compute topography for WKB mountain wave test cases with spectral decomposition.
+Compute and return the topography for the WKB-mountain-wave test case.
+
+The supported topography shapes are as follows, listed according to the value of `namelists.grid.mountain_case`.
+
+ 1. 2D cosine mountains:
+
+    ```math
+        h_\\mathrm{b} = \\frac{h_0}{2}, \\quad k_h = \\frac{\\pi}{l_0}, \\quad l_h = 0, \\quad h_\\mathrm{w} = \\frac{h_0}{2}
+    ```
+
+ 2. ``-``
+ 3. ``-``
+ 4. ``-``
+ 5. 2D cosine envelope and even background:
+
+    ```math
+    \\begin{align*}
+        h_\\mathrm{b} & = \\frac{h_0}{2}, \\quad k_h = \\frac{\\pi}{l_0}, \\quad l_h = 0\\\\
+        h_\\mathrm{w} \\left(x\\right) & = \\begin{cases}
+            \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\left|x - x_0\\right| \\leq r_l l_0,\\\\
+            0 & \\mathrm{else},
+        \\end{cases}
+    \\end{align*}
+    ```
+ 6. ``-``
+ 7. 2D Gaussian envelope and even background:
+
+    ```math
+    \\begin{align*}
+        h_\\mathrm{b} & = \\frac{h_0}{2}, \\quad k_h = \\frac{\\pi}{l_0}, \\quad l_h = 0,\\\\
+        h_\\mathrm{w} \\left(x\\right) & = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right]
+    \\end{align*}
+    ```
+ 8. ``-``
+ 9. 2D cosine envelope and cosine background:
+
+    ```math
+    \\begin{align*}
+        h_\\mathrm{b} \\left(x\\right) & = h_\\mathrm{w} \\left(x\\right), \\quad k_h = \\frac{\\pi}{l_0}, \\quad l_h = 0,\\\\
+        h_\\mathrm{w} \\left(x\\right) & = \\begin{cases}
+            \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\left|x - x_0\\right| \\leq r_l l_0,\\\\
+            0 & \\mathrm{else}
+        \\end{cases}
+    \\end{align*}
+    ```
+10. ``-``
+11. 2D Gaussian envelope and Gaussian background:
+
+    ```math
+    \\begin{align*}
+        h_\\mathrm{b} \\left(x\\right) & = h_\\mathrm{w} \\left(x\\right), \\quad k_h = \\frac{\\pi}{l_0}, \\quad l_h = 0,\\\\
+        h_\\mathrm{w} \\left(x\\right) & = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right]
+    \\end{align*}
+    ```
+12. ``-``
+13. 3D WKB topography:
+
+    ```math
+    \\begin{align*}
+        h_\\mathrm{b} \\left(x, y\\right) & = r_h n_h h_\\mathrm{w} \\left(x, y\\right), \\quad k_{h, \\alpha} = \\frac{\\pi}{l_0} \\cos \\left(\\frac{\\pi \\alpha}{n_h}\\right), \\quad l_{h, \\alpha} = \\frac{\\pi}{l_0} \\sin \\left(\\frac{\\pi \\alpha}{n_h}\\right),\\\\
+        h_\\mathrm{w} \\left(x, y\\right) & = \\begin{cases}
+            \\frac{h_0}{2 n_h \\left(r_h + 1\\right)} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
+            0 & \\mathrm{else},
+        \\end{cases}\\\\
+    \\end{align*}
+    ```
+
+Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountainheight_dim`, `mountainwidth_dim`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively, whereas ``\\left(x_0, y_0\\right)`` is the horizontal center of the domain.
 
 # Arguments
 
-  - `namelists::Namelists`: Configuration parameters including domain, grid, and WKB settings
-  - `constants::Constants`: Physical constants including reference length scale
-  - `domain::Domain`: Computational domain specification
-  - `x::AbstractVector{<:AbstractFloat}`: X-coordinate grid points
-  - `y::AbstractVector{<:AbstractFloat}`: Y-coordinate grid points
-  - `testcase::WKBMountainWave`: WKB mountain wave test case specification
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `x`: `x`-coordinate grid points.
+  - `y`: `y`-coordinate grid points.
+  - `testcase`: Test case on which the current simulation is based.
 
 # Returns
 
-  - `Tuple`: (topography_surface, topography_spectrum, k_spectrum, l_spectrum)
+  - `::AbstractMatrix{<:AbstractFloat}`: Resolved orography.
+  - `::AbstractArray{<:AbstractFloat, 3}`: Spectrum of the unresolved orography.
+  - `::AbstractArray{<:AbstractFloat, 3}`: Zonal wavenumbers of the orographic spectrum.
+  - `::AbstractArray{<:AbstractFloat, 3}`: Meridional wavenumbers of the orographic spectrum.
 
-      + `topography_surface`: 2D array of surface height values
-      + `topography_spectrum`: 3D array of spectral amplitude components
-      + `k_spectrum`: 3D array of zonal wavenumber components
-      + `l_spectrum`: 3D array of meridional wavenumber components
+# See also
 
-# Mountain Cases (WKB-specific)
-
-  - **Case 1**: 2D cosine mountains - Simple periodic structure in x-direction
-  - **Case 5**: 2D cosine envelope with even background - Modulated cosine wave
-  - **Case 7**: 2D Gaussian envelope with even background - Gaussian-modulated structure
-  - **Case 9**: 2D cosine envelope with cosine background - Double cosine modulation
-  - **Case 11**: 2D Gaussian envelope with Gaussian background - Full Gaussian structure
-  - **Case 13**: 3D WKB topography - Complex 3D structure with multiple spectral modes
-
-# Notes
-
-  - For Case 13, spectral modes are distributed uniformly in wavenumber space
-  - The function validates that `nwm` (number of wave modes) is sufficient for the chosen case
-  - All coordinates are normalized by the reference length scale
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function compute_topography(
     namelists::Namelists,
@@ -211,108 +266,121 @@ compute_topography(
     domain::Domain,
     x::AbstractVector{<:AbstractFloat},
     y::AbstractVector{<:AbstractFloat},
-    testcase::MountainWave,
+    testcase::AbstractTestCase,
 )
 ```
 
-Compute topography for standard mountain wave test cases.
+Compute and return the topography for non-WKB-mountain-wave test cases.
+
+The supported topography shapes are as follows, listed according to the value of `namelists.grid.mountain_case`.
+
+ 1. 2D cosine mountains:
+
+    ```math
+    h \\left(x\\right) = \\frac{h_0}{2} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
+    ```
+
+ 2. 3D cosine mountains:
+
+    ```math
+    h \\left(x, y\\right) = \\frac{h_0}{2} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
+    ```
+ 3. 2D isolated mountain:
+
+    ```math
+    h \\left(x\\right) = \\frac{h_0}{1 + \\left(x - x_0\\right)^2 / l_0^2}
+    ```
+ 4. 3D isolated mountain:
+
+    ```math
+    h \\left(x, y\\right) = \\frac{h_0}{1 + \\left[\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2\\right] / l_0^2}
+    ```
+ 5. 2D cosine envelope and even background:
+
+    ```math
+    h \\left(x\\right) = \\begin{cases}
+        \\frac{h_0}{2} \\left\\{1 + \\frac{1}{2} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right)\\right] \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\left|x - x_0\\right| \\leq r_l l_0,\\\\
+        \\frac{h_0}{2} & \\mathrm{else}
+    \\end{cases}
+    ```
+ 6. 3D cosine envelope and even background:
+
+    ```math
+    h \\left(x, y\\right) = \\begin{cases}
+        \\frac{h_0}{2} \\left\\{1 + \\frac{1}{2} \\left[1 + \\cos \\left(\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right)\\right] \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
+        \\frac{h_0}{2} & \\mathrm{else}
+    \\end{cases}
+    ```
+ 7. 2D Gaussian envelope and even background:
+
+    ```math
+    h \\left(x\\right) = \\frac{h_0}{2} \\left\\{1 + \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right] \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
+    ```
+ 8. 3D Gaussian envelope and even background:
+
+    ```math
+    h \\left(x, y\\right) = \\frac{h_0}{2} \\left\\{1 + \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2 - \\left(\\frac{y - y_0}{r_l l_0}\\right)^2\\right] \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
+    ```
+ 9. 2D cosine envelope and cosine background:
+
+    ```math
+    h \\left(x\\right) = \\begin{cases}
+        \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\left(x - x_0\\right)\\right]\\right\\} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\} & \\left|x - x_0\\right| \\leq r_l l_0,\\\\
+        0 & \\mathrm{else}
+    \\end{cases}
+    ```
+10. 3D cosine envelope and cosine background:
+
+    ```math
+    h \\left(x, y\\right) = \\begin{cases}
+        \\frac{h_0}{4} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} & \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
+        0 & \\mathrm{else}
+    \\end{cases}
+    ```
+11. 2D Gaussian envelope and Gaussian background:
+
+    ```math
+    h \\left(x\\right) = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2\\right] \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\left(x - x_0\\right)\\right]\\right\\}
+    ```
+12. 3D Gaussian envelope and Gaussian background:
+
+    ```math
+    h \\left(x, y\\right) = \\frac{h_0}{2} \\exp \\left[- \\left(\\frac{x - x_0}{r_l l_0}\\right)^2 - \\left(\\frac{y - y_0}{r_l l_0}\\right)^2\\right] \\left\\{1 + \\cos \\left[\\frac{\\pi}{l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\}
+    ```
+13. 3D WKB topography:
+
+    ```math
+    \\begin{align*}
+        h \\left(x, y\\right) & = \\begin{cases}
+            \\frac{h_0}{2 \\left(r_h + 1\\right)} \\left\\{1 + \\cos \\left[\\frac{\\pi}{r_l l_0} \\sqrt{\\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2}\\right]\\right\\} \\left\\{r_h + n_h^{- 1} \\sum\\limits_{\\alpha = 0}^{n_h - 1} \\cos \\left[k_\\alpha \\left(x - x_0\\right) + l_\\alpha \\left(y - y_0\\right)\\right]\\right\\} & \\left(x - x_0\\right)^2 + \\left(y - y_0\\right)^2 \\leq r_l^2 l_0^2,\\\\
+            0 & \\mathrm{else},
+        \\end{cases}\\\\
+        k_\\alpha & = \\frac{\\pi}{l_0} \\cos \\left(\\frac{\\pi \\alpha}{n_h}\\right), \\quad l_\\alpha = \\frac{\\pi}{l_0} \\sin \\left(\\frac{\\pi \\alpha}{n_h}\\right)
+    \\end{align*}
+    ```
+
+Therein, ``h_0``, ``l_0``, ``r_h``, ``r_l`` and ``n_h`` are given by the properties `mountainheight_dim`, `mountainwidth_dim`, `height_factor`, `width_factor` and `spectral_modes` of `namelists.grid`, respectively, whereas ``\\left(x_0, y_0\\right)`` is the horizontal center of the domain.
 
 # Arguments
 
-  - `namelists::Namelists`: Configuration parameters including domain and grid settings
-  - `constants::Constants`: Physical constants including reference length scale
-  - `domain::Domain`: Computational domain specification
-  - `x::AbstractVector{<:AbstractFloat}`: X-coordinate grid points
-  - `y::AbstractVector{<:AbstractFloat}`: Y-coordinate grid points
-  - `testcase::MountainWave`: Standard mountain wave test case specification
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `x`: `x`-coordinate grid points.
+  - `y`: `y`-coordinate grid points.
+  - `testcase`: Test case on which the current simulation is based.
 
 # Returns
 
-  - `Tuple`: (topography_surface, topography_spectrum, k_spectrum, l_spectrum)
+  - `::AbstractMatrix{<:AbstractFloat}`: Resolved orography.
+  - `::AbstractArray{<:AbstractFloat, 3}`: Spectrum of the unresolved orography (size `(0, 0, 0)`).
+  - `::AbstractArray{<:AbstractFloat, 3}`: Zonal wavenumbers of the orographic spectrum (size `(0, 0, 0)`).
+  - `::AbstractArray{<:AbstractFloat, 3}`: Meridional wavenumbers of the orographic spectrum (size `(0, 0, 0)`).
 
-      + `topography_surface`: 2D array of surface height values
-      + `topography_spectrum`: Empty 3D array (not used for standard cases)
-      + `k_spectrum`: Empty 3D array (not used for standard cases)
-      + `l_spectrum`: Empty 3D array (not used for standard cases)
+# See also
 
-# Mountain Cases (Complete List)
-
-## 2D Cases
-
-  - **Case 1**: 2D cosine mountains
-
-      + Formula: `h = 0.5 * H * (1 + cos(k * (x - x_c)))`
-      + Simple periodic mountain ridge in x-direction
-
-  - **Case 3**: 2D isolated mountain
-
-      + Formula: `h = H / (1 + (x - x_c)²/W²)`
-      + Classic bell-shaped isolated peak
-  - **Case 5**: 2D cosine envelope with even background
-
-      + Within envelope: Modulated cosine wave
-      + Outside envelope: Constant background height
-      + Smooth transition between regions
-  - **Case 7**: 2D Gaussian envelope with even background
-
-      + Formula: `h = 0.5 * H * (1 + exp(-(x-x_c)²/W²) * cos(k*(x-x_c)))`
-      + Gaussian-modulated oscillatory structure
-  - **Case 9**: 2D cosine envelope with cosine background
-
-      + Within envelope: `h = 0.25 * H * envelope * (1 + cos(k*(x-x_c)))`
-      + Localized cosine mountain with smooth edges
-  - **Case 11**: 2D Gaussian envelope with Gaussian background
-
-      + Formula: `h = 0.5 * H * exp(-(x-x_c)²/W²) * (1 + cos(k*(x-x_c)))`
-      + Fully Gaussian-modulated structure
-
-## 3D Cases
-
-  - **Case 2**: 3D cosine mountains
-
-      + Formula: `h = 0.5 * H * (1 + cos(k * √((x-x_c)² + (y-y_c)²)))`
-      + Radially symmetric cosine structure
-
-  - **Case 4**: 3D isolated mountain
-
-      + Formula: `h = H / (1 + ((x-x_c)² + (y-y_c)²)/W²)`
-      + Axisymmetric bell-shaped mountain
-  - **Case 6**: 3D cosine envelope with even background
-
-      + Within circular envelope: Modulated 3D cosine structure
-      + Outside envelope: Constant background height
-  - **Case 8**: 3D Gaussian envelope with even background
-
-      + Formula: `h = 0.5 * H * (1 + exp(-r²/W²) * cos(k*r))`
-      + Where `r = √((x-x_c)² + (y-y_c)²)`
-  - **Case 10**: 3D cosine envelope with cosine background
-
-      + Within envelope: Double cosine modulation in 3D
-      + Localized 3D structure with smooth transitions
-  - **Case 12**: 3D Gaussian envelope with Gaussian background
-
-      + Formula: `h = 0.5 * H * exp(-r²/W²) * (1 + cos(k*r))`
-      + Fully 3D Gaussian-modulated structure
-  - **Case 13**: 3D WKB topography with spectral modes
-
-      + Combines base topography with multiple spectral components
-      + Each mode has specific wavenumber orientation
-      + Used for complex wave interaction studies
-
-# Parameters
-
-  - `H`: Mountain height (mountainheight_dim/lref)
-  - `W`: Mountain width (mountainwidth_dim/lref)
-  - `k`: Mountain wavenumber (π/W)
-  - `(x_c, y_c)`: Mountain center coordinates
-  - `width_factor`: Envelope width scaling factor
-  - `height_factor`: Height distribution factor (Case 13)
-  - `spectral_modes`: Number of spectral components (Case 13)
-
-# Notes
-
-  - All coordinates are normalized by the reference length scale (lref)
-  - Boundary conditions are applied to ensure proper domain periodicity
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """
 function compute_topography(
     namelists::Namelists,

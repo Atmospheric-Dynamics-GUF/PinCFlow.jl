@@ -30,7 +30,7 @@ function implicit_integration!(
     if errflagbicg
         iout = write_output(state, time, iout, machine_start_time)
         if master
-            println("Output last state into record", iout)
+            println("Output last state into record ", iout, ".")
         end
         exit()
     end
@@ -41,5 +41,5 @@ function implicit_integration!(
 
     set_boundaries!(state, BoundaryPredictands())
 
-    return
+    return ntotalbicg
 end

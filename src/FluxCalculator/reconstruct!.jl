@@ -242,10 +242,20 @@ function reconstruct!(state::State, variable::W)
     return
 end
 
+"""
+```julia
+reconstruct!(state::State, tracersetup::NoTracer)
+```
+"""
 function reconstruct!(state::State, tracersetup::NoTracer)
     return
 end
 
+"""
+```julia
+reconstruct!(state::State, tracersetup::AbstractTracer)
+```
+"""
 function reconstruct!(state::State, tracersetup::AbstractTracer)
     (; limitertype) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
@@ -272,10 +282,20 @@ function reconstruct!(state::State, tracersetup::AbstractTracer)
     return
 end
 
+"""
+```julia
+reconstruct!(state::State, icesetup::NoIce)
+```
+"""
 function reconstruct!(state::State, icesetup::NoIce)
     return
 end
 
+"""
+```julia
+reconstruct!(state::State, icesetup::AbstractIce)
+```
+"""
 function reconstruct!(state::State, icesetup::AbstractIce)
     (; limitertype) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
@@ -301,10 +321,20 @@ function reconstruct!(state::State, icesetup::AbstractIce)
     return
 end
 
+"""
+```julia
+reconstruct!(state::State, turbulencesetup::NoTurbulence)
+```
+"""
 function reconstruct!(state::State, turbulencesetup::NoTurbulence)
     return
 end
 
+"""
+```julia
+reconstruct!(state::State, turbulencesetup::AbstractTurbulence)
+```
+"""
 function reconstruct!(state::State, turbulencesetup::AbstractTurbulence)
     (; limitertype) = state.namelists.discretization
     (; k0, k1, nxx, nyy, nzz) = state.domain
