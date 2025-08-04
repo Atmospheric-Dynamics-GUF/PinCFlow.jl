@@ -5,22 +5,6 @@ update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
 
 Update the density, depending on whether or not the model is Boussinesq.
 
-Dispatches to specific methods based on the dynamic equations.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `m`: Runge-Kutta-stage index.
-  - `variable`: Variable to update.
-"""
-function update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
-    (; model) = state.namelists.setting
-    update!(state, dt, m, variable, model)
-    return
-end
-
-"""
 ```julia
 update!(
     state::State,
@@ -33,25 +17,6 @@ update!(
 
 Return in Boussinesq mode (the density is constant).
 
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `m`: Runge-Kutta-stage index.
-  - `variable`: Variable to update.
-  - `model`: Dynamic equations.
-"""
-function update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    variable::Rho,
-    model::Boussinesq,
-)
-    return
-end
-
-"""
 ```julia
 update!(
     state::State,
@@ -64,6 +29,217 @@ update!(
 
 Update the density with a Runge-Kutta step on the left-hand side of the equation (the right-hand side is zero).
 
+```julia
+update!(state::State, dt::AbstractFloat, m::Integer, variable::RhoP, side::LHS)
+```
+
+Update the density fluctuations with a Runge-Kutta step on the left-hand-side of the equation.
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::RhoP,
+    side::RHS,
+    integration::Explicit,
+)
+```
+
+Update the density fluctuations with an explicit Euler step the on right-hand side of the equation, without the Rayleigh-damping term.
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::RhoP,
+    side::RHS,
+    integration::Implicit,
+    facray::AbstractFloat,
+)
+```
+
+Update the density fluctuations with an implicit Euler step on the right-hand side of the equation.
+
+```julia
+update!(state::State, dt::AbstractFloat, m::Integer, variable::U, side::LHS)
+```
+
+Update the zonal momentum with a Runge-Kutta step on the left-hand side of the equation.
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::U,
+    side::RHS,
+    integration::Explicit,
+)
+```
+
+Update the zonal wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::U,
+    side::RHS,
+    integration::Implicit,
+    facray::AbstractFloat,
+)
+```
+
+Update the zonal wind with an implicit Euler step on the right-hand side of the equation.
+
+```julia
+update!(state::State, dt::AbstractFloat, m::Integer, variable::V, side::LHS)
+```
+
+Update the meridional momentum with a Runge-Kutta step on the left-hand side of the equation.
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::V,
+    side::RHS,
+    integration::Explicit,
+)
+```
+
+Update the meridional wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::V,
+    side::RHS,
+    integration::Implicit,
+    facray::AbstractFloat,
+)
+```
+
+Update the meridional wind with an implicit Euler step on the right-hand side of the equation.
+
+```julia
+update!(state::State, dt::AbstractFloat, m::Integer, variable::W, side::LHS)
+```
+
+Update the transformed vertical momentum with a Runge-Kutta step on the left-hand side of the equation.
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::W,
+    side::RHS,
+    integration::Explicit,
+)
+```
+
+Update the transformed vertical wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    variable::W,
+    side::RHS,
+    integration::Implicit,
+    facray::AbstractFloat,
+)
+```
+
+Update the transformed vertical wind with an implicit Euler step on the right-hand side of the equation.
+
+```julia
+update!(state::State, dt::AbstractFloat, variable::PiP)
+```
+
+Update the Exner-pressure, depending on whether or not the model is compressible.
+
+```julia
+update!(state::State, dt::AbstractFloat, variable::PiP, model::AbstractModel)
+```
+
+Return in non-compressible modes.
+
+```julia
+update!(state::State, dt::AbstractFloat, variable::PiP, model::Compressible)
+```
+
+Update the Exner-pressure such that it is synchronized with the updated mass-weighted potential temperature.
+
+```julia
+update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
+```
+
+Update the mass-weighted potential temperature, depending on whether or not the model is compressible.
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::P,
+    model::AbstractModel,
+)
+```
+
+Return in non-compressible modes.
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::P,
+    model::Compressible,
+)
+```
+
+Update the mass-weighted potential temperature with a Runge-Kutta step on the left-hand side of the equation (the right-hand side is zero).
+
+```julia
+update!(state::State, dt::AbstractFloat, m::Integer, tracersetup::NoTracer)
+```
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    tracersetup::AbstractTracer,
+)
+```
+
+```julia
+update!(state::State, dt::AbstractFloat, m::Integer, icesetup::AbstractIce)
+```
+
+```julia
+update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn)
+```
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    turbulencesetup::NoTurbulence,
+)
+```
+
+```julia
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    turbulencesetup::AbstractTurbulence,
+)
+```
+
 # Arguments
 
   - `state`: Model state.
@@ -71,7 +247,36 @@ Update the density with a Runge-Kutta step on the left-hand side of the equation
   - `m`: Runge-Kutta-stage index.
   - `variable`: Variable to update.
   - `model`: Dynamic equations.
+  - `side`: Side of the equation.
+  - `integration`: Type of the Euler step.
+  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+
+# See also
+
+  - [`PinCFlow.Update.compute_volume_force`](@ref)
+  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
+  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
+  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
+  - [`PinCFlow.Update.transform`](@ref)
 """
+function update! end
+
+function update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
+    (; model) = state.namelists.setting
+    update!(state, dt, m, variable, model)
+    return
+end
+
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::Rho,
+    model::Boussinesq,
+)
+    return
+end
+
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -110,25 +315,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::RhoP, side::LHS)
-```
-
-Update the density fluctuations with a Runge-Kutta step on the left-hand-side of the equation.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `m`: Runge-Kutta-stage index.
-  - `variable`: Variable to update.
-  - `side`: Side of the equation.
-
-# See also
-
-  - [`PinCFlow.Update.compute_volume_force`](@ref)
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -170,33 +356,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    variable::RhoP,
-    side::RHS,
-    integration::Explicit,
-)
-```
-
-Update the density fluctuations with an explicit Euler step on right-hand side of the equation, without the Rayleigh-damping term.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `variable`: Variable to update.
-  - `side`: Side of the equation.
-  - `integration`: Type of the Euler step.
-
-# See also
-
-  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
-  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
-  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -230,34 +389,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    variable::RhoP,
-    side::RHS,
-    integration::Implicit,
-    facray::AbstractFloat,
-)
-```
-
-Update the density fluctuations with an implicit Euler step on the right-hand side of the equation.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `variable`: Variable to update.
-  - `side`: Side of the equation.
-  - `integration`: Type of the Euler step.
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
-
-# See also
-
-  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
-  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -457,21 +588,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::U, side::LHS)
-```
-
-Update the zonal momentum with a Runge-Kutta step on the left-hand side of the equation.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `m`: Runge-Kutta-stage index.
-  - `variable`: Variable to update.
-  - `side`: Side of the equation.
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -551,32 +667,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    variable::U,
-    side::RHS,
-    integration::Explicit,
-)
-```
-
-Update the zonal wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `variable`: Variable to update.
-  - `side`: Side of the equation.
-  - `integration`: Type of the Euler step.
-
-# See also
-
-  - [`PinCFlow.Update.compute_volume_force`](@ref)
-  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -651,34 +741,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    variable::U,
-    side::RHS,
-    integration::Implicit,
-    facray::AbstractFloat,
-)
-```
-
-Update the zonal wind with an implicit Euler step on the right-hand side of the equation.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `variable`: Variable to update.
-  - `side`: Side of the equation.
-  - `integration`: Type of the Euler step.
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
-
-# See also
-
-  - [`PinCFlow.Update.compute_volume_force`](@ref)
-  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -769,21 +831,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::V, side::LHS)
-```
-
-Update the meridional momentum with a Runge-Kutta step on the left-hand side of the equation.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `m`: Runge-Kutta-stage index.
-  - `variable`: Variable to update.
-  - `side`: Side of the equation.
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -860,32 +907,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    variable::V,
-    side::RHS,
-    integration::Explicit,
-)
-```
-
-Update the meridional wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `variable`: Variable to update.
-  - `side`: Side of the equation.
-  - `integration`: Type of the Euler step.
-
-# See also
-
-  - [`PinCFlow.Update.compute_volume_force`](@ref)
-  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -960,34 +981,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    variable::V,
-    side::RHS,
-    integration::Implicit,
-    facray::AbstractFloat,
-)
-```
-
-Update the meridional wind with an implicit Euler step on the right-hand side of the equation.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `variable`: Variable to update.
-  - `side`: Side of the equation.
-  - `integration`: Type of the Euler step.
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
-
-# See also
-
-  - [`PinCFlow.Update.compute_volume_force`](@ref)
-  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1078,25 +1071,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::W, side::LHS)
-```
-
-Update the transformed vertical momentum with a Runge-Kutta step on the left-hand side of the equation.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `m`: Runge-Kutta-stage index.
-  - `variable`: Variable to update.
-  - `side`: Side of the equation.
-
-# See also
-
-  - [`PinCFlow.Update.transform`](@ref)
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1257,32 +1231,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    variable::W,
-    side::RHS,
-    integration::Explicit,
-)
-```
-
-Update the transformed vertical wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `variable`: Variable to update.
-  - `side`: Side of the equation.
-  - `integration`: Type of the Euler step.
-
-# See also
-
-  - [`PinCFlow.Update.compute_volume_force`](@ref)
-  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1393,35 +1341,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    variable::W,
-    side::RHS,
-    integration::Implicit,
-    facray::AbstractFloat,
-)
-```
-
-Update the transformed vertical wind with an implicit Euler step on the right-hand side of the equation.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `variable`: Variable to update.
-  - `side`: Side of the equation.
-  - `integration`: Type of the Euler step.
-  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
-
-# See also
-
-  - [`PinCFlow.Update.compute_volume_force`](@ref)
-  - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
-  - [`PinCFlow.Update.compute_compressible_buoyancy_factor`](@ref)
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1581,41 +1500,12 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(state::State, dt::AbstractFloat, variable::PiP)
-```
-
-Update the Exner-pressure, depending on whether or not the model is compressible.
-
-Dispatches to specific methods based on the dynamic equations.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `variable`: Variable to update.
-"""
 function update!(state::State, dt::AbstractFloat, variable::PiP)
     (; model) = state.namelists.setting
     update!(state, dt, variable, model)
     return
 end
 
-"""
-```julia
-update!(state::State, dt::AbstractFloat, variable::PiP, model::AbstractModel)
-```
-
-Return in non-compressible modes.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `variable`: Variable to update.
-  - `model`: Dynamic equations.
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1625,24 +1515,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(state::State, dt::AbstractFloat, variable::PiP, model::Compressible)
-```
-
-Update the Exner-pressure such that it is synchronized with the updated mass-weighted potential temperature.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `variable`: Variable to update.
-  - `model`: Dynamic equations.
-
-# See also
-
-  - [`PinCFlow.Update.compute_volume_force`](@ref)
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1677,49 +1549,12 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
-```
-
-Update the mass-weighted potential temperature, depending on whether or not the model is compressible.
-
-Dispatches to specific methods based on the dynamic equations.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `m`: Runge-Kutta-stage index.
-  - `variable`: Variable to update.
-"""
 function update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
     (; model) = state.namelists.setting
     update!(state, dt, m, variable, model)
     return
 end
 
-"""
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    variable::P,
-    model::AbstractModel,
-)
-```
-
-Return in non-compressible modes.
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `m`: Runge-Kutta-stage index.
-  - `variable`: Variable to update.
-  - `model`: Dynamic equations.
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1730,31 +1565,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    variable::P,
-    model::Compressible,
-)
-```
-
-Update the mass-weighted potential temperature with a Runge-Kutta step on the left-hand side of the equation (the right-hand side is zero).
-
-# Arguments
-
-  - `state`: Model state.
-  - `dt`: Time step.
-  - `m`: Runge-Kutta-stage index.
-  - `variable`: Variable to update.
-  - `model`: Dynamic equations.
-
-# See also
-
-  - [`PinCFlow.Update.compute_volume_force`](@ref)
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1795,11 +1605,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(state::State, dt::AbstractFloat, m::Integer, tracersetup::NoTracer)
-```
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1809,16 +1614,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    tracersetup::AbstractTracer,
-)
-```
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1858,11 +1653,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(state::State, dt::AbstractFloat, m::Integer, icesetup::AbstractIce)
-```
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1872,11 +1662,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn)
-```
-"""
 function update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn)
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
@@ -1911,16 +1696,6 @@ function update!(state::State, dt::AbstractFloat, m::Integer, icesetup::IceOn)
     return
 end
 
-"""
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    turbulencesetup::NoTurbulence,
-)
-```
-"""
 function update!(
     state::State,
     dt::AbstractFloat,
@@ -1930,16 +1705,6 @@ function update!(
     return
 end
 
-"""
-```julia
-update!(
-    state::State,
-    dt::AbstractFloat,
-    m::Integer,
-    turbulencesetup::AbstractTurbulence,
-)
-```
-"""
 function update!(
     state::State,
     dt::AbstractFloat,

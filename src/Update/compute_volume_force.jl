@@ -9,29 +9,6 @@ compute_volume_force(
 
 Compute the volume force in the equation specified by `variable`.
 
-Dispatches to specific methods based on `testcase`.
-
-# Arguments
-
-  - `state`: Model state.
-  - `indices`: Grid-cell indices.
-  - `variable`: Variable (equation) of choice.
-
-# Returns
-
-  - `::AbstractFloat`: Volume force in the specified equation.
-"""
-function compute_volume_force(
-    state::State,
-    indices::NTuple{3, <:Integer},
-    variable::AbstractVariable,
-)
-    (; testcase) = state.namelists.setting
-
-    return compute_volume_force(state, indices, variable, testcase)
-end
-
-"""
 ```julia
 compute_volume_force(
     state::State,
@@ -43,27 +20,6 @@ compute_volume_force(
 
 Return `0.0` as the volume force in non-WKB test cases.
 
-# Arguments
-
-  - `state`: Model state.
-  - `indices`: Grid-cell indices.
-  - `variable`: Variable (equation) of choice.
-  - `testcase`: Test case on which the current simulation is based.
-
-# Returns
-
-  - `::AbstractFloat`: Volume force in the specified equation (`0.0`).
-"""
-function compute_volume_force(
-    state::State,
-    indices::NTuple{3, <:Integer},
-    variable::AbstractVariable,
-    testcase::AbstractTestCase,
-)
-    return 0.0
-end
-
-"""
 ```julia
 compute_volume_force(
     state::State,
@@ -75,6 +31,43 @@ compute_volume_force(
 
 Return the gravity-wave drag on the zonal momentum, interpolated to ``\\left(i + 1 / 2, j, k\\right)``.
 
+```julia
+compute_volume_force(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::V,
+    testcase::AbstractWKBTestCase,
+)
+```
+
+Return the gravity-wave drag on the meridional momentum, interpolated to ``\\left(i, j + 1 / 2, k\\right)``.
+
+```julia
+compute_volume_force(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::W,
+    testcase::AbstractWKBTestCase,
+)
+```
+
+Return the gravity-wave drag on the transformed vertical momentum, interpolated to ``\\left(i, j, k + 1 / 2\\right)``, as given by
+
+```math
+\\left(\\frac{\\partial \\widehat{w}}{\\partial t}\\right)_\\mathrm{w} = \\left[G^{1 3} \\left(\\frac{\\partial u}{\\partial t}\\right)_\\mathrm{w}\\right]_{k + 1 / 2} + \\left[G^{2 3} \\left(\\frac{\\partial v}{\\partial t}\\right)_\\mathrm{w}\\right]_{k + 1 / 2}.
+```
+
+```julia
+compute_volume_force(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::P,
+    testcase::AbstractWKBTestCase,
+)
+```
+
+Return the gravity-wave impact on the mass-weighted potential temperature (diabatic heating).
+
 # Arguments
 
   - `state`: Model state.
@@ -84,8 +77,29 @@ Return the gravity-wave drag on the zonal momentum, interpolated to ``\\left(i +
 
 # Returns
 
-  - `::AbstractFloat`: Volume force in the zonal-momentum equation.
+  - `::AbstractFloat`: Volume force in the specified equation.
 """
+function compute_volume_force end
+
+function compute_volume_force(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::AbstractVariable,
+)
+    (; testcase) = state.namelists.setting
+
+    return compute_volume_force(state, indices, variable, testcase)
+end
+
+function compute_volume_force(
+    state::State,
+    indices::NTuple{3, <:Integer},
+    variable::AbstractVariable,
+    testcase::AbstractTestCase,
+)
+    return 0.0
+end
+
 function compute_volume_force(
     state::State,
     indices::NTuple{3, <:Integer},
@@ -98,29 +112,6 @@ function compute_volume_force(
     return (dudt[ix, jy, kz] + dudt[ix + 1, jy, kz]) / 2
 end
 
-"""
-```julia
-compute_volume_force(
-    state::State,
-    indices::NTuple{3, <:Integer},
-    variable::V,
-    testcase::AbstractWKBTestCase,
-)
-```
-
-Return the gravity-wave drag on the meridional momentum, interpolated to ``\\left(i, j + 1 / 2, k\\right)``.
-
-# Arguments
-
-  - `state`: Model state.
-  - `indices`: Grid-cell indices.
-  - `variable`: Variable (equation) of choice.
-  - `testcase`: Test case on which the current simulation is based.
-
-# Returns
-
-  - `::AbstractFloat`: Volume force in the meridional-momentum equation.
-"""
 function compute_volume_force(
     state::State,
     indices::NTuple{3, <:Integer},
@@ -133,35 +124,6 @@ function compute_volume_force(
     return (dvdt[ix, jy, kz] + dvdt[ix, jy + 1, kz]) / 2
 end
 
-"""
-```julia
-compute_volume_force(
-    state::State,
-    indices::NTuple{3, <:Integer},
-    variable::W,
-    testcase::AbstractWKBTestCase,
-)
-```
-
-Return the gravity-wave drag on the transformed vertical momentum, interpolated to ``\\left(i, j, k + 1 / 2\\right)``.
-
-The drag is given by
-
-```math
-\\left(\\frac{\\partial \\widehat{w}}{\\partial t}\\right)_\\mathrm{w} = \\left[G^{1 3} \\left(\\frac{\\partial u}{\\partial t}\\right)_\\mathrm{w}\\right]_{k + 1 / 2} + \\left[G^{2 3} \\left(\\frac{\\partial v}{\\partial t}\\right)_\\mathrm{w}\\right]_{k + 1 / 2}.
-```
-
-# Arguments
-
-  - `state`: Model state.
-  - `indices`: Grid-cell indices.
-  - `variable`: Variable (equation) of choice.
-  - `testcase`: Test case on which the current simulation is based.
-
-# Returns
-
-  - `::AbstractFloat`: Volume force in the transformed-vertical-momentum equation.
-"""
 function compute_volume_force(
     state::State,
     indices::NTuple{3, <:Integer},
@@ -184,29 +146,6 @@ function compute_volume_force(
     ) / (jac[ix, jy, kz] + jac[ix, jy, kz + 1])
 end
 
-"""
-```julia
-compute_volume_force(
-    state::State,
-    indices::NTuple{3, <:Integer},
-    variable::P,
-    testcase::AbstractWKBTestCase,
-)
-```
-
-Return the gravity-wave impact on the mass-weighted potential temperature (diabatic heating).
-
-# Arguments
-
-  - `state`: Model state.
-  - `indices`: Grid-cell indices.
-  - `variable`: Variable (equation) of choice.
-  - `testcase`: Test case on which the current simulation is based.
-
-# Returns
-
-  - `::AbstractFloat`: Volume force in the thermodynamic-energy equation.
-"""
 function compute_volume_force(
     state::State,
     indices::NTuple{3, <:Integer},
