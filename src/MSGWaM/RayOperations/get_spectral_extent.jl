@@ -12,9 +12,9 @@ Return the spectral extents of the ray volume specified by `indices`.
 
 # Returns
 
-  - `::Float64`: Extent in ``k``-direction.
-  - `::Float64`: Extent in ``l``-direction.
-  - `::Float64`: Extent in ``m``-direction.
+  - `::AbstractFloat`: Extent in ``k``-direction.
+  - `::AbstractFloat`: Extent in ``l``-direction.
+  - `::AbstractFloat`: Extent in ``m``-direction.
 """
 function get_spectral_extent(rays::Rays, indices::NTuple{4, <:Integer})
     return (

@@ -1,3 +1,14 @@
+"""
+```julia
+explicit_integration!(
+    state::State,
+    p0::Predictands,
+    dtstage::AbstractFloat,
+    time::AbstractFloat,
+    side::LHS,
+)
+```
+"""
 function explicit_integration!(
     state::State,
     p0::Predictands,
@@ -72,6 +83,17 @@ function explicit_integration!(
     return
 end
 
+"""
+```julia
+explicit_integration!(
+    state::State,
+    p0::Predictands,
+    dtstage::AbstractFloat,
+    time::AbstractFloat,
+    side::RHS,
+)
+```
+"""
 function explicit_integration!(
     state::State,
     p0::Predictands,

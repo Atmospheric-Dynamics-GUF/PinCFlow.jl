@@ -7,18 +7,37 @@ compute_compressible_buoyancy_factor(
 )
 ```
 
-Compute compressible buoyancy factor for the given variable at specified grid indices.
-Dispatches based on the model type from the state configuration.
+Compute the factor by which the buoyancy term should be multiplied at ``\\left(i, j, k\\right)`` or ``\\left(i, j, k + 1 / 2\\right)``, depending on `variable`.
+
+In pseudo-incompressible mode, the squared buoyancy frequency used by PinCFlow is
+
+```math
+N^2 = \\frac{g}{\\overline{\\theta}} \\frac{\\mathrm{d} \\overline{\\theta}}{\\mathrm{d} z},
+```
+
+whereas in compressible mode, it is
+
+```math
+N^2 = \\frac{g P}{\\rho \\overline{\\theta}^2} \\frac{\\mathrm{d} \\overline{\\theta}}{\\mathrm{d} z}.
+```
+
+In both modes, the buoyancy term is expressed in terms of ``N^2``. Thus, one has
+
+```math
+\\left(\\frac{\\partial b'}{\\partial t}\\right)_{N^2} = f_{b'} N^2 w,
+```
+
+with ``f_{b'} = 1`` in compressible mode and ``f_{b'} = \\overline{\\rho} / \\rho`` in pseudo-incompressible mode. This method returns ``f_{b'}``, either at ``\\left(i, j, k\\right)`` or at ``\\left(i, j, k + 1 / 2\\right)``, based on the type of `variable`. Note that both values of ``f_{b'}`` are equivalent in Boussinesq mode, where ``\\rho = \\overline{\\rho} = \\rho_0`` (since the density fluctuations are treated separately).
 
 # Arguments
 
-  - `state::State`: Current simulation state
-  - `indices::NTuple{3, <:Integer}`: Grid indices (ix, jy, kz)
-  - `variable::AbstractVariable`: Variable type for which to compute the factor
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable for which the factor is needed.
 
 # Returns
 
-  - `AbstractFloat`: Buoyancy scaling factor
+  - `::AbstractFloat`: Buoyancy factor.
 """
 function compute_compressible_buoyancy_factor(
     state::State,
@@ -39,11 +58,32 @@ compute_compressible_buoyancy_factor(
 )
 ```
 
-Return unity buoyancy factor for density perturbations in fully compressible model.
+Return `1.0` as the factor by which the buoyancy term should be multiplied in compressible mode.
+
+In compressible mode, the squared buoyancy frequency used by PinCFlow is
+
+```math
+N^2 = \\frac{g P}{\\rho \\overline{\\theta}^2} \\frac{\\mathrm{d} \\overline{\\theta}}{\\mathrm{d} z},
+```
+
+so that the buoyancy term may be written as
+
+```math
+\\left(\\frac{\\partial b'}{\\partial t}\\right)_{N^2} = f_{b'} N^2 w,
+```
+
+with ``f_{b'} = 1``.
+
+# Arguments
+
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable for which the factor is needed.
+  - `model`: Dynamic equations.
 
 # Returns
 
-  - `Float64`: Always returns 1.0
+  - `::AbstractFloat`: Buoyancy factor (`1.0`).
 """
 function compute_compressible_buoyancy_factor(
     state::State,
@@ -64,12 +104,32 @@ compute_compressible_buoyancy_factor(
 )
 ```
 
-Compute buoyancy factor for density perturbations in non-compressible models.
-Factor represents the ratio of reference density to total density.
+Compute the factor by which the buoyancy term should be multiplied at ``\\left(i, j, k\\right)`` in pseudo-incompressible mode (this method is also used in Boussinesq mode).
+
+In pseudo-incompressible mode, the squared buoyancy frequency used by PinCFlow is
+
+```math
+N^2 = \\frac{g}{\\overline{\\theta}} \\frac{\\mathrm{d} \\overline{\\theta}}{\\mathrm{d} z},
+```
+
+so that the buoyancy term may be written as
+
+```math
+\\left(\\frac{\\partial b'}{\\partial t}\\right)_{N^2} = f_{b'} N^2 w,
+```
+
+with ``f_{b'} = \\overline{\\rho} / \\rho``. In Boussinesq mode, this is reduced to ``f_{b'} = 1`` (since ``\\rho = \\overline{\\rho} = \\rho_0``, with the density fluctuations being treated separately).
+
+# Arguments
+
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable for which the factor is needed.
+  - `model`: Dynamic equations.
 
 # Returns
 
-  - `AbstractFloat`: ρ₀/(ρ + ρ₀) where ρ₀ is reference density and ρ is density perturbation
+  - `::AbstractFloat`: Buoyancy factor (``\\overline{\\rho} / \\rho``).
 """
 function compute_compressible_buoyancy_factor(
     state::State,
@@ -93,11 +153,32 @@ compute_compressible_buoyancy_factor(
 )
 ```
 
-Return unity buoyancy factor for vertical velocity in fully compressible model.
+Return `1.0` as the factor by which the buoyancy term should be multiplied in compressible mode.
+
+In compressible mode, the squared buoyancy frequency used by PinCFlow is
+
+```math
+N^2 = \\frac{g P}{\\rho \\overline{\\theta}^2} \\frac{\\mathrm{d} \\overline{\\theta}}{\\mathrm{d} z},
+```
+
+so that the buoyancy term may be written as
+
+```math
+\\left(\\frac{\\partial b'}{\\partial t}\\right)_{N^2} = f_{b'} N^2 w,
+```
+
+with ``f_{b'} = 1``.
+
+# Arguments
+
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable for which the factor is needed.
+  - `model`: Dynamic equations.
 
 # Returns
 
-  - `Float64`: Always returns 1.0
+  - `::AbstractFloat`: Buoyancy factor (`1.0`).
 """
 function compute_compressible_buoyancy_factor(
     state::State,
@@ -118,12 +199,36 @@ compute_compressible_buoyancy_factor(
 )
 ```
 
-Compute buoyancy factor for vertical velocity in non-compressible models.
-Uses Jacobian-weighted interpolation between vertical levels.
+Compute the factor by which the buoyancy term should be multiplied at ``\\left(i, j, k + 1 / 2\\right)`` in pseudo-incompressible mode (this method is also used in Boussinesq mode).
+
+In pseudo-incompressible mode, the squared buoyancy frequency used by PinCFlow is
+
+```math
+N^2 = \\frac{g}{\\overline{\\theta}} \\frac{\\mathrm{d} \\overline{\\theta}}{\\mathrm{d} z},
+```
+
+so that the buoyancy term may be written as
+
+```math
+\\left(\\frac{\\partial b'}{\\partial t}\\right)_{N^2} = f_{b'} N^2 w,
+```
+
+with ``f_{b'} = \\overline{\\rho} / \\rho``. In Boussinesq mode, this is reduced to ``f_{b'} = 1`` (since ``\\rho = \\overline{\\rho} = \\rho_0``, with the density fluctuations being treated separately). The interpolation to ``\\left(i, j, k + 1 / 2\\right)`` is
+
+```math
+f_{w'} = \\frac{\\overline{\\rho}_{k + 1 / 2}}{\\rho_{k + 1 / 2}} = \\frac{J_{k + 1} \\overline{\\rho} + J \\overline{\\rho}_{k + 1}}{J_{k + 1} \\rho + J \\rho_{k + 1}}.
+```
+
+# Arguments
+
+  - `state`: Model state.
+  - `indices`: Grid-cell indices.
+  - `variable`: Variable for which the factor is needed.
+  - `model`: Dynamic equations.
 
 # Returns
 
-  - `AbstractFloat`: Jacobian-weighted factor accounting for grid stretching and density variation
+  - `::AbstractFloat`: Buoyancy factor (``\\overline{\\rho}_{k + 1 / 2} / \\rho_{k + 1 / 2}``).
 """
 function compute_compressible_buoyancy_factor(
     state::State,

@@ -11,25 +11,44 @@ compute_stress_tensor(
 )
 ```
 
-Compute viscous stress tensor component τ_μν at grid point (i,j,k).
+Compute the element `(mu, nu)` of the Cartesian viscous stress tensor at the grid point `(i, j, k)`, divided by the dynamic viscosity.
+
+The discretized elements of the Cartesian viscous stress tensor are given by
+
+```math
+\\begin{align*}
+    \\Pi^{1 1} & = \\eta \\left[\\frac{2}{\\Delta \\widehat{x}} \\left(u_{i + 1 / 2} - u_{i - 1 / 2}\\right) + \\frac{G^{1 3}}{\\Delta \\widehat{z}} \\left(u_{k + 1} - u_{k - 1}\\right) - \\frac{2}{3} \\delta\\right],\\\\
+    \\Pi^{1 2} & = \\eta \\left[\\frac{1}{2 \\Delta \\widehat{y}} \\left(u_{j + 1} - u_{j - 1}\\right) + \\frac{G^{2 3}}{2 \\Delta \\widehat{z}} \\left(u_{k + 1} - u_{k - 1}\\right) + \\frac{1}{2 \\Delta \\widehat{x}} \\left(v_{i + 1} - v_{i - 1}\\right) + \\frac{G^{1 3}}{2 \\Delta \\widehat{z}} \\left(v_{k + 1} - v_{k - 1}\\right)\\right],\\\\
+    \\Pi^{1 3} & = \\eta \\left[\\frac{1}{2 J \\Delta \\widehat{z}} \\left(u_{k + 1} - u_{k - 1}\\right) + \\frac{1}{2 \\Delta \\widehat{x}} \\left(w_{i + 1} - w_{i - 1}\\right) + \\frac{G^{1 3}}{\\Delta \\widehat{z}} \\left(w_{k + 1 / 2} - w_{k - 1 / 2}\\right)\\right],\\\\
+    \\Pi^{2 2} & = \\eta \\left[\\frac{2}{\\Delta \\widehat{y}} \\left(v_{j + 1 / 2} - v_{j - 1 / 2}\\right) + \\frac{G^{2 3}}{\\Delta \\widehat{z}} \\left(v_{k + 1} - v_{k - 1}\\right) - \\frac{2}{3} \\delta\\right],\\\\
+    \\Pi^{2 3} & = \\eta \\left[\\frac{1}{2 J \\Delta \\widehat{z}} \\left(v_{k + 1} - v_{k - 1}\\right) + \\frac{1}{2 \\Delta \\widehat{y}} \\left(w_{j + 1} - w_{j - 1}\\right) + \\frac{G^{2 3}}{\\Delta \\widehat{z}} \\left(w_{k + 1 / 2} - w_{k - 1 / 2}\\right)\\right],\\\\
+    \\Pi^{3 3} & = \\eta \\left[\\frac{2}{J \\Delta \\widehat{z}} \\left(w_{k + 1 / 2} - w_{k - 1 / 2}\\right) - \\frac{2}{3} \\delta\\right],
+\\end{align*}
+```
+
+where
+
+```math
+\\delta = \\frac{1}{J} \\left[\\frac{1}{\\Delta \\widehat{x}} \\left(J_{i + 1 / 2} u_{i + 1 / 2} - J_{i - 1 / 2} u_{i - 1 / 2}\\right) + \\frac{1}{\\Delta \\widehat{y}} \\left(J_{j + 1 / 2} v_{j + 1 / 2} - J_{j - 1 / 2} v_{j - 1 / 2}\\right) + \\frac{1}{\\Delta \\widehat{z}} \\left(J_{k + 1 / 2} \\widehat{w}_{k + 1 / 2} - J_{k - 1 / 2} \\widehat{w}_{k - 1 / 2}\\right)\\right].
+```
 
 # Arguments
 
-  - `i, j, k::Integer`: Grid indices
-  - `mu, nu::Integer`: Tensor indices (1=x, 2=y, 3=z)
-  - `predictands::Predictands`: Velocity field variables
-  - `grid::Grid`: Grid metrics and spacing
+  - `i`: Zonal grid-cell index.
+  - `j`: Meridional grid-cell index.
+  - `k`: Vertical grid-cell index.
+  - `mu`: First contravariant tensor index.
+  - `nu`: Second contravariant tensor index.
+  - `predictands`: Prognostic variables.
+  - `grid`: Collection of parameters and fields that describe the grid.
 
 # Returns
 
-  - `AbstractFloat`: Stress tensor component including terrain-following coordinate effects
+  - `::AbstractFloat`: Element `(mu, nu)` of the Cartesian stress tensor at `(i, j, k)`.
 
-# Implementation
+# See also
 
-  - **Diagonal terms**: Normal stresses with divergence damping (2/3 factor)
-  - **Off-diagonal terms**: Shear stresses with metric tensor corrections
-  - **Coordinate effects**: Handles terrain-following transformations via [`PinCFlow.Update.compute_vertical_wind`](@ref)
-  - **Jacobian weighting**: Density-weighted averaging at staggered locations
+  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 """
 function compute_stress_tensor(
     i::Integer,

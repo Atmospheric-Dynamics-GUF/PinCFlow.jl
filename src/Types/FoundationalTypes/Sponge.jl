@@ -7,7 +7,33 @@ Sponge{
 }
 ```
 
-Composite type that contains damping coefficients, vertical and lateral sponge extents.
+Composite type for Rayleigh-damping coefficients, sponge-layer bounds and extents, as well as an auxiliary array for the computation of horizontal means.
+
+# Fields
+
+Rayleigh-damping coefficients:
+
+  - `alphaunifiedsponge::A`: Coefficient of the unified sponge (used in all prognostic equations).
+  - `kr_sp_tfc::A`: Coefficient of the non-unified sponge (used in the auxiliary equation).
+  - `kr_sp_w_tfc::A`: Coefficient of the non-unified sponge (used in the transformed-vertical-momentum equation).
+
+Vertical sponge extent:
+
+  - `zsponge::B`: Lower edge of the sponge.
+  - `dzsponge::B`: Vertical extent of the sponge.
+
+Horizontal sponge extent:
+
+  - `xsponge0::B`: Right edge of the unified sponge.
+  - `xsponge1::B`: Left edge of the unified sponge.
+  - `ysponge0::B`: Forward edge of the unified sponge.
+  - `ysponge1::B`: Backward edge of the unified sponge.
+  - `dxsponge::B`: Halved zonal extent of the unified sponge.
+  - `dysponge::B`: Halved meridional extent of the unified sponge.
+
+Auxiliary array:
+
+  - `horizontal_mean::C`: Auxiliary array for the computation of horizontal means.
 """
 struct Sponge{
     A <: AbstractArray{<:AbstractFloat, 3},
@@ -41,7 +67,19 @@ end
 Sponge(namelists::Namelists, domain::Domain, grid::Grid)
 ```
 
-Construct a `Sponge` instance from `namelists`, `domain` and `grid`.
+Construct a `Sponge` instance, using the model parameters `namelists`.
+
+The vertical extent of the sponge is set to the fraction `namelists.sponge.spongeheight` of the vertical extent of the domain. The horizontal extents of the unified sponge are computed similarly, using the same parameter multiplied by `0.5` (since the sponge is centered at the horizontal boundaries).
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `grid`: Collection of parameters and fields that describe the grid.
+
+# Returns
+
+  - `::Sponge`: `Sponge` instance.
 """
 function Sponge(namelists::Namelists, domain::Domain, grid::Grid)
     (; spongeheight) = namelists.sponge

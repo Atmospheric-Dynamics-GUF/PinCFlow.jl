@@ -4,6 +4,11 @@ VariableTypes
 ```
 
 Module for composite types needed for the integration in time.
+
+# See also
+
+  - [`PinCFlow.Types.NamelistTypes`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes`](@ref)
 """
 module VariableTypes
 

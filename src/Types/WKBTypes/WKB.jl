@@ -14,23 +14,30 @@ WKB{
 }
 ```
 
-Main container for WKB ray tracing data and parameters.
+Main container for WKB ray-tracing data and parameters.
 
 # Fields
 
-  - `nxray`, `nyray`, `nzray`: Number of ray volumes in each direction
-  - `nxray_wrk`, `nyray_wrk`, `nzray_wrk`: Working array dimensions (spectral)
-  - `nray_max`, `nray_wrk`: Maximum and working ray counts
-  - `n_sfc`: Number of surface ray volumes
-  - `nray`: 3D array of ray counts per grid cell
-  - `rays`: Ray position, wavenumber, and density data
-  - `surface_indices`: Indices for surface ray launching
-  - `increments`: Ray propagation increments
-  - `integrals`: Gravity wave momentum and energy integrals
-  - `tendencies`: Gravity wave drag and heating tendencies
-  - `cgx_max`, `cgy_max`, `cgz_max`: Maximum group velocities
-  - `zb`: Bottom boundary height
-  - `diffusion`: Diffusion coefficients
+  - `nxray::A`: Number of ray volumes allowed in ``\\widehat{x}``, per grid cell and wave mode (`nray_fac * nrxl * nrk_init`, taken from `namelists.wkb`).
+  - `nyray::A`: Number of ray volumes allowed in ``\\widehat{y}``, per grid cell and wave mode (`nray_fac * nryl * nrl_init`, taken from `namelists.wkb`).
+  - `nzray::A`: Number of ray volumes allowed in ``\\widehat{z}``, per grid cell and wave mode (`nray_fac * nrzl * nrm_init`, taken from `namelists.wkb`).
+  - `nxray_wrk::A`: `2 * nxray`.
+  - `nyray_wrk::A`: `2 * nyray`.
+  - `nzray_wrk::A`: `2 * nzray`.
+  - `nray_max::A`: Maximum ray-volume count allowed per grid-cell before merging is triggered (`nxray * nyray * nzray * namelists.wkb.nwm`).
+  - `nray_wrk::A`: Size of the spectral dimension of ray-volume arrays (`nxray_wrk * nyray_wrk * nzray_wrk`).
+  - `n_sfc::A`: Number of orographic wave modes.
+  - `nray::B`: Ray-volume count in each grid cell.
+  - `rays::C`: Prognostic ray-volume properties.
+  - `surface_indices::D`: Indices that connect orographic wave modes to ray volumes.
+  - `increments::E`: Increments of the prognostic ray-volume properties.
+  - `integrals::F`: Integrals of ray-volume properties.
+  - `tendencies::G`: Gravity-wave drag and heating fields.
+  - `cgx_max::H`: Maximum zonal group velocities.
+  - `cgy_max::H`: Maximum meridional group velocities.
+  - `cgz_max::I`: Maximum vertical group velocities.
+  - `zb::J`: Upper edge of the blocked layer.
+  - `diffusion::I`: Diffusion induced by wave breaking.
 """
 struct WKB{
     A <: Integer,
@@ -71,7 +78,13 @@ end
 WKB(namelists::Namelists, constants::Constants, domain::Domain, grid::Grid)
 ```
 
-Dispatch to a `WKB` constructor, based on the type of `testcase`.
+Construct a `WKB` instance, depending on the test case.
+
+Dispatches to a specific method, based on the test case.
+
+# Returns
+
+  - `::WKB`: `WKB` instance with zero-initialized arrays of the appropriate dimensions.
 """
 function WKB(
     namelists::Namelists,
@@ -94,7 +107,19 @@ WKB(
 )
 ```
 
-Construct a `WKB` instance with zero-size arrays, since they are not needed.
+Construct a `WKB` instance with zero-size arrays for non-WKB test cases.
+
+# Returns
+
+  - `::WKB`: `WKB` instance with zero-initialized arrays (all dimensions have size `0`).
+
+# See also
+
+  - [`PinCFlow.Types.WKBTypes.Rays`](@ref)
+  - [`PinCFlow.Types.WKBTypes.SurfaceIndices`](@ref)
+  - [`PinCFlow.Types.WKBTypes.Increments`](@ref)
+  - [`PinCFlow.Types.WKBTypes.GWIntegrals`](@ref)
+  - [`PinCFlow.Types.WKBTypes.GWTendencies`](@ref)
 """
 function WKB(
     namelists::Namelists,
@@ -130,6 +155,20 @@ WKB(
 ```
 
 Construct a `WKB` instance.
+
+This method primarily determines the size of the spectral dimension of ray-volume arrays and initializes them and related arrays (with zeros) accordingly. The proper initialization with nonzero wave action is performed by [`PinCFlow.MSGWaM.RayUpdate.initialize_rays!`](@ref).
+
+# Returns
+
+  - `::WKB`: `WKB` instance with zero-initialized arrays.
+
+# See also
+
+  - [`PinCFlow.Types.WKBTypes.Rays`](@ref)
+  - [`PinCFlow.Types.WKBTypes.SurfaceIndices`](@ref)
+  - [`PinCFlow.Types.WKBTypes.Increments`](@ref)
+  - [`PinCFlow.Types.WKBTypes.GWIntegrals`](@ref)
+  - [`PinCFlow.Types.WKBTypes.GWTendencies`](@ref)
 """
 function WKB(
     namelists::Namelists,

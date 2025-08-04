@@ -6,19 +6,17 @@ Predictands{
 }
 ```
 
-Storage for prognostic variables (predictands) on a 3D grid.
+Arrays for prognostic variables.
 
 # Fields
 
-  - `rho::A`: Density field (nxx × nyy × nzz)
-  - `rhop::A`: Density perturbation field (nxx × nyy × nzz)
-  - `u::A`: x-velocity field (nxx × nyy × nzz)
-  - `v::A`: y-velocity field (nxx × nyy × nzz)
-  - `w::A`: z-velocity field (nxx × nyy × nzz)
-  - `pip::A`: Pressure perturbation field (nxx × nyy × nzz)
-  - `p::B`: Pressure field (model-dependent dimensions)
-
-For incompressible models, `p` is empty (0×0×0).
+  - `rho::A`: Density.
+  - `rhop::A`: Density-fluctuations.
+  - `u::A`: Zonal wind.
+  - `v::A`: Meridional wind.
+  - `w::A`: Transformed vertical wind.
+  - `pip::A`: Exner-pressure fluctuations.
+  - `p::B`: Mass-weighted potential temperature.
 """
 struct Predictands{
     A <: AbstractArray{<:AbstractFloat, 3},
@@ -43,7 +41,20 @@ Predictands(
 )
 ```
 
-Construct `Predictands` from configuration namelists, constants, domain, and atmosphere.
+Construct a `Predictands` instance with dimensions and initial values depending on whether or not the model is compressible and which test case is initialized.
+
+Dispatches to specific methods depending on the dynamic equations and the test case.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `atmosphere`: Atmospheric-background fields.
+
+# Returns
+
+  - `::Predictands`: `Predictands` instance with arrays initialized according to `model` and `testcase`.
 """
 function Predictands(
     namelists::Namelists,
@@ -76,7 +87,22 @@ Predictands(
 )
 ```
 
-Construct `Predictands` for incompressible models. Initializes velocity fields with background flow and sets empty pressure field.
+Construct a `Predictands` in non-compressible modes and non-wave-packet test cases.
+
+The wind is initialized with ``\\boldsymbol{u}_0`` (given by `namelists.atmosphere.backgroundflow_dim`) everywhere, whereas the density fluctuations and Exner-pressure fluctuations are initialized with zero. The array for the mass-weighted potential temperature is constructed with size `(0, 0, 0)`.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `atmosphere`: Atmospheric-background fields.
+  - `model`: Dynamic equations.
+  - `testcase`: Test case on which the current simulation is based.
+
+# Returns
+
+  - `::Predictands`: `Predictands` instance with arrays initialized for a non-compressible model (`p` has size `(0, 0, 0)`).
 """
 function Predictands(
     namelists::Namelists,
@@ -116,7 +142,22 @@ Predictands(
 )
 ```
 
-Construct `Predictands` for compressible models. Initializes velocity fields with background flow and pressure field with stratified values.
+Construct a `Predictands` instance in compressible mode and non-wave-packet test cases.
+
+The wind is initialized with ``\\boldsymbol{u}_0`` (given by `namelists.atmosphere.backgroundflow_dim`) everywhere, whereas the density fluctuations and Exner-pressure fluctuations are initialized with zero. The mass-weighted potential temperature is initialized with the corresponding array in `atmosphere`.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+  - `constants`: Physical constants and reference values.
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `atmosphere`: Atmospheric-background fields.
+  - `model`: Dynamic equations.
+  - `testcase`: Test case on which the current simulation is based.
+
+# Returns
+
+  - `::Predictands`: `Predictands` instance with arrays initialized for a compressible model.
 """
 function Predictands(
     namelists::Namelists,
@@ -147,14 +188,26 @@ function Predictands(
     return Predictands(rho, rhop, u, v, w, pip, p)
 end
 
-#------------------------------------------------------------------
+"""
+```julia
+Predictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    model::PseudoIncompressible,
+    testcase::WavePacket,
+)
+```
+"""
 function Predictands(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
     atmosphere::Atmosphere,
     grid::Grid,
-    model::AbstractModel,
+    model::PseudoIncompressible,
     testcase::WavePacket,
 )
     (; backgroundflow_dim, theta0_dim) = namelists.atmosphere
@@ -235,7 +288,7 @@ function Predictands(
 
         deltaz = ztfc[ix, jy, kz] - z0
 
-        # Gaussian in z, Cosine in x and y 
+        # Gaussian in z, Cosine in x and y.
 
         if sigmax == 0.0
             envel = 1.0

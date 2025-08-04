@@ -18,24 +18,34 @@ transform(
 )
 ```
 
-Transform vertical velocity from Cartesian to terrain-following coordinates.
+Perform the transformation of a vertical-wind-like variable from the transformed system to the Cartesian one, given the wind-like components at the grid points surrounding `(i, j, k + 1 / 2)`.
+
+The discretized transformation rule for the vertical wind is given by
+
+```math
+w_{k + 1 / 2} = J_{k + 1 / 2} \\left[- \\left(G^{1 3} u\\right)_{k + 1 / 2} - \\left(G^{2 3} v\\right)_{k + 1 / 2} + \\widehat{w}_{k + 1 / 2}\\right].
+```
 
 # Arguments
 
-  - `i, j, k::Integer`: Grid indices
-  - `u*, v*, w*::AbstractFloat`: Velocity components at cell edges
-  - `coordinate::Cartesian`: Coordinate system type
-  - `grid::Grid`: Metric tensor and Jacobian
+  - `i`: Zonal grid-cell index.
+  - `j`: Meridional grid-cell index.
+  - `k`: Vertical grid-cell index.
+  - `uedger`: Zonal-wind equivalent at `(i + 1 / 2, j, k)`.
+  - `uuedger`: Zonal-wind equivalent at `(i + 1 / 2, j, k + 1)`.
+  - `uedgel`: Zonal-wind equivalent at `(i - 1 / 2, j, k)`.
+  - `uuedgel`: Zonal-wind equivalent at `(i - 1 / 2, j, k + 1)`.
+  - `vedgef`: Meridional-wind equivalent at `(i, j + 1 / 2, k)`.
+  - `vuedgef`: Meridional-wind equivalent at `(i, j + 1 / 2, k + 1)`.
+  - `vedgeb`: Meridional-wind equivalent at `(i, j - 1 / 2, k)`.
+  - `vuedgeb`: Meridional-wind equivalent at `(i, j - 1 / 2, k + 1)`.
+  - `wedgeu`: Transformed-vertical-wind equivalent at `(i, j, k + 1 / 2)`
+  - `coordinate`: Coordinate system to transform to.
+  - `grid`: Collection of parameters and fields that describe the grid.
 
 # Returns
 
-  - `AbstractFloat`: Contravariant vertical velocity w^ζ
-
-# Coordinate Transformation
-
-  - **Cartesian**: `w^ζ = w - (g^{1ζ}u + g^{2ζ}v)`
-  - **Metric terms**: Uses `met[i,j,k,1,3]` and `met[i,j,k,2,3]`
-  - **Jacobian weighting**: Harmonic mean between adjacent cells
+  - `::AbstractFloat`: Vertical-wind-like transformation of the given variable at `(i, j, k + 1 / 2)` (`Transformed` to `Cartesian`).
 """
 function transform(
     i::Integer,
@@ -94,9 +104,34 @@ transform(
 )
 ```
 
-Transform vertical velocity including terrain-following coordinate effects.
+Perform the transformation of a vertical-wind-like variable from the Cartesian system to the transformed one, given the wind-like components at the grid points surrounding `(i, j, k + 1 / 2)`.
 
-For terrain-following coordinates with additional metric corrections.
+The discretized transformation rule for the vertical wind is given by
+
+```math
+\\widehat{w}_{k + 1 / 2} = \\left(G^{1 3} u\\right)_{k + 1 / 2} + \\left(G^{2 3} v\\right)_{k + 1 / 2} + \\frac{w_{k + 1 / 2}}{J_{k + 1 / 2}}.
+```
+
+# Arguments
+
+  - `i`: Zonal grid-cell index.
+  - `j`: Meridional grid-cell index.
+  - `k`: Vertical grid-cell index.
+  - `uedger`: Zonal-wind equivalent at `(i + 1 / 2, j, k)`.
+  - `uuedger`: Zonal-wind equivalent at `(i + 1 / 2, j, k + 1)`.
+  - `uedgel`: Zonal-wind equivalent at `(i - 1 / 2, j, k)`.
+  - `uuedgel`: Zonal-wind equivalent at `(i - 1 / 2, j, k + 1)`.
+  - `vedgef`: Meridional-wind equivalent at `(i, j + 1 / 2, k)`.
+  - `vuedgef`: Meridional-wind equivalent at `(i, j + 1 / 2, k + 1)`.
+  - `vedgeb`: Meridional-wind equivalent at `(i, j - 1 / 2, k)`.
+  - `vuedgeb`: Meridional-wind equivalent at `(i, j - 1 / 2, k + 1)`.
+  - `wedgeu`: Vertical-wind equivalent at `(i, j, k + 1 / 2)`
+  - `coordinate`: Coordinate system to transform to.
+  - `grid`: Collection of parameters and fields that describe the grid.
+
+# Returns
+
+  - `::AbstractFloat`: Vertical-wind-like transformation of the given variable at `(i, j, k + 1 / 2)` (`Cartesian` to `Transformed`).
 """
 function transform(
     i::Integer,
