@@ -92,15 +92,15 @@ function apply_blocked_layer_scheme!(state::State, testcase::WKBMountainWave)
                 min(zb[ix, jy], ztildetfc[ix, jy, kz]) -
                 ztildetfc[ix, jy, kz - 1]
             ) / jac[ix, jy, kz] / dz
-        @views if fraction <= 0
+        if fraction <= 0
             continue
         else
-            kavg[1] =
+            @views kavg[1] =
                 sum(
                     abs.(topography_spectrum[:, ix, jy]) .*
                     k_spectrum[:, ix, jy],
                 ) / sum(abs.(topography_spectrum[:, ix, jy]))
-            kavg[2] =
+            @views kavg[2] =
                 sum(
                     abs.(topography_spectrum[:, ix, jy]) .*
                     l_spectrum[:, ix, jy],

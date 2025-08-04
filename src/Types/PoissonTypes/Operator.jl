@@ -3,16 +3,11 @@
 Operator{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
-Workspace array for matrix-vector operations in the Poisson solver.
+Workspace array for applying the linear operator of the Poisson solver.
 
 # Fields
 
-  - `s::A`: Auxiliary field for boundary communication and operator application
-
-# Usage
-
-Provides temporary storage for [`PinCFlow.PoissonSolver.apply_operator!`](@ref)
-to handle boundary conditions and halo exchanges during matrix-vector products.
+  - `s::A`: Auxiliary array for enforcing boundary conditions and performing MPI communication prior to the application of the linear operator.
 """
 struct Operator{A <: AbstractArray{<:AbstractFloat, 3}}
     s::A
@@ -23,15 +18,15 @@ end
 Operator(domain::Domain)
 ```
 
-Initialize operator workspace array sized according to extended domain.
+Initialize operator-workspace array sized according to the dimensions of the MPI subdomain.
 
 # Arguments
 
-  - `domain::Domain`: Domain specification with extended dimensions
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
 # Returns
 
-  - `Operator`: Container with zero-initialized workspace array
+  - `::Operator`: `Operator` instance with a zero-initialized array.
 """
 function Operator(domain::Domain)
 

@@ -6,6 +6,13 @@ PoissonSolver
 Module for solving the Poisson equation and performing a corrector step.
 
 Provides the functions needed to solve the Poisson equation of the semi-implicit time scheme, using a preconditioned BiCGStab algorithm, and correcting the Exner-pressure, momentum and buoyancy accordingly.
+
+# See also
+
+  - [`PinCFlow.Types`](@ref)
+  - [`PinCFlow.MPIOperations`](@ref)
+  - [`PinCFlow.Boundaries`](@ref)
+  - [`PinCFlow.Update`](@ref)
 """
 module PoissonSolver
 

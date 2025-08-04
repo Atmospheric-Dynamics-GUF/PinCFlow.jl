@@ -1,3 +1,14 @@
+"""
+```julia
+Turbulence{
+    A <: TurbulencePredictands,
+    B <: TurbulenceTendencies,
+    C <: TurbulenceAuxiliaries,
+    D <: TurbulenceReconstructions,
+    E <: TurbulenceFluxes,
+}
+```
+"""
 struct Turbulence{
     A <: TurbulencePredictands,
     B <: TurbulenceTendencies,
@@ -12,6 +23,18 @@ struct Turbulence{
     turbulencefluxes::E
 end
 
+"""
+```julia
+Turbulence(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    variables::Variables,
+)
+```
+"""
 function Turbulence(
     namelists::Namelists,
     constants::Constants,
