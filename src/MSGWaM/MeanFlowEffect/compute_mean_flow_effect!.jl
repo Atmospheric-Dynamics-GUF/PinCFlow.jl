@@ -40,7 +40,7 @@ compute_mean_flow_effect!(state::State, testcase::AbstractWKBTestCase)
 
 Calculate the mean-flow impact of unresolved gravity waves.
 
-This method first computes several spectral integrals (using `compute_gw_integrals!`), most of which represent gravity-wave fluxes. After the boundary conditions for these have been enforced (using `set_boundaries!`), the corresponding tendencies are calculated (using `compute_gw_tendencies!`). These also have boundary conditions that need to be enforced (once again using `set_boundaries!`) before they are smoothed to remove small-scale features that may occur due to a coarse ray-volume distribution (using `smooth_gw_tendencies!`). Afterwards, if MS-GWaM parameterizes mountain waves, the tendencies are adjusted to account for the formation of blocked layers (using `apply_blocked_layer_scheme!`), before the boundary conditions are enforced again.
+This method first computes several spectral integrals (using `compute_gw_integrals!`), most of which represent gravity-wave fluxes. After the boundary conditions for these have been enforced (using `set_boundaries!`), the corresponding tendencies are calculated (using `compute_gw_tendencies!`). These also have boundary conditions that need to be enforced (once again using `set_boundaries!`) before they are smoothed to remove small-scale features that may occur due to a coarse ray-volume distribution (using `smooth_gw_tendencies!`). Afterwards, if MSGWaM parameterizes mountain waves, the tendencies are adjusted to account for the formation of blocked layers (using `apply_blocked_layer_scheme!`), before the boundary conditions are enforced again.
 
 # Arguments
 

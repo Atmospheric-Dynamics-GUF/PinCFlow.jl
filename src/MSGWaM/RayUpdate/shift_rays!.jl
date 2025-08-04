@@ -63,7 +63,7 @@ Return for steady-state mode.
 # Arguments
 
   - `state`: Model state.
-  - `wkb_mode`: Approximations used by MS-GWaM.
+  - `wkb_mode`: Approximations used by MSGWaM.
 """
 function shift_rays!(state::State, wkb_mode::SteadyState)
     return
@@ -81,7 +81,7 @@ This method enforces the vertical boundary conditions (via `set_vertical_boundar
 # Arguments
 
   - `state`: Model state.
-  - `wkb_mode`: Approximations used by MS-GWaM.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
@@ -114,7 +114,7 @@ For each dimension in physical space, this method enforces the appropriate bound
 # Arguments
 
   - `state`: Model state.
-  - `wkb_mode`: Approximations used by MS-GWaM.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 

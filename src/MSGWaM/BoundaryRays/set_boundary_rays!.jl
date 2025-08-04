@@ -5,7 +5,7 @@ set_boundary_rays!(state::State)
 
 Enforce boundary conditions for ray volumes based on the test case.
 
-Dispatches to the appropriate methods depending on whether or not the simulation uses MS-GWaM (i.e. whether or not a WKB test case is simulated).
+Dispatches to the appropriate methods depending on whether or not the simulation uses MSGWaM (i.e. whether or not a WKB test case is simulated).
 
 # Arguments
 

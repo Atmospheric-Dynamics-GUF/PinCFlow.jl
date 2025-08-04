@@ -63,7 +63,7 @@ Return for steady-state mode.
 # Arguments
 
   - `state`: Model state.
-  - `wkb_mode`: Approximations used by MS-GWaM.
+  - `wkb_mode`: Approximations used by MSGWaM.
 """
 function split_rays!(state::State, wkb_mode::SteadyState)
     return
@@ -79,7 +79,7 @@ Split ray volumes which have a vertical extent larger than the local vertical gr
 # Arguments
 
   - `state`: Model state.
-  - `wkb_mode`: Approximations used by MS-GWaM.
+  - `wkb_mode`: Approximations used by MSGWaM.
 """
 function split_rays!(state::State, wkb_mode::SingleColumn)
     (; comm, master, i0, i1, j0, j1, k0, k1) = state.domain
@@ -116,7 +116,7 @@ The splitting is performed sequentially, such that a ray volume with extents tha
 # Arguments
 
   - `state`: Model state.
-  - `wkb_mode`: Approximations used by MS-GWaM.
+  - `wkb_mode`: Approximations used by MSGWaM.
 """
 function split_rays!(state::State, wkb_mode::MultiColumn)
     (; sizex, sizey) = state.namelists.domain

@@ -104,7 +104,7 @@ The ray equations are given by
 \\end{align*}
 ```
 
-where the subscript ``\\alpha`` indicates either a ray-volume property or a mean-flow property interpolated to the ray-volume position, via `interpolate_mean_flow` and `interpolate_stratification`. In addition to these, MS-GWaM integrates prognostic equations for the ray-volume extents, given by
+where the subscript ``\\alpha`` indicates either a ray-volume property or a mean-flow property interpolated to the ray-volume position, via `interpolate_mean_flow` and `interpolate_stratification`. In addition to these, MSGWaM integrates prognostic equations for the ray-volume extents, given by
 
 ```math
 \\begin{align*}
@@ -127,7 +127,7 @@ where ``\\alpha_{\\mathrm{R}, \\alpha}`` is the interpolation of the Rayleigh-da
   - `state`: Model state.
   - `dt`: Time step.
   - `rkstage`: Runge-Kutta-stage index.
-  - `wkb_mode`: Approximations used by MS-GWaM.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 
@@ -474,7 +474,7 @@ is the turbulent viscosity and diffusivity due to wave breaking (see [`PinCFlow.
   - `state`: Model state.
   - `dt`: Time step.
   - `rkstage`: Runge-Kutta stage index.
-  - `wkb_mode`: Approximations used by MS-GWaM.
+  - `wkb_mode`: Approximations used by MSGWaM.
 
 # See also
 

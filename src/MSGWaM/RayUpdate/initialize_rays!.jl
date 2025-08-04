@@ -3,7 +3,7 @@
 initialize_rays!(state::State)
 ```
 
-Complete the initialization of MS-GWaM, based on the test case.
+Complete the initialization of MSGWaM, based on the test case.
 
 Dispatches to the appropriate method depending on the test case.
 
@@ -38,7 +38,7 @@ end
 initialize_rays!(state::State, testcase::AbstractWKBTestCase)
 ```
 
-Complete the initialization of MS-GWaM for WKB test cases.
+Complete the initialization of MSGWaM for WKB test cases.
 
 In each grid cell, `nwm` wave modes are computed, using e.g. `activate_orographic_source!` for mountain waves. For each of these modes, `nrxl * nryl * nrzl * nrk * nrl * nrm` ray volumes are then defined such that they evenly divide the volume one would get for `nrxl = nryl = nrzl = nrk = nrl = nrm = 1` (the parameters are taken from `state.namelists.wkb`). Finally, the maximum group velocities are determined for the corresponding CFL condition that is used in the computation of the time step.
 
@@ -333,7 +333,7 @@ function initialize_rays!(state::State, testcase::AbstractWKBTestCase)
 
     # Print information.
     if master
-        println("MS-GWaM:")
+        println("MSGWaM:")
         println("Global ray-volume count: ", global_sum)
         println("Maximum number of ray volumes per cell: ", nray_max)
         println("")
