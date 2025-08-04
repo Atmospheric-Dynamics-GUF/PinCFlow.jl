@@ -13,7 +13,7 @@ Compute the upstream flux from reconstructed values, based on the sign of the tr
 
 # Returns
 
-  - `::Float64`: Product of `usurf` and the upstream reconstruction.
+  - `::AbstractFloat`: Product of `usurf` and the upstream reconstruction.
 """
 function compute_flux(
     usurf::AbstractFloat,

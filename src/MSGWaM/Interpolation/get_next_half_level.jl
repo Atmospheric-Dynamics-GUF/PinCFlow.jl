@@ -26,7 +26,7 @@ This method is heavily used for interpolation to ray-volume positions. To ensure
 
 # Returns
 
-  - `::Int`: Index of the next half-level.
+  - `::Integer`: Index of the next half-level.
 """
 function get_next_half_level(
     i::Integer,

@@ -1,15 +1,30 @@
+"""
+```julia
+IceReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
+```
+"""
 struct IceReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     ntilde::A
     qtilde::A
     qvtilde::A
 end
 
+"""
+```julia
+IceReconstructions(namelists::Namelists, domain::Domain)
+```
+"""
 function IceReconstructions(namelists::Namelists, domain::Domain)
     (; icesetup) = namelists.ice
 
     return IceReconstructions(domain, icesetup)
 end
 
+"""
+```julia
+IceReconstructions(domain::Domain, icesetup::NoIce)
+```
+"""
 function IceReconstructions(domain::Domain, icesetup::NoIce)
     ntilde = zeros(0, 0, 0, 0, 0)
     qtilde = zeros(0, 0, 0, 0, 0)
@@ -18,6 +33,11 @@ function IceReconstructions(domain::Domain, icesetup::NoIce)
     return IceReconstructions(ntilde, qtilde, qvtilde)
 end
 
+"""
+```julia
+IceReconstructions(domain::Domain, icesetup::AbstractIce)
+```
+"""
 function IceReconstructions(domain::Domain, icesetup::AbstractIce)
     (; nxx, nyy, nzz) = domain
 

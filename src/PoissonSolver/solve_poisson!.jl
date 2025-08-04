@@ -10,30 +10,34 @@ solve_poisson!(
 )
 ```
 
-Solve the Poisson equation for pressure correction in the atmospheric flow solver.
+Solve the Poisson equation.
 
-This function performs the core pressure correction step by solving the discretized
-Poisson equation using BiCGStab iterative method. The solution is scaled appropriately
-for different equation models (Boussinesq, PseudoIncompressible, Compressible).
+Given a right-hand side and reference tolerance, this method computes the elements of the linear operator and solves the Poisson equation, using a preconditioned BicGStab algorithm. Both the Exner-pressure differences and the entire equation are scaled with ``\\sqrt{\\overline{\\rho}} / P`` in advance (the right-hand side has already been scaled at this point), so that the equation
+
+```math
+\\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{LHS} \\left(\\frac{\\sqrt{\\overline{\\rho}}}{P} s\\right) = \\frac{\\sqrt{\\overline{\\rho}}}{P} \\mathrm{RHS}
+```
+
+is solved for ``s``. The Exner-pressure differnces are then given by ``\\Delta \\pi = \\left(\\sqrt{\\overline{\\rho}} / P\\right) \\left(s / \\Delta t\\right)``.
 
 # Arguments
 
-  - `state::State`: Complete simulation state containing all field variables and parameters
-  - `b::AbstractArray{<:AbstractFloat, 3}`: Right-hand side of the Poisson equation
-  - `tolref::AbstractFloat`: Reference tolerance for convergence checking
-  - `dt::AbstractFloat`: Time step size
-  - `facray::AbstractFloat`: Rayleigh damping factor for sponge layers
-  - `facprs::AbstractFloat`: Pressure correction factor
+  - `state`: Model state.
+  - `b`: Right-hand side.
+  - `tolref`: Reference tolerance for convergence criterion.
+  - `dt`: Time step.
+  - `facray`: Factor by which the Rayleigh-damping coefficient is multiplied.
+  - `facprs`: Factor by which the Exner-pressure correction is multiplied.
 
 # Returns
 
-  - `(errflagbicg, niterbicg)`: Error flag and number of iterations from BiCGStab solver
+  - `::Bool`: Error flag.
+  - `::Integer`: Number of iterations.
 
-# Notes
+# See also
 
-  - The solution is stored in `state.poisson.solution` and then transferred to pressure correction field
-  - For non-Boussinesq models, the solution is scaled by the compressibility factor
-  - The function will error if `dt = 0.0` to prevent division by zero
+  - [`PinCFlow.PoissonSolver.compute_operator!`](@ref)
+  - [`PinCFlow.PoissonSolver.apply_bicgstab!`](@ref)
 """
 function solve_poisson!(
     state::State,
@@ -66,11 +70,9 @@ function solve_poisson!(
         return (errflagbicg, niterbicg)
     end
 
-    if model != Boussinesq()
-        for k in k0:k1, j in j0:j1, i in i0:i1
-            fcscal = sqrt(pstrattfc[i, j, k]^2 / rhostrattfc[i, j, k])
-            sol[i - i0 + 1, j - j0 + 1, k - k0 + 1] /= fcscal
-        end
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        fcscal = sqrt(pstrattfc[i, j, k]^2 / rhostrattfc[i, j, k])
+        sol[i - i0 + 1, j - j0 + 1, k - k0 + 1] /= fcscal
     end
 
     # Pass solution to pressure correction.

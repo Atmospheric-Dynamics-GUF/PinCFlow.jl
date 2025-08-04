@@ -1,9 +1,39 @@
 """
 ```julia
-Namelists
+Namelists{
+    A <: DomainNamelist,
+    B <: OutputNamelist,
+    C <: SettingNamelist,
+    D <: DiscretizationNamelist,
+    E <: PoissonNamelist,
+    F <: AtmosphereNamelist,
+    G <: GridNamelist,
+    H <: SpongeNamelist,
+    I <: WKBNamelist,
+    J <: TracerNamelist,
+    K <: IceNamelist,
+    L <: TurbulenceNamelist,
+    M <: WavePacketNamelist,
+}
 ```
 
-Represents all configurable parameters for the simulation.
+Collection of all configurable model parameters.
+
+# Fields
+
+  - `domain::A`: Namelist for parameters describing the model domain.
+  - `output::B`: Namelist for I/O parameters.
+  - `setting::C`: Namelist for parameters describing the general model setting.
+  - `discretization::D`: Namelist for parameters describing discretization.
+  - `poisson::E`: Namelist for parameters used by the Poisson solver.
+  - `atmosphere::F`: Namelist for parameters describing the atmospheric background.
+  - `grid::G`: Namelist for parameters describing the grid.
+  - `sponge::H`: Namelist for parameters describing the sponge.
+  - `wkb::I`: Namelist for parameters used by MSGWaM.
+  - `tracer::J`: Namelist for parameters configuring tracer transport.
+  - `ice::K`: Namelist for parameters configuring ice physics.
+  - `turbulence::L`: Namelist for parameters configuring turbulence parameterization.
+  - `wavepacket::M`: Namelist for parameters used for the `WavePacket` test case.
 """
 struct Namelists{
     A <: DomainNamelist,
@@ -38,34 +68,74 @@ end
 """
 ```julia
 Namelists(;
-    domain = DomainNamelist(),
-    output = OutputNamelist(),
-    setting = SettingNamelist(),
-    discretization = DiscretizationNamelist(),
-    poisson = PoissonNamelist(),
-    atmosphere = AtmosphereNamelist(),
-    grid = GridNamelist(),
-    sponge = SpongeNamelist(),
-    wkb = WKBNamelist(),
+    domain::DomainNamelist = DomainNamelist(),
+    output::OutputNamelist = OutputNamelist(),
+    setting::SettingNamelist = SettingNamelist(),
+    discretization::DiscretizationNamelist = DiscretizationNamelist(),
+    poisson::PoissonNamelist = PoissonNamelist(),
+    atmosphere::AtmosphereNamelist = AtmosphereNamelist(),
+    grid::GridNamelist = GridNamelist(),
+    sponge::SpongeNamelist = SpongeNamelist(),
+    wkb::WKBNamelist = WKBNamelist(),
+    tracer::TracerNamelist = TracerNamelist(),
+    ice::IceNamelist = IceNamelist(),
+    turbulence::TurbulenceNamelist = TurbulenceNamelist(),
+    wavepacket::WavePacketNamelist = WavePacketNamelist(),
 )
 ```
 
-Create a new `Namelist` instance with the provided namelists. Omitted namelists will be initialized with default values.
+Construct a `Namelists` instance with the given keyword arguments as properties.
+
+# Arguments
+
+  - `domain`: Namelist for parameters describing the model domain.
+  - `output`: Namelist for I/O parameters.
+  - `setting`: Namelist for parameters describing the general model setting.
+  - `discretization`: Namelist for parameters describing discretization.
+  - `poisson`: Namelist for parameters used by the Poisson solver.
+  - `atmosphere`: Namelist for parameters describing the atmospheric background.
+  - `grid`: Namelist for parameters describing the grid.
+  - `sponge`: Namelist for parameters describing the sponge.
+  - `wkb`: Namelist for parameters used by MSGWaM.
+  - `tracer`: Namelist for parameters configuring tracer transport.
+  - `ice`: Namelist for parameters configuring ice physics.
+  - `turbulence`: Namelist for parameters configuring turbulence parameterization.
+  - `wavepacket`: Namelist for parameters used for the `WavePacket` test case.
+
+# Returns
+
+  - `::Namelists`: `Namelists` instance.
+
+# See also
+
+  - [`PinCFlow.Types.NamelistTypes.DomainNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.OutputNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.SettingNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.DiscretizationNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.PoissonNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.AtmosphereNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.GridNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.SpongeNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.WKBNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.TracerNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.IceNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.TurbulenceNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.WavePacketNamelist`](@ref)
 """
 function Namelists(;
-    domain = DomainNamelist(),
-    output = OutputNamelist(),
-    setting = SettingNamelist(),
-    discretization = DiscretizationNamelist(),
-    poisson = PoissonNamelist(),
-    atmosphere = AtmosphereNamelist(),
-    grid = GridNamelist(),
-    sponge = SpongeNamelist(),
-    wkb = WKBNamelist(),
-    tracer = TracerNamelist(),
-    ice = IceNamelist(),
-    turbulence = TurbulenceNamelist(),
-    wavepacket = WavePacketNamelist(),
+    domain::DomainNamelist = DomainNamelist(),
+    output::OutputNamelist = OutputNamelist(),
+    setting::SettingNamelist = SettingNamelist(),
+    discretization::DiscretizationNamelist = DiscretizationNamelist(),
+    poisson::PoissonNamelist = PoissonNamelist(),
+    atmosphere::AtmosphereNamelist = AtmosphereNamelist(),
+    grid::GridNamelist = GridNamelist(),
+    sponge::SpongeNamelist = SpongeNamelist(),
+    wkb::WKBNamelist = WKBNamelist(),
+    tracer::TracerNamelist = TracerNamelist(),
+    ice::IceNamelist = IceNamelist(),
+    turbulence::TurbulenceNamelist = TurbulenceNamelist(),
+    wavepacket::WavePacketNamelist = WavePacketNamelist(),
 )
     return Namelists(
         domain,

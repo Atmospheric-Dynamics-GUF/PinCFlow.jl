@@ -1,3 +1,8 @@
+"""
+```julia
+IceTypes
+```
+"""
 module IceTypes
 
 using ..NamelistTypes

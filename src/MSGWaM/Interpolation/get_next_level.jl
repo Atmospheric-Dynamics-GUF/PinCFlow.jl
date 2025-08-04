@@ -26,7 +26,7 @@ This method is heavily used for interpolation to ray-volume positions. To ensure
 
 # Returns
 
-  - `::Int`: Index of the next level.
+  - `::Integer`: Index of the next level.
 """
 function get_next_level(
     i::Integer,

@@ -1,3 +1,14 @@
+"""
+```julia
+Tracer{
+    A <: TracerPredictands,
+    B <: TracerTendencies,
+    C <: TracerAuxiliaries,
+    D <: TracerReconstructions,
+    E <: TracerFluxes,
+}
+```
+"""
 struct Tracer{
     A <: TracerPredictands,
     B <: TracerTendencies,
@@ -12,6 +23,18 @@ struct Tracer{
     tracerfluxes::E
 end
 
+"""
+```julia
+Tracer(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    variables::Variables,
+)
+```
+"""
 function Tracer(
     namelists::Namelists,
     constants::Constants,
